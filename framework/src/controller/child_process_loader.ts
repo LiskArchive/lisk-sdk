@@ -33,7 +33,7 @@ const _loadPlugin = async (
 	pluginOptions: PluginOptionsWithApplicationConfig,
 ): Promise<void> => {
 	const pluginAlias = Klass.name;
-	plugin = new Klass(pluginOptions);
+	plugin = new Klass();
 
 	channel = new IPCChannel(pluginAlias, plugin.events, plugin.actions, {
 		socketsPath: config.socketsPath,

@@ -75,12 +75,10 @@ interface BlockAssetJSON {
 	readonly maxHeightPrevoted: number;
 }
 
-type ExtractPluginOptions<P> = P extends BasePlugin<infer T> ? T : PluginOptionsWithApplicationConfig;
+// type ExtractPluginOptions<P> = P extends BasePlugin<infer T> ? T : PluginOptionsWithApplicationConfig;
 
 export interface InstantiablePlugin<T extends BasePlugin = BasePlugin> {
-	name: string
-	nodeModulePath?: string;
-	new (args: ExtractPluginOptions<T>): T;
+	new (): T;
 }
 
 const decodeTransactionToJSON = (
@@ -193,7 +191,7 @@ interface PluginInitContext {
 	channel: BaseChannel;
 	options: {
 	  readonly dataPath: string;
-	  appConfig: ApplicationConfig;
+	  appConfig: Omit<ApplicationConfig, 'plugins'>;
 	},
   }
 
@@ -205,7 +203,6 @@ export abstract class BasePlugin<
 
 	public codec!: PluginCodec;
 	protected _logger!: Logger;
-	public abstract get name(): string;
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(context: PluginInitContext): Promise<void> {
@@ -215,14 +212,16 @@ export abstract class BasePlugin<
 					{},
 					(this.configSchema as SchemaWithDefault).default ?? {},
 					context.options,
+					context.config,
 				) as T;
 	
 				const errors = validator.validate(this.configSchema, this.options);
+				
 				if (errors.length) {
 					throw new LiskValidationError([...errors]);
 				}
 			} else {
-				this.options = objects.cloneDeep(context.options) as unknown as T;
+				this.options = objects.mergeDeep({}, context.options, context.config) as T;
 			}
 	
 			this.codec = {
@@ -281,6 +280,7 @@ export abstract class BasePlugin<
 	public abstract get nodeModulePath(): string;
 	public abstract get events(): EventsDefinition;
 	public abstract get actions(): ActionsDefinition;
+	public abstract get name(): string;
 
 	public abstract load(channel: BaseChannel): Promise<void>;
 	public abstract unload(): Promise<void>;
@@ -295,21 +295,23 @@ export const getPluginExportPath = (
 	let nodeModule: Record<string, unknown> | undefined;
 	let nodeModulePath: string | undefined;
 
+	const pluginInstance = new pluginKlass();
+
 	try {
 		// Check if plugin name is an npm package
 		// eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-		nodeModule = require(pluginKlass.name);
-		nodeModulePath = pluginKlass.name;
+		nodeModule = require(pluginInstance.name);
+		nodeModulePath = pluginInstance.name;
 	} catch (error) {
 		/* Plugin pluginKlass.name is not an npm package */
 	}
 
-	if (!nodeModule && pluginKlass.nodeModulePath) {
+	if (!nodeModule && pluginInstance.nodeModulePath) {
 		try {
 			// Check if plugin nodeModulePath is an npm package
 			// eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-			nodeModule = require(pluginKlass.nodeModulePath);
-			nodeModulePath = pluginKlass.nodeModulePath;
+			nodeModule = require(pluginInstance.nodeModulePath);
+			nodeModulePath = pluginInstance.nodeModulePath;
 		} catch (error) {
 			/* Plugin nodeModulePath is not an npm package */
 		}
@@ -329,21 +331,19 @@ export const getPluginExportPath = (
 };
 
 export const validatePluginSpec = (
-	PluginKlass: InstantiablePlugin,
-	options: Record<string, unknown> = {},
+	PluginObject: BasePlugin,
 ): void => {
-	const pluginObject = new PluginKlass(options as PluginOptionsWithApplicationConfig);
 
-	assert(PluginKlass.name, 'Plugin name is required.');
-	assert(pluginObject.events, 'Plugin events are required.');
-	assert(pluginObject.actions, 'Plugin actions are required.');
+	assert(PluginObject.name, 'Plugin name is required.');
+	assert(PluginObject.events, 'Plugin events are required.');
+	assert(PluginObject.actions, 'Plugin actions are required.');
 	// eslint-disable-next-line @typescript-eslint/unbound-method
-	assert(pluginObject.load, 'Plugin load action is required.');
+	assert(PluginObject.load, 'Plugin load action is required.');
 	// eslint-disable-next-line @typescript-eslint/unbound-method
-	assert(pluginObject.unload, 'Plugin unload actions is required.');
+	assert(PluginObject.unload, 'Plugin unload actions is required.');
 
-	if (pluginObject.configSchema) {
-		const errors = validator.validateSchema(pluginObject.configSchema);
+	if (PluginObject.configSchema) {
+		const errors = validator.validateSchema(PluginObject.configSchema);
 		if (errors.length) {
 			throw new LiskValidationError([...errors]);
 		}

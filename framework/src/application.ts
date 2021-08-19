@@ -189,18 +189,18 @@ export class Application {
 	): void {
 		assert(pluginKlass, 'Plugin implementation is required');
 		assert(typeof options === 'object', 'Plugin options must be provided or set to empty object.');
-
-		const pluginAlias = options?.alias ?? pluginKlass.name;
+		const pluginObject = new pluginKlass();
+		const pluginAlias = options?.alias ?? pluginObject.name;
 
 		assert(
 			!Object.keys(this._plugins).includes(pluginAlias),
-			`A plugin with alias "${pluginAlias}" already registered.`,
+			`A plugin with name "${pluginAlias}" already registered.`,
 		);
 
 		if (options.loadAsChildProcess) {
 			if (!getPluginExportPath(pluginKlass)) {
 				throw new Error(
-					`Unable to register plugin "${pluginAlias}" to load as child process. \n -> To load plugin as child process it must be exported. \n -> You can specify npm package as "info.name". \n -> Or you can specify any static path as "info.exportPath". \n -> To fix this issue you can simply assign __filename to info.exportPath in your plugin.`,
+					`Unable to register plugin "${pluginAlias}" to load as child process. \n -> To load plugin as child process it must be exported. \n -> You can specify npm package as "name". \n -> Or you can specify any static path as "nodeModulePath". \n -> To fix this issue you can simply assign __filename to nodeModulePath in your plugin.`,
 				);
 			}
 		}
@@ -210,7 +210,7 @@ export class Application {
 			options,
 		);
 
-		validatePluginSpec(pluginKlass, this.config.plugins[pluginAlias]);
+		validatePluginSpec(pluginObject);
 
 		this._plugins[pluginAlias] = pluginKlass;
 	}

@@ -29,12 +29,10 @@ import { InMemoryChannel } from '../../../src/controller/channels';
 import * as basePluginModule from '../../../src/plugins/base_plugin';
 
 const createMockPlugin = ({
-	alias,
 	initStub,
 	loadStub,
 	unloadStub,
 }: {
-	alias: string;
 	initStub?: any;
 	loadStub?: any;
 	unloadStub?: any;
@@ -43,12 +41,10 @@ const createMockPlugin = ({
 		this.load = loadStub ?? jest.fn();
 		this.init = initStub ?? jest.fn();
 		this.unload = unloadStub ?? jest.fn();
-		this.defaults = {};
+		this.configSchema = {};
 		this.events = [];
 		this.actions = {};
 	}
-
-	Plugin.name = alias ?? 'dummy';
 
 	return (Plugin as unknown) as typeof BasePlugin;
 };
@@ -178,8 +174,8 @@ describe('Controller Class', () => {
 		let Plugin2: any;
 
 		beforeEach(async () => {
-			Plugin1 = createMockPlugin({ alias: 'plugin1' });
-			Plugin2 = createMockPlugin({ alias: 'plugin2' });
+			Plugin1 = createMockPlugin({});
+			Plugin2 = createMockPlugin({});
 
 			plugins = {
 				plugin1: Plugin1,
@@ -212,8 +208,8 @@ describe('Controller Class', () => {
 				await controller.loadPlugins(plugins, pluginOptions);
 
 				// Assert
-				expect(loggerMock.info).toHaveBeenCalledWith( Plugin1.name,'Loading in-memory plugin',);
-				expect(loggerMock.info).toHaveBeenCalledWith( Plugin2.name,'Loading in-memory plugin',);
+				expect(loggerMock.info).toHaveBeenCalledWith( 'plugin1','Loading in-memory plugin',);
+				expect(loggerMock.info).toHaveBeenCalledWith( 'plugin2','Loading in-memory plugin',);
 			});
 
 			it('should create instance of in-memory channel', async () => {
@@ -254,8 +250,8 @@ describe('Controller Class', () => {
 			it('should call `plugin.init` method', async () => {
 				// Arrange
 				const initMock = jest.fn();
-				plugins.plugin1 = createMockPlugin({ alias: 'plugin1', initStub: initMock });
-				plugins.plugin2 = createMockPlugin({ alias: 'plugin2', initStub: initMock });
+				plugins.plugin1 = createMockPlugin({ initStub: initMock });
+				plugins.plugin2 = createMockPlugin({ initStub: initMock });
 
 				// Act
 				await controller.loadPlugins(plugins, pluginOptions);
@@ -267,8 +263,8 @@ describe('Controller Class', () => {
 			it('should call `plugin.load` method', async () => {
 				// Arrange
 				const loadMock = jest.fn();
-				plugins.plugin1 = createMockPlugin({ alias: 'plugin1', loadStub: loadMock });
-				plugins.plugin2 = createMockPlugin({ alias: 'plugin2', loadStub: loadMock });
+				plugins.plugin1 = createMockPlugin({ loadStub: loadMock });
+				plugins.plugin2 = createMockPlugin({ loadStub: loadMock });
 
 				// Act
 				await controller.loadPlugins(plugins, pluginOptions);
@@ -337,8 +333,8 @@ describe('Controller Class', () => {
 				await controller.loadPlugins(plugins, pluginOptions);
 
 				// Assert
-				expect(loggerMock.info).toHaveBeenCalledWith( Plugin1.info.name,'Loading child-process plugin',);
-				expect(loggerMock.info).toHaveBeenCalledWith( Plugin2.name,'Loading child-process plugin',);
+				expect(loggerMock.info).toHaveBeenCalledWith( 'plugin1','Loading child-process plugin',);
+				expect(loggerMock.info).toHaveBeenCalledWith( 'plugin2','Loading child-process plugin',);
 			});
 
 			it('should load child process with childProcess.fork', async () => {
@@ -402,12 +398,10 @@ describe('Controller Class', () => {
 
 			plugins = {
 				plugin1: createMockPlugin({
-					alias: 'plugin1',
 					loadStub: loadStubs.plugin1,
 					unloadStub: unloadStubs.plugin1,
 				}),
 				plugin2: createMockPlugin({
-					alias: 'plugin2',
 					loadStub: loadStubs.plugin2,
 					unloadStub: unloadStubs.plugin2,
 				}),

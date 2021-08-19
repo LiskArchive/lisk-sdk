@@ -97,7 +97,7 @@ export class Controller {
 			const klass = plugins[name];
 			const options = pluginOptions[name];
 
-			if (options.loadAsChildProcess && this.config.rpc.enable) {
+			if (options.loadAsChildProcess ) {
 				await this._loadChildProcessPlugin(name, klass, options);
 			} else {
 				await this._loadInMemoryPlugin(name, klass, options);
@@ -177,7 +177,7 @@ export class Controller {
 	): Promise<void> {
 		const pluginAlias = name || Klass.name;
 
-		const plugin: BasePlugin = new Klass(options);
+		const plugin: BasePlugin = new Klass();
 
 		this.logger.info(name, 'Loading in-memory plugin');
 
@@ -188,7 +188,10 @@ export class Controller {
 		channel.publish(`${pluginAlias}:registeredToBus`);
 		channel.publish(`${pluginAlias}:loading:started`);
 
-		const context = { options, channel, config: {}};
+		const { plugins, ...appConfigForPlugin } = options.appConfig;
+		const config = plugins[name];
+		const pluginOptions = { ...options, ...appConfigForPlugin };
+		const context = { options: pluginOptions, channel, config};
 
 		await plugin.init(context);
 		await plugin.load(channel);

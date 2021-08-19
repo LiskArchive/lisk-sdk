@@ -12,8 +12,41 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { BaseChannel, GenesisConfig } from '../../../../../framework/dist-node';
 import { FaucetPlugin } from '../../../src/plugin';
 import { config } from '../../../src/plugin/defaults';
+
+const appConfigForPlugin = {
+	rootPath: '/my/path',
+	label: 'my-app',
+	logger: { consoleLogLevel: 'debug', fileLogLevel: '123', logFileName: 'plugin1.log' },
+	rpc: {
+		enable: false,
+		mode: 'ipc' as const,
+		port: 8080,
+		host: '127.0.0.1',
+	},
+	forging: {
+		force: false,
+		waitThreshold: 2,
+		delegates: [],
+	},
+	network: {
+		seedPeers: [],
+		port: 5000,
+	},
+	transactionPool: {
+		maxTransactions: 4096,
+		maxTransactionsPerAccount: 64,
+		transactionExpiryTime: 3 * 60 * 60 * 1000,
+		minEntranceFeePriority: '0',
+		minReplacementFeeDifference: '10',
+	},
+	plugins: {},
+	version: '',
+	networkVersion: '',
+	genesisConfig: {} as GenesisConfig,
+};
 
 const validPluginOptions = {
 	...config.default,
@@ -24,12 +57,18 @@ const validPluginOptions = {
 	dataPath: '/my/app',
 };
 
+const channelMock = {
+	invoke: jest.fn(),
+	once: jest.fn().mockImplementation((_eventName, cb) => cb()),
+};
+
 describe('auth action', () => {
 	let faucetPlugin: FaucetPlugin;
 	let authorizeAction: any;
 
-	beforeEach(() => {
-		faucetPlugin = new FaucetPlugin(validPluginOptions as never);
+	beforeEach(async () => {
+		faucetPlugin = new FaucetPlugin();
+		await faucetPlugin.init({ config: validPluginOptions, channel: (channelMock as unknown) as BaseChannel, options: { dataPath: '', appConfig: appConfigForPlugin } });
 		(faucetPlugin as any)._options = {
 			encryptedPassphrase:
 				'iterations=1000000&cipherText=a31a3324ce12664a396329&iv=b476ef9d377397f4f9b0c1ae&salt=d81787ca5103be883a01d211746b1c3f&tag=e352880bb05a03bafc98af48b924fbf9&version=1',

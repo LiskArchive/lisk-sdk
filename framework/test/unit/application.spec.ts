@@ -37,20 +37,11 @@ jest.mock('../../src/logger');
 
 class TestPlugin extends BasePlugin {
 	public get nodeModulePath(): string {
-		throw new Error('Method not implemented.');
+		return __filename;
 	}
-	public name!: string;
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get alias() {
+	public get name() {
 		return 'test-plugin';
-	}
-
-	public static get info() {
-		return {
-			name: '@lisk/test-plugin',
-			author: 'Nazar',
-			version: '1.0.0',
-		};
 	}
 
 	public get events() {
@@ -461,7 +452,7 @@ describe('Application', () => {
 			expect(() => (app as any).registerPlugin()).toThrow('Plugin implementation is required');
 		});
 
-		it('should throw error when plugin alias is missing', () => {
+		it('should throw error when plugin with same name is already registered', () => {
 			// Arrange
 			const app = Application.defaultApplication(genesisBlockJSON, config);
 			class MyPlugin extends TestPlugin {
@@ -469,24 +460,7 @@ describe('Application', () => {
 					throw new Error('Method not implemented.');
 				}
 				// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-				public static get alias() {
-					return '';
-				}
-			}
-
-			// Act && Assert
-			expect(() => (app as any).registerPlugin(MyPlugin)).toThrow('Plugin alias is required.');
-		});
-
-		it('should throw error when plugin with same alias is already registered', () => {
-			// Arrange
-			const app = Application.defaultApplication(genesisBlockJSON, config);
-			class MyPlugin extends TestPlugin {
-				public get nodeModulePath(): string {
-					throw new Error('Method not implemented.');
-				}
-				// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-				public static get alias() {
+				public get name() {
 					return 'my-plugin';
 				}
 			}
@@ -494,7 +468,7 @@ describe('Application', () => {
 
 			// Act && Assert
 			expect(() => (app as any).registerPlugin(MyPlugin)).toThrow(
-				'A plugin with alias "my-plugin" already registered.',
+				'A plugin with name "my-plugin" already registered.',
 			);
 		});
 
@@ -508,9 +482,6 @@ describe('Application', () => {
 
 			// Assert
 			expect(basePluginModule.validatePluginSpec).toHaveBeenCalledTimes(1);
-			expect(basePluginModule.validatePluginSpec).toHaveBeenCalledWith(TestPlugin, {
-				loadAsChildProcess: false,
-			});
 		});
 
 		it('should throw error when plugin is required to load as child process and not exported', () => {
@@ -520,7 +491,7 @@ describe('Application', () => {
 
 			// Act && Assert
 			expect(() => (app as any).registerPlugin(TestPlugin, { loadAsChildProcess: true })).toThrow(
-				'Unable to register plugin "test-plugin" to load as child process. \n -> To load plugin as child process it must be exported. \n -> You can specify npm package as "info.name". \n -> Or you can specify any static path as "info.exportPath". \n -> To fix this issue you can simply assign __filename to info.exportPath in your plugin.',
+				'Unable to register plugin "test-plugin" to load as child process. \n -> To load plugin as child process it must be exported. \n -> You can specify npm package as "name". \n -> Or you can specify any static path as "nodeModulePath". \n -> To fix this issue you can simply assign __filename to nodeModulePath in your plugin.',
 			);
 			expect(basePluginModule.getPluginExportPath).toHaveBeenCalledTimes(1);
 			expect(basePluginModule.getPluginExportPath).toHaveBeenCalledWith(TestPlugin);
@@ -535,7 +506,7 @@ describe('Application', () => {
 			expect(app['_plugins']['test-plugin']).toBe(TestPlugin);
 		});
 
-		it('should add plugin to the collection with custom alias', () => {
+		it('should add plugin to the collection with custom name', () => {
 			// Arrange
 			const app = Application.defaultApplication(genesisBlockJSON, config);
 			(app as any).registerPlugin(TestPlugin, { alias: 'my-custom-plugin' });
@@ -617,10 +588,10 @@ describe('Application', () => {
 		it('should compile config and load plugins', () => {
 			// Arrange
 			const plugins = {
-				[TestPlugin.alias]: TestPlugin,
+				['test-plugin']: TestPlugin,
 			};
 			const pluginsOptions = {
-				[TestPlugin.alias]: {
+				['test-plugin']: {
 					loadAsChildProcess: false,
 					dataPath: dirs.dataPath,
 					appConfig: {
@@ -632,7 +603,13 @@ describe('Application', () => {
 						logger: {
 							consoleLogLevel: app.config.logger.consoleLogLevel,
 							fileLogLevel: app.config.logger.fileLogLevel,
+							logFileName: app.config.logger.logFileName,
 						},
+						network: app.config.network,
+						plugins: app.config.plugins,
+						rpc: app.config.rpc,
+						transactionPool: app.config.transactionPool,
+						forging: app.config.forging,
 					},
 				},
 			};

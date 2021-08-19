@@ -51,7 +51,7 @@ const appConfigForPlugin = {
 
 class MyPlugin extends BasePlugin {
 	public get nodeModulePath(): string {
-		throw new Error('Method not implemented.');
+		return '';
 	}
 
 	public get name() {
@@ -157,13 +157,13 @@ describe('base_plugin', () => {
 			jest.clearAllMocks();
 		});
 
-		it('should return undefined if info.name is not an npm package and info.exportPath is not defined', () => {
+		it('should return undefined if name is not an npm package and nodeModulePath is not defined', () => {
 			expect(getPluginExportPath(MyPlugin)).toBeUndefined();
 		});
 
-		it('should return info.name if its a valid npm package', () => {
+		it('should return name if its a valid npm package', () => {
 			jest.mock(
-				MyPlugin.name,
+				"my_plugin",
 				() => {
 					return {
 						MyPlugin,
@@ -171,14 +171,15 @@ describe('base_plugin', () => {
 				},
 				{ virtual: true },
 			);
+			
 
-			expect(getPluginExportPath(MyPlugin)).toEqual(MyPlugin.name);
+			expect(getPluginExportPath(MyPlugin)).toEqual('my_plugin');
 		});
 
 		it('should return undefined if exported class is not the same from npm package', () => {
-			class MyPlugin2 extends MyPlugin {}
+			class MyPlugin2 extends MyPlugin { }
 			jest.mock(
-				MyPlugin.name,
+				"my_plugin",
 				() => {
 					return {
 						MyPlugin: MyPlugin2,
