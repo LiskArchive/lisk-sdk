@@ -14,6 +14,7 @@
 
 import { LiskValidationError } from '@liskhq/lisk-validator';
 import { EventEmitter2, ListenerFn } from 'eventemitter2';
+import { Dealer } from 'zeromq';
 import { RPC_MODES } from '../constants';
 import { Logger } from '../logger';
 import { ActionInfoForBus, RPCConfig, ChannelType } from '../types';
@@ -33,10 +34,12 @@ interface BusConfiguration {
 interface RegisterChannelOptions {
 	readonly type: string;
 	readonly channel: BaseChannel;
+	readonly socketPath?: string;
 }
 
 interface ChannelInfo {
 	readonly channel?: BaseChannel;
+	readonly rpcClient?: Dealer;
 	readonly actions: {
 		[key: string]: ActionInfoForBus;
 	};
@@ -65,6 +68,7 @@ export class Bus {
 	private readonly channels: {
 		[key: string]: ChannelInfo;
 	};
+	private readonly rpcClients: { [key: string]: Dealer };
 	private readonly _ipcServer!: IPCServer;
 	private readonly _rpcRequestIds: Set<string>;
 	private readonly _emitter: EventEmitter2;
@@ -86,11 +90,12 @@ export class Bus {
 		this.actions = {};
 		this.events = {};
 		this.channels = {};
+		this.rpcClients = {};
 		this._rpcRequestIds = new Set();
 
-		if (this.config.rpc.modes.includes(RPC_MODES.IPC) && this.config.rpc.ipc) {
-			this._ipcServer = new IPCServer({
-				socketsDir: this.config.rpc.ipc.path,
+		if (this.config.rpc.modes.includes(RPC_MODES.IPC)) {
+		this._ipcServer = new IPCServer({
+				socketsDir: (this.config.rpc as any).ipc.path,
 				name: 'bus',
 			});
 		}
@@ -113,9 +118,19 @@ export class Bus {
 		}
 	}
 
+	// Handle RPC requests responses coming back from different ipcServers on rpcClient
+	private _listenToRPCResponse = async (rpcClient: Dealer) => {
+		for await (const [requestId, result] of rpcClient) {
+		if (this._rpcRequestIds.has(requestId.toString())) {
+				this._emitter.emit(requestId.toString(), JSON.parse(result.toString()));
+				continue;
+			}
+		}
+	}
+
 	public async setup(): Promise<boolean> {
 		if (this.config.rpc.modes.includes(RPC_MODES.IPC)) {
-			await this._setupIPCServer();
+		await this._setupIPCServer();
 		}
 		if (this.config.rpc.modes.includes(RPC_MODES.WS)) {
 			await this._setupWSServer();
@@ -128,13 +143,13 @@ export class Bus {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public registerChannel(
+	public async registerChannel(
 		moduleAlias: string,
 		// Events should also include the module alias
 		events: EventsDefinition,
 		actions: { [key: string]: Action },
 		options: RegisterChannelOptions,
-	): void {
+	): Promise<void> {
 		events.forEach(eventName => {
 			if (this.events[`${moduleAlias}:${eventName}`] !== undefined) {
 				throw new Error(`Event "${eventName}" already registered with bus.`);
@@ -150,8 +165,14 @@ export class Bus {
 			this.actions[`${moduleAlias}:${actionName}`] = actions[actionName];
 		});
 
-		if (options.type === ChannelType.ChildProcess) {
+		if (options.type === ChannelType.ChildProcess && options.socketPath) {
+			const rpcClient = new Dealer();
+			rpcClient.connect(options.socketPath);
+			this.rpcClients[moduleAlias] = rpcClient;
+			this._listenToRPCResponse(rpcClient);
+
 			this.channels[moduleAlias] = {
+				rpcClient,
 				events,
 				actions,
 				type: ChannelType.ChildProcess,
@@ -235,7 +256,7 @@ export class Bus {
 
 		return new Promise(resolve => {
 			this._rpcRequestIds.add(action.id as string);
-			this._ipcServer.pubSocket
+			(channelInfo.rpcClient as Dealer)
 				.send([IPC_RPC_EVENT, JSON.stringify(action.toJSONRPCRequest())])
 				.then(_ => {
 					// Listen to this event once for serving the request
@@ -370,32 +391,33 @@ export class Bus {
 	private async _setupIPCServer(): Promise<void> {
 		await this._ipcServer.start();
 
-		const listenToRPCOnSubSocket = async () => {
-			for await (const [event, eventData] of this._ipcServer.subSocket) {
-				if (event.toString() === IPC_REGISTER_CHANNEL_EVENT) {
-					const { moduleAlias, eventsList, actionsInfo, options } = JSON.parse(
-						eventData.toString(),
-					);
-					this.registerChannel(moduleAlias, eventsList, actionsInfo, options);
-					continue;
-				}
-				if (event.toString() === IPC_RPC_EVENT) {
-					const request = JSON.parse(eventData.toString()) as JSONRPC.RequestObject;
-					this.invoke(request).then(result => {
-						// Send the request result
-						this._ipcServer.pubSocket.send([request.id as string, JSON.stringify(result)]);
-					});
-					continue;
-				}
-				if (this._rpcRequestIds.has(event.toString())) {
-					// Emit locally the result for a request sent over ipc
-					this._emitter.emit(event.toString(), JSON.parse(eventData.toString()));
-					continue;
-				}
+		const listenToEvents= async () => {
+			for await (const [_event, eventData] of this._ipcServer.subSocket) {
 				this.publish(eventData.toString());
 			}
 		};
-		listenToRPCOnSubSocket();
+		listenToEvents();
+
+		const listenToRPC = async () => {
+			for await (const [sender, request, params] of this._ipcServer.rpcServer) {
+				if (request.toString() === IPC_REGISTER_CHANNEL_EVENT) {
+					const { moduleAlias, eventsList, actionsInfo, options } = JSON.parse(
+						params.toString(),
+					);
+					await this.registerChannel(moduleAlias, eventsList, actionsInfo, options);
+					continue;
+				}
+				if (request.toString() === IPC_RPC_EVENT) {
+					const requestData = JSON.parse(params.toString()) as JSONRPC.RequestObject;
+					this.invoke(requestData).then(result => {
+						// Send back result RPC request for a given requestId
+						this._ipcServer.rpcServer.send([sender, requestData.id as string, JSON.stringify(result)]);
+					});
+					continue;
+				}
+			}
+		}
+		listenToRPC();
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
