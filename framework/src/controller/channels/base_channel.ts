@@ -25,6 +25,7 @@ export abstract class BaseChannel {
 	public readonly eventsList: ReadonlyArray<string>;
 	public readonly actionsList: ReadonlyArray<string>;
 	public readonly moduleAlias: string;
+	private _requestId: number;
 
 	protected readonly actions: { [key: string]: Action };
 	protected readonly options: Record<string, unknown>;
@@ -41,6 +42,7 @@ export abstract class BaseChannel {
 		this.eventsList = options.skipInternalEvents ? events : [...events, ...INTERNAL_EVENTS];
 
 		this.actions = {};
+		this._requestId = 0;
 		for (const actionName of Object.keys(actions)) {
 			const actionData = actions[actionName];
 
@@ -49,6 +51,11 @@ export abstract class BaseChannel {
 			this.actions[actionName] = new Action(null, method, undefined, handler);
 		}
 		this.actionsList = Object.keys(this.actions);
+	}
+
+	protected _getNextRequestId(): string {
+		this._requestId += 1;
+		return this._requestId.toString();
 	}
 
 	public isValidEventName(name: string, throwError = true): boolean | never {
