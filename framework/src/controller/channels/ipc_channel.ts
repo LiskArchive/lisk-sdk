@@ -88,7 +88,7 @@ export class IPCChannel extends BaseChannel {
 					continue;
 				}
 			}
-		}
+		};
 		listenToRPC();
 
 		// Handle RPC requests responses coming back from Bus on rpc client
@@ -99,7 +99,7 @@ export class IPCChannel extends BaseChannel {
 					continue;
 				}
 			}
-		}
+		};
 		listenToRPCResponse();
 	}
 

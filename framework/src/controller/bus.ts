@@ -94,7 +94,7 @@ export class Bus {
 		this._rpcRequestIds = new Set();
 
 		if (this.config.rpc.modes.includes(RPC_MODES.IPC)) {
-		this._ipcServer = new IPCServer({
+			this._ipcServer = new IPCServer({
 				socketsDir: (this.config.rpc as any).ipc.path,
 				name: 'bus',
 			});
@@ -121,16 +121,16 @@ export class Bus {
 	// Handle RPC requests responses coming back from different ipcServers on rpcClient
 	private _listenToRPCResponse = async (rpcClient: Dealer) => {
 		for await (const [requestId, result] of rpcClient) {
-		if (this._rpcRequestIds.has(requestId.toString())) {
+			if (this._rpcRequestIds.has(requestId.toString())) {
 				this._emitter.emit(requestId.toString(), JSON.parse(result.toString()));
 				continue;
 			}
 		}
-	}
+	};
 
 	public async setup(): Promise<boolean> {
 		if (this.config.rpc.modes.includes(RPC_MODES.IPC)) {
-		await this._setupIPCServer();
+			await this._setupIPCServer();
 		}
 		if (this.config.rpc.modes.includes(RPC_MODES.WS)) {
 			await this._setupWSServer();
@@ -391,7 +391,7 @@ export class Bus {
 	private async _setupIPCServer(): Promise<void> {
 		await this._ipcServer.start();
 
-		const listenToEvents= async () => {
+		const listenToEvents = async () => {
 			for await (const [_event, eventData] of this._ipcServer.subSocket) {
 				this.publish(eventData.toString());
 			}
@@ -401,9 +401,7 @@ export class Bus {
 		const listenToRPC = async () => {
 			for await (const [sender, request, params] of this._ipcServer.rpcServer) {
 				if (request.toString() === IPC_REGISTER_CHANNEL_EVENT) {
-					const { moduleAlias, eventsList, actionsInfo, options } = JSON.parse(
-						params.toString(),
-					);
+					const { moduleAlias, eventsList, actionsInfo, options } = JSON.parse(params.toString());
 					await this.registerChannel(moduleAlias, eventsList, actionsInfo, options);
 					continue;
 				}
@@ -411,12 +409,16 @@ export class Bus {
 					const requestData = JSON.parse(params.toString()) as JSONRPC.RequestObject;
 					this.invoke(requestData).then(result => {
 						// Send back result RPC request for a given requestId
-						this._ipcServer.rpcServer.send([sender, requestData.id as string, JSON.stringify(result)]);
+						this._ipcServer.rpcServer.send([
+							sender,
+							requestData.id as string,
+							JSON.stringify(result),
+						]);
 					});
 					continue;
 				}
 			}
-		}
+		};
 		listenToRPC();
 	}
 

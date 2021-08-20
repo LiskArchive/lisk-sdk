@@ -23,11 +23,11 @@ interface SocketPaths {
 	readonly rpcClient: string;
 }
 export class IPCClient extends IPCSocket {
-	private _rpcClient: Dealer;
 	protected readonly _clientRPCSocketPath: string;
-	private readonly _socketPaths: SocketPaths
+	private readonly _rpcClient: Dealer;
+	private readonly _socketPaths: SocketPaths;
 
-	public constructor(options: { socketsDir: string; name: string; rpcServerSocketPath: string  }) {
+	public constructor(options: { socketsDir: string; name: string; rpcServerSocketPath: string }) {
 		super(options);
 
 		this.pubSocket = new Publisher();
@@ -38,7 +38,7 @@ export class IPCClient extends IPCSocket {
 			sub: this._eventPubSocketPath,
 			rpcServer: this._rpcSeverSocketPath,
 			rpcClient: this._clientRPCSocketPath,
-		}
+		};
 		this._rpcClient = new Dealer();
 	}
 

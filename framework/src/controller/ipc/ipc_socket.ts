@@ -19,10 +19,10 @@ export abstract class IPCSocket {
 	public pubSocket!: Publisher;
 	public subSocket!: Subscriber;
 
-	private readonly _rpcServer: Router;
 	protected readonly _eventPubSocketPath: string;
 	protected readonly _eventSubSocketPath: string;
 	protected readonly _rpcSeverSocketPath: string;
+	private readonly _rpcServer: Router;
 
 	protected constructor(options: { socketsDir: string; name: string }) {
 		this._eventPubSocketPath = `ipc://${join(options.socketsDir, 'internal.pub.ipc')}`;
