@@ -163,7 +163,7 @@ export class Controller {
 
 		await this.bus.setup();
 
-		await this.channel.registerToBus(this.bus);
+		this.channel.registerToBus(this.bus);
 	}
 
 	private async _loadInMemoryPlugin(
@@ -180,7 +180,7 @@ export class Controller {
 
 		const channel = new InMemoryChannel(pluginName, plugin.events, plugin.actions);
 
-		await channel.registerToBus(this.bus);
+		channel.registerToBus(this.bus);
 
 		channel.publish(`${pluginName}:registeredToBus`);
 		channel.publish(`${pluginName}:loading:started`);

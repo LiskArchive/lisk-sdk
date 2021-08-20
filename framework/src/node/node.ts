@@ -259,7 +259,7 @@ export class Node {
 				customModule.events,
 				(customModule.actions as unknown) as ActionsDefinition,
 			);
-			await customModuleChannel.registerToBus(this._bus);
+			customModuleChannel.registerToBus(this._bus);
 			// Give limited access of channel to custom module to publish events
 			customModule.init({
 				channel: {

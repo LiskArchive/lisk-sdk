@@ -47,6 +47,15 @@ interface ChannelInfo {
 	readonly type: ChannelType;
 }
 
+interface RegisterToBusRequestObject {
+	readonly moduleAlias: string;
+	readonly eventsList: ReadonlyArray<string>;
+	readonly actionsInfo: {
+		[key: string]: Action;
+	};
+	readonly options: RegisterChannelOptions;
+}
+
 const parseError = (id: JSONRPC.ID, err: Error | JSONRPC.JSONRPCError): JSONRPC.JSONRPCError => {
 	if (err instanceof JSONRPC.JSONRPCError) {
 		return err;
@@ -144,13 +153,13 @@ export class Bus {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async registerChannel(
+	public registerChannel(
 		moduleAlias: string,
 		// Events should also include the module alias
 		events: EventsDefinition,
 		actions: { [key: string]: Action },
 		options: RegisterChannelOptions,
-	): Promise<void> {
+	): void {
 		events.forEach(eventName => {
 			if (this.events[`${moduleAlias}:${eventName}`] !== undefined) {
 				throw new Error(`Event "${eventName}" already registered with bus.`);
@@ -170,7 +179,11 @@ export class Bus {
 			const rpcClient = new Dealer();
 			rpcClient.connect(options.socketPath);
 			this.rpcClients[moduleAlias] = rpcClient;
-			this._listenToRPCResponse(rpcClient);
+
+			this._listenToRPCResponse(rpcClient)
+				.catch(err => {
+					this.logger.debug(err, 'Error occured while listening to RPC results on RPC Dealer.');
+				});
 
 			this.channels[moduleAlias] = {
 				rpcClient,
@@ -257,8 +270,7 @@ export class Bus {
 
 		return new Promise(resolve => {
 			this._rpcRequestIds.add(action.id as string);
-			(channelInfo.rpcClient as Dealer)
-				.send([IPC_RPC_EVENT, JSON.stringify(action.toJSONRPCRequest())])
+			(channelInfo.rpcClient as Dealer).send([IPC_RPC_EVENT, JSON.stringify(action.toJSONRPCRequest())])
 				.then(_ => {
 					// Listen to this event once for serving the request
 					this._emitter.once(
@@ -268,6 +280,9 @@ export class Bus {
 							return resolve(response);
 						},
 					);
+				})
+				.catch(err =>  {
+					this.logger.debug(err, 'Error occurred while sending RPC request.');
 				});
 		});
 	}
@@ -398,30 +413,45 @@ export class Bus {
 				this.publish(eventData.toString());
 			}
 		};
-		listenToEvents();
+
+		listenToEvents()
+			.catch(err => {
+				this.logger.debug(err, 'Error occured while listening to events on subscriber.');
+			});
 
 		const listenToRPC = async () => {
 			for await (const [sender, request, params] of this._ipcServer.rpcServer) {
 				if (request.toString() === IPC_REGISTER_CHANNEL_EVENT) {
-					const { moduleAlias, eventsList, actionsInfo, options } = JSON.parse(params.toString());
-					await this.registerChannel(moduleAlias, eventsList, actionsInfo, options);
+					const { moduleAlias, eventsList, actionsInfo, options } = JSON.parse(params.toString()) as RegisterToBusRequestObject;
+					this.registerChannel(moduleAlias, eventsList, actionsInfo, options);
 					continue;
 				}
 				if (request.toString() === IPC_RPC_EVENT) {
 					const requestData = JSON.parse(params.toString()) as JSONRPC.RequestObject;
-					this.invoke(requestData).then(result => {
-						// Send back result RPC request for a given requestId
-						this._ipcServer.rpcServer.send([
-							sender,
-							requestData.id as string,
-							JSON.stringify(result),
-						]);
-					});
+					this.invoke(requestData)
+						.then(result => {
+							// Send back result RPC request for a given requestId
+							this._ipcServer.rpcServer.send([
+								sender,
+								requestData.id as string,
+								JSON.stringify(result),
+							]).catch(error => {
+								this.logger.debug(
+									{ err: error as Error },
+									`Failed to send request response: ${requestData.id as string} to ipc client.`,
+								)});
+					})
+					.catch(err => {
+						this.logger.debug(err, 'Error occurred while sending RPC results.');
+					})
 					continue;
 				}
 			}
 		};
-		listenToRPC();
+		listenToRPC()
+			.catch(err => {
+				this.logger.debug(err, 'Error occured while listening to RPCs on RPC router.');
+			});
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

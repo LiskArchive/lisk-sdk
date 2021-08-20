@@ -69,7 +69,10 @@ export class IPCChannel extends BaseChannel {
 				this._emitter.emit(eventDataJSON.key(), eventDataJSON.toJSONRPCNotification());
 			}
 		};
-		listenToMessages();
+		listenToMessages()
+			.catch(error => {
+				throw error;
+			});
 
 		// Handle RPC requests coming from Bus on rpc server
 		const listenToRPC = async (): Promise<void> => {
@@ -79,18 +82,27 @@ export class IPCChannel extends BaseChannel {
 					if (request.module === this.moduleAlias) {
 						this.invoke(request.key(), request.params)
 							.then(result => {
-							this._rpcServer.send([
-								sender,
-								request.id as string,
-								JSON.stringify(request.buildJSONRPCResponse({ result })),
-							]);
-						});
+								this._rpcServer.send([
+									sender,
+									request.id as string,
+									JSON.stringify(request.buildJSONRPCResponse({ result })),
+								])
+								.catch(error => {
+									throw error;
+								});
+							})
+							.catch(error => {
+								throw error;
+							});
 					}
 					continue;
 				}
 			}
 		};
-		listenToRPC();
+		listenToRPC()
+			.catch(error => {
+				throw error;
+			});
 
 		// Handle RPC requests responses coming back from Bus on rpc client
 		const listenToRPCResponse = async (): Promise<void> => {
@@ -101,7 +113,10 @@ export class IPCChannel extends BaseChannel {
 				}
 			}
 		};
-		listenToRPCResponse();
+		listenToRPCResponse()
+			.catch(error => {
+				throw error;
+			});
 	}
 
 	public async registerToBus(): Promise<void> {
@@ -119,7 +134,7 @@ export class IPCChannel extends BaseChannel {
 		const registerObj = {
 			moduleAlias: this.moduleAlias,
 			eventsList: this.eventsList.map((event: string) => event),
-			actionsInfo: actionsInfo,
+			actionsInfo,
 			options: {
 				type: ChannelType.ChildProcess,
 				socketPath: this._ipcClient.socketPaths.rpcServer,
@@ -127,6 +142,9 @@ export class IPCChannel extends BaseChannel {
 		};
 
 		this._rpcClient.send([IPC_REGISTER_CHANNEL_EVENT, JSON.stringify(registerObj)])
+			.catch(error => {
+				throw error;
+			});
 	}
 
 	public subscribe(eventName: string, cb: ListenerFn): void {
@@ -153,7 +171,10 @@ export class IPCChannel extends BaseChannel {
 			throw new Error(`Event "${eventName}" not registered in "${this.moduleAlias}" module.`);
 		}
 
-		this._pubSocket.send([event.name, JSON.stringify(event.toJSONRPCNotification())]);
+		this._pubSocket.send([event.name, JSON.stringify(event.toJSONRPCNotification())])
+			.catch(error => {
+				throw error;
+			});
 	}
 
 	public async invoke<T>(actionName: string, params?: Record<string, unknown>): Promise<T> {
@@ -182,7 +203,10 @@ export class IPCChannel extends BaseChannel {
 						this._subSocket.unsubscribe(action.id as string);
 						this._rpcRequestIds.delete(action.id as string);
 						return resolve(response.result);
-					});
+					})
+				})
+				.catch(error => {
+					throw error;
 				});
 		});
 	}

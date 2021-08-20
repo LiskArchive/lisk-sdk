@@ -21,7 +21,7 @@ import * as JSONRPC from '../jsonrpc/types';
 export class InMemoryChannel extends BaseChannel {
 	private bus!: Bus;
 
-	public async registerToBus(bus: Bus): Promise<void> {
+	public registerToBus(bus: Bus): void {
 		this.bus = bus;
 
 		this.bus.registerChannel(this.moduleAlias, this.eventsList, this.actions, {

@@ -25,10 +25,10 @@ export abstract class BaseChannel {
 	public readonly eventsList: ReadonlyArray<string>;
 	public readonly actionsList: ReadonlyArray<string>;
 	public readonly moduleAlias: string;
-	private _requestId: number;
 
 	protected readonly actions: { [key: string]: Action };
 	protected readonly options: Record<string, unknown>;
+	private _requestId: number;
 
 	public constructor(
 		moduleAlias: string,
@@ -53,10 +53,6 @@ export abstract class BaseChannel {
 		this.actionsList = Object.keys(this.actions);
 	}
 
-	protected _getNextRequestId(): string {
-		this._requestId += 1;
-		return this._requestId.toString();
-	}
 
 	public isValidEventName(name: string, throwError = true): boolean | never {
 		const result = eventWithModuleNameReg.test(name);
@@ -77,6 +73,11 @@ export abstract class BaseChannel {
 		return result;
 	}
 
+	protected _getNextRequestId(): string {
+		this._requestId += 1;
+		return this._requestId.toString();
+	}
+
 	// Listen to any event happening in the application
 	// Specified as moduleName:eventName
 	// If its related to your own moduleAlias specify as :eventName
@@ -91,6 +92,6 @@ export abstract class BaseChannel {
 	// Specified as moduleName:actionName
 	abstract invoke<T>(actionName: string, params?: object): Promise<T>;
 
-	abstract registerToBus(arg: unknown): Promise<void>;
+	abstract registerToBus(arg: unknown): void;
 	abstract once(eventName: string, cb: EventCallback): void;
 }
