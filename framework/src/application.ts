@@ -176,41 +176,38 @@ export class Application {
 	}
 
 	public registerPlugin<T extends BasePlugin>(
-		pluginKlass: InstantiablePlugin<T>,
+		PluginKlass: InstantiablePlugin<T>,
 		options: PluginOptions = { loadAsChildProcess: false },
 	): void {
-		assert(pluginKlass, 'Plugin implementation is required');
+		assert(PluginKlass, 'Plugin implementation is required');
 		assert(typeof options === 'object', 'Plugin options must be provided or set to empty object.');
-		const PluginObject = new pluginKlass();
-		const pluginAlias = options?.alias ?? PluginObject.name;
+		const plugin = new PluginKlass();
+		const pluginName = plugin.name;
 
 		assert(
-			!Object.keys(this._plugins).includes(pluginAlias),
-			`A plugin with name "${pluginAlias}" already registered.`,
+			!Object.keys(this._plugins).includes(pluginName),
+			`A plugin with name "${pluginName}" already registered.`,
 		);
 
 		if (options.loadAsChildProcess) {
-			if (!getPluginExportPath(pluginKlass)) {
+			if (!getPluginExportPath(PluginKlass)) {
 				throw new Error(
-					`Unable to register plugin "${pluginAlias}" to load as child process. \n -> To load plugin as child process it must be exported. \n -> You can specify npm package as "name". \n -> Or you can specify any static path as "nodeModulePath". \n -> To fix this issue you can simply assign __filename to nodeModulePath in your plugin.`,
+					`Unable to register plugin "${pluginName}" to load as child process. \n -> To load plugin as child process it must be exported. \n -> You can specify npm package as "name". \n -> Or you can specify any static path as "nodeModulePath". \n -> To fix this issue you can simply assign __filename to nodeModulePath in your plugin.`,
 				);
 			}
 		}
 
-		this.config.plugins[pluginAlias] = Object.assign(
-			this.config.plugins[pluginAlias] ?? {},
-			options,
-		);
+		this.config.plugins[pluginName] = Object.assign(this.config.plugins[pluginName] ?? {}, options);
 
-		validatePluginSpec(PluginObject);
+		validatePluginSpec(plugin);
 
-		this._plugins[pluginAlias] = pluginKlass;
+		this._plugins[pluginName] = PluginKlass;
 	}
 
-	public overridePluginOptions(alias: string, options?: PluginOptions): void {
-		assert(Object.keys(this._plugins).includes(alias), `No plugin ${alias} is registered`);
-		this.config.plugins[alias] = {
-			...this.config.plugins[alias],
+	public overridePluginOptions(name: string, options?: PluginOptions): void {
+		assert(Object.keys(this._plugins).includes(name), `No plugin ${name} is registered`);
+		this.config.plugins[name] = {
+			...this.config.plugins[name],
 			...options,
 		};
 	}

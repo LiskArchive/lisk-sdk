@@ -19,7 +19,11 @@ import { config } from '../../../src/plugin/defaults';
 const appConfigForPlugin = {
 	rootPath: '~/.lisk',
 	label: 'my-app',
-	logger: { consoleLogLevel: 'debug', fileLogLevel: 'info', logFileName: 'plugin-FaucetPlugin.log' },
+	logger: {
+		consoleLogLevel: 'debug',
+		fileLogLevel: 'info',
+		logFileName: 'plugin-FaucetPlugin.log',
+	},
 	rpc: {
 		modes: ['ipc'],
 		ws: {

@@ -175,18 +175,18 @@ export class Controller {
 		Klass: InstantiablePlugin,
 		options: PluginOptionsWithApplicationConfig,
 	): Promise<void> {
-		const pluginAlias = name || Klass.name;
-
 		const plugin: BasePlugin = new Klass();
+
+		const pluginName = name || plugin.name;
 
 		this.logger.info(name, 'Loading in-memory plugin');
 
-		const channel = new InMemoryChannel(pluginAlias, plugin.events, plugin.actions);
+		const channel = new InMemoryChannel(pluginName, plugin.events, plugin.actions);
 
 		await channel.registerToBus(this.bus);
 
-		channel.publish(`${pluginAlias}:registeredToBus`);
-		channel.publish(`${pluginAlias}:loading:started`);
+		channel.publish(`${pluginName}:registeredToBus`);
+		channel.publish(`${pluginName}:loading:started`);
 
 		const { plugins, ...appConfigForPlugin } = options.appConfig;
 		const config = plugins[name];
@@ -196,9 +196,9 @@ export class Controller {
 		await plugin.init(context);
 		await plugin.load(channel);
 
-		channel.publish(`${pluginAlias}:loading:finished`);
+		channel.publish(`${pluginName}:loading:finished`);
 
-		this._inMemoryPlugins[pluginAlias] = { plugin, channel };
+		this._inMemoryPlugins[pluginName] = { plugin, channel };
 
 		this.logger.info(name, 'Loaded in-memory plugin');
 	}
@@ -208,7 +208,9 @@ export class Controller {
 		Klass: InstantiablePlugin,
 		options: PluginOptions,
 	): Promise<void> {
-		const pluginAlias = name || Klass.name;
+		const plugin: BasePlugin = new Klass();
+
+		const pluginName = name || plugin.name;
 
 		this.logger.info(name, 'Loading child-process plugin');
 
@@ -236,7 +238,7 @@ export class Controller {
 			options,
 		});
 
-		this._childProcesses[pluginAlias] = child;
+		this._childProcesses[pluginName] = child;
 
 		child.on('exit', (code, signal) => {
 			// If child process exited with error
@@ -246,12 +248,12 @@ export class Controller {
 		});
 
 		child.on('error', error => {
-			this.logger.error(error, `Child process for "${pluginAlias}" faced error.`);
+			this.logger.error(error, `Child process for "${pluginName}" faced error.`);
 		});
 
 		await Promise.race([
 			new Promise<void>(resolve => {
-				this.channel.once(`${pluginAlias}:loading:finished`, () => {
+				this.channel.once(`${pluginName}:loading:finished`, () => {
 					this.logger.info({ name }, 'Loaded child-process plugin');
 					resolve();
 				});

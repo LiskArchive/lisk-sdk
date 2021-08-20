@@ -32,37 +32,38 @@ const _loadPlugin = async (
 	},
 	pluginOptions: PluginOptionsWithApplicationConfig,
 ): Promise<void> => {
-	const pluginAlias = Klass.name;
 	plugin = new Klass();
+	const pluginName = plugin.name;
 
-	channel = new IPCChannel(pluginAlias, plugin.events, plugin.actions, {
+	channel = new IPCChannel(pluginName, plugin.events, plugin.actions, {
 		socketsPath: config.socketsPath,
 	});
 
 	await channel.registerToBus();
 
-	channel.publish(`${pluginAlias}:registeredToBus`);
-	channel.publish(`${pluginAlias}:loading:started`);
+	channel.publish(`${pluginName}:registeredToBus`);
+	channel.publish(`${pluginName}:loading:started`);
 
 	const context = { options: pluginOptions, channel, config };
 
 	await plugin.init(context);
 	await plugin.load(channel);
 
-	channel.publish(`${pluginAlias}:loading:finished`);
+	channel.publish(`${pluginName}:loading:finished`);
 };
 
 const _unloadPlugin = async (code = 0) => {
-	const pluginAlias = Klass.name;
+	plugin = new Klass();
+	const pluginName = plugin.name;
 
-	channel.publish(`${pluginAlias}:unloading:started`);
+	channel.publish(`${pluginName}:unloading:started`);
 	try {
 		await plugin.unload();
-		channel.publish(`${pluginAlias}:unloading:finished`);
+		channel.publish(`${pluginName}:unloading:finished`);
 		channel.cleanup();
 		process.exit(code);
 	} catch (error) {
-		channel.publish(`${pluginAlias}:unloading:error`, error);
+		channel.publish(`${pluginName}:unloading:error`, error);
 		channel.cleanup();
 		process.exit(1);
 	}

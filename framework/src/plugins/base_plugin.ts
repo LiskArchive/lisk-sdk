@@ -75,8 +75,6 @@ interface BlockAssetJSON {
 	readonly maxHeightPrevoted: number;
 }
 
-// type ExtractPluginOptions<P> = P extends BasePlugin<infer T> ? T : PluginOptionsWithApplicationConfig;
-
 export type InstantiablePlugin<T extends BasePlugin = BasePlugin> = new () => T;
 
 const decodeTransactionToJSON = (
@@ -286,40 +284,40 @@ export abstract class BasePlugin<
 // TODO: Once the issue fixed we can use require.resolve to rewrite the logic
 //  https://github.com/facebook/jest/issues/9543
 export const getPluginExportPath = (
-	pluginKlass: InstantiablePlugin,
+	PluginKlass: InstantiablePlugin,
 	strict = true,
 ): string | undefined => {
 	let nodeModule: Record<string, unknown> | undefined;
 	let nodeModulePath: string | undefined;
 
-	const PluginInstance = new pluginKlass();
+	const plugin = new PluginKlass();
 
 	try {
 		// Check if plugin name is an npm package
 		// eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-		nodeModule = require(PluginInstance.name);
-		nodeModulePath = PluginInstance.name;
+		nodeModule = require(plugin.name);
+		nodeModulePath = plugin.name;
 	} catch (error) {
 		/* Plugin pluginKlass.name is not an npm package */
 	}
 
-	if (!nodeModule && PluginInstance.nodeModulePath) {
+	if (!nodeModule && plugin.nodeModulePath) {
 		try {
 			// Check if plugin nodeModulePath is an npm package
 			// eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-			nodeModule = require(PluginInstance.nodeModulePath);
-			nodeModulePath = PluginInstance.nodeModulePath;
+			nodeModule = require(plugin.nodeModulePath);
+			nodeModulePath = plugin.nodeModulePath;
 		} catch (error) {
 			/* Plugin nodeModulePath is not an npm package */
 		}
 	}
 
-	if (!nodeModule || !nodeModule[pluginKlass.name]) {
+	if (!nodeModule || !nodeModule[plugin.name]) {
 		return;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-	if (strict && nodeModule[pluginKlass.name] !== pluginKlass) {
+	if (strict && nodeModule[PluginKlass.name] !== PluginKlass) {
 		return;
 	}
 
@@ -327,17 +325,17 @@ export const getPluginExportPath = (
 	return nodeModulePath;
 };
 
-export const validatePluginSpec = (PluginObject: BasePlugin): void => {
-	assert(PluginObject.name, 'Plugin name is required.');
-	assert(PluginObject.events, 'Plugin events are required.');
-	assert(PluginObject.actions, 'Plugin actions are required.');
+export const validatePluginSpec = (plugin: BasePlugin): void => {
+	assert(plugin.name, 'Plugin name is required.');
+	assert(plugin.events, 'Plugin events are required.');
+	assert(plugin.actions, 'Plugin actions are required.');
 	// eslint-disable-next-line @typescript-eslint/unbound-method
-	assert(PluginObject.load, 'Plugin load action is required.');
+	assert(plugin.load, 'Plugin load action is required.');
 	// eslint-disable-next-line @typescript-eslint/unbound-method
-	assert(PluginObject.unload, 'Plugin unload actions is required.');
+	assert(plugin.unload, 'Plugin unload actions is required.');
 
-	if (PluginObject.configSchema) {
-		const errors = validator.validateSchema(PluginObject.configSchema);
+	if (plugin.configSchema) {
+		const errors = validator.validateSchema(plugin.configSchema);
 		if (errors.length) {
 			throw new LiskValidationError([...errors]);
 		}
