@@ -13,9 +13,50 @@
  */
 
 import { randomBytes } from 'crypto';
-import { testing } from 'lisk-framework';
+import { testing, BaseChannel, GenesisConfig } from 'lisk-framework';
 import { MonitorPlugin } from '../../src/monitor_plugin';
 import * as config from '../../src/defaults/default_config';
+
+const appConfigForPlugin = {
+	rootPath: '~/.lisk',
+	label: 'my-app',
+	logger: {
+		consoleLogLevel: 'info',
+		fileLogLevel: 'info',
+		logFileName: 'plugin-MisbehaviourPlugin.log',
+	},
+	rpc: {
+		modes: ['ipc'],
+		ws: {
+			port: 8080,
+			host: '127.0.0.1',
+			path: '/ws',
+		},
+		http: {
+			port: 8000,
+			host: '127.0.0.1',
+		},
+	},
+	forging: {
+		force: false,
+		waitThreshold: 2,
+		delegates: [],
+	},
+	network: {
+		seedPeers: [],
+		port: 5000,
+	},
+	transactionPool: {
+		maxTransactions: 4096,
+		maxTransactionsPerAccount: 64,
+		transactionExpiryTime: 3 * 60 * 60 * 1000,
+		minEntranceFeePriority: '0',
+		minReplacementFeeDifference: '10',
+	},
+	version: '',
+	networkVersion: '',
+	genesisConfig: {} as GenesisConfig,
+};
 
 const validPluginOptions = config.defaultConfig.default;
 
@@ -26,7 +67,12 @@ describe('_handlePostTransactionAnnounce', () => {
 	} = testing;
 
 	beforeEach(async () => {
-		monitorPluginInstance = new MonitorPlugin(validPluginOptions as never);
+		monitorPluginInstance = new MonitorPlugin();
+		await monitorPluginInstance.init({
+			config: validPluginOptions,
+			channel: (channelMock as unknown) as BaseChannel,
+			options: { dataPath: '', appConfig: appConfigForPlugin },
+		});
 		await monitorPluginInstance.load(channelMock);
 	});
 
@@ -59,7 +105,12 @@ describe('_cleanUpTransactionStats', () => {
 	} = testing;
 
 	beforeEach(async () => {
-		monitorPluginInstance = new MonitorPlugin(validPluginOptions as never);
+		monitorPluginInstance = new MonitorPlugin();
+		await monitorPluginInstance.init({
+			config: validPluginOptions,
+			channel: (channelMock as unknown) as BaseChannel,
+			options: { dataPath: '', appConfig: appConfigForPlugin },
+		});
 		await monitorPluginInstance.load(channelMock);
 	});
 

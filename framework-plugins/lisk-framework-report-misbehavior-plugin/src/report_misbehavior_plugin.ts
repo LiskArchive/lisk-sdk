@@ -22,13 +22,7 @@ import {
 	getAddressFromPassphrase,
 	signData,
 } from '@liskhq/lisk-cryptography';
-import {
-	ActionsDefinition,
-	BasePlugin,
-	BaseChannel,
-	EventsDefinition,
-	PluginInfo,
-} from 'lisk-framework';
+import { ActionsDefinition, BasePlugin, BaseChannel, EventsDefinition } from 'lisk-framework';
 import { objects } from '@liskhq/lisk-utils';
 import {
 	getDBInstance,
@@ -40,9 +34,6 @@ import {
 import * as config from './defaults';
 import { Options, State } from './types';
 import { postBlockEventSchema } from './schema';
-
-// eslint-disable-next-line
-const packageJSON = require('../package.json');
 
 const actionParamsSchema = {
 	$id: 'lisk/report_misbehavior/auth',
@@ -67,23 +58,15 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 	private _clearBlockHeadersIntervalId!: NodeJS.Timer | undefined;
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get alias(): string {
+	public get name(): string {
 		return 'reportMisbehavior';
 	}
 
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get info(): PluginInfo {
-		return {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			author: packageJSON.author,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			version: packageJSON.version,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			name: packageJSON.name,
-		};
+	public get nodeModulePath(): string {
+		return __filename;
 	}
 
-	public get defaults(): Record<string, unknown> {
+	public get configSchema(): Record<string, unknown> {
 		return config.defaultConfig;
 	}
 

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Server } from 'http';
-import { BasePlugin, PluginInfo } from 'lisk-framework';
+import { BasePlugin } from 'lisk-framework';
 import { objects } from '@liskhq/lisk-utils';
 import type { BaseChannel, EventsDefinition, ActionsDefinition } from 'lisk-framework';
 import * as express from 'express';
@@ -24,32 +24,21 @@ import * as middlewares from './middlewares';
 import * as config from './defaults';
 import { Options } from './types';
 
-// eslint-disable-next-line
-const pJSON = require('../package.json');
-
 export class HTTPAPIPlugin extends BasePlugin {
 	private _server!: Server;
 	private _app!: Express;
 	private _channel!: BaseChannel;
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get alias(): string {
+	public get name(): string {
 		return 'httpApi';
 	}
 
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get info(): PluginInfo {
-		return {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			author: pJSON.author,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			version: pJSON.version,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			name: pJSON.name,
-		};
+	public get nodeModulePath(): string {
+		return __filename;
 	}
 
-	public get defaults(): object {
+	public get configSchema(): object {
 		return config.defaultConfig;
 	}
 

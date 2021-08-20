@@ -15,7 +15,7 @@ import { Application } from 'lisk-framework';
 import { ReportMisbehaviorPlugin } from '../../src';
 
 export const getReportMisbehaviorPlugin = (app: Application): ReportMisbehaviorPlugin => {
-	return app['_controller']['_inMemoryPlugins'][ReportMisbehaviorPlugin.alias]['plugin'];
+	return app['_controller']['_inMemoryPlugins'][ReportMisbehaviorPlugin.name]['plugin'];
 };
 
 export const waitTill = async (ms: number) =>

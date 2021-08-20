@@ -25,10 +25,16 @@ const appConfigForPlugin = {
 	label: 'my-app',
 	logger: { consoleLogLevel: 'debug', fileLogLevel: '123', logFileName: 'plugin1.log' },
 	rpc: {
-		enable: false,
-		mode: 'ipc' as const,
-		port: 8080,
-		host: '127.0.0.1',
+		modes: ['ipc'],
+		ws: {
+			port: 8080,
+			host: '127.0.0.1',
+			path: '/ws',
+		},
+		http: {
+			port: 8000,
+			host: '127.0.0.1',
+		},
 	},
 	forging: {
 		force: false,

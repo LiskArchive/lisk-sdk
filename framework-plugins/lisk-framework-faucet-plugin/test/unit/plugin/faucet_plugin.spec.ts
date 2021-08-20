@@ -12,18 +12,24 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { FaucetPlugin } from '../../../src/plugin';
 import { BaseChannel, GenesisConfig } from 'lisk-framework';
+import { FaucetPlugin } from '../../../src/plugin';
 
 const appConfigForPlugin = {
-	rootPath: '/my/path',
+	rootPath: '~/.lisk',
 	label: 'my-app',
-	logger: { consoleLogLevel: 'debug', fileLogLevel: 'info', logFileName: 'plugin1.log' },
+	logger: { consoleLogLevel: 'info', fileLogLevel: 'info', logFileName: 'plugin-FaucetPlugin.log' },
 	rpc: {
-		enable: false,
-		mode: 'ipc' as const,
-		port: 8080,
-		host: '127.0.0.1',
+		modes: ['ipc'],
+		ws: {
+			port: 8080,
+			host: '127.0.0.1',
+			path: '/ws',
+		},
+		http: {
+			port: 8000,
+			host: '127.0.0.1',
+		},
 	},
 	forging: {
 		force: false,
@@ -41,7 +47,6 @@ const appConfigForPlugin = {
 		minEntranceFeePriority: '0',
 		minReplacementFeeDifference: '10',
 	},
-	plugins: {},
 	version: '',
 	networkVersion: '',
 	genesisConfig: {} as GenesisConfig,

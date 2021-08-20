@@ -18,7 +18,6 @@ import {
 	BasePlugin,
 	BaseChannel,
 	EventsDefinition,
-	PluginInfo,
 	SchemaWithDefault,
 } from 'lisk-framework';
 import * as express from 'express';
@@ -27,29 +26,19 @@ import { Server } from 'http';
 import * as defaults from './defaults';
 import { dashboardPluginOptions } from './types';
 
-// eslint-disable-next-line
-const packageJSON = require('../../package.json');
-
 export class DashboardPlugin extends BasePlugin {
 	private _options!: dashboardPluginOptions;
 	private _server!: Server;
 
-	public static get alias(): string {
+	public get name(): string {
 		return 'dashboard';
 	}
 
-	public static get info(): PluginInfo {
-		return {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			author: packageJSON.author,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			version: packageJSON.version,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			name: packageJSON.name,
-		};
+	public get nodeModulePath(): string {
+		return __filename;
 	}
 
-	public get defaults(): SchemaWithDefault {
+	public get configSchema(): SchemaWithDefault {
 		return defaults.config;
 	}
 

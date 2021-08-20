@@ -19,7 +19,6 @@ import {
 	BasePlugin,
 	BaseChannel,
 	EventsDefinition,
-	PluginInfo,
 	TransactionJSON,
 	BlockHeaderJSON,
 	GenesisConfig,
@@ -72,8 +71,6 @@ interface ForgerReceivedVotes {
 	[key: string]: Voters;
 }
 
-// eslint-disable-next-line
-const packageJSON = require('../package.json');
 const getBinaryAddress = (hexAddressStr: string) =>
 	Buffer.from(hexAddressStr, 'hex').toString('binary');
 const getAddressBuffer = (hexAddressStr: string) => Buffer.from(hexAddressStr, 'hex');
@@ -85,24 +82,15 @@ export class ForgerPlugin extends BasePlugin {
 	private _transactionFees!: TransactionFees;
 	private _syncingWithNode!: boolean;
 
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get alias(): string {
+	public get name(): string {
 		return 'forger';
 	}
 
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get info(): PluginInfo {
-		return {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			author: packageJSON.author,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			version: packageJSON.version,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			name: packageJSON.name,
-		};
+	public get nodeModulePath(): string {
+		return __filename;
 	}
 
-	public get defaults(): object {
+	public get configSchema(): object {
 		return config.defaultConfig;
 	}
 

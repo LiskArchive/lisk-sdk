@@ -12,9 +12,51 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { BaseChannel, GenesisConfig } from 'lisk-framework';
 import { codec } from '@liskhq/lisk-codec';
 import { ReportMisbehaviorPlugin } from '../../src';
 import * as config from '../../src/defaults/default_config';
+
+const appConfigForPlugin = {
+	rootPath: '~/.lisk',
+	label: 'my-app',
+	logger: {
+		consoleLogLevel: 'info',
+		fileLogLevel: 'info',
+		logFileName: 'plugin-MisbehaviourPlugin.log',
+	},
+	rpc: {
+		modes: ['ipc'],
+		ws: {
+			port: 8080,
+			host: '127.0.0.1',
+			path: '/ws',
+		},
+		http: {
+			port: 8000,
+			host: '127.0.0.1',
+		},
+	},
+	forging: {
+		force: false,
+		waitThreshold: 2,
+		delegates: [],
+	},
+	network: {
+		seedPeers: [],
+		port: 5000,
+	},
+	transactionPool: {
+		maxTransactions: 4096,
+		maxTransactionsPerAccount: 64,
+		transactionExpiryTime: 3 * 60 * 60 * 1000,
+		minEntranceFeePriority: '0',
+		minReplacementFeeDifference: '10',
+	},
+	version: '',
+	networkVersion: '',
+	genesisConfig: {} as GenesisConfig,
+};
 
 const validPluginOptions = {
 	...config.defaultConfig.default,
@@ -23,15 +65,25 @@ const validPluginOptions = {
 	dataPath: '/my/app',
 };
 
+const channelMock1 = {
+	invoke: jest.fn(),
+	once: jest.fn().mockImplementation((_eventName, cb) => cb()),
+};
+
 describe('subscribe to event', () => {
 	let reportMisbehaviorPlugin: ReportMisbehaviorPlugin;
 	let subscribeMock: jest.Mock;
-	beforeEach(() => {
+	beforeEach(async () => {
 		subscribeMock = jest.fn();
 		const channelMock = {
 			subscribe: subscribeMock,
 		};
-		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin(validPluginOptions as never);
+		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin();
+		await reportMisbehaviorPlugin.init({
+			config: validPluginOptions,
+			channel: (channelMock1 as unknown) as BaseChannel,
+			options: { dataPath: '', appConfig: appConfigForPlugin },
+		});
 		(reportMisbehaviorPlugin as any)._channel = channelMock;
 		reportMisbehaviorPlugin['_logger'] = {
 			error: jest.fn(),

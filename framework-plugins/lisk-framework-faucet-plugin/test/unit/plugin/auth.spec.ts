@@ -17,14 +17,20 @@ import { FaucetPlugin } from '../../../src/plugin';
 import { config } from '../../../src/plugin/defaults';
 
 const appConfigForPlugin = {
-	rootPath: '/my/path',
+	rootPath: '~/.lisk',
 	label: 'my-app',
-	logger: { consoleLogLevel: 'debug', fileLogLevel: '123', logFileName: 'plugin1.log' },
+	logger: { consoleLogLevel: 'debug', fileLogLevel: 'info', logFileName: 'plugin-FaucetPlugin.log' },
 	rpc: {
-		enable: false,
-		mode: 'ipc' as const,
-		port: 8080,
-		host: '127.0.0.1',
+		modes: ['ipc'],
+		ws: {
+			port: 8080,
+			host: '127.0.0.1',
+			path: '/ws',
+		},
+		http: {
+			port: 8000,
+			host: '127.0.0.1',
+		},
 	},
 	forging: {
 		force: false,

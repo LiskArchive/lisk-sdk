@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { BaseChannel, GenesisConfig } from 'lisk-framework';
 import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs-extra';
@@ -28,6 +29,47 @@ import { blockHeadersSchema } from '../../src/db';
 
 import * as config from '../../src/defaults/default_config';
 import { waitTill } from '../utils/application';
+
+const appConfigForPlugin = {
+	rootPath: '~/.lisk',
+	label: 'my-app',
+	logger: {
+		consoleLogLevel: 'info',
+		fileLogLevel: 'info',
+		logFileName: 'plugin-MisbehaviourPlugin.log',
+	},
+	rpc: {
+		modes: ['ipc'],
+		ws: {
+			port: 8080,
+			host: '127.0.0.1',
+			path: '/ws',
+		},
+		http: {
+			port: 8000,
+			host: '127.0.0.1',
+		},
+	},
+	forging: {
+		force: false,
+		waitThreshold: 2,
+		delegates: [],
+	},
+	network: {
+		seedPeers: [],
+		port: 5000,
+	},
+	transactionPool: {
+		maxTransactions: 4096,
+		maxTransactionsPerAccount: 64,
+		transactionExpiryTime: 3 * 60 * 60 * 1000,
+		minEntranceFeePriority: '0',
+		minReplacementFeeDifference: '10',
+	},
+	version: '',
+	networkVersion: '',
+	genesisConfig: {} as GenesisConfig,
+};
 
 const validPluginOptions = {
 	...config.defaultConfig.default,
@@ -74,14 +116,18 @@ describe('Clean up old blocks', () => {
 	const dbKey = 'the_db_key';
 
 	beforeEach(async () => {
-		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin(validPluginOptions as never);
-		(reportMisbehaviorPlugin as any)._channel = channelMock;
+		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin();
 		const dataPath = path.join(os.homedir(), '.lisk/report-misbehavior-plugin/data/integration/db');
+		await reportMisbehaviorPlugin.init({
+			config: validPluginOptions,
+			channel: (channelMock as unknown) as BaseChannel,
+			options: { dataPath, appConfig: appConfigForPlugin },
+		});
+		(reportMisbehaviorPlugin as any)._channel = channelMock;
 		await fs.remove(dataPath);
 		(reportMisbehaviorPlugin as any).options = {
 			fee: '100000000',
 			clearBlockHeadersInterval: 1,
-			dataPath,
 		};
 		reportMisbehaviorPlugin.schemas = {
 			block: blockSchema,

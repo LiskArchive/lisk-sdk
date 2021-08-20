@@ -76,6 +76,10 @@ export class FaucetPlugin extends BasePlugin {
 		return 'faucet';
 	}
 
+	public get nodeModulePath(): string {
+		return __filename;
+	}
+
 	public get configSchema(): SchemaWithDefault {
 		return defaults.config;
 	}
