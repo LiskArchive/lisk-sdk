@@ -154,17 +154,6 @@ describe('Controller Class', () => {
 				// Assert
 				expect(controller.bus.setup).toHaveBeenCalled();
 			});
-
-			it('should log events if level is greater than info', async () => {
-				// Arrange
-				loggerMock.level.mockReturnValue(10); // Less than info
-
-				// Act
-				await controller.load();
-
-				// Assert
-				expect(controller.bus.subscribe).toHaveBeenCalledWith('*', expect.any(Function));
-			});
 		});
 	});
 

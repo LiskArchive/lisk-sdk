@@ -23,8 +23,7 @@ import { WSServer } from '../../../src/controller/ws/ws_server';
 import { IPCServer } from '../../../src/controller/ipc/ipc_server';
 
 jest.mock('eventemitter2');
-jest.mock('pm2-axon');
-jest.mock('pm2-axon-rpc');
+jest.mock('zeromq');
 jest.mock('ws');
 
 describe('Bus', () => {
@@ -147,7 +146,7 @@ describe('Bus', () => {
 			const events = ['event1', 'event2'];
 
 			// Act
-			await bus.registerChannel(moduleAlias, events, {}, channelOptions);
+			bus.registerChannel(moduleAlias, events, {}, channelOptions);
 
 			// Assert
 			expect(Object.keys(bus['events'])).toHaveLength(2);
@@ -162,7 +161,7 @@ describe('Bus', () => {
 			const events = ['event1', 'event1'];
 
 			// Act && Assert
-			await expect(bus.registerChannel(moduleAlias, events, {}, channelOptions)).rejects.toThrow(
+			expect(() => bus.registerChannel(moduleAlias, events, {}, channelOptions)).toThrow(
 				Error,
 			);
 		});
@@ -176,7 +175,7 @@ describe('Bus', () => {
 			};
 
 			// Act
-			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
+			bus.registerChannel(moduleAlias, [], actions, channelOptions);
 
 			// Assert
 			expect(Object.keys(bus['actions'])).toHaveLength(2);
@@ -193,8 +192,8 @@ describe('Bus', () => {
 			};
 
 			// Act && Assert
-			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
-			await expect(bus.registerChannel(moduleAlias, [], actions, channelOptions)).rejects.toThrow(
+			bus.registerChannel(moduleAlias, [], actions, channelOptions);
+			expect(() => bus.registerChannel(moduleAlias, [], actions, channelOptions)).toThrow(
 				Error,
 			);
 		});
@@ -281,7 +280,7 @@ describe('Bus', () => {
 			const eventData = { data: '#DATA' };
 			const JSONRPCData = { jsonrpc: '2.0', method: 'alias:registeredEvent', params: eventData };
 
-			await bus.registerChannel(moduleAlias, events, {}, channelOptions);
+			bus.registerChannel(moduleAlias, events, {}, channelOptions);
 
 			// Act
 			bus.publish(JSONRPCData);
@@ -340,7 +339,7 @@ describe('Bus', () => {
 				actionName => `${moduleAlias}:${actionName}`,
 			);
 
-			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
+			bus.registerChannel(moduleAlias, [], actions, channelOptions);
 
 			// Act
 			const registeredActions = bus.getActions();
@@ -357,7 +356,7 @@ describe('Bus', () => {
 			const events = ['event1', 'event2'];
 			const expectedEvents = events.map(event => `${moduleAlias}:${event}`);
 
-			await bus.registerChannel(moduleAlias, events, {}, channelOptions);
+			bus.registerChannel(moduleAlias, events, {}, channelOptions);
 
 			// Act
 			const registeredEvent = bus.getEvents();

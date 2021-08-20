@@ -71,7 +71,7 @@ describe('InMemoryChannel Channel', () => {
 	describe('#registerToBus', () => {
 		it('should call `bus.registerChannel` method with given arguments', async () => {
 			// Act
-			await inMemoryChannel.registerToBus(bus);
+			inMemoryChannel.registerToBus(bus);
 
 			// Assert
 			expect(inMemoryChannel['bus']).toBe(bus);
@@ -93,7 +93,7 @@ describe('InMemoryChannel Channel', () => {
 			// Arrange
 			const eventName = 'module:anEventName';
 			const event = new Event(eventName);
-			await inMemoryChannel.registerToBus(bus);
+			inMemoryChannel.registerToBus(bus);
 
 			// Act
 			// eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -150,7 +150,7 @@ describe('InMemoryChannel Channel', () => {
 			const event = new Event(eventFullName);
 
 			// Act
-			await inMemoryChannel.registerToBus(bus);
+			inMemoryChannel.registerToBus(bus);
 			inMemoryChannel.publish(eventFullName);
 
 			// Assert
