@@ -30,7 +30,10 @@ type QueryWithHeightAndBinaryKey = {
 
 export const treeSort = (a: QueryWithHeightAndBinaryKey, b: QueryWithHeightAndBinaryKey) => {
 	if (b.height === a.height) {
-		if (parseInt(a.binaryKey, 2) < parseInt(b.binaryKey, 2)) return -1;
+		if (parseInt(a.binaryKey, 2) < parseInt(b.binaryKey, 2)) {
+			return -1;
+		}
+
 		return 1;
 	}
 	return b.height - a.height;

@@ -127,7 +127,7 @@ const LISK32_CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
 export const validateLisk32Address = (
 	address: string,
 	prefix = DEFAULT_LISK32_ADDRESS_PREFIX,
-): boolean => {
+): true | never => {
 	if (address.length !== LISK32_ADDRESS_LENGTH) {
 		throw new Error('Address length does not match requirements. Expected 41 characters.');
 	}
