@@ -61,7 +61,7 @@ export class IPCChannel extends BaseChannel {
 		this._subSocket.subscribe(IPC_RPC_EVENT);
 
 		// Listen to events on sub socket
-		const listenToMessages = async () => {
+		const listenToMessages = async (): Promise<void> => {
 			for await (const [_event, eventData] of this._subSocket) {
 				// Listen to events and emit on local emitter
 
@@ -72,12 +72,13 @@ export class IPCChannel extends BaseChannel {
 		listenToMessages();
 
 		// Handle RPC requests coming from Bus on rpc server
-		const listenToRPC = async () => {
+		const listenToRPC = async (): Promise<void> => {
 			for await (const [sender, event, eventData] of this._rpcServer) {
 				if (event.toString() === IPC_RPC_EVENT) {
 					const request = Action.fromJSONRPCRequest(JSON.parse(eventData.toString()));
 					if (request.module === this.moduleAlias) {
-						this.invoke(request.key(), request.params).then(result => {
+						this.invoke(request.key(), request.params)
+							.then(result => {
 							this._rpcServer.send([
 								sender,
 								request.id as string,
@@ -92,7 +93,7 @@ export class IPCChannel extends BaseChannel {
 		listenToRPC();
 
 		// Handle RPC requests responses coming back from Bus on rpc client
-		const listenToRPCResponse = async () => {
+		const listenToRPCResponse = async (): Promise<void> => {
 			for await (const [requestId, result] of this._rpcClient) {
 				if (this._rpcRequestIds.has(requestId.toString())) {
 					this._emitter.emit(requestId.toString(), JSON.parse(result.toString()));
@@ -125,7 +126,7 @@ export class IPCChannel extends BaseChannel {
 			},
 		};
 
-		this._rpcClient.send([IPC_REGISTER_CHANNEL_EVENT, JSON.stringify(registerObj)]);
+		this._rpcClient.send([IPC_REGISTER_CHANNEL_EVENT, JSON.stringify(registerObj)])
 	}
 
 	public subscribe(eventName: string, cb: ListenerFn): void {
@@ -174,14 +175,15 @@ export class IPCChannel extends BaseChannel {
 			// Subscribe to the action Id;
 			this._rpcRequestIds.add(action.id as string);
 			this._subSocket.subscribe(action.id as string);
-			this._rpcClient.send(['invoke', JSON.stringify(action.toJSONRPCRequest())]).then(_ => {
-				this._emitter.once(action.id as string, (response: JSONRPC.ResponseObjectWithResult<T>) => {
-					// Unsubscribe action Id after its resolved
-					this._subSocket.unsubscribe(action.id as string);
-					this._rpcRequestIds.delete(action.id as string);
-					return resolve(response.result);
+			this._rpcClient.send(['invoke', JSON.stringify(action.toJSONRPCRequest())])
+				.then(_ => {
+					this._emitter.once(action.id as string, (response: JSONRPC.ResponseObjectWithResult<T>) => {
+						// Unsubscribe action Id after its resolved
+						this._subSocket.unsubscribe(action.id as string);
+						this._rpcRequestIds.delete(action.id as string);
+						return resolve(response.result);
+					});
 				});
-			});
 		});
 	}
 

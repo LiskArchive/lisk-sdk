@@ -75,6 +75,7 @@ export class Bus {
 
 	private readonly _wsServer!: WSServer;
 	private readonly _httpServer!: HTTPServer;
+	private readonly _listenToRPCResponse: (rpcClient: Dealer) => Promise<void>;
 
 	public constructor(logger: Logger, config: BusConfiguration) {
 		this.logger = logger;
@@ -93,9 +94,9 @@ export class Bus {
 		this.rpcClients = {};
 		this._rpcRequestIds = new Set();
 
-		if (this.config.rpc.modes.includes(RPC_MODES.IPC)) {
+		if (this.config.rpc.modes.includes(RPC_MODES.IPC) && this.config.rpc.ipc) {
 			this._ipcServer = new IPCServer({
-				socketsDir: (this.config.rpc as any).ipc.path,
+				socketsDir: this.config.rpc.ipc.path,
 				name: 'bus',
 			});
 		}
@@ -116,17 +117,17 @@ export class Bus {
 				logger: this.logger,
 			});
 		}
-	}
 
-	// Handle RPC requests responses coming back from different ipcServers on rpcClient
-	private _listenToRPCResponse = async (rpcClient: Dealer) => {
-		for await (const [requestId, result] of rpcClient) {
-			if (this._rpcRequestIds.has(requestId.toString())) {
-				this._emitter.emit(requestId.toString(), JSON.parse(result.toString()));
-				continue;
+		// Handle RPC requests responses coming back from different ipcServers on rpcClient
+		this._listenToRPCResponse = async (rpcClient: Dealer): Promise<void> => {
+			for await (const [requestId, result] of rpcClient) {
+				if (this._rpcRequestIds.has(requestId.toString())) {
+					this._emitter.emit(requestId.toString(), JSON.parse(result.toString()));
+					continue;
+				}
 			}
-		}
-	};
+		};
+	}
 
 	public async setup(): Promise<boolean> {
 		if (this.config.rpc.modes.includes(RPC_MODES.IPC)) {
@@ -323,11 +324,12 @@ export class Bus {
 
 		// Communicate through unix socket
 		if (this.config.rpc.modes.includes(RPC_MODES.IPC)) {
-			this._ipcServer.pubSocket.send([eventName, JSON.stringify(notification)]).catch(error => {
-				this.logger.debug(
-					{ err: error as Error },
-					`Failed to publish event: ${eventName} to ipc server.`,
-				);
+			this._ipcServer.pubSocket.send([eventName, JSON.stringify(notification)])
+				.catch(error => {
+					this.logger.debug(
+						{ err: error as Error },
+						`Failed to publish event: ${eventName} to ipc server.`,
+					);
 			});
 		}
 
