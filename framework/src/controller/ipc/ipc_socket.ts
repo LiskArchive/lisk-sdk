@@ -46,5 +46,6 @@ export abstract class IPCSocket {
 	public stop(): void {
 		this.pubSocket.close();
 		this.subSocket.close();
+		this.rpcServer.close();
 	}
 }

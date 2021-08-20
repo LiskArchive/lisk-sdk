@@ -30,8 +30,8 @@ export class IPCServer extends IPCSocket {
 		this.pubSocket = new Publisher();
 		this.subSocket = new Subscriber();
 		this._socketPaths = {
-			pub: this._eventSubSocketPath,
-			sub: this._eventPubSocketPath,
+			pub: this._eventPubSocketPath,
+			sub: this._eventSubSocketPath,
 			rpcServer: this._rpcSeverSocketPath,
 		};
 	}

@@ -52,18 +52,46 @@ export class IPCClient extends IPCSocket {
 
 	public async start(): Promise<void> {
 		await super.start();
-
 		try {
-			this.pubSocket.connectTimeout = IPC_CONNECTION_TIME_OUT;
-			this.subSocket.connectTimeout = IPC_CONNECTION_TIME_OUT;
-			// Connect to sub socket of the server to publish
-			this.pubSocket.connect(this._eventSubSocketPath);
-			// Connect to pub socket of the server to receive subscribed events
-			this.subSocket.connect(this._eventPubSocketPath);
-			/* Wait briefly before publishing to avoid slow joiner syndrome,
-			   where the subscriber loses messages as it connects to the server’s socket */
-			await new Promise(resolve => setTimeout(resolve, 25));
-			this.rpcClient.connect(this._clientRPCSocketPath);
+			await new Promise<void>((resolve, reject) => {
+				const timeout = setTimeout(() => {
+					reject(
+						new Error('IPC Pub Socket client connection timeout. Please check if IPC server is running.'),
+					);
+				}, IPC_CONNECTION_TIME_OUT);
+
+				this.pubSocket.events.on('connect', () => {
+					clearTimeout(timeout);
+					resolve();
+				});
+				this.pubSocket.connect(this._eventSubSocketPath);
+			});
+			await new Promise<void>((resolve, reject) => {
+				const timeout = setTimeout(() => {
+					reject(
+						new Error('IPC Sub Socket client connection timeout. Please check if IPC server is running.'),
+					);
+				}, IPC_CONNECTION_TIME_OUT);
+
+				this.subSocket.events.on('connect', () => {
+					clearTimeout(timeout);
+					resolve();
+				});
+				this.subSocket.connect(this._eventPubSocketPath);
+			});
+			await new Promise<void>((resolve, reject) => {
+				const timeout = setTimeout(() => {
+					reject(
+						new Error('IPC Sub Socket client connection timeout. Please check if IPC server is running.'),
+					);
+				}, IPC_CONNECTION_TIME_OUT);
+
+				this.rpcClient.events.on('connect', () => {
+					clearTimeout(timeout);
+					resolve();
+				});
+				this.rpcClient.connect(this._clientRPCSocketPath);
+			});
 		} catch (error) {
 			this.pubSocket.close();
 			this.subSocket.close();
