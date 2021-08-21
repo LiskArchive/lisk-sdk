@@ -177,7 +177,7 @@ export interface ApplicationConfig {
 	rpc: RPCConfig;
 }
 
-export type ApplicationConfigForPlugin = Omit<ApplicationConfig, 'plugins'>
+export type ApplicationConfigForPlugin = Omit<ApplicationConfig, 'plugins'>;
 
 export type PartialApplicationConfig = RecursivePartial<ApplicationConfig>;
 

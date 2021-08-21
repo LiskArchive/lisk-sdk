@@ -579,7 +579,6 @@ describe('Application', () => {
 				'test-plugin': TestPlugin,
 			};
 
-
 			const { plugins: pluginConfig, ...rest } = app.config;
 
 			// Assert

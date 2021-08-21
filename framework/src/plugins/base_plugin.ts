@@ -190,7 +190,7 @@ interface PluginInitContext {
 	appConfig: ApplicationConfigForPlugin;
 }
 
-export abstract class BasePlugin< T = Record<string, unknown>> {
+export abstract class BasePlugin<T = Record<string, unknown>> {
 	public config!: T;
 	public appConfig!: ApplicationConfigForPlugin;
 	public schemas!: RegisteredSchema;
@@ -207,7 +207,7 @@ export abstract class BasePlugin< T = Record<string, unknown>> {
 				context.config,
 			) as T;
 
-			const errors = validator.validate(this.configSchema, this.config as unknown as object);
+			const errors = validator.validate(this.configSchema, (this.config as unknown) as object);
 
 			if (errors.length) {
 				throw new LiskValidationError([...errors]);
@@ -255,10 +255,7 @@ export abstract class BasePlugin< T = Record<string, unknown>> {
 		this._logger = createLogger({
 			consoleLogLevel: this.appConfig.logger.consoleLogLevel,
 			fileLogLevel: this.appConfig.logger.fileLogLevel,
-			logFilePath: join(
-				dirs.logs,
-				`plugin-${this.name}.log`,
-			),
+			logFilePath: join(dirs.logs, `plugin-${this.name}.log`),
 			module: `plugin:${this.name}`,
 		});
 
@@ -274,7 +271,7 @@ export abstract class BasePlugin< T = Record<string, unknown>> {
 
 	public get dataPath(): string {
 		const dirs = systemDirs(this.appConfig.label, this.appConfig.rootPath);
-	
+
 		return join(dirs.plugins, this.name, 'data');
 	}
 
@@ -301,7 +298,9 @@ export const getPluginExportPath = (pluginKlass: InstantiablePlugin): string | u
 		// eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 		const plugin = require(pluginInstance.nodeModulePath);
 
-		return (plugin === pluginKlass || plugin[pluginKlass.name] === pluginKlass) ? pluginInstance.nodeModulePath : undefined;
+		return plugin === pluginKlass || plugin[pluginKlass.name] === pluginKlass
+			? pluginInstance.nodeModulePath
+			: undefined;
 	} catch (error) {
 		/* Plugin nodeModulePath is not an npm package */
 		return;

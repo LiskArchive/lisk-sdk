@@ -340,7 +340,7 @@ export class Application {
 	}
 
 	private async _loadPlugins(): Promise<void> {
-		const { plugins, ...rest } = this.config; 
+		const { plugins, ...rest } = this.config;
 		const appConfigForPlugin: ApplicationConfigForPlugin = rest;
 		await this._controller.loadPlugins(this._plugins, this.config.plugins, appConfigForPlugin);
 	}

@@ -18,7 +18,7 @@ import * as path from 'path';
 import { Logger } from '../logger';
 import { BasePlugin, getPluginExportPath, InstantiablePlugin } from '../plugins/base_plugin';
 import { systemDirs } from '../system_dirs';
-import {  ApplicationConfigForPlugin, PluginConfig, RPCConfig } from '../types';
+import { ApplicationConfigForPlugin, PluginConfig, RPCConfig } from '../types';
 import { Bus } from './bus';
 import { BaseChannel } from './channels';
 import { InMemoryChannel } from './channels/in_memory_channel';
@@ -204,7 +204,7 @@ export class Controller {
 		name: string,
 		Klass: InstantiablePlugin,
 		config: PluginConfig,
-		appConfig: ApplicationConfigForPlugin
+		appConfig: ApplicationConfigForPlugin,
 	): Promise<void> {
 		const plugin: BasePlugin = new Klass();
 

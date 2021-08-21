@@ -197,7 +197,7 @@ describe('base_plugin', () => {
 		it('should return name if its a valid npm package', () => {
 			class MyPlugin2 extends MyPlugin {
 				public get nodeModulePath() {
-					return 'my_plugin'	
+					return 'my_plugin';
 				}
 			}
 
