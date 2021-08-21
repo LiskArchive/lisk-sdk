@@ -18,7 +18,7 @@ import * as path from 'path';
 import { Logger } from '../logger';
 import { BasePlugin, getPluginExportPath, InstantiablePlugin } from '../plugins/base_plugin';
 import { systemDirs } from '../system_dirs';
-import { PluginOptions, PluginOptionsWithApplicationConfig, RPCConfig } from '../types';
+import {  ApplicationConfigForPlugin, PluginConfig, RPCConfig } from '../types';
 import { Bus } from './bus';
 import { BaseChannel } from './channels';
 import { InMemoryChannel } from './channels/in_memory_channel';
@@ -87,7 +87,8 @@ export class Controller {
 
 	public async loadPlugins(
 		plugins: PluginsObject,
-		pluginOptions: { [key: string]: PluginOptionsWithApplicationConfig },
+		pluginConfig: { [key: string]: PluginConfig },
+		appConfig: ApplicationConfigForPlugin,
 	): Promise<void> {
 		if (!this.bus) {
 			throw new Error('Controller bus is not initialized. Plugins can not be loaded.');
@@ -95,12 +96,12 @@ export class Controller {
 
 		for (const name of Object.keys(plugins)) {
 			const klass = plugins[name];
-			const options = pluginOptions[name];
+			const config = pluginConfig[name];
 
-			if (options.loadAsChildProcess) {
-				await this._loadChildProcessPlugin(name, klass, options);
+			if (config.loadAsChildProcess) {
+				await this._loadChildProcessPlugin(name, klass, config, appConfig);
 			} else {
-				await this._loadInMemoryPlugin(name, klass, options);
+				await this._loadInMemoryPlugin(name, klass, config, appConfig);
 			}
 		}
 	}
@@ -173,7 +174,8 @@ export class Controller {
 	private async _loadInMemoryPlugin(
 		name: string,
 		Klass: InstantiablePlugin,
-		options: PluginOptionsWithApplicationConfig,
+		config: PluginConfig,
+		appConfig: ApplicationConfigForPlugin,
 	): Promise<void> {
 		const plugin: BasePlugin = new Klass();
 
@@ -188,12 +190,7 @@ export class Controller {
 		channel.publish(`${pluginName}:registeredToBus`);
 		channel.publish(`${pluginName}:loading:started`);
 
-		const { plugins, ...appConfigForPlugin } = options.appConfig;
-		const config = plugins[name];
-		const pluginOptions = { ...options, ...appConfigForPlugin };
-		const context = { options: pluginOptions, channel, config };
-
-		await plugin.init(context);
+		await plugin.init({ config, channel, appConfig });
 		await plugin.load(channel);
 
 		channel.publish(`${pluginName}:loading:finished`);
@@ -206,7 +203,8 @@ export class Controller {
 	private async _loadChildProcessPlugin(
 		name: string,
 		Klass: InstantiablePlugin,
-		options: PluginOptions,
+		config: PluginConfig,
+		appConfig: ApplicationConfigForPlugin
 	): Promise<void> {
 		const plugin: BasePlugin = new Klass();
 
@@ -234,8 +232,8 @@ export class Controller {
 
 		child.send({
 			action: 'load',
-			config: this.config,
-			options,
+			config,
+			appConfig,
 		});
 
 		this._childProcesses[pluginName] = child;

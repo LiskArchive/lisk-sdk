@@ -505,15 +505,6 @@ describe('Application', () => {
 			// Act && Assert
 			expect(app['_plugins']['test-plugin']).toBe(TestPlugin);
 		});
-
-		it('should add plugin to the collection with custom name', () => {
-			// Arrange
-			const app = Application.defaultApplication(genesisBlockJSON, config);
-			(app as any).registerPlugin(TestPlugin, { alias: 'my-custom-plugin' });
-
-			// Act && Assert
-			expect(app['_plugins']['my-custom-plugin']).toBe(TestPlugin);
-		});
 	});
 
 	describe('#_initChannel', () => {
@@ -570,7 +561,6 @@ describe('Application', () => {
 
 	describe('#_loadPlugins', () => {
 		let app: Application;
-		let dirs: ReturnType<typeof systemDirs>;
 
 		beforeEach(async () => {
 			app = Application.defaultApplication(genesisBlockJSON, config);
@@ -581,8 +571,6 @@ describe('Application', () => {
 			jest.spyOn(Controller.prototype, 'loadPlugins').mockResolvedValue(jest.fn() as never);
 
 			await app.run();
-
-			dirs = systemDirs(app.config.label, app.config.rootPath);
 		});
 
 		it('should compile config and load plugins', () => {
@@ -590,33 +578,13 @@ describe('Application', () => {
 			const plugins = {
 				'test-plugin': TestPlugin,
 			};
-			const pluginsOptions = {
-				'test-plugin': {
-					loadAsChildProcess: false,
-					dataPath: dirs.dataPath,
-					appConfig: {
-						rootPath: app.config.rootPath,
-						label: app.config.label,
-						version: app.config.version,
-						networkVersion: app.config.networkVersion,
-						genesisConfig: app.config.genesisConfig,
-						logger: {
-							consoleLogLevel: app.config.logger.consoleLogLevel,
-							fileLogLevel: app.config.logger.fileLogLevel,
-							logFileName: app.config.logger.logFileName,
-						},
-						network: app.config.network,
-						plugins: app.config.plugins,
-						rpc: app.config.rpc,
-						transactionPool: app.config.transactionPool,
-						forging: app.config.forging,
-					},
-				},
-			};
+
+
+			const { plugins: pluginConfig, ...rest } = app.config;
 
 			// Assert
 			expect(app['_controller'].loadPlugins).toHaveBeenCalledTimes(1);
-			expect(app['_controller'].loadPlugins).toHaveBeenCalledWith(plugins, pluginsOptions);
+			expect(app['_controller'].loadPlugins).toHaveBeenCalledWith(plugins, pluginConfig, rest);
 		});
 	});
 

@@ -27,7 +27,6 @@ const appConfigForPlugin = {
 	logger: {
 		consoleLogLevel: 'info',
 		fileLogLevel: 'info',
-		logFileName: 'plugin-MisbehaviourPlugin.log',
 	},
 	rpc: {
 		modes: ['ipc'],

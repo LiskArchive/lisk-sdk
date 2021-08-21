@@ -89,6 +89,7 @@ describe('Controller Class', () => {
 		logs: `${config.rootPath}/${appLabel}/logs`,
 		sockets: `${config.rootPath}/${appLabel}/tmp/sockets`,
 		pids: `${config.rootPath}/${appLabel}/tmp/pids`,
+		plugins: `${config.rootPath}/${appLabel}/plugins`,
 	};
 	const configController = {
 		dataPath: '/user/.lisk/#LABEL',
@@ -183,8 +184,8 @@ describe('Controller Class', () => {
 			};
 
 			pluginOptions = {
-				plugin1: { option: '#OPTIONS1', dataPath: '~/.lisk/#LABEL' },
-				plugin2: { option2: '#OPTIONS2', dataPath: '~/.lisk/#LABEL' },
+				plugin1: { option: '#OPTIONS1' },
+				plugin2: { option2: '#OPTIONS2' },
 			};
 
 			await controller.load();
@@ -195,7 +196,7 @@ describe('Controller Class', () => {
 			controller = new Controller(params);
 
 			// Act && Assert
-			await expect(controller.loadPlugins(plugins, pluginOptions)).rejects.toThrow(
+			await expect(controller.loadPlugins(plugins, pluginOptions, {} as never)).rejects.toThrow(
 				'Controller bus is not initialized. Plugins can not be loaded.',
 			);
 		});
@@ -205,7 +206,7 @@ describe('Controller Class', () => {
 		describe('in-memory plugin', () => {
 			it('should load plugin in-memory if "loadAsChildProcess" is set to false', async () => {
 				// Act
-				await controller.loadPlugins(plugins, pluginOptions);
+				await controller.loadPlugins(plugins, pluginOptions, {} as never);
 
 				// Assert
 				expect(loggerMock.info).toHaveBeenCalledWith('plugin1', 'Loading in-memory plugin');
@@ -214,7 +215,7 @@ describe('Controller Class', () => {
 
 			it('should create instance of in-memory channel', async () => {
 				// Act
-				await controller.loadPlugins(plugins, pluginOptions);
+				await controller.loadPlugins(plugins, pluginOptions, {} as never);
 
 				// Assert
 				expect(InMemoryChannel).toHaveBeenCalledTimes(2);
@@ -222,7 +223,7 @@ describe('Controller Class', () => {
 
 			it('should register channel to bus', async () => {
 				// Act
-				await controller.loadPlugins(plugins, pluginOptions);
+				await controller.loadPlugins(plugins, pluginOptions, {} as never);
 
 				// Assert
 				expect(InMemoryChannel.prototype.registerToBus).toHaveBeenCalledTimes(2);
@@ -231,7 +232,7 @@ describe('Controller Class', () => {
 
 			it('should publish `registeredToBus:started` event before loading plugin', async () => {
 				// Act
-				await controller.loadPlugins(plugins, pluginOptions);
+				await controller.loadPlugins(plugins, pluginOptions, {} as never);
 
 				// Assert
 				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith('plugin1:registeredToBus');
@@ -240,7 +241,7 @@ describe('Controller Class', () => {
 
 			it('should publish `loading:started` event before loading plugin', async () => {
 				// Act
-				await controller.loadPlugins(plugins, pluginOptions);
+				await controller.loadPlugins(plugins, pluginOptions, {} as never);
 
 				// Assert
 				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith('plugin1:loading:started');
@@ -254,7 +255,7 @@ describe('Controller Class', () => {
 				plugins.plugin2 = createMockPlugin({ initStub: initMock });
 
 				// Act
-				await controller.loadPlugins(plugins, pluginOptions);
+				await controller.loadPlugins(plugins, pluginOptions, {} as never);
 
 				// Assert
 				expect(initMock).toHaveBeenCalledTimes(2);
@@ -267,7 +268,7 @@ describe('Controller Class', () => {
 				plugins.plugin2 = createMockPlugin({ loadStub: loadMock });
 
 				// Act
-				await controller.loadPlugins(plugins, pluginOptions);
+				await controller.loadPlugins(plugins, pluginOptions, {} as never);
 
 				// Assert
 				expect(loadMock).toHaveBeenCalledTimes(2);
@@ -276,7 +277,7 @@ describe('Controller Class', () => {
 
 			it('should publish `loading:finished` after loading plugin', async () => {
 				// Act
-				await controller.loadPlugins(plugins, pluginOptions);
+				await controller.loadPlugins(plugins, pluginOptions, {} as never);
 
 				// Assert
 				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith('plugin1:loading:finished');
@@ -285,7 +286,7 @@ describe('Controller Class', () => {
 
 			it('should add plugin to `controller._inMemoryPlugins` object', async () => {
 				// Act
-				await controller.loadPlugins(plugins, pluginOptions);
+				await controller.loadPlugins(plugins, pluginOptions, {} as never);
 
 				// Assert
 				expect(controller['_inMemoryPlugins']).toEqual(
@@ -330,7 +331,7 @@ describe('Controller Class', () => {
 
 			it('should load plugin in child process if "loadAsChildProcess" and IPC is enabled', async () => {
 				// Act
-				await controller.loadPlugins(plugins, pluginOptions);
+				await controller.loadPlugins(plugins, pluginOptions, {} as never);
 
 				// Assert
 				expect(loggerMock.info).toHaveBeenCalledWith('plugin1', 'Loading child-process plugin');
@@ -339,7 +340,7 @@ describe('Controller Class', () => {
 
 			it('should load child process with childProcess.fork', async () => {
 				// Arrange & Act
-				await controller.loadPlugins(plugins, pluginOptions);
+				await controller.loadPlugins(plugins, pluginOptions, {} as never);
 
 				// Assert
 				expect(childProcess.fork).toHaveBeenCalledTimes(2);
@@ -357,19 +358,19 @@ describe('Controller Class', () => {
 
 			it('should send "load" action to child process', async () => {
 				// Arrange & Act
-				await controller.loadPlugins(plugins, pluginOptions);
+				await controller.loadPlugins(plugins, pluginOptions, {} as never);
 
 				// Assert
 				expect(childProcessMock.send).toHaveBeenCalledTimes(2);
 				expect(childProcessMock.send).toHaveBeenCalledWith({
 					action: 'load',
-					config: controller.config,
-					options: pluginOptions.plugin1,
+					appConfig: {},
+					config: pluginOptions.plugin1,
 				});
 				expect(childProcessMock.send).toHaveBeenCalledWith({
 					action: 'load',
-					config: controller.config,
-					options: pluginOptions.plugin2,
+					appConfig: {},
+					config: pluginOptions.plugin2,
 				});
 			});
 		});
@@ -416,7 +417,7 @@ describe('Controller Class', () => {
 			};
 
 			await controller.load();
-			await controller.loadPlugins(plugins, pluginOptions);
+			await controller.loadPlugins(plugins, pluginOptions, {} as never);
 		});
 
 		it('should unload plugins in sequence', async () => {
@@ -453,7 +454,7 @@ describe('Controller Class', () => {
 				controller = new Controller(updatedParams);
 
 				await controller.load();
-				await controller.loadPlugins(plugins, pluginOptions);
+				await controller.loadPlugins(plugins, pluginOptions, {} as never);
 			});
 
 			it('should publish unloading:started event', async () => {
@@ -493,7 +494,7 @@ describe('Controller Class', () => {
 				} as never;
 
 				await controller.load();
-				await controller.loadPlugins(plugins, pluginOptions);
+				await controller.loadPlugins(plugins, pluginOptions, {} as never);
 			});
 
 			it('should kill child process if its not connected', async () => {

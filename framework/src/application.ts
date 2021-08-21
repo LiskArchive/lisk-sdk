@@ -37,12 +37,12 @@ import {
 	ApplicationConfig,
 	GenesisConfig,
 	EventPostTransactionData,
-	PluginOptions,
+	PluginConfig,
 	RegisteredSchema,
 	RegisteredModule,
 	UpdateForgingStatusInput,
 	PartialApplicationConfig,
-	PluginOptionsWithApplicationConfig,
+	ApplicationConfigForPlugin,
 } from './types';
 
 import {
@@ -177,7 +177,7 @@ export class Application {
 
 	public registerPlugin<T extends BasePlugin>(
 		PluginKlass: InstantiablePlugin<T>,
-		options: PluginOptions = { loadAsChildProcess: false },
+		options: PluginConfig = { loadAsChildProcess: false },
 	): void {
 		assert(PluginKlass, 'Plugin implementation is required');
 		assert(typeof options === 'object', 'Plugin options must be provided or set to empty object.');
@@ -204,7 +204,7 @@ export class Application {
 		this._plugins[pluginName] = PluginKlass;
 	}
 
-	public overridePluginOptions(name: string, options?: PluginOptions): void {
+	public overridePluginOptions(name: string, options?: PluginConfig): void {
 		assert(Object.keys(this._plugins).includes(name), `No plugin ${name} is registered`);
 		this.config.plugins[name] = {
 			...this.config.plugins[name],
@@ -340,37 +340,9 @@ export class Application {
 	}
 
 	private async _loadPlugins(): Promise<void> {
-		const dirs = systemDirs(this.config.label, this.config.rootPath);
-		const pluginOptions: { [key: string]: PluginOptionsWithApplicationConfig } = {};
-
-		const appConfigForPlugin: ApplicationConfig = {
-			version: this.config.version,
-			networkVersion: this.config.networkVersion,
-			genesisConfig: this.config.genesisConfig,
-			logger: {
-				logFileName: this.config.logger.logFileName,
-				consoleLogLevel: this.config.logger.consoleLogLevel,
-				fileLogLevel: this.config.logger.fileLogLevel,
-			},
-			rootPath: this.config.rootPath,
-			label: this.config.label,
-			forging: this.config.forging,
-			network: this.config.network,
-			plugins: this.config.plugins,
-			transactionPool: this.config.transactionPool,
-			rpc: this.config.rpc,
-		};
-
-		Object.keys(this._plugins).forEach(name => {
-			pluginOptions[name] = {
-				...this.config.plugins[name],
-				// TODO: Remove data path from here and use from appConfig later on
-				dataPath: dirs.dataPath,
-				appConfig: appConfigForPlugin,
-			};
-		});
-
-		await this._controller.loadPlugins(this._plugins, pluginOptions);
+		const { plugins, ...rest } = this.config; 
+		const appConfigForPlugin: ApplicationConfigForPlugin = rest;
+		await this._controller.loadPlugins(this._plugins, this.config.plugins, appConfigForPlugin);
 	}
 
 	private _initLogger(): Logger {

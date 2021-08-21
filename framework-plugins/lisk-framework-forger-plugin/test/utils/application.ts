@@ -19,7 +19,8 @@ import { getForgerInfo as getForgerInfoFromDB } from '../../src/db';
 import { ForgerInfo } from '../../src/types';
 
 export const getForgerPlugin = (app: Application): ForgerPlugin => {
-	return app['_controller']['_inMemoryPlugins'][ForgerPlugin.name]['plugin'];
+
+	return app['_controller']['_inMemoryPlugins'][(new (ForgerPlugin)).name]['plugin'];
 };
 
 export const waitTill = async (ms: number): Promise<void> =>

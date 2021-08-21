@@ -26,8 +26,8 @@ import { EventsDefinition } from '../controller/event';
 import { createLogger, Logger } from '../logger';
 import { systemDirs } from '../system_dirs';
 import {
-	ApplicationConfig,
-	PluginOptionsWithApplicationConfig,
+	ApplicationConfigForPlugin,
+	PluginConfig,
 	RegisteredSchema,
 	SchemaWithDefault,
 	TransactionJSON,
@@ -74,6 +74,8 @@ interface BlockAssetJSON {
 	readonly maxHeightPreviouslyForged: number;
 	readonly maxHeightPrevoted: number;
 }
+
+// type ExtractPluginOptions<P> = P extends BasePlugin<infer T> ? T : PluginOptionsWithApplicationConfig;
 
 export type InstantiablePlugin<T extends BasePlugin = BasePlugin> = new () => T;
 
@@ -183,18 +185,14 @@ export interface PluginCodec {
 }
 
 interface PluginInitContext {
-	config: Record<string, unknown>;
+	config: PluginConfig;
 	channel: BaseChannel;
-	options: {
-		readonly dataPath: string;
-		appConfig: Omit<ApplicationConfig, 'plugins'>;
-	};
+	appConfig: ApplicationConfigForPlugin;
 }
 
-export abstract class BasePlugin<
-	T extends PluginOptionsWithApplicationConfig = PluginOptionsWithApplicationConfig
-> {
-	public options!: T;
+export abstract class BasePlugin< T = Record<string, unknown>> {
+	public config!: T;
+	public appConfig!: ApplicationConfigForPlugin;
 	public schemas!: RegisteredSchema;
 
 	public codec!: PluginCodec;
@@ -203,21 +201,21 @@ export abstract class BasePlugin<
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(context: PluginInitContext): Promise<void> {
 		if (this.configSchema) {
-			this.options = objects.mergeDeep(
+			this.config = objects.mergeDeep(
 				{},
 				(this.configSchema as SchemaWithDefault).default ?? {},
-				context.options,
 				context.config,
 			) as T;
 
-			const errors = validator.validate(this.configSchema, this.options);
+			const errors = validator.validate(this.configSchema, this.config as unknown as object);
 
 			if (errors.length) {
 				throw new LiskValidationError([...errors]);
 			}
 		} else {
-			this.options = objects.mergeDeep({}, context.options, context.config) as T;
+			this.config = {} as T;
 		}
+		this.appConfig = context.appConfig;
 
 		this.codec = {
 			decodeAccount: <K = DefaultAccountJSON>(data: Buffer | string): AccountJSON<K> => {
@@ -252,15 +250,16 @@ export abstract class BasePlugin<
 				),
 		};
 
-		const dirs = systemDirs(this.options.appConfig.label, this.options.appConfig.rootPath);
+		const dirs = systemDirs(this.appConfig.label, this.appConfig.rootPath);
+
 		this._logger = createLogger({
-			consoleLogLevel: this.options.appConfig.logger.consoleLogLevel,
-			fileLogLevel: this.options.appConfig.logger.fileLogLevel,
+			consoleLogLevel: this.appConfig.logger.consoleLogLevel,
+			fileLogLevel: this.appConfig.logger.fileLogLevel,
 			logFilePath: join(
 				dirs.logs,
-				`plugin-${((this.constructor as unknown) as typeof BasePlugin).name}.log`,
+				`plugin-${this.name}.log`,
 			),
-			module: `plugin:${((this.constructor as unknown) as typeof BasePlugin).name}`,
+			module: `plugin:${this.name}`,
 		});
 
 		context.channel.once(APP_EVENT_READY, async () => {
@@ -272,6 +271,13 @@ export abstract class BasePlugin<
 	public get configSchema(): SchemaWithDefault | object | undefined {
 		return undefined;
 	}
+
+	public get dataPath(): string {
+		const dirs = systemDirs(this.appConfig.label, this.appConfig.rootPath);
+	
+		return join(dirs.plugins, this.name, 'data');
+	}
+
 	public abstract get nodeModulePath(): string;
 	public abstract get events(): EventsDefinition;
 	public abstract get actions(): ActionsDefinition;
@@ -283,59 +289,36 @@ export abstract class BasePlugin<
 
 // TODO: Once the issue fixed we can use require.resolve to rewrite the logic
 //  https://github.com/facebook/jest/issues/9543
-export const getPluginExportPath = (
-	PluginKlass: InstantiablePlugin,
-	strict = true,
-): string | undefined => {
-	let nodeModule: Record<string, unknown> | undefined;
-	let nodeModulePath: string | undefined;
+export const getPluginExportPath = (pluginKlass: InstantiablePlugin): string | undefined => {
+	const pluginInstance = new pluginKlass();
 
-	const plugin = new PluginKlass();
+	if (!pluginInstance.nodeModulePath) {
+		return;
+	}
 
 	try {
-		// Check if plugin name is an npm package
+		// Check if plugin nodeModulePath is an npm package
 		// eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-		nodeModule = require(plugin.name);
-		nodeModulePath = plugin.name;
+		const plugin = require(pluginInstance.nodeModulePath);
+
+		return (plugin === pluginKlass || plugin[pluginKlass.name] === pluginKlass) ? pluginInstance.nodeModulePath : undefined;
 	} catch (error) {
-		/* Plugin pluginKlass.name is not an npm package */
-	}
-
-	if (!nodeModule && plugin.nodeModulePath) {
-		try {
-			// Check if plugin nodeModulePath is an npm package
-			// eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-			nodeModule = require(plugin.nodeModulePath);
-			nodeModulePath = plugin.nodeModulePath;
-		} catch (error) {
-			/* Plugin nodeModulePath is not an npm package */
-		}
-	}
-
-	if (!nodeModule || !nodeModule[plugin.name]) {
+		/* Plugin nodeModulePath is not an npm package */
 		return;
 	}
-
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-	if (strict && nodeModule[PluginKlass.name] !== PluginKlass) {
-		return;
-	}
-
-	// eslint-disable-next-line consistent-return
-	return nodeModulePath;
 };
 
-export const validatePluginSpec = (plugin: BasePlugin): void => {
-	assert(plugin.name, 'Plugin name is required.');
-	assert(plugin.events, 'Plugin events are required.');
-	assert(plugin.actions, 'Plugin actions are required.');
+export const validatePluginSpec = (PluginObject: BasePlugin): void => {
+	assert(PluginObject.name, 'Plugin name is required.');
+	assert(PluginObject.events, 'Plugin events are required.');
+	assert(PluginObject.actions, 'Plugin actions are required.');
 	// eslint-disable-next-line @typescript-eslint/unbound-method
-	assert(plugin.load, 'Plugin load action is required.');
+	assert(PluginObject.load, 'Plugin load action is required.');
 	// eslint-disable-next-line @typescript-eslint/unbound-method
-	assert(plugin.unload, 'Plugin unload actions is required.');
+	assert(PluginObject.unload, 'Plugin unload actions is required.');
 
-	if (plugin.configSchema) {
-		const errors = validator.validateSchema(plugin.configSchema);
+	if (PluginObject.configSchema) {
+		const errors = validator.validateSchema(PluginObject.configSchema);
 		if (errors.length) {
 			throw new LiskValidationError([...errors]);
 		}
