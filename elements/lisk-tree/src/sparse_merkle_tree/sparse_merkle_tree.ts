@@ -402,12 +402,15 @@ export class SparseMerkleTree {
 					sortedQueriesWithBinaryKey,
 					callback => treeSort(spWithBinaryKey, callback) < 0,
 				);
-				if (insertIndex === sortedQueries.length) sortedQueries.push(sp);
-				else {
+				if (insertIndex === sortedQueries.length) {
+					sortedQueries.push(sp);
+				} else {
 					const keyPrefix = binaryExpansion(sp.key, this.keyLength).substring(0, sp.height);
 					const query = sortedQueries[insertIndex];
-					if (!binaryExpansion(query.key, this.keyLength).endsWith(keyPrefix, query.height))
+
+					if (!binaryExpansion(query.key, this.keyLength).endsWith(keyPrefix, query.height)) {
 						sortedQueries.splice(insertIndex, 0, sp);
+					}
 				}
 			} else {
 				sortedQueries.push(sp);

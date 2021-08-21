@@ -113,11 +113,6 @@ export const getLisk32AddressFromPublicKey = (
 	prefix = DEFAULT_LISK32_ADDRESS_PREFIX,
 ): string => `${prefix}${addressToLisk32(getAddressFromPublicKey(publicKey))}`;
 
-/**
- * @deprecated
- */
-export const getBase32AddressFromPublicKey = getLisk32AddressFromPublicKey;
-
 export const getLisk32AddressFromPassphrase = (
 	passphrase: string,
 	prefix = DEFAULT_LISK32_ADDRESS_PREFIX,
@@ -126,18 +121,13 @@ export const getLisk32AddressFromPassphrase = (
 	return getLisk32AddressFromPublicKey(publicKey, prefix);
 };
 
-/**
- * @deprecated
- */
-export const getBase32AddressFromPassphrase = getLisk32AddressFromPassphrase;
-
 const LISK32_ADDRESS_LENGTH = 41;
 const LISK32_CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
 
 export const validateLisk32Address = (
 	address: string,
 	prefix = DEFAULT_LISK32_ADDRESS_PREFIX,
-): boolean => {
+): true | never => {
 	if (address.length !== LISK32_ADDRESS_LENGTH) {
 		throw new Error('Address length does not match requirements. Expected 41 characters.');
 	}
@@ -167,11 +157,6 @@ export const validateLisk32Address = (
 	return true;
 };
 
-/**
- * @deprecated
- */
-export const validateBase32Address = validateLisk32Address;
-
 export const getAddressFromLisk32Address = (
 	base32Address: string,
 	prefix = DEFAULT_LISK32_ADDRESS_PREFIX,
@@ -190,17 +175,7 @@ export const getAddressFromLisk32Address = (
 	return Buffer.from(integerSequence8);
 };
 
-/**
- * @deprecated
- */
-export const getAddressFromBase32Address = getAddressFromLisk32Address;
-
 export const getLisk32AddressFromAddress = (
 	address: Buffer,
 	prefix = DEFAULT_LISK32_ADDRESS_PREFIX,
 ): string => `${prefix}${addressToLisk32(address)}`;
-
-/**
- * @deprecated
- */
-export const getBase32AddressFromAddress = getLisk32AddressFromAddress;
