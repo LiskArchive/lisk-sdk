@@ -163,10 +163,9 @@ export class SparseMerkleTree {
 			bottomNode = p;
 			h -= 1;
 		}
-		rootNode = bottomNode;
-		this._rootHash = rootNode.hash;
+		this._rootHash = bottomNode.hash;
 
-		return rootNode;
+		return bottomNode;
 	}
 
 	public async remove(key: Buffer): Promise<TreeNode> {
