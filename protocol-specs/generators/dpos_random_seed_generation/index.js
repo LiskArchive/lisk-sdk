@@ -219,8 +219,8 @@ const generateRandomSeed = (blocks, blocksPerRound) => {
 	]);
 
 	return {
-		randomSeed1: randomSeed1.toString('hex'),
-		randomSeed2: randomSeed2.toString('hex'),
+		randomSeed1,
+		randomSeed2,
 	};
 };
 

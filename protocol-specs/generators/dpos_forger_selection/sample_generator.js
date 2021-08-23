@@ -26,7 +26,7 @@ const generateDelegates = (num, fixedNum) => {
 	for (let i = 0; i < num; i += 1) {
 		const passphrase = Mnemonic.generateMnemonic();
 		const { publicKey } = getKeys(passphrase);
-		const address = hash(Buffer.from(publicKey, 'hex')).slice(0, 20).toString('hex');
+		const address = hash(Buffer.from(publicKey, 'hex')).slice(0, 20);
 		const buf = crypto.randomBytes(8);
 		const randomNumber = buf.readBigUInt64BE() / BigInt(10) ** BigInt(8);
 		const voteWeight = fixedValue
@@ -34,8 +34,8 @@ const generateDelegates = (num, fixedNum) => {
 			: randomNumber - (randomNumber % BigInt(10) ** BigInt(9));
 		delegateList.push({
 			address,
-			voteWeight: voteWeight.toString(),
-			// lsk: (voteWeight / (BigInt(10) ** BigInt(8))).toString(),
+			voteWeight,
+			// lsk: (voteWeight / (BigInt(10) ** BigInt(8))),
 		});
 	}
 

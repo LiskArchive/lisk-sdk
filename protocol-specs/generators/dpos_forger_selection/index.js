@@ -94,7 +94,7 @@ const generateForgerSelectionWithMoreThan2EligibleStandBy = () => {
 			voteWeights: delegateWeightsWithMoreThan2EligibleStandBy.list,
 		},
 		output: {
-			selectedForgers: result.map(vw => vw.address.toString('hex')),
+			selectedForgers: result.map(vw => vw.address),
 		},
 	};
 };
@@ -110,7 +110,7 @@ const generateForgerSelectionWithExactly1EligibleStandBy = () => {
 		},
 		output: {
 			selectedForgers: copyAndSort(delegateWeightsWithExactly1EligibleStandBy.list)
-				.map(dw => dw.address.toString('hex'))
+				.map(dw => dw.address)
 				.slice(0, 103),
 		},
 	};
@@ -127,7 +127,7 @@ const generateForgerSelectionWithExactly2EligibleStandBy = () => {
 		},
 		output: {
 			selectedForgers: copyAndSort(delegateWeightsWithExactly2EligibleStandBy.list)
-				.map(dw => dw.address.toString('hex'))
+				.map(dw => dw.address)
 				.slice(0, 103),
 		},
 	};
@@ -144,7 +144,7 @@ const generateForgerSelectionWithLessThan103Delegates = () => {
 		},
 		output: {
 			selectedForgers: copyAndSort(delegateWeightsLessThan103.list)
-				.map(dw => dw.address.toString('hex'))
+				.map(dw => dw.address)
 				.slice(0, 103),
 		},
 	};
@@ -161,7 +161,7 @@ const generateForgerSelectionWithExactly0EligibleStandBy = () => {
 		},
 		output: {
 			selectedForgers: copyAndSort(delegateWeightsWith0EligibleStandBy.list)
-				.map(dw => dw.address.toString('hex'))
+				.map(dw => dw.address)
 				.slice(0, 103),
 		},
 	};
