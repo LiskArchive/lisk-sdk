@@ -53,4 +53,7 @@ export class IPCServer extends IPCSocket {
 			throw error;
 		}
 	}
+	public stop(): void {
+		super.stop();
+	}
 }

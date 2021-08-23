@@ -60,10 +60,14 @@ export class IPCClient extends IPCSocket {
 					);
 				}, IPC_CONNECTION_TIME_OUT);
 
+				this.pubSocket.events.on('bind:error', (err) => {
+					reject(err);
+				});
 				this.pubSocket.events.on('connect', () => {
 					clearTimeout(timeout);
 					resolve();
 				});
+
 				this.pubSocket.connect(this._eventSubSocketPath);
 			});
 			await new Promise<void>((resolve, reject) => {
@@ -73,6 +77,9 @@ export class IPCClient extends IPCSocket {
 					);
 				}, IPC_CONNECTION_TIME_OUT);
 
+				this.subSocket.events.on('bind:error', (err) => {
+					reject(err);
+				});
 				this.subSocket.events.on('connect', () => {
 					clearTimeout(timeout);
 					resolve();
@@ -86,6 +93,9 @@ export class IPCClient extends IPCSocket {
 					);
 				}, IPC_CONNECTION_TIME_OUT);
 
+				this.rpcClient.events.on('bind:error', (err) => {
+					reject(err);
+				});
 				this.rpcClient.events.on('connect', () => {
 					clearTimeout(timeout);
 					resolve();
@@ -98,5 +108,9 @@ export class IPCClient extends IPCSocket {
 			this.rpcClient.close();
 			throw error;
 		}
+	}
+	public stop(): void {
+		super.stop();
+		this.rpcClient.close();
 	}
 }
