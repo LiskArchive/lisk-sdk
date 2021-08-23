@@ -177,8 +177,7 @@ In order to link your local lisk-sdk repository and test your application which 
    b. To build specific package: `yarn workspace <package name> build` or go into each package folder and `yarn build` or `npm run build`
    Example: `yarn workspace @liskhq/lisk-p2p build`
 
-**Note:** In case you face any issues during the installation make sure you have the right version of `yarn` and `node` and try to install from scratch by running,
-`yarn clean:node_modules && rm -rf ./node_modules`.
+**Note:** In case you face any issues during the installation make sure you have the right version of `yarn` and `node` and try reset project with `yarn clean:reset`.
 
 ## Contributors
 
