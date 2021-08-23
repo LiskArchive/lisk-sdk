@@ -1,5 +1,19 @@
 @import '../../styles/constants';
 
+.recent-events-event-heading {
+	font-size: 18px;
+	font-weight: 500;
+}
+
+.recent-events-code-block {
+	padding: 10px;
+	border: 0;
+	width: 100%;
+	line-height: 22px;
+	line-break: anywhere;
+	font-size: 14px;
+}
+
 .recent-events-dropdown {
 	display: flex;
 	align-items: center;
