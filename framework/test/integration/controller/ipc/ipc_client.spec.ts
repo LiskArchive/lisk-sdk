@@ -239,7 +239,7 @@ describe('IPCClient', () => {
 
 			// Act
 			await Promise.all([requestRPC(), receiveRPCResponse(), handleRPC()]);
-			//Assert
+			// Assert
 			expect(receivedResult).toEqual('myAction:Result');
 		});
 	});

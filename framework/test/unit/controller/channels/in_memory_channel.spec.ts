@@ -116,7 +116,7 @@ describe('InMemoryChannel Channel', () => {
 			const event = new Event(eventName);
 
 			// Act
-			await inMemoryChannel.registerToBus(bus);
+			inMemoryChannel.registerToBus(bus);
 			// eslint-disable-next-line @typescript-eslint/no-empty-function
 			inMemoryChannel.once(eventName, () => {});
 
@@ -179,7 +179,7 @@ describe('InMemoryChannel Channel', () => {
 			const actionFullName = `aDifferentModule:${actionName}`;
 
 			// Act
-			await inMemoryChannel.registerToBus(bus);
+			inMemoryChannel.registerToBus(bus);
 			jest.spyOn(bus, 'invoke').mockResolvedValue({ result: {} } as never);
 
 			await inMemoryChannel.invoke(actionFullName);

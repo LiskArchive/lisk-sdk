@@ -70,10 +70,10 @@ describe('InMemoryChannel', () => {
 			bus = new Bus(logger, config);
 
 			inMemoryChannelAlpha = new InMemoryChannel(alpha.moduleAlias, alpha.events, alpha.actions);
-			await inMemoryChannelAlpha.registerToBus(bus);
+			inMemoryChannelAlpha.registerToBus(bus);
 
 			inMemoryChannelBeta = new InMemoryChannel(beta.moduleAlias, beta.events, beta.actions);
-			await inMemoryChannelBeta.registerToBus(bus);
+			inMemoryChannelBeta.registerToBus(bus);
 		});
 
 		describe('#subscribe', () => {
@@ -130,7 +130,7 @@ describe('InMemoryChannel', () => {
 					});
 				});
 
-				await inMemoryChannelOmega.registerToBus(bus);
+				inMemoryChannelOmega.registerToBus(bus);
 
 				inMemoryChannelOmega.publish(`${omegaAlias}:${omegaEventName}`, dummyData);
 

@@ -51,7 +51,7 @@ describe('IPCServer', () => {
 			await expect(client.start()).resolves.toBeUndefined();
 		});
 
-		it('should init socket objects and resolve', async () => {
+		it('Should send and receive from client', async () => {
 			// Arrange
 			let receivedMessage = '';
 			await server.start();
@@ -74,7 +74,7 @@ describe('IPCServer', () => {
 
 			// Act
 			await Promise.all([send(), receive()]);
-			//Assert
+			// Assert
 			expect(receivedMessage).toEqual('hello');
 		});
 	});
