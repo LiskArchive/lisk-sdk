@@ -403,6 +403,13 @@ export class Bus {
 		if (this._httpServer) {
 			this._httpServer.stop();
 		}
+
+		// Close all the RPC Clients
+		if (Object.keys(this.rpcClients).length > 0) {
+			for (const client in this.rpcClients) {
+				this.rpcClients[client].close();
+			}
+		}
 	}
 
 	private async _setupIPCServer(): Promise<void> {
