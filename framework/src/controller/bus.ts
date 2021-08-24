@@ -20,7 +20,7 @@ import { Logger } from '../logger';
 import { ActionInfoForBus, RPCConfig, ChannelType } from '../types';
 import { Action } from './action';
 import { BaseChannel } from './channels/base_channel';
-import { IPC_REGISTER_CHANNEL_EVENT, IPC_RPC_EVENT } from './constants';
+import { IPC_EVENTS } from './constants';
 import { Event, EventsDefinition } from './event';
 import { IPCServer } from './ipc/ipc_server';
 import * as JSONRPC from './jsonrpc';
@@ -153,13 +153,17 @@ export class Bus {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public registerChannel(
+	public async registerChannel(
 		moduleAlias: string,
 		// Events should also include the module alias
 		events: EventsDefinition,
 		actions: { [key: string]: Action },
 		options: RegisterChannelOptions,
-	): void {
+	): Promise<void> {
+		if (Object.keys(this.channels).includes(moduleAlias)) {
+			throw new Error(`Channel for module ${moduleAlias} is already registered.`);
+		}
+
 		events.forEach(eventName => {
 			if (this.events[`${moduleAlias}:${eventName}`] !== undefined) {
 				throw new Error(`Event "${eventName}" already registered with bus.`);
@@ -270,7 +274,7 @@ export class Bus {
 		return new Promise(resolve => {
 			this._rpcRequestIds.add(action.id as string);
 			(channelInfo.rpcClient as Dealer)
-				.send([IPC_RPC_EVENT, JSON.stringify(action.toJSONRPCRequest())])
+				.send([IPC_EVENTS.RPC_EVENT, JSON.stringify(action.toJSONRPCRequest())])
 				.then(_ => {
 					// Listen to this event once for serving the request
 					this._emitter.once(
@@ -426,14 +430,19 @@ export class Bus {
 
 		const listenToRPC = async () => {
 			for await (const [sender, request, params] of this._ipcServer.rpcServer) {
-				if (request.toString() === IPC_REGISTER_CHANNEL_EVENT) {
+				if (request.toString() === IPC_EVENTS.REGISTER_CHANNEL) {
 					const { moduleAlias, eventsList, actionsInfo, options } = JSON.parse(
 						params.toString(),
 					) as RegisterToBusRequestObject;
-					this.registerChannel(moduleAlias, eventsList, actionsInfo, options);
+					this.registerChannel(moduleAlias, eventsList, actionsInfo, options).catch(err => {
+						this.logger.debug(
+							err,
+							`Error occurred while Registering channel for module ${moduleAlias}.`,
+						);
+					});
 					continue;
 				}
-				if (request.toString() === IPC_RPC_EVENT) {
+				if (request.toString() === IPC_EVENTS.RPC_EVENT) {
 					const requestData = JSON.parse(params.toString()) as JSONRPC.RequestObject;
 					this.invoke(requestData)
 						.then(result => {

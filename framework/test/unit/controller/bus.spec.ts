@@ -146,6 +146,7 @@ describe('Bus', () => {
 			const events = ['event1', 'event2'];
 
 			// Act
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			bus.registerChannel(moduleAlias, events, {}, channelOptions);
 
 			// Assert
@@ -161,7 +162,9 @@ describe('Bus', () => {
 			const events = ['event1', 'event1'];
 
 			// Act && Assert
-			expect(() => bus.registerChannel(moduleAlias, events, {}, channelOptions)).toThrow(Error);
+			expect(async () => bus.registerChannel(moduleAlias, events, {}, channelOptions)).toThrow(
+				Error,
+			);
 		});
 
 		it('should register actions.', async () => {
@@ -173,6 +176,7 @@ describe('Bus', () => {
 			};
 
 			// Act
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			bus.registerChannel(moduleAlias, [], actions, channelOptions);
 
 			// Assert
@@ -190,8 +194,11 @@ describe('Bus', () => {
 			};
 
 			// Act && Assert
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			bus.registerChannel(moduleAlias, [], actions, channelOptions);
-			expect(() => bus.registerChannel(moduleAlias, [], actions, channelOptions)).toThrow(Error);
+			expect(async () => bus.registerChannel(moduleAlias, [], actions, channelOptions)).toThrow(
+				Error,
+			);
 		});
 	});
 
@@ -276,6 +283,7 @@ describe('Bus', () => {
 			const eventData = { data: '#DATA' };
 			const JSONRPCData = { jsonrpc: '2.0', method: 'alias:registeredEvent', params: eventData };
 
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			bus.registerChannel(moduleAlias, events, {}, channelOptions);
 
 			// Act
@@ -335,6 +343,7 @@ describe('Bus', () => {
 				actionName => `${moduleAlias}:${actionName}`,
 			);
 
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			bus.registerChannel(moduleAlias, [], actions, channelOptions);
 
 			// Act
@@ -352,6 +361,7 @@ describe('Bus', () => {
 			const events = ['event1', 'event2'];
 			const expectedEvents = events.map(event => `${moduleAlias}:${event}`);
 
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			bus.registerChannel(moduleAlias, events, {}, channelOptions);
 
 			// Act

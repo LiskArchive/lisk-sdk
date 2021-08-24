@@ -17,15 +17,18 @@ import { Action } from '../action';
 import { BaseChannel } from './base_channel';
 import { Bus } from '../bus';
 import * as JSONRPC from '../jsonrpc/types';
+import { ChannelType } from '../../types';
 
 export class InMemoryChannel extends BaseChannel {
 	private bus!: Bus;
 
-	public registerToBus(bus: Bus): void {
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async registerToBus(bus: Bus): Promise<void> {
 		this.bus = bus;
 
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises
 		this.bus.registerChannel(this.moduleAlias, this.eventsList, this.actions, {
-			type: 'inMemory',
+			type: ChannelType.InMemory,
 			channel: this,
 		});
 	}

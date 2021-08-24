@@ -71,6 +71,7 @@ describe('InMemoryChannel Channel', () => {
 	describe('#registerToBus', () => {
 		it('should call `bus.registerChannel` method with given arguments', async () => {
 			// Act
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			inMemoryChannel.registerToBus(bus);
 
 			// Assert
@@ -93,6 +94,7 @@ describe('InMemoryChannel Channel', () => {
 			// Arrange
 			const eventName = 'module:anEventName';
 			const event = new Event(eventName);
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			inMemoryChannel.registerToBus(bus);
 
 			// Act
@@ -116,6 +118,7 @@ describe('InMemoryChannel Channel', () => {
 			const event = new Event(eventName);
 
 			// Act
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			inMemoryChannel.registerToBus(bus);
 			// eslint-disable-next-line @typescript-eslint/no-empty-function
 			inMemoryChannel.once(eventName, () => {});
@@ -150,6 +153,7 @@ describe('InMemoryChannel Channel', () => {
 			const event = new Event(eventFullName);
 
 			// Act
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			inMemoryChannel.registerToBus(bus);
 			inMemoryChannel.publish(eventFullName);
 
@@ -179,6 +183,7 @@ describe('InMemoryChannel Channel', () => {
 			const actionFullName = `aDifferentModule:${actionName}`;
 
 			// Act
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			inMemoryChannel.registerToBus(bus);
 			jest.spyOn(bus, 'invoke').mockResolvedValue({ result: {} } as never);
 

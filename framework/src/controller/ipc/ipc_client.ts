@@ -16,16 +16,16 @@ import { Dealer, Publisher, Subscriber } from 'zeromq';
 import { IPCSocket } from './ipc_socket';
 import { IPC_CONNECTION_TIME_OUT } from '../constants';
 
-interface clientSocketPaths {
+interface ClientSocketPaths {
 	readonly pub: string;
 	readonly sub: string;
 	readonly rpcServer: string;
 	readonly rpcClient: string;
 }
 export class IPCClient extends IPCSocket {
+	public readonly socketPaths: ClientSocketPaths;
 	protected readonly _clientRPCSocketPath: string;
 	private readonly _rpcClient: Dealer;
-	private readonly _socketPaths: clientSocketPaths;
 
 	public constructor(options: { socketsDir: string; name: string; rpcServerSocketPath: string }) {
 		super(options);
@@ -33,7 +33,7 @@ export class IPCClient extends IPCSocket {
 		this.pubSocket = new Publisher();
 		this.subSocket = new Subscriber();
 		this._clientRPCSocketPath = options.rpcServerSocketPath;
-		this._socketPaths = {
+		this.socketPaths = {
 			pub: this._eventSubSocketPath,
 			sub: this._eventPubSocketPath,
 			rpcServer: this._rpcSeverSocketPath,
@@ -44,10 +44,6 @@ export class IPCClient extends IPCSocket {
 
 	public get rpcClient(): Dealer {
 		return this._rpcClient;
-	}
-
-	public get socketPaths(): clientSocketPaths {
-		return this._socketPaths;
 	}
 
 	public async start(): Promise<void> {

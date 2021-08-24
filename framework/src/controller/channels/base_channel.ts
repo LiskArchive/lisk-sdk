@@ -91,6 +91,6 @@ export abstract class BaseChannel {
 	// Specified as moduleName:actionName
 	abstract invoke<T>(actionName: string, params?: object): Promise<T>;
 
-	abstract registerToBus(arg: unknown): void;
+	abstract registerToBus(arg: unknown): Promise<void>;
 	abstract once(eventName: string, cb: EventCallback): void;
 }

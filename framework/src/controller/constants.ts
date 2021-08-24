@@ -12,6 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const IPC_RPC_EVENT = 'invoke';
-export const IPC_REGISTER_CHANNEL_EVENT = 'registerChannel';
+export const IPC_EVENTS = { RPC_EVENT: 'invoke', REGISTER_CHANNEL: 'registerChannel' };
 export const IPC_CONNECTION_TIME_OUT = 2000;

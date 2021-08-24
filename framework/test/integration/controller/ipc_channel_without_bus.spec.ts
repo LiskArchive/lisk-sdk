@@ -81,7 +81,7 @@ describe('IPCChannel', () => {
 			};
 
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises
-			Promise.all<void>([listenForRPC(), listenForEvents()]);
+			Promise.all<void>([listenForRPC(), listenForEvents()]).catch(_ => ({}));
 
 			alphaChannel = new IPCChannel(alpha.moduleAlias, alpha.events, alpha.actions, config);
 

@@ -15,29 +15,25 @@
 import { Publisher, Subscriber } from 'zeromq';
 import { IPCSocket } from './ipc_socket';
 
-interface serverSocketPaths {
+interface ServerSocketPaths {
 	readonly pub: string;
 	readonly sub: string;
 	readonly rpcServer: string;
 }
 
 export class IPCServer extends IPCSocket {
-	private readonly _socketPaths: serverSocketPaths;
+	public readonly socketPaths: ServerSocketPaths;
 
 	public constructor(options: { socketsDir: string; name: string }) {
 		super(options);
 
 		this.pubSocket = new Publisher();
 		this.subSocket = new Subscriber();
-		this._socketPaths = {
+		this.socketPaths = {
 			pub: this._eventPubSocketPath,
 			sub: this._eventSubSocketPath,
 			rpcServer: this._rpcSeverSocketPath,
 		};
-	}
-
-	public get socketPaths(): serverSocketPaths {
-		return this._socketPaths;
 	}
 
 	public async start(): Promise<void> {
