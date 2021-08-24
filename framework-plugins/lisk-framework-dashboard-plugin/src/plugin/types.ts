@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { PluginOptionsWithApplicationConfig } from 'lisk-framework';
+import { PluginConfig } from 'lisk-framework';
 
-export interface dashboardPluginOptions extends PluginOptionsWithApplicationConfig {
+export interface dashboardPluginOptions extends PluginConfig {
 	applicationUrl: string;
 	host: string;
 	port: number;
