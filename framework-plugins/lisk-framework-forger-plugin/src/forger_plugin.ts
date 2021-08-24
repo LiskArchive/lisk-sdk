@@ -23,7 +23,7 @@ import {
 	BlockHeaderJSON,
 	GenesisConfig,
 } from 'lisk-framework';
-import { objects, dataStructures } from '@liskhq/lisk-utils';
+import { dataStructures } from '@liskhq/lisk-utils';
 
 import {
 	getDBInstance,
@@ -33,7 +33,7 @@ import {
 	setForgerSyncInfo,
 } from './db';
 import * as config from './defaults';
-import { Forger, Options, TransactionFees, Voters } from './types';
+import { Forger, TransactionFees, Voters } from './types';
 import * as controllers from './controllers';
 
 const BLOCKS_BATCH_TO_SYNC = 1000;
@@ -109,12 +109,11 @@ export class ForgerPlugin extends BasePlugin {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async load(channel: BaseChannel): Promise<void> {
-		const options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
 		this._channel = channel;
 
 		// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6201
 		// eslint-disable-next-line new-cap
-		this._forgerPluginDB = await getDBInstance(options.dataPath);
+		this._forgerPluginDB = await getDBInstance(this.dataPath);
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.once('app:ready', async () => {

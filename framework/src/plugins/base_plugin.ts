@@ -286,8 +286,9 @@ export abstract class BasePlugin<T = Record<string, unknown>> {
 
 // TODO: Once the issue fixed we can use require.resolve to rewrite the logic
 //  https://github.com/facebook/jest/issues/9543
-export const getPluginExportPath = (pluginKlass: InstantiablePlugin): string | undefined => {
-	const pluginInstance = new pluginKlass();
+export const getPluginExportPath = (PluginKlass: InstantiablePlugin): string | undefined => {
+	let plugin: Record<string, unknown> | undefined;
+	const pluginInstance = new PluginKlass();
 
 	if (!pluginInstance.nodeModulePath) {
 		return;
@@ -296,15 +297,21 @@ export const getPluginExportPath = (pluginKlass: InstantiablePlugin): string | u
 	try {
 		// Check if plugin nodeModulePath is an npm package
 		// eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-		const plugin = require(pluginInstance.nodeModulePath);
-
-		return plugin === pluginKlass || plugin[pluginKlass.name] === pluginKlass
-			? pluginInstance.nodeModulePath
-			: undefined;
+		plugin = require(pluginInstance.nodeModulePath);
 	} catch (error) {
 		/* Plugin nodeModulePath is not an npm package */
+	}
+
+	if (!plugin || !plugin[pluginInstance.name]) {
 		return;
 	}
+
+	if (plugin[pluginInstance.name] !== PluginKlass) {
+		return;
+	}
+
+	// eslint-disable-next-line consistent-return
+	return pluginInstance.nodeModulePath;
 };
 
 export const validatePluginSpec = (PluginObject: BasePlugin): void => {

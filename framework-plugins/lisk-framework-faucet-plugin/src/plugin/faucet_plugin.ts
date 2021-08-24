@@ -145,7 +145,7 @@ export class FaucetPlugin extends BasePlugin {
 					method: 'post',
 					url: 'https://www.google.com/recaptcha/api/siteverify',
 					params: {
-						secret: this.options.captchaSecretkey,
+						secret: this.config.captchaSecretkey,
 						response: token,
 					},
 				});
@@ -171,7 +171,7 @@ export class FaucetPlugin extends BasePlugin {
 		this._options = objects.mergeDeep(
 			{},
 			defaults.config.default,
-			this.options,
+			this.config,
 		) as FaucetPluginOptions;
 
 		const app = express();

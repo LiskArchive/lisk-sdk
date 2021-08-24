@@ -121,11 +121,11 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async load(channel: BaseChannel): Promise<void> {
 		this._channel = channel;
-		this._options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
+		this._options = objects.mergeDeep({}, config.defaultConfig.default, this.config) as Options;
 		this._clearBlockHeadersInterval = this._options.clearBlockHeadersInterval || 60000;
 
 		// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6201
-		this._pluginDB = await getDBInstance(this._options.dataPath);
+		this._pluginDB = await getDBInstance(this.dataPath);
 		// Listen to new block and delete block events
 		this._subscribeToChannel();
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises

@@ -55,7 +55,7 @@ export class DashboardPlugin extends BasePlugin {
 		this._options = objects.mergeDeep(
 			{},
 			defaults.config.default,
-			this.options,
+			this.config,
 		) as dashboardPluginOptions;
 		const config = {
 			applicationUrl: this._options.applicationUrl,

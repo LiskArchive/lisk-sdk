@@ -53,7 +53,7 @@ export class HTTPAPIPlugin extends BasePlugin {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async load(channel: BaseChannel): Promise<void> {
 		this._app = express();
-		const options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
+		const options = objects.mergeDeep({}, config.defaultConfig.default, this.config) as Options;
 		this._channel = channel;
 
 		this._channel.once('app:ready', () => {

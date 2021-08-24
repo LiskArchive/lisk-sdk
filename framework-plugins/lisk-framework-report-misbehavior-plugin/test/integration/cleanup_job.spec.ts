@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BaseChannel, GenesisConfig } from 'lisk-framework';
-import * as os from 'os';
-import * as path from 'path';
 import * as fs from 'fs-extra';
 import {
 	blockHeaderAssetSchema,
@@ -36,7 +34,7 @@ const appConfigForPlugin = {
 	logger: {
 		consoleLogLevel: 'info',
 		fileLogLevel: 'info',
-		logFileName: 'plugin-MisbehaviourPlugin.log',
+		logFileName: 'plugin-reportMisbehavior.log',
 	},
 	rpc: {
 		modes: ['ipc'],
@@ -117,14 +115,14 @@ describe('Clean up old blocks', () => {
 
 	beforeEach(async () => {
 		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin();
-		const dataPath = path.join(os.homedir(), '.lisk/report-misbehavior-plugin/data/integration/db');
+		//const dataPath = path.join(os.homedir(), '.lisk/report-misbehavior-plugin/data/integration/db');
 		await reportMisbehaviorPlugin.init({
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
-			options: { dataPath, appConfig: appConfigForPlugin },
+			appConfig: appConfigForPlugin,
 		});
 		(reportMisbehaviorPlugin as any)._channel = channelMock;
-		await fs.remove(dataPath);
+		await fs.remove(reportMisbehaviorPlugin.dataPath);
 		(reportMisbehaviorPlugin as any).options = {
 			fee: '100000000',
 			clearBlockHeadersInterval: 1,
