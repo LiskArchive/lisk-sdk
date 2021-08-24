@@ -22,12 +22,10 @@ import { ChannelType } from '../../types';
 export class InMemoryChannel extends BaseChannel {
 	private bus!: Bus;
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	public async registerToBus(bus: Bus): Promise<void> {
 		this.bus = bus;
 
-		// eslint-disable-next-line @typescript-eslint/no-floating-promises
-		this.bus.registerChannel(this.moduleAlias, this.eventsList, this.actions, {
+		await this.bus.registerChannel(this.moduleAlias, this.eventsList, this.actions, {
 			type: ChannelType.InMemory,
 			channel: this,
 		});

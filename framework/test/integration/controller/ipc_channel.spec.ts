@@ -155,8 +155,7 @@ describe('IPCChannel', () => {
 					});
 				});
 
-				// eslint-disable-next-line @typescript-eslint/no-floating-promises
-				inMemoryChannelOmega.registerToBus(bus);
+				await inMemoryChannelOmega.registerToBus(bus);
 
 				inMemoryChannelOmega.publish(`${omegaAlias}:${omegaEventName}`, dummyData);
 

@@ -163,9 +163,7 @@ export class Controller {
 
 		await this.bus.setup();
 
-		this.channel.registerToBus(this.bus).catch(err => {
-			this.logger.debug(err, `Error occurred while registering to bus.`);
-		});
+		await this.channel.registerToBus(this.bus);
 	}
 
 	private async _loadInMemoryPlugin(
@@ -182,9 +180,7 @@ export class Controller {
 
 		const channel = new InMemoryChannel(pluginName, plugin.events, plugin.actions);
 
-		channel.registerToBus(this.bus).catch(err => {
-			this.logger.debug(err, `Error occurred while Registering channel for plugin ${pluginAlias}.`);
-		});
+		await channel.registerToBus(this.bus);
 
 		channel.publish(`${pluginName}:registeredToBus`);
 		channel.publish(`${pluginName}:loading:started`);

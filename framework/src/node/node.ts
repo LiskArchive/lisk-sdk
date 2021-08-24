@@ -259,12 +259,7 @@ export class Node {
 				customModule.events,
 				(customModule.actions as unknown) as ActionsDefinition,
 			);
-			customModuleChannel.registerToBus(this._bus).catch(err => {
-				this._logger.debug(
-					err,
-					`Error occurred while Registering channel for module ${customModule.name}.`,
-				);
-			});
+			await customModuleChannel.registerToBus(this._bus);
 			// Give limited access of channel to custom module to publish events
 			customModule.init({
 				channel: {

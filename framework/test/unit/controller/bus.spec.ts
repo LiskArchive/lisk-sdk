@@ -146,8 +146,7 @@ describe('Bus', () => {
 			const events = ['event1', 'event2'];
 
 			// Act
-			// eslint-disable-next-line @typescript-eslint/no-floating-promises
-			bus.registerChannel(moduleAlias, events, {}, channelOptions);
+			await bus.registerChannel(moduleAlias, events, {}, channelOptions);
 
 			// Assert
 			expect(Object.keys(bus['events'])).toHaveLength(2);
@@ -162,7 +161,7 @@ describe('Bus', () => {
 			const events = ['event1', 'event1'];
 
 			// Act && Assert
-			expect(async () => bus.registerChannel(moduleAlias, events, {}, channelOptions)).toThrow(
+			await expect(bus.registerChannel(moduleAlias, events, {}, channelOptions)).rejects.toThrow(
 				Error,
 			);
 		});
@@ -176,8 +175,7 @@ describe('Bus', () => {
 			};
 
 			// Act
-			// eslint-disable-next-line @typescript-eslint/no-floating-promises
-			bus.registerChannel(moduleAlias, [], actions, channelOptions);
+			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
 
 			// Assert
 			expect(Object.keys(bus['actions'])).toHaveLength(2);
@@ -194,9 +192,8 @@ describe('Bus', () => {
 			};
 
 			// Act && Assert
-			// eslint-disable-next-line @typescript-eslint/no-floating-promises
-			bus.registerChannel(moduleAlias, [], actions, channelOptions);
-			expect(async () => bus.registerChannel(moduleAlias, [], actions, channelOptions)).toThrow(
+			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
+			await expect(bus.registerChannel(moduleAlias, [], actions, channelOptions)).rejects.toThrow(
 				Error,
 			);
 		});
@@ -283,8 +280,7 @@ describe('Bus', () => {
 			const eventData = { data: '#DATA' };
 			const JSONRPCData = { jsonrpc: '2.0', method: 'alias:registeredEvent', params: eventData };
 
-			// eslint-disable-next-line @typescript-eslint/no-floating-promises
-			bus.registerChannel(moduleAlias, events, {}, channelOptions);
+			await bus.registerChannel(moduleAlias, events, {}, channelOptions);
 
 			// Act
 			bus.publish(JSONRPCData);
@@ -343,8 +339,7 @@ describe('Bus', () => {
 				actionName => `${moduleAlias}:${actionName}`,
 			);
 
-			// eslint-disable-next-line @typescript-eslint/no-floating-promises
-			bus.registerChannel(moduleAlias, [], actions, channelOptions);
+			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
 
 			// Act
 			const registeredActions = bus.getActions();
@@ -361,8 +356,7 @@ describe('Bus', () => {
 			const events = ['event1', 'event2'];
 			const expectedEvents = events.map(event => `${moduleAlias}:${event}`);
 
-			// eslint-disable-next-line @typescript-eslint/no-floating-promises
-			bus.registerChannel(moduleAlias, events, {}, channelOptions);
+			await bus.registerChannel(moduleAlias, events, {}, channelOptions);
 
 			// Act
 			const registeredEvent = bus.getEvents();
