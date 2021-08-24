@@ -12,11 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseChannel, GenesisConfig } from 'lisk-framework';
+import { BaseChannel, GenesisConfig, testing } from 'lisk-framework';
 import { when } from 'jest-when';
 import { blockHeaderSchema, blockSchema, transactionSchema } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { testing } from 'lisk-framework';
 
 import { ReportMisbehaviorPlugin } from '../../src';
 import * as config from '../../src/defaults/default_config';

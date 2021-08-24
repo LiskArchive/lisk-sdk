@@ -115,7 +115,7 @@ describe('Clean up old blocks', () => {
 
 	beforeEach(async () => {
 		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin();
-		//const dataPath = path.join(os.homedir(), '.lisk/report-misbehavior-plugin/data/integration/db');
+		// const dataPath = path.join(os.homedir(), '.lisk/report-misbehavior-plugin/data/integration/db');
 		await reportMisbehaviorPlugin.init({
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
