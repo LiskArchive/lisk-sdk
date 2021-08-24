@@ -71,7 +71,7 @@ describe('_handlePostTransactionAnnounce', () => {
 		await monitorPluginInstance.init({
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
-			options: { dataPath: '', appConfig: appConfigForPlugin },
+			appConfig: appConfigForPlugin,
 		});
 		await monitorPluginInstance.load(channelMock);
 	});
@@ -109,7 +109,7 @@ describe('_cleanUpTransactionStats', () => {
 		await monitorPluginInstance.init({
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
-			options: { dataPath: '', appConfig: appConfigForPlugin },
+			appConfig: appConfigForPlugin,
 		});
 		await monitorPluginInstance.load(channelMock);
 	});

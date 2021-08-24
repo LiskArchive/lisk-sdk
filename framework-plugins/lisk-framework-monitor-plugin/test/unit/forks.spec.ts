@@ -74,7 +74,7 @@ describe('_handleFork', () => {
 		await monitorPluginInstance.init({
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
-			options: { dataPath: '', appConfig: appConfigForPlugin },
+			appConfig: appConfigForPlugin,
 		});
 		await monitorPluginInstance.load(channelMock);
 		monitorPluginInstance.schemas = { block: blockSchema, blockHeader: blockHeaderSchema } as any;

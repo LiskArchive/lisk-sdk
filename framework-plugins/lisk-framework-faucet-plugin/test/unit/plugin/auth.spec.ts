@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseChannel, GenesisConfig } from '../../../../../framework/dist-node';
+import { BaseChannel, GenesisConfig } from 'lisk-framework';
 import { FaucetPlugin } from '../../../src/plugin';
 import { config } from '../../../src/plugin/defaults';
 
@@ -81,7 +81,7 @@ describe('auth action', () => {
 		await faucetPlugin.init({
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
-			options: { dataPath: '', appConfig: appConfigForPlugin },
+			appConfig: appConfigForPlugin,
 		});
 		(faucetPlugin as any)._options = {
 			encryptedPassphrase:

@@ -79,10 +79,10 @@ describe('FaucetPlugin', () => {
 			await plugin.init({
 				config: validOptions,
 				channel: (channelMock as unknown) as BaseChannel,
-				options: { dataPath: '', appConfig: appConfigForPlugin },
+				appConfig: appConfigForPlugin,
 			});
 
-			expect(plugin.options).toMatchSnapshot();
+			expect(plugin.config).toMatchSnapshot();
 		});
 
 		it('should throw error if valid options are not passed', async () => {
@@ -91,7 +91,7 @@ describe('FaucetPlugin', () => {
 				plugin.init({
 					config: { captchaSitekey: '123', captchaSecretkey: '123' },
 					channel: (channelMock as unknown) as BaseChannel,
-					options: { dataPath: '', appConfig: appConfigForPlugin },
+					appConfig: appConfigForPlugin,
 				}),
 			).rejects.toThrow(
 				"Lisk validator found 1 error[s]:\nMissing property, must have required property 'encryptedPassphrase'",
@@ -103,10 +103,10 @@ describe('FaucetPlugin', () => {
 			await plugin.init({
 				config: { ...validOptions, tokenPrefix: 'myToken' },
 				channel: (channelMock as unknown) as BaseChannel,
-				options: { dataPath: '', appConfig: appConfigForPlugin },
+				appConfig: appConfigForPlugin,
 			});
 
-			expect(plugin.options.tokenPrefix).toEqual('myToken');
+			expect(plugin.config.tokenPrefix).toEqual('myToken');
 		});
 
 		it('should load custom config values', async () => {
@@ -121,10 +121,10 @@ describe('FaucetPlugin', () => {
 			await plugin.init({
 				config: options,
 				channel: (channelMock as unknown) as BaseChannel,
-				options: { dataPath: '', appConfig: appConfigForPlugin },
+				appConfig: appConfigForPlugin,
 			});
 
-			expect(plugin.options).toMatchObject(expect.objectContaining(options));
+			expect(plugin.config).toMatchObject(expect.objectContaining(options));
 		});
 	});
 });

@@ -82,7 +82,7 @@ describe('subscribe to event', () => {
 		await reportMisbehaviorPlugin.init({
 			config: validPluginOptions,
 			channel: (channelMock1 as unknown) as BaseChannel,
-			options: { dataPath: '', appConfig: appConfigForPlugin },
+			appConfig: appConfigForPlugin,
 		});
 		(reportMisbehaviorPlugin as any)._channel = channelMock;
 		reportMisbehaviorPlugin['_logger'] = {

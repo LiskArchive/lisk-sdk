@@ -76,7 +76,7 @@ describe('_handlePostBlock', () => {
 		await monitorPlugin.init({
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
-			options: { dataPath: '', appConfig: appConfigForPlugin },
+			appConfig: appConfigForPlugin,
 		});
 		await monitorPlugin.load(channelMock);
 		monitorPlugin.schemas = { block: blockSchema, blockHeader: blockHeaderSchema } as any;

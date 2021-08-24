@@ -142,7 +142,7 @@ describe('networkStats', () => {
 		await monitorPlugin.init({
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
-			options: { dataPath: '', appConfig: appConfigForPlugin },
+			appConfig: appConfigForPlugin,
 		});
 		await monitorPlugin.load(channelMock);
 

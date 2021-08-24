@@ -26,6 +26,7 @@ const appConfigForPlugin = {
 	logger: {
 		consoleLogLevel: 'info',
 		fileLogLevel: 'info',
+		logFileName: 'plugin-MisbehaviourPlugin.log',
 	},
 	rpc: {
 		modes: ['ipc'],
@@ -117,7 +118,7 @@ describe('Send PoM transaction', () => {
 		await reportMisbehaviorPlugin.init({
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
-			options: { dataPath: '', appConfig: appConfigForPlugin },
+			appConfig: appConfigForPlugin,
 		});
 		(reportMisbehaviorPlugin as any)._channel = channelMock;
 		(reportMisbehaviorPlugin as any)._options = { fee: '100000000' };

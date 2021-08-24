@@ -302,11 +302,11 @@ export const getPluginExportPath = (PluginKlass: InstantiablePlugin): string | u
 		/* Plugin nodeModulePath is not an npm package */
 	}
 
-	if (!plugin || !plugin[pluginInstance.name]) {
+	if (!plugin || !plugin[PluginKlass.name]) {
 		return;
 	}
 
-	if (plugin[pluginInstance.name] !== PluginKlass) {
+	if (plugin[PluginKlass.name] !== PluginKlass) {
 		return;
 	}
 

@@ -72,7 +72,7 @@ describe('subscribe to event', () => {
 		await monitorPlugin.init({
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
-			options: { dataPath: '', appConfig: appConfigForPlugin },
+			appConfig: appConfigForPlugin,
 		});
 		(monitorPlugin as any)._channel = channelMock;
 	});

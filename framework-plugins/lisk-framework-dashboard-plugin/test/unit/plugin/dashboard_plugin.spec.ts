@@ -29,7 +29,7 @@ describe('DashboardPlugin', () => {
 			// eslint-disable-nextline
 			const plugin = new DashboardPlugin();
 
-			expect(plugin.options).toMatchSnapshot();
+			expect(plugin.config).toMatchSnapshot();
 		});
 	});
 });

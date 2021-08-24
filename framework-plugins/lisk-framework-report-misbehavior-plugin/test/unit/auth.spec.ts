@@ -78,7 +78,7 @@ describe('auth action', () => {
 		await reportMisbehaviorPlugin.init({
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
-			options: { dataPath: '', appConfig: appConfigForPlugin },
+			appConfig: appConfigForPlugin,
 		});
 		(reportMisbehaviorPlugin as any)._options = {
 			encryptedPassphrase:
