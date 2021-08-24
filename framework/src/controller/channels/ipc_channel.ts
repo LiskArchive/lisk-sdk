@@ -171,7 +171,7 @@ export class IPCChannel extends BaseChannel {
 			throw new Error(`Event "${eventName}" not registered in "${this.moduleAlias}" module.`);
 		}
 
-		this._pubSocket.send([event.name, JSON.stringify(event.toJSONRPCNotification())])
+		this._pubSocket.send([event.key(), JSON.stringify(event.toJSONRPCNotification())])
 			.catch(error => {
 				throw error;
 			});

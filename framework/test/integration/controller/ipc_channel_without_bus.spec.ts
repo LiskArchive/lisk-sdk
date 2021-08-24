@@ -23,9 +23,7 @@ describe('IPCChannel', () => {
 	const socketsDir = pathResolve(`${homedir()}/.lisk/functional/ipc_channel_without_bus/sockets`);
 
 	const config: any = {
-		socketsPath: {
-			root: socketsDir,
-		},
+		socketsPath: socketsDir,
 	};
 
 	const alpha = {
@@ -67,15 +65,22 @@ describe('IPCChannel', () => {
 				socketsDir,
 				name: 'bus',
 			});
-			server.rpcServer.expose('myAction', cb => {
-				cb(null, 'myData');
-			});
+
+			const listenForRPC = async () => {
+				for await (const [_action] of server.rpcServer) {
+					await server.rpcServer.send('myData');
+				}
+			}
 
 			await server.start();
 
-			server.subSocket.on('message', (eventName: string, eventValue: object) => {
-				server.pubSocket.send(eventName, eventValue);
-			});
+			const listenForEvents = async () => {
+				for await (const [eventName, eventValue] of server.subSocket) {
+					await server.pubSocket.send([eventName, eventValue]);
+				}
+			}
+
+			Promise.all([listenForRPC(), listenForEvents()]);
 
 			alphaChannel = new IPCChannel(alpha.moduleAlias, alpha.events, alpha.actions, config);
 
