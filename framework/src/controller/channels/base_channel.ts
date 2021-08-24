@@ -53,7 +53,6 @@ export abstract class BaseChannel {
 		this.actionsList = Object.keys(this.actions);
 	}
 
-
 	public isValidEventName(name: string, throwError = true): boolean | never {
 		const result = eventWithModuleNameReg.test(name);
 

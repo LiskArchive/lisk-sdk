@@ -70,7 +70,7 @@ describe('IPCChannel', () => {
 				for await (const [_action] of server.rpcServer) {
 					await server.rpcServer.send('myData');
 				}
-			}
+			};
 
 			await server.start();
 
@@ -78,9 +78,10 @@ describe('IPCChannel', () => {
 				for await (const [eventName, eventValue] of server.subSocket) {
 					await server.pubSocket.send([eventName, eventValue]);
 				}
-			}
+			};
 
-			Promise.all([listenForRPC(), listenForEvents()]);
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
+			Promise.all<void>([listenForRPC(), listenForEvents()]);
 
 			alphaChannel = new IPCChannel(alpha.moduleAlias, alpha.events, alpha.actions, config);
 

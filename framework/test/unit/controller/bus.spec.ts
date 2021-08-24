@@ -161,9 +161,7 @@ describe('Bus', () => {
 			const events = ['event1', 'event1'];
 
 			// Act && Assert
-			expect(() => bus.registerChannel(moduleAlias, events, {}, channelOptions)).toThrow(
-				Error,
-			);
+			expect(() => bus.registerChannel(moduleAlias, events, {}, channelOptions)).toThrow(Error);
 		});
 
 		it('should register actions.', async () => {
@@ -193,9 +191,7 @@ describe('Bus', () => {
 
 			// Act && Assert
 			bus.registerChannel(moduleAlias, [], actions, channelOptions);
-			expect(() => bus.registerChannel(moduleAlias, [], actions, channelOptions)).toThrow(
-				Error,
-			);
+			expect(() => bus.registerChannel(moduleAlias, [], actions, channelOptions)).toThrow(Error);
 		});
 	});
 

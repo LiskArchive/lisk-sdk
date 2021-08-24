@@ -56,11 +56,13 @@ export class IPCClient extends IPCSocket {
 			await new Promise<void>((resolve, reject) => {
 				const timeout = setTimeout(() => {
 					reject(
-						new Error('IPC Pub Socket client connection timeout. Please check if IPC server is running.'),
+						new Error(
+							'IPC Pub Socket client connection timeout. Please check if IPC server is running.',
+						),
 					);
 				}, IPC_CONNECTION_TIME_OUT);
 
-				this.pubSocket.events.on('bind:error', (err) => {
+				this.pubSocket.events.on('bind:error', err => {
 					reject(err);
 				});
 				this.pubSocket.events.on('connect', () => {
@@ -73,11 +75,13 @@ export class IPCClient extends IPCSocket {
 			await new Promise<void>((resolve, reject) => {
 				const timeout = setTimeout(() => {
 					reject(
-						new Error('IPC Sub Socket client connection timeout. Please check if IPC server is running.'),
+						new Error(
+							'IPC Sub Socket client connection timeout. Please check if IPC server is running.',
+						),
 					);
 				}, IPC_CONNECTION_TIME_OUT);
 
-				this.subSocket.events.on('bind:error', (err) => {
+				this.subSocket.events.on('bind:error', err => {
 					reject(err);
 				});
 				this.subSocket.events.on('connect', () => {
@@ -89,11 +93,13 @@ export class IPCClient extends IPCSocket {
 			await new Promise<void>((resolve, reject) => {
 				const timeout = setTimeout(() => {
 					reject(
-						new Error('IPC Sub Socket client connection timeout. Please check if IPC server is running.'),
+						new Error(
+							'IPC Sub Socket client connection timeout. Please check if IPC server is running.',
+						),
 					);
 				}, IPC_CONNECTION_TIME_OUT);
 
-				this.rpcClient.events.on('bind:error', (err) => {
+				this.rpcClient.events.on('bind:error', err => {
 					reject(err);
 				});
 				this.rpcClient.events.on('connect', () => {

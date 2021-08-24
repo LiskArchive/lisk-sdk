@@ -180,10 +180,9 @@ export class Bus {
 			rpcClient.connect(options.socketPath);
 			this.rpcClients[moduleAlias] = rpcClient;
 
-			this._listenToRPCResponse(rpcClient)
-				.catch(err => {
-					this.logger.debug(err, 'Error occured while listening to RPC results on RPC Dealer.');
-				});
+			this._listenToRPCResponse(rpcClient).catch(err => {
+				this.logger.debug(err, 'Error occured while listening to RPC results on RPC Dealer.');
+			});
 
 			this.channels[moduleAlias] = {
 				rpcClient,
@@ -270,7 +269,8 @@ export class Bus {
 
 		return new Promise(resolve => {
 			this._rpcRequestIds.add(action.id as string);
-			(channelInfo.rpcClient as Dealer).send([IPC_RPC_EVENT, JSON.stringify(action.toJSONRPCRequest())])
+			(channelInfo.rpcClient as Dealer)
+				.send([IPC_RPC_EVENT, JSON.stringify(action.toJSONRPCRequest())])
 				.then(_ => {
 					// Listen to this event once for serving the request
 					this._emitter.once(
@@ -281,7 +281,7 @@ export class Bus {
 						},
 					);
 				})
-				.catch(err =>  {
+				.catch(err => {
 					this.logger.debug(err, 'Error occurred while sending RPC request.');
 				});
 		});
@@ -339,12 +339,11 @@ export class Bus {
 
 		// Communicate through unix socket
 		if (this.config.rpc.modes.includes(RPC_MODES.IPC)) {
-			this._ipcServer.pubSocket.send([eventName, JSON.stringify(notification)])
-				.catch(error => {
-					this.logger.debug(
-						{ err: error as Error },
-						`Failed to publish event: ${eventName} to ipc server.`,
-					);
+			this._ipcServer.pubSocket.send([eventName, JSON.stringify(notification)]).catch(error => {
+				this.logger.debug(
+					{ err: error as Error },
+					`Failed to publish event: ${eventName} to ipc server.`,
+				);
 			});
 		}
 
@@ -406,8 +405,8 @@ export class Bus {
 
 		// Close all the RPC Clients
 		if (Object.keys(this.rpcClients).length > 0) {
-			for (const client in this.rpcClients) {
-				this.rpcClients[client].close();
+			for (const key of Object.keys(this.rpcClients)) {
+				this.rpcClients[key].close();
 			}
 		}
 	}
@@ -421,15 +420,16 @@ export class Bus {
 			}
 		};
 
-		listenToEvents()
-			.catch(err => {
-				this.logger.debug(err, 'Error occured while listening to events on subscriber.');
-			});
+		listenToEvents().catch(err => {
+			this.logger.debug(err, 'Error occured while listening to events on subscriber.');
+		});
 
 		const listenToRPC = async () => {
 			for await (const [sender, request, params] of this._ipcServer.rpcServer) {
 				if (request.toString() === IPC_REGISTER_CHANNEL_EVENT) {
-					const { moduleAlias, eventsList, actionsInfo, options } = JSON.parse(params.toString()) as RegisterToBusRequestObject;
+					const { moduleAlias, eventsList, actionsInfo, options } = JSON.parse(
+						params.toString(),
+					) as RegisterToBusRequestObject;
 					this.registerChannel(moduleAlias, eventsList, actionsInfo, options);
 					continue;
 				}
@@ -438,27 +438,25 @@ export class Bus {
 					this.invoke(requestData)
 						.then(result => {
 							// Send back result RPC request for a given requestId
-							this._ipcServer.rpcServer.send([
-								sender,
-								requestData.id as string,
-								JSON.stringify(result),
-							]).catch(error => {
-								this.logger.debug(
-									{ err: error as Error },
-									`Failed to send request response: ${requestData.id as string} to ipc client.`,
-								)});
-					})
-					.catch(err => {
-						this.logger.debug(err, 'Error occurred while sending RPC results.');
-					})
+							this._ipcServer.rpcServer
+								.send([sender, requestData.id as string, JSON.stringify(result)])
+								.catch(error => {
+									this.logger.debug(
+										{ err: error as Error },
+										`Failed to send request response: ${requestData.id as string} to ipc client.`,
+									);
+								});
+						})
+						.catch(err => {
+							this.logger.debug(err, 'Error occurred while sending RPC results.');
+						});
 					continue;
 				}
 			}
 		};
-		listenToRPC()
-			.catch(err => {
-				this.logger.debug(err, 'Error occured while listening to RPCs on RPC router.');
-			});
+		listenToRPC().catch(err => {
+			this.logger.debug(err, 'Error occured while listening to RPCs on RPC router.');
+		});
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

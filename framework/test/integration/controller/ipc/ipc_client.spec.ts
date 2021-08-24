@@ -101,12 +101,12 @@ describe('IPCClient', () => {
 					receivedMessage = event.toString();
 					break;
 				}
-			}
+			};
 			const sendtoClient = async () => {
 				/* Wait briefly before publishing to avoid slow joiner syndrome. */
 				await new Promise(resolve => setTimeout(resolve, 25));
 				await server.pubSocket.send('myData');
-			}
+			};
 
 			// Act
 			await Promise.all([sendtoClient(), listenOnClientSubscriber()]);
@@ -130,26 +130,24 @@ describe('IPCClient', () => {
 				/* Wait briefly before publishing to avoid slow joiner syndrome. */
 				await new Promise(resolve => setTimeout(resolve, 25));
 				await server.pubSocket.send('myData');
-
-			}
+			};
 
 			const listenOnClient = async () => {
 				for await (const [event] of client.subSocket) {
 					messageReceivedClient = event.toString();
 					break;
 				}
-			}
+			};
 
 			const listenOnClient1 = async () => {
 				for await (const [event] of client1.subSocket) {
 					messageReceivedClient1 = event.toString();
 					break;
 				}
-			}
+			};
 			await Promise.all([send(), listenOnClient(), listenOnClient1()]);
 			expect(messageReceivedClient).toEqual('myData');
 			expect(messageReceivedClient1).toEqual('myData');
-
 		});
 
 		it('should be able to subscribe and receive events to only subscribed clients', async () => {
@@ -175,36 +173,42 @@ describe('IPCClient', () => {
 				await new Promise(resolve => setTimeout(resolve, 25));
 				await server.pubSocket.send('myData');
 				await server.pubSocket.send('xyz');
-			}
+			};
 
 			const listenOnClient = async () => {
 				for await (const [event] of client.subSocket) {
 					messageReceivedClient = event.toString();
 					break;
 				}
-			}
+			};
 
 			const listenOnClient1 = async () => {
 				for await (const [event] of client1.subSocket) {
 					messageReceivedClient1 = event.toString();
-						break;
+					break;
 				}
-			}
+			};
 
 			const listenOnClient2 = async () => {
 				for await (const [event] of client2.subSocket) {
 					messageReceivedClient2 = event.toString();
 					break;
 				}
-			}
+			};
 
 			const listenOnClient3 = async () => {
 				for await (const [event] of client3.subSocket) {
 					messageReceivedClient3 = event.toString();
 					break;
 				}
-			}
-			await Promise.all([send(), listenOnClient(),listenOnClient1(), listenOnClient2(), listenOnClient3()]);
+			};
+			await Promise.all([
+				send(),
+				listenOnClient(),
+				listenOnClient1(),
+				listenOnClient2(),
+				listenOnClient3(),
+			]);
 			expect(messageReceivedClient).toEqual('xyz');
 			expect(messageReceivedClient1).toEqual('xyz');
 			expect(messageReceivedClient2).toEqual('myData');
@@ -223,19 +227,19 @@ describe('IPCClient', () => {
 					await server.rpcServer.send([sender, `${event.toString()}:Result`]);
 					break;
 				}
-			}
+			};
 
 			const receiveRPCResponse = async () => {
 				for await (const [event] of client.rpcClient) {
 					receivedResult = event.toString();
 					break;
 				}
-			}
+			};
 
 			const requestRPC = async () => {
 				await new Promise(resolve => setTimeout(resolve, 25));
 				await client.rpcClient.send(['myAction']);
-			}
+			};
 
 			// Act
 			await Promise.all([requestRPC(), receiveRPCResponse(), handleRPC()]);

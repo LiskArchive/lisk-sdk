@@ -145,7 +145,7 @@ describe.skip('IPCChannel Channel', () => {
 	});
 
 	describe('#registerToBus', () => {
-		beforeEach(() => ipcChannel.registerToBus());
+		beforeEach(async () => ipcChannel.registerToBus());
 
 		it('should start ipc client', () => {
 			// Assert
@@ -189,7 +189,7 @@ describe.skip('IPCChannel Channel', () => {
 	describe('#subscribe', () => {
 		const validEventName = `${params.moduleAlias}:${params.events[0]}`;
 		beforeEach(async () => {
-			ipcChannel.registerToBus();
+			await ipcChannel.registerToBus();
 		});
 
 		it('should call _emitter.on', () => {

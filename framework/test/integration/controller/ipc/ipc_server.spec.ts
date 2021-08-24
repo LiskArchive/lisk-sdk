@@ -70,7 +70,7 @@ describe('IPCServer', () => {
 				/* Wait briefly before publishing to avoid slow joiner syndrome. */
 				await new Promise(resolve => setTimeout(resolve, 25));
 				await client.rpcClient.send(['hello']);
-			}
+			};
 
 			// Act
 			await Promise.all([send(), receive()]);

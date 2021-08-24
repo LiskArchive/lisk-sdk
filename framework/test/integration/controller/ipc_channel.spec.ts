@@ -114,7 +114,7 @@ describe('IPCChannel', () => {
 
 						betaChannel.publish(`${beta.moduleAlias}:${eventName}`, betaEventData);
 					});
-				}
+				};
 
 				await listen();
 				// Assert
@@ -231,9 +231,7 @@ describe('IPCChannel', () => {
 			it.skip('should be rejected with error', async () => {
 				await expect(
 					await alphaChannel.invoke(`${beta.moduleAlias}:withError`, { val: 1 }),
-				)
-				.rejects
-				.toThrow('Invalid Request');
+				).rejects.toThrow('Invalid Request');
 			});
 		});
 	});
