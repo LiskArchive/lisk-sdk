@@ -204,7 +204,7 @@ export class Application {
 		this._plugins[pluginName] = PluginKlass;
 	}
 
-	public overridePluginOptions(name: string, options?: PluginConfig): void {
+	public updatePluginConfig(name: string, options?: PluginConfig): void {
 		assert(Object.keys(this._plugins).includes(name), `No plugin ${name} is registered`);
 		this.config.plugins[name] = {
 			...this.config.plugins[name],
@@ -340,9 +340,9 @@ export class Application {
 	}
 
 	private async _loadPlugins(): Promise<void> {
-		const { plugins, ...rest } = this.config;
+		const { plugins: pluginsConfig, ...rest } = this.config;
 		const appConfigForPlugin: ApplicationConfigForPlugin = rest;
-		await this._controller.loadPlugins(this._plugins, this.config.plugins, appConfigForPlugin);
+		await this._controller.loadPlugins(this._plugins, pluginsConfig, appConfigForPlugin);
 	}
 
 	private _initLogger(): Logger {
