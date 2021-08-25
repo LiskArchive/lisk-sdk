@@ -154,7 +154,7 @@ describe.skip('IPCChannel Channel', () => {
 
 		it('should invoke "registerChannel" on rpc client', () => {
 			// Assert
-			expect(ipcClientMock.rpcClient.call).toBeCalledWith(
+			expect(ipcClientMock.rpcClient.call).toHaveBeenCalledWith(
 				'registerChannel',
 				params.moduleAlias,
 				[
