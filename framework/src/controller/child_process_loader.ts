@@ -35,7 +35,7 @@ const _loadPlugin = async (
 	plugin = new Klass();
 	const pluginName = plugin.name;
 
-	channel = new IPCChannel(pluginAlias, plugin.events, plugin.actions, {
+	channel = new IPCChannel(pluginName, plugin.events, plugin.actions, {
 		socketsPath: config.rpc.ipc.path,
 	});
 
