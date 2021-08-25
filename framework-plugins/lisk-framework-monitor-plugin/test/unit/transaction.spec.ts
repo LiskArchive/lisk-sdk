@@ -15,7 +15,7 @@
 import { randomBytes } from 'crypto';
 import { testing, BaseChannel, GenesisConfig } from 'lisk-framework';
 import { MonitorPlugin } from '../../src/monitor_plugin';
-import * as config from '../../src/defaults/default_config';
+import { configSchema } from '../../src/schemas';
 
 const appConfigForPlugin = {
 	rootPath: '~/.lisk',
@@ -58,7 +58,7 @@ const appConfigForPlugin = {
 	genesisConfig: {} as GenesisConfig,
 };
 
-const validPluginOptions = config.defaultConfig.default;
+const validPluginOptions = configSchema.default;
 
 describe('_handlePostTransactionAnnounce', () => {
 	let monitorPluginInstance: MonitorPlugin;
