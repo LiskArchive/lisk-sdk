@@ -18,7 +18,7 @@ import { blockHeaderSchema, blockSchema, transactionSchema } from '@liskhq/lisk-
 import { codec } from '@liskhq/lisk-codec';
 
 import { ReportMisbehaviorPlugin } from '../../src';
-import * as config from '../../src/defaults/default_config';
+import { configSchema } from '../../src/schemas';
 
 const appConfigForPlugin = {
 	rootPath: '~/.lisk',
@@ -62,7 +62,7 @@ const appConfigForPlugin = {
 };
 
 const validPluginOptions = {
-	...config.defaultConfig.default,
+	...configSchema.default,
 	encryptedPassphrase:
 		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1',
 	dataPath: '/my/app',
@@ -122,10 +122,10 @@ describe('Send PoM transaction', () => {
 		});
 		(reportMisbehaviorPlugin as any)._channel = channelMock;
 		(reportMisbehaviorPlugin as any)._options = { fee: '100000000' };
-		reportMisbehaviorPlugin['_logger'] = {
+		reportMisbehaviorPlugin['logger'] = {
 			error: jest.fn(),
 		} as any;
-		reportMisbehaviorPlugin.schemas = {
+		reportMisbehaviorPlugin['schemas'] = {
 			block: blockSchema,
 			blockHeader: blockHeaderSchema,
 			transaction: transactionSchema,
@@ -169,7 +169,7 @@ describe('Send PoM transaction', () => {
 	});
 
 	it('should throw error when pom transaction asset schema is not found', async () => {
-		reportMisbehaviorPlugin.schemas.transactionsAssets = [];
+		reportMisbehaviorPlugin['schemas'].transactionsAssets = [];
 		await expect(
 			(reportMisbehaviorPlugin as any)._createPoMTransaction(header1, header2),
 		).rejects.toThrow('PoM asset schema is not registered in the application.');

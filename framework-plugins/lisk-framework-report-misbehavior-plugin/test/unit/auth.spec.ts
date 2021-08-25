@@ -14,7 +14,7 @@
 
 import { BaseChannel, GenesisConfig } from 'lisk-framework';
 import { ReportMisbehaviorPlugin } from '../../src';
-import * as config from '../../src/defaults/default_config';
+import { configSchema } from '../../src/schemas';
 
 const appConfigForPlugin = {
 	rootPath: '~/.lisk',
@@ -58,7 +58,7 @@ const appConfigForPlugin = {
 };
 
 const validPluginOptions = {
-	...config.defaultConfig.default,
+	...configSchema.default,
 	encryptedPassphrase:
 		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1',
 	dataPath: '/my/app',
@@ -76,14 +76,14 @@ describe('auth action', () => {
 	beforeEach(async () => {
 		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin();
 		await reportMisbehaviorPlugin.init({
-			config: validPluginOptions,
+			config: {
+				...validPluginOptions,
+				encryptedPassphrase:
+					'iterations=1000000&cipherText=a31a3324ce12664a396329&iv=b476ef9d377397f4f9b0c1ae&salt=d81787ca5103be883a01d211746b1c3f&tag=e352880bb05a03bafc98af48b924fbf9&version=1',
+			},
 			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
 		});
-		(reportMisbehaviorPlugin as any)._options = {
-			encryptedPassphrase:
-				'iterations=1000000&cipherText=a31a3324ce12664a396329&iv=b476ef9d377397f4f9b0c1ae&salt=d81787ca5103be883a01d211746b1c3f&tag=e352880bb05a03bafc98af48b924fbf9&version=1',
-		};
 		authorizeAction = reportMisbehaviorPlugin.actions.authorize;
 	});
 
@@ -105,18 +105,6 @@ describe('auth action', () => {
 		const response = authorizeAction(params);
 
 		expect(response.result).toContain('Successfully enabled the reporting of misbehavior.');
-	});
-
-	it('should fail when encrypted passphrase is not set', () => {
-		(reportMisbehaviorPlugin as any)._options.encryptedPassphrase = undefined;
-		const params = {
-			enable: true,
-			password: '123',
-		};
-
-		expect(() => authorizeAction(params)).toThrow(
-			'Encrypted passphrase string must be set in the config.',
-		);
 	});
 
 	it('should fail when encrypted passphrase does not match with password given', () => {
