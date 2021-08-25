@@ -29,15 +29,18 @@ import { InMemoryChannel } from '../../../src/controller/channels';
 import * as basePluginModule from '../../../src/plugins/base_plugin';
 
 const createMockPlugin = ({
+	name,
 	initStub,
 	loadStub,
 	unloadStub,
 }: {
+	name: string;
 	initStub?: any;
 	loadStub?: any;
 	unloadStub?: any;
 }): typeof BasePlugin => {
 	function Plugin(this: any) {
+		this.name = name;
 		this.load = loadStub ?? jest.fn();
 		this.init = initStub ?? jest.fn();
 		this.unload = unloadStub ?? jest.fn();
@@ -164,8 +167,8 @@ describe('Controller Class', () => {
 		let Plugin2: any;
 
 		beforeEach(async () => {
-			Plugin1 = createMockPlugin({});
-			Plugin2 = createMockPlugin({});
+			Plugin1 = createMockPlugin({ name: 'plugin1' });
+			Plugin2 = createMockPlugin({ name: 'plugin2' });
 
 			plugins = {
 				plugin1: Plugin1,
@@ -240,8 +243,8 @@ describe('Controller Class', () => {
 			it('should call `plugin.init` method', async () => {
 				// Arrange
 				const initMock = jest.fn();
-				plugins.plugin1 = createMockPlugin({ initStub: initMock });
-				plugins.plugin2 = createMockPlugin({ initStub: initMock });
+				plugins.plugin1 = createMockPlugin({ name: 'plugin1', initStub: initMock });
+				plugins.plugin2 = createMockPlugin({ name: 'plugin2', initStub: initMock });
 
 				// Act
 				await controller.loadPlugins(plugins, pluginOptions, {} as never);
@@ -253,8 +256,8 @@ describe('Controller Class', () => {
 			it('should call `plugin.load` method', async () => {
 				// Arrange
 				const loadMock = jest.fn();
-				plugins.plugin1 = createMockPlugin({ loadStub: loadMock });
-				plugins.plugin2 = createMockPlugin({ loadStub: loadMock });
+				plugins.plugin1 = createMockPlugin({ name: 'plugin1', loadStub: loadMock });
+				plugins.plugin2 = createMockPlugin({ name: 'plugin2', loadStub: loadMock });
 
 				// Act
 				await controller.loadPlugins(plugins, pluginOptions, {} as never);
@@ -388,10 +391,12 @@ describe('Controller Class', () => {
 
 			plugins = {
 				plugin1: createMockPlugin({
+					name: 'plugin1',
 					loadStub: loadStubs.plugin1,
 					unloadStub: unloadStubs.plugin1,
 				}),
 				plugin2: createMockPlugin({
+					name: 'plugin2',
 					loadStub: loadStubs.plugin2,
 					unloadStub: unloadStubs.plugin2,
 				}),

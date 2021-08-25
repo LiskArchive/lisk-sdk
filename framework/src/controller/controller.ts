@@ -98,9 +98,9 @@ export class Controller {
 			const config = pluginConfig[name];
 
 			if (config.loadAsChildProcess) {
-				await this._loadChildProcessPlugin(name, klass, config, appConfig);
+				await this._loadChildProcessPlugin(klass, config, appConfig);
 			} else {
-				await this._loadInMemoryPlugin(name, klass, config, appConfig);
+				await this._loadInMemoryPlugin(klass, config, appConfig);
 			}
 		}
 	}
@@ -167,48 +167,39 @@ export class Controller {
 	}
 
 	private async _loadInMemoryPlugin(
-		name: string,
 		Klass: InstantiablePlugin,
 		config: PluginConfig,
 		appConfig: ApplicationConfigForPlugin,
 	): Promise<void> {
 		const plugin: BasePlugin = new Klass();
-
-		const pluginName = name || plugin.name;
-
+		const { name } = plugin;
 		this.logger.info(name, 'Loading in-memory plugin');
 
-		const channel = new InMemoryChannel(pluginName, plugin.events, plugin.actions);
-
+		const channel = new InMemoryChannel(name, plugin.events, plugin.actions);
 		await channel.registerToBus(this.bus);
-
-		channel.publish(`${pluginName}:registeredToBus`);
-		channel.publish(`${pluginName}:loading:started`);
+		channel.publish(`${name}:registeredToBus`);
+		channel.publish(`${name}:loading:started`);
 
 		await plugin.init({ config, channel, appConfig });
 		await plugin.load(channel);
 
-		channel.publish(`${pluginName}:loading:finished`);
+		channel.publish(`${name}:loading:finished`);
 
-		this._inMemoryPlugins[pluginName] = { plugin, channel };
+		this._inMemoryPlugins[name] = { plugin, channel };
 
 		this.logger.info(name, 'Loaded in-memory plugin');
 	}
 
 	private async _loadChildProcessPlugin(
-		name: string,
 		Klass: InstantiablePlugin,
 		config: PluginConfig,
 		appConfig: ApplicationConfigForPlugin,
 	): Promise<void> {
 		const plugin: BasePlugin = new Klass();
-
-		const pluginName = name || plugin.name;
+		const { name } = plugin;
 
 		this.logger.info(name, 'Loading child-process plugin');
-
 		const program = path.resolve(__dirname, 'child_process_loader');
-
 		const parameters = [getPluginExportPath(Klass) as string, Klass.name];
 
 		// Avoid child processes and the main process sharing the same debugging ports causing a conflict
@@ -231,7 +222,7 @@ export class Controller {
 			appConfig,
 		});
 
-		this._childProcesses[pluginName] = child;
+		this._childProcesses[name] = child;
 
 		child.on('exit', (code, signal) => {
 			// If child process exited with error
@@ -241,12 +232,12 @@ export class Controller {
 		});
 
 		child.on('error', error => {
-			this.logger.error(error, `Child process for "${pluginName}" faced error.`);
+			this.logger.error(error, `Child process for "${name}" faced error.`);
 		});
 
 		await Promise.race([
 			new Promise<void>(resolve => {
-				this.channel.once(`${pluginName}:loading:finished`, () => {
+				this.channel.once(`${name}:loading:finished`, () => {
 					this.logger.info({ name }, 'Loaded child-process plugin');
 					resolve();
 				});
