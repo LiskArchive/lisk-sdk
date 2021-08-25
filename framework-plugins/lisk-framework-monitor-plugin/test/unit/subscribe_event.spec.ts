@@ -20,7 +20,7 @@ const appConfigForPlugin = {
 	label: 'my-app',
 	logger: {
 		consoleLogLevel: 'info',
-		fileLogLevel: 'info',
+		fileLogLevel: 'none',
 		logFileName: 'plugin-MisbehaviourPlugin.log',
 	},
 	rpc: {

@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { BaseChannel, GenesisConfig } from 'lisk-framework';
-import * as os from 'os';
-import * as path from 'path';
 import * as fs from 'fs-extra';
 import {
 	blockHeaderAssetSchema,
@@ -35,7 +33,7 @@ const appConfigForPlugin = {
 	label: 'my-app',
 	logger: {
 		consoleLogLevel: 'info',
-		fileLogLevel: 'info',
+		fileLogLevel: 'none',
 		logFileName: 'plugin-reportMisbehavior.log',
 	},
 	rpc: {
@@ -73,6 +71,7 @@ const appConfigForPlugin = {
 
 const validPluginOptions = {
 	...config.defaultConfig.default,
+	clearBlockHeadersInterval: 1,
 	encryptedPassphrase:
 		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1',
 };
@@ -124,15 +123,8 @@ describe('Clean up old blocks', () => {
 		});
 		(reportMisbehaviorPlugin as any)._channel = channelMock;
 
-		const dataPath = path.join(os.homedir(), '.lisk/my-app/plugins/reportMisbehavior/data');
-		await fs.remove(dataPath);
-		// const dataPath = path.join(os.homedir(), '.lisk/report-misbehavior-plugin/data/integration/db');
-		// await fs.remove(dataPath);
+		await fs.remove(reportMisbehaviorPlugin.dataPath);
 
-		(reportMisbehaviorPlugin as any).options = {
-			fee: '100000000',
-			clearBlockHeadersInterval: 1,
-		};
 		reportMisbehaviorPlugin.schemas = {
 			block: blockSchema,
 			blockHeader: blockHeaderSchema,

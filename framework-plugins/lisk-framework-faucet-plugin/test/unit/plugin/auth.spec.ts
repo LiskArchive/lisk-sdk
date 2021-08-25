@@ -21,7 +21,7 @@ const appConfigForPlugin = {
 	label: 'my-app',
 	logger: {
 		consoleLogLevel: 'debug',
-		fileLogLevel: 'info',
+		fileLogLevel: 'none',
 		logFileName: 'plugin-FaucetPlugin.log',
 	},
 	rpc: {
