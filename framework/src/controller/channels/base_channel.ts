@@ -28,6 +28,7 @@ export abstract class BaseChannel {
 
 	protected readonly actions: { [key: string]: Action };
 	protected readonly options: Record<string, unknown>;
+	private _requestId: number;
 
 	public constructor(
 		moduleAlias: string,
@@ -41,6 +42,7 @@ export abstract class BaseChannel {
 		this.eventsList = options.skipInternalEvents ? events : [...events, ...INTERNAL_EVENTS];
 
 		this.actions = {};
+		this._requestId = 0;
 		for (const actionName of Object.keys(actions)) {
 			const actionData = actions[actionName];
 
@@ -68,6 +70,11 @@ export abstract class BaseChannel {
 		}
 
 		return result;
+	}
+
+	protected _getNextRequestId(): string {
+		this._requestId += 1;
+		return this._requestId.toString();
 	}
 
 	// Listen to any event happening in the application

@@ -70,9 +70,11 @@ describe('InMemoryChannel', () => {
 			bus = new Bus(logger, config);
 
 			inMemoryChannelAlpha = new InMemoryChannel(alpha.moduleAlias, alpha.events, alpha.actions);
+
 			await inMemoryChannelAlpha.registerToBus(bus);
 
 			inMemoryChannelBeta = new InMemoryChannel(beta.moduleAlias, beta.events, beta.actions);
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			await inMemoryChannelBeta.registerToBus(bus);
 		});
 
@@ -130,6 +132,7 @@ describe('InMemoryChannel', () => {
 					});
 				});
 
+				// eslint-disable-next-line @typescript-eslint/no-floating-promises
 				await inMemoryChannelOmega.registerToBus(bus);
 
 				inMemoryChannelOmega.publish(`${omegaAlias}:${omegaEventName}`, dummyData);

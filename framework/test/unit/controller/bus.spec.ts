@@ -23,8 +23,7 @@ import { WSServer } from '../../../src/controller/ws/ws_server';
 import { IPCServer } from '../../../src/controller/ipc/ipc_server';
 
 jest.mock('eventemitter2');
-jest.mock('pm2-axon');
-jest.mock('pm2-axon-rpc');
+jest.mock('zeromq');
 jest.mock('ws');
 
 describe('Bus', () => {

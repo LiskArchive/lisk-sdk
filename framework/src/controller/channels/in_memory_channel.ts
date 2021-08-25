@@ -17,6 +17,7 @@ import { Action } from '../action';
 import { BaseChannel } from './base_channel';
 import { Bus } from '../bus';
 import * as JSONRPC from '../jsonrpc/types';
+import { ChannelType } from '../../types';
 
 export class InMemoryChannel extends BaseChannel {
 	private bus!: Bus;
@@ -25,7 +26,7 @@ export class InMemoryChannel extends BaseChannel {
 		this.bus = bus;
 
 		await this.bus.registerChannel(this.moduleAlias, this.eventsList, this.actions, {
-			type: 'inMemory',
+			type: ChannelType.InMemory,
 			channel: this,
 		});
 	}
@@ -55,7 +56,7 @@ export class InMemoryChannel extends BaseChannel {
 	}
 
 	public async invoke<T>(actionName: string, params?: Record<string, unknown>): Promise<T> {
-		const action = new Action(null, actionName, params);
+		const action = new Action(this._getNextRequestId(), actionName, params);
 
 		if (action.module === this.moduleAlias) {
 			if (this.actions[action.name] === undefined) {

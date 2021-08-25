@@ -26,12 +26,15 @@ import { Schema } from '@liskhq/lisk-codec';
 import { RPC_MODES } from './constants';
 
 export interface SocketPaths {
-	readonly pub: string;
-	readonly sub: string;
-	readonly rpc: string;
-	readonly root: string;
+	readonly ipc: {
+		readonly path: string;
+	};
 }
 
+export enum ChannelType {
+	InMemory = 'inMemory',
+	ChildProcess = 'ipc',
+}
 export interface StringKeyVal {
 	[key: string]: string;
 }

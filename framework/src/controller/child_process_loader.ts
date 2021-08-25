@@ -28,7 +28,7 @@ let plugin: BasePlugin;
 const _loadPlugin = async (
 	config: {
 		[key: string]: unknown;
-		socketsPath: SocketPaths;
+		rpc: SocketPaths;
 	},
 	appConfig: ApplicationConfigForPlugin,
 ): Promise<void> => {
@@ -36,7 +36,7 @@ const _loadPlugin = async (
 	const pluginName = plugin.name;
 
 	channel = new IPCChannel(pluginName, plugin.events, plugin.actions, {
-		socketsPath: config.socketsPath,
+		socketsPath: config.rpc.ipc.path,
 	});
 
 	await channel.registerToBus();
@@ -83,7 +83,7 @@ process.on(
 				await _loadPlugin(
 					config as {
 						[key: string]: unknown;
-						socketsPath: SocketPaths;
+						rpc: SocketPaths;
 					},
 					appConfig,
 				);

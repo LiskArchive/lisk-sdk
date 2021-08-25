@@ -22,7 +22,6 @@ import { ApplicationConfigForPlugin, PluginConfig, RPCConfig } from '../types';
 import { Bus } from './bus';
 import { BaseChannel } from './channels';
 import { InMemoryChannel } from './channels/in_memory_channel';
-import * as JSONRPC from './jsonrpc';
 
 export interface ControllerOptions {
 	readonly appLabel: string;
@@ -165,10 +164,6 @@ export class Controller {
 		await this.bus.setup();
 
 		await this.channel.registerToBus(this.bus);
-
-		this.bus.subscribe('*', (event: JSONRPC.NotificationRequest) => {
-			this.logger.error(`eventName: ${event.method},`, 'Monitor Bus Channel');
-		});
 	}
 
 	private async _loadInMemoryPlugin(
