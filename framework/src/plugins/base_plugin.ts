@@ -39,8 +39,6 @@ interface PluginInitContext {
 }
 
 export abstract class BasePlugin<T = Record<string, unknown>> {
-	public readonly events: EventsDefinition = [];
-	public readonly actions: ActionsDefinition = {};
 	public readonly configSchema?: SchemaWithDefault;
 
 	protected schemas!: RegisteredSchema;
@@ -94,6 +92,14 @@ export abstract class BasePlugin<T = Record<string, unknown>> {
 		const dirs = systemDirs(this.appConfig.label, this.appConfig.rootPath);
 
 		return join(dirs.plugins, this.name, 'data');
+	}
+
+	public get events(): EventsDefinition {
+		return [];
+	}
+
+	public get actions(): ActionsDefinition {
+		return {};
 	}
 
 	public abstract get nodeModulePath(): string;
