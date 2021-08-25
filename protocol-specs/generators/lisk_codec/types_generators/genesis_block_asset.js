@@ -19,7 +19,7 @@ const prepareProtobuffersBlock = () =>
 
 const { GenesisBlockAsset } = prepareProtobuffersBlock();
 
-const blockAssetSchema = {
+const genesisBlockAssetSchema = {
 	$id: 'genesisBlockAssetSchema',
 	type: 'object',
 	required: ['accounts', 'initDelegates', 'initRounds'],
@@ -123,122 +123,121 @@ const blockAssetSchema = {
 	},
 };
 
-const generateValidGenesisBlockAssetEncodings = () => {
-	const input = {
-		validGenesisBlockAsset1: {
-			object: {
-				initDelegates: [
-					Buffer.from('03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f', 'hex'),
-					Buffer.from('0903f4c5cb599a7928aef27e314e98291d1e3888', 'hex'),
-					Buffer.from('0ada6a2f6c8f891769366fc9aa6fd9f1facb36cf', 'hex'),
-				],
-				initRounds: 3,
-				accounts: [
-					{
-						address: Buffer.from('03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f', 'hex'),
-						publicKey: Buffer.from(
-							'fc65777c1d4c00f1af5880c23ba7f60cd3bf84d1bf5c697abc4ffe17cf7acac0',
-							'hex',
-						),
-						balance: '0',
-						nonce: '0',
-						keys: {
-							mandatoryKeys: [],
-							optionalKeys: [],
-							numberOfSignatures: 0,
-						},
-						asset: {
-							delegate: {
-								username: 'genesis_34',
-								pomHeights: [],
-								consecutiveMissedBlocks: 0,
-								lastForgedHeight: 0,
-								isBanned: false,
-								totalVotesReceived: '1000000000000',
-							},
-							sentVotes: [
-								{
-									delegateAddress: Buffer.from('03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f', 'hex'),
-									amount: '1000000000000',
-								},
-							],
-							unlocking: [],
-						},
-					},
-					{
-						address: Buffer.from('0903f4c5cb599a7928aef27e314e98291d1e3888', 'hex'),
-						publicKey: Buffer.from(
-							'3f571324e9dc7b2481b71a7dc56637f1234504158986a242e90c33d8d20fdd92',
-							'hex',
-						),
-						balance: '0',
-						nonce: '0',
-						keys: {
-							mandatoryKeys: [],
-							optionalKeys: [],
-							numberOfSignatures: 0,
-						},
-						asset: {
-							delegate: {
-								username: 'genesis_74',
-								pomHeights: [],
-								consecutiveMissedBlocks: 0,
-								lastForgedHeight: 0,
-								isBanned: false,
-								totalVotesReceived: '1000000000000',
-							},
-							sentVotes: [],
-							unlocking: [],
-						},
-					},
-					{
-						address: Buffer.from('0ada6a2f6c8f891769366fc9aa6fd9f1facb36cf', 'hex'),
-						publicKey: Buffer.from(
-							'c69698ef30012964aafacfbe637bb63854b6109cc5c5f22aa4b3dc3e8dca8217',
-							'hex',
-						),
-						balance: '0',
-						nonce: '0',
-						keys: {
-							mandatoryKeys: [],
-							optionalKeys: [],
-							numberOfSignatures: 0,
-						},
-						asset: {
-							delegate: {
-								username: 'genesis_98',
-								pomHeights: [],
-								consecutiveMissedBlocks: 0,
-								lastForgedHeight: 0,
-								isBanned: false,
-								totalVotesReceived: '1000000000000',
-							},
-							sentVotes: [
-								{
-									delegateAddress: Buffer.from('0ada6a2f6c8f891769366fc9aa6fd9f1facb36cf', 'hex'),
-									amount: '1000000000000',
-								},
-							],
-							unlocking: [],
-						},
-					},
-				],
-			},
-			schema: blockAssetSchema,
-		},
-	};
-
-	const validBlockAssetEncoded = GenesisBlockAsset.encode(
-		input.validGenesisBlockAsset1.object,
-	).finish();
-
-	return [
+const validGenesisBlockAsset1 = {
+	initDelegates: [
+		Buffer.from('03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f', 'hex'),
+		Buffer.from('0903f4c5cb599a7928aef27e314e98291d1e3888', 'hex'),
+		Buffer.from('0ada6a2f6c8f891769366fc9aa6fd9f1facb36cf', 'hex'),
+	],
+	initRounds: 3,
+	accounts: [
 		{
-			description: 'Encoding of valid block asset',
-			input: input.validGenesisBlockAsset1,
-			output: { value: validBlockAssetEncoded.toString('hex') },
+			address: Buffer.from('03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f', 'hex'),
+			publicKey: Buffer.from(
+				'fc65777c1d4c00f1af5880c23ba7f60cd3bf84d1bf5c697abc4ffe17cf7acac0',
+				'hex',
+			),
+			balance: '0',
+			nonce: '0',
+			keys: {
+				mandatoryKeys: [],
+				optionalKeys: [],
+				numberOfSignatures: 0,
+			},
+			asset: {
+				delegate: {
+					username: 'genesis_34',
+					pomHeights: [],
+					consecutiveMissedBlocks: 0,
+					lastForgedHeight: 0,
+					isBanned: false,
+					totalVotesReceived: '1000000000000',
+				},
+				sentVotes: [
+					{
+						delegateAddress: Buffer.from('03f6d90b7dbd0497dc3a52d1c27e23bb8c75897f', 'hex'),
+						amount: '1000000000000',
+					},
+				],
+				unlocking: [],
+			},
 		},
-	];
+		{
+			address: Buffer.from('0903f4c5cb599a7928aef27e314e98291d1e3888', 'hex'),
+			publicKey: Buffer.from(
+				'3f571324e9dc7b2481b71a7dc56637f1234504158986a242e90c33d8d20fdd92',
+				'hex',
+			),
+			balance: '0',
+			nonce: '0',
+			keys: {
+				mandatoryKeys: [],
+				optionalKeys: [],
+				numberOfSignatures: 0,
+			},
+			asset: {
+				delegate: {
+					username: 'genesis_74',
+					pomHeights: [],
+					consecutiveMissedBlocks: 0,
+					lastForgedHeight: 0,
+					isBanned: false,
+					totalVotesReceived: '1000000000000',
+				},
+				sentVotes: [],
+				unlocking: [],
+			},
+		},
+		{
+			address: Buffer.from('0ada6a2f6c8f891769366fc9aa6fd9f1facb36cf', 'hex'),
+			publicKey: Buffer.from(
+				'c69698ef30012964aafacfbe637bb63854b6109cc5c5f22aa4b3dc3e8dca8217',
+				'hex',
+			),
+			balance: '0',
+			nonce: '0',
+			keys: {
+				mandatoryKeys: [],
+				optionalKeys: [],
+				numberOfSignatures: 0,
+			},
+			asset: {
+				delegate: {
+					username: 'genesis_98',
+					pomHeights: [],
+					consecutiveMissedBlocks: 0,
+					lastForgedHeight: 0,
+					isBanned: false,
+					totalVotesReceived: '1000000000000',
+				},
+				sentVotes: [
+					{
+						delegateAddress: Buffer.from('0ada6a2f6c8f891769366fc9aa6fd9f1facb36cf', 'hex'),
+						amount: '1000000000000',
+					},
+				],
+				unlocking: [],
+			},
+		},
+	],
 };
 
-module.exports = generateValidGenesisBlockAssetEncodings;
+const validBlockAssetEncoded = GenesisBlockAsset.encode(validGenesisBlockAsset1).finish();
+
+module.exports = {
+	validGenesisBlockAssetEncodingsTestCases: [
+		{
+			description: 'Encoding of valid genesis block asset',
+			input: { object: validGenesisBlockAsset1, schema: genesisBlockAssetSchema },
+			output: { value: validBlockAssetEncoded },
+		},
+	],
+
+	validGenesisBlockAssetDecodingsTestCases: [
+		{
+			description: 'Decoding of valid genesis block asset',
+			input: { value: validBlockAssetEncoded, schema: genesisBlockAssetSchema },
+			output: { object: validGenesisBlockAsset1 },
+		},
+	],
+};

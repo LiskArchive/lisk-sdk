@@ -42,7 +42,7 @@ const generateShuffledDelegateList = () => {
 			delegateList: previousDelegateList.map(delegate => delegate.address),
 		},
 		output: {
-			delegateList: delegateList.map(delegate => delegate.address.toString('hex')),
+			delegateList: delegateList.map(delegate => delegate.address),
 		},
 	};
 };
