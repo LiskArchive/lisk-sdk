@@ -12,59 +12,33 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { objects } from '@liskhq/lisk-utils';
-import {
-	ActionsDefinition,
-	BasePlugin,
-	BaseChannel,
-	EventsDefinition,
-	SchemaWithDefault,
-} from 'lisk-framework';
+import { BasePlugin, BaseChannel } from 'lisk-framework';
 import * as express from 'express';
 import { join } from 'path';
 import { Server } from 'http';
-import * as defaults from './defaults';
-import { dashboardPluginOptions } from './types';
+import { configSchema } from './schemas';
+import { DashboardPluginConfig } from './types';
 
-export class DashboardPlugin extends BasePlugin {
-	private _options!: dashboardPluginOptions;
+export class DashboardPlugin extends BasePlugin<DashboardPluginConfig> {
+	public name = 'dashboard';
+	public configSchema = configSchema;
+
 	private _server!: Server;
-
-	public get name(): string {
-		return 'dashboard';
-	}
 
 	public get nodeModulePath(): string {
 		return __filename;
 	}
 
-	public get configSchema(): SchemaWithDefault {
-		return defaults.config;
-	}
-
-	public get events(): EventsDefinition {
-		return [];
-	}
-
-	public get actions(): ActionsDefinition {
-		return {};
-	}
-
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async load(_channel: BaseChannel): Promise<void> {
-		this._options = objects.mergeDeep(
-			{},
-			defaults.config.default,
-			this.config,
-		) as dashboardPluginOptions;
 		const config = {
-			applicationUrl: this._options.applicationUrl,
-			applicationName: this._options.applicationName,
+			applicationUrl: this.config.applicationUrl,
+			applicationName: this.config.applicationName,
 		};
 		const app = express();
 		app.use(express.static(join(__dirname, '../../build')));
 		app.get('/api/config', (_req, res) => res.json(config));
-		this._server = app.listen(this._options.port, this._options.host);
+		this._server = app.listen(this.config.port, this.config.host);
 	}
 
 	public async unload(): Promise<void> {
