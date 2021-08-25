@@ -32,9 +32,8 @@ import {
 	setForgerInfo,
 	setForgerSyncInfo,
 } from './db';
-import * as config from './defaults';
 import { Forger, TransactionFees, Voters } from './types';
-import * as controllers from './controllers';
+import * as actions from './actions';
 
 const BLOCKS_BATCH_TO_SYNC = 1000;
 
@@ -76,22 +75,16 @@ const getBinaryAddress = (hexAddressStr: string) =>
 const getAddressBuffer = (hexAddressStr: string) => Buffer.from(hexAddressStr, 'hex');
 
 export class ForgerPlugin extends BasePlugin {
+	public name = 'forger';
+
 	private _forgerPluginDB!: KVStore;
 	private _channel!: BaseChannel;
 	private _forgersList!: dataStructures.BufferMap<boolean>;
 	private _transactionFees!: TransactionFees;
 	private _syncingWithNode!: boolean;
 
-	public get name(): string {
-		return 'forger';
-	}
-
 	public get nodeModulePath(): string {
 		return __filename;
-	}
-
-	public get configSchema(): object {
-		return config.defaultConfig;
 	}
 
 	public get events(): EventsDefinition {
@@ -101,9 +94,9 @@ export class ForgerPlugin extends BasePlugin {
 	public get actions(): ActionsDefinition {
 		return {
 			getVoters: async () =>
-				controllers.voters.getVoters(this._channel, this.codec, this._forgerPluginDB),
+				actions.voters.getVoters(this._channel, this.codec, this._forgerPluginDB),
 			getForgingInfo: async () =>
-				controllers.forgingInfo.getForgingInfo(this._channel, this.codec, this._forgerPluginDB),
+				actions.forgingInfo.getForgingInfo(this._channel, this.codec, this._forgerPluginDB),
 		};
 	}
 
