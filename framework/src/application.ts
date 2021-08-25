@@ -261,7 +261,8 @@ export class Application {
 			// Initialize all objects
 			this._channel = this._initChannel();
 
-			this._controller = this._initController();
+			const anyChildProcesssPlugin = Object.keys(this.config.plugins).find(p => this.config.plugins[p].loadAsChildProcess);
+			this._controller = this._initController(anyChildProcesssPlugin !== undefined);
 
 			await this._controller.load();
 
@@ -454,7 +455,7 @@ export class Application {
 		/* eslint-enable @typescript-eslint/explicit-function-return-type */
 	}
 
-	private _initController(): Controller {
+	private _initController(anyChildProcessPlugin: boolean): Controller {
 		return new Controller({
 			appLabel: this.config.label,
 			config: {
@@ -463,6 +464,7 @@ export class Application {
 					{ ipc: { path: systemDirs(this.config.label, this.config.rootPath).sockets } },
 					this.config.rpc,
 				) as RPCConfig,
+				anyChildProcessPlugin,
 			},
 			logger: this.logger,
 			channel: this._channel,

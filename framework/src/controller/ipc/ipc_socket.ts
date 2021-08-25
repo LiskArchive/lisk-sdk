@@ -24,12 +24,13 @@ export abstract class IPCSocket {
 	protected readonly _rpcSeverSocketPath: string;
 	private readonly _rpcServer: Router;
 
-	protected constructor(options: { socketsDir: string; name: string }) {
-		this._eventPubSocketPath = `ipc://${join(options.socketsDir, 'internal.pub.ipc')}`;
-		this._eventSubSocketPath = `ipc://${join(options.socketsDir, 'internal.sub.ipc')}`;
+	protected constructor(options: { socketsDir: string; name: string; externalSocket?: boolean }) {
+		const sockFileName = options.externalSocket ? 'external': 'internal';
+		this._eventPubSocketPath = `ipc://${join(options.socketsDir, `${sockFileName}.pub.ipc`)}`;
+		this._eventSubSocketPath = `ipc://${join(options.socketsDir, `${sockFileName}.sub.ipc`)}`;
 		this._rpcSeverSocketPath = `ipc://${join(
 			options.socketsDir,
-			`${options.name}.internal.rpc.ipc`,
+			`${options.name}.${sockFileName}.rpc.ipc`,
 		)}`;
 
 		this._rpcServer = new Router();
