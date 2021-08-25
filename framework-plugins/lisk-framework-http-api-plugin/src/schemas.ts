@@ -12,7 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const defaultConfig = {
+export const configSchema = {
+	$id: '#/plugins/lisk-http-api/config',
 	type: 'object',
 	properties: {
 		port: {
