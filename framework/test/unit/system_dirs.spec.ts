@@ -36,6 +36,7 @@ describe('systemDirs', () => {
 			logs: `/user/.lisk/${appLabel}/logs`,
 			sockets: `/user/.lisk/${appLabel}/tmp/sockets`,
 			pids: `/user/.lisk/${appLabel}/tmp/pids`,
+			plugins: `/user/.lisk/LABEL/plugins`,
 		});
 	});
 
@@ -55,6 +56,7 @@ describe('systemDirs', () => {
 			logs: `/.lisk/${appLabel}/logs`,
 			sockets: `/.lisk/${appLabel}/tmp/sockets`,
 			pids: `/.lisk/${appLabel}/tmp/pids`,
+			plugins: `/.lisk/${appLabel}/plugins`,
 		});
 	});
 
@@ -74,6 +76,7 @@ describe('systemDirs', () => {
 			logs: `/customPath/.lisk/${appLabel}/logs`,
 			sockets: `/customPath/.lisk/${appLabel}/tmp/sockets`,
 			pids: `/customPath/.lisk/${appLabel}/tmp/pids`,
+			plugins: `/customPath/.lisk/${appLabel}/plugins`,
 		});
 	});
 
@@ -93,6 +96,7 @@ describe('systemDirs', () => {
 			logs: `/user/.lisk/${appLabel}/logs`,
 			sockets: `/user/.lisk/${appLabel}/tmp/sockets`,
 			pids: `/user/.lisk/${appLabel}/tmp/pids`,
+			plugins: `/user/.lisk/${appLabel}/plugins`,
 		});
 	});
 });

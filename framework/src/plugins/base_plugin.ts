@@ -23,11 +23,11 @@ import { APP_EVENT_READY } from '../constants';
 import { ActionsDefinition } from '../controller/action';
 import { BaseChannel } from '../controller/channels';
 import { EventsDefinition } from '../controller/event';
-import { ImplementationMissingError } from '../errors';
 import { createLogger, Logger } from '../logger';
 import { systemDirs } from '../system_dirs';
 import {
-	PluginOptionsWithAppConfig,
+	ApplicationConfigForPlugin,
+	PluginConfig,
 	RegisteredSchema,
 	SchemaWithDefault,
 	TransactionJSON,
@@ -75,20 +75,9 @@ interface BlockAssetJSON {
 	readonly maxHeightPrevoted: number;
 }
 
-export interface PluginInfo {
-	readonly author: string;
-	readonly version: string;
-	readonly name: string;
-	readonly exportPath?: string;
-}
+// type ExtractPluginOptions<P> = P extends BasePlugin<infer T> ? T : PluginOptionsWithApplicationConfig;
 
-type ExtractPluginOptions<P> = P extends BasePlugin<infer T> ? T : PluginOptionsWithAppConfig;
-
-export interface InstantiablePlugin<T extends BasePlugin = BasePlugin> {
-	alias: string;
-	info: PluginInfo;
-	new (args: ExtractPluginOptions<T>): T;
-}
+export type InstantiablePlugin<T extends BasePlugin = BasePlugin> = new () => T;
 
 const decodeTransactionToJSON = (
 	transactionBuffer: Buffer,
@@ -195,30 +184,38 @@ export interface PluginCodec {
 	encodeTransaction: (transaction: TransactionJSON) => string;
 }
 
-export abstract class BasePlugin<
-	T extends PluginOptionsWithAppConfig = PluginOptionsWithAppConfig
-> {
-	public readonly options: T;
+interface PluginInitContext {
+	config: PluginConfig;
+	channel: BaseChannel;
+	appConfig: ApplicationConfigForPlugin;
+}
+
+export abstract class BasePlugin<T = Record<string, unknown>> {
+	public config!: T;
+	public appConfig!: ApplicationConfigForPlugin;
 	public schemas!: RegisteredSchema;
 
-	public codec: PluginCodec;
+	public codec!: PluginCodec;
 	protected _logger!: Logger;
 
-	public constructor(options: T) {
-		if (this.defaults) {
-			this.options = objects.mergeDeep(
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async init(context: PluginInitContext): Promise<void> {
+		if (this.configSchema) {
+			this.config = objects.mergeDeep(
 				{},
-				(this.defaults as SchemaWithDefault).default ?? {},
-				options,
+				(this.configSchema as SchemaWithDefault).default ?? {},
+				context.config,
 			) as T;
 
-			const errors = validator.validate(this.defaults, this.options);
+			const errors = validator.validate(this.configSchema, (this.config as unknown) as object);
+
 			if (errors.length) {
 				throw new LiskValidationError([...errors]);
 			}
 		} else {
-			this.options = objects.cloneDeep(options);
+			this.config = {} as T;
 		}
+		this.appConfig = context.appConfig;
 
 		this.codec = {
 			decodeAccount: <K = DefaultAccountJSON>(data: Buffer | string): AccountJSON<K> => {
@@ -252,41 +249,36 @@ export abstract class BasePlugin<
 					this.schemas.transactionsAssets,
 				),
 		};
-	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async init(channel: BaseChannel): Promise<void> {
-		const dirs = systemDirs(this.options.appConfig.label, this.options.appConfig.rootPath);
+		const dirs = systemDirs(this.appConfig.label, this.appConfig.rootPath);
+
 		this._logger = createLogger({
-			consoleLogLevel: this.options.appConfig.logger.consoleLogLevel,
-			fileLogLevel: this.options.appConfig.logger.fileLogLevel,
-			logFilePath: join(
-				dirs.logs,
-				`plugin-${((this.constructor as unknown) as typeof BasePlugin).alias}.log`,
-			),
-			module: `plugin:${((this.constructor as unknown) as typeof BasePlugin).alias}`,
+			consoleLogLevel: this.appConfig.logger.consoleLogLevel,
+			fileLogLevel: this.appConfig.logger.fileLogLevel,
+			logFilePath: join(dirs.logs, `plugin-${this.name}.log`),
+			module: `plugin:${this.name}`,
 		});
 
-		channel.once(APP_EVENT_READY, async () => {
-			this.schemas = await channel.invoke('app:getSchema');
+		context.channel.once(APP_EVENT_READY, async () => {
+			this.schemas = await context.channel.invoke('app:getSchema');
 		});
-	}
-
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public static get alias(): string {
-		throw new ImplementationMissingError();
-	}
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public static get info(): PluginInfo {
-		throw new ImplementationMissingError();
 	}
 
 	// TODO: To make non-breaking change we have to keep "object" here
-	public get defaults(): SchemaWithDefault | object | undefined {
+	public get configSchema(): SchemaWithDefault | object | undefined {
 		return undefined;
 	}
+
+	public get dataPath(): string {
+		const dirs = systemDirs(this.appConfig.label, this.appConfig.rootPath);
+
+		return join(dirs.plugins, this.name, 'data');
+	}
+
+	public abstract get nodeModulePath(): string;
 	public abstract get events(): EventsDefinition;
 	public abstract get actions(): ActionsDefinition;
+	public abstract get name(): string;
 
 	public abstract load(channel: BaseChannel): Promise<void>;
 	public abstract unload(): Promise<void>;
@@ -294,65 +286,45 @@ export abstract class BasePlugin<
 
 // TODO: Once the issue fixed we can use require.resolve to rewrite the logic
 //  https://github.com/facebook/jest/issues/9543
-export const getPluginExportPath = (
-	pluginKlass: InstantiablePlugin,
-	strict = true,
-): string | undefined => {
-	let nodeModule: Record<string, unknown> | undefined;
-	let nodeModulePath: string | undefined;
+export const getPluginExportPath = (PluginKlass: InstantiablePlugin): string | undefined => {
+	let plugin: Record<string, unknown> | undefined;
+	const pluginInstance = new PluginKlass();
 
-	try {
-		// Check if plugin name is an npm package
-		// eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-		nodeModule = require(pluginKlass.info.name);
-		nodeModulePath = pluginKlass.info.name;
-	} catch (error) {
-		/* Plugin info.name is not an npm package */
-	}
-
-	if (!nodeModule && pluginKlass.info.exportPath) {
-		try {
-			// Check if plugin name is an npm package
-			// eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-			nodeModule = require(pluginKlass.info.exportPath);
-			nodeModulePath = pluginKlass.info.exportPath;
-		} catch (error) {
-			/* Plugin info.exportPath is not an npm package */
-		}
-	}
-
-	if (!nodeModule || !nodeModule[pluginKlass.name]) {
+	if (!pluginInstance.nodeModulePath) {
 		return;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-	if (strict && nodeModule[pluginKlass.name] !== pluginKlass) {
+	try {
+		// Check if plugin nodeModulePath is an npm package
+		// eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+		plugin = require(pluginInstance.nodeModulePath);
+	} catch (error) {
+		/* Plugin nodeModulePath is not an npm package */
+	}
+
+	if (!plugin || !plugin[PluginKlass.name]) {
+		return;
+	}
+
+	if (plugin[PluginKlass.name] !== PluginKlass) {
 		return;
 	}
 
 	// eslint-disable-next-line consistent-return
-	return nodeModulePath;
+	return pluginInstance.nodeModulePath;
 };
 
-export const validatePluginSpec = (
-	PluginKlass: InstantiablePlugin,
-	options: Record<string, unknown> = {},
-): void => {
-	const pluginObject = new PluginKlass(options as PluginOptionsWithAppConfig);
-
-	assert(PluginKlass.alias, 'Plugin alias is required.');
-	assert(PluginKlass.info.name, 'Plugin name is required.');
-	assert(PluginKlass.info.author, 'Plugin author is required.');
-	assert(PluginKlass.info.version, 'Plugin version is required.');
-	assert(pluginObject.events, 'Plugin events are required.');
-	assert(pluginObject.actions, 'Plugin actions are required.');
+export const validatePluginSpec = (PluginObject: BasePlugin): void => {
+	assert(PluginObject.name, 'Plugin name is required.');
+	assert(PluginObject.events, 'Plugin events are required.');
+	assert(PluginObject.actions, 'Plugin actions are required.');
 	// eslint-disable-next-line @typescript-eslint/unbound-method
-	assert(pluginObject.load, 'Plugin load action is required.');
+	assert(PluginObject.load, 'Plugin load action is required.');
 	// eslint-disable-next-line @typescript-eslint/unbound-method
-	assert(pluginObject.unload, 'Plugin unload actions is required.');
+	assert(PluginObject.unload, 'Plugin unload actions is required.');
 
-	if (pluginObject.defaults) {
-		const errors = validator.validateSchema(pluginObject.defaults);
+	if (PluginObject.configSchema) {
+		const errors = validator.validateSchema(PluginObject.configSchema);
 		if (errors.length) {
 			throw new LiskValidationError([...errors]);
 		}

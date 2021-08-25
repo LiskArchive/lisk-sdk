@@ -17,13 +17,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { objects } from '@liskhq/lisk-utils';
-import {
-	ActionsDefinition,
-	BaseChannel,
-	BasePlugin,
-	EventsDefinition,
-	PluginInfo,
-} from 'lisk-framework';
+import { ActionsDefinition, BaseChannel, BasePlugin, EventsDefinition } from 'lisk-framework';
 import * as express from 'express';
 import type { Express } from 'express';
 import * as cors from 'cors';
@@ -33,9 +27,6 @@ import * as config from './defaults';
 import { Options, SharedState } from './types';
 import * as controllers from './controllers';
 import { transactionAnnouncementSchema, postBlockEventSchema } from './schema';
-
-// eslint-disable-next-line
-const pJSON = require('../package.json');
 
 interface BlockData {
 	readonly block: string;
@@ -48,23 +39,15 @@ export class MonitorPlugin extends BasePlugin {
 	private _state!: SharedState;
 
 	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get alias(): string {
+	public get name(): string {
 		return 'monitor';
 	}
 
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get info(): PluginInfo {
-		return {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			author: pJSON.author,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			version: pJSON.version,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			name: pJSON.name,
-		};
+	public get nodeModulePath(): string {
+		return __filename;
 	}
 
-	public get defaults(): Record<string, unknown> {
+	public get configSchema(): Record<string, unknown> {
 		return config.defaultConfig;
 	}
 
@@ -85,7 +68,7 @@ export class MonitorPlugin extends BasePlugin {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async load(channel: BaseChannel): Promise<void> {
 		this._app = express();
-		const options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
+		const options = objects.mergeDeep({}, config.defaultConfig.default) as Options;
 		this._channel = channel;
 
 		this._state = {

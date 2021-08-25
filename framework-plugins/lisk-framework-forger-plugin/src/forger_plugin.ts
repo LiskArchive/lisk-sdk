@@ -19,12 +19,11 @@ import {
 	BasePlugin,
 	BaseChannel,
 	EventsDefinition,
-	PluginInfo,
 	TransactionJSON,
 	BlockHeaderJSON,
 	GenesisConfig,
 } from 'lisk-framework';
-import { objects, dataStructures } from '@liskhq/lisk-utils';
+import { dataStructures } from '@liskhq/lisk-utils';
 
 import {
 	getDBInstance,
@@ -34,7 +33,7 @@ import {
 	setForgerSyncInfo,
 } from './db';
 import * as config from './defaults';
-import { Forger, Options, TransactionFees, Voters } from './types';
+import { Forger, TransactionFees, Voters } from './types';
 import * as controllers from './controllers';
 
 const BLOCKS_BATCH_TO_SYNC = 1000;
@@ -72,8 +71,6 @@ interface ForgerReceivedVotes {
 	[key: string]: Voters;
 }
 
-// eslint-disable-next-line
-const packageJSON = require('../package.json');
 const getBinaryAddress = (hexAddressStr: string) =>
 	Buffer.from(hexAddressStr, 'hex').toString('binary');
 const getAddressBuffer = (hexAddressStr: string) => Buffer.from(hexAddressStr, 'hex');
@@ -85,24 +82,15 @@ export class ForgerPlugin extends BasePlugin {
 	private _transactionFees!: TransactionFees;
 	private _syncingWithNode!: boolean;
 
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get alias(): string {
+	public get name(): string {
 		return 'forger';
 	}
 
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get info(): PluginInfo {
-		return {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			author: packageJSON.author,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			version: packageJSON.version,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			name: packageJSON.name,
-		};
+	public get nodeModulePath(): string {
+		return __filename;
 	}
 
-	public get defaults(): object {
+	public get configSchema(): object {
 		return config.defaultConfig;
 	}
 
@@ -121,12 +109,11 @@ export class ForgerPlugin extends BasePlugin {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async load(channel: BaseChannel): Promise<void> {
-		const options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
 		this._channel = channel;
 
 		// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6201
 		// eslint-disable-next-line new-cap
-		this._forgerPluginDB = await getDBInstance(options.dataPath);
+		this._forgerPluginDB = await getDBInstance(this.dataPath);
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.once('app:ready', async () => {

@@ -11,8 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import * as os from 'os';
-import * as path from 'path';
+import { BaseChannel, GenesisConfig } from 'lisk-framework';
 import * as fs from 'fs-extra';
 import {
 	blockHeaderAssetSchema,
@@ -29,8 +28,50 @@ import { blockHeadersSchema } from '../../src/db';
 import * as config from '../../src/defaults/default_config';
 import { waitTill } from '../utils/application';
 
+const appConfigForPlugin = {
+	rootPath: '~/.lisk',
+	label: 'my-app',
+	logger: {
+		consoleLogLevel: 'info',
+		fileLogLevel: 'none',
+		logFileName: 'plugin-reportMisbehavior.log',
+	},
+	rpc: {
+		modes: ['ipc'],
+		ws: {
+			port: 8080,
+			host: '127.0.0.1',
+			path: '/ws',
+		},
+		http: {
+			port: 8000,
+			host: '127.0.0.1',
+		},
+	},
+	forging: {
+		force: false,
+		waitThreshold: 2,
+		delegates: [],
+	},
+	network: {
+		seedPeers: [],
+		port: 5000,
+	},
+	transactionPool: {
+		maxTransactions: 4096,
+		maxTransactionsPerAccount: 64,
+		transactionExpiryTime: 3 * 60 * 60 * 1000,
+		minEntranceFeePriority: '0',
+		minReplacementFeeDifference: '10',
+	},
+	version: '',
+	networkVersion: '',
+	genesisConfig: {} as GenesisConfig,
+};
+
 const validPluginOptions = {
 	...config.defaultConfig.default,
+	clearBlockHeadersInterval: 1,
 	encryptedPassphrase:
 		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1',
 };
@@ -74,15 +115,16 @@ describe('Clean up old blocks', () => {
 	const dbKey = 'the_db_key';
 
 	beforeEach(async () => {
-		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin(validPluginOptions as never);
+		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin();
+		await reportMisbehaviorPlugin.init({
+			config: validPluginOptions,
+			channel: (channelMock as unknown) as BaseChannel,
+			appConfig: appConfigForPlugin,
+		});
 		(reportMisbehaviorPlugin as any)._channel = channelMock;
-		const dataPath = path.join(os.homedir(), '.lisk/report-misbehavior-plugin/data/integration/db');
-		await fs.remove(dataPath);
-		(reportMisbehaviorPlugin as any).options = {
-			fee: '100000000',
-			clearBlockHeadersInterval: 1,
-			dataPath,
-		};
+
+		await fs.remove(reportMisbehaviorPlugin.dataPath);
+
 		reportMisbehaviorPlugin.schemas = {
 			block: blockSchema,
 			blockHeader: blockHeaderSchema,

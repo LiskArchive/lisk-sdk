@@ -11,12 +11,54 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { BaseChannel, GenesisConfig } from 'lisk-framework';
 import { blockHeaderSchema, blockSchema } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { testing } from 'lisk-framework';
 import { when } from 'jest-when';
 import { MonitorPlugin } from '../../src';
 import * as config from '../../src/defaults/default_config';
+
+const appConfigForPlugin = {
+	rootPath: '~/.lisk',
+	label: 'my-app',
+	logger: {
+		consoleLogLevel: 'info',
+		fileLogLevel: 'none',
+		logFileName: 'plugin-MisbehaviourPlugin.log',
+	},
+	rpc: {
+		modes: ['ipc'],
+		ws: {
+			port: 8080,
+			host: '127.0.0.1',
+			path: '/ws',
+		},
+		http: {
+			port: 8000,
+			host: '127.0.0.1',
+		},
+	},
+	forging: {
+		force: false,
+		waitThreshold: 2,
+		delegates: [],
+	},
+	network: {
+		seedPeers: [],
+		port: 5000,
+	},
+	transactionPool: {
+		maxTransactions: 4096,
+		maxTransactionsPerAccount: 64,
+		transactionExpiryTime: 3 * 60 * 60 * 1000,
+		minEntranceFeePriority: '0',
+		minReplacementFeeDifference: '10',
+	},
+	version: '',
+	networkVersion: '',
+	genesisConfig: {} as GenesisConfig,
+};
 
 const validPluginOptions = config.defaultConfig.default;
 
@@ -30,7 +72,12 @@ describe('_handlePostBlock', () => {
 	} = testing;
 
 	beforeEach(async () => {
-		monitorPlugin = new MonitorPlugin(validPluginOptions as never);
+		monitorPlugin = new MonitorPlugin();
+		await monitorPlugin.init({
+			config: validPluginOptions,
+			channel: (channelMock as unknown) as BaseChannel,
+			appConfig: appConfigForPlugin,
+		});
 		await monitorPlugin.load(channelMock);
 		monitorPlugin.schemas = { block: blockSchema, blockHeader: blockHeaderSchema } as any;
 		blockHeaderString =

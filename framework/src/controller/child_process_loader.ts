@@ -15,7 +15,7 @@
 // Parameters passed by `child_process.fork(_, parameters)`
 
 import { BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
-import { PluginOptionsWithAppConfig, SocketPaths } from '../types';
+import { ApplicationConfigForPlugin, PluginConfig, SocketPaths } from '../types';
 import { IPCChannel } from './channels';
 
 const modulePath: string = process.argv[2];
@@ -30,37 +30,38 @@ const _loadPlugin = async (
 		[key: string]: unknown;
 		socketsPath: SocketPaths;
 	},
-	pluginOptions: PluginOptionsWithAppConfig,
+	appConfig: ApplicationConfigForPlugin,
 ): Promise<void> => {
-	const pluginAlias = Klass.alias;
-	plugin = new Klass(pluginOptions);
+	plugin = new Klass();
+	const pluginName = plugin.name;
 
-	channel = new IPCChannel(pluginAlias, plugin.events, plugin.actions, {
+	channel = new IPCChannel(pluginName, plugin.events, plugin.actions, {
 		socketsPath: config.socketsPath,
 	});
 
 	await channel.registerToBus();
 
-	channel.publish(`${pluginAlias}:registeredToBus`);
-	channel.publish(`${pluginAlias}:loading:started`);
+	channel.publish(`${pluginName}:registeredToBus`);
+	channel.publish(`${pluginName}:loading:started`);
 
-	await plugin.init(channel);
+	await plugin.init({ appConfig, channel, config });
 	await plugin.load(channel);
 
-	channel.publish(`${pluginAlias}:loading:finished`);
+	channel.publish(`${pluginName}:loading:finished`);
 };
 
 const _unloadPlugin = async (code = 0) => {
-	const pluginAlias = Klass.alias;
+	plugin = new Klass();
+	const pluginName = plugin.name;
 
-	channel.publish(`${pluginAlias}:unloading:started`);
+	channel.publish(`${pluginName}:unloading:started`);
 	try {
 		await plugin.unload();
-		channel.publish(`${pluginAlias}:unloading:finished`);
+		channel.publish(`${pluginName}:unloading:finished`);
 		channel.cleanup();
 		process.exit(code);
 	} catch (error) {
-		channel.publish(`${pluginAlias}:unloading:error`, error);
+		channel.publish(`${pluginName}:unloading:error`, error);
 		channel.cleanup();
 		process.exit(1);
 	}
@@ -71,11 +72,11 @@ process.on(
 	({
 		action,
 		config,
-		options,
+		appConfig,
 	}: {
 		action: string;
-		config: Record<string, unknown>;
-		options: PluginOptionsWithAppConfig;
+		config: PluginConfig;
+		appConfig: ApplicationConfigForPlugin;
 	}) => {
 		const internalWorker = async (): Promise<void> => {
 			if (action === 'load') {
@@ -84,7 +85,7 @@ process.on(
 						[key: string]: unknown;
 						socketsPath: SocketPaths;
 					},
-					options,
+					appConfig,
 				);
 			} else if (action === 'unload') {
 				await _unloadPlugin();

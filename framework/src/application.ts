@@ -37,13 +37,12 @@ import {
 	ApplicationConfig,
 	GenesisConfig,
 	EventPostTransactionData,
-	PluginOptions,
+	PluginConfig,
 	RegisteredSchema,
 	RegisteredModule,
 	UpdateForgingStatusInput,
 	PartialApplicationConfig,
-	PluginOptionsWithAppConfig,
-	AppConfigForPlugin,
+	ApplicationConfigForPlugin,
 } from './types';
 
 import {
@@ -59,7 +58,6 @@ import { Node } from './node';
 import { Logger, createLogger } from './logger';
 
 import { DuplicateAppInstanceError } from './errors';
-
 import { BaseModule, TokenModule, SequenceModule, KeysModule, DPoSModule } from './modules';
 
 const MINIMUM_EXTERNAL_MODULE_ID = 1000;
@@ -178,41 +176,38 @@ export class Application {
 	}
 
 	public registerPlugin<T extends BasePlugin>(
-		pluginKlass: InstantiablePlugin<T>,
-		options: PluginOptions = { loadAsChildProcess: false },
+		PluginKlass: InstantiablePlugin<T>,
+		options: PluginConfig = { loadAsChildProcess: false },
 	): void {
-		assert(pluginKlass, 'Plugin implementation is required');
+		assert(PluginKlass, 'Plugin implementation is required');
 		assert(typeof options === 'object', 'Plugin options must be provided or set to empty object.');
-
-		const pluginAlias = options?.alias ?? pluginKlass.alias;
+		const plugin = new PluginKlass();
+		const pluginName = plugin.name;
 
 		assert(
-			!Object.keys(this._plugins).includes(pluginAlias),
-			`A plugin with alias "${pluginAlias}" already registered.`,
+			!Object.keys(this._plugins).includes(pluginName),
+			`A plugin with name "${pluginName}" already registered.`,
 		);
 
 		if (options.loadAsChildProcess) {
-			if (!getPluginExportPath(pluginKlass)) {
+			if (!getPluginExportPath(PluginKlass)) {
 				throw new Error(
-					`Unable to register plugin "${pluginAlias}" to load as child process. \n -> To load plugin as child process it must be exported. \n -> You can specify npm package as "info.name". \n -> Or you can specify any static path as "info.exportPath". \n -> To fix this issue you can simply assign __filename to info.exportPath in your plugin.`,
+					`Unable to register plugin "${pluginName}" to load as child process. \n -> To load plugin as child process it must be exported. \n -> You can specify npm package as "name". \n -> Or you can specify any static path as "nodeModulePath". \n -> To fix this issue you can simply assign __filename to nodeModulePath in your plugin.`,
 				);
 			}
 		}
 
-		this.config.plugins[pluginAlias] = Object.assign(
-			this.config.plugins[pluginAlias] ?? {},
-			options,
-		);
+		this.config.plugins[pluginName] = Object.assign(this.config.plugins[pluginName] ?? {}, options);
 
-		validatePluginSpec(pluginKlass, this.config.plugins[pluginAlias]);
+		validatePluginSpec(plugin);
 
-		this._plugins[pluginAlias] = pluginKlass;
+		this._plugins[pluginName] = PluginKlass;
 	}
 
-	public overridePluginOptions(alias: string, options?: PluginOptions): void {
-		assert(Object.keys(this._plugins).includes(alias), `No plugin ${alias} is registered`);
-		this.config.plugins[alias] = {
-			...this.config.plugins[alias],
+	public overridePluginOptions(name: string, options?: PluginConfig): void {
+		assert(Object.keys(this._plugins).includes(name), `No plugin ${name} is registered`);
+		this.config.plugins[name] = {
+			...this.config.plugins[name],
 			...options,
 		};
 	}
@@ -345,31 +340,9 @@ export class Application {
 	}
 
 	private async _loadPlugins(): Promise<void> {
-		const dirs = systemDirs(this.config.label, this.config.rootPath);
-		const pluginOptions: { [key: string]: PluginOptionsWithAppConfig } = {};
-
-		const appConfigForPlugin: AppConfigForPlugin = {
-			version: this.config.version,
-			networkVersion: this.config.networkVersion,
-			genesisConfig: this.config.genesisConfig,
-			logger: {
-				consoleLogLevel: this.config.logger.consoleLogLevel,
-				fileLogLevel: this.config.logger.fileLogLevel,
-			},
-			rootPath: this.config.rootPath,
-			label: this.config.label,
-		};
-
-		Object.keys(this._plugins).forEach(alias => {
-			pluginOptions[alias] = {
-				...this.config.plugins[alias],
-				// TODO: Remove data path from here and use from appConfig later on
-				dataPath: dirs.dataPath,
-				appConfig: appConfigForPlugin,
-			};
-		});
-
-		await this._controller.loadPlugins(this._plugins, pluginOptions);
+		const { plugins, ...rest } = this.config;
+		const appConfigForPlugin: ApplicationConfigForPlugin = rest;
+		await this._controller.loadPlugins(this._plugins, this.config.plugins, appConfigForPlugin);
 	}
 
 	private _initLogger(): Logger {

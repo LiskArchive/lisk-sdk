@@ -71,27 +71,8 @@ export interface RPCHighestCommonBlockData {
 }
 /* End P2P */
 
-export interface PluginOptions extends Record<string, unknown> {
+export interface PluginConfig extends Record<string, unknown> {
 	readonly loadAsChildProcess?: boolean;
-	readonly alias?: string;
-}
-
-export interface AppConfigForPlugin {
-	readonly rootPath: string;
-	readonly version: string;
-	readonly networkVersion: string;
-	readonly genesisConfig: GenesisConfig;
-	readonly label: string;
-	readonly logger: {
-		readonly consoleLogLevel: string;
-		readonly fileLogLevel: string;
-	};
-}
-
-export interface PluginOptionsWithAppConfig extends PluginOptions {
-	// TODO: Remove data path from here and use from appConfig
-	readonly dataPath: string;
-	appConfig: AppConfigForPlugin;
 }
 
 export interface DelegateConfig {
@@ -190,11 +171,13 @@ export interface ApplicationConfig {
 	};
 	genesisConfig: GenesisConfig;
 	plugins: {
-		[key: string]: PluginOptions;
+		[key: string]: PluginConfig;
 	};
 	transactionPool: TransactionPoolConfig;
 	rpc: RPCConfig;
 }
+
+export type ApplicationConfigForPlugin = Omit<ApplicationConfig, 'plugins'>;
 
 export type PartialApplicationConfig = RecursivePartial<ApplicationConfig>;
 

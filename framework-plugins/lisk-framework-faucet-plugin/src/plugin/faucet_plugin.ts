@@ -28,7 +28,6 @@ import {
 	BasePlugin,
 	BaseChannel,
 	EventsDefinition,
-	PluginInfo,
 	SchemaWithDefault,
 } from 'lisk-framework';
 import * as express from 'express';
@@ -36,9 +35,6 @@ import { join } from 'path';
 import { Server } from 'http';
 import * as defaults from './defaults';
 import { FaucetPluginOptions, State } from './types';
-
-// eslint-disable-next-line
-const packageJSON = require('../../package.json');
 
 const authorizeParamsSchema = {
 	$id: 'lisk/faucet/auth',
@@ -76,24 +72,15 @@ export class FaucetPlugin extends BasePlugin {
 	private _server!: Server;
 	private readonly _state: State = { publicKey: undefined, passphrase: undefined };
 
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get alias(): string {
+	public get name(): string {
 		return 'faucet';
 	}
 
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get info(): PluginInfo {
-		return {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			author: packageJSON.author,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			version: packageJSON.version,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			name: packageJSON.name,
-		};
+	public get nodeModulePath(): string {
+		return __filename;
 	}
 
-	public get defaults(): SchemaWithDefault {
+	public get configSchema(): SchemaWithDefault {
 		return defaults.config;
 	}
 
@@ -158,7 +145,7 @@ export class FaucetPlugin extends BasePlugin {
 					method: 'post',
 					url: 'https://www.google.com/recaptcha/api/siteverify',
 					params: {
-						secret: this.options.captchaSecretkey,
+						secret: this.config.captchaSecretkey,
 						response: token,
 					},
 				});
@@ -184,7 +171,7 @@ export class FaucetPlugin extends BasePlugin {
 		this._options = objects.mergeDeep(
 			{},
 			defaults.config.default,
-			this.options,
+			this.config,
 		) as FaucetPluginOptions;
 
 		const app = express();
