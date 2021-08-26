@@ -41,6 +41,7 @@
 		"bootstrap": "lerna bootstrap",
 		"clean": "lerna run clean",
 		"clean:node_modules": "lerna clean --yes",
+		"clean:full": "npm run clean:node_modules && rm -rf node_modules && yarn && yarn build",
 		"format": "lerna run format",
 		"lint": "lerna run lint",
 		"lint:fix": "lerna run lint:fix",

@@ -304,18 +304,18 @@ const generateValidUpvoteTransaction = () => {
 		input: {
 			account: {
 				...senderAccount,
-				address: senderAccount.address.toString('hex'),
-				publicKey: senderAccount.publicKey.toString('hex'),
+				address: senderAccount.address,
+				publicKey: senderAccount.publicKey,
 			},
-			networkIdentifier: networkIdentifier.toString('hex'),
+			networkIdentifier,
 			delegates: delegateAccounts.map(d => ({
 				...d,
-				address: d.address.toString('hex'),
-				publicKey: d.publicKey.toString('hex'),
+				address: d.address,
+				publicKey: d.publicKey,
 			})),
 		},
 		output: {
-			transaction: encodedTx.toString('hex'),
+			transaction: encodedTx,
 		},
 	};
 };
@@ -387,18 +387,18 @@ const generateValidDownvoteTransaction = () => {
 		input: {
 			account: {
 				...senderAccount,
-				address: senderAccount.address.toString('hex'),
-				publicKey: senderAccount.publicKey.toString('hex'),
+				address: senderAccount.address,
+				publicKey: senderAccount.publicKey,
 			},
-			networkIdentifier: networkIdentifier.toString('hex'),
+			networkIdentifier,
 			delegates: delegateAccounts.map(d => ({
 				...d,
-				address: d.address.toString('hex'),
-				publicKey: d.publicKey.toString('hex'),
+				address: d.address,
+				publicKey: d.publicKey,
 			})),
 		},
 		output: {
-			transaction: encodedTx.toString('hex'),
+			transaction: encodedTx,
 		},
 	};
 };
@@ -510,18 +510,18 @@ const generateValidUpvoteAndDownvoteVoteTransaction = () => {
 		input: {
 			account: {
 				...senderAccount,
-				address: senderAccount.address.toString('hex'),
-				publicKey: senderAccount.publicKey.toString('hex'),
+				address: senderAccount.address,
+				publicKey: senderAccount.publicKey,
 			},
-			networkIdentifier: networkIdentifier.toString('hex'),
+			networkIdentifier,
 			delegates: delegateAccounts.map(d => ({
 				...d,
-				address: d.address.toString('hex'),
-				publicKey: d.publicKey.toString('hex'),
+				address: d.address,
+				publicKey: d.publicKey,
 			})),
 		},
 		output: {
-			transaction: encodedTx.toString('hex'),
+			transaction: encodedTx,
 		},
 	};
 };

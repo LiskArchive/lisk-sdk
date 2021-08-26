@@ -13,40 +13,39 @@
  */
 
 import { writeBytes, readBytes } from '../src/bytes';
-import { testCases } from '../fixtures/bytes_encodings.json';
 
 describe('bytes', () => {
 	describe('writer', () => {
 		it('should encode bytes', () => {
-			const testCaseOneInput = testCases[0].input.object;
-			const testCaseOneOutput = testCases[0].output.value;
-			expect(writeBytes(Buffer.from(testCaseOneInput.address.data)).toString('hex')).toEqual(
-				testCaseOneOutput.slice(2, testCaseOneOutput.length),
-			); // Ignoring the key part
+			const bytes = Buffer.from('abc0', 'hex');
+			const lengthInBuffer = Buffer.from([2]);
 
-			const testCaseSecondInput = testCases[1].input.object;
-			const testCaseSecondOutput = testCases[1].output.value;
-			expect(writeBytes(Buffer.from(testCaseSecondInput.address.data)).toString('hex')).toEqual(
-				testCaseSecondOutput.slice(2, testCaseOneOutput.length),
-			); // Ignoring the key part
+			expect(writeBytes(bytes)).toEqual(Buffer.concat([lengthInBuffer, bytes]));
+		});
+
+		it('should encode empty bytes', () => {
+			const bytes = Buffer.alloc(0);
+			const lengthInBuffer = Buffer.from([0]);
+
+			expect(writeBytes(bytes)).toEqual(Buffer.concat([lengthInBuffer, bytes]));
 		});
 	});
 
 	describe('reader', () => {
 		it('should decode bytes', () => {
-			const testCaseOneInput = testCases[0].input.object;
-			const firstResult = Buffer.from(testCaseOneInput.address.data);
-			expect(
-				readBytes(writeBytes(firstResult), 0),
-				// Result length + varint length referring to the size
-			).toEqual([firstResult, firstResult.length + 1]);
+			const bytes = Buffer.from('abc0', 'hex');
+			const lengthInBuffer = Buffer.from([2]);
+			const data = Buffer.concat([lengthInBuffer, bytes]);
 
-			const testCaseSecondInput = testCases[0].input.object;
-			const secondResult = Buffer.from(testCaseSecondInput.address.data);
-			expect(
-				readBytes(writeBytes(secondResult), 0),
-				// Result length + varint length referring to the size
-			).toEqual([secondResult, secondResult.length + 1]);
+			expect(readBytes(data, 0)).toEqual([bytes, 2 + 1]);
+		});
+
+		it('should decode empty bytes', () => {
+			const bytes = Buffer.alloc(0);
+			const lengthInBuffer = Buffer.from([0]);
+			const data = Buffer.concat([lengthInBuffer, bytes]);
+
+			expect(readBytes(data, 0)).toEqual([bytes, 0 + 1]);
 		});
 	});
 });

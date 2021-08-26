@@ -13,61 +13,41 @@
  */
 
 import { writeString, readString } from '../src/string';
-import { testCases } from '../fixtures/string_encodings.json';
 
 describe('string', () => {
 	describe('writer', () => {
 		it('should encode string', () => {
-			const {
-				input: {
-					object: { data: message },
-				},
-				output: { value },
-			} = testCases[0];
-			const binaryData = writeString(message);
+			const message = Buffer.from('my-string', 'utf8');
+			const lengthInBuffer = Buffer.from([message.length]);
+			const data = Buffer.concat([lengthInBuffer, message]);
 
-			// Same encoding of string
-			expect(binaryData.toString('hex')).toEqual(value.substring(2));
-			// No change of string
-			expect(binaryData.toString().substring(1)).toEqual(message);
+			expect(writeString('my-string')).toEqual(data);
 		});
 
 		it('should encode empty string', () => {
-			const {
-				input: {
-					object: { data: message },
-				},
-				output: { value },
-			} = testCases[1];
-			const binaryData = writeString(message);
+			const message = Buffer.from('', 'utf8');
+			const lengthInBuffer = Buffer.from([message.length]);
+			const data = Buffer.concat([lengthInBuffer, message]);
 
-			expect(binaryData.toString('hex')).toBe(value.substring(2));
+			expect(writeString('')).toEqual(data);
 		});
 	});
 
 	describe('reader', () => {
 		it('should decode string', () => {
-			const {
-				input: {
-					object: { data: message },
-				},
-			} = testCases[0];
-			expect(readString(writeString(message), 0)).toEqual([
-				message,
-				message.length + 1, // Add 1 for the size of this string
-			]);
-		});
-	});
+			const message = Buffer.from('my-string', 'utf8');
+			const lengthInBuffer = Buffer.from([message.length]);
+			const data = Buffer.concat([lengthInBuffer, message]);
 
-	it('should decode empty string', () => {
-		const {
-			input: {
-				object: { data: message },
-			},
-		} = testCases[1];
-		expect(readString(writeString(message), 0)).toEqual([
-			message,
-			message.length + 1, // Add 1 for the size of this string
-		]);
+			expect(readString(data, 0)).toEqual(['my-string', message.length + 1]);
+		});
+
+		it('should decode empty string', () => {
+			const message = Buffer.from('', 'utf8');
+			const lengthInBuffer = Buffer.from([message.length]);
+			const data = Buffer.concat([lengthInBuffer, message]);
+
+			expect(readString(data, 0)).toEqual(['', message.length + 1]);
+		});
 	});
 });
