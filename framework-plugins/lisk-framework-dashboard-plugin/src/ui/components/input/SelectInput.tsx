@@ -36,7 +36,7 @@ type Props = SingleSelectProps | MultiSelectProps;
 const customSelectStyles: StylesConfig<SelectInputOptionType, boolean> = {
 	container: (currentStyles, _state) => ({
 		...currentStyles,
-		height: '40px',
+		minHeight: '40px',
 		boxSizing: 'border-box',
 		fontStyle: 'normal',
 		fontWeight: 'normal',
@@ -44,7 +44,7 @@ const customSelectStyles: StylesConfig<SelectInputOptionType, boolean> = {
 	}),
 	valueContainer: (currentStyles, _state) => ({
 		...currentStyles,
-		height: '40px',
+		minHeight: '40px',
 	}),
 	option: (currentStyles, state) => ({
 		...currentStyles,
