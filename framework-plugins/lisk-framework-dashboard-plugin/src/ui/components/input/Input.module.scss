@@ -64,6 +64,8 @@
 
 .editor-textarea,
 .editor-code {
+	@include lisk-scrollbar;
+
 	padding: 10px;
 	border: 0;
 	position: absolute;

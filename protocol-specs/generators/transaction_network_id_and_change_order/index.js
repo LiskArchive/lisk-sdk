@@ -137,15 +137,15 @@ const generateValidTransferTransaction = () => {
 		input: {
 			account: {
 				...accounts[0],
-				nonce: accounts[0].nonce.toString(),
-				publicKey: accounts[0].publicKey.toString('hex'),
-				privateKey: accounts[0].privateKey.toString('hex'),
-				address: accounts[0].address.toString('hex'),
+				nonce: accounts[0].nonce,
+				publicKey: accounts[0].publicKey,
+				privateKey: accounts[0].privateKey,
+				address: accounts[0].address,
 			},
-			networkIdentifier: networkIdentifier.toString('hex'),
+			networkIdentifier,
 		},
 		output: {
-			transaction: encodedTx.toString('hex'),
+			transaction: encodedTx,
 		},
 	};
 };
@@ -189,15 +189,15 @@ const generateValidDelegateTransaction = () => {
 		input: {
 			account: {
 				...accounts[0],
-				nonce: accounts[0].nonce.toString(),
-				publicKey: accounts[0].publicKey.toString('hex'),
-				privateKey: accounts[0].privateKey.toString('hex'),
-				address: accounts[0].address.toString('hex'),
+				nonce: accounts[0].nonce,
+				publicKey: accounts[0].publicKey,
+				privateKey: accounts[0].privateKey,
+				address: accounts[0].address,
 			},
-			networkIdentifier: networkIdentifier.toString('hex'),
+			networkIdentifier,
 		},
 		output: {
-			transaction: encodedTx.toString('hex'),
+			transaction: encodedTx,
 		},
 	};
 };

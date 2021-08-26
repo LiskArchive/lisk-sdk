@@ -22,6 +22,7 @@ $color-yellow-copacabana: #f7e36d;
 $color-ultramarine-blue: #4070f4;
 $color-ink-blue: #254898;
 $color-zodiac-blue: #0c152e;
+$color-silver-gray: #c5cfe4;
 $color-background: linear-gradient(180deg, #101c3d 0%, #0c152e 100%);
 $color-background-darker: rgba(0, 0, 0, 0.2);
 
@@ -80,5 +81,21 @@ $breakpoint-down: (
 @mixin mq-down($breakpoint: md) {
 	@media only #{map-get($breakpoint-down, $breakpoint)} {
 		@content;
+	}
+}
+
+@mixin lisk-scrollbar {
+	scrollbar-width: 14px;
+	scrollbar-color: $color-silver-gray;
+
+	&::-webkit-scrollbar {
+		width: 14px;
+	}
+
+	&::-webkit-scrollbar-thumb {
+		background: $color-silver-gray;
+		background-clip: content-box;
+		border-radius: 20px;
+		border: 5px solid transparent;
 	}
 }

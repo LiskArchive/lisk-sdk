@@ -91,7 +91,7 @@ const generateTestCasesForAddressFromPubKey = publicKey => ({
 	description: 'Generate valid address from a valid public key',
 	input: { publicKey },
 	output: {
-		binaryAddress: getBinaryAddress(publicKey).toString('hex'),
+		binaryAddress: getBinaryAddress(publicKey),
 		base32Address: getBase32Address(publicKey),
 	},
 });

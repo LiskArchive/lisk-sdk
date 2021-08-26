@@ -4,22 +4,13 @@ $cell-padding: 10px;
 $table-height: 250px;
 
 .tableContainer {
+	@include lisk-scrollbar;
+
 	height: $table-height;
 	display: block;
 	box-sizing: border-box;
 	width: 100%;
 	overflow: auto;
-
-	&::-webkit-scrollbar {
-		width: 14px;
-	}
-
-	&::-webkit-scrollbar-thumb {
-		background: $color-white;
-		background-clip: content-box;
-		border-radius: 20px;
-		border: 5px solid transparent;
-	}
 }
 
 .root {
