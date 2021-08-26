@@ -57,8 +57,8 @@ export class DuplicateAppInstanceError extends FrameworkError {
 
 export class ImplementationMissingError extends FrameworkError {
 	public code = 'ERR_IMPLEMENTATION_MISSING';
-	public constructor() {
-		super('Implementation missing error');
+	public constructor(message = '') {
+		super(message === '' ? 'Implementation missing error' : message);
 	}
 }
 

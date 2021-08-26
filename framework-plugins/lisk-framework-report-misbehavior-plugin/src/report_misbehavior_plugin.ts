@@ -22,8 +22,7 @@ import {
 	getAddressFromPassphrase,
 	signData,
 } from '@liskhq/lisk-cryptography';
-import { ActionsDefinition, BasePlugin, BaseChannel, EventsDefinition } from 'lisk-framework';
-import { objects } from '@liskhq/lisk-utils';
+import { ActionsDefinition, BasePlugin, BaseChannel } from 'lisk-framework';
 import {
 	getDBInstance,
 	saveBlockHeaders,
@@ -31,47 +30,20 @@ import {
 	decodeBlockHeader,
 	clearBlockHeaders,
 } from './db';
-import * as config from './defaults';
-import { Options, State } from './types';
-import { postBlockEventSchema } from './schema';
+import { ReportMisbehaviorPluginConfig, State } from './types';
+import { postBlockEventSchema, configSchema, actionParamsSchema } from './schemas';
 
-const actionParamsSchema = {
-	$id: 'lisk/report_misbehavior/auth',
-	type: 'object',
-	required: ['password', 'enable'],
-	properties: {
-		password: {
-			type: 'string',
-		},
-		enable: {
-			type: 'boolean',
-		},
-	},
-};
+export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginConfig> {
+	public name = 'reportMisbehavior';
+	public configSchema = configSchema;
 
-export class ReportMisbehaviorPlugin extends BasePlugin {
 	private _pluginDB!: KVStore;
-	private _options!: Options;
 	private readonly _state: State = { currentHeight: 0 };
 	private _channel!: BaseChannel;
-	private _clearBlockHeadersInterval!: number;
 	private _clearBlockHeadersIntervalId!: NodeJS.Timer | undefined;
-
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public get name(): string {
-		return 'reportMisbehavior';
-	}
 
 	public get nodeModulePath(): string {
 		return __filename;
-	}
-
-	public get configSchema(): Record<string, unknown> {
-		return config.defaultConfig;
-	}
-
-	public get events(): EventsDefinition {
-		return [];
 	}
 
 	public get actions(): ActionsDefinition {
@@ -83,18 +55,11 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 					throw new LiskValidationError([...errors]);
 				}
 
-				if (
-					!this._options.encryptedPassphrase ||
-					typeof this._options.encryptedPassphrase !== 'string'
-				) {
-					throw new Error('Encrypted passphrase string must be set in the config.');
-				}
-
 				const { enable, password } = params as Record<string, unknown>;
 
 				try {
 					const parsedEncryptedPassphrase = parseEncryptedPassphrase(
-						this._options.encryptedPassphrase,
+						this.config.encryptedPassphrase,
 					);
 
 					const passphrase = decryptPassphraseWithPassword(
@@ -121,8 +86,6 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async load(channel: BaseChannel): Promise<void> {
 		this._channel = channel;
-		this._options = objects.mergeDeep({}, config.defaultConfig.default, this.config) as Options;
-		this._clearBlockHeadersInterval = this._options.clearBlockHeadersInterval || 60000;
 
 		// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6201
 		this._pluginDB = await getDBInstance(this.dataPath);
@@ -131,9 +94,9 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._clearBlockHeadersIntervalId = setInterval(() => {
 			clearBlockHeaders(this._pluginDB, this.schemas, this._state.currentHeight).catch(error =>
-				this._logger.error(error),
+				this.logger.error(error),
 			);
-		}, this._clearBlockHeadersInterval);
+		}, this.config.clearBlockHeadersInterval);
 	}
 
 	public async unload(): Promise<void> {
@@ -149,7 +112,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 			if (event === 'postBlock') {
 				const errors = validator.validate(postBlockEventSchema, data as Record<string, unknown>);
 				if (errors.length > 0) {
-					this._logger.error(errors, 'Invalid block data');
+					this.logger.error(errors, 'Invalid block data');
 					return;
 				}
 				const blockData = data as { block: string };
@@ -184,10 +147,10 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 							transaction: encodedTransaction,
 						});
 
-						this._logger.debug('Sent Report misbehavior transaction', result.transactionId);
+						this.logger.debug('Sent Report misbehavior transaction', result.transactionId);
 					}
 				} catch (error) {
-					this._logger.error(error);
+					this.logger.error(error);
 				}
 			}
 		});
@@ -237,7 +200,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin {
 			nonce,
 			senderPublicKey:
 				this._state.publicKey ?? getAddressAndPublicKeyFromPassphrase(passphrase).publicKey,
-			fee: BigInt(this._options.fee), // TODO: The static fee should be replaced by fee estimation calculation
+			fee: BigInt(this.config.fee), // TODO: The static fee should be replaced by fee estimation calculation
 			asset: encodedAsset,
 			signatures: [],
 		});

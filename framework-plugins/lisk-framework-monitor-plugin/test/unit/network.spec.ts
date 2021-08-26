@@ -17,7 +17,7 @@ import { when } from 'jest-when';
 import { testing } from 'lisk-framework';
 import { PeerInfo } from '../../src/types';
 import { MonitorPlugin } from '../../src';
-import * as config from '../../src/defaults/default_config';
+import { configSchema } from '../../src/schemas';
 
 const appConfigForPlugin = {
 	rootPath: '~/.lisk',
@@ -60,7 +60,7 @@ const appConfigForPlugin = {
 	genesisConfig: {} as GenesisConfig,
 };
 
-const validPluginOptions = config.defaultConfig.default;
+const validPluginOptions = configSchema.default;
 
 describe('networkStats', () => {
 	let monitorPlugin: MonitorPlugin;

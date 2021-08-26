@@ -56,20 +56,10 @@ const appConfigForPlugin = {
 };
 
 class MyPlugin extends BasePlugin {
+	public name = 'my_plugin';
+
 	public get nodeModulePath(): string {
 		return '';
-	}
-
-	public get name() {
-		return 'my_plugin';
-	}
-
-	public get events() {
-		return [];
-	}
-
-	public get actions() {
-		return {};
 	}
 
 	public async load(_channel: BaseChannel) {
@@ -131,7 +121,7 @@ describe('base_plugin', () => {
 				});
 
 				// Assert
-				expect(plugin.codec).toEqual(
+				expect(plugin['codec']).toEqual(
 					expect.objectContaining({
 						decodeTransaction: expect.any(Function),
 					}),
@@ -159,7 +149,7 @@ describe('base_plugin', () => {
 					logFilePath: `${appConfigForPlugin.rootPath}/${appConfigForPlugin.label}/logs/plugin-${plugin.name}.log`,
 					module: `plugin:${plugin.name}`,
 				});
-				expect(plugin['_logger']).toBe(loggerMock);
+				expect(plugin['logger']).toBe(loggerMock);
 			});
 
 			it('should fetch schemas and assign to instance', async () => {
@@ -180,7 +170,7 @@ describe('base_plugin', () => {
 				expect(channelMock.once).toHaveBeenCalledWith('app:ready', expect.any(Function));
 				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
 				expect(channelMock.invoke).toHaveBeenCalledWith('app:getSchema');
-				expect(plugin.schemas).toBe(schemas);
+				expect(plugin['schemas']).toBe(schemas);
 			});
 		});
 	});
@@ -231,9 +221,8 @@ describe('base_plugin', () => {
 
 		it('should return undefined if exported class is not the same from export path', () => {
 			class MyPlugin2 extends MyPlugin {
-				public get name(): string {
-					return 'my-unknown-package';
-				}
+				public name = 'my-unknown-package';
+
 				public get nodeModulePath(): string {
 					return 'custom-export-path-2';
 				}

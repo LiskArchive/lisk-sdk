@@ -25,7 +25,7 @@ import { testing } from 'lisk-framework';
 import { ReportMisbehaviorPlugin } from '../../src';
 import { blockHeadersSchema } from '../../src/db';
 
-import * as config from '../../src/defaults/default_config';
+import { configSchema } from '../../src/schemas';
 import { waitTill } from '../utils/application';
 
 const appConfigForPlugin = {
@@ -70,7 +70,7 @@ const appConfigForPlugin = {
 };
 
 const validPluginOptions = {
-	...config.defaultConfig.default,
+	...configSchema.default,
 	clearBlockHeadersInterval: 1,
 	encryptedPassphrase:
 		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1',
@@ -125,7 +125,7 @@ describe('Clean up old blocks', () => {
 
 		await fs.remove(reportMisbehaviorPlugin.dataPath);
 
-		reportMisbehaviorPlugin.schemas = {
+		reportMisbehaviorPlugin['schemas'] = {
 			block: blockSchema,
 			blockHeader: blockHeaderSchema,
 			blockHeadersAssets: {

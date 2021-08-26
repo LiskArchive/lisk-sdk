@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const config = {
+export const configSchema = {
 	$id: '#/plugins/lisk-dashboard/config',
 	type: 'object',
 	properties: {

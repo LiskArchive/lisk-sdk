@@ -15,7 +15,7 @@
 import { BaseChannel, GenesisConfig } from 'lisk-framework';
 import { codec } from '@liskhq/lisk-codec';
 import { ReportMisbehaviorPlugin } from '../../src';
-import * as config from '../../src/defaults/default_config';
+import { configSchema } from '../../src/schemas';
 
 const appConfigForPlugin = {
 	rootPath: '~/.lisk',
@@ -59,7 +59,7 @@ const appConfigForPlugin = {
 };
 
 const validPluginOptions = {
-	...config.defaultConfig.default,
+	...configSchema.default,
 	encryptedPassphrase:
 		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1',
 	dataPath: '/my/app',
@@ -85,7 +85,7 @@ describe('subscribe to event', () => {
 			appConfig: appConfigForPlugin,
 		});
 		(reportMisbehaviorPlugin as any)._channel = channelMock;
-		reportMisbehaviorPlugin['_logger'] = {
+		reportMisbehaviorPlugin['logger'] = {
 			error: jest.fn(),
 		} as any;
 	});
