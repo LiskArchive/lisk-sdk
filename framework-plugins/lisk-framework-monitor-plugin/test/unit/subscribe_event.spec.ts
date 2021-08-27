@@ -13,7 +13,7 @@
  */
 import { testing, BaseChannel, GenesisConfig } from 'lisk-framework';
 import { MonitorPlugin } from '../../src';
-import * as config from '../../src/defaults/default_config';
+import { configSchema } from '../../src/schemas';
 
 const appConfigForPlugin = {
 	rootPath: '~/.lisk',
@@ -56,7 +56,7 @@ const appConfigForPlugin = {
 	genesisConfig: {} as GenesisConfig,
 };
 
-const validPluginOptions = config.defaultConfig.default;
+const validPluginOptions = configSchema.default;
 
 describe('subscribe to event', () => {
 	let monitorPlugin: MonitorPlugin;

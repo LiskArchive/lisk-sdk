@@ -12,7 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const defaultConfig = {
+export const configSchema = {
+	$id: '#/plugins/lisk-http-api/config',
 	type: 'object',
 	properties: {
 		port: {
@@ -73,7 +74,7 @@ export const defaultConfig = {
 	},
 	required: ['port', 'whiteList', 'cors', 'limits'],
 	default: {
-		port: 4003,
+		port: 4000,
 		host: '127.0.0.1',
 		whiteList: ['127.0.0.1'],
 		cors: {

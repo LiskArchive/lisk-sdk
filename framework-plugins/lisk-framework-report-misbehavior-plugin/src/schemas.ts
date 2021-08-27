@@ -12,10 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const defaultConfig = {
+export const configSchema = {
+	$id: '#/plugins/lisk-report-misbehavior/config',
 	type: 'object',
 	properties: {
-		cleanupFrequency: {
+		clearBlockHeadersInterval: {
 			type: 'integer',
 			description: 'Frequency of cleaning up the outdated data in second.',
 		},
@@ -26,14 +27,6 @@ export const defaultConfig = {
 		defaultPassword: {
 			type: 'string',
 		},
-		// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6201
-		dataPath: {
-			type: 'string',
-			format: 'path',
-			examples: ['~/.lisk/report-misbehavior'],
-			description:
-				'The data path for storing misbehavior related information captured from application.',
-		},
 		fee: {
 			type: 'integer',
 			description: 'The fee required to report misbehavior transaction.',
@@ -41,9 +34,35 @@ export const defaultConfig = {
 	},
 	required: [],
 	default: {
-		cleanupFrequency: 3600,
+		clearBlockHeadersInterval: 60000,
 		encryptedPassphrase: '',
 		defaultPassword: '',
 		fee: 100000000,
+	},
+};
+
+export const postBlockEventSchema = {
+	$id: 'report-misbehavior/postBlockEvent',
+	type: 'object',
+	required: ['block'],
+	properties: {
+		block: {
+			type: 'string',
+			format: 'hex',
+		},
+	},
+};
+
+export const actionParamsSchema = {
+	$id: 'lisk/report_misbehavior/auth',
+	type: 'object',
+	required: ['password', 'enable'],
+	properties: {
+		password: {
+			type: 'string',
+		},
+		enable: {
+			type: 'boolean',
+		},
 	},
 };
