@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { removeSync, mkdirSync} from 'fs-extra';
+import { removeSync, mkdirSync } from 'fs-extra';
 import { resolve as pathResolve } from 'path';
 import { homedir } from 'os';
 import { IPCServer } from '../../../../src/controller/ipc/ipc_server';
@@ -42,7 +42,7 @@ describe('IPCServer', () => {
 		server.stop();
 	});
 
-	afterAll(() =>{
+	afterAll(() => {
 		removeSync(socketsDir);
 	});
 

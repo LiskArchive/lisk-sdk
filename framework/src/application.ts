@@ -261,7 +261,9 @@ export class Application {
 			// Initialize all objects
 			this._channel = this._initChannel();
 
-			const anyChildProcesssPlugin = Object.keys(this.config.plugins).find(p => this.config.plugins[p].loadAsChildProcess);
+			const anyChildProcesssPlugin = Object.keys(this.config.plugins).find(
+				p => this.config.plugins[p].loadAsChildProcess,
+			);
 			this._controller = this._initController(anyChildProcesssPlugin !== undefined);
 
 			await this._controller.load();

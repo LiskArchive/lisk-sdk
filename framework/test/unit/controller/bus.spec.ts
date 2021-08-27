@@ -33,7 +33,7 @@ describe('Bus', () => {
 	};
 	const wsServerMock: any = {
 		start: jest.fn(),
-	}
+	};
 
 	const config: any = {
 		rpc: {
@@ -113,7 +113,6 @@ describe('Bus', () => {
 			const updatedConfig = { ...config };
 			updatedConfig.rpc.modes = ['ws'];
 			updatedConfig.wsServer = wsServerMock;
-
 
 			bus = new Bus(loggerMock, updatedConfig);
 

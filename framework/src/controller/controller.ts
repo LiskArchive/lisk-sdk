@@ -200,14 +200,13 @@ export class Controller {
 	}
 
 	private async _setupBus(): Promise<void> {
-		this.bus = new Bus(this.logger,
-			{
-				rpc: this.config.rpc,
-			  	ipcServerExternal: this._ipcServerExternal,
-				ipcServerInternal: this._ipcServerInternal,
-				wsServer: this._wsServer,
-				httpServer: this._httpServer,
-			});
+		this.bus = new Bus(this.logger, {
+			rpc: this.config.rpc,
+			ipcServerExternal: this._ipcServerExternal,
+			ipcServerInternal: this._ipcServerInternal,
+			wsServer: this._wsServer,
+			httpServer: this._httpServer,
+		});
 
 		await this.bus.init();
 

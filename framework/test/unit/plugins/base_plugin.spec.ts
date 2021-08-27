@@ -36,8 +36,8 @@ const appConfigForPlugin = {
 			host: '127.0.0.1',
 		},
 		ipc: {
-			path: ''
-		}
+			path: '',
+		},
 	},
 	forging: {
 		force: false,

@@ -25,7 +25,7 @@ export abstract class IPCSocket {
 	private readonly _rpcServer: Router;
 
 	protected constructor(options: { socketsDir: string; name: string; externalSocket?: boolean }) {
-		const sockFileName = options.externalSocket ? 'external': 'internal';
+		const sockFileName = options.externalSocket ? 'external' : 'internal';
 		this._eventPubSocketPath = `ipc://${join(options.socketsDir, `${sockFileName}.pub.ipc`)}`;
 		this._eventSubSocketPath = `ipc://${join(options.socketsDir, `${sockFileName}.sub.ipc`)}`;
 		this._rpcSeverSocketPath = `ipc://${join(
