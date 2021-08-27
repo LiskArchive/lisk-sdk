@@ -61,7 +61,7 @@ try {
 	app.registerPlugin(HTTPAPIPlugin, { loadAsChildProcess: true });
 	app.registerPlugin(ForgerPlugin, { loadAsChildProcess: true });
 	app.registerPlugin(MonitorPlugin, { loadAsChildProcess: true });
-	// app.registerPlugin(ReportMisbehaviorPlugin, { loadAsChildProcess: true });
+	app.registerPlugin(ReportMisbehaviorPlugin, { loadAsChildProcess: true });
 } catch (e) {
 	console.error('Application start error.', e);
 	process.exit();
