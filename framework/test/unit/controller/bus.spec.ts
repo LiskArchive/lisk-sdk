@@ -27,6 +27,14 @@ jest.mock('zeromq');
 jest.mock('ws');
 
 describe('Bus', () => {
+	const ipcServerMock: any = {
+		start: jest.fn(),
+		stop: jest.fn(),
+	};
+	const wsServerMock: any = {
+		start: jest.fn(),
+	}
+
 	const config: any = {
 		rpc: {
 			modes: ['ipc'],
@@ -89,8 +97,10 @@ describe('Bus', () => {
 			// Arrange
 			const updatedConfig = { ...config };
 			updatedConfig.rpc.modes = ['ipc'];
-			bus = new Bus(loggerMock, updatedConfig);
+			updatedConfig.ipcServerInternal = ipcServerMock;
 
+			bus = new Bus(loggerMock, updatedConfig);
+			(bus as any)['_ipcServerInternal'] = ipcServerMock;
 			// Act
 			await bus.setup();
 
@@ -98,10 +108,12 @@ describe('Bus', () => {
 			return expect(IPCServer.prototype.start).toHaveBeenCalledTimes(1);
 		});
 
-		it('should setup ws server if rpc is enabled', async () => {
+		it('should setup only ws server if ws is only enabled', async () => {
 			// Arrange
 			const updatedConfig = { ...config };
 			updatedConfig.rpc.modes = ['ws'];
+			updatedConfig.wsServer = wsServerMock;
+
 
 			bus = new Bus(loggerMock, updatedConfig);
 

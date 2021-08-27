@@ -27,6 +27,7 @@ import { Controller } from '../../../src/controller/controller';
 import { Bus } from '../../../src/controller/bus';
 import { InMemoryChannel } from '../../../src/controller/channels';
 import * as basePluginModule from '../../../src/plugins/base_plugin';
+import { IPCServer } from '../../../src/controller/ipc/ipc_server';
 
 const createMockPlugin = ({
 	initStub,
@@ -75,6 +76,7 @@ describe('Controller Class', () => {
 	const config = {
 		rootPath: '/user/.lisk',
 		rpc: rpcConfig,
+		anyChildProcessPlugin: false,
 	};
 	const childProcessMock = {
 		send: jest.fn(),
@@ -105,10 +107,18 @@ describe('Controller Class', () => {
 	};
 
 	let controller: controllerModule.Controller;
+	let busConfig: any;
 
 	beforeEach(() => {
 		// Act
 		controller = new Controller(params);
+		busConfig = {
+			rpc: rpcConfig,
+			ipcServerExternal: new IPCServer({name: 'bus', socketsDir: controller.config.rpc.ipc.path, externalSocket: true }),
+			ipcServerInternal: undefined,
+			wsServer: undefined,
+			httpServer: undefined,
+		};
 		jest
 			.spyOn(childProcess, 'fork')
 			.mockReturnValue((childProcessMock as unknown) as childProcess.ChildProcess);
@@ -141,7 +151,7 @@ describe('Controller Class', () => {
 		describe('_setupBus', () => {
 			it('should set created `Bus` instance to `controller.bus` property.', () => {
 				// Assert
-				expect(Bus).toHaveBeenCalledWith(loggerMock, { rpc: rpcConfig });
+				expect(Bus).toHaveBeenCalledWith(loggerMock, busConfig);
 				expect(controller.bus).toBeInstanceOf(Bus);
 			});
 
@@ -355,11 +365,13 @@ describe('Controller Class', () => {
 					action: 'load',
 					appConfig: {},
 					config: pluginOptions.plugin1,
+					ipcConfig: controller.config,
 				});
 				expect(childProcessMock.send).toHaveBeenCalledWith({
 					action: 'load',
 					appConfig: {},
 					config: pluginOptions.plugin2,
+					ipcConfig: controller.config,
 				});
 			});
 		});

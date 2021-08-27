@@ -35,6 +35,9 @@ const appConfigForPlugin = {
 			port: 8000,
 			host: '127.0.0.1',
 		},
+		ipc: {
+			path: ''
+		}
 	},
 	forging: {
 		force: false,
@@ -52,7 +55,7 @@ const appConfigForPlugin = {
 		minEntranceFeePriority: '0',
 		minReplacementFeeDifference: '10',
 	},
-	plugins: {},
+	// plugins: {},
 };
 
 class MyPlugin extends BasePlugin {

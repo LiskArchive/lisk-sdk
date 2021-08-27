@@ -13,15 +13,18 @@
  */
 
 import { homedir } from 'os';
-import { mkdirSync, rmdirSync } from 'fs';
+import { removeSync, mkdirSync } from 'fs-extra';
 import { resolve as pathResolve } from 'path';
 import { IPCChannel, InMemoryChannel } from '../../../src/controller/channels';
 import { Bus } from '../../../src/controller/bus';
+import { IPCServer } from '../../../src/controller/ipc/ipc_server';
 
 describe('IPCChannel', () => {
 	// Arrange
 	const logger: any = {
 		info: jest.fn(),
+		debug: jest.fn(),
+		error: jest.fn(),
 	};
 
 	const socketsDir = pathResolve(`${homedir()}/.lisk/integration/ipc_channel/sockets`);
@@ -29,7 +32,7 @@ describe('IPCChannel', () => {
 	const config: any = {
 		socketsPath: socketsDir,
 		rpc: {
-			modes: ['ipc'],
+			modes: [''],
 			ipc: {
 				path: socketsDir,
 			},
@@ -78,6 +81,13 @@ describe('IPCChannel', () => {
 		beforeAll(async () => {
 			mkdirSync(socketsDir, { recursive: true });
 
+			const ipcServerInternal = new IPCServer({
+				socketsDir,
+				name: 'bus',
+				externalSocket: false,
+			});
+
+			config['ipcServerInternal'] = ipcServerInternal;
 			// Arrange
 			bus = new Bus(logger, config);
 
@@ -95,7 +105,7 @@ describe('IPCChannel', () => {
 			betaChannel.cleanup();
 			await bus.cleanup();
 
-			rmdirSync(socketsDir);
+			removeSync(socketsDir);
 		});
 
 		describe('#subscribe', () => {
