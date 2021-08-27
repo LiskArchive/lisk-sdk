@@ -209,7 +209,7 @@ export class Controller {
 				httpServer: this._httpServer,
 			});
 
-		await this.bus.setup();
+		await this.bus.init();
 
 		await this.channel.registerToBus(this.bus);
 	}

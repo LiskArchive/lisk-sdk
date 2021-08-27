@@ -155,14 +155,14 @@ describe('Controller Class', () => {
 				expect(controller.bus).toBeInstanceOf(Bus);
 			});
 
-			it('should call `controller.bus.setup()` method.', () => {
+			it('should call `controller.bus.init()` method.', () => {
 				// Assert
-				expect(controller.bus.setup).toHaveBeenCalled();
+				expect(controller.bus.init).toHaveBeenCalled();
 			});
 
 			it('should call `controller.channel.registerToBus()` method.', () => {
 				// Assert
-				expect(controller.bus.setup).toHaveBeenCalled();
+				expect(controller.bus.init).toHaveBeenCalled();
 			});
 		});
 	});

@@ -95,7 +95,7 @@ describe('IPCChannel', () => {
 
 			betaChannel = new IPCChannel(beta.moduleAlias, beta.events, beta.actions, config);
 
-			await bus.setup();
+			await bus.init();
 			await alphaChannel.registerToBus();
 			await betaChannel.registerToBus();
 		});

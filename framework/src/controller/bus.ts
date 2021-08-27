@@ -120,7 +120,7 @@ export class Bus {
 		};
 	}
 
-	public async setup(): Promise<boolean> {
+	public async init(): Promise<boolean> {
 		if (this._ipcServerInternal) {
 			await this._setupIPCInternalServer();
 		}

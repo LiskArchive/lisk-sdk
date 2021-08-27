@@ -90,7 +90,7 @@ describe('Bus', () => {
 		});
 
 		it('should resolve with true.', async () => {
-			return expect(bus.setup()).resolves.toBe(true);
+			return expect(bus.init()).resolves.toBe(true);
 		});
 
 		it('should setup ipc server if rpc is enabled', async () => {
@@ -102,7 +102,7 @@ describe('Bus', () => {
 			bus = new Bus(loggerMock, updatedConfig);
 			(bus as any)['_ipcServerInternal'] = ipcServerMock;
 			// Act
-			await bus.setup();
+			await bus.init();
 
 			// Assert
 			return expect(IPCServer.prototype.start).toHaveBeenCalledTimes(1);
@@ -118,7 +118,7 @@ describe('Bus', () => {
 			bus = new Bus(loggerMock, updatedConfig);
 
 			// Act
-			await bus.setup();
+			await bus.init();
 
 			// Assert
 			return expect(WSServer.prototype.start).toHaveBeenCalledTimes(1);
@@ -131,7 +131,7 @@ describe('Bus', () => {
 			bus = new Bus(loggerMock, updatedConfig);
 
 			// Act
-			await bus.setup();
+			await bus.init();
 
 			// Assert
 			return expect(IPCServer.prototype.start).not.toHaveBeenCalled();
@@ -144,7 +144,7 @@ describe('Bus', () => {
 			bus = new Bus(loggerMock, updatedConfig);
 
 			// Act
-			await bus.setup();
+			await bus.init();
 
 			// Assert
 			return expect(WSServer.prototype.start).not.toHaveBeenCalled();
