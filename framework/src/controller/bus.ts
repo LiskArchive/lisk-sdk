@@ -256,15 +256,19 @@ export class Bus {
 			}
 		}
 
-		return new Promise(resolve => {
+		return new Promise((resolve, reject) => {
 			this._rpcRequestIds.add(action.id as string);
 			(channelInfo.rpcClient as Dealer)
 				.send([IPC_EVENTS.RPC_EVENT, JSON.stringify(action.toJSONRPCRequest())])
 				.then(_ => {
+					const requestTimeout = setTimeout(() => {
+						reject(new Error('Request timed out on invoke.'));
+					}, IPC_EVENTS.RPC_REQUEST_TIMEOUT);
 					// Listen to this event once for serving the request
 					this._emitter.once(
 						action.id as string,
 						(response: JSONRPC.ResponseObjectWithResult<T>) => {
+							clearTimeout(requestTimeout);
 							this._rpcRequestIds.delete(action.id as string);
 							return resolve(response);
 						},
@@ -328,21 +332,25 @@ export class Bus {
 
 		// Communicate through unix socket
 		if (this._ipcServerInternal) {
-			this._ipcServerInternal.pubSocket.send([eventName, JSON.stringify(notification)]).catch(error => {
-				this.logger.debug(
-					{ err: error as Error },
-					`Failed to publish event: ${eventName} to ipc server.`,
-				);
-			});
+			this._ipcServerInternal.pubSocket
+				.send([eventName, JSON.stringify(notification)])
+				.catch(error => {
+					this.logger.debug(
+						{ err: error as Error },
+						`Failed to publish event: ${eventName} to ipc server.`,
+					);
+				});
 		}
 
 		if (this._ipcServerExternal) {
-			this._ipcServerExternal.pubSocket.send([eventName, JSON.stringify(notification)]).catch(error => {
-				this.logger.debug(
-					{ err: error as Error },
-					`Failed to publish event: ${eventName} to ipc server.`,
-				);
-			});
+			this._ipcServerExternal.pubSocket
+				.send([eventName, JSON.stringify(notification)])
+				.catch(error => {
+					this.logger.debug(
+						{ err: error as Error },
+						`Failed to publish event: ${eventName} to ipc server.`,
+					);
+				});
 		}
 
 		if (this._wsServer) {
@@ -424,38 +432,37 @@ export class Bus {
 
 		const listenToRPC = async (rpcServer: Router) => {
 			for await (const [sender, request, params] of rpcServer) {
-
-		if (request.toString() === IPC_EVENTS.REGISTER_CHANNEL) {
-				const { moduleAlias, eventsList, actionsInfo, options } = JSON.parse(
-					params.toString(),
-				) as RegisterToBusRequestObject;
-				this.registerChannel(moduleAlias, eventsList, actionsInfo, options).catch(err => {
-					this.logger.debug(
-						err,
-						`Error occurred while Registering channel for module ${moduleAlias}.`,
-					);
-				});
-				continue;
-			}
-			if (request.toString() === IPC_EVENTS.RPC_EVENT) {
-				const requestData = JSON.parse(params.toString()) as JSONRPC.RequestObject;
-				this.invoke(requestData)
-					.then(result => {
-						// Send back result RPC request for a given requestId
-						rpcServer
-							.send([sender, requestData.id as string, JSON.stringify(result)])
-							.catch(error => {
-								this.logger.debug(
-									{ err: error as Error },
-									`Failed to send request response: ${requestData.id as string} to ipc client.`,
-								);
-							});
-					})
-					.catch(err => {
-						this.logger.debug(err, 'Error occurred while sending RPC results.');
+				if (request.toString() === IPC_EVENTS.REGISTER_CHANNEL) {
+					const { moduleAlias, eventsList, actionsInfo, options } = JSON.parse(
+						params.toString(),
+					) as RegisterToBusRequestObject;
+					this.registerChannel(moduleAlias, eventsList, actionsInfo, options).catch(err => {
+						this.logger.debug(
+							err,
+							`Error occurred while Registering channel for module ${moduleAlias}.`,
+						);
 					});
-				continue;
-			}
+					continue;
+				}
+				if (request.toString() === IPC_EVENTS.RPC_EVENT) {
+					const requestData = JSON.parse(params.toString()) as JSONRPC.RequestObject;
+					this.invoke(requestData)
+						.then(result => {
+							// Send back result RPC request for a given requestId
+							rpcServer
+								.send([sender, requestData.id as string, JSON.stringify(result)])
+								.catch(error => {
+									this.logger.debug(
+										{ err: error as Error },
+										`Failed to send request response: ${requestData.id as string} to ipc client.`,
+									);
+								});
+						})
+						.catch(err => {
+							this.logger.debug(err, 'Error occurred while sending RPC results.');
+						});
+					continue;
+				}
 			}
 		};
 

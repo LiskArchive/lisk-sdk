@@ -192,14 +192,18 @@ export class IPCChannel extends BaseChannel {
 		}
 
 		// When the handler is in other channels
-		return new Promise(resolve => {
+		return new Promise((resolve, reject) => {
 			this._rpcRequestIds.add(action.id as string);
 			this._rpcClient
 				.send(['invoke', JSON.stringify(action.toJSONRPCRequest())])
 				.then(_ => {
+					const requestTimeout = setTimeout(() => {
+						reject(new Error('Request timed out on invoke.'));
+					}, IPC_EVENTS.RPC_REQUEST_TIMEOUT);
 					this._emitter.once(
 						action.id as string,
 						(response: JSONRPC.ResponseObjectWithResult<T>) => {
+							clearTimeout(requestTimeout);
 							this._rpcRequestIds.delete(action.id as string);
 							return resolve(response.result);
 						},
