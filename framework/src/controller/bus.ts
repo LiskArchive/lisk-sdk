@@ -29,7 +29,7 @@ import { HTTPServer } from './http/http_server';
 interface BusConfiguration {
 	readonly rpc: RPCConfig;
 	readonly httpServer?: HTTPServer;
-	readonly ipcServerInternal?: IPCServer;
+	readonly internalIPCServer?: IPCServer;
 	readonly ipcServerExternal?: IPCServer;
 	readonly wsServer?: WSServer;
 }
@@ -80,7 +80,7 @@ export class Bus {
 		[key: string]: ChannelInfo;
 	};
 	private readonly rpcClients: { [key: string]: Dealer };
-	private readonly _ipcServerInternal?: IPCServer;
+	private readonly _internalIPCServer?: IPCServer;
 	private readonly _ipcServerExternal?: IPCServer;
 	private readonly _rpcRequestIds: Set<string>;
 	private readonly _emitter: EventEmitter2;
@@ -104,7 +104,7 @@ export class Bus {
 		this.channels = {};
 		this.rpcClients = {};
 		this._rpcRequestIds = new Set();
-		this._ipcServerInternal = config.ipcServerInternal;
+		this._internalIPCServer = config.internalIPCServer;
 		this._ipcServerExternal = config.ipcServerExternal;
 		this._httpServer = config.httpServer;
 		this._wsServer = config.wsServer;
@@ -121,7 +121,7 @@ export class Bus {
 	}
 
 	public async init(): Promise<boolean> {
-		if (this._ipcServerInternal) {
+		if (this._internalIPCServer) {
 			await this._setupIPCInternalServer();
 		}
 		if (this._ipcServerExternal) {
@@ -331,8 +331,8 @@ export class Bus {
 		this._emitter.emit(eventName, notification);
 
 		// Communicate through unix socket
-		if (this._ipcServerInternal) {
-			this._ipcServerInternal.pubSocket
+		if (this._internalIPCServer) {
+			this._internalIPCServer.pubSocket
 				.send([eventName, JSON.stringify(notification)])
 				.catch(error => {
 					this.logger.debug(
@@ -397,8 +397,8 @@ export class Bus {
 	public async cleanup(): Promise<void> {
 		this._emitter.removeAllListeners();
 
-		if (this._ipcServerInternal) {
-			this._ipcServerInternal.stop();
+		if (this._internalIPCServer) {
+			this._internalIPCServer.stop();
 		}
 
 		if (this._ipcServerExternal) {
@@ -422,7 +422,7 @@ export class Bus {
 	}
 
 	private async _setupIPCInternalServer(): Promise<void> {
-		await this._ipcServerInternal?.start();
+		await this._internalIPCServer?.start();
 
 		const listenToEvents = async (subSocket: Subscriber) => {
 			for await (const [_event, eventData] of subSocket) {
@@ -466,11 +466,11 @@ export class Bus {
 			}
 		};
 
-		listenToEvents((this._ipcServerInternal as IPCServer).subSocket).catch(err => {
+		listenToEvents((this._internalIPCServer as IPCServer).subSocket).catch(err => {
 			this.logger.debug(err, 'Error occured while listening to events on subscriber.');
 		});
 
-		listenToRPC((this._ipcServerInternal as IPCServer).rpcServer).catch(err => {
+		listenToRPC((this._internalIPCServer as IPCServer).rpcServer).catch(err => {
 			this.logger.debug(err, 'Error occured while listening to RPCs on RPC router.');
 		});
 	}

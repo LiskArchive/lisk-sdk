@@ -81,13 +81,13 @@ describe('IPCChannel', () => {
 		beforeAll(async () => {
 			mkdirSync(socketsDir, { recursive: true });
 
-			const ipcServerInternal = new IPCServer({
+			const internalIPCServer = new IPCServer({
 				socketsDir,
 				name: 'bus',
 				externalSocket: false,
 			});
 
-			config['ipcServerInternal'] = ipcServerInternal;
+			config['internalIPCServer'] = internalIPCServer;
 			// Arrange
 			bus = new Bus(logger, config);
 

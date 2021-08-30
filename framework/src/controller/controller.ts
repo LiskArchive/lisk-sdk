@@ -65,7 +65,7 @@ export class Controller {
 	private readonly _childProcesses: Record<string, ChildProcess>;
 	private readonly _inMemoryPlugins: Record<string, { plugin: BasePlugin; channel: BaseChannel }>;
 	private readonly _ipcServerExternal?: IPCServer;
-	private readonly _ipcServerInternal?: IPCServer;
+	private readonly _internalIPCServer?: IPCServer;
 	private readonly _wsServer?: WSServer;
 	private readonly _httpServer?: HTTPServer;
 
@@ -85,7 +85,7 @@ export class Controller {
 		};
 
 		if (options.config.anyChildProcessPlugin) {
-			this._ipcServerInternal = new IPCServer({
+			this._internalIPCServer = new IPCServer({
 				socketsDir: this.config.rpc.ipc.path,
 				name: 'bus',
 			});
@@ -203,7 +203,7 @@ export class Controller {
 		this.bus = new Bus(this.logger, {
 			rpc: this.config.rpc,
 			ipcServerExternal: this._ipcServerExternal,
-			ipcServerInternal: this._ipcServerInternal,
+			internalIPCServer: this._internalIPCServer,
 			wsServer: this._wsServer,
 			httpServer: this._httpServer,
 		});

@@ -122,7 +122,7 @@ describe('Controller Class', () => {
 				socketsDir: controller.config.rpc.ipc.path,
 				externalSocket: true,
 			}),
-			ipcServerInternal: undefined,
+			internalIPCServer: undefined,
 			wsServer: undefined,
 			httpServer: undefined,
 		};

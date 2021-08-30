@@ -97,10 +97,10 @@ describe('Bus', () => {
 			// Arrange
 			const updatedConfig = { ...config };
 			updatedConfig.rpc.modes = ['ipc'];
-			updatedConfig.ipcServerInternal = ipcServerMock;
+			updatedConfig.internalIPCServer = ipcServerMock;
 
 			bus = new Bus(loggerMock, updatedConfig);
-			(bus as any)['_ipcServerInternal'] = ipcServerMock;
+			(bus as any)['_internalIPCServer'] = ipcServerMock;
 			// Act
 			await bus.init();
 
