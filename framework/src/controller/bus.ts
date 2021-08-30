@@ -86,7 +86,10 @@ export class Bus {
 
 	private readonly _wsServer?: WSServer;
 	private readonly _httpServer?: HTTPServer;
-	private readonly _listenToRPCResponse: (rpcClient: Dealer) => Promise<void>;
+	private readonly _handleRPCResponse: (rpcClient: Dealer) => Promise<void>;
+	private readonly _handleRPC: (rpcServer: Router) => Promise<void>;
+	private readonly _handleExternalRPC: (rpcServer: Router) => Promise<void>;
+	private readonly _handleEvents: (subSocket: Subscriber) => Promise<void>;
 
 	public constructor(logger: Logger, config: BusConfiguration) {
 		this.logger = logger;
@@ -109,12 +112,86 @@ export class Bus {
 		this._wsServer = config.wsServer;
 
 		// Handle RPC requests responses coming back from different ipcServers on rpcClient
-		this._listenToRPCResponse = async (rpcClient: Dealer): Promise<void> => {
+		this._handleRPCResponse = async (rpcClient: Dealer): Promise<void> => {
 			for await (const [requestId, result] of rpcClient) {
 				if (this._rpcRequestIds.has(requestId.toString())) {
 					this._emitter.emit(requestId.toString(), JSON.parse(result.toString()));
 					continue;
 				}
+			}
+		};
+
+		this._handleRPC = async (rpcServer: Router): Promise<void> => {
+			for await (const [sender, request, params] of rpcServer) {
+				switch (request.toString()) {
+					case IPC_EVENTS.REGISTER_CHANNEL: {
+						const { moduleAlias, eventsList, actionsInfo, options } = JSON.parse(
+							params.toString(),
+						) as RegisterToBusRequestObject;
+						this.registerChannel(moduleAlias, eventsList, actionsInfo, options).catch(err => {
+							this.logger.debug(
+								err,
+								`Error occurred while Registering channel for module ${moduleAlias}.`,
+							);
+						});
+						break;
+					}
+					case IPC_EVENTS.RPC_EVENT: {
+						const requestData = JSON.parse(params.toString()) as JSONRPC.RequestObject;
+						this.invoke(requestData)
+							.then(result => {
+								// Send back result RPC request for a given requestId
+								rpcServer
+									.send([sender, requestData.id as string, JSON.stringify(result)])
+									.catch(error => {
+										this.logger.debug(
+											{ err: error as Error },
+											`Failed to send request response: ${requestData.id as string} to ipc client.`,
+										);
+									});
+							})
+							.catch(err => {
+								this.logger.debug(err, 'Error occurred while sending RPC results.');
+							});
+						break;
+					}
+					default:
+						break;
+				}
+			}
+		};
+
+		this._handleExternalRPC = async (rpcServer: Router): Promise<void> => {
+			for await (const [sender, request, params] of rpcServer) {
+				switch (request.toString()) {
+					case IPC_EVENTS.RPC_EVENT: {
+						const requestData = JSON.parse(params.toString()) as JSONRPC.RequestObject;
+						this.invoke(requestData)
+							.then(result => {
+								// Send back result RPC request for a given requestId
+								rpcServer
+									.send([sender, requestData.id as string, JSON.stringify(result)])
+									.catch(error => {
+										this.logger.debug(
+											{ err: error as Error },
+											`Failed to send request response: ${requestData.id as string} to ipc client.`,
+										);
+									});
+							})
+							.catch(err => {
+								this.logger.debug(err, 'Error occurred while sending RPC results.');
+							});
+						break;
+					}
+					default:
+						break;
+				}
+			}
+		};
+
+		this._handleEvents = async (subSocket: Subscriber) => {
+			for await (const [_event, eventData] of subSocket) {
+				this.publish(eventData.toString());
 			}
 		};
 	}
@@ -168,7 +245,7 @@ export class Bus {
 			rpcClient.connect(options.socketPath);
 			this.rpcClients[moduleAlias] = rpcClient;
 
-			this._listenToRPCResponse(rpcClient).catch(err => {
+			this._handleRPCResponse(rpcClient).catch(err => {
 				this.logger.debug(err, 'Error occured while listening to RPC results on RPC Dealer.');
 			});
 
@@ -423,53 +500,11 @@ export class Bus {
 	private async _setupIPCInternalServer(): Promise<void> {
 		await this._internalIPCServer?.start();
 
-		const listenToEvents = async (subSocket: Subscriber) => {
-			for await (const [_event, eventData] of subSocket) {
-				this.publish(eventData.toString());
-			}
-		};
-
-		const listenToRPC = async (rpcServer: Router) => {
-			for await (const [sender, request, params] of rpcServer) {
-				if (request.toString() === IPC_EVENTS.REGISTER_CHANNEL) {
-					const { moduleAlias, eventsList, actionsInfo, options } = JSON.parse(
-						params.toString(),
-					) as RegisterToBusRequestObject;
-					this.registerChannel(moduleAlias, eventsList, actionsInfo, options).catch(err => {
-						this.logger.debug(
-							err,
-							`Error occurred while Registering channel for module ${moduleAlias}.`,
-						);
-					});
-					continue;
-				}
-				if (request.toString() === IPC_EVENTS.RPC_EVENT) {
-					const requestData = JSON.parse(params.toString()) as JSONRPC.RequestObject;
-					this.invoke(requestData)
-						.then(result => {
-							// Send back result RPC request for a given requestId
-							rpcServer
-								.send([sender, requestData.id as string, JSON.stringify(result)])
-								.catch(error => {
-									this.logger.debug(
-										{ err: error as Error },
-										`Failed to send request response: ${requestData.id as string} to ipc client.`,
-									);
-								});
-						})
-						.catch(err => {
-							this.logger.debug(err, 'Error occurred while sending RPC results.');
-						});
-					continue;
-				}
-			}
-		};
-
-		listenToEvents((this._internalIPCServer as IPCServer).subSocket).catch(err => {
+		this._handleEvents((this._internalIPCServer as IPCServer).subSocket).catch(err => {
 			this.logger.debug(err, 'Error occured while listening to events on subscriber.');
 		});
 
-		listenToRPC((this._internalIPCServer as IPCServer).rpcServer).catch(err => {
+		this._handleRPC((this._internalIPCServer as IPCServer).rpcServer).catch(err => {
 			this.logger.debug(err, 'Error occured while listening to RPCs on RPC router.');
 		});
 	}
@@ -477,53 +512,11 @@ export class Bus {
 	private async _setupIPCExternalServer(): Promise<void> {
 		await this._externalIPCServer?.start();
 
-		const listenToEvents = async (subSocket: Subscriber) => {
-			for await (const [_event, eventData] of subSocket) {
-				this.publish(eventData.toString());
-			}
-		};
-
-		const listenToRPC = async (rpcServer: Router) => {
-			for await (const [sender, request, params] of rpcServer) {
-				if (request.toString() === IPC_EVENTS.REGISTER_CHANNEL) {
-					const { moduleAlias, eventsList, actionsInfo, options } = JSON.parse(
-						params.toString(),
-					) as RegisterToBusRequestObject;
-					this.registerChannel(moduleAlias, eventsList, actionsInfo, options).catch(err => {
-						this.logger.debug(
-							err,
-							`Error occurred while Registering channel for module ${moduleAlias}.`,
-						);
-					});
-					continue;
-				}
-				if (request.toString() === IPC_EVENTS.RPC_EVENT) {
-					const requestData = JSON.parse(params.toString()) as JSONRPC.RequestObject;
-					this.invoke(requestData)
-						.then(result => {
-							// Send back result RPC request for a given requestId
-							rpcServer
-								.send([sender, requestData.id as string, JSON.stringify(result)])
-								.catch(error => {
-									this.logger.debug(
-										{ err: error as Error },
-										`Failed to send request response: ${requestData.id as string} to ipc client.`,
-									);
-								});
-						})
-						.catch(err => {
-							this.logger.debug(err, 'Error occurred while sending RPC results.');
-						});
-					continue;
-				}
-			}
-		};
-
-		listenToEvents((this._externalIPCServer as IPCServer).subSocket).catch(err => {
+		this._handleEvents((this._externalIPCServer as IPCServer).subSocket).catch(err => {
 			this.logger.debug(err, 'Error occured while listening to events on subscriber.');
 		});
 
-		listenToRPC((this._externalIPCServer as IPCServer).rpcServer).catch(err => {
+		this._handleExternalRPC((this._externalIPCServer as IPCServer).rpcServer).catch(err => {
 			this.logger.debug(err, 'Error occured while listening to RPCs on RPC router.');
 		});
 	}
