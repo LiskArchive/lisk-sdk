@@ -26,7 +26,7 @@ export default class PluginCommand extends BaseBootstrapCommand {
 	static args = [
 		{
 			name: 'alias',
-			description: 'Alias of the plugin.',
+			description: 'Name of the plugin.',
 			required: true,
 		},
 	];
