@@ -24,23 +24,10 @@ import { IPCServer } from '../../../src/controller/ipc/ipc_server';
 
 jest.mock('eventemitter2');
 jest.mock('zeromq');
-jest.mock('ws');
+jest.mock('../../../src/controller/ws/ws_server');
+jest.mock('../../../src/controller/ipc/ipc_server');
 
 describe('Bus', () => {
-	const config: any = {
-		rpc: {
-			modes: ['ipc'],
-			ipc: {
-				path: '/my/ipc/socket/path',
-			},
-			ws: {
-				path: '/ws',
-				host: '127.0.0.01',
-				port: 8080,
-			},
-		},
-	};
-
 	const channelMock: any = {};
 
 	const channelOptions = {
@@ -54,16 +41,19 @@ describe('Bus', () => {
 		debug: jest.fn(),
 	};
 
+	const busConfig = { internalIPCServer: new IPCServer({ socketsDir: '/unit/bus', name: 'bus' }) };
+
 	let bus: Bus;
 
 	beforeEach(() => {
-		bus = new Bus(loggerMock, config);
+		bus = new Bus(loggerMock, busConfig);
 	});
 
 	afterEach(async () => {
 		if (bus) {
 			await bus.cleanup();
 		}
+		(IPCServer as any).mockClear();
 	});
 
 	describe('#constructor', () => {
@@ -76,63 +66,52 @@ describe('Bus', () => {
 	});
 
 	describe('#setup', () => {
-		beforeEach(() => {
-			jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
-			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
-		});
-
 		it('should resolve with true.', async () => {
-			return expect(bus.setup()).resolves.toBe(true);
+			return expect(bus.init()).resolves.toBe(true);
 		});
 
 		it('should setup ipc server if rpc is enabled', async () => {
 			// Arrange
-			const updatedConfig = { ...config };
-			updatedConfig.rpc.modes = ['ipc'];
-			bus = new Bus(loggerMock, updatedConfig);
-
+			bus = new Bus(loggerMock, busConfig);
 			// Act
-			await bus.setup();
+			await bus.init();
 
 			// Assert
 			return expect(IPCServer.prototype.start).toHaveBeenCalledTimes(1);
 		});
 
-		it('should setup ws server if rpc is enabled', async () => {
+		it('should setup only ws server if ws is only enabled', async () => {
 			// Arrange
-			const updatedConfig = { ...config };
-			updatedConfig.rpc.modes = ['ws'];
 
-			bus = new Bus(loggerMock, updatedConfig);
+			bus = new Bus(loggerMock, {
+				...busConfig,
+				wsServer: new WSServer({ logger: loggerMock, path: '/ws', port: 5000 }),
+			});
 
 			// Act
-			await bus.setup();
+			await bus.init();
 
 			// Assert
 			return expect(WSServer.prototype.start).toHaveBeenCalledTimes(1);
 		});
 
-		it('should not setup ipc server if rpc is not enabled', async () => {
+		it('should not setup external ipc server if ipc mode is not enabled', async () => {
 			// Arrange
-			const updatedConfig = { ...config };
-			updatedConfig.rpc.modes = [];
-			bus = new Bus(loggerMock, updatedConfig);
+			bus = new Bus(loggerMock, busConfig);
 
 			// Act
-			await bus.setup();
+			await bus.init();
 
 			// Assert
-			return expect(IPCServer.prototype.start).not.toHaveBeenCalled();
+			return expect(IPCServer.prototype.start).toHaveBeenCalledTimes(1);
 		});
 
 		it('should not setup ws server if rpc is not enabled', async () => {
 			// Arrange
-			const updatedConfig = { ...config };
-			updatedConfig.rpc.enable = false;
-			bus = new Bus(loggerMock, updatedConfig);
+			bus = new Bus(loggerMock, busConfig);
 
 			// Act
-			await bus.setup();
+			await bus.init();
 
 			// Assert
 			return expect(WSServer.prototype.start).not.toHaveBeenCalled();
@@ -279,7 +258,11 @@ describe('Bus', () => {
 			const eventName = `${moduleAlias}:${events[0]}`;
 			const eventData = { data: '#DATA' };
 			const JSONRPCData = { jsonrpc: '2.0', method: 'alias:registeredEvent', params: eventData };
-
+			const mockIPCServer = {
+				pubSocket: { send: jest.fn().mockResolvedValue(jest.fn()) },
+				stop: jest.fn(),
+			};
+			(bus as any)['_internalIPCServer'] = mockIPCServer;
 			await bus.registerChannel(moduleAlias, events, {}, channelOptions);
 
 			// Act

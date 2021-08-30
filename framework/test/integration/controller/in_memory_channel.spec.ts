@@ -21,13 +21,14 @@ describe('InMemoryChannel', () => {
 	const logger: any = {
 		info: jest.fn(),
 		debug: jest.fn(),
+		error: jest.fn(),
 	};
 
-	const socketsDir = pathResolve(`${homedir()}/.lisk/integration/ipc_channel/sockets`);
+	const socketsDir = pathResolve(`${homedir()}/.lisk/integration/in_memory/sockets`);
 
 	const config: any = {
 		rpc: {
-			modes: ['ipc'],
+			modes: [],
 			ipc: {
 				path: socketsDir,
 			},

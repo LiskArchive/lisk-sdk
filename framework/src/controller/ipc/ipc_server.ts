@@ -24,7 +24,7 @@ interface ServerSocketPaths {
 export class IPCServer extends IPCSocket {
 	public readonly socketPaths: ServerSocketPaths;
 
-	public constructor(options: { socketsDir: string; name: string }) {
+	public constructor(options: { socketsDir: string; name: string; externalSocket?: boolean }) {
 		super(options);
 
 		this.pubSocket = new Publisher();

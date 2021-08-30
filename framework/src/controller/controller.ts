@@ -15,6 +15,7 @@
 import * as childProcess from 'child_process';
 import { ChildProcess } from 'child_process';
 import * as path from 'path';
+import { RPC_MODES } from '../constants';
 import { Logger } from '../logger';
 import { BasePlugin, getPluginExportPath, InstantiablePlugin } from '../plugins/base_plugin';
 import { systemDirs } from '../system_dirs';
@@ -22,6 +23,9 @@ import { ApplicationConfigForPlugin, PluginConfig, RPCConfig } from '../types';
 import { Bus } from './bus';
 import { BaseChannel } from './channels';
 import { InMemoryChannel } from './channels/in_memory_channel';
+import { HTTPServer } from './http/http_server';
+import { IPCServer } from './ipc/ipc_server';
+import { WSServer } from './ws/ws_server';
 
 export interface ControllerOptions {
 	readonly appLabel: string;
@@ -59,6 +63,10 @@ export class Controller {
 
 	private readonly _childProcesses: Record<string, ChildProcess>;
 	private readonly _inMemoryPlugins: Record<string, { plugin: BasePlugin; channel: BaseChannel }>;
+	private readonly _externalIPCServer?: IPCServer;
+	private readonly _internalIPCServer: IPCServer;
+	private readonly _wsServer?: WSServer;
+	private readonly _httpServer?: HTTPServer;
 
 	public constructor(options: ControllerOptions) {
 		this.logger = options.logger;
@@ -74,6 +82,36 @@ export class Controller {
 			},
 			rpc: options.config.rpc,
 		};
+
+		this._internalIPCServer = new IPCServer({
+			socketsDir: this.config.dirs.sockets,
+			name: 'bus',
+		});
+
+		if (this.config.rpc.modes.includes(RPC_MODES.IPC) && this.config.rpc.ipc) {
+			this._externalIPCServer = new IPCServer({
+				socketsDir: this.config.rpc.ipc.path,
+				name: 'bus',
+				externalSocket: true,
+			});
+		}
+
+		if (this.config.rpc.modes.includes(RPC_MODES.WS) && this.config.rpc.ws) {
+			this._wsServer = new WSServer({
+				path: this.config.rpc.ws.path,
+				port: this.config.rpc.ws.port,
+				host: this.config.rpc.ws.host,
+				logger: this.logger,
+			});
+		}
+
+		if (this.config.rpc.modes.includes(RPC_MODES.HTTP) && this.config.rpc.http) {
+			this._httpServer = new HTTPServer({
+				host: this.config.rpc.http.host,
+				port: this.config.rpc.http.port,
+				logger: this.logger,
+			});
+		}
 
 		this._inMemoryPlugins = {};
 		this._childProcesses = {};
@@ -159,9 +197,14 @@ export class Controller {
 	}
 
 	private async _setupBus(): Promise<void> {
-		this.bus = new Bus(this.logger, { rpc: this.config.rpc });
+		this.bus = new Bus(this.logger, {
+			externalIPCServer: this._externalIPCServer,
+			internalIPCServer: this._internalIPCServer,
+			wsServer: this._wsServer,
+			httpServer: this._httpServer,
+		});
 
-		await this.bus.setup();
+		await this.bus.init();
 
 		await this.channel.registerToBus(this.bus);
 	}
@@ -220,6 +263,7 @@ export class Controller {
 			action: 'load',
 			config,
 			appConfig,
+			ipcConfig: this.config,
 		});
 
 		this._childProcesses[name] = child;
