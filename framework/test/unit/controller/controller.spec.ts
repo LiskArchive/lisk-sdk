@@ -115,15 +115,14 @@ describe('Controller Class', () => {
 		// Act
 		controller = new Controller(params);
 		busConfig = {
-			rpc: rpcConfig,
 			externalIPCServer: new IPCServer({
 				name: 'bus',
-				socketsDir: controller.config.rpc.ipc.path,
+				socketsDir: controller.config.rpc.ipc?.path as string,
 				externalSocket: true,
 			}),
 			internalIPCServer: new IPCServer({
 				name: 'bus',
-				socketsDir: controller.config.rpc.ipc.path,
+				socketsDir: controller.config.dirs.sockets,
 			}),
 			wsServer: undefined,
 			httpServer: undefined,
