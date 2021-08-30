@@ -42,7 +42,7 @@ const RecentEventWidget: React.FC<Props> = props => {
 
 	const showHighlightJSON = (data: Record<string, unknown>): string =>
 		// eslint-disable-next-line
-		formatHighlight(JSON.stringify(data), jsonHighlight);
+		formatHighlight(data, jsonHighlight);
 
 	return (
 		<Widget>
@@ -64,9 +64,13 @@ const RecentEventWidget: React.FC<Props> = props => {
 			<WidgetBody scrollbar size={'m'}>
 				{props.data.map(({ name, data }, index) => (
 					<Box mb={4} key={index}>
-						<Text type={'h3'}>{name}</Text>
+						<Text type={'h3'} className={styles['recent-events-event-heading']}>
+							{name}
+						</Text>
 						<br />
-						<span dangerouslySetInnerHTML={{ __html: showHighlightJSON(data) }} />
+						<pre className={styles['recent-events-code-block']}>
+							<code dangerouslySetInnerHTML={{ __html: showHighlightJSON(data) }} />
+						</pre>
 					</Box>
 				))}
 			</WidgetBody>

@@ -29,7 +29,7 @@ const processInput = (
 } => {
 	const { privateKey, publicKey } = cryptography.getKeys(passphrase);
 	const binaryAddress = cryptography.getAddressFromPublicKey(publicKey);
-	const address = cryptography.getBase32AddressFromPublicKey(publicKey, prefix);
+	const address = cryptography.getLisk32AddressFromPublicKey(publicKey, prefix);
 
 	return {
 		privateKey: privateKey.toString('hex'),

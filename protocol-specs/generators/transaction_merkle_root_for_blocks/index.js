@@ -57,7 +57,7 @@ const generateTransactionMerkleRoot = () =>
 				transactionIds: ids,
 			},
 			output: {
-				transactionMerkleRoot: transactionMerkleRoot.toString('hex'),
+				transactionMerkleRoot,
 			},
 		};
 	});

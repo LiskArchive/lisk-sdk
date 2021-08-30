@@ -45,7 +45,7 @@ describe('account:create', () => {
 				{
 					publicKey: cryptography.getKeys(defaultMnemonic).publicKey.toString('hex'),
 					privateKey: cryptography.getKeys(defaultMnemonic).privateKey.toString('hex'),
-					address: cryptography.getBase32AddressFromPublicKey(
+					address: cryptography.getLisk32AddressFromPublicKey(
 						cryptography.getKeys(defaultMnemonic).publicKey,
 						'lsk',
 					),
@@ -64,7 +64,7 @@ describe('account:create', () => {
 				{
 					publicKey: cryptography.getKeys(defaultMnemonic).publicKey.toString('hex'),
 					privateKey: cryptography.getKeys(defaultMnemonic).privateKey.toString('hex'),
-					address: cryptography.getBase32AddressFromPublicKey(
+					address: cryptography.getLisk32AddressFromPublicKey(
 						cryptography.getKeys(defaultMnemonic).publicKey,
 						'lsk',
 					),
@@ -74,7 +74,7 @@ describe('account:create', () => {
 				{
 					publicKey: cryptography.getKeys(secondDefaultMnemonic).publicKey.toString('hex'),
 					privateKey: cryptography.getKeys(secondDefaultMnemonic).privateKey.toString('hex'),
-					address: cryptography.getBase32AddressFromPublicKey(
+					address: cryptography.getLisk32AddressFromPublicKey(
 						cryptography.getKeys(secondDefaultMnemonic).publicKey,
 						'lsk',
 					),

@@ -163,11 +163,9 @@ export class SparseMerkleTree {
 			bottomNode = p;
 			h -= 1;
 		}
-		rootNode = bottomNode;
-		this._rootHash = rootNode.hash;
-		await this._db.set(rootNode.hash, (rootNode as Branch).data);
+		this._rootHash = bottomNode.hash;
 
-		return rootNode;
+		return bottomNode;
 	}
 
 	public async remove(key: Buffer): Promise<TreeNode> {
@@ -255,7 +253,6 @@ export class SparseMerkleTree {
 			h -= 1;
 		}
 		this._rootHash = bottomNode.hash;
-		await this._db.set(bottomNode.hash, (bottomNode as Branch).data);
 
 		return bottomNode;
 	}
@@ -405,12 +402,15 @@ export class SparseMerkleTree {
 					sortedQueriesWithBinaryKey,
 					callback => treeSort(spWithBinaryKey, callback) < 0,
 				);
-				if (insertIndex === sortedQueries.length) sortedQueries.push(sp);
-				else {
+				if (insertIndex === sortedQueries.length) {
+					sortedQueries.push(sp);
+				} else {
 					const keyPrefix = binaryExpansion(sp.key, this.keyLength).substring(0, sp.height);
 					const query = sortedQueries[insertIndex];
-					if (!binaryExpansion(query.key, this.keyLength).endsWith(keyPrefix, query.height))
+
+					if (!binaryExpansion(query.key, this.keyLength).endsWith(keyPrefix, query.height)) {
 						sortedQueries.splice(insertIndex, 0, sp);
+					}
 				}
 			} else {
 				sortedQueries.push(sp);

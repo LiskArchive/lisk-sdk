@@ -30,7 +30,7 @@ const createAccount = (prefix: string): AccountInfo => {
 	const generatedPassphrase = passphrase.Mnemonic.generateMnemonic();
 	const { privateKey, publicKey } = cryptography.getKeys(generatedPassphrase);
 	const binaryAddress = cryptography.getAddressFromPublicKey(publicKey);
-	const address = cryptography.getBase32AddressFromPublicKey(publicKey, prefix);
+	const address = cryptography.getLisk32AddressFromPublicKey(publicKey, prefix);
 
 	return {
 		passphrase: generatedPassphrase,
