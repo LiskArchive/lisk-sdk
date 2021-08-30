@@ -77,7 +77,6 @@ export interface NetworkConfig {
 }
 
 export interface GenesisConfig {
-	[key: string]: unknown;
 	bftThreshold: number;
 	communityIdentifier: string;
 	blockTime: number;
