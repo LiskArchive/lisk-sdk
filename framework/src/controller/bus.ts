@@ -30,7 +30,7 @@ interface BusConfiguration {
 	readonly rpc: RPCConfig;
 	readonly httpServer?: HTTPServer;
 	readonly internalIPCServer?: IPCServer;
-	readonly ipcServerExternal?: IPCServer;
+	readonly externalIPCServer?: IPCServer;
 	readonly wsServer?: WSServer;
 }
 
@@ -81,7 +81,7 @@ export class Bus {
 	};
 	private readonly rpcClients: { [key: string]: Dealer };
 	private readonly _internalIPCServer?: IPCServer;
-	private readonly _ipcServerExternal?: IPCServer;
+	private readonly _externalIPCServer?: IPCServer;
 	private readonly _rpcRequestIds: Set<string>;
 	private readonly _emitter: EventEmitter2;
 
@@ -105,7 +105,7 @@ export class Bus {
 		this.rpcClients = {};
 		this._rpcRequestIds = new Set();
 		this._internalIPCServer = config.internalIPCServer;
-		this._ipcServerExternal = config.ipcServerExternal;
+		this._externalIPCServer = config.externalIPCServer;
 		this._httpServer = config.httpServer;
 		this._wsServer = config.wsServer;
 
@@ -124,7 +124,7 @@ export class Bus {
 		if (this._internalIPCServer) {
 			await this._setupIPCInternalServer();
 		}
-		if (this._ipcServerExternal) {
+		if (this._externalIPCServer) {
 			await this._setupIPCExternalServer();
 		}
 		if (this._wsServer) {
@@ -342,8 +342,8 @@ export class Bus {
 				});
 		}
 
-		if (this._ipcServerExternal) {
-			this._ipcServerExternal.pubSocket
+		if (this._externalIPCServer) {
+			this._externalIPCServer.pubSocket
 				.send([eventName, JSON.stringify(notification)])
 				.catch(error => {
 					this.logger.debug(
@@ -401,8 +401,8 @@ export class Bus {
 			this._internalIPCServer.stop();
 		}
 
-		if (this._ipcServerExternal) {
-			this._ipcServerExternal.stop();
+		if (this._externalIPCServer) {
+			this._externalIPCServer.stop();
 		}
 
 		if (this._wsServer) {
@@ -476,7 +476,7 @@ export class Bus {
 	}
 
 	private async _setupIPCExternalServer(): Promise<void> {
-		await this._ipcServerExternal?.start();
+		await this._externalIPCServer?.start();
 
 		const listenToEvents = async (subSocket: Subscriber) => {
 			for await (const [_event, eventData] of subSocket) {
@@ -520,11 +520,11 @@ export class Bus {
 			}
 		};
 
-		listenToEvents((this._ipcServerExternal as IPCServer).subSocket).catch(err => {
+		listenToEvents((this._externalIPCServer as IPCServer).subSocket).catch(err => {
 			this.logger.debug(err, 'Error occured while listening to events on subscriber.');
 		});
 
-		listenToRPC((this._ipcServerExternal as IPCServer).rpcServer).catch(err => {
+		listenToRPC((this._externalIPCServer as IPCServer).rpcServer).catch(err => {
 			this.logger.debug(err, 'Error occured while listening to RPCs on RPC router.');
 		});
 	}
