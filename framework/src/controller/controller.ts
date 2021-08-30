@@ -84,7 +84,7 @@ export class Controller {
 		};
 
 		this._internalIPCServer = new IPCServer({
-			socketsDir: this.config.rpc.ipc.path,
+			socketsDir: this.config.dirs.sockets,
 			name: 'bus',
 		});
 

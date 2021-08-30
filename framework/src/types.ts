@@ -146,7 +146,7 @@ export interface RPCConfig {
 		path: string;
 		host: string;
 	};
-	ipc: {
+	ipc?: {
 		path: string;
 	};
 	http?: {
