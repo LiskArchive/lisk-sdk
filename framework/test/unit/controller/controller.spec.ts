@@ -79,7 +79,6 @@ describe('Controller Class', () => {
 	const config = {
 		rootPath: '/user/.lisk',
 		rpc: rpcConfig,
-		anyChildProcessPlugin: false,
 	};
 	const childProcessMock = {
 		send: jest.fn(),
@@ -122,7 +121,10 @@ describe('Controller Class', () => {
 				socketsDir: controller.config.rpc.ipc.path,
 				externalSocket: true,
 			}),
-			internalIPCServer: undefined,
+			internalIPCServer: new IPCServer({
+				name: 'bus',
+				socketsDir: controller.config.rpc.ipc.path,
+			}),
 			wsServer: undefined,
 			httpServer: undefined,
 		};

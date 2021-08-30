@@ -32,7 +32,6 @@ export interface ControllerOptions {
 	readonly config: {
 		readonly rootPath: string;
 		readonly rpc: RPCConfig;
-		readonly anyChildProcessPlugin: boolean;
 	};
 	readonly logger: Logger;
 	readonly channel: InMemoryChannel;
@@ -65,7 +64,7 @@ export class Controller {
 	private readonly _childProcesses: Record<string, ChildProcess>;
 	private readonly _inMemoryPlugins: Record<string, { plugin: BasePlugin; channel: BaseChannel }>;
 	private readonly _externalIPCServer?: IPCServer;
-	private readonly _internalIPCServer?: IPCServer;
+	private readonly _internalIPCServer: IPCServer;
 	private readonly _wsServer?: WSServer;
 	private readonly _httpServer?: HTTPServer;
 
@@ -84,12 +83,10 @@ export class Controller {
 			rpc: options.config.rpc,
 		};
 
-		if (options.config.anyChildProcessPlugin) {
-			this._internalIPCServer = new IPCServer({
-				socketsDir: this.config.rpc.ipc.path,
-				name: 'bus',
-			});
-		}
+		this._internalIPCServer = new IPCServer({
+			socketsDir: this.config.rpc.ipc.path,
+			name: 'bus',
+		});
 
 		if (this.config.rpc.modes.includes(RPC_MODES.IPC) && this.config.rpc.ipc) {
 			this._externalIPCServer = new IPCServer({
@@ -201,7 +198,6 @@ export class Controller {
 
 	private async _setupBus(): Promise<void> {
 		this.bus = new Bus(this.logger, {
-			rpc: this.config.rpc,
 			externalIPCServer: this._externalIPCServer,
 			internalIPCServer: this._internalIPCServer,
 			wsServer: this._wsServer,

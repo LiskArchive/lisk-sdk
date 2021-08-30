@@ -16,7 +16,7 @@ import { LiskValidationError } from '@liskhq/lisk-validator';
 import { EventEmitter2, ListenerFn } from 'eventemitter2';
 import { Dealer, Router, Subscriber } from 'zeromq';
 import { Logger } from '../logger';
-import { ActionInfoForBus, ChannelType, RPCConfig } from '../types';
+import { ActionInfoForBus, ChannelType } from '../types';
 import { Action } from './action';
 import { BaseChannel } from './channels/base_channel';
 import { IPC_EVENTS } from './constants';
@@ -27,9 +27,8 @@ import { WSServer } from './ws/ws_server';
 import { HTTPServer } from './http/http_server';
 
 interface BusConfiguration {
-	readonly rpc: RPCConfig;
 	readonly httpServer?: HTTPServer;
-	readonly internalIPCServer?: IPCServer;
+	readonly internalIPCServer: IPCServer;
 	readonly externalIPCServer?: IPCServer;
 	readonly wsServer?: WSServer;
 }
