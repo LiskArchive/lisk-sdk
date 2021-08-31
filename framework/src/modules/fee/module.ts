@@ -13,6 +13,7 @@
  */
 
 import { BaseModule, ModuleInitArgs } from '../base_module';
+import { MODULE_ID_FEE } from './constants';
 import { BaseFee, TokenAPI, ModuleConfig } from './types';
 import {
 	TransactionExecuteContext,
@@ -24,7 +25,7 @@ import { FeeEndpoint } from './endpoint';
 import { configSchema } from './schemas';
 
 export class FeeModule extends BaseModule {
-	public id = 11;
+	public id = MODULE_ID_FEE;
 	public name = 'fee';
 	public api = new FeeAPI(this.id);
 	public configSchema = configSchema;
