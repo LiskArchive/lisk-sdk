@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { ListenerFn } from 'eventemitter2';
 import { Event, EventCallback } from '../event';
 import { Action } from '../action';
 import { BaseChannel } from './base_channel';
@@ -36,6 +37,10 @@ export class InMemoryChannel extends BaseChannel {
 			// eslint-disable-next-line @typescript-eslint/no-misused-promises
 			setImmediate(cb, Event.fromJSONRPCNotification(notificationObject).data),
 		);
+	}
+
+	public unsubscribe(eventName: string, cb: ListenerFn): void {
+		this.bus.unsubscribe(eventName, cb);
 	}
 
 	public once(eventName: string, cb: EventCallback): void {
