@@ -157,7 +157,7 @@ export class IPCChannel extends BaseChannel {
 
 	public unsubscribe(eventName: string, cb: ListenerFn): void {
 		this._subSocket.unsubscribe(eventName);
-		this._emitter.on(eventName, cb);
+		this._emitter.off(eventName, cb);
 	}
 
 	public once(eventName: string, cb: ListenerFn): void {
