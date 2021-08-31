@@ -28,7 +28,8 @@ describe('WSServer', () => {
 			host: '0.0.0.0',
 			logger: fakeLogger,
 		});
-		server.start(['app_block', 'random'], (socket, message) => {
+		server.registerAllowedEvent(['app_block', 'random']);
+		server.start((socket, message) => {
 			handler(socket, message);
 		});
 		timer = setInterval(() => {

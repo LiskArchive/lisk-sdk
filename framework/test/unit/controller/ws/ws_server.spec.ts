@@ -47,7 +47,8 @@ describe('WSServer', () => {
 
 			jest.spyOn(WebSocket.Server.prototype, 'on');
 
-			wsServerInstance.start(['app_newBlock'], wsMessageHandler);
+			wsServerInstance.registerAllowedEvent(['app_newBlock']);
+			wsServerInstance.start(wsMessageHandler);
 		});
 
 		afterEach(() => {
@@ -73,7 +74,8 @@ describe('WSServer', () => {
 	describe('stop()', () => {
 		it('should call stop on the WS server', () => {
 			wsServerInstance = new WSServer(config);
-			wsServerInstance.start(['app_newBlock'], wsMessageHandler);
+			wsServerInstance.registerAllowedEvent(['app_newBlock']);
+			wsServerInstance.start(wsMessageHandler);
 			const stopSpy = jest.spyOn(wsServerInstance.server, 'close');
 			wsServerInstance.stop();
 			expect(stopSpy).toHaveBeenCalled();

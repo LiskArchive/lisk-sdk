@@ -25,6 +25,7 @@ import { IPCServer } from './ipc/ipc_server';
 import * as JSONRPC from './jsonrpc';
 import { WSServer } from './ws/ws_server';
 import { HTTPServer } from './http/http_server';
+import { JSONRPCError } from './jsonrpc';
 
 interface BusConfiguration {
 	readonly httpServer?: HTTPServer;
@@ -178,8 +179,15 @@ export class Bus {
 										);
 									});
 							})
-							.catch(err => {
-								this.logger.debug(err, 'Error occurred while sending RPC results.');
+							.catch((err: JSONRPCError) => {
+								rpcServer
+									.send([sender, requestData.id as string, JSON.stringify(err.response)])
+									.catch(error => {
+										this.logger.debug(
+											{ err: error as Error },
+											`Failed to send error response: ${requestData.id as string} to ipc client.`,
+										);
+									});
 							});
 						break;
 					}
@@ -231,6 +239,7 @@ export class Bus {
 			}
 			this.events[`${moduleAlias}:${eventName}`] = true;
 		});
+		this._wsServer?.registerAllowedEvent([...this.getEvents()]);
 
 		Object.keys(actions).forEach(actionName => {
 			if (this.actions[`${moduleAlias}:${actionName}`] !== undefined) {
@@ -533,7 +542,7 @@ export class Bus {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	private async _setupWSServer(): Promise<void> {
-		this._wsServer?.start(this.getEvents(), (socket, message) => {
+		this._wsServer?.start((socket, message) => {
 			this.invoke(message)
 				.then(data => {
 					socket.send(JSON.stringify(data as JSONRPC.ResponseObjectWithResult));

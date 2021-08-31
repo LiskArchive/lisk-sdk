@@ -22,11 +22,11 @@ import { Application } from '../../../../src';
 import { APP_EVENT_BLOCK_NEW } from '../../../../src/constants';
 
 describe('api client ws mode', () => {
-	let app: Application;
 	const url = 'ws://localhost:8080/ws';
+
+	let app: Application;
 	let client: any;
 	let newBlockEvent: any[];
-	let helloMessage: any;
 
 	beforeAll(async () => {
 		newBlockEvent = [];
@@ -35,10 +35,6 @@ describe('api client ws mode', () => {
 
 		client.subscribe(APP_EVENT_BLOCK_NEW, (blockEvent: any) => {
 			newBlockEvent.push(blockEvent);
-		});
-
-		client.subscribe('hello:greet', (message: any) => {
-			helloMessage = message;
 		});
 	});
 
@@ -135,10 +131,22 @@ describe('api client ws mode', () => {
 
 		it('should be able to get data from plugin `hello:greet` event by calling action that returns undefined', async () => {
 			// Act
+			let resolveFn: (val: unknown) => void;
+			let rejectFn: () => void;
+			const p = new Promise((resolve, reject) => {
+				resolveFn = resolve;
+				rejectFn = reject;
+			});
+			setTimeout(() => rejectFn(), 1000);
+			client.subscribe('hello:greet', (msg: unknown) => {
+				resolveFn(msg);
+			});
 			const data = await client.invoke('hello:publishGreetEvent');
+
+			const message = await p;
 			// Assert
 			expect(data).toBeUndefined();
-			expect(helloMessage).toEqual({ message: 'hello event' });
+			expect(message).toEqual({ message: 'hello event' });
 		});
 
 		it('should return undefined when void action `hello:blankAction` is called', async () => {

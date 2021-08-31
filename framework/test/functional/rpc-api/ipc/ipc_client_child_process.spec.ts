@@ -15,6 +15,7 @@
 import { createIPCClient } from '@liskhq/lisk-api-client';
 import { Application } from '../../../../src';
 import { closeApplication, createApplicationWithHelloPlugin } from '../../utils/application';
+
 // Skipped because from the test, currently child process cannot be initialized
 // eslint-disable-next-line jest/no-disabled-tests
 describe.skip('plugin in child process', () => {

@@ -32,7 +32,7 @@ export class WSServer {
 	// subscription holds url: event names array
 	private readonly _subscriptions: Record<string, Set<string>> = {};
 
-	private _registeredEvents: ReadonlyArray<string> = [];
+	private readonly _registeredEvents: string[] = [];
 
 	public constructor(options: { port: number; host?: string; path: string; logger: Logger }) {
 		this._port = options.port;
@@ -41,11 +41,11 @@ export class WSServer {
 		this._logger = options.logger;
 	}
 
-	public start(
-		registeredEvents: ReadonlyArray<string>,
-		messageHandler: WSMessageHandler,
-	): WebSocket.Server {
-		this._registeredEvents = registeredEvents;
+	public registerAllowedEvent(events: string[]) {
+		this._registeredEvents.push(...events);
+	}
+
+	public start(messageHandler: WSMessageHandler): WebSocket.Server {
 		this.server = new WebSocket.Server({
 			path: this._path,
 			port: this._port,
@@ -85,7 +85,11 @@ export class WSServer {
 				if (!subscription) {
 					continue;
 				}
-				if (Array.from(subscription).some(key => message.method.includes(key))) {
+				if (
+					Array.from(subscription).some(
+						key => message.method === key || message.method.includes(key),
+					)
+				) {
 					client.send(JSON.stringify(message));
 				}
 			}
