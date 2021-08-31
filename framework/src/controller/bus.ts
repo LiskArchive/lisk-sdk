@@ -431,7 +431,7 @@ export class Bus {
 
 		if (this._wsServer) {
 			try {
-				this._wsServer.broadcast(JSON.stringify(notification));
+				this._wsServer.broadcast(notification);
 			} catch (error) {
 				this.logger.debug(
 					{ err: error as Error },
