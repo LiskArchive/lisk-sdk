@@ -35,9 +35,9 @@ describe('WSServer', () => {
 	describe('constructor()', () => {
 		it('should setup class properties based on config', () => {
 			wsServerInstance = new WSServer(config);
-			expect(wsServerInstance['port']).toBe(config.port);
-			expect(wsServerInstance['path']).toBe(config.path);
-			expect(wsServerInstance['logger']).toBe(config.logger);
+			expect(wsServerInstance['_port']).toBe(config.port);
+			expect(wsServerInstance['_path']).toBe(config.path);
+			expect(wsServerInstance['_logger']).toBe(config.logger);
 		});
 	});
 

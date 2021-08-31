@@ -24,41 +24,41 @@ export type WSMessageHandler = (socket: WebSocketWithTracking, message: string) 
 export class WSServer {
 	public server!: WebSocket.Server;
 
-	private pingTimer!: NodeJS.Timeout;
-	private readonly port: number;
-	private readonly host?: string;
-	private readonly path: string;
-	private readonly logger: Logger;
+	private _pingTimer!: NodeJS.Timeout;
+	private readonly _port: number;
+	private readonly _host?: string;
+	private readonly _path: string;
+	private readonly _logger: Logger;
 	// subscription holds url: event names array
 	private readonly _subscriptions: Record<string, Set<string>> = {};
 
 	public constructor(options: { port: number; host?: string; path: string; logger: Logger }) {
-		this.port = options.port;
-		this.host = options.host;
-		this.path = options.path;
-		this.logger = options.logger;
+		this._port = options.port;
+		this._host = options.host;
+		this._path = options.path;
+		this._logger = options.logger;
 	}
 
 	public start(messageHandler: WSMessageHandler): WebSocket.Server {
 		this.server = new WebSocket.Server({
-			path: this.path,
-			port: this.port,
-			host: this.host,
+			path: this._path,
+			port: this._port,
+			host: this._host,
 			clientTracking: true,
 		});
 		this.server.on('connection', socket => this._handleConnection(socket, messageHandler));
 		this.server.on('error', error => {
-			this.logger.error(error);
+			this._logger.error(error);
 		});
 		this.server.on('listening', () => {
-			this.logger.info({ host: this.host, port: this.port, path: this.path }, 'Websocket Server Ready');
+			this._logger.info({ host: this._host, port: this._port, path: this._path }, 'Websocket Server Ready');
 		});
 
 		this.server.on('close', () => {
-			clearInterval(this.pingTimer);
+			clearInterval(this._pingTimer);
 		});
 
-		this.pingTimer = this._setUpPing();
+		this._pingTimer = this._setUpPing();
 
 		return this.server;
 	}
@@ -99,7 +99,7 @@ export class WSServer {
 					return;
 				}
 			} catch (error) {
-				this.logger.error({ err: (error as Error) }, 'Received invalid websocket message');
+				this._logger.error({ err: (error as Error) }, 'Received invalid websocket message');
 				return;
 			}
 			messageHandler(socket, message);
@@ -108,7 +108,7 @@ export class WSServer {
 		socket.on('close', () => {
 			delete this._subscriptions[socket.url];
 		})
-		this.logger.info('New web socket client connected');
+		this._logger.info('New web socket client connected');
 	}
 
 	private _handleHeartbeat(socket: WebSocketWithTracking) {
