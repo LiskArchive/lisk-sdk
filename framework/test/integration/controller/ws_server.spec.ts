@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as WebSocket from 'ws';
-import { WSServer } from "../../../src/controller/ws/ws_server";
-import { fakeLogger } from "../../utils/node";
+import { WSServer } from '../../../src/controller/ws/ws_server';
+import { fakeLogger } from '../../utils/node';
 
 describe('WSServer', () => {
 	const port = 34567;
@@ -21,7 +21,7 @@ describe('WSServer', () => {
 	let handler = jest.fn();
 	let timer: NodeJS.Timer;
 
-	beforeAll((() => {
+	beforeAll(() => {
 		server = new WSServer({
 			path: '/ws',
 			port,
@@ -35,15 +35,15 @@ describe('WSServer', () => {
 			server.broadcast({
 				method: 'app_block',
 				jsonrpc: '2.0',
-				params: { data: 'somehting'},
+				params: { data: 'somehting' },
 			});
 			server.broadcast({
 				method: 'random',
 				jsonrpc: '2.0',
-				params: { data: 'other'},
+				params: { data: 'other' },
 			});
 		}, 300);
-	}));
+	});
 
 	afterAll(() => {
 		server.stop();
@@ -58,81 +58,95 @@ describe('WSServer', () => {
 		it('should not receive any events unless subscribed', async () => {
 			const client = new WebSocket(`ws://localhost:${port}/ws`);
 
-			await expect(new Promise((resolve, reject) => {
-				client.on('message', msg => {
-					reject(msg);
-				});
-				setTimeout(resolve, 1000);
-			})).toResolve();
+			await expect(
+				new Promise((resolve, reject) => {
+					client.on('message', msg => {
+						reject(msg);
+					});
+					setTimeout(resolve, 1000);
+				}),
+			).toResolve();
 		});
 
 		it('should receive only events subscribed', async () => {
 			const client = new WebSocket(`ws://localhost:${port}/ws`);
 			client.on('open', () => {
-				client.send(JSON.stringify({
-					jsonrpc: '2.0',
-					method: 'subscribe',
-					params: { topics: ['app']},
-				}));
+				client.send(
+					JSON.stringify({
+						jsonrpc: '2.0',
+						method: 'subscribe',
+						params: { topics: ['app'] },
+					}),
+				);
 			});
 
-			await expect(new Promise((resolve, reject) => {
-				client.on('message', msg => {
-					try {
-						const parsedMsg = JSON.parse(msg.toString());
-						if (parsedMsg.method === 'app_block') {
-							resolve(parsedMsg);
-							return;
+			await expect(
+				new Promise((resolve, reject) => {
+					client.on('message', msg => {
+						try {
+							const parsedMsg = JSON.parse(msg.toString());
+							if (parsedMsg.method === 'app_block') {
+								resolve(parsedMsg);
+								return;
+							}
+							reject(new Error('Invalid message received'));
+						} catch (error) {
+							reject(error);
 						}
-						reject(new Error('Invalid message received'));
-					} catch (error) {
-						reject(error);
-					}
-					reject(msg);
-				});
-				setTimeout(resolve, 1000);
-			})).toResolve();
+						reject(msg);
+					});
+					setTimeout(resolve, 1000);
+				}),
+			).toResolve();
 		});
 
 		it('should not receive unsubscribed events', async () => {
 			const client = new WebSocket(`ws://localhost:${port}/ws`);
 			client.on('open', () => {
-				client.send(JSON.stringify({
-					jsonrpc: '2.0',
-					method: 'subscribe',
-					params: { topics: ['app']},
-				}));
+				client.send(
+					JSON.stringify({
+						jsonrpc: '2.0',
+						method: 'subscribe',
+						params: { topics: ['app'] },
+					}),
+				);
 			});
 
-			await expect(new Promise((resolve, reject) => {
-				client.on('message', msg => {
-					try {
-						const parsedMsg = JSON.parse(msg.toString());
-						if (parsedMsg.method === 'app_block') {
-							resolve(parsedMsg);
-							return;
+			await expect(
+				new Promise((resolve, reject) => {
+					client.on('message', msg => {
+						try {
+							const parsedMsg = JSON.parse(msg.toString());
+							if (parsedMsg.method === 'app_block') {
+								resolve(parsedMsg);
+								return;
+							}
+							reject(new Error('Invalid message received'));
+						} catch (error) {
+							reject(error);
 						}
-						reject(new Error('Invalid message received'));
-					} catch (error) {
-						reject(error);
-					}
-					reject(msg);
-				});
-				setTimeout(resolve, 1000);
-			})).toResolve();
+						reject(msg);
+					});
+					setTimeout(resolve, 1000);
+				}),
+			).toResolve();
 
-			client.send(JSON.stringify({
-				jsonrpc: '2.0',
-				method: 'unsubscribe',
-				params: { topics: ['app'] },
-			}));
+			client.send(
+				JSON.stringify({
+					jsonrpc: '2.0',
+					method: 'unsubscribe',
+					params: { topics: ['app'] },
+				}),
+			);
 
-			await expect(new Promise((resolve, reject) => {
-				client.on('message', msg => {
-					reject(msg);
-				});
-				setTimeout(resolve, 1000);
-			})).toResolve();
+			await expect(
+				new Promise((resolve, reject) => {
+					client.on('message', msg => {
+						reject(msg);
+					});
+					setTimeout(resolve, 1000);
+				}),
+			).toResolve();
 		});
 	});
 });

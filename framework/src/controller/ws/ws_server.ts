@@ -51,7 +51,10 @@ export class WSServer {
 			this._logger.error(error);
 		});
 		this.server.on('listening', () => {
-			this._logger.info({ host: this._host, port: this._port, path: this._path }, 'Websocket Server Ready');
+			this._logger.info(
+				{ host: this._host, port: this._port, path: this._path },
+				'Websocket Server Ready',
+			);
 		});
 
 		this.server.on('close', () => {
@@ -72,7 +75,7 @@ export class WSServer {
 	public broadcast(message: NotificationRequest): void {
 		for (const client of this.server.clients) {
 			if (client.readyState === WebSocket.OPEN) {
-				const subscription = this._subscriptions[client.url]
+				const subscription = this._subscriptions[client.url];
 				if (!subscription) {
 					continue;
 				}
@@ -99,7 +102,7 @@ export class WSServer {
 					return;
 				}
 			} catch (error) {
-				this._logger.error({ err: (error as Error) }, 'Received invalid websocket message');
+				this._logger.error({ err: error as Error }, 'Received invalid websocket message');
 				return;
 			}
 			messageHandler(socket, message);
@@ -107,7 +110,7 @@ export class WSServer {
 		socket.on('pong', () => this._handleHeartbeat(socket));
 		socket.on('close', () => {
 			delete this._subscriptions[socket.url];
-		})
+		});
 		this._logger.info('New web socket client connected');
 	}
 
@@ -148,7 +151,7 @@ export class WSServer {
 	private _handleUnsubscription(socket: WebSocketWithTracking, message: Partial<RequestObject>) {
 		const { params } = message;
 		if (!params || !Array.isArray(params.topics) || !params.topics.length) {
-			throw new Error('Invalid subscription message.');
+			throw new Error('Invalid unsubscription message.');
 		}
 		if (!this._subscriptions[socket.url]) {
 			return;
