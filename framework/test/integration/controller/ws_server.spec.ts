@@ -28,7 +28,7 @@ describe('WSServer', () => {
 			host: '0.0.0.0',
 			logger: fakeLogger,
 		});
-		server.start((socket, message) => {
+		server.start(['app_block', 'random'], (socket, message) => {
 			handler(socket, message);
 		});
 		timer = setInterval(() => {
@@ -75,7 +75,7 @@ describe('WSServer', () => {
 					JSON.stringify({
 						jsonrpc: '2.0',
 						method: 'subscribe',
-						params: { topics: ['app'] },
+						params: { topics: ['app', 'non-existing'] },
 					}),
 				);
 			});

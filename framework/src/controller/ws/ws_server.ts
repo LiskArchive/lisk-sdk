@@ -32,6 +32,8 @@ export class WSServer {
 	// subscription holds url: event names array
 	private readonly _subscriptions: Record<string, Set<string>> = {};
 
+	private _registeredEvents: ReadonlyArray<string> = [];
+
 	public constructor(options: { port: number; host?: string; path: string; logger: Logger }) {
 		this._port = options.port;
 		this._host = options.host;
@@ -39,7 +41,11 @@ export class WSServer {
 		this._logger = options.logger;
 	}
 
-	public start(messageHandler: WSMessageHandler): WebSocket.Server {
+	public start(
+		registeredEvents: ReadonlyArray<string>,
+		messageHandler: WSMessageHandler,
+	): WebSocket.Server {
+		this._registeredEvents = registeredEvents;
 		this.server = new WebSocket.Server({
 			path: this._path,
 			port: this._port,
@@ -144,6 +150,11 @@ export class WSServer {
 			this._subscriptions[socket.url] = new Set<string>();
 		}
 		for (const eventName of params.topics) {
+			// skip not matching event to be added
+			const exist = this._registeredEvents.some(name => name.includes(eventName));
+			if (!exist) {
+				continue;
+			}
 			this._subscriptions[socket.url].add(eventName);
 		}
 	}

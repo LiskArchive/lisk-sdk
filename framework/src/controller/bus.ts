@@ -523,7 +523,7 @@ export class Bus {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	private async _setupWSServer(): Promise<void> {
-		this._wsServer?.start((socket, message) => {
+		this._wsServer?.start(this.getEvents(), (socket, message) => {
 			this.invoke(message)
 				.then(data => {
 					socket.send(JSON.stringify(data as JSONRPC.ResponseObjectWithResult));
