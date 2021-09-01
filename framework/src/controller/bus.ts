@@ -450,6 +450,16 @@ export class Bus {
 		this._emitter.on(eventName, cb);
 	}
 
+	public unsubscribe(eventName: string, cb: ListenerFn): void {
+		if (!this.getEvents().includes(eventName)) {
+			this.logger.info(
+				`Can't unsubscribe to event ${eventName} that was not registered to the bus yet.`,
+			);
+		}
+
+		this._emitter.off(eventName, cb);
+	}
+
 	public once(eventName: string, cb: ListenerFn): this {
 		if (!this.getEvents().includes(eventName)) {
 			this.logger.info(`Event ${eventName} was subscribed but not registered to the bus yet.`);

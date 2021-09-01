@@ -52,7 +52,6 @@ const _loadPlugin = async (
 };
 
 const _unloadPlugin = async (code = 0) => {
-	plugin = new Klass();
 	const pluginName = plugin.name;
 
 	channel.publish(`${pluginName}:unloading:started`);
