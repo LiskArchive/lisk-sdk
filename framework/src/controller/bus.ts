@@ -491,28 +491,14 @@ export class Bus {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async cleanup(): Promise<void> {
 		this._emitter.removeAllListeners();
-
-		if (this._internalIPCServer) {
-			this._internalIPCServer.stop();
-		}
-
-		if (this._externalIPCServer) {
-			this._externalIPCServer.stop();
-		}
-
-		if (this._wsServer) {
-			this._wsServer.stop();
-		}
-
-		if (this._httpServer) {
-			this._httpServer.stop();
-		}
+		this._internalIPCServer?.stop();
+		this._externalIPCServer?.stop();
+		this._wsServer?.stop();
+		this._httpServer?.stop();
 
 		// Close all the RPC Clients
-		if (Object.keys(this.rpcClients).length > 0) {
-			for (const key of Object.keys(this.rpcClients)) {
-				this.rpcClients[key].close();
-			}
+		for (const key of Object.keys(this.rpcClients)) {
+			this.rpcClients[key].close();
 		}
 	}
 

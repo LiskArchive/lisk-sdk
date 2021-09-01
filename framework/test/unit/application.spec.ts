@@ -21,6 +21,7 @@ import { join } from 'path';
 import { BaseAsset, BaseChannel, BaseModule, BasePlugin } from '../../src';
 import { Application } from '../../src/application';
 import { Controller } from '../../src/controller';
+import { Bus } from '../../src/controller/bus';
 import { IPCServer } from '../../src/controller/ipc/ipc_server';
 import { WSServer } from '../../src/controller/ws/ws_server';
 import { createLogger } from '../../src/logger';
@@ -556,9 +557,14 @@ describe('Application', () => {
 			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
 			jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
 			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
+			jest.spyOn(Bus.prototype, 'init').mockResolvedValue(jest.fn() as never);
 			jest.spyOn(Controller.prototype, 'loadPlugins').mockResolvedValue(jest.fn() as never);
 
 			await app.run();
+		});
+
+		afterEach(async () => {
+			await app.shutdown();
 		});
 
 		it('should compile config and load plugins', () => {
@@ -583,11 +589,16 @@ describe('Application', () => {
 			app = Application.defaultApplication(genesisBlockJSON, config);
 			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
 			jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
+			jest.spyOn(Bus.prototype, 'init').mockResolvedValue(jest.fn() as never);
 			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
 
 			await app.run();
 
 			dirs = systemDirs(app.config.label, app.config.rootPath);
+		});
+
+		afterEach(async () => {
+			await app.shutdown();
 		});
 
 		it('should ensure directory exists', () => {
@@ -620,6 +631,7 @@ describe('Application', () => {
 		beforeEach(async () => {
 			app = Application.defaultApplication(genesisBlockJSON, config);
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
+			jest.spyOn(Bus.prototype, 'init').mockResolvedValue(jest.fn() as never);
 
 			await app.run();
 			await app.shutdown();
