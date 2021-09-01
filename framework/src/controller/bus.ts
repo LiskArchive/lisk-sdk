@@ -431,7 +431,7 @@ export class Bus {
 
 		if (this._wsServer) {
 			try {
-				this._wsServer.broadcast(JSON.stringify(notification));
+				this._wsServer.broadcast(notification);
 			} catch (error) {
 				this.logger.debug(
 					{ err: error as Error },
@@ -533,7 +533,7 @@ export class Bus {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	private async _setupWSServer(): Promise<void> {
-		this._wsServer?.start((socket, message) => {
+		this._wsServer?.start(this.getEvents(), (socket, message) => {
 			this.invoke(message)
 				.then(data => {
 					socket.send(JSON.stringify(data as JSONRPC.ResponseObjectWithResult));
