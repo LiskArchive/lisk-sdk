@@ -19,6 +19,7 @@ import {
 	TransactionExecuteContext,
 	TransactionVerifyContext,
 	VerificationResult,
+	VerifyStatus,
 } from '../../node/state_machine';
 import { FeeAPI } from './api';
 import { FeeEndpoint } from './endpoint';
@@ -31,7 +32,7 @@ export class FeeModule extends BaseModule {
 	public configSchema = configSchema;
 	public endpoint = new FeeEndpoint(this.id);
 	private _tokenAPI!: TokenAPI;
-	private _minFeePerBytes!: number;
+	private _minFeePerByte!: number;
 	private _baseFees!: Array<BaseFee>;
 	private _moduleConfig!: ModuleConfig;
 
@@ -43,18 +44,38 @@ export class FeeModule extends BaseModule {
 	public async init(args: ModuleInitArgs): Promise<void> {
 		const { genesisConfig, moduleConfig } = args;
 		this._moduleConfig = (moduleConfig as unknown) as ModuleConfig;
-		this._minFeePerBytes = genesisConfig.minFeePerByte;
+		this._minFeePerByte = genesisConfig.minFeePerByte;
 		this._baseFees = genesisConfig.baseFees.map(fee => ({ ...fee, baseFee: BigInt(fee.baseFee) }));
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async verifyTransaction(_context: TransactionVerifyContext): Promise<VerificationResult> {
-		return { status: 1 };
+	public async verifyTransaction(context: TransactionVerifyContext): Promise<VerificationResult> {
+		const { transaction } = context;
+		const minFee =
+			BigInt(this._minFeePerByte * transaction.getBytes().length) +
+			this._extraFee(transaction.moduleID, transaction.commandID);
+
+		if (transaction.fee < minFee) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error(`Insufficient transaction fee. Minimum required fee is ${minFee}.`),
+			};
+		}
+
+		return { status: VerifyStatus.OK };
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async beforeTransactionExecute(_context: TransactionExecuteContext): Promise<void> {
 		// eslint-disable-next-line no-console
-		console.log(this._tokenAPI, this._minFeePerBytes, this._baseFees, this._moduleConfig);
+		console.log(this._tokenAPI, this._minFeePerByte, this._baseFees, this._moduleConfig);
+	}
+
+	private _extraFee(moduleID: number, commandID: number): bigint {
+		const foundFee = this._baseFees.find(
+			fee => fee.moduleID === moduleID && fee.commandID === commandID,
+		);
+
+		return foundFee?.baseFee ?? BigInt(0);
 	}
 }
