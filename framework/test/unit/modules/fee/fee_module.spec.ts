@@ -12,8 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { Transaction } from '@liskhq/lisk-chain';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { FeeModule } from '../../../../src/modules/fee';
 import { VerifyStatus } from '../../../../src/node/state_machine';
+import { createTransactionContext } from '../../../../src/testing';
 
 describe('FeeModule', () => {
 	let feeModule!: FeeModule;
@@ -38,20 +41,6 @@ describe('FeeModule', () => {
 		await feeModule.init({ genesisConfig, moduleConfig, generatorConfig });
 	});
 
-	describe('constructor', () => {
-		it('should create instance of module', () => {
-			expect(feeModule).toBeInstanceOf(FeeModule);
-		});
-
-		it('should have valid id', () => {
-			expect(feeModule.id).toEqual(1);
-		});
-
-		it('should have valid name', () => {
-			expect(feeModule.name).toEqual('fee');
-		});
-	});
-
 	describe('init', () => {
 		it('should set the moduleConfig property', () => {
 			expect((feeModule as any)._moduleConfig).toEqual(moduleConfig);
@@ -70,28 +59,36 @@ describe('FeeModule', () => {
 
 	describe('verifyTransaction', () => {
 		it('should validate transaction with sufficient min fee', async () => {
-			const transaction = {
+			const transaction = new Transaction({
 				moduleID: 5,
 				commandID: 0,
 				fee: BigInt(1000000000),
-				getBytes: () => Buffer.from('123456789'),
-			};
-			const result = await feeModule.verifyTransaction({ transaction } as any);
+				nonce: BigInt(0),
+				senderPublicKey: getRandomBytes(32),
+				signatures: [getRandomBytes(20)],
+				params: getRandomBytes(32),
+			});
+			const context = createTransactionContext({ transaction });
+			const transactionVerifyContext = context.createTransactionVerifyContext();
+			const result = await feeModule.verifyTransaction(transactionVerifyContext);
 
 			expect(result.status).toEqual(VerifyStatus.OK);
 		});
 
 		it('should invalidate transaction with insufficient min fee', async () => {
-			const transaction = {
+			const transaction = new Transaction({
 				moduleID: 5,
 				commandID: 0,
 				fee: BigInt(0),
-				getBytes: () => Buffer.from('123456789'),
-			};
+				nonce: BigInt(0),
+				senderPublicKey: getRandomBytes(32),
+				signatures: [getRandomBytes(20)],
+				params: getRandomBytes(32),
+			});
 			const result = await feeModule.verifyTransaction({ transaction } as any);
 			const expectedMinFee =
-				BigInt((feeModule as any)._minFeePerByte * transaction.getBytes().length) +
-				BigInt((feeModule as any)._extraFee(transaction.moduleID, transaction.commandID));
+				BigInt(feeModule['_minFeePerByte'] * transaction.getBytes().length) +
+				BigInt(feeModule['_extraFee'](transaction.moduleID, transaction.commandID));
 
 			expect(result.status).toEqual(VerifyStatus.FAIL);
 			expect(result.error).toEqual(
