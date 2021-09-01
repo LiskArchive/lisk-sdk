@@ -188,18 +188,18 @@ pipeline {
 						}
 					}
 				}
-				stage('Lisk Framework Functional') {
-					agent { node { label 'lisk-sdk-quirky' }}
-					steps {
-						setup()
-						run_jest('functional')
-					}
-					post {
-						cleanup {
-							teardown_jest('functional')
-						}
-					}
-				}
+				// stage('Lisk Framework Functional') {
+				// 	agent { node { label 'lisk-sdk-quirky' }}
+				// 	steps {
+				// 		setup()
+				// 		run_jest('functional')
+				// 	}
+				// 	post {
+				// 		cleanup {
+				// 			teardown_jest('functional')
+				// 		}
+				// 	}
+				// }
 				stage('Lisk Framework Plugins Unit') {
 					agent { node { label 'lisk-framework' }}
 					steps {

@@ -50,8 +50,6 @@ describe.skip('IPC Channel', () => {
 	});
 
 	describe('connect', () => {
-
-
 		it('should init socket objects and resolve if server is running', async () => {
 			// Act & Assert
 			await expect(client.connect()).resolves.toBeUndefined();
@@ -60,7 +58,6 @@ describe.skip('IPC Channel', () => {
 		it('should timeout if server is not running', async () => {
 			// Arrange
 			const unknownClient = new IPCChannel(join(socketsDir, 'tmp'));
-
 
 			// Act & Assert
 			await expect(unknownClient.connect()).rejects.toThrow(
@@ -110,7 +107,6 @@ describe.skip('IPC Channel', () => {
 
 		it('should be able to subscribe and receive events on multiple clients', async () => {
 			// Arrange
-
 
 			let resolveFn1: (val: unknown) => void;
 			const promise1 = new Promise(resolve => {
