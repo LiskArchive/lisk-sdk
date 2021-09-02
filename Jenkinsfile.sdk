@@ -153,17 +153,17 @@ pipeline {
 						stash name: "coverage_commander", includes: "coverage_commander/*", allowEmpty: true
 					}
 				}
-				stage('Lisk Client End-to-End') {
-					agent { node { label 'lisk-client' }}
-					steps {
-						setup()
-						wrap([$class: 'Xvfb', parallelBuild: true, autoDisplayName: true]) {
-							nvm(getNodejsVersion()) {
-								sh 'npx lerna run test:e2e --scope=@liskhq/lisk-client'
-							}
-						}
-					}
-				}
+				// stage('Lisk Client End-to-End') {
+				// 	agent { node { label 'lisk-client' }}
+				// 	steps {
+				// 		setup()
+				// 		wrap([$class: 'Xvfb', parallelBuild: true, autoDisplayName: true]) {
+				// 			nvm(getNodejsVersion()) {
+				// 				sh 'npx lerna run test:e2e --scope=@liskhq/lisk-client'
+				// 			}
+				// 		}
+				// 	}
+				// }
 				stage('Lisk Framework Unit') {
 					agent { node { label 'lisk-framework' }}
 					steps {
