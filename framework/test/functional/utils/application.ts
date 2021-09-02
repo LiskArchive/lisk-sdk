@@ -43,7 +43,7 @@ export const createApplication = async (
 			logFileName: 'functional-test.log',
 		},
 		rpc: {
-			modes: ['ws', 'http'],
+			modes: ['ipc', 'ws', 'http'],
 			ws: {
 				port: 8080,
 			},

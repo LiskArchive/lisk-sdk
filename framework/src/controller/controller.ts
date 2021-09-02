@@ -203,10 +203,8 @@ export class Controller {
 			wsServer: this._wsServer,
 			httpServer: this._httpServer,
 		});
-
-		await this.bus.init();
-
 		await this.channel.registerToBus(this.bus);
+		await this.bus.init();
 	}
 
 	private async _loadInMemoryPlugin(

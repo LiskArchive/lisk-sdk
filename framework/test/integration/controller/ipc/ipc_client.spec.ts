@@ -25,7 +25,7 @@ describe.skip('IPCClient', () => {
 	let server: IPCServer;
 	let client: IPCClient;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		mkdirSync(socketsDir, { recursive: true });
 
 		server = new IPCServer({
