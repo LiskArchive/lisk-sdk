@@ -27,6 +27,7 @@ import { Controller } from '../../../src/controller/controller';
 import { Bus } from '../../../src/controller/bus';
 import { InMemoryChannel } from '../../../src/controller/channels';
 import * as basePluginModule from '../../../src/plugins/base_plugin';
+import { IPCServer } from '../../../src/controller/ipc/ipc_server';
 
 const createMockPlugin = ({
 	name,
@@ -108,10 +109,24 @@ describe('Controller Class', () => {
 	};
 
 	let controller: controllerModule.Controller;
+	let busConfig: any;
 
 	beforeEach(() => {
 		// Act
 		controller = new Controller(params);
+		busConfig = {
+			externalIPCServer: new IPCServer({
+				name: 'bus',
+				socketsDir: controller.config.rpc.ipc?.path as string,
+				externalSocket: true,
+			}),
+			internalIPCServer: new IPCServer({
+				name: 'bus',
+				socketsDir: controller.config.dirs.sockets,
+			}),
+			wsServer: undefined,
+			httpServer: undefined,
+		};
 		jest
 			.spyOn(childProcess, 'fork')
 			.mockReturnValue((childProcessMock as unknown) as childProcess.ChildProcess);
@@ -144,18 +159,18 @@ describe('Controller Class', () => {
 		describe('_setupBus', () => {
 			it('should set created `Bus` instance to `controller.bus` property.', () => {
 				// Assert
-				expect(Bus).toHaveBeenCalledWith(loggerMock, { rpc: rpcConfig });
+				expect(Bus).toHaveBeenCalledWith(loggerMock, busConfig);
 				expect(controller.bus).toBeInstanceOf(Bus);
 			});
 
-			it('should call `controller.bus.setup()` method.', () => {
+			it('should call `controller.bus.init()` method.', () => {
 				// Assert
-				expect(controller.bus.setup).toHaveBeenCalled();
+				expect(controller.bus.init).toHaveBeenCalled();
 			});
 
 			it('should call `controller.channel.registerToBus()` method.', () => {
 				// Assert
-				expect(controller.bus.setup).toHaveBeenCalled();
+				expect(controller.bus.init).toHaveBeenCalled();
 			});
 		});
 	});
@@ -358,11 +373,13 @@ describe('Controller Class', () => {
 					action: 'load',
 					appConfig: {},
 					config: pluginOptions.plugin1,
+					ipcConfig: controller.config,
 				});
 				expect(childProcessMock.send).toHaveBeenCalledWith({
 					action: 'load',
 					appConfig: {},
 					config: pluginOptions.plugin2,
+					ipcConfig: controller.config,
 				});
 			});
 		});

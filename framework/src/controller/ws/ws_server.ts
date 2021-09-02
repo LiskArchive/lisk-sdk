@@ -13,6 +13,7 @@
  */
 import * as WebSocket from 'ws';
 import { Logger } from '../../logger';
+import { NotificationRequest, RequestObject } from '../jsonrpc';
 
 interface WebSocketWithTracking extends WebSocket {
 	isAlive?: boolean;
@@ -22,39 +23,51 @@ export type WSMessageHandler = (socket: WebSocketWithTracking, message: string) 
 
 export class WSServer {
 	public server!: WebSocket.Server;
-	private pingTimer!: NodeJS.Timeout;
-	private readonly port: number;
-	private readonly host?: string;
-	private readonly path: string;
-	private readonly logger: Logger;
+
+	private _pingTimer!: NodeJS.Timeout;
+	private readonly _port: number;
+	private readonly _host?: string;
+	private readonly _path: string;
+	private readonly _logger: Logger;
+	// subscription holds url: event names array
+	private readonly _subscriptions: Record<string, Set<string>> = {};
+
+	private readonly _registeredEvents: string[] = [];
 
 	public constructor(options: { port: number; host?: string; path: string; logger: Logger }) {
-		this.port = options.port;
-		this.host = options.host;
-		this.path = options.path;
-		this.logger = options.logger;
+		this._port = options.port;
+		this._host = options.host;
+		this._path = options.path;
+		this._logger = options.logger;
+	}
+
+	public registerAllowedEvent(events: string[]) {
+		this._registeredEvents.push(...events);
 	}
 
 	public start(messageHandler: WSMessageHandler): WebSocket.Server {
 		this.server = new WebSocket.Server({
-			path: this.path,
-			port: this.port,
-			host: this.host,
+			path: this._path,
+			port: this._port,
+			host: this._host,
 			clientTracking: true,
 		});
 		this.server.on('connection', socket => this._handleConnection(socket, messageHandler));
 		this.server.on('error', error => {
-			this.logger.error(error);
+			this._logger.error(error);
 		});
 		this.server.on('listening', () => {
-			this.logger.info('Websocket Server Ready');
+			this._logger.info(
+				{ host: this._host, port: this._port, path: this._path },
+				'Websocket Server Ready',
+			);
 		});
 
 		this.server.on('close', () => {
-			clearInterval(this.pingTimer);
+			clearInterval(this._pingTimer);
 		});
 
-		this.pingTimer = this._setUpPing();
+		this._pingTimer = this._setUpPing();
 
 		return this.server;
 	}
@@ -65,10 +78,20 @@ export class WSServer {
 		}
 	}
 
-	public broadcast(message: string): void {
+	public broadcast(message: NotificationRequest): void {
 		for (const client of this.server.clients) {
 			if (client.readyState === WebSocket.OPEN) {
-				client.send(message);
+				const subscription = this._subscriptions[client.url];
+				if (!subscription) {
+					continue;
+				}
+				if (
+					Array.from(subscription).some(
+						key => message.method === key || message.method.includes(key),
+					)
+				) {
+					client.send(JSON.stringify(message));
+				}
 			}
 		}
 	}
@@ -76,9 +99,29 @@ export class WSServer {
 	private _handleConnection(socket: WebSocketWithTracking, messageHandler: WSMessageHandler) {
 		// eslint-disable-next-line no-param-reassign
 		socket.isAlive = true;
-		socket.on('message', (message: string) => messageHandler(socket, message));
+		socket.on('message', (message: string) => {
+			// Read the message, and if it's subscription message, handle here
+			try {
+				const parsedMessage = JSON.parse(message) as RequestObject;
+				if (parsedMessage.method === 'subscribe') {
+					this._handleSubscription(socket, parsedMessage);
+					return;
+				}
+				if (parsedMessage.method === 'unsubscribe') {
+					this._handleUnsubscription(socket, parsedMessage);
+					return;
+				}
+			} catch (error) {
+				this._logger.error({ err: error as Error }, 'Received invalid websocket message');
+				return;
+			}
+			messageHandler(socket, message);
+		});
 		socket.on('pong', () => this._handleHeartbeat(socket));
-		this.logger.info('New web socket client connected');
+		socket.on('close', () => {
+			delete this._subscriptions[socket.url];
+		});
+		this._logger.info('New web socket client connected');
 	}
 
 	private _handleHeartbeat(socket: WebSocketWithTracking) {
@@ -100,5 +143,36 @@ export class WSServer {
 			}
 			return null;
 		}, 3000);
+	}
+
+	private _handleSubscription(socket: WebSocketWithTracking, message: Partial<RequestObject>) {
+		const { params } = message;
+		if (!params || !Array.isArray(params.topics) || !params.topics.length) {
+			throw new Error('Invalid subscription message.');
+		}
+		if (!this._subscriptions[socket.url]) {
+			this._subscriptions[socket.url] = new Set<string>();
+		}
+		for (const eventName of params.topics) {
+			// skip not matching event to be added
+			const exist = this._registeredEvents.some(name => name.includes(eventName));
+			if (!exist) {
+				continue;
+			}
+			this._subscriptions[socket.url].add(eventName);
+		}
+	}
+
+	private _handleUnsubscription(socket: WebSocketWithTracking, message: Partial<RequestObject>) {
+		const { params } = message;
+		if (!params || !Array.isArray(params.topics) || !params.topics.length) {
+			throw new Error('Invalid unsubscription message.');
+		}
+		if (!this._subscriptions[socket.url]) {
+			return;
+		}
+		for (const eventName of params.topics) {
+			this._subscriptions[socket.url].delete(eventName);
+		}
 	}
 }

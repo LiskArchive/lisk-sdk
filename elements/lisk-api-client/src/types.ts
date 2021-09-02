@@ -15,6 +15,12 @@
 
 import { Schema } from '@liskhq/lisk-codec';
 
+export interface Defer<T> {
+	promise: Promise<T>;
+	resolve: (result: T) => void;
+	reject: (error?: Error) => void;
+}
+
 export interface JSONRPCNotification<T> {
 	readonly id: never;
 	readonly jsonrpc: string;

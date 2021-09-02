@@ -81,6 +81,7 @@ export abstract class BaseChannel {
 	// Specified as moduleName:eventName
 	// If its related to your own moduleAlias specify as :eventName
 	abstract subscribe(eventName: string, cb: EventCallback): void;
+	abstract unsubscribe(eventName: string, cb: EventCallback): void;
 
 	// Publish the event on the channel
 	// Specified as moduleName:eventName

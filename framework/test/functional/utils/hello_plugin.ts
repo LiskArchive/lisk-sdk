@@ -22,16 +22,13 @@ export class HelloPlugin extends BasePlugin {
 	}
 	private _channel!: BaseChannel;
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	public async load(channel: BaseChannel): Promise<void> {
 		this._channel = channel;
 		this._channel.publish('hello:greet', { message: 'hello event' });
 	}
 
 	public async unload(): Promise<void> {}
-
-	public get configSchema(): object {
-		return {};
-	}
 
 	public get events(): EventsDefinition {
 		return ['greet'];

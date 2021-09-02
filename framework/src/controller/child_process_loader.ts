@@ -26,17 +26,18 @@ let channel: IPCChannel;
 let plugin: BasePlugin;
 
 const _loadPlugin = async (
-	config: {
+	config: Record<string, unknown>,
+	appConfig: ApplicationConfigForPlugin,
+	ipcConfig: {
 		[key: string]: unknown;
 		rpc: SocketPaths;
 	},
-	appConfig: ApplicationConfigForPlugin,
 ): Promise<void> => {
 	plugin = new Klass();
 	const pluginName = plugin.name;
 
 	channel = new IPCChannel(pluginName, plugin.events, plugin.actions, {
-		socketsPath: config.rpc.ipc.path,
+		socketsPath: ipcConfig.rpc.ipc.path,
 	});
 
 	await channel.registerToBus();
@@ -51,7 +52,6 @@ const _loadPlugin = async (
 };
 
 const _unloadPlugin = async (code = 0) => {
-	plugin = new Klass();
 	const pluginName = plugin.name;
 
 	channel.publish(`${pluginName}:unloading:started`);
@@ -73,10 +73,15 @@ process.on(
 		action,
 		config,
 		appConfig,
+		ipcConfig,
 	}: {
 		action: string;
 		config: PluginConfig;
 		appConfig: ApplicationConfigForPlugin;
+		ipcConfig: {
+			[key: string]: unknown;
+			rpc: SocketPaths;
+		};
 	}) => {
 		const internalWorker = async (): Promise<void> => {
 			if (action === 'load') {
@@ -86,6 +91,7 @@ process.on(
 						rpc: SocketPaths;
 					},
 					appConfig,
+					ipcConfig,
 				);
 			} else if (action === 'unload') {
 				await _unloadPlugin();

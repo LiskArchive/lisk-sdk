@@ -153,17 +153,17 @@ pipeline {
 						stash name: "coverage_commander", includes: "coverage_commander/*", allowEmpty: true
 					}
 				}
-				stage('Lisk Client End-to-End') {
-					agent { node { label 'lisk-client' }}
-					steps {
-						setup()
-						wrap([$class: 'Xvfb', parallelBuild: true, autoDisplayName: true]) {
-							nvm(getNodejsVersion()) {
-								sh 'npx lerna run test:e2e --scope=@liskhq/lisk-client'
-							}
-						}
-					}
-				}
+				// stage('Lisk Client End-to-End') {
+				// 	agent { node { label 'lisk-client' }}
+				// 	steps {
+				// 		setup()
+				// 		wrap([$class: 'Xvfb', parallelBuild: true, autoDisplayName: true]) {
+				// 			nvm(getNodejsVersion()) {
+				// 				sh 'npx lerna run test:e2e --scope=@liskhq/lisk-client'
+				// 			}
+				// 		}
+				// 	}
+				// }
 				stage('Lisk Framework Unit') {
 					agent { node { label 'lisk-framework' }}
 					steps {
@@ -188,18 +188,18 @@ pipeline {
 						}
 					}
 				}
-				stage('Lisk Framework Functional') {
-					agent { node { label 'lisk-sdk-quirky' }}
-					steps {
-						setup()
-						run_jest('functional')
-					}
-					post {
-						cleanup {
-							teardown_jest('functional')
-						}
-					}
-				}
+				// stage('Lisk Framework Functional') {
+				// 	agent { node { label 'lisk-sdk-quirky' }}
+				// 	steps {
+				// 		setup()
+				// 		run_jest('functional')
+				// 	}
+				// 	post {
+				// 		cleanup {
+				// 			teardown_jest('functional')
+				// 		}
+				// 	}
+				// }
 				stage('Lisk Framework Plugins Unit') {
 					agent { node { label 'lisk-framework' }}
 					steps {
@@ -230,15 +230,15 @@ pipeline {
 						}
 					}
 				}
-				stage('Lisk Framework Plugins Functional') {
-					agent { node { label 'lisk-sdk-quirky' }}
-					steps {
-						setup()
-						nvm(getNodejsVersion()) {
-							sh 'npx lerna run test:functional --scope=@liskhq/lisk-framework-* --concurrency 1'
-						}
-					}
-				}
+				// stage('Lisk Framework Plugins Functional') {
+				// 	agent { node { label 'lisk-sdk-quirky' }}
+				// 	steps {
+				// 		setup()
+				// 		nvm(getNodejsVersion()) {
+				// 			sh 'npx lerna run test:functional --scope=@liskhq/lisk-framework-* --concurrency 1'
+				// 		}
+				// 	}
+				// }
 			}
 		}
 	}

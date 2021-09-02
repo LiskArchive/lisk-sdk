@@ -26,6 +26,7 @@ import { Action } from '../../../../src/controller/action';
 class MyChannel extends BaseChannel {
 	public once(_eventName: string, _cb: EventCallback): void {}
 	public subscribe(_eventName: string, _cb: EventCallback): void {}
+	public unsubscribe(_eventName: string, _cb: EventCallback): void {}
 	public publish(_eventName: string, _data: object): void {}
 	public async registerToBus(_arg: any): Promise<void> {}
 	public async invoke<T>(_actionName: string, _params?: object): Promise<T> {
