@@ -230,15 +230,15 @@ pipeline {
 						}
 					}
 				}
-				stage('Lisk Framework Plugins Functional') {
-					agent { node { label 'lisk-sdk-quirky' }}
-					steps {
-						setup()
-						nvm(getNodejsVersion()) {
-							sh 'npx lerna run test:functional --scope=@liskhq/lisk-framework-* --concurrency 1'
-						}
-					}
-				}
+				// stage('Lisk Framework Plugins Functional') {
+				// 	agent { node { label 'lisk-sdk-quirky' }}
+				// 	steps {
+				// 		setup()
+				// 		nvm(getNodejsVersion()) {
+				// 			sh 'npx lerna run test:functional --scope=@liskhq/lisk-framework-* --concurrency 1'
+				// 		}
+				// 	}
+				// }
 			}
 		}
 	}
