@@ -26,6 +26,7 @@ export const configSchema = {
 					dataType: 'uint32',
 				},
 			},
+			required: ['chainID', 'localID'],
 		},
 	},
 	required: ['tokenIDReward'],
