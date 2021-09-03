@@ -12,8 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { BaseModule, ModuleInitArgs } from '../base_module';
-import { MODULE_ID_FEE } from './constants';
+import { MODULE_ID_FEE, NATIVE_TOKEN_CHAIN_ID } from './constants';
 import { BaseFee, TokenAPI, ModuleConfig } from './types';
 import {
 	TransactionExecuteContext,
@@ -66,9 +67,33 @@ export class FeeModule extends BaseModule {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async beforeTransactionExecute(_context: TransactionExecuteContext): Promise<void> {
-		// eslint-disable-next-line no-console
-		console.log(this._tokenAPI, this._minFeePerByte, this._baseFees, this._moduleConfig);
+	public async beforeTransactionExecute(context: TransactionExecuteContext): Promise<void> {
+		const minFee =
+			BigInt(this._minFeePerByte * context.transaction.getBytes().length) +
+			this._extraFee(context.transaction.moduleID, context.transaction.commandID);
+		const senderAddress = getAddressFromPublicKey(context.transaction.senderPublicKey);
+		const apiContext = context.getAPIContext();
+
+		if (this._moduleConfig.feeTokenID.chainID === NATIVE_TOKEN_CHAIN_ID) {
+			await this._tokenAPI.burn(apiContext, senderAddress, this._moduleConfig.feeTokenID, minFee);
+			await this._tokenAPI.transfer(
+				apiContext,
+				senderAddress,
+				context.header.generatorAddress,
+				this._moduleConfig.feeTokenID,
+				context.transaction.fee - minFee,
+			);
+
+			return;
+		}
+
+		await this._tokenAPI.transfer(
+			apiContext,
+			senderAddress,
+			context.header.generatorAddress,
+			this._moduleConfig.feeTokenID,
+			context.transaction.fee,
+		);
 	}
 
 	private _extraFee(moduleID: number, commandID: number): bigint {
