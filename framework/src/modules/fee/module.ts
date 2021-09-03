@@ -66,7 +66,6 @@ export class FeeModule extends BaseModule {
 		return { status: VerifyStatus.OK };
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	public async beforeTransactionExecute(context: TransactionExecuteContext): Promise<void> {
 		const minFee =
 			BigInt(this._minFeePerByte * context.transaction.getBytes().length) +
