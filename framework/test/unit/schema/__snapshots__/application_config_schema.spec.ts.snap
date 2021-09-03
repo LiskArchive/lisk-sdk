@@ -2,60 +2,38 @@
 
 exports[`schema/application_config_schema.js application config schema must match to the snapshot. 1`] = `
 Object {
-  "applicationConfigSchema": Object {
-    "$id": "#/config",
-    "additionalProperties": false,
-    "default": Object {
-      "forging": Object {
-        "delegates": Array [],
-        "force": false,
-        "waitThreshold": 2,
-      },
-      "genesisConfig": Object {
-        "baseFees": Array [],
-        "bftThreshold": 68,
-        "blockTime": 10,
-        "communityIdentifier": "sdk",
-        "maxPayloadLength": 15360,
-        "minFeePerByte": 1000,
-        "rewards": Object {
-          "distance": 3000000,
-          "milestones": Array [
-            "500000000",
-            "400000000",
-            "300000000",
-            "200000000",
-            "100000000",
-          ],
-          "offset": 2160,
-        },
-      },
-      "label": "beta-sdk-app",
-      "logger": Object {
-        "consoleLogLevel": "none",
-        "fileLogLevel": "info",
-        "logFileName": "lisk.log",
-      },
-      "network": Object {
-        "port": 5000,
-        "seedPeers": Array [],
-      },
-      "networkVersion": "1.1",
-      "plugins": Object {},
-      "rootPath": "~/.lisk",
-      "rpc": Object {
-        "http": Object {
-          "host": "127.0.0.1",
-          "port": 8000,
-        },
-        "modes": Array [
-          "ipc",
+  "$id": "#/config",
+  "additionalProperties": false,
+  "default": Object {
+    "forging": Object {
+      "delegates": Array [],
+      "force": false,
+      "waitThreshold": 2,
+    },
+    "generation": Object {
+      "delegates": Array [],
+      "force": false,
+      "modules": Object {},
+      "waitThreshold": 2,
+    },
+    "genesis": Object {
+      "baseFees": Array [],
+      "bftThreshold": 68,
+      "blockTime": 10,
+      "communityIdentifier": "sdk",
+      "maxPayloadLength": 15360,
+      "minFeePerByte": 1000,
+      "modules": Object {},
+      "rewards": Object {
+        "distance": 3000000,
+        "milestones": Array [
+          "500000000",
+          "400000000",
+          "300000000",
+          "200000000",
+          "100000000",
         ],
-        "ws": Object {
-          "host": "127.0.0.1",
-          "path": "/ws",
-          "port": 8080,
-        },
+        "offset": 2160,
       },
     },
     "genesisConfig": Object {
@@ -91,10 +69,18 @@ Object {
     "plugins": Object {},
     "rootPath": "~/.lisk",
     "rpc": Object {
-      "enable": false,
-      "host": "127.0.0.1",
-      "mode": "ipc",
-      "port": 8080,
+      "http": Object {
+        "host": "127.0.0.1",
+        "port": 8000,
+      },
+      "modes": Array [
+        "ipc",
+      ],
+      "ws": Object {
+        "host": "127.0.0.1",
+        "path": "/ws",
+        "port": 8080,
+      },
     },
     "transactionPool": Object {
       "maxTransactions": 4096,
@@ -473,70 +459,27 @@ Object {
           "type": "string",
         },
       },
-      "rpc": Object {
-        "properties": Object {
-          "http": Object {
-            "properties": Object {
-              "host": Object {
-                "type": "string",
-              },
-              "port": Object {
-                "maximum": 65535,
-                "minimum": 1024,
-                "type": "number",
-              },
-            },
-            "required": Array [
-              "host",
-              "port",
-            ],
-            "type": "object",
+      "required": Array [
+        "fileLogLevel",
+        "logFileName",
+        "consoleLogLevel",
+      ],
+      "type": "object",
+    },
+    "network": Object {
+      "properties": Object {
+        "ackTimeout": Object {
+          "type": "integer",
+        },
+        "advertiseAddress": Object {
+          "type": "boolean",
+        },
+        "blacklistedIPs": Object {
+          "items": Object {
+            "format": "ip",
+            "type": "string",
           },
-          "ipc": Object {
-            "properties": Object {
-              "path": Object {
-                "type": "string",
-              },
-            },
-            "required": Array [
-              "path",
-            ],
-            "type": "object",
-          },
-          "modes": Object {
-            "items": Object {
-              "enum": Array [
-                "ipc",
-                "ws",
-                "http",
-              ],
-              "type": "string",
-            },
-            "type": "array",
-            "uniqueItems": true,
-          },
-          "ws": Object {
-            "properties": Object {
-              "host": Object {
-                "format": "ip",
-                "type": "string",
-              },
-              "path": Object {
-                "type": "string",
-              },
-              "port": Object {
-                "maximum": 65535,
-                "minimum": 1024,
-                "type": "number",
-              },
-            },
-            "required": Array [
-              "host",
-              "port",
-              "path",
-            ],
-            "type": "object",
-          },
+          "type": "array",
         },
         "connectTimeout": Object {
           "type": "integer",
@@ -653,24 +596,67 @@ Object {
     },
     "rpc": Object {
       "properties": Object {
-        "enable": Object {
-          "type": "boolean",
-        },
-        "host": Object {
-          "format": "ip",
-          "type": "string",
-        },
-        "mode": Object {
-          "enum": Array [
-            "ipc",
-            "ws",
+        "http": Object {
+          "properties": Object {
+            "host": Object {
+              "type": "string",
+            },
+            "port": Object {
+              "maximum": 65535,
+              "minimum": 1024,
+              "type": "number",
+            },
+          },
+          "required": Array [
+            "host",
+            "port",
           ],
-          "type": "string",
+          "type": "object",
         },
-        "port": Object {
-          "maximum": 65535,
-          "minimum": 1024,
-          "type": "number",
+        "ipc": Object {
+          "properties": Object {
+            "path": Object {
+              "type": "string",
+            },
+          },
+          "required": Array [
+            "path",
+          ],
+          "type": "object",
+        },
+        "modes": Object {
+          "items": Object {
+            "enum": Array [
+              "ipc",
+              "ws",
+              "http",
+            ],
+            "type": "string",
+          },
+          "type": "array",
+          "uniqueItems": true,
+        },
+        "ws": Object {
+          "properties": Object {
+            "host": Object {
+              "format": "ip",
+              "type": "string",
+            },
+            "path": Object {
+              "type": "string",
+            },
+            "port": Object {
+              "maximum": 65535,
+              "minimum": 1024,
+              "type": "number",
+            },
+          },
+          "required": Array [
+            "host",
+            "port",
+            "path",
+          ],
+          "type": "object",
         },
       },
       "type": "object",

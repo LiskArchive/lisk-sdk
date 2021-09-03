@@ -23,6 +23,11 @@ export interface SocketPaths {
 	};
 }
 
+export enum ChannelType {
+	InMemory = 'inMemory',
+	ChildProcess = 'ipc',
+}
+
 export interface PluginOptions extends Record<string, unknown> {
 	readonly loadAsChildProcess?: boolean;
 }
@@ -115,6 +120,10 @@ export interface GenerationConfig {
 	force?: boolean;
 	defaultPassword?: string;
 	modules: Record<string, Record<string, unknown>>;
+}
+
+export interface PluginConfig extends Record<string, unknown> {
+	readonly loadAsChildProcess?: boolean;
 }
 
 export interface ApplicationConfig {

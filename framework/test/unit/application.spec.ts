@@ -18,6 +18,7 @@ import * as fs from 'fs-extra';
 import * as os from 'os';
 import { join } from 'path';
 import { Application } from '../../src/application';
+import { Bus } from '../../src/controller/bus';
 import { IPCServer } from '../../src/controller/ipc/ipc_server';
 import { WSServer } from '../../src/controller/ws/ws_server';
 import { createLogger } from '../../src/logger';

@@ -17,6 +17,7 @@ import * as path from 'path';
 import * as psList from 'ps-list';
 import * as assert from 'assert';
 import { promisify } from 'util';
+import { Block } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { objects, jobHandlers } from '@liskhq/lisk-utils';
@@ -35,7 +36,6 @@ import {
 import {
 	RPCConfig,
 	ApplicationConfig,
-	GenesisConfig,
 	PluginConfig,
 	RegisteredSchema,
 	RegisteredModule,
