@@ -1,4 +1,4 @@
-import { BasePlugin, PluginInfo } from 'lisk-sdk';
+import { BasePlugin } from 'lisk-sdk';
 import type { BaseChannel, EventsDefinition, ActionsDefinition, SchemaWithDefault } from 'lisk-sdk';
 
  /* eslint-disable class-methods-use-this */
@@ -6,21 +6,14 @@ import type { BaseChannel, EventsDefinition, ActionsDefinition, SchemaWithDefaul
  export class <%= className %> extends BasePlugin {
 	// private _channel!: BaseChannel;
 
-	public static get alias(): string {
-		return '<%= alias %>';
-	}
+	public name: '<%= name %>';
 
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get info(): PluginInfo {
-		return {
-			author: '<%= author %>',
-			version: '<%= version %>',
-			name: '<%= name %>',
-		};
+	public get nodeModulePath(): string {
+		return <%= __filename %>;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
-	public get defaults(): SchemaWithDefault {
+	public get configSchema(): SchemaWithDefault {
 		return {
 			$id: '/plugins/plugin-<%= name %>/config',
 			type: 'object',

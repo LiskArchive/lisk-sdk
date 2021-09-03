@@ -30,7 +30,7 @@
 		"prestart": "./scripts/prestart.sh",
 		"start": "./scripts/start.sh",
 		"start:ws_server": "node cypress/ws_server.js",
-		"browserify": "browserify ./dist-node/index.js -o ./dist-browser/index.js -s lisk",
+		"browserify": "browserify ./dist-node/index.js -o ./dist-browser/index.js -s lisk --ignore zeromq",
 		"uglify": "terser -nm -o ./dist-browser/index.min.js ./dist-browser/index.js",
 		"clean": "./scripts/clean.sh",
 		"format": "prettier --write '**/*'",

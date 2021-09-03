@@ -19,7 +19,7 @@ import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
 import { DB_KEY_FORGER_INFO, DB_KEY_FORGER_SYNC_INFO } from './constants';
-import { forgerInfoSchema, forgerSyncSchema } from './schema';
+import { forgerInfoSchema, forgerSyncSchema } from './schemas';
 import { ForgerInfo, ForgetSyncInfo } from './types';
 
 const debug = createDebug('plugin:forger:db');

@@ -12,7 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const defaultConfig = {
+export const configSchema = {
+	$id: '#/plugins/lisk-monitor/config',
 	type: 'object',
 	properties: {
 		port: {
@@ -73,7 +74,7 @@ export const defaultConfig = {
 	},
 	required: ['port', 'whiteList', 'cors', 'limits'],
 	default: {
-		port: 4000,
+		port: 4003,
 		host: '127.0.0.1',
 		whiteList: ['127.0.0.1'],
 		cors: {
@@ -87,6 +88,33 @@ export const defaultConfig = {
 			windowMs: 60000,
 			headersTimeout: 5000,
 			serverSetTimeout: 20000,
+		},
+	},
+};
+
+export const postBlockEventSchema = {
+	$id: 'monitor/postBlockEvent',
+	type: 'object',
+	required: ['block'],
+	properties: {
+		block: {
+			type: 'string',
+			format: 'hex',
+		},
+	},
+};
+
+export const transactionAnnouncementSchema = {
+	$id: 'monitor/transactionAnnouncement',
+	type: 'object',
+	required: ['transactionIds'],
+	properties: {
+		transactionIds: {
+			type: 'array',
+			items: {
+				type: 'string',
+				format: 'hex',
+			},
 		},
 	},
 };

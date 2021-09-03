@@ -33,7 +33,7 @@ describe('api client ipc mode', () => {
 		app = await createApplicationWithHelloPlugin({
 			label,
 			pluginChildProcess: false,
-			rpcConfig: { enable: true, mode: 'ipc', port: 8080 },
+			rpcConfig: { modes: ['ipc'] },
 		});
 
 		const dataPath = `${app.config.rootPath}/${label}`;

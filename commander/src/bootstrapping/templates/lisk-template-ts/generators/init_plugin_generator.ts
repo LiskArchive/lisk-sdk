@@ -13,7 +13,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { userInfo } from 'os';
 import { join } from 'path';
 import * as Generator from 'yeoman-generator';
 
@@ -26,41 +25,29 @@ interface InitPluginPrompts {
 }
 
 interface InitPluginGeneratorOptions {
-	alias: string;
+	name: string;
 }
 
 export default class InitPluginGenerator extends Generator {
 	protected _answers: InitPluginPrompts | undefined;
 	protected _templatePath: string;
 	protected _className: string;
-	protected _alias: string;
+	protected _name: string;
 
 	public constructor(args: string | string[], opts: InitPluginGeneratorOptions) {
 		super(args, opts);
 		this._templatePath = join(__dirname, '..', 'templates', 'init_plugin');
-		this._alias = (this.options as InitPluginGeneratorOptions).alias;
-		this._className = `${this._alias.charAt(0).toUpperCase() + this._alias.slice(1)}Plugin`;
+		this._name = (this.options as InitPluginGeneratorOptions).name;
+		this._className = `${this._name.charAt(0).toUpperCase() + this._name.slice(1)}Plugin`;
 	}
 
 	async prompting(): Promise<void> {
 		this._answers = (await this.prompt([
 			{
 				type: 'input',
-				name: 'author',
-				message: 'Author of plugin',
-				default: userInfo().username,
-			},
-			{
-				type: 'input',
-				name: 'version',
-				message: 'Version of plugin',
-				default: '0.1.0',
-			},
-			{
-				type: 'input',
 				name: 'name',
 				message: 'Name of plugin',
-				default: this._alias,
+				default: this._name,
 			},
 			{
 				type: 'input',
@@ -84,7 +71,6 @@ export default class InitPluginGenerator extends Generator {
 			// The generated file names can be updated manually by the user to their liking e.g. "myPluginName.ts"
 			this.destinationRoot(),
 			{
-				alias: this._alias,
 				className: this._className,
 				author: this._answers?.author,
 				version: this._answers?.version,
