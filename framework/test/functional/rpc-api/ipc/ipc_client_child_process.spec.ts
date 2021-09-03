@@ -15,6 +15,7 @@
 import { createIPCClient } from '@liskhq/lisk-api-client';
 import { Application } from '../../../../src';
 import { closeApplication, createApplicationWithHelloPlugin } from '../../utils/application';
+
 // Skipped because from the test, currently child process cannot be initialized
 // eslint-disable-next-line jest/no-disabled-tests
 describe.skip('plugin in child process', () => {
@@ -28,7 +29,7 @@ describe.skip('plugin in child process', () => {
 		app = await createApplicationWithHelloPlugin({
 			label,
 			pluginChildProcess: true,
-			rpcConfig: { enable: false, mode: 'ipc', port: 8080 },
+			rpcConfig: { modes: ['ipc'] },
 		});
 		client = await createIPCClient(`${app.config.rootPath}/${label}/`);
 		client.subscribe('hello:greet', (message: any) => {

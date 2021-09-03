@@ -25,5 +25,6 @@ export const systemDirs = (appLabel: string, rootPath: string) => {
 		logs: resolve(join(rootPathWithoutTilde, appLabel, 'logs')),
 		sockets: resolve(join(rootPathWithoutTilde, appLabel, 'tmp', 'sockets')),
 		pids: resolve(join(rootPathWithoutTilde, appLabel, 'tmp', 'pids')),
+		plugins: resolve(join(rootPathWithoutTilde, appLabel, 'plugins')),
 	};
 };

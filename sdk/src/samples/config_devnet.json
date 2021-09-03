@@ -3,9 +3,7 @@
 	"networkVersion": "1.1",
 	"label": "devnet",
 	"rpc": {
-		"enable": false,
-		"mode": "ipc",
-		"port": 8080
+		"modes": ["ipc"]
 	},
 	"genesisConfig": {
 		"blockTime": 10,

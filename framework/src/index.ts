@@ -39,7 +39,9 @@ export {
 } from './modules';
 export { Application } from './application';
 export { systemDirs } from './system_dirs';
-export { BasePlugin, BlockHeaderJSON, PluginInfo, PluginCodec } from './plugins/base_plugin';
+export { BasePlugin } from './plugins/base_plugin';
+// TODO: THe export "BlockHeaderJSON" should be removed
+export { BlockHeaderJSON, PluginCodec } from './plugins/plugin_codec';
 export { IPCChannel } from './controller/channels';
 export type { BaseChannel } from './controller/channels';
 export type { EventsDefinition, EventCallback } from './controller/event';

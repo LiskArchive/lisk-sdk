@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Lisk Foundation
+ * Copyright © 2021 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -11,14 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-export const postBlockEventSchema = {
-	$id: 'report-misbehavior/postBlockEvent',
-	type: 'object',
-	required: ['block'],
-	properties: {
-		block: {
-			type: 'string',
-			format: 'hex',
-		},
-	},
+
+export const IPC_EVENTS = {
+	RPC_EVENT: 'invoke',
+	REGISTER_CHANNEL: 'registerChannel',
+	RPC_REQUEST_TIMEOUT: 2000,
 };
+export const IPC_CONNECTION_TIME_OUT = 2000;

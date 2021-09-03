@@ -12,66 +12,39 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Server } from 'http';
-import { BasePlugin, PluginInfo } from 'lisk-framework';
-import { objects } from '@liskhq/lisk-utils';
-import type { BaseChannel, EventsDefinition, ActionsDefinition } from 'lisk-framework';
+import { BasePlugin } from 'lisk-framework';
+import type { BaseChannel } from 'lisk-framework';
 import * as express from 'express';
 import type { Express } from 'express';
 import * as cors from 'cors';
 import * as rateLimit from 'express-rate-limit';
 import * as controllers from './controllers';
 import * as middlewares from './middlewares';
-import * as config from './defaults';
-import { Options } from './types';
+import { configSchema } from './schemas';
+import { HTTPPluginConfig } from './types';
 
-// eslint-disable-next-line
-const pJSON = require('../package.json');
+export class HTTPAPIPlugin extends BasePlugin<HTTPPluginConfig> {
+	public name = 'httpApi';
+	public configSchema = configSchema;
 
-export class HTTPAPIPlugin extends BasePlugin {
 	private _server!: Server;
 	private _app!: Express;
 	private _channel!: BaseChannel;
 
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get alias(): string {
-		return 'httpApi';
-	}
-
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get info(): PluginInfo {
-		return {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			author: pJSON.author,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			version: pJSON.version,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			name: pJSON.name,
-		};
-	}
-
-	public get defaults(): object {
-		return config.defaultConfig;
-	}
-
-	public get events(): EventsDefinition {
-		return [];
-	}
-
-	public get actions(): ActionsDefinition {
-		return {};
+	public get nodeModulePath(): string {
+		return __filename;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async load(channel: BaseChannel): Promise<void> {
 		this._app = express();
-		const options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
 		this._channel = channel;
 
 		this._channel.once('app:ready', () => {
-			this._registerMiddlewares(options);
+			this._registerMiddlewares(this.config);
 			this._registerControllers();
-			this._registerAfterMiddlewares(options);
-			this._server = this._app.listen(options.port, options.host);
+			this._registerAfterMiddlewares(this.config);
+			this._server = this._app.listen(this.config.port, this.config.host);
 		});
 	}
 
@@ -87,7 +60,7 @@ export class HTTPAPIPlugin extends BasePlugin {
 		});
 	}
 
-	private _registerMiddlewares(options: Options): void {
+	private _registerMiddlewares(options: HTTPPluginConfig): void {
 		// Register middlewares
 		this._app.use(cors(options.cors));
 		this._app.use(express.json());
@@ -95,7 +68,7 @@ export class HTTPAPIPlugin extends BasePlugin {
 		this._app.use(middlewares.whiteListMiddleware(options));
 	}
 
-	private _registerAfterMiddlewares(_options: Options): void {
+	private _registerAfterMiddlewares(_options: HTTPPluginConfig): void {
 		this._app.use(middlewares.errorMiddleware());
 	}
 

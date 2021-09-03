@@ -21,6 +21,7 @@ import { join } from 'path';
 import { BaseAsset, BaseChannel, BaseModule, BasePlugin } from '../../src';
 import { Application } from '../../src/application';
 import { Controller } from '../../src/controller';
+import { Bus } from '../../src/controller/bus';
 import { IPCServer } from '../../src/controller/ipc/ipc_server';
 import { WSServer } from '../../src/controller/ws/ws_server';
 import { createLogger } from '../../src/logger';
@@ -31,30 +32,16 @@ import { genesisBlock } from '../fixtures/blocks';
 import * as networkConfig from '../fixtures/config/devnet/config.json';
 
 jest.mock('fs-extra');
+jest.mock('zeromq');
 jest.mock('@liskhq/lisk-db');
 jest.mock('@liskhq/lisk-p2p');
 jest.mock('../../src/logger');
 
 class TestPlugin extends BasePlugin {
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get alias() {
-		return 'test-plugin';
-	}
+	public name = 'test-plugin';
 
-	public static get info() {
-		return {
-			name: '@lisk/test-plugin',
-			author: 'Nazar',
-			version: '1.0.0',
-		};
-	}
-
-	public get events() {
-		return [];
-	}
-
-	public get actions() {
-		return {};
+	public get nodeModulePath(): string {
+		return __filename;
 	}
 
 	public async load(_channel: BaseChannel): Promise<void> {}
@@ -457,38 +444,25 @@ describe('Application', () => {
 			expect(() => (app as any).registerPlugin()).toThrow('Plugin implementation is required');
 		});
 
-		it('should throw error when plugin alias is missing', () => {
+		it('should throw error when plugin with same name is already registered', () => {
 			// Arrange
 			const app = Application.defaultApplication(genesisBlockJSON, config);
 			class MyPlugin extends TestPlugin {
-				// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-				public static get alias() {
-					return '';
-				}
-			}
+				public name = 'my-plugin';
 
-			// Act && Assert
-			expect(() => (app as any).registerPlugin(MyPlugin)).toThrow('Plugin alias is required.');
-		});
-
-		it('should throw error when plugin with same alias is already registered', () => {
-			// Arrange
-			const app = Application.defaultApplication(genesisBlockJSON, config);
-			class MyPlugin extends TestPlugin {
-				// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-				public static get alias() {
-					return 'my-plugin';
+				public get nodeModulePath(): string {
+					throw new Error('Method not implemented.');
 				}
 			}
 			(app as any).registerPlugin(MyPlugin);
 
 			// Act && Assert
 			expect(() => (app as any).registerPlugin(MyPlugin)).toThrow(
-				'A plugin with alias "my-plugin" already registered.',
+				'A plugin with name "my-plugin" already registered.',
 			);
 		});
 
-		it('should call validatePluginSpec function', async () => {
+		it('should call validatePluginSpec function', () => {
 			// Arrange
 			const app = Application.defaultApplication(genesisBlockJSON, config);
 			jest.spyOn(basePluginModule, 'validatePluginSpec').mockReturnValue();
@@ -498,9 +472,6 @@ describe('Application', () => {
 
 			// Assert
 			expect(basePluginModule.validatePluginSpec).toHaveBeenCalledTimes(1);
-			expect(basePluginModule.validatePluginSpec).toHaveBeenCalledWith(TestPlugin, {
-				loadAsChildProcess: false,
-			});
 		});
 
 		it('should throw error when plugin is required to load as child process and not exported', () => {
@@ -510,7 +481,7 @@ describe('Application', () => {
 
 			// Act && Assert
 			expect(() => (app as any).registerPlugin(TestPlugin, { loadAsChildProcess: true })).toThrow(
-				'Unable to register plugin "test-plugin" to load as child process. \n -> To load plugin as child process it must be exported. \n -> You can specify npm package as "info.name". \n -> Or you can specify any static path as "info.exportPath". \n -> To fix this issue you can simply assign __filename to info.exportPath in your plugin.',
+				'Unable to register plugin "test-plugin" to load as child process. \n -> To load plugin as child process it must be exported. \n -> You can specify npm package as "name". \n -> Or you can specify any static path as "nodeModulePath". \n -> To fix this issue you can simply assign __filename to nodeModulePath in your plugin.',
 			);
 			expect(basePluginModule.getPluginExportPath).toHaveBeenCalledTimes(1);
 			expect(basePluginModule.getPluginExportPath).toHaveBeenCalledWith(TestPlugin);
@@ -523,15 +494,6 @@ describe('Application', () => {
 
 			// Act && Assert
 			expect(app['_plugins']['test-plugin']).toBe(TestPlugin);
-		});
-
-		it('should add plugin to the collection with custom alias', () => {
-			// Arrange
-			const app = Application.defaultApplication(genesisBlockJSON, config);
-			(app as any).registerPlugin(TestPlugin, { alias: 'my-custom-plugin' });
-
-			// Act && Assert
-			expect(app['_plugins']['my-custom-plugin']).toBe(TestPlugin);
 		});
 	});
 
@@ -589,7 +551,6 @@ describe('Application', () => {
 
 	describe('#_loadPlugins', () => {
 		let app: Application;
-		let dirs: ReturnType<typeof systemDirs>;
 
 		beforeEach(async () => {
 			app = Application.defaultApplication(genesisBlockJSON, config);
@@ -597,39 +558,27 @@ describe('Application', () => {
 			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
 			jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
 			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
+			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 			jest.spyOn(Controller.prototype, 'loadPlugins').mockResolvedValue(jest.fn() as never);
 
 			await app.run();
+		});
 
-			dirs = systemDirs(app.config.label, app.config.rootPath);
+		afterEach(async () => {
+			await app.shutdown();
 		});
 
 		it('should compile config and load plugins', () => {
 			// Arrange
 			const plugins = {
-				[TestPlugin.alias]: TestPlugin,
+				'test-plugin': TestPlugin,
 			};
-			const pluginsOptions = {
-				[TestPlugin.alias]: {
-					loadAsChildProcess: false,
-					dataPath: dirs.dataPath,
-					appConfig: {
-						rootPath: app.config.rootPath,
-						label: app.config.label,
-						version: app.config.version,
-						networkVersion: app.config.networkVersion,
-						genesisConfig: app.config.genesisConfig,
-						logger: {
-							consoleLogLevel: app.config.logger.consoleLogLevel,
-							fileLogLevel: app.config.logger.fileLogLevel,
-						},
-					},
-				},
-			};
+
+			const { plugins: pluginConfig, ...rest } = app.config;
 
 			// Assert
 			expect(app['_controller'].loadPlugins).toHaveBeenCalledTimes(1);
-			expect(app['_controller'].loadPlugins).toHaveBeenCalledWith(plugins, pluginsOptions);
+			expect(app['_controller'].loadPlugins).toHaveBeenCalledWith(plugins, pluginConfig, rest);
 		});
 	});
 
@@ -641,11 +590,16 @@ describe('Application', () => {
 			app = Application.defaultApplication(genesisBlockJSON, config);
 			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
 			jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
+			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
 
 			await app.run();
 
 			dirs = systemDirs(app.config.label, app.config.rootPath);
+		});
+
+		afterEach(async () => {
+			await app.shutdown();
 		});
 
 		it('should ensure directory exists', () => {
@@ -678,6 +632,7 @@ describe('Application', () => {
 		beforeEach(async () => {
 			app = Application.defaultApplication(genesisBlockJSON, config);
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
+			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 
 			await app.run();
 			await app.shutdown();
@@ -709,6 +664,7 @@ describe('Application', () => {
 		let _nodeDBSpy: jest.SpyInstance<any, unknown[]>;
 
 		beforeEach(async () => {
+			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 			app = Application.defaultApplication(genesisBlockJSON, config);
 			await app.run();
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
