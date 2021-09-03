@@ -13,7 +13,7 @@
  */
 
 import { Transaction } from '@liskhq/lisk-chain';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getAddressFromPublicKey, getRandomBytes } from '@liskhq/lisk-cryptography';
 import { FeeModule } from '../../../../src/modules/fee';
 import { VerifyStatus } from '../../../../src/node/state_machine';
 import { createTransactionContext } from '../../../../src/testing';
@@ -35,23 +35,24 @@ describe('FeeModule', () => {
 			],
 			minFeePerByte: 1000,
 		};
-		moduleConfig = {};
+		moduleConfig = { feeTokenID: { chainID: 0, localID: 0 } };
 		generatorConfig = {};
 		feeModule = new FeeModule();
 		await feeModule.init({ genesisConfig, moduleConfig, generatorConfig });
+		feeModule.addDependencies({ burn: jest.fn(), transfer: jest.fn() } as any);
 	});
 
 	describe('init', () => {
 		it('should set the moduleConfig property', () => {
-			expect((feeModule as any)._moduleConfig).toEqual(moduleConfig);
+			expect(feeModule['_moduleConfig']).toEqual(moduleConfig);
 		});
 
 		it('should set the minFeePerByte property', () => {
-			expect((feeModule as any)._minFeePerByte).toEqual(1000);
+			expect(feeModule['_minFeePerByte']).toEqual(1000);
 		});
 
 		it('should set the baseFees property', () => {
-			expect((feeModule as any)._baseFees).toEqual(
+			expect(feeModule['_baseFees']).toEqual(
 				genesisConfig.baseFees.map((fee: any) => ({ ...fee, baseFee: BigInt(fee.baseFee) })),
 			);
 		});
@@ -63,6 +64,24 @@ describe('FeeModule', () => {
 				moduleID: 5,
 				commandID: 0,
 				fee: BigInt(1000000000),
+				nonce: BigInt(0),
+				senderPublicKey: getRandomBytes(32),
+				signatures: [getRandomBytes(20)],
+				params: getRandomBytes(32),
+			});
+			const context = createTransactionContext({ transaction });
+			const transactionVerifyContext = context.createTransactionVerifyContext();
+			const result = await feeModule.verifyTransaction(transactionVerifyContext);
+
+			expect(result.status).toEqual(VerifyStatus.OK);
+		});
+
+		it('should validate transaction with exactly the min fee', async () => {
+			const exactMinFee = BigInt(102001);
+			const transaction = new Transaction({
+				moduleID: 5,
+				commandID: 0,
+				fee: exactMinFee,
 				nonce: BigInt(0),
 				senderPublicKey: getRandomBytes(32),
 				signatures: [getRandomBytes(20)],
@@ -93,6 +112,70 @@ describe('FeeModule', () => {
 			expect(result.status).toEqual(VerifyStatus.FAIL);
 			expect(result.error).toEqual(
 				new Error(`Insufficient transaction fee. Minimum required fee is ${expectedMinFee}.`),
+			);
+		});
+	});
+
+	describe('beforeTransactionExecute', () => {
+		it('should transfer transaction fee minus min fee to generator and burn min fee when native token', async () => {
+			const transaction = new Transaction({
+				moduleID: 5,
+				commandID: 0,
+				fee: BigInt(1000000000),
+				nonce: BigInt(0),
+				senderPublicKey: getRandomBytes(32),
+				signatures: [getRandomBytes(20)],
+				params: getRandomBytes(32),
+			});
+			const context = createTransactionContext({ transaction });
+			const transactionExecuteContext = context.createTransactionExecuteContext();
+			const apiContext = transactionExecuteContext.getAPIContext();
+			const senderAddress = getAddressFromPublicKey(context.transaction.senderPublicKey);
+			const minFee =
+				BigInt(feeModule['_minFeePerByte'] * transaction.getBytes().length) +
+				feeModule['_extraFee'](transaction.moduleID, transaction.commandID);
+			await feeModule.beforeTransactionExecute(transactionExecuteContext);
+
+			expect(feeModule['_tokenAPI'].burn).toHaveBeenCalledWith(
+				apiContext,
+				senderAddress,
+				feeModule['_moduleConfig'].feeTokenID,
+				minFee,
+			);
+			expect(feeModule['_tokenAPI'].transfer).toHaveBeenCalledWith(
+				apiContext,
+				senderAddress,
+				transactionExecuteContext.header.generatorAddress,
+				feeModule['_moduleConfig'].feeTokenID,
+				transaction.fee - minFee,
+			);
+		});
+
+		it('should transfer transaction fee to generator and not burn min fee when non-native token', async () => {
+			feeModule['_moduleConfig'].feeTokenID = { chainID: 2, localID: 0 };
+			const transaction = new Transaction({
+				moduleID: 5,
+				commandID: 0,
+				fee: BigInt(1000000000),
+				nonce: BigInt(0),
+				senderPublicKey: getRandomBytes(32),
+				signatures: [getRandomBytes(20)],
+				params: getRandomBytes(32),
+			});
+			const context = createTransactionContext({ transaction });
+			const transactionExecuteContext = context.createTransactionExecuteContext();
+			const apiContext = transactionExecuteContext.getAPIContext();
+			const senderAddress = getAddressFromPublicKey(context.transaction.senderPublicKey);
+
+			await feeModule.beforeTransactionExecute(transactionExecuteContext);
+
+			expect(feeModule['_tokenAPI'].burn).not.toHaveBeenCalled();
+			expect(feeModule['_tokenAPI'].transfer).toHaveBeenCalledWith(
+				apiContext,
+				senderAddress,
+				transactionExecuteContext.header.generatorAddress,
+				feeModule['_moduleConfig'].feeTokenID,
+				transaction.fee,
 			);
 		});
 	});
