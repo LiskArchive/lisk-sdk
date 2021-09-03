@@ -33,16 +33,16 @@ export class IPCChannel extends BaseChannel {
 	private readonly _rpcRequestIds: Set<string>;
 
 	public constructor(
-		moduleAlias: string,
+		moduleName: string,
 		events: ReadonlyArray<string>,
 		actions: ActionsDefinition,
 		options: ChildProcessOptions,
 	) {
-		super(moduleAlias, events, actions, options);
+		super(moduleName, events, actions, options);
 
 		this._ipcClient = new IPCClient({
 			socketsDir: options.socketsPath,
-			name: moduleAlias,
+			name: moduleName,
 			rpcServerSocketPath: `ipc://${join(options.socketsPath, 'bus.internal.rpc.ipc')}`,
 		});
 
@@ -78,7 +78,7 @@ export class IPCChannel extends BaseChannel {
 			for await (const [sender, event, eventData] of this._rpcServer) {
 				if (event.toString() === IPC_EVENTS.RPC_EVENT) {
 					const request = Action.fromJSONRPCRequest(JSON.parse(eventData.toString()));
-					if (request.module === this.moduleAlias) {
+					if (request.module === this.moduleName) {
 						this.invoke(request.key(), request.params)
 							.then(result => {
 								this._rpcServer
@@ -124,13 +124,13 @@ export class IPCChannel extends BaseChannel {
 		actionsInfo = Object.keys(this.actions).reduce((accumulator, value: string) => {
 			accumulator[value] = {
 				name: value,
-				module: this.moduleAlias,
+				module: this.moduleName,
 			};
 			return accumulator;
 		}, actionsInfo);
 
 		const registerObj = {
-			moduleAlias: this.moduleAlias,
+			moduleName: this.moduleName,
 			eventsList: this.eventsList.map((event: string) => event),
 			actionsInfo,
 			options: {
@@ -171,8 +171,8 @@ export class IPCChannel extends BaseChannel {
 
 	public publish(eventName: string, data?: Record<string, unknown>): void {
 		const event = new Event(eventName, data);
-		if (event.module !== this.moduleAlias || !this.eventsList.includes(event.name)) {
-			throw new Error(`Event "${eventName}" not registered in "${this.moduleAlias}" module.`);
+		if (event.module !== this.moduleName || !this.eventsList.includes(event.name)) {
+			throw new Error(`Event "${eventName}" not registered in "${this.moduleName}" module.`);
 		}
 
 		this._pubSocket
@@ -186,7 +186,7 @@ export class IPCChannel extends BaseChannel {
 		const action = new Action(this._getNextRequestId(), actionName, params);
 
 		// When the handler is within the same channel
-		if (action.module === this.moduleAlias) {
+		if (action.module === this.moduleName) {
 			const handler = this.actions[action.name]?.handler;
 			if (!handler) {
 				throw new Error('Handler does not exist.');

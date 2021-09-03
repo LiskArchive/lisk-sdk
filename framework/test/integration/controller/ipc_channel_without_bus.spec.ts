@@ -29,7 +29,7 @@ describe.skip('IPCChannelWithoutBus', () => {
 	};
 
 	const alpha = {
-		moduleAlias: 'alphaAlias',
+		moduleName: 'alphaName',
 		events: ['alpha1', 'alpha2'],
 		actions: {
 			multiplyByTwo: {
@@ -42,7 +42,7 @@ describe.skip('IPCChannelWithoutBus', () => {
 	};
 
 	const beta = {
-		moduleAlias: 'betaAlias',
+		moduleName: 'betaName',
 		events: ['beta1', 'beta2'],
 		actions: {
 			divideByTwo: {
@@ -85,9 +85,9 @@ describe.skip('IPCChannelWithoutBus', () => {
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			Promise.all<void>([listenForRPC(), listenForEvents()]).catch(_ => ({}));
 
-			alphaChannel = new IPCChannel(alpha.moduleAlias, alpha.events, alpha.actions, config);
+			alphaChannel = new IPCChannel(alpha.moduleName, alpha.events, alpha.actions, config);
 
-			betaChannel = new IPCChannel(beta.moduleAlias, beta.events, beta.actions, config);
+			betaChannel = new IPCChannel(beta.moduleName, beta.events, beta.actions, config);
 
 			await alphaChannel.startAndListen();
 			await betaChannel.startAndListen();
@@ -109,14 +109,14 @@ describe.skip('IPCChannelWithoutBus', () => {
 
 				const donePromise = new Promise<void>(resolve => {
 					// Act
-					alphaChannel.subscribe(`${beta.moduleAlias}:${eventName}`, data => {
+					alphaChannel.subscribe(`${beta.moduleName}:${eventName}`, data => {
 						// Assert
 						expect(data).toEqual(betaEventData);
 						resolve();
 					});
 				});
 
-				betaChannel.publish(`${beta.moduleAlias}:${eventName}`, betaEventData);
+				betaChannel.publish(`${beta.moduleName}:${eventName}`, betaEventData);
 
 				return donePromise;
 			});
@@ -127,14 +127,14 @@ describe.skip('IPCChannelWithoutBus', () => {
 				const eventName = beta.events[0];
 				const donePromise = new Promise<void>(resolve => {
 					// Act
-					alphaChannel.once(`${beta.moduleAlias}:${eventName}`, data => {
+					alphaChannel.once(`${beta.moduleName}:${eventName}`, data => {
 						// Assert
 						expect(data).toEqual(betaEventData);
 						resolve();
 					});
 				});
 
-				betaChannel.publish(`${beta.moduleAlias}:${eventName}`, betaEventData);
+				betaChannel.publish(`${beta.moduleName}:${eventName}`, betaEventData);
 
 				return donePromise;
 			});
@@ -148,14 +148,14 @@ describe.skip('IPCChannelWithoutBus', () => {
 
 				const donePromise = new Promise<void>(done => {
 					// Act
-					betaChannel.once(`${alpha.moduleAlias}:${eventName}`, data => {
+					betaChannel.once(`${alpha.moduleName}:${eventName}`, data => {
 						// Assert
 						expect(data).toEqual(alphaEventData);
 						done();
 					});
 				});
 
-				alphaChannel.publish(`${alpha.moduleAlias}:${eventName}`, alphaEventData);
+				alphaChannel.publish(`${alpha.moduleName}:${eventName}`, alphaEventData);
 
 				return donePromise;
 			});

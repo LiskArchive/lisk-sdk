@@ -26,7 +26,7 @@ export class InMemoryChannel extends BaseChannel {
 	public async registerToBus(bus: Bus): Promise<void> {
 		this.bus = bus;
 
-		await this.bus.registerChannel(this.moduleAlias, this.eventsList, this.actions, {
+		await this.bus.registerChannel(this.moduleName, this.eventsList, this.actions, {
 			type: ChannelType.InMemory,
 			channel: this,
 		});
@@ -53,8 +53,8 @@ export class InMemoryChannel extends BaseChannel {
 	public publish(eventName: string, data?: Record<string, unknown>): void {
 		const event = new Event(eventName, data);
 
-		if (event.module !== this.moduleAlias) {
-			throw new Error(`Event "${eventName}" not registered in "${this.moduleAlias}" module.`);
+		if (event.module !== this.moduleName) {
+			throw new Error(`Event "${eventName}" not registered in "${this.moduleName}" module.`);
 		}
 
 		this.bus.publish(event.toJSONRPCNotification());
@@ -63,10 +63,10 @@ export class InMemoryChannel extends BaseChannel {
 	public async invoke<T>(actionName: string, params?: Record<string, unknown>): Promise<T> {
 		const action = new Action(this._getNextRequestId(), actionName, params);
 
-		if (action.module === this.moduleAlias) {
+		if (action.module === this.moduleName) {
 			if (this.actions[action.name] === undefined) {
 				throw new Error(
-					`The action '${action.name}' on module '${this.moduleAlias}' does not exist.`,
+					`The action '${action.name}' on module '${this.moduleName}' does not exist.`,
 				);
 			}
 

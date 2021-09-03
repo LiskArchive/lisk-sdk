@@ -36,7 +36,7 @@ describe('InMemoryChannel', () => {
 	};
 
 	const alpha = {
-		moduleAlias: 'alphaAlias',
+		moduleName: 'alphaName',
 		events: ['alpha1', 'alpha2'],
 		actions: {
 			multiplyByTwo: {
@@ -49,7 +49,7 @@ describe('InMemoryChannel', () => {
 	};
 
 	const beta = {
-		moduleAlias: 'betaAlias',
+		moduleName: 'betaName',
 		events: ['beta1', 'beta2'],
 		actions: {
 			divideByTwo: {
@@ -70,11 +70,11 @@ describe('InMemoryChannel', () => {
 			// Arrange
 			bus = new Bus(logger, config);
 
-			inMemoryChannelAlpha = new InMemoryChannel(alpha.moduleAlias, alpha.events, alpha.actions);
+			inMemoryChannelAlpha = new InMemoryChannel(alpha.moduleName, alpha.events, alpha.actions);
 
 			await inMemoryChannelAlpha.registerToBus(bus);
 
-			inMemoryChannelBeta = new InMemoryChannel(beta.moduleAlias, beta.events, beta.actions);
+			inMemoryChannelBeta = new InMemoryChannel(beta.moduleName, beta.events, beta.actions);
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			await inMemoryChannelBeta.registerToBus(bus);
 		});
@@ -87,14 +87,14 @@ describe('InMemoryChannel', () => {
 
 				const donePromise = new Promise<void>(resolve => {
 					// Act
-					inMemoryChannelAlpha.subscribe(`${beta.moduleAlias}:${eventName}`, data => {
+					inMemoryChannelAlpha.subscribe(`${beta.moduleName}:${eventName}`, data => {
 						// Assert
 						expect(data).toBe(betaEventData);
 						resolve();
 					});
 				});
 
-				inMemoryChannelBeta.publish(`${beta.moduleAlias}:${eventName}`, betaEventData);
+				inMemoryChannelBeta.publish(`${beta.moduleName}:${eventName}`, betaEventData);
 
 				return donePromise;
 			});
@@ -105,14 +105,14 @@ describe('InMemoryChannel', () => {
 				const eventName = beta.events[0];
 				const donePromise = new Promise<void>(resolve => {
 					// Act
-					inMemoryChannelAlpha.once(`${beta.moduleAlias}:${eventName}`, data => {
+					inMemoryChannelAlpha.once(`${beta.moduleName}:${eventName}`, data => {
 						// Assert
 						expect(data).toBe(betaEventData);
 						resolve();
 					});
 				});
 
-				inMemoryChannelBeta.publish(`${beta.moduleAlias}:${eventName}`, betaEventData);
+				inMemoryChannelBeta.publish(`${beta.moduleName}:${eventName}`, betaEventData);
 
 				return donePromise;
 			});
@@ -120,13 +120,13 @@ describe('InMemoryChannel', () => {
 			it('should be able to subscribe to an unregistered event.', async () => {
 				// Arrange
 				const omegaEventName = 'omegaEventName';
-				const omegaAlias = 'omegaAlias';
+				const omegaName = 'omegaName';
 				const dummyData = { data: '#DATA' };
-				const inMemoryChannelOmega = new InMemoryChannel(omegaAlias, [omegaEventName], {});
+				const inMemoryChannelOmega = new InMemoryChannel(omegaName, [omegaEventName], {});
 
 				const donePromise = new Promise<void>(resolve => {
 					// Act
-					inMemoryChannelAlpha.subscribe(`${omegaAlias}:${omegaEventName}`, data => {
+					inMemoryChannelAlpha.subscribe(`${omegaName}:${omegaEventName}`, data => {
 						// Assert
 						expect(data).toBe(dummyData);
 						resolve();
@@ -136,7 +136,7 @@ describe('InMemoryChannel', () => {
 				// eslint-disable-next-line @typescript-eslint/no-floating-promises
 				await inMemoryChannelOmega.registerToBus(bus);
 
-				inMemoryChannelOmega.publish(`${omegaAlias}:${omegaEventName}`, dummyData);
+				inMemoryChannelOmega.publish(`${omegaName}:${omegaEventName}`, dummyData);
 
 				return donePromise;
 			});
@@ -150,14 +150,14 @@ describe('InMemoryChannel', () => {
 
 				const donePromise = new Promise<void>(done => {
 					// Act
-					inMemoryChannelBeta.once(`${alpha.moduleAlias}:${eventName}`, data => {
+					inMemoryChannelBeta.once(`${alpha.moduleName}:${eventName}`, data => {
 						// Assert
 						expect(data).toBe(alphaEventData);
 						done();
 					});
 				});
 
-				inMemoryChannelAlpha.publish(`${alpha.moduleAlias}:${eventName}`, alphaEventData);
+				inMemoryChannelAlpha.publish(`${alpha.moduleName}:${eventName}`, alphaEventData);
 
 				return donePromise;
 			});
@@ -167,11 +167,11 @@ describe('InMemoryChannel', () => {
 			it('should be able to invoke its own actions.', async () => {
 				// Act && Assert
 				await expect(
-					inMemoryChannelAlpha.invoke<number>(`${alpha.moduleAlias}:multiplyByTwo`, { val: 2 }),
+					inMemoryChannelAlpha.invoke<number>(`${alpha.moduleName}:multiplyByTwo`, { val: 2 }),
 				).resolves.toBe(4);
 
 				await expect(
-					inMemoryChannelAlpha.invoke<number>(`${alpha.moduleAlias}:multiplyByThree`, {
+					inMemoryChannelAlpha.invoke<number>(`${alpha.moduleName}:multiplyByThree`, {
 						val: 4,
 					}),
 				).resolves.toBe(12);
@@ -180,11 +180,11 @@ describe('InMemoryChannel', () => {
 			it("should be able to invoke other channels' actions.", async () => {
 				// Act && Assert
 				await expect(
-					inMemoryChannelAlpha.invoke<number>(`${beta.moduleAlias}:divideByTwo`, { val: 4 }),
+					inMemoryChannelAlpha.invoke<number>(`${beta.moduleName}:divideByTwo`, { val: 4 }),
 				).resolves.toBe(2);
 
 				await expect(
-					inMemoryChannelAlpha.invoke<number>(`${beta.moduleAlias}:divideByThree`, { val: 9 }),
+					inMemoryChannelAlpha.invoke<number>(`${beta.moduleName}:divideByThree`, { val: 9 }),
 				).resolves.toBe(3);
 			});
 
@@ -194,9 +194,9 @@ describe('InMemoryChannel', () => {
 
 				// Act && Assert
 				await expect(
-					inMemoryChannelAlpha.invoke(`${beta.moduleAlias}:${invalidActionName}`),
+					inMemoryChannelAlpha.invoke(`${beta.moduleName}:${invalidActionName}`),
 				).rejects.toThrow(
-					`Action name "${beta.moduleAlias}:${invalidActionName}" must be a valid name with module name and action name.`,
+					`Action name "${beta.moduleName}:${invalidActionName}" must be a valid name with module name and action name.`,
 				);
 			});
 		});
