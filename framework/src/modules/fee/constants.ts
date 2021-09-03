@@ -13,3 +13,4 @@
  */
 
 export const MODULE_ID_FEE = 1;
+export const NATIVE_TOKEN_CHAIN_ID = 0;

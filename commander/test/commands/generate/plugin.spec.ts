@@ -38,9 +38,9 @@ describe('generate:plugin command', () => {
 		});
 	});
 
-	describe('generate:plugin invalidAlias', () => {
+	describe('generate:plugin invalidName', () => {
 		it('should throw an error when module name is invalid', async () => {
-			await expect(PluginCommand.run(['http$5'], config)).rejects.toThrow('Invalid plugin alias');
+			await expect(PluginCommand.run(['http$5'], config)).rejects.toThrow('Invalid plugin name');
 		});
 	});
 
@@ -66,7 +66,7 @@ describe('generate:plugin command', () => {
 			expect(BaseBootstrapCommand.prototype['_isLiskAppDir']).toHaveBeenCalledWith('/my/dir');
 			expect(
 				BaseBootstrapCommand.prototype['_runBootstrapCommand'],
-			).toHaveBeenCalledWith('lisk:generate:plugin', { alias: 'httpPlugin' });
+			).toHaveBeenCalledWith('lisk:generate:plugin', { name: 'httpPlugin' });
 		});
 
 		it('should not throw error if cwd is not lisk app directory and --standalone was provided', async () => {
@@ -82,7 +82,7 @@ describe('generate:plugin command', () => {
 			expect(BaseBootstrapCommand.prototype['_runBootstrapCommand']).toHaveBeenCalledWith(
 				'lisk:init:plugin',
 				{
-					alias: 'httpPlugin',
+					name: 'httpPlugin',
 					projectPath: '/my/dir',
 				},
 			);

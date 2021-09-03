@@ -21,7 +21,7 @@ import { P2P } from '@liskhq/lisk-p2p';
 import { APP_EVENT_BLOCK_NEW } from '../../../src/constants';
 import * as genesisBlockJSON from '../../fixtures/config/devnet/genesis_block.json';
 import * as configJSON from '../../fixtures/config/devnet/config.json';
-import { Application, PartialApplicationConfig } from '../../../src';
+import { Application, PartialApplicationConfig, RPCConfig } from '../../../src';
 import { genesis } from '../../fixtures';
 import { nodeUtils } from '../../utils';
 import { createTransferTransaction } from '../../utils/node/transaction';
@@ -43,9 +43,13 @@ export const createApplication = async (
 			logFileName: 'functional-test.log',
 		},
 		rpc: {
-			enable: true,
-			port: 8080,
-			mode: 'ws',
+			modes: ['ipc', 'ws', 'http'],
+			ws: {
+				port: 8080,
+			},
+			http: {
+				port: 8000,
+			},
 		},
 	} as PartialApplicationConfig;
 
@@ -69,12 +73,12 @@ export const createApplication = async (
 export const createApplicationWithHelloPlugin = async ({
 	label,
 	pluginChildProcess = false,
-	rpcConfig = { mode: 'ws', enable: true, port: 8080 },
+	rpcConfig = { modes: ['ws'] },
 	consoleLogLevel,
 }: {
 	label: string;
 	pluginChildProcess?: boolean;
-	rpcConfig?: { mode: string; enable: boolean; port: number };
+	rpcConfig?: Partial<RPCConfig>;
 	consoleLogLevel?: string;
 }): Promise<Application> => {
 	const rootPath = path.join(os.homedir(), '.lisk/functional-with-plugin');

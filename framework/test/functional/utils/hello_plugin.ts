@@ -11,41 +11,24 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import {
-	ActionsDefinition,
-	BaseChannel,
-	BasePlugin,
-	EventsDefinition,
-	PluginInfo,
-} from '../../../src';
+import { ActionsDefinition, BaseChannel, BasePlugin, EventsDefinition } from '../../../src';
 
 export class HelloPlugin extends BasePlugin {
-	private _channel!: BaseChannel;
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get alias(): string {
+	public get nodeModulePath(): string {
+		return __filename;
+	}
+	public get name(): string {
 		return 'hello';
 	}
+	private _channel!: BaseChannel;
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public static get info(): PluginInfo {
-		return {
-			author: 'hello',
-			name: 'hello',
-			version: '2.1',
-			exportPath: __filename,
-		};
-	}
-
+	// eslint-disable-next-line @typescript-eslint/require-await
 	public async load(channel: BaseChannel): Promise<void> {
 		this._channel = channel;
 		this._channel.publish('hello:greet', { message: 'hello event' });
 	}
 
 	public async unload(): Promise<void> {}
-
-	public get defaults(): object {
-		return {};
-	}
 
 	public get events(): EventsDefinition {
 		return ['greet'];

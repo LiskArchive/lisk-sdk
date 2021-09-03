@@ -15,35 +15,21 @@ import { p2pTypes } from '@liskhq/lisk-p2p';
 import { Schema } from '@liskhq/lisk-codec';
 import { Logger } from './logger';
 import { ImmutableSubStore } from './node/state_machine';
+import { RPC_MODES } from './constants';
 
 export interface SocketPaths {
-	readonly pub: string;
-	readonly sub: string;
-	readonly rpc: string;
-	readonly root: string;
+	readonly ipc: {
+		readonly path: string;
+	};
+}
+
+export enum ChannelType {
+	InMemory = 'inMemory',
+	ChildProcess = 'ipc',
 }
 
 export interface PluginOptions extends Record<string, unknown> {
 	readonly loadAsChildProcess?: boolean;
-	readonly alias?: string;
-}
-
-export interface AppConfigForPlugin {
-	readonly rootPath: string;
-	readonly version: string;
-	readonly networkVersion: string;
-	readonly genesisConfig: GenesisConfig;
-	readonly label: string;
-	readonly logger: {
-		readonly consoleLogLevel: string;
-		readonly fileLogLevel: string;
-	};
-}
-
-export interface PluginOptionsWithAppConfig extends PluginOptions {
-	// TODO: Remove data path from here and use from appConfig
-	readonly dataPath: string;
-	appConfig: AppConfigForPlugin;
 }
 
 export interface DelegateConfig {
@@ -107,10 +93,20 @@ type RecursivePartial<T> = {
 	[P in keyof T]?: RecursivePartial<T[P]>;
 };
 
-interface RPCConfig {
-	enable: boolean;
-	mode: 'ipc' | 'ws';
-	port: number;
+export interface RPCConfig {
+	modes: (typeof RPC_MODES.IPC | typeof RPC_MODES.WS)[];
+	ws?: {
+		port: number;
+		path: string;
+		host: string;
+	};
+	ipc?: {
+		path: string;
+	};
+	http?: {
+		port: number;
+		host: string;
+	};
 }
 
 export interface Generator {
@@ -124,6 +120,10 @@ export interface GenerationConfig {
 	force?: boolean;
 	defaultPassword?: string;
 	modules: Record<string, Record<string, unknown>>;
+}
+
+export interface PluginConfig extends Record<string, unknown> {
+	readonly loadAsChildProcess?: boolean;
 }
 
 export interface ApplicationConfig {
@@ -141,11 +141,13 @@ export interface ApplicationConfig {
 	};
 	genesisConfig: GenesisConfig;
 	plugins: {
-		[key: string]: PluginOptions;
+		[key: string]: PluginConfig;
 	};
 	transactionPool: TransactionPoolConfig;
 	rpc: RPCConfig;
 }
+
+export type ApplicationConfigForPlugin = Omit<ApplicationConfig, 'plugins'>;
 
 export type PartialApplicationConfig = RecursivePartial<ApplicationConfig>;
 

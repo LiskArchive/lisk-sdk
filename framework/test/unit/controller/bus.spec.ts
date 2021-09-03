@@ -23,22 +23,11 @@ import { WSServer } from '../../../src/controller/ws/ws_server';
 import { IPCServer } from '../../../src/controller/ipc/ipc_server';
 
 jest.mock('eventemitter2');
-jest.mock('pm2-axon');
-jest.mock('pm2-axon-rpc');
-jest.mock('ws');
+jest.mock('zeromq');
+jest.mock('../../../src/controller/ws/ws_server');
+jest.mock('../../../src/controller/ipc/ipc_server');
 
 describe('Bus', () => {
-	const config: any = {
-		socketsPath: {
-			root: '',
-		},
-		rpc: {
-			enable: true,
-			mode: 'ws',
-			port: 8080,
-		},
-	};
-
 	const channelMock: any = {};
 
 	const channelOptions = {
@@ -52,16 +41,19 @@ describe('Bus', () => {
 		debug: jest.fn(),
 	};
 
+	const busConfig = { internalIPCServer: new IPCServer({ socketsDir: '/unit/bus', name: 'bus' }) };
+
 	let bus: Bus;
 
 	beforeEach(() => {
-		bus = new Bus(loggerMock, config);
+		bus = new Bus(loggerMock, busConfig);
 	});
 
 	afterEach(async () => {
 		if (bus) {
 			await bus.cleanup();
 		}
+		(IPCServer as any).mockClear();
 	});
 
 	describe('#constructor', () => {
@@ -69,70 +61,57 @@ describe('Bus', () => {
 			// Assert
 			expect(bus['actions']).toEqual({});
 			expect(bus['events']).toEqual({});
-			expect(bus['_wsServer']).toBeInstanceOf(WSServer);
+			expect(bus['_wsServer']).toBeUndefined();
 		});
 	});
 
 	describe('#setup', () => {
-		beforeEach(() => {
-			jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
-			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
-		});
-
 		it('should resolve with true.', async () => {
-			return expect(bus.setup()).resolves.toBe(true);
+			return expect(bus.init()).resolves.toBe(true);
 		});
 
 		it('should setup ipc server if rpc is enabled', async () => {
 			// Arrange
-			const updatedConfig = { ...config };
-			updatedConfig.rpc.enable = true;
-			updatedConfig.rpc.mode = 'ipc';
-			bus = new Bus(loggerMock, updatedConfig);
-
+			bus = new Bus(loggerMock, busConfig);
 			// Act
-			await bus.setup();
+			await bus.init();
 
 			// Assert
 			return expect(IPCServer.prototype.start).toHaveBeenCalledTimes(1);
 		});
 
-		it('should setup ws server if rpc is enabled', async () => {
+		it('should setup only ws server if ws is only enabled', async () => {
 			// Arrange
-			const updatedConfig = { ...config };
-			updatedConfig.rpc.enable = true;
-			updatedConfig.rpc.mode = 'ws';
 
-			bus = new Bus(loggerMock, updatedConfig);
+			bus = new Bus(loggerMock, {
+				...busConfig,
+				wsServer: new WSServer({ logger: loggerMock, path: '/ws', port: 5000 }),
+			});
 
 			// Act
-			await bus.setup();
+			await bus.init();
 
 			// Assert
 			return expect(WSServer.prototype.start).toHaveBeenCalledTimes(1);
 		});
 
-		it('should not setup ipc server if rpc is not enabled', async () => {
+		it('should not setup external ipc server if ipc mode is not enabled', async () => {
 			// Arrange
-			const updatedConfig = { ...config };
-			updatedConfig.rpc.enable = false;
-			bus = new Bus(loggerMock, updatedConfig);
+			bus = new Bus(loggerMock, busConfig);
 
 			// Act
-			await bus.setup();
+			await bus.init();
 
 			// Assert
-			return expect(IPCServer.prototype.start).not.toHaveBeenCalled();
+			return expect(IPCServer.prototype.start).toHaveBeenCalledTimes(1);
 		});
 
 		it('should not setup ws server if rpc is not enabled', async () => {
 			// Arrange
-			const updatedConfig = { ...config };
-			updatedConfig.rpc.enable = false;
-			bus = new Bus(loggerMock, updatedConfig);
+			bus = new Bus(loggerMock, busConfig);
 
 			// Act
-			await bus.setup();
+			await bus.init();
 
 			// Assert
 			return expect(WSServer.prototype.start).not.toHaveBeenCalled();
@@ -142,58 +121,58 @@ describe('Bus', () => {
 	describe('#registerChannel', () => {
 		it('should register events.', async () => {
 			// Arrange
-			const moduleAlias = 'alias';
+			const moduleName = 'name';
 			const events = ['event1', 'event2'];
 
 			// Act
-			await bus.registerChannel(moduleAlias, events, {}, channelOptions);
+			await bus.registerChannel(moduleName, events, {}, channelOptions);
 
 			// Assert
 			expect(Object.keys(bus['events'])).toHaveLength(2);
 			events.forEach(eventName => {
-				expect(bus['events'][`${moduleAlias}:${eventName}`]).toBe(true);
+				expect(bus['events'][`${moduleName}:${eventName}`]).toBe(true);
 			});
 		});
 
 		it('should throw error when trying to register duplicate events', async () => {
 			// Arrange
-			const moduleAlias = 'alias';
+			const moduleName = 'name';
 			const events = ['event1', 'event1'];
 
 			// Act && Assert
-			await expect(bus.registerChannel(moduleAlias, events, {}, channelOptions)).rejects.toThrow(
+			await expect(bus.registerChannel(moduleName, events, {}, channelOptions)).rejects.toThrow(
 				Error,
 			);
 		});
 
 		it('should register actions.', async () => {
 			// Arrange
-			const moduleAlias = 'alias';
+			const moduleName = 'name';
 			const actions: any = {
-				action1: new Action(null, 'alias:action1', {}, jest.fn()),
-				action2: new Action(null, 'alias:action2', {}, jest.fn()),
+				action1: new Action(null, 'name:action1', {}, jest.fn()),
+				action2: new Action(null, 'name:action2', {}, jest.fn()),
 			};
 
 			// Act
-			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
+			await bus.registerChannel(moduleName, [], actions, channelOptions);
 
 			// Assert
 			expect(Object.keys(bus['actions'])).toHaveLength(2);
 			Object.keys(actions).forEach(actionName => {
-				expect(bus['actions'][`${moduleAlias}:${actionName}`]).toBe(actions[actionName]);
+				expect(bus['actions'][`${moduleName}:${actionName}`]).toBe(actions[actionName]);
 			});
 		});
 
 		it('should throw error when trying to register duplicate actions.', async () => {
 			// Arrange
-			const moduleAlias = 'alias';
+			const moduleName = 'name';
 			const actions = {
-				action1: new Action(null, 'alias:action1', {}, jest.fn()),
+				action1: new Action(null, 'name:action1', {}, jest.fn()),
 			};
 
 			// Act && Assert
-			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
-			await expect(bus.registerChannel(moduleAlias, [], actions, channelOptions)).rejects.toThrow(
+			await bus.registerChannel(moduleName, [], actions, channelOptions);
+			await expect(bus.registerChannel(moduleName, [], actions, channelOptions)).rejects.toThrow(
 				Error,
 			);
 		});
@@ -274,13 +253,17 @@ describe('Bus', () => {
 	describe('#publish', () => {
 		it("should call eventemitter2 library's emit method", async () => {
 			// Arrange
-			const moduleAlias = 'alias';
+			const moduleName = 'name';
 			const events = ['registeredEvent'];
-			const eventName = `${moduleAlias}:${events[0]}`;
+			const eventName = `${moduleName}:${events[0]}`;
 			const eventData = { data: '#DATA' };
-			const JSONRPCData = { jsonrpc: '2.0', method: 'alias:registeredEvent', params: eventData };
-
-			await bus.registerChannel(moduleAlias, events, {}, channelOptions);
+			const JSONRPCData = { jsonrpc: '2.0', method: 'name:registeredEvent', params: eventData };
+			const mockIPCServer = {
+				pubSocket: { send: jest.fn().mockResolvedValue(jest.fn()) },
+				stop: jest.fn(),
+			};
+			(bus as any)['_internalIPCServer'] = mockIPCServer;
+			await bus.registerChannel(moduleName, events, {}, channelOptions);
 
 			// Act
 			bus.publish(JSONRPCData);
@@ -330,16 +313,14 @@ describe('Bus', () => {
 	describe('#getActions', () => {
 		it('should return the registered actions', async () => {
 			// Arrange
-			const moduleAlias = 'alias';
+			const moduleName = 'name';
 			const actions: any = {
-				action1: new Action(null, 'alias:action1', {}, jest.fn()),
-				action2: new Action(null, 'alias:action2', {}, jest.fn()),
+				action1: new Action(null, 'name:action1', {}, jest.fn()),
+				action2: new Action(null, 'name:action2', {}, jest.fn()),
 			};
-			const expectedActions = Object.keys(actions).map(
-				actionName => `${moduleAlias}:${actionName}`,
-			);
+			const expectedActions = Object.keys(actions).map(actionName => `${moduleName}:${actionName}`);
 
-			await bus.registerChannel(moduleAlias, [], actions, channelOptions);
+			await bus.registerChannel(moduleName, [], actions, channelOptions);
 
 			// Act
 			const registeredActions = bus.getActions();
@@ -352,11 +333,11 @@ describe('Bus', () => {
 	describe('#getEvents', () => {
 		it('should return the registered events.', async () => {
 			// Arrange
-			const moduleAlias = 'alias';
+			const moduleName = 'name';
 			const events = ['event1', 'event2'];
-			const expectedEvents = events.map(event => `${moduleAlias}:${event}`);
+			const expectedEvents = events.map(event => `${moduleName}:${event}`);
 
-			await bus.registerChannel(moduleAlias, events, {}, channelOptions);
+			await bus.registerChannel(moduleName, events, {}, channelOptions);
 
 			// Act
 			const registeredEvent = bus.getEvents();

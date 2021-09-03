@@ -12,7 +12,45 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { BaseChannel, GenesisConfig } from 'lisk-framework';
 import { FaucetPlugin } from '../../../src/plugin';
+
+const appConfigForPlugin = {
+	rootPath: '~/.lisk',
+	label: 'my-app',
+	logger: { consoleLogLevel: 'info', fileLogLevel: 'none', logFileName: 'plugin-FaucetPlugin.log' },
+	rpc: {
+		modes: ['ipc'],
+		ws: {
+			port: 8080,
+			host: '127.0.0.1',
+			path: '/ws',
+		},
+		http: {
+			port: 8000,
+			host: '127.0.0.1',
+		},
+	},
+	forging: {
+		force: false,
+		waitThreshold: 2,
+		delegates: [],
+	},
+	network: {
+		seedPeers: [],
+		port: 5000,
+	},
+	transactionPool: {
+		maxTransactions: 4096,
+		maxTransactionsPerAccount: 64,
+		transactionExpiryTime: 3 * 60 * 60 * 1000,
+		minEntranceFeePriority: '0',
+		minReplacementFeeDifference: '10',
+	},
+	version: '',
+	networkVersion: '',
+	genesisConfig: {} as GenesisConfig,
+};
 
 const validOptions = {
 	captchaSitekey: '123',
@@ -21,37 +59,57 @@ const validOptions = {
 		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1',
 };
 
-describe('FaucetPlugin', () => {
-	describe('defaults', () => {
-		it('should return valid config schema with default options', () => {
-			const plugin = new FaucetPlugin(validOptions as never);
+const channelMock = {
+	invoke: jest.fn(),
+	once: jest.fn().mockImplementation((_eventName, cb) => cb()),
+};
 
-			expect(plugin.defaults).toMatchSnapshot();
+describe('FaucetPlugin', () => {
+	describe('configSchema', () => {
+		it('should return valid config schema with default options', async () => {
+			const plugin = new FaucetPlugin();
+
+			expect(plugin.configSchema).toMatchSnapshot();
 		});
 	});
 
-	describe('constructor', () => {
-		it('should load default config', () => {
-			const plugin = new FaucetPlugin(validOptions as never);
+	describe('init', () => {
+		it('should load default config', async () => {
+			const plugin = new FaucetPlugin();
+			await plugin.init({
+				config: validOptions,
+				channel: (channelMock as unknown) as BaseChannel,
+				appConfig: appConfigForPlugin,
+			});
 
-			expect(plugin.options).toMatchSnapshot();
+			expect(plugin.config).toMatchSnapshot();
 		});
 
-		it('should throw error if valid options are not passed', () => {
-			expect(
-				() => new FaucetPlugin({ captchaSitekey: '123', captchaSecretkey: '123' } as never),
-			).toThrow(
+		it('should throw error if valid options are not passed', async () => {
+			const plugin = new FaucetPlugin();
+			await expect(
+				plugin.init({
+					config: { captchaSitekey: '123', captchaSecretkey: '123' },
+					channel: (channelMock as unknown) as BaseChannel,
+					appConfig: appConfigForPlugin,
+				}),
+			).rejects.toThrow(
 				"Lisk validator found 1 error[s]:\nMissing property, must have required property 'encryptedPassphrase'",
 			);
 		});
 
-		it('should load custom tokenPrefix', () => {
-			const plugin = new FaucetPlugin({ ...validOptions, tokenPrefix: 'myToken' } as never);
+		it('should load custom tokenPrefix', async () => {
+			const plugin = new FaucetPlugin();
+			await plugin.init({
+				config: { ...validOptions, tokenPrefix: 'myToken' },
+				channel: (channelMock as unknown) as BaseChannel,
+				appConfig: appConfigForPlugin,
+			});
 
-			expect(plugin.options.tokenPrefix).toEqual('myToken');
+			expect(plugin.config.tokenPrefix).toEqual('myToken');
 		});
 
-		it('should load custom config values', () => {
+		it('should load custom config values', async () => {
 			const options = {
 				...validOptions,
 				tokenPrefix: 'myToken2',
@@ -59,9 +117,14 @@ describe('FaucetPlugin', () => {
 				token: '1111111111111',
 				captcha: { config: { value: 'value' } },
 			} as never;
-			const plugin = new FaucetPlugin(options);
+			const plugin = new FaucetPlugin();
+			await plugin.init({
+				config: options,
+				channel: (channelMock as unknown) as BaseChannel,
+				appConfig: appConfigForPlugin,
+			});
 
-			expect(plugin.options).toMatchObject(expect.objectContaining(options));
+			expect(plugin.config).toMatchObject(expect.objectContaining(options));
 		});
 	});
 });

@@ -25,7 +25,7 @@ export const channelMock = ({
 	eventsList: [],
 	actionsList: [],
 	actions: {},
-	moduleAlias: '',
+	moduleName: '',
 	options: {},
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	once: (_event: string): void => {},

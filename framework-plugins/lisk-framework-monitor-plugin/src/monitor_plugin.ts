@@ -16,60 +16,31 @@ import { RawBlock, RawBlockHeader } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
-import { objects } from '@liskhq/lisk-utils';
-import {
-	ActionsDefinition,
-	BaseChannel,
-	BasePlugin,
-	EventsDefinition,
-	PluginInfo,
-} from 'lisk-framework';
+import { ActionsDefinition, BaseChannel, BasePlugin } from 'lisk-framework';
 import * as express from 'express';
 import type { Express } from 'express';
 import * as cors from 'cors';
 import * as rateLimit from 'express-rate-limit';
 import * as middlewares from './middlewares';
-import * as config from './defaults';
-import { Options, SharedState } from './types';
+import { MonitorPluginConfig, SharedState } from './types';
 import * as controllers from './controllers';
-import { transactionAnnouncementSchema, postBlockEventSchema } from './schema';
-
-// eslint-disable-next-line
-const pJSON = require('../package.json');
+import { transactionAnnouncementSchema, postBlockEventSchema, configSchema } from './schemas';
 
 interface BlockData {
 	readonly block: string;
 }
 
-export class MonitorPlugin extends BasePlugin {
+export class MonitorPlugin extends BasePlugin<MonitorPluginConfig> {
+	public name = 'monitor';
+	public configSchema = configSchema;
+
 	private _server!: Server;
 	private _app!: Express;
 	private _channel!: BaseChannel;
 	private _state!: SharedState;
 
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get alias(): string {
-		return 'monitor';
-	}
-
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get info(): PluginInfo {
-		return {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			author: pJSON.author,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			version: pJSON.version,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			name: pJSON.name,
-		};
-	}
-
-	public get defaults(): Record<string, unknown> {
-		return config.defaultConfig;
-	}
-
-	public get events(): EventsDefinition {
-		return [];
+	public get nodeModulePath(): string {
+		return __filename;
 	}
 
 	public get actions(): ActionsDefinition {
@@ -85,7 +56,6 @@ export class MonitorPlugin extends BasePlugin {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async load(channel: BaseChannel): Promise<void> {
 		this._app = express();
-		const options = objects.mergeDeep({}, config.defaultConfig.default, this.options) as Options;
 		this._channel = channel;
 
 		this._state = {
@@ -98,11 +68,11 @@ export class MonitorPlugin extends BasePlugin {
 		};
 
 		this._channel.once('app:ready', () => {
-			this._registerMiddlewares(options);
+			this._registerMiddlewares(this.config);
 			this._registerControllers();
-			this._registerAfterMiddlewares(options);
+			this._registerAfterMiddlewares(this.config);
 			this._subscribeToEvents();
-			this._server = this._app.listen(options.port, options.host);
+			this._server = this._app.listen(this.config.port, this.config.host);
 		});
 	}
 
@@ -122,7 +92,7 @@ export class MonitorPlugin extends BasePlugin {
 		return this._state;
 	}
 
-	private _registerMiddlewares(options: Options): void {
+	private _registerMiddlewares(options: MonitorPluginConfig): void {
 		// Register middlewares
 		this._app.use(cors(options.cors));
 		this._app.use(express.json());
@@ -130,7 +100,7 @@ export class MonitorPlugin extends BasePlugin {
 		this._app.use(middlewares.whiteListMiddleware(options));
 	}
 
-	private _registerAfterMiddlewares(_options: Options): void {
+	private _registerAfterMiddlewares(_options: MonitorPluginConfig): void {
 		this._app.use(middlewares.errorMiddleware());
 	}
 

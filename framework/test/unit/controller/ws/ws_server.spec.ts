@@ -35,9 +35,9 @@ describe('WSServer', () => {
 	describe('constructor()', () => {
 		it('should setup class properties based on config', () => {
 			wsServerInstance = new WSServer(config);
-			expect(wsServerInstance['port']).toBe(config.port);
-			expect(wsServerInstance['path']).toBe(config.path);
-			expect(wsServerInstance['logger']).toBe(config.logger);
+			expect(wsServerInstance['_port']).toBe(config.port);
+			expect(wsServerInstance['_path']).toBe(config.path);
+			expect(wsServerInstance['_logger']).toBe(config.logger);
 		});
 	});
 
@@ -47,6 +47,7 @@ describe('WSServer', () => {
 
 			jest.spyOn(WebSocket.Server.prototype, 'on');
 
+			wsServerInstance.registerAllowedEvent(['app_newBlock']);
 			wsServerInstance.start(wsMessageHandler);
 		});
 
@@ -73,6 +74,7 @@ describe('WSServer', () => {
 	describe('stop()', () => {
 		it('should call stop on the WS server', () => {
 			wsServerInstance = new WSServer(config);
+			wsServerInstance.registerAllowedEvent(['app_newBlock']);
 			wsServerInstance.start(wsMessageHandler);
 			const stopSpy = jest.spyOn(wsServerInstance.server, 'close');
 			wsServerInstance.stop();

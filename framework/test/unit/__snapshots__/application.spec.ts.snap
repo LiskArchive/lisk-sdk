@@ -2243,13 +2243,25 @@ Object {
     ],
   },
   "networkVersion": "1.1",
-  "plugins": Object {},
+  "plugins": Object {
+    "reportMisbehavior": Object {
+      "encryptedPassphrase": "iterations=10&cipherText=5dea8b928a3ea2481ebc02499ae77679b7552189181ff189d4aa1f8d89e8d07bf31f7ebd1c66b620769f878629e1b90499506a6f752bf3323799e3a54600f8db02f504c44d&iv=37e0b1753b76a90ed0b8c319&salt=963c5b91d3f7ba02a9d001eed49b5836&tag=c3e30e8f3440ba3f5b6d9fbaccc8918d&version=1",
+    },
+  },
   "rootPath": "~/.lisk",
   "rpc": Object {
-    "enable": false,
-    "host": "127.0.0.1",
-    "mode": "ipc",
-    "port": 8080,
+    "http": Object {
+      "host": "127.0.0.1",
+      "port": 8000,
+    },
+    "modes": Array [
+      "ipc",
+    ],
+    "ws": Object {
+      "host": "127.0.0.1",
+      "path": "/ws",
+      "port": 8080,
+    },
   },
   "transactionPool": Object {
     "maxTransactions": 4096,

@@ -26,6 +26,7 @@ import { Action } from '../../../../src/controller/action';
 class MyChannel extends BaseChannel {
 	public once(_eventName: string, _cb: EventCallback): void {}
 	public subscribe(_eventName: string, _cb: EventCallback): void {}
+	public unsubscribe(_eventName: string, _cb: EventCallback): void {}
 	public publish(_eventName: string, _data: object): void {}
 	public async registerToBus(_arg: any): Promise<void> {}
 	public async invoke<T>(_actionName: string, _params?: object): Promise<T> {
@@ -37,7 +38,7 @@ describe('Base Channel', () => {
 	// Arrange
 	const actionHandler = jest.fn();
 	const params = {
-		moduleAlias: 'alias',
+		moduleName: 'name',
 		events: ['event1', 'event2'],
 		actions: {
 			action1: actionHandler,
@@ -50,19 +51,19 @@ describe('Base Channel', () => {
 
 	beforeEach(() => {
 		// Act
-		baseChannel = new MyChannel(params.moduleAlias, params.events, params.actions, params.options);
+		baseChannel = new MyChannel(params.moduleName, params.events, params.actions, params.options);
 	});
 
 	describe('#constructor', () => {
 		it('should create the instance with given arguments.', () => {
 			// Assert
-			expect(baseChannel['moduleAlias']).toBe(params.moduleAlias);
+			expect(baseChannel['moduleName']).toBe(params.moduleName);
 			expect(baseChannel['options']).toBe(params.options);
 
 			Object.keys(params.actions).forEach(action => {
 				expect(Action).toHaveBeenCalledWith(
 					null,
-					`${params.moduleAlias}:${action}`,
+					`${params.moduleName}:${action}`,
 					undefined,
 					actionHandler,
 				);
@@ -89,7 +90,7 @@ describe('Base Channel', () => {
 
 		it('base.eventsList be list of events', () => {
 			// Arrange & Act
-			baseChannel = new MyChannel(params.moduleAlias, params.events, params.actions);
+			baseChannel = new MyChannel(params.moduleName, params.events, params.actions);
 
 			// Assert
 			expect(baseChannel.eventsList).toHaveLength(params.events.length + INTERNAL_EVENTS.length);
@@ -100,7 +101,7 @@ describe('Base Channel', () => {
 
 		it('base.eventsList should contain internal events when skipInternalEvents option was set to FALSE', () => {
 			// Arrange & Act
-			baseChannel = new MyChannel(params.moduleAlias, params.events, params.actions, {
+			baseChannel = new MyChannel(params.moduleName, params.events, params.actions, {
 				skipInternalEvents: false,
 			});
 
@@ -110,7 +111,7 @@ describe('Base Channel', () => {
 
 		it('base.eventsList must NOT contain internal events when skipInternalEvents option was set TRUE', () => {
 			// Arrange & Act
-			baseChannel = new MyChannel(params.moduleAlias, params.events, params.actions, {
+			baseChannel = new MyChannel(params.moduleName, params.events, params.actions, {
 				skipInternalEvents: true,
 			});
 
@@ -135,7 +136,7 @@ describe('Base Channel', () => {
 
 		it('should return true when valid event name was provided.', () => {
 			// Act & Assert
-			expect(baseChannel.isValidEventName(`${params.moduleAlias}:${eventName}`)).toBe(true);
+			expect(baseChannel.isValidEventName(`${params.moduleName}:${eventName}`)).toBe(true);
 		});
 	});
 
@@ -155,7 +156,7 @@ describe('Base Channel', () => {
 
 		it('should return true when valid event name was provided.', () => {
 			// Act & Assert
-			expect(baseChannel.isValidActionName(`${params.moduleAlias}:${actionName}`)).toBe(true);
+			expect(baseChannel.isValidActionName(`${params.moduleName}:${actionName}`)).toBe(true);
 		});
 	});
 });
