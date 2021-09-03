@@ -18,6 +18,7 @@ import * as fs from 'fs-extra';
 import * as os from 'os';
 import { join } from 'path';
 import { Application } from '../../src/application';
+import { Bus } from '../../src/controller/bus';
 import { IPCServer } from '../../src/controller/ipc/ipc_server';
 import { WSServer } from '../../src/controller/ws/ws_server';
 import { createLogger } from '../../src/logger';
@@ -27,6 +28,7 @@ import { genesisBlock } from '../fixtures/blocks';
 import * as networkConfig from '../fixtures/config/devnet/config.json';
 
 jest.mock('fs-extra');
+jest.mock('zeromq');
 jest.mock('@liskhq/lisk-db');
 jest.mock('../../src/logger');
 
@@ -386,11 +388,16 @@ describe('Application', () => {
 			jest.spyOn(app['_node']['_network'], 'start').mockResolvedValue();
 			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
 			jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
+			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
 
 			await app.run();
 
 			dirs = systemDirs(app.config.label, app.config.rootPath);
+		});
+
+		afterEach(async () => {
+			await app.shutdown();
 		});
 
 		it('should ensure directory exists', () => {
@@ -424,6 +431,7 @@ describe('Application', () => {
 			app = Application.defaultApplication(genesisBlockJSON, config);
 			jest.spyOn(app['_node']['_network'], 'start').mockResolvedValue();
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
+			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 
 			await app.run();
 			await app.shutdown();
@@ -455,6 +463,7 @@ describe('Application', () => {
 		let _nodeDBSpy: jest.SpyInstance<any, unknown[]>;
 
 		beforeEach(async () => {
+			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 			app = Application.defaultApplication(genesisBlockJSON, config);
 			jest.spyOn(app['_node']['_network'], 'start').mockResolvedValue();
 			await app.run();

@@ -21,84 +21,25 @@ import {
 	getAddressAndPublicKeyFromPassphrase,
 	getLisk32AddressFromPublicKey,
 } from '@liskhq/lisk-cryptography';
-import { objects } from '@liskhq/lisk-utils';
 import axios from 'axios';
-import {
-	ActionsDefinition,
-	BasePlugin,
-	BaseChannel,
-	EventsDefinition,
-	PluginInfo,
-	SchemaWithDefault,
-} from 'lisk-framework';
+import { ActionsDefinition, BasePlugin, BaseChannel } from 'lisk-framework';
 import * as express from 'express';
 import { join } from 'path';
 import { Server } from 'http';
-import * as defaults from './defaults';
-import { FaucetPluginOptions, State } from './types';
+import { configSchema, authorizeParamsSchema, fundParamsSchema } from './schemas';
+import { FaucetPluginConfig, State } from './types';
 
-// eslint-disable-next-line
-const packageJSON = require('../../package.json');
+export class FaucetPlugin extends BasePlugin<FaucetPluginConfig> {
+	public name = 'faucet';
+	public configSchema = configSchema;
 
-const authorizeParamsSchema = {
-	$id: 'lisk/faucet/auth',
-	type: 'object',
-	required: ['password', 'enable'],
-	properties: {
-		password: {
-			type: 'string',
-		},
-		enable: {
-			type: 'boolean',
-		},
-	},
-};
-
-const fundParamsSchema = {
-	$id: 'lisk/faucet/fund',
-	type: 'object',
-	required: ['address'],
-	properties: {
-		address: {
-			type: 'string',
-			format: 'hex',
-		},
-		token: {
-			type: 'string',
-		},
-	},
-};
-
-export class FaucetPlugin extends BasePlugin {
-	private _options!: FaucetPluginOptions;
 	private _channel!: BaseChannel;
 	private _client!: APIClient;
 	private _server!: Server;
 	private readonly _state: State = { publicKey: undefined, passphrase: undefined };
 
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get alias(): string {
-		return 'faucet';
-	}
-
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get info(): PluginInfo {
-		return {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			author: packageJSON.author,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			version: packageJSON.version,
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-			name: packageJSON.name,
-		};
-	}
-
-	public get defaults(): SchemaWithDefault {
-		return defaults.config;
-	}
-
-	public get events(): EventsDefinition {
-		return [];
+	public get nodeModulePath(): string {
+		return __filename;
 	}
 
 	public get actions(): ActionsDefinition {
@@ -110,18 +51,11 @@ export class FaucetPlugin extends BasePlugin {
 					throw new LiskValidationError([...errors]);
 				}
 
-				if (
-					!this._options.encryptedPassphrase ||
-					typeof this._options.encryptedPassphrase !== 'string'
-				) {
-					throw new Error('Encrypted passphrase string must be set in the config.');
-				}
-
 				const { enable, password } = params as Record<string, unknown>;
 
 				try {
 					const parsedEncryptedPassphrase = parseEncryptedPassphrase(
-						this._options.encryptedPassphrase,
+						this.config.encryptedPassphrase,
 					);
 
 					const passphrase = decryptPassphraseWithPassword(
@@ -158,7 +92,7 @@ export class FaucetPlugin extends BasePlugin {
 					method: 'post',
 					url: 'https://www.google.com/recaptcha/api/siteverify',
 					params: {
-						secret: this.options.captchaSecretkey,
+						secret: this.config.captchaSecretkey,
 						response: token,
 					},
 				});
@@ -181,20 +115,15 @@ export class FaucetPlugin extends BasePlugin {
 	public async load(channel: BaseChannel): Promise<void> {
 		this._channel = channel;
 		this._client = await createClient(this._channel);
-		this._options = objects.mergeDeep(
-			{},
-			defaults.config.default,
-			this.options,
-		) as FaucetPluginOptions;
 
 		const app = express();
 		app.get('/api/config', (_req, res) => {
 			const config = {
-				applicationUrl: this._options.applicationUrl,
-				amount: this._options.amount,
-				tokenPrefix: this._options.tokenPrefix,
-				captchaSitekey: this._options.captchaSitekey,
-				logoURL: this._options.logoURL,
+				applicationUrl: this.config.applicationUrl,
+				amount: this.config.amount,
+				tokenPrefix: this.config.tokenPrefix,
+				captchaSitekey: this.config.captchaSitekey,
+				logoURL: this.config.logoURL,
 				faucetAddress: this._state.publicKey
 					? getLisk32AddressFromPublicKey(this._state.publicKey)
 					: undefined,
@@ -202,7 +131,7 @@ export class FaucetPlugin extends BasePlugin {
 			res.json(config);
 		});
 		app.use(express.static(join(__dirname, '../../build')));
-		this._server = app.listen(this._options.port, this._options.host);
+		this._server = app.listen(this.config.port, this.config.host);
 	}
 
 	public async unload(): Promise<void> {
@@ -219,7 +148,7 @@ export class FaucetPlugin extends BasePlugin {
 
 	private async _transferFunds(address: string): Promise<void> {
 		const transferTransactionAsset = {
-			amount: BigInt(convertLSKToBeddows(this._options.amount)),
+			amount: BigInt(convertLSKToBeddows(this.config.amount)),
 			recipientAddress: Buffer.from(address, 'hex'),
 			data: '',
 		};
@@ -229,7 +158,7 @@ export class FaucetPlugin extends BasePlugin {
 				moduleID: 2,
 				assetID: 0,
 				senderPublicKey: this._state.publicKey as Buffer,
-				fee: BigInt(convertLSKToBeddows(this._options.fee)), // TODO: The static fee should be replaced by fee estimation calculation
+				fee: BigInt(convertLSKToBeddows(this.config.fee)), // TODO: The static fee should be replaced by fee estimation calculation
 				asset: transferTransactionAsset,
 			},
 			this._state.passphrase as string,

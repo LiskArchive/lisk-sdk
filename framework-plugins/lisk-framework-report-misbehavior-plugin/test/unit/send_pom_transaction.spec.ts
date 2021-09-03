@@ -12,16 +12,57 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { BaseChannel, GenesisConfig, testing } from 'lisk-framework';
 import { when } from 'jest-when';
 import { blockHeaderSchema, blockSchema, transactionSchema } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { testing } from 'lisk-framework';
 
 import { ReportMisbehaviorPlugin } from '../../src';
-import * as config from '../../src/defaults/default_config';
+import { configSchema } from '../../src/schemas';
+
+const appConfigForPlugin = {
+	rootPath: '~/.lisk',
+	label: 'my-app',
+	logger: {
+		consoleLogLevel: 'info',
+		fileLogLevel: 'none',
+		logFileName: 'plugin-MisbehaviourPlugin.log',
+	},
+	rpc: {
+		modes: ['ipc'],
+		ws: {
+			port: 8080,
+			host: '127.0.0.1',
+			path: '/ws',
+		},
+		http: {
+			port: 8000,
+			host: '127.0.0.1',
+		},
+	},
+	forging: {
+		force: false,
+		waitThreshold: 2,
+		delegates: [],
+	},
+	network: {
+		seedPeers: [],
+		port: 5000,
+	},
+	transactionPool: {
+		maxTransactions: 4096,
+		maxTransactionsPerAccount: 64,
+		transactionExpiryTime: 3 * 60 * 60 * 1000,
+		minEntranceFeePriority: '0',
+		minReplacementFeeDifference: '10',
+	},
+	version: '',
+	networkVersion: '',
+	genesisConfig: {} as GenesisConfig,
+};
 
 const validPluginOptions = {
-	...config.defaultConfig.default,
+	...configSchema.default,
 	encryptedPassphrase:
 		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1',
 	dataPath: '/my/app',
@@ -58,7 +99,7 @@ describe('Send PoM transaction', () => {
 		eventsList: [],
 		actionsList: [],
 		actions: {},
-		moduleAlias: '',
+		moduleName: '',
 		options: {},
 	} as any;
 	const blockHeader1 = Buffer.from(
@@ -72,14 +113,19 @@ describe('Send PoM transaction', () => {
 	const header1 = codec.decode(blockHeaderSchema, blockHeader1);
 	const header2 = codec.decode(blockHeaderSchema, blockHeader2);
 
-	beforeEach(() => {
-		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin(validPluginOptions as never);
+	beforeEach(async () => {
+		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin();
+		await reportMisbehaviorPlugin.init({
+			config: validPluginOptions,
+			channel: (channelMock as unknown) as BaseChannel,
+			appConfig: appConfigForPlugin,
+		});
 		(reportMisbehaviorPlugin as any)._channel = channelMock;
 		(reportMisbehaviorPlugin as any)._options = { fee: '100000000' };
-		reportMisbehaviorPlugin['_logger'] = {
+		reportMisbehaviorPlugin['logger'] = {
 			error: jest.fn(),
 		} as any;
-		reportMisbehaviorPlugin.schemas = {
+		reportMisbehaviorPlugin['schemas'] = {
 			block: blockSchema,
 			blockHeader: blockHeaderSchema,
 			transaction: transactionSchema,
@@ -123,7 +169,7 @@ describe('Send PoM transaction', () => {
 	});
 
 	it('should throw error when pom transaction asset schema is not found', async () => {
-		reportMisbehaviorPlugin.schemas.transactionsAssets = [];
+		reportMisbehaviorPlugin['schemas'].transactionsAssets = [];
 		await expect(
 			(reportMisbehaviorPlugin as any)._createPoMTransaction(header1, header2),
 		).rejects.toThrow('PoM asset schema is not registered in the application.');

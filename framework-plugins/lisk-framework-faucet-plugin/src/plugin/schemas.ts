@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const config = {
+export const configSchema = {
 	$id: '#/plugins/lisk-faucet/config',
 	type: 'object',
 	properties: {
@@ -69,5 +69,34 @@ export const config = {
 		fee: '0.1',
 		amount: '100',
 		tokenPrefix: 'lsk',
+	},
+};
+
+export const fundParamsSchema = {
+	$id: 'lisk/faucet/fund',
+	type: 'object',
+	required: ['address'],
+	properties: {
+		address: {
+			type: 'string',
+			format: 'hex',
+		},
+		token: {
+			type: 'string',
+		},
+	},
+};
+
+export const authorizeParamsSchema = {
+	$id: 'lisk/faucet/auth',
+	type: 'object',
+	required: ['password', 'enable'],
+	properties: {
+		password: {
+			type: 'string',
+		},
+		enable: {
+			type: 'boolean',
+		},
 	},
 };

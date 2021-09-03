@@ -153,6 +153,18 @@ describe('SparseMerkleTree', () => {
 				expect(verify(queryKeys, proof, Buffer.from(outputMerkleRoot, 'hex'), 32)).toBeTrue();
 			});
 		}
+	});
+
+	// TODO: Enable or migrate with new testing strategy. This test takes 20min~
+	// eslint-disable-next-line jest/no-disabled-tests
+	describe.skip('generateMultiProof - Jumbo fixtures', () => {
+		let db: Database;
+		let smt: SparseMerkleTree;
+
+		beforeEach(() => {
+			db = new InMemoryDB();
+			smt = new SparseMerkleTree({ db, keyLength: 32 });
+		});
 
 		for (const test of JumboFixtures.testCases) {
 			// eslint-disable-next-line no-loop-func

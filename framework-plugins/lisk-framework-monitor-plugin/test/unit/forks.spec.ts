@@ -12,14 +12,55 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { BaseChannel, GenesisConfig } from 'lisk-framework';
 import { blockHeaderSchema, blockSchema, RawBlock } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
 import { testing } from 'lisk-framework';
 import { MonitorPlugin } from '../../src/monitor_plugin';
-import * as config from '../../src/defaults/default_config';
+import { configSchema } from '../../src/schemas';
 
-const validPluginOptions = config.defaultConfig.default;
+const appConfigForPlugin = {
+	rootPath: '~/.lisk',
+	label: 'my-app',
+	logger: {
+		consoleLogLevel: 'info',
+		fileLogLevel: 'none',
+		logFileName: 'plugin-MisbehaviourPlugin.log',
+	},
+	rpc: {
+		modes: ['ipc'],
+		ws: {
+			port: 8080,
+			host: '127.0.0.1',
+			path: '/ws',
+		},
+		http: {
+			port: 8000,
+			host: '127.0.0.1',
+		},
+	},
+	forging: {
+		force: false,
+		waitThreshold: 2,
+		delegates: [],
+	},
+	network: {
+		seedPeers: [],
+		port: 5000,
+	},
+	transactionPool: {
+		maxTransactions: 4096,
+		maxTransactionsPerAccount: 64,
+		transactionExpiryTime: 3 * 60 * 60 * 1000,
+		minEntranceFeePriority: '0',
+		minReplacementFeeDifference: '10',
+	},
+	version: '',
+	networkVersion: '',
+	genesisConfig: {} as GenesisConfig,
+};
+const validPluginOptions = configSchema.default;
 
 describe('_handleFork', () => {
 	let monitorPluginInstance: MonitorPlugin;
@@ -29,9 +70,17 @@ describe('_handleFork', () => {
 	} = testing;
 
 	beforeEach(async () => {
-		monitorPluginInstance = new MonitorPlugin(validPluginOptions as never);
+		monitorPluginInstance = new MonitorPlugin();
+		await monitorPluginInstance.init({
+			config: validPluginOptions,
+			channel: (channelMock as unknown) as BaseChannel,
+			appConfig: appConfigForPlugin,
+		});
 		await monitorPluginInstance.load(channelMock);
-		monitorPluginInstance.schemas = { block: blockSchema, blockHeader: blockHeaderSchema } as any;
+		monitorPluginInstance['schemas'] = {
+			block: blockSchema,
+			blockHeader: blockHeaderSchema,
+		} as any;
 		encodedBlock =
 			'0acd01080210c38ec1fc0518a2012220c736b8cfb669ff453118230c71d7dc433797b5b30da6b9d89a14457f1b56faa12a20e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b85532209bcf519c9e0a8e66b3939f9d592b5a1728141ea3253b7d3a2424a44575c5f4e738004216087410001a1060fce85c0ca51ca1c72c589c9f651f574a40396edc8e940c5f5829d382c10cae3c2f7f24a5a9bb42ef8c545439e1a2e83951f87bc894816d7b90958b411a37b816c9e2d597dd52d7847d5a73f411ded65303';
 	});

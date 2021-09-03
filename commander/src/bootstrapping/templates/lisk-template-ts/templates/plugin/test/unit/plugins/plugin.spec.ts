@@ -1,13 +1,11 @@
-// import * as plugins from '../../../src/app/plugins/<%= alias %>';
+// import * as plugins from '../../../src/app/plugins/<%= name %>';
 
 describe('<%= className %>', () => {
-	describe('alias', () => {
-		it.todo('should have valid alias');
+	describe('name', () => {
+		it.todo('should have valid name');
 	});
-	describe('info', () => {
-		it.todo('should have author');
-		it.todo('should have name');
-		it.todo('should have version');
+	describe('nodeModulePath', () => {
+		it.todo('should have nodeModulePath');
 	});
 	describe('events', () => {
 		it.todo('should fire an event');

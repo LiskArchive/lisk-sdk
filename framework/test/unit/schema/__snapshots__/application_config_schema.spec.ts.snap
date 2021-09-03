@@ -69,10 +69,18 @@ Object {
     "plugins": Object {},
     "rootPath": "~/.lisk",
     "rpc": Object {
-      "enable": false,
-      "host": "127.0.0.1",
-      "mode": "ipc",
-      "port": 8080,
+      "http": Object {
+        "host": "127.0.0.1",
+        "port": 8000,
+      },
+      "modes": Array [
+        "ipc",
+      ],
+      "ws": Object {
+        "host": "127.0.0.1",
+        "path": "/ws",
+        "port": 8080,
+      },
     },
     "transactionPool": Object {
       "maxTransactions": 4096,
@@ -588,24 +596,67 @@ Object {
     },
     "rpc": Object {
       "properties": Object {
-        "enable": Object {
-          "type": "boolean",
-        },
-        "host": Object {
-          "format": "ip",
-          "type": "string",
-        },
-        "mode": Object {
-          "enum": Array [
-            "ipc",
-            "ws",
+        "http": Object {
+          "properties": Object {
+            "host": Object {
+              "type": "string",
+            },
+            "port": Object {
+              "maximum": 65535,
+              "minimum": 1024,
+              "type": "number",
+            },
+          },
+          "required": Array [
+            "host",
+            "port",
           ],
-          "type": "string",
+          "type": "object",
         },
-        "port": Object {
-          "maximum": 65535,
-          "minimum": 1024,
-          "type": "number",
+        "ipc": Object {
+          "properties": Object {
+            "path": Object {
+              "type": "string",
+            },
+          },
+          "required": Array [
+            "path",
+          ],
+          "type": "object",
+        },
+        "modes": Object {
+          "items": Object {
+            "enum": Array [
+              "ipc",
+              "ws",
+              "http",
+            ],
+            "type": "string",
+          },
+          "type": "array",
+          "uniqueItems": true,
+        },
+        "ws": Object {
+          "properties": Object {
+            "host": Object {
+              "format": "ip",
+              "type": "string",
+            },
+            "path": Object {
+              "type": "string",
+            },
+            "port": Object {
+              "maximum": 65535,
+              "minimum": 1024,
+              "type": "number",
+            },
+          },
+          "required": Array [
+            "host",
+            "port",
+            "path",
+          ],
+          "type": "object",
         },
       },
       "type": "object",

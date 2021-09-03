@@ -66,7 +66,7 @@ describe('db', () => {
 
 		const appEnv = testing.createDefaultApplicationEnv({
 			config,
-			plugins: [ReportMisbehaviorPlugin],
+			plugins: [ReportMisbehaviorPlugin as never],
 		});
 		registeredSchemas = appEnv.application.getSchema();
 	});

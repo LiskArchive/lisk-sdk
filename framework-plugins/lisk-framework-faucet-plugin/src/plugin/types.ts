@@ -12,12 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { PluginOptionsWithAppConfig } from 'lisk-framework';
-
-export interface FaucetPluginOptions extends PluginOptionsWithAppConfig {
+export interface FaucetPluginConfig {
 	port: number;
 	host: string;
 	encryptedPassphrase: string;
+	captchaSitekey: string;
+	captchaSecretkey: string;
 	applicationUrl: string;
 	fee: string;
 	amount: string;

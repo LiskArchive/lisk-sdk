@@ -35,16 +35,6 @@ export class MyPlugin extends BasePlugin {
     /**
     * Required.
     *
-    * A unique plugin identifier, that can be accessed through out the system.
-    * If some plugin already registered with the same alias, it will throw an error.
-    *
-    * @return {string} alias - Return the plugin alias as string.
-    * */
-    static get alias(){ return 'pluginAlias'; },
-
-    /**
-    * Required.
-    *
     * Package meta information.
     *
     * @return {Object} info - JSON object referring the version, plugin name, and plugin author.
@@ -80,7 +70,7 @@ export class MyPlugin extends BasePlugin {
 
     /**
      * List of valid events which this plugin wants to register with the controller.
-     * Each event name will be prefixed by plugin alias, e.g. pluginName:event1.
+     * Each event name will be prefixed by plugin name, e.g. pluginName:event1.
      * Listing an event means to register the event in the application.
      * Any plugin can subscribe or publish that event in the application.
      *
@@ -90,7 +80,7 @@ export class MyPlugin extends BasePlugin {
 
     /**
      * Object of valid actions which this plugin want to register with the controller.
-     * Each action name will be prefixed by plugin alias, e.g. pluginName:action1.
+     * Each action name will be prefixed by plugin name, e.g. pluginName:action1.
      * Source plugin can define the action while others can invoke that action.
      *
      * @return {Object} actions - Contains all available action names as key, and the corresponding function as value.

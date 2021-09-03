@@ -1,22 +1,15 @@
 import { BasePlugin } from 'lisk-sdk';
-import type { BaseChannel, EventsDefinition, ActionsDefinition, PluginInfo } from 'lisk-sdk';
+import type { BaseChannel, EventsDefinition, ActionsDefinition } from 'lisk-sdk';
 
  /* eslint-disable class-methods-use-this */
  /* eslint-disable  @typescript-eslint/no-empty-function */
  export class <%= className %> extends BasePlugin {
 	// private _channel!: BaseChannel;
 
-	public static get alias(): string {
-		return '<%= alias %>';
-	}
+	public name: '<%= name %>';
 
-	// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	public static get info(): PluginInfo {
-		return {
-			author: '<%= author %>',
-			version: '<%= version %>',
-			name: '<%= name %>',
-		};
+	public get nodeModulePath(): string {
+		return <%= __filename %>;
 	}
 
 	public get events(): EventsDefinition {
@@ -32,7 +25,7 @@ import type { BaseChannel, EventsDefinition, ActionsDefinition, PluginInfo } fro
 		};
 	}
 
-		public async load(_: BaseChannel): Promise<void> {
+	public async load(_: BaseChannel): Promise<void> {
 		// this._channel = channel;
 		// this._channel.once('app:ready', () => {});
 	}
