@@ -99,7 +99,7 @@ describe('Send PoM transaction', () => {
 		eventsList: [],
 		actionsList: [],
 		actions: {},
-		moduleAlias: '',
+		moduleName: '',
 		options: {},
 	} as any;
 	const blockHeader1 = Buffer.from(

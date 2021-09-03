@@ -105,7 +105,7 @@ describe('Clean up old blocks', () => {
 		eventsList: [],
 		actionsList: [],
 		actions: {},
-		moduleAlias: '',
+		moduleName: '',
 		options: {},
 	} as any;
 	const blockHeader1 = Buffer.from(

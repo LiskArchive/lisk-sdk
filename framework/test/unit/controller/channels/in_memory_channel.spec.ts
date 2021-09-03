@@ -23,7 +23,7 @@ import { Event } from '../../../../src/controller/event';
 describe('InMemoryChannel Channel', () => {
 	// Arrange
 	const params = {
-		moduleAlias: 'moduleAlias',
+		moduleName: 'moduleName',
 		events: ['event1', 'event2'],
 		actions: {
 			action1: {
@@ -46,7 +46,7 @@ describe('InMemoryChannel Channel', () => {
 	beforeEach(() => {
 		// Act
 		inMemoryChannel = new InMemoryChannel(
-			params.moduleAlias,
+			params.moduleName,
 			params.events,
 			params.actions,
 			params.options,
@@ -63,7 +63,7 @@ describe('InMemoryChannel Channel', () => {
 	describe('#constructor', () => {
 		it('should create the instance with given arguments.', () => {
 			// Assert
-			expect(inMemoryChannel).toHaveProperty('moduleAlias');
+			expect(inMemoryChannel).toHaveProperty('moduleName');
 			expect(inMemoryChannel).toHaveProperty('options');
 		});
 	});
@@ -76,7 +76,7 @@ describe('InMemoryChannel Channel', () => {
 			// Assert
 			expect(inMemoryChannel['bus']).toBe(bus);
 			expect(inMemoryChannel['bus'].registerChannel).toHaveBeenCalledWith(
-				inMemoryChannel['moduleAlias'],
+				inMemoryChannel['moduleName'],
 				inMemoryChannel.eventsList,
 				inMemoryChannel['actions'],
 				{ type: 'inMemory', channel: inMemoryChannel },
@@ -135,18 +135,18 @@ describe('InMemoryChannel Channel', () => {
 			);
 		});
 
-		it('should throw an Error if event module is different than moduleAlias', () => {
+		it('should throw an Error if event module is different than moduleName', () => {
 			const eventName = 'differentModule:eventName';
 			expect(() => {
 				inMemoryChannel.publish(eventName);
 			}).toThrow(
-				`Event "${eventName}" not registered in "${inMemoryChannel['moduleAlias']}" module.`,
+				`Event "${eventName}" not registered in "${inMemoryChannel['moduleName']}" module.`,
 			);
 		});
 
-		it('should call bus.publish if the event module is equal to moduleAlias', async () => {
+		it('should call bus.publish if the event module is equal to moduleName', async () => {
 			// Arrange
-			const eventFullName = `${inMemoryChannel['moduleAlias']}:eventName`;
+			const eventFullName = `${inMemoryChannel['moduleName']}:eventName`;
 			const event = new Event(eventFullName);
 
 			// Act
@@ -163,9 +163,9 @@ describe('InMemoryChannel Channel', () => {
 	describe('#invoke', () => {
 		const actionName = 'action1';
 
-		it('should execute the action straight away if the action module is equal to moduleAlias', async () => {
+		it('should execute the action straight away if the action module is equal to moduleName', async () => {
 			// Arrange
-			const actionFullName = `${inMemoryChannel['moduleAlias']}:${actionName}`;
+			const actionFullName = `${inMemoryChannel['moduleName']}:${actionName}`;
 
 			// Act
 			await inMemoryChannel.invoke(actionFullName);
@@ -174,7 +174,7 @@ describe('InMemoryChannel Channel', () => {
 			expect(params.actions.action1.handler).toHaveBeenCalled();
 		});
 
-		it('should call bus.invoke if the action module is different to moduleAlias', async () => {
+		it('should call bus.invoke if the action module is different to moduleName', async () => {
 			// Arrange
 			const actionFullName = `aDifferentModule:${actionName}`;
 

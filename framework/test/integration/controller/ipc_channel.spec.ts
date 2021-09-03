@@ -42,7 +42,7 @@ describe.skip('IPCChannel', () => {
 	};
 
 	const alpha = {
-		moduleAlias: 'alphaAlias',
+		moduleName: 'alphaName',
 		events: ['alpha1', 'alpha2'],
 		actions: {
 			multiplyByTwo: {
@@ -55,7 +55,7 @@ describe.skip('IPCChannel', () => {
 	};
 
 	const beta = {
-		moduleAlias: 'betaAlias',
+		moduleName: 'betaName',
 		events: ['beta1', 'beta2', 'beta3'],
 		actions: {
 			divideByTwo: {
@@ -93,9 +93,9 @@ describe.skip('IPCChannel', () => {
 			// Arrange
 			bus = new Bus(logger, config);
 
-			alphaChannel = new IPCChannel(alpha.moduleAlias, alpha.events, alpha.actions, config);
+			alphaChannel = new IPCChannel(alpha.moduleName, alpha.events, alpha.actions, config);
 
-			betaChannel = new IPCChannel(beta.moduleAlias, beta.events, beta.actions, config);
+			betaChannel = new IPCChannel(beta.moduleName, beta.events, beta.actions, config);
 
 			await bus.init();
 			await alphaChannel.registerToBus();
@@ -119,12 +119,12 @@ describe.skip('IPCChannel', () => {
 				// Act
 				const listen = async () => {
 					return new Promise<void>(resolve => {
-						alphaChannel.subscribe(`${beta.moduleAlias}:${eventName}`, data => {
+						alphaChannel.subscribe(`${beta.moduleName}:${eventName}`, data => {
 							message = data;
 							resolve();
 						});
 
-						betaChannel.publish(`${beta.moduleAlias}:${eventName}`, betaEventData);
+						betaChannel.publish(`${beta.moduleName}:${eventName}`, betaEventData);
 					});
 				};
 
@@ -139,14 +139,14 @@ describe.skip('IPCChannel', () => {
 				const eventName = beta.events[0];
 				const donePromise = new Promise<void>(resolve => {
 					// Act
-					alphaChannel.once(`${beta.moduleAlias}:${eventName}`, data => {
+					alphaChannel.once(`${beta.moduleName}:${eventName}`, data => {
 						// Assert
 						expect(data).toEqual(betaEventData);
 						resolve();
 					});
 				});
 
-				betaChannel.publish(`${beta.moduleAlias}:${eventName}`, betaEventData);
+				betaChannel.publish(`${beta.moduleName}:${eventName}`, betaEventData);
 
 				return donePromise;
 			});
@@ -154,13 +154,13 @@ describe.skip('IPCChannel', () => {
 			it('should be able to subscribe to an unregistered event.', async () => {
 				// Arrange
 				const omegaEventName = 'omegaEventName';
-				const omegaAlias = 'omegaAlias';
+				const omegaName = 'omegaName';
 				const dummyData = { data: '#DATA' };
-				const inMemoryChannelOmega = new InMemoryChannel(omegaAlias, [omegaEventName], {});
+				const inMemoryChannelOmega = new InMemoryChannel(omegaName, [omegaEventName], {});
 
 				const donePromise = new Promise<void>(resolve => {
 					// Act
-					alphaChannel.subscribe(`${omegaAlias}:${omegaEventName}`, data => {
+					alphaChannel.subscribe(`${omegaName}:${omegaEventName}`, data => {
 						// Assert
 						expect(data).toEqual(dummyData);
 						resolve();
@@ -169,7 +169,7 @@ describe.skip('IPCChannel', () => {
 
 				await inMemoryChannelOmega.registerToBus(bus);
 
-				inMemoryChannelOmega.publish(`${omegaAlias}:${omegaEventName}`, dummyData);
+				inMemoryChannelOmega.publish(`${omegaName}:${omegaEventName}`, dummyData);
 
 				return donePromise;
 			});
@@ -184,7 +184,7 @@ describe.skip('IPCChannel', () => {
 				const wait = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 				// Act
 				const listenPromise = new Promise<void>(resolve => {
-					alphaChannel.subscribe(`${beta.moduleAlias}:${eventName}`, _ => {
+					alphaChannel.subscribe(`${beta.moduleName}:${eventName}`, _ => {
 						messageCount += 1;
 					});
 					setTimeout(() => {
@@ -193,12 +193,12 @@ describe.skip('IPCChannel', () => {
 					}, 200);
 				});
 
-				betaChannel.publish(`${beta.moduleAlias}:${eventName}`, betaEventData);
+				betaChannel.publish(`${beta.moduleName}:${eventName}`, betaEventData);
 				await wait(25);
 				// Now unsubscribe from the event and publish it again
-				alphaChannel.unsubscribe(`${beta.moduleAlias}:${eventName}`, _ => {});
+				alphaChannel.unsubscribe(`${beta.moduleName}:${eventName}`, _ => {});
 				await wait(25);
-				betaChannel.publish(`${beta.moduleAlias}:${eventName}`, betaEventData);
+				betaChannel.publish(`${beta.moduleName}:${eventName}`, betaEventData);
 
 				// Assert
 				return listenPromise;
@@ -213,14 +213,14 @@ describe.skip('IPCChannel', () => {
 
 				const donePromise = new Promise<void>(done => {
 					// Act
-					betaChannel.once(`${alpha.moduleAlias}:${eventName}`, data => {
+					betaChannel.once(`${alpha.moduleName}:${eventName}`, data => {
 						// Assert
 						expect(data).toEqual(alphaEventData);
 						done();
 					});
 				});
 
-				alphaChannel.publish(`${alpha.moduleAlias}:${eventName}`, alphaEventData);
+				alphaChannel.publish(`${alpha.moduleName}:${eventName}`, alphaEventData);
 
 				return donePromise;
 			});
@@ -230,13 +230,13 @@ describe.skip('IPCChannel', () => {
 			it('should be able to invoke its own actions.', async () => {
 				// Act && Assert
 				await expect(
-					alphaChannel.invoke<number>(`${alpha.moduleAlias}:multiplyByTwo`, {
+					alphaChannel.invoke<number>(`${alpha.moduleName}:multiplyByTwo`, {
 						val: 2,
 					}),
 				).resolves.toBe(4);
 
 				await expect(
-					alphaChannel.invoke<number>(`${alpha.moduleAlias}:multiplyByThree`, {
+					alphaChannel.invoke<number>(`${alpha.moduleName}:multiplyByThree`, {
 						val: 4,
 					}),
 				).resolves.toBe(12);
@@ -245,13 +245,13 @@ describe.skip('IPCChannel', () => {
 			it("should be able to invoke other channels' actions.", async () => {
 				// Act && Assert
 				await expect(
-					alphaChannel.invoke<number>(`${beta.moduleAlias}:divideByTwo`, {
+					alphaChannel.invoke<number>(`${beta.moduleName}:divideByTwo`, {
 						val: 4,
 					}),
 				).resolves.toEqual(2);
 
 				await expect(
-					alphaChannel.invoke<number>(`${beta.moduleAlias}:divideByThree`, {
+					alphaChannel.invoke<number>(`${beta.moduleName}:divideByThree`, {
 						val: 9,
 					}),
 				).resolves.toEqual(3);
@@ -263,16 +263,16 @@ describe.skip('IPCChannel', () => {
 
 				// Act && Assert
 				await expect(
-					alphaChannel.invoke(`${beta.moduleAlias}:${invalidActionName}`),
+					alphaChannel.invoke(`${beta.moduleName}:${invalidActionName}`),
 				).rejects.toThrow(
-					`Action name "${beta.moduleAlias}:${invalidActionName}" must be a valid name with module name and action name.`,
+					`Action name "${beta.moduleName}:${invalidActionName}" must be a valid name with module name and action name.`,
 				);
 			});
 
 			// eslint-disable-next-line jest/no-disabled-tests
 			it.skip('should be rejected with error', async () => {
 				await expect(
-					await alphaChannel.invoke(`${beta.moduleAlias}:withError`, { val: 1 }),
+					await alphaChannel.invoke(`${beta.moduleName}:withError`, { val: 1 }),
 				).rejects.toThrow('Invalid Request');
 			});
 		});

@@ -51,7 +51,7 @@ interface ChannelInfo {
 }
 
 interface RegisterToBusRequestObject {
-	readonly moduleAlias: string;
+	readonly moduleName: string;
 	readonly eventsList: ReadonlyArray<string>;
 	readonly actionsInfo: {
 		[key: string]: Action;
@@ -126,13 +126,13 @@ export class Bus {
 			for await (const [sender, request, params] of rpcServer) {
 				switch (request.toString()) {
 					case IPC_EVENTS.REGISTER_CHANNEL: {
-						const { moduleAlias, eventsList, actionsInfo, options } = JSON.parse(
+						const { moduleName, eventsList, actionsInfo, options } = JSON.parse(
 							params.toString(),
 						) as RegisterToBusRequestObject;
-						this.registerChannel(moduleAlias, eventsList, actionsInfo, options).catch(err => {
+						this.registerChannel(moduleName, eventsList, actionsInfo, options).catch(err => {
 							this.logger.debug(
 								err,
-								`Error occurred while Registering channel for module ${moduleAlias}.`,
+								`Error occurred while Registering channel for module ${moduleName}.`,
 							);
 						});
 						break;
@@ -223,49 +223,49 @@ export class Bus {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async registerChannel(
-		moduleAlias: string,
-		// Events should also include the module alias
+		moduleName: string,
+		// Events should also include the module name
 		events: EventsDefinition,
 		actions: { [key: string]: Action },
 		options: RegisterChannelOptions,
 	): Promise<void> {
-		if (Object.keys(this.channels).includes(moduleAlias)) {
-			throw new Error(`Channel for module ${moduleAlias} is already registered.`);
+		if (Object.keys(this.channels).includes(moduleName)) {
+			throw new Error(`Channel for module ${moduleName} is already registered.`);
 		}
 
 		events.forEach(eventName => {
-			if (this.events[`${moduleAlias}:${eventName}`] !== undefined) {
+			if (this.events[`${moduleName}:${eventName}`] !== undefined) {
 				throw new Error(`Event "${eventName}" already registered with bus.`);
 			}
-			this.events[`${moduleAlias}:${eventName}`] = true;
+			this.events[`${moduleName}:${eventName}`] = true;
 		});
 		this._wsServer?.registerAllowedEvent([...this.getEvents()]);
 
 		Object.keys(actions).forEach(actionName => {
-			if (this.actions[`${moduleAlias}:${actionName}`] !== undefined) {
+			if (this.actions[`${moduleName}:${actionName}`] !== undefined) {
 				throw new Error(`Action "${actionName}" already registered with bus.`);
 			}
 
-			this.actions[`${moduleAlias}:${actionName}`] = actions[actionName];
+			this.actions[`${moduleName}:${actionName}`] = actions[actionName];
 		});
 
 		if (options.type === ChannelType.ChildProcess && options.socketPath) {
 			const rpcClient = new Dealer();
 			rpcClient.connect(options.socketPath);
-			this.rpcClients[moduleAlias] = rpcClient;
+			this.rpcClients[moduleName] = rpcClient;
 
 			this._handleRPCResponse(rpcClient).catch(err => {
 				this.logger.debug(err, 'Error occured while listening to RPC results on RPC Dealer.');
 			});
 
-			this.channels[moduleAlias] = {
+			this.channels[moduleName] = {
 				rpcClient,
 				events,
 				actions,
 				type: ChannelType.ChildProcess,
 			};
 		} else {
-			this.channels[moduleAlias] = {
+			this.channels[moduleName] = {
 				channel: options.channel,
 				events,
 				actions,

@@ -24,19 +24,19 @@ export interface BaseChannelOptions {
 export abstract class BaseChannel {
 	public readonly eventsList: ReadonlyArray<string>;
 	public readonly actionsList: ReadonlyArray<string>;
-	public readonly moduleAlias: string;
+	public readonly moduleName: string;
 
 	protected readonly actions: { [key: string]: Action };
 	protected readonly options: Record<string, unknown>;
 	private _requestId: number;
 
 	public constructor(
-		moduleAlias: string,
+		moduleName: string,
 		events: ReadonlyArray<string>,
 		actions: ActionsDefinition,
 		options: BaseChannelOptions = {},
 	) {
-		this.moduleAlias = moduleAlias;
+		this.moduleName = moduleName;
 		this.options = options;
 
 		this.eventsList = options.skipInternalEvents ? events : [...events, ...INTERNAL_EVENTS];
@@ -47,7 +47,7 @@ export abstract class BaseChannel {
 			const actionData = actions[actionName];
 
 			const handler = typeof actionData === 'object' ? actionData.handler : actionData;
-			const method = `${this.moduleAlias}:${actionName}`;
+			const method = `${this.moduleName}:${actionName}`;
 			this.actions[actionName] = new Action(null, method, undefined, handler);
 		}
 		this.actionsList = Object.keys(this.actions);
@@ -57,7 +57,7 @@ export abstract class BaseChannel {
 		const result = eventWithModuleNameReg.test(name);
 
 		if (throwError && !result) {
-			throw new Error(`[${this.moduleAlias}] Invalid event name ${name}.`);
+			throw new Error(`[${this.moduleName}] Invalid event name ${name}.`);
 		}
 		return result;
 	}
@@ -66,7 +66,7 @@ export abstract class BaseChannel {
 		const result = eventWithModuleNameReg.test(name);
 
 		if (throwError && !result) {
-			throw new Error(`[${this.moduleAlias}] Invalid action name ${name}.`);
+			throw new Error(`[${this.moduleName}] Invalid action name ${name}.`);
 		}
 
 		return result;
@@ -79,16 +79,16 @@ export abstract class BaseChannel {
 
 	// Listen to any event happening in the application
 	// Specified as moduleName:eventName
-	// If its related to your own moduleAlias specify as :eventName
+	// If its related to your own moduleName specify as :eventName
 	abstract subscribe(eventName: string, cb: EventCallback): void;
 	abstract unsubscribe(eventName: string, cb: EventCallback): void;
 
 	// Publish the event on the channel
 	// Specified as moduleName:eventName
-	// If its related to your own moduleAlias specify as :eventName
+	// If its related to your own moduleName specify as :eventName
 	abstract publish(eventName: string, data?: object): void;
 
-	// Call action of any moduleAlias through controller
+	// Call action of any moduleName through controller
 	// Specified as moduleName:actionName
 	abstract invoke<T>(actionName: string, params?: object): Promise<T>;
 
