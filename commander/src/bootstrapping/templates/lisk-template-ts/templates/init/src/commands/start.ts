@@ -24,38 +24,38 @@ interface Flags {
 
 const setPluginConfig = (config: ApplicationConfig, flags: Flags): void => {
 	if (flags['http-api-plugin-port'] !== undefined) {
-		config.plugins[HTTPAPIPlugin.alias] = config.plugins[HTTPAPIPlugin.alias] ?? {};
-		config.plugins[HTTPAPIPlugin.alias].port = flags['http-api-plugin-port'];
+		config.plugins[HTTPAPIPlugin.name] = config.plugins[HTTPAPIPlugin.name] ?? {};
+		config.plugins[HTTPAPIPlugin.name].port = flags['http-api-plugin-port'];
 	}
 	if (
 		flags['http-api-plugin-whitelist'] !== undefined &&
 		typeof flags['http-api-plugin-whitelist'] === 'string'
 	) {
-		config.plugins[HTTPAPIPlugin.alias] = config.plugins[HTTPAPIPlugin.alias] ?? {};
-		config.plugins[HTTPAPIPlugin.alias].whiteList = flags['http-api-plugin-whitelist']
+		config.plugins[HTTPAPIPlugin.name] = config.plugins[HTTPAPIPlugin.name] ?? {};
+		config.plugins[HTTPAPIPlugin.name].whiteList = flags['http-api-plugin-whitelist']
 			.split(',')
 			.filter(Boolean);
 	}
 	if (flags['monitor-plugin-port'] !== undefined) {
-		config.plugins[MonitorPlugin.alias] = config.plugins[MonitorPlugin.alias] ?? {};
-		config.plugins[MonitorPlugin.alias].port = flags['monitor-plugin-port'];
+		config.plugins[MonitorPlugin.name] = config.plugins[MonitorPlugin.name] ?? {};
+		config.plugins[MonitorPlugin.name].port = flags['monitor-plugin-port'];
 	}
 	if (
 		flags['monitor-plugin-whitelist'] !== undefined &&
 		typeof flags['monitor-plugin-whitelist'] === 'string'
 	) {
-		config.plugins[MonitorPlugin.alias] = config.plugins[MonitorPlugin.alias] ?? {};
-		config.plugins[MonitorPlugin.alias].whiteList = flags['monitor-plugin-whitelist']
+		config.plugins[MonitorPlugin.name] = config.plugins[MonitorPlugin.name] ?? {};
+		config.plugins[MonitorPlugin.name].whiteList = flags['monitor-plugin-whitelist']
 			.split(',')
 			.filter(Boolean);
 	}
 	if (flags['faucet-plugin-port'] !== undefined) {
-		config.plugins[FaucetPlugin.alias] = config.plugins[FaucetPlugin.alias] ?? {};
-		config.plugins[FaucetPlugin.alias].port = flags['faucet-plugin-port'];
+		config.plugins[FaucetPlugin.name] = config.plugins[FaucetPlugin.name] ?? {};
+		config.plugins[FaucetPlugin.name].port = flags['faucet-plugin-port'];
 	}
 	if (flags['dashboard-plugin-port'] !== undefined) {
-		config.plugins[DashboardPlugin.alias] = config.plugins[DashboardPlugin.alias] ?? {};
-		config.plugins[DashboardPlugin.alias].port = flags['dashboard-plugin-port'];
+		config.plugins[DashboardPlugin.name] = config.plugins[DashboardPlugin.name] ?? {};
+		config.plugins[DashboardPlugin.name].port = flags['dashboard-plugin-port'];
 	}
 };
 

@@ -23,7 +23,7 @@ lisk generate:asset token transfer 1
 
 ### Add a new plugin
 ```
-lisk generate:plugin PluginAlias
+lisk generate:plugin PluginName
 // Example
 lisk generate:plugin httpAPI
 ```

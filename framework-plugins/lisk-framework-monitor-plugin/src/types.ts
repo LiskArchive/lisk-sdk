@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export interface Options {
+export interface MonitorPluginConfig {
 	readonly port: number;
 	readonly host: string;
 	readonly whiteList: ReadonlyArray<string>;
