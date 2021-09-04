@@ -49,19 +49,38 @@ try {
 	// eslint-disable-next-line import/no-dynamic-require,global-require, @typescript-eslint/no-var-requires
 	const config = require(`../fixtures/config/${network}/config`);
 	// eslint-disable-next-line import/no-dynamic-require,global-require, @typescript-eslint/no-var-requires
-	const genesisBlock = require(`../fixtures/config/${network}/genesis_block`);
+	// const genesisBlock = require(`../fixtures/config/${network}/genesis_block`);
 
 	const mergedConfig = {
 		...appConfig,
 		...config,
 	};
 	// To run multiple applications for same network for integration tests
-	app = Application.defaultApplication(genesisBlock, mergedConfig);
+	app = Application.defaultApplication(
+		{
+			header: {
+				generatorAddress: '',
+				stateRoot: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+				height: 0,
+				id: '5fcd9e0023a6cde6b6add2dee9038eaa432b0306aca24d55028ba28a43dff21e',
+				previousBlockID: '',
+				reward: '0',
+				signature: '',
+				timestamp: 1610643809,
+				transactionRoot: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+				assets: [],
+				version: 0,
+			},
+			assets: [],
+			payload: [],
+		},
+		mergedConfig,
+	);
 
-	app.registerPlugin(HTTPAPIPlugin, { loadAsChildProcess: true });
-	app.registerPlugin(ForgerPlugin, { loadAsChildProcess: true });
-	app.registerPlugin(MonitorPlugin, { loadAsChildProcess: true });
-	app.registerPlugin(ReportMisbehaviorPlugin, { loadAsChildProcess: true });
+	app.registerPlugin(new HTTPAPIPlugin(), { loadAsChildProcess: true });
+	app.registerPlugin(new ForgerPlugin(), { loadAsChildProcess: true });
+	app.registerPlugin(new MonitorPlugin(), { loadAsChildProcess: true });
+	app.registerPlugin(new ReportMisbehaviorPlugin(), { loadAsChildProcess: true });
 } catch (e) {
 	console.error('Application start error.', e);
 	process.exit();

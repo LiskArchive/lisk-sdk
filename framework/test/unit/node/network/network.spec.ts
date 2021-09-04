@@ -16,7 +16,6 @@ import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { P2P } from '@liskhq/lisk-p2p';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { Network } from '../../../../src/node/network';
-import { InMemoryChannel } from '../../../../src/controller';
 import { fakeLogger } from '../../../utils/node';
 
 jest.mock('@liskhq/lisk-p2p');
@@ -29,7 +28,6 @@ describe('network', () => {
 		const db = new InMemoryKVStore();
 		network = new Network({
 			networkVersion: '2.0',
-			channel: ({} as unknown) as InMemoryChannel,
 			options: {
 				port: 3000,
 				seedPeers: [],
@@ -176,7 +174,6 @@ describe('network', () => {
 			beforeEach(() => {
 				network = new Network({
 					networkVersion: '2.0',
-					channel: ({} as unknown) as InMemoryChannel,
 					options: {
 						port: 3000,
 						seedPeers: [],

@@ -27,7 +27,7 @@ import { TransactionPool, events } from '@liskhq/lisk-transaction-pool';
 import { MerkleTree } from '@liskhq/lisk-tree';
 import { dataStructures, jobHandlers } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
-import { APP_EVENT_NETWORK_READY } from '../../constants';
+import { APP_EVENT_NETWORK_READY } from '../events';
 import { Logger } from '../../logger';
 import { GenerationConfig, GenesisConfig } from '../../types';
 import { Network } from '../network';

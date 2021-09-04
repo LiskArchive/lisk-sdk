@@ -28,10 +28,12 @@ import {
 jest.mock('@liskhq/lisk-db');
 jest.mock('fs-extra');
 
+class SampleEndpoint extends BaseEndpoint {
+	public do() {}
+}
+
 class SampleNodeModule extends BaseModule {
-	public endpoint: BaseEndpoint = {
-		do: () => {},
-	} as never;
+	public endpoint = new SampleEndpoint(this.id);
 	public api: BaseAPI = {} as never;
 	public id = 1000;
 	public name = 'sample';
@@ -160,15 +162,18 @@ describe('Node', () => {
 		});
 
 		it('should return generator endpoint', () => {
-			expect(endpoints).toHaveProperty('app_postTransaction');
+			expect(endpoints).toHaveProperty('postTransaction');
 		});
 
 		it('should return all node endpoints', () => {
-			expect(endpoints).toHaveProperty('app_getBlockByID');
+			expect(endpoints).toHaveProperty('getBlockByID');
 		});
 
 		it('should return all module endpoints', () => {
-			expect(endpoints).toHaveProperty('sample_do');
+			const moduleEndpoints = node.getModuleEndpoints();
+
+			expect(moduleEndpoints).toHaveProperty('sample');
+			expect(moduleEndpoints['sample']).toHaveProperty('do');
 		});
 	});
 

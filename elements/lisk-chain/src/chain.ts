@@ -85,14 +85,14 @@ export class Chain {
 	}
 
 	public get lastBlock(): Block {
-		if (!this._lastBlock) {
+		if (this._lastBlock === undefined) {
 			throw new Error('Chain has not been initialized');
 		}
 		return this._lastBlock;
 	}
 
 	public get finalizedHeight(): number {
-		if (!this._finalizedHeight) {
+		if (this._finalizedHeight === undefined) {
 			throw new Error('Chain has not been initialized');
 		}
 		return this._finalizedHeight;
@@ -189,13 +189,6 @@ export class Chain {
 			removeFromTempTable: false,
 		},
 	): Promise<void> {
-		const isConsecutiveBlock =
-			this.lastBlock.header.height + 1 === block.header.height &&
-			block.header.previousBlockID.equals(this.lastBlock.header.id);
-
-		if (!isConsecutiveBlock) {
-			throw new Error('Non consecutive block cannot be saved.');
-		}
 		await this.dataAccess.saveBlock(block, stateStore, finalizedHeight, removeFromTempTable);
 		this.dataAccess.addBlockHeader(block.header);
 		this._finalizedHeight = finalizedHeight;

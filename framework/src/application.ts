@@ -16,23 +16,11 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as psList from 'ps-list';
 import * as assert from 'assert';
-import { promisify } from 'util';
 import { Block } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { objects, jobHandlers } from '@liskhq/lisk-utils';
-import {
-	APP_EVENT_BLOCK_NEW,
-	APP_EVENT_CHAIN_FORK,
-	APP_EVENT_SHUTDOWN,
-	APP_EVENT_READY,
-	APP_IDENTIFIER,
-	APP_EVENT_NETWORK_EVENT,
-	APP_EVENT_TRANSACTION_NEW,
-	APP_EVENT_BLOCK_DELETE,
-	APP_EVENT_CHAIN_VALIDATORS_CHANGE,
-	APP_EVENT_NETWORK_READY,
-} from './constants';
+import { APP_EVENT_SHUTDOWN, APP_EVENT_READY, APP_IDENTIFIER } from './constants';
 import {
 	RPCConfig,
 	ApplicationConfig,
@@ -41,14 +29,11 @@ import {
 	RegisteredModule,
 	PartialApplicationConfig,
 	ApplicationConfigForPlugin,
+	EndpointHandlers,
+	PluginEndpointContext,
 } from './types';
 
-import {
-	BasePlugin,
-	getPluginExportPath,
-	InstantiablePlugin,
-	validatePluginSpec,
-} from './plugins/base_plugin';
+import { BasePlugin, getPluginExportPath, validatePluginSpec } from './plugins/base_plugin';
 import { systemDirs } from './system_dirs';
 import { Controller, InMemoryChannel } from './controller';
 import { applicationConfigSchema } from './schema';
@@ -57,10 +42,9 @@ import { Logger, createLogger } from './logger';
 
 import { DuplicateAppInstanceError } from './errors';
 import { BaseModule } from './modules/base_module';
+import { mergeEndpointHandlers } from './endpoint';
 
 const MINIMUM_EXTERNAL_MODULE_ID = 1000;
-// eslint-disable-next-line @typescript-eslint/no-misused-promises
-const rm = promisify(fs.unlink);
 
 const isPidRunning = async (pid: number): Promise<boolean> =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -116,7 +100,7 @@ export class Application {
 
 	private readonly _node: Node;
 	private _controller!: Controller;
-	private _plugins: { [key: string]: InstantiablePlugin };
+	private _plugins: { [key: string]: BasePlugin };
 	private _channel!: InMemoryChannel;
 
 	private _genesisBlock!: Record<string, unknown> | undefined;
@@ -171,13 +155,10 @@ export class Application {
 		return application;
 	}
 
-	public registerPlugin<T extends BasePlugin>(
-		PluginKlass: InstantiablePlugin<T>,
+	public registerPlugin(
+		plugin: BasePlugin,
 		options: PluginConfig = { loadAsChildProcess: false },
 	): void {
-		assert(PluginKlass, 'Plugin implementation is required');
-		assert(typeof options === 'object', 'Plugin options must be provided or set to empty object.');
-		const plugin = new PluginKlass();
 		const pluginName = plugin.name;
 
 		assert(
@@ -186,9 +167,9 @@ export class Application {
 		);
 
 		if (options.loadAsChildProcess) {
-			if (!getPluginExportPath(PluginKlass)) {
+			if (!getPluginExportPath(plugin)) {
 				throw new Error(
-					`Unable to register plugin "${pluginName}" to load as child process. \n -> To load plugin as child process it must be exported. \n -> You can specify npm package as "name". \n -> Or you can specify any static path as "nodeModulePath". \n -> To fix this issue you can simply assign __filename to nodeModulePath in your plugin.`,
+					`Unable to register plugin "${pluginName}" to load as child process. Package name or __filename must be specified in nodeModulePath.`,
 				);
 			}
 		}
@@ -197,7 +178,7 @@ export class Application {
 
 		validatePluginSpec(plugin);
 
-		this._plugins[pluginName] = PluginKlass;
+		this._plugins[pluginName] = plugin;
 	}
 
 	public updatePluginConfig(name: string, options?: PluginConfig): void {
@@ -262,8 +243,8 @@ export class Application {
 			const genesisBlock = Block.fromJSON(this._genesisBlock);
 
 			await this._node.init({
-				genesisBlock,
 				channel: this._channel,
+				genesisBlock,
 				forgerDB: this._forgerDB,
 				blockchainDB: this._blockchainDB,
 				nodeDB: this._nodeDB,
@@ -273,7 +254,7 @@ export class Application {
 			await this._loadPlugins();
 			await this._node.start();
 			this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
-			this.logger.debug(this._controller.bus.getActions(), 'Application ready for actions');
+			this.logger.debug(this._controller.bus.getEndpoints(), 'Application ready for actions');
 
 			this._channel.publish(APP_EVENT_READY);
 			// TODO: Update genesis block to be provided in this function
@@ -343,39 +324,42 @@ export class Application {
 	}
 
 	private _initChannel(): InMemoryChannel {
-		/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-		/* eslint-disable @typescript-eslint/explicit-function-return-type */
+		const nodeEndpoint = this._node.getEndpoints();
+		const nodeEvents = this._node.getEvents();
+		const applicationEndpoint: EndpointHandlers = {
+			// eslint-disable-next-line @typescript-eslint/require-await
+			getRegisteredActions: async (_: PluginEndpointContext) => this._controller.bus.getEndpoints(),
+			// eslint-disable-next-line @typescript-eslint/require-await
+			getRegisteredEvents: async (_: PluginEndpointContext) => this._controller.bus.getEvents(),
+		};
 		return new InMemoryChannel(
+			this.logger,
+			this._blockchainDB,
 			APP_IDENTIFIER,
-			[
-				APP_EVENT_READY.replace('app:', ''),
-				APP_EVENT_SHUTDOWN.replace('app:', ''),
-				APP_EVENT_NETWORK_EVENT.replace('app:', ''),
-				APP_EVENT_NETWORK_READY.replace('app:', ''),
-				APP_EVENT_TRANSACTION_NEW.replace('app:', ''),
-				APP_EVENT_CHAIN_FORK.replace('app:', ''),
-				APP_EVENT_CHAIN_VALIDATORS_CHANGE.replace('app:', ''),
-				APP_EVENT_BLOCK_NEW.replace('app:', ''),
-				APP_EVENT_BLOCK_DELETE.replace('app:', ''),
-			],
-			{
-				// TODO: Add endpoints after plugin improvements
-				getRegisteredActions: {
-					handler: () => this._controller.bus.getActions(),
-				},
-				getRegisteredEvents: {
-					handler: () => this._controller.bus.getEvents(),
-				},
-			},
+			[APP_EVENT_READY.replace('app:', ''), APP_EVENT_SHUTDOWN.replace('app:', ''), ...nodeEvents],
+			mergeEndpointHandlers(applicationEndpoint, nodeEndpoint),
 			{ skipInternalEvents: true },
 		);
-		/* eslint-enable @typescript-eslint/explicit-module-boundary-types */
-		/* eslint-enable @typescript-eslint/explicit-function-return-type */
 	}
 
 	private _initController(): Controller {
+		const moduleEndpoints = this._node.getModuleEndpoints();
+		const moduleChannels = this._node
+			.getRegisteredModules()
+			.map(
+				mod =>
+					new InMemoryChannel(
+						this.logger,
+						this._blockchainDB,
+						mod.name,
+						[],
+						moduleEndpoints[mod.name],
+						{ skipInternalEvents: true },
+					),
+			);
 		return new Controller({
 			appLabel: this.config.label,
+			blockchainDB: this._blockchainDB,
 			config: {
 				rootPath: this.config.rootPath,
 				rpc: objects.mergeDeep(
@@ -385,6 +369,7 @@ export class Application {
 			},
 			logger: this.logger,
 			channel: this._channel,
+			moduleChannels,
 		});
 	}
 
@@ -397,7 +382,9 @@ export class Application {
 		const { sockets } = systemDirs(this.config.label, this.config.rootPath);
 		const socketFiles = fs.readdirSync(sockets);
 
-		await Promise.all(socketFiles.map(async aSocketFile => rm(path.join(sockets, aSocketFile))));
+		await Promise.all(
+			socketFiles.map(async aSocketFile => fs.unlink(path.join(sockets, aSocketFile))),
+		);
 	}
 
 	private async _validatePidFile(): Promise<void> {
