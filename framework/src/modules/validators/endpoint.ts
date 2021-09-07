@@ -12,13 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule } from '..';
-import { ValidatorAPI } from './api';
-import { ValidatorEndpoint } from './endpoint';
+import { BaseEndpoint } from '../base_endpoint';
 
-export class ValidatorModule extends BaseModule {
-	public id = 10;
-	public name = 'validator';
-	public api = new ValidatorAPI(this.id);
-	public endpoint = new ValidatorEndpoint(this.id);
-}
+export class ValidatorsEndpoint extends BaseEndpoint {}

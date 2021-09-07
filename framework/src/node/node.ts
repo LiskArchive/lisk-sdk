@@ -27,7 +27,7 @@ import { Consensus, CONSENSUS_EVENT_BLOCK_DELETE, CONSENSUS_EVENT_BLOCK_NEW } fr
 import { Generator } from './generator';
 import { Endpoint } from './endpoint';
 import { getRegisteredModules, getSchema, isReservedEndpointFunction } from './utils/modules';
-import { ValidatorAPI, ValidatorModule } from '../modules/validator';
+import { ValidatorsAPI, ValidatorsModule } from '../modules/validators';
 import { LiskBFTAPI, LiskBFTModule } from '../modules/liskbft';
 
 const MINIMUM_MODULE_ID = 2;
@@ -54,7 +54,7 @@ export class Node {
 	private readonly _network: Network;
 	private readonly _chain: Chain;
 	private readonly _endpoint: Endpoint;
-	private readonly _validatorModule: ValidatorModule;
+	private readonly _validatorModule: ValidatorsModule;
 	private readonly _liskBFTModule: LiskBFTModule;
 	private _channel!: InMemoryChannel;
 	private _logger!: Logger;
@@ -76,7 +76,7 @@ export class Node {
 		});
 
 		this._stateMachine = new StateMachine();
-		this._validatorModule = new ValidatorModule();
+		this._validatorModule = new ValidatorsModule();
 		this._liskBFTModule = new LiskBFTModule();
 		this._registeredModules.push(this._validatorModule, this._liskBFTModule);
 		this._consensus = new Consensus({
@@ -258,7 +258,7 @@ export class Node {
 		return this._liskBFTModule.api;
 	}
 
-	public get validatorAPI(): ValidatorAPI {
+	public get validatorAPI(): ValidatorsAPI {
 		return this._validatorModule.api;
 	}
 
