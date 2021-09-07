@@ -25,13 +25,10 @@ interface ClientSocketPaths {
 export class IPCClient extends IPCSocket {
 	public readonly socketPaths: ClientSocketPaths;
 	protected readonly _clientRPCSocketPath: string;
-	private readonly _rpcClient: Dealer;
+	private _rpcClient?: Dealer;
 
 	public constructor(options: { socketsDir: string; name: string; rpcServerSocketPath: string }) {
 		super(options);
-
-		this.pubSocket = new Publisher();
-		this.subSocket = new Subscriber();
 		this._clientRPCSocketPath = options.rpcServerSocketPath;
 		this.socketPaths = {
 			pub: this._eventSubSocketPath,
@@ -39,15 +36,20 @@ export class IPCClient extends IPCSocket {
 			rpcServer: this._rpcSeverSocketPath,
 			rpcClient: this._clientRPCSocketPath,
 		};
-		this._rpcClient = new Dealer();
 	}
 
 	public get rpcClient(): Dealer {
+		if (!this._rpcClient) {
+			throw new Error('RPC client has not been initialized.');
+		}
 		return this._rpcClient;
 	}
 
 	public async start(): Promise<void> {
 		await super.start();
+		this.pubSocket = new Publisher();
+		this.subSocket = new Subscriber();
+		this._rpcClient = new Dealer();
 		try {
 			await new Promise<void>((resolve, reject) => {
 				const timeout = setTimeout(() => {

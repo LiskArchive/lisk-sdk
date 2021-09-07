@@ -15,17 +15,17 @@ import * as HTTP from 'http';
 import { HTTPServer } from '../../../../src/controller/http/http_server';
 
 describe('HTTPServer', () => {
+	const logger = {
+		info: jest.fn(),
+		error: jest.fn(),
+		trace: jest.fn(),
+		debug: jest.fn(),
+		warn: jest.fn(),
+		fatal: jest.fn(),
+		level: jest.fn(),
+	};
 	const config = {
 		port: 8000,
-		logger: {
-			info: jest.fn(),
-			error: jest.fn(),
-			trace: jest.fn(),
-			debug: jest.fn(),
-			warn: jest.fn(),
-			fatal: jest.fn(),
-			level: jest.fn(),
-		},
 	};
 	let httpServerInstance: HTTPServer;
 	const httpRequestListener = jest.fn();
@@ -33,15 +33,14 @@ describe('HTTPServer', () => {
 	describe('constructor()', () => {
 		it('should setup class properties based on config', () => {
 			httpServerInstance = new HTTPServer(config);
-			expect(httpServerInstance['port']).toBe(config.port);
-			expect(httpServerInstance['logger']).toBe(config.logger);
+			expect(httpServerInstance['_port']).toBe(config.port);
 		});
 	});
 
 	describe('start()', () => {
 		beforeEach(() => {
 			httpServerInstance = new HTTPServer(config);
-			httpServerInstance.start(httpRequestListener);
+			httpServerInstance.start(logger, httpRequestListener);
 		});
 
 		afterEach(() => {
@@ -67,7 +66,7 @@ describe('HTTPServer', () => {
 	describe('stop()', () => {
 		it('should call stop on the HTTP server', () => {
 			httpServerInstance = new HTTPServer(config);
-			httpServerInstance.start(httpRequestListener);
+			httpServerInstance.start(logger, httpRequestListener);
 			const stopSpy = jest.spyOn(httpServerInstance.server, 'close');
 			httpServerInstance.stop();
 			expect(stopSpy).toHaveBeenCalled();
