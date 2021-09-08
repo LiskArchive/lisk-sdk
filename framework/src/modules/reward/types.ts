@@ -53,7 +53,7 @@ export interface GetDefaultRewardParams {
 }
 
 export interface DefaultReward {
-	reward: bigint;
+	reward: string;
 }
 
 export interface EndpointInitArgs {

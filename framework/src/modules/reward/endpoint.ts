@@ -32,7 +32,7 @@ export class RewardEndpoint extends BaseEndpoint {
 
 		if (height < this._offset) {
 			return {
-				reward: BigInt(0),
+				reward: '0',
 			};
 		}
 
@@ -48,7 +48,7 @@ export class RewardEndpoint extends BaseEndpoint {
 		}
 
 		return {
-			reward: this._brackets[bracket],
+			reward: this._brackets[bracket].toString(),
 		};
 	}
 }

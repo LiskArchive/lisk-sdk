@@ -63,7 +63,7 @@ describe('RewardModule', () => {
 						height: currentHeight,
 					},
 				});
-				expect(rewardFromEndpoint).toEqual({ reward: rewardFromConfig });
+				expect(rewardFromEndpoint).toEqual({ reward: rewardFromConfig.toString() });
 			});
 		}
 
@@ -75,7 +75,7 @@ describe('RewardModule', () => {
 					height: offset - 1,
 				},
 			});
-			expect(rewardFromEndpoint).toEqual({ reward: BigInt(0) });
+			expect(rewardFromEndpoint).toEqual({ reward: '0' });
 		});
 	});
 });
