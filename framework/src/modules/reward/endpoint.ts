@@ -14,7 +14,7 @@
 
 import { ModuleEndpointContext } from '../..';
 import { BaseEndpoint } from '../base_endpoint';
-import { DefaultReward, EndpointInitArgs, GetDefaultRewardParams } from './types';
+import { DefaultReward, EndpointInitArgs } from './types';
 
 export class RewardEndpoint extends BaseEndpoint {
 	private _brackets!: ReadonlyArray<bigint>;
@@ -28,7 +28,15 @@ export class RewardEndpoint extends BaseEndpoint {
 	}
 
 	public getDefaultRewardAtHeight(ctx: ModuleEndpointContext): DefaultReward {
-		const { height } = (ctx.params as unknown) as GetDefaultRewardParams;
+		const { height } = ctx.params;
+
+		if (typeof height !== 'number') {
+			throw new Error('Parameter height must be a number');
+		}
+
+		if (height < 0) {
+			throw new Error('Parameter height cannot be smaller than 0');
+		}
 
 		if (height < this._offset) {
 			return {

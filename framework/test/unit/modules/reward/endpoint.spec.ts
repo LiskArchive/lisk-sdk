@@ -77,5 +77,29 @@ describe('RewardModule', () => {
 			});
 			expect(rewardFromEndpoint).toEqual({ reward: '0' });
 		});
+
+		it('should throw an error when parameter height is not a number', () => {
+			expect(() =>
+				rewardModule.endpoint.getDefaultRewardAtHeight({
+					getStore: jest.fn(),
+					logger,
+					params: {
+						height: 'Not a number',
+					},
+				}),
+			).toThrow('Parameter height must be a number');
+		});
+
+		it('should throw an error when parameter height is below 0', () => {
+			expect(() =>
+				rewardModule.endpoint.getDefaultRewardAtHeight({
+					getStore: jest.fn(),
+					logger,
+					params: {
+						height: -1,
+					},
+				}),
+			).toThrow('Parameter height cannot be smaller than 0');
+		});
 	});
 });

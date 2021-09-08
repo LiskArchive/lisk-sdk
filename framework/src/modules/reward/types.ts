@@ -48,10 +48,6 @@ export interface LiskBFTAPI {
 	impliesMaximalPrevotes(apiContext: APIContext, blockHeader: BlockHeader): Promise<boolean>;
 }
 
-export interface GetDefaultRewardParams {
-	height: number;
-}
-
 export interface DefaultReward {
 	reward: string;
 }
