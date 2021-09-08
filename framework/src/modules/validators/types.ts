@@ -14,10 +14,6 @@
 
 import { APIContext } from '../../node/state_machine/types';
 
-export interface ModuleConfig {
-	blockTime: number;
-}
-
 export interface ValidatorKeys {
 	generatorKey: Buffer;
 	blsKey: Buffer;

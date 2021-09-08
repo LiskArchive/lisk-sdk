@@ -14,7 +14,6 @@
 
 import { BaseModule, ModuleInitArgs } from '../base_module';
 import { MODULE_ID_VALIDATORS } from './constants';
-import { ModuleConfig } from './types';
 import { GenesisBlockExecuteContext } from '../../node/state_machine';
 import { ValidatorsAPI } from './api';
 import { ValidatorsEndpoint } from './endpoint';
@@ -29,10 +28,15 @@ export class ValidatorsModule extends BaseModule {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs): Promise<void> {
 		const { moduleConfig } = args;
-		if (((moduleConfig as unknown) as ModuleConfig).blockTime < 1) {
+		const { blockTime } = moduleConfig;
+
+		if (!blockTime || typeof blockTime !== 'number') {
+			throw new Error('BlockTiem must be a number.');
+		}
+		if (blockTime < 1) {
 			throw new Error('Block time cannot be less than 1');
 		}
-		this._blockTime = ((moduleConfig as unknown) as ModuleConfig).blockTime;
+		this._blockTime = blockTime;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
