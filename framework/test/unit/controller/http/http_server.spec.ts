@@ -13,17 +13,10 @@
  */
 import * as HTTP from 'http';
 import { HTTPServer } from '../../../../src/controller/http/http_server';
+import { fakeLogger } from '../../../utils/node';
 
 describe('HTTPServer', () => {
-	const logger = {
-		info: jest.fn(),
-		error: jest.fn(),
-		trace: jest.fn(),
-		debug: jest.fn(),
-		warn: jest.fn(),
-		fatal: jest.fn(),
-		level: jest.fn(),
-	};
+	const logger = fakeLogger;
 	const config = {
 		port: 8000,
 	};

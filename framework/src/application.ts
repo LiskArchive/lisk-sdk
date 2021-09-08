@@ -138,6 +138,9 @@ export class Application {
 	}
 
 	public get channel(): InMemoryChannel {
+		if (!this._controller.channel) {
+			throw new Error('Controller is not initialized yet.');
+		}
 		return this._controller.channel;
 	}
 
@@ -219,7 +222,7 @@ export class Application {
 			const genesisBlock = Block.fromJSON(this._genesisBlock);
 
 			await this._node.init({
-				channel: this._controller.channel,
+				channel: this.channel,
 				genesisBlock,
 				forgerDB: this._forgerDB,
 				blockchainDB: this._blockchainDB,
@@ -232,7 +235,7 @@ export class Application {
 			this.logger.debug(this._controller.getEvents(), 'Application listening to events');
 			this.logger.debug(this._controller.getEndpoints(), 'Application ready for actions');
 
-			this._controller.channel.publish(APP_EVENT_READY);
+			this.channel.publish(APP_EVENT_READY);
 			// TODO: Update genesis block to be provided in this function
 			// For now, the memory should be free up
 			delete this._genesisBlock;
@@ -245,7 +248,7 @@ export class Application {
 		const release = await this._mutex.acquire();
 
 		try {
-			this._controller.channel.publish(APP_EVENT_SHUTDOWN);
+			this.channel.publish(APP_EVENT_SHUTDOWN);
 			await this._node.stop();
 			await this._controller.stop(errorCode, message);
 			await this._blockchainDB.close();
