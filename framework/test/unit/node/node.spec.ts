@@ -81,7 +81,7 @@ describe('Node', () => {
 			expect(node['_network']).toBeDefined();
 			expect(node['_chain']).toBeDefined();
 			expect(node['_stateMachine']).toBeDefined();
-			expect(node['_validatorModule']).toBeDefined();
+			expect(node['_validatorsModule']).toBeDefined();
 			expect(node['_liskBFTModule']).toBeDefined();
 			expect(node['_consensus']).toBeDefined();
 			expect(node['_generator']).toBeDefined();

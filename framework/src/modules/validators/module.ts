@@ -25,16 +25,14 @@ export class ValidatorsModule extends BaseModule {
 	public api = new ValidatorsAPI(this.id);
 	public endpoint = new ValidatorsEndpoint(this.id);
 	private _blockTime!: number;
-	private _moduleConfig!: ModuleConfig;
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs): Promise<void> {
 		const { moduleConfig } = args;
-		this._moduleConfig = (moduleConfig as unknown) as ModuleConfig;
-		if (this._moduleConfig.blockTime < 1) {
+		if (((moduleConfig as unknown) as ModuleConfig).blockTime < 1) {
 			throw new Error('Block time cannot be less than 1');
 		}
-		this._blockTime = this._moduleConfig.blockTime;
+		this._blockTime = ((moduleConfig as unknown) as ModuleConfig).blockTime;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
