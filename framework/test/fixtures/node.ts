@@ -58,7 +58,11 @@ export const nodeOptions = ({
 		activeDelegates: 101,
 		standbyDelegates: 2,
 		delegateListRoundOffset: 2,
-		modules: {},
+		modules: {
+			validators: {
+				blockTime: 10,
+			},
+		},
 	},
 	genesisConfig: {
 		blockTime: 10, // 10 seconds

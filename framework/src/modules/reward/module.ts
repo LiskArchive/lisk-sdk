@@ -44,6 +44,14 @@ export class RewardModule extends BaseModule {
 		const { moduleConfig } = args;
 		this._moduleConfig = (moduleConfig as unknown) as ModuleConfig;
 		this._tokenIDReward = this._moduleConfig.tokenIDReward;
+
+		this.endpoint.init({
+			config: {
+				brackets: this._moduleConfig.brackets.map(bracket => BigInt(bracket)),
+				offset: this._moduleConfig.offset,
+				distance: this._moduleConfig.distance,
+			},
+		});
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

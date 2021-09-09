@@ -12,6 +12,40 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { ModuleEndpointContext } from '../..';
 import { BaseEndpoint } from '../base_endpoint';
+import { calculateDefaultReward } from './calculate_reward';
+import { DefaultReward, EndpointInitArgs } from './types';
 
-export class RewardEndpoint extends BaseEndpoint {}
+export class RewardEndpoint extends BaseEndpoint {
+	private _brackets!: ReadonlyArray<bigint>;
+	private _offset!: number;
+	private _distance!: number;
+
+	public init(args: EndpointInitArgs) {
+		this._brackets = args.config.brackets;
+		this._offset = args.config.offset;
+		this._distance = args.config.distance;
+	}
+
+	public getDefaultRewardAtHeight(ctx: ModuleEndpointContext): DefaultReward {
+		const { height } = ctx.params;
+
+		if (typeof height !== 'number') {
+			throw new Error('Parameter height must be a number.');
+		}
+
+		if (height < 0) {
+			throw new Error('Parameter height cannot be smaller than 0.');
+		}
+
+		const reward = calculateDefaultReward({
+			height,
+			brackets: this._brackets,
+			distance: this._distance,
+			offset: this._offset,
+		});
+
+		return { reward: reward.toString() };
+	}
+}
