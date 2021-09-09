@@ -87,7 +87,7 @@ describe('RewardModule', () => {
 						height: 'Not a number',
 					},
 				}),
-			).toThrow('Parameter height must be a number');
+			).toThrow('Parameter height must be a number.');
 		});
 
 		it('should throw an error when parameter height is below 0', () => {
@@ -99,7 +99,7 @@ describe('RewardModule', () => {
 						height: -1,
 					},
 				}),
-			).toThrow('Parameter height cannot be smaller than 0');
+			).toThrow('Parameter height cannot be smaller than 0.');
 		});
 	});
 });

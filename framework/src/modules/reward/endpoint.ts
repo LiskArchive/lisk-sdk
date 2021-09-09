@@ -31,11 +31,11 @@ export class RewardEndpoint extends BaseEndpoint {
 		const { height } = ctx.params;
 
 		if (typeof height !== 'number') {
-			throw new Error('Parameter height must be a number');
+			throw new Error('Parameter height must be a number.');
 		}
 
 		if (height < 0) {
-			throw new Error('Parameter height cannot be smaller than 0');
+			throw new Error('Parameter height cannot be smaller than 0.');
 		}
 
 		if (height < this._offset) {
