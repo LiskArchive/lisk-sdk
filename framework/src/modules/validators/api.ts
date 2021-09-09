@@ -15,7 +15,7 @@
 import { BaseAPI } from '../base_api';
 import { ImmutableAPIContext } from '../../node/state_machine';
 
-export class ValidatorAPI extends BaseAPI {
+export class ValidatorsAPI extends BaseAPI {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async getGenerator(_apiContext: ImmutableAPIContext, _timestamp: number): Promise<Buffer> {
 		return Buffer.alloc(0);
