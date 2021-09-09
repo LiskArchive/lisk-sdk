@@ -15,7 +15,7 @@ import { Logger } from '../../../../src/logger';
 import { RewardModule } from '../../../../src/modules/reward';
 import { fakeLogger } from '../../../utils/node';
 
-describe('RewardModule', () => {
+describe('RewardModuleEndpoint', () => {
 	const genesisConfig: any = {};
 	const moduleConfig: any = {
 		distance: 3000000,
@@ -44,62 +44,60 @@ describe('RewardModule', () => {
 		);
 	});
 
-	describe('endpoint', () => {
-		const { brackets, offset, distance } = moduleConfig as {
-			brackets: ReadonlyArray<bigint>;
-			offset: number;
-			distance: number;
-		};
+	const { brackets, offset, distance } = moduleConfig as {
+		brackets: ReadonlyArray<bigint>;
+		offset: number;
+		distance: number;
+	};
 
-		for (const [index, rewardFromConfig] of Object.entries(brackets)) {
-			const nthBracket = +index;
-			const currentHeight = offset + nthBracket * distance;
-			// eslint-disable-next-line no-loop-func
-			it(`should getDefaultRewardAtHeight work for the ${nthBracket}th bracket`, () => {
-				const rewardFromEndpoint = rewardModule.endpoint.getDefaultRewardAtHeight({
-					getStore: jest.fn(),
-					logger,
-					params: {
-						height: currentHeight,
-					},
-				});
-				expect(rewardFromEndpoint).toEqual({ reward: rewardFromConfig.toString() });
-			});
-		}
-
-		it(`should getDefaultRewardAtHeight work for the height below offset`, () => {
+	for (const [index, rewardFromConfig] of Object.entries(brackets)) {
+		const nthBracket = +index;
+		const currentHeight = offset + nthBracket * distance;
+		// eslint-disable-next-line no-loop-func
+		it(`should getDefaultRewardAtHeight work for the ${nthBracket}th bracket`, () => {
 			const rewardFromEndpoint = rewardModule.endpoint.getDefaultRewardAtHeight({
 				getStore: jest.fn(),
 				logger,
 				params: {
-					height: offset - 1,
+					height: currentHeight,
 				},
 			});
-			expect(rewardFromEndpoint).toEqual({ reward: '0' });
+			expect(rewardFromEndpoint).toEqual({ reward: rewardFromConfig.toString() });
 		});
+	}
 
-		it('should throw an error when parameter height is not a number', () => {
-			expect(() =>
-				rewardModule.endpoint.getDefaultRewardAtHeight({
-					getStore: jest.fn(),
-					logger,
-					params: {
-						height: 'Not a number',
-					},
-				}),
-			).toThrow('Parameter height must be a number.');
+	it(`should getDefaultRewardAtHeight work for the height below offset`, () => {
+		const rewardFromEndpoint = rewardModule.endpoint.getDefaultRewardAtHeight({
+			getStore: jest.fn(),
+			logger,
+			params: {
+				height: offset - 1,
+			},
 		});
+		expect(rewardFromEndpoint).toEqual({ reward: '0' });
+	});
 
-		it('should throw an error when parameter height is below 0', () => {
-			expect(() =>
-				rewardModule.endpoint.getDefaultRewardAtHeight({
-					getStore: jest.fn(),
-					logger,
-					params: {
-						height: -1,
-					},
-				}),
-			).toThrow('Parameter height cannot be smaller than 0.');
-		});
+	it('should throw an error when parameter height is not a number', () => {
+		expect(() =>
+			rewardModule.endpoint.getDefaultRewardAtHeight({
+				getStore: jest.fn(),
+				logger,
+				params: {
+					height: 'Not a number',
+				},
+			}),
+		).toThrow('Parameter height must be a number.');
+	});
+
+	it('should throw an error when parameter height is below 0', () => {
+		expect(() =>
+			rewardModule.endpoint.getDefaultRewardAtHeight({
+				getStore: jest.fn(),
+				logger,
+				params: {
+					height: -1,
+				},
+			}),
+		).toThrow('Parameter height cannot be smaller than 0.');
 	});
 });
