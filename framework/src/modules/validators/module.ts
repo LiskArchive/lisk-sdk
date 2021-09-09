@@ -31,10 +31,10 @@ export class ValidatorsModule extends BaseModule {
 		const { blockTime } = moduleConfig;
 
 		if (!blockTime || typeof blockTime !== 'number') {
-			throw new Error('BlockTiem must be a number.');
+			throw new Error('BlockTime must be a number.');
 		}
 		if (blockTime < 1) {
-			throw new Error('Block time cannot be less than 1');
+			throw new Error('Block time cannot be less than 1.');
 		}
 		this._blockTime = blockTime;
 	}
