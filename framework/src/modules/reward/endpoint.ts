@@ -48,12 +48,8 @@ export class RewardEndpoint extends BaseEndpoint {
 		const location = Math.trunc((height - this._offset) / distance);
 		const lastBracket = this._brackets[this._brackets.length - 1];
 
-		let bracket;
-		if (location > this._brackets.length - 1) {
-			bracket = this._brackets.lastIndexOf(lastBracket);
-		} else {
-			bracket = location;
-		}
+		const bracket =
+			location > this._brackets.length - 1 ? this._brackets.lastIndexOf(lastBracket) : location;
 
 		return {
 			reward: this._brackets[bracket].toString(),
