@@ -66,7 +66,7 @@ describe('RewardModuleEndpoint', () => {
 		});
 	}
 
-	it(`should getDefaultRewardAtHeight work for the height below offset`, () => {
+	it('should getDefaultRewardAtHeight work for the height below offset', () => {
 		const rewardFromEndpoint = rewardModule.endpoint.getDefaultRewardAtHeight({
 			getStore: jest.fn(),
 			logger,
