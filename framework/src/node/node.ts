@@ -27,7 +27,7 @@ import { Consensus, CONSENSUS_EVENT_BLOCK_DELETE, CONSENSUS_EVENT_BLOCK_NEW } fr
 import { Generator } from './generator';
 import { Endpoint } from './endpoint';
 import { getRegisteredModules, getSchema, isReservedEndpointFunction } from './utils/modules';
-import { ValidatorAPI, ValidatorModule } from '../modules/validator';
+import { ValidatorsAPI, ValidatorsModule } from '../modules/validators';
 import { LiskBFTAPI, LiskBFTModule } from '../modules/liskbft';
 
 const MINIMUM_MODULE_ID = 2;
@@ -54,7 +54,7 @@ export class Node {
 	private readonly _network: Network;
 	private readonly _chain: Chain;
 	private readonly _endpoint: Endpoint;
-	private readonly _validatorModule: ValidatorModule;
+	private readonly _validatorsModule: ValidatorsModule;
 	private readonly _liskBFTModule: LiskBFTModule;
 	private _channel!: InMemoryChannel;
 	private _logger!: Logger;
@@ -76,22 +76,22 @@ export class Node {
 		});
 
 		this._stateMachine = new StateMachine();
-		this._validatorModule = new ValidatorModule();
+		this._validatorsModule = new ValidatorsModule();
 		this._liskBFTModule = new LiskBFTModule();
-		this._registeredModules.push(this._validatorModule, this._liskBFTModule);
+		this._registeredModules.push(this._validatorsModule, this._liskBFTModule);
 		this._consensus = new Consensus({
 			stateMachine: this._stateMachine,
 			network: this._network,
 			chain: this._chain,
 			genesisConfig: this._options.genesisConfig,
 			liskBFTAPI: this._liskBFTModule.api,
-			validatorAPI: this._validatorModule.api,
+			validatorAPI: this._validatorsModule.api,
 		});
 		this._generator = new Generator({
 			chain: this._chain,
 			consensus: this._consensus,
 			liskBFTAPI: this._liskBFTModule.api,
-			validatorAPI: this._validatorModule.api,
+			validatorAPI: this._validatorsModule.api,
 			generationConfig: this._options.generation,
 			network: this._network,
 			stateMachine: this._stateMachine,
@@ -103,9 +103,9 @@ export class Node {
 			consensus: this._consensus,
 			generator: this._generator,
 		});
-		this._stateMachine.registerSystemModule(this._validatorModule);
+		this._stateMachine.registerSystemModule(this._validatorsModule);
 		this._stateMachine.registerSystemModule(this._liskBFTModule);
-		this._generator.registerModule(this._validatorModule);
+		this._generator.registerModule(this._validatorsModule);
 		this._generator.registerModule(this._liskBFTModule);
 	}
 
@@ -258,8 +258,8 @@ export class Node {
 		return this._liskBFTModule.api;
 	}
 
-	public get validatorAPI(): ValidatorAPI {
-		return this._validatorModule.api;
+	public get validatorAPI(): ValidatorsAPI {
+		return this._validatorsModule.api;
 	}
 
 	public get networkIdentifier(): Buffer {

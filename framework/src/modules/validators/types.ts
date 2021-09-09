@@ -12,13 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule } from '..';
-import { ValidatorAPI } from './api';
-import { ValidatorEndpoint } from './endpoint';
+import { APIContext } from '../../node/state_machine/types';
 
-export class ValidatorModule extends BaseModule {
-	public id = 10;
-	public name = 'validator';
-	public api = new ValidatorAPI(this.id);
-	public endpoint = new ValidatorEndpoint(this.id);
+export interface ValidatorKeys {
+	generatorKey: Buffer;
+	blsKey: Buffer;
+}
+
+export interface ValidatorsAPI {
+	getGenerator: (apiContext: APIContext, timestamp: number) => Promise<Buffer>;
+	getSlotNumber: (apiContext: APIContext, timestamp: number) => number;
+	getSlotTime: (apiContext: APIContext, slot: number) => number;
 }
