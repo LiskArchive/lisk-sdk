@@ -22,6 +22,9 @@ export interface TokenIDReward {
 
 export interface ModuleConfig {
 	tokenIDReward: TokenIDReward;
+	brackets: ReadonlyArray<string>;
+	offset: number;
+	distance: number;
 }
 
 export interface TokenAPI {
@@ -43,4 +46,23 @@ export interface RandomAPI {
 
 export interface LiskBFTAPI {
 	impliesMaximalPrevotes(apiContext: APIContext, blockHeader: BlockHeader): Promise<boolean>;
+}
+
+export interface DefaultReward {
+	reward: string;
+}
+
+export interface EndpointInitArgs {
+	config: {
+		brackets: ReadonlyArray<bigint>;
+		offset: number;
+		distance: number;
+	};
+}
+
+export interface CalculateDefaultRewardArgs {
+	brackets: ReadonlyArray<bigint>;
+	offset: number;
+	distance: number;
+	height: number;
 }

@@ -28,6 +28,21 @@ export const configSchema = {
 			},
 			required: ['chainID', 'localID'],
 		},
+		offset: {
+			type: 'integer',
+			minimum: 1,
+		},
+		distance: {
+			type: 'integer',
+			minimum: 1,
+		},
+		brackets: {
+			type: 'array',
+			items: {
+				type: 'string',
+				format: 'uint64',
+			},
+		},
 	},
-	required: ['tokenIDReward'],
+	required: ['tokenIDReward', 'offset', 'distance', 'brackets'],
 };
