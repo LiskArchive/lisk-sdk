@@ -59,3 +59,10 @@ export interface EndpointInitArgs {
 		distance: number;
 	};
 }
+
+export interface CalculateDefaultRewardArgs {
+	brackets: ReadonlyArray<bigint>;
+	offset: number;
+	distance: number;
+	height: number;
+}
