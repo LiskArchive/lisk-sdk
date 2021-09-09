@@ -65,7 +65,7 @@ describe('api client ws mode', () => {
 
 		it('should invoke getNodeInfo action', async () => {
 			// Act
-			const nodeInfo = await client.invoke('app:getNodeInfo');
+			const nodeInfo = await client.invoke('app_getNodeInfo');
 
 			// Assert
 			expect(nodeInfo.version).toEqual(app.config.version);
@@ -83,7 +83,7 @@ describe('api client ws mode', () => {
 
 		it('should throw an error when action fails due to missing argument', async () => {
 			// Assert
-			await expect(client.invoke('app:getAccount')).rejects.toThrow(
+			await expect(client.invoke('app_getAccount')).rejects.toThrow(
 				'The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received undefined',
 			);
 		});
@@ -91,7 +91,7 @@ describe('api client ws mode', () => {
 		it('should throw an error on invalid action fails due to invalid argument', async () => {
 			// Assert
 			await expect(
-				client.invoke('app:getAccount', { address: 'randomString*&&^%^' }),
+				client.invoke('app_getAccount', { address: 'randomString*&&^%^' }),
 			).rejects.toThrow(
 				`Specified key ${concatDBKeys(DB_KEY_ACCOUNTS_ADDRESS, Buffer.alloc(0)).toString(
 					'hex',

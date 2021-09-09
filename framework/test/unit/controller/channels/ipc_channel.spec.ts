@@ -159,15 +159,7 @@ describe.skip('IPCChannel Channel', () => {
 			expect(ipcClientMock.rpcClient.call).toHaveBeenCalledWith(
 				'registerChannel',
 				params.namespace,
-				[
-					...params.events,
-					'registeredToBus',
-					'loading:started',
-					'loading:finished',
-					'unloading:started',
-					'unloading:finished',
-					'unloading:error',
-				],
+				[...params.events],
 				endpointsInfo,
 				{
 					rpcSocketPath: undefined,
@@ -189,7 +181,7 @@ describe.skip('IPCChannel Channel', () => {
 	});
 
 	describe('#subscribe', () => {
-		const validEventName = `${params.namespace}:${params.events[0]}`;
+		const validEventName = `${params.namespace}_${params.events[0]}`;
 		beforeEach(async () => ipcChannel.registerToBus());
 
 		it('should call _emitter.on', () => {
@@ -202,7 +194,7 @@ describe.skip('IPCChannel Channel', () => {
 	});
 
 	describe('#once', () => {
-		const validEventName = `${params.namespace}:${params.events[0]}`;
+		const validEventName = `${params.namespace}_${params.events[0]}`;
 
 		beforeEach(async () => ipcChannel.registerToBus());
 
@@ -217,12 +209,12 @@ describe.skip('IPCChannel Channel', () => {
 	});
 
 	describe('#publish', () => {
-		const validEventName = `${params.namespace}:${params.events[0]}`;
+		const validEventName = `${params.namespace}_${params.events[0]}`;
 
 		beforeEach(async () => ipcChannel.registerToBus());
 
 		it('should throw new Error when the module is not the same', () => {
-			const invalidEventName = `invalidModule:${params.events[0]}`;
+			const invalidEventName = `invalidModule_${params.events[0]}`;
 
 			expect(() => ipcChannel.publish(invalidEventName, {})).toThrow(
 				`Event "${invalidEventName}" not registered in "${params.namespace}" module.`,

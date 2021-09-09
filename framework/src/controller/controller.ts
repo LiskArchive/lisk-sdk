@@ -159,7 +159,6 @@ export class Controller {
 			APP_IDENTIFIER,
 			arg.events,
 			arg.endpoints,
-			{ skipInternalEvents: true },
 		);
 	}
 
@@ -287,17 +286,14 @@ export class Controller {
 			plugin.endpoint ? getEndpointHandlers(plugin.endpoint) : {},
 		);
 		await channel.registerToBus(this._bus);
-		channel.publish(`${name}:registeredToBus`);
-		channel.publish(`${name}:loading:started`);
+		this._logger.debug({ plugin: name }, 'Plugin is registered to bus');
 
 		await plugin.init({ config, channel, appConfig, logger: this._logger });
 		await plugin.load(channel);
 
-		channel.publish(`${name}:loading:finished`);
+		this._logger.debug({ plugin: name }, 'Plugin is successfully loaded');
 
 		this._inMemoryPlugins[name] = { plugin, channel };
-
-		this._logger.info(name, 'Loaded in-memory plugin');
 	}
 
 	private async _loadChildProcessPlugin(
@@ -347,9 +343,11 @@ export class Controller {
 
 		await Promise.race([
 			new Promise<void>(resolve => {
-				this.channel.once(`${name}:loading:finished`, () => {
-					this._logger.info({ name }, 'Loaded child-process plugin');
-					resolve();
+				child.on('message', ({ action }: { action: string }) => {
+					if (action === 'loaded') {
+						this._logger.info({ name }, 'Loaded child-process plugin');
+						resolve();
+					}
 				});
 			}),
 			new Promise((_, reject) => {
@@ -361,12 +359,12 @@ export class Controller {
 	}
 
 	private async _unloadInMemoryPlugin(name: string): Promise<void> {
-		this._inMemoryPlugins[name].channel.publish(`${name}:unloading:started`);
+		this._logger.debug({ plugin: name }, 'Unloading plugin');
 		try {
 			await this._inMemoryPlugins[name].plugin.unload();
-			this._inMemoryPlugins[name].channel.publish(`${name}:unloading:finished`);
+			this._logger.debug({ plugin: name }, 'Successfully unloaded plugin');
 		} catch (error) {
-			this._inMemoryPlugins[name].channel.publish(`${name}:unloading:error`, error);
+			this._logger.debug({ plugin: name, err: error as Error }, 'Fail to unload plugin');
 		} finally {
 			delete this._inMemoryPlugins[name];
 		}
@@ -384,20 +382,24 @@ export class Controller {
 		});
 
 		await Promise.race([
-			new Promise<void>(resolve => {
-				this.channel.once(`${name}:unloading:finished`, () => {
-					this._logger.info(`Child process plugin "${name}" unloaded`);
-					delete this._childProcesses[name];
-					resolve();
-				});
-			}),
-			new Promise((_, reject) => {
-				this.channel.once(`${name}:unloading:error`, data => {
-					this._logger.info(`Child process plugin "${name}" unloaded with error`);
-					this._logger.error(data ?? {}, 'Unloading plugin error.');
-					delete this._childProcesses[name];
-					reject(data);
-				});
+			new Promise<void>((resolve, reject) => {
+				this._childProcesses[name].on(
+					'message',
+					({ action, err }: { action: string; err?: Error }) => {
+						if (action !== 'unloaded' && action !== 'unloadedWithError') {
+							return;
+						}
+						delete this._childProcesses[name];
+						if (action === 'unloaded') {
+							this._logger.info(`Child process plugin "${name}" unloaded`);
+							resolve();
+						} else {
+							this._logger.info(`Child process plugin "${name}" unloaded with error`);
+							this._logger.error({ err }, 'Unloading plugin error.');
+							reject(err);
+						}
+					},
+				);
 			}),
 			new Promise((_, reject) => {
 				setTimeout(() => {

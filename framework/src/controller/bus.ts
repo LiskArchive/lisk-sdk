@@ -26,6 +26,7 @@ import * as JSONRPC from './jsonrpc';
 import { WSServer } from './ws/ws_server';
 import { HTTPServer } from './http/http_server';
 import { JSONRPCError } from './jsonrpc';
+import { getEndpointPath } from '../endpoint';
 
 interface BusConfiguration {
 	readonly httpServer?: HTTPServer;
@@ -230,19 +231,19 @@ export class Bus {
 		}
 
 		events.forEach(eventName => {
-			if (this._events[`${namespace}:${eventName}`] !== undefined) {
+			if (this._events[getEndpointPath(namespace, eventName)] !== undefined) {
 				throw new Error(`Event "${eventName}" already registered with bus.`);
 			}
-			this._events[`${namespace}:${eventName}`] = true;
+			this._events[getEndpointPath(namespace, eventName)] = true;
 		});
 		this._wsServer?.registerAllowedEvent([...this.getEvents()]);
 
 		for (const methodName of Object.keys(endpointInfo)) {
-			if (this._endpointInfos[`${namespace}:${methodName}`] !== undefined) {
+			if (this._endpointInfos[getEndpointPath(namespace, methodName)] !== undefined) {
 				throw new Error(`Endpoint "${methodName}" already registered with bus.`);
 			}
 
-			this._endpointInfos[`${namespace}:${methodName}`] = endpointInfo[methodName];
+			this._endpointInfos[getEndpointPath(namespace, methodName)] = endpointInfo[methodName];
 		}
 
 		if (options.type === ChannelType.ChildProcess && options.socketPath) {

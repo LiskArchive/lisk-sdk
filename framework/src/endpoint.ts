@@ -38,3 +38,5 @@ export const mergeEndpointHandlers = (...handlers: EndpointHandlers[]): Endpoint
 		}),
 		{},
 	);
+
+export const getEndpointPath = (namespace: string, method: string) => `${namespace}_${method}`;

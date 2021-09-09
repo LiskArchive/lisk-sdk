@@ -75,7 +75,7 @@ describe('api client ipc mode', () => {
 
 		it('should invoke getNodeInfo action', async () => {
 			// Act
-			const nodeInfo = await client.invoke('app:getNodeInfo');
+			const nodeInfo = await client.invoke('app_getNodeInfo');
 
 			// Assert
 			expect(nodeInfo.version).toEqual(app.config.version);
@@ -93,7 +93,7 @@ describe('api client ipc mode', () => {
 
 		it('should throw an error when action fails due to missing argument', async () => {
 			// Assert
-			await expect(client.invoke('app:getAccount')).rejects.toThrow(
+			await expect(client.invoke('app_getAccount')).rejects.toThrow(
 				'The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received undefined',
 			);
 		});
@@ -101,7 +101,7 @@ describe('api client ipc mode', () => {
 		it('should throw an error on invalid action fails due to invalid argument', async () => {
 			// Assert
 			await expect(
-				client.invoke('app:getAccount', { address: 'randomString*&&^%^' }),
+				client.invoke('app_getAccount', { address: 'randomString*&&^%^' }),
 			).rejects.toThrow(
 				`Specified key ${concatDBKeys(DB_KEY_ACCOUNTS_ADDRESS, Buffer.alloc(0)).toString(
 					'hex',
@@ -110,9 +110,9 @@ describe('api client ipc mode', () => {
 		});
 
 		it('should return a list of registered actions', async () => {
-			const actions = await await client.invoke('app:getRegisteredActions');
+			const actions = await await client.invoke('app_getRegisteredActions');
 			expect(actions).toBeArray();
-			expect(actions).toContain('app:getConnectedPeers');
+			expect(actions).toContain('app_getConnectedPeers');
 			expect(actions).toContain('dpos:getAllDelegates');
 			expect(actions).toContain('hello:callGreet');
 		});
@@ -129,9 +129,9 @@ describe('api client ipc mode', () => {
 			expect(newBlockEvent[0]).toHaveProperty('block');
 		});
 		it('should return a list of registered events', async () => {
-			const events = await await client.invoke('app:getRegisteredEvents');
+			const events = await await client.invoke('app_getRegisteredEvents');
 			expect(events).toBeArray();
-			expect(events).toContain('app:ready');
+			expect(events).toContain('app_ready');
 			expect(events).toContain('token:registeredToBus');
 			expect(events).toContain('hello:greet');
 		});

@@ -17,14 +17,14 @@ import { EventEmitter2, ListenerFn } from 'eventemitter2';
 import { join } from 'path';
 import { Request } from '../request';
 import { Event } from '../event';
-import { BaseChannel, BaseChannelOptions } from './base_channel';
+import { BaseChannel } from './base_channel';
 import { IPCClient } from '../ipc/ipc_client';
 import { EndpointInfo, ChannelType, EndpointHandlers } from '../../types';
 import * as JSONRPC from '../jsonrpc';
 import { IPC_EVENTS } from '../constants';
 import { Logger } from '../../logger';
 
-interface ChildProcessOptions extends BaseChannelOptions {
+interface ChildProcessOptions {
 	socketsPath: string;
 }
 
@@ -40,7 +40,7 @@ export class IPCChannel extends BaseChannel {
 		endpoints: EndpointHandlers,
 		options: ChildProcessOptions,
 	) {
-		super(logger, namespace, events, endpoints, options);
+		super(logger, namespace, events, endpoints);
 
 		this._ipcClient = new IPCClient({
 			socketsDir: options.socketsPath,

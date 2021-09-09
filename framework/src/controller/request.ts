@@ -14,6 +14,7 @@
 
 import { strict as assert } from 'assert';
 import { actionWithModuleNameReg } from '../constants';
+import { getEndpointPath } from '../endpoint';
 import {
 	ID,
 	JSONRPCErrorObject,
@@ -36,7 +37,7 @@ export class Request {
 		);
 
 		this.id = id;
-		[this.namespace, this.name] = name.split(':');
+		[this.namespace, this.name] = name.split('_');
 		this.params = params ?? {};
 	}
 
@@ -51,7 +52,7 @@ export class Request {
 		return {
 			jsonrpc: VERSION,
 			id: this.id,
-			method: `${this.namespace}:${this.name}`,
+			method: getEndpointPath(this.namespace, this.name),
 			params: this.params,
 		};
 	}
@@ -71,6 +72,6 @@ export class Request {
 	}
 
 	public key(): string {
-		return `${this.namespace}:${this.name}`;
+		return getEndpointPath(this.namespace, this.name);
 	}
 }

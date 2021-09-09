@@ -13,14 +13,9 @@
  */
 
 import { EventCallback } from '../event';
-import { eventWithModuleNameReg, INTERNAL_EVENTS } from '../../constants';
+import { eventWithModuleNameReg } from '../../constants';
 import { EndpointHandlers } from '../../types';
 import { Logger } from '../../logger';
-
-export interface BaseChannelOptions {
-	[key: string]: unknown;
-	readonly skipInternalEvents?: boolean;
-}
 
 export abstract class BaseChannel {
 	public readonly eventsList: ReadonlyArray<string>;
@@ -28,7 +23,6 @@ export abstract class BaseChannel {
 	public readonly namespace: string;
 
 	protected readonly endpointHandlers: EndpointHandlers;
-	protected readonly options: Record<string, unknown>;
 	protected readonly _logger: Logger;
 	private _requestId: number;
 
@@ -37,13 +31,11 @@ export abstract class BaseChannel {
 		namespace: string,
 		events: ReadonlyArray<string>,
 		endpoints: EndpointHandlers,
-		options: BaseChannelOptions = {},
 	) {
 		this._logger = logger;
 		this.namespace = namespace;
-		this.options = options;
 
-		this.eventsList = options.skipInternalEvents ? events : [...events, ...INTERNAL_EVENTS];
+		this.eventsList = events;
 
 		this.endpointHandlers = {};
 		this._requestId = 0;
@@ -79,18 +71,18 @@ export abstract class BaseChannel {
 	}
 
 	// Listen to any event happening in the application
-	// Specified as moduleName:eventName
+	// Specified as moduleName_eventName
 	// If its related to your own moduleName specify as :eventName
 	abstract subscribe(eventName: string, cb: EventCallback): void;
 	abstract unsubscribe(eventName: string, cb: EventCallback): void;
 
 	// Publish the event on the channel
-	// Specified as moduleName:eventName
+	// Specified as moduleName_eventName
 	// If its related to your own moduleName specify as :eventName
 	abstract publish(eventName: string, data?: Record<string, unknown>): void;
 
 	// Call action of any moduleName through controller
-	// Specified as moduleName:actionName
+	// Specified as moduleName_actionName
 	abstract invoke<T>(actionName: string, params?: Record<string, unknown>): Promise<T>;
 
 	abstract registerToBus(arg: unknown): Promise<void>;

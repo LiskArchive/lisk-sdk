@@ -122,7 +122,7 @@ describe('Bus', () => {
 			// Assert
 			expect(Object.keys(bus['_events'])).toHaveLength(2);
 			events.forEach(eventName => {
-				expect(bus['_events'][`${moduleName}:${eventName}`]).toBe(true);
+				expect(bus['_events'][`${moduleName}_${eventName}`]).toBe(true);
 			});
 		});
 
@@ -157,7 +157,7 @@ describe('Bus', () => {
 			// Assert
 			expect(Object.keys(bus['_endpointInfos'])).toHaveLength(2);
 			Object.keys(endpointInfo).forEach(actionName => {
-				expect(bus['_endpointInfos'][`${moduleName}:${actionName}`]).toBe(endpointInfo[actionName]);
+				expect(bus['_endpointInfos'][`${moduleName}_${actionName}`]).toBe(endpointInfo[actionName]);
 			});
 		});
 
@@ -188,13 +188,13 @@ describe('Bus', () => {
 			const jsonrpcRequest = {
 				id: 1,
 				jsonrpc: '2.0',
-				method: 'app:nonExistentRequest',
+				method: 'app_nonExistentRequest',
 			};
 			const action = Request.fromJSONRPCRequest(jsonrpcRequest);
 
 			// Act && Assert
 			await expect(bus.invoke(jsonrpcRequest)).rejects.toThrow(
-				`Request '${action.namespace}:${action.name}' is not registered to bus.`,
+				`Request '${action.namespace}_${action.name}' is not registered to bus.`,
 			);
 		});
 
@@ -203,13 +203,13 @@ describe('Bus', () => {
 			const jsonrpcRequest = {
 				id: 1,
 				jsonrpc: '2.0',
-				method: 'invalidModule:getComponentConfig',
+				method: 'invalidModule_getComponentConfig',
 			};
 			const action = Request.fromJSONRPCRequest(jsonrpcRequest);
 
 			// Act && Assert
 			await expect(bus.invoke(jsonrpcRequest)).rejects.toThrow(
-				`Request '${action.namespace}:${action.name}' is not registered to bus.`,
+				`Request '${action.namespace}_${action.name}' is not registered to bus.`,
 			);
 		});
 
@@ -256,9 +256,9 @@ describe('Bus', () => {
 			// Arrange
 			const moduleName = 'name';
 			const events = ['registeredEvent'];
-			const eventName = `${moduleName}:${events[0]}`;
+			const eventName = `${moduleName}_${events[0]}`;
 			const eventData = { data: '#DATA' };
-			const JSONRPCData = { jsonrpc: '2.0', method: 'name:registeredEvent', params: eventData };
+			const JSONRPCData = { jsonrpc: '2.0', method: 'name_registeredEvent', params: eventData };
 			const mockIPCServer = {
 				pubSocket: { send: jest.fn().mockResolvedValue(jest.fn()) },
 				stop: jest.fn(),
@@ -326,7 +326,7 @@ describe('Bus', () => {
 				},
 			};
 			const expectedRequests = Object.keys(endpointInfo).map(
-				actionName => `${moduleName}:${actionName}`,
+				actionName => `${moduleName}_${actionName}`,
 			);
 
 			await bus.registerChannel(moduleName, [], endpointInfo, channelOptions);
@@ -344,7 +344,7 @@ describe('Bus', () => {
 			// Arrange
 			const moduleName = 'name';
 			const events = ['event1', 'event2'];
-			const expectedEvents = events.map(event => `${moduleName}:${event}`);
+			const expectedEvents = events.map(event => `${moduleName}_${event}`);
 
 			await bus.registerChannel(moduleName, events, {}, channelOptions);
 
