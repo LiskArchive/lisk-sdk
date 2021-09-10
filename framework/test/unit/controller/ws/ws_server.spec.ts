@@ -16,18 +16,18 @@ import * as WebSocket from 'ws';
 import { WSServer } from '../../../../src/controller/ws/ws_server';
 
 describe('WSServer', () => {
+	const logger = {
+		info: jest.fn(),
+		error: jest.fn(),
+		trace: jest.fn(),
+		debug: jest.fn(),
+		warn: jest.fn(),
+		fatal: jest.fn(),
+		level: jest.fn(),
+	};
 	const config = {
 		port: 8888,
 		path: '/ws',
-		logger: {
-			info: jest.fn(),
-			error: jest.fn(),
-			trace: jest.fn(),
-			debug: jest.fn(),
-			warn: jest.fn(),
-			fatal: jest.fn(),
-			level: jest.fn(),
-		},
 	};
 	let wsServerInstance: WSServer;
 	const wsMessageHandler = jest.fn();
@@ -37,7 +37,6 @@ describe('WSServer', () => {
 			wsServerInstance = new WSServer(config);
 			expect(wsServerInstance['_port']).toBe(config.port);
 			expect(wsServerInstance['_path']).toBe(config.path);
-			expect(wsServerInstance['_logger']).toBe(config.logger);
 		});
 	});
 
@@ -48,7 +47,7 @@ describe('WSServer', () => {
 			jest.spyOn(WebSocket.Server.prototype, 'on');
 
 			wsServerInstance.registerAllowedEvent(['app_newBlock']);
-			wsServerInstance.start(wsMessageHandler);
+			wsServerInstance.start(logger, wsMessageHandler);
 		});
 
 		afterEach(() => {
@@ -75,7 +74,7 @@ describe('WSServer', () => {
 		it('should call stop on the WS server', () => {
 			wsServerInstance = new WSServer(config);
 			wsServerInstance.registerAllowedEvent(['app_newBlock']);
-			wsServerInstance.start(wsMessageHandler);
+			wsServerInstance.start(logger, wsMessageHandler);
 			const stopSpy = jest.spyOn(wsServerInstance.server, 'close');
 			wsServerInstance.stop();
 			expect(stopSpy).toHaveBeenCalled();

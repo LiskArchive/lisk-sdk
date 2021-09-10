@@ -17,20 +17,44 @@ import { objects } from '@liskhq/lisk-utils';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import { join } from 'path';
+import { BaseChannel, BasePlugin } from '../../src';
 import { Application } from '../../src/application';
 import { Bus } from '../../src/controller/bus';
-import { IPCServer } from '../../src/controller/ipc/ipc_server';
+// import { IPCServer } from '../../src/controller/ipc/ipc_server';
 import { WSServer } from '../../src/controller/ws/ws_server';
 import { createLogger } from '../../src/logger';
 import { Node } from '../../src/node';
 import { systemDirs } from '../../src/system_dirs';
 import { genesisBlock } from '../fixtures/blocks';
+import * as basePluginModule from '../../src/plugins/base_plugin';
 import * as networkConfig from '../fixtures/config/devnet/config.json';
 
 jest.mock('fs-extra');
-jest.mock('zeromq');
+jest.mock('zeromq', () => {
+	return {
+		Publisher: jest
+			.fn()
+			.mockReturnValue({ bind: jest.fn(), close: jest.fn(), subscribe: jest.fn() }),
+		Subscriber: jest
+			.fn()
+			.mockReturnValue({ bind: jest.fn(), close: jest.fn(), subscribe: jest.fn() }),
+		Router: jest.fn().mockReturnValue({ bind: jest.fn(), close: jest.fn() }),
+	};
+});
 jest.mock('@liskhq/lisk-db');
 jest.mock('../../src/logger');
+
+class TestPlugin extends BasePlugin {
+	public name = 'test-plugin';
+
+	public get nodeModulePath(): string {
+		return __filename;
+	}
+
+	public async load(_channel: BaseChannel): Promise<void> {}
+
+	public async unload(): Promise<void> {}
+}
 
 describe('Application', () => {
 	// Arrange
@@ -51,7 +75,7 @@ describe('Application', () => {
 
 	beforeEach(() => {
 		jest.spyOn(os, 'homedir').mockReturnValue('/user');
-		jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
+		// jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
 		jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
 		jest.spyOn(Node.prototype, 'init').mockResolvedValue();
 		jest.spyOn(process, 'exit').mockReturnValue(0 as never);
@@ -147,7 +171,7 @@ describe('Application', () => {
 			expect(app['_genesisBlock']).toEqual(genesisBlockJSON);
 			expect(app.config).toMatchSnapshot();
 			expect(app['_node']).not.toBeUndefined();
-			expect(app['_plugins']).toBeInstanceOf(Object);
+			expect(app['_controller']).not.toBeUndefined();
 		});
 
 		it('should not initialize logger', () => {
@@ -192,192 +216,71 @@ describe('Application', () => {
 		});
 	});
 
-	// describe('#registerPlugin', () => {
-	// 	it('should throw error when plugin class is missing', () => {
-	// 		// Arrange
-	// 		const app = Application.defaultApplication(genesisBlockJSON, config);
-
-	// 		// Act && Assert
-	// 		expect(() => (app as any).registerPlugin()).toThrow('Plugin implementation is required');
-	// 	});
-
-	// 	it('should throw error when plugin alias is missing', () => {
-	// 		// Arrange
-	// 		const app = Application.defaultApplication(genesisBlockJSON, config);
-	// 		class MyPlugin extends TestPlugin {
-	// 			// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	// 			public static get alias() {
-	// 				return '';
-	// 			}
-	// 		}
-
-	// 		// Act && Assert
-	// 		expect(() => (app as any).registerPlugin(MyPlugin)).toThrow('Plugin alias is required.');
-	// 	});
-
-	// 	it('should throw error when plugin with same alias is already registered', () => {
-	// 		// Arrange
-	// 		const app = Application.defaultApplication(genesisBlockJSON, config);
-	// 		class MyPlugin extends TestPlugin {
-	// 			// eslint-disable-next-line @typescript-eslint/class-literal-property-style
-	// 			public static get alias() {
-	// 				return 'my-plugin';
-	// 			}
-	// 		}
-	// 		(app as any).registerPlugin(MyPlugin);
-
-	// 		// Act && Assert
-	// 		expect(() => (app as any).registerPlugin(MyPlugin)).toThrow(
-	// 			'A plugin with alias "my-plugin" already registered.',
-	// 		);
-	// 	});
-
-	// 	it('should call validatePluginSpec function', async () => {
-	// 		// Arrange
-	// 		const app = Application.defaultApplication(genesisBlockJSON, config);
-	// 		jest.spyOn(basePluginModule, 'validatePluginSpec').mockReturnValue();
-
-	// 		// Act
-	// 		(app as any).registerPlugin(TestPlugin);
-
-	// 		// Assert
-	// 		expect(basePluginModule.validatePluginSpec).toHaveBeenCalledTimes(1);
-	// 		expect(basePluginModule.validatePluginSpec).toHaveBeenCalledWith(TestPlugin, {
-	// 			loadAsChildProcess: false,
-	// 		});
-	// 	});
-
-	// 	it('should throw error when plugin is required to load as child process and not exported', () => {
-	// 		// Arrange
-	// 		const app = Application.defaultApplication(genesisBlockJSON, config);
-	// 		jest.spyOn(basePluginModule, 'getPluginExportPath').mockReturnValue(undefined);
-
-	// 		// Act && Assert
-	// 		expect(() => (app as any).registerPlugin(TestPlugin, { loadAsChildProcess: true })).toThrow(
-	// 			'Unable to register plugin "test-plugin" to load as child process. \n -> To load plugin as child process it must be exported. \n -> You can specify npm package as "info.name". \n -> Or you can specify any static path as "info.exportPath". \n -> To fix this issue you can simply assign __filename to info.exportPath in your plugin.',
-	// 		);
-	// 		expect(basePluginModule.getPluginExportPath).toHaveBeenCalledTimes(1);
-	// 		expect(basePluginModule.getPluginExportPath).toHaveBeenCalledWith(TestPlugin);
-	// 	});
-
-	// 	it('should add plugin to the collection', () => {
-	// 		// Arrange
-	// 		const app = Application.defaultApplication(genesisBlockJSON, config);
-	// 		(app as any).registerPlugin(TestPlugin);
-
-	// 		// Act && Assert
-	// 		expect(app['_plugins']['test-plugin']).toBe(TestPlugin);
-	// 	});
-
-	// 	it('should add plugin to the collection with custom alias', () => {
-	// 		// Arrange
-	// 		const app = Application.defaultApplication(genesisBlockJSON, config);
-	// 		(app as any).registerPlugin(TestPlugin, { alias: 'my-custom-plugin' });
-
-	// 		// Act && Assert
-	// 		expect(app['_plugins']['my-custom-plugin']).toBe(TestPlugin);
-	// 	});
-	// });
-
-	// TODO: Update channel improvement is completed
-	// eslint-disable-next-line jest/no-disabled-tests
-	describe.skip('#_initChannel', () => {
-		let app;
-		let actionsList: any;
-
-		beforeEach(() => {
+	describe('#registerPlugin', () => {
+		it('should throw error when plugin name is missing', () => {
 			// Arrange
-			app = Application.defaultApplication(genesisBlockJSON, config);
-			app['_channel'] = app['_initChannel']();
-			actionsList = app['_channel'].actionsList;
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			class MyPlugin extends TestPlugin {
+				public name = '';
+			}
+
+			// Act && Assert
+			expect(() => app.registerPlugin(new MyPlugin())).toThrow('Plugin "name" is required.');
 		});
 
-		it('should create getAccount action', () => {
-			// Assert
-			expect(actionsList).toContain('getAccount');
+		it('should throw error when plugin with same name is already registered', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			class MyPlugin extends TestPlugin {
+				public name = 'my-plugin';
+			}
+			app.registerPlugin(new MyPlugin());
+
+			// Act && Assert
+			expect(() => app.registerPlugin(new MyPlugin())).toThrow(
+				'A plugin with name "my-plugin" already registered.',
+			);
 		});
 
-		it('should create getAccounts action', () => {
+		it('should call validatePluginSpec function', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(basePluginModule, 'validatePluginSpec').mockReturnValue();
+
+			// Act
+			app.registerPlugin(new TestPlugin());
+
 			// Assert
-			expect(actionsList).toContain('getAccounts');
+			expect(basePluginModule.validatePluginSpec).toHaveBeenCalledTimes(1);
+			expect(basePluginModule.validatePluginSpec).toHaveBeenCalledWith(new TestPlugin());
 		});
 
-		it('should create getBlockByID action', () => {
-			// Assert
-			expect(actionsList).toContain('getBlockByID');
+		it('should throw error when plugin is required to load as child process and not exported', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			jest.spyOn(basePluginModule, 'getPluginExportPath').mockReturnValue(undefined);
+
+			// Act && Assert
+			expect(() => app.registerPlugin(new TestPlugin(), { loadAsChildProcess: true })).toThrow(
+				'Unable to register plugin "test-plugin" to load as child process. Package name or __filename must be specified in nodeModulePath.',
+			);
+			expect(basePluginModule.getPluginExportPath).toHaveBeenCalledTimes(1);
+			expect(basePluginModule.getPluginExportPath).toHaveBeenCalledWith(new TestPlugin());
 		});
 
-		it('should create getBlocksByIDs action', () => {
-			// Assert
-			expect(actionsList).toContain('getBlocksByIDs');
-		});
+		it('should add plugin to the collection', () => {
+			// Arrange
+			const app = Application.defaultApplication(genesisBlockJSON, config);
+			const plugin = new TestPlugin();
+			jest.spyOn(app['_controller'], 'registerPlugin');
+			app.registerPlugin(plugin);
 
-		it('should create getBlockByHeight action', () => {
-			// Assert
-			expect(actionsList).toContain('getBlockByHeight');
-		});
-
-		it('should create getBlocksByHeightBetween action', () => {
-			// Assert
-			expect(actionsList).toContain('getBlocksByHeightBetween');
-		});
-
-		it('should create getTransactionByID action', () => {
-			// Assert
-			expect(actionsList).toContain('getTransactionByID');
-		});
-
-		it('should create getTransactionsByIDs action', () => {
-			// Assert
-			expect(actionsList).toContain('getTransactionsByIDs');
+			// Act && Assert
+			expect(app['_controller'].registerPlugin).toHaveBeenCalledWith(plugin, {
+				loadAsChildProcess: false,
+			});
 		});
 	});
-
-	// describe('#_loadPlugins', () => {
-	// 	let app: Application;
-	// 	let dirs: ReturnType<typeof systemDirs>;
-
-	// 	beforeEach(async () => {
-	// 		app = Application.defaultApplication(genesisBlockJSON, config);
-	// 		app.registerPlugin(TestPlugin);
-	// 		jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
-	// 		jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
-	// 		jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
-	// 		jest.spyOn(Controller.prototype, 'loadPlugins').mockResolvedValue(jest.fn() as never);
-
-	// 		await app.run();
-
-	// 		dirs = systemDirs(app.config.label, app.config.rootPath);
-	// 	});
-
-	// 	it('should compile config and load plugins', () => {
-	// 		// Arrange
-	// 		const plugins = {
-	// 			[TestPlugin.alias]: TestPlugin,
-	// 		};
-	// 		const pluginsOptions = {
-	// 			[TestPlugin.alias]: {
-	// 				loadAsChildProcess: false,
-	// 				dataPath: dirs.dataPath,
-	// 				appConfig: {
-	// 					rootPath: app.config.rootPath,
-	// 					label: app.config.label,
-	// 					version: app.config.version,
-	// 					networkVersion: app.config.networkVersion,
-	// 					genesisConfig: app.config.genesisConfig,
-	// 					logger: {
-	// 						consoleLogLevel: app.config.logger.consoleLogLevel,
-	// 						fileLogLevel: app.config.logger.fileLogLevel,
-	// 					},
-	// 				},
-	// 			},
-	// 		};
-
-	// 		// Assert
-	// 		expect(app['_controller'].loadPlugins).toHaveBeenCalledTimes(1);
-	// 		expect(app['_controller'].loadPlugins).toHaveBeenCalledWith(plugins, pluginsOptions);
-	// 	});
-	// });
 
 	describe('#_setupDirectories', () => {
 		let app: Application;
@@ -387,7 +290,7 @@ describe('Application', () => {
 			app = Application.defaultApplication(genesisBlockJSON, config);
 			jest.spyOn(app['_node']['_network'], 'start').mockResolvedValue();
 			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
-			jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
+			// jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
 			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
 
@@ -429,9 +332,12 @@ describe('Application', () => {
 
 		beforeEach(async () => {
 			app = Application.defaultApplication(genesisBlockJSON, config);
-			jest.spyOn(app['_node']['_network'], 'start').mockResolvedValue();
+			jest.spyOn(app['_node'], 'init').mockResolvedValue();
+			jest.spyOn(app['_node'], 'start').mockResolvedValue();
+			jest.spyOn(app['_node'], 'stop').mockResolvedValue();
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
 			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
+			jest.spyOn(fs, 'unlink').mockResolvedValue();
 
 			await app.run();
 			await app.shutdown();
@@ -440,13 +346,9 @@ describe('Application', () => {
 		it('should delete all files in ~/.lisk/tmp/sockets', () => {
 			const { sockets: socketsPath } = systemDirs(app.config.label, app.config.rootPath);
 
-			// Arrange
-			const spy = jest.spyOn(fs, 'unlink').mockReturnValue(Promise.resolve());
-			(app as any)._emptySocketsDirectory();
-
 			// Assert
 			for (const aSocketFile of fakeSocketFiles) {
-				expect(spy).toHaveBeenCalledWith(join(socketsPath, aSocketFile), expect.anything());
+				expect(fs.unlink).toHaveBeenCalledWith(join(socketsPath, aSocketFile));
 			}
 		});
 	});
@@ -457,7 +359,6 @@ describe('Application', () => {
 		let clearControllerPidFileSpy: jest.SpyInstance<any, unknown[]>;
 		let emptySocketsDirectorySpy: jest.SpyInstance<any, unknown[]>;
 		let nodeCleanupSpy: jest.SpyInstance<any, unknown[]>;
-		let controllerCleanupSpy: jest.SpyInstance<any, unknown[]>;
 		let blockChainDBSpy: jest.SpyInstance<any, unknown[]>;
 		let forgerDBSpy: jest.SpyInstance<any, unknown[]>;
 		let _nodeDBSpy: jest.SpyInstance<any, unknown[]>;
@@ -468,11 +369,11 @@ describe('Application', () => {
 			jest.spyOn(app['_node']['_network'], 'start').mockResolvedValue();
 			await app.run();
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
-			nodeCleanupSpy = jest.spyOn((app as any)._node, 'stop').mockResolvedValue(true);
-			controllerCleanupSpy = jest.spyOn((app as any)._controller, 'cleanup');
-			blockChainDBSpy = jest.spyOn((app as any)._blockchainDB, 'close');
-			forgerDBSpy = jest.spyOn((app as any)._forgerDB, 'close');
-			_nodeDBSpy = jest.spyOn((app as any)._nodeDB, 'close');
+			nodeCleanupSpy = jest.spyOn(app['_node'], 'stop').mockResolvedValue();
+			jest.spyOn(app['_controller'], 'stop');
+			blockChainDBSpy = jest.spyOn(app['_blockchainDB'], 'close');
+			forgerDBSpy = jest.spyOn(app['_forgerDB'], 'close');
+			_nodeDBSpy = jest.spyOn(app['_nodeDB'], 'close');
 			emptySocketsDirectorySpy = jest
 				.spyOn(app as any, '_emptySocketsDirectory')
 				.mockResolvedValue([]);
@@ -487,7 +388,7 @@ describe('Application', () => {
 			expect(blockChainDBSpy).toHaveBeenCalledTimes(1);
 			expect(forgerDBSpy).toHaveBeenCalledTimes(1);
 			expect(_nodeDBSpy).toHaveBeenCalledTimes(1);
-			expect(controllerCleanupSpy).toHaveBeenCalledTimes(1);
+			expect(app['_controller'].stop).toHaveBeenCalledTimes(1);
 		});
 
 		it('should call clearControllerPidFileSpy method with correct pid file location', async () => {

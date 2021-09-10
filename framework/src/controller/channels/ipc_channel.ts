@@ -15,13 +15,14 @@
 import { Dealer, Publisher, Router, Subscriber } from 'zeromq';
 import { EventEmitter2, ListenerFn } from 'eventemitter2';
 import { join } from 'path';
-import { Action, ActionsDefinition } from '../action';
+import { Request } from '../request';
 import { Event } from '../event';
 import { BaseChannel, BaseChannelOptions } from './base_channel';
 import { IPCClient } from '../ipc/ipc_client';
-import { ActionInfoForBus, ChannelType } from '../../types';
+import { EndpointInfo, ChannelType, EndpointHandlers } from '../../types';
 import * as JSONRPC from '../jsonrpc';
 import { IPC_EVENTS } from '../constants';
+import { Logger } from '../../logger';
 
 interface ChildProcessOptions extends BaseChannelOptions {
 	socketsPath: string;
@@ -33,16 +34,17 @@ export class IPCChannel extends BaseChannel {
 	private readonly _rpcRequestIds: Set<string>;
 
 	public constructor(
-		moduleName: string,
+		logger: Logger,
+		namespace: string,
 		events: ReadonlyArray<string>,
-		actions: ActionsDefinition,
+		endpoints: EndpointHandlers,
 		options: ChildProcessOptions,
 	) {
-		super(moduleName, events, actions, options);
+		super(logger, namespace, events, endpoints, options);
 
 		this._ipcClient = new IPCClient({
 			socketsDir: options.socketsPath,
-			name: moduleName,
+			name: namespace,
 			rpcServerSocketPath: `ipc://${join(options.socketsPath, 'bus.internal.rpc.ipc')}`,
 		});
 
@@ -77,8 +79,8 @@ export class IPCChannel extends BaseChannel {
 		const listenToRPC = async (): Promise<void> => {
 			for await (const [sender, event, eventData] of this._rpcServer) {
 				if (event.toString() === IPC_EVENTS.RPC_EVENT) {
-					const request = Action.fromJSONRPCRequest(JSON.parse(eventData.toString()));
-					if (request.module === this.moduleName) {
+					const request = Request.fromJSONRPCRequest(JSON.parse(eventData.toString()));
+					if (request.namespace === this.namespace) {
 						this.invoke(request.key(), request.params)
 							.then(result => {
 								this._rpcServer
@@ -120,19 +122,19 @@ export class IPCChannel extends BaseChannel {
 	public async registerToBus(): Promise<void> {
 		await this.startAndListen();
 		// Register channel details
-		let actionsInfo: { [key: string]: ActionInfoForBus } = {};
-		actionsInfo = Object.keys(this.actions).reduce((accumulator, value: string) => {
+		let endpointInfo: { [key: string]: EndpointInfo } = {};
+		endpointInfo = Object.keys(this.endpointHandlers).reduce((accumulator, value: string) => {
 			accumulator[value] = {
-				name: value,
-				module: this.moduleName,
+				method: value,
+				namespace: this.namespace,
 			};
 			return accumulator;
-		}, actionsInfo);
+		}, endpointInfo);
 
 		const registerObj = {
-			moduleName: this.moduleName,
+			moduleName: this.namespace,
 			eventsList: this.eventsList.map((event: string) => event),
-			actionsInfo,
+			endpointInfo,
 			options: {
 				type: ChannelType.ChildProcess,
 				socketPath: this._ipcClient.socketPaths.rpcServer,
@@ -171,8 +173,8 @@ export class IPCChannel extends BaseChannel {
 
 	public publish(eventName: string, data?: Record<string, unknown>): void {
 		const event = new Event(eventName, data);
-		if (event.module !== this.moduleName || !this.eventsList.includes(event.name)) {
-			throw new Error(`Event "${eventName}" not registered in "${this.moduleName}" module.`);
+		if (event.module !== this.namespace || !this.eventsList.includes(event.name)) {
+			throw new Error(`Event "${eventName}" not registered in "${this.namespace}" module.`);
 		}
 
 		this._pubSocket
@@ -182,34 +184,39 @@ export class IPCChannel extends BaseChannel {
 			});
 	}
 
-	public async invoke<T>(actionName: string, params?: Record<string, unknown>): Promise<T> {
-		const action = new Action(this._getNextRequestId(), actionName, params);
+	public async invoke<T>(methodName: string, params?: Record<string, unknown>): Promise<T> {
+		const request = new Request(this._getNextRequestId(), methodName, params);
 
 		// When the handler is within the same channel
-		if (action.module === this.moduleName) {
-			const handler = this.actions[action.name]?.handler;
+		if (request.namespace === this.namespace) {
+			const handler = this.endpointHandlers[request.name];
 			if (!handler) {
 				throw new Error('Handler does not exist.');
 			}
 
-			// change this to lisk format
-			return handler(action.params) as T;
+			return handler({
+				getStore: () => {
+					throw new Error('getStore cannot be called on IPC channel');
+				},
+				params: request.params ?? {},
+				logger: this._logger,
+			}) as Promise<T>;
 		}
 
 		// When the handler is in other channels
 		return new Promise((resolve, reject) => {
-			this._rpcRequestIds.add(action.id as string);
+			this._rpcRequestIds.add(request.id as string);
 			this._rpcClient
-				.send(['invoke', JSON.stringify(action.toJSONRPCRequest())])
+				.send(['invoke', JSON.stringify(request.toJSONRPCRequest())])
 				.then(_ => {
 					const requestTimeout = setTimeout(() => {
 						reject(new Error('Request timed out on invoke.'));
 					}, IPC_EVENTS.RPC_REQUEST_TIMEOUT);
 					this._emitter.once(
-						action.id as string,
+						request.id as string,
 						(response: JSONRPC.ResponseObjectWithResult<T>) => {
 							clearTimeout(requestTimeout);
-							this._rpcRequestIds.delete(action.id as string);
+							this._rpcRequestIds.delete(request.id as string);
 							return resolve(response.result);
 						},
 					);

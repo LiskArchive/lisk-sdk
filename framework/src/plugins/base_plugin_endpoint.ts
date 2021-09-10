@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2021 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,14 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-const base = require('../config/jest.config.base');
-
-module.exports = {
-	...base,
-	testMatch: ['<rootDir>/test/unit/**/*.(spec|test).(js|ts)'],
-	testPathIgnorePatterns: [
-		'/node_modules|modules/dpos|modules/keys|modules/token|modules/sequence',
-	],
-	coverageDirectory: '.coverage/unit',
-	collectCoverageFrom: ['src/controller/**', 'src/application/**'],
-};
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
+export abstract class BasePluginEndpoint {
+	[key: string]: unknown;
+}

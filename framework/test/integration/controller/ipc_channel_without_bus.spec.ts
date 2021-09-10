@@ -17,11 +17,17 @@ import { removeSync, mkdirSync } from 'fs-extra';
 import { resolve as pathResolve } from 'path';
 import { IPCChannel } from '../../../src/controller/channels';
 import { IPCServer } from '../../../src/controller/ipc/ipc_server';
+import { EndpointHandlers } from '../../../src/types';
 
 // TODO: ZeroMQ tests are unstable with jest https://github.com/zeromq/zeromq.js/issues/416
 // eslint-disable-next-line jest/no-disabled-tests
 describe.skip('IPCChannelWithoutBus', () => {
 	// Arrange
+	const logger: any = {
+		info: jest.fn(),
+		debug: jest.fn(),
+		error: jest.fn(),
+	};
 	const socketsDir = pathResolve(`${homedir()}/.lisk/integration/ipc_channel_without_bus/sockets`);
 
 	const config: any = {
@@ -29,29 +35,29 @@ describe.skip('IPCChannelWithoutBus', () => {
 	};
 
 	const alpha = {
-		moduleName: 'alphaName',
+		namespace: 'alphaName',
+		logger,
 		events: ['alpha1', 'alpha2'],
-		actions: {
-			multiplyByTwo: {
-				handler: (params: any) => params.val * 2,
-			},
-			multiplyByThree: {
-				handler: (params: any) => params.val * 3,
-			},
-		},
+		endpoints: ({
+			multiplyByTwo: (params: any) => params.val * 2,
+			multiplyByThree: (params: any) => params.val * 3,
+		} as unknown) as EndpointHandlers,
 	};
 
 	const beta = {
-		moduleName: 'betaName',
+		namespace: 'betaName',
+		logger,
 		events: ['beta1', 'beta2'],
-		actions: {
-			divideByTwo: {
-				handler: (params: any) => params.val / 2,
+		endpoints: ({
+			divideByTwo: (params: any) => params.val / 2,
+			divideByThree: (params: any) => params.val / 3,
+			withError: (params: any) => {
+				if (params.val === 1) {
+					throw new Error('Invalid request');
+				}
+				return 0;
 			},
-			divideByThree: {
-				handler: (params: any) => params.val / 3,
-			},
-		},
+		} as unknown) as EndpointHandlers,
 	};
 
 	describe('Communication without registering to bus', () => {
@@ -85,15 +91,27 @@ describe.skip('IPCChannelWithoutBus', () => {
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			Promise.all<void>([listenForRPC(), listenForEvents()]).catch(_ => ({}));
 
-			alphaChannel = new IPCChannel(alpha.moduleName, alpha.events, alpha.actions, config);
+			alphaChannel = new IPCChannel(
+				alpha.logger,
+				alpha.namespace,
+				alpha.events,
+				alpha.endpoints,
+				config,
+			);
 
-			betaChannel = new IPCChannel(beta.moduleName, beta.events, beta.actions, config);
+			betaChannel = new IPCChannel(
+				beta.logger,
+				beta.namespace,
+				beta.events,
+				beta.endpoints,
+				config,
+			);
 
 			await alphaChannel.startAndListen();
 			await betaChannel.startAndListen();
 		});
 
-		afterAll(async () => {
+		afterAll(() => {
 			server.stop();
 			alphaChannel.cleanup();
 			betaChannel.cleanup();
@@ -109,14 +127,14 @@ describe.skip('IPCChannelWithoutBus', () => {
 
 				const donePromise = new Promise<void>(resolve => {
 					// Act
-					alphaChannel.subscribe(`${beta.moduleName}:${eventName}`, data => {
+					alphaChannel.subscribe(`${beta.namespace}:${eventName}`, data => {
 						// Assert
 						expect(data).toEqual(betaEventData);
 						resolve();
 					});
 				});
 
-				betaChannel.publish(`${beta.moduleName}:${eventName}`, betaEventData);
+				betaChannel.publish(`${beta.namespace}:${eventName}`, betaEventData);
 
 				return donePromise;
 			});
@@ -127,14 +145,14 @@ describe.skip('IPCChannelWithoutBus', () => {
 				const eventName = beta.events[0];
 				const donePromise = new Promise<void>(resolve => {
 					// Act
-					alphaChannel.once(`${beta.moduleName}:${eventName}`, data => {
+					alphaChannel.once(`${beta.namespace}:${eventName}`, data => {
 						// Assert
 						expect(data).toEqual(betaEventData);
 						resolve();
 					});
 				});
 
-				betaChannel.publish(`${beta.moduleName}:${eventName}`, betaEventData);
+				betaChannel.publish(`${beta.namespace}:${eventName}`, betaEventData);
 
 				return donePromise;
 			});
@@ -148,14 +166,14 @@ describe.skip('IPCChannelWithoutBus', () => {
 
 				const donePromise = new Promise<void>(done => {
 					// Act
-					betaChannel.once(`${alpha.moduleName}:${eventName}`, data => {
+					betaChannel.once(`${alpha.namespace}:${eventName}`, data => {
 						// Assert
 						expect(data).toEqual(alphaEventData);
 						done();
 					});
 				});
 
-				alphaChannel.publish(`${alpha.moduleName}:${eventName}`, alphaEventData);
+				alphaChannel.publish(`${alpha.namespace}:${eventName}`, alphaEventData);
 
 				return donePromise;
 			});

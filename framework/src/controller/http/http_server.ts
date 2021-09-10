@@ -23,17 +23,17 @@ export type HTTPRequestListener = (
 const ALLOWED_METHODS = ['GET', 'POST'];
 export class HTTPServer {
 	public server!: HTTP.Server;
-	private readonly port: number;
-	private readonly host?: string;
-	private readonly logger: Logger;
+	private readonly _port: number;
+	private readonly _host?: string;
+	private _logger!: Logger;
 
-	public constructor(options: { port: number; host?: string; logger: Logger }) {
-		this.host = options.host;
-		this.port = options.port;
-		this.logger = options.logger;
+	public constructor(options: { port: number; host?: string }) {
+		this._host = options.host;
+		this._port = options.port;
 	}
 
-	public start(httpRequestListener: HTTPRequestListener): HTTP.Server {
+	public start(logger: Logger, httpRequestListener: HTTPRequestListener): HTTP.Server {
+		this._logger = logger;
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this.server = HTTP.createServer(async (req, res) => {
 			const headers = {
@@ -57,11 +57,11 @@ export class HTTPServer {
 			return res.end(`${req.method as string} is not allowed for the request.`);
 		});
 
-		this.server.listen(this.port, this.host, () => {
-			this.logger.info(`RPC HTTP Server is listening at port ${this.port}`);
+		this.server.listen(this._port, this._host, () => {
+			this._logger.info(`RPC HTTP Server is listening at port ${this._port}`);
 		});
 
-		this.server.on('error', this.logger.error);
+		this.server.on('error', this._logger.error);
 
 		return this.server;
 	}

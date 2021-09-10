@@ -12,40 +12,40 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Action } from '../../../../src/controller/action';
+import { Request } from '../../../../src/controller/request';
 import {
 	ACTION_NAME,
-	MODULE_NAME,
+	NAMESPACE,
 	INVALID_ACTION_NAME_ARG,
 	VALID_ACTION_NAME_ARG,
 	PARAMS,
 } from './constants';
 
-describe('Action class', () => {
+describe('Request class', () => {
 	describe('#constructor', () => {
 		it('should throw an error when invalid name was provided.', () => {
 			// Act & Assert
-			expect(() => new Action(0, INVALID_ACTION_NAME_ARG)).toThrow(
-				`Action name "${INVALID_ACTION_NAME_ARG}" must be a valid name with module name and action name.`,
+			expect(() => new Request(0, INVALID_ACTION_NAME_ARG)).toThrow(
+				`Request name "${INVALID_ACTION_NAME_ARG}" must be a valid name with module name and action name.`,
 			);
 		});
 
 		it('should initialize the instance correctly when valid arguments were provided.', () => {
 			// Act
-			const action = new Action(0, VALID_ACTION_NAME_ARG, PARAMS);
+			const action = new Request(0, VALID_ACTION_NAME_ARG, PARAMS);
 
 			// Assert
-			expect(action.module).toBe(MODULE_NAME);
+			expect(action.namespace).toBe(NAMESPACE);
 			expect(action.name).toBe(ACTION_NAME);
 			expect(action.params).toBe(PARAMS);
 		});
 	});
 
 	describe('methods', () => {
-		let action: Action;
+		let action: Request;
 		beforeEach(() => {
 			// Arrange
-			action = new Action(0, VALID_ACTION_NAME_ARG, PARAMS);
+			action = new Request(0, VALID_ACTION_NAME_ARG, PARAMS);
 		});
 
 		describe('#toJSONRPCRequest', () => {
@@ -54,15 +54,15 @@ describe('Action class', () => {
 				const expectedResult = {
 					id: 0,
 					jsonrpc: '2.0',
-					method: `${MODULE_NAME}:${ACTION_NAME}`,
+					method: `${NAMESPACE}:${ACTION_NAME}`,
 					params: { ...PARAMS },
 				};
 
 				// Act
-				const serializedAction = action.toJSONRPCRequest();
+				const serializedRequest = action.toJSONRPCRequest();
 
 				// Assert
-				expect(serializedAction).toEqual(expectedResult);
+				expect(serializedRequest).toEqual(expectedResult);
 			});
 		});
 
@@ -79,11 +79,11 @@ describe('Action class', () => {
 
 				// Act
 				// eslint-disable-next-line @typescript-eslint/no-shadow
-				const action = Action.fromJSONRPCRequest(requestStr);
+				const action = Request.fromJSONRPCRequest(requestStr);
 
 				// Assert
-				expect(action).toBeInstanceOf(Action);
-				expect(action.module).toBe(MODULE_NAME);
+				expect(action).toBeInstanceOf(Request);
+				expect(action.namespace).toBe(NAMESPACE);
 				expect(action.name).toBe(ACTION_NAME);
 				expect(action.params).toEqual(PARAMS);
 			});
@@ -99,11 +99,11 @@ describe('Action class', () => {
 
 				// Act
 				// eslint-disable-next-line @typescript-eslint/no-shadow
-				const action = Action.fromJSONRPCRequest(requestObject);
+				const action = Request.fromJSONRPCRequest(requestObject);
 
 				// Assert
-				expect(action).toBeInstanceOf(Action);
-				expect(action.module).toBe(MODULE_NAME);
+				expect(action).toBeInstanceOf(Request);
+				expect(action.namespace).toBe(NAMESPACE);
 				expect(action.name).toBe(ACTION_NAME);
 				expect(action.params).toEqual(PARAMS);
 			});
@@ -112,7 +112,7 @@ describe('Action class', () => {
 		describe('#key', () => {
 			it('should return method name.', () => {
 				// Arrange
-				const expectedResult = `${MODULE_NAME}:${ACTION_NAME}`;
+				const expectedResult = `${NAMESPACE}:${ACTION_NAME}`;
 
 				// Act
 				const key = action.key();

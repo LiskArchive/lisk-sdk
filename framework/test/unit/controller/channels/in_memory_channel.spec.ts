@@ -16,39 +16,38 @@ jest.mock('../../../../src/controller/bus');
 
 /* eslint-disable import/first  */
 
+import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { InMemoryChannel, BaseChannel } from '../../../../src/controller/channels';
 import { Bus } from '../../../../src/controller/bus';
 import { Event } from '../../../../src/controller/event';
+import { fakeLogger } from '../../../utils/node';
 
 describe('InMemoryChannel Channel', () => {
 	// Arrange
 	const params = {
-		moduleName: 'moduleName',
+		namespace: 'sample',
+		logger: fakeLogger,
+		db: (new InMemoryKVStore() as unknown) as KVStore,
 		events: ['event1', 'event2'],
-		actions: {
-			action1: {
-				handler: jest.fn(),
-			},
-			action2: {
-				handler: jest.fn(),
-			},
-			action3: {
-				handler: jest.fn(),
-			},
+		endpoints: {
+			action1: jest.fn(),
+			action2: jest.fn(),
+			action3: jest.fn(),
 		},
 		options: {},
 	};
-	const logger: any = {};
 	const config: any = {};
 	let inMemoryChannel: InMemoryChannel;
-	const bus: Bus = new Bus(logger, config);
+	const bus: Bus = new Bus(config);
 
 	beforeEach(() => {
 		// Act
 		inMemoryChannel = new InMemoryChannel(
-			params.moduleName,
+			params.logger,
+			params.db,
+			params.namespace,
 			params.events,
-			params.actions,
+			params.endpoints,
 			params.options,
 		);
 	});
@@ -63,8 +62,10 @@ describe('InMemoryChannel Channel', () => {
 	describe('#constructor', () => {
 		it('should create the instance with given arguments.', () => {
 			// Assert
-			expect(inMemoryChannel).toHaveProperty('moduleName');
-			expect(inMemoryChannel).toHaveProperty('options');
+			expect(inMemoryChannel).toHaveProperty('_db');
+			expect(inMemoryChannel).toHaveProperty('namespace');
+			expect(inMemoryChannel).toHaveProperty('eventsList');
+			expect(inMemoryChannel).toHaveProperty('endpointsList');
 		});
 	});
 
@@ -76,9 +77,18 @@ describe('InMemoryChannel Channel', () => {
 			// Assert
 			expect(inMemoryChannel['bus']).toBe(bus);
 			expect(inMemoryChannel['bus'].registerChannel).toHaveBeenCalledWith(
-				inMemoryChannel['moduleName'],
+				inMemoryChannel.namespace,
 				inMemoryChannel.eventsList,
-				inMemoryChannel['actions'],
+				Object.keys(params.endpoints).reduce(
+					(prev, key) => ({
+						...prev,
+						[key]: {
+							namespace: params.namespace,
+							methodName: key,
+						},
+					}),
+					{},
+				),
 				{ type: 'inMemory', channel: inMemoryChannel },
 			);
 		});
@@ -139,14 +149,12 @@ describe('InMemoryChannel Channel', () => {
 			const eventName = 'differentModule:eventName';
 			expect(() => {
 				inMemoryChannel.publish(eventName);
-			}).toThrow(
-				`Event "${eventName}" not registered in "${inMemoryChannel['moduleName']}" module.`,
-			);
+			}).toThrow(`Event "${eventName}" not registered in "${inMemoryChannel.namespace}" module.`);
 		});
 
 		it('should call bus.publish if the event module is equal to moduleName', async () => {
 			// Arrange
-			const eventFullName = `${inMemoryChannel['moduleName']}:eventName`;
+			const eventFullName = `${inMemoryChannel.namespace}:eventName`;
 			const event = new Event(eventFullName);
 
 			// Act
@@ -165,13 +173,13 @@ describe('InMemoryChannel Channel', () => {
 
 		it('should execute the action straight away if the action module is equal to moduleName', async () => {
 			// Arrange
-			const actionFullName = `${inMemoryChannel['moduleName']}:${actionName}`;
+			const actionFullName = `${inMemoryChannel.namespace}:${actionName}`;
 
 			// Act
 			await inMemoryChannel.invoke(actionFullName);
 
 			// Assert
-			expect(params.actions.action1.handler).toHaveBeenCalled();
+			expect(params.endpoints.action1).toHaveBeenCalled();
 		});
 
 		it('should call bus.invoke if the action module is different to moduleName', async () => {

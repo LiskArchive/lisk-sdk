@@ -16,39 +16,22 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as psList from 'ps-list';
 import * as assert from 'assert';
-import { promisify } from 'util';
 import { Block } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { objects, jobHandlers } from '@liskhq/lisk-utils';
+import { APP_EVENT_SHUTDOWN, APP_EVENT_READY } from './constants';
 import {
-	APP_EVENT_BLOCK_NEW,
-	APP_EVENT_CHAIN_FORK,
-	APP_EVENT_SHUTDOWN,
-	APP_EVENT_READY,
-	APP_IDENTIFIER,
-	APP_EVENT_NETWORK_EVENT,
-	APP_EVENT_TRANSACTION_NEW,
-	APP_EVENT_BLOCK_DELETE,
-	APP_EVENT_CHAIN_VALIDATORS_CHANGE,
-	APP_EVENT_NETWORK_READY,
-} from './constants';
-import {
-	RPCConfig,
 	ApplicationConfig,
 	PluginConfig,
 	RegisteredSchema,
 	RegisteredModule,
 	PartialApplicationConfig,
-	ApplicationConfigForPlugin,
+	EndpointHandlers,
+	PluginEndpointContext,
 } from './types';
 
-import {
-	BasePlugin,
-	getPluginExportPath,
-	InstantiablePlugin,
-	validatePluginSpec,
-} from './plugins/base_plugin';
+import { BasePlugin } from './plugins/base_plugin';
 import { systemDirs } from './system_dirs';
 import { Controller, InMemoryChannel } from './controller';
 import { applicationConfigSchema } from './schema';
@@ -57,10 +40,9 @@ import { Logger, createLogger } from './logger';
 
 import { DuplicateAppInstanceError } from './errors';
 import { BaseModule } from './modules/base_module';
+import { getEndpointHandlers, mergeEndpointHandlers } from './endpoint';
 
 const MINIMUM_EXTERNAL_MODULE_ID = 1000;
-// eslint-disable-next-line @typescript-eslint/no-misused-promises
-const rm = promisify(fs.unlink);
 
 const isPidRunning = async (pid: number): Promise<boolean> =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -115,9 +97,7 @@ export class Application {
 	public logger!: Logger;
 
 	private readonly _node: Node;
-	private _controller!: Controller;
-	private _plugins: { [key: string]: InstantiablePlugin };
-	private _channel!: InMemoryChannel;
+	private readonly _controller: Controller;
 
 	private _genesisBlock!: Record<string, unknown> | undefined;
 	private _blockchainDB!: KVStore;
@@ -142,17 +122,26 @@ export class Application {
 		}
 		this.config = mergedConfig;
 
-		// Private members
-		this._plugins = {};
 		// Initialize node
 		const { plugins, ...rootConfigs } = this.config;
 		this._node = new Node({
 			options: rootConfigs,
 		});
+		this._controller = new Controller({
+			appConfig: rootConfigs,
+			pluginConfigs: plugins,
+		});
 	}
 
 	public get networkIdentifier(): Buffer {
 		return this._node.networkIdentifier;
+	}
+
+	public get channel(): InMemoryChannel {
+		if (!this._controller.channel) {
+			throw new Error('Controller is not initialized yet.');
+		}
+		return this._controller.channel;
 	}
 
 	public static getDefaultModules(): BaseModule[] {
@@ -171,41 +160,11 @@ export class Application {
 		return application;
 	}
 
-	public registerPlugin<T extends BasePlugin>(
-		PluginKlass: InstantiablePlugin<T>,
+	public registerPlugin(
+		plugin: BasePlugin,
 		options: PluginConfig = { loadAsChildProcess: false },
 	): void {
-		assert(PluginKlass, 'Plugin implementation is required');
-		assert(typeof options === 'object', 'Plugin options must be provided or set to empty object.');
-		const plugin = new PluginKlass();
-		const pluginName = plugin.name;
-
-		assert(
-			!Object.keys(this._plugins).includes(pluginName),
-			`A plugin with name "${pluginName}" already registered.`,
-		);
-
-		if (options.loadAsChildProcess) {
-			if (!getPluginExportPath(PluginKlass)) {
-				throw new Error(
-					`Unable to register plugin "${pluginName}" to load as child process. \n -> To load plugin as child process it must be exported. \n -> You can specify npm package as "name". \n -> Or you can specify any static path as "nodeModulePath". \n -> To fix this issue you can simply assign __filename to nodeModulePath in your plugin.`,
-				);
-			}
-		}
-
-		this.config.plugins[pluginName] = Object.assign(this.config.plugins[pluginName] ?? {}, options);
-
-		validatePluginSpec(plugin);
-
-		this._plugins[pluginName] = PluginKlass;
-	}
-
-	public updatePluginConfig(name: string, options?: PluginConfig): void {
-		assert(Object.keys(this._plugins).includes(name), `No plugin ${name} is registered`);
-		this.config.plugins[name] = {
-			...this.config.plugins[name],
-			...options,
-		};
+		this._controller.registerPlugin(plugin, options);
 	}
 
 	public registerModule(Module: BaseModule): void {
@@ -249,11 +208,12 @@ export class Application {
 
 		await this._mutex.runExclusive<void>(async () => {
 			// Initialize all objects
-			this._channel = this._initChannel();
-
-			this._controller = this._initController();
-
-			await this._controller.load();
+			this._controller.init({
+				logger: this.logger,
+				blockchainDB: this._blockchainDB,
+				endpoints: this._rootEndpoints(),
+				events: this._rootEvents(),
+			});
 
 			if (!this._genesisBlock) {
 				throw new Error('Genesis block must exist.');
@@ -262,20 +222,20 @@ export class Application {
 			const genesisBlock = Block.fromJSON(this._genesisBlock);
 
 			await this._node.init({
+				channel: this.channel,
 				genesisBlock,
-				channel: this._channel,
 				forgerDB: this._forgerDB,
 				blockchainDB: this._blockchainDB,
 				nodeDB: this._nodeDB,
 				logger: this.logger,
 			});
 
-			await this._loadPlugins();
+			await this._controller.start();
 			await this._node.start();
-			this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
-			this.logger.debug(this._controller.bus.getActions(), 'Application ready for actions');
+			this.logger.debug(this._controller.getEvents(), 'Application listening to events');
+			this.logger.debug(this._controller.getEndpoints(), 'Application ready for actions');
 
-			this._channel.publish(APP_EVENT_READY);
+			this.channel.publish(APP_EVENT_READY);
 			// TODO: Update genesis block to be provided in this function
 			// For now, the memory should be free up
 			delete this._genesisBlock;
@@ -288,9 +248,9 @@ export class Application {
 		const release = await this._mutex.acquire();
 
 		try {
-			this._channel.publish(APP_EVENT_SHUTDOWN);
+			this.channel.publish(APP_EVENT_SHUTDOWN);
 			await this._node.stop();
-			await this._controller.cleanup(errorCode, message);
+			await this._controller.stop(errorCode, message);
 			await this._blockchainDB.close();
 			await this._forgerDB.close();
 			await this._nodeDB.close();
@@ -316,21 +276,13 @@ export class Application {
 
 	private _registerModule(mod: BaseModule, validateModuleID = false): void {
 		assert(mod, 'Module implementation is required');
-		if (Application.getDefaultModules().includes(mod)) {
-			this._node.registerModule(mod);
-		} else if (validateModuleID && mod.id < MINIMUM_EXTERNAL_MODULE_ID) {
+		if (validateModuleID && mod.id < MINIMUM_EXTERNAL_MODULE_ID) {
 			throw new Error(
 				`Custom module must have id greater than or equal to ${MINIMUM_EXTERNAL_MODULE_ID}`,
 			);
-		} else {
-			this._node.registerModule(mod);
 		}
-	}
-
-	private async _loadPlugins(): Promise<void> {
-		const { plugins: pluginsConfig, ...rest } = this.config;
-		const appConfigForPlugin: ApplicationConfigForPlugin = rest;
-		await this._controller.loadPlugins(this._plugins, pluginsConfig, appConfigForPlugin);
+		this._node.registerModule(mod);
+		this._controller.registerEndpoint(mod.name, getEndpointHandlers(mod.endpoint));
 	}
 
 	private _initLogger(): Logger {
@@ -342,50 +294,24 @@ export class Application {
 		});
 	}
 
-	private _initChannel(): InMemoryChannel {
-		/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-		/* eslint-disable @typescript-eslint/explicit-function-return-type */
-		return new InMemoryChannel(
-			APP_IDENTIFIER,
-			[
-				APP_EVENT_READY.replace('app:', ''),
-				APP_EVENT_SHUTDOWN.replace('app:', ''),
-				APP_EVENT_NETWORK_EVENT.replace('app:', ''),
-				APP_EVENT_NETWORK_READY.replace('app:', ''),
-				APP_EVENT_TRANSACTION_NEW.replace('app:', ''),
-				APP_EVENT_CHAIN_FORK.replace('app:', ''),
-				APP_EVENT_CHAIN_VALIDATORS_CHANGE.replace('app:', ''),
-				APP_EVENT_BLOCK_NEW.replace('app:', ''),
-				APP_EVENT_BLOCK_DELETE.replace('app:', ''),
-			],
-			{
-				// TODO: Add endpoints after plugin improvements
-				getRegisteredActions: {
-					handler: () => this._controller.bus.getActions(),
-				},
-				getRegisteredEvents: {
-					handler: () => this._controller.bus.getEvents(),
-				},
-			},
-			{ skipInternalEvents: true },
-		);
-		/* eslint-enable @typescript-eslint/explicit-module-boundary-types */
-		/* eslint-enable @typescript-eslint/explicit-function-return-type */
+	private _rootEndpoints(): EndpointHandlers {
+		const nodeEndpoint = this._node.getEndpoints();
+		const applicationEndpoint: EndpointHandlers = {
+			// eslint-disable-next-line @typescript-eslint/require-await
+			getRegisteredActions: async (_: PluginEndpointContext) => this._controller.getEndpoints(),
+			// eslint-disable-next-line @typescript-eslint/require-await
+			getRegisteredEvents: async (_: PluginEndpointContext) => this._controller.getEvents(),
+		};
+		return mergeEndpointHandlers(applicationEndpoint, nodeEndpoint);
 	}
 
-	private _initController(): Controller {
-		return new Controller({
-			appLabel: this.config.label,
-			config: {
-				rootPath: this.config.rootPath,
-				rpc: objects.mergeDeep(
-					{ ipc: { path: systemDirs(this.config.label, this.config.rootPath).sockets } },
-					this.config.rpc,
-				) as RPCConfig,
-			},
-			logger: this.logger,
-			channel: this._channel,
-		});
+	private _rootEvents(): string[] {
+		const nodeEvents = this._node.getEvents();
+		return [
+			APP_EVENT_READY.replace('app:', ''),
+			APP_EVENT_SHUTDOWN.replace('app:', ''),
+			...nodeEvents,
+		];
 	}
 
 	private async _setupDirectories(): Promise<void> {
@@ -397,7 +323,9 @@ export class Application {
 		const { sockets } = systemDirs(this.config.label, this.config.rootPath);
 		const socketFiles = fs.readdirSync(sockets);
 
-		await Promise.all(socketFiles.map(async aSocketFile => rm(path.join(sockets, aSocketFile))));
+		await Promise.all(
+			socketFiles.map(async aSocketFile => fs.unlink(path.join(sockets, aSocketFile))),
+		);
 	}
 
 	private async _validatePidFile(): Promise<void> {

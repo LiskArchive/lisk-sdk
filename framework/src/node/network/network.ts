@@ -18,8 +18,7 @@ import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { EventEmitter } from 'events';
 import * as liskP2P from '@liskhq/lisk-p2p';
 
-import { APP_EVENT_NETWORK_EVENT, APP_EVENT_NETWORK_READY } from '../../constants';
-import { InMemoryChannel } from '../../controller/channels';
+import { APP_EVENT_NETWORK_READY } from '../events';
 import { lookupPeersIPs } from './utils';
 import { Logger } from '../../logger';
 import { NetworkConfig } from '../../types';
@@ -61,7 +60,6 @@ interface NodeInfoOptions {
 
 interface NetworkConstructor {
 	readonly options: NetworkConfig;
-	readonly channel: InMemoryChannel;
 	readonly networkVersion: string;
 }
 
@@ -103,7 +101,6 @@ interface NetworkInitArgs {
 export class Network {
 	public readonly events: EventEmitter;
 	private readonly _options: NetworkConfig;
-	private readonly _channel: InMemoryChannel;
 	private readonly _networkVersion: string;
 	private readonly _endpoint: Endpoint;
 
@@ -116,9 +113,8 @@ export class Network {
 	private _eventHandlers: P2PEventHandlers;
 	private _saveIntervalID?: NodeJS.Timer;
 
-	public constructor({ options, channel, networkVersion }: NetworkConstructor) {
+	public constructor({ options, networkVersion }: NetworkConstructor) {
 		this._options = options;
-		this._channel = channel;
 		this._networkVersion = networkVersion;
 		this._endpoints = {};
 		this._eventHandlers = {};
@@ -224,7 +220,6 @@ export class Network {
 		this._p2p.on(EVENT_NETWORK_READY, () => {
 			this._logger.debug('Node connected to the network');
 			this.events.emit(APP_EVENT_NETWORK_READY);
-			this._channel.publish(APP_EVENT_NETWORK_READY);
 		});
 
 		this._p2p.on(
@@ -370,11 +365,6 @@ export class Network {
 				readonly event: string;
 				readonly data: Buffer | undefined;
 			}) => {
-				// TODO: remove later condition once registation is done
-				if (['postBlock', 'postTransactionsAnnouncement', 'postNodeInfo'].includes(packet.event)) {
-					this.events.emit(APP_EVENT_NETWORK_EVENT, packet);
-					return;
-				}
 				if (!Object.keys(this._eventHandlers).includes(packet.event)) {
 					const error = new Error(`Sent event "${packet.event}" is not permitted.`);
 					this._logger.error(

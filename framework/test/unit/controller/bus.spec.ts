@@ -12,20 +12,27 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-// eslint-disable-next-line import/first
+import * as HTTP from 'http';
+import * as WebSocket from 'ws';
 import { EventEmitter2 } from 'eventemitter2';
-// eslint-disable-next-line import/first
 import { Bus } from '../../../src/controller/bus';
-// eslint-disable-next-line import/first
-import { Action } from '../../../src/controller/action';
-// eslint-disable-next-line import/first
+import { Request } from '../../../src/controller/request';
 import { WSServer } from '../../../src/controller/ws/ws_server';
 import { IPCServer } from '../../../src/controller/ipc/ipc_server';
+import { EndpointInfo } from '../../../src';
 
 jest.mock('eventemitter2');
-jest.mock('zeromq');
-jest.mock('../../../src/controller/ws/ws_server');
-jest.mock('../../../src/controller/ipc/ipc_server');
+jest.mock('zeromq', () => {
+	return {
+		Publisher: jest
+			.fn()
+			.mockReturnValue({ bind: jest.fn(), close: jest.fn(), subscribe: jest.fn() }),
+		Subscriber: jest
+			.fn()
+			.mockReturnValue({ bind: jest.fn(), close: jest.fn(), subscribe: jest.fn() }),
+		Router: jest.fn().mockReturnValue({ bind: jest.fn(), close: jest.fn() }),
+	};
+});
 
 describe('Bus', () => {
 	const channelMock: any = {};
@@ -45,76 +52,61 @@ describe('Bus', () => {
 
 	let bus: Bus;
 
-	beforeEach(() => {
-		bus = new Bus(loggerMock, busConfig);
+	beforeEach(async () => {
+		bus = new Bus(busConfig);
+		if (bus['_wsServer']) {
+			jest.spyOn(bus['_wsServer'], 'start').mockReturnValue({} as WebSocket.Server);
+		}
+		if (bus['_httpServer']) {
+			jest.spyOn(bus['_httpServer'], 'start').mockReturnValue({} as HTTP.Server);
+		}
+		await bus.start(loggerMock);
 	});
 
 	afterEach(async () => {
-		if (bus) {
-			await bus.cleanup();
-		}
-		(IPCServer as any).mockClear();
+		await bus.cleanup();
 	});
 
 	describe('#constructor', () => {
 		it('should create the Bus instance with given arguments.', () => {
 			// Assert
-			expect(bus['actions']).toEqual({});
-			expect(bus['events']).toEqual({});
+			expect(bus['_endpointInfos']).toEqual({});
+			expect(bus['_events']).toEqual({});
 			expect(bus['_wsServer']).toBeUndefined();
 		});
 	});
 
-	describe('#setup', () => {
+	describe('#start', () => {
 		it('should resolve with true.', async () => {
-			return expect(bus.init()).resolves.toBe(true);
+			return expect(bus.start(loggerMock)).resolves.toBeUndefined();
 		});
 
 		it('should setup ipc server if rpc is enabled', async () => {
 			// Arrange
-			bus = new Bus(loggerMock, busConfig);
+			bus = new Bus({ ...busConfig });
+			jest.spyOn(bus['_internalIPCServer'], 'start');
+			(bus['_internalIPCServer'].start as jest.Mock).mockReset();
 			// Act
-			await bus.init();
+			await bus.start(loggerMock);
 
 			// Assert
-			return expect(IPCServer.prototype.start).toHaveBeenCalledTimes(1);
+			return expect(bus['_internalIPCServer']?.start).toHaveBeenCalledTimes(1);
 		});
 
 		it('should setup only ws server if ws is only enabled', async () => {
 			// Arrange
 
-			bus = new Bus(loggerMock, {
+			bus = new Bus({
 				...busConfig,
-				wsServer: new WSServer({ logger: loggerMock, path: '/ws', port: 5000 }),
+				wsServer: new WSServer({ path: '/ws', port: 5000 }),
 			});
+			jest.spyOn(bus['_wsServer'] as WSServer, 'start');
 
 			// Act
-			await bus.init();
+			await bus.start(loggerMock);
 
 			// Assert
-			return expect(WSServer.prototype.start).toHaveBeenCalledTimes(1);
-		});
-
-		it('should not setup external ipc server if ipc mode is not enabled', async () => {
-			// Arrange
-			bus = new Bus(loggerMock, busConfig);
-
-			// Act
-			await bus.init();
-
-			// Assert
-			return expect(IPCServer.prototype.start).toHaveBeenCalledTimes(1);
-		});
-
-		it('should not setup ws server if rpc is not enabled', async () => {
-			// Arrange
-			bus = new Bus(loggerMock, busConfig);
-
-			// Act
-			await bus.init();
-
-			// Assert
-			return expect(WSServer.prototype.start).not.toHaveBeenCalled();
+			return expect(bus['_wsServer']?.start).toHaveBeenCalledTimes(1);
 		});
 	});
 
@@ -128,9 +120,9 @@ describe('Bus', () => {
 			await bus.registerChannel(moduleName, events, {}, channelOptions);
 
 			// Assert
-			expect(Object.keys(bus['events'])).toHaveLength(2);
+			expect(Object.keys(bus['_events'])).toHaveLength(2);
 			events.forEach(eventName => {
-				expect(bus['events'][`${moduleName}:${eventName}`]).toBe(true);
+				expect(bus['_events'][`${moduleName}:${eventName}`]).toBe(true);
 			});
 		});
 
@@ -148,33 +140,42 @@ describe('Bus', () => {
 		it('should register actions.', async () => {
 			// Arrange
 			const moduleName = 'name';
-			const actions: any = {
-				action1: new Action(null, 'name:action1', {}, jest.fn()),
-				action2: new Action(null, 'name:action2', {}, jest.fn()),
+			const endpointInfo: { [key: string]: EndpointInfo } = {
+				action1: {
+					namespace: 'name',
+					method: 'action1',
+				},
+				action2: {
+					namespace: 'name',
+					method: 'action2',
+				},
 			};
 
 			// Act
-			await bus.registerChannel(moduleName, [], actions, channelOptions);
+			await bus.registerChannel(moduleName, [], endpointInfo, channelOptions);
 
 			// Assert
-			expect(Object.keys(bus['actions'])).toHaveLength(2);
-			Object.keys(actions).forEach(actionName => {
-				expect(bus['actions'][`${moduleName}:${actionName}`]).toBe(actions[actionName]);
+			expect(Object.keys(bus['_endpointInfos'])).toHaveLength(2);
+			Object.keys(endpointInfo).forEach(actionName => {
+				expect(bus['_endpointInfos'][`${moduleName}:${actionName}`]).toBe(endpointInfo[actionName]);
 			});
 		});
 
 		it('should throw error when trying to register duplicate actions.', async () => {
 			// Arrange
 			const moduleName = 'name';
-			const actions = {
-				action1: new Action(null, 'name:action1', {}, jest.fn()),
+			const endpointInfo: { [key: string]: EndpointInfo } = {
+				action1: {
+					namespace: 'name',
+					method: 'action1',
+				},
 			};
 
 			// Act && Assert
-			await bus.registerChannel(moduleName, [], actions, channelOptions);
-			await expect(bus.registerChannel(moduleName, [], actions, channelOptions)).rejects.toThrow(
-				Error,
-			);
+			await bus.registerChannel(moduleName, [], endpointInfo, channelOptions);
+			await expect(
+				bus.registerChannel(moduleName, [], endpointInfo, channelOptions),
+			).rejects.toThrow();
 		});
 	});
 
@@ -187,13 +188,13 @@ describe('Bus', () => {
 			const jsonrpcRequest = {
 				id: 1,
 				jsonrpc: '2.0',
-				method: 'app:nonExistentAction',
+				method: 'app:nonExistentRequest',
 			};
-			const action = Action.fromJSONRPCRequest(jsonrpcRequest);
+			const action = Request.fromJSONRPCRequest(jsonrpcRequest);
 
 			// Act && Assert
 			await expect(bus.invoke(jsonrpcRequest)).rejects.toThrow(
-				`Action '${action.module}:${action.name}' is not registered to bus.`,
+				`Request '${action.namespace}:${action.name}' is not registered to bus.`,
 			);
 		});
 
@@ -204,11 +205,11 @@ describe('Bus', () => {
 				jsonrpc: '2.0',
 				method: 'invalidModule:getComponentConfig',
 			};
-			const action = Action.fromJSONRPCRequest(jsonrpcRequest);
+			const action = Request.fromJSONRPCRequest(jsonrpcRequest);
 
 			// Act && Assert
 			await expect(bus.invoke(jsonrpcRequest)).rejects.toThrow(
-				`Action '${action.module}:${action.name}' is not registered to bus.`,
+				`Request '${action.namespace}:${action.name}' is not registered to bus.`,
 			);
 		});
 
@@ -310,23 +311,31 @@ describe('Bus', () => {
 		});
 	});
 
-	describe('#getActions', () => {
+	describe('#getRequests', () => {
 		it('should return the registered actions', async () => {
 			// Arrange
 			const moduleName = 'name';
-			const actions: any = {
-				action1: new Action(null, 'name:action1', {}, jest.fn()),
-				action2: new Action(null, 'name:action2', {}, jest.fn()),
+			const endpointInfo: { [key: string]: EndpointInfo } = {
+				action1: {
+					namespace: 'name',
+					method: 'action1',
+				},
+				action2: {
+					namespace: 'name',
+					method: 'action2',
+				},
 			};
-			const expectedActions = Object.keys(actions).map(actionName => `${moduleName}:${actionName}`);
+			const expectedRequests = Object.keys(endpointInfo).map(
+				actionName => `${moduleName}:${actionName}`,
+			);
 
-			await bus.registerChannel(moduleName, [], actions, channelOptions);
+			await bus.registerChannel(moduleName, [], endpointInfo, channelOptions);
 
 			// Act
-			const registeredActions = bus.getActions();
+			const registeredRequests = bus.getEndpoints();
 
 			// Assert
-			expect(registeredActions).toEqual(expectedActions);
+			expect(registeredRequests).toEqual(expectedRequests);
 		});
 	});
 

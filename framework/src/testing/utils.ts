@@ -17,7 +17,7 @@ import * as fs from 'fs-extra';
 import { Block } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
 
-import { APP_EVENT_BLOCK_NEW } from '../constants';
+import { APP_EVENT_BLOCK_NEW } from '../node/events';
 import { Data, WaitUntilBlockHeightOptions } from './types';
 
 export const waitUntilBlockHeight = async ({

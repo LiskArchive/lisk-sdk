@@ -24,13 +24,13 @@ import { defaultConfig } from './fixtures';
 import { createGenesisBlock } from './create_genesis_block';
 import { PartialApplicationConfig } from '../types';
 import { Application } from '../application';
-import { InstantiablePlugin } from '../plugins/base_plugin';
 import { BaseModule } from '../modules';
 import { RPC_MODES } from '../constants';
+import { BasePlugin } from '../plugins/base_plugin';
 
 interface ApplicationEnvConfig {
 	modules: BaseModule[];
-	plugins?: InstantiablePlugin[];
+	plugins?: BasePlugin[];
 	config?: PartialApplicationConfig;
 	genesisBlockJSON?: Record<string, unknown>;
 }
@@ -98,8 +98,7 @@ export class ApplicationEnv {
 		// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
 		const height = this.lastBlock.header.height + n;
 		return new Promise(resolve => {
-			// eslint-disable-next-line dot-notation
-			this._application['_channel'].subscribe('app:block:new', () => {
+			this._application.channel.subscribe('app:block:new', () => {
 				if (this.lastBlock.header.height >= height) {
 					resolve();
 				}

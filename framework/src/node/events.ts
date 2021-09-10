@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2021 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,10 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const MODULE_NAME = 'module';
-export const ACTION_NAME = 'action';
-export const INVALID_ACTION_NAME_ARG = '09';
-export const INVALID_ACTION_SOURCE_ARG = '123';
-export const VALID_ACTION_NAME_ARG = `${MODULE_NAME}:${ACTION_NAME}`;
-export const VALID_ACTION_SOURCE_ARG = 'source';
-export const PARAMS = {};
+export const APP_EVENT_NETWORK_READY = 'app:network:ready';
+export const APP_EVENT_TRANSACTION_NEW = 'app:transaction:new';
+export const APP_EVENT_CHAIN_FORK = 'app:chain:fork';
+export const APP_EVENT_CHAIN_VALIDATORS_CHANGE = 'app:chain:validators:change';
+export const APP_EVENT_BLOCK_NEW = 'app:block:new';
+export const APP_EVENT_BLOCK_DELETE = 'app:block:delete';
