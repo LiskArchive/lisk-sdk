@@ -20,7 +20,7 @@ import { join } from 'path';
 import { BaseChannel, BasePlugin } from '../../src';
 import { Application } from '../../src/application';
 import { Bus } from '../../src/controller/bus';
-import { IPCServer } from '../../src/controller/ipc/ipc_server';
+// import { IPCServer } from '../../src/controller/ipc/ipc_server';
 import { WSServer } from '../../src/controller/ws/ws_server';
 import { createLogger } from '../../src/logger';
 import { Node } from '../../src/node';
@@ -28,10 +28,19 @@ import { systemDirs } from '../../src/system_dirs';
 import { genesisBlock } from '../fixtures/blocks';
 import * as basePluginModule from '../../src/plugins/base_plugin';
 import * as networkConfig from '../fixtures/config/devnet/config.json';
-import { Controller } from '../../src/controller';
 
 jest.mock('fs-extra');
-jest.mock('zeromq');
+jest.mock('zeromq', () => {
+	return {
+		Publisher: jest
+			.fn()
+			.mockReturnValue({ bind: jest.fn(), close: jest.fn(), subscribe: jest.fn() }),
+		Subscriber: jest
+			.fn()
+			.mockReturnValue({ bind: jest.fn(), close: jest.fn(), subscribe: jest.fn() }),
+		Router: jest.fn().mockReturnValue({ bind: jest.fn(), close: jest.fn() }),
+	};
+});
 jest.mock('@liskhq/lisk-db');
 jest.mock('../../src/logger');
 
@@ -66,7 +75,7 @@ describe('Application', () => {
 
 	beforeEach(() => {
 		jest.spyOn(os, 'homedir').mockReturnValue('/user');
-		jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
+		// jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
 		jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
 		jest.spyOn(Node.prototype, 'init').mockResolvedValue();
 		jest.spyOn(process, 'exit').mockReturnValue(0 as never);
@@ -162,7 +171,7 @@ describe('Application', () => {
 			expect(app['_genesisBlock']).toEqual(genesisBlockJSON);
 			expect(app.config).toMatchSnapshot();
 			expect(app['_node']).not.toBeUndefined();
-			expect(app['_plugins']).toBeInstanceOf(Object);
+			expect(app['_controller']).not.toBeUndefined();
 		});
 
 		it('should not initialize logger', () => {
@@ -263,85 +272,13 @@ describe('Application', () => {
 			// Arrange
 			const app = Application.defaultApplication(genesisBlockJSON, config);
 			const plugin = new TestPlugin();
+			jest.spyOn(app['_controller'], 'registerPlugin');
 			app.registerPlugin(plugin);
 
 			// Act && Assert
-			expect(app['_plugins']['test-plugin']).toBe(plugin);
-		});
-	});
-
-	describe('#_initChannel', () => {
-		let app;
-		let endpointsList: any;
-
-		beforeEach(() => {
-			// Arrange
-			app = Application.defaultApplication(genesisBlockJSON, config);
-			app['_channel'] = app['_initChannel']();
-			endpointsList = app['_channel'].endpointsList;
-		});
-
-		it('should create getBlockByID action', () => {
-			// Assert
-			expect(endpointsList).toContain('getBlockByID');
-		});
-
-		it('should create getBlocksByIDs action', () => {
-			// Assert
-			expect(endpointsList).toContain('getBlocksByIDs');
-		});
-
-		it('should create getBlockByHeight action', () => {
-			// Assert
-			expect(endpointsList).toContain('getBlockByHeight');
-		});
-
-		it('should create getBlocksByHeightBetween action', () => {
-			// Assert
-			expect(endpointsList).toContain('getBlocksByHeightBetween');
-		});
-
-		it('should create getTransactionByID action', () => {
-			// Assert
-			expect(endpointsList).toContain('getTransactionByID');
-		});
-
-		it('should create getTransactionsByIDs action', () => {
-			// Assert
-			expect(endpointsList).toContain('getTransactionsByIDs');
-		});
-	});
-
-	describe('#_loadPlugins', () => {
-		let app: Application;
-
-		beforeEach(async () => {
-			app = Application.defaultApplication(genesisBlockJSON, config);
-			app.registerPlugin(new TestPlugin());
-			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
-			jest.spyOn(app['_node'], 'start').mockResolvedValue();
-			jest.spyOn(Bus.prototype, 'publish').mockReturnValue();
-			jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
-			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
-			jest.spyOn(Controller.prototype, 'loadPlugins').mockResolvedValue(jest.fn() as never);
-
-			await app.run();
-		});
-
-		it('should compile config and load plugins', () => {
-			// Arrange
-			const plugin = new TestPlugin();
-			const plugins = {
-				[plugin.name]: plugin,
-			};
-
-			expect(app['_controller'].loadPlugins).toHaveBeenCalledTimes(1);
-			const { plugins: pluginConfig, ...rest } = app.config;
-			expect(app['_controller'].loadPlugins).toHaveBeenCalledWith(
-				plugins,
-				{ ...pluginConfig, [plugin.name]: { loadAsChildProcess: false } },
-				rest,
-			);
+			expect(app['_controller'].registerPlugin).toHaveBeenCalledWith(plugin, {
+				loadAsChildProcess: false,
+			});
 		});
 	});
 
@@ -353,7 +290,7 @@ describe('Application', () => {
 			app = Application.defaultApplication(genesisBlockJSON, config);
 			jest.spyOn(app['_node']['_network'], 'start').mockResolvedValue();
 			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
-			jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
+			// jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
 			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
 
@@ -433,7 +370,7 @@ describe('Application', () => {
 			await app.run();
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
 			nodeCleanupSpy = jest.spyOn(app['_node'], 'stop').mockResolvedValue();
-			jest.spyOn(app['_controller'], 'cleanup');
+			jest.spyOn(app['_controller'], 'stop');
 			blockChainDBSpy = jest.spyOn(app['_blockchainDB'], 'close');
 			forgerDBSpy = jest.spyOn(app['_forgerDB'], 'close');
 			_nodeDBSpy = jest.spyOn(app['_nodeDB'], 'close');
@@ -451,7 +388,7 @@ describe('Application', () => {
 			expect(blockChainDBSpy).toHaveBeenCalledTimes(1);
 			expect(forgerDBSpy).toHaveBeenCalledTimes(1);
 			expect(_nodeDBSpy).toHaveBeenCalledTimes(1);
-			expect(app['_controller'].cleanup).toHaveBeenCalledTimes(1);
+			expect(app['_controller'].stop).toHaveBeenCalledTimes(1);
 		});
 
 		it('should call clearControllerPidFileSpy method with correct pid file location', async () => {

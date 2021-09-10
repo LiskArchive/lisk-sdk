@@ -98,8 +98,7 @@ export class ApplicationEnv {
 		// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
 		const height = this.lastBlock.header.height + n;
 		return new Promise(resolve => {
-			// eslint-disable-next-line dot-notation
-			this._application['_channel'].subscribe('app:block:new', () => {
+			this._application.channel.subscribe('app:block:new', () => {
 				if (this.lastBlock.header.height >= height) {
 					resolve();
 				}

@@ -26,9 +26,6 @@ export class IPCServer extends IPCSocket {
 
 	public constructor(options: { socketsDir: string; name: string; externalSocket?: boolean }) {
 		super(options);
-
-		this.pubSocket = new Publisher();
-		this.subSocket = new Subscriber();
 		this.socketPaths = {
 			pub: this._eventPubSocketPath,
 			sub: this._eventSubSocketPath,
@@ -38,6 +35,8 @@ export class IPCServer extends IPCSocket {
 
 	public async start(): Promise<void> {
 		await super.start();
+		this.pubSocket = new Publisher();
+		this.subSocket = new Subscriber();
 		try {
 			await this.pubSocket.bind(this._eventPubSocketPath);
 			await this.subSocket.bind(this._eventSubSocketPath);

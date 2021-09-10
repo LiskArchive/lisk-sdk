@@ -22,7 +22,7 @@ export abstract class IPCSocket {
 	protected readonly _eventPubSocketPath: string;
 	protected readonly _eventSubSocketPath: string;
 	protected readonly _rpcSeverSocketPath: string;
-	private readonly _rpcServer: Router;
+	private _rpcServer?: Router;
 
 	protected constructor(options: { socketsDir: string; name: string; externalSocket?: boolean }) {
 		const sockFileName = options.externalSocket ? 'external' : 'internal';
@@ -32,15 +32,17 @@ export abstract class IPCSocket {
 			options.socketsDir,
 			`${options.name}.${sockFileName}.rpc.ipc`,
 		)}`;
-
-		this._rpcServer = new Router();
 	}
 
 	public get rpcServer(): Router {
+		if (!this._rpcServer) {
+			throw new Error('RPC server has not been initialized.');
+		}
 		return this._rpcServer;
 	}
 
 	public async start(): Promise<void> {
+		this._rpcServer = new Router();
 		await this.rpcServer.bind(this._rpcSeverSocketPath);
 	}
 

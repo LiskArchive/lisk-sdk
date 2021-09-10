@@ -36,10 +36,9 @@ describe('InMemoryChannel Channel', () => {
 		},
 		options: {},
 	};
-	const logger: any = {};
 	const config: any = {};
 	let inMemoryChannel: InMemoryChannel;
-	const bus: Bus = new Bus(logger, config);
+	const bus: Bus = new Bus(config);
 
 	beforeEach(() => {
 		// Act

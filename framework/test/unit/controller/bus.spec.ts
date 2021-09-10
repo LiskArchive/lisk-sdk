@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import * as HTTP from 'http';
+import * as WebSocket from 'ws';
 import { EventEmitter2 } from 'eventemitter2';
 import { Bus } from '../../../src/controller/bus';
 import { Request } from '../../../src/controller/request';
@@ -20,9 +22,17 @@ import { IPCServer } from '../../../src/controller/ipc/ipc_server';
 import { EndpointInfo } from '../../../src';
 
 jest.mock('eventemitter2');
-jest.mock('zeromq');
-jest.mock('../../../src/controller/ws/ws_server');
-jest.mock('../../../src/controller/ipc/ipc_server');
+jest.mock('zeromq', () => {
+	return {
+		Publisher: jest
+			.fn()
+			.mockReturnValue({ bind: jest.fn(), close: jest.fn(), subscribe: jest.fn() }),
+		Subscriber: jest
+			.fn()
+			.mockReturnValue({ bind: jest.fn(), close: jest.fn(), subscribe: jest.fn() }),
+		Router: jest.fn().mockReturnValue({ bind: jest.fn(), close: jest.fn() }),
+	};
+});
 
 describe('Bus', () => {
 	const channelMock: any = {};
@@ -42,15 +52,19 @@ describe('Bus', () => {
 
 	let bus: Bus;
 
-	beforeEach(() => {
-		bus = new Bus(loggerMock, busConfig);
+	beforeEach(async () => {
+		bus = new Bus(busConfig);
+		if (bus['_wsServer']) {
+			jest.spyOn(bus['_wsServer'], 'start').mockReturnValue({} as WebSocket.Server);
+		}
+		if (bus['_httpServer']) {
+			jest.spyOn(bus['_httpServer'], 'start').mockReturnValue({} as HTTP.Server);
+		}
+		await bus.start(loggerMock);
 	});
 
 	afterEach(async () => {
-		if (bus) {
-			await bus.cleanup();
-		}
-		(IPCServer as any).mockClear();
+		await bus.cleanup();
 	});
 
 	describe('#constructor', () => {
@@ -62,56 +76,37 @@ describe('Bus', () => {
 		});
 	});
 
-	describe('#setup', () => {
+	describe('#start', () => {
 		it('should resolve with true.', async () => {
-			return expect(bus.init()).resolves.toBe(true);
+			return expect(bus.start(loggerMock)).resolves.toBeUndefined();
 		});
 
 		it('should setup ipc server if rpc is enabled', async () => {
 			// Arrange
-			bus = new Bus(loggerMock, busConfig);
+			bus = new Bus({ ...busConfig });
+			jest.spyOn(bus['_internalIPCServer'], 'start');
+			(bus['_internalIPCServer'].start as jest.Mock).mockReset();
 			// Act
-			await bus.init();
+			await bus.start(loggerMock);
 
 			// Assert
-			return expect(IPCServer.prototype.start).toHaveBeenCalledTimes(1);
+			return expect(bus['_internalIPCServer']?.start).toHaveBeenCalledTimes(1);
 		});
 
 		it('should setup only ws server if ws is only enabled', async () => {
 			// Arrange
 
-			bus = new Bus(loggerMock, {
+			bus = new Bus({
 				...busConfig,
-				wsServer: new WSServer({ logger: loggerMock, path: '/ws', port: 5000 }),
+				wsServer: new WSServer({ path: '/ws', port: 5000 }),
 			});
+			jest.spyOn(bus['_wsServer'] as WSServer, 'start');
 
 			// Act
-			await bus.init();
+			await bus.start(loggerMock);
 
 			// Assert
-			return expect(WSServer.prototype.start).toHaveBeenCalledTimes(1);
-		});
-
-		it('should not setup external ipc server if ipc mode is not enabled', async () => {
-			// Arrange
-			bus = new Bus(loggerMock, busConfig);
-
-			// Act
-			await bus.init();
-
-			// Assert
-			return expect(IPCServer.prototype.start).toHaveBeenCalledTimes(1);
-		});
-
-		it('should not setup ws server if rpc is not enabled', async () => {
-			// Arrange
-			bus = new Bus(loggerMock, busConfig);
-
-			// Act
-			await bus.init();
-
-			// Assert
-			return expect(WSServer.prototype.start).not.toHaveBeenCalled();
+			return expect(bus['_wsServer']?.start).toHaveBeenCalledTimes(1);
 		});
 	});
 
