@@ -24,13 +24,13 @@ import { defaultConfig } from './fixtures';
 import { createGenesisBlock } from './create_genesis_block';
 import { PartialApplicationConfig } from '../types';
 import { Application } from '../application';
-import { InstantiablePlugin } from '../plugins/base_plugin';
 import { BaseModule } from '../modules';
 import { RPC_MODES } from '../constants';
+import { BasePlugin } from '../plugins/base_plugin';
 
 interface ApplicationEnvConfig {
 	modules: BaseModule[];
-	plugins?: InstantiablePlugin[];
+	plugins?: BasePlugin[];
 	config?: PartialApplicationConfig;
 	genesisBlockJSON?: Record<string, unknown>;
 }

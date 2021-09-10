@@ -13,8 +13,9 @@
  */
 
 import { EventCallback } from '../event';
-import { Action, ActionsDefinition } from '../action';
 import { eventWithModuleNameReg, INTERNAL_EVENTS } from '../../constants';
+import { EndpointHandlers } from '../../types';
+import { Logger } from '../../logger';
 
 export interface BaseChannelOptions {
 	[key: string]: unknown;
@@ -23,41 +24,41 @@ export interface BaseChannelOptions {
 
 export abstract class BaseChannel {
 	public readonly eventsList: ReadonlyArray<string>;
-	public readonly actionsList: ReadonlyArray<string>;
-	public readonly moduleName: string;
+	public readonly endpointsList: ReadonlyArray<string>;
+	public readonly namespace: string;
 
-	protected readonly actions: { [key: string]: Action };
+	protected readonly endpointHandlers: EndpointHandlers;
 	protected readonly options: Record<string, unknown>;
+	protected readonly _logger: Logger;
 	private _requestId: number;
 
 	public constructor(
-		moduleName: string,
+		logger: Logger,
+		namespace: string,
 		events: ReadonlyArray<string>,
-		actions: ActionsDefinition,
+		endpoints: EndpointHandlers,
 		options: BaseChannelOptions = {},
 	) {
-		this.moduleName = moduleName;
+		this._logger = logger;
+		this.namespace = namespace;
 		this.options = options;
 
 		this.eventsList = options.skipInternalEvents ? events : [...events, ...INTERNAL_EVENTS];
 
-		this.actions = {};
+		this.endpointHandlers = {};
 		this._requestId = 0;
-		for (const actionName of Object.keys(actions)) {
-			const actionData = actions[actionName];
-
-			const handler = typeof actionData === 'object' ? actionData.handler : actionData;
-			const method = `${this.moduleName}:${actionName}`;
-			this.actions[actionName] = new Action(null, method, undefined, handler);
+		for (const methodName of Object.keys(endpoints)) {
+			const handler = endpoints[methodName];
+			this.endpointHandlers[methodName] = handler;
 		}
-		this.actionsList = Object.keys(this.actions);
+		this.endpointsList = Object.keys(this.endpointHandlers);
 	}
 
 	public isValidEventName(name: string, throwError = true): boolean | never {
 		const result = eventWithModuleNameReg.test(name);
 
 		if (throwError && !result) {
-			throw new Error(`[${this.moduleName}] Invalid event name ${name}.`);
+			throw new Error(`[${this.namespace}] Invalid event name ${name}.`);
 		}
 		return result;
 	}
@@ -66,7 +67,7 @@ export abstract class BaseChannel {
 		const result = eventWithModuleNameReg.test(name);
 
 		if (throwError && !result) {
-			throw new Error(`[${this.moduleName}] Invalid action name ${name}.`);
+			throw new Error(`[${this.namespace}] Invalid action name ${name}.`);
 		}
 
 		return result;
@@ -86,11 +87,11 @@ export abstract class BaseChannel {
 	// Publish the event on the channel
 	// Specified as moduleName:eventName
 	// If its related to your own moduleName specify as :eventName
-	abstract publish(eventName: string, data?: object): void;
+	abstract publish(eventName: string, data?: Record<string, unknown>): void;
 
 	// Call action of any moduleName through controller
 	// Specified as moduleName:actionName
-	abstract invoke<T>(actionName: string, params?: object): Promise<T>;
+	abstract invoke<T>(actionName: string, params?: Record<string, unknown>): Promise<T>;
 
 	abstract registerToBus(arg: unknown): Promise<void>;
 	abstract once(eventName: string, cb: EventCallback): void;

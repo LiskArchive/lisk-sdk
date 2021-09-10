@@ -23,48 +23,35 @@ import {
 	VERSION,
 } from './jsonrpc';
 
-export type ActionHandler = (params?: Record<string, unknown>) => unknown;
-
-export interface ActionsDefinition {
-	[key: string]: ActionHandler | { handler: ActionHandler };
-}
-
-export class Action {
+export class Request {
 	public readonly id: ID;
-	public readonly module: string;
+	public readonly namespace: string;
 	public readonly name: string;
 	public readonly params?: Record<string, unknown>;
-	public handler?: ActionHandler;
 
-	public constructor(
-		id: ID,
-		name: string,
-		params?: Record<string, unknown>,
-		handler?: ActionHandler,
-	) {
+	public constructor(id: ID, name: string, params?: Record<string, unknown>) {
 		assert(
 			actionWithModuleNameReg.test(name),
-			`Action name "${name}" must be a valid name with module name and action name.`,
+			`Request name "${name}" must be a valid name with module name and action name.`,
 		);
 
 		this.id = id;
-		[this.module, this.name] = name.split(':');
+		[this.namespace, this.name] = name.split(':');
 		this.params = params ?? {};
-		this.handler = handler;
 	}
 
-	public static fromJSONRPCRequest(data: RequestObject | string): Action {
+	public static fromJSONRPCRequest(data: RequestObject | string): Request {
 		const { id, method, params } =
 			typeof data === 'string' ? (JSON.parse(data) as RequestObject) : data;
 
-		return new Action(id, method, params);
+		return new Request(id, method, params);
 	}
 
 	public toJSONRPCRequest(): RequestObject {
 		return {
 			jsonrpc: VERSION,
 			id: this.id,
-			method: `${this.module}:${this.name}`,
+			method: `${this.namespace}:${this.name}`,
 			params: this.params,
 		};
 	}
@@ -84,6 +71,6 @@ export class Action {
 	}
 
 	public key(): string {
-		return `${this.module}:${this.name}`;
+		return `${this.namespace}:${this.name}`;
 	}
 }

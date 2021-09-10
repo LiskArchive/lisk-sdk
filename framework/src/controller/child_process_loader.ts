@@ -14,10 +14,15 @@
 
 // Parameters passed by `child_process.fork(_, parameters)`
 
-import { BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
+import { join } from 'path';
+import { createLogger } from '../logger';
+import { getEndpointHandlers } from '../endpoint';
+import { BasePlugin } from '../plugins/base_plugin';
+import { systemDirs } from '../system_dirs';
 import { ApplicationConfigForPlugin, PluginConfig, SocketPaths } from '../types';
 import { IPCChannel } from './channels';
 
+type InstantiablePlugin<T extends BasePlugin = BasePlugin> = new () => T;
 const modulePath: string = process.argv[2];
 const moduleExportName: string = process.argv[3];
 // eslint-disable-next-line import/no-dynamic-require,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-require-imports,@typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-member-access
@@ -36,16 +41,30 @@ const _loadPlugin = async (
 	plugin = new Klass();
 	const pluginName = plugin.name;
 
-	channel = new IPCChannel(pluginName, plugin.events, plugin.actions, {
-		socketsPath: ipcConfig.rpc.ipc.path,
+	const dirs = systemDirs(appConfig.label, appConfig.rootPath);
+	const logger = createLogger({
+		consoleLogLevel: appConfig.logger.consoleLogLevel,
+		fileLogLevel: appConfig.logger.fileLogLevel,
+		logFilePath: join(dirs.logs, `plugin-${pluginName}.log`),
+		module: `plugin:${pluginName}`,
 	});
+
+	channel = new IPCChannel(
+		logger,
+		pluginName,
+		plugin.events,
+		plugin.endpoint ? getEndpointHandlers(plugin.endpoint) : {},
+		{
+			socketsPath: ipcConfig.rpc.ipc.path,
+		},
+	);
 
 	await channel.registerToBus();
 
 	channel.publish(`${pluginName}:registeredToBus`);
 	channel.publish(`${pluginName}:loading:started`);
 
-	await plugin.init({ appConfig, channel, config });
+	await plugin.init({ appConfig, channel, config, logger });
 	await plugin.load(channel);
 
 	channel.publish(`${pluginName}:loading:finished`);

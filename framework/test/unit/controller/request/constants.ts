@@ -12,14 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-const base = require('../config/jest.config.base');
-
-module.exports = {
-	...base,
-	testMatch: ['<rootDir>/test/unit/**/*.(spec|test).(js|ts)'],
-	testPathIgnorePatterns: [
-		'/node_modules|modules/dpos|modules/keys|modules/token|modules/sequence',
-	],
-	coverageDirectory: '.coverage/unit',
-	collectCoverageFrom: ['src/controller/**', 'src/application/**'],
-};
+export const NAMESPACE = 'module';
+export const ACTION_NAME = 'action';
+export const INVALID_ACTION_NAME_ARG = '09';
+export const INVALID_ACTION_SOURCE_ARG = '123';
+export const VALID_ACTION_NAME_ARG = `${NAMESPACE}:${ACTION_NAME}`;
+export const VALID_ACTION_SOURCE_ARG = 'source';
+export const PARAMS = {};

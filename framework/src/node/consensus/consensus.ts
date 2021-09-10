@@ -181,7 +181,6 @@ export class Consensus {
 				stateStore: (stateStore as unknown) as StateStore,
 			});
 			await this._stateMachine.executeGenesisBlock(ctx);
-			// TODO: saveBlock should accept both genesis and normal block
 			await this._chain.saveBlock(args.genesisBlock, stateStore, args.genesisBlock.header.height);
 		}
 		await this._chain.loadLastBlocks(args.genesisBlock);

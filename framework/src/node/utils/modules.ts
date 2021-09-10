@@ -50,8 +50,3 @@ export const getRegisteredModules = (modules: BaseModule[]): RegisteredModule[] 
 		});
 		return prev;
 	}, []);
-
-const reservedEndpointName = ['constructor', 'init'];
-
-export const isReservedEndpointFunction = (key: string): boolean =>
-	key.startsWith('_') || reservedEndpointName.includes(key);

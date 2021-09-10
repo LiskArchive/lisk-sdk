@@ -28,13 +28,6 @@ export const APP_IDENTIFIER = 'app';
 
 export const APP_EVENT_READY = 'app:ready';
 export const APP_EVENT_SHUTDOWN = 'app:shutdown';
-export const APP_EVENT_NETWORK_EVENT = 'app:network:event';
-export const APP_EVENT_NETWORK_READY = 'app:network:ready';
-export const APP_EVENT_TRANSACTION_NEW = 'app:transaction:new';
-export const APP_EVENT_CHAIN_FORK = 'app:chain:fork';
-export const APP_EVENT_CHAIN_VALIDATORS_CHANGE = 'app:chain:validators:change';
-export const APP_EVENT_BLOCK_NEW = 'app:block:new';
-export const APP_EVENT_BLOCK_DELETE = 'app:block:delete';
 
 export const RPC_MODES = {
 	IPC: 'ipc',

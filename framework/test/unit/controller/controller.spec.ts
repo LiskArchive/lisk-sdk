@@ -15,6 +15,7 @@
 import * as childProcess from 'child_process';
 import * as os from 'os';
 import { when } from 'jest-when';
+import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { BasePlugin } from '../../../src/plugins/base_plugin';
 
 jest.mock('../../../src/controller/bus');
@@ -39,18 +40,16 @@ const createMockPlugin = ({
 	initStub?: any;
 	loadStub?: any;
 	unloadStub?: any;
-}): typeof BasePlugin => {
-	function Plugin(this: any) {
-		this.name = name;
-		this.load = loadStub ?? jest.fn();
-		this.init = initStub ?? jest.fn();
-		this.unload = unloadStub ?? jest.fn();
-		this.configSchema = {};
-		this.events = [];
-		this.actions = {};
-	}
-
-	return (Plugin as unknown) as typeof BasePlugin;
+}): BasePlugin => {
+	return ({
+		name,
+		load: loadStub ?? jest.fn(),
+		init: initStub ?? jest.fn(),
+		unload: unloadStub ?? jest.fn(),
+		configSchema: {},
+		events: [],
+		endpoint: {},
+	} as unknown) as BasePlugin;
 };
 describe('Controller Class', () => {
 	// Arrange
@@ -69,6 +68,18 @@ describe('Controller Class', () => {
 		once: jest.fn(),
 		publish: jest.fn(),
 	};
+	const moduleChannelsMock: any = [
+		{
+			registerToBus: jest.fn(),
+			once: jest.fn(),
+			publish: jest.fn(),
+		},
+		{
+			registerToBus: jest.fn(),
+			once: jest.fn(),
+			publish: jest.fn(),
+		},
+	];
 	const rpcConfig = {
 		modes: ['ipc'],
 		ws: { port: 8080, path: '/ws', host: '127.0.0.1' },
@@ -104,8 +115,10 @@ describe('Controller Class', () => {
 	const params = {
 		appLabel,
 		config,
+		blockchainDB: (new InMemoryKVStore() as unknown) as KVStore,
 		logger: loggerMock,
 		channel: channelMock,
+		moduleChannels: moduleChannelsMock,
 	};
 
 	let controller: controllerModule.Controller;
@@ -178,16 +191,16 @@ describe('Controller Class', () => {
 	describe('#loadPlugins', () => {
 		let plugins: any;
 		let pluginOptions: any;
-		let Plugin1: any;
-		let Plugin2: any;
+		let plugin1: any;
+		let plugin2: any;
 
 		beforeEach(async () => {
-			Plugin1 = createMockPlugin({ name: 'plugin1' });
-			Plugin2 = createMockPlugin({ name: 'plugin2' });
+			plugin1 = createMockPlugin({ name: 'plugin1' });
+			plugin2 = createMockPlugin({ name: 'plugin2' });
 
 			plugins = {
-				plugin1: Plugin1,
-				plugin2: Plugin2,
+				plugin1,
+				plugin2,
 			};
 
 			pluginOptions = {
@@ -300,11 +313,11 @@ describe('Controller Class', () => {
 					expect.objectContaining({
 						plugin1: {
 							channel: expect.any(InMemoryChannel),
-							plugin: expect.any(Plugin1),
+							plugin: plugin1,
 						},
 						plugin2: {
 							channel: expect.any(InMemoryChannel),
-							plugin: expect.any(Plugin2),
+							plugin: plugin2,
 						},
 					}),
 				);
@@ -353,12 +366,12 @@ describe('Controller Class', () => {
 				expect(childProcess.fork).toHaveBeenCalledTimes(2);
 				expect(childProcess.fork).toHaveBeenCalledWith(
 					expect.stringContaining('child_process_loader'),
-					['plugin1', 'Plugin'],
+					['plugin1', expect.any(String)],
 					{ execArgv: undefined },
 				);
 				expect(childProcess.fork).toHaveBeenCalledWith(
 					expect.stringContaining('child_process_loader'),
-					['plugin2', 'Plugin'],
+					['plugin2', expect.any(String)],
 					{ execArgv: undefined },
 				);
 			});

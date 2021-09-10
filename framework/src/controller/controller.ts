@@ -12,12 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { KVStore } from '@liskhq/lisk-db';
 import * as childProcess from 'child_process';
 import { ChildProcess } from 'child_process';
 import * as path from 'path';
 import { RPC_MODES } from '../constants';
 import { Logger } from '../logger';
-import { BasePlugin, getPluginExportPath, InstantiablePlugin } from '../plugins/base_plugin';
+import { getEndpointHandlers } from '../endpoint';
+import { BasePlugin, getPluginExportPath } from '../plugins/base_plugin';
 import { systemDirs } from '../system_dirs';
 import { ApplicationConfigForPlugin, PluginConfig, RPCConfig } from '../types';
 import { Bus } from './bus';
@@ -33,8 +35,10 @@ export interface ControllerOptions {
 		readonly rootPath: string;
 		readonly rpc: RPCConfig;
 	};
+	readonly blockchainDB: KVStore;
 	readonly logger: Logger;
 	readonly channel: InMemoryChannel;
+	readonly moduleChannels: InMemoryChannel[];
 }
 
 interface ControllerConfig {
@@ -51,7 +55,7 @@ interface ControllerConfig {
 }
 
 interface PluginsObject {
-	readonly [key: string]: InstantiablePlugin;
+	readonly [key: string]: BasePlugin;
 }
 
 export class Controller {
@@ -61,6 +65,8 @@ export class Controller {
 	public readonly config: ControllerConfig;
 	public bus!: Bus;
 
+	private readonly _moduleChannels: InMemoryChannel[];
+	private readonly _blockchainDB: KVStore;
 	private readonly _childProcesses: Record<string, ChildProcess>;
 	private readonly _inMemoryPlugins: Record<string, { plugin: BasePlugin; channel: BaseChannel }>;
 	private readonly _externalIPCServer?: IPCServer;
@@ -69,9 +75,11 @@ export class Controller {
 	private readonly _httpServer?: HTTPServer;
 
 	public constructor(options: ControllerOptions) {
+		this._blockchainDB = options.blockchainDB;
 		this.logger = options.logger;
 		this.appLabel = options.appLabel;
 		this.channel = options.channel;
+		this._moduleChannels = options.moduleChannels;
 		this.logger.info('Initializing controller');
 
 		const dirs = systemDirs(this.appLabel, options.config.rootPath);
@@ -204,24 +212,32 @@ export class Controller {
 			httpServer: this._httpServer,
 		});
 		await this.channel.registerToBus(this.bus);
+		for (const modChannel of this._moduleChannels) {
+			await modChannel.registerToBus(this.bus);
+		}
 		await this.bus.init();
 	}
 
 	private async _loadInMemoryPlugin(
-		Klass: InstantiablePlugin,
+		plugin: BasePlugin,
 		config: PluginConfig,
 		appConfig: ApplicationConfigForPlugin,
 	): Promise<void> {
-		const plugin: BasePlugin = new Klass();
 		const { name } = plugin;
 		this.logger.info(name, 'Loading in-memory plugin');
 
-		const channel = new InMemoryChannel(name, plugin.events, plugin.actions);
+		const channel = new InMemoryChannel(
+			this.logger,
+			this._blockchainDB,
+			name,
+			plugin.events,
+			plugin.endpoint ? getEndpointHandlers(plugin.endpoint) : {},
+		);
 		await channel.registerToBus(this.bus);
 		channel.publish(`${name}:registeredToBus`);
 		channel.publish(`${name}:loading:started`);
 
-		await plugin.init({ config, channel, appConfig });
+		await plugin.init({ config, channel, appConfig, logger: this.logger });
 		await plugin.load(channel);
 
 		channel.publish(`${name}:loading:finished`);
@@ -232,16 +248,15 @@ export class Controller {
 	}
 
 	private async _loadChildProcessPlugin(
-		Klass: InstantiablePlugin,
+		plugin: BasePlugin,
 		config: PluginConfig,
 		appConfig: ApplicationConfigForPlugin,
 	): Promise<void> {
-		const plugin: BasePlugin = new Klass();
 		const { name } = plugin;
 
 		this.logger.info(name, 'Loading child-process plugin');
 		const program = path.resolve(__dirname, 'child_process_loader');
-		const parameters = [getPluginExportPath(Klass) as string, Klass.name];
+		const parameters = [getPluginExportPath(plugin) as string, plugin.constructor.name];
 
 		// Avoid child processes and the main process sharing the same debugging ports causing a conflict
 		const forkedProcessOptions: { execArgv: string[] | undefined } = {

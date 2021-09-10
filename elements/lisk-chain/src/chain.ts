@@ -85,15 +85,15 @@ export class Chain {
 	}
 
 	public get lastBlock(): Block {
-		if (!this._lastBlock) {
-			throw new Error('Chain has not been initialized');
+		if (this._lastBlock === undefined) {
+			throw new Error('Chain has not been initialized.');
 		}
 		return this._lastBlock;
 	}
 
 	public get finalizedHeight(): number {
-		if (!this._finalizedHeight) {
-			throw new Error('Chain has not been initialized');
+		if (this._finalizedHeight === undefined) {
+			throw new Error('Chain has not been initialized.');
 		}
 		return this._finalizedHeight;
 	}
@@ -116,7 +116,7 @@ export class Chain {
 		try {
 			storageLastBlock = await this.dataAccess.getLastBlock();
 		} catch (error) {
-			throw new Error('Failed to load last block');
+			throw new Error('Failed to load last block.');
 		}
 
 		if (storageLastBlock.header.height !== genesisBlock.header.height) {
@@ -149,7 +149,7 @@ export class Chain {
 			}
 		}
 		if (lastBlockHeader && !matchingGenesisBlock) {
-			throw new Error('Genesis block does not match');
+			throw new Error('Genesis block does not match.');
 		}
 		if (!lastBlockHeader && !matchingGenesisBlock) {
 			return false;
@@ -189,13 +189,6 @@ export class Chain {
 			removeFromTempTable: false,
 		},
 	): Promise<void> {
-		const isConsecutiveBlock =
-			this.lastBlock.header.height + 1 === block.header.height &&
-			block.header.previousBlockID.equals(this.lastBlock.header.id);
-
-		if (!isConsecutiveBlock) {
-			throw new Error('Non consecutive block cannot be saved.');
-		}
 		await this.dataAccess.saveBlock(block, stateStore, finalizedHeight, removeFromTempTable);
 		this.dataAccess.addBlockHeader(block.header);
 		this._finalizedHeight = finalizedHeight;
@@ -208,13 +201,13 @@ export class Chain {
 		{ saveTempBlock } = { saveTempBlock: false },
 	): Promise<void> {
 		if (block.header.version === GENESIS_BLOCK_VERSION) {
-			throw new Error('Cannot delete genesis block');
+			throw new Error('Cannot delete genesis block.');
 		}
 		let secondLastBlock: Block;
 		try {
 			secondLastBlock = await this.dataAccess.getBlockByID(block.header.previousBlockID);
 		} catch (error) {
-			throw new Error('PreviousBlock is null');
+			throw new Error('PreviousBlock is null.');
 		}
 
 		await this.dataAccess.deleteBlock(block, stateStore, saveTempBlock);

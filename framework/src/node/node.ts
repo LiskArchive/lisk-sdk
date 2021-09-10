@@ -16,7 +16,7 @@ import { Chain, Block } from '@liskhq/lisk-chain';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { KVStore } from '@liskhq/lisk-db';
 import { Logger } from '../logger';
-import { ModuleEndpointContext, RegisteredModule, RegisteredSchema } from '../types';
+import { EndpointHandlers, RegisteredModule, RegisteredSchema } from '../types';
 import { NodeOptions } from './types';
 import { InMemoryChannel } from '../controller/channels';
 import { Network } from './network';
@@ -26,9 +26,17 @@ import { StateMachine } from './state_machine';
 import { Consensus, CONSENSUS_EVENT_BLOCK_DELETE, CONSENSUS_EVENT_BLOCK_NEW } from './consensus';
 import { Generator } from './generator';
 import { Endpoint } from './endpoint';
-import { getRegisteredModules, getSchema, isReservedEndpointFunction } from './utils/modules';
+import { getRegisteredModules, getSchema } from './utils/modules';
+import { getEndpointHandlers, mergeEndpointHandlers } from '../endpoint';
 import { ValidatorsAPI, ValidatorsModule } from '../modules/validators';
 import { LiskBFTAPI, LiskBFTModule } from '../modules/liskbft';
+import {
+	APP_EVENT_BLOCK_DELETE,
+	APP_EVENT_BLOCK_NEW,
+	APP_EVENT_CHAIN_FORK,
+	APP_EVENT_NETWORK_READY,
+	APP_EVENT_TRANSACTION_NEW,
+} from './events';
 
 const MINIMUM_MODULE_ID = 2;
 
@@ -68,7 +76,6 @@ export class Node {
 		this._network = new Network({
 			networkVersion: this._options.networkVersion,
 			options: this._options.network,
-			channel: this._channel,
 		});
 
 		this._chain = new Chain({
@@ -109,35 +116,30 @@ export class Node {
 		this._generator.registerModule(this._liskBFTModule);
 	}
 
-	public getEndpoints(): Record<string, (ctx: ModuleEndpointContext) => Promise<unknown>> {
-		const endpoints: Record<string, (ctx: ModuleEndpointContext) => Promise<unknown>> = {};
-		for (const key of Object.getOwnPropertyNames(Object.getPrototypeOf(this._endpoint))) {
-			const val = this._endpoint[key];
-			if (!isReservedEndpointFunction(key) && typeof val === 'function') {
-				endpoints[`app_${key}`] = val.bind(this) as (
-					ctx: ModuleEndpointContext,
-				) => Promise<unknown>;
-			}
-		}
-		for (const key of Object.getOwnPropertyNames(Object.getPrototypeOf(this._generator.endpoint))) {
-			const val = this._generator.endpoint[key];
-			if (!isReservedEndpointFunction(key) && typeof val === 'function') {
-				endpoints[`app_${key}`] = val.bind(this) as (
-					ctx: ModuleEndpointContext,
-				) => Promise<unknown>;
-			}
-		}
-		for (const mod of this._registeredModules) {
-			for (const key of Object.keys(mod.endpoint)) {
-				const val = mod.endpoint[key];
-				if (!isReservedEndpointFunction(key) && typeof val === 'function') {
-					endpoints[`${mod.name}_${key}`] = val.bind(mod) as (
-						ctx: ModuleEndpointContext,
-					) => Promise<unknown>;
-				}
-			}
-		}
-		return endpoints;
+	public getEndpoints(): EndpointHandlers {
+		const rootEndpoints = getEndpointHandlers(this._endpoint);
+		const generatorEndpoint = getEndpointHandlers(this._generator.endpoint);
+		return mergeEndpointHandlers(rootEndpoints, generatorEndpoint);
+	}
+
+	public getModuleEndpoints(): { [moduleName: string]: EndpointHandlers } {
+		return this._registeredModules.reduce(
+			(prev, mod) => ({
+				...prev,
+				[mod.name]: getEndpointHandlers(mod.endpoint),
+			}),
+			{},
+		);
+	}
+
+	public getEvents(): ReadonlyArray<string> {
+		return [
+			APP_EVENT_NETWORK_READY,
+			APP_EVENT_TRANSACTION_NEW,
+			APP_EVENT_CHAIN_FORK,
+			APP_EVENT_BLOCK_NEW,
+			APP_EVENT_BLOCK_DELETE,
+		];
 	}
 
 	public getSchema(): RegisteredSchema {
@@ -217,6 +219,10 @@ export class Node {
 			genesisBlock,
 		});
 
+		this._endpoint.init({
+			registeredModules: this._registeredModules,
+		});
+
 		await this._network.init({
 			nodeDB: this._nodeDB,
 			logger: this._logger,
@@ -246,9 +252,11 @@ export class Node {
 
 		this._consensus.events.on(CONSENSUS_EVENT_BLOCK_NEW, (block: Block) => {
 			this._generator.onNewBlock(block);
+			this._channel.publish(APP_EVENT_BLOCK_NEW, { block: block.getBytes().toString('hex') });
 		});
 		this._consensus.events.on(CONSENSUS_EVENT_BLOCK_DELETE, (block: Block) => {
 			this._generator.onDeleteBlock(block);
+			this._channel.publish(APP_EVENT_BLOCK_DELETE, { block: block.getBytes().toString('hex') });
 		});
 
 		this._logger.info('Node ready and launched');

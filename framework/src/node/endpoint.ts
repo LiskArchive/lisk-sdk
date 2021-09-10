@@ -38,7 +38,7 @@ export class Endpoint {
 	private readonly _consensus: Consensus;
 	private readonly _generator: Generator;
 	private readonly _options: NodeOptions;
-	private _registeredModules!: BaseModule[];
+	private _registeredModules: BaseModule[] = [];
 
 	public constructor(args: EndpoinArgs) {
 		this._chain = args.chain;

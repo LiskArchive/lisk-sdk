@@ -151,9 +151,9 @@ export type ApplicationConfigForPlugin = Omit<ApplicationConfig, 'plugins'>;
 
 export type PartialApplicationConfig = RecursivePartial<ApplicationConfig>;
 
-export interface ActionInfoForBus {
-	readonly module: string;
-	readonly name: string;
+export interface EndpointInfo {
+	readonly namespace: string;
+	readonly method: string;
 }
 
 export interface RegisteredModule {
@@ -192,3 +192,9 @@ export interface PluginEndpointContext {
 export interface ModuleEndpointContext extends PluginEndpointContext {
 	getStore: (moduleID: number, storePrefix: number) => ImmutableSubStore;
 }
+
+export type EndpointHandler = (
+	context: PluginEndpointContext | ModuleEndpointContext,
+) => Promise<unknown>;
+
+export type EndpointHandlers = Record<string, EndpointHandler>;
