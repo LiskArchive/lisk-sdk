@@ -32,7 +32,7 @@ describe.skip('plugin in child process', () => {
 			rpcConfig: { modes: ['ipc'] },
 		});
 		client = await createIPCClient(`${app.config.rootPath}/${label}/`);
-		client.subscribe('hello:greet', (message: any) => {
+		client.subscribe('hello_greet', (message: any) => {
 			helloMessage = message;
 		});
 	});
@@ -42,9 +42,9 @@ describe.skip('plugin in child process', () => {
 		await closeApplication(app);
 	});
 
-	it('should be able to get data from plugin action `hello:callGreet`', async () => {
+	it('should be able to get data from plugin action `hello_callGreet`', async () => {
 		// Act
-		const data = await client.invoke('hello:callGreet');
+		const data = await client.invoke('hello_callGreet');
 		// Assert
 		expect(data).toEqual({
 			greet: 'hi, how are you?',
@@ -63,9 +63,9 @@ describe.skip('plugin in child process', () => {
 		).rejects.toThrow('Specified key accounts:address: does not exist');
 	});
 
-	it('should be able to get data from plugin `hello:greet` event by calling action that returns undefined', async () => {
+	it('should be able to get data from plugin `hello_greet` event by calling action that returns undefined', async () => {
 		// Act
-		const data = await client.invoke('hello:publishGreetEvent');
+		const data = await client.invoke('hello_publishGreetEvent');
 		// Assert
 		expect(data).toBeUndefined();
 		expect(helloMessage.data).toEqual({ message: 'hello event' });
@@ -73,18 +73,18 @@ describe.skip('plugin in child process', () => {
 		expect(helloMessage.name).toEqual('greet');
 	});
 
-	it('should return undefined when void action `hello:blankAction` is called', async () => {
+	it('should return undefined when void action `hello_blankAction` is called', async () => {
 		// Act
-		const data = await client.invoke('hello:publishGreetEvent');
+		const data = await client.invoke('hello_publishGreetEvent');
 
 		// Assert
 		expect(data).toBeUndefined();
 	});
 
-	it('should throw an error on invalid action `hello:greetings`', async () => {
+	it('should throw an error on invalid action `hello_greetings`', async () => {
 		// Assert
-		await expect(client.invoke('hello:greetings')).rejects.toThrow(
-			"Action 'hello:greetings' is not registered to bus",
+		await expect(client.invoke('hello_greetings')).rejects.toThrow(
+			"Action 'hello_greetings' is not registered to bus",
 		);
 	});
 });

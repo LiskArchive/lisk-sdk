@@ -48,7 +48,6 @@ describe('InMemoryChannel Channel', () => {
 			params.namespace,
 			params.events,
 			params.endpoints,
-			params.options,
 		);
 	});
 

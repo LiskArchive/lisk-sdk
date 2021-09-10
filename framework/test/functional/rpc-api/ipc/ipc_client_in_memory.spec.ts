@@ -44,7 +44,7 @@ describe('api client ipc mode', () => {
 			newBlockEvent.push(blockEvent);
 		});
 
-		client.subscribe('hello:greet', (message: any) => {
+		client.subscribe('hello_greet', (message: any) => {
 			helloMessage = message;
 		});
 	});
@@ -113,8 +113,8 @@ describe('api client ipc mode', () => {
 			const actions = await await client.invoke('app_getRegisteredActions');
 			expect(actions).toBeArray();
 			expect(actions).toContain('app_getConnectedPeers');
-			expect(actions).toContain('dpos:getAllDelegates');
-			expect(actions).toContain('hello:callGreet');
+			expect(actions).toContain('dpos_getAllDelegates');
+			expect(actions).toContain('hello_callGreet');
 		});
 	});
 
@@ -132,23 +132,23 @@ describe('api client ipc mode', () => {
 			const events = await await client.invoke('app_getRegisteredEvents');
 			expect(events).toBeArray();
 			expect(events).toContain('app_ready');
-			expect(events).toContain('token:registeredToBus');
-			expect(events).toContain('hello:greet');
+			expect(events).toContain('token_registeredToBus');
+			expect(events).toContain('hello_greet');
 		});
 	});
 
 	describe('module actions', () => {
 		it('should return all the delegates', async () => {
 			// Act
-			const delegates = await client.invoke('dpos:getAllDelegates');
+			const delegates = await client.invoke('dpos_getAllDelegates');
 			// Assert
 			expect(delegates).toHaveLength(103);
 		});
 
 		it('should throw an error on invalid action', async () => {
 			// Assert
-			await expect(client.invoke('token:getAllDelegates')).rejects.toThrow(
-				"Action 'token:getAllDelegates' is not registered to bus",
+			await expect(client.invoke('token_getAllDelegates')).rejects.toThrow(
+				"Action 'token_getAllDelegates' is not registered to bus",
 			);
 		});
 	});
@@ -156,7 +156,7 @@ describe('api client ipc mode', () => {
 	describe('plugin actions', () => {
 		it('should be able to get data from plugin action', async () => {
 			// Act
-			const data = await client.invoke('hello:callGreet');
+			const data = await client.invoke('hello_callGreet');
 
 			// Assert
 			expect(data).toEqual({
@@ -164,27 +164,27 @@ describe('api client ipc mode', () => {
 			});
 		});
 
-		it('should be able to get data from plugin `hello:greet` event by calling action that returns undefined', async () => {
+		it('should be able to get data from plugin `hello_greet` event by calling action that returns undefined', async () => {
 			// Act
-			const data = await client.invoke('hello:publishGreetEvent');
+			const data = await client.invoke('hello_publishGreetEvent');
 
 			// Assert
 			expect(data).toBeUndefined();
 			expect(helloMessage).toEqual({ message: 'hello event' });
 		});
 
-		it('should return undefined when void action `hello:blankAction` is called', async () => {
+		it('should return undefined when void action `hello_blankAction` is called', async () => {
 			// Act
-			const data = await client.invoke('hello:publishGreetEvent');
+			const data = await client.invoke('hello_publishGreetEvent');
 
 			// Assert
 			expect(data).toBeUndefined();
 		});
 
-		it('should throw an error on invalid action `hello:randomEventName`', async () => {
+		it('should throw an error on invalid action `hello_randomEventName`', async () => {
 			// Assert
-			await expect(client.invoke('hello:randomEventName')).rejects.toThrow(
-				"Action 'hello:randomEventName' is not registered to bus",
+			await expect(client.invoke('hello_randomEventName')).rejects.toThrow(
+				"Action 'hello_randomEventName' is not registered to bus",
 			);
 		});
 	});

@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const APP_EVENT_NETWORK_READY = 'app_network:ready';
-export const APP_EVENT_TRANSACTION_NEW = 'app_transaction:new';
-export const APP_EVENT_CHAIN_FORK = 'app_chain:fork';
-export const APP_EVENT_CHAIN_VALIDATORS_CHANGE = 'app_chain:validators:change';
-export const APP_EVENT_BLOCK_NEW = 'app_block:new';
-export const APP_EVENT_BLOCK_DELETE = 'app_block:delete';
+export const APP_EVENT_NETWORK_READY = 'app_networkReady';
+export const APP_EVENT_TRANSACTION_NEW = 'app_newTransaction';
+export const APP_EVENT_CHAIN_FORK = 'app_chainForked';
+export const APP_EVENT_CHAIN_VALIDATORS_CHANGE = 'app_validatorsChanged';
+export const APP_EVENT_BLOCK_NEW = 'app_newBlock';
+export const APP_EVENT_BLOCK_DELETE = 'app_deleteBlock';
