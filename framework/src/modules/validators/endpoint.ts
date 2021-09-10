@@ -12,5 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export { ValidatorModule } from './module';
-export type { ValidatorAPI } from './api';
+import { BaseEndpoint } from '../base_endpoint';
+
+export class ValidatorsEndpoint extends BaseEndpoint {}
