@@ -30,7 +30,7 @@ const emitterMock = {
 	once: jest.fn(),
 	emit: jest.fn(),
 };
-const jsonrpcRequest = { id: 1, jsonrpc: '2.0', method: 'namespace:action1' };
+const jsonrpcRequest = { id: 1, jsonrpc: '2.0', method: 'namespace_action1' };
 
 const ipcClientMock = {
 	stop: jest.fn(),
@@ -44,7 +44,7 @@ const ipcClientMock = {
 		}),
 	},
 	subSocket: {
-		on: getMockedCallback({ jsonrpc: '2.0', method: 'module:event', params: {} }, {}),
+		on: getMockedCallback({ jsonrpc: '2.0', method: 'module_event', params: {} }, {}),
 	},
 	pubSocket: {
 		send: jest.fn(),
@@ -243,7 +243,7 @@ describe.skip('IPCChannel Channel', () => {
 	});
 
 	describe('#invoke', () => {
-		const actionName = 'namespace:action1';
+		const actionName = 'namespace_action1';
 		const actionParams = { myParams: ['param1', 'param2'] };
 
 		it('should execute the action straight away if the plugins are the same and action is a string', async () => {

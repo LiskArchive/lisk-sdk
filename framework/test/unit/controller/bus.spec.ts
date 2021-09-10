@@ -293,7 +293,7 @@ describe('Bus', () => {
 			const jsonrpcRequest = {
 				id: 1,
 				jsonrpc: '2.0',
-				method: 'module:event',
+				method: 'module_event',
 			};
 
 			// Act && Assert
