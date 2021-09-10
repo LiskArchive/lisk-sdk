@@ -29,7 +29,7 @@ describe('Account related actions', () => {
 
 	describe('getAccount', () => {
 		it('should return valid encoded account', async () => {
-			const encodedAccount = await app['_channel'].invoke('app:getAccount', {
+			const encodedAccount = await app['_channel'].invoke('app_getAccount', {
 				address: genesis.address.toString('hex'),
 			});
 			expect(encodedAccount).toBeString();
@@ -42,7 +42,7 @@ describe('Account related actions', () => {
 
 	describe('getAccounts', () => {
 		it('should return valid encoded account', async () => {
-			const encodedAccounts: string[] = await app['_channel'].invoke('app:getAccounts', {
+			const encodedAccounts: string[] = await app['_channel'].invoke('app_getAccounts', {
 				address: [genesis.address.toString('hex')],
 			});
 			expect(encodedAccounts).toHaveLength(1);

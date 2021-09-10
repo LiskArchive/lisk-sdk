@@ -127,14 +127,14 @@ describe.skip('IPCChannelWithoutBus', () => {
 
 				const donePromise = new Promise<void>(resolve => {
 					// Act
-					alphaChannel.subscribe(`${beta.namespace}:${eventName}`, data => {
+					alphaChannel.subscribe(`${beta.namespace}_${eventName}`, data => {
 						// Assert
 						expect(data).toEqual(betaEventData);
 						resolve();
 					});
 				});
 
-				betaChannel.publish(`${beta.namespace}:${eventName}`, betaEventData);
+				betaChannel.publish(`${beta.namespace}_${eventName}`, betaEventData);
 
 				return donePromise;
 			});
@@ -145,14 +145,14 @@ describe.skip('IPCChannelWithoutBus', () => {
 				const eventName = beta.events[0];
 				const donePromise = new Promise<void>(resolve => {
 					// Act
-					alphaChannel.once(`${beta.namespace}:${eventName}`, data => {
+					alphaChannel.once(`${beta.namespace}_${eventName}`, data => {
 						// Assert
 						expect(data).toEqual(betaEventData);
 						resolve();
 					});
 				});
 
-				betaChannel.publish(`${beta.namespace}:${eventName}`, betaEventData);
+				betaChannel.publish(`${beta.namespace}_${eventName}`, betaEventData);
 
 				return donePromise;
 			});
@@ -166,14 +166,14 @@ describe.skip('IPCChannelWithoutBus', () => {
 
 				const donePromise = new Promise<void>(done => {
 					// Act
-					betaChannel.once(`${alpha.namespace}:${eventName}`, data => {
+					betaChannel.once(`${alpha.namespace}_${eventName}`, data => {
 						// Assert
 						expect(data).toEqual(alphaEventData);
 						done();
 					});
 				});
 
-				alphaChannel.publish(`${alpha.namespace}:${eventName}`, alphaEventData);
+				alphaChannel.publish(`${alpha.namespace}_${eventName}`, alphaEventData);
 
 				return donePromise;
 			});

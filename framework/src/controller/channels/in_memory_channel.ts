@@ -17,7 +17,7 @@ import { StateStore } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
 import { Event, EventCallback } from '../event';
 import { Request } from '../request';
-import { BaseChannel, BaseChannelOptions } from './base_channel';
+import { BaseChannel } from './base_channel';
 import { Bus } from '../bus';
 import * as JSONRPC from '../jsonrpc/types';
 import { ChannelType, EndpointHandlers } from '../../types';
@@ -33,9 +33,8 @@ export class InMemoryChannel extends BaseChannel {
 		namespace: string,
 		events: ReadonlyArray<string>,
 		endpoints: EndpointHandlers,
-		options: BaseChannelOptions = {},
 	) {
-		super(logger, namespace, events, endpoints, options);
+		super(logger, namespace, events, endpoints);
 		this._db = db;
 	}
 

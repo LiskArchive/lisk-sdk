@@ -48,7 +48,6 @@ describe('InMemoryChannel Channel', () => {
 			params.namespace,
 			params.events,
 			params.endpoints,
-			params.options,
 		);
 	});
 
@@ -101,7 +100,7 @@ describe('InMemoryChannel Channel', () => {
 
 		it('should call bus.once with the event key', async () => {
 			// Arrange
-			const eventName = 'module:anEventName';
+			const eventName = 'module_anEventName';
 			const event = new Event(eventName);
 			await inMemoryChannel.registerToBus(bus);
 
@@ -122,7 +121,7 @@ describe('InMemoryChannel Channel', () => {
 
 		it('should call bus.once with the event key', async () => {
 			// Arrange
-			const eventName = 'module:anEventName';
+			const eventName = 'module_anEventName';
 			const event = new Event(eventName);
 
 			// Act
@@ -146,7 +145,7 @@ describe('InMemoryChannel Channel', () => {
 		});
 
 		it('should throw an Error if event module is different than moduleName', () => {
-			const eventName = 'differentModule:eventName';
+			const eventName = 'differentModule_eventName';
 			expect(() => {
 				inMemoryChannel.publish(eventName);
 			}).toThrow(`Event "${eventName}" not registered in "${inMemoryChannel.namespace}" module.`);
@@ -154,7 +153,7 @@ describe('InMemoryChannel Channel', () => {
 
 		it('should call bus.publish if the event module is equal to moduleName', async () => {
 			// Arrange
-			const eventFullName = `${inMemoryChannel.namespace}:eventName`;
+			const eventFullName = `${inMemoryChannel.namespace}_eventName`;
 			const event = new Event(eventFullName);
 
 			// Act
@@ -173,7 +172,7 @@ describe('InMemoryChannel Channel', () => {
 
 		it('should execute the action straight away if the action module is equal to moduleName', async () => {
 			// Arrange
-			const actionFullName = `${inMemoryChannel.namespace}:${actionName}`;
+			const actionFullName = `${inMemoryChannel.namespace}_${actionName}`;
 
 			// Act
 			await inMemoryChannel.invoke(actionFullName);
@@ -184,7 +183,7 @@ describe('InMemoryChannel Channel', () => {
 
 		it('should call bus.invoke if the action module is different to moduleName', async () => {
 			// Arrange
-			const actionFullName = `aDifferentModule:${actionName}`;
+			const actionFullName = `aDifferentModule_${actionName}`;
 
 			// Act
 			await inMemoryChannel.registerToBus(bus);

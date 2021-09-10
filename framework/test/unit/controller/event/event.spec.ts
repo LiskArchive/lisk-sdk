@@ -63,7 +63,7 @@ describe('Event Class', () => {
 				// Arrange
 				const expectedResult = {
 					jsonrpc: '2.0',
-					method: 'module:event',
+					method: 'module_event',
 					params: {
 						data: '#data',
 					},
@@ -82,7 +82,7 @@ describe('Event Class', () => {
 				// Arrange
 				const jsonData = {
 					jsonrpc: '2.0',
-					method: `${MODULE_NAME}:${EVENT_NAME}`,
+					method: `${MODULE_NAME}_${EVENT_NAME}`,
 					params: DATA,
 				};
 				const config = JSON.stringify(jsonData);
@@ -102,7 +102,7 @@ describe('Event Class', () => {
 				// Arrange
 				const config = {
 					jsonrpc: '2.0',
-					method: `${MODULE_NAME}:${EVENT_NAME}`,
+					method: `${MODULE_NAME}_${EVENT_NAME}`,
 					params: DATA,
 				};
 
@@ -121,7 +121,7 @@ describe('Event Class', () => {
 		describe('#key', () => {
 			it('should return method name.', () => {
 				// Arrange
-				const expectedResult = `${MODULE_NAME}:${EVENT_NAME}`;
+				const expectedResult = `${MODULE_NAME}_${EVENT_NAME}`;
 
 				// Act
 				const key = event.key();

@@ -16,6 +16,6 @@ export const NAMESPACE = 'module';
 export const ACTION_NAME = 'action';
 export const INVALID_ACTION_NAME_ARG = '09';
 export const INVALID_ACTION_SOURCE_ARG = '123';
-export const VALID_ACTION_NAME_ARG = `${NAMESPACE}:${ACTION_NAME}`;
+export const VALID_ACTION_NAME_ARG = `${NAMESPACE}_${ACTION_NAME}`;
 export const VALID_ACTION_SOURCE_ARG = 'source';
 export const PARAMS = {};

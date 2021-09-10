@@ -151,7 +151,7 @@ export const sendTransaction = async (app: Application): Promise<Transaction> =>
 		passphrase: genesis.passphrase,
 	});
 
-	await app['_channel'].invoke('app:postTransaction', {
+	await app['_channel'].invoke('app_postTransaction', {
 		transaction: fundingTx.getBytes().toString('hex'),
 	});
 	return fundingTx;

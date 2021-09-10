@@ -14,7 +14,6 @@
 
 import { EventCallback } from '../../../../src/controller/event';
 import { BaseChannel } from '../../../../src/controller/channels';
-import { INTERNAL_EVENTS } from '../../../../src/constants';
 import { fakeLogger } from '../../../utils/node';
 
 class MyChannel extends BaseChannel {
@@ -46,20 +45,13 @@ describe('Base Channel', () => {
 
 	beforeEach(() => {
 		// Act
-		baseChannel = new MyChannel(
-			params.logger,
-			params.namespace,
-			params.events,
-			params.endpoints,
-			params.options,
-		);
+		baseChannel = new MyChannel(params.logger, params.namespace, params.events, params.endpoints);
 	});
 
 	describe('#constructor', () => {
 		it('should create the instance with given arguments.', () => {
 			// Assert
 			expect(baseChannel.namespace).toBe(params.namespace);
-			expect(baseChannel['options']).toBe(params.options);
 			expect(baseChannel.endpointsList).toEqual(Object.keys(params.endpoints));
 		});
 	});
@@ -73,7 +65,7 @@ describe('Base Channel', () => {
 		});
 
 		it('base.eventsList be list of events', () => {
-			expect(baseChannel.eventsList).toHaveLength(params.events.length + INTERNAL_EVENTS.length);
+			expect(baseChannel.eventsList).toHaveLength(params.events.length);
 			baseChannel.eventsList.forEach(event => {
 				expect(typeof event).toBe('string');
 			});
@@ -81,31 +73,15 @@ describe('Base Channel', () => {
 
 		it('base.eventsList should contain internal events when skipInternalEvents option was set to FALSE', () => {
 			// Arrange & Act
-			baseChannel = new MyChannel(
-				params.logger,
-				params.namespace,
-				params.events,
-				params.endpoints,
-				{
-					skipInternalEvents: false,
-				},
-			);
+			baseChannel = new MyChannel(params.logger, params.namespace, params.events, params.endpoints);
 
 			// Assert
-			expect(baseChannel.eventsList).toHaveLength(params.events.length + INTERNAL_EVENTS.length);
+			expect(baseChannel.eventsList).toHaveLength(params.events.length);
 		});
 
 		it('base.eventsList must NOT contain internal events when skipInternalEvents option was set TRUE', () => {
 			// Arrange & Act
-			baseChannel = new MyChannel(
-				params.logger,
-				params.namespace,
-				params.events,
-				params.endpoints,
-				{
-					skipInternalEvents: true,
-				},
-			);
+			baseChannel = new MyChannel(params.logger, params.namespace, params.events, params.endpoints);
 
 			// Assert
 			expect(baseChannel.eventsList).toHaveLength(params.events.length);
@@ -128,7 +104,7 @@ describe('Base Channel', () => {
 
 		it('should return true when valid event name was provided.', () => {
 			// Act & Assert
-			expect(baseChannel.isValidEventName(`${params.namespace}:${eventName}`)).toBe(true);
+			expect(baseChannel.isValidEventName(`${params.namespace}_${eventName}`)).toBe(true);
 		});
 	});
 
@@ -148,7 +124,7 @@ describe('Base Channel', () => {
 
 		it('should return true when valid event name was provided.', () => {
 			// Act & Assert
-			expect(baseChannel.isValidActionName(`${params.namespace}:${actionName}`)).toBe(true);
+			expect(baseChannel.isValidActionName(`${params.namespace}_${actionName}`)).toBe(true);
 		});
 	});
 });

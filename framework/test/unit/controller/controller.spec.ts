@@ -105,7 +105,7 @@ describe('Controller Class', () => {
 	const initParams = {
 		blockchainDB: (new InMemoryKVStore() as unknown) as KVStore,
 		logger: loggerMock,
-		events: ['app:start', 'app:block:new'],
+		events: ['app_start', 'app_blockNew'],
 		endpoints: {
 			getBlockByID: jest.fn(),
 		} as EndpointHandlers,
@@ -243,27 +243,15 @@ describe('Controller Class', () => {
 			await controller.stop();
 		});
 
-		it('should unload in-memory plugins in sequence', () => {
-			// Assert
-			expect(inMemoryPlugin.unload).toHaveBeenCalled();
-		});
-
-		it('should unload all plugins if plugins argument was not provided', () => {
-			// Assert
-			expect(controller['_inMemoryPlugins']).toEqual({});
-		});
-
 		describe('unload in-memory plugins', () => {
-			it('should publish unloading:started event', () => {
+			it('should unload in-memory plugins in sequence', () => {
 				// Assert
-				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith('plugin1:unloading:started');
+				expect(inMemoryPlugin.unload).toHaveBeenCalled();
 			});
 
-			it('should publish unloading:finished event', () => {
+			it('should unload all plugins if plugins argument was not provided', () => {
 				// Assert
-				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith(
-					'plugin1:unloading:finished',
-				);
+				expect(controller['_inMemoryPlugins']).toEqual({});
 			});
 		});
 
