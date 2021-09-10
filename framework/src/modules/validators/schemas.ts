@@ -13,6 +13,8 @@
  */
 
 export const validatorAccountSchema = {
+	$id: '/validators/validatorAccountSubStore',
+	title: 'Validators Account Keys',
 	type: 'object',
 	properties: {
 		generatorKey: {
@@ -28,6 +30,8 @@ export const validatorAccountSchema = {
 };
 
 export const generatorListSchema = {
+	$id: '/validators/generatorListSubStore',
+	title: 'Generator Addresses',
 	type: 'object',
 	properties: {
 		addresses: {
@@ -42,6 +46,8 @@ export const generatorListSchema = {
 };
 
 export const validatorAddressSchema = {
+	$id: '/validators/registeredBlsKeysSubStore',
+	title: 'Registered Validators Bls Keys',
 	type: 'object',
 	properties: {
 		address: {
@@ -53,6 +59,8 @@ export const validatorAddressSchema = {
 };
 
 export const genesisDataSchema = {
+	$id: '/validators/genesisDataSubStore',
+	title: 'Timestamp',
 	type: 'object',
 	properties: {
 		timestamp: {
@@ -61,4 +69,24 @@ export const genesisDataSchema = {
 		},
 	},
 	required: ['timestamp'],
+};
+
+export interface validateBLSKeyRequest {
+	proofOfPosession: Buffer;
+	blsKey: Buffer;
+}
+
+export const validateBLSKeyRequestSchema = {
+	$id: '/validators/validateBLSKey',
+	title: 'Bls Key Properties',
+	type: 'object',
+	properties: {
+		proofOfPosession: {
+			type: 'Buffer',
+		},
+		blsKey: {
+			type: 'Buffer',
+		},
+	},
+	required: ['proofOfPosession', 'blsKey'],
 };
