@@ -13,4 +13,4 @@
  */
 
 export { LiskBFTModule } from './module';
-export type { LiskBFTAPI } from './api';
+export type { BFTAPI } from './api';

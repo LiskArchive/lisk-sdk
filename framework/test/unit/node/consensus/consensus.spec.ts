@@ -19,7 +19,7 @@ import { ApplyPenaltyError } from '../../../../src/errors';
 import {
 	CONSENSUS_EVENT_BLOCK_BROADCAST,
 	CONSENSUS_EVENT_BLOCK_NEW,
-	LiskBFTAPI,
+	BFTAPI,
 	ValidatorAPI,
 } from '../../../../src/node/consensus';
 import { Consensus } from '../../../../src/node/consensus/consensus';
@@ -44,7 +44,7 @@ describe('consensus', () => {
 	let chain: Chain;
 	let network: Network;
 	let stateMachine: StateMachine;
-	let liskBFTAPI: LiskBFTAPI;
+	let liskBFTAPI: BFTAPI;
 	let validatorAPI: ValidatorAPI;
 
 	beforeEach(async () => {

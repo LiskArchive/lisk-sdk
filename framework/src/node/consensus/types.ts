@@ -42,7 +42,7 @@ export interface ValidatorAPI {
 	getSlotTime: (apiContext: ImmutableAPIContext, slot: number) => number;
 }
 
-export interface LiskBFTAPI {
+export interface BFTAPI {
 	verifyGeneratorInfo: (
 		apiContext: APIContext,
 		generatorStore: GeneratorStore,

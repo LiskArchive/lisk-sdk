@@ -14,7 +14,7 @@
 
 import { BaseModule, ModuleInitArgs } from '../base_module';
 import { MODULE_ID_REWARD } from './constants';
-import { LiskBFTAPI, ModuleConfig, RandomAPI, TokenAPI, TokenIDReward } from './types';
+import { BFTAPI, ModuleConfig, RandomAPI, TokenAPI, TokenIDReward } from './types';
 import { BlockAfterExecuteContext } from '../../node/state_machine';
 import { RewardAPI } from './api';
 import { RewardEndpoint } from './endpoint';
@@ -27,12 +27,12 @@ export class RewardModule extends BaseModule {
 	public configSchema = configSchema;
 	public endpoint = new RewardEndpoint(this.id);
 	private _tokenAPI!: TokenAPI;
-	private _liskBFTAPI!: LiskBFTAPI;
+	private _liskBFTAPI!: BFTAPI;
 	private _randomAPI!: RandomAPI;
 	private _tokenIDReward!: TokenIDReward;
 	private _moduleConfig!: ModuleConfig;
 
-	public addDependencies(tokenAPI: TokenAPI, randomAPI: RandomAPI, liskBFTAPI: LiskBFTAPI) {
+	public addDependencies(tokenAPI: TokenAPI, randomAPI: RandomAPI, liskBFTAPI: BFTAPI) {
 		this._tokenAPI = tokenAPI;
 		this._randomAPI = randomAPI;
 		this._liskBFTAPI = liskBFTAPI;

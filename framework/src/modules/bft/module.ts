@@ -11,14 +11,39 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseModule } from '../base_module';
-import { LiskBFTAPI } from './api';
-import { LiskBFTEndpoint } from './endpoint';
-import { liskBFTModuleID } from './constants';
+import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { BaseModule, ModuleInitArgs } from '../base_module';
+import { BFTAPI } from './api';
+import { BFTEndpoint } from './endpoint';
+import { MODULE_ID_BFT } from './constants';
+import { bftModuleConfig } from './schemas';
+import { BlockAfterExecuteContext, GenesisBlockExecuteContext } from '../../node/state_machine';
 
 export class LiskBFTModule extends BaseModule {
-	public id = liskBFTModuleID;
-	public name = 'liskBFT';
-	public api = new LiskBFTAPI(this.id);
-	public endpoint = new LiskBFTEndpoint(this.id);
+	public id = MODULE_ID_BFT;
+	public name = 'bft';
+	public api = new BFTAPI(this.id);
+	public endpoint = new BFTEndpoint(this.id);
+
+	private _batchSize!: number;
+	private _maxLengthBlockBFTInfos!: number;
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async init(args: ModuleInitArgs): Promise<void> {
+		const { moduleConfig } = args;
+		const errors = validator.validate(bftModuleConfig, moduleConfig);
+		if (errors.length) {
+			throw new LiskValidationError(errors);
+		}
+		this._batchSize = moduleConfig.batchSize as number;
+		this._maxLengthBlockBFTInfos = 3 * this._batchSize;
+		// eslint-disable-next-line no-console
+		console.log(this._maxLengthBlockBFTInfos);
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	public async afterGenesisBlockExecute(_context: GenesisBlockExecuteContext): Promise<void> {}
+
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	public async afterBlockExecute(_context: BlockAfterExecuteContext): Promise<void> {}
 }

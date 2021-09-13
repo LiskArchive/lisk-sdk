@@ -27,7 +27,7 @@ export interface BlockHeaderAsset {
 	maxHeightPreviouslyForged: number;
 }
 
-export class LiskBFTAPI extends BaseAPI {
+export class BFTAPI extends BaseAPI {
 	public async verifyGeneratorInfo(
 		_apiContext: APIContext,
 		_generatorStore: GeneratorStore,

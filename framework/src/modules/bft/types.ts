@@ -11,8 +11,3 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-export const MODULE_ID_BFT = 9;
-
-export const STORE_PREFIX_BFT_PARAMETERS = 0x0000;
-export const STORE_PREFIX_BFT_VOTES = 0x8000;

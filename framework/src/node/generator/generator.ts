@@ -53,7 +53,7 @@ import { GeneratorStore } from './generator_store';
 import { NetworkEndpoint } from './network_endpoint';
 import { GetTransactionResponse, getTransactionsResponseSchema } from './schemas';
 import { HighFeeGenerationStrategy } from './strategies';
-import { Consensus, GeneratorModule, LiskBFTAPI, ValidatorAPI } from './types';
+import { Consensus, GeneratorModule, BFTAPI, ValidatorAPI } from './types';
 import { createAPIContext, createNewAPIContext } from '../state_machine/api_context';
 import { getOrDefaultLastGeneratedInfo, setLastGeneratedInfo } from './generated_info';
 
@@ -62,7 +62,7 @@ interface GeneratorArgs {
 	generationConfig: GenerationConfig;
 	chain: Chain;
 	consensus: Consensus;
-	liskBFTAPI: LiskBFTAPI;
+	liskBFTAPI: BFTAPI;
 	validatorAPI: ValidatorAPI;
 	stateMachine: StateMachine;
 	network: Network;
@@ -87,7 +87,7 @@ export class Generator {
 	private readonly _config: GenerationConfig;
 	private readonly _chain: Chain;
 	private readonly _consensus: Consensus;
-	private readonly _liskBFTAPI: LiskBFTAPI;
+	private readonly _liskBFTAPI: BFTAPI;
 	private readonly _validatorAPI: ValidatorAPI;
 	private readonly _stateMachine: StateMachine;
 	private readonly _network: Network;
