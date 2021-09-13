@@ -33,5 +33,6 @@ export { concatDBKeys } from './utils';
 
 export { StateStore } from './state_store';
 export { Block } from './block';
-export { BlockHeader, BlockHeaderAttrs, BlockHeaderAsset, BlockHeaderJSON } from './block_header';
+export { BlockAsset, BlockAssets } from './block_assets';
+export { BlockHeader, BlockHeaderAttrs, BlockHeaderJSON } from './block_header';
 export { DataAccess } from './data_access';

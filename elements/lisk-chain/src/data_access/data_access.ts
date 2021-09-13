@@ -20,6 +20,7 @@ import { Block } from '../block';
 import { BlockCache } from './cache';
 import { Storage as StorageAccess } from './storage';
 import { StateStore } from '../state_store';
+import { BlockAssets } from '../block_assets';
 
 interface DAConstructor {
 	readonly db: KVStore;
@@ -299,6 +300,7 @@ export class DataAccess {
 			finalizedHeight,
 			encodedHeader,
 			encodedPayload,
+			block.assets.getBytes(),
 			stateStore,
 			removeFromTemp,
 		);
@@ -312,12 +314,21 @@ export class DataAccess {
 		const { id: blockID, height } = block.header;
 		const txIDs = block.payload.map(tx => tx.id);
 		const encodedBlock = block.getBytes();
-		await this._storage.deleteBlock(blockID, height, txIDs, encodedBlock, stateStore, saveToTemp);
+		await this._storage.deleteBlock(
+			blockID,
+			height,
+			txIDs,
+			block.assets.getBytes(),
+			encodedBlock,
+			stateStore,
+			saveToTemp,
+		);
 	}
 
 	private _decodeRawBlock(block: RawBlock): Block {
 		const header = BlockHeader.fromBytes(block.header);
 		const transactions = block.payload.map(txBytes => Transaction.fromBytes(txBytes));
-		return new Block(header, transactions);
+		const assets = BlockAssets.fromBytes(block.assets);
+		return new Block(header, transactions, assets);
 	}
 }

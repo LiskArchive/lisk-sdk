@@ -12,17 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { objects } from '@liskhq/lisk-utils';
 import { signDataWithPrivateKey, hash, verifyData } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { TAG_BLOCK_HEADER } from './constants';
 import { blockHeaderSchema, blockHeaderSchemaWithId, signingBlockHeaderSchema } from './schema';
-
-export interface BlockHeaderAsset {
-	moduleID: number;
-	data: Buffer;
-}
 
 export interface BlockHeaderAttrs {
 	readonly version: number;
@@ -30,9 +24,17 @@ export interface BlockHeaderAttrs {
 	readonly generatorAddress: Buffer;
 	readonly previousBlockID: Buffer;
 	readonly timestamp: number;
+	readonly maxHeightPrevoted: number;
+	readonly maxHeightGenerated: number;
+	readonly aggregateCommit: {
+		readonly height: number;
+		readonly aggregationBits: Buffer;
+		readonly certificateSignature: Buffer;
+	};
+	readonly validatorsHash?: Buffer;
 	readonly stateRoot?: Buffer;
 	readonly transactionRoot?: Buffer;
-	readonly assets: ReadonlyArray<BlockHeaderAsset>;
+	readonly assetsRoot?: Buffer;
 	signature?: Buffer;
 	id?: Buffer;
 }
@@ -43,9 +45,17 @@ export interface BlockHeaderJSON {
 	readonly height: number;
 	readonly generatorAddress: string;
 	readonly previousBlockID: string;
+	readonly maxHeightPrevoted: number;
+	readonly maxHeightGenerated: number;
+	readonly aggregateCommit: {
+		readonly height: number;
+		readonly aggregationBits: string;
+		readonly certificateSignature: string;
+	};
+	readonly validatorsHash: string;
 	readonly stateRoot: string;
 	readonly transactionRoot: string;
-	readonly assets: ReadonlyArray<BlockHeaderAsset>;
+	readonly assetsRoot: string;
 	readonly signature: string;
 	readonly id: string;
 }
@@ -56,9 +66,17 @@ export class BlockHeader {
 	public readonly generatorAddress: Buffer;
 	public readonly previousBlockID: Buffer;
 	public readonly timestamp: number;
+	public readonly maxHeightPrevoted: number;
+	public readonly maxHeightGenerated: number;
+	public readonly aggregateCommit: {
+		readonly height: number;
+		readonly aggregationBits: Buffer;
+		readonly certificateSignature: Buffer;
+	};
+	private _validatorsHash?: Buffer;
 	private _stateRoot?: Buffer;
 	private _transactionRoot?: Buffer;
-	private readonly _assets: BlockHeaderAsset[];
+	private _assetsRoot?: Buffer;
 	private _signature?: Buffer;
 	private _id?: Buffer;
 
@@ -68,20 +86,28 @@ export class BlockHeader {
 		height,
 		generatorAddress,
 		previousBlockID,
+		maxHeightPrevoted,
+		maxHeightGenerated,
+		aggregateCommit,
+		validatorsHash,
 		stateRoot,
+		assetsRoot,
 		transactionRoot,
 		signature,
 		id,
-		assets,
 	}: BlockHeaderAttrs) {
 		this.version = version;
 		this.height = height;
 		this.generatorAddress = generatorAddress;
 		this.previousBlockID = previousBlockID;
 		this.timestamp = timestamp;
+		this.maxHeightPrevoted = maxHeightPrevoted;
+		this.maxHeightGenerated = maxHeightGenerated;
+		this.aggregateCommit = aggregateCommit;
+		this._validatorsHash = validatorsHash;
 		this._stateRoot = stateRoot;
 		this._transactionRoot = transactionRoot;
-		this._assets = objects.cloneDeep<BlockHeaderAsset[]>([...assets]);
+		this._assetsRoot = assetsRoot;
 
 		this._signature = signature;
 		this._id = id;
@@ -104,12 +130,30 @@ export class BlockHeader {
 		this._resetComputedValues();
 	}
 
+	public get assetsRoot() {
+		return this._assetsRoot;
+	}
+
+	public set assetsRoot(val) {
+		this._assetsRoot = val;
+		this._resetComputedValues();
+	}
+
 	public get transactionRoot() {
 		return this._transactionRoot;
 	}
 
 	public set transactionRoot(val) {
 		this._transactionRoot = val;
+		this._resetComputedValues();
+	}
+
+	public get validatorsHash() {
+		return this._validatorsHash;
+	}
+
+	public set validatorsHash(val) {
+		this._validatorsHash = val;
 		this._resetComputedValues();
 	}
 
@@ -121,7 +165,7 @@ export class BlockHeader {
 		return codec.toJSON(blockHeaderSchemaWithId, this._getAllProps());
 	}
 
-	public toObject(): BlockHeaderAttrs {
+	public toObject(): Required<BlockHeaderAttrs> {
 		return this._getAllProps();
 	}
 
@@ -165,20 +209,6 @@ export class BlockHeader {
 		);
 	}
 
-	public getAsset(moduleID: number): Buffer | undefined {
-		return this._assets.find(a => a.moduleID === moduleID)?.data;
-	}
-
-	public setAsset(moduleID: number, value: Buffer): void {
-		const asset = this.getAsset(moduleID);
-		if (asset) {
-			throw new Error(`Module asset for "${moduleID}" is already set.`);
-		}
-
-		this._assets.push({ moduleID, data: value });
-		this._resetComputedValues();
-	}
-
 	public get signature(): Buffer {
 		if (!this._signature) {
 			throw new Error('Block header is not signed.');
@@ -210,15 +240,31 @@ export class BlockHeader {
 	}
 
 	private _getSigningProps() {
+		if (!this.assetsRoot) {
+			throw new Error('Asset root is empty.');
+		}
+		if (!this.stateRoot) {
+			throw new Error('State root is empty.');
+		}
+		if (!this.transactionRoot) {
+			throw new Error('State root is empty.');
+		}
+		if (!this.validatorsHash) {
+			throw new Error('Validators hash is empty.');
+		}
 		return {
 			version: this.version,
 			timestamp: this.timestamp,
 			height: this.height,
 			previousBlockID: this.previousBlockID,
 			stateRoot: this.stateRoot,
+			assetsRoot: this.assetsRoot,
 			transactionRoot: this.transactionRoot,
+			validatorsHash: this.validatorsHash,
+			aggregateCommit: this.aggregateCommit,
 			generatorAddress: this.generatorAddress,
-			assets: this._assets,
+			maxHeightPrevoted: this.maxHeightPrevoted,
+			maxHeightGenerated: this.maxHeightGenerated,
 		};
 	}
 

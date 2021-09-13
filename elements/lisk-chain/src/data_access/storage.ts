@@ -25,9 +25,39 @@ import {
 	DB_KEY_TEMPBLOCKS_HEIGHT,
 	DB_KEY_DIFF_STATE,
 	DB_KEY_FINALIZED_HEIGHT,
+	DB_KEY_BLOCK_ASSETS_BLOCK_ID,
 } from '../db_keys';
 import { concatDBKeys } from '../utils';
 import { stateDiffSchema } from '../schema';
+
+const bytesArraySchema = {
+	$id: 'lisk-chain/bytesarray',
+	type: 'object',
+	required: ['list'],
+	properties: {
+		list: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				dataType: 'bytes',
+			},
+		},
+	},
+};
+
+interface ByteArrayContainer {
+	list: Buffer[];
+}
+
+const decodeByteArray = (val: Buffer): Buffer[] => {
+	const decoded = codec.decode<ByteArrayContainer>(bytesArraySchema, val);
+	return decoded.list;
+};
+
+const encodeByteArray = (val: Buffer[]): Buffer => {
+	const encoded = codec.encode(bytesArraySchema, { list: val });
+	return codec.encode(bytesArraySchema, encoded);
+};
 
 export class Storage {
 	private readonly _db: KVStore;
@@ -141,10 +171,12 @@ export class Storage {
 	public async getBlockByID(id: Buffer): Promise<RawBlock> {
 		const blockHeader = await this.getBlockHeaderByID(id);
 		const transactions = await this._getTransactions(id);
+		const assets = await this._getBlockAssets(id);
 
 		return {
 			header: blockHeader,
 			payload: transactions,
+			assets,
 		};
 	}
 
@@ -170,10 +202,12 @@ export class Storage {
 		const header = await this.getBlockHeaderByHeight(height);
 		const blockID = hash(header);
 		const transactions = await this._getTransactions(blockID);
+		const assets = await this._getBlockAssets(blockID);
 
 		return {
 			header,
 			payload: transactions,
+			assets,
 		};
 	}
 
@@ -183,7 +217,8 @@ export class Storage {
 		for (const header of headers) {
 			const blockID = hash(header);
 			const transactions = await this._getTransactions(blockID);
-			blocks.push({ header, payload: transactions });
+			const assets = await this._getBlockAssets(blockID);
+			blocks.push({ header, payload: transactions, assets });
 		}
 
 		return blocks;
@@ -193,10 +228,12 @@ export class Storage {
 		const header = await this.getLastBlockHeader();
 		const blockID = hash(header);
 		const transactions = await this._getTransactions(blockID);
+		const assets = await this._getBlockAssets(blockID);
 
 		return {
 			header,
 			payload: transactions,
+			assets,
 		};
 	}
 
@@ -303,6 +340,7 @@ export class Storage {
 		finalizedHeight: number,
 		header: Buffer,
 		payload: { id: Buffer; value: Buffer }[],
+		assets: Buffer[],
 		stateStore: StateStore,
 		removeFromTemp = false,
 	): Promise<void> {
@@ -317,6 +355,10 @@ export class Storage {
 				batch.put(concatDBKeys(DB_KEY_TRANSACTIONS_ID, txID), value);
 			}
 			batch.put(concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, id), Buffer.concat(ids));
+		}
+		if (assets.length > 0) {
+			const encodedAsset = encodeByteArray(assets);
+			batch.put(concatDBKeys(DB_KEY_BLOCK_ASSETS_BLOCK_ID, id), encodedAsset);
 		}
 		if (removeFromTemp) {
 			batch.del(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, heightBuf));
@@ -336,6 +378,7 @@ export class Storage {
 		id: Buffer,
 		height: number,
 		txIDs: Buffer[],
+		assets: Buffer[],
 		fullBlock: Buffer,
 		stateStore: StateStore,
 		saveToTemp = false,
@@ -349,6 +392,9 @@ export class Storage {
 				batch.del(concatDBKeys(DB_KEY_TRANSACTIONS_ID, txID));
 			}
 			batch.del(concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, id));
+		}
+		if (assets.length > 0) {
+			batch.del(concatDBKeys(DB_KEY_BLOCK_ASSETS_BLOCK_ID, id));
 		}
 		if (saveToTemp) {
 			batch.put(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, heightBuf), fullBlock);
@@ -396,6 +442,18 @@ export class Storage {
 			gte: concatDBKeys(DB_KEY_DIFF_STATE, formatInt(0)),
 			lt: concatDBKeys(DB_KEY_DIFF_STATE, formatInt(height)),
 		});
+	}
+
+	private async _getBlockAssets(blockID: Buffer): Promise<Buffer[]> {
+		try {
+			const encodedAssets = await this._db.get(concatDBKeys(DB_KEY_BLOCK_ASSETS_BLOCK_ID, blockID));
+			return decodeByteArray(encodedAssets);
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+			return [];
+		}
 	}
 
 	private async _getTransactions(blockID: Buffer): Promise<Buffer[]> {

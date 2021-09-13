@@ -22,7 +22,7 @@ import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { MerkleTree } from '@liskhq/lisk-tree';
 import * as genesis from '../fixtures/genesis_block.json';
 import { Transaction } from '../../src/transaction';
-import { Block, BlockHeader } from '../../src';
+import { Block, BlockAssets, BlockHeader } from '../../src';
 import { BlockHeaderAttrs } from '../../src/block_header';
 
 export const defaultNetworkIdentifier = Buffer.from(
@@ -43,7 +43,16 @@ export const createFakeBlockHeader = (header?: Partial<BlockHeaderAttrs>): Block
 		previousBlockID: header?.previousBlockID ?? hash(getRandomBytes(4)),
 		transactionRoot: header?.transactionRoot ?? hash(getRandomBytes(4)),
 		generatorAddress: header?.generatorAddress ?? getRandomBytes(32),
-		assets: [],
+		maxHeightGenerated: header?.maxHeightGenerated ?? 0,
+		maxHeightPrevoted: header?.maxHeightPrevoted ?? 0,
+		stateRoot: header?.stateRoot ?? hash(getRandomBytes(32)),
+		assetsRoot: header?.assetsRoot ?? hash(getRandomBytes(32)),
+		validatorsHash: header?.validatorsHash ?? hash(getRandomBytes(32)),
+		aggregateCommit: header?.aggregateCommit ?? {
+			height: 0,
+			aggregationBits: Buffer.alloc(0),
+			certificateSignature: Buffer.alloc(0),
+		},
 		signature: header?.signature ?? getRandomBytes(64),
 	});
 
@@ -52,7 +61,7 @@ export const createFakeBlockHeader = (header?: Partial<BlockHeaderAttrs>): Block
  * Calculates the signature, transactionRoot etc. internally. Facilitating the creation of block with valid signature and other properties
  */
 export const createValidDefaultBlock = async (
-	block?: { header?: Partial<BlockHeaderAttrs>; payload?: Transaction[] },
+	block?: { header?: Partial<BlockHeaderAttrs>; payload?: Transaction[]; assets?: BlockAssets },
 	networkIdentifier: Buffer = defaultNetworkIdentifier,
 ): Promise<Block> => {
 	const keypair = getKeyPair();
@@ -67,11 +76,21 @@ export const createValidDefaultBlock = async (
 		timestamp: genesis.header.timestamp + 10,
 		transactionRoot: txTree.root,
 		stateRoot: getRandomBytes(32),
+		assetsRoot: getRandomBytes(32),
+		validatorsHash: hash(getRandomBytes(32)),
+		maxHeightGenerated: 0,
+		maxHeightPrevoted: 0,
+		aggregateCommit: {
+			height: 0,
+			aggregationBits: Buffer.alloc(0),
+			certificateSignature: Buffer.alloc(0),
+		},
 		generatorAddress: getAddressFromPublicKey(keypair.publicKey),
-		assets: [],
 		...block?.header,
 	});
 
+	const blockAssets = block?.assets ?? new BlockAssets();
+
 	blockHeader.sign(networkIdentifier, keypair.privateKey);
-	return new Block(blockHeader, payload);
+	return new Block(blockHeader, payload, blockAssets);
 };

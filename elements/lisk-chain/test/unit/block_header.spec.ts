@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { hash } from '@liskhq/lisk-cryptography';
 import { BlockHeader } from '../../src/block_header';
 import {
 	blockHeaderSchema,
@@ -25,21 +26,26 @@ const getBlockAttrs = () => ({
 	previousBlockID: Buffer.from('4a462ea57a8c9f72d866c09770e5ec70cef18727', 'hex'),
 	stateRoot: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
 	transactionRoot: Buffer.from('b27ca21f40d44113c2090ca8f05fb706c54e87dd', 'hex'),
+	assetsRoot: Buffer.from('b27ca21f40d44113c2090ca8f05fb706c54e87dd', 'hex'),
 	generatorAddress: Buffer.from('be63fb1c0426573352556f18b21efd5b6183c39c', 'hex'),
-	assets: [
-		{ moduleID: 1, data: Buffer.from('aab2fe3588d6f4ff3d735fb998faf5e80a4da5d4', 'hex') },
-		{ moduleID: 2, data: Buffer.from('b19531270ec52845bd51ed897d8d14d86bd5a1f8', 'hex') },
-	],
+	maxHeightPrevoted: 1000988,
+	maxHeightGenerated: 1000988,
+	validatorsHash: hash(Buffer.alloc(0)),
+	aggregateCommit: {
+		height: 0,
+		aggregationBits: Buffer.alloc(0),
+		certificateSignature: Buffer.alloc(0),
+	},
 	signature: Buffer.from('6da88e2fd4435e26e02682435f108002ccc3ddd5', 'hex'),
 });
 
 const blockId = Buffer.from(
-	'9c80710aed045e039a9d6ddd638de52bfc69c722891c0f28654e3f69ed2b139a',
+	'097ce5adc1a34680d6c939287011dec9b70a3bc1f5f896a3f9024fc9bed59992',
 	'hex',
 );
 
 const blockHeaderBytes = Buffer.from(
-	'080110c4d23d18c4d23d22144a462ea57a8c9f72d866c09770e5ec70cef187272a147f9d96a09a3fd17f3478eb7bef3a8bda00e1238b3214b27ca21f40d44113c2090ca8f05fb706c54e87dd3a14be63fb1c0426573352556f18b21efd5b6183c39c421808011214aab2fe3588d6f4ff3d735fb998faf5e80a4da5d4421808021214b19531270ec52845bd51ed897d8d14d86bd5a1f84a146da88e2fd4435e26e02682435f108002ccc3ddd5',
+	'080110c4d23d18c4d23d22144a462ea57a8c9f72d866c09770e5ec70cef187272a14be63fb1c0426573352556f18b21efd5b6183c39c3214b27ca21f40d44113c2090ca8f05fb706c54e87dd3a14b27ca21f40d44113c2090ca8f05fb706c54e87dd42147f9d96a09a3fd17f3478eb7bef3a8bda00e1238b489c8c3d509c8c3d5a20e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8556206080012001a006a146da88e2fd4435e26e02682435f108002ccc3ddd5',
 	'hex',
 );
 
@@ -48,10 +54,14 @@ const blockHeaderProps = [
 	'timestamp',
 	'height',
 	'previousBlockID',
-	'stateRoot',
-	'transactionRoot',
 	'generatorAddress',
-	'assets',
+	'transactionRoot',
+	'assetsRoot',
+	'stateRoot',
+	'maxHeightPrevoted',
+	'maxHeightGenerated',
+	'validatorsHash',
+	'aggregateCommit',
 ];
 
 describe('block_header', () => {
@@ -104,9 +114,9 @@ describe('block_header', () => {
 				expect(blockHeader.generatorAddress).toEqual(data.generatorAddress);
 				expect(blockHeader.previousBlockID).toEqual(data.previousBlockID);
 				expect(blockHeader.stateRoot).toEqual(data.stateRoot);
+				expect(blockHeader.validatorsHash).toEqual(data.validatorsHash);
+				expect(blockHeader.aggregateCommit).toEqual(data.aggregateCommit);
 				expect(blockHeader.transactionRoot).toEqual(data.transactionRoot);
-				expect(blockHeader.getAsset(1)).toEqual(data.assets[0].data);
-				expect(blockHeader.getAsset(2)).toEqual(data.assets[1].data);
 				expect(blockHeader.id).toEqual(blockId);
 				expect(blockHeader.signature).toEqual(data.signature);
 			});
@@ -158,22 +168,6 @@ describe('block_header', () => {
 				const blockHeader = new BlockHeader(data);
 
 				expect(blockHeader.id).toEqual(blockId);
-			});
-		});
-
-		describe('getAsset', () => {
-			it('should get relevant module asset if exists', () => {
-				const data = getBlockAttrs();
-				const blockHeader = new BlockHeader(data);
-
-				expect(blockHeader.getAsset(1)).toEqual(data.assets[0].data);
-			});
-
-			it('should return undefined if module asset does not exists', () => {
-				const data = getBlockAttrs();
-				const blockHeader = new BlockHeader(data);
-
-				expect(blockHeader.getAsset(3)).toBeUndefined();
 			});
 		});
 	});
