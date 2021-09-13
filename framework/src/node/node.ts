@@ -29,7 +29,7 @@ import { Endpoint } from './endpoint';
 import { getRegisteredModules, getSchema } from './utils/modules';
 import { getEndpointHandlers, mergeEndpointHandlers } from '../endpoint';
 import { ValidatorsAPI, ValidatorsModule } from '../modules/validators';
-import { LiskBFTAPI, LiskBFTModule } from '../modules/liskbft';
+import { LiskBFTAPI, LiskBFTModule } from '../modules/bft';
 import {
 	APP_EVENT_BLOCK_DELETE,
 	APP_EVENT_BLOCK_NEW,
