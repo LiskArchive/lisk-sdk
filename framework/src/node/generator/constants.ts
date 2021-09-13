@@ -20,3 +20,5 @@ export const LOAD_TRANSACTION_RETRIES = 5;
 
 export const NETWORK_RPC_GET_TRANSACTIONS = 'getTransactions';
 export const NETWORK_EVENT_POST_TRANSACTIONS_ANNOUNCEMENT = 'postTransactionsAnnouncement';
+
+export const GENERATOR_STORE_RESERVED_PREFIX = 0;

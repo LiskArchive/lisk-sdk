@@ -26,17 +26,18 @@ import { dataStructures } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { Logger } from '../../logger';
 import { Generator, ModuleEndpointContext } from '../../types';
-import {
-	APIContext,
-	EventQueue,
-	StateMachine,
-	TransactionContext,
-	VerifyStatus,
-} from '../state_machine';
+import { EventQueue, StateMachine, TransactionContext, VerifyStatus } from '../state_machine';
 import { Broadcaster } from './broadcaster';
 import { InvalidTransactionError } from './errors';
 import { GeneratorStore } from './generator_store';
 import {
+	getLastGeneratedInfo,
+	isEqualGeneratedInfo,
+	isZeroValueGeneratedInfo,
+	setLastGeneratedInfo,
+} from './generated_info';
+import {
+	GeneratedInfo,
 	GetForgingStatusResponse,
 	PostTransactionRequest,
 	postTransactionRequestSchema,
@@ -45,13 +46,12 @@ import {
 	updateForgingStatusRequestSchema,
 	UpdateForgingStatusResponse,
 } from './schemas';
-import { Consensus, Keypair, LiskBFTAPI } from './types';
+import { Consensus, Keypair } from './types';
 
 interface EndpointArgs {
 	keypair: dataStructures.BufferMap<Keypair>;
 	generators: Generator[];
 	consensus: Consensus;
-	liskBFTAPI: LiskBFTAPI;
 	chain: Chain;
 	stateMachine: StateMachine;
 	pool: TransactionPool;
@@ -69,7 +69,6 @@ export class Endpoint {
 	private readonly _keypairs: dataStructures.BufferMap<Keypair>;
 	private readonly _generators: Generator[];
 	private readonly _consensus: Consensus;
-	private readonly _liskBFTAPI: LiskBFTAPI;
 	private readonly _stateMachine: StateMachine;
 	private readonly _pool: TransactionPool;
 	private readonly _broadcaster: Broadcaster;
@@ -83,7 +82,6 @@ export class Endpoint {
 		this._keypairs = args.keypair;
 		this._generators = args.generators;
 		this._consensus = args.consensus;
-		this._liskBFTAPI = args.liskBFTAPI;
 		this._chain = args.chain;
 		this._stateMachine = args.stateMachine;
 		this._pool = args.pool;
@@ -212,10 +210,6 @@ export class Endpoint {
 				enabled: false,
 			};
 		}
-		const apiClient = new APIContext({
-			stateStore: new StateStore(this._blockchainDB),
-			eventQueue: new EventQueue(),
-		});
 
 		const synced = this._consensus.isSynced(req.height, req.maxHeightPrevoted);
 		if (!synced) {
@@ -223,10 +217,34 @@ export class Endpoint {
 		}
 
 		const generatorStore = new GeneratorStore(this._generatorDB);
-		await this._liskBFTAPI.verifyGeneratorInfo(apiClient, generatorStore, {
-			...req,
-			address,
-		});
+		// check
+		let lastGeneratedInfo: GeneratedInfo | undefined;
+		try {
+			lastGeneratedInfo = await getLastGeneratedInfo(
+				generatorStore,
+				Buffer.from(req.address, 'hex'),
+			);
+		} catch (error) {
+			ctx.logger.debug(`Last generated information does not exist for address: ${req.address}`);
+		}
+
+		if (req.overwrite !== true) {
+			if (lastGeneratedInfo !== undefined && !isEqualGeneratedInfo(req, lastGeneratedInfo)) {
+				throw new Error('Request does not match last generated information.');
+			}
+			if (lastGeneratedInfo === undefined && !isZeroValueGeneratedInfo(req)) {
+				throw new Error('Last generated information does not exist.');
+			}
+		}
+
+		if (
+			lastGeneratedInfo === undefined ||
+			(req.overwrite === true &&
+				lastGeneratedInfo !== undefined &&
+				!isEqualGeneratedInfo(req, lastGeneratedInfo))
+		) {
+			await setLastGeneratedInfo(generatorStore, Buffer.from(req.address, 'hex'), req);
+		}
 
 		const batch = this._generatorDB.batch();
 		generatorStore.finalize(batch);

@@ -13,16 +13,19 @@
  */
 
 import { Chain, Transaction } from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { LiskValidationError } from '@liskhq/lisk-validator';
 import { Logger } from '../../../../src/logger';
-import { LiskBFTAPI } from '../../../../src/node/consensus';
 import { Broadcaster } from '../../../../src/node/generator/broadcaster';
+import { GENERATOR_STORE_RESERVED_PREFIX } from '../../../../src/node/generator/constants';
 import { Endpoint } from '../../../../src/node/generator/endpoint';
 import { InvalidTransactionError } from '../../../../src/node/generator/errors';
+import { GeneratorStore } from '../../../../src/node/generator/generator_store';
+import { previouslyGeneratedInfoSchema } from '../../../../src/node/generator/schemas';
 import { Consensus, Keypair } from '../../../../src/node/generator/types';
 import { StateMachine, VerifyStatus } from '../../../../src/node/state_machine';
 import { fakeLogger } from '../../../utils/node';
@@ -55,7 +58,6 @@ describe('generator endpoint', () => {
 	let consensus: Consensus;
 	let pool: TransactionPool;
 	let stateMachine: StateMachine;
-	let liskBFTAPI: LiskBFTAPI;
 
 	beforeEach(() => {
 		broadcaster = {
@@ -72,9 +74,6 @@ describe('generator endpoint', () => {
 		consensus = {
 			isSynced: jest.fn().mockResolvedValue(true),
 		} as never;
-		liskBFTAPI = {
-			verifyGeneratorInfo: jest.fn(),
-		} as never;
 		pool = {
 			contains: jest.fn().mockReturnValue(false),
 			add: jest.fn().mockResolvedValue({}),
@@ -88,7 +87,6 @@ describe('generator endpoint', () => {
 			broadcaster,
 			chain,
 			consensus,
-			liskBFTAPI,
 			pool,
 			stateMachine,
 			keypair: new dataStructures.BufferMap<Keypair>(),
@@ -201,7 +199,7 @@ describe('generator endpoint', () => {
 		const bftProps = {
 			height: 200,
 			maxHeightPrevoted: 200,
-			maxHeightPreviouslyForged: 10,
+			maxHeightGenerated: 10,
 		};
 
 		it('should reject with error when request schema is invalid', async () => {
@@ -308,23 +306,6 @@ describe('generator endpoint', () => {
 			expect(endpoint['_keypairs'].has(Buffer.from(config.address, 'hex'))).toBeFalse();
 		});
 
-		it('should fail to enable to enable if verify generator fails', async () => {
-			(liskBFTAPI.verifyGeneratorInfo as jest.Mock).mockRejectedValue(new Error('invalid'));
-			await expect(
-				endpoint.updateForgingStatus({
-					logger,
-					getStore: jest.fn(),
-					params: {
-						address: config.address,
-						enable: true,
-						password: defaultPassword,
-						overwrite: true,
-						...bftProps,
-					},
-				}),
-			).rejects.toThrow();
-		});
-
 		it('should update the keypair and return enabled', async () => {
 			await expect(
 				endpoint.updateForgingStatus({
@@ -343,6 +324,171 @@ describe('generator endpoint', () => {
 				enabled: true,
 			});
 			expect(endpoint['_keypairs'].has(Buffer.from(config.address, 'hex'))).toBeTrue();
+		});
+
+		it('should accept if BFT properties specified are zero and there is no previous values', async () => {
+			const db = (new InMemoryKVStore() as unknown) as KVStore;
+			endpoint.init({
+				blockchainDB: new InMemoryKVStore() as never,
+				generatorDB: db,
+				logger,
+			});
+			await expect(
+				endpoint.updateForgingStatus({
+					logger,
+					getStore: jest.fn(),
+					params: {
+						address: config.address,
+						enable: true,
+						password: defaultPassword,
+						overwrite: false,
+						height: 0,
+						maxHeightPrevoted: 0,
+						maxHeightGenerated: 0,
+					},
+				}),
+			).resolves.toEqual({
+				address: config.address,
+				enabled: true,
+			});
+		});
+
+		it('should reject if BFT properties specified are non-zero and there is no previous values', async () => {
+			const db = (new InMemoryKVStore() as unknown) as KVStore;
+			endpoint.init({
+				blockchainDB: new InMemoryKVStore() as never,
+				generatorDB: db,
+				logger,
+			});
+			await expect(
+				endpoint.updateForgingStatus({
+					logger,
+					getStore: jest.fn(),
+					params: {
+						address: config.address,
+						enable: true,
+						password: defaultPassword,
+						overwrite: false,
+						height: 100,
+						maxHeightPrevoted: 40,
+						maxHeightGenerated: 3,
+					},
+				}),
+			).rejects.toThrow('Last generated information does not exist.');
+		});
+
+		it('should reject if BFT properties specified are zero and there is non zero previous values', async () => {
+			const encodedInfo = codec.encode(previouslyGeneratedInfoSchema, {
+				height: 100,
+				maxHeightPrevoted: 40,
+				maxHeightGenerated: 3,
+			});
+			const db = (new InMemoryKVStore() as unknown) as KVStore;
+			const generatorStore = new GeneratorStore(db as never);
+			const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_RESERVED_PREFIX);
+			await subStore.set(Buffer.from(config.address, 'hex'), encodedInfo);
+			const batch = db.batch();
+			subStore.finalize(batch);
+			await batch.write();
+			endpoint.init({
+				blockchainDB: new InMemoryKVStore() as never,
+				generatorDB: db,
+				logger,
+			});
+			await expect(
+				endpoint.updateForgingStatus({
+					logger,
+					getStore: jest.fn(),
+					params: {
+						address: config.address,
+						enable: true,
+						password: defaultPassword,
+						overwrite: false,
+						height: 0,
+						maxHeightPrevoted: 0,
+						maxHeightGenerated: 0,
+					},
+				}),
+			).rejects.toThrow('Request does not match last generated information.');
+		});
+
+		it('should reject if BFT properties specified specified does not match existing properties', async () => {
+			const encodedInfo = codec.encode(previouslyGeneratedInfoSchema, {
+				height: 50,
+				maxHeightPrevoted: 40,
+				maxHeightGenerated: 3,
+			});
+			const db = (new InMemoryKVStore() as unknown) as KVStore;
+			const generatorStore = new GeneratorStore(db as never);
+			const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_RESERVED_PREFIX);
+			await subStore.set(Buffer.from(config.address, 'hex'), encodedInfo);
+			const batch = db.batch();
+			subStore.finalize(batch);
+			await batch.write();
+			endpoint.init({
+				blockchainDB: new InMemoryKVStore() as never,
+				generatorDB: db,
+				logger,
+			});
+			await expect(
+				endpoint.updateForgingStatus({
+					logger,
+					getStore: jest.fn(),
+					params: {
+						address: config.address,
+						enable: true,
+						password: defaultPassword,
+						overwrite: false,
+						height: 100,
+						maxHeightPrevoted: 40,
+						maxHeightGenerated: 3,
+					},
+				}),
+			).rejects.toThrow('Request does not match last generated information.');
+		});
+
+		it('should overwrite if BFT properties specified specified does not match existing properties and overwrite is true', async () => {
+			const encodedInfo = codec.encode(previouslyGeneratedInfoSchema, {
+				height: 50,
+				maxHeightPrevoted: 40,
+				maxHeightGenerated: 3,
+			});
+			const db = (new InMemoryKVStore() as unknown) as KVStore;
+			const generatorStore = new GeneratorStore(db as never);
+			const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_RESERVED_PREFIX);
+			await subStore.set(Buffer.from(config.address, 'hex'), encodedInfo);
+			endpoint.init({
+				blockchainDB: new InMemoryKVStore() as never,
+				generatorDB: db,
+				logger,
+			});
+			await expect(
+				endpoint.updateForgingStatus({
+					logger,
+					getStore: jest.fn(),
+					params: {
+						address: config.address,
+						enable: true,
+						password: defaultPassword,
+						overwrite: true,
+						height: 100,
+						maxHeightPrevoted: 40,
+						maxHeightGenerated: 3,
+					},
+				}),
+			).resolves.toEqual({
+				address: config.address,
+				enabled: true,
+			});
+			const updatedGeneratorStore = new GeneratorStore(db);
+			const updated = updatedGeneratorStore.getGeneratorStore(GENERATOR_STORE_RESERVED_PREFIX);
+			const val = await updated.get(Buffer.from(config.address, 'hex'));
+			const decodedInfo = codec.decode(previouslyGeneratedInfoSchema, val);
+			expect(decodedInfo).toEqual({
+				height: 100,
+				maxHeightPrevoted: 40,
+				maxHeightGenerated: 3,
+			});
 		});
 	});
 });

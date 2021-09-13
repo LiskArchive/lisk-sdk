@@ -12,13 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { StateStore } from '@liskhq/lisk-chain';
+import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { EventQueue } from './event_queue';
-import { StateStore, SubStore } from './types';
+import { SubStore } from './types';
 
 interface Params {
 	stateStore: StateStore;
 	eventQueue: EventQueue;
 }
+
+export const createAPIContext = (params: Params) => new APIContext(params);
+
+export const createNewAPIContext = (db: KVStore | InMemoryKVStore) =>
+	new APIContext({ stateStore: new StateStore(db), eventQueue: new EventQueue() });
 
 export class APIContext {
 	private readonly _stateStore: StateStore;

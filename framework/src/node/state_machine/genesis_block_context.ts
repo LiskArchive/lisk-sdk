@@ -12,15 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { StateStore } from '@liskhq/lisk-chain';
 import { Logger } from '../../logger';
 import { APIContext } from './api_context';
 import { EventQueue } from './event_queue';
-import { BlockHeader, GenesisBlockExecuteContext, StateStore } from './types';
+import { BlockAssets, BlockHeader, GenesisBlockExecuteContext } from './types';
 
 export interface ContextParams {
 	logger: Logger;
 	stateStore: StateStore;
 	header: BlockHeader;
+	assets: BlockAssets;
 	eventQueue: EventQueue;
 }
 
@@ -28,6 +30,7 @@ export class GenesisBlockContext {
 	private readonly _stateStore: StateStore;
 	private readonly _logger: Logger;
 	private readonly _header: BlockHeader;
+	private readonly _assets: BlockAssets;
 	private readonly _eventQueue: EventQueue;
 
 	public constructor(params: ContextParams) {
@@ -35,6 +38,7 @@ export class GenesisBlockContext {
 		this._stateStore = params.stateStore;
 		this._eventQueue = params.eventQueue;
 		this._header = params.header;
+		this._assets = params.assets;
 	}
 
 	public createGenesisBlockExecuteContext(): GenesisBlockExecuteContext {
@@ -46,6 +50,7 @@ export class GenesisBlockContext {
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
 			logger: this._logger,
+			assets: this._assets,
 		};
 	}
 }

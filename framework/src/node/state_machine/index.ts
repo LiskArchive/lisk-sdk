@@ -16,11 +16,11 @@ export { StateMachine } from './state_machine';
 export { TransactionContext } from './transaction_context';
 export { BlockContext } from './block_context';
 export { GenesisBlockContext } from './genesis_block_context';
-export { APIContext } from './api_context';
 export { EventQueue } from './event_queue';
+export { createAPIContext } from './api_context';
 export {
+	APIContext,
 	BlockHeader,
-	StateStore,
 	VerifyStatus,
 	ImmutableSubStore,
 	ImmutableAPIContext,

@@ -36,11 +36,6 @@ import {
 	getBlocksFromIdRequestSchema,
 	getBlocksFromIdResponseSchema,
 } from '../../../../../../src/node/consensus/schema';
-import {
-	liskBFTAssetSchema,
-	liskBFTModuleID,
-} from '../../../../../../src/modules/liskbft/constants';
-import { LiskBFTAPI } from '../../../../../../src/modules/liskbft/api';
 
 describe('block_synchronization_mechanism', () => {
 	const genesisBlock = getGenesisBlock();
@@ -132,7 +127,6 @@ describe('block_synchronization_mechanism', () => {
 			logger: loggerMock,
 			chain: chainModule,
 			blockExecutor,
-			liskBFTAPI: new LiskBFTAPI(liskBFTModuleID),
 			network: networkMock,
 		});
 	});
@@ -147,15 +141,8 @@ describe('block_synchronization_mechanism', () => {
 		aBlock = await createValidDefaultBlock({
 			header: {
 				height: 10,
-				assets: [
-					{
-						moduleID: liskBFTModuleID,
-						data: codec.encode(liskBFTAssetSchema, {
-							maxHeightPrevoted: 0,
-							maxHeightPreviouslyForged: 0,
-						}),
-					},
-				],
+				maxHeightPrevoted: 0,
+				maxHeightGenerated: 0,
 			},
 		});
 		// chainModule.init will check whether the genesisBlock in storage matches the genesisBlock in
@@ -465,21 +452,21 @@ describe('block_synchronization_mechanism', () => {
 							peerId,
 						})
 						.mockResolvedValue({
-							data: receivedBlock.getBytes().toString('hex'),
+							data: receivedBlock.getBytes(),
 						} as never);
 					when(networkMock.requestFromPeer)
 						.calledWith({
 							procedure: 'getBlocksFromId',
 							peerId,
 							data: {
-								blockId: highestCommonBlock.id.toString('hex'),
+								blockId: highestCommonBlock.id,
 							},
 						})
 						.mockResolvedValue({
 							data: objects
 								.cloneDeep(requestedBlocks)
 								.reverse()
-								.map(b => b.getBytes().toString('hex')),
+								.map(b => b.getBytes()),
 						} as never);
 				}
 
@@ -958,15 +945,8 @@ describe('block_synchronization_mechanism', () => {
 					const previousTip = await createValidDefaultBlock({
 						header: {
 							height: aBlock.header.height - 1, // So it doesn't have preference over new tip (height >)
-							assets: [
-								{
-									moduleID: liskBFTModuleID,
-									data: codec.encode(liskBFTAssetSchema, {
-										maxHeightPrevoted: 0,
-										maxHeightPreviouslyForged: 0,
-									}),
-								},
-							],
+							maxHeightPrevoted: 0,
+							maxHeightGenerated: 0,
 						},
 					});
 

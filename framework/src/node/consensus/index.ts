@@ -19,4 +19,4 @@ export {
 	CONSENSUS_EVENT_BLOCK_DELETE,
 	CONSENSUS_EVENT_BLOCK_NEW,
 } from './constants';
-export { BFTHeader, LiskBFTAPI, ValidatorAPI, BFTVotes } from './types';
+export { LiskBFTAPI, ValidatorAPI, BFTVotes } from './types';

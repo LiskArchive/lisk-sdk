@@ -36,7 +36,7 @@ export interface UpdateForgingStatusRequest {
 	password: string;
 	height: number;
 	maxHeightPrevoted: number;
-	maxHeightPreviouslyForged: number;
+	maxHeightGenerated: number;
 	overwrite?: boolean;
 }
 
@@ -54,14 +54,7 @@ export const updateForgingStatusRequestSchema = {
 	$id: 'lisk/updateForgingStatusRequest',
 	title: 'Update forging status',
 	type: 'object',
-	required: [
-		'address',
-		'password',
-		'enable',
-		'height',
-		'maxHeightPreviouslyForged',
-		'maxHeightPrevoted',
-	],
+	required: ['address', 'password', 'enable', 'height', 'maxHeightGenerated', 'maxHeightPrevoted'],
 	properties: {
 		address: {
 			type: 'string',
@@ -75,7 +68,7 @@ export const updateForgingStatusRequestSchema = {
 		height: {
 			type: 'integer',
 		},
-		maxHeightPreviouslyForged: {
+		maxHeightGenerated: {
 			type: 'integer',
 		},
 		maxHeightPrevoted: {
@@ -171,3 +164,30 @@ export const postTransactionsAnnouncementSchema = {
 export interface PostTransactionsAnnouncement {
 	transactionIds: Buffer[];
 }
+
+export interface GeneratedInfo {
+	height: number;
+	maxHeightPrevoted: number;
+	maxHeightGenerated: number;
+}
+
+export const previouslyGeneratedInfoSchema = {
+	title: 'Previously Generated Info',
+	$id: '/node/generator/previously_generated_info',
+	type: 'object',
+	required: ['height', 'maxHeightPrevoted', 'maxHeightGenerated'],
+	properties: {
+		height: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		maxHeightPrevoted: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+		maxHeightGenerated: {
+			dataType: 'uint32',
+			fieldNumber: 3,
+		},
+	},
+};

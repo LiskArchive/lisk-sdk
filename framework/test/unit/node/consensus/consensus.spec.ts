@@ -76,7 +76,7 @@ describe('consensus', () => {
 			executeBlock: jest.fn(),
 		} as unknown) as StateMachine;
 		liskBFTAPI = {
-			getBFTVotes: jest.fn().mockResolvedValue({ maxHeghgtPrevoted: 0, maxHeightPrecommited: 0 }),
+			getBFTHeights: jest.fn().mockResolvedValue({ maxHeghgtPrevoted: 0, maxHeightPrecommited: 0 }),
 		} as never;
 		validatorAPI = {} as never;
 		consensus = new Consensus({

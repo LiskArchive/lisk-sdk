@@ -14,7 +14,8 @@
 
 import { Block } from '@liskhq/lisk-chain';
 import { Logger } from '../../logger';
-import { APIContext, ImmutableSubStore } from '../state_machine';
+import { BFTVotes } from '../consensus';
+import { APIContext, BlockHeader, ImmutableAPIContext, ImmutableSubStore } from '../state_machine';
 
 export interface Keypair {
 	publicKey: Buffer;
@@ -32,6 +33,7 @@ export interface Consensus {
 }
 
 export interface LiskBFTAPI {
+	getBFTHeights: (_apiClient: ImmutableAPIContext) => Promise<BFTVotes>;
 	verifyGeneratorInfo: (
 		apiContext: APIContext,
 		generatorStore: GeneratorStore,
@@ -51,12 +53,7 @@ export interface ValidatorAPI {
 	getSlotTime: (apiContext: APIContext, slot: number) => number;
 }
 
-export interface WritableBlockHeader {
-	version: number;
-	height: number;
-	timestamp: number;
-	previousBlockID: Buffer;
-	generatorAddress: Buffer;
+export interface WritableBlockAssets {
 	getAsset: (moduleID: number) => Buffer | undefined;
 	setAsset: (moduleID: number, value: Buffer) => void;
 }
@@ -66,7 +63,8 @@ export interface BlockGenerateContext {
 	networkIdentifier: Buffer;
 	getAPIContext: () => APIContext;
 	getStore: (moduleID: number, storePrefix: number) => ImmutableSubStore;
-	header: WritableBlockHeader;
+	header: BlockHeader;
+	assets: WritableBlockAssets;
 	getGeneratorStore: (moduleID: number) => GeneratorStore;
 }
 

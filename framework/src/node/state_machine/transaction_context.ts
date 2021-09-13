@@ -12,10 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Transaction } from '@liskhq/lisk-chain';
+import { Transaction, StateStore } from '@liskhq/lisk-chain';
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { Logger } from '../../logger';
-import { APIContext } from './api_context';
+import { createAPIContext } from './api_context';
 import { EventQueue } from './event_queue';
 import {
 	CommandExecuteContext,
@@ -23,7 +23,7 @@ import {
 	TransactionExecuteContext,
 	TransactionVerifyContext,
 	BlockHeader,
-	StateStore,
+	BlockAssets,
 } from './types';
 
 interface ContextParams {
@@ -33,6 +33,7 @@ interface ContextParams {
 	eventQueue: EventQueue;
 	transaction: Transaction;
 	header?: BlockHeader;
+	assets?: BlockAssets;
 }
 
 export class TransactionContext {
@@ -42,6 +43,7 @@ export class TransactionContext {
 	private readonly _eventQueue: EventQueue;
 	private readonly _transaction: Transaction;
 	private readonly _header?: BlockHeader;
+	private readonly _assets?: BlockAssets;
 
 	public constructor(params: ContextParams) {
 		this._stateStore = params.stateStore;
@@ -50,6 +52,7 @@ export class TransactionContext {
 		this._eventQueue = params.eventQueue;
 		this._networkIdentifier = params.networkIdentifier;
 		this._transaction = params.transaction;
+		this._assets = params.assets;
 	}
 
 	public createTransactionVerifyContext(): TransactionVerifyContext {
@@ -57,7 +60,7 @@ export class TransactionContext {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
 			getAPIContext: () =>
-				new APIContext({ stateStore: this._stateStore, eventQueue: this._eventQueue }),
+				createAPIContext({ stateStore: this._stateStore, eventQueue: this._eventQueue }),
 			getStore: (moduleID: number, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			transaction: this._transaction,
@@ -66,18 +69,22 @@ export class TransactionContext {
 
 	public createTransactionExecuteContext(): TransactionExecuteContext {
 		if (!this._header) {
-			throw new Error('Transaction Execution requires block header in the context');
+			throw new Error('Transaction Execution requires block header in the context.');
+		}
+		if (!this._assets) {
+			throw new Error('Transaction Execution requires block assets in the context.');
 		}
 		return {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
 			eventQueue: this._eventQueue,
 			getAPIContext: () =>
-				new APIContext({ stateStore: this._stateStore, eventQueue: this._eventQueue }),
+				createAPIContext({ stateStore: this._stateStore, eventQueue: this._eventQueue }),
 			getStore: (moduleID: number, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
 			transaction: this._transaction,
+			assets: this._assets,
 		};
 	}
 
@@ -86,7 +93,7 @@ export class TransactionContext {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
 			getAPIContext: () =>
-				new APIContext({ stateStore: this._stateStore, eventQueue: this._eventQueue }),
+				createAPIContext({ stateStore: this._stateStore, eventQueue: this._eventQueue }),
 			getStore: (moduleID: number, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			transaction: this._transaction,
@@ -99,7 +106,7 @@ export class TransactionContext {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
 			getAPIContext: () =>
-				new APIContext({ stateStore: this._stateStore, eventQueue: this._eventQueue }),
+				createAPIContext({ stateStore: this._stateStore, eventQueue: this._eventQueue }),
 			getStore: (moduleID: number, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			transaction: this._transaction,

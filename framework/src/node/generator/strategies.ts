@@ -17,9 +17,14 @@ import { dataStructures } from '@liskhq/lisk-utils';
 import { Chain, Transaction } from '@liskhq/lisk-chain';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { KVStore } from '@liskhq/lisk-db';
-import { StateMachine, VerifyStatus, EventQueue, TransactionContext } from '../state_machine';
+import {
+	StateMachine,
+	VerifyStatus,
+	EventQueue,
+	TransactionContext,
+	BlockHeader,
+} from '../state_machine';
 import { Logger } from '../../logger';
-import { WritableBlockHeader } from './types';
 
 export class HighFeeGenerationStrategy {
 	private readonly _chain: Chain;
@@ -56,7 +61,7 @@ export class HighFeeGenerationStrategy {
 		this._logger = args.logger;
 	}
 
-	public async getTransactionsForBlock(header: WritableBlockHeader): Promise<Transaction[]> {
+	public async getTransactionsForBlock(header: BlockHeader): Promise<Transaction[]> {
 		// Initialize array to select transactions
 		const readyTransactions = [];
 

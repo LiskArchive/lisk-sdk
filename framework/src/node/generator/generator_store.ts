@@ -12,8 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BatchChain, KVStore } from '@liskhq/lisk-db';
+import { BatchChain, KVStore, NotFoundError as DBNotFoundError } from '@liskhq/lisk-db';
 import { dataStructures } from '@liskhq/lisk-utils';
+import { NotFoundError } from './errors';
 
 export class GeneratorStore {
 	private readonly _db: KVStore;
@@ -38,9 +39,16 @@ export class GeneratorStore {
 		if (cachedValue) {
 			return cachedValue;
 		}
-		const storedValue = await this._db.get(prefixedKey);
-		this._data.set(prefixedKey, storedValue);
-		return storedValue;
+		try {
+			const storedValue = await this._db.get(prefixedKey);
+			this._data.set(prefixedKey, storedValue);
+			return storedValue;
+		} catch (error) {
+			if (error instanceof DBNotFoundError) {
+				throw new NotFoundError();
+			}
+			throw error;
+		}
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

@@ -13,7 +13,7 @@
  *
  */
 
-import { BlockHeader, StateStore, Transaction } from '@liskhq/lisk-chain';
+import { BlockAssets, BlockHeader, StateStore, Transaction } from '@liskhq/lisk-chain';
 import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { Logger } from '../logger';
@@ -39,18 +39,27 @@ export const createGenesisBlockContext = (params: {
 		params.header ??
 		new BlockHeader({
 			height: 0,
-			assets: [],
 			generatorAddress: getRandomBytes(20),
 			previousBlockID: Buffer.alloc(0),
 			timestamp: Math.floor(Date.now() / 1000),
 			version: 0,
 			transactionRoot: hash(Buffer.alloc(0)),
 			stateRoot: hash(Buffer.alloc(0)),
+			maxHeightGenerated: 0,
+			maxHeightPrevoted: 0,
+			assetsRoot: hash(Buffer.alloc(0)),
+			aggregateCommit: {
+				height: 0,
+				aggregationBits: Buffer.alloc(0),
+				certificateSignature: Buffer.alloc(0),
+			},
+			validatorsHash: hash(Buffer.alloc(0)),
 		});
 	const ctx = new GenesisBlockContext({
 		eventQueue,
 		stateStore,
 		header,
+		assets: new BlockAssets(),
 		logger,
 	});
 	return ctx;
@@ -61,6 +70,7 @@ export const createBlockContext = (params: {
 	eventQueue?: EventQueue;
 	logger?: Logger;
 	header: BlockHeader;
+	assets?: BlockAssets;
 	transactions?: Transaction[];
 }): BlockContext => {
 	const logger = params.logger ?? loggerMock;
@@ -72,6 +82,7 @@ export const createBlockContext = (params: {
 		eventQueue,
 		transactions: params.transactions ?? [],
 		header: params.header,
+		assets: params.assets ?? new BlockAssets(),
 		networkIdentifier: getRandomBytes(32),
 	});
 	return ctx;
@@ -82,6 +93,7 @@ export const createTransactionContext = (params: {
 	eventQueue?: EventQueue;
 	logger?: Logger;
 	header?: BlockHeader;
+	assets?: BlockAssets;
 	transaction: Transaction;
 }): TransactionContext => {
 	const logger = params.logger ?? loggerMock;
@@ -91,19 +103,28 @@ export const createTransactionContext = (params: {
 		params.header ??
 		new BlockHeader({
 			height: 0,
-			assets: [],
 			generatorAddress: getRandomBytes(20),
 			previousBlockID: Buffer.alloc(0),
 			timestamp: Math.floor(Date.now() / 1000),
 			version: 0,
 			transactionRoot: hash(Buffer.alloc(0)),
 			stateRoot: hash(Buffer.alloc(0)),
+			maxHeightGenerated: 0,
+			maxHeightPrevoted: 0,
+			assetsRoot: hash(Buffer.alloc(0)),
+			aggregateCommit: {
+				height: 0,
+				aggregationBits: Buffer.alloc(0),
+				certificateSignature: Buffer.alloc(0),
+			},
+			validatorsHash: hash(Buffer.alloc(0)),
 		});
 	const ctx = new TransactionContext({
 		stateStore,
 		logger,
 		eventQueue,
 		header,
+		assets: params.assets ?? new BlockAssets(),
 		networkIdentifier: getRandomBytes(32),
 		transaction: params.transaction,
 	});
@@ -116,9 +137,6 @@ export const createAPIContext = (params: {
 }): APIContext => {
 	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
 	const eventQueue = params.eventQueue ?? new EventQueue();
-	const ctx = new APIContext({
-		stateStore,
-		eventQueue,
-	});
+	const ctx = createAPIContext({ stateStore, eventQueue });
 	return ctx;
 };

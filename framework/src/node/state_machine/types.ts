@@ -17,12 +17,6 @@ import { Schema } from '@liskhq/lisk-codec';
 import { Logger } from '../../logger';
 import { EventQueue } from './event_queue';
 
-export interface StateStore {
-	getStore: (moduleID: number, storePrefix: number) => SubStore;
-	createSnapshot(): void;
-	restoreSnapshot(): void;
-}
-
 export interface ImmutableSubStore {
 	get(key: Buffer): Promise<Buffer>;
 	getWithSchema<T>(key: Buffer, schema: Schema): Promise<T>;
@@ -59,6 +53,16 @@ export interface BlockHeader {
 	timestamp: number;
 	previousBlockID: Buffer;
 	generatorAddress: Buffer;
+	maxHeightPrevoted: number;
+	maxHeightGenerated: number;
+	aggregateCommit: {
+		height: number;
+		aggregationBits: Buffer;
+		certificateSignature: Buffer;
+	};
+}
+
+export interface BlockAssets {
 	getAsset: (moduleID: number) => Buffer | undefined;
 }
 
@@ -99,6 +103,7 @@ export interface GenesisBlockExecuteContext {
 	getAPIContext: () => APIContext;
 	getStore: (moduleID: number, storePrefix: number) => SubStore;
 	header: BlockHeader;
+	assets: BlockAssets;
 }
 
 export interface TransactionExecuteContext {
@@ -108,6 +113,7 @@ export interface TransactionExecuteContext {
 	getAPIContext: () => APIContext;
 	getStore: (moduleID: number, storePrefix: number) => SubStore;
 	header: BlockHeader;
+	assets: BlockAssets;
 	transaction: Transaction;
 }
 
@@ -118,6 +124,7 @@ export interface BlockVerifyContext {
 	getAPIContext: () => ImmutableAPIContext;
 	getStore: (moduleID: number, storePrefix: number) => ImmutableSubStore;
 	header: BlockHeader;
+	assets: BlockAssets;
 }
 
 export interface BlockExecuteContext {
@@ -127,6 +134,7 @@ export interface BlockExecuteContext {
 	getAPIContext: () => APIContext;
 	getStore: (moduleID: number, storePrefix: number) => SubStore;
 	header: BlockHeader;
+	assets: BlockAssets;
 }
 
 export interface BlockAfterExecuteContext extends BlockExecuteContext {

@@ -114,7 +114,13 @@ describe('generator', () => {
 			getSlotTime: jest.fn(),
 			getGenerator: jest.fn(),
 		} as never;
-		liskBFTAPI = {} as never;
+		liskBFTAPI = {
+			getBFTHeights: jest.fn().mockResolvedValue({
+				maxHeightPrevoted: 0,
+				maxHeightPrecommited: 0,
+				maxHeightCertified: 0,
+			}),
+		} as never;
 
 		stateMachine = {
 			verifyTransaction: jest.fn(),

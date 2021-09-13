@@ -13,7 +13,7 @@
  */
 
 import { BlockHeader, Slots } from '@liskhq/lisk-chain';
-import { BFTHeader, LiskBFTAPI } from '../types';
+import { BFTHeader } from '../types';
 
 export enum ForkStatus {
 	IDENTICAL_BLOCK = 1,
@@ -96,30 +96,28 @@ export const forkChoice = (
 	blockHeader: BlockHeader,
 	lastBlockHeader: BlockHeader,
 	slots: Slots,
-	liskBFTAPI: LiskBFTAPI,
 ): ForkStatus => {
 	// Current time since Lisk Epoch
 	const receivedBFTHeader = {
-		...liskBFTAPI.getBFTHeader(blockHeader),
+		...blockHeader.toObject(),
 		receivedAt: slots.timeSinceGenesis(),
 	};
-	const lastBFTHeader = liskBFTAPI.getBFTHeader(lastBlockHeader);
 
 	/* Cases are numbered following LIP-0014 Fork choice rule.
 	 See: https://github.com/LiskHQ/lips/blob/master/proposals/lip-0014.md#applying-blocks-according-to-fork-choice-rule
 		 Case 2 and 1 have flipped execution order for better readability. Behavior is still the same */
 
-	if (isValidBlock(lastBFTHeader, receivedBFTHeader)) {
+	if (isValidBlock(lastBlockHeader, blockHeader)) {
 		// Case 2: correct block received
 		return ForkStatus.VALID_BLOCK;
 	}
 
-	if (isIdenticalBlock(lastBFTHeader, receivedBFTHeader)) {
+	if (isIdenticalBlock(lastBlockHeader, blockHeader)) {
 		// Case 1: same block received twice
 		return ForkStatus.IDENTICAL_BLOCK;
 	}
 
-	if (isDoubleForging(lastBFTHeader, receivedBFTHeader)) {
+	if (isDoubleForging(lastBlockHeader, blockHeader)) {
 		// Delegates are the same
 		// Case 3: double forging different blocks in the same slot.
 		// Last Block stands.
@@ -129,7 +127,7 @@ export const forkChoice = (
 	if (
 		isTieBreak({
 			slots,
-			lastAppliedBlock: lastBFTHeader,
+			lastAppliedBlock: lastBlockHeader,
 			receivedBlock: receivedBFTHeader,
 		})
 	) {
@@ -138,7 +136,7 @@ export const forkChoice = (
 		return ForkStatus.TIE_BREAK;
 	}
 
-	if (isDifferentChain(lastBFTHeader, receivedBFTHeader)) {
+	if (isDifferentChain(lastBlockHeader, blockHeader)) {
 		// Case 5: received block has priority. Move to a different chain.
 		return ForkStatus.DIFFERENT_CHAIN;
 	}
