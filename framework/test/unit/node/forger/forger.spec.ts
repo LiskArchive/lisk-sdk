@@ -269,6 +269,20 @@ describe('forger', () => {
 						).rejects.toThrow('Failed to enable forging due to missing forger info');
 					});
 
+					it('should fail when forger info exists and input is zero', async () => {
+						await expect(
+							forgeModule.updateForgingStatus(
+								getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+								testDelegate.password,
+								true,
+								0,
+								0,
+								0,
+								false,
+							),
+						).rejects.toThrow('Failed to enable forging due to contradicting forger info');
+					});
+
 					it('should fail when height input is contradicting with saved forger info', async () => {
 						await expect(
 							forgeModule.updateForgingStatus(
