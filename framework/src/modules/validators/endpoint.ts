@@ -17,7 +17,7 @@ import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { NotFoundError } from '@liskhq/lisk-db';
 import { ModuleEndpointContext } from '../..';
 import { BaseEndpoint } from '../base_endpoint';
-import { generatorListSchema, validateBLSKeyRequest, validateBLSKeyRequestSchema } from './schemas';
+import { generatorListSchema, ValidateBLSKeyRequest, validateBLSKeyRequestSchema } from './schemas';
 import {
 	MODULE_ID_VALIDATORS,
 	STORE_PREFIX_BLS_KEYS,
@@ -42,7 +42,7 @@ export class ValidatorsEndpoint extends BaseEndpoint {
 			throw new LiskValidationError(reqErrors);
 		}
 
-		const req = (ctx.params as unknown) as validateBLSKeyRequest;
+		const req = (ctx.params as unknown) as ValidateBLSKeyRequest;
 		const { proofOfPossession, blsKey } = req;
 
 		const subStore = ctx.getStore(MODULE_ID_VALIDATORS, STORE_PREFIX_BLS_KEYS);
@@ -50,7 +50,7 @@ export class ValidatorsEndpoint extends BaseEndpoint {
 		let persistedValue;
 
 		try {
-			persistedValue = await subStore.get(blsKey);
+			persistedValue = await subStore.get(Buffer.from(blsKey, 'hex'));
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
@@ -61,6 +61,8 @@ export class ValidatorsEndpoint extends BaseEndpoint {
 			return { valid: false };
 		}
 
-		return { valid: blsPopVerify(blsKey, proofOfPossession) };
+		return {
+			valid: blsPopVerify(Buffer.from(blsKey, 'hex'), Buffer.from(proofOfPossession, 'hex')),
+		};
 	}
 }

@@ -71,9 +71,9 @@ export const genesisDataSchema = {
 	required: ['timestamp'],
 };
 
-export interface validateBLSKeyRequest {
-	proofOfPossession: Buffer;
-	blsKey: Buffer;
+export interface ValidateBLSKeyRequest {
+	proofOfPossession: string;
+	blsKey: string;
 }
 
 export const validateBLSKeyRequestSchema = {
@@ -82,10 +82,12 @@ export const validateBLSKeyRequestSchema = {
 	type: 'object',
 	properties: {
 		proofOfPossession: {
-			dataType: 'bytes',
+			type: 'string',
+			format: 'hex',
 		},
 		blsKey: {
-			dataType: 'bytes',
+			type: 'string',
+			format: 'hex',
 		},
 	},
 	required: ['proofOfPossession', 'blsKey'],
