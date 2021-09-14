@@ -41,7 +41,7 @@ export const authAccountSchema = {
 	required: ['nonce', 'numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
 };
 
-export const registerMultisignatureCommandSchema = {
+export const registerMultisignatureParamsSchema = {
 	$id: '/auth/command/regMultisig',
 	type: 'object',
 	properties: {
