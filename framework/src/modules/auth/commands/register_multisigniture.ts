@@ -19,12 +19,12 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../node/state_machine';
-import { registerMultisignatureCommandSchema } from '../schemas';
+import { registerMultisignatureParamsSchema } from '../schemas';
 
 export class RegisterMultisignitureCommand extends BaseCommand {
 	public id = 0;
 	public name = 'registerMultisignatureGroup';
-	public schema = registerMultisignatureCommandSchema;
+	public schema = registerMultisignatureParamsSchema;
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(
