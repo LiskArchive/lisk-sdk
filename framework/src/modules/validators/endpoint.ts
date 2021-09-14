@@ -36,7 +36,7 @@ export class ValidatorsEndpoint extends BaseEndpoint {
 		return { list: addressList.map(buf => buf.toString()) };
 	}
 
-	public async validateBLSKey(ctx: ModuleEndpointContext): Promise<boolean> {
+	public async validateBLSKey(ctx: ModuleEndpointContext): Promise<{ valid: boolean }> {
 		const reqErrors = validator.validate(validateBLSKeyRequestSchema, ctx.params);
 		if (reqErrors?.length) {
 			throw new LiskValidationError(reqErrors);
@@ -58,9 +58,9 @@ export class ValidatorsEndpoint extends BaseEndpoint {
 		}
 
 		if (persistedValue) {
-			return false;
+			return { valid: false };
 		}
 
-		return blsPopVerify(blsKey, proofOfPossession);
+		return { valid: blsPopVerify(blsKey, proofOfPossession) };
 	}
 }

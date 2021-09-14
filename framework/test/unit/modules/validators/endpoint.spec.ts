@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { Logger } from '../../../../src/logger';
 import { ValidatorsModule } from '../../../../src/modules/validators';
 import { fakeLogger } from '../../../utils/node';
@@ -19,14 +21,39 @@ import { fakeLogger } from '../../../utils/node';
 describe('ValidatorsModuleEndpoint', () => {
 	const logger: Logger = fakeLogger;
 	let validatorsModule: ValidatorsModule;
+	const pk = getRandomBytes(48);
+	const address = getRandomBytes(48);
+	const proof = getRandomBytes(48);
+	const getStore1 = jest.fn();
 
-	beforeAll(() => {
+	beforeAll(async () => {
 		validatorsModule = new ValidatorsModule();
+		const subStore = (new InMemoryKVStore() as unknown) as KVStore;
+		await subStore.put(pk, address);
+		const batch = subStore.batch();
+		batch.put(pk, address);
+		await batch.write();
+		getStore1.mockReturnValue(subStore);
 	});
 
 	describe('validateBLSKey', () => {
+		describe('when request data is valid', () => {
+			it('should resolve with appropriate response', async () => {
+				await expect(
+					validatorsModule.endpoint.validateBLSKey({
+						getStore: getStore1,
+						logger,
+						params: {
+							proofOfPossession: proof,
+							blsKey: pk,
+						},
+					}),
+				).resolves.toStrictEqual({ valid: false });
+			});
+		});
+
 		describe('when request data is invalid', () => {
-			it('should reject with validation error', async () => {
+			it('should reject with error', async () => {
 				await expect(
 					validatorsModule.endpoint.validateBLSKey({
 						getStore: jest.fn(),
@@ -44,7 +71,7 @@ describe('ValidatorsModuleEndpoint', () => {
 						getStore: jest.fn(),
 						logger,
 						params: {
-							proofOfPosession: 'xxxx',
+							proofOfPossession: 'xxxx',
 							blsKey: 'xxxx',
 						},
 					}),
