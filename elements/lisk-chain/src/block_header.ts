@@ -247,7 +247,7 @@ export class BlockHeader {
 			throw new Error('State root is empty.');
 		}
 		if (!this.transactionRoot) {
-			throw new Error('State root is empty.');
+			throw new Error('Transaction root is empty.');
 		}
 		if (!this.validatorsHash) {
 			throw new Error('Validators hash is empty.');
