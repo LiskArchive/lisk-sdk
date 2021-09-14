@@ -31,7 +31,7 @@ export class AuthModule extends BaseModule {
 	public api = new AuthAPI(this.id);
 	public endpoint = new AuthEndpoint(this.id);
 	public configSchema = configSchema;
-	public commands = [new RegisterMultisignitureCommand()];
+	public commands = [new RegisterMultisignitureCommand(this.id)];
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verifyTransaction(_context: TransactionVerifyContext): Promise<VerificationResult> {
