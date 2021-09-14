@@ -12,19 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { APIContext } from '../../node/state_machine/types';
+import { BaseAPI } from '../base_api';
 
-export interface ValidatorKeys {
-	generatorKey: Buffer;
-	blsKey: Buffer;
-}
-
-export interface GeneratorList {
-	addresses: Buffer[];
-}
-
-export interface ValidatorsAPI {
-	getGenerator: (apiContext: APIContext, timestamp: number) => Promise<Buffer>;
-	getSlotNumber: (apiContext: APIContext, timestamp: number) => number;
-	getSlotTime: (apiContext: APIContext, slot: number) => number;
-}
+export class AuthAPI extends BaseAPI {}

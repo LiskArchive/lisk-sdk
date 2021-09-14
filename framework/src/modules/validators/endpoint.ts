@@ -12,6 +12,57 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { blsPopVerify } from '@liskhq/lisk-cryptography';
+import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { NotFoundError } from '@liskhq/lisk-db';
+import { ModuleEndpointContext } from '../..';
 import { BaseEndpoint } from '../base_endpoint';
+import { generatorListSchema, ValidateBLSKeyRequest, validateBLSKeyRequestSchema } from './schemas';
+import {
+	MODULE_ID_VALIDATORS,
+	STORE_PREFIX_BLS_KEYS,
+	STORE_PREFIX_GENERATOR_LIST,
+} from './constants';
+import { GeneratorList } from './types';
 
-export class ValidatorsEndpoint extends BaseEndpoint {}
+export class ValidatorsEndpoint extends BaseEndpoint {
+	public async getGeneratorList(ctx: ModuleEndpointContext): Promise<{ list: string[] }> {
+		const subStore = ctx.getStore(MODULE_ID_VALIDATORS, STORE_PREFIX_GENERATOR_LIST);
+		const emptyKey = Buffer.alloc(0);
+		const value = await subStore.getWithSchema<GeneratorList>(emptyKey, generatorListSchema);
+
+		const addressList = value.addresses;
+
+		return { list: addressList.map(buf => buf.toString()) };
+	}
+
+	public async validateBLSKey(ctx: ModuleEndpointContext): Promise<{ valid: boolean }> {
+		const reqErrors = validator.validate(validateBLSKeyRequestSchema, ctx.params);
+		if (reqErrors?.length) {
+			throw new LiskValidationError(reqErrors);
+		}
+
+		const req = (ctx.params as unknown) as ValidateBLSKeyRequest;
+		const { proofOfPossession, blsKey } = req;
+
+		const subStore = ctx.getStore(MODULE_ID_VALIDATORS, STORE_PREFIX_BLS_KEYS);
+
+		let persistedValue;
+
+		try {
+			persistedValue = await subStore.get(Buffer.from(blsKey, 'hex'));
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+		}
+
+		if (persistedValue) {
+			return { valid: false };
+		}
+
+		return {
+			valid: blsPopVerify(Buffer.from(blsKey, 'hex'), Buffer.from(proofOfPossession, 'hex')),
+		};
+	}
+}
