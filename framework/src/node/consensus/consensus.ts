@@ -54,7 +54,7 @@ interface ConsensusArgs {
 	chain: Chain;
 	network: Network;
 	genesisConfig: GenesisConfig;
-	liskBFTAPI: BFTAPI;
+	bftAPI: BFTAPI;
 	validatorAPI: ValidatorAPI;
 }
 
@@ -90,7 +90,7 @@ export class Consensus {
 	private readonly _network: Network;
 	private readonly _mutex: jobHandlers.Mutex;
 	private readonly _validatorAPI: ValidatorAPI;
-	private readonly _liskBFTAPI: BFTAPI;
+	private readonly _bftAPI: BFTAPI;
 	private readonly _genesisConfig: GenesisConfig;
 
 	// init parameters
@@ -109,7 +109,7 @@ export class Consensus {
 		this._network = args.network;
 		this._mutex = new jobHandlers.Mutex();
 		this._validatorAPI = args.validatorAPI;
-		this._liskBFTAPI = args.liskBFTAPI;
+		this._bftAPI = args.bftAPI;
 		this._genesisConfig = args.genesisConfig;
 	}
 
@@ -444,7 +444,7 @@ export class Consensus {
 		}
 		await this._stateMachine.executeBlock(ctx);
 
-		const bftVotes = await this._liskBFTAPI.getBFTHeights(apiContext);
+		const bftVotes = await this._bftAPI.getBFTHeights(apiContext);
 
 		let { finalizedHeight } = this._chain;
 		if (bftVotes.maxHeightPrecommited > finalizedHeight) {
@@ -531,7 +531,7 @@ export class Consensus {
 			executeValidated: async (block: Block, options?: ExecuteOptions) =>
 				this._executeValidated(block, options),
 			verify: async (block: Block) => this._verify(block),
-			getValidators: async () => this._liskBFTAPI.getValidators(apiContext),
+			getValidators: async () => this._bftAPI.getValidators(apiContext),
 			getSlotNumber: timestamp => this._validatorAPI.getSlotNumber(apiContext, timestamp),
 			getFinalizedHeight: () => this.finalizedHeight(),
 		};

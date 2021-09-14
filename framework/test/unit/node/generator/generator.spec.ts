@@ -84,7 +84,7 @@ describe('generator', () => {
 	let blockchainDB: KVStore;
 	let generatorDB: KVStore;
 	let validatorAPI: ValidatorAPI;
-	let liskBFTAPI: BFTAPI;
+	let bftAPI: BFTAPI;
 
 	beforeEach(() => {
 		blockchainDB = new InMemoryKVStore() as never;
@@ -114,7 +114,7 @@ describe('generator', () => {
 			getSlotTime: jest.fn(),
 			getGenerator: jest.fn(),
 		} as never;
-		liskBFTAPI = {
+		bftAPI = {
 			getBFTHeights: jest.fn().mockResolvedValue({
 				maxHeightPrevoted: 0,
 				maxHeightPrecommited: 0,
@@ -146,7 +146,7 @@ describe('generator', () => {
 			network,
 			stateMachine,
 			validatorAPI,
-			liskBFTAPI,
+			bftAPI,
 			generationConfig: {
 				generators: genesisDelegates.delegates,
 				defaultPassword: genesisDelegates.delegates[0].password,

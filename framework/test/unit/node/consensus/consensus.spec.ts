@@ -44,7 +44,7 @@ describe('consensus', () => {
 	let chain: Chain;
 	let network: Network;
 	let stateMachine: StateMachine;
-	let liskBFTAPI: BFTAPI;
+	let bftAPI: BFTAPI;
 	let validatorAPI: ValidatorAPI;
 
 	beforeEach(async () => {
@@ -75,7 +75,7 @@ describe('consensus', () => {
 			verifyBlock: jest.fn(),
 			executeBlock: jest.fn(),
 		} as unknown) as StateMachine;
-		liskBFTAPI = {
+		bftAPI = {
 			getBFTHeights: jest.fn().mockResolvedValue({ maxHeghgtPrevoted: 0, maxHeightPrecommited: 0 }),
 		} as never;
 		validatorAPI = {} as never;
@@ -83,7 +83,7 @@ describe('consensus', () => {
 			chain,
 			network,
 			stateMachine,
-			liskBFTAPI,
+			bftAPI,
 			validatorAPI,
 			genesisConfig: {} as any,
 		});

@@ -19,7 +19,7 @@ import { MODULE_ID_BFT } from './constants';
 import { bftModuleConfig } from './schemas';
 import { BlockAfterExecuteContext, GenesisBlockExecuteContext } from '../../node/state_machine';
 
-export class LiskBFTModule extends BaseModule {
+export class BFTModule extends BaseModule {
 	public id = MODULE_ID_BFT;
 	public name = 'bft';
 	public api = new BFTAPI(this.id);

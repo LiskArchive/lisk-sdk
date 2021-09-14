@@ -12,5 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export { LiskBFTModule } from './module';
+export { BFTModule } from './module';
 export type { BFTAPI } from './api';
