@@ -12,6 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseAPI } from '..';
+import { BaseAPI } from '../base_api';
 
 export class AuthAPI extends BaseAPI {}
