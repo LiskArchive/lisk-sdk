@@ -115,7 +115,7 @@ describe('base_plugin', () => {
 			plugin = new MyPlugin();
 
 			jest.spyOn(loggerModule, 'createLogger').mockReturnValue(loggerMock as never);
-			when(channelMock.invoke).calledWith('app:getSchema').mockResolvedValue(schemas);
+			when(channelMock.invoke).calledWith('app_getSchema').mockResolvedValue(schemas);
 		});
 
 		describe('init', () => {

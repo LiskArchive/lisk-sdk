@@ -51,13 +51,13 @@ describe.skip('plugin in child process', () => {
 
 	it('should throw an error when action fails due to missing argument', async () => {
 		// Assert
-		await expect(client.invoke('app:getBlocksFromId')).rejects.toThrow('Peer not found: undefined');
+		await expect(client.invoke('app_getBlocksFromId')).rejects.toThrow('Peer not found: undefined');
 	});
 
 	it('should throw an error on invalid action fails due to invalid argument', async () => {
 		// Assert
 		await expect(
-			client.invoke('app:getAccount', { address: 'randomString*&&^%^' }),
+			client.invoke('app_getAccount', { address: 'randomString*&&^%^' }),
 		).rejects.toThrow('Specified key accounts:address: does not exist');
 	});
 

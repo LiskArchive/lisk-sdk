@@ -124,12 +124,12 @@ describe.skip('IPCChannel', () => {
 				// Act
 				const listen = async () => {
 					return new Promise<void>(resolve => {
-						alphaChannel.subscribe(`${beta.namespace}:${eventName}`, data => {
+						alphaChannel.subscribe(`${beta.namespace}_${eventName}`, data => {
 							message = data;
 							resolve();
 						});
 
-						betaChannel.publish(`${beta.namespace}:${eventName}`, betaEventData);
+						betaChannel.publish(`${beta.namespace}_${eventName}`, betaEventData);
 					});
 				};
 
@@ -144,14 +144,14 @@ describe.skip('IPCChannel', () => {
 				const eventName = beta.events[0];
 				const donePromise = new Promise<void>(resolve => {
 					// Act
-					alphaChannel.once(`${beta.namespace}:${eventName}`, data => {
+					alphaChannel.once(`${beta.namespace}_${eventName}`, data => {
 						// Assert
 						expect(data).toEqual(betaEventData);
 						resolve();
 					});
 				});
 
-				betaChannel.publish(`${beta.namespace}:${eventName}`, betaEventData);
+				betaChannel.publish(`${beta.namespace}_${eventName}`, betaEventData);
 
 				return donePromise;
 			});
@@ -171,7 +171,7 @@ describe.skip('IPCChannel', () => {
 
 				const donePromise = new Promise<void>(resolve => {
 					// Act
-					alphaChannel.subscribe(`${omegaName}:${omegaEventName}`, data => {
+					alphaChannel.subscribe(`${omegaName}_${omegaEventName}`, data => {
 						// Assert
 						expect(data).toEqual(dummyData);
 						resolve();
@@ -180,7 +180,7 @@ describe.skip('IPCChannel', () => {
 
 				await inMemoryChannelOmega.registerToBus(bus);
 
-				inMemoryChannelOmega.publish(`${omegaName}:${omegaEventName}`, dummyData);
+				inMemoryChannelOmega.publish(`${omegaName}_${omegaEventName}`, dummyData);
 
 				return donePromise;
 			});
@@ -195,7 +195,7 @@ describe.skip('IPCChannel', () => {
 				const wait = async (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 				// Act
 				const listenPromise = new Promise<void>(resolve => {
-					alphaChannel.subscribe(`${beta.namespace}:${eventName}`, _ => {
+					alphaChannel.subscribe(`${beta.namespace}_${eventName}`, _ => {
 						messageCount += 1;
 					});
 					setTimeout(() => {
@@ -204,12 +204,12 @@ describe.skip('IPCChannel', () => {
 					}, 200);
 				});
 
-				betaChannel.publish(`${beta.namespace}:${eventName}`, betaEventData);
+				betaChannel.publish(`${beta.namespace}_${eventName}`, betaEventData);
 				await wait(25);
 				// Now unsubscribe from the event and publish it again
-				alphaChannel.unsubscribe(`${beta.namespace}:${eventName}`, _ => {});
+				alphaChannel.unsubscribe(`${beta.namespace}_${eventName}`, _ => {});
 				await wait(25);
-				betaChannel.publish(`${beta.namespace}:${eventName}`, betaEventData);
+				betaChannel.publish(`${beta.namespace}_${eventName}`, betaEventData);
 
 				// Assert
 				return listenPromise;
@@ -224,14 +224,14 @@ describe.skip('IPCChannel', () => {
 
 				const donePromise = new Promise<void>(done => {
 					// Act
-					betaChannel.once(`${alpha.namespace}:${eventName}`, data => {
+					betaChannel.once(`${alpha.namespace}_${eventName}`, data => {
 						// Assert
 						expect(data).toEqual(alphaEventData);
 						done();
 					});
 				});
 
-				alphaChannel.publish(`${alpha.namespace}:${eventName}`, alphaEventData);
+				alphaChannel.publish(`${alpha.namespace}_${eventName}`, alphaEventData);
 
 				return donePromise;
 			});
@@ -273,8 +273,8 @@ describe.skip('IPCChannel', () => {
 				const invalidActionName = 'INVALID_ACTION_NAME';
 
 				// Act && Assert
-				await expect(alphaChannel.invoke(`${beta.namespace}:${invalidActionName}`)).rejects.toThrow(
-					`Action name "${beta.namespace}:${invalidActionName}" must be a valid name with module name and action name.`,
+				await expect(alphaChannel.invoke(`${beta.namespace}_${invalidActionName}`)).rejects.toThrow(
+					`Action name "${beta.namespace}_${invalidActionName}" must be a valid name with module name and action name.`,
 				);
 			});
 

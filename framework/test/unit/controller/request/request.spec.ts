@@ -54,7 +54,7 @@ describe('Request class', () => {
 				const expectedResult = {
 					id: 0,
 					jsonrpc: '2.0',
-					method: `${NAMESPACE}:${ACTION_NAME}`,
+					method: `${NAMESPACE}_${ACTION_NAME}`,
 					params: { ...PARAMS },
 				};
 
@@ -72,7 +72,7 @@ describe('Request class', () => {
 				const requestObject = {
 					jsonrpc: '2.0',
 					id: 1,
-					method: 'module:action',
+					method: 'module_action',
 					params: {},
 				};
 				const requestStr = JSON.stringify(requestObject);
@@ -93,7 +93,7 @@ describe('Request class', () => {
 				const requestObject = {
 					jsonrpc: '2.0',
 					id: 1,
-					method: 'module:action',
+					method: 'module_action',
 					params: {},
 				};
 
@@ -112,7 +112,7 @@ describe('Request class', () => {
 		describe('#key', () => {
 			it('should return method name.', () => {
 				// Arrange
-				const expectedResult = `${NAMESPACE}:${ACTION_NAME}`;
+				const expectedResult = `${NAMESPACE}_${ACTION_NAME}`;
 
 				// Act
 				const key = action.key();

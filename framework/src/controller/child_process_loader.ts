@@ -15,7 +15,7 @@
 // Parameters passed by `child_process.fork(_, parameters)`
 
 import { join } from 'path';
-import { createLogger } from '../logger';
+import { createLogger, Logger } from '../logger';
 import { getEndpointHandlers } from '../endpoint';
 import { BasePlugin } from '../plugins/base_plugin';
 import { systemDirs } from '../system_dirs';
@@ -29,6 +29,7 @@ const moduleExportName: string = process.argv[3];
 const Klass: InstantiablePlugin = require(modulePath)[moduleExportName];
 let channel: IPCChannel;
 let plugin: BasePlugin;
+let logger: Logger;
 
 const _loadPlugin = async (
 	config: Record<string, unknown>,
@@ -42,11 +43,11 @@ const _loadPlugin = async (
 	const pluginName = plugin.name;
 
 	const dirs = systemDirs(appConfig.label, appConfig.rootPath);
-	const logger = createLogger({
+	logger = createLogger({
 		consoleLogLevel: appConfig.logger.consoleLogLevel,
 		fileLogLevel: appConfig.logger.fileLogLevel,
 		logFilePath: join(dirs.logs, `plugin-${pluginName}.log`),
-		module: `plugin:${pluginName}`,
+		module: `plugin_${pluginName}`,
 	});
 
 	channel = new IPCChannel(
@@ -61,27 +62,35 @@ const _loadPlugin = async (
 
 	await channel.registerToBus();
 
-	channel.publish(`${pluginName}:registeredToBus`);
-	channel.publish(`${pluginName}:loading:started`);
+	logger.debug({ plugin: pluginName }, 'Plugin is registered to bus');
 
 	await plugin.init({ appConfig, channel, config, logger });
 	await plugin.load(channel);
 
-	channel.publish(`${pluginName}:loading:finished`);
+	logger.debug({ plugin: pluginName }, 'Plugin is successfully loaded');
+	if (process.send) {
+		process.send({ action: 'loaded' });
+	}
 };
 
 const _unloadPlugin = async (code = 0) => {
 	const pluginName = plugin.name;
 
-	channel.publish(`${pluginName}:unloading:started`);
+	logger.debug({ plugin: pluginName }, 'Unloading plugin');
 	try {
 		await plugin.unload();
-		channel.publish(`${pluginName}:unloading:finished`);
+		logger.debug({ plugin: pluginName }, 'Successfully unloaded plugin');
 		channel.cleanup();
+		if (process.send) {
+			process.send({ action: 'unloaded' });
+		}
 		process.exit(code);
 	} catch (error) {
-		channel.publish(`${pluginName}:unloading:error`, error);
+		logger.debug({ plugin: pluginName, err: error as Error }, 'Fail to unload plugin');
 		channel.cleanup();
+		if (process.send) {
+			process.send({ action: 'unloadedWithError', err: error as Error });
+		}
 		process.exit(1);
 	}
 };
