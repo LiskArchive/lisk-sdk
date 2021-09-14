@@ -19,6 +19,10 @@ export interface ValidatorKeys {
 	blsKey: Buffer;
 }
 
+export interface GeneratorList {
+	addresses: Buffer[];
+}
+
 export interface ValidatorsAPI {
 	getGenerator: (apiContext: APIContext, timestamp: number) => Promise<Buffer>;
 	getSlotNumber: (apiContext: APIContext, timestamp: number) => number;
