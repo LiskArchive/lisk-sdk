@@ -12,6 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseEndpoint } from '..';
+import { BaseEndpoint } from '../base_endpoint';
 
 export class AuthEndpoint extends BaseEndpoint {}
