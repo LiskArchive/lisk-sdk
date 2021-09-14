@@ -14,6 +14,7 @@
 
 import { blsPopVerify } from '@liskhq/lisk-cryptography';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { NotFoundError } from '@liskhq/lisk-db';
 import { ModuleEndpointContext } from '../..';
 import { BaseEndpoint } from '../base_endpoint';
 import { generatorListSchema, validateBLSKeyRequest, validateBLSKeyRequestSchema } from './schemas';
@@ -22,16 +23,17 @@ import {
 	STORE_PREFIX_BLS_KEYS,
 	STORE_PREFIX_GENERATOR_LIST,
 } from './constants';
+import { GeneratorList } from './types';
 
 export class ValidatorsEndpoint extends BaseEndpoint {
-	public async getGeneratorList(ctx: ModuleEndpointContext): Promise<Buffer[]> {
+	public async getGeneratorList(ctx: ModuleEndpointContext): Promise<{ list: string[] }> {
 		const subStore = ctx.getStore(MODULE_ID_VALIDATORS, STORE_PREFIX_GENERATOR_LIST);
-		const value = await subStore.getWithSchema<Record<string, unknown>>(
-			Buffer.from([0]),
-			generatorListSchema,
-		);
-		const list = value.addresses as Buffer[];
-		return list;
+		const emptyKey = Buffer.alloc(0);
+		const value = await subStore.getWithSchema<GeneratorList>(emptyKey, generatorListSchema);
+
+		const addressList = value.addresses;
+
+		return { list: addressList.map(buf => buf.toString()) };
 	}
 
 	public async validateBLSKey(ctx: ModuleEndpointContext): Promise<boolean> {
@@ -41,17 +43,24 @@ export class ValidatorsEndpoint extends BaseEndpoint {
 		}
 
 		const req = (ctx.params as unknown) as validateBLSKeyRequest;
-		const { proofOfPosession, blsKey } = req;
+		const { proofOfPossession, blsKey } = req;
 
 		const subStore = ctx.getStore(MODULE_ID_VALIDATORS, STORE_PREFIX_BLS_KEYS);
 
-		if (await subStore.get(blsKey)) {
-			return false;
+		let persistedValue;
+
+		try {
+			persistedValue = await subStore.get(blsKey);
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
 		}
-		if (!blsPopVerify(blsKey, proofOfPosession)) {
+
+		if (persistedValue) {
 			return false;
 		}
 
-		return true;
+		return blsPopVerify(blsKey, proofOfPossession);
 	}
 }

@@ -47,7 +47,7 @@ export const generatorListSchema = {
 
 export const validatorAddressSchema = {
 	$id: '/validators/registeredBlsKeysSubStore',
-	title: 'Registered Validators Bls Keys',
+	title: 'Validators Addresses',
 	type: 'object',
 	properties: {
 		address: {
@@ -72,7 +72,7 @@ export const genesisDataSchema = {
 };
 
 export interface validateBLSKeyRequest {
-	proofOfPosession: Buffer;
+	proofOfPossession: Buffer;
 	blsKey: Buffer;
 }
 
@@ -81,12 +81,12 @@ export const validateBLSKeyRequestSchema = {
 	title: 'Bls Key Properties',
 	type: 'object',
 	properties: {
-		proofOfPosession: {
-			type: 'Buffer',
+		proofOfPossession: {
+			dataType: 'bytes',
 		},
 		blsKey: {
-			type: 'Buffer',
+			dataType: 'bytes',
 		},
 	},
-	required: ['proofOfPosession', 'blsKey'],
+	required: ['proofOfPossession', 'blsKey'],
 };
