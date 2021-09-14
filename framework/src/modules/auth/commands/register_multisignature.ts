@@ -21,7 +21,7 @@ import {
 } from '../../../node/state_machine';
 import { registerMultisignatureParamsSchema } from '../schemas';
 
-export class RegisterMultisignitureCommand extends BaseCommand {
+export class RegisterMultisignatureCommand extends BaseCommand {
 	public id = 0;
 	public name = 'registerMultisignatureGroup';
 	public schema = registerMultisignatureParamsSchema;

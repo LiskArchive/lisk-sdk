@@ -20,7 +20,7 @@ import {
 	VerifyStatus,
 } from '../../node/state_machine';
 import { AuthAPI } from './api';
-import { RegisterMultisignitureCommand } from './commands/register_multisigniture';
+import { RegisterMultisignatureCommand } from './commands/register_multisignature';
 import { MODULE_ID_AUTH } from './constants';
 import { AuthEndpoint } from './endpoint';
 import { configSchema } from './schemas';
@@ -31,7 +31,7 @@ export class AuthModule extends BaseModule {
 	public api = new AuthAPI(this.id);
 	public endpoint = new AuthEndpoint(this.id);
 	public configSchema = configSchema;
-	public commands = [new RegisterMultisignitureCommand(this.id)];
+	public commands = [new RegisterMultisignatureCommand(this.id)];
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verifyTransaction(_context: TransactionVerifyContext): Promise<VerificationResult> {
