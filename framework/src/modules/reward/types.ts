@@ -44,7 +44,7 @@ export interface RandomAPI {
 	): Promise<boolean>;
 }
 
-export interface LiskBFTAPI {
+export interface BFTAPI {
 	impliesMaximalPrevotes(apiContext: APIContext, blockHeader: BlockHeader): Promise<boolean>;
 }
 

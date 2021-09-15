@@ -12,21 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Schema } from '@liskhq/lisk-codec';
+export const MODULE_ID_BFT = 9;
 
-export const liskBFTModuleID = 9;
-export const liskBFTAssetSchema = {
-	$id: '/blockHeader/asset/v2',
-	type: 'object',
-	properties: {
-		maxHeightPreviouslyForged: {
-			dataType: 'uint32',
-			fieldNumber: 1,
-		},
-		maxHeightPrevoted: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-		},
-	},
-	required: ['maxHeightPreviouslyForged', 'maxHeightPrevoted'],
-} as Schema;
+export const STORE_PREFIX_BFT_PARAMETERS = 0x0000;
+export const STORE_PREFIX_BFT_VOTES = 0x8000;

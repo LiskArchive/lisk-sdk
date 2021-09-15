@@ -53,7 +53,7 @@ import { GeneratorStore } from './generator_store';
 import { NetworkEndpoint } from './network_endpoint';
 import { GetTransactionResponse, getTransactionsResponseSchema } from './schemas';
 import { HighFeeGenerationStrategy } from './strategies';
-import { Consensus, GeneratorModule, LiskBFTAPI, ValidatorAPI } from './types';
+import { Consensus, GeneratorModule, BFTAPI, ValidatorAPI } from './types';
 import { createAPIContext, createNewAPIContext } from '../state_machine/api_context';
 import { getOrDefaultLastGeneratedInfo, setLastGeneratedInfo } from './generated_info';
 
@@ -62,7 +62,7 @@ interface GeneratorArgs {
 	generationConfig: GenerationConfig;
 	chain: Chain;
 	consensus: Consensus;
-	liskBFTAPI: LiskBFTAPI;
+	bftAPI: BFTAPI;
 	validatorAPI: ValidatorAPI;
 	stateMachine: StateMachine;
 	network: Network;
@@ -87,7 +87,7 @@ export class Generator {
 	private readonly _config: GenerationConfig;
 	private readonly _chain: Chain;
 	private readonly _consensus: Consensus;
-	private readonly _liskBFTAPI: LiskBFTAPI;
+	private readonly _bftAPI: BFTAPI;
 	private readonly _validatorAPI: ValidatorAPI;
 	private readonly _stateMachine: StateMachine;
 	private readonly _network: Network;
@@ -121,7 +121,7 @@ export class Generator {
 		}
 		this._chain = args.chain;
 		this._validatorAPI = args.validatorAPI;
-		this._liskBFTAPI = args.liskBFTAPI;
+		this._bftAPI = args.bftAPI;
 		this._consensus = args.consensus;
 		this._stateMachine = args.stateMachine;
 		this._network = args.network;
@@ -436,7 +436,7 @@ export class Generator {
 		const generatorStore = new GeneratorStore(this._generatorDB);
 		const apiContext = createAPIContext({ stateStore, eventQueue: new EventQueue() });
 
-		const { maxHeightPrevoted } = await this._liskBFTAPI.getBFTHeights(apiContext);
+		const { maxHeightPrevoted } = await this._bftAPI.getBFTHeights(apiContext);
 		const { height } = await getOrDefaultLastGeneratedInfo(generatorStore, generatorAddress);
 
 		const blockHeader = new BlockHeader({

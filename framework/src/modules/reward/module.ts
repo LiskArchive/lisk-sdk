@@ -14,7 +14,7 @@
 
 import { BaseModule, ModuleInitArgs } from '../base_module';
 import { MODULE_ID_REWARD } from './constants';
-import { LiskBFTAPI, ModuleConfig, RandomAPI, TokenAPI, TokenIDReward } from './types';
+import { BFTAPI, ModuleConfig, RandomAPI, TokenAPI, TokenIDReward } from './types';
 import { BlockAfterExecuteContext } from '../../node/state_machine';
 import { RewardAPI } from './api';
 import { RewardEndpoint } from './endpoint';
@@ -27,16 +27,16 @@ export class RewardModule extends BaseModule {
 	public configSchema = configSchema;
 	public endpoint = new RewardEndpoint(this.id);
 	private _tokenAPI!: TokenAPI;
-	private _liskBFTAPI!: LiskBFTAPI;
+	private _bftAPI!: BFTAPI;
 	private _randomAPI!: RandomAPI;
 	private _tokenIDReward!: TokenIDReward;
 	private _moduleConfig!: ModuleConfig;
 
-	public addDependencies(tokenAPI: TokenAPI, randomAPI: RandomAPI, liskBFTAPI: LiskBFTAPI) {
+	public addDependencies(tokenAPI: TokenAPI, randomAPI: RandomAPI, bftAPI: BFTAPI) {
 		this._tokenAPI = tokenAPI;
 		this._randomAPI = randomAPI;
-		this._liskBFTAPI = liskBFTAPI;
-		this.api.addDependencies(liskBFTAPI, randomAPI);
+		this._bftAPI = bftAPI;
+		this.api.addDependencies(bftAPI, randomAPI);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -57,6 +57,6 @@ export class RewardModule extends BaseModule {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async afterBlockExecute(_context: BlockAfterExecuteContext): Promise<void> {
 		// eslint-disable-next-line no-console
-		console.log(this._tokenAPI, this._liskBFTAPI, this._randomAPI, this._tokenIDReward);
+		console.log(this._tokenAPI, this._bftAPI, this._randomAPI, this._tokenIDReward);
 	}
 }

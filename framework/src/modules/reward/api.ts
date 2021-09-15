@@ -13,16 +13,16 @@
  */
 
 import { BaseAPI } from '../base_api';
-import { LiskBFTAPI, RandomAPI } from './types';
+import { BFTAPI, RandomAPI } from './types';
 
 export class RewardAPI extends BaseAPI {
-	private _liskBFTAPI!: LiskBFTAPI;
+	private _bftAPI!: BFTAPI;
 	private _randomAPI!: RandomAPI;
 
-	public addDependencies(liskBFTAPI: LiskBFTAPI, randomAPI: RandomAPI): void {
-		this._liskBFTAPI = liskBFTAPI;
+	public addDependencies(bftAPI: BFTAPI, randomAPI: RandomAPI): void {
+		this._bftAPI = bftAPI;
 		this._randomAPI = randomAPI;
 		// eslint-disable-next-line no-console
-		console.log(this._liskBFTAPI, this._randomAPI);
+		console.log(this._bftAPI, this._randomAPI);
 	}
 }

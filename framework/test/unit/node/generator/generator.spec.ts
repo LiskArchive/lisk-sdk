@@ -25,7 +25,7 @@ import { fakeLogger } from '../../../utils/node';
 import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
 import { NETWORK_RPC_GET_TRANSACTIONS } from '../../../../src/node/generator/constants';
 import { getTransactionsResponseSchema } from '../../../../src/node/generator/schemas';
-import { LiskBFTAPI, ValidatorAPI } from '../../../../src/node/consensus';
+import { BFTAPI, ValidatorAPI } from '../../../../src/node/consensus';
 
 describe('generator', () => {
 	const logger = fakeLogger;
@@ -84,7 +84,7 @@ describe('generator', () => {
 	let blockchainDB: KVStore;
 	let generatorDB: KVStore;
 	let validatorAPI: ValidatorAPI;
-	let liskBFTAPI: LiskBFTAPI;
+	let bftAPI: BFTAPI;
 
 	beforeEach(() => {
 		blockchainDB = new InMemoryKVStore() as never;
@@ -114,7 +114,7 @@ describe('generator', () => {
 			getSlotTime: jest.fn(),
 			getGenerator: jest.fn(),
 		} as never;
-		liskBFTAPI = {
+		bftAPI = {
 			getBFTHeights: jest.fn().mockResolvedValue({
 				maxHeightPrevoted: 0,
 				maxHeightPrecommited: 0,
@@ -146,7 +146,7 @@ describe('generator', () => {
 			network,
 			stateMachine,
 			validatorAPI,
-			liskBFTAPI,
+			bftAPI,
 			generationConfig: {
 				generators: genesisDelegates.delegates,
 				defaultPassword: genesisDelegates.delegates[0].password,

@@ -62,6 +62,9 @@ export const nodeOptions = ({
 			validators: {
 				blockTime: 10,
 			},
+			bft: {
+				batchSize: 103,
+			},
 		},
 	},
 	genesisConfig: {

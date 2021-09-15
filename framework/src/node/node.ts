@@ -29,7 +29,7 @@ import { Endpoint } from './endpoint';
 import { getRegisteredModules, getSchema } from './utils/modules';
 import { getEndpointHandlers, mergeEndpointHandlers } from '../endpoint';
 import { ValidatorsAPI, ValidatorsModule } from '../modules/validators';
-import { LiskBFTAPI, LiskBFTModule } from '../modules/liskbft';
+import { BFTAPI, BFTModule } from '../modules/bft';
 import {
 	APP_EVENT_BLOCK_DELETE,
 	APP_EVENT_BLOCK_NEW,
@@ -63,7 +63,7 @@ export class Node {
 	private readonly _chain: Chain;
 	private readonly _endpoint: Endpoint;
 	private readonly _validatorsModule: ValidatorsModule;
-	private readonly _liskBFTModule: LiskBFTModule;
+	private readonly _bftModule: BFTModule;
 	private _channel!: InMemoryChannel;
 	private _logger!: Logger;
 	private _nodeDB!: KVStore;
@@ -84,20 +84,20 @@ export class Node {
 
 		this._stateMachine = new StateMachine();
 		this._validatorsModule = new ValidatorsModule();
-		this._liskBFTModule = new LiskBFTModule();
-		this._registeredModules.push(this._validatorsModule, this._liskBFTModule);
+		this._bftModule = new BFTModule();
+		this._registeredModules.push(this._validatorsModule, this._bftModule);
 		this._consensus = new Consensus({
 			stateMachine: this._stateMachine,
 			network: this._network,
 			chain: this._chain,
 			genesisConfig: this._options.genesisConfig,
-			liskBFTAPI: this._liskBFTModule.api,
+			bftAPI: this._bftModule.api,
 			validatorAPI: this._validatorsModule.api,
 		});
 		this._generator = new Generator({
 			chain: this._chain,
 			consensus: this._consensus,
-			liskBFTAPI: this._liskBFTModule.api,
+			bftAPI: this._bftModule.api,
 			validatorAPI: this._validatorsModule.api,
 			generationConfig: this._options.generation,
 			network: this._network,
@@ -111,9 +111,9 @@ export class Node {
 			generator: this._generator,
 		});
 		this._stateMachine.registerSystemModule(this._validatorsModule);
-		this._stateMachine.registerSystemModule(this._liskBFTModule);
+		this._stateMachine.registerSystemModule(this._bftModule);
 		this._generator.registerModule(this._validatorsModule);
-		this._generator.registerModule(this._liskBFTModule);
+		this._generator.registerModule(this._bftModule);
 	}
 
 	public getEndpoints(): EndpointHandlers {
@@ -262,8 +262,8 @@ export class Node {
 		this._logger.info('Node ready and launched');
 	}
 
-	public get liskBFTAPI(): LiskBFTAPI {
-		return this._liskBFTModule.api;
+	public get bftAPI(): BFTAPI {
+		return this._bftModule.api;
 	}
 
 	public get validatorAPI(): ValidatorsAPI {

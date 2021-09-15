@@ -32,7 +32,7 @@ export interface Consensus {
 	isSynced: (height: number, maxHeightPrevoted: number) => boolean;
 }
 
-export interface LiskBFTAPI {
+export interface BFTAPI {
 	getBFTHeights: (_apiClient: ImmutableAPIContext) => Promise<BFTVotes>;
 	verifyGeneratorInfo: (
 		apiContext: APIContext,

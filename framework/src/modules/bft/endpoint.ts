@@ -14,4 +14,4 @@
 
 import { BaseEndpoint } from '../base_endpoint';
 
-export class LiskBFTEndpoint extends BaseEndpoint {}
+export class BFTEndpoint extends BaseEndpoint {}
