@@ -85,7 +85,7 @@ export const bftParametersSchema = {
 	},
 };
 
-export interface BFTVotesBlockBFTInfo {
+export interface BFTVotesBlockInfo {
 	height: number;
 	generatorAddress: Buffer;
 	maxHeightGenerated: number;
@@ -104,7 +104,7 @@ export interface BFTVotes {
 	maxHeightPrevoted: number;
 	maxHeightPrecommitted: number;
 	maxHeightCertified: number;
-	blockBFTInfos: BFTVotesBlockBFTInfo[];
+	blockBFTInfos: BFTVotesBlockInfo[];
 }
 
 export const bftVotesSchema = {
