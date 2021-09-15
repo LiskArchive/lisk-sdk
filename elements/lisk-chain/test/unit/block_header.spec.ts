@@ -116,6 +116,9 @@ describe('block_header', () => {
 				expect(blockHeader.stateRoot).toEqual(data.stateRoot);
 				expect(blockHeader.validatorsHash).toEqual(data.validatorsHash);
 				expect(blockHeader.aggregateCommit).toEqual(data.aggregateCommit);
+				expect(blockHeader.maxHeightPrevoted).toEqual(data.maxHeightPrevoted);
+				expect(blockHeader.maxHeightGenerated).toEqual(data.maxHeightGenerated);
+				expect(blockHeader.assetsRoot).toEqual(data.assetsRoot);
 				expect(blockHeader.transactionRoot).toEqual(data.transactionRoot);
 				expect(blockHeader.id).toEqual(blockId);
 				expect(blockHeader.signature).toEqual(data.signature);
