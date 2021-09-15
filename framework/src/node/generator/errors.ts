@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+/* eslint-disable max-classes-per-file */
 
 export class InvalidTransactionError extends Error {
 	public readonly message: string;
@@ -22,3 +23,5 @@ export class InvalidTransactionError extends Error {
 		this.id = id;
 	}
 }
+
+export class NotFoundError extends Error {}

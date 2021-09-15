@@ -25,7 +25,7 @@ import {
 	DB_KEY_TEMPBLOCKS_HEIGHT,
 } from '../../../src/db_keys';
 import { Block } from '../../../src/block';
-import { BlockHeader } from '../../../src';
+import { BlockAssets, BlockHeader } from '../../../src';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -340,7 +340,7 @@ describe('data_access', () => {
 
 			// Assert
 			expect(db.createReadStream).toHaveBeenCalledTimes(1);
-			expect(db.get).toHaveBeenCalledTimes(2);
+			expect(db.get).toHaveBeenCalledTimes(3);
 		});
 	});
 
@@ -363,7 +363,7 @@ describe('data_access', () => {
 
 			// Assert
 			expect(db.createReadStream).toHaveBeenCalledTimes(1);
-			expect(db.get).toHaveBeenCalledTimes(2);
+			expect(db.get).toHaveBeenCalledTimes(3);
 		});
 	});
 
@@ -490,7 +490,7 @@ describe('data_access', () => {
 
 			const blocks = [];
 			for (let i = 0; i < 5; i += 1) {
-				block = new Block(createFakeBlockHeader({ height: i + 10 }), []);
+				block = new Block(createFakeBlockHeader({ height: i + 10 }), [], new BlockAssets());
 				blocks.push(block);
 				dataAccess.addBlockHeader(block.header);
 			}

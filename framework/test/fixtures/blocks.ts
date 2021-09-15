@@ -20,7 +20,7 @@ import {
 } from '@liskhq/lisk-cryptography';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { MerkleTree } from '@liskhq/lisk-tree';
-import { Block, BlockHeader, BlockHeaderAttrs, Transaction } from '@liskhq/lisk-chain';
+import { Block, BlockAssets, BlockHeader, BlockHeaderAttrs, Transaction } from '@liskhq/lisk-chain';
 
 export const defaultNetworkIdentifier = Buffer.from(
 	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e',
@@ -30,17 +30,25 @@ export const defaultNetworkIdentifier = Buffer.from(
 export const genesisBlock = (): Block => {
 	const header = new BlockHeader({
 		generatorAddress: Buffer.alloc(0),
-		assets: [],
 		height: 0,
 		version: 0,
 		previousBlockID: Buffer.alloc(0),
 		timestamp: Math.floor(Date.now() / 1000 - 24 * 60 * 60),
 		stateRoot: hash(Buffer.alloc(0)),
+		maxHeightGenerated: 0,
+		maxHeightPrevoted: 0,
+		assetsRoot: hash(Buffer.alloc(0)),
+		validatorsHash: getRandomBytes(32),
+		aggregateCommit: {
+			height: 0,
+			aggregationBits: Buffer.alloc(0),
+			certificateSignature: Buffer.alloc(0),
+		},
 		transactionRoot: hash(Buffer.alloc(0)),
 		signature: Buffer.alloc(0),
 	});
 
-	return new Block(header, []);
+	return new Block(header, [], new BlockAssets());
 };
 
 const getKeyPair = (): { publicKey: Buffer; privateKey: Buffer } => {
@@ -55,9 +63,17 @@ export const createFakeBlockHeader = (header?: Partial<BlockHeaderAttrs>): Block
 		height: header?.height ?? 0,
 		previousBlockID: header?.previousBlockID ?? hash(getRandomBytes(4)),
 		transactionRoot: header?.transactionRoot ?? hash(getRandomBytes(4)),
+		maxHeightGenerated: header?.maxHeightGenerated ?? 0,
+		maxHeightPrevoted: header?.maxHeightPrevoted ?? 0,
+		assetsRoot: header?.assetsRoot ?? hash(getRandomBytes(4)),
+		aggregateCommit: header?.aggregateCommit ?? {
+			height: 0,
+			aggregationBits: Buffer.alloc(0),
+			certificateSignature: Buffer.alloc(0),
+		},
+		validatorsHash: header?.validatorsHash ?? getRandomBytes(32),
 		stateRoot: header?.stateRoot ?? hash(getRandomBytes(4)),
 		generatorAddress: header?.generatorAddress ?? getRandomBytes(32),
-		assets: [],
 		signature: header?.signature ?? getRandomBytes(64),
 	});
 
@@ -82,7 +98,15 @@ export const createValidDefaultBlock = async (
 		transactionRoot: txTree.root,
 		stateRoot: getRandomBytes(32),
 		generatorAddress: getAddressFromPublicKey(keypair.publicKey),
-		assets: [],
+		aggregateCommit: {
+			height: 0,
+			aggregationBits: Buffer.alloc(0),
+			certificateSignature: Buffer.alloc(0),
+		},
+		assetsRoot: getRandomBytes(32),
+		maxHeightPrevoted: 0,
+		maxHeightGenerated: 0,
+		validatorsHash: getRandomBytes(32),
 		...block?.header,
 	});
 
@@ -91,5 +115,5 @@ export const createValidDefaultBlock = async (
 	// Assigning the id ahead
 	// eslint-disable-next-line @typescript-eslint/no-unused-expressions
 	blockHeader.id;
-	return new Block(blockHeader, payload);
+	return new Block(blockHeader, payload, new BlockAssets());
 };

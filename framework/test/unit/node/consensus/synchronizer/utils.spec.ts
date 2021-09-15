@@ -13,9 +13,6 @@
  */
 
 import { Block } from '@liskhq/lisk-chain';
-import { codec } from '@liskhq/lisk-codec';
-import { LiskBFTAPI } from '../../../../../src/modules/liskbft/api';
-import { liskBFTAssetSchema, liskBFTModuleID } from '../../../../../src/modules/liskbft/constants';
 import {
 	restoreBlocks,
 	restoreBlocksUponStartup,
@@ -32,15 +29,8 @@ describe('#synchronizer/utils', () => {
 		lastBlock = await createValidDefaultBlock({
 			header: {
 				height: 1,
-				assets: [
-					{
-						moduleID: liskBFTModuleID,
-						data: codec.encode(liskBFTAssetSchema, {
-							maxHeightPrevoted: 0,
-							maxHeightPreviouslyForged: 0,
-						}),
-					},
-				],
+				maxHeightPrevoted: 0,
+				maxHeightGenerated: 0,
 			},
 		});
 		chainMock = {
@@ -118,29 +108,15 @@ describe('#synchronizer/utils', () => {
 					header: {
 						height: 11,
 						previousBlockID: Buffer.from('height-10'),
-						assets: [
-							{
-								moduleID: liskBFTModuleID,
-								data: codec.encode(liskBFTAssetSchema, {
-									maxHeightPrevoted: 7,
-									maxHeightPreviouslyForged: 0,
-								}),
-							},
-						],
+						maxHeightPrevoted: 7,
+						maxHeightGenerated: 0,
 					},
 				}),
 				await createValidDefaultBlock({
 					header: {
 						height: 10,
-						assets: [
-							{
-								moduleID: liskBFTModuleID,
-								data: codec.encode(liskBFTAssetSchema, {
-									maxHeightPrevoted: 6,
-									maxHeightPreviouslyForged: 0,
-								}),
-							},
-						],
+						maxHeightPrevoted: 6,
+						maxHeightGenerated: 0,
 					},
 				}),
 			];
@@ -152,25 +128,13 @@ describe('#synchronizer/utils', () => {
 			chainMock.lastBlock = await createValidDefaultBlock({
 				header: {
 					height: 1,
-					assets: [
-						{
-							moduleID: liskBFTModuleID,
-							data: codec.encode(liskBFTAssetSchema, {
-								maxHeightPrevoted: 0,
-								maxHeightPreviouslyForged: 0,
-							}),
-						},
-					],
+					maxHeightPrevoted: 0,
+					maxHeightGenerated: 0,
 				},
 			});
 
 			// Act
-			await restoreBlocksUponStartup(
-				loggerMock,
-				chainMock,
-				blockExecutor,
-				new LiskBFTAPI(liskBFTModuleID),
-			);
+			await restoreBlocksUponStartup(loggerMock, chainMock, blockExecutor);
 
 			// Assert
 			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalled();
@@ -183,15 +147,8 @@ describe('#synchronizer/utils', () => {
 					header: {
 						previousBlockID: Buffer.from('height-9'),
 						height: 9,
-						assets: [
-							{
-								moduleID: liskBFTModuleID,
-								data: codec.encode(liskBFTAssetSchema, {
-									maxHeightPrevoted: 0,
-									maxHeightPreviouslyForged: 0,
-								}),
-							},
-						],
+						maxHeightPrevoted: 0,
+						maxHeightGenerated: 0,
 					},
 				});
 			});
@@ -199,26 +156,14 @@ describe('#synchronizer/utils', () => {
 				header: {
 					previousBlockID: Buffer.from('height-9'),
 					height: 10,
-					assets: [
-						{
-							moduleID: liskBFTModuleID,
-							data: codec.encode(liskBFTAssetSchema, {
-								maxHeightPrevoted: 0,
-								maxHeightPreviouslyForged: 0,
-							}),
-						},
-					],
+					maxHeightPrevoted: 0,
+					maxHeightGenerated: 0,
 				},
 			});
 			chainMock.lastBlock.header._id = Buffer.from('height-10');
 
 			// Act
-			await restoreBlocksUponStartup(
-				loggerMock,
-				chainMock,
-				blockExecutor,
-				new LiskBFTAPI(liskBFTModuleID),
-			);
+			await restoreBlocksUponStartup(loggerMock, chainMock, blockExecutor);
 
 			// Assert
 			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalled();
@@ -231,25 +176,13 @@ describe('#synchronizer/utils', () => {
 			chainMock.lastBlock = await createValidDefaultBlock({
 				header: {
 					height: 1,
-					assets: [
-						{
-							moduleID: liskBFTModuleID,
-							data: codec.encode(liskBFTAssetSchema, {
-								maxHeightPrevoted: 0,
-								maxHeightPreviouslyForged: 0,
-							}),
-						},
-					],
+					maxHeightPrevoted: 0,
+					maxHeightGenerated: 0,
 				},
 			});
 
 			// Act
-			await restoreBlocksUponStartup(
-				loggerMock,
-				chainMock,
-				blockExecutor,
-				new LiskBFTAPI(liskBFTModuleID),
-			);
+			await restoreBlocksUponStartup(loggerMock, chainMock, blockExecutor);
 
 			// Assert
 			expect(chainMock.dataAccess.getTempBlocks).toHaveBeenCalled();

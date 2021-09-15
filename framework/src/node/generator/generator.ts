@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Chain, Transaction, BlockHeader } from '@liskhq/lisk-chain';
-import { Block } from '@liskhq/lisk-chain/dist-node/block';
+import { Chain, Block, Transaction, BlockHeader, BlockAssets } from '@liskhq/lisk-chain';
 import { StateStore } from '@liskhq/lisk-chain/dist-node/state_store';
 import { codec } from '@liskhq/lisk-codec';
 import {
 	decryptPassphraseWithPassword,
 	getAddressFromPublicKey,
 	getPrivateAndPublicKeyFromPassphrase,
+	hash,
 	parseEncryptedPassphrase,
 } from '@liskhq/lisk-cryptography';
 import { KVStore } from '@liskhq/lisk-db';
@@ -32,7 +32,6 @@ import { Logger } from '../../logger';
 import { GenerationConfig, GenesisConfig } from '../../types';
 import { Network } from '../network';
 import {
-	APIContext,
 	EventQueue,
 	StateMachine,
 	TransactionContext,
@@ -55,6 +54,8 @@ import { NetworkEndpoint } from './network_endpoint';
 import { GetTransactionResponse, getTransactionsResponseSchema } from './schemas';
 import { HighFeeGenerationStrategy } from './strategies';
 import { Consensus, GeneratorModule, LiskBFTAPI, ValidatorAPI } from './types';
+import { createAPIContext, createNewAPIContext } from '../state_machine/api_context';
+import { getOrDefaultLastGeneratedInfo, setLastGeneratedInfo } from './generated_info';
 
 interface GeneratorArgs {
 	genesisConfig: GenesisConfig;
@@ -136,7 +137,6 @@ export class Generator {
 			keypair: this._keypairs,
 			chain: this._chain,
 			consensus: this._consensus,
-			liskBFTAPI: this._liskBFTAPI,
 			broadcaster: this._broadcaster,
 			pool: this._pool,
 			stateMachine: this._stateMachine,
@@ -373,10 +373,7 @@ export class Generator {
 	}
 
 	private async _generateLoop(): Promise<void> {
-		const apiContext = new APIContext({
-			stateStore: new StateStore(this._blockchainDB),
-			eventQueue: new EventQueue(),
-		});
+		const apiContext = createNewAPIContext(this._blockchainDB);
 
 		const MS_IN_A_SEC = 1000;
 		const currentTime = Math.floor(new Date().getTime() / MS_IN_A_SEC);
@@ -436,20 +433,32 @@ export class Generator {
 		timestamp: number,
 	): Promise<Block> {
 		const stateStore = new StateStore(this._blockchainDB);
+		const generatorStore = new GeneratorStore(this._generatorDB);
+		const apiContext = createAPIContext({ stateStore, eventQueue: new EventQueue() });
+
+		const { maxHeightPrevoted } = await this._liskBFTAPI.getBFTHeights(apiContext);
+		const { height } = await getOrDefaultLastGeneratedInfo(generatorStore, generatorAddress);
 
 		const blockHeader = new BlockHeader({
 			generatorAddress,
 			height: this._chain.lastBlock.header.height + 1,
 			previousBlockID: this._chain.lastBlock.header.id,
 			version: BLOCK_VERSION,
+			maxHeightPrevoted,
+			maxHeightGenerated: height,
+			aggregateCommit: {
+				height: 0,
+				aggregationBits: Buffer.alloc(0),
+				certificateSignature: Buffer.alloc(0),
+			},
 			timestamp,
-			assets: [],
 		});
+		const blockAssets = new BlockAssets();
 
-		const generatorStore = new GeneratorStore(this._generatorDB);
 		const genContext = new GenerationContext({
 			generatorStore,
 			header: blockHeader,
+			assets: blockAssets,
 			logger: this._logger,
 			networkIdentifier: this._chain.networkIdentifier,
 			stateStore,
@@ -465,6 +474,7 @@ export class Generator {
 		const blockCtx = new BlockContext({
 			eventQueue,
 			header: blockHeader,
+			assets: blockAssets,
 			logger: this._logger,
 			networkIdentifier: this._chain.networkIdentifier,
 			stateStore,
@@ -489,9 +499,21 @@ export class Generator {
 		await txTree.init(transactions.map(tx => tx.id));
 		const transactionRoot = txTree.root;
 		blockHeader.transactionRoot = transactionRoot;
+		// TODO: Update the assetsRoot with proper calculation
+		blockHeader.assetsRoot = hash(Buffer.concat(blockAssets.getBytes()));
+		// TODO: Update the stateRoot with proper calculation
+		blockHeader.stateRoot = hash(Buffer.alloc(0));
+		// TODO: Update validatorsHash with proper calculation
+		blockHeader.validatorsHash = hash(Buffer.alloc(0));
 		blockHeader.sign(this._chain.networkIdentifier, keypair.privateKey);
 
-		const generatedBlock = new Block(blockHeader, transactions);
+		const generatedBlock = new Block(blockHeader, transactions, blockAssets);
+
+		await setLastGeneratedInfo(generatorStore, blockHeader.generatorAddress, blockHeader);
+
+		const batch = this._generatorDB.batch();
+		generatorStore.finalize(batch);
+		await batch.write();
 
 		return generatedBlock;
 	}

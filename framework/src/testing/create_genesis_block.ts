@@ -15,8 +15,8 @@
 
 import {
 	Block,
+	BlockAssets,
 	BlockHeader,
-	BlockHeaderAsset,
 	BlockHeaderJSON,
 	TransactionJSON,
 } from '@liskhq/lisk-chain';
@@ -29,7 +29,7 @@ interface CreateGenesisBlock {
 	height?: number;
 	timestamp?: number;
 	previousBlockID?: Buffer;
-	assets?: BlockHeaderAsset[];
+	assets?: BlockAssets;
 }
 
 export const createGenesisBlock = (
@@ -55,10 +55,18 @@ export const createGenesisBlock = (
 		transactionRoot: hash(Buffer.alloc(0)),
 		stateRoot: hash(Buffer.alloc(0)),
 		signature: Buffer.alloc(0),
-		assets: params.assets ?? [],
+		maxHeightGenerated: 0,
+		maxHeightPrevoted: 0,
+		assetsRoot: hash(Buffer.alloc(0)),
+		aggregateCommit: {
+			height: 0,
+			aggregationBits: Buffer.alloc(0),
+			certificateSignature: Buffer.alloc(0),
+		},
+		validatorsHash: hash(Buffer.alloc(0)),
 	});
 
-	const genesisBlock = new Block(header, []);
+	const genesisBlock = new Block(header, [], params.assets ?? new BlockAssets());
 
 	return {
 		genesisBlock,

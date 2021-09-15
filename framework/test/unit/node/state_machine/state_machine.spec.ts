@@ -11,20 +11,21 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Transaction } from '@liskhq/lisk-chain';
+import { Transaction, StateStore, BlockAssets } from '@liskhq/lisk-chain';
 import { Logger } from '../../../../src/logger';
 import { BlockContext } from '../../../../src/node/state_machine/block_context';
 import { EventQueue } from '../../../../src/node/state_machine/event_queue';
 import { GenesisBlockContext } from '../../../../src/node/state_machine/genesis_block_context';
 import { StateMachine } from '../../../../src/node/state_machine/state_machine';
 import { TransactionContext } from '../../../../src/node/state_machine/transaction_context';
-import { StateStore, BlockHeader, VerifyStatus } from '../../../../src/node/state_machine/types';
+import { BlockHeader, VerifyStatus } from '../../../../src/node/state_machine';
 import { CustomModule0, CustomModule1, CustomModule2 } from './custom_modules';
 
 describe('state_machine', () => {
 	const genesisHeader = {} as BlockHeader;
 	const header = {} as BlockHeader;
 	const logger = {} as Logger;
+	const assets = new BlockAssets();
 	const stateStore = {} as StateStore;
 	const eventQueue = new EventQueue();
 	const networkIdentifier = Buffer.from('network identifier', 'utf8');
@@ -51,6 +52,7 @@ describe('state_machine', () => {
 			const ctx = new GenesisBlockContext({
 				eventQueue,
 				header: genesisHeader,
+				assets,
 				logger,
 				stateStore,
 			});
@@ -62,6 +64,7 @@ describe('state_machine', () => {
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
 				header: genesisHeader,
+				assets,
 			});
 		});
 	});
@@ -110,6 +113,7 @@ describe('state_machine', () => {
 				logger,
 				stateStore,
 				header,
+				assets,
 				networkIdentifier,
 				transaction,
 			});
@@ -119,6 +123,7 @@ describe('state_machine', () => {
 				logger,
 				transaction,
 				header,
+				assets,
 				eventQueue,
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
@@ -135,6 +140,7 @@ describe('state_machine', () => {
 				logger,
 				stateStore,
 				header,
+				assets,
 				networkIdentifier,
 				transactions: [transaction],
 			});
@@ -143,6 +149,7 @@ describe('state_machine', () => {
 				networkIdentifier,
 				logger,
 				header,
+				assets,
 				eventQueue,
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
@@ -159,6 +166,7 @@ describe('state_machine', () => {
 				logger,
 				stateStore,
 				header,
+				assets,
 				networkIdentifier,
 				transactions: [transaction],
 			});
@@ -167,6 +175,7 @@ describe('state_machine', () => {
 				networkIdentifier,
 				logger,
 				header,
+				assets,
 				eventQueue,
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
@@ -183,6 +192,7 @@ describe('state_machine', () => {
 				logger,
 				stateStore,
 				header,
+				assets,
 				networkIdentifier,
 				transactions: [transaction],
 			});
@@ -191,6 +201,7 @@ describe('state_machine', () => {
 				networkIdentifier,
 				logger,
 				header,
+				assets,
 				eventQueue,
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
@@ -207,6 +218,7 @@ describe('state_machine', () => {
 				logger,
 				stateStore,
 				header,
+				assets,
 				networkIdentifier,
 				transactions: [transaction],
 			});
@@ -215,6 +227,7 @@ describe('state_machine', () => {
 				networkIdentifier,
 				logger,
 				header,
+				assets,
 				eventQueue,
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
@@ -225,6 +238,7 @@ describe('state_machine', () => {
 				networkIdentifier,
 				logger,
 				header,
+				assets,
 				eventQueue,
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),

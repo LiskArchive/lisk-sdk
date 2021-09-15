@@ -14,7 +14,7 @@
  *
  */
 
-import { Block, Chain, DataAccess, BlockHeader, Transaction, StateStore } from '@liskhq/lisk-chain';
+import { Block, Chain, DataAccess, BlockHeader, Transaction } from '@liskhq/lisk-chain';
 import { getNetworkIdentifier, getKeys } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
@@ -27,8 +27,9 @@ import { createDB, removeDB } from './utils';
 import { ApplicationConfig, GenesisConfig } from '../types';
 import { createGenesisBlock } from './create_genesis_block';
 import { Consensus } from '../node/consensus';
-import { APIContext, EventQueue } from '../node/state_machine';
+import { APIContext } from '../node/state_machine';
 import { Node } from '../node';
+import { createNewAPIContext } from '../node/state_machine/api_context';
 
 type Options = {
 	genesisConfig?: GenesisConfig;
@@ -82,10 +83,7 @@ const createProcessableBlock = async (
 	timestamp?: number,
 ): Promise<Block> => {
 	// Get previous block and generate valid timestamp, seed reveal, maxHeightPrevoted, reward and maxHeightPreviouslyForged
-	const apiContext = new APIContext({
-		eventQueue: new EventQueue(),
-		stateStore: new StateStore(node['_blockchainDB']),
-	});
+	const apiContext = createNewAPIContext(node['_blockchainDB']);
 	const previousBlockHeader = node['_chain'].lastBlock.header;
 	const nextTimestamp = timestamp ?? getNextTimestamp(node, apiContext, previousBlockHeader);
 	const validator = await node.validatorAPI.getGenerator(apiContext, nextTimestamp);
@@ -141,10 +139,7 @@ export const getBlockProcessingEnv = async (
 		},
 		getLastBlock: () => node['_chain'].lastBlock,
 		getNextValidatorPassphrase: async (previousBlockHeader: BlockHeader): Promise<string> => {
-			const apiContext = new APIContext({
-				eventQueue: new EventQueue(),
-				stateStore: new StateStore(blockchainDB),
-			});
+			const apiContext = createNewAPIContext(blockchainDB);
 			const nextTimestamp = getNextTimestamp(node, apiContext, previousBlockHeader);
 			const validator = await node.validatorAPI.getGenerator(apiContext, nextTimestamp);
 			const passphrase = getPassphraseFromDefaultConfig(validator);

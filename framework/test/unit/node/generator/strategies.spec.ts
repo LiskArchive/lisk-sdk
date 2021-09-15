@@ -14,7 +14,7 @@
 
 import { when } from 'jest-when';
 import { BlockHeader } from '@liskhq/lisk-chain/dist-node/block_header';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { HighFeeGenerationStrategy } from '../../../../src/node/generator/strategies';
@@ -107,10 +107,20 @@ describe('strategies', () => {
 		beforeEach(() => {
 			header = new BlockHeader({
 				version: 2,
-				assets: [],
 				generatorAddress: Buffer.from('address'),
 				height: 20,
 				previousBlockID: Buffer.from('id'),
+				maxHeightGenerated: 0,
+				maxHeightPrevoted: 0,
+				assetsRoot: hash(Buffer.alloc(0)),
+				transactionRoot: hash(Buffer.alloc(0)),
+				validatorsHash: hash(Buffer.alloc(0)),
+				stateRoot: hash(Buffer.alloc(0)),
+				aggregateCommit: {
+					aggregationBits: Buffer.alloc(0),
+					certificateSignature: Buffer.alloc(0),
+					height: 0,
+				},
 				timestamp: 100000000,
 			});
 			strategy = new HighFeeGenerationStrategy({

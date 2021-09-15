@@ -2,36 +2,50 @@
 
 exports[`block_header blockHeaderSchema should be valid schema with signature but without id 1`] = `
 Object {
-  "$id": "/block/header/2",
+  "$id": "/block/header/3",
   "properties": Object {
-    "assets": Object {
-      "fieldNumber": 8,
-      "items": Object {
-        "properties": Object {
-          "data": Object {
-            "dataType": "bytes",
-            "fieldNumber": 2,
-          },
-          "moduleID": Object {
-            "dataType": "uint32",
-            "fieldNumber": 1,
-          },
+    "aggregateCommit": Object {
+      "fieldNumber": 12,
+      "properties": Object {
+        "aggregationBits": Object {
+          "dataType": "bytes",
+          "fieldNumber": 2,
         },
-        "required": Array [
-          "moduleID",
-          "data",
-        ],
-        "type": "object",
+        "certificateSignature": Object {
+          "dataType": "bytes",
+          "fieldNumber": 3,
+        },
+        "height": Object {
+          "dataType": "uint32",
+          "fieldNumber": 1,
+        },
       },
-      "type": "array",
+      "required": Array [
+        "height",
+        "aggregationBits",
+        "certificateSignature",
+      ],
+      "type": "object",
+    },
+    "assetsRoot": Object {
+      "dataType": "bytes",
+      "fieldNumber": 7,
     },
     "generatorAddress": Object {
       "dataType": "bytes",
-      "fieldNumber": 7,
+      "fieldNumber": 5,
     },
     "height": Object {
       "dataType": "uint32",
       "fieldNumber": 3,
+    },
+    "maxHeightGenerated": Object {
+      "dataType": "uint32",
+      "fieldNumber": 10,
+    },
+    "maxHeightPrevoted": Object {
+      "dataType": "uint32",
+      "fieldNumber": 9,
     },
     "previousBlockID": Object {
       "dataType": "bytes",
@@ -39,11 +53,11 @@ Object {
     },
     "signature": Object {
       "dataType": "bytes",
-      "fieldNumber": 9,
+      "fieldNumber": 13,
     },
     "stateRoot": Object {
       "dataType": "bytes",
-      "fieldNumber": 5,
+      "fieldNumber": 8,
     },
     "timestamp": Object {
       "dataType": "uint32",
@@ -52,6 +66,10 @@ Object {
     "transactionRoot": Object {
       "dataType": "bytes",
       "fieldNumber": 6,
+    },
+    "validatorsHash": Object {
+      "dataType": "bytes",
+      "fieldNumber": 11,
     },
     "version": Object {
       "dataType": "uint32",
@@ -63,10 +81,14 @@ Object {
     "timestamp",
     "height",
     "previousBlockID",
-    "stateRoot",
-    "transactionRoot",
     "generatorAddress",
-    "assets",
+    "transactionRoot",
+    "assetsRoot",
+    "stateRoot",
+    "maxHeightPrevoted",
+    "maxHeightGenerated",
+    "validatorsHash",
+    "aggregateCommit",
     "signature",
   ],
   "type": "object",
@@ -75,32 +97,38 @@ Object {
 
 exports[`block_header blockHeaderSchemaWithId should be valid schema with signature and id 1`] = `
 Object {
-  "$id": "/block/header/2",
+  "$id": "/block/header/3",
   "properties": Object {
-    "assets": Object {
-      "fieldNumber": 8,
-      "items": Object {
-        "properties": Object {
-          "data": Object {
-            "dataType": "bytes",
-            "fieldNumber": 2,
-          },
-          "moduleID": Object {
-            "dataType": "uint32",
-            "fieldNumber": 1,
-          },
+    "aggregateCommit": Object {
+      "fieldNumber": 12,
+      "properties": Object {
+        "aggregationBits": Object {
+          "dataType": "bytes",
+          "fieldNumber": 2,
         },
-        "required": Array [
-          "moduleID",
-          "data",
-        ],
-        "type": "object",
+        "certificateSignature": Object {
+          "dataType": "bytes",
+          "fieldNumber": 3,
+        },
+        "height": Object {
+          "dataType": "uint32",
+          "fieldNumber": 1,
+        },
       },
-      "type": "array",
+      "required": Array [
+        "height",
+        "aggregationBits",
+        "certificateSignature",
+      ],
+      "type": "object",
+    },
+    "assetsRoot": Object {
+      "dataType": "bytes",
+      "fieldNumber": 7,
     },
     "generatorAddress": Object {
       "dataType": "bytes",
-      "fieldNumber": 7,
+      "fieldNumber": 5,
     },
     "height": Object {
       "dataType": "uint32",
@@ -108,7 +136,15 @@ Object {
     },
     "id": Object {
       "dataType": "bytes",
+      "fieldNumber": 14,
+    },
+    "maxHeightGenerated": Object {
+      "dataType": "uint32",
       "fieldNumber": 10,
+    },
+    "maxHeightPrevoted": Object {
+      "dataType": "uint32",
+      "fieldNumber": 9,
     },
     "previousBlockID": Object {
       "dataType": "bytes",
@@ -116,11 +152,11 @@ Object {
     },
     "signature": Object {
       "dataType": "bytes",
-      "fieldNumber": 9,
+      "fieldNumber": 13,
     },
     "stateRoot": Object {
       "dataType": "bytes",
-      "fieldNumber": 5,
+      "fieldNumber": 8,
     },
     "timestamp": Object {
       "dataType": "uint32",
@@ -129,6 +165,10 @@ Object {
     "transactionRoot": Object {
       "dataType": "bytes",
       "fieldNumber": 6,
+    },
+    "validatorsHash": Object {
+      "dataType": "bytes",
+      "fieldNumber": 11,
     },
     "version": Object {
       "dataType": "uint32",
@@ -140,10 +180,14 @@ Object {
     "timestamp",
     "height",
     "previousBlockID",
-    "stateRoot",
-    "transactionRoot",
     "generatorAddress",
-    "assets",
+    "transactionRoot",
+    "assetsRoot",
+    "stateRoot",
+    "maxHeightPrevoted",
+    "maxHeightGenerated",
+    "validatorsHash",
+    "aggregateCommit",
     "signature",
     "id",
   ],
@@ -153,36 +197,50 @@ Object {
 
 exports[`block_header signingBlockHeaderSchema should be valid schema without signature and id 1`] = `
 Object {
-  "$id": "/block/header/signing/2",
+  "$id": "/block/header/signing/3",
   "properties": Object {
-    "assets": Object {
-      "fieldNumber": 8,
-      "items": Object {
-        "properties": Object {
-          "data": Object {
-            "dataType": "bytes",
-            "fieldNumber": 2,
-          },
-          "moduleID": Object {
-            "dataType": "uint32",
-            "fieldNumber": 1,
-          },
+    "aggregateCommit": Object {
+      "fieldNumber": 12,
+      "properties": Object {
+        "aggregationBits": Object {
+          "dataType": "bytes",
+          "fieldNumber": 2,
         },
-        "required": Array [
-          "moduleID",
-          "data",
-        ],
-        "type": "object",
+        "certificateSignature": Object {
+          "dataType": "bytes",
+          "fieldNumber": 3,
+        },
+        "height": Object {
+          "dataType": "uint32",
+          "fieldNumber": 1,
+        },
       },
-      "type": "array",
+      "required": Array [
+        "height",
+        "aggregationBits",
+        "certificateSignature",
+      ],
+      "type": "object",
+    },
+    "assetsRoot": Object {
+      "dataType": "bytes",
+      "fieldNumber": 7,
     },
     "generatorAddress": Object {
       "dataType": "bytes",
-      "fieldNumber": 7,
+      "fieldNumber": 5,
     },
     "height": Object {
       "dataType": "uint32",
       "fieldNumber": 3,
+    },
+    "maxHeightGenerated": Object {
+      "dataType": "uint32",
+      "fieldNumber": 10,
+    },
+    "maxHeightPrevoted": Object {
+      "dataType": "uint32",
+      "fieldNumber": 9,
     },
     "previousBlockID": Object {
       "dataType": "bytes",
@@ -190,7 +248,7 @@ Object {
     },
     "stateRoot": Object {
       "dataType": "bytes",
-      "fieldNumber": 5,
+      "fieldNumber": 8,
     },
     "timestamp": Object {
       "dataType": "uint32",
@@ -199,6 +257,10 @@ Object {
     "transactionRoot": Object {
       "dataType": "bytes",
       "fieldNumber": 6,
+    },
+    "validatorsHash": Object {
+      "dataType": "bytes",
+      "fieldNumber": 11,
     },
     "version": Object {
       "dataType": "uint32",
@@ -210,10 +272,14 @@ Object {
     "timestamp",
     "height",
     "previousBlockID",
-    "stateRoot",
-    "transactionRoot",
     "generatorAddress",
-    "assets",
+    "transactionRoot",
+    "assetsRoot",
+    "stateRoot",
+    "maxHeightPrevoted",
+    "maxHeightGenerated",
+    "validatorsHash",
+    "aggregateCommit",
   ],
   "type": "object",
 }

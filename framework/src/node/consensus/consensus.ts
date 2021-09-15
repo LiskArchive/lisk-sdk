@@ -32,7 +32,6 @@ import { GenesisBlockContext } from '../state_machine/genesis_block_context';
 import { Network } from '../network';
 import { NetworkEndpoint } from './network_endpoint';
 import { EventPostBlockData, postBlockEventSchema } from './schema';
-import { BlockHeader } from '../state_machine/types';
 import {
 	CONSENSUS_EVENT_BLOCK_BROADCAST,
 	CONSENSUS_EVENT_BLOCK_DELETE,
@@ -46,8 +45,9 @@ import {
 } from './constants';
 import { GenesisConfig } from '../../types';
 import { ValidatorAPI, LiskBFTAPI } from './types';
-import { APIContext } from '../state_machine';
+import { createAPIContext } from '../state_machine';
 import { forkChoice, ForkStatus } from './fork_choice/fork_choice_rule';
+import { createNewAPIContext } from '../state_machine/api_context';
 
 interface ConsensusArgs {
 	stateMachine: StateMachine;
@@ -127,7 +127,6 @@ export class Consensus {
 			logger: this._logger,
 			network: this._network,
 			blockExecutor,
-			liskBFTAPI: this._liskBFTAPI,
 		});
 		const fastChainSwitchMechanism = new FastChainSwitchingMechanism({
 			chain: this._chain,
@@ -139,7 +138,6 @@ export class Consensus {
 			chainModule: this._chain,
 			logger: this._logger,
 			blockExecutor,
-			liskBFTAPI: this._liskBFTAPI,
 			mechanisms: [blockSyncMechanism, fastChainSwitchMechanism],
 		});
 
@@ -176,7 +174,8 @@ export class Consensus {
 			const eventQueue = new EventQueue();
 			const ctx = new GenesisBlockContext({
 				eventQueue,
-				header: (args.genesisBlock.header as unknown) as BlockHeader,
+				header: args.genesisBlock.header,
+				assets: args.genesisBlock.assets,
 				logger: this._logger,
 				stateStore: (stateStore as unknown) as StateStore,
 			});
@@ -295,10 +294,9 @@ export class Consensus {
 		if (lastBlockHeader.version === 0) {
 			return height <= lastBlockHeader.height && maxHeightPrevoted <= lastBlockHeader.height;
 		}
-		const lastBFTHeader = this._liskBFTAPI.getBFTHeader(lastBlockHeader);
 		return (
-			maxHeightPrevoted < lastBFTHeader.maxHeightPrevoted ||
-			(maxHeightPrevoted === lastBFTHeader.maxHeightPrevoted && height < lastBlockHeader.height)
+			maxHeightPrevoted < lastBlockHeader.maxHeightPrevoted ||
+			(maxHeightPrevoted === lastBlockHeader.maxHeightPrevoted && height < lastBlockHeader.height)
 		);
 	}
 
@@ -319,7 +317,6 @@ export class Consensus {
 					genesisBlockTimestamp: this._genesisBlockTimestamp ?? 0,
 					interval: this._genesisConfig.blockTime,
 				}),
-				this._liskBFTAPI,
 			);
 
 			if (!forkStatusList.includes(forkStatus)) {
@@ -427,13 +424,14 @@ export class Consensus {
 	): Promise<Block> {
 		const stateStore = new StateStore(this._db);
 		const eventQueue = new EventQueue();
-		const apiContext = new APIContext({ stateStore, eventQueue });
+		const apiContext = createAPIContext({ stateStore, eventQueue });
 		const ctx = new BlockContext({
 			stateStore: (stateStore as unknown) as StateStore,
 			eventQueue,
 			networkIdentifier: Buffer.alloc(0),
 			logger: this._logger,
 			header: block.header,
+			assets: block.assets,
 			transactions: block.payload,
 		});
 		await this._stateMachine.verifyBlock(ctx);
@@ -446,7 +444,7 @@ export class Consensus {
 		}
 		await this._stateMachine.executeBlock(ctx);
 
-		const bftVotes = await this._liskBFTAPI.getBFTVotes(apiContext);
+		const bftVotes = await this._liskBFTAPI.getBFTHeights(apiContext);
 
 		let { finalizedHeight } = this._chain;
 		if (bftVotes.maxHeightPrecommited > finalizedHeight) {
@@ -527,10 +525,7 @@ export class Consensus {
 	}
 
 	private _createBlockExecutor(): BlockExecutor {
-		const apiContext = new APIContext({
-			stateStore: new StateStore(this._db),
-			eventQueue: new EventQueue(),
-		});
+		const apiContext = createNewAPIContext(this._db);
 		return {
 			deleteLastBlock: async (options: DeleteOptions = {}) => this._deleteLastBlock(options),
 			executeValidated: async (block: Block, options?: ExecuteOptions) =>

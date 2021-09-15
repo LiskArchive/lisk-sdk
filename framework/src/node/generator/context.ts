@@ -12,16 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateStore } from '@liskhq/lisk-chain/dist-node/state_store';
+import { BlockAssets, BlockHeader, StateStore } from '@liskhq/lisk-chain';
 import { Logger } from '../../logger';
-import { BlockGenerateContext, WritableBlockHeader } from './types';
+import { BlockGenerateContext } from './types';
 import { GeneratorStore } from './generator_store';
-import { APIContext, EventQueue } from '../state_machine';
+import { createAPIContext, EventQueue } from '../state_machine';
 
 interface GenerationContextArgs {
 	logger: Logger;
 	stateStore: StateStore;
-	header: WritableBlockHeader;
+	header: BlockHeader;
+	assets: BlockAssets;
 	generatorStore: GeneratorStore;
 	networkIdentifier: Buffer;
 }
@@ -30,7 +31,8 @@ export class GenerationContext {
 	private readonly _logger: Logger;
 	private readonly _networkIdentifier: Buffer;
 	private readonly _stateStore: StateStore;
-	private readonly _header: WritableBlockHeader;
+	private readonly _header: BlockHeader;
+	private readonly _assets: BlockAssets;
 	private readonly _generatorStore: GeneratorStore;
 
 	public constructor(args: GenerationContextArgs) {
@@ -39,9 +41,10 @@ export class GenerationContext {
 		this._header = args.header;
 		this._stateStore = args.stateStore;
 		this._generatorStore = args.generatorStore;
+		this._assets = args.assets;
 	}
 
-	public get blockHeader(): WritableBlockHeader {
+	public get blockHeader(): BlockHeader {
 		return this._header;
 	}
 
@@ -49,11 +52,12 @@ export class GenerationContext {
 		return {
 			logger: this._logger,
 			getAPIContext: () =>
-				new APIContext({ stateStore: this._stateStore, eventQueue: new EventQueue() }),
+				createAPIContext({ stateStore: this._stateStore, eventQueue: new EventQueue() }),
 			getStore: (moduleID: number, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			getGeneratorStore: (moduleID: number) => this._generatorStore.getGeneratorStore(moduleID),
 			header: this._header,
+			assets: this._assets,
 			networkIdentifier: this._networkIdentifier,
 		};
 	}

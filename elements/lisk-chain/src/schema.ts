@@ -26,30 +26,48 @@ export const blockSchema = {
 			},
 			fieldNumber: 2,
 		},
+		assets: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+			},
+			fieldNumber: 3,
+		},
 	},
-	required: ['header', 'payload'],
+	required: ['header', 'payload', 'assets'],
 };
 
 export const signingBlockHeaderSchema = {
-	$id: '/block/header/signing/2',
+	$id: '/block/header/signing/3',
 	type: 'object',
 	properties: {
 		version: { dataType: 'uint32', fieldNumber: 1 },
 		timestamp: { dataType: 'uint32', fieldNumber: 2 },
 		height: { dataType: 'uint32', fieldNumber: 3 },
 		previousBlockID: { dataType: 'bytes', fieldNumber: 4 },
-		stateRoot: { dataType: 'bytes', fieldNumber: 5 },
+		generatorAddress: { dataType: 'bytes', fieldNumber: 5 },
 		transactionRoot: { dataType: 'bytes', fieldNumber: 6 },
-		generatorAddress: { dataType: 'bytes', fieldNumber: 7 },
-		assets: {
-			type: 'array',
-			fieldNumber: 8,
-			items: {
-				type: 'object',
-				required: ['moduleID', 'data'],
-				properties: {
-					moduleID: { dataType: 'uint32', fieldNumber: 1 },
-					data: { dataType: 'bytes', fieldNumber: 2 },
+		assetsRoot: { dataType: 'bytes', fieldNumber: 7 },
+		stateRoot: { dataType: 'bytes', fieldNumber: 8 },
+		maxHeightPrevoted: { dataType: 'uint32', fieldNumber: 9 },
+		maxHeightGenerated: { dataType: 'uint32', fieldNumber: 10 },
+		validatorsHash: { dataType: 'bytes', fieldNumber: 11 },
+		aggregateCommit: {
+			type: 'object',
+			fieldNumber: 12,
+			required: ['height', 'aggregationBits', 'certificateSignature'],
+			properties: {
+				height: {
+					dataType: 'uint32',
+					fieldNumber: 1,
+				},
+				aggregationBits: {
+					dataType: 'bytes',
+					fieldNumber: 2,
+				},
+				certificateSignature: {
+					dataType: 'bytes',
+					fieldNumber: 3,
 				},
 			},
 		},
@@ -59,30 +77,50 @@ export const signingBlockHeaderSchema = {
 		'timestamp',
 		'height',
 		'previousBlockID',
-		'stateRoot',
-		'transactionRoot',
 		'generatorAddress',
-		'assets',
+		'transactionRoot',
+		'assetsRoot',
+		'stateRoot',
+		'maxHeightPrevoted',
+		'maxHeightGenerated',
+		'validatorsHash',
+		'aggregateCommit',
 	],
 };
 
 export const blockHeaderSchema = {
 	...signingBlockHeaderSchema,
-	$id: '/block/header/2',
+	$id: '/block/header/3',
 	required: [...signingBlockHeaderSchema.required, 'signature'],
 	properties: {
 		...signingBlockHeaderSchema.properties,
-		signature: { dataType: 'bytes', fieldNumber: 9 },
+		signature: { dataType: 'bytes', fieldNumber: 13 },
 	},
 };
 
 export const blockHeaderSchemaWithId = {
 	...blockHeaderSchema,
-	$id: '/block/header/2',
+	$id: '/block/header/3',
 	required: [...blockHeaderSchema.required, 'id'],
 	properties: {
 		...blockHeaderSchema.properties,
-		id: { dataType: 'bytes', fieldNumber: 10 },
+		id: { dataType: 'bytes', fieldNumber: 14 },
+	},
+};
+
+export const blockAssetSchema = {
+	$id: '/block/asset/3',
+	type: 'object',
+	required: ['moduleID', 'data'],
+	properties: {
+		moduleID: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		data: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+		},
 	},
 };
 

@@ -13,4 +13,4 @@
  */
 
 export { Generator } from './generator';
-export { BlockGenerateContext, WritableBlockHeader, Keypair, GeneratorStore } from './types';
+export { BlockGenerateContext, Keypair, GeneratorStore } from './types';

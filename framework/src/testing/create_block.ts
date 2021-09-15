@@ -13,13 +13,7 @@
  *
  */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
-import {
-	Block,
-	BlockHeader,
-	Transaction,
-	BlockHeaderAsset,
-	BlockHeaderAttrs,
-} from '@liskhq/lisk-chain';
+import { Block, BlockHeader, Transaction, BlockHeaderAttrs, BlockAssets } from '@liskhq/lisk-chain';
 import {
 	getAddressFromPublicKey,
 	getPrivateAndPublicKeyFromPassphrase,
@@ -35,7 +29,7 @@ interface CreateBlock {
 	previousBlockID: Buffer;
 	payload?: Transaction[];
 	header?: Partial<BlockHeader>;
-	assets?: BlockHeaderAsset[];
+	assets?: BlockAssets;
 }
 
 export const createBlockHeaderWithDefaults = (header?: Partial<BlockHeaderAttrs>): BlockHeader =>
@@ -47,7 +41,15 @@ export const createBlockHeaderWithDefaults = (header?: Partial<BlockHeaderAttrs>
 		transactionRoot: header?.transactionRoot ?? hash(getRandomBytes(4)),
 		stateRoot: header?.stateRoot ?? hash(getRandomBytes(4)),
 		generatorAddress: header?.generatorAddress ?? getRandomBytes(32),
-		assets: header?.assets ?? [],
+		aggregateCommit: header?.aggregateCommit ?? {
+			height: 0,
+			aggregationBits: Buffer.alloc(0),
+			certificateSignature: Buffer.alloc(0),
+		},
+		maxHeightGenerated: header?.maxHeightGenerated ?? 0,
+		maxHeightPrevoted: header?.maxHeightPrevoted ?? 0,
+		assetsRoot: header?.assetsRoot ?? hash(getRandomBytes(4)),
+		validatorsHash: header?.validatorsHash ?? hash(getRandomBytes(4)),
 	});
 
 export const createFakeBlockHeader = (header?: Partial<BlockHeaderAttrs>): BlockHeader => {
@@ -63,6 +65,7 @@ export const createBlock = async ({
 	timestamp,
 	previousBlockID,
 	payload,
+	assets,
 	header,
 }: CreateBlock): Promise<Block> => {
 	const { publicKey, privateKey } = getPrivateAndPublicKeyFromPassphrase(passphrase);
@@ -80,5 +83,5 @@ export const createBlock = async ({
 
 	blockHeader.sign(networkIdentifier, privateKey);
 
-	return new Block(blockHeader, payload ?? []);
+	return new Block(blockHeader, payload ?? [], assets ?? new BlockAssets());
 };

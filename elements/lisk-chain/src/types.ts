@@ -21,6 +21,7 @@ export interface BlockRewardOptions {
 export interface RawBlock {
 	header: Buffer;
 	payload: ReadonlyArray<Buffer>;
+	assets: ReadonlyArray<Buffer>;
 }
 
 export interface DiffHistory {

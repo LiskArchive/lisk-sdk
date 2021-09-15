@@ -12,13 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec } from '@liskhq/lisk-codec';
-import { BlockHeader } from '@liskhq/lisk-chain';
 import { BaseAPI } from '../base_api';
 import { GeneratorStore } from '../../node/generator';
 import { APIContext, ImmutableAPIContext } from '../../node/state_machine';
-import { BFTHeader, BFTVotes } from '../../node/consensus';
-import { liskBFTAssetSchema, liskBFTModuleID } from './constants';
+import { BFTVotes } from '../../node/consensus';
 
 interface Validator {
 	address: Buffer;
@@ -49,23 +46,8 @@ export class LiskBFTAPI extends BaseAPI {
 		return [];
 	}
 
-	public getBFTHeader(header: BlockHeader): BFTHeader {
-		const asset = header.getAsset(liskBFTModuleID);
-		const decodedAsset = asset
-			? codec.decode<BlockHeaderAsset>(liskBFTAssetSchema, asset)
-			: { maxHeightPrevoted: 0, maxHeightPreviouslyForged: 0 };
-		return {
-			generatorAddress: header.generatorAddress,
-			height: header.height,
-			id: header.id,
-			timestamp: header.timestamp,
-			previousBlockID: header.previousBlockID,
-			...decodedAsset,
-		};
-	}
-
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getBFTVotes(_apiClient: ImmutableAPIContext): Promise<BFTVotes> {
+	public async getBFTHeights(_apiClient: ImmutableAPIContext): Promise<BFTVotes> {
 		return {
 			maxHeightPrecommited: 0,
 			maxHeightPrevoted: 0,

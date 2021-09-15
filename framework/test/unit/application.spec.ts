@@ -69,7 +69,7 @@ describe('Application', () => {
 		fatal: jest.fn(),
 	};
 	const { id, ...header } = genesisBlock().header.toJSON();
-	const genesisBlockJSON = { header, payload: [] };
+	const genesisBlockJSON = { header, payload: [], assets: [] };
 
 	(createLogger as jest.Mock).mockReturnValue(loggerMock);
 

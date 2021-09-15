@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader } from '@liskhq/lisk-chain';
 import { GeneratorStore } from '../generator';
 import { APIContext, ImmutableAPIContext } from '../state_machine';
 
@@ -23,7 +22,7 @@ export interface BFTHeader {
 	timestamp: number;
 	height: number;
 	maxHeightPrevoted: number;
-	maxHeightPreviouslyForged: number;
+	maxHeightGenerated: number;
 	receivedAt?: number;
 }
 
@@ -56,6 +55,5 @@ export interface LiskBFTAPI {
 		},
 	) => Promise<void>;
 	getValidators: (_apiContext: ImmutableAPIContext) => Promise<Validator[]>;
-	getBFTHeader: (header: BlockHeader) => BFTHeader;
-	getBFTVotes: (apiClient: ImmutableAPIContext) => Promise<BFTVotes>;
+	getBFTHeights: (apiClient: ImmutableAPIContext) => Promise<BFTVotes>;
 }

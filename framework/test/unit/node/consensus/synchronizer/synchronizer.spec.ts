@@ -16,7 +16,6 @@ import { when } from 'jest-when';
 import { Block, Chain } from '@liskhq/lisk-chain';
 
 import { InMemoryKVStore } from '@liskhq/lisk-db';
-import { codec } from '@liskhq/lisk-codec';
 import { Synchronizer } from '../../../../../src/node/consensus/synchronizer/synchronizer';
 import {
 	createValidDefaultBlock,
@@ -25,8 +24,6 @@ import {
 import * as synchronizerUtils from '../../../../../src/node/consensus/synchronizer/utils';
 import { BlockExecutor } from '../../../../../src/node/consensus/synchronizer/type';
 import { applicationConfigSchema } from '../../../../../src/schema';
-import { liskBFTAssetSchema, liskBFTModuleID } from '../../../../../src/modules/liskbft/constants';
-import { LiskBFTAPI } from '../../../../../src/modules/liskbft/api';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -99,7 +96,6 @@ describe('Synchronizer', () => {
 			logger: loggerMock,
 			blockExecutor,
 			chainModule,
-			liskBFTAPI: new LiskBFTAPI(liskBFTModuleID),
 			mechanisms: [syncMechanism1, syncMechanism2],
 		};
 
@@ -211,15 +207,8 @@ describe('Synchronizer', () => {
 						height: genesisBlock.header.height + 1,
 						previousBlockID: genesisBlock.header.id,
 						version: 9,
-						assets: [
-							{
-								moduleID: liskBFTModuleID,
-								data: codec.encode(liskBFTAssetSchema, {
-									maxHeightPrevoted: 0,
-									maxHeightPreviouslyForged: 0,
-								}),
-							},
-						],
+						maxHeightPrevoted: 0,
+						maxHeightGenerated: 0,
 					},
 				});
 				const blocksTempTableEntries = [
@@ -228,15 +217,8 @@ describe('Synchronizer', () => {
 							height: genesisBlock.header.height + 2,
 							version: 2,
 							previousBlockID: initialLastBlock.header.id,
-							assets: [
-								{
-									moduleID: liskBFTModuleID,
-									data: codec.encode(liskBFTAssetSchema, {
-										maxHeightPrevoted: 3,
-										maxHeightPreviouslyForged: 0,
-									}),
-								},
-							],
+							maxHeightPrevoted: 3,
+							maxHeightGenerated: 0,
 						},
 					}),
 				];
@@ -363,7 +345,6 @@ describe('Synchronizer', () => {
 				logger: loggerMock,
 				blockExecutor,
 				chainModule,
-				liskBFTAPI: new LiskBFTAPI(liskBFTModuleID),
 				mechanisms: [aSyncingMechanism, anotherSyncingMechanism] as any,
 			});
 
@@ -382,7 +363,6 @@ describe('Synchronizer', () => {
 						logger: loggerMock,
 						blockExecutor,
 						chainModule,
-						liskBFTAPI: new LiskBFTAPI(liskBFTModuleID),
 						mechanisms: [aSyncingMechanism] as any,
 					}),
 			).toThrow('Mechanism Object should implement "isValidFor" method');
@@ -399,7 +379,6 @@ describe('Synchronizer', () => {
 						logger: loggerMock,
 						blockExecutor,
 						chainModule,
-						liskBFTAPI: new LiskBFTAPI(liskBFTModuleID),
 						mechanisms: [aSyncingMechanism] as any,
 					}),
 			).toThrow('Mechanism Object should implement "run" method');
