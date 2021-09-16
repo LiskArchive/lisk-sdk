@@ -104,6 +104,20 @@ const isSyncedWithNetwork = (lastBlockHeader: BlockHeader, forgingInput: ForgedI
 	);
 };
 
+interface ForgingInfo {
+	height: number;
+	maxHeightPrevoted: number;
+	maxHeightPreviouslyForged: number;
+}
+
+const isZeroForgingInfo = (info: ForgingInfo) =>
+	info.height === 0 && info.maxHeightPrevoted === 0 && info.maxHeightPreviouslyForged === 0;
+
+const IsEqualForgingInfo = (info1: ForgingInfo, info2: ForgingInfo): boolean =>
+	info1.height === info2.height &&
+	info1.maxHeightPreviouslyForged === info2.maxHeightPreviouslyForged &&
+	info1.maxHeightPrevoted === info2.maxHeightPrevoted;
+
 export class Forger {
 	private readonly _logger: Logger;
 	private readonly _db: KVStore;
@@ -223,30 +237,26 @@ export class Forger {
 		if (!isSyncedWithNetwork(lastBlockHeader, forgingInput)) {
 			throw new Error('Failed to enable forging as the node is not synced to the network.');
 		}
-
-		if (
-			!overwrite &&
-			(height !== 0 || maxHeightPrevoted !== 0 || maxHeightPreviouslyForged !== 0)
-		) {
-			// check if forger info exists
-			if (!previouslyForgedMap.has(forgerAddress)) {
+		const forgerInfo = previouslyForgedMap.get(forgerAddress);
+		if (overwrite !== true) {
+			if (forgerInfo !== undefined && !IsEqualForgingInfo(forgerInfo, forgingInput)) {
+				throw new Error(
+					`Failed to enable forging due to contradicting forger info. Current stored: ${JSON.stringify(
+						forgerInfo,
+					)}`,
+				);
+			}
+			if (forgerInfo === undefined && !isZeroForgingInfo(forgingInput)) {
 				throw new Error('Failed to enable forging due to missing forger info.');
 			}
-			// check if forger info matches input
-			const forgerInfo = previouslyForgedMap.get(forgerAddress);
-			if (
-				forgerInfo?.height !== height ||
-				forgerInfo?.maxHeightPrevoted !== maxHeightPrevoted ||
-				forgerInfo?.maxHeightPreviouslyForged !== maxHeightPreviouslyForged
-			) {
-				throw new Error('Failed to enable forging due to contradicting forger info.');
-			}
-		} else {
-			previouslyForgedMap.set(forgerAddress, {
-				height,
-				maxHeightPrevoted,
-				maxHeightPreviouslyForged,
-			});
+		}
+
+		if (
+			forgerInfo === undefined ||
+			(overwrite === true &&
+				forgerInfo !== undefined &&
+				!IsEqualForgingInfo(forgingInput, forgerInfo))
+		) {
 			await setPreviouslyForgedMap(this._db, previouslyForgedMap);
 			this._logger.info(forgingInput, 'Updated forgerInfo');
 		}
