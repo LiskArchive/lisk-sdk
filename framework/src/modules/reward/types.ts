@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader } from '../../node/state_machine';
-import { APIContext } from '../../node/state_machine/types';
+import { BlockHeader, BlockAssets } from '../../node/state_machine';
+import { APIContext, ImmutableAPIContext } from '../../node/state_machine/types';
 
 export interface TokenIDReward {
 	chainID: number;
@@ -38,14 +38,17 @@ export interface TokenAPI {
 
 export interface RandomAPI {
 	isValidSeedReveal(
-		apiContext: APIContext,
+		apiContext: ImmutableAPIContext,
 		generatorAddress: Buffer,
-		seedReveal: Buffer,
+		assets: BlockAssets,
 	): Promise<boolean>;
 }
 
 export interface BFTAPI {
-	impliesMaximalPrevotes(apiContext: APIContext, blockHeader: BlockHeader): Promise<boolean>;
+	impliesMaximalPrevotes(
+		apiContext: ImmutableAPIContext,
+		blockHeader: BlockHeader,
+	): Promise<boolean>;
 }
 
 export interface DefaultReward {
@@ -53,6 +56,14 @@ export interface DefaultReward {
 }
 
 export interface EndpointInitArgs {
+	config: {
+		brackets: ReadonlyArray<bigint>;
+		offset: number;
+		distance: number;
+	};
+}
+
+export interface APIInitArgs {
 	config: {
 		brackets: ReadonlyArray<bigint>;
 		offset: number;

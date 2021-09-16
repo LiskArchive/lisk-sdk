@@ -21,6 +21,7 @@ export { createAPIContext } from './api_context';
 export {
 	APIContext,
 	BlockHeader,
+	BlockAssets,
 	VerifyStatus,
 	ImmutableSubStore,
 	ImmutableAPIContext,
