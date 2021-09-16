@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Lisk Foundation
+ * Copyright © 2021 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -47,6 +47,7 @@ describe('seed reveal', () => {
 
 	it('should pass for selecting the next seed reveal', async () => {
 		const address = '9cabee3d27426676b852ce6b804cb2fdff7cd0b5';
+		// 2nd and 3rd Hash onion from config file for address 9cabee3d27426676b852ce6b804cb2fdff7cd0b5
 		const secondCheckpointStart = Buffer.from('f7a3fb976e50d882c709edb63bde4d9c', 'hex');
 		const thirdCheckpointStart = Buffer.from('1bd121882cb1dee1107699001c2676fb', 'hex');
 		const height1 = 1000;
