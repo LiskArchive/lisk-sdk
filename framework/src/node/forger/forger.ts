@@ -240,7 +240,11 @@ export class Forger {
 		const forgerInfo = previouslyForgedMap.get(forgerAddress);
 		if (overwrite !== true) {
 			if (forgerInfo !== undefined && !IsEqualForgingInfo(forgerInfo, forgingInput)) {
-				throw new Error('Failed to enable forging due to contradicting forger info.');
+				throw new Error(
+					`Failed to enable forging due to contradicting forger info. Current stored: ${JSON.stringify(
+						forgerInfo,
+					)}`,
+				);
 			}
 			if (forgerInfo === undefined && !isZeroForgingInfo(forgingInput)) {
 				throw new Error('Failed to enable forging due to missing forger info.');
