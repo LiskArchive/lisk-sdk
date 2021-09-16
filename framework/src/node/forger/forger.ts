@@ -535,7 +535,11 @@ export class Forger {
 				count: 0,
 			};
 		}
-		const nextCheckpointIndex = Math.ceil(nextCount / hashOnionConfig.distance);
+		// If checkpoint is reached then increment the nextCheckpointIndex taking integer into account
+		const nextCheckpointIndex =
+			nextCount % hashOnionConfig.distance === 0
+				? Math.ceil(nextCount / hashOnionConfig.distance) + 1
+				: Math.ceil(nextCount / hashOnionConfig.distance);
 		const nextCheckpoint = hashOnionConfig.hashes[nextCheckpointIndex];
 		const hashes = hashOnion(nextCheckpoint, hashOnionConfig.distance, 1);
 		const checkpointIndex = nextCount % hashOnionConfig.distance;
