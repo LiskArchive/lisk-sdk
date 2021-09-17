@@ -25,12 +25,6 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 	public id = 0;
 	public name = 'registerMultisignatureGroup';
 	public schema = registerMultisignatureParamsSchema;
-	protected moduleID: number;
-
-	public constructor(moduleID: number) {
-		super();
-		this.moduleID = moduleID;
-	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(

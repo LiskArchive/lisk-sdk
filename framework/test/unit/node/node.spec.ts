@@ -238,7 +238,7 @@ describe('Node', () => {
 			}
 			sampleModule.name = 'SampleModule';
 			sampleModule.id = 999999;
-			sampleModule.commands.push(new SampleCommand());
+			sampleModule.commands.push(new SampleCommand() as any);
 			// Assert
 			expect(() => node.registerModule(sampleModule)).toThrow(
 				'Custom module contains command which does not extend `BaseCommand` class.',
@@ -259,7 +259,7 @@ describe('Node', () => {
 			}
 			sampleModule.name = 'SampleModule';
 			sampleModule.id = 999999;
-			sampleModule.commands.push(new SampleCommand());
+			sampleModule.commands.push(new SampleCommand(sampleModule.id));
 			// Assert
 			expect(() => node.registerModule(sampleModule)).toThrow(
 				'Custom module contains command with invalid `id` property.',
@@ -280,7 +280,7 @@ describe('Node', () => {
 			}
 			sampleModule.name = 'SampleModule';
 			sampleModule.id = 999999;
-			sampleModule.commands.push(new SampleCommand());
+			sampleModule.commands.push(new SampleCommand(sampleModule.id));
 			// Assert
 			expect(() => node.registerModule(sampleModule)).toThrow(
 				'Custom module contains command with invalid `name` property.',
@@ -297,7 +297,7 @@ describe('Node', () => {
 			}
 			sampleModule.name = 'SampleModule';
 			sampleModule.id = 999999;
-			sampleModule.commands.push(new SampleCommand());
+			sampleModule.commands.push(new SampleCommand(sampleModule.id));
 			// Assert
 			expect(() => node.registerModule(sampleModule)).toThrow(
 				'Custom module contains command with invalid `schema` property.',
@@ -318,7 +318,7 @@ describe('Node', () => {
 			}
 			sampleModule.name = 'SampleModule';
 			sampleModule.id = 999999;
-			sampleModule.commands.push(new SampleCommand());
+			sampleModule.commands.push(new SampleCommand(sampleModule.id));
 			// Assert
 			expect(() => node.registerModule(sampleModule)).toThrow(
 				'Custom module contains command with invalid `execute` property.',
