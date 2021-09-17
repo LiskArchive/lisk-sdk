@@ -70,6 +70,11 @@ export class RewardModule extends BaseModule {
 			context.header,
 			context.assets,
 		);
+
+		if (blockReward <= BigInt(0)) {
+			throw new Error('Reward amount to be minted is not valid.');
+		}
+
 		await this._tokenAPI.mint(
 			context.getAPIContext(),
 			context.header.generatorAddress,
