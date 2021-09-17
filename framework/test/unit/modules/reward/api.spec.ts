@@ -54,11 +54,10 @@ describe('RewardModuleAPI', () => {
 		await rewardModule.init({ genesisConfig, moduleConfig, generatorConfig });
 	});
 
-	for (const [index, rewardFromConfig] of Object.entries(brackets)) {
+	describe.each(Object.entries(brackets))('test for brackets', (index, rewardFromConfig) => {
 		const nthBracket = Number(index);
 		const currentHeight = offset + nthBracket * distance;
 
-		// eslint-disable-next-line no-loop-func
 		it(`should getBlockReward return full reward for bracket ${nthBracket}`, async () => {
 			rewardModule.addDependencies(
 				{ mint: jest.fn() } as any,
@@ -71,7 +70,6 @@ describe('RewardModuleAPI', () => {
 			expect(rewardFromAPI).toBe(rewardFromConfig);
 		});
 
-		// eslint-disable-next-line no-loop-func
 		it(`should getBlockReward return quarter reward for bracket ${nthBracket} due to bft violation`, async () => {
 			rewardModule.addDependencies(
 				{ mint: jest.fn() } as any,
@@ -84,7 +82,6 @@ describe('RewardModuleAPI', () => {
 			expect(rewardFromAPI).toBe(rewardFromConfig / BigInt(4));
 		});
 
-		// eslint-disable-next-line no-loop-func
 		it(`should getBlockReward return no reward for bracket ${nthBracket} due to seedReveal violation`, async () => {
 			rewardModule.addDependencies(
 				{ mint: jest.fn() } as any,
@@ -96,7 +93,7 @@ describe('RewardModuleAPI', () => {
 
 			expect(rewardFromAPI).toBe(BigInt(0));
 		});
-	}
+	});
 
 	it(`should getBlockReward return no reward for the height below offset`, async () => {
 		rewardModule.addDependencies(
