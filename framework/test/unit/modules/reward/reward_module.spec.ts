@@ -49,23 +49,25 @@ describe('RewardModule', () => {
 		});
 	});
 
-	it(`should call mint in afterBlockExecute hook for a valid bracket`, async () => {
-		const blockHeader = createBlockHeaderWithDefaults({ height: moduleConfig.offset });
-		const blockAfterExecuteContext = createBlockContext({
-			header: blockHeader,
-		}).getBlockAfterExecuteContext();
-		await rewardModule.afterBlockExecute(blockAfterExecuteContext);
+	describe('afterBlockExecute', () => {
+		it(`should call mint for a valid bracket`, async () => {
+			const blockHeader = createBlockHeaderWithDefaults({ height: moduleConfig.offset });
+			const blockAfterExecuteContext = createBlockContext({
+				header: blockHeader,
+			}).getBlockAfterExecuteContext();
+			await rewardModule.afterBlockExecute(blockAfterExecuteContext);
 
-		expect(mint).toHaveBeenCalledTimes(1);
-	});
+			expect(mint).toHaveBeenCalledTimes(1);
+		});
 
-	it('should afterBlockExecute hook not mint reward for reward <= 0', async () => {
-		const blockHeader = createBlockHeaderWithDefaults({ height: 1 });
-		const blockAfterExecuteContext = createBlockContext({
-			header: blockHeader,
-		}).getBlockAfterExecuteContext();
-		await rewardModule.afterBlockExecute(blockAfterExecuteContext);
+		it('should not mint reward for reward <= 0', async () => {
+			const blockHeader = createBlockHeaderWithDefaults({ height: 1 });
+			const blockAfterExecuteContext = createBlockContext({
+				header: blockHeader,
+			}).getBlockAfterExecuteContext();
+			await rewardModule.afterBlockExecute(blockAfterExecuteContext);
 
-		expect(mint).not.toHaveBeenCalled();
+			expect(mint).not.toHaveBeenCalled();
+		});
 	});
 });
