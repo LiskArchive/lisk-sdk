@@ -49,29 +49,15 @@ describe('RewardModule', () => {
 		});
 	});
 
-	const { brackets, offset, distance } = moduleConfig as {
-		brackets: ReadonlyArray<bigint>;
-		offset: number;
-		distance: number;
-	};
+	it(`should call mint in afterBlockExecute hook for a valid bracket`, async () => {
+		const blockHeader = createBlockHeaderWithDefaults({ height: moduleConfig.offset });
+		const blockAfterExecuteContext = createBlockContext({
+			header: blockHeader,
+		}).getBlockAfterExecuteContext();
+		await rewardModule.afterBlockExecute(blockAfterExecuteContext);
 
-	describe.each(Object.entries(brackets))(
-		'afterBlockExecute test for brackets',
-		(index, _rewardFromConfig) => {
-			const nthBracket = Number(index);
-			const currentHeight = offset + nthBracket * distance;
-
-			it(`should call mint in afterBlockExecute hook for valid ${nthBracket}th bracket`, async () => {
-				const blockHeader = createBlockHeaderWithDefaults({ height: currentHeight });
-				const blockAfterExecuteContext = createBlockContext({
-					header: blockHeader,
-				}).getBlockAfterExecuteContext();
-				await rewardModule.afterBlockExecute(blockAfterExecuteContext);
-
-				expect(mint).toHaveBeenCalledTimes(1);
-			});
-		},
-	);
+		expect(mint).toHaveBeenCalledTimes(1);
+	});
 
 	it('should afterBlockExecute hook not mint reward for reward <= 0', async () => {
 		const blockHeader = createBlockHeaderWithDefaults({ height: 1 });
