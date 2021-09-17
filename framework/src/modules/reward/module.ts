@@ -36,7 +36,7 @@ export class RewardModule extends BaseModule {
 		this._tokenAPI = tokenAPI;
 		this._randomAPI = randomAPI;
 		this._bftAPI = bftAPI;
-		this.api.addDependencies(bftAPI, randomAPI);
+		this.api.addDependencies(this._bftAPI, this._randomAPI);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -62,9 +62,22 @@ export class RewardModule extends BaseModule {
 		});
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async afterBlockExecute(_context: BlockAfterExecuteContext): Promise<void> {
-		// eslint-disable-next-line no-console
-		console.log(this._tokenAPI, this._bftAPI, this._randomAPI, this._tokenIDReward);
+	public async afterBlockExecute(context: BlockAfterExecuteContext): Promise<void> {
+		const blockReward = await this.api.getBlockReward(
+			context.getAPIContext(),
+			context.header,
+			context.assets,
+		);
+
+		if (blockReward <= BigInt(0)) {
+			return;
+		}
+
+		await this._tokenAPI.mint(
+			context.getAPIContext(),
+			context.header.generatorAddress,
+			this._tokenIDReward,
+			blockReward,
+		);
 	}
 }
