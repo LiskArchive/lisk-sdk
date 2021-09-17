@@ -32,15 +32,6 @@ describe('RewardModuleAPI', () => {
 	};
 	const generatorConfig: any = {};
 
-	const context = {
-		getStore: jest.fn(),
-		eventQueue: new EventQueue(),
-	};
-
-	const blockAsset = {
-		getAsset: jest.fn(),
-	};
-
 	const fakeBlockHeader = (height: number) => ({
 		version: 2,
 		height: height ?? 1,
@@ -63,7 +54,17 @@ describe('RewardModuleAPI', () => {
 	};
 
 	let rewardModule: RewardModule;
+	let context: any;
+	let blockAsset: any;
 	beforeEach(async () => {
+		context = {
+			getStore: jest.fn(),
+			eventQueue: new EventQueue(),
+		};
+
+		blockAsset = {
+			getAsset: jest.fn(),
+		};
 		rewardModule = new RewardModule();
 		await rewardModule.init({ genesisConfig, moduleConfig, generatorConfig });
 	});
