@@ -55,7 +55,7 @@ describe('RewardModuleAPI', () => {
 	});
 
 	for (const [index, rewardFromConfig] of Object.entries(brackets)) {
-		const nthBracket = +index;
+		const nthBracket = Number(index);
 		const currentHeight = offset + nthBracket * distance;
 
 		// eslint-disable-next-line no-loop-func
