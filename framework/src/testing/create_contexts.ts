@@ -20,6 +20,7 @@ import { Logger } from '../logger';
 import {
 	APIContext,
 	BlockContext,
+	createAPIContext,
 	EventQueue,
 	GenesisBlockContext,
 	TransactionContext,
@@ -131,7 +132,7 @@ export const createTransactionContext = (params: {
 	return ctx;
 };
 
-export const createAPIContext = (params: {
+export const createTransientAPIContext = (params: {
 	stateStore?: StateStore;
 	eventQueue?: EventQueue;
 }): APIContext => {

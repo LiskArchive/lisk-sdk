@@ -45,6 +45,14 @@ export class RewardModule extends BaseModule {
 		this._moduleConfig = (moduleConfig as unknown) as ModuleConfig;
 		this._tokenIDReward = this._moduleConfig.tokenIDReward;
 
+		this.api.init({
+			config: {
+				brackets: this._moduleConfig.brackets.map(bracket => BigInt(bracket)),
+				offset: this._moduleConfig.offset,
+				distance: this._moduleConfig.distance,
+			},
+		});
+
 		this.endpoint.init({
 			config: {
 				brackets: this._moduleConfig.brackets.map(bracket => BigInt(bracket)),
