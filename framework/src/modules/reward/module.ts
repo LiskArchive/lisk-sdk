@@ -70,7 +70,7 @@ export class RewardModule extends BaseModule {
 		);
 
 		if (blockReward <= BigInt(0)) {
-			throw new Error('Reward amount to be minted is not valid.');
+			return;
 		}
 
 		await this._tokenAPI.mint(

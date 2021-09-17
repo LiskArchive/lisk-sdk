@@ -73,14 +73,13 @@ describe('RewardModule', () => {
 		},
 	);
 
-	it('should afterBlockExecute hook throw an error for 0 reward', async () => {
+	it('should afterBlockExecute hook not mint reward for reward <= 0', async () => {
 		const blockHeader = createBlockHeaderWithDefaults({ height: 1 });
 		const blockAfterExecuteContext = createBlockContext({
 			header: blockHeader,
 		}).getBlockAfterExecuteContext();
+		await rewardModule.afterBlockExecute(blockAfterExecuteContext);
 
-		await expect(async () =>
-			rewardModule.afterBlockExecute(blockAfterExecuteContext),
-		).rejects.toThrow('Reward amount to be minted is not valid.');
+		expect(mint).not.toHaveBeenCalled();
 	});
 });
