@@ -63,8 +63,18 @@ export class RewardModule extends BaseModule {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async afterBlockExecute(_context: BlockAfterExecuteContext): Promise<void> {
+	public async afterBlockExecute(context: BlockAfterExecuteContext): Promise<void> {
 		// eslint-disable-next-line no-console
-		console.log(this._tokenAPI, this._bftAPI, this._randomAPI, this._tokenIDReward);
+		const blockReward = await this.api.getBlockReward(
+			context.getAPIContext(),
+			context.header,
+			context.assets,
+		);
+		await this._tokenAPI.mint(
+			context.getAPIContext(),
+			context.header.generatorAddress,
+			this._tokenIDReward,
+			blockReward,
+		);
 	}
 }
