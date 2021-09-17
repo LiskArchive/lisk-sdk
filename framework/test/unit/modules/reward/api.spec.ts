@@ -13,8 +13,7 @@
  */
 
 import { RewardModule } from '../../../../src/modules/reward';
-import { EventQueue } from '../../../../src/node/state_machine';
-import { createBlockHeaderWithDefaults } from '../../../../src/testing';
+import { createBlockHeaderWithDefaults, createTransientAPIContext } from '../../../../src/testing';
 
 describe('RewardModuleAPI', () => {
 	const genesisConfig: any = {};
@@ -42,10 +41,7 @@ describe('RewardModuleAPI', () => {
 	let context: any;
 	let blockAsset: any;
 	beforeEach(async () => {
-		context = {
-			getStore: jest.fn(),
-			eventQueue: new EventQueue(),
-		};
+		context = createTransientAPIContext({});
 
 		blockAsset = {
 			getAsset: jest.fn(),
