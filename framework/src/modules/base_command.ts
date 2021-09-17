@@ -21,9 +21,14 @@ import {
 } from '../node/state_machine';
 
 export abstract class BaseCommand<T = unknown> {
+	protected moduleID: number;
 	public abstract name: string;
 	public abstract id: number;
 	public abstract schema: Schema;
+
+	public constructor(moduleID: number) {
+		this.moduleID = moduleID;
+	}
 
 	public verify?(context: CommandVerifyContext<T>): Promise<VerificationResult>;
 
