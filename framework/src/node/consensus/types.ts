@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { GeneratorStore } from '../generator';
-import { APIContext, ImmutableAPIContext } from '../state_machine';
+import { BFTHeights } from '../../modules/bft/types';
+import { ImmutableAPIContext } from '../state_machine';
 
 export interface BFTHeader {
 	id: Buffer;
@@ -31,11 +31,6 @@ export interface Validator {
 	bftWeight: bigint;
 }
 
-export interface BFTVotes {
-	maxHeightPrevoted: number;
-	maxHeightPrecommited: number;
-}
-
 export interface ValidatorAPI {
 	getGeneratorAtTimestamp: (apiContext: ImmutableAPIContext, timestamp: number) => Promise<Buffer>;
 	getSlotNumber: (apiContext: ImmutableAPIContext, timestamp: number) => Promise<number>;
@@ -43,17 +38,6 @@ export interface ValidatorAPI {
 }
 
 export interface BFTAPI {
-	verifyGeneratorInfo: (
-		apiContext: APIContext,
-		generatorStore: GeneratorStore,
-		info: {
-			address: Buffer;
-			height: number;
-			maxHeightPrevoted: number;
-			maxHeightPreviouslyForged: number;
-			override?: boolean;
-		},
-	) => Promise<void>;
 	getValidators: (_apiContext: ImmutableAPIContext) => Promise<Validator[]>;
-	getBFTHeights: (apiClient: ImmutableAPIContext) => Promise<BFTVotes>;
+	getBFTHeights: (apiClient: ImmutableAPIContext) => Promise<BFTHeights>;
 }

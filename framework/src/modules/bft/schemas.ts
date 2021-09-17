@@ -102,9 +102,10 @@ export interface BFTVotesActiveValidatorsVoteInfo {
 
 export interface BFTVotes {
 	maxHeightPrevoted: number;
-	maxHeightPrecommitted: number;
+	maxHeightPrecommited: number;
 	maxHeightCertified: number;
 	blockBFTInfos: BFTVotesBlockInfo[];
+	activeValidatorsVoteInfo: BFTVotesActiveValidatorsVoteInfo[];
 }
 
 export const bftVotesSchema = {
@@ -112,14 +113,14 @@ export const bftVotesSchema = {
 	type: 'object',
 	required: [
 		'maxHeightPrevoted',
-		'maxHeightPrecommitted',
+		'maxHeightPrecommited',
 		'maxHeightCertified',
 		'blockBFTInfos',
 		'activeValidatorsVoteInfo',
 	],
 	properties: {
 		maxHeightPrevoted: { dataType: 'uint32', fieldNumber: 1 },
-		maxHeightPrecommitted: { dataType: 'uint32', fieldNumber: 2 },
+		maxHeightPrecommited: { dataType: 'uint32', fieldNumber: 2 },
 		maxHeightCertified: { dataType: 'uint32', fieldNumber: 3 },
 		blockBFTInfos: {
 			type: 'array',
@@ -157,5 +158,36 @@ export const bftVotesSchema = {
 				},
 			},
 		},
+	},
+};
+
+export interface ValidatorsHashValidator {
+	blsKey: Buffer;
+	bftWeight: bigint;
+}
+
+export interface ValidatorsHashInput {
+	activeValidators: ValidatorsHashValidator[];
+	certificateThreshold: bigint;
+}
+
+export const validatorsHashInputSchema = {
+	$id: 'modules/bft/validatorsHashInput',
+	type: 'object',
+	required: ['activeValidators', 'certificateThreshold'],
+	properties: {
+		activeValidators: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['blsKey', 'bftWeight'],
+				properties: {
+					blsKey: { dataType: 'bytes', fieldNumber: 1 },
+					bftWeight: { dataType: 'uint64', fieldNumber: 2 },
+				},
+			},
+		},
+		certificateThreshold: { dataType: 'uint64', fieldNumber: 2 },
 	},
 };

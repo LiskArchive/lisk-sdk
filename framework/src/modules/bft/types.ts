@@ -11,3 +11,30 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+import { ImmutableAPIContext } from '../../node/state_machine';
+
+export interface BFTHeader {
+	height: number;
+	generatorAddress: Buffer;
+	maxHeightGenerated: number;
+	maxHeightPrevoted: number;
+}
+
+export interface BFTHeights {
+	maxHeightPrevoted: number;
+	maxHeightPrecommited: number;
+	maxHeightCertified: number;
+}
+
+export interface Validator {
+	address: Buffer;
+	bftWeight: bigint;
+}
+
+export interface ValidatorsAPI {
+	getValidatorAccount(
+		context: ImmutableAPIContext,
+		address: Buffer,
+	): Promise<{ blsKey: Buffer; generatorKey: Buffer }>;
+}
