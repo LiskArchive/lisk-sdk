@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
 import { RewardModule } from '../../../../src/modules/reward';
 import { EventQueue } from '../../../../src/node/state_machine';
+import { createBlockHeaderWithDefaults } from '../../../../src/testing';
 
 describe('RewardModuleAPI', () => {
 	const genesisConfig: any = {};
@@ -31,21 +31,6 @@ describe('RewardModuleAPI', () => {
 		tokenIDReward: { chainID: 0, localID: 0 },
 	};
 	const generatorConfig: any = {};
-
-	const fakeBlockHeader = (height: number) => ({
-		version: 2,
-		height: height ?? 1,
-		timestamp: 0,
-		previousBlockID: hash(getRandomBytes(4)),
-		generatorAddress: getRandomBytes(32),
-		maxHeightPrevoted: 0,
-		maxHeightGenerated: 0,
-		aggregateCommit: {
-			height: 0,
-			aggregationBits: Buffer.alloc(0),
-			certificateSignature: Buffer.alloc(0),
-		},
-	});
 
 	const { brackets, offset, distance } = moduleConfig as {
 		brackets: ReadonlyArray<bigint>;
@@ -80,7 +65,7 @@ describe('RewardModuleAPI', () => {
 				{ isValidSeedReveal: jest.fn().mockReturnValue(true) } as any,
 				{ impliesMaximalPrevotes: jest.fn().mockReturnValue(true) } as any,
 			);
-			const blockHeader = fakeBlockHeader(currentHeight);
+			const blockHeader = createBlockHeaderWithDefaults({ height: currentHeight });
 			const rewardFromAPI = await rewardModule.api.getBlockReward(context, blockHeader, blockAsset);
 
 			expect(rewardFromAPI).toBe(rewardFromConfig);
@@ -93,7 +78,7 @@ describe('RewardModuleAPI', () => {
 				{ isValidSeedReveal: jest.fn().mockReturnValue(true) } as any,
 				{ impliesMaximalPrevotes: jest.fn().mockReturnValue(false) } as any,
 			);
-			const blockHeader = fakeBlockHeader(currentHeight);
+			const blockHeader = createBlockHeaderWithDefaults({ height: currentHeight });
 			const rewardFromAPI = await rewardModule.api.getBlockReward(context, blockHeader, blockAsset);
 
 			expect(rewardFromAPI).toBe(rewardFromConfig / BigInt(4));
@@ -106,7 +91,7 @@ describe('RewardModuleAPI', () => {
 				{ isValidSeedReveal: jest.fn().mockReturnValue(false) } as any,
 				{ impliesMaximalPrevotes: jest.fn().mockReturnValue(true) } as any,
 			);
-			const blockHeader = fakeBlockHeader(currentHeight);
+			const blockHeader = createBlockHeaderWithDefaults({ height: currentHeight });
 			const rewardFromAPI = await rewardModule.api.getBlockReward(context, blockHeader, blockAsset);
 
 			expect(rewardFromAPI).toBe(BigInt(0));
@@ -119,7 +104,7 @@ describe('RewardModuleAPI', () => {
 			{ isValidSeedReveal: jest.fn().mockReturnValue(true) } as any,
 			{ impliesMaximalPrevotes: jest.fn().mockReturnValue(true) } as any,
 		);
-		const blockHeader = fakeBlockHeader(1);
+		const blockHeader = createBlockHeaderWithDefaults({ height: 1 });
 		const rewardFromAPI = await rewardModule.api.getBlockReward(context, blockHeader, blockAsset);
 
 		expect(rewardFromAPI).toBe(BigInt(0));
