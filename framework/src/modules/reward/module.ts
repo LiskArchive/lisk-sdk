@@ -36,7 +36,7 @@ export class RewardModule extends BaseModule {
 		this._tokenAPI = tokenAPI;
 		this._randomAPI = randomAPI;
 		this._bftAPI = bftAPI;
-		this.api.addDependencies(bftAPI, randomAPI);
+		this.api.addDependencies(this._bftAPI, this._randomAPI);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
