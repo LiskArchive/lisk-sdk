@@ -13,5 +13,23 @@
  */
 
 import { BaseAPI } from '../base_api';
+import { ImmutableAPIContext } from '../../node/state_machine';
+import { AuthData, authAccountSchema } from './schemas';
+import { STORE_PREFIX_AUTH } from './constants';
 
-export class AuthAPI extends BaseAPI {}
+export class AuthAPI extends BaseAPI {
+	public async getAuthAccount(
+		apiContext: ImmutableAPIContext,
+		address: Buffer,
+	): Promise<AuthData | {}> {
+		const authDataStore = apiContext.getStore(this.moduleID, STORE_PREFIX_AUTH);
+		let authData;
+		try {
+			authData = await authDataStore.getWithSchema<AuthData>(address, authAccountSchema);
+		} catch (error) {
+			authData = {};
+		}
+
+		return authData;
+	}
+}
