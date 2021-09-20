@@ -12,7 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+export interface AuthData {
+	nonce: number;
+	numberOfSignatures: number;
+	mandatoryKeys: ReadonlyArray<Buffer>;
+	optionalKeys: ReadonlyArray<Buffer>;
+}
+
 export const authAccountSchema = {
+	$id: '/auth/account',
 	type: 'object',
 	properties: {
 		nonce: {
