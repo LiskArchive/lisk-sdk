@@ -175,8 +175,8 @@ export const previousTimestampStoreSchema = {
 	},
 };
 
-export const delegateRegistrationCommandParams = {
-	$id: '/dpos/command/registerDelegate',
+export const delegateRegistrationCommandParamsSchema = {
+	$id: '/dpos/command/registerDelegateParams',
 	type: 'object',
 	required: ['name', 'generatorKey', 'blsKey', 'proofOfPossession'],
 	properties: {
@@ -199,8 +199,8 @@ export const delegateRegistrationCommandParams = {
 	},
 };
 
-export const updateGeneratorKeyCommandParams = {
-	$id: '/dpos/command/updateGeneratorKey',
+export const updateGeneratorKeyCommandParamsSchema = {
+	$id: '/dpos/command/updateGeneratorKeyParams',
 	type: 'object',
 	required: ['generatorKey'],
 	properties: {
@@ -211,8 +211,8 @@ export const updateGeneratorKeyCommandParams = {
 	},
 };
 
-export const voteCommandParams = {
-	$id: '/dpos/command/voteDelegate',
+export const voteCommandParamsSchema = {
+	$id: '/dpos/command/voteDelegateParams',
 	type: 'object',
 	required: ['votes'],
 	properties: {
@@ -237,8 +237,8 @@ export const voteCommandParams = {
 	},
 };
 
-export const pomCommandParams = {
-	$id: '/dpos/command/reportDelegateMisbehavior',
+export const pomCommandParamsSchema = {
+	$id: '/dpos/command/reportDelegateMisbehaviorParams',
 	type: 'object',
 	required: ['header1', 'header2'],
 	properties: {
@@ -253,8 +253,8 @@ export const pomCommandParams = {
 	},
 };
 
-export const unlockCommandParams = {
-	$id: '/dpos/command/unlockToken',
+export const unlockCommandParamsSchema = {
+	$id: '/dpos/command/unlockTokenParams',
 	type: 'object',
 	properties: {},
 };

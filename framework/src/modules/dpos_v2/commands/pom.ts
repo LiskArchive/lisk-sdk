@@ -20,12 +20,12 @@ import {
 } from '../../../node/state_machine/types';
 import { BaseCommand } from '../../base_command';
 import { COMMAND_ID_POM } from '../constants';
-import { pomCommandParams } from '../schemas';
+import { pomCommandParamsSchema } from '../schemas';
 
 export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 	public id = COMMAND_ID_POM;
 	public name = 'reportDelegateMisbehavior';
-	public schema = pomCommandParams;
+	public schema = pomCommandParamsSchema;
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(

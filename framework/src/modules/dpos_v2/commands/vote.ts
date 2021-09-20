@@ -20,12 +20,12 @@ import {
 } from '../../../node/state_machine/types';
 import { BaseCommand } from '../../base_command';
 import { COMMAND_ID_VOTE } from '../constants';
-import { voteCommandParams } from '../schemas';
+import { voteCommandParamsSchema } from '../schemas';
 
 export class VoteCommand extends BaseCommand {
 	public id = COMMAND_ID_VOTE;
 	public name = 'voteDelegate';
-	public schema = voteCommandParams;
+	public schema = voteCommandParamsSchema;
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(

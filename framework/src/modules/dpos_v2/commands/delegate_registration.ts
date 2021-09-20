@@ -20,12 +20,12 @@ import {
 } from '../../../node/state_machine/types';
 import { BaseCommand } from '../../base_command';
 import { COMMAND_ID_DELEGATE_REGISTRATION } from '../constants';
-import { delegateRegistrationCommandParams } from '../schemas';
+import { delegateRegistrationCommandParamsSchema } from '../schemas';
 
 export class DelegateRegistrationCommand extends BaseCommand {
 	public id = COMMAND_ID_DELEGATE_REGISTRATION;
 	public name = 'registerDelegate';
-	public schema = delegateRegistrationCommandParams;
+	public schema = delegateRegistrationCommandParamsSchema;
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(

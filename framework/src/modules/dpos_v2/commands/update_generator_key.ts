@@ -20,12 +20,12 @@ import {
 } from '../../../node/state_machine/types';
 import { BaseCommand } from '../../base_command';
 import { COMMAND_ID_UPDATE_GENERATOR_KEY } from '../constants';
-import { updateGeneratorKeyCommandParams } from '../schemas';
+import { updateGeneratorKeyCommandParamsSchema } from '../schemas';
 
 export class UpdateGeneratorKeyCommand extends BaseCommand {
 	public id = COMMAND_ID_UPDATE_GENERATOR_KEY;
 	public name = 'updateGeneratorKey';
-	public schema = updateGeneratorKeyCommandParams;
+	public schema = updateGeneratorKeyCommandParamsSchema;
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(

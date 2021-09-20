@@ -15,12 +15,12 @@
 import { CommandExecuteContext } from '../../../node/state_machine/types';
 import { BaseCommand } from '../../base_command';
 import { COMMAND_ID_UNLOCK } from '../constants';
-import { unlockCommandParams } from '../schemas';
+import { unlockCommandParamsSchema } from '../schemas';
 
 export class UnlockCommand extends BaseCommand {
 	public id = COMMAND_ID_UNLOCK;
 	public name = 'unlockToken';
-	public schema = unlockCommandParams;
+	public schema = unlockCommandParamsSchema;
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async execute(_context: CommandExecuteContext<Record<string, unknown>>): Promise<void> {}
