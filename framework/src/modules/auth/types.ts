@@ -11,3 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+export interface Keys {
+	numberOfSignatures: number;
+	mandatoryKeys: Buffer[];
+	optionalKeys: Buffer[];
+}

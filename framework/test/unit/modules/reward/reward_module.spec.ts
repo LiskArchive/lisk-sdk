@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { RewardModule } from '../../../../src/modules/reward';
+import { createBlockContext, createBlockHeaderWithDefaults } from '../../../../src/testing';
 
 describe('RewardModule', () => {
 	const genesisConfig: any = {};
@@ -30,20 +31,43 @@ describe('RewardModule', () => {
 	const generatorConfig: any = {};
 
 	let rewardModule: RewardModule;
-
-	beforeAll(async () => {
+	let mint: any;
+	beforeEach(async () => {
+		mint = jest.fn();
 		rewardModule = new RewardModule();
 		await rewardModule.init({ genesisConfig, moduleConfig, generatorConfig });
 		rewardModule.addDependencies(
-			{ mint: jest.fn() } as any,
-			{ isValidSeedReveal: jest.fn() } as any,
-			{ impliesMaximalPrevotes: jest.fn() } as any,
+			{ mint } as any,
+			{ isValidSeedReveal: jest.fn().mockReturnValue(true) } as any,
+			{ impliesMaximalPrevotes: jest.fn().mockReturnValue(true) } as any,
 		);
 	});
 
 	describe('init', () => {
 		it('should set the moduleConfig property', () => {
 			expect(rewardModule['_moduleConfig']).toEqual(moduleConfig);
+		});
+	});
+
+	describe('afterBlockExecute', () => {
+		it(`should call mint for a valid bracket`, async () => {
+			const blockHeader = createBlockHeaderWithDefaults({ height: moduleConfig.offset });
+			const blockAfterExecuteContext = createBlockContext({
+				header: blockHeader,
+			}).getBlockAfterExecuteContext();
+			await rewardModule.afterBlockExecute(blockAfterExecuteContext);
+
+			expect(mint).toHaveBeenCalledTimes(1);
+		});
+
+		it('should not mint reward for reward <= 0', async () => {
+			const blockHeader = createBlockHeaderWithDefaults({ height: 1 });
+			const blockAfterExecuteContext = createBlockContext({
+				header: blockHeader,
+			}).getBlockAfterExecuteContext();
+			await rewardModule.afterBlockExecute(blockAfterExecuteContext);
+
+			expect(mint).not.toHaveBeenCalled();
 		});
 	});
 });
