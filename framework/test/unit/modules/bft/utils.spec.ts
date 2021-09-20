@@ -100,7 +100,7 @@ describe('bft utils', () => {
 			expect(areDistinctHeadersContradicting(header1, header2)).toBeTrue();
 		});
 
-		it('should false when headers are not contradicting', () => {
+		it('should return false when headers are not contradicting', () => {
 			const header1 = createFakeBlockHeader({
 				generatorAddress,
 				height: 133,
