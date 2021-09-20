@@ -296,7 +296,7 @@ export const configSchema = {
 		numberActiveDelegates: {
 			dataType: 'uint32',
 		},
-		tokenIDDPOS: {
+		tokenIDDPoS: {
 			type: 'object',
 			properties: {
 				chainID: {
@@ -321,6 +321,6 @@ export const configSchema = {
 		'bftThreshold',
 		'minWeightStandby',
 		'numberActiveDelegates',
-		'tokenIDDPOS',
+		'tokenIDDPoS',
 	],
 };

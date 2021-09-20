@@ -18,22 +18,22 @@ import {
 } from '../../node/state_machine/types';
 import { BaseModule, ModuleInitArgs } from '../base_module';
 import { ModuleConfig } from '../fee/types';
-import { DPOSAPI } from './api';
+import { DPoSAPI } from './api';
 import { DelegateRegistrationCommand } from './commands/delegate_registration';
 import { ReportDelegateMisbehaviorCommand } from './commands/pom';
 import { UnlockCommand } from './commands/unlock';
 import { UpdateGeneratorKeyCommand } from './commands/update_generator_key';
 import { VoteCommand } from './commands/vote';
 import { MODULE_ID_DPOS } from './constants';
-import { DPOSEndpoint } from './endpoint';
+import { DPoSEndpoint } from './endpoint';
 import { configSchema } from './schemas';
 import { BFTAPI, RandomAPI, ValidatorsAPI } from './types';
 
-export class DPOSModule extends BaseModule {
+export class DPoSModule extends BaseModule {
 	public id = MODULE_ID_DPOS;
 	public name = 'dpos';
-	public api = new DPOSAPI(this.id);
-	public endpoint = new DPOSEndpoint(this.id);
+	public api = new DPoSAPI(this.id);
+	public endpoint = new DPoSEndpoint(this.id);
 	public configSchema = configSchema;
 	public commands = [
 		new DelegateRegistrationCommand(this.id),

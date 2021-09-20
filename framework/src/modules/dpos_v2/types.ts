@@ -15,7 +15,7 @@
 import { Validator } from '../../node/consensus/types';
 import { APIContext, ImmutableAPIContext } from '../../node/state_machine/types';
 
-export interface TokenIDDPOS {
+export interface TokenIDDPoS {
 	chainID: number;
 	localID: number;
 }
@@ -32,7 +32,7 @@ export interface ModuleConfig {
 	bftThreshold: number;
 	minWeightStandby: number;
 	numberActiveDelegates: number;
-	tokenIDDPOS: TokenIDDPOS;
+	tokenIDDPoS: TokenIDDPoS;
 }
 
 export interface BFTAPI {

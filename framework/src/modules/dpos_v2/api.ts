@@ -14,4 +14,4 @@
 
 import { BaseAPI } from '../base_api';
 
-export class DPOSAPI extends BaseAPI {}
+export class DPoSAPI extends BaseAPI {}

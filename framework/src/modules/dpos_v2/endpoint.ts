@@ -14,4 +14,4 @@
 
 import { BaseEndpoint } from '../base_endpoint';
 
-export class DPOSEndpoint extends BaseEndpoint {}
+export class DPoSEndpoint extends BaseEndpoint {}
