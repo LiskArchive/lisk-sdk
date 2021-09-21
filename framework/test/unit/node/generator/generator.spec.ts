@@ -112,7 +112,7 @@ describe('generator', () => {
 		validatorAPI = {
 			getSlotNumber: jest.fn(),
 			getSlotTime: jest.fn(),
-			getGenerator: jest.fn(),
+			getGeneratorAtTimestamp: jest.fn(),
 		} as never;
 		bftAPI = {
 			getBFTHeights: jest.fn().mockResolvedValue({
@@ -375,14 +375,14 @@ describe('generator', () => {
 			(validatorAPI.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000));
 			await generator['_generateLoop']();
 
-			expect(validatorAPI.getGenerator).not.toHaveBeenCalled();
+			expect(validatorAPI.getGeneratorAtTimestamp).not.toHaveBeenCalled();
 		});
 
 		it('should not generate if validator is not registered for given time', async () => {
 			(validatorAPI.getSlotNumber as jest.Mock)
 				.mockReturnValueOnce(currentSlot)
 				.mockReturnValueOnce(lastBlockSlot);
-			(validatorAPI.getGenerator as jest.Mock).mockReturnValue(getRandomBytes(20));
+			(validatorAPI.getGeneratorAtTimestamp as jest.Mock).mockReturnValue(getRandomBytes(20));
 			jest.spyOn(generator, '_generateBlock' as never);
 			await generator['_generateLoop']();
 
@@ -394,7 +394,7 @@ describe('generator', () => {
 				.mockReturnValueOnce(currentSlot)
 				.mockReturnValueOnce(lastBlockSlot - 1);
 			(validatorAPI.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000));
-			(validatorAPI.getGenerator as jest.Mock).mockReturnValue(
+			(validatorAPI.getGeneratorAtTimestamp as jest.Mock).mockReturnValue(
 				Buffer.from(genesisDelegates.delegates[0].address, 'hex'),
 			);
 			jest.spyOn(generator, '_generateBlock' as never);
@@ -409,7 +409,7 @@ describe('generator', () => {
 				.mockReturnValueOnce(currentSlot)
 				.mockReturnValueOnce(lastBlockSlot - 1);
 			(validatorAPI.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000) - 5);
-			(validatorAPI.getGenerator as jest.Mock).mockReturnValue(
+			(validatorAPI.getGeneratorAtTimestamp as jest.Mock).mockReturnValue(
 				Buffer.from(genesisDelegates.delegates[0].address, 'hex'),
 			);
 
@@ -425,7 +425,7 @@ describe('generator', () => {
 				.mockReturnValueOnce(currentSlot)
 				.mockReturnValueOnce(lastBlockSlot);
 			(validatorAPI.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000) + 5);
-			(validatorAPI.getGenerator as jest.Mock).mockReturnValue(
+			(validatorAPI.getGeneratorAtTimestamp as jest.Mock).mockReturnValue(
 				Buffer.from(genesisDelegates.delegates[0].address, 'hex'),
 			);
 
