@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { NotFoundError } from '@liskhq/lisk-db';
 import { BaseAPI } from '../base_api';
 import { ImmutableAPIContext } from '../../node/state_machine';
 import { AuthData, authAccountSchema } from './schemas';
@@ -23,13 +24,16 @@ export class AuthAPI extends BaseAPI {
 		address: Buffer,
 	): Promise<AuthData | {}> {
 		const authDataStore = apiContext.getStore(this.moduleID, STORE_PREFIX_AUTH);
-		let authData;
 		try {
-			authData = await authDataStore.getWithSchema<AuthData>(address, authAccountSchema);
-		} catch (error) {
-			authData = {};
-		}
+			const authData = await authDataStore.getWithSchema<AuthData>(address, authAccountSchema);
 
-		return authData;
+			return authData;
+		} catch (error) {
+			if (error instanceof NotFoundError) {
+				return { nonce: BigInt(0), numberOfSignatures: 0, mandatoryKeys: [], optionalKeys: [] };
+			}
+
+			throw error;
+		}
 	}
 }
