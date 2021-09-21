@@ -15,12 +15,14 @@
 import { AuthAPI } from '../../../../src/modules/auth/api';
 import { STORE_PREFIX_AUTH } from '../../../../src/modules/auth/constants';
 import { authAccountSchema } from '../../../../src/modules/auth/schemas';
+import { APIContext } from '../../../../src/node/state_machine';
+import { SubStore } from '../../../../src/node/state_machine/types';
 import { createTransientAPIContext } from '../../../../src/testing';
 
 describe('AuthAPI', () => {
 	let authAPI: AuthAPI;
-	let context: any;
-	let authStore: any;
+	let context: APIContext;
+	let authStore: SubStore;
 	const address = Buffer.from('fa1c00809ff1b10cd269a711eef40a465ba4a9cb', 'hex');
 
 	beforeEach(async () => {
