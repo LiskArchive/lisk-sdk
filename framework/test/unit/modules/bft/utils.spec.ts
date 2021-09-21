@@ -12,19 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BIG_ENDIAN, getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
-import { StateStore } from '@liskhq/lisk-chain';
-import { codec } from '@liskhq/lisk-codec';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { createFakeBlockHeader } from '../../../../src/testing';
 import {
 	areDistinctHeadersContradicting,
-	getBFTParameters,
 	getBlockBFTProperties,
 } from '../../../../src/modules/bft/utils';
-import { MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS } from '../../../../src/modules/bft/constants';
-import { BFTParameters, bftParametersSchema } from '../../../../src/modules/bft/schemas';
-import { BFTParameterNotFoundError } from '../../../../src/modules/bft/errors';
 
 describe('bft utils', () => {
 	const generatorAddress = getRandomBytes(20);
@@ -126,71 +119,7 @@ describe('bft utils', () => {
 			expect(bftProps.maxHeightGenerated).toEqual(header.maxHeightGenerated);
 			expect(bftProps.maxHeightPrevoted).toEqual(header.maxHeightPrevoted);
 			expect(bftProps.maxHeightPrevoted).toEqual(0);
-			expect(bftProps.precommitWeight).toEqual(0);
-		});
-	});
-
-	describe('getBFTParameters', () => {
-		let db: KVStore;
-		let stateStore: StateStore;
-		let bftParams1: BFTParameters;
-		let bftParams2: BFTParameters;
-
-		beforeEach(async () => {
-			db = new InMemoryKVStore() as never;
-			const rootStore = new StateStore(db);
-			const paramsStore = rootStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
-			const height1Bytes = intToBuffer(309, 4, BIG_ENDIAN);
-			bftParams1 = {
-				prevoteThreshold: BigInt(20),
-				precommitThreshold: BigInt(30),
-				certificateThreshold: BigInt(40),
-				validators: [
-					{
-						address: getRandomBytes(20),
-						bftWeight: BigInt(10),
-					},
-				],
-				validatorsHash: getRandomBytes(32),
-			};
-			await paramsStore.set(height1Bytes, codec.encode(bftParametersSchema, bftParams1));
-			const height2Bytes = intToBuffer(515, 4, BIG_ENDIAN);
-			bftParams2 = {
-				prevoteThreshold: BigInt(40),
-				precommitThreshold: BigInt(50),
-				certificateThreshold: BigInt(60),
-				validators: [
-					{
-						address: getRandomBytes(20),
-						bftWeight: BigInt(5),
-					},
-				],
-				validatorsHash: getRandomBytes(32),
-			};
-			await paramsStore.set(height2Bytes, codec.encode(bftParametersSchema, bftParams2));
-			const batch = db.batch();
-			rootStore.finalize(batch);
-			await batch.write();
-
-			stateStore = new StateStore(db);
-		});
-
-		it('should throw if BFT parameters greater than the height does not exist', async () => {
-			const paramsStore = stateStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
-
-			await expect(getBFTParameters(paramsStore, 1014)).rejects.toThrow(BFTParameterNotFoundError);
-		});
-
-		it('should return if BFT parameters equal to the input height exist', async () => {
-			const paramsStore = stateStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
-
-			await expect(getBFTParameters(paramsStore, 515)).resolves.toEqual(bftParams2);
-		});
-
-		it('should return if BFT parameters greater than the input height exist', async () => {
-			const paramsStore = stateStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
-
-			await expect(getBFTParameters(paramsStore, 330)).resolves.toEqual(bftParams2);
+			expect(bftProps.precommitWeight).toEqual(BigInt(0));
 		});
 	});
 });

@@ -447,8 +447,8 @@ export class Consensus {
 		const bftVotes = await this._bftAPI.getBFTHeights(apiContext);
 
 		let { finalizedHeight } = this._chain;
-		if (bftVotes.maxHeightPrecommited > finalizedHeight) {
-			finalizedHeight = bftVotes.maxHeightPrecommited;
+		if (bftVotes.maxHeightPrecommitted > finalizedHeight) {
+			finalizedHeight = bftVotes.maxHeightPrecommitted;
 		}
 
 		await this._chain.saveBlock(block, stateStore, finalizedHeight, {

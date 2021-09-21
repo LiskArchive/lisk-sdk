@@ -23,7 +23,7 @@ export interface BFTHeader {
 
 export interface BFTHeights {
 	maxHeightPrevoted: number;
-	maxHeightPrecommited: number;
+	maxHeightPrecommitted: number;
 	maxHeightCertified: number;
 }
 

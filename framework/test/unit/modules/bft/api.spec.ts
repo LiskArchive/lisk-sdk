@@ -97,7 +97,7 @@ describe('BFT API', () => {
 				EMPTY_KEY,
 				{
 					maxHeightPrevoted: 10,
-					maxHeightPrecommited: 0,
+					maxHeightPrecommitted: 0,
 					maxHeightCertified: 0,
 					blockBFTInfos: [
 						{
@@ -230,16 +230,16 @@ describe('BFT API', () => {
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 		});
 
-		it('should return BFT parameters if it exists for the higher height', async () => {
-			await expect(bftAPI.getBFTParameters(apiContext, 10)).resolves.toEqual(params20);
+		it('should return BFT parameters if it exists for the lower height', async () => {
+			await expect(bftAPI.getBFTParameters(apiContext, 25)).resolves.toEqual(params20);
 		});
 
 		it('should return BFT parameters if it exists for the height', async () => {
 			await expect(bftAPI.getBFTParameters(apiContext, 20)).resolves.toEqual(params20);
 		});
 
-		it('should throw if the BFT parameter does not exist for the height or higher', async () => {
-			await expect(bftAPI.getBFTParameters(apiContext, 31)).rejects.toThrow(
+		it('should throw if the BFT parameter does not exist for the height or lower', async () => {
+			await expect(bftAPI.getBFTParameters(apiContext, 19)).rejects.toThrow(
 				BFTParameterNotFoundError,
 			);
 		});
@@ -255,7 +255,7 @@ describe('BFT API', () => {
 				EMPTY_KEY,
 				{
 					maxHeightPrevoted: 10,
-					maxHeightPrecommited: 8,
+					maxHeightPrecommitted: 8,
 					maxHeightCertified: 1,
 					blockBFTInfos: [
 						{
@@ -293,7 +293,7 @@ describe('BFT API', () => {
 		it('should return current BFT heights', async () => {
 			await expect(bftAPI.getBFTHeights(apiContext)).resolves.toEqual({
 				maxHeightPrevoted: 10,
-				maxHeightPrecommited: 8,
+				maxHeightPrecommitted: 8,
 				maxHeightCertified: 1,
 			});
 		});
@@ -309,7 +309,7 @@ describe('BFT API', () => {
 				EMPTY_KEY,
 				{
 					maxHeightPrevoted: 10,
-					maxHeightPrecommited: 8,
+					maxHeightPrecommitted: 8,
 					maxHeightCertified: 1,
 					blockBFTInfos: [
 						{
@@ -494,7 +494,7 @@ describe('BFT API', () => {
 				EMPTY_KEY,
 				{
 					maxHeightPrevoted: 10,
-					maxHeightPrecommited: 8,
+					maxHeightPrecommitted: 8,
 					maxHeightCertified: 1,
 					blockBFTInfos: [
 						{
@@ -672,7 +672,7 @@ describe('BFT API', () => {
 					EMPTY_KEY,
 					{
 						maxHeightPrevoted: 10,
-						maxHeightPrecommited: 8,
+						maxHeightPrecommitted: 8,
 						maxHeightCertified: 1,
 						blockBFTInfos: [],
 						activeValidatorsVoteInfo: [

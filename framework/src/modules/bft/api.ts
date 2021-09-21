@@ -19,10 +19,10 @@ import { BaseAPI } from '../base_api';
 import { APIContext, BlockHeader, ImmutableAPIContext } from '../../node/state_machine';
 import {
 	areDistinctHeadersContradicting,
-	getBFTParameters,
 	sortValidatorsByAddress,
 	sortValidatorsByBLSKey,
 } from './utils';
+import { getBFTParameters } from './bft_params';
 import {
 	EMPTY_KEY,
 	MAX_UINT32,
@@ -96,7 +96,7 @@ export class BFTAPI extends BaseAPI {
 		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
 		return {
 			maxHeightPrevoted: bftVotes.maxHeightPrevoted,
-			maxHeightPrecommited: bftVotes.maxHeightPrecommited,
+			maxHeightPrecommitted: bftVotes.maxHeightPrecommitted,
 			maxHeightCertified: bftVotes.maxHeightCertified,
 		};
 	}

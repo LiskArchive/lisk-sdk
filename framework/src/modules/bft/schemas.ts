@@ -90,8 +90,8 @@ export interface BFTVotesBlockInfo {
 	generatorAddress: Buffer;
 	maxHeightGenerated: number;
 	maxHeightPrevoted: number;
-	prevoteWeight: number;
-	precommitWeight: number;
+	prevoteWeight: bigint;
+	precommitWeight: bigint;
 }
 
 export interface BFTVotesActiveValidatorsVoteInfo {
@@ -102,7 +102,7 @@ export interface BFTVotesActiveValidatorsVoteInfo {
 
 export interface BFTVotes {
 	maxHeightPrevoted: number;
-	maxHeightPrecommited: number;
+	maxHeightPrecommitted: number;
 	maxHeightCertified: number;
 	blockBFTInfos: BFTVotesBlockInfo[];
 	activeValidatorsVoteInfo: BFTVotesActiveValidatorsVoteInfo[];
@@ -113,14 +113,14 @@ export const bftVotesSchema = {
 	type: 'object',
 	required: [
 		'maxHeightPrevoted',
-		'maxHeightPrecommited',
+		'maxHeightPrecommitted',
 		'maxHeightCertified',
 		'blockBFTInfos',
 		'activeValidatorsVoteInfo',
 	],
 	properties: {
 		maxHeightPrevoted: { dataType: 'uint32', fieldNumber: 1 },
-		maxHeightPrecommited: { dataType: 'uint32', fieldNumber: 2 },
+		maxHeightPrecommitted: { dataType: 'uint32', fieldNumber: 2 },
 		maxHeightCertified: { dataType: 'uint32', fieldNumber: 3 },
 		blockBFTInfos: {
 			type: 'array',

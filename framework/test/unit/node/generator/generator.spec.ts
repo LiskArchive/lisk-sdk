@@ -117,7 +117,7 @@ describe('generator', () => {
 		bftAPI = {
 			getBFTHeights: jest.fn().mockResolvedValue({
 				maxHeightPrevoted: 0,
-				maxHeightPrecommited: 0,
+				maxHeightPrecommitted: 0,
 				maxHeightCertified: 0,
 			}),
 		} as never;
