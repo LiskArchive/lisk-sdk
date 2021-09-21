@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { NotFoundError } from '@liskhq/lisk-db';
+import { NotFoundError } from '@liskhq/lisk-chain';
 import { BaseAPI } from '../base_api';
 import { ImmutableAPIContext } from '../../node/state_machine';
 import { AuthData, authAccountSchema } from './schemas';
@@ -29,11 +29,11 @@ export class AuthAPI extends BaseAPI {
 
 			return authData;
 		} catch (error) {
-			if (error instanceof NotFoundError) {
-				return { nonce: BigInt(0), numberOfSignatures: 0, mandatoryKeys: [], optionalKeys: [] };
+			if (!(error instanceof NotFoundError)) {
+				throw error;
 			}
 
-			throw error;
+			return { nonce: BigInt(0), numberOfSignatures: 0, mandatoryKeys: [], optionalKeys: [] };
 		}
 	}
 }
