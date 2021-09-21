@@ -13,7 +13,7 @@
  */
 
 export interface AuthData {
-	nonce: number;
+	nonce: bigint;
 	numberOfSignatures: number;
 	mandatoryKeys: ReadonlyArray<Buffer>;
 	optionalKeys: ReadonlyArray<Buffer>;
