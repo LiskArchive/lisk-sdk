@@ -191,10 +191,10 @@ export class ValidatorsAPI extends BaseAPI {
 			return false;
 		}
 
-		const validatorAccount = await validatorsSubStore.getWithSchema(
+		const validatorAccount = await validatorsSubStore.getWithSchema<Record<string, unknown>>(
 			validatorAddressBuffer,
 			validatorAccountSchema,
-		) as Record<string, unknown>;
+		);
 		if (!(validatorAccount.blsKey as Buffer).equals(INVALID_BLS_KEY)) {
 			return false;
 		}
@@ -234,10 +234,10 @@ export class ValidatorsAPI extends BaseAPI {
 			return false;
 		}
 
-		const validatorAccount = await validatorsSubStore.getWithSchema(
+		const validatorAccount = await validatorsSubStore.getWithSchema<Record<string, unknown>>(
 			validatorAddressBuffer,
 			validatorAccountSchema,
-		) as Record<string, unknown>;
+		);
 		validatorAccount.generatorKey = generatorKeyBuffer;
 		await validatorsSubStore.setWithSchema(
 			validatorAddressBuffer,
