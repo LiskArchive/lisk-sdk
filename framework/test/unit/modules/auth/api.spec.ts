@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { AuthAPI } from '../../../../src/modules/auth/api';
 import { STORE_PREFIX_AUTH } from '../../../../src/modules/auth/constants';
 import { authAccountSchema } from '../../../../src/modules/auth/schemas';
@@ -24,37 +25,37 @@ describe('AuthAPI', () => {
 	let context: APIContext;
 	let authStore: SubStore;
 	const address = Buffer.from('fa1c00809ff1b10cd269a711eef40a465ba4a9cb', 'hex');
+	const expectedAuthData = {
+		nonce: 1,
+		numberOfSignatures: 1,
+		mandatoryKeys: [getRandomBytes(64), getRandomBytes(64)],
+		optionalKeys: [getRandomBytes(64), getRandomBytes(64)],
+	};
 
 	beforeEach(async () => {
 		authAPI = new AuthAPI(1);
 		context = createTransientAPIContext({});
 		authStore = context.getStore(authAPI['moduleID'], STORE_PREFIX_AUTH);
-		await authStore.setWithSchema(
-			address,
-			{
-				nonce: 1,
-				numberOfSignatures: 1,
-				mandatoryKeys: [],
-				optionalKeys: [],
-			},
-			authAccountSchema,
-		);
+		await authStore.setWithSchema(address, expectedAuthData, authAccountSchema);
 	});
 
 	describe('getAuthAccount', () => {
 		it('should return valid auth data given address in db', async () => {
 			const authData = await authAPI.getAuthAccount(context, address);
 
-			expect(authData).toHaveProperty('nonce', BigInt(1));
-			expect(authData).toHaveProperty('numberOfSignatures', 1);
-			expect(authData).toHaveProperty('mandatoryKeys', []);
-			expect(authData).toHaveProperty('optionalKeys', []);
+			expect(authData).toHaveProperty('nonce', BigInt(expectedAuthData.nonce));
+			expect(authData).toHaveProperty('numberOfSignatures', expectedAuthData.numberOfSignatures);
+			expect(authData).toHaveProperty('mandatoryKeys', expectedAuthData.mandatoryKeys);
+			expect(authData).toHaveProperty('optionalKeys', expectedAuthData.optionalKeys);
 		});
 
 		it('should return empty object given address not in db', async () => {
-			const authData = await authAPI.getAuthAccount(context, Buffer.from('invalid', 'utf8'));
+			const authData = await authAPI.getAuthAccount(context, getRandomBytes(20));
 
-			expect(authData).toEqual({});
+			expect(authData).toHaveProperty('nonce', BigInt(0));
+			expect(authData).toHaveProperty('numberOfSignatures', 0);
+			expect(authData).toHaveProperty('mandatoryKeys', []);
+			expect(authData).toHaveProperty('optionalKeys', []);
 		});
 	});
 });
