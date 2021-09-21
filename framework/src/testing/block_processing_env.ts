@@ -72,8 +72,11 @@ const getAppConfig = (genesisConfig?: GenesisConfig): ApplicationConfig => {
 	return mergedConfig;
 };
 
-const getNextTimestamp = (node: Node, apiContext: APIContext, previousBlock: BlockHeader) => {
-	const previousSlotNumber = node.validatorAPI.getSlotNumber(apiContext, previousBlock.timestamp);
+const getNextTimestamp = async (node: Node, apiContext: APIContext, previousBlock: BlockHeader) => {
+	const previousSlotNumber = await node.validatorAPI.getSlotNumber(
+		apiContext,
+		previousBlock.timestamp,
+	);
 	return node.validatorAPI.getSlotTime(apiContext, previousSlotNumber + 1);
 };
 
@@ -85,8 +88,9 @@ const createProcessableBlock = async (
 	// Get previous block and generate valid timestamp, seed reveal, maxHeightPrevoted, reward and maxHeightPreviouslyForged
 	const apiContext = createNewAPIContext(node['_blockchainDB']);
 	const previousBlockHeader = node['_chain'].lastBlock.header;
-	const nextTimestamp = timestamp ?? getNextTimestamp(node, apiContext, previousBlockHeader);
-	const validator = await node.validatorAPI.getGenerator(apiContext, nextTimestamp);
+	const nextTimestamp =
+		timestamp ?? (await getNextTimestamp(node, apiContext, previousBlockHeader));
+	const validator = await node.validatorAPI.getGeneratorAtTimestamp(apiContext, nextTimestamp);
 	const passphrase = getPassphraseFromDefaultConfig(validator);
 	for (const tx of payload) {
 		await node['_generator']['_pool'].add(tx);
@@ -140,8 +144,8 @@ export const getBlockProcessingEnv = async (
 		getLastBlock: () => node['_chain'].lastBlock,
 		getNextValidatorPassphrase: async (previousBlockHeader: BlockHeader): Promise<string> => {
 			const apiContext = createNewAPIContext(blockchainDB);
-			const nextTimestamp = getNextTimestamp(node, apiContext, previousBlockHeader);
-			const validator = await node.validatorAPI.getGenerator(apiContext, nextTimestamp);
+			const nextTimestamp = await getNextTimestamp(node, apiContext, previousBlockHeader);
+			const validator = await node.validatorAPI.getGeneratorAtTimestamp(apiContext, nextTimestamp);
 			const passphrase = getPassphraseFromDefaultConfig(validator);
 
 			return passphrase;

@@ -27,13 +27,14 @@ import { GeneratorList } from './types';
 
 export class ValidatorsEndpoint extends BaseEndpoint {
 	public async getGeneratorList(ctx: ModuleEndpointContext): Promise<{ list: string[] }> {
-		const subStore = ctx.getStore(MODULE_ID_VALIDATORS, STORE_PREFIX_GENERATOR_LIST);
+		const generatorListSubStore = ctx.getStore(MODULE_ID_VALIDATORS, STORE_PREFIX_GENERATOR_LIST);
 		const emptyKey = Buffer.alloc(0);
-		const value = await subStore.getWithSchema<GeneratorList>(emptyKey, generatorListSchema);
+		const generatorList = await generatorListSubStore.getWithSchema<GeneratorList>(
+			emptyKey,
+			generatorListSchema,
+		);
 
-		const addressList = value.addresses;
-
-		return { list: addressList.map(buf => buf.toString()) };
+		return { list: generatorList.addresses.map(buf => buf.toString()) };
 	}
 
 	public async validateBLSKey(ctx: ModuleEndpointContext): Promise<{ valid: boolean }> {
@@ -45,12 +46,12 @@ export class ValidatorsEndpoint extends BaseEndpoint {
 		const req = (ctx.params as unknown) as ValidateBLSKeyRequest;
 		const { proofOfPossession, blsKey } = req;
 
-		const subStore = ctx.getStore(MODULE_ID_VALIDATORS, STORE_PREFIX_BLS_KEYS);
+		const blsKeysSubStore = ctx.getStore(MODULE_ID_VALIDATORS, STORE_PREFIX_BLS_KEYS);
 
 		let persistedValue;
 
 		try {
-			persistedValue = await subStore.get(Buffer.from(blsKey, 'hex'));
+			persistedValue = await blsKeysSubStore.get(Buffer.from(blsKey, 'hex'));
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;

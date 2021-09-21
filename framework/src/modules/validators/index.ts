@@ -13,4 +13,4 @@
  */
 
 export { ValidatorsModule } from './module';
-export type { ValidatorsAPI } from './api';
+export { ValidatorsAPI } from './api';

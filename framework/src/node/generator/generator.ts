@@ -377,12 +377,12 @@ export class Generator {
 
 		const MS_IN_A_SEC = 1000;
 		const currentTime = Math.floor(new Date().getTime() / MS_IN_A_SEC);
-		const currentSlot = this._validatorAPI.getSlotNumber(apiContext, currentTime);
+		const currentSlot = await this._validatorAPI.getSlotNumber(apiContext, currentTime);
 
-		const currentSlotTime = this._validatorAPI.getSlotTime(apiContext, currentSlot);
+		const currentSlotTime = await this._validatorAPI.getSlotTime(apiContext, currentSlot);
 
 		const { waitThreshold } = this._config;
-		const lastBlockSlot = this._validatorAPI.getSlotNumber(
+		const lastBlockSlot = await this._validatorAPI.getSlotNumber(
 			apiContext,
 			this._chain.lastBlock.header.timestamp,
 		);
@@ -392,7 +392,7 @@ export class Generator {
 			return;
 		}
 
-		const generator = await this._validatorAPI.getGenerator(apiContext, currentTime);
+		const generator = await this._validatorAPI.getGeneratorAtTimestamp(apiContext, currentTime);
 		const validatorKeypair = this._keypairs.get(generator);
 
 		if (validatorKeypair === undefined) {
