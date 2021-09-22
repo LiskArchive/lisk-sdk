@@ -105,43 +105,41 @@ export class ValidatorsAPI extends BaseAPI {
 
 	public async registerValidatorKeys(
 		apiContext: APIContext,
-		validatorAddress: string,
-		blsKey: string,
-		generatorKey: string,
-		proofOfPossession: string,
+		validatorAddress: Buffer,
+		blsKey: Buffer,
+		generatorKey: Buffer,
+		proofOfPossession: Buffer,
 	): Promise<boolean> {
-		const validatorAddressBuffer = Buffer.from(validatorAddress, 'hex');
-		const blsKeyBuffer = Buffer.from(blsKey, 'hex');
 		const validatorsSubStore = apiContext.getStore(
 			MODULE_ID_VALIDATORS,
 			STORE_PREFIX_VALIDATORS_DATA,
 		);
-		if (await validatorsSubStore.has(validatorAddressBuffer)) {
+		if (await validatorsSubStore.has(validatorAddress)) {
 			return false;
 		}
 
 		const blsKeysSubStore = apiContext.getStore(MODULE_ID_VALIDATORS, STORE_PREFIX_BLS_KEYS);
-		if (await blsKeysSubStore.has(Buffer.from(blsKey, 'hex'))) {
+		if (await blsKeysSubStore.has(blsKey)) {
 			return false;
 		}
 
-		if (!blsPopVerify(blsKeyBuffer, Buffer.from(proofOfPossession, 'hex'))) {
+		if (!blsPopVerify(blsKey, proofOfPossession)) {
 			return false;
 		}
 
 		const validatorAccount = {
-			generatorKey: Buffer.from(generatorKey, 'hex'),
-			blsKey: blsKeyBuffer,
+			generatorKey,
+			blsKey,
 		};
 
 		await validatorsSubStore.setWithSchema(
-			validatorAddressBuffer,
+			validatorAddress,
 			validatorAccount,
 			validatorAccountSchema,
 		);
 		await blsKeysSubStore.setWithSchema(
-			blsKeyBuffer,
-			{ address: validatorAddressBuffer },
+			blsKey,
+			{ address: validatorAddress },
 			validatorAddressSchema,
 		);
 
@@ -171,47 +169,44 @@ export class ValidatorsAPI extends BaseAPI {
 
 	public async setValidatorBLSKey(
 		apiContext: APIContext,
-		validatorAddress: string,
-		blsKey: string,
-		proofOfPossession: string,
+		validatorAddress: Buffer,
+		blsKey: Buffer,
+		proofOfPossession: Buffer,
 	): Promise<boolean> {
-		const validatorAddressBuffer = Buffer.from(validatorAddress, 'hex');
-		const blsKeyBuffer = Buffer.from(blsKey, 'hex');
-
 		const validatorsSubStore = apiContext.getStore(
 			MODULE_ID_VALIDATORS,
 			STORE_PREFIX_VALIDATORS_DATA,
 		);
-		if (!(await validatorsSubStore.has(validatorAddressBuffer))) {
+		if (!(await validatorsSubStore.has(validatorAddress))) {
 			return false;
 		}
 
 		const blsKeysSubStore = apiContext.getStore(MODULE_ID_VALIDATORS, STORE_PREFIX_BLS_KEYS);
-		if (await blsKeysSubStore.has(blsKeyBuffer)) {
+		if (await blsKeysSubStore.has(blsKey)) {
 			return false;
 		}
 
 		const validatorAccount = await validatorsSubStore.getWithSchema<Record<string, unknown>>(
-			validatorAddressBuffer,
+			validatorAddress,
 			validatorAccountSchema,
 		);
 		if (!(validatorAccount.blsKey as Buffer).equals(INVALID_BLS_KEY)) {
 			return false;
 		}
 
-		if (!blsPopVerify(blsKeyBuffer, Buffer.from(proofOfPossession, 'hex'))) {
+		if (!blsPopVerify(blsKey, proofOfPossession)) {
 			return false;
 		}
 
-		validatorAccount.blsKey = blsKeyBuffer;
+		validatorAccount.blsKey = blsKey;
 		await validatorsSubStore.setWithSchema(
-			validatorAddressBuffer,
+			validatorAddress,
 			validatorAccount,
 			validatorAccountSchema,
 		);
 		await blsKeysSubStore.setWithSchema(
-			blsKeyBuffer,
-			{ address: validatorAddressBuffer },
+			blsKey,
+			{ address: validatorAddress },
 			validatorAddressSchema,
 		);
 
@@ -220,27 +215,24 @@ export class ValidatorsAPI extends BaseAPI {
 
 	public async setValidatorGeneratorKey(
 		apiContext: APIContext,
-		validatorAddress: string,
-		generatorKey: string,
+		validatorAddress: Buffer,
+		generatorKey: Buffer,
 	): Promise<boolean> {
-		const validatorAddressBuffer = Buffer.from(validatorAddress, 'hex');
-		const generatorKeyBuffer = Buffer.from(generatorKey, 'hex');
-
 		const validatorsSubStore = apiContext.getStore(
 			MODULE_ID_VALIDATORS,
 			STORE_PREFIX_VALIDATORS_DATA,
 		);
-		if (!(await validatorsSubStore.has(validatorAddressBuffer))) {
+		if (!(await validatorsSubStore.has(validatorAddress))) {
 			return false;
 		}
 
 		const validatorAccount = await validatorsSubStore.getWithSchema<Record<string, unknown>>(
-			validatorAddressBuffer,
+			validatorAddress,
 			validatorAccountSchema,
 		);
-		validatorAccount.generatorKey = generatorKeyBuffer;
+		validatorAccount.generatorKey = generatorKey;
 		await validatorsSubStore.setWithSchema(
-			validatorAddressBuffer,
+			validatorAddress,
 			validatorAccount,
 			validatorAccountSchema,
 		);
@@ -248,9 +240,9 @@ export class ValidatorsAPI extends BaseAPI {
 		return true;
 	}
 
-	public async isKeyRegistered(apiContext: ImmutableAPIContext, blsKey: string): Promise<boolean> {
+	public async isKeyRegistered(apiContext: ImmutableAPIContext, blsKey: Buffer): Promise<boolean> {
 		const blsKeysSubStore = apiContext.getStore(MODULE_ID_VALIDATORS, STORE_PREFIX_BLS_KEYS);
-		if (await blsKeysSubStore.has(Buffer.from(blsKey, 'hex'))) {
+		if (await blsKeysSubStore.has(blsKey)) {
 			return true;
 		}
 		return false;
@@ -272,7 +264,7 @@ export class ValidatorsAPI extends BaseAPI {
 
 	public async setGeneratorList(
 		apiContext: APIContext,
-		generatorAddresses: string[],
+		generatorAddresses: Buffer[],
 	): Promise<boolean> {
 		const generatorListSubStore = apiContext.getStore(
 			MODULE_ID_VALIDATORS,
@@ -283,8 +275,7 @@ export class ValidatorsAPI extends BaseAPI {
 			STORE_PREFIX_VALIDATORS_DATA,
 		);
 
-		const generatorAddressesBuffer = generatorAddresses.map(addr => Buffer.from(addr, 'hex'));
-		for (const addr of generatorAddressesBuffer) {
+		for (const addr of generatorAddresses) {
 			if (!(await validatorsSubStore.has(addr))) {
 				return false;
 			}
@@ -293,7 +284,7 @@ export class ValidatorsAPI extends BaseAPI {
 		const emptyKey = Buffer.alloc(0);
 		await generatorListSubStore.setWithSchema(
 			emptyKey,
-			{ addresses: generatorAddressesBuffer },
+			{ addresses: generatorAddresses },
 			generatorListSchema,
 		);
 		return true;

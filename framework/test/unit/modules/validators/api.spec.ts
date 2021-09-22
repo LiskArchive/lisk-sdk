@@ -52,6 +52,7 @@ describe('ValidatorsModuleAPI', () => {
 	const proofOfPossession = getRandomBytes(48);
 	const emptyKey = Buffer.alloc(0);
 	const genesisTimestamp = 1610643809;
+	const generatorListBuffer = generatorList.map(addr => Buffer.from(addr, 'hex'));
 
 	beforeAll(async () => {
 		validatorsModule = new ValidatorsModule();
@@ -84,10 +85,10 @@ describe('ValidatorsModuleAPI', () => {
 			expect(
 				await validatorsModule.api.registerValidatorKeys(
 					apiContext,
-					address.toString('hex'),
-					blsKey1,
-					generatorKey.toString('hex'),
-					proofOfPossession1,
+					address,
+					Buffer.from(blsKey1, 'hex'),
+					generatorKey,
+					Buffer.from(proofOfPossession1, 'hex'),
 				),
 			).toBe(true);
 		});
@@ -108,10 +109,10 @@ describe('ValidatorsModuleAPI', () => {
 			expect(
 				await validatorsModule.api.registerValidatorKeys(
 					apiContext,
-					address.toString('hex'),
-					blsKey1,
-					generatorKey.toString('hex'),
-					proofOfPossession1,
+					address,
+					Buffer.from(blsKey1, 'hex'),
+					generatorKey,
+					Buffer.from(proofOfPossession1, 'hex'),
 				),
 			).toBe(false);
 		});
@@ -128,10 +129,10 @@ describe('ValidatorsModuleAPI', () => {
 			expect(
 				await validatorsModule.api.registerValidatorKeys(
 					apiContext,
-					address.toString('hex'),
-					blsKey1,
-					generatorKey.toString('hex'),
-					proofOfPossession1,
+					address,
+					Buffer.from(blsKey1, 'hex'),
+					generatorKey,
+					Buffer.from(proofOfPossession1, 'hex'),
 				),
 			).toBe(false);
 		});
@@ -141,10 +142,10 @@ describe('ValidatorsModuleAPI', () => {
 			expect(
 				await validatorsModule.api.registerValidatorKeys(
 					apiContext,
-					address.toString('hex'),
-					blsKey.toString('hex'),
-					generatorKey.toString('hex'),
-					proofOfPossession.toString('hex'),
+					address,
+					blsKey,
+					generatorKey,
+					proofOfPossession,
 				),
 			).toBe(false);
 		});
@@ -167,9 +168,9 @@ describe('ValidatorsModuleAPI', () => {
 			expect(
 				await validatorsModule.api.setValidatorBLSKey(
 					apiContext,
-					address.toString('hex'),
-					blsKey1,
-					proofOfPossession1,
+					address,
+					Buffer.from(blsKey1, 'hex'),
+					Buffer.from(proofOfPossession1, 'hex'),
 				),
 			).toBe(true);
 		});
@@ -184,9 +185,9 @@ describe('ValidatorsModuleAPI', () => {
 			expect(
 				await validatorsModule.api.setValidatorBLSKey(
 					apiContext,
-					address.toString('hex'),
-					blsKey1,
-					proofOfPossession1,
+					address,
+					Buffer.from(blsKey1, 'hex'),
+					Buffer.from(proofOfPossession1, 'hex'),
 				),
 			).toBe(false);
 		});
@@ -203,9 +204,9 @@ describe('ValidatorsModuleAPI', () => {
 			expect(
 				await validatorsModule.api.setValidatorBLSKey(
 					apiContext,
-					address.toString('hex'),
-					blsKey.toString('hex'),
-					proofOfPossession.toString('hex'),
+					address,
+					blsKey,
+					proofOfPossession,
 				),
 			).toBe(false);
 		});
@@ -221,9 +222,9 @@ describe('ValidatorsModuleAPI', () => {
 			expect(
 				await validatorsModule.api.setValidatorBLSKey(
 					apiContext,
-					address.toString('hex'),
-					blsKey.toString('hex'),
-					proofOfPossession.toString('hex'),
+					address,
+					blsKey,
+					proofOfPossession,
 				),
 			).toBe(false);
 		});
@@ -239,11 +240,7 @@ describe('ValidatorsModuleAPI', () => {
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 
 			expect(
-				await validatorsModule.api.setValidatorGeneratorKey(
-					apiContext,
-					address.toString('hex'),
-					generatorKey.toString('hex'),
-				),
+				await validatorsModule.api.setValidatorGeneratorKey(apiContext, address, generatorKey),
 			).toBe(true);
 		});
 
@@ -251,11 +248,7 @@ describe('ValidatorsModuleAPI', () => {
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 
 			expect(
-				await validatorsModule.api.setValidatorGeneratorKey(
-					apiContext,
-					address.toString('hex'),
-					generatorKey.toString('hex'),
-				),
+				await validatorsModule.api.setValidatorGeneratorKey(apiContext, address, generatorKey),
 			).toBe(false);
 		});
 	});
@@ -265,17 +258,13 @@ describe('ValidatorsModuleAPI', () => {
 			await blsKeysSubStore.set(blsKey, address);
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 
-			expect(await validatorsModule.api.isKeyRegistered(apiContext, blsKey.toString('hex'))).toBe(
-				true,
-			);
+			expect(await validatorsModule.api.isKeyRegistered(apiContext, blsKey)).toBe(true);
 		});
 
 		it(`should return false if bls key is not registered`, async () => {
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 
-			expect(await validatorsModule.api.isKeyRegistered(apiContext, blsKey.toString('hex'))).toBe(
-				false,
-			);
+			expect(await validatorsModule.api.isKeyRegistered(apiContext, blsKey)).toBe(false);
 		});
 	});
 
@@ -405,17 +394,15 @@ describe('ValidatorsModuleAPI', () => {
 				blsKey,
 			};
 			await Promise.all(
-				generatorList.map(async addr =>
-					validatorsSubStore.setWithSchema(
-						Buffer.from(addr, 'hex'),
-						validatorAccount,
-						validatorAccountSchema,
-					),
+				generatorListBuffer.map(async addr =>
+					validatorsSubStore.setWithSchema(addr, validatorAccount, validatorAccountSchema),
 				),
 			);
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 
-			expect(await validatorsModule.api.setGeneratorList(apiContext, generatorList)).toBe(true);
+			expect(await validatorsModule.api.setGeneratorList(apiContext, generatorListBuffer)).toBe(
+				true,
+			);
 		});
 
 		it(`should not be able to set the generator list if some input address is not registered in validators substore`, async () => {
@@ -424,18 +411,16 @@ describe('ValidatorsModuleAPI', () => {
 				blsKey,
 			};
 			await Promise.all(
-				generatorList.map(async addr =>
-					validatorsSubStore.setWithSchema(
-						Buffer.from(addr, 'hex'),
-						validatorAccount,
-						validatorAccountSchema,
-					),
+				generatorListBuffer.map(async addr =>
+					validatorsSubStore.setWithSchema(addr, validatorAccount, validatorAccountSchema),
 				),
 			);
 			await validatorsSubStore.del(Buffer.from(generatorList[1], 'hex'));
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 
-			expect(await validatorsModule.api.setGeneratorList(apiContext, generatorList)).toBe(false);
+			expect(await validatorsModule.api.setGeneratorList(apiContext, generatorListBuffer)).toBe(
+				false,
+			);
 		});
 	});
 });
