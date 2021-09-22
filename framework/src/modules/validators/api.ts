@@ -16,14 +16,14 @@ import { blsPopVerify } from '@liskhq/lisk-cryptography';
 import { BaseAPI } from '../base_api';
 import { APIContext, ImmutableAPIContext } from '../../node/state_machine';
 import {
+	EMPTY_KEY,
 	INVALID_BLS_KEY,
-	MODULE_ID_VALIDATORS,
 	STORE_PREFIX_BLS_KEYS,
 	STORE_PREFIX_GENERATOR_LIST,
 	STORE_PREFIX_GENESIS_DATA,
 	STORE_PREFIX_VALIDATORS_DATA,
 } from './constants';
-import { APIInitArgs, GeneratorList, GenesisData } from './types';
+import { APIInitArgs, GeneratorList, GenesisData, ValidatorKeys } from './types';
 import {
 	generatorListSchema,
 	genesisDataSchema,
@@ -42,15 +42,7 @@ export class ValidatorsAPI extends BaseAPI {
 		apiContext: ImmutableAPIContext,
 		timestamp: number,
 	): Promise<Buffer> {
-		const genesisDataSubStore = apiContext.getStore(
-			MODULE_ID_VALIDATORS,
-			STORE_PREFIX_GENESIS_DATA,
-		);
-		const emptyKey = Buffer.alloc(0);
-		const genesisData = await genesisDataSubStore.getWithSchema<GenesisData>(
-			emptyKey,
-			genesisDataSchema,
-		);
+		const genesisData = await this.getGenesisData(apiContext);
 
 		if (timestamp < genesisData.timestamp) {
 			throw new Error('Invalid timestamp');
@@ -58,12 +50,9 @@ export class ValidatorsAPI extends BaseAPI {
 
 		const elapsedTime = timestamp - genesisData.timestamp;
 
-		const generatorListSubStore = apiContext.getStore(
-			MODULE_ID_VALIDATORS,
-			STORE_PREFIX_GENERATOR_LIST,
-		);
+		const generatorListSubStore = apiContext.getStore(this.moduleID, STORE_PREFIX_GENERATOR_LIST);
 		const generatorList = await generatorListSubStore.getWithSchema<GeneratorList>(
-			emptyKey,
+			EMPTY_KEY,
 			generatorListSchema,
 		);
 		const slotIndex = Math.floor(elapsedTime / this._blockTime) % generatorList.addresses.length;
@@ -71,15 +60,7 @@ export class ValidatorsAPI extends BaseAPI {
 	}
 
 	public async getSlotNumber(apiContext: ImmutableAPIContext, timestamp: number): Promise<number> {
-		const genesisDataSubStore = apiContext.getStore(
-			MODULE_ID_VALIDATORS,
-			STORE_PREFIX_GENESIS_DATA,
-		);
-		const emptyKey = Buffer.alloc(0);
-		const genesisData = await genesisDataSubStore.getWithSchema<GenesisData>(
-			emptyKey,
-			genesisDataSchema,
-		);
+		const genesisData = await this.getGenesisData(apiContext);
 
 		if (timestamp < genesisData.timestamp) {
 			throw new Error('Invalid timestamp');
@@ -91,15 +72,7 @@ export class ValidatorsAPI extends BaseAPI {
 
 	public async getSlotTime(apiContext: ImmutableAPIContext, slot: number): Promise<number> {
 		const slotGenesisTimeOffset = slot * this._blockTime;
-		const genesisDataSubStore = apiContext.getStore(
-			MODULE_ID_VALIDATORS,
-			STORE_PREFIX_GENESIS_DATA,
-		);
-		const emptyKey = Buffer.alloc(0);
-		const genesisData = await genesisDataSubStore.getWithSchema<GenesisData>(
-			emptyKey,
-			genesisDataSchema,
-		);
+		const genesisData = await this.getGenesisData(apiContext);
 		return genesisData.timestamp + slotGenesisTimeOffset;
 	}
 
@@ -110,16 +83,16 @@ export class ValidatorsAPI extends BaseAPI {
 		generatorKey: Buffer,
 		proofOfPossession: Buffer,
 	): Promise<boolean> {
-		const validatorsSubStore = apiContext.getStore(
-			MODULE_ID_VALIDATORS,
-			STORE_PREFIX_VALIDATORS_DATA,
-		);
-		if (await validatorsSubStore.has(validatorAddress)) {
+		const validatorsSubStore = apiContext.getStore(this.moduleID, STORE_PREFIX_VALIDATORS_DATA);
+
+		const addressExists = await validatorsSubStore.has(validatorAddress);
+		if (addressExists) {
 			return false;
 		}
 
-		const blsKeysSubStore = apiContext.getStore(MODULE_ID_VALIDATORS, STORE_PREFIX_BLS_KEYS);
-		if (await blsKeysSubStore.has(blsKey)) {
+		const blsKeysSubStore = apiContext.getStore(this.moduleID, STORE_PREFIX_BLS_KEYS);
+		const blsKeyExists = await blsKeysSubStore.has(blsKey);
+		if (blsKeyExists) {
 			return false;
 		}
 
@@ -149,22 +122,14 @@ export class ValidatorsAPI extends BaseAPI {
 	public async getValidatorAccount(
 		apiContext: ImmutableAPIContext,
 		address: Buffer,
-	): Promise<Record<string, unknown>> {
-		const validatorsSubStore = apiContext.getStore(
-			MODULE_ID_VALIDATORS,
-			STORE_PREFIX_VALIDATORS_DATA,
-		);
-		return validatorsSubStore.getWithSchema(address, validatorAccountSchema);
+	): Promise<ValidatorKeys> {
+		const validatorsSubStore = apiContext.getStore(this.moduleID, STORE_PREFIX_VALIDATORS_DATA);
+		return validatorsSubStore.getWithSchema<ValidatorKeys>(address, validatorAccountSchema);
 	}
 
-	public async getGenesisData(apiContext: ImmutableAPIContext): Promise<number> {
-		const genesisDataSubStore = apiContext.getStore(
-			MODULE_ID_VALIDATORS,
-			STORE_PREFIX_GENESIS_DATA,
-		);
-		const emptyKey = Buffer.alloc(0);
-		const value = await genesisDataSubStore.getWithSchema<GenesisData>(emptyKey, genesisDataSchema);
-		return value.timestamp;
+	public async getGenesisData(apiContext: ImmutableAPIContext): Promise<GenesisData> {
+		const genesisDataSubStore = apiContext.getStore(this.moduleID, STORE_PREFIX_GENESIS_DATA);
+		return genesisDataSubStore.getWithSchema<GenesisData>(EMPTY_KEY, genesisDataSchema);
 	}
 
 	public async setValidatorBLSKey(
@@ -173,24 +138,24 @@ export class ValidatorsAPI extends BaseAPI {
 		blsKey: Buffer,
 		proofOfPossession: Buffer,
 	): Promise<boolean> {
-		const validatorsSubStore = apiContext.getStore(
-			MODULE_ID_VALIDATORS,
-			STORE_PREFIX_VALIDATORS_DATA,
-		);
-		if (!(await validatorsSubStore.has(validatorAddress))) {
+		const validatorsSubStore = apiContext.getStore(this.moduleID, STORE_PREFIX_VALIDATORS_DATA);
+
+		const addressExists = await validatorsSubStore.has(validatorAddress);
+		if (!addressExists) {
 			return false;
 		}
 
-		const blsKeysSubStore = apiContext.getStore(MODULE_ID_VALIDATORS, STORE_PREFIX_BLS_KEYS);
-		if (await blsKeysSubStore.has(blsKey)) {
+		const blsKeysSubStore = apiContext.getStore(this.moduleID, STORE_PREFIX_BLS_KEYS);
+		const blsKeyExists = await blsKeysSubStore.has(blsKey);
+		if (blsKeyExists) {
 			return false;
 		}
 
-		const validatorAccount = await validatorsSubStore.getWithSchema<Record<string, unknown>>(
+		const validatorAccount = await validatorsSubStore.getWithSchema<ValidatorKeys>(
 			validatorAddress,
 			validatorAccountSchema,
 		);
-		if (!(validatorAccount.blsKey as Buffer).equals(INVALID_BLS_KEY)) {
+		if (!validatorAccount.blsKey.equals(INVALID_BLS_KEY)) {
 			return false;
 		}
 
@@ -218,15 +183,14 @@ export class ValidatorsAPI extends BaseAPI {
 		validatorAddress: Buffer,
 		generatorKey: Buffer,
 	): Promise<boolean> {
-		const validatorsSubStore = apiContext.getStore(
-			MODULE_ID_VALIDATORS,
-			STORE_PREFIX_VALIDATORS_DATA,
-		);
-		if (!(await validatorsSubStore.has(validatorAddress))) {
+		const validatorsSubStore = apiContext.getStore(this.moduleID, STORE_PREFIX_VALIDATORS_DATA);
+
+		const addressExists = await validatorsSubStore.has(validatorAddress);
+		if (!addressExists) {
 			return false;
 		}
 
-		const validatorAccount = await validatorsSubStore.getWithSchema<Record<string, unknown>>(
+		const validatorAccount = await validatorsSubStore.getWithSchema<ValidatorKeys>(
 			validatorAddress,
 			validatorAccountSchema,
 		);
@@ -241,49 +205,36 @@ export class ValidatorsAPI extends BaseAPI {
 	}
 
 	public async isKeyRegistered(apiContext: ImmutableAPIContext, blsKey: Buffer): Promise<boolean> {
-		const blsKeysSubStore = apiContext.getStore(MODULE_ID_VALIDATORS, STORE_PREFIX_BLS_KEYS);
-		if (await blsKeysSubStore.has(blsKey)) {
-			return true;
-		}
-		return false;
+		const blsKeysSubStore = apiContext.getStore(this.moduleID, STORE_PREFIX_BLS_KEYS);
+		return blsKeysSubStore.has(blsKey);
 	}
 
-	public async getGeneratorList(apiContext: ImmutableAPIContext): Promise<{ list: Buffer[] }> {
-		const generatorListSubStore = apiContext.getStore(
-			MODULE_ID_VALIDATORS,
-			STORE_PREFIX_GENERATOR_LIST,
-		);
-		const emptyKey = Buffer.alloc(0);
+	public async getGeneratorList(apiContext: ImmutableAPIContext): Promise<Buffer[]> {
+		const generatorListSubStore = apiContext.getStore(this.moduleID, STORE_PREFIX_GENERATOR_LIST);
 		const generatorList = await generatorListSubStore.getWithSchema<GeneratorList>(
-			emptyKey,
+			EMPTY_KEY,
 			generatorListSchema,
 		);
 
-		return { list: generatorList.addresses };
+		return generatorList.addresses;
 	}
 
 	public async setGeneratorList(
 		apiContext: APIContext,
 		generatorAddresses: Buffer[],
 	): Promise<boolean> {
-		const generatorListSubStore = apiContext.getStore(
-			MODULE_ID_VALIDATORS,
-			STORE_PREFIX_GENERATOR_LIST,
-		);
-		const validatorsSubStore = apiContext.getStore(
-			MODULE_ID_VALIDATORS,
-			STORE_PREFIX_VALIDATORS_DATA,
-		);
+		const generatorListSubStore = apiContext.getStore(this.moduleID, STORE_PREFIX_GENERATOR_LIST);
+		const validatorsSubStore = apiContext.getStore(this.moduleID, STORE_PREFIX_VALIDATORS_DATA);
 
 		for (const addr of generatorAddresses) {
-			if (!(await validatorsSubStore.has(addr))) {
+			const addressExists = await validatorsSubStore.has(addr);
+			if (!addressExists) {
 				return false;
 			}
 		}
 
-		const emptyKey = Buffer.alloc(0);
 		await generatorListSubStore.setWithSchema(
-			emptyKey,
+			EMPTY_KEY,
 			{ addresses: generatorAddresses },
 			generatorListSchema,
 		);
@@ -300,15 +251,7 @@ export class ValidatorsAPI extends BaseAPI {
 		}
 
 		const result: Record<string, unknown> = {};
-		const genesisDataSubStore = apiContext.getStore(
-			MODULE_ID_VALIDATORS,
-			STORE_PREFIX_GENESIS_DATA,
-		);
-		const emptyKey = Buffer.alloc(0);
-		const genesisData = await genesisDataSubStore.getWithSchema<GenesisData>(
-			emptyKey,
-			genesisDataSchema,
-		);
+		const genesisData = await this.getGenesisData(apiContext);
 
 		if (startTimestamp < genesisData.timestamp) {
 			throw new Error('Invalid timestamp');
@@ -318,12 +261,9 @@ export class ValidatorsAPI extends BaseAPI {
 		const endSlotNumber = Math.floor((endTimestamp - genesisData.timestamp) / this._blockTime);
 		let totalSlots = endSlotNumber - startSlotNumber + 1;
 
-		const generatorListSubStore = apiContext.getStore(
-			MODULE_ID_VALIDATORS,
-			STORE_PREFIX_GENERATOR_LIST,
-		);
+		const generatorListSubStore = apiContext.getStore(this.moduleID, STORE_PREFIX_GENERATOR_LIST);
 		const generatorList = await generatorListSubStore.getWithSchema<GeneratorList>(
-			emptyKey,
+			EMPTY_KEY,
 			generatorListSchema,
 		);
 		const generatorAddresses = generatorList.addresses.map(buf => buf.toString());
@@ -335,9 +275,11 @@ export class ValidatorsAPI extends BaseAPI {
 			}
 		}
 
-		const range = (start: number, end: number) =>
-			Array.from({ length: end - start }, (_v, k) => k + start);
-		for (const slotNumber of range(startSlotNumber, startSlotNumber + totalSlots)) {
+		for (
+			let slotNumber = startSlotNumber;
+			slotNumber <= startSlotNumber + totalSlots;
+			slotNumber += 1
+		) {
 			const slotIndex = slotNumber % generatorAddresses.length;
 			const generatorAddress = generatorAddresses[slotIndex];
 			if (Object.prototype.hasOwnProperty.call(result, generatorAddress)) {

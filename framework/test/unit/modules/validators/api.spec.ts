@@ -17,6 +17,8 @@ import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { StateStore } from '@liskhq/lisk-chain';
 import { ValidatorsAPI, ValidatorsModule } from '../../../../src/modules/validators';
 import {
+	EMPTY_KEY,
+	INVALID_BLS_KEY,
 	STORE_PREFIX_BLS_KEYS,
 	STORE_PREFIX_GENERATOR_LIST,
 	STORE_PREFIX_GENESIS_DATA,
@@ -50,7 +52,6 @@ describe('ValidatorsModuleAPI', () => {
 	const address = getRandomBytes(48);
 	const generatorKey = getRandomBytes(48);
 	const proofOfPossession = getRandomBytes(48);
-	const emptyKey = Buffer.alloc(0);
 	const genesisTimestamp = 1610643809;
 	const generatorListBuffer = generatorList.map(addr => Buffer.from(addr, 'hex'));
 
@@ -157,7 +158,6 @@ describe('ValidatorsModuleAPI', () => {
 				'88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d26';
 			const blsKey1 =
 				'b301803f8b5ac4a1133581fc676dfedc60d891dd5fa99028805e5ea5b08d3491af75d0707adab3b70c6a6a580217bf81';
-			const INVALID_BLS_KEY = Buffer.alloc(48);
 			const validatorAccount = {
 				generatorKey,
 				blsKey: INVALID_BLS_KEY,
@@ -271,7 +271,7 @@ describe('ValidatorsModuleAPI', () => {
 	describe('getSlotNumber', () => {
 		it(`should return if timestamp is greater than genesis block timestamp`, async () => {
 			await genesisDataSubStore.setWithSchema(
-				emptyKey,
+				EMPTY_KEY,
 				{ timestamp: genesisTimestamp },
 				genesisDataSchema,
 			);
@@ -284,7 +284,7 @@ describe('ValidatorsModuleAPI', () => {
 
 		it(`should throw if timestamp is less than genesis block timestamp`, async () => {
 			await genesisDataSubStore.setWithSchema(
-				emptyKey,
+				EMPTY_KEY,
 				{ timestamp: genesisTimestamp },
 				genesisDataSchema,
 			);
@@ -299,12 +299,12 @@ describe('ValidatorsModuleAPI', () => {
 	describe('getGeneratorAtTimestamp', () => {
 		it(`should return if timestamp is greater than genesis block timestamp`, async () => {
 			await genesisDataSubStore.setWithSchema(
-				emptyKey,
+				EMPTY_KEY,
 				{ timestamp: genesisTimestamp },
 				genesisDataSchema,
 			);
 			await generatorListSubStore.setWithSchema(
-				emptyKey,
+				EMPTY_KEY,
 				{ addresses: generatorList.map(addr => Buffer.from(addr, 'hex')) },
 				generatorListSchema,
 			);
@@ -317,7 +317,7 @@ describe('ValidatorsModuleAPI', () => {
 
 		it(`should throw if timestamp is less than genesis block timestamp`, async () => {
 			await genesisDataSubStore.setWithSchema(
-				emptyKey,
+				EMPTY_KEY,
 				{ timestamp: genesisTimestamp },
 				genesisDataSchema,
 			);
@@ -332,12 +332,12 @@ describe('ValidatorsModuleAPI', () => {
 	describe('getGeneratorsBetweenTimestamps', () => {
 		it(`should be able to return if input timestamps are valid`, async () => {
 			await genesisDataSubStore.setWithSchema(
-				emptyKey,
+				EMPTY_KEY,
 				{ timestamp: genesisTimestamp },
 				genesisDataSchema,
 			);
 			await generatorListSubStore.setWithSchema(
-				emptyKey,
+				EMPTY_KEY,
 				{ addresses: generatorList.map(addr => Buffer.from(addr, 'hex')) },
 				generatorListSchema,
 			);
@@ -366,12 +366,12 @@ describe('ValidatorsModuleAPI', () => {
 
 		it(`should throw if input timestamp is less than genesis timestamp`, async () => {
 			await genesisDataSubStore.setWithSchema(
-				emptyKey,
+				EMPTY_KEY,
 				{ timestamp: genesisTimestamp },
 				genesisDataSchema,
 			);
 			await generatorListSubStore.setWithSchema(
-				emptyKey,
+				EMPTY_KEY,
 				{ addresses: generatorList.map(addr => Buffer.from(addr, 'hex')) },
 				generatorListSchema,
 			);

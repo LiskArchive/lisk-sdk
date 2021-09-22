@@ -28,7 +28,7 @@ export interface ImmutableSubStore {
 export interface SubStore extends ImmutableSubStore {
 	del(key: Buffer): Promise<void>;
 	set(key: Buffer, value: Buffer): Promise<void>;
-	setWithSchema(key: Buffer, value: Record<string, unknown>, schema: Schema): Promise<void>;
+	setWithSchema(key: Buffer, value: object, schema: Schema): Promise<void>;
 }
 
 export interface ImmutableAPIContext {
