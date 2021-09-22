@@ -95,6 +95,7 @@ export const createTransactionContext = (params: {
 	logger?: Logger;
 	header?: BlockHeader;
 	assets?: BlockAssets;
+	networkIdentifier?: Buffer;
 	transaction: Transaction;
 }): TransactionContext => {
 	const logger = params.logger ?? loggerMock;
@@ -126,7 +127,7 @@ export const createTransactionContext = (params: {
 		eventQueue,
 		header,
 		assets: params.assets ?? new BlockAssets(),
-		networkIdentifier: getRandomBytes(32),
+		networkIdentifier: params.networkIdentifier ?? getRandomBytes(32),
 		transaction: params.transaction,
 	});
 	return ctx;
