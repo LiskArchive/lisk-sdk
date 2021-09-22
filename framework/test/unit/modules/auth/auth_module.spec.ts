@@ -28,6 +28,7 @@ import * as fixtures from './fixtures.json';
 import * as testing from '../../../../src/testing';
 import { authAccountSchema } from '../../../../src/modules/auth/schemas';
 import { VerifyStatus } from '../../../../src/node/state_machine';
+import { InvalidNonceError } from '../../../../src/modules/auth/errors';
 
 describe('AuthModule', () => {
 	let decodedMultiSignature: any;
@@ -37,6 +38,7 @@ describe('AuthModule', () => {
 	let decodedBaseTransaction: any;
 	let passphrase: any;
 	let passphraseDerivedKeys: any;
+	let senderAccount: any;
 
 	const { cloneDeep } = ObjectUtils;
 	const subStoreMock = jest.fn();
@@ -61,7 +63,7 @@ describe('AuthModule', () => {
 			getStore: storeMock,
 		};
 
-		const senderAccount = {
+		senderAccount = {
 			address: Buffer.from(defaultTestCase.input.account.address, 'hex'),
 		};
 
@@ -89,8 +91,18 @@ describe('AuthModule', () => {
 	});
 
 	describe('beforeTransactionApply', () => {
-		describe('Multi-signature registration transaction', () => {
-			it('should not throw for valid transaction', async () => {
+		describe('Invalid nonce errors', () => {
+			it('should return FAIL status with error when trx nonce is lower than account nonce', async () => {
+				// Arrange
+				const accountNonce = BigInt(2);
+
+				when(subStoreMock).calledWith(senderAccount.address, authAccountSchema).mockReturnValue({
+					mandatoryKeys: [],
+					optionalKeys: [],
+					nonce: accountNonce,
+					numberOfSignatures: 0,
+				});
+
 				const context = testing
 					.createTransactionContext({
 						stateStore,
@@ -99,6 +111,69 @@ describe('AuthModule', () => {
 					})
 					.createTransactionVerifyContext();
 
+				// Act & Assert
+				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
+					status: VerifyStatus.FAIL,
+					error: new InvalidNonceError(
+						`Transaction with id:${validTestTransaction.id.toString(
+							'hex',
+						)} nonce is lower than account nonce`,
+						validTestTransaction.nonce,
+						accountNonce,
+					),
+				});
+			});
+
+			it('should return PENDING status with no error when trx nonce is higher than account nonce', async () => {
+				// Arrange
+				const transaction = new Transaction({
+					moduleID: 2,
+					commandID: 0,
+					nonce: BigInt('2'),
+					fee: BigInt('100000000'),
+					senderPublicKey: passphraseDerivedKeys.publicKey,
+					params: getRandomBytes(100),
+					signatures: [],
+				});
+
+				validTestTransaction = new Transaction(decodedMultiSignature);
+
+				const signature = signDataWithPassphrase(
+					TAG_TRANSACTION,
+					networkIdentifier,
+					transaction.getBytes(),
+					passphrase,
+				);
+
+				(transaction.signatures as any).push(signature);
+
+				const context = testing
+					.createTransactionContext({
+						stateStore,
+						transaction,
+						networkIdentifier,
+					})
+					.createTransactionVerifyContext();
+
+				// Act & Assert
+				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
+					status: VerifyStatus.PENDING,
+				});
+			});
+		});
+
+		describe('Multi-signature registration transaction', () => {
+			it('should not throw for valid transaction', async () => {
+				// Arrange
+				const context = testing
+					.createTransactionContext({
+						stateStore,
+						transaction: validTestTransaction,
+						networkIdentifier,
+					})
+					.createTransactionVerifyContext();
+
+				// Act & Assert
 				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
 					status: VerifyStatus.OK,
 				});
@@ -107,6 +182,7 @@ describe('AuthModule', () => {
 
 		describe('Transaction from single signatures account', () => {
 			it('should not throw for valid transaction', async () => {
+				// Arrange
 				const transaction = new Transaction({
 					moduleID: 2,
 					commandID: 0,
@@ -134,12 +210,14 @@ describe('AuthModule', () => {
 					})
 					.createTransactionVerifyContext();
 
+				// Act & Assert
 				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
 					status: VerifyStatus.OK,
 				});
 			});
 
 			it('should throw if signature is missing', async () => {
+				// Arrange
 				const transaction = new Transaction({
 					moduleID: 2,
 					commandID: 0,
@@ -158,6 +236,7 @@ describe('AuthModule', () => {
 					})
 					.createTransactionVerifyContext();
 
+				// Act & Assert
 				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
 					status: VerifyStatus.FAIL,
 					error: new Error(
@@ -167,6 +246,7 @@ describe('AuthModule', () => {
 			});
 
 			it('should throw error if account is not multi signature and more than one signature present', async () => {
+				// Arrange
 				const transaction = new Transaction({
 					moduleID: 2,
 					commandID: 0,
@@ -195,6 +275,7 @@ describe('AuthModule', () => {
 					})
 					.createTransactionVerifyContext();
 
+				// Act & Assert
 				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
 					status: VerifyStatus.FAIL,
 					error: new Error(
@@ -275,6 +356,7 @@ describe('AuthModule', () => {
 			});
 
 			it('should not throw for valid transaction', async () => {
+				// Arrange
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
 						TAG_TRANSACTION,
@@ -312,12 +394,14 @@ describe('AuthModule', () => {
 					})
 					.createTransactionVerifyContext();
 
+				// Act & Assert
 				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
 					status: VerifyStatus.OK,
 				});
 			});
 
 			it('should not throw for multisignature account with only optional', async () => {
+				// Arrange
 				const optionalOnlyMultisigAccount = cloneDeep(multisigAccount);
 				optionalOnlyMultisigAccount.mandatoryKeys = [];
 				optionalOnlyMultisigAccount.numberOfSignatures = 1;
@@ -350,12 +434,14 @@ describe('AuthModule', () => {
 					})
 					.createTransactionVerifyContext();
 
+				// Act & Assert
 				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
 					status: VerifyStatus.OK,
 				});
 			});
 
 			it('should not throw for valid transaction when first optional is present', async () => {
+				// Arrange
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
 						TAG_TRANSACTION,
@@ -392,12 +478,14 @@ describe('AuthModule', () => {
 					})
 					.createTransactionVerifyContext();
 
+				// Act & Assert
 				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
 					status: VerifyStatus.OK,
 				});
 			});
 
 			it('should not throw for valid transaction when second optional is present', async () => {
+				// Arrange
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
 						TAG_TRANSACTION,
@@ -435,12 +523,14 @@ describe('AuthModule', () => {
 					})
 					.createTransactionVerifyContext();
 
+				// Act & Assert
 				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
 					status: VerifyStatus.OK,
 				});
 			});
 
 			it('should throw for transaction where non optional absent signature is not empty buffer', async () => {
+				// Arrange
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
 						TAG_TRANSACTION,
@@ -475,6 +565,7 @@ describe('AuthModule', () => {
 					})
 					.createTransactionVerifyContext();
 
+				// Act & Assert
 				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
 					status: VerifyStatus.FAIL,
 					error: new Error(
@@ -486,6 +577,7 @@ describe('AuthModule', () => {
 			});
 
 			it('should throw error if number of provided signatures is bigger than numberOfSignatures in account asset', async () => {
+				// Arrange
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
 						TAG_TRANSACTION,
@@ -530,6 +622,7 @@ describe('AuthModule', () => {
 					})
 					.createTransactionVerifyContext();
 
+				// Act & Assert
 				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
 					status: VerifyStatus.FAIL,
 					error: new Error(
@@ -541,6 +634,7 @@ describe('AuthModule', () => {
 			});
 
 			it('should throw error if number of provided signatures is smaller than numberOfSignatures in account asset', async () => {
+				// Arrange
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
 						TAG_TRANSACTION,
@@ -569,6 +663,7 @@ describe('AuthModule', () => {
 					})
 					.createTransactionVerifyContext();
 
+				// Act & Assert
 				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
 					status: VerifyStatus.FAIL,
 					error: new Error(
@@ -580,6 +675,7 @@ describe('AuthModule', () => {
 			});
 
 			it('should throw for transaction with valid numberOfSignatures but missing mandatory key signature', async () => {
+				// Arrange
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
 						TAG_TRANSACTION,
@@ -617,6 +713,7 @@ describe('AuthModule', () => {
 					})
 					.createTransactionVerifyContext();
 
+				// Act & Assert
 				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
 					status: VerifyStatus.FAIL,
 					error: new Error('Invalid signature. Empty buffer is not a valid signature.'),
@@ -624,6 +721,7 @@ describe('AuthModule', () => {
 			});
 
 			it('should throw error if any of the mandatory signatures is not valid', async () => {
+				// Arrange
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
 						TAG_TRANSACTION,
@@ -661,12 +759,14 @@ describe('AuthModule', () => {
 					})
 					.createTransactionVerifyContext();
 
+				// Act & Assert
 				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
 					status: VerifyStatus.OK,
 				});
 			});
 
 			it('should throw error if any of the optional signatures is not valid', async () => {
+				// Arrange
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
 						TAG_TRANSACTION,
@@ -707,6 +807,7 @@ describe('AuthModule', () => {
 					})
 					.createTransactionVerifyContext();
 
+				// Act & Assert
 				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
 					status: VerifyStatus.FAIL,
 					error: new Error(
@@ -718,6 +819,7 @@ describe('AuthModule', () => {
 			});
 
 			it('should throw error if mandatory signatures are not in order', async () => {
+				// Arrange
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
 						TAG_TRANSACTION,
@@ -755,6 +857,7 @@ describe('AuthModule', () => {
 					})
 					.createTransactionVerifyContext();
 
+				// Act & Assert
 				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
 					status: VerifyStatus.FAIL,
 					error: new Error(
@@ -766,6 +869,7 @@ describe('AuthModule', () => {
 			});
 
 			it('should throw error if optional signatures are not in order', async () => {
+				// Arrange
 				(transaction.signatures as any).push(
 					signDataWithPassphrase(
 						TAG_TRANSACTION,
@@ -803,6 +907,7 @@ describe('AuthModule', () => {
 					})
 					.createTransactionVerifyContext();
 
+				// Act & Assert
 				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
 					status: VerifyStatus.FAIL,
 					error: new Error(
