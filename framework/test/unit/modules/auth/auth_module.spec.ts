@@ -1,0 +1,817 @@
+/*
+ * Copyright © 2021 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+import { Mnemonic } from '@liskhq/lisk-passphrase';
+import { codec } from '@liskhq/lisk-codec';
+import {
+	getRandomBytes,
+	getPrivateAndPublicKeyFromPassphrase,
+	hash,
+	getAddressFromPublicKey,
+	signDataWithPassphrase,
+} from '@liskhq/lisk-cryptography';
+import { Transaction, transactionSchema, TAG_TRANSACTION } from '@liskhq/lisk-chain';
+import { objects as ObjectUtils } from '@liskhq/lisk-utils';
+import { when } from 'jest-when';
+import { AuthModule } from '../../../../src/modules/auth';
+import * as fixtures from './fixtures.json';
+import * as testing from '../../../../src/testing';
+import { authAccountSchema } from '../../../../src/modules/auth/schemas';
+import { VerifyStatus } from '../../../../src/node/state_machine';
+
+describe('AuthModule', () => {
+	let decodedMultiSignature: any;
+	let validTestTransaction: any;
+	let stateStore: any;
+	let authModule: AuthModule;
+	let decodedBaseTransaction: any;
+	let passphrase: any;
+	let passphraseDerivedKeys: any;
+
+	const { cloneDeep } = ObjectUtils;
+	const subStoreMock = jest.fn();
+	const storeMock = jest.fn().mockReturnValue({ getWithSchema: subStoreMock });
+
+	const defaultTestCase = fixtures.testCases[0];
+	const networkIdentifier = Buffer.from(defaultTestCase.input.networkIdentifier, 'hex');
+
+	beforeEach(() => {
+		authModule = new AuthModule();
+		const buffer = Buffer.from(defaultTestCase.output.transaction, 'hex');
+		const id = hash(buffer);
+		decodedBaseTransaction = codec.decode<Transaction>(transactionSchema, buffer);
+		decodedMultiSignature = {
+			...decodedBaseTransaction,
+			id,
+		};
+
+		validTestTransaction = new Transaction(decodedMultiSignature);
+
+		stateStore = {
+			getStore: storeMock,
+		};
+
+		const senderAccount = {
+			address: Buffer.from(defaultTestCase.input.account.address, 'hex'),
+		};
+
+		when(subStoreMock)
+			.calledWith(senderAccount.address, authAccountSchema)
+			.mockReturnValue({
+				mandatoryKeys: [],
+				optionalKeys: [],
+				nonce: BigInt(1),
+				numberOfSignatures: 0,
+			});
+
+		passphrase = Mnemonic.generateMnemonic();
+		passphraseDerivedKeys = getPrivateAndPublicKeyFromPassphrase(passphrase);
+		const address = getAddressFromPublicKey(passphraseDerivedKeys.publicKey);
+
+		when(subStoreMock)
+			.calledWith(address, authAccountSchema)
+			.mockReturnValue({
+				mandatoryKeys: [],
+				optionalKeys: [],
+				nonce: BigInt(0),
+				numberOfSignatures: 0,
+			});
+	});
+
+	describe('beforeTransactionApply', () => {
+		describe('Multi-signature registration transaction', () => {
+			it('should not throw for valid transaction', async () => {
+				const context = testing
+					.createTransactionContext({
+						stateStore,
+						transaction: validTestTransaction,
+						networkIdentifier,
+					})
+					.createTransactionVerifyContext();
+
+				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
+					status: VerifyStatus.OK,
+				});
+			});
+		});
+
+		describe('Transaction from single signatures account', () => {
+			it('should not throw for valid transaction', async () => {
+				const transaction = new Transaction({
+					moduleID: 2,
+					commandID: 0,
+					nonce: BigInt('0'),
+					fee: BigInt('100000000'),
+					senderPublicKey: passphraseDerivedKeys.publicKey,
+					params: getRandomBytes(100),
+					signatures: [],
+				});
+
+				const signature = signDataWithPassphrase(
+					TAG_TRANSACTION,
+					networkIdentifier,
+					transaction.getBytes(),
+					passphrase,
+				);
+
+				(transaction.signatures as any).push(signature);
+
+				const context = testing
+					.createTransactionContext({
+						stateStore,
+						transaction,
+						networkIdentifier,
+					})
+					.createTransactionVerifyContext();
+
+				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
+					status: VerifyStatus.OK,
+				});
+			});
+
+			it('should throw if signature is missing', async () => {
+				const transaction = new Transaction({
+					moduleID: 2,
+					commandID: 0,
+					nonce: BigInt('0'),
+					fee: BigInt('100000000'),
+					senderPublicKey: passphraseDerivedKeys.publicKey,
+					params: getRandomBytes(100),
+					signatures: [],
+				});
+
+				const context = testing
+					.createTransactionContext({
+						stateStore,
+						transaction,
+						networkIdentifier,
+					})
+					.createTransactionVerifyContext();
+
+				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
+					status: VerifyStatus.FAIL,
+					error: new Error(
+						'Transactions from a single signature account should have exactly one signature. Found 0 signatures.',
+					),
+				});
+			});
+
+			it('should throw error if account is not multi signature and more than one signature present', async () => {
+				const transaction = new Transaction({
+					moduleID: 2,
+					commandID: 0,
+					nonce: BigInt('0'),
+					fee: BigInt('100000000'),
+					senderPublicKey: passphraseDerivedKeys.publicKey,
+					params: getRandomBytes(100),
+					signatures: [],
+				});
+
+				const signature = signDataWithPassphrase(
+					TAG_TRANSACTION,
+					networkIdentifier,
+					transaction.getBytes(),
+					passphrase,
+				);
+
+				(transaction.signatures as any).push(signature);
+				(transaction.signatures as any).push(signature);
+
+				const context = testing
+					.createTransactionContext({
+						stateStore,
+						transaction,
+						networkIdentifier,
+					})
+					.createTransactionVerifyContext();
+
+				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
+					status: VerifyStatus.FAIL,
+					error: new Error(
+						'Transactions from a single signature account should have exactly one signature. Found 2 signatures.',
+					),
+				});
+			});
+		});
+
+		describe('Transaction from multi-signatures account', () => {
+			interface memberFixture {
+				passphrase: string;
+				keys?: {
+					privateKey: Buffer;
+					publicKey: Buffer;
+				};
+				address?: Buffer;
+			}
+
+			interface membersFixture {
+				[key: string]: memberFixture;
+			}
+
+			const members: membersFixture = {
+				mainAccount: {
+					passphrase: 'order trip this crop race amused climb rather taxi morning holiday team',
+				},
+				mandatoryA: {
+					passphrase:
+						'clock cradle permit opinion hobby excite athlete weird soap mesh valley belt',
+				},
+				mandatoryB: {
+					passphrase:
+						'team dignity frost rookie gesture gaze piano daring fruit patrol chalk hidden',
+				},
+				optionalA: {
+					passphrase:
+						'welcome hello ostrich country drive car river jaguar warfare color tell risk',
+				},
+				optionalB: {
+					passphrase: 'beef volcano emotion say lab reject small repeat reveal napkin bunker make',
+				},
+			};
+
+			for (const aMember of Object.values(members)) {
+				aMember.keys = { ...getPrivateAndPublicKeyFromPassphrase(aMember.passphrase) };
+				aMember.address = getAddressFromPublicKey(aMember.keys.publicKey);
+			}
+
+			const multisigAccount = {
+				address: members.mainAccount.address,
+				numberOfSignatures: 3,
+				mandatoryKeys: [members.mandatoryA.keys?.publicKey, members.mandatoryB.keys?.publicKey],
+				optionalKeys: [members.optionalA.keys?.publicKey, members.optionalB.keys?.publicKey],
+			};
+
+			let transaction: Transaction;
+
+			beforeEach(() => {
+				when(subStoreMock)
+					.calledWith(multisigAccount.address, authAccountSchema)
+					.mockResolvedValue({
+						numberOfSignatures: 3,
+						mandatoryKeys: [members.mandatoryA.keys?.publicKey, members.mandatoryB.keys?.publicKey],
+						optionalKeys: [members.optionalA.keys?.publicKey, members.optionalB.keys?.publicKey],
+						nonce: BigInt(0),
+					});
+
+				transaction = new Transaction({
+					moduleID: 2,
+					commandID: 0,
+					nonce: BigInt('0'),
+					fee: BigInt('100000000'),
+					senderPublicKey: (members as any).mainAccount.keys.publicKey,
+					params: getRandomBytes(100),
+					signatures: [],
+				});
+			});
+
+			it('should not throw for valid transaction', async () => {
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).mandatoryA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).mandatoryB.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).optionalA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(Buffer.from(''));
+
+				const context = testing
+					.createTransactionContext({
+						stateStore,
+						transaction,
+						networkIdentifier,
+					})
+					.createTransactionVerifyContext();
+
+				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
+					status: VerifyStatus.OK,
+				});
+			});
+
+			it('should not throw for multisignature account with only optional', async () => {
+				const optionalOnlyMultisigAccount = cloneDeep(multisigAccount);
+				optionalOnlyMultisigAccount.mandatoryKeys = [];
+				optionalOnlyMultisigAccount.numberOfSignatures = 1;
+
+				when(subStoreMock)
+					.calledWith(optionalOnlyMultisigAccount.address, authAccountSchema)
+					.mockResolvedValue({
+						numberOfSignatures: 1,
+						mandatoryKeys: [],
+						optionalKeys: [members.optionalA.keys?.publicKey, members.optionalB.keys?.publicKey],
+						nonce: BigInt(0),
+					});
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).optionalA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(Buffer.from(''));
+
+				const context = testing
+					.createTransactionContext({
+						stateStore,
+						transaction,
+						networkIdentifier,
+					})
+					.createTransactionVerifyContext();
+
+				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
+					status: VerifyStatus.OK,
+				});
+			});
+
+			it('should not throw for valid transaction when first optional is present', async () => {
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).mandatoryA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).mandatoryB.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).optionalA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(Buffer.from(''));
+				const context = testing
+					.createTransactionContext({
+						stateStore,
+						transaction,
+						networkIdentifier,
+					})
+					.createTransactionVerifyContext();
+
+				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
+					status: VerifyStatus.OK,
+				});
+			});
+
+			it('should not throw for valid transaction when second optional is present', async () => {
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).mandatoryA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).mandatoryB.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(Buffer.from(''));
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).optionalB.passphrase,
+					),
+				);
+
+				const context = testing
+					.createTransactionContext({
+						stateStore,
+						transaction,
+						networkIdentifier,
+					})
+					.createTransactionVerifyContext();
+
+				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
+					status: VerifyStatus.OK,
+				});
+			});
+
+			it('should throw for transaction where non optional absent signature is not empty buffer', async () => {
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).mandatoryA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).mandatoryB.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).optionalB.passphrase,
+					),
+				);
+				const context = testing
+					.createTransactionContext({
+						stateStore,
+						transaction,
+						networkIdentifier,
+					})
+					.createTransactionVerifyContext();
+
+				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
+					status: VerifyStatus.FAIL,
+					error: new Error(
+						`Transaction signatures does not match required number of signatures: '3' for transaction with id '${transaction.id.toString(
+							'hex',
+						)}'`,
+					),
+				});
+			});
+
+			it('should throw error if number of provided signatures is bigger than numberOfSignatures in account asset', async () => {
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).mandatoryA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).mandatoryB.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).optionalA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).optionalB.passphrase,
+					),
+				);
+
+				const context = testing
+					.createTransactionContext({
+						stateStore,
+						transaction,
+						networkIdentifier,
+					})
+					.createTransactionVerifyContext();
+
+				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
+					status: VerifyStatus.FAIL,
+					error: new Error(
+						`Transaction signatures does not match required number of signatures: '3' for transaction with id '${transaction.id.toString(
+							'hex',
+						)}'`,
+					),
+				});
+			});
+
+			it('should throw error if number of provided signatures is smaller than numberOfSignatures in account asset', async () => {
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).mandatoryA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).mandatoryB.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(Buffer.from(''));
+
+				const context = testing
+					.createTransactionContext({
+						stateStore,
+						transaction,
+						networkIdentifier,
+					})
+					.createTransactionVerifyContext();
+
+				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
+					status: VerifyStatus.FAIL,
+					error: new Error(
+						`Transaction signatures does not match required number of signatures: '3' for transaction with id '${transaction.id.toString(
+							'hex',
+						)}'`,
+					),
+				});
+			});
+
+			it('should throw for transaction with valid numberOfSignatures but missing mandatory key signature', async () => {
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).mandatoryA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(Buffer.from(''));
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).optionalA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).optionalB.passphrase,
+					),
+				);
+
+				const context = testing
+					.createTransactionContext({
+						stateStore,
+						transaction,
+						networkIdentifier,
+					})
+					.createTransactionVerifyContext();
+
+				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
+					status: VerifyStatus.FAIL,
+					error: new Error('Invalid signature. Empty buffer is not a valid signature.'),
+				});
+			});
+
+			it('should throw error if any of the mandatory signatures is not valid', async () => {
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).mandatoryA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).mandatoryB.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).optionalA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(Buffer.from(''));
+
+				const context = testing
+					.createTransactionContext({
+						stateStore,
+						transaction,
+						networkIdentifier,
+					})
+					.createTransactionVerifyContext();
+
+				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
+					status: VerifyStatus.OK,
+				});
+			});
+
+			it('should throw error if any of the optional signatures is not valid', async () => {
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).mandatoryA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).mandatoryB.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(Buffer.from(''));
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).optionalB.passphrase,
+					),
+				);
+
+				// We change the first byte of the 2nd optional signature
+				(transaction.signatures as any)[3][0] = 10;
+
+				const context = testing
+					.createTransactionContext({
+						stateStore,
+						transaction,
+						networkIdentifier,
+					})
+					.createTransactionVerifyContext();
+
+				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
+					status: VerifyStatus.FAIL,
+					error: new Error(
+						`Failed to validate signature '${transaction.signatures[3].toString(
+							'hex',
+						)}' for transaction with id '${transaction.id.toString('hex')}'`,
+					),
+				});
+			});
+
+			it('should throw error if mandatory signatures are not in order', async () => {
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).mandatoryB.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).mandatoryA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).optionalA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(Buffer.from(''));
+
+				const context = testing
+					.createTransactionContext({
+						stateStore,
+						transaction,
+						networkIdentifier,
+					})
+					.createTransactionVerifyContext();
+
+				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
+					status: VerifyStatus.FAIL,
+					error: new Error(
+						`Failed to validate signature '${transaction.signatures[0].toString(
+							'hex',
+						)}' for transaction with id '${transaction.id.toString('hex')}'`,
+					),
+				});
+			});
+
+			it('should throw error if optional signatures are not in order', async () => {
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).mandatoryA.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).mandatoryB.passphrase,
+					),
+				);
+
+				(transaction.signatures as any).push(Buffer.from(''));
+
+				(transaction.signatures as any).push(
+					signDataWithPassphrase(
+						TAG_TRANSACTION,
+						networkIdentifier,
+						transaction.getSigningBytes(),
+						(members as any).optionalA.passphrase,
+					),
+				);
+
+				const context = testing
+					.createTransactionContext({
+						stateStore,
+						transaction,
+						networkIdentifier,
+					})
+					.createTransactionVerifyContext();
+
+				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
+					status: VerifyStatus.FAIL,
+					error: new Error(
+						`Failed to validate signature '${transaction.signatures[3].toString(
+							'hex',
+						)}' for transaction with id '${transaction.id.toString('hex')}'`,
+					),
+				});
+			});
+		});
+	});
+});
