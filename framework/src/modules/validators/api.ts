@@ -45,7 +45,7 @@ export class ValidatorsAPI extends BaseAPI {
 		const genesisData = await this.getGenesisData(apiContext);
 
 		if (timestamp < genesisData.timestamp) {
-			throw new Error('Invalid timestamp');
+			throw new Error('Input timestamp must be greater than genesis timestamp.');
 		}
 
 		const elapsedTime = timestamp - genesisData.timestamp;
@@ -63,15 +63,18 @@ export class ValidatorsAPI extends BaseAPI {
 		const genesisData = await this.getGenesisData(apiContext);
 
 		if (timestamp < genesisData.timestamp) {
-			throw new Error('Invalid timestamp');
+			throw new Error('Input timestamp must be greater than genesis timestamp.');
 		}
 
 		const elapsedTime = timestamp - genesisData.timestamp;
 		return Math.floor(elapsedTime / this._blockTime);
 	}
 
-	public async getSlotTime(apiContext: ImmutableAPIContext, slot: number): Promise<number> {
-		const slotGenesisTimeOffset = slot * this._blockTime;
+	public async getSlotTime(apiContext: ImmutableAPIContext, slotNumber: number): Promise<number> {
+		if (slotNumber < 0) {
+			throw new Error('Input slot number must be positive');
+		}
+		const slotGenesisTimeOffset = slotNumber * this._blockTime;
 		const genesisData = await this.getGenesisData(apiContext);
 		return genesisData.timestamp + slotGenesisTimeOffset;
 	}
@@ -247,14 +250,14 @@ export class ValidatorsAPI extends BaseAPI {
 		endTimestamp: number,
 	): Promise<Record<string, unknown>> {
 		if (endTimestamp < startTimestamp) {
-			throw new Error('Invalid timestamps');
+			throw new Error('End timestamp must be greater than start timestamp.');
 		}
 
 		const result: Record<string, unknown> = {};
 		const genesisData = await this.getGenesisData(apiContext);
 
 		if (startTimestamp < genesisData.timestamp) {
-			throw new Error('Invalid timestamp');
+			throw new Error('Input timestamp must be greater than genesis timestamp.');
 		}
 
 		const startSlotNumber = Math.floor((startTimestamp - genesisData.timestamp) / this._blockTime);
@@ -267,7 +270,8 @@ export class ValidatorsAPI extends BaseAPI {
 			generatorListSchema,
 		);
 		const generatorAddresses = generatorList.addresses.map(buf => buf.toString());
-		const baseSlots = Math.floor(totalSlots / generatorList.addresses.length);
+		const baseSlots = Math.floor(totalSlots / generatorAddresses.length);
+
 		if (baseSlots > 0) {
 			totalSlots -= baseSlots * generatorAddresses.length;
 			for (const generatorAddress of generatorAddresses) {
@@ -277,7 +281,7 @@ export class ValidatorsAPI extends BaseAPI {
 
 		for (
 			let slotNumber = startSlotNumber;
-			slotNumber <= startSlotNumber + totalSlots;
+			slotNumber < startSlotNumber + totalSlots;
 			slotNumber += 1
 		) {
 			const slotIndex = slotNumber % generatorAddresses.length;
