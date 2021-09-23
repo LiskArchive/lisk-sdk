@@ -72,7 +72,7 @@ export class ValidatorsAPI extends BaseAPI {
 
 	public async getSlotTime(apiContext: ImmutableAPIContext, slotNumber: number): Promise<number> {
 		if (slotNumber < 0) {
-			throw new Error('Input slot number must be positive');
+			throw new Error('Input slot number must be positive.');
 		}
 		const slotGenesisTimeOffset = slotNumber * this._blockTime;
 		const genesisData = await this.getGenesisData(apiContext);

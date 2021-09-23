@@ -17,6 +17,7 @@ import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { StateStore } from '@liskhq/lisk-chain';
 import { ValidatorsAPI, ValidatorsModule } from '../../../../src/modules/validators';
 import {
+	MODULE_ID_VALIDATORS,
 	EMPTY_KEY,
 	INVALID_BLS_KEY,
 	STORE_PREFIX_BLS_KEYS,
@@ -43,7 +44,6 @@ describe('ValidatorsModuleAPI', () => {
 	let blsKeysSubStore: StateStore;
 	let generatorListSubStore: StateStore;
 	let genesisDataSubStore: StateStore;
-	const validatorsModuleID = 11;
 	const genesisConfig: any = {};
 	const moduleConfig: any = {
 		blockTime: 10,
@@ -62,7 +62,7 @@ describe('ValidatorsModuleAPI', () => {
 	});
 
 	beforeEach(() => {
-		validatorsAPI = new ValidatorsAPI(validatorsModuleID);
+		validatorsAPI = new ValidatorsAPI(MODULE_ID_VALIDATORS);
 		stateStore = new StateStore(new InMemoryKVStore());
 		validatorsSubStore = stateStore.getStore(
 			validatorsAPI['moduleID'],
@@ -334,7 +334,7 @@ describe('ValidatorsModuleAPI', () => {
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 
 			await expect(validatorsModule.api.getSlotTime(apiContext, slotNumber)).rejects.toThrow(
-				'Input slot number must be positive',
+				'Input slot number must be positive.',
 			);
 		});
 	});
@@ -395,7 +395,7 @@ describe('ValidatorsModuleAPI', () => {
 			).resolves.toBeObject();
 		});
 
-		it('should be able to return generators with atleast one generator assigned more than one slot if input timestamps are valid and difference between input timestamps is greater than one round', async () => {
+		it('should be able to return generators with at least one generator assigned more than one slot if input timestamps are valid and difference between input timestamps is greater than one round', async () => {
 			const blockTime = 10;
 			const validatorsPerRound = 101;
 			const timePerRound = validatorsPerRound * blockTime;
@@ -427,7 +427,7 @@ describe('ValidatorsModuleAPI', () => {
 			expect(genWithCountGreaterThanOne).toBeGreaterThan(0);
 		});
 
-		it('should be able to return with all generators assigned atleast 2 slots and atleast one generator assigned more than 2 slots if input timestamps are valid and difference between input timestamps is greater than 2 rounds', async () => {
+		it('should be able to return with all generators assigned at least 2 slots and at least one generator assigned more than 2 slots if input timestamps are valid and difference between input timestamps is greater than 2 rounds', async () => {
 			const blockTime = 10;
 			const validatorsPerRound = 101;
 			const timePerRound = validatorsPerRound * blockTime;
@@ -468,7 +468,7 @@ describe('ValidatorsModuleAPI', () => {
 			expect(genWithCountGreaterThanTwo).toBeGreaterThan(0);
 		});
 
-		it('should be able to return atleast one generator if input timestamps are valid and difference between input timestamps is zero', async () => {
+		it('should be able to return at least one generator if input timestamps are valid and difference between input timestamps is zero', async () => {
 			await genesisDataSubStore.setWithSchema(
 				EMPTY_KEY,
 				{ timestamp: genesisTimestamp },
@@ -487,10 +487,10 @@ describe('ValidatorsModuleAPI', () => {
 				genesisTimestamp,
 			);
 
-			expect(Object.keys(result).length).toBeGreaterThan(0);
+			expect(Object.keys(result)).toHaveLength(1);
 		});
 
-		it('should be able to return atleast one generator if input timestamps are valid and difference between input timestamps is less than block time ', async () => {
+		it('should be able to return at least one generator if input timestamps are valid and difference between input timestamps is less than block time ', async () => {
 			const blockTime = 10;
 
 			await genesisDataSubStore.setWithSchema(
@@ -511,7 +511,7 @@ describe('ValidatorsModuleAPI', () => {
 				genesisTimestamp + blockTime - 1,
 			);
 
-			expect(Object.keys(result).length).toBeGreaterThan(0);
+			expect(Object.keys(result)).toHaveLength(1);
 		});
 
 		it('should be able to return more than one generators if input timestamps are valid and difference between input timestamps is equal to block time ', async () => {
@@ -535,7 +535,7 @@ describe('ValidatorsModuleAPI', () => {
 				genesisTimestamp + blockTime,
 			);
 
-			expect(Object.keys(result).length).toBeGreaterThan(1);
+			expect(Object.keys(result)).toHaveLength(2);
 		});
 
 		it('should throw if input timestamps are invalid', async () => {
