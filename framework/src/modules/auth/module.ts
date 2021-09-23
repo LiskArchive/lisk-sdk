@@ -13,26 +13,28 @@
  */
 
 import { TAG_TRANSACTION } from '@liskhq/lisk-chain';
-import { codec } from '@liskhq/lisk-codec';
 import { BaseModule } from '..';
 import {
 	TransactionExecuteContext,
 	TransactionVerifyContext,
 	VerificationResult,
-	VerifyStatus,
 } from '../../node/state_machine';
 import { AuthAPI } from './api';
 import { RegisterMultisignatureCommand } from './commands/register_multisignature';
-import { MODULE_ID_AUTH, STORE_PREFIX_AUTH } from './constants';
+import {
+	AUTH_REGISTER_MULTISIGNATURE_CMD_ID,
+	MODULE_ID_AUTH,
+	STORE_PREFIX_AUTH,
+} from './constants';
 import { AuthEndpoint } from './endpoint';
-import { InvalidNonceError } from './errors';
 import { authAccountSchema, configSchema, registerMultisignatureParamsSchema } from './schemas';
-import { AuthAccount, Keys } from './types';
+import { AuthAccount } from './types';
 import {
 	isMultisignatureAccount,
-	validateKeysSignatures,
-	validateSignature,
 	verifyMultiSignatureTransaction,
+	verifyNonce,
+	verifyRegisterMultiSignatureTransaction,
+	verifySingleSignatureTransaction,
 } from './utils';
 
 export class AuthModule extends BaseModule {
@@ -51,137 +53,50 @@ export class AuthModule extends BaseModule {
 			authAccountSchema,
 		);
 
-		if (transaction.nonce < senderAccount.nonce) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new InvalidNonceError(
-					`Transaction with id:${transaction.id.toString('hex')} nonce is lower than account nonce`,
-					transaction.nonce,
-					senderAccount.nonce,
-				),
-			};
-		}
+		// Verify nonce of the transaction, it can be FAILED, PENDING or OK
+		const nonceStatus = verifyNonce(transaction, senderAccount);
+
 		const transactionBytes = transaction.getSigningBytes();
 
+		// Verify multisignature registration transaction
 		if (
 			transaction.moduleID === this.id &&
-			this.commands.find(cmd => cmd.id === transaction.commandID)
+			transaction.commandID === AUTH_REGISTER_MULTISIGNATURE_CMD_ID
 		) {
-			const { mandatoryKeys, optionalKeys } = codec.decode<Keys>(
-				registerMultisignatureParamsSchema,
-				transaction.params,
-			);
-
-			// For multisig registration we need all signatures to be present (including sender's one that's why we add 1 to the count)
-			const numberOfExpectedKeys = mandatoryKeys.length + optionalKeys.length + 1;
-			if (numberOfExpectedKeys !== transaction.signatures.length) {
-				return {
-					status: VerifyStatus.FAIL,
-					error: new Error(
-						`There are missing signatures. Expected: ${numberOfExpectedKeys} signatures but got: ${transaction.signatures.length}.`,
-					),
-				};
-			}
-
-			// Check if empty signatures are present
-			if (!transaction.signatures.every(signature => signature.length > 0)) {
-				return {
-					status: VerifyStatus.FAIL,
-					error: new Error('A valid signature is required for each registered key.'),
-				};
-			}
-
-			try {
-				// Verify first signature is from senderPublicKey
-				validateSignature(
-					TAG_TRANSACTION,
-					networkIdentifier,
-					transaction.senderPublicKey,
-					transaction.signatures[0],
-					transactionBytes,
-					transaction.id,
-				);
-
-				// Verify each mandatory key signed in order
-				validateKeysSignatures(
-					TAG_TRANSACTION,
-					networkIdentifier,
-					mandatoryKeys,
-					transaction.signatures.slice(1, mandatoryKeys.length + 1),
-					transactionBytes,
-					transaction.id,
-				);
-
-				// Verify each optional key signed in order
-				validateKeysSignatures(
-					TAG_TRANSACTION,
-					networkIdentifier,
-					optionalKeys,
-					transaction.signatures.slice(mandatoryKeys.length + 1),
-					transactionBytes,
-					transaction.id,
-				);
-			} catch (error) {
-				return {
-					status: VerifyStatus.FAIL,
-					error: error as Error,
-				};
-			}
-
-			return {
-				status: transaction.nonce > senderAccount.nonce ? VerifyStatus.PENDING : VerifyStatus.OK,
-			};
-		}
-
-		if (!isMultisignatureAccount(senderAccount)) {
-			if (transaction.signatures.length !== 1) {
-				return {
-					status: VerifyStatus.FAIL,
-					error: new Error(
-						`Transactions from a single signature account should have exactly one signature. Found ${transaction.signatures.length} signatures.`,
-					),
-				};
-			}
-			try {
-				validateSignature(
-					TAG_TRANSACTION,
-					networkIdentifier,
-					transaction.senderPublicKey,
-					transaction.signatures[0],
-					transactionBytes,
-					transaction.id,
-				);
-			} catch (error) {
-				return {
-					status: VerifyStatus.FAIL,
-					error: error as Error,
-				};
-			}
-
-			return {
-				status: transaction.nonce > senderAccount.nonce ? VerifyStatus.PENDING : VerifyStatus.OK,
-			};
-		}
-
-		try {
-			verifyMultiSignatureTransaction(
+			verifyRegisterMultiSignatureTransaction(
 				TAG_TRANSACTION,
-				networkIdentifier,
-				transaction.id,
-				senderAccount,
-				transaction.signatures,
+				registerMultisignatureParamsSchema,
+				transaction,
 				transactionBytes,
+				networkIdentifier,
 			);
-		} catch (error) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: error as Error,
-			};
+
+			return nonceStatus;
 		}
 
-		return {
-			status: transaction.nonce > senderAccount.nonce ? VerifyStatus.PENDING : VerifyStatus.OK,
-		};
+		// Verify single signature transaction
+		if (!isMultisignatureAccount(senderAccount)) {
+			verifySingleSignatureTransaction(
+				TAG_TRANSACTION,
+				transaction,
+				transactionBytes,
+				networkIdentifier,
+			);
+
+			return nonceStatus;
+		}
+
+		// Verify transaction sent from multisignature account
+		verifyMultiSignatureTransaction(
+			TAG_TRANSACTION,
+			networkIdentifier,
+			transaction.id,
+			senderAccount,
+			transaction.signatures,
+			transactionBytes,
+		);
+
+		return nonceStatus;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-empty-function

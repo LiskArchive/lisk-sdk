@@ -14,3 +14,6 @@
 
 export const MODULE_ID_AUTH = 12; // TBD
 export const STORE_PREFIX_AUTH = 0x0000;
+
+// Commands
+export const AUTH_REGISTER_MULTISIGNATURE_CMD_ID = 0;

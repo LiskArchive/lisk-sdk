@@ -90,7 +90,7 @@ describe('AuthModule', () => {
 			});
 	});
 
-	describe('beforeTransactionApply', () => {
+	describe('verifyTransaction', () => {
 		describe('Invalid nonce errors', () => {
 			it('should return FAIL status with error when trx nonce is lower than account nonce', async () => {
 				// Arrange
@@ -112,16 +112,15 @@ describe('AuthModule', () => {
 					.createTransactionVerifyContext();
 
 				// Act & Assert
-				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
-					status: VerifyStatus.FAIL,
-					error: new InvalidNonceError(
+				return expect(authModule.verifyTransaction(context)).rejects.toThrow(
+					new InvalidNonceError(
 						`Transaction with id:${validTestTransaction.id.toString(
 							'hex',
 						)} nonce is lower than account nonce`,
 						validTestTransaction.nonce,
 						accountNonce,
 					),
-				});
+				);
 			});
 
 			it('should return PENDING status with no error when trx nonce is higher than account nonce', async () => {
@@ -237,12 +236,11 @@ describe('AuthModule', () => {
 					.createTransactionVerifyContext();
 
 				// Act & Assert
-				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
-					status: VerifyStatus.FAIL,
-					error: new Error(
+				return expect(authModule.verifyTransaction(context)).rejects.toThrow(
+					new Error(
 						'Transactions from a single signature account should have exactly one signature. Found 0 signatures.',
 					),
-				});
+				);
 			});
 
 			it('should throw error if account is not multi signature and more than one signature present', async () => {
@@ -276,12 +274,11 @@ describe('AuthModule', () => {
 					.createTransactionVerifyContext();
 
 				// Act & Assert
-				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
-					status: VerifyStatus.FAIL,
-					error: new Error(
+				return expect(authModule.verifyTransaction(context)).rejects.toThrow(
+					new Error(
 						'Transactions from a single signature account should have exactly one signature. Found 2 signatures.',
 					),
-				});
+				);
 			});
 		});
 
@@ -566,14 +563,13 @@ describe('AuthModule', () => {
 					.createTransactionVerifyContext();
 
 				// Act & Assert
-				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
-					status: VerifyStatus.FAIL,
-					error: new Error(
+				return expect(authModule.verifyTransaction(context)).rejects.toThrow(
+					new Error(
 						`Transaction signatures does not match required number of signatures: '3' for transaction with id '${transaction.id.toString(
 							'hex',
 						)}'`,
 					),
-				});
+				);
 			});
 
 			it('should throw error if number of provided signatures is bigger than numberOfSignatures in account asset', async () => {
@@ -623,14 +619,13 @@ describe('AuthModule', () => {
 					.createTransactionVerifyContext();
 
 				// Act & Assert
-				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
-					status: VerifyStatus.FAIL,
-					error: new Error(
+				return expect(authModule.verifyTransaction(context)).rejects.toThrow(
+					new Error(
 						`Transaction signatures does not match required number of signatures: '3' for transaction with id '${transaction.id.toString(
 							'hex',
 						)}'`,
 					),
-				});
+				);
 			});
 
 			it('should throw error if number of provided signatures is smaller than numberOfSignatures in account asset', async () => {
@@ -664,14 +659,13 @@ describe('AuthModule', () => {
 					.createTransactionVerifyContext();
 
 				// Act & Assert
-				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
-					status: VerifyStatus.FAIL,
-					error: new Error(
+				return expect(authModule.verifyTransaction(context)).rejects.toThrow(
+					new Error(
 						`Transaction signatures does not match required number of signatures: '3' for transaction with id '${transaction.id.toString(
 							'hex',
 						)}'`,
 					),
-				});
+				);
 			});
 
 			it('should throw for transaction with valid numberOfSignatures but missing mandatory key signature', async () => {
@@ -714,10 +708,9 @@ describe('AuthModule', () => {
 					.createTransactionVerifyContext();
 
 				// Act & Assert
-				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
-					status: VerifyStatus.FAIL,
-					error: new Error('Invalid signature. Empty buffer is not a valid signature.'),
-				});
+				return expect(authModule.verifyTransaction(context)).rejects.toThrow(
+					new Error('Invalid signature. Empty buffer is not a valid signature.'),
+				);
 			});
 
 			it('should throw error if any of the mandatory signatures is not valid', async () => {
@@ -808,14 +801,13 @@ describe('AuthModule', () => {
 					.createTransactionVerifyContext();
 
 				// Act & Assert
-				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
-					status: VerifyStatus.FAIL,
-					error: new Error(
+				return expect(authModule.verifyTransaction(context)).rejects.toThrow(
+					new Error(
 						`Failed to validate signature '${transaction.signatures[3].toString(
 							'hex',
 						)}' for transaction with id '${transaction.id.toString('hex')}'`,
 					),
-				});
+				);
 			});
 
 			it('should throw error if mandatory signatures are not in order', async () => {
@@ -858,14 +850,13 @@ describe('AuthModule', () => {
 					.createTransactionVerifyContext();
 
 				// Act & Assert
-				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
-					status: VerifyStatus.FAIL,
-					error: new Error(
+				return expect(authModule.verifyTransaction(context)).rejects.toThrow(
+					new Error(
 						`Failed to validate signature '${transaction.signatures[0].toString(
 							'hex',
 						)}' for transaction with id '${transaction.id.toString('hex')}'`,
 					),
-				});
+				);
 			});
 
 			it('should throw error if optional signatures are not in order', async () => {
@@ -908,14 +899,13 @@ describe('AuthModule', () => {
 					.createTransactionVerifyContext();
 
 				// Act & Assert
-				return expect(authModule.verifyTransaction(context)).resolves.toEqual({
-					status: VerifyStatus.FAIL,
-					error: new Error(
+				return expect(authModule.verifyTransaction(context)).rejects.toThrow(
+					new Error(
 						`Failed to validate signature '${transaction.signatures[3].toString(
 							'hex',
 						)}' for transaction with id '${transaction.id.toString('hex')}'`,
 					),
-				});
+				);
 			});
 		});
 	});

@@ -19,10 +19,11 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../node/state_machine';
+import { AUTH_REGISTER_MULTISIGNATURE_CMD_ID } from '../constants';
 import { registerMultisignatureParamsSchema } from '../schemas';
 
 export class RegisterMultisignatureCommand extends BaseCommand {
-	public id = 0;
+	public id = AUTH_REGISTER_MULTISIGNATURE_CMD_ID;
 	public name = 'registerMultisignatureGroup';
 	public schema = registerMultisignatureParamsSchema;
 
