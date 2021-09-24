@@ -98,6 +98,21 @@ export class AuthModule extends BaseModule {
 	// eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-empty-function
 	public async beforeTransactionExecute(_context: TransactionExecuteContext): Promise<void> {}
 
-	// eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-empty-function
-	public async afterTransactionExecute(_context: TransactionExecuteContext): Promise<void> {}
+	public async afterTransactionExecute(context: TransactionExecuteContext): Promise<void> {
+		const address = context.transaction.senderAddress;
+
+		const authStore = context.getStore(this.id, STORE_PREFIX_AUTH);
+		const senderAccount = await authStore.getWithSchema<AuthAccount>(address, authAccountSchema);
+		senderAccount.nonce += BigInt(1);
+		await authStore.setWithSchema(
+			address,
+			{
+				nonce: senderAccount.nonce,
+				numberOfSignatures: senderAccount.numberOfSignatures,
+				mandatoryKeys: senderAccount.mandatoryKeys,
+				optionalKeys: senderAccount.optionalKeys,
+			},
+			authAccountSchema,
+		);
+	}
 }

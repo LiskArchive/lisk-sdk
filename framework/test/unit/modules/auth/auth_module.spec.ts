@@ -20,15 +20,18 @@ import {
 	getAddressFromPublicKey,
 	signDataWithPassphrase,
 } from '@liskhq/lisk-cryptography';
-import { Transaction, transactionSchema, TAG_TRANSACTION } from '@liskhq/lisk-chain';
+import { Transaction, transactionSchema, TAG_TRANSACTION, StateStore } from '@liskhq/lisk-chain';
 import { objects as ObjectUtils } from '@liskhq/lisk-utils';
+import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { when } from 'jest-when';
 import { AuthModule } from '../../../../src/modules/auth';
 import * as fixtures from './fixtures.json';
 import * as testing from '../../../../src/testing';
 import { authAccountSchema } from '../../../../src/modules/auth/schemas';
+import { AuthAccount } from '../../../../src/modules/auth/types';
 import { VerifyStatus } from '../../../../src/node/state_machine';
 import { InvalidNonceError } from '../../../../src/modules/auth/errors';
+import { STORE_PREFIX_AUTH } from '../../../../src/modules/auth/constants';
 
 describe('AuthModule', () => {
 	let decodedMultiSignature: any;
@@ -907,6 +910,37 @@ describe('AuthModule', () => {
 					),
 				);
 			});
+		});
+	});
+
+	describe('afterTransactionExecute', () => {
+		it('should correctly increment the nonce', async () => {
+			const stateStore1 = new StateStore(new InMemoryKVStore());
+			const authStore1 = stateStore1.getStore(authModule.id, STORE_PREFIX_AUTH);
+			const address = getAddressFromPublicKey(validTestTransaction.senderPublicKey);
+			const authAccount1 = {
+				nonce: validTestTransaction.nonce,
+				numberOfSignatures: 5,
+				mandatoryKeys: [getRandomBytes(64), getRandomBytes(64)],
+				optionalKeys: [getRandomBytes(64), getRandomBytes(64)],
+			};
+			await authStore1.setWithSchema(address, authAccount1, authAccountSchema);
+
+			const context = testing
+				.createTransactionContext({
+					stateStore: stateStore1,
+					transaction: validTestTransaction,
+					networkIdentifier,
+				})
+				.createTransactionExecuteContext();
+
+			await authModule.afterTransactionExecute(context);
+			const authStore = context.getStore(authModule.id, STORE_PREFIX_AUTH);
+			const authAccount = await authStore.getWithSchema<AuthAccount>(
+				context.transaction.senderAddress,
+				authAccountSchema,
+			);
+			expect(authAccount.nonce - validTestTransaction.nonce).toBe(BigInt(1));
 		});
 	});
 });
