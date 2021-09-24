@@ -12,18 +12,26 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import { BaseModule } from '..';
 import {
 	TransactionExecuteContext,
 	TransactionVerifyContext,
 	VerificationResult,
-	VerifyStatus,
 } from '../../node/state_machine';
 import { AuthAPI } from './api';
 import { RegisterMultisignatureCommand } from './commands/register_multisignature';
-import { MODULE_ID_AUTH } from './constants';
+import { COMMAND_ID_DELEGATE_REGISTRATION, MODULE_ID_AUTH, STORE_PREFIX_AUTH } from './constants';
 import { AuthEndpoint } from './endpoint';
-import { configSchema } from './schemas';
+import { authAccountSchema, configSchema, registerMultisignatureParamsSchema } from './schemas';
+import { AuthAccount } from './types';
+import {
+	isMultisignatureAccount,
+	verifyMultiSignatureTransaction,
+	verifyNonce,
+	verifyRegisterMultiSignatureTransaction,
+	verifySingleSignatureTransaction,
+} from './utils';
 
 export class AuthModule extends BaseModule {
 	public id = MODULE_ID_AUTH;
@@ -33,11 +41,58 @@ export class AuthModule extends BaseModule {
 	public configSchema = configSchema;
 	public commands = [new RegisterMultisignatureCommand(this.id)];
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async verifyTransaction(_context: TransactionVerifyContext): Promise<VerificationResult> {
-		return {
-			status: VerifyStatus.OK,
-		};
+	public async verifyTransaction(context: TransactionVerifyContext): Promise<VerificationResult> {
+		const { transaction, networkIdentifier } = context;
+		const store = context.getStore(this.id, STORE_PREFIX_AUTH);
+		const senderAccount = await store.getWithSchema<AuthAccount>(
+			transaction.senderAddress,
+			authAccountSchema,
+		);
+
+		// Verify nonce of the transaction, it can be FAILED, PENDING or OK
+		const nonceStatus = verifyNonce(transaction, senderAccount);
+
+		const transactionBytes = transaction.getSigningBytes();
+
+		// Verify multisignature registration transaction
+		if (
+			transaction.moduleID === this.id &&
+			transaction.commandID === COMMAND_ID_DELEGATE_REGISTRATION
+		) {
+			verifyRegisterMultiSignatureTransaction(
+				TAG_TRANSACTION,
+				registerMultisignatureParamsSchema,
+				transaction,
+				transactionBytes,
+				networkIdentifier,
+			);
+
+			return nonceStatus;
+		}
+
+		// Verify single signature transaction
+		if (!isMultisignatureAccount(senderAccount)) {
+			verifySingleSignatureTransaction(
+				TAG_TRANSACTION,
+				transaction,
+				transactionBytes,
+				networkIdentifier,
+			);
+
+			return nonceStatus;
+		}
+
+		// Verify transaction sent from multisignature account
+		verifyMultiSignatureTransaction(
+			TAG_TRANSACTION,
+			networkIdentifier,
+			transaction.id,
+			senderAccount,
+			transaction.signatures,
+			transactionBytes,
+		);
+
+		return nonceStatus;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-empty-function
