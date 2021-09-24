@@ -95,8 +95,8 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			this.blockExecutor.getFinalizedHeight(),
 		);
 		const validators = await this.blockExecutor.getValidators();
-		const finalizedBlockSlot = this.blockExecutor.getSlotNumber(finalizedBlock.timestamp);
-		const currentBlockSlot = this.blockExecutor.getSlotNumber(Math.floor(Date.now() / 1000));
+		const finalizedBlockSlot = await this.blockExecutor.getSlotNumber(finalizedBlock.timestamp);
+		const currentBlockSlot = await this.blockExecutor.getSlotNumber(Math.floor(Date.now() / 1000));
 		const threeRounds = validators.length * 3;
 
 		return currentBlockSlot - finalizedBlockSlot > threeRounds;

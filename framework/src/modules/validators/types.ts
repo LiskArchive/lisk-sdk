@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { APIContext } from '../../node/state_machine/types';
-
 export interface ValidatorKeys {
 	generatorKey: Buffer;
 	blsKey: Buffer;
@@ -23,8 +21,12 @@ export interface GeneratorList {
 	addresses: Buffer[];
 }
 
-export interface ValidatorsAPI {
-	getGenerator: (apiContext: APIContext, timestamp: number) => Promise<Buffer>;
-	getSlotNumber: (apiContext: APIContext, timestamp: number) => number;
-	getSlotTime: (apiContext: APIContext, slot: number) => number;
+export interface GenesisData {
+	timestamp: number;
+}
+
+export interface APIInitArgs {
+	config: {
+		blockTime: number;
+	};
 }

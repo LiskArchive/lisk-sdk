@@ -112,7 +112,7 @@ describe('generator', () => {
 		validatorAPI = {
 			getSlotNumber: jest.fn(),
 			getSlotTime: jest.fn(),
-			getGenerator: jest.fn(),
+			getGeneratorAtTimestamp: jest.fn(),
 		} as never;
 		bftAPI = {
 			getBFTHeights: jest.fn().mockResolvedValue({
@@ -371,18 +371,18 @@ describe('generator', () => {
 		});
 
 		it('should not generate if current block slot is same as last block slot', async () => {
-			(validatorAPI.getSlotNumber as jest.Mock).mockReturnValue(lastBlockSlot);
-			(validatorAPI.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000));
+			(validatorAPI.getSlotNumber as jest.Mock).mockResolvedValue(lastBlockSlot);
+			(validatorAPI.getSlotTime as jest.Mock).mockResolvedValue(Math.floor(Date.now() / 1000));
 			await generator['_generateLoop']();
 
-			expect(validatorAPI.getGenerator).not.toHaveBeenCalled();
+			expect(validatorAPI.getGeneratorAtTimestamp).not.toHaveBeenCalled();
 		});
 
 		it('should not generate if validator is not registered for given time', async () => {
 			(validatorAPI.getSlotNumber as jest.Mock)
-				.mockReturnValueOnce(currentSlot)
-				.mockReturnValueOnce(lastBlockSlot);
-			(validatorAPI.getGenerator as jest.Mock).mockReturnValue(getRandomBytes(20));
+				.mockResolvedValueOnce(currentSlot)
+				.mockResolvedValueOnce(lastBlockSlot);
+			(validatorAPI.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(getRandomBytes(20));
 			jest.spyOn(generator, '_generateBlock' as never);
 			await generator['_generateLoop']();
 
@@ -391,10 +391,10 @@ describe('generator', () => {
 
 		it('should wait for threshold time if last block not received', async () => {
 			(validatorAPI.getSlotNumber as jest.Mock)
-				.mockReturnValueOnce(currentSlot)
-				.mockReturnValueOnce(lastBlockSlot - 1);
-			(validatorAPI.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000));
-			(validatorAPI.getGenerator as jest.Mock).mockReturnValue(
+				.mockResolvedValueOnce(currentSlot)
+				.mockResolvedValueOnce(lastBlockSlot - 1);
+			(validatorAPI.getSlotTime as jest.Mock).mockResolvedValue(Math.floor(Date.now() / 1000));
+			(validatorAPI.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
 				Buffer.from(genesisDelegates.delegates[0].address, 'hex'),
 			);
 			jest.spyOn(generator, '_generateBlock' as never);
@@ -406,10 +406,10 @@ describe('generator', () => {
 
 		it('should not wait if threshold time passed and last block not received', async () => {
 			(validatorAPI.getSlotNumber as jest.Mock)
-				.mockReturnValueOnce(currentSlot)
-				.mockReturnValueOnce(lastBlockSlot - 1);
-			(validatorAPI.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000) - 5);
-			(validatorAPI.getGenerator as jest.Mock).mockReturnValue(
+				.mockResolvedValueOnce(currentSlot)
+				.mockResolvedValueOnce(lastBlockSlot - 1);
+			(validatorAPI.getSlotTime as jest.Mock).mockResolvedValue(Math.floor(Date.now() / 1000) - 5);
+			(validatorAPI.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
 				Buffer.from(genesisDelegates.delegates[0].address, 'hex'),
 			);
 
@@ -422,10 +422,10 @@ describe('generator', () => {
 
 		it('should not wait if threshold remaining but last block already received', async () => {
 			(validatorAPI.getSlotNumber as jest.Mock)
-				.mockReturnValueOnce(currentSlot)
-				.mockReturnValueOnce(lastBlockSlot);
-			(validatorAPI.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000) + 5);
-			(validatorAPI.getGenerator as jest.Mock).mockReturnValue(
+				.mockResolvedValueOnce(currentSlot)
+				.mockResolvedValueOnce(lastBlockSlot);
+			(validatorAPI.getSlotTime as jest.Mock).mockResolvedValue(Math.floor(Date.now() / 1000) + 5);
+			(validatorAPI.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
 				Buffer.from(genesisDelegates.delegates[0].address, 'hex'),
 			);
 

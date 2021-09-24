@@ -532,7 +532,7 @@ export class Consensus {
 				this._executeValidated(block, options),
 			verify: async (block: Block) => this._verify(block),
 			getValidators: async () => this._bftAPI.getValidators(apiContext),
-			getSlotNumber: timestamp => this._validatorAPI.getSlotNumber(apiContext, timestamp),
+			getSlotNumber: async timestamp => this._validatorAPI.getSlotNumber(apiContext, timestamp),
 			getFinalizedHeight: () => this.finalizedHeight(),
 		};
 	}

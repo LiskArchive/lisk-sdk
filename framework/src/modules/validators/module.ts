@@ -37,6 +37,12 @@ export class ValidatorsModule extends BaseModule {
 			throw new Error('Block time cannot be less than 1.');
 		}
 		this._blockTime = blockTime;
+
+		this.api.init({
+			config: {
+				blockTime: this._blockTime,
+			},
+		});
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

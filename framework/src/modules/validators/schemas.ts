@@ -64,7 +64,7 @@ export const genesisDataSchema = {
 	type: 'object',
 	properties: {
 		timestamp: {
-			dataType: 'uint64',
+			dataType: 'uint32',
 			fieldNumber: 1,
 		},
 	},

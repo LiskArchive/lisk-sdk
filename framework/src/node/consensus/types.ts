@@ -37,9 +37,9 @@ export interface BFTVotes {
 }
 
 export interface ValidatorAPI {
-	getGenerator: (apiContext: ImmutableAPIContext, timestamp: number) => Promise<Buffer>;
-	getSlotNumber: (apiContext: ImmutableAPIContext, timestamp: number) => number;
-	getSlotTime: (apiContext: ImmutableAPIContext, slot: number) => number;
+	getGeneratorAtTimestamp: (apiContext: ImmutableAPIContext, timestamp: number) => Promise<Buffer>;
+	getSlotNumber: (apiContext: ImmutableAPIContext, timestamp: number) => Promise<number>;
+	getSlotTime: (apiContext: ImmutableAPIContext, slot: number) => Promise<number>;
 }
 
 export interface BFTAPI {

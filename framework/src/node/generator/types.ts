@@ -48,9 +48,9 @@ export interface BFTAPI {
 }
 
 export interface ValidatorAPI {
-	getGenerator: (apiContext: APIContext, timestamp: number) => Promise<Buffer>;
-	getSlotNumber: (apiContext: APIContext, timestamp: number) => number;
-	getSlotTime: (apiContext: APIContext, slot: number) => number;
+	getGeneratorAtTimestamp: (apiContext: APIContext, timestamp: number) => Promise<Buffer>;
+	getSlotNumber: (apiContext: APIContext, timestamp: number) => Promise<number>;
+	getSlotTime: (apiContext: APIContext, slot: number) => Promise<number>;
 }
 
 export interface WritableBlockAssets {
