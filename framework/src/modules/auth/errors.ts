@@ -12,15 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export interface Keys {
-	numberOfSignatures: number;
-	mandatoryKeys: Buffer[];
-	optionalKeys: Buffer[];
-}
+import { FrameworkError } from '../../errors';
 
-export interface AuthAccount {
-	nonce: bigint;
-	numberOfSignatures: number;
-	mandatoryKeys: Buffer[];
-	optionalKeys: Buffer[];
+export class InvalidNonceError extends FrameworkError {
+	public code = 'ERR_INVALID_NONCE';
+	public actual: string;
+	public expected: string;
+	public constructor(message: string, actual: bigint, expected: bigint) {
+		super(message);
+		this.actual = actual.toString();
+		this.expected = expected.toString();
+	}
 }
