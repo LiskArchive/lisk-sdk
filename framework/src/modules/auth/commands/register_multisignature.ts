@@ -12,6 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
+import { objects as objectUtils } from '@liskhq/lisk-utils';
+import { MAX_KEYS_COUNT, STORE_PREFIX_AUTH } from '../constants';
 import { BaseCommand } from '../..';
 import {
 	CommandExecuteContext,
@@ -19,23 +22,136 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../node/state_machine';
-import { COMMAND_ID_DELEGATE_REGISTRATION } from '../constants';
-import { registerMultisignatureParamsSchema } from '../schemas';
+import { COMMAND_ID_MULTISIGNATURE_REGISTRATION } from '../constants';
+import { authAccountSchema, registerMultisignatureParamsSchema } from '../schemas';
+import { Keys } from '../types';
 
 export class RegisterMultisignatureCommand extends BaseCommand {
-	public id = COMMAND_ID_DELEGATE_REGISTRATION;
+	public id = COMMAND_ID_MULTISIGNATURE_REGISTRATION;
 	public name = 'registerMultisignatureGroup';
 	public schema = registerMultisignatureParamsSchema;
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(
-		_context: CommandVerifyContext<Record<string, unknown>>,
+		context: CommandVerifyContext<Record<string, unknown>>,
 	): Promise<VerificationResult> {
+		const { transaction } = context;
+		const { mandatoryKeys, optionalKeys, numberOfSignatures } = codec.decode<Keys>(
+			this.schema,
+			transaction.params,
+		);
+
+		if (!objectUtils.bufferArrayUniqueItems(mandatoryKeys)) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('MandatoryKeys contains duplicate public keys.'),
+			};
+		}
+
+		if (!objectUtils.bufferArrayUniqueItems(optionalKeys)) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('OptionalKeys contains duplicate public keys.'),
+			};
+		}
+
+		// Check if key count is less than number of required signatures
+		if (mandatoryKeys.length + optionalKeys.length < numberOfSignatures) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error(
+					'The numberOfSignatures is bigger than the count of Mandatory and Optional keys.',
+				),
+			};
+		}
+
+		// Check if key count is out of bounds
+		if (
+			mandatoryKeys.length + optionalKeys.length > MAX_KEYS_COUNT ||
+			mandatoryKeys.length + optionalKeys.length <= 0
+		) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('The count of Mandatory and Optional keys should be between 1 and 64.'),
+			};
+		}
+
+		// The numberOfSignatures needs to be equal or bigger than number of mandatoryKeys
+		if (mandatoryKeys.length > numberOfSignatures) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error(
+					'The numberOfSignatures needs to be equal or bigger than the number of Mandatory keys.',
+				),
+			};
+		}
+
+		// Check if keys are repeated between mandatory and optional key sets
+		const repeatedKeys = mandatoryKeys.filter(
+			value => optionalKeys.find(optional => optional.equals(value)) !== undefined,
+		);
+		if (repeatedKeys.length > 0) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error(
+					'Invalid combination of Mandatory and Optional keys. Repeated keys across Mandatory and Optional were found.',
+				),
+			};
+		}
+
+		// Check if the length of mandatory, optional and sender keys matches the length of signatures
+		if (mandatoryKeys.length + optionalKeys.length + 1 !== transaction.signatures.length) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error(
+					'The number of mandatory, optional and sender keys should match the number of signatures',
+				),
+			};
+		}
+
+		// Check keys are sorted lexicographically
+		const sortedMandatoryKeys = [...mandatoryKeys].sort((a, b) => a.compare(b));
+		const sortedOptionalKeys = [...optionalKeys].sort((a, b) => a.compare(b));
+		for (let i = 0; i < sortedMandatoryKeys.length; i += 1) {
+			if (!mandatoryKeys[i].equals(sortedMandatoryKeys[i])) {
+				return {
+					status: VerifyStatus.FAIL,
+					error: new Error('Mandatory keys should be sorted lexicographically.'),
+				};
+			}
+		}
+
+		for (let i = 0; i < sortedOptionalKeys.length; i += 1) {
+			if (!optionalKeys[i].equals(sortedOptionalKeys[i])) {
+				return {
+					status: VerifyStatus.FAIL,
+					error: new Error('Optional keys should be sorted lexicographically.'),
+				};
+			}
+		}
+
 		return {
 			status: VerifyStatus.OK,
 		};
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-empty-function
-	public async execute(_context: CommandExecuteContext<Record<string, unknown>>): Promise<void> {}
+	public async execute(context: CommandExecuteContext<Record<string, unknown>>): Promise<void> {
+		const { transaction } = context;
+		const authSubstore = context.getStore(this.id, STORE_PREFIX_AUTH);
+		const senderAccount = await authSubstore.getWithSchema<Keys>(
+			transaction.senderAddress,
+			authAccountSchema,
+		);
+
+		// Check if multisignatures already exists on account
+		if (senderAccount.numberOfSignatures > 0) {
+			throw new Error('Register multisignature only allowed once per account.');
+		}
+
+		await authSubstore.setWithSchema(
+			transaction.senderAddress,
+			transaction.params,
+			authAccountSchema,
+		);
+	}
 }

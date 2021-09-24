@@ -17,4 +17,4 @@ export const STORE_PREFIX_AUTH = 0x0000;
 export const MAX_KEYS_COUNT = 64;
 
 // Commands
-export const COMMAND_ID_DELEGATE_REGISTRATION = 0;
+export const COMMAND_ID_MULTISIGNATURE_REGISTRATION = 0;
