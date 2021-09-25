@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Chain, Transaction } from '@liskhq/lisk-chain';
+import { Transaction } from '@liskhq/lisk-chain';
 import { StateStore } from '@liskhq/lisk-chain/dist-node/state_store';
 import {
 	decryptPassphraseWithPassword,
@@ -52,7 +52,6 @@ interface EndpointArgs {
 	keypair: dataStructures.BufferMap<Keypair>;
 	generators: Generator[];
 	consensus: Consensus;
-	chain: Chain;
 	stateMachine: StateMachine;
 	pool: TransactionPool;
 	broadcaster: Broadcaster;
@@ -72,7 +71,6 @@ export class Endpoint {
 	private readonly _stateMachine: StateMachine;
 	private readonly _pool: TransactionPool;
 	private readonly _broadcaster: Broadcaster;
-	private readonly _chain: Chain;
 
 	private _logger!: Logger;
 	private _generatorDB!: KVStore;
@@ -82,7 +80,6 @@ export class Endpoint {
 		this._keypairs = args.keypair;
 		this._generators = args.generators;
 		this._consensus = args.consensus;
-		this._chain = args.chain;
 		this._stateMachine = args.stateMachine;
 		this._pool = args.pool;
 		this._broadcaster = args.broadcaster;
@@ -104,7 +101,7 @@ export class Endpoint {
 		const txContext = new TransactionContext({
 			eventQueue: new EventQueue(),
 			logger: this._logger,
-			networkIdentifier: this._chain.networkIdentifier,
+			networkIdentifier: ctx.networkIdentifier,
 			stateStore: new StateStore(this._blockchainDB),
 			transaction,
 		});

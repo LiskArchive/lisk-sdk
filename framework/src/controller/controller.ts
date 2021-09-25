@@ -39,6 +39,7 @@ interface ControllerInitArg {
 	readonly logger: Logger;
 	readonly endpoints: EndpointHandlers;
 	readonly events: string[];
+	readonly networkIdentifier: Buffer;
 }
 
 interface ControllerConfig {
@@ -72,6 +73,7 @@ export class Controller {
 	// Injected at init
 	private _logger!: Logger;
 	private _blockchainDB!: KVStore;
+	private _networkIdentifier!: Buffer;
 
 	// Assigned at init
 	private _channel?: InMemoryChannel;
@@ -150,6 +152,7 @@ export class Controller {
 	}
 
 	public init(arg: ControllerInitArg): void {
+		this._networkIdentifier = arg.networkIdentifier;
 		this._blockchainDB = arg.blockchainDB;
 		this._logger = arg.logger;
 		// Create root channel
@@ -201,6 +204,7 @@ export class Controller {
 				namespace,
 				[],
 				handlers,
+				this._networkIdentifier,
 			);
 			await channel.registerToBus(this._bus);
 		}

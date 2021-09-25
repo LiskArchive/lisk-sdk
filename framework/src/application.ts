@@ -213,6 +213,7 @@ export class Application {
 				blockchainDB: this._blockchainDB,
 				endpoints: this._rootEndpoints(),
 				events: this._rootEvents(),
+				networkIdentifier: this.networkIdentifier,
 			});
 
 			if (!this._genesisBlock) {

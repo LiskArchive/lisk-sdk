@@ -26,6 +26,7 @@ describe('ValidatorsModuleEndpoint', () => {
 	const proof = getRandomBytes(48);
 	const getStore1 = jest.fn();
 	const subStore = (new InMemoryKVStore() as unknown) as KVStore;
+	const networkIdentifier = Buffer.alloc(0);
 
 	beforeAll(async () => {
 		validatorsModule = new ValidatorsModule();
@@ -47,6 +48,7 @@ describe('ValidatorsModuleEndpoint', () => {
 							proofOfPossession: proof.toString('hex'),
 							blsKey: pk.toString('hex'),
 						},
+						networkIdentifier,
 					}),
 				).resolves.toStrictEqual({ valid: false });
 			});
@@ -61,6 +63,7 @@ describe('ValidatorsModuleEndpoint', () => {
 							proofOfPossession: proof.toString('hex'),
 							blsKey: pk.toString('hex'),
 						},
+						networkIdentifier,
 					}),
 				).resolves.toStrictEqual({ valid: false });
 			});
@@ -76,6 +79,7 @@ describe('ValidatorsModuleEndpoint', () => {
 							blsKey:
 								'b301803f8b5ac4a1133581fc676dfedc60d891dd5fa99028805e5ea5b08d3491af75d0707adab3b70c6a6a580217bf81',
 						},
+						networkIdentifier,
 					}),
 				).resolves.toStrictEqual({ valid: true });
 			});
@@ -90,6 +94,7 @@ describe('ValidatorsModuleEndpoint', () => {
 						params: {
 							invalid: 'schema',
 						},
+						networkIdentifier,
 					}),
 				).rejects.toThrow();
 			});
@@ -103,6 +108,7 @@ describe('ValidatorsModuleEndpoint', () => {
 							proofOfPossession: 'xxxx',
 							blsKey: 'xxxx',
 						},
+						networkIdentifier,
 					}),
 				).rejects.toThrow();
 			});

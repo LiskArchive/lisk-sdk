@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Chain, Transaction } from '@liskhq/lisk-chain';
+import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
@@ -51,10 +51,10 @@ describe('generator endpoint', () => {
 		address: 'aaaaaaaaaa4a3846c988f3c15306796f8eae5c1c',
 	};
 	const defaultPassword = 'elephant tree paris dragon chair galaxy';
+	const networkIdentifier = Buffer.alloc(0);
 
 	let endpoint: Endpoint;
 	let broadcaster: Broadcaster;
-	let chain: Chain;
 	let consensus: Consensus;
 	let pool: TransactionPool;
 	let stateMachine: StateMachine;
@@ -62,14 +62,6 @@ describe('generator endpoint', () => {
 	beforeEach(() => {
 		broadcaster = {
 			enqueueTransactionId: jest.fn(),
-		} as never;
-		chain = {
-			dataAccess: {
-				decodeTransaction: jest.fn().mockReturnValue(tx),
-			},
-			constants: {
-				networkIdentifier: Buffer.from('networkIdentifier'),
-			},
 		} as never;
 		consensus = {
 			isSynced: jest.fn().mockResolvedValue(true),
@@ -85,7 +77,6 @@ describe('generator endpoint', () => {
 		} as never;
 		endpoint = new Endpoint({
 			broadcaster,
-			chain,
 			consensus,
 			pool,
 			stateMachine,
@@ -109,6 +100,7 @@ describe('generator endpoint', () => {
 						params: {
 							invalid: 'schema',
 						},
+						networkIdentifier,
 					}),
 				).rejects.toThrow(LiskValidationError);
 			});
@@ -121,6 +113,7 @@ describe('generator endpoint', () => {
 						params: {
 							transaction: 'xxxx',
 						},
+						networkIdentifier,
 					}),
 				).rejects.toThrow();
 			});
@@ -138,6 +131,7 @@ describe('generator endpoint', () => {
 						params: {
 							transaction: tx.getBytes().toString('hex'),
 						},
+						networkIdentifier,
 					}),
 				).rejects.toThrow(InvalidTransactionError);
 			});
@@ -153,6 +147,7 @@ describe('generator endpoint', () => {
 						params: {
 							transaction: tx.getBytes().toString('hex'),
 						},
+						networkIdentifier,
 					}),
 				).resolves.toEqual({
 					transactionId: tx.id.toString('hex'),
@@ -172,6 +167,7 @@ describe('generator endpoint', () => {
 						params: {
 							transaction: tx.getBytes().toString('hex'),
 						},
+						networkIdentifier,
 					}),
 				).rejects.toThrow(InvalidTransactionError);
 			});
@@ -186,6 +182,7 @@ describe('generator endpoint', () => {
 						params: {
 							transaction: tx.getBytes().toString('hex'),
 						},
+						networkIdentifier,
 					}),
 				).resolves.toEqual({
 					transactionId: tx.id.toString('hex'),
@@ -213,6 +210,7 @@ describe('generator endpoint', () => {
 						overwrite: true,
 						...bftProps,
 					},
+					networkIdentifier,
 				}),
 			).rejects.toThrow(LiskValidationError);
 		});
@@ -229,6 +227,7 @@ describe('generator endpoint', () => {
 						overwrite: true,
 						...bftProps,
 					},
+					networkIdentifier,
 				}),
 			).rejects.toThrow('Generator with address:');
 		});
@@ -245,6 +244,7 @@ describe('generator endpoint', () => {
 						overwrite: true,
 						...bftProps,
 					},
+					networkIdentifier,
 				}),
 			).rejects.toThrow('Invalid password and public key combination');
 		});
@@ -261,6 +261,7 @@ describe('generator endpoint', () => {
 						overwrite: true,
 						...bftProps,
 					},
+					networkIdentifier,
 				}),
 			).rejects.toThrow('Invalid keypair');
 		});
@@ -278,6 +279,7 @@ describe('generator endpoint', () => {
 						overwrite: true,
 						...bftProps,
 					},
+					networkIdentifier,
 				}),
 			).rejects.toThrow('Failed to enable forging as the node is not synced to the network.');
 		});
@@ -298,6 +300,7 @@ describe('generator endpoint', () => {
 						overwrite: true,
 						...bftProps,
 					},
+					networkIdentifier,
 				}),
 			).resolves.toEqual({
 				address: config.address,
@@ -318,6 +321,7 @@ describe('generator endpoint', () => {
 						overwrite: true,
 						...bftProps,
 					},
+					networkIdentifier,
 				}),
 			).resolves.toEqual({
 				address: config.address,
@@ -346,6 +350,7 @@ describe('generator endpoint', () => {
 						maxHeightPrevoted: 0,
 						maxHeightGenerated: 0,
 					},
+					networkIdentifier,
 				}),
 			).resolves.toEqual({
 				address: config.address,
@@ -373,6 +378,7 @@ describe('generator endpoint', () => {
 						maxHeightPrevoted: 40,
 						maxHeightGenerated: 3,
 					},
+					networkIdentifier,
 				}),
 			).rejects.toThrow('Last generated information does not exist.');
 		});
@@ -408,6 +414,7 @@ describe('generator endpoint', () => {
 						maxHeightPrevoted: 0,
 						maxHeightGenerated: 0,
 					},
+					networkIdentifier,
 				}),
 			).rejects.toThrow('Request does not match last generated information.');
 		});
@@ -443,6 +450,7 @@ describe('generator endpoint', () => {
 						maxHeightPrevoted: 40,
 						maxHeightGenerated: 3,
 					},
+					networkIdentifier,
 				}),
 			).rejects.toThrow('Request does not match last generated information.');
 		});
@@ -475,6 +483,7 @@ describe('generator endpoint', () => {
 						maxHeightPrevoted: 40,
 						maxHeightGenerated: 3,
 					},
+					networkIdentifier,
 				}),
 			).resolves.toEqual({
 				address: config.address,
