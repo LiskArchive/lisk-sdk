@@ -463,7 +463,9 @@ describe('Register Multisignature command', () => {
 					transaction: validTestTransaction,
 					networkIdentifier,
 				})
-				.createCommandExecuteContext(registerMultisignatureParamsSchema) as any;
+				.createCommandExecuteContext(registerMultisignatureParamsSchema) as CommandExecuteContext<
+				Record<string, unknown>
+			>;
 
 			await expect(registerMultisignatureCommand.execute(context)).rejects.toStrictEqual(
 				new Error('Register multisignature only allowed once per account.'),

@@ -21,7 +21,11 @@ import {
 } from '../../node/state_machine';
 import { AuthAPI } from './api';
 import { RegisterMultisignatureCommand } from './commands/register_multisignature';
-import { COMMAND_ID_DELEGATE_REGISTRATION, MODULE_ID_AUTH, STORE_PREFIX_AUTH } from './constants';
+import {
+	COMMAND_ID_MULTISIGNATURE_REGISTRATION,
+	MODULE_ID_AUTH,
+	STORE_PREFIX_AUTH,
+} from './constants';
 import { AuthEndpoint } from './endpoint';
 import { authAccountSchema, configSchema, registerMultisignatureParamsSchema } from './schemas';
 import { AuthAccount } from './types';
@@ -57,7 +61,7 @@ export class AuthModule extends BaseModule {
 		// Verify multisignature registration transaction
 		if (
 			transaction.moduleID === this.id &&
-			transaction.commandID === COMMAND_ID_DELEGATE_REGISTRATION
+			transaction.commandID === COMMAND_ID_MULTISIGNATURE_REGISTRATION
 		) {
 			verifyRegisterMultiSignatureTransaction(
 				TAG_TRANSACTION,

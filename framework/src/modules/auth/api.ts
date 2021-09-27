@@ -15,14 +15,15 @@
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { BaseAPI } from '../base_api';
 import { ImmutableAPIContext } from '../../node/state_machine';
-import { AuthData, authAccountSchema } from './schemas';
+import { authAccountSchema } from './schemas';
 import { STORE_PREFIX_AUTH } from './constants';
+import { Keys } from './types';
 
 export class AuthAPI extends BaseAPI {
-	public async getAuthAccount(apiContext: ImmutableAPIContext, address: Buffer): Promise<AuthData> {
+	public async getAuthAccount(apiContext: ImmutableAPIContext, address: Buffer): Promise<Keys> {
 		const authDataStore = apiContext.getStore(this.moduleID, STORE_PREFIX_AUTH);
 		try {
-			const authData = await authDataStore.getWithSchema<AuthData>(address, authAccountSchema);
+			const authData = await authDataStore.getWithSchema<Keys>(address, authAccountSchema);
 
 			return authData;
 		} catch (error) {
