@@ -135,7 +135,6 @@ export class Generator {
 		this._endpoint = new Endpoint({
 			generators: this._config.generators,
 			keypair: this._keypairs,
-			chain: this._chain,
 			consensus: this._consensus,
 			broadcaster: this._broadcaster,
 			pool: this._pool,
