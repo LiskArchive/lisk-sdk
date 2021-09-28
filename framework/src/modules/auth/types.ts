@@ -24,3 +24,9 @@ export interface AuthAccount {
 	mandatoryKeys: Buffer[];
 	optionalKeys: Buffer[];
 }
+
+export interface RegisterMultisignatureParams {
+	numberOfSignatures: number;
+	mandatoryKeys: Buffer[];
+	optionalKeys: Buffer[];
+}
