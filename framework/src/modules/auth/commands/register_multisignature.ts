@@ -22,9 +22,9 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../node/state_machine';
-import { COMMAND_ID_MULTISIGNATURE_REGISTRATION } from '../constants';
+import { COMMAND_ID_MULTISIGNATURE_REGISTRATION, MODULE_ID_AUTH } from '../constants';
 import { authAccountSchema, registerMultisignatureParamsSchema } from '../schemas';
-import { Keys } from '../types';
+import { AuthAccount, Keys, RegisterMultisignatureParams } from '../types';
 
 export class RegisterMultisignatureCommand extends BaseCommand {
 	public id = COMMAND_ID_MULTISIGNATURE_REGISTRATION;
@@ -135,23 +135,25 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 		};
 	}
 
-	public async execute(context: CommandExecuteContext<Record<string, unknown>>): Promise<void> {
+	public async execute(
+		context: CommandExecuteContext<RegisterMultisignatureParams>,
+	): Promise<void> {
 		const { transaction } = context;
-		const authSubstore = context.getStore(this.id, STORE_PREFIX_AUTH);
-		const senderAccount = await authSubstore.getWithSchema<Keys>(
+		const authSubstore = context.getStore(MODULE_ID_AUTH, STORE_PREFIX_AUTH);
+		const senderAccount = await authSubstore.getWithSchema<AuthAccount>(
 			transaction.senderAddress,
 			authAccountSchema,
 		);
+
+		senderAccount.mandatoryKeys = context.params.mandatoryKeys;
+		senderAccount.optionalKeys = context.params.optionalKeys;
+		senderAccount.numberOfSignatures = context.params.numberOfSignatures;
 
 		// Check if multisignatures already exists on account
 		if (senderAccount.numberOfSignatures > 0) {
 			throw new Error('Register multisignature only allowed once per account.');
 		}
 
-		await authSubstore.setWithSchema(
-			transaction.senderAddress,
-			transaction.params,
-			authAccountSchema,
-		);
+		await authSubstore.setWithSchema(transaction.senderAddress, senderAccount, authAccountSchema);
 	}
 }
