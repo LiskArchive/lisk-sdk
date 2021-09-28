@@ -41,7 +41,7 @@ info:
     Click on an endpoint to show the descriptions, details and examples.
   version: '1.0.32'
   contact:
-    email: admin@lisk.io
+    email: admin@lisk.com
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0
