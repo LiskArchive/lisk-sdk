@@ -15,18 +15,21 @@
 import { StateStore } from '@liskhq/lisk-chain';
 import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
-import { Transaction, transactionSchema } from '@liskhq/lisk-chain';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { Transaction } from '@liskhq/lisk-chain';
 import * as fixtures from './fixtures.json';
 import * as testing from '../../../../src/testing';
 import { RegisterMultisignatureCommand } from '../../../../src/modules/auth/commands/register_multisignature';
+import { MODULE_ID_AUTH, STORE_PREFIX_AUTH } from '../../../../src/modules/auth/constants';
 import {
-	COMMAND_ID_MULTISIGNATURE_REGISTRATION,
-	MODULE_ID_AUTH,
-	STORE_PREFIX_AUTH,
-} from '../../../../src/modules/auth/constants';
-import { registerMultisignatureParamsSchema } from '../../../../src/modules/auth/schemas';
-import { Keys } from '../../../../src/modules/auth/types';
+	authAccountSchema,
+	registerMultisignatureParamsSchema,
+} from '../../../../src/modules/auth/schemas';
+import {
+	AuthAccount,
+	Keys,
+	RegisterMultisignatureParams,
+} from '../../../../src/modules/auth/types';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -34,41 +37,28 @@ import {
 } from '../../../../src/node/state_machine';
 
 describe('Register Multisignature command', () => {
-	let decodedBaseTransaction: Transaction;
 	let decodedParams: Keys;
-	let validTestTransaction: any;
 	let registerMultisignatureCommand: RegisterMultisignatureCommand;
 	let db: KVStore;
 	let stateStore: StateStore;
 	let authStore: StateStore;
-	let decodedMultiSignature: any;
+	let transaction: Transaction;
 
 	const defaultTestCase = fixtures.testCases[0];
 	const networkIdentifier = Buffer.from(defaultTestCase.input.networkIdentifier, 'hex');
 
 	beforeEach(async () => {
-		registerMultisignatureCommand = new RegisterMultisignatureCommand(
-			COMMAND_ID_MULTISIGNATURE_REGISTRATION,
-		);
+		registerMultisignatureCommand = new RegisterMultisignatureCommand(MODULE_ID_AUTH);
 		const buffer = Buffer.from(defaultTestCase.output.transaction, 'hex');
-		const id = hash(buffer);
-		decodedBaseTransaction = codec.decode<Transaction>(transactionSchema, buffer);
-		decodedMultiSignature = {
-			...decodedBaseTransaction,
-			id,
-		};
-		decodedParams = codec.decode<Keys>(
-			registerMultisignatureParamsSchema,
-			decodedBaseTransaction.params,
-		);
-		validTestTransaction = new Transaction(decodedMultiSignature);
+		transaction = Transaction.fromBytes(buffer);
+		decodedParams = codec.decode<Keys>(registerMultisignatureParamsSchema, transaction.params);
 	});
 
 	describe('verify', () => {
 		it('should not return status OK for valid params', async () => {
 			const context = testing
 				.createTransactionContext({
-					transaction: validTestTransaction,
+					transaction,
 					networkIdentifier,
 				})
 				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
@@ -87,7 +77,7 @@ describe('Register Multisignature command', () => {
 			});
 			const context = testing
 				.createTransactionContext({
-					transaction: { ...validTestTransaction, params },
+					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
 				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
@@ -108,7 +98,7 @@ describe('Register Multisignature command', () => {
 			});
 			const context = testing
 				.createTransactionContext({
-					transaction: { ...validTestTransaction, params },
+					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
 				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
@@ -129,7 +119,7 @@ describe('Register Multisignature command', () => {
 			});
 			const context = testing
 				.createTransactionContext({
-					transaction: { ...validTestTransaction, params },
+					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
 				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
@@ -150,7 +140,7 @@ describe('Register Multisignature command', () => {
 			});
 			const context = testing
 				.createTransactionContext({
-					transaction: { ...validTestTransaction, params },
+					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
 				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
@@ -171,7 +161,7 @@ describe('Register Multisignature command', () => {
 			});
 			const context = testing
 				.createTransactionContext({
-					transaction: { ...validTestTransaction, params },
+					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
 				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
@@ -191,7 +181,7 @@ describe('Register Multisignature command', () => {
 			});
 			const context = testing
 				.createTransactionContext({
-					transaction: { ...validTestTransaction, params },
+					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
 				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
@@ -211,7 +201,7 @@ describe('Register Multisignature command', () => {
 			});
 			const context = testing
 				.createTransactionContext({
-					transaction: { ...validTestTransaction, params },
+					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
 				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
@@ -231,7 +221,7 @@ describe('Register Multisignature command', () => {
 			});
 			const context = testing
 				.createTransactionContext({
-					transaction: { ...validTestTransaction, params },
+					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
 				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
@@ -250,7 +240,7 @@ describe('Register Multisignature command', () => {
 			});
 			const context = testing
 				.createTransactionContext({
-					transaction: { ...validTestTransaction, params },
+					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
 				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
@@ -268,7 +258,7 @@ describe('Register Multisignature command', () => {
 			});
 			const context = testing
 				.createTransactionContext({
-					transaction: { ...validTestTransaction, params },
+					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
 				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
@@ -286,7 +276,7 @@ describe('Register Multisignature command', () => {
 			});
 			const context = testing
 				.createTransactionContext({
-					transaction: { ...validTestTransaction, params },
+					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
 				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
@@ -305,7 +295,7 @@ describe('Register Multisignature command', () => {
 			});
 			const context = testing
 				.createTransactionContext({
-					transaction: { ...validTestTransaction, params },
+					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
 				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
@@ -330,7 +320,7 @@ describe('Register Multisignature command', () => {
 			});
 			const context = testing
 				.createTransactionContext({
-					transaction: { ...validTestTransaction, params },
+					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
 				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
@@ -354,7 +344,7 @@ describe('Register Multisignature command', () => {
 			});
 			const context = testing
 				.createTransactionContext({
-					transaction: { ...validTestTransaction, params },
+					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
 				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
@@ -376,7 +366,7 @@ describe('Register Multisignature command', () => {
 			});
 			const context = testing
 				.createTransactionContext({
-					transaction: { ...validTestTransaction, params },
+					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
 				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
@@ -395,7 +385,7 @@ describe('Register Multisignature command', () => {
 			});
 			const context = testing
 				.createTransactionContext({
-					transaction: { ...validTestTransaction, params },
+					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
 				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
@@ -416,7 +406,7 @@ describe('Register Multisignature command', () => {
 			});
 			const context = testing
 				.createTransactionContext({
-					transaction: { ...validTestTransaction, params },
+					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
 				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
@@ -438,37 +428,53 @@ describe('Register Multisignature command', () => {
 		});
 
 		it('should not throw when registering for first time', async () => {
-			const context = testing
-				.createTransactionContext({
-					stateStore,
-					transaction: validTestTransaction,
-					networkIdentifier,
-				})
-				.createCommandExecuteContext(registerMultisignatureParamsSchema) as CommandExecuteContext<
-				Record<string, unknown>
-			>;
-
-			await expect(registerMultisignatureCommand.execute(context)).not.toReject();
-		});
-
-		it.skip('should throw error when account is already multisignature', async () => {
 			await authStore.setWithSchema(
-				validTestTransaction.senderAddress,
-				{ ...decodedParams, nonce: 0 },
+				transaction.senderAddress,
+				{
+					optionalKeys: [],
+					mandatoryKeys: [],
+					numberOfSignatures: 0,
+					nonce: BigInt(0),
+				},
 				registerMultisignatureParamsSchema,
 			);
 			const context = testing
 				.createTransactionContext({
 					stateStore,
-					transaction: validTestTransaction,
+					transaction,
 					networkIdentifier,
 				})
-				.createCommandExecuteContext(registerMultisignatureParamsSchema) as CommandExecuteContext<
-				Record<string, unknown>
-			>;
+				.createCommandExecuteContext(
+					registerMultisignatureParamsSchema,
+				) as CommandExecuteContext<RegisterMultisignatureParams>;
 
-			await expect(registerMultisignatureCommand.execute(context)).rejects.toStrictEqual(
-				new Error('Register multisignature only allowed once per account.'),
+			await expect(registerMultisignatureCommand.execute(context)).toResolve();
+			const updatedStore = stateStore.getStore(MODULE_ID_AUTH, STORE_PREFIX_AUTH);
+			const updatedData = await updatedStore.getWithSchema<AuthAccount>(
+				transaction.senderAddress,
+				authAccountSchema,
+			);
+			expect(updatedData.mandatoryKeys).toEqual(decodedParams.mandatoryKeys);
+		});
+
+		it('should throw error when account is already multisignature', async () => {
+			await authStore.setWithSchema(
+				transaction.senderAddress,
+				{ ...decodedParams, nonce: BigInt(0) },
+				registerMultisignatureParamsSchema,
+			);
+			const context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+					networkIdentifier,
+				})
+				.createCommandExecuteContext(
+					registerMultisignatureParamsSchema,
+				) as CommandExecuteContext<RegisterMultisignatureParams>;
+
+			await expect(registerMultisignatureCommand.execute(context)).rejects.toThrow(
+				'Register multisignature only allowed once per account.',
 			);
 		});
 	});
