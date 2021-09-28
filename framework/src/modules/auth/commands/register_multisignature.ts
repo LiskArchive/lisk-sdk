@@ -145,14 +145,14 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 			authAccountSchema,
 		);
 
-		senderAccount.mandatoryKeys = context.params.mandatoryKeys;
-		senderAccount.optionalKeys = context.params.optionalKeys;
-		senderAccount.numberOfSignatures = context.params.numberOfSignatures;
-
 		// Check if multisignatures already exists on account
 		if (senderAccount.numberOfSignatures > 0) {
 			throw new Error('Register multisignature only allowed once per account.');
 		}
+
+		senderAccount.mandatoryKeys = context.params.mandatoryKeys;
+		senderAccount.optionalKeys = context.params.optionalKeys;
+		senderAccount.numberOfSignatures = context.params.numberOfSignatures;
 
 		await authSubstore.setWithSchema(transaction.senderAddress, senderAccount, authAccountSchema);
 	}
