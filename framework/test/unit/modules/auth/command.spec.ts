@@ -25,11 +25,7 @@ import {
 	authAccountSchema,
 	registerMultisignatureParamsSchema,
 } from '../../../../src/modules/auth/schemas';
-import {
-	AuthAccount,
-	Keys,
-	RegisterMultisignatureParams,
-} from '../../../../src/modules/auth/types';
+import { AuthAccount, RegisterMultisignatureParams } from '../../../../src/modules/auth/types';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
