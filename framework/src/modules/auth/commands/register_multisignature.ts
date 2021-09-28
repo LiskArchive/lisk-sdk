@@ -33,13 +33,14 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(
-		context: CommandVerifyContext<Record<string, unknown>>,
+		context: CommandVerifyContext<RegisterMultisignatureParams>,
 	): Promise<VerificationResult> {
 		const { transaction } = context;
-		const { mandatoryKeys, optionalKeys, numberOfSignatures } = codec.decode<Keys>(
-			this.schema,
-			transaction.params,
-		);
+		const {
+			mandatoryKeys,
+			optionalKeys,
+			numberOfSignatures,
+		} = codec.decode<RegisterMultisignatureParams>(this.schema, transaction.params);
 
 		if (!objectUtils.bufferArrayUniqueItems(mandatoryKeys)) {
 			return {
