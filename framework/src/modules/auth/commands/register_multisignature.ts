@@ -24,7 +24,7 @@ import {
 } from '../../../node/state_machine';
 import { COMMAND_ID_MULTISIGNATURE_REGISTRATION, MODULE_ID_AUTH } from '../constants';
 import { authAccountSchema, registerMultisignatureParamsSchema } from '../schemas';
-import { AuthAccount, Keys, RegisterMultisignatureParams } from '../types';
+import { AuthAccount, RegisterMultisignatureParams } from '../types';
 
 export class RegisterMultisignatureCommand extends BaseCommand {
 	public id = COMMAND_ID_MULTISIGNATURE_REGISTRATION;
