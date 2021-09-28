@@ -17,13 +17,16 @@ import { BaseAPI } from '../base_api';
 import { ImmutableAPIContext } from '../../node/state_machine';
 import { authAccountSchema } from './schemas';
 import { STORE_PREFIX_AUTH } from './constants';
-import { Keys } from './types';
+import { AuthAccount } from './types';
 
 export class AuthAPI extends BaseAPI {
-	public async getAuthAccount(apiContext: ImmutableAPIContext, address: Buffer): Promise<Keys> {
+	public async getAuthAccount(
+		apiContext: ImmutableAPIContext,
+		address: Buffer,
+	): Promise<AuthAccount> {
 		const authDataStore = apiContext.getStore(this.moduleID, STORE_PREFIX_AUTH);
 		try {
-			const authData = await authDataStore.getWithSchema<Keys>(address, authAccountSchema);
+			const authData = await authDataStore.getWithSchema<AuthAccount>(address, authAccountSchema);
 
 			return authData;
 		} catch (error) {
