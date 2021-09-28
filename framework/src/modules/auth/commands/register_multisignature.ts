@@ -14,7 +14,6 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
-import { MAX_KEYS_COUNT, STORE_PREFIX_AUTH } from '../constants';
 import { BaseCommand } from '../..';
 import {
 	CommandExecuteContext,
@@ -22,7 +21,12 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../node/state_machine';
-import { COMMAND_ID_MULTISIGNATURE_REGISTRATION, MODULE_ID_AUTH } from '../constants';
+import {
+	COMMAND_ID_MULTISIGNATURE_REGISTRATION,
+	MAX_KEYS_COUNT,
+	MODULE_ID_AUTH,
+	STORE_PREFIX_AUTH,
+} from '../constants';
 import { authAccountSchema, registerMultisignatureParamsSchema } from '../schemas';
 import { AuthAccount, RegisterMultisignatureParams } from '../types';
 
