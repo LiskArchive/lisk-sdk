@@ -37,7 +37,7 @@ import {
 } from '../../../../src/node/state_machine';
 
 describe('Register Multisignature command', () => {
-	let decodedParams: Keys;
+	let decodedParams: RegisterMultisignatureParams;
 	let registerMultisignatureCommand: RegisterMultisignatureCommand;
 	let db: KVStore;
 	let stateStore: StateStore;
@@ -51,7 +51,10 @@ describe('Register Multisignature command', () => {
 		registerMultisignatureCommand = new RegisterMultisignatureCommand(MODULE_ID_AUTH);
 		const buffer = Buffer.from(defaultTestCase.output.transaction, 'hex');
 		transaction = Transaction.fromBytes(buffer);
-		decodedParams = codec.decode<Keys>(registerMultisignatureParamsSchema, transaction.params);
+		decodedParams = codec.decode<RegisterMultisignatureParams>(
+			registerMultisignatureParamsSchema,
+			transaction.params,
+		);
 	});
 
 	describe('verify', () => {
@@ -61,9 +64,9 @@ describe('Register Multisignature command', () => {
 					transaction,
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
-				Record<string, unknown>
-			>;
+				.createCommandVerifyContext(
+					registerMultisignatureParamsSchema,
+				) as CommandVerifyContext<RegisterMultisignatureParams>;
 			const result = await registerMultisignatureCommand.verify(context);
 
 			expect(result.status).toBe(VerifyStatus.OK);
@@ -80,9 +83,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
-				Record<string, unknown>
-			>;
+				.createCommandVerifyContext(
+					registerMultisignatureParamsSchema,
+				) as CommandVerifyContext<RegisterMultisignatureParams>;
 			const result = await registerMultisignatureCommand.verify(context);
 
 			expect(result.error?.message).toBe(
@@ -101,9 +104,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
-				Record<string, unknown>
-			>;
+				.createCommandVerifyContext(
+					registerMultisignatureParamsSchema,
+				) as CommandVerifyContext<RegisterMultisignatureParams>;
 			const result = await registerMultisignatureCommand.verify(context);
 
 			expect(result.error?.message).toBe(
@@ -122,9 +125,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
-				Record<string, unknown>
-			>;
+				.createCommandVerifyContext(
+					registerMultisignatureParamsSchema,
+				) as CommandVerifyContext<RegisterMultisignatureParams>;
 			const result = await registerMultisignatureCommand.verify(context);
 
 			expect(result.error?.message).toBe(
@@ -143,9 +146,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
-				Record<string, unknown>
-			>;
+				.createCommandVerifyContext(
+					registerMultisignatureParamsSchema,
+				) as CommandVerifyContext<RegisterMultisignatureParams>;
 			const result = await registerMultisignatureCommand.verify(context);
 
 			expect(result.error?.message).toBe(
@@ -164,9 +167,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
-				Record<string, unknown>
-			>;
+				.createCommandVerifyContext(
+					registerMultisignatureParamsSchema,
+				) as CommandVerifyContext<RegisterMultisignatureParams>;
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe(
 				'The numberOfSignatures is bigger than the count of Mandatory and Optional keys.',
@@ -184,9 +187,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
-				Record<string, unknown>
-			>;
+				.createCommandVerifyContext(
+					registerMultisignatureParamsSchema,
+				) as CommandVerifyContext<RegisterMultisignatureParams>;
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe(
 				'The numberOfSignatures is bigger than the count of Mandatory and Optional keys.',
@@ -204,9 +207,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
-				Record<string, unknown>
-			>;
+				.createCommandVerifyContext(
+					registerMultisignatureParamsSchema,
+				) as CommandVerifyContext<RegisterMultisignatureParams>;
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe(
 				'The numberOfSignatures is bigger than the count of Mandatory and Optional keys.',
@@ -224,9 +227,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
-				Record<string, unknown>
-			>;
+				.createCommandVerifyContext(
+					registerMultisignatureParamsSchema,
+				) as CommandVerifyContext<RegisterMultisignatureParams>;
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe(
 				'The count of Mandatory and Optional keys should be between 1 and 64.',
@@ -243,9 +246,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
-				Record<string, unknown>
-			>;
+				.createCommandVerifyContext(
+					registerMultisignatureParamsSchema,
+				) as CommandVerifyContext<RegisterMultisignatureParams>;
 
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe('MandatoryKeys contains duplicate public keys.');
@@ -261,9 +264,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
-				Record<string, unknown>
-			>;
+				.createCommandVerifyContext(
+					registerMultisignatureParamsSchema,
+				) as CommandVerifyContext<RegisterMultisignatureParams>;
 
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe('OptionalKeys contains duplicate public keys.');
@@ -279,9 +282,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
-				Record<string, unknown>
-			>;
+				.createCommandVerifyContext(
+					registerMultisignatureParamsSchema,
+				) as CommandVerifyContext<RegisterMultisignatureParams>;
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe(
 				'The numberOfSignatures is bigger than the count of Mandatory and Optional keys.',
@@ -298,9 +301,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
-				Record<string, unknown>
-			>;
+				.createCommandVerifyContext(
+					registerMultisignatureParamsSchema,
+				) as CommandVerifyContext<RegisterMultisignatureParams>;
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe(
 				'The numberOfSignatures needs to be equal or bigger than the number of Mandatory keys.',
@@ -323,9 +326,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
-				Record<string, unknown>
-			>;
+				.createCommandVerifyContext(
+					registerMultisignatureParamsSchema,
+				) as CommandVerifyContext<RegisterMultisignatureParams>;
 
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe(
@@ -347,9 +350,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
-				Record<string, unknown>
-			>;
+				.createCommandVerifyContext(
+					registerMultisignatureParamsSchema,
+				) as CommandVerifyContext<RegisterMultisignatureParams>;
 
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe('Mandatory keys should be sorted lexicographically.');
@@ -369,9 +372,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
-				Record<string, unknown>
-			>;
+				.createCommandVerifyContext(
+					registerMultisignatureParamsSchema,
+				) as CommandVerifyContext<RegisterMultisignatureParams>;
 
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe('Optional keys should be sorted lexicographically.');
@@ -388,9 +391,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
-				Record<string, unknown>
-			>;
+				.createCommandVerifyContext(
+					registerMultisignatureParamsSchema,
+				) as CommandVerifyContext<RegisterMultisignatureParams>;
 
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe(
@@ -409,9 +412,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(registerMultisignatureParamsSchema) as CommandVerifyContext<
-				Record<string, unknown>
-			>;
+				.createCommandVerifyContext(
+					registerMultisignatureParamsSchema,
+				) as CommandVerifyContext<RegisterMultisignatureParams>;
 
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe(
