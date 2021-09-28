@@ -12,11 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateStore } from '@liskhq/lisk-chain';
+import { StateStore, Transaction } from '@liskhq/lisk-chain';
 import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { Transaction } from '@liskhq/lisk-chain';
 import * as fixtures from './fixtures.json';
 import * as testing from '../../../../src/testing';
 import { RegisterMultisignatureCommand } from '../../../../src/modules/auth/commands/register_multisignature';
@@ -26,19 +25,15 @@ import {
 	registerMultisignatureParamsSchema,
 } from '../../../../src/modules/auth/schemas';
 import { AuthAccount, RegisterMultisignatureParams } from '../../../../src/modules/auth/types';
-import {
-	CommandExecuteContext,
-	CommandVerifyContext,
-	VerifyStatus,
-} from '../../../../src/node/state_machine';
+import { VerifyStatus } from '../../../../src/node/state_machine';
 
 describe('Register Multisignature command', () => {
-	let decodedParams: RegisterMultisignatureParams;
 	let registerMultisignatureCommand: RegisterMultisignatureCommand;
 	let db: KVStore;
 	let stateStore: StateStore;
 	let authStore: StateStore;
 	let transaction: Transaction;
+	let decodedParams: RegisterMultisignatureParams;
 
 	const defaultTestCase = fixtures.testCases[0];
 	const networkIdentifier = Buffer.from(defaultTestCase.input.networkIdentifier, 'hex');
@@ -60,9 +55,9 @@ describe('Register Multisignature command', () => {
 					transaction,
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(
+				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
-				) as CommandVerifyContext<RegisterMultisignatureParams>;
+				);
 			const result = await registerMultisignatureCommand.verify(context);
 
 			expect(result.status).toBe(VerifyStatus.OK);
@@ -79,9 +74,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(
+				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
-				) as CommandVerifyContext<RegisterMultisignatureParams>;
+				);
 			const result = await registerMultisignatureCommand.verify(context);
 
 			expect(result.error?.message).toBe(
@@ -100,9 +95,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(
+				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
-				) as CommandVerifyContext<RegisterMultisignatureParams>;
+				);
 			const result = await registerMultisignatureCommand.verify(context);
 
 			expect(result.error?.message).toBe(
@@ -121,9 +116,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(
+				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
-				) as CommandVerifyContext<RegisterMultisignatureParams>;
+				);
 			const result = await registerMultisignatureCommand.verify(context);
 
 			expect(result.error?.message).toBe(
@@ -142,9 +137,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(
+				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
-				) as CommandVerifyContext<RegisterMultisignatureParams>;
+				);
 			const result = await registerMultisignatureCommand.verify(context);
 
 			expect(result.error?.message).toBe(
@@ -163,9 +158,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(
+				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
-				) as CommandVerifyContext<RegisterMultisignatureParams>;
+				);
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe(
 				'The numberOfSignatures is bigger than the count of Mandatory and Optional keys.',
@@ -183,9 +178,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(
+				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
-				) as CommandVerifyContext<RegisterMultisignatureParams>;
+				);
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe(
 				'The numberOfSignatures is bigger than the count of Mandatory and Optional keys.',
@@ -203,9 +198,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(
+				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
-				) as CommandVerifyContext<RegisterMultisignatureParams>;
+				);
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe(
 				'The numberOfSignatures is bigger than the count of Mandatory and Optional keys.',
@@ -223,9 +218,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(
+				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
-				) as CommandVerifyContext<RegisterMultisignatureParams>;
+				);
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe(
 				'The count of Mandatory and Optional keys should be between 1 and 64.',
@@ -242,9 +237,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(
+				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
-				) as CommandVerifyContext<RegisterMultisignatureParams>;
+				);
 
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe('MandatoryKeys contains duplicate public keys.');
@@ -260,9 +255,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(
+				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
-				) as CommandVerifyContext<RegisterMultisignatureParams>;
+				);
 
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe('OptionalKeys contains duplicate public keys.');
@@ -278,9 +273,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(
+				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
-				) as CommandVerifyContext<RegisterMultisignatureParams>;
+				);
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe(
 				'The numberOfSignatures is bigger than the count of Mandatory and Optional keys.',
@@ -297,9 +292,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(
+				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
-				) as CommandVerifyContext<RegisterMultisignatureParams>;
+				);
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe(
 				'The numberOfSignatures needs to be equal or bigger than the number of Mandatory keys.',
@@ -322,9 +317,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(
+				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
-				) as CommandVerifyContext<RegisterMultisignatureParams>;
+				);
 
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe(
@@ -346,9 +341,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(
+				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
-				) as CommandVerifyContext<RegisterMultisignatureParams>;
+				);
 
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe('Mandatory keys should be sorted lexicographically.');
@@ -368,9 +363,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(
+				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
-				) as CommandVerifyContext<RegisterMultisignatureParams>;
+				);
 
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe('Optional keys should be sorted lexicographically.');
@@ -387,9 +382,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(
+				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
-				) as CommandVerifyContext<RegisterMultisignatureParams>;
+				);
 
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe(
@@ -408,9 +403,9 @@ describe('Register Multisignature command', () => {
 					transaction: new Transaction({ ...transaction.toObject(), params }),
 					networkIdentifier,
 				})
-				.createCommandVerifyContext(
+				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
-				) as CommandVerifyContext<RegisterMultisignatureParams>;
+				);
 
 			const result = await registerMultisignatureCommand.verify(context);
 			expect(result.error?.message).toBe(
@@ -443,9 +438,9 @@ describe('Register Multisignature command', () => {
 					transaction,
 					networkIdentifier,
 				})
-				.createCommandExecuteContext(
+				.createCommandExecuteContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
-				) as CommandExecuteContext<RegisterMultisignatureParams>;
+				);
 
 			await expect(registerMultisignatureCommand.execute(context)).toResolve();
 			const updatedStore = stateStore.getStore(MODULE_ID_AUTH, STORE_PREFIX_AUTH);
@@ -468,9 +463,9 @@ describe('Register Multisignature command', () => {
 					transaction,
 					networkIdentifier,
 				})
-				.createCommandExecuteContext(
+				.createCommandExecuteContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
-				) as CommandExecuteContext<RegisterMultisignatureParams>;
+				);
 
 			await expect(registerMultisignatureCommand.execute(context)).rejects.toThrow(
 				'Register multisignature only allowed once per account.',
