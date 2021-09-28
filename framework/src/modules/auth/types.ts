@@ -13,7 +13,6 @@
  */
 
 export interface Keys {
-	nonce?: bigint;
 	numberOfSignatures: number;
 	mandatoryKeys: Buffer[];
 	optionalKeys: Buffer[];
