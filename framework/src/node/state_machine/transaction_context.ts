@@ -88,7 +88,9 @@ export class TransactionContext {
 		};
 	}
 
-	public createCommandVerifyContext(paramsSchema: Schema): CommandVerifyContext<unknown> {
+	public createCommandVerifyContext<T = Record<string, unknown>>(
+		paramsSchema: Schema,
+	): CommandVerifyContext<T> {
 		return {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
@@ -101,7 +103,9 @@ export class TransactionContext {
 		};
 	}
 
-	public createCommandExecuteContext(paramsSchema: Schema): CommandExecuteContext<unknown> {
+	public createCommandExecuteContext<T = Record<string, unknown>>(
+		paramsSchema: Schema,
+	): CommandExecuteContext<T> {
 		return {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
