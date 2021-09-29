@@ -136,9 +136,7 @@ describe('Register Multisignature command', () => {
 				);
 			const result = await registerMultisignatureCommand.verify(context);
 
-			expect(result.error?.message).toBe(
-				'The numberOfSignatures is bigger than the count of Mandatory and Optional keys.',
-			);
+			expect(result.error?.message).toInclude("Property '.mandatoryKeys.1' maxLength exceeded");
 		});
 
 		it('should return error if params mandatory keys contains items with length smaller than 32', async () => {
