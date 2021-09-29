@@ -128,8 +128,8 @@ describe('Register Multisignature command', () => {
 
 		it('should return error if params mandatory keys contains items with length bigger than 32', async () => {
 			const params = codec.encode(registerMultisignatureParamsSchema, {
-				numberOfSignatures: 2,
-				mandatoryKeys: [...Array(1).keys()].map(() => getRandomBytes(64)),
+				numberOfSignatures: 3,
+				mandatoryKeys: [...Array(1).keys()].map(() => getRandomBytes(32), getRandomBytes(64)),
 				optionalKeys: [],
 			});
 			const context = testing
@@ -149,8 +149,8 @@ describe('Register Multisignature command', () => {
 
 		it('should return error if params mandatory keys contains items with length smaller than 32', async () => {
 			const params = codec.encode(registerMultisignatureParamsSchema, {
-				numberOfSignatures: 2,
-				mandatoryKeys: [...Array(1).keys()].map(() => getRandomBytes(10)),
+				numberOfSignatures: 3,
+				mandatoryKeys: [...Array(1).keys()].map(() => getRandomBytes(10), getRandomBytes(32)),
 				optionalKeys: [],
 			});
 			const context = testing
