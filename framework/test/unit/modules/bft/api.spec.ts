@@ -18,6 +18,8 @@ import { BIG_ENDIAN, getRandomBytes, hash, intToBuffer } from '@liskhq/lisk-cryp
 import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { BFTAPI } from '../../../../src/modules/bft/api';
 import {
+	EMPTY_KEY,
+	MODULE_ID_BFT,
 	STORE_PREFIX_BFT_PARAMETERS,
 	STORE_PREFIX_BFT_VOTES,
 } from '../../../../src/modules/bft/constants';
@@ -34,7 +36,7 @@ import { APIContext } from '../../../../src/node/state_machine/api_context';
 import { createFakeBlockHeader } from '../../../../src/testing';
 
 describe('BFT API', () => {
-	const bftModuleID = 0;
+	const bftModuleID = MODULE_ID_BFT;
 
 	let bftAPI: BFTAPI;
 	let validatorsAPI: { getValidatorAccount: jest.Mock };
@@ -92,7 +94,7 @@ describe('BFT API', () => {
 			stateStore = new StateStore(new InMemoryKVStore());
 			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_VOTES);
 			await votesStore.setWithSchema(
-				Buffer.alloc(0),
+				EMPTY_KEY,
 				{
 					maxHeightPrevoted: 10,
 					maxHeightPrecommited: 0,
@@ -250,7 +252,7 @@ describe('BFT API', () => {
 			stateStore = new StateStore(new InMemoryKVStore());
 			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_VOTES);
 			await votesStore.setWithSchema(
-				Buffer.alloc(0),
+				EMPTY_KEY,
 				{
 					maxHeightPrevoted: 10,
 					maxHeightPrecommited: 8,
@@ -304,7 +306,7 @@ describe('BFT API', () => {
 			stateStore = new StateStore(new InMemoryKVStore());
 			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_VOTES);
 			await votesStore.setWithSchema(
-				Buffer.alloc(0),
+				EMPTY_KEY,
 				{
 					maxHeightPrevoted: 10,
 					maxHeightPrecommited: 8,
@@ -489,7 +491,7 @@ describe('BFT API', () => {
 			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_VOTES);
 			const addresses = [getRandomBytes(20), getRandomBytes(20)];
 			await votesStore.setWithSchema(
-				Buffer.alloc(0),
+				EMPTY_KEY,
 				{
 					maxHeightPrevoted: 10,
 					maxHeightPrecommited: 8,
@@ -667,7 +669,7 @@ describe('BFT API', () => {
 			it('should store BFT parameters with height maxHeightPrevoted + 1 if blockBFTInfo does not exist', async () => {
 				const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_VOTES);
 				await votesStore.setWithSchema(
-					Buffer.alloc(0),
+					EMPTY_KEY,
 					{
 						maxHeightPrevoted: 10,
 						maxHeightPrecommited: 8,
@@ -729,7 +731,7 @@ describe('BFT API', () => {
 
 			it('should not update existing validators on bft votes', async () => {
 				const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_VOTES);
-				const voteState = await votesStore.getWithSchema<BFTVotes>(Buffer.alloc(0), bftVotesSchema);
+				const voteState = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
 				expect(
 					voteState.activeValidatorsVoteInfo.find(v => v.address.equals(generatorAddress)),
 				).toEqual({
@@ -741,7 +743,7 @@ describe('BFT API', () => {
 
 			it('should insert new validators into active validators with initial values', async () => {
 				const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_VOTES);
-				const voteState = await votesStore.getWithSchema<BFTVotes>(Buffer.alloc(0), bftVotesSchema);
+				const voteState = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
 				expect(voteState.activeValidatorsVoteInfo).toHaveLength(3);
 				expect(
 					voteState.activeValidatorsVoteInfo.find(v => !v.address.equals(generatorAddress)),

@@ -33,7 +33,7 @@ import {
 	bftVotesSchema,
 	BFTVotes,
 	BFTParameters,
-	ValidatorsHashValidator,
+	ValidatorsHashInfo,
 	ValidatorsHashInput,
 	validatorsHashInputSchema,
 	bftParametersSchema,
@@ -159,7 +159,7 @@ export class BFTAPI extends BaseAPI {
 		let aggregateBFTWeight = BigInt(0);
 		for (const validator of validators) {
 			if (validator.bftWeight <= 0) {
-				throw new Error('Invalid BFT weight. BFT weight must be an positive integer.');
+				throw new Error('Invalid BFT weight. BFT weight must be a positive integer.');
 			}
 			aggregateBFTWeight += validator.bftWeight;
 		}
@@ -245,7 +245,7 @@ export class BFTAPI extends BaseAPI {
 		validators: Validator[],
 		certificateThreshold: bigint,
 	): Promise<Buffer> {
-		const activeValidators: ValidatorsHashValidator[] = [];
+		const activeValidators: ValidatorsHashInfo[] = [];
 		for (const validator of validators) {
 			const { blsKey } = await this._validatorsAPI.getValidatorAccount(context, validator.address);
 			activeValidators.push({

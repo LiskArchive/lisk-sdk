@@ -161,13 +161,13 @@ export const bftVotesSchema = {
 	},
 };
 
-export interface ValidatorsHashValidator {
+export interface ValidatorsHashInfo {
 	blsKey: Buffer;
 	bftWeight: bigint;
 }
 
 export interface ValidatorsHashInput {
-	activeValidators: ValidatorsHashValidator[];
+	activeValidators: ValidatorsHashInfo[];
 	certificateThreshold: bigint;
 }
 
