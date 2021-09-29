@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec } from '@liskhq/lisk-codec';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { BaseCommand } from '../..';
 import {
@@ -40,11 +39,7 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 		context: CommandVerifyContext<RegisterMultisignatureParams>,
 	): Promise<VerificationResult> {
 		const { transaction } = context;
-		const {
-			mandatoryKeys,
-			optionalKeys,
-			numberOfSignatures,
-		} = codec.decode<RegisterMultisignatureParams>(this.schema, transaction.params);
+		const { mandatoryKeys, optionalKeys, numberOfSignatures } = context.params;
 
 		if (!objectUtils.bufferArrayUniqueItems(mandatoryKeys)) {
 			return {
