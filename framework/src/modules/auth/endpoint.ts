@@ -12,6 +12,113 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { TAG_TRANSACTION, NotFoundError } from '@liskhq/lisk-chain';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { isHexString } from '@liskhq/lisk-validator';
+import { ModuleEndpointContext } from '../..';
+import { VerifyStatus } from '../../node/state_machine';
 import { BaseEndpoint } from '../base_endpoint';
+import { MODULE_ID_AUTH, STORE_PREFIX_AUTH } from './constants';
+import { authAccountSchema } from './schemas';
+import { AuthAccount, AuthAccountJSON, VerifyEndpointResultJSON } from './types';
+import {
+	getTransactionFromParameter,
+	isMultisignatureAccount,
+	verifyMultiSignatureTransaction,
+	verifyNonce,
+	verifySingleSignatureTransaction,
+} from './utils';
 
-export class AuthEndpoint extends BaseEndpoint {}
+export class AuthEndpoint extends BaseEndpoint {
+	public async getAuthAccount(context: ModuleEndpointContext): Promise<AuthAccountJSON> {
+		const {
+			getStore,
+			params: { address },
+		} = context;
+
+		if (!isHexString(address) || (address as string).length !== 40) {
+			throw new Error('Invalid address format.');
+		}
+
+		const accountAddress = Buffer.from(address as string, 'hex');
+		const store = getStore(MODULE_ID_AUTH, STORE_PREFIX_AUTH);
+
+		try {
+			const authAccount = await store.getWithSchema<AuthAccount>(accountAddress, authAccountSchema);
+
+			return {
+				nonce: authAccount.nonce.toString(),
+				numberOfSignatures: authAccount.numberOfSignatures,
+				mandatoryKeys: authAccount.mandatoryKeys.map(key => key.toString('hex')),
+				optionalKeys: authAccount.optionalKeys.map(key => key.toString('hex')),
+			};
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+
+			return { nonce: '0', numberOfSignatures: 0, mandatoryKeys: [], optionalKeys: [] };
+		}
+	}
+	public async verifySignatures(context: ModuleEndpointContext): Promise<VerifyEndpointResultJSON> {
+		const {
+			getStore,
+			params: { transaction: transactionParameter },
+			networkIdentifier,
+		} = context;
+
+		const transaction = getTransactionFromParameter(transactionParameter);
+
+		const { senderPublicKey, signatures } = transaction;
+
+		const accountAddress = getAddressFromPublicKey(senderPublicKey);
+
+		const store = getStore(MODULE_ID_AUTH, STORE_PREFIX_AUTH);
+		const account = await store.getWithSchema<AuthAccount>(accountAddress, authAccountSchema);
+
+		const transactionBytes = transaction.getSigningBytes();
+
+		if (!isMultisignatureAccount(account)) {
+			verifySingleSignatureTransaction(
+				TAG_TRANSACTION,
+				transaction,
+				transactionBytes,
+				networkIdentifier,
+			);
+			return { verified: true };
+		}
+
+		verifyMultiSignatureTransaction(
+			TAG_TRANSACTION,
+			networkIdentifier,
+			transaction.id,
+			account,
+			signatures,
+			transactionBytes,
+		);
+		return { verified: true };
+	}
+
+	public async verifyNonce(context: ModuleEndpointContext): Promise<VerifyEndpointResultJSON> {
+		const {
+			getStore,
+			params: { transaction: transactionParameter },
+		} = context;
+
+		const transaction = getTransactionFromParameter(transactionParameter);
+
+		const { senderPublicKey } = transaction;
+
+		const accountAddress = getAddressFromPublicKey(senderPublicKey);
+
+		const store = getStore(MODULE_ID_AUTH, STORE_PREFIX_AUTH);
+		const account = await store.getWithSchema<AuthAccount>(accountAddress, authAccountSchema);
+
+		const verificationResult = verifyNonce(transaction, account).status;
+
+		if (verificationResult === VerifyStatus.OK) {
+			return { verified: true };
+		}
+		return { verified: false };
+	}
+}

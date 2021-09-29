@@ -190,3 +190,25 @@ export const verifyNonce = (
 		status: transaction.nonce > senderAccount.nonce ? VerifyStatus.PENDING : VerifyStatus.OK,
 	};
 };
+
+export const getTransactionFromParameter = (transactionParameter: unknown) => {
+	if (!transactionParameter) {
+		throw new Error('A transaction object must be provided.');
+	}
+
+	if (typeof transactionParameter !== 'string') {
+		throw new Error('Transaction parameter must be a string.');
+	}
+
+	let transactionParameterObject;
+	try {
+		transactionParameterObject = JSON.parse(transactionParameter) as Record<string, unknown>;
+	} catch {
+		throw new Error('Transaction parameter is not a valid JSON object.');
+	}
+
+	const transaction = Transaction.fromJSON(transactionParameterObject);
+	transaction.validate();
+
+	return transaction;
+};
