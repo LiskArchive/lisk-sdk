@@ -18,7 +18,11 @@ import { BIG_ENDIAN, getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptograp
 import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS } from '../../../../src/modules/bft/constants';
 import { BFTParameterNotFoundError } from '../../../../src/modules/bft/errors';
-import { deleteBFTParameters, getBFTParameters } from '../../../../src/modules/bft/bft_params';
+import {
+	BFTParametersCache,
+	deleteBFTParameters,
+	getBFTParameters,
+} from '../../../../src/modules/bft/bft_params';
 import { BFTParameters, bftParametersSchema } from '../../../../src/modules/bft/schemas';
 
 describe('BFT parameters', () => {
@@ -134,7 +138,7 @@ describe('BFT parameters', () => {
 		it('should not delete anything if the param does not exist for the heigt', async () => {
 			const paramsStore = stateStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
 			jest.spyOn(paramsStore, 'del');
-			await deleteBFTParameters(paramsStore, 516);
+			await deleteBFTParameters(paramsStore, 308);
 
 			expect(paramsStore.del).not.toHaveBeenCalled();
 		});
@@ -146,6 +150,81 @@ describe('BFT parameters', () => {
 
 			expect(paramsStore.del).toHaveBeenCalledTimes(1);
 			expect(paramsStore.del).toHaveBeenCalledWith(intToBuffer(309, 4, BIG_ENDIAN));
+		});
+	});
+
+	describe('BFTParametersCache', () => {
+		describe('cache', () => {
+			let db: KVStore;
+
+			it('should cache params for the specified range', async () => {
+				db = new InMemoryKVStore() as never;
+				const rootStore = new StateStore(db);
+				const paramsStore = rootStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
+				const height1Bytes = intToBuffer(104, 4, BIG_ENDIAN);
+				const bftParams1 = {
+					prevoteThreshold: BigInt(20),
+					precommitThreshold: BigInt(30),
+					certificateThreshold: BigInt(40),
+					validators: [
+						{
+							address: getRandomBytes(20),
+							bftWeight: BigInt(10),
+						},
+					],
+					validatorsHash: getRandomBytes(32),
+				};
+				await paramsStore.set(height1Bytes, codec.encode(bftParametersSchema, bftParams1));
+				const height2Bytes = intToBuffer(207, 4, BIG_ENDIAN);
+				const bftParams2 = {
+					prevoteThreshold: BigInt(40),
+					precommitThreshold: BigInt(50),
+					certificateThreshold: BigInt(60),
+					validators: [
+						{
+							address: getRandomBytes(20),
+							bftWeight: BigInt(5),
+						},
+					],
+					validatorsHash: getRandomBytes(32),
+				};
+				await paramsStore.set(height2Bytes, codec.encode(bftParametersSchema, bftParams2));
+				const height3Bytes = intToBuffer(310, 4, BIG_ENDIAN);
+				const bftParams3 = {
+					prevoteThreshold: BigInt(40),
+					precommitThreshold: BigInt(50),
+					certificateThreshold: BigInt(60),
+					validators: [
+						{
+							address: getRandomBytes(20),
+							bftWeight: BigInt(5),
+						},
+					],
+					validatorsHash: getRandomBytes(32),
+				};
+				await paramsStore.set(height3Bytes, codec.encode(bftParametersSchema, bftParams3));
+				const batch = db.batch();
+				rootStore.finalize(batch);
+				await batch.write();
+
+				const stateStore = new StateStore(db);
+				const targetParamsStore = stateStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
+				jest.spyOn(targetParamsStore, 'iterate');
+
+				const paramsCache = new BFTParametersCache(targetParamsStore);
+
+				const start = 110;
+				const end = 323;
+				await paramsCache.cache(start, end);
+
+				for (let i = start; i < end; i += 1) {
+					await expect(paramsCache.getParameters(i)).toResolve();
+				}
+				await expect(paramsCache.getParameters(start)).resolves.toEqual(bftParams1);
+				await expect(paramsCache.getParameters(207)).resolves.toEqual(bftParams2);
+				await expect(paramsCache.getParameters(end)).resolves.toEqual(bftParams3);
+				expect(targetParamsStore.iterate).toHaveBeenCalledTimes(2);
+			});
 		});
 	});
 });

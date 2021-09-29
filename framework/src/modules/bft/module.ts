@@ -67,11 +67,19 @@ export class BFTModule extends BaseModule {
 		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
 
 		insertBlockBFTInfo(bftVotes, context.header, this._maxLengthBlockBFTInfos);
+		await paramsCache.cache(
+			bftVotes.blockBFTInfos[bftVotes.blockBFTInfos.length - 1].height,
+			bftVotes.blockBFTInfos[0].height,
+		);
 		await updatePrevotesPrecommits(bftVotes, paramsCache);
 		await updateMaxHeightPrevoted(bftVotes, paramsCache);
 		await updateMaxHeightPrecommitted(bftVotes, paramsCache);
 		updateMaxHeightCertified(bftVotes, context.header);
 		await votesStore.setWithSchema(EMPTY_KEY, bftVotes, bftVotesSchema);
-		await deleteBFTParameters(paramsStore, bftVotes.maxHeightCertified + 1);
+		const minRemovingHeight = Math.min(
+			bftVotes.blockBFTInfos[bftVotes.blockBFTInfos.length - 1].height,
+			bftVotes.maxHeightCertified,
+		);
+		await deleteBFTParameters(paramsStore, minRemovingHeight + 1);
 	}
 }
