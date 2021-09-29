@@ -26,6 +26,7 @@ import { Logger } from '../../logger';
 export class InMemoryChannel extends BaseChannel {
 	private bus!: Bus;
 	private readonly _db: KVStore;
+	private readonly _networkIdentifier: Buffer | undefined;
 
 	public constructor(
 		logger: Logger,
@@ -33,9 +34,13 @@ export class InMemoryChannel extends BaseChannel {
 		namespace: string,
 		events: ReadonlyArray<string>,
 		endpoints: EndpointHandlers,
+		networkIdentifier?: Buffer,
 	) {
 		super(logger, namespace, events, endpoints);
 		this._db = db;
+		if (networkIdentifier) {
+			this._networkIdentifier = networkIdentifier;
+		}
 	}
 
 	public async registerToBus(bus: Bus): Promise<void> {
@@ -107,6 +112,7 @@ export class InMemoryChannel extends BaseChannel {
 					const stateStore = new StateStore(this._db);
 					return stateStore.getStore(moduleID, storePrefix);
 				},
+				...(this._networkIdentifier && { networkIdentifier: this._networkIdentifier }),
 			}) as Promise<T>;
 		}
 

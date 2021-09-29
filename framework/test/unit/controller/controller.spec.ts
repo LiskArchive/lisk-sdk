@@ -109,6 +109,7 @@ describe('Controller Class', () => {
 		endpoints: {
 			getBlockByID: jest.fn(),
 		} as EndpointHandlers,
+		networkIdentifier: Buffer.alloc(0),
 	};
 
 	let controller: controllerModule.Controller;

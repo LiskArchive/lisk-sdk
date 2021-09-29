@@ -21,7 +21,7 @@ describe('LiskValidationError formatter', () => {
 	// Arrange
 	const validSchema = {
 		$id: '/my-schema',
-		$schema: 'http://lisk.io/lisk-schema/schema#',
+		$schema: 'http://lisk.com/lisk-schema/schema#',
 		type: 'object',
 		properties: {
 			myProp: {
@@ -105,7 +105,7 @@ describe('LiskValidationError formatter', () => {
 	it('should format additional property errors', () => {
 		const schema = {
 			$id: '/my-schema',
-			$schema: 'http://lisk.io/lisk-schema/schema#',
+			$schema: 'http://lisk.com/lisk-schema/schema#',
 			type: 'object',
 			properties: {
 				myProp: {
