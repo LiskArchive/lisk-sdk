@@ -66,7 +66,8 @@ export const updatePrevotesPrecommits = async (
 		v.address.equals(newBlockBFTInfo.generatorAddress),
 	);
 	if (!validatorInfo) {
-		throw new Error('Invalid state. activeValidatorsVoteInfo must contain the generator address.');
+		// the validator does not exist, meaning it does not have bft vote weight
+		return;
 	}
 	const heightNotPrevoted = getHeightNotPrevoted(bftVotes);
 
@@ -169,5 +170,5 @@ export const updateMaxHeightCertified = (bftVotes: BFTVotes, header: BlockHeader
 		return;
 	}
 	// eslint-disable-next-line no-param-reassign
-	bftVotes.maxHeightCertified = header.height;
+	bftVotes.maxHeightCertified = header.aggregateCommit.height;
 };
