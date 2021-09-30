@@ -56,7 +56,7 @@ export interface ValidatorsAPI {
 	setGeneratorList(apiContext: APIContext, generatorAddresses: Buffer[]): Promise<void>;
 }
 
-export interface VoteAccountAsset {
+export interface VoteAccountObject {
 	readonly delegateAddress: Buffer;
 	// Amount for some delegate can be updated
 	amount: bigint;
@@ -79,7 +79,7 @@ export interface DPOSProps {
 			isBanned: boolean;
 			totalVotesReceived: bigint;
 		};
-		sentVotes: VoteAccountAsset[];
+		sentVotes: VoteAccountObject[];
 		unlocking: UnlockingObject[];
 	};
 }
