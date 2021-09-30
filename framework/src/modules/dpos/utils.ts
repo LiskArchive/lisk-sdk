@@ -43,7 +43,7 @@ export const sortUnlocking = (unlocks: UnlockingAccountAsset[]): void => {
 	});
 };
 
-export const getMinPunishedHeight = (
+export const getUnlockDelayForPunishment = (
 	sender: Account<DPOSAccountProps>,
 	delegate: Account<DPOSAccountProps>,
 ): number => {
@@ -59,14 +59,14 @@ export const getMinPunishedHeight = (
 		: lastPomHeight + VOTER_PUNISH_TIME;
 };
 
-export const getPunishmentPeriod = (
+export const getUnlockDelayPeriod = (
 	sender: Account<DPOSAccountProps>,
 	delegateAccount: Account<DPOSAccountProps>,
 	lastBlockHeight: number,
 ): number => {
 	const currentHeight = lastBlockHeight + 1;
-	const minPunishedHeight = getMinPunishedHeight(sender, delegateAccount);
-	const remainingBlocks = minPunishedHeight - currentHeight;
+	const minUnlockDelay = getUnlockDelayForPunishment(sender, delegateAccount);
+	const remainingBlocks = minUnlockDelay - currentHeight;
 
 	return remainingBlocks < 0 ? 0 : remainingBlocks;
 };
@@ -79,18 +79,6 @@ export const getMinWaitingHeight = (
 	unlockObject.unvoteHeight +
 	(senderAddress.equals(delegateAddress) ? WAIT_TIME_SELF_VOTE : WAIT_TIME_VOTE);
 
-export const getWaitingPeriod = (
-	senderAddress: Buffer,
-	delegateAddress: Buffer,
-	lastBlockHeight: number,
-	unlockObject: UnlockingAccountAsset,
-): number => {
-	const currentHeight = lastBlockHeight + 1;
-	const minWaitingHeight = getMinWaitingHeight(senderAddress, delegateAddress, unlockObject);
-	const remainingBlocks = minWaitingHeight - currentHeight;
-
-	return remainingBlocks < 0 ? 0 : remainingBlocks;
-};
 
 export const isNullCharacterIncluded = (input: string): boolean =>
 	new RegExp(/\\0|\\u0000|\\x00/).test(input);

@@ -16,7 +16,7 @@ import { Account } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { objects as objectsUtils } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
-import { getMinWaitingHeight, getMinPunishedHeight } from './utils';
+import { getMinWaitingHeight, getUnlockDelayForPunishment } from './utils';
 import { AfterBlockApplyContext, AfterGenesisBlockApplyContext, GenesisConfig } from '../../types';
 import { BaseModule } from '../base_module';
 import { CHAIN_STATE_DELEGATE_USERNAMES } from './constants';
@@ -113,7 +113,7 @@ export class DPoSModule extends BaseModule {
 						delegate.address,
 						unlocking,
 					);
-					const minPunishedHeight = getMinPunishedHeight(account, delegate);
+					const minPunishedHeight = getUnlockDelayForPunishment(account, delegate);
 
 					result.push({
 						delegateAddress: unlocking.delegateAddress.toString('hex'),

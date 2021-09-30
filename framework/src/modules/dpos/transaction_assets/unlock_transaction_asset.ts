@@ -17,7 +17,7 @@ import { ApplyAssetContext, ValidateAssetContext } from '../../../types';
 import { ValidationError } from '../../../errors';
 import { AMOUNT_MULTIPLIER_FOR_VOTES } from '../constants';
 import { DPOSAccountProps, UnlockTransactionAssetContext } from '../types';
-import { getPunishmentPeriod, getWaitingPeriod } from '../utils';
+import { getUnlockDelayForPunishment, getMinWaitingHeight } from '../utils';
 
 export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetContext> {
 	public name = 'unlockToken';
@@ -105,24 +105,17 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetCont
 				throw new Error('Corresponding unlocking object not found.');
 			}
 
-			const waitingPeriod = getWaitingPeriod(
-				sender.address,
-				delegate.address,
-				store.chain.lastBlockHeaders[0].height,
-				unlock,
-			);
+			const currentHeight = store.chain.lastBlockHeaders[0].height + 1;
+			const minWaitingHeight = getMinWaitingHeight(sender.address, delegate.address, unlock);
 
-			if (waitingPeriod > 0) {
+			if (minWaitingHeight > currentHeight) {
 				throw new Error('Unlocking is not permitted as it is still within the waiting period.');
 			}
 
-			const punishmentPeriod = getPunishmentPeriod(
-				sender,
-				delegate,
-				store.chain.lastBlockHeaders[0].height,
-			);
+			const minUnlockDelay = getUnlockDelayForPunishment(sender, delegate);
+			const lastPomHeight = delegate.dpos.delegate.pomHeights.length === 0 ? 0: Math.max(...delegate.dpos.delegate.pomHeights);
 
-			if (punishmentPeriod > 0) {
+			if (minUnlockDelay > currentHeight && lastPomHeight != 0 && lastPomHeight < minWaitingHeight) {
 				throw new Error('Unlocking is not permitted as the delegate is currently being punished.');
 			}
 
