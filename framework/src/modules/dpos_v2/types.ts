@@ -55,3 +55,35 @@ export interface RandomAPI {
 export interface ValidatorsAPI {
 	setGeneratorList(apiContext: APIContext, generatorAddresses: Buffer[]): Promise<void>;
 }
+
+export interface VoteAccountAsset {
+	readonly delegateAddress: Buffer;
+	// Amount for some delegate can be updated
+	amount: bigint;
+}
+
+export interface UnlockingAccountAsset {
+	readonly delegateAddress: Buffer;
+	readonly amount: bigint;
+	readonly unvoteHeight: number;
+}
+
+export interface DPOSAccountProps {
+	address: Buffer;
+	dpos: {
+		delegate: {
+			username: string;
+			pomHeights: number[];
+			consecutiveMissedBlocks: number;
+			lastForgedHeight: number;
+			isBanned: boolean;
+			totalVotesReceived: bigint;
+		};
+		sentVotes: VoteAccountAsset[];
+		unlocking: UnlockingAccountAsset[];
+	};
+}
+
+export interface UnlockTransactionAssetContext {
+	readonly unlockObjects: ReadonlyArray<UnlockingAccountAsset>;
+}
