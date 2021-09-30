@@ -164,7 +164,7 @@ describe('AuthEndpoint', () => {
 
 			(transaction.signatures as any).push(signature);
 
-			const transactionAsString = JSON.stringify(transaction.toJSON());
+			const transactionAsString = transaction.getBytes().toString('hex');
 
 			const context = createTransientModuleEndpointContext({
 				stateStore,
@@ -230,7 +230,7 @@ describe('AuthEndpoint', () => {
 
 			(transaction.signatures as any).push(Buffer.from(''));
 
-			const transactionAsString = JSON.stringify(transaction.toJSON());
+			const transactionAsString = transaction.getBytes().toString('hex');
 
 			const context = createTransientModuleEndpointContext({
 				stateStore,
@@ -269,7 +269,7 @@ describe('AuthEndpoint', () => {
 				signatures: [getRandomBytes(64)],
 			});
 
-			const transactionAsString = JSON.stringify(transaction.toJSON());
+			const transactionAsString = transaction.getBytes().toString('hex');
 
 			const context = createTransientModuleEndpointContext({
 				stateStore,
@@ -304,7 +304,7 @@ describe('AuthEndpoint', () => {
 				signatures: [getRandomBytes(64)],
 			});
 
-			const transactionAsString = JSON.stringify(transaction.toJSON());
+			const transactionAsString = transaction.getBytes().toString('hex');
 
 			const context = createTransientModuleEndpointContext({
 				stateStore,
@@ -341,7 +341,7 @@ describe('AuthEndpoint', () => {
 				signatures: [getRandomBytes(64)],
 			});
 
-			const transactionAsString = JSON.stringify(transaction.toJSON());
+			const transactionAsString = transaction.getBytes().toString('hex');
 
 			const context = createTransientModuleEndpointContext({
 				stateStore,

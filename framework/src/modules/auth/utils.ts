@@ -15,6 +15,7 @@
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { verifyData } from '@liskhq/lisk-cryptography';
+import { isHexString } from '@liskhq/lisk-validator';
 import { VerificationResult, VerifyStatus } from '../../node/state_machine';
 import { InvalidNonceError } from './errors';
 import { AuthAccount, Keys } from './types';
@@ -192,22 +193,13 @@ export const verifyNonce = (
 };
 
 export const getTransactionFromParameter = (transactionParameter: unknown) => {
-	if (!transactionParameter) {
-		throw new Error('A transaction object must be provided.');
-	}
-
-	if (typeof transactionParameter !== 'string') {
+	if (!isHexString(transactionParameter)) {
 		throw new Error('Transaction parameter must be a string.');
 	}
 
-	let transactionParameterObject;
-	try {
-		transactionParameterObject = JSON.parse(transactionParameter) as Record<string, unknown>;
-	} catch {
-		throw new Error('Transaction parameter is not a valid JSON object.');
-	}
+	const transactionBuffer = Buffer.from(transactionParameter as string, 'hex');
 
-	const transaction = Transaction.fromJSON(transactionParameterObject);
+	const transaction = Transaction.fromBytes(transactionBuffer);
 	transaction.validate();
 
 	return transaction;
