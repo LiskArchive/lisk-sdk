@@ -113,9 +113,16 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetCont
 			}
 
 			const minUnlockDelay = getUnlockDelayForPunishment(sender, delegate);
-			const lastPomHeight = delegate.dpos.delegate.pomHeights.length === 0 ? 0: Math.max(...delegate.dpos.delegate.pomHeights);
+			const lastPomHeight =
+				delegate.dpos.delegate.pomHeights.length === 0
+					? 0
+					: Math.max(...delegate.dpos.delegate.pomHeights);
 
-			if (minUnlockDelay > currentHeight && lastPomHeight != 0 && lastPomHeight < minWaitingHeight) {
+			if (
+				minUnlockDelay > currentHeight &&
+				lastPomHeight !== 0 &&
+				lastPomHeight < minWaitingHeight
+			) {
 				throw new Error('Unlocking is not permitted as the delegate is currently being punished.');
 			}
 
