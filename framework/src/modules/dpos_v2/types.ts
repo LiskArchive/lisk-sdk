@@ -56,18 +56,8 @@ export interface ValidatorsAPI {
 	setGeneratorList(apiContext: APIContext, generatorAddresses: Buffer[]): Promise<void>;
 }
 
-export interface VoteAccountObject {
-	readonly delegateAddress: Buffer;
-	// Amount for some delegate can be updated
-	amount: bigint;
-}
-
 export interface UnlockingObject {
 	readonly delegateAddress: Buffer;
 	readonly amount: bigint;
 	readonly unvoteHeight: number;
-}
-
-export interface UnlockTransactionParamsContext {
-	readonly unlockObjects: ReadonlyArray<UnlockingObject>;
 }
