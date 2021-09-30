@@ -13,7 +13,7 @@
  */
 
 import { verifyData } from '@liskhq/lisk-cryptography';
-import { DPOSAccountProps, UnlockingAccountAsset } from './types';
+import { UnlockingObject } from './types';
 import {
 	PUNISHMENT_PERIOD,
 	SELF_VOTE_PUNISH_TIME,
@@ -22,7 +22,7 @@ import {
 	WAIT_TIME_VOTE,
 } from './constants';
 
-export const sortUnlocking = (unlocks: UnlockingAccountAsset[]): void => {
+export const sortUnlocking = (unlocks: UnlockingObject[]): void => {
 	unlocks.sort((a, b) => {
 		if (!a.delegateAddress.equals(b.delegateAddress)) {
 			return a.delegateAddress.compare(b.delegateAddress);
@@ -43,28 +43,30 @@ export const sortUnlocking = (unlocks: UnlockingAccountAsset[]): void => {
 };
 
 export const getMinPunishedHeight = (
-	sender: DPOSAccountProps,
-	delegate: DPOSAccountProps,
+	senderAddress: Buffer,
+	delegateAddress: Buffer,
+	pomHeights: number[],
 ): number => {
-	if (delegate.dpos.delegate.pomHeights.length === 0) {
+	if (pomHeights.length === 0) {
 		return 0;
 	}
 
-	const lastPomHeight = Math.max(...delegate.dpos.delegate.pomHeights);
+	const lastPomHeight = Math.max(...pomHeights);
 
 	// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0024.md#update-to-validity-of-unlock-transaction
-	return sender.address.equals(delegate.address)
+	return senderAddress.equals(delegateAddress)
 		? lastPomHeight + SELF_VOTE_PUNISH_TIME
 		: lastPomHeight + VOTER_PUNISH_TIME;
 };
 
 export const getPunishmentPeriod = (
-	sender: DPOSAccountProps,
-	delegateAccount: DPOSAccountProps,
+	senderAddress: Buffer,
+	delegateAddress: Buffer,
+	pomHeights: number[],
 	lastBlockHeight: number,
 ): number => {
 	const currentHeight = lastBlockHeight + 1;
-	const minPunishedHeight = getMinPunishedHeight(sender, delegateAccount);
+	const minPunishedHeight = getMinPunishedHeight(senderAddress, delegateAddress, pomHeights);
 	const remainingBlocks = minPunishedHeight - currentHeight;
 
 	return remainingBlocks < 0 ? 0 : remainingBlocks;
@@ -73,7 +75,7 @@ export const getPunishmentPeriod = (
 export const getMinWaitingHeight = (
 	senderAddress: Buffer,
 	delegateAddress: Buffer,
-	unlockObject: UnlockingAccountAsset,
+	unlockObject: UnlockingObject,
 ): number =>
 	unlockObject.unvoteHeight +
 	(senderAddress.equals(delegateAddress) ? WAIT_TIME_SELF_VOTE : WAIT_TIME_VOTE);
@@ -82,7 +84,7 @@ export const getWaitingPeriod = (
 	senderAddress: Buffer,
 	delegateAddress: Buffer,
 	lastBlockHeight: number,
-	unlockObject: UnlockingAccountAsset,
+	unlockObject: UnlockingObject,
 ): number => {
 	const currentHeight = lastBlockHeight + 1;
 	const minWaitingHeight = getMinWaitingHeight(senderAddress, delegateAddress, unlockObject);
