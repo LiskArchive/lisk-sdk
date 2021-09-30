@@ -68,22 +68,6 @@ export interface UnlockingObject {
 	readonly unvoteHeight: number;
 }
 
-export interface DPOSProps {
-	address: Buffer;
-	dpos: {
-		delegate: {
-			username: string;
-			pomHeights: number[];
-			consecutiveMissedBlocks: number;
-			lastForgedHeight: number;
-			isBanned: boolean;
-			totalVotesReceived: bigint;
-		};
-		sentVotes: VoteAccountObject[];
-		unlocking: UnlockingObject[];
-	};
-}
-
 export interface UnlockTransactionAssetContext {
 	readonly unlockObjects: ReadonlyArray<UnlockingObject>;
 }
