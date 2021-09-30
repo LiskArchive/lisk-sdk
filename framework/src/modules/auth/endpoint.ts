@@ -18,14 +18,16 @@ import { isHexString } from '@liskhq/lisk-validator';
 import { ModuleEndpointContext } from '../..';
 import { VerifyStatus } from '../../node/state_machine';
 import { BaseEndpoint } from '../base_endpoint';
+import { COMMAND_ID_DELEGATE_REGISTRATION } from '../dpos_v2/constants';
 import { MODULE_ID_AUTH, STORE_PREFIX_AUTH } from './constants';
-import { authAccountSchema } from './schemas';
+import { authAccountSchema, registerMultisignatureParamsSchema } from './schemas';
 import { AuthAccount, AuthAccountJSON, VerifyEndpointResultJSON } from './types';
 import {
 	getTransactionFromParameter,
 	isMultisignatureAccount,
 	verifyMultiSignatureTransaction,
 	verifyNonce,
+	verifyRegisterMultiSignatureTransaction,
 	verifySingleSignatureTransaction,
 } from './utils';
 
@@ -78,6 +80,22 @@ export class AuthEndpoint extends BaseEndpoint {
 
 		const transactionBytes = transaction.getSigningBytes();
 
+		if (
+			transaction.moduleID === this.moduleID &&
+			transaction.commandID === COMMAND_ID_DELEGATE_REGISTRATION
+		) {
+			verifyRegisterMultiSignatureTransaction(
+				TAG_TRANSACTION,
+				registerMultisignatureParamsSchema,
+				transaction,
+				transactionBytes,
+				networkIdentifier,
+			);
+
+			return { verified: true };
+		}
+
+		// Verify multisignature registration transaction
 		if (!isMultisignatureAccount(account)) {
 			verifySingleSignatureTransaction(
 				TAG_TRANSACTION,

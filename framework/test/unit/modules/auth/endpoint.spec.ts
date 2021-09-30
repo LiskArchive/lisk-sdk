@@ -1,4 +1,5 @@
 import { NotFoundError, TAG_TRANSACTION, Transaction } from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
 import {
 	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
@@ -9,7 +10,10 @@ import { when } from 'jest-when';
 import { AuthModule } from '../../../../src/modules/auth';
 import { AuthEndpoint } from '../../../../src/modules/auth/endpoint';
 import { InvalidNonceError } from '../../../../src/modules/auth/errors';
-import { authAccountSchema } from '../../../../src/modules/auth/schemas';
+import {
+	authAccountSchema,
+	registerMultisignatureParamsSchema,
+} from '../../../../src/modules/auth/schemas';
 import { createTransientModuleEndpointContext } from '../../../../src/testing';
 
 describe('AuthEndpoint', () => {
@@ -248,6 +252,93 @@ describe('AuthEndpoint', () => {
 					nonce: BigInt(0),
 					numberOfSignatures: 3,
 				});
+
+			// Assert
+			const receivedSignatureVerificationResult = (await authEndpoint.verifySignatures(context))
+				.verified;
+			expect(receivedSignatureVerificationResult).toBeTrue();
+		});
+
+		it('should verify the transaction of register multisignature group', async () => {
+			const transactionParams = codec.encode(registerMultisignatureParamsSchema, {
+				numberOfSignatures: 3,
+				mandatoryKeys: [accounts.mandatoryOne.publicKey, accounts.mandatoryTwo.publicKey],
+				optionalKeys: [accounts.optionalOne.publicKey, accounts.optionalTwo.publicKey],
+			});
+
+			const transaction = new Transaction({
+				moduleID: 12,
+				commandID: 0,
+				nonce: BigInt('0'),
+				fee: BigInt('100000000'),
+				senderPublicKey: existingSenderPublicKey,
+				params: transactionParams,
+				signatures: [],
+			});
+
+			(transaction.signatures as any).push(
+				signDataWithPassphrase(
+					TAG_TRANSACTION,
+					networkIdentifier,
+					transaction.getSigningBytes(),
+					existingPassphrase,
+				),
+			);
+
+			(transaction.signatures as any).push(
+				signDataWithPassphrase(
+					TAG_TRANSACTION,
+					networkIdentifier,
+					transaction.getSigningBytes(),
+					accounts.mandatoryOne.passphrase,
+				),
+			);
+
+			(transaction.signatures as any).push(
+				signDataWithPassphrase(
+					TAG_TRANSACTION,
+					networkIdentifier,
+					transaction.getSigningBytes(),
+					accounts.mandatoryTwo.passphrase,
+				),
+			);
+
+			(transaction.signatures as any).push(
+				signDataWithPassphrase(
+					TAG_TRANSACTION,
+					networkIdentifier,
+					transaction.getSigningBytes(),
+					accounts.optionalOne.passphrase,
+				),
+			);
+
+			(transaction.signatures as any).push(
+				signDataWithPassphrase(
+					TAG_TRANSACTION,
+					networkIdentifier,
+					transaction.getSigningBytes(),
+					accounts.optionalTwo.passphrase,
+				),
+			);
+
+			when(subStoreMock)
+				.calledWith(existingAddress, authAccountSchema)
+				.mockReturnValue({
+					mandatoryKeys: [accounts.mandatoryOne.publicKey, accounts.mandatoryTwo.publicKey],
+					optionalKeys: [accounts.optionalOne.publicKey, accounts.optionalTwo.publicKey],
+					nonce: BigInt(0),
+					numberOfSignatures: 3,
+				});
+
+			const transactionAsString = transaction.getBytes().toString('hex');
+
+			const context = createTransientModuleEndpointContext({
+				stateStore,
+				params: {
+					transaction: transactionAsString,
+				},
+				networkIdentifier,
+			});
 
 			// Assert
 			const receivedSignatureVerificationResult = (await authEndpoint.verifySignatures(context))
