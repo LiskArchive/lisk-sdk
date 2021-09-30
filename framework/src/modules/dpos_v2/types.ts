@@ -68,6 +68,6 @@ export interface UnlockingObject {
 	readonly unvoteHeight: number;
 }
 
-export interface UnlockTransactionAssetContext {
+export interface UnlockTransactionParamsContext {
 	readonly unlockObjects: ReadonlyArray<UnlockingObject>;
 }
