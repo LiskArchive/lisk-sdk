@@ -94,7 +94,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		const finalizedBlock = await this._chain.dataAccess.getBlockHeaderByHeight(
 			this.blockExecutor.getFinalizedHeight(),
 		);
-		const validators = await this.blockExecutor.getValidators();
+		const validators = await this.blockExecutor.getCurrentValidators();
 		const finalizedBlockSlot = await this.blockExecutor.getSlotNumber(finalizedBlock.timestamp);
 		const currentBlockSlot = await this.blockExecutor.getSlotNumber(Math.floor(Date.now() / 1000));
 		const threeRounds = validators.length * 3;
@@ -345,7 +345,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		let numberOfRequests = 1; // Keeps track of the number of requests made to the remote peer
 		let highestCommonBlock; // Holds the common block returned by the peer if found.
-		const validators = await this.blockExecutor.getValidators();
+		const validators = await this.blockExecutor.getCurrentValidators();
 		let currentRound = Math.ceil(this._chain.lastBlock.header.height / validators.length); // Holds the current round number
 		let currentHeight = currentRound * validators.length;
 

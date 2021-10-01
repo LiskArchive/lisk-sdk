@@ -80,7 +80,7 @@ describe('Synchronizer', () => {
 			deleteLastBlock: jest.fn(),
 			getFinalizedHeight: jest.fn(),
 			getSlotNumber: jest.fn(),
-			getValidators: jest.fn(),
+			getCurrentValidators: jest.fn(),
 		};
 
 		syncMechanism1 = {

@@ -18,6 +18,7 @@ import { BFTEndpoint } from './endpoint';
 import { MODULE_ID_BFT } from './constants';
 import { bftModuleConfig } from './schemas';
 import { BlockAfterExecuteContext, GenesisBlockExecuteContext } from '../../node/state_machine';
+import { ValidatorsAPI } from './types';
 
 export class BFTModule extends BaseModule {
 	public id = MODULE_ID_BFT;
@@ -36,9 +37,14 @@ export class BFTModule extends BaseModule {
 			throw new LiskValidationError(errors);
 		}
 		this._batchSize = moduleConfig.batchSize as number;
+		this.api.init(this._batchSize);
 		this._maxLengthBlockBFTInfos = 3 * this._batchSize;
 		// eslint-disable-next-line no-console
 		console.log(this._maxLengthBlockBFTInfos);
+	}
+
+	public addDependencies(validatorsAPI: ValidatorsAPI) {
+		this.api.addDependencies(validatorsAPI);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function

@@ -48,7 +48,7 @@ describe('block_synchronization_mechanism', () => {
 		executeValidated: jest.Mock;
 		deleteLastBlock: jest.Mock;
 		getFinalizedHeight: jest.Mock;
-		getValidators: jest.Mock;
+		getCurrentValidators: jest.Mock;
 		getSlotNumber: jest.Mock;
 	};
 	let blockSynchronizationMechanism: BlockSynchronizationMechanism;
@@ -115,7 +115,7 @@ describe('block_synchronization_mechanism', () => {
 			deleteLastBlock: jest.fn(),
 			getFinalizedHeight: jest.fn().mockReturnValue(finalizedHeight),
 			getSlotNumber: jest.fn().mockImplementation(t => Math.floor(t / 10)),
-			getValidators: jest.fn().mockResolvedValue(
+			getCurrentValidators: jest.fn().mockResolvedValue(
 				new Array(numberOfValidators).fill(0).map(() => ({
 					address: getRandomBytes(20),
 					bftWeight: BigInt(1),
