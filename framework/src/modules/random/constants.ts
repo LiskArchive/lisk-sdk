@@ -11,10 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-export const MODULE_ID_AUTH = 12; // TBD
-export const STORE_PREFIX_AUTH = 0x0000;
-export const MAX_KEYS_COUNT = 64;
-
-// Commands
-export const COMMAND_ID_MULTISIGNATURE_REGISTRATION = 0;
+export const MODULE_ID_RANDOM = 14;
+export const DEFAULT_MAX_LENGTH_REVEALS = 206;
+export const STORE_PREFIX_RANDOM = 0x0000;

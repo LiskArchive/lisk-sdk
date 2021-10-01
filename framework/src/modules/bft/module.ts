@@ -50,6 +50,7 @@ export class BFTModule extends BaseModule {
 			throw new LiskValidationError(errors);
 		}
 		this._batchSize = moduleConfig.batchSize as number;
+		this.api.init(this._batchSize);
 		this._maxLengthBlockBFTInfos = 3 * this._batchSize;
 	}
 

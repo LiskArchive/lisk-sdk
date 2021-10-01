@@ -12,9 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const MODULE_ID_AUTH = 12; // TBD
-export const STORE_PREFIX_AUTH = 0x0000;
-export const MAX_KEYS_COUNT = 64;
+import { BaseEndpoint } from '../base_endpoint';
 
-// Commands
-export const COMMAND_ID_MULTISIGNATURE_REGISTRATION = 0;
+export class RandomEndpoint extends BaseEndpoint {}

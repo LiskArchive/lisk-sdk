@@ -49,7 +49,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		}
 		const { lastBlock } = this._chain;
 
-		const validators = await this.blockExecutor.getValidators();
+		const validators = await this.blockExecutor.getCurrentValidators();
 		// 3. Step: Check whether B justifies fast chain switching mechanism
 		const twoRounds = validators.length * 2;
 		if (Math.abs(receivedBlock.header.height - lastBlock.header.height) > twoRounds) {
@@ -114,7 +114,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 				} is lower than the finalized height of the chain ${this.blockExecutor.getFinalizedHeight()}`,
 			);
 		}
-		const validators = await this.blockExecutor.getValidators();
+		const validators = await this.blockExecutor.getCurrentValidators();
 
 		if (
 			this._chain.lastBlock.header.height - highestCommonBlock.height > validators.length * 2 ||
@@ -285,7 +285,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		const requestLimit = 10; // Maximum number of requests to be made to the remote peer
 		let numberOfRequests = 1; // Keeps track of the number of requests made to the remote peer
 
-		const validators = await this.blockExecutor.getValidators();
+		const validators = await this.blockExecutor.getCurrentValidators();
 		const heightList = this._computeLastTwoRoundsHeights(validators.length);
 
 		while (numberOfRequests < requestLimit) {

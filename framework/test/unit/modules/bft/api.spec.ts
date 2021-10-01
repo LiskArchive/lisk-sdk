@@ -47,6 +47,7 @@ describe('BFT API', () => {
 		bftAPI = new BFTAPI(bftModuleID);
 		validatorsAPI = { getValidatorAccount: jest.fn() };
 		bftAPI.addDependencies(validatorsAPI);
+		bftAPI.init(103);
 	});
 
 	describe('areHeadersContradicting', () => {
@@ -545,6 +546,20 @@ describe('BFT API', () => {
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 		});
 
+		it('should throw when validators exceeds batch size', async () => {
+			await expect(
+				bftAPI.setBFTParameters(
+					apiContext,
+					BigInt(68),
+					BigInt(68),
+					new Array(bftAPI['_batchSize'] + 1).fill(0).map(() => ({
+						address: getRandomBytes(20),
+						bftWeight: BigInt(1),
+					})),
+				),
+			).rejects.toThrow('Invalid validators size.');
+		});
+
 		it('should throw when any BFT weight is less or equal to zero', async () => {
 			await expect(
 				bftAPI.setBFTParameters(apiContext, BigInt(68), BigInt(68), [
@@ -803,7 +818,7 @@ describe('BFT API', () => {
 		});
 	});
 
-	describe('getValidators', () => {
+	describe('getCurrentValidators', () => {
 		const createParam = () => ({
 			prevoteThreshold: BigInt(68),
 			precommitThreshold: BigInt(68),
@@ -831,7 +846,7 @@ describe('BFT API', () => {
 
 		it('should current active validators', async () => {
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
-			await expect(bftAPI.getValidators(apiContext)).resolves.toEqual(params30.validators);
+			await expect(bftAPI.getCurrentValidators(apiContext)).resolves.toEqual(params30.validators);
 		});
 	});
 });

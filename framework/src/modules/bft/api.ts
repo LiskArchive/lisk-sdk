@@ -49,9 +49,14 @@ export interface BlockHeaderAsset {
 
 export class BFTAPI extends BaseAPI {
 	private _validatorsAPI!: ValidatorsAPI;
+	private _batchSize!: number;
 
 	public addDependencies(validatorsAPI: ValidatorsAPI): void {
 		this._validatorsAPI = validatorsAPI;
+	}
+
+	public init(batchSize: number) {
+		this._batchSize = batchSize;
 	}
 
 	public areHeadersContradicting(
@@ -156,6 +161,11 @@ export class BFTAPI extends BaseAPI {
 		certificateThreshold: bigint,
 		validators: Validator[],
 	): Promise<void> {
+		if (validators.length > this._batchSize) {
+			throw new Error(
+				`Invalid validators size. The number of validators can be at most the batch size ${this._batchSize}.`,
+			);
+		}
 		let aggregateBFTWeight = BigInt(0);
 		for (const validator of validators) {
 			if (validator.bftWeight <= 0) {
@@ -222,7 +232,7 @@ export class BFTAPI extends BaseAPI {
 		await votesStore.setWithSchema(EMPTY_KEY, bftVotes, bftVotesSchema);
 	}
 
-	public async getValidators(context: ImmutableAPIContext): Promise<Validator[]> {
+	public async getCurrentValidators(context: ImmutableAPIContext): Promise<Validator[]> {
 		const paramsStore = context.getStore(this.moduleID, STORE_PREFIX_BFT_PARAMETERS);
 		const start = intToBuffer(0, 4, BIG_ENDIAN);
 		const end = intToBuffer(MAX_UINT32, 4, BIG_ENDIAN);
