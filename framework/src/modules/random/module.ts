@@ -32,7 +32,6 @@ export class RandomModule extends BaseModule {
 	public api = new RandomAPI(this.id);
 	public endpoint = new RandomEndpoint(this.id);
 
-	private _moduleConfig!: ModuleConfig;
 	private _maxLengthReveal!: number;
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -42,11 +41,8 @@ export class RandomModule extends BaseModule {
 		if (errors.length) {
 			throw new LiskValidationError(errors);
 		}
-		this._moduleConfig = moduleConfig as ModuleConfig;
 		this._maxLengthReveal =
 			(moduleConfig as ModuleConfig).maxLengthRevealsMainchain ?? DEFAULT_MAX_LENGTH_REVEALS;
-		// eslint-disable-next-line no-console
-		console.log(this._moduleConfig);
 		// eslint-disable-next-line no-console
 		console.log(this._maxLengthReveal);
 	}
