@@ -49,9 +49,14 @@ export interface BlockHeaderAsset {
 
 export class BFTAPI extends BaseAPI {
 	private _validatorsAPI!: ValidatorsAPI;
+	private _batchSize!: number;
 
 	public addDependencies(validatorsAPI: ValidatorsAPI): void {
 		this._validatorsAPI = validatorsAPI;
+	}
+
+	public init(batchSize: number) {
+		this._batchSize = batchSize;
 	}
 
 	public areHeadersContradicting(
@@ -156,6 +161,11 @@ export class BFTAPI extends BaseAPI {
 		certificateThreshold: bigint,
 		validators: Validator[],
 	): Promise<void> {
+		if (validators.length > this._batchSize) {
+			throw new Error(
+				`Invalid validators size. Validators must be greater than batch size ${this._batchSize}.`,
+			);
+		}
 		let aggregateBFTWeight = BigInt(0);
 		for (const validator of validators) {
 			if (validator.bftWeight <= 0) {

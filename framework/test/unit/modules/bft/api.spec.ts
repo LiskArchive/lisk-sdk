@@ -47,6 +47,7 @@ describe('BFT API', () => {
 		bftAPI = new BFTAPI(bftModuleID);
 		validatorsAPI = { getValidatorAccount: jest.fn() };
 		bftAPI.addDependencies(validatorsAPI);
+		bftAPI.init(103);
 	});
 
 	describe('areHeadersContradicting', () => {
@@ -543,6 +544,20 @@ describe('BFT API', () => {
 				bftVotesSchema,
 			);
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+		});
+
+		it('should throw when validators exceeds batch size', async () => {
+			await expect(
+				bftAPI.setBFTParameters(
+					apiContext,
+					BigInt(68),
+					BigInt(68),
+					new Array(bftAPI['_batchSize'] + 1).fill(0).map(() => ({
+						address: getRandomBytes(20),
+						bftWeight: BigInt(1),
+					})),
+				),
+			).rejects.toThrow('Invalid validators size.');
 		});
 
 		it('should throw when any BFT weight is less or equal to zero', async () => {
