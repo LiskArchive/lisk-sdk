@@ -76,10 +76,10 @@ export class BFTModule extends BaseModule {
 		await updateMaxHeightPrecommitted(bftVotes, paramsCache);
 		updateMaxHeightCertified(bftVotes, context.header);
 		await votesStore.setWithSchema(EMPTY_KEY, bftVotes, bftVotesSchema);
-		const minRemovingHeight = Math.min(
+		const minHeightBFTParametersRequired = Math.min(
 			bftVotes.blockBFTInfos[bftVotes.blockBFTInfos.length - 1].height,
-			bftVotes.maxHeightCertified,
+			bftVotes.maxHeightCertified + 1,
 		);
-		await deleteBFTParameters(paramsStore, minRemovingHeight + 1);
+		await deleteBFTParameters(paramsStore, minHeightBFTParametersRequired);
 	}
 }

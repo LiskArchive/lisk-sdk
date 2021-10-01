@@ -48,6 +48,7 @@ export const deleteBFTParameters = async (paramsStore: SubStore, height: number)
 	if (results.length <= 1) {
 		return;
 	}
+	// Delete all BFT Parameters except the one of largest height which is at most the input height
 	for (let i = 0; i < results.length - 1; i += 1) {
 		await paramsStore.del(results[i].key);
 	}
