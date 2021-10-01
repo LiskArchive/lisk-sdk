@@ -163,7 +163,7 @@ export class BFTAPI extends BaseAPI {
 	): Promise<void> {
 		if (validators.length > this._batchSize) {
 			throw new Error(
-				`Invalid validators size. Validators must be greater than batch size ${this._batchSize}.`,
+				`Invalid validators size. The number of validators can be at most the batch size ${this._batchSize}.`,
 			);
 		}
 		let aggregateBFTWeight = BigInt(0);
