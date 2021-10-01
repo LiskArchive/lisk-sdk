@@ -125,23 +125,17 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetCont
 					? undefined
 					: Math.max(...delegate.dpos.delegate.pomHeights);
 
-			if (currentHeight >= this._unlockFixHeight) {
-				if (
-					minUnlockDelay > currentHeight &&
-					lastPomHeight !== undefined &&
-					lastPomHeight < minWaitingHeight
-				) {
-					throw new Error(
-						'Unlocking is not permitted as the delegate is currently being punished.',
-					);
-				}
-				// unlocking condition before hard fork, to be deprecated
-			} else if (currentHeight < this._unlockFixHeight) {
-				if (minUnlockDelay > currentHeight) {
-					throw new Error(
-						'Unlocking is not permitted as the delegate is currently being punished.',
-					);
-				}
+			if (
+				currentHeight >= this._unlockFixHeight &&
+				minUnlockDelay > currentHeight &&
+				lastPomHeight !== undefined &&
+				lastPomHeight < minWaitingHeight
+			) {
+				throw new Error('Unlocking is not permitted as the delegate is currently being punished.');
+			}
+			// unlocking condition before hard fork, to be deprecated
+			if (currentHeight < this._unlockFixHeight && minUnlockDelay > currentHeight) {
+				throw new Error('Unlocking is not permitted as the delegate is currently being punished.');
 			}
 
 			sender.dpos.unlocking.splice(unlockIndex, 1);
