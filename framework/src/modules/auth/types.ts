@@ -30,3 +30,14 @@ export interface RegisterMultisignatureParams {
 	mandatoryKeys: Buffer[];
 	optionalKeys: Buffer[];
 }
+
+export interface AuthAccountJSON {
+	nonce: string;
+	numberOfSignatures: number;
+	mandatoryKeys: string[];
+	optionalKeys: string[];
+}
+
+export interface VerifyEndpointResultJSON {
+	verified: boolean;
+}
