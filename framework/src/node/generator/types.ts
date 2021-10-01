@@ -14,7 +14,7 @@
 
 import { Block } from '@liskhq/lisk-chain';
 import { Logger } from '../../logger';
-import { BFTVotes } from '../consensus';
+import { BFTHeights } from '../consensus';
 import { APIContext, BlockHeader, ImmutableAPIContext, ImmutableSubStore } from '../state_machine';
 
 export interface Keypair {
@@ -33,18 +33,7 @@ export interface Consensus {
 }
 
 export interface BFTAPI {
-	getBFTHeights: (_apiClient: ImmutableAPIContext) => Promise<BFTVotes>;
-	verifyGeneratorInfo: (
-		apiContext: APIContext,
-		generatorStore: GeneratorStore,
-		info: {
-			address: Buffer;
-			height: number;
-			maxHeightPrevoted: number;
-			maxHeightPreviouslyForged: number;
-			override?: boolean;
-		},
-	) => Promise<void>;
+	getBFTHeights: (_apiClient: ImmutableAPIContext) => Promise<BFTHeights>;
 }
 
 export interface ValidatorAPI {

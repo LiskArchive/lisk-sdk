@@ -90,7 +90,7 @@ describe('fast_chain_switching_mechanism', () => {
 			deleteLastBlock: jest.fn(),
 			getFinalizedHeight: jest.fn().mockReturnValue(1),
 			getSlotNumber: jest.fn(),
-			getValidators: jest.fn().mockResolvedValue(
+			getCurrentValidators: jest.fn().mockResolvedValue(
 				new Array(numberOfValidators).fill(0).map(() => ({
 					address: getRandomBytes(20),
 					bftWeight: BigInt(1),
@@ -121,7 +121,7 @@ describe('fast_chain_switching_mechanism', () => {
 
 		describe('when receivedBlock is within the two rounds of the last block', () => {
 			it('should return true when the receivedBlock is from consensus participant', async () => {
-				blockExecutor.getValidators.mockResolvedValue([
+				blockExecutor.getCurrentValidators.mockResolvedValue([
 					{
 						address: getAddressFromPublicKey(defaultGenerator.publicKey),
 						bftWeight: BigInt(1),
@@ -144,7 +144,7 @@ describe('fast_chain_switching_mechanism', () => {
 			});
 
 			it('should return true when the receivedBlock is not from consensus participant', async () => {
-				blockExecutor.getValidators.mockResolvedValue([
+				blockExecutor.getCurrentValidators.mockResolvedValue([
 					{
 						address: getAddressFromPublicKey(defaultGenerator.publicKey),
 						voteWeight: BigInt(0),
@@ -163,7 +163,7 @@ describe('fast_chain_switching_mechanism', () => {
 			});
 
 			it('should return true when the receivedBlock is not current validator', async () => {
-				blockExecutor.getValidators.mockResolvedValue([
+				blockExecutor.getCurrentValidators.mockResolvedValue([
 					{ address: getRandomBytes(20), isConsensusParticipant: false },
 				]);
 				const isValid = await fastChainSwitchingMechanism.isValidFor(
@@ -181,7 +181,7 @@ describe('fast_chain_switching_mechanism', () => {
 
 		describe('when receivedBlock is not within two rounds of the last block', () => {
 			it('should return false even when the block is from consensus participant', async () => {
-				blockExecutor.getValidators.mockResolvedValue([
+				blockExecutor.getCurrentValidators.mockResolvedValue([
 					{
 						address: getAddressFromPublicKey(defaultGenerator.publicKey),
 						bftWeight: BigInt(1),
@@ -219,7 +219,7 @@ describe('fast_chain_switching_mechanism', () => {
 				header: { height: finalizedHeight + 1 },
 			});
 
-			jest.spyOn(blockExecutor, 'getValidators').mockResolvedValue([
+			jest.spyOn(blockExecutor, 'getCurrentValidators').mockResolvedValue([
 				{
 					address: aBlock.header.generatorAddress,
 					bftWeight: BigInt(1),

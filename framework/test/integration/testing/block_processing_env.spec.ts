@@ -46,7 +46,7 @@ describe('getBlockProcessingEnv', () => {
 
 	it('should return all registered validators', async () => {
 		// Act & Assert
-		const validators = await blockProcessEnv.getValidators();
+		const validators = await blockProcessEnv.getCurrentValidators();
 		expect(validators).toHaveLength(defaultConfig.forging.delegates.length);
 	});
 

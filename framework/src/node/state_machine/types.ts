@@ -28,6 +28,7 @@ export interface ImmutableSubStore {
 export interface SubStore extends ImmutableSubStore {
 	del(key: Buffer): Promise<void>;
 	set(key: Buffer, value: Buffer): Promise<void>;
+	// eslint-disable-next-line @typescript-eslint/ban-types
 	setWithSchema(key: Buffer, value: object, schema: Schema): Promise<void>;
 }
 

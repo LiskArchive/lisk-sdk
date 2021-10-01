@@ -16,15 +16,10 @@ import { BlockHeader } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { BIG_ENDIAN, intToBuffer } from '@liskhq/lisk-cryptography';
 import { ImmutableSubStore } from '../../node/state_machine';
+import { MAX_UINT32 } from './constants';
 import { BFTParameterNotFoundError } from './errors';
 import { BFTVotesBlockInfo, BFTParameters, bftParametersSchema } from './schemas';
-
-interface BFTHeader {
-	height: number;
-	generatorAddress: Buffer;
-	maxHeightGenerated: number;
-	maxHeightPrevoted: number;
-}
+import { BFTHeader } from './types';
 
 export const areDistinctHeadersContradicting = (b1: BFTHeader, b2: BFTHeader): boolean => {
 	let earlierBlock = b1;
@@ -76,14 +71,12 @@ export const getBlockBFTProperties = (header: BlockHeader): BFTVotesBlockInfo =>
 	prevoteWeight: 0,
 });
 
-const maxUInt32 = 2 ** 32 - 1;
-
 export const getBFTParameters = async (
 	paramsStore: ImmutableSubStore,
 	height: number,
 ): Promise<BFTParameters> => {
 	const start = intToBuffer(height, 4, BIG_ENDIAN);
-	const end = intToBuffer(maxUInt32, 4, BIG_ENDIAN);
+	const end = intToBuffer(MAX_UINT32, 4, BIG_ENDIAN);
 	const results = await paramsStore.iterate({
 		limit: 1,
 		start,
@@ -95,3 +88,9 @@ export const getBFTParameters = async (
 	const [result] = results;
 	return codec.decode<BFTParameters>(bftParametersSchema, result.value);
 };
+
+export const sortValidatorsByAddress = (validators: { address: Buffer }[]) =>
+	validators.sort((a, b) => a.address.compare(b.address));
+
+export const sortValidatorsByBLSKey = (validators: { blsKey: Buffer }[]) =>
+	validators.sort((a, b) => a.blsKey.compare(b.blsKey));
