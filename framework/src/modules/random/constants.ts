@@ -12,5 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 export const MODULE_ID_RANDOM = 14;
-export const MAX_LENGTH_REVEALS_MAINCHAIN = 206;
+export const DEFAULT_MAX_LENGTH_REVEALS = 206;
 export const STORE_PREFIX_RANDOM = 0x0000;

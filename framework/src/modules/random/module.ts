@@ -21,7 +21,7 @@ import {
 } from '../../node/state_machine';
 import { BaseModule, ModuleInitArgs } from '../base_module';
 import { RandomAPI } from './api';
-import { MAX_LENGTH_REVEALS_MAINCHAIN, MODULE_ID_RANDOM } from './constants';
+import { DEFAULT_MAX_LENGTH_REVEALS, MODULE_ID_RANDOM } from './constants';
 import { RandomEndpoint } from './endpoint';
 import { randomModuleConfig } from './schemas';
 import { ModuleConfig } from './types';
@@ -32,7 +32,8 @@ export class RandomModule extends BaseModule {
 	public api = new RandomAPI(this.id);
 	public endpoint = new RandomEndpoint(this.id);
 
-	private _maxLengthRevealMainchain!: number;
+	private _moduleConfig!: ModuleConfig;
+	private _maxLengthReveal!: number;
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs): Promise<void> {
@@ -41,10 +42,13 @@ export class RandomModule extends BaseModule {
 		if (errors.length) {
 			throw new LiskValidationError(errors);
 		}
-		this._maxLengthRevealMainchain =
-			(moduleConfig as ModuleConfig).maxLengthRevealsMainchain ?? MAX_LENGTH_REVEALS_MAINCHAIN;
+		this._moduleConfig = moduleConfig as ModuleConfig;
+		this._maxLengthReveal =
+			(moduleConfig as ModuleConfig).maxLengthRevealsMainchain ?? DEFAULT_MAX_LENGTH_REVEALS;
 		// eslint-disable-next-line no-console
-		console.log(this._maxLengthRevealMainchain);
+		console.log(this._moduleConfig);
+		// eslint-disable-next-line no-console
+		console.log(this._maxLengthReveal);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-empty-function
