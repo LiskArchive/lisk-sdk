@@ -106,6 +106,12 @@ export class TransactionContext {
 	public createCommandExecuteContext<T = Record<string, unknown>>(
 		paramsSchema: Schema,
 	): CommandExecuteContext<T> {
+		if (!this._header) {
+			throw new Error('Transaction Execution requires block header in the context.');
+		}
+		if (!this._assets) {
+			throw new Error('Transaction Execution requires block assets in the context.');
+		}
 		return {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
@@ -113,7 +119,9 @@ export class TransactionContext {
 				createAPIContext({ stateStore: this._stateStore, eventQueue: this._eventQueue }),
 			getStore: (moduleID: number, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
+			header: this._header,
 			transaction: this._transaction,
+			assets: this._assets,
 			params: codec.decode(paramsSchema, this._transaction.params),
 		};
 	}
