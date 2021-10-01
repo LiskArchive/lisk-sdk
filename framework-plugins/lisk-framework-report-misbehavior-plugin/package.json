@@ -38,7 +38,6 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-bft": "^0.3.2",
 		"@liskhq/lisk-chain": "^0.3.2",
 		"@liskhq/lisk-codec": "^0.2.0",
 		"@liskhq/lisk-cryptography": "^3.1.0",
