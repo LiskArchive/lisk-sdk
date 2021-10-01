@@ -16,6 +16,7 @@
 import { BlockAssets, BlockHeader, StateStore, Transaction } from '@liskhq/lisk-chain';
 import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { ModuleEndpointContext } from '../types';
 import { Logger } from '../logger';
 import {
 	APIContext,
@@ -140,5 +141,24 @@ export const createTransientAPIContext = (params: {
 	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
 	const eventQueue = params.eventQueue ?? new EventQueue();
 	const ctx = createAPIContext({ stateStore, eventQueue });
+	return ctx;
+};
+
+export const createTransientModuleEndpointContext = (params: {
+	stateStore?: StateStore;
+	params?: Record<string, unknown>;
+	logger?: Logger;
+	networkIdentifier?: Buffer;
+}): ModuleEndpointContext => {
+	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
+	const parameters = params.params ?? {};
+	const logger = params.logger ?? loggerMock;
+	const networkIdentifier = params.networkIdentifier ?? Buffer.alloc(0);
+	const ctx = {
+		getStore: (moduleID: number, storePrefix: number) => stateStore.getStore(moduleID, storePrefix),
+		params: parameters,
+		logger,
+		networkIdentifier,
+	};
 	return ctx;
 };

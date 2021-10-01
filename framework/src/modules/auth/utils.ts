@@ -15,6 +15,7 @@
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { verifyData } from '@liskhq/lisk-cryptography';
+import { isHexString } from '@liskhq/lisk-validator';
 import { VerificationResult, VerifyStatus } from '../../node/state_machine';
 import { InvalidNonceError } from './errors';
 import { AuthAccount, Keys } from './types';
@@ -189,4 +190,17 @@ export const verifyNonce = (
 	return {
 		status: transaction.nonce > senderAccount.nonce ? VerifyStatus.PENDING : VerifyStatus.OK,
 	};
+};
+
+export const getTransactionFromParameter = (transactionParameter: unknown) => {
+	if (!isHexString(transactionParameter)) {
+		throw new Error('Transaction parameter must be a string.');
+	}
+
+	const transactionBuffer = Buffer.from(transactionParameter as string, 'hex');
+
+	const transaction = Transaction.fromBytes(transactionBuffer);
+	transaction.validate();
+
+	return transaction;
 };
