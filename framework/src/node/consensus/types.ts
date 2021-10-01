@@ -38,6 +38,6 @@ export interface ValidatorAPI {
 }
 
 export interface BFTAPI {
-	getValidators: (_apiContext: ImmutableAPIContext) => Promise<Validator[]>;
+	getCurrentValidators: (apiContext: ImmutableAPIContext) => Promise<Validator[]>;
 	getBFTHeights: (apiClient: ImmutableAPIContext) => Promise<BFTHeights>;
 }

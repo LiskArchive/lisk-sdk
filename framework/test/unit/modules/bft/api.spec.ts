@@ -818,7 +818,7 @@ describe('BFT API', () => {
 		});
 	});
 
-	describe('getValidators', () => {
+	describe('getCurrentValidators', () => {
 		const createParam = () => ({
 			prevoteThreshold: BigInt(68),
 			precommitThreshold: BigInt(68),
@@ -846,7 +846,7 @@ describe('BFT API', () => {
 
 		it('should current active validators', async () => {
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
-			await expect(bftAPI.getValidators(apiContext)).resolves.toEqual(params30.validators);
+			await expect(bftAPI.getCurrentValidators(apiContext)).resolves.toEqual(params30.validators);
 		});
 	});
 });

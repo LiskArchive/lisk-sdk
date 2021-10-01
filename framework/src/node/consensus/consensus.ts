@@ -531,7 +531,7 @@ export class Consensus {
 			executeValidated: async (block: Block, options?: ExecuteOptions) =>
 				this._executeValidated(block, options),
 			verify: async (block: Block) => this._verify(block),
-			getValidators: async () => this._bftAPI.getValidators(apiContext),
+			getCurrentValidators: async () => this._bftAPI.getCurrentValidators(apiContext),
 			getSlotNumber: async timestamp => this._validatorAPI.getSlotNumber(apiContext, timestamp),
 			getFinalizedHeight: () => this.finalizedHeight(),
 		};

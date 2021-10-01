@@ -232,7 +232,7 @@ export class BFTAPI extends BaseAPI {
 		await votesStore.setWithSchema(EMPTY_KEY, bftVotes, bftVotesSchema);
 	}
 
-	public async getValidators(context: ImmutableAPIContext): Promise<Validator[]> {
+	public async getCurrentValidators(context: ImmutableAPIContext): Promise<Validator[]> {
 		const paramsStore = context.getStore(this.moduleID, STORE_PREFIX_BFT_PARAMETERS);
 		const start = intToBuffer(0, 4, BIG_ENDIAN);
 		const end = intToBuffer(MAX_UINT32, 4, BIG_ENDIAN);
