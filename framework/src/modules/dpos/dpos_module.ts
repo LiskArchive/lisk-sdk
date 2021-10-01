@@ -16,7 +16,7 @@ import { Account } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { objects as objectsUtils } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
-import { getMinWaitingHeight, getUnlockDelayForPunishment } from './utils';
+import { getMinWaitingHeight, getMinPunishedHeight } from './utils';
 import { AfterBlockApplyContext, AfterGenesisBlockApplyContext, GenesisConfig } from '../../types';
 import { BaseModule } from '../base_module';
 import { CHAIN_STATE_DELEGATE_USERNAMES } from './constants';
@@ -39,6 +39,7 @@ import {
 	RegisteredDelegates,
 	UnlockingInfoJSON,
 } from './types';
+import { BaseAsset } from '../base_asset';
 
 const { bufferArrayContains } = objectsUtils;
 const dposModuleParamsDefault = {
@@ -53,12 +54,7 @@ export class DPoSModule extends BaseModule {
 	public accountSchema = dposAccountSchema;
 
 	public readonly rounds: Rounds;
-	public readonly transactionAssets = [
-		new RegisterTransactionAsset(),
-		new VoteTransactionAsset(),
-		new UnlockTransactionAsset(),
-		new PomTransactionAsset(),
-	];
+	public readonly transactionAssets: BaseAsset[];
 
 	private readonly _activeDelegates: number;
 	private readonly _standbyDelegates: number;
@@ -71,6 +67,15 @@ export class DPoSModule extends BaseModule {
 	public constructor(config: GenesisConfig) {
 		super(config);
 		const mergedDposConfig = objectsUtils.mergeDeep(dposModuleParamsDefault, this.config);
+
+		this.transactionAssets = [
+			new RegisterTransactionAsset(),
+			new VoteTransactionAsset(),
+			new UnlockTransactionAsset(
+				typeof config.unlockFixHeight === 'number' ? config.unlockFixHeight : undefined,
+			),
+			new PomTransactionAsset(),
+		];
 
 		// Set actions
 		this.actions = {
@@ -113,7 +118,7 @@ export class DPoSModule extends BaseModule {
 						delegate.address,
 						unlocking,
 					);
-					const minPunishedHeight = getUnlockDelayForPunishment(account, delegate);
+					const minPunishedHeight = getMinPunishedHeight(account, delegate);
 
 					result.push({
 						delegateAddress: unlocking.delegateAddress.toString('hex'),

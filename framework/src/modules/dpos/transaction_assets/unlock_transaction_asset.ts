@@ -17,7 +17,7 @@ import { ApplyAssetContext, ValidateAssetContext } from '../../../types';
 import { ValidationError } from '../../../errors';
 import { AMOUNT_MULTIPLIER_FOR_VOTES } from '../constants';
 import { DPOSAccountProps, UnlockTransactionAssetContext } from '../types';
-import { getUnlockDelayForPunishment, getMinWaitingHeight } from '../utils';
+import { getMinPunishedHeight, getMinWaitingHeight } from '../utils';
 
 export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetContext> {
 	public name = 'unlockToken';
@@ -55,6 +55,13 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetCont
 			},
 		},
 	};
+
+	private readonly _unlockFixHeight: number;
+
+	public constructor(unlockFixHeight?: number) {
+		super();
+		this._unlockFixHeight = unlockFixHeight ?? 0;
+	}
 
 	public validate({ asset }: ValidateAssetContext<UnlockTransactionAssetContext>): void {
 		for (const unlock of asset.unlockObjects) {
@@ -112,18 +119,29 @@ export class UnlockTransactionAsset extends BaseAsset<UnlockTransactionAssetCont
 				throw new Error('Unlocking is not permitted as it is still within the waiting period.');
 			}
 
-			const minUnlockDelay = getUnlockDelayForPunishment(sender, delegate);
+			const minUnlockDelay = getMinPunishedHeight(sender, delegate);
 			const lastPomHeight =
 				delegate.dpos.delegate.pomHeights.length === 0
-					? 0
+					? undefined
 					: Math.max(...delegate.dpos.delegate.pomHeights);
 
-			if (
-				minUnlockDelay > currentHeight &&
-				lastPomHeight !== 0 &&
-				lastPomHeight < minWaitingHeight
-			) {
-				throw new Error('Unlocking is not permitted as the delegate is currently being punished.');
+			if (currentHeight >= this._unlockFixHeight) {
+				if (
+					minUnlockDelay > currentHeight &&
+					lastPomHeight !== undefined &&
+					lastPomHeight < minWaitingHeight
+				) {
+					throw new Error(
+						'Unlocking is not permitted as the delegate is currently being punished.',
+					);
+				}
+				// unlocking condition before hard fork, to be deprecated
+			} else if (currentHeight < this._unlockFixHeight) {
+				if (minUnlockDelay > currentHeight) {
+					throw new Error(
+						'Unlocking is not permitted as the delegate is currently being punished.',
+					);
+				}
 			}
 
 			sender.dpos.unlocking.splice(unlockIndex, 1);

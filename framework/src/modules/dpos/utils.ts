@@ -43,7 +43,7 @@ export const sortUnlocking = (unlocks: UnlockingAccountAsset[]): void => {
 	});
 };
 
-export const getUnlockDelayForPunishment = (
+export const getMinPunishedHeight = (
 	sender: Account<DPOSAccountProps>,
 	delegate: Account<DPOSAccountProps>,
 ): number => {
@@ -59,14 +59,14 @@ export const getUnlockDelayForPunishment = (
 		: lastPomHeight + VOTER_PUNISH_TIME;
 };
 
-export const getUnlockDelayPeriod = (
+export const getPunishmentPeriod = (
 	sender: Account<DPOSAccountProps>,
 	delegateAccount: Account<DPOSAccountProps>,
 	lastBlockHeight: number,
 ): number => {
 	const currentHeight = lastBlockHeight + 1;
-	const minUnlockDelay = getUnlockDelayForPunishment(sender, delegateAccount);
-	const remainingBlocks = minUnlockDelay - currentHeight;
+	const minPunishedHeight = getMinPunishedHeight(sender, delegateAccount);
+	const remainingBlocks = minPunishedHeight - currentHeight;
 
 	return remainingBlocks < 0 ? 0 : remainingBlocks;
 };

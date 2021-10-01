@@ -20,7 +20,7 @@ import { BaseAsset } from '../../base_asset';
 import { ApplyAssetContext, ValidateAssetContext } from '../../../types';
 import { MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE, MAX_POM_HEIGHTS } from '../constants';
 import { DPOSAccountProps, PomTransactionAssetContext } from '../types';
-import { getUnlockDelayPeriod, validateSignature } from '../utils';
+import { getPunishmentPeriod, validateSignature } from '../utils';
 
 const signingBlockHeaderSchema = {
 	$id: 'lisk/dpos/signingBlockHeader',
@@ -155,7 +155,7 @@ export class PomTransactionAsset extends BaseAsset<PomTransactionAssetContext> {
 		}
 
 		if (
-			getUnlockDelayPeriod(
+			getPunishmentPeriod(
 				delegateAccount,
 				delegateAccount,
 				store.chain.lastBlockHeaders[0].height,

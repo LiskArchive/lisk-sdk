@@ -559,8 +559,10 @@ describe('UnlockTransactionAsset', () => {
 			});
 
 			describe('when asset.unlockObjects contain valid entries, and voter account has not waited pomHeight + 260,000 blocks but waited unvoteHeight + 2000 blocks and pomHeight is more than unvoteHeight + 2000 blocks', () => {
+				let unVoteHeight: number;
+
 				beforeEach(async () => {
-					const unVoteHeight = 45968;
+					unVoteHeight = 45968;
 					const pomHeight = unVoteHeight + 260000 + 10;
 
 					applyContext = await setupUnlocks({
@@ -573,23 +575,37 @@ describe('UnlockTransactionAsset', () => {
 					});
 				});
 
-				it('should not return error', async () => {
-					await expect(transactionAsset.apply(applyContext)).resolves.toBeUndefined();
+				describe('currentHeight >= transactionAsset._unlockFixHeight', () => {
+					it('should not return error', async () => {
+						transactionAsset = new UnlockTransactionAsset(unVoteHeight + 260000 + 5 - 50);
+						await expect(transactionAsset.apply(applyContext)).resolves.toBeUndefined();
+					});
+
+					it('should make account to have correct balance', async () => {
+						transactionAsset = new UnlockTransactionAsset(unVoteHeight + 260000 + 5 - 50);
+						await transactionAsset.apply(applyContext);
+
+						expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
+							address: sender.address,
+							amount: applyContext.asset.unlockObjects[0].amount,
+						});
+					});
 				});
-
-				it('should make account to have correct balance', async () => {
-					await transactionAsset.apply(applyContext);
-
-					expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
-						address: sender.address,
-						amount: applyContext.asset.unlockObjects[0].amount,
+				describe('currentHeight < transactionAsset._unlockFixHeight', () => {
+					it('should throw error', async () => {
+						transactionAsset = new UnlockTransactionAsset(unVoteHeight + 260000 + 5 + 50);
+						await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
+							'Unlocking is not permitted as the delegate is currently being punished.',
+						);
 					});
 				});
 			});
 
 			describe('when asset.unlockObjects contain valid entries, and voter account has not waited pomHeight + 260,000 blocks but waited unvoteHeight + 2000 blocks and pomHeight is equal to unvoteHeight + 2000 blocks', () => {
+				let unVoteHeight: number;
+
 				beforeEach(async () => {
-					const unVoteHeight = 45968;
+					unVoteHeight = 45968;
 					const pomHeight = unVoteHeight + 2000;
 
 					applyContext = await setupUnlocks({
@@ -602,16 +618,29 @@ describe('UnlockTransactionAsset', () => {
 					});
 				});
 
-				it('should not return error', async () => {
-					await expect(transactionAsset.apply(applyContext)).resolves.toBeUndefined();
+				describe('currentHeight >= transactionAsset._unlockFixHeight', () => {
+					it('should not return error', async () => {
+						transactionAsset = new UnlockTransactionAsset(unVoteHeight + 2000 - 50);
+						await expect(transactionAsset.apply(applyContext)).resolves.toBeUndefined();
+					});
+
+					it('should make account to have correct balance', async () => {
+						transactionAsset = new UnlockTransactionAsset(unVoteHeight + 2000 - 50);
+						await transactionAsset.apply(applyContext);
+
+						expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
+							address: sender.address,
+							amount: applyContext.asset.unlockObjects[0].amount,
+						});
+					});
 				});
 
-				it('should make account to have correct balance', async () => {
-					await transactionAsset.apply(applyContext);
-
-					expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
-						address: sender.address,
-						amount: applyContext.asset.unlockObjects[0].amount,
+				describe('currentHeight < transactionAsset._unlockFixHeight', () => {
+					it('should throw error', async () => {
+						transactionAsset = new UnlockTransactionAsset(unVoteHeight + 2000 + 50);
+						await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
+							'Unlocking is not permitted as the delegate is currently being punished.',
+						);
 					});
 				});
 			});
@@ -661,8 +690,10 @@ describe('UnlockTransactionAsset', () => {
 			});
 
 			describe('when asset.unlockObjects contain valid entries, and self-voting account has not waited pomHeight + 780,000 blocks but waited unvoteHeight + 260,000 blocks and pomHeight is more than unvoteHeight + 260,000 blocks', () => {
+				let unVoteHeight: number;
+
 				beforeEach(async () => {
-					const unVoteHeight = 45968;
+					unVoteHeight = 45968;
 					const pomHeight = unVoteHeight + 780000 + 10;
 
 					applyContext = await setupUnlocks({
@@ -675,23 +706,38 @@ describe('UnlockTransactionAsset', () => {
 					});
 				});
 
-				it('should not return error', async () => {
-					await expect(transactionAsset.apply(applyContext)).resolves.toBeUndefined();
+				describe('currentHeight >= transactionAsset._unlockFixHeight', () => {
+					it('should not return error', async () => {
+						transactionAsset = new UnlockTransactionAsset(unVoteHeight + 780000 + 5 - 50);
+						await expect(transactionAsset.apply(applyContext)).resolves.toBeUndefined();
+					});
+
+					it('should make account to have correct balance', async () => {
+						transactionAsset = new UnlockTransactionAsset(unVoteHeight + 780000 + 5 - 50);
+						await transactionAsset.apply(applyContext);
+
+						expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
+							address: sender.address,
+							amount: applyContext.asset.unlockObjects[0].amount,
+						});
+					});
 				});
 
-				it('should make account to have correct balance', async () => {
-					await transactionAsset.apply(applyContext);
-
-					expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
-						address: sender.address,
-						amount: applyContext.asset.unlockObjects[0].amount,
+				describe('currentHeight < transactionAsset._unlockFixHeight', () => {
+					it('should throw error', async () => {
+						transactionAsset = new UnlockTransactionAsset(unVoteHeight + 780000 + 5 + 50);
+						await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
+							'Unlocking is not permitted as the delegate is currently being punished.',
+						);
 					});
 				});
 			});
 
 			describe('when asset.unlockObjects contain valid entries, and self-voting account has not waited pomHeight + 780,000 blocks but waited unvoteHeight + 260,000 blocks and pomHeight is equal to unvoteHeight + 260,000 blocks', () => {
+				let unVoteHeight: number;
+
 				beforeEach(async () => {
-					const unVoteHeight = 45968;
+					unVoteHeight = 45968;
 					const pomHeight = unVoteHeight + 260000;
 
 					applyContext = await setupUnlocks({
@@ -704,16 +750,29 @@ describe('UnlockTransactionAsset', () => {
 					});
 				});
 
-				it('should not return error', async () => {
-					await expect(transactionAsset.apply(applyContext)).resolves.toBeUndefined();
+				describe('currentHeight >= transactionAsset._unlockFixHeight', () => {
+					it('should not return error', async () => {
+						transactionAsset = new UnlockTransactionAsset(unVoteHeight + 260000 - 50);
+						await expect(transactionAsset.apply(applyContext)).resolves.toBeUndefined();
+					});
+
+					it('should make account to have correct balance', async () => {
+						transactionAsset = new UnlockTransactionAsset(unVoteHeight + 260000 - 50);
+						await transactionAsset.apply(applyContext);
+
+						expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
+							address: sender.address,
+							amount: applyContext.asset.unlockObjects[0].amount,
+						});
+					});
 				});
 
-				it('should make account to have correct balance', async () => {
-					await transactionAsset.apply(applyContext);
-
-					expect(applyContext.reducerHandler.invoke).toHaveBeenCalledWith('token:credit', {
-						address: sender.address,
-						amount: applyContext.asset.unlockObjects[0].amount,
+				describe('currentHeight < transactionAsset._unlockFixHeight', () => {
+					it('should throw error', async () => {
+						transactionAsset = new UnlockTransactionAsset(unVoteHeight + 260000 + 50);
+						await expect(transactionAsset.apply(applyContext)).rejects.toThrow(
+							'Unlocking is not permitted as the delegate is currently being punished.',
+						);
 					});
 				});
 			});
