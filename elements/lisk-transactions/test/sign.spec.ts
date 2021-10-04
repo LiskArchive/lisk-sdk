@@ -240,10 +240,10 @@ describe('sign', () => {
 			).toThrow('Network identifier is required to sign a transaction');
 		});
 
-		it('should throw error for invalid private key', () => {
+		it('should throw error for empty private key', () => {
 			expect(() =>
 				signTransactionWithPrivateKey(validAssetSchema, validTransaction, networkIdentifier, Buffer.alloc(0)),
-			).toThrow('Private key is required to sign a transaction');
+			).toThrow('Private key must be 64 bytes');
 		});
 
 		it('should throw error for private key with invalid length', () => {
