@@ -199,14 +199,10 @@ export const signTransactionWithPrivateKey = (
 		throw new Error('Network identifier is required to sign a transaction');
 	}
 
-	if (!privateKey.length) {
-		throw new Error('Private key is required to sign a transaction');
-	}
-
-	if (privateKey.length !== 64) {
+	if (!privateKey.length || privateKey.length !== 64) {
 		throw new Error('Private key must be 64 bytes');
 	}
-
+	
 	const validationErrors = validateTransaction(assetSchema, transactionObject);
 	if (validationErrors) {
 		throw validationErrors;
