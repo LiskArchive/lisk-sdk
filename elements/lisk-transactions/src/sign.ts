@@ -14,7 +14,12 @@
  */
 
 import { codec, Schema } from '@liskhq/lisk-codec';
-import { getAddressAndPublicKeyFromPassphrase, signData, signDataWithPrivateKey, hash } from '@liskhq/lisk-cryptography';
+import {
+	getAddressAndPublicKeyFromPassphrase,
+	signData,
+	signDataWithPrivateKey,
+	hash,
+} from '@liskhq/lisk-cryptography';
 import { validateTransaction } from './validate';
 import { baseTransactionSchema } from './schema';
 
@@ -202,7 +207,7 @@ export const signTransactionWithPrivateKey = (
 	if (!privateKey.length || privateKey.length !== 64) {
 		throw new Error('Private key must be 64 bytes');
 	}
-	
+
 	const validationErrors = validateTransaction(assetSchema, transactionObject);
 	if (validationErrors) {
 		throw validationErrors;

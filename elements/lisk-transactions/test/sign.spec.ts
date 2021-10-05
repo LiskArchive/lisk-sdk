@@ -15,7 +15,12 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
-import { getSigningBytes, signTransaction, signTransactionWithPrivateKey, signMultiSignatureTransaction } from '../src/sign';
+import {
+	getSigningBytes,
+	signTransaction,
+	signTransactionWithPrivateKey,
+	signMultiSignatureTransaction,
+} from '../src/sign';
 import * as multisigScenario from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
 import { baseTransactionSchema } from '../src/schema';
 
@@ -86,7 +91,10 @@ describe('sign', () => {
 	const passphrase3 =
 		'sugar object slender confirm clock peanut auto spice carbon knife increase estate';
 	const passphrase4 = 'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb';
-	const privateKey =  Buffer.from('2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09', 'hex');
+	const privateKey = Buffer.from(
+		'2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+		'hex',
+	);
 	const { publicKey: publicKey1 } = getAddressAndPublicKeyFromPassphrase(passphrase1);
 	const { publicKey: publicKey2 } = getAddressAndPublicKeyFromPassphrase(passphrase2);
 	const { publicKey: publicKey3 } = getAddressAndPublicKeyFromPassphrase(passphrase3);
@@ -236,19 +244,34 @@ describe('sign', () => {
 	describe('signTransactionWithPrivateKey', () => {
 		it('should throw error for invalid network identifier', () => {
 			expect(() =>
-				signTransactionWithPrivateKey(validAssetSchema, validTransaction, Buffer.alloc(0), privateKey),
+				signTransactionWithPrivateKey(
+					validAssetSchema,
+					validTransaction,
+					Buffer.alloc(0),
+					privateKey,
+				),
 			).toThrow('Network identifier is required to sign a transaction');
 		});
 
 		it('should throw error for empty private key', () => {
 			expect(() =>
-				signTransactionWithPrivateKey(validAssetSchema, validTransaction, networkIdentifier, Buffer.alloc(0)),
+				signTransactionWithPrivateKey(
+					validAssetSchema,
+					validTransaction,
+					networkIdentifier,
+					Buffer.alloc(0),
+				),
 			).toThrow('Private key must be 64 bytes');
 		});
 
 		it('should throw error for private key with invalid length', () => {
 			expect(() =>
-				signTransactionWithPrivateKey(validAssetSchema, validTransaction, networkIdentifier, Buffer.from('invalid', 'utf8')),
+				signTransactionWithPrivateKey(
+					validAssetSchema,
+					validTransaction,
+					networkIdentifier,
+					Buffer.from('invalid', 'utf8'),
+				),
 			).toThrow('Private key must be 64 bytes');
 		});
 
@@ -261,7 +284,12 @@ describe('sign', () => {
 			];
 			return invalidTransactionObjects.forEach(transactionObject =>
 				expect(() =>
-					signTransactionWithPrivateKey(validAssetSchema, transactionObject, networkIdentifier, privateKey),
+					signTransactionWithPrivateKey(
+						validAssetSchema,
+						transactionObject,
+						networkIdentifier,
+						privateKey,
+					),
 				).toThrow(),
 			);
 		});
@@ -287,7 +315,12 @@ describe('sign', () => {
 			];
 			return invalidAssets.forEach(transactionObject =>
 				expect(() =>
-					signTransactionWithPrivateKey(validAssetSchema, transactionObject, networkIdentifier, privateKey),
+					signTransactionWithPrivateKey(
+						validAssetSchema,
+						transactionObject,
+						networkIdentifier,
+						privateKey,
+					),
 				).toThrow(),
 			);
 		});
