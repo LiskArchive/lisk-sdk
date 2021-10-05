@@ -1,6 +1,6 @@
 {
 	"name": "lisk-commander",
-	"version": "5.1.5",
+	"version": "5.1.6-alpha.0",
 	"description": "A command line interface for Lisk",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -114,7 +114,7 @@
 		"cli-table3": "0.6.0",
 		"fs-extra": "9.1.0",
 		"inquirer": "8.0.0",
-		"lisk-framework": "^0.8.4",
+		"lisk-framework": "^0.9.0-alpha.0",
 		"listr": "0.14.3",
 		"progress": "2.0.3",
 		"semver": "7.3.5",
