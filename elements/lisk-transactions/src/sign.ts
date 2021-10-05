@@ -14,7 +14,12 @@
  */
 
 import { codec, Schema } from '@liskhq/lisk-codec';
-import { getAddressAndPublicKeyFromPassphrase, signData, hash } from '@liskhq/lisk-cryptography';
+import {
+	getAddressAndPublicKeyFromPassphrase,
+	signData,
+	signDataWithPrivateKey,
+	hash,
+} from '@liskhq/lisk-cryptography';
 import { validateTransaction } from './validate';
 import { baseTransactionSchema } from './schema';
 
@@ -186,5 +191,36 @@ export const signMultiSignatureTransaction = (
 
 	sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);
 
+	return { ...transactionObject, id: hash(getBytes(assetSchema, transactionObject)) };
+};
+
+export const signTransactionWithPrivateKey = (
+	assetSchema: object,
+	transactionObject: Record<string, unknown>,
+	networkIdentifier: Buffer,
+	privateKey: Buffer,
+): Record<string, unknown> => {
+	if (!networkIdentifier.length) {
+		throw new Error('Network identifier is required to sign a transaction');
+	}
+
+	if (!privateKey.length || privateKey.length !== 64) {
+		throw new Error('Private key must be 64 bytes');
+	}
+
+	const validationErrors = validateTransaction(assetSchema, transactionObject);
+	if (validationErrors) {
+		throw validationErrors;
+	}
+
+	const transactionWithNetworkIdentifierBytes = Buffer.concat([
+		networkIdentifier,
+		getSigningBytes(assetSchema, transactionObject),
+	]);
+
+	const signature = signDataWithPrivateKey(transactionWithNetworkIdentifierBytes, privateKey);
+
+	// eslint-disable-next-line no-param-reassign
+	transactionObject.signatures = [signature];
 	return { ...transactionObject, id: hash(getBytes(assetSchema, transactionObject)) };
 };
