@@ -92,6 +92,8 @@ export interface CommandVerifyContext<T> {
 export interface CommandExecuteContext<T> {
 	logger: Logger;
 	networkIdentifier: Buffer;
+	header: BlockHeader;
+	assets: BlockAssets;
 	transaction: Transaction; // without decoding params
 	params: T;
 	getAPIContext: () => APIContext;
