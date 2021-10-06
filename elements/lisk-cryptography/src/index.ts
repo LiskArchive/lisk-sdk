@@ -22,6 +22,6 @@ export * from './keys';
 export * from './legacy_address';
 export * from './sign';
 export * from './hash_onion';
-export { getRandomBytes } from './nacl';
+export { getRandomBytes, getPublicKey } from './nacl';
 
 export { constants };
