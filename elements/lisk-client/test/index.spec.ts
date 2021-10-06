@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+// eslint-disable-next-line import/namespace
 import * as client from '../src';
 
 describe('lisk-client', () => {

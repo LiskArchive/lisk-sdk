@@ -3,3 +3,4 @@ dist-browser
 jest.config.js
 .eslintrc.js
 cypress
+scripts
