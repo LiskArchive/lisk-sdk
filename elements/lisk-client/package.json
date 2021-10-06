@@ -20,10 +20,10 @@
 		"node": ">=12.13.0 <=12",
 		"npm": ">=6.12.0"
 	},
-	"main": "dist-browser/index.js",
+	"main": "dist-node/index.js",
 	"exports": {
-		"node": "./dist-node/index.js",
-		"default": "./dist-browser/index.js"
+		".": "./dist-node/index.js",
+		"./browser": "./dist-browser/index.js"
 	},
 	"types": "dist-node/index.d.ts",
 	"scripts": {
