@@ -839,14 +839,78 @@ describe('BFT API', () => {
 		const params30 = createParam();
 		beforeEach(async () => {
 			stateStore = new StateStore(new InMemoryKVStore());
-			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
-			await votesStore.setWithSchema(intToBuffer(20, 4, BIG_ENDIAN), params20, bftParametersSchema);
-			await votesStore.setWithSchema(intToBuffer(30, 4, BIG_ENDIAN), params30, bftParametersSchema);
+			const paramsStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
+			await paramsStore.setWithSchema(
+				intToBuffer(20, 4, BIG_ENDIAN),
+				params20,
+				bftParametersSchema,
+			);
+			await paramsStore.setWithSchema(
+				intToBuffer(30, 4, BIG_ENDIAN),
+				params30,
+				bftParametersSchema,
+			);
 		});
 
 		it('should current active validators', async () => {
+			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_VOTES);
+			await votesStore.setWithSchema(
+				EMPTY_KEY,
+				{
+					maxHeightPrevoted: 10,
+					maxHeightPrecommitted: 0,
+					maxHeightCertified: 0,
+					blockBFTInfos: [
+						{
+							height: 35,
+							generatorAddress: getRandomBytes(20),
+							maxHeightGenerated: 0,
+							maxHeightPrevoted: 0,
+							prevoteWeight: 0,
+							precommitWeight: 0,
+						},
+						{
+							height: 34,
+							generatorAddress: getRandomBytes(20),
+							maxHeightGenerated: 0,
+							maxHeightPrevoted: 0,
+							prevoteWeight: 0,
+							precommitWeight: 0,
+						},
+						{
+							height: 33,
+							generatorAddress: getRandomBytes(20),
+							maxHeightGenerated: 0,
+							maxHeightPrevoted: 0,
+							prevoteWeight: 0,
+							precommitWeight: 0,
+						},
+					],
+					activeValidatorsVoteInfo: [],
+				},
+				bftVotesSchema,
+			);
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 			await expect(bftAPI.getCurrentValidators(apiContext)).resolves.toEqual(params30.validators);
+		});
+
+		it('should fail if there are no BFT block info', async () => {
+			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_VOTES);
+			await votesStore.setWithSchema(
+				EMPTY_KEY,
+				{
+					maxHeightPrevoted: 10,
+					maxHeightPrecommitted: 0,
+					maxHeightCertified: 0,
+					blockBFTInfos: [],
+					activeValidatorsVoteInfo: [],
+				},
+				bftVotesSchema,
+			);
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			await expect(bftAPI.getCurrentValidators(apiContext)).rejects.toThrow(
+				'There are no BFT info stored.',
+			);
 		});
 	});
 });

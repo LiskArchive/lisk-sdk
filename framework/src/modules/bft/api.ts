@@ -233,20 +233,14 @@ export class BFTAPI extends BaseAPI {
 	}
 
 	public async getCurrentValidators(context: ImmutableAPIContext): Promise<Validator[]> {
-		const paramsStore = context.getStore(this.moduleID, STORE_PREFIX_BFT_PARAMETERS);
-		const start = intToBuffer(0, 4, BIG_ENDIAN);
-		const end = intToBuffer(MAX_UINT32, 4, BIG_ENDIAN);
-		const results = await paramsStore.iterate({
-			limit: 1,
-			start,
-			end,
-			reverse: true,
-		});
-		if (results.length !== 1) {
-			throw new BFTParameterNotFoundError();
+		const votesStore = context.getStore(this.moduleID, STORE_PREFIX_BFT_VOTES);
+		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
+		if (bftVotes.blockBFTInfos.length === 0) {
+			throw new Error('There are no BFT info stored.');
 		}
-		const [result] = results;
-		const params = codec.decode<BFTParameters>(bftParametersSchema, result.value);
+		const { height: currentHeight } = bftVotes.blockBFTInfos[0];
+		const paramsStore = context.getStore(this.moduleID, STORE_PREFIX_BFT_PARAMETERS);
+		const params = await getBFTParameters(paramsStore, currentHeight);
 		return params.validators;
 	}
 
