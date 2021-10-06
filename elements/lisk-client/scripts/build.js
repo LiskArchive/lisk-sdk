@@ -65,10 +65,10 @@ const b = browserify('./dist-node/index.js', {
 });
 
 const bundle = () => {
-    const browserDir = './dist-browser';
-    if (!fs.existsSync(browserDir)) {
-        fs.mkdirSync(browserDir);
-    }
+	const browserDir = './dist-browser';
+	if (!fs.existsSync(browserDir)) {
+		fs.mkdirSync(browserDir);
+	}
 	b.bundle().on('error', console.error).pipe(fs.createWriteStream('./dist-browser/index.js'));
 };
 
