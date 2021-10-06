@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2021 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,11 +12,3 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// eslint-disable-next-line import/namespace
-import * as client from '../src';
-
-describe('lisk-client', () => {
-	it('should not export unexpected libraries', () => {
-		return expect(Object.keys(client)).toMatchSnapshot();
-	});
-});

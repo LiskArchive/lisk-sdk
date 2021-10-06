@@ -20,17 +20,17 @@
 		"node": ">=12.13.0 <=12",
 		"npm": ">=6.12.0"
 	},
-	"main": "dist-browser/index.js",
+	"main": "dist-node/index.js",
 	"exports": {
-		"node": "./dist-node/index.js",
-		"default": "./dist-browser/index.js"
+		".": "./dist-node/index.js",
+		"./browser": "./dist-browser/index.js"
 	},
 	"types": "dist-node/index.d.ts",
 	"scripts": {
 		"prestart": "./scripts/prestart.sh",
 		"start": "./scripts/start.sh",
 		"start:ws_server": "node cypress/ws_server.js",
-		"browserify": "browserify ./dist-node/index.js -o ./dist-browser/index.js -s lisk",
+		"browserify": "node ./scripts/build.js",
 		"uglify": "terser -nm -o ./dist-browser/index.min.js ./dist-browser/index.js",
 		"clean": "./scripts/clean.sh",
 		"format": "prettier --write '**/*'",
