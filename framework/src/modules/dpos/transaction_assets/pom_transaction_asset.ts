@@ -14,7 +14,6 @@
 
 import { BlockHeader, TAG_BLOCK_HEADER } from '@liskhq/lisk-chain';
 import { getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
-import { areHeadersContradicting } from '@liskhq/lisk-bft';
 import { codec } from '@liskhq/lisk-codec';
 import { BaseAsset } from '../../base_asset';
 import { ApplyAssetContext, ValidateAssetContext } from '../../../types';

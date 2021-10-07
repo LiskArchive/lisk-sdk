@@ -14,8 +14,7 @@
 
 import { formatInt, KVStore, getFirstPrefix, getLastPrefix } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { RawBlockHeader, BlockHeader } from '@liskhq/lisk-chain';
-import { areHeadersContradicting } from '@liskhq/lisk-bft';
+import { BlockHeader } from '@liskhq/lisk-chain';
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';

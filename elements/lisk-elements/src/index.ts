@@ -24,5 +24,4 @@ export * as validator from '@liskhq/lisk-validator';
 export * as codec from '@liskhq/lisk-codec';
 export * as db from '@liskhq/lisk-db';
 export * as chain from '@liskhq/lisk-chain';
-export * as bft from '@liskhq/lisk-bft';
 export * as genesis from '@liskhq/lisk-genesis';
