@@ -207,6 +207,8 @@ export const updateGeneratorKeyCommandParamsSchema = {
 		generatorKey: {
 			dataType: 'bytes',
 			fieldNumber: 1,
+			minLength: 32,
+			maxLength: 32,
 		},
 	},
 };
