@@ -49,7 +49,7 @@ describe('Register Multisignature command', () => {
 	});
 
 	describe('verify', () => {
-		it('should not return status OK for valid params', async () => {
+		it('should return status OK for valid params', async () => {
 			const context = testing
 				.createTransactionContext({
 					transaction,
