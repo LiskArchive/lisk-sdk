@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import {
 	CommandVerifyContext,
 	VerificationResult,
@@ -21,21 +22,44 @@ import {
 import { BaseCommand } from '../../base_command';
 import { COMMAND_ID_UPDATE_GENERATOR_KEY } from '../constants';
 import { updateGeneratorKeyCommandParamsSchema } from '../schemas';
+import { UpdateGeneratorKeyParams, ValidatorsAPI } from '../types';
 
 export class UpdateGeneratorKeyCommand extends BaseCommand {
 	public id = COMMAND_ID_UPDATE_GENERATOR_KEY;
 	public name = 'updateGeneratorKey';
 	public schema = updateGeneratorKeyCommandParamsSchema;
+	private _validatorsAPI!: ValidatorsAPI;
+
+	public addDependencies(validatorsAPI: ValidatorsAPI) {
+		this._validatorsAPI = validatorsAPI;
+	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(
-		_context: CommandVerifyContext<Record<string, unknown>>,
+		context: CommandVerifyContext<UpdateGeneratorKeyParams>,
 	): Promise<VerificationResult> {
+		const errors = validator.validate(updateGeneratorKeyCommandParamsSchema, context.params);
+
+		if (errors.length > 0) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new LiskValidationError(errors),
+			};
+		}
+
 		return {
 			status: VerifyStatus.OK,
 		};
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public async execute(_context: CommandExecuteContext<Record<string, unknown>>): Promise<void> {}
+	public async execute(context: CommandExecuteContext<UpdateGeneratorKeyParams>): Promise<void> {
+		const { transaction } = context;
+		const apiContext = context.getAPIContext();
+
+		await this._validatorsAPI.setValidatorGeneratorKey(
+			apiContext,
+			transaction.senderAddress,
+			context.params.generatorKey,
+		);
+	}
 }
