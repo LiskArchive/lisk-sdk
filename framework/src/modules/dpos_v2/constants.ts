@@ -26,6 +26,7 @@ export const COMMAND_ID_VOTE = 1;
 export const COMMAND_ID_UNLOCK = 2;
 export const COMMAND_ID_POM = 3;
 export const COMMAND_ID_UPDATE_GENERATOR_KEY = 4;
+export const COMMAND_NAME_UPDATE_GENERATOR_KEY = 'updateGeneratorKey';
 
 export const WAIT_TIME_VOTE = 2000;
 export const WAIT_TIME_SELF_VOTE = 260000;
