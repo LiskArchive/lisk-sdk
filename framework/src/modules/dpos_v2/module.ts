@@ -55,7 +55,7 @@ export class DPoSModule extends BaseModule {
 		const updateGeneratorKeyCommand = this.commands.find(
 			command => command.id === COMMAND_ID_UPDATE_GENERATOR_KEY,
 		) as UpdateGeneratorKeyCommand;
-		updateGeneratorKeyCommand.addDependencies(this._validatorsAPI);
+		updateGeneratorKeyCommand?.addDependencies(this._validatorsAPI);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
