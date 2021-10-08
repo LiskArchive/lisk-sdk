@@ -54,10 +54,19 @@ export interface RandomAPI {
 
 export interface ValidatorsAPI {
 	setGeneratorList(apiContext: APIContext, generatorAddresses: Buffer[]): Promise<void>;
+	setValidatorGeneratorKey(
+		apiContext: APIContext,
+		validatorAddress: Buffer,
+		generatorKey: Buffer,
+	): Promise<boolean>;
 }
 
 export interface UnlockingObject {
 	readonly delegateAddress: Buffer;
 	readonly amount: bigint;
 	readonly unvoteHeight: number;
+}
+
+export interface UpdateGeneratorKeyParams {
+	generatorKey: Buffer;
 }
