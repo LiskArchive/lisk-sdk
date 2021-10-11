@@ -257,6 +257,11 @@ export class Forger {
 				forgerInfo !== undefined &&
 				!IsEqualForgingInfo(forgingInput, forgerInfo))
 		) {
+			previouslyForgedMap.set(forgerAddress, {
+				height,
+				maxHeightPrevoted,
+				maxHeightPreviouslyForged,
+			});
 			await setPreviouslyForgedMap(this._db, previouslyForgedMap);
 			this._logger.info(forgingInput, 'Updated forgerInfo');
 		}

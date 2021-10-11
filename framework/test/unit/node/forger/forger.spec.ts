@@ -328,14 +328,29 @@ describe('forger', () => {
 
 				describe('overwrite=true', () => {
 					it('should enable forging and overwrite forger info when node is synced with network', async () => {
+						const address = getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex'));
+						const previouslyForgedStoreObject: PreviouslyForgedInfoStoreObject = {
+							previouslyForgedInfo: [],
+						};
+						previouslyForgedStoreObject.previouslyForgedInfo.push({
+							generatorAddress: address,
+							height: 200,
+							maxHeightPrevoted: 0,
+							maxHeightPreviouslyForged: 200,
+						});
 						const data = await forgeModule.updateForgingStatus(
-							getAddressFromPublicKey(Buffer.from(testDelegate.publicKey, 'hex')),
+							address,
 							testDelegate.password,
 							true,
 							200,
 							200,
 							0,
 							true,
+						);
+
+						expect(dbStub.put).toHaveBeenCalledWith(
+							DB_KEY_FORGER_PREVIOUSLY_FORGED,
+							codec.encode(previouslyForgedInfoSchema, previouslyForgedStoreObject),
 						);
 
 						expect(
