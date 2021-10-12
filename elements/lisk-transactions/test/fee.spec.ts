@@ -19,7 +19,7 @@ import { computeMinFee, getBytes } from '../src';
 describe('fee', () => {
 	const validAssetSchema = {
 		$id: 'lisk/transfer-transaction',
-		title: 'Transfer transaction asset',
+		title: 'Transfer transaction params',
 		type: 'object',
 		required: ['amount', 'recipientAddress', 'data'],
 		properties: {
@@ -45,10 +45,10 @@ describe('fee', () => {
 	const { publicKey: publicKey1 } = getAddressAndPublicKeyFromPassphrase(passphrase1);
 	const validTransaction = {
 		moduleID: 2,
-		assetID: 0,
+		commandID: 0,
 		nonce: BigInt('1'),
 		senderPublicKey: publicKey1,
-		asset: {
+		params: {
 			recipientAddress: Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex'),
 			amount: BigInt('4008489300000000'),
 			data: '',
@@ -57,17 +57,17 @@ describe('fee', () => {
 	const baseFees = [
 		{
 			moduleID: 2,
-			assetID: 0,
+			commandID: 0,
 			baseFee: '10000000',
 		},
 		{
 			moduleID: 5,
-			assetID: 0,
+			commandID: 0,
 			baseFee: '1',
 		},
 		{
 			moduleID: 3,
-			assetID: 0,
+			commandID: 0,
 			baseFee: '1',
 		},
 	];
@@ -132,8 +132,8 @@ describe('fee', () => {
 			const delegateRegisterTransaction = {
 				...validTransaction,
 				moduleID: 5,
-				assetID: 0,
-				asset: { username: 'delegate1' },
+				commandID: 0,
+				params: { username: 'delegate1' },
 			};
 			const options = { minFeePerByte: 1000, baseFees, numberOfSignatures: 1 };
 			const delegateRegisterAssetSchema = {

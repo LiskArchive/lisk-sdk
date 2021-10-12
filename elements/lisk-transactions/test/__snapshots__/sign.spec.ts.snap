@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`sign getSigningBytes should return transaction bytes for given asset 1`] = `
+exports[`sign getSigningBytes should return transaction bytes for given params 1`] = `
 Object {
   "data": Array [
     8,
@@ -88,38 +88,9 @@ Object {
 }
 `;
 
-exports[`sign signTransaction should return signed transaction for given asset schema 1`] = `
+exports[`sign signTransaction should return signed transaction for given params schema 1`] = `
 Object {
-  "asset": Object {
-    "amount": 4008489300000000n,
-    "data": "",
-    "recipientAddress": Object {
-      "data": Array [
-        58,
-        151,
-        31,
-        208,
-        43,
-        74,
-        7,
-        252,
-        32,
-        170,
-        209,
-        147,
-        109,
-        60,
-        177,
-        210,
-        99,
-        185,
-        110,
-        15,
-      ],
-      "type": "Buffer",
-    },
-  },
-  "assetID": 0,
+  "commandID": 0,
   "fee": 10000000n,
   "id": Object {
     "data": Array [
@@ -160,6 +131,35 @@ Object {
   },
   "moduleID": 2,
   "nonce": 1n,
+  "params": Object {
+    "amount": 4008489300000000n,
+    "data": "",
+    "recipientAddress": Object {
+      "data": Array [
+        58,
+        151,
+        31,
+        208,
+        43,
+        74,
+        7,
+        252,
+        32,
+        170,
+        209,
+        147,
+        109,
+        60,
+        177,
+        210,
+        99,
+        185,
+        110,
+        15,
+      ],
+      "type": "Buffer",
+    },
+  },
   "senderPublicKey": Object {
     "data": Array [
       241,
