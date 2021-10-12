@@ -70,3 +70,13 @@ export interface UnlockingObject {
 export interface UpdateGeneratorKeyParams {
 	generatorKey: Buffer;
 }
+
+export interface DelegateAccount {
+	name: string;
+	totalVotesReceived: bigint;
+	selfVotes: bigint;
+	lastGeneratedHeight: number;
+	isBanned: boolean;
+	pomHeights: ReadonlyArray<number>;
+	consecutiveMissedBlocks: number;
+}
