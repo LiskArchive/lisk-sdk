@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { NotFoundError } from '@liskhq/lisk-chain';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import {
 	CommandVerifyContext,
@@ -26,8 +25,8 @@ import {
 	MODULE_ID_DPOS,
 	STORE_PREFIX_DELEGATE,
 } from '../constants';
-import { updateGeneratorKeyCommandParamsSchema, delegateStoreSchema } from '../schemas';
-import { DelegateAccount, UpdateGeneratorKeyParams, ValidatorsAPI } from '../types';
+import { updateGeneratorKeyCommandParamsSchema } from '../schemas';
+import { UpdateGeneratorKeyParams, ValidatorsAPI } from '../types';
 
 export class UpdateGeneratorKeyCommand extends BaseCommand {
 	public id = COMMAND_ID_UPDATE_GENERATOR_KEY;
@@ -55,26 +54,18 @@ export class UpdateGeneratorKeyCommand extends BaseCommand {
 		}
 
 		const delegateSubstore = context.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
+		const entryExists = await delegateSubstore.has(transaction.senderAddress);
 
-		try {
-			await delegateSubstore.getWithSchema<DelegateAccount>(
-				transaction.senderAddress,
-				delegateStoreSchema,
-			);
-
-			return {
-				status: VerifyStatus.OK,
-			};
-		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
-				throw error;
-			}
-
+		if (!entryExists) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('Delegate substore must have an entry for the store key address'),
 			};
 		}
+
+		return {
+			status: VerifyStatus.OK,
+		};
 	}
 
 	public async execute(context: CommandExecuteContext<UpdateGeneratorKeyParams>): Promise<void> {
