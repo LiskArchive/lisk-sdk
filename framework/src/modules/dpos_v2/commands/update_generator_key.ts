@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { NotFoundError } from '@liskhq/lisk-chain';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import {
 	CommandVerifyContext,
@@ -20,9 +21,13 @@ import {
 	CommandExecuteContext,
 } from '../../../node/state_machine/types';
 import { BaseCommand } from '../../base_command';
-import { COMMAND_ID_UPDATE_GENERATOR_KEY } from '../constants';
-import { updateGeneratorKeyCommandParamsSchema } from '../schemas';
-import { UpdateGeneratorKeyParams, ValidatorsAPI } from '../types';
+import {
+	COMMAND_ID_UPDATE_GENERATOR_KEY,
+	MODULE_ID_DPOS,
+	STORE_PREFIX_DELEGATE,
+} from '../constants';
+import { updateGeneratorKeyCommandParamsSchema, delegateStoreSchema } from '../schemas';
+import { DelegateAccount, UpdateGeneratorKeyParams, ValidatorsAPI } from '../types';
 
 export class UpdateGeneratorKeyCommand extends BaseCommand {
 	public id = COMMAND_ID_UPDATE_GENERATOR_KEY;
@@ -38,6 +43,8 @@ export class UpdateGeneratorKeyCommand extends BaseCommand {
 	public async verify(
 		context: CommandVerifyContext<UpdateGeneratorKeyParams>,
 	): Promise<VerificationResult> {
+		const { transaction } = context;
+
 		const errors = validator.validate(updateGeneratorKeyCommandParamsSchema, context.params);
 
 		if (errors.length > 0) {
@@ -47,9 +54,27 @@ export class UpdateGeneratorKeyCommand extends BaseCommand {
 			};
 		}
 
-		return {
-			status: VerifyStatus.OK,
-		};
+		const delegateSubstore = context.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
+
+		try {
+			await delegateSubstore.getWithSchema<DelegateAccount>(
+				transaction.senderAddress,
+				delegateStoreSchema,
+			);
+
+			return {
+				status: VerifyStatus.OK,
+			};
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Delegate substore must have an entry for the store key address'),
+			};
+		}
 	}
 
 	public async execute(context: CommandExecuteContext<UpdateGeneratorKeyParams>): Promise<void> {
