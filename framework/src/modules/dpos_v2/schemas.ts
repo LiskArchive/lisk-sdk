@@ -60,6 +60,7 @@ export const voterStoreSchema = {
 };
 
 export const delegateStoreSchema = {
+	$id: '/dpos/delegate',
 	type: 'object',
 	required: [
 		'name',
