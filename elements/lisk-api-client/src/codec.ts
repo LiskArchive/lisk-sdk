@@ -17,27 +17,23 @@ import { codec, Schema } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
 import { RegisteredSchemas } from './types';
 
-export const getTransactionAssetSchema = (
+export const getTransactionParamsSchema = (
 	transaction: Record<string, unknown>,
 	registeredSchema: RegisteredSchemas,
 ): Schema => {
-	const txAssetSchema = registeredSchema.transactionsAssets.find(
+	const txParamsSchema = registeredSchema.commands.find(
 		assetSchema =>
-			assetSchema.moduleID === transaction.moduleID && assetSchema.assetID === transaction.assetID,
+			assetSchema.moduleID === transaction.moduleID &&
+			assetSchema.commandID === transaction.commandID,
 	);
-	if (!txAssetSchema) {
+	if (!txParamsSchema) {
 		throw new Error(
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			`ModuleID: ${transaction.moduleID} AssetID: ${transaction.assetID} is not registered.`,
+			`ModuleID: ${transaction.moduleID} AssetID: ${transaction.commandID} is not registered.`,
 		);
 	}
-	return txAssetSchema.schema;
+	return txParamsSchema.schema;
 };
-
-export const decodeAccount = (
-	encodedAccount: Buffer,
-	registeredSchema: RegisteredSchemas,
-): Record<string, unknown> => codec.decode(registeredSchema.account, encodedAccount);
 
 export const decodeTransaction = (
 	encodedTransaction: Buffer,
@@ -45,16 +41,16 @@ export const decodeTransaction = (
 ): Record<string, unknown> => {
 	const transaction = codec.decode<{
 		[key: string]: unknown;
-		asset: Buffer;
+		params: Buffer;
 		moduleID: number;
-		assetID: number;
+		commandID: number;
 	}>(registeredSchema.transaction, encodedTransaction);
-	const assetSchema = getTransactionAssetSchema(transaction, registeredSchema);
-	const asset = codec.decode(assetSchema, transaction.asset);
+	const paramsSchema = getTransactionParamsSchema(transaction, registeredSchema);
+	const params = codec.decode(paramsSchema, transaction.params);
 	const id = hash(encodedTransaction);
 	return {
 		...transaction,
-		asset,
+		params,
 		id,
 	};
 };
@@ -63,12 +59,12 @@ export const encodeTransaction = (
 	transaction: Record<string, unknown>,
 	registeredSchema: RegisteredSchemas,
 ): Buffer => {
-	const assetSchema = getTransactionAssetSchema(transaction, registeredSchema);
-	const encodedAsset = codec.encode(assetSchema, transaction.asset as Record<string, unknown>);
+	const paramsSchema = getTransactionParamsSchema(transaction, registeredSchema);
+	const encodedParams = codec.encode(paramsSchema, transaction.params as Record<string, unknown>);
 
 	const decodedTransaction = codec.encode(registeredSchema.transaction, {
 		...transaction,
-		asset: encodedAsset,
+		params: encodedParams,
 	});
 
 	return decodedTransaction;
@@ -78,21 +74,16 @@ export const decodeBlock = (
 	encodedBlock: Buffer,
 	registeredSchema: RegisteredSchemas,
 ): Record<string, unknown> => {
-	const block = codec.decode<{ header: Buffer; payload: Buffer[] }>(
+	const block = codec.decode<{ header: Buffer; assets: Buffer[]; payload: Buffer[] }>(
 		registeredSchema.block,
 		encodedBlock,
 	);
 
-	const header = codec.decode<{ [key: string]: unknown; version: number; asset: Buffer }>(
+	const header = codec.decode<{ [key: string]: unknown; version: number }>(
 		registeredSchema.blockHeader,
 		block.header,
 	);
 	const id = hash(block.header);
-	const assetSchema = registeredSchema.blockHeadersAssets[header.version];
-	if (!assetSchema) {
-		throw new Error(`Block header asset version ${header.version} is not registered.`);
-	}
-	const asset = codec.decode(assetSchema, header.asset);
 	const payload = [];
 	for (const tx of block.payload) {
 		payload.push(decodeTransaction(tx, registeredSchema));
@@ -101,35 +92,24 @@ export const decodeBlock = (
 	return {
 		header: {
 			...header,
-			asset,
 			id,
 		},
+		assets: block.assets,
 		payload,
 	};
 };
 
 export const encodeBlock = (
-	block: { header: Record<string, unknown>; payload: Record<string, unknown>[] },
+	block: { header: Record<string, unknown>; payload: Record<string, unknown>[]; assets: string[] },
 	registeredSchema: RegisteredSchemas,
 ): Buffer => {
 	const encodedPayload = block.payload.map(p => encodeTransaction(p, registeredSchema));
-	const assetSchema = registeredSchema.blockHeadersAssets[block.header.version as number];
-	if (!assetSchema) {
-		throw new Error(
-			`Block header asset version ${block.header.version as number} is not registered.`,
-		);
-	}
-	const encodedBlockAsset = codec.encode(
-		assetSchema,
-		block.header.asset as Record<string, unknown>,
-	);
-	const encodedBlockHeader = codec.encode(registeredSchema.blockHeader, {
-		...block.header,
-		asset: encodedBlockAsset,
-	});
+	const encodedAssets = block.assets.map(asset => Buffer.from(asset, 'hex'));
+	const encodedBlockHeader = codec.encode(registeredSchema.blockHeader, block.header);
 
 	return codec.encode(registeredSchema.block, {
 		header: encodedBlockHeader,
 		payload: encodedPayload,
+		assets: encodedAssets,
 	});
 };
