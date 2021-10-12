@@ -12,21 +12,30 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Transaction } from '@liskhq/lisk-chain';
+import { StateStore, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import * as testing from '../../../../src/testing';
 import { UpdateGeneratorKeyCommand } from '../../../../src/modules/dpos_v2/commands/update_generator_key';
 import {
 	MODULE_ID_DPOS,
 	COMMAND_ID_UPDATE_GENERATOR_KEY,
+	STORE_PREFIX_DELEGATE,
 } from '../../../../src/modules/dpos_v2/constants';
-import { updateGeneratorKeyCommandParamsSchema } from '../../../../src/modules/dpos_v2/schemas';
+import {
+	delegateStoreSchema,
+	updateGeneratorKeyCommandParamsSchema,
+} from '../../../../src/modules/dpos_v2/schemas';
 import { UpdateGeneratorKeyParams, ValidatorsAPI } from '../../../../src/modules/dpos_v2/types';
 import { VerifyStatus } from '../../../../src/node/state_machine';
 
 describe('Update generator key command', () => {
 	let updateGeneratorCommand: UpdateGeneratorKeyCommand;
+	let db: KVStore;
+	let stateStore: StateStore;
+	let delegateSubstore: StateStore;
+
 	const transactionParams = codec.encode(updateGeneratorKeyCommandParamsSchema, {
 		generatorKey: getRandomBytes(32),
 	});
@@ -46,15 +55,32 @@ describe('Update generator key command', () => {
 	);
 	const mockValidatorsAPI = { setValidatorGeneratorKey: jest.fn() };
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		updateGeneratorCommand = new UpdateGeneratorKeyCommand(MODULE_ID_DPOS);
 		updateGeneratorCommand.addDependencies((mockValidatorsAPI as unknown) as ValidatorsAPI);
+		db = new InMemoryKVStore() as never;
+		stateStore = new StateStore(db);
+		delegateSubstore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
+		await delegateSubstore.setWithSchema(
+			transaction.senderAddress,
+			{
+				name: 'mrrobot',
+				totalVotesReceived: BigInt(10000000000),
+				selfVotes: BigInt(1000000000),
+				lastGeneratedHeight: 100,
+				isBanned: false,
+				pomHeights: [],
+				consecutiveMissedBlocks: 0,
+			},
+			delegateStoreSchema,
+		);
 	});
 
 	describe('verify', () => {
 		it('should return status OK for valid params', async () => {
 			const context = testing
 				.createTransactionContext({
+					stateStore,
 					transaction,
 					networkIdentifier,
 				})
@@ -81,6 +107,7 @@ describe('Update generator key command', () => {
 			});
 			const context = testing
 				.createTransactionContext({
+					stateStore,
 					transaction: invalidTransaction,
 					networkIdentifier,
 				})
@@ -91,6 +118,23 @@ describe('Update generator key command', () => {
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude("Property '.generatorKey' maxLength exceeded");
+		});
+
+		it('should return error if store key address does not exist', async () => {
+			const context = testing
+				.createTransactionContext({
+					transaction,
+					networkIdentifier,
+				})
+				.createCommandVerifyContext<UpdateGeneratorKeyParams>(
+					updateGeneratorKeyCommandParamsSchema,
+				);
+			const result = await updateGeneratorCommand.verify(context);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(
+				'Delegate substore must have an entry for the store key address',
+			);
 		});
 	});
 
