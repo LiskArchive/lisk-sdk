@@ -59,7 +59,7 @@ export class DPoSModule extends BaseModule {
 		if (!updateGeneratorKeyCommand) {
 			throw Error("'updateGeneratorKeyCommand' is missing from DPOS module");
 		}
-		updateGeneratorKeyCommand?.addDependencies(this._validatorsAPI);
+		updateGeneratorKeyCommand.addDependencies(this._validatorsAPI);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
