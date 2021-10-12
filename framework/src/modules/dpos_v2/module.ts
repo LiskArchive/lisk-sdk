@@ -55,6 +55,10 @@ export class DPoSModule extends BaseModule {
 		const updateGeneratorKeyCommand = this.commands.find(
 			command => command.id === COMMAND_ID_UPDATE_GENERATOR_KEY,
 		) as UpdateGeneratorKeyCommand;
+
+		if (!updateGeneratorKeyCommand) {
+			throw Error("'updateGeneratorKeyCommand' is missing from DPOS module");
+		}
 		updateGeneratorKeyCommand?.addDependencies(this._validatorsAPI);
 	}
 
