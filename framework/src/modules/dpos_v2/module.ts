@@ -54,10 +54,10 @@ export class DPoSModule extends BaseModule {
 		this._validatorsAPI = validatorsAPI;
 		const updateGeneratorKeyCommand = this.commands.find(
 			command => command.id === COMMAND_ID_UPDATE_GENERATOR_KEY,
-		) as UpdateGeneratorKeyCommand;
+		) as UpdateGeneratorKeyCommand | undefined;
 
 		if (!updateGeneratorKeyCommand) {
-			throw Error("'updateGeneratorKeyCommand' is missing from DPOS module");
+			throw Error("'updateGeneratorKeyCommand' is missing from DPoS module");
 		}
 		updateGeneratorKeyCommand.addDependencies(this._validatorsAPI);
 	}
