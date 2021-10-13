@@ -60,6 +60,7 @@ export const voterStoreSchema = {
 };
 
 export const delegateStoreSchema = {
+	$id: '/dpos/delegate',
 	type: 'object',
 	required: [
 		'name',
@@ -207,6 +208,8 @@ export const updateGeneratorKeyCommandParamsSchema = {
 		generatorKey: {
 			dataType: 'bytes',
 			fieldNumber: 1,
+			minLength: 32,
+			maxLength: 32,
 		},
 	},
 };

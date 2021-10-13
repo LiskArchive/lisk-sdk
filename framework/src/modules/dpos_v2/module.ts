@@ -24,7 +24,7 @@ import { ReportDelegateMisbehaviorCommand } from './commands/pom';
 import { UnlockCommand } from './commands/unlock';
 import { UpdateGeneratorKeyCommand } from './commands/update_generator_key';
 import { VoteCommand } from './commands/vote';
-import { MODULE_ID_DPOS } from './constants';
+import { MODULE_ID_DPOS, COMMAND_ID_UPDATE_GENERATOR_KEY } from './constants';
 import { DPoSEndpoint } from './endpoint';
 import { configSchema } from './schemas';
 import { BFTAPI, RandomAPI, ValidatorsAPI } from './types';
@@ -52,6 +52,14 @@ export class DPoSModule extends BaseModule {
 		this._bftAPI = bftAPI;
 		this._randomAPI = randomAPI;
 		this._validatorsAPI = validatorsAPI;
+		const updateGeneratorKeyCommand = this.commands.find(
+			command => command.id === COMMAND_ID_UPDATE_GENERATOR_KEY,
+		) as UpdateGeneratorKeyCommand | undefined;
+
+		if (!updateGeneratorKeyCommand) {
+			throw Error("'updateGeneratorKeyCommand' is missing from DPoS module");
+		}
+		updateGeneratorKeyCommand.addDependencies(this._validatorsAPI);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
