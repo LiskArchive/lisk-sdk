@@ -80,3 +80,37 @@ export interface DelegateAccount {
 	pomHeights: ReadonlyArray<number>;
 	consecutiveMissedBlocks: number;
 }
+
+export interface DelegateAccountJSON {
+	name: string;
+	totalVotesReceived: string;
+	selfVotes: string;
+	lastGeneratedHeight: number;
+	isBanned: boolean;
+	pomHeights: ReadonlyArray<number>;
+	consecutiveMissedBlocks: number;
+}
+
+export interface VoterData {
+	sentVotes: {
+		delegateAddress: Buffer;
+		amount: bigint;
+	}[];
+	pendingUnlocks: {
+		delegateAddress: Buffer;
+		amount: bigint;
+		unvoteHeight: number;
+	}[];
+}
+
+export interface VoterDataJSON {
+	sentVotes: {
+		delegateAddress: string;
+		amount: string;
+	}[];
+	pendingUnlocks: {
+		delegateAddress: string;
+		amount: string;
+		unvoteHeight: number;
+	}[];
+}

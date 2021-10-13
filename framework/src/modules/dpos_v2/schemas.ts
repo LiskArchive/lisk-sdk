@@ -13,6 +13,7 @@
  */
 
 export const voterStoreSchema = {
+	$id: '/dpos/voter',
 	type: 'object',
 	required: ['sentVotes', 'pendingUnlocks'],
 	properties: {
