@@ -59,6 +59,7 @@ export class DPoSModule extends BaseModule {
 		this._randomAPI = randomAPI;
 		this._validatorsAPI = validatorsAPI;
 		this._tokenAPI = tokenAPI;
+
 		const updateGeneratorKeyCommand = this.commands.find(
 			command => command.id === COMMAND_ID_UPDATE_GENERATOR_KEY,
 		) as UpdateGeneratorKeyCommand | undefined;
@@ -67,23 +68,23 @@ export class DPoSModule extends BaseModule {
 			throw Error("'updateGeneratorKeyCommand' is missing from DPoS module");
 		}
 		updateGeneratorKeyCommand.addDependencies(this._validatorsAPI);
+
+		const voteCommand = this.commands.find(command => command.id === COMMAND_ID_VOTE) as
+			| VoteCommand
+			| undefined;
+		if (!voteCommand) {
+			throw new Error("'voteCommand' is missing from DPoS module");
+		}
+		voteCommand.addDependencies({
+			tokenIDDPoS: this._moduleConfig.tokenIDDPoS,
+			tokenAPI: this._tokenAPI,
+		});
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs) {
 		const { moduleConfig } = args;
 		this._moduleConfig = (moduleConfig as unknown) as ModuleConfig;
-
-		const voteCommand = this.commands.find(command => command.id === COMMAND_ID_VOTE) as
-			| VoteCommand
-			| undefined;
-		if (!voteCommand) {
-			throw new Error('Vote command not found.');
-		}
-		voteCommand.addDependencies({
-			tokenIDDPoS: this._moduleConfig.tokenIDDPoS,
-			tokenAPI: this._tokenAPI,
-		});
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
