@@ -61,6 +61,16 @@ export interface ValidatorsAPI {
 	): Promise<boolean>;
 }
 
+export interface TokenAPI {
+	lock(
+		apiContext: APIContext,
+		address: Buffer,
+		moduleID: number,
+		tokenID: TokenIDDPoS,
+		amount: bigint,
+	): Promise<void>;
+}
+
 export interface UnlockingObject {
 	readonly delegateAddress: Buffer;
 	readonly amount: bigint;
@@ -91,18 +101,6 @@ export interface DelegateAccountJSON {
 	consecutiveMissedBlocks: number;
 }
 
-export interface VoterData {
-	sentVotes: {
-		delegateAddress: Buffer;
-		amount: bigint;
-	}[];
-	pendingUnlocks: {
-		delegateAddress: Buffer;
-		amount: bigint;
-		unvoteHeight: number;
-	}[];
-}
-
 export interface VoterDataJSON {
 	sentVotes: {
 		delegateAddress: string;
@@ -113,4 +111,26 @@ export interface VoterDataJSON {
 		amount: string;
 		unvoteHeight: number;
 	}[];
+}
+
+export interface VoteObject {
+	delegateAddress: Buffer;
+	amount: bigint;
+}
+export interface VoterData {
+	sentVotes: VoteObject[];
+	pendingUnlocks: UnlockingObject[];
+}
+
+export interface NameStore {
+	delegateAddress: Buffer;
+}
+
+export interface VoteTransactionParams {
+	votes: VoteObject[];
+}
+
+export interface VoteCommandDependencies {
+	tokenIDDPoS: TokenIDDPoS;
+	tokenAPI: TokenAPI;
 }

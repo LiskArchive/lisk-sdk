@@ -224,6 +224,8 @@ export const voteCommandParamsSchema = {
 		votes: {
 			type: 'array',
 			fieldNumber: 1,
+			minItems: 1,
+			maxItems: 20,
 			items: {
 				type: 'object',
 				required: ['delegateAddress', 'amount'],
@@ -231,6 +233,8 @@ export const voteCommandParamsSchema = {
 					delegateAddress: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						minLength: 20,
+						maxLength: 20,
 					},
 					amount: {
 						dataType: 'sint64',

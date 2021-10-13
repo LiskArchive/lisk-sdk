@@ -17,17 +17,17 @@ import {
 	BlockAfterExecuteContext,
 } from '../../node/state_machine/types';
 import { BaseModule, ModuleInitArgs } from '../base_module';
-import { ModuleConfig } from '../fee/types';
+import { ModuleConfig } from './types';
 import { DPoSAPI } from './api';
 import { DelegateRegistrationCommand } from './commands/delegate_registration';
 import { ReportDelegateMisbehaviorCommand } from './commands/pom';
 import { UnlockCommand } from './commands/unlock';
 import { UpdateGeneratorKeyCommand } from './commands/update_generator_key';
 import { VoteCommand } from './commands/vote';
-import { MODULE_ID_DPOS, COMMAND_ID_UPDATE_GENERATOR_KEY } from './constants';
+import { MODULE_ID_DPOS, COMMAND_ID_UPDATE_GENERATOR_KEY, COMMAND_ID_VOTE } from './constants';
 import { DPoSEndpoint } from './endpoint';
 import { configSchema } from './schemas';
-import { BFTAPI, RandomAPI, ValidatorsAPI } from './types';
+import { BFTAPI, RandomAPI, TokenAPI, ValidatorsAPI } from './types';
 
 export class DPoSModule extends BaseModule {
 	public id = MODULE_ID_DPOS;
@@ -46,12 +46,19 @@ export class DPoSModule extends BaseModule {
 	private _randomAPI!: RandomAPI;
 	private _bftAPI!: BFTAPI;
 	private _validatorsAPI!: ValidatorsAPI;
+	private _tokenAPI!: TokenAPI;
 	private _moduleConfig!: ModuleConfig;
 
-	public addDependencies(randomAPI: RandomAPI, bftAPI: BFTAPI, validatorsAPI: ValidatorsAPI) {
+	public addDependencies(
+		randomAPI: RandomAPI,
+		bftAPI: BFTAPI,
+		validatorsAPI: ValidatorsAPI,
+		tokenAPI: TokenAPI,
+	) {
 		this._bftAPI = bftAPI;
 		this._randomAPI = randomAPI;
 		this._validatorsAPI = validatorsAPI;
+		this._tokenAPI = tokenAPI;
 		const updateGeneratorKeyCommand = this.commands.find(
 			command => command.id === COMMAND_ID_UPDATE_GENERATOR_KEY,
 		) as UpdateGeneratorKeyCommand | undefined;
@@ -66,6 +73,17 @@ export class DPoSModule extends BaseModule {
 	public async init(args: ModuleInitArgs) {
 		const { moduleConfig } = args;
 		this._moduleConfig = (moduleConfig as unknown) as ModuleConfig;
+
+		const voteCommand = this.commands.find(command => command.id === COMMAND_ID_VOTE) as
+			| VoteCommand
+			| undefined;
+		if (!voteCommand) {
+			throw new Error('Vote command not found.');
+		}
+		voteCommand.addDependencies({
+			tokenIDDPoS: this._moduleConfig.tokenIDDPoS,
+			tokenAPI: this._tokenAPI,
+		});
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
