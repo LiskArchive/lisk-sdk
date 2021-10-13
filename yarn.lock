@@ -2528,18 +2528,6 @@
   optionalDependencies:
     sodium-native "2.4.6"
 
-"@liskhq/lisk-cryptography@^3.0.1", "@liskhq/lisk-cryptography@^3.0.2":
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/@liskhq/lisk-cryptography/-/lisk-cryptography-3.1.0.tgz#3c659f343dd218b5fb96e92ee5b5ad6705fb6ca9"
-  integrity sha512-/HrMH5px4/5s/qXtCDEvY/HX0F/OMvRAQcJUpVDjmyhWFMQL9hTHL0NA0PS3ZpQWQwOenR3K7iS0l0oF78/sVg==
-  dependencies:
-    buffer-reverse "1.0.1"
-    ed2curve "0.3.0"
-    tweetnacl "1.0.3"
-    varuint-bitcoin "1.1.2"
-  optionalDependencies:
-    sodium-native "3.2.1"
-
 "@liskhq/lisk-passphrase@3.0.0":
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@liskhq/lisk-passphrase/-/lisk-passphrase-3.0.0.tgz#14e5034446d28008a966b90e906bd5ca8ebee28e"
