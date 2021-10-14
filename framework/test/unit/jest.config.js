@@ -18,7 +18,7 @@ module.exports = {
 	...base,
 	testMatch: ['<rootDir>/test/unit/**/*.(spec|test).(js|ts)'],
 	testPathIgnorePatterns: [
-		'/node_modules|modules/dpos|modules/keys|modules/token|modules/sequence',
+		'/node_modules|modules/dpos(?!_v2)|modules/keys|modules/token|modules/sequence',
 	],
 	coverageDirectory: '.coverage/unit',
 	collectCoverageFrom: ['src/controller/**', 'src/application/**'],
