@@ -166,7 +166,7 @@ describe('transaction', () => {
 						.mockRejectedValue(new Error('endpoint does not exist') as never);
 					await expect(
 						transaction.create({ ...validTransaction, nonce: undefined }, passphrase1),
-					).rejects.toThrow('Unsupported application.');
+					).rejects.toThrow('Auth module is not registered or does not have "getAuthAccount"');
 				});
 			});
 

@@ -91,9 +91,7 @@ export class Transaction {
 				address: address.toString('hex'),
 			});
 		} catch (error) {
-			throw new Error(
-				'Unsupported application. Auth module does not have "getAuthAccount" endpoint.',
-			);
+			throw new Error('Auth module is not registered or does not have "getAuthAccount" endpoint.');
 		}
 
 		if (!txInput.moduleID) {

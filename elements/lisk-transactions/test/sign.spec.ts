@@ -32,7 +32,7 @@ interface MultiSignatureAsset {
 
 describe('sign', () => {
 	// Arrange
-	const validAssetSchema = {
+	const validParamsSchema = {
 		$id: 'lisk/transfer-transaction',
 		title: 'Transfer transaction params',
 		type: 'object',
@@ -117,35 +117,35 @@ describe('sign', () => {
 				{ ...validTransaction, senderPublicKey: 1 },
 			];
 			return invalidTransactionObjects.forEach(transactionObject =>
-				expect(() => getSigningBytes(validAssetSchema, transactionObject)).toThrow(),
+				expect(() => getSigningBytes(validParamsSchema, transactionObject)).toThrow(),
 			);
 		});
 
 		it('should throw error when params is null', () => {
 			return expect(() =>
-				getSigningBytes(validAssetSchema, { ...validTransaction, params: null }),
+				getSigningBytes(validParamsSchema, { ...validTransaction, params: null }),
 			).toThrow(new Error('Transaction object params must be of type object and not null'));
 		});
 
 		it('should throw error for invalid params object', () => {
-			const invalidAssets = [
+			const invalidParams = [
 				{ ...validTransaction, params: { ...validTransaction.params, amount: 1000 } },
 				{
 					...validTransaction,
 					params: { ...validTransaction.params, recipientAddress: 'dummyAddress' },
 				},
 			];
-			return invalidAssets.forEach(transactionObject =>
-				expect(() => getSigningBytes(validAssetSchema, transactionObject)).toThrow(),
+			return invalidParams.forEach(transactionObject =>
+				expect(() => getSigningBytes(validParamsSchema, transactionObject)).toThrow(),
 			);
 		});
 
 		it('should return transaction bytes for given params', () => {
-			const signingBytes = getSigningBytes(validAssetSchema, { ...validTransaction });
+			const signingBytes = getSigningBytes(validParamsSchema, { ...validTransaction });
 			expect(signingBytes).toMatchSnapshot();
 			const decodedTransaction = codec.decode<object>(baseTransactionSchema, signingBytes);
 			const decodedAsset = codec.decode<object>(
-				validAssetSchema,
+				validParamsSchema,
 				(decodedTransaction as any).params,
 			);
 			return expect({ ...decodedTransaction, params: { ...decodedAsset } }).toEqual({
@@ -158,13 +158,13 @@ describe('sign', () => {
 	describe('signTransaction', () => {
 		it('should throw error for invalid network identifier', () => {
 			expect(() =>
-				signTransaction(validAssetSchema, validTransaction, Buffer.alloc(0), passphrase1),
+				signTransaction(validParamsSchema, validTransaction, Buffer.alloc(0), passphrase1),
 			).toThrow('Network identifier is required to sign a transaction');
 		});
 
 		it('should throw error for invalid passphrase', () => {
 			expect(() =>
-				signTransaction(validAssetSchema, validTransaction, networkIdentifier, ''),
+				signTransaction(validParamsSchema, validTransaction, networkIdentifier, ''),
 			).toThrow('Passphrase is required to sign a transaction');
 		});
 
@@ -177,7 +177,7 @@ describe('sign', () => {
 			];
 			return invalidTransactionObjects.forEach(transactionObject =>
 				expect(() =>
-					signTransaction(validAssetSchema, transactionObject, networkIdentifier, passphrase1),
+					signTransaction(validParamsSchema, transactionObject, networkIdentifier, passphrase1),
 				).toThrow(),
 			);
 		});
@@ -185,7 +185,7 @@ describe('sign', () => {
 		it('should throw error when params is null', () => {
 			return expect(() =>
 				signTransaction(
-					validAssetSchema,
+					validParamsSchema,
 					{ ...validTransaction, params: null },
 					networkIdentifier,
 					passphrase1,
@@ -194,16 +194,16 @@ describe('sign', () => {
 		});
 
 		it('should throw error for invalid params object', () => {
-			const invalidAssets = [
+			const invalidParams = [
 				{ ...validTransaction, params: { ...validTransaction.params, amount: 1000 } },
 				{
 					...validTransaction,
 					params: { ...validTransaction.params, recipientAddress: 'dummyAddress' },
 				},
 			];
-			return invalidAssets.forEach(transactionObject =>
+			return invalidParams.forEach(transactionObject =>
 				expect(() =>
-					signTransaction(validAssetSchema, transactionObject, networkIdentifier, passphrase1),
+					signTransaction(validParamsSchema, transactionObject, networkIdentifier, passphrase1),
 				).toThrow(),
 			);
 		});
@@ -211,7 +211,7 @@ describe('sign', () => {
 		it('should throw error when transaction senderPublicKey does not match public key from passphrase', () => {
 			return expect(() =>
 				signTransaction(
-					validAssetSchema,
+					validParamsSchema,
 					validTransaction,
 					networkIdentifier,
 					'this is incorrect passphrase',
@@ -221,7 +221,7 @@ describe('sign', () => {
 
 		it('should return signed transaction for given params schema', () => {
 			const signedTransaction = signTransaction(
-				validAssetSchema,
+				validParamsSchema,
 				{ ...validTransaction },
 				networkIdentifier,
 				passphrase1,
@@ -236,7 +236,7 @@ describe('sign', () => {
 		it('should throw error for invalid network identifier', () => {
 			expect(() =>
 				signMultiSignatureTransaction(
-					validAssetSchema,
+					validParamsSchema,
 					{ ...validTransaction },
 					Buffer.alloc(0),
 					passphrase1,
@@ -248,7 +248,7 @@ describe('sign', () => {
 		it('should throw error for invalid passphrase', () => {
 			expect(() =>
 				signMultiSignatureTransaction(
-					validAssetSchema,
+					validParamsSchema,
 					{ ...validTransaction },
 					networkIdentifier,
 					'',
@@ -260,7 +260,7 @@ describe('sign', () => {
 		it('should throw error when signatures property is not an array', () => {
 			expect(() =>
 				signMultiSignatureTransaction(
-					validAssetSchema,
+					validParamsSchema,
 					{ ...validTransaction },
 					networkIdentifier,
 					passphrase1,
@@ -279,7 +279,7 @@ describe('sign', () => {
 			return invalidTransactionObjects.forEach(transactionObject =>
 				expect(() =>
 					signMultiSignatureTransaction(
-						validAssetSchema,
+						validParamsSchema,
 						transactionObject,
 						networkIdentifier,
 						passphrase1,
@@ -292,7 +292,7 @@ describe('sign', () => {
 		it('should throw error when params is null', () => {
 			return expect(() =>
 				signMultiSignatureTransaction(
-					validAssetSchema,
+					validParamsSchema,
 					{ ...validTransaction, signatures: [], params: null },
 					networkIdentifier,
 					passphrase1,
@@ -302,17 +302,17 @@ describe('sign', () => {
 		});
 
 		it('should throw error for invalid params object', () => {
-			const invalidAssets = [
+			const invalidParams = [
 				{ ...validTransaction, params: { ...validTransaction.params, amount: 1000 } },
 				{
 					...validTransaction,
 					params: { ...validTransaction.params, recipientAddress: 'dummyAddress' },
 				},
 			];
-			return invalidAssets.forEach(transactionObject =>
+			return invalidParams.forEach(transactionObject =>
 				expect(() =>
 					signMultiSignatureTransaction(
-						validAssetSchema,
+						validParamsSchema,
 						transactionObject,
 						networkIdentifier,
 						passphrase1,

@@ -22,9 +22,9 @@ export const getTransactionParamsSchema = (
 	registeredSchema: RegisteredSchemas,
 ): Schema => {
 	const txParamsSchema = registeredSchema.commands.find(
-		assetSchema =>
-			assetSchema.moduleID === transaction.moduleID &&
-			assetSchema.commandID === transaction.commandID,
+		paramsSchema =>
+			paramsSchema.moduleID === transaction.moduleID &&
+			paramsSchema.commandID === transaction.commandID,
 	);
 	if (!txParamsSchema) {
 		throw new Error(

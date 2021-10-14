@@ -78,14 +78,14 @@ describe('validateTransaction', () => {
 	});
 
 	it('should return error for invalid params property', () => {
-		const invalidParamss = [
+		const invalidParams = [
 			{ ...validTransaction, params: { ...validTransaction.params, amount: 1000 } },
 			{
 				...validTransaction,
 				params: { ...validTransaction.params, recipientAddress: 'dummyAddress' },
 			},
 		];
-		return invalidParamss.forEach(transactionObject =>
+		return invalidParams.forEach(transactionObject =>
 			expect(validateTransaction(validParamsSchema, transactionObject)).toBeInstanceOf(Error),
 		);
 	});
