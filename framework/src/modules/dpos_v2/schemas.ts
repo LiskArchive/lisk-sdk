@@ -106,6 +106,7 @@ export const delegateStoreSchema = {
 };
 
 export const nameStoreSchema = {
+	$id: '/dpos/name',
 	type: 'object',
 	required: ['delegateAddress'],
 	properties: {
