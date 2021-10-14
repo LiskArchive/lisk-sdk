@@ -15,7 +15,6 @@
 import { StateStore } from '@liskhq/lisk-chain';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
-import { DPoSModule } from '../../../../src/modules/dpos_v2';
 import { DPoSAPI } from '../../../../src/modules/dpos_v2/api';
 import {
 	MODULE_ID_DPOS,
@@ -33,7 +32,6 @@ import { EventQueue } from '../../../../src/node/state_machine';
 
 describe('DposModuleApi', () => {
 	let dposAPI: DPoSAPI;
-	let dposModule: DPoSModule;
 	let apiContext: APIContext;
 	let stateStore: StateStore;
 	let voterSubStore: StateStore;
@@ -67,11 +65,10 @@ describe('DposModuleApi', () => {
 	};
 
 	beforeAll(async () => {
-		dposModule = new DPoSModule();
+		dposAPI = new DPoSAPI(MODULE_ID_DPOS);
 	});
 
 	beforeEach(() => {
-		dposAPI = new DPoSAPI(MODULE_ID_DPOS);
 		stateStore = new StateStore(new InMemoryKVStore());
 		voterSubStore = stateStore.getStore(dposAPI['moduleID'], STORE_PREFIX_VOTER);
 		delegateSubStore = stateStore.getStore(dposAPI['moduleID'], STORE_PREFIX_DELEGATE);
@@ -81,15 +78,9 @@ describe('DposModuleApi', () => {
 	describe('isNameAvailable', () => {
 		describe('when name already exists', () => {
 			it('should return false', async () => {
-				await nameSubStore.setWithSchema(
-					Buffer.from(delegateData.name, 'hex'),
-					{},
-					nameStoreSchema,
-				);
+				await nameSubStore.setWithSchema(Buffer.from(delegateData.name), {}, nameStoreSchema);
 				apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
-				await expect(
-					dposModule.api.isNameAvailable(apiContext, delegateData.name),
-				).resolves.toBeFalse();
+				await expect(dposAPI.isNameAvailable(apiContext, delegateData.name)).resolves.toBeFalse();
 			});
 		});
 
@@ -97,7 +88,7 @@ describe('DposModuleApi', () => {
 			it('should return false', async () => {
 				apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 				await expect(
-					dposModule.api.isNameAvailable(
+					dposAPI.isNameAvailable(
 						apiContext,
 						'nnwkfnwkfnkwrnfkrnfeknekerfnkjenejnfekfnekfnjkdnwknw',
 					),
@@ -108,7 +99,7 @@ describe('DposModuleApi', () => {
 		describe('when name does not exist and has length less than 1', () => {
 			it('should return false', async () => {
 				apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
-				await expect(dposModule.api.isNameAvailable(apiContext, '')).resolves.toBeFalse();
+				await expect(dposAPI.isNameAvailable(apiContext, '')).resolves.toBeFalse();
 			});
 		});
 
@@ -116,7 +107,7 @@ describe('DposModuleApi', () => {
 			it('should return false', async () => {
 				apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 				await expect(
-					dposModule.api.isNameAvailable(apiContext, 'Ajldnfdf-_.dv$%&^#'),
+					dposAPI.isNameAvailable(apiContext, 'Ajldnfdf-_.dv$%&^#'),
 				).resolves.toBeFalse();
 			});
 		});
@@ -125,7 +116,7 @@ describe('DposModuleApi', () => {
 			it('should return true', async () => {
 				apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 				await expect(
-					dposModule.api.isNameAvailable(apiContext, 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.'),
+					dposAPI.isNameAvailable(apiContext, 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.'),
 				).resolves.toBeFalse();
 			});
 		});
@@ -136,7 +127,7 @@ describe('DposModuleApi', () => {
 			it('should return correct voter data corresponding to the input address', async () => {
 				await voterSubStore.setWithSchema(address, voterData, voterStoreSchema);
 				apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
-				const voterDataReturned = await dposModule.api.getVoter(apiContext, address);
+				const voterDataReturned = await dposAPI.getVoter(apiContext, address);
 
 				expect(
 					voterDataReturned.sentVotes[0].delegateAddress.equals(
@@ -162,7 +153,7 @@ describe('DposModuleApi', () => {
 			it('should return correct delegate data corresponding to the input address', async () => {
 				await delegateSubStore.setWithSchema(address, delegateData, delegateStoreSchema);
 				apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
-				const delegateDataReturned = await dposModule.api.getDelegate(apiContext, address);
+				const delegateDataReturned = await dposAPI.getDelegate(apiContext, address);
 
 				expect(delegateDataReturned.name).toBe(delegateData.name);
 				expect(delegateDataReturned.totalVotesReceived).toBe(delegateData.totalVotesReceived);

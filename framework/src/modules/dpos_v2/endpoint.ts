@@ -14,39 +14,47 @@
 
 import { ModuleEndpointContext } from '../..';
 import { BaseEndpoint } from '../base_endpoint';
-import { MODULE_ID_DPOS, STORE_PREFIX_DELEGATE, STORE_PREFIX_VOTER } from './constants';
+import { STORE_PREFIX_DELEGATE, STORE_PREFIX_VOTER } from './constants';
 import { voterStoreSchema, delegateStoreSchema } from './schemas';
 import { DelegateAccount, DelegateAccountJSON, VoterData, VoterDataJSON } from './types';
 
 export class DPoSEndpoint extends BaseEndpoint {
 	public async getVoter(ctx: ModuleEndpointContext): Promise<VoterDataJSON> {
-		const voterSubStore = ctx.getStore(MODULE_ID_DPOS, STORE_PREFIX_VOTER);
-		const address = ctx.params.address as string;
+		const voterSubStore = ctx.getStore(this.moduleID, STORE_PREFIX_VOTER);
+		const { address } = ctx.params;
+		if (typeof address !== 'string') {
+			throw new Error('Parameter address must be a string.');
+		}
 		const voterData = await voterSubStore.getWithSchema<VoterData>(
 			Buffer.from(address, 'hex'),
 			voterStoreSchema,
 		);
 		const voterDataJSON = { sentVotes: [], pendingUnlocks: [] } as VoterDataJSON;
-		voterData.sentVotes.map(sentVote =>
+
+		for (const sentVote of voterData.sentVotes) {
 			voterDataJSON.sentVotes.push({
 				delegateAddress: sentVote.delegateAddress.toString('hex'),
 				amount: sentVote.amount.toString(),
-			}),
-		);
-		voterData.pendingUnlocks.map(pendingUnlock =>
+			});
+		}
+
+		for (const pendingUnlock of voterData.pendingUnlocks) {
 			voterDataJSON.pendingUnlocks.push({
 				...pendingUnlock,
 				delegateAddress: pendingUnlock.delegateAddress.toString('hex'),
 				amount: pendingUnlock.amount.toString(),
-			}),
-		);
+			});
+		}
 
 		return voterDataJSON;
 	}
 
 	public async getDelegate(ctx: ModuleEndpointContext): Promise<DelegateAccountJSON> {
-		const delegateSubStore = ctx.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
-		const address = ctx.params.address as string;
+		const delegateSubStore = ctx.getStore(this.moduleID, STORE_PREFIX_DELEGATE);
+		const { address } = ctx.params;
+		if (typeof address !== 'string') {
+			throw new Error('Parameter address must be a string.');
+		}
 		const delegate = await delegateSubStore.getWithSchema<DelegateAccount>(
 			Buffer.from(address, 'hex'),
 			delegateStoreSchema,
@@ -60,10 +68,9 @@ export class DPoSEndpoint extends BaseEndpoint {
 	}
 
 	public async getAllDelegates(ctx: ModuleEndpointContext): Promise<DelegateAccountJSON[]> {
-		const delegateSubStore = ctx.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
+		const delegateSubStore = ctx.getStore(this.moduleID, STORE_PREFIX_DELEGATE);
 		const startBuf = Buffer.alloc(20);
-		const endBuf = Buffer.alloc(20);
-		endBuf.fill(255);
+		const endBuf = Buffer.alloc(20, 255);
 		const storeData = await delegateSubStore.iterate({ start: startBuf, end: endBuf });
 
 		const response = [];

@@ -16,18 +16,19 @@ import { StateStore } from '@liskhq/lisk-chain';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { Logger } from '../../../../src/logger';
-import { DPoSModule } from '../../../../src/modules/dpos_v2';
 import {
 	MODULE_ID_DPOS,
 	STORE_PREFIX_DELEGATE,
 	STORE_PREFIX_VOTER,
 } from '../../../../src/modules/dpos_v2/constants';
+import { DPoSEndpoint } from '../../../../src/modules/dpos_v2/endpoint';
 import { delegateStoreSchema, voterStoreSchema } from '../../../../src/modules/dpos_v2/schemas';
+import { VoterDataJSON } from '../../../../src/modules/dpos_v2/types';
 import { fakeLogger } from '../../../utils/node';
 
 describe('DposModuleEndpoint', () => {
 	const logger: Logger = fakeLogger;
-	let dposModule: DPoSModule;
+	let dposEndpoint: DPoSEndpoint;
 	let stateStore: StateStore;
 	let voterSubStore: StateStore;
 	let delegateSubStore: StateStore;
@@ -62,13 +63,13 @@ describe('DposModuleEndpoint', () => {
 	};
 
 	beforeAll(async () => {
-		dposModule = new DPoSModule();
+		dposEndpoint = new DPoSEndpoint(MODULE_ID_DPOS);
 	});
 
 	beforeEach(() => {
 		stateStore = new StateStore(new InMemoryKVStore());
-		voterSubStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_VOTER);
-		delegateSubStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
+		voterSubStore = stateStore.getStore(dposEndpoint['moduleID'], STORE_PREFIX_VOTER);
+		delegateSubStore = stateStore.getStore(dposEndpoint['moduleID'], STORE_PREFIX_DELEGATE);
 	});
 
 	describe('getVoter', () => {
@@ -76,7 +77,7 @@ describe('DposModuleEndpoint', () => {
 			it('should return correct voter data corresponding to the input address', async () => {
 				await voterSubStore.setWithSchema(address, voterData, voterStoreSchema);
 				getStore1.mockReturnValue(voterSubStore);
-				const voterDataReturned = await dposModule.endpoint.getVoter({
+				const voterDataReturned = await dposEndpoint.getVoter({
 					getStore: getStore1,
 					logger,
 					params: {
@@ -85,27 +86,30 @@ describe('DposModuleEndpoint', () => {
 					networkIdentifier,
 				});
 
-				expect(voterDataReturned.sentVotes[0].delegateAddress).toBe(
-					voterData.sentVotes[0].delegateAddress.toString('hex'),
-				);
-				expect(voterDataReturned.sentVotes[0].amount).toBe(
-					voterData.sentVotes[0].amount.toString(),
-				);
-				expect(voterDataReturned.pendingUnlocks[0].delegateAddress).toBe(
-					voterData.pendingUnlocks[0].delegateAddress.toString('hex'),
-				);
-				expect(voterDataReturned.pendingUnlocks[0].amount).toBe(
-					voterData.pendingUnlocks[0].amount.toString(),
-				);
-				expect(voterDataReturned.pendingUnlocks[0].unvoteHeight).toBe(
-					voterData.pendingUnlocks[0].unvoteHeight,
-				);
+				const voterDataJSON = { sentVotes: [], pendingUnlocks: [] } as VoterDataJSON;
+
+				for (const sentVote of voterData.sentVotes) {
+					voterDataJSON.sentVotes.push({
+						delegateAddress: sentVote.delegateAddress.toString('hex'),
+						amount: sentVote.amount.toString(),
+					});
+				}
+
+				for (const pendingUnlock of voterData.pendingUnlocks) {
+					voterDataJSON.pendingUnlocks.push({
+						...pendingUnlock,
+						delegateAddress: pendingUnlock.delegateAddress.toString('hex'),
+						amount: pendingUnlock.amount.toString(),
+					});
+				}
+
+				expect(voterDataReturned).toStrictEqual(voterDataJSON);
 			});
 
 			it('should return valid JSON output', async () => {
 				await voterSubStore.setWithSchema(address, voterData, voterStoreSchema);
 				getStore1.mockReturnValue(voterSubStore);
-				const voterDataReturned = await dposModule.endpoint.getVoter({
+				const voterDataReturned = await dposEndpoint.getVoter({
 					getStore: getStore1,
 					logger,
 					params: {
@@ -128,7 +132,7 @@ describe('DposModuleEndpoint', () => {
 			it('should return correct delegate data corresponding to the input address', async () => {
 				await delegateSubStore.setWithSchema(address, delegateData, delegateStoreSchema);
 				getStore1.mockReturnValue(delegateSubStore);
-				const delegateDataReturned = await dposModule.endpoint.getDelegate({
+				const delegateDataReturned = await dposEndpoint.getDelegate({
 					getStore: getStore1,
 					logger,
 					params: {
@@ -137,23 +141,19 @@ describe('DposModuleEndpoint', () => {
 					networkIdentifier,
 				});
 
-				expect(delegateDataReturned.name).toBe(delegateData.name);
-				expect(delegateDataReturned.totalVotesReceived).toBe(
-					delegateData.totalVotesReceived.toString(),
-				);
-				expect(delegateDataReturned.selfVotes).toBe(delegateData.selfVotes.toString());
-				expect(delegateDataReturned.lastGeneratedHeight).toBe(delegateData.lastGeneratedHeight);
-				expect(delegateDataReturned.isBanned).toBe(delegateData.isBanned);
-				expect(delegateDataReturned.pomHeights).toStrictEqual(delegateData.pomHeights);
-				expect(delegateDataReturned.consecutiveMissedBlocks).toBe(
-					delegateData.consecutiveMissedBlocks,
-				);
+				const delegateDataJSON = {
+					...delegateData,
+					totalVotesReceived: delegateData.totalVotesReceived.toString(),
+					selfVotes: delegateData.selfVotes.toString(),
+				};
+
+				expect(delegateDataReturned).toStrictEqual(delegateDataJSON);
 			});
 
 			it('should return valid JSON output', async () => {
 				await delegateSubStore.setWithSchema(address, delegateData, delegateStoreSchema);
 				getStore1.mockReturnValue(delegateSubStore);
-				const delegateDataReturned = await dposModule.endpoint.getDelegate({
+				const delegateDataReturned = await dposEndpoint.getDelegate({
 					getStore: getStore1,
 					logger,
 					params: {
@@ -174,7 +174,7 @@ describe('DposModuleEndpoint', () => {
 				await delegateSubStore.setWithSchema(address, delegateData, delegateStoreSchema);
 				await delegateSubStore.setWithSchema(address1, delegateData, delegateStoreSchema);
 				getStore1.mockReturnValue(delegateSubStore);
-				const delegatesDataReturned = await dposModule.endpoint.getAllDelegates({
+				const delegatesDataReturned = await dposEndpoint.getAllDelegates({
 					getStore: getStore1,
 					logger,
 					params: {},
@@ -209,7 +209,7 @@ describe('DposModuleEndpoint', () => {
 				await delegateSubStore.setWithSchema(address, delegateData, delegateStoreSchema);
 				await delegateSubStore.setWithSchema(address1, delegateData, delegateStoreSchema);
 				getStore1.mockReturnValue(delegateSubStore);
-				const delegatesDataReturned = await dposModule.endpoint.getAllDelegates({
+				const delegatesDataReturned = await dposEndpoint.getAllDelegates({
 					getStore: getStore1,
 					logger,
 					params: {},
