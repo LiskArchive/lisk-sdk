@@ -29,7 +29,7 @@ export const getTransactionParamsSchema = (
 	if (!txParamsSchema) {
 		throw new Error(
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			`ModuleID: ${transaction.moduleID} AssetID: ${transaction.commandID} is not registered.`,
+			`ModuleID: ${transaction.moduleID} CommandID: ${transaction.commandID} is not registered.`,
 		);
 	}
 	return txParamsSchema.schema;
