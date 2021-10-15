@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
 import { ModuleEndpointContext } from '../..';
 import { BaseEndpoint } from '../base_endpoint';
 import { STORE_PREFIX_DELEGATE, STORE_PREFIX_VOTER } from './constants';
@@ -29,24 +30,8 @@ export class DPoSEndpoint extends BaseEndpoint {
 			Buffer.from(address, 'hex'),
 			voterStoreSchema,
 		);
-		const voterDataJSON = { sentVotes: [], pendingUnlocks: [] } as VoterDataJSON;
 
-		for (const sentVote of voterData.sentVotes) {
-			voterDataJSON.sentVotes.push({
-				delegateAddress: sentVote.delegateAddress.toString('hex'),
-				amount: sentVote.amount.toString(),
-			});
-		}
-
-		for (const pendingUnlock of voterData.pendingUnlocks) {
-			voterDataJSON.pendingUnlocks.push({
-				...pendingUnlock,
-				delegateAddress: pendingUnlock.delegateAddress.toString('hex'),
-				amount: pendingUnlock.amount.toString(),
-			});
-		}
-
-		return voterDataJSON;
+		return codec.toJSON(voterStoreSchema, voterData);
 	}
 
 	public async getDelegate(ctx: ModuleEndpointContext): Promise<DelegateAccountJSON> {

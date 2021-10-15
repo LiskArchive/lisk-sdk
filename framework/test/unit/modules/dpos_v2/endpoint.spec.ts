@@ -15,6 +15,7 @@
 import { StateStore } from '@liskhq/lisk-chain';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { codec } from '@liskhq/lisk-codec';
 import { Logger } from '../../../../src/logger';
 import {
 	MODULE_ID_DPOS,
@@ -23,7 +24,6 @@ import {
 } from '../../../../src/modules/dpos_v2/constants';
 import { DPoSEndpoint } from '../../../../src/modules/dpos_v2/endpoint';
 import { delegateStoreSchema, voterStoreSchema } from '../../../../src/modules/dpos_v2/schemas';
-import { VoterDataJSON } from '../../../../src/modules/dpos_v2/types';
 import { fakeLogger } from '../../../utils/node';
 
 describe('DposModuleEndpoint', () => {
@@ -32,20 +32,21 @@ describe('DposModuleEndpoint', () => {
 	let stateStore: StateStore;
 	let voterSubStore: StateStore;
 	let delegateSubStore: StateStore;
-	const address = getRandomBytes(48);
-	const address1 = getRandomBytes(48);
+	const address = getRandomBytes(20);
+	const address1 = getRandomBytes(20);
+	const address2 = getRandomBytes(20);
 	const getStore1 = jest.fn();
 	const networkIdentifier = Buffer.alloc(0);
 	const voterData = {
 		sentVotes: [
 			{
-				delegateAddress: getRandomBytes(48),
+				delegateAddress: getRandomBytes(20),
 				amount: BigInt(0),
 			},
 		],
 		pendingUnlocks: [
 			{
-				delegateAddress: getRandomBytes(48),
+				delegateAddress: getRandomBytes(20),
 				amount: BigInt(0),
 				unvoteHeight: 0,
 			},
@@ -62,11 +63,8 @@ describe('DposModuleEndpoint', () => {
 		consecutiveMissedBlocks: 0,
 	};
 
-	beforeAll(async () => {
-		dposEndpoint = new DPoSEndpoint(MODULE_ID_DPOS);
-	});
-
 	beforeEach(() => {
+		dposEndpoint = new DPoSEndpoint(MODULE_ID_DPOS);
 		stateStore = new StateStore(new InMemoryKVStore());
 		voterSubStore = stateStore.getStore(dposEndpoint['moduleID'], STORE_PREFIX_VOTER);
 		delegateSubStore = stateStore.getStore(dposEndpoint['moduleID'], STORE_PREFIX_DELEGATE);
@@ -86,24 +84,7 @@ describe('DposModuleEndpoint', () => {
 					networkIdentifier,
 				});
 
-				const voterDataJSON = { sentVotes: [], pendingUnlocks: [] } as VoterDataJSON;
-
-				for (const sentVote of voterData.sentVotes) {
-					voterDataJSON.sentVotes.push({
-						delegateAddress: sentVote.delegateAddress.toString('hex'),
-						amount: sentVote.amount.toString(),
-					});
-				}
-
-				for (const pendingUnlock of voterData.pendingUnlocks) {
-					voterDataJSON.pendingUnlocks.push({
-						...pendingUnlock,
-						delegateAddress: pendingUnlock.delegateAddress.toString('hex'),
-						amount: pendingUnlock.amount.toString(),
-					});
-				}
-
-				expect(voterDataReturned).toStrictEqual(voterDataJSON);
+				expect(voterDataReturned).toStrictEqual(codec.toJSON(voterStoreSchema, voterData));
 			});
 
 			it('should return valid JSON output', async () => {
@@ -122,7 +103,6 @@ describe('DposModuleEndpoint', () => {
 				expect(voterDataReturned.sentVotes[0].amount).toBeString();
 				expect(voterDataReturned.pendingUnlocks[0].delegateAddress).toBeString();
 				expect(voterDataReturned.pendingUnlocks[0].amount).toBeString();
-				expect(voterDataReturned.pendingUnlocks[0].unvoteHeight).toBeNumber();
 			});
 		});
 	});
@@ -171,8 +151,8 @@ describe('DposModuleEndpoint', () => {
 	describe('getAllDelegates', () => {
 		describe('when input address is valid', () => {
 			it('should return correct data for all delegates', async () => {
-				await delegateSubStore.setWithSchema(address, delegateData, delegateStoreSchema);
 				await delegateSubStore.setWithSchema(address1, delegateData, delegateStoreSchema);
+				await delegateSubStore.setWithSchema(address2, delegateData, delegateStoreSchema);
 				getStore1.mockReturnValue(delegateSubStore);
 				const delegatesDataReturned = await dposEndpoint.getAllDelegates({
 					getStore: getStore1,
@@ -181,27 +161,11 @@ describe('DposModuleEndpoint', () => {
 					networkIdentifier,
 				});
 
-				expect(delegatesDataReturned[0].name).toBe(delegateData.name);
-				expect(delegatesDataReturned[0].totalVotesReceived).toBe(
-					delegateData.totalVotesReceived.toString(),
+				expect(delegatesDataReturned[0]).toStrictEqual(
+					codec.toJSON(delegateStoreSchema, delegateData),
 				);
-				expect(delegatesDataReturned[0].selfVotes).toBe(delegateData.selfVotes.toString());
-				expect(delegatesDataReturned[0].lastGeneratedHeight).toBe(delegateData.lastGeneratedHeight);
-				expect(delegatesDataReturned[0].isBanned).toBe(delegateData.isBanned);
-				expect(delegatesDataReturned[0].pomHeights).toStrictEqual(delegateData.pomHeights);
-				expect(delegatesDataReturned[0].consecutiveMissedBlocks).toBe(
-					delegateData.consecutiveMissedBlocks,
-				);
-				expect(delegatesDataReturned[1].name).toBe(delegateData.name);
-				expect(delegatesDataReturned[1].totalVotesReceived).toBe(
-					delegateData.totalVotesReceived.toString(),
-				);
-				expect(delegatesDataReturned[1].selfVotes).toBe(delegateData.selfVotes.toString());
-				expect(delegatesDataReturned[1].lastGeneratedHeight).toBe(delegateData.lastGeneratedHeight);
-				expect(delegatesDataReturned[1].isBanned).toBe(delegateData.isBanned);
-				expect(delegatesDataReturned[1].pomHeights).toStrictEqual(delegateData.pomHeights);
-				expect(delegatesDataReturned[1].consecutiveMissedBlocks).toBe(
-					delegateData.consecutiveMissedBlocks,
+				expect(delegatesDataReturned[1]).toStrictEqual(
+					codec.toJSON(delegateStoreSchema, delegateData),
 				);
 			});
 

@@ -37,17 +37,17 @@ describe('DposModuleApi', () => {
 	let voterSubStore: StateStore;
 	let delegateSubStore: StateStore;
 	let nameSubStore: StateStore;
-	const address = getRandomBytes(48);
+	const address = getRandomBytes(20);
 	const voterData = {
 		sentVotes: [
 			{
-				delegateAddress: getRandomBytes(48),
+				delegateAddress: getRandomBytes(20),
 				amount: BigInt(0),
 			},
 		],
 		pendingUnlocks: [
 			{
-				delegateAddress: getRandomBytes(48),
+				delegateAddress: getRandomBytes(20),
 				amount: BigInt(0),
 				unvoteHeight: 0,
 			},
@@ -64,11 +64,8 @@ describe('DposModuleApi', () => {
 		consecutiveMissedBlocks: 0,
 	};
 
-	beforeAll(async () => {
-		dposAPI = new DPoSAPI(MODULE_ID_DPOS);
-	});
-
 	beforeEach(() => {
+		dposAPI = new DPoSAPI(MODULE_ID_DPOS);
 		stateStore = new StateStore(new InMemoryKVStore());
 		voterSubStore = stateStore.getStore(dposAPI['moduleID'], STORE_PREFIX_VOTER);
 		delegateSubStore = stateStore.getStore(dposAPI['moduleID'], STORE_PREFIX_DELEGATE);
@@ -129,21 +126,7 @@ describe('DposModuleApi', () => {
 				apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 				const voterDataReturned = await dposAPI.getVoter(apiContext, address);
 
-				expect(
-					voterDataReturned.sentVotes[0].delegateAddress.equals(
-						voterData.sentVotes[0].delegateAddress,
-					),
-				).toBeTrue();
-				expect(voterDataReturned.sentVotes[0].amount).toBe(voterData.sentVotes[0].amount);
-				expect(
-					voterDataReturned.pendingUnlocks[0].delegateAddress.equals(
-						voterData.pendingUnlocks[0].delegateAddress,
-					),
-				).toBeTrue();
-				expect(voterDataReturned.pendingUnlocks[0].amount).toBe(voterData.pendingUnlocks[0].amount);
-				expect(voterDataReturned.pendingUnlocks[0].unvoteHeight).toBe(
-					voterData.pendingUnlocks[0].unvoteHeight,
-				);
+				expect(voterDataReturned).toStrictEqual(voterData);
 			});
 		});
 	});
@@ -155,15 +138,7 @@ describe('DposModuleApi', () => {
 				apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 				const delegateDataReturned = await dposAPI.getDelegate(apiContext, address);
 
-				expect(delegateDataReturned.name).toBe(delegateData.name);
-				expect(delegateDataReturned.totalVotesReceived).toBe(delegateData.totalVotesReceived);
-				expect(delegateDataReturned.selfVotes).toBe(delegateData.selfVotes);
-				expect(delegateDataReturned.lastGeneratedHeight).toBe(delegateData.lastGeneratedHeight);
-				expect(delegateDataReturned.isBanned).toBe(delegateData.isBanned);
-				expect(delegateDataReturned.pomHeights).toStrictEqual(delegateData.pomHeights);
-				expect(delegateDataReturned.consecutiveMissedBlocks).toBe(
-					delegateData.consecutiveMissedBlocks,
-				);
+				expect(delegateDataReturned).toStrictEqual(delegateData);
 			});
 		});
 	});

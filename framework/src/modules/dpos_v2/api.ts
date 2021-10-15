@@ -22,17 +22,17 @@ import {
 } from './constants';
 import { voterStoreSchema, delegateStoreSchema } from './schemas';
 import { DelegateAccount, VoterData } from './types';
+import { isUsername } from './utils';
 
 export class DPoSAPI extends BaseAPI {
 	public async isNameAvailable(apiContext: ImmutableAPIContext, name: string): Promise<boolean> {
 		const nameSubStore = apiContext.getStore(this.moduleID, STORE_PREFIX_NAME);
-		const regex = /^[a-z=0-9!@$&_.]*$/;
-		if (
-			(await nameSubStore.has(Buffer.from(name))) ||
-			name.length > MAX_LENGTH_NAME ||
-			name.length < 1 ||
-			!regex.test(name)
-		) {
+		if (name.length > MAX_LENGTH_NAME || name.length < 1 || !isUsername(name)) {
+			return false;
+		}
+
+		const isRegistered = await nameSubStore.has(Buffer.from(name));
+		if (isRegistered) {
 			return false;
 		}
 
