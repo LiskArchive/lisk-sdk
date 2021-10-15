@@ -77,8 +77,8 @@ export const schema = {
 			commandID: 0,
 			commandName: 'transfer',
 			schema: {
-				$id: 'lisk/transfer-asset',
-				title: 'Transfer transaction asset',
+				$id: 'lisk/transfer-params',
+				title: 'Transfer transaction params',
 				type: 'object',
 				required: ['amount', 'recipientAddress', 'data'],
 				properties: {
