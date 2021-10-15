@@ -38,46 +38,46 @@ describe('node', () => {
 		});
 
 		describe('getNodeInfo', () => {
-			it('should invoke app:getNodeInfo', async () => {
+			it('should invoke app_getNodeInfo', async () => {
 				// Act
 				await node.getNodeInfo();
 
 				// Assert
 				expect(channel.invoke).toHaveBeenCalledTimes(1);
-				expect(channel.invoke).toHaveBeenCalledWith('app:getNodeInfo');
+				expect(channel.invoke).toHaveBeenCalledWith('app_getNodeInfo');
 			});
 		});
 
 		describe('getNetworkStats', () => {
-			it('should invoke app:getNetworkStats', async () => {
+			it('should invoke app_getNetworkStats', async () => {
 				// Act
 				await node.getNetworkStats();
 
 				// Assert
 				expect(channel.invoke).toHaveBeenCalledTimes(1);
-				expect(channel.invoke).toHaveBeenCalledWith('app:getNetworkStats');
+				expect(channel.invoke).toHaveBeenCalledWith('app_getNetworkStats');
 			});
 		});
 
 		describe('getConnectedPeers', () => {
-			it('should invoke app:getConnectedPeers', async () => {
+			it('should invoke app_getConnectedPeers', async () => {
 				// Act
 				await node.getConnectedPeers();
 
 				// Assert
 				expect(channel.invoke).toHaveBeenCalledTimes(1);
-				expect(channel.invoke).toHaveBeenCalledWith('app:getConnectedPeers');
+				expect(channel.invoke).toHaveBeenCalledWith('app_getConnectedPeers');
 			});
 		});
 
 		describe('getDisconnectedPeers', () => {
-			it('should invoke app:getDisconnectedPeers', async () => {
+			it('should invoke app_getDisconnectedPeers', async () => {
 				// Act
 				await node.getDisconnectedPeers();
 
 				// Assert
 				expect(channel.invoke).toHaveBeenCalledTimes(1);
-				expect(channel.invoke).toHaveBeenCalledWith('app:getDisconnectedPeers');
+				expect(channel.invoke).toHaveBeenCalledWith('app_getDisconnectedPeers');
 			});
 		});
 	});
