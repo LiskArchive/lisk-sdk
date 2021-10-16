@@ -150,18 +150,10 @@ export class VoteCommand extends BaseCommand {
 		for (const vote of votes) {
 			const voterData = await getVoterOrDefault(voterStore, senderAddress);
 
-			let delegateData;
-
-			try {
-				delegateData = await delegateStore.getWithSchema<DelegateAccount>(
-					vote.delegateAddress,
-					delegateStoreSchema,
-				);
-			} catch {
-				throw new Error(
-					`Voted delegate address ${vote.delegateAddress.toString('hex')} is not registered.`,
-				);
-			}
+			const delegateData = await delegateStore.getWithSchema<DelegateAccount>(
+				vote.delegateAddress,
+				delegateStoreSchema,
+			);
 
 			if (vote.amount < BigInt(0)) {
 				// unvote
