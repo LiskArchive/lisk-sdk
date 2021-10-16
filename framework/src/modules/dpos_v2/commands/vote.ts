@@ -14,7 +14,8 @@
 
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { dataStructures } from '@liskhq/lisk-utils';
-import { ValidationError } from '../../../errors';
+import { validator } from '@liskhq/lisk-validator';
+import { AggregateValidationError, ValidationError } from '../../../errors';
 import {
 	CommandVerifyContext,
 	VerificationResult,
@@ -60,6 +61,15 @@ export class VoteCommand extends BaseCommand {
 		const {
 			params: { votes },
 		} = context;
+
+		const validationErrors = validator.validate(this.schema, context.params);
+
+		if (validationErrors.length > 0) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new AggregateValidationError('Parameter is not valid.', validationErrors),
+			};
+		}
 
 		let upvoteCount = 0;
 		let downvoteCount = 0;

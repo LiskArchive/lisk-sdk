@@ -142,12 +142,23 @@ describe('VoteCommand', () => {
 					transactionParamsDecoded = {
 						votes: [],
 					};
+
+					transactionParams = codec.encode(command.schema, transactionParamsDecoded);
+
+					transaction.params = transactionParams;
+
+					context = createTransactionContext({
+						transaction,
+						stateStore,
+					}).createCommandExecuteContext<VoteTransactionParams>(command.schema);
 				});
 
-				it('should return errors', () => {
-					const errors = validator.validate(command.schema, transactionParamsDecoded);
-					expect(errors).toHaveLength(1);
-					expect(errors[0].message).toInclude('must NOT have fewer than 1 items');
+				it('should return errors', async () => {
+					const verificationResult = await command.verify(context);
+					expect((verificationResult.error as any).value).toHaveLength(1);
+					expect((verificationResult.error as any).value[0].message).toInclude(
+						'must NOT have fewer than 1 items',
+					);
 				});
 			});
 
@@ -158,12 +169,23 @@ describe('VoteCommand', () => {
 							.fill(0)
 							.map(() => ({ delegateAddress: getRandomBytes(20), amount: liskToBeddows(0) })),
 					};
+
+					transactionParams = codec.encode(command.schema, transactionParamsDecoded);
+
+					transaction.params = transactionParams;
+
+					context = createTransactionContext({
+						transaction,
+						stateStore,
+					}).createCommandExecuteContext<VoteTransactionParams>(command.schema);
 				});
 
-				it('should return errors', () => {
-					const errors = validator.validate(command.schema, transactionParamsDecoded);
-					expect(errors).toHaveLength(1);
-					expect(errors[0].message).toInclude('must NOT have more than 20 items');
+				it('should return errors', async () => {
+					const verificationResult = await command.verify(context);
+					expect((verificationResult.error as any).value).toHaveLength(1);
+					expect((verificationResult.error as any).value[0].message).toInclude(
+						'must NOT have more than 20 items',
+					);
 				});
 			});
 

@@ -13,6 +13,8 @@
  */
 /* eslint-disable max-classes-per-file */
 
+import { LiskErrorObject } from '@liskhq/lisk-validator/dist-node/types';
+
 export class FrameworkError extends Error {
 	public name: string;
 	public code = 'ERR_FRAMEWORK';
@@ -66,6 +68,15 @@ export class ValidationError extends FrameworkError {
 	public code = 'ERR_VALIDATION';
 	public value: string;
 	public constructor(message: string, value: string) {
+		super(message);
+		this.value = value;
+	}
+}
+
+export class AggregateValidationError extends FrameworkError {
+	public code = 'ERR_AGGREGATE_VALIDATION';
+	public value: LiskErrorObject[];
+	public constructor(message: string, value: LiskErrorObject[]) {
 		super(message);
 		this.value = value;
 	}
