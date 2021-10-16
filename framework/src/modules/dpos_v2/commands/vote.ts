@@ -145,12 +145,11 @@ export class VoteCommand extends BaseCommand {
 			return 0;
 		});
 
+		const voterStore = getStore(this.moduleID, STORE_PREFIX_VOTER);
+		const delegateStore = getStore(this.moduleID, STORE_PREFIX_DELEGATE);
 		for (const vote of votes) {
-			const voterStore = getStore(this.moduleID, STORE_PREFIX_VOTER);
-
 			const voterData = await getDefaultVoter(voterStore, senderAddress);
 
-			const delegateStore = getStore(this.moduleID, STORE_PREFIX_DELEGATE);
 			let delegateData;
 
 			try {
