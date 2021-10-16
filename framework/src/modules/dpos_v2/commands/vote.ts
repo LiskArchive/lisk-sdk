@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { AggregateValidationError, ValidationError } from '../../../errors';
@@ -135,14 +134,13 @@ export class VoteCommand extends BaseCommand {
 
 	public async execute(context: CommandExecuteContext<VoteTransactionParams>): Promise<void> {
 		const {
-			transaction,
+			transaction: { senderAddress },
 			params: { votes },
 			getStore,
 			getAPIContext,
 			header: { height },
 		} = context;
 
-		const senderAddress = getAddressFromPublicKey(transaction.senderPublicKey);
 		votes.sort((a, b) => {
 			const diff = a.amount - b.amount;
 			if (diff > BigInt(0)) {
