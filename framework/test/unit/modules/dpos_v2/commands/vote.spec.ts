@@ -1382,5 +1382,109 @@ describe('VoteCommand', () => {
 				]);
 			});
 		});
+
+		describe('when transaction.params.votes does not contain self-vote', () => {
+			const senderVoteAmountPositive = liskToBeddows(80);
+			const senderVoteAmountNegative = liskToBeddows(20);
+			const delegateSelfVote = liskToBeddows(2000);
+			const delegateAddress = getRandomBytes(20);
+			let delegateInfo: any;
+			beforeEach(async () => {
+				delegateInfo = {
+					consecutiveMissedBlocks: 0,
+					isBanned: false,
+					lastGeneratedHeight: 5,
+					name: 'delegate',
+					pomHeights: [],
+					selfVotes: delegateSelfVote,
+					totalVotesReceived: delegateSelfVote,
+				};
+
+				await delegateStore.setWithSchema(delegateAddress, delegateInfo, delegateStoreSchema);
+
+				transactionParamsDecoded = {
+					votes: [{ delegateAddress, amount: senderVoteAmountPositive }],
+				};
+
+				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
+
+				transaction.params = transactionParams;
+
+				context = createTransactionContext({
+					transaction,
+					stateStore,
+					header: {
+						height: lastBlockHeight,
+					} as any,
+				}).createCommandExecuteContext<VoteTransactionParams>(command.schema);
+
+				lockFn.mockClear();
+			});
+
+			it('should not change delegateData.selfVotes but should update totalVotesReceived with positive vote', async () => {
+				// Act & Assign
+				await command.execute(context);
+
+				const delegateData = await delegateStore.getWithSchema(
+					delegateAddress,
+					delegateStoreSchema,
+				);
+				// Assert
+				expect(delegateData.totalVotesReceived).toEqual(
+					senderVoteAmountPositive + delegateSelfVote,
+				);
+				expect(delegateData.selfVotes).toEqual(delegateSelfVote);
+			});
+
+			it('should not change delegateData.selfVotes but should change totalVotesReceived and unlocking with negative vote', async () => {
+				// Act & Assign
+				await command.execute(context);
+
+				transactionParamsDecoded = {
+					votes: [{ delegateAddress, amount: senderVoteAmountNegative * BigInt(-1) }],
+				};
+
+				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
+
+				transaction.params = transactionParams;
+
+				context = createTransactionContext({
+					transaction,
+					stateStore,
+					header: {
+						height: lastBlockHeight,
+					} as any,
+				}).createCommandExecuteContext<VoteTransactionParams>(command.schema);
+
+				await command.execute(context);
+
+				const delegateData = await delegateStore.getWithSchema(
+					delegateAddress,
+					delegateStoreSchema,
+				);
+				const voterData = await getVoterOrDefault(voterStore, senderAddress);
+
+				// Assert
+				expect(delegateData.totalVotesReceived).toEqual(
+					senderVoteAmountPositive - senderVoteAmountNegative + delegateSelfVote,
+				);
+				expect(delegateData.selfVotes).toEqual(delegateSelfVote);
+				expect(voterData.sentVotes).toHaveLength(1);
+				expect(voterData.sentVotes).toEqual([
+					{
+						delegateAddress,
+						amount: senderVoteAmountPositive - senderVoteAmountNegative,
+					},
+				]);
+				expect(voterData.pendingUnlocks).toHaveLength(1);
+				expect(voterData.pendingUnlocks).toEqual([
+					{
+						delegateAddress,
+						amount: senderVoteAmountNegative,
+						unvoteHeight: lastBlockHeight + 1,
+					},
+				]);
+			});
+		});
 	});
 });

@@ -155,12 +155,13 @@ export class VoteCommand extends BaseCommand {
 				delegateStoreSchema,
 			);
 
+			const originalUpvoteIndex = voterData.sentVotes.findIndex(senderVote =>
+				senderVote.delegateAddress.equals(vote.delegateAddress),
+			);
+			const index = originalUpvoteIndex > -1 ? originalUpvoteIndex : voterData.sentVotes.length;
+
 			if (vote.amount < BigInt(0)) {
 				// unvote
-				const originalUpvoteIndex = voterData.sentVotes.findIndex(senderVote =>
-					senderVote.delegateAddress.equals(vote.delegateAddress),
-				);
-
 				if (originalUpvoteIndex < 0) {
 					throw new Error('Cannot cast downvote to delegate who is not upvoted.');
 				}
@@ -169,11 +170,6 @@ export class VoteCommand extends BaseCommand {
 
 				if (voterData.sentVotes[originalUpvoteIndex].amount < BigInt(0)) {
 					throw new Error('The downvote amount cannot be greater than upvoted amount.');
-				}
-
-				// Change delegate.selfVote if this vote is a self vote
-				if (senderAddress.equals(vote.delegateAddress)) {
-					delegateData.selfVotes = voterData.sentVotes[originalUpvoteIndex].amount;
 				}
 
 				// Delete entry when amount becomes 0
@@ -199,10 +195,6 @@ export class VoteCommand extends BaseCommand {
 				}
 			} else {
 				// Upvote amount case
-				const originalUpvoteIndex = voterData.sentVotes.findIndex(senderVote =>
-					senderVote.delegateAddress.equals(vote.delegateAddress),
-				);
-				const index = originalUpvoteIndex > -1 ? originalUpvoteIndex : voterData.sentVotes.length;
 				const upvote =
 					originalUpvoteIndex > -1
 						? voterData.sentVotes[originalUpvoteIndex]
@@ -222,15 +214,15 @@ export class VoteCommand extends BaseCommand {
 
 				voterData.sentVotes[index] = upvote;
 
-				// Change delegate.selfVote if this vote is a self vote
-				if (senderAddress.equals(vote.delegateAddress)) {
-					delegateData.selfVotes = voterData.sentVotes[index].amount;
-				}
-
 				voterData.sentVotes.sort((a, b) => a.delegateAddress.compare(b.delegateAddress));
 				if (voterData.sentVotes.length > MAX_VOTE) {
 					throw new Error(`Sender can only vote upto ${MAX_VOTE.toString()}.`);
 				}
+			}
+
+			// Change delegate.selfVote if this vote is a self vote
+			if (senderAddress.equals(vote.delegateAddress)) {
+				delegateData.selfVotes = voterData.sentVotes[index].amount;
 			}
 
 			await voterStore.setWithSchema(senderAddress, voterData, voterStoreSchema);
