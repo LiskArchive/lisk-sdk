@@ -38,7 +38,7 @@ import {
 	VoteCommandDependencies,
 	VoteTransactionParams,
 } from '../types';
-import { getDefaultVoter, sortUnlocking } from '../utils';
+import { getVoterOrDefault, sortUnlocking } from '../utils';
 
 export class VoteCommand extends BaseCommand {
 	public id = COMMAND_ID_VOTE;
@@ -148,7 +148,7 @@ export class VoteCommand extends BaseCommand {
 		const voterStore = getStore(this.moduleID, STORE_PREFIX_VOTER);
 		const delegateStore = getStore(this.moduleID, STORE_PREFIX_DELEGATE);
 		for (const vote of votes) {
-			const voterData = await getDefaultVoter(voterStore, senderAddress);
+			const voterData = await getVoterOrDefault(voterStore, senderAddress);
 
 			let delegateData;
 

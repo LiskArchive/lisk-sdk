@@ -131,7 +131,7 @@ export const isCurrentlyPunished = (height: number, pomHeights: ReadonlyArray<nu
 	return false;
 };
 
-export const getDefaultVoter = async (voterStore: SubStore, address: Buffer) => {
+export const getVoterOrDefault = async (voterStore: SubStore, address: Buffer) => {
 	try {
 		const voterData = await voterStore.getWithSchema<VoterData>(address, voterStoreSchema);
 		return voterData;

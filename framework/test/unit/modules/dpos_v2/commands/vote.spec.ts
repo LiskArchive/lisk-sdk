@@ -14,7 +14,7 @@ import {
 } from '../../../../../src/modules/dpos_v2/constants';
 import { delegateStoreSchema, voterStoreSchema } from '../../../../../src/modules/dpos_v2/schemas';
 import { DelegateAccount, VoteTransactionParams } from '../../../../../src/modules/dpos_v2/types';
-import { getDefaultVoter } from '../../../../../src/modules/dpos_v2/utils';
+import { getVoterOrDefault } from '../../../../../src/modules/dpos_v2/utils';
 import { VerifyStatus } from '../../../../../src/node/state_machine/types';
 import { createTransactionContext } from '../../../../../src/testing';
 import { liskToBeddows } from '../../../../utils/assets';
@@ -1065,7 +1065,7 @@ describe('VoteCommand', () => {
 				it('should throw error', async () => {
 					// Arrange
 					const initialDelegateAmount = 8;
-					const voterData = await getDefaultVoter(voterStore, senderAddress);
+					const voterData = await getVoterOrDefault(voterStore, senderAddress);
 
 					// Suppose account already voted for 8 delegates
 					for (let i = 0; i < initialDelegateAmount; i += 1) {
@@ -1149,7 +1149,7 @@ describe('VoteCommand', () => {
 				it('should throw error', async () => {
 					// Arrange
 					const initialDelegateAmountForUnlocks = 19;
-					const voterData = await getDefaultVoter(voterStore, senderAddress);
+					const voterData = await getVoterOrDefault(voterStore, senderAddress);
 
 					// Suppose account already 19 unlocking
 					for (let i = 0; i < initialDelegateAmountForUnlocks; i += 1) {
@@ -1236,7 +1236,7 @@ describe('VoteCommand', () => {
 			describe('when transaction.params.votes negative amount exceeds the previously voted amount', () => {
 				it('should throw error', async () => {
 					// Arrange
-					const voterData = await getDefaultVoter(voterStore, senderAddress);
+					const voterData = await getVoterOrDefault(voterStore, senderAddress);
 					voterData.sentVotes.push({
 						delegateAddress: delegateAddress1,
 						amount: liskToBeddows(70),
@@ -1310,7 +1310,7 @@ describe('VoteCommand', () => {
 				await command.execute(context);
 
 				const delegateData = await delegateStore.getWithSchema(senderAddress, delegateStoreSchema);
-				const voterData = await getDefaultVoter(voterStore, senderAddress);
+				const voterData = await getVoterOrDefault(voterStore, senderAddress);
 				// Assert
 				expect(delegateData.totalVotesReceived).toEqual(senderVoteAmountPositive);
 				expect(voterData.sentVotes).toHaveLength(1);
@@ -1358,7 +1358,7 @@ describe('VoteCommand', () => {
 				await command.execute(context);
 
 				const delegateData = await delegateStore.getWithSchema(senderAddress, delegateStoreSchema);
-				const voterData = await getDefaultVoter(voterStore, senderAddress);
+				const voterData = await getVoterOrDefault(voterStore, senderAddress);
 
 				// Assert
 				expect(delegateData.totalVotesReceived).toEqual(
