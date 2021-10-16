@@ -136,6 +136,7 @@ describe('VoteCommand', () => {
 				signatures: [],
 			});
 		});
+
 		describe('schema validation', () => {
 			describe('when transaction.params.votes does not include any vote', () => {
 				beforeEach(() => {
@@ -305,7 +306,7 @@ describe('VoteCommand', () => {
 				// Assert
 				await expect(command.verify(context)).resolves.toHaveProperty(
 					'error.message',
-					'Upvote can only be casted upto 10.',
+					'Upvote can only be casted up to 10.',
 				);
 			});
 		});
@@ -330,7 +331,7 @@ describe('VoteCommand', () => {
 				// Assert
 				await expect(command.verify(context)).resolves.toHaveProperty(
 					'error.message',
-					'Downvote can only be casted upto 10.',
+					'Downvote can only be casted up to 10.',
 				);
 			});
 		});

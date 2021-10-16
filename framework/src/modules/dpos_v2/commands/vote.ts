@@ -104,7 +104,7 @@ export class VoteCommand extends BaseCommand {
 		if (upvoteCount > MAX_VOTE) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new ValidationError('Upvote can only be casted upto 10.', upvoteCount.toString()),
+				error: new ValidationError('Upvote can only be casted up to 10.', upvoteCount.toString()),
 			};
 		}
 
@@ -112,7 +112,7 @@ export class VoteCommand extends BaseCommand {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new ValidationError(
-					'Downvote can only be casted upto 10.',
+					'Downvote can only be casted up to 10.',
 					downvoteCount.toString(),
 				),
 			};
