@@ -101,7 +101,7 @@ export class DelegateRegistrationCommand extends BaseCommand {
 		} = context;
 		const apiContext = context.getAPIContext();
 
-		const success = await this._validatorsAPI.registerValidatorKeys(
+		const isRegistered = await this._validatorsAPI.registerValidatorKeys(
 			apiContext,
 			transaction.senderAddress,
 			blsKey,
@@ -109,7 +109,7 @@ export class DelegateRegistrationCommand extends BaseCommand {
 			proofOfPossession,
 		);
 
-		if (!success) {
+		if (!isRegistered) {
 			throw new Error('Failed to register validator keys');
 		}
 
