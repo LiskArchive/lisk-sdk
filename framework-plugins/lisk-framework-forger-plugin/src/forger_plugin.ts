@@ -12,11 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { KVStore } from '@liskhq/lisk-db';
-import { BasePlugin, BaseChannel, GenesisConfig } from 'lisk-framework';
-import { dataStructures } from '@liskhq/lisk-utils';
-import { Block, BlockHeader, blockSchema, Transaction } from '@liskhq/lisk-chain';
-import { codec } from '@liskhq/lisk-codec';
+import {
+	BasePlugin,
+	BaseChannel,
+	GenesisConfig,
+	utils,
+	codec,
+	chain,
+	db as liskDB,
+} from 'lisk-sdk';
 import {
 	getDBInstance,
 	getForgerInfo,
@@ -26,6 +30,10 @@ import {
 } from './db';
 import { Forger, TransactionFees, Voters } from './types';
 import { Endpoint } from './endpoint';
+
+const { Block, blockSchema } = chain;
+type BlockHeader = chain.BlockHeader;
+type Transaction = chain.Transaction;
 
 const BLOCKS_BATCH_TO_SYNC = 1000;
 const MODULE_ID_DPOS = 5;
@@ -72,9 +80,9 @@ export class ForgerPlugin extends BasePlugin {
 	public name = 'forger';
 	public endpoint = new Endpoint();
 
-	private _forgerPluginDB!: KVStore;
+	private _forgerPluginDB!: liskDB.KVStore;
 	private _channel!: BaseChannel;
-	private _forgersList!: dataStructures.BufferMap<boolean>;
+	private _forgersList!: utils.dataStructures.BufferMap<boolean>;
 	private _transactionFees!: TransactionFees;
 	private _syncingWithNode!: boolean;
 
@@ -114,7 +122,7 @@ export class ForgerPlugin extends BasePlugin {
 	}
 
 	private async _setForgersList(): Promise<void> {
-		this._forgersList = new dataStructures.BufferMap<boolean>();
+		this._forgersList = new utils.dataStructures.BufferMap<boolean>();
 		const forgersList = await this._channel.invoke<Forger[]>('app_getForgingStatus');
 		for (const { address, forging } of forgersList) {
 			this._forgersList.set(Buffer.from(address, 'hex'), forging);

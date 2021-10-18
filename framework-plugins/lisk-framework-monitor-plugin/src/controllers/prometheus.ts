@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Request, Response, NextFunction } from 'express';
-import { BasePlugin } from 'lisk-framework';
+import { BasePlugin } from 'lisk-sdk';
 import { SharedState, PeerInfo } from '../types';
 import { getBlockStats } from './blocks';
 import { getTransactionStats } from './transactions';

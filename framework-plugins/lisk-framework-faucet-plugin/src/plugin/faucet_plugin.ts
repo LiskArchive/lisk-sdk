@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { getLisk32AddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { BasePlugin, PluginInitContext } from 'lisk-framework';
+import { BasePlugin, PluginInitContext } from 'lisk-sdk';
 import * as express from 'express';
 import { join } from 'path';
 import { Server } from 'http';

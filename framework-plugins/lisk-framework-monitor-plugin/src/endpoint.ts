@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BasePlugin, BasePluginEndpoint, PluginEndpointContext } from 'lisk-framework';
+import { BasePlugin, BasePluginEndpoint, PluginEndpointContext } from 'lisk-sdk';
 import { SharedState } from './types';
 import * as controllers from './controllers';
 

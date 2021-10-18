@@ -12,9 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Server } from 'http';
-import { Block } from '@liskhq/lisk-chain';
-import { validator } from '@liskhq/lisk-validator';
-import { BaseChannel, BasePlugin } from 'lisk-framework';
+import { BaseChannel, BasePlugin, validator as liskValidator, chain } from 'lisk-sdk';
 import * as express from 'express';
 import type { Express } from 'express';
 import * as cors from 'cors';
@@ -28,6 +26,9 @@ import { Endpoint } from './endpoint';
 interface BlockData {
 	readonly block: string;
 }
+
+const { validator } = liskValidator;
+const { Block } = chain;
 
 export class MonitorPlugin extends BasePlugin<MonitorPluginConfig> {
 	public name = 'monitor';

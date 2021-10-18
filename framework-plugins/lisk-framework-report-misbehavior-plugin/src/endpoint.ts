@@ -11,16 +11,21 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
 import {
-	decryptPassphraseWithPassword,
-	getAddressAndPublicKeyFromPassphrase,
-	parseEncryptedPassphrase,
-} from '@liskhq/lisk-cryptography';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
-import { BasePluginEndpoint, PluginEndpointContext } from 'lisk-framework';
+	BasePluginEndpoint,
+	PluginEndpointContext,
+	validator as liskValidator,
+	cryptography,
+} from 'lisk-sdk';
 import { actionParamsSchema } from './schemas';
 import { ReportMisbehaviorPluginConfig, State } from './types';
+
+const { validator, LiskValidationError } = liskValidator;
+const {
+	parseEncryptedPassphrase,
+	decryptPassphraseWithPassword,
+	getAddressAndPublicKeyFromPassphrase,
+} = cryptography;
 
 export class Endpoint extends BasePluginEndpoint {
 	private _state!: State;

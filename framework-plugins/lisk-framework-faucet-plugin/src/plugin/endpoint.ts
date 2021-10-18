@@ -14,23 +14,24 @@
 
 import axios from 'axios';
 import {
-	decryptPassphraseWithPassword,
-	getAddressAndPublicKeyFromPassphrase,
-	parseEncryptedPassphrase,
-} from '@liskhq/lisk-cryptography';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
-import { BasePluginEndpoint, PluginEndpointContext } from 'lisk-framework';
-import { convertLSKToBeddows } from '@liskhq/lisk-transactions';
-import { APIClient } from '@liskhq/lisk-api-client';
+	BasePluginEndpoint,
+	PluginEndpointContext,
+	validator as liskValidator,
+	cryptography,
+	transactions,
+	BasePlugin,
+} from 'lisk-sdk';
 import { authorizeParamsSchema, fundParamsSchema } from './schemas';
 import { FaucetPluginConfig, State } from './types';
 
+const { validator, LiskValidationError } = liskValidator;
+
 export class Endpoint extends BasePluginEndpoint {
 	private _state: State = { publicKey: undefined, passphrase: undefined };
-	private _client!: APIClient;
+	private _client!: BasePlugin['apiClient'];
 	private _config!: FaucetPluginConfig;
 
-	public init(state: State, apiClient: APIClient, config: FaucetPluginConfig) {
+	public init(state: State, apiClient: BasePlugin['apiClient'], config: FaucetPluginConfig) {
 		this._state = state;
 		this._client = apiClient;
 		this._config = config;
@@ -46,14 +47,16 @@ export class Endpoint extends BasePluginEndpoint {
 		const { enable, password } = context.params;
 
 		try {
-			const parsedEncryptedPassphrase = parseEncryptedPassphrase(this._config.encryptedPassphrase);
+			const parsedEncryptedPassphrase = cryptography.parseEncryptedPassphrase(
+				this._config.encryptedPassphrase,
+			);
 
-			const passphrase = decryptPassphraseWithPassword(
+			const passphrase = cryptography.decryptPassphraseWithPassword(
 				parsedEncryptedPassphrase,
 				password as string,
 			);
 
-			const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
+			const { publicKey } = cryptography.getAddressAndPublicKeyFromPassphrase(passphrase);
 
 			this._state.publicKey = enable ? publicKey : undefined;
 			this._state.passphrase = enable ? passphrase : undefined;
@@ -102,7 +105,7 @@ export class Endpoint extends BasePluginEndpoint {
 
 	private async _transferFunds(address: string): Promise<void> {
 		const transferTransactionParams = {
-			amount: BigInt(convertLSKToBeddows(this._config.amount)),
+			amount: BigInt(transactions.convertLSKToBeddows(this._config.amount)),
 			recipientAddress: Buffer.from(address, 'hex'),
 			data: '',
 		};
@@ -112,7 +115,7 @@ export class Endpoint extends BasePluginEndpoint {
 				moduleID: 2,
 				commandID: 0,
 				senderPublicKey: this._state.publicKey as Buffer,
-				fee: BigInt(convertLSKToBeddows(this._config.fee)), // TODO: The static fee should be replaced by fee estimation calculation
+				fee: BigInt(transactions.convertLSKToBeddows(this._config.fee)), // TODO: The static fee should be replaced by fee estimation calculation
 				params: transferTransactionParams,
 			},
 			this._state.passphrase as string,

@@ -11,8 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { KVStore } from '@liskhq/lisk-db';
-import { BasePlugin, BasePluginEndpoint, PluginEndpointContext } from 'lisk-framework';
+import { BasePlugin, BasePluginEndpoint, PluginEndpointContext, db as liskDB } from 'lisk-sdk';
 import { getForgerInfo } from './db';
 import { Forger } from './types';
 
@@ -47,9 +46,9 @@ interface Delegate {
 
 export class Endpoint extends BasePluginEndpoint {
 	private _client!: BasePlugin['apiClient'];
-	private _db!: KVStore;
+	private _db!: liskDB.KVStore;
 
-	public init(db: KVStore, apiClient: BasePlugin['apiClient']) {
+	public init(db: liskDB.KVStore, apiClient: BasePlugin['apiClient']) {
 		this._db = db;
 		this._client = apiClient;
 	}

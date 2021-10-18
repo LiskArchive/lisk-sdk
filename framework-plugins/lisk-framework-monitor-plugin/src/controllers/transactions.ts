@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BasePlugin } from 'lisk-framework';
+import { BasePlugin } from 'lisk-sdk';
 import { PeerInfo, SharedState, TransactionPropagationStats } from '../types';
 
 export interface TransactionStats {

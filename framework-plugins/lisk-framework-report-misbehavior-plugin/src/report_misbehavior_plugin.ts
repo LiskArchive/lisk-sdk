@@ -11,16 +11,16 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { validator } from '@liskhq/lisk-validator';
-import { KVStore } from '@liskhq/lisk-db';
-import { codec } from '@liskhq/lisk-codec';
-import { BlockHeader, RawBlock, Transaction, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import {
-	getAddressAndPublicKeyFromPassphrase,
-	getAddressFromPassphrase,
-	signData,
-} from '@liskhq/lisk-cryptography';
-import { BasePlugin, BaseChannel, PluginInitContext } from 'lisk-framework';
+	BasePlugin,
+	BaseChannel,
+	PluginInitContext,
+	db as liskDB,
+	codec,
+	validator as liskValidator,
+	chain,
+	cryptography,
+} from 'lisk-sdk';
 import {
 	getDBInstance,
 	saveBlockHeaders,
@@ -31,12 +31,16 @@ import { ReportMisbehaviorPluginConfig, State } from './types';
 import { postBlockEventSchema, configSchema } from './schemas';
 import { Endpoint } from './endpoint';
 
+const { getAddressAndPublicKeyFromPassphrase, getAddressFromPassphrase, signData } = cryptography;
+const { BlockHeader, Transaction, TAG_TRANSACTION } = chain;
+const { validator } = liskValidator;
+
 export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginConfig> {
 	public name = 'reportMisbehavior';
 	public configSchema = configSchema;
 	public endpoint = new Endpoint();
 
-	private _pluginDB!: KVStore;
+	private _pluginDB!: liskDB.KVStore;
 	private readonly _state: State = { currentHeight: 0 };
 	private _channel!: BaseChannel;
 	private _clearBlockHeadersIntervalId!: NodeJS.Timer | undefined;
@@ -83,7 +87,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 					return;
 				}
 				const blockData = data as { block: string };
-				const { header } = codec.decode<RawBlock>(
+				const { header } = codec.decode<chain.RawBlock>(
 					this.apiClient.schemas.block,
 					Buffer.from(blockData.block, 'hex'),
 				);
@@ -124,8 +128,8 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 	}
 
 	private async _createPoMTransaction(
-		contradictingBlock: BlockHeader,
-		decodedBlockHeader: BlockHeader,
+		contradictingBlock: chain.BlockHeader,
+		decodedBlockHeader: chain.BlockHeader,
 	): Promise<string> {
 		// ModuleID:5 (DPoS), AssetID:3 (PoMAsset)
 		const pomAssetInfo = this.apiClient.schemas.commands.find(
