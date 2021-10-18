@@ -289,7 +289,9 @@ const MainPage: React.FC = () => {
 				assetSchema.schema,
 				data.params,
 			);
-			const sender = await getClient().invoke<{ nonce: string }>('auth_getAuthData', { address: address.toString('hex') });
+			const sender = await getClient().invoke<{ nonce: string }>('auth_getAuthData', {
+				address: address.toString('hex'),
+			});
 			const fee = getClient().transaction.computeMinFee({
 				moduleID: data.moduleID,
 				commandID: data.commandID,

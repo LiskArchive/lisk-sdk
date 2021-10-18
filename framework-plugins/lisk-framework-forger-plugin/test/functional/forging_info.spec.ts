@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { testing, PartialApplicationConfig } from 'lisk-framework';
+import { testing, PartialApplicationConfig } from 'lisk-sdk';
 import { getForgerInfoByAddress, getForgerPlugin } from '../utils/application';
 import { ForgerPlugin } from '../../src';
 
@@ -28,7 +28,7 @@ describe('forger:getForgingInfo action', () => {
 
 		appEnv = testing.createDefaultApplicationEnv({
 			config,
-			plugins: [ForgerPlugin],
+			plugins: [new ForgerPlugin()],
 		});
 		await appEnv.startApplication();
 		await appEnv.waitNBlocks(2);

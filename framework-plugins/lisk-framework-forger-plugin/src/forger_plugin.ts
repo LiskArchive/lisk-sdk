@@ -20,6 +20,7 @@ import {
 	codec,
 	chain,
 	db as liskDB,
+	PluginInitContext,
 } from 'lisk-sdk';
 import {
 	getDBInstance,
@@ -92,6 +93,11 @@ export class ForgerPlugin extends BasePlugin {
 
 	public get events(): string[] {
 		return ['block:created', 'block:missed'];
+	}
+
+	public async init(context: PluginInitContext): Promise<void> {
+		await super.init(context);
+		this.endpoint.init(this._forgerPluginDB, this.apiClient);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

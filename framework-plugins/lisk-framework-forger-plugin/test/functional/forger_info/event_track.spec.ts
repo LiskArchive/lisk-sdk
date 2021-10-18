@@ -12,13 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { testing, PartialApplicationConfig } from 'lisk-framework';
-import {
-	getForgerInfoByAddress,
-	getForgerInfoByPublicKey,
-	getForgerPlugin,
-	waitTill,
-} from '../../utils/application';
+import { testing, PartialApplicationConfig } from 'lisk-sdk';
+import { getForgerInfoByAddress, getForgerPlugin, waitTill } from '../../utils/application';
 import { getRandomAccount } from '../../utils/accounts';
 import { createTransferTransaction, createVoteTransaction } from '../../utils/transactions';
 import { ForgerPlugin } from '../../../src';
@@ -37,7 +32,7 @@ describe('Forger Info', () => {
 
 		appEnv = testing.createDefaultApplicationEnv({
 			config,
-			plugins: [ForgerPlugin],
+			plugins: [new ForgerPlugin()],
 		});
 		await appEnv.startApplication();
 		// The test application generates a dynamic genesis block so we need to get the networkID like this
@@ -56,10 +51,10 @@ describe('Forger Info', () => {
 			const forgerPluginInstance = getForgerPlugin(appEnv.application);
 
 			// Act
-			const { generatorPublicKey } = appEnv.lastBlock.header;
-			const forgerInfo = await getForgerInfoByPublicKey(
+			const { generatorAddress } = appEnv.lastBlock.header;
+			const forgerInfo = await getForgerInfoByAddress(
 				forgerPluginInstance,
-				generatorPublicKey.toString('hex'),
+				generatorAddress.toString('binary'),
 			);
 
 			// Assert
@@ -85,11 +80,11 @@ describe('Forger Info', () => {
 			await appEnv.waitNBlocks(1);
 
 			const {
-				header: { generatorPublicKey },
+				header: { generatorAddress },
 			} = appEnv.lastBlock;
-			const forgerInfo = await getForgerInfoByPublicKey(
+			const forgerInfo = await getForgerInfoByAddress(
 				forgerPluginInstance,
-				generatorPublicKey.toString('hex'),
+				generatorAddress.toString('binary'),
 			);
 
 			// Assert
@@ -254,15 +249,15 @@ describe('Forger Info', () => {
 	describe('Delete Block', () => {
 		it('should update forger info after delete block', async () => {
 			// Arrange
-			const { generatorPublicKey } = appEnv.lastBlock.header;
+			const { generatorAddress } = appEnv.lastBlock.header;
 			const forgerPluginInstance = getForgerPlugin(appEnv.application);
 			await appEnv.application['_node']['_processor'].deleteLastBlock();
 
 			// Act
 			await waitTill(50);
-			const forgerInfo = await getForgerInfoByPublicKey(
+			const forgerInfo = await getForgerInfoByAddress(
 				forgerPluginInstance,
-				generatorPublicKey.toString('hex'),
+				generatorAddress.toString('binary'),
 			);
 
 			// Asserts

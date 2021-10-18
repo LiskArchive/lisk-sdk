@@ -42,7 +42,6 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 
 	private _pluginDB!: liskDB.KVStore;
 	private readonly _state: State = { currentHeight: 0 };
-	private _channel!: BaseChannel;
 	private _clearBlockHeadersIntervalId!: NodeJS.Timer | undefined;
 
 	public get nodeModulePath(): string {
@@ -55,9 +54,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async load(channel: BaseChannel): Promise<void> {
-		this._channel = channel;
-
+	public async load(_channel: BaseChannel): Promise<void> {
 		// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6201
 		this._pluginDB = await getDBInstance(this.dataPath);
 		// Listen to new block and delete block events
@@ -77,7 +74,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 	}
 
 	private _subscribeToChannel(): void {
-		this._channel.subscribe('app:network:event', async (eventData?: Record<string, unknown>) => {
+		this.apiClient.subscribe('app_networkEvent', async (eventData?: Record<string, unknown>) => {
 			const { event, data } = eventData as { event: string; data: unknown };
 
 			if (event === 'postBlock') {
@@ -112,7 +109,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 							decodedBlockHeader,
 							contradictingBlock,
 						);
-						const result = await this._channel.invoke<{
+						const result = await this.apiClient.invoke<{
 							transactionId?: string;
 						}>('app_postTransaction', {
 							transaction: encodedTransaction,
@@ -143,7 +140,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 		// Assume passphrase is checked before calling this function
 		const passphrase = this._state.passphrase as string;
 
-		const authAccount = await this._channel.invoke<{ nonce: string }>('auth_getAuthAccount', {
+		const authAccount = await this.apiClient.invoke<{ nonce: string }>('auth_getAuthAccount', {
 			address: getAddressFromPassphrase(passphrase).toString('hex'),
 		});
 
@@ -152,7 +149,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 			header2: contradictingBlock,
 		};
 
-		const { networkIdentifier } = await this._channel.invoke<{ networkIdentifier: string }>(
+		const { networkIdentifier } = await this.apiClient.invoke<{ networkIdentifier: string }>(
 			'app_getNodeInfo',
 		);
 

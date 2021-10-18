@@ -12,7 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Server } from 'http';
-import { BaseChannel, BasePlugin, validator as liskValidator, chain } from 'lisk-sdk';
+import {
+	BaseChannel,
+	BasePlugin,
+	validator as liskValidator,
+	chain,
+	PluginInitContext,
+} from 'lisk-sdk';
 import * as express from 'express';
 import type { Express } from 'express';
 import * as cors from 'cors';
@@ -43,10 +49,8 @@ export class MonitorPlugin extends BasePlugin<MonitorPluginConfig> {
 		return __filename;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async load(_channel: BaseChannel): Promise<void> {
-		this._app = express();
-
+	public async init(context: PluginInitContext): Promise<void> {
+		await super.init(context);
 		this._state = {
 			forks: {
 				forkEventCount: 0,
@@ -55,6 +59,12 @@ export class MonitorPlugin extends BasePlugin<MonitorPluginConfig> {
 			transactions: {},
 			blocks: {},
 		};
+		this.endpoint.init(this._state, this.apiClient);
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async load(_channel: BaseChannel): Promise<void> {
+		this._app = express();
 
 		this._registerMiddlewares(this.config);
 		this._registerControllers();
