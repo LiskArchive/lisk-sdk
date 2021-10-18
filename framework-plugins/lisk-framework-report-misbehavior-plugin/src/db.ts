@@ -18,8 +18,8 @@ import { BlockHeader } from '@liskhq/lisk-chain';
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
-import { RegisteredSchema } from 'lisk-framework';
 import { hash } from '@liskhq/lisk-cryptography';
+import { BasePlugin } from 'lisk-framework';
 
 export const blockHeadersSchema = {
 	$id: 'lisk/reportMisbehavior/blockHeaders',
@@ -68,29 +68,16 @@ export const getBlockHeaders = async (
 	}
 };
 
-export const decodeBlockHeader = (encodedHeader: Buffer, schema: RegisteredSchema): BlockHeader => {
-	const id = hash(encodedHeader);
-	const blockHeader = codec.decode<RawBlockHeader>(schema.blockHeader, encodedHeader);
-	const assetSchema = schema.blockHeadersAssets[blockHeader.version];
-	const asset = codec.decode<BlockHeaderAsset>(assetSchema, blockHeader.asset);
-	return {
-		...blockHeader,
-		asset,
-		id,
-	};
-};
-
-export const saveBlockHeaders = async (
-	db: KVStore,
-	schemas: RegisteredSchema,
-	header: Buffer,
-): Promise<boolean> => {
-	const blockId = hash(header);
-	const { generatorPublicKey, height } = codec.decode<RawBlockHeader>(schemas.blockHeader, header);
-	const dbKey = Buffer.concat([generatorPublicKey, Buffer.from(':', 'utf8'), formatInt(height)]);
+export const saveBlockHeaders = async (db: KVStore, headerBytes: Buffer): Promise<boolean> => {
+	const header = BlockHeader.fromBytes(headerBytes);
+	const dbKey = Buffer.concat([
+		header.generatorAddress,
+		Buffer.from(':', 'utf8'),
+		formatInt(header.height),
+	]);
 	const { blockHeaders } = await getBlockHeaders(db, dbKey);
 
-	if (!blockHeaders.find(blockHeader => hash(blockHeader).equals(blockId))) {
+	if (!blockHeaders.find(blockHeader => hash(blockHeader).equals(header.id))) {
 		await db.put(
 			dbKey,
 			codec.encode(blockHeadersSchema, {
@@ -107,37 +94,42 @@ type IteratableStream = NodeJS.ReadableStream & { destroy: (err?: Error) => void
 export const getContradictingBlockHeader = async (
 	db: KVStore,
 	blockHeader: BlockHeader,
-	schemas: RegisteredSchema,
-): Promise<BlockHeader | undefined> =>
-	new Promise((resolve, reject) => {
+	apiClient: BasePlugin['apiClient'],
+): Promise<BlockHeader | undefined> => {
+	const header1 = blockHeader.getBytes().toString('hex');
+	const existingHeaders = await new Promise<string[]>((resolve, reject) => {
 		const stream = db.createReadStream({
-			gte: getFirstPrefix(blockHeader.generatorPublicKey),
-			lte: getLastPrefix(blockHeader.generatorPublicKey),
+			gte: getFirstPrefix(blockHeader.generatorAddress),
+			lte: getLastPrefix(blockHeader.generatorAddress),
 		}) as IteratableStream;
+		const results: string[] = [];
 		stream
 			.on('data', ({ value }: { value: Buffer }) => {
 				const { blockHeaders } = codec.decode<BlockHeaders>(blockHeadersSchema, value);
 				for (const encodedHeader of blockHeaders) {
-					const decodedBlockHeader = decodeBlockHeader(encodedHeader, schemas);
-					if (areHeadersContradicting(blockHeader, decodedBlockHeader)) {
-						stream.destroy();
-						resolve(decodedBlockHeader);
-					}
+					results.push(encodedHeader.toString('hex'));
 				}
 			})
 			.on('error', error => {
 				reject(error);
 			})
 			.on('end', () => {
-				resolve(undefined);
+				resolve(results);
 			});
 	});
+	for (const header2 of existingHeaders) {
+		const contradicting = await apiClient.invoke('bft_areHeadersContradicting', {
+			header1,
+			header2,
+		});
+		if (contradicting) {
+			return BlockHeader.fromBytes(Buffer.from(header2, 'hex'));
+		}
+	}
+	return undefined;
+};
 
-export const clearBlockHeaders = async (
-	db: KVStore,
-	schemas: RegisteredSchema,
-	currentHeight: number,
-): Promise<void> => {
+export const clearBlockHeaders = async (db: KVStore, currentHeight: number): Promise<void> => {
 	const keys = await new Promise<Buffer[]>((resolve, reject) => {
 		const stream = db.createReadStream() as IteratableStream;
 		const res: Buffer[] = [];
@@ -145,7 +137,7 @@ export const clearBlockHeaders = async (
 			.on('data', ({ key, value }: { key: Buffer; value: Buffer }) => {
 				const { blockHeaders } = codec.decode<BlockHeaders>(blockHeadersSchema, value);
 				for (const encodedHeader of blockHeaders) {
-					const decodedBlockHeader = decodeBlockHeader(encodedHeader, schemas);
+					const decodedBlockHeader = BlockHeader.fromBytes(encodedHeader);
 					if (decodedBlockHeader.height < currentHeight - 260000) {
 						res.push(key);
 					}

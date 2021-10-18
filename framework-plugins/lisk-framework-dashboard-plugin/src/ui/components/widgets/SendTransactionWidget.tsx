@@ -31,7 +31,7 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 	const [validAsset, setValidAsset] = React.useState(true);
 	const assets = props.modules
 		.map(m =>
-			m.transactionAssets.map(t => ({
+			m.commands.map(t => ({
 				label: `${m.name}:${t.name}`,
 				value: `${m.name}:${t.name}`,
 			})),
@@ -42,17 +42,17 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 	const handleSubmit = () => {
 		const assetSelectedValue = selectedAsset ? selectedAsset.value : '';
 		const moduleName = assetSelectedValue.split(':').shift();
-		const assetName = assetSelectedValue.split(':').slice(1).join(':');
+		const commandName = assetSelectedValue.split(':').slice(1).join(':');
 		let moduleID: number | undefined;
-		let assetID: number | undefined;
+		let commandID: number | undefined;
 
 		for (const m of props.modules) {
 			if (m.name === moduleName) {
 				moduleID = m.id;
 
-				for (const t of m.transactionAssets) {
-					if (t.name === assetName) {
-						assetID = t.id;
+				for (const t of m.commands) {
+					if (t.name === commandName) {
+						commandID = t.id;
 
 						break;
 					}
@@ -62,12 +62,12 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 			}
 		}
 
-		if (moduleID !== undefined && assetID !== undefined) {
+		if (moduleID !== undefined && commandID !== undefined) {
 			props.onSubmit({
 				moduleID,
-				assetID,
+				commandID,
 				passphrase,
-				asset: JSON.parse(asset) as Record<string, unknown>,
+				params: JSON.parse(asset) as Record<string, unknown>,
 			});
 		}
 	};

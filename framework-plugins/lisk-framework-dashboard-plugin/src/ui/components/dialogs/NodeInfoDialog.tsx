@@ -105,7 +105,7 @@ const NodeInfoDialog: React.FC<NodeInfoDialogProps> = props => {
 								<Text>{fee.moduleID}</Text>
 							</Grid>
 							<Grid xs={4}>
-								<Text>{fee.assetID}</Text>
+								<Text>{fee.commandID}</Text>
 							</Grid>
 							<Grid xs={4}>
 								<Text>{fee.baseFee}</Text>
