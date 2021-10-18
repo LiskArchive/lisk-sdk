@@ -59,6 +59,13 @@ export interface ValidatorsAPI {
 		validatorAddress: Buffer,
 		generatorKey: Buffer,
 	): Promise<boolean>;
+	registerValidatorKeys(
+		apiContext: APIContext,
+		validatorAddress: Buffer,
+		blsKey: Buffer,
+		generatorKey: Buffer,
+		proofOfPossession: Buffer,
+	): Promise<boolean>;
 }
 
 export interface TokenAPI {
@@ -78,6 +85,13 @@ export interface UnlockingObject {
 }
 
 export interface UpdateGeneratorKeyParams {
+	generatorKey: Buffer;
+}
+
+export interface DelegateRegistrationParams {
+	name: string;
+	blsKey: Buffer;
+	proofOfPossession: Buffer;
 	generatorKey: Buffer;
 }
 
