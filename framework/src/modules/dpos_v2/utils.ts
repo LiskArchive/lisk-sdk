@@ -13,7 +13,8 @@
  */
 
 import { verifyData } from '@liskhq/lisk-cryptography';
-import { UnlockingObject } from './types';
+import { NotFoundError } from '@liskhq/lisk-chain';
+import { UnlockingObject, VoterData } from './types';
 import {
 	PUNISHMENT_PERIOD,
 	SELF_VOTE_PUNISH_TIME,
@@ -21,6 +22,8 @@ import {
 	WAIT_TIME_SELF_VOTE,
 	WAIT_TIME_VOTE,
 } from './constants';
+import { SubStore } from '../../node/state_machine/types';
+import { voterStoreSchema } from './schemas';
 
 export const sortUnlocking = (unlocks: UnlockingObject[]): void => {
 	unlocks.sort((a, b) => {
@@ -126,4 +129,21 @@ export const isCurrentlyPunished = (height: number, pomHeights: ReadonlyArray<nu
 	}
 
 	return false;
+};
+
+export const getVoterOrDefault = async (voterStore: SubStore, address: Buffer) => {
+	try {
+		const voterData = await voterStore.getWithSchema<VoterData>(address, voterStoreSchema);
+		return voterData;
+	} catch (error) {
+		if (!(error instanceof NotFoundError)) {
+			throw error;
+		}
+
+		const voterData = {
+			sentVotes: [],
+			pendingUnlocks: [],
+		};
+		return voterData;
+	}
 };
