@@ -63,7 +63,7 @@ export const blockHeaderAssetRandomModule = {
 	type: 'object',
 	properties: {
 		seedReveal: {
-			dataType: 'unint64',
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
 	},

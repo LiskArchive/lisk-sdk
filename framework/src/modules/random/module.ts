@@ -30,7 +30,13 @@ import {
 } from './constants';
 import { RandomEndpoint } from './endpoint';
 import { blockHeaderAssetRandomModule, usedHashOnionsStoreSchema } from './schemas';
-import { GeneratorConfig, HashOnionConfig, UsedHashOnion, UsedHashOnionStoreObject } from './types';
+import {
+	HashOnionConfig,
+	RegisteredDelegate,
+	UsedHashOnion,
+	UsedHashOnionStoreObject,
+} from './types';
+import { Logger } from '../../logger';
 
 export class RandomModule extends BaseModule {
 	public id = MODULE_ID_RANDOM;
@@ -38,17 +44,17 @@ export class RandomModule extends BaseModule {
 	public api = new RandomAPI(this.id);
 	public endpoint = new RandomEndpoint(this.id);
 
-	private _generatorConfig!: GeneratorConfig;
+	private _generatorConfig!: Record<string, unknown>;
 	private _maxLengthReveals!: number;
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs): Promise<void> {
-		const { moduleConfig } = args;
-		this._generatorConfig = moduleConfig.generatorConfig as GeneratorConfig;
+		const { moduleConfig, generatorConfig } = args;
+		this._generatorConfig = generatorConfig;
 		this._maxLengthReveals =
 			(moduleConfig.maxLengthReveals as number) ?? DEFAULT_MAX_LENGTH_REVEALS;
 		// eslint-disable-next-line no-console
-		console.log(this._generatorConfig, this._maxLengthReveals);
+		console.log(this._generatorConfig.toString(), this._maxLengthReveals);
 	}
 
 	public async initBlock(context: BlockGenerateContext): Promise<void> {
@@ -63,6 +69,7 @@ export class RandomModule extends BaseModule {
 			usedHashOnions,
 			context.header.generatorAddress,
 			context.header.height,
+			context.logger,
 		);
 		const index = usedHashOnions.findIndex(
 			ho => ho.address.equals(context.header.generatorAddress) && ho.count === nextHashOnion.count,
@@ -70,7 +77,7 @@ export class RandomModule extends BaseModule {
 		const nextUsedHashOnion = {
 			count: nextHashOnion.count,
 			address: context.header.generatorAddress,
-			height: 0, // TODO: nextHeight
+			height: context.header.height, // Height of block being forged
 		} as UsedHashOnion;
 
 		if (index > -1) {
@@ -82,9 +89,8 @@ export class RandomModule extends BaseModule {
 
 		const updatedUsedHashOnion = this._filterUsedHashOnions(
 			usedHashOnions,
-			0, // TODO:this._bftModule.finalizedHeight
+			0, // TODO:this._bftModule.finalizedHeight, to update after https://github.com/LiskHQ/lisk-sdk/issues/6836
 		);
-
 		// Set value in Block Asset
 		context.assets.setAsset(
 			this.id,
@@ -93,7 +99,7 @@ export class RandomModule extends BaseModule {
 		// Update used seed reveal
 		await generatorSubStore.set(
 			STORE_PREFIX_USED_HASH_ONION,
-			codec.encode(usedHashOnionsStoreSchema, updatedUsedHashOnion),
+			codec.encode(usedHashOnionsStoreSchema, { usedHashOnions: updatedUsedHashOnion }),
 		);
 	}
 
@@ -139,6 +145,7 @@ export class RandomModule extends BaseModule {
 		usedHashOnions: ReadonlyArray<UsedHashOnion>,
 		address: Buffer,
 		height: number,
+		logger: Logger,
 	): {
 		readonly count: number;
 		readonly hash: Buffer;
@@ -168,9 +175,9 @@ export class RandomModule extends BaseModule {
 		const { count: usedCount } = usedHashOnion;
 		const nextCount = usedCount + 1;
 		if (nextCount > hashOnionConfig.count) {
-			// this._logger.warn(
-			// 	'All of the hash onion has been used already. Please update to the new hash onion.',
-			// );
+			logger.warn(
+				'All of the hash onion has been used already. Please update to the new hash onion.',
+			);
 			return {
 				hash: generateHashOnionSeed(),
 				count: 0,
@@ -191,7 +198,9 @@ export class RandomModule extends BaseModule {
 	}
 
 	private _getHashOnionConfig(address: Buffer): HashOnionConfig {
-		const delegateConfig = this._generatorConfig.delegates?.find(d => d.address.equals(address));
+		const delegateConfig = (this._generatorConfig as {
+			delegates: ReadonlyArray<RegisteredDelegate>;
+		}).delegates?.find(d => d.address.equals(address));
 		if (!delegateConfig?.hashOnion) {
 			throw new Error(`Account ${address.toString('hex')} does not have hash onion in the config`);
 		}
