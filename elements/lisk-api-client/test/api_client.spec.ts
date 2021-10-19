@@ -35,11 +35,11 @@ describe('APIClient module', () => {
 		});
 
 		it('should get the registered schema', () => {
-			expect(channel.invoke).toHaveBeenCalledWith('app:getSchema');
+			expect(channel.invoke).toHaveBeenCalledWith('app_getSchema');
 		});
 
 		it('should get the node info', () => {
-			expect(channel.invoke).toHaveBeenCalledWith('app:getNodeInfo');
+			expect(channel.invoke).toHaveBeenCalledWith('app_getNodeInfo');
 		});
 
 		it('should create node namespace', () => {

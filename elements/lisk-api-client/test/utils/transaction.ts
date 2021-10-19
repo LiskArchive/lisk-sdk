@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
+import { blockHeaderSchema, blockSchema, transactionSchema } from '@liskhq/lisk-chain';
 import { NodeInfo } from '../../src/types';
 
 export const nodeInfo: NodeInfo = {
@@ -31,7 +31,7 @@ export const nodeInfo: NodeInfo = {
 		maxPayloadLength: 15360,
 		bftThreshold: 68,
 		minFeePerByte: 1000,
-		baseFees: [{ moduleID: 5, assetID: 0, baseFee: '1000000000' }],
+		baseFees: [{ moduleID: 5, commandID: 0, baseFee: '1000000000' }],
 		rewards: {
 			milestones: ['500000000', '400000000', '300000000', '200000000', '100000000'],
 			offset: 2160,
@@ -49,17 +49,15 @@ export const nodeInfo: NodeInfo = {
 			name: 'token',
 			actions: [],
 			events: [],
-			reducers: ['token:credit', 'token:debit', 'token:getBalance', 'token:getMinRemainingBalance'],
-			transactionAssets: [{ id: 0, name: 'transfer' }],
+			commands: [{ id: 0, name: 'transfer' }],
 		},
-		{ id: 3, name: 'sequence', actions: [], events: [], reducers: [], transactionAssets: [] },
+		{ id: 3, name: 'sequence', actions: [], events: [], commands: [] },
 		{
 			id: 4,
 			name: 'keys',
 			actions: [],
 			events: [],
-			reducers: [],
-			transactionAssets: [{ id: 0, name: 'registerMultisignatureGroup' }],
+			commands: [{ id: 0, name: 'registerMultisignatureGroup' }],
 		},
 	],
 	network: {
@@ -68,204 +66,19 @@ export const nodeInfo: NodeInfo = {
 	},
 };
 
-export const accountSchema = {
-	$id: '/account/base',
-	properties: {
-		address: {
-			dataType: 'bytes',
-			fieldNumber: 1,
-		},
-		keys: {
-			fieldNumber: 4,
-			properties: {
-				mandatoryKeys: {
-					fieldNumber: 2,
-					items: {
-						dataType: 'bytes',
-					},
-					type: 'array',
-				},
-				numberOfSignatures: {
-					dataType: 'uint32',
-					fieldNumber: 1,
-				},
-				optionalKeys: {
-					fieldNumber: 3,
-					items: {
-						dataType: 'bytes',
-					},
-					type: 'array',
-				},
-			},
-			type: 'object',
-		},
-		sequence: {
-			fieldNumber: 3,
-			properties: {
-				nonce: {
-					dataType: 'uint64',
-					fieldNumber: 1,
-				},
-			},
-			type: 'object',
-		},
-		token: {
-			fieldNumber: 2,
-			properties: {
-				balance: {
-					dataType: 'uint64',
-					fieldNumber: 1,
-				},
-			},
-			type: 'object',
-		},
-	},
-	required: ['address', 'keys', 'sequence', 'token'],
-	type: 'object',
-};
-
 export const schema = {
-	account: {
-		$id: '/account/base',
-		type: 'object',
-		properties: {
-			address: { dataType: 'bytes', fieldNumber: 1 },
-			token: {
-				type: 'object',
-				properties: { balance: { fieldNumber: 1, dataType: 'uint64' } },
-				fieldNumber: 2,
-			},
-			sequence: {
-				type: 'object',
-				properties: { nonce: { fieldNumber: 1, dataType: 'uint64' } },
-				fieldNumber: 3,
-			},
-			keys: {
-				type: 'object',
-				properties: {
-					numberOfSignatures: { dataType: 'uint32', fieldNumber: 1 },
-					mandatoryKeys: { type: 'array', items: { dataType: 'bytes' }, fieldNumber: 2 },
-					optionalKeys: { type: 'array', items: { dataType: 'bytes' }, fieldNumber: 3 },
-				},
-				fieldNumber: 4,
-			},
-		},
-		required: ['address', 'token', 'sequence', 'keys'],
-	},
-	block: {
-		$id: '/block',
-		type: 'object',
-		properties: {
-			header: { dataType: 'bytes', fieldNumber: 1 },
-			payload: { type: 'array', items: { dataType: 'bytes' }, fieldNumber: 2 },
-		},
-		required: ['header', 'payload'],
-	},
-	blockHeader: {
-		$id: '/block/header',
-		type: 'object',
-		properties: {
-			version: { dataType: 'uint32', fieldNumber: 1 },
-			timestamp: { dataType: 'uint32', fieldNumber: 2 },
-			height: { dataType: 'uint32', fieldNumber: 3 },
-			previousBlockID: { dataType: 'bytes', fieldNumber: 4 },
-			transactionRoot: { dataType: 'bytes', fieldNumber: 5 },
-			generatorPublicKey: { dataType: 'bytes', fieldNumber: 6 },
-			reward: { dataType: 'uint64', fieldNumber: 7 },
-			asset: { dataType: 'bytes', fieldNumber: 8 },
-			signature: { dataType: 'bytes', fieldNumber: 9 },
-		},
-		required: [
-			'version',
-			'timestamp',
-			'height',
-			'previousBlockID',
-			'transactionRoot',
-			'generatorPublicKey',
-			'reward',
-			'asset',
-		],
-	},
-	blockHeadersAssets: {
-		0: {
-			$id: '/genesisBlock/header/asset',
-			type: 'object',
-			required: ['accounts', 'initDelegates', 'initRounds'],
-			properties: {
-				accounts: {
-					type: 'array',
-					fieldNumber: 1,
-					items: {
-						$id: '/account/base',
-						type: 'object',
-						properties: {
-							address: { dataType: 'bytes', fieldNumber: 1 },
-							token: {
-								type: 'object',
-								properties: { balance: { fieldNumber: 1, dataType: 'uint64' } },
-								fieldNumber: 2,
-							},
-							sequence: {
-								type: 'object',
-								properties: { nonce: { fieldNumber: 1, dataType: 'uint64' } },
-								fieldNumber: 3,
-							},
-							keys: {
-								type: 'object',
-								properties: {
-									numberOfSignatures: { dataType: 'uint32', fieldNumber: 1 },
-									mandatoryKeys: { type: 'array', items: { dataType: 'bytes' }, fieldNumber: 2 },
-									optionalKeys: { type: 'array', items: { dataType: 'bytes' }, fieldNumber: 3 },
-								},
-								fieldNumber: 4,
-							},
-						},
-						required: ['address', 'token', 'sequence', 'keys'],
-					},
-				},
-				initDelegates: {
-					type: 'array',
-					items: { dataType: 'bytes' },
-					fieldNumber: 2,
-					minItems: 1,
-				},
-				initRounds: { dataType: 'uint32', fieldNumber: 3, minimum: 3 },
-			},
-		},
-		2: {
-			$id: '/blockHeader/asset/v2',
-			type: 'object',
-			properties: {
-				maxHeightPreviouslyForged: { dataType: 'uint32', fieldNumber: 1 },
-				maxHeightPrevoted: { dataType: 'uint32', fieldNumber: 2 },
-				seedReveal: { dataType: 'bytes', minLength: 16, maxLength: 16, fieldNumber: 3 },
-			},
-			required: ['maxHeightPreviouslyForged', 'maxHeightPrevoted', 'seedReveal'],
-		},
-	},
-	transaction: {
-		$id: 'lisk/transaction',
-		type: 'object',
-		required: ['moduleID', 'assetID', 'nonce', 'fee', 'senderPublicKey', 'asset'],
-		properties: {
-			moduleID: { dataType: 'uint32', fieldNumber: 1, minimum: 2 },
-			assetID: { dataType: 'uint32', fieldNumber: 2 },
-			nonce: { dataType: 'uint64', fieldNumber: 3 },
-			fee: { dataType: 'uint64', fieldNumber: 4 },
-			senderPublicKey: { dataType: 'bytes', fieldNumber: 5, minLength: 32, maxLength: 32 },
-			asset: { dataType: 'bytes', fieldNumber: 6 },
-			signatures: { type: 'array', items: { dataType: 'bytes' }, fieldNumber: 7 },
-		},
-	},
-	transactionsAssets: [
+	block: blockSchema,
+	blockHeader: blockHeaderSchema,
+	transaction: transactionSchema,
+	commands: [
 		{
 			moduleID: 2,
 			moduleName: 'token',
-			assetID: 0,
-			assetName: 'transfer',
+			commandID: 0,
+			commandName: 'transfer',
 			schema: {
-				$id: 'lisk/transfer-asset',
-				title: 'Transfer transaction asset',
+				$id: 'lisk/transfer-params',
+				title: 'Transfer transaction params',
 				type: 'object',
 				required: ['amount', 'recipientAddress', 'data'],
 				properties: {
@@ -278,8 +91,8 @@ export const schema = {
 		{
 			moduleID: 4,
 			moduleName: 'keys',
-			assetID: 0,
-			assetName: 'registerMultisignatureGroup',
+			commandID: 0,
+			commandName: 'registerMultisignatureGroup',
 			schema: {
 				$id: 'lisk/keys/register',
 				type: 'object',
@@ -308,14 +121,14 @@ export const schema = {
 
 export const tx = {
 	moduleID: 2,
-	assetID: 0,
+	commandID: 0,
 	nonce: BigInt('54'),
 	fee: BigInt('10000000'),
 	senderPublicKey: Buffer.from(
 		'dd4ff255fe04dd0159a468e9e9c8872c4f4466220f7e326377a0ceb9df2fa21a',
 		'hex',
 	),
-	asset: {
+	params: {
 		amount: BigInt('10000000'),
 		recipientAddress: Buffer.from('654087c2df870402ab0b1996616fd3355d61f62c', 'hex'),
 		data: '',

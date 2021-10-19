@@ -26,20 +26,20 @@ interface MultiSignatureKeys {
 
 // Validates transaction against schema and returns transaction bytes for signing
 export const getSigningBytes = (
-	assetSchema: object,
+	paramsSchema: object,
 	transactionObject: Record<string, unknown>,
 ): Buffer => {
-	const validationErrors = validateTransaction(assetSchema, transactionObject);
+	const validationErrors = validateTransaction(paramsSchema, transactionObject);
 	if (validationErrors) {
 		throw validationErrors;
 	}
-	if (typeof transactionObject.asset !== 'object' || transactionObject.asset === null) {
-		throw new Error('Asset must be of type object and not null');
+	if (typeof transactionObject.params !== 'object' || transactionObject.params === null) {
+		throw new Error('Parameters must be of type object and not null');
 	}
-	const assetBytes = codec.encode((assetSchema as unknown) as Schema, transactionObject.asset);
+	const paramsBytes = codec.encode((paramsSchema as unknown) as Schema, transactionObject.params);
 	const transactionBytes = codec.encode(baseTransactionSchema, {
 		...transactionObject,
-		asset: assetBytes,
+		params: paramsBytes,
 		signatures: [],
 	});
 
@@ -47,16 +47,16 @@ export const getSigningBytes = (
 };
 
 export const getBytes = (
-	assetSchema: object,
+	paramsSchema: object,
 	transactionObject: Record<string, unknown>,
 ): Buffer => {
-	if (typeof transactionObject.asset !== 'object' || transactionObject.asset === null) {
-		throw new Error('Asset must be of type object and not null');
+	if (typeof transactionObject.params !== 'object' || transactionObject.params === null) {
+		throw new Error('Parameters must be of type object and not null');
 	}
-	const assetBytes = codec.encode((assetSchema as unknown) as Schema, transactionObject.asset);
+	const paramsBytes = codec.encode((paramsSchema as unknown) as Schema, transactionObject.params);
 	const transactionBytes = codec.encode(baseTransactionSchema, {
 		...transactionObject,
-		asset: assetBytes,
+		params: paramsBytes,
 	});
 
 	return transactionBytes;
@@ -64,7 +64,7 @@ export const getBytes = (
 
 // Validates transaction against schema and returns transaction including signature
 export const signTransaction = (
-	assetSchema: object,
+	paramsSchema: object,
 	transactionObject: Record<string, unknown>,
 	networkIdentifier: Buffer,
 	passphrase: string,
@@ -76,7 +76,7 @@ export const signTransaction = (
 	if (!passphrase) {
 		throw new Error('Passphrase is required to sign a transaction');
 	}
-	const validationErrors = validateTransaction(assetSchema, transactionObject);
+	const validationErrors = validateTransaction(paramsSchema, transactionObject);
 	if (validationErrors) {
 		throw validationErrors;
 	}
@@ -92,12 +92,12 @@ export const signTransaction = (
 	const signature = signData(
 		TAG_TRANSACTION,
 		networkIdentifier,
-		getSigningBytes(assetSchema, transactionObject),
+		getSigningBytes(paramsSchema, transactionObject),
 		passphrase,
 	);
 	// eslint-disable-next-line no-param-reassign
 	transactionObject.signatures = [signature];
-	return { ...transactionObject, id: hash(getBytes(assetSchema, transactionObject)) };
+	return { ...transactionObject, id: hash(getBytes(paramsSchema, transactionObject)) };
 };
 
 const sanitizeSignaturesArray = (
@@ -121,7 +121,7 @@ const sanitizeSignaturesArray = (
 
 // Validates transaction against schema and sign a multi-signature transaction
 export const signMultiSignatureTransaction = (
-	assetSchema: object,
+	paramsSchema: object,
 	transactionObject: Record<string, unknown>,
 	networkIdentifier: Buffer,
 	passphrase: string,
@@ -140,7 +140,7 @@ export const signMultiSignatureTransaction = (
 		throw new Error('Signatures must be of type array');
 	}
 
-	const validationErrors = validateTransaction(assetSchema, transactionObject);
+	const validationErrors = validateTransaction(paramsSchema, transactionObject);
 	if (validationErrors) {
 		throw validationErrors;
 	}
@@ -152,7 +152,7 @@ export const signMultiSignatureTransaction = (
 	const signature = signData(
 		TAG_TRANSACTION,
 		networkIdentifier,
-		getSigningBytes(assetSchema, transactionObject),
+		getSigningBytes(paramsSchema, transactionObject),
 		passphrase,
 	);
 
@@ -188,5 +188,5 @@ export const signMultiSignatureTransaction = (
 
 	sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);
 
-	return { ...transactionObject, id: hash(getBytes(assetSchema, transactionObject)) };
+	return { ...transactionObject, id: hash(getBytes(paramsSchema, transactionObject)) };
 };

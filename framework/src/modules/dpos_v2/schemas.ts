@@ -13,6 +13,7 @@
  */
 
 export const voterStoreSchema = {
+	$id: '/dpos/voter',
 	type: 'object',
 	required: ['sentVotes', 'pendingUnlocks'],
 	properties: {
@@ -105,6 +106,7 @@ export const delegateStoreSchema = {
 };
 
 export const nameStoreSchema = {
+	$id: '/dpos/name',
 	type: 'object',
 	required: ['delegateAddress'],
 	properties: {
@@ -222,6 +224,8 @@ export const voteCommandParamsSchema = {
 		votes: {
 			type: 'array',
 			fieldNumber: 1,
+			minItems: 1,
+			maxItems: 20,
 			items: {
 				type: 'object',
 				required: ['delegateAddress', 'amount'],
@@ -229,6 +233,8 @@ export const voteCommandParamsSchema = {
 					delegateAddress: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						minLength: 20,
+						maxLength: 20,
 					},
 					amount: {
 						dataType: 'sint64',

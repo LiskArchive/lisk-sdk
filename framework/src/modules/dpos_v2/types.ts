@@ -61,6 +61,16 @@ export interface ValidatorsAPI {
 	): Promise<boolean>;
 }
 
+export interface TokenAPI {
+	lock(
+		apiContext: APIContext,
+		address: Buffer,
+		moduleID: number,
+		tokenID: TokenIDDPoS,
+		amount: bigint,
+	): Promise<void>;
+}
+
 export interface UnlockingObject {
 	readonly delegateAddress: Buffer;
 	readonly amount: bigint;
@@ -79,4 +89,48 @@ export interface DelegateAccount {
 	isBanned: boolean;
 	pomHeights: ReadonlyArray<number>;
 	consecutiveMissedBlocks: number;
+}
+
+export interface DelegateAccountJSON {
+	name: string;
+	totalVotesReceived: string;
+	selfVotes: string;
+	lastGeneratedHeight: number;
+	isBanned: boolean;
+	pomHeights: ReadonlyArray<number>;
+	consecutiveMissedBlocks: number;
+}
+
+export interface VoterDataJSON {
+	sentVotes: {
+		delegateAddress: string;
+		amount: string;
+	}[];
+	pendingUnlocks: {
+		delegateAddress: string;
+		amount: string;
+		unvoteHeight: number;
+	}[];
+}
+
+export interface VoteObject {
+	delegateAddress: Buffer;
+	amount: bigint;
+}
+export interface VoterData {
+	sentVotes: VoteObject[];
+	pendingUnlocks: UnlockingObject[];
+}
+
+export interface NameStore {
+	delegateAddress: Buffer;
+}
+
+export interface VoteTransactionParams {
+	votes: VoteObject[];
+}
+
+export interface VoteCommandDependencies {
+	tokenIDDPoS: TokenIDDPoS;
+	tokenAPI: TokenAPI;
 }

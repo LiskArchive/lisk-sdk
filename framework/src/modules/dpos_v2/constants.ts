@@ -33,3 +33,7 @@ export const VOTER_PUNISH_TIME = 260000;
 export const SELF_VOTE_PUNISH_TIME = 780000;
 // Punishment period is 780k block height by default
 export const PUNISHMENT_PERIOD = 780000;
+export const MAX_LENGTH_NAME = 20;
+export const TEN_UNIT = BigInt(10) * BigInt(10) ** BigInt(8);
+export const MAX_VOTE = 10;
+export const MAX_UNLOCKING = 20;
