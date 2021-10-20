@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { MAX_LENGTH_NAME } from './constants';
+
 export const voterStoreSchema = {
 	$id: '/dpos/voter',
 	type: 'object',
@@ -186,18 +188,26 @@ export const delegateRegistrationCommandParamsSchema = {
 		name: {
 			dataType: 'string',
 			fieldNumber: 1,
+			minLength: 1,
+			maxLength: MAX_LENGTH_NAME,
 		},
 		generatorKey: {
 			dataType: 'bytes',
 			fieldNumber: 2,
+			minLength: 32,
+			maxLength: 32,
 		},
 		blsKey: {
 			dataType: 'bytes',
 			fieldNumber: 3,
+			minLength: 48,
+			maxLength: 48,
 		},
 		proofOfPossession: {
 			dataType: 'bytes',
 			fieldNumber: 4,
+			minLength: 96,
+			maxLength: 96,
 		},
 	},
 };
