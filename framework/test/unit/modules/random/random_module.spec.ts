@@ -14,7 +14,6 @@
 
 import { getAddressFromPublicKey, hashOnion } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
-import { when } from 'jest-when';
 import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
 import { RandomModule } from '../../../../src/modules/random';
 import { UsedHashOnionStoreObject } from '../../../../src/modules/random/types';
@@ -44,8 +43,6 @@ describe('RandomModule', () => {
 		getAsset: jest.fn(),
 		setAsset: jest.fn(),
 	};
-
-	const generatorStoreMock = jest.fn().mockReturnValue({ get: jest.fn(), set: jest.fn() });
 
 	beforeEach(() => {
 		randomModule = new RandomModule();
@@ -107,19 +104,21 @@ describe('RandomModule', () => {
 
 		it('should assign seed reveal to block header asset', async () => {
 			// Arrange
-			when(generatorStoreMock(randomModule.id).get)
-				.calledWith(STORE_PREFIX_USED_HASH_ONION)
-				.mockResolvedValue(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnion) as never);
-
-			const blockExecuteContext: BlockGenerateContext = {
+			const blockGenerateContext: BlockGenerateContext = testing.createBlockGenerateContext({
 				assets: assetStub,
-				getGeneratorStore: generatorStoreMock,
 				logger: testing.mocks.loggerMock,
 				networkIdentifier: defaultNetworkIdentifier,
 				getAPIContext: jest.fn() as any,
 				getStore: jest.fn() as any,
 				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
-			};
+			});
+
+			await blockGenerateContext
+				.getGeneratorStore(randomModule.id)
+				.set(
+					STORE_PREFIX_USED_HASH_ONION,
+					codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnion),
+				);
 
 			const seed = targetDelegate.hashOnion.hashes[1];
 			const hashes = hashOnion(Buffer.from(seed, 'hex'), targetDelegate.hashOnion.distance, 1);
@@ -131,32 +130,38 @@ describe('RandomModule', () => {
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
-			await randomModule.initBlock(blockExecuteContext);
+			await randomModule.initBlock(blockGenerateContext);
 
 			// Assert
-			expect(generatorStoreMock(randomModule.id).get).toHaveBeenCalledTimes(1);
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
 			expect(assetStub.setAsset).toHaveBeenCalledWith(
 				randomModule.id,
 				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[7] }),
 			);
+			expect(
+				await blockGenerateContext
+					.getGeneratorStore(randomModule.id)
+					.get(STORE_PREFIX_USED_HASH_ONION),
+			).toEqual(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated));
 		});
 
 		it('should update the used hash onion', async () => {
 			// Arrange
-			when(generatorStoreMock(randomModule.id).get)
-				.calledWith(STORE_PREFIX_USED_HASH_ONION)
-				.mockResolvedValue(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnion) as never);
 
-			const blockExecuteContext: BlockGenerateContext = {
+			const blockGenerateContext: BlockGenerateContext = testing.createBlockGenerateContext({
 				assets: assetStub,
-				getGeneratorStore: generatorStoreMock,
 				logger: testing.mocks.loggerMock,
 				networkIdentifier: defaultNetworkIdentifier,
 				getAPIContext: jest.fn() as any,
 				getStore: jest.fn() as any,
 				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
-			};
+			});
+			await blockGenerateContext
+				.getGeneratorStore(randomModule.id)
+				.set(
+					STORE_PREFIX_USED_HASH_ONION,
+					codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnion),
+				);
 
 			const seed = targetDelegate.hashOnion.hashes[1];
 			const hashes = hashOnion(Buffer.from(seed, 'hex'), targetDelegate.hashOnion.distance, 1);
@@ -168,20 +173,19 @@ describe('RandomModule', () => {
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
-			await randomModule.initBlock(blockExecuteContext);
+			await randomModule.initBlock(blockGenerateContext);
 
 			// Assert
-			expect(generatorStoreMock(randomModule.id).get).toHaveBeenCalledTimes(1);
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
 			expect(assetStub.setAsset).toHaveBeenCalledWith(
 				randomModule.id,
 				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[7] }),
 			);
-			expect(generatorStoreMock(randomModule.id).set).toHaveBeenCalledTimes(1);
-			expect(generatorStoreMock(randomModule.id).set).toHaveBeenCalledWith(
-				STORE_PREFIX_USED_HASH_ONION,
-				codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated),
-			);
+			expect(
+				await blockGenerateContext
+					.getGeneratorStore(randomModule.id)
+					.get(STORE_PREFIX_USED_HASH_ONION),
+			).toEqual(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated));
 		});
 
 		it('should overwrite the used hash onion when forging the same height', async () => {
@@ -206,19 +210,20 @@ describe('RandomModule', () => {
 				],
 			};
 
-			when(generatorStoreMock(randomModule.id).get)
-				.calledWith(STORE_PREFIX_USED_HASH_ONION)
-				.mockResolvedValue(codec.encode(usedHashOnionsStoreSchema, usedHashOnionInput) as never);
-
-			const blockExecuteContext: BlockGenerateContext = {
+			const blockGenerateContext: BlockGenerateContext = testing.createBlockGenerateContext({
 				assets: assetStub,
-				getGeneratorStore: generatorStoreMock,
 				logger: testing.mocks.loggerMock,
 				networkIdentifier: defaultNetworkIdentifier,
 				getAPIContext: jest.fn() as any,
 				getStore: jest.fn() as any,
 				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
-			};
+			});
+			await blockGenerateContext
+				.getGeneratorStore(randomModule.id)
+				.set(
+					STORE_PREFIX_USED_HASH_ONION,
+					codec.encode(usedHashOnionsStoreSchema, usedHashOnionInput),
+				);
 
 			const seed = targetDelegate.hashOnion.hashes[1];
 			const hashes = hashOnion(Buffer.from(seed, 'hex'), targetDelegate.hashOnion.distance, 1);
@@ -230,38 +235,32 @@ describe('RandomModule', () => {
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
-			await randomModule.initBlock(blockExecuteContext);
+			await randomModule.initBlock(blockGenerateContext);
 
 			// Assert
-			expect(generatorStoreMock(randomModule.id).get).toHaveBeenCalledTimes(1);
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
 			expect(assetStub.setAsset).toHaveBeenCalledWith(
 				randomModule.id,
 				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[7] }),
 			);
-			expect(generatorStoreMock(randomModule.id).set).toHaveBeenCalledTimes(1);
-			expect(generatorStoreMock(randomModule.id).set).toHaveBeenCalledWith(
-				STORE_PREFIX_USED_HASH_ONION,
-				codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated),
-			);
+			expect(
+				await blockGenerateContext
+					.getGeneratorStore(randomModule.id)
+					.get(STORE_PREFIX_USED_HASH_ONION),
+			).toEqual(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated));
 		});
 
 		// TODO: Update and enable it after issue https://github.com/LiskHQ/lisk-sdk/issues/6836
 		it.skip('should remove all used hash onions before finality height', async () => {
 			// Arrange
-			when(generatorStoreMock(randomModule.id).get)
-				.calledWith(STORE_PREFIX_USED_HASH_ONION)
-				.mockResolvedValue(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnion) as never);
-
-			const blockExecuteContext: BlockGenerateContext = {
+			const blockGenerateContext: BlockGenerateContext = testing.createBlockGenerateContext({
 				assets: assetStub,
-				getGeneratorStore: generatorStoreMock,
 				logger: testing.mocks.loggerMock,
 				networkIdentifier: defaultNetworkIdentifier,
 				getAPIContext: jest.fn() as any,
 				getStore: jest.fn() as any,
 				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
-			};
+			});
 
 			const seed = targetDelegate.hashOnion.hashes[1];
 			const hashes = hashOnion(Buffer.from(seed, 'hex'), targetDelegate.hashOnion.distance, 1);
@@ -273,20 +272,20 @@ describe('RandomModule', () => {
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
-			await randomModule.initBlock(blockExecuteContext);
+			await randomModule.initBlock(blockGenerateContext);
 
 			// Assert
-			expect(generatorStoreMock(randomModule.id).get).toHaveBeenCalledTimes(1);
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
 			expect(assetStub.setAsset).toHaveBeenCalledWith(
 				randomModule.id,
 				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[7] }),
 			);
-			expect(generatorStoreMock(randomModule.id).set).toHaveBeenCalledTimes(1);
-			expect(generatorStoreMock(randomModule.id).set).toHaveBeenCalledWith(
-				STORE_PREFIX_USED_HASH_ONION,
-				codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated),
-			);
+
+			expect(
+				await blockGenerateContext
+					.getGeneratorStore(randomModule.id)
+					.get(STORE_PREFIX_USED_HASH_ONION),
+			).toEqual(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated));
 		});
 
 		it('should use random seedReveal when all seedReveal are used', async () => {
@@ -321,23 +320,24 @@ describe('RandomModule', () => {
 				],
 			};
 
-			when(generatorStoreMock(randomModule.id).get)
-				.calledWith(STORE_PREFIX_USED_HASH_ONION)
-				.mockResolvedValue(codec.encode(usedHashOnionsStoreSchema, usedHashOnionInput) as never);
-
 			const loggerMock = {
 				warn: jest.fn(),
 			};
 
-			const blockExecuteContext: BlockGenerateContext = {
+			const blockGenerateContext: BlockGenerateContext = testing.createBlockGenerateContext({
 				assets: assetStub,
-				getGeneratorStore: generatorStoreMock,
 				logger: loggerMock as any,
 				networkIdentifier: defaultNetworkIdentifier,
 				getAPIContext: jest.fn() as any,
 				getStore: jest.fn() as any,
 				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
-			};
+			});
+			await blockGenerateContext
+				.getGeneratorStore(randomModule.id)
+				.set(
+					STORE_PREFIX_USED_HASH_ONION,
+					codec.encode(usedHashOnionsStoreSchema, usedHashOnionInput),
+				);
 
 			// Act
 			await randomModule.init({
@@ -345,17 +345,16 @@ describe('RandomModule', () => {
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
-			await randomModule.initBlock(blockExecuteContext);
+			await randomModule.initBlock(blockGenerateContext);
 
 			// Assert
-			expect(generatorStoreMock(randomModule.id).get).toHaveBeenCalledTimes(1);
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
-			expect(generatorStoreMock(randomModule.id).set).toHaveBeenCalledTimes(1);
-			expect(generatorStoreMock(randomModule.id).set).toHaveBeenCalledWith(
-				STORE_PREFIX_USED_HASH_ONION,
-				codec.encode(usedHashOnionsStoreSchema, usedHashOnionOutput),
-			);
-			expect(blockExecuteContext.logger.warn).toHaveBeenCalledWith(
+			expect(
+				await blockGenerateContext
+					.getGeneratorStore(randomModule.id)
+					.get(STORE_PREFIX_USED_HASH_ONION),
+			).toEqual(codec.encode(usedHashOnionsStoreSchema, usedHashOnionOutput));
+			expect(blockGenerateContext.logger.warn).toHaveBeenCalledWith(
 				'All of the hash onion has been used already. Please update to the new hash onion.',
 			);
 		});

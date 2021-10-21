@@ -60,9 +60,11 @@ export class RandomModule extends BaseModule {
 	public async initBlock(context: BlockGenerateContext): Promise<void> {
 		const generatorSubStore = context.getGeneratorStore(this.id);
 		// Get used hash onions
+		const usedHashOnionsData = await generatorSubStore.get(STORE_PREFIX_USED_HASH_ONION);
+
 		const { usedHashOnions } = codec.decode<UsedHashOnionStoreObject>(
 			usedHashOnionsStoreSchema,
-			await generatorSubStore.get(STORE_PREFIX_USED_HASH_ONION),
+			usedHashOnionsData,
 		);
 		// Get next hash onion
 		const nextHashOnion = this._getNextHashOnion(
