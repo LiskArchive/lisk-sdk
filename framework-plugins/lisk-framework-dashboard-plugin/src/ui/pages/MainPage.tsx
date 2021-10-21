@@ -279,14 +279,16 @@ const MainPage: React.FC = () => {
 			const { publicKey, address } = cryptography.getAddressAndPublicKeyFromPassphrase(
 				data.passphrase,
 			);
-			const assetSchema = getClient().schemas.commands.find(
+			const paramsSchema = getClient().schemas.commands.find(
 				a => a.moduleID === data.moduleID && a.commandID === data.commandID,
 			);
-			if (!assetSchema) {
-				throw new Error(`ModuleID: ${data.moduleID} AssetID: ${data.commandID} is not registered`);
+			if (!paramsSchema) {
+				throw new Error(
+					`ModuleID: ${data.moduleID} CommandID: ${data.commandID} is not registered`,
+				);
 			}
-			const assetObject = codec.codec.fromJSON<Record<string, unknown>>(
-				assetSchema.schema,
+			const paramsObject = codec.codec.fromJSON<Record<string, unknown>>(
+				paramsSchema.schema,
 				data.params,
 			);
 			const sender = await getClient().invoke<{ nonce: string }>('auth_getAuthData', {
@@ -295,7 +297,7 @@ const MainPage: React.FC = () => {
 			const fee = getClient().transaction.computeMinFee({
 				moduleID: data.moduleID,
 				commandID: data.commandID,
-				asset: assetObject,
+				params: paramsObject,
 				senderPublicKey: publicKey,
 				nonce: BigInt(sender.nonce),
 			});
@@ -303,7 +305,7 @@ const MainPage: React.FC = () => {
 				{
 					moduleID: data.moduleID,
 					commandID: data.commandID,
-					params: assetObject,
+					params: paramsObject,
 					senderPublicKey: publicKey,
 					fee,
 				},

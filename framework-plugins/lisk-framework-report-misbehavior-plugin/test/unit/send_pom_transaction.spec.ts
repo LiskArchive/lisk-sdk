@@ -154,7 +154,7 @@ describe('Send PoM transaction', () => {
 			.mockResolvedValue({ networkIdentifier: defaultNetworkIdentifier } as never);
 	});
 
-	it('should throw error when pom transaction asset schema is not found', async () => {
+	it('should throw error when pom transaction params schema is not found', async () => {
 		jest.spyOn(reportMisbehaviorPlugin['apiClient'], 'schemas', 'get').mockReturnValue({
 			block: chain.blockSchema,
 			blockHeader: chain.blockHeaderSchema,
@@ -163,7 +163,7 @@ describe('Send PoM transaction', () => {
 		});
 		await expect(
 			(reportMisbehaviorPlugin as any)._createPoMTransaction(header1, header2),
-		).rejects.toThrow('PoM asset schema is not registered in the application.');
+		).rejects.toThrow('PoM params schema is not registered in the application.');
 	});
 
 	it('should create pom transaction for given block headers', async () => {

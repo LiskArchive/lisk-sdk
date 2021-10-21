@@ -27,9 +27,9 @@ interface WidgetProps {
 
 const SendTransactionWidget: React.FC<WidgetProps> = props => {
 	const [passphrase, setPassphrase] = React.useState('');
-	const [asset, setAsset] = React.useState('{}');
-	const [validAsset, setValidAsset] = React.useState(true);
-	const assets = props.modules
+	const [params, setParams] = React.useState('{}');
+	const [validParams, setValidParams] = React.useState(true);
+	const parameters = props.modules
 		.map(m =>
 			m.commands.map(t => ({
 				label: `${m.name}:${t.name}`,
@@ -37,12 +37,12 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 			})),
 		)
 		.flat();
-	const [selectedAsset, setSelectedAsset] = React.useState<SelectInputOptionType>(assets[0]);
+	const [selectedParams, setSelectedParams] = React.useState<SelectInputOptionType>(parameters[0]);
 
 	const handleSubmit = () => {
-		const assetSelectedValue = selectedAsset ? selectedAsset.value : '';
-		const moduleName = assetSelectedValue.split(':').shift();
-		const commandName = assetSelectedValue.split(':').slice(1).join(':');
+		const paramsSelectedValue = selectedParams ? selectedParams.value : '';
+		const moduleName = paramsSelectedValue.split(':').shift();
+		const commandName = paramsSelectedValue.split(':').slice(1).join(':');
 		let moduleID: number | undefined;
 		let commandID: number | undefined;
 
@@ -67,7 +67,7 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 				moduleID,
 				commandID,
 				passphrase,
-				params: JSON.parse(asset) as Record<string, unknown>,
+				params: JSON.parse(params) as Record<string, unknown>,
 			});
 		}
 	};
@@ -81,9 +81,9 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 				<Box mb={4}>
 					<SelectInput
 						multi={false}
-						options={assets}
-						selected={selectedAsset}
-						onChange={val => setSelectedAsset(val)}
+						options={parameters}
+						selected={selectedParams}
+						onChange={val => setSelectedParams(val)}
 					></SelectInput>
 				</Box>
 
@@ -99,23 +99,23 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 				<Box mb={4}>
 					<TextAreaInput
 						json
-						placeholder={'Asset'}
+						placeholder={'Params'}
 						size={'m'}
-						value={asset}
+						value={params}
 						onChange={val => {
 							try {
 								JSON.parse(val ?? '');
-								setValidAsset(true);
+								setValidParams(true);
 							} catch (error) {
-								setValidAsset(false);
+								setValidParams(false);
 							}
-							setAsset(val);
+							setParams(val);
 						}}
 					></TextAreaInput>
 				</Box>
 
 				<Box textAlign={'center'}>
-					<Button size={'m'} onClick={handleSubmit} disabled={!validAsset}>
+					<Button size={'m'} onClick={handleSubmit} disabled={!validParams}>
 						Submit
 					</Button>
 				</Box>

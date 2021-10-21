@@ -129,12 +129,12 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 		decodedBlockHeader: chain.BlockHeader,
 	): Promise<string> {
 		// ModuleID:5 (DPoS), AssetID:3 (PoMAsset)
-		const pomAssetInfo = this.apiClient.schemas.commands.find(
+		const pomParamsInfo = this.apiClient.schemas.commands.find(
 			({ moduleID, commandID }) => moduleID === 5 && commandID === 3,
 		);
 
-		if (!pomAssetInfo) {
-			throw new Error('PoM asset schema is not registered in the application.');
+		if (!pomParamsInfo) {
+			throw new Error('PoM params schema is not registered in the application.');
 		}
 
 		// Assume passphrase is checked before calling this function
@@ -153,11 +153,11 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 			'app_getNodeInfo',
 		);
 
-		const encodedParams = codec.encode(pomAssetInfo.schema, pomTransactionParams);
+		const encodedParams = codec.encode(pomParamsInfo.schema, pomTransactionParams);
 
 		const tx = new Transaction({
-			moduleID: pomAssetInfo.moduleID,
-			commandID: pomAssetInfo.commandID,
+			moduleID: pomParamsInfo.moduleID,
+			commandID: pomParamsInfo.commandID,
 			nonce: BigInt(authAccount.nonce),
 			senderPublicKey:
 				this._state.publicKey ?? getAddressAndPublicKeyFromPassphrase(passphrase).publicKey,

@@ -119,8 +119,8 @@ describe('Clean up old blocks', () => {
 				{
 					moduleID: 5,
 					moduleName: 'dpos',
-					assetID: 3,
-					assetName: 'reportDelegateMisbehavior',
+					commandID: 3,
+					commandName: 'reportDelegateMisbehavior',
 					schema: {
 						$id: 'lisk/dpos/pom',
 						type: 'object',
