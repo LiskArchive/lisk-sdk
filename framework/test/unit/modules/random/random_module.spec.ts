@@ -138,11 +138,9 @@ describe('RandomModule', () => {
 				randomModule.id,
 				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[7] }),
 			);
-			expect(
-				await blockGenerateContext
-					.getGeneratorStore(randomModule.id)
-					.get(STORE_PREFIX_USED_HASH_ONION),
-			).toEqual(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated));
+			await expect(
+				blockGenerateContext.getGeneratorStore(randomModule.id).get(STORE_PREFIX_USED_HASH_ONION),
+			).resolves.toEqual(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated));
 		});
 
 		it('should update the used hash onion', async () => {
@@ -181,11 +179,9 @@ describe('RandomModule', () => {
 				randomModule.id,
 				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[7] }),
 			);
-			expect(
-				await blockGenerateContext
-					.getGeneratorStore(randomModule.id)
-					.get(STORE_PREFIX_USED_HASH_ONION),
-			).toEqual(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated));
+			await expect(
+				blockGenerateContext.getGeneratorStore(randomModule.id).get(STORE_PREFIX_USED_HASH_ONION),
+			).resolves.toEqual(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated));
 		});
 
 		it('should overwrite the used hash onion when forging the same height', async () => {
@@ -243,11 +239,9 @@ describe('RandomModule', () => {
 				randomModule.id,
 				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[7] }),
 			);
-			expect(
-				await blockGenerateContext
-					.getGeneratorStore(randomModule.id)
-					.get(STORE_PREFIX_USED_HASH_ONION),
-			).toEqual(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated));
+			await expect(
+				blockGenerateContext.getGeneratorStore(randomModule.id).get(STORE_PREFIX_USED_HASH_ONION),
+			).resolves.toEqual(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated));
 		});
 
 		// TODO: Update and enable it after issue https://github.com/LiskHQ/lisk-sdk/issues/6836
@@ -281,11 +275,9 @@ describe('RandomModule', () => {
 				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[7] }),
 			);
 
-			expect(
-				await blockGenerateContext
-					.getGeneratorStore(randomModule.id)
-					.get(STORE_PREFIX_USED_HASH_ONION),
-			).toEqual(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated));
+			await expect(
+				blockGenerateContext.getGeneratorStore(randomModule.id).get(STORE_PREFIX_USED_HASH_ONION),
+			).resolves.toEqual(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated));
 		});
 
 		it('should use random seedReveal when all seedReveal are used', async () => {
@@ -349,11 +341,9 @@ describe('RandomModule', () => {
 
 			// Assert
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
-			expect(
-				await blockGenerateContext
-					.getGeneratorStore(randomModule.id)
-					.get(STORE_PREFIX_USED_HASH_ONION),
-			).toEqual(codec.encode(usedHashOnionsStoreSchema, usedHashOnionOutput));
+			await expect(
+				blockGenerateContext.getGeneratorStore(randomModule.id).get(STORE_PREFIX_USED_HASH_ONION),
+			).resolves.toEqual(codec.encode(usedHashOnionsStoreSchema, usedHashOnionOutput));
 			expect(blockGenerateContext.logger.warn).toHaveBeenCalledWith(
 				'All of the hash onion has been used already. Please update to the new hash onion.',
 			);
