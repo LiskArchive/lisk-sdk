@@ -15,3 +15,36 @@
 export interface ModuleConfig {
 	maxLengthRevealsMainchain?: number;
 }
+
+export interface UsedHashOnion {
+	readonly count: number;
+	readonly address: Buffer;
+	readonly height: number;
+}
+
+export interface HashOnionConfig {
+	readonly count: number;
+	readonly distance: number;
+	readonly hashes: Buffer[];
+}
+
+export interface UsedHashOnionStoreObject {
+	readonly usedHashOnions: UsedHashOnion[];
+}
+
+export interface RegisteredDelegate {
+	readonly address: Buffer;
+	readonly encryptedPassphrase: string;
+	readonly hashOnion: {
+		readonly count: number;
+		readonly distance: number;
+		readonly hashes: Buffer[];
+	};
+}
+
+export interface GeneratorConfig {
+	readonly force?: boolean;
+	readonly delegates?: ReadonlyArray<RegisteredDelegate>;
+	readonly defaultPassword?: string;
+	readonly waitThreshold: number;
+}

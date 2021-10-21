@@ -11,8 +11,5 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-export const MODULE_ID_RANDOM = 15;
-export const DEFAULT_MAX_LENGTH_REVEALS = 206;
-export const STORE_PREFIX_RANDOM = 0x0000;
-export const STORE_PREFIX_REGISTERED_HASH_ONION = Buffer.from('00', 'hex');
-export const STORE_PREFIX_USED_HASH_ONION = Buffer.from('01', 'hex');
+
+export { RandomModule } from './module';

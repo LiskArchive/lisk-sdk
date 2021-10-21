@@ -12,16 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BatchChain, KVStore, NotFoundError as DBNotFoundError } from '@liskhq/lisk-db';
+import { BatchChain, NotFoundError as DBNotFoundError } from '@liskhq/lisk-db';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { NotFoundError } from './errors';
+import { GeneratorDB } from './types';
 
 export class GeneratorStore {
-	private readonly _db: KVStore;
+	private readonly _db: GeneratorDB;
 	private readonly _data: dataStructures.BufferMap<Buffer>;
 	private readonly _prefix: Buffer;
 
-	public constructor(db: KVStore, prefix?: Buffer, data?: dataStructures.BufferMap<Buffer>) {
+	public constructor(db: GeneratorDB, prefix?: Buffer, data?: dataStructures.BufferMap<Buffer>) {
 		this._db = db;
 		this._prefix = prefix ?? Buffer.alloc(0);
 		this._data = data ?? new dataStructures.BufferMap();
