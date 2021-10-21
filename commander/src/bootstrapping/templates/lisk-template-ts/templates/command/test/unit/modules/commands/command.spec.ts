@@ -1,34 +1,34 @@
-import { <%= assetClass %> } from '../../../../../src/app/modules/<%= moduleName %>/assets/<%= assetFileName %>';
+import { <%= commandClass %> } from '../../../../../src/app/modules/<%= moduleName %>/commands/<%= commandFileName %>';
 
-describe('<%= assetClass %>', () => {
-  let transactionAsset: <%= assetClass %>;
+describe('<%= commandClass %>', () => {
+  let command: <%= commandClass %>;
 
 	beforeEach(() => {
-		transactionAsset = new <%= assetClass %>();
+		command = new <%= commandClass %>();
 	});
 
 	describe('constructor', () => {
 		it('should have valid id', () => {
-			expect(transactionAsset.id).toEqual(<%= assetID %>);
+			expect(command.id).toEqual(<%= commandID %>);
 		});
 
 		it('should have valid name', () => {
-			expect(transactionAsset.name).toEqual('<%= assetName %>');
+			expect(command.name).toEqual('<%= commandName %>');
 		});
 
 		it('should have valid schema', () => {
-			expect(transactionAsset.schema).toMatchSnapshot();
+			expect(command.schema).toMatchSnapshot();
 		});
 	});
 
-	describe('validate', () => {
+	describe('verify', () => {
 		describe('schema validation', () => {
       it.todo('should throw errors for invalid schema');
       it.todo('should be ok for valid schema');
     });
 	});
 
-	describe('apply', () => {
+	describe('execute', () => {
     describe('valid cases', () => {
       it.todo('should update the state store');
     });

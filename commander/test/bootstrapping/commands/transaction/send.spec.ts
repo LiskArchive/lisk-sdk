@@ -24,7 +24,7 @@ import * as appUtils from '../../../../src/utils/application';
 import {
 	createTransferTransaction,
 	encodeTransactionFromJSON,
-	tokenTransferAssetSchema,
+	tokenTransferParamsSchema,
 } from '../../../helpers/transactions';
 import { SendCommand } from '../../../../src/bootstrapping/commands/transaction/send';
 import { getConfig } from '../../../helpers/config';
@@ -33,8 +33,8 @@ describe('transaction:send command', () => {
 	const transactionsAssetSchemas = [
 		{
 			moduleID: 2,
-			assetID: 0,
-			schema: tokenTransferAssetSchema,
+			commandID: 0,
+			schema: tokenTransferParamsSchema,
 		},
 	];
 	const { id: transactionId, ...transferTransaction } = createTransferTransaction({
@@ -69,7 +69,7 @@ describe('transaction:send command', () => {
 			invoke: invokeMock,
 			schemas: {
 				transaction: transactionSchema,
-				transactionsAssets: transactionsAssetSchemas,
+				commands: transactionsAssetSchemas,
 			},
 		} as never);
 	});

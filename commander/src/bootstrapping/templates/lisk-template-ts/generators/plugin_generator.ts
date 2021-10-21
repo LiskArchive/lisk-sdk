@@ -113,7 +113,7 @@ export default class PluginGenerator extends Generator {
 			.getInitializerIfKindOrThrow(SyntaxKind.ArrowFunction);
 
 		registerFunction.setBodyText(
-			`${registerFunction.getBodyText()}\napp.registerPlugin(${this._className});`,
+			`${registerFunction.getBodyText()}\napp.registerPlugin(new ${this._className}());`,
 		);
 
 		pluginsFile.organizeImports();

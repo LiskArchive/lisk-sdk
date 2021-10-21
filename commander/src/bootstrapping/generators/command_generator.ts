@@ -17,26 +17,26 @@
 import { BaseGeneratorOptions } from '../../types';
 import BaseGenerator from './base_generator';
 
-interface AssetGeneratorOptions extends BaseGeneratorOptions {
+interface CommandGeneratorOptions extends BaseGeneratorOptions {
 	moduleName: string;
-	assetName: string;
-	assetID: number;
+	commandName: string;
+	commandID: number;
 }
 
-export default class AssetGenerator extends BaseGenerator {
+export default class CommandGenerator extends BaseGenerator {
 	protected _liskAssetArgs: {
 		moduleName: string;
-		assetName: string;
-		assetID: number;
+		commandName: string;
+		commandID: number;
 	};
 
-	public constructor(args: string | string[], opts: AssetGeneratorOptions) {
+	public constructor(args: string | string[], opts: CommandGeneratorOptions) {
 		super(args, opts);
 
 		this._liskAssetArgs = {
 			moduleName: opts.moduleName,
-			assetName: opts.assetName,
-			assetID: opts.assetID,
+			commandName: opts.commandName,
+			commandID: opts.commandID,
 		};
 	}
 

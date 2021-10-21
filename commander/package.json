@@ -93,7 +93,6 @@
 	"dependencies": {
 		"@liskhq/lisk-api-client": "^5.1.4",
 		"@liskhq/lisk-chain": "^0.3.3",
-		"@liskhq/lisk-client": "^5.2.0",
 		"@liskhq/lisk-codec": "^0.2.1",
 		"@liskhq/lisk-cryptography": "^3.2.0",
 		"@liskhq/lisk-db": "^0.2.0",

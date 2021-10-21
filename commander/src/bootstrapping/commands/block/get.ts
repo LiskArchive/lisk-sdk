@@ -24,6 +24,7 @@ interface BlockType<T = Buffer | string> {
 		version: number;
 		asset: Record<string, unknown>;
 	};
+	assets: string[];
 	transactions: {
 		[key: string]: unknown;
 		id?: T;

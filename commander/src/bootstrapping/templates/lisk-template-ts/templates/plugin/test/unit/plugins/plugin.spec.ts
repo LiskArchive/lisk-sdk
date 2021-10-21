@@ -10,9 +10,6 @@ describe('<%= className %>', () => {
 	describe('events', () => {
 		it.todo('should fire an event');
 	});
-	describe('actions', () => {
-		it.todo('should have an action');
-	});
 	describe('load', () => {
 		it.todo('should load plugin');
 	});

@@ -16,10 +16,10 @@
 
 import * as Config from '@oclif/config';
 import BaseBootstrapCommand from '../../../src/base_bootstrap_command';
-import AssetCommand from '../../../src/commands/generate/asset';
+import CommandCommand from '../../../src/commands/generate/command';
 import { getConfig } from '../../helpers/config';
 
-describe('generate:asset command', () => {
+describe('generate:command command', () => {
 	let stdout: string[];
 	let stderr: string[];
 	let config: Config.IConfig;
@@ -32,36 +32,36 @@ describe('generate:asset command', () => {
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
 	});
 
-	describe('generate:asset', () => {
+	describe('generate:command', () => {
 		it('should throw an error when all arg is not provided', async () => {
-			await expect(AssetCommand.run([], config)).rejects.toThrow('Missing 3 required arg');
+			await expect(CommandCommand.run([], config)).rejects.toThrow('Missing 3 required arg');
 		});
 
 		it('should throw an error when a arg is not provided', async () => {
-			await expect(AssetCommand.run(['nft'], config)).rejects.toThrow('Missing 2 required arg');
+			await expect(CommandCommand.run(['nft'], config)).rejects.toThrow('Missing 2 required arg');
 		});
 	});
 
-	describe('generate:asset invalidAssetName invalidAssetID', () => {
-		it('should throw an error when asset name is invalid', async () => {
-			await expect(AssetCommand.run(['nft', 'register$5', '1001'], config)).rejects.toThrow(
-				'Invalid asset name',
+	describe('generate:command invalidCommandName invalidCommandID', () => {
+		it('should throw an error when command name is invalid', async () => {
+			await expect(CommandCommand.run(['nft', 'register$5', '1001'], config)).rejects.toThrow(
+				'Invalid command name',
 			);
 		});
 
-		it('should throw an error when asset ID is invalid', async () => {
-			await expect(AssetCommand.run(['nft', 'register', '5r'], config)).rejects.toThrow(
-				'Invalid asset ID, only positive integers are allowed',
+		it('should throw an error when command ID is invalid', async () => {
+			await expect(CommandCommand.run(['nft', 'register', '5r'], config)).rejects.toThrow(
+				'Invalid command ID, only positive integers are allowed',
 			);
 		});
 	});
 
-	describe('generate:asset should check app directory', () => {
+	describe('generate:command should check app directory', () => {
 		it('should throw error if cwd is not a lisk app directory', async () => {
 			jest.spyOn<any, any>(BaseBootstrapCommand.prototype, '_isLiskAppDir').mockReturnValue(false);
 			jest.spyOn(process, 'cwd').mockReturnValue('/my/dir');
 
-			await expect(AssetCommand.run(['nft', 'register', '1001'], config)).rejects.toThrow(
+			await expect(CommandCommand.run(['nft', 'register', '1001'], config)).rejects.toThrow(
 				'You can run this command only in lisk app directory. Run "lisk init --help" command for more details.',
 			);
 			expect(BaseBootstrapCommand.prototype['_isLiskAppDir']).toHaveBeenCalledWith('/my/dir');
@@ -74,14 +74,14 @@ describe('generate:asset command', () => {
 				.spyOn<any, any>(BaseBootstrapCommand.prototype, '_runBootstrapCommand')
 				.mockResolvedValue(null as never);
 
-			await expect(AssetCommand.run(['nft', 'register', '1001'], config)).resolves.toBeNull();
+			await expect(CommandCommand.run(['nft', 'register', '1001'], config)).resolves.toBeNull();
 			expect(BaseBootstrapCommand.prototype['_isLiskAppDir']).toHaveBeenCalledWith('/my/dir');
 			expect(BaseBootstrapCommand.prototype['_runBootstrapCommand']).toHaveBeenCalledWith(
-				'lisk:generate:asset',
+				'lisk:generate:command',
 				{
 					moduleName: 'nft',
-					assetID: '1001',
-					assetName: 'register',
+					commandID: '1001',
+					commandName: 'register',
 				},
 			);
 		});
