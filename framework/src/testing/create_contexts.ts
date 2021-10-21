@@ -24,9 +24,13 @@ import {
 	createAPIContext,
 	EventQueue,
 	GenesisBlockContext,
+	ImmutableSubStore,
 	TransactionContext,
 } from '../node/state_machine';
 import { loggerMock } from './mocks';
+import { BlockGenerateContext } from '../node/generator';
+import { WritableBlockAssets } from '../node/generator/types';
+import { GeneratorStore } from '../node/generator/generator_store';
 
 export const createGenesisBlockContext = (params: {
 	header?: BlockHeader;
@@ -87,6 +91,56 @@ export const createBlockContext = (params: {
 		assets: params.assets ?? new BlockAssets(),
 		networkIdentifier: getRandomBytes(32),
 	});
+	return ctx;
+};
+
+export const createBlockGenerateContext = (params: {
+	assets?: WritableBlockAssets;
+	getGeneratorStore?: (moduleID: number) => GeneratorStore;
+	logger?: Logger;
+	getAPIContext?: () => APIContext;
+	getStore?: (moduleID: number, storePrefix: number) => ImmutableSubStore;
+	header: BlockHeader;
+	networkIdentifier?: Buffer;
+}): BlockGenerateContext => {
+	const db = new InMemoryKVStore();
+	const generatorStore = new GeneratorStore(db);
+	const getGeneratorStore = (moduleID: number) => generatorStore.getGeneratorStore(moduleID);
+	const header =
+		params.header ??
+		new BlockHeader({
+			height: 0,
+			generatorAddress: getRandomBytes(20),
+			previousBlockID: Buffer.alloc(0),
+			timestamp: Math.floor(Date.now() / 1000),
+			version: 0,
+			transactionRoot: hash(Buffer.alloc(0)),
+			stateRoot: hash(Buffer.alloc(0)),
+			maxHeightGenerated: 0,
+			maxHeightPrevoted: 0,
+			assetsRoot: hash(Buffer.alloc(0)),
+			aggregateCommit: {
+				height: 0,
+				aggregationBits: Buffer.alloc(0),
+				certificateSignature: Buffer.alloc(0),
+			},
+			validatorsHash: hash(Buffer.alloc(0)),
+		});
+	const stateStoreDB = new InMemoryKVStore();
+	const stateStore = new StateStore(stateStoreDB);
+	const getStore = (moduleID: number, storePrefix: number) =>
+		stateStore.getStore(moduleID, storePrefix);
+
+	const ctx: BlockGenerateContext = {
+		assets: params.assets ?? new BlockAssets([]),
+		getGeneratorStore: params.getGeneratorStore ?? getGeneratorStore,
+		logger: params.logger ?? loggerMock,
+		networkIdentifier: params.networkIdentifier ?? getRandomBytes(32),
+		getAPIContext: params.getAPIContext ?? (() => ({ getStore, eventQueue: new EventQueue() })),
+		getStore: params.getStore ?? getStore,
+		header,
+	};
+
 	return ctx;
 };
 
