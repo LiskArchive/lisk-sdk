@@ -13,6 +13,7 @@
  */
 
 import { Block } from '@liskhq/lisk-chain';
+import { Options } from '@liskhq/lisk-db';
 import { Logger } from '../../logger';
 import { BFTHeights } from '../consensus';
 import { APIContext, BlockHeader, ImmutableAPIContext, ImmutableSubStore } from '../state_machine';
@@ -61,4 +62,13 @@ export interface GeneratorModule {
 	readonly id: number;
 	initBlock?: (ctx: BlockGenerateContext) => Promise<void>;
 	sealBlock?: (ctx: BlockGenerateContext) => Promise<void>;
+}
+
+export interface GeneratorDB {
+	clear: (options?: Options) => Promise<void>;
+	put: (key: Buffer, val: Buffer) => Promise<void>;
+	del: (key: Buffer) => Promise<void>;
+	close: () => Promise<void>;
+	get: (key: Buffer) => Promise<Buffer>;
+	exists(key: Buffer): Promise<boolean>;
 }
