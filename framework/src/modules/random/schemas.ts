@@ -54,8 +54,8 @@ export const seedRevealSchema = {
 				required: ['generatorAddress', 'seedReveal', 'height', 'valid'],
 			},
 		},
-		required: ['validatorReveals'],
 	},
+	required: ['validatorReveals'],
 };
 
 export const blockHeaderAssetRandomModule = {

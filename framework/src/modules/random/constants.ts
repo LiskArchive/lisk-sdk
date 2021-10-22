@@ -16,3 +16,5 @@ export const DEFAULT_MAX_LENGTH_REVEALS = 206;
 export const STORE_PREFIX_RANDOM = 0x0000;
 export const STORE_PREFIX_REGISTERED_HASH_ONION = Buffer.from('00', 'hex');
 export const STORE_PREFIX_USED_HASH_ONION = Buffer.from('01', 'hex');
+export const RANDOM_SEED_BYTE_SIZE = 8;
+export const EMPTY_KEY = Buffer.alloc(0);
