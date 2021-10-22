@@ -14,7 +14,11 @@
 
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { RandomAPI } from '../../../../src/modules/random/api';
-import { MODULE_ID_RANDOM, STORE_PREFIX_RANDOM } from '../../../../src/modules/random/constants';
+import {
+	MODULE_ID_RANDOM,
+	SEED_REVEAL_HASH_SIZE,
+	STORE_PREFIX_RANDOM,
+} from '../../../../src/modules/random/constants';
 import { seedRevealSchema } from '../../../../src/modules/random/schemas';
 import { bitwiseXOR } from '../../../../src/modules/random/utils';
 import { APIContext } from '../../../../src/node/state_machine';
@@ -33,7 +37,7 @@ describe('RandomModuleAPI', () => {
 		const validatorsData = [
 			{
 				generatorAddress: Buffer.from(genesisDelegates.delegates[0].address, 'hex'),
-				seedReveal: Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[1], 'hex'),
+				seedReveal: Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[0], 'hex'),
 				height: 1,
 				valid: true,
 			},
@@ -67,20 +71,48 @@ describe('RandomModuleAPI', () => {
 			const address = Buffer.from(genesisDelegates.delegates[0].address, 'hex');
 
 			// Act
-			const hashToBeChecked = Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[1], 'hex');
+			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
+			const hashes = cryptography.hashOnion(
+				Buffer.from(seed, 'hex'),
+				genesisDelegates.delegates[0].hashOnion.distance,
+				1,
+			);
+			const hashToBeChecked = hashes[1];
 			const isValid = await randomAPI.isSeedRevealValid(context, address, hashToBeChecked);
 			// Assert
 			expect(isValid).toEqual(true);
 		});
 
-		it('should return false for an invalid seed reveal', async () => {
+		it('should return true if no last seed reveal found', async () => {
 			// Arrange
-			const address = Buffer.from(genesisDelegates.delegates[1].address, 'hex');
+			const address = Buffer.from(genesisDelegates.delegates[4].address, 'hex');
 			// Act
-			const hashToBeChecked = Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[1], 'hex');
+			const seed = genesisDelegates.delegates[4].hashOnion.hashes[0];
+			const hashes = cryptography.hashOnion(
+				Buffer.from(seed, 'hex'),
+				genesisDelegates.delegates[0].hashOnion.distance,
+				1,
+			);
+			const hashToBeChecked = hashes[3];
 			const isValid = await randomAPI.isSeedRevealValid(context, address, hashToBeChecked);
 			// Assert
 			expect(isValid).toEqual(true);
+		});
+
+		it('should return false for an invalid seed reveal when last seed is not hash of the given reveal', async () => {
+			// Arrange
+			const address = Buffer.from(genesisDelegates.delegates[1].address, 'hex');
+			// Act
+			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
+			const hashes = cryptography.hashOnion(
+				Buffer.from(seed, 'hex'),
+				genesisDelegates.delegates[0].hashOnion.distance,
+				1,
+			);
+			const hashToBeChecked = hashes[3];
+			const isValid = await randomAPI.isSeedRevealValid(context, address, hashToBeChecked);
+			// Assert
+			expect(isValid).toEqual(false);
 		});
 	});
 
@@ -141,7 +173,7 @@ describe('RandomModuleAPI', () => {
 			// Create a buffer from height + numberOfSeeds
 			const initRandomBuffer = Buffer.allocUnsafe(4);
 			initRandomBuffer.writeInt32BE(height + numberOfSeeds, 0);
-			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, 16);
+			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, SEED_REVEAL_HASH_SIZE);
 
 			const hashesExpected = [
 				Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[1], 'hex'),
@@ -162,7 +194,7 @@ describe('RandomModuleAPI', () => {
 			// Create a buffer from height + numberOfSeeds
 			const initRandomBuffer = Buffer.allocUnsafe(4);
 			initRandomBuffer.writeInt32BE(height + numberOfSeeds, 0);
-			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, 16);
+			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, SEED_REVEAL_HASH_SIZE);
 
 			const hashesExpected = [
 				Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[1], 'hex'),
@@ -184,7 +216,7 @@ describe('RandomModuleAPI', () => {
 			// Create a buffer from height + numberOfSeeds
 			const initRandomBuffer = Buffer.allocUnsafe(4);
 			initRandomBuffer.writeInt32BE(height + numberOfSeeds, 0);
-			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, 16);
+			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, SEED_REVEAL_HASH_SIZE);
 
 			const hashesExpected = [
 				Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[1], 'hex'),
@@ -206,7 +238,7 @@ describe('RandomModuleAPI', () => {
 			// Create a buffer from height + numberOfSeeds
 			const initRandomBuffer = Buffer.allocUnsafe(4);
 			initRandomBuffer.writeInt32BE(height + numberOfSeeds, 0);
-			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, 16);
+			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, SEED_REVEAL_HASH_SIZE);
 
 			const hashesExpected = [
 				Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[1], 'hex'),
@@ -223,7 +255,7 @@ describe('RandomModuleAPI', () => {
 			// Create a buffer from height + numberOfSeeds
 			const initRandomBuffer = Buffer.allocUnsafe(4);
 			initRandomBuffer.writeInt32BE(height + numberOfSeeds, 0);
-			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, 16);
+			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, SEED_REVEAL_HASH_SIZE);
 
 			await expect(randomAPI.getRandomBytes(context, 7, 3)).resolves.toEqual(randomSeed);
 		});
@@ -234,7 +266,7 @@ describe('RandomModuleAPI', () => {
 			// Create a buffer from height + numberOfSeeds
 			const initRandomBuffer = Buffer.allocUnsafe(4);
 			initRandomBuffer.writeInt32BE(height + numberOfSeeds, 0);
-			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, 16);
+			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, SEED_REVEAL_HASH_SIZE);
 
 			await expect(randomAPI.getRandomBytes(context, 20, 1)).resolves.toEqual(randomSeed);
 		});

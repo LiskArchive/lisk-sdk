@@ -13,6 +13,7 @@
  */
 
 import * as cryptography from '@liskhq/lisk-cryptography';
+import { SEED_REVEAL_HASH_SIZE } from './constants';
 import { ValidatorSeedReveal } from './types';
 
 export const isSeedRevealValidUtil = (
@@ -21,15 +22,21 @@ export const isSeedRevealValidUtil = (
 	validatorsReveal: ValidatorSeedReveal[],
 ) => {
 	const largestSeedHeight = Math.max(
-		...validatorsReveal.filter(sr => sr.generatorAddress === generatorAddress).map(s => s.height),
+		...validatorsReveal
+			.filter(sr => sr.generatorAddress.equals(generatorAddress))
+			.map(s => s.height),
 	);
+
 	const lastSeed = validatorsReveal.find(
 		(seedObject: ValidatorSeedReveal) =>
 			seedObject.height === largestSeedHeight &&
 			seedObject.generatorAddress.equals(generatorAddress),
 	);
 
-	if (!lastSeed || lastSeed.seedReveal.equals(cryptography.hash(seedReveal))) {
+	if (
+		!lastSeed ||
+		lastSeed.seedReveal.equals(cryptography.hash(seedReveal).slice(0, SEED_REVEAL_HASH_SIZE))
+	) {
 		return true;
 	}
 
