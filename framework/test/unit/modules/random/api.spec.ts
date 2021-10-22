@@ -13,6 +13,7 @@
  */
 
 import * as cryptography from '@liskhq/lisk-cryptography';
+import { BIG_ENDIAN, intToBuffer } from '@liskhq/lisk-cryptography';
 import { RandomAPI } from '../../../../src/modules/random/api';
 import {
 	MODULE_ID_RANDOM,
@@ -90,7 +91,7 @@ describe('RandomModuleAPI', () => {
 			const seed = genesisDelegates.delegates[4].hashOnion.hashes[0];
 			const hashes = cryptography.hashOnion(
 				Buffer.from(seed, 'hex'),
-				genesisDelegates.delegates[0].hashOnion.distance,
+				genesisDelegates.delegates[4].hashOnion.distance,
 				1,
 			);
 			const hashToBeChecked = hashes[3];
@@ -171,8 +172,8 @@ describe('RandomModuleAPI', () => {
 			const height = 11;
 			const numberOfSeeds = 2;
 			// Create a buffer from height + numberOfSeeds
-			const initRandomBuffer = Buffer.allocUnsafe(4);
-			initRandomBuffer.writeInt32BE(height + numberOfSeeds, 0);
+			const initRandomBuffer = intToBuffer(height + numberOfSeeds, 4, BIG_ENDIAN);
+
 			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, SEED_REVEAL_HASH_SIZE);
 
 			const hashesExpected = [
@@ -192,8 +193,8 @@ describe('RandomModuleAPI', () => {
 			const height = 11;
 			const numberOfSeeds = 3;
 			// Create a buffer from height + numberOfSeeds
-			const initRandomBuffer = Buffer.allocUnsafe(4);
-			initRandomBuffer.writeInt32BE(height + numberOfSeeds, 0);
+			const initRandomBuffer = intToBuffer(height + numberOfSeeds, 4, BIG_ENDIAN);
+
 			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, SEED_REVEAL_HASH_SIZE);
 
 			const hashesExpected = [
@@ -214,8 +215,7 @@ describe('RandomModuleAPI', () => {
 			const height = 11;
 			const numberOfSeeds = 4;
 			// Create a buffer from height + numberOfSeeds
-			const initRandomBuffer = Buffer.allocUnsafe(4);
-			initRandomBuffer.writeInt32BE(height + numberOfSeeds, 0);
+			const initRandomBuffer = intToBuffer(height + numberOfSeeds, 4, BIG_ENDIAN);
 			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, SEED_REVEAL_HASH_SIZE);
 
 			const hashesExpected = [
@@ -236,8 +236,8 @@ describe('RandomModuleAPI', () => {
 			const height = 8;
 			const numberOfSeeds = 3;
 			// Create a buffer from height + numberOfSeeds
-			const initRandomBuffer = Buffer.allocUnsafe(4);
-			initRandomBuffer.writeInt32BE(height + numberOfSeeds, 0);
+			const initRandomBuffer = intToBuffer(height + numberOfSeeds, 4, BIG_ENDIAN);
+
 			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, SEED_REVEAL_HASH_SIZE);
 
 			const hashesExpected = [
@@ -253,8 +253,8 @@ describe('RandomModuleAPI', () => {
 			const height = 7;
 			const numberOfSeeds = 3;
 			// Create a buffer from height + numberOfSeeds
-			const initRandomBuffer = Buffer.allocUnsafe(4);
-			initRandomBuffer.writeInt32BE(height + numberOfSeeds, 0);
+			const initRandomBuffer = intToBuffer(height + numberOfSeeds, 4, BIG_ENDIAN);
+
 			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, SEED_REVEAL_HASH_SIZE);
 
 			await expect(randomAPI.getRandomBytes(context, 7, 3)).resolves.toEqual(randomSeed);
@@ -264,8 +264,8 @@ describe('RandomModuleAPI', () => {
 			const height = 20;
 			const numberOfSeeds = 1;
 			// Create a buffer from height + numberOfSeeds
-			const initRandomBuffer = Buffer.allocUnsafe(4);
-			initRandomBuffer.writeInt32BE(height + numberOfSeeds, 0);
+			const initRandomBuffer = intToBuffer(height + numberOfSeeds, 4, BIG_ENDIAN);
+
 			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, SEED_REVEAL_HASH_SIZE);
 
 			await expect(randomAPI.getRandomBytes(context, 20, 1)).resolves.toEqual(randomSeed);

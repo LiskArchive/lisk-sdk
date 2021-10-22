@@ -18,7 +18,7 @@ import { EMPTY_KEY } from '../validators/constants';
 import { STORE_PREFIX_RANDOM } from './constants';
 import { seedRevealSchema } from './schemas';
 import { ValidatorReveals } from './types';
-import { isSeedRevealValidUtil, randomBytesUtil } from './utils';
+import { getSeedRevealValidity, getRandomSeed } from './utils';
 
 export class RandomAPI extends BaseAPI {
 	public async isSeedRevealValid(
@@ -32,7 +32,7 @@ export class RandomAPI extends BaseAPI {
 			seedRevealSchema,
 		);
 
-		return isSeedRevealValidUtil(generatorAddress, seedReveal, validatorReveals);
+		return getSeedRevealValidity(generatorAddress, seedReveal, validatorReveals);
 	}
 
 	public async getRandomBytes(
@@ -46,6 +46,6 @@ export class RandomAPI extends BaseAPI {
 			seedRevealSchema,
 		);
 
-		return randomBytesUtil(height, numberOfSeeds, validatorReveals);
+		return getRandomSeed(height, numberOfSeeds, validatorReveals);
 	}
 }

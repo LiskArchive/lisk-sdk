@@ -13,10 +13,11 @@
  */
 
 import * as cryptography from '@liskhq/lisk-cryptography';
+import { BIG_ENDIAN, intToBuffer } from '@liskhq/lisk-cryptography';
 import { SEED_REVEAL_HASH_SIZE } from './constants';
 import { ValidatorSeedReveal } from './types';
 
-export const isSeedRevealValidUtil = (
+export const getSeedRevealValidity = (
 	generatorAddress: Buffer,
 	seedReveal: Buffer,
 	validatorsReveal: ValidatorSeedReveal[],
@@ -43,13 +44,12 @@ export const isSeedRevealValidUtil = (
 	return false;
 };
 
-export const randomBytesUtil = (
+export const getRandomSeed = (
 	height: number,
 	numberOfSeeds: number,
 	validatorsReveal: ValidatorSeedReveal[],
 ) => {
-	const initRandomBuffer = Buffer.allocUnsafe(4);
-	initRandomBuffer.writeInt32BE(height + numberOfSeeds, 0);
+	const initRandomBuffer = intToBuffer(height + numberOfSeeds, 4, BIG_ENDIAN);
 	let randomSeed = cryptography.hash(initRandomBuffer).slice(0, 16);
 	const currentSeeds = validatorsReveal.filter(
 		v => height <= v.height && v.height <= height + numberOfSeeds,
