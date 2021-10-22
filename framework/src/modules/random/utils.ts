@@ -11,3 +11,67 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+import * as cryptography from '@liskhq/lisk-cryptography';
+import { ValidatorSeedReveal } from './types';
+
+export const isSeedRevealValidUtil = (
+	generatorAddress: Buffer,
+	seedReveal: Buffer,
+	validatorsReveal: ValidatorSeedReveal[],
+) => {
+	const largestSeedHeight = Math.max(
+		...validatorsReveal.filter(sr => sr.generatorAddress === generatorAddress).map(s => s.height),
+	);
+	const lastSeed = validatorsReveal.find(
+		(seedObject: ValidatorSeedReveal) =>
+			seedObject.height === largestSeedHeight &&
+			seedObject.generatorAddress.equals(generatorAddress),
+	);
+
+	if (!lastSeed || lastSeed.seedReveal.equals(cryptography.hash(seedReveal))) {
+		return true;
+	}
+
+	return false;
+};
+
+export const randomBytesUtil = (
+	height: number,
+	numberOfSeeds: number,
+	validatorsReveal: ValidatorSeedReveal[],
+) => {
+	const initRandomBuffer = Buffer.allocUnsafe(4);
+	initRandomBuffer.writeInt32BE(height + numberOfSeeds, 0);
+	let randomSeed = cryptography.hash(initRandomBuffer).slice(0, 16);
+	const currentSeeds = validatorsReveal.filter(
+		v => height <= v.height && v.height <= height + numberOfSeeds,
+	);
+	for (const seedObject of currentSeeds) {
+		if (seedObject.valid) {
+			randomSeed = bitwiseXOR([randomSeed, seedObject.seedReveal]);
+		}
+	}
+
+	return randomSeed;
+};
+
+export const bitwiseXOR = (bufferArray: Buffer[]): Buffer => {
+	if (bufferArray.length === 1) {
+		return bufferArray[0];
+	}
+
+	const bufferSizes = new Set(bufferArray.map(buffer => buffer.length));
+	if (bufferSizes.size > 1) {
+		throw new Error('All input for XOR should be same size');
+	}
+	const outputSize = [...bufferSizes][0];
+	const result = Buffer.alloc(outputSize, 0);
+
+	for (let i = 0; i < outputSize; i += 1) {
+		// eslint-disable-next-line no-bitwise
+		result[i] = bufferArray.map(b => b[i]).reduce((a, b) => a ^ b, 0);
+	}
+
+	return result;
+};
