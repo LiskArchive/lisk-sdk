@@ -49,6 +49,9 @@ export const getRandomSeed = (
 	numberOfSeeds: number,
 	validatorsReveal: ValidatorSeedReveal[],
 ) => {
+	if (height < 0 || numberOfSeeds < 0) {
+		throw new Error('Height or number of seeds cannot be negative.');
+	}
 	const initRandomBuffer = intToBuffer(height + numberOfSeeds, 4, BIG_ENDIAN);
 	let randomSeed = cryptography.hash(initRandomBuffer).slice(0, 16);
 	const currentSeeds = validatorsReveal.filter(

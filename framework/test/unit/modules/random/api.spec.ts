@@ -168,6 +168,26 @@ describe('RandomModuleAPI', () => {
 			);
 		});
 
+		it('should throw error when height is negative', async () => {
+			const height = -11;
+			const numberOfSeeds = 2;
+			// Create a buffer from height + numberOfSeeds
+
+			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
+				'Height or number of seeds cannot be negative.',
+			);
+		});
+
+		it('should throw error when numberOfSeeds is negative', async () => {
+			const height = 11;
+			const numberOfSeeds = -2;
+			// Create a buffer from height + numberOfSeeds
+
+			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
+				'Height or number of seeds cannot be negative.',
+			);
+		});
+
 		it('should return XOR random bytes for height=11, numberOfSeeds=2', async () => {
 			const height = 11;
 			const numberOfSeeds = 2;
@@ -186,7 +206,9 @@ describe('RandomModuleAPI', () => {
 				hashesExpected[1],
 			]);
 
-			await expect(randomAPI.getRandomBytes(context, 11, 2)).resolves.toEqual(xorExpected);
+			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+				xorExpected,
+			);
 		});
 
 		it('should return XOR random bytes for height=11, numberOfSeeds=3', async () => {
@@ -208,7 +230,9 @@ describe('RandomModuleAPI', () => {
 				hashesExpected[2],
 			]);
 
-			await expect(randomAPI.getRandomBytes(context, 11, 3)).resolves.toEqual(xorExpected);
+			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+				xorExpected,
+			);
 		});
 
 		it('should return XOR random bytes for height=11, numberOfSeeds=4 excluding invalid seed reveal', async () => {
@@ -229,7 +253,9 @@ describe('RandomModuleAPI', () => {
 				hashesExpected[2],
 			]);
 
-			await expect(randomAPI.getRandomBytes(context, 11, 4)).resolves.toEqual(xorExpected);
+			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+				xorExpected,
+			);
 		});
 
 		it('should return XOR random bytes for height=8, numberOfSeeds=3', async () => {
@@ -246,7 +272,9 @@ describe('RandomModuleAPI', () => {
 			// Do XOR of randomSeed with hashes of seed reveal with height >= randomStoreValidator.height >= height + numberOfSeeds
 			const xorExpected = bitwiseXOR([randomSeed, hashesExpected[0]]);
 
-			await expect(randomAPI.getRandomBytes(context, 8, 3)).resolves.toEqual(xorExpected);
+			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+				xorExpected,
+			);
 		});
 
 		it('should return initial random bytes for height=7, numberOfSeeds=3', async () => {
@@ -257,7 +285,9 @@ describe('RandomModuleAPI', () => {
 
 			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, SEED_REVEAL_HASH_SIZE);
 
-			await expect(randomAPI.getRandomBytes(context, 7, 3)).resolves.toEqual(randomSeed);
+			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+				randomSeed,
+			);
 		});
 
 		it('should return initial random bytes for height=20, numberOfSeeds=1', async () => {
@@ -268,7 +298,9 @@ describe('RandomModuleAPI', () => {
 
 			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, SEED_REVEAL_HASH_SIZE);
 
-			await expect(randomAPI.getRandomBytes(context, 20, 1)).resolves.toEqual(randomSeed);
+			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+				randomSeed,
+			);
 		});
 	});
 });
