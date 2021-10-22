@@ -72,6 +72,21 @@ describe('RandomModuleAPI', () => {
 			);
 		});
 
+		it('should throw error when asset is undefined', async () => {
+			// Arrange
+			const address = Buffer.from(genesisDelegates.delegates[0].address, 'hex');
+
+			const blockAsset: BlockAsset = {
+				moduleID: randomAPI['moduleID'],
+				data: undefined as any,
+			};
+
+			// Act & Assert
+			await expect(
+				randomAPI.isSeedRevealValid(context, address, new BlockAssets([blockAsset])),
+			).rejects.toThrow('Block asset is missing.');
+		});
+
 		it('should return true for a valid seed reveal', async () => {
 			// Arrange
 			const address = Buffer.from(genesisDelegates.delegates[0].address, 'hex');

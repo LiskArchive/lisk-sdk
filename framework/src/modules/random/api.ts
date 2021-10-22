@@ -32,10 +32,14 @@ export class RandomAPI extends BaseAPI {
 			EMPTY_KEY,
 			seedRevealSchema,
 		);
+		const asset = blockAssets.getAsset(this.moduleID);
+		if (!asset) {
+			throw new Error('Block asset is missing.');
+		}
 
 		const { seedReveal } = codec.decode<BlockHeaderAssetRandomModule>(
 			blockHeaderAssetRandomModule,
-			blockAssets?.getAsset(this.moduleID) ?? Buffer.alloc(0),
+			asset,
 		);
 
 		return getSeedRevealValidity(generatorAddress, seedReveal, validatorReveals);
