@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { BlockAsset, BlockAssets } from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { BIG_ENDIAN, intToBuffer } from '@liskhq/lisk-cryptography';
 import { RandomAPI } from '../../../../src/modules/random/api';
@@ -20,7 +22,10 @@ import {
 	SEED_REVEAL_HASH_SIZE,
 	STORE_PREFIX_RANDOM,
 } from '../../../../src/modules/random/constants';
-import { seedRevealSchema } from '../../../../src/modules/random/schemas';
+import {
+	blockHeaderAssetRandomModule,
+	seedRevealSchema,
+} from '../../../../src/modules/random/schemas';
 import { bitwiseXOR } from '../../../../src/modules/random/utils';
 import { APIContext } from '../../../../src/node/state_machine';
 import { SubStore } from '../../../../src/node/state_machine/types';
@@ -70,8 +75,6 @@ describe('RandomModuleAPI', () => {
 		it('should return true for a valid seed reveal', async () => {
 			// Arrange
 			const address = Buffer.from(genesisDelegates.delegates[0].address, 'hex');
-
-			// Act
 			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
 			const hashes = cryptography.hashOnion(
 				Buffer.from(seed, 'hex'),
@@ -79,7 +82,17 @@ describe('RandomModuleAPI', () => {
 				1,
 			);
 			const hashToBeChecked = hashes[1];
-			const isValid = await randomAPI.isSeedRevealValid(context, address, hashToBeChecked);
+			const blockAsset: BlockAsset = {
+				moduleID: randomAPI['moduleID'],
+				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashToBeChecked }),
+			};
+
+			// Act
+			const isValid = await randomAPI.isSeedRevealValid(
+				context,
+				address,
+				new BlockAssets([blockAsset]),
+			);
 			// Assert
 			expect(isValid).toEqual(true);
 		});
@@ -87,7 +100,6 @@ describe('RandomModuleAPI', () => {
 		it('should return true if no last seed reveal found', async () => {
 			// Arrange
 			const address = Buffer.from(genesisDelegates.delegates[4].address, 'hex');
-			// Act
 			const seed = genesisDelegates.delegates[4].hashOnion.hashes[0];
 			const hashes = cryptography.hashOnion(
 				Buffer.from(seed, 'hex'),
@@ -95,7 +107,16 @@ describe('RandomModuleAPI', () => {
 				1,
 			);
 			const hashToBeChecked = hashes[3];
-			const isValid = await randomAPI.isSeedRevealValid(context, address, hashToBeChecked);
+			const blockAsset: BlockAsset = {
+				moduleID: randomAPI['moduleID'],
+				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashToBeChecked }),
+			};
+			// Act
+			const isValid = await randomAPI.isSeedRevealValid(
+				context,
+				address,
+				new BlockAssets([blockAsset]),
+			);
 			// Assert
 			expect(isValid).toEqual(true);
 		});
@@ -103,7 +124,6 @@ describe('RandomModuleAPI', () => {
 		it('should return false for an invalid seed reveal when last seed is not hash of the given reveal', async () => {
 			// Arrange
 			const address = Buffer.from(genesisDelegates.delegates[1].address, 'hex');
-			// Act
 			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
 			const hashes = cryptography.hashOnion(
 				Buffer.from(seed, 'hex'),
@@ -111,7 +131,17 @@ describe('RandomModuleAPI', () => {
 				1,
 			);
 			const hashToBeChecked = hashes[3];
-			const isValid = await randomAPI.isSeedRevealValid(context, address, hashToBeChecked);
+			const blockAsset: BlockAsset = {
+				moduleID: randomAPI['moduleID'],
+				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashToBeChecked }),
+			};
+
+			// Act
+			const isValid = await randomAPI.isSeedRevealValid(
+				context,
+				address,
+				new BlockAssets([blockAsset]),
+			);
 			// Assert
 			expect(isValid).toEqual(false);
 		});

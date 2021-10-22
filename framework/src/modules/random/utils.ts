@@ -22,17 +22,18 @@ export const getSeedRevealValidity = (
 	seedReveal: Buffer,
 	validatorsReveal: ValidatorSeedReveal[],
 ) => {
-	const largestSeedHeight = Math.max(
-		...validatorsReveal
-			.filter(sr => sr.generatorAddress.equals(generatorAddress))
-			.map(s => s.height),
-	);
+	let lastSeed: ValidatorSeedReveal | undefined;
+	let maxheight = 0;
+	for (const validatorReveal of validatorsReveal) {
+		if (
+			validatorReveal.generatorAddress.equals(generatorAddress) &&
+			validatorReveal.height > maxheight
+		) {
+			maxheight = validatorReveal.height;
 
-	const lastSeed = validatorsReveal.find(
-		(seedObject: ValidatorSeedReveal) =>
-			seedObject.height === largestSeedHeight &&
-			seedObject.generatorAddress.equals(generatorAddress),
-	);
+			lastSeed = validatorReveal;
+		}
+	}
 
 	if (
 		!lastSeed ||

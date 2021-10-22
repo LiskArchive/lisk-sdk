@@ -59,3 +59,7 @@ export interface ValidatorSeedReveal {
 export interface ValidatorReveals {
 	validatorReveals: ValidatorSeedReveal[];
 }
+
+export interface BlockHeaderAssetRandomModule {
+	seedReveal: Buffer;
+}
