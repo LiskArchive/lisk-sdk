@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Request, Response, NextFunction } from 'express';
-import { BaseChannel } from 'lisk-framework';
+import { BasePlugin } from 'lisk-sdk';
 import { SharedState, PeerInfo } from '../types';
 import { getBlockStats } from './blocks';
 import { getTransactionStats } from './transactions';
@@ -55,17 +55,17 @@ const prometheusExporter = (data: PrometheusData[]) => {
 	return exportData;
 };
 
-export const getData = (channel: BaseChannel, state: SharedState) => async (
+export const getData = (client: BasePlugin['apiClient'], state: SharedState) => async (
 	_req: Request,
 	res: Response,
 	next: NextFunction,
 ): Promise<void> => {
 	try {
-		const connectedPeers: PeerInfo[] = await channel.invoke('app:getConnectedPeers');
-		const disconnectedPeers: PeerInfo[] = await channel.invoke('app:getDisconnectedPeers');
-		const nodeInfo: NodeInfo = await channel.invoke('app:getNodeInfo');
-		const blockStats = await getBlockStats(channel, state);
-		const transactionStats = await getTransactionStats(channel, state);
+		const connectedPeers: PeerInfo[] = await client.invoke('app_getConnectedPeers');
+		const disconnectedPeers: PeerInfo[] = await client.invoke('app_getDisconnectedPeers');
+		const nodeInfo: NodeInfo = await client.invoke('app_getNodeInfo');
+		const blockStats = await getBlockStats(client, state);
+		const transactionStats = await getTransactionStats(client, state);
 
 		const data: PrometheusData[] = [
 			{

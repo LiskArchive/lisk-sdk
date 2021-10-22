@@ -22,7 +22,7 @@ export {
 export { BaseModule, BaseAPI, BaseCommand, BaseEndpoint } from './modules';
 export { Application } from './application';
 export { systemDirs } from './system_dirs';
-export { BasePlugin } from './plugins/base_plugin';
+export { BasePlugin, PluginInitContext } from './plugins/base_plugin';
 export { BasePluginEndpoint } from './plugins/base_plugin_endpoint';
 export { IPCChannel } from './controller/channels';
 export type { BaseChannel } from './controller/channels';

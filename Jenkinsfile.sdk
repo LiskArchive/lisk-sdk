@@ -200,27 +200,27 @@ pipeline {
 				// 		}
 				// 	}
 				// }
-				// stage('Lisk Framework Plugins Unit') {
-				// 	agent { node { label 'lisk-framework' }}
-				// 	steps {
-				// 		setup()
-				// 		nvm(getNodejsVersion()) {
-				// 			sh 'npx lerna run test:unit --scope=@liskhq/lisk-framework-*'
-				// 		}
-				// 	}
-				// 	post {
-				// 		cleanup {
-				// 			// Save all the test results
-				// 			sh '''
-				// 				rm -rf coverage_framework_plugins; mkdir -p coverage_framework_plugins
-				// 				for f in $( find framework-plugins/*/.coverage/ -type f ); do
-				// 				  cp $f coverage_framework_plugins/$( sha1sum $f | cut -d ' ' -f 1 )_$( basename $f )
-				// 				done
-				// 			'''
-				// 			stash name: "coverage_framework_plugins", includes: "coverage_framework_plugins/*", allowEmpty: true
-				// 		}
-				// 	}
-				// }
+				stage('Lisk Framework Plugins Unit') {
+					agent { node { label 'lisk-framework' }}
+					steps {
+						setup()
+						nvm(getNodejsVersion()) {
+							sh 'npx lerna run test:unit --scope=@liskhq/lisk-framework-*'
+						}
+					}
+					post {
+						cleanup {
+							// Save all the test results
+							sh '''
+								rm -rf coverage_framework_plugins; mkdir -p coverage_framework_plugins
+								for f in $( find framework-plugins/*/.coverage/ -type f ); do
+								  cp $f coverage_framework_plugins/$( sha1sum $f | cut -d ' ' -f 1 )_$( basename $f )
+								done
+							'''
+							stash name: "coverage_framework_plugins", includes: "coverage_framework_plugins/*", allowEmpty: true
+						}
+					}
+				}
 				// stage('Lisk Framework Plugins Integration') {
 				// 	agent { node { label 'lisk-framework' }}
 				// 	steps {

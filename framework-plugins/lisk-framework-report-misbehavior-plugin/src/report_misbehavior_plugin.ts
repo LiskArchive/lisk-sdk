@@ -11,89 +11,57 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { validator, LiskValidationError } from '@liskhq/lisk-validator';
-import { KVStore } from '@liskhq/lisk-db';
-import { codec } from '@liskhq/lisk-codec';
-import { BlockHeader, RawBlock, Transaction, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import {
-	decryptPassphraseWithPassword,
-	parseEncryptedPassphrase,
-	getAddressAndPublicKeyFromPassphrase,
-	getAddressFromPassphrase,
-	signData,
-} from '@liskhq/lisk-cryptography';
-import { ActionsDefinition, BasePlugin, BaseChannel } from 'lisk-framework';
+	BasePlugin,
+	BaseChannel,
+	PluginInitContext,
+	db as liskDB,
+	codec,
+	validator as liskValidator,
+	chain,
+	cryptography,
+} from 'lisk-sdk';
 import {
 	getDBInstance,
 	saveBlockHeaders,
 	getContradictingBlockHeader,
-	decodeBlockHeader,
 	clearBlockHeaders,
 } from './db';
 import { ReportMisbehaviorPluginConfig, State } from './types';
-import { postBlockEventSchema, configSchema, actionParamsSchema } from './schemas';
+import { postBlockEventSchema, configSchema } from './schemas';
+import { Endpoint } from './endpoint';
+
+const { getAddressAndPublicKeyFromPassphrase, getAddressFromPassphrase, signData } = cryptography;
+const { BlockHeader, Transaction, TAG_TRANSACTION } = chain;
+const { validator } = liskValidator;
 
 export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginConfig> {
 	public name = 'reportMisbehavior';
 	public configSchema = configSchema;
+	public endpoint = new Endpoint();
 
-	private _pluginDB!: KVStore;
+	private _pluginDB!: liskDB.KVStore;
 	private readonly _state: State = { currentHeight: 0 };
-	private _channel!: BaseChannel;
 	private _clearBlockHeadersIntervalId!: NodeJS.Timer | undefined;
 
 	public get nodeModulePath(): string {
 		return __filename;
 	}
 
-	public get actions(): ActionsDefinition {
-		return {
-			authorize: (params?: Record<string, unknown>): { result: string } => {
-				const errors = validator.validate(actionParamsSchema, params as Record<string, unknown>);
-
-				if (errors.length) {
-					throw new LiskValidationError([...errors]);
-				}
-
-				const { enable, password } = params as Record<string, unknown>;
-
-				try {
-					const parsedEncryptedPassphrase = parseEncryptedPassphrase(
-						this.config.encryptedPassphrase,
-					);
-
-					const passphrase = decryptPassphraseWithPassword(
-						parsedEncryptedPassphrase,
-						password as string,
-					);
-
-					const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
-
-					this._state.publicKey = enable ? publicKey : undefined;
-					this._state.passphrase = enable ? passphrase : undefined;
-					const changedState = enable ? 'enabled' : 'disabled';
-
-					return {
-						result: `Successfully ${changedState} the reporting of misbehavior.`,
-					};
-				} catch (error) {
-					throw new Error('Password given is not valid.');
-				}
-			},
-		};
+	public async init(context: PluginInitContext): Promise<void> {
+		await super.init(context);
+		this.endpoint.init(this._state, this.config);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async load(channel: BaseChannel): Promise<void> {
-		this._channel = channel;
-
+	public async load(_channel: BaseChannel): Promise<void> {
 		// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6201
 		this._pluginDB = await getDBInstance(this.dataPath);
 		// Listen to new block and delete block events
 		this._subscribeToChannel();
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._clearBlockHeadersIntervalId = setInterval(() => {
-			clearBlockHeaders(this._pluginDB, this.schemas, this._state.currentHeight).catch(error =>
+			clearBlockHeaders(this._pluginDB, this._state.currentHeight).catch(error =>
 				this.logger.error(error),
 			);
 		}, this.config.clearBlockHeadersInterval);
@@ -106,7 +74,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 	}
 
 	private _subscribeToChannel(): void {
-		this._channel.subscribe('app:network:event', async (eventData?: Record<string, unknown>) => {
+		this.apiClient.subscribe('app_networkEvent', async (eventData?: Record<string, unknown>) => {
 			const { event, data } = eventData as { event: string; data: unknown };
 
 			if (event === 'postBlock') {
@@ -116,16 +84,16 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 					return;
 				}
 				const blockData = data as { block: string };
-				const { header } = codec.decode<RawBlock>(
-					this.schemas.block,
+				const { header } = codec.decode<chain.RawBlock>(
+					this.apiClient.schemas.block,
 					Buffer.from(blockData.block, 'hex'),
 				);
 				try {
-					const saved = await saveBlockHeaders(this._pluginDB, this.schemas, header);
+					const saved = await saveBlockHeaders(this._pluginDB, header);
 					if (!saved) {
 						return;
 					}
-					const decodedBlockHeader = decodeBlockHeader(header, this.schemas);
+					const decodedBlockHeader = BlockHeader.fromBytes(header);
 
 					// Set new currentHeight
 					if (decodedBlockHeader.height > this._state.currentHeight) {
@@ -134,16 +102,16 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 					const contradictingBlock = await getContradictingBlockHeader(
 						this._pluginDB,
 						decodedBlockHeader,
-						this.schemas,
+						this.apiClient,
 					);
 					if (contradictingBlock && this._state.passphrase) {
 						const encodedTransaction = await this._createPoMTransaction(
 							decodedBlockHeader,
 							contradictingBlock,
 						);
-						const result = await this._channel.invoke<{
+						const result = await this.apiClient.invoke<{
 							transactionId?: string;
-						}>('app:postTransaction', {
+						}>('app_postTransaction', {
 							transaction: encodedTransaction,
 						});
 
@@ -157,51 +125,44 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 	}
 
 	private async _createPoMTransaction(
-		contradictingBlock: BlockHeader,
-		decodedBlockHeader: BlockHeader,
+		contradictingBlock: chain.BlockHeader,
+		decodedBlockHeader: chain.BlockHeader,
 	): Promise<string> {
 		// ModuleID:5 (DPoS), AssetID:3 (PoMAsset)
-		const pomAssetInfo = this.schemas.transactionsAssets.find(
-			({ moduleID, assetID }) => moduleID === 5 && assetID === 3,
+		const pomParamsInfo = this.apiClient.schemas.commands.find(
+			({ moduleID, commandID }) => moduleID === 5 && commandID === 3,
 		);
 
-		if (!pomAssetInfo) {
-			throw new Error('PoM asset schema is not registered in the application.');
+		if (!pomParamsInfo) {
+			throw new Error('PoM params schema is not registered in the application.');
 		}
 
 		// Assume passphrase is checked before calling this function
 		const passphrase = this._state.passphrase as string;
 
-		const encodedAccount = await this._channel.invoke<string>('app:getAccount', {
+		const authAccount = await this.apiClient.invoke<{ nonce: string }>('auth_getAuthAccount', {
 			address: getAddressFromPassphrase(passphrase).toString('hex'),
 		});
 
-		const {
-			sequence: { nonce },
-		} = codec.decode<{ sequence: { nonce: bigint } }>(
-			this.schemas.account,
-			Buffer.from(encodedAccount, 'hex'),
-		);
-
-		const pomTransactionAsset = {
+		const pomTransactionParams = {
 			header1: decodedBlockHeader,
 			header2: contradictingBlock,
 		};
 
-		const { networkIdentifier } = await this._channel.invoke<{ networkIdentifier: string }>(
-			'app:getNodeInfo',
+		const { networkIdentifier } = await this.apiClient.invoke<{ networkIdentifier: string }>(
+			'app_getNodeInfo',
 		);
 
-		const encodedAsset = codec.encode(pomAssetInfo.schema, pomTransactionAsset);
+		const encodedParams = codec.encode(pomParamsInfo.schema, pomTransactionParams);
 
 		const tx = new Transaction({
-			moduleID: pomAssetInfo.moduleID,
-			assetID: pomAssetInfo.assetID,
-			nonce,
+			moduleID: pomParamsInfo.moduleID,
+			commandID: pomParamsInfo.commandID,
+			nonce: BigInt(authAccount.nonce),
 			senderPublicKey:
 				this._state.publicKey ?? getAddressAndPublicKeyFromPassphrase(passphrase).publicKey,
 			fee: BigInt(this.config.fee), // TODO: The static fee should be replaced by fee estimation calculation
-			asset: encodedAsset,
+			params: encodedParams,
 			signatures: [],
 		});
 

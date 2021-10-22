@@ -22,9 +22,9 @@ import { ApplicationConfigForPlugin, PluginConfig, SchemaWithDefault } from '../
 import { ImplementationMissingError } from '../errors';
 import { BasePluginEndpoint } from './base_plugin_endpoint';
 
-interface PluginInitContext {
+export interface PluginInitContext<T = Record<string, unknown>> {
 	logger: Logger;
-	config: PluginConfig;
+	config: PluginConfig & T;
 	channel: BaseChannel;
 	appConfig: ApplicationConfigForPlugin;
 }

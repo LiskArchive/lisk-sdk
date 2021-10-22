@@ -19,7 +19,7 @@ interface BlockHeader {
 	timeReceived: number;
 }
 
-interface ForkStats {
+export interface ForkStats {
 	readonly forkEventCount: number;
 	blockHeaders: Record<string, BlockHeader>;
 }

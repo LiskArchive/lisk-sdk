@@ -30,7 +30,8 @@ import { BasePlugin } from '../plugins/base_plugin';
 
 interface ApplicationEnvConfig {
 	modules: BaseModule[];
-	plugins?: BasePlugin[];
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	plugins?: BasePlugin<any>[];
 	config?: PartialApplicationConfig;
 	genesisBlockJSON?: Record<string, unknown>;
 }
