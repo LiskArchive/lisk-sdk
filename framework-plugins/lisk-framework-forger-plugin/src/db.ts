@@ -13,8 +13,7 @@
  */
 
 import * as createDebug from 'debug';
-import { KVStore } from '@liskhq/lisk-db';
-import { codec } from '@liskhq/lisk-codec';
+import { codec, db as liskDB } from 'lisk-sdk';
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
@@ -23,6 +22,9 @@ import { forgerInfoSchema, forgerSyncSchema } from './schemas';
 import { ForgerInfo, ForgetSyncInfo } from './types';
 
 const debug = createDebug('plugin:forger:db');
+
+const { KVStore } = liskDB;
+type KVStore = liskDB.KVStore;
 
 export const getDBInstance = async (
 	dataPath: string,

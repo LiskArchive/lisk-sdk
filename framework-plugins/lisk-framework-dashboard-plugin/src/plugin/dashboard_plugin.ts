@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BasePlugin, BaseChannel } from 'lisk-framework';
+import { BasePlugin, BaseChannel } from 'lisk-sdk';
 import * as express from 'express';
 import { join } from 'path';
 import { Server } from 'http';

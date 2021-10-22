@@ -191,3 +191,18 @@ export const validatorsHashInputSchema = {
 		certificateThreshold: { dataType: 'uint64', fieldNumber: 2 },
 	},
 };
+
+export interface AreHeadersContradictingRequest {
+	header1: string;
+	header2: string;
+}
+
+export const areHeadersContradictingRequestSchema = {
+	$id: 'modules/bft/areHeadersContradictingRequest',
+	type: 'object',
+	required: ['header1', 'header2'],
+	properties: {
+		header1: { type: 'string', format: 'hex' },
+		header2: { type: 'string', format: 'hex' },
+	},
+};

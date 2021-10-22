@@ -12,11 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Server } from 'http';
-import { RawBlock, RawBlockHeader } from '@liskhq/lisk-chain';
-import { codec } from '@liskhq/lisk-codec';
-import { hash } from '@liskhq/lisk-cryptography';
-import { validator } from '@liskhq/lisk-validator';
-import { ActionsDefinition, BaseChannel, BasePlugin } from 'lisk-framework';
+import {
+	BaseChannel,
+	BasePlugin,
+	validator as liskValidator,
+	chain,
+	PluginInitContext,
+} from 'lisk-sdk';
 import * as express from 'express';
 import type { Express } from 'express';
 import * as cors from 'cors';
@@ -25,39 +27,30 @@ import * as middlewares from './middlewares';
 import { MonitorPluginConfig, SharedState } from './types';
 import * as controllers from './controllers';
 import { transactionAnnouncementSchema, postBlockEventSchema, configSchema } from './schemas';
+import { Endpoint } from './endpoint';
 
 interface BlockData {
 	readonly block: string;
 }
 
+const { validator } = liskValidator;
+const { Block } = chain;
+
 export class MonitorPlugin extends BasePlugin<MonitorPluginConfig> {
 	public name = 'monitor';
 	public configSchema = configSchema;
+	public endpoint = new Endpoint();
 
 	private _server!: Server;
 	private _app!: Express;
-	private _channel!: BaseChannel;
 	private _state!: SharedState;
 
 	public get nodeModulePath(): string {
 		return __filename;
 	}
 
-	public get actions(): ActionsDefinition {
-		return {
-			getTransactionStats: async () =>
-				controllers.transactions.getTransactionStats(this._channel, this._state),
-			getBlockStats: async () => controllers.blocks.getBlockStats(this._channel, this._state),
-			getNetworkStats: async () => controllers.network.getNetworkStats(this._channel),
-			getForkStats: () => controllers.forks.getForkStats(this._state),
-		};
-	}
-
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async load(channel: BaseChannel): Promise<void> {
-		this._app = express();
-		this._channel = channel;
-
+	public async init(context: PluginInitContext): Promise<void> {
+		await super.init(context);
 		this._state = {
 			forks: {
 				forkEventCount: 0,
@@ -66,14 +59,18 @@ export class MonitorPlugin extends BasePlugin<MonitorPluginConfig> {
 			transactions: {},
 			blocks: {},
 		};
+		this.endpoint.init(this._state, this.apiClient);
+	}
 
-		this._channel.once('app:ready', () => {
-			this._registerMiddlewares(this.config);
-			this._registerControllers();
-			this._registerAfterMiddlewares(this.config);
-			this._subscribeToEvents();
-			this._server = this._app.listen(this.config.port, this.config.host);
-		});
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async load(_channel: BaseChannel): Promise<void> {
+		this._app = express();
+
+		this._registerMiddlewares(this.config);
+		this._registerControllers();
+		this._registerAfterMiddlewares(this.config);
+		this._subscribeToEvents();
+		this._server = this._app.listen(this.config.port, this.config.host);
 	}
 
 	public async unload(): Promise<void> {
@@ -107,12 +104,12 @@ export class MonitorPlugin extends BasePlugin<MonitorPluginConfig> {
 	private _registerControllers(): void {
 		this._app.get(
 			'/api/prometheus/metrics',
-			controllers.prometheusExport.getData(this._channel, this._state),
+			controllers.prometheusExport.getData(this.apiClient, this._state),
 		);
 	}
 
 	private _subscribeToEvents(): void {
-		this._channel.subscribe('app:network:event', (eventData?: Record<string, unknown>) => {
+		this.apiClient.subscribe('app_networkEvent', (eventData?: Record<string, unknown>) => {
 			const { event, data } = eventData as { event: string; data: unknown };
 
 			if (event === 'postTransactionsAnnouncement') {
@@ -135,7 +132,7 @@ export class MonitorPlugin extends BasePlugin<MonitorPluginConfig> {
 			}
 		});
 
-		this._channel.subscribe('app:chain:fork', (data?: Record<string, unknown>) => {
+		this.apiClient.subscribe('app_chainForked', (data?: Record<string, unknown>) => {
 			const { block } = (data as unknown) as BlockData;
 			this._handleFork(block);
 		});
@@ -166,43 +163,34 @@ export class MonitorPlugin extends BasePlugin<MonitorPluginConfig> {
 
 	private _handleFork(block: string) {
 		this._state.forks.forkEventCount += 1;
-		const { header } = codec.decode<RawBlock>(this.schemas.block, Buffer.from(block, 'hex'));
-		const blockId = hash(header).toString('hex');
+		const { header } = Block.fromBytes(Buffer.from(block, 'hex'));
+		const blockId = header.id.toString('hex');
 		if (this._state.forks.blockHeaders[blockId]) {
 			this._state.forks.blockHeaders[blockId].timeReceived = Date.now();
 		} else {
-			const decodedHeader = codec.decodeJSON<Record<string, unknown>>(
-				this.schemas.blockHeader,
-				header,
-			);
 			this._state.forks.blockHeaders[blockId] = {
-				blockHeader: decodedHeader,
+				blockHeader: header,
 				timeReceived: Date.now(),
 			};
 		}
 	}
 
 	private _handlePostBlock(data: BlockData) {
-		const decodedBlock = codec.decode<RawBlock>(this.schemas.block, Buffer.from(data.block, 'hex'));
-		const decodedBlockHeader = codec.decode<RawBlockHeader>(
-			this.schemas.blockHeader,
-			decodedBlock.header,
-		);
-		const blockId = hash(decodedBlock.header);
+		const decodedBlock = Block.fromBytes(Buffer.from(data.block, 'hex'));
 
-		if (!this._state.blocks[blockId.toString('hex')]) {
-			this._state.blocks[blockId.toString('hex')] = {
+		if (!this._state.blocks[decodedBlock.header.id.toString('hex')]) {
+			this._state.blocks[decodedBlock.header.id.toString('hex')] = {
 				count: 0,
-				height: decodedBlockHeader.height,
+				height: decodedBlock.header.height,
 			};
 		}
 
-		this._state.blocks[blockId.toString('hex')].count += 1;
+		this._state.blocks[decodedBlock.header.id.toString('hex')].count += 1;
 
 		// Clean up blocks older than current height minus 300 blocks
 		for (const id of Object.keys(this._state.blocks)) {
 			const blockInfo = this._state.blocks[id];
-			if (blockInfo.height < decodedBlockHeader.height - 300) {
+			if (blockInfo.height < decodedBlock.header.height - 300) {
 				delete this._state.blocks[id];
 			}
 		}

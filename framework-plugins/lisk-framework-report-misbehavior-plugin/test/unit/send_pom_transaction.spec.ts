@@ -12,15 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseChannel, GenesisConfig, testing } from 'lisk-framework';
+import { BaseChannel, GenesisConfig, testing, chain, ApplicationConfigForPlugin } from 'lisk-sdk';
 import { when } from 'jest-when';
-import { blockHeaderSchema, blockSchema, transactionSchema } from '@liskhq/lisk-chain';
-import { codec } from '@liskhq/lisk-codec';
 
 import { ReportMisbehaviorPlugin } from '../../src';
 import { configSchema } from '../../src/schemas';
 
-const appConfigForPlugin = {
+const appConfigForPlugin: ApplicationConfigForPlugin = {
 	rootPath: '~/.lisk',
 	label: 'my-app',
 	logger: {
@@ -40,10 +38,11 @@ const appConfigForPlugin = {
 			host: '127.0.0.1',
 		},
 	},
-	forging: {
+	generation: {
 		force: false,
 		waitThreshold: 2,
-		delegates: [],
+		generators: [],
+		modules: {},
 	},
 	network: {
 		seedPeers: [],
@@ -58,6 +57,7 @@ const appConfigForPlugin = {
 	},
 	version: '',
 	networkVersion: '',
+	genesis: {} as GenesisConfig,
 	genesisConfig: {} as GenesisConfig,
 };
 
@@ -72,22 +72,6 @@ describe('Send PoM transaction', () => {
 	let reportMisbehaviorPlugin: ReportMisbehaviorPlugin;
 	const defaultNetworkIdentifier =
 		'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e';
-	const accountSchema = {
-		$id: 'accountSchema',
-		type: 'object',
-		properties: {
-			sequence: {
-				type: 'object',
-				fieldNumber: 3,
-				properties: {
-					nonce: {
-						fieldNumber: 1,
-						dataType: 'uint64',
-					},
-				},
-			},
-		},
-	};
 	const channelMock = {
 		registerToBus: jest.fn(),
 		once: jest.fn(),
@@ -102,16 +86,18 @@ describe('Send PoM transaction', () => {
 		moduleName: '',
 		options: {},
 	} as any;
-	const blockHeader1 = Buffer.from(
-		'08021080897a18a0f73622209696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b2a20e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8553220addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca93880c8afa025421a08d08e2a10e0dc2a1a10c8c557b5dba8527c0e760124128fd15c4a4056b412aa25c49e5c3cc97257972249fd0ad65f8e431264d9c04b639b46b0839b01ae8d239a354798bae1873c8318a25ef61a8dc9c7a0982da17afb24fbe15c05',
-		'hex',
+	const header1 = chain.BlockHeader.fromBytes(
+		Buffer.from(
+			'080010fe86b28b06180022002a003220e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8553a20e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8554220e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855480050005a20f8da7f49e92286b0129fd75a9208eed942ef1d79df93c42c9b87e8b6bb9fc84f6206080012001a006a00',
+			'hex',
+		),
 	);
-	const blockHeader2 = Buffer.from(
-		'080210c08db7011880ea3022209696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b2a20e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8553220addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca93880c8afa025421a08e0dc2a10e0dc2a1a10c8c557b5dba8527c0e760124128fd15c4a40d90764813046127a50acf4b449fccad057944e7665ab065d7057e56983e42abe55a3cbc1eb35a8c126f54597d0a0b426f2ad9a2d62769185ad8e3b4a5b3af909',
-		'hex',
+	const header2 = chain.BlockHeader.fromBytes(
+		Buffer.from(
+			'080010bb87b28b06180022002a003220e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8553a20e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8554220e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855480050005a20d800954794e0882c2419fe4736c2a191e6515859a7a894043ba5c911da6b72e76206080012001a006a00',
+			'hex',
+		),
 	);
-	const header1 = codec.decode(blockHeaderSchema, blockHeader1);
-	const header2 = codec.decode(blockHeaderSchema, blockHeader2);
 
 	beforeEach(async () => {
 		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin();
@@ -119,34 +105,35 @@ describe('Send PoM transaction', () => {
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
+			logger: testing.mocks.loggerMock,
 		});
 		(reportMisbehaviorPlugin as any)._channel = channelMock;
 		(reportMisbehaviorPlugin as any)._options = { fee: '100000000' };
 		reportMisbehaviorPlugin['logger'] = {
 			error: jest.fn(),
 		} as any;
-		reportMisbehaviorPlugin['schemas'] = {
-			block: blockSchema,
-			blockHeader: blockHeaderSchema,
-			transaction: transactionSchema,
-			transactionsAssets: [
+		jest.spyOn(reportMisbehaviorPlugin['apiClient'], 'schemas', 'get').mockReturnValue({
+			block: chain.blockSchema,
+			blockHeader: chain.blockHeaderSchema,
+			transaction: chain.transactionSchema,
+			commands: [
 				{
 					moduleID: 5,
 					moduleName: 'dpos',
-					assetID: 3,
-					assetName: 'reportDelegateMisbehavior',
+					commandID: 3,
+					commandName: 'reportDelegateMisbehavior',
 					schema: {
 						$id: 'lisk/dpos/pom',
 						type: 'object',
 						required: ['header1', 'header2'],
 						properties: {
 							header1: {
-								...blockHeaderSchema,
+								...chain.blockHeaderSchema,
 								$id: 'block-header1',
 								fieldNumber: 1,
 							},
 							header2: {
-								...blockHeaderSchema,
+								...chain.blockHeaderSchema,
 								$id: 'block-header2',
 								fieldNumber: 2,
 							},
@@ -154,25 +141,29 @@ describe('Send PoM transaction', () => {
 					},
 				},
 			],
-			account: accountSchema,
-		} as any;
+		});
 		(reportMisbehaviorPlugin as any)._state = {
 			passphrase: testing.fixtures.defaultFaucetAccount.passphrase,
 			publicKey: testing.fixtures.defaultFaucetAccount.publicKey,
 		};
-		when(channelMock.invoke)
-			.calledWith('app:getAccount', expect.anything())
-			.mockResolvedValue('1a020801' as never);
-		when(channelMock.invoke)
-			.calledWith('app:getNodeInfo')
+
+		when(jest.spyOn(reportMisbehaviorPlugin['apiClient'], 'invoke'))
+			.calledWith('auth_getAuthAccount', expect.anything())
+			.mockResolvedValue({ nonce: '0' } as never)
+			.calledWith('app_getNodeInfo')
 			.mockResolvedValue({ networkIdentifier: defaultNetworkIdentifier } as never);
 	});
 
-	it('should throw error when pom transaction asset schema is not found', async () => {
-		reportMisbehaviorPlugin['schemas'].transactionsAssets = [];
+	it('should throw error when pom transaction params schema is not found', async () => {
+		jest.spyOn(reportMisbehaviorPlugin['apiClient'], 'schemas', 'get').mockReturnValue({
+			block: chain.blockSchema,
+			blockHeader: chain.blockHeaderSchema,
+			transaction: chain.transactionSchema,
+			commands: [],
+		});
 		await expect(
 			(reportMisbehaviorPlugin as any)._createPoMTransaction(header1, header2),
-		).rejects.toThrow('PoM asset schema is not registered in the application.');
+		).rejects.toThrow('PoM params schema is not registered in the application.');
 	});
 
 	it('should create pom transaction for given block headers', async () => {

@@ -12,15 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseChannel, GenesisConfig } from 'lisk-framework';
-import { blockHeaderSchema, blockSchema, RawBlock } from '@liskhq/lisk-chain';
-import { codec } from '@liskhq/lisk-codec';
-import { hash } from '@liskhq/lisk-cryptography';
-import { testing } from 'lisk-framework';
+import {
+	BaseChannel,
+	GenesisConfig,
+	chain,
+	cryptography,
+	testing,
+	ApplicationConfigForPlugin,
+} from 'lisk-sdk';
 import { MonitorPlugin } from '../../src/monitor_plugin';
 import { configSchema } from '../../src/schemas';
 
-const appConfigForPlugin = {
+const appConfigForPlugin: ApplicationConfigForPlugin = {
 	rootPath: '~/.lisk',
 	label: 'my-app',
 	logger: {
@@ -40,10 +43,11 @@ const appConfigForPlugin = {
 			host: '127.0.0.1',
 		},
 	},
-	forging: {
+	generation: {
 		force: false,
 		waitThreshold: 2,
-		delegates: [],
+		generators: [],
+		modules: {},
 	},
 	network: {
 		seedPeers: [],
@@ -58,9 +62,11 @@ const appConfigForPlugin = {
 	},
 	version: '',
 	networkVersion: '',
+	genesis: {} as GenesisConfig,
 	genesisConfig: {} as GenesisConfig,
 };
 const validPluginOptions = configSchema.default;
+const logger = testing.mocks.loggerMock;
 
 describe('_handleFork', () => {
 	let monitorPluginInstance: MonitorPlugin;
@@ -68,6 +74,25 @@ describe('_handleFork', () => {
 	const {
 		mocks: { channelMock },
 	} = testing;
+	const mockHeader = new chain.BlockHeader({
+		generatorAddress: Buffer.alloc(0),
+		height: 800000,
+		version: 0,
+		previousBlockID: Buffer.alloc(0),
+		timestamp: Math.floor(Date.now() / 1000 - 24 * 60 * 60),
+		stateRoot: cryptography.hash(Buffer.alloc(0)),
+		maxHeightGenerated: 0,
+		maxHeightPrevoted: 0,
+		assetsRoot: cryptography.hash(Buffer.alloc(0)),
+		validatorsHash: cryptography.getRandomBytes(32),
+		aggregateCommit: {
+			height: 0,
+			aggregationBits: Buffer.alloc(0),
+			certificateSignature: Buffer.alloc(0),
+		},
+		transactionRoot: cryptography.hash(Buffer.alloc(0)),
+		signature: Buffer.alloc(0),
+	});
 
 	beforeEach(async () => {
 		monitorPluginInstance = new MonitorPlugin();
@@ -75,14 +100,15 @@ describe('_handleFork', () => {
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
+			logger,
 		});
-		await monitorPluginInstance.load(channelMock);
-		monitorPluginInstance['schemas'] = {
-			block: blockSchema,
-			blockHeader: blockHeaderSchema,
-		} as any;
-		encodedBlock =
-			'0acd01080210c38ec1fc0518a2012220c736b8cfb669ff453118230c71d7dc433797b5b30da6b9d89a14457f1b56faa12a20e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b85532209bcf519c9e0a8e66b3939f9d592b5a1728141ea3253b7d3a2424a44575c5f4e738004216087410001a1060fce85c0ca51ca1c72c589c9f651f574a40396edc8e940c5f5829d382c10cae3c2f7f24a5a9bb42ef8c545439e1a2e83951f87bc894816d7b90958b411a37b816c9e2d597dd52d7847d5a73f411ded65303';
+		jest.spyOn(monitorPluginInstance['apiClient'], 'schemas', 'get').mockReturnValue({
+			block: chain.blockSchema,
+			blockHeader: chain.blockHeaderSchema,
+		} as never);
+		encodedBlock = new chain.Block(mockHeader, [], new chain.BlockAssets())
+			.getBytes()
+			.toString('hex');
 	});
 
 	it('should add new fork events to state', () => {
@@ -94,19 +120,10 @@ describe('_handleFork', () => {
 
 	it('should add new block headers for each fork event', () => {
 		const monitorInstance = monitorPluginInstance as any;
-		const { header } = codec.decode<RawBlock>(
-			monitorInstance.schemas.block,
-			Buffer.from(encodedBlock, 'hex'),
-		);
-		const expectedDecodedHeader = codec.decodeJSON<Record<string, unknown>>(
-			monitorInstance.schemas.blockHeader,
-			header,
-		);
-		const blockId = hash(header).toString('hex');
 		monitorInstance._handleFork(encodedBlock);
 
-		expect(monitorInstance._state.forks.blockHeaders[blockId].blockHeader).toEqual(
-			expectedDecodedHeader,
-		);
+		expect(
+			monitorInstance._state.forks.blockHeaders[mockHeader.id.toString('hex')].blockHeader,
+		).toEqual(mockHeader);
 	});
 });

@@ -85,16 +85,6 @@ const callAndProcessActions = async (
 	let result = (await client.invoke(action, params)) as unknown;
 
 	switch (action) {
-		case 'app:getAccount':
-			result = client.account.toJSON(client.account.decode(result as string));
-			break;
-
-		case 'app:getAccounts':
-			result = (result as string[]).map(account =>
-				client.account.toJSON(client.account.decode(account)),
-			);
-			break;
-
 		case 'app:getLastBlock':
 		case 'app:getBlockByID':
 		case 'app:getBlockByHeight':
@@ -289,29 +279,33 @@ const MainPage: React.FC = () => {
 			const { publicKey, address } = cryptography.getAddressAndPublicKeyFromPassphrase(
 				data.passphrase,
 			);
-			const assetSchema = getClient().schemas.transactionsAssets.find(
-				a => a.moduleID === data.moduleID && a.assetID === data.assetID,
+			const paramsSchema = getClient().schemas.commands.find(
+				a => a.moduleID === data.moduleID && a.commandID === data.commandID,
 			);
-			if (!assetSchema) {
-				throw new Error(`ModuleID: ${data.moduleID} AssetID: ${data.assetID} is not registered`);
+			if (!paramsSchema) {
+				throw new Error(
+					`ModuleID: ${data.moduleID} CommandID: ${data.commandID} is not registered`,
+				);
 			}
-			const assetObject = codec.codec.fromJSON<Record<string, unknown>>(
-				assetSchema.schema,
-				data.asset,
+			const paramsObject = codec.codec.fromJSON<Record<string, unknown>>(
+				paramsSchema.schema,
+				data.params,
 			);
-			const sender = await getClient().account.get(address);
+			const sender = await getClient().invoke<{ nonce: string }>('auth_getAuthData', {
+				address: address.toString('hex'),
+			});
 			const fee = getClient().transaction.computeMinFee({
 				moduleID: data.moduleID,
-				assetID: data.assetID,
-				asset: assetObject,
+				commandID: data.commandID,
+				params: paramsObject,
 				senderPublicKey: publicKey,
-				nonce: BigInt((sender.sequence as { nonce: bigint }).nonce),
+				nonce: BigInt(sender.nonce),
 			});
 			const transaction = await getClient().transaction.create(
 				{
 					moduleID: data.moduleID,
-					assetID: data.assetID,
-					asset: assetObject,
+					commandID: data.commandID,
+					params: paramsObject,
 					senderPublicKey: publicKey,
 					fee,
 				},
