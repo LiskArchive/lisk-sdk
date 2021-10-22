@@ -13,7 +13,7 @@
  */
 
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { BIG_ENDIAN, intToBuffer } from '@liskhq/lisk-cryptography';
+import { intToBuffer } from '@liskhq/lisk-cryptography';
 import { SEED_REVEAL_HASH_SIZE } from './constants';
 import { ValidatorSeedReveal } from './types';
 
@@ -53,7 +53,7 @@ export const getRandomSeed = (
 	if (height < 0 || numberOfSeeds < 0) {
 		throw new Error('Height or number of seeds cannot be negative.');
 	}
-	const initRandomBuffer = intToBuffer(height + numberOfSeeds, 4, BIG_ENDIAN);
+	const initRandomBuffer = intToBuffer(height + numberOfSeeds, 4);
 	let randomSeed = cryptography.hash(initRandomBuffer).slice(0, 16);
 	const currentSeeds = validatorsReveal.filter(
 		v => height <= v.height && v.height <= height + numberOfSeeds,
