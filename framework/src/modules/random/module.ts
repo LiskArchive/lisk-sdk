@@ -25,18 +25,28 @@ import { BaseModule, ModuleInitArgs } from '../base_module';
 import { RandomAPI } from './api';
 import {
 	DEFAULT_MAX_LENGTH_REVEALS,
+	EMPTY_KEY,
 	MODULE_ID_RANDOM,
+	SEED_REVEAL_HASH_SIZE,
+	STORE_PREFIX_RANDOM,
 	STORE_PREFIX_USED_HASH_ONION,
 } from './constants';
 import { RandomEndpoint } from './endpoint';
-import { blockHeaderAssetRandomModule, usedHashOnionsStoreSchema } from './schemas';
 import {
+	blockHeaderAssetRandomModule,
+	seedRevealSchema,
+	usedHashOnionsStoreSchema,
+} from './schemas';
+import {
+	BlockHeaderAssetRandomModule,
 	HashOnionConfig,
 	RegisteredDelegate,
 	UsedHashOnion,
 	UsedHashOnionStoreObject,
+	ValidatorReveals,
 } from './types';
 import { Logger } from '../../logger';
+import { isSeedValidInput } from './utils';
 
 export class RandomModule extends BaseModule {
 	public id = MODULE_ID_RANDOM;
@@ -53,8 +63,6 @@ export class RandomModule extends BaseModule {
 		this._generatorConfig = generatorConfig;
 		this._maxLengthReveals =
 			(moduleConfig.maxLengthReveals as number) ?? DEFAULT_MAX_LENGTH_REVEALS;
-		// eslint-disable-next-line no-console
-		console.log(this._generatorConfig.toString(), this._maxLengthReveals);
 	}
 
 	public async initBlock(context: BlockGenerateContext): Promise<void> {
@@ -105,14 +113,60 @@ export class RandomModule extends BaseModule {
 		);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-empty-function
-	public async verifyBlock(_context: BlockVerifyContext): Promise<void> {}
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async verifyBlock(context: BlockVerifyContext): Promise<void> {
+		const encodedAsset = context.assets.getAsset(this.id);
+		if (!encodedAsset) {
+			throw new Error('Random module asset must exist.');
+		}
+		const asset = codec.decode<BlockHeaderAssetRandomModule>(
+			blockHeaderAssetRandomModule,
+			encodedAsset,
+		);
+		if (asset.seedReveal.length !== SEED_REVEAL_HASH_SIZE) {
+			throw new Error(
+				`Size of the seed reveal must be ${SEED_REVEAL_HASH_SIZE}, but received ${asset.seedReveal.length}.`,
+			);
+		}
+	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-empty-function
-	public async afterGenesisBlockExecute(_context: GenesisBlockExecuteContext): Promise<void> {}
+	public async afterGenesisBlockExecute(context: GenesisBlockExecuteContext): Promise<void> {
+		const randomDataStore = context.getStore(this.id, STORE_PREFIX_RANDOM);
+		await randomDataStore.setWithSchema(EMPTY_KEY, { validatorReveals: [] }, seedRevealSchema);
+	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-empty-function
-	public async afterBlockExecute(_context: BlockAfterExecuteContext): Promise<void> {}
+	public async afterBlockExecute(context: BlockAfterExecuteContext): Promise<void> {
+		const encodedAsset = context.assets.getAsset(this.id);
+		if (!encodedAsset) {
+			throw new Error('Random module asset must exist.');
+		}
+		const asset = codec.decode<BlockHeaderAssetRandomModule>(
+			blockHeaderAssetRandomModule,
+			encodedAsset,
+		);
+		const randomDataStore = context.getStore(this.id, STORE_PREFIX_RANDOM);
+		const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
+			EMPTY_KEY,
+			seedRevealSchema,
+		);
+		const valid = isSeedValidInput(
+			context.header.generatorAddress,
+			asset.seedReveal,
+			validatorReveals,
+		);
+		const nextReveals =
+			validatorReveals.length === this._maxLengthReveals
+				? validatorReveals.slice(1)
+				: validatorReveals;
+
+		nextReveals.push({
+			seedReveal: asset.seedReveal,
+			generatorAddress: context.header.generatorAddress,
+			height: context.header.height,
+			valid,
+		});
+		await randomDataStore.setWithSchema(EMPTY_KEY, { validatorReveals }, seedRevealSchema);
+	}
 
 	private _filterUsedHashOnions(
 		usedHashOnions: UsedHashOnion[],

@@ -75,19 +75,39 @@ export const createBlockContext = (params: {
 	stateStore?: StateStore;
 	eventQueue?: EventQueue;
 	logger?: Logger;
-	header: BlockHeader;
+	header?: BlockHeader;
 	assets?: BlockAssets;
 	transactions?: Transaction[];
 }): BlockContext => {
 	const logger = params.logger ?? loggerMock;
 	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
 	const eventQueue = params.eventQueue ?? new EventQueue();
+	const header =
+		params.header ??
+		new BlockHeader({
+			height: 0,
+			generatorAddress: getRandomBytes(20),
+			previousBlockID: Buffer.alloc(0),
+			timestamp: Math.floor(Date.now() / 1000),
+			version: 0,
+			transactionRoot: hash(Buffer.alloc(0)),
+			stateRoot: hash(Buffer.alloc(0)),
+			maxHeightGenerated: 0,
+			maxHeightPrevoted: 0,
+			assetsRoot: hash(Buffer.alloc(0)),
+			aggregateCommit: {
+				height: 0,
+				aggregationBits: Buffer.alloc(0),
+				certificateSignature: Buffer.alloc(0),
+			},
+			validatorsHash: hash(Buffer.alloc(0)),
+		});
 	const ctx = new BlockContext({
 		stateStore,
 		logger,
 		eventQueue,
 		transactions: params.transactions ?? [],
-		header: params.header,
+		header: params.header ?? header,
 		assets: params.assets ?? new BlockAssets(),
 		networkIdentifier: getRandomBytes(32),
 	});

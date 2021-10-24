@@ -12,19 +12,36 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getAddressFromPublicKey, hashOnion } from '@liskhq/lisk-cryptography';
+import {
+	getAddressFromPublicKey,
+	getRandomBytes,
+	hash,
+	hashOnion,
+} from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
+import { BlockAssets, StateStore } from '@liskhq/lisk-chain';
+import { InMemoryKVStore } from '@liskhq/lisk-db';
 import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
 import { RandomModule } from '../../../../src/modules/random';
-import { UsedHashOnionStoreObject } from '../../../../src/modules/random/types';
-import { STORE_PREFIX_USED_HASH_ONION } from '../../../../src/modules/random/constants';
+import { UsedHashOnionStoreObject, ValidatorReveals } from '../../../../src/modules/random/types';
+import {
+	EMPTY_KEY,
+	STORE_PREFIX_RANDOM,
+	STORE_PREFIX_USED_HASH_ONION,
+} from '../../../../src/modules/random/constants';
 import {
 	blockHeaderAssetRandomModule,
+	seedRevealSchema,
 	usedHashOnionsStoreSchema,
 } from '../../../../src/modules/random/schemas';
 import { BlockGenerateContext } from '../../../../src/node/generator';
 import { defaultNetworkIdentifier } from '../../../fixtures';
 import { GenesisConfig, testing } from '../../../../src';
+import {
+	createBlockContext,
+	createBlockHeaderWithDefaults,
+	createGenesisBlockContext,
+} from '../../../../src/testing';
 
 const convertDelegateFixture = (delegates: typeof genesisDelegates.delegates) =>
 	delegates.map(delegate => ({
@@ -347,6 +364,326 @@ describe('RandomModule', () => {
 			expect(blockGenerateContext.logger.warn).toHaveBeenCalledWith(
 				'All of the hash onion has been used already. Please update to the new hash onion.',
 			);
+		});
+	});
+
+	describe('afterGenesisBlockExecute', () => {
+		let stateStore: StateStore;
+		beforeEach(async () => {
+			await randomModule.init({
+				generatorConfig: {},
+				genesisConfig: {} as never,
+				moduleConfig: {
+					maxLengthReveals: 206,
+				},
+			});
+			stateStore = new StateStore(new InMemoryKVStore());
+		});
+
+		it('should store empty array to the random data store', async () => {
+			const context = createGenesisBlockContext({
+				stateStore,
+			});
+
+			await randomModule.afterGenesisBlockExecute(context.createGenesisBlockExecuteContext());
+
+			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
+
+			await expect(randomDataStore.has(EMPTY_KEY)).resolves.toBeTrue();
+			const res = await randomDataStore.getWithSchema<ValidatorReveals>(
+				EMPTY_KEY,
+				seedRevealSchema,
+			);
+			expect(res.validatorReveals).toHaveLength(0);
+		});
+	});
+
+	describe('verifyBlock', () => {
+		beforeEach(async () => {
+			await randomModule.init({
+				generatorConfig: {},
+				genesisConfig: {} as never,
+				moduleConfig: {
+					maxLengthReveals: 206,
+				},
+			});
+		});
+
+		it('should reject if asset does not exist', async () => {
+			const context = createBlockContext({
+				assets: new BlockAssets(),
+			});
+
+			await expect(
+				randomModule.verifyBlock(context.getBlockVerifyExecuteContext()),
+			).rejects.toThrow('Random module asset must exist.');
+		});
+
+		it('should reject if seed reveal length is not 16 bytes', async () => {
+			const asset = {
+				moduleID: randomModule.id,
+				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: getRandomBytes(10) }),
+			};
+			const context = createBlockContext({
+				assets: new BlockAssets([asset]),
+			});
+
+			await expect(
+				randomModule.verifyBlock(context.getBlockVerifyExecuteContext()),
+			).rejects.toThrow('Size of the seed reveal must be 16, but received 10.');
+		});
+
+		it('should resolve if seed reveal length is 16 bytes', async () => {
+			const asset = {
+				moduleID: randomModule.id,
+				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: getRandomBytes(16) }),
+			};
+			const context = createBlockContext({
+				assets: new BlockAssets([asset]),
+			});
+
+			await expect(randomModule.verifyBlock(context.getBlockVerifyExecuteContext())).toResolve();
+		});
+	});
+
+	describe('afterBlockExecute', () => {
+		let stateStore: StateStore;
+		const generator1 = getRandomBytes(20);
+		const seed1 = getRandomBytes(16);
+		const generator2 = getRandomBytes(20);
+		const seed2 = getRandomBytes(16);
+		const generator3 = getRandomBytes(20);
+		const seed3 = getRandomBytes(16);
+		const seedHash = (seed: Buffer, times: number) => {
+			let res = seed;
+			for (let i = 0; i < times; i += 1) {
+				res = hash(res).slice(0, 16);
+			}
+			return res;
+		};
+
+		beforeEach(async () => {
+			await randomModule.init({
+				generatorConfig: {},
+				genesisConfig: {} as never,
+				moduleConfig: {
+					maxLengthReveals: 6,
+				},
+			});
+			stateStore = new StateStore(new InMemoryKVStore());
+			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
+			const validatorReveals = [
+				{
+					seedReveal: seedHash(seed1, 2),
+					generatorAddress: generator1,
+					height: 1,
+					valid: false,
+				},
+				{
+					seedReveal: seedHash(seed2, 2),
+					generatorAddress: generator2,
+					height: 2,
+					valid: false,
+				},
+				{
+					seedReveal: seedHash(seed3, 2),
+					generatorAddress: generator3,
+					height: 3,
+					valid: false,
+				},
+				{
+					seedReveal: seedHash(seed2, 1),
+					generatorAddress: generator2,
+					height: 4,
+					valid: true,
+				},
+				{
+					seedReveal: seedHash(seed2, 0),
+					generatorAddress: generator2,
+					height: 5,
+					valid: true,
+				},
+			];
+			await randomDataStore.setWithSchema(EMPTY_KEY, { validatorReveals }, seedRevealSchema);
+		});
+
+		it('should reject if asset does not exist', async () => {
+			const context = createBlockContext({
+				assets: new BlockAssets(),
+			});
+
+			await expect(
+				randomModule.afterBlockExecute(context.getBlockAfterExecuteContext()),
+			).rejects.toThrow('Random module asset must exist.');
+		});
+
+		it('should append the new seed reveal value', async () => {
+			const asset = {
+				moduleID: randomModule.id,
+				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: seedHash(seed3, 1) }),
+			};
+			const context = createBlockContext({
+				assets: new BlockAssets([asset]),
+				header: createBlockHeaderWithDefaults({ height: 6 }),
+				stateStore,
+			});
+
+			await randomModule.afterBlockExecute(context.getBlockAfterExecuteContext());
+
+			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
+			const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
+				EMPTY_KEY,
+				seedRevealSchema,
+			);
+			expect(validatorReveals).toHaveLength(6);
+		});
+
+		it('should not exceed max length of seed reveal set in the config', async () => {
+			const asset = {
+				moduleID: randomModule.id,
+				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: seedHash(seed3, 1) }),
+			};
+			const context = createBlockContext({
+				assets: new BlockAssets([asset]),
+				header: createBlockHeaderWithDefaults({ height: 6 }),
+				stateStore,
+			});
+
+			await randomModule.afterBlockExecute(context.getBlockAfterExecuteContext());
+
+			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
+			const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
+				EMPTY_KEY,
+				seedRevealSchema,
+			);
+			expect(validatorReveals).toHaveLength(6);
+
+			const nextContext = createBlockContext({
+				assets: new BlockAssets([asset]),
+				header: createBlockHeaderWithDefaults({ height: 7 }),
+				stateStore,
+			});
+
+			await randomModule.afterBlockExecute(nextContext.getBlockAfterExecuteContext());
+
+			const updatedRandomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
+			const {
+				validatorReveals: updatedValidatorReveals,
+			} = await updatedRandomDataStore.getWithSchema<ValidatorReveals>(EMPTY_KEY, seedRevealSchema);
+			expect(updatedValidatorReveals).toHaveLength(6);
+		});
+
+		it('should set seed reveal validity to be true if validator provides valid seed reveal', async () => {
+			const seedReveal = seedHash(seed3, 1);
+			const asset = {
+				moduleID: randomModule.id,
+				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal }),
+			};
+			const context = createBlockContext({
+				assets: new BlockAssets([asset]),
+				header: createBlockHeaderWithDefaults({ height: 6, generatorAddress: generator3 }),
+				stateStore,
+			});
+
+			await randomModule.afterBlockExecute(context.getBlockAfterExecuteContext());
+
+			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
+			const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
+				EMPTY_KEY,
+				seedRevealSchema,
+			);
+			expect(validatorReveals).toHaveLength(6);
+			expect(validatorReveals[5]).toEqual({
+				height: 6,
+				seedReveal,
+				generatorAddress: generator3,
+				valid: true,
+			});
+		});
+
+		it('should set seed reveal validity to be true when previous seed will be deleted at this execution', async () => {
+			const seedReveal = seedHash(seed1, 1);
+			const asset = {
+				moduleID: randomModule.id,
+				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal }),
+			};
+			const context = createBlockContext({
+				assets: new BlockAssets([asset]),
+				header: createBlockHeaderWithDefaults({ height: 6, generatorAddress: generator1 }),
+				stateStore,
+			});
+
+			await randomModule.afterBlockExecute(context.getBlockAfterExecuteContext());
+
+			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
+			const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
+				EMPTY_KEY,
+				seedRevealSchema,
+			);
+			expect(validatorReveals).toHaveLength(6);
+			expect(validatorReveals[5]).toEqual({
+				height: 6,
+				seedReveal,
+				generatorAddress: generator1,
+				valid: true,
+			});
+		});
+
+		it('should set seed reveal validity to be false if validator provides invalid seed reveal', async () => {
+			const seedReveal = seedHash(getRandomBytes(20), 1);
+			const asset = {
+				moduleID: randomModule.id,
+				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal }),
+			};
+			const context = createBlockContext({
+				assets: new BlockAssets([asset]),
+				header: createBlockHeaderWithDefaults({ height: 6, generatorAddress: generator3 }),
+				stateStore,
+			});
+
+			await randomModule.afterBlockExecute(context.getBlockAfterExecuteContext());
+
+			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
+			const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
+				EMPTY_KEY,
+				seedRevealSchema,
+			);
+			expect(validatorReveals).toHaveLength(6);
+			expect(validatorReveals[5]).toEqual({
+				height: 6,
+				seedReveal,
+				generatorAddress: generator3,
+				valid: false,
+			});
+		});
+
+		it('should set seed reveal validity to be false if there is no data for the past seed reveal', async () => {
+			const seedReveal = seedHash(getRandomBytes(20), 1);
+			const asset = {
+				moduleID: randomModule.id,
+				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal }),
+			};
+			const generator = getRandomBytes(20);
+			const context = createBlockContext({
+				assets: new BlockAssets([asset]),
+				header: createBlockHeaderWithDefaults({ height: 6, generatorAddress: generator }),
+				stateStore,
+			});
+
+			await randomModule.afterBlockExecute(context.getBlockAfterExecuteContext());
+
+			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
+			const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
+				EMPTY_KEY,
+				seedRevealSchema,
+			);
+			expect(validatorReveals).toHaveLength(6);
+			expect(validatorReveals[5]).toEqual({
+				height: 6,
+				seedReveal,
+				generatorAddress: generator,
+				valid: false,
+			});
 		});
 	});
 });
