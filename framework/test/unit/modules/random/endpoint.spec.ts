@@ -66,48 +66,51 @@ describe('RandomModuleEndpoint', () => {
 
 		it('should return true for a valid seed reveal', async () => {
 			// Arrange
-			const address = Buffer.from(genesisDelegates.delegates[0].address, 'hex');
+			const { address } = genesisDelegates.delegates[0];
 			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
 			const hashes = cryptography.hashOnion(
 				Buffer.from(seed, 'hex'),
 				genesisDelegates.delegates[0].hashOnion.distance,
 				1,
 			);
-			const hashToBeChecked = hashes[1];
+			const hashToBeChecked = hashes[1].toString('hex');
+			context.params = { generatorAddress: address, seedReveal: hashToBeChecked };
 			// Act
-			const isValid = await randomEndpoint.isSeedRevealValid(context, address, hashToBeChecked);
+			const isValid = await randomEndpoint.isSeedRevealValid(context);
 			// Assert
 			expect(isValid).toEqual(true);
 		});
 
 		it('should return true if no last seed reveal found', async () => {
 			// Arrange
-			const address = Buffer.from(genesisDelegates.delegates[4].address, 'hex');
+			const { address } = genesisDelegates.delegates[4];
 			const seed = genesisDelegates.delegates[4].hashOnion.hashes[0];
 			const hashes = cryptography.hashOnion(
 				Buffer.from(seed, 'hex'),
 				genesisDelegates.delegates[0].hashOnion.distance,
 				1,
 			);
-			const hashToBeChecked = hashes[3];
+			const hashToBeChecked = hashes[3].toString('hex');
+			context.params = { generatorAddress: address, seedReveal: hashToBeChecked };
 			// Act
-			const isValid = await randomEndpoint.isSeedRevealValid(context, address, hashToBeChecked);
+			const isValid = await randomEndpoint.isSeedRevealValid(context);
 			// Assert
 			expect(isValid).toEqual(true);
 		});
 
 		it('should return false for an invalid seed reveal when last seed is not hash of the given reveal', async () => {
 			// Arrange
-			const address = Buffer.from(genesisDelegates.delegates[1].address, 'hex');
+			const { address } = genesisDelegates.delegates[1];
 			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
 			const hashes = cryptography.hashOnion(
 				Buffer.from(seed, 'hex'),
 				genesisDelegates.delegates[0].hashOnion.distance,
 				1,
 			);
-			const hashToBeChecked = hashes[3];
+			const hashToBeChecked = hashes[3].toString('hex');
+			context.params = { generatorAddress: address, seedReveal: hashToBeChecked };
 			// Act
-			const isValid = await randomEndpoint.isSeedRevealValid(context, address, hashToBeChecked);
+			const isValid = await randomEndpoint.isSeedRevealValid(context);
 			// Assert
 			expect(isValid).toEqual(false);
 		});

@@ -12,25 +12,31 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator } from '@liskhq/lisk-validator';
 import { ModuleEndpointContext } from '../..';
 import { BaseEndpoint } from '../base_endpoint';
 import { STORE_PREFIX_RANDOM, EMPTY_KEY } from './constants';
-import { seedRevealSchema } from './schemas';
+import { isSeedRevealValidParamsSchema, seedRevealSchema } from './schemas';
 import { ValidatorReveals } from './types';
-import { isSeedRevealValidUtil } from './utils';
+import { getSeedRevealValidity } from './utils';
 
 export class RandomEndpoint extends BaseEndpoint {
-	public async isSeedRevealValid(
-		context: ModuleEndpointContext,
-		generatorAddress: Buffer,
-		seedReveal: Buffer,
-	): Promise<boolean> {
+	public async isSeedRevealValid(context: ModuleEndpointContext): Promise<boolean> {
+		const errors = validator.validate(isSeedRevealValidParamsSchema, context.params);
+		if (errors.length > 0) {
+			throw new Error('Incorrect params provided for isSeedRevealValid API.');
+		}
+		const { generatorAddress, seedReveal } = context.params;
 		const randomDataStore = context.getStore(this.moduleID, STORE_PREFIX_RANDOM);
 		const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
 			EMPTY_KEY,
 			seedRevealSchema,
 		);
 
-		return isSeedRevealValidUtil(generatorAddress, seedReveal, validatorReveals);
+		return getSeedRevealValidity(
+			Buffer.from(generatorAddress as string, 'hex'),
+			Buffer.from(seedReveal as string, 'hex'),
+			validatorReveals,
+		);
 	}
 }
