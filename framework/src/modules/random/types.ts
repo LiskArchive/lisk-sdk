@@ -48,3 +48,18 @@ export interface GeneratorConfig {
 	readonly defaultPassword?: string;
 	readonly waitThreshold: number;
 }
+
+export interface ValidatorSeedReveal {
+	generatorAddress: Buffer;
+	seedReveal: Buffer;
+	height: number;
+	valid: boolean;
+}
+
+export interface ValidatorReveals {
+	validatorReveals: ValidatorSeedReveal[];
+}
+
+export interface BlockHeaderAssetRandomModule {
+	seedReveal: Buffer;
+}
