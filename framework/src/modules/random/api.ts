@@ -12,27 +12,37 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ImmutableAPIContext } from '../../node/state_machine';
+import { codec } from '@liskhq/lisk-codec';
+import { BlockAssets, ImmutableAPIContext } from '../../node/state_machine';
 import { BaseAPI } from '../base_api';
 import { EMPTY_KEY } from '../validators/constants';
 import { STORE_PREFIX_RANDOM } from './constants';
-import { seedRevealSchema } from './schemas';
-import { ValidatorReveals } from './types';
-import { isSeedRevealValidUtil, randomBytesUtil } from './utils';
+import { seedRevealSchema, blockHeaderAssetRandomModule } from './schemas';
+import { BlockHeaderAssetRandomModule, ValidatorReveals } from './types';
+import { getSeedRevealValidity, getRandomSeed } from './utils';
 
 export class RandomAPI extends BaseAPI {
 	public async isSeedRevealValid(
 		apiContext: ImmutableAPIContext,
 		generatorAddress: Buffer,
-		seedReveal: Buffer,
+		blockAssets: BlockAssets,
 	): Promise<boolean> {
 		const randomDataStore = apiContext.getStore(this.moduleID, STORE_PREFIX_RANDOM);
 		const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
 			EMPTY_KEY,
 			seedRevealSchema,
 		);
+		const asset = blockAssets.getAsset(this.moduleID);
+		if (!asset) {
+			throw new Error('Block asset is missing.');
+		}
 
-		return isSeedRevealValidUtil(generatorAddress, seedReveal, validatorReveals);
+		const { seedReveal } = codec.decode<BlockHeaderAssetRandomModule>(
+			blockHeaderAssetRandomModule,
+			asset,
+		);
+
+		return getSeedRevealValidity(generatorAddress, seedReveal, validatorReveals);
 	}
 
 	public async getRandomBytes(
@@ -46,6 +56,6 @@ export class RandomAPI extends BaseAPI {
 			seedRevealSchema,
 		);
 
-		return randomBytesUtil(height, numberOfSeeds, validatorReveals);
+		return getRandomSeed(height, numberOfSeeds, validatorReveals);
 	}
 }

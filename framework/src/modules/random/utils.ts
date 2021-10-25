@@ -13,25 +13,27 @@
  */
 
 import * as cryptography from '@liskhq/lisk-cryptography';
+import { intToBuffer } from '@liskhq/lisk-cryptography';
 import { SEED_REVEAL_HASH_SIZE } from './constants';
 import { ValidatorSeedReveal } from './types';
 
-export const isSeedRevealValidUtil = (
+export const getSeedRevealValidity = (
 	generatorAddress: Buffer,
 	seedReveal: Buffer,
 	validatorsReveal: ValidatorSeedReveal[],
 ) => {
-	const largestSeedHeight = Math.max(
-		...validatorsReveal
-			.filter(sr => sr.generatorAddress.equals(generatorAddress))
-			.map(s => s.height),
-	);
+	let lastSeed: ValidatorSeedReveal | undefined;
+	let maxheight = 0;
+	for (const validatorReveal of validatorsReveal) {
+		if (
+			validatorReveal.generatorAddress.equals(generatorAddress) &&
+			validatorReveal.height > maxheight
+		) {
+			maxheight = validatorReveal.height;
 
-	const lastSeed = validatorsReveal.find(
-		(seedObject: ValidatorSeedReveal) =>
-			seedObject.height === largestSeedHeight &&
-			seedObject.generatorAddress.equals(generatorAddress),
-	);
+			lastSeed = validatorReveal;
+		}
+	}
 
 	if (
 		!lastSeed ||
@@ -43,13 +45,15 @@ export const isSeedRevealValidUtil = (
 	return false;
 };
 
-export const randomBytesUtil = (
+export const getRandomSeed = (
 	height: number,
 	numberOfSeeds: number,
 	validatorsReveal: ValidatorSeedReveal[],
 ) => {
-	const initRandomBuffer = Buffer.allocUnsafe(4);
-	initRandomBuffer.writeInt32BE(height + numberOfSeeds, 0);
+	if (height < 0 || numberOfSeeds < 0) {
+		throw new Error('Height or number of seeds cannot be negative.');
+	}
+	const initRandomBuffer = intToBuffer(height + numberOfSeeds, 4);
 	let randomSeed = cryptography.hash(initRandomBuffer).slice(0, 16);
 	const currentSeeds = validatorsReveal.filter(
 		v => height <= v.height && v.height <= height + numberOfSeeds,
