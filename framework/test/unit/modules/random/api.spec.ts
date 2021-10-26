@@ -26,11 +26,14 @@ import {
 	blockHeaderAssetRandomModule,
 	seedRevealSchema,
 } from '../../../../src/modules/random/schemas';
+import { ValidatorSeedReveal } from '../../../../src/modules/random/types';
 import { bitwiseXOR } from '../../../../src/modules/random/utils';
 import { APIContext } from '../../../../src/node/state_machine';
 import { SubStore } from '../../../../src/node/state_machine/types';
 import { createTransientAPIContext } from '../../../../src/testing';
 import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
+import { testCases } from './dpos_random_seed_generation/dpos_random_seed_generation_other_rounds.json';
+import * as randomSeedsMultipleRounds from '../../../fixtures/dpos_random_seed_generation/dpos_random_seed_generation_other_rounds.json';
 
 describe('RandomModuleAPI', () => {
 	let randomAPI: RandomAPI;
@@ -40,26 +43,27 @@ describe('RandomModuleAPI', () => {
 	const emptyBytes = Buffer.alloc(0);
 
 	describe('isSeedRevealValid', () => {
-		const validatorsData = [
-			{
-				generatorAddress: Buffer.from(genesisDelegates.delegates[0].address, 'hex'),
-				seedReveal: Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[0], 'hex'),
-				height: 1,
+		const twoRoundsDelegates: ValidatorSeedReveal[] = [];
+		const twoRoundsDelegatesHashes: { [key: string]: Buffer[] } = {};
+
+		for (const generator of testCases[0].input.blocks) {
+			const generatorAddress = cryptography.getAddressFromPublicKey(
+				Buffer.from(generator.generatorPublicKey, 'hex'),
+			);
+			const seedReveal = Buffer.from(generator.asset.seedReveal, 'hex');
+
+			twoRoundsDelegates.push({
+				generatorAddress,
+				seedReveal,
+				height: generator.height,
 				valid: true,
-			},
-			{
-				generatorAddress: Buffer.from(genesisDelegates.delegates[1].address, 'hex'),
-				seedReveal: Buffer.from(genesisDelegates.delegates[1].hashOnion.hashes[1], 'hex'),
-				height: 3,
-				valid: true,
-			},
-			{
-				generatorAddress: Buffer.from(genesisDelegates.delegates[2].address, 'hex'),
-				seedReveal: Buffer.from(genesisDelegates.delegates[2].hashOnion.hashes[1], 'hex'),
-				height: 5,
-				valid: true,
-			},
-		];
+			});
+
+			if (!twoRoundsDelegatesHashes[generatorAddress.toString('hex')]) {
+				twoRoundsDelegatesHashes[generatorAddress.toString('hex')] = [];
+			}
+			twoRoundsDelegatesHashes[generatorAddress.toString('hex')].push(seedReveal);
+		}
 
 		beforeEach(async () => {
 			randomAPI = new RandomAPI(MODULE_ID_RANDOM);
@@ -67,14 +71,16 @@ describe('RandomModuleAPI', () => {
 			randomStore = context.getStore(randomAPI['moduleID'], STORE_PREFIX_RANDOM);
 			await randomStore.setWithSchema(
 				emptyBytes,
-				{ validatorReveals: validatorsData },
+				{ validatorReveals: twoRoundsDelegates.slice(0, 103) },
 				seedRevealSchema,
 			);
 		});
 
 		it('should throw error when asset is undefined', async () => {
 			// Arrange
-			const address = Buffer.from(genesisDelegates.delegates[0].address, 'hex');
+			const delegateAddress = cryptography.getAddressFromPublicKey(
+				Buffer.from(testCases[0].input.blocks[0].generatorPublicKey, 'hex'),
+			);
 
 			const blockAsset: BlockAsset = {
 				moduleID: randomAPI['moduleID'],
@@ -83,82 +89,68 @@ describe('RandomModuleAPI', () => {
 
 			// Act & Assert
 			await expect(
-				randomAPI.isSeedRevealValid(context, address, new BlockAssets([blockAsset])),
+				randomAPI.isSeedRevealValid(context, delegateAddress, new BlockAssets([blockAsset])),
 			).rejects.toThrow('Block asset is missing.');
 		});
 
 		it('should return true for a valid seed reveal', async () => {
-			// Arrange
-			const address = Buffer.from(genesisDelegates.delegates[0].address, 'hex');
-			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
-			const hashes = cryptography.hashOnion(
-				Buffer.from(seed, 'hex'),
-				genesisDelegates.delegates[0].hashOnion.distance,
-				1,
-			);
-			const hashToBeChecked = hashes[1];
-			const blockAsset: BlockAsset = {
-				moduleID: randomAPI['moduleID'],
-				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashToBeChecked }),
-			};
-
-			// Act
-			const isValid = await randomAPI.isSeedRevealValid(
-				context,
-				address,
-				new BlockAssets([blockAsset]),
-			);
-			// Assert
-			expect(isValid).toEqual(true);
+			for (const [address, hashes] of Object.entries(twoRoundsDelegatesHashes)) {
+				// Arrange
+				const blockAsset: BlockAsset = {
+					moduleID: randomAPI['moduleID'],
+					data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[1] }),
+				};
+				// Act
+				const isValid = await randomAPI.isSeedRevealValid(
+					context,
+					Buffer.from(address, 'hex'),
+					new BlockAssets([blockAsset]),
+				);
+				// Assert
+				expect(isValid).toEqual(true);
+			}
 		});
 
 		it('should return true if no last seed reveal found', async () => {
 			// Arrange
-			const address = Buffer.from(genesisDelegates.delegates[4].address, 'hex');
-			const seed = genesisDelegates.delegates[4].hashOnion.hashes[0];
-			const hashes = cryptography.hashOnion(
-				Buffer.from(seed, 'hex'),
-				genesisDelegates.delegates[4].hashOnion.distance,
-				1,
-			);
-			const hashToBeChecked = hashes[3];
-			const blockAsset: BlockAsset = {
-				moduleID: randomAPI['moduleID'],
-				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashToBeChecked }),
-			};
-			// Act
-			const isValid = await randomAPI.isSeedRevealValid(
-				context,
-				address,
-				new BlockAssets([blockAsset]),
-			);
-			// Assert
-			expect(isValid).toEqual(true);
+			await randomStore.setWithSchema(emptyBytes, { validatorReveals: [] }, seedRevealSchema);
+			for (const [address, hashes] of Object.entries(twoRoundsDelegatesHashes)) {
+				const blockAsset: BlockAsset = {
+					moduleID: randomAPI['moduleID'],
+					data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[1] }),
+				};
+				// Act
+				const isValid = await randomAPI.isSeedRevealValid(
+					context,
+					Buffer.from(address, 'hex'),
+					new BlockAssets([blockAsset]),
+				);
+				// Assert
+				expect(isValid).toEqual(true);
+			}
 		});
 
 		it('should return false for an invalid seed reveal when last seed is not hash of the given reveal', async () => {
-			// Arrange
-			const address = Buffer.from(genesisDelegates.delegates[1].address, 'hex');
-			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
-			const hashes = cryptography.hashOnion(
-				Buffer.from(seed, 'hex'),
-				genesisDelegates.delegates[0].hashOnion.distance,
-				1,
+			await randomStore.setWithSchema(
+				emptyBytes,
+				{ validatorReveals: twoRoundsDelegates },
+				seedRevealSchema,
 			);
-			const hashToBeChecked = hashes[3];
-			const blockAsset: BlockAsset = {
-				moduleID: randomAPI['moduleID'],
-				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashToBeChecked }),
-			};
-
-			// Act
-			const isValid = await randomAPI.isSeedRevealValid(
-				context,
-				address,
-				new BlockAssets([blockAsset]),
-			);
-			// Assert
-			expect(isValid).toEqual(false);
+			for (const [address, hashes] of Object.entries(twoRoundsDelegatesHashes)) {
+				// Arrange
+				const blockAsset: BlockAsset = {
+					moduleID: randomAPI['moduleID'],
+					data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[1] }),
+				};
+				// Act
+				const isValid = await randomAPI.isSeedRevealValid(
+					context,
+					Buffer.from(address, 'hex'),
+					new BlockAssets([blockAsset]),
+				);
+				// Assert
+				expect(isValid).toEqual(false);
+			}
 		});
 	});
 
@@ -346,6 +338,70 @@ describe('RandomModuleAPI', () => {
 			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				randomSeed,
 			);
+		});
+	});
+
+	describe('generateRandomSeeds', () => {
+		describe.each(
+			[...randomSeedsMultipleRounds.testCases].map(testCase => [testCase.description, testCase]),
+		)('%s', (_description, testCase) => {
+			// Arrange
+			const { config, input, output } = testCase as any;
+			const validators: ValidatorSeedReveal[] = [];
+
+			for (const generator of input.blocks) {
+				const generatorAddress = cryptography.getAddressFromPublicKey(
+					Buffer.from(generator.generatorPublicKey, 'hex'),
+				);
+				const seedReveal = Buffer.from(generator.asset.seedReveal, 'hex');
+
+				validators.push({
+					generatorAddress,
+					seedReveal,
+					height: generator.height,
+					valid: true,
+				});
+			}
+
+			beforeEach(async () => {
+				randomAPI = new RandomAPI(MODULE_ID_RANDOM);
+				context = createTransientAPIContext({});
+				randomStore = context.getStore(randomAPI['moduleID'], STORE_PREFIX_RANDOM);
+				await randomStore.setWithSchema(
+					emptyBytes,
+					{ validatorReveals: validators },
+					seedRevealSchema,
+				);
+			});
+
+			it('should generate correct random seeds', async () => {
+				// Arrange
+				// For randomSeed 1
+				const round = Math.floor(
+					input.blocks[input.blocks.length - 1].height / config.blocksPerRound,
+				);
+				const middleThreshold = Math.floor(config.blocksPerRound / 2);
+				const startOfRound = config.blocksPerRound * (round - 1) + 1;
+				const heightForSeed1 = startOfRound - middleThreshold;
+
+				// For randomSeed 2
+				const endOfLastRound = startOfRound - 1;
+				const startOfLastRound = endOfLastRound - config.blocksPerRound + 1;
+				// Act
+				const randomSeed1 = await randomAPI.getRandomBytes(
+					context,
+					heightForSeed1,
+					middleThreshold * 2,
+				);
+				const randomSeed2 = await randomAPI.getRandomBytes(
+					context,
+					startOfLastRound,
+					middleThreshold * 2,
+				);
+				// Assert
+				expect(randomSeed1.toString('hex')).toEqual(output.randomSeed1);
+				expect(randomSeed2.toString('hex')).toEqual(output.randomSeed2);
+			});
 		});
 	});
 });
