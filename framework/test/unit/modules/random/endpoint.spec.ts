@@ -78,7 +78,7 @@ describe('RandomModuleEndpoint', () => {
 			// Act
 			const isValid = await randomEndpoint.isSeedRevealValid(context);
 			// Assert
-			expect(isValid).toEqual(true);
+			expect(isValid).toEqual({ valid: true });
 		});
 
 		it('should return true if no last seed reveal found', async () => {
@@ -95,7 +95,7 @@ describe('RandomModuleEndpoint', () => {
 			// Act
 			const isValid = await randomEndpoint.isSeedRevealValid(context);
 			// Assert
-			expect(isValid).toEqual(true);
+			expect(isValid).toEqual({ valid: true });
 		});
 
 		it('should return false for an invalid seed reveal when last seed is not hash of the given reveal', async () => {
@@ -112,7 +112,7 @@ describe('RandomModuleEndpoint', () => {
 			// Act
 			const isValid = await randomEndpoint.isSeedRevealValid(context);
 			// Assert
-			expect(isValid).toEqual(false);
+			expect(isValid).toEqual({ valid: false });
 		});
 	});
 });

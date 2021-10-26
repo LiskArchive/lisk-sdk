@@ -21,7 +21,7 @@ import { ValidatorReveals } from './types';
 import { getSeedRevealValidity } from './utils';
 
 export class RandomEndpoint extends BaseEndpoint {
-	public async isSeedRevealValid(context: ModuleEndpointContext): Promise<boolean> {
+	public async isSeedRevealValid(context: ModuleEndpointContext): Promise<{ valid: boolean }> {
 		const errors = validator.validate(isSeedRevealValidParamsSchema, context.params);
 		if (errors.length > 0) {
 			throw new Error('Incorrect params provided for isSeedRevealValid API.');
@@ -33,10 +33,12 @@ export class RandomEndpoint extends BaseEndpoint {
 			seedRevealSchema,
 		);
 
-		return getSeedRevealValidity(
-			Buffer.from(generatorAddress as string, 'hex'),
-			Buffer.from(seedReveal as string, 'hex'),
-			validatorReveals,
-		);
+		return {
+			valid: getSeedRevealValidity(
+				Buffer.from(generatorAddress as string, 'hex'),
+				Buffer.from(seedReveal as string, 'hex'),
+				validatorReveals,
+			),
+		};
 	}
 }
