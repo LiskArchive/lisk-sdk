@@ -35,6 +35,9 @@ import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
 import { testCases } from './dpos_random_seed_generation/dpos_random_seed_generation_other_rounds.json';
 import * as randomSeedsMultipleRounds from '../../../fixtures/dpos_random_seed_generation/dpos_random_seed_generation_other_rounds.json';
 
+const strippedHashOfIntegerBuffer = (num: number) =>
+	cryptography.hash(intToBuffer(num, 4)).slice(0, SEED_REVEAL_HASH_SIZE);
+
 describe('RandomModuleAPI', () => {
 	let randomAPI: RandomAPI;
 	let context: APIContext;
@@ -229,9 +232,7 @@ describe('RandomModuleAPI', () => {
 			const height = 11;
 			const numberOfSeeds = 2;
 			// Create a buffer from height + numberOfSeeds
-			const initRandomBuffer = intToBuffer(height + numberOfSeeds, 4);
-
-			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, SEED_REVEAL_HASH_SIZE);
+			const randomSeed = strippedHashOfIntegerBuffer(height + numberOfSeeds);
 
 			const hashesExpected = [
 				Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[1], 'hex'),
@@ -252,9 +253,7 @@ describe('RandomModuleAPI', () => {
 			const height = 11;
 			const numberOfSeeds = 3;
 			// Create a buffer from height + numberOfSeeds
-			const initRandomBuffer = intToBuffer(height + numberOfSeeds, 4);
-
-			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, SEED_REVEAL_HASH_SIZE);
+			const randomSeed = strippedHashOfIntegerBuffer(height + numberOfSeeds);
 
 			const hashesExpected = [
 				Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[1], 'hex'),
@@ -276,8 +275,7 @@ describe('RandomModuleAPI', () => {
 			const height = 11;
 			const numberOfSeeds = 4;
 			// Create a buffer from height + numberOfSeeds
-			const initRandomBuffer = intToBuffer(height + numberOfSeeds, 4);
-			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, SEED_REVEAL_HASH_SIZE);
+			const randomSeed = strippedHashOfIntegerBuffer(height + numberOfSeeds);
 
 			const hashesExpected = [
 				Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[1], 'hex'),
@@ -299,9 +297,7 @@ describe('RandomModuleAPI', () => {
 			const height = 8;
 			const numberOfSeeds = 3;
 			// Create a buffer from height + numberOfSeeds
-			const initRandomBuffer = intToBuffer(height + numberOfSeeds, 4);
-
-			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, SEED_REVEAL_HASH_SIZE);
+			const randomSeed = strippedHashOfIntegerBuffer(height + numberOfSeeds);
 
 			const hashesExpected = [
 				Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[1], 'hex'),
@@ -318,9 +314,7 @@ describe('RandomModuleAPI', () => {
 			const height = 7;
 			const numberOfSeeds = 3;
 			// Create a buffer from height + numberOfSeeds
-			const initRandomBuffer = intToBuffer(height + numberOfSeeds, 4);
-
-			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, SEED_REVEAL_HASH_SIZE);
+			const randomSeed = strippedHashOfIntegerBuffer(height + numberOfSeeds);
 
 			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				randomSeed,
@@ -331,9 +325,7 @@ describe('RandomModuleAPI', () => {
 			const height = 20;
 			const numberOfSeeds = 1;
 			// Create a buffer from height + numberOfSeeds
-			const initRandomBuffer = intToBuffer(height + numberOfSeeds, 4);
-
-			const randomSeed = cryptography.hash(initRandomBuffer).slice(0, SEED_REVEAL_HASH_SIZE);
+			const randomSeed = strippedHashOfIntegerBuffer(height + numberOfSeeds);
 
 			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				randomSeed,
@@ -382,8 +374,8 @@ describe('RandomModuleAPI', () => {
 				);
 				const middleThreshold = Math.floor(config.blocksPerRound / 2);
 				const startOfRound = config.blocksPerRound * (round - 1) + 1;
-				const heightForSeed1 = startOfRound - middleThreshold;
-
+				// To validate seed reveal of any block in the last round we have to check till second last round that doesn't exist for last round
+				const heightForSeed1 = startOfRound - (round === 2 ? 0 : middleThreshold);
 				// For randomSeed 2
 				const endOfLastRound = startOfRound - 1;
 				const startOfLastRound = endOfLastRound - config.blocksPerRound + 1;
@@ -391,13 +383,13 @@ describe('RandomModuleAPI', () => {
 				const randomSeed1 = await randomAPI.getRandomBytes(
 					context,
 					heightForSeed1,
-					middleThreshold * 2,
+					round === 2 ? middleThreshold : middleThreshold * 2,
 				);
-				const randomSeed2 = await randomAPI.getRandomBytes(
-					context,
-					startOfLastRound,
-					middleThreshold * 2,
-				);
+				// There is previous round for last round when round is 2
+				const randomSeed2 =
+					round === 2
+						? strippedHashOfIntegerBuffer(endOfLastRound)
+						: await randomAPI.getRandomBytes(context, startOfLastRound, middleThreshold * 2);
 				// Assert
 				expect(randomSeed1.toString('hex')).toEqual(output.randomSeed1);
 				expect(randomSeed2.toString('hex')).toEqual(output.randomSeed2);
