@@ -41,7 +41,7 @@ export const createTransferTransaction = ({
 		params: encodedAsset,
 		signatures: [],
 	});
-	(tx.signatures as Buffer[]).push(
+	tx.signatures.push(
 		cryptography.signData(
 			transactions.TAG_TRANSACTION,
 			networkIdentifier,
@@ -84,7 +84,7 @@ export const createVoteTransaction = ({
 		params: encodedAsset,
 		signatures: [],
 	});
-	(tx.signatures as Buffer[]).push(
+	tx.signatures.push(
 		cryptography.signData(
 			transactions.TAG_TRANSACTION,
 			networkIdentifier,

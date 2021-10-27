@@ -166,7 +166,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 			signatures: [],
 		});
 
-		(tx.signatures as Buffer[]).push(
+		tx.signatures.push(
 			signData(
 				TAG_TRANSACTION,
 				Buffer.from(networkIdentifier, 'hex'),
