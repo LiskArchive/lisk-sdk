@@ -21,7 +21,7 @@ describe('validator', () => {
 	describe('validateSchema', () => {
 		const validSchema = {
 			$id: '/my-schema',
-			$schema: 'http://lisk.io/lisk-schema/schema#',
+			$schema: 'http://lisk.com/lisk-schema/schema#',
 			type: 'object',
 			properties: {
 				myProp: {
@@ -41,7 +41,7 @@ describe('validator', () => {
 			// Arrange
 			const invalidSchema = {
 				$id: '/my-invalid-schema',
-				$schema: 'http://lisk.io/lisk-schema/schema#',
+				$schema: 'http://lisk.com/lisk-schema/schema#',
 				type: 'string',
 				properties: {},
 			};

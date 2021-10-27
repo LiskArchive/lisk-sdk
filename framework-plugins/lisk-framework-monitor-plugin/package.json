@@ -2,7 +2,7 @@
 	"name": "@liskhq/lisk-framework-monitor-plugin",
 	"version": "0.2.4",
 	"description": "A plugin for lisk-framework that provides network statistics of the running node",
-	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
 	"keywords": [
 		"lisk",

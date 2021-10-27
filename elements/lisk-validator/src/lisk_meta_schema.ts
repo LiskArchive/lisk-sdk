@@ -14,13 +14,13 @@
 
 export const liskMetaSchema = {
 	$schema: 'http://json-schema.org/draft-07/schema#',
-	$id: 'http://lisk.io/lisk-schema/schema#',
+	$id: 'http://lisk.com/lisk-schema/schema#',
 	title: 'Lisk Schema',
 	type: 'object',
 	properties: {
 		$schema: {
 			type: 'string',
-			const: 'http://lisk.io/lisk-schema/schema#',
+			const: 'http://lisk.com/lisk-schema/schema#',
 			format: 'uri',
 		},
 		$id: {
