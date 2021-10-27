@@ -43,7 +43,7 @@ export const getTransaction = (input?: { nonce?: bigint }): Transaction => {
 		tx.getSigningBytes(),
 		genesisAddress.passphrase,
 	);
-	(tx.signatures as Buffer[]).push(signature);
+	tx.signatures.push(signature);
 
 	return tx;
 };

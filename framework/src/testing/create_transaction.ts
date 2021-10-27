@@ -13,16 +13,16 @@
  *
  */
 
-import { Transaction, TransactionAttrs } from '@liskhq/lisk-chain';
+import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
-import { signTransaction, validateTransaction } from '@liskhq/lisk-transactions';
+import { getAddressAndPublicKeyFromPassphrase, getKeys } from '@liskhq/lisk-cryptography';
+import { validateTransaction } from '@liskhq/lisk-transactions';
 import { CommandClass } from './types';
 
 interface CreateTransactionInput {
 	moduleID: number;
 	commandClass: CommandClass;
-	params: Record<string, unknown>;
+	params: Record<string, unknown> | undefined;
 	nonce?: bigint;
 	fee?: bigint;
 	passphrase?: string;
@@ -42,7 +42,10 @@ export const createTransaction = ({
 	// eslint-disable-next-line new-cap
 	const commandInstance = new commandClass();
 	const commandID = commandInstance.id;
-	const paramsBytes = codec.encode(commandInstance.schema, params);
+	const paramsBytes =
+		commandInstance.schema && params
+			? codec.encode(commandInstance.schema, params)
+			: Buffer.alloc(0);
 
 	const transaction = {
 		moduleID,
@@ -54,26 +57,24 @@ export const createTransaction = ({
 		signatures: [],
 	};
 
-	const validationErrors = validateTransaction(commandInstance.schema, transaction);
-	if (validationErrors) {
-		throw validationErrors;
+	if (commandInstance.schema) {
+		const validationErrors = validateTransaction(commandInstance.schema, transaction);
+		if (validationErrors) {
+			throw validationErrors;
+		}
 	}
+	const result = new Transaction({ ...transaction, params: paramsBytes });
 
 	if (!passphrase) {
-		return new Transaction({ ...transaction, params: paramsBytes });
+		return result;
 	}
 
 	if (!networkIdentifier) {
 		throw new Error('Network identifier is required to sign a transaction');
 	}
 
-	const signedTransaction = signTransaction(
-		commandInstance.schema,
-		transaction,
-		networkIdentifier,
-		passphrase,
-	);
+	const keys = getKeys(passphrase);
+	result.sign(networkIdentifier, keys.privateKey);
 
-	// signTransaction returns type Record<string, unknown> so it must be cast to TransactionInput
-	return new Transaction({ ...signedTransaction, params: paramsBytes } as TransactionAttrs);
+	return result;
 };

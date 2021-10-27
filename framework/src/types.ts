@@ -176,7 +176,7 @@ export interface RegisteredSchema {
 		moduleName: string;
 		commandID: number;
 		commandName: string;
-		schema: Schema;
+		schema?: Schema;
 	}[];
 }
 
