@@ -136,6 +136,23 @@ export const getVoterOrDefault = async (voterStore: SubStore, address: Buffer) =
 	}
 };
 
+export const hasWaited = (
+	unlockingObject: UnlockingObject,
+	senderAddress: Buffer,
+	height: number,
+) => {
+	let delayedAvailability: number;
+
+	// If self-vote
+	if (unlockingObject.delegateAddress.equals(senderAddress)) {
+		delayedAvailability = 260000;
+	} else {
+		delayedAvailability = 2000;
+	}
+
+	return !(height - unlockingObject.unvoteHeight < delayedAvailability);
+};
+
 export const isPunished = (
 	unlockingObject: UnlockingObject,
 	pomHeights: ReadonlyArray<number>,
