@@ -80,7 +80,7 @@ export interface TransactionVerifyContext {
 	getStore: (moduleID: number, storePrefix: number) => ImmutableSubStore;
 }
 
-export interface CommandVerifyContext<T> {
+export interface CommandVerifyContext<T = undefined> {
 	logger: Logger;
 	networkIdentifier: Buffer;
 	transaction: Transaction; // without decoding params
@@ -89,7 +89,7 @@ export interface CommandVerifyContext<T> {
 	getStore: (moduleID: number, storePrefix: number) => ImmutableSubStore;
 }
 
-export interface CommandExecuteContext<T> {
+export interface CommandExecuteContext<T = undefined> {
 	logger: Logger;
 	networkIdentifier: Buffer;
 	header: BlockHeader;

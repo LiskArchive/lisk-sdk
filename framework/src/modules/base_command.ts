@@ -21,10 +21,11 @@ import {
 } from '../node/state_machine';
 
 export abstract class BaseCommand<T = unknown> {
+	public schema?: Schema;
+
 	protected moduleID: number;
 	public abstract name: string;
 	public abstract id: number;
-	public abstract schema: Schema;
 
 	public constructor(moduleID: number) {
 		this.moduleID = moduleID;

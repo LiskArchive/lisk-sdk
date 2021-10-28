@@ -88,9 +88,7 @@ export class TransactionContext {
 		};
 	}
 
-	public createCommandVerifyContext<T = Record<string, unknown>>(
-		paramsSchema: Schema,
-	): CommandVerifyContext<T> {
+	public createCommandVerifyContext<T = undefined>(paramsSchema?: Schema): CommandVerifyContext<T> {
 		return {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
@@ -99,12 +97,14 @@ export class TransactionContext {
 			getStore: (moduleID: number, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			transaction: this._transaction,
-			params: codec.decode(paramsSchema, this._transaction.params),
+			params: (paramsSchema
+				? codec.decode(paramsSchema, this._transaction.params)
+				: undefined) as T,
 		};
 	}
 
-	public createCommandExecuteContext<T = Record<string, unknown>>(
-		paramsSchema: Schema,
+	public createCommandExecuteContext<T = undefined>(
+		paramsSchema?: Schema,
 	): CommandExecuteContext<T> {
 		if (!this._header) {
 			throw new Error('Transaction Execution requires block header in the context.');
@@ -122,7 +122,9 @@ export class TransactionContext {
 			header: this._header,
 			transaction: this._transaction,
 			assets: this._assets,
-			params: codec.decode(paramsSchema, this._transaction.params),
+			params: (paramsSchema
+				? codec.decode(paramsSchema, this._transaction.params)
+				: undefined) as T,
 		};
 	}
 

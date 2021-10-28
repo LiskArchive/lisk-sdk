@@ -47,7 +47,7 @@ export const createTransferTransaction = (input: {
 		params: encodedAsset,
 		signatures: [],
 	});
-	(tx.signatures as Buffer[]).push(
+	tx.signatures.push(
 		signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.passphrase),
 	);
 	return tx;
@@ -74,7 +74,7 @@ export const createDelegateRegisterTransaction = (input: {
 		params: encodedAsset,
 		signatures: [],
 	});
-	(tx.signatures as Buffer[]).push(
+	tx.signatures.push(
 		signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.passphrase),
 	);
 	return tx;
@@ -101,7 +101,7 @@ export const createDelegateVoteTransaction = (input: {
 		params: encodedAsset,
 		signatures: [],
 	});
-	(tx.signatures as Buffer[]).push(
+	tx.signatures.push(
 		signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.passphrase),
 	);
 	return tx;
@@ -220,7 +220,7 @@ export const createReportMisbehaviorTransaction = (input: {
 		params: encodedAsset,
 		signatures: [],
 	});
-	(tx.signatures as Buffer[]).push(
+	tx.signatures.push(
 		signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.passphrase),
 	);
 	return tx;
