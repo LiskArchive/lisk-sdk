@@ -119,18 +119,6 @@ export const validateSignature = (
 	bytes: Buffer,
 ): boolean => verifyData(tag, networkIdentifier, bytes, signature, publicKey);
 
-export const isCurrentlyPunished = (height: number, pomHeights: ReadonlyArray<number>): boolean => {
-	if (pomHeights.length === 0) {
-		return false;
-	}
-	const lastPomHeight = Math.max(...pomHeights);
-	if (height - lastPomHeight < PUNISHMENT_PERIOD) {
-		return true;
-	}
-
-	return false;
-};
-
 export const getVoterOrDefault = async (voterStore: SubStore, address: Buffer) => {
 	try {
 		const voterData = await voterStore.getWithSchema<VoterData>(address, voterStoreSchema);
@@ -146,4 +134,30 @@ export const getVoterOrDefault = async (voterStore: SubStore, address: Buffer) =
 		};
 		return voterData;
 	}
+};
+
+export const isPunished = (
+	unlockingObject: UnlockingObject,
+	pomHeights: ReadonlyArray<number>,
+	senderAddress: Buffer,
+	height: number,
+) => {
+	if (!pomHeights.length) {
+		return false;
+	}
+
+	const lastPomHeight = pomHeights[pomHeights.length - 1];
+
+	// If self-vote
+	if (unlockingObject.delegateAddress.equals(senderAddress)) {
+		return (
+			height - lastPomHeight < PUNISHMENT_PERIOD &&
+			lastPomHeight < unlockingObject.unvoteHeight + WAIT_TIME_SELF_VOTE
+		);
+	}
+
+	return (
+		height - lastPomHeight < WAIT_TIME_SELF_VOTE &&
+		lastPomHeight < unlockingObject.unvoteHeight + WAIT_TIME_VOTE
+	);
 };
