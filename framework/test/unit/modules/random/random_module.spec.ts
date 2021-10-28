@@ -571,6 +571,7 @@ describe('RandomModule', () => {
 				validatorReveals: updatedValidatorReveals,
 			} = await updatedRandomDataStore.getWithSchema<ValidatorReveals>(EMPTY_KEY, seedRevealSchema);
 			expect(updatedValidatorReveals).toHaveLength(6);
+			expect(updatedValidatorReveals[5].height).toEqual(7);
 		});
 
 		it('should set seed reveal validity to be true if validator provides valid seed reveal', async () => {
