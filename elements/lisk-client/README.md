@@ -37,13 +37,13 @@ const { transactions } = require('@liskhq/lisk-client');
 Include the following script using the following HTML. The `lisk` variable will be exposed.
 
 ```html
-<script src="https://js.lisk.io/lisk-client-5.0.0.js"></script>
+<script src="https://js.lisk.com/lisk-client-5.0.0.js"></script>
 ```
 
 Or minified:
 
 ```html
-<script src="https://js.lisk.io/lisk-client-5.0.0.min.js"></script>
+<script src="https://js.lisk.com/lisk-client-5.0.0.min.js"></script>
 ```
 
 ## Packages
