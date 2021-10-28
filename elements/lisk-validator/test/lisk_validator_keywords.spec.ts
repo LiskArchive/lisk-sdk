@@ -25,7 +25,7 @@ describe('validator keywords', () => {
 	// Arrange
 	const validSchema = {
 		$id: '/my-schema',
-		$schema: 'http://lisk.io/lisk-schema/schema#',
+		$schema: 'http://lisk.com/lisk-schema/schema#',
 		type: 'object',
 		properties: {
 			myProp: {

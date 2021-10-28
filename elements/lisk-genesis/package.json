@@ -2,7 +2,7 @@
 	"name": "@liskhq/lisk-genesis",
 	"version": "0.2.3",
 	"description": "Library containing genesis block creation functions according to the Lisk protocol",
-	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
 	"keywords": [
 		"lisk",
