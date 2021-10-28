@@ -14,14 +14,76 @@
 
 import { CommandExecuteContext } from '../../../node/state_machine/types';
 import { BaseCommand } from '../../base_command';
-import { COMMAND_ID_UNLOCK } from '../constants';
-import { unlockCommandParamsSchema } from '../schemas';
+import {
+	COMMAND_ID_UNLOCK,
+	STORE_PREFIX_DELEGATE,
+	STORE_PREFIX_VOTER,
+	MODULE_ID_DPOS,
+} from '../constants';
+import { delegateStoreSchema, voterStoreSchema } from '../schemas';
+import {
+	DelegateAccount,
+	TokenAPI,
+	TokenIDDPoS,
+	UnlockCommandDependencies,
+	VoterData,
+} from '../types';
+import { hasWaited, isPunished } from '../utils';
 
 export class UnlockCommand extends BaseCommand {
 	public id = COMMAND_ID_UNLOCK;
 	public name = 'unlockToken';
-	public schema = unlockCommandParamsSchema;
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public async execute(_context: CommandExecuteContext<Record<string, unknown>>): Promise<void> {}
+	private _tokenAPI!: TokenAPI;
+	private _tokenIDDPoS!: TokenIDDPoS;
+
+	public addDependencies(args: UnlockCommandDependencies) {
+		this._tokenAPI = args.tokenAPI;
+		this._tokenIDDPoS = args.tokenIDDPoS;
+	}
+
+	public async execute(context: CommandExecuteContext<Record<string, unknown>>): Promise<void> {
+		const {
+			transaction: { senderAddress },
+			getStore,
+			getAPIContext,
+			header: { height },
+		} = context;
+		const delegateStore = getStore(this.moduleID, STORE_PREFIX_DELEGATE);
+		const voterStore = getStore(this.moduleID, STORE_PREFIX_VOTER);
+		const voterData = await voterStore.getWithSchema<VoterData>(senderAddress, voterStoreSchema);
+		const unlockIndices: number[] = [];
+
+		if (!voterData) {
+			throw new Error('No voting data exists for sender');
+		}
+
+		for (let i = 0; i < voterData.pendingUnlocks.length; i += 1) {
+			const unlockObject = voterData.pendingUnlocks[i];
+			const { pomHeights } = await delegateStore.getWithSchema<DelegateAccount>(
+				unlockObject.delegateAddress,
+				delegateStoreSchema,
+			);
+
+			if (
+				hasWaited(unlockObject, senderAddress, height) &&
+				!isPunished(unlockObject, pomHeights, senderAddress, height)
+			) {
+				unlockIndices.push(i);
+				await this._tokenAPI.unlock(
+					getAPIContext(),
+					senderAddress,
+					MODULE_ID_DPOS,
+					this._tokenIDDPoS,
+					unlockObject.amount,
+				);
+			}
+		}
+		if (unlockIndices.length) {
+			voterData.pendingUnlocks = voterData.pendingUnlocks.filter(
+				(_, i) => !unlockIndices.includes(i),
+			);
+			await voterStore.setWithSchema(senderAddress, voterData, voterStoreSchema);
+		}
+	}
 }
