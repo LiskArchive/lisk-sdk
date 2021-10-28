@@ -17,6 +17,27 @@ import { intToBuffer } from '@liskhq/lisk-cryptography';
 import { SEED_REVEAL_HASH_SIZE } from './constants';
 import { ValidatorSeedReveal } from './types';
 
+export const isSeedValidInput = (
+	generatorAddress: Buffer,
+	seedReveal: Buffer,
+	validatorsReveal: ValidatorSeedReveal[],
+) => {
+	let lastSeed: ValidatorSeedReveal | undefined;
+	// by construction, validatorsReveal is order by height asc. Therefore, looping from end will give highest value.
+	for (let i = validatorsReveal.length - 1; i >= 0; i -= 1) {
+		const validatorReveal = validatorsReveal[i];
+		if (validatorReveal.generatorAddress.equals(generatorAddress)) {
+			lastSeed = validatorReveal;
+			break;
+		}
+	}
+	// if the last seed is does not exist, seed reveal is invalid for use
+	if (!lastSeed) {
+		return false;
+	}
+	return lastSeed.seedReveal.equals(cryptography.hash(seedReveal).slice(0, SEED_REVEAL_HASH_SIZE));
+};
+
 export const getSeedRevealValidity = (
 	generatorAddress: Buffer,
 	seedReveal: Buffer,
