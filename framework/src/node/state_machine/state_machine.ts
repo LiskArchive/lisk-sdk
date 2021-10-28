@@ -31,7 +31,7 @@ import {
 
 export interface StateMachineCommand {
 	id: number;
-	schema: Schema;
+	schema?: Schema;
 	verify?: <T = unknown>(ctx: CommandVerifyContext<T>) => Promise<VerificationResult>;
 	execute: <T = unknown>(ctx: CommandExecuteContext<T>) => Promise<void>;
 }
