@@ -107,7 +107,7 @@ export const createBlockContext = (params: {
 		logger,
 		eventQueue,
 		transactions: params.transactions ?? [],
-		header: params.header ?? header,
+		header,
 		assets: params.assets ?? new BlockAssets(),
 		networkIdentifier: getRandomBytes(32),
 	});

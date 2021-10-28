@@ -165,7 +165,11 @@ export class RandomModule extends BaseModule {
 			height: context.header.height,
 			valid,
 		});
-		await randomDataStore.setWithSchema(EMPTY_KEY, { validatorReveals }, seedRevealSchema);
+		await randomDataStore.setWithSchema(
+			EMPTY_KEY,
+			{ validatorReveals: nextReveals },
+			seedRevealSchema,
+		);
 	}
 
 	private _filterUsedHashOnions(
