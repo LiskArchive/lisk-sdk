@@ -272,12 +272,6 @@ export const pomCommandParamsSchema = {
 	},
 };
 
-export const unlockCommandParamsSchema = {
-	$id: '/dpos/command/unlockTokenParams',
-	type: 'object',
-	properties: {},
-};
-
 export const configSchema = {
 	$id: '/dpos/config',
 	type: 'object',
