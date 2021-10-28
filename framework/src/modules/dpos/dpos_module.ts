@@ -39,6 +39,7 @@ import {
 	RegisteredDelegates,
 	UnlockingInfoJSON,
 } from './types';
+import { BaseAsset } from '../base_asset';
 
 const { bufferArrayContains } = objectsUtils;
 const dposModuleParamsDefault = {
@@ -53,12 +54,7 @@ export class DPoSModule extends BaseModule {
 	public accountSchema = dposAccountSchema;
 
 	public readonly rounds: Rounds;
-	public readonly transactionAssets = [
-		new RegisterTransactionAsset(),
-		new VoteTransactionAsset(),
-		new UnlockTransactionAsset(),
-		new PomTransactionAsset(),
-	];
+	public readonly transactionAssets: BaseAsset[];
 
 	private readonly _activeDelegates: number;
 	private readonly _standbyDelegates: number;
@@ -71,6 +67,15 @@ export class DPoSModule extends BaseModule {
 	public constructor(config: GenesisConfig) {
 		super(config);
 		const mergedDposConfig = objectsUtils.mergeDeep(dposModuleParamsDefault, this.config);
+
+		this.transactionAssets = [
+			new RegisterTransactionAsset(),
+			new VoteTransactionAsset(),
+			new UnlockTransactionAsset(
+				typeof config.unlockFixHeight === 'number' ? config.unlockFixHeight : undefined,
+			),
+			new PomTransactionAsset(),
+		];
 
 		// Set actions
 		this.actions = {
