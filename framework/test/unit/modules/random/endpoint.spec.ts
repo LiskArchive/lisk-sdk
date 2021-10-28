@@ -99,7 +99,7 @@ describe('RandomModuleEndpoint', () => {
 			context.params = { generatorAddress: address, seedReveal: hashToBeChecked };
 			// Act
 			await expect(randomEndpoint.isSeedRevealValid(context)).rejects.toThrow(
-				'Lisk validator found 1 error[s]:\nProperty \'.seedReveal\' must match format "hex"',
+				'Lisk validator found 2 error[s]:\nProperty \'.generatorAddress\' must match format "hex"\nProperty \'.seedReveal\' must match format "hex"',
 			);
 		});
 
