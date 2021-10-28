@@ -13,8 +13,9 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { hash, getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { hash, getAddressFromPublicKey, signDataWithPrivateKey } from '@liskhq/lisk-cryptography';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { TAG_TRANSACTION } from './constants';
 
 export interface TransactionAttrs {
 	readonly moduleID: number;
@@ -98,7 +99,7 @@ export class Transaction {
 	public readonly nonce: bigint;
 	public readonly fee: bigint;
 	public readonly senderPublicKey: Buffer;
-	public readonly signatures: ReadonlyArray<Buffer>;
+	public readonly signatures: Buffer[];
 	private _id?: Buffer;
 	private _senderAddress?: Buffer;
 
@@ -109,7 +110,7 @@ export class Transaction {
 		this.nonce = transaction.nonce;
 		this.fee = transaction.fee;
 		this.senderPublicKey = transaction.senderPublicKey;
-		this.signatures = transaction.signatures;
+		this.signatures = [...transaction.signatures];
 	}
 
 	public static fromBytes(bytes: Buffer): Transaction {
@@ -149,6 +150,16 @@ export class Transaction {
 		} as unknown) as Record<string, unknown>);
 
 		return transactionBytes;
+	}
+
+	public sign(networkIdentifier: Buffer, privateKey: Buffer): void {
+		const signature = signDataWithPrivateKey(
+			TAG_TRANSACTION,
+			networkIdentifier,
+			this.getSigningBytes(),
+			privateKey,
+		);
+		this.signatures.push(signature);
 	}
 
 	public validate(): void {
