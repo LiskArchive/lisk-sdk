@@ -64,6 +64,45 @@ describe('RandomModuleEndpoint', () => {
 				.mockReturnValue({ validatorReveals: validatorsData });
 		});
 
+		it('should throw error when seedReveal provided in params is invalid', async () => {
+			// Arrange
+			const { address } = genesisDelegates.delegates[0];
+			const hashToBeChecked = '12345%$#6';
+			context.params = { generatorAddress: address, seedReveal: hashToBeChecked };
+			// Act
+			await expect(randomEndpoint.isSeedRevealValid(context)).rejects.toThrow(
+				'Lisk validator found 1 error[s]:\nProperty \'.seedReveal\' must match format "hex"',
+			);
+		});
+
+		it('should throw error when generatorAddress provided in params is invalid', async () => {
+			// Arrange
+			const address = ['address'];
+			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
+			const hashes = cryptography.hashOnion(
+				Buffer.from(seed, 'hex'),
+				genesisDelegates.delegates[0].hashOnion.distance,
+				1,
+			);
+			const hashToBeChecked = hashes[1].toString('hex');
+			context.params = { generatorAddress: address, seedReveal: hashToBeChecked };
+			// Act
+			await expect(randomEndpoint.isSeedRevealValid(context)).rejects.toThrow(
+				"Lisk validator found 1 error[s]:\nProperty '.generatorAddress' should be of type 'string'",
+			);
+		});
+
+		it('should throw error when seedReveal and address provided in params are both invalid', async () => {
+			// Arrange
+			const address = '777777777&&&';
+			const hashToBeChecked = '12345%$#6';
+			context.params = { generatorAddress: address, seedReveal: hashToBeChecked };
+			// Act
+			await expect(randomEndpoint.isSeedRevealValid(context)).rejects.toThrow(
+				'Lisk validator found 1 error[s]:\nProperty \'.seedReveal\' must match format "hex"',
+			);
+		});
+
 		it('should return true for a valid seed reveal', async () => {
 			// Arrange
 			const { address } = genesisDelegates.delegates[0];
