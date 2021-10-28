@@ -16,21 +16,24 @@ import { StateStore, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
-import * as testing from '../../../../src/testing';
-import { DelegateRegistrationCommand } from '../../../../src/modules/dpos_v2/commands/delegate_registration';
+import * as testing from '../../../../../src/testing';
+import { DelegateRegistrationCommand } from '../../../../../src/modules/dpos_v2/commands/delegate_registration';
 import {
 	COMMAND_ID_DELEGATE_REGISTRATION,
 	MODULE_ID_DPOS,
 	STORE_PREFIX_DELEGATE,
 	STORE_PREFIX_NAME,
-} from '../../../../src/modules/dpos_v2/constants';
+} from '../../../../../src/modules/dpos_v2/constants';
 import {
 	delegateStoreSchema,
 	delegateRegistrationCommandParamsSchema,
 	nameStoreSchema,
-} from '../../../../src/modules/dpos_v2/schemas';
-import { DelegateRegistrationParams, ValidatorsAPI } from '../../../../src/modules/dpos_v2/types';
-import { VerifyStatus } from '../../../../src/node/state_machine';
+} from '../../../../../src/modules/dpos_v2/schemas';
+import {
+	DelegateRegistrationParams,
+	ValidatorsAPI,
+} from '../../../../../src/modules/dpos_v2/types';
+import { VerifyStatus } from '../../../../../src/node/state_machine';
 
 describe('Delegate registration command', () => {
 	let delegateRegistrationCommand: DelegateRegistrationCommand;
