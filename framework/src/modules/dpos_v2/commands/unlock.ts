@@ -49,9 +49,9 @@ export class UnlockCommand extends BaseCommand {
 			getAPIContext,
 			header: { height },
 		} = context;
-		const delegateStore = getStore(this.moduleID, STORE_PREFIX_DELEGATE);
-		const voterStore = getStore(this.moduleID, STORE_PREFIX_VOTER);
-		const voterData = await voterStore.getWithSchema<VoterData>(senderAddress, voterStoreSchema);
+		const delegateSubstore = getStore(this.moduleID, STORE_PREFIX_DELEGATE);
+		const voterSubstore = getStore(this.moduleID, STORE_PREFIX_VOTER);
+		const voterData = await voterSubstore.getWithSchema<VoterData>(senderAddress, voterStoreSchema);
 		const unlockIndices: number[] = [];
 
 		if (!voterData) {
@@ -60,7 +60,7 @@ export class UnlockCommand extends BaseCommand {
 
 		for (let i = 0; i < voterData.pendingUnlocks.length; i += 1) {
 			const unlockObject = voterData.pendingUnlocks[i];
-			const { pomHeights } = await delegateStore.getWithSchema<DelegateAccount>(
+			const { pomHeights } = await delegateSubstore.getWithSchema<DelegateAccount>(
 				unlockObject.delegateAddress,
 				delegateStoreSchema,
 			);
@@ -79,11 +79,12 @@ export class UnlockCommand extends BaseCommand {
 				);
 			}
 		}
+
 		if (unlockIndices.length) {
 			voterData.pendingUnlocks = voterData.pendingUnlocks.filter(
 				(_, i) => !unlockIndices.includes(i),
 			);
-			await voterStore.setWithSchema(senderAddress, voterData, voterStoreSchema);
+			await voterSubstore.setWithSchema(senderAddress, voterData, voterStoreSchema);
 		}
 	}
 }
