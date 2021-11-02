@@ -46,7 +46,7 @@ describe('UnlockCommand', () => {
 	let header: BlockHeader;
 	let unlockableObject: UnlockingObject;
 	let nonUnlockableObject: UnlockingObject;
-	let context: CommandExecuteContext<Record<string, unknown>>;
+	let context: CommandExecuteContext;
 	let storedData: VoterData;
 
 	const delegate1 = { name: 'delegate1', address: getRandomBytes(32), amount: liskToBeddows(100) };
