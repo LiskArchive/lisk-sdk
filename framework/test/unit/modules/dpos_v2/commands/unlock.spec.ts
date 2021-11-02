@@ -18,6 +18,10 @@ import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import * as testing from '../../../../../src/testing';
 import { UnlockCommand } from '../../../../../src/modules/dpos_v2/commands/unlock';
 import {
+	SELF_VOTE_PUNISH_TIME,
+	VOTER_PUNISH_TIME,
+	WAIT_TIME_SELF_VOTE,
+	WAIT_TIME_VOTE,
 	MODULE_ID_DPOS,
 	STORE_PREFIX_DELEGATE,
 	STORE_PREFIX_VOTER,
@@ -40,14 +44,13 @@ describe('UnlockCommand', () => {
 	let mockTokenAPI: TokenAPI;
 	let lastBlockHeight: number;
 	let header: BlockHeader;
-	let unlockObj1: UnlockingObject;
-	let unlockObj2: UnlockingObject;
-	let unlockObj3: UnlockingObject;
+	let unlockableObject: UnlockingObject;
+	let nonUnlockableObject: UnlockingObject;
 	let context: CommandExecuteContext<Record<string, unknown>>;
+	let storedData: VoterData;
 
 	const delegate1 = { name: 'delegate1', address: getRandomBytes(32), amount: liskToBeddows(100) };
-	const delegate2 = { name: 'delegate2', address: getRandomBytes(32), amount: liskToBeddows(120) };
-	const delegate3 = { name: 'delegate3', address: getRandomBytes(32), amount: liskToBeddows(80) };
+	const delegate2 = { name: 'delegate2', address: getRandomBytes(32), amount: liskToBeddows(200) };
 	const defaultDelegateInfo = {
 		totalVotesReceived: BigInt(100000000),
 		selfVotes: BigInt(0),
@@ -71,7 +74,7 @@ describe('UnlockCommand', () => {
 		'hex',
 	);
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		unlockCommand = new UnlockCommand(MODULE_ID_DPOS);
 		mockTokenAPI = {
 			unlock: jest.fn(),
@@ -104,177 +107,43 @@ describe('UnlockCommand', () => {
 			},
 			validatorsHash: hash(Buffer.alloc(0)),
 		});
-		await delegateSubstore.setWithSchema(
-			delegate1.address,
-			{
-				name: delegate1.name,
-				...defaultDelegateInfo,
-			},
-			delegateStoreSchema,
-		);
-		await delegateSubstore.setWithSchema(
-			delegate2.address,
-			{
-				name: delegate2.name,
-				...defaultDelegateInfo,
-			},
-			delegateStoreSchema,
-		);
-		await delegateSubstore.setWithSchema(
-			delegate3.address,
-			{
-				name: delegate3.name,
-				...defaultDelegateInfo,
-			},
-			delegateStoreSchema,
-		);
 	});
 
-	describe('when non self-voted non punished account waits 2000 blocks', () => {
-		beforeEach(async () => {
-			unlockObj1 = {
-				delegateAddress: delegate1.address,
-				amount: delegate1.amount,
-				unvoteHeight: lastBlockHeight - 2001,
-			};
-			unlockObj2 = {
-				delegateAddress: delegate2.address,
-				amount: delegate2.amount,
-				unvoteHeight: lastBlockHeight - 2000,
-			};
-			unlockObj3 = {
-				delegateAddress: delegate3.address,
-				amount: delegate3.amount,
-				unvoteHeight: lastBlockHeight - 1000,
-			};
-			await voterSubstore.setWithSchema(
-				transaction.senderAddress,
-				{
-					sentVotes: [
-						{ delegateAddress: unlockObj1.delegateAddress, amount: unlockObj1.amount },
-						{ delegateAddress: unlockObj2.delegateAddress, amount: unlockObj2.amount },
-						{ delegateAddress: unlockObj3.delegateAddress, amount: unlockObj3.amount },
-					],
-					pendingUnlocks: [unlockObj1, unlockObj2, unlockObj3],
-				},
-				voterStoreSchema,
-			);
-			context = testing
-				.createTransactionContext({
-					stateStore,
-					transaction,
-					header,
-					networkIdentifier,
-				})
-				.createCommandExecuteContext();
-		});
-
-		it('should only remove eligible pending unlocks from voter substore', async () => {
-			await unlockCommand.execute(context);
-			const storedData = codec.decode<VoterData>(
-				voterStoreSchema,
-				await voterSubstore.get(transaction.senderAddress),
-			);
-
-			expect(storedData.pendingUnlocks).toHaveLength(1);
-			expect(storedData.pendingUnlocks).toEqual([unlockObj3]);
-		});
-	});
-
-	describe('when self-voted non punished account waits 260000 blocks', () => {
+	describe(`when non self-voted non-punished account waits ${WAIT_TIME_VOTE} blocks since unvoteHeight`, () => {
 		beforeEach(async () => {
 			await delegateSubstore.setWithSchema(
-				transaction.senderAddress,
+				delegate1.address,
 				{
+					name: delegate1.name,
 					...defaultDelegateInfo,
-					name: 'selfvoter',
 				},
 				delegateStoreSchema,
 			);
-			unlockObj1 = {
-				delegateAddress: transaction.senderAddress,
-				amount: delegate1.amount,
-				unvoteHeight: lastBlockHeight - 260001,
-			};
-			unlockObj2 = {
-				delegateAddress: transaction.senderAddress,
-				amount: delegate2.amount,
-				unvoteHeight: lastBlockHeight - 260000,
-			};
-			unlockObj3 = {
-				delegateAddress: transaction.senderAddress,
-				amount: delegate3.amount,
-				unvoteHeight: lastBlockHeight - 250000,
-			};
-			await voterSubstore.setWithSchema(
-				transaction.senderAddress,
-				{
-					sentVotes: [
-						{ delegateAddress: transaction.senderAddress, amount: delegate1.amount },
-						{ delegateAddress: transaction.senderAddress, amount: delegate2.amount },
-						{ delegateAddress: transaction.senderAddress, amount: delegate3.amount },
-					],
-					pendingUnlocks: [unlockObj1, unlockObj2, unlockObj3],
-				},
-				voterStoreSchema,
-			);
-			context = testing
-				.createTransactionContext({
-					stateStore,
-					transaction,
-					header,
-					networkIdentifier,
-				})
-				.createCommandExecuteContext();
-		});
-
-		it('should only remove eligible pending unlocks from voter substore', async () => {
-			await unlockCommand.execute(context);
-			const storedData = codec.decode<VoterData>(
-				voterStoreSchema,
-				await voterSubstore.get(transaction.senderAddress),
-			);
-
-			expect(storedData.pendingUnlocks).toHaveLength(1);
-			expect(storedData.pendingUnlocks).toEqual([unlockObj3]);
-		});
-	});
-
-	describe('when non self-voted punished account has waited pomHeight + 260000 and unvoteHeight + 2000 blocks', () => {
-		beforeEach(async () => {
 			await delegateSubstore.setWithSchema(
-				delegate3.address,
+				delegate2.address,
 				{
+					name: delegate2.name,
 					...defaultDelegateInfo,
-					name: 'punisheddelegate',
-					pomHeights: [lastBlockHeight - 260000],
 				},
 				delegateStoreSchema,
 			);
-			unlockObj1 = {
+			unlockableObject = {
 				delegateAddress: delegate1.address,
 				amount: delegate1.amount,
-				unvoteHeight: lastBlockHeight - 2001,
+				unvoteHeight: lastBlockHeight - WAIT_TIME_VOTE,
 			};
-			unlockObj2 = {
+			nonUnlockableObject = {
 				delegateAddress: delegate2.address,
 				amount: delegate2.amount,
-				unvoteHeight: lastBlockHeight - 1000,
-			};
-			unlockObj3 = {
-				delegateAddress: delegate3.address,
-				amount: delegate3.amount,
-				unvoteHeight: lastBlockHeight - 2000,
+				unvoteHeight: lastBlockHeight,
 			};
 			await voterSubstore.setWithSchema(
 				transaction.senderAddress,
 				{
 					sentVotes: [
-						{ delegateAddress: unlockObj1.delegateAddress, amount: unlockObj1.amount },
-						{ delegateAddress: unlockObj2.delegateAddress, amount: unlockObj2.amount },
-						{ delegateAddress: unlockObj3.delegateAddress, amount: unlockObj3.amount },
+						{ delegateAddress: unlockableObject.delegateAddress, amount: unlockableObject.amount },
 					],
-					pendingUnlocks: [unlockObj1, unlockObj2, unlockObj3],
+					pendingUnlocks: [unlockableObject, nonUnlockableObject],
 				},
 				voterStoreSchema,
 			);
@@ -286,55 +155,50 @@ describe('UnlockCommand', () => {
 					networkIdentifier,
 				})
 				.createCommandExecuteContext();
-		});
-
-		it('should only remove eligible pending unlocks from voter substore', async () => {
 			await unlockCommand.execute(context);
-			const storedData = codec.decode<VoterData>(
+			storedData = codec.decode<VoterData>(
 				voterStoreSchema,
 				await voterSubstore.get(transaction.senderAddress),
 			);
+		});
 
-			expect(storedData.pendingUnlocks).toHaveLength(1);
-			expect(storedData.pendingUnlocks).toEqual([unlockObj2]);
+		it('should remove eligible pending unlock from voter substore', () => {
+			expect(storedData.pendingUnlocks).not.toContainEqual(unlockableObject);
+		});
+
+		it('should not remove ineligible pending unlock from voter substore', () => {
+			expect(storedData.pendingUnlocks).toContainEqual(nonUnlockableObject);
 		});
 	});
 
-	describe('when non self-voted punished account has waited pomHeight + 260000 blocks but not waited for unlockHeight + 2000 blocks', () => {
+	describe(`when self-voted non-punished account waits ${WAIT_TIME_SELF_VOTE} blocks since unvoteHeight`, () => {
 		beforeEach(async () => {
 			await delegateSubstore.setWithSchema(
-				delegate3.address,
+				transaction.senderAddress,
 				{
 					...defaultDelegateInfo,
-					name: 'punisheddelegate',
-					pomHeights: [lastBlockHeight - 260000],
+					name: 'nonpunishedselfvoter',
 				},
 				delegateStoreSchema,
 			);
-			unlockObj1 = {
-				delegateAddress: delegate1.address,
+			unlockableObject = {
+				delegateAddress: transaction.senderAddress,
 				amount: delegate1.amount,
-				unvoteHeight: lastBlockHeight - 2001,
+				unvoteHeight: lastBlockHeight - WAIT_TIME_SELF_VOTE,
 			};
-			unlockObj2 = {
-				delegateAddress: delegate2.address,
+			nonUnlockableObject = {
+				delegateAddress: transaction.senderAddress,
 				amount: delegate2.amount,
-				unvoteHeight: lastBlockHeight - 2000,
-			};
-			unlockObj3 = {
-				delegateAddress: delegate3.address,
-				amount: delegate3.amount,
-				unvoteHeight: lastBlockHeight - 1000,
+				unvoteHeight: lastBlockHeight,
 			};
 			await voterSubstore.setWithSchema(
 				transaction.senderAddress,
 				{
 					sentVotes: [
-						{ delegateAddress: unlockObj1.delegateAddress, amount: unlockObj1.amount },
-						{ delegateAddress: unlockObj2.delegateAddress, amount: unlockObj2.amount },
-						{ delegateAddress: unlockObj3.delegateAddress, amount: unlockObj3.amount },
+						{ delegateAddress: unlockableObject.delegateAddress, amount: delegate1.amount },
+						{ delegateAddress: nonUnlockableObject.delegateAddress, amount: delegate2.amount },
 					],
-					pendingUnlocks: [unlockObj1, unlockObj2, unlockObj3],
+					pendingUnlocks: [unlockableObject, nonUnlockableObject],
 				},
 				voterStoreSchema,
 			);
@@ -346,55 +210,63 @@ describe('UnlockCommand', () => {
 					networkIdentifier,
 				})
 				.createCommandExecuteContext();
-		});
-
-		it('should only remove eligible pending unlocks from voter substore', async () => {
 			await unlockCommand.execute(context);
-			const storedData = codec.decode<VoterData>(
+			storedData = codec.decode<VoterData>(
 				voterStoreSchema,
 				await voterSubstore.get(transaction.senderAddress),
 			);
+		});
 
-			expect(storedData.pendingUnlocks).toHaveLength(1);
-			expect(storedData.pendingUnlocks).toEqual([unlockObj3]);
+		it('should remove eligible pending unlock from voter substore', () => {
+			expect(storedData.pendingUnlocks).not.toContainEqual(unlockableObject);
+		});
+
+		it('should not remove ineligible pending unlock from voter substore', () => {
+			expect(storedData.pendingUnlocks).toContainEqual(nonUnlockableObject);
 		});
 	});
 
-	describe('when non self-voted punished account has not waited pomHeight + 260,000 blocks but waited unlockHeight + 2000 blocks', () => {
+	describe(`when non self-voted punished account waits ${VOTER_PUNISH_TIME} blocks and unvoteHeight + ${WAIT_TIME_VOTE} blocks since last pomHeight`, () => {
 		beforeEach(async () => {
 			await delegateSubstore.setWithSchema(
-				delegate3.address,
+				delegate1.address,
 				{
 					...defaultDelegateInfo,
-					name: 'punisheddelegate',
+					name: 'punishedvoter1',
+					pomHeights: [lastBlockHeight - VOTER_PUNISH_TIME],
+				},
+				delegateStoreSchema,
+			);
+			await delegateSubstore.setWithSchema(
+				delegate2.address,
+				{
+					...defaultDelegateInfo,
+					name: 'punishedvoter2',
 					pomHeights: [lastBlockHeight - 1],
 				},
 				delegateStoreSchema,
 			);
-			unlockObj1 = {
+			unlockableObject = {
 				delegateAddress: delegate1.address,
 				amount: delegate1.amount,
-				unvoteHeight: lastBlockHeight - 2001,
+				unvoteHeight: lastBlockHeight - WAIT_TIME_VOTE,
 			};
-			unlockObj2 = {
+			nonUnlockableObject = {
 				delegateAddress: delegate2.address,
 				amount: delegate2.amount,
-				unvoteHeight: lastBlockHeight - 2000,
-			};
-			unlockObj3 = {
-				delegateAddress: delegate3.address,
-				amount: delegate3.amount,
-				unvoteHeight: lastBlockHeight - 2000,
+				unvoteHeight: lastBlockHeight - WAIT_TIME_VOTE,
 			};
 			await voterSubstore.setWithSchema(
 				transaction.senderAddress,
 				{
 					sentVotes: [
-						{ delegateAddress: unlockObj1.delegateAddress, amount: unlockObj1.amount },
-						{ delegateAddress: unlockObj2.delegateAddress, amount: unlockObj2.amount },
-						{ delegateAddress: unlockObj3.delegateAddress, amount: unlockObj3.amount },
+						{ delegateAddress: unlockableObject.delegateAddress, amount: unlockableObject.amount },
+						{
+							delegateAddress: nonUnlockableObject.delegateAddress,
+							amount: nonUnlockableObject.amount,
+						},
 					],
-					pendingUnlocks: [unlockObj1, unlockObj2, unlockObj3],
+					pendingUnlocks: [unlockableObject, nonUnlockableObject],
 				},
 				voterStoreSchema,
 			);
@@ -406,17 +278,78 @@ describe('UnlockCommand', () => {
 					networkIdentifier,
 				})
 				.createCommandExecuteContext();
-		});
-
-		it('should only remove eligible pending unlocks from voter substore', async () => {
 			await unlockCommand.execute(context);
-			const storedData = codec.decode<VoterData>(
+			storedData = codec.decode<VoterData>(
 				voterStoreSchema,
 				await voterSubstore.get(transaction.senderAddress),
 			);
+		});
 
-			expect(storedData.pendingUnlocks).toHaveLength(1);
-			expect(storedData.pendingUnlocks).toEqual([unlockObj3]);
+		it('should remove eligible pending unlock from voter substore', () => {
+			expect(storedData.pendingUnlocks).not.toContainEqual(unlockableObject);
+		});
+
+		it('should not remove ineligible pending unlock from voter substore', () => {
+			expect(storedData.pendingUnlocks).toContainEqual(nonUnlockableObject);
+		});
+	});
+
+	describe(`when self-voted punished account waits ${SELF_VOTE_PUNISH_TIME} blocks and waits unvoteHeight + ${WAIT_TIME_SELF_VOTE} blocks since pomHeight`, () => {
+		beforeEach(async () => {
+			await delegateSubstore.setWithSchema(
+				transaction.senderAddress,
+				{
+					...defaultDelegateInfo,
+					name: 'punishedselfvoter',
+					pomHeights: [lastBlockHeight - SELF_VOTE_PUNISH_TIME],
+				},
+				delegateStoreSchema,
+			);
+			unlockableObject = {
+				delegateAddress: transaction.senderAddress,
+				amount: delegate1.amount,
+				unvoteHeight: lastBlockHeight - WAIT_TIME_SELF_VOTE,
+			};
+			nonUnlockableObject = {
+				delegateAddress: transaction.senderAddress,
+				amount: delegate2.amount,
+				unvoteHeight: lastBlockHeight,
+			};
+			await voterSubstore.setWithSchema(
+				transaction.senderAddress,
+				{
+					sentVotes: [
+						{ delegateAddress: unlockableObject.delegateAddress, amount: unlockableObject.amount },
+						{
+							delegateAddress: nonUnlockableObject.delegateAddress,
+							amount: nonUnlockableObject.amount,
+						},
+					],
+					pendingUnlocks: [unlockableObject, nonUnlockableObject],
+				},
+				voterStoreSchema,
+			);
+			context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+					header,
+					networkIdentifier,
+				})
+				.createCommandExecuteContext();
+			await unlockCommand.execute(context);
+			storedData = codec.decode<VoterData>(
+				voterStoreSchema,
+				await voterSubstore.get(transaction.senderAddress),
+			);
+		});
+
+		it('should remove eligible pending unlock from voter substore', () => {
+			expect(storedData.pendingUnlocks).not.toContainEqual(unlockableObject);
+		});
+
+		it('should not remove ineligible pending unlock from voter substore', () => {
+			expect(storedData.pendingUnlocks).toContainEqual(nonUnlockableObject);
 		});
 	});
 });
