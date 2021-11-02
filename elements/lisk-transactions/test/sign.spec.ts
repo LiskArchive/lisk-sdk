@@ -15,7 +15,13 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
-import { getSigningBytes, signTransaction, signMultiSignatureTransaction } from '../src/sign';
+import {
+	getSigningBytes,
+	signTransaction,
+	signTransactionWithPrivateKey,
+	signMultiSignatureTransaction,
+	signMultiSignatureTransactionWithPrivateKey,
+} from '../src/sign';
 import * as multisigScenario from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
 import { baseTransactionSchema } from '../src/schema';
 
@@ -86,6 +92,10 @@ describe('sign', () => {
 	const passphrase3 =
 		'sugar object slender confirm clock peanut auto spice carbon knife increase estate';
 	const passphrase4 = 'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb';
+	const privateKey = Buffer.from(
+		'2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
+		'hex',
+	);
 	const { publicKey: publicKey1 } = getAddressAndPublicKeyFromPassphrase(passphrase1);
 	const { publicKey: publicKey2 } = getAddressAndPublicKeyFromPassphrase(passphrase2);
 	const { publicKey: publicKey3 } = getAddressAndPublicKeyFromPassphrase(passphrase3);
@@ -232,6 +242,103 @@ describe('sign', () => {
 		});
 	});
 
+	describe('signTransactionWithPrivateKey', () => {
+		it('should throw error for invalid network identifier', () => {
+			expect(() =>
+				signTransactionWithPrivateKey(
+					validAssetSchema,
+					validTransaction,
+					Buffer.alloc(0),
+					privateKey,
+				),
+			).toThrow('Network identifier is required to sign a transaction');
+		});
+
+		it('should throw error for empty private key', () => {
+			expect(() =>
+				signTransactionWithPrivateKey(
+					validAssetSchema,
+					validTransaction,
+					networkIdentifier,
+					Buffer.alloc(0),
+				),
+			).toThrow('Private key must be 64 bytes');
+		});
+
+		it('should throw error for private key with invalid length', () => {
+			expect(() =>
+				signTransactionWithPrivateKey(
+					validAssetSchema,
+					validTransaction,
+					networkIdentifier,
+					Buffer.from('invalid', 'utf8'),
+				),
+			).toThrow('Private key must be 64 bytes');
+		});
+
+		it('should throw error for invalid transaction object', () => {
+			const invalidTransactionObjects = [
+				{ ...validTransaction, moduleID: BigInt(8) },
+				{ ...validTransaction, nonce: 1 },
+				{ ...validTransaction, fee: 1000000 },
+				{ ...validTransaction, senderPublicKey: 1 },
+			];
+			return invalidTransactionObjects.forEach(transactionObject =>
+				expect(() =>
+					signTransactionWithPrivateKey(
+						validAssetSchema,
+						transactionObject,
+						networkIdentifier,
+						privateKey,
+					),
+				).toThrow(),
+			);
+		});
+
+		it('should throw error when asset is null', () => {
+			return expect(() =>
+				signTransactionWithPrivateKey(
+					validAssetSchema,
+					{ ...validTransaction, asset: null },
+					networkIdentifier,
+					privateKey,
+				),
+			).toThrow(new Error('Transaction object asset must be of type object and not null'));
+		});
+
+		it('should throw error for invalid asset object', () => {
+			const invalidAssets = [
+				{ ...validTransaction, asset: { ...validTransaction.asset, amount: 1000 } },
+				{
+					...validTransaction,
+					asset: { ...validTransaction.asset, recipientAddress: 'dummyAddress' },
+				},
+			];
+			return invalidAssets.forEach(transactionObject =>
+				expect(() =>
+					signTransactionWithPrivateKey(
+						validAssetSchema,
+						transactionObject,
+						networkIdentifier,
+						privateKey,
+					),
+				).toThrow(),
+			);
+		});
+
+		it('should return signed transaction for given asset schema', () => {
+			const signedTransaction = signTransactionWithPrivateKey(
+				validAssetSchema,
+				{ ...validTransaction },
+				networkIdentifier,
+				privateKey,
+			);
+			expect((signedTransaction.signatures as Array<Buffer>)[0].length).toBeGreaterThan(0);
+			expect(signedTransaction.signatures).toHaveLength(1);
+			return expect(signedTransaction).toMatchSnapshot();
+		});
+	});
+
 	describe('signMultiSignatureTransaction', () => {
 		it('should throw error for invalid network identifier', () => {
 			expect(() =>
@@ -316,6 +423,109 @@ describe('sign', () => {
 						transactionObject,
 						networkIdentifier,
 						passphrase1,
+						keys,
+					),
+				).toThrow(),
+			);
+		});
+	});
+
+	describe('signMultiSignatureTransactionWithPrivateKey', () => {
+		it('should throw error for invalid network identifier', () => {
+			expect(() =>
+				signMultiSignatureTransactionWithPrivateKey(
+					validAssetSchema,
+					{ ...validTransaction },
+					Buffer.alloc(0),
+					privateKey,
+					keys,
+				),
+			).toThrow('Network identifier is required to sign a transaction');
+		});
+
+		it('should throw error for empty private key', () => {
+			expect(() =>
+				signMultiSignatureTransactionWithPrivateKey(
+					validAssetSchema,
+					{ ...validTransaction },
+					networkIdentifier,
+					Buffer.alloc(0),
+					keys,
+				),
+			).toThrow('Private key must be 64 bytes');
+		});
+
+		it('should throw error for private key with invalid length', () => {
+			expect(() =>
+				signMultiSignatureTransactionWithPrivateKey(
+					validAssetSchema,
+					{ ...validTransaction },
+					networkIdentifier,
+					Buffer.from('invalid', 'utf8'),
+					keys,
+				),
+			).toThrow('Private key must be 64 bytes');
+		});
+
+		it('should throw error when signatures property is not an array', () => {
+			expect(() =>
+				signMultiSignatureTransactionWithPrivateKey(
+					validAssetSchema,
+					{ ...validTransaction },
+					networkIdentifier,
+					privateKey,
+					keys,
+				),
+			).toThrow('Signatures must be of type array');
+		});
+
+		it('should throw error for invalid transaction object', () => {
+			const invalidTransactionObjects = [
+				{ ...validTransaction, type: BigInt(8) },
+				{ ...validTransaction, nonce: 1 },
+				{ ...validTransaction, fee: 1000000 },
+				{ ...validTransaction, senderPublicKey: 1 },
+			];
+			return invalidTransactionObjects.forEach(transactionObject =>
+				expect(() =>
+					signMultiSignatureTransactionWithPrivateKey(
+						validAssetSchema,
+						transactionObject,
+						networkIdentifier,
+						privateKey,
+						keys,
+					),
+				).toThrow(),
+			);
+		});
+
+		it('should throw error when asset is null', () => {
+			return expect(() =>
+				signMultiSignatureTransactionWithPrivateKey(
+					validAssetSchema,
+					{ ...validTransaction, signatures: [], asset: null },
+					networkIdentifier,
+					privateKey,
+					keys,
+				),
+			).toThrow(new Error('Transaction object asset must be of type object and not null'));
+		});
+
+		it('should throw error for invalid asset object', () => {
+			const invalidAssets = [
+				{ ...validTransaction, asset: { ...validTransaction.asset, amount: 1000 } },
+				{
+					...validTransaction,
+					asset: { ...validTransaction.asset, recipientAddress: 'dummyAddress' },
+				},
+			];
+			return invalidAssets.forEach(transactionObject =>
+				expect(() =>
+					signMultiSignatureTransactionWithPrivateKey(
+						validAssetSchema,
+						transactionObject,
+						networkIdentifier,
+						privateKey,
 						keys,
 					),
 				).toThrow(),

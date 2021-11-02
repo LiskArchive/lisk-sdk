@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Buffer as BrowserBuffer } from 'buffer';
 
 export * as apiClient from '@liskhq/lisk-api-client';
 export * as cryptography from '@liskhq/lisk-cryptography';
@@ -22,10 +21,3 @@ export * as utils from '@liskhq/lisk-utils';
 export * as tree from '@liskhq/lisk-tree';
 export * as validator from '@liskhq/lisk-validator';
 export * as codec from '@liskhq/lisk-codec';
-
-if (!global.Buffer) {
-	global.Buffer = BrowserBuffer;
-}
-
-// eslint-disable-next-line
-export const Buffer: typeof BrowserBuffer = global.Buffer;
