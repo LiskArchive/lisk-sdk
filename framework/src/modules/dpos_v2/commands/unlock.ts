@@ -42,7 +42,7 @@ export class UnlockCommand extends BaseCommand {
 		this._tokenIDDPoS = args.tokenIDDPoS;
 	}
 
-	public async execute(context: CommandExecuteContext<Record<string, unknown>>): Promise<void> {
+	public async execute(context: CommandExecuteContext): Promise<void> {
 		const {
 			transaction: { senderAddress },
 			getStore,
