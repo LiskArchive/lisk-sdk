@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { BFTParameters } from '../../modules/bft/schemas';
 import { BFTHeights } from '../../modules/bft/types';
 import { ValidatorKeys } from '../../modules/validators/types';
 import { BlockHeader, ImmutableAPIContext } from '../state_machine';
@@ -42,6 +43,7 @@ export interface ValidatorAPI {
 export interface BFTAPI {
 	getCurrentValidators: (apiContext: ImmutableAPIContext) => Promise<Validator[]>;
 	getBFTHeights: (apiClient: ImmutableAPIContext) => Promise<BFTHeights>;
+	getBFTParameters: (apiContext: ImmutableAPIContext, height: number) => Promise<BFTParameters>;
 	isHeaderContradictingChain: (
 		apiClient: ImmutableAPIContext,
 		header: BlockHeader,

@@ -484,6 +484,8 @@ export class Consensus {
 
 		// verify Block signature
 		await this._verifyBlockSignature(apiContext, block);
+		// Verify validatorsHash
+		await this._verifyValidatorsHash(apiContext, block);
 	}
 
 	private async _verifyTimestamp(apiContext: APIContext, block: Block): Promise<void> {
@@ -596,6 +598,26 @@ export class Consensus {
 		} catch (error) {
 			throw new Error(
 				`Invalid signature ${block.header.signature.toString(
+					'hex',
+				)} of the block with id: ${block.header.id.toString('hex')}`,
+			);
+		}
+	}
+
+	private async _verifyValidatorsHash(apiContext: APIContext, block: Block): Promise<void> {
+		if (!block.header.validatorsHash) {
+			throw new Error(
+				`Validators hash is "undefined" for the block with id: ${block.header.id.toString('hex')}`,
+			);
+		}
+		const { validatorsHash } = await this._bftAPI.getBFTParameters(
+			apiContext,
+			block.header.height + 1,
+		);
+
+		if (!block.header.validatorsHash.equals(validatorsHash)) {
+			throw new Error(
+				`Invalid validatorsHash ${block.header.validatorsHash?.toString(
 					'hex',
 				)} of the block with id: ${block.header.id.toString('hex')}`,
 			);
