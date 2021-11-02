@@ -13,7 +13,8 @@
  */
 
 import { BFTHeights } from '../../modules/bft/types';
-import { ImmutableAPIContext } from '../state_machine';
+import { ValidatorKeys } from '../../modules/validators/types';
+import { BlockHeader, ImmutableAPIContext } from '../state_machine';
 
 export interface BFTHeader {
 	id: Buffer;
@@ -35,9 +36,14 @@ export interface ValidatorAPI {
 	getGeneratorAtTimestamp: (apiContext: ImmutableAPIContext, timestamp: number) => Promise<Buffer>;
 	getSlotNumber: (apiContext: ImmutableAPIContext, timestamp: number) => Promise<number>;
 	getSlotTime: (apiContext: ImmutableAPIContext, slot: number) => Promise<number>;
+	getValidatorAccount: (apiContext: ImmutableAPIContext, address: Buffer) => Promise<ValidatorKeys>;
 }
 
 export interface BFTAPI {
 	getCurrentValidators: (apiContext: ImmutableAPIContext) => Promise<Validator[]>;
 	getBFTHeights: (apiClient: ImmutableAPIContext) => Promise<BFTHeights>;
+	isHeaderContradictingChain: (
+		apiClient: ImmutableAPIContext,
+		header: BlockHeader,
+	) => Promise<boolean>;
 }
