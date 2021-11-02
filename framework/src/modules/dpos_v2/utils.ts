@@ -15,13 +15,7 @@
 import { verifyData } from '@liskhq/lisk-cryptography';
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { UnlockingObject, VoterData } from './types';
-import {
-	PUNISHMENT_PERIOD,
-	SELF_VOTE_PUNISH_TIME,
-	VOTER_PUNISH_TIME,
-	WAIT_TIME_SELF_VOTE,
-	WAIT_TIME_VOTE,
-} from './constants';
+import { PUNISHMENT_PERIOD, WAIT_TIME_SELF_VOTE, WAIT_TIME_VOTE } from './constants';
 import { SubStore } from '../../node/state_machine/types';
 import { voterStoreSchema } from './schemas';
 
@@ -43,57 +37,6 @@ export const sortUnlocking = (unlocks: UnlockingObject[]): void => {
 
 		return 0;
 	});
-};
-
-export const getMinPunishedHeight = (
-	senderAddress: Buffer,
-	delegateAddress: Buffer,
-	pomHeights: number[],
-): number => {
-	if (pomHeights.length === 0) {
-		return 0;
-	}
-
-	const lastPomHeight = Math.max(...pomHeights);
-
-	// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0024.md#update-to-validity-of-unlock-transaction
-	return senderAddress.equals(delegateAddress)
-		? lastPomHeight + SELF_VOTE_PUNISH_TIME
-		: lastPomHeight + VOTER_PUNISH_TIME;
-};
-
-export const getPunishmentPeriod = (
-	senderAddress: Buffer,
-	delegateAddress: Buffer,
-	pomHeights: number[],
-	lastBlockHeight: number,
-): number => {
-	const currentHeight = lastBlockHeight + 1;
-	const minPunishedHeight = getMinPunishedHeight(senderAddress, delegateAddress, pomHeights);
-	const remainingBlocks = minPunishedHeight - currentHeight;
-
-	return remainingBlocks < 0 ? 0 : remainingBlocks;
-};
-
-export const getMinWaitingHeight = (
-	senderAddress: Buffer,
-	delegateAddress: Buffer,
-	unlockObject: UnlockingObject,
-): number =>
-	unlockObject.unvoteHeight +
-	(senderAddress.equals(delegateAddress) ? WAIT_TIME_SELF_VOTE : WAIT_TIME_VOTE);
-
-export const getWaitingPeriod = (
-	senderAddress: Buffer,
-	delegateAddress: Buffer,
-	lastBlockHeight: number,
-	unlockObject: UnlockingObject,
-): number => {
-	const currentHeight = lastBlockHeight + 1;
-	const minWaitingHeight = getMinWaitingHeight(senderAddress, delegateAddress, unlockObject);
-	const remainingBlocks = minWaitingHeight - currentHeight;
-
-	return remainingBlocks < 0 ? 0 : remainingBlocks;
 };
 
 export const isNullCharacterIncluded = (input: string): boolean =>
