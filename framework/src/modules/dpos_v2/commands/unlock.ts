@@ -52,14 +52,14 @@ export class UnlockCommand extends BaseCommand {
 		const delegateSubstore = getStore(this.moduleID, STORE_PREFIX_DELEGATE);
 		const voterSubstore = getStore(this.moduleID, STORE_PREFIX_VOTER);
 		const voterData = await voterSubstore.getWithSchema<VoterData>(senderAddress, voterStoreSchema);
-		const unlockIndices: number[] = [];
 
 		if (!voterData) {
 			throw new Error('No voting data exists for sender');
 		}
 
-		for (let i = 0; i < voterData.pendingUnlocks.length; i += 1) {
-			const unlockObject = voterData.pendingUnlocks[i];
+		const ineligibleUnlocks = [];
+
+		for (const unlockObject of voterData.pendingUnlocks) {
 			const { pomHeights } = await delegateSubstore.getWithSchema<DelegateAccount>(
 				unlockObject.delegateAddress,
 				delegateStoreSchema,
@@ -69,7 +69,6 @@ export class UnlockCommand extends BaseCommand {
 				hasWaited(unlockObject, senderAddress, height) &&
 				!isPunished(unlockObject, pomHeights, senderAddress, height)
 			) {
-				unlockIndices.push(i);
 				await this._tokenAPI.unlock(
 					getAPIContext(),
 					senderAddress,
@@ -77,14 +76,12 @@ export class UnlockCommand extends BaseCommand {
 					this._tokenIDDPoS,
 					unlockObject.amount,
 				);
+				continue;
 			}
+			ineligibleUnlocks.push(unlockObject);
 		}
 
-		if (unlockIndices.length) {
-			voterData.pendingUnlocks = voterData.pendingUnlocks.filter(
-				(_, i) => !unlockIndices.includes(i),
-			);
-			await voterSubstore.setWithSchema(senderAddress, voterData, voterStoreSchema);
-		}
+		voterData.pendingUnlocks = ineligibleUnlocks;
+		await voterSubstore.setWithSchema(senderAddress, voterData, voterStoreSchema);
 	}
 }
