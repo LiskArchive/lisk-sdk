@@ -46,6 +46,10 @@ export class BlockAssets {
 		return this._assets.find(a => a.moduleID === moduleID)?.data;
 	}
 
+	public getAllAssets(): BlockAsset[] {
+		return [...this._assets];
+	}
+
 	public setAsset(moduleID: number, value: Buffer): void {
 		const asset = this.getAsset(moduleID);
 		if (asset) {

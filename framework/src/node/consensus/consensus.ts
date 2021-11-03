@@ -484,8 +484,17 @@ export class Consensus {
 
 		// verify Block signature
 		await this._verifyBlockSignature(apiContext, block);
+
 		// Verify validatorsHash
 		await this._verifyValidatorsHash(apiContext, block);
+
+		// Validate a block
+		block.validate();
+		for (const asset of block.assets.getAllAssets()) {
+			if (!this._stateMachine.getAllModuleIDs().includes(asset.moduleID)) {
+				throw new Error(`Module with ID: ${asset.moduleID} is not registered.`);
+			}
+		}
 	}
 
 	private async _verifyTimestamp(apiContext: APIContext, block: Block): Promise<void> {
