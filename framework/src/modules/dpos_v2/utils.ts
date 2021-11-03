@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { verifyData } from '@liskhq/lisk-cryptography';
+import { hash, verifyData } from '@liskhq/lisk-cryptography';
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { UnlockingObject, VoterData } from './types';
 import {
@@ -24,6 +24,7 @@ import {
 } from './constants';
 import { SubStore } from '../../node/state_machine/types';
 import { voterStoreSchema } from './schemas';
+import { Validator } from '../../node/consensus/types';
 
 export const sortUnlocking = (unlocks: UnlockingObject[]): void => {
 	unlocks.sort((a, b) => {
@@ -146,4 +147,97 @@ export const getVoterOrDefault = async (voterStore: SubStore, address: Buffer) =
 		};
 		return voterData;
 	}
+};
+
+export interface DelegateWeight {
+	readonly delegateAddress: Buffer;
+	readonly delegateWeight: bigint;
+}
+
+export const pickStandByDelegate = (
+	delegateWeights: ReadonlyArray<DelegateWeight>,
+	randomSeed: Buffer,
+): number => {
+	const seedNumber = randomSeed.readBigUInt64BE();
+	const totalVoteWeight = delegateWeights.reduce(
+		(prev, current) => prev + BigInt(current.delegateWeight),
+		BigInt(0),
+	);
+
+	let threshold = seedNumber % totalVoteWeight;
+	for (let i = 0; i < delegateWeights.length; i += 1) {
+		const voteWeight = BigInt(delegateWeights[i].delegateWeight);
+		if (voteWeight > threshold) {
+			return i;
+		}
+		threshold -= voteWeight;
+	}
+
+	return -1;
+};
+
+export const shuffleDelegateList = (
+	previousRoundSeed1: Buffer,
+	addresses: ReadonlyArray<Buffer>,
+): Buffer[] => {
+	const delegateList = [...addresses].map(delegate => ({
+		address: delegate,
+	})) as { address: Buffer; roundHash: Buffer }[];
+
+	for (const delegate of delegateList) {
+		const seedSource = Buffer.concat([previousRoundSeed1, delegate.address]);
+		delegate.roundHash = hash(seedSource);
+	}
+
+	delegateList.sort((delegate1, delegate2) => {
+		const diff = delegate1.roundHash.compare(delegate2.roundHash);
+		if (diff !== 0) {
+			return diff;
+		}
+
+		return delegate1.address.compare(delegate2.address);
+	});
+
+	return delegateList.map(delegate => delegate.address);
+};
+
+export const selectStandbyDelegates = (
+	delegateWeights: DelegateWeight[],
+	randomSeed1: Buffer,
+	randomSeed2?: Buffer,
+): Buffer[] => {
+	const numberOfCandidates = 1 + (randomSeed2 !== undefined ? 1 : 0);
+	// if delegate weights is smaller than number selecting, select all
+	if (delegateWeights.length <= numberOfCandidates) {
+		return delegateWeights.map(c => c.delegateAddress);
+	}
+	const result: Buffer[] = [];
+	const index = pickStandByDelegate(delegateWeights, randomSeed1);
+	const [selected] = delegateWeights.splice(index, 1);
+	result.push(selected.delegateAddress);
+	// if seed2 is missing, return only 1
+	if (!randomSeed2) {
+		return result;
+	}
+	const secondIndex = pickStandByDelegate(delegateWeights, randomSeed2);
+	const [secondStandby] = delegateWeights.splice(secondIndex, 1);
+	result.push(secondStandby.delegateAddress);
+
+	return result;
+};
+
+export const validtorsEqual = (v1: Validator[], v2: Validator[]): boolean => {
+	if (v1.length !== v2.length) {
+		return false;
+	}
+	for (let i = 0; i < v1.length; i += 1) {
+		if (!v1[i].address.equals(v2[i].address)) {
+			return false;
+		}
+		if (v1[i].bftWeight !== v2[i].bftWeight) {
+			return false;
+		}
+	}
+
+	return true;
 };

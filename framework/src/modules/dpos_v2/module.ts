@@ -42,7 +42,12 @@ import {
 	SnapshotStoreData,
 } from './types';
 import { Rounds } from './rounds';
-import { isCurrentlyPunished } from './utils';
+import {
+	isCurrentlyPunished,
+	selectStandbyDelegates,
+	shuffleDelegateList,
+	validtorsEqual,
+} from './utils';
 
 export class DPoSModule extends BaseModule {
 	public id = MODULE_ID_DPOS;
@@ -117,6 +122,7 @@ export class DPoSModule extends BaseModule {
 
 	public async afterBlockExecute(context: BlockAfterExecuteContext): Promise<void> {
 		await this._createVoteWeightSnapshot(context);
+		await this._updateValidators(context);
 	}
 
 	private async _createVoteWeightSnapshot(context: BlockAfterExecuteContext): Promise<void> {
@@ -213,5 +219,65 @@ export class DPoSModule extends BaseModule {
 		for (const { key } of oldData) {
 			await snapshotStore.del(key);
 		}
+	}
+
+	private async _updateValidators(context: BlockAfterExecuteContext): Promise<void> {
+		const round = new Rounds({ blocksPerRound: this._moduleConfig.roundLength });
+		const { height } = context.header;
+		const nextRound = round.calcRound(height) + 1;
+		context.logger.debug(nextRound, 'Updating delegate list for');
+
+		const snapshotStore = context.getStore(this.id, STORE_PREFIX_SNAPSHOT);
+		const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
+			intToBuffer(nextRound, 4),
+			snapshotStoreSchema,
+		);
+
+		const apiContext = context.getAPIContext();
+
+		// get the last stored BFT parameters, and update them if needed
+		const currentBFTParams = await this._bftAPI.getBFTParameters(apiContext, height);
+		// snapshot.activeDelegates order should not be changed here to use it below
+		const bftWeight = [...snapshot.activeDelegates]
+			.sort((a, b) => a.compare(b))
+			.map(address => ({ address, bftWeight: BigInt(1) }));
+		if (
+			!validtorsEqual(currentBFTParams.validators, bftWeight) ||
+			currentBFTParams.precommitThreshold !== BigInt(this._moduleConfig.bftThreshold) ||
+			currentBFTParams.certificateThreshold !== BigInt(this._moduleConfig.bftThreshold)
+		) {
+			await this._bftAPI.setBFTParameters(
+				apiContext,
+				this._moduleConfig.bftThreshold,
+				this._moduleConfig.bftThreshold,
+				bftWeight,
+			);
+		}
+
+		// Update the validators
+		const validators = [...snapshot.activeDelegates];
+		const randomSeed1 = await this._randomAPI.getRandomBytes(
+			apiContext,
+			height + 1 - Math.floor((this._moduleConfig.roundLength * 3) / 2),
+			this._moduleConfig.roundLength,
+		);
+		if (this._moduleConfig.numberStandbyDelegates === 2) {
+			const randomSeed2 = await this._randomAPI.getRandomBytes(
+				apiContext,
+				height + 1 - 2 * this._moduleConfig.roundLength,
+				this._moduleConfig.roundLength,
+			);
+			const standbyDelegates = selectStandbyDelegates(
+				snapshot.delegateWeightSnapshot,
+				randomSeed1,
+				randomSeed2,
+			);
+			validators.push(...standbyDelegates);
+		} else if (this._moduleConfig.numberStandbyDelegates === 1) {
+			const standbyDelegates = selectStandbyDelegates(snapshot.delegateWeightSnapshot, randomSeed1);
+			validators.push(...standbyDelegates);
+		}
+		const shuffledValidators = shuffleDelegateList(randomSeed1, validators);
+		await this._validatorsAPI.setGeneratorList(apiContext, shuffledValidators);
 	}
 }

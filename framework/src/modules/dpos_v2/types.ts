@@ -43,6 +43,15 @@ export interface BFTAPI {
 		certificateThreshold: number,
 		validators: Validator[],
 	): Promise<void>;
+	getBFTParameters(
+		context: ImmutableAPIContext,
+		height: number,
+	): Promise<{
+		prevoteThreshold: bigint;
+		precommitThreshold: bigint;
+		certificateThreshold: bigint;
+		validators: Validator[];
+	}>;
 }
 
 export interface RandomAPI {
