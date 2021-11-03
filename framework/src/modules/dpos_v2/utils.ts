@@ -15,7 +15,12 @@
 import { verifyData } from '@liskhq/lisk-cryptography';
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { UnlockingObject, VoterData } from './types';
-import { PUNISHMENT_PERIOD, WAIT_TIME_SELF_VOTE, WAIT_TIME_VOTE } from './constants';
+import {
+	PUNISHMENT_PERIOD,
+	VOTER_PUNISH_TIME,
+	WAIT_TIME_SELF_VOTE,
+	WAIT_TIME_VOTE,
+} from './constants';
 import { SubStore } from '../../node/state_machine/types';
 import { voterStoreSchema } from './schemas';
 
@@ -117,7 +122,7 @@ export const isPunished = (
 	}
 
 	return (
-		height - lastPomHeight < WAIT_TIME_SELF_VOTE &&
+		height - lastPomHeight < VOTER_PUNISH_TIME &&
 		lastPomHeight < unlockingObject.unvoteHeight + WAIT_TIME_VOTE
 	);
 };
