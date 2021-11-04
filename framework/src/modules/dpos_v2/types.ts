@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { BlockHeader } from '@liskhq/lisk-chain';
 import { Validator } from '../../node/consensus/types';
 import { APIContext, ImmutableAPIContext } from '../../node/state_machine/types';
 
@@ -42,6 +43,7 @@ export interface BFTAPI {
 		certificateThreshold: number,
 		validators: Validator[],
 	): Promise<void>;
+	areHeadersContradicting(bftHeader1: BlockHeader, bftHeader2: BlockHeader): boolean;
 }
 
 export interface RandomAPI {
@@ -66,6 +68,7 @@ export interface ValidatorsAPI {
 		generatorKey: Buffer,
 		proofOfPossession: Buffer,
 	): Promise<boolean>;
+	getValidatorAccount(apiContext: ImmutableAPIContext, address: Buffer): Promise<ValidatorKeys>;
 }
 
 export interface TokenAPI {
@@ -73,6 +76,19 @@ export interface TokenAPI {
 		apiContext: APIContext,
 		address: Buffer,
 		moduleID: number,
+		tokenID: TokenIDDPoS,
+		amount: bigint,
+	): Promise<void>;
+	getAvailableBalance(
+		apiContext: ImmutableAPIContext,
+		address: Buffer,
+		tokenID: TokenIDDPoS,
+	): Promise<bigint>;
+	getMinRemainingBalance(apiContext: ImmutableAPIContext): Promise<bigint>;
+	transfer(
+		apiContext: ImmutableAPIContext,
+		senderAddress: Buffer,
+		recipientAddress: Buffer,
 		tokenID: TokenIDDPoS,
 		amount: bigint,
 	): Promise<void>;
@@ -101,7 +117,7 @@ export interface DelegateAccount {
 	selfVotes: bigint;
 	lastGeneratedHeight: number;
 	isBanned: boolean;
-	pomHeights: ReadonlyArray<number>;
+	pomHeights: number[];
 	consecutiveMissedBlocks: number;
 }
 
@@ -111,7 +127,7 @@ export interface DelegateAccountJSON {
 	selfVotes: string;
 	lastGeneratedHeight: number;
 	isBanned: boolean;
-	pomHeights: ReadonlyArray<number>;
+	pomHeights: number[];
 	consecutiveMissedBlocks: number;
 }
 
@@ -147,4 +163,27 @@ export interface VoteTransactionParams {
 export interface VoteCommandDependencies {
 	tokenIDDPoS: TokenIDDPoS;
 	tokenAPI: TokenAPI;
+}
+
+export interface BlockHeaderAssetForDPOS {
+	seedReveal: Buffer;
+	maxHeightPreviouslyForged: number;
+	maxHeightPrevoted: number;
+}
+
+export interface PomTransactionParams {
+	header1: Buffer;
+	header2: Buffer;
+}
+
+export interface PomCommandDependencies {
+	bftAPI: BFTAPI;
+	tokenAPI: TokenAPI;
+	validatorsAPI: ValidatorsAPI;
+	tokenIDDPoS: TokenIDDPoS;
+}
+
+export interface ValidatorKeys {
+	generatorKey: Buffer;
+	blsKey: Buffer;
 }

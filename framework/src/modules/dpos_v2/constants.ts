@@ -38,3 +38,6 @@ export const TEN_UNIT = BigInt(10) * BigInt(10) ** BigInt(8);
 export const MAX_VOTE = 10;
 export const MAX_UNLOCKING = 20;
 export const DELEGATE_REGISTRATION_FEE = BigInt(10) * BigInt(10) ** BigInt(8);
+export const MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE = 260000;
+export const MAX_POM_HEIGHTS = 5;
+export const LAST_BLOCK_REWARD = BigInt(100000000);
