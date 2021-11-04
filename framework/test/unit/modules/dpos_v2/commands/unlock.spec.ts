@@ -13,8 +13,7 @@
  */
 
 import { BlockHeader, StateStore, Transaction } from '@liskhq/lisk-chain';
-import { codec } from '@liskhq/lisk-codec';
-import { hash, getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import * as testing from '../../../../../src/testing';
 import { UnlockCommand } from '../../../../../src/modules/dpos_v2/commands/unlock';
@@ -40,7 +39,7 @@ describe('UnlockCommand', () => {
 	let delegateSubstore: StateStore;
 	let voterSubstore: StateStore;
 	let mockTokenAPI: TokenAPI;
-	let lastBlockHeight: number;
+	let blockHeight: number;
 	let header: BlockHeader;
 	let unlockableObject: UnlockingObject;
 	let unlockableObject2: UnlockingObject;
@@ -89,25 +88,8 @@ describe('UnlockCommand', () => {
 		stateStore = new StateStore(db);
 		delegateSubstore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
 		voterSubstore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_VOTER);
-		lastBlockHeight = 8760000;
-		header = new BlockHeader({
-			height: lastBlockHeight,
-			generatorAddress: getRandomBytes(20),
-			previousBlockID: Buffer.alloc(0),
-			timestamp: Math.floor(Date.now() / 1000),
-			version: 0,
-			transactionRoot: hash(Buffer.alloc(0)),
-			stateRoot: hash(Buffer.alloc(0)),
-			maxHeightGenerated: 0,
-			maxHeightPrevoted: 0,
-			assetsRoot: hash(Buffer.alloc(0)),
-			aggregateCommit: {
-				height: 0,
-				aggregationBits: Buffer.alloc(0),
-				certificateSignature: Buffer.alloc(0),
-			},
-			validatorsHash: hash(Buffer.alloc(0)),
-		});
+		blockHeight = 8760000;
+		header = testing.createFakeBlockHeader({ height: blockHeight });
 	});
 
 	describe(`when non self-voted non-punished account waits ${WAIT_TIME_VOTE} blocks since unvoteHeight`, () => {
@@ -131,12 +113,12 @@ describe('UnlockCommand', () => {
 			unlockableObject = {
 				delegateAddress: delegate1.address,
 				amount: delegate1.amount,
-				unvoteHeight: lastBlockHeight - WAIT_TIME_VOTE,
+				unvoteHeight: blockHeight - WAIT_TIME_VOTE,
 			};
 			nonUnlockableObject = {
 				delegateAddress: delegate2.address,
 				amount: delegate2.amount,
-				unvoteHeight: lastBlockHeight,
+				unvoteHeight: blockHeight,
 			};
 			await voterSubstore.setWithSchema(
 				transaction.senderAddress,
@@ -157,9 +139,9 @@ describe('UnlockCommand', () => {
 				})
 				.createCommandExecuteContext();
 			await unlockCommand.execute(context);
-			storedData = codec.decode<VoterData>(
+			storedData = await voterSubstore.getWithSchema<VoterData>(
+				transaction.senderAddress,
 				voterStoreSchema,
-				await voterSubstore.get(transaction.senderAddress),
 			);
 		});
 
@@ -185,12 +167,12 @@ describe('UnlockCommand', () => {
 			unlockableObject = {
 				delegateAddress: transaction.senderAddress,
 				amount: delegate1.amount,
-				unvoteHeight: lastBlockHeight - WAIT_TIME_SELF_VOTE,
+				unvoteHeight: blockHeight - WAIT_TIME_SELF_VOTE,
 			};
 			nonUnlockableObject = {
 				delegateAddress: transaction.senderAddress,
 				amount: delegate2.amount,
-				unvoteHeight: lastBlockHeight,
+				unvoteHeight: blockHeight,
 			};
 			await voterSubstore.setWithSchema(
 				transaction.senderAddress,
@@ -212,9 +194,9 @@ describe('UnlockCommand', () => {
 				})
 				.createCommandExecuteContext();
 			await unlockCommand.execute(context);
-			storedData = codec.decode<VoterData>(
+			storedData = await voterSubstore.getWithSchema<VoterData>(
+				transaction.senderAddress,
 				voterStoreSchema,
-				await voterSubstore.get(transaction.senderAddress),
 			);
 		});
 
@@ -234,7 +216,7 @@ describe('UnlockCommand', () => {
 				{
 					...defaultDelegateInfo,
 					name: 'punishedvoter1',
-					pomHeights: [lastBlockHeight - VOTER_PUNISH_TIME],
+					pomHeights: [blockHeight - VOTER_PUNISH_TIME],
 				},
 				delegateStoreSchema,
 			);
@@ -244,17 +226,17 @@ describe('UnlockCommand', () => {
 				{
 					...defaultDelegateInfo,
 					name: 'punishedvoter2',
-					pomHeights: [lastBlockHeight],
+					pomHeights: [blockHeight],
 				},
 				delegateStoreSchema,
 			);
-			// This covers scenario: has not waited pomHeight + 260000 blocks but waited unvoteHeight + 2000 blocks and pomHeight is equal to unvoteHeight + 2000 blocks
+			// This covers scenario: has not waited pomHeight + 260,000 blocks but waited unvoteHeight + 2000 blocks and pomHeight is equal to unvoteHeight + 2000 blocks
 			await delegateSubstore.setWithSchema(
 				delegate3.address,
 				{
 					...defaultDelegateInfo,
 					name: 'punishedvoter3',
-					pomHeights: [lastBlockHeight - 1000],
+					pomHeights: [blockHeight - 1000],
 				},
 				delegateStoreSchema,
 			);
@@ -263,29 +245,29 @@ describe('UnlockCommand', () => {
 				{
 					...defaultDelegateInfo,
 					name: 'punishedvoter4',
-					pomHeights: [lastBlockHeight - VOTER_PUNISH_TIME],
+					pomHeights: [blockHeight - VOTER_PUNISH_TIME],
 				},
 				delegateStoreSchema,
 			);
 			unlockableObject = {
 				delegateAddress: delegate1.address,
 				amount: delegate1.amount,
-				unvoteHeight: lastBlockHeight - WAIT_TIME_VOTE,
+				unvoteHeight: blockHeight - WAIT_TIME_VOTE,
 			};
 			unlockableObject2 = {
 				delegateAddress: delegate2.address,
 				amount: delegate2.amount,
-				unvoteHeight: lastBlockHeight - WAIT_TIME_VOTE - 1000,
+				unvoteHeight: blockHeight - WAIT_TIME_VOTE - 1000,
 			};
 			unlockableObject3 = {
 				delegateAddress: delegate3.address,
 				amount: delegate3.amount,
-				unvoteHeight: lastBlockHeight - WAIT_TIME_VOTE - 1000,
+				unvoteHeight: blockHeight - WAIT_TIME_VOTE - 1000,
 			};
 			nonUnlockableObject = {
 				delegateAddress: delegate4.address,
 				amount: delegate4.amount,
-				unvoteHeight: lastBlockHeight,
+				unvoteHeight: blockHeight,
 			};
 			await voterSubstore.setWithSchema(
 				transaction.senderAddress,
@@ -323,9 +305,9 @@ describe('UnlockCommand', () => {
 				})
 				.createCommandExecuteContext();
 			await unlockCommand.execute(context);
-			storedData = codec.decode<VoterData>(
+			storedData = await voterSubstore.getWithSchema<VoterData>(
+				transaction.senderAddress,
 				voterStoreSchema,
-				await voterSubstore.get(transaction.senderAddress),
 			);
 		});
 
@@ -347,19 +329,19 @@ describe('UnlockCommand', () => {
 				{
 					...defaultDelegateInfo,
 					name: 'punishedselfvoter',
-					pomHeights: [lastBlockHeight - SELF_VOTE_PUNISH_TIME],
+					pomHeights: [blockHeight - SELF_VOTE_PUNISH_TIME],
 				},
 				delegateStoreSchema,
 			);
 			unlockableObject = {
 				delegateAddress: transaction.senderAddress,
 				amount: delegate1.amount,
-				unvoteHeight: lastBlockHeight - WAIT_TIME_SELF_VOTE,
+				unvoteHeight: blockHeight - WAIT_TIME_SELF_VOTE,
 			};
 			nonUnlockableObject = {
 				delegateAddress: transaction.senderAddress,
 				amount: delegate2.amount,
-				unvoteHeight: lastBlockHeight,
+				unvoteHeight: blockHeight,
 			};
 			await voterSubstore.setWithSchema(
 				transaction.senderAddress,
@@ -384,9 +366,9 @@ describe('UnlockCommand', () => {
 				})
 				.createCommandExecuteContext();
 			await unlockCommand.execute(context);
-			storedData = codec.decode<VoterData>(
+			storedData = await voterSubstore.getWithSchema<VoterData>(
+				transaction.senderAddress,
 				voterStoreSchema,
-				await voterSubstore.get(transaction.senderAddress),
 			);
 		});
 
@@ -406,14 +388,14 @@ describe('UnlockCommand', () => {
 				{
 					...defaultDelegateInfo,
 					name: 'punishedselfvoter',
-					pomHeights: [lastBlockHeight - 1],
+					pomHeights: [blockHeight - 1],
 				},
 				delegateStoreSchema,
 			);
 			nonUnlockableObject = {
 				delegateAddress: transaction.senderAddress,
 				amount: delegate1.amount,
-				unvoteHeight: lastBlockHeight - WAIT_TIME_SELF_VOTE,
+				unvoteHeight: blockHeight - WAIT_TIME_SELF_VOTE,
 			};
 			await voterSubstore.setWithSchema(
 				transaction.senderAddress,
@@ -436,15 +418,12 @@ describe('UnlockCommand', () => {
 					networkIdentifier,
 				})
 				.createCommandExecuteContext();
-			await unlockCommand.execute(context);
-			storedData = codec.decode<VoterData>(
-				voterStoreSchema,
-				await voterSubstore.get(transaction.senderAddress),
-			);
 		});
 
-		it('should not remove ineligible pending unlock from voter substore', () => {
-			expect(storedData.pendingUnlocks).toContainEqual(nonUnlockableObject);
+		it('should throw error', async () => {
+			await expect(unlockCommand.execute(context)).rejects.toThrow(
+				'No eligible voter data was found for unlocking',
+			);
 		});
 	});
 });
