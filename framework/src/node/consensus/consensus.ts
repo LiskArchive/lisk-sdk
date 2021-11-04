@@ -490,12 +490,9 @@ export class Consensus {
 
 		// Validate a block
 		block.validate();
+
 		// Check if moduleID is registered
-		for (const asset of block.assets.getAllAssets()) {
-			if (!this._stateMachine.getAllModuleIDs().includes(asset.moduleID)) {
-				throw new Error(`Module with ID: ${asset.moduleID} is not registered.`);
-			}
-		}
+		this._validateBlockAsset(block);
 	}
 
 	private async _verifyTimestamp(apiContext: APIContext, block: Block): Promise<void> {
@@ -631,6 +628,14 @@ export class Consensus {
 					'hex',
 				)} of the block with id: ${block.header.id.toString('hex')}`,
 			);
+		}
+	}
+
+	private _validateBlockAsset(block: Block): void {
+		for (const asset of block.assets.getAllAssets()) {
+			if (!this._stateMachine.getAllModuleIDs().includes(asset.moduleID)) {
+				throw new Error(`Module with ID: ${asset.moduleID} is not registered.`);
+			}
 		}
 	}
 
