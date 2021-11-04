@@ -84,19 +84,26 @@ export const getVoterOrDefault = async (voterStore: SubStore, address: Buffer) =
 	}
 };
 
+export const isCurrentlyPunished = (height: number, pomHeights: ReadonlyArray<number>): boolean => {
+	if (pomHeights.length === 0) {
+		return false;
+	}
+	const lastPomHeight = Math.max(...pomHeights);
+	if (height - lastPomHeight < PUNISHMENT_PERIOD) {
+		return true;
+	}
+
+	return false;
+};
+
 export const hasWaited = (
 	unlockingObject: UnlockingObject,
 	senderAddress: Buffer,
 	height: number,
 ) => {
-	let delayedAvailability: number;
-
-	// If self-vote
-	if (unlockingObject.delegateAddress.equals(senderAddress)) {
-		delayedAvailability = 260000;
-	} else {
-		delayedAvailability = 2000;
-	}
+	const delayedAvailability = unlockingObject.delegateAddress.equals(senderAddress)
+		? WAIT_TIME_SELF_VOTE
+		: WAIT_TIME_VOTE;
 
 	return !(height - unlockingObject.unvoteHeight < delayedAvailability);
 };
