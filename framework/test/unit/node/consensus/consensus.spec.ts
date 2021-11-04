@@ -640,9 +640,11 @@ describe('consensus', () => {
 					await expect(
 						consensus['_verifyGeneratorAddress'](apiContext, block as any),
 					).rejects.toThrow(
-						`Not valid generatorAddress for current block slot ${block.header.generatorAddress.toString(
+						`Generator with address ${block.header.generatorAddress.toString(
 							'hex',
-						)} of the block with id: ${block.header.id.toString('hex')}`,
+						)} of the block with id: ${block.header.id.toString(
+							'hex',
+						)} is ineligible to generate block for the current slot`,
 					);
 				});
 
