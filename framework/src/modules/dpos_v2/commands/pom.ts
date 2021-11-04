@@ -94,10 +94,10 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async execute(context: CommandExecuteContext<PomTransactionParams>): Promise<void> {
-		const currentHeight = context.header.height + 1;
-		const { networkIdentifier, getAPIContext } = context;
-		const header1 = BlockHeader.fromBytes(context.params.header1);
-		const header2 = BlockHeader.fromBytes(context.params.header2);
+		const { networkIdentifier, getAPIContext, getStore, params, transaction, header } = context;
+		const currentHeight = header.height + 1;
+		const header1 = BlockHeader.fromBytes(params.header1);
+		const header2 = BlockHeader.fromBytes(params.header2);
 		/*
 			|header1.height - h| >= 260,000.
 			|header2.height - h| >= 260,000.
@@ -119,7 +119,7 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 			Check if delegate is eligible to be punished
 		*/
 		const delegateAddress = header1.generatorAddress;
-		const delegateSubStore = context.getStore(this.moduleID, STORE_PREFIX_DELEGATE);
+		const delegateSubStore = getStore(this.moduleID, STORE_PREFIX_DELEGATE);
 		const delegateAccount = await delegateSubStore.getWithSchema<DelegateAccount>(
 			delegateAddress,
 			delegateStoreSchema,
@@ -138,7 +138,7 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 				delegateAddress,
 				delegateAddress,
 				delegateAccount.pomHeights,
-				context.header.height,
+				header.height,
 			) > 0
 		) {
 			throw new Error('Cannot apply proof-of-misbehavior. Delegate is already punished.');
@@ -161,7 +161,7 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 				networkIdentifier,
 				generatorPublicKey1,
 				header1.signature,
-				context.params.header1,
+				params.header1,
 			)
 		) {
 			throw new Error('Invalid block signature for header 1.');
@@ -173,7 +173,7 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 				networkIdentifier,
 				generatorPublicKey2,
 				header2.signature,
-				context.params.header2,
+				params.header2,
 			)
 		) {
 			throw new Error('Invalid block signature for header 2.');
@@ -224,7 +224,7 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 			await this._tokenAPI.transfer(
 				getAPIContext(),
 				delegateAddress,
-				context.transaction.senderAddress,
+				transaction.senderAddress,
 				this._tokenIDDPoS,
 				reward,
 			);
