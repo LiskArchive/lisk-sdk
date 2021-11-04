@@ -90,6 +90,7 @@ describe('consensus', () => {
 				.fn()
 				.mockResolvedValue({ maxHeghgtPrevoted: 0, maxHeightPrecommitted: 0 }),
 			isHeaderContradictingChain: jest.fn(),
+			getBFTParameters: jest.fn(),
 		} as never;
 		validatorAPI = {
 			getGeneratorAtTimestamp: jest.fn(),
@@ -737,6 +738,54 @@ describe('consensus', () => {
 
 					await expect(
 						consensus['_verifyBlockSignature'](apiContext, validBlock as any),
+					).resolves.toBeUndefined();
+				});
+			});
+
+			describe('validatorsHash', () => {
+				it('should throw error when validatorsHash is undefined', async () => {
+					when(consensus['_bftAPI'].getBFTParameters as never)
+						.calledWith(apiContext, block.header.height + 1)
+						.mockResolvedValue({
+							validatorsHash: cryptography.hash(cryptography.getRandomBytes(32)),
+						} as never);
+
+					block.header.validatorsHash = undefined;
+					block.header['_signature'] = cryptography.getRandomBytes(64);
+					block.header['_id'] = cryptography.getRandomBytes(64);
+
+					await expect(
+						consensus['_verifyValidatorsHash'](apiContext, block as any),
+					).rejects.toThrow(
+						`Validators hash is "undefined" for the block with id: ${block.header.id.toString(
+							'hex',
+						)}`,
+					);
+				});
+
+				it('should throw error for invalid validatorsHash', async () => {
+					when(consensus['_bftAPI'].getBFTParameters as never)
+						.calledWith(apiContext, block.header.height + 1)
+						.mockResolvedValue({
+							validatorsHash: cryptography.hash(cryptography.getRandomBytes(32)),
+						} as never);
+
+					await expect(
+						consensus['_verifyValidatorsHash'](apiContext, block as any),
+					).rejects.toThrow(
+						`Invalid validatorsHash ${block.header.validatorsHash?.toString(
+							'hex',
+						)} of the block with id: ${block.header.id.toString('hex')}`,
+					);
+				});
+
+				it('should be success for valid validatorsHash', async () => {
+					when(consensus['_bftAPI'].getBFTParameters as never)
+						.calledWith(apiContext, block.header.height + 1)
+						.mockResolvedValue({ validatorsHash: block.header.validatorsHash } as never);
+
+					await expect(
+						consensus['_verifyValidatorsHash'](apiContext, block as any),
 					).resolves.toBeUndefined();
 				});
 			});
