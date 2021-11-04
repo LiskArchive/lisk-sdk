@@ -490,6 +490,7 @@ export class Consensus {
 
 		// Validate a block
 		block.validate();
+		// Check if moduleID is registered
 		for (const asset of block.assets.getAllAssets()) {
 			if (!this._stateMachine.getAllModuleIDs().includes(asset.moduleID)) {
 				throw new Error(`Module with ID: ${asset.moduleID} is not registered.`);

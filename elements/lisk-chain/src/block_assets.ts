@@ -13,6 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
+import { MerkleTree } from '@liskhq/lisk-tree';
 import { blockAssetSchema } from './schema';
 
 export interface BlockAsset {
@@ -22,6 +23,7 @@ export interface BlockAsset {
 
 export class BlockAssets {
 	private readonly _assets: BlockAsset[] = [];
+	private _assetRoot!: Buffer;
 
 	public constructor(assets: BlockAsset[] = []) {
 		this._assets = assets;
@@ -36,6 +38,12 @@ export class BlockAssets {
 	public static fromJSON(values: Record<string, unknown>[]): BlockAssets {
 		const assets = values.map(val => codec.fromJSON<BlockAsset>(blockAssetSchema, val));
 		return new BlockAssets(assets);
+	}
+
+	public async getRoot(): Promise<Buffer> {
+		this._assetRoot = await this._calculateRoot();
+
+		return this._assetRoot;
 	}
 
 	public getBytes(): Buffer[] {
@@ -61,5 +69,12 @@ export class BlockAssets {
 
 	public sort(): void {
 		this._assets.sort((a1, a2) => a1.moduleID - a2.moduleID);
+	}
+
+	private async _calculateRoot(): Promise<Buffer> {
+		const merkleTree = new MerkleTree();
+		await merkleTree.init(this.getBytes());
+
+		return merkleTree.root;
 	}
 }
