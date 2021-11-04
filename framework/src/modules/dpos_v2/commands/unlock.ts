@@ -52,11 +52,6 @@ export class UnlockCommand extends BaseCommand {
 		const delegateSubstore = getStore(this.moduleID, STORE_PREFIX_DELEGATE);
 		const voterSubstore = getStore(this.moduleID, STORE_PREFIX_VOTER);
 		const voterData = await voterSubstore.getWithSchema<VoterData>(senderAddress, voterStoreSchema);
-
-		if (!voterData) {
-			throw new Error('No voting data exists for sender');
-		}
-
 		const ineligibleUnlocks = [];
 
 		for (const unlockObject of voterData.pendingUnlocks) {
@@ -80,7 +75,9 @@ export class UnlockCommand extends BaseCommand {
 			}
 			ineligibleUnlocks.push(unlockObject);
 		}
-
+		if (voterData.pendingUnlocks.length === ineligibleUnlocks.length) {
+			throw new Error('No eligible voter data was found for unlocking');
+		}
 		voterData.pendingUnlocks = ineligibleUnlocks;
 		await voterSubstore.setWithSchema(senderAddress, voterData, voterStoreSchema);
 	}
