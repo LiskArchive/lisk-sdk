@@ -65,7 +65,12 @@ describe('VoteCommand', () => {
 		lockFn = jest.fn();
 		command = new VoteCommand(MODULE_ID_DPOS);
 		command.addDependencies({
-			tokenAPI: { lock: lockFn },
+			tokenAPI: {
+				lock: lockFn,
+				getAvailableBalance: jest.fn(),
+				getMinRemainingBalance: jest.fn(),
+				transfer: jest.fn(),
+			},
 			tokenIDDPoS: { chainID: 0, localID: 0 },
 		});
 
