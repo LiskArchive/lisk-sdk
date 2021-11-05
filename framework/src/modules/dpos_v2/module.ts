@@ -29,9 +29,16 @@ import {
 	DELEGATE_LIST_ROUND_OFFSET,
 	STORE_PREFIX_DELEGATE,
 	STORE_PREFIX_SNAPSHOT,
+	STORE_PREFIX_PREVIOUS_TIMESTAMP,
+	EMPTY_KEY,
 } from './constants';
 import { DPoSEndpoint } from './endpoint';
-import { configSchema, delegateStoreSchema, snapshotStoreSchema } from './schemas';
+import {
+	configSchema,
+	delegateStoreSchema,
+	previousTimestampStoreSchema,
+	snapshotStoreSchema,
+} from './schemas';
 import {
 	BFTAPI,
 	RandomAPI,
@@ -40,6 +47,7 @@ import {
 	ModuleConfig,
 	DelegateAccount,
 	SnapshotStoreData,
+	PreviousTimestampData,
 } from './types';
 import { Rounds } from './rounds';
 import {
@@ -121,6 +129,20 @@ export class DPoSModule extends BaseModule {
 	}
 
 	public async afterBlockExecute(context: BlockAfterExecuteContext): Promise<void> {
+		const { getStore, header } = context;
+
+		const previousTimestampStore = getStore(this.id, STORE_PREFIX_PREVIOUS_TIMESTAMP);
+		const previousTimestampData = await previousTimestampStore.getWithSchema<PreviousTimestampData>(
+			EMPTY_KEY,
+			previousTimestampStoreSchema,
+		);
+		const { timestamp: previousTimestamp } = previousTimestampData;
+		await this._updateProductivity(context, previousTimestamp);
+		await previousTimestampStore.setWithSchema(
+			EMPTY_KEY,
+			{ timestamp: header.timestamp },
+			previousTimestampStoreSchema,
+		);
 		await this._createVoteWeightSnapshot(context);
 		await this._updateValidators(context);
 	}
@@ -279,5 +301,53 @@ export class DPoSModule extends BaseModule {
 		}
 		const shuffledValidators = shuffleDelegateList(randomSeed1, validators);
 		await this._validatorsAPI.setGeneratorList(apiContext, shuffledValidators);
+	}
+
+	private async _updateProductivity(context: BlockAfterExecuteContext, previousTimestamp: number) {
+		const { logger, header, getAPIContext, getStore } = context;
+
+		const round = new Rounds({ blocksPerRound: this._moduleConfig.roundLength });
+		logger.debug(round, 'Updating delegates productivity for round');
+
+		const newHeight = header.height;
+		const apiContext = getAPIContext();
+		const missedBlocks = await this._validatorsAPI.getGeneratorsBetweenTimestamps(
+			apiContext,
+			previousTimestamp,
+			header.timestamp,
+		);
+
+		const generatorAtPreviousTimestamp = await this._validatorsAPI.getGeneratorAtTimestamp(
+			apiContext,
+			previousTimestamp,
+		);
+
+		missedBlocks[generatorAtPreviousTimestamp.toString('binary')] -= 1;
+
+		const delegateStore = getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
+		for (const addressString of Object.keys(missedBlocks)) {
+			const address = Buffer.from(addressString, 'binary');
+			const delegate = await delegateStore.getWithSchema<DelegateAccount>(
+				address,
+				delegateStoreSchema,
+			);
+			delegate.consecutiveMissedBlocks += missedBlocks[addressString];
+			if (
+				delegate.consecutiveMissedBlocks > this._moduleConfig.failSafeMissedBlocks &&
+				newHeight - delegate.lastGeneratedHeight > this._moduleConfig.failSafeInactiveWindow
+			) {
+				delegate.isBanned = true;
+			}
+
+			await delegateStore.setWithSchema(address, delegate, delegateStoreSchema);
+		}
+
+		const generator = await delegateStore.getWithSchema<DelegateAccount>(
+			header.generatorAddress,
+			delegateStoreSchema,
+		);
+		generator.consecutiveMissedBlocks = 0;
+		generator.lastGeneratedHeight = newHeight;
+		await delegateStore.setWithSchema(header.generatorAddress, generator, delegateStoreSchema);
 	}
 }
