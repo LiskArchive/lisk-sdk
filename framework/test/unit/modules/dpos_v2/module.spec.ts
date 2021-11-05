@@ -506,6 +506,7 @@ describe('DPoS module', () => {
 						};
 						const tokenAPI = {
 							lock: jest.fn(),
+							unlock: jest.fn(),
 						};
 
 						dpos.addDependencies(randomAPI, bftAPI, validatorAPI, tokenAPI);
@@ -600,6 +601,7 @@ describe('DPoS module', () => {
 				};
 				const tokenAPI = {
 					lock: jest.fn(),
+					unlock: jest.fn(),
 				};
 
 				dpos.addDependencies(randomAPI, bftAPI, validatorAPI, tokenAPI);
