@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Chain, Transaction } from '@liskhq/lisk-chain';
-import { getAddressFromPublicKey, getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getAddressFromPublicKey, getRandomBytes, hash } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { Generator } from '../../../../src/node/generator';
@@ -120,6 +120,7 @@ describe('generator', () => {
 				maxHeightPrecommitted: 0,
 				maxHeightCertified: 0,
 			}),
+			getBFTParameters: jest.fn(),
 		} as never;
 
 		stateMachine = {
@@ -447,6 +448,7 @@ describe('generator', () => {
 			privateKey: getRandomBytes(64),
 		};
 		const currentTime = Math.floor(Date.now() / 1000);
+		const validatorsHash = hash(getRandomBytes(32));
 
 		beforeEach(async () => {
 			mod1 = {
@@ -462,6 +464,9 @@ describe('generator', () => {
 			jest.spyOn(stateMachine, 'beforeExecuteBlock');
 			jest.spyOn(stateMachine, 'afterExecuteBlock');
 			jest.spyOn(generator['_forgingStrategy'], 'getTransactionsForBlock').mockResolvedValue([tx]);
+			jest
+				.spyOn(generator['_bftAPI'], 'getBFTParameters')
+				.mockResolvedValue({ validatorsHash } as never);
 			await generator.init({
 				blockchainDB,
 				generatorDB,
@@ -471,7 +476,6 @@ describe('generator', () => {
 
 		it('should call all hooks', async () => {
 			const block = await generator['_generateBlock'](generatorAddress, keypair, currentTime);
-
 			expect(mod1.initBlock).toHaveBeenCalledTimes(1);
 			expect(mod2.sealBlock).toHaveBeenCalledTimes(1);
 			expect(stateMachine.beforeExecuteBlock).toHaveBeenCalledTimes(1);
@@ -480,6 +484,12 @@ describe('generator', () => {
 
 			expect(block.payload).toHaveLength(1);
 			expect(block.header.signature).toHaveLength(64);
+		});
+
+		it('should assign validatorsHash to the block', async () => {
+			const block = await generator['_generateBlock'](generatorAddress, keypair, currentTime);
+
+			expect(block.header.validatorsHash).toEqual(validatorsHash);
 		});
 	});
 });
