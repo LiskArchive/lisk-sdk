@@ -42,7 +42,7 @@
 		"ajv-formats": "2.0.2",
 		"debug": "4.3.1",
 		"semver": "7.3.5",
-		"validator": "13.5.2"
+		"validator": "13.7.0"
 	},
 	"devDependencies": {
 		"@types/jest": "26.0.21",
