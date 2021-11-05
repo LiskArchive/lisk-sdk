@@ -622,7 +622,7 @@ describe('consensus', () => {
 			});
 
 			describe('generatorAddress', () => {
-				it('should throw error if [generatorAddress.lenght !== 20]', async () => {
+				it('should throw error if [generatorAddress.length !== 20]', async () => {
 					const invalidBlock = { ...block };
 					(invalidBlock.header as any).generatorAddress = cryptography.getRandomBytes(64);
 					await expect(

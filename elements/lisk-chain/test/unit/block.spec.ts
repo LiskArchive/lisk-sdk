@@ -73,7 +73,7 @@ describe('block', () => {
 		});
 
 		describe('when an asset data has size more than the limit', () => {
-			it(`should throw error when asset data lenght is greater than ${MAX_ASSET_DATA_SIZE_BYTES}`, async () => {
+			it(`should throw error when asset data length is greater than ${MAX_ASSET_DATA_SIZE_BYTES}`, async () => {
 				// Arrange
 				const assets = [
 					{
@@ -92,7 +92,7 @@ describe('block', () => {
 				);
 			});
 
-			it(`should pass when asset data lenght is equal or less than ${MAX_ASSET_DATA_SIZE_BYTES}`, async () => {
+			it(`should pass when asset data length is equal or less than ${MAX_ASSET_DATA_SIZE_BYTES}`, async () => {
 				// Arrange
 				const assets = [
 					{
