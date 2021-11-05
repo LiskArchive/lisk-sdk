@@ -82,7 +82,7 @@ export const createFakeBlockHeader = (header?: Partial<BlockHeaderAttrs>): Block
  * Calculates the signature, transactionRoot etc. internally. Facilitating the creation of block with valid signature and other properties
  */
 export const createValidDefaultBlock = async (
-	block?: { header?: Partial<BlockHeaderAttrs>; payload?: Transaction[] },
+	block?: { header?: Partial<BlockHeaderAttrs>; payload?: Transaction[]; assets?: BlockAssets },
 	networkIdentifier: Buffer = defaultNetworkIdentifier,
 ): Promise<Block> => {
 	const keypair = getKeyPair();
@@ -115,5 +115,5 @@ export const createValidDefaultBlock = async (
 	// Assigning the id ahead
 	// eslint-disable-next-line @typescript-eslint/no-unused-expressions
 	blockHeader.id;
-	return new Block(blockHeader, payload, new BlockAssets());
+	return new Block(blockHeader, payload, block?.assets ?? new BlockAssets());
 };

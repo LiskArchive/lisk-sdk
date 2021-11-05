@@ -11,7 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Block, Transaction } from '../../src';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { Block, BlockAsset, BlockAssets, Transaction } from '../../src';
+import { MAX_ASSET_DATA_SIZE_BYTES } from '../../src/constants';
 import { createValidDefaultBlock } from '../utils/block';
 import { getTransaction } from '../utils/transaction';
 
@@ -19,15 +21,31 @@ describe('block', () => {
 	describe('validate', () => {
 		let block: Block;
 		let tx: Transaction;
+		let assetList: BlockAsset[];
+		let blockAssets: BlockAssets;
 
 		beforeEach(() => {
+			assetList = [
+				{
+					moduleID: 6,
+					data: getRandomBytes(64),
+				},
+				{
+					moduleID: 3,
+					data: getRandomBytes(64),
+				},
+			];
+			blockAssets = new BlockAssets(assetList);
 			tx = getTransaction();
 		});
 
 		describe('when previousBlockID is empty', () => {
 			it('should throw error', async () => {
 				// Arrange
-				block = await createValidDefaultBlock({ header: { previousBlockID: Buffer.alloc(0) } });
+				block = await createValidDefaultBlock({
+					header: { previousBlockID: Buffer.alloc(0) },
+					assets: blockAssets,
+				});
 				// Act & assert
 				expect(() => block.validate()).toThrow('Previous block id must not be empty');
 			});
@@ -51,6 +69,128 @@ describe('block', () => {
 				block = await createValidDefaultBlock({ payload: txs });
 				// Act & assert
 				expect(() => block.validate()).not.toThrow();
+			});
+		});
+
+		describe('when an asset data has size more than the limit', () => {
+			it(`should throw error when asset data length is greater than ${MAX_ASSET_DATA_SIZE_BYTES}`, async () => {
+				// Arrange
+				const assets = [
+					{
+						moduleID: 3,
+						data: getRandomBytes(64),
+					},
+					{
+						moduleID: 4,
+						data: getRandomBytes(128),
+					},
+				];
+				block = await createValidDefaultBlock({ assets: new BlockAssets(assets) });
+				// Act & assert
+				expect(() => block.validate()).toThrow(
+					`Module with ID ${assets[1].moduleID} has data size more than ${MAX_ASSET_DATA_SIZE_BYTES} bytes.`,
+				);
+			});
+
+			it(`should pass when asset data length is equal or less than ${MAX_ASSET_DATA_SIZE_BYTES}`, async () => {
+				// Arrange
+				const assets = [
+					{
+						moduleID: 3,
+						data: getRandomBytes(64),
+					},
+					{
+						moduleID: 4,
+						data: getRandomBytes(64),
+					},
+				];
+				block = await createValidDefaultBlock({ assets: new BlockAssets(assets) });
+				// Act & assert
+				expect(block.validate()).toBeUndefined();
+			});
+		});
+
+		describe('when the assets are not sorted by moduleID', () => {
+			it('should throw error when assets are not sorted by moduleID', async () => {
+				// Arrange
+				const assets = [
+					{
+						moduleID: 4,
+						data: getRandomBytes(64),
+					},
+					{
+						moduleID: 3,
+						data: getRandomBytes(64),
+					},
+				];
+				block = await createValidDefaultBlock({ assets: new BlockAssets(assets) });
+				// Act & assert
+				expect(() => block.validate()).toThrow(
+					'Assets are not sorted in the increasing values of moduleID.',
+				);
+			});
+
+			it('should pass when assets are sorted by moduleID', async () => {
+				// Arrange
+				const assets = [
+					{
+						moduleID: 2,
+						data: getRandomBytes(64),
+					},
+					{
+						moduleID: 3,
+						data: getRandomBytes(64),
+					},
+				];
+				block = await createValidDefaultBlock({ assets: new BlockAssets(assets) });
+				// Act & assert
+				expect(block.validate()).toBeUndefined();
+			});
+		});
+
+		describe('when there are multiple asset entries for a moduleID', () => {
+			it('should throw error when there are more than 1 assets for a module', async () => {
+				// Arrange
+				const assets = [
+					{
+						moduleID: 2,
+						data: getRandomBytes(64),
+					},
+					{
+						moduleID: 3,
+						data: getRandomBytes(64),
+					},
+					{
+						moduleID: 3,
+						data: getRandomBytes(64),
+					},
+				];
+				block = await createValidDefaultBlock({ assets: new BlockAssets(assets) });
+				// Act & assert
+				expect(() => block.validate()).toThrow(
+					`Module with ID ${assets[1].moduleID} has duplicate entries.`,
+				);
+			});
+
+			it('should pass when there is atmost 1 asset for a module', async () => {
+				// Arrange
+				const assets = [
+					{
+						moduleID: 2,
+						data: getRandomBytes(64),
+					},
+					{
+						moduleID: 3,
+						data: getRandomBytes(64),
+					},
+					{
+						moduleID: 4,
+						data: getRandomBytes(64),
+					},
+				];
+				block = await createValidDefaultBlock({ assets: new BlockAssets(assets) });
+				// Act & assert
+				expect(block.validate()).toBeUndefined();
 			});
 		});
 	});

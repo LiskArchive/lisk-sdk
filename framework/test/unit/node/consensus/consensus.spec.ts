@@ -84,6 +84,7 @@ describe('consensus', () => {
 			executeGenesisBlock: jest.fn(),
 			verifyBlock: jest.fn(),
 			executeBlock: jest.fn(),
+			getAllModuleIDs: jest.fn(),
 		} as unknown) as StateMachine;
 		bftAPI = {
 			getBFTHeights: jest
@@ -621,7 +622,7 @@ describe('consensus', () => {
 			});
 
 			describe('generatorAddress', () => {
-				it('should throw error if [generatorAddress.lenght !== 20]', async () => {
+				it('should throw error if [generatorAddress.length !== 20]', async () => {
 					const invalidBlock = { ...block };
 					(invalidBlock.header as any).generatorAddress = cryptography.getRandomBytes(64);
 					await expect(
@@ -787,6 +788,66 @@ describe('consensus', () => {
 					await expect(
 						consensus['_verifyValidatorsHash'](apiContext, block as any),
 					).resolves.toBeUndefined();
+				});
+			});
+
+			describe('validateBlockAsset', () => {
+				it('should throw error if a module is not registered', async () => {
+					const assetList = [
+						{
+							moduleID: 1,
+							data: cryptography.getRandomBytes(64),
+						},
+						{
+							moduleID: 2,
+							data: cryptography.getRandomBytes(64),
+						},
+						{
+							moduleID: 3,
+							data: cryptography.getRandomBytes(64),
+						},
+						{
+							moduleID: 4,
+							data: cryptography.getRandomBytes(64),
+						},
+					];
+
+					const invalidBlock = await createValidDefaultBlock({
+						assets: new BlockAssets(assetList),
+					});
+					jest.spyOn(stateMachine, 'getAllModuleIDs').mockReturnValue([1, 2, 3]);
+
+					expect(() => consensus['_validateBlockAsset'](invalidBlock as any)).toThrow(
+						'Module with ID: 4 is not registered.',
+					);
+				});
+
+				it('should be success if a module is registered', async () => {
+					const assetList = [
+						{
+							moduleID: 1,
+							data: cryptography.getRandomBytes(64),
+						},
+						{
+							moduleID: 2,
+							data: cryptography.getRandomBytes(64),
+						},
+						{
+							moduleID: 3,
+							data: cryptography.getRandomBytes(64),
+						},
+						{
+							moduleID: 4,
+							data: cryptography.getRandomBytes(64),
+						},
+					];
+
+					const invalidBlock = await createValidDefaultBlock({
+						assets: new BlockAssets(assetList),
+					});
+					jest.spyOn(stateMachine, 'getAllModuleIDs').mockReturnValue([1, 2, 3, 4]);
+
+					expect(consensus['_validateBlockAsset'](invalidBlock as any)).toBeUndefined();
 				});
 			});
 		});

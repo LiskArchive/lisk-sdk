@@ -12,13 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { BlockAssets } from '../../src';
+import { MerkleTree } from '@liskhq/lisk-tree';
+import { BlockAsset, BlockAssets } from '../../src';
 
 describe('block assets', () => {
 	let assets: BlockAssets;
+	let assetList: BlockAsset[];
 
 	beforeEach(() => {
-		assets = new BlockAssets([
+		assetList = [
 			{
 				moduleID: 6,
 				data: getRandomBytes(64),
@@ -27,7 +29,8 @@ describe('block assets', () => {
 				moduleID: 3,
 				data: getRandomBytes(64),
 			},
-		]);
+		];
+		assets = new BlockAssets(assetList);
 	});
 
 	describe('sort', () => {
@@ -70,6 +73,21 @@ describe('block assets', () => {
 			]);
 			expect(assets['_assets']).toHaveLength(1);
 			expect(assets.getAsset(4)).toBeInstanceOf(Buffer);
+		});
+	});
+
+	describe('getRoot', () => {
+		it('should calculate and return asset root', async () => {
+			const root = await assets.getRoot();
+			const merkleT = new MerkleTree();
+			await merkleT.init(assets.getBytes());
+			await expect(assets.getRoot()).resolves.toEqual(root);
+		});
+	});
+
+	describe('getAllAsset', () => {
+		it('should return list of all assets', () => {
+			expect(assets.getAll()).toContainAllValues(assetList);
 		});
 	});
 });

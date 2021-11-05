@@ -498,8 +498,7 @@ export class Generator {
 		await txTree.init(transactions.map(tx => tx.id));
 		const transactionRoot = txTree.root;
 		blockHeader.transactionRoot = transactionRoot;
-		// TODO: Update the assetsRoot with proper calculation
-		blockHeader.assetsRoot = hash(Buffer.concat(blockAssets.getBytes()));
+		blockHeader.assetsRoot = await blockAssets.getRoot();
 		// TODO: Update the stateRoot with proper calculation
 		blockHeader.stateRoot = hash(Buffer.alloc(0));
 		// Set validatorsHash

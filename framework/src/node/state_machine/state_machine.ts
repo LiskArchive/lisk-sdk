@@ -51,15 +51,24 @@ export interface StateMachineModule {
 export class StateMachine {
 	private readonly _modules: StateMachineModule[] = [];
 	private readonly _systemModules: StateMachineModule[] = [];
+	private readonly _moduleIDs: number[] = [];
 
 	public registerModule(mod: StateMachineModule): void {
 		this._validateExistingModuleID(mod.id);
 		this._modules.push(mod);
+		this._moduleIDs.push(mod.id);
+		this._moduleIDs.sort((a, b) => a - b);
 	}
 
 	public registerSystemModule(mod: StateMachineModule): void {
 		this._validateExistingModuleID(mod.id);
 		this._systemModules.push(mod);
+		this._moduleIDs.push(mod.id);
+		this._moduleIDs.sort((a, b) => a - b);
+	}
+
+	public getAllModuleIDs() {
+		return this._moduleIDs;
 	}
 
 	public async executeGenesisBlock(ctx: GenesisBlockContext): Promise<void> {
