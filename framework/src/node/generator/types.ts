@@ -15,6 +15,7 @@
 import { Block } from '@liskhq/lisk-chain';
 import { Options } from '@liskhq/lisk-db';
 import { Logger } from '../../logger';
+import { BFTParameters } from '../../modules/bft/schemas';
 import { BFTHeights } from '../consensus';
 import { APIContext, BlockHeader, ImmutableAPIContext, ImmutableSubStore } from '../state_machine';
 
@@ -35,6 +36,7 @@ export interface Consensus {
 
 export interface BFTAPI {
 	getBFTHeights: (_apiClient: ImmutableAPIContext) => Promise<BFTHeights>;
+	getBFTParameters: (apiContext: ImmutableAPIContext, height: number) => Promise<BFTParameters>;
 }
 
 export interface ValidatorAPI {

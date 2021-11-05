@@ -502,8 +502,9 @@ export class Generator {
 		blockHeader.assetsRoot = hash(Buffer.concat(blockAssets.getBytes()));
 		// TODO: Update the stateRoot with proper calculation
 		blockHeader.stateRoot = hash(Buffer.alloc(0));
-		// TODO: Update validatorsHash with proper calculation
-		blockHeader.validatorsHash = hash(Buffer.alloc(0));
+		// Set validatorsHash
+		const { validatorsHash } = await this._bftAPI.getBFTParameters(apiContext, height);
+		blockHeader.validatorsHash = validatorsHash;
 		blockHeader.sign(this._chain.networkIdentifier, keypair.privateKey);
 
 		const generatedBlock = new Block(blockHeader, transactions, blockAssets);
