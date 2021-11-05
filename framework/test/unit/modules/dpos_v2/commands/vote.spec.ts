@@ -1,3 +1,17 @@
+/*
+ * Copyright © 2021 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
 import { NotFoundError, StateStore, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressFromPublicKey, getRandomBytes } from '@liskhq/lisk-cryptography';
@@ -51,7 +65,13 @@ describe('VoteCommand', () => {
 		lockFn = jest.fn();
 		command = new VoteCommand(MODULE_ID_DPOS);
 		command.addDependencies({
-			tokenAPI: { lock: lockFn, unlock: jest.fn() },
+			tokenAPI: {
+				lock: lockFn,
+				unlock: jest.fn(),
+				getAvailableBalance: jest.fn(),
+				getMinRemainingBalance: jest.fn(),
+				transfer: jest.fn(),
+			},
 			tokenIDDPoS: { chainID: 0, localID: 0 },
 		});
 
