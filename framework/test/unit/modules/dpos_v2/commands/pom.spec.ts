@@ -39,6 +39,7 @@ import {
 	PomTransactionParams,
 } from '../../../../../src/modules/dpos_v2/types';
 import { delegateStoreSchema } from '../../../../../src/modules/dpos_v2/schemas';
+import { VerifyStatus } from '../../../../../src/node/state_machine/types';
 
 describe('ReportDelegateMisbehaviorCommand', () => {
 	let pomCommand: ReportDelegateMisbehaviorCommand;
@@ -202,12 +203,46 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			);
 		});
 
-		it('should throw error when both headers are identical', async () => {
+		it('should throw error when header1 cannot be decoded', async () => {
+			transactionParamsDecoded = {
+				header1: getRandomBytes(32),
+				header2: codec.encode(blockHeaderSchema, { ...header2 }),
+			};
+			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
+			transaction.params = transactionParams;
+			context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+				})
+				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
+
+			await expect(pomCommand.verify(context)).rejects.toThrow();
+		});
+
+		it('should throw error when header2 cannot be decoded', async () => {
+			transactionParamsDecoded = {
+				header1: codec.encode(blockHeaderSchema, { ...header1 }),
+				header2: getRandomBytes(32),
+			};
+			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
+			transaction.params = transactionParams;
+			context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+				})
+				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
+
+			await expect(pomCommand.verify(context)).rejects.toThrow();
+		});
+
+		it('should resolve with error when headers are not contradicting', async () => {
 			transactionParamsDecoded = {
 				header1: codec.encode(blockHeaderSchema, {
 					...header1,
 				}),
-				header2: codec.encode(blockHeaderSchema, { ...header1 }),
+				header2: codec.encode(blockHeaderSchema, { ...header2 }),
 			};
 			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
 			transaction.params = transactionParams;
@@ -222,6 +257,29 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				'error.message',
 				'BlockHeaders are not contradicting as per BFT violation rules.',
 			);
+		});
+
+		it('should resolve without error when headers are valid, can be decoded and are contradicting', async () => {
+			transactionParamsDecoded = {
+				header1: codec.encode(blockHeaderSchema, {
+					...header1,
+				}),
+				header2: codec.encode(blockHeaderSchema, { ...header2 }),
+			};
+			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
+			transaction.params = transactionParams;
+			context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+				})
+				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
+
+			jest
+				.spyOn(pomCommand['_bftAPI'], 'areHeadersContradicting')
+				.mockResolvedValueOnce(true as never);
+
+			await expect(pomCommand.verify(context)).resolves.toHaveProperty('status', VerifyStatus.OK);
 		});
 
 		it('should not throw error when first height is equal to second height but equal maxHeightPrevoted', async () => {
@@ -313,28 +371,6 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
 			await expect(pomCommand.verify(context)).not.toReject();
-		});
-
-		it('should throw error when headers are not contradicting', async () => {
-			transactionParamsDecoded = {
-				header1: codec.encode(blockHeaderSchema, {
-					...header1,
-				}),
-				header2: codec.encode(blockHeaderSchema, { ...header1 }),
-			};
-			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
-			transaction.params = transactionParams;
-			context = testing
-				.createTransactionContext({
-					stateStore,
-					transaction,
-				})
-				.createCommandVerifyContext<PomTransactionParams>(pomCommand.schema);
-
-			await expect(pomCommand.verify(context)).resolves.toHaveProperty(
-				'error.message',
-				'BlockHeaders are not contradicting as per BFT violation rules.',
-			);
 		});
 	});
 
