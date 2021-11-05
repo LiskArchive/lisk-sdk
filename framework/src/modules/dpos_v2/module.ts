@@ -12,22 +12,37 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	GenesisBlockExecuteContext,
-	BlockAfterExecuteContext,
-} from '../../node/state_machine/types';
+import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { GenesisBlockExecuteContext, BlockAfterExecuteContext } from '../../node/state_machine';
 import { BaseModule, ModuleInitArgs } from '../base_module';
-import { ModuleConfig } from './types';
 import { DPoSAPI } from './api';
 import { DelegateRegistrationCommand } from './commands/delegate_registration';
 import { ReportDelegateMisbehaviorCommand } from './commands/pom';
 import { UnlockCommand } from './commands/unlock';
 import { UpdateGeneratorKeyCommand } from './commands/update_generator_key';
 import { VoteCommand } from './commands/vote';
-import { MODULE_ID_DPOS, COMMAND_ID_UPDATE_GENERATOR_KEY, COMMAND_ID_VOTE } from './constants';
+import {
+	MODULE_ID_DPOS,
+	COMMAND_ID_UPDATE_GENERATOR_KEY,
+	COMMAND_ID_VOTE,
+	DELEGATE_LIST_ROUND_OFFSET,
+	STORE_PREFIX_DELEGATE,
+	STORE_PREFIX_SNAPSHOT,
+} from './constants';
 import { DPoSEndpoint } from './endpoint';
-import { configSchema } from './schemas';
-import { BFTAPI, RandomAPI, TokenAPI, ValidatorsAPI } from './types';
+import { configSchema, delegateStoreSchema, snapshotStoreSchema } from './schemas';
+import {
+	BFTAPI,
+	RandomAPI,
+	TokenAPI,
+	ValidatorsAPI,
+	ModuleConfig,
+	DelegateAccount,
+	SnapshotStoreData,
+} from './types';
+import { Rounds } from './rounds';
+import { isCurrentlyPunished } from './utils';
 
 export class DPoSModule extends BaseModule {
 	public id = MODULE_ID_DPOS;
@@ -84,7 +99,14 @@ export class DPoSModule extends BaseModule {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs) {
 		const { moduleConfig } = args;
-		this._moduleConfig = (moduleConfig as unknown) as ModuleConfig;
+		const errors = validator.validate(configSchema, moduleConfig);
+		if (errors.length) {
+			throw new LiskValidationError(errors);
+		}
+		this._moduleConfig = {
+			...moduleConfig,
+			minWeightStandby: BigInt(moduleConfig.minWeightStandby),
+		} as ModuleConfig;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -93,6 +115,103 @@ export class DPoSModule extends BaseModule {
 		console.log(this._bftAPI, this._randomAPI, this._validatorsAPI, this._moduleConfig);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public async afterBlockExecute(_context: BlockAfterExecuteContext): Promise<void> {}
+	public async afterBlockExecute(context: BlockAfterExecuteContext): Promise<void> {
+		await this._createVoteWeightSnapshot(context);
+	}
+
+	private async _createVoteWeightSnapshot(context: BlockAfterExecuteContext): Promise<void> {
+		const snapshotHeight = context.header.height + 1;
+		const round = new Rounds({ blocksPerRound: this._moduleConfig.roundLength });
+		const snapshotRound = round.calcRound(snapshotHeight) + DELEGATE_LIST_ROUND_OFFSET;
+		context.logger.debug(`Creating vote weight snapshot for round: ${snapshotRound.toString()}`);
+
+		const delegateStore = context.getStore(this.id, STORE_PREFIX_DELEGATE);
+		const delegates = await delegateStore.iterateWithSchema<DelegateAccount>(
+			{
+				start: Buffer.alloc(20),
+				end: Buffer.alloc(20, 255),
+			},
+			delegateStoreSchema,
+		);
+		const voteWeightCapRate = this._moduleConfig.factorSelfVotes;
+
+		// Update totalVotesReceived to voteWeight equivalent before sorting
+		for (const { value: account } of delegates) {
+			// If the account is being punished, then consider them as vote weight 0
+			if (isCurrentlyPunished(snapshotHeight, account.pomHeights)) {
+				account.totalVotesReceived = BigInt(0);
+				continue;
+			}
+
+			const cappedValue = account.selfVotes * BigInt(voteWeightCapRate);
+			if (account.totalVotesReceived > cappedValue) {
+				account.totalVotesReceived = cappedValue;
+			}
+		}
+
+		delegates.sort((a, b) => {
+			const diff = b.value.totalVotesReceived - a.value.totalVotesReceived;
+			if (diff > BigInt(0)) {
+				return 1;
+			}
+			if (diff < BigInt(0)) {
+				return -1;
+			}
+
+			return a.key.compare(b.key);
+		});
+
+		const snapshotData: SnapshotStoreData = {
+			activeDelegates: [],
+			delegateWeightSnapshot: [],
+		};
+
+		for (const { key: address, value: account } of delegates) {
+			// If the account is banned, do not include in the list
+			if (account.isBanned) {
+				continue;
+			}
+
+			// Select active delegate first
+			if (snapshotData.activeDelegates.length < this._moduleConfig.numberActiveDelegates) {
+				snapshotData.activeDelegates.push(address);
+				continue;
+			}
+
+			// If account has more than threshold, save it as standby
+			if (account.totalVotesReceived >= this._moduleConfig.minWeightStandby) {
+				snapshotData.delegateWeightSnapshot.push({
+					delegateAddress: address,
+					delegateWeight: account.totalVotesReceived,
+				});
+				continue;
+			}
+
+			// From here, it's below threshold
+			// Below threshold, but prepared array does not have enough selected delegate
+			if (snapshotData.delegateWeightSnapshot.length < this._moduleConfig.numberStandbyDelegates) {
+				// In case there was 1 standby delegate who has more than threshold
+				snapshotData.delegateWeightSnapshot.push({
+					delegateAddress: address,
+					delegateWeight: account.totalVotesReceived,
+				});
+				continue;
+			}
+			break;
+		}
+
+		const snapshotStore = context.getStore(this.id, STORE_PREFIX_SNAPSHOT);
+		const storeKey = intToBuffer(snapshotRound, 4);
+
+		await snapshotStore.setWithSchema(storeKey, snapshotData, snapshotStoreSchema);
+
+		// Remove outdated information
+		const oldData = await snapshotStore.iterate({
+			start: intToBuffer(0, 4),
+			end: intToBuffer(Math.max(0, snapshotRound - DELEGATE_LIST_ROUND_OFFSET - 1), 4),
+		});
+		for (const { key } of oldData) {
+			await snapshotStore.del(key);
+		}
+	}
 }
