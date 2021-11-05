@@ -78,7 +78,7 @@ export class Block {
 			tx.validate();
 		}
 
-		const assets = this.assets.getAllAssets();
+		const assets = this.assets.getAll();
 		let last = assets[0];
 		let i = 0;
 		for (const asset of assets) {

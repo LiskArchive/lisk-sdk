@@ -87,7 +87,7 @@ describe('block assets', () => {
 
 	describe('getAllAsset', () => {
 		it('should return list of all assets', () => {
-			expect(assets.getAllAssets()).toContainAllValues(assetList);
+			expect(assets.getAll()).toContainAllValues(assetList);
 		});
 	});
 });

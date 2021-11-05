@@ -54,7 +54,7 @@ export class BlockAssets {
 		return this._assets.find(a => a.moduleID === moduleID)?.data;
 	}
 
-	public getAllAssets(): BlockAsset[] {
+	public getAll(): BlockAsset[] {
 		return [...this._assets];
 	}
 

@@ -634,7 +634,7 @@ export class Consensus {
 	}
 
 	private _validateBlockAsset(block: Block): void {
-		for (const asset of block.assets.getAllAssets()) {
+		for (const asset of block.assets.getAll()) {
 			if (!this._stateMachine.getAllModuleIDs().includes(asset.moduleID)) {
 				throw new Error(`Module with ID: ${asset.moduleID} is not registered.`);
 			}
