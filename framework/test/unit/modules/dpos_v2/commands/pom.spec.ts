@@ -81,6 +81,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 		pomCommand = new ReportDelegateMisbehaviorCommand(MODULE_ID_DPOS);
 		mockTokenAPI = {
 			lock: jest.fn(),
+			unlock: jest.fn(),
 			getAvailableBalance: jest.fn(),
 			getMinRemainingBalance: jest.fn(),
 			transfer: jest.fn(),

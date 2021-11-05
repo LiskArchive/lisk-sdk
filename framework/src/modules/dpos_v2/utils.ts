@@ -17,7 +17,6 @@ import { NotFoundError } from '@liskhq/lisk-chain';
 import { UnlockingObject, VoterData } from './types';
 import {
 	PUNISHMENT_PERIOD,
-	SELF_VOTE_PUNISH_TIME,
 	VOTER_PUNISH_TIME,
 	WAIT_TIME_SELF_VOTE,
 	WAIT_TIME_VOTE,
@@ -45,57 +44,6 @@ export const sortUnlocking = (unlocks: UnlockingObject[]): void => {
 	});
 };
 
-export const getMinPunishedHeight = (
-	senderAddress: Buffer,
-	delegateAddress: Buffer,
-	pomHeights: number[],
-): number => {
-	if (pomHeights.length === 0) {
-		return 0;
-	}
-
-	const lastPomHeight = Math.max(...pomHeights);
-
-	// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0024.md#update-to-validity-of-unlock-transaction
-	return senderAddress.equals(delegateAddress)
-		? lastPomHeight + SELF_VOTE_PUNISH_TIME
-		: lastPomHeight + VOTER_PUNISH_TIME;
-};
-
-export const getPunishmentPeriod = (
-	senderAddress: Buffer,
-	delegateAddress: Buffer,
-	pomHeights: number[],
-	lastBlockHeight: number,
-): number => {
-	const currentHeight = lastBlockHeight + 1;
-	const minPunishedHeight = getMinPunishedHeight(senderAddress, delegateAddress, pomHeights);
-	const remainingBlocks = minPunishedHeight - currentHeight;
-
-	return remainingBlocks < 0 ? 0 : remainingBlocks;
-};
-
-export const getMinWaitingHeight = (
-	senderAddress: Buffer,
-	delegateAddress: Buffer,
-	unlockObject: UnlockingObject,
-): number =>
-	unlockObject.unvoteHeight +
-	(senderAddress.equals(delegateAddress) ? WAIT_TIME_SELF_VOTE : WAIT_TIME_VOTE);
-
-export const getWaitingPeriod = (
-	senderAddress: Buffer,
-	delegateAddress: Buffer,
-	lastBlockHeight: number,
-	unlockObject: UnlockingObject,
-): number => {
-	const currentHeight = lastBlockHeight + 1;
-	const minWaitingHeight = getMinWaitingHeight(senderAddress, delegateAddress, unlockObject);
-	const remainingBlocks = minWaitingHeight - currentHeight;
-
-	return remainingBlocks < 0 ? 0 : remainingBlocks;
-};
-
 export const isNullCharacterIncluded = (input: string): boolean =>
 	new RegExp(/\\0|\\u0000|\\x00/).test(input);
 
@@ -119,18 +67,6 @@ export const validateSignature = (
 	bytes: Buffer,
 ): boolean => verifyData(tag, networkIdentifier, bytes, signature, publicKey);
 
-export const isCurrentlyPunished = (height: number, pomHeights: ReadonlyArray<number>): boolean => {
-	if (pomHeights.length === 0) {
-		return false;
-	}
-	const lastPomHeight = Math.max(...pomHeights);
-	if (height - lastPomHeight < PUNISHMENT_PERIOD) {
-		return true;
-	}
-
-	return false;
-};
-
 export const getVoterOrDefault = async (voterStore: SubStore, address: Buffer) => {
 	try {
 		const voterData = await voterStore.getWithSchema<VoterData>(address, voterStoreSchema);
@@ -146,4 +82,54 @@ export const getVoterOrDefault = async (voterStore: SubStore, address: Buffer) =
 		};
 		return voterData;
 	}
+};
+
+export const isCurrentlyPunished = (height: number, pomHeights: ReadonlyArray<number>): boolean => {
+	if (pomHeights.length === 0) {
+		return false;
+	}
+	const lastPomHeight = Math.max(...pomHeights);
+	if (height - lastPomHeight < PUNISHMENT_PERIOD) {
+		return true;
+	}
+
+	return false;
+};
+
+export const hasWaited = (
+	unlockingObject: UnlockingObject,
+	senderAddress: Buffer,
+	height: number,
+) => {
+	const delayedAvailability = unlockingObject.delegateAddress.equals(senderAddress)
+		? WAIT_TIME_SELF_VOTE
+		: WAIT_TIME_VOTE;
+
+	return !(height - unlockingObject.unvoteHeight < delayedAvailability);
+};
+
+export const isPunished = (
+	unlockingObject: UnlockingObject,
+	pomHeights: ReadonlyArray<number>,
+	senderAddress: Buffer,
+	height: number,
+) => {
+	if (!pomHeights.length) {
+		return false;
+	}
+
+	const lastPomHeight = pomHeights[pomHeights.length - 1];
+
+	// If self-vote
+	if (unlockingObject.delegateAddress.equals(senderAddress)) {
+		return (
+			height - lastPomHeight < PUNISHMENT_PERIOD &&
+			lastPomHeight < unlockingObject.unvoteHeight + WAIT_TIME_SELF_VOTE
+		);
+	}
+
+	return (
+		height - lastPomHeight < VOTER_PUNISH_TIME &&
+		lastPomHeight < unlockingObject.unvoteHeight + WAIT_TIME_VOTE
+	);
 };

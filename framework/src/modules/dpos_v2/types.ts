@@ -31,8 +31,9 @@ export interface ModuleConfig {
 	punishmentWindow: number;
 	roundLength: number;
 	bftThreshold: number;
-	minWeightStandby: number;
+	minWeightStandby: bigint;
 	numberActiveDelegates: number;
+	numberStandbyDelegates: number;
 	tokenIDDPoS: TokenIDDPoS;
 }
 
@@ -89,6 +90,13 @@ export interface TokenAPI {
 		apiContext: ImmutableAPIContext,
 		senderAddress: Buffer,
 		recipientAddress: Buffer,
+		tokenID: TokenIDDPoS,
+		amount: bigint,
+	): Promise<void>;
+	unlock(
+		apiContext: APIContext,
+		address: Buffer,
+		moduleID: number,
 		tokenID: TokenIDDPoS,
 		amount: bigint,
 	): Promise<void>;
@@ -186,4 +194,17 @@ export interface PomCommandDependencies {
 export interface ValidatorKeys {
 	generatorKey: Buffer;
 	blsKey: Buffer;
+}
+
+export interface UnlockCommandDependencies {
+	tokenIDDPoS: TokenIDDPoS;
+	tokenAPI: TokenAPI;
+}
+
+export interface SnapshotStoreData {
+	activeDelegates: Buffer[];
+	delegateWeightSnapshot: {
+		delegateAddress: Buffer;
+		delegateWeight: bigint;
+	}[];
 }
