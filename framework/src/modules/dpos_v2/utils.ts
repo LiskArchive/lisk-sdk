@@ -18,6 +18,7 @@ import { UnlockingObject, VoterData } from './types';
 import {
 	PUNISHMENT_PERIOD,
 	VOTER_PUNISH_TIME,
+	SELF_VOTE_PUNISH_TIME,
 	WAIT_TIME_SELF_VOTE,
 	WAIT_TIME_VOTE,
 } from './constants';
@@ -226,4 +227,33 @@ export const isPunished = (
 		height - lastPomHeight < VOTER_PUNISH_TIME &&
 		lastPomHeight < unlockingObject.unvoteHeight + WAIT_TIME_VOTE
 	);
+};
+
+export const getMinPunishedHeight = (
+	senderAddress: Buffer,
+	delegateAddress: Buffer,
+	pomHeights: number[],
+): number => {
+	if (pomHeights.length === 0) {
+		return 0;
+	}
+
+	const lastPomHeight = Math.max(...pomHeights);
+
+	// https://github.com/LiskHQ/lips/blob/master/proposals/lip-0024.md#update-to-validity-of-unlock-transaction
+	return senderAddress.equals(delegateAddress)
+		? lastPomHeight + SELF_VOTE_PUNISH_TIME
+		: lastPomHeight + VOTER_PUNISH_TIME;
+};
+
+export const getPunishmentPeriod = (
+	senderAddress: Buffer,
+	delegateAddress: Buffer,
+	pomHeights: number[],
+	currentHeight: number,
+): number => {
+	const minPunishedHeight = getMinPunishedHeight(senderAddress, delegateAddress, pomHeights);
+	const remainingBlocks = minPunishedHeight - currentHeight;
+
+	return remainingBlocks < 0 ? 0 : remainingBlocks;
 };
