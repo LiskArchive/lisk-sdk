@@ -45,7 +45,7 @@ import {
 } from './constants';
 import { GenesisConfig } from '../../types';
 import { ValidatorAPI, BFTAPI } from './types';
-import { createAPIContext } from '../state_machine';
+import { APIContext, createAPIContext } from '../state_machine';
 import { forkChoice, ForkStatus } from './fork_choice/fork_choice_rule';
 import { createNewAPIContext } from '../state_machine/api_context';
 
@@ -465,10 +465,164 @@ export class Consensus {
 		if (block.header.version !== BLOCK_VERSION) {
 			throw new ApplyPenaltyError(`Block version must be ${BLOCK_VERSION}`);
 		}
+		const apiContext = createNewAPIContext(this._db);
+
+		// Verify timestamp
+		await this._verifyTimestamp(apiContext, block);
+
+		// Verify height
+		this._verifyBlockHeight(block);
+
+		// Verify previousBlockID
+		this._verifyPreviousBlockID(block);
+
+		// Verify generatorAddress
+		await this._verifyGeneratorAddress(apiContext, block);
+
+		// Verify BFT Properties
+		await this._verifyBFTProperties(apiContext, block);
+
+		// verify Block signature
+		await this._verifyBlockSignature(apiContext, block);
+		// Verify validatorsHash
+		await this._verifyValidatorsHash(apiContext, block);
+	}
+
+	private async _verifyTimestamp(apiContext: APIContext, block: Block): Promise<void> {
+		const blockSlotNumber = await this._validatorAPI.getSlotNumber(
+			apiContext,
+			block.header.timestamp,
+		);
+		// Check that block is not from the future
+		const currentTimestamp = Math.floor(Date.now() / 1000);
+		const currentSlotNumber = await this._validatorAPI.getSlotNumber(apiContext, currentTimestamp);
+		if (blockSlotNumber > currentSlotNumber) {
+			throw new Error(
+				`Invalid timestamp ${
+					block.header.timestamp
+				} of the block with id: ${block.header.id.toString('hex')}`,
+			);
+		}
+
+		// Check that block slot is strictly larger than the block slot of previousBlock
+		const { lastBlock } = this._chain;
+		const previousBlockSlotNumber = await this._validatorAPI.getSlotNumber(
+			apiContext,
+			lastBlock.header.timestamp,
+		);
+		if (blockSlotNumber <= previousBlockSlotNumber) {
+			throw new Error(
+				`Invalid timestamp ${
+					block.header.timestamp
+				} of the block with id: ${block.header.id.toString('hex')}`,
+			);
+		}
+	}
+
+	private _verifyPreviousBlockID(block: Block): void {
+		const { lastBlock } = this._chain;
+
+		if (!block.header.previousBlockID.equals(lastBlock.header.id)) {
+			throw new Error(
+				`Invalid previousBlockID ${block.header.previousBlockID.toString(
+					'hex',
+				)} of the block with id: ${block.header.id.toString('hex')}`,
+			);
+		}
+	}
+
+	private _verifyBlockHeight(block: Block): void {
+		const { lastBlock } = this._chain;
+
+		if (block.header.height !== lastBlock.header.height + 1) {
+			throw new Error(
+				`Invalid height ${block.header.height} of the block with id: ${block.header.id.toString(
+					'hex',
+				)}`,
+			);
+		}
+	}
+
+	private async _verifyGeneratorAddress(apiContext: APIContext, block: Block): Promise<void> {
+		// Check that the generatorAddress has the correct length of 20 bytes
+		if (block.header.generatorAddress.length !== 20) {
+			throw new Error(
+				`Invalid length of generatorAddress ${block.header.generatorAddress.toString(
+					'hex',
+				)} of the block with id: ${block.header.id.toString('hex')}`,
+			);
+		}
+		const generatorAddress = await this._validatorAPI.getGeneratorAtTimestamp(
+			apiContext,
+			block.header.timestamp,
+		);
+		// Check that the block generator is eligible to generate in this block slot.
+		if (!block.header.generatorAddress.equals(generatorAddress)) {
+			throw new Error(
+				`Generator with address ${block.header.generatorAddress.toString(
+					'hex',
+				)} of the block with id: ${block.header.id.toString(
+					'hex',
+				)} is ineligible to generate block for the current slot`,
+			);
+		}
+	}
+
+	private async _verifyBFTProperties(apiContext: APIContext, block: Block): Promise<void> {
+		const bftParams = await this._bftAPI.getBFTHeights(apiContext);
+
+		if (block.header.maxHeightPrevoted !== bftParams.maxHeightPrevoted) {
+			throw new Error(
+				`Invalid maxHeightPrevoted ${
+					block.header.maxHeightPrevoted
+				} of the block with id: ${block.header.id.toString('hex')}`,
+			);
+		}
+		const isContradictingHeaders = await this._bftAPI.isHeaderContradictingChain(
+			apiContext,
+			block.header,
+		);
+		if (isContradictingHeaders) {
+			throw new Error(
+				`Contradicting headers for the block with id: ${block.header.id.toString('hex')}`,
+			);
+		}
+	}
+
+	private async _verifyBlockSignature(apiContext: APIContext, block: Block): Promise<void> {
+		const { generatorKey } = await this._validatorAPI.getValidatorAccount(
+			apiContext,
+			block.header.generatorAddress,
+		);
+
 		try {
-			await this._chain.verifyBlock(block);
+			block.header.validateSignature(generatorKey, this._chain.networkIdentifier);
 		} catch (error) {
-			throw new ApplyPenaltyError((error as Error).message ?? 'Invalid block to be processed');
+			throw new Error(
+				`Invalid signature ${block.header.signature.toString(
+					'hex',
+				)} of the block with id: ${block.header.id.toString('hex')}`,
+			);
+		}
+	}
+
+	private async _verifyValidatorsHash(apiContext: APIContext, block: Block): Promise<void> {
+		if (!block.header.validatorsHash) {
+			throw new Error(
+				`Validators hash is "undefined" for the block with id: ${block.header.id.toString('hex')}`,
+			);
+		}
+		const { validatorsHash } = await this._bftAPI.getBFTParameters(
+			apiContext,
+			block.header.height + 1,
+		);
+
+		if (!block.header.validatorsHash.equals(validatorsHash)) {
+			throw new Error(
+				`Invalid validatorsHash ${block.header.validatorsHash?.toString(
+					'hex',
+				)} of the block with id: ${block.header.id.toString('hex')}`,
+			);
 		}
 	}
 

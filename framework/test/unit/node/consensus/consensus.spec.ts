@@ -12,9 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Block, Chain } from '@liskhq/lisk-chain';
+import { Block, BlockAssets, Chain } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
+import * as cryptography from '@liskhq/lisk-cryptography';
+import { when } from 'jest-when';
+import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { ApplyPenaltyError } from '../../../../src/errors';
 import {
 	CONSENSUS_EVENT_BLOCK_BROADCAST,
@@ -33,9 +36,16 @@ import {
 import { Network } from '../../../../src/node/network';
 import { StateMachine } from '../../../../src/node/state_machine/state_machine';
 import { loggerMock } from '../../../../src/testing/mocks';
-import { createValidDefaultBlock, genesisBlock } from '../../../fixtures';
+import {
+	createFakeBlockHeader,
+	createValidDefaultBlock,
+	defaultNetworkIdentifier,
+	genesisBlock,
+} from '../../../fixtures';
 import * as forkchoice from '../../../../src/node/consensus/fork_choice/fork_choice_rule';
 import { postBlockEventSchema } from '../../../../src/node/consensus/schema';
+import { APIContext } from '../../../../src/node/state_machine';
+import { createTransientAPIContext } from '../../../../src/testing';
 
 describe('consensus', () => {
 	const genesis = (genesisBlock() as unknown) as Block;
@@ -79,8 +89,14 @@ describe('consensus', () => {
 			getBFTHeights: jest
 				.fn()
 				.mockResolvedValue({ maxHeghgtPrevoted: 0, maxHeightPrecommitted: 0 }),
+			isHeaderContradictingChain: jest.fn(),
+			getBFTParameters: jest.fn(),
 		} as never;
-		validatorAPI = {} as never;
+		validatorAPI = {
+			getGeneratorAtTimestamp: jest.fn(),
+			getValidatorAccount: jest.fn(),
+			getSlotNumber: jest.fn(),
+		} as never;
 		consensus = new Consensus({
 			chain,
 			network,
@@ -254,7 +270,7 @@ describe('consensus', () => {
 						.spyOn(forkchoice, 'forkChoice')
 						.mockReturnValue(forkchoice.ForkStatus.DOUBLE_FORGING);
 					jest.spyOn(consensus.events, 'emit');
-					jest.spyOn(consensus, '_verify' as any);
+					jest.spyOn(consensus, '_verify' as any).mockResolvedValue(true);
 					jest.spyOn(consensus, '_executeValidated' as any);
 					await consensus.onBlockReceive(input, peerID);
 				});
@@ -276,7 +292,7 @@ describe('consensus', () => {
 				beforeEach(async () => {
 					jest.spyOn(forkchoice, 'forkChoice').mockReturnValue(forkchoice.ForkStatus.TIE_BREAK);
 					jest.spyOn(consensus.events, 'emit');
-					jest.spyOn(consensus, '_verify' as any);
+					jest.spyOn(consensus, '_verify' as any).mockResolvedValue(true);
 					jest.spyOn(consensus, '_executeValidated' as any).mockResolvedValue(undefined);
 					jest.spyOn(consensus, 'finalizedHeight').mockReturnValue(0);
 					await consensus.onBlockReceive(input, peerID);
@@ -303,7 +319,7 @@ describe('consensus', () => {
 				beforeEach(async () => {
 					jest.spyOn(forkchoice, 'forkChoice').mockReturnValue(forkchoice.ForkStatus.TIE_BREAK);
 					jest.spyOn(consensus.events, 'emit');
-					jest.spyOn(consensus, '_verify' as any);
+					jest.spyOn(consensus, '_verify' as any).mockResolvedValue(true);
 					jest
 						.spyOn(consensus, '_executeValidated' as any)
 						.mockRejectedValueOnce(new Error('invalid block'));
@@ -338,7 +354,7 @@ describe('consensus', () => {
 						.spyOn(forkchoice, 'forkChoice')
 						.mockReturnValue(forkchoice.ForkStatus.DIFFERENT_CHAIN);
 					jest.spyOn(consensus.events, 'emit');
-					jest.spyOn(consensus, '_verify' as any);
+					jest.spyOn(consensus, '_verify' as any).mockResolvedValue(true);
 					jest.spyOn(consensus, '_executeValidated' as any);
 					jest.spyOn(consensus['_synchronizer'], 'run').mockResolvedValue(undefined);
 					await consensus.onBlockReceive(input, peerID);
@@ -447,7 +463,7 @@ describe('consensus', () => {
 				beforeEach(async () => {
 					jest.spyOn(forkchoice, 'forkChoice').mockReturnValue(forkchoice.ForkStatus.DISCARD);
 					jest.spyOn(consensus.events, 'emit');
-					jest.spyOn(consensus, '_verify' as any);
+					jest.spyOn(consensus, '_verify' as any).mockResolvedValue(true);
 					jest.spyOn(consensus, '_executeValidated' as any).mockResolvedValue(undefined);
 					await consensus.onBlockReceive(input, peerID);
 				});
@@ -469,7 +485,7 @@ describe('consensus', () => {
 				beforeEach(async () => {
 					jest.spyOn(forkchoice, 'forkChoice').mockReturnValue(forkchoice.ForkStatus.VALID_BLOCK);
 					jest.spyOn(consensus.events, 'emit');
-					jest.spyOn(consensus, '_verify' as any);
+					jest.spyOn(consensus, '_verify' as any).mockResolvedValue(true);
 					jest.spyOn(consensus, '_executeValidated' as any).mockResolvedValue(undefined);
 					await consensus.onBlockReceive(input, peerID);
 				});
@@ -488,9 +504,11 @@ describe('consensus', () => {
 
 	describe('execute', () => {
 		let block: Block;
+		let apiContext: APIContext;
 
 		beforeEach(async () => {
 			block = await createValidDefaultBlock({ header: { height: 2 } });
+			apiContext = createTransientAPIContext({});
 			jest.spyOn(chain, 'saveBlock').mockResolvedValue();
 			jest.spyOn(consensus, 'finalizedHeight').mockReturnValue(0);
 
@@ -499,6 +517,278 @@ describe('consensus', () => {
 			jest.spyOn(consensus.events, 'emit');
 
 			await consensus.execute(block);
+		});
+
+		describe('block verification', () => {
+			describe('timestamp', () => {
+				it('should throw error when block timestamp is from future', async () => {
+					const invalidBlock = { ...block };
+					const now = Date.now();
+
+					Date.now = jest.fn(() => now);
+
+					(invalidBlock.header as any).timestamp = Math.floor((Date.now() + 10000) / 1000);
+					when(consensus['_validatorAPI'].getSlotNumber as any)
+						.calledWith(apiContext, (invalidBlock.header as any).timestamp)
+						.mockResolvedValue(10 as never)
+						.calledWith(apiContext, Math.floor(now / 1000))
+						.mockResolvedValue(5 as never);
+
+					await expect(
+						consensus['_verifyTimestamp'](apiContext, invalidBlock as any),
+					).rejects.toThrow(
+						`Invalid timestamp ${
+							invalidBlock.header.timestamp
+						} of the block with id: ${invalidBlock.header.id.toString('hex')}`,
+					);
+				});
+
+				it('should throw error when block slot is less than previous block slot', async () => {
+					const invalidBlock = { ...block };
+					const now = Date.now();
+
+					Date.now = jest.fn(() => now);
+
+					(invalidBlock.header as any).timestamp = Math.floor(Date.now() / 1000);
+					when(consensus['_validatorAPI'].getSlotNumber as any)
+						.calledWith(apiContext, (invalidBlock.header as any).timestamp)
+						.mockResolvedValue(10 as never)
+						.calledWith(apiContext, Math.floor(now / 1000))
+						.mockResolvedValue(10 as never);
+
+					(consensus['_chain'].lastBlock.header as any).timestamp = Math.floor(Date.now() / 1000);
+
+					await expect(
+						consensus['_verifyTimestamp'](apiContext, invalidBlock as any),
+					).rejects.toThrow(
+						`Invalid timestamp ${
+							invalidBlock.header.timestamp
+						} of the block with id: ${invalidBlock.header.id.toString('hex')}`,
+					);
+				});
+
+				it('should be success when valid block timestamp', async () => {
+					const now = Date.now();
+
+					Date.now = jest.fn(() => now);
+
+					(block.header as any).timestamp = Math.floor(Date.now() / 1000);
+					when(consensus['_validatorAPI'].getSlotNumber as any)
+						.calledWith(apiContext, (block.header as any).timestamp)
+						.mockResolvedValue(10 as never)
+						.calledWith(apiContext, Math.floor(now / 1000))
+						.mockResolvedValue(10 as never);
+
+					await expect(
+						consensus['_verifyTimestamp'](apiContext, block as any),
+					).resolves.toBeUndefined();
+				});
+			});
+
+			describe('height', () => {
+				it('should throw error when block height is equal to last block height', () => {
+					const invalidBlock = { ...block };
+					(invalidBlock.header as any).height = consensus['_chain'].lastBlock.header.height;
+
+					expect(() => consensus['_verifyBlockHeight'](invalidBlock as any)).toThrow(
+						`Invalid height ${
+							invalidBlock.header.height
+						} of the block with id: ${invalidBlock.header.id.toString('hex')}`,
+					);
+				});
+				it('should be success when block has [height===lastBlock.height+1]', () => {
+					expect(consensus['_verifyBlockHeight'](block as any)).toBeUndefined();
+				});
+			});
+
+			describe('previousBlockID', () => {
+				it('should throw error for invalid previousBlockID', () => {
+					const invalidBlock = { ...block };
+					(invalidBlock.header as any).previousBlockID = cryptography.getRandomBytes(64);
+
+					expect(() => consensus['_verifyPreviousBlockID'](block as any)).toThrow(
+						`Invalid previousBlockID ${invalidBlock.header.previousBlockID.toString(
+							'hex',
+						)} of the block with id: ${invalidBlock.header.id.toString('hex')}`,
+					);
+				});
+				it('should be success when previousBlockID is equal to lastBlock ID', async () => {
+					const validBlock = await createValidDefaultBlock({
+						header: { height: 2, previousBlockID: consensus['_chain'].lastBlock.header.id },
+					});
+					expect(consensus['_verifyPreviousBlockID'](validBlock as any)).toBeUndefined();
+				});
+			});
+
+			describe('generatorAddress', () => {
+				it('should throw error if [generatorAddress.lenght !== 20]', async () => {
+					const invalidBlock = { ...block };
+					(invalidBlock.header as any).generatorAddress = cryptography.getRandomBytes(64);
+					await expect(
+						consensus['_verifyGeneratorAddress'](apiContext, invalidBlock as any),
+					).rejects.toThrow(
+						`Invalid length of generatorAddress ${invalidBlock.header.generatorAddress.toString(
+							'hex',
+						)} of the block with id: ${invalidBlock.header.id.toString('hex')}`,
+					);
+				});
+
+				it('should throw error if generatorAddress has wrong block slot', async () => {
+					when(consensus['_validatorAPI'].getGeneratorAtTimestamp as never)
+						.calledWith(apiContext, (block.header as any).timestamp)
+						.mockResolvedValue(cryptography.getRandomBytes(20) as never);
+
+					await expect(
+						consensus['_verifyGeneratorAddress'](apiContext, block as any),
+					).rejects.toThrow(
+						`Generator with address ${block.header.generatorAddress.toString(
+							'hex',
+						)} of the block with id: ${block.header.id.toString(
+							'hex',
+						)} is ineligible to generate block for the current slot`,
+					);
+				});
+
+				it('should be success if generatorAddress is valid and has right block slot', async () => {
+					when(consensus['_validatorAPI'].getGeneratorAtTimestamp as never)
+						.calledWith(apiContext, (block.header as any).timestamp)
+						.mockResolvedValue(block.header.generatorAddress as never);
+
+					await expect(
+						consensus['_verifyGeneratorAddress'](apiContext, block as any),
+					).resolves.toBeUndefined();
+				});
+			});
+
+			describe('bftProperties', () => {
+				it('should throw error for invalid maxHeightPrevoted', async () => {
+					when(consensus['_bftAPI'].getBFTHeights as never)
+						.calledWith(apiContext)
+						.mockResolvedValue({ maxHeightPrevoted: block.header.maxHeightPrevoted + 1 } as never);
+
+					await expect(consensus['_verifyBFTProperties'](apiContext, block as any)).rejects.toThrow(
+						`Invalid maxHeightPrevoted ${
+							block.header.maxHeightPrevoted
+						} of the block with id: ${block.header.id.toString('hex')}`,
+					);
+				});
+
+				it('should throw error if the header is contradicting', async () => {
+					when(consensus['_bftAPI'].getBFTHeights as never)
+						.calledWith(apiContext)
+						.mockResolvedValue({ maxHeightPrevoted: block.header.maxHeightPrevoted } as never);
+
+					when(consensus['_bftAPI'].isHeaderContradictingChain as never)
+						.calledWith(apiContext, block.header)
+						.mockResolvedValue(true as never);
+
+					await expect(consensus['_verifyBFTProperties'](apiContext, block as any)).rejects.toThrow(
+						`Contradicting headers for the block with id: ${block.header.id.toString('hex')}`,
+					);
+				});
+
+				it('should be success if maxHeightPrevoted is valid and header is not contradicting', async () => {
+					when(consensus['_bftAPI'].getBFTHeights as never)
+						.calledWith(apiContext)
+						.mockResolvedValue({ maxHeightPrevoted: block.header.maxHeightPrevoted } as never);
+
+					when(consensus['_bftAPI'].isHeaderContradictingChain as never)
+						.calledWith(apiContext, block.header)
+						.mockResolvedValue(false as never);
+
+					await expect(
+						consensus['_verifyBFTProperties'](apiContext, block as any),
+					).resolves.toBeUndefined();
+				});
+			});
+
+			describe('signature', () => {
+				it('should throw error for invalid signature', async () => {
+					const generatorKey = cryptography.getRandomBytes(32);
+
+					when(consensus['_validatorAPI'].getValidatorAccount as never)
+						.calledWith(apiContext, block.header.generatorAddress)
+						.mockResolvedValue({ generatorKey } as never);
+
+					await expect(
+						consensus['_verifyBlockSignature'](apiContext, block as any),
+					).rejects.toThrow(
+						`Invalid signature ${block.header.signature.toString(
+							'hex',
+						)} of the block with id: ${block.header.id.toString('hex')}`,
+					);
+				});
+
+				it('should be success when valid signature', async () => {
+					const passphrase = Mnemonic.generateMnemonic();
+					const keyPair = cryptography.getPrivateAndPublicKeyFromPassphrase(passphrase);
+
+					const blockHeader = createFakeBlockHeader();
+					(blockHeader as any).generatorAddress = cryptography.getAddressFromPublicKey(
+						keyPair.publicKey,
+					);
+					(consensus['_chain'] as any).networkIdentifier = defaultNetworkIdentifier;
+
+					blockHeader.sign(consensus['_chain'].networkIdentifier, keyPair.privateKey);
+					const validBlock = new Block(blockHeader, [], new BlockAssets());
+
+					when(consensus['_validatorAPI'].getValidatorAccount as never)
+						.calledWith(apiContext, validBlock.header.generatorAddress)
+						.mockResolvedValue({ generatorKey: keyPair.publicKey } as never);
+
+					await expect(
+						consensus['_verifyBlockSignature'](apiContext, validBlock as any),
+					).resolves.toBeUndefined();
+				});
+			});
+
+			describe('validatorsHash', () => {
+				it('should throw error when validatorsHash is undefined', async () => {
+					when(consensus['_bftAPI'].getBFTParameters as never)
+						.calledWith(apiContext, block.header.height + 1)
+						.mockResolvedValue({
+							validatorsHash: cryptography.hash(cryptography.getRandomBytes(32)),
+						} as never);
+
+					block.header.validatorsHash = undefined;
+					block.header['_signature'] = cryptography.getRandomBytes(64);
+					block.header['_id'] = cryptography.getRandomBytes(64);
+
+					await expect(
+						consensus['_verifyValidatorsHash'](apiContext, block as any),
+					).rejects.toThrow(
+						`Validators hash is "undefined" for the block with id: ${block.header.id.toString(
+							'hex',
+						)}`,
+					);
+				});
+
+				it('should throw error for invalid validatorsHash', async () => {
+					when(consensus['_bftAPI'].getBFTParameters as never)
+						.calledWith(apiContext, block.header.height + 1)
+						.mockResolvedValue({
+							validatorsHash: cryptography.hash(cryptography.getRandomBytes(32)),
+						} as never);
+
+					await expect(
+						consensus['_verifyValidatorsHash'](apiContext, block as any),
+					).rejects.toThrow(
+						`Invalid validatorsHash ${block.header.validatorsHash?.toString(
+							'hex',
+						)} of the block with id: ${block.header.id.toString('hex')}`,
+					);
+				});
+
+				it('should be success for valid validatorsHash', async () => {
+					when(consensus['_bftAPI'].getBFTParameters as never)
+						.calledWith(apiContext, block.header.height + 1)
+						.mockResolvedValue({ validatorsHash: block.header.validatorsHash } as never);
+
+					await expect(
+						consensus['_verifyValidatorsHash'](apiContext, block as any),
+					).resolves.toBeUndefined();
+				});
+			});
 		});
 
 		it('should verify block using state machine', () => {

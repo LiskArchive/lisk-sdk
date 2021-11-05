@@ -86,6 +86,13 @@ export interface TokenAPI {
 		tokenID: TokenIDDPoS,
 		amount: bigint,
 	): Promise<void>;
+	unlock(
+		apiContext: APIContext,
+		address: Buffer,
+		moduleID: number,
+		tokenID: TokenIDDPoS,
+		amount: bigint,
+	): Promise<void>;
 }
 
 export interface UnlockingObject {
@@ -155,6 +162,11 @@ export interface VoteTransactionParams {
 }
 
 export interface VoteCommandDependencies {
+	tokenIDDPoS: TokenIDDPoS;
+	tokenAPI: TokenAPI;
+}
+
+export interface UnlockCommandDependencies {
 	tokenIDDPoS: TokenIDDPoS;
 	tokenAPI: TokenAPI;
 }
