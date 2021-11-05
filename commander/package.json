@@ -108,7 +108,7 @@
 		"@oclif/parser": "3.8.5",
 		"@oclif/plugin-autocomplete": "0.3.0",
 		"@oclif/plugin-help": "3.2.2",
-		"axios": "0.21.1",
+		"axios": "0.21.2",
 		"bip39": "3.0.3",
 		"chalk": "4.1.0",
 		"cli-table3": "0.6.0",
