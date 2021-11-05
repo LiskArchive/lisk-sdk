@@ -30,8 +30,9 @@ export interface ModuleConfig {
 	punishmentWindow: number;
 	roundLength: number;
 	bftThreshold: number;
-	minWeightStandby: number;
+	minWeightStandby: bigint;
 	numberActiveDelegates: number;
+	numberStandbyDelegates: number;
 	tokenIDDPoS: TokenIDDPoS;
 }
 
@@ -159,4 +160,12 @@ export interface VoteCommandDependencies {
 export interface UnlockCommandDependencies {
 	tokenIDDPoS: TokenIDDPoS;
 	tokenAPI: TokenAPI;
+}
+
+export interface SnapshotStoreData {
+	activeDelegates: Buffer[];
+	delegateWeightSnapshot: {
+		delegateAddress: Buffer;
+		delegateWeight: bigint;
+	}[];
 }

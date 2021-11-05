@@ -120,6 +120,7 @@ export const nameStoreSchema = {
 };
 
 export const snapshotStoreSchema = {
+	$id: '/dpos/store/snapshot',
 	type: 'object',
 	required: ['activeDelegates', 'delegateWeightSnapshot'],
 	properties: {
@@ -277,46 +278,63 @@ export const configSchema = {
 	type: 'object',
 	properties: {
 		factorSelfVotes: {
-			dataType: 'uint32',
+			type: 'integer',
+			format: 'uint32',
 		},
 		maxLengthName: {
-			dataType: 'uint32',
+			type: 'integer',
+			format: 'uint32',
 		},
 		maxNumberSentVotes: {
-			dataType: 'uint32',
+			type: 'integer',
+			format: 'uint32',
 		},
 		maxNumberPendingUnlocks: {
-			dataType: 'uint32',
+			type: 'integer',
+			format: 'uint32',
 		},
 		failSafeMissedBlocks: {
-			dataType: 'uint32',
+			type: 'integer',
+			format: 'uint32',
 		},
 		failSafeInactiveWindow: {
-			dataType: 'uint32',
+			type: 'integer',
+			format: 'uint32',
 		},
 		punishmentWindow: {
-			dataType: 'uint32',
+			type: 'integer',
+			format: 'uint32',
 		},
 		roundLength: {
-			dataType: 'uint32',
+			type: 'integer',
+			format: 'uint32',
 		},
 		bftThreshold: {
-			dataType: 'uint32',
+			type: 'integer',
+			format: 'uint32',
 		},
 		minWeightStandby: {
-			dataType: 'uint32',
+			type: 'string',
+			format: 'uint64',
 		},
 		numberActiveDelegates: {
-			dataType: 'uint32',
+			type: 'integer',
+			format: 'uint32',
+		},
+		numberStandbyDelegates: {
+			type: 'integer',
+			format: 'uint32',
 		},
 		tokenIDDPoS: {
 			type: 'object',
 			properties: {
 				chainID: {
-					dataType: 'uint32',
+					type: 'integer',
+					format: 'uint32',
 				},
 				localID: {
-					dataType: 'uint32',
+					type: 'integer',
+					format: 'uint32',
 				},
 			},
 			required: ['chainID', 'localID'],
@@ -334,6 +352,7 @@ export const configSchema = {
 		'bftThreshold',
 		'minWeightStandby',
 		'numberActiveDelegates',
+		'numberStandbyDelegates',
 		'tokenIDDPoS',
 	],
 };
