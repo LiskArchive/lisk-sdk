@@ -27,7 +27,7 @@ import * as dposUtils from '../../../../../src/modules/dpos_v2/utils';
 import * as testing from '../../../../../src/testing';
 import {
 	COMMAND_ID_POM,
-	LAST_BLOCK_REWARD,
+	REPORTING_PUNISHMENT_REWARD,
 	MODULE_ID_DPOS,
 	STORE_PREFIX_DELEGATE,
 } from '../../../../../src/modules/dpos_v2/constants';
@@ -49,7 +49,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 	let mockValidatorsAPI: ValidatorsAPI;
 	let mockBFTAPI: BFTAPI;
 	const blockHeight = 8760000;
-	const lastBlockReward = LAST_BLOCK_REWARD;
+	const reportPunishmentReward = REPORTING_PUNISHMENT_REWARD;
 	let context: any;
 	let misBehavingDelegate: DelegateAccount;
 	let normalDelegate: DelegateAccount;
@@ -461,11 +461,8 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 
 		it('should throw error when header2 is not properly signed', async () => {
 			transactionParamsDecoded = {
-				header2: codec.encode(blockHeaderSchema, {
-					...transactionParamsPreDecoded.header2,
-					generatorAddress: transactionParamsPreDecoded.header2.generatorAddress,
-				}),
 				header1: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header1),
+				header2: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header2),
 			};
 			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
 			transaction.params = transactionParams;
@@ -502,15 +499,11 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 		});
 
 		it('should throw error if misbehaving account is not a delegate', async () => {
-			const updatedDelegateAccount = objects.cloneDeep(misBehavingDelegate);
-			updatedDelegateAccount.name = '';
-			await delegateSubstore.setWithSchema(
-				delegate1Address,
-				updatedDelegateAccount,
-				delegateStoreSchema,
-			);
 			transactionParamsDecoded = {
-				header1: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header1),
+				header1: codec.encode(blockHeaderSchema, {
+					...transactionParamsPreDecoded.header1,
+					generatorAddress: getRandomBytes(32),
+				}),
 				header2: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header2),
 			};
 			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
@@ -523,7 +516,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				})
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
-			await expect(pomCommand.execute(context)).rejects.toThrow('Account is not a delegate');
+			await expect(pomCommand.execute(context)).rejects.toThrow();
 		});
 
 		it('should throw error if misbehaving account is already banned', async () => {
@@ -582,8 +575,8 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			);
 		});
 
-		it('should reward the sender with last block reward if delegate have enough balance', async () => {
-			const remainingBalance = lastBlockReward + BigInt('10000000000');
+		it('should reward the sender with 1 LSK if delegate has enough balance', async () => {
+			const remainingBalance = reportPunishmentReward + BigInt('10000000000');
 			const minRemainingBalance = BigInt('5000000');
 
 			transactionParamsDecoded = {
@@ -614,11 +607,11 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				delegate1Address,
 				context.transaction.senderAddress,
 				{ chainID: 0, localID: 0 },
-				lastBlockReward,
+				reportPunishmentReward,
 			);
 		});
 
-		it('should not reward the sender if delegate does not have enough minimum remaining balance', async () => {
+		it('should not reward the sender if delegate does not has enough minimum remaining balance', async () => {
 			const remainingBalance = BigInt(100);
 			const minRemainingBalance = BigInt('5000000');
 
@@ -655,8 +648,8 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			);
 		});
 
-		it('should add (remaining balance - min remaining balance) of delegate to balance of the sender if delegate balance is less than last block reward', async () => {
-			const remainingBalance = lastBlockReward - BigInt(1);
+		it('should add (remaining balance - min remaining balance) of delegate to balance of the sender if delegate balance is less than report punishment reward', async () => {
+			const remainingBalance = reportPunishmentReward - BigInt(1);
 			const minRemainingBalance = BigInt('5000000');
 
 			transactionParamsDecoded = {
@@ -713,7 +706,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				delegateStoreSchema,
 			);
 
-			expect(updatedDelegate.pomHeights).toEqual([blockHeight + 1]);
+			expect(updatedDelegate.pomHeights).toEqual([blockHeight]);
 		});
 
 		it('should set isBanned property to true is pomHeights.length === 5', async () => {
@@ -748,7 +741,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				delegateStoreSchema,
 			);
 
-			expect(updatedDelegate.pomHeights).toEqual([...pomHeights, blockHeight + 1]);
+			expect(updatedDelegate.pomHeights).toEqual([...pomHeights, blockHeight]);
 			expect(updatedDelegate.pomHeights).toHaveLength(5);
 			expect(updatedDelegate.isBanned).toBeTrue();
 		});

@@ -23,7 +23,7 @@ import {
 import { BaseCommand } from '../../base_command';
 import {
 	COMMAND_ID_POM,
-	LAST_BLOCK_REWARD,
+	REPORTING_PUNISHMENT_REWARD,
 	MAX_POM_HEIGHTS,
 	MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE,
 	STORE_PREFIX_DELEGATE,
@@ -95,7 +95,7 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async execute(context: CommandExecuteContext<PomTransactionParams>): Promise<void> {
 		const { networkIdentifier, getAPIContext, getStore, params, transaction, header } = context;
-		const currentHeight = header.height + 1;
+		const currentHeight = header.height;
 		const header1 = BlockHeader.fromBytes(params.header1);
 		const header2 = BlockHeader.fromBytes(params.header2);
 		/*
@@ -124,10 +124,6 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 			delegateAddress,
 			delegateStoreSchema,
 		);
-
-		if (delegateAccount.name === '') {
-			throw new Error('Account is not a delegate.');
-		}
 
 		if (delegateAccount.isBanned) {
 			throw new Error('Cannot apply proof-of-misbehavior. Delegate is already banned.');
@@ -195,30 +191,16 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 				: BigInt(0);
 
 		const reward =
-			LAST_BLOCK_REWARD > delegateSubtractableBalance
+			REPORTING_PUNISHMENT_REWARD > delegateSubtractableBalance
 				? delegateSubtractableBalance
-				: LAST_BLOCK_REWARD;
+				: REPORTING_PUNISHMENT_REWARD;
 
-		/*
-			Update delegate account
-		*/
+		delegateAccount.pomHeights.push(currentHeight);
 
-		// Fetch delegate account again in case sender and delegate are the same account
-		const updatedDelegateAccount = await delegateSubStore.getWithSchema<DelegateAccount>(
-			delegateAddress,
-			delegateStoreSchema,
-		);
-
-		updatedDelegateAccount.pomHeights.push(currentHeight);
-
-		if (updatedDelegateAccount.pomHeights.length >= MAX_POM_HEIGHTS) {
-			updatedDelegateAccount.isBanned = true;
+		if (delegateAccount.pomHeights.length >= MAX_POM_HEIGHTS) {
+			delegateAccount.isBanned = true;
 		}
-		await delegateSubStore.setWithSchema(
-			delegateAddress,
-			updatedDelegateAccount,
-			delegateStoreSchema,
-		);
+		await delegateSubStore.setWithSchema(delegateAddress, delegateAccount, delegateStoreSchema);
 
 		if (reward > BigInt(0)) {
 			await this._tokenAPI.transfer(
