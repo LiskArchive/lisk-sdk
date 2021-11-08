@@ -26,6 +26,6 @@ export * from './hash_onion';
 export * from './message_tag';
 export * from './bls';
 export { blsPopVerify, blsPopProve } from './bls_lib/lib';
-export { getRandomBytes } from './nacl';
+export { getRandomBytes, getPublicKey } from './nacl';
 
 export { constants };

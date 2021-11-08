@@ -2,7 +2,7 @@
 	"peers": {
 		"list": [
 			{
-				"ip": "testnet-seed-01.lisk.io",
+				"ip": "testnet-seed-01.lisk.com",
 				"port": 7001
 			},
 			{
@@ -10,7 +10,7 @@
 				"port": 7001
 			},
 			{
-				"ip": "testnet-seed-03.lisk.io",
+				"ip": "testnet-seed-03.lisk.com",
 				"port": 7001
 			},
 			{
@@ -18,7 +18,7 @@
 				"port": 7001
 			},
 			{
-				"ip": "testnet-seed-05.lisk.io",
+				"ip": "testnet-seed-05.lisk.com",
 				"port": 7001
 			}
 		]

@@ -14,7 +14,12 @@
  */
 
 import { codec, Schema } from '@liskhq/lisk-codec';
-import { getAddressAndPublicKeyFromPassphrase, signData, hash } from '@liskhq/lisk-cryptography';
+import {
+	getAddressAndPublicKeyFromPassphrase,
+	signData,
+	signDataWithPrivateKey,
+	hash,
+} from '@liskhq/lisk-cryptography';
 import { validateTransaction } from './validate';
 import { baseTransactionSchema } from './schema';
 import { TAG_TRANSACTION } from './constants';
@@ -189,4 +194,116 @@ export const signMultiSignatureTransaction = (
 	sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);
 
 	return { ...transactionObject, id: hash(getBytes(paramsSchema, transactionObject)) };
+};
+
+export const signTransactionWithPrivateKey = (
+	assetSchema: object,
+	transactionObject: Record<string, unknown>,
+	networkIdentifier: Buffer,
+	privateKey: Buffer,
+): Record<string, unknown> => {
+	if (!networkIdentifier.length) {
+		throw new Error('Network identifier is required to sign a transaction');
+	}
+
+	if (!privateKey.length || privateKey.length !== 64) {
+		throw new Error('Private key must be 64 bytes');
+	}
+
+	const validationErrors = validateTransaction(assetSchema, transactionObject);
+	if (validationErrors) {
+		throw validationErrors;
+	}
+
+	const transactionWithNetworkIdentifierBytes = Buffer.concat([
+		networkIdentifier,
+		getSigningBytes(assetSchema, transactionObject),
+	]);
+
+	const signature = signDataWithPrivateKey(
+		TAG_TRANSACTION,
+		networkIdentifier,
+		transactionWithNetworkIdentifierBytes,
+		privateKey,
+	);
+
+	// eslint-disable-next-line no-param-reassign
+	transactionObject.signatures = [signature];
+	return { ...transactionObject, id: hash(getBytes(assetSchema, transactionObject)) };
+};
+
+export const signMultiSignatureTransactionWithPrivateKey = (
+	assetSchema: object,
+	transactionObject: Record<string, unknown>,
+	networkIdentifier: Buffer,
+	privateKey: Buffer,
+	keys: MultiSignatureKeys,
+	includeSenderSignature = false,
+): Record<string, unknown> => {
+	if (!networkIdentifier.length) {
+		throw new Error('Network identifier is required to sign a transaction');
+	}
+
+	if (!privateKey.length || privateKey.length !== 64) {
+		throw new Error('Private key must be 64 bytes');
+	}
+
+	if (!Array.isArray(transactionObject.signatures)) {
+		throw new Error('Signatures must be of type array');
+	}
+
+	const validationErrors = validateTransaction(assetSchema, transactionObject);
+	if (validationErrors) {
+		throw validationErrors;
+	}
+
+	const { senderPublicKey: publicKey } = transactionObject;
+
+	// Sort keys
+	keys.mandatoryKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
+	keys.optionalKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
+
+	const transactionWithNetworkIdentifierBytes = Buffer.concat([
+		networkIdentifier,
+		getSigningBytes(assetSchema, transactionObject),
+	]);
+
+	const signature = signDataWithPrivateKey(
+		TAG_TRANSACTION,
+		networkIdentifier,
+		transactionWithNetworkIdentifierBytes,
+		privateKey,
+	);
+
+	if (includeSenderSignature && Buffer.isBuffer(transactionObject.senderPublicKey)) {
+		// eslint-disable-next-line no-param-reassign
+		transactionObject.signatures[0] = signature;
+	}
+
+	// Locate where this public key should go in the signatures array
+	const mandatoryKeyIndex = keys.mandatoryKeys.findIndex(aPublicKey =>
+		aPublicKey.equals(publicKey as Buffer),
+	);
+	const optionalKeyIndex = keys.optionalKeys.findIndex(aPublicKey =>
+		aPublicKey.equals(publicKey as Buffer),
+	);
+
+	// If it's a mandatory Public Key find where to add the signature
+	if (mandatoryKeyIndex !== -1) {
+		const signatureOffset = includeSenderSignature ? 1 : 0;
+		// eslint-disable-next-line no-param-reassign
+		transactionObject.signatures[mandatoryKeyIndex + signatureOffset] = signature;
+	}
+
+	if (optionalKeyIndex !== -1) {
+		const signatureOffset = includeSenderSignature ? 1 : 0;
+		// eslint-disable-next-line no-param-reassign
+		transactionObject.signatures[
+			keys.mandatoryKeys.length + optionalKeyIndex + signatureOffset
+		] = signature;
+	}
+
+	sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);
+
+	return { ...transactionObject, id: hash(getBytes(assetSchema, transactionObject)) };
 };
