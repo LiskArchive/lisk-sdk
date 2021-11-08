@@ -197,7 +197,7 @@ export const signMultiSignatureTransaction = (
 };
 
 export const signTransactionWithPrivateKey = (
-	assetSchema: object,
+	paramsSchema: object,
 	transactionObject: Record<string, unknown>,
 	networkIdentifier: Buffer,
 	privateKey: Buffer,
@@ -210,14 +210,14 @@ export const signTransactionWithPrivateKey = (
 		throw new Error('Private key must be 64 bytes');
 	}
 
-	const validationErrors = validateTransaction(assetSchema, transactionObject);
+	const validationErrors = validateTransaction(paramsSchema, transactionObject);
 	if (validationErrors) {
 		throw validationErrors;
 	}
 
 	const transactionWithNetworkIdentifierBytes = Buffer.concat([
 		networkIdentifier,
-		getSigningBytes(assetSchema, transactionObject),
+		getSigningBytes(paramsSchema, transactionObject),
 	]);
 
 	const signature = signDataWithPrivateKey(
@@ -229,11 +229,11 @@ export const signTransactionWithPrivateKey = (
 
 	// eslint-disable-next-line no-param-reassign
 	transactionObject.signatures = [signature];
-	return { ...transactionObject, id: hash(getBytes(assetSchema, transactionObject)) };
+	return { ...transactionObject, id: hash(getBytes(paramsSchema, transactionObject)) };
 };
 
 export const signMultiSignatureTransactionWithPrivateKey = (
-	assetSchema: object,
+	paramsSchema: object,
 	transactionObject: Record<string, unknown>,
 	networkIdentifier: Buffer,
 	privateKey: Buffer,
@@ -252,7 +252,7 @@ export const signMultiSignatureTransactionWithPrivateKey = (
 		throw new Error('Signatures must be of type array');
 	}
 
-	const validationErrors = validateTransaction(assetSchema, transactionObject);
+	const validationErrors = validateTransaction(paramsSchema, transactionObject);
 	if (validationErrors) {
 		throw validationErrors;
 	}
@@ -265,7 +265,7 @@ export const signMultiSignatureTransactionWithPrivateKey = (
 
 	const transactionWithNetworkIdentifierBytes = Buffer.concat([
 		networkIdentifier,
-		getSigningBytes(assetSchema, transactionObject),
+		getSigningBytes(paramsSchema, transactionObject),
 	]);
 
 	const signature = signDataWithPrivateKey(
@@ -305,5 +305,5 @@ export const signMultiSignatureTransactionWithPrivateKey = (
 
 	sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);
 
-	return { ...transactionObject, id: hash(getBytes(assetSchema, transactionObject)) };
+	return { ...transactionObject, id: hash(getBytes(paramsSchema, transactionObject)) };
 };
