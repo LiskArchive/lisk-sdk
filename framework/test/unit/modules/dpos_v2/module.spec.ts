@@ -29,7 +29,7 @@ import {
 	STORE_PREFIX_SNAPSHOT,
 } from '../../../../src/modules/dpos_v2/constants';
 import { delegateStoreSchema, snapshotStoreSchema } from '../../../../src/modules/dpos_v2/schemas';
-import { SnapshotStoreData } from '../../../../src/modules/dpos_v2/types';
+import { SnapshotStoreData, ValidatorsAPI } from '../../../../src/modules/dpos_v2/types';
 
 describe('DPoS module', () => {
 	const defaultConfigs = {
@@ -422,6 +422,232 @@ describe('DPoS module', () => {
 				await expect(snapshotStore.has(intToBuffer(10, 4))).resolves.toBeFalse();
 				await expect(snapshotStore.has(intToBuffer(11, 4))).resolves.toBeTrue();
 				await expect(snapshotStore.has(intToBuffer(12, 4))).resolves.toBeTrue();
+			});
+		});
+	});
+
+	describe('_updateValidators', () => {
+		let dpos: DPoSModule;
+
+		beforeEach(async () => {
+			dpos = new DPoSModule();
+			await dpos.init({
+				generatorConfig: {},
+				genesisConfig: {} as GenesisConfig,
+				moduleConfig: defaultConfigs,
+			});
+		});
+
+		describe('given valid scenarios', () => {
+			const scenarios = [
+				forgerSelectionZeroStandbyScenario,
+				forgerSelectionOneStandbyScenario,
+				forgerSelectionTwoStandbyScenario,
+				forgerSelectionLessTHan103Scenario,
+				forgerSelectionMoreThan2StandByScenario,
+			];
+			const defaultRound = 5;
+
+			for (const scenario of scenarios) {
+				// eslint-disable-next-line jest/valid-title,no-loop-func
+				describe(scenario.title, () => {
+					it('should result in the expected forgers list', async () => {
+						// Forger selection relies on vote weight to be sorted
+						const delegates = [
+							...scenario.testCases.input.voteWeights.map(d => ({
+								delegateAddress: Buffer.from(d.address, 'hex'),
+								delegateWeight: BigInt(d.voteWeight),
+							})),
+						];
+						delegates.sort((a, b) => {
+							const diff = b.delegateWeight - a.delegateWeight;
+							if (diff > BigInt(0)) {
+								return 1;
+							}
+							if (diff < BigInt(0)) {
+								return -1;
+							}
+							return a.delegateAddress.compare(b.delegateAddress);
+						});
+						const stateStore = new StateStore(new InMemoryKVStore());
+						const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
+						const activeDelegates = delegates
+							.slice(0, defaultConfigs.numberActiveDelegates)
+							.map(d => d.delegateAddress);
+						await snapshotStore.setWithSchema(
+							intToBuffer(defaultRound, 4),
+							{
+								activeDelegates,
+								delegateWeightSnapshot: delegates.slice(defaultConfigs.numberActiveDelegates),
+							},
+							snapshotStoreSchema,
+						);
+						const randomAPI = {
+							getRandomBytes: jest
+								.fn()
+								.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed1, 'hex'))
+								.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed2, 'hex')),
+						};
+						const bftAPI = {
+							setBFTParameters: jest.fn(),
+							getBFTParameters: jest.fn().mockResolvedValueOnce({
+								precommitThreshold: defaultConfigs.bftThreshold,
+								certificateThreshold: defaultConfigs.bftThreshold,
+								validators: activeDelegates.map(d => ({
+									address: d,
+									bftWeight: BigInt(1),
+								})),
+							}),
+							areHeadersContradicting: jest.fn(),
+						};
+						const validatorAPI = {
+							setGeneratorList: jest.fn(),
+							setValidatorGeneratorKey: jest.fn(),
+							registerValidatorKeys: jest.fn(),
+							getValidatorAccount: jest.fn(),
+						};
+						const tokenAPI = {
+							lock: jest.fn(),
+							unlock: jest.fn(),
+							getAvailableBalance: jest.fn(),
+							getMinRemainingBalance: jest.fn(),
+							transfer: jest.fn(),
+						};
+
+						dpos.addDependencies(randomAPI, bftAPI, validatorAPI, tokenAPI);
+						const context = createBlockContext({
+							header: createFakeBlockHeader({
+								height: (defaultRound - 1) * defaultConfigs.roundLength,
+							}),
+							stateStore,
+						}).getBlockAfterExecuteContext();
+
+						await dpos['_updateValidators'](context);
+
+						expect(validatorAPI.setGeneratorList).toHaveBeenCalledTimes(1);
+						const forgersList = validatorAPI.setGeneratorList.mock.calls[0][1] as Buffer[];
+
+						expect(forgersList.length).toBeGreaterThan(1);
+
+						const forgersListAddresses = forgersList.sort((a, b) => a.compare(b));
+
+						const sortedFixturesForgersBuffer = scenario.testCases.output.selectedForgers
+							.map(aForger => Buffer.from(aForger, 'hex'))
+							.sort((a, b) => a.compare(b));
+
+						expect(forgersListAddresses).toEqual(sortedFixturesForgersBuffer);
+
+						expect(bftAPI.getBFTParameters).toHaveBeenCalledTimes(1);
+						expect(bftAPI.setBFTParameters).toHaveBeenCalledTimes(1);
+					});
+				});
+			}
+		});
+
+		describe('when there are enough standby delegates', () => {
+			const defaultRound = 123;
+			let validatorAPI: ValidatorsAPI;
+
+			const scenario = forgerSelectionMoreThan2StandByScenario;
+
+			beforeEach(async () => {
+				// Forger selection relies on vote weight to be sorted
+				const delegates: { delegateAddress: Buffer; delegateWeight: bigint }[] = [
+					...scenario.testCases.input.voteWeights.map(d => ({
+						delegateAddress: Buffer.from(d.address, 'hex'),
+						delegateWeight: BigInt(d.voteWeight),
+					})),
+				];
+				delegates.sort((a, b) => {
+					const diff = BigInt(b.delegateWeight) - BigInt(a.delegateWeight);
+					if (diff > BigInt(0)) {
+						return 1;
+					}
+					if (diff < BigInt(0)) {
+						return -1;
+					}
+					return a.delegateAddress.compare(b.delegateAddress);
+				});
+
+				const stateStore = new StateStore(new InMemoryKVStore());
+				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
+				const activeDelegates = delegates
+					.slice(0, defaultConfigs.numberActiveDelegates)
+					.map(d => d.delegateAddress);
+				await snapshotStore.setWithSchema(
+					intToBuffer(defaultRound, 4),
+					{
+						activeDelegates,
+						delegateWeightSnapshot: delegates.slice(defaultConfigs.numberActiveDelegates),
+					},
+					snapshotStoreSchema,
+				);
+				const randomAPI = {
+					getRandomBytes: jest
+						.fn()
+						.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed1, 'hex'))
+						.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed2, 'hex')),
+				};
+				const bftAPI = {
+					setBFTParameters: jest.fn(),
+					getBFTParameters: jest.fn().mockResolvedValueOnce({
+						precommitThreshold: defaultConfigs.bftThreshold,
+						certificateThreshold: defaultConfigs.bftThreshold,
+						validators: activeDelegates.map(d => ({
+							address: d,
+							bftWeight: BigInt(1),
+						})),
+					}),
+					areHeadersContradicting: jest.fn(),
+				};
+				validatorAPI = {
+					setGeneratorList: jest.fn(),
+					setValidatorGeneratorKey: jest.fn(),
+					registerValidatorKeys: jest.fn(),
+					getValidatorAccount: jest.fn(),
+				};
+				const tokenAPI = {
+					lock: jest.fn(),
+					unlock: jest.fn(),
+					getAvailableBalance: jest.fn(),
+					getMinRemainingBalance: jest.fn(),
+					transfer: jest.fn(),
+				};
+
+				dpos.addDependencies(randomAPI, bftAPI, validatorAPI, tokenAPI);
+				const context = createBlockContext({
+					header: createFakeBlockHeader({
+						height: (defaultRound - 1) * defaultConfigs.roundLength,
+					}),
+					stateStore,
+				}).getBlockAfterExecuteContext();
+
+				await dpos['_updateValidators'](context);
+			});
+
+			it('should have activeDelegates + standbyDelegates delegates in the forgers list', () => {
+				expect(validatorAPI.setGeneratorList).toHaveBeenCalledTimes(1);
+				const forgersList = (validatorAPI.setGeneratorList as jest.Mock).mock.calls[0][1];
+				expect(forgersList).toHaveLength(defaultConfigs.roundLength);
+			});
+
+			it('should store selected stand by delegates in the forgers list', () => {
+				const { selectedForgers } = scenario.testCases.output;
+				const standbyDelegatesInFixture = [
+					Buffer.from(selectedForgers[selectedForgers.length - 1], 'hex'),
+					Buffer.from(selectedForgers[selectedForgers.length - 2], 'hex'),
+				].sort((a, b) => a.compare(b));
+
+				const forgersList = (validatorAPI.setGeneratorList as jest.Mock).mock
+					.calls[0][1] as Buffer[];
+				const standbyCandidatesAddresses = forgersList
+					.filter(
+						addr => standbyDelegatesInFixture.find(fixture => fixture.equals(addr)) !== undefined,
+					)
+					.sort((a, b) => a.compare(b));
+
+				expect(standbyCandidatesAddresses).toHaveLength(2);
+				expect(standbyCandidatesAddresses).toEqual(standbyDelegatesInFixture);
 			});
 		});
 	});
