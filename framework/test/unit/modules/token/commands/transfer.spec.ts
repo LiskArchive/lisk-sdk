@@ -11,18 +11,25 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { TokenModule } from '../../../../src/modules/token';
 
-describe('token module', () => {
-	let tokenModule: TokenModule;
+import { TokenAPI } from '../../../../../src/modules/token/api';
+import { TransferCommand } from '../../../../../src/modules/token/commands/transfer';
+
+describe('Transfer command', () => {
+	let command: TransferCommand;
 
 	beforeEach(() => {
-		tokenModule = new TokenModule();
+		const moduleID = 2;
+		command = new TransferCommand(moduleID);
+		const api = new TokenAPI(moduleID);
+		command.init({
+			api,
+		});
 	});
 
-	describe('afterGenesisBlockExecute', () => {
-		it('should setup initial state', async () => {
-			return expect(tokenModule.afterGenesisBlockExecute({} as never)).resolves.toBeUndefined();
+	describe('execute', () => {
+		it('should execute', async () => {
+			await expect(command.execute({} as never)).rejects.toThrow();
 		});
 	});
 });

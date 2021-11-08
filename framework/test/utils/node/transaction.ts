@@ -17,7 +17,7 @@ import { Transaction, BlockHeader, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressAndPublicKeyFromPassphrase, signData } from '@liskhq/lisk-cryptography';
 import { signMultiSignatureTransaction } from '@liskhq/lisk-transactions';
-import { TransferAsset } from '../../../src/modules/token/transfer_asset';
+import { TransferCommand } from '../../../src/modules/token/commands/transfer';
 import { RegisterTransactionAsset } from '../../../src/modules/dpos/transaction_assets/register_transaction_asset';
 import { RegisterAsset as MultisignatureRegisterAsset } from '../../../src/modules/keys/register_asset';
 import { VoteTransactionAsset } from '../../../src/modules/dpos/transaction_assets/vote_transaction_asset';
@@ -168,16 +168,16 @@ export const createMultisignatureTransferTransaction = (input: {
 	senderPublicKey: Buffer;
 	passphrases: string[];
 }): Transaction => {
-	const { schema } = new TransferAsset(BigInt(5000000));
+	const command = new TransferCommand(2);
 	const params = {
 		recipientAddress: input.recipientAddress,
 		amount: BigInt('10000000000'),
 		data: '',
 	};
-	const encodedAsset = codec.encode(schema, params);
+	const encodedAsset = codec.encode(command.schema, params);
 	const transaction = input.passphrases.reduce<Record<string, unknown>>(
 		(prev, current) => {
-			return signMultiSignatureTransaction(schema, prev, input.networkIdentifier, current, {
+			return signMultiSignatureTransaction(command.schema, prev, input.networkIdentifier, current, {
 				mandatoryKeys: input.mandatoryKeys,
 				optionalKeys: input.optionalKeys,
 			});
