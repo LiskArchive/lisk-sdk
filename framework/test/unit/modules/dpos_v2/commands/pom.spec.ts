@@ -88,6 +88,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 		};
 		mockBFTAPI = {
 			setBFTParameters: jest.fn(),
+			getBFTParameters: jest.fn(),
 			areHeadersContradicting: jest.fn(),
 		};
 		mockValidatorsAPI = {

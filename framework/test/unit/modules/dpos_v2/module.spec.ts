@@ -498,15 +498,20 @@ describe('DPoS module', () => {
 									bftWeight: BigInt(1),
 								})),
 							}),
+							areHeadersContradicting: jest.fn(),
 						};
 						const validatorAPI = {
 							setGeneratorList: jest.fn(),
 							setValidatorGeneratorKey: jest.fn(),
 							registerValidatorKeys: jest.fn(),
+							getValidatorAccount: jest.fn(),
 						};
 						const tokenAPI = {
 							lock: jest.fn(),
 							unlock: jest.fn(),
+							getAvailableBalance: jest.fn(),
+							getMinRemainingBalance: jest.fn(),
+							transfer: jest.fn(),
 						};
 
 						dpos.addDependencies(randomAPI, bftAPI, validatorAPI, tokenAPI);
@@ -593,15 +598,20 @@ describe('DPoS module', () => {
 							bftWeight: BigInt(1),
 						})),
 					}),
+					areHeadersContradicting: jest.fn(),
 				};
 				validatorAPI = {
 					setGeneratorList: jest.fn(),
 					setValidatorGeneratorKey: jest.fn(),
 					registerValidatorKeys: jest.fn(),
+					getValidatorAccount: jest.fn(),
 				};
 				const tokenAPI = {
 					lock: jest.fn(),
 					unlock: jest.fn(),
+					getAvailableBalance: jest.fn(),
+					getMinRemainingBalance: jest.fn(),
+					transfer: jest.fn(),
 				};
 
 				dpos.addDependencies(randomAPI, bftAPI, validatorAPI, tokenAPI);
