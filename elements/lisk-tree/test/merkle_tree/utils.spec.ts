@@ -16,7 +16,7 @@
 
 import * as fixture from '../fixtures/transaction_merkle_root/transaction_merkle_root.json';
 import { MerkleTree } from '../../src/merkle_tree/merkle_tree';
-import { calculateMerkleRoot } from '../../src/merkle_tree/utils';
+import { calculateMerkleRoot, calculateMerkleRootWithLeaves } from '../../src/merkle_tree/utils';
 
 describe('utils', () => {
 	describe('calculateMerkleRoot', () => {
@@ -49,6 +49,27 @@ describe('utils', () => {
 						expect(root).toEqual(fullTree.root);
 						expect(appendPath).toEqual(await fullTree['_getAppendPathHashes']());
 						expect(size).toEqual(fullTree.size);
+					});
+				});
+			}
+		});
+	});
+
+	describe('calculateMerkleRootWithLeaves', () => {
+		describe('should generate correct merkle root info', () => {
+			for (const test of fixture.testCases) {
+				describe(test.description, () => {
+					const transactionIds = test.input.transactionIds.map(hexString =>
+						Buffer.from(hexString, 'hex'),
+					);
+					const tree = new MerkleTree();
+
+					beforeAll(async () => {
+						await tree.init(transactionIds);
+					});
+
+					it('should return correct merkle root', () => {
+						expect(calculateMerkleRootWithLeaves(transactionIds)).toEqual(tree.root);
 					});
 				});
 			}
