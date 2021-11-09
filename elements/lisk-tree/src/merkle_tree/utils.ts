@@ -15,7 +15,7 @@
 
 import { hash } from '@liskhq/lisk-cryptography';
 import { binarySearch } from '../utils';
-import { BRANCH_PREFIX, LEAF_PREFIX } from './constants';
+import { BRANCH_PREFIX, LEAF_PREFIX, EMPTY_HASH } from './constants';
 import { NodeLocation, MerkleRootInfo } from './types';
 
 export const isLeaf = (value: Buffer): boolean => value[0] === LEAF_PREFIX[0];
@@ -130,6 +130,34 @@ export const calculateMerkleRoot = ({ value, appendPath, size }: MerkleRootInfo)
 	const newAppendPath = [currentHash].concat(splicedPath);
 
 	return { root: newRoot, appendPath: newAppendPath, size: size + 1 };
+};
+
+export const largestPowerOfTwoSmallerThan = (size: number) => 2 ** Math.floor(Math.log2(size - 1));
+
+export const calculateMerkleRootWithLeaves = (data: Buffer[]): Buffer => {
+	if (data.length === 0) {
+		return EMPTY_HASH;
+	}
+
+	if (data.length === 1) {
+		// Add prefix to value
+		const leafValueWithPrefix = Buffer.concat(
+			[LEAF_PREFIX, data[0]],
+			LEAF_PREFIX.length + data[0].length,
+		);
+
+		return hash(leafValueWithPrefix);
+	}
+
+	const k = largestPowerOfTwoSmallerThan(data.length);
+	const leftTree = data.slice(0, k);
+	const rightTree = data.slice(k, data.length);
+
+	return generateHash(
+		BRANCH_PREFIX,
+		calculateMerkleRootWithLeaves(leftTree),
+		calculateMerkleRootWithLeaves(rightTree),
+	);
 };
 
 export const isLeft = (index: number): boolean => (index & 1) === 0;
