@@ -62,14 +62,13 @@ describe('utils', () => {
 					const transactionIds = test.input.transactionIds.map(hexString =>
 						Buffer.from(hexString, 'hex'),
 					);
-					const tree = new MerkleTree();
 
-					beforeAll(async () => {
-						await tree.init(transactionIds);
-					});
+					beforeAll(async () => {});
 
 					it('should return correct merkle root', () => {
-						expect(calculateMerkleRootWithLeaves(transactionIds)).toEqual(tree.root);
+						expect(calculateMerkleRootWithLeaves(transactionIds)).toEqual(
+							Buffer.from(test.output.transactionMerkleRoot, 'hex'),
+						);
 					});
 				});
 			}
