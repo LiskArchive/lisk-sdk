@@ -153,6 +153,7 @@ export const calculateMerkleRootWithLeaves = (data: Buffer[]): Buffer => {
 	const leftTree = data.slice(0, k);
 	const rightTree = data.slice(k, data.length);
 
+	// Recursively calculate branch hashes from the leaf nodes up to the tree root
 	return generateHash(
 		BRANCH_PREFIX,
 		calculateMerkleRootWithLeaves(leftTree),
