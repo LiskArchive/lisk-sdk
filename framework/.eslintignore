@@ -23,6 +23,4 @@ src/modules/keys
 test/unit/modules/keys
 src/modules/sequence
 test/unit/modules/sequence
-src/modules/token
-test/unit/modules/token
 

@@ -4,10 +4,5 @@
 		"outDir": "dist-node"
 	},
 	"include": ["src/**/*"],
-	"exclude": [
-		"src/modules/dpos/*",
-		"src/modules/token/*",
-		"src/modules/sequence/*",
-		"src/modules/keys/*"
-	]
+	"exclude": ["src/modules/dpos/*", "src/modules/sequence/*", "src/modules/keys/*"]
 }

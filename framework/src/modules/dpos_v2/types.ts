@@ -96,7 +96,7 @@ export interface TokenAPI {
 	): Promise<bigint>;
 	getMinRemainingBalance(apiContext: ImmutableAPIContext): Promise<bigint>;
 	transfer(
-		apiContext: ImmutableAPIContext,
+		apiContext: APIContext,
 		senderAddress: Buffer,
 		recipientAddress: Buffer,
 		tokenID: TokenIDDPoS,

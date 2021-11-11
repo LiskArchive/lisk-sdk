@@ -12,5 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export * from './token_module';
-export * from './transfer_asset';
+export * from './module';
+export * from './commands/transfer';
