@@ -63,8 +63,6 @@ describe('utils', () => {
 						Buffer.from(hexString, 'hex'),
 					);
 
-					beforeAll(async () => {});
-
 					it('should return correct merkle root', () => {
 						expect(calculateMerkleRootWithLeaves(transactionIds)).toEqual(
 							Buffer.from(test.output.transactionMerkleRoot, 'hex'),
