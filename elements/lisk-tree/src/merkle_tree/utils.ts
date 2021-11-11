@@ -139,6 +139,7 @@ export const calculateMerkleRootWithLeaves = (data: Buffer[]): Buffer => {
 		return EMPTY_HASH;
 	}
 
+	// If data length is 1 it is a leaf node; return the leaf hash
 	if (data.length === 1) {
 		// Add prefix to value
 		const leafValueWithPrefix = Buffer.concat(
