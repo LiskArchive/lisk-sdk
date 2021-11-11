@@ -14,7 +14,8 @@
 
 import { StateStore } from '@liskhq/lisk-chain';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { when } from 'jest-when';
 import { GenesisConfig } from '../../../../src/types';
 import { DPoSModule } from '../../../../src/modules/dpos_v2';
 import * as forgerSelectionLessTHan103Scenario from '../../../fixtures/dpos_forger_selection/dpos_forger_selection_less_than_103.json';
@@ -25,13 +26,25 @@ import * as forgerSelectionMoreThan2StandByScenario from '../../../fixtures/dpos
 import { BlockAfterExecuteContext } from '../../../../src/node/state_machine';
 import { createBlockContext, createFakeBlockHeader } from '../../../../src/testing';
 import {
+	MODULE_ID_DPOS,
 	STORE_PREFIX_DELEGATE,
+	STORE_PREFIX_PREVIOUS_TIMESTAMP,
 	STORE_PREFIX_SNAPSHOT,
 } from '../../../../src/modules/dpos_v2/constants';
-import { delegateStoreSchema, snapshotStoreSchema } from '../../../../src/modules/dpos_v2/schemas';
-import { SnapshotStoreData, ValidatorsAPI } from '../../../../src/modules/dpos_v2/types';
+import {
+	delegateStoreSchema,
+	previousTimestampStoreSchema,
+	snapshotStoreSchema,
+} from '../../../../src/modules/dpos_v2/schemas';
+import {
+	DelegateAccount,
+	SnapshotStoreData,
+	ValidatorsAPI,
+} from '../../../../src/modules/dpos_v2/types';
+import { SubStore } from '../../../../src/node/state_machine/types';
 
 describe('DPoS module', () => {
+	const EMPTY_KEY = Buffer.alloc(0);
 	const defaultConfigs = {
 		factorSelfVotes: 10,
 		maxLengthName: 20,
@@ -505,6 +518,8 @@ describe('DPoS module', () => {
 							setValidatorGeneratorKey: jest.fn(),
 							registerValidatorKeys: jest.fn(),
 							getValidatorAccount: jest.fn(),
+							getGeneratorsBetweenTimestamps: jest.fn(),
+							getGeneratorAtTimestamp: jest.fn(),
 						};
 						const tokenAPI = {
 							lock: jest.fn(),
@@ -605,6 +620,8 @@ describe('DPoS module', () => {
 					setValidatorGeneratorKey: jest.fn(),
 					registerValidatorKeys: jest.fn(),
 					getValidatorAccount: jest.fn(),
+					getGeneratorsBetweenTimestamps: jest.fn(),
+					getGeneratorAtTimestamp: jest.fn(),
 				};
 				const tokenAPI = {
 					lock: jest.fn(),
@@ -648,6 +665,514 @@ describe('DPoS module', () => {
 
 				expect(standbyCandidatesAddresses).toHaveLength(2);
 				expect(standbyCandidatesAddresses).toEqual(standbyDelegatesInFixture);
+			});
+		});
+	});
+
+	describe('_updateProductivity', () => {
+		const randomAPI: any = {};
+		const bftAPI: any = {};
+		const tokenAPI: any = {};
+
+		let validatorsAPI: any;
+		let stateStore: StateStore;
+		let delegateData: DelegateAccount[];
+		let delegateAddresses: Buffer[];
+		let previousTimestampStore: SubStore;
+		let delegateStore: SubStore;
+		let dpos: DPoSModule;
+
+		beforeEach(async () => {
+			dpos = new DPoSModule();
+			await dpos.init({
+				generatorConfig: {},
+				genesisConfig: {} as GenesisConfig,
+				moduleConfig: defaultConfigs,
+			});
+
+			stateStore = new StateStore(new InMemoryKVStore());
+
+			validatorsAPI = {
+				getGeneratorsBetweenTimestamps: jest.fn(),
+				getGeneratorAtTimestamp: jest.fn(),
+			};
+
+			dpos.addDependencies(randomAPI, bftAPI, validatorsAPI, tokenAPI);
+
+			delegateData = Array(103)
+				.fill({})
+				.map((_, index) => ({
+					name: `delegate${index}`,
+					totalVotesReceived: BigInt(0),
+					selfVotes: BigInt(0),
+					lastGeneratedHeight: 0,
+					isBanned: false,
+					pomHeights: [],
+					consecutiveMissedBlocks: 0,
+				}));
+			delegateAddresses = Array.from({ length: 103 }, _ => getRandomBytes(20));
+
+			previousTimestampStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_PREVIOUS_TIMESTAMP);
+			delegateStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
+
+			for (let i = 0; i < 103; i += 1) {
+				await delegateStore.setWithSchema(
+					delegateAddresses[i],
+					delegateData[i],
+					delegateStoreSchema,
+				);
+			}
+		});
+		describe('When only 1 delegate forged since last block', () => {
+			it('should increment "consecutiveMissedBlocks" for every forgers except forging delegate', async () => {
+				const generatorAddress = delegateAddresses[delegateAddresses.length - 1];
+				const previousTimestamp = 9260;
+				const currentTimestamp = 10290;
+				const lastForgedHeight = 926;
+				const nextForgedHeight = lastForgedHeight + 1;
+
+				const context = createBlockContext({
+					header: {
+						height: nextForgedHeight,
+						generatorAddress,
+						timestamp: currentTimestamp,
+					} as any,
+					stateStore,
+				}).getBlockAfterExecuteContext();
+
+				await previousTimestampStore.setWithSchema(
+					EMPTY_KEY,
+					{ timestamp: previousTimestamp },
+					previousTimestampStoreSchema,
+				);
+
+				const missedBlocks: Record<string, number> = {};
+				for (let i = 0; i < 103; i += 1) {
+					// Generator address forged last block of previous round where
+					// previousTimestamp points out and also forging current end
+					// of round block. Because of that updateDelegateProductivity
+					// function will substract 2 from its missed blocks and hence
+					// we assign it 2, results in 0 meaning block is not forged yet.
+					missedBlocks[delegateAddresses[i].toString('binary')] = i === 102 ? 2 : 1;
+				}
+
+				when(validatorsAPI.getGeneratorsBetweenTimestamps)
+					.calledWith(context.getAPIContext(), previousTimestamp, currentTimestamp)
+					.mockReturnValue(missedBlocks);
+
+				when(validatorsAPI.getGeneratorAtTimestamp)
+					.calledWith(context.getAPIContext(), currentTimestamp)
+					.mockReturnValue(generatorAddress);
+
+				when(validatorsAPI.getGeneratorAtTimestamp)
+					.calledWith(context.getAPIContext(), previousTimestamp)
+					.mockReturnValue(generatorAddress);
+
+				await dpos['_updateProductivity'](context, previousTimestamp);
+
+				expect.assertions(delegateAddresses.length + 1);
+				for (const delegateAddress of delegateAddresses) {
+					const currentDelegate = await delegateStore.getWithSchema<DelegateAccount>(
+						delegateAddress,
+						delegateStoreSchema,
+					);
+					if (delegateAddress.equals(generatorAddress)) {
+						expect(currentDelegate.consecutiveMissedBlocks).toBe(0);
+						expect(currentDelegate.lastGeneratedHeight).toBe(nextForgedHeight);
+					} else {
+						expect(currentDelegate.consecutiveMissedBlocks).toBe(1);
+					}
+				}
+			});
+		});
+
+		describe('When only 2 delegate missed a block since last block', () => {
+			it('should increment "consecutiveMissedBlocks" only for forgers who missed a block', async () => {
+				const lastForgerAddress = delegateAddresses[delegateAddresses.length - 4];
+				const generatorAddress = delegateAddresses[delegateAddresses.length - 1];
+				const missedForgers = [
+					delegateAddresses[delegateAddresses.length - 2],
+					delegateAddresses[delegateAddresses.length - 3],
+				];
+				const previousTimestamp = 10260;
+				const currentTimestamp = 10290;
+				const lastForgedHeight = 926;
+				const nextForgedHeight = lastForgedHeight + 1;
+
+				const context = createBlockContext({
+					header: {
+						height: nextForgedHeight,
+						generatorAddress,
+						timestamp: currentTimestamp,
+					} as any,
+					stateStore,
+				}).getBlockAfterExecuteContext();
+
+				await previousTimestampStore.setWithSchema(
+					EMPTY_KEY,
+					{ timestamp: previousTimestamp },
+					previousTimestampStoreSchema,
+				);
+
+				const missedBlocks: Record<string, number> = {};
+				for (let i = 0; i < missedForgers.length + 1 + 1; i += 1) {
+					if (i === 0) {
+						// 1 will be subtracted from this in updateDelegateProductivity
+						missedBlocks[lastForgerAddress.toString('binary')] = 1;
+					} else if (i > 0 && i < missedForgers.length + 1) {
+						// We missed blocks, nothing will be subtracted from this
+						missedBlocks[missedForgers[2 - i].toString('binary')] = 1;
+					} else {
+						// Since end of range, 1 will be subtracted from this
+						// meaning block is not forged yet
+						missedBlocks[generatorAddress.toString('binary')] = 1;
+					}
+				}
+
+				when(validatorsAPI.getGeneratorsBetweenTimestamps)
+					.calledWith(context.getAPIContext(), previousTimestamp, currentTimestamp)
+					.mockReturnValue(missedBlocks);
+
+				when(validatorsAPI.getGeneratorAtTimestamp)
+					.calledWith(context.getAPIContext(), currentTimestamp)
+					.mockReturnValue(generatorAddress);
+
+				when(validatorsAPI.getGeneratorAtTimestamp)
+					.calledWith(context.getAPIContext(), previousTimestamp)
+					.mockReturnValue(lastForgerAddress);
+
+				await dpos['_updateProductivity'](context, previousTimestamp);
+
+				expect.assertions(delegateAddresses.length);
+				for (const delegateAddress of delegateAddresses) {
+					const currentDelegate = await delegateStore.getWithSchema<DelegateAccount>(
+						delegateAddress,
+						delegateStoreSchema,
+					);
+					if (missedForgers.some(missedForger => missedForger.equals(delegateAddress))) {
+						expect(currentDelegate.consecutiveMissedBlocks).toBe(1);
+					} else {
+						expect(currentDelegate.consecutiveMissedBlocks).toBe(0);
+					}
+				}
+			});
+		});
+
+		describe('When delegate missed more than 1 blocks since last block', () => {
+			it('should increment "consecutiveMissedBlocks"  for the number of blocks that delegate missed', async () => {
+				const generatorIndex = delegateAddresses.length - 1;
+				const generatorAddress = delegateAddresses[generatorIndex];
+				const lastForgerAddress = delegateAddresses[generatorIndex - 6];
+				const missedMoreThan1Block = delegateAddresses.slice(generatorIndex - 5, generatorIndex);
+				const previousTimestamp = 9200;
+				const currentTimestamp = 10290;
+				const lastForgedHeight = 926;
+				const nextForgedHeight = lastForgedHeight + 1;
+
+				const context = createBlockContext({
+					header: {
+						height: nextForgedHeight,
+						generatorAddress,
+						timestamp: currentTimestamp,
+					} as any,
+					stateStore,
+				}).getBlockAfterExecuteContext();
+
+				await previousTimestampStore.setWithSchema(
+					EMPTY_KEY,
+					{ timestamp: previousTimestamp },
+					previousTimestampStoreSchema,
+				);
+
+				const missedBlocks: Record<string, number> = {};
+				for (const delegateAddress of delegateAddresses) {
+					missedBlocks[delegateAddress.toString('binary')] = 1;
+				}
+				for (const delegateAddress of missedMoreThan1Block) {
+					missedBlocks[delegateAddress.toString('binary')] += 1;
+				}
+				missedBlocks[generatorAddress.toString('binary')] = 2;
+				missedBlocks[lastForgerAddress.toString('binary')] = 2;
+
+				when(validatorsAPI.getGeneratorsBetweenTimestamps)
+					.calledWith(context.getAPIContext(), previousTimestamp, currentTimestamp)
+					.mockReturnValue(missedBlocks);
+
+				when(validatorsAPI.getGeneratorAtTimestamp)
+					.calledWith(context.getAPIContext(), currentTimestamp)
+					.mockReturnValue(generatorAddress);
+
+				when(validatorsAPI.getGeneratorAtTimestamp)
+					.calledWith(context.getAPIContext(), previousTimestamp)
+					.mockReturnValue(lastForgerAddress);
+
+				await dpos['_updateProductivity'](context, previousTimestamp);
+
+				expect.assertions(delegateAddresses.length);
+				for (const delegateAddress of delegateAddresses) {
+					const currentDelegate = await delegateStore.getWithSchema<DelegateAccount>(
+						delegateAddress,
+						delegateStoreSchema,
+					);
+					if (delegateAddress.equals(generatorAddress)) {
+						expect(currentDelegate.consecutiveMissedBlocks).toBe(0);
+					} else if (
+						missedMoreThan1Block.some(missedForger => missedForger.equals(delegateAddress))
+					) {
+						expect(currentDelegate.consecutiveMissedBlocks).toBe(2);
+					} else {
+						expect(currentDelegate.consecutiveMissedBlocks).toBe(1);
+					}
+				}
+			});
+		});
+
+		describe('When all delegates successfully forges a block', () => {
+			it('must NOT update "consecutiveMissedBlocks" for anyone', async () => {
+				const generatorIndex = delegateAddresses.length - 1;
+				const generatorAddress = delegateAddresses[generatorIndex];
+				const lastForgerAddress = delegateAddresses[generatorIndex - 1];
+				const previousTimestamp = 10283;
+				const currentTimestamp = 10290;
+				const lastForgedHeight = 926;
+				const nextForgedHeight = lastForgedHeight + 1;
+
+				const context = createBlockContext({
+					header: {
+						height: nextForgedHeight,
+						generatorAddress,
+						timestamp: currentTimestamp,
+					} as any,
+					stateStore,
+				}).getBlockAfterExecuteContext();
+
+				await previousTimestampStore.setWithSchema(
+					EMPTY_KEY,
+					{ timestamp: previousTimestamp },
+					previousTimestampStoreSchema,
+				);
+
+				const missedBlocks: Record<string, number> = {};
+				missedBlocks[generatorAddress.toString('binary')] = 1;
+				missedBlocks[lastForgerAddress.toString('binary')] = 1;
+
+				when(validatorsAPI.getGeneratorsBetweenTimestamps)
+					.calledWith(context.getAPIContext(), previousTimestamp, currentTimestamp)
+					.mockReturnValue(missedBlocks);
+
+				when(validatorsAPI.getGeneratorAtTimestamp)
+					.calledWith(context.getAPIContext(), currentTimestamp)
+					.mockReturnValue(generatorAddress);
+
+				when(validatorsAPI.getGeneratorAtTimestamp)
+					.calledWith(context.getAPIContext(), previousTimestamp)
+					.mockReturnValue(lastForgerAddress);
+
+				await dpos['_updateProductivity'](context, previousTimestamp);
+
+				expect.assertions(delegateAddresses.length + 1);
+				for (const delegateAddress of delegateAddresses) {
+					const currentDelegate = await delegateStore.getWithSchema<DelegateAccount>(
+						delegateAddress,
+						delegateStoreSchema,
+					);
+					expect(currentDelegate.consecutiveMissedBlocks).toBe(0);
+					if (delegateAddress.equals(generatorAddress)) {
+						expect(currentDelegate.lastGeneratedHeight).toBe(nextForgedHeight);
+					}
+				}
+			});
+		});
+
+		describe('when forger missed a block has 50 consecutive missed block, but forged within 260k blocks', () => {
+			it('should not ban the missed forger', async () => {
+				const generatorIndex = delegateAddresses.length - 1;
+				const missedDelegateIndex = generatorIndex - 1;
+				const generatorAddress = delegateAddresses[generatorIndex];
+				const missedDelegate = delegateAddresses[missedDelegateIndex];
+				const lastForgerAddress = delegateAddresses[generatorIndex - 2];
+				const previousTimestamp = 10000270;
+				const currentTimestamp = 10000290;
+				const lastForgedHeight = 920006;
+				const nextForgedHeight = lastForgedHeight + 1;
+
+				const context = createBlockContext({
+					header: {
+						height: nextForgedHeight,
+						generatorAddress,
+						timestamp: currentTimestamp,
+					} as any,
+					stateStore,
+				}).getBlockAfterExecuteContext();
+
+				await previousTimestampStore.setWithSchema(
+					EMPTY_KEY,
+					{ timestamp: previousTimestamp },
+					previousTimestampStoreSchema,
+				);
+
+				const missedBlocks: Record<string, number> = {};
+				missedBlocks[generatorAddress.toString('binary')] = 1;
+				missedBlocks[missedDelegate.toString('binary')] = 1;
+				missedBlocks[lastForgerAddress.toString('binary')] = 1;
+
+				when(validatorsAPI.getGeneratorsBetweenTimestamps)
+					.calledWith(context.getAPIContext(), previousTimestamp, currentTimestamp)
+					.mockReturnValue(missedBlocks);
+
+				when(validatorsAPI.getGeneratorAtTimestamp)
+					.calledWith(context.getAPIContext(), currentTimestamp)
+					.mockReturnValue(generatorAddress);
+
+				when(validatorsAPI.getGeneratorAtTimestamp)
+					.calledWith(context.getAPIContext(), previousTimestamp)
+					.mockReturnValue(lastForgerAddress);
+
+				delegateData[missedDelegateIndex].consecutiveMissedBlocks = 50;
+				delegateData[missedDelegateIndex].lastGeneratedHeight = nextForgedHeight - 260000 + 5000;
+
+				await delegateStore.setWithSchema(
+					missedDelegate,
+					delegateData[missedDelegateIndex],
+					delegateStoreSchema,
+				);
+
+				await dpos['_updateProductivity'](context, previousTimestamp);
+
+				const currentDelegate = await delegateStore.getWithSchema<DelegateAccount>(
+					missedDelegate,
+					delegateStoreSchema,
+				);
+				expect(currentDelegate.isBanned).toBeFalse();
+				expect(currentDelegate.consecutiveMissedBlocks).toBe(51);
+			});
+		});
+
+		describe('when forger missed a block has not forged within 260k blocks, but does not have 50 consecutive missed block', () => {
+			it('should not ban the missed forger', async () => {
+				const generatorIndex = delegateAddresses.length - 1;
+				const missedDelegateIndex = generatorIndex - 1;
+				const generatorAddress = delegateAddresses[generatorIndex];
+				const missedDelegate = delegateAddresses[missedDelegateIndex];
+				const lastForgerAddress = delegateAddresses[generatorIndex - 2];
+				const previousTimestamp = 10000270;
+				const currentTimestamp = 10000290;
+				const lastForgedHeight = 920006;
+				const nextForgedHeight = lastForgedHeight + 1;
+
+				const context = createBlockContext({
+					header: {
+						height: nextForgedHeight,
+						generatorAddress,
+						timestamp: currentTimestamp,
+					} as any,
+					stateStore,
+				}).getBlockAfterExecuteContext();
+
+				await previousTimestampStore.setWithSchema(
+					EMPTY_KEY,
+					{ timestamp: previousTimestamp },
+					previousTimestampStoreSchema,
+				);
+
+				const missedBlocks: Record<string, number> = {};
+				missedBlocks[generatorAddress.toString('binary')] = 1;
+				missedBlocks[missedDelegate.toString('binary')] = 1;
+				missedBlocks[lastForgerAddress.toString('binary')] = 1;
+
+				when(validatorsAPI.getGeneratorsBetweenTimestamps)
+					.calledWith(context.getAPIContext(), previousTimestamp, currentTimestamp)
+					.mockReturnValue(missedBlocks);
+
+				when(validatorsAPI.getGeneratorAtTimestamp)
+					.calledWith(context.getAPIContext(), currentTimestamp)
+					.mockReturnValue(generatorAddress);
+
+				when(validatorsAPI.getGeneratorAtTimestamp)
+					.calledWith(context.getAPIContext(), previousTimestamp)
+					.mockReturnValue(lastForgerAddress);
+
+				delegateData[missedDelegateIndex].consecutiveMissedBlocks = 40;
+				delegateData[missedDelegateIndex].lastGeneratedHeight = nextForgedHeight - 260000 - 1;
+
+				await delegateStore.setWithSchema(
+					missedDelegate,
+					delegateData[missedDelegateIndex],
+					delegateStoreSchema,
+				);
+
+				await dpos['_updateProductivity'](context, previousTimestamp);
+
+				const currentDelegate = await delegateStore.getWithSchema<DelegateAccount>(
+					missedDelegate,
+					delegateStoreSchema,
+				);
+				expect(currentDelegate.isBanned).toBeFalse();
+				expect(currentDelegate.consecutiveMissedBlocks).toBe(41);
+			});
+		});
+
+		describe('when forger missed a block has 50 consecutive missed block, and not forged within 260k blocks', () => {
+			it('should ban the missed forger', async () => {
+				const generatorIndex = delegateAddresses.length - 1;
+				const missedDelegateIndex = generatorIndex - 1;
+				const generatorAddress = delegateAddresses[generatorIndex];
+				const missedDelegate = delegateAddresses[missedDelegateIndex];
+				const lastForgerAddress = delegateAddresses[generatorIndex - 2];
+				const previousTimestamp = 10000270;
+				const currentTimestamp = 10000290;
+				const lastForgedHeight = 920006;
+				const nextForgedHeight = lastForgedHeight + 1;
+
+				const context = createBlockContext({
+					header: {
+						height: nextForgedHeight,
+						generatorAddress,
+						timestamp: currentTimestamp,
+					} as any,
+					stateStore,
+				}).getBlockAfterExecuteContext();
+
+				await previousTimestampStore.setWithSchema(
+					EMPTY_KEY,
+					{ timestamp: previousTimestamp },
+					previousTimestampStoreSchema,
+				);
+
+				const missedBlocks: Record<string, number> = {};
+				missedBlocks[generatorAddress.toString('binary')] = 1;
+				missedBlocks[missedDelegate.toString('binary')] = 1;
+				missedBlocks[lastForgerAddress.toString('binary')] = 1;
+
+				when(validatorsAPI.getGeneratorsBetweenTimestamps)
+					.calledWith(context.getAPIContext(), previousTimestamp, currentTimestamp)
+					.mockReturnValue(missedBlocks);
+
+				when(validatorsAPI.getGeneratorAtTimestamp)
+					.calledWith(context.getAPIContext(), currentTimestamp)
+					.mockReturnValue(generatorAddress);
+
+				when(validatorsAPI.getGeneratorAtTimestamp)
+					.calledWith(context.getAPIContext(), previousTimestamp)
+					.mockReturnValue(lastForgerAddress);
+
+				delegateData[missedDelegateIndex].consecutiveMissedBlocks = 50;
+				delegateData[missedDelegateIndex].lastGeneratedHeight = nextForgedHeight - 260000 - 1;
+
+				await delegateStore.setWithSchema(
+					missedDelegate,
+					delegateData[missedDelegateIndex],
+					delegateStoreSchema,
+				);
+
+				await dpos['_updateProductivity'](context, previousTimestamp);
+
+				const currentDelegate = await delegateStore.getWithSchema<DelegateAccount>(
+					missedDelegate,
+					delegateStoreSchema,
+				);
+				expect(currentDelegate.isBanned).toBeTrue();
+				expect(currentDelegate.consecutiveMissedBlocks).toBe(51);
 			});
 		});
 	});

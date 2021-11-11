@@ -171,6 +171,7 @@ export const genesisDataStoreSchema = {
 };
 
 export const previousTimestampStoreSchema = {
+	$id: '/dpos/store/previousTimestamp',
 	type: 'object',
 	required: ['timestamp'],
 	properties: {

@@ -84,6 +84,8 @@ describe('Delegate registration command', () => {
 			setGeneratorList: jest.fn(),
 			registerValidatorKeys: jest.fn().mockResolvedValue(true),
 			getValidatorAccount: jest.fn(),
+			getGeneratorsBetweenTimestamps: jest.fn(),
+			getGeneratorAtTimestamp: jest.fn(),
 		};
 		delegateRegistrationCommand.addDependencies(mockValidatorsAPI);
 		db = new InMemoryKVStore() as never;

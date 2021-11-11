@@ -79,6 +79,12 @@ export interface ValidatorsAPI {
 		proofOfPossession: Buffer,
 	): Promise<boolean>;
 	getValidatorAccount(apiContext: ImmutableAPIContext, address: Buffer): Promise<ValidatorKeys>;
+	getGeneratorsBetweenTimestamps(
+		apiContext: ImmutableAPIContext,
+		startTimestamp: number,
+		endTimestamp: number,
+	): Promise<Record<string, number>>;
+	getGeneratorAtTimestamp(apiContext: ImmutableAPIContext, timestamp: number): Promise<Buffer>;
 }
 
 export interface TokenAPI {
@@ -216,4 +222,8 @@ export interface SnapshotStoreData {
 		delegateAddress: Buffer;
 		delegateWeight: bigint;
 	}[];
+}
+
+export interface PreviousTimestampData {
+	timestamp: number;
 }

@@ -96,6 +96,8 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			setValidatorGeneratorKey: jest.fn(),
 			registerValidatorKeys: jest.fn(),
 			getValidatorAccount: jest.fn().mockResolvedValue({ generatorKey: publicKey }),
+			getGeneratorsBetweenTimestamps: jest.fn(),
+			getGeneratorAtTimestamp: jest.fn(),
 		};
 		pomCommand.addDependencies({
 			tokenIDDPoS: { chainID: 0, localID: 0 },

@@ -42,3 +42,4 @@ export const MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE = 260000;
 export const MAX_POM_HEIGHTS = 5;
 export const REPORTING_PUNISHMENT_REWARD = BigInt(100000000);
 export const DELEGATE_LIST_ROUND_OFFSET = 2;
+export const EMPTY_KEY = Buffer.alloc(0);
