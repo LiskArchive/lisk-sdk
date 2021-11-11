@@ -11,6 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+export const MODULE_ID_TOKEN = 2;
+export const COMMAND_ID_TRANSFER = 0;
+
 export const MAX_TRANSACTION_AMOUNT = '9223372036854775807';
 export const DEFAULT_MIN_REMAINING_BALANCE = '5000000';
 

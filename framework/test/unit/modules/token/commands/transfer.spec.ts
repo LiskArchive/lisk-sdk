@@ -14,12 +14,13 @@
 
 import { TokenAPI } from '../../../../../src/modules/token/api';
 import { TransferCommand } from '../../../../../src/modules/token/commands/transfer';
+import { MODULE_ID_TOKEN } from '../../../../../src/modules/token/constants';
 
 describe('Transfer command', () => {
 	let command: TransferCommand;
 
 	beforeEach(() => {
-		const moduleID = 2;
+		const moduleID = MODULE_ID_TOKEN;
 		command = new TransferCommand(moduleID);
 		const api = new TokenAPI(moduleID);
 		command.init({

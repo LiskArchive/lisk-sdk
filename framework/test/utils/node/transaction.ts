@@ -22,6 +22,8 @@ import { RegisterTransactionAsset } from '../../../src/modules/dpos/transaction_
 import { RegisterAsset as MultisignatureRegisterAsset } from '../../../src/modules/keys/register_asset';
 import { VoteTransactionAsset } from '../../../src/modules/dpos/transaction_assets/vote_transaction_asset';
 import { PomTransactionAsset } from '../../../src/modules/dpos';
+import { MODULE_ID_TOKEN } from '../../../src/modules/token/constants';
+import { transferParamsSchema } from '../../../src/modules/token/schemas';
 
 export const createTransferTransaction = (input: {
 	recipientAddress: Buffer;
@@ -31,7 +33,7 @@ export const createTransferTransaction = (input: {
 	passphrase: string;
 	fee?: bigint;
 }): Transaction => {
-	const encodedAsset = codec.encode(new TransferAsset(BigInt(5000000)).schema, {
+	const encodedParams = codec.encode(transferParamsSchema, {
 		recipientAddress: input.recipientAddress,
 		amount: input.amount ?? BigInt('10000000000'),
 		data: '',
@@ -44,7 +46,7 @@ export const createTransferTransaction = (input: {
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('200000'),
-		params: encodedAsset,
+		params: encodedParams,
 		signatures: [],
 	});
 	tx.signatures.push(
@@ -168,7 +170,7 @@ export const createMultisignatureTransferTransaction = (input: {
 	senderPublicKey: Buffer;
 	passphrases: string[];
 }): Transaction => {
-	const command = new TransferCommand(2);
+	const command = new TransferCommand(MODULE_ID_TOKEN);
 	const params = {
 		recipientAddress: input.recipientAddress,
 		amount: BigInt('10000000000'),

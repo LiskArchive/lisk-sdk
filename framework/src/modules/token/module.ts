@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
-import { DEFAULT_MIN_REMAINING_BALANCE } from './constants';
+import { DEFAULT_MIN_REMAINING_BALANCE, MODULE_ID_TOKEN } from './constants';
 import { TransferCommand } from './commands/transfer';
 import { BaseModule, ModuleInitArgs } from '../base_module';
 import { GenesisBlockExecuteContext } from '../../node/state_machine';
@@ -22,7 +22,7 @@ import { TokenEndpoint } from './endpoint';
 
 export class TokenModule extends BaseModule {
 	public name = 'token';
-	public id = 2;
+	public id = MODULE_ID_TOKEN;
 	public api = new TokenAPI(this.id);
 	public endpoint = new TokenEndpoint(this.id);
 

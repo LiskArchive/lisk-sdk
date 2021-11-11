@@ -14,6 +14,8 @@
 import { BaseCommand } from '../../base_command';
 import { CommandExecuteContext } from '../../../node/state_machine';
 import { TokenAPI } from '../api';
+import { transferParamsSchema } from '../schemas';
+import { COMMAND_ID_TRANSFER } from '../constants';
 
 interface Params {
 	amount: bigint;
@@ -23,31 +25,8 @@ interface Params {
 
 export class TransferCommand extends BaseCommand {
 	public name = 'transfer';
-	public id = 0;
-	public schema = {
-		$id: 'lisk/transfer-params',
-		title: 'Transfer transaction params',
-		type: 'object',
-		required: ['amount', 'recipientAddress', 'data'],
-		properties: {
-			amount: {
-				dataType: 'uint64',
-				fieldNumber: 1,
-			},
-			recipientAddress: {
-				dataType: 'bytes',
-				fieldNumber: 2,
-				minLength: 20,
-				maxLength: 20,
-			},
-			data: {
-				dataType: 'string',
-				fieldNumber: 3,
-				minLength: 0,
-				maxLength: 64,
-			},
-		},
-	};
+	public id = COMMAND_ID_TRANSFER;
+	public schema = transferParamsSchema;
 	private _api!: TokenAPI;
 
 	public init(args: { api: TokenAPI }) {
