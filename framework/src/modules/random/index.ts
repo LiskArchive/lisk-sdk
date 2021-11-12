@@ -13,3 +13,4 @@
  */
 
 export { RandomModule } from './module';
+export { RandomAPI } from './api';

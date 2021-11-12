@@ -57,7 +57,7 @@ describe('RewardModuleAPI', () => {
 		it(`should getBlockReward return full reward for bracket ${nthBracket}`, async () => {
 			rewardModule.addDependencies(
 				{ mint: jest.fn() } as any,
-				{ isValidSeedReveal: jest.fn().mockReturnValue(true) } as any,
+				{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
 				{ impliesMaximalPrevotes: jest.fn().mockReturnValue(true) } as any,
 			);
 			const blockHeader = createBlockHeaderWithDefaults({ height: currentHeight });
@@ -69,7 +69,7 @@ describe('RewardModuleAPI', () => {
 		it(`should getBlockReward return quarter reward for bracket ${nthBracket} due to bft violation`, async () => {
 			rewardModule.addDependencies(
 				{ mint: jest.fn() } as any,
-				{ isValidSeedReveal: jest.fn().mockReturnValue(true) } as any,
+				{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
 				{ impliesMaximalPrevotes: jest.fn().mockReturnValue(false) } as any,
 			);
 			const blockHeader = createBlockHeaderWithDefaults({ height: currentHeight });
@@ -81,7 +81,7 @@ describe('RewardModuleAPI', () => {
 		it(`should getBlockReward return no reward for bracket ${nthBracket} due to seedReveal violation`, async () => {
 			rewardModule.addDependencies(
 				{ mint: jest.fn() } as any,
-				{ isValidSeedReveal: jest.fn().mockReturnValue(false) } as any,
+				{ isSeedRevealValid: jest.fn().mockReturnValue(false) } as any,
 				{ impliesMaximalPrevotes: jest.fn().mockReturnValue(true) } as any,
 			);
 			const blockHeader = createBlockHeaderWithDefaults({ height: currentHeight });
@@ -94,7 +94,7 @@ describe('RewardModuleAPI', () => {
 	it(`should getBlockReward return no reward for the height below offset`, async () => {
 		rewardModule.addDependencies(
 			{ mint: jest.fn() } as any,
-			{ isValidSeedReveal: jest.fn().mockReturnValue(true) } as any,
+			{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
 			{ impliesMaximalPrevotes: jest.fn().mockReturnValue(true) } as any,
 		);
 		const blockHeader = createBlockHeaderWithDefaults({ height: 1 });

@@ -53,7 +53,7 @@ export const createApplication = async (
 		},
 	} as PartialApplicationConfig;
 
-	const app = Application.defaultApplication(genesisBlockJSON, config);
+	const { app } = Application.defaultApplication(genesisBlockJSON, config);
 
 	// Remove pre-existing data
 	fs.removeSync(path.join(rootPath, label).replace('~', os.homedir()));
@@ -61,7 +61,7 @@ export const createApplication = async (
 	// eslint-disable-next-line @typescript-eslint/no-floating-promises
 	await Promise.race([app.run(), new Promise(resolve => setTimeout(resolve, 3000))]);
 	await new Promise<void>(resolve => {
-		app['_channel'].subscribe(APP_EVENT_BLOCK_NEW, () => {
+		app.channel.subscribe(APP_EVENT_BLOCK_NEW, () => {
 			if (app['_node']['_chain'].lastBlock.header.height === 2) {
 				resolve();
 			}
@@ -98,8 +98,8 @@ export const createApplicationWithHelloPlugin = async ({
 		rpc: rpcConfig,
 	} as PartialApplicationConfig;
 
-	const app = Application.defaultApplication(genesisBlockJSON, config);
-	app.registerPlugin(HelloPlugin, { loadAsChildProcess: pluginChildProcess });
+	const { app } = Application.defaultApplication(genesisBlockJSON, config);
+	app.registerPlugin(new HelloPlugin(), { loadAsChildProcess: pluginChildProcess });
 
 	// Remove pre-existing data
 	fs.removeSync(path.join(rootPath, label).replace('~', os.homedir()));

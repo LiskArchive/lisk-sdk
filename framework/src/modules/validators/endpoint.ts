@@ -15,7 +15,7 @@
 import { blsPopVerify } from '@liskhq/lisk-cryptography';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { NotFoundError } from '@liskhq/lisk-db';
-import { ModuleEndpointContext } from '../..';
+import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
 import { generatorListSchema, ValidateBLSKeyRequest, validateBLSKeyRequestSchema } from './schemas';
 import {

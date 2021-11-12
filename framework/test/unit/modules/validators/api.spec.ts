@@ -419,7 +419,7 @@ describe('ValidatorsModuleAPI', () => {
 			);
 			let genWithCountGreaterThanOne = 0;
 			for (const generatorAddress of Object.keys(result)) {
-				if ((result[generatorAddress] as number) > 1) {
+				if (result[generatorAddress] > 1) {
 					genWithCountGreaterThanOne += 1;
 				}
 			}
@@ -452,14 +452,14 @@ describe('ValidatorsModuleAPI', () => {
 
 			let genWithCountGreaterThanOne = 0;
 			for (const generatorAddress of Object.keys(result)) {
-				if ((result[generatorAddress] as number) > 1) {
+				if (result[generatorAddress] > 1) {
 					genWithCountGreaterThanOne += 1;
 				}
 			}
 
 			let genWithCountGreaterThanTwo = 0;
 			for (const generatorAddress of Object.keys(result)) {
-				if ((result[generatorAddress] as number) > 2) {
+				if (result[generatorAddress] > 2) {
 					genWithCountGreaterThanTwo += 1;
 				}
 			}

@@ -83,7 +83,7 @@ describe('Application', () => {
 
 	describe('#constructor', () => {
 		it('should be able to start the application with default parameters if config is not provided', () => {
-			const app = Application.defaultApplication(genesisBlockJSON);
+			const { app } = Application.defaultApplication(genesisBlockJSON);
 
 			expect(app.config).toBeDefined();
 		});
@@ -94,13 +94,13 @@ describe('Application', () => {
 			const configWithoutLabel = objects.cloneDeep(config);
 			delete configWithoutLabel.label;
 
-			const app = Application.defaultApplication(genesisBlockJSON, configWithoutLabel);
+			const { app } = Application.defaultApplication(genesisBlockJSON, configWithoutLabel);
 
 			expect(app.config.label).toBe(label);
 		});
 
 		it('should use the same app label if provided', () => {
-			const app = Application.defaultApplication(genesisBlockJSON, config);
+			const { app } = Application.defaultApplication(genesisBlockJSON, config);
 
 			expect(app.config.label).toBe(config.label);
 		});
@@ -112,7 +112,7 @@ describe('Application', () => {
 			delete configWithoutRootPath.rootPath;
 
 			// Act
-			const app = Application.defaultApplication(genesisBlockJSON, configWithoutRootPath);
+			const { app } = Application.defaultApplication(genesisBlockJSON, configWithoutRootPath);
 
 			// Assert
 			expect(app.config.rootPath).toBe(rootPath);
@@ -125,7 +125,7 @@ describe('Application', () => {
 			configWithCustomRootPath.rootPath = customRootPath;
 
 			// Act
-			const app = Application.defaultApplication(genesisBlockJSON, configWithCustomRootPath);
+			const { app } = Application.defaultApplication(genesisBlockJSON, configWithCustomRootPath);
 
 			// Assert
 			expect(app.config.rootPath).toBe(customRootPath);
@@ -137,7 +137,7 @@ describe('Application', () => {
 			configWithoutLogger.logger = {};
 
 			// Act
-			const app = Application.defaultApplication(genesisBlockJSON, configWithoutLogger);
+			const { app } = Application.defaultApplication(genesisBlockJSON, configWithoutLogger);
 
 			// Assert
 			expect(app.config.logger.logFileName).toBe('lisk.log');
@@ -158,14 +158,14 @@ describe('Application', () => {
 				},
 			};
 
-			const app = Application.defaultApplication(genesisBlockJSON, customConfig);
+			const { app } = Application.defaultApplication(genesisBlockJSON, customConfig);
 
 			expect(app.config.genesisConfig.maxPayloadLength).toBe(15 * 1024);
 		});
 
 		it('should set internal variables', () => {
 			// Act
-			const app = Application.defaultApplication(genesisBlockJSON, config);
+			const { app } = Application.defaultApplication(genesisBlockJSON, config);
 
 			// Assert
 			expect(app['_genesisBlock']).toEqual(genesisBlockJSON);
@@ -176,7 +176,7 @@ describe('Application', () => {
 
 		it('should not initialize logger', () => {
 			// Act
-			const app = Application.defaultApplication(genesisBlockJSON, config);
+			const { app } = Application.defaultApplication(genesisBlockJSON, config);
 
 			// Assert
 			expect(app.logger).toBeUndefined();
@@ -219,7 +219,7 @@ describe('Application', () => {
 	describe('#registerPlugin', () => {
 		it('should throw error when plugin name is missing', () => {
 			// Arrange
-			const app = Application.defaultApplication(genesisBlockJSON, config);
+			const { app } = Application.defaultApplication(genesisBlockJSON, config);
 			class MyPlugin extends TestPlugin {
 				public name = '';
 			}
@@ -230,7 +230,7 @@ describe('Application', () => {
 
 		it('should throw error when plugin with same name is already registered', () => {
 			// Arrange
-			const app = Application.defaultApplication(genesisBlockJSON, config);
+			const { app } = Application.defaultApplication(genesisBlockJSON, config);
 			class MyPlugin extends TestPlugin {
 				public name = 'my-plugin';
 			}
@@ -244,7 +244,7 @@ describe('Application', () => {
 
 		it('should call validatePluginSpec function', () => {
 			// Arrange
-			const app = Application.defaultApplication(genesisBlockJSON, config);
+			const { app } = Application.defaultApplication(genesisBlockJSON, config);
 			jest.spyOn(basePluginModule, 'validatePluginSpec').mockReturnValue();
 
 			// Act
@@ -257,7 +257,7 @@ describe('Application', () => {
 
 		it('should throw error when plugin is required to load as child process and not exported', () => {
 			// Arrange
-			const app = Application.defaultApplication(genesisBlockJSON, config);
+			const { app } = Application.defaultApplication(genesisBlockJSON, config);
 			jest.spyOn(basePluginModule, 'getPluginExportPath').mockReturnValue(undefined);
 
 			// Act && Assert
@@ -270,7 +270,7 @@ describe('Application', () => {
 
 		it('should add plugin to the collection', () => {
 			// Arrange
-			const app = Application.defaultApplication(genesisBlockJSON, config);
+			const { app } = Application.defaultApplication(genesisBlockJSON, config);
 			const plugin = new TestPlugin();
 			jest.spyOn(app['_controller'], 'registerPlugin');
 			app.registerPlugin(plugin);
@@ -287,7 +287,7 @@ describe('Application', () => {
 		let dirs: any;
 
 		beforeEach(async () => {
-			app = Application.defaultApplication(genesisBlockJSON, config);
+			({ app } = Application.defaultApplication(genesisBlockJSON, config));
 			jest.spyOn(app['_node']['_network'], 'start').mockResolvedValue();
 			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
 			// jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
@@ -331,7 +331,7 @@ describe('Application', () => {
 		const fakeSocketFiles = ['1.sock' as any, '2.sock' as any];
 
 		beforeEach(async () => {
-			app = Application.defaultApplication(genesisBlockJSON, config);
+			({ app } = Application.defaultApplication(genesisBlockJSON, config));
 			jest.spyOn(app['_node'], 'init').mockResolvedValue();
 			jest.spyOn(app['_node'], 'start').mockResolvedValue();
 			jest.spyOn(app['_node'], 'stop').mockResolvedValue();
@@ -365,7 +365,7 @@ describe('Application', () => {
 
 		beforeEach(async () => {
 			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
-			app = Application.defaultApplication(genesisBlockJSON, config);
+			({ app } = Application.defaultApplication(genesisBlockJSON, config));
 			jest.spyOn(app['_node']['_network'], 'start').mockResolvedValue();
 			await app.run();
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);

@@ -224,7 +224,7 @@ describe('Node', () => {
 			);
 		});
 
-		it('should throw an error if asset does not extend BaseCommand', () => {
+		it('should throw an error if command does not extend BaseCommand', () => {
 			// Act
 			class SampleCommand {
 				public name = 'asset';
@@ -245,7 +245,7 @@ describe('Node', () => {
 			);
 		});
 
-		it('should throw an error if asset id is invalid', () => {
+		it('should throw an error if command id is invalid', () => {
 			// Act
 			class SampleCommand extends BaseCommand {
 				public name = 'asset';
@@ -266,7 +266,7 @@ describe('Node', () => {
 			);
 		});
 
-		it('should throw an error if asset name is invalid', () => {
+		it('should throw an error if command name is invalid', () => {
 			// Act
 			class SampleCommand extends BaseCommand {
 				public name = '';
@@ -287,24 +287,7 @@ describe('Node', () => {
 			);
 		});
 
-		it('should throw an error if asset schema is invalid', () => {
-			// Act
-			class SampleCommand extends BaseCommand {
-				public name = 'asset';
-				public id = 0;
-				public schema = undefined as any;
-				public async execute(): Promise<void> {}
-			}
-			sampleModule.name = 'SampleModule';
-			sampleModule.id = 999999;
-			sampleModule.commands.push(new SampleCommand(sampleModule.id));
-			// Assert
-			expect(() => node.registerModule(sampleModule)).toThrow(
-				'Custom module contains command with invalid `schema` property.',
-			);
-		});
-
-		it('should throw an error if asset apply is invalid', () => {
+		it('should throw an error if command execute is invalid', () => {
 			// Act
 			class SampleCommand extends BaseCommand {
 				public name = 'asset';

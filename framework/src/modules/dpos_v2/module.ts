@@ -104,7 +104,6 @@ export class DPoSModule extends BaseModule {
 			throw new Error("'voteCommand' is missing from DPoS module");
 		}
 		voteCommand.addDependencies({
-			tokenIDDPoS: this._moduleConfig.tokenIDDPoS,
 			tokenAPI: this._tokenAPI,
 		});
 	}
@@ -120,6 +119,14 @@ export class DPoSModule extends BaseModule {
 			...moduleConfig,
 			minWeightStandby: BigInt(moduleConfig.minWeightStandby),
 		} as ModuleConfig;
+
+		const voteCommand = this.commands.find(command => command.id === COMMAND_ID_VOTE) as
+			| VoteCommand
+			| undefined;
+		if (!voteCommand) {
+			throw new Error("'voteCommand' is missing from DPoS module");
+		}
+		voteCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -270,8 +277,8 @@ export class DPoSModule extends BaseModule {
 		) {
 			await this._bftAPI.setBFTParameters(
 				apiContext,
-				this._moduleConfig.bftThreshold,
-				this._moduleConfig.bftThreshold,
+				BigInt(this._moduleConfig.bftThreshold),
+				BigInt(this._moduleConfig.bftThreshold),
 				bftWeight,
 			);
 		}
