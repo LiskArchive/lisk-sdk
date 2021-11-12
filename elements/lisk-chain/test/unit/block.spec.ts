@@ -209,8 +209,22 @@ describe('block', () => {
 		describe('when assetsRoot is invalid', () => {
 			it('should throw error', async () => {
 				// Arrange
+				const assets = [
+					{
+						moduleID: 2,
+						data: getRandomBytes(64),
+					},
+					{
+						moduleID: 3,
+						data: getRandomBytes(64),
+					},
+					{
+						moduleID: 3,
+						data: getRandomBytes(64),
+					},
+				];
 				const txs = new Array(20).fill(0).map(() => tx);
-				block = await createValidDefaultBlock({ payload: txs });
+				block = await createValidDefaultBlock({ payload: txs, assets: new BlockAssets(assets) });
 				block['header']['_assetsRoot'] = getRandomBytes(32);
 
 				// Act & assert
