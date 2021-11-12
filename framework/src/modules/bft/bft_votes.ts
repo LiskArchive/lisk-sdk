@@ -163,7 +163,6 @@ export const updateMaxHeightPrecommitted = async (
 
 export const updateMaxHeightCertified = (bftVotes: BFTVotes, header: BlockHeader): void => {
 	if (
-		header.aggregateCommit.height === 0 &&
 		header.aggregateCommit.aggregationBits.length === 0 &&
 		header.aggregateCommit.certificateSignature.length === 0
 	) {
