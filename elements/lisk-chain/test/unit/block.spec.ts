@@ -218,10 +218,6 @@ describe('block', () => {
 						moduleID: 3,
 						data: getRandomBytes(64),
 					},
-					{
-						moduleID: 3,
-						data: getRandomBytes(64),
-					},
 				];
 				const txs = new Array(20).fill(0).map(() => tx);
 				block = await createValidDefaultBlock({ payload: txs, assets: new BlockAssets(assets) });
