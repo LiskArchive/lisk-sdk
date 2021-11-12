@@ -69,6 +69,7 @@ export const createValidDefaultBlock = async (
 	const txTree = new MerkleTree();
 	await txTree.init(payload.map(tx => tx.id));
 	const blockAssets = block?.assets ?? new BlockAssets();
+	const assetsRoot = await blockAssets.getRoot();
 
 	const blockHeader = new BlockHeader({
 		version: 2,
@@ -77,7 +78,7 @@ export const createValidDefaultBlock = async (
 		timestamp: genesis.header.timestamp + 10,
 		transactionRoot: txTree.root,
 		stateRoot: getRandomBytes(32),
-		assetsRoot: await blockAssets.getRoot(),
+		assetsRoot,
 		validatorsHash: hash(getRandomBytes(32)),
 		maxHeightGenerated: 0,
 		maxHeightPrevoted: 0,
