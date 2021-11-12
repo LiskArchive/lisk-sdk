@@ -27,11 +27,11 @@ describe('block', () => {
 		beforeEach(() => {
 			assetList = [
 				{
-					moduleID: 6,
+					moduleID: 3,
 					data: getRandomBytes(64),
 				},
 				{
-					moduleID: 3,
+					moduleID: 6,
 					data: getRandomBytes(64),
 				},
 			];
@@ -66,7 +66,7 @@ describe('block', () => {
 			it('should not throw error', async () => {
 				// Arrange
 				const txs = new Array(20).fill(0).map(() => tx);
-				block = await createValidDefaultBlock({ payload: txs });
+				block = await createValidDefaultBlock({ payload: txs, assets: blockAssets });
 				// Act & assert
 				expect(() => block.validate()).not.toThrow();
 			});
@@ -191,6 +191,30 @@ describe('block', () => {
 				block = await createValidDefaultBlock({ assets: new BlockAssets(assets) });
 				// Act & assert
 				expect(block.validate()).toBeUndefined();
+			});
+		});
+
+		describe('when transactionRoot is invalid', () => {
+			it('should throw error', async () => {
+				// Arrange
+				const txs = new Array(20).fill(0).map(() => tx);
+				block = await createValidDefaultBlock({ payload: txs });
+				block['header']['_transactionRoot'] = getRandomBytes(32);
+
+				// Act & assert
+				expect(() => block.validate()).toThrow('Block header transaction root is invalid.');
+			});
+		});
+
+		describe('when assetsRoot is invalid', () => {
+			it('should throw error', async () => {
+				// Arrange
+				const txs = new Array(20).fill(0).map(() => tx);
+				block = await createValidDefaultBlock({ payload: txs });
+				block['header']['_assetsRoot'] = getRandomBytes(32);
+
+				// Act & assert
+				expect(() => block.validate()).toThrow('Block header asset root is invalid.');
 			});
 		});
 	});
