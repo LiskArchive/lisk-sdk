@@ -12,10 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { EventEmitter } from 'events';
-import { Block, Chain, Slots, StateStore } from '@liskhq/lisk-chain';
+import { Block, Chain, Slots, SMTStore, StateStore } from '@liskhq/lisk-chain';
 import { jobHandlers, objects } from '@liskhq/lisk-utils';
 import { KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
+import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import { Logger } from '../../logger';
 import { StateMachine } from '../state_machine/state_machine';
 import { BlockContext } from '../state_machine/block_context';
@@ -451,6 +452,12 @@ export class Consensus {
 			finalizedHeight = bftVotes.maxHeightPrecommitted;
 		}
 
+		// Result Validation
+		// Verify validatorsHash
+		await this._verifyValidatorsHash(apiContext, block);
+		// Verify stateRoot
+		await this._verifyStateRoot(block, stateStore);
+
 		await this._chain.saveBlock(block, stateStore, finalizedHeight, {
 			removeFromTempTable: options.removeFromTempTable ?? false,
 		});
@@ -484,9 +491,6 @@ export class Consensus {
 
 		// verify Block signature
 		await this._verifyBlockSignature(apiContext, block);
-
-		// Verify validatorsHash
-		await this._verifyValidatorsHash(apiContext, block);
 
 		// Validate a block
 		block.validate();
@@ -638,6 +642,22 @@ export class Consensus {
 			if (!this._stateMachine.getAllModuleIDs().includes(asset.moduleID)) {
 				throw new Error(`Module with ID: ${asset.moduleID} is not registered.`);
 			}
+		}
+	}
+
+	private async _verifyStateRoot(block: Block, stateStore: StateStore): Promise<void> {
+		const smtStore = new SMTStore(this._db);
+		const smt = new SparseMerkleTree({
+			db: smtStore,
+			rootHash: this._chain.lastBlock.header.stateRoot,
+		});
+		// SMT is updated inside finalize
+		await stateStore.finalize(this._db.batch(), smt);
+
+		if (!block.header.stateRoot || !smt.rootHash.equals(block.header.stateRoot)) {
+			throw new Error(
+				`State root is not valid for the block with id: ${block.header.id.toString('hex')}`,
+			);
 		}
 	}
 
