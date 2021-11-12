@@ -202,7 +202,7 @@ describe('block', () => {
 				block['header']['_transactionRoot'] = getRandomBytes(32);
 
 				// Act & assert
-				expect(() => block.validate()).toThrow('Block header transaction root is invalid.');
+				expect(() => block.validate()).toThrow('Invalid transaction root');
 			});
 		});
 
@@ -214,7 +214,7 @@ describe('block', () => {
 				block['header']['_assetsRoot'] = getRandomBytes(32);
 
 				// Act & assert
-				expect(() => block.validate()).toThrow('Block header asset root is invalid.');
+				expect(() => block.validate()).toThrow('Invalid assets root');
 			});
 		});
 	});
