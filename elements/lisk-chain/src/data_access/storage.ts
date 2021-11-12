@@ -14,8 +14,9 @@
 import { KVStore, formatInt, getFirstPrefix, getLastPrefix, NotFoundError } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
+import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import { RawBlock, StateDiff } from '../types';
-import { StateStore } from '../state_store';
+import { SMTStore, StateStore } from '../state_store';
 
 import {
 	DB_KEY_BLOCKS_ID,
@@ -29,6 +30,7 @@ import {
 } from '../db_keys';
 import { concatDBKeys } from '../utils';
 import { stateDiffSchema } from '../schema';
+import { Block } from '../block';
 
 const bytesArraySchema = {
 	$id: 'lisk-chain/bytesarray',
@@ -342,6 +344,7 @@ export class Storage {
 		payload: { id: Buffer; value: Buffer }[],
 		assets: Buffer[],
 		stateStore: StateStore,
+		lastBlock: Block,
 		removeFromTemp = false,
 	): Promise<void> {
 		const heightBuf = formatInt(height);
@@ -363,7 +366,10 @@ export class Storage {
 		if (removeFromTemp) {
 			batch.del(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, heightBuf));
 		}
-		const diff = stateStore.finalize(batch);
+
+		const smtStore = new SMTStore(this._db);
+		const smt = new SparseMerkleTree({ db: smtStore, rootHash: lastBlock.header.assetsRoot });
+		const diff = await stateStore.finalize(batch, smt);
 		const encodedDiff = codec.encode(stateDiffSchema, diff);
 		batch.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(height)), encodedDiff);
 		const finalizedHeightBytes = Buffer.alloc(4);
@@ -381,6 +387,7 @@ export class Storage {
 		assets: Buffer[],
 		fullBlock: Buffer,
 		stateStore: StateStore,
+		lastBlock: Block,
 		saveToTemp = false,
 	): Promise<StateDiff> {
 		const batch = this._db.batch();
@@ -410,19 +417,25 @@ export class Storage {
 			updated: updatedStates,
 			deleted: deletedStates,
 		} = codec.decode<StateDiff>(stateDiffSchema, stateDiff);
+		const smtStore = new SMTStore(this._db);
+		const smt = new SparseMerkleTree({ db: smtStore, rootHash: lastBlock.header.assetsRoot });
 		// Delete all the newly created states
 		for (const key of createdStates) {
 			batch.del(key);
+			await smt.remove(key);
 		}
 		// Revert all deleted values
 		for (const { key, value: previousValue } of deletedStates) {
 			batch.put(key, previousValue);
+			await smt.update(key, previousValue);
 		}
 		for (const { key, value: previousValue } of updatedStates) {
 			batch.put(key, previousValue);
+			await smt.update(key, previousValue);
 		}
+
 		// ignore diff created while deleting
-		stateStore.finalize(batch);
+		await stateStore.finalize(batch, smt);
 
 		// Delete stored diff at particular height
 		batch.del(diffKey);

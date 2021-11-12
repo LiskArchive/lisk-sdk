@@ -288,6 +288,7 @@ export class DataAccess {
 	): Promise<void> {
 		const { id: blockID, height } = block.header;
 		const encodedHeader = block.header.getBytes();
+		const lastBlock = await this.getLastBlock();
 		const encodedPayload = [];
 		for (const tx of block.payload) {
 			const txID = tx.id;
@@ -302,6 +303,7 @@ export class DataAccess {
 			encodedPayload,
 			block.assets.getBytes(),
 			stateStore,
+			lastBlock,
 			removeFromTemp,
 		);
 	}
@@ -313,6 +315,7 @@ export class DataAccess {
 	): Promise<void> {
 		const { id: blockID, height } = block.header;
 		const txIDs = block.payload.map(tx => tx.id);
+		const lastBlock = await this.getLastBlock();
 		const encodedBlock = block.getBytes();
 		await this._storage.deleteBlock(
 			blockID,
@@ -321,6 +324,7 @@ export class DataAccess {
 			block.assets.getBytes(),
 			encodedBlock,
 			stateStore,
+			lastBlock,
 			saveToTemp,
 		);
 	}
