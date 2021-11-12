@@ -13,6 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
+import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { BlockAssets } from './block_assets';
 import { BlockHeader } from './block_header';
 import { MAX_ASSET_DATA_SIZE_BYTES } from './constants';
@@ -97,6 +98,22 @@ export class Block {
 			}
 			i += 1;
 			last = asset;
+		}
+
+		if (
+			!this.header.transactionRoot?.equals(
+				regularMerkleTree.calculateMerkleRootWithLeaves(this.payload.map(tx => tx.id)),
+			)
+		) {
+			throw new Error('Block header transaction root is invalid.');
+		}
+
+		if (
+			!this.header.assetsRoot?.equals(
+				regularMerkleTree.calculateMerkleRootWithLeaves(this.assets.getBytes()),
+			)
+		) {
+			throw new Error('Block header asset root is invalid.');
 		}
 	}
 }
