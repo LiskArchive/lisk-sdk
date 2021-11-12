@@ -105,7 +105,7 @@ export class Block {
 				regularMerkleTree.calculateMerkleRootWithLeaves(this.payload.map(tx => tx.id)),
 			)
 		) {
-			throw new Error('Block header transaction root is invalid.');
+			throw new Error('Invalid transaction root');
 		}
 
 		if (
@@ -113,7 +113,7 @@ export class Block {
 				regularMerkleTree.calculateMerkleRootWithLeaves(this.assets.getBytes()),
 			)
 		) {
-			throw new Error('Block header asset root is invalid.');
+			throw new Error('Invalid assets root');
 		}
 	}
 }
