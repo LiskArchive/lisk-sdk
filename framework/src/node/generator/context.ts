@@ -25,6 +25,7 @@ interface GenerationContextArgs {
 	assets: BlockAssets;
 	generatorStore: GeneratorStore;
 	networkIdentifier: Buffer;
+	finalizedHeight: number;
 }
 
 export class GenerationContext {
@@ -34,6 +35,7 @@ export class GenerationContext {
 	private readonly _header: BlockHeader;
 	private readonly _assets: BlockAssets;
 	private readonly _generatorStore: GeneratorStore;
+	private readonly _finalizedHeight: number;
 
 	public constructor(args: GenerationContextArgs) {
 		this._logger = args.logger;
@@ -42,6 +44,7 @@ export class GenerationContext {
 		this._stateStore = args.stateStore;
 		this._generatorStore = args.generatorStore;
 		this._assets = args.assets;
+		this._finalizedHeight = args.finalizedHeight;
 	}
 
 	public get blockHeader(): BlockHeader {
@@ -59,6 +62,7 @@ export class GenerationContext {
 			header: this._header,
 			assets: this._assets,
 			networkIdentifier: this._networkIdentifier,
+			getFinalizedHeight: () => this._finalizedHeight,
 		};
 	}
 }
