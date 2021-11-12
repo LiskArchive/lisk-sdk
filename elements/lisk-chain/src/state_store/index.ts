@@ -14,3 +14,4 @@
 
 export { NotFoundError } from './errors';
 export { StateStore, IterateOptions } from './state_store';
+export { SMTStore } from './smt_store';
