@@ -407,8 +407,7 @@ export class Storage {
 			updated: updatedStates,
 			deleted: deletedStates,
 		} = codec.decode<StateDiff>(stateDiffSchema, stateDiff);
-		// const smtStore = new SMTStore(this._db);
-		// const smt = new SparseMerkleTree({ db: smtStore, rootHash: lastBlock.header.stateRoot });
+
 		// Delete all the newly created states
 		for (const key of createdStates) {
 			batch.del(key);

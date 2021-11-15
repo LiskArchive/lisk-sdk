@@ -668,7 +668,7 @@ export class Consensus {
 		this.events.emit(CONSENSUS_EVENT_BLOCK_DELETE, block);
 	}
 
-	private async _finalizeStore(stateStore: StateStore): Promise<CurrentState> {
+	private async _finalizeStore(stateStore: StateStore, finalize = true): Promise<CurrentState> {
 		const batch = this._db.batch();
 		const smtStore = new SMTStore(this._db);
 		const smt = new SparseMerkleTree({
@@ -676,12 +676,24 @@ export class Consensus {
 			rootHash: this._chain.lastBlock.header.stateRoot,
 		});
 
-		const diff = await stateStore.finalize(batch, smt);
-		smtStore.finalize(batch);
+		// On save use finalize flag to finalize stores
+		if (finalize) {
+			const diff = await stateStore.finalize(batch, smt);
+			smtStore.finalize(batch);
+
+			return {
+				batch,
+				diff,
+				stateStore,
+				smt,
+				smtStore,
+			};
+		}
 
 		return {
 			batch,
-			diff,
+			// Pass initialized diff as its not needed on delete block
+			diff: { created: [], updated: [], deleted: [] },
 			stateStore,
 			smt,
 			smtStore,

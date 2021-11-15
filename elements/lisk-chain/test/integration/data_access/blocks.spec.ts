@@ -14,7 +14,7 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { KVStore, formatInt, NotFoundError } from '@liskhq/lisk-db';
+import { KVStore, formatInt, NotFoundError, InMemoryKVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { SparseMerkleTree } from '@liskhq/lisk-tree';
@@ -31,6 +31,7 @@ import {
 	DB_KEY_TEMPBLOCKS_HEIGHT,
 	DB_KEY_DIFF_STATE,
 	DB_KEY_TRANSACTIONS_BLOCK_ID,
+	DB_KEY_STATE_STORE,
 } from '../../../src/db_keys';
 import { concatDBKeys } from '../../../src/utils';
 
@@ -511,6 +512,200 @@ describe('dataAccess.blocks', () => {
 			expect(tempBlocks[0].header.toObject()).toStrictEqual(blocks[2].header.toObject());
 			expect(tempBlocks[0].payload[0]).toBeInstanceOf(Transaction);
 			expect(tempBlocks[0].payload[0].id).toStrictEqual(blocks[2].payload[0].id);
+		});
+	});
+
+	describe('State root calculation after save/delete block', () => {
+		const sequenceSchema = {
+			$id: 'modules/seq/',
+			type: 'object',
+			properties: {
+				nonce: {
+					dataType: 'uint32',
+					fieldNumber: 1,
+				},
+			},
+			required: ['nonce'],
+		};
+
+		const MODULE_ID = 14;
+		const STORE_PREFIX = 1;
+		let currentState: CurrentState;
+		let stateStore: StateStore;
+		let tempDB: InMemoryKVStore;
+
+		const prefixedKey = (
+			key: Buffer,
+			moduleID: number = MODULE_ID,
+			storePrefix: number = STORE_PREFIX,
+		) => {
+			const moduleIDBuffer = Buffer.alloc(4);
+			moduleIDBuffer.writeInt32BE(moduleID, 0);
+			const storePrefixBuffer = Buffer.alloc(2);
+			storePrefixBuffer.writeUInt16BE(storePrefix, 0);
+
+			return Buffer.concat([DB_KEY_STATE_STORE, moduleIDBuffer, storePrefixBuffer, key]);
+		};
+
+		beforeEach(async () => {
+			stateStore = new StateStore(db);
+			tempDB = new InMemoryKVStore();
+		});
+
+		afterAll(async () => {
+			await tempDB.clear();
+		});
+
+		it('should return current stateRoot calculated after saveBlock', async () => {
+			const subStore = stateStore.getStore(14, 1);
+
+			// 3 accounts being set with data
+			const address1 = getRandomBytes(20);
+			const address2 = getRandomBytes(20);
+			const address3 = getRandomBytes(20);
+
+			const data1 = codec.encode(sequenceSchema, { nonce: 10 });
+			const data2 = codec.encode(sequenceSchema, { nonce: 17 });
+			const data3 = codec.encode(sequenceSchema, { nonce: 29 });
+
+			// Set 3 accounts in stateStore
+			await subStore.set(address1, data1);
+			await subStore.set(address2, data2);
+			await subStore.set(address3, data3);
+
+			// To calculate SMT root hash from updating each address above manually
+			const smtStoreTemp = new SMTStore(tempDB);
+			const smtTemp = new SparseMerkleTree({ db: smtStoreTemp, keyLength: 27 });
+
+			await smtTemp.update(prefixedKey(address1), data1);
+			await smtTemp.update(prefixedKey(address2), data2);
+			await smtTemp.update(prefixedKey(address3), data3);
+			const { rootHash: expectedStateRoot } = smtTemp;
+
+			// Add the expected state root calculated to a block to be saved
+			const firstBlock = await createValidDefaultBlock({
+				header: { height: 304, stateRoot: expectedStateRoot },
+				payload: [getTransaction({ nonce: BigInt(10) }), getTransaction({ nonce: BigInt(20) })],
+			});
+
+			// Run all the finalizeStore steps: create SMT store, batch, smt and pass it to saveBlock()
+			const smtStore = new SMTStore(db);
+			const batchLocal = db.batch();
+			const smt = new SparseMerkleTree({ db: smtStore, keyLength: 27 });
+			const diff1 = await stateStore.finalize(batchLocal, smt);
+			smtStore.finalize(batchLocal);
+
+			currentState = {
+				smt,
+				smtStore,
+				batch: batchLocal,
+				diff: diff1,
+				stateStore,
+			};
+			await dataAccess.saveBlock(firstBlock, currentState, 100);
+
+			expect(smt.rootHash).toEqual(firstBlock.header.stateRoot);
+
+			// Test another with deleting one of the keys
+			await smtTemp.remove(prefixedKey(address3));
+			// Add the expected state root calculated to a block to be saved
+			const secondBlock = await createValidDefaultBlock({
+				header: { height: 304, stateRoot: smtTemp.rootHash },
+				payload: [getTransaction({ nonce: BigInt(10) })],
+			});
+
+			const secondSubStore = stateStore.getStore(14, 1);
+			await secondSubStore.del(address3);
+			const secondSMTStore = new SMTStore(db);
+			const secondBatch = db.batch();
+			const secondSMT = new SparseMerkleTree({ db: secondSMTStore, keyLength: 27 });
+			const diff2 = await stateStore.finalize(secondBatch, secondSMT);
+			secondSMTStore.finalize(secondBatch);
+
+			const newCurrentState = {
+				smt: secondSMT,
+				smtStore: secondSMTStore,
+				batch: secondBatch,
+				diff: diff2,
+				stateStore,
+			};
+			await dataAccess.saveBlock(secondBlock, newCurrentState, 100);
+			expect(secondSMT.rootHash).toEqual(secondBlock.header.stateRoot);
+		});
+
+		it('should return previous stateRoot calculated after delete', async () => {
+			const subStore = stateStore.getStore(14, 1);
+
+			// 3 accounts being set with data
+			const address1 = getRandomBytes(20);
+			const address2 = getRandomBytes(20);
+			const address3 = getRandomBytes(20);
+
+			const data1 = codec.encode(sequenceSchema, { nonce: 10 });
+			const data2 = codec.encode(sequenceSchema, { nonce: 17 });
+			const data3 = codec.encode(sequenceSchema, { nonce: 29 });
+
+			// Set 3 accounts in stateStore
+			await subStore.set(address1, data1);
+			await subStore.set(address2, data2);
+			await subStore.set(address3, data3);
+
+			// To calculate SMT root hash from updating each address above manually
+			const smtStoreTemp = new SMTStore(tempDB);
+			const smtTemp = new SparseMerkleTree({ db: smtStoreTemp, keyLength: 27 });
+
+			await smtTemp.update(prefixedKey(address1), data1);
+			await smtTemp.update(prefixedKey(address2), data2);
+			await smtTemp.update(prefixedKey(address3), data3);
+			const { rootHash: expectedStateRoot } = smtTemp;
+
+			// Add the expected state root calculated to a block to be saved
+			const firstBlock = await createValidDefaultBlock({
+				header: { height: 304, stateRoot: expectedStateRoot },
+				payload: [getTransaction({ nonce: BigInt(10) }), getTransaction({ nonce: BigInt(20) })],
+			});
+
+			// Run all the finalizeStore steps: create SMT store, batch, smt and pass it to saveBlock()
+			const smtStore = new SMTStore(db);
+			const batchLocal = db.batch();
+			const smt = new SparseMerkleTree({ db: smtStore, keyLength: 27 });
+			const diff1 = await stateStore.finalize(batchLocal, smt);
+			smtStore.finalize(batchLocal);
+
+			currentState = {
+				smt,
+				smtStore,
+				batch: batchLocal,
+				diff: diff1,
+				stateStore,
+			};
+			await dataAccess.saveBlock(firstBlock, currentState, 100);
+
+			expect(smt.rootHash).toEqual(firstBlock.header.stateRoot);
+
+			// Delete all the keys that were added in the last block
+			await smtTemp.remove(prefixedKey(address1));
+			await smtTemp.remove(prefixedKey(address2));
+			await smtTemp.remove(prefixedKey(address3));
+
+			const secondSMTStore = new SMTStore(db);
+			const secondBatch = db.batch();
+			const secondSMT = new SparseMerkleTree({
+				db: secondSMTStore,
+				keyLength: 27,
+				rootHash: firstBlock.header.stateRoot,
+			});
+
+			const newCurrentState = {
+				smt: secondSMT,
+				smtStore: secondSMTStore,
+				batch: secondBatch,
+				diff: { updated: [], created: [], deleted: [] },
+				stateStore,
+			};
+
+			await dataAccess.deleteBlock(firstBlock, newCurrentState);
+			expect(secondSMT.rootHash).toEqual(smtTemp.rootHash);
 		});
 	});
 });
