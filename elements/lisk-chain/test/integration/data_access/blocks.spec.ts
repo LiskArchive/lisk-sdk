@@ -17,10 +17,11 @@ import * as fs from 'fs-extra';
 import { KVStore, formatInt, NotFoundError } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import { Storage } from '../../../src/data_access/storage';
 import { createValidDefaultBlock } from '../../utils/block';
 import { getTransaction } from '../../utils/transaction';
-import { Block, BlockAssets, StateStore, Transaction } from '../../../src';
+import { Block, BlockAssets, CurrentState, SMTStore, StateStore, Transaction } from '../../../src';
 import { DataAccess } from '../../../src/data_access';
 import { stateDiffSchema } from '../../../src/schema';
 import {
@@ -338,18 +339,31 @@ describe('dataAccess.blocks', () => {
 
 	describe('saveBlock', () => {
 		let block: Block;
-		let stateStore: StateStore;
+		let currentState: CurrentState;
 
-		beforeAll(async () => {
-			stateStore = new StateStore(db);
+		beforeEach(async () => {
+			const stateStore = new StateStore(db);
 			block = await createValidDefaultBlock({
 				header: { height: 304 },
 				payload: [getTransaction({ nonce: BigInt(10) }), getTransaction({ nonce: BigInt(20) })],
 			});
+			const smtStore = new SMTStore(db);
+			const batchLocal = db.batch();
+			const smt = new SparseMerkleTree({ db: smtStore, rootHash: block.header.stateRoot });
+			const diff = await stateStore.finalize(batchLocal, smt);
+			smtStore.finalize(batchLocal);
+
+			currentState = {
+				smt,
+				smtStore,
+				batch: batchLocal,
+				diff,
+				stateStore,
+			};
 		});
 
 		it('should create block with all index required', async () => {
-			await dataAccess.saveBlock(block, stateStore, 0);
+			await dataAccess.saveBlock(block, currentState, 0);
 
 			await expect(db.exists(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id))).resolves.toBeTrue();
 			await expect(
@@ -376,7 +390,7 @@ describe('dataAccess.blocks', () => {
 		});
 
 		it('should create block with all index required and remove the same height block from temp', async () => {
-			await dataAccess.saveBlock(block, stateStore, 0, true);
+			await dataAccess.saveBlock(block, currentState, 0, true);
 
 			await expect(db.exists(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id))).resolves.toBeTrue();
 			await expect(
@@ -405,7 +419,7 @@ describe('dataAccess.blocks', () => {
 		it('should delete diff before the finalized height', async () => {
 			await db.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(99)), Buffer.from('random diff'));
 			await db.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(100)), Buffer.from('random diff 2'));
-			await dataAccess.saveBlock(block, stateStore as any, 100, true);
+			await dataAccess.saveBlock(block, currentState, 100, true);
 
 			await expect(db.exists(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(100)))).resolves.toBeTrue();
 			await expect(db.exists(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(99)))).resolves.toBeFalse();
@@ -413,13 +427,29 @@ describe('dataAccess.blocks', () => {
 	});
 
 	describe('deleteBlock', () => {
-		// eslint-disable-next-line @typescript-eslint/no-empty-function
-		const stateStore = { finalize: () => {} };
+		let currentState: CurrentState;
+
+		beforeEach(async () => {
+			const stateStore = new StateStore(db);
+			const smtStore = new SMTStore(db);
+			const batch = db.batch();
+			const smt = new SparseMerkleTree({ db: smtStore });
+			const diff = await stateStore.finalize(batch, smt);
+			smtStore.finalize(batch);
+
+			currentState = {
+				smt,
+				smtStore,
+				batch,
+				diff,
+				stateStore,
+			};
+		});
 
 		it('should delete block and all related indexes', async () => {
 			// Deleting temp blocks to test the saving
 			await dataAccess.clearTempBlocks();
-			await dataAccess.deleteBlock(blocks[2], stateStore as any);
+			await dataAccess.deleteBlock(blocks[2], currentState);
 
 			await expect(
 				db.exists(concatDBKeys(DB_KEY_BLOCKS_ID, blocks[2].header.id)),
@@ -447,7 +477,7 @@ describe('dataAccess.blocks', () => {
 			await db.del(key);
 			await dataAccess.clearTempBlocks();
 
-			await expect(dataAccess.deleteBlock(blocks[2], stateStore as any)).rejects.toThrow(
+			await expect(dataAccess.deleteBlock(blocks[2], currentState)).rejects.toThrow(
 				`Specified key ${key.toString('hex')} does not exist`,
 			);
 		});
@@ -455,7 +485,7 @@ describe('dataAccess.blocks', () => {
 		it('should delete block and all related indexes and save to temp', async () => {
 			// Deleting temp blocks to test the saving
 			await dataAccess.clearTempBlocks();
-			await dataAccess.deleteBlock(blocks[2], stateStore as any, true);
+			await dataAccess.deleteBlock(blocks[2], currentState, true);
 
 			await expect(
 				db.exists(concatDBKeys(DB_KEY_BLOCKS_ID, blocks[2].header.id)),
