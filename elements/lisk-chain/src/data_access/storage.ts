@@ -54,10 +54,7 @@ const decodeByteArray = (val: Buffer): Buffer[] => {
 	return decoded.list;
 };
 
-const encodeByteArray = (val: Buffer[]): Buffer => {
-	const encoded = codec.encode(bytesArraySchema, { list: val });
-	return codec.encode(bytesArraySchema, encoded);
-};
+const encodeByteArray = (val: Buffer[]): Buffer => codec.encode(bytesArraySchema, { list: val });
 
 export class Storage {
 	private readonly _db: KVStore;

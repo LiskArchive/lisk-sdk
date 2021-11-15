@@ -512,29 +512,32 @@ describe('consensus', () => {
 	describe('execute', () => {
 		let block: Block;
 		let apiContext: APIContext;
-
-		beforeEach(async () => {
-			block = await createValidDefaultBlock({ header: { height: 2 } });
-			apiContext = createTransientAPIContext({});
-			jest.spyOn(chain, 'saveBlock').mockResolvedValue();
-			jest.spyOn(consensus, 'finalizedHeight').mockReturnValue(0);
-
-			jest.spyOn(stateMachine, 'verifyBlock').mockResolvedValue();
-			jest.spyOn(stateMachine, 'executeBlock').mockResolvedValue();
-			jest.spyOn(bftAPI, 'getBFTParameters').mockResolvedValue({
-				validatorsHash: block.header.validatorsHash,
-			} as never);
-			jest.spyOn(consensus.events, 'emit');
-			consensus['_db'] = dbMock;
-
-			const verifyStateRootMock = jest.fn();
-			consensus['_verifyStateRoot'] = verifyStateRootMock;
-
-			verifyStateRootMock.mockReturnValue(true as never);
-			await consensus.execute(block);
-		});
+		let verifyStateRootMock: jest.Mock;
 
 		describe('block verification', () => {
+			beforeEach(async () => {
+				block = await createValidDefaultBlock({ header: { height: 2 } });
+				apiContext = createTransientAPIContext({});
+				jest.spyOn(chain, 'saveBlock').mockResolvedValue();
+				jest.spyOn(consensus, 'finalizedHeight').mockReturnValue(0);
+				jest.spyOn(stateMachine, 'verifyBlock').mockResolvedValue();
+				jest.spyOn(stateMachine, 'executeBlock').mockResolvedValue();
+				jest.spyOn(bftAPI, 'getBFTParameters').mockResolvedValue({
+					validatorsHash: block.header.validatorsHash,
+				} as never);
+				jest.spyOn(consensus.events, 'emit');
+				consensus['_db'] = dbMock;
+				verifyStateRootMock = jest.fn();
+				consensus['_verifyStateRoot'] = verifyStateRootMock;
+				verifyStateRootMock.mockReturnValue(undefined);
+
+				await consensus.execute(block);
+			});
+
+			afterAll(() => {
+				jest.restoreAllMocks();
+			});
+
 			describe('timestamp', () => {
 				it('should throw error when block timestamp is from future', async () => {
 					const invalidBlock = { ...block };
@@ -864,32 +867,48 @@ describe('consensus', () => {
 					expect(consensus['_validateBlockAsset'](invalidBlock as any)).toBeUndefined();
 				});
 			});
+
+			it('should verify block using state machine', () => {
+				expect(stateMachine.verifyBlock).toHaveBeenCalledTimes(1);
+			});
+
+			it('should call broadcast to the network', () => {
+				expect(network.send).toHaveBeenCalledTimes(1);
+				expect(consensus.events.emit).toHaveReturnedTimes(2);
+				expect(consensus.events.emit).toHaveBeenCalledWith(
+					CONSENSUS_EVENT_BLOCK_BROADCAST,
+					expect.anything(),
+				);
+				expect(consensus.events.emit).toHaveBeenCalledWith(
+					CONSENSUS_EVENT_BLOCK_NEW,
+					expect.anything(),
+				);
+			});
+
+			it('should execute block using state machine', () => {
+				expect(stateMachine.executeBlock).toHaveBeenCalledTimes(1);
+			});
+
+			it('should save block', () => {
+				expect(chain.saveBlock).toHaveBeenCalledWith(block, expect.anything(), 0, {
+					removeFromTempTable: false,
+				});
+			});
 		});
 
-		it('should verify block using state machine', () => {
-			expect(stateMachine.verifyBlock).toHaveBeenCalledTimes(1);
-		});
+		describe('_verifyStateRoot', () => {
+			it('should throw error when stateRoot is not equal to calculated state root', () => {
+				expect(() =>
+					consensus['_verifyStateRoot'](block as any, cryptography.getRandomBytes(32)),
+				).toThrow(
+					`State root is not valid for the block with id: ${block.header.id.toString('hex')}`,
+				);
+			});
 
-		it('should call broadcast to the network', () => {
-			expect(network.send).toHaveBeenCalledTimes(1);
-			expect(consensus.events.emit).toHaveReturnedTimes(2);
-			expect(consensus.events.emit).toHaveBeenCalledWith(
-				CONSENSUS_EVENT_BLOCK_BROADCAST,
-				expect.anything(),
-			);
-			expect(consensus.events.emit).toHaveBeenCalledWith(
-				CONSENSUS_EVENT_BLOCK_NEW,
-				expect.anything(),
-			);
-		});
-
-		it('should execute block using state machine', () => {
-			expect(stateMachine.executeBlock).toHaveBeenCalledTimes(1);
-		});
-
-		it('should save block', () => {
-			expect(chain.saveBlock).toHaveBeenCalledWith(block, expect.anything(), 0, {
-				removeFromTempTable: false,
+			it('should be success when stateRoot is equal to blocks stateRoot', () => {
+				expect(
+					consensus['_verifyStateRoot'](block as any, block.header.stateRoot as Buffer),
+				).toBeUndefined();
 			});
 		});
 	});
