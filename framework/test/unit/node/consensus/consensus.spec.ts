@@ -13,7 +13,6 @@
  */
 
 import { Block, BlockAssets, Chain } from '@liskhq/lisk-chain';
-import { KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
@@ -56,6 +55,8 @@ describe('consensus', () => {
 	let stateMachine: StateMachine;
 	let bftAPI: BFTAPI;
 	let validatorAPI: ValidatorAPI;
+
+	let dbMock: any;
 
 	beforeEach(async () => {
 		const lastBlock = await createValidDefaultBlock({ header: { height: 1 } });
@@ -106,6 +107,11 @@ describe('consensus', () => {
 			validatorAPI,
 			genesisConfig: {} as any,
 		});
+		dbMock = {
+			get: jest.fn(),
+			put: jest.fn(),
+			batch: jest.fn(),
+		};
 	});
 
 	describe('init', () => {
@@ -113,7 +119,7 @@ describe('consensus', () => {
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
 			await consensus.init({
 				logger: loggerMock,
-				db: {} as KVStore,
+				db: dbMock,
 				genesisBlock: genesis,
 			});
 			expect(consensus['_synchronizer']).toBeInstanceOf(Synchronizer);
@@ -123,7 +129,7 @@ describe('consensus', () => {
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
 			await consensus.init({
 				logger: loggerMock,
-				db: {} as KVStore,
+				db: dbMock,
 				genesisBlock: genesis,
 			});
 			expect(consensus['_endpoint']).toBeInstanceOf(NetworkEndpoint);
@@ -133,7 +139,7 @@ describe('consensus', () => {
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
 			await consensus.init({
 				logger: loggerMock,
-				db: {} as KVStore,
+				db: dbMock,
 				genesisBlock: genesis,
 			});
 			expect(network.registerEndpoint).toHaveBeenCalledTimes(3);
@@ -143,7 +149,7 @@ describe('consensus', () => {
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(false);
 			await consensus.init({
 				logger: loggerMock,
-				db: {} as KVStore,
+				db: dbMock,
 				genesisBlock: genesis,
 			});
 
@@ -157,7 +163,7 @@ describe('consensus', () => {
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
 			await consensus.init({
 				logger: loggerMock,
-				db: {} as KVStore,
+				db: dbMock,
 				genesisBlock: genesis,
 			});
 			expect(chain.saveBlock).not.toHaveBeenCalled();
@@ -171,7 +177,7 @@ describe('consensus', () => {
 		beforeEach(async () => {
 			await consensus.init({
 				logger: loggerMock,
-				db: {} as KVStore,
+				db: dbMock,
 				genesisBlock: genesis,
 			});
 		});
@@ -515,8 +521,16 @@ describe('consensus', () => {
 
 			jest.spyOn(stateMachine, 'verifyBlock').mockResolvedValue();
 			jest.spyOn(stateMachine, 'executeBlock').mockResolvedValue();
+			jest.spyOn(bftAPI, 'getBFTParameters').mockResolvedValue({
+				validatorsHash: block.header.validatorsHash,
+			} as never);
 			jest.spyOn(consensus.events, 'emit');
+			consensus['_db'] = dbMock;
 
+			const verifyStateRootMock = jest.fn();
+			consensus['_verifyStateRoot'] = verifyStateRootMock;
+
+			verifyStateRootMock.mockReturnValue(true as never);
 			await consensus.execute(block);
 		});
 
