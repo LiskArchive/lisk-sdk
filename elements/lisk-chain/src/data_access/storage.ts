@@ -14,9 +14,7 @@
 import { KVStore, formatInt, getFirstPrefix, getLastPrefix, NotFoundError } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
-import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import { RawBlock, StateDiff } from '../types';
-import { SMTStore, StateStore } from '../state_store';
 
 import {
 	DB_KEY_BLOCKS_ID,
@@ -30,7 +28,7 @@ import {
 } from '../db_keys';
 import { concatDBKeys } from '../utils';
 import { stateDiffSchema } from '../schema';
-import { Block } from '../block';
+import { CurrentState } from '..';
 
 const bytesArraySchema = {
 	$id: 'lisk-chain/bytesarray',
@@ -343,12 +341,11 @@ export class Storage {
 		header: Buffer,
 		payload: { id: Buffer; value: Buffer }[],
 		assets: Buffer[],
-		stateStore: StateStore,
-		lastBlock: Block,
+		state: CurrentState,
 		removeFromTemp = false,
 	): Promise<void> {
 		const heightBuf = formatInt(height);
-		const batch = this._db.batch();
+		const { batch, diff } = state;
 		batch.put(concatDBKeys(DB_KEY_BLOCKS_ID, id), header);
 		batch.put(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, heightBuf), id);
 		if (payload.length > 0) {
@@ -367,9 +364,6 @@ export class Storage {
 			batch.del(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, heightBuf));
 		}
 
-		const smtStore = new SMTStore(this._db);
-		const smt = new SparseMerkleTree({ db: smtStore, rootHash: lastBlock.header.assetsRoot });
-		const diff = await stateStore.finalize(batch, smt);
 		const encodedDiff = codec.encode(stateDiffSchema, diff);
 		batch.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(height)), encodedDiff);
 		const finalizedHeightBytes = Buffer.alloc(4);
@@ -386,11 +380,10 @@ export class Storage {
 		txIDs: Buffer[],
 		assets: Buffer[],
 		fullBlock: Buffer,
-		stateStore: StateStore,
-		lastBlock: Block,
+		state: CurrentState,
 		saveToTemp = false,
 	): Promise<StateDiff> {
-		const batch = this._db.batch();
+		const { batch, smt, smtStore } = state;
 		const heightBuf = formatInt(height);
 		batch.del(concatDBKeys(DB_KEY_BLOCKS_ID, id));
 		batch.del(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, heightBuf));
@@ -417,8 +410,8 @@ export class Storage {
 			updated: updatedStates,
 			deleted: deletedStates,
 		} = codec.decode<StateDiff>(stateDiffSchema, stateDiff);
-		const smtStore = new SMTStore(this._db);
-		const smt = new SparseMerkleTree({ db: smtStore, rootHash: lastBlock.header.assetsRoot });
+		// const smtStore = new SMTStore(this._db);
+		// const smt = new SparseMerkleTree({ db: smtStore, rootHash: lastBlock.header.stateRoot });
 		// Delete all the newly created states
 		for (const key of createdStates) {
 			batch.del(key);
@@ -434,9 +427,7 @@ export class Storage {
 			await smt.update(key, previousValue);
 		}
 
-		// ignore diff created while deleting
-		await stateStore.finalize(batch, smt);
-
+		smtStore.finalize(batch);
 		// Delete stored diff at particular height
 		batch.del(diffKey);
 

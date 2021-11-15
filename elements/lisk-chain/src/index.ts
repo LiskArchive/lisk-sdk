@@ -31,7 +31,7 @@ export type { RawBlock } from './types';
 export { Slots } from './slots';
 export { concatDBKeys } from './utils';
 
-export { StateStore, NotFoundError, SMTStore } from './state_store';
+export { StateStore, NotFoundError, CurrentState, SMTStore } from './state_store';
 export { Block } from './block';
 export { BlockAsset, BlockAssets } from './block_assets';
 export { BlockHeader, BlockHeaderAttrs, BlockHeaderJSON } from './block_header';

@@ -12,11 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { NotFoundError as DBNotFoundError } from '@liskhq/lisk-db';
+import { BatchChain, NotFoundError as DBNotFoundError } from '@liskhq/lisk-db';
+import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import { dataStructures } from '@liskhq/lisk-utils';
+import { StateStore } from './state_store';
 import { DB_KEY_STATE_SMT } from '../db_keys';
+import { StateDiff } from '../types';
 import { NotFoundError } from './errors';
 import { DatabaseReader, DatabaseWriter } from './types';
+
+export interface CurrentState {
+	batch: BatchChain;
+	diff: StateDiff;
+	stateStore: StateStore;
+	smt: SparseMerkleTree;
+	smtStore: SMTStore;
+}
 
 export class SMTStore {
 	private readonly _db: DatabaseReader;
