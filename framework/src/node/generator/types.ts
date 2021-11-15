@@ -12,7 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Block } from '@liskhq/lisk-chain';
+import { Block, Transaction } from '@liskhq/lisk-chain';
+import { Schema } from '@liskhq/lisk-codec';
 import { Options } from '@liskhq/lisk-db';
 import { Logger } from '../../logger';
 import { BFTParameters } from '../../modules/bft/schemas';
@@ -74,4 +75,24 @@ export interface GeneratorDB {
 	close: () => Promise<void>;
 	get: (key: Buffer) => Promise<Buffer>;
 	exists(key: Buffer): Promise<boolean>;
+}
+
+export interface GenesisBlockGenerateInput {
+	height?: number;
+	timestamp?: number;
+	previousBlockID?: Buffer;
+	assets: {
+		schema: Schema;
+		moduleID: number;
+		data: Record<string, unknown>;
+	}[];
+}
+
+export interface BlockGenerateInput {
+	height: number;
+	timestamp: number;
+	generatorAddress: Buffer;
+	privateKey: Buffer;
+	transactions?: Transaction[];
+	db?: GeneratorDB;
 }

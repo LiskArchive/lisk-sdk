@@ -32,7 +32,7 @@ export { Slots } from './slots';
 export { concatDBKeys } from './utils';
 
 export { StateStore, NotFoundError, CurrentState, SMTStore } from './state_store';
-export { Block } from './block';
-export { BlockAsset, BlockAssets } from './block_assets';
+export { Block, BlockJSON } from './block';
+export { BlockAsset, BlockAssets, BlockAssetJSON } from './block_assets';
 export { BlockHeader, BlockHeaderAttrs, BlockHeaderJSON } from './block_header';
 export { DataAccess } from './data_access';

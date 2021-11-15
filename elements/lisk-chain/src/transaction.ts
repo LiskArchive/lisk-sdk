@@ -16,6 +16,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { hash, getAddressFromPublicKey, signDataWithPrivateKey } from '@liskhq/lisk-cryptography';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { TAG_TRANSACTION } from './constants';
+import { JSONObject } from './types';
 
 export interface TransactionAttrs {
 	readonly moduleID: number;
@@ -27,16 +28,7 @@ export interface TransactionAttrs {
 	readonly signatures: ReadonlyArray<Buffer>;
 	readonly id?: Buffer;
 }
-
-export interface TransactionJSON {
-	readonly moduleID: number;
-	readonly commandID: number;
-	readonly senderPublicKey: string;
-	readonly nonce: string;
-	readonly fee: string;
-	readonly params: string;
-	readonly signatures: ReadonlyArray<string>;
-}
+export type TransactionJSON = JSONObject<TransactionAttrs>;
 
 export const transactionSchema = {
 	$id: 'lisk/transaction',
@@ -118,7 +110,7 @@ export class Transaction {
 		return new Transaction(tx);
 	}
 
-	public static fromJSON(value: Record<string, unknown>): Transaction {
+	public static fromJSON(value: TransactionJSON): Transaction {
 		const tx = codec.fromJSON<TransactionAttrs>(transactionSchema, value);
 		return new Transaction(tx);
 	}
@@ -177,7 +169,7 @@ export class Transaction {
 		}
 	}
 
-	public toJSON(): TransactionJSON {
+	public toJSON(): JSONObject<TransactionAttrs> {
 		return codec.toJSON(transactionSchema, this._getProps());
 	}
 

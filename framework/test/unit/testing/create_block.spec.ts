@@ -11,14 +11,14 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Block } from '@liskhq/lisk-chain';
+import { Block, BlockAssets } from '@liskhq/lisk-chain';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { createBlock } from '../../../src/testing/create_block';
 
 import * as devnetConfig from '../../fixtures/config/devnet/config.json';
 import * as devnetGenesisBlock from '../../fixtures/config/devnet/genesis_block.json';
-import { createGenesisBlock } from '../../../src/testing';
 import { defaultConfig } from '../../../src/testing/fixtures/config';
+import { createFakeBlockHeader } from '../../fixtures';
 
 describe('Create Block', () => {
 	const networkIdentifier = getNetworkIdentifier(
@@ -42,8 +42,7 @@ describe('Create Block', () => {
 	let genesisBlock: Block;
 
 	beforeAll(() => {
-		genesisBlock = createGenesisBlock({ timestamp: Math.floor(Date.now() / 1000 - 24 * 3600) })
-			.genesisBlock;
+		genesisBlock = new Block(createFakeBlockHeader(), [], new BlockAssets());
 	});
 
 	it('should return a valid default block', async () => {
