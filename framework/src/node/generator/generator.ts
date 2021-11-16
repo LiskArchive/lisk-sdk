@@ -461,6 +461,7 @@ export class Generator {
 			logger: this._logger,
 			networkIdentifier: this._chain.networkIdentifier,
 			stateStore,
+			finalizedHeight: this._chain.finalizedHeight,
 		});
 
 		for (const mod of this._modules) {
