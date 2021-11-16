@@ -914,7 +914,7 @@ describe('consensus', () => {
 			});
 		});
 
-		describe('_finalizeStore', () => {
+		describe('_prepareStore', () => {
 			const sampleDiff = {
 				created: [Buffer.from('key1', 'utf-8')],
 				updated: [
@@ -936,7 +936,6 @@ describe('consensus', () => {
 			});
 
 			it('should return current state object with finalized stores', async () => {
-				// const db = new InMemoryKVStore();
 				const batch = consensus['_db'].batch();
 				const smtStore = new SMTStore(consensus['_db']);
 				const smt = new SparseMerkleTree({
@@ -954,9 +953,7 @@ describe('consensus', () => {
 					stateStore,
 				};
 
-				await expect(consensus['_finalizeStore'](stateStore)).resolves.toEqual(
-					expectedCurrentState,
-				);
+				await expect(consensus['_prepareStore'](stateStore)).resolves.toEqual(expectedCurrentState);
 			});
 
 			it('should return current state object without finalized stores when flag is false', async () => {
@@ -978,7 +975,7 @@ describe('consensus', () => {
 					stateStore,
 				};
 
-				await expect(consensus['_finalizeStore'](stateStore, false)).resolves.toEqual(
+				await expect(consensus['_prepareStore'](stateStore, false)).resolves.toEqual(
 					expectedCurrentState,
 				);
 			});

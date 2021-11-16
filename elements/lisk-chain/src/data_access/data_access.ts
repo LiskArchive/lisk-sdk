@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { Transaction } from '../transaction';
 import { RawBlock } from '../types';
@@ -20,7 +21,7 @@ import { Block } from '../block';
 import { BlockCache } from './cache';
 import { Storage as StorageAccess } from './storage';
 import { BlockAssets } from '../block_assets';
-import { CurrentState } from '..';
+import { CurrentState } from '../state_store';
 
 interface DAConstructor {
 	readonly db: KVStore;
