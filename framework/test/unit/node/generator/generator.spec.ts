@@ -99,6 +99,7 @@ describe('generator', () => {
 				},
 				payload: [],
 			},
+			finalizedHeight: 100,
 			dataAccess: {
 				decodeTransaction: jest.fn().mockReturnValue(tx),
 			},
@@ -485,6 +486,12 @@ describe('generator', () => {
 
 			expect(block.payload).toHaveLength(1);
 			expect(block.header.signature).toHaveLength(64);
+		});
+
+		it('should have finalizedHeight in the context', async () => {
+			await generator['_generateBlock'](generatorAddress, keypair, currentTime);
+			expect((mod1.initBlock as jest.Mock).mock.calls[0][0].getFinalizedHeight()).toEqual(100);
+			expect((mod2.sealBlock as jest.Mock).mock.calls[0][0].getFinalizedHeight()).toEqual(100);
 		});
 
 		it('should assign validatorsHash to the block', async () => {
