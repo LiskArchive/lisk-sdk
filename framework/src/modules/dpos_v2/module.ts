@@ -31,11 +31,13 @@ import {
 	STORE_PREFIX_SNAPSHOT,
 	STORE_PREFIX_PREVIOUS_TIMESTAMP,
 	EMPTY_KEY,
+	STORE_PREFIX_GENESIS_DATA,
 } from './constants';
 import { DPoSEndpoint } from './endpoint';
 import {
 	configSchema,
 	delegateStoreSchema,
+	genesisDataStoreSchema,
 	previousTimestampStoreSchema,
 	snapshotStoreSchema,
 } from './schemas';
@@ -48,6 +50,7 @@ import {
 	DelegateAccount,
 	SnapshotStoreData,
 	PreviousTimestampData,
+	GenesisData,
 } from './types';
 import { Rounds } from './rounds';
 import {
@@ -137,21 +140,30 @@ export class DPoSModule extends BaseModule {
 
 	public async afterBlockExecute(context: BlockAfterExecuteContext): Promise<void> {
 		const { getStore, header } = context;
-
+		const isLastBlockOfRound = this._isLastBlockOfTheRound(header.height);
 		const previousTimestampStore = getStore(this.id, STORE_PREFIX_PREVIOUS_TIMESTAMP);
 		const previousTimestampData = await previousTimestampStore.getWithSchema<PreviousTimestampData>(
 			EMPTY_KEY,
 			previousTimestampStoreSchema,
 		);
 		const { timestamp: previousTimestamp } = previousTimestampData;
+
 		await this._updateProductivity(context, previousTimestamp);
+
+		if (isLastBlockOfRound) {
+			await this._createVoteWeightSnapshot(context);
+		}
+
+		const didBootstrapRoundsEnd = await this._didBootstrapRoundsEnd(context);
+		if (isLastBlockOfRound && didBootstrapRoundsEnd) {
+			await this._updateValidators(context);
+		}
+
 		await previousTimestampStore.setWithSchema(
 			EMPTY_KEY,
 			{ timestamp: header.timestamp },
 			previousTimestampStoreSchema,
 		);
-		await this._createVoteWeightSnapshot(context);
-		await this._updateValidators(context);
 	}
 
 	private async _createVoteWeightSnapshot(context: BlockAfterExecuteContext): Promise<void> {
@@ -356,5 +368,27 @@ export class DPoSModule extends BaseModule {
 		generator.consecutiveMissedBlocks = 0;
 		generator.lastGeneratedHeight = newHeight;
 		await delegateStore.setWithSchema(header.generatorAddress, generator, delegateStoreSchema);
+	}
+
+	private _isLastBlockOfTheRound(height: number): boolean {
+		const rounds = new Rounds({ blocksPerRound: this._moduleConfig.roundLength });
+		const currentRound = rounds.calcRound(height);
+		const nextRound = rounds.calcRound(height + 1);
+
+		return currentRound < nextRound;
+	}
+
+	private async _didBootstrapRoundsEnd(context: BlockAfterExecuteContext) {
+		const { header, getStore } = context;
+		const rounds = new Rounds({ blocksPerRound: this._moduleConfig.roundLength });
+		const genesisDataStore = getStore(this.id, STORE_PREFIX_GENESIS_DATA);
+		const genesisData = await genesisDataStore.getWithSchema<GenesisData>(
+			EMPTY_KEY,
+			genesisDataStoreSchema,
+		);
+		const { initRounds } = genesisData;
+		const nextHeightRound = rounds.calcRound(header.height + 1);
+
+		return nextHeightRound > initRounds;
 	}
 }

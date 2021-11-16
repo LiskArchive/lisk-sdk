@@ -226,3 +226,9 @@ export interface SnapshotStoreData {
 export interface PreviousTimestampData {
 	timestamp: number;
 }
+
+export interface GenesisData {
+	heigth: number;
+	initRounds: number;
+	initDelegates: Buffer[];
+}
