@@ -99,7 +99,7 @@ export class RandomModule extends BaseModule {
 
 		const updatedUsedHashOnion = this._filterUsedHashOnions(
 			usedHashOnions,
-			0, // TODO:this._bftModule.finalizedHeight, to update after https://github.com/LiskHQ/lisk-sdk/issues/6836
+			context.getFinalizedHeight(),
 		);
 		// Set value in Block Asset
 		context.assets.setAsset(
