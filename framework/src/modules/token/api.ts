@@ -83,11 +83,9 @@ export class TokenAPI extends BaseAPI {
 		}
 		if (recipient.availableBalance + amount < this._minBalance) {
 			throw new Error(
-				`Recipient ${recipientAddress.toString(
-					'hex',
-				)} balance ${recipient.availableBalance.toString()} is not sufficient for min balance ${(
-					amount + this._minBalance
-				).toString()}`,
+				`Recipient ${recipientAddress.toString('hex')} balance ${(
+					recipient.availableBalance + amount
+				).toString()} is not sufficient for min balance ${this._minBalance.toString()}`,
 			);
 		}
 		recipient.availableBalance += amount;
@@ -201,11 +199,9 @@ export class TokenAPI extends BaseAPI {
 		}
 		if (recipient.availableBalance + amount < this._minBalance) {
 			throw new Error(
-				`Recipient ${address.toString(
-					'hex',
-				)} balance ${recipient.availableBalance.toString()} is not sufficient for min balance ${(
-					amount + this._minBalance
-				).toString()}`,
+				`Recipient ${address.toString('hex')} balance ${(
+					recipient.availableBalance + amount
+				).toString()} is not sufficient for min balance ${this._minBalance.toString()}`,
 			);
 		}
 		recipient.availableBalance += amount;
