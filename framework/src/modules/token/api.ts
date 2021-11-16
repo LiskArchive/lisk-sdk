@@ -81,7 +81,7 @@ export class TokenAPI extends BaseAPI {
 				lockedBalances: [],
 			};
 		}
-		if (recipient.availableBalance < amount + this._minBalance) {
+		if (recipient.availableBalance + amount < this._minBalance) {
 			throw new Error(
 				`Recipient ${recipientAddress.toString(
 					'hex',
@@ -199,7 +199,7 @@ export class TokenAPI extends BaseAPI {
 				lockedBalances: [],
 			};
 		}
-		if (recipient.availableBalance < amount + this._minBalance) {
+		if (recipient.availableBalance + amount < this._minBalance) {
 			throw new Error(
 				`Recipient ${address.toString(
 					'hex',
