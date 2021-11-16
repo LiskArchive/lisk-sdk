@@ -663,7 +663,7 @@ export class Consensus {
 
 		// Offset must be set to 1, because lastBlock is still this deleting block
 		const stateStore = new StateStore(this._db);
-		const currentState = await this._finalizeStore(stateStore);
+		const currentState = await this._finalizeStore(stateStore, false);
 		await this._chain.removeBlock(block, currentState, { saveTempBlock });
 		this.events.emit(CONSENSUS_EVENT_BLOCK_DELETE, block);
 	}
@@ -676,7 +676,7 @@ export class Consensus {
 			rootHash: this._chain.lastBlock.header.stateRoot,
 		});
 
-		// On save use finalize flag to finalize stores
+		// On save, use finalize flag to finalize stores
 		if (finalize) {
 			const diff = await stateStore.finalize(batch, smt);
 			smtStore.finalize(batch);

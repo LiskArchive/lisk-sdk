@@ -12,11 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Block, BlockAssets, Chain } from '@liskhq/lisk-chain';
+import { Block, BlockAssets, Chain, CurrentState, SMTStore, StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
+import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import { ApplyPenaltyError } from '../../../../src/errors';
 import {
 	CONSENSUS_EVENT_BLOCK_BROADCAST,
@@ -909,6 +911,76 @@ describe('consensus', () => {
 				expect(
 					consensus['_verifyStateRoot'](block as any, block.header.stateRoot as Buffer),
 				).toBeUndefined();
+			});
+		});
+
+		describe('_finalizeStore', () => {
+			const sampleDiff = {
+				created: [Buffer.from('key1', 'utf-8')],
+				updated: [
+					{
+						key: Buffer.from('key2', 'utf-8'),
+						value: Buffer.from('data2'),
+					},
+				],
+				deleted: [
+					{
+						key: Buffer.from('key3', 'utf-8'),
+						value: Buffer.from('data3'),
+					},
+				],
+			};
+
+			beforeEach(() => {
+				(consensus as any)['_db'] = new InMemoryKVStore();
+			});
+
+			it('should return current state object with finalized stores', async () => {
+				// const db = new InMemoryKVStore();
+				const batch = consensus['_db'].batch();
+				const smtStore = new SMTStore(consensus['_db']);
+				const smt = new SparseMerkleTree({
+					db: smtStore,
+					rootHash: consensus['_chain'].lastBlock.header.stateRoot,
+				});
+				const stateStore = new StateStore(new InMemoryKVStore());
+				jest.spyOn(stateStore, 'finalize').mockResolvedValue(sampleDiff as never);
+
+				const expectedCurrentState: CurrentState = {
+					diff: sampleDiff,
+					batch,
+					smt,
+					smtStore,
+					stateStore,
+				};
+
+				await expect(consensus['_finalizeStore'](stateStore)).resolves.toEqual(
+					expectedCurrentState,
+				);
+			});
+
+			it('should return current state object without finalized stores when flag is false', async () => {
+				const initDiff = { created: [], updated: [], deleted: [] };
+				const batch = consensus['_db'].batch();
+				const smtStore = new SMTStore(consensus['_db']);
+				const smt = new SparseMerkleTree({
+					db: smtStore,
+					rootHash: consensus['_chain'].lastBlock.header.stateRoot,
+				});
+				const stateStore = new StateStore(consensus['_db']);
+				jest.spyOn(stateStore, 'finalize').mockResolvedValue(sampleDiff as never);
+
+				const expectedCurrentState: CurrentState = {
+					diff: initDiff,
+					batch,
+					smt,
+					smtStore,
+					stateStore,
+				};
+
+				await expect(consensus['_finalizeStore'](stateStore, false)).resolves.toEqual(
+					expectedCurrentState,
+				);
 			});
 		});
 	});
