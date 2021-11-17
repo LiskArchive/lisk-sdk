@@ -13,3 +13,4 @@
  */
 
 export { FeeModule } from './module';
+export { FeeAPI } from './api';

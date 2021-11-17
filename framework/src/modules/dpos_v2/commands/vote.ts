@@ -50,6 +50,9 @@ export class VoteCommand extends BaseCommand {
 
 	public addDependencies(args: VoteCommandDependencies) {
 		this._tokenAPI = args.tokenAPI;
+	}
+
+	public init(args: { tokenIDDPoS: TokenIDDPoS }) {
 		this._tokenIDDPoS = args.tokenIDDPoS;
 	}
 

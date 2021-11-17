@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ModuleEndpointContext } from '../..';
+import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
 import { calculateDefaultReward } from './calculate_reward';
 import { DefaultReward, EndpointInitArgs } from './types';

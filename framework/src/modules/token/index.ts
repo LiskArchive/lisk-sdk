@@ -12,5 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export * from './module';
-export * from './commands/transfer';
+export { TokenModule } from './module';
+export { TransferCommand } from './commands/transfer';
+export { TokenAPI } from './api';

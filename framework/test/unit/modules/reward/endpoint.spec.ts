@@ -40,7 +40,7 @@ describe('RewardModuleEndpoint', () => {
 		await rewardModule.init({ genesisConfig, moduleConfig, generatorConfig });
 		rewardModule.addDependencies(
 			{ mint: jest.fn() } as any,
-			{ isValidSeedReveal: jest.fn() } as any,
+			{ isSeedRevealValid: jest.fn() } as any,
 			{ impliesMaximalPrevotes: jest.fn() } as any,
 		);
 	});

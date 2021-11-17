@@ -58,6 +58,7 @@ export interface BlockGenerateContext {
 	header: BlockHeader;
 	assets: WritableBlockAssets;
 	getGeneratorStore: (moduleID: number) => GeneratorStore;
+	getFinalizedHeight(): number;
 }
 
 export interface GeneratorModule {

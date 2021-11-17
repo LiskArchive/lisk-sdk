@@ -72,6 +72,8 @@ describe('VoteCommand', () => {
 				getMinRemainingBalance: jest.fn(),
 				transfer: jest.fn(),
 			},
+		});
+		command.init({
 			tokenIDDPoS: { chainID: 0, localID: 0 },
 		});
 
