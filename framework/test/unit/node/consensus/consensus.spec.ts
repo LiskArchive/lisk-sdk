@@ -914,7 +914,7 @@ describe('consensus', () => {
 			});
 		});
 
-		describe('_prepareStore', () => {
+		describe('_prepareFinalizingState', () => {
 			const sampleDiff = {
 				created: [Buffer.from('key1', 'utf-8')],
 				updated: [
@@ -953,7 +953,9 @@ describe('consensus', () => {
 					stateStore,
 				};
 
-				await expect(consensus['_prepareStore'](stateStore)).resolves.toEqual(expectedCurrentState);
+				await expect(consensus['_prepareFinalizingState'](stateStore)).resolves.toEqual(
+					expectedCurrentState,
+				);
 			});
 
 			it('should return current state object without finalized stores when flag is false', async () => {
@@ -975,7 +977,7 @@ describe('consensus', () => {
 					stateStore,
 				};
 
-				await expect(consensus['_prepareStore'](stateStore, false)).resolves.toEqual(
+				await expect(consensus['_prepareFinalizingState'](stateStore, false)).resolves.toEqual(
 					expectedCurrentState,
 				);
 			});

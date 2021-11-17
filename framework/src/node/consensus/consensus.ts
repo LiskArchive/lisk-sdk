@@ -181,7 +181,7 @@ export class Consensus {
 				stateStore: (stateStore as unknown) as StateStore,
 			});
 			await this._stateMachine.executeGenesisBlock(ctx);
-			const state = await this._prepareStore(stateStore);
+			const state = await this._prepareFinalizingState(stateStore);
 
 			await this._chain.saveBlock(args.genesisBlock, state, args.genesisBlock.header.height);
 		}
@@ -458,7 +458,7 @@ export class Consensus {
 		// Verify validatorsHash
 		await this._verifyValidatorsHash(apiContext, block);
 		// Verify stateRoot
-		const currentState = await this._prepareStore(stateStore);
+		const currentState = await this._prepareFinalizingState(stateStore);
 		this._verifyStateRoot(block, currentState.smt.rootHash);
 
 		await this._chain.saveBlock(block, currentState, finalizedHeight, {
@@ -663,12 +663,15 @@ export class Consensus {
 
 		// Offset must be set to 1, because lastBlock is still this deleting block
 		const stateStore = new StateStore(this._db);
-		const currentState = await this._prepareStore(stateStore, false);
+		const currentState = await this._prepareFinalizingState(stateStore, false);
 		await this._chain.removeBlock(block, currentState, { saveTempBlock });
 		this.events.emit(CONSENSUS_EVENT_BLOCK_DELETE, block);
 	}
 
-	private async _prepareStore(stateStore: StateStore, finalize = true): Promise<CurrentState> {
+	private async _prepareFinalizingState(
+		stateStore: StateStore,
+		finalize = true,
+	): Promise<CurrentState> {
 		const batch = this._db.batch();
 		const smtStore = new SMTStore(this._db);
 		const smt = new SparseMerkleTree({

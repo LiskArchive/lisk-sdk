@@ -28,7 +28,7 @@ import {
 } from '../db_keys';
 import { concatDBKeys } from '../utils';
 import { stateDiffSchema } from '../schema';
-import { CurrentState } from '..';
+import { CurrentState } from '../state_store';
 
 const bytesArraySchema = {
 	$id: 'lisk-chain/bytesarray',
