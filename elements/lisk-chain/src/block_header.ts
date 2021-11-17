@@ -183,6 +183,16 @@ export class BlockHeader {
 		const header = this._getBlockHeaderProps();
 		const errors = validator.validate(blockHeaderSchema, header);
 
+		if (header.previousBlockID.length !== 32) {
+			errors.push({
+				message: 'Genesis block header previousBlockID must be 32 bytes',
+				keyword: 'const',
+				dataPath: 'header.previousBlockID',
+				schemaPath: 'properties.previousBlockID',
+				params: {},
+			});
+		}
+
 		if (!header.transactionRoot.equals(EMPTY_HASH)) {
 			errors.push({
 				message: 'Genesis block header transaction root must be empty hash',
