@@ -44,7 +44,7 @@ const getGenesisBlockAttrs = () => ({
 	version: 1,
 	timestamp: 1009988,
 	height: 1009988,
-	previousBlockID: Buffer.from('4a462ea57a8c9f72d866c09770e5ec70cef18727', 'hex'),
+	previousBlockID: getRandomBytes(32),
 	stateRoot: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
 	transactionRoot: EMPTY_HASH,
 	assetsRoot: EMPTY_HASH,
@@ -196,6 +196,15 @@ describe('block_header', () => {
 		});
 
 		describe('validateGenesis', () => {
+			it('should throw error if previousBlockID is not 32 bytes', () => {
+				const block = getGenesisBlockAttrs();
+				const blockHeader = new BlockHeader({ ...block, previousBlockID: getRandomBytes(31) });
+
+				expect(() => blockHeader.validateGenesis()).toThrow(
+					'Genesis block header previousBlockID must be 32 bytes',
+				);
+			});
+
 			it('should throw error if transactionRoot is not empty hash', () => {
 				const block = getGenesisBlockAttrs();
 				const blockHeader = new BlockHeader({ ...block, transactionRoot: getRandomBytes(32) });
