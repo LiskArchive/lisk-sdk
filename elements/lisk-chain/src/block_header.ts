@@ -15,7 +15,7 @@
 import { signDataWithPrivateKey, hash, verifyData } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
-import { TAG_BLOCK_HEADER } from './constants';
+import { EMPTY_BUFFER, EMPTY_HASH, TAG_BLOCK_HEADER } from './constants';
 import { blockHeaderSchema, blockHeaderSchemaWithId, signingBlockHeaderSchema } from './schema';
 
 export interface BlockHeaderAttrs {
@@ -176,6 +176,95 @@ export class BlockHeader {
 		}
 		if (this.previousBlockID.length === 0) {
 			throw new Error('Previous block id must not be empty.');
+		}
+	}
+
+	public validateGenesis(): void {
+		const header = this._getBlockHeaderProps();
+		const errors = validator.validate(blockHeaderSchema, header);
+
+		if (!header.transactionRoot.equals(EMPTY_HASH)) {
+			errors.push({
+				message: 'Genesis block header transaction root must be empty hash',
+				keyword: 'const',
+				dataPath: 'header.transactionRoot',
+				schemaPath: 'properties.transactionRoot',
+				params: { allowedValue: EMPTY_HASH },
+			});
+		}
+
+		if (!header.generatorAddress.equals(EMPTY_BUFFER)) {
+			errors.push({
+				message: 'Genesis block header generatorAddress must be empty bytes',
+				keyword: 'const',
+				dataPath: 'header.generatorAddress',
+				schemaPath: 'properties.generatorAddress',
+				params: { allowedValue: EMPTY_BUFFER },
+			});
+		}
+
+		if (!(header.maxHeightPrevoted === header.height)) {
+			errors.push({
+				message: 'Genesis block header maxHeightPrevoted must equal height',
+				keyword: 'const',
+				dataPath: 'header.maxHeightPrevoted',
+				schemaPath: 'properties.maxHeightPrevoted',
+				params: { allowedValue: header.height },
+			});
+		}
+
+		if (!(header.maxHeightGenerated === 0)) {
+			errors.push({
+				message: 'Genesis block header maxHeightGenerated must equal 0',
+				keyword: 'const',
+				dataPath: 'header.maxHeightGenerated',
+				schemaPath: 'properties.maxHeightGenerated',
+				params: { allowedValue: 0 },
+			});
+		}
+
+		if (!(header.aggregateCommit.height === 0)) {
+			errors.push({
+				message: 'Genesis block header aggregateCommit.height must equal 0',
+				keyword: 'const',
+				dataPath: 'aggregateCommit.height',
+				schemaPath: 'properties.aggregateCommit.height',
+				params: { allowedValue: 0 },
+			});
+		}
+
+		if (!header.aggregateCommit.certificateSignature.equals(EMPTY_BUFFER)) {
+			errors.push({
+				message: 'Genesis block header aggregateCommit.certificateSignature must be empty bytes',
+				keyword: 'const',
+				dataPath: 'aggregateCommit.certificateSignature',
+				schemaPath: 'properties.aggregateCommit.certificateSignature',
+				params: { allowedValue: EMPTY_BUFFER },
+			});
+		}
+
+		if (!header.aggregateCommit.aggregationBits.equals(EMPTY_BUFFER)) {
+			errors.push({
+				message: 'Genesis block header aggregateCommit.aggregationBits must be empty bytes',
+				keyword: 'const',
+				dataPath: 'aggregateCommit.aggregationBits',
+				schemaPath: 'properties.aggregateCommit.aggregationBits',
+				params: { allowedValue: EMPTY_BUFFER },
+			});
+		}
+
+		if (!header.signature.equals(EMPTY_BUFFER)) {
+			errors.push({
+				message: 'Genesis block header signature must be empty bytes',
+				keyword: 'const',
+				dataPath: 'header.signature',
+				schemaPath: 'properties.signature',
+				params: { allowedValue: EMPTY_BUFFER },
+			});
+		}
+
+		if (errors.length) {
+			throw new LiskValidationError(errors);
 		}
 	}
 
