@@ -37,7 +37,7 @@ export interface TokenAPI {
 }
 
 export interface RandomAPI {
-	isValidSeedReveal(
+	isSeedRevealValid(
 		apiContext: ImmutableAPIContext,
 		generatorAddress: Buffer,
 		assets: BlockAssets,

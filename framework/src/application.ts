@@ -41,6 +41,14 @@ import { Logger, createLogger } from './logger';
 import { DuplicateAppInstanceError } from './errors';
 import { BaseModule } from './modules/base_module';
 import { getEndpointHandlers, mergeEndpointHandlers } from './endpoint';
+import { ValidatorsAPI } from './modules/validators';
+import { BFTAPI } from './modules/bft';
+import { TokenModule, TokenAPI } from './modules/token';
+import { AuthModule, AuthAPI } from './modules/auth';
+import { FeeModule, FeeAPI } from './modules/fee';
+import { RewardModule, RewardAPI } from './modules/reward';
+import { RandomModule, RandomAPI } from './modules/random';
+import { DPoSModule, DPoSAPI } from './modules/dpos_v2';
 
 const MINIMUM_EXTERNAL_MODULE_ID = 1000;
 
@@ -91,6 +99,20 @@ const registerProcessHooks = (app: Application): void => {
 		handleShutdown(code, 'process.exit').catch((error: Error) => app.logger.error({ error }));
 	});
 };
+
+interface DefaultApplication {
+	app: Application;
+	api: {
+		validator: ValidatorsAPI;
+		bft: BFTAPI;
+		auth: AuthAPI;
+		token: TokenAPI;
+		fee: FeeAPI;
+		random: RandomAPI;
+		reward: RewardAPI;
+		dpos: DPoSAPI;
+	};
+}
 
 export class Application {
 	public config: ApplicationConfig;
@@ -144,20 +166,58 @@ export class Application {
 		return this._controller.channel;
 	}
 
-	public static getDefaultModules(): BaseModule[] {
-		return [];
+	public get validatorAPI(): ValidatorsAPI {
+		return this._node.validatorAPI;
+	}
+
+	public get bftAPI(): BFTAPI {
+		return this._node.bftAPI;
 	}
 
 	public static defaultApplication(
 		genesisBlock: Record<string, unknown>,
 		config: PartialApplicationConfig = {},
-	): Application {
+	): DefaultApplication {
 		const application = new Application(genesisBlock, config);
-		for (const mod of Application.getDefaultModules()) {
-			application._registerModule(mod);
-		}
+		// create module instances
+		const authModule = new AuthModule();
+		const tokenModule = new TokenModule();
+		const feeModule = new FeeModule();
+		const rewardModule = new RewardModule();
+		const randomModule = new RandomModule();
+		const dposModule = new DPoSModule();
 
-		return application;
+		// resolve dependencies
+		feeModule.addDependencies(tokenModule.api);
+		rewardModule.addDependencies(tokenModule.api, randomModule.api, application.bftAPI);
+		dposModule.addDependencies(
+			randomModule.api,
+			application.bftAPI,
+			application.validatorAPI,
+			tokenModule.api,
+		);
+
+		// register modules
+		application._registerModule(authModule);
+		application._registerModule(tokenModule);
+		application._registerModule(feeModule);
+		application._registerModule(rewardModule);
+		application._registerModule(randomModule);
+		application._registerModule(dposModule);
+
+		return {
+			app: application,
+			api: {
+				validator: application._node.validatorAPI,
+				bft: application._node.bftAPI,
+				token: tokenModule.api,
+				auth: authModule.api,
+				fee: feeModule.api,
+				dpos: dposModule.api,
+				random: randomModule.api,
+				reward: rewardModule.api,
+			},
+		};
 	}
 
 	public registerPlugin(

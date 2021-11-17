@@ -38,7 +38,7 @@ describe('RewardModule', () => {
 		await rewardModule.init({ genesisConfig, moduleConfig, generatorConfig });
 		rewardModule.addDependencies(
 			{ mint } as any,
-			{ isValidSeedReveal: jest.fn().mockReturnValue(true) } as any,
+			{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
 			{ impliesMaximalPrevotes: jest.fn().mockReturnValue(true) } as any,
 		);
 	});

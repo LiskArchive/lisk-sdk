@@ -81,13 +81,11 @@ export class TokenAPI extends BaseAPI {
 				lockedBalances: [],
 			};
 		}
-		if (recipient.availableBalance < amount + this._minBalance) {
+		if (recipient.availableBalance + amount < this._minBalance) {
 			throw new Error(
-				`Recipient ${recipientAddress.toString(
-					'hex',
-				)} balance ${recipient.availableBalance.toString()} is not sufficient for min balance ${(
-					amount + this._minBalance
-				).toString()}`,
+				`Recipient ${recipientAddress.toString('hex')} balance ${(
+					recipient.availableBalance + amount
+				).toString()} is not sufficient for min balance ${this._minBalance.toString()}`,
 			);
 		}
 		recipient.availableBalance += amount;
@@ -157,5 +155,56 @@ export class TokenAPI extends BaseAPI {
 			user.lockedBalances.splice(lockedIndex, 1);
 		}
 		await userStore.setWithSchema(address, address, userStoreSchema);
+	}
+
+	public async burn(
+		apiContext: APIContext,
+		senderAddress: Buffer,
+		_id: TokenID,
+		amount: bigint,
+	): Promise<void> {
+		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
+		const sender = await userStore.getWithSchema<UserStoreData>(senderAddress, userStoreSchema);
+		if (sender.availableBalance < amount + this._minBalance) {
+			throw new Error(
+				`Sender ${senderAddress.toString(
+					'hex',
+				)} balance ${sender.availableBalance.toString()} is not sufficient for ${(
+					amount + this._minBalance
+				).toString()}`,
+			);
+		}
+		sender.availableBalance -= amount;
+		await userStore.setWithSchema(senderAddress, sender, userStoreSchema);
+	}
+
+	public async mint(
+		apiContext: APIContext,
+		address: Buffer,
+		_id: TokenID,
+		amount: bigint,
+	): Promise<void> {
+		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
+		let recipient: UserStoreData;
+		try {
+			recipient = await userStore.getWithSchema<UserStoreData>(address, userStoreSchema);
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+			recipient = {
+				availableBalance: BigInt(0),
+				lockedBalances: [],
+			};
+		}
+		if (recipient.availableBalance + amount < this._minBalance) {
+			throw new Error(
+				`Recipient ${address.toString('hex')} balance ${(
+					recipient.availableBalance + amount
+				).toString()} is not sufficient for min balance ${this._minBalance.toString()}`,
+			);
+		}
+		recipient.availableBalance += amount;
+		await userStore.setWithSchema(address, recipient, userStoreSchema);
 	}
 }

@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { ModuleEndpointContext } from '../..';
+import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
 import { STORE_PREFIX_DELEGATE, STORE_PREFIX_VOTER } from './constants';
 import { voterStoreSchema, delegateStoreSchema } from './schemas';

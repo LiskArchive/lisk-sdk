@@ -13,3 +13,4 @@
  */
 
 export { DPoSModule } from './module';
+export { DPoSAPI } from './api';

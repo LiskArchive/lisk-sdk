@@ -12,5 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const MODULE_ID_FEE = 1;
+export const MODULE_ID_FEE = 14;
 export const NATIVE_TOKEN_CHAIN_ID = 0;

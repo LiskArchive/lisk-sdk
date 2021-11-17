@@ -121,6 +121,7 @@ export const createBlockGenerateContext = (params: {
 	getAPIContext?: () => APIContext;
 	getStore?: (moduleID: number, storePrefix: number) => ImmutableSubStore;
 	header: BlockHeader;
+	finalizedHeight?: number;
 	networkIdentifier?: Buffer;
 }): BlockGenerateContext => {
 	const db = new InMemoryKVStore();
@@ -158,6 +159,7 @@ export const createBlockGenerateContext = (params: {
 		networkIdentifier: params.networkIdentifier ?? getRandomBytes(32),
 		getAPIContext: params.getAPIContext ?? (() => ({ getStore, eventQueue: new EventQueue() })),
 		getStore: params.getStore ?? getStore,
+		getFinalizedHeight: () => params.finalizedHeight ?? 0,
 		header,
 	};
 
