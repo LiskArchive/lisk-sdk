@@ -13,10 +13,11 @@
  */
 
 import { BaseModule, ModuleInitArgs } from '../base_module';
-import { MODULE_ID_VALIDATORS } from './constants';
+import { EMPTY_KEY, MODULE_ID_VALIDATORS, STORE_PREFIX_GENESIS_DATA } from './constants';
 import { GenesisBlockExecuteContext } from '../../node/state_machine';
 import { ValidatorsAPI } from './api';
 import { ValidatorsEndpoint } from './endpoint';
+import { genesisDataSchema } from './schemas';
 
 export class ValidatorsModule extends BaseModule {
 	public id = MODULE_ID_VALIDATORS;
@@ -45,9 +46,12 @@ export class ValidatorsModule extends BaseModule {
 		});
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async afterGenesisBlockExecute(_context: GenesisBlockExecuteContext): Promise<void> {
-		// eslint-disable-next-line no-console
-		console.log(this._blockTime);
+	public async afterGenesisBlockExecute(context: GenesisBlockExecuteContext): Promise<void> {
+		const genesisDataSubStore = context.getStore(this.id, STORE_PREFIX_GENESIS_DATA);
+		await genesisDataSubStore.setWithSchema(
+			EMPTY_KEY,
+			{ timestamp: context.header.timestamp },
+			genesisDataSchema,
+		);
 	}
 }
