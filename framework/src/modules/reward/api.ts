@@ -41,7 +41,7 @@ export class RewardAPI extends BaseAPI {
 		header: BlockHeader,
 		assets: BlockAssets,
 	): Promise<bigint> {
-		const isValidSeedReveal = await this._randomAPI.isValidSeedReveal(
+		const isValidSeedReveal = await this._randomAPI.isSeedRevealValid(
 			context,
 			header.generatorAddress,
 			assets,

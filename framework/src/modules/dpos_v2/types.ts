@@ -40,8 +40,8 @@ export interface ModuleConfig {
 export interface BFTAPI {
 	setBFTParameters(
 		apiContext: APIContext,
-		precommitThreshold: number,
-		certificateThreshold: number,
+		precommitThreshold: bigint,
+		certificateThreshold: bigint,
 		validators: Validator[],
 	): Promise<void>;
 	getBFTParameters(
@@ -65,7 +65,7 @@ export interface RandomAPI {
 }
 
 export interface ValidatorsAPI {
-	setGeneratorList(apiContext: APIContext, generatorAddresses: Buffer[]): Promise<void>;
+	setGeneratorList(apiContext: APIContext, generatorAddresses: Buffer[]): Promise<boolean>;
 	setValidatorGeneratorKey(
 		apiContext: APIContext,
 		validatorAddress: Buffer,
@@ -184,7 +184,6 @@ export interface VoteTransactionParams {
 }
 
 export interface VoteCommandDependencies {
-	tokenIDDPoS: TokenIDDPoS;
 	tokenAPI: TokenAPI;
 }
 

@@ -13,7 +13,7 @@
  */
 
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
-import { ModuleEndpointContext } from '../..';
+import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
 import { STORE_PREFIX_RANDOM, EMPTY_KEY } from './constants';
 import { isSeedRevealValidParamsSchema, seedRevealSchema } from './schemas';
