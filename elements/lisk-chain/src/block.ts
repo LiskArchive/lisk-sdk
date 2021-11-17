@@ -16,7 +16,6 @@ import { codec } from '@liskhq/lisk-codec';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { BlockAssets } from './block_assets';
 import { BlockHeader } from './block_header';
-import { MAX_ASSET_DATA_SIZE_BYTES } from './constants';
 import { blockSchema } from './schema';
 import { Transaction } from './transaction';
 
@@ -78,28 +77,7 @@ export class Block {
 		for (const tx of this.payload) {
 			tx.validate();
 		}
-
-		const assets = this.assets.getAll();
-		let last = assets[0];
-		let i = 0;
-		for (const asset of assets) {
-			// Data size of each module should not be greater than max asset data size
-			if (asset.data.byteLength > MAX_ASSET_DATA_SIZE_BYTES) {
-				throw new Error(
-					`Module with ID ${asset.moduleID} has data size more than ${MAX_ASSET_DATA_SIZE_BYTES} bytes.`,
-				);
-			}
-			if (last.moduleID > asset.moduleID) {
-				throw new Error('Assets are not sorted in the increasing values of moduleID.');
-			}
-			// Check for duplicates
-			if (i > 0 && asset.moduleID === last.moduleID) {
-				throw new Error(`Module with ID ${assets[i].moduleID} has duplicate entries.`);
-			}
-			i += 1;
-			last = asset;
-		}
-
+		this.assets.validate();
 		if (
 			!this.header.transactionRoot?.equals(
 				regularMerkleTree.calculateMerkleRootWithLeaves(this.payload.map(tx => tx.id)),
@@ -108,6 +86,21 @@ export class Block {
 			throw new Error('Invalid transaction root');
 		}
 
+		if (
+			!this.header.assetsRoot?.equals(
+				regularMerkleTree.calculateMerkleRootWithLeaves(this.assets.getBytes()),
+			)
+		) {
+			throw new Error('Invalid assets root');
+		}
+	}
+
+	public validateGenesis(): void {
+		// this.header.validate();
+		if (this.payload.length !== 0) {
+			throw new Error('Payload length must be zero');
+		}
+		this.assets.validateGenesis();
 		if (
 			!this.header.assetsRoot?.equals(
 				regularMerkleTree.calculateMerkleRootWithLeaves(this.assets.getBytes()),
