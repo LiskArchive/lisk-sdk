@@ -4,17 +4,11 @@
 	"description": "<%= appDescription %>",
 	"author": "<%= author %>",
 	"license": "<%= license %>",
-	"keywords": [
-		"blockchain",
-		"lisk",
-		"nodejs",
-		"javascript",
-		"typescript"
-	],
+	"keywords": ["blockchain", "lisk", "nodejs", "javascript", "typescript"],
 	"homepage": "",
 	"repository": {},
 	"engines": {
-		"node": ">=12.13.0 <=12",
+		"node": ">=12.13.0",
 		"npm": ">=6.12.0"
 	},
 	"main": "dist/index.js",
@@ -41,10 +35,7 @@
 	"oclif": {
 		"bin": "<%= appName %>",
 		"commands": "./dist/commands",
-		"plugins": [
-			"@oclif/plugin-autocomplete",
-			"@oclif/plugin-help"
-		],
+		"plugins": ["@oclif/plugin-autocomplete", "@oclif/plugin-help"],
 		"topics": {
 			"account": {
 				"description": "Commands relating to <%= appName %> accounts."
@@ -84,14 +75,7 @@
 			}
 		}
 	},
-	"files": [
-		"/bin",
-		"/npm-shrinkwrap.json",
-		"/oclif.manifest.json",
-		"/dist",
-		"/config",
-		"/docs"
-	],
+	"files": ["/bin", "/npm-shrinkwrap.json", "/oclif.manifest.json", "/dist", "/config", "/docs"],
 	"husky": {
 		"hooks": {
 			"pre-commit": "lint-staged"
@@ -122,7 +106,7 @@
 		"@typescript-eslint/eslint-plugin": "4.19.0",
 		"@typescript-eslint/parser": "4.19.0",
 		"eslint": "7.22.0",
-		"eslint-config-lisk-base": "2.0.0",
+		"eslint-config-lisk-base": "2.0.1",
 		"eslint-plugin-import": "2.22.1",
 		"eslint-plugin-jest": "24.3.2",
 		"globby": "10.0.2",
