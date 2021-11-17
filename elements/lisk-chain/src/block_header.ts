@@ -203,7 +203,7 @@ export class BlockHeader {
 			});
 		}
 
-		if (!(header.maxHeightPrevoted === header.height)) {
+		if (header.maxHeightPrevoted !== header.height) {
 			errors.push({
 				message: 'Genesis block header maxHeightPrevoted must equal height',
 				keyword: 'const',
@@ -213,7 +213,7 @@ export class BlockHeader {
 			});
 		}
 
-		if (!(header.maxHeightGenerated === 0)) {
+		if (header.maxHeightGenerated !== 0) {
 			errors.push({
 				message: 'Genesis block header maxHeightGenerated must equal 0',
 				keyword: 'const',
@@ -223,7 +223,7 @@ export class BlockHeader {
 			});
 		}
 
-		if (!(header.aggregateCommit.height === 0)) {
+		if (header.aggregateCommit.height !== 0) {
 			errors.push({
 				message: 'Genesis block header aggregateCommit.height must equal 0',
 				keyword: 'const',
