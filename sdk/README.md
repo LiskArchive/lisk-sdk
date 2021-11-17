@@ -42,6 +42,13 @@ Before running Lisk SDK, the following dependencies need to be installed in orde
 | ------------ | ------- |
 | NodeJS       | 12+     |
 
+For Mac M1 series,
+NodeJS must be above version 16. Additionally, to build `sodium-native` below tools are required.
+
+```
+brew install libtool cmake autoconf automake
+```
+
 ### Installation
 
 The installation of Lisk Beta SDK is straightforward and limited to getting a single NPM package, `lisk-sdk`, to your Node.js project:
