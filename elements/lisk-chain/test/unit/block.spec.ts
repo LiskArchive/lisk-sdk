@@ -72,6 +72,27 @@ describe('block', () => {
 			});
 		});
 
+		describe('when block asset schema is invalid', () => {
+			it(`should throw error when data type is incorrect`, async () => {
+				// Arrange
+				const assets = [
+					{
+						moduleID: 3,
+						data: getRandomBytes(64),
+					},
+					{
+						moduleID: 4,
+						data: getRandomBytes(128),
+					},
+				];
+				const validAssets = new BlockAssets(assets);
+				validAssets['_assets'][0] = '3' as any;
+				block = await createValidDefaultBlock({ assets: validAssets });
+
+				expect(() => block.validate()).toThrow();
+			});
+		});
+
 		describe('when an asset data has size more than the limit', () => {
 			it(`should throw error when asset data length is greater than ${MAX_ASSET_DATA_SIZE_BYTES}`, async () => {
 				// Arrange
@@ -266,6 +287,27 @@ describe('block', () => {
 				block = await createValidDefaultBlock({ payload: txs, assets: blockAssets });
 				// Act & assert
 				expect(() => block.validateGenesis()).toThrow('Payload length must be zero');
+			});
+		});
+
+		describe('when block asset schema is invalid', () => {
+			it(`should throw error when data type is incorrect`, async () => {
+				// Arrange
+				const assets = [
+					{
+						moduleID: 3,
+						data: getRandomBytes(64),
+					},
+					{
+						moduleID: 4,
+						data: getRandomBytes(128),
+					},
+				];
+				const validAssets = new BlockAssets(assets);
+				validAssets['_assets'][0] = '3' as any;
+				block = await createValidDefaultBlock({ assets: validAssets });
+
+				expect(() => block.validateGenesis()).toThrow();
 			});
 		});
 
