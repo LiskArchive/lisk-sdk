@@ -98,16 +98,6 @@ export const blockHeaderSchema = {
 	},
 };
 
-export const genesisBlockHeaderSchema = {
-	...blockHeaderSchema,
-	$id: '/block/header/4',
-	required: [...blockHeaderSchema.required],
-	properties: {
-		...blockHeaderSchema.properties,
-		signature: { dataType: 'bytes', fieldNumber: 13 },
-	},
-};
-
 export const blockHeaderSchemaWithId = {
 	...blockHeaderSchema,
 	$id: '/block/header/3',
