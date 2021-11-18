@@ -12,12 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Block, BlockAssets, Chain } from '@liskhq/lisk-chain';
-import { KVStore } from '@liskhq/lisk-db';
+import { Block, BlockAssets, Chain, CurrentState, SMTStore, StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
+import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import { ApplyPenaltyError } from '../../../../src/errors';
 import {
 	CONSENSUS_EVENT_BLOCK_BROADCAST,
@@ -56,6 +57,8 @@ describe('consensus', () => {
 	let stateMachine: StateMachine;
 	let bftAPI: BFTAPI;
 	let validatorAPI: ValidatorAPI;
+
+	let dbMock: any;
 
 	beforeEach(async () => {
 		const lastBlock = await createValidDefaultBlock({ header: { height: 1 } });
@@ -106,6 +109,11 @@ describe('consensus', () => {
 			validatorAPI,
 			genesisConfig: {} as any,
 		});
+		dbMock = {
+			get: jest.fn(),
+			put: jest.fn(),
+			batch: jest.fn(),
+		};
 	});
 
 	describe('init', () => {
@@ -113,7 +121,7 @@ describe('consensus', () => {
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
 			await consensus.init({
 				logger: loggerMock,
-				db: {} as KVStore,
+				db: dbMock,
 				genesisBlock: genesis,
 			});
 			expect(consensus['_synchronizer']).toBeInstanceOf(Synchronizer);
@@ -123,7 +131,7 @@ describe('consensus', () => {
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
 			await consensus.init({
 				logger: loggerMock,
-				db: {} as KVStore,
+				db: dbMock,
 				genesisBlock: genesis,
 			});
 			expect(consensus['_endpoint']).toBeInstanceOf(NetworkEndpoint);
@@ -133,7 +141,7 @@ describe('consensus', () => {
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
 			await consensus.init({
 				logger: loggerMock,
-				db: {} as KVStore,
+				db: dbMock,
 				genesisBlock: genesis,
 			});
 			expect(network.registerEndpoint).toHaveBeenCalledTimes(3);
@@ -143,7 +151,7 @@ describe('consensus', () => {
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(false);
 			await consensus.init({
 				logger: loggerMock,
-				db: {} as KVStore,
+				db: dbMock,
 				genesisBlock: genesis,
 			});
 
@@ -157,7 +165,7 @@ describe('consensus', () => {
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(true);
 			await consensus.init({
 				logger: loggerMock,
-				db: {} as KVStore,
+				db: dbMock,
 				genesisBlock: genesis,
 			});
 			expect(chain.saveBlock).not.toHaveBeenCalled();
@@ -171,7 +179,7 @@ describe('consensus', () => {
 		beforeEach(async () => {
 			await consensus.init({
 				logger: loggerMock,
-				db: {} as KVStore,
+				db: dbMock,
 				genesisBlock: genesis,
 			});
 		});
@@ -506,21 +514,32 @@ describe('consensus', () => {
 	describe('execute', () => {
 		let block: Block;
 		let apiContext: APIContext;
-
-		beforeEach(async () => {
-			block = await createValidDefaultBlock({ header: { height: 2 } });
-			apiContext = createTransientAPIContext({});
-			jest.spyOn(chain, 'saveBlock').mockResolvedValue();
-			jest.spyOn(consensus, 'finalizedHeight').mockReturnValue(0);
-
-			jest.spyOn(stateMachine, 'verifyBlock').mockResolvedValue();
-			jest.spyOn(stateMachine, 'executeBlock').mockResolvedValue();
-			jest.spyOn(consensus.events, 'emit');
-
-			await consensus.execute(block);
-		});
+		let verifyStateRootMock: jest.Mock;
 
 		describe('block verification', () => {
+			beforeEach(async () => {
+				block = await createValidDefaultBlock({ header: { height: 2 } });
+				apiContext = createTransientAPIContext({});
+				jest.spyOn(chain, 'saveBlock').mockResolvedValue();
+				jest.spyOn(consensus, 'finalizedHeight').mockReturnValue(0);
+				jest.spyOn(stateMachine, 'verifyBlock').mockResolvedValue();
+				jest.spyOn(stateMachine, 'executeBlock').mockResolvedValue();
+				jest.spyOn(bftAPI, 'getBFTParameters').mockResolvedValue({
+					validatorsHash: block.header.validatorsHash,
+				} as never);
+				jest.spyOn(consensus.events, 'emit');
+				consensus['_db'] = dbMock;
+				verifyStateRootMock = jest.fn();
+				consensus['_verifyStateRoot'] = verifyStateRootMock;
+				verifyStateRootMock.mockReturnValue(undefined);
+
+				await consensus.execute(block);
+			});
+
+			afterAll(() => {
+				jest.restoreAllMocks();
+			});
+
 			describe('timestamp', () => {
 				it('should throw error when block timestamp is from future', async () => {
 					const invalidBlock = { ...block };
@@ -850,32 +869,117 @@ describe('consensus', () => {
 					expect(consensus['_validateBlockAsset'](invalidBlock as any)).toBeUndefined();
 				});
 			});
+
+			it('should verify block using state machine', () => {
+				expect(stateMachine.verifyBlock).toHaveBeenCalledTimes(1);
+			});
+
+			it('should call broadcast to the network', () => {
+				expect(network.send).toHaveBeenCalledTimes(1);
+				expect(consensus.events.emit).toHaveReturnedTimes(2);
+				expect(consensus.events.emit).toHaveBeenCalledWith(
+					CONSENSUS_EVENT_BLOCK_BROADCAST,
+					expect.anything(),
+				);
+				expect(consensus.events.emit).toHaveBeenCalledWith(
+					CONSENSUS_EVENT_BLOCK_NEW,
+					expect.anything(),
+				);
+			});
+
+			it('should execute block using state machine', () => {
+				expect(stateMachine.executeBlock).toHaveBeenCalledTimes(1);
+			});
+
+			it('should save block', () => {
+				expect(chain.saveBlock).toHaveBeenCalledWith(block, expect.anything(), 0, {
+					removeFromTempTable: false,
+				});
+			});
 		});
 
-		it('should verify block using state machine', () => {
-			expect(stateMachine.verifyBlock).toHaveBeenCalledTimes(1);
+		describe('_verifyStateRoot', () => {
+			it('should throw error when stateRoot is not equal to calculated state root', () => {
+				expect(() =>
+					consensus['_verifyStateRoot'](block as any, cryptography.getRandomBytes(32)),
+				).toThrow(
+					`State root is not valid for the block with id: ${block.header.id.toString('hex')}`,
+				);
+			});
+
+			it('should be success when stateRoot is equal to blocks stateRoot', () => {
+				expect(
+					consensus['_verifyStateRoot'](block as any, block.header.stateRoot as Buffer),
+				).toBeUndefined();
+			});
 		});
 
-		it('should call broadcast to the network', () => {
-			expect(network.send).toHaveBeenCalledTimes(1);
-			expect(consensus.events.emit).toHaveReturnedTimes(2);
-			expect(consensus.events.emit).toHaveBeenCalledWith(
-				CONSENSUS_EVENT_BLOCK_BROADCAST,
-				expect.anything(),
-			);
-			expect(consensus.events.emit).toHaveBeenCalledWith(
-				CONSENSUS_EVENT_BLOCK_NEW,
-				expect.anything(),
-			);
-		});
+		describe('_prepareFinalizingState', () => {
+			const sampleDiff = {
+				created: [Buffer.from('key1', 'utf-8')],
+				updated: [
+					{
+						key: Buffer.from('key2', 'utf-8'),
+						value: Buffer.from('data2'),
+					},
+				],
+				deleted: [
+					{
+						key: Buffer.from('key3', 'utf-8'),
+						value: Buffer.from('data3'),
+					},
+				],
+			};
 
-		it('should execute block using state machine', () => {
-			expect(stateMachine.executeBlock).toHaveBeenCalledTimes(1);
-		});
+			beforeEach(() => {
+				(consensus as any)['_db'] = new InMemoryKVStore();
+			});
 
-		it('should save block', () => {
-			expect(chain.saveBlock).toHaveBeenCalledWith(block, expect.anything(), 0, {
-				removeFromTempTable: false,
+			it('should return current state object with finalized stores', async () => {
+				const batch = consensus['_db'].batch();
+				const smtStore = new SMTStore(consensus['_db']);
+				const smt = new SparseMerkleTree({
+					db: smtStore,
+					rootHash: consensus['_chain'].lastBlock.header.stateRoot,
+				});
+				const stateStore = new StateStore(new InMemoryKVStore());
+				jest.spyOn(stateStore, 'finalize').mockResolvedValue(sampleDiff as never);
+
+				const expectedCurrentState: CurrentState = {
+					diff: sampleDiff,
+					batch,
+					smt,
+					smtStore,
+					stateStore,
+				};
+
+				await expect(consensus['_prepareFinalizingState'](stateStore)).resolves.toEqual(
+					expectedCurrentState,
+				);
+			});
+
+			it('should return current state object without finalized stores when flag is false', async () => {
+				const initDiff = { created: [], updated: [], deleted: [] };
+				const batch = consensus['_db'].batch();
+				const smtStore = new SMTStore(consensus['_db']);
+				const smt = new SparseMerkleTree({
+					db: smtStore,
+					rootHash: consensus['_chain'].lastBlock.header.stateRoot,
+				});
+				const stateStore = new StateStore(consensus['_db']);
+				jest.spyOn(stateStore, 'finalize').mockResolvedValue(sampleDiff as never);
+
+				const expectedCurrentState: CurrentState = {
+					diff: initDiff,
+					batch,
+					smt,
+					smtStore,
+					stateStore,
+				};
+
+				await expect(consensus['_prepareFinalizingState'](stateStore, false)).resolves.toEqual(
+					expectedCurrentState,
+				);
 			});
 		});
 	});
