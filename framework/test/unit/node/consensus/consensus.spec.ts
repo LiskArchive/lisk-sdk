@@ -150,7 +150,7 @@ describe('consensus', () => {
 		it('should execute genesis block if genesis block does not exist', async () => {
 			// Arrange
 			jest.spyOn(consensus as any, '_prepareFinalizingState').mockReturnValue({
-				smt: { rootHash: genesis.header.stateRoot, validatorsHash: genesis.header.validatorsHash },
+				smt: { rootHash: genesis.header.stateRoot },
 			});
 			jest.spyOn(consensus['_bftAPI'] as any, 'getBFTParameters').mockResolvedValue({
 				validatorsHash: genesis.header.validatorsHash,
