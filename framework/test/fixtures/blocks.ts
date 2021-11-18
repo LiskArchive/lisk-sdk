@@ -32,7 +32,7 @@ export const genesisBlock = (): Block => {
 		generatorAddress: Buffer.alloc(0),
 		height: 0,
 		version: 0,
-		previousBlockID: Buffer.alloc(0),
+		previousBlockID: getRandomBytes(32),
 		timestamp: Math.floor(Date.now() / 1000 - 24 * 60 * 60),
 		stateRoot: hash(Buffer.alloc(0)),
 		maxHeightGenerated: 0,
