@@ -16,7 +16,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { KVStore, formatInt, NotFoundError, InMemoryKVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import { Storage } from '../../../src/data_access/storage';
 import { createValidDefaultBlock } from '../../utils/block';
@@ -539,10 +539,8 @@ describe('dataAccess.blocks', () => {
 			moduleID: number = MODULE_ID,
 			storePrefix: number = STORE_PREFIX,
 		) => {
-			const moduleIDBuffer = Buffer.alloc(4);
-			moduleIDBuffer.writeInt32BE(moduleID, 0);
-			const storePrefixBuffer = Buffer.alloc(2);
-			storePrefixBuffer.writeUInt16BE(storePrefix, 0);
+			const moduleIDBuffer = intToBuffer(moduleID, 4);
+			const storePrefixBuffer = intToBuffer(storePrefix, 2);
 
 			return Buffer.concat([DB_KEY_STATE_STORE, moduleIDBuffer, storePrefixBuffer, key]);
 		};
@@ -557,7 +555,7 @@ describe('dataAccess.blocks', () => {
 		});
 
 		it('should return current stateRoot calculated after saveBlock', async () => {
-			const subStore = stateStore.getStore(14, 1);
+			const subStore = stateStore.getStore(MODULE_ID, STORE_PREFIX);
 
 			// 3 accounts being set with data
 			const address1 = getRandomBytes(20);
