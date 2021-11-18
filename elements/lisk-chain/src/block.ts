@@ -96,7 +96,7 @@ export class Block {
 	}
 
 	public validateGenesis(): void {
-		// this.header.validate();
+		this.header.validateGenesis();
 		if (this.payload.length !== 0) {
 			throw new Error('Payload length must be zero');
 		}
