@@ -11,8 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { hash } from '@liskhq/lisk-cryptography';
+import { hash, getRandomBytes } from '@liskhq/lisk-cryptography';
 import { BlockHeader } from '../../src/block_header';
+import { EMPTY_BUFFER, EMPTY_HASH } from '../../src/constants';
 import {
 	blockHeaderSchema,
 	blockHeaderSchemaWithId,
@@ -37,6 +38,26 @@ const getBlockAttrs = () => ({
 		certificateSignature: Buffer.alloc(0),
 	},
 	signature: Buffer.from('6da88e2fd4435e26e02682435f108002ccc3ddd5', 'hex'),
+});
+
+const getGenesisBlockAttrs = () => ({
+	version: 1,
+	timestamp: 1009988,
+	height: 1009988,
+	previousBlockID: getRandomBytes(32),
+	stateRoot: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
+	transactionRoot: EMPTY_HASH,
+	assetsRoot: EMPTY_HASH,
+	generatorAddress: EMPTY_BUFFER,
+	maxHeightPrevoted: 1009988,
+	maxHeightGenerated: 0,
+	validatorsHash: hash(Buffer.alloc(0)),
+	aggregateCommit: {
+		height: 0,
+		aggregationBits: Buffer.alloc(0),
+		certificateSignature: EMPTY_BUFFER,
+	},
+	signature: EMPTY_BUFFER,
 });
 
 const blockId = Buffer.from(
@@ -171,6 +192,89 @@ describe('block_header', () => {
 				const blockHeader = new BlockHeader(data);
 
 				expect(blockHeader.id).toEqual(blockId);
+			});
+		});
+
+		describe('validateGenesis', () => {
+			it('should throw error if previousBlockID is not 32 bytes', () => {
+				const block = getGenesisBlockAttrs();
+				const blockHeader = new BlockHeader({ ...block, previousBlockID: getRandomBytes(31) });
+
+				expect(() => blockHeader.validateGenesis()).toThrow(
+					'Genesis block header previousBlockID must be 32 bytes',
+				);
+			});
+
+			it('should throw error if transactionRoot is not empty hash', () => {
+				const block = getGenesisBlockAttrs();
+				const blockHeader = new BlockHeader({ ...block, transactionRoot: getRandomBytes(32) });
+
+				expect(() => blockHeader.validateGenesis()).toThrow(
+					'Genesis block header transaction root must be empty hash',
+				);
+			});
+
+			it('should throw error if generatorAddress is not empty buffer', () => {
+				const block = getGenesisBlockAttrs();
+				const blockHeader = new BlockHeader({ ...block, generatorAddress: getRandomBytes(32) });
+
+				expect(() => blockHeader.validateGenesis()).toThrow(
+					'Genesis block header generatorAddress must be empty bytes',
+				);
+			});
+
+			it('should throw error if maxHeightPrevoted is not equal to header.height', () => {
+				const block = getGenesisBlockAttrs();
+				const blockHeader = new BlockHeader({ ...block, maxHeightPrevoted: 10 });
+
+				expect(() => blockHeader.validateGenesis()).toThrow(
+					'Genesis block header maxHeightPrevoted must equal height',
+				);
+			});
+
+			it('should throw error if aggregateCommit.height is not equal to 0', () => {
+				const block = getGenesisBlockAttrs();
+				const blockHeader = new BlockHeader({
+					...block,
+					aggregateCommit: { ...block.aggregateCommit, height: 10 },
+				});
+
+				expect(() => blockHeader.validateGenesis()).toThrow(
+					'Genesis block header aggregateCommit.height must equal 0',
+				);
+			});
+
+			it('should throw error if aggregateCommit.certificateSignature is not empty buffer', () => {
+				const block = getGenesisBlockAttrs();
+				const blockHeader = new BlockHeader({
+					...block,
+					aggregateCommit: { ...block.aggregateCommit, certificateSignature: getRandomBytes(32) },
+				});
+
+				expect(() => blockHeader.validateGenesis()).toThrow(
+					'Genesis block header aggregateCommit.certificateSignature must be empty bytes',
+				);
+			});
+
+			it('should throw error if aggregateCommit.aggregationBits is not empty buffer', () => {
+				const block = getGenesisBlockAttrs();
+				const blockHeader = new BlockHeader({
+					...block,
+					aggregateCommit: { ...block.aggregateCommit, aggregationBits: getRandomBytes(32) },
+				});
+
+				expect(() => blockHeader.validateGenesis()).toThrow(
+					'Genesis block header aggregateCommit.aggregationBits must be empty bytes',
+				);
+			});
+
+			it('should throw error if signature is not empty buffer', () => {
+				const block = getGenesisBlockAttrs();
+				const blockHeader = new BlockHeader({ ...block, signature: getRandomBytes(32) });
+
+				expect(() => blockHeader.validateGenesis()).toThrow(
+					'Genesis block header signature must be empty bytes',
+				);
 			});
 		});
 	});
