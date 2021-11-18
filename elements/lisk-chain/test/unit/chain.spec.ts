@@ -18,7 +18,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { LiskValidationError } from '@liskhq/lisk-validator';
 import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
 import { Chain } from '../../src/chain';
-import { StateStore } from '../../src/state_store';
+import { CurrentState, StateStore } from '../../src/state_store';
 import { createValidDefaultBlock, defaultNetworkIdentifier } from '../utils/block';
 import { getTransaction } from '../utils/transaction';
 import { stateDiffSchema } from '../../src/schema';
@@ -141,6 +141,7 @@ describe('chain', () => {
 		let stateStore: StateStore;
 		let batch: BatchChain;
 		let savingBlock: Block;
+		let currentState: CurrentState;
 
 		beforeEach(async () => {
 			savingBlock = await createValidDefaultBlock({
@@ -153,10 +154,29 @@ describe('chain', () => {
 			jest.spyOn(db, 'batch').mockReturnValue(batch);
 			jest.spyOn(batch, 'del');
 			jest.spyOn(batch, 'put');
+			currentState = {
+				stateStore,
+				batch,
+				diff: {
+					updated: [],
+					created: [],
+					deleted: [],
+				},
+				smt: {
+					update: jest.fn(),
+					remove: jest.fn(),
+				} as any,
+				smtStore: {
+					get: jest.fn(),
+					set: jest.fn(),
+					del: jest.fn(),
+					finalize: jest.fn(),
+				} as any,
+			};
 		});
 
 		it('should remove diff until finalized height', async () => {
-			await chainInstance.saveBlock(savingBlock, stateStore, 1, {
+			await chainInstance.saveBlock(savingBlock, currentState, 1, {
 				removeFromTempTable: true,
 			});
 			expect(db.clear).toHaveBeenCalledWith({
@@ -166,17 +186,16 @@ describe('chain', () => {
 		});
 
 		it('should remove tempBlock by height when removeFromTempTable is true', async () => {
-			await chainInstance.saveBlock(savingBlock, stateStore, 0, {
+			await chainInstance.saveBlock(savingBlock, currentState, 0, {
 				removeFromTempTable: true,
 			});
 			expect(batch.del).toHaveBeenCalledWith(
 				concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(savingBlock.header.height)),
 			);
-			expect(stateStore.finalize).toHaveBeenCalledTimes(1);
 		});
 
 		it('should save block', async () => {
-			await chainInstance.saveBlock(savingBlock, stateStore, 0);
+			await chainInstance.saveBlock(savingBlock, currentState, 0);
 			expect(batch.put).toHaveBeenCalledWith(
 				concatDBKeys(DB_KEY_BLOCKS_ID, savingBlock.header.id),
 				expect.anything(),
@@ -185,13 +204,13 @@ describe('chain', () => {
 				concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(savingBlock.header.height)),
 				expect.anything(),
 			);
-			expect(stateStore.finalize).toHaveBeenCalledTimes(1);
 		});
 	});
 
 	describe('removeBlock', () => {
 		let stateStore: StateStore;
 		let batch: any;
+		let currentState: CurrentState;
 
 		beforeEach(async () => {
 			stateStore = new StateStore(db);
@@ -203,11 +222,30 @@ describe('chain', () => {
 			jest.spyOn(batch, 'del');
 			jest.spyOn(batch, 'write');
 			jest.spyOn(db, 'batch').mockReturnValue(batch);
+			currentState = {
+				stateStore,
+				batch,
+				diff: {
+					updated: [],
+					created: [],
+					deleted: [],
+				},
+				smt: {
+					update: jest.fn(),
+					remove: jest.fn(),
+				} as any,
+				smtStore: {
+					get: jest.fn(),
+					set: jest.fn(),
+					del: jest.fn(),
+					finalize: jest.fn(),
+				} as any,
+			};
 		});
 
 		it('should throw an error when removing genesis block', async () => {
 			// Act & Assert
-			await expect(chainInstance.removeBlock(genesisBlock as any, stateStore)).rejects.toThrow(
+			await expect(chainInstance.removeBlock(genesisBlock as any, currentState)).rejects.toThrow(
 				'Cannot delete genesis block',
 			);
 		});
@@ -217,7 +255,7 @@ describe('chain', () => {
 			jest.spyOn(db, 'get').mockRejectedValue(new NotFoundError('Data not found') as never);
 			const block = await createValidDefaultBlock();
 			// Act & Assert
-			await expect(chainInstance.removeBlock(block, stateStore)).rejects.toThrow(
+			await expect(chainInstance.removeBlock(block, currentState)).rejects.toThrow(
 				'PreviousBlock is null',
 			);
 		});
@@ -236,7 +274,9 @@ describe('chain', () => {
 			batch.write.mockRejectedValue(deleteBlockError);
 
 			// Act & Assert
-			await expect(chainInstance.removeBlock(block, stateStore)).rejects.toEqual(deleteBlockError);
+			await expect(chainInstance.removeBlock(block, currentState)).rejects.toEqual(
+				deleteBlockError,
+			);
 		});
 
 		it('should not create entry in temp block table when saveToTemp flag is false', async () => {
@@ -248,7 +288,7 @@ describe('chain', () => {
 				emptyEncodedDiff,
 			);
 			// Act
-			await chainInstance.removeBlock(block, stateStore);
+			await chainInstance.removeBlock(block, currentState);
 			// Assert
 			expect(batch.put).not.toHaveBeenCalledWith(
 				concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(block.header.height)),
@@ -266,7 +306,7 @@ describe('chain', () => {
 				emptyEncodedDiff,
 			);
 			// Act
-			await chainInstance.removeBlock(block, stateStore, {
+			await chainInstance.removeBlock(block, currentState, {
 				saveTempBlock: true,
 			});
 			// Assert

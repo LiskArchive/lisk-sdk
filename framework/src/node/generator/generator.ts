@@ -12,19 +12,25 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Chain, Block, Transaction, BlockHeader, BlockAssets } from '@liskhq/lisk-chain';
-import { StateStore } from '@liskhq/lisk-chain/dist-node/state_store';
+import {
+	Chain,
+	Block,
+	Transaction,
+	BlockHeader,
+	BlockAssets,
+	StateStore,
+	SMTStore,
+} from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import {
 	decryptPassphraseWithPassword,
 	getAddressFromPublicKey,
 	getPrivateAndPublicKeyFromPassphrase,
-	hash,
 	parseEncryptedPassphrase,
 } from '@liskhq/lisk-cryptography';
 import { KVStore } from '@liskhq/lisk-db';
 import { TransactionPool, events } from '@liskhq/lisk-transaction-pool';
-import { MerkleTree } from '@liskhq/lisk-tree';
+import { MerkleTree, SparseMerkleTree } from '@liskhq/lisk-tree';
 import { dataStructures, jobHandlers } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { APP_EVENT_NETWORK_READY } from '../events';
@@ -493,6 +499,13 @@ export class Generator {
 		}
 
 		await this._stateMachine.afterExecuteBlock(blockCtx);
+		// Create SMT Store to now update SMT by calling finalize
+		const smtStore = new SMTStore(this._blockchainDB);
+		const smt = new SparseMerkleTree({
+			db: smtStore,
+			rootHash: this._chain.lastBlock.header.stateRoot,
+		});
+		await stateStore.finalize(this._blockchainDB.batch(), smt);
 
 		// calculate transaction root
 		const txTree = new MerkleTree();
@@ -500,8 +513,8 @@ export class Generator {
 		const transactionRoot = txTree.root;
 		blockHeader.transactionRoot = transactionRoot;
 		blockHeader.assetsRoot = await blockAssets.getRoot();
-		// TODO: Update the stateRoot with proper calculation
-		blockHeader.stateRoot = hash(Buffer.alloc(0));
+		// Assign root hash calculated in SMT to state root of block header
+		blockHeader.stateRoot = smt.rootHash;
 		// Set validatorsHash
 		const { validatorsHash } = await this._bftAPI.getBFTParameters(apiContext, height);
 		blockHeader.validatorsHash = validatorsHash;

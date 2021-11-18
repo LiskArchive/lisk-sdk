@@ -15,7 +15,6 @@ import { KVStore, formatInt, getFirstPrefix, getLastPrefix, NotFoundError } from
 import { codec } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
 import { RawBlock, StateDiff } from '../types';
-import { StateStore } from '../state_store';
 
 import {
 	DB_KEY_BLOCKS_ID,
@@ -29,6 +28,7 @@ import {
 } from '../db_keys';
 import { concatDBKeys } from '../utils';
 import { stateDiffSchema } from '../schema';
+import { CurrentState } from '../state_store';
 
 const bytesArraySchema = {
 	$id: 'lisk-chain/bytesarray',
@@ -54,10 +54,7 @@ const decodeByteArray = (val: Buffer): Buffer[] => {
 	return decoded.list;
 };
 
-const encodeByteArray = (val: Buffer[]): Buffer => {
-	const encoded = codec.encode(bytesArraySchema, { list: val });
-	return codec.encode(bytesArraySchema, encoded);
-};
+const encodeByteArray = (val: Buffer[]): Buffer => codec.encode(bytesArraySchema, { list: val });
 
 export class Storage {
 	private readonly _db: KVStore;
@@ -341,11 +338,11 @@ export class Storage {
 		header: Buffer,
 		payload: { id: Buffer; value: Buffer }[],
 		assets: Buffer[],
-		stateStore: StateStore,
+		state: CurrentState,
 		removeFromTemp = false,
 	): Promise<void> {
 		const heightBuf = formatInt(height);
-		const batch = this._db.batch();
+		const { batch, diff } = state;
 		batch.put(concatDBKeys(DB_KEY_BLOCKS_ID, id), header);
 		batch.put(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, heightBuf), id);
 		if (payload.length > 0) {
@@ -363,7 +360,7 @@ export class Storage {
 		if (removeFromTemp) {
 			batch.del(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, heightBuf));
 		}
-		const diff = stateStore.finalize(batch);
+
 		const encodedDiff = codec.encode(stateDiffSchema, diff);
 		batch.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(height)), encodedDiff);
 		const finalizedHeightBytes = Buffer.alloc(4);
@@ -380,10 +377,10 @@ export class Storage {
 		txIDs: Buffer[],
 		assets: Buffer[],
 		fullBlock: Buffer,
-		stateStore: StateStore,
+		state: CurrentState,
 		saveToTemp = false,
 	): Promise<StateDiff> {
-		const batch = this._db.batch();
+		const { batch, smt, smtStore } = state;
 		const heightBuf = formatInt(height);
 		batch.del(concatDBKeys(DB_KEY_BLOCKS_ID, id));
 		batch.del(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, heightBuf));
@@ -410,20 +407,23 @@ export class Storage {
 			updated: updatedStates,
 			deleted: deletedStates,
 		} = codec.decode<StateDiff>(stateDiffSchema, stateDiff);
+
 		// Delete all the newly created states
 		for (const key of createdStates) {
 			batch.del(key);
+			await smt.remove(key);
 		}
 		// Revert all deleted values
 		for (const { key, value: previousValue } of deletedStates) {
 			batch.put(key, previousValue);
+			await smt.update(key, previousValue);
 		}
 		for (const { key, value: previousValue } of updatedStates) {
 			batch.put(key, previousValue);
+			await smt.update(key, previousValue);
 		}
-		// ignore diff created while deleting
-		stateStore.finalize(batch);
 
+		smtStore.finalize(batch);
 		// Delete stored diff at particular height
 		batch.del(diffKey);
 

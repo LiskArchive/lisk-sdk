@@ -22,7 +22,6 @@ import {
 	GENESIS_BLOCK_VERSION,
 } from './constants';
 import { DataAccess } from './data_access';
-import { StateStore } from './state_store';
 import { validateGenesisBlock } from './validate';
 import {
 	blockSchema,
@@ -32,6 +31,7 @@ import {
 } from './schema';
 import { Block } from './block';
 import { BlockHeader } from './block_header';
+import { CurrentState } from './state_store/smt_store';
 
 interface ChainConstructor {
 	// Constants
@@ -183,13 +183,13 @@ export class Chain {
 
 	public async saveBlock(
 		block: Block,
-		stateStore: StateStore,
+		state: CurrentState,
 		finalizedHeight: number,
 		{ removeFromTempTable } = {
 			removeFromTempTable: false,
 		},
 	): Promise<void> {
-		await this.dataAccess.saveBlock(block, stateStore, finalizedHeight, removeFromTempTable);
+		await this.dataAccess.saveBlock(block, state, finalizedHeight, removeFromTempTable);
 		this.dataAccess.addBlockHeader(block.header);
 		this._finalizedHeight = finalizedHeight;
 		this._lastBlock = block;
@@ -197,7 +197,7 @@ export class Chain {
 
 	public async removeBlock(
 		block: Block,
-		stateStore: StateStore,
+		state: CurrentState,
 		{ saveTempBlock } = { saveTempBlock: false },
 	): Promise<void> {
 		if (block.header.version === GENESIS_BLOCK_VERSION) {
@@ -210,7 +210,7 @@ export class Chain {
 			throw new Error('PreviousBlock is null.');
 		}
 
-		await this.dataAccess.deleteBlock(block, stateStore, saveTempBlock);
+		await this.dataAccess.deleteBlock(block, state, saveTempBlock);
 		await this.dataAccess.removeBlockHeader(block.header.id);
 		this._lastBlock = secondLastBlock;
 	}

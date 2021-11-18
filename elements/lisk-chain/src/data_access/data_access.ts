@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { Transaction } from '../transaction';
 import { RawBlock } from '../types';
@@ -19,8 +20,8 @@ import { Block } from '../block';
 
 import { BlockCache } from './cache';
 import { Storage as StorageAccess } from './storage';
-import { StateStore } from '../state_store';
 import { BlockAssets } from '../block_assets';
+import { CurrentState } from '../state_store';
 
 interface DAConstructor {
 	readonly db: KVStore;
@@ -282,12 +283,13 @@ export class DataAccess {
 	*/
 	public async saveBlock(
 		block: Block,
-		stateStore: StateStore,
+		state: CurrentState,
 		finalizedHeight: number,
 		removeFromTemp = false,
 	): Promise<void> {
 		const { id: blockID, height } = block.header;
 		const encodedHeader = block.header.getBytes();
+
 		const encodedPayload = [];
 		for (const tx of block.payload) {
 			const txID = tx.id;
@@ -301,18 +303,15 @@ export class DataAccess {
 			encodedHeader,
 			encodedPayload,
 			block.assets.getBytes(),
-			stateStore,
+			state,
 			removeFromTemp,
 		);
 	}
 
-	public async deleteBlock(
-		block: Block,
-		stateStore: StateStore,
-		saveToTemp = false,
-	): Promise<void> {
+	public async deleteBlock(block: Block, state: CurrentState, saveToTemp = false): Promise<void> {
 		const { id: blockID, height } = block.header;
 		const txIDs = block.payload.map(tx => tx.id);
+
 		const encodedBlock = block.getBytes();
 		await this._storage.deleteBlock(
 			blockID,
@@ -320,7 +319,7 @@ export class DataAccess {
 			txIDs,
 			block.assets.getBytes(),
 			encodedBlock,
-			stateStore,
+			state,
 			saveToTemp,
 		);
 	}

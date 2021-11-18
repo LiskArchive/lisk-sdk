@@ -12,10 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { EventEmitter } from 'events';
-import { Block, Chain, Slots, StateStore } from '@liskhq/lisk-chain';
+import { Block, Chain, Slots, SMTStore, StateStore, CurrentState } from '@liskhq/lisk-chain';
 import { jobHandlers, objects } from '@liskhq/lisk-utils';
 import { KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
+import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import { Logger } from '../../logger';
 import { StateMachine } from '../state_machine/state_machine';
 import { BlockContext } from '../state_machine/block_context';
@@ -180,7 +181,9 @@ export class Consensus {
 				stateStore: (stateStore as unknown) as StateStore,
 			});
 			await this._stateMachine.executeGenesisBlock(ctx);
-			await this._chain.saveBlock(args.genesisBlock, stateStore, args.genesisBlock.header.height);
+			const state = await this._prepareFinalizingState(stateStore);
+
+			await this._chain.saveBlock(args.genesisBlock, state, args.genesisBlock.header.height);
 		}
 		await this._chain.loadLastBlocks(args.genesisBlock);
 		this._genesisBlockTimestamp = args.genesisBlock.header.timestamp;
@@ -451,7 +454,14 @@ export class Consensus {
 			finalizedHeight = bftVotes.maxHeightPrecommitted;
 		}
 
-		await this._chain.saveBlock(block, stateStore, finalizedHeight, {
+		// Result Validation
+		// Verify validatorsHash
+		await this._verifyValidatorsHash(apiContext, block);
+		// Verify stateRoot
+		const currentState = await this._prepareFinalizingState(stateStore);
+		this._verifyStateRoot(block, currentState.smt.rootHash);
+
+		await this._chain.saveBlock(block, currentState, finalizedHeight, {
 			removeFromTempTable: options.removeFromTempTable ?? false,
 		});
 
@@ -484,9 +494,6 @@ export class Consensus {
 
 		// verify Block signature
 		await this._verifyBlockSignature(apiContext, block);
-
-		// Verify validatorsHash
-		await this._verifyValidatorsHash(apiContext, block);
 
 		// Validate a block
 		block.validate();
@@ -641,6 +648,14 @@ export class Consensus {
 		}
 	}
 
+	private _verifyStateRoot(block: Block, stateRoot: Buffer): void {
+		if (!block.header.stateRoot || !stateRoot.equals(block.header.stateRoot)) {
+			throw new Error(
+				`State root is not valid for the block with id: ${block.header.id.toString('hex')}`,
+			);
+		}
+	}
+
 	private async _deleteBlock(block: Block, saveTempBlock = false): Promise<void> {
 		if (block.header.height <= this._chain.finalizedHeight) {
 			throw new Error('Can not delete block below or same as finalized height');
@@ -648,8 +663,44 @@ export class Consensus {
 
 		// Offset must be set to 1, because lastBlock is still this deleting block
 		const stateStore = new StateStore(this._db);
-		await this._chain.removeBlock(block, stateStore, { saveTempBlock });
+		const currentState = await this._prepareFinalizingState(stateStore, false);
+		await this._chain.removeBlock(block, currentState, { saveTempBlock });
 		this.events.emit(CONSENSUS_EVENT_BLOCK_DELETE, block);
+	}
+
+	private async _prepareFinalizingState(
+		stateStore: StateStore,
+		finalize = true,
+	): Promise<CurrentState> {
+		const batch = this._db.batch();
+		const smtStore = new SMTStore(this._db);
+		const smt = new SparseMerkleTree({
+			db: smtStore,
+			rootHash: this._chain.lastBlock.header.stateRoot,
+		});
+
+		// On save, use finalize flag to finalize stores
+		if (finalize) {
+			const diff = await stateStore.finalize(batch, smt);
+			smtStore.finalize(batch);
+
+			return {
+				batch,
+				diff,
+				stateStore,
+				smt,
+				smtStore,
+			};
+		}
+
+		return {
+			batch,
+			// Pass initialized diff as its not needed on delete block
+			diff: { created: [], updated: [], deleted: [] },
+			stateStore,
+			smt,
+			smtStore,
+		};
 	}
 
 	private async _deleteLastBlock({ saveTempBlock = false }: DeleteOptions = {}): Promise<void> {
