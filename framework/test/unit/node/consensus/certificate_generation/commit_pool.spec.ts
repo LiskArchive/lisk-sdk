@@ -12,15 +12,36 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-describe('CommitPool', () => {
-	describe('constructor', () => {});
-	describe('job', () => {});
-	describe('addCommit', () => {});
-	describe('validateCommit', () => {});
-	describe('getCommitsByHeight', () => {});
-	describe('createSingleCommit', () => {});
-	describe('verifyAggregateCommit', () => {});
-	describe('getAggregageCommit', () => {});
-	describe('_aggregateSingleCommits', () => {});
-	describe('_selectAggregateCommit', () => {});
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip('CommitPool', () => {
+	describe('constructor', () => {
+		it.todo('');
+	});
+	describe('job', () => {
+		it.todo('');
+	});
+	describe('addCommit', () => {
+		it.todo('');
+	});
+	describe('validateCommit', () => {
+		it.todo('');
+	});
+	describe('getCommitsByHeight', () => {
+		it.todo('');
+	});
+	describe('createSingleCommit', () => {
+		it.todo('');
+	});
+	describe('verifyAggregateCommit', () => {
+		it.todo('');
+	});
+	describe('getAggregageCommit', () => {
+		it.todo('');
+	});
+	describe('_aggregateSingleCommits', () => {
+		it.todo('');
+	});
+	describe('_selectAggregateCommit', () => {
+		it.todo('');
+	});
 });

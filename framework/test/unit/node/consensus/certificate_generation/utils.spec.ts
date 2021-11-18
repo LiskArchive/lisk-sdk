@@ -12,9 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-describe('utils', () => {
-	describe('computeCertificateFromBlockHeader', () => {});
-	describe('signCertificate', () => {});
-	describe('verifySingleCertificateSignature', () => {});
-	describe('verifyAggregateCertificateSignature', () => {});
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip('utils', () => {
+	describe('computeCertificateFromBlockHeader', () => {
+		it.todo('');
+	});
+	describe('signCertificate', () => {
+		it.todo('');
+	});
+	describe('verifySingleCertificateSignature', () => {
+		it.todo('');
+	});
+	describe('verifyAggregateCertificateSignature', () => {
+		it.todo('');
+	});
 });
