@@ -50,7 +50,6 @@ import { createTransientAPIContext } from '../../../../src/testing';
 
 describe('consensus', () => {
 	const genesis = (genesisBlock() as unknown) as Block;
-
 	let consensus: Consensus;
 	let chain: Chain;
 	let network: Network;
@@ -114,6 +113,7 @@ describe('consensus', () => {
 			put: jest.fn(),
 			batch: jest.fn(),
 		};
+		genesis.validateGenesis = jest.fn();
 	});
 
 	describe('init', () => {
@@ -148,6 +148,13 @@ describe('consensus', () => {
 		});
 
 		it('should execute genesis block if genesis block does not exist', async () => {
+			// Arrange
+			jest.spyOn(consensus as any, '_prepareFinalizingState').mockReturnValue({
+				smt: { rootHash: genesis.header.stateRoot, validatorsHash: genesis.header.validatorsHash },
+			});
+			jest.spyOn(consensus['_bftAPI'] as any, 'getBFTParameters').mockResolvedValue({
+				validatorsHash: genesis.header.validatorsHash,
+			});
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(false);
 			await consensus.init({
 				logger: loggerMock,
@@ -155,7 +162,7 @@ describe('consensus', () => {
 				genesisBlock: genesis,
 			});
 
-			expect(chain.validateGenesisBlock).toHaveBeenCalledTimes(1);
+			expect(genesis.validateGenesis).toHaveBeenCalledTimes(1);
 			expect(chain.saveBlock).toHaveBeenCalledTimes(1);
 			expect(stateMachine.executeGenesisBlock).toHaveBeenCalledTimes(1);
 			expect(chain.loadLastBlocks).toHaveBeenCalledTimes(1);
@@ -171,6 +178,42 @@ describe('consensus', () => {
 			expect(chain.saveBlock).not.toHaveBeenCalled();
 			expect(stateMachine.executeGenesisBlock).not.toHaveBeenCalled();
 			expect(chain.loadLastBlocks).toHaveBeenCalledTimes(1);
+		});
+
+		it('should not execute genesis block if stateRoot is invalid', async () => {
+			// Arrange
+			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(false);
+			jest.spyOn(consensus as any, '_prepareFinalizingState').mockReturnValue({
+				smt: { rootHash: cryptography.getRandomBytes(32) },
+			});
+			jest.spyOn(consensus['_bftAPI'] as any, 'getBFTParameters').mockResolvedValue({
+				validatorsHash: genesis.header.validatorsHash,
+			});
+			await expect(
+				consensus.init({
+					logger: loggerMock,
+					db: dbMock,
+					genesisBlock: genesis,
+				}),
+			).rejects.toThrow('Genesis block state root is invalid');
+		});
+
+		it('should not execute genesis block if validatorsHash is invalid', async () => {
+			// Arrange
+			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(false);
+			jest.spyOn(consensus as any, '_prepareFinalizingState').mockReturnValue({
+				smt: { rootHash: genesis.header.stateRoot },
+			});
+			jest.spyOn(consensus['_bftAPI'] as any, 'getBFTParameters').mockResolvedValue({
+				validatorsHash: cryptography.getRandomBytes(32),
+			});
+			await expect(
+				consensus.init({
+					logger: loggerMock,
+					db: dbMock,
+					genesisBlock: genesis,
+				}),
+			).rejects.toThrow('Genesis block validators hash is invalid');
 		});
 	});
 
