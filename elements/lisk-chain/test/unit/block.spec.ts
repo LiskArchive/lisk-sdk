@@ -11,9 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
 import { Block, BlockAsset, BlockAssets, Transaction } from '../../src';
-import { MAX_ASSET_DATA_SIZE_BYTES } from '../../src/constants';
+import { EMPTY_BUFFER, EMPTY_HASH } from '../../src/constants';
 import { createValidDefaultBlock } from '../utils/block';
 import { getTransaction } from '../utils/transaction';
 
@@ -72,128 +72,6 @@ describe('block', () => {
 			});
 		});
 
-		describe('when an asset data has size more than the limit', () => {
-			it(`should throw error when asset data length is greater than ${MAX_ASSET_DATA_SIZE_BYTES}`, async () => {
-				// Arrange
-				const assets = [
-					{
-						moduleID: 3,
-						data: getRandomBytes(64),
-					},
-					{
-						moduleID: 4,
-						data: getRandomBytes(128),
-					},
-				];
-				block = await createValidDefaultBlock({ assets: new BlockAssets(assets) });
-				// Act & assert
-				expect(() => block.validate()).toThrow(
-					`Module with ID ${assets[1].moduleID} has data size more than ${MAX_ASSET_DATA_SIZE_BYTES} bytes.`,
-				);
-			});
-
-			it(`should pass when asset data length is equal or less than ${MAX_ASSET_DATA_SIZE_BYTES}`, async () => {
-				// Arrange
-				const assets = [
-					{
-						moduleID: 3,
-						data: getRandomBytes(64),
-					},
-					{
-						moduleID: 4,
-						data: getRandomBytes(64),
-					},
-				];
-				block = await createValidDefaultBlock({ assets: new BlockAssets(assets) });
-				// Act & assert
-				expect(block.validate()).toBeUndefined();
-			});
-		});
-
-		describe('when the assets are not sorted by moduleID', () => {
-			it('should throw error when assets are not sorted by moduleID', async () => {
-				// Arrange
-				const assets = [
-					{
-						moduleID: 4,
-						data: getRandomBytes(64),
-					},
-					{
-						moduleID: 3,
-						data: getRandomBytes(64),
-					},
-				];
-				block = await createValidDefaultBlock({ assets: new BlockAssets(assets) });
-				// Act & assert
-				expect(() => block.validate()).toThrow(
-					'Assets are not sorted in the increasing values of moduleID.',
-				);
-			});
-
-			it('should pass when assets are sorted by moduleID', async () => {
-				// Arrange
-				const assets = [
-					{
-						moduleID: 2,
-						data: getRandomBytes(64),
-					},
-					{
-						moduleID: 3,
-						data: getRandomBytes(64),
-					},
-				];
-				block = await createValidDefaultBlock({ assets: new BlockAssets(assets) });
-				// Act & assert
-				expect(block.validate()).toBeUndefined();
-			});
-		});
-
-		describe('when there are multiple asset entries for a moduleID', () => {
-			it('should throw error when there are more than 1 assets for a module', async () => {
-				// Arrange
-				const assets = [
-					{
-						moduleID: 2,
-						data: getRandomBytes(64),
-					},
-					{
-						moduleID: 3,
-						data: getRandomBytes(64),
-					},
-					{
-						moduleID: 3,
-						data: getRandomBytes(64),
-					},
-				];
-				block = await createValidDefaultBlock({ assets: new BlockAssets(assets) });
-				// Act & assert
-				expect(() => block.validate()).toThrow(
-					`Module with ID ${assets[1].moduleID} has duplicate entries.`,
-				);
-			});
-
-			it('should pass when there is atmost 1 asset for a module', async () => {
-				// Arrange
-				const assets = [
-					{
-						moduleID: 2,
-						data: getRandomBytes(64),
-					},
-					{
-						moduleID: 3,
-						data: getRandomBytes(64),
-					},
-					{
-						moduleID: 4,
-						data: getRandomBytes(64),
-					},
-				];
-				block = await createValidDefaultBlock({ assets: new BlockAssets(assets) });
-				// Act & assert
-				expect(block.validate()).toBeUndefined();
-			});
-		});
-
 		describe('when transactionRoot is invalid', () => {
 			it('should throw error', async () => {
 				// Arrange
@@ -225,6 +103,98 @@ describe('block', () => {
 
 				// Act & assert
 				expect(() => block.validate()).toThrow('Invalid assets root');
+			});
+		});
+	});
+
+	describe('validateGenesis', () => {
+		const getGenesisBlockAttrs = () => ({
+			version: 1,
+			timestamp: 1009988,
+			height: 1009988,
+			previousBlockID: getRandomBytes(32),
+			stateRoot: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
+			transactionRoot: EMPTY_HASH,
+			assetsRoot: EMPTY_HASH,
+			generatorAddress: EMPTY_BUFFER,
+			maxHeightPrevoted: 1009988,
+			maxHeightGenerated: 0,
+			validatorsHash: hash(Buffer.alloc(0)),
+			aggregateCommit: {
+				height: 0,
+				aggregationBits: Buffer.alloc(0),
+				certificateSignature: EMPTY_BUFFER,
+			},
+			signature: EMPTY_BUFFER,
+		});
+		let block: Block;
+		let tx: Transaction;
+		let assetList: BlockAsset[];
+		let blockAssets: BlockAssets;
+
+		beforeEach(() => {
+			assetList = [
+				{
+					moduleID: 3,
+					data: getRandomBytes(64),
+				},
+				{
+					moduleID: 6,
+					data: getRandomBytes(64),
+				},
+			];
+			blockAssets = new BlockAssets(assetList);
+			tx = getTransaction();
+		});
+
+		describe('when all values are valid', () => {
+			it('should not throw error', async () => {
+				// Arrange
+				block = await createValidDefaultBlock({ header: getGenesisBlockAttrs(), payload: [] });
+				block['header']['_signature'] = EMPTY_BUFFER;
+				// Act & assert
+				expect(() => block.validateGenesis()).not.toThrow();
+			});
+		});
+
+		describe('when payload is not empty', () => {
+			it('should throw error', async () => {
+				// Arrange
+				const txs = new Array(20).fill(0).map(() => tx);
+				block = await createValidDefaultBlock({
+					header: getGenesisBlockAttrs(),
+					payload: txs,
+					assets: blockAssets,
+				});
+				block['header']['_signature'] = EMPTY_BUFFER;
+				// Act & assert
+				expect(() => block.validateGenesis()).toThrow('Payload length must be zero');
+			});
+		});
+
+		describe('when assetsRoot is invalid', () => {
+			it('should throw error', async () => {
+				// Arrange
+				const assets = [
+					{
+						moduleID: 2,
+						data: getRandomBytes(64),
+					},
+					{
+						moduleID: 3,
+						data: getRandomBytes(64),
+					},
+				];
+				block = await createValidDefaultBlock({
+					header: getGenesisBlockAttrs(),
+					payload: [],
+					assets: new BlockAssets(assets),
+				});
+				block['header']['_signature'] = EMPTY_BUFFER;
+				block['header']['_assetsRoot'] = getRandomBytes(32);
+
+				// Act & assert
+				expect(() => block.validateGenesis()).toThrow('Invalid assets root');
 			});
 		});
 	});
