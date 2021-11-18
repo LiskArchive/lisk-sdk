@@ -171,7 +171,7 @@ export class Consensus {
 		// do init check for block state. We need to load the blockchain
 		const stateStore = new StateStore(this._db);
 		if (!genesisExist) {
-			this._chain.validateGenesisBlock(args.genesisBlock);
+			args.genesisBlock.validateGenesis();
 			const eventQueue = new EventQueue();
 			const ctx = new GenesisBlockContext({
 				eventQueue,
@@ -182,7 +182,24 @@ export class Consensus {
 			});
 			await this._stateMachine.executeGenesisBlock(ctx);
 			const state = await this._prepareFinalizingState(stateStore);
+			if (
+				!args.genesisBlock.header.stateRoot ||
+				!state.smt.rootHash.equals(args.genesisBlock.header.stateRoot)
+			) {
+				throw new Error('Genesis block state root is invalid');
+			}
+			const apiContext = createAPIContext({ stateStore: state.stateStore, eventQueue });
+			const bftParams = await this._bftAPI.getBFTParameters(
+				apiContext,
+				args.genesisBlock.header.height,
+			);
 
+			if (
+				!args.genesisBlock.header.validatorsHash ||
+				!bftParams.validatorsHash.equals(args.genesisBlock.header.validatorsHash)
+			) {
+				throw new Error('Genesis block validators hash is invalid');
+			}
 			await this._chain.saveBlock(args.genesisBlock, state, args.genesisBlock.header.height);
 		}
 		await this._chain.loadLastBlocks(args.genesisBlock);
