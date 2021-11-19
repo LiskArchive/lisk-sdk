@@ -63,7 +63,6 @@ describe('consensus', () => {
 		const lastBlock = await createValidDefaultBlock({ header: { height: 1 } });
 		chain = ({
 			genesisBlockExist: jest.fn().mockResolvedValue(true),
-			validateGenesisBlock: jest.fn(),
 			newStateStore: jest.fn().mockResolvedValue({}),
 			applyGenesisBlock: jest.fn(),
 			saveBlock: jest.fn(),

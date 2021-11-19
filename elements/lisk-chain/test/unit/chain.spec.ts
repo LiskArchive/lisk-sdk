@@ -15,8 +15,7 @@
 
 import { NotFoundError, formatInt, BatchChain, KVStore, InMemoryKVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { LiskValidationError } from '@liskhq/lisk-validator';
-import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { Chain } from '../../src/chain';
 import { CurrentState, StateStore } from '../../src/state_store';
 import { createValidDefaultBlock, defaultNetworkIdentifier } from '../utils/block';
@@ -339,108 +338,6 @@ describe('chain', () => {
 			await expect(chainInstance.verifyBlock(block)).rejects.toThrow(
 				'Payload length is longer than configured length: 100.',
 			);
-		});
-	});
-
-	describe('validateGenesisBlockHeader', () => {
-		it('should fail if "version" is not zero', () => {
-			// Arrange
-			(genesisBlock.header as any).version = 1;
-
-			// Act & Assert
-			expect.assertions(3);
-			try {
-				chainInstance.validateGenesisBlock(genesisBlock);
-			} catch (error) {
-				expect(error).toBeInstanceOf(LiskValidationError);
-				expect((error as LiskValidationError).errors).toHaveLength(1);
-				expect((error as LiskValidationError).errors[0]).toEqual(
-					expect.objectContaining({
-						message: 'must be equal to constant',
-						params: { allowedValue: 0 },
-					}),
-				);
-			}
-		});
-
-		it('should fail if "transactionRoot" is not empty hash', () => {
-			// Arrange
-			(genesisBlock.header as any)._transactionRoot = getRandomBytes(20);
-
-			// Act & Assert
-			expect.assertions(3);
-			try {
-				chainInstance.validateGenesisBlock(genesisBlock);
-			} catch (error) {
-				expect(error).toBeInstanceOf(LiskValidationError);
-				expect((error as LiskValidationError).errors).toHaveLength(1);
-				expect((error as LiskValidationError).errors[0]).toEqual(
-					expect.objectContaining({
-						message: 'should be equal to constant',
-						params: { allowedValue: hash(Buffer.alloc(0)) },
-					}),
-				);
-			}
-		});
-
-		it('should fail if "generatorAddress" is not empty buffer', () => {
-			// Arrange
-			(genesisBlock.header as any).generatorAddress = getRandomBytes(20);
-
-			// Act & Assert
-			expect.assertions(3);
-			try {
-				chainInstance.validateGenesisBlock(genesisBlock);
-			} catch (error) {
-				expect(error).toBeInstanceOf(LiskValidationError);
-				expect((error as LiskValidationError).errors).toHaveLength(1);
-				expect((error as LiskValidationError).errors[0]).toEqual(
-					expect.objectContaining({
-						message: 'should be equal to constant',
-						params: { allowedValue: Buffer.alloc(0) },
-					}),
-				);
-			}
-		});
-
-		it('should fail if "signature" is not empty buffer', () => {
-			// Arrange
-			(genesisBlock.header as any)._signature = getRandomBytes(20);
-
-			// Act & Assert
-			expect.assertions(3);
-			try {
-				chainInstance.validateGenesisBlock(genesisBlock);
-			} catch (error) {
-				expect(error).toBeInstanceOf(LiskValidationError);
-				expect((error as LiskValidationError).errors).toHaveLength(1);
-				expect((error as LiskValidationError).errors[0]).toEqual(
-					expect.objectContaining({
-						message: 'should be equal to constant',
-						params: { allowedValue: Buffer.alloc(0) },
-					}),
-				);
-			}
-		});
-
-		it('should fail if "payload" is less not empty array', () => {
-			// Arrange
-			(genesisBlock.payload as any) = [Buffer.from(getRandomBytes(10))];
-
-			// Act & Assert
-			expect.assertions(3);
-			try {
-				chainInstance.validateGenesisBlock(genesisBlock);
-			} catch (error) {
-				expect(error).toBeInstanceOf(LiskValidationError);
-				expect((error as LiskValidationError).errors).toHaveLength(1);
-				expect((error as LiskValidationError).errors[0]).toEqual(
-					expect.objectContaining({
-						message: 'Payload length must be zero',
-						params: { allowedValue: [] },
-					}),
-				);
-			}
 		});
 	});
 });

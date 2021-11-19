@@ -22,7 +22,6 @@ import {
 	GENESIS_BLOCK_VERSION,
 } from './constants';
 import { DataAccess } from './data_access';
-import { validateGenesisBlock } from './validate';
 import {
 	blockSchema,
 	signingBlockHeaderSchema,
@@ -155,10 +154,6 @@ export class Chain {
 			return false;
 		}
 		return true;
-	}
-
-	public validateGenesisBlock(block: Block): void {
-		validateGenesisBlock(block);
 	}
 
 	public async verifyBlock(block: Block): Promise<void> {
