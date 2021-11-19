@@ -180,7 +180,7 @@ describe('consensus', () => {
 			expect(chain.loadLastBlocks).toHaveBeenCalledTimes(1);
 		});
 
-		it('should not execute genesis block if stateRoot is invalid', async () => {
+		it('should fail initialization if stateRoot is invalid', async () => {
 			// Arrange
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(false);
 			jest.spyOn(consensus as any, '_prepareFinalizingState').mockReturnValue({
@@ -198,7 +198,7 @@ describe('consensus', () => {
 			).rejects.toThrow('Genesis block state root is invalid');
 		});
 
-		it('should not execute genesis block if validatorsHash is invalid', async () => {
+		it('should fail initialization if validatorsHash is invalid', async () => {
 			// Arrange
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(false);
 			jest.spyOn(consensus as any, '_prepareFinalizingState').mockReturnValue({
