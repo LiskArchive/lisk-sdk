@@ -73,6 +73,7 @@ export const singleCommitSchema = {
 };
 
 export const aggregateCommitSchema = {
+	$id: 'consensus/aggregateCommit',
 	type: 'object',
 	required: ['height', 'aggregationBits', 'certificateSignature'],
 	properties: {
