@@ -486,7 +486,7 @@ describe('BFT votes', () => {
 					aggregateCommit: {
 						aggregationBits: Buffer.alloc(0),
 						certificateSignature: Buffer.alloc(0),
-						height: 0,
+						height: 10,
 					},
 				}),
 			);
