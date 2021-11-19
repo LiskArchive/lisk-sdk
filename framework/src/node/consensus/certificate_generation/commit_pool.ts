@@ -44,30 +44,42 @@ export class CommitPool {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public job() {}
+	public async job(): Promise<void> {}
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public addCommit(_commit: SingleCommit, _height: number) {}
+	public addCommit(_commit: SingleCommit, _height: number): void {}
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public validateCommit() {}
+	public validateCommit(): boolean {
+		return true;
+	}
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public getCommitsByHeight(_height: number) {}
+	public getCommitsByHeight(_height: number): SingleCommit[] {
+		return [];
+	}
 
 	public createSingleCommit(
 		_blockHeader: BlockHeader,
 		_validatorInfo: ValidatorInfo,
 		_networkIdentifier: Buffer,
 		// eslint-disable-next-line @typescript-eslint/no-empty-function
-	) {}
+	): SingleCommit {
+		return {} as SingleCommit;
+	}
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public verifyAggregateCommit(_aggregateCommit: AggregateCommit) {}
+	public verifyAggregateCommit(_aggregateCommit: AggregateCommit): boolean {
+		return true;
+	}
 	// TODO: To be updated in the issue https://github.com/LiskHQ/lisk-sdk/issues/6846
-	public getAggregageCommit() {
+	public getAggregageCommit(): AggregateCommit {
 		const singleCommits = this._selectAggregateCommit();
 
 		return this._aggregateSingleCommits((singleCommits as unknown) as SingleCommit[]);
 	}
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	private _aggregateSingleCommits(_singleCommits: SingleCommit[]) {}
+	private _aggregateSingleCommits(_singleCommits: SingleCommit[]): AggregateCommit {
+		return {} as AggregateCommit;
+	}
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	private _selectAggregateCommit() {}
+	private _selectAggregateCommit(): SingleCommit[] {
+		return [];
+	}
 }
