@@ -28,16 +28,20 @@ import { createBlockContext, createFakeBlockHeader } from '../../../../src/testi
 import {
 	MODULE_ID_DPOS,
 	STORE_PREFIX_DELEGATE,
+	STORE_PREFIX_GENESIS_DATA,
 	STORE_PREFIX_PREVIOUS_TIMESTAMP,
 	STORE_PREFIX_SNAPSHOT,
 } from '../../../../src/modules/dpos_v2/constants';
 import {
 	delegateStoreSchema,
+	genesisDataStoreSchema,
 	previousTimestampStoreSchema,
 	snapshotStoreSchema,
 } from '../../../../src/modules/dpos_v2/schemas';
 import {
 	DelegateAccount,
+	GenesisData,
+	PreviousTimestampData,
 	SnapshotStoreData,
 	ValidatorsAPI,
 } from '../../../../src/modules/dpos_v2/types';
@@ -1173,6 +1177,216 @@ describe('DPoS module', () => {
 				);
 				expect(currentDelegate.isBanned).toBeTrue();
 				expect(currentDelegate.consecutiveMissedBlocks).toBe(51);
+			});
+		});
+	});
+
+	describe('afterBlockExecute', () => {
+		const genesisData: GenesisData = {
+			heigth: 0,
+			initRounds: 3,
+			initDelegates: [],
+		};
+		const bootstrapRounds = genesisData.initRounds;
+
+		const randomAPI: any = {};
+		const bftAPI: any = {};
+		const tokenAPI: any = {};
+		const validatorsAPI: any = {};
+
+		let stateStore: StateStore;
+		let height: number;
+		let context: BlockAfterExecuteContext;
+		let dpos: DPoSModule;
+		let previousTimestampStore: SubStore;
+		let currentTimestamp: number;
+		let previousTimestamp: number;
+		let genesisDataStore: SubStore;
+
+		beforeEach(async () => {
+			dpos = new DPoSModule();
+			await dpos.init({
+				generatorConfig: {},
+				genesisConfig: {} as GenesisConfig,
+				moduleConfig: defaultConfigs,
+			});
+			dpos.addDependencies(randomAPI, bftAPI, validatorsAPI, tokenAPI);
+
+			stateStore = new StateStore(new InMemoryKVStore());
+
+			previousTimestampStore = stateStore.getStore(dpos.id, STORE_PREFIX_PREVIOUS_TIMESTAMP);
+			genesisDataStore = stateStore.getStore(dpos.id, STORE_PREFIX_GENESIS_DATA);
+
+			await genesisDataStore.setWithSchema(EMPTY_KEY, genesisData, genesisDataStoreSchema);
+
+			jest.spyOn(dpos as any, '_createVoteWeightSnapshot').mockImplementation();
+			jest.spyOn(dpos as any, '_updateProductivity').mockImplementation();
+			jest.spyOn(dpos as any, '_updateValidators').mockImplementation();
+		});
+
+		describe('when its the last block of round after bootstrap period', () => {
+			beforeEach(async () => {
+				height = 103 * (bootstrapRounds + 1);
+				currentTimestamp = height * 10;
+				previousTimestamp = (height - 1) * 10;
+
+				context = createBlockContext({
+					stateStore,
+					header: createFakeBlockHeader({
+						height,
+						timestamp: currentTimestamp,
+					}),
+				}).getBlockAfterExecuteContext();
+
+				await previousTimestampStore.setWithSchema(
+					EMPTY_KEY,
+					{ timestamp: previousTimestamp },
+					previousTimestampStoreSchema,
+				);
+
+				await dpos.afterBlockExecute(context);
+			});
+
+			it('should create vote weight snapshot', () => {
+				expect(dpos['_createVoteWeightSnapshot']).toHaveBeenCalledTimes(1);
+				expect(dpos['_createVoteWeightSnapshot']).toHaveBeenCalledWith(context);
+			});
+
+			it('should update validators', () => {
+				expect(dpos['_updateValidators']).toHaveBeenCalledTimes(1);
+				expect(dpos['_updateValidators']).toHaveBeenCalledWith(context);
+			});
+		});
+
+		describe('when its not the last block of round after bootstrap period', () => {
+			beforeEach(async () => {
+				height = 103 * (bootstrapRounds + 1) - 3;
+				currentTimestamp = height * 10;
+				previousTimestamp = (height - 1) * 10;
+
+				context = createBlockContext({
+					stateStore,
+					header: createFakeBlockHeader({
+						height,
+						timestamp: currentTimestamp,
+					}),
+				}).getBlockAfterExecuteContext();
+
+				await previousTimestampStore.setWithSchema(
+					EMPTY_KEY,
+					{ timestamp: previousTimestamp },
+					previousTimestampStoreSchema,
+				);
+
+				await dpos.afterBlockExecute(context);
+			});
+
+			it('should not create vote weight snapshot', () => {
+				expect(dpos['_createVoteWeightSnapshot']).toHaveBeenCalledTimes(0);
+			});
+
+			it('should not update validators', () => {
+				expect(dpos['_updateValidators']).toHaveBeenCalledTimes(0);
+			});
+		});
+
+		describe('when its the last block of bootstrap period', () => {
+			beforeEach(async () => {
+				height = 103 * bootstrapRounds;
+				currentTimestamp = height * 10;
+				previousTimestamp = (height - 1) * 10;
+
+				context = createBlockContext({
+					stateStore,
+					header: createFakeBlockHeader({
+						height,
+						timestamp: currentTimestamp,
+					}),
+				}).getBlockAfterExecuteContext();
+
+				await previousTimestampStore.setWithSchema(
+					EMPTY_KEY,
+					{ timestamp: previousTimestamp },
+					previousTimestampStoreSchema,
+				);
+
+				await dpos.afterBlockExecute(context);
+			});
+
+			it('should create vote weight snapshot', () => {
+				expect(dpos['_createVoteWeightSnapshot']).toHaveBeenCalledTimes(1);
+				expect(dpos['_createVoteWeightSnapshot']).toHaveBeenCalledWith(context);
+			});
+
+			it('should update validators', () => {
+				expect(dpos['_updateValidators']).toHaveBeenCalledTimes(1);
+				expect(dpos['_updateValidators']).toHaveBeenCalledWith(context);
+			});
+		});
+
+		describe('when its a block before bootstrap period last block', () => {
+			beforeEach(async () => {
+				height = 103 * (bootstrapRounds - 1);
+				currentTimestamp = height * 10;
+				previousTimestamp = (height - 1) * 10;
+
+				context = createBlockContext({
+					stateStore,
+					header: createFakeBlockHeader({
+						height,
+						timestamp: currentTimestamp,
+					}),
+				}).getBlockAfterExecuteContext();
+
+				await previousTimestampStore.setWithSchema(
+					EMPTY_KEY,
+					{ timestamp: previousTimestamp },
+					previousTimestampStoreSchema,
+				);
+
+				await dpos.afterBlockExecute(context);
+			});
+
+			it('should create vote weight snapshot', () => {
+				expect(dpos['_createVoteWeightSnapshot']).toHaveBeenCalledTimes(1);
+				expect(dpos['_createVoteWeightSnapshot']).toHaveBeenCalledWith(context);
+			});
+
+			it('should not update validators', () => {
+				expect(dpos['_updateValidators']).toHaveBeenCalledTimes(0);
+			});
+		});
+
+		describe('when hook exits successfully', () => {
+			beforeEach(async () => {
+				height = 103;
+				currentTimestamp = 1030;
+				previousTimestamp = 1020;
+
+				context = createBlockContext({
+					stateStore,
+					header: createFakeBlockHeader({
+						height,
+						timestamp: currentTimestamp,
+					}),
+				}).getBlockAfterExecuteContext();
+
+				await previousTimestampStore.setWithSchema(
+					EMPTY_KEY,
+					{ timestamp: previousTimestamp },
+					previousTimestampStoreSchema,
+				);
+
+				await dpos.afterBlockExecute(context);
+			});
+
+			it('should set previousTimestamp to current timestamp', async () => {
+				const nextPreviousTimestampData = await previousTimestampStore.getWithSchema<PreviousTimestampData>(
+					EMPTY_KEY,
+					previousTimestampStoreSchema,
+				);
+				const nextPreviousTimestamp = nextPreviousTimestampData.timestamp;
+				expect(nextPreviousTimestamp).toBe(currentTimestamp);
 			});
 		});
 	});

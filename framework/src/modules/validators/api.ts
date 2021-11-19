@@ -248,12 +248,12 @@ export class ValidatorsAPI extends BaseAPI {
 		apiContext: ImmutableAPIContext,
 		startTimestamp: number,
 		endTimestamp: number,
-	): Promise<Record<string, unknown>> {
+	): Promise<Record<string, number>> {
 		if (endTimestamp < startTimestamp) {
 			throw new Error('End timestamp must be greater than start timestamp.');
 		}
 
-		const result: Record<string, unknown> = {};
+		const result: Record<string, number> = {};
 		const genesisData = await this.getGenesisData(apiContext);
 
 		if (startTimestamp < genesisData.timestamp) {
@@ -269,7 +269,7 @@ export class ValidatorsAPI extends BaseAPI {
 			EMPTY_KEY,
 			generatorListSchema,
 		);
-		const generatorAddresses = generatorList.addresses.map(buf => buf.toString());
+		const generatorAddresses = generatorList.addresses.map(buf => buf.toString('binary'));
 		const baseSlots = Math.floor(totalSlots / generatorAddresses.length);
 
 		if (baseSlots > 0) {
@@ -287,7 +287,7 @@ export class ValidatorsAPI extends BaseAPI {
 			const slotIndex = slotNumber % generatorAddresses.length;
 			const generatorAddress = generatorAddresses[slotIndex];
 			if (Object.prototype.hasOwnProperty.call(result, generatorAddress)) {
-				(result[generatorAddress] as number) += 1;
+				result[generatorAddress] += 1;
 			} else {
 				result[generatorAddress] = 1;
 			}

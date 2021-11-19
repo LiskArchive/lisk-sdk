@@ -13,3 +13,4 @@
  */
 
 export { AuthModule } from './module';
+export { AuthAPI } from './api';

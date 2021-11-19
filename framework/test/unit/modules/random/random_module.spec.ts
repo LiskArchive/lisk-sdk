@@ -261,9 +261,9 @@ describe('RandomModule', () => {
 			).resolves.toEqual(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated));
 		});
 
-		// TODO: Update and enable it after issue https://github.com/LiskHQ/lisk-sdk/issues/6836
-		it.skip('should remove all used hash onions before finality height', async () => {
+		it('should remove all used hash onions before finality height', async () => {
 			// Arrange
+			const finalizedHeight = 10;
 			const blockGenerateContext: BlockGenerateContext = testing.createBlockGenerateContext({
 				assets: assetStub,
 				logger: testing.mocks.loggerMock,
@@ -271,11 +271,19 @@ describe('RandomModule', () => {
 				getAPIContext: jest.fn() as any,
 				getStore: jest.fn() as any,
 				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
+				finalizedHeight,
 			});
 
 			const seed = targetDelegate.hashOnion.hashes[1];
 			const hashes = hashOnion(Buffer.from(seed, 'hex'), targetDelegate.hashOnion.distance, 1);
 			const forgingDelegates = convertDelegateFixture(genesisDelegates.delegates);
+
+			await blockGenerateContext
+				.getGeneratorStore(randomModule.id)
+				.set(
+					STORE_PREFIX_USED_HASH_ONION,
+					codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnion),
+				);
 
 			// Act
 			await randomModule.init({
@@ -294,7 +302,13 @@ describe('RandomModule', () => {
 
 			await expect(
 				blockGenerateContext.getGeneratorStore(randomModule.id).get(STORE_PREFIX_USED_HASH_ONION),
-			).resolves.toEqual(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated));
+			).resolves.toEqual(
+				codec.encode(usedHashOnionsStoreSchema, {
+					usedHashOnions: defaultUsedHashOnionUpdated.usedHashOnions.filter(
+						u => u.height > finalizedHeight,
+					),
+				}),
+			);
 		});
 
 		it('should use random seedReveal when all seedReveal are used', async () => {

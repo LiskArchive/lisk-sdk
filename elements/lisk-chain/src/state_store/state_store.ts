@@ -14,6 +14,7 @@
 
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { NotFoundError as DBNotFoundError } from '@liskhq/lisk-db';
+import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import { DB_KEY_STATE_STORE } from '../db_keys';
 import { StateDiff } from '../types';
 import { CacheDB } from './cache_db';
@@ -60,6 +61,7 @@ export class StateStore {
 			Buffer.concat([DB_KEY_STATE_STORE, moduleIDBuffer, storePrefixBuffer]),
 			this._cache,
 		);
+
 		return subStore;
 	}
 
@@ -229,8 +231,8 @@ export class StateStore {
 		this._snapshot = undefined;
 	}
 
-	public finalize(batch: DatabaseWriter): StateDiff {
-		return this._cache.finalize(batch);
+	public async finalize(batch: DatabaseWriter, smt: SparseMerkleTree): Promise<StateDiff> {
+		return this._cache.finalize(batch, smt);
 	}
 
 	private async _ensureCache(prefixedKey: Buffer): Promise<boolean> {

@@ -15,7 +15,7 @@
 import { TAG_TRANSACTION, NotFoundError } from '@liskhq/lisk-chain';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { isHexString } from '@liskhq/lisk-validator';
-import { ModuleEndpointContext } from '../..';
+import { ModuleEndpointContext } from '../../types';
 import { VerifyStatus } from '../../node/state_machine';
 import { BaseEndpoint } from '../base_endpoint';
 import { COMMAND_ID_DELEGATE_REGISTRATION } from '../dpos_v2/constants';

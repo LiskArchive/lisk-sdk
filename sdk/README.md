@@ -42,6 +42,13 @@ Before running Lisk SDK, the following dependencies need to be installed in orde
 | ------------ | ------- |
 | NodeJS       | 12+     |
 
+For Mac M1 series,
+NodeJS must be above version 16. Additionally, to build `sodium-native` below tools are required.
+
+```
+brew install libtool cmake autoconf automake
+```
+
 ### Installation
 
 The installation of Lisk Beta SDK is straightforward and limited to getting a single NPM package, `lisk-sdk`, to your Node.js project:
@@ -63,7 +70,10 @@ It is quite simple to have a working blockchain application, mirroring the confi
 ```js
 const { Application, genesisBlockDevnet, configDevnet } = require('lisk-sdk');
 
-const app = Application.defaultApplication(genesisBlockDevnet, configDevnet);
+const { app } = Application.defaultApplication(
+	genesisBlockDevnet,
+	configDevnet
+);
 
 app
 	.run()
@@ -85,7 +95,7 @@ node index.js
 You can also define your blockchain application parameters such as `blockTime`, `maxPayloadLength` and more with an optional configurations object.
 
 ```js
-const app = Application.defaultApplication(genesisBlockDevnet, {
+const { app } = Application.defaultApplication(genesisBlockDevnet, {
     genesisConfig: {
       communityIdentifier: 'newChain',
       blockTime: 5,
@@ -112,7 +122,10 @@ const { Application, genesisBlockDevnet, configDevnet } = require('lisk-sdk');
 const MyModule = require('./my_module');
 const MyPlugin = require('./my_plugin');
 
-const app = Application.defaultApplication(genesisBlockDevnet, configDevnet);
+const { app } = Application.defaultApplication(
+	genesisBlockDevnet,
+	configDevnet
+);
 
 app.registerModule(MyModule); // register the custom module
 app.registerPlugin(MyPlugin); // register the custom plugin

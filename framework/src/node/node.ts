@@ -181,10 +181,6 @@ export class Node {
 				throw new Error('Custom module contains command with invalid `id` property.');
 			}
 
-			if (typeof command.schema !== 'object') {
-				throw new Error('Custom module contains command with invalid `schema` property.');
-			}
-
 			if (typeof command.execute !== 'function') {
 				throw new Error('Custom module contains command with invalid `execute` property.');
 			}

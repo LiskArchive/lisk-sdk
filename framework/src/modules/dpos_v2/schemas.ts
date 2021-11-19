@@ -151,6 +151,7 @@ export const snapshotStoreSchema = {
 };
 
 export const genesisDataStoreSchema = {
+	$id: '/dpos/store/genesis',
 	type: 'object',
 	required: ['height', 'initRounds', 'initDelegates'],
 	properties: {

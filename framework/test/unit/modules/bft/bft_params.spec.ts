@@ -12,10 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateStore } from '@liskhq/lisk-chain';
+import { SMTStore, StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { BIG_ENDIAN, getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
+import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import { MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS } from '../../../../src/modules/bft/constants';
 import { BFTParameterNotFoundError } from '../../../../src/modules/bft/errors';
 import {
@@ -65,7 +66,9 @@ describe('BFT parameters', () => {
 			};
 			await paramsStore.set(height2Bytes, codec.encode(bftParametersSchema, bftParams2));
 			const batch = db.batch();
-			rootStore.finalize(batch);
+			const smtStore = new SMTStore(db);
+			const smt = new SparseMerkleTree({ db: smtStore, keyLength: 11 });
+			await rootStore.finalize(batch, smt);
 			await batch.write();
 
 			stateStore = new StateStore(db);
@@ -129,7 +132,9 @@ describe('BFT parameters', () => {
 			};
 			await paramsStore.set(height2Bytes, codec.encode(bftParametersSchema, bftParams2));
 			const batch = db.batch();
-			rootStore.finalize(batch);
+			const smtStore = new SMTStore(db);
+			const smt = new SparseMerkleTree({ db: smtStore, keyLength: 11 });
+			await rootStore.finalize(batch, smt);
 			await batch.write();
 
 			stateStore = new StateStore(db);
@@ -204,7 +209,9 @@ describe('BFT parameters', () => {
 				};
 				await paramsStore.set(height3Bytes, codec.encode(bftParametersSchema, bftParams3));
 				const batch = db.batch();
-				rootStore.finalize(batch);
+				const smtStore = new SMTStore(db);
+				const smt = new SparseMerkleTree({ db: smtStore, keyLength: 11 });
+				await rootStore.finalize(batch, smt);
 				await batch.write();
 
 				const stateStore = new StateStore(db);

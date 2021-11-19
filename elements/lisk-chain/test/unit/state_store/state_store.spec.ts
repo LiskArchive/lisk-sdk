@@ -328,6 +328,11 @@ describe('state store', () => {
 			return Buffer.concat([moduleIDBuffer, storePrefixBuffer]);
 		};
 
+		const smt = {
+			update: jest.fn(),
+			remove: jest.fn(),
+		};
+
 		let batch: DatabaseWriter;
 		let data: { key: Buffer; value: Buffer }[];
 
@@ -347,23 +352,23 @@ describe('state store', () => {
 			};
 		});
 
-		it('should set all the newly created and updated values', () => {
-			stateStore.finalize(batch);
+		it('should set all the newly created and updated values', async () => {
+			await stateStore.finalize(batch, smt as any);
 
 			expect(batch.put).toHaveBeenCalledTimes(3);
 			expect(batch.del).toHaveBeenCalledTimes(1);
 		});
 
-		it('should return state diff', () => {
-			const diff = stateStore.finalize(batch);
+		it('should return state diff', async () => {
+			const diff = await stateStore.finalize(batch, smt as any);
 			expect(diff.created).toHaveLength(2);
 			expect(diff.updated).toHaveLength(1);
 			expect(diff.deleted).toHaveLength(1);
 		});
 
-		it('should save only account state changes diff', () => {
+		it('should save only account state changes diff', async () => {
 			// Act
-			const diff = stateStore.finalize(batch);
+			const diff = await stateStore.finalize(batch, smt as any);
 
 			// Assert
 			expect(diff).toEqual({
@@ -386,10 +391,10 @@ describe('state store', () => {
 			});
 		});
 
-		it('should save empty diff if state was not changed', () => {
+		it('should save empty diff if state was not changed', async () => {
 			const newState = new StateStore(db);
 			// Act
-			const diff = newState.finalize(batch);
+			const diff = await newState.finalize(batch, smt as any);
 
 			// Assert
 			expect(diff).toStrictEqual({

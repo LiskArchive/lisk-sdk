@@ -12,9 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { MerkleTree } from '@liskhq/lisk-tree';
 import { blockAssetSchema } from './schema';
+import { MAX_ASSET_DATA_SIZE_BYTES } from './constants';
 
 export interface BlockAsset {
 	moduleID: number;
@@ -69,6 +71,51 @@ export class BlockAssets {
 
 	public sort(): void {
 		this._assets.sort((a1, a2) => a1.moduleID - a2.moduleID);
+	}
+
+	public validate(): void {
+		let last = this._assets[0];
+		let i = 0;
+		for (const asset of this._assets) {
+			const errors = validator.validate(blockAssetSchema, asset);
+			if (errors.length) {
+				throw new LiskValidationError(errors);
+			}
+			// Data size of each module should not be greater than max asset data size
+			if (asset.data.byteLength > MAX_ASSET_DATA_SIZE_BYTES) {
+				throw new Error(
+					`Module with ID ${asset.moduleID} has data size more than ${MAX_ASSET_DATA_SIZE_BYTES} bytes.`,
+				);
+			}
+			if (last.moduleID > asset.moduleID) {
+				throw new Error('Assets are not sorted in the increasing values of moduleID.');
+			}
+			// Check for duplicates
+			if (i > 0 && asset.moduleID === last.moduleID) {
+				throw new Error(`Module with ID ${this._assets[i].moduleID} has duplicate entries.`);
+			}
+			i += 1;
+			last = asset;
+		}
+	}
+
+	public validateGenesis(): void {
+		let last = this._assets[0];
+		let i = 0;
+		for (const asset of this._assets) {
+			const errors = validator.validate(blockAssetSchema, asset);
+			if (errors.length) {
+				throw new LiskValidationError(errors);
+			}
+			if (last.moduleID > asset.moduleID) {
+				throw new Error('Assets are not sorted in the increasing values of moduleID.');
+			}
+			if (i > 0 && asset.moduleID === last.moduleID) {
+				throw new Error(`Module with ID ${this._assets[i].moduleID} has duplicate entries.`);
+			}
+			i += 1;
+			last = asset;
+		}
 	}
 
 	private async _calculateRoot(): Promise<Buffer> {
