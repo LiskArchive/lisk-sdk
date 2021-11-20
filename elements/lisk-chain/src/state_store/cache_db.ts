@@ -14,7 +14,7 @@
 
 import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import { StateDiff } from '../types';
-import { copyBuffer } from './utils';
+import { copyBuffer, toSMTKey } from './utils';
 import { DatabaseWriter } from './types';
 
 interface CacheValue {
@@ -167,9 +167,10 @@ export class CacheDB {
 
 		for (const [key, value] of Object.entries(this._data)) {
 			const keyBytes = Buffer.from(key, 'binary');
+			const smtKey = toSMTKey(keyBytes);
 			if (value.init === undefined) {
 				diff.created.push(keyBytes);
-				await smt.update(keyBytes, value.value);
+				await smt.update(smtKey, value.value);
 				batch.put(keyBytes, value.value);
 				continue;
 			}
@@ -178,7 +179,7 @@ export class CacheDB {
 					key: keyBytes,
 					value: value.init,
 				});
-				await smt.remove(keyBytes);
+				await smt.remove(smtKey);
 				batch.del(keyBytes);
 				continue;
 			}
@@ -187,7 +188,7 @@ export class CacheDB {
 					key: keyBytes,
 					value: value.init,
 				});
-				await smt.update(keyBytes, value.value);
+				await smt.update(smtKey, value.value);
 				batch.put(keyBytes, value.value);
 			}
 		}
