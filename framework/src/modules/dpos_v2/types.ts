@@ -115,6 +115,12 @@ export interface TokenAPI {
 		tokenID: TokenIDDPoS,
 		amount: bigint,
 	): Promise<void>;
+	getLockedAmount(
+		apiContext: APIContext,
+		address: Buffer,
+		moduleID: number,
+		tokenID: TokenIDDPoS,
+	): Promise<bigint>;
 }
 
 export interface UnlockingObject {
@@ -231,4 +237,42 @@ export interface GenesisData {
 	heigth: number;
 	initRounds: number;
 	initDelegates: Buffer[];
+}
+
+export interface GenesisStore {
+	validators: {
+		address: Buffer;
+		name: string;
+		blsKey: Buffer;
+		proofOfPossession: Buffer;
+		generatorKey: Buffer;
+		lastGeneratedHeight: number;
+		isBanned: Buffer;
+		pomHeights: number[];
+		consecutiveMissedBlocks: number;
+	}[];
+	voters: {
+		address: Buffer;
+		sentVotes: {
+			delegateAddress: Buffer;
+			amount: bigint;
+		}[];
+		pendingUnlocks: {
+			delegateAddress: Buffer;
+			amount: bigint;
+			unvoteHeight: number;
+		}[];
+	}[];
+	snapshots: {
+		roundNumber: number;
+		activeDelegates: Buffer[];
+		delegateWeightSnapshot: {
+			delegateAddress: Buffer;
+			delegateWeight: bigint;
+		}[];
+	}[];
+	genesisData: {
+		initRounds: number;
+		initDelegates: Buffer[];
+	};
 }

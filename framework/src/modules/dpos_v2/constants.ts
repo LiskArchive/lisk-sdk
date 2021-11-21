@@ -43,3 +43,4 @@ export const MAX_POM_HEIGHTS = 5;
 export const REPORTING_PUNISHMENT_REWARD = BigInt(100000000);
 export const DELEGATE_LIST_ROUND_OFFSET = 2;
 export const EMPTY_KEY = Buffer.alloc(0);
+export const MAX_SNAPSHOT = 3;

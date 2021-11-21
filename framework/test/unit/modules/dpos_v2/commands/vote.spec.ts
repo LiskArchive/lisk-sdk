@@ -71,6 +71,7 @@ describe('VoteCommand', () => {
 				getAvailableBalance: jest.fn(),
 				getMinRemainingBalance: jest.fn(),
 				transfer: jest.fn(),
+				getLockedAmount: jest.fn(),
 			},
 		});
 		command.init({

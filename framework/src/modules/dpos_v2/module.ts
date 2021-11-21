@@ -13,7 +13,9 @@
  */
 
 import { intToBuffer } from '@liskhq/lisk-cryptography';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { objects as objectUtils, dataStructures } from '@liskhq/lisk-utils';
+import { isUInt64, LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { codec } from '@liskhq/lisk-codec';
 import { GenesisBlockExecuteContext, BlockAfterExecuteContext } from '../../node/state_machine';
 import { BaseModule, ModuleInitArgs } from '../base_module';
 import { DPoSAPI } from './api';
@@ -32,14 +34,22 @@ import {
 	STORE_PREFIX_PREVIOUS_TIMESTAMP,
 	EMPTY_KEY,
 	STORE_PREFIX_GENESIS_DATA,
+	MAX_VOTE,
+	MAX_UNLOCKING,
+	MAX_SNAPSHOT,
+	STORE_PREFIX_NAME,
+	STORE_PREFIX_VOTER,
 } from './constants';
 import { DPoSEndpoint } from './endpoint';
 import {
 	configSchema,
 	delegateStoreSchema,
 	genesisDataStoreSchema,
+	genesisStoreSchema,
+	nameStoreSchema,
 	previousTimestampStoreSchema,
 	snapshotStoreSchema,
+	voterStoreSchema,
 } from './schemas';
 import {
 	BFTAPI,
@@ -51,12 +61,17 @@ import {
 	SnapshotStoreData,
 	PreviousTimestampData,
 	GenesisData,
+	GenesisStore,
+	VoterData,
 } from './types';
 import { Rounds } from './rounds';
 import {
+	equalUnlocking,
 	isCurrentlyPunished,
+	isUsername,
 	selectStandbyDelegates,
 	shuffleDelegateList,
+	sortUnlocking,
 	validtorsEqual,
 } from './utils';
 
@@ -132,10 +147,273 @@ export class DPoSModule extends BaseModule {
 		voteCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async afterGenesisBlockExecute(_context: GenesisBlockExecuteContext): Promise<void> {
-		// eslint-disable-next-line no-console
-		console.log(this._bftAPI, this._randomAPI, this._validatorsAPI, this._moduleConfig);
+	public async afterGenesisBlockExecute(context: GenesisBlockExecuteContext): Promise<void> {
+		const assetBytes = context.assets.getAsset(this.id);
+		// if there is no asset, do not initialize
+		if (!assetBytes) {
+			return;
+		}
+		const genesisStore = codec.decode<GenesisStore>(genesisStoreSchema, assetBytes);
+		const errors = validator.validate(genesisStoreSchema, genesisStore);
+
+		if (errors.length > 0) {
+			throw new LiskValidationError(errors);
+		}
+
+		// validators property check
+		const dposValidatorAddresses = [];
+		const dposValidatorNames = [];
+		const dposValidatorAddressMap = new dataStructures.BufferMap();
+		for (const dposValidator of genesisStore.validators) {
+			if (!isUsername(dposValidator.name)) {
+				throw new Error(`Invalid validator name ${dposValidator.name}.`);
+			}
+			dposValidatorAddressMap.set(dposValidator.address, true);
+			dposValidatorAddresses.push(dposValidator.address);
+			dposValidatorNames.push(dposValidator.name);
+		}
+		if (!objectUtils.bufferArrayUniqueItems(dposValidatorAddresses)) {
+			throw new Error('Validator address is not unique.');
+		}
+		if (new Set(dposValidatorNames).size !== dposValidatorNames.length) {
+			throw new Error('Validator name is not unique.');
+		}
+		// voters property check
+		const voterAddresses = [];
+		for (const voter of genesisStore.voters) {
+			if (voter.sentVotes.length > MAX_VOTE) {
+				throw new Error(`Sent vote exceeds max vote ${MAX_VOTE}.`);
+			}
+			if (!objectUtils.bufferArrayUniqueItems(voter.sentVotes.map(v => v.delegateAddress))) {
+				throw new Error('Sent vote delegate address is not unique.');
+			}
+			if (!objectUtils.bufferArrayOrderByLex(voter.sentVotes.map(v => v.delegateAddress))) {
+				throw new Error('Sent vote delegate address is not lexicographically ordered.');
+			}
+			if (voter.sentVotes.some(v => !dposValidatorAddressMap.has(v.delegateAddress))) {
+				throw new Error('Sent vote includes non existing validator address.');
+			}
+			if (voter.pendingUnlocks.length > MAX_UNLOCKING) {
+				throw new Error(`PendingUnlocks exceeds max unlocking ${MAX_UNLOCKING}.`);
+			}
+			const sortingPendingUnlocks = [...voter.pendingUnlocks];
+			sortUnlocking(sortingPendingUnlocks);
+			for (let i = 0; i < voter.pendingUnlocks.length; i += 1) {
+				const original = voter.pendingUnlocks[i];
+				const target = sortingPendingUnlocks[i];
+				if (!equalUnlocking(original, target)) {
+					throw new Error('PendingUnlocks are not lexicographically ordered.');
+				}
+			}
+			if (voter.pendingUnlocks.some(v => !dposValidatorAddressMap.has(v.delegateAddress))) {
+				throw new Error('Pending unlocks includes non existing validator address.');
+			}
+			voterAddresses.push(voter.address);
+		}
+		if (!objectUtils.bufferArrayUniqueItems(voterAddresses)) {
+			throw new Error('Voter address is not unique.');
+		}
+		// snapshot check
+		if (genesisStore.snapshots.length > MAX_SNAPSHOT) {
+			throw new Error(`Snapshot exceeds max snapshot length ${MAX_SNAPSHOT}.`);
+		}
+		if (
+			new Set(genesisStore.snapshots.map(s => s.roundNumber)).size !== genesisStore.snapshots.length
+		) {
+			throw new Error('Snapshot round must be unique.');
+		}
+		for (const snapshot of genesisStore.snapshots) {
+			if (!objectUtils.bufferArrayUniqueItems(snapshot.activeDelegates)) {
+				throw new Error('Snapshot active delegates address is not unique.');
+			}
+			if (snapshot.activeDelegates.some(v => !dposValidatorAddressMap.has(v))) {
+				throw new Error('Snapshot active delegates includes non existing validator address.');
+			}
+			const delegateWeightAddresses = [];
+			for (const delegateWeight of snapshot.delegateWeightSnapshot) {
+				if (!dposValidatorAddressMap.has(delegateWeight.delegateAddress)) {
+					throw new Error('Delegate weight address has non existing validator address.');
+				}
+				delegateWeightAddresses.push(delegateWeight.delegateAddress);
+			}
+			if (!objectUtils.bufferArrayUniqueItems(delegateWeightAddresses)) {
+				throw new Error('Snapshot delegate weight address is not unique.');
+			}
+		}
+		// check genesis state
+		if (!objectUtils.bufferArrayUniqueItems(genesisStore.genesisData.initDelegates)) {
+			throw new Error('Init delegates address is not unique.');
+		}
+		if (genesisStore.genesisData.initDelegates.some(v => !dposValidatorAddressMap.has(v))) {
+			throw new Error('Init delegates includes non existing validator address.');
+		}
+		if (genesisStore.genesisData.initDelegates.length > this._moduleConfig.numberActiveDelegates) {
+			throw new Error(
+				`Init delegates is greater than number of active delegates ${this._moduleConfig.numberActiveDelegates}.`,
+			);
+		}
+
+		const voterStore = context.getStore(this.id, STORE_PREFIX_VOTER);
+		const voteMap = new dataStructures.BufferMap<{ selfVotes: bigint; voteReceived: bigint }>();
+		for (const voter of genesisStore.voters) {
+			for (const sentVote of voter.sentVotes) {
+				const delegate = voteMap.get(sentVote.delegateAddress) ?? {
+					selfVotes: BigInt(0),
+					voteReceived: BigInt(0),
+				};
+				if (sentVote.delegateAddress.equals(voter.address)) {
+					delegate.selfVotes += sentVote.amount;
+					delegate.voteReceived += sentVote.amount;
+					if (!isUInt64(delegate.selfVotes)) {
+						throw new Error('Self vote out of range.');
+					}
+				} else {
+					delegate.voteReceived += sentVote.amount;
+					if (!isUInt64(delegate.voteReceived)) {
+						throw new Error('Votes received out of range.');
+					}
+				}
+				voteMap.set(sentVote.delegateAddress, delegate);
+			}
+			await voterStore.setWithSchema(
+				voter.address,
+				{
+					sentVotes: voter.sentVotes,
+					pendingUnlocks: voter.pendingUnlocks,
+				},
+				voterStoreSchema,
+			);
+		}
+
+		const delegateStore = context.getStore(this.id, STORE_PREFIX_DELEGATE);
+		const nameSubstore = context.getStore(this.id, STORE_PREFIX_NAME);
+		for (const dposValidator of genesisStore.validators) {
+			const voteInfo = voteMap.get(dposValidator.address) ?? {
+				selfVotes: BigInt(0),
+				voteReceived: BigInt(0),
+			};
+			await delegateStore.setWithSchema(
+				dposValidator.address,
+				{
+					name: dposValidator.name,
+					totalVotesReceived: voteInfo.voteReceived,
+					selfVotes: voteInfo.selfVotes,
+					lastGeneratedHeight: dposValidator.lastGeneratedHeight,
+					isBanned: dposValidator.isBanned,
+					pomHeights: dposValidator.pomHeights,
+					consecutiveMissedBlocks: dposValidator.consecutiveMissedBlocks,
+				},
+				delegateStoreSchema,
+			);
+			await nameSubstore.setWithSchema(
+				Buffer.from(dposValidator.name, 'utf-8'),
+				{ delegateAddress: dposValidator.address },
+				nameStoreSchema,
+			);
+		}
+
+		const snapshotStore = context.getStore(this.id, STORE_PREFIX_SNAPSHOT);
+		for (const snapshot of genesisStore.snapshots) {
+			const storeKey = intToBuffer(snapshot.roundNumber, 4);
+			await snapshotStore.setWithSchema(
+				storeKey,
+				{
+					activeDelegates: snapshot.activeDelegates,
+					delegateWeightSnapshot: snapshot.delegateWeightSnapshot,
+				},
+				snapshotStoreSchema,
+			);
+		}
+		const previousTimestampStore = context.getStore(this.id, STORE_PREFIX_PREVIOUS_TIMESTAMP);
+		await previousTimestampStore.setWithSchema(
+			EMPTY_KEY,
+			{
+				timestamp: context.header.timestamp,
+			},
+			previousTimestampStoreSchema,
+		);
+
+		const genesisDataStore = context.getStore(this.id, STORE_PREFIX_GENESIS_DATA);
+		await genesisDataStore.setWithSchema(
+			EMPTY_KEY,
+			{
+				height: context.header.height,
+				initRounds: genesisStore.genesisData.initRounds,
+				initDelegates: genesisStore.genesisData.initDelegates,
+			},
+			genesisDataStoreSchema,
+		);
+
+		// TODO: Move below logic to finalizeGenesisState step
+		const apiContext = context.getAPIContext();
+		for (const dposValidator of genesisStore.validators) {
+			const valid = await this._validatorsAPI.registerValidatorKeys(
+				apiContext,
+				dposValidator.address,
+				dposValidator.blsKey,
+				dposValidator.generatorKey,
+				dposValidator.proofOfPossession,
+			);
+			if (!valid) {
+				throw new Error('Invalid validator key.');
+			}
+		}
+		const allVoters = await voterStore.iterateWithSchema<VoterData>(
+			{
+				start: Buffer.alloc(20),
+				end: Buffer.alloc(20, 255),
+			},
+			voterStoreSchema,
+		);
+		for (const voterData of allVoters) {
+			let votedAmount = BigInt(0);
+			for (const sentVotes of voterData.value.sentVotes) {
+				votedAmount += sentVotes.amount;
+			}
+			for (const pendingUnlock of voterData.value.pendingUnlocks) {
+				votedAmount += pendingUnlock.amount;
+			}
+			const lockedAmount = await this._tokenAPI.getLockedAmount(
+				apiContext,
+				voterData.key,
+				this.id,
+				this._moduleConfig.tokenIDDPoS,
+			);
+			if (lockedAmount !== votedAmount) {
+				throw new Error('Voted amount is not locked');
+			}
+		}
+
+		const initDelegates = [...genesisStore.genesisData.initDelegates];
+		initDelegates.sort((a, b) => a.compare(b));
+		const bftWeights = initDelegates.map(d => ({
+			bftWeight: BigInt(1),
+			address: d,
+		}));
+		const initBFTThreshold = BigInt(Math.floor((2 * initDelegates.length) / 3) + 1);
+		await this._bftAPI.setBFTParameters(apiContext, initBFTThreshold, initBFTThreshold, bftWeights);
+		await this._validatorsAPI.setGeneratorList(apiContext, initDelegates);
+
+		const MAX_UINT32 = 2 ** 32 - 1;
+		const allSnapshots = await snapshotStore.iterate({
+			start: intToBuffer(0, 4),
+			end: intToBuffer(MAX_UINT32, 4),
+		});
+		if (context.header.height === 0 && allSnapshots.length > 0) {
+			throw new Error('When genensis height is zero, there should not be a snapshot.');
+		}
+		if (context.header.height !== 0) {
+			if (allSnapshots.length === 0) {
+				throw new Error('When genesis height is non-zero, snapshot is required.');
+			}
+			const genesisRound = new Rounds({ blocksPerRound: this._moduleConfig.roundLength }).calcRound(
+				context.header.height,
+			);
+			const lastsnapshotRound = allSnapshots[allSnapshots.length - 1].key.readUInt32BE(0);
+			if (lastsnapshotRound !== genesisRound) {
+				throw new Error('Invalid snapshot. Latest snapshot should be the genesis round.');
+			}
+		}
 	}
 
 	public async afterBlockExecute(context: BlockAfterExecuteContext): Promise<void> {

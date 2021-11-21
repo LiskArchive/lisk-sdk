@@ -207,4 +207,28 @@ export class TokenAPI extends BaseAPI {
 		recipient.availableBalance += amount;
 		await userStore.setWithSchema(address, recipient, userStoreSchema);
 	}
+
+	public async getLockedAmount(
+		apiContext: APIContext,
+		address: Buffer,
+		moduleID: number,
+		_tokenID: TokenID,
+	): Promise<bigint> {
+		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
+		let data: UserStoreData;
+		try {
+			data = await userStore.getWithSchema<UserStoreData>(address, userStoreSchema);
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+			return BigInt(0);
+		}
+		return data.lockedBalances.reduce((prev, current) => {
+			if (current.moduleID === moduleID) {
+				return prev + current.amount;
+			}
+			return prev;
+		}, BigInt(0));
+	}
 }

@@ -12,10 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateStore } from '@liskhq/lisk-chain';
+import { BlockAssets, StateStore } from '@liskhq/lisk-chain';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
+import { codec } from '@liskhq/lisk-codec';
 import { GenesisConfig } from '../../../../src/types';
 import { DPoSModule } from '../../../../src/modules/dpos_v2';
 import * as forgerSelectionLessTHan103Scenario from '../../../fixtures/dpos_forger_selection/dpos_forger_selection_less_than_103.json';
@@ -24,19 +25,27 @@ import * as forgerSelectionOneStandbyScenario from '../../../fixtures/dpos_forge
 import * as forgerSelectionTwoStandbyScenario from '../../../fixtures/dpos_forger_selection/dpos_forger_selection_exactly_2_standby.json';
 import * as forgerSelectionMoreThan2StandByScenario from '../../../fixtures/dpos_forger_selection/dpos_forger_selection_more_than_2_standby.json';
 import { BlockAfterExecuteContext } from '../../../../src/node/state_machine';
-import { createBlockContext, createFakeBlockHeader } from '../../../../src/testing';
+import {
+	createBlockContext,
+	createFakeBlockHeader,
+	createGenesisBlockContext,
+} from '../../../../src/testing';
 import {
 	MODULE_ID_DPOS,
 	STORE_PREFIX_DELEGATE,
 	STORE_PREFIX_GENESIS_DATA,
+	STORE_PREFIX_NAME,
 	STORE_PREFIX_PREVIOUS_TIMESTAMP,
 	STORE_PREFIX_SNAPSHOT,
+	STORE_PREFIX_VOTER,
 } from '../../../../src/modules/dpos_v2/constants';
 import {
 	delegateStoreSchema,
 	genesisDataStoreSchema,
+	genesisStoreSchema,
 	previousTimestampStoreSchema,
 	snapshotStoreSchema,
+	voterStoreSchema,
 } from '../../../../src/modules/dpos_v2/schemas';
 import {
 	DelegateAccount,
@@ -45,7 +54,8 @@ import {
 	SnapshotStoreData,
 	ValidatorsAPI,
 } from '../../../../src/modules/dpos_v2/types';
-import { SubStore } from '../../../../src/node/state_machine/types';
+import { GenesisBlockExecuteContext, SubStore } from '../../../../src/node/state_machine/types';
+import { invalidAssets, validAsset, validators } from './genesis_block_test_data';
 
 describe('DPoS module', () => {
 	const EMPTY_KEY = Buffer.alloc(0);
@@ -67,6 +77,222 @@ describe('DPoS module', () => {
 			localID: 0,
 		},
 	};
+
+	describe('afterGenesisBlockExecute', () => {
+		let dpos: DPoSModule;
+		let stateStore: StateStore;
+
+		beforeEach(async () => {
+			dpos = new DPoSModule();
+			stateStore = new StateStore(new InMemoryKVStore());
+			const randomAPI = {
+				getRandomBytes: jest.fn(),
+			};
+			const bftAPI = {
+				setBFTParameters: jest.fn(),
+				getBFTParameters: jest.fn(),
+				areHeadersContradicting: jest.fn(),
+			};
+			const validatorAPI = {
+				setGeneratorList: jest.fn(),
+				setValidatorGeneratorKey: jest.fn(),
+				registerValidatorKeys: jest.fn().mockResolvedValue(true),
+				getValidatorAccount: jest.fn(),
+				getGeneratorsBetweenTimestamps: jest.fn(),
+				getGeneratorAtTimestamp: jest.fn(),
+			};
+			const tokenAPI = {
+				lock: jest.fn(),
+				unlock: jest.fn(),
+				getAvailableBalance: jest.fn(),
+				getMinRemainingBalance: jest.fn(),
+				transfer: jest.fn(),
+				getLockedAmount: jest.fn().mockResolvedValue(BigInt(101000000000)),
+			};
+
+			dpos.addDependencies(randomAPI, bftAPI, validatorAPI, tokenAPI);
+			await dpos.init({
+				generatorConfig: {},
+				genesisConfig: {} as GenesisConfig,
+				moduleConfig: defaultConfigs,
+			});
+		});
+
+		describe.each(invalidAssets)('%p', (_, data, errString) => {
+			it('should throw error when asset is invalid', async () => {
+				// eslint-disable-next-line @typescript-eslint/ban-types
+				const assetBytes = codec.encode(genesisStoreSchema, data as object);
+				const context = createGenesisBlockContext({
+					stateStore,
+					header: createFakeBlockHeader({ height: 12345 }),
+					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
+				}).createGenesisBlockExecuteContext();
+
+				await expect(dpos.afterGenesisBlockExecute(context)).rejects.toThrow(errString as string);
+			});
+		});
+
+		describe('when the genesis height is zero', () => {
+			it('should throw error if snapshot exist', async () => {
+				const modified = {
+					...validAsset,
+					snapshots: [
+						{
+							roundNumber: 0,
+							activeDelegates: validators.slice(0, 101).map(v => v.address),
+							delegateWeightSnapshot: validators.slice(101).map(v => ({
+								delegateAddress: v.address,
+								delegateWeight: BigInt(100000000000),
+							})),
+						},
+					],
+				};
+				const assetBytes = codec.encode(genesisStoreSchema, modified);
+				const context = createGenesisBlockContext({
+					stateStore,
+					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
+				}).createGenesisBlockExecuteContext();
+				await expect(dpos.afterGenesisBlockExecute(context)).rejects.toThrow(
+					'When genensis height is zero, there should not be a snapshot',
+				);
+			});
+		});
+
+		describe('when the genesis height is non-zero', () => {
+			it('should throw error if snapshot does not exist', async () => {
+				const assetBytes = codec.encode(genesisStoreSchema, validAsset);
+				const context = createGenesisBlockContext({
+					stateStore,
+					header: createFakeBlockHeader({ height: 12345 }),
+					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
+				}).createGenesisBlockExecuteContext();
+				await expect(dpos.afterGenesisBlockExecute(context)).rejects.toThrow(
+					'When genesis height is non-zero, snapshot is required',
+				);
+			});
+		});
+
+		describe('when the genesis asset is valid', () => {
+			let context: GenesisBlockExecuteContext;
+
+			beforeEach(() => {
+				const assetBytes = codec.encode(genesisStoreSchema, validAsset);
+				context = createGenesisBlockContext({
+					stateStore,
+					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
+				}).createGenesisBlockExecuteContext();
+			});
+
+			it('should store self vote and received votes', async () => {
+				await expect(dpos.afterGenesisBlockExecute(context)).toResolve();
+
+				const delegateStore = stateStore.getStore(dpos.id, STORE_PREFIX_DELEGATE);
+				await expect(
+					delegateStore.getWithSchema(validAsset.voters[0].address, delegateStoreSchema),
+				).resolves.toEqual({
+					name: expect.any(String),
+					consecutiveMissedBlocks: 0,
+					isBanned: false,
+					lastGeneratedHeight: 0,
+					pomHeights: [],
+					selfVotes: BigInt(100000000000),
+					totalVotesReceived: BigInt(200000000000),
+				});
+			});
+
+			it('should store all the votes', async () => {
+				await expect(dpos.afterGenesisBlockExecute(context)).toResolve();
+				const voterStore = stateStore.getStore(dpos.id, STORE_PREFIX_VOTER);
+				expect.assertions(validAsset.voters.length + 1);
+				for (const voter of validAsset.voters) {
+					await expect(voterStore.getWithSchema(voter.address, voterStoreSchema)).resolves.toEqual({
+						sentVotes: voter.sentVotes,
+						pendingUnlocks: voter.pendingUnlocks,
+					});
+				}
+			});
+
+			it('should store all the delegates', async () => {
+				await expect(dpos.afterGenesisBlockExecute(context)).toResolve();
+				const usernameStore = stateStore.getStore(dpos.id, STORE_PREFIX_NAME);
+				const allNames = await usernameStore.iterate({
+					start: Buffer.from([0]),
+					end: Buffer.from([255]),
+				});
+				expect(allNames).toHaveLength(validAsset.validators.length);
+
+				const delegateStore = context.getStore(dpos.id, STORE_PREFIX_DELEGATE);
+				const allDelegates = await delegateStore.iterate({
+					start: Buffer.alloc(20, 0),
+					end: Buffer.alloc(20, 255),
+				});
+				expect(allDelegates).toHaveLength(validAsset.validators.length);
+			});
+
+			it('should store previous timestamp', async () => {
+				await expect(dpos.afterGenesisBlockExecute(context)).toResolve();
+
+				const previousTimestampStore = context.getStore(dpos.id, STORE_PREFIX_PREVIOUS_TIMESTAMP);
+				await expect(
+					previousTimestampStore.getWithSchema(EMPTY_KEY, previousTimestampStoreSchema),
+				).resolves.toEqual({
+					timestamp: context.header.timestamp,
+				});
+			});
+
+			it('should store genesis data', async () => {
+				await expect(dpos.afterGenesisBlockExecute(context)).toResolve();
+
+				const genesisDataStore = context.getStore(dpos.id, STORE_PREFIX_GENESIS_DATA);
+				await expect(
+					genesisDataStore.getWithSchema(EMPTY_KEY, genesisDataStoreSchema),
+				).resolves.toEqual({
+					height: context.header.height,
+					initRounds: validAsset.genesisData.initRounds,
+					initDelegates: validAsset.genesisData.initDelegates,
+				});
+			});
+
+			it('should register all the validators', async () => {
+				await expect(dpos.afterGenesisBlockExecute(context)).toResolve();
+
+				expect(dpos['_validatorsAPI'].setGeneratorList).toHaveBeenCalledWith(
+					expect.anything(),
+					validAsset.genesisData.initDelegates,
+				);
+			});
+
+			it('should register all active delegates as BFT validators', async () => {
+				await expect(dpos.afterGenesisBlockExecute(context)).toResolve();
+				expect(dpos['_bftAPI'].setBFTParameters).toHaveBeenCalledWith(
+					expect.anything(),
+					BigInt(68),
+					BigInt(68),
+					validAsset.genesisData.initDelegates.map(d => ({
+						bftWeight: BigInt(1),
+						address: d,
+					})),
+				);
+			});
+
+			it('should fail if registerValidatorKeys return false', async () => {
+				(dpos['_validatorsAPI'].registerValidatorKeys as jest.Mock).mockResolvedValue(false);
+
+				await expect(dpos.afterGenesisBlockExecute(context)).rejects.toThrow(
+					'Invalid validator key',
+				);
+			});
+
+			it('should fail if getLockedAmount return different value', async () => {
+				(dpos['_tokenAPI'].getLockedAmount as jest.Mock).mockResolvedValue(BigInt(0));
+
+				await expect(dpos.afterGenesisBlockExecute(context)).rejects.toThrow(
+					'Voted amount is not locked',
+				);
+			});
+		});
+	});
+
 	describe('_createVoteWeightSnapshot', () => {
 		let dpos: DPoSModule;
 
@@ -531,6 +757,7 @@ describe('DPoS module', () => {
 							getAvailableBalance: jest.fn(),
 							getMinRemainingBalance: jest.fn(),
 							transfer: jest.fn(),
+							getLockedAmount: jest.fn(),
 						};
 
 						dpos.addDependencies(randomAPI, bftAPI, validatorAPI, tokenAPI);
@@ -633,6 +860,7 @@ describe('DPoS module', () => {
 					getAvailableBalance: jest.fn(),
 					getMinRemainingBalance: jest.fn(),
 					transfer: jest.fn(),
+					getLockedAmount: jest.fn(),
 				};
 
 				dpos.addDependencies(randomAPI, bftAPI, validatorAPI, tokenAPI);
