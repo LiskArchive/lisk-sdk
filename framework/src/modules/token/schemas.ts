@@ -89,3 +89,62 @@ export const transferParamsSchema = {
 		},
 	},
 };
+
+export const genesisTokenStoreSchema = {
+	$id: '/token/module/genesis',
+	type: 'object',
+	required: ['userSubstore'],
+	properties: {
+		userSubstore: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['address', 'tokenID', 'availableBalance', 'lockedBalances'],
+				properties: {
+					address: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					tokenID: {
+						type: 'object',
+						fieldNumber: 2,
+						required: ['chainID', 'localID'],
+						properties: {
+							chainID: {
+								dataType: 'uint32',
+								fieldNumber: 1,
+							},
+							localID: {
+								dataType: 'uint32',
+								fieldNumber: 2,
+							},
+						},
+					},
+					availableBalance: {
+						dataType: 'uint64',
+						fieldNumber: 3,
+					},
+					lockedBalances: {
+						type: 'array',
+						fieldNumber: 4,
+						items: {
+							type: 'object',
+							required: ['moduleID', 'amount'],
+							properties: {
+								moduleID: {
+									dataType: 'uint32',
+									fieldNumber: 1,
+								},
+								amount: {
+									dataType: 'uint64',
+									fieldNumber: 2,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	},
+};
