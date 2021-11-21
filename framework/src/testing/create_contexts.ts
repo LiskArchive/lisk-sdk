@@ -36,6 +36,7 @@ export const createGenesisBlockContext = (params: {
 	header?: BlockHeader;
 	stateStore?: StateStore;
 	eventQueue?: EventQueue;
+	assets?: BlockAssets;
 	logger?: Logger;
 }): GenesisBlockContext => {
 	const logger = params.logger ?? loggerMock;
@@ -65,7 +66,7 @@ export const createGenesisBlockContext = (params: {
 		eventQueue,
 		stateStore,
 		header,
-		assets: new BlockAssets(),
+		assets: params.assets ?? new BlockAssets(),
 		logger,
 	});
 	return ctx;

@@ -20,18 +20,25 @@ import {
 	getAddressFromPublicKey,
 	signDataWithPassphrase,
 } from '@liskhq/lisk-cryptography';
-import { Transaction, transactionSchema, TAG_TRANSACTION, StateStore } from '@liskhq/lisk-chain';
+import {
+	Transaction,
+	transactionSchema,
+	TAG_TRANSACTION,
+	StateStore,
+	BlockAssets,
+} from '@liskhq/lisk-chain';
 import { objects as ObjectUtils } from '@liskhq/lisk-utils';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { when } from 'jest-when';
 import { AuthModule } from '../../../../src/modules/auth';
 import * as fixtures from './fixtures.json';
 import * as testing from '../../../../src/testing';
-import { authAccountSchema } from '../../../../src/modules/auth/schemas';
+import { authAccountSchema, genesisAuthStoreSchema } from '../../../../src/modules/auth/schemas';
 import { AuthAccount } from '../../../../src/modules/auth/types';
 import { VerifyStatus } from '../../../../src/node/state_machine';
 import { InvalidNonceError } from '../../../../src/modules/auth/errors';
 import { STORE_PREFIX_AUTH } from '../../../../src/modules/auth/constants';
+import { createGenesisBlockContext } from '../../../../src/testing';
 
 describe('AuthModule', () => {
 	let decodedMultiSignature: any;
@@ -93,6 +100,213 @@ describe('AuthModule', () => {
 			});
 	});
 
+	describe('afterGenesisBlockExecute', () => {
+		const address = getRandomBytes(20);
+		const publicKey = getRandomBytes(32);
+		const validAsset = {
+			authDataSubstore: [
+				{
+					storeKey: address,
+					storeValue: {
+						numberOfSignatures: 0,
+						mandatoryKeys: [],
+						optionalKeys: [],
+						nonce: BigInt(23),
+					},
+				},
+				{
+					storeKey: getRandomBytes(20),
+					storeValue: {
+						numberOfSignatures: 3,
+						mandatoryKeys: [getRandomBytes(32), getRandomBytes(32)].sort((a, b) => a.compare(b)),
+						optionalKeys: [getRandomBytes(32), getRandomBytes(32)].sort((a, b) => a.compare(b)),
+						nonce: BigInt(1),
+					},
+				},
+			],
+		};
+		const invalidTestData = [
+			[
+				'when store key is not 20 bytes',
+				{
+					authDataSubstore: [
+						{
+							storeKey: getRandomBytes(8),
+							storeValue: {
+								numberOfSignatures: 0,
+								mandatoryKeys: [],
+								optionalKeys: [],
+								nonce: BigInt(1),
+							},
+						},
+					],
+				},
+			],
+			[
+				'mandatory key is not lexicographically sorted',
+				{
+					authDataSubstore: [
+						{
+							storeKey: getRandomBytes(8),
+							storeValue: {
+								numberOfSignatures: 3,
+								mandatoryKeys: [getRandomBytes(32), getRandomBytes(32)].sort((a, b) =>
+									b.compare(a),
+								),
+								optionalKeys: [],
+								nonce: BigInt(1),
+							},
+						},
+					],
+				},
+			],
+			[
+				'mandatory key is not unique',
+				{
+					authDataSubstore: [
+						{
+							storeKey: getRandomBytes(8),
+							storeValue: {
+								numberOfSignatures: 2,
+								mandatoryKeys: [publicKey, publicKey],
+								optionalKeys: [],
+								nonce: BigInt(1),
+							},
+						},
+					],
+				},
+			],
+			[
+				'optional key is not lexicographically sorted',
+				{
+					authDataSubstore: [
+						{
+							storeKey: getRandomBytes(8),
+							storeValue: {
+								numberOfSignatures: 3,
+								mandatoryKeys: [],
+								optionalKeys: [getRandomBytes(32), getRandomBytes(32)].sort((a, b) => b.compare(a)),
+								nonce: BigInt(1),
+							},
+						},
+					],
+				},
+			],
+			[
+				'optional key is not unique',
+				{
+					authDataSubstore: [
+						{
+							storeKey: getRandomBytes(8),
+							storeValue: {
+								numberOfSignatures: 2,
+								mandatoryKeys: [],
+								optionalKeys: [publicKey, publicKey],
+								nonce: BigInt(1),
+							},
+						},
+					],
+				},
+			],
+			[
+				'exceed total keys',
+				{
+					authDataSubstore: [
+						{
+							storeKey: getRandomBytes(8),
+							storeValue: {
+								numberOfSignatures: 36,
+								mandatoryKeys: new Array(33)
+									.fill(0)
+									.map(() => getRandomBytes(32))
+									.sort((a, b) => b.compare(a)),
+								optionalKeys: new Array(33)
+									.fill(0)
+									.map(() => getRandomBytes(32))
+									.sort((a, b) => b.compare(a)),
+								nonce: BigInt(1),
+							},
+						},
+					],
+				},
+			],
+			[
+				'number of signatures exceed total keys',
+				{
+					authDataSubstore: [
+						{
+							storeKey: getRandomBytes(8),
+							storeValue: {
+								numberOfSignatures: 3,
+								mandatoryKeys: [],
+								optionalKeys: [getRandomBytes(32), getRandomBytes(32)].sort((a, b) => b.compare(a)),
+								nonce: BigInt(1),
+							},
+						},
+					],
+				},
+			],
+			[
+				'number of signatures less than mandatory keys',
+				{
+					authDataSubstore: [
+						{
+							storeKey: getRandomBytes(8),
+							storeValue: {
+								numberOfSignatures: 1,
+								mandatoryKeys: [getRandomBytes(32), getRandomBytes(32)].sort((a, b) =>
+									b.compare(a),
+								),
+								optionalKeys: [],
+								nonce: BigInt(1),
+							},
+						},
+					],
+				},
+			],
+		];
+
+		beforeEach(() => {
+			stateStore = new StateStore(new InMemoryKVStore());
+		});
+
+		it('should not throw error if asset does not exist', async () => {
+			const context = createGenesisBlockContext({ stateStore }).createGenesisBlockExecuteContext();
+			jest.spyOn(context, 'getStore');
+
+			await expect(authModule.afterGenesisBlockExecute(context)).toResolve();
+			expect(context.getStore).not.toHaveBeenCalled();
+		});
+
+		it('should resolve when asset is valid', async () => {
+			const assetBytes = codec.encode(genesisAuthStoreSchema, validAsset);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([{ moduleID: authModule.id, data: assetBytes }]),
+			}).createGenesisBlockExecuteContext();
+			jest.spyOn(context, 'getStore');
+
+			await expect(authModule.afterGenesisBlockExecute(context)).toResolve();
+			const authStore = stateStore.getStore(authModule.id, STORE_PREFIX_AUTH);
+			for (const data of validAsset.authDataSubstore) {
+				await expect(authStore.has(data.storeKey)).resolves.toBeTrue();
+			}
+		});
+
+		describe.each(invalidTestData)('%p', (_, data) => {
+			it('should throw error when asset is invalid', async () => {
+				// eslint-disable-next-line @typescript-eslint/ban-types
+				const assetBytes = codec.encode(genesisAuthStoreSchema, data as object);
+				const context = createGenesisBlockContext({
+					stateStore,
+					assets: new BlockAssets([{ moduleID: authModule.id, data: assetBytes }]),
+				}).createGenesisBlockExecuteContext();
+
+				await expect(authModule.afterGenesisBlockExecute(context)).toReject();
+			});
+		});
+	});
+
 	describe('verifyTransaction', () => {
 		describe('Invalid nonce errors', () => {
 			it('should return FAIL status with error when trx nonce is lower than account nonce', async () => {
@@ -117,6 +331,7 @@ describe('AuthModule', () => {
 				// Act & Assert
 				return expect(authModule.verifyTransaction(context)).rejects.toThrow(
 					new InvalidNonceError(
+						// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 						`Transaction with id:${validTestTransaction.id.toString(
 							'hex',
 						)} nonce is lower than account nonce`,
