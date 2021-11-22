@@ -94,21 +94,21 @@ export const verifyWeightedAggSig = (
 	tag: string,
 	networkIdentifier: Buffer,
 	message: Buffer,
-	weights: number[],
-	threshold: number,
+	weights: number[] | bigint[],
+	threshold: number | bigint,
 ): boolean => {
 	const taggedMessage = tagMessage(tag, networkIdentifier, message);
 	const keys: Buffer[] = [];
-	let weightSum = 0;
+	let weightSum = BigInt(0);
 
 	for (const [index, key] of publicKeysList.entries()) {
 		if (readBit(aggregationBits, index)) {
 			keys.push(key);
-			weightSum += weights[index];
+			weightSum += BigInt(weights[index]);
 		}
 	}
 
-	if (weightSum < threshold) {
+	if (weightSum < BigInt(threshold)) {
 		return false;
 	}
 
