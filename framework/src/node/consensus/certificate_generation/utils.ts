@@ -41,7 +41,6 @@ export const verifySingleCertificateSignature = (
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 ): boolean => true;
 
-// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6842
 export const verifyAggregateCertificateSignature = (
 	keysList: Buffer[],
 	weights: number[],

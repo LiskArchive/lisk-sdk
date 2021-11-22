@@ -24,7 +24,6 @@ import { MESSAGE_TAG_CERTIFICATE } from '../../../../../src/node/consensus/certi
 import { certificateSchema } from '../../../../../src/node/consensus/certificate_generation/schema';
 import { verifyAggregateCertificateSignature } from '../../../../../src/node/consensus/certificate_generation/utils';
 
-// eslint-disable-next-line jest/no-disabled-tests
 describe('utils', () => {
 	const networkIdentifier = Buffer.alloc(0);
 
