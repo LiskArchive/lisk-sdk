@@ -13,6 +13,10 @@
  */
 
 import { BlockHeader } from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
+import { verifyWeightedAggSig } from '@liskhq/lisk-cryptography';
+import { MESSAGE_TAG_CERTIFICATE } from './constants';
+import { certificateSchema } from './schema';
 import { Certificate } from './types';
 
 // TODO: https://github.com/LiskHQ/lisk-sdk/issues/6839
@@ -39,10 +43,33 @@ export const verifySingleCertificateSignature = (
 
 // TODO: https://github.com/LiskHQ/lisk-sdk/issues/6842
 export const verifyAggregateCertificateSignature = (
-	_keysList: Buffer[],
-	_weights: number[],
-	_threshold: number,
-	_networkIdentifier: Buffer,
-	_certificate: Certificate,
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-): boolean => true;
+	keysList: Buffer[],
+	weights: number[],
+	threshold: number,
+	networkIdentifier: Buffer,
+	certificate: Certificate,
+): boolean => {
+	if (!certificate.aggregationBits || !certificate.signature) {
+		return false;
+	}
+
+	const { aggregationBits, signature } = certificate;
+	const message = codec.encode(certificateSchema, {
+		blockID: certificate.blockID,
+		height: certificate.height,
+		timestamp: certificate.timestamp,
+		stateRoot: certificate.stateRoot,
+		validatorsHash: certificate.validatorsHash,
+	});
+
+	return verifyWeightedAggSig(
+		keysList,
+		aggregationBits,
+		signature,
+		MESSAGE_TAG_CERTIFICATE,
+		networkIdentifier,
+		message,
+		weights,
+		threshold,
+	);
+};
