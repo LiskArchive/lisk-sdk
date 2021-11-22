@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { BlockHeader } from '@liskhq/lisk-chain';
 import {
 	signBLS,
 	generatePrivateKey,
@@ -22,13 +23,47 @@ import { codec } from '@liskhq/lisk-codec';
 import { Certificate } from '../../../../../src/node/consensus/certificate_generation/types';
 import { MESSAGE_TAG_CERTIFICATE } from '../../../../../src/node/consensus/certificate_generation/constants';
 import { certificateSchema } from '../../../../../src/node/consensus/certificate_generation/schema';
-import { verifyAggregateCertificateSignature } from '../../../../../src/node/consensus/certificate_generation/utils';
+import {
+	verifyAggregateCertificateSignature,
+	computeCertificateFromBlockHeader,
+} from '../../../../../src/node/consensus/certificate_generation/utils';
+import { createFakeBlockHeader } from '../../../../../src/testing';
 
 describe('utils', () => {
 	const networkIdentifier = Buffer.alloc(0);
 
 	describe('computeCertificateFromBlockHeader', () => {
-		it.todo('');
+		let blockHeader: BlockHeader;
+
+		beforeEach(() => {
+			blockHeader = createFakeBlockHeader({});
+		});
+
+		it('should return a certificate with proper parameters', () => {
+			const certificate = computeCertificateFromBlockHeader(blockHeader);
+
+			expect(certificate.blockID).toBe(blockHeader.id);
+			expect(certificate.height).toBe(blockHeader.height);
+			expect(certificate.stateRoot).toBe(blockHeader.stateRoot);
+			expect(certificate.timestamp).toBe(blockHeader.timestamp);
+			expect(certificate.validatorsHash).toBe(blockHeader.validatorsHash);
+		});
+
+		it('should throw error when stateRoot is undefined', () => {
+			(blockHeader as any).stateRoot = undefined;
+
+			expect(() => computeCertificateFromBlockHeader(blockHeader)).toThrow(
+				"'stateRoot' is not defined.",
+			);
+		});
+
+		it('should throw error when validatorsHash is undefined', () => {
+			(blockHeader as any).validatorsHash = undefined;
+
+			expect(() => computeCertificateFromBlockHeader(blockHeader)).toThrow(
+				"'validatorsHash' is not defined.",
+			);
+		});
 	});
 	describe('signCertificate', () => {
 		it.todo('');
