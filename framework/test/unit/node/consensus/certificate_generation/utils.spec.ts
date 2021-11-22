@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 import { BlockHeader } from '@liskhq/lisk-chain';
 import {
 	signBLS,
@@ -65,8 +66,33 @@ describe('utils', () => {
 			);
 		});
 	});
+
 	describe('signCertificate', () => {
-		it.todo('');
+		let privateKey: Buffer;
+		let certificate: Certificate;
+		let signature: Buffer;
+
+		beforeEach(() => {
+			privateKey = generatePrivateKey(getRandomBytes(32));
+			certificate = {
+				blockID: Buffer.alloc(0),
+				height: 1000,
+				stateRoot: Buffer.alloc(0),
+				timestamp: 10000,
+				validatorsHash: Buffer.alloc(0),
+			};
+			const encodedCertificate = codec.encode(certificateSchema, certificate);
+			signature = signBLS(
+				MESSAGE_TAG_CERTIFICATE,
+				networkIdentifier,
+				encodedCertificate,
+				privateKey,
+			);
+		});
+
+		it('should sign certificate', () => {
+			expect(signCertificate(privateKey, networkIdentifier, certificate)).toEqual(signature);
+		});
 	});
 	describe('verifySingleCertificateSignature', () => {
 		it.todo('');
