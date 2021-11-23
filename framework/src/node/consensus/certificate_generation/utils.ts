@@ -12,12 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { signBLS, verifyWeightedAggSig } from '@liskhq/lisk-cryptography';
 import { BlockHeader } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { verifyWeightedAggSig } from '@liskhq/lisk-cryptography';
-import { MESSAGE_TAG_CERTIFICATE } from './constants';
-import { certificateSchema } from './schema';
 import { Certificate } from './types';
+import { certificateSchema } from './schema';
+import { MESSAGE_TAG_CERTIFICATE } from './constants';
 
 export const computeCertificateFromBlockHeader = (blockHeader: BlockHeader): Certificate => {
 	if (!blockHeader.stateRoot) {
@@ -37,13 +37,20 @@ export const computeCertificateFromBlockHeader = (blockHeader: BlockHeader): Cer
 	};
 };
 
-// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6840
 export const signCertificate = (
-	_sk: Buffer,
-	_networkIdentifier: Buffer,
-	_blockHeader: BlockHeader,
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-): Buffer => Buffer.from('');
+	sk: Buffer,
+	networkIdentifier: Buffer,
+	certificate: Certificate,
+): Buffer => {
+	const { aggregationBits, signature, ...rawCertificate } = certificate;
+
+	return signBLS(
+		MESSAGE_TAG_CERTIFICATE,
+		networkIdentifier,
+		codec.encode(certificateSchema, rawCertificate),
+		sk,
+	);
+};
 
 // TODO: https://github.com/LiskHQ/lisk-sdk/issues/6841
 export const verifySingleCertificateSignature = (

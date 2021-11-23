@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 import { BlockHeader } from '@liskhq/lisk-chain';
 import {
 	signBLS,
@@ -26,6 +27,7 @@ import { certificateSchema } from '../../../../../src/node/consensus/certificate
 import {
 	verifyAggregateCertificateSignature,
 	computeCertificateFromBlockHeader,
+	signCertificate,
 } from '../../../../../src/node/consensus/certificate_generation/utils';
 import { createFakeBlockHeader } from '../../../../../src/testing';
 
@@ -65,8 +67,35 @@ describe('utils', () => {
 			);
 		});
 	});
+
 	describe('signCertificate', () => {
-		it.todo('');
+		let privateKey: Buffer;
+		let certificate: Certificate;
+		let signature: Buffer;
+
+		beforeEach(() => {
+			privateKey = generatePrivateKey(getRandomBytes(32));
+			certificate = {
+				blockID: Buffer.alloc(0),
+				height: 1000,
+				stateRoot: Buffer.alloc(0),
+				timestamp: 10000,
+				validatorsHash: Buffer.alloc(0),
+			};
+			const encodedCertificate = codec.encode(certificateSchema, certificate);
+			signature = signBLS(
+				MESSAGE_TAG_CERTIFICATE,
+				networkIdentifier,
+				encodedCertificate,
+				privateKey,
+			);
+			(certificate as any).aggregationBits = getRandomBytes(4);
+			(certificate as any).signature = getRandomBytes(4);
+		});
+
+		it('should sign certificate', () => {
+			expect(signCertificate(privateKey, networkIdentifier, certificate)).toEqual(signature);
+		});
 	});
 	describe('verifySingleCertificateSignature', () => {
 		it.todo('');
