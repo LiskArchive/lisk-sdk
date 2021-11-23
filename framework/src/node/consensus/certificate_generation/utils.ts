@@ -19,10 +19,23 @@ import { MESSAGE_TAG_CERTIFICATE } from './constants';
 import { certificateSchema } from './schema';
 import { Certificate } from './types';
 
-// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6839
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-export const computeCertificateFromBlockHeader = (_blockHeader: BlockHeader): Certificate =>
-	({} as Certificate);
+export const computeCertificateFromBlockHeader = (blockHeader: BlockHeader): Certificate => {
+	if (!blockHeader.stateRoot) {
+		throw new Error("'stateRoot' is not defined.");
+	}
+
+	if (!blockHeader.validatorsHash) {
+		throw new Error("'validatorsHash' is not defined.");
+	}
+
+	return {
+		blockID: blockHeader.id,
+		height: blockHeader.height,
+		stateRoot: blockHeader.stateRoot,
+		timestamp: blockHeader.timestamp,
+		validatorsHash: blockHeader.validatorsHash,
+	};
+};
 
 // TODO: https://github.com/LiskHQ/lisk-sdk/issues/6840
 export const signCertificate = (
