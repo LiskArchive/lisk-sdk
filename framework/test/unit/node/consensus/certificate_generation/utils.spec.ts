@@ -88,6 +88,8 @@ describe('utils', () => {
 				encodedCertificate,
 				privateKey,
 			);
+			(certificate as any).aggregationBits = getRandomBytes(4);
+			(certificate as any).signature = getRandomBytes(4);
 		});
 
 		it('should sign certificate', () => {
