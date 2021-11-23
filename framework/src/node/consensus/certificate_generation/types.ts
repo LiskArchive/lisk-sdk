@@ -30,7 +30,7 @@ export interface SingleCommit {
 	readonly blockID: Buffer;
 	readonly height: number;
 	readonly validatorAddress: Buffer;
-	readonly certificateSignature: Buffer;
+	certificateSignature: Buffer | undefined;
 }
 
 export interface CommitPoolConfig {
