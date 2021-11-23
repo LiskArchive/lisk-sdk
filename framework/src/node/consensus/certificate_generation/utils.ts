@@ -42,12 +42,12 @@ export const signCertificate = (
 	networkIdentifier: Buffer,
 	certificate: Certificate,
 ): Buffer => {
-	const { aggregationBits, ...certificateWithoutAggregationBits } = certificate;
+	const { aggregationBits, signature, ...rawCertificate } = certificate;
 
 	return signBLS(
 		MESSAGE_TAG_CERTIFICATE,
 		networkIdentifier,
-		codec.encode(certificateSchema, certificateWithoutAggregationBits),
+		codec.encode(certificateSchema, rawCertificate),
 		sk,
 	);
 };
