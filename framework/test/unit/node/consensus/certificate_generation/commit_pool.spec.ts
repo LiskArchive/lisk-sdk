@@ -62,7 +62,7 @@ describe('CommitPool', () => {
 		const blockHeader = createFakeBlockHeader();
 		const validatorInfo = {
 			address: Buffer.alloc(0),
-			blsPublicKey: getRandomBytes(32),
+			blsPublicKey: getRandomBytes(48),
 			blsSecretKey: getRandomBytes(32),
 		};
 		const certificate = computeCertificateFromBlockHeader(blockHeader);
