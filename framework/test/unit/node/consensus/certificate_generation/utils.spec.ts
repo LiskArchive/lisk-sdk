@@ -27,6 +27,7 @@ import { certificateSchema } from '../../../../../src/node/consensus/certificate
 import {
 	verifyAggregateCertificateSignature,
 	computeCertificateFromBlockHeader,
+	signCertificate,
 } from '../../../../../src/node/consensus/certificate_generation/utils';
 import { createFakeBlockHeader } from '../../../../../src/testing';
 
