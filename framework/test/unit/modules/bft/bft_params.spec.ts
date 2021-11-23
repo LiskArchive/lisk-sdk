@@ -67,7 +67,7 @@ describe('BFT parameters', () => {
 			await paramsStore.set(height2Bytes, codec.encode(bftParametersSchema, bftParams2));
 			const batch = db.batch();
 			const smtStore = new SMTStore(db);
-			const smt = new SparseMerkleTree({ db: smtStore, keyLength: 11 });
+			const smt = new SparseMerkleTree({ db: smtStore });
 			await rootStore.finalize(batch, smt);
 			await batch.write();
 
@@ -133,7 +133,7 @@ describe('BFT parameters', () => {
 			await paramsStore.set(height2Bytes, codec.encode(bftParametersSchema, bftParams2));
 			const batch = db.batch();
 			const smtStore = new SMTStore(db);
-			const smt = new SparseMerkleTree({ db: smtStore, keyLength: 11 });
+			const smt = new SparseMerkleTree({ db: smtStore });
 			await rootStore.finalize(batch, smt);
 			await batch.write();
 
@@ -210,7 +210,7 @@ describe('BFT parameters', () => {
 				await paramsStore.set(height3Bytes, codec.encode(bftParametersSchema, bftParams3));
 				const batch = db.batch();
 				const smtStore = new SMTStore(db);
-				const smt = new SparseMerkleTree({ db: smtStore, keyLength: 11 });
+				const smt = new SparseMerkleTree({ db: smtStore });
 				await rootStore.finalize(batch, smt);
 				await batch.write();
 
