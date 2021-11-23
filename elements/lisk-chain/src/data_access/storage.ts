@@ -29,6 +29,7 @@ import {
 import { concatDBKeys } from '../utils';
 import { stateDiffSchema } from '../schema';
 import { CurrentState } from '../state_store';
+import { toSMTKey } from '../state_store/utils';
 
 const bytesArraySchema = {
 	$id: 'lisk-chain/bytesarray',
@@ -411,16 +412,16 @@ export class Storage {
 		// Delete all the newly created states
 		for (const key of createdStates) {
 			batch.del(key);
-			await smt.remove(key);
+			await smt.remove(toSMTKey(key));
 		}
 		// Revert all deleted values
 		for (const { key, value: previousValue } of deletedStates) {
 			batch.put(key, previousValue);
-			await smt.update(key, previousValue);
+			await smt.update(toSMTKey(key), previousValue);
 		}
 		for (const { key, value: previousValue } of updatedStates) {
 			batch.put(key, previousValue);
-			await smt.update(key, previousValue);
+			await smt.update(toSMTKey(key), previousValue);
 		}
 
 		smtStore.finalize(batch);
