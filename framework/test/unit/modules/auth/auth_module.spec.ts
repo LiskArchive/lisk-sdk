@@ -147,7 +147,7 @@ describe('AuthModule', () => {
 				{
 					authDataSubstore: [
 						{
-							storeKey: getRandomBytes(8),
+							storeKey: getRandomBytes(20),
 							storeValue: {
 								numberOfSignatures: 3,
 								mandatoryKeys: [getRandomBytes(32), getRandomBytes(32)].sort((a, b) =>
@@ -165,7 +165,7 @@ describe('AuthModule', () => {
 				{
 					authDataSubstore: [
 						{
-							storeKey: getRandomBytes(8),
+							storeKey: getRandomBytes(20),
 							storeValue: {
 								numberOfSignatures: 2,
 								mandatoryKeys: [publicKey, publicKey],
@@ -181,7 +181,7 @@ describe('AuthModule', () => {
 				{
 					authDataSubstore: [
 						{
-							storeKey: getRandomBytes(8),
+							storeKey: getRandomBytes(20),
 							storeValue: {
 								numberOfSignatures: 3,
 								mandatoryKeys: [],
@@ -197,7 +197,7 @@ describe('AuthModule', () => {
 				{
 					authDataSubstore: [
 						{
-							storeKey: getRandomBytes(8),
+							storeKey: getRandomBytes(20),
 							storeValue: {
 								numberOfSignatures: 2,
 								mandatoryKeys: [],
@@ -213,17 +213,15 @@ describe('AuthModule', () => {
 				{
 					authDataSubstore: [
 						{
-							storeKey: getRandomBytes(8),
+							storeKey: getRandomBytes(20),
 							storeValue: {
 								numberOfSignatures: 36,
-								mandatoryKeys: new Array(33)
-									.fill(0)
-									.map(() => getRandomBytes(32))
-									.sort((a, b) => b.compare(a)),
-								optionalKeys: new Array(33)
-									.fill(0)
-									.map(() => getRandomBytes(32))
-									.sort((a, b) => b.compare(a)),
+								mandatoryKeys: Array.from({ length: 33 }, () => getRandomBytes(32)).sort((a, b) =>
+									b.compare(a),
+								),
+								optionalKeys: Array.from({ length: 33 }, () => getRandomBytes(32)).sort((a, b) =>
+									b.compare(a),
+								),
 								nonce: BigInt(1),
 							},
 						},
@@ -235,7 +233,7 @@ describe('AuthModule', () => {
 				{
 					authDataSubstore: [
 						{
-							storeKey: getRandomBytes(8),
+							storeKey: getRandomBytes(20),
 							storeValue: {
 								numberOfSignatures: 3,
 								mandatoryKeys: [],
@@ -251,7 +249,7 @@ describe('AuthModule', () => {
 				{
 					authDataSubstore: [
 						{
-							storeKey: getRandomBytes(8),
+							storeKey: getRandomBytes(20),
 							storeValue: {
 								numberOfSignatures: 1,
 								mandatoryKeys: [getRandomBytes(32), getRandomBytes(32)].sort((a, b) =>

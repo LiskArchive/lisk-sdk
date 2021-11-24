@@ -83,7 +83,7 @@ export class AuthModule extends BaseModule {
 					);
 				}
 				if (!objectUtils.bufferArrayUniqueItems(mandatoryKeys)) {
-					throw new Error('Invalid store value for auth module. MandatoryKeys are unique.');
+					throw new Error('Invalid store value for auth module. MandatoryKeys are not unique.');
 				}
 			}
 
@@ -94,7 +94,7 @@ export class AuthModule extends BaseModule {
 					);
 				}
 				if (!objectUtils.bufferArrayUniqueItems(optionalKeys)) {
-					throw new Error('Invalid store value for auth module. OptionalKeys are unique.');
+					throw new Error('Invalid store value for auth module. OptionalKeys are not unique.');
 				}
 			}
 			if (mandatoryKeys.length + optionalKeys.length > MAX_KEYS_COUNT) {
