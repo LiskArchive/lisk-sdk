@@ -41,3 +41,10 @@ export interface AuthAccountJSON {
 export interface VerifyEndpointResultJSON {
 	verified: boolean;
 }
+
+export interface GenesisAuthStore {
+	authDataSubstore: {
+		storeKey: Buffer;
+		storeValue: AuthAccount;
+	}[];
+}
