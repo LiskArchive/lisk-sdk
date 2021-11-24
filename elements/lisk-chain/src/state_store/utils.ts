@@ -12,8 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { hash } from '@liskhq/lisk-cryptography';
+import { SMT_PREFIX_SIZE } from '../constants';
+
 export const copyBuffer = (value: Buffer): Buffer => {
 	const copiedValue = Buffer.alloc(value.length);
 	value.copy(copiedValue);
 	return copiedValue;
 };
+
+export const toSMTKey = (value: Buffer): Buffer =>
+	Buffer.concat([value.slice(0, SMT_PREFIX_SIZE), hash(value.slice(SMT_PREFIX_SIZE))]);

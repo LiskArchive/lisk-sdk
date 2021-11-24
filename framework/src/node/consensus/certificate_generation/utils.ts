@@ -12,37 +12,92 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { signBLS, verifyWeightedAggSig } from '@liskhq/lisk-cryptography';
 import { BlockHeader } from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
+import { verifyBLS } from '@liskhq/lisk-cryptography';
 import { Certificate } from './types';
+import { certificateSchema } from './schema';
+import { MESSAGE_TAG_CERTIFICATE } from './constants';
 
-// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6839
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-export const computeCertificateFromBlockHeader = (_blockHeader: BlockHeader): Certificate =>
-	({} as Certificate);
+export const computeCertificateFromBlockHeader = (blockHeader: BlockHeader): Certificate => {
+	if (!blockHeader.stateRoot) {
+		throw new Error("'stateRoot' is not defined.");
+	}
 
-// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6840
+	if (!blockHeader.validatorsHash) {
+		throw new Error("'validatorsHash' is not defined.");
+	}
+
+	return {
+		blockID: blockHeader.id,
+		height: blockHeader.height,
+		stateRoot: blockHeader.stateRoot,
+		timestamp: blockHeader.timestamp,
+		validatorsHash: blockHeader.validatorsHash,
+	};
+};
+
 export const signCertificate = (
-	_sk: Buffer,
-	_networkIdentifier: Buffer,
-	_blockHeader: BlockHeader,
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-): Buffer => Buffer.from('');
+	sk: Buffer,
+	networkIdentifier: Buffer,
+	certificate: Certificate,
+): Buffer => {
+	const { aggregationBits, signature, ...rawCertificate } = certificate;
 
-// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6841
+	return signBLS(
+		MESSAGE_TAG_CERTIFICATE,
+		networkIdentifier,
+		codec.encode(certificateSchema, rawCertificate),
+		sk,
+	);
+};
+
 export const verifySingleCertificateSignature = (
-	_pk: Buffer,
-	_signature: Buffer,
-	_networkIdentifier: Buffer,
-	_certificate: Certificate,
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-): boolean => true;
+	pk: Buffer,
+	signature: Buffer,
+	networkIdentifier: Buffer,
+	certificate: Certificate,
+): boolean => {
+	const message = codec.encode(certificateSchema, {
+		blockID: certificate.blockID,
+		height: certificate.height,
+		timestamp: certificate.timestamp,
+		stateRoot: certificate.stateRoot,
+		validatorsHash: certificate.validatorsHash,
+	});
 
-// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6842
+	return verifyBLS(MESSAGE_TAG_CERTIFICATE, networkIdentifier, message, signature, pk);
+};
+
 export const verifyAggregateCertificateSignature = (
-	_keysList: Buffer[],
-	_weights: number[],
-	_threshold: number,
-	_networkIdentifier: Buffer,
-	_certificate: Certificate,
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-): boolean => true;
+	keysList: Buffer[],
+	weights: number[],
+	threshold: number,
+	networkIdentifier: Buffer,
+	certificate: Certificate,
+): boolean => {
+	if (!certificate.aggregationBits || !certificate.signature) {
+		return false;
+	}
+
+	const { aggregationBits, signature } = certificate;
+	const message = codec.encode(certificateSchema, {
+		blockID: certificate.blockID,
+		height: certificate.height,
+		timestamp: certificate.timestamp,
+		stateRoot: certificate.stateRoot,
+		validatorsHash: certificate.validatorsHash,
+	});
+
+	return verifyWeightedAggSig(
+		keysList,
+		aggregationBits,
+		signature,
+		MESSAGE_TAG_CERTIFICATE,
+		networkIdentifier,
+		message,
+		weights,
+		threshold,
+	);
+};

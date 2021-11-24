@@ -31,3 +31,5 @@ export const TAG_TRANSACTION = createMessageTag('TX');
 
 // TODO: Actual size TBD
 export const MAX_ASSET_DATA_SIZE_BYTES = 64;
+
+export const SMT_PREFIX_SIZE = 6;

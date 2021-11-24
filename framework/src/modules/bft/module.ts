@@ -58,8 +58,20 @@ export class BFTModule extends BaseModule {
 		this.api.addDependencies(validatorsAPI);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public async afterGenesisBlockExecute(_context: GenesisBlockExecuteContext): Promise<void> {}
+	public async afterGenesisBlockExecute(context: GenesisBlockExecuteContext): Promise<void> {
+		const votesStore = context.getStore(this.id, STORE_PREFIX_BFT_VOTES);
+		await votesStore.setWithSchema(
+			EMPTY_KEY,
+			{
+				maxHeightPrevoted: context.header.height,
+				maxHeightPrecommitted: context.header.height,
+				maxHeightCertified: context.header.height,
+				blockBFTInfos: [],
+				activeValidatorsVoteInfo: [],
+			},
+			bftVotesSchema,
+		);
+	}
 
 	public async afterBlockExecute(context: BlockAfterExecuteContext): Promise<void> {
 		const votesStore = context.getStore(this.id, STORE_PREFIX_BFT_VOTES);
