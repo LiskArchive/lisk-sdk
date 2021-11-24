@@ -16,3 +16,18 @@ export interface TokenID {
 	chainID: number;
 	localID: number;
 }
+
+export interface GenesisTokenStore {
+	userSubstore: {
+		address: Buffer;
+		tokenID: {
+			chainID: number;
+			localID: number;
+		};
+		availableBalance: bigint;
+		lockedBalances: {
+			moduleID: number;
+			amount: bigint;
+		}[];
+	}[];
+}
