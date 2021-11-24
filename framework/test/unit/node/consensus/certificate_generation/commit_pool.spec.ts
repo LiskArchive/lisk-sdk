@@ -61,7 +61,7 @@ describe('CommitPool', () => {
 	describe('createSingleCommit', () => {
 		const blockHeader = createFakeBlockHeader();
 		const validatorInfo = {
-			address: Buffer.alloc(0),
+			address: getRandomBytes(20),
 			blsPublicKey: getRandomBytes(48),
 			blsSecretKey: getRandomBytes(32),
 		};
