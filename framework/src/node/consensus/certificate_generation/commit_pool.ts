@@ -62,17 +62,16 @@ export class CommitPool {
 		validatorInfo: ValidatorInfo,
 		networkIdentifier: Buffer,
 	): SingleCommit {
-		const commit: SingleCommit = {
+		const commit = {
 			blockID: blockHeader.id,
 			height: blockHeader.height,
 			validatorAddress: validatorInfo.address,
-			certificateSignature: undefined,
+			certificateSignature: signCertificate(
+				validatorInfo.blsSecretKey,
+				networkIdentifier,
+				computeCertificateFromBlockHeader(blockHeader),
+			),
 		};
-		commit.certificateSignature = signCertificate(
-			validatorInfo.blsSecretKey,
-			networkIdentifier,
-			computeCertificateFromBlockHeader(blockHeader),
-		);
 
 		return commit;
 	}
