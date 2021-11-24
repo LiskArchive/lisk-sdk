@@ -28,6 +28,7 @@ import {
 	verifyAggregateCertificateSignature,
 	computeCertificateFromBlockHeader,
 	signCertificate,
+	verifySingleCertificateSignature,
 } from '../../../../../src/node/consensus/certificate_generation/utils';
 import { createFakeBlockHeader } from '../../../../../src/testing';
 
@@ -98,7 +99,71 @@ describe('utils', () => {
 		});
 	});
 	describe('verifySingleCertificateSignature', () => {
-		it.todo('');
+		let privateKey: Buffer;
+		let publicKey: Buffer;
+		let certificate: Certificate;
+		let signature: Buffer;
+
+		beforeEach(() => {
+			privateKey = generatePrivateKey(getRandomBytes(32));
+			publicKey = getPublicKeyFromPrivateKey(privateKey);
+			certificate = {
+				blockID: Buffer.alloc(0),
+				height: 1030,
+				stateRoot: Buffer.alloc(0),
+				timestamp: 10300,
+				validatorsHash: Buffer.alloc(0),
+			};
+
+			const encodedCertificate = codec.encode(certificateSchema, certificate);
+
+			signature = signBLS(
+				MESSAGE_TAG_CERTIFICATE,
+				networkIdentifier,
+				encodedCertificate,
+				privateKey,
+			);
+
+			(certificate as any).aggregationBits = getRandomBytes(4);
+			(certificate as any).signature = getRandomBytes(4);
+		});
+
+		it('should return true with proper parameters', () => {
+			const isVerifiedSignature = verifySingleCertificateSignature(
+				publicKey,
+				signature,
+				networkIdentifier,
+				certificate,
+			);
+
+			expect(isVerifiedSignature).toBeTrue();
+		});
+
+		it('should return false for wrong public key', () => {
+			publicKey = getRandomBytes(48);
+
+			const isVerifiedSignature = verifySingleCertificateSignature(
+				publicKey,
+				signature,
+				networkIdentifier,
+				certificate,
+			);
+
+			expect(isVerifiedSignature).toBeFalse();
+		});
+
+		it('should return false for wrong signature', () => {
+			signature = getRandomBytes(32);
+
+			const isVerifiedSignature = verifySingleCertificateSignature(
+				publicKey,
+				signature,
+				networkIdentifier,
+				certificate,
+			);
+
+			expect(isVerifiedSignature).toBeFalse();
+		});
 	});
 	describe('verifyAggregateCertificateSignature', () => {
 		let certificate: Certificate;
