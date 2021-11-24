@@ -34,6 +34,7 @@ import {
 	DB_KEY_STATE_STORE,
 } from '../../../src/db_keys';
 import { concatDBKeys } from '../../../src/utils';
+import { toSMTKey } from '../../../src/state_store/utils';
 
 describe('dataAccess.blocks', () => {
 	const emptyEncodedDiff = codec.encode(stateDiffSchema, {
@@ -545,7 +546,7 @@ describe('dataAccess.blocks', () => {
 			return Buffer.concat([DB_KEY_STATE_STORE, moduleIDBuffer, storePrefixBuffer, key]);
 		};
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			stateStore = new StateStore(db);
 			tempDB = new InMemoryKVStore();
 		});
@@ -573,11 +574,11 @@ describe('dataAccess.blocks', () => {
 
 			// To calculate SMT root hash from updating each address above manually
 			const smtStoreTemp = new SMTStore(tempDB);
-			const smtTemp = new SparseMerkleTree({ db: smtStoreTemp, keyLength: 27 });
+			const smtTemp = new SparseMerkleTree({ db: smtStoreTemp });
 
-			await smtTemp.update(prefixedKey(address1), data1);
-			await smtTemp.update(prefixedKey(address2), data2);
-			await smtTemp.update(prefixedKey(address3), data3);
+			await smtTemp.update(toSMTKey(prefixedKey(address1)), data1);
+			await smtTemp.update(toSMTKey(prefixedKey(address2)), data2);
+			await smtTemp.update(toSMTKey(prefixedKey(address3)), data3);
 			const { rootHash: expectedStateRoot } = smtTemp;
 
 			// Add the expected state root calculated to a block to be saved
@@ -589,7 +590,7 @@ describe('dataAccess.blocks', () => {
 			// Run all the finalizeStore steps: create SMT store, batch, smt and pass it to saveBlock()
 			const smtStore = new SMTStore(db);
 			const batchLocal = db.batch();
-			const smt = new SparseMerkleTree({ db: smtStore, keyLength: 27 });
+			const smt = new SparseMerkleTree({ db: smtStore });
 			const diff1 = await stateStore.finalize(batchLocal, smt);
 			smtStore.finalize(batchLocal);
 
@@ -605,7 +606,7 @@ describe('dataAccess.blocks', () => {
 			expect(smt.rootHash).toEqual(firstBlock.header.stateRoot);
 
 			// Test another with deleting one of the keys
-			await smtTemp.remove(prefixedKey(address3));
+			await smtTemp.remove(toSMTKey(prefixedKey(address3)));
 			// Add the expected state root calculated to a block to be saved
 			const secondBlock = await createValidDefaultBlock({
 				header: { height: 304, stateRoot: smtTemp.rootHash },
@@ -616,7 +617,7 @@ describe('dataAccess.blocks', () => {
 			await secondSubStore.del(address3);
 			const secondSMTStore = new SMTStore(db);
 			const secondBatch = db.batch();
-			const secondSMT = new SparseMerkleTree({ db: secondSMTStore, keyLength: 27 });
+			const secondSMT = new SparseMerkleTree({ db: secondSMTStore });
 			const diff2 = await stateStore.finalize(secondBatch, secondSMT);
 			secondSMTStore.finalize(secondBatch);
 
@@ -650,11 +651,11 @@ describe('dataAccess.blocks', () => {
 
 			// To calculate SMT root hash from updating each address above manually
 			const smtStoreTemp = new SMTStore(tempDB);
-			const smtTemp = new SparseMerkleTree({ db: smtStoreTemp, keyLength: 27 });
+			const smtTemp = new SparseMerkleTree({ db: smtStoreTemp });
 
-			await smtTemp.update(prefixedKey(address1), data1);
-			await smtTemp.update(prefixedKey(address2), data2);
-			await smtTemp.update(prefixedKey(address3), data3);
+			await smtTemp.update(toSMTKey(prefixedKey(address1)), data1);
+			await smtTemp.update(toSMTKey(prefixedKey(address2)), data2);
+			await smtTemp.update(toSMTKey(prefixedKey(address3)), data3);
 			const { rootHash: expectedStateRoot } = smtTemp;
 
 			// Add the expected state root calculated to a block to be saved
@@ -666,7 +667,7 @@ describe('dataAccess.blocks', () => {
 			// Run all the finalizeStore steps: create SMT store, batch, smt and pass it to saveBlock()
 			const smtStore = new SMTStore(db);
 			const batchLocal = db.batch();
-			const smt = new SparseMerkleTree({ db: smtStore, keyLength: 27 });
+			const smt = new SparseMerkleTree({ db: smtStore });
 			const diff1 = await stateStore.finalize(batchLocal, smt);
 			smtStore.finalize(batchLocal);
 
@@ -682,15 +683,14 @@ describe('dataAccess.blocks', () => {
 			expect(smt.rootHash).toEqual(firstBlock.header.stateRoot);
 
 			// Delete all the keys that were added in the last block
-			await smtTemp.remove(prefixedKey(address1));
-			await smtTemp.remove(prefixedKey(address2));
-			await smtTemp.remove(prefixedKey(address3));
+			await smtTemp.remove(toSMTKey(prefixedKey(address1)));
+			await smtTemp.remove(toSMTKey(prefixedKey(address2)));
+			await smtTemp.remove(toSMTKey(prefixedKey(address3)));
 
 			const secondSMTStore = new SMTStore(db);
 			const secondBatch = db.batch();
 			const secondSMT = new SparseMerkleTree({
 				db: secondSMTStore,
-				keyLength: 27,
 				rootHash: firstBlock.header.stateRoot,
 			});
 
