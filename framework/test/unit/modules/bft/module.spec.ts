@@ -38,10 +38,10 @@ describe('bft module', () => {
 
 			await bftModule.afterGenesisBlockExecute(context.createGenesisBlockExecuteContext());
 
-			const voteStore = stateStore.getStore(bftModule.id, STORE_PREFIX_BFT_VOTES);
+			const votesStore = stateStore.getStore(bftModule.id, STORE_PREFIX_BFT_VOTES);
 
-			await expect(voteStore.has(EMPTY_KEY)).resolves.toBeTrue();
-			await expect(voteStore.getWithSchema(EMPTY_KEY, bftVotesSchema)).resolves.toEqual({
+			await expect(votesStore.has(EMPTY_KEY)).resolves.toBeTrue();
+			await expect(votesStore.getWithSchema(EMPTY_KEY, bftVotesSchema)).resolves.toEqual({
 				maxHeightPrevoted: genesisHeight,
 				maxHeightPrecommitted: genesisHeight,
 				maxHeightCertified: genesisHeight,
