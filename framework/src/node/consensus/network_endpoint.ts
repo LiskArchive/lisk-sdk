@@ -36,12 +36,11 @@ import { CommitPool } from './certificate_generation/commit_pool';
 import { singleCommitSchema } from './certificate_generation/schema';
 import { SingleCommit } from './certificate_generation/types';
 
-interface EndpointArgs {
+export interface EndpointArgs {
 	logger: Logger;
 	chain: Chain;
 	network: Network;
-	// TODO: Make unoptionable in future issue after commitPool added to consensus.ts
-	commitPool?: CommitPool;
+	commitPool: CommitPool;
 }
 
 interface RateTracker {
