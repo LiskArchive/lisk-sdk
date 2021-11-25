@@ -238,7 +238,6 @@ describe('p2p endpoint', () => {
 		};
 		let validCommit: SingleCommit;
 		let encodedValidCommit: Buffer;
-		let encodedInvalidCommit: Buffer;
 
 		beforeEach(() => {
 			validCommit = {
@@ -257,7 +256,7 @@ describe('p2p endpoint', () => {
 
 		it('should add commit with valid commit', () => {
 			expect(() =>
-				endpoint.handleEventSingleCommits(encodedValidCommit, defaultPeerId),
+				endpoint.handleEventSingleCommit(encodedValidCommit, defaultPeerId),
 			).not.toThrow();
 			expect(commitPool.validateCommit).toHaveBeenCalled();
 			expect(commitPool.addCommit).toHaveBeenCalled();
@@ -265,7 +264,7 @@ describe('p2p endpoint', () => {
 
 		it('should apply penalty when un-decodable data is received', () => {
 			expect(() =>
-				endpoint.handleEventSingleCommits(Buffer.from('abc', 'utf8'), defaultPeerId),
+				endpoint.handleEventSingleCommit(Buffer.from('abc', 'utf8'), defaultPeerId),
 			).toThrow();
 			expect(network.applyPenaltyOnPeer).toHaveBeenCalledWith({
 				peerId: defaultPeerId,
@@ -278,8 +277,8 @@ describe('p2p endpoint', () => {
 				...validCommit,
 				certificateSignature: getRandomBytes(2),
 			};
-			encodedInvalidCommit = codec.encode(singleCommitSchema, invalidCommit);
-			expect(() => endpoint.handleEventSingleCommits(encodedInvalidCommit, defaultPeerId)).toThrow(
+			const encodedInvalidCommit = codec.encode(singleCommitSchema, invalidCommit);
+			expect(() => endpoint.handleEventSingleCommit(encodedInvalidCommit, defaultPeerId)).toThrow(
 				'minLength not satisfied',
 			);
 			expect(network.applyPenaltyOnPeer).toHaveBeenCalledWith({
@@ -291,8 +290,8 @@ describe('p2p endpoint', () => {
 		it('should apply penalty when invalid commit is received', () => {
 			commitPool.validateCommit = jest.fn(() => {
 				throw new Error('Invalid commit');
-			}) as any;
-			expect(() => endpoint.handleEventSingleCommits(encodedValidCommit, defaultPeerId)).toThrow(
+			});
+			expect(() => endpoint.handleEventSingleCommit(encodedValidCommit, defaultPeerId)).toThrow(
 				'Invalid commit',
 			);
 			expect(network.applyPenaltyOnPeer).toHaveBeenCalledWith({
