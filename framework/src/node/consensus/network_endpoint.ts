@@ -40,7 +40,8 @@ interface EndpointArgs {
 	logger: Logger;
 	chain: Chain;
 	network: Network;
-	commitPool: CommitPool;
+	// TODO: Make unoptionable in future issue after commitPool added to consensus.ts
+	commitPool?: CommitPool;
 }
 
 interface RateTracker {
