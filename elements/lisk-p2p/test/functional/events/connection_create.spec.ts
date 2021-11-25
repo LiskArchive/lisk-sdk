@@ -73,41 +73,41 @@ describe('Connection Create', () => {
 			await destroyNetwork(p2pNodeList);
 		});
 
-		it(`should handle ${EVENT_NEW_INBOUND_PEER} event and payload`, () => {
+		it(`should handle ${EVENT_NEW_INBOUND_PEER} event and transactions`, () => {
 			const secondNode = p2pNodeList[1];
-			const payload = collectedEvents.get(EVENT_NEW_INBOUND_PEER);
+			const transactions = collectedEvents.get(EVENT_NEW_INBOUND_PEER);
 
-			expect(payload).toMatchObject({
+			expect(transactions).toMatchObject({
 				port: secondNode.config.port,
 				sharedState: expect.any(Object),
 			});
 		});
 
-		it(`should handle ${EVENT_CONNECT_OUTBOUND} event and payload`, () => {
+		it(`should handle ${EVENT_CONNECT_OUTBOUND} event and transactions`, () => {
 			const firstNode = p2pNodeList[0];
-			const payload = collectedEvents.get(EVENT_CONNECT_OUTBOUND);
+			const transactions = collectedEvents.get(EVENT_CONNECT_OUTBOUND);
 
-			expect(payload).toMatchObject({
+			expect(transactions).toMatchObject({
 				port: firstNode.config.port,
 				sharedState: expect.any(Object),
 			});
 		});
 
-		it(`should handle ${EVENT_UPDATED_PEER_INFO} event and payload`, () => {
+		it(`should handle ${EVENT_UPDATED_PEER_INFO} event and transactions`, () => {
 			const firstNode = p2pNodeList[0];
-			const payload = collectedEvents.get(EVENT_UPDATED_PEER_INFO);
+			const transactions = collectedEvents.get(EVENT_UPDATED_PEER_INFO);
 
-			expect(payload).toMatchObject({
+			expect(transactions).toMatchObject({
 				port: firstNode.config.port,
 				sharedState: expect.any(Object),
 			});
 		});
 
-		it(`should handle ${EVENT_DISCOVERED_PEER} event and payload`, () => {
+		it(`should handle ${EVENT_DISCOVERED_PEER} event and transactions`, () => {
 			const secondNode = p2pNodeList[1];
-			const payload = collectedEvents.get(EVENT_DISCOVERED_PEER);
+			const transactions = collectedEvents.get(EVENT_DISCOVERED_PEER);
 
-			expect(payload).toMatchObject({
+			expect(transactions).toMatchObject({
 				port: secondNode.config.port,
 				sharedState: expect.any(Object),
 			});
