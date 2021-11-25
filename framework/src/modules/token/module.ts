@@ -12,13 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
-import { DEFAULT_MIN_REMAINING_BALANCE, MODULE_ID_TOKEN } from './constants';
+import { codec } from '@liskhq/lisk-codec';
+import { DEFAULT_MIN_REMAINING_BALANCE, MODULE_ID_TOKEN, STORE_PREFIX_USER } from './constants';
 import { TransferCommand } from './commands/transfer';
 import { BaseModule, ModuleInitArgs } from '../base_module';
 import { GenesisBlockExecuteContext } from '../../node/state_machine';
-import { configSchema } from './schemas';
+import { configSchema, genesisTokenStoreSchema, userStoreSchema } from './schemas';
 import { TokenAPI } from './api';
 import { TokenEndpoint } from './endpoint';
+import { GenesisTokenStore } from './types';
 
 export class TokenModule extends BaseModule {
 	public name = 'token';
@@ -46,6 +48,16 @@ export class TokenModule extends BaseModule {
 		});
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public async afterGenesisBlockExecute(_context: GenesisBlockExecuteContext): Promise<void> {}
+	public async afterGenesisBlockExecute(context: GenesisBlockExecuteContext): Promise<void> {
+		const assetBytes = context.assets.getAsset(this.id);
+		// if there is no asset, do not initialize
+		if (!assetBytes) {
+			return;
+		}
+		const genesisStore = codec.decode<GenesisTokenStore>(genesisTokenStoreSchema, assetBytes);
+		const userStore = context.getStore(this.id, STORE_PREFIX_USER);
+		for (const userData of genesisStore.userSubstore) {
+			await userStore.setWithSchema(userData.address, userData, userStoreSchema);
+		}
+	}
 }

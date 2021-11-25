@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { TokenModule } from '../../../../src/modules/token';
+import { createGenesisBlockContext } from '../../../../src/testing';
 
 describe('token module', () => {
 	let tokenModule: TokenModule;
@@ -22,7 +23,8 @@ describe('token module', () => {
 
 	describe('afterGenesisBlockExecute', () => {
 		it('should setup initial state', async () => {
-			return expect(tokenModule.afterGenesisBlockExecute({} as never)).resolves.toBeUndefined();
+			const context = createGenesisBlockContext({}).createGenesisBlockExecuteContext();
+			return expect(tokenModule.afterGenesisBlockExecute(context)).resolves.toBeUndefined();
 		});
 	});
 });

@@ -13,8 +13,12 @@
  */
 
 import { TAG_TRANSACTION } from '@liskhq/lisk-chain';
-import { BaseModule } from '..';
+import { objects as objectUtils } from '@liskhq/lisk-utils';
+import { codec } from '@liskhq/lisk-codec';
+import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { BaseModule } from '../base_module';
 import {
+	GenesisBlockExecuteContext,
 	TransactionExecuteContext,
 	TransactionVerifyContext,
 	VerificationResult,
@@ -23,12 +27,18 @@ import { AuthAPI } from './api';
 import { RegisterMultisignatureCommand } from './commands/register_multisignature';
 import {
 	COMMAND_ID_MULTISIGNATURE_REGISTRATION,
+	MAX_KEYS_COUNT,
 	MODULE_ID_AUTH,
 	STORE_PREFIX_AUTH,
 } from './constants';
 import { AuthEndpoint } from './endpoint';
-import { authAccountSchema, configSchema, registerMultisignatureParamsSchema } from './schemas';
-import { AuthAccount } from './types';
+import {
+	authAccountSchema,
+	configSchema,
+	genesisAuthStoreSchema,
+	registerMultisignatureParamsSchema,
+} from './schemas';
+import { AuthAccount, GenesisAuthStore } from './types';
 import {
 	isMultisignatureAccount,
 	verifyMultiSignatureTransaction,
@@ -44,6 +54,80 @@ export class AuthModule extends BaseModule {
 	public endpoint = new AuthEndpoint(this.id);
 	public configSchema = configSchema;
 	public commands = [new RegisterMultisignatureCommand(this.id)];
+
+	public async afterGenesisBlockExecute(context: GenesisBlockExecuteContext): Promise<void> {
+		const assetBytes = context.assets.getAsset(this.id);
+		// if there is no asset, do not initialize
+		if (!assetBytes) {
+			return;
+		}
+		const genesisStore = codec.decode<GenesisAuthStore>(genesisAuthStoreSchema, assetBytes);
+		const store = context.getStore(this.id, STORE_PREFIX_AUTH);
+		const keys = [];
+		for (const { storeKey, storeValue } of genesisStore.authDataSubstore) {
+			if (storeKey.length !== 20) {
+				throw new Error('Invalid store key length for auth module.');
+			}
+			keys.push(storeKey);
+
+			const errors = validator.validate(authAccountSchema, storeValue);
+
+			if (errors.length > 0) {
+				throw new LiskValidationError(errors);
+			}
+			const { mandatoryKeys, optionalKeys, numberOfSignatures } = storeValue;
+			if (mandatoryKeys.length > 0) {
+				if (!objectUtils.bufferArrayOrderByLex(mandatoryKeys)) {
+					throw new Error(
+						'Invalid store value for auth module. MandatoryKeys are not sorted lexicographically.',
+					);
+				}
+				if (!objectUtils.bufferArrayUniqueItems(mandatoryKeys)) {
+					throw new Error('Invalid store value for auth module. MandatoryKeys are not unique.');
+				}
+			}
+
+			if (optionalKeys.length > 0) {
+				if (!objectUtils.bufferArrayOrderByLex(optionalKeys)) {
+					throw new Error(
+						'Invalid store value for auth module. OptionalKeys are not sorted lexicographically.',
+					);
+				}
+				if (!objectUtils.bufferArrayUniqueItems(optionalKeys)) {
+					throw new Error('Invalid store value for auth module. OptionalKeys are not unique.');
+				}
+			}
+			if (mandatoryKeys.length + optionalKeys.length > MAX_KEYS_COUNT) {
+				throw new Error(
+					`The count of Mandatory and Optional keys should be maximum ${MAX_KEYS_COUNT}.`,
+				);
+			}
+
+			const repeatedKeys = mandatoryKeys.filter(
+				value => optionalKeys.find(optional => optional.equals(value)) !== undefined,
+			);
+			if (repeatedKeys.length > 0) {
+				throw new Error(
+					'Invalid combination of Mandatory and Optional keys. Repeated keys across Mandatory and Optional were found.',
+				);
+			}
+
+			// Check if key count is less than number of required signatures
+			if (mandatoryKeys.length + optionalKeys.length < numberOfSignatures) {
+				throw new Error(
+					'The numberOfSignatures is bigger than the count of Mandatory and Optional keys.',
+				);
+			}
+			if (mandatoryKeys.length > numberOfSignatures) {
+				throw new Error('The numberOfSignatures is smaller than the count of Mandatory keys.');
+			}
+
+			await store.setWithSchema(storeKey, storeValue, authAccountSchema);
+		}
+		if (!objectUtils.bufferArrayUniqueItems(keys)) {
+			throw new Error('Duplicate store key for auth module.');
+		}
+	}
 
 	public async verifyTransaction(context: TransactionVerifyContext): Promise<VerificationResult> {
 		const { transaction, networkIdentifier } = context;
