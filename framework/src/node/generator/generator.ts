@@ -252,8 +252,8 @@ export class Generator {
 	}
 
 	public onNewBlock(block: Block): void {
-		if (block.payload.length) {
-			for (const transaction of block.payload) {
+		if (block.transactions.length) {
+			for (const transaction of block.transactions) {
 				this._pool.remove(transaction);
 			}
 		}
@@ -264,8 +264,8 @@ export class Generator {
 	}
 
 	public onDeleteBlock(block: Block): void {
-		if (block.payload.length) {
-			for (const transaction of block.payload) {
+		if (block.transactions.length) {
+			for (const transaction of block.transactions) {
 				this._pool.add(transaction).catch(err => {
 					this._logger.error({ err: err as Error }, 'Failed to add transaction back to the pool');
 				});

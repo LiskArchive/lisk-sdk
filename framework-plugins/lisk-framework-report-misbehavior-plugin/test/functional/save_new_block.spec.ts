@@ -134,7 +134,7 @@ describe('save block header', () => {
 			);
 			const newEncodedBlock = codec.encode(pluginInstance['apiClient'].schemas.block, {
 				header: newBlockHeader,
-				payload: [],
+				transactions: [],
 			});
 			// Act
 			publishEvent(appEnv.application, newEncodedBlock.toString('hex'));
@@ -166,7 +166,7 @@ describe('save block header', () => {
 			);
 			const blockBuff = codec.encode(pluginInstance['apiClient'].schemas.block, {
 				header: newBlockHeader,
-				payload: [],
+				transactions: [],
 			});
 			const { blockHeaders } = await getBlockHeaders(pluginInstance['_pluginDB'], dbKey);
 
@@ -204,7 +204,7 @@ describe('save block header', () => {
 			);
 			const newEncodedBlock = codec.encode(pluginInstance['apiClient'].schemas.block, {
 				header: newBlockHeader,
-				payload: [],
+				transactions: [],
 			});
 			// Act
 			publishEvent(appEnv.application, newEncodedBlock.toString('hex'));

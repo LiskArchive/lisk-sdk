@@ -156,11 +156,11 @@ export class Chain {
 		return true;
 	}
 
-	public async verifyBlock(block: Block): Promise<void> {
+	public async verifyAssets(block: Block): Promise<void> {
 		block.validate();
 		const transactionIDs = [];
 		let payloadSize = 0;
-		for (const tx of block.payload) {
+		for (const tx of block.transactions) {
 			transactionIDs.push(tx.id);
 			payloadSize += tx.getBytes().length;
 		}

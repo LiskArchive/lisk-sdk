@@ -179,7 +179,7 @@ Object {
 }
 `;
 
-exports[`Forger Info New Block should save forger info with received fees if payload included in new block 1`] = `
+exports[`Forger Info New Block should save forger info with received fees if transactions included in new block 1`] = `
 Object {
   "totalProducedBlocks": 0,
   "totalReceivedFees": 0n,

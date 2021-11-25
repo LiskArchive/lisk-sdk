@@ -49,13 +49,13 @@ describe('RewardModule', () => {
 		});
 	});
 
-	describe('afterBlockExecute', () => {
+	describe('afterTransactionsExecute', () => {
 		it(`should call mint for a valid bracket`, async () => {
 			const blockHeader = createBlockHeaderWithDefaults({ height: moduleConfig.offset });
 			const blockAfterExecuteContext = createBlockContext({
 				header: blockHeader,
 			}).getBlockAfterExecuteContext();
-			await rewardModule.afterBlockExecute(blockAfterExecuteContext);
+			await rewardModule.afterTransactionsExecute(blockAfterExecuteContext);
 
 			expect(mint).toHaveBeenCalledTimes(1);
 		});
@@ -65,7 +65,7 @@ describe('RewardModule', () => {
 			const blockAfterExecuteContext = createBlockContext({
 				header: blockHeader,
 			}).getBlockAfterExecuteContext();
-			await rewardModule.afterBlockExecute(blockAfterExecuteContext);
+			await rewardModule.afterTransactionsExecute(blockAfterExecuteContext);
 
 			expect(mint).not.toHaveBeenCalled();
 		});

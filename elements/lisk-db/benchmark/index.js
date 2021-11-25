@@ -22,7 +22,7 @@ const { batchSuite } = require('./tests/batch');
 let ldb = LevelDB.createDb('leveldb_bench');
 let rdb = RocksDB.createDb('rocksdb_bench');
 
-// 15,000 (15Kb) payload
+// 15,000 (15Kb) transactions
 const benchDB = async payload_size => {
 	await getSuite(ldb, rdb, getFakeBlock(payload_size));
 	await putSuite(ldb, rdb, getFakeBlock(payload_size));
@@ -49,7 +49,7 @@ switch (cliArgs[0]) {
 }
 
 benchDB(payload_size)
-	.then(console.log(`Start benchmarking for payload ${payload_size}!!!`))
+	.then(console.log(`Start benchmarking for transactions ${payload_size}!!!`))
 	.catch(err => {
 		console.log(err);
 		process.exit(1);

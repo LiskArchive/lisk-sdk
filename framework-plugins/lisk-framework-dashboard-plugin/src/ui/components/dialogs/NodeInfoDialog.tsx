@@ -73,7 +73,7 @@ const NodeInfoDialog: React.FC<NodeInfoDialogProps> = props => {
 
 					<Grid row>
 						<NodeInfoItem
-							label={'Max payload length'}
+							label={'Max transactions length'}
 							value={nodeInfo.genesisConfig.maxPayloadLength.toLocaleString()}
 						/>
 						<NodeInfoItem

@@ -125,7 +125,7 @@ export class NetworkEndpoint {
 		const lastBlockHeight = lastBlock.height;
 
 		// Calculate max block height for database query
-		// 15kb * 103 is about 1.5MB where it's half of 3MB payload limit
+		// 15kb * 103 is about 1.5MB where it's half of 3MB transactions limit
 		const fetchUntilHeight = lastBlockHeight + 103;
 
 		const blocks = await this._chain.dataAccess.getBlocksByHeightBetween(

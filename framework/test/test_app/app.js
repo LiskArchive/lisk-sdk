@@ -72,7 +72,7 @@ try {
 				version: 0,
 			},
 			assets: [],
-			payload: [],
+			transactions: [],
 		},
 		mergedConfig,
 	);

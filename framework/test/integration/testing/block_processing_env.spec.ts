@@ -76,7 +76,7 @@ describe('getBlockProcessingEnv', () => {
 					seedReveal: getRandomBytes(16),
 				},
 			},
-			payload: [],
+			transactions: [],
 		});
 
 		// Act & Assert

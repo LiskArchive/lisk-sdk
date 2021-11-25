@@ -163,7 +163,7 @@ export class Storage {
 	}
 
 	/*
-		Extended blocks with transaction payload
+		Extended blocks with transaction transactions
 	*/
 
 	public async getBlockByID(id: Buffer): Promise<RawBlock> {
@@ -173,7 +173,7 @@ export class Storage {
 
 		return {
 			header: blockHeader,
-			payload: transactions,
+			transactions,
 			assets,
 		};
 	}
@@ -204,7 +204,7 @@ export class Storage {
 
 		return {
 			header,
-			payload: transactions,
+			transactions,
 			assets,
 		};
 	}
@@ -216,7 +216,7 @@ export class Storage {
 			const blockID = hash(header);
 			const transactions = await this._getTransactions(blockID);
 			const assets = await this._getBlockAssets(blockID);
-			blocks.push({ header, payload: transactions, assets });
+			blocks.push({ header, transactions, assets });
 		}
 
 		return blocks;
@@ -230,7 +230,7 @@ export class Storage {
 
 		return {
 			header,
-			payload: transactions,
+			transactions,
 			assets,
 		};
 	}
@@ -337,7 +337,7 @@ export class Storage {
 		height: number,
 		finalizedHeight: number,
 		header: Buffer,
-		payload: { id: Buffer; value: Buffer }[],
+		transactions: { id: Buffer; value: Buffer }[],
 		assets: Buffer[],
 		state: CurrentState,
 		removeFromTemp = false,
@@ -346,9 +346,9 @@ export class Storage {
 		const { batch, diff } = state;
 		batch.put(concatDBKeys(DB_KEY_BLOCKS_ID, id), header);
 		batch.put(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, heightBuf), id);
-		if (payload.length > 0) {
+		if (transactions.length > 0) {
 			const ids = [];
-			for (const { id: txID, value } of payload) {
+			for (const { id: txID, value } of transactions) {
 				ids.push(txID);
 				batch.put(concatDBKeys(DB_KEY_TRANSACTIONS_ID, txID), value);
 			}

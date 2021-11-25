@@ -70,7 +70,7 @@ describe('consensus', () => {
 			finalizedHeight: 0,
 			loadLastBlocks: jest.fn(),
 			lastBlock,
-			verifyBlock: jest.fn(),
+			verifyAssets: jest.fn(),
 			validateTransaction: jest.fn(),
 			removeBlock: jest.fn(),
 		} as unknown) as Chain;
@@ -83,7 +83,7 @@ describe('consensus', () => {
 		} as unknown) as Network;
 		stateMachine = ({
 			executeGenesisBlock: jest.fn(),
-			verifyBlock: jest.fn(),
+			verifyAssets: jest.fn(),
 			executeBlock: jest.fn(),
 			getAllModuleIDs: jest.fn(),
 		} as unknown) as StateMachine;
@@ -564,7 +564,7 @@ describe('consensus', () => {
 				apiContext = createTransientAPIContext({});
 				jest.spyOn(chain, 'saveBlock').mockResolvedValue();
 				jest.spyOn(consensus, 'finalizedHeight').mockReturnValue(0);
-				jest.spyOn(stateMachine, 'verifyBlock').mockResolvedValue();
+				jest.spyOn(stateMachine, 'verifyAssets').mockResolvedValue();
 				jest.spyOn(stateMachine, 'executeBlock').mockResolvedValue();
 				jest.spyOn(bftAPI, 'getBFTParameters').mockResolvedValue({
 					validatorsHash: block.header.validatorsHash,
@@ -652,14 +652,14 @@ describe('consensus', () => {
 					const invalidBlock = { ...block };
 					(invalidBlock.header as any).height = consensus['_chain'].lastBlock.header.height;
 
-					expect(() => consensus['_verifyBlockHeight'](invalidBlock as any)).toThrow(
+					expect(() => consensus['_verifyAssetsHeight'](invalidBlock as any)).toThrow(
 						`Invalid height ${
 							invalidBlock.header.height
 						} of the block with id: ${invalidBlock.header.id.toString('hex')}`,
 					);
 				});
 				it('should be success when block has [height===lastBlock.height+1]', () => {
-					expect(consensus['_verifyBlockHeight'](block as any)).toBeUndefined();
+					expect(consensus['_verifyAssetsHeight'](block as any)).toBeUndefined();
 				});
 			});
 
@@ -773,7 +773,7 @@ describe('consensus', () => {
 						.mockResolvedValue({ generatorKey } as never);
 
 					await expect(
-						consensus['_verifyBlockSignature'](apiContext, block as any),
+						consensus['_verifyAssetsSignature'](apiContext, block as any),
 					).rejects.toThrow(
 						`Invalid signature ${block.header.signature.toString(
 							'hex',
@@ -799,7 +799,7 @@ describe('consensus', () => {
 						.mockResolvedValue({ generatorKey: keyPair.publicKey } as never);
 
 					await expect(
-						consensus['_verifyBlockSignature'](apiContext, validBlock as any),
+						consensus['_verifyAssetsSignature'](apiContext, validBlock as any),
 					).resolves.toBeUndefined();
 				});
 			});
@@ -913,7 +913,7 @@ describe('consensus', () => {
 			});
 
 			it('should verify block using state machine', () => {
-				expect(stateMachine.verifyBlock).toHaveBeenCalledTimes(1);
+				expect(stateMachine.verifyAssets).toHaveBeenCalledTimes(1);
 			});
 
 			it('should call broadcast to the network', () => {

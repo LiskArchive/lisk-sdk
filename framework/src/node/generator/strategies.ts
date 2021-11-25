@@ -115,7 +115,7 @@ export class HighFeeGenerationStrategy {
 				continue;
 			}
 
-			// If transaction byte size can't fit in max payload length
+			// If transaction byte size can't fit in max transactions length
 			// then discard all transactions from that account as
 			// other transactions will be higher nonce
 			const trsByteSize = lowestNonceHighestFeeTrx.getBytes().length;

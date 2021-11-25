@@ -100,7 +100,7 @@ describe('AuthModule', () => {
 			});
 	});
 
-	describe('afterGenesisBlockExecute', () => {
+	describe('initGenesisState', () => {
 		const address = getRandomBytes(20);
 		const publicKey = getRandomBytes(32);
 		const validAsset = {
@@ -272,7 +272,7 @@ describe('AuthModule', () => {
 			const context = createGenesisBlockContext({ stateStore }).createGenesisBlockExecuteContext();
 			jest.spyOn(context, 'getStore');
 
-			await expect(authModule.afterGenesisBlockExecute(context)).toResolve();
+			await expect(authModule.initGenesisState(context)).toResolve();
 			expect(context.getStore).not.toHaveBeenCalled();
 		});
 
@@ -284,7 +284,7 @@ describe('AuthModule', () => {
 			}).createGenesisBlockExecuteContext();
 			jest.spyOn(context, 'getStore');
 
-			await expect(authModule.afterGenesisBlockExecute(context)).toResolve();
+			await expect(authModule.initGenesisState(context)).toResolve();
 			const authStore = stateStore.getStore(authModule.id, STORE_PREFIX_AUTH);
 			for (const data of validAsset.authDataSubstore) {
 				await expect(authStore.has(data.storeKey)).resolves.toBeTrue();
@@ -300,7 +300,7 @@ describe('AuthModule', () => {
 					assets: new BlockAssets([{ moduleID: authModule.id, data: assetBytes }]),
 				}).createGenesisBlockExecuteContext();
 
-				await expect(authModule.afterGenesisBlockExecute(context)).toReject();
+				await expect(authModule.initGenesisState(context)).toReject();
 			});
 		});
 	});
@@ -1126,7 +1126,7 @@ describe('AuthModule', () => {
 		});
 	});
 
-	describe('afterTransactionExecute', () => {
+	describe('afterCommandExecute', () => {
 		it('should correctly increment the nonce', async () => {
 			const stateStore1 = new StateStore(new InMemoryKVStore());
 			const authStore1 = stateStore1.getStore(authModule.id, STORE_PREFIX_AUTH);
@@ -1147,7 +1147,7 @@ describe('AuthModule', () => {
 				})
 				.createTransactionExecuteContext();
 
-			await authModule.afterTransactionExecute(context);
+			await authModule.afterCommandExecute(context);
 			const authStore = context.getStore(authModule.id, STORE_PREFIX_AUTH);
 			const authAccount = await authStore.getWithSchema<AuthAccount>(
 				context.transaction.senderAddress,

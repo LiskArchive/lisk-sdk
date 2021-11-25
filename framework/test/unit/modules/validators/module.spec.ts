@@ -25,7 +25,7 @@ describe('ValidatorsModule', () => {
 	let validatorsModule: ValidatorsModule;
 	const genesisTimestamp = 45672;
 
-	describe('afterBlockExecute', () => {
+	describe('afterTransactionsExecute', () => {
 		it(`should set genesis store with the correct timestamp`, async () => {
 			validatorsModule = new ValidatorsModule();
 			stateStore = new StateStore(new InMemoryKVStore());
@@ -34,7 +34,7 @@ describe('ValidatorsModule', () => {
 				header: blockHeader,
 				stateStore,
 			}).getBlockAfterExecuteContext();
-			await validatorsModule.afterGenesisBlockExecute(blockAfterExecuteContext);
+			await validatorsModule.initGenesisState(blockAfterExecuteContext);
 
 			genesisDataSubStore = stateStore.getStore(validatorsModule.id, STORE_PREFIX_GENESIS_DATA);
 			const genesisData = await genesisDataSubStore.getWithSchema<GenesisData>(

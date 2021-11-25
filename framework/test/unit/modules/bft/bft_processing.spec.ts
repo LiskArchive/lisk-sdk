@@ -161,7 +161,7 @@ describe('BFT processing', () => {
 						bftVotesSchema,
 					);
 
-					await bftModule.afterBlockExecute(context.getBlockAfterExecuteContext());
+					await bftModule.afterTransactionsExecute(context.getBlockAfterExecuteContext());
 
 					const votesStore = stateStore.getStore(bftModule.id, STORE_PREFIX_BFT_VOTES);
 					const result = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);

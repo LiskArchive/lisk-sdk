@@ -1,6 +1,6 @@
 {
 	"title": "Transaction Merkle tree root",
-	"summary": "Replace payload hash with Merkle tree root in block header",
+	"summary": "Replace transactions hash with Merkle tree root in block header",
 	"config": {},
 	"runner": "transaction_merkle_root",
 	"handler": "transaction_merkle_root",

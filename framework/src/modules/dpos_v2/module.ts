@@ -147,7 +147,7 @@ export class DPoSModule extends BaseModule {
 		voteCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
 	}
 
-	public async afterGenesisBlockExecute(context: GenesisBlockExecuteContext): Promise<void> {
+	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
 		const assetBytes = context.assets.getAsset(this.id);
 		// if there is no asset, do not initialize
 		if (!assetBytes) {
@@ -414,7 +414,7 @@ export class DPoSModule extends BaseModule {
 		}
 	}
 
-	public async afterBlockExecute(context: BlockAfterExecuteContext): Promise<void> {
+	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
 		const { getStore, header } = context;
 		const isLastBlockOfRound = this._isLastBlockOfTheRound(header.height);
 		const previousTimestampStore = getStore(this.id, STORE_PREFIX_PREVIOUS_TIMESTAMP);

@@ -76,7 +76,7 @@ export interface BlockHeader {
 
 export interface Block {
 	header: BlockHeader;
-	payload: Transaction[];
+	transactions: Transaction[];
 }
 
 export interface Transaction {

@@ -605,7 +605,7 @@ describe('fast_chain_switching_mechanism', () => {
 					.calledWith(highestCommonBlock.id)
 					.mockResolvedValue({
 						header: highestCommonBlock,
-						payload: [],
+						transactions: [],
 					} as never);
 
 				// Act
@@ -751,7 +751,7 @@ describe('fast_chain_switching_mechanism', () => {
 					.calledWith(highestCommonBlock.id)
 					.mockResolvedValue({
 						header: highestCommonBlock,
-						payload: [],
+						transactions: [],
 					} as never);
 
 				// Act

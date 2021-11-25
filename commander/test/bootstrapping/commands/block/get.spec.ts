@@ -26,7 +26,7 @@ describe('block:get command', () => {
 		type: 'object',
 		properties: {
 			header: { dataType: 'bytes', fieldNumber: 1 },
-			payload: { type: 'array', items: { dataType: 'bytes' }, fieldNumber: 2 },
+			transactions: { type: 'array', items: { dataType: 'bytes' }, fieldNumber: 2 },
 		},
 	};
 	const blockHeaderSchema = {
@@ -75,7 +75,7 @@ describe('block:get command', () => {
 			transactionRoot: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
 			version: 2,
 		},
-		payload: [],
+		transactions: [],
 	};
 	const encodedBlockData =
 		'0acc010802109bb4c8f705180222204f7e41f5744c0c2a434f13afb186b77fb4b176a5298f91ed866680ff5ef13a6d2a20e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8553220a9a3c363a71a3089566352127cf0e6f79d3834e1d67b4132b98d35afd3b8537538004216080010001a108903ea6e67ccd67bafa1c9c04184a3874a405aa36d00cbcd135b55484c17ba89da8ecbac4df2ccc2c0c12b9db0cf4e48c74122c6c8d5100cf83fa83f79d5684eccf2ef9e6c55408bac9dea45c2b5aa590a0c';

@@ -299,7 +299,7 @@ describe('chain', () => {
 			// Arrange
 			jest.spyOn(chainInstance.dataAccess, 'getBlockByID').mockResolvedValue(genesisBlock as never);
 			const tx = getTransaction();
-			const block = await createValidDefaultBlock({ payload: [tx] });
+			const block = await createValidDefaultBlock({ transactions: [tx] });
 			await db.put(
 				concatDBKeys(DB_KEY_DIFF_STATE, formatInt(block.header.height)),
 				emptyEncodedDiff,
@@ -316,26 +316,26 @@ describe('chain', () => {
 		});
 	});
 
-	describe('verifyBlock', () => {
+	describe('verifyAssets', () => {
 		let block: Block;
 
 		it('should throw error if transaction root does not match', async () => {
 			const txs = new Array(20).fill(0).map(() => getTransaction());
 			block = await createValidDefaultBlock({
-				payload: txs,
+				transactions: txs,
 				header: { transactionRoot: Buffer.from('1234567890') },
 			});
 			// Act & assert
-			await expect(chainInstance.verifyBlock(block)).rejects.toThrow('Invalid transaction root');
+			await expect(chainInstance.verifyAssets(block)).rejects.toThrow('Invalid transaction root');
 		});
 
-		it('should throw error if payload exceeds max payload length', async () => {
+		it('should throw error if transactions exceeds max transactions length', async () => {
 			// Arrange
 			(chainInstance as any).constants.maxPayloadLength = 100;
 			const txs = new Array(200).fill(0).map(() => getTransaction());
-			block = await createValidDefaultBlock({ payload: txs });
+			block = await createValidDefaultBlock({ transactions: txs });
 			// Act & assert
-			await expect(chainInstance.verifyBlock(block)).rejects.toThrow(
+			await expect(chainInstance.verifyAssets(block)).rejects.toThrow(
 				'Payload length is longer than configured length: 100.',
 			);
 		});

@@ -65,7 +65,7 @@ const BlockWidget: React.FC<WidgetProps> = props => {
 									<Text key={block.header.height}>{block.header.height}</Text>
 								</td>
 								<td>
-									<Text key={block.payload.length}>{block.payload.length}</Text>
+									<Text key={block.transactions.length}>{block.transactions.length}</Text>
 								</td>
 							</tr>
 						))}

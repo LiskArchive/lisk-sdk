@@ -74,7 +74,7 @@ export const decodeBlock = (
 	encodedBlock: Buffer,
 	registeredSchema: RegisteredSchemas,
 ): Record<string, unknown> => {
-	const block = codec.decode<{ header: Buffer; assets: Buffer[]; payload: Buffer[] }>(
+	const block = codec.decode<{ header: Buffer; assets: Buffer[]; transactions: Buffer[] }>(
 		registeredSchema.block,
 		encodedBlock,
 	);
@@ -84,9 +84,9 @@ export const decodeBlock = (
 		block.header,
 	);
 	const id = hash(block.header);
-	const payload = [];
-	for (const tx of block.payload) {
-		payload.push(decodeTransaction(tx, registeredSchema));
+	const transactions = [];
+	for (const tx of block.transactions) {
+		transactions.push(decodeTransaction(tx, registeredSchema));
 	}
 
 	return {
@@ -95,21 +95,25 @@ export const decodeBlock = (
 			id,
 		},
 		assets: block.assets,
-		payload,
+		transactions,
 	};
 };
 
 export const encodeBlock = (
-	block: { header: Record<string, unknown>; payload: Record<string, unknown>[]; assets: string[] },
+	block: {
+		header: Record<string, unknown>;
+		transactions: Record<string, unknown>[];
+		assets: string[];
+	},
 	registeredSchema: RegisteredSchemas,
 ): Buffer => {
-	const encodedPayload = block.payload.map(p => encodeTransaction(p, registeredSchema));
+	const encodedPayload = block.transactions.map(p => encodeTransaction(p, registeredSchema));
 	const encodedAssets = block.assets.map(asset => Buffer.from(asset, 'hex'));
 	const encodedBlockHeader = codec.encode(registeredSchema.blockHeader, block.header);
 
 	return codec.encode(registeredSchema.block, {
 		header: encodedBlockHeader,
-		payload: encodedPayload,
+		transactions: encodedPayload,
 		assets: encodedAssets,
 	});
 };

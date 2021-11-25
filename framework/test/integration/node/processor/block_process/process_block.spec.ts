@@ -176,7 +176,7 @@ describe('Process block', () => {
 							seedReveal: Buffer.alloc(16),
 						},
 					},
-					payload: [],
+					transactions: [],
 				});
 				(newBlock.header as any).generatorPublicKey = account.publicKey;
 			});
@@ -226,7 +226,7 @@ describe('Process block', () => {
 							seedReveal: Buffer.alloc(16),
 						},
 					},
-					payload: [],
+					transactions: [],
 				});
 			});
 
@@ -346,7 +346,7 @@ describe('Process block', () => {
 							seedReveal: Buffer.alloc(16),
 						},
 					},
-					payload: [],
+					transactions: [],
 				});
 				chain['_blockRewardArgs'].rewardOffset = 1;
 				(invalidBlock.header as any).reward = BigInt(1000);
@@ -381,7 +381,7 @@ describe('Process block', () => {
 							seedReveal: Buffer.alloc(16),
 						},
 					},
-					payload: [],
+					transactions: [],
 				});
 				(tieBreakBlock.header as any).height = lastBlock.header.height;
 				(tieBreakBlock.header as any).previousBlockID = lastBlock.header.previousBlockID;

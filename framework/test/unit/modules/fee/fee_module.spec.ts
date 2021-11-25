@@ -116,7 +116,7 @@ describe('FeeModule', () => {
 		});
 	});
 
-	describe('beforeTransactionExecute', () => {
+	describe('beforeCommandExecute', () => {
 		it('should transfer transaction fee minus min fee to generator and burn min fee when native token', async () => {
 			const transaction = new Transaction({
 				moduleID: 5,
@@ -134,7 +134,7 @@ describe('FeeModule', () => {
 			const minFee =
 				BigInt(feeModule['_minFeePerByte'] * transaction.getBytes().length) +
 				feeModule['_extraFee'](transaction.moduleID, transaction.commandID);
-			await feeModule.beforeTransactionExecute(transactionExecuteContext);
+			await feeModule.beforeCommandExecute(transactionExecuteContext);
 
 			expect(feeModule['_tokenAPI'].burn).toHaveBeenCalledWith(
 				apiContext,
@@ -167,7 +167,7 @@ describe('FeeModule', () => {
 			const apiContext = transactionExecuteContext.getAPIContext();
 			const senderAddress = getAddressFromPublicKey(context.transaction.senderPublicKey);
 
-			await feeModule.beforeTransactionExecute(transactionExecuteContext);
+			await feeModule.beforeCommandExecute(transactionExecuteContext);
 
 			expect(feeModule['_tokenAPI'].burn).not.toHaveBeenCalled();
 			expect(feeModule['_tokenAPI'].transfer).toHaveBeenCalledWith(

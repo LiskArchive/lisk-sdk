@@ -66,7 +66,7 @@ export class FeeModule extends BaseModule {
 		return { status: VerifyStatus.OK };
 	}
 
-	public async beforeTransactionExecute(context: TransactionExecuteContext): Promise<void> {
+	public async beforeCommandExecute(context: TransactionExecuteContext): Promise<void> {
 		const minFee =
 			BigInt(this._minFeePerByte * context.transaction.getBytes().length) +
 			this._extraFee(context.transaction.moduleID, context.transaction.commandID);

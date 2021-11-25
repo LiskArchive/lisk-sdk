@@ -39,13 +39,13 @@ export class CustomModule0 {
 		testing: jest.fn(),
 	};
 
-	public verifyBlock = jest.fn();
-	public afterGenesisBlockExecute = jest.fn();
-	public beforeBlockExecute = jest.fn();
-	public afterBlockExecute = jest.fn();
+	public verifyAssets = jest.fn();
+	public initGenesisState = jest.fn();
+	public beforeTransactionsExecute = jest.fn();
+	public afterTransactionsExecute = jest.fn();
 	public verifyTransaction = jest.fn().mockResolvedValue({ status: 1 });
-	public beforeTransactionExecute = jest.fn();
-	public afterTransactionExecute = jest.fn();
+	public beforeCommandExecute = jest.fn();
+	public afterCommandExecute = jest.fn();
 }
 
 export class CustomModule1 {
@@ -53,9 +53,9 @@ export class CustomModule1 {
 	public name = 'customModule1';
 	public commands = [];
 
-	public verifyBlock = jest.fn();
-	public beforeBlockExecute = jest.fn();
-	public afterTransactionExecute = jest.fn();
+	public verifyAssets = jest.fn();
+	public beforeTransactionsExecute = jest.fn();
+	public afterCommandExecute = jest.fn();
 }
 
 export class CustomModule2 {

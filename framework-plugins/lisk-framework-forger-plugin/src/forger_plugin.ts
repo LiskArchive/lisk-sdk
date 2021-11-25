@@ -57,7 +57,7 @@ interface ForgerPayloadInfo {
 	forgerAddressBuffer: Buffer;
 	forgerAddressBinary: string;
 	header: BlockHeader;
-	payload: readonly Transaction[];
+	transactions: readonly Transaction[];
 }
 
 interface NodeInfo {
@@ -154,7 +154,7 @@ export class ForgerPlugin extends BasePlugin {
 			forgerAddressBuffer,
 			forgerAddressBinary,
 			header: block.header,
-			payload: block.payload,
+			transactions: block.transactions,
 		};
 	}
 
@@ -245,13 +245,13 @@ export class ForgerPlugin extends BasePlugin {
 			forgerAddressBuffer,
 			forgerAddressBinary,
 			header: { height },
-			payload,
+			transactions,
 		} = forgerPayloadInfo;
 		const forgerInfo = await getForgerInfo(this._forgerPluginDB, forgerAddressBinary);
 
 		if (this._forgersList.has(forgerAddressBuffer)) {
 			forgerInfo.totalProducedBlocks += 1;
-			forgerInfo.totalReceivedFees += this._getFee(payload, encodedBlock);
+			forgerInfo.totalReceivedFees += this._getFee(transactions, encodedBlock);
 
 			this._channel.publish('forger:block:created', {
 				forgerAddress,
@@ -261,7 +261,7 @@ export class ForgerPlugin extends BasePlugin {
 			await setForgerInfo(this._forgerPluginDB, forgerAddressBinary, { ...forgerInfo });
 		}
 
-		await this._addVotesReceived(payload);
+		await this._addVotesReceived(transactions);
 		await this._updateMissedBlock(encodedBlock);
 	}
 
@@ -269,19 +269,19 @@ export class ForgerPlugin extends BasePlugin {
 		encodedBlock: string,
 		forgerPayloadInfo: ForgerPayloadInfo,
 	): Promise<void> {
-		const { forgerAddressBuffer, forgerAddressBinary, payload } = forgerPayloadInfo;
+		const { forgerAddressBuffer, forgerAddressBinary, transactions } = forgerPayloadInfo;
 		const forgerInfo = await getForgerInfo(this._forgerPluginDB, forgerAddressBinary);
 
 		if (this._forgersList.has(forgerAddressBuffer)) {
 			forgerInfo.totalProducedBlocks -= 1;
-			forgerInfo.totalReceivedFees -= this._getFee(payload, encodedBlock);
+			forgerInfo.totalReceivedFees -= this._getFee(transactions, encodedBlock);
 			await setForgerInfo(this._forgerPluginDB, forgerAddressBinary, { ...forgerInfo });
 		}
 
-		await this._revertVotesReceived(payload);
+		await this._revertVotesReceived(transactions);
 	}
 
-	private _getForgerReceivedVotes(payload: ReadonlyArray<Transaction>): ForgerReceivedVotes {
+	private _getForgerReceivedVotes(transactions: ReadonlyArray<Transaction>): ForgerReceivedVotes {
 		const forgerReceivedVotes: ForgerReceivedVotes = {};
 
 		const dposVotesSchema = this.apiClient.schemas.commands.find(
@@ -291,7 +291,7 @@ export class ForgerPlugin extends BasePlugin {
 			throw new Error('DPoS votes command is not registered.');
 		}
 
-		for (const trx of payload) {
+		for (const trx of transactions) {
 			if (trx.moduleID === MODULE_ID_DPOS && trx.commandID === COMMAND_ID_VOTE) {
 				const params = codec.decode<VotesParams>(dposVotesSchema.schema, trx.params);
 				params.votes.reduce((acc: ForgerReceivedVotes, curr) => {
@@ -314,8 +314,8 @@ export class ForgerPlugin extends BasePlugin {
 		return forgerReceivedVotes;
 	}
 
-	private async _addVotesReceived(payload: ReadonlyArray<Transaction>): Promise<void> {
-		const forgerReceivedVotes = this._getForgerReceivedVotes(payload);
+	private async _addVotesReceived(transactions: ReadonlyArray<Transaction>): Promise<void> {
+		const forgerReceivedVotes = this._getForgerReceivedVotes(transactions);
 
 		for (const [delegateAddress, votesReceived] of Object.entries(forgerReceivedVotes)) {
 			const forgerInfo = await getForgerInfo(
@@ -339,8 +339,8 @@ export class ForgerPlugin extends BasePlugin {
 		}
 	}
 
-	private async _revertVotesReceived(payload: ReadonlyArray<Transaction>): Promise<void> {
-		const forgerReceivedVotes = this._getForgerReceivedVotes(payload);
+	private async _revertVotesReceived(transactions: ReadonlyArray<Transaction>): Promise<void> {
+		const forgerReceivedVotes = this._getForgerReceivedVotes(transactions);
 
 		for (const [delegateAddress, votesReceived] of Object.entries(forgerReceivedVotes)) {
 			const forgerInfo = await getForgerInfo(
@@ -362,15 +362,15 @@ export class ForgerPlugin extends BasePlugin {
 		}
 	}
 
-	private _getFee(payload: ReadonlyArray<Transaction>, block: string): bigint {
-		const { payload: payloadBuffer } = codec.decode<{ payload: Buffer[] }>(
+	private _getFee(transactions: ReadonlyArray<Transaction>, block: string): bigint {
+		const { transactions: payloadBuffer } = codec.decode<{ transactions: Buffer[] }>(
 			blockSchema,
 			Buffer.from(block),
 		);
 		let fee = BigInt(0);
 
-		for (let index = 0; index < payload.length; index += 1) {
-			const trx = payload[index];
+		for (let index = 0; index < transactions.length; index += 1) {
+			const trx = transactions[index];
 			const baseFee =
 				this._transactionFees.baseFees.find(
 					bf => bf.moduleID === trx.moduleID && bf.commandID === trx.commandID,

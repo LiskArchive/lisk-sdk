@@ -61,7 +61,7 @@ describe('Forger Info', () => {
 			expect(forgerInfo).toMatchSnapshot();
 		});
 
-		it('should save forger info with received fees if payload included in new block', async () => {
+		it('should save forger info with received fees if transactions included in new block', async () => {
 			// Arrange
 			const forgerPluginInstance = getForgerPlugin(appEnv.application);
 			const account = getRandomAccount();

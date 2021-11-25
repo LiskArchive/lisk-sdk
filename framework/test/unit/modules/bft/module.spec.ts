@@ -27,7 +27,7 @@ describe('bft module', () => {
 		bftModule = new BFTModule();
 	});
 
-	describe('afterGenesisBlockExecute', () => {
+	describe('initGenesisState', () => {
 		it('should initialize vote store', async () => {
 			const stateStore = new StateStore(new InMemoryKVStore());
 			const genesisHeight = 20;
@@ -36,7 +36,7 @@ describe('bft module', () => {
 				stateStore,
 			});
 
-			await bftModule.afterGenesisBlockExecute(context.createGenesisBlockExecuteContext());
+			await bftModule.initGenesisState(context.createGenesisBlockExecuteContext());
 
 			const votesStore = stateStore.getStore(bftModule.id, STORE_PREFIX_BFT_VOTES);
 

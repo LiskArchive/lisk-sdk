@@ -381,7 +381,7 @@ describe('RandomModule', () => {
 		});
 	});
 
-	describe('afterGenesisBlockExecute', () => {
+	describe('initGenesisState', () => {
 		let stateStore: StateStore;
 		beforeEach(async () => {
 			await randomModule.init({
@@ -399,7 +399,7 @@ describe('RandomModule', () => {
 				stateStore,
 			});
 
-			await randomModule.afterGenesisBlockExecute(context.createGenesisBlockExecuteContext());
+			await randomModule.initGenesisState(context.createGenesisBlockExecuteContext());
 
 			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
 
@@ -412,7 +412,7 @@ describe('RandomModule', () => {
 		});
 	});
 
-	describe('verifyBlock', () => {
+	describe('verifyAssets', () => {
 		beforeEach(async () => {
 			await randomModule.init({
 				generatorConfig: {},
@@ -429,7 +429,7 @@ describe('RandomModule', () => {
 			});
 
 			await expect(
-				randomModule.verifyBlock(context.getBlockVerifyExecuteContext()),
+				randomModule.verifyAssets(context.getBlockVerifyExecuteContext()),
 			).rejects.toThrow('Random module asset must exist.');
 		});
 
@@ -443,7 +443,7 @@ describe('RandomModule', () => {
 			});
 
 			await expect(
-				randomModule.verifyBlock(context.getBlockVerifyExecuteContext()),
+				randomModule.verifyAssets(context.getBlockVerifyExecuteContext()),
 			).rejects.toThrow('Size of the seed reveal must be 16, but received 10.');
 		});
 
@@ -456,11 +456,11 @@ describe('RandomModule', () => {
 				assets: new BlockAssets([asset]),
 			});
 
-			await expect(randomModule.verifyBlock(context.getBlockVerifyExecuteContext())).toResolve();
+			await expect(randomModule.verifyAssets(context.getBlockVerifyExecuteContext())).toResolve();
 		});
 	});
 
-	describe('afterBlockExecute', () => {
+	describe('afterTransactionsExecute', () => {
 		let stateStore: StateStore;
 		const generator1 = getRandomBytes(20);
 		const seed1 = getRandomBytes(16);
@@ -527,7 +527,7 @@ describe('RandomModule', () => {
 			});
 
 			await expect(
-				randomModule.afterBlockExecute(context.getBlockAfterExecuteContext()),
+				randomModule.afterTransactionsExecute(context.getBlockAfterExecuteContext()),
 			).rejects.toThrow('Random module asset must exist.');
 		});
 
@@ -542,7 +542,7 @@ describe('RandomModule', () => {
 				stateStore,
 			});
 
-			await randomModule.afterBlockExecute(context.getBlockAfterExecuteContext());
+			await randomModule.afterTransactionsExecute(context.getBlockAfterExecuteContext());
 
 			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
 			const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
@@ -563,7 +563,7 @@ describe('RandomModule', () => {
 				stateStore,
 			});
 
-			await randomModule.afterBlockExecute(context.getBlockAfterExecuteContext());
+			await randomModule.afterTransactionsExecute(context.getBlockAfterExecuteContext());
 
 			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
 			const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
@@ -578,7 +578,7 @@ describe('RandomModule', () => {
 				stateStore,
 			});
 
-			await randomModule.afterBlockExecute(nextContext.getBlockAfterExecuteContext());
+			await randomModule.afterTransactionsExecute(nextContext.getBlockAfterExecuteContext());
 
 			const updatedRandomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
 			const {
@@ -600,7 +600,7 @@ describe('RandomModule', () => {
 				stateStore,
 			});
 
-			await randomModule.afterBlockExecute(context.getBlockAfterExecuteContext());
+			await randomModule.afterTransactionsExecute(context.getBlockAfterExecuteContext());
 
 			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
 			const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
@@ -628,7 +628,7 @@ describe('RandomModule', () => {
 				stateStore,
 			});
 
-			await randomModule.afterBlockExecute(context.getBlockAfterExecuteContext());
+			await randomModule.afterTransactionsExecute(context.getBlockAfterExecuteContext());
 
 			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
 			const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
@@ -656,7 +656,7 @@ describe('RandomModule', () => {
 				stateStore,
 			});
 
-			await randomModule.afterBlockExecute(context.getBlockAfterExecuteContext());
+			await randomModule.afterTransactionsExecute(context.getBlockAfterExecuteContext());
 
 			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
 			const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
@@ -685,7 +685,7 @@ describe('RandomModule', () => {
 				stateStore,
 			});
 
-			await randomModule.afterBlockExecute(context.getBlockAfterExecuteContext());
+			await randomModule.afterTransactionsExecute(context.getBlockAfterExecuteContext());
 
 			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
 			const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(

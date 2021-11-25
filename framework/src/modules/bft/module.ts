@@ -58,7 +58,7 @@ export class BFTModule extends BaseModule {
 		this.api.addDependencies(validatorsAPI);
 	}
 
-	public async afterGenesisBlockExecute(context: GenesisBlockExecuteContext): Promise<void> {
+	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
 		const votesStore = context.getStore(this.id, STORE_PREFIX_BFT_VOTES);
 		await votesStore.setWithSchema(
 			EMPTY_KEY,
@@ -73,7 +73,7 @@ export class BFTModule extends BaseModule {
 		);
 	}
 
-	public async afterBlockExecute(context: BlockAfterExecuteContext): Promise<void> {
+	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
 		const votesStore = context.getStore(this.id, STORE_PREFIX_BFT_VOTES);
 		const paramsStore = context.getStore(this.id, STORE_PREFIX_BFT_PARAMETERS);
 		const paramsCache = new BFTParametersCache(paramsStore);

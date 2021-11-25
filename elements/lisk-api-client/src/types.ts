@@ -182,7 +182,7 @@ export interface Block<T = Buffer | string> {
 		version: number;
 	};
 	assets: T[];
-	payload: {
+	transactions: {
 		[key: string]: unknown;
 		id?: T;
 	}[];

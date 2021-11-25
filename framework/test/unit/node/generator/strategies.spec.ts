@@ -161,7 +161,7 @@ describe('strategies', () => {
 				);
 			});
 
-			it('should forge transactions upto maximum payload length', async () => {
+			it('should forge transactions upto maximum transactions length', async () => {
 				// Arrange
 				mockTxPool.getProcessableTransactions.mockReturnValue(
 					buildProcessableTxMock(maxPayloadLengthCase.input.transactions, stateMachine),

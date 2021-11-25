@@ -45,11 +45,12 @@ export abstract class BaseModule {
 	public async init?(args: ModuleInitArgs): Promise<void>;
 	public async initBlock?(context: BlockGenerateContext): Promise<void>;
 	public async sealBlock?(context: BlockGenerateContext): Promise<void>;
-	public async verifyBlock?(context: BlockVerifyContext): Promise<void>;
+	public async verifyAssets?(context: BlockVerifyContext): Promise<void>;
 	public async verifyTransaction?(context: TransactionVerifyContext): Promise<VerificationResult>;
-	public async beforeTransactionExecute?(context: TransactionExecuteContext): Promise<void>;
-	public async afterTransactionExecute?(context: TransactionExecuteContext): Promise<void>;
-	public async afterGenesisBlockExecute?(context: GenesisBlockExecuteContext): Promise<void>;
-	public async beforeBlockExecute?(context: BlockExecuteContext): Promise<void>;
-	public async afterBlockExecute?(context: BlockAfterExecuteContext): Promise<void>;
+	public async beforeCommandExecute?(context: TransactionExecuteContext): Promise<void>;
+	public async afterCommandExecute?(context: TransactionExecuteContext): Promise<void>;
+	public async initGenesisState?(context: GenesisBlockExecuteContext): Promise<void>;
+	public async finalizeGenesisState?(context: GenesisBlockExecuteContext): Promise<void>;
+	public async beforeTransactionsExecute?(context: BlockExecuteContext): Promise<void>;
+	public async afterTransactionsExecute?(context: BlockAfterExecuteContext): Promise<void>;
 }

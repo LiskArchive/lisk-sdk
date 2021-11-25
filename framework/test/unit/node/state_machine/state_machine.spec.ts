@@ -57,8 +57,8 @@ describe('state_machine', () => {
 				stateStore,
 			});
 			await stateMachine.executeGenesisBlock(ctx);
-			expect(mod.afterGenesisBlockExecute).toHaveBeenCalledTimes(1);
-			expect(mod.afterGenesisBlockExecute).toHaveBeenCalledWith({
+			expect(mod.initGenesisState).toHaveBeenCalledTimes(1);
+			expect(mod.initGenesisState).toHaveBeenCalledWith({
 				logger,
 				eventQueue,
 				getAPIContext: expect.any(Function),
@@ -118,7 +118,7 @@ describe('state_machine', () => {
 				transaction,
 			});
 			await stateMachine.executeTransaction(ctx);
-			expect(mod.beforeTransactionExecute).toHaveBeenCalledWith({
+			expect(mod.beforeCommandExecute).toHaveBeenCalledWith({
 				networkIdentifier,
 				logger,
 				transaction,
@@ -128,13 +128,13 @@ describe('state_machine', () => {
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
 			});
-			expect(systemMod.afterTransactionExecute).toHaveBeenCalledTimes(1);
-			expect(mod.afterTransactionExecute).toHaveBeenCalledTimes(1);
+			expect(systemMod.afterCommandExecute).toHaveBeenCalledTimes(1);
+			expect(mod.afterCommandExecute).toHaveBeenCalledTimes(1);
 		});
 	});
 
-	describe('verifyBlock', () => {
-		it('should call all registered verifyBlock', async () => {
+	describe('verifyAssets', () => {
+		it('should call all registered verifyAssets', async () => {
 			const ctx = new BlockContext({
 				eventQueue,
 				logger,
@@ -144,8 +144,8 @@ describe('state_machine', () => {
 				networkIdentifier,
 				transactions: [transaction],
 			});
-			await stateMachine.verifyBlock(ctx);
-			expect(mod.verifyBlock).toHaveBeenCalledWith({
+			await stateMachine.verifyAssets(ctx);
+			expect(mod.verifyAssets).toHaveBeenCalledWith({
 				networkIdentifier,
 				logger,
 				header,
@@ -154,8 +154,8 @@ describe('state_machine', () => {
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
 			});
-			expect(systemMod.verifyBlock).toHaveBeenCalledTimes(1);
-			expect(mod.verifyBlock).toHaveBeenCalledTimes(1);
+			expect(systemMod.verifyAssets).toHaveBeenCalledTimes(1);
+			expect(mod.verifyAssets).toHaveBeenCalledTimes(1);
 		});
 	});
 
@@ -171,7 +171,7 @@ describe('state_machine', () => {
 				transactions: [transaction],
 			});
 			await stateMachine.beforeExecuteBlock(ctx);
-			expect(mod.beforeBlockExecute).toHaveBeenCalledWith({
+			expect(mod.beforeTransactionsExecute).toHaveBeenCalledWith({
 				networkIdentifier,
 				logger,
 				header,
@@ -180,13 +180,13 @@ describe('state_machine', () => {
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
 			});
-			expect(systemMod.beforeBlockExecute).toHaveBeenCalledTimes(1);
-			expect(mod.beforeBlockExecute).toHaveBeenCalledTimes(1);
+			expect(systemMod.beforeTransactionsExecute).toHaveBeenCalledTimes(1);
+			expect(mod.beforeTransactionsExecute).toHaveBeenCalledTimes(1);
 		});
 	});
 
 	describe('afterExecuteBlock', () => {
-		it('should call all registered afterBlockExecute', async () => {
+		it('should call all registered afterTransactionsExecute', async () => {
 			const ctx = new BlockContext({
 				eventQueue,
 				logger,
@@ -197,7 +197,7 @@ describe('state_machine', () => {
 				transactions: [transaction],
 			});
 			await stateMachine.afterExecuteBlock(ctx);
-			expect(mod.afterBlockExecute).toHaveBeenCalledWith({
+			expect(mod.afterTransactionsExecute).toHaveBeenCalledWith({
 				networkIdentifier,
 				logger,
 				header,
@@ -207,7 +207,7 @@ describe('state_machine', () => {
 				getStore: expect.any(Function),
 				transactions: [transaction],
 			});
-			expect(mod.afterBlockExecute).toHaveBeenCalledTimes(1);
+			expect(mod.afterTransactionsExecute).toHaveBeenCalledTimes(1);
 		});
 	});
 
@@ -223,7 +223,7 @@ describe('state_machine', () => {
 				transactions: [transaction],
 			});
 			await stateMachine.executeBlock(ctx);
-			expect(mod.beforeBlockExecute).toHaveBeenCalledWith({
+			expect(mod.beforeTransactionsExecute).toHaveBeenCalledWith({
 				networkIdentifier,
 				logger,
 				header,
@@ -232,9 +232,9 @@ describe('state_machine', () => {
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
 			});
-			expect(systemMod.beforeBlockExecute).toHaveBeenCalledTimes(1);
-			expect(mod.beforeBlockExecute).toHaveBeenCalledTimes(1);
-			expect(mod.afterBlockExecute).toHaveBeenCalledWith({
+			expect(systemMod.beforeTransactionsExecute).toHaveBeenCalledTimes(1);
+			expect(mod.beforeTransactionsExecute).toHaveBeenCalledTimes(1);
+			expect(mod.afterTransactionsExecute).toHaveBeenCalledWith({
 				networkIdentifier,
 				logger,
 				header,
@@ -244,7 +244,7 @@ describe('state_machine', () => {
 				getStore: expect.any(Function),
 				transactions: [transaction],
 			});
-			expect(mod.afterBlockExecute).toHaveBeenCalledTimes(1);
+			expect(mod.afterTransactionsExecute).toHaveBeenCalledTimes(1);
 		});
 	});
 });
