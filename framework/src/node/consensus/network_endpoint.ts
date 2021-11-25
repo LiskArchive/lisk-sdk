@@ -22,6 +22,7 @@ import {
 	NETWORK_RPC_GET_BLOCKS_FROM_ID,
 	NETWORK_RPC_GET_HIGHEST_COMMON_BLOCK,
 	NETWORK_RPC_GET_LAST_BLOCK,
+	NETWORK_RPC_GET_SINGLE_COMMIT_FROM_ID,
 } from './constants';
 import {
 	getBlocksFromIdRequestSchema,
@@ -31,17 +32,22 @@ import {
 	RPCBlocksByIdData,
 	RPCHighestCommonBlockRequest,
 } from './schema';
+import { CommitPool } from './certificate_generation/commit_pool';
+import { singleCommitSchema } from './certificate_generation/schema';
+import { SingleCommit } from './certificate_generation/types';
 
 interface EndpointArgs {
 	logger: Logger;
 	chain: Chain;
 	network: Network;
+	commitPool: CommitPool;
 }
 
 interface RateTracker {
 	[key: string]: { [key: string]: number };
 }
 
+const DEFAULT_SINGLE_COMMIT_FROM_IDS_RATE_LIMIT_FREQUENCY = 10;
 const DEFAULT_LAST_BLOCK_RATE_LIMIT_FREQUENCY = 10;
 const DEFAULT_COMMON_BLOCK_RATE_LIMIT_FREQUENCY = 10;
 const DEFAULT_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY = 100;
@@ -50,6 +56,7 @@ export class NetworkEndpoint {
 	private readonly _logger: Logger;
 	private readonly _chain: Chain;
 	private readonly _network: Network;
+	private readonly _commitPool: CommitPool;
 
 	private _rateTracker: RateTracker;
 
@@ -57,6 +64,7 @@ export class NetworkEndpoint {
 		this._logger = args.logger;
 		this._chain = args.chain;
 		this._network = args.network;
+		this._commitPool = args.commitPool;
 		this._rateTracker = {};
 	}
 
@@ -165,6 +173,67 @@ export class NetworkEndpoint {
 		return codec.encode(getHighestCommonBlockResponseSchema, {
 			id: commonBlockHeaderID ?? Buffer.alloc(0),
 		});
+	}
+
+	public handleEventSingleCommit(data: unknown, peerId: string): void {
+		this._addRateLimit(
+			NETWORK_RPC_GET_SINGLE_COMMIT_FROM_ID,
+			peerId,
+			DEFAULT_SINGLE_COMMIT_FROM_IDS_RATE_LIMIT_FREQUENCY,
+		);
+		let decodedData: SingleCommit;
+
+		try {
+			decodedData = codec.decode<SingleCommit>(singleCommitSchema, data as never);
+		} catch (error) {
+			this._logger.warn(
+				{
+					err: error as Error,
+					req: data,
+					peerID: peerId,
+				},
+				`${NETWORK_RPC_GET_SINGLE_COMMIT_FROM_ID} response failed on decoding`,
+			);
+			this._network.applyPenaltyOnPeer({
+				peerId,
+				penalty: 100,
+			});
+
+			throw error;
+		}
+
+		const errors = validator.validate(singleCommitSchema, decodedData);
+
+		if (errors.length) {
+			const error = new LiskValidationError(errors);
+			this._logger.debug(
+				{ peerId, penalty: 100 },
+				'Adding penalty on peer for invalid single commit',
+			);
+
+			this._network.applyPenaltyOnPeer({
+				peerId,
+				penalty: 100,
+			});
+			throw error;
+		}
+
+		try {
+			this._commitPool.validateCommit(decodedData);
+		} catch (error) {
+			this._logger.debug(
+				{ peerId, penalty: 100 },
+				'Adding penalty on peer for invalid single commit',
+			);
+
+			this._network.applyPenaltyOnPeer({
+				peerId,
+				penalty: 100,
+			});
+			throw error;
+		}
+
+		this._commitPool.addCommit(decodedData, decodedData.height);
 	}
 
 	private _addRateLimit(procedure: string, peerId: string, limit: number): void {
