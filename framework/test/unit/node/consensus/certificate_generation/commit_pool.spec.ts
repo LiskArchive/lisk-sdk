@@ -23,17 +23,15 @@ import { SingleCommit } from '../../../../../src/node/consensus/certificate_gene
 
 describe('CommitPool', () => {
 	const networkIdentifier = Buffer.alloc(0);
+	const blockTime = 10;
+	const network = {} as any;
 	let commitPool: CommitPool;
 	let bftAPI: any;
 	let validatorsAPI: any;
-	let blockTime;
-	let network: any;
 
 	beforeEach(() => {
 		bftAPI = jest.fn();
 		validatorsAPI = jest.fn();
-		blockTime = 10;
-		network = {};
 		commitPool = new CommitPool({
 			bftAPI,
 			validatorsAPI,
