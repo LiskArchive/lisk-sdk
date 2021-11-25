@@ -209,7 +209,7 @@ export class TokenAPI extends BaseAPI {
 	}
 
 	public async getLockedAmount(
-		apiContext: APIContext,
+		apiContext: ImmutableAPIContext,
 		address: Buffer,
 		moduleID: number,
 		_tokenID: TokenID,

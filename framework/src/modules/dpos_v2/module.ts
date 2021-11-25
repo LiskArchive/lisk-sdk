@@ -261,16 +261,14 @@ export class DPoSModule extends BaseModule {
 					selfVotes: BigInt(0),
 					voteReceived: BigInt(0),
 				};
+				delegate.voteReceived += sentVote.amount;
+				if (!isUInt64(delegate.voteReceived)) {
+					throw new Error('Votes received out of range.');
+				}
 				if (sentVote.delegateAddress.equals(voter.address)) {
 					delegate.selfVotes += sentVote.amount;
-					delegate.voteReceived += sentVote.amount;
 					if (!isUInt64(delegate.selfVotes)) {
 						throw new Error('Self vote out of range.');
-					}
-				} else {
-					delegate.voteReceived += sentVote.amount;
-					if (!isUInt64(delegate.voteReceived)) {
-						throw new Error('Votes received out of range.');
 					}
 				}
 				voteMap.set(sentVote.delegateAddress, delegate);

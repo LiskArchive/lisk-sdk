@@ -116,7 +116,7 @@ export interface TokenAPI {
 		amount: bigint,
 	): Promise<void>;
 	getLockedAmount(
-		apiContext: APIContext,
+		apiContext: ImmutableAPIContext,
 		address: Buffer,
 		moduleID: number,
 		tokenID: TokenIDDPoS,
