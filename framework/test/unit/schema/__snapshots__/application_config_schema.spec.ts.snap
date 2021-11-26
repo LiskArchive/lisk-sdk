@@ -567,7 +567,7 @@ Object {
           },
           "type": "array",
         },
-        "wsMaxTransactions": Object {
+        "wsMaxPayload": Object {
           "maximum": 3048576,
           "type": "integer",
         },
