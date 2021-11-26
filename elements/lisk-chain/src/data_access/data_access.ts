@@ -290,18 +290,18 @@ export class DataAccess {
 		const { id: blockID, height } = block.header;
 		const encodedHeader = block.header.getBytes();
 
-		const encodedPayload = [];
+		const encodedTransactions = [];
 		for (const tx of block.transactions) {
 			const txID = tx.id;
 			const encodedTx = tx.getBytes();
-			encodedPayload.push({ id: txID, value: encodedTx });
+			encodedTransactions.push({ id: txID, value: encodedTx });
 		}
 		await this._storage.saveBlock(
 			blockID,
 			height,
 			finalizedHeight,
 			encodedHeader,
-			encodedPayload,
+			encodedTransactions,
 			block.assets.getBytes(),
 			state,
 			removeFromTemp,

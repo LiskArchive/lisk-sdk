@@ -31,7 +31,7 @@ export class HighFeeGenerationStrategy {
 	private readonly _stateMachine: StateMachine;
 	private readonly _pool: TransactionPool;
 	private readonly _constants: {
-		readonly maxPayloadLength: number;
+		readonly maxTransactionsSize: number;
 	};
 
 	private _blockchainDB!: KVStore;
@@ -43,17 +43,17 @@ export class HighFeeGenerationStrategy {
 		stateMachine,
 		pool,
 		// constants
-		maxPayloadLength,
+		maxTransactionsSize,
 	}: {
 		readonly chain: Chain;
 		readonly stateMachine: StateMachine;
 		readonly pool: TransactionPool;
-		readonly maxPayloadLength: number;
+		readonly maxTransactionsSize: number;
 	}) {
 		this._chain = chain;
 		this._stateMachine = stateMachine;
 		this._pool = pool;
-		this._constants = { maxPayloadLength };
+		this._constants = { maxTransactionsSize };
 	}
 
 	public init(args: { blockchainDB: KVStore; logger: Logger }) {
@@ -74,7 +74,7 @@ export class HighFeeGenerationStrategy {
 		const transactionsBySender = this._pool.getProcessableTransactions();
 
 		// Initialize block size with 0
-		let blockPayloadSize = 0;
+		let blockTransactionsSize = 0;
 		const feePriorityHeap = new dataStructures.MaxHeap();
 		for (const transactions of transactionsBySender.values()) {
 			const lowestNonceTrx = transactions[0];
@@ -119,7 +119,7 @@ export class HighFeeGenerationStrategy {
 			// then discard all transactions from that account as
 			// other transactions will be higher nonce
 			const trsByteSize = lowestNonceHighestFeeTrx.getBytes().length;
-			if (blockPayloadSize + trsByteSize > this._constants.maxPayloadLength) {
+			if (blockTransactionsSize + trsByteSize > this._constants.maxTransactionsSize) {
 				// End up filling the block
 				break;
 			}
@@ -128,7 +128,7 @@ export class HighFeeGenerationStrategy {
 			readyTransactions.push(lowestNonceHighestFeeTrx);
 
 			// Increase block size with updated transaction size
-			blockPayloadSize += trsByteSize;
+			blockTransactionsSize += trsByteSize;
 
 			// Remove the selected transaction from the list
 			// as original array is readonly in future when we convert it to

@@ -92,14 +92,14 @@ node index.js
 
 ### Configure your blockchain parameters
 
-You can also define your blockchain application parameters such as `blockTime`, `maxPayloadLength` and more with an optional configurations object.
+You can also define your blockchain application parameters such as `blockTime`, `maxTransactionsSize` and more with an optional configurations object.
 
 ```js
 const { app } = Application.defaultApplication(genesisBlockDevnet, {
     genesisConfig: {
       communityIdentifier: 'newChain',
       blockTime: 5,
-      maxPayloadLength: 100 * 1024,
+      maxTransactionsSize: 100 * 1024,
       minRemainingBalance: "5000000",
 	  activeDelegates: 101,
 	  standbyDelegates: 2,

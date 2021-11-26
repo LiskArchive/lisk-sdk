@@ -102,7 +102,7 @@ export class Block {
 	public validateGenesis(): void {
 		this.header.validateGenesis();
 		if (this.transactions.length !== 0) {
-			throw new Error('Payload length must be zero');
+			throw new Error('Transactions length must be zero');
 		}
 		this.assets.validateGenesis();
 		if (

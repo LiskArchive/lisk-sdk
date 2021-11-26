@@ -39,7 +39,7 @@ export const constantsConfig = (overriddenConfigProperties = {}) => ({
 	],
 	activeDelegates: 101,
 	standbyDelegates: 2,
-	maxPayloadLength: 15 * 1024,
+	maxTransactionsSize: 15 * 1024,
 	modules: {},
 	...overriddenConfigProperties,
 });

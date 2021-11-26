@@ -53,7 +53,7 @@ describe('DPoSModule', () => {
 			bftThreshold: 67,
 			blockTime: 10,
 			communityIdentifier: 'lisk',
-			maxPayloadLength: 15360,
+			maxTransactionsSize: 15360,
 			minFeePerByte: 1,
 			rewards: {
 				distance: 1,

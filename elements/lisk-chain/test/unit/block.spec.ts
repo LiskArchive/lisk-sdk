@@ -171,7 +171,7 @@ describe('block', () => {
 				});
 				block['header']['_signature'] = EMPTY_BUFFER;
 				// Act & assert
-				expect(() => block.validateGenesis()).toThrow('Payload length must be zero');
+				expect(() => block.validateGenesis()).toThrow('Transactions length must be zero');
 			});
 		});
 

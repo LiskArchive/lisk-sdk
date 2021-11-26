@@ -147,7 +147,7 @@ describe('Application', () => {
 
 			customConfig.genesisConfig = {
 				...config.genesisConfig,
-				maxPayloadLength: 15 * 1024,
+				maxTransactionsSize: 15 * 1024,
 				communityIdentifier: 'Lisk',
 				blockTime: 5,
 				rewards: {
@@ -159,7 +159,7 @@ describe('Application', () => {
 
 			const { app } = Application.defaultApplication(customConfig);
 
-			expect(app.config.genesisConfig.maxPayloadLength).toBe(15 * 1024);
+			expect(app.config.genesisConfig.maxTransactionsSize).toBe(15 * 1024);
 		});
 
 		it('should set internal variables', () => {

@@ -52,7 +52,7 @@ interface Vote {
 	amount: string;
 }
 
-interface ForgerPayloadInfo {
+interface ForgerTransactionsInfo {
 	forgerAddress: string;
 	forgerAddressBuffer: Buffer;
 	forgerAddressBinary: string;
@@ -143,7 +143,7 @@ export class ForgerPlugin extends BasePlugin {
 		};
 	}
 
-	private _getForgerHeaderAndPayloadInfo(blockBytes: string): ForgerPayloadInfo {
+	private _getForgerHeaderAndTransactionsInfo(blockBytes: string): ForgerTransactionsInfo {
 		const block = Block.fromBytes(Buffer.from(blockBytes, 'hex'));
 		const forgerAddress = block.header.generatorAddress.toString('hex');
 		const forgerAddressBuffer = getAddressBuffer(forgerAddress);
@@ -197,8 +197,8 @@ export class ForgerPlugin extends BasePlugin {
 
 			// Reverse the blocks to get blocks from lower height to highest
 			for (const block of blocks.reverse()) {
-				const forgerPayloadInfo = this._getForgerHeaderAndPayloadInfo(block);
-				await this._addForgerInfo(block, forgerPayloadInfo);
+				const forgerTransactionsInfo = this._getForgerHeaderAndTransactionsInfo(block);
+				await this._addForgerInfo(block, forgerTransactionsInfo);
 			}
 
 			needleHeight = toHeight + 1;
@@ -214,31 +214,31 @@ export class ForgerPlugin extends BasePlugin {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.subscribe('app_block:new', async (data?: Record<string, unknown>) => {
 			const { block } = (data as unknown) as Data;
-			const forgerPayloadInfo = this._getForgerHeaderAndPayloadInfo(block);
+			const forgerTransactionsInfo = this._getForgerHeaderAndTransactionsInfo(block);
 			const {
 				header: { height },
-			} = forgerPayloadInfo;
+			} = forgerTransactionsInfo;
 
-			await this._addForgerInfo(block, forgerPayloadInfo);
+			await this._addForgerInfo(block, forgerTransactionsInfo);
 			await setForgerSyncInfo(this._forgerPluginDB, height);
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.subscribe('app_block:delete', async (data?: Record<string, unknown>) => {
 			const { block } = (data as unknown) as Data;
-			const forgerPayloadInfo = this._getForgerHeaderAndPayloadInfo(block);
+			const forgerTransactionsInfo = this._getForgerHeaderAndTransactionsInfo(block);
 			const {
 				header: { height },
-			} = forgerPayloadInfo;
+			} = forgerTransactionsInfo;
 
-			await this._revertForgerInfo(block, forgerPayloadInfo);
+			await this._revertForgerInfo(block, forgerTransactionsInfo);
 			await setForgerSyncInfo(this._forgerPluginDB, height);
 		});
 	}
 
 	private async _addForgerInfo(
 		encodedBlock: string,
-		forgerPayloadInfo: ForgerPayloadInfo,
+		forgerTransactionsInfo: ForgerTransactionsInfo,
 	): Promise<void> {
 		const {
 			forgerAddress,
@@ -246,7 +246,7 @@ export class ForgerPlugin extends BasePlugin {
 			forgerAddressBinary,
 			header: { height },
 			transactions,
-		} = forgerPayloadInfo;
+		} = forgerTransactionsInfo;
 		const forgerInfo = await getForgerInfo(this._forgerPluginDB, forgerAddressBinary);
 
 		if (this._forgersList.has(forgerAddressBuffer)) {
@@ -267,9 +267,9 @@ export class ForgerPlugin extends BasePlugin {
 
 	private async _revertForgerInfo(
 		encodedBlock: string,
-		forgerPayloadInfo: ForgerPayloadInfo,
+		forgerTransactionsInfo: ForgerTransactionsInfo,
 	): Promise<void> {
-		const { forgerAddressBuffer, forgerAddressBinary, transactions } = forgerPayloadInfo;
+		const { forgerAddressBuffer, forgerAddressBinary, transactions } = forgerTransactionsInfo;
 		const forgerInfo = await getForgerInfo(this._forgerPluginDB, forgerAddressBinary);
 
 		if (this._forgersList.has(forgerAddressBuffer)) {
@@ -363,7 +363,7 @@ export class ForgerPlugin extends BasePlugin {
 	}
 
 	private _getFee(transactions: ReadonlyArray<Transaction>, block: string): bigint {
-		const { transactions: payloadBuffer } = codec.decode<{ transactions: Buffer[] }>(
+		const { transactions: transactionsBuffer } = codec.decode<{ transactions: Buffer[] }>(
 			blockSchema,
 			Buffer.from(block),
 		);
@@ -377,7 +377,7 @@ export class ForgerPlugin extends BasePlugin {
 				)?.baseFee ?? '0';
 			const minFeeRequired =
 				BigInt(baseFee) +
-				BigInt(this._transactionFees.minFeePerByte) * BigInt(payloadBuffer[index].length);
+				BigInt(this._transactionFees.minFeePerByte) * BigInt(transactionsBuffer[index].length);
 			fee += BigInt(trx.fee) - minFeeRequired;
 		}
 
@@ -388,7 +388,7 @@ export class ForgerPlugin extends BasePlugin {
 		const {
 			header: { height, timestamp },
 			forgerAddress,
-		} = this._getForgerHeaderAndPayloadInfo(block);
+		} = this._getForgerHeaderAndTransactionsInfo(block);
 		const previousBlockStr = await this._channel.invoke<string>('app_getBlockByHeight', {
 			height: height - 1,
 		});

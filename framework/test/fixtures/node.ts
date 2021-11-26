@@ -33,7 +33,7 @@ export const nodeOptions = ({
 	genesis: {
 		blockTime: 10, // 10 seconds
 		communityIdentifier: 'Lisk',
-		maxPayloadLength: 15 * 1024, // 15kb
+		maxTransactionsSize: 15 * 1024, // 15kb
 		bftThreshold: 68, // Two third of active delegates Math.ceil(activeDelegates * 2 / 3)
 		baseFees: [
 			{
@@ -70,7 +70,7 @@ export const nodeOptions = ({
 	genesisConfig: {
 		blockTime: 10, // 10 seconds
 		communityIdentifier: 'Lisk',
-		maxPayloadLength: 15 * 1024, // 15kb
+		maxTransactionsSize: 15 * 1024, // 15kb
 		bftThreshold: 68, // Two third of active delegates Math.ceil(activeDelegates * 2 / 3)
 		baseFees: [
 			{

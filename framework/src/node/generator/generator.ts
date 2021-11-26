@@ -166,7 +166,7 @@ export class Generator {
 		});
 		this._forgingStrategy = new HighFeeGenerationStrategy({
 			chain: this._chain,
-			maxPayloadLength: this._chain.constants.maxPayloadLength,
+			maxTransactionsSize: this._chain.constants.maxTransactionsSize,
 			stateMachine: this._stateMachine,
 			pool: this._pool,
 		});

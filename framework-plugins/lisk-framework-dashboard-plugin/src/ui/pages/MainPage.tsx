@@ -56,7 +56,7 @@ const nodeInfoDefaultValue: NodeInfo = {
 	genesisConfig: {
 		communityIdentifier: '',
 		blockTime: 0,
-		maxPayloadLength: 0,
+		maxTransactionsSize: 0,
 		bftThreshold: 0,
 		rewards: { milestones: [], offset: 0, distance: 0 },
 		minFeePerByte: 0,

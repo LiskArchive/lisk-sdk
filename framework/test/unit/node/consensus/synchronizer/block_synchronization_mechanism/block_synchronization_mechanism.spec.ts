@@ -78,7 +78,7 @@ describe('block_synchronization_mechanism', () => {
 		};
 
 		chainModule = new Chain({
-			maxPayloadLength: 15000,
+			maxTransactionsSize: 15000,
 		});
 		chainModule.init({
 			db: new InMemoryKVStore(),

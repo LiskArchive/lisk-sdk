@@ -107,13 +107,13 @@ export const encodeBlock = (
 	},
 	registeredSchema: RegisteredSchemas,
 ): Buffer => {
-	const encodedPayload = block.transactions.map(p => encodeTransaction(p, registeredSchema));
+	const encodedTransactions = block.transactions.map(p => encodeTransaction(p, registeredSchema));
 	const encodedAssets = block.assets.map(asset => Buffer.from(asset, 'hex'));
 	const encodedBlockHeader = codec.encode(registeredSchema.blockHeader, block.header);
 
 	return codec.encode(registeredSchema.block, {
 		header: encodedBlockHeader,
-		transactions: encodedPayload,
+		transactions: encodedTransactions,
 		assets: encodedAssets,
 	});
 };
