@@ -31,7 +31,7 @@ import { EventQueue } from '../state_machine/event_queue';
 import { BlockExecutor } from './synchronizer/type';
 import { GenesisBlockContext } from '../state_machine/genesis_block_context';
 import { Network } from '../network';
-import { NetworkEndpoint } from './network_endpoint';
+import { NetworkEndpoint, EndpointArgs } from './network_endpoint';
 import { EventPostBlockData, postBlockEventSchema } from './schema';
 import {
 	CONSENSUS_EVENT_BLOCK_BROADCAST,
@@ -121,7 +121,7 @@ export class Consensus {
 			chain: this._chain,
 			logger: this._logger,
 			network: this._network,
-		});
+		} as EndpointArgs); // TODO: Remove casting in issue where commitPool is added here
 		const blockExecutor = this._createBlockExecutor();
 		const blockSyncMechanism = new BlockSynchronizationMechanism({
 			chain: this._chain,

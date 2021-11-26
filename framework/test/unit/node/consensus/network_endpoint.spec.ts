@@ -20,10 +20,18 @@ import {
 	getBlocksFromIdRequestSchema,
 	getHighestCommonBlockRequestSchema,
 	getHighestCommonBlockResponseSchema,
+	getSingleCommitEventSchema,
 } from '../../../../src/node/consensus/schema';
 import { Network } from '../../../../src/node/network';
 import { loggerMock } from '../../../../src/testing/mocks';
 import { createValidDefaultBlock } from '../../../fixtures';
+import { CommitPool } from '../../../../src/node/consensus/certificate_generation/commit_pool';
+import { SingleCommit } from '.../../../src/node/consensus//certificate_generation/types';
+import {
+	computeCertificateFromBlockHeader,
+	signCertificate,
+} from '.../../../src/node/consensus//certificate_generation/utils';
+import { createFakeBlockHeader } from '../../../../src/testing/create_block';
 
 describe('p2p endpoint', () => {
 	const defaultPeerId = 'peer-id';
@@ -33,6 +41,7 @@ describe('p2p endpoint', () => {
 	let chain: Chain;
 	let network: Network;
 	let lastBlock: Block;
+	let commitPool: CommitPool;
 
 	beforeEach(async () => {
 		lastBlock = await createValidDefaultBlock({ header: { height: 2 } });
@@ -51,10 +60,15 @@ describe('p2p endpoint', () => {
 		network = ({
 			applyPenaltyOnPeer: jest.fn(),
 		} as unknown) as Network;
+		commitPool = ({
+			validateCommit: jest.fn(),
+			addCommit: jest.fn(),
+		} as unknown) as CommitPool;
 		endpoint = new NetworkEndpoint({
 			chain,
 			logger: loggerMock,
 			network,
+			commitPool,
 		});
 		jest.useFakeTimers();
 	});
@@ -209,6 +223,80 @@ describe('p2p endpoint', () => {
 				expect(result).toEqual(
 					codec.encode(getHighestCommonBlockResponseSchema, { id: validBlock.header.id }),
 				);
+			});
+		});
+	});
+
+	describe('handleEventSingleCommit', () => {
+		const networkIdentifier = Buffer.alloc(0);
+		const blockHeader = createFakeBlockHeader();
+		const certificate = computeCertificateFromBlockHeader(blockHeader);
+		const validatorInfo = {
+			address: getRandomBytes(20),
+			blsPublicKey: getRandomBytes(48),
+			blsSecretKey: getRandomBytes(32),
+		};
+		let validCommit: { singleCommit: SingleCommit };
+		let encodedValidCommit: Buffer;
+
+		beforeEach(() => {
+			validCommit = {
+				singleCommit: {
+					blockID: blockHeader.id,
+					height: blockHeader.height,
+					validatorAddress: validatorInfo.address,
+					certificateSignature: signCertificate(
+						validatorInfo.blsSecretKey,
+						networkIdentifier,
+						certificate,
+					),
+				},
+			};
+			encodedValidCommit = codec.encode(getSingleCommitEventSchema, validCommit);
+		});
+
+		it('should add commit with valid commit', () => {
+			expect(() =>
+				endpoint.handleEventSingleCommit(encodedValidCommit, defaultPeerId),
+			).not.toThrow();
+			expect(commitPool.validateCommit).toHaveBeenCalled();
+			expect(commitPool.addCommit).toHaveBeenCalled();
+		});
+
+		it('should apply penalty when un-decodable data is received', () => {
+			expect(() =>
+				endpoint.handleEventSingleCommit(Buffer.from('abc', 'utf8'), defaultPeerId),
+			).toThrow();
+			expect(network.applyPenaltyOnPeer).toHaveBeenCalledWith({
+				peerId: defaultPeerId,
+				penalty: 100,
+			});
+		});
+
+		it('should apply penalty when invalid data value is received', () => {
+			const invalidCommit = {
+				singleCommit: { ...validCommit, certificateSignature: getRandomBytes(2) },
+			};
+			const encodedInvalidCommit = codec.encode(getSingleCommitEventSchema, invalidCommit);
+			expect(() => endpoint.handleEventSingleCommit(encodedInvalidCommit, defaultPeerId)).toThrow(
+				'minLength not satisfied',
+			);
+			expect(network.applyPenaltyOnPeer).toHaveBeenCalledWith({
+				peerId: defaultPeerId,
+				penalty: 100,
+			});
+		});
+
+		it('should apply penalty when invalid commit is received', () => {
+			commitPool.validateCommit = jest.fn(() => {
+				throw new Error('Invalid commit');
+			});
+			expect(() => endpoint.handleEventSingleCommit(encodedValidCommit, defaultPeerId)).toThrow(
+				'Invalid commit',
+			);
+			expect(network.applyPenaltyOnPeer).toHaveBeenCalledWith({
+				peerId: defaultPeerId,
+				penalty: 100,
 			});
 		});
 	});
