@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { SingleCommit } from './certificate_generation/types';
+
 export interface RPCBlocksByIdData {
 	readonly blockId: Buffer;
 }
@@ -102,6 +104,48 @@ export const postBlockEventSchema = {
 		block: {
 			dataType: 'bytes',
 			fieldNumber: 1,
+		},
+	},
+};
+
+export interface SingleCommitData {
+	singleCommit: SingleCommit;
+}
+
+export const getSingleCommitEventSchema = {
+	$id: 'lisk/getSingleCommitEvent',
+	title: 'Get SingleCommit Event',
+	type: 'object',
+	required: ['singleCommit'],
+	properties: {
+		singleCommit: {
+			type: 'object',
+			fieldNumber: 1,
+			required: ['blockID', 'height', 'validatorAddress', 'certificateSignature'],
+			properties: {
+				blockID: {
+					dataType: 'bytes',
+					fieldNumber: 1,
+					minLength: 32,
+					maxLength: 32,
+				},
+				height: {
+					dataType: 'uint32',
+					fieldNumber: 2,
+				},
+				validatorAddress: {
+					dataType: 'bytes',
+					fieldNumber: 3,
+					minLength: 20,
+					maxLength: 20,
+				},
+				certificateSignature: {
+					dataType: 'bytes',
+					fieldNumber: 4,
+					minLength: 96,
+					maxLength: 96,
+				},
+			},
 		},
 	},
 };
