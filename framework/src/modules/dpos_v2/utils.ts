@@ -46,6 +46,11 @@ export const sortUnlocking = (unlocks: UnlockingObject[]): void => {
 	});
 };
 
+export const equalUnlocking = (a: UnlockingObject, b: UnlockingObject): boolean =>
+	a.delegateAddress.equals(b.delegateAddress) &&
+	a.amount === b.amount &&
+	a.unvoteHeight === b.unvoteHeight;
+
 export const isNullCharacterIncluded = (input: string): boolean =>
 	new RegExp(/\\0|\\u0000|\\x00/).test(input);
 

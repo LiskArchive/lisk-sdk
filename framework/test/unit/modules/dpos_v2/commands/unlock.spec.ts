@@ -82,6 +82,7 @@ describe('UnlockCommand', () => {
 			getAvailableBalance: jest.fn(),
 			getMinRemainingBalance: jest.fn(),
 			transfer: jest.fn(),
+			getLockedAmount: jest.fn(),
 		};
 		unlockCommand.addDependencies({
 			tokenIDDPoS: { chainID: 0, localID: 0 },
