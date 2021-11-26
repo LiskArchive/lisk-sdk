@@ -13,6 +13,7 @@
  */
 
 import { SingleCommit } from './certificate_generation/types';
+import { singleCommitSchema } from './certificate_generation/schema';
 
 export interface RPCBlocksByIdData {
 	readonly blockId: Buffer;
@@ -123,28 +124,7 @@ export const getSingleCommitEventSchema = {
 			fieldNumber: 1,
 			required: ['blockID', 'height', 'validatorAddress', 'certificateSignature'],
 			properties: {
-				blockID: {
-					dataType: 'bytes',
-					fieldNumber: 1,
-					minLength: 32,
-					maxLength: 32,
-				},
-				height: {
-					dataType: 'uint32',
-					fieldNumber: 2,
-				},
-				validatorAddress: {
-					dataType: 'bytes',
-					fieldNumber: 3,
-					minLength: 20,
-					maxLength: 20,
-				},
-				certificateSignature: {
-					dataType: 'bytes',
-					fieldNumber: 4,
-					minLength: 96,
-					maxLength: 96,
-				},
+				...singleCommitSchema.properties,
 			},
 		},
 	},
