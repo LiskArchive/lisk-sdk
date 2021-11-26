@@ -56,6 +56,8 @@ export const singleCommitSchema = {
 		blockID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
+			minLength: 32,
+			maxLength: 32,
 		},
 		height: {
 			dataType: 'uint32',
@@ -64,10 +66,14 @@ export const singleCommitSchema = {
 		validatorAddress: {
 			dataType: 'bytes',
 			fieldNumber: 3,
+			minLength: 20,
+			maxLength: 20,
 		},
 		certificateSignature: {
 			dataType: 'bytes',
 			fieldNumber: 4,
+			minLength: 96,
+			maxLength: 96,
 		},
 	},
 };
