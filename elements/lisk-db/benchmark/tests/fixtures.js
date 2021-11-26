@@ -1,9 +1,9 @@
 const crypto = require('crypto');
 const randomize = require('randomatic');
 
-const getFakeBlock = transactions_size => ({
+const getFakeBlock = payload_size => ({
 	key: `blocks:id:${randomize('0', 10)}`,
-	value: crypto.randomBytes(transactions_size),
+	value: crypto.randomBytes(payload_size),
 });
 
 module.exports.getFakeBlock = getFakeBlock;

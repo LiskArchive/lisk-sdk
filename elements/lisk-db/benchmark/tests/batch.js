@@ -15,15 +15,15 @@
 const { Suite } = require('benchmark');
 const { getFakeBlock } = require('./fixtures');
 
-const batchSuite = async (ldb, rdb, transactions_size) => {
+const batchSuite = async (ldb, rdb, payload_size) => {
 	const suite = new Suite();
-	const data = prepare(transactions_size);
+	const data = prepare(payload_size);
 
 	suite
-		.add(`LevelDB: batch([key:string, val: Buffer]) x ${transactions_size}(bytes)`, async () => {
+		.add(`LevelDB: batch([key:string, val: Buffer]) x ${payload_size}(bytes)`, async () => {
 			await ldb.batch(data);
 		})
-		.add(`RocksDB: batch([key:string, val: Buffer]) x ${transactions_size}(bytes)`, async () => {
+		.add(`RocksDB: batch([key:string, val: Buffer]) x ${payload_size}(bytes)`, async () => {
 			await rdb.batch(data);
 		})
 		.on('cycle', event => {
@@ -37,13 +37,13 @@ const batchSuite = async (ldb, rdb, transactions_size) => {
 		.run({ async: true });
 };
 
-const prepare = transactions_size => {
+const prepare = payload_size => {
 	const data = [];
 
 	for (let i = 0; i < 10; i++) {
 		data.push({
 			type: 'put',
-			...getFakeBlock(transactions_size),
+			...getFakeBlock(payload_size),
 		});
 	}
 

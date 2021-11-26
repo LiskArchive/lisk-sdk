@@ -22,34 +22,34 @@ const { batchSuite } = require('./tests/batch');
 let ldb = LevelDB.createDb('leveldb_bench');
 let rdb = RocksDB.createDb('rocksdb_bench');
 
-// 15,000 (15Kb) transactions
-const benchDB = async transactions_size => {
-	await getSuite(ldb, rdb, getFakeBlock(transactions_size));
-	await putSuite(ldb, rdb, getFakeBlock(transactions_size));
-	await delSuite(ldb, rdb, getFakeBlock(transactions_size));
-	await batchSuite(ldb, rdb, transactions_size);
+// 15,000 (15Kb) payload
+const benchDB = async payload_size => {
+	await getSuite(ldb, rdb, getFakeBlock(payload_size));
+	await putSuite(ldb, rdb, getFakeBlock(payload_size));
+	await delSuite(ldb, rdb, getFakeBlock(payload_size));
+	await batchSuite(ldb, rdb, payload_size);
 };
 
 const cliArgs = process.argv.slice(2);
-let transactions_size = 1024;
+let payload_size = 1024;
 
 switch (cliArgs[0]) {
 	case '15000':
-		transactions_size = parseInt(cliArgs[0], 10);
+		payload_size = parseInt(cliArgs[0], 10);
 		break;
 	case '50000':
-		transactions_size = parseInt(cliArgs[0], 10);
+		payload_size = parseInt(cliArgs[0], 10);
 		break;
 	case '100000':
-		transactions_size = parseInt(cliArgs[0], 10);
+		payload_size = parseInt(cliArgs[0], 10);
 		break;
 	case '150000':
-		transactions_size = parseInt(cliArgs[0], 10);
+		payload_size = parseInt(cliArgs[0], 10);
 		break;
 }
 
-benchDB(transactions_size)
-	.then(console.log(`Start benchmarking for transactions ${transactions_size}!!!`))
+benchDB(payload_size)
+	.then(console.log(`Start benchmarking for payload ${payload_size}!!!`))
 	.catch(err => {
 		console.log(err);
 		process.exit(1);

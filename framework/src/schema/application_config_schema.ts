@@ -324,7 +324,7 @@ export const applicationConfigSchema = {
 					type: 'integer',
 					maximum: 20480,
 				},
-				wsMaxTransactions: {
+				wsMaxPayload: {
 					type: 'integer',
 					maximum: 3048576,
 				},

@@ -16,7 +16,7 @@ import { P2P } from '../../src/index';
 import { wait } from '../utils/helpers';
 import { createNetwork, destroyNetwork, NETWORK_START_PORT } from '../utils/network_setup';
 
-describe('Maximum transactions', () => {
+describe('Maximum payload', () => {
 	let p2pNodeList: ReadonlyArray<P2P> = [];
 	let collectedMessages: Array<any> = [];
 	const disconnectReasons: Array<any> = [];
@@ -67,7 +67,7 @@ describe('Maximum transactions', () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
-	it('should not send a package larger than the ws max transactions', async () => {
+	it('should not send a package larger than the ws max payload', async () => {
 		const firstP2PNode = p2pNodeList[0];
 
 		firstP2PNode.send({
