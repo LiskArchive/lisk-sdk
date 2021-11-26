@@ -15,6 +15,7 @@
 import { BlockHeader } from '@liskhq/lisk-chain';
 import { BFTAPI, ValidatorAPI } from '../types';
 import { AggregateCommit, CommitPoolConfig, SingleCommit, ValidatorInfo } from './types';
+import { computeCertificateFromBlockHeader, signCertificate } from './utils';
 
 export class CommitPool {
 	private readonly _nonGossipedCommits: Map<number, SingleCommit[]> = new Map<
@@ -57,13 +58,24 @@ export class CommitPool {
 	}
 
 	public createSingleCommit(
-		_blockHeader: BlockHeader,
-		_validatorInfo: ValidatorInfo,
-		_networkIdentifier: Buffer,
-		// eslint-disable-next-line @typescript-eslint/no-empty-function
+		blockHeader: BlockHeader,
+		validatorInfo: ValidatorInfo,
+		networkIdentifier: Buffer,
 	): SingleCommit {
-		return {} as SingleCommit;
+		const commit = {
+			blockID: blockHeader.id,
+			height: blockHeader.height,
+			validatorAddress: validatorInfo.address,
+			certificateSignature: signCertificate(
+				validatorInfo.blsSecretKey,
+				networkIdentifier,
+				computeCertificateFromBlockHeader(blockHeader),
+			),
+		};
+
+		return commit;
 	}
+
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public verifyAggregateCommit(_aggregateCommit: AggregateCommit): boolean {
 		return true;

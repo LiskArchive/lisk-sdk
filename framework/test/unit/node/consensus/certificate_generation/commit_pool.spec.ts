@@ -12,8 +12,34 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-// eslint-disable-next-line jest/no-disabled-tests
-describe.skip('CommitPool', () => {
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { createFakeBlockHeader } from '../../../../../src/testing/create_block';
+import { CommitPool } from '../../../../../src/node/consensus/certificate_generation/commit_pool';
+import {
+	computeCertificateFromBlockHeader,
+	signCertificate,
+} from '../../../../../src/node/consensus/certificate_generation/utils';
+import { SingleCommit } from '../../../../../src/node/consensus/certificate_generation/types';
+
+describe('CommitPool', () => {
+	const networkIdentifier = Buffer.alloc(0);
+	const blockTime = 10;
+	const network = {} as any;
+	let commitPool: CommitPool;
+	let bftAPI: any;
+	let validatorsAPI: any;
+
+	beforeEach(() => {
+		bftAPI = jest.fn();
+		validatorsAPI = jest.fn();
+		commitPool = new CommitPool({
+			bftAPI,
+			validatorsAPI,
+			blockTime,
+			network,
+		});
+	});
+
 	describe('constructor', () => {
 		it.todo('');
 	});
@@ -29,9 +55,37 @@ describe.skip('CommitPool', () => {
 	describe('getCommitsByHeight', () => {
 		it.todo('');
 	});
+
 	describe('createSingleCommit', () => {
-		it.todo('');
+		const blockHeader = createFakeBlockHeader();
+		const validatorInfo = {
+			address: getRandomBytes(20),
+			blsPublicKey: getRandomBytes(48),
+			blsSecretKey: getRandomBytes(32),
+		};
+		const certificate = computeCertificateFromBlockHeader(blockHeader);
+		let expectedCommit: SingleCommit;
+
+		beforeEach(() => {
+			expectedCommit = {
+				blockID: blockHeader.id,
+				height: blockHeader.height,
+				validatorAddress: validatorInfo.address,
+				certificateSignature: signCertificate(
+					validatorInfo.blsSecretKey,
+					networkIdentifier,
+					certificate,
+				),
+			};
+		});
+
+		it('should create a single commit', () => {
+			expect(commitPool.createSingleCommit(blockHeader, validatorInfo, networkIdentifier)).toEqual(
+				expectedCommit,
+			);
+		});
 	});
+
 	describe('verifyAggregateCommit', () => {
 		it.todo('');
 	});
