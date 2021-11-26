@@ -49,7 +49,7 @@ export class CommitPool {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public addCommit(_commit: SingleCommit, _height: number): void {}
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public validateCommit(): boolean {
+	public validateCommit(_commit: SingleCommit): boolean {
 		return true;
 	}
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
