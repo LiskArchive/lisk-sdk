@@ -29,12 +29,13 @@ import {
 	getBlocksFromIdResponseSchema,
 	getHighestCommonBlockRequestSchema,
 	getHighestCommonBlockResponseSchema,
+	getSingleCommitEventSchema,
 	RPCBlocksByIdData,
 	RPCHighestCommonBlockRequest,
+	SingleCommitData,
 } from './schema';
 import { CommitPool } from './certificate_generation/commit_pool';
 import { singleCommitSchema } from './certificate_generation/schema';
-import { SingleCommit } from './certificate_generation/types';
 
 export interface EndpointArgs {
 	logger: Logger;
@@ -181,10 +182,10 @@ export class NetworkEndpoint {
 			peerId,
 			DEFAULT_SINGLE_COMMIT_FROM_IDS_RATE_LIMIT_FREQUENCY,
 		);
-		let decodedData: SingleCommit;
+		let decodedData: SingleCommitData;
 
 		try {
-			decodedData = codec.decode<SingleCommit>(singleCommitSchema, data as never);
+			decodedData = codec.decode<SingleCommitData>(getSingleCommitEventSchema, data as never);
 		} catch (error) {
 			this._logger.warn(
 				{
@@ -202,7 +203,7 @@ export class NetworkEndpoint {
 			throw error;
 		}
 
-		const errors = validator.validate(singleCommitSchema, decodedData);
+		const errors = validator.validate(singleCommitSchema, decodedData.singleCommit);
 
 		if (errors.length) {
 			const error = new LiskValidationError(errors);
@@ -219,7 +220,7 @@ export class NetworkEndpoint {
 		}
 
 		try {
-			this._commitPool.validateCommit(decodedData);
+			this._commitPool.validateCommit(decodedData.singleCommit);
 		} catch (error) {
 			this._logger.debug(
 				{ peerId, penalty: 100 },
@@ -233,7 +234,7 @@ export class NetworkEndpoint {
 			throw error;
 		}
 
-		this._commitPool.addCommit(decodedData, decodedData.height);
+		this._commitPool.addCommit(decodedData.singleCommit, decodedData.singleCommit.height);
 	}
 
 	private _addRateLimit(procedure: string, peerId: string, limit: number): void {
