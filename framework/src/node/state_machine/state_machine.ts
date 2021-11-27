@@ -41,6 +41,7 @@ export interface StateMachineModule {
 	commands: StateMachineCommand[];
 	verifyTransaction?: (ctx: TransactionVerifyContext) => Promise<VerificationResult>;
 	initGenesisState?: (ctx: GenesisBlockExecuteContext) => Promise<void>;
+	finalizeGenesisState?: (ctx: GenesisBlockExecuteContext) => Promise<void>;
 	verifyAssets?: (ctx: BlockVerifyContext) => Promise<void>;
 	beforeTransactionsExecute?: (ctx: BlockExecuteContext) => Promise<void>;
 	afterTransactionsExecute?: (ctx: BlockAfterExecuteContext) => Promise<void>;
@@ -81,6 +82,16 @@ export class StateMachine {
 		for (const mod of this._modules) {
 			if (mod.initGenesisState) {
 				await mod.initGenesisState(blockContext);
+			}
+		}
+		for (const mod of this._modules) {
+			if (mod.finalizeGenesisState) {
+				await mod.finalizeGenesisState(blockContext);
+			}
+		}
+		for (const mod of this._systemModules) {
+			if (mod.finalizeGenesisState) {
+				await mod.finalizeGenesisState(blockContext);
 			}
 		}
 	}

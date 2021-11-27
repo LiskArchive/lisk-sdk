@@ -127,8 +127,10 @@ describe('DPoS module', () => {
 					header: createFakeBlockHeader({ height: 12345 }),
 					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
 				}).createGenesisBlockExecuteContext();
+				jest.spyOn(dpos, 'finalizeGenesisState');
 
 				await expect(dpos.initGenesisState(context)).rejects.toThrow(errString as string);
+				expect(dpos.finalizeGenesisState).not.toHaveBeenCalled();
 			});
 		});
 
@@ -152,7 +154,8 @@ describe('DPoS module', () => {
 					stateStore,
 					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
 				}).createGenesisBlockExecuteContext();
-				await expect(dpos.initGenesisState(context)).rejects.toThrow(
+				await dpos.initGenesisState(context);
+				await expect(dpos.finalizeGenesisState(context)).rejects.toThrow(
 					'When genensis height is zero, there should not be a snapshot',
 				);
 			});
@@ -166,7 +169,8 @@ describe('DPoS module', () => {
 					header: createFakeBlockHeader({ height: 12345 }),
 					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
 				}).createGenesisBlockExecuteContext();
-				await expect(dpos.initGenesisState(context)).rejects.toThrow(
+				await dpos.initGenesisState(context);
+				await expect(dpos.finalizeGenesisState(context)).rejects.toThrow(
 					'When genesis height is non-zero, snapshot is required',
 				);
 			});
@@ -185,6 +189,7 @@ describe('DPoS module', () => {
 
 			it('should store self vote and received votes', async () => {
 				await expect(dpos.initGenesisState(context)).toResolve();
+				await expect(dpos.finalizeGenesisState(context)).toResolve();
 
 				const delegateStore = stateStore.getStore(dpos.id, STORE_PREFIX_DELEGATE);
 				await expect(
@@ -255,6 +260,7 @@ describe('DPoS module', () => {
 
 			it('should register all the validators', async () => {
 				await expect(dpos.initGenesisState(context)).toResolve();
+				await expect(dpos.finalizeGenesisState(context)).toResolve();
 
 				expect(dpos['_validatorsAPI'].setGeneratorList).toHaveBeenCalledWith(
 					expect.anything(),
@@ -264,6 +270,7 @@ describe('DPoS module', () => {
 
 			it('should register all active delegates as BFT validators', async () => {
 				await expect(dpos.initGenesisState(context)).toResolve();
+				await expect(dpos.finalizeGenesisState(context)).toResolve();
 				expect(dpos['_bftAPI'].setBFTParameters).toHaveBeenCalledWith(
 					expect.anything(),
 					BigInt(68),
@@ -278,13 +285,17 @@ describe('DPoS module', () => {
 			it('should fail if registerValidatorKeys return false', async () => {
 				(dpos['_validatorsAPI'].registerValidatorKeys as jest.Mock).mockResolvedValue(false);
 
-				await expect(dpos.initGenesisState(context)).rejects.toThrow('Invalid validator key');
+				await expect(dpos.initGenesisState(context)).toResolve();
+				await expect(dpos.finalizeGenesisState(context)).rejects.toThrow('Invalid validator key');
 			});
 
 			it('should fail if getLockedAmount return different value', async () => {
 				(dpos['_tokenAPI'].getLockedAmount as jest.Mock).mockResolvedValue(BigInt(0));
 
-				await expect(dpos.initGenesisState(context)).rejects.toThrow('Voted amount is not locked');
+				await expect(dpos.initGenesisState(context)).toResolve();
+				await expect(dpos.finalizeGenesisState(context)).rejects.toThrow(
+					'Voted amount is not locked',
+				);
 			});
 		});
 	});
