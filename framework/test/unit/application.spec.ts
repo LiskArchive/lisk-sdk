@@ -89,7 +89,7 @@ describe('Application', () => {
 
 		it('should set app label with the genesis block transaction root prefixed with `lisk-` if label not provided', () => {
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			const label = `lisk-${config.genesisConfig.communityIdentifier}`;
+			const label = `lisk-${config.genesis.communityIdentifier}`;
 			const configWithoutLabel = objects.cloneDeep(config);
 			delete configWithoutLabel.label;
 
@@ -142,24 +142,19 @@ describe('Application', () => {
 			expect(app.config.logger.logFileName).toBe('lisk.log');
 		});
 
-		it('should merge the constants with genesisConfig and assign it to app constants', () => {
+		it('should merge the constants with genesis and assign it to app constants', () => {
 			const customConfig = objects.cloneDeep(config);
 
-			customConfig.genesisConfig = {
-				...config.genesisConfig,
+			customConfig.genesis = {
+				...config.genesis,
 				maxTransactionsSize: 15 * 1024,
 				communityIdentifier: 'Lisk',
 				blockTime: 5,
-				rewards: {
-					milestones: ['500000000', '400000000', '300000000', '200000000', '100000000'],
-					offset: 2160,
-					distance: 3000000,
-				},
 			};
 
 			const { app } = Application.defaultApplication(customConfig);
 
-			expect(app.config.genesisConfig.maxTransactionsSize).toBe(15 * 1024);
+			expect(app.config.genesis.maxTransactionsSize).toBe(15 * 1024);
 		});
 
 		it('should set internal variables', () => {
@@ -180,10 +175,10 @@ describe('Application', () => {
 			expect(app.logger).toBeUndefined();
 		});
 
-		it('should throw if invalid forger is provided', () => {
+		it('should throw if invalid generation is provided', () => {
 			// Arrange
 			const invalidConfig = objects.mergeDeep({}, config, {
-				forging: {
+				generation: {
 					delegates: [
 						{
 							encryptedPassphrase:

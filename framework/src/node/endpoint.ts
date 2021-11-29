@@ -160,8 +160,8 @@ export class Endpoint {
 			finalizedHeight: this._consensus.finalizedHeight(),
 			syncing: this._consensus.syncing(),
 			unconfirmedTransactions: this._generator.getPooledTransactions().length,
-			genesisConfig: {
-				...this._options.genesisConfig,
+			genesis: {
+				...this._options.genesis,
 			},
 			registeredModules: getRegisteredModules(this._registeredModules),
 			network: {

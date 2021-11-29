@@ -133,7 +133,6 @@ export interface ApplicationConfig {
 		fileLogLevel: string;
 		consoleLogLevel: string;
 	};
-	genesisConfig: GenesisConfig;
 	plugins: {
 		[key: string]: PluginConfig;
 	};

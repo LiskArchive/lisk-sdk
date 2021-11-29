@@ -31,7 +31,7 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 			host: '127.0.0.1',
 		},
 	},
-	genesis: {} as ApplicationConfigForPlugin['genesis'],
+	genesis: {} as GenesisConfig,
 	generation: {
 		force: false,
 		waitThreshold: 2,
@@ -51,7 +51,6 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 	},
 	version: '',
 	networkVersion: '',
-	genesisConfig: {} as GenesisConfig,
 };
 const logger = testing.mocks.loggerMock;
 

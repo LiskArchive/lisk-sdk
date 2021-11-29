@@ -49,7 +49,7 @@ describe('Synchronizer', () => {
 		};
 
 		chainModule = new Chain({
-			maxTransactionsSize: applicationConfigSchema.default.genesisConfig.maxTransactionsSize,
+			maxTransactionsSize: applicationConfigSchema.default.genesis.maxTransactionsSize,
 		});
 		chainModule.init({
 			db: new InMemoryKVStore(),

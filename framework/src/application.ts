@@ -133,7 +133,7 @@ export class Application {
 
 		appConfig.label =
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			config.label ?? `lisk-${config.genesisConfig?.communityIdentifier}`;
+			config.label ?? `lisk-${config.genesis?.communityIdentifier}`;
 
 		const mergedConfig = objects.mergeDeep({}, appConfig, config) as ApplicationConfig;
 		const applicationConfigErrors = validator.validate(applicationConfigSchema, mergedConfig);

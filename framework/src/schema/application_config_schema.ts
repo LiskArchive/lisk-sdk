@@ -285,7 +285,14 @@ export const applicationConfigSchema = {
 		},
 		genesis: {
 			type: 'object',
-			required: ['blockTime', 'communityIdentifier', 'maxTransactionsSize', 'rewards', 'modules'],
+			required: [
+				'blockTime',
+				'communityIdentifier',
+				'maxTransactionsSize',
+				'minFeePerByte',
+				'baseFees',
+				'modules',
+			],
 			properties: {
 				blockTime: {
 					type: 'number',

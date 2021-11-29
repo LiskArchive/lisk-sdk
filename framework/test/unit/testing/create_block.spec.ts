@@ -23,7 +23,7 @@ import { createFakeBlockHeader } from '../../fixtures';
 describe('Create Block', () => {
 	const networkIdentifier = getNetworkIdentifier(
 		Buffer.from(devnetGenesisBlock.header.id, 'hex'),
-		devnetConfig.genesisConfig.communityIdentifier,
+		devnetConfig.genesis.communityIdentifier,
 	).toString('hex');
 	const genesis = {
 		passphrase: 'cake cruise harvest senior glare resist acoustic maze stuff lizard autumn educate',
