@@ -21,6 +21,7 @@ import { WSServer } from '../../../src/controller/ws/ws_server';
 import { IPCServer } from '../../../src/controller/ipc/ipc_server';
 import { EndpointInfo } from '../../../src';
 
+jest.mock('ws');
 jest.mock('eventemitter2');
 jest.mock('zeromq', () => {
 	return {

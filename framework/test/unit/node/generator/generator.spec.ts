@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BlockAssets, Chain, Transaction } from '@liskhq/lisk-chain';
+import { Block, BlockAssets, Chain, Transaction } from '@liskhq/lisk-chain';
 import { getAddressFromPublicKey, getRandomBytes, hash } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
@@ -128,6 +128,7 @@ describe('generator', () => {
 			verifyTransaction: jest.fn(),
 			beforeExecuteBlock: jest.fn(),
 			afterExecuteBlock: jest.fn(),
+			executeGenesisBlock: jest.fn(),
 		} as never;
 		network = {
 			registerEndpoint: jest.fn(),
@@ -439,7 +440,109 @@ describe('generator', () => {
 		});
 	});
 
-	describe('_generateBlock', () => {
+	describe('generateGenesisBlock', () => {
+		let mod1: GeneratorModule;
+		let mod2: GeneratorModule;
+
+		const validatorsHash = hash(getRandomBytes(32));
+		const assetSchema1 = {
+			$id: 'assetSchema1',
+			type: 'object',
+			properties: {
+				data: { fieldNumber: 1, dataType: 'uint32' },
+			},
+		};
+		const assetSchema2 = {
+			$id: 'assetSchema2',
+			type: 'object',
+			properties: {
+				data: { fieldNumber: 1, dataType: 'string' },
+			},
+		};
+		const assets = [
+			{
+				moduleID: 5,
+				data: { data: 'asset-schema2' },
+				schema: assetSchema2,
+			},
+			{
+				moduleID: 2,
+				data: { data: 123 },
+				schema: assetSchema1,
+			},
+		];
+
+		beforeEach(async () => {
+			mod1 = {
+				id: 1,
+				initBlock: jest.fn(),
+			};
+			mod2 = {
+				id: 2,
+				sealBlock: jest.fn(),
+			};
+			generator.registerModule(mod1);
+			generator.registerModule(mod2);
+			jest.spyOn(stateMachine, 'executeGenesisBlock');
+			jest
+				.spyOn(generator['_bftAPI'], 'getBFTParameters')
+				.mockResolvedValue({ validatorsHash } as never);
+			await generator.init({
+				blockchainDB,
+				generatorDB,
+				logger,
+			});
+		});
+
+		it('should execute genesis block', async () => {
+			const genesisBlock = await generator.generateGenesisBlock({ assets });
+
+			expect(stateMachine.executeGenesisBlock).toHaveBeenCalledTimes(1);
+			expect(genesisBlock).toBeInstanceOf(Block);
+		});
+
+		it('should get BFT parameters using next height', async () => {
+			const genesisBlock = await generator.generateGenesisBlock({ assets, height: 100 });
+
+			expect(generator['_bftAPI'].getBFTParameters).toHaveBeenCalledWith(expect.anything(), 101);
+			expect(genesisBlock).toBeInstanceOf(Block);
+		});
+
+		it('should set height, previousBlockID and timestamp to the genesis block', async () => {
+			const previousBlockID = getRandomBytes(32);
+			const timestamp = 1121222;
+			const height = 100;
+			const genesisBlock = await generator.generateGenesisBlock({
+				assets,
+				height,
+				timestamp,
+				previousBlockID,
+			});
+
+			expect(genesisBlock.header.previousBlockID).toEqual(previousBlockID);
+			expect(genesisBlock.header.timestamp).toEqual(timestamp);
+			expect(genesisBlock.header.height).toEqual(height);
+		});
+
+		it('should include sorted assets to the genesis block', async () => {
+			const genesisBlock = await generator.generateGenesisBlock({ assets });
+
+			expect(genesisBlock.assets['_assets'][0].moduleID).toEqual(2);
+			expect(genesisBlock.assets['_assets'][1].moduleID).toEqual(5);
+			expect(genesisBlock.header.validatorsHash).toEqual(validatorsHash);
+			expect(genesisBlock.header.assetsRoot).not.toBeUndefined();
+		});
+
+		it('should set default value to height, previousBlockID and timestamp to the genesis block', async () => {
+			const genesisBlock = await generator.generateGenesisBlock({ assets });
+
+			expect(genesisBlock.header.previousBlockID).toEqual(Buffer.alloc(32, 0));
+			expect(genesisBlock.header.timestamp).toBeGreaterThan(Math.floor(Date.now() / 1000) - 60000);
+			expect(genesisBlock.header.height).toEqual(0);
+		});
+	});
+
+	describe('generateBlock', () => {
 		let mod1: GeneratorModule;
 		let mod2: GeneratorModule;
 
@@ -477,7 +580,12 @@ describe('generator', () => {
 		});
 
 		it('should call all hooks', async () => {
-			const block = await generator['_generateBlock'](generatorAddress, keypair, currentTime);
+			const block = await generator.generateBlock({
+				generatorAddress,
+				timestamp: currentTime,
+				privateKey: keypair.privateKey,
+				height: 2,
+			});
 			expect(mod1.initBlock).toHaveBeenCalledTimes(1);
 			expect(mod2.sealBlock).toHaveBeenCalledTimes(1);
 			expect(stateMachine.beforeExecuteBlock).toHaveBeenCalledTimes(1);
@@ -489,20 +597,36 @@ describe('generator', () => {
 		});
 
 		it('should have finalizedHeight in the context', async () => {
-			await generator['_generateBlock'](generatorAddress, keypair, currentTime);
+			await generator.generateBlock({
+				generatorAddress,
+				timestamp: currentTime,
+				privateKey: keypair.privateKey,
+				height: 2,
+			});
+
 			expect((mod1.initBlock as jest.Mock).mock.calls[0][0].getFinalizedHeight()).toEqual(100);
 			expect((mod2.sealBlock as jest.Mock).mock.calls[0][0].getFinalizedHeight()).toEqual(100);
 		});
 
 		it('should assign validatorsHash to the block', async () => {
-			const block = await generator['_generateBlock'](generatorAddress, keypair, currentTime);
+			const block = await generator.generateBlock({
+				generatorAddress,
+				timestamp: currentTime,
+				privateKey: keypair.privateKey,
+				height: 2,
+			});
 
 			expect(block.header.validatorsHash).toEqual(validatorsHash);
 		});
 
 		it('should assign assetRoot to the block', async () => {
 			jest.spyOn(BlockAssets.prototype, 'getRoot').mockResolvedValue(assetHash);
-			const block = await generator['_generateBlock'](generatorAddress, keypair, currentTime);
+			const block = await generator.generateBlock({
+				generatorAddress,
+				timestamp: currentTime,
+				privateKey: keypair.privateKey,
+				height: 2,
+			});
 
 			expect(block.header.assetsRoot).toEqual(assetHash);
 		});

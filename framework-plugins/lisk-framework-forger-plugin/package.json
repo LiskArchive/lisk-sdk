@@ -44,7 +44,6 @@
 	},
 	"devDependencies": {
 		"@liskhq/lisk-api-client": "^5.1.4",
-		"@liskhq/lisk-genesis": "^0.2.3",
 		"@types/debug": "4.1.5",
 		"@types/jest": "26.0.21",
 		"@types/jest-when": "2.7.2",

@@ -17,11 +17,14 @@ import { codec } from '@liskhq/lisk-codec';
 import { MerkleTree } from '@liskhq/lisk-tree';
 import { blockAssetSchema } from './schema';
 import { MAX_ASSET_DATA_SIZE_BYTES } from './constants';
+import { JSONObject } from './types';
 
 export interface BlockAsset {
 	moduleID: number;
 	data: Buffer;
 }
+
+export type BlockAssetJSON = JSONObject<BlockAsset>;
 
 export class BlockAssets {
 	private readonly _assets: BlockAsset[] = [];
@@ -58,6 +61,13 @@ export class BlockAssets {
 
 	public getAll(): BlockAsset[] {
 		return [...this._assets];
+	}
+
+	public toJSON(): BlockAssetJSON[] {
+		return this._assets.map(asset => ({
+			moduleID: asset.moduleID,
+			data: asset.data.toString('hex'),
+		}));
 	}
 
 	public setAsset(moduleID: number, value: Buffer): void {

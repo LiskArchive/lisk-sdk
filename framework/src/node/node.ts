@@ -24,7 +24,7 @@ import { BaseModule } from '../modules/base_module';
 import { BaseCommand } from '../modules/base_command';
 import { StateMachine } from './state_machine';
 import { Consensus, CONSENSUS_EVENT_BLOCK_DELETE, CONSENSUS_EVENT_BLOCK_NEW } from './consensus';
-import { Generator } from './generator';
+import { BlockGenerateInput, Generator, GenesisBlockGenerateInput } from './generator';
 import { Endpoint } from './endpoint';
 import { getRegisteredModules, getSchema } from './utils/modules';
 import { getEndpointHandlers, mergeEndpointHandlers } from '../endpoint';
@@ -110,6 +110,7 @@ export class Node {
 			consensus: this._consensus,
 			generator: this._generator,
 		});
+		this._bftModule.addDependencies(this._validatorsModule.api);
 		this._stateMachine.registerSystemModule(this._validatorsModule);
 		this._stateMachine.registerSystemModule(this._bftModule);
 		this._generator.registerModule(this._validatorsModule);
@@ -256,6 +257,14 @@ export class Node {
 		});
 
 		this._logger.info('Node ready and launched');
+	}
+
+	public async generateGenesisBlock(input: GenesisBlockGenerateInput): Promise<Block> {
+		return this._generator.generateGenesisBlock(input);
+	}
+
+	public async generateBlock(input: BlockGenerateInput): Promise<Block> {
+		return this._generator.generateBlock(input);
 	}
 
 	public get bftAPI(): BFTAPI {

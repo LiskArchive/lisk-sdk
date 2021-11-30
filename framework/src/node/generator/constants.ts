@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { hash } from '@liskhq/lisk-cryptography';
+
 export const DEFAULT_RELEASE_LIMIT = 100;
 export const DEFAULT_RELEASE_INTERVAL = 5000;
 export const DEFAULT_RATE_LIMIT_FREQUENCY = 3;
@@ -22,3 +24,7 @@ export const NETWORK_RPC_GET_TRANSACTIONS = 'getTransactions';
 export const NETWORK_EVENT_POST_TRANSACTIONS_ANNOUNCEMENT = 'postTransactionsAnnouncement';
 
 export const GENERATOR_STORE_RESERVED_PREFIX = 0;
+
+export const EMPTY_BUFFER = Buffer.alloc(0);
+export const EMPTY_HASH = hash(Buffer.alloc(0));
+export const GENESIS_BLOCK_VERSION = 0;

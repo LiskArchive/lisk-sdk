@@ -16,7 +16,6 @@ import * as fixtures from './fixtures';
 import * as mocks from './mocks';
 
 export { createTransaction } from './create_transaction';
-export { createGenesisBlock } from './create_genesis_block';
 export * from './create_block';
 export * from './app_env';
 export * from './create_contexts';
