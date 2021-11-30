@@ -13,9 +13,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
+import {
+	generatePrivateKey,
+	getPublicKeyFromPrivateKey,
+	getRandomBytes,
+	blsPopProve,
+	getAddressAndPublicKeyFromPassphrase,
+} from '@liskhq/lisk-cryptography';
 import { Node } from '../../../src/node/node';
 import { nodeOptions } from '../../fixtures/node';
-import { createGenesisBlock } from '../../../src/testing/create_genesis_block';
 import { InMemoryChannel } from '../../../src/controller';
 import { fakeLogger } from '../../utils/node';
 import { BaseAPI, BaseCommand, BaseEndpoint, BaseModule } from '../../../src';
@@ -24,8 +30,10 @@ import {
 	CONSENSUS_EVENT_BLOCK_DELETE,
 	CONSENSUS_EVENT_BLOCK_NEW,
 } from '../../../src/node/consensus';
+import { BFTAPI } from '../../../src/modules/bft';
+import { GenesisBlockExecuteContext } from '../../../src/node/state_machine';
+import { ValidatorsAPI } from '../../../src/modules/validators';
 
-jest.mock('@liskhq/lisk-db');
 jest.mock('fs-extra');
 
 class SampleEndpoint extends BaseEndpoint {
@@ -38,7 +46,32 @@ class SampleNodeModule extends BaseModule {
 	public id = 1000;
 	public name = 'sample';
 
+	private _bftAPI!: BFTAPI;
+	private _validatorAPI!: ValidatorsAPI;
+
 	public async init(_args: ModuleInitArgs): Promise<void> {}
+
+	public addDependencies(bftAPI: BFTAPI, validatorAPI: ValidatorsAPI) {
+		this._bftAPI = bftAPI;
+		this._validatorAPI = validatorAPI;
+	}
+
+	public async afterGenesisBlockExecute(context: GenesisBlockExecuteContext): Promise<void> {
+		const keys = getAddressAndPublicKeyFromPassphrase('passphrase');
+		const blsSK = generatePrivateKey(getRandomBytes(64));
+		const blsPK = getPublicKeyFromPrivateKey(blsSK);
+		const blsPop = blsPopProve(blsSK);
+		await this._validatorAPI.registerValidatorKeys(
+			context.getAPIContext(),
+			keys.address,
+			blsPK,
+			keys.publicKey,
+			blsPop,
+		);
+		await this._bftAPI.setBFTParameters(context.getAPIContext(), BigInt(68), BigInt(68), [
+			{ address: keys.address, bftWeight: BigInt(100) },
+		]);
+	}
 }
 
 describe('Node', () => {
@@ -49,8 +82,6 @@ describe('Node', () => {
 	let forgerDB: KVStore;
 	let nodeDB: KVStore;
 	let sampleNodeModule: SampleNodeModule;
-
-	const { genesisBlock } = createGenesisBlock({});
 
 	beforeEach(() => {
 		// Arrange
@@ -75,6 +106,7 @@ describe('Node', () => {
 			options: nodeOptions,
 		});
 		sampleNodeModule = new SampleNodeModule();
+		sampleNodeModule.addDependencies(node.bftAPI, node.validatorAPI);
 		node.registerModule(sampleNodeModule);
 	});
 
@@ -108,6 +140,7 @@ describe('Node', () => {
 			jest.spyOn(node['_consensus'], 'init');
 			jest.spyOn(node['_consensus'].events, 'on');
 			jest.spyOn(sampleNodeModule, 'init');
+			const genesisBlock = await node.generateGenesisBlock({ assets: [] });
 			await node.init({
 				channel,
 				blockchainDB,
@@ -324,6 +357,7 @@ describe('Node', () => {
 			jest.spyOn(node['_chain'], 'loadLastBlocks').mockResolvedValue();
 			jest.spyOn(node['_network'], 'start');
 			jest.spyOn(node['_generator'], 'start');
+			const genesisBlock = await node.generateGenesisBlock({ assets: [] });
 			await node.init({
 				channel,
 				blockchainDB,

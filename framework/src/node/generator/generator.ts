@@ -28,7 +28,7 @@ import {
 	getPrivateAndPublicKeyFromPassphrase,
 	parseEncryptedPassphrase,
 } from '@liskhq/lisk-cryptography';
-import { KVStore } from '@liskhq/lisk-db';
+import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { TransactionPool, events } from '@liskhq/lisk-transaction-pool';
 import { MerkleTree, SparseMerkleTree } from '@liskhq/lisk-tree';
 import { dataStructures, jobHandlers } from '@liskhq/lisk-utils';
@@ -43,6 +43,7 @@ import {
 	TransactionContext,
 	VerifyStatus,
 	BlockContext,
+	GenesisBlockContext,
 } from '../state_machine';
 import { Broadcaster } from './broadcaster';
 import {
@@ -52,6 +53,9 @@ import {
 	LOAD_TRANSACTION_RETRIES,
 	NETWORK_RPC_GET_TRANSACTIONS,
 	NETWORK_EVENT_POST_TRANSACTIONS_ANNOUNCEMENT,
+	EMPTY_BUFFER,
+	EMPTY_HASH,
+	GENESIS_BLOCK_VERSION,
 } from './constants';
 import { GenerationContext } from './context';
 import { Endpoint } from './endpoint';
@@ -59,7 +63,14 @@ import { GeneratorStore } from './generator_store';
 import { NetworkEndpoint } from './network_endpoint';
 import { GetTransactionResponse, getTransactionsResponseSchema } from './schemas';
 import { HighFeeGenerationStrategy } from './strategies';
-import { Consensus, GeneratorModule, BFTAPI, ValidatorAPI } from './types';
+import {
+	Consensus,
+	GeneratorModule,
+	BFTAPI,
+	ValidatorAPI,
+	BlockGenerateInput,
+	GenesisBlockGenerateInput,
+} from './types';
 import { createAPIContext, createNewAPIContext } from '../state_machine/api_context';
 import { getOrDefaultLastGeneratedInfo, setLastGeneratedInfo } from './generated_info';
 
@@ -262,6 +273,68 @@ export class Generator {
 		}
 	}
 
+	public async generateGenesisBlock(input: GenesisBlockGenerateInput): Promise<Block> {
+		const assets = new BlockAssets(
+			input.assets.map(asset => ({
+				moduleID: asset.moduleID,
+				data: codec.encode(asset.schema, asset.data),
+			})),
+		);
+		assets.sort();
+		const assetsRoot = await assets.getRoot();
+		const height = input.height ?? 0;
+		const previousBlockID = input.previousBlockID ?? Buffer.alloc(32, 0);
+		const timestamp = input.timestamp ?? Math.floor(Date.now() / 1000);
+		const header = new BlockHeader({
+			version: GENESIS_BLOCK_VERSION,
+			previousBlockID,
+			height,
+			timestamp,
+			generatorAddress: EMPTY_BUFFER,
+			maxHeightGenerated: 0,
+			maxHeightPrevoted: height,
+			signature: EMPTY_BUFFER,
+			transactionRoot: EMPTY_HASH,
+			assetsRoot,
+			aggregateCommit: {
+				height: 0,
+				aggregationBits: EMPTY_BUFFER,
+				certificateSignature: EMPTY_BUFFER,
+			},
+		});
+		// Information is not stored in the database
+		const db = new InMemoryKVStore();
+		const eventQueue = new EventQueue();
+		const stateStore = new StateStore(db);
+		const blockCtx = new GenesisBlockContext({
+			eventQueue,
+			header,
+			assets,
+			logger: this._logger,
+			stateStore,
+		});
+
+		await this._stateMachine.executeGenesisBlock(blockCtx);
+
+		const smtStore = new SMTStore(new InMemoryKVStore());
+		const smt = new SparseMerkleTree({ db: smtStore });
+		await stateStore.finalize(db.batch(), smt);
+
+		const apiContext = createAPIContext({ stateStore, eventQueue });
+		const bftParams = await this._bftAPI.getBFTParameters(apiContext, height + 1);
+		header.stateRoot = smt.rootHash;
+		header.validatorsHash = bftParams.validatorsHash;
+
+		return new Block(header, [], assets);
+	}
+
+	public async generateBlock(input: BlockGenerateInput): Promise<Block> {
+		const block = await this._generateBlock({
+			...input,
+		});
+		return block;
+	}
+
 	public async _loadTransactionsFromNetwork(): Promise<void> {
 		for (let retry = 0; retry < LOAD_TRANSACTION_RETRIES; retry += 1) {
 			try {
@@ -419,7 +492,12 @@ export class Generator {
 			);
 			return;
 		}
-		const generatedBlock = await this._generateBlock(generator, validatorKeypair, currentTime);
+		const generatedBlock = await this._generateBlock({
+			height: this._chain.lastBlock.header.height + 1,
+			generatorAddress: generator,
+			privateKey: validatorKeypair.privateKey,
+			timestamp: currentTime,
+		});
 		this._logger.info(
 			{
 				id: generatedBlock.header.id,
@@ -432,25 +510,25 @@ export class Generator {
 		await this._consensus.execute(generatedBlock as never);
 	}
 
-	private async _generateBlock(
-		generatorAddress: Buffer,
-		keypair: Keypair,
-		timestamp: number,
-	): Promise<Block> {
+	private async _generateBlock(input: BlockGenerateInput): Promise<Block> {
+		const { generatorAddress, timestamp, privateKey, height } = input;
 		const stateStore = new StateStore(this._blockchainDB);
-		const generatorStore = new GeneratorStore(this._generatorDB);
+		const generatorStore = new GeneratorStore(input.db ?? this._generatorDB);
 		const apiContext = createAPIContext({ stateStore, eventQueue: new EventQueue() });
 
 		const { maxHeightPrevoted } = await this._bftAPI.getBFTHeights(apiContext);
-		const { height } = await getOrDefaultLastGeneratedInfo(generatorStore, generatorAddress);
+		const { height: maxHeightGenerated } = await getOrDefaultLastGeneratedInfo(
+			generatorStore,
+			generatorAddress,
+		);
 
 		const blockHeader = new BlockHeader({
 			generatorAddress,
-			height: this._chain.lastBlock.header.height + 1,
+			height,
 			previousBlockID: this._chain.lastBlock.header.id,
 			version: BLOCK_VERSION,
 			maxHeightPrevoted,
-			maxHeightGenerated: height,
+			maxHeightGenerated,
 			aggregateCommit: {
 				height: 0,
 				aggregationBits: Buffer.alloc(0),
@@ -487,7 +565,8 @@ export class Generator {
 		});
 		await this._stateMachine.beforeExecuteBlock(blockCtx);
 
-		const transactions = await this._forgingStrategy.getTransactionsForBlock(blockHeader);
+		const transactions =
+			input.transactions ?? (await this._forgingStrategy.getTransactionsForBlock(blockHeader));
 
 		blockCtx.setTransactions(transactions);
 
@@ -516,9 +595,9 @@ export class Generator {
 		// Assign root hash calculated in SMT to state root of block header
 		blockHeader.stateRoot = smt.rootHash;
 		// Set validatorsHash
-		const { validatorsHash } = await this._bftAPI.getBFTParameters(apiContext, height);
+		const { validatorsHash } = await this._bftAPI.getBFTParameters(apiContext, height + 1);
 		blockHeader.validatorsHash = validatorsHash;
-		blockHeader.sign(this._chain.networkIdentifier, keypair.privateKey);
+		blockHeader.sign(this._chain.networkIdentifier, privateKey);
 
 		const generatedBlock = new Block(blockHeader, transactions, blockAssets);
 

@@ -49,6 +49,7 @@ import { FeeModule, FeeAPI } from './modules/fee';
 import { RewardModule, RewardAPI } from './modules/reward';
 import { RandomModule, RandomAPI } from './modules/random';
 import { DPoSModule, DPoSAPI } from './modules/dpos_v2';
+import { GenesisBlockGenerateInput } from './node/generator';
 
 const MINIMUM_EXTERNAL_MODULE_ID = 1000;
 
@@ -121,16 +122,13 @@ export class Application {
 	private readonly _node: Node;
 	private readonly _controller: Controller;
 
-	private _genesisBlock!: Record<string, unknown> | undefined;
 	private _blockchainDB!: KVStore;
 	private _nodeDB!: KVStore;
 	private _forgerDB!: KVStore;
 
 	private readonly _mutex = new jobHandlers.Mutex();
 
-	public constructor(genesisBlock: Record<string, unknown>, config: PartialApplicationConfig = {}) {
-		// Don't change the object parameters provided
-		this._genesisBlock = genesisBlock;
+	public constructor(config: PartialApplicationConfig = {}) {
 		const appConfig = objects.cloneDeep(applicationConfigSchema.default);
 
 		appConfig.label =
@@ -174,11 +172,8 @@ export class Application {
 		return this._node.bftAPI;
 	}
 
-	public static defaultApplication(
-		genesisBlock: Record<string, unknown>,
-		config: PartialApplicationConfig = {},
-	): DefaultApplication {
-		const application = new Application(genesisBlock, config);
+	public static defaultApplication(config: PartialApplicationConfig = {}): DefaultApplication {
+		const application = new Application(config);
 		// create module instances
 		const authModule = new AuthModule();
 		const tokenModule = new TokenModule();
@@ -239,7 +234,7 @@ export class Application {
 		return this._node.getRegisteredModules();
 	}
 
-	public async run(): Promise<void> {
+	public async run(genesisBlock: Block): Promise<void> {
 		Object.freeze(this.config);
 
 		registerProcessHooks(this);
@@ -276,12 +271,6 @@ export class Application {
 				networkIdentifier: this.networkIdentifier,
 			});
 
-			if (!this._genesisBlock) {
-				throw new Error('Genesis block must exist.');
-			}
-
-			const genesisBlock = Block.fromJSON(this._genesisBlock);
-
 			await this._node.init({
 				channel: this.channel,
 				genesisBlock,
@@ -297,9 +286,6 @@ export class Application {
 			this.logger.debug(this._controller.getEndpoints(), 'Application ready for actions');
 
 			this.channel.publish(APP_EVENT_READY);
-			// TODO: Update genesis block to be provided in this function
-			// For now, the memory should be free up
-			delete this._genesisBlock;
 		});
 	}
 
@@ -329,6 +315,10 @@ export class Application {
 			process.removeAllListeners('exit');
 			process.exit(errorCode);
 		}
+	}
+
+	public async generateGenesisBlock(input: GenesisBlockGenerateInput): Promise<Block> {
+		return this._node.generateGenesisBlock(input);
 	}
 
 	// --------------------------------------

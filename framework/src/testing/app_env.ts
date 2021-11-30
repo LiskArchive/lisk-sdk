@@ -21,7 +21,6 @@ import { objects } from '@liskhq/lisk-utils';
 import { homedir } from 'os';
 import { existsSync, rmdirSync } from 'fs-extra';
 import { defaultConfig } from './fixtures';
-import { createGenesisBlock } from './create_genesis_block';
 import { PartialApplicationConfig } from '../types';
 import { Application } from '../application';
 import { BaseModule } from '../modules';
@@ -40,7 +39,7 @@ export class ApplicationEnv {
 	private _application!: Application;
 	private _dataPath!: string;
 	private _ipcClient!: APIClient;
-	private _genesisBlock!: Record<string, unknown>;
+	private _genesisBlock!: Block;
 
 	public constructor(appConfig: ApplicationEnvConfig) {
 		this._initApplication(appConfig);
@@ -68,10 +67,11 @@ export class ApplicationEnv {
 	}
 
 	public async startApplication(): Promise<void> {
-		// eslint-disable-next-line dot-notation
-		this._application['_genesisBlock'] = this._genesisBlock;
+		this._genesisBlock = await this._application.generateGenesisBlock({
+			assets: [],
+		});
 		await Promise.race([
-			this._application.run(),
+			this._application.run(this._genesisBlock),
 			new Promise(resolve => setTimeout(resolve, 3000)),
 		]);
 		// Only start client when ipc is enabled
@@ -111,17 +111,14 @@ export class ApplicationEnv {
 		// As we can call this function with different configuration
 		// so we need to make sure existing schemas are already clear
 		codec.clearCache();
-		const { genesisBlockJSON } = createGenesisBlock({});
-		this._genesisBlock = genesisBlockJSON;
 		// In order for application to start forging, update force to true
 		const config = objects.mergeDeep({}, defaultConfig, appConfig.config ?? {});
 		const { label } = config;
 
-		const application = new Application(this._genesisBlock, config as PartialApplicationConfig);
+		const application = new Application(config as PartialApplicationConfig);
 		appConfig.modules.map(module => application.registerModule(module));
 		appConfig.plugins?.map(plugin => application.registerPlugin(plugin));
 		this._dataPath = join(application.config.rootPath, label);
-
 		this._application = application;
 		return application;
 	}

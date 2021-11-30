@@ -17,6 +17,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { EMPTY_BUFFER, EMPTY_HASH, TAG_BLOCK_HEADER } from './constants';
 import { blockHeaderSchema, blockHeaderSchemaWithId, signingBlockHeaderSchema } from './schema';
+import { JSONObject } from './types';
 
 export interface BlockHeaderAttrs {
 	readonly version: number;
@@ -39,26 +40,7 @@ export interface BlockHeaderAttrs {
 	id?: Buffer;
 }
 
-export interface BlockHeaderJSON {
-	readonly version: number;
-	readonly timestamp: number;
-	readonly height: number;
-	readonly generatorAddress: string;
-	readonly previousBlockID: string;
-	readonly maxHeightPrevoted: number;
-	readonly maxHeightGenerated: number;
-	readonly aggregateCommit: {
-		readonly height: number;
-		readonly aggregationBits: string;
-		readonly certificateSignature: string;
-	};
-	readonly validatorsHash: string;
-	readonly stateRoot: string;
-	readonly transactionRoot: string;
-	readonly assetsRoot: string;
-	readonly signature: string;
-	readonly id: string;
-}
+export type BlockHeaderJSON = JSONObject<BlockHeaderAttrs>;
 
 export class BlockHeader {
 	public readonly version: number;
@@ -335,7 +317,6 @@ export class BlockHeader {
 
 	private _resetComputedValues() {
 		this._id = undefined;
-		this._signature = undefined;
 	}
 
 	private _getSigningProps() {

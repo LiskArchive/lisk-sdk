@@ -191,7 +191,7 @@ export class Consensus {
 			const apiContext = createAPIContext({ stateStore: state.stateStore, eventQueue });
 			const bftParams = await this._bftAPI.getBFTParameters(
 				apiContext,
-				args.genesisBlock.header.height,
+				args.genesisBlock.header.height + 1,
 			);
 
 			if (

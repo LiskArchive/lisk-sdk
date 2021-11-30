@@ -14,15 +14,21 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
-import { BlockAssets } from './block_assets';
-import { BlockHeader } from './block_header';
+import { BlockAssetJSON, BlockAssets } from './block_assets';
+import { BlockHeader, BlockHeaderJSON } from './block_header';
 import { blockSchema } from './schema';
-import { Transaction } from './transaction';
+import { Transaction, TransactionJSON } from './transaction';
 
 interface BlockAttrs {
 	header: Buffer;
 	payload: Buffer[];
 	assets: Buffer[];
+}
+
+export interface BlockJSON {
+	header: BlockHeaderJSON;
+	payload: TransactionJSON[];
+	assets: BlockAssetJSON[];
 }
 
 export class Block {
@@ -45,21 +51,11 @@ export class Block {
 		);
 	}
 
-	public static fromJSON(value: Record<string, unknown>): Block {
+	public static fromJSON(value: BlockJSON): Block {
 		const { header, payload, assets } = value;
-		if (typeof header !== 'object') {
-			throw new Error('Invalid block format. header must be an object.');
-		}
-		if (!Array.isArray(payload)) {
-			throw new Error('Invalid block format. payload must be an array.');
-		}
-		if (!Array.isArray(assets)) {
-			throw new Error('Invalid block format. assets must be an array.');
-		}
-
 		return new Block(
-			BlockHeader.fromJSON(value.header as Record<string, unknown>),
-			payload.map(v => Transaction.fromBytes(v)),
+			BlockHeader.fromJSON(header),
+			payload.map(v => Transaction.fromJSON(v)),
 			BlockAssets.fromJSON(assets),
 		);
 	}
@@ -70,6 +66,14 @@ export class Block {
 			payload: this.payload.map(p => p.getBytes()),
 			assets: this.assets.getBytes(),
 		});
+	}
+
+	public toJSON(): BlockJSON {
+		return {
+			header: this.header.toJSON(),
+			payload: this.payload.map(p => p.toJSON()),
+			assets: this.assets.toJSON(),
+		};
 	}
 
 	public validate(): void {

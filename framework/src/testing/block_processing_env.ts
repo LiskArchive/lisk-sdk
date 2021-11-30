@@ -25,7 +25,6 @@ import { loggerMock, channelMock } from './mocks';
 import { defaultConfig, getPassphraseFromDefaultConfig } from './fixtures';
 import { createDB, removeDB } from './utils';
 import { ApplicationConfig, GenesisConfig } from '../types';
-import { createGenesisBlock } from './create_genesis_block';
 import { Consensus } from '../node/consensus';
 import { APIContext } from '../node/state_machine';
 import { Node } from '../node';
@@ -95,11 +94,13 @@ const createProcessableBlock = async (
 	for (const tx of payload) {
 		await node['_generator']['_pool'].add(tx);
 	}
-	const block = await node['_generator']['_generateBlock'](
-		validator,
-		getKeys(passphrase),
-		nextTimestamp,
-	);
+	const { privateKey } = getKeys(passphrase);
+	const block = await node.generateBlock({
+		generatorAddress: validator,
+		height: previousBlockHeader.height + 1,
+		privateKey,
+		timestamp: nextTimestamp,
+	});
 
 	return block;
 };
@@ -108,16 +109,15 @@ export const getBlockProcessingEnv = async (
 	params: BlockProcessingParams,
 ): Promise<BlockProcessingEnv> => {
 	const appConfig = getAppConfig(params.options?.genesisConfig);
-	const { genesisBlock } = createGenesisBlock({});
-	const networkIdentifier = getNetworkIdentifier(
-		genesisBlock.header.id,
-		appConfig.genesisConfig.communityIdentifier,
-	);
+
 	removeDB(params.options?.databasePath);
 	const blockchainDB = createDB('blockchain', params.options?.databasePath);
 	const forgerDB = createDB('forger', params.options?.databasePath);
 	const node = new Node({
 		options: appConfig,
+	});
+	const genesisBlock = await node.generateGenesisBlock({
+		assets: [],
 	});
 	await node.init({
 		blockchainDB,
@@ -127,6 +127,11 @@ export const getBlockProcessingEnv = async (
 		logger: loggerMock,
 		nodeDB: (new InMemoryKVStore() as unknown) as KVStore,
 	});
+
+	const networkIdentifier = getNetworkIdentifier(
+		genesisBlock.header.id,
+		appConfig.genesisConfig.communityIdentifier,
+	);
 
 	return {
 		createBlock: async (payload: Transaction[] = [], timestamp?: number): Promise<Block> =>
