@@ -21,7 +21,7 @@ Object {
       "bftThreshold": 68,
       "blockTime": 10,
       "communityIdentifier": "sdk",
-      "maxPayloadLength": 15360,
+      "maxTransactionsSize": 15360,
       "minFeePerByte": 1000,
       "modules": Object {},
       "rewards": Object {
@@ -41,7 +41,7 @@ Object {
       "bftThreshold": 68,
       "blockTime": 10,
       "communityIdentifier": "sdk",
-      "maxPayloadLength": 15360,
+      "maxTransactionsSize": 15360,
       "minFeePerByte": 1000,
       "rewards": Object {
         "distance": 3000000,
@@ -273,7 +273,7 @@ Object {
           "description": "The unique name of the relevant community as a string encoded in UTF-8 format",
           "type": "string",
         },
-        "maxPayloadLength": Object {
+        "maxTransactionsSize": Object {
           "description": "Maximum number of transactions allowed per block",
           "maximum": 30720,
           "minimum": 10240,
@@ -327,7 +327,7 @@ Object {
       "required": Array [
         "blockTime",
         "communityIdentifier",
-        "maxPayloadLength",
+        "maxTransactionsSize",
         "rewards",
         "modules",
       ],
@@ -372,7 +372,7 @@ Object {
           "description": "The unique name of the relevant community as a string encoded in UTF-8 format",
           "type": "string",
         },
-        "maxPayloadLength": Object {
+        "maxTransactionsSize": Object {
           "description": "Maximum number of transactions allowed per block",
           "maximum": 30720,
           "minimum": 10240,
@@ -417,7 +417,7 @@ Object {
       "required": Array [
         "blockTime",
         "communityIdentifier",
-        "maxPayloadLength",
+        "maxTransactionsSize",
         "rewards",
       ],
       "type": "object",

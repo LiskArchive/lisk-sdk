@@ -24,7 +24,7 @@ export interface GenesisConfig {
 	readonly bftThreshold: number;
 	readonly communityIdentifier: string;
 	readonly blockTime: number;
-	readonly maxPayloadLength: number;
+	readonly maxTransactionsSize: number;
 	readonly rewards: {
 		readonly milestones: string[];
 		readonly offset: number;
@@ -76,7 +76,7 @@ export interface BlockHeader {
 
 export interface Block {
 	header: BlockHeader;
-	payload: Transaction[];
+	transactions: Transaction[];
 }
 
 export interface Transaction {

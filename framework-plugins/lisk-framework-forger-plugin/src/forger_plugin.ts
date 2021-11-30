@@ -52,12 +52,12 @@ interface Vote {
 	amount: string;
 }
 
-interface ForgerPayloadInfo {
+interface ForgerTransactionsInfo {
 	forgerAddress: string;
 	forgerAddressBuffer: Buffer;
 	forgerAddressBinary: string;
 	header: BlockHeader;
-	payload: readonly Transaction[];
+	transactions: readonly Transaction[];
 }
 
 interface NodeInfo {
@@ -143,7 +143,7 @@ export class ForgerPlugin extends BasePlugin {
 		};
 	}
 
-	private _getForgerHeaderAndPayloadInfo(blockBytes: string): ForgerPayloadInfo {
+	private _getForgerHeaderAndTransactionsInfo(blockBytes: string): ForgerTransactionsInfo {
 		const block = Block.fromBytes(Buffer.from(blockBytes, 'hex'));
 		const forgerAddress = block.header.generatorAddress.toString('hex');
 		const forgerAddressBuffer = getAddressBuffer(forgerAddress);
@@ -154,7 +154,7 @@ export class ForgerPlugin extends BasePlugin {
 			forgerAddressBuffer,
 			forgerAddressBinary,
 			header: block.header,
-			payload: block.payload,
+			transactions: block.transactions,
 		};
 	}
 
@@ -197,8 +197,8 @@ export class ForgerPlugin extends BasePlugin {
 
 			// Reverse the blocks to get blocks from lower height to highest
 			for (const block of blocks.reverse()) {
-				const forgerPayloadInfo = this._getForgerHeaderAndPayloadInfo(block);
-				await this._addForgerInfo(block, forgerPayloadInfo);
+				const forgerTransactionsInfo = this._getForgerHeaderAndTransactionsInfo(block);
+				await this._addForgerInfo(block, forgerTransactionsInfo);
 			}
 
 			needleHeight = toHeight + 1;
@@ -214,44 +214,44 @@ export class ForgerPlugin extends BasePlugin {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.subscribe('app_block:new', async (data?: Record<string, unknown>) => {
 			const { block } = (data as unknown) as Data;
-			const forgerPayloadInfo = this._getForgerHeaderAndPayloadInfo(block);
+			const forgerTransactionsInfo = this._getForgerHeaderAndTransactionsInfo(block);
 			const {
 				header: { height },
-			} = forgerPayloadInfo;
+			} = forgerTransactionsInfo;
 
-			await this._addForgerInfo(block, forgerPayloadInfo);
+			await this._addForgerInfo(block, forgerTransactionsInfo);
 			await setForgerSyncInfo(this._forgerPluginDB, height);
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._channel.subscribe('app_block:delete', async (data?: Record<string, unknown>) => {
 			const { block } = (data as unknown) as Data;
-			const forgerPayloadInfo = this._getForgerHeaderAndPayloadInfo(block);
+			const forgerTransactionsInfo = this._getForgerHeaderAndTransactionsInfo(block);
 			const {
 				header: { height },
-			} = forgerPayloadInfo;
+			} = forgerTransactionsInfo;
 
-			await this._revertForgerInfo(block, forgerPayloadInfo);
+			await this._revertForgerInfo(block, forgerTransactionsInfo);
 			await setForgerSyncInfo(this._forgerPluginDB, height);
 		});
 	}
 
 	private async _addForgerInfo(
 		encodedBlock: string,
-		forgerPayloadInfo: ForgerPayloadInfo,
+		forgerTransactionsInfo: ForgerTransactionsInfo,
 	): Promise<void> {
 		const {
 			forgerAddress,
 			forgerAddressBuffer,
 			forgerAddressBinary,
 			header: { height },
-			payload,
-		} = forgerPayloadInfo;
+			transactions,
+		} = forgerTransactionsInfo;
 		const forgerInfo = await getForgerInfo(this._forgerPluginDB, forgerAddressBinary);
 
 		if (this._forgersList.has(forgerAddressBuffer)) {
 			forgerInfo.totalProducedBlocks += 1;
-			forgerInfo.totalReceivedFees += this._getFee(payload, encodedBlock);
+			forgerInfo.totalReceivedFees += this._getFee(transactions, encodedBlock);
 
 			this._channel.publish('forger:block:created', {
 				forgerAddress,
@@ -261,27 +261,27 @@ export class ForgerPlugin extends BasePlugin {
 			await setForgerInfo(this._forgerPluginDB, forgerAddressBinary, { ...forgerInfo });
 		}
 
-		await this._addVotesReceived(payload);
+		await this._addVotesReceived(transactions);
 		await this._updateMissedBlock(encodedBlock);
 	}
 
 	private async _revertForgerInfo(
 		encodedBlock: string,
-		forgerPayloadInfo: ForgerPayloadInfo,
+		forgerTransactionsInfo: ForgerTransactionsInfo,
 	): Promise<void> {
-		const { forgerAddressBuffer, forgerAddressBinary, payload } = forgerPayloadInfo;
+		const { forgerAddressBuffer, forgerAddressBinary, transactions } = forgerTransactionsInfo;
 		const forgerInfo = await getForgerInfo(this._forgerPluginDB, forgerAddressBinary);
 
 		if (this._forgersList.has(forgerAddressBuffer)) {
 			forgerInfo.totalProducedBlocks -= 1;
-			forgerInfo.totalReceivedFees -= this._getFee(payload, encodedBlock);
+			forgerInfo.totalReceivedFees -= this._getFee(transactions, encodedBlock);
 			await setForgerInfo(this._forgerPluginDB, forgerAddressBinary, { ...forgerInfo });
 		}
 
-		await this._revertVotesReceived(payload);
+		await this._revertVotesReceived(transactions);
 	}
 
-	private _getForgerReceivedVotes(payload: ReadonlyArray<Transaction>): ForgerReceivedVotes {
+	private _getForgerReceivedVotes(transactions: ReadonlyArray<Transaction>): ForgerReceivedVotes {
 		const forgerReceivedVotes: ForgerReceivedVotes = {};
 
 		const dposVotesSchema = this.apiClient.schemas.commands.find(
@@ -291,7 +291,7 @@ export class ForgerPlugin extends BasePlugin {
 			throw new Error('DPoS votes command is not registered.');
 		}
 
-		for (const trx of payload) {
+		for (const trx of transactions) {
 			if (trx.moduleID === MODULE_ID_DPOS && trx.commandID === COMMAND_ID_VOTE) {
 				const params = codec.decode<VotesParams>(dposVotesSchema.schema, trx.params);
 				params.votes.reduce((acc: ForgerReceivedVotes, curr) => {
@@ -314,8 +314,8 @@ export class ForgerPlugin extends BasePlugin {
 		return forgerReceivedVotes;
 	}
 
-	private async _addVotesReceived(payload: ReadonlyArray<Transaction>): Promise<void> {
-		const forgerReceivedVotes = this._getForgerReceivedVotes(payload);
+	private async _addVotesReceived(transactions: ReadonlyArray<Transaction>): Promise<void> {
+		const forgerReceivedVotes = this._getForgerReceivedVotes(transactions);
 
 		for (const [delegateAddress, votesReceived] of Object.entries(forgerReceivedVotes)) {
 			const forgerInfo = await getForgerInfo(
@@ -339,8 +339,8 @@ export class ForgerPlugin extends BasePlugin {
 		}
 	}
 
-	private async _revertVotesReceived(payload: ReadonlyArray<Transaction>): Promise<void> {
-		const forgerReceivedVotes = this._getForgerReceivedVotes(payload);
+	private async _revertVotesReceived(transactions: ReadonlyArray<Transaction>): Promise<void> {
+		const forgerReceivedVotes = this._getForgerReceivedVotes(transactions);
 
 		for (const [delegateAddress, votesReceived] of Object.entries(forgerReceivedVotes)) {
 			const forgerInfo = await getForgerInfo(
@@ -362,22 +362,22 @@ export class ForgerPlugin extends BasePlugin {
 		}
 	}
 
-	private _getFee(payload: ReadonlyArray<Transaction>, block: string): bigint {
-		const { payload: payloadBuffer } = codec.decode<{ payload: Buffer[] }>(
+	private _getFee(transactions: ReadonlyArray<Transaction>, block: string): bigint {
+		const { transactions: transactionsBuffer } = codec.decode<{ transactions: Buffer[] }>(
 			blockSchema,
 			Buffer.from(block),
 		);
 		let fee = BigInt(0);
 
-		for (let index = 0; index < payload.length; index += 1) {
-			const trx = payload[index];
+		for (let index = 0; index < transactions.length; index += 1) {
+			const trx = transactions[index];
 			const baseFee =
 				this._transactionFees.baseFees.find(
 					bf => bf.moduleID === trx.moduleID && bf.commandID === trx.commandID,
 				)?.baseFee ?? '0';
 			const minFeeRequired =
 				BigInt(baseFee) +
-				BigInt(this._transactionFees.minFeePerByte) * BigInt(payloadBuffer[index].length);
+				BigInt(this._transactionFees.minFeePerByte) * BigInt(transactionsBuffer[index].length);
 			fee += BigInt(trx.fee) - minFeeRequired;
 		}
 
@@ -388,7 +388,7 @@ export class ForgerPlugin extends BasePlugin {
 		const {
 			header: { height, timestamp },
 			forgerAddress,
-		} = this._getForgerHeaderAndPayloadInfo(block);
+		} = this._getForgerHeaderAndTransactionsInfo(block);
 		const previousBlockStr = await this._channel.invoke<string>('app_getBlockByHeight', {
 			height: height - 1,
 		});

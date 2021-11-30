@@ -66,7 +66,7 @@ export interface GenesisConfig {
 	bftThreshold: number;
 	communityIdentifier: string;
 	blockTime: number;
-	maxPayloadLength: number;
+	maxTransactionsSize: number;
 	rewards: {
 		milestones: string[];
 		offset: number;

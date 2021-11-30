@@ -43,7 +43,7 @@ interface BlockProcessingParams {
 }
 
 export interface BlockProcessingEnv {
-	createBlock: (payload?: Transaction[], timestamp?: number) => Promise<Block>;
+	createBlock: (transactions?: Transaction[], timestamp?: number) => Promise<Block>;
 	getConsensus: () => Consensus;
 	getChain: () => Chain;
 	getBlockchainDB: () => KVStore;
@@ -81,7 +81,7 @@ const getNextTimestamp = async (node: Node, apiContext: APIContext, previousBloc
 
 const createProcessableBlock = async (
 	node: Node,
-	payload: Transaction[],
+	transactions: Transaction[],
 	timestamp?: number,
 ): Promise<Block> => {
 	// Get previous block and generate valid timestamp, seed reveal, maxHeightPrevoted, reward and maxHeightPreviouslyForged
@@ -91,7 +91,7 @@ const createProcessableBlock = async (
 		timestamp ?? (await getNextTimestamp(node, apiContext, previousBlockHeader));
 	const validator = await node.validatorAPI.getGeneratorAtTimestamp(apiContext, nextTimestamp);
 	const passphrase = getPassphraseFromDefaultConfig(validator);
-	for (const tx of payload) {
+	for (const tx of transactions) {
 		await node['_generator']['_pool'].add(tx);
 	}
 	const { privateKey } = getKeys(passphrase);
@@ -134,8 +134,8 @@ export const getBlockProcessingEnv = async (
 	);
 
 	return {
-		createBlock: async (payload: Transaction[] = [], timestamp?: number): Promise<Block> =>
-			createProcessableBlock(node, payload, timestamp),
+		createBlock: async (transactions: Transaction[] = [], timestamp?: number): Promise<Block> =>
+			createProcessableBlock(node, transactions, timestamp),
 		getChain: () => node['_chain'],
 		getConsensus: () => node['_consensus'],
 		getBlockchainDB: () => blockchainDB,

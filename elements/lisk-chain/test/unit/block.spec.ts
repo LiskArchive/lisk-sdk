@@ -56,7 +56,7 @@ describe('block', () => {
 				// Arrange
 				(tx.senderPublicKey as any) = '100';
 				tx['_id'] = Buffer.from('123');
-				block = await createValidDefaultBlock({ payload: [tx] });
+				block = await createValidDefaultBlock({ transactions: [tx] });
 				// Act & assert
 				expect(() => block.validate()).toThrow();
 			});
@@ -66,7 +66,7 @@ describe('block', () => {
 			it('should not throw error', async () => {
 				// Arrange
 				const txs = new Array(20).fill(0).map(() => tx);
-				block = await createValidDefaultBlock({ payload: txs, assets: blockAssets });
+				block = await createValidDefaultBlock({ transactions: txs, assets: blockAssets });
 				// Act & assert
 				expect(() => block.validate()).not.toThrow();
 			});
@@ -76,7 +76,7 @@ describe('block', () => {
 			it('should throw error', async () => {
 				// Arrange
 				const txs = new Array(20).fill(0).map(() => tx);
-				block = await createValidDefaultBlock({ payload: txs });
+				block = await createValidDefaultBlock({ transactions: txs });
 				block['header']['_transactionRoot'] = getRandomBytes(32);
 
 				// Act & assert
@@ -98,7 +98,10 @@ describe('block', () => {
 					},
 				];
 				const txs = new Array(20).fill(0).map(() => tx);
-				block = await createValidDefaultBlock({ payload: txs, assets: new BlockAssets(assets) });
+				block = await createValidDefaultBlock({
+					transactions: txs,
+					assets: new BlockAssets(assets),
+				});
 				block['header']['_assetsRoot'] = getRandomBytes(32);
 
 				// Act & assert
@@ -150,25 +153,25 @@ describe('block', () => {
 		describe('when all values are valid', () => {
 			it('should not throw error', async () => {
 				// Arrange
-				block = await createValidDefaultBlock({ header: getGenesisBlockAttrs(), payload: [] });
+				block = await createValidDefaultBlock({ header: getGenesisBlockAttrs(), transactions: [] });
 				block['header']['_signature'] = EMPTY_BUFFER;
 				// Act & assert
 				expect(() => block.validateGenesis()).not.toThrow();
 			});
 		});
 
-		describe('when payload is not empty', () => {
+		describe('when transactions is not empty', () => {
 			it('should throw error', async () => {
 				// Arrange
 				const txs = new Array(20).fill(0).map(() => tx);
 				block = await createValidDefaultBlock({
 					header: getGenesisBlockAttrs(),
-					payload: txs,
+					transactions: txs,
 					assets: blockAssets,
 				});
 				block['header']['_signature'] = EMPTY_BUFFER;
 				// Act & assert
-				expect(() => block.validateGenesis()).toThrow('Payload length must be zero');
+				expect(() => block.validateGenesis()).toThrow('Transactions length must be zero');
 			});
 		});
 
@@ -187,7 +190,7 @@ describe('block', () => {
 				];
 				block = await createValidDefaultBlock({
 					header: getGenesisBlockAttrs(),
-					payload: [],
+					transactions: [],
 					assets: new BlockAssets(assets),
 				});
 				block['header']['_signature'] = EMPTY_BUFFER;

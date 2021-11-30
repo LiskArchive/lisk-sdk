@@ -48,7 +48,7 @@ export class TokenModule extends BaseModule {
 		});
 	}
 
-	public async afterGenesisBlockExecute(context: GenesisBlockExecuteContext): Promise<void> {
+	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
 		const assetBytes = context.assets.getAsset(this.id);
 		// if there is no asset, do not initialize
 		if (!assetBytes) {

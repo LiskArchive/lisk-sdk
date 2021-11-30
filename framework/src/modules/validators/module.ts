@@ -46,7 +46,7 @@ export class ValidatorsModule extends BaseModule {
 		});
 	}
 
-	public async afterGenesisBlockExecute(context: GenesisBlockExecuteContext): Promise<void> {
+	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
 		const genesisDataSubStore = context.getStore(this.id, STORE_PREFIX_GENESIS_DATA);
 		await genesisDataSubStore.setWithSchema(
 			EMPTY_KEY,

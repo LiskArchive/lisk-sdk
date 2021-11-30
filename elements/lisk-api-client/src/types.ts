@@ -83,7 +83,7 @@ export interface GenesisConfig {
 	readonly bftThreshold: number;
 	readonly communityIdentifier: string;
 	readonly blockTime: number;
-	readonly maxPayloadLength: number;
+	readonly maxTransactionsSize: number;
 	readonly rewards: {
 		readonly milestones: string[];
 		readonly offset: number;
@@ -182,7 +182,7 @@ export interface Block<T = Buffer | string> {
 		version: number;
 	};
 	assets: T[];
-	payload: {
+	transactions: {
 		[key: string]: unknown;
 		id?: T;
 	}[];

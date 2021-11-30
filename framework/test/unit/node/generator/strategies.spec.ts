@@ -20,7 +20,7 @@ import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { HighFeeGenerationStrategy } from '../../../../src/node/generator/strategies';
 import {
 	allValidCase,
-	maxPayloadLengthCase,
+	maxTransactionsSizeCase,
 	invalidTxCase,
 	allInvalidCase,
 } from './forging_fixtures';
@@ -88,7 +88,7 @@ const buildProcessableTxMock = (input: any, stateMachine: StateMachine) => {
 describe('strategies', () => {
 	describe('HighFeeForgingStrategy', () => {
 		const logger = fakeLogger;
-		const maxPayloadLength = 1000;
+		const maxTransactionsSize = 1000;
 		const mockTxPool = {
 			getProcessableTransactions: jest.fn().mockReturnValue(new dataStructures.BufferMap()),
 		} as any;
@@ -127,7 +127,7 @@ describe('strategies', () => {
 				pool: mockTxPool,
 				chain,
 				stateMachine,
-				maxPayloadLength,
+				maxTransactionsSize,
 			});
 			strategy.init({
 				logger,
@@ -148,8 +148,8 @@ describe('strategies', () => {
 				mockTxPool.getProcessableTransactions.mockReturnValue(
 					buildProcessableTxMock(allValidCase.input.transactions, stateMachine),
 				);
-				(strategy['_constants'] as any).maxPayloadLength = BigInt(
-					allValidCase.input.maxPayloadLength,
+				(strategy['_constants'] as any).maxTransactionsSize = BigInt(
+					allValidCase.input.maxTransactionsSize,
 				);
 
 				// Act
@@ -161,13 +161,13 @@ describe('strategies', () => {
 				);
 			});
 
-			it('should forge transactions upto maximum payload length', async () => {
+			it('should forge transactions upto maximum transactions length', async () => {
 				// Arrange
 				mockTxPool.getProcessableTransactions.mockReturnValue(
-					buildProcessableTxMock(maxPayloadLengthCase.input.transactions, stateMachine),
+					buildProcessableTxMock(maxTransactionsSizeCase.input.transactions, stateMachine),
 				);
-				(strategy['_constants'] as any).maxPayloadLength = BigInt(
-					maxPayloadLengthCase.input.maxPayloadLength,
+				(strategy['_constants'] as any).maxTransactionsSize = BigInt(
+					maxTransactionsSizeCase.input.maxTransactionsSize,
 				);
 
 				// Act
@@ -175,7 +175,7 @@ describe('strategies', () => {
 
 				// Assert
 				expect(result.map((tx: any) => tx.id.toString())).toEqual(
-					maxPayloadLengthCase.output.map(tx => tx.id),
+					maxTransactionsSizeCase.output.map(tx => tx.id),
 				);
 			});
 
@@ -184,8 +184,8 @@ describe('strategies', () => {
 				mockTxPool.getProcessableTransactions.mockReturnValue(
 					buildProcessableTxMock(invalidTxCase.input.transactions, stateMachine),
 				);
-				(strategy['_constants'] as any).maxPayloadLength = BigInt(
-					invalidTxCase.input.maxPayloadLength,
+				(strategy['_constants'] as any).maxTransactionsSize = BigInt(
+					invalidTxCase.input.maxTransactionsSize,
 				);
 
 				// Act
@@ -213,8 +213,8 @@ describe('strategies', () => {
 				mockTxPool.getProcessableTransactions.mockReturnValue(
 					buildProcessableTxMock(allInvalidCase.input.transactions, stateMachine),
 				);
-				(strategy['_constants'] as any).maxPayloadLength = BigInt(
-					allInvalidCase.input.maxPayloadLength,
+				(strategy['_constants'] as any).maxTransactionsSize = BigInt(
+					allInvalidCase.input.maxTransactionsSize,
 				);
 
 				// Act

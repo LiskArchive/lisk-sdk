@@ -14,7 +14,7 @@
 
 export const allValidCase = {
 	input: {
-		maxPayloadLength: 1000,
+		maxTransactionsSize: 1000,
 		transactions: [
 			{
 				id: '1',
@@ -92,9 +92,9 @@ export const allValidCase = {
 	],
 };
 
-export const maxPayloadLengthCase = {
+export const maxTransactionsSizeCase = {
 	input: {
-		maxPayloadLength: 1000,
+		maxTransactionsSize: 1000,
 		transactions: [
 			{
 				id: '1',
@@ -176,7 +176,7 @@ export const maxPayloadLengthCase = {
 
 export const invalidTxCase = {
 	input: {
-		maxPayloadLength: 1000,
+		maxTransactionsSize: 1000,
 		transactions: [
 			{
 				id: '1',
@@ -243,7 +243,7 @@ export const invalidTxCase = {
 
 export const allInvalidCase = {
 	input: {
-		maxPayloadLength: 1000,
+		maxTransactionsSize: 1000,
 		transactions: [
 			{
 				id: '1',

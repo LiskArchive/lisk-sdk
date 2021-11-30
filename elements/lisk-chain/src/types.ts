@@ -20,7 +20,7 @@ export interface BlockRewardOptions {
 
 export interface RawBlock {
 	header: Buffer;
-	payload: ReadonlyArray<Buffer>;
+	transactions: ReadonlyArray<Buffer>;
 	assets: ReadonlyArray<Buffer>;
 }
 

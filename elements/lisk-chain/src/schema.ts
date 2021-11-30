@@ -19,7 +19,7 @@ export const blockSchema = {
 			dataType: 'bytes',
 			fieldNumber: 1,
 		},
-		payload: {
+		transactions: {
 			type: 'array',
 			items: {
 				dataType: 'bytes',
@@ -34,7 +34,7 @@ export const blockSchema = {
 			fieldNumber: 3,
 		},
 	},
-	required: ['header', 'payload', 'assets'],
+	required: ['header', 'transactions', 'assets'],
 };
 
 export const signingBlockHeaderSchema = {

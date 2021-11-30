@@ -146,7 +146,7 @@ export const applicationConfigSchema = {
 		genesisConfig: {
 			$id: '#/config/genesisConfig',
 			type: 'object',
-			required: ['blockTime', 'communityIdentifier', 'maxPayloadLength', 'rewards'],
+			required: ['blockTime', 'communityIdentifier', 'maxTransactionsSize', 'rewards'],
 			properties: {
 				blockTime: {
 					type: 'number',
@@ -189,7 +189,7 @@ export const applicationConfigSchema = {
 						},
 					},
 				},
-				maxPayloadLength: {
+				maxTransactionsSize: {
 					type: 'integer',
 					// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 					minimum: 10 * 1024, // Kilo Bytes
@@ -401,7 +401,7 @@ export const applicationConfigSchema = {
 		},
 		genesis: {
 			type: 'object',
-			required: ['blockTime', 'communityIdentifier', 'maxPayloadLength', 'rewards', 'modules'],
+			required: ['blockTime', 'communityIdentifier', 'maxTransactionsSize', 'rewards', 'modules'],
 			properties: {
 				blockTime: {
 					type: 'number',
@@ -444,7 +444,7 @@ export const applicationConfigSchema = {
 						},
 					},
 				},
-				maxPayloadLength: {
+				maxTransactionsSize: {
 					type: 'integer',
 					// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 					minimum: 10 * 1024, // Kilo Bytes
@@ -510,7 +510,7 @@ export const applicationConfigSchema = {
 			blockTime: 10,
 			communityIdentifier: 'sdk',
 			// eslint-disable-next-line @typescript-eslint/no-magic-numbers
-			maxPayloadLength: 15 * 1024, // Kilo Bytes
+			maxTransactionsSize: 15 * 1024, // Kilo Bytes
 			bftThreshold: 68,
 			minFeePerByte: 1000,
 			baseFees: [],
@@ -547,7 +547,7 @@ export const applicationConfigSchema = {
 			blockTime: 10,
 			communityIdentifier: 'sdk',
 			// eslint-disable-next-line @typescript-eslint/no-magic-numbers
-			maxPayloadLength: 15 * 1024, // Kilo Bytes
+			maxTransactionsSize: 15 * 1024, // Kilo Bytes
 			bftThreshold: 68,
 			minFeePerByte: 1000,
 			baseFees: [],

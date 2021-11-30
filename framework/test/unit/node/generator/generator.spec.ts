@@ -97,7 +97,7 @@ describe('generator', () => {
 					height: 9187702,
 					timestamp: 93716450,
 				},
-				payload: [],
+				transactions: [],
 			},
 			finalizedHeight: 100,
 			dataAccess: {
@@ -329,7 +329,7 @@ describe('generator', () => {
 		});
 
 		it('should remove included transactions from the transaction pool', () => {
-			generator.onNewBlock({ payload: [tx] } as never);
+			generator.onNewBlock({ transactions: [tx] } as never);
 
 			expect(generator['_pool'].remove).toHaveBeenCalledTimes(1);
 		});
@@ -347,7 +347,7 @@ describe('generator', () => {
 		});
 
 		it('should add included transactions to the transaction pool', () => {
-			generator.onDeleteBlock({ payload: [tx] } as never);
+			generator.onDeleteBlock({ transactions: [tx] } as never);
 
 			expect(generator['_pool'].add).toHaveBeenCalledTimes(1);
 		});
@@ -592,7 +592,7 @@ describe('generator', () => {
 			expect(stateMachine.afterExecuteBlock).toHaveBeenCalledTimes(1);
 			expect(stateMachine.afterExecuteBlock).toHaveBeenCalledAfter(mod2.sealBlock as jest.Mock);
 
-			expect(block.payload).toHaveLength(1);
+			expect(block.transactions).toHaveLength(1);
 			expect(block.header.signature).toHaveLength(64);
 		});
 

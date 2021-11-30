@@ -55,7 +55,7 @@ export class AuthModule extends BaseModule {
 	public configSchema = configSchema;
 	public commands = [new RegisterMultisignatureCommand(this.id)];
 
-	public async afterGenesisBlockExecute(context: GenesisBlockExecuteContext): Promise<void> {
+	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
 		const assetBytes = context.assets.getAsset(this.id);
 		// if there is no asset, do not initialize
 		if (!assetBytes) {
@@ -184,9 +184,9 @@ export class AuthModule extends BaseModule {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-empty-function
-	public async beforeTransactionExecute(_context: TransactionExecuteContext): Promise<void> {}
+	public async beforeCommandExecute(_context: TransactionExecuteContext): Promise<void> {}
 
-	public async afterTransactionExecute(context: TransactionExecuteContext): Promise<void> {
+	public async afterCommandExecute(context: TransactionExecuteContext): Promise<void> {
 		const address = context.transaction.senderAddress;
 
 		const authStore = context.getStore(this.id, STORE_PREFIX_AUTH);

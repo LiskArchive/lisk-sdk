@@ -21,10 +21,10 @@ describe('token module', () => {
 		tokenModule = new TokenModule();
 	});
 
-	describe('afterGenesisBlockExecute', () => {
+	describe('initGenesisState', () => {
 		it('should setup initial state', async () => {
 			const context = createGenesisBlockContext({}).createGenesisBlockExecuteContext();
-			return expect(tokenModule.afterGenesisBlockExecute(context)).resolves.toBeUndefined();
+			return expect(tokenModule.initGenesisState(context)).resolves.toBeUndefined();
 		});
 	});
 });

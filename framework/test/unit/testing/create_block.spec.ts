@@ -52,7 +52,7 @@ describe('Create Block', () => {
 			timestamp: genesisBlock.header.timestamp,
 			previousBlockID: genesisBlock.header.id,
 			header: {},
-			payload: [],
+			transactions: [],
 		});
 
 		const expectedBlock = {
@@ -67,11 +67,11 @@ describe('Create Block', () => {
 				stateRoot: expect.any(Buffer),
 				version: expect.any(Number),
 			},
-			payload: [],
+			transactions: [],
 		};
 
 		expect(block.header.toObject()).toEqual(expect.objectContaining(expectedBlock.header));
-		expect(block.payload).toBeEmpty();
+		expect(block.transactions).toBeEmpty();
 	});
 
 	it('should return a valid block for given block header', async () => {
@@ -86,7 +86,7 @@ describe('Create Block', () => {
 				transactionRoot: expect.any(Buffer),
 				version: 0,
 			},
-			payload: [],
+			transactions: [],
 		};
 
 		const block = await createBlock({
@@ -99,11 +99,11 @@ describe('Create Block', () => {
 				height: 200,
 				version: 0,
 			},
-			payload: [],
+			transactions: [],
 		});
 
 		expect(block.header.toObject()).toEqual(expect.objectContaining(expectedBlock.header));
-		expect(block.payload).toBeEmpty();
+		expect(block.transactions).toBeEmpty();
 	});
 
 	it('should return a valid previous block id and timestamp from genesis block', async () => {
@@ -113,7 +113,7 @@ describe('Create Block', () => {
 			timestamp: genesisBlock.header.timestamp + 10,
 			previousBlockID: genesisBlock.header.id,
 			header: {},
-			payload: [],
+			transactions: [],
 		});
 
 		expect(block.header.previousBlockID).toEqual(genesisBlock.header.id);

@@ -48,7 +48,7 @@ describe('block', () => {
 			id: Buffer.from('097ce5adc1a34680d6c939287011dec9b70a3bc1f5f896a3f9024fc9bed59992', 'hex'),
 		},
 		assets: [],
-		payload: [],
+		transactions: [],
 	};
 	const blockId = sampleBlock.header.id;
 	const schema = {
@@ -197,7 +197,7 @@ describe('block', () => {
 					id: 'dd93e4ca5b48d0b604e7cf2e57ce21be43a3163f853c83d88d383032fd830bbf',
 				};
 				const decodedBlock = block.decode(encodedBlockBuffer);
-				(decodedBlock as any).payload.push(tx);
+				(decodedBlock as any).transactions.push(tx);
 				// Act
 				const decodedBlockJSON = block.toJSON(decodedBlock as any);
 				// Assert
@@ -234,7 +234,7 @@ describe('block', () => {
 					),
 				};
 				const decodedBlock = block.decode(encodedBlockBuffer);
-				(decodedBlock as any).payload.push(tx);
+				(decodedBlock as any).transactions.push(tx);
 				const decodedBlockJSON = block.toJSON(decodedBlock as any);
 				// Act
 				const decodedBlockFromJSON = block.fromJSON(decodedBlockJSON as any);

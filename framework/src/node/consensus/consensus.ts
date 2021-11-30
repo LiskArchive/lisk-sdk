@@ -452,9 +452,9 @@ export class Consensus {
 			logger: this._logger,
 			header: block.header,
 			assets: block.assets,
-			transactions: block.payload,
+			transactions: block.transactions,
 		});
-		await this._stateMachine.verifyBlock(ctx);
+		await this._stateMachine.verifyAssets(ctx);
 
 		if (!options.skipBroadcast) {
 			this._network.send({ event: NETWORK_EVENT_POST_BLOCK, data: block });
@@ -498,7 +498,7 @@ export class Consensus {
 		await this._verifyTimestamp(apiContext, block);
 
 		// Verify height
-		this._verifyBlockHeight(block);
+		this._verifyAssetsHeight(block);
 
 		// Verify previousBlockID
 		this._verifyPreviousBlockID(block);
@@ -510,7 +510,7 @@ export class Consensus {
 		await this._verifyBFTProperties(apiContext, block);
 
 		// verify Block signature
-		await this._verifyBlockSignature(apiContext, block);
+		await this._verifyAssetsSignature(apiContext, block);
 
 		// Validate a block
 		block.validate();
@@ -562,7 +562,7 @@ export class Consensus {
 		}
 	}
 
-	private _verifyBlockHeight(block: Block): void {
+	private _verifyAssetsHeight(block: Block): void {
 		const { lastBlock } = this._chain;
 
 		if (block.header.height !== lastBlock.header.height + 1) {
@@ -620,7 +620,7 @@ export class Consensus {
 		}
 	}
 
-	private async _verifyBlockSignature(apiContext: APIContext, block: Block): Promise<void> {
+	private async _verifyAssetsSignature(apiContext: APIContext, block: Block): Promise<void> {
 		const { generatorKey } = await this._validatorAPI.getValidatorAccount(
 			apiContext,
 			block.header.generatorAddress,

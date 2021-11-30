@@ -34,7 +34,7 @@ import { CurrentState } from './state_store/smt_store';
 
 interface ChainConstructor {
 	// Constants
-	readonly maxPayloadLength: number;
+	readonly maxTransactionsSize: number;
 	readonly minBlockHeaderCache?: number;
 	readonly maxBlockHeaderCache?: number;
 }
@@ -50,7 +50,7 @@ const debug = createDebug('lisk:chain');
 export class Chain {
 	public dataAccess!: DataAccess;
 	public readonly constants: {
-		readonly maxPayloadLength: number;
+		readonly maxTransactionsSize: number;
 		readonly minBlockHeaderCache: number;
 		readonly maxBlockHeaderCache: number;
 	};
@@ -62,7 +62,7 @@ export class Chain {
 
 	public constructor({
 		// Constants
-		maxPayloadLength,
+		maxTransactionsSize,
 		minBlockHeaderCache = DEFAULT_MIN_BLOCK_HEADER_CACHE,
 		maxBlockHeaderCache = DEFAULT_MAX_BLOCK_HEADER_CACHE,
 	}: ChainConstructor) {
@@ -73,7 +73,7 @@ export class Chain {
 		codec.addSchema(stateDiffSchema);
 
 		this.constants = {
-			maxPayloadLength,
+			maxTransactionsSize,
 			maxBlockHeaderCache,
 			minBlockHeaderCache,
 		};
@@ -156,17 +156,17 @@ export class Chain {
 		return true;
 	}
 
-	public async verifyBlock(block: Block): Promise<void> {
+	public async verifyAssets(block: Block): Promise<void> {
 		block.validate();
 		const transactionIDs = [];
-		let payloadSize = 0;
-		for (const tx of block.payload) {
+		let transactionsSize = 0;
+		for (const tx of block.transactions) {
 			transactionIDs.push(tx.id);
-			payloadSize += tx.getBytes().length;
+			transactionsSize += tx.getBytes().length;
 		}
-		if (payloadSize > this.constants.maxPayloadLength) {
+		if (transactionsSize > this.constants.maxTransactionsSize) {
 			throw new Error(
-				`Payload length is longer than configured length: ${this.constants.maxPayloadLength}.`,
+				`Transactions length is longer than configured length: ${this.constants.maxTransactionsSize}.`,
 			);
 		}
 		const tree = new MerkleTree();

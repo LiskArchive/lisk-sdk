@@ -61,13 +61,17 @@ export const createFakeBlockHeader = (header?: Partial<BlockHeaderAttrs>): Block
  * Calculates the signature, transactionRoot etc. internally. Facilitating the creation of block with valid signature and other properties
  */
 export const createValidDefaultBlock = async (
-	block?: { header?: Partial<BlockHeaderAttrs>; payload?: Transaction[]; assets?: BlockAssets },
+	block?: {
+		header?: Partial<BlockHeaderAttrs>;
+		transactions?: Transaction[];
+		assets?: BlockAssets;
+	},
 	networkIdentifier: Buffer = defaultNetworkIdentifier,
 ): Promise<Block> => {
 	const keypair = getKeyPair();
-	const payload = block?.payload ?? [];
+	const transactions = block?.transactions ?? [];
 	const txTree = new MerkleTree();
-	await txTree.init(payload.map(tx => tx.id));
+	await txTree.init(transactions.map(tx => tx.id));
 	const blockAssets = block?.assets ?? new BlockAssets();
 	const assetsRoot = await blockAssets.getRoot();
 
@@ -92,5 +96,5 @@ export const createValidDefaultBlock = async (
 	});
 
 	blockHeader.sign(networkIdentifier, keypair.privateKey);
-	return new Block(blockHeader, payload, blockAssets);
+	return new Block(blockHeader, transactions, blockAssets);
 };

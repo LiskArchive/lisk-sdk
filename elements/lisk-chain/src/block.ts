@@ -21,13 +21,13 @@ import { Transaction, TransactionJSON } from './transaction';
 
 interface BlockAttrs {
 	header: Buffer;
-	payload: Buffer[];
+	transactions: Buffer[];
 	assets: Buffer[];
 }
 
 export interface BlockJSON {
 	header: BlockHeaderJSON;
-	payload: TransactionJSON[];
+	transactions: TransactionJSON[];
 	assets: BlockAssetJSON[];
 }
 
@@ -35,27 +35,27 @@ export class Block {
 	// eslint-disable-next-line no-useless-constructor
 	public constructor(
 		public readonly header: BlockHeader,
-		public readonly payload: Transaction[],
+		public readonly transactions: Transaction[],
 		public readonly assets: BlockAssets,
 	) {
 		// No body necessary
 	}
 
 	public static fromBytes(value: Buffer): Block {
-		const { header, payload, assets } = codec.decode<BlockAttrs>(blockSchema, value);
+		const { header, transactions, assets } = codec.decode<BlockAttrs>(blockSchema, value);
 
 		return new Block(
 			BlockHeader.fromBytes(header),
-			payload.map(v => Transaction.fromBytes(v)),
+			transactions.map(v => Transaction.fromBytes(v)),
 			BlockAssets.fromBytes(assets),
 		);
 	}
 
 	public static fromJSON(value: BlockJSON): Block {
-		const { header, payload, assets } = value;
+		const { header, transactions, assets } = value;
 		return new Block(
 			BlockHeader.fromJSON(header),
-			payload.map(v => Transaction.fromJSON(v)),
+			transactions.map(v => Transaction.fromJSON(v)),
 			BlockAssets.fromJSON(assets),
 		);
 	}
@@ -63,7 +63,7 @@ export class Block {
 	public getBytes(): Buffer {
 		return codec.encode(blockSchema, {
 			header: this.header.getBytes(),
-			payload: this.payload.map(p => p.getBytes()),
+			transactions: this.transactions.map(p => p.getBytes()),
 			assets: this.assets.getBytes(),
 		});
 	}
@@ -71,20 +71,20 @@ export class Block {
 	public toJSON(): BlockJSON {
 		return {
 			header: this.header.toJSON(),
-			payload: this.payload.map(p => p.toJSON()),
+			transactions: this.transactions.map(p => p.toJSON()),
 			assets: this.assets.toJSON(),
 		};
 	}
 
 	public validate(): void {
 		this.header.validate();
-		for (const tx of this.payload) {
+		for (const tx of this.transactions) {
 			tx.validate();
 		}
 		this.assets.validate();
 		if (
 			!this.header.transactionRoot?.equals(
-				regularMerkleTree.calculateMerkleRootWithLeaves(this.payload.map(tx => tx.id)),
+				regularMerkleTree.calculateMerkleRootWithLeaves(this.transactions.map(tx => tx.id)),
 			)
 		) {
 			throw new Error('Invalid transaction root');
@@ -101,8 +101,8 @@ export class Block {
 
 	public validateGenesis(): void {
 		this.header.validateGenesis();
-		if (this.payload.length !== 0) {
-			throw new Error('Payload length must be zero');
+		if (this.transactions.length !== 0) {
+			throw new Error('Transactions length must be zero');
 		}
 		this.assets.validateGenesis();
 		if (

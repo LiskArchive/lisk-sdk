@@ -60,7 +60,7 @@ describe('fast_chain_switching_mechanism', () => {
 		};
 
 		chainModule = new Chain({
-			maxPayloadLength: 15000,
+			maxTransactionsSize: 15000,
 		});
 		chainModule.init({
 			db: new InMemoryKVStore(),
@@ -605,7 +605,7 @@ describe('fast_chain_switching_mechanism', () => {
 					.calledWith(highestCommonBlock.id)
 					.mockResolvedValue({
 						header: highestCommonBlock,
-						payload: [],
+						transactions: [],
 					} as never);
 
 				// Act
@@ -751,7 +751,7 @@ describe('fast_chain_switching_mechanism', () => {
 					.calledWith(highestCommonBlock.id)
 					.mockResolvedValue({
 						header: highestCommonBlock,
-						payload: [],
+						transactions: [],
 					} as never);
 
 				// Act

@@ -56,7 +56,7 @@ class SampleNodeModule extends BaseModule {
 		this._validatorAPI = validatorAPI;
 	}
 
-	public async afterGenesisBlockExecute(context: GenesisBlockExecuteContext): Promise<void> {
+	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
 		const keys = getAddressAndPublicKeyFromPassphrase('passphrase');
 		const blsSK = generatePrivateKey(getRandomBytes(64));
 		const blsPK = getPublicKeyFromPrivateKey(blsSK);

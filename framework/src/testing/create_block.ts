@@ -27,7 +27,7 @@ interface CreateBlock {
 	networkIdentifier: Buffer;
 	timestamp: number;
 	previousBlockID: Buffer;
-	payload?: Transaction[];
+	transactions?: Transaction[];
 	header?: Partial<BlockHeader>;
 	assets?: BlockAssets;
 }
@@ -64,13 +64,13 @@ export const createBlock = async ({
 	networkIdentifier,
 	timestamp,
 	previousBlockID,
-	payload,
+	transactions,
 	assets,
 	header,
 }: CreateBlock): Promise<Block> => {
 	const { publicKey, privateKey } = getPrivateAndPublicKeyFromPassphrase(passphrase);
 	const txTree = new MerkleTree();
-	await txTree.init(payload?.map(tx => tx.id) ?? []);
+	await txTree.init(transactions?.map(tx => tx.id) ?? []);
 
 	const blockHeader = createBlockHeaderWithDefaults({
 		previousBlockID,
@@ -83,5 +83,5 @@ export const createBlock = async ({
 
 	blockHeader.sign(networkIdentifier, privateKey);
 
-	return new Block(blockHeader, payload ?? [], assets ?? new BlockAssets());
+	return new Block(blockHeader, transactions ?? [], assets ?? new BlockAssets());
 };

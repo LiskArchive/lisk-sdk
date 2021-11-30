@@ -2183,7 +2183,7 @@ Object {
     "bftThreshold": 68,
     "blockTime": 10,
     "communityIdentifier": "sdk",
-    "maxPayloadLength": 15360,
+    "maxTransactionsSize": 15360,
     "minFeePerByte": 1000,
     "modules": Object {},
     "rewards": Object {
@@ -2211,7 +2211,7 @@ Object {
     "blockTime": 10,
     "communityIdentifier": "Lisk",
     "delegateListRoundOffset": 2,
-    "maxPayloadLength": 15360,
+    "maxTransactionsSize": 15360,
     "minFeePerByte": 1000,
     "minRemainingBalance": "5000000",
     "rewards": Object {

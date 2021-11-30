@@ -42,7 +42,7 @@ export class Block {
 
 	public encode(input: {
 		header: Record<string, unknown>;
-		payload: Record<string, unknown>[];
+		transactions: Record<string, unknown>[];
 		assets: string[];
 	}): Buffer {
 		return encodeBlock(input, this._schemas);
@@ -57,7 +57,7 @@ export class Block {
 		block: BlockType,
 	): {
 		header: Record<string, unknown>;
-		payload: Record<string, unknown>[];
+		transactions: Record<string, unknown>[];
 		assets: string[];
 	} {
 		const { ...headerRoot } = block.header;
@@ -74,10 +74,10 @@ export class Block {
 
 		const assets = block.assets.map(asset => asset.toString('hex'));
 
-		const payload: Record<string, unknown>[] = [];
+		const transactions: Record<string, unknown>[] = [];
 
 		// decode transactions
-		for (const tx of block.payload) {
+		for (const tx of block.transactions) {
 			const { params: txParams, ...txRoot } = tx;
 			// We need to do this as our schemas do not include the ID. Keep this.
 			const tmpId = txRoot.id;
@@ -93,10 +93,10 @@ export class Block {
 				params: jsonTxParams,
 			};
 
-			payload.push(jsonTx);
+			transactions.push(jsonTx);
 		}
 
-		return { header, payload, assets };
+		return { header, transactions, assets };
 	}
 
 	public fromJSON(
@@ -104,7 +104,7 @@ export class Block {
 	): {
 		header: Record<string, unknown>;
 		assets: Buffer[];
-		payload: Record<string, unknown>[];
+		transactions: Record<string, unknown>[];
 	} {
 		const { ...headerRoot } = block.header;
 
@@ -121,9 +121,9 @@ export class Block {
 		// decode header's asset
 		const assets = block.assets.map(asset => Buffer.from(asset, 'hex'));
 
-		const payload: Record<string, unknown>[] = [];
+		const transactions: Record<string, unknown>[] = [];
 		// decode transactions
-		for (const tx of block.payload) {
+		for (const tx of block.transactions) {
 			const { params: txParams, ...txRoot } = tx;
 			// We need to do this as our schemas do not include the ID. Keep this.
 			const tmpId = txRoot.id ? Buffer.from(txRoot.id, 'hex') : Buffer.alloc(0);
@@ -139,9 +139,9 @@ export class Block {
 				params: txParamsObject,
 			};
 
-			payload.push(txObject);
+			transactions.push(txObject);
 		}
 
-		return { header, payload, assets };
+		return { header, transactions, assets };
 	}
 }

@@ -28,7 +28,7 @@ export const nodeInfo: NodeInfo = {
 	unconfirmedTransactions: 2243,
 	genesisConfig: {
 		blockTime: 10,
-		maxPayloadLength: 15360,
+		maxTransactionsSize: 15360,
 		bftThreshold: 68,
 		minFeePerByte: 1000,
 		baseFees: [{ moduleID: 5, commandID: 0, baseFee: '1000000000' }],

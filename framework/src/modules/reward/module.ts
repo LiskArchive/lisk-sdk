@@ -62,7 +62,7 @@ export class RewardModule extends BaseModule {
 		});
 	}
 
-	public async afterBlockExecute(context: BlockAfterExecuteContext): Promise<void> {
+	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
 		const blockReward = await this.api.getBlockReward(
 			context.getAPIContext(),
 			context.header,

@@ -17,7 +17,7 @@ export const defaultConfig = {
 		blockTime: 10,
 		communityIdentifier: 'sdk',
 		// eslint-disable-next-line @typescript-eslint/no-magic-numbers
-		maxPayloadLength: 15 * 1024, // Kilo Bytes
+		maxTransactionsSize: 15 * 1024, // Kilo Bytes
 		bftThreshold: 68,
 		minFeePerByte: 1000,
 		baseFees: [

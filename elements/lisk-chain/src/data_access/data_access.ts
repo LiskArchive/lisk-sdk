@@ -290,18 +290,18 @@ export class DataAccess {
 		const { id: blockID, height } = block.header;
 		const encodedHeader = block.header.getBytes();
 
-		const encodedPayload = [];
-		for (const tx of block.payload) {
+		const encodedTransactions = [];
+		for (const tx of block.transactions) {
 			const txID = tx.id;
 			const encodedTx = tx.getBytes();
-			encodedPayload.push({ id: txID, value: encodedTx });
+			encodedTransactions.push({ id: txID, value: encodedTx });
 		}
 		await this._storage.saveBlock(
 			blockID,
 			height,
 			finalizedHeight,
 			encodedHeader,
-			encodedPayload,
+			encodedTransactions,
 			block.assets.getBytes(),
 			state,
 			removeFromTemp,
@@ -310,7 +310,7 @@ export class DataAccess {
 
 	public async deleteBlock(block: Block, state: CurrentState, saveToTemp = false): Promise<void> {
 		const { id: blockID, height } = block.header;
-		const txIDs = block.payload.map(tx => tx.id);
+		const txIDs = block.transactions.map(tx => tx.id);
 
 		const encodedBlock = block.getBytes();
 		await this._storage.deleteBlock(
@@ -326,7 +326,7 @@ export class DataAccess {
 
 	private _decodeRawBlock(block: RawBlock): Block {
 		const header = BlockHeader.fromBytes(block.header);
-		const transactions = block.payload.map(txBytes => Transaction.fromBytes(txBytes));
+		const transactions = block.transactions.map(txBytes => Transaction.fromBytes(txBytes));
 		const assets = BlockAssets.fromBytes(block.assets);
 		return new Block(header, transactions, assets);
 	}

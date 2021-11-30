@@ -78,7 +78,7 @@ describe('block_synchronization_mechanism', () => {
 		};
 
 		chainModule = new Chain({
-			maxPayloadLength: 15000,
+			maxTransactionsSize: 15000,
 		});
 		chainModule.init({
 			db: new InMemoryKVStore(),
@@ -189,7 +189,7 @@ describe('block_synchronization_mechanism', () => {
 			.calledWith()
 			.mockReturnValue(peersList.connectedPeers as never);
 
-		// Used in getHighestCommonBlock network action payload
+		// Used in getHighestCommonBlock network action transactions
 		const blockHeightsList = computeBlockHeightsList(
 			finalizedHeight,
 			numberOfValidators,
@@ -514,7 +514,7 @@ describe('block_synchronization_mechanism', () => {
 						},
 					});
 					chainModule._lastBlock = lastBlock;
-					// Used in getHighestCommonBlock network action payload
+					// Used in getHighestCommonBlock network action transactions
 					const blockHeightsList = computeBlockHeightsList(
 						finalizedHeight,
 						numberOfValidators,
@@ -597,7 +597,7 @@ describe('block_synchronization_mechanism', () => {
 				});
 
 				it('should ban the peer and restart the mechanism if the common block height is smaller than the finalized height', async () => {
-					// Used in getHighestCommonBlock network action payload
+					// Used in getHighestCommonBlock network action transactions
 					const blockHeightsList = computeBlockHeightsList(
 						finalizedHeight,
 						numberOfValidators,

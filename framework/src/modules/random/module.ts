@@ -114,7 +114,7 @@ export class RandomModule extends BaseModule {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async verifyBlock(context: BlockVerifyContext): Promise<void> {
+	public async verifyAssets(context: BlockVerifyContext): Promise<void> {
 		const encodedAsset = context.assets.getAsset(this.id);
 		if (!encodedAsset) {
 			throw new Error('Random module asset must exist.');
@@ -130,12 +130,12 @@ export class RandomModule extends BaseModule {
 		}
 	}
 
-	public async afterGenesisBlockExecute(context: GenesisBlockExecuteContext): Promise<void> {
+	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
 		const randomDataStore = context.getStore(this.id, STORE_PREFIX_RANDOM);
 		await randomDataStore.setWithSchema(EMPTY_KEY, { validatorReveals: [] }, seedRevealSchema);
 	}
 
-	public async afterBlockExecute(context: BlockAfterExecuteContext): Promise<void> {
+	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
 		const encodedAsset = context.assets.getAsset(this.id);
 		if (!encodedAsset) {
 			throw new Error('Random module asset must exist.');

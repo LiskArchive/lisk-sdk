@@ -147,7 +147,7 @@ export class DPoSModule extends BaseModule {
 		voteCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
 	}
 
-	public async afterGenesisBlockExecute(context: GenesisBlockExecuteContext): Promise<void> {
+	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
 		const assetBytes = context.assets.getAsset(this.id);
 		// if there is no asset, do not initialize
 		if (!assetBytes) {
@@ -341,8 +341,15 @@ export class DPoSModule extends BaseModule {
 			},
 			genesisDataStoreSchema,
 		);
+	}
 
-		// TODO: Move below logic to finalizeGenesisState step
+	public async finalizeGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
+		const assetBytes = context.assets.getAsset(this.id);
+		// if there is no asset, do not initialize
+		if (!assetBytes) {
+			return;
+		}
+		const genesisStore = codec.decode<GenesisStore>(genesisStoreSchema, assetBytes);
 		const apiContext = context.getAPIContext();
 		for (const dposValidator of genesisStore.validators) {
 			const valid = await this._validatorsAPI.registerValidatorKeys(
@@ -356,6 +363,7 @@ export class DPoSModule extends BaseModule {
 				throw new Error('Invalid validator key.');
 			}
 		}
+		const voterStore = context.getStore(this.id, STORE_PREFIX_VOTER);
 		const allVoters = await voterStore.iterateWithSchema<VoterData>(
 			{
 				start: Buffer.alloc(20),
@@ -393,6 +401,7 @@ export class DPoSModule extends BaseModule {
 		await this._validatorsAPI.setGeneratorList(apiContext, initDelegates);
 
 		const MAX_UINT32 = 2 ** 32 - 1;
+		const snapshotStore = context.getStore(this.id, STORE_PREFIX_SNAPSHOT);
 		const allSnapshots = await snapshotStore.iterate({
 			start: intToBuffer(0, 4),
 			end: intToBuffer(MAX_UINT32, 4),
@@ -414,7 +423,7 @@ export class DPoSModule extends BaseModule {
 		}
 	}
 
-	public async afterBlockExecute(context: BlockAfterExecuteContext): Promise<void> {
+	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
 		const { getStore, header } = context;
 		const isLastBlockOfRound = this._isLastBlockOfTheRound(header.height);
 		const previousTimestampStore = getStore(this.id, STORE_PREFIX_PREVIOUS_TIMESTAMP);

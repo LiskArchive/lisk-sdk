@@ -78,7 +78,7 @@ describe('DPoS module', () => {
 		},
 	};
 
-	describe('afterGenesisBlockExecute', () => {
+	describe('initGenesisState', () => {
 		let dpos: DPoSModule;
 		let stateStore: StateStore;
 
@@ -127,8 +127,10 @@ describe('DPoS module', () => {
 					header: createFakeBlockHeader({ height: 12345 }),
 					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
 				}).createGenesisBlockExecuteContext();
+				jest.spyOn(dpos, 'finalizeGenesisState');
 
-				await expect(dpos.afterGenesisBlockExecute(context)).rejects.toThrow(errString as string);
+				await expect(dpos.initGenesisState(context)).rejects.toThrow(errString as string);
+				expect(dpos.finalizeGenesisState).not.toHaveBeenCalled();
 			});
 		});
 
@@ -152,7 +154,8 @@ describe('DPoS module', () => {
 					stateStore,
 					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
 				}).createGenesisBlockExecuteContext();
-				await expect(dpos.afterGenesisBlockExecute(context)).rejects.toThrow(
+				await dpos.initGenesisState(context);
+				await expect(dpos.finalizeGenesisState(context)).rejects.toThrow(
 					'When genensis height is zero, there should not be a snapshot',
 				);
 			});
@@ -166,7 +169,8 @@ describe('DPoS module', () => {
 					header: createFakeBlockHeader({ height: 12345 }),
 					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
 				}).createGenesisBlockExecuteContext();
-				await expect(dpos.afterGenesisBlockExecute(context)).rejects.toThrow(
+				await dpos.initGenesisState(context);
+				await expect(dpos.finalizeGenesisState(context)).rejects.toThrow(
 					'When genesis height is non-zero, snapshot is required',
 				);
 			});
@@ -184,7 +188,8 @@ describe('DPoS module', () => {
 			});
 
 			it('should store self vote and received votes', async () => {
-				await expect(dpos.afterGenesisBlockExecute(context)).toResolve();
+				await expect(dpos.initGenesisState(context)).toResolve();
+				await expect(dpos.finalizeGenesisState(context)).toResolve();
 
 				const delegateStore = stateStore.getStore(dpos.id, STORE_PREFIX_DELEGATE);
 				await expect(
@@ -201,7 +206,7 @@ describe('DPoS module', () => {
 			});
 
 			it('should store all the votes', async () => {
-				await expect(dpos.afterGenesisBlockExecute(context)).toResolve();
+				await expect(dpos.initGenesisState(context)).toResolve();
 				const voterStore = stateStore.getStore(dpos.id, STORE_PREFIX_VOTER);
 				expect.assertions(validAsset.voters.length + 1);
 				for (const voter of validAsset.voters) {
@@ -213,7 +218,7 @@ describe('DPoS module', () => {
 			});
 
 			it('should store all the delegates', async () => {
-				await expect(dpos.afterGenesisBlockExecute(context)).toResolve();
+				await expect(dpos.initGenesisState(context)).toResolve();
 				const usernameStore = stateStore.getStore(dpos.id, STORE_PREFIX_NAME);
 				const allNames = await usernameStore.iterate({
 					start: Buffer.from([0]),
@@ -230,7 +235,7 @@ describe('DPoS module', () => {
 			});
 
 			it('should store previous timestamp', async () => {
-				await expect(dpos.afterGenesisBlockExecute(context)).toResolve();
+				await expect(dpos.initGenesisState(context)).toResolve();
 
 				const previousTimestampStore = context.getStore(dpos.id, STORE_PREFIX_PREVIOUS_TIMESTAMP);
 				await expect(
@@ -241,7 +246,7 @@ describe('DPoS module', () => {
 			});
 
 			it('should store genesis data', async () => {
-				await expect(dpos.afterGenesisBlockExecute(context)).toResolve();
+				await expect(dpos.initGenesisState(context)).toResolve();
 
 				const genesisDataStore = context.getStore(dpos.id, STORE_PREFIX_GENESIS_DATA);
 				await expect(
@@ -254,7 +259,8 @@ describe('DPoS module', () => {
 			});
 
 			it('should register all the validators', async () => {
-				await expect(dpos.afterGenesisBlockExecute(context)).toResolve();
+				await expect(dpos.initGenesisState(context)).toResolve();
+				await expect(dpos.finalizeGenesisState(context)).toResolve();
 
 				expect(dpos['_validatorsAPI'].setGeneratorList).toHaveBeenCalledWith(
 					expect.anything(),
@@ -263,7 +269,8 @@ describe('DPoS module', () => {
 			});
 
 			it('should register all active delegates as BFT validators', async () => {
-				await expect(dpos.afterGenesisBlockExecute(context)).toResolve();
+				await expect(dpos.initGenesisState(context)).toResolve();
+				await expect(dpos.finalizeGenesisState(context)).toResolve();
 				expect(dpos['_bftAPI'].setBFTParameters).toHaveBeenCalledWith(
 					expect.anything(),
 					BigInt(68),
@@ -278,15 +285,15 @@ describe('DPoS module', () => {
 			it('should fail if registerValidatorKeys return false', async () => {
 				(dpos['_validatorsAPI'].registerValidatorKeys as jest.Mock).mockResolvedValue(false);
 
-				await expect(dpos.afterGenesisBlockExecute(context)).rejects.toThrow(
-					'Invalid validator key',
-				);
+				await expect(dpos.initGenesisState(context)).toResolve();
+				await expect(dpos.finalizeGenesisState(context)).rejects.toThrow('Invalid validator key');
 			});
 
 			it('should fail if getLockedAmount return different value', async () => {
 				(dpos['_tokenAPI'].getLockedAmount as jest.Mock).mockResolvedValue(BigInt(0));
 
-				await expect(dpos.afterGenesisBlockExecute(context)).rejects.toThrow(
+				await expect(dpos.initGenesisState(context)).toResolve();
+				await expect(dpos.finalizeGenesisState(context)).rejects.toThrow(
 					'Voted amount is not locked',
 				);
 			});
@@ -1409,7 +1416,7 @@ describe('DPoS module', () => {
 		});
 	});
 
-	describe('afterBlockExecute', () => {
+	describe('afterTransactionsExecute', () => {
 		const genesisData: GenesisData = {
 			heigth: 0,
 			initRounds: 3,
@@ -1472,7 +1479,7 @@ describe('DPoS module', () => {
 					previousTimestampStoreSchema,
 				);
 
-				await dpos.afterBlockExecute(context);
+				await dpos.afterTransactionsExecute(context);
 			});
 
 			it('should create vote weight snapshot', () => {
@@ -1506,7 +1513,7 @@ describe('DPoS module', () => {
 					previousTimestampStoreSchema,
 				);
 
-				await dpos.afterBlockExecute(context);
+				await dpos.afterTransactionsExecute(context);
 			});
 
 			it('should not create vote weight snapshot', () => {
@@ -1538,7 +1545,7 @@ describe('DPoS module', () => {
 					previousTimestampStoreSchema,
 				);
 
-				await dpos.afterBlockExecute(context);
+				await dpos.afterTransactionsExecute(context);
 			});
 
 			it('should create vote weight snapshot', () => {
@@ -1572,7 +1579,7 @@ describe('DPoS module', () => {
 					previousTimestampStoreSchema,
 				);
 
-				await dpos.afterBlockExecute(context);
+				await dpos.afterTransactionsExecute(context);
 			});
 
 			it('should create vote weight snapshot', () => {
@@ -1605,7 +1612,7 @@ describe('DPoS module', () => {
 					previousTimestampStoreSchema,
 				);
 
-				await dpos.afterBlockExecute(context);
+				await dpos.afterTransactionsExecute(context);
 			});
 
 			it('should set previousTimestamp to current timestamp', async () => {

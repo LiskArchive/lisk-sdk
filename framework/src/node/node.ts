@@ -79,7 +79,7 @@ export class Node {
 		});
 
 		this._chain = new Chain({
-			maxPayloadLength: this._options.genesisConfig.maxPayloadLength,
+			maxTransactionsSize: this._options.genesisConfig.maxTransactionsSize,
 		});
 
 		this._stateMachine = new StateMachine();
