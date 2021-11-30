@@ -53,18 +53,8 @@ export class Block {
 
 	public static fromJSON(value: BlockJSON): Block {
 		const { header, payload, assets } = value;
-		if (typeof header !== 'object') {
-			throw new Error('Invalid block format. header must be an object.');
-		}
-		if (!Array.isArray(payload)) {
-			throw new Error('Invalid block format. payload must be an array.');
-		}
-		if (!Array.isArray(assets)) {
-			throw new Error('Invalid block format. assets must be an array.');
-		}
-
 		return new Block(
-			BlockHeader.fromJSON(value.header as Record<string, unknown>),
+			BlockHeader.fromJSON(header),
 			payload.map(v => Transaction.fromJSON(v)),
 			BlockAssets.fromJSON(assets),
 		);
