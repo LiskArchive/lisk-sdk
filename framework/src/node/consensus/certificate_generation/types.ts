@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { Chain } from '@liskhq/lisk-chain';
 import { BFTAPI, ValidatorAPI } from '../types';
 import { Network } from '../../network';
 
@@ -38,6 +39,7 @@ export interface CommitPoolConfig {
 	readonly blockTime: number;
 	readonly bftAPI: BFTAPI;
 	readonly validatorsAPI: ValidatorAPI;
+	readonly chain: Chain;
 }
 
 export interface ValidatorInfo {
