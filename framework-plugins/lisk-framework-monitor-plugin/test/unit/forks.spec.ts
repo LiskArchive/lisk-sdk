@@ -63,7 +63,6 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 	version: '',
 	networkVersion: '',
 	genesis: {} as GenesisConfig,
-	genesisConfig: {} as GenesisConfig,
 };
 const validPluginOptions = configSchema.default;
 const logger = testing.mocks.loggerMock;

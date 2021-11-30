@@ -5,11 +5,6 @@ Object {
   "$id": "#/config",
   "additionalProperties": false,
   "default": Object {
-    "forging": Object {
-      "delegates": Array [],
-      "force": false,
-      "waitThreshold": 2,
-    },
     "generation": Object {
       "delegates": Array [],
       "force": false,
@@ -18,42 +13,11 @@ Object {
     },
     "genesis": Object {
       "baseFees": Array [],
-      "bftThreshold": 68,
       "blockTime": 10,
       "communityIdentifier": "sdk",
       "maxTransactionsSize": 15360,
       "minFeePerByte": 1000,
       "modules": Object {},
-      "rewards": Object {
-        "distance": 3000000,
-        "milestones": Array [
-          "500000000",
-          "400000000",
-          "300000000",
-          "200000000",
-          "100000000",
-        ],
-        "offset": 2160,
-      },
-    },
-    "genesisConfig": Object {
-      "baseFees": Array [],
-      "bftThreshold": 68,
-      "blockTime": 10,
-      "communityIdentifier": "sdk",
-      "maxTransactionsSize": 15360,
-      "minFeePerByte": 1000,
-      "rewards": Object {
-        "distance": 3000000,
-        "milestones": Array [
-          "500000000",
-          "400000000",
-          "300000000",
-          "200000000",
-          "100000000",
-        ],
-        "offset": 2160,
-      },
     },
     "label": "beta-sdk-app",
     "logger": Object {
@@ -92,72 +56,6 @@ Object {
     "version": "0.0.0",
   },
   "properties": Object {
-    "forging": Object {
-      "properties": Object {
-        "defaultPassword": Object {
-          "type": "string",
-        },
-        "delegates": Object {
-          "items": Object {
-            "properties": Object {
-              "address": Object {
-                "format": "hex",
-                "type": "string",
-              },
-              "encryptedPassphrase": Object {
-                "format": "encryptedPassphrase",
-                "type": "string",
-              },
-              "hashOnion": Object {
-                "properties": Object {
-                  "count": Object {
-                    "minimum": 1,
-                    "type": "integer",
-                  },
-                  "distance": Object {
-                    "minimum": 1,
-                    "type": "integer",
-                  },
-                  "hashes": Object {
-                    "items": Object {
-                      "format": "hex",
-                      "type": "string",
-                    },
-                    "minItems": 2,
-                    "type": "array",
-                  },
-                },
-                "required": Array [
-                  "count",
-                  "distance",
-                  "hashes",
-                ],
-                "type": "object",
-              },
-            },
-            "required": Array [
-              "encryptedPassphrase",
-              "address",
-              "hashOnion",
-            ],
-          },
-          "type": "array",
-        },
-        "force": Object {
-          "type": "boolean",
-        },
-        "waitThreshold": Object {
-          "description": "Number of seconds to wait for previous block before forging",
-          "type": "integer",
-        },
-      },
-      "required": Array [
-        "force",
-        "waitThreshold",
-        "delegates",
-      ],
-      "type": "object",
-    },
     "generation": Object {
       "properties": Object {
         "delegates": Object {
@@ -259,11 +157,6 @@ Object {
           },
           "type": "array",
         },
-        "bftThreshold": Object {
-          "description": "Number of validators required to set block finality",
-          "minimum": 1,
-          "type": "integer",
-        },
         "blockTime": Object {
           "description": "Slot time interval in seconds",
           "minimum": 2,
@@ -293,132 +186,14 @@ Object {
           },
           "type": "object",
         },
-        "rewards": Object {
-          "additionalProperties": false,
-          "description": "Object representing LSK rewards milestone",
-          "properties": Object {
-            "distance": Object {
-              "description": "Distance between each milestone",
-              "minimum": 1,
-              "type": "integer",
-            },
-            "milestones": Object {
-              "description": "Initial 5, and decreasing until 1",
-              "items": Object {
-                "format": "uint64",
-                "type": "string",
-              },
-              "type": "array",
-            },
-            "offset": Object {
-              "description": "Start rewards at block (n)",
-              "minimum": 1,
-              "type": "integer",
-            },
-          },
-          "required": Array [
-            "milestones",
-            "offset",
-            "distance",
-          ],
-          "type": "object",
-        },
       },
       "required": Array [
         "blockTime",
         "communityIdentifier",
         "maxTransactionsSize",
-        "rewards",
+        "minFeePerByte",
+        "baseFees",
         "modules",
-      ],
-      "type": "object",
-    },
-    "genesisConfig": Object {
-      "$id": "#/config/genesisConfig",
-      "additionalProperties": true,
-      "properties": Object {
-        "baseFees": Object {
-          "description": "Base fee for a transaction to be valid",
-          "items": Object {
-            "properties": Object {
-              "assetID": Object {
-                "minimum": 0,
-                "type": "integer",
-              },
-              "baseFee": Object {
-                "format": "uint64",
-                "type": "string",
-              },
-              "moduleID": Object {
-                "minimum": 2,
-                "type": "number",
-              },
-            },
-            "type": "object",
-          },
-          "type": "array",
-        },
-        "bftThreshold": Object {
-          "description": "Number of validators required to set block finality",
-          "minimum": 1,
-          "type": "integer",
-        },
-        "blockTime": Object {
-          "description": "Slot time interval in seconds",
-          "minimum": 2,
-          "type": "number",
-        },
-        "communityIdentifier": Object {
-          "description": "The unique name of the relevant community as a string encoded in UTF-8 format",
-          "type": "string",
-        },
-        "maxTransactionsSize": Object {
-          "description": "Maximum number of transactions allowed per block",
-          "maximum": 30720,
-          "minimum": 10240,
-          "type": "integer",
-        },
-        "minFeePerByte": Object {
-          "description": "Minimum fee per bytes required for a transaction to be valid",
-          "minimum": 0,
-          "type": "integer",
-        },
-        "rewards": Object {
-          "additionalProperties": false,
-          "description": "Object representing LSK rewards milestone",
-          "properties": Object {
-            "distance": Object {
-              "description": "Distance between each milestone",
-              "minimum": 1,
-              "type": "integer",
-            },
-            "milestones": Object {
-              "description": "Initial 5, and decreasing until 1",
-              "items": Object {
-                "format": "uint64",
-                "type": "string",
-              },
-              "type": "array",
-            },
-            "offset": Object {
-              "description": "Start rewards at block (n)",
-              "minimum": 1,
-              "type": "integer",
-            },
-          },
-          "required": Array [
-            "milestones",
-            "offset",
-            "distance",
-          ],
-          "type": "object",
-        },
-      },
-      "required": Array [
-        "blockTime",
-        "communityIdentifier",
-        "maxTransactionsSize",
-        "rewards",
       ],
       "type": "object",
     },
@@ -695,8 +470,6 @@ Object {
     "version",
     "networkVersion",
     "rpc",
-    "genesisConfig",
-    "forging",
     "network",
     "plugins",
     "genesis",

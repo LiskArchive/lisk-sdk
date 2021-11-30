@@ -43,7 +43,7 @@
 		"clean:node_modules": "lerna clean --yes",
 		"clean:full": "npm run clean:node_modules && rm -rf node_modules && yarn && yarn build",
 		"format": "lerna run format",
-		"lint": "lerna run lint --ignore=lisk-elements --ignore=lisk-commander",
+		"lint": "lerna run lint",
 		"lint:fix": "lerna run lint:fix",
 		"test": "lerna run test",
 		"test:elements": "lerna run test --ignore=lisk-commander --ignore=lisk-framework --ignore=lisk-sdk --ignore=@liskhq/lisk-framework*",

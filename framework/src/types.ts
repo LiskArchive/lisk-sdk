@@ -63,16 +63,10 @@ export interface NetworkConfig {
 }
 
 export interface GenesisConfig {
-	bftThreshold: number;
 	communityIdentifier: string;
-	blockTime: number;
 	maxTransactionsSize: number;
-	rewards: {
-		milestones: string[];
-		offset: number;
-		distance: number;
-	};
 	minFeePerByte: number;
+	blockTime: number;
 	baseFees: {
 		moduleID: number;
 		commandID: number;
@@ -139,7 +133,6 @@ export interface ApplicationConfig {
 		fileLogLevel: string;
 		consoleLogLevel: string;
 	};
-	genesisConfig: GenesisConfig;
 	plugins: {
 		[key: string]: PluginConfig;
 	};

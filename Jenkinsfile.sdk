@@ -142,17 +142,17 @@ pipeline {
 						}
 					}
 				}
-				// stage('Lisk Commander') {
-				// 	agent { node { label 'lisk-commander' }}
-				// 	steps {
-				// 		setup()
-				// 		nvm(getNodejsVersion()) {
-				// 			sh 'npx lerna run test:ci --scope=lisk-commander'
-				// 		}
-				// 		sh 'mv commander/.coverage/ coverage_commander/ || echo "Jest coverage not found"'
-				// 		stash name: "coverage_commander", includes: "coverage_commander/*", allowEmpty: true
-				// 	}
-				// }
+				stage('Lisk Commander') {
+					agent { node { label 'lisk-commander' }}
+					steps {
+						setup()
+						nvm(getNodejsVersion()) {
+							sh 'npx lerna run test:ci --scope=lisk-commander'
+						}
+						sh 'mv commander/.coverage/ coverage_commander/ || echo "Jest coverage not found"'
+						stash name: "coverage_commander", includes: "coverage_commander/*", allowEmpty: true
+					}
+				}
 				// stage('Lisk Client End-to-End') {
 				// 	agent { node { label 'lisk-client' }}
 				// 	steps {

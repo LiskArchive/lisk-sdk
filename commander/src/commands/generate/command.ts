@@ -16,17 +16,17 @@
 
 import BaseBootstrapCommand from '../../base_bootstrap_command';
 
-interface AssetCommandArgs {
+interface CommandCommandArgs {
 	moduleName: string;
-	assetName: string;
-	assetID: number;
+	commandName: string;
+	commandID: number;
 }
 
-export default class AssetCommand extends BaseBootstrapCommand {
-	static description = 'Creates an asset skeleton for the given module name, name and id.';
+export default class CommandCommand extends BaseBootstrapCommand {
+	static description = 'Creates an command skeleton for the given module name, name and id.';
 	static examples = [
-		'generate:asset moduleName assetName assetID',
-		'generate:asset nft transfer 1',
+		'generate:command moduleName commandName commandID',
+		'generate:command nft transfer 1',
 	];
 	static args = [
 		{
@@ -35,20 +35,20 @@ export default class AssetCommand extends BaseBootstrapCommand {
 			required: true,
 		},
 		{
-			name: 'assetName',
+			name: 'commandName',
 			description: 'Asset name.',
 			required: true,
 		},
 		{
-			name: 'assetID',
+			name: 'commandID',
 			description: 'Asset Id.',
 			required: true,
 		},
 	];
 
 	async run(): Promise<void> {
-		const { args } = this.parse(AssetCommand);
-		const { moduleName, assetName, assetID } = args as AssetCommandArgs;
+		const { args } = this.parse(CommandCommand);
+		const { moduleName, commandName, commandID } = args as CommandCommandArgs;
 
 		// validate folder name to not include camelcase or whitespace
 		const regexWhitespace = /\s/g;
@@ -64,15 +64,15 @@ export default class AssetCommand extends BaseBootstrapCommand {
 		}
 
 		if (
-			!regexCamelCase.test(assetName) ||
-			regexWhitespace.test(assetName) ||
-			regexAlphabets.test(assetName)
+			!regexCamelCase.test(commandName) ||
+			regexWhitespace.test(commandName) ||
+			regexAlphabets.test(commandName)
 		) {
-			this.error('Invalid asset name');
+			this.error('Invalid command name');
 		}
 
-		if (Number.isNaN(Number(assetID)) || Number(assetID) < 0) {
-			this.error('Invalid asset ID, only positive integers are allowed');
+		if (Number.isNaN(Number(commandID)) || Number(commandID) < 0) {
+			this.error('Invalid command ID, only positive integers are allowed');
 		}
 
 		if (!this._isLiskAppDir(process.cwd())) {
@@ -82,13 +82,13 @@ export default class AssetCommand extends BaseBootstrapCommand {
 		}
 
 		this.log(
-			`Creating asset skeleton with asset name "${assetName}" and asset ID "${assetID}" for module "${moduleName}"`,
+			`Creating command skeleton with command name "${commandName}" and command ID "${commandID}" for module "${moduleName}"`,
 		);
 
-		return this._runBootstrapCommand('lisk:generate:asset', {
+		return this._runBootstrapCommand('lisk:generate:command', {
 			moduleName,
-			assetName,
-			assetID,
+			commandName,
+			commandID,
 		});
 	}
 }

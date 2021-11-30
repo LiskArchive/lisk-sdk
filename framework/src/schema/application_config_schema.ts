@@ -21,33 +21,6 @@ const moduleConfigSchema = {
 	additionalProperties: { type: 'object' },
 };
 
-const rewardsConfigSchema = {
-	type: 'object',
-	required: ['milestones', 'offset', 'distance'],
-	description: 'Object representing LSK rewards milestone',
-	properties: {
-		milestones: {
-			type: 'array',
-			items: {
-				type: 'string',
-				format: 'uint64',
-			},
-			description: 'Initial 5, and decreasing until 1',
-		},
-		offset: {
-			type: 'integer',
-			minimum: 1,
-			description: 'Start rewards at block (n)',
-		},
-		distance: {
-			type: 'integer',
-			minimum: 1,
-			description: 'Distance between each milestone',
-		},
-	},
-	additionalProperties: false,
-};
-
 const delegatesConfigSchema = {
 	type: 'array',
 	items: {
@@ -90,17 +63,7 @@ const delegatesConfigSchema = {
 export const applicationConfigSchema = {
 	$id: '#/config',
 	type: 'object',
-	required: [
-		'version',
-		'networkVersion',
-		'rpc',
-		'genesisConfig',
-		'forging',
-		'network',
-		'plugins',
-		'genesis',
-		'generation',
-	],
+	required: ['version', 'networkVersion', 'rpc', 'network', 'plugins', 'genesis', 'generation'],
 	properties: {
 		label: {
 			type: 'string',
@@ -140,85 +103,6 @@ export const applicationConfigSchema = {
 				consoleLogLevel: {
 					type: 'string',
 					enum: ['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'none'],
-				},
-			},
-		},
-		genesisConfig: {
-			$id: '#/config/genesisConfig',
-			type: 'object',
-			required: ['blockTime', 'communityIdentifier', 'maxTransactionsSize', 'rewards'],
-			properties: {
-				blockTime: {
-					type: 'number',
-					minimum: 2,
-					description: 'Slot time interval in seconds',
-				},
-				communityIdentifier: {
-					type: 'string',
-					description:
-						'The unique name of the relevant community as a string encoded in UTF-8 format',
-				},
-				bftThreshold: {
-					type: 'integer',
-					minimum: 1,
-					description: 'Number of validators required to set block finality',
-				},
-				minFeePerByte: {
-					type: 'integer',
-					minimum: 0,
-					description: 'Minimum fee per bytes required for a transaction to be valid',
-				},
-				baseFees: {
-					type: 'array',
-					description: 'Base fee for a transaction to be valid',
-					items: {
-						type: 'object',
-						properties: {
-							moduleID: {
-								type: 'number',
-								minimum: 2,
-							},
-							assetID: {
-								type: 'integer',
-								minimum: 0,
-							},
-							baseFee: {
-								type: 'string',
-								format: 'uint64',
-							},
-						},
-					},
-				},
-				maxTransactionsSize: {
-					type: 'integer',
-					// eslint-disable-next-line @typescript-eslint/no-magic-numbers
-					minimum: 10 * 1024, // Kilo Bytes
-					// eslint-disable-next-line @typescript-eslint/no-magic-numbers
-					maximum: 30 * 1024, // Kilo Bytes
-					description: 'Maximum number of transactions allowed per block',
-				},
-				rewards: {
-					...rewardsConfigSchema,
-				},
-			},
-			additionalProperties: true,
-		},
-		forging: {
-			type: 'object',
-			required: ['force', 'waitThreshold', 'delegates'],
-			properties: {
-				force: {
-					type: 'boolean',
-				},
-				waitThreshold: {
-					description: 'Number of seconds to wait for previous block before forging',
-					type: 'integer',
-				},
-				defaultPassword: {
-					type: 'string',
-				},
-				delegates: {
-					...delegatesConfigSchema,
 				},
 			},
 		},
@@ -401,7 +285,14 @@ export const applicationConfigSchema = {
 		},
 		genesis: {
 			type: 'object',
-			required: ['blockTime', 'communityIdentifier', 'maxTransactionsSize', 'rewards', 'modules'],
+			required: [
+				'blockTime',
+				'communityIdentifier',
+				'maxTransactionsSize',
+				'minFeePerByte',
+				'baseFees',
+				'modules',
+			],
 			properties: {
 				blockTime: {
 					type: 'number',
@@ -412,11 +303,6 @@ export const applicationConfigSchema = {
 					type: 'string',
 					description:
 						'The unique name of the relevant community as a string encoded in UTF-8 format',
-				},
-				bftThreshold: {
-					type: 'integer',
-					minimum: 1,
-					description: 'Number of validators required to set block finality',
 				},
 				minFeePerByte: {
 					type: 'integer',
@@ -451,9 +337,6 @@ export const applicationConfigSchema = {
 					// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 					maximum: 30 * 1024, // Kilo Bytes
 					description: 'Maximum number of transactions allowed per block',
-				},
-				rewards: {
-					...rewardsConfigSchema,
 				},
 				modules: {
 					...moduleConfigSchema,
@@ -506,31 +389,6 @@ export const applicationConfigSchema = {
 				host: '127.0.0.1',
 			},
 		},
-		genesisConfig: {
-			blockTime: 10,
-			communityIdentifier: 'sdk',
-			// eslint-disable-next-line @typescript-eslint/no-magic-numbers
-			maxTransactionsSize: 15 * 1024, // Kilo Bytes
-			bftThreshold: 68,
-			minFeePerByte: 1000,
-			baseFees: [],
-			rewards: {
-				milestones: [
-					'500000000', // Initial Reward
-					'400000000', // Milestone 1
-					'300000000', // Milestone 2
-					'200000000', // Milestone 3
-					'100000000', // Milestone 4
-				],
-				offset: 2160, // Start rewards at 39th block of 22nd round
-				distance: 3000000, // Distance between each milestone
-			},
-		},
-		forging: {
-			force: false,
-			waitThreshold: 2,
-			delegates: [],
-		},
 		network: {
 			seedPeers: [],
 			port: 5000,
@@ -548,20 +406,8 @@ export const applicationConfigSchema = {
 			communityIdentifier: 'sdk',
 			// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 			maxTransactionsSize: 15 * 1024, // Kilo Bytes
-			bftThreshold: 68,
 			minFeePerByte: 1000,
 			baseFees: [],
-			rewards: {
-				milestones: [
-					'500000000', // Initial Reward
-					'400000000', // Milestone 1
-					'300000000', // Milestone 2
-					'200000000', // Milestone 3
-					'100000000', // Milestone 4
-				],
-				offset: 2160, // Start rewards at 39th block of 22nd round
-				distance: 3000000, // Distance between each milestone
-			},
 			modules: {},
 		},
 		generation: {

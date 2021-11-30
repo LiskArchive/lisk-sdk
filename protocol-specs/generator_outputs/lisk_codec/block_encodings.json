@@ -8,11 +8,11 @@
 	"handler": "block_encodings",
 	"testCases": [
 		{
-			"description": "Encoding of valid block with payload",
+			"description": "Encoding of valid block with transactions",
 			"input": {
 				"object": {
 					"header": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
-					"payload": [
+					"transactions": [
 						"a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
 						"68a751863fe73b8ede8d832be628ff680d617fa15c74d00142f9025d5f37dd50"
 					]
@@ -25,7 +25,7 @@
 							"dataType": "bytes",
 							"fieldNumber": 1
 						},
-						"payload": {
+						"transactions": {
 							"type": "array",
 							"items": {
 								"dataType": "bytes"
@@ -33,7 +33,7 @@
 							"fieldNumber": 2
 						}
 					},
-					"required": ["header", "payload"]
+					"required": ["header", "transactions"]
 				}
 			},
 			"output": {
@@ -41,11 +41,11 @@
 			}
 		},
 		{
-			"description": "Encoding of valid block block without payload",
+			"description": "Encoding of valid block block without transactions",
 			"input": {
 				"object": {
 					"header": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-					"payload": []
+					"transactions": []
 				},
 				"schema": {
 					"$id": "blockSchema",
@@ -55,7 +55,7 @@
 							"dataType": "bytes",
 							"fieldNumber": 1
 						},
-						"payload": {
+						"transactions": {
 							"type": "array",
 							"items": {
 								"dataType": "bytes"
@@ -63,7 +63,7 @@
 							"fieldNumber": 2
 						}
 					},
-					"required": ["header", "payload"]
+					"required": ["header", "transactions"]
 				}
 			},
 			"output": {

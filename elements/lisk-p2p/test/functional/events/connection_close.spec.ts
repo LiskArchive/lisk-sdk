@@ -49,15 +49,15 @@ describe('Events on Connection Close', () => {
 		await destroyNetwork(p2pNodeList);
 	});
 
-	it(`should handle ${EVENT_CLOSE_INBOUND} event and payload`, async () => {
+	it(`should handle ${EVENT_CLOSE_INBOUND} event and transactions`, async () => {
 		const secondNode = p2pNodeList[1];
 
 		await secondNode.stop();
 		await wait(300);
 
-		const payload = collectedEvents.get('EVENT_CLOSE_INBOUND');
+		const transactions = collectedEvents.get('EVENT_CLOSE_INBOUND');
 
-		expect(payload).toMatchObject({
+		expect(transactions).toMatchObject({
 			code: INTENTIONAL_DISCONNECT_CODE,
 			peerInfo: {
 				port: secondNode.config.port,
@@ -66,15 +66,15 @@ describe('Events on Connection Close', () => {
 		});
 	});
 
-	it(`should handle ${EVENT_CLOSE_OUTBOUND} event and payload`, async () => {
+	it(`should handle ${EVENT_CLOSE_OUTBOUND} event and transactions`, async () => {
 		const firstNode = p2pNodeList[0];
 
 		await firstNode.stop();
 		await wait(300);
 
-		const payload = collectedEvents.get('EVENT_CLOSE_OUTBOUND');
+		const transactions = collectedEvents.get('EVENT_CLOSE_OUTBOUND');
 
-		expect(payload).toMatchObject({
+		expect(transactions).toMatchObject({
 			code: SOCKET_HUNG_UP_CODE,
 			peerInfo: {
 				port: firstNode.config.port,

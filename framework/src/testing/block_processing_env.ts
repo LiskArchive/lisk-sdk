@@ -130,7 +130,7 @@ export const getBlockProcessingEnv = async (
 
 	const networkIdentifier = getNetworkIdentifier(
 		genesisBlock.header.id,
-		appConfig.genesisConfig.communityIdentifier,
+		appConfig.genesis.communityIdentifier,
 	);
 
 	return {

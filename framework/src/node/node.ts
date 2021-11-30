@@ -79,7 +79,7 @@ export class Node {
 		});
 
 		this._chain = new Chain({
-			maxTransactionsSize: this._options.genesisConfig.maxTransactionsSize,
+			maxTransactionsSize: this._options.genesis.maxTransactionsSize,
 		});
 
 		this._stateMachine = new StateMachine();
@@ -90,7 +90,7 @@ export class Node {
 			stateMachine: this._stateMachine,
 			network: this._network,
 			chain: this._chain,
-			genesisConfig: this._options.genesisConfig,
+			genesisConfig: this._options.genesis,
 			bftAPI: this._bftModule.api,
 			validatorAPI: this._validatorsModule.api,
 		});
@@ -102,7 +102,7 @@ export class Node {
 			generationConfig: this._options.generation,
 			network: this._network,
 			stateMachine: this._stateMachine,
-			genesisConfig: this._options.genesisConfig,
+			genesisConfig: this._options.genesis,
 		});
 		this._endpoint = new Endpoint({
 			options: this._options,
@@ -208,7 +208,7 @@ export class Node {
 
 		this._networkIdentifier = getNetworkIdentifier(
 			genesisBlock.header.id,
-			this._options.genesisConfig.communityIdentifier,
+			this._options.genesis.communityIdentifier,
 		);
 		this._chain.init({
 			db: this._blockchainDB,

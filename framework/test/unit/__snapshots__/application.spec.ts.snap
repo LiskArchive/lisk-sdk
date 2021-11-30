@@ -2,7 +2,7 @@
 
 exports[`Application #constructor should set internal variables 1`] = `
 Object {
-  "forging": Object {
+  "generation": Object {
     "defaultPassword": "elephant tree paris dragon chair galaxy",
     "delegates": Array [
       Object {
@@ -2170,36 +2170,10 @@ Object {
       },
     ],
     "force": true,
-    "waitThreshold": 2,
-  },
-  "generation": Object {
-    "delegates": Array [],
-    "force": false,
     "modules": Object {},
     "waitThreshold": 2,
   },
   "genesis": Object {
-    "baseFees": Array [],
-    "bftThreshold": 68,
-    "blockTime": 10,
-    "communityIdentifier": "sdk",
-    "maxTransactionsSize": 15360,
-    "minFeePerByte": 1000,
-    "modules": Object {},
-    "rewards": Object {
-      "distance": 3000000,
-      "milestones": Array [
-        "500000000",
-        "400000000",
-        "300000000",
-        "200000000",
-        "100000000",
-      ],
-      "offset": 2160,
-    },
-  },
-  "genesisConfig": Object {
-    "activeDelegates": 101,
     "baseFees": Array [
       Object {
         "assetID": 0,
@@ -2207,25 +2181,11 @@ Object {
         "moduleID": 5,
       },
     ],
-    "bftThreshold": 68,
     "blockTime": 10,
     "communityIdentifier": "Lisk",
-    "delegateListRoundOffset": 2,
     "maxTransactionsSize": 15360,
     "minFeePerByte": 1000,
-    "minRemainingBalance": "5000000",
-    "rewards": Object {
-      "distance": 3000000,
-      "milestones": Array [
-        "500000000",
-        "400000000",
-        "300000000",
-        "200000000",
-        "100000000",
-      ],
-      "offset": 2160,
-    },
-    "standbyDelegates": 2,
+    "modules": Object {},
   },
   "label": "devnet",
   "logger": Object {

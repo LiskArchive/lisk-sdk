@@ -19,15 +19,15 @@ import {
 	transformNestedAsset,
 } from '../../../../src/utils/reader';
 import {
-	tokenTransferAssetSchema,
-	keysRegisterAssetSchema,
-	dposVoteAssetSchema,
+	tokenTransferParamsSchema,
+	keysRegisterParamsSchema,
+	dposVoteParamsSchema,
 } from '../../../helpers/transactions';
 
 describe('prompt', () => {
 	describe('prepareQuestions', () => {
 		it('should return array of questions for given asset schema', () => {
-			const questions = prepareQuestions(tokenTransferAssetSchema);
+			const questions = prepareQuestions(tokenTransferParamsSchema);
 			expect(questions).toEqual([
 				{ type: 'input', name: 'amount', message: 'Please enter: amount: ' },
 				{
@@ -42,8 +42,8 @@ describe('prompt', () => {
 
 	describe('transformAsset', () => {
 		it('should transform result according to asset schema', () => {
-			const questions = prepareQuestions(keysRegisterAssetSchema);
-			const transformedAsset = transformAsset(keysRegisterAssetSchema, {
+			const questions = prepareQuestions(keysRegisterParamsSchema);
+			const transformedAsset = transformAsset(keysRegisterParamsSchema, {
 				numberOfSignatures: '4',
 				mandatoryKeys: 'a,b',
 				optionalKeys: 'c,d',
@@ -75,8 +75,8 @@ describe('prompt', () => {
 
 	describe('transformNestedAsset', () => {
 		it('should transform result according to nested asset schema', () => {
-			const questions = prepareQuestions(dposVoteAssetSchema);
-			const transformedAsset = transformNestedAsset(dposVoteAssetSchema, [
+			const questions = prepareQuestions(dposVoteParamsSchema);
+			const transformedAsset = transformNestedAsset(dposVoteParamsSchema, [
 				{ votes: 'a,100' },
 				{ votes: 'b,300' },
 			]);

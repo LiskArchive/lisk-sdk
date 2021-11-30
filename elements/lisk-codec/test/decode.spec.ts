@@ -83,7 +83,7 @@ describe('decode', () => {
 		it.each(buildTestCases(blockTestCases))('%s', ({ input, output }) => {
 			const object = {
 				header: Buffer.from(output.object.header, 'hex'),
-				payload: output.object.payload.map(p => Buffer.from(p, 'hex')),
+				transactions: output.object.transactions.map(p => Buffer.from(p, 'hex')),
 			};
 
 			const result = codec.decode(input.schema, Buffer.from(input.value, 'hex'));

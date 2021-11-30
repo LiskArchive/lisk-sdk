@@ -13,4 +13,4 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { ShowCommand } from '../../bootstrapping/commands/account/show';
+export { ValidateCommand } from '../../bootstrapping/commands/account/validate';
