@@ -13,4 +13,10 @@
  */
 
 export { DPoSModule } from './module';
+export { DelegateRegistrationCommand } from './commands/delegate_registration';
+export { VoteCommand } from './commands/vote';
+export { UpdateGeneratorKeyCommand } from './commands/update_generator_key';
+export { ReportDelegateMisbehaviorCommand } from './commands/pom';
+export { UnlockCommand } from './commands/unlock';
 export { DPoSAPI } from './api';
+export { genesisStoreSchema } from './schemas';

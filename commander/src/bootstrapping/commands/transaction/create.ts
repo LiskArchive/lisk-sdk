@@ -274,7 +274,7 @@ export abstract class CreateCommand extends Command {
 		this._dataPath = flags['data-path'] ?? getDefaultPath(this.config.pjson.name);
 
 		if (flags.offline) {
-			const app = this.getApplication({}, {});
+			const app = this.getApplication({});
 			this._schema = app.getSchema();
 
 			transactionObject = await createTransactionOffline(
@@ -328,8 +328,5 @@ export abstract class CreateCommand extends Command {
 		}
 	}
 
-	abstract getApplication(
-		genesisBlock: Record<string, unknown>,
-		config: PartialApplicationConfig,
-	): Application;
+	abstract getApplication(config: PartialApplicationConfig): Application;
 }
