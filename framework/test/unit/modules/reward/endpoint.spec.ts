@@ -21,11 +21,11 @@ describe('RewardModuleEndpoint', () => {
 		distance: 3000000,
 		offset: 2160,
 		brackets: [
-			BigInt('500000000'), // Initial Reward
-			BigInt('400000000'), // Milestone 1
-			BigInt('300000000'), // Milestone 2
-			BigInt('200000000'), // Milestone 3
-			BigInt('100000000'), // Milestone 4
+			'500000000', // Initial Reward
+			'400000000', // Milestone 1
+			'300000000', // Milestone 2
+			'200000000', // Milestone 3
+			'100000000', // Milestone 4
 		],
 		tokenIDReward: { chainID: 0, localID: 0 },
 	};

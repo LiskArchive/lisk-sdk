@@ -17,25 +17,22 @@ import { createBlockHeaderWithDefaults, createTransientAPIContext } from '../../
 
 describe('RewardModuleAPI', () => {
 	const genesisConfig: any = {};
-	const moduleConfig: any = {
+	const moduleConfig = {
 		distance: 3000000,
 		offset: 2160,
 		brackets: [
-			BigInt('500000000'), // Initial Reward
-			BigInt('400000000'), // Milestone 1
-			BigInt('300000000'), // Milestone 2
-			BigInt('200000000'), // Milestone 3
-			BigInt('100000000'), // Milestone 4
+			'500000000', // Initial Reward
+			'400000000', // Milestone 1
+			'300000000', // Milestone 2
+			'200000000', // Milestone 3
+			'100000000', // Milestone 4
 		],
 		tokenIDReward: { chainID: 0, localID: 0 },
 	};
 	const generatorConfig: any = {};
 
-	const { brackets, offset, distance } = moduleConfig as {
-		brackets: ReadonlyArray<bigint>;
-		offset: number;
-		distance: number;
-	};
+	const { offset, distance } = moduleConfig;
+	const brackets = moduleConfig.brackets.map(v => BigInt(v));
 
 	let rewardModule: RewardModule;
 	let context: any;

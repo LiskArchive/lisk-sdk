@@ -66,18 +66,25 @@ describe('RandomModule', () => {
 	});
 
 	describe('init', () => {
+		it('should initialize config with default value when module config is empty', async () => {
+			await expect(
+				randomModule.init({ genesisConfig: {} as any, moduleConfig: {}, generatorConfig: {} }),
+			).toResolve();
+
+			expect(randomModule['_maxLengthReveals']).toEqual(206);
+		});
+
 		it('should assign config values', async () => {
 			const generatorConfig = { delegates: convertDelegateFixture(genesisDelegates.delegates) };
-			const maxLengthReveals = 10;
 
 			await randomModule.init({
 				generatorConfig,
 				genesisConfig: {} as GenesisConfig,
-				moduleConfig: { maxLengthReveals },
+				moduleConfig: { maxLengthReveals: 20 },
 			});
 
 			expect(randomModule['_generatorConfig']).toEqual(generatorConfig);
-			expect(randomModule['_maxLengthReveals']).toEqual(maxLengthReveals);
+			expect(randomModule['_maxLengthReveals']).toEqual(20);
 		});
 	});
 

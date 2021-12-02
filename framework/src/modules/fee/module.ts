@@ -13,8 +13,10 @@
  */
 
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { objects } from '@liskhq/lisk-utils';
+import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs } from '../base_module';
-import { MODULE_ID_FEE, NATIVE_TOKEN_CHAIN_ID } from './constants';
+import { defaultConfig, MODULE_ID_FEE, NATIVE_TOKEN_CHAIN_ID } from './constants';
 import { BaseFee, TokenAPI, ModuleConfig } from './types';
 import {
 	TransactionExecuteContext,
@@ -44,7 +46,12 @@ export class FeeModule extends BaseModule {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs): Promise<void> {
 		const { genesisConfig, moduleConfig } = args;
-		this._moduleConfig = (moduleConfig as unknown) as ModuleConfig;
+		const config = objects.mergeDeep({}, defaultConfig, moduleConfig);
+		const errors = validator.validate(configSchema, config);
+		if (errors.length) {
+			throw new LiskValidationError(errors);
+		}
+		this._moduleConfig = (config as unknown) as ModuleConfig;
 		this._minFeePerByte = genesisConfig.minFeePerByte;
 		this._baseFees = genesisConfig.baseFees.map(fee => ({ ...fee, baseFee: BigInt(fee.baseFee) }));
 	}

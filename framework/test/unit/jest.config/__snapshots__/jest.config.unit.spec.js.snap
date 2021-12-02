@@ -27,7 +27,7 @@ Object {
     "<rootDir>/test/unit/**/*.(spec|test).(js|ts)",
   ],
   "testPathIgnorePatterns": Array [
-    "/node_modules|modules/dpos(?!_v2)|modules/keys|modules/sequence",
+    "/node_modules",
   ],
   "transform": Object {
     "^.+\\\\.(ts|tsx)$": "ts-jest",

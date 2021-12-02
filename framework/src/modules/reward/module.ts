@@ -12,8 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { objects } from '@liskhq/lisk-utils';
+import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs } from '../base_module';
-import { MODULE_ID_REWARD } from './constants';
+import { defaultConfig, MODULE_ID_REWARD } from './constants';
 import { BFTAPI, ModuleConfig, RandomAPI, TokenAPI, TokenIDReward } from './types';
 import { BlockAfterExecuteContext } from '../../node/state_machine';
 import { RewardAPI } from './api';
@@ -42,7 +44,12 @@ export class RewardModule extends BaseModule {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs): Promise<void> {
 		const { moduleConfig } = args;
-		this._moduleConfig = (moduleConfig as unknown) as ModuleConfig;
+		const config = objects.mergeDeep({}, defaultConfig, moduleConfig);
+		const errors = validator.validate(configSchema, config);
+		if (errors.length) {
+			throw new LiskValidationError(errors);
+		}
+		this._moduleConfig = (config as unknown) as ModuleConfig;
 		this._tokenIDReward = this._moduleConfig.tokenIDReward;
 
 		this.api.init({

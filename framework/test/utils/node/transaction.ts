@@ -17,11 +17,13 @@ import { Transaction, BlockHeader, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressAndPublicKeyFromPassphrase, signData } from '@liskhq/lisk-cryptography';
 import { signMultiSignatureTransaction } from '@liskhq/lisk-transactions';
+import { registerMultisignatureParamsSchema } from '../../../src/modules/auth/schemas';
+import {
+	delegateRegistrationCommandParamsSchema,
+	pomCommandParamsSchema,
+	voteCommandParamsSchema,
+} from '../../../src/modules/dpos_v2/schemas';
 import { TransferCommand } from '../../../src/modules/token/commands/transfer';
-import { RegisterTransactionAsset } from '../../../src/modules/dpos/transaction_assets/register_transaction_asset';
-import { RegisterAsset as MultisignatureRegisterAsset } from '../../../src/modules/keys/register_asset';
-import { VoteTransactionAsset } from '../../../src/modules/dpos/transaction_assets/vote_transaction_asset';
-import { PomTransactionAsset } from '../../../src/modules/dpos';
 import { MODULE_ID_TOKEN } from '../../../src/modules/token/constants';
 import { transferParamsSchema } from '../../../src/modules/token/schemas';
 
@@ -62,7 +64,7 @@ export const createDelegateRegisterTransaction = (input: {
 	username: string;
 	fee?: bigint;
 }): Transaction => {
-	const encodedAsset = codec.encode(new RegisterTransactionAsset().schema, {
+	const encodedAsset = codec.encode(delegateRegistrationCommandParamsSchema, {
 		username: input.username,
 	});
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.passphrase);
@@ -89,7 +91,7 @@ export const createDelegateVoteTransaction = (input: {
 	fee?: bigint;
 	votes: { delegateAddress: Buffer; amount: bigint }[];
 }): Transaction => {
-	const encodedAsset = codec.encode(new VoteTransactionAsset().schema, {
+	const encodedAsset = codec.encode(voteCommandParamsSchema, {
 		votes: input.votes,
 	});
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.passphrase);
@@ -119,12 +121,11 @@ export const createMultiSignRegisterTransaction = (input: {
 	senderPassphrase: string;
 	passphrases: string[];
 }): Transaction => {
-	const encodedAsset = codec.encode(new MultisignatureRegisterAsset().schema, {
+	const encodedAsset = codec.encode(registerMultisignatureParamsSchema, {
 		mandatoryKeys: input.mandatoryKeys,
 		optionalKeys: input.optionalKeys,
 		numberOfSignatures: input.numberOfSignatures,
 	});
-	const { schema } = new MultisignatureRegisterAsset();
 	const params = {
 		mandatoryKeys: input.mandatoryKeys,
 		optionalKeys: input.optionalKeys,
@@ -136,7 +137,7 @@ export const createMultiSignRegisterTransaction = (input: {
 	>(
 		(prev, current) => {
 			return signMultiSignatureTransaction(
-				schema,
+				registerMultisignatureParamsSchema,
 				prev,
 				input.networkIdentifier,
 				current,
@@ -207,7 +208,7 @@ export const createReportMisbehaviorTransaction = (input: {
 	header2: BlockHeader;
 	fee?: bigint;
 }): Transaction => {
-	const encodedAsset = codec.encode(new PomTransactionAsset().schema, {
+	const encodedAsset = codec.encode(pomCommandParamsSchema, {
 		header1: input.header1,
 		header2: input.header2,
 	});

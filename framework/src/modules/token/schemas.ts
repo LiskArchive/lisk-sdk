@@ -21,7 +21,7 @@ export const configSchema = {
 			format: 'uint64',
 		},
 	},
-	required: [],
+	required: ['minBalance'],
 };
 
 export interface UserStoreData {

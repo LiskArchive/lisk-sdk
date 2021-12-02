@@ -20,11 +20,11 @@ describe('RewardModule', () => {
 		distance: 3000000,
 		offset: 2160,
 		brackets: [
-			BigInt('500000000'), // Initial Reward
-			BigInt('400000000'), // Milestone 1
-			BigInt('300000000'), // Milestone 2
-			BigInt('200000000'), // Milestone 3
-			BigInt('100000000'), // Milestone 4
+			'500000000', // Initial Reward
+			'400000000', // Milestone 1
+			'300000000', // Milestone 2
+			'200000000', // Milestone 3
+			'100000000', // Milestone 4
 		],
 		tokenIDReward: { chainID: 0, localID: 0 },
 	};
@@ -44,8 +44,26 @@ describe('RewardModule', () => {
 	});
 
 	describe('init', () => {
-		it('should set the moduleConfig property', () => {
-			expect(rewardModule['_moduleConfig']).toEqual(moduleConfig);
+		it('should initialize config with default value when module config is empty', async () => {
+			rewardModule = new RewardModule();
+			await expect(
+				rewardModule.init({ genesisConfig: {} as any, moduleConfig: {}, generatorConfig: {} }),
+			).toResolve();
+
+			expect(rewardModule['_moduleConfig']).toEqual({ ...moduleConfig });
+		});
+
+		it('should initialize config with given value', async () => {
+			rewardModule = new RewardModule();
+			await expect(
+				rewardModule.init({
+					genesisConfig: {} as any,
+					moduleConfig: { offset: 1000 },
+					generatorConfig: {},
+				}),
+			).toResolve();
+
+			expect(rewardModule['_moduleConfig'].offset).toEqual(1000);
 		});
 	});
 

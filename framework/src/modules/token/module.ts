@@ -13,7 +13,8 @@
  */
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
-import { DEFAULT_MIN_REMAINING_BALANCE, MODULE_ID_TOKEN, STORE_PREFIX_USER } from './constants';
+import { objects } from '@liskhq/lisk-utils';
+import { defaultConfig, MODULE_ID_TOKEN, STORE_PREFIX_USER } from './constants';
 import { TransferCommand } from './commands/transfer';
 import { BaseModule, ModuleInitArgs } from '../base_module';
 import { GenesisBlockExecuteContext } from '../../node/state_machine';
@@ -37,11 +38,12 @@ export class TokenModule extends BaseModule {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs) {
 		const { moduleConfig } = args;
-		const errors = validator.validate(configSchema, moduleConfig);
+		const config = objects.mergeDeep({}, defaultConfig, moduleConfig);
+		const errors = validator.validate(configSchema, config);
 		if (errors.length) {
 			throw new LiskValidationError(errors);
 		}
-		this._minBalance = BigInt(moduleConfig?.minBalance) ?? BigInt(DEFAULT_MIN_REMAINING_BALANCE);
+		this._minBalance = BigInt(config.minBalance);
 		this.api.init({ minBalance: this._minBalance });
 		this._transferCommand.init({
 			api: this.api,

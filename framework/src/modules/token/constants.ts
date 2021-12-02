@@ -19,3 +19,6 @@ export const MAX_TRANSACTION_AMOUNT = '9223372036854775807';
 export const DEFAULT_MIN_REMAINING_BALANCE = '5000000';
 
 export const STORE_PREFIX_USER = 0;
+export const defaultConfig = {
+	minBalance: DEFAULT_MIN_REMAINING_BALANCE,
+};
