@@ -27,6 +27,28 @@ describe('bft module', () => {
 		bftModule = new BFTModule();
 	});
 
+	describe('init', () => {
+		it('should initialize config with default value when module config is empty', async () => {
+			await expect(
+				bftModule.init({ genesisConfig: {} as any, moduleConfig: {}, generatorConfig: {} }),
+			).toResolve();
+
+			expect(bftModule['_batchSize']).toEqual(103);
+		});
+
+		it('should initialize config with given value', async () => {
+			await expect(
+				bftModule.init({
+					genesisConfig: {} as any,
+					moduleConfig: { batchSize: 20 },
+					generatorConfig: {},
+				}),
+			).toResolve();
+
+			expect(bftModule['_batchSize']).toEqual(20);
+		});
+	});
+
 	describe('initGenesisState', () => {
 		it('should initialize vote store', async () => {
 			const stateStore = new StateStore(new InMemoryKVStore());

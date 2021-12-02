@@ -12,10 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { objects } from '@liskhq/lisk-utils';
 import { BaseModule, ModuleInitArgs } from '../base_module';
 import { BFTAPI } from './api';
 import { BFTEndpoint } from './endpoint';
 import {
+	defaultConfig,
 	EMPTY_KEY,
 	MODULE_ID_BFT,
 	STORE_PREFIX_BFT_PARAMETERS,
@@ -45,11 +47,12 @@ export class BFTModule extends BaseModule {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs): Promise<void> {
 		const { moduleConfig } = args;
-		const errors = validator.validate(bftModuleConfig, moduleConfig);
+		const config = objects.mergeDeep({}, defaultConfig, moduleConfig);
+		const errors = validator.validate(bftModuleConfig, config);
 		if (errors.length) {
 			throw new LiskValidationError(errors);
 		}
-		this._batchSize = moduleConfig.batchSize as number;
+		this._batchSize = config.batchSize as number;
 		this.api.init(this._batchSize);
 		this._maxLengthBlockBFTInfos = 3 * this._batchSize;
 	}

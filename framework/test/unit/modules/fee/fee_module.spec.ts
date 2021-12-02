@@ -43,6 +43,15 @@ describe('FeeModule', () => {
 	});
 
 	describe('init', () => {
+		it('should initialize config with default value when module config is empty', async () => {
+			feeModule = new FeeModule();
+			await expect(
+				feeModule.init({ genesisConfig, moduleConfig: {}, generatorConfig: {} }),
+			).toResolve();
+
+			expect(feeModule['_moduleConfig']).toEqual(moduleConfig);
+		});
+
 		it('should set the moduleConfig property', () => {
 			expect(feeModule['_moduleConfig']).toEqual(moduleConfig);
 		});

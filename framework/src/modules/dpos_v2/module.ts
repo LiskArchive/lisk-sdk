@@ -13,7 +13,7 @@
  */
 
 import { intToBuffer } from '@liskhq/lisk-cryptography';
-import { objects as objectUtils, dataStructures } from '@liskhq/lisk-utils';
+import { objects as objectUtils, dataStructures, objects } from '@liskhq/lisk-utils';
 import { isUInt64, LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { GenesisBlockExecuteContext, BlockAfterExecuteContext } from '../../node/state_machine';
@@ -39,6 +39,7 @@ import {
 	MAX_SNAPSHOT,
 	STORE_PREFIX_NAME,
 	STORE_PREFIX_VOTER,
+	defaultConfig,
 } from './constants';
 import { DPoSEndpoint } from './endpoint';
 import {
@@ -129,13 +130,14 @@ export class DPoSModule extends BaseModule {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs) {
 		const { moduleConfig } = args;
-		const errors = validator.validate(configSchema, moduleConfig);
+		const config = objects.mergeDeep({}, defaultConfig, moduleConfig);
+		const errors = validator.validate(configSchema, config);
 		if (errors.length) {
 			throw new LiskValidationError(errors);
 		}
 		this._moduleConfig = {
-			...moduleConfig,
-			minWeightStandby: BigInt(moduleConfig.minWeightStandby),
+			...config,
+			minWeightStandby: BigInt(config.minWeightStandby),
 		} as ModuleConfig;
 
 		const voteCommand = this.commands.find(command => command.id === COMMAND_ID_VOTE) as

@@ -12,12 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { objects } from '@liskhq/lisk-utils';
+import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs } from '../base_module';
-import { EMPTY_KEY, MODULE_ID_VALIDATORS, STORE_PREFIX_GENESIS_DATA } from './constants';
+import {
+	defaultConfig,
+	EMPTY_KEY,
+	MODULE_ID_VALIDATORS,
+	STORE_PREFIX_GENESIS_DATA,
+} from './constants';
 import { GenesisBlockExecuteContext } from '../../node/state_machine';
 import { ValidatorsAPI } from './api';
 import { ValidatorsEndpoint } from './endpoint';
-import { genesisDataSchema } from './schemas';
+import { configSchema, genesisDataSchema } from './schemas';
 
 export class ValidatorsModule extends BaseModule {
 	public id = MODULE_ID_VALIDATORS;
@@ -29,15 +36,12 @@ export class ValidatorsModule extends BaseModule {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs): Promise<void> {
 		const { moduleConfig } = args;
-		const { blockTime } = moduleConfig;
-
-		if (!blockTime || typeof blockTime !== 'number') {
-			throw new Error('BlockTime must be a number.');
+		const config = objects.mergeDeep({}, defaultConfig, moduleConfig);
+		const errors = validator.validate(configSchema, config);
+		if (errors.length) {
+			throw new LiskValidationError(errors);
 		}
-		if (blockTime < 1) {
-			throw new Error('Block time cannot be less than 1.');
-		}
-		this._blockTime = blockTime;
+		this._blockTime = config.blockTime as number;
 
 		this.api.init({
 			config: {

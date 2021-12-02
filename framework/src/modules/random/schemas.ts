@@ -15,9 +15,9 @@
 export const randomModuleConfig = {
 	$id: 'modules/random/config',
 	type: 'object',
-	required: [],
+	required: ['maxLengthReveals'],
 	properties: {
-		batchSize: {
+		maxLengthReveals: {
 			type: 'integer',
 			format: 'uint32',
 		},

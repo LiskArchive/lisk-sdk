@@ -25,9 +25,34 @@ describe('ValidatorsModule', () => {
 	let validatorsModule: ValidatorsModule;
 	const genesisTimestamp = 45672;
 
+	beforeEach(() => {
+		validatorsModule = new ValidatorsModule();
+	});
+
+	describe('init', () => {
+		it('should initialize config with default value when module config is empty', async () => {
+			await expect(
+				validatorsModule.init({ genesisConfig: {} as any, moduleConfig: {}, generatorConfig: {} }),
+			).toResolve();
+
+			expect(validatorsModule['_blockTime']).toEqual(10);
+		});
+
+		it('should initialize config with given value', async () => {
+			await expect(
+				validatorsModule.init({
+					genesisConfig: {} as any,
+					moduleConfig: { blockTime: 3 },
+					generatorConfig: {},
+				}),
+			).toResolve();
+
+			expect(validatorsModule['_blockTime']).toEqual(3);
+		});
+	});
+
 	describe('afterTransactionsExecute', () => {
 		it(`should set genesis store with the correct timestamp`, async () => {
-			validatorsModule = new ValidatorsModule();
 			stateStore = new StateStore(new InMemoryKVStore());
 			const blockHeader = createBlockHeaderWithDefaults({ timestamp: genesisTimestamp });
 			const blockAfterExecuteContext = createBlockContext({

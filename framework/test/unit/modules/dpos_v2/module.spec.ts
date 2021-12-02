@@ -78,6 +78,36 @@ describe('DPoS module', () => {
 		},
 	};
 
+	describe('init', () => {
+		let dpos: DPoSModule;
+		beforeEach(() => {
+			dpos = new DPoSModule();
+		});
+
+		it('should initialize config with default value when module config is empty', async () => {
+			await expect(
+				dpos.init({ genesisConfig: {} as any, moduleConfig: {}, generatorConfig: {} }),
+			).toResolve();
+
+			expect(dpos['_moduleConfig']).toEqual({
+				...defaultConfigs,
+				minWeightStandby: BigInt(defaultConfigs.minWeightStandby),
+			});
+		});
+
+		it('should initialize config with given value', async () => {
+			await expect(
+				dpos.init({
+					genesisConfig: {} as any,
+					moduleConfig: { ...defaultConfigs, maxLengthName: 50 },
+					generatorConfig: {},
+				}),
+			).toResolve();
+
+			expect(dpos['_moduleConfig'].maxLengthName).toEqual(50);
+		});
+	});
+
 	describe('initGenesisState', () => {
 		let dpos: DPoSModule;
 		let stateStore: StateStore;

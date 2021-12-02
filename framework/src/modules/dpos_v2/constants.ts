@@ -44,3 +44,22 @@ export const REPORTING_PUNISHMENT_REWARD = BigInt(100000000);
 export const DELEGATE_LIST_ROUND_OFFSET = 2;
 export const EMPTY_KEY = Buffer.alloc(0);
 export const MAX_SNAPSHOT = 3;
+
+export const defaultConfig = {
+	factorSelfVotes: 10,
+	maxLengthName: 20,
+	maxNumberSentVotes: 10,
+	maxNumberPendingUnlocks: 20,
+	failSafeMissedBlocks: 50,
+	failSafeInactiveWindow: 260000,
+	punishmentWindow: PUNISHMENT_PERIOD,
+	roundLength: 103,
+	bftThreshold: 68,
+	minWeightStandby: '100000000000',
+	numberActiveDelegates: 101,
+	numberStandbyDelegates: 2,
+	tokenIDDPoS: {
+		chainID: 0,
+		localID: 0,
+	},
+};
