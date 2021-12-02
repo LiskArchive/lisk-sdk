@@ -13,6 +13,7 @@
  */
 
 import { SparseMerkleTree } from '@liskhq/lisk-tree';
+import { hash } from '@liskhq/lisk-cryptography';
 import { StateDiff } from '../types';
 import { copyBuffer, toSMTKey } from './utils';
 import { DatabaseWriter } from './types';
@@ -170,7 +171,7 @@ export class CacheDB {
 			const smtKey = toSMTKey(keyBytes);
 			if (value.init === undefined) {
 				diff.created.push(keyBytes);
-				await smt.update(smtKey, value.value);
+				await smt.update(smtKey, hash(value.value));
 				batch.put(keyBytes, value.value);
 				continue;
 			}
@@ -188,7 +189,7 @@ export class CacheDB {
 					key: keyBytes,
 					value: value.init,
 				});
-				await smt.update(smtKey, value.value);
+				await smt.update(smtKey, hash(value.value));
 				batch.put(keyBytes, value.value);
 			}
 		}

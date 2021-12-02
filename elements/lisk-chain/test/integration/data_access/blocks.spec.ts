@@ -16,7 +16,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { KVStore, formatInt, NotFoundError, InMemoryKVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, hash, intToBuffer } from '@liskhq/lisk-cryptography';
 import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import { Storage } from '../../../src/data_access/storage';
 import { createValidDefaultBlock } from '../../utils/block';
@@ -579,9 +579,9 @@ describe('dataAccess.blocks', () => {
 			const smtStoreTemp = new SMTStore(tempDB);
 			const smtTemp = new SparseMerkleTree({ db: smtStoreTemp });
 
-			await smtTemp.update(toSMTKey(prefixedKey(address1)), data1);
-			await smtTemp.update(toSMTKey(prefixedKey(address2)), data2);
-			await smtTemp.update(toSMTKey(prefixedKey(address3)), data3);
+			await smtTemp.update(toSMTKey(prefixedKey(address1)), hash(data1));
+			await smtTemp.update(toSMTKey(prefixedKey(address2)), hash(data2));
+			await smtTemp.update(toSMTKey(prefixedKey(address3)), hash(data3));
 			const { rootHash: expectedStateRoot } = smtTemp;
 
 			// Add the expected state root calculated to a block to be saved
@@ -659,9 +659,9 @@ describe('dataAccess.blocks', () => {
 			const smtStoreTemp = new SMTStore(tempDB);
 			const smtTemp = new SparseMerkleTree({ db: smtStoreTemp });
 
-			await smtTemp.update(toSMTKey(prefixedKey(address1)), data1);
-			await smtTemp.update(toSMTKey(prefixedKey(address2)), data2);
-			await smtTemp.update(toSMTKey(prefixedKey(address3)), data3);
+			await smtTemp.update(toSMTKey(prefixedKey(address1)), hash(data1));
+			await smtTemp.update(toSMTKey(prefixedKey(address2)), hash(data2));
+			await smtTemp.update(toSMTKey(prefixedKey(address3)), hash(data3));
 			const { rootHash: expectedStateRoot } = smtTemp;
 
 			// Add the expected state root calculated to a block to be saved
