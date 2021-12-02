@@ -178,8 +178,56 @@ export class CommitPool {
 	private _aggregateSingleCommits(_singleCommits: SingleCommit[]): AggregateCommit {
 		return {} as AggregateCommit;
 	}
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	private _selectAggregateCommit(): SingleCommit[] {
-		return [];
+
+	private async _selectAggregateCommit(apiContext: APIContext): Promise<AggregateCommit> {
+		const { maxHeightCertified, maxHeightPrecommitted } = await this._bftAPI.getBFTHeights(
+			apiContext,
+		);
+		let heightNextBFTParameters: number;
+		let nextHeight: number;
+
+		try {
+			heightNextBFTParameters = await this._bftAPI.getNextHeightBFTParameters(
+				apiContext,
+				maxHeightCertified + 1,
+			);
+			nextHeight = Math.min(heightNextBFTParameters - 1, maxHeightPrecommitted);
+		} catch (err) {
+			nextHeight = maxHeightPrecommitted;
+		}
+
+		let singleCommits: SingleCommit[];
+		let nextValidators: Buffer[];
+		let aggregateBFTWeight = BigInt(0);
+
+		while (nextHeight > maxHeightCertified) {
+			singleCommits = [
+				...(this._nonGossipedCommits.get(nextHeight) ?? []),
+				...(this._gossipedCommits.get(nextHeight) ?? []),
+			];
+			nextValidators = singleCommits.map(commit => commit.validatorAddress);
+			const { validators, certificateThreshold } = await this._bftAPI.getBFTParameters(
+				apiContext,
+				nextHeight,
+			);
+
+			for (const validatorAddress of nextValidators) {
+				const bftParamsValidatorInfo = validators.find(v => v.address === validatorAddress);
+				if (!bftParamsValidatorInfo) {
+					throw new Error('Missing validator in BFT params');
+				}
+				aggregateBFTWeight += bftParamsValidatorInfo.bftWeight;
+				if (aggregateBFTWeight >= certificateThreshold) {
+					return this._aggregateSingleCommits(singleCommits);
+				}
+				nextHeight -= 1;
+			}
+		}
+
+		return {
+			height: maxHeightCertified,
+			aggregationBits: Buffer.alloc(0),
+			certificateSignature: Buffer.alloc(0),
+		};
 	}
 }
