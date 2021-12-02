@@ -169,10 +169,8 @@ export class CommitPool {
 		);
 	}
 	// TODO: To be updated in the issue https://github.com/LiskHQ/lisk-sdk/issues/6846
-	public getAggregageCommit(): AggregateCommit {
-		const singleCommits = this._selectAggregateCommit();
-
-		return this._aggregateSingleCommits((singleCommits as unknown) as SingleCommit[]);
+	public async getAggregageCommit(apiContext: APIContext): Promise<AggregateCommit> {
+		return this._selectAggregateCommit(apiContext);
 	}
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	private _aggregateSingleCommits(_singleCommits: SingleCommit[]): AggregateCommit {
@@ -206,11 +204,12 @@ export class CommitPool {
 				...(this._gossipedCommits.get(nextHeight) ?? []),
 			];
 			nextValidators = singleCommits.map(commit => commit.validatorAddress);
+
+			// Assuming this list of validators includes all validators corresponding to each singleCommit.validatorAddress
 			const { validators, certificateThreshold } = await this._bftAPI.getBFTParameters(
 				apiContext,
 				nextHeight,
 			);
-
 			for (const validatorAddress of nextValidators) {
 				const bftParamsValidatorInfo = validators.find(v => v.address === validatorAddress);
 				if (!bftParamsValidatorInfo) {

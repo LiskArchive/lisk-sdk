@@ -49,5 +49,4 @@ export interface BFTAPI {
 		apiClient: ImmutableAPIContext,
 		header: BlockHeader,
 	) => Promise<boolean>;
-	getNextHeightBFTParameters: (apiContext: ImmutableAPIContext, height: number) => Promise<number>;
 }
