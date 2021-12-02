@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { KVStore } from '@liskhq/lisk-db';
 import { Chain } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { objects } from '@liskhq/lisk-utils';
@@ -36,12 +37,15 @@ import {
 } from './schema';
 import { CommitPool } from './certificate_generation/commit_pool';
 import { singleCommitSchema } from './certificate_generation/schema';
+import { APIContext } from '../state_machine/types';
+import { createNewAPIContext } from '../state_machine/api_context';
 
 export interface EndpointArgs {
 	logger: Logger;
 	chain: Chain;
 	network: Network;
 	commitPool: CommitPool;
+	db: KVStore;
 }
 
 interface RateTracker {
@@ -58,6 +62,7 @@ export class NetworkEndpoint {
 	private readonly _chain: Chain;
 	private readonly _network: Network;
 	private readonly _commitPool: CommitPool;
+	private readonly _apiContext: APIContext;
 
 	private _rateTracker: RateTracker;
 
@@ -67,6 +72,7 @@ export class NetworkEndpoint {
 		this._network = args.network;
 		this._commitPool = args.commitPool;
 		this._rateTracker = {};
+		this._apiContext = createNewAPIContext(args.db);
 	}
 
 	public handleRPCGetLastBlock(peerId: string): Buffer {
@@ -176,7 +182,7 @@ export class NetworkEndpoint {
 		});
 	}
 
-	public handleEventSingleCommit(data: unknown, peerId: string): void {
+	public async handleEventSingleCommit(data: unknown, peerId: string): Promise<void> {
 		this._addRateLimit(
 			NETWORK_RPC_GET_SINGLE_COMMIT_FROM_ID,
 			peerId,
@@ -219,8 +225,12 @@ export class NetworkEndpoint {
 			throw error;
 		}
 
+		let isValidCommit: boolean;
 		try {
-			this._commitPool.validateCommit(decodedData.singleCommit);
+			isValidCommit = await this._commitPool.validateCommit(
+				this._apiContext,
+				decodedData.singleCommit,
+			);
 		} catch (error) {
 			this._logger.debug(
 				{ peerId, penalty: 100 },
@@ -232,6 +242,10 @@ export class NetworkEndpoint {
 				penalty: 100,
 			});
 			throw error;
+		}
+
+		if (!isValidCommit) {
+			return;
 		}
 
 		this._commitPool.addCommit(decodedData.singleCommit, decodedData.singleCommit.height);

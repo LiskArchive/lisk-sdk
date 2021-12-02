@@ -17,6 +17,7 @@ import { EMPTY_BUFFER } from './constants';
 import { BFTParameterNotFoundError } from '../../../modules/bft/errors';
 import { APIContext } from '../../state_machine/types';
 import { BFTAPI, ValidatorAPI } from '../types';
+import { COMMIT_RANGE_STORED } from './constants';
 import {
 	AggregateCommit,
 	Certificate,
@@ -29,6 +30,7 @@ import {
 	verifyAggregateCertificateSignature,
 	getSortedWeightsAndValidatorKeys,
 	signCertificate,
+	verifySingleCertificateSignature,
 } from './utils';
 
 export class CommitPool {
@@ -62,15 +64,103 @@ export class CommitPool {
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async job(): Promise<void> {}
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public addCommit(_commit: SingleCommit, _height: number): void {}
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public validateCommit(_commit: SingleCommit): boolean {
+
+	public addCommit(commit: SingleCommit, height: number): void {
+		const currentCommits = this._nonGossipedCommits.get(height) ?? [];
+		const doesCommitExist = currentCommits.some(aCommit =>
+			aCommit.certificateSignature.equals(commit.certificateSignature),
+		);
+		if (!doesCommitExist) {
+			this._nonGossipedCommits.set(height, [...currentCommits, commit]);
+		}
+	}
+
+	public async validateCommit(apiContext: APIContext, commit: SingleCommit): Promise<boolean> {
+		// Validation step 4
+		const blockHeaderAtCommitHeight = await this._chain.dataAccess.getBlockHeaderByHeight(
+			commit.height,
+		);
+		if (!blockHeaderAtCommitHeight.id.equals(commit.blockID)) {
+			return false;
+		}
+
+		// Validation step 1
+		const doesCommitExistsInNonGossipedCommits = !!this._nonGossipedCommits
+			.get(commit.height)
+			?.some(
+				nonGossipedCommit =>
+					nonGossipedCommit.blockID === commit.blockID &&
+					nonGossipedCommit.validatorAddress === commit.validatorAddress,
+			);
+
+		const doesCommitExistsInGossipedCommits = !!this._gossipedCommits
+			.get(commit.height)
+			?.some(
+				gossipedCommit =>
+					gossipedCommit.blockID === commit.blockID &&
+					gossipedCommit.validatorAddress === commit.validatorAddress,
+			);
+
+		const doesCommitExist =
+			doesCommitExistsInGossipedCommits || doesCommitExistsInNonGossipedCommits;
+
+		if (doesCommitExist) {
+			return false;
+		}
+
+		// Validation Step 2
+		const maxRemovalHeight = await this._getMaxRemovalHeight();
+		if (commit.height <= maxRemovalHeight) {
+			return false;
+		}
+
+		// Validation Step 3
+		const { maxHeightPrecommitted } = await this._bftAPI.getBFTHeights(apiContext);
+		const isCommitInRange =
+			commit.height >= maxHeightPrecommitted - COMMIT_RANGE_STORED &&
+			commit.height < maxHeightPrecommitted;
+		const doesBFTParamExistForNextHeight = await this._bftAPI.existBFTParameters(
+			apiContext,
+			commit.height + 1,
+		);
+		if (!isCommitInRange && !doesBFTParamExistForNextHeight) {
+			return false;
+		}
+
+		// Validation Step 5
+		const { validators } = await this._bftAPI.getBFTParameters(apiContext, commit.height);
+		const isCommitValidatorActive = validators.find(validator =>
+			validator.address.equals(commit.validatorAddress),
+		);
+		if (!isCommitValidatorActive) {
+			throw new Error('Commit validator was not active for its height.');
+		}
+
+		// Validation Step 6
+		const certificate = computeCertificateFromBlockHeader(blockHeaderAtCommitHeight);
+		const { blsKey } = await this._validatorsAPI.getValidatorAccount(
+			apiContext,
+			commit.validatorAddress,
+		);
+		const { networkIdentifier } = this._chain;
+		const isSingleCertificateVerified = verifySingleCertificateSignature(
+			blsKey,
+			commit.certificateSignature,
+			networkIdentifier,
+			certificate,
+		);
+
+		if (!isSingleCertificateVerified) {
+			throw new Error('Certificate signature is not valid.');
+		}
+
 		return true;
 	}
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public getCommitsByHeight(_height: number): SingleCommit[] {
-		return [];
+
+	public getCommitsByHeight(height: number): SingleCommit[] {
+		const nonGossipedCommits = this._nonGossipedCommits.get(height) ?? [];
+		const gossipedCommits = this._gossipedCommits.get(height) ?? [];
+		return [...nonGossipedCommits, ...gossipedCommits];
 	}
 
 	public createSingleCommit(
@@ -235,5 +325,12 @@ export class CommitPool {
 			aggregationBits: EMPTY_BUFFER,
 			certificateSignature: EMPTY_BUFFER,
 		};
+	}
+
+	private async _getMaxRemovalHeight() {
+		const blockHeader = await this._chain.dataAccess.getBlockHeaderByHeight(
+			this._chain.finalizedHeight,
+		);
+		return blockHeader.aggregateCommit.height;
 	}
 }

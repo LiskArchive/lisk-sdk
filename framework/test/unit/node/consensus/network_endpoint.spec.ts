@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { Block, Chain } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
@@ -42,6 +43,7 @@ describe('p2p endpoint', () => {
 	let network: Network;
 	let lastBlock: Block;
 	let commitPool: CommitPool;
+	let db: KVStore;
 
 	beforeEach(async () => {
 		lastBlock = await createValidDefaultBlock({ header: { height: 2 } });
@@ -64,11 +66,13 @@ describe('p2p endpoint', () => {
 			validateCommit: jest.fn(),
 			addCommit: jest.fn(),
 		} as unknown) as CommitPool;
+		db = (new InMemoryKVStore() as unknown) as KVStore;
 		endpoint = new NetworkEndpoint({
 			chain,
 			logger: loggerMock,
 			network,
 			commitPool,
+			db,
 		});
 		jest.useFakeTimers();
 	});
@@ -255,45 +259,47 @@ describe('p2p endpoint', () => {
 			encodedValidCommit = codec.encode(getSingleCommitEventSchema, validCommit);
 		});
 
-		it('should add commit with valid commit', () => {
-			expect(() =>
+		it('should add commit with valid commit', async () => {
+			commitPool.validateCommit = jest.fn(async () => true);
+			commitPool.addCommit = jest.fn();
+			await expect(
 				endpoint.handleEventSingleCommit(encodedValidCommit, defaultPeerId),
-			).not.toThrow();
+			).resolves.not.toThrow();
 			expect(commitPool.validateCommit).toHaveBeenCalled();
 			expect(commitPool.addCommit).toHaveBeenCalled();
 		});
 
-		it('should apply penalty when un-decodable data is received', () => {
-			expect(() =>
+		it('should apply penalty when un-decodable data is received', async () => {
+			await expect(
 				endpoint.handleEventSingleCommit(Buffer.from('abc', 'utf8'), defaultPeerId),
-			).toThrow();
+			).rejects.toThrow();
 			expect(network.applyPenaltyOnPeer).toHaveBeenCalledWith({
 				peerId: defaultPeerId,
 				penalty: 100,
 			});
 		});
 
-		it('should apply penalty when invalid data value is received', () => {
+		it('should apply penalty when invalid data value is received', async () => {
 			const invalidCommit = {
 				singleCommit: { ...validCommit, certificateSignature: getRandomBytes(2) },
 			};
 			const encodedInvalidCommit = codec.encode(getSingleCommitEventSchema, invalidCommit);
-			expect(() => endpoint.handleEventSingleCommit(encodedInvalidCommit, defaultPeerId)).toThrow(
-				'minLength not satisfied',
-			);
+			await expect(
+				endpoint.handleEventSingleCommit(encodedInvalidCommit, defaultPeerId),
+			).rejects.toThrow('minLength not satisfied');
 			expect(network.applyPenaltyOnPeer).toHaveBeenCalledWith({
 				peerId: defaultPeerId,
 				penalty: 100,
 			});
 		});
 
-		it('should apply penalty when invalid commit is received', () => {
+		it('should apply penalty when invalid commit is received', async () => {
 			commitPool.validateCommit = jest.fn(() => {
 				throw new Error('Invalid commit');
 			});
-			expect(() => endpoint.handleEventSingleCommit(encodedValidCommit, defaultPeerId)).toThrow(
-				'Invalid commit',
-			);
+			await expect(
+				endpoint.handleEventSingleCommit(encodedValidCommit, defaultPeerId),
+			).rejects.toThrow('Invalid commit');
 			expect(network.applyPenaltyOnPeer).toHaveBeenCalledWith({
 				peerId: defaultPeerId,
 				penalty: 100,
