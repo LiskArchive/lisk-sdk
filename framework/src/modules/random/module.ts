@@ -14,7 +14,8 @@
 
 import { hashOnion, generateHashOnionSeed } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
-import { dataStructures } from '@liskhq/lisk-utils';
+import { dataStructures, objects } from '@liskhq/lisk-utils';
+import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { BlockGenerateContext } from '../../node/generator';
 import {
 	BlockAfterExecuteContext,
@@ -24,7 +25,7 @@ import {
 import { BaseModule, ModuleInitArgs } from '../base_module';
 import { RandomAPI } from './api';
 import {
-	DEFAULT_MAX_LENGTH_REVEALS,
+	defaultConfig,
 	EMPTY_KEY,
 	MODULE_ID_RANDOM,
 	SEED_REVEAL_HASH_SIZE,
@@ -34,6 +35,7 @@ import {
 import { RandomEndpoint } from './endpoint';
 import {
 	blockHeaderAssetRandomModule,
+	randomModuleConfig,
 	seedRevealSchema,
 	usedHashOnionsStoreSchema,
 } from './schemas';
@@ -60,9 +62,13 @@ export class RandomModule extends BaseModule {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs): Promise<void> {
 		const { moduleConfig, generatorConfig } = args;
+		const config = objects.mergeDeep({}, defaultConfig, moduleConfig);
+		const errors = validator.validate(randomModuleConfig, config);
+		if (errors.length) {
+			throw new LiskValidationError(errors);
+		}
 		this._generatorConfig = generatorConfig;
-		this._maxLengthReveals =
-			(moduleConfig.maxLengthReveals as number) ?? DEFAULT_MAX_LENGTH_REVEALS;
+		this._maxLengthReveals = config.maxLengthReveals as number;
 	}
 
 	public async initBlock(context: BlockGenerateContext): Promise<void> {

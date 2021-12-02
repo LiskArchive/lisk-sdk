@@ -21,6 +21,28 @@ describe('token module', () => {
 		tokenModule = new TokenModule();
 	});
 
+	describe('init', () => {
+		it('should initialize config with default value when module config is empty', async () => {
+			await expect(
+				tokenModule.init({ genesisConfig: {} as any, moduleConfig: {}, generatorConfig: {} }),
+			).toResolve();
+
+			expect(tokenModule['_minBalance']).toEqual(BigInt(5000000));
+		});
+
+		it('should initialize config with given value', async () => {
+			await expect(
+				tokenModule.init({
+					genesisConfig: {} as any,
+					moduleConfig: { minBalance: '100' },
+					generatorConfig: {},
+				}),
+			).toResolve();
+
+			expect(tokenModule['_minBalance']).toEqual(BigInt(100));
+		});
+	});
+
 	describe('initGenesisState', () => {
 		it('should setup initial state', async () => {
 			const context = createGenesisBlockContext({}).createGenesisBlockExecuteContext();
