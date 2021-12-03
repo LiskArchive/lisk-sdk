@@ -195,7 +195,7 @@ export class CommitPool {
 		}
 
 		let singleCommits: SingleCommit[];
-		let nextValidators: Buffer[];
+		let validatorsInPool: Buffer[];
 		let aggregateBFTWeight = BigInt(0);
 
 		while (nextHeight > maxHeightCertified) {
@@ -203,22 +203,31 @@ export class CommitPool {
 				...(this._nonGossipedCommits.get(nextHeight) ?? []),
 				...(this._gossipedCommits.get(nextHeight) ?? []),
 			];
-			nextValidators = singleCommits.map(commit => commit.validatorAddress);
+			validatorsInPool = singleCommits.map(commit => commit.validatorAddress);
 
-			// Assuming this list of validators includes all validators corresponding to each singleCommit.validatorAddress
-			const { validators, certificateThreshold } = await this._bftAPI.getBFTParameters(
-				apiContext,
-				nextHeight,
-			);
-			for (const validatorAddress of nextValidators) {
-				const bftParamsValidatorInfo = validators.find(v => v.address === validatorAddress);
-				if (!bftParamsValidatorInfo) {
-					throw new Error('Missing validator in BFT params');
+			try {
+				const {
+					validators: bftParamValidators,
+					certificateThreshold,
+				} = await this._bftAPI.getBFTParameters(apiContext, nextHeight);
+
+				for (const matchingAddress of validatorsInPool) {
+					const bftParamsValidatorInfo = bftParamValidators.find(bftParamValidator =>
+						bftParamValidator.address.equals(matchingAddress),
+					);
+					if (!bftParamsValidatorInfo) {
+						throw new Error('Validator address not found in commit pool');
+					}
+
+					aggregateBFTWeight += bftParamsValidatorInfo.bftWeight;
+
+					if (aggregateBFTWeight >= certificateThreshold) {
+						return this._aggregateSingleCommits(singleCommits);
+					}
+
+					nextHeight -= 1;
 				}
-				aggregateBFTWeight += bftParamsValidatorInfo.bftWeight;
-				if (aggregateBFTWeight >= certificateThreshold) {
-					return this._aggregateSingleCommits(singleCommits);
-				}
+			} catch (err) {
 				nextHeight -= 1;
 			}
 		}
