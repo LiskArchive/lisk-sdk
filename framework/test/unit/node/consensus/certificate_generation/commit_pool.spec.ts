@@ -400,15 +400,13 @@ describe('CommitPool', () => {
 				.calledWith(apiContext, maxHeightCertified + 1)
 				.mockReturnValue(heightNextBFTParameters);
 
-			when(bftAPI.getBFTParameters)
-				.calledWith(apiContext, blockHeader1.height)
-				.mockReturnValue({
-					certificateThreshold: threshold,
-					validators: [
-						{ address: validatorInfo1.address, bftWeight: BigInt(1) },
-						{ address: validatorInfo2.address, bftWeight: BigInt(1) },
-					],
-				});
+			bftAPI.getBFTParameters.mockResolvedValue({
+				certificateThreshold: threshold,
+				validators: [
+					{ address: validatorInfo1.address, bftWeight: BigInt(1) },
+					{ address: validatorInfo2.address, bftWeight: BigInt(1) },
+				],
+			});
 		});
 
 		it('should call bft api getBFTHeights', async () => {
@@ -432,7 +430,7 @@ describe('CommitPool', () => {
 
 		it('should call getBFTParameters with maxHeightPrecommitted if getNextHeightBFTParameters does not return a valid height', async () => {
 			// Arrange
-			bftAPI.getNextHeightBFTParameters.mockRejectedValue(new Error('error'));
+			bftAPI.getNextHeightBFTParameters.mockRejectedValue(new BFTParameterNotFoundError('Error'));
 
 			// Act
 			await commitPool['_selectAggregateCommit'](apiContext);
@@ -460,7 +458,7 @@ describe('CommitPool', () => {
 			await commitPool['_selectAggregateCommit'](apiContext);
 
 			// Assert
-			expect(commitPool['_aggregateSingleCommits']).toHaveBeenCalledWith([singleCommit1]);
+			expect(commitPool['_aggregateSingleCommits']).toHaveBeenCalledWith([singleCommit2]);
 		});
 
 		it('should not call aggregateSingleCommits when it does not reach threshold and return empty value aggregateCommit', async () => {
@@ -470,15 +468,13 @@ describe('CommitPool', () => {
 				aggregationBits: Buffer.alloc(0),
 				certificateSignature: Buffer.alloc(0),
 			};
-			when(bftAPI.getBFTParameters)
-				.calledWith(apiContext, blockHeader1.height)
-				.mockReturnValue({
-					certificateThreshold: 10,
-					validators: [
-						{ address: validatorInfo1.address, bftWeight: BigInt(1) },
-						{ address: validatorInfo2.address, bftWeight: BigInt(1) },
-					],
-				});
+			bftAPI.getBFTParameters.mockReturnValue({
+				certificateThreshold: 10,
+				validators: [
+					{ address: validatorInfo1.address, bftWeight: BigInt(1) },
+					{ address: validatorInfo2.address, bftWeight: BigInt(1) },
+				],
+			});
 
 			// Act
 			const result = await commitPool['_selectAggregateCommit'](apiContext);
