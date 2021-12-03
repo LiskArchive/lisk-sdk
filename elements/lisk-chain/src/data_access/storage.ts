@@ -417,11 +417,11 @@ export class Storage {
 		// Revert all deleted values
 		for (const { key, value: previousValue } of deletedStates) {
 			batch.put(key, previousValue);
-			await smt.update(toSMTKey(key), previousValue);
+			await smt.update(toSMTKey(key), hash(previousValue));
 		}
 		for (const { key, value: previousValue } of updatedStates) {
 			batch.put(key, previousValue);
-			await smt.update(toSMTKey(key), previousValue);
+			await smt.update(toSMTKey(key), hash(previousValue));
 		}
 
 		smtStore.finalize(batch);
