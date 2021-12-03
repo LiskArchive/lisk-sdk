@@ -44,7 +44,7 @@ describe('CommitPool', () => {
 	let commitPool: CommitPool;
 	let bftAPI: any;
 	let validatorsAPI: any;
-	let blockTime;
+	let blockTime: number;
 	let chain: any;
 	let network: any;
 	let getBlockHeaderByHeight: any;
@@ -379,6 +379,13 @@ describe('CommitPool', () => {
 		let apiContext: APIContext;
 
 		beforeEach(() => {
+			commitPool = new CommitPool({
+				bftAPI,
+				validatorsAPI,
+				blockTime,
+				network,
+				chain,
+			});
 			commitPool['_nonGossipedCommits'].set(blockHeader1.height, [singleCommit1]);
 			commitPool['_gossipedCommits'].set(blockHeader2.height, [singleCommit2]);
 			commitPool['_aggregateSingleCommits'] = jest.fn();
@@ -456,8 +463,13 @@ describe('CommitPool', () => {
 			expect(commitPool['_aggregateSingleCommits']).toHaveBeenCalledWith([singleCommit1]);
 		});
 
-		it('should not call aggregateSingleCommits when it does not reach threshold and return empty value aggregateCommit ', async () => {
+		it('should not call aggregateSingleCommits when it does not reach threshold and return empty value aggregateCommit', async () => {
 			// Arrange
+			const expectedAggregateCommit = {
+				height: maxHeightCertified,
+				aggregationBits: Buffer.alloc(0),
+				certificateSignature: Buffer.alloc(0),
+			};
 			when(bftAPI.getBFTParameters)
 				.calledWith(apiContext, blockHeader1.height)
 				.mockReturnValue({
@@ -467,11 +479,6 @@ describe('CommitPool', () => {
 						{ address: validatorInfo2.address, bftWeight: BigInt(1) },
 					],
 				});
-			const expectedAggregateCommit = {
-				height: maxHeightCertified,
-				aggregationBits: Buffer.alloc(0),
-				certificateSignature: Buffer.alloc(0),
-			};
 
 			// Act
 			const result = await commitPool['_selectAggregateCommit'](apiContext);
