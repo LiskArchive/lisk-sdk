@@ -459,7 +459,7 @@ describe('CommitPool', () => {
 			expect(commitPool['_aggregateSingleCommits']).toHaveBeenCalledWith([singleCommit2]);
 		});
 
-		it('should not call aggregateSingleCommits when it does not reach threshold and return empty value aggregateCommit', async () => {
+		it('should not call aggregateSingleCommits when it does not reach threshold and return default aggregateCommit', async () => {
 			// Arrange
 			bftAPI.getBFTParameters.mockReturnValue({
 				certificateThreshold: 10,
