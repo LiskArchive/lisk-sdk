@@ -191,45 +191,42 @@ export class CommitPool {
 			);
 			nextHeight = Math.min(heightNextBFTParameters - 1, maxHeightPrecommitted);
 		} catch (err) {
+			if (!(err instanceof BFTParameterNotFoundError)) {
+				throw err;
+			}
 			nextHeight = maxHeightPrecommitted;
 		}
 
-		let singleCommits: SingleCommit[];
-		let validatorsInPool: Buffer[];
-		let aggregateBFTWeight = BigInt(0);
-
 		while (nextHeight > maxHeightCertified) {
-			singleCommits = [
+			const singleCommits = [
 				...(this._nonGossipedCommits.get(nextHeight) ?? []),
 				...(this._gossipedCommits.get(nextHeight) ?? []),
 			];
-			validatorsInPool = singleCommits.map(commit => commit.validatorAddress);
+			const nextValidators = singleCommits.map(commit => commit.validatorAddress);
+			let aggregateBFTWeight = BigInt(0);
 
-			try {
-				const {
-					validators: bftParamValidators,
-					certificateThreshold,
-				} = await this._bftAPI.getBFTParameters(apiContext, nextHeight);
+			// Assume BFT parameters exist for next height
+			const {
+				validators: bftParamValidators,
+				certificateThreshold,
+			} = await this._bftAPI.getBFTParameters(apiContext, nextHeight);
 
-				for (const matchingAddress of validatorsInPool) {
-					const bftParamsValidatorInfo = bftParamValidators.find(bftParamValidator =>
-						bftParamValidator.address.equals(matchingAddress),
-					);
-					if (!bftParamsValidatorInfo) {
-						throw new Error('Validator address not found in commit pool');
-					}
-
-					aggregateBFTWeight += bftParamsValidatorInfo.bftWeight;
-
-					if (aggregateBFTWeight >= certificateThreshold) {
-						return this._aggregateSingleCommits(singleCommits);
-					}
-
-					nextHeight -= 1;
+			for (const matchingAddress of nextValidators) {
+				const bftParamsValidatorInfo = bftParamValidators.find(bftParamValidator =>
+					bftParamValidator.address.equals(matchingAddress),
+				);
+				if (!bftParamsValidatorInfo) {
+					throw new Error('Validator address not found in commit pool');
 				}
-			} catch (err) {
-				nextHeight -= 1;
+
+				aggregateBFTWeight += bftParamsValidatorInfo.bftWeight;
+
+				if (aggregateBFTWeight >= certificateThreshold) {
+					return this._aggregateSingleCommits(singleCommits);
+				}
 			}
+
+			nextHeight -= 1;
 		}
 
 		return {
