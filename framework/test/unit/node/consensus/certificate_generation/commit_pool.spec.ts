@@ -391,14 +391,12 @@ describe('CommitPool', () => {
 			commitPool['_aggregateSingleCommits'] = jest.fn();
 			apiContext = createTransientAPIContext({});
 
-			when(bftAPI.getBFTHeights).calledWith(apiContext).mockReturnValue({
+			bftAPI.getBFTHeights.mockResolvedValue({
 				maxHeightCertified,
 				maxHeightPrecommitted,
 			});
 
-			when(bftAPI.getNextHeightBFTParameters)
-				.calledWith(apiContext, maxHeightCertified + 1)
-				.mockReturnValue(heightNextBFTParameters);
+			bftAPI.getNextHeightBFTParameters.mockResolvedValue(heightNextBFTParameters);
 
 			bftAPI.getBFTParameters.mockResolvedValue({
 				certificateThreshold: threshold,
@@ -428,6 +426,17 @@ describe('CommitPool', () => {
 			);
 		});
 
+		it('should call bft api getBFTParameters with min(heightNextBFTParameters - 1, maxHeightPrecommitted)', async () => {
+			// Act
+			await commitPool['_selectAggregateCommit'](apiContext);
+
+			// Assert
+			expect(commitPool['_bftAPI'].getBFTParameters).toHaveBeenCalledWith(
+				apiContext,
+				Math.min(heightNextBFTParameters - 1, maxHeightPrecommitted),
+			);
+		});
+
 		it('should call getBFTParameters with maxHeightPrecommitted if getNextHeightBFTParameters does not return a valid height', async () => {
 			// Arrange
 			bftAPI.getNextHeightBFTParameters.mockRejectedValue(new BFTParameterNotFoundError('Error'));
@@ -439,17 +448,6 @@ describe('CommitPool', () => {
 			expect(commitPool['_bftAPI'].getBFTParameters).toHaveBeenCalledWith(
 				apiContext,
 				maxHeightPrecommitted,
-			);
-		});
-
-		it('should call bft api getBFTParameters with height', async () => {
-			// Act
-			await commitPool['_selectAggregateCommit'](apiContext);
-
-			// Assert
-			expect(commitPool['_bftAPI'].getNextHeightBFTParameters).toHaveBeenCalledWith(
-				apiContext,
-				maxHeightCertified + 1,
 			);
 		});
 
