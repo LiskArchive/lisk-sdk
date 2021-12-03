@@ -461,11 +461,6 @@ describe('CommitPool', () => {
 
 		it('should not call aggregateSingleCommits when it does not reach threshold and return empty value aggregateCommit', async () => {
 			// Arrange
-			const expectedAggregateCommit = {
-				height: maxHeightCertified,
-				aggregationBits: Buffer.alloc(0),
-				certificateSignature: Buffer.alloc(0),
-			};
 			bftAPI.getBFTParameters.mockReturnValue({
 				certificateThreshold: 10,
 				validators: [
@@ -479,7 +474,11 @@ describe('CommitPool', () => {
 
 			// Assert
 			expect(commitPool['_aggregateSingleCommits']).not.toHaveBeenCalled();
-			expect(result).toEqual(expectedAggregateCommit);
+			expect(result).toEqual({
+				height: maxHeightCertified,
+				aggregationBits: Buffer.alloc(0),
+				certificateSignature: Buffer.alloc(0),
+			});
 		});
 	});
 });
