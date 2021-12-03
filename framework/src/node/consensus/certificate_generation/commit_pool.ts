@@ -168,7 +168,7 @@ export class CommitPool {
 			certificate,
 		);
 	}
-	// TODO: To be updated in the issue https://github.com/LiskHQ/lisk-sdk/issues/6846
+
 	public async getAggregageCommit(apiContext: APIContext): Promise<AggregateCommit> {
 		return this._selectAggregateCommit(apiContext);
 	}
