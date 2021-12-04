@@ -125,7 +125,7 @@ export class TokenAPI extends BaseAPI {
 			});
 		}
 		user.lockedBalances.sort((a, b) => a.moduleID - b.moduleID);
-		await userStore.setWithSchema(address, address, userStoreSchema);
+		await userStore.setWithSchema(address, user, userStoreSchema);
 	}
 
 	public async unlock(
@@ -154,7 +154,7 @@ export class TokenAPI extends BaseAPI {
 		} else {
 			user.lockedBalances.splice(lockedIndex, 1);
 		}
-		await userStore.setWithSchema(address, address, userStoreSchema);
+		await userStore.setWithSchema(address, user, userStoreSchema);
 	}
 
 	public async burn(

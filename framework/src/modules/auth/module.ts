@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { TAG_TRANSACTION } from '@liskhq/lisk-chain';
+import { NotFoundError, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { codec } from '@liskhq/lisk-codec';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
@@ -132,10 +132,26 @@ export class AuthModule extends BaseModule {
 	public async verifyTransaction(context: TransactionVerifyContext): Promise<VerificationResult> {
 		const { transaction, networkIdentifier } = context;
 		const store = context.getStore(this.id, STORE_PREFIX_AUTH);
-		const senderAccount = await store.getWithSchema<AuthAccount>(
-			transaction.senderAddress,
-			authAccountSchema,
-		);
+
+		let senderAccount: AuthAccount;
+
+		// First transaction will not have nonce
+		try {
+			senderAccount = await store.getWithSchema<AuthAccount>(
+				transaction.senderAddress,
+				authAccountSchema,
+			);
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+			senderAccount = {
+				nonce: BigInt(0),
+				numberOfSignatures: 0,
+				mandatoryKeys: [],
+				optionalKeys: [],
+			};
+		}
 
 		// Verify nonce of the transaction, it can be FAILED, PENDING or OK
 		const nonceStatus = verifyNonce(transaction, senderAccount);
@@ -183,8 +199,23 @@ export class AuthModule extends BaseModule {
 		return nonceStatus;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-empty-function
-	public async beforeCommandExecute(_context: TransactionExecuteContext): Promise<void> {}
+	public async beforeCommandExecute(context: TransactionExecuteContext): Promise<void> {
+		const { transaction } = context;
+		const store = context.getStore(this.id, STORE_PREFIX_AUTH);
+		const senderExist = await store.has(transaction.senderAddress);
+		if (!senderExist) {
+			await store.setWithSchema(
+				context.transaction.senderAddress,
+				{
+					nonce: BigInt(0),
+					numberOfSignatures: 0,
+					mandatoryKeys: [],
+					optionalKeys: [],
+				},
+				authAccountSchema,
+			);
+		}
+	}
 
 	public async afterCommandExecute(context: TransactionExecuteContext): Promise<void> {
 		const address = context.transaction.senderAddress;

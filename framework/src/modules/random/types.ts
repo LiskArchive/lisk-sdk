@@ -32,21 +32,13 @@ export interface UsedHashOnionStoreObject {
 	readonly usedHashOnions: UsedHashOnion[];
 }
 
-export interface RegisteredDelegate {
+export interface HashOnion {
 	readonly address: Buffer;
-	readonly encryptedPassphrase: string;
 	readonly hashOnion: {
 		readonly count: number;
 		readonly distance: number;
 		readonly hashes: Buffer[];
 	};
-}
-
-export interface GeneratorConfig {
-	readonly force?: boolean;
-	readonly delegates?: ReadonlyArray<RegisteredDelegate>;
-	readonly defaultPassword?: string;
-	readonly waitThreshold: number;
 }
 
 export interface ValidatorSeedReveal {

@@ -567,10 +567,23 @@ export class Generator {
 		});
 		await this._stateMachine.beforeExecuteBlock(blockCtx);
 
+		// Execute transactions
 		const transactions =
 			input.transactions ?? (await this._forgingStrategy.getTransactionsForBlock(blockHeader));
 
 		blockCtx.setTransactions(transactions);
+		for (const tx of transactions) {
+			const txContext = blockCtx.getTransactionContext(tx);
+			const verifyResult = await this._stateMachine.verifyTransaction(txContext);
+			if (verifyResult.status !== VerifyStatus.OK) {
+				if (verifyResult.error) {
+					this._logger.info({ err: verifyResult.error }, 'Transaction verification failed');
+					throw verifyResult.error;
+				}
+				throw new Error(`Transaction verification failed. ID ${tx.id.toString('hex')}.`);
+			}
+			await this._stateMachine.executeTransaction(txContext);
+		}
 
 		for (const mod of this._modules) {
 			if (!mod.sealBlock) {

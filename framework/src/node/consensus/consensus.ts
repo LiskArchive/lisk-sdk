@@ -49,7 +49,7 @@ import { ValidatorAPI, BFTAPI, AggregateCommit } from './types';
 import { APIContext, createAPIContext } from '../state_machine';
 import { forkChoice, ForkStatus } from './fork_choice/fork_choice_rule';
 import { createNewAPIContext } from '../state_machine/api_context';
-import { CommitPool } from './types';
+import { CommitPool } from './certificate_generation/commit_pool';
 
 interface ConsensusArgs {
 	stateMachine: StateMachine;
@@ -58,7 +58,6 @@ interface ConsensusArgs {
 	genesisConfig: GenesisConfig;
 	bftAPI: BFTAPI;
 	validatorAPI: ValidatorAPI;
-	commitPool: CommitPool;
 }
 
 interface InitArgs {
@@ -95,11 +94,11 @@ export class Consensus {
 	private readonly _validatorAPI: ValidatorAPI;
 	private readonly _bftAPI: BFTAPI;
 	private readonly _genesisConfig: GenesisConfig;
-	private readonly _commitPool: CommitPool;
 
 	// init parameters
 	private _logger!: Logger;
 	private _db!: KVStore;
+	private _commitPool!: CommitPool;
 	private _endpoint!: NetworkEndpoint;
 	private _synchronizer!: Synchronizer;
 	private _genesisBlockTimestamp?: number;
@@ -115,12 +114,20 @@ export class Consensus {
 		this._validatorAPI = args.validatorAPI;
 		this._bftAPI = args.bftAPI;
 		this._genesisConfig = args.genesisConfig;
-		this._commitPool = args.commitPool;
 	}
 
 	public async init(args: InitArgs): Promise<void> {
 		this._logger = args.logger;
 		this._db = args.db;
+		this._commitPool = new CommitPool({
+			blockTime: this._genesisConfig.blockTime,
+			bftAPI: this._bftAPI,
+			chain: this._chain,
+			db: this._db,
+			network: this._network,
+			validatorsAPI: this._validatorAPI,
+			generatorAddress: Buffer.alloc(0),
+		});
 		this._endpoint = new NetworkEndpoint({
 			chain: this._chain,
 			logger: this._logger,
@@ -414,7 +421,7 @@ export class Consensus {
 					block,
 				});
 
-				await this._verify(block);
+				block.validate();
 				const previousLastBlock = objects.cloneDeep(lastBlock);
 				await this._deleteBlock(lastBlock);
 				try {
@@ -439,7 +446,7 @@ export class Consensus {
 				{ id: block.header.id, height: block.header.height },
 				'Processing valid block',
 			);
-			await this._verify(block);
+			block.validate();
 			await this._executeValidated(block);
 
 			this._network.applyNodeInfo({
@@ -462,14 +469,15 @@ export class Consensus {
 		const eventQueue = new EventQueue();
 		const apiContext = createAPIContext({ stateStore, eventQueue });
 		const ctx = new BlockContext({
-			stateStore: (stateStore as unknown) as StateStore,
+			stateStore,
 			eventQueue,
-			networkIdentifier: Buffer.alloc(0),
+			networkIdentifier: this._chain.networkIdentifier,
 			logger: this._logger,
 			header: block.header,
 			assets: block.assets,
 			transactions: block.transactions,
 		});
+		await this._verify(block);
 		await this._stateMachine.verifyAssets(ctx);
 
 		if (!options.skipBroadcast) {
@@ -491,7 +499,10 @@ export class Consensus {
 		// Verify validatorsHash
 		await this._verifyValidatorsHash(apiContext, block);
 		// Verify stateRoot
-		const currentState = await this._prepareFinalizingState(stateStore);
+		const currentState = await this._prepareFinalizingState(
+			stateStore,
+			this._chain.lastBlock.header.stateRoot,
+		);
 		this._verifyStateRoot(block, currentState.smt.rootHash);
 
 		await this._chain.saveBlock(block, currentState, finalizedHeight, {
@@ -508,6 +519,9 @@ export class Consensus {
 		if (block.header.version !== BLOCK_VERSION) {
 			throw new ApplyPenaltyError(`Block version must be ${BLOCK_VERSION}`);
 		}
+		// Check if moduleID is registered
+		this._validateBlockAsset(block);
+
 		const apiContext = createNewAPIContext(this._db);
 
 		// Verify timestamp
@@ -530,12 +544,6 @@ export class Consensus {
 
 		// verify aggregate commits
 		await this._verifyAggregateCommit(apiContext, block);
-
-		// Validate a block
-		block.validate();
-
-		// Check if moduleID is registered
-		this._validateBlockAsset(block);
 	}
 
 	private async _verifyTimestamp(apiContext: APIContext, block: Block): Promise<void> {
@@ -716,20 +724,25 @@ export class Consensus {
 
 		// Offset must be set to 1, because lastBlock is still this deleting block
 		const stateStore = new StateStore(this._db);
-		const currentState = await this._prepareFinalizingState(stateStore, false);
+		const currentState = await this._prepareFinalizingState(
+			stateStore,
+			this._chain.lastBlock.header.stateRoot,
+			false,
+		);
 		await this._chain.removeBlock(block, currentState, { saveTempBlock });
 		this.events.emit(CONSENSUS_EVENT_BLOCK_DELETE, block);
 	}
 
 	private async _prepareFinalizingState(
 		stateStore: StateStore,
+		stateRoot?: Buffer,
 		finalize = true,
 	): Promise<CurrentState> {
 		const batch = this._db.batch();
 		const smtStore = new SMTStore(this._db);
 		const smt = new SparseMerkleTree({
 			db: smtStore,
-			rootHash: this._chain.lastBlock.header.stateRoot,
+			rootHash: stateRoot,
 		});
 
 		// On save, use finalize flag to finalize stores

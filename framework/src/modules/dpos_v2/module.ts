@@ -40,6 +40,7 @@ import {
 	STORE_PREFIX_NAME,
 	STORE_PREFIX_VOTER,
 	defaultConfig,
+	COMMAND_ID_DELEGATE_REGISTRATION,
 } from './constants';
 import { DPoSEndpoint } from './endpoint';
 import {
@@ -106,6 +107,14 @@ export class DPoSModule extends BaseModule {
 		this._randomAPI = randomAPI;
 		this._validatorsAPI = validatorsAPI;
 		this._tokenAPI = tokenAPI;
+
+		const registrationCommand = this.commands.find(
+			command => command.id === COMMAND_ID_DELEGATE_REGISTRATION,
+		) as DelegateRegistrationCommand | undefined;
+		if (!registrationCommand) {
+			throw new Error("'registrationCommand' is missing from DPoS module");
+		}
+		registrationCommand.addDependencies(this._validatorsAPI);
 
 		const updateGeneratorKeyCommand = this.commands.find(
 			command => command.id === COMMAND_ID_UPDATE_GENERATOR_KEY,

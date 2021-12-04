@@ -36,19 +36,22 @@ import { RandomEndpoint } from './endpoint';
 import {
 	blockHeaderAssetRandomModule,
 	randomModuleConfig,
+	randomModuleGeneratorConfig,
 	seedRevealSchema,
 	usedHashOnionsStoreSchema,
 } from './schemas';
 import {
 	BlockHeaderAssetRandomModule,
 	HashOnionConfig,
-	RegisteredDelegate,
+	HashOnion,
 	UsedHashOnion,
 	UsedHashOnionStoreObject,
 	ValidatorReveals,
 } from './types';
 import { Logger } from '../../logger';
 import { isSeedValidInput } from './utils';
+import { NotFoundError } from '../../node/generator/errors';
+import { JSONObject } from '../../types';
 
 export class RandomModule extends BaseModule {
 	public id = MODULE_ID_RANDOM;
@@ -56,7 +59,7 @@ export class RandomModule extends BaseModule {
 	public api = new RandomAPI(this.id);
 	public endpoint = new RandomEndpoint(this.id);
 
-	private _generatorConfig!: Record<string, unknown>;
+	private _generatorConfig: HashOnion[] = [];
 	private _maxLengthReveals!: number;
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -67,19 +70,41 @@ export class RandomModule extends BaseModule {
 		if (errors.length) {
 			throw new LiskValidationError(errors);
 		}
-		this._generatorConfig = generatorConfig;
+		if (generatorConfig) {
+			const generatorErrors = validator.validate(randomModuleGeneratorConfig, generatorConfig);
+			if (generatorErrors.length) {
+				throw new LiskValidationError(generatorErrors);
+			}
+			this._generatorConfig = (generatorConfig.hashOnions as JSONObject<HashOnion>[]).map(ho => ({
+				...ho,
+				address: Buffer.from(ho.address, 'hex'),
+				hashOnion: {
+					...ho.hashOnion,
+					hashes: ho.hashOnion.hashes.map(h => Buffer.from(h, 'hex')),
+				},
+			}));
+		}
+
 		this._maxLengthReveals = config.maxLengthReveals as number;
 	}
 
 	public async initBlock(context: BlockGenerateContext): Promise<void> {
 		const generatorSubStore = context.getGeneratorStore(this.id);
 		// Get used hash onions
-		const usedHashOnionsData = await generatorSubStore.get(STORE_PREFIX_USED_HASH_ONION);
+		let usedHashOnions: UsedHashOnion[] = [];
+		try {
+			const usedHashOnionsData = await generatorSubStore.get(STORE_PREFIX_USED_HASH_ONION);
 
-		const { usedHashOnions } = codec.decode<UsedHashOnionStoreObject>(
-			usedHashOnionsStoreSchema,
-			usedHashOnionsData,
-		);
+			({ usedHashOnions } = codec.decode<UsedHashOnionStoreObject>(
+				usedHashOnionsStoreSchema,
+				usedHashOnionsData,
+			));
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+		}
+
 		// Get next hash onion
 		const nextHashOnion = this._getNextHashOnion(
 			usedHashOnions,
@@ -264,13 +289,11 @@ export class RandomModule extends BaseModule {
 	}
 
 	private _getHashOnionConfig(address: Buffer): HashOnionConfig {
-		const delegateConfig = (this._generatorConfig as {
-			delegates: ReadonlyArray<RegisteredDelegate>;
-		}).delegates?.find(d => d.address.equals(address));
-		if (!delegateConfig?.hashOnion) {
+		const hashOnionConfig = this._generatorConfig.find(d => d.address.equals(address));
+		if (!hashOnionConfig?.hashOnion) {
 			throw new Error(`Account ${address.toString('hex')} does not have hash onion in the config`);
 		}
 
-		return delegateConfig.hashOnion;
+		return hashOnionConfig.hashOnion;
 	}
 }

@@ -24,6 +24,41 @@ export const randomModuleConfig = {
 	},
 };
 
+export const randomModuleGeneratorConfig = {
+	$id: 'modules/random/generator',
+	type: 'object',
+	required: [],
+	properties: {
+		hashOnions: {
+			type: 'array',
+			required: ['address', 'hashOnion'],
+			items: {
+				properties: {
+					address: {
+						type: 'string',
+						format: 'hex',
+					},
+					hashOnion: {
+						type: 'object',
+						required: ['count', 'distance', 'hashes'],
+						properties: {
+							count: { type: 'integer' },
+							distance: { type: 'integer' },
+							hashes: {
+								type: 'array',
+								items: {
+									type: 'string',
+									format: 'hex',
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	},
+};
+
 export const isSeedRevealValidParamsSchema = {
 	$id: 'modules/random/api/isSeedReveal/params',
 	type: 'object',

@@ -100,7 +100,7 @@ export const forkChoice = (
 	// Current time since Lisk Epoch
 	const receivedBFTHeader = {
 		...blockHeader.toObject(),
-		receivedAt: slots.timeSinceGenesis(),
+		receivedAt: Math.floor(Date.now() / 1000),
 	};
 
 	/* Cases are numbered following LIP-0014 Fork choice rule.
