@@ -220,10 +220,10 @@ export class CommitPool {
 				}
 
 				aggregateBFTWeight += bftParamsValidatorInfo.bftWeight;
+			}
 
-				if (aggregateBFTWeight >= certificateThreshold) {
-					return this._aggregateSingleCommits(singleCommits);
-				}
+			if (aggregateBFTWeight >= certificateThreshold) {
+				return this._aggregateSingleCommits(singleCommits);
 			}
 
 			nextHeight -= 1;
