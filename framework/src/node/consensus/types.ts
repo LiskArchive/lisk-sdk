@@ -44,9 +44,9 @@ export interface BFTAPI {
 	getCurrentValidators: (apiContext: ImmutableAPIContext) => Promise<Validator[]>;
 	getBFTHeights: (apiClient: ImmutableAPIContext) => Promise<BFTHeights>;
 	getBFTParameters: (apiContext: ImmutableAPIContext, height: number) => Promise<BFTParameters>;
+	getNextHeightBFTParameters: (apiContext: ImmutableAPIContext, height: number) => Promise<number>;
 	isHeaderContradictingChain: (
 		apiClient: ImmutableAPIContext,
 		header: BlockHeader,
 	) => Promise<boolean>;
-	getNextHeightBFTParameters: (apiContext: ImmutableAPIContext, height: number) => Promise<number>;
 }

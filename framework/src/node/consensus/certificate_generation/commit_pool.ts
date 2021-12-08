@@ -13,6 +13,7 @@
  */
 
 import { BlockHeader, Chain } from '@liskhq/lisk-chain';
+import { EMPTY_BUFFER } from './constants';
 import { BFTParameterNotFoundError } from '../../../modules/bft/errors';
 import { APIContext } from '../../state_machine/types';
 import { BFTAPI, ValidatorAPI } from '../types';
@@ -168,18 +169,71 @@ export class CommitPool {
 			certificate,
 		);
 	}
-	// TODO: To be updated in the issue https://github.com/LiskHQ/lisk-sdk/issues/6846
-	public getAggregageCommit(): AggregateCommit {
-		const singleCommits = this._selectAggregateCommit();
 
-		return this._aggregateSingleCommits((singleCommits as unknown) as SingleCommit[]);
+	public async getAggregageCommit(apiContext: APIContext): Promise<AggregateCommit> {
+		return this._selectAggregateCommit(apiContext);
 	}
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	private _aggregateSingleCommits(_singleCommits: SingleCommit[]): AggregateCommit {
 		return {} as AggregateCommit;
 	}
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	private _selectAggregateCommit(): SingleCommit[] {
-		return [];
+
+	private async _selectAggregateCommit(apiContext: APIContext): Promise<AggregateCommit> {
+		const { maxHeightCertified, maxHeightPrecommitted } = await this._bftAPI.getBFTHeights(
+			apiContext,
+		);
+		let heightNextBFTParameters: number;
+		let nextHeight: number;
+
+		try {
+			heightNextBFTParameters = await this._bftAPI.getNextHeightBFTParameters(
+				apiContext,
+				maxHeightCertified + 1,
+			);
+			nextHeight = Math.min(heightNextBFTParameters - 1, maxHeightPrecommitted);
+		} catch (err) {
+			if (!(err instanceof BFTParameterNotFoundError)) {
+				throw err;
+			}
+			nextHeight = maxHeightPrecommitted;
+		}
+
+		while (nextHeight > maxHeightCertified) {
+			const singleCommits = [
+				...(this._nonGossipedCommits.get(nextHeight) ?? []),
+				...(this._gossipedCommits.get(nextHeight) ?? []),
+			];
+			const nextValidators = singleCommits.map(commit => commit.validatorAddress);
+			let aggregateBFTWeight = BigInt(0);
+
+			// Assume BFT parameters exist for next height
+			const {
+				validators: bftParamValidators,
+				certificateThreshold,
+			} = await this._bftAPI.getBFTParameters(apiContext, nextHeight);
+
+			for (const matchingAddress of nextValidators) {
+				const bftParamsValidatorInfo = bftParamValidators.find(bftParamValidator =>
+					bftParamValidator.address.equals(matchingAddress),
+				);
+				if (!bftParamsValidatorInfo) {
+					throw new Error('Validator address not found in commit pool');
+				}
+
+				aggregateBFTWeight += bftParamsValidatorInfo.bftWeight;
+			}
+
+			if (aggregateBFTWeight >= certificateThreshold) {
+				return this._aggregateSingleCommits(singleCommits);
+			}
+
+			nextHeight -= 1;
+		}
+
+		return {
+			height: maxHeightCertified,
+			aggregationBits: EMPTY_BUFFER,
+			certificateSignature: EMPTY_BUFFER,
+		};
 	}
 }

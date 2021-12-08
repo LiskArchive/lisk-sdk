@@ -44,7 +44,7 @@ describe('CommitPool', () => {
 	let commitPool: CommitPool;
 	let bftAPI: any;
 	let validatorsAPI: any;
-	let blockTime;
+	let blockTime: number;
 	let chain: any;
 	let network: any;
 	let getBlockHeaderByHeight: any;
@@ -54,6 +54,7 @@ describe('CommitPool', () => {
 			getBFTHeights: jest.fn(),
 			getBFTParameters: jest.fn(),
 			getNextHeightBFTParameters: jest.fn(),
+			selectAggregateCommit: jest.fn(),
 		};
 		validatorsAPI = {
 			getValidatorAccount: jest.fn(),
@@ -335,7 +336,149 @@ describe('CommitPool', () => {
 	describe('_aggregateSingleCommits', () => {
 		it.todo('');
 	});
+
 	describe('_selectAggregateCommit', () => {
-		it.todo('');
+		const maxHeightPrecommitted = 1053;
+		const maxHeightCertified = 1050;
+		const heightNextBFTParameters = 1053;
+		const threshold = 1;
+		const blockHeader1 = createFakeBlockHeader({ height: 1051 });
+		const blockHeader2 = createFakeBlockHeader({ height: 1052 });
+		const validatorInfo1 = {
+			address: getRandomBytes(20),
+			blsPublicKey: getRandomBytes(48),
+			blsSecretKey: getRandomBytes(32),
+		};
+		const validatorInfo2 = {
+			address: getRandomBytes(20),
+			blsPublicKey: getRandomBytes(48),
+			blsSecretKey: getRandomBytes(32),
+		};
+		const certificate1 = computeCertificateFromBlockHeader(blockHeader1);
+		const certificate2 = computeCertificateFromBlockHeader(blockHeader2);
+		const singleCommit1 = {
+			blockID: blockHeader1.id,
+			height: blockHeader1.height,
+			validatorAddress: validatorInfo1.address,
+			certificateSignature: signCertificate(
+				validatorInfo1.blsSecretKey,
+				networkIdentifier,
+				certificate1,
+			),
+		};
+		const singleCommit2 = {
+			blockID: blockHeader2.id,
+			height: blockHeader2.height,
+			validatorAddress: validatorInfo2.address,
+			certificateSignature: signCertificate(
+				validatorInfo2.blsSecretKey,
+				networkIdentifier,
+				certificate2,
+			),
+		};
+		let apiContext: APIContext;
+
+		beforeEach(() => {
+			commitPool = new CommitPool({
+				bftAPI,
+				validatorsAPI,
+				blockTime,
+				network,
+				chain,
+			});
+			commitPool['_nonGossipedCommits'].set(blockHeader1.height, [singleCommit1]);
+			commitPool['_gossipedCommits'].set(blockHeader2.height, [singleCommit2]);
+			commitPool['_aggregateSingleCommits'] = jest.fn();
+			apiContext = createTransientAPIContext({});
+
+			bftAPI.getBFTHeights.mockResolvedValue({
+				maxHeightCertified,
+				maxHeightPrecommitted,
+			});
+
+			bftAPI.getNextHeightBFTParameters.mockResolvedValue(heightNextBFTParameters);
+
+			bftAPI.getBFTParameters.mockResolvedValue({
+				certificateThreshold: threshold,
+				validators: [
+					{ address: validatorInfo1.address, bftWeight: BigInt(1) },
+					{ address: validatorInfo2.address, bftWeight: BigInt(1) },
+				],
+			});
+		});
+
+		it('should call bft api getBFTHeights', async () => {
+			// Act
+			await commitPool['_selectAggregateCommit'](apiContext);
+
+			// Assert
+			expect(commitPool['_bftAPI'].getBFTHeights).toHaveBeenCalledWith(apiContext);
+		});
+
+		it('should call bft api getNextHeightBFTParameters', async () => {
+			// Act
+			await commitPool['_selectAggregateCommit'](apiContext);
+
+			// Assert
+			expect(commitPool['_bftAPI'].getNextHeightBFTParameters).toHaveBeenCalledWith(
+				apiContext,
+				maxHeightCertified + 1,
+			);
+		});
+
+		it('should call bft api getBFTParameters with min(heightNextBFTParameters - 1, maxHeightPrecommitted)', async () => {
+			// Act
+			await commitPool['_selectAggregateCommit'](apiContext);
+
+			// Assert
+			expect(commitPool['_bftAPI'].getBFTParameters).toHaveBeenCalledWith(
+				apiContext,
+				Math.min(heightNextBFTParameters - 1, maxHeightPrecommitted),
+			);
+		});
+
+		it('should call getBFTParameters with maxHeightPrecommitted if getNextHeightBFTParameters does not return a valid height', async () => {
+			// Arrange
+			bftAPI.getNextHeightBFTParameters.mockRejectedValue(new BFTParameterNotFoundError('Error'));
+
+			// Act
+			await commitPool['_selectAggregateCommit'](apiContext);
+
+			// Assert
+			expect(commitPool['_bftAPI'].getBFTParameters).toHaveBeenCalledWith(
+				apiContext,
+				maxHeightPrecommitted,
+			);
+		});
+
+		it('should call aggregateSingleCommits when it reaches threshold', async () => {
+			// Act
+			await commitPool['_selectAggregateCommit'](apiContext);
+
+			// Assert
+			expect(commitPool['_aggregateSingleCommits']).toHaveBeenCalledWith([singleCommit2]);
+		});
+
+		it('should not call aggregateSingleCommits when it does not reach threshold and return default aggregateCommit', async () => {
+			// Arrange
+			bftAPI.getBFTParameters.mockReturnValue({
+				certificateThreshold: 10,
+				validators: [
+					{ address: validatorInfo1.address, bftWeight: BigInt(1) },
+					{ address: validatorInfo2.address, bftWeight: BigInt(1) },
+				],
+			});
+
+			// Act
+			const result = await commitPool['_selectAggregateCommit'](apiContext);
+
+			// Assert
+			expect(commitPool['_aggregateSingleCommits']).not.toHaveBeenCalled();
+			expect(result).toEqual({
+				height: maxHeightCertified,
+				aggregationBits: Buffer.alloc(0),
+				certificateSignature: Buffer.alloc(0),
+			});
+		});
 	});
 });
