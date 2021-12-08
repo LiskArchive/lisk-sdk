@@ -13,6 +13,7 @@
  */
 
 import { BlockHeader, Chain } from '@liskhq/lisk-chain';
+import { EMPTY_BUFFER } from './constants';
 import { BFTParameterNotFoundError } from '../../../modules/bft/errors';
 import { APIContext } from '../../state_machine/types';
 import { BFTAPI, ValidatorAPI } from '../types';
@@ -231,8 +232,8 @@ export class CommitPool {
 
 		return {
 			height: maxHeightCertified,
-			aggregationBits: Buffer.alloc(0),
-			certificateSignature: Buffer.alloc(0),
+			aggregationBits: EMPTY_BUFFER,
+			certificateSignature: EMPTY_BUFFER,
 		};
 	}
 }
