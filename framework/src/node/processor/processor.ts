@@ -273,12 +273,12 @@ export class Processor {
 	public validateTransaction(transaction: Transaction): void {
 		this._chain.validateTransaction(transaction);
 		const customAsset = this._getAsset(transaction);
-		if (customAsset.validate) {
-			const decodedAsset = codec.decode(customAsset.schema, transaction.asset);
-			const assetSchemaErrors = validator.validate(customAsset.schema, decodedAsset as object);
-			if (assetSchemaErrors.length) {
-				throw new LiskValidationError(assetSchemaErrors);
-			}
+		const decodedAsset = codec.decode(customAsset.schema, transaction.asset);
+		const assetSchemaErrors = validator.validate(customAsset.schema, decodedAsset as object);
+		if (assetSchemaErrors.length) {
+			throw new LiskValidationError(assetSchemaErrors);
+		}
+		if (customAsset.validate) {	
 			customAsset.validate({
 				asset: decodedAsset,
 				transaction,
