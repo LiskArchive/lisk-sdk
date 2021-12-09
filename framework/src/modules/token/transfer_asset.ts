@@ -55,13 +55,13 @@ export class TransferAsset extends BaseAsset {
 		if (currentHeight > this._transferFixHeight) {
 			if (asset.recipientAddress.length !== 20) {
 				throw new Error(
-					`Invalid recipient address.`,
+					`Invalid recipient address length.`,
 				);
 			}
 
 			if (asset.data.length > 64) {
 				throw new Error(
-					`Invalid data.`,
+					`Invalid data length.`,
 				);
 			}
 		}
