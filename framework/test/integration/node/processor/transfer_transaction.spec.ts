@@ -196,8 +196,8 @@ describe('when processing a block with transfer transaction', () => {
 			});
 
 			it('should process the block', async () => {
-				const invalidBlock = await processEnv.createBlock([transaction]);
-				await expect(processEnv.process(invalidBlock)).resolves.toBeUndefined();
+				const validBlock = await processEnv.createBlock([transaction]);
+				await expect(processEnv.process(validBlock)).resolves.toBeUndefined();
 			});
 		});
 
@@ -232,8 +232,8 @@ describe('when processing a block with transfer transaction', () => {
 			});
 
 			it('should process the block', async () => {
-				const invalidBlock = await processEnv.createBlock([transaction]);
-				await expect(processEnv.process(invalidBlock)).resolves.toBeUndefined();
+				const validBlock = await processEnv.createBlock([transaction]);
+				await expect(processEnv.process(validBlock)).resolves.toBeUndefined();
 			});
 		});
 	});
@@ -398,9 +398,9 @@ describe('when processing a block with transfer transaction', () => {
 				);
 			});
 
-			it('should fail to process the block', async () => {
-				const invalidBlock = await processEnv.createBlock([transaction]);
-				await expect(processEnv.process(invalidBlock)).rejects.toThrow('Invalid data length.');
+			it('should process the block', async () => {
+				const validBlock = await processEnv.createBlock([transaction]);
+				await expect(processEnv.process(validBlock)).resolves.toBeUndefined();
 			});
 		});
 
@@ -435,8 +435,8 @@ describe('when processing a block with transfer transaction', () => {
 			});
 
 			it('should process the block', async () => {
-				const invalidBlock = await processEnv.createBlock([transaction]);
-				await expect(processEnv.process(invalidBlock)).resolves.toBeUndefined();
+				const validBlock = await processEnv.createBlock([transaction]);
+				await expect(processEnv.process(validBlock)).resolves.toBeUndefined();
 			});
 		});
 	});
