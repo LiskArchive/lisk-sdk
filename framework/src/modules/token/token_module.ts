@@ -109,7 +109,7 @@ export class TokenModule extends BaseModule {
 			throw new Error('minRemainingBalance in genesisConfig must be a string.');
 		}
 		this._minRemainingBalance = BigInt(minRemainingBalance);
-		this.transactionAssets = [new TransferAsset(this._minRemainingBalance, typeof config.transferFixHeight === 'number' ? config.transferFixHeight : undefined)];
+		this.transactionAssets = [new TransferAsset(this._minRemainingBalance, typeof this.config.transferFixHeight === 'number' ? this.config.transferFixHeight : undefined)];
 	}
 
 	public async beforeTransactionApply({
