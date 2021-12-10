@@ -54,15 +54,11 @@ export class TransferAsset extends BaseAsset {
 		const currentHeight = stateStore.chain.lastBlockHeaders[0].height + 1;
 		if (currentHeight > this._transferFixHeight) {
 			if (asset.recipientAddress.length !== 20) {
-				throw new Error(
-					`Invalid recipient address length.`,
-				);
+				throw new Error(`Invalid recipient address length.`);
 			}
 
 			if (asset.data.length > 64) {
-				throw new Error(
-					`Invalid data length.`,
-				);
+				throw new Error(`Invalid data length.`);
 			}
 		}
 

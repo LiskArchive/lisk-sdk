@@ -278,7 +278,7 @@ export class Processor {
 		if (assetSchemaErrors.length) {
 			throw new LiskValidationError(assetSchemaErrors);
 		}
-		if (customAsset.validate) {	
+		if (customAsset.validate) {
 			customAsset.validate({
 				asset: decodedAsset,
 				transaction,
