@@ -27,13 +27,13 @@ import { Processor } from '../../../../src/node/processor';
 import * as testing from '../../../../src/testing';
 
 describe('when processing a block with transfer transaction', () => {
+	const databasePath = '/tmp/lisk/transfer/test';
+	const transferFixHeight = 10;
+	const account = nodeUtils.createAccount();
 	let processEnv: testing.BlockProcessingEnv;
 	let processor: Processor;
 	let networkIdentifier: Buffer;
 	let dataAccess: DataAccess;
-	const databasePath = '/tmp/lisk/transfer/test';
-	const transferFixHeight = 10;
-	const account = nodeUtils.createAccount();
 
 	describe('when current height is before fix height', () => {
 		beforeAll(async () => {
