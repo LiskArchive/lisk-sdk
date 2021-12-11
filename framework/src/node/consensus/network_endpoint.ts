@@ -225,12 +225,15 @@ export class NetworkEndpoint {
 			throw error;
 		}
 
-		let isValidCommit: boolean;
 		try {
-			isValidCommit = await this._commitPool.validateCommit(
+			const isValidCommit = await this._commitPool.validateCommit(
 				this._apiContext,
 				decodedData.singleCommit,
 			);
+
+			if (!isValidCommit) {
+				return;
+			}
 		} catch (error) {
 			this._logger.debug(
 				{ peerId, penalty: 100 },
@@ -242,10 +245,6 @@ export class NetworkEndpoint {
 				penalty: 100,
 			});
 			throw error;
-		}
-
-		if (!isValidCommit) {
-			return;
 		}
 
 		this._commitPool.addCommit(decodedData.singleCommit, decodedData.singleCommit.height);
