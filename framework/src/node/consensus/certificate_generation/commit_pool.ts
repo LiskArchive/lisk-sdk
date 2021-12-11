@@ -85,7 +85,7 @@ export class CommitPool {
 		}
 
 		// Validation step 1
-		const doesCommitExistsInNonGossipedCommits = !!this._nonGossipedCommits
+		const existsInNonGossiped = !!this._nonGossipedCommits
 			.get(commit.height)
 			?.some(
 				nonGossipedCommit =>
@@ -93,7 +93,7 @@ export class CommitPool {
 					nonGossipedCommit.validatorAddress.equals(commit.validatorAddress),
 			);
 
-		const doesCommitExistsInGossipedCommits = !!this._gossipedCommits
+		const existsInGossiped = !!this._gossipedCommits
 			.get(commit.height)
 			?.some(
 				gossipedCommit =>
@@ -101,8 +101,7 @@ export class CommitPool {
 					gossipedCommit.validatorAddress.equals(commit.validatorAddress),
 			);
 
-		const doesCommitExist =
-			doesCommitExistsInGossipedCommits || doesCommitExistsInNonGossipedCommits;
+		const doesCommitExist = existsInGossiped || existsInNonGossiped;
 
 		if (doesCommitExist) {
 			return false;
