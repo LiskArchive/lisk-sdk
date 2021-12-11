@@ -117,7 +117,7 @@ export class CommitPool {
 		const { maxHeightPrecommitted } = await this._bftAPI.getBFTHeights(apiContext);
 		const isCommitInRange =
 			commit.height >= maxHeightPrecommitted - COMMIT_RANGE_STORED &&
-			commit.height < maxHeightPrecommitted;
+			commit.height <= maxHeightPrecommitted;
 		const doesBFTParamExistForNextHeight = await this._bftAPI.existBFTParameters(
 			apiContext,
 			commit.height + 1,
