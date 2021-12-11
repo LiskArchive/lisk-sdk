@@ -89,16 +89,16 @@ export class CommitPool {
 			.get(commit.height)
 			?.some(
 				nonGossipedCommit =>
-					nonGossipedCommit.blockID === commit.blockID &&
-					nonGossipedCommit.validatorAddress === commit.validatorAddress,
+					nonGossipedCommit.blockID.equals(commit.blockID) &&
+					nonGossipedCommit.validatorAddress.equals(commit.validatorAddress),
 			);
 
 		const doesCommitExistsInGossipedCommits = !!this._gossipedCommits
 			.get(commit.height)
 			?.some(
 				gossipedCommit =>
-					gossipedCommit.blockID === commit.blockID &&
-					gossipedCommit.validatorAddress === commit.validatorAddress,
+					gossipedCommit.blockID.equals(commit.blockID) &&
+					gossipedCommit.validatorAddress.equals(commit.validatorAddress),
 			);
 
 		const doesCommitExist =
