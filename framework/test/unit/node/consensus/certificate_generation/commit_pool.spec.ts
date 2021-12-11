@@ -271,15 +271,6 @@ describe('CommitPool', () => {
 			expect(isCommitValid).toBeFalse();
 		});
 
-		it('should return false when single commit exists both in gossiped commits and in non-gossipped commits', async () => {
-			commitPool['_gossipedCommits'].set(commit.height, [commit]);
-			commitPool['_nonGossipedCommits'].set(commit.height, [commit]);
-
-			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
-
-			expect(isCommitValid).toBeFalse();
-		});
-
 		it('should return false when maxRemovalHeight is equal to single commit height', async () => {
 			(blockHeaderOfFinalizedHeight.aggregateCommit.height as any) = 1031;
 
