@@ -194,7 +194,7 @@ export class TransactionPool {
 			}
 
 			// If TxPool is full with only unprocessable transactions then it will evict the transaction with the lowestFeePriority
-			if (totalUnprocessable >= this._maxTransactions) {
+			if (totalUnprocessable >= Math.floor(this._maxTransactions / 2)) {
 				this.remove(this._allTransactions.get(lowestFeePriorityTrx.value) as Transaction);
 			} else {
 				const error = new TransactionPoolError(

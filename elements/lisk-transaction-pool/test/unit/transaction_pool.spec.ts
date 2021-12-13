@@ -615,10 +615,6 @@ describe('TransactionPool class', () => {
 
 			const tempApplyTransactionsStub = jest.fn();
 			(transactionPool as any)._applyFunction = tempApplyTransactionsStub;
-			tempApplyTransactionsStub.mockRejectedValue({
-				transactionError: { code: 'ERR_NONCE_OUT_OF_BOUNDS' },
-				code: 'ERR_TRANSACTION_VERIFICATION_FAIL',
-			});
 			txGetBytesStub = jest.fn();
 			for (let i = 0; i < MAX_TRANSACTIONS; i += 1) {
 				const tempTx = {
@@ -632,6 +628,20 @@ describe('TransactionPool class', () => {
 				tempTx.getBytes = txGetBytesStub.mockReturnValue(
 					Buffer.from(new Array(MAX_TRANSACTIONS + i)),
 				);
+
+				// half the trx are unprocessable
+				if (i < 5) {
+					when(tempApplyTransactionsStub)
+						.calledWith([tempTx])
+						.mockRejectedValue({
+							transactionError: { code: 'ERR_NONCE_OUT_OF_BOUNDS' },
+							code: 'ERR_TRANSACTION_VERIFICATION_FAIL',
+						});
+				} else {
+					when(tempApplyTransactionsStub)
+						.calledWith([tempTx])
+						.mockResolvedValue([{ status: Status.OK, errors: [] }]);
+				}
 
 				await transactionPool.add(tempTx);
 			}
@@ -650,6 +660,10 @@ describe('TransactionPool class', () => {
 			lowFeePriorityTx.getBytes = txGetBytesStub.mockReturnValue(
 				Buffer.from(new Array(MAX_TRANSACTIONS + 10)),
 			);
+
+			when(tempApplyTransactionsStub)
+				.calledWith([lowFeePriorityTx])
+				.mockResolvedValue([{ status: Status.OK, errors: [] }]);
 
 			const { status } = await transactionPool.add(lowFeePriorityTx);
 
