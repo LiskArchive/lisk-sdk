@@ -39,6 +39,7 @@ export interface TransactionPoolConfig {
 	readonly transactionReorganizationInterval?: number;
 	readonly minReplacementFeeDifference?: bigint;
 	readonly minFeePerByte: number;
+	readonly maxPayloadLength: number;
 	readonly baseFees: BaseFee[];
 	applyTransactions(transactions: ReadonlyArray<Transaction>): Promise<void>;
 }
@@ -80,6 +81,7 @@ export class TransactionPool {
 	private readonly _transactionReorganizationInterval: number;
 	private readonly _minReplacementFeeDifference: bigint;
 	private readonly _minFeePerByte: number;
+	private readonly _maxPayloadLength: number;
 	private readonly _baseFees: BaseFee[];
 	private readonly _reorganizeJob: Job<void>;
 	private readonly _feePriorityQueue: dataStructures.MinHeap<Buffer, bigint>;
@@ -104,6 +106,7 @@ export class TransactionPool {
 			config.minReplacementFeeDifference ?? DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE;
 		this._baseFees = config.baseFees;
 		this._minFeePerByte = config.minFeePerByte;
+		this._maxPayloadLength = config.maxPayloadLength;
 		this._reorganizeJob = new Job(
 			async () => this._reorganize(),
 			this._transactionReorganizationInterval,
@@ -144,6 +147,15 @@ export class TransactionPool {
 	5. If PROCESSABLE or UNPROCESSABLE then add it to transactionList and feePriorityQueue, if INVALID then return a relevant error
 	*/
 	public async add(incomingTx: Transaction): Promise<AddTransactionResponse> {
+		// Reject a transaction when its size is greater than maxPayloadLength
+		if (incomingTx.getBytes().byteLength > this._maxPayloadLength) {
+			const error = new TransactionPoolError(
+				`Transaction byte length is greater than ${this._maxPayloadLength}`,
+				incomingTx.id,
+			);
+
+			return { status: Status.FAIL, error };
+		}
 		// Check for duplicate
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (this._allTransactions.has(incomingTx.id)) {
@@ -176,15 +188,25 @@ export class TransactionPool {
 			lowestFeePriorityTrx &&
 			incomingTx.feePriority <= lowestFeePriorityTrx.key
 		) {
-			const error = new TransactionPoolError(
-				'Rejecting transaction due to fee priority when the pool is full.',
-				incomingTx.id,
-				'.fee',
-				incomingTx.feePriority.toString(),
-				lowestFeePriorityTrx.key.toString(),
-			);
+			let totalUnprocessable = 0;
+			for (const txList of this._transactionList.values()) {
+				totalUnprocessable += txList.getUnprocessable().length;
+			}
 
-			return { status: Status.FAIL, error };
+			// If TxPool is full with only unprocessable transactions then it will evict the transaction with the lowestFeePriority
+			if (totalUnprocessable >= this._maxTransactions) {
+				this.remove(this._allTransactions.get(lowestFeePriorityTrx.value) as Transaction);
+			} else {
+				const error = new TransactionPoolError(
+					'Rejecting transaction due to fee priority when the pool is full.',
+					incomingTx.id,
+					'.fee',
+					incomingTx.feePriority.toString(),
+					lowestFeePriorityTrx.key.toString(),
+				);
+
+				return { status: Status.FAIL, error };
+			}
 		}
 
 		const incomingTxAddress = getAddressFromPublicKey(incomingTx.senderPublicKey);
