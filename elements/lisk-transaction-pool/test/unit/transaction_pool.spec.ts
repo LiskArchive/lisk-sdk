@@ -909,7 +909,7 @@ describe('TransactionPool class', () => {
 			expect((transactionPool as any)._allTransactions).not.toContain(transactionsFromSender2[1]);
 			// To check if evicted processable transaction is the higher nonce transaction of an account
 			expect(higherNonceTrxs).toContain(transactionsFromSender2[1]);
-			expect(transactionPool.events.emit).toHaveBeenCalledTimes(1);
+			expect(transactionPool.events.emit).toHaveBeenCalledTimes(2);
 		});
 	});
 
