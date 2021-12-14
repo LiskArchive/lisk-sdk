@@ -11,6 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+import { NotFoundError } from '@liskhq/lisk-db';
 import { BlockHeader } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import {
@@ -23,7 +25,10 @@ import {
 import { when } from 'jest-when';
 import { BFTParameterNotFoundError } from '../../../../../src/modules/bft/errors';
 import { CommitPool } from '../../../../../src/node/consensus/certificate_generation/commit_pool';
-import { MESSAGE_TAG_CERTIFICATE } from '../../../../../src/node/consensus/certificate_generation/constants';
+import {
+	COMMIT_RANGE_STORED,
+	MESSAGE_TAG_CERTIFICATE,
+} from '../../../../../src/node/consensus/certificate_generation/constants';
 import { certificateSchema } from '../../../../../src/node/consensus/certificate_generation/schema';
 import {
 	AggregateCommit,
@@ -55,6 +60,7 @@ describe('CommitPool', () => {
 			getBFTParameters: jest.fn(),
 			getNextHeightBFTParameters: jest.fn(),
 			selectAggregateCommit: jest.fn(),
+			existBFTParameters: jest.fn(),
 		};
 		validatorsAPI = {
 			getValidatorAccount: jest.fn(),
@@ -89,13 +95,364 @@ describe('CommitPool', () => {
 		it.todo('');
 	});
 	describe('addCommit', () => {
-		it.todo('');
+		let nonGossipedCommits: SingleCommit[];
+		let height: number;
+
+		beforeEach(() => {
+			const blockID = getRandomBytes(32);
+
+			height = 1031;
+
+			nonGossipedCommits = Array.from({ length: 1 }, () => ({
+				blockID,
+				certificateSignature: getRandomBytes(96),
+				height,
+				validatorAddress: getRandomBytes(20),
+			}));
+
+			// We add commits by .set() method because properties are readonly
+			commitPool['_nonGossipedCommits'].set(nonGossipedCommits[0].height, [nonGossipedCommits[0]]);
+		});
+
+		it('should add commit successfully', () => {
+			const newCommit: SingleCommit = {
+				...nonGossipedCommits[0],
+				certificateSignature: getRandomBytes(96),
+				validatorAddress: getRandomBytes(20),
+			};
+
+			commitPool.addCommit(newCommit, height);
+
+			expect(commitPool['_nonGossipedCommits'].get(height)).toEqual([
+				nonGossipedCommits[0],
+				newCommit,
+			]);
+		});
+
+		it('should not set new single commit when it already exists', () => {
+			const newCommit: SingleCommit = {
+				...nonGossipedCommits[0],
+			};
+			jest.spyOn(commitPool['_nonGossipedCommits'], 'set');
+			commitPool.addCommit(newCommit, height);
+
+			expect(commitPool['_nonGossipedCommits'].set).toHaveBeenCalledTimes(0);
+		});
+
+		it('should add commit successfully for a non-existent height', () => {
+			height += 1;
+			const newCommit: SingleCommit = {
+				...nonGossipedCommits[0],
+				height,
+				certificateSignature: getRandomBytes(96),
+				validatorAddress: getRandomBytes(20),
+			};
+
+			commitPool.addCommit(newCommit, height);
+
+			expect(commitPool['_nonGossipedCommits'].get(height)).toEqual([newCommit]);
+		});
 	});
 	describe('validateCommit', () => {
-		it.todo('');
+		let apiContext: APIContext;
+		let commit: SingleCommit;
+		let blockHeader: BlockHeader;
+		let blockHeaderOfFinalizedHeight: BlockHeader;
+		let certificate: Certificate;
+		let publicKey: Buffer;
+		let privateKey: Buffer;
+		let signature: Buffer;
+		let maxHeightCertified: number;
+		let maxHeightPrecommitted: number;
+		let weights: number[];
+		let threshold: number;
+		let validators: any[];
+
+		beforeEach(() => {
+			maxHeightCertified = 1000;
+			maxHeightPrecommitted = 1050;
+
+			apiContext = createTransientAPIContext({});
+
+			blockHeader = createFakeBlockHeader({
+				height: 1031,
+				timestamp: 10310,
+				generatorAddress: getRandomBytes(20),
+			});
+
+			blockHeaderOfFinalizedHeight = createFakeBlockHeader({
+				aggregateCommit: {
+					aggregationBits: Buffer.alloc(0),
+					certificateSignature: Buffer.alloc(0),
+					height: 1030,
+				},
+			});
+
+			certificate = computeCertificateFromBlockHeader(blockHeader);
+
+			privateKey = generatePrivateKey(getRandomBytes(32));
+			publicKey = getPublicKeyFromPrivateKey(privateKey);
+			signature = signCertificate(privateKey, networkIdentifier, certificate);
+
+			commit = {
+				blockID: blockHeader.id,
+				certificateSignature: signature,
+				height: blockHeader.height,
+				validatorAddress: blockHeader.generatorAddress,
+			};
+
+			chain.finalizedHeight = commit.height - 1;
+
+			weights = Array.from({ length: 103 }, _ => 1);
+			validators = weights.map(weight => ({
+				address: getRandomBytes(20),
+				bftWeight: BigInt(weight),
+			}));
+			// Single commit owner must be an active validator
+			validators[0] = {
+				address: commit.validatorAddress,
+				bftWeight: BigInt(1),
+			};
+
+			when(chain.dataAccess.getBlockHeaderByHeight)
+				.calledWith(commit.height)
+				.mockReturnValue(blockHeader);
+
+			bftAPI.getBFTHeights.mockReturnValue({
+				maxHeightCertified,
+				maxHeightPrecommitted,
+			});
+
+			when(bftAPI.getBFTParameters).calledWith(apiContext, commit.height).mockReturnValue({
+				certificateThreshold: threshold,
+				validators,
+			});
+
+			when(validatorsAPI.getValidatorAccount)
+				.calledWith(apiContext, commit.validatorAddress)
+				.mockReturnValue({ blsKey: publicKey });
+
+			bftAPI.existBFTParameters.mockReturnValue(true);
+
+			when(getBlockHeaderByHeight)
+				.calledWith(chain.finalizedHeight)
+				.mockReturnValue(blockHeaderOfFinalizedHeight);
+		});
+
+		it('should validate single commit successfully', async () => {
+			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
+
+			expect(isCommitValid).toBeTrue();
+		});
+
+		it('should return false when single commit block id is not equal to chain block id at same height', async () => {
+			when(chain.dataAccess.getBlockHeaderByHeight)
+				.calledWith(commit.height)
+				.mockReturnValue(createFakeBlockHeader({ id: getRandomBytes(32) }));
+
+			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
+
+			expect(isCommitValid).toBeFalse();
+		});
+
+		it('should return false when single commit exists in gossiped commits but not in non-gossipped commits', async () => {
+			commitPool['_gossipedCommits'].set(commit.height, [commit]);
+
+			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
+
+			expect(isCommitValid).toBeFalse();
+		});
+
+		it('should return false when single commit exists in non-gossiped commits but not in gossipped commits', async () => {
+			commitPool['_nonGossipedCommits'].set(commit.height, [commit]);
+
+			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
+
+			expect(isCommitValid).toBeFalse();
+		});
+
+		it('should return false when maxRemovalHeight is equal to single commit height', async () => {
+			(blockHeaderOfFinalizedHeight.aggregateCommit.height as any) = 1031;
+
+			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
+
+			expect(isCommitValid).toBeFalse();
+		});
+
+		it('should return false when maxRemovalHeight is above single commit height', async () => {
+			(blockHeaderOfFinalizedHeight.aggregateCommit.height as any) = 1032;
+
+			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
+
+			expect(isCommitValid).toBeFalse();
+		});
+
+		it('should return true when single commit height is below commit range but bft parameter exists for next height', async () => {
+			maxHeightCertified = commit.height - 50 + COMMIT_RANGE_STORED + 1;
+			maxHeightPrecommitted = commit.height + COMMIT_RANGE_STORED + 1;
+
+			bftAPI.getBFTHeights.mockReturnValue({
+				maxHeightCertified,
+				maxHeightPrecommitted,
+			});
+
+			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
+
+			expect(isCommitValid).toBeTrue();
+		});
+
+		it('should return true when single commit height is above maxHeightPrecommited but bft parameter exists for next height', async () => {
+			maxHeightCertified = commit.height - 50 - 1;
+			maxHeightPrecommitted = commit.height - 1;
+
+			bftAPI.getBFTHeights.mockReturnValue({
+				maxHeightCertified,
+				maxHeightPrecommitted,
+			});
+
+			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
+
+			expect(isCommitValid).toBeTrue();
+		});
+
+		it('should return true when bft parameter does not exist for next height but commit in range', async () => {
+			when(bftAPI.existBFTParameters)
+				.calledWith(apiContext, commit.height + 1)
+				.mockReturnValue(false);
+
+			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
+
+			expect(isCommitValid).toBeTrue();
+		});
+
+		it('should return false when bft parameter does not exist for next height and commit is below range', async () => {
+			maxHeightCertified = commit.height - 50 + COMMIT_RANGE_STORED + 1;
+			maxHeightPrecommitted = commit.height + COMMIT_RANGE_STORED + 1;
+
+			bftAPI.getBFTHeights.mockReturnValue({
+				maxHeightCertified,
+				maxHeightPrecommitted,
+			});
+
+			when(bftAPI.existBFTParameters)
+				.calledWith(apiContext, commit.height + 1)
+				.mockReturnValue(false);
+
+			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
+
+			expect(isCommitValid).toBeFalse();
+		});
+
+		it('should return false when bft parameter does not exist for next height and single commit height is above maxHeightPrecommited', async () => {
+			maxHeightCertified = commit.height - 50 - 1;
+			maxHeightPrecommitted = commit.height - 1;
+
+			bftAPI.getBFTHeights.mockReturnValue({
+				maxHeightCertified,
+				maxHeightPrecommitted,
+			});
+
+			when(bftAPI.existBFTParameters)
+				.calledWith(apiContext, commit.height + 1)
+				.mockReturnValue(false);
+
+			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
+
+			expect(isCommitValid).toBeFalse();
+		});
+
+		it('should throw error when generator is not in active validators of the height', async () => {
+			// Change generator to another random validator
+			validators[0] = {
+				address: getRandomBytes(20),
+				bftWeight: BigInt(1),
+			};
+
+			await expect(commitPool.validateCommit(apiContext, commit)).rejects.toThrow(
+				'Commit validator was not active for its height.',
+			);
+		});
+
+		it('should throw error when bls key of the validator is not matching with the certificate signature', async () => {
+			when(validatorsAPI.getValidatorAccount)
+				.calledWith(apiContext, commit.validatorAddress)
+				.mockReturnValue({ blsKey: getRandomBytes(48) });
+
+			await expect(commitPool.validateCommit(apiContext, commit)).rejects.toThrow(
+				'Certificate signature is not valid.',
+			);
+		});
 	});
 	describe('getCommitsByHeight', () => {
-		it.todo('');
+		let nonGossipedCommits: SingleCommit[];
+		let gossipedCommits: SingleCommit[];
+		let height: number;
+
+		beforeEach(() => {
+			const blockID = getRandomBytes(32);
+
+			height = 1031;
+
+			nonGossipedCommits = Array.from({ length: 1 }, () => ({
+				blockID,
+				certificateSignature: getRandomBytes(96),
+				height,
+				validatorAddress: getRandomBytes(20),
+			}));
+
+			gossipedCommits = Array.from({ length: 1 }, () => ({
+				blockID,
+				certificateSignature: getRandomBytes(96),
+				height,
+				validatorAddress: getRandomBytes(20),
+			}));
+
+			// We add commits by .set() method because properties are readonly
+			commitPool['_nonGossipedCommits'].set(nonGossipedCommits[0].height, [nonGossipedCommits[0]]);
+			commitPool['_gossipedCommits'].set(gossipedCommits[0].height, [gossipedCommits[0]]);
+		});
+
+		it('should get commits by height successfully', () => {
+			const commitsByHeight = commitPool.getCommitsByHeight(height);
+
+			expect(commitsByHeight).toEqual([...nonGossipedCommits, ...gossipedCommits]);
+		});
+
+		it('should return empty array for an empty height', () => {
+			const commitsByHeight = commitPool.getCommitsByHeight(height + 1);
+
+			expect(commitsByHeight).toEqual([]);
+		});
+
+		it('should return just gossiped commits when just gossiped commits set for that height', () => {
+			height = 1032;
+			gossipedCommits = Array.from({ length: 1 }, () => ({
+				blockID: getRandomBytes(32),
+				certificateSignature: getRandomBytes(96),
+				height,
+				validatorAddress: getRandomBytes(20),
+			}));
+			commitPool['_gossipedCommits'].set(gossipedCommits[0].height, [gossipedCommits[0]]);
+
+			const commitsByHeight = commitPool.getCommitsByHeight(height);
+
+			expect(commitsByHeight).toEqual([...gossipedCommits]);
+		});
+
+		it('should return just non-gossiped commits when just non-gossiped commits set for that height', () => {
+			height = 1032;
+			nonGossipedCommits = Array.from({ length: 1 }, () => ({
+				blockID: getRandomBytes(32),
+				certificateSignature: getRandomBytes(96),
+				height,
+				validatorAddress: getRandomBytes(20),
+			}));
+			commitPool['_nonGossipedCommits'].set(nonGossipedCommits[0].height, [nonGossipedCommits[0]]);
+
+			const commitsByHeight = commitPool.getCommitsByHeight(height);
+
+			expect(commitsByHeight).toEqual([...nonGossipedCommits]);
+		});
 	});
 
 	describe('createSingleCommit', () => {
@@ -332,6 +689,39 @@ describe('CommitPool', () => {
 	});
 	describe('getAggregageCommit', () => {
 		it.todo('');
+	});
+	describe('_getMaxRemovalHeight', () => {
+		let blockHeader: BlockHeader;
+		const finalizedHeight = 1010;
+
+		beforeEach(() => {
+			chain.finalizedHeight = finalizedHeight;
+
+			blockHeader = createFakeBlockHeader({
+				height: finalizedHeight,
+				timestamp: finalizedHeight * 10,
+				aggregateCommit: {
+					aggregationBits: Buffer.alloc(0),
+					certificateSignature: Buffer.alloc(0),
+					height: finalizedHeight,
+				},
+			});
+
+			when(getBlockHeaderByHeight).mockImplementation(async () =>
+				Promise.reject(new NotFoundError('')),
+			);
+			when(getBlockHeaderByHeight).calledWith(finalizedHeight).mockReturnValue(blockHeader);
+		});
+		it('should return successfully for an existing block header at finalizedHeight', async () => {
+			const maxRemovalHeight = await commitPool['_getMaxRemovalHeight']();
+
+			expect(maxRemovalHeight).toBe(blockHeader.aggregateCommit.height);
+		});
+		it('should throw an error for non-existent block header at finalizedHeight', async () => {
+			chain.finalizedHeight = finalizedHeight + 1;
+
+			await expect(commitPool['_getMaxRemovalHeight']()).rejects.toThrow(NotFoundError);
+		});
 	});
 	describe('_aggregateSingleCommits', () => {
 		it.todo('');

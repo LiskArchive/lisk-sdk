@@ -49,4 +49,5 @@ export interface BFTAPI {
 		apiClient: ImmutableAPIContext,
 		header: BlockHeader,
 	) => Promise<boolean>;
+	existBFTParameters: (apiContext: ImmutableAPIContext, height: number) => Promise<boolean>;
 }
