@@ -591,6 +591,7 @@ export class Node {
 			minReplacementFeeDifference: BigInt(
 				this._options.transactionPool.minReplacementFeeDifference,
 			),
+			maxPayloadLength: this._options.genesisConfig.maxPayloadLength,
 		});
 
 		const blockSyncMechanism = new BlockSynchronizationMechanism({
