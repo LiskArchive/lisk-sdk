@@ -200,42 +200,6 @@ describe('when processing a block with transfer transaction', () => {
 				await expect(processEnv.process(validBlock)).resolves.toBeUndefined();
 			});
 		});
-
-		describe('when transfer transaction has no data', () => {
-			let transaction: Transaction;
-
-			beforeAll(async () => {
-				const genesisAccount = await dataAccess.getAccountByAddress<DefaultAccountProps>(
-					genesis.address,
-				);
-				const encodedAsset = codec.encode(new TransferAsset(BigInt(5000000)).schema, {
-					amount: BigInt('10000000'),
-					recipientAddress: account.address,
-				});
-				const { publicKey } = getAddressAndPublicKeyFromPassphrase(genesis.passphrase);
-
-				transaction = new Transaction({
-					moduleID: 2,
-					assetID: 0,
-					nonce: genesisAccount.sequence.nonce,
-					senderPublicKey: publicKey,
-					fee: BigInt('20000000'),
-					asset: encodedAsset,
-					signatures: [],
-				});
-				(transaction.signatures as Buffer[]).push(
-					signData(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
-						genesis.passphrase,
-					),
-				);
-			});
-
-			it('should process the block', async () => {
-				const validBlock = await processEnv.createBlock([transaction]);
-				await expect(processEnv.process(validBlock)).resolves.toBeUndefined();
-			});
-		});
 	});
 
 	describe('when current height is after fix height', () => {
@@ -377,42 +341,6 @@ describe('when processing a block with transfer transaction', () => {
 				const encodedAsset = codec.encode(new TransferAsset(BigInt(5000000)).schema, {
 					amount: BigInt('10000000'),
 					data: getRandomBytes(2),
-					recipientAddress: account.address,
-				});
-				const { publicKey } = getAddressAndPublicKeyFromPassphrase(genesis.passphrase);
-
-				transaction = new Transaction({
-					moduleID: 2,
-					assetID: 0,
-					nonce: genesisAccount.sequence.nonce,
-					senderPublicKey: publicKey,
-					fee: BigInt('20000000'),
-					asset: encodedAsset,
-					signatures: [],
-				});
-				(transaction.signatures as Buffer[]).push(
-					signData(
-						Buffer.concat([networkIdentifier, transaction.getSigningBytes()]),
-						genesis.passphrase,
-					),
-				);
-			});
-
-			it('should process the block', async () => {
-				const validBlock = await processEnv.createBlock([transaction]);
-				await expect(processEnv.process(validBlock)).resolves.toBeUndefined();
-			});
-		});
-
-		describe('when transfer transaction has no data', () => {
-			let transaction: Transaction;
-
-			beforeAll(async () => {
-				const genesisAccount = await dataAccess.getAccountByAddress<DefaultAccountProps>(
-					genesis.address,
-				);
-				const encodedAsset = codec.encode(new TransferAsset(BigInt(5000000)).schema, {
-					amount: BigInt('10000000'),
 					recipientAddress: account.address,
 				});
 				const { publicKey } = getAddressAndPublicKeyFromPassphrase(genesis.passphrase);
