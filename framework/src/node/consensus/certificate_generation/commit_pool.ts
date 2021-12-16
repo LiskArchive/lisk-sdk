@@ -13,10 +13,12 @@
  */
 
 import { BlockHeader, Chain } from '@liskhq/lisk-chain';
+import { dataStructures } from '@liskhq/lisk-utils';
+import { createAggSig } from '@liskhq/lisk-cryptography';
 import { EMPTY_BUFFER } from './constants';
 import { BFTParameterNotFoundError } from '../../../modules/bft/errors';
 import { APIContext } from '../../state_machine/types';
-import { BFTAPI, ValidatorAPI } from '../types';
+import { BFTAPI, PkSigPair, ValidatorAPI } from '../types';
 import { COMMIT_RANGE_STORED } from './constants';
 import {
 	AggregateCommit,
@@ -262,9 +264,59 @@ export class CommitPool {
 	public async getAggregageCommit(apiContext: APIContext): Promise<AggregateCommit> {
 		return this._selectAggregateCommit(apiContext);
 	}
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	private _aggregateSingleCommits(_singleCommits: SingleCommit[]): AggregateCommit {
-		return {} as AggregateCommit;
+
+	public async aggregateSingleCommits(
+		apiContext: APIContext,
+		singleCommits: SingleCommit[],
+	): Promise<AggregateCommit> {
+		if (singleCommits.length === 0) {
+			throw new Error('No single commit found');
+		}
+
+		const { height } = singleCommits[0];
+
+		// assuming this list of validators includes all validators corresponding to each singleCommit.validatorAddress
+		const { validators } = await this._bftAPI.getBFTParameters(apiContext, height);
+		const addressToBlsKey: dataStructures.BufferMap<Buffer> = new dataStructures.BufferMap();
+		const validatorKeys: Buffer[] = [];
+
+		for (const validator of validators) {
+			const validatorAccount = await this._validatorsAPI.getValidatorAccount(
+				apiContext,
+				validator.address,
+			);
+			addressToBlsKey.set(validator.address, validatorAccount.blsKey);
+			validatorKeys.push(validatorAccount.blsKey);
+		}
+
+		const pubKeySignaturePairs: PkSigPair[] = [];
+
+		for (const commit of singleCommits) {
+			const publicKey = addressToBlsKey.get(commit.validatorAddress);
+			if (!publicKey) {
+				throw new Error(
+					`No bls public key entry found for validatorAddress ${commit.validatorAddress.toString(
+						'hex',
+					)}`,
+				);
+			}
+			pubKeySignaturePairs.push({ publicKey, signature: commit.certificateSignature });
+		}
+
+		validatorKeys.sort((blsKeyA, blsKeyB) => blsKeyA.compare(blsKeyB));
+
+		const { aggregationBits, signature: aggregateSignature } = createAggSig(
+			validatorKeys,
+			pubKeySignaturePairs,
+		);
+
+		const aggregateCommit = {
+			height,
+			aggregationBits,
+			certificateSignature: aggregateSignature,
+		};
+
+		return aggregateCommit;
 	}
 
 	private async _selectAggregateCommit(apiContext: APIContext): Promise<AggregateCommit> {
@@ -313,7 +365,7 @@ export class CommitPool {
 			}
 
 			if (aggregateBFTWeight >= certificateThreshold) {
-				return this._aggregateSingleCommits(singleCommits);
+				return this.aggregateSingleCommits(apiContext, singleCommits);
 			}
 
 			nextHeight -= 1;

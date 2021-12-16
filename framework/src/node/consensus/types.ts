@@ -51,3 +51,8 @@ export interface BFTAPI {
 	) => Promise<boolean>;
 	existBFTParameters: (apiContext: ImmutableAPIContext, height: number) => Promise<boolean>;
 }
+
+export interface PkSigPair {
+	publicKey: Buffer;
+	signature: Buffer;
+}
