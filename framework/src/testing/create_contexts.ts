@@ -13,7 +13,7 @@
  *
  */
 
-import { Block, GenesisBlock, Transaction } from '@liskhq/lisk-chain';
+import { Block, GenesisBlock, Transaction, BlockHeader } from '@liskhq/lisk-chain';
 import {
 	AfterBlockApplyContext,
 	AfterGenesisBlockApplyContext,
@@ -93,4 +93,4 @@ export const createApplyAssetContext = <T>(params: {
 export const createValidateAssetContext = <T>(params: {
 	transaction: Transaction;
 	asset: T;
-}): ValidateAssetContext<T> => ({ transaction: params.transaction, asset: params.asset });
+}): ValidateAssetContext<T> => ({ transaction: params.transaction, asset: params.asset, header: {} as BlockHeader });

@@ -282,6 +282,7 @@ export class Processor {
 			customAsset.validate({
 				asset: decodedAsset,
 				transaction,
+				header: this._chain.lastBlock.header,
 			});
 		}
 	}
