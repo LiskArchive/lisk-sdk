@@ -107,9 +107,6 @@ export class Codec {
 		}
 		const compiledSchema = this._compileSchemas[schema.$id];
 		const [res] = readObject(message, 0, compiledSchema, message.length);
-		if (!this.encode(schema, res).equals(message)) {
-			throw new Error('Invalid message normalization');
-		}
 
 		return (res as unknown) as T;
 	}
