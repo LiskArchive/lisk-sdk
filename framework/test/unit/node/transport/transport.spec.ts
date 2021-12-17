@@ -82,8 +82,8 @@ describe('Transport', () => {
 				encode: jest.fn().mockReturnValue(encodedBlock),
 			},
 			lastBlock: {
-				height: 0
-			}
+				height: 0,
+			},
 		};
 		processorStub = {
 			validateTransaction: jest.fn(),
@@ -694,7 +694,7 @@ describe('Transport', () => {
 			});
 
 			it('should not apply penalty when add fails', async () => {
-				// Act 
+				// Act
 				const error = new Error('validate error');
 				transactionPoolStub.add.mockResolvedValue({ errors: [error] });
 
