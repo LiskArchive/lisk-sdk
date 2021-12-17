@@ -270,7 +270,7 @@ export class Processor {
 		});
 	}
 
-	public validateTransaction(transaction: Transaction, header?: BlockHeader): void {
+	public validateTransaction(transaction: Transaction, header: BlockHeader): void {
 		this._chain.validateTransaction(transaction);
 		const customAsset = this._getAsset(transaction);
 		const decodedAsset = codec.decode(customAsset.schema, transaction.asset);
