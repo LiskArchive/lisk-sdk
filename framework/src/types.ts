@@ -264,7 +264,7 @@ export interface ApplyAssetContext<T> {
 export interface ValidateAssetContext<T> {
 	asset: T;
 	transaction: Transaction;
-	header?: BlockHeader;
+	header: BlockHeader;
 }
 
 // minActiveHeight is automatically calculated while setting in chain library
