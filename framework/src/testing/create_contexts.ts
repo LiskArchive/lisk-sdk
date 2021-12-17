@@ -93,4 +93,8 @@ export const createApplyAssetContext = <T>(params: {
 export const createValidateAssetContext = <T>(params: {
 	transaction: Transaction;
 	asset: T;
-}): ValidateAssetContext<T> => ({ transaction: params.transaction, asset: params.asset, header: {} as BlockHeader });
+}): ValidateAssetContext<T> => ({
+	transaction: params.transaction,
+	asset: params.asset,
+	header: {} as BlockHeader,
+});
