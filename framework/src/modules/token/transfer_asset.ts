@@ -50,7 +50,7 @@ export class TransferAsset extends BaseAsset {
 		this._transferFixHeight = transferFixHeight ?? 0;
 	}
 
-	public validate({ asset, header }: ValidateAssetContext<Asset>): void {		
+	public validate({ asset, header }: ValidateAssetContext<Asset>): void {
 		if (header.height + 1 > this._transferFixHeight) {
 			if (asset.recipientAddress.length !== 20) {
 				throw new Error(`Invalid recipient address length.`);
@@ -63,8 +63,6 @@ export class TransferAsset extends BaseAsset {
 	}
 
 	public async apply({ asset, transaction, stateStore }: ApplyAssetContext<Asset>): Promise<void> {
-	
-
 		const sender = await stateStore.account.get<TokenAccount>(transaction.senderAddress);
 		if (!sender) {
 			throw new Error(
