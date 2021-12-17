@@ -50,10 +50,8 @@ export class TransferAsset extends BaseAsset {
 		this._transferFixHeight = transferFixHeight ?? 0;
 	}
 
-	public validate({ asset, header }: ValidateAssetContext<Asset>): void {
-		const currentHeight = header.height + 1;
-		
-		if (currentHeight > this._transferFixHeight) {
+	public validate({ asset, header }: ValidateAssetContext<Asset>): void {		
+		if (header && (header.height + 1 > this._transferFixHeight)) {
 			if (asset.recipientAddress.length !== 20) {
 				throw new Error(`Invalid recipient address length.`);
 			}
