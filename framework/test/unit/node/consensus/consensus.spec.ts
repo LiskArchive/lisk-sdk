@@ -47,6 +47,7 @@ import * as forkchoice from '../../../../src/node/consensus/fork_choice/fork_cho
 import { postBlockEventSchema } from '../../../../src/node/consensus/schema';
 import { APIContext } from '../../../../src/node/state_machine';
 import { createTransientAPIContext } from '../../../../src/testing';
+import { CommitPool } from '../../../../src/node/consensus/types';
 
 describe('consensus', () => {
 	const genesis = (genesisBlock() as unknown) as Block;
@@ -56,6 +57,7 @@ describe('consensus', () => {
 	let stateMachine: StateMachine;
 	let bftAPI: BFTAPI;
 	let validatorAPI: ValidatorAPI;
+	let commitPool: CommitPool;
 
 	let dbMock: any;
 
@@ -99,6 +101,9 @@ describe('consensus', () => {
 			getValidatorAccount: jest.fn(),
 			getSlotNumber: jest.fn(),
 		} as never;
+		commitPool = {
+			verifyAggregateCommit: jest.fn(),
+		};
 		consensus = new Consensus({
 			chain,
 			network,
@@ -106,6 +111,7 @@ describe('consensus', () => {
 			bftAPI,
 			validatorAPI,
 			genesisConfig: {} as any,
+			commitPool,
 		});
 		dbMock = {
 			get: jest.fn(),
@@ -848,6 +854,42 @@ describe('consensus', () => {
 
 					await expect(
 						consensus['_verifyValidatorsHash'](apiContext, block as any),
+					).resolves.toBeUndefined();
+				});
+			});
+
+			describe('aggregateCommit', () => {
+				it('should throw error when aggregateCommit is undefined', async () => {
+					Object.defineProperty(block.header, `aggregateCommit`, { value: undefined });
+
+					await expect(
+						consensus['_verifyAggregateCommit'](apiContext, block as any),
+					).rejects.toThrow(
+						`Aggregate Commit is "undefined" for the block with id: ${block.header.id.toString(
+							'hex',
+						)}`,
+					);
+				});
+
+				it('should throw error for invalid aggregateCommit', async () => {
+					when(consensus['_commitPool'].verifyAggregateCommit as never)
+						.calledWith(apiContext, block.header.aggregateCommit)
+						.mockResolvedValue(false as never);
+
+					await expect(
+						consensus['_verifyAggregateCommit'](apiContext, block as any),
+					).rejects.toThrow(
+						`Invalid aggregateCommit for the block with id: ${block.header.id.toString('hex')}`,
+					);
+				});
+
+				it('should be success for valid aggregateCommit', async () => {
+					when(consensus['_commitPool'].verifyAggregateCommit as never)
+						.calledWith(apiContext, block.header.aggregateCommit)
+						.mockResolvedValue(true as never);
+
+					await expect(
+						consensus['_verifyAggregateCommit'](apiContext, block as any),
 					).resolves.toBeUndefined();
 				});
 			});

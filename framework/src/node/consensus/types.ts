@@ -15,7 +15,7 @@
 import { BFTParameters } from '../../modules/bft/schemas';
 import { BFTHeights } from '../../modules/bft/types';
 import { ValidatorKeys } from '../../modules/validators/types';
-import { BlockHeader, ImmutableAPIContext } from '../state_machine';
+import { BlockHeader, ImmutableAPIContext, APIContext } from '../state_machine';
 
 export interface BFTHeader {
 	id: Buffer;
@@ -55,4 +55,17 @@ export interface BFTAPI {
 export interface PkSigPair {
 	publicKey: Buffer;
 	signature: Buffer;
+}
+
+export interface AggregateCommit {
+	readonly height: number;
+	readonly aggregationBits: Buffer;
+	readonly certificateSignature: Buffer;
+}
+
+export interface CommitPool {
+	verifyAggregateCommit: (
+		apiContext: APIContext,
+		aggregateCommit: AggregateCommit,
+	) => Promise<boolean>;
 }
