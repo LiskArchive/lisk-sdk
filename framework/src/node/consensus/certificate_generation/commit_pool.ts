@@ -13,9 +13,13 @@
  */
 
 import { BlockHeader, Chain } from '@liskhq/lisk-chain';
+import { dataStructures } from '@liskhq/lisk-utils';
+import { createAggSig } from '@liskhq/lisk-cryptography';
+import { EMPTY_BUFFER } from './constants';
 import { BFTParameterNotFoundError } from '../../../modules/bft/errors';
 import { APIContext } from '../../state_machine/types';
-import { BFTAPI, ValidatorAPI } from '../types';
+import { BFTAPI, PkSigPair, ValidatorAPI } from '../types';
+import { COMMIT_RANGE_STORED } from './constants';
 import {
 	AggregateCommit,
 	Certificate,
@@ -28,6 +32,7 @@ import {
 	verifyAggregateCertificateSignature,
 	getSortedWeightsAndValidatorKeys,
 	signCertificate,
+	verifySingleCertificateSignature,
 } from './utils';
 
 export class CommitPool {
@@ -61,15 +66,102 @@ export class CommitPool {
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async job(): Promise<void> {}
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public addCommit(_commit: SingleCommit, _height: number): void {}
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public validateCommit(_commit: SingleCommit): boolean {
+
+	public addCommit(commit: SingleCommit, height: number): void {
+		const currentCommits = this._nonGossipedCommits.get(height) ?? [];
+		const doesCommitExist = currentCommits.some(aCommit =>
+			aCommit.certificateSignature.equals(commit.certificateSignature),
+		);
+		if (!doesCommitExist) {
+			this._nonGossipedCommits.set(height, [...currentCommits, commit]);
+		}
+	}
+
+	public async validateCommit(apiContext: APIContext, commit: SingleCommit): Promise<boolean> {
+		// Validation step 4
+		const blockHeaderAtCommitHeight = await this._chain.dataAccess.getBlockHeaderByHeight(
+			commit.height,
+		);
+		if (!blockHeaderAtCommitHeight.id.equals(commit.blockID)) {
+			return false;
+		}
+
+		// Validation step 1
+		const existsInNonGossiped = !!this._nonGossipedCommits
+			.get(commit.height)
+			?.some(
+				nonGossipedCommit =>
+					nonGossipedCommit.blockID.equals(commit.blockID) &&
+					nonGossipedCommit.validatorAddress.equals(commit.validatorAddress),
+			);
+
+		const existsInGossiped = !!this._gossipedCommits
+			.get(commit.height)
+			?.some(
+				gossipedCommit =>
+					gossipedCommit.blockID.equals(commit.blockID) &&
+					gossipedCommit.validatorAddress.equals(commit.validatorAddress),
+			);
+
+		const doesCommitExist = existsInGossiped || existsInNonGossiped;
+
+		if (doesCommitExist) {
+			return false;
+		}
+
+		// Validation Step 2
+		const maxRemovalHeight = await this._getMaxRemovalHeight();
+		if (commit.height <= maxRemovalHeight) {
+			return false;
+		}
+
+		// Validation Step 3
+		const { maxHeightPrecommitted } = await this._bftAPI.getBFTHeights(apiContext);
+		const isCommitInRange =
+			commit.height >= maxHeightPrecommitted - COMMIT_RANGE_STORED &&
+			commit.height <= maxHeightPrecommitted;
+		const doesBFTParamExistForNextHeight = await this._bftAPI.existBFTParameters(
+			apiContext,
+			commit.height + 1,
+		);
+		if (!isCommitInRange && !doesBFTParamExistForNextHeight) {
+			return false;
+		}
+
+		// Validation Step 5
+		const { validators } = await this._bftAPI.getBFTParameters(apiContext, commit.height);
+		const isCommitValidatorActive = validators.find(validator =>
+			validator.address.equals(commit.validatorAddress),
+		);
+		if (!isCommitValidatorActive) {
+			throw new Error('Commit validator was not active for its height.');
+		}
+
+		// Validation Step 6
+		const certificate = computeCertificateFromBlockHeader(blockHeaderAtCommitHeight);
+		const { blsKey } = await this._validatorsAPI.getValidatorAccount(
+			apiContext,
+			commit.validatorAddress,
+		);
+		const { networkIdentifier } = this._chain;
+		const isSingleCertificateVerified = verifySingleCertificateSignature(
+			blsKey,
+			commit.certificateSignature,
+			networkIdentifier,
+			certificate,
+		);
+
+		if (!isSingleCertificateVerified) {
+			throw new Error('Certificate signature is not valid.');
+		}
+
 		return true;
 	}
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public getCommitsByHeight(_height: number): SingleCommit[] {
-		return [];
+
+	public getCommitsByHeight(height: number): SingleCommit[] {
+		const nonGossipedCommits = this._nonGossipedCommits.get(height) ?? [];
+		const gossipedCommits = this._gossipedCommits.get(height) ?? [];
+		return [...nonGossipedCommits, ...gossipedCommits];
 	}
 
 	public createSingleCommit(
@@ -168,18 +260,128 @@ export class CommitPool {
 			certificate,
 		);
 	}
-	// TODO: To be updated in the issue https://github.com/LiskHQ/lisk-sdk/issues/6846
-	public getAggregageCommit(): AggregateCommit {
-		const singleCommits = this._selectAggregateCommit();
 
-		return this._aggregateSingleCommits((singleCommits as unknown) as SingleCommit[]);
+	public async getAggregageCommit(apiContext: APIContext): Promise<AggregateCommit> {
+		return this._selectAggregateCommit(apiContext);
 	}
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	private _aggregateSingleCommits(_singleCommits: SingleCommit[]): AggregateCommit {
-		return {} as AggregateCommit;
+
+	public async aggregateSingleCommits(
+		apiContext: APIContext,
+		singleCommits: SingleCommit[],
+	): Promise<AggregateCommit> {
+		if (singleCommits.length === 0) {
+			throw new Error('No single commit found');
+		}
+
+		const { height } = singleCommits[0];
+
+		// assuming this list of validators includes all validators corresponding to each singleCommit.validatorAddress
+		const { validators } = await this._bftAPI.getBFTParameters(apiContext, height);
+		const addressToBlsKey: dataStructures.BufferMap<Buffer> = new dataStructures.BufferMap();
+		const validatorKeys: Buffer[] = [];
+
+		for (const validator of validators) {
+			const validatorAccount = await this._validatorsAPI.getValidatorAccount(
+				apiContext,
+				validator.address,
+			);
+			addressToBlsKey.set(validator.address, validatorAccount.blsKey);
+			validatorKeys.push(validatorAccount.blsKey);
+		}
+
+		const pubKeySignaturePairs: PkSigPair[] = [];
+
+		for (const commit of singleCommits) {
+			const publicKey = addressToBlsKey.get(commit.validatorAddress);
+			if (!publicKey) {
+				throw new Error(
+					`No bls public key entry found for validatorAddress ${commit.validatorAddress.toString(
+						'hex',
+					)}`,
+				);
+			}
+			pubKeySignaturePairs.push({ publicKey, signature: commit.certificateSignature });
+		}
+
+		validatorKeys.sort((blsKeyA, blsKeyB) => blsKeyA.compare(blsKeyB));
+
+		const { aggregationBits, signature: aggregateSignature } = createAggSig(
+			validatorKeys,
+			pubKeySignaturePairs,
+		);
+
+		const aggregateCommit = {
+			height,
+			aggregationBits,
+			certificateSignature: aggregateSignature,
+		};
+
+		return aggregateCommit;
 	}
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	private _selectAggregateCommit(): SingleCommit[] {
-		return [];
+
+	private async _selectAggregateCommit(apiContext: APIContext): Promise<AggregateCommit> {
+		const { maxHeightCertified, maxHeightPrecommitted } = await this._bftAPI.getBFTHeights(
+			apiContext,
+		);
+		let heightNextBFTParameters: number;
+		let nextHeight: number;
+
+		try {
+			heightNextBFTParameters = await this._bftAPI.getNextHeightBFTParameters(
+				apiContext,
+				maxHeightCertified + 1,
+			);
+			nextHeight = Math.min(heightNextBFTParameters - 1, maxHeightPrecommitted);
+		} catch (err) {
+			if (!(err instanceof BFTParameterNotFoundError)) {
+				throw err;
+			}
+			nextHeight = maxHeightPrecommitted;
+		}
+
+		while (nextHeight > maxHeightCertified) {
+			const singleCommits = [
+				...(this._nonGossipedCommits.get(nextHeight) ?? []),
+				...(this._gossipedCommits.get(nextHeight) ?? []),
+			];
+			const nextValidators = singleCommits.map(commit => commit.validatorAddress);
+			let aggregateBFTWeight = BigInt(0);
+
+			// Assume BFT parameters exist for next height
+			const {
+				validators: bftParamValidators,
+				certificateThreshold,
+			} = await this._bftAPI.getBFTParameters(apiContext, nextHeight);
+
+			for (const matchingAddress of nextValidators) {
+				const bftParamsValidatorInfo = bftParamValidators.find(bftParamValidator =>
+					bftParamValidator.address.equals(matchingAddress),
+				);
+				if (!bftParamsValidatorInfo) {
+					throw new Error('Validator address not found in commit pool');
+				}
+
+				aggregateBFTWeight += bftParamsValidatorInfo.bftWeight;
+			}
+
+			if (aggregateBFTWeight >= certificateThreshold) {
+				return this.aggregateSingleCommits(apiContext, singleCommits);
+			}
+
+			nextHeight -= 1;
+		}
+
+		return {
+			height: maxHeightCertified,
+			aggregationBits: EMPTY_BUFFER,
+			certificateSignature: EMPTY_BUFFER,
+		};
+	}
+
+	private async _getMaxRemovalHeight() {
+		const blockHeader = await this._chain.dataAccess.getBlockHeaderByHeight(
+			this._chain.finalizedHeight,
+		);
+		return blockHeader.aggregateCommit.height;
 	}
 }

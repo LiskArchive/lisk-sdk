@@ -121,6 +121,7 @@ export class Consensus {
 			chain: this._chain,
 			logger: this._logger,
 			network: this._network,
+			db: this._db,
 		} as EndpointArgs); // TODO: Remove casting in issue where commitPool is added here
 		const blockExecutor = this._createBlockExecutor();
 		const blockSyncMechanism = new BlockSynchronizationMechanism({
