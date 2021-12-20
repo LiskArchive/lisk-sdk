@@ -82,7 +82,9 @@ describe('Transport', () => {
 				encode: jest.fn().mockReturnValue(encodedBlock),
 			},
 			lastBlock: {
-				height: 0,
+				header: {
+					height: 0,
+				},
 			},
 		};
 		processorStub = {
