@@ -76,7 +76,7 @@ describe('db', () => {
 		await db.close();
 	});
 
-	describe.skip('getContradictingBlockHeader', () => {
+	describe('getContradictingBlockHeader', () => {
 		it('should resolve undefine when there are no blocks by the same generator', async () => {
 			const header = {
 				version: 2,
