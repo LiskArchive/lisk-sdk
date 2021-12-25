@@ -953,7 +953,7 @@ describe('CommitPool', () => {
 			expect(isCommitVerified).toBeTrue();
 		});
 	});
-	describe('getAggregageCommit', () => {
+	describe('getAggregateCommit', () => {
 		it.todo('');
 	});
 	describe('_getMaxRemovalHeight', () => {

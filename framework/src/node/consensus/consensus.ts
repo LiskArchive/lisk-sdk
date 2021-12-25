@@ -45,7 +45,7 @@ import {
 	NETWORK_RPC_GET_LAST_BLOCK,
 } from './constants';
 import { GenesisConfig } from '../../types';
-import { ValidatorAPI, BFTAPI } from './types';
+import { ValidatorAPI, BFTAPI, AggregateCommit } from './types';
 import { APIContext, createAPIContext } from '../state_machine';
 import { forkChoice, ForkStatus } from './fork_choice/fork_choice_rule';
 import { createNewAPIContext } from '../state_machine/api_context';
@@ -312,6 +312,11 @@ export class Consensus {
 		this._stop = true;
 		// Add mutex to wait for the current mutex to finish
 		await this._mutex.acquire();
+	}
+
+	public async getAggregateCommit(apiContext: APIContext): Promise<AggregateCommit> {
+		const aggCommit = await this._commitPool.getAggregateCommit(apiContext);
+		return aggCommit;
 	}
 
 	public isSynced(height: number, maxHeightPrevoted: number): boolean {

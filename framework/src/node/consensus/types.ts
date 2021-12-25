@@ -68,4 +68,5 @@ export interface CommitPool {
 		apiContext: APIContext,
 		aggregateCommit: AggregateCommit,
 	) => Promise<boolean>;
+	getAggregateCommit: (apiContext: APIContext) => Promise<AggregateCommit>;
 }

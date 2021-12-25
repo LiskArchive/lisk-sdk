@@ -50,10 +50,10 @@ export class BlockHeader {
 	public readonly timestamp: number;
 	public readonly maxHeightPrevoted: number;
 	public readonly maxHeightGenerated: number;
-	public readonly aggregateCommit: {
-		readonly height: number;
-		readonly aggregationBits: Buffer;
-		readonly certificateSignature: Buffer;
+	private _aggregateCommit: {
+		height: number;
+		aggregationBits: Buffer;
+		certificateSignature: Buffer;
 	};
 	private _validatorsHash?: Buffer;
 	private _stateRoot?: Buffer;
@@ -85,7 +85,7 @@ export class BlockHeader {
 		this.timestamp = timestamp;
 		this.maxHeightPrevoted = maxHeightPrevoted;
 		this.maxHeightGenerated = maxHeightGenerated;
-		this.aggregateCommit = aggregateCommit;
+		this._aggregateCommit = aggregateCommit;
 		this._validatorsHash = validatorsHash;
 		this._stateRoot = stateRoot;
 		this._transactionRoot = transactionRoot;
@@ -136,6 +136,15 @@ export class BlockHeader {
 
 	public set validatorsHash(val) {
 		this._validatorsHash = val;
+		this._resetComputedValues();
+	}
+
+	public get aggregateCommit() {
+		return this._aggregateCommit;
+	}
+
+	public set aggregateCommit(val) {
+		this._aggregateCommit = val;
 		this._resetComputedValues();
 	}
 
