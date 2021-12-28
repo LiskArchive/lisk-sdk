@@ -15,12 +15,14 @@
 import { BlockHeader, Chain } from '@liskhq/lisk-chain';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { createAggSig } from '@liskhq/lisk-cryptography';
-import { EMPTY_BUFFER } from './constants';
+import { KVStore } from '@liskhq/lisk-db';
+import { codec } from '@liskhq/lisk-codec';
+import { EMPTY_BUFFER, EVENT_COMMIT_MESSAGES, COMMIT_RANGE_STORED } from './constants';
 import { BFTParameterNotFoundError } from '../../../modules/bft/errors';
 import { APIContext } from '../../state_machine/types';
 import { BFTAPI, PkSigPair, ValidatorAPI, AggregateCommit } from '../types';
-import { COMMIT_RANGE_STORED } from './constants';
 import { Certificate, CommitPoolConfig, SingleCommit, ValidatorInfo } from './types';
+
 import {
 	computeCertificateFromBlockHeader,
 	verifyAggregateCertificateSignature,
@@ -28,6 +30,9 @@ import {
 	signCertificate,
 	verifySingleCertificateSignature,
 } from './utils';
+import { Network } from '../../network';
+import { singleCommitSchema, singleCommitsNetworkPacketSchema } from './schema';
+import { createNewAPIContext } from '../../state_machine/api_context';
 
 export class CommitPool {
 	private readonly _nonGossipedCommits: Map<number, SingleCommit[]> = new Map<
@@ -42,24 +47,29 @@ export class CommitPool {
 	private readonly _bftAPI: BFTAPI;
 	private readonly _validatorsAPI: ValidatorAPI;
 	private readonly _chain: Chain;
+	private readonly _network: Network;
+	private readonly _db: KVStore;
+	private readonly _jobIntervalID: NodeJS.Timeout;
 
 	public constructor(config: CommitPoolConfig) {
 		this._blockTime = config.blockTime;
 		this._bftAPI = config.bftAPI;
 		this._validatorsAPI = config.validatorsAPI;
 		this._chain = config.chain;
-		// eslint-disable-next-line no-console
-		console.log(
-			this._nonGossipedCommits.size,
-			this._gossipedCommits.size,
-			this._blockTime,
-			this._bftAPI,
-			this._validatorsAPI,
-		);
+		this._network = config.network;
+		this._db = config.db;
+
+		// Run job every BLOCK_TIME/2 interval
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
+		this._jobIntervalID = setInterval(async () => {
+			const apiContext = createNewAPIContext(this._db);
+			await this._job(apiContext);
+		}, (this._blockTime / 2) * 1000);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public async job(): Promise<void> {}
+	public stop() {
+		clearInterval(this._jobIntervalID);
+	}
 
 	public addCommit(commit: SingleCommit, height: number): void {
 		const currentCommits = this._nonGossipedCommits.get(height) ?? [];
@@ -372,10 +382,140 @@ export class CommitPool {
 		};
 	}
 
+	private async _job(apiContext: APIContext): Promise<void> {
+		const removalHeight = await this._getMaxRemovalHeight();
+		const { maxHeightPrecommitted } = await this._bftAPI.getBFTHeights(apiContext);
+
+		// 1. Clean up nonGossipedCommits
+		for (const height of this._nonGossipedCommits.keys()) {
+			// 1.1 Remove any single commit message m from nonGossipedCommits
+			if (height <= removalHeight) {
+				this._nonGossipedCommits.delete(height);
+				continue;
+			}
+			// 1.2 For every commit message m in nonGossipedCommits or gossipedCommits one of the following two conditions has to hold, otherwise it is discarded
+			const nonGossipedCommits = this._nonGossipedCommits.get(height) as SingleCommit[];
+			for (const singleCommit of nonGossipedCommits) {
+				// Condition #1
+				if (
+					!(
+						maxHeightPrecommitted - COMMIT_RANGE_STORED <= singleCommit.height ||
+						singleCommit.height <= maxHeightPrecommitted
+					)
+				) {
+					this._nonGossipedCommits.delete(singleCommit.height);
+					continue;
+				}
+				// Condition #2
+				const changeOfBFTParams = await this._bftAPI.existBFTParameters(
+					apiContext,
+					singleCommit.height + 1,
+				);
+				if (!changeOfBFTParams) {
+					this._nonGossipedCommits.delete(singleCommit.height);
+				}
+			}
+		}
+
+		// 1. Clean up gossipedCommits
+		for (const height of this._gossipedCommits.keys()) {
+			// 1.1 Remove any single commit message m from nonGossipedCommits
+			if (height <= removalHeight) {
+				this._gossipedCommits.delete(height);
+				continue;
+			}
+
+			// 1.2 For every commit message m in nonGossipedCommits or gossipedCommits one of the following two conditions has to hold, otherwise it is discarded
+			const gossipedCommits = this._gossipedCommits.get(height) as SingleCommit[];
+			for (const singleCommit of gossipedCommits) {
+				// Condition #1
+				if (
+					!(
+						maxHeightPrecommitted - COMMIT_RANGE_STORED < singleCommit.height ||
+						singleCommit.height < maxHeightPrecommitted
+					)
+				) {
+					this._gossipedCommits.delete(singleCommit.height);
+					continue;
+				}
+				// Condition #2
+				const changeOfBFTParams = await this._bftAPI.existBFTParameters(
+					apiContext,
+					singleCommit.height + 1,
+				);
+				if (!changeOfBFTParams) {
+					this._gossipedCommits.delete(singleCommit.height);
+				}
+			}
+		}
+
+		// 2. Select commits to gossip
+		const validators = await this._bftAPI.getCurrentValidators(apiContext);
+		const numActiveValidators = validators.length;
+		// Get a list of commits sorted by ascending order of height
+		const allCommits = this._getAllCommits();
+
+		const selectedCommits = [];
+		for (const commit of allCommits) {
+			if (selectedCommits.length >= numActiveValidators) {
+				break;
+			}
+
+			// 2.1 Choosing the commit with higher height first
+			if (commit.height < maxHeightPrecommitted - COMMIT_RANGE_STORED) {
+				selectedCommits.push(commit);
+			}
+		}
+		// Non gossiped commits with descending order of height
+		const sortedNonGossipedCommits = [...this._nonGossipedCommits.values()]
+			.flat()
+			.sort((a, b) => b.height - a.height);
+		for (const commit of sortedNonGossipedCommits) {
+			if (selectedCommits.length >= numActiveValidators) {
+				break;
+			}
+			// TODO: Get generator info into singleCommit
+			// 2.1 Select newly created commits by generator and newly received commits by others
+			// 2.2 Select newly created commits by generator and newly received commits by others
+			selectedCommits.push(commit);
+			// 4. Move any gossiped commit message included in nonGossipedCommits to gossipedCommits.
+			const commitsAtHeight = this._gossipedCommits.get(commit.height) ?? [];
+			commitsAtHeight.push(commit);
+
+			this._gossipedCommits.set(commit.height, commitsAtHeight);
+			const nonGossipedList = this._nonGossipedCommits.get(commit.height);
+			const index = nonGossipedList?.findIndex(c =>
+				c.certificateSignature.equals(commit.certificateSignature),
+			);
+			nonGossipedList?.splice(index as number, 1);
+			if (nonGossipedList?.length === 0) {
+				this._nonGossipedCommits.delete(commit.height);
+			} else {
+				this._nonGossipedCommits.set(commit.height, nonGossipedList as SingleCommit[]);
+			}
+		}
+
+		const encodedCommitArray = selectedCommits.map(commit =>
+			codec.encode(singleCommitSchema, commit),
+		);
+		// 3. Gossip an array of up to 2*numActiveValidators commit messages to 16 randomly chosen connected peers with at least 8 of them being outgoing peers (same parameters as block propagation)
+		this._network.send({
+			event: EVENT_COMMIT_MESSAGES,
+			data: codec.encode(singleCommitsNetworkPacketSchema, { commits: encodedCommitArray }),
+		});
+	}
+
 	private async _getMaxRemovalHeight() {
 		const blockHeader = await this._chain.dataAccess.getBlockHeaderByHeight(
 			this._chain.finalizedHeight,
 		);
 		return blockHeader.aggregateCommit.height;
+	}
+
+	private _getAllCommits(): SingleCommit[] {
+		// Flattened list of all the single commits from both gossiped and non gossiped list sorted by ascending order of height
+		return [...this._nonGossipedCommits.values(), ...this._gossipedCommits.values()]
+			.flat()
+			.sort((a, b) => a.height - b.height);
 	}
 }

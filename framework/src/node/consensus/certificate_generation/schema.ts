@@ -78,6 +78,21 @@ export const singleCommitSchema = {
 	},
 };
 
+export const singleCommitsNetworkPacketSchema = {
+	$id: 'consensus/singleCommitsNetworkPacket',
+	type: 'object',
+	required: ['commits'],
+	properties: {
+		commits: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				dataType: 'bytes',
+			},
+		},
+	},
+};
+
 export const aggregateCommitSchema = {
 	$id: 'consensus/aggregateCommit',
 	type: 'object',
