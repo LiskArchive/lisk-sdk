@@ -270,7 +270,7 @@ export class Processor {
 		});
 	}
 
-	public validateTransaction(transaction: Transaction): void {
+	public validateTransaction(transaction: Transaction, header: BlockHeader): void {
 		this._chain.validateTransaction(transaction);
 		const customAsset = this._getAsset(transaction);
 		const decodedAsset = codec.decode(customAsset.schema, transaction.asset);
@@ -282,6 +282,7 @@ export class Processor {
 			customAsset.validate({
 				asset: decodedAsset,
 				transaction,
+				header,
 			});
 		}
 	}
@@ -426,7 +427,7 @@ export class Processor {
 			this._chain.validateBlockHeader(block);
 			if (block.payload.length) {
 				for (const transaction of block.payload) {
-					this.validateTransaction(transaction);
+					this.validateTransaction(transaction, block.header);
 				}
 			}
 		} catch (error) {

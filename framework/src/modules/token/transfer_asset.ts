@@ -15,7 +15,7 @@
 import { MAX_TRANSACTION_AMOUNT } from './constants';
 import { TokenAccount, Asset } from './types';
 import { BaseAsset } from '../base_asset';
-import { ApplyAssetContext } from '../../types';
+import { ApplyAssetContext, ValidateAssetContext } from '../../types';
 
 export class TransferAsset extends BaseAsset {
 	public name = 'transfer';
@@ -50,9 +50,8 @@ export class TransferAsset extends BaseAsset {
 		this._transferFixHeight = transferFixHeight ?? 0;
 	}
 
-	public async apply({ asset, transaction, stateStore }: ApplyAssetContext<Asset>): Promise<void> {
-		const currentHeight = stateStore.chain.lastBlockHeaders[0].height + 1;
-		if (currentHeight > this._transferFixHeight) {
+	public validate({ asset, header }: ValidateAssetContext<Asset>): void {
+		if (header.height >= this._transferFixHeight) {
 			if (asset.recipientAddress.length !== 20) {
 				throw new Error(`Invalid recipient address length.`);
 			}
@@ -61,7 +60,9 @@ export class TransferAsset extends BaseAsset {
 				throw new Error(`Invalid data length.`);
 			}
 		}
+	}
 
+	public async apply({ asset, transaction, stateStore }: ApplyAssetContext<Asset>): Promise<void> {
 		const sender = await stateStore.account.get<TokenAccount>(transaction.senderAddress);
 		if (!sender) {
 			throw new Error(

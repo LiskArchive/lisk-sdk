@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { GenesisBlock, Chain, Block, Transaction } from '@liskhq/lisk-chain';
+import { GenesisBlock, Chain, Block, Transaction, BlockHeader } from '@liskhq/lisk-chain';
 import { jobHandlers } from '@liskhq/lisk-utils';
 import { ForkStatus, BFT } from '@liskhq/lisk-bft';
 import { validator } from '@liskhq/lisk-validator';
@@ -821,6 +821,7 @@ describe('processor', () => {
 						senderPublicKey: Buffer.alloc(0),
 						signatures: [],
 					}),
+					defaultLastBlock.header as BlockHeader,
 				),
 			).toThrow('Module id 99 does not exist');
 		});
@@ -837,6 +838,7 @@ describe('processor', () => {
 						senderPublicKey: Buffer.alloc(0),
 						signatures: [],
 					}),
+					defaultLastBlock.header as BlockHeader,
 				),
 			).toThrow('Asset id 99 does not exist in module id 3');
 		});
@@ -856,6 +858,7 @@ describe('processor', () => {
 						senderPublicKey: Buffer.alloc(0),
 						signatures: [],
 					}),
+					defaultLastBlock.header as BlockHeader,
 				),
 			).toThrow('Lisk validator found 1 error');
 		});
@@ -864,11 +867,15 @@ describe('processor', () => {
 			customModule0.transactionAssets[0].validate.mockImplementation(() => {
 				throw new Error('invalid tx');
 			});
-			expect(() => processor.validateTransaction(tx)).toThrow('invalid tx');
+			expect(() =>
+				processor.validateTransaction(tx, defaultLastBlock.header as BlockHeader),
+			).toThrow('invalid tx');
 		});
 
 		it('should not throw transaction is valid', () => {
-			expect(() => processor.validateTransaction(tx)).not.toThrow();
+			expect(() =>
+				processor.validateTransaction(tx, defaultLastBlock.header as BlockHeader),
+			).not.toThrow();
 		});
 	});
 
