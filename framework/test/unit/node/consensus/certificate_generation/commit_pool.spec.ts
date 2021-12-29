@@ -95,6 +95,7 @@ describe('CommitPool', () => {
 			chain,
 			network,
 			db: jest.fn() as any,
+			generatorAddress: getRandomBytes(20),
 		});
 	});
 
@@ -137,6 +138,7 @@ describe('CommitPool', () => {
 				chain,
 				network,
 				db: dbMock as any,
+				generatorAddress: getRandomBytes(20),
 			});
 
 			const staleGossipedCommit = {
@@ -253,6 +255,37 @@ describe('CommitPool', () => {
 			expect([...commitPool['_nonGossipedCommits'].values()].flat()).toHaveLength(0);
 			expect([...commitPool['_gossipedCommits'].values()].flat()).toHaveLength(10);
 			expect(commitPool['_gossipedCommits'].get(1070)).toBeUndefined();
+		});
+
+		it('should select non gossiped commits that are created by the generator of the node', async () => {
+			const generatorAddress = getRandomBytes(20);
+			commitPool['_gossipedCommits'].set(1070, [
+				{
+					blockID: getRandomBytes(32),
+					certificateSignature: getRandomBytes(96),
+					height: 1070,
+					validatorAddress: generatorAddress,
+				},
+			]);
+			// Assert
+			expect([...commitPool['_gossipedCommits'].values()].flat()).toHaveLength(7);
+			// Arrange
+			commitPool['_bftAPI'].existBFTParameters = jest.fn().mockResolvedValue(true);
+			(commitPool['_generatorAddress'] as any) = generatorAddress;
+			const context = createNewAPIContext(new InMemoryKVStore());
+			// Act
+			await commitPool['_job'](context);
+			// Assert
+			// nonGossiped commits are moved to gossiped commits
+			expect([...commitPool['_nonGossipedCommits'].values()].flat()).toHaveLength(0);
+			expect([...commitPool['_gossipedCommits'].values()].flat()).toHaveLength(11);
+			expect(commitPool['_nonGossipedCommits'].get(1070)).toBeUndefined();
+			const commits = commitPool['_gossipedCommits'].get(1070);
+			expect(commits).toBeDefined();
+			expect(commits).toBeArray();
+			const generatorCommit = commits?.find(c => c.validatorAddress.equals(generatorAddress));
+			expect(generatorCommit).toBeDefined();
+			expect(generatorCommit?.validatorAddress).toEqual(generatorAddress);
 		});
 
 		it('should call network send when the job runs', async () => {
@@ -993,6 +1026,7 @@ describe('CommitPool', () => {
 				network,
 				chain,
 				db: jest.fn() as any,
+				generatorAddress: getRandomBytes(20),
 			});
 			context = createTransientAPIContext({});
 			when(validatorsAPI.getValidatorAccount)
@@ -1120,6 +1154,7 @@ describe('CommitPool', () => {
 				network,
 				chain,
 				db: jest.fn() as any,
+				generatorAddress: getRandomBytes(20),
 			});
 			commitPool['_nonGossipedCommits'].set(blockHeader1.height, [singleCommit1]);
 			commitPool['_gossipedCommits'].set(blockHeader2.height, [singleCommit2]);
