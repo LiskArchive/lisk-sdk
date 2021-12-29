@@ -18,15 +18,9 @@ import { createAggSig } from '@liskhq/lisk-cryptography';
 import { EMPTY_BUFFER } from './constants';
 import { BFTParameterNotFoundError } from '../../../modules/bft/errors';
 import { APIContext } from '../../state_machine/types';
-import { BFTAPI, PkSigPair, ValidatorAPI } from '../types';
+import { BFTAPI, PkSigPair, ValidatorAPI, AggregateCommit } from '../types';
 import { COMMIT_RANGE_STORED } from './constants';
-import {
-	AggregateCommit,
-	Certificate,
-	CommitPoolConfig,
-	SingleCommit,
-	ValidatorInfo,
-} from './types';
+import { Certificate, CommitPoolConfig, SingleCommit, ValidatorInfo } from './types';
 import {
 	computeCertificateFromBlockHeader,
 	verifyAggregateCertificateSignature,

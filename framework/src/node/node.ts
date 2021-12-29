@@ -37,6 +37,7 @@ import {
 	APP_EVENT_NETWORK_READY,
 	APP_EVENT_TRANSACTION_NEW,
 } from './events';
+import { CommitPool } from './consensus/types';
 
 const MINIMUM_MODULE_ID = 2;
 
@@ -93,6 +94,7 @@ export class Node {
 			genesisConfig: this._options.genesis,
 			bftAPI: this._bftModule.api,
 			validatorAPI: this._validatorsModule.api,
+			commitPool: {} as CommitPool, // TODO Initialize commit pool
 		});
 		this._generator = new Generator({
 			chain: this._chain,

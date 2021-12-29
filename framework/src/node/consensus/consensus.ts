@@ -49,6 +49,7 @@ import { ValidatorAPI, BFTAPI } from './types';
 import { APIContext, createAPIContext } from '../state_machine';
 import { forkChoice, ForkStatus } from './fork_choice/fork_choice_rule';
 import { createNewAPIContext } from '../state_machine/api_context';
+import { CommitPool } from './types';
 
 interface ConsensusArgs {
 	stateMachine: StateMachine;
@@ -57,6 +58,7 @@ interface ConsensusArgs {
 	genesisConfig: GenesisConfig;
 	bftAPI: BFTAPI;
 	validatorAPI: ValidatorAPI;
+	commitPool: CommitPool;
 }
 
 interface InitArgs {
@@ -93,6 +95,7 @@ export class Consensus {
 	private readonly _validatorAPI: ValidatorAPI;
 	private readonly _bftAPI: BFTAPI;
 	private readonly _genesisConfig: GenesisConfig;
+	private readonly _commitPool: CommitPool;
 
 	// init parameters
 	private _logger!: Logger;
@@ -112,6 +115,7 @@ export class Consensus {
 		this._validatorAPI = args.validatorAPI;
 		this._bftAPI = args.bftAPI;
 		this._genesisConfig = args.genesisConfig;
+		this._commitPool = args.commitPool;
 	}
 
 	public async init(args: InitArgs): Promise<void> {
@@ -513,6 +517,9 @@ export class Consensus {
 		// verify Block signature
 		await this._verifyAssetsSignature(apiContext, block);
 
+		// verify aggregate commits
+		await this._verifyAggregateCommit(apiContext, block);
+
 		// Validate a block
 		block.validate();
 
@@ -634,6 +641,23 @@ export class Consensus {
 				`Invalid signature ${block.header.signature.toString(
 					'hex',
 				)} of the block with id: ${block.header.id.toString('hex')}`,
+			);
+		}
+	}
+
+	private async _verifyAggregateCommit(apiContext: APIContext, block: Block): Promise<void> {
+		if (!block.header.aggregateCommit) {
+			throw new Error(
+				`Aggregate Commit is "undefined" for the block with id: ${block.header.id.toString('hex')}`,
+			);
+		}
+		const isVerified = await this._commitPool.verifyAggregateCommit(
+			apiContext,
+			block.header.aggregateCommit,
+		);
+		if (!isVerified) {
+			throw new Error(
+				`Invalid aggregateCommit for the block with id: ${block.header.id.toString('hex')}`,
 			);
 		}
 	}
