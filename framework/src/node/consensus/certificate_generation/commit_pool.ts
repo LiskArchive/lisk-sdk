@@ -49,6 +49,7 @@ export class CommitPool {
 	private readonly _chain: Chain;
 	private readonly _network: Network;
 	private readonly _db: KVStore;
+	private readonly _generatorAddress: Buffer;
 	private readonly _jobIntervalID: NodeJS.Timeout;
 
 	public constructor(config: CommitPoolConfig) {
@@ -58,6 +59,7 @@ export class CommitPool {
 		this._chain = config.chain;
 		this._network = config.network;
 		this._db = config.db;
+		this._generatorAddress = config.generatorAddress;
 
 		// Run job every BLOCK_TIME/2 interval
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -470,13 +472,33 @@ export class CommitPool {
 		const sortedNonGossipedCommits = [...this._nonGossipedCommits.values()]
 			.flat()
 			.sort((a, b) => b.height - a.height);
+
+		// 2.2 Select newly created commits by generator
+		for (const [index, commit] of sortedNonGossipedCommits.entries()) {
+			if (selectedCommits.length >= numActiveValidators) {
+				break;
+			}
+			if (commit.validatorAddress.equals(this._generatorAddress)) {
+				selectedCommits.push(commit);
+				const nonGossipedList = this._nonGossipedCommits.get(commit.height);
+				const indexInList = nonGossipedList?.findIndex(c =>
+					c.certificateSignature.equals(commit.certificateSignature),
+				);
+				nonGossipedList?.splice(indexInList as number, 1);
+				if (nonGossipedList?.length === 0) {
+					this._nonGossipedCommits.delete(commit.height);
+				} else {
+					this._nonGossipedCommits.set(commit.height, nonGossipedList as SingleCommit[]);
+				}
+				// Remove the commit from the sorted array
+				sortedNonGossipedCommits.splice(index, 1);
+			}
+		}
+		// 2.3 Select newly received commits by others
 		for (const commit of sortedNonGossipedCommits) {
 			if (selectedCommits.length >= numActiveValidators) {
 				break;
 			}
-			// TODO: Get generator info into singleCommit
-			// 2.1 Select newly created commits by generator and newly received commits by others
-			// 2.2 Select newly created commits by generator and newly received commits by others
 			selectedCommits.push(commit);
 			// 4. Move any gossiped commit message included in nonGossipedCommits to gossipedCommits.
 			const commitsAtHeight = this._gossipedCommits.get(commit.height) ?? [];
