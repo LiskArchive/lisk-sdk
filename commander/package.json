@@ -128,7 +128,7 @@
 		"@oclif/test": "1.2.8",
 		"@types/bip39": "3.0.0",
 		"@types/expect": "24.3.0",
-		"@types/fs-extra": "8.1.0",
+		"@types/fs-extra": "9.0.1",
 		"@types/inquirer": "6.5.0",
 		"@types/jest": "26.0.21",
 		"@types/jest-when": "2.7.2",

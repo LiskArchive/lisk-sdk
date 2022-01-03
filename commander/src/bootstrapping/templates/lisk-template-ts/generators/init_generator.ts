@@ -85,6 +85,11 @@ export default class InitGenerator extends Generator {
 	public end(): void {
 		this.log('Generating genesis block and config.');
 		this.spawnCommandSync(`${this.destinationPath('bin/run')}`, [
+			'config:create',
+			'--output',
+			'config/default',
+		]);
+		this.spawnCommandSync(`${this.destinationPath('bin/run')}`, [
 			'genesis-block:create',
 			'--output',
 			'config/default',
@@ -94,11 +99,6 @@ export default class InitGenerator extends Generator {
 			'10000',
 			'--validators-hash-onion-distance',
 			'1000',
-		]);
-		this.spawnCommandSync(`${this.destinationPath('bin/run')}`, [
-			'config:create',
-			'--output',
-			'config/default',
 		]);
 
 		const password = JSON.parse(

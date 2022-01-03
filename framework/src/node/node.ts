@@ -262,6 +262,16 @@ export class Node {
 	}
 
 	public async generateGenesisBlock(input: GenesisBlockGenerateInput): Promise<Block> {
+		for (const mod of this._registeredModules) {
+			const { modules, ...remainingGenesisConfig } = this._options.genesis;
+			if (mod.init) {
+				await mod.init({
+					moduleConfig: this._options.genesis.modules[mod.name],
+					generatorConfig: this._options.generation.modules[mod.name],
+					genesisConfig: remainingGenesisConfig,
+				});
+			}
+		}
 		return this._generator.generateGenesisBlock(input);
 	}
 

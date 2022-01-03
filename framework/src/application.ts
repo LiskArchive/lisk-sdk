@@ -216,7 +216,8 @@ export class Application {
 	}
 
 	public registerPlugin(
-		plugin: BasePlugin,
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		plugin: BasePlugin<any>,
 		options: PluginConfig = { loadAsChildProcess: false },
 	): void {
 		this._controller.registerPlugin(plugin, options);

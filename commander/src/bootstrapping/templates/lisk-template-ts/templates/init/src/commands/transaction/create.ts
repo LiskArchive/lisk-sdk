@@ -15,11 +15,8 @@ export class CreateCommand extends TransactionCreateCommand {
 
 	static args = [...TransactionCreateCommand.args];
 
-	public getApplication(
-		genesisBlock: Record<string, unknown>,
-		config: PartialApplicationConfig,
-	): Application {
-		const app = getApplication(genesisBlock, config);
+	public getApplication(config: PartialApplicationConfig): Application {
+		const app = getApplication(config);
 		return app;
 	}
 }
