@@ -32,7 +32,6 @@ import {
 } from '../../../../../src/node/consensus/certificate_generation/constants';
 import { certificateSchema } from '../../../../../src/node/consensus/certificate_generation/schema';
 import {
-	AggregateCommit,
 	Certificate,
 	SingleCommit,
 } from '../../../../../src/node/consensus/certificate_generation/types';
@@ -42,6 +41,7 @@ import {
 	computeCertificateFromBlockHeader,
 	signCertificate,
 } from '../../../../../src/node/consensus/certificate_generation/utils';
+import { AggregateCommit } from '../../../../../src/node/consensus/types';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	__esModule: true,

@@ -47,9 +47,3 @@ export interface ValidatorInfo {
 	readonly blsPublicKey: Buffer;
 	readonly blsSecretKey: Buffer;
 }
-
-export interface AggregateCommit {
-	readonly height: number;
-	readonly aggregationBits: Buffer;
-	readonly certificateSignature: Buffer;
-}
