@@ -14,7 +14,11 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { getAddressAndPublicKeyFromPassphrase, getPrivateAndPublicKeyFromPassphrase, signDataWithPrivateKey } from '@liskhq/lisk-cryptography';
+import {
+	getAddressAndPublicKeyFromPassphrase,
+	getPrivateAndPublicKeyFromPassphrase,
+	signDataWithPrivateKey,
+} from '@liskhq/lisk-cryptography';
 import {
 	getSigningBytes,
 	signTransaction,
@@ -581,8 +585,14 @@ describe('sign', () => {
 				getSigningBytes(multisigRegAsset, signedTransaction),
 			]);
 
-			const signature = signDataWithPrivateKey(transactionWithNetworkIdentifierBytes, account1.privateKey);
-			const signatureNonSender = signDataWithPrivateKey(transactionWithNetworkIdentifierBytesNonSender, account2.privateKey);
+			const signature = signDataWithPrivateKey(
+				transactionWithNetworkIdentifierBytes,
+				account1.privateKey,
+			);
+			const signatureNonSender = signDataWithPrivateKey(
+				transactionWithNetworkIdentifierBytesNonSender,
+				account2.privateKey,
+			);
 
 			expect((signedTransactionNonSender as any).signatures[0]).toEqual(signature);
 			expect((signedTransactionNonSender as any).signatures[1]).toEqual(signatureNonSender);
@@ -621,7 +631,10 @@ describe('sign', () => {
 				getSigningBytes(validAssetSchema, transactionObject),
 			]);
 
-			const signature = signDataWithPrivateKey(transactionWithNetworkIdentifierBytes, account1.privateKey);
+			const signature = signDataWithPrivateKey(
+				transactionWithNetworkIdentifierBytes,
+				account1.privateKey,
+			);
 
 			// Sign with the mandatory key of the multi-signature account
 			const signedTransactionMandatoryKey = signMultiSignatureTransactionWithPrivateKey(
@@ -637,9 +650,14 @@ describe('sign', () => {
 				getSigningBytes(validAssetSchema, signedTransaction),
 			]);
 
-			const signatureMandatoryAccount = signDataWithPrivateKey(transactionMandatoryKeyWithNetworkIdentifierBytes, account2.privateKey);
+			const signatureMandatoryAccount = signDataWithPrivateKey(
+				transactionMandatoryKeyWithNetworkIdentifierBytes,
+				account2.privateKey,
+			);
 
-			expect((signedTransactionMandatoryKey as any).signatures[0]).toEqual(signatureMandatoryAccount);
+			expect((signedTransactionMandatoryKey as any).signatures[0]).toEqual(
+				signatureMandatoryAccount,
+			);
 			expect((signedTransactionMandatoryKey as any).signatures[1]).toEqual(signature);
 		});
 	});

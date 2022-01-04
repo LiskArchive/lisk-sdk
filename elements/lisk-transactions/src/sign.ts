@@ -264,10 +264,11 @@ export const signMultiSignatureTransactionWithPrivateKey = (
 
 	const signerPublicKey = getPublicKey(privateKey);
 
-	if (includeSenderSignature &&
+	if (
+		includeSenderSignature &&
 		Buffer.isBuffer(transactionObject.senderPublicKey) &&
 		signerPublicKey.equals(transactionObject.senderPublicKey)
-		) {
+	) {
 		// eslint-disable-next-line no-param-reassign
 		transactionObject.signatures[0] = signature;
 	}
