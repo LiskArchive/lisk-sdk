@@ -14,7 +14,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
+import { getAddressAndPublicKeyFromPassphrase, getPrivateAndPublicKeyFromPassphrase, signDataWithPrivateKey } from '@liskhq/lisk-cryptography';
 import {
 	getSigningBytes,
 	signTransaction,
@@ -530,6 +530,117 @@ describe('sign', () => {
 					),
 				).toThrow(),
 			);
+		});
+
+		it('should add sender and mandatory public key signatures in right order for multisignature registration trx', () => {
+			const account1 = getPrivateAndPublicKeyFromPassphrase(passphrase1);
+			const account2 = getPrivateAndPublicKeyFromPassphrase(passphrase2);
+			const account3 = getPrivateAndPublicKeyFromPassphrase(passphrase3);
+			const mandatoryKeys = [account1.publicKey, account2.publicKey];
+			const optionalKeys = [account3.publicKey];
+
+			const multisignatureRegistrationTrx = {
+				moduleID: 4,
+				assetID: 0,
+				nonce: BigInt('1'),
+				fee: BigInt('10000000'),
+				senderPublicKey: account1.publicKey,
+				asset: {
+					mandatoryKeys,
+					optionalKeys,
+					numberOfSignatures: 2,
+				},
+			};
+			const transactionObject = { ...multisignatureRegistrationTrx, signatures: [] };
+
+			// Sign with the senderPublic key sender of the transaction
+			const signedTransaction = signMultiSignatureTransactionWithPrivateKey(
+				multisigRegAsset,
+				transactionObject,
+				networkIdentifier,
+				account1.privateKey,
+				{ mandatoryKeys, optionalKeys },
+				true,
+			);
+			const transactionWithNetworkIdentifierBytes = Buffer.concat([
+				networkIdentifier,
+				getSigningBytes(multisigRegAsset, transactionObject),
+			]);
+
+			// Signing with non sender second mandatory key
+			const signedTransactionNonSender = signMultiSignatureTransactionWithPrivateKey(
+				multisigRegAsset,
+				signedTransaction,
+				networkIdentifier,
+				account2.privateKey,
+				{ mandatoryKeys, optionalKeys },
+				true,
+			);
+			const transactionWithNetworkIdentifierBytesNonSender = Buffer.concat([
+				networkIdentifier,
+				getSigningBytes(multisigRegAsset, signedTransaction),
+			]);
+
+			const signature = signDataWithPrivateKey(transactionWithNetworkIdentifierBytes, account1.privateKey);
+			const signatureNonSender = signDataWithPrivateKey(transactionWithNetworkIdentifierBytesNonSender, account2.privateKey);
+
+			expect((signedTransactionNonSender as any).signatures[0]).toEqual(signature);
+			expect((signedTransactionNonSender as any).signatures[1]).toEqual(signatureNonSender);
+			expect((signedTransactionNonSender as any).signatures[2]).toEqual(signature);
+		});
+
+		it('should match the signatures of the mandatory keys in right order for transfer trx', () => {
+			const account1 = getPrivateAndPublicKeyFromPassphrase(passphrase1);
+			const account2 = getPrivateAndPublicKeyFromPassphrase(passphrase2);
+			// Sender public key of account1
+			const transaction = {
+				moduleID: 2,
+				assetID: 0,
+				nonce: BigInt('1'),
+				fee: BigInt('10000000'),
+				senderPublicKey: account1.publicKey,
+				asset: {
+					recipientAddress: Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex'),
+					amount: BigInt('4008489300000000'),
+					data: '',
+				},
+			};
+
+			const transactionObject = { ...transaction, signatures: [] };
+
+			// Sign with the senderPublic key of the transaction
+			const signedTransaction = signMultiSignatureTransactionWithPrivateKey(
+				validAssetSchema,
+				transactionObject,
+				networkIdentifier,
+				account1.privateKey,
+				{ mandatoryKeys: [account2.publicKey, account1.publicKey], optionalKeys: [] },
+			);
+			const transactionWithNetworkIdentifierBytes = Buffer.concat([
+				networkIdentifier,
+				getSigningBytes(validAssetSchema, transactionObject),
+			]);
+
+			const signature = signDataWithPrivateKey(transactionWithNetworkIdentifierBytes, account1.privateKey);
+
+			// Sign with the mandatory key of the multi-signature account
+			const signedTransactionMandatoryKey = signMultiSignatureTransactionWithPrivateKey(
+				validAssetSchema,
+				signedTransaction,
+				networkIdentifier,
+				account2.privateKey,
+				{ mandatoryKeys: [account2.publicKey, account1.publicKey], optionalKeys: [] },
+			);
+
+			const transactionMandatoryKeyWithNetworkIdentifierBytes = Buffer.concat([
+				networkIdentifier,
+				getSigningBytes(validAssetSchema, signedTransaction),
+			]);
+
+			const signatureMandatoryAccount = signDataWithPrivateKey(transactionMandatoryKeyWithNetworkIdentifierBytes, account2.privateKey);
+
+			expect((signedTransactionMandatoryKey as any).signatures[0]).toEqual(signatureMandatoryAccount);
+			expect((signedTransactionMandatoryKey as any).signatures[1]).toEqual(signature);
 		});
 	});
 
