@@ -43,12 +43,12 @@ pipeline {
 			steps {
 				withCredentials([string(credentialsId: 'npm-lisk-io-auth-token-jenkins', variable: 'REGISTRY_AUTH_TOKEN')]) {
 					sh '''
-					echo 'registry=https://registry.npm.com/\n//registry.npm.com/:_authToken=$REGISTRY_AUTH_TOKEN"' >~/.npmrc
+					echo 'registry=https://npm.lisk.com/\n//npm.lisk.com/:_authToken=$REGISTRY_AUTH_TOKEN"' >~/.npmrc
 					'''
 				}
 				nvm(getNodejsVersion()) {
 					sh '''
-					npx lerna publish from-package --yes
+					npx lerna publish --canary --registry https://npm.lisk.com --yes
 					'''
 				}
 			}
