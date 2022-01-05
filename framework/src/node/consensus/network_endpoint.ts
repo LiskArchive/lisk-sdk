@@ -247,7 +247,7 @@ export class NetworkEndpoint {
 			throw error;
 		}
 
-		this._commitPool.addCommit(decodedData.singleCommit, decodedData.singleCommit.height);
+		this._commitPool.addCommit(decodedData.singleCommit);
 	}
 
 	private _addRateLimit(procedure: string, peerId: string, limit: number): void {

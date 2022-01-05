@@ -33,16 +33,11 @@ import {
 import { Network } from '../../network';
 import { singleCommitSchema, singleCommitsNetworkPacketSchema } from './schema';
 import { createNewAPIContext } from '../../state_machine/api_context';
+import { CommitList, COMMIT_SORT } from './commit_list';
 
 export class CommitPool {
-	private readonly _nonGossipedCommits: Map<number, SingleCommit[]> = new Map<
-		number,
-		SingleCommit[]
-	>();
-	private readonly _gossipedCommits: Map<number, SingleCommit[]> = new Map<
-		number,
-		SingleCommit[]
-	>();
+	private readonly _nonGossipedCommits: CommitList;
+	private readonly _gossipedCommits: CommitList;
 	private readonly _blockTime: number;
 	private readonly _bftAPI: BFTAPI;
 	private readonly _validatorsAPI: ValidatorAPI;
@@ -60,6 +55,8 @@ export class CommitPool {
 		this._network = config.network;
 		this._db = config.db;
 		this._generatorAddress = config.generatorAddress;
+		this._nonGossipedCommits = new CommitList();
+		this._gossipedCommits = new CommitList();
 	}
 
 	public start() {
@@ -75,13 +72,9 @@ export class CommitPool {
 		clearInterval(this._jobIntervalID);
 	}
 
-	public addCommit(commit: SingleCommit, height: number): void {
-		const currentCommits = this._nonGossipedCommits.get(height) ?? [];
-		const doesCommitExist = currentCommits.some(aCommit =>
-			aCommit.certificateSignature.equals(commit.certificateSignature),
-		);
-		if (!doesCommitExist) {
-			this._nonGossipedCommits.set(height, [...currentCommits, commit]);
+	public addCommit(commit: SingleCommit): void {
+		if (!this._nonGossipedCommits.commitExist(commit)) {
+			this._nonGossipedCommits.add(commit);
 		}
 	}
 
@@ -95,21 +88,9 @@ export class CommitPool {
 		}
 
 		// Validation step 1
-		const existsInNonGossiped = !!this._nonGossipedCommits
-			.get(commit.height)
-			?.some(
-				nonGossipedCommit =>
-					nonGossipedCommit.blockID.equals(commit.blockID) &&
-					nonGossipedCommit.validatorAddress.equals(commit.validatorAddress),
-			);
+		const existsInNonGossiped = this._nonGossipedCommits.commitExist(commit);
 
-		const existsInGossiped = !!this._gossipedCommits
-			.get(commit.height)
-			?.some(
-				gossipedCommit =>
-					gossipedCommit.blockID.equals(commit.blockID) &&
-					gossipedCommit.validatorAddress.equals(commit.validatorAddress),
-			);
+		const existsInGossiped = this._gossipedCommits.commitExist(commit);
 
 		const doesCommitExist = existsInGossiped || existsInNonGossiped;
 
@@ -167,8 +148,8 @@ export class CommitPool {
 	}
 
 	public getCommitsByHeight(height: number): SingleCommit[] {
-		const nonGossipedCommits = this._nonGossipedCommits.get(height) ?? [];
-		const gossipedCommits = this._gossipedCommits.get(height) ?? [];
+		const nonGossipedCommits = this._nonGossipedCommits.getByHeight(height) ?? [];
+		const gossipedCommits = this._gossipedCommits.getByHeight(height) ?? [];
 		return [...nonGossipedCommits, ...gossipedCommits];
 	}
 
@@ -349,8 +330,8 @@ export class CommitPool {
 
 		while (nextHeight > maxHeightCertified) {
 			const singleCommits = [
-				...(this._nonGossipedCommits.get(nextHeight) ?? []),
-				...(this._gossipedCommits.get(nextHeight) ?? []),
+				...(this._nonGossipedCommits.getByHeight(nextHeight) ?? []),
+				...(this._gossipedCommits.getByHeight(nextHeight) ?? []),
 			];
 			const nextValidators = singleCommits.map(commit => commit.validatorAddress);
 			let aggregateBFTWeight = BigInt(0);
@@ -398,7 +379,7 @@ export class CommitPool {
 			maxHeightPrecommitted,
 		);
 		for (const height of deletedNonGossipedHeights) {
-			this._nonGossipedCommits.delete(height);
+			this._nonGossipedCommits.deleteCommitsByHeight(height);
 		}
 		// Clean up gossipedCommits
 		const deletedGossipedHeights = await this._getDeleteHeights(
@@ -408,17 +389,17 @@ export class CommitPool {
 			maxHeightPrecommitted,
 		);
 		for (const height of deletedGossipedHeights) {
-			this._gossipedCommits.delete(height);
+			this._gossipedCommits.deleteCommitsByHeight(height);
 		}
 		// 2. Select commits to gossip
 		const validators = await this._bftAPI.getCurrentValidators(apiContext);
-		const numActiveValidators = validators.length;
+		const maxSelectedCommitsLength = 2 * validators.length;
 		// Get a list of commits sorted by ascending order of height
 		const allCommits = this._getAllCommits();
 
 		const selectedCommits = [];
 		for (const commit of allCommits) {
-			if (selectedCommits.length >= numActiveValidators) {
+			if (selectedCommits.length >= maxSelectedCommitsLength) {
 				break;
 			}
 
@@ -428,84 +409,61 @@ export class CommitPool {
 			}
 		}
 		// Non gossiped commits with descending order of height
-		const sortedNonGossipedCommits = [...this._nonGossipedCommits.values()]
-			.flat()
-			.sort((a, b) => b.height - a.height);
+		const sortedNonGossipedCommits = this._nonGossipedCommits.getAllCommits(COMMIT_SORT.DSC);
 
 		// 2.2 Select newly created commits by generator
 		for (const [index, commit] of sortedNonGossipedCommits.entries()) {
-			if (selectedCommits.length >= numActiveValidators) {
+			if (selectedCommits.length >= maxSelectedCommitsLength) {
 				break;
 			}
 			if (commit.validatorAddress.equals(this._generatorAddress)) {
 				selectedCommits.push(commit);
-				const nonGossipedList = this._nonGossipedCommits.get(commit.height);
-				const indexInList = nonGossipedList?.findIndex(c =>
-					c.certificateSignature.equals(commit.certificateSignature),
-				);
-				nonGossipedList?.splice(indexInList as number, 1);
-				if (nonGossipedList?.length === 0) {
-					this._nonGossipedCommits.delete(commit.height);
-				} else {
-					this._nonGossipedCommits.set(commit.height, nonGossipedList as SingleCommit[]);
-				}
-				// Remove the commit from the sorted array
 				sortedNonGossipedCommits.splice(index, 1);
 			}
 		}
 		// 2.3 Select newly received commits by others
 		for (const commit of sortedNonGossipedCommits) {
-			if (selectedCommits.length >= numActiveValidators) {
+			if (selectedCommits.length >= maxSelectedCommitsLength) {
 				break;
 			}
 			selectedCommits.push(commit);
-			// 4. Move any gossiped commit message included in nonGossipedCommits to gossipedCommits.
-			const commitsAtHeight = this._gossipedCommits.get(commit.height) ?? [];
-			commitsAtHeight.push(commit);
-
-			this._gossipedCommits.set(commit.height, commitsAtHeight);
-			const nonGossipedList = this._nonGossipedCommits.get(commit.height);
-			const index = nonGossipedList?.findIndex(c =>
-				c.certificateSignature.equals(commit.certificateSignature),
-			);
-			nonGossipedList?.splice(index as number, 1);
-			if (nonGossipedList?.length === 0) {
-				this._nonGossipedCommits.delete(commit.height);
-			} else {
-				this._nonGossipedCommits.set(commit.height, nonGossipedList as SingleCommit[]);
-			}
 		}
 
 		const encodedCommitArray = selectedCommits.map(commit =>
 			codec.encode(singleCommitSchema, commit),
-		);
+			);
 		// 3. Gossip an array of up to 2*numActiveValidators commit messages to 16 randomly chosen connected peers with at least 8 of them being outgoing peers (same parameters as block propagation)
 		this._network.send({
 			event: NETWORK_EVENT_COMMIT_MESSAGES,
 			data: codec.encode(singleCommitsNetworkPacketSchema, { commits: encodedCommitArray }),
 		});
+		// 4. Move any gossiped commit message included in nonGossipedCommits to gossipedCommits.
+		for (const commit of selectedCommits) {
+			this._gossipedCommits.add(commit);
+			this._nonGossipedCommits.deleteSingleCommit(commit);
+		}
 	}
 
 	private async _getDeleteHeights(
 		apiContext: APIContext,
-		commitMap: Map<number, SingleCommit[]>,
+		commitMap: CommitList,
 		removalHeight: number,
 		maxHeightPrecommitted: number,
 	): Promise<number[]> {
 		const deleteHeights = [];
-		for (const height of commitMap.keys()) {
+		for (const height of commitMap.getHeights()) {
 			// 1. Remove any single commit message m from nonGossipedCommits
 			if (height <= removalHeight) {
 				deleteHeights.push(height);
 				continue;
 			}
 			// 2. For every commit message m in nonGossipedCommits or gossipedCommits one of the following two conditions has to hold, otherwise it is discarded
-			const nonGossipedCommits = commitMap.get(height) as SingleCommit[];
+			const nonGossipedCommits = commitMap.getByHeight(height) as SingleCommit[];
 			for (const singleCommit of nonGossipedCommits) {
 				// Condition #1
 				if (
-					!(
-						maxHeightPrecommitted - COMMIT_RANGE_STORED <= singleCommit.height ||
+					(
+						maxHeightPrecommitted - COMMIT_RANGE_STORED <= singleCommit.height &&
 						singleCommit.height <= maxHeightPrecommitted
 					)
 				) {
@@ -516,7 +474,7 @@ export class CommitPool {
 					apiContext,
 					singleCommit.height + 1,
 				);
-				if (!changeOfBFTParams) {
+				if (changeOfBFTParams) {
 					continue;
 				}
 
@@ -534,10 +492,8 @@ export class CommitPool {
 		return blockHeader.aggregateCommit.height;
 	}
 
-	private _getAllCommits(): SingleCommit[] {
+	private _getAllCommits(ascendingHeight = COMMIT_SORT.ASC): SingleCommit[] {
 		// Flattened list of all the single commits from both gossiped and non gossiped list sorted by ascending order of height
-		return [...this._nonGossipedCommits.values(), ...this._gossipedCommits.values()]
-			.flat()
-			.sort((a, b) => a.height - b.height);
+		return [...this._nonGossipedCommits.getAllCommits(ascendingHeight), ...this._gossipedCommits.getAllCommits(ascendingHeight)];
 	}
 }

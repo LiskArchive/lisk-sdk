@@ -29,8 +29,9 @@ import { CommitPool } from '../../../../../src/node/consensus/certificate_genera
 import {
 	COMMIT_RANGE_STORED,
 	MESSAGE_TAG_CERTIFICATE,
+	NETWORK_EVENT_COMMIT_MESSAGES,
 } from '../../../../../src/node/consensus/certificate_generation/constants';
-import { certificateSchema } from '../../../../../src/node/consensus/certificate_generation/schema';
+import { certificateSchema, singleCommitSchema, singleCommitsNetworkPacketSchema } from '../../../../../src/node/consensus/certificate_generation/schema';
 import {
 	Certificate,
 	SingleCommit,
@@ -43,6 +44,7 @@ import {
 } from '../../../../../src/node/consensus/certificate_generation/utils';
 import { AggregateCommit } from '../../../../../src/node/consensus/types';
 import { createNewAPIContext } from '../../../../../src/node/state_machine/api_context';
+import { COMMIT_SORT } from '../../../../../src/node/consensus/certificate_generation/commit_list';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	__esModule: true,
@@ -112,6 +114,20 @@ describe('CommitPool', () => {
 		const height = 1020;
 		const maxHeightCertified = 950;
 		const maxHeightPrecommitted = 1000;
+		const numActiveValidators = 103;
+		const staleGossipedCommit = {
+			blockID,
+			certificateSignature: getRandomBytes(96),
+			height: maxHeightCertified - 1,
+			validatorAddress: getRandomBytes(20),
+		};
+
+		const staleNonGossipedCommit = {
+			blockID,
+			certificateSignature: getRandomBytes(96),
+			height: maxHeightCertified - 1,
+			validatorAddress: getRandomBytes(20),
+		};
 
 		let nonGossipedCommits: SingleCommit[];
 		let gossipedCommits: SingleCommit[];
@@ -141,26 +157,12 @@ describe('CommitPool', () => {
 				generatorAddress: getRandomBytes(20),
 			});
 
-			const staleGossipedCommit = {
-				blockID,
-				certificateSignature: getRandomBytes(96),
-				height: maxHeightCertified - 1,
-				validatorAddress: getRandomBytes(20),
-			};
-
-			const staleNonGossipedCommit = {
-				blockID,
-				certificateSignature: getRandomBytes(96),
-				height: maxHeightCertified - 1,
-				validatorAddress: getRandomBytes(20),
-			};
-
-			commitPool['_gossipedCommits'].set(height, gossipedCommits);
-			commitPool['_gossipedCommits'].set(staleGossipedCommit.height, [staleGossipedCommit]);
-			commitPool['_nonGossipedCommits'].set(height, nonGossipedCommits);
-			commitPool['_nonGossipedCommits'].set(staleNonGossipedCommit.height, [
-				staleNonGossipedCommit,
-			]);
+			gossipedCommits.forEach(commit => commitPool['_gossipedCommits'].add(commit));
+			commitPool['_gossipedCommits'].add(staleGossipedCommit);
+			// commitPool['_gossipedCommits'].set(staleGossipedCommit.height, [staleGossipedCommit]);
+			nonGossipedCommits.forEach(commit => commitPool['_nonGossipedCommits'].add(commit));
+			// commitPool['_nonGossipedCommits'].set(height, nonGossipedCommits);
+			commitPool['_nonGossipedCommits'].add(staleNonGossipedCommit);
 			(commitPool['_chain'] as any).finalizedHeight = maxHeightCertified;
 
 			when(commitPool['_chain'].dataAccess.getBlockHeaderByHeight as any)
@@ -170,12 +172,12 @@ describe('CommitPool', () => {
 			commitPool['_bftAPI'].getBFTHeights = jest.fn().mockResolvedValue({ maxHeightPrecommitted });
 			commitPool['_bftAPI'].getCurrentValidators = jest
 				.fn()
-				.mockResolvedValue(Array.from({ length: 103 }, () => getRandomBytes(32)));
+				.mockResolvedValue(Array.from({ length: numActiveValidators }, () => getRandomBytes(32)));
 		});
 
 		it('should clean all the commits from nonGossipedCommit list with height below removal height', async () => {
 			// Assert
-			expect([...commitPool['_nonGossipedCommits'].values()].flat()).toHaveLength(6);
+			expect(commitPool['_nonGossipedCommits'].getAllCommits()).toHaveLength(6);
 			// Arrange
 			commitPool['_bftAPI'].existBFTParameters = jest.fn().mockResolvedValue(true);
 			const context = createNewAPIContext(new InMemoryKVStore());
@@ -183,12 +185,12 @@ describe('CommitPool', () => {
 			await commitPool['_job'](context);
 			// Assert
 			// nonGossiped commits are moved to gossiped commits and stale commit is deleted
-			expect([...commitPool['_nonGossipedCommits'].values()].flat()).toHaveLength(0);
+			expect(commitPool['_nonGossipedCommits'].getAllCommits()).toHaveLength(0);
 		});
 
-		it('should clean all the commits from gossipedCommit list with height below removal height', async () => {
+		it('should move/delete commits in gossipedCommit list with height below removal height', async () => {
 			// Assert
-			expect([...commitPool['_gossipedCommits'].values()].flat()).toHaveLength(6);
+			expect(commitPool['_gossipedCommits'].getAllCommits()).toHaveLength(6);
 			// Arrange
 			commitPool['_bftAPI'].existBFTParameters = jest.fn().mockResolvedValue(true);
 			const context = createNewAPIContext(new InMemoryKVStore());
@@ -196,20 +198,26 @@ describe('CommitPool', () => {
 			await commitPool['_job'](context);
 			// Assert
 			// nonGossiped commits are moved to gossiped commits
-			expect([...commitPool['_gossipedCommits'].values()].flat()).toHaveLength(10);
+			expect(commitPool['_gossipedCommits'].getAllCommits()).toHaveLength(10);
+			// Should delete stale commit from gossipedList
+			expect(commitPool['_gossipedCommits'].commitExist(staleGossipedCommit));
 		});
 
 		it('should clean all the commits from nonGossipedCommit that does not have bftParams change', async () => {
-			commitPool['_nonGossipedCommits'].set(1070, [
-				{
+			commitPool['_nonGossipedCommits'].add({
 					blockID: getRandomBytes(32),
 					certificateSignature: getRandomBytes(96),
 					height: 1070,
 					validatorAddress: getRandomBytes(20),
-				},
-			]);
+				});
+			commitPool['_gossipedCommits'].add({
+				blockID: getRandomBytes(32),
+				certificateSignature: getRandomBytes(96),
+				height: 1070,
+				validatorAddress: getRandomBytes(20),
+			});
 			// Assert
-			expect([...commitPool['_nonGossipedCommits'].values()].flat()).toHaveLength(7);
+			expect(commitPool['_nonGossipedCommits'].getAllCommits()).toHaveLength(7);
 			// Arrange
 			const bftParamsMock = jest.fn();
 			commitPool['_bftAPI'].existBFTParameters = bftParamsMock;
@@ -223,52 +231,22 @@ describe('CommitPool', () => {
 			await commitPool['_job'](context);
 			// Assert
 			// nonGossiped commits are moved to gossiped commits
-			expect([...commitPool['_nonGossipedCommits'].values()].flat()).toHaveLength(0);
-			expect([...commitPool['_gossipedCommits'].values()].flat()).toHaveLength(10);
-			expect(commitPool['_nonGossipedCommits'].get(1070)).toBeUndefined();
-		});
-
-		it('should clean all the commits from gossipedCommit that does not have bftParams change', async () => {
-			commitPool['_gossipedCommits'].set(1070, [
-				{
-					blockID: getRandomBytes(32),
-					certificateSignature: getRandomBytes(96),
-					height: 1070,
-					validatorAddress: getRandomBytes(20),
-				},
-			]);
-			// Assert
-			expect([...commitPool['_gossipedCommits'].values()].flat()).toHaveLength(7);
-			// Arrange
-			const bftParamsMock = jest.fn();
-			commitPool['_bftAPI'].existBFTParameters = bftParamsMock;
-			const context = createNewAPIContext(new InMemoryKVStore());
-			when(bftParamsMock).calledWith(context, 1071).mockResolvedValue(false);
-			when(bftParamsMock).calledWith(context, maxHeightCertified).mockResolvedValue(true);
-			when(bftParamsMock)
-				.calledWith(context, height + 1)
-				.mockResolvedValue(true);
-			// Act
-			await commitPool['_job'](context);
-			// Assert
-			// nonGossiped commits are moved to gossiped commits
-			expect([...commitPool['_nonGossipedCommits'].values()].flat()).toHaveLength(0);
-			expect([...commitPool['_gossipedCommits'].values()].flat()).toHaveLength(10);
-			expect(commitPool['_gossipedCommits'].get(1070)).toBeUndefined();
+			expect(commitPool['_nonGossipedCommits'].getAllCommits()).toHaveLength(0);
+			expect(commitPool['_gossipedCommits'].getAllCommits()).toHaveLength(10);
+			expect(commitPool['_nonGossipedCommits'].getByHeight(1070)).toBeUndefined();
+			expect(commitPool['_gossipedCommits'].getByHeight(1070)).toBeUndefined();
 		});
 
 		it('should select non gossiped commits that are created by the generator of the node', async () => {
 			const generatorAddress = getRandomBytes(20);
-			commitPool['_gossipedCommits'].set(1070, [
-				{
+			commitPool['_nonGossipedCommits'].add({
 					blockID: getRandomBytes(32),
 					certificateSignature: getRandomBytes(96),
 					height: 1070,
 					validatorAddress: generatorAddress,
-				},
-			]);
+				});
 			// Assert
-			expect([...commitPool['_gossipedCommits'].values()].flat()).toHaveLength(7);
+			expect(commitPool['_gossipedCommits'].getAllCommits()).toHaveLength(6);
 			// Arrange
 			commitPool['_bftAPI'].existBFTParameters = jest.fn().mockResolvedValue(true);
 			(commitPool['_generatorAddress'] as any) = generatorAddress;
@@ -277,15 +255,91 @@ describe('CommitPool', () => {
 			await commitPool['_job'](context);
 			// Assert
 			// nonGossiped commits are moved to gossiped commits
-			expect([...commitPool['_nonGossipedCommits'].values()].flat()).toHaveLength(0);
-			expect([...commitPool['_gossipedCommits'].values()].flat()).toHaveLength(11);
-			expect(commitPool['_nonGossipedCommits'].get(1070)).toBeUndefined();
-			const commits = commitPool['_gossipedCommits'].get(1070);
+			expect(commitPool['_nonGossipedCommits'].getAllCommits()).toHaveLength(0);
+			expect(commitPool['_gossipedCommits'].getAllCommits()).toHaveLength(11);
+			expect(commitPool['_nonGossipedCommits'].getByHeight(1070)).toBeUndefined();
+			const commits = commitPool['_gossipedCommits'].getByHeight(1070);
 			expect(commits).toBeDefined();
 			expect(commits).toBeArray();
 			const generatorCommit = commits?.find(c => c.validatorAddress.equals(generatorAddress));
 			expect(generatorCommit).toBeDefined();
 			expect(generatorCommit?.validatorAddress).toEqual(generatorAddress);
+		});
+
+		it('should not have selected commits length more than 2 * numActiveValidators', async () => {
+			const maxHeightPrecommittedTest = 1090;
+			const commitHeight = 980
+			const getSelectedCommits = (cp: CommitPool) => {
+				const selectedCommits = [];
+				const maxSelectedCommitsLength = 2 * numActiveValidators;
+				const commits = cp['_getAllCommits']();
+
+				for (const commit of commits) {
+					if (selectedCommits.length >= maxSelectedCommitsLength) {
+						break;
+					}
+					// 2.1 Choosing the commit with smaller height first
+					if (commit.height < maxHeightPrecommittedTest - COMMIT_RANGE_STORED) {
+						selectedCommits.push(commit);
+					}
+				}
+
+				const sortedNonGossipedCommits = cp['_nonGossipedCommits'].getAllCommits(COMMIT_SORT.DSC);
+
+				for (const [index, commit] of sortedNonGossipedCommits.entries()) {
+					if (selectedCommits.length >= maxSelectedCommitsLength) {
+						break;
+					}
+					if (commit.validatorAddress.equals(cp['_generatorAddress'])) {
+						selectedCommits.push(commit);
+						sortedNonGossipedCommits.splice(index, 1);
+					}
+				}
+				// 2.3 Select newly received commits by others
+				for (const commit of sortedNonGossipedCommits) {
+					if (selectedCommits.length >= maxSelectedCommitsLength) {
+						break;
+					}
+					selectedCommits.push(commit);
+				}
+
+				return selectedCommits.map(commit =>
+					codec.encode(singleCommitSchema, commit),
+					);
+			}
+			commitPool['_nonGossipedCommits'].getAllCommits().forEach(c => commitPool['_nonGossipedCommits'].deleteSingleCommit(c));
+			commitPool['_gossipedCommits'].getAllCommits().forEach(c => commitPool['_gossipedCommits'].deleteSingleCommit(c));
+
+			Array.from({ length: 105 }, () => ({
+				blockID,
+				certificateSignature: getRandomBytes(96),
+				height: commitHeight,
+				validatorAddress: getRandomBytes(20),
+			})).forEach(c => commitPool['_nonGossipedCommits'].add(c));
+
+			Array.from({ length: 105 }, () => ({
+				blockID,
+				certificateSignature: getRandomBytes(96),
+				height: commitHeight,
+				validatorAddress: getRandomBytes(20),
+			})).forEach(c => commitPool['_gossipedCommits'].add(c));
+
+			expect(commitPool['_nonGossipedCommits'].getAllCommits()).toHaveLength(105);
+			expect(commitPool['_gossipedCommits'].getAllCommits()).toHaveLength(105);
+
+			// Arrange
+			commitPool['_bftAPI'].existBFTParameters = jest.fn().mockResolvedValue(true);
+			commitPool['_bftAPI'].getBFTHeights = jest.fn().mockResolvedValue({ maxHeightPrecommitted: maxHeightPrecommittedTest });
+			const context = createNewAPIContext(new InMemoryKVStore());
+			const selectedCommitsToGossip = getSelectedCommits(commitPool);
+			// Act
+			await commitPool['_job'](context);
+			// Assert
+			expect(selectedCommitsToGossip).toHaveLength(2 * numActiveValidators);
+			expect(networkMock.send).toHaveBeenCalledWith({
+				event: NETWORK_EVENT_COMMIT_MESSAGES,
+				data: codec.encode(singleCommitsNetworkPacketSchema, { commits: selectedCommitsToGossip }),
+			});
 		});
 
 		it('should call network send when the job runs', async () => {
@@ -314,8 +368,8 @@ describe('CommitPool', () => {
 				validatorAddress: getRandomBytes(20),
 			}));
 
-			// We add commits by .set() method because properties are readonly
-			commitPool['_nonGossipedCommits'].set(nonGossipedCommits[0].height, [nonGossipedCommits[0]]);
+			// We add commits by .add() method because properties are readonly
+			commitPool['_nonGossipedCommits'].add(nonGossipedCommits[0]);
 		});
 
 		it('should add commit successfully', () => {
@@ -325,9 +379,9 @@ describe('CommitPool', () => {
 				validatorAddress: getRandomBytes(20),
 			};
 
-			commitPool.addCommit(newCommit, height);
+			commitPool.addCommit(newCommit);
 
-			expect(commitPool['_nonGossipedCommits'].get(height)).toEqual([
+			expect(commitPool['_nonGossipedCommits'].getByHeight(height)).toEqual([
 				nonGossipedCommits[0],
 				newCommit,
 			]);
@@ -337,10 +391,10 @@ describe('CommitPool', () => {
 			const newCommit: SingleCommit = {
 				...nonGossipedCommits[0],
 			};
-			jest.spyOn(commitPool['_nonGossipedCommits'], 'set');
-			commitPool.addCommit(newCommit, height);
+			jest.spyOn(commitPool['_nonGossipedCommits'], 'add');
+			commitPool.addCommit(newCommit);
 
-			expect(commitPool['_nonGossipedCommits'].set).toHaveBeenCalledTimes(0);
+			expect(commitPool['_nonGossipedCommits'].add).toHaveBeenCalledTimes(0);
 		});
 
 		it('should add commit successfully for a non-existent height', () => {
@@ -352,9 +406,9 @@ describe('CommitPool', () => {
 				validatorAddress: getRandomBytes(20),
 			};
 
-			commitPool.addCommit(newCommit, height);
+			commitPool.addCommit(newCommit);
 
-			expect(commitPool['_nonGossipedCommits'].get(height)).toEqual([newCommit]);
+			expect(commitPool['_nonGossipedCommits'].getByHeight(height)).toEqual([newCommit]);
 		});
 	});
 	describe('validateCommit', () => {
@@ -460,7 +514,7 @@ describe('CommitPool', () => {
 		});
 
 		it('should return false when single commit exists in gossiped commits but not in non-gossipped commits', async () => {
-			commitPool['_gossipedCommits'].set(commit.height, [commit]);
+			commitPool['_gossipedCommits'].add(commit);
 
 			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
 
@@ -468,7 +522,7 @@ describe('CommitPool', () => {
 		});
 
 		it('should return false when single commit exists in non-gossiped commits but not in gossipped commits', async () => {
-			commitPool['_nonGossipedCommits'].set(commit.height, [commit]);
+			commitPool['_nonGossipedCommits'].add(commit);
 
 			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
 
@@ -612,8 +666,8 @@ describe('CommitPool', () => {
 			}));
 
 			// We add commits by .set() method because properties are readonly
-			commitPool['_nonGossipedCommits'].set(nonGossipedCommits[0].height, [nonGossipedCommits[0]]);
-			commitPool['_gossipedCommits'].set(gossipedCommits[0].height, [gossipedCommits[0]]);
+			commitPool['_nonGossipedCommits'].add(nonGossipedCommits[0]);
+			commitPool['_gossipedCommits'].add(gossipedCommits[0]);
 		});
 
 		it('should get commits by height successfully', () => {
@@ -636,7 +690,7 @@ describe('CommitPool', () => {
 				height,
 				validatorAddress: getRandomBytes(20),
 			}));
-			commitPool['_gossipedCommits'].set(gossipedCommits[0].height, [gossipedCommits[0]]);
+			commitPool['_gossipedCommits'].add(gossipedCommits[0]);
 
 			const commitsByHeight = commitPool.getCommitsByHeight(height);
 
@@ -651,7 +705,7 @@ describe('CommitPool', () => {
 				height,
 				validatorAddress: getRandomBytes(20),
 			}));
-			commitPool['_nonGossipedCommits'].set(nonGossipedCommits[0].height, [nonGossipedCommits[0]]);
+			commitPool['_nonGossipedCommits'].add(nonGossipedCommits[0]);
 
 			const commitsByHeight = commitPool.getCommitsByHeight(height);
 
@@ -1156,8 +1210,8 @@ describe('CommitPool', () => {
 				db: jest.fn() as any,
 				generatorAddress: getRandomBytes(20),
 			});
-			commitPool['_nonGossipedCommits'].set(blockHeader1.height, [singleCommit1]);
-			commitPool['_gossipedCommits'].set(blockHeader2.height, [singleCommit2]);
+			commitPool['_nonGossipedCommits'].add(singleCommit1);
+			commitPool['_gossipedCommits'].add(singleCommit2);
 			commitPool['aggregateSingleCommits'] = jest.fn();
 			apiContext = createTransientAPIContext({});
 
