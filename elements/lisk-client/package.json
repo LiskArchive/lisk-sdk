@@ -52,8 +52,7 @@
 		"build:browser": "npm run build:node && npm run browserify && npm run uglify",
 		"prebuild": "npm run prebuild:browser",
 		"build": "npm run build:browser",
-		"build:check": "node -e \"require('./dist-node')\"",
-		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
+		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
 		"@liskhq/lisk-api-client": "^5.1.4",

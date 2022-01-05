@@ -33,8 +33,7 @@
 		"build": "tsc",
 		"test:unit": "jest --config=./test/unit/jest.config.js --coverage=true --coverage-reporters=json --verbose",
 		"test:functional": "jest --config=./test/functional/jest.config.js --runInBand",
-		"build:check": "node -e \"require('./dist-node')\"",
-		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
+		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
 		"@liskhq/lisk-chain": "^0.3.3",
