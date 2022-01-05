@@ -11,11 +11,8 @@ pipeline {
 					npm i -g yarn
 					yarn
 					yarn build
-					# needed by one of the "Functional HTTP GET tests"
-					git rev-parse HEAD > framework/REVISION
 					'''
 				}
-				stash name: 'build'
 			}
 		}
 		stage('Lint') {
@@ -46,12 +43,12 @@ pipeline {
 			steps {
 				withCredentials([string(credentialsId: 'npm-lisk-io-auth-token-jenkins', variable: 'REGISTRY_AUTH_TOKEN')]) {
 					sh '''
-					echo 'registry=https://npm.lisk.io/\n//npm.lisk.io/:_authToken=$REGISTRY_AUTH_TOKEN"' >~/.npmrc
+					echo 'registry=https://npm.lisk.com/\n//npm.lisk.com/:_authToken=$REGISTRY_AUTH_TOKEN"' >~/.npmrc
 					'''
 				}
 				nvm(getNodejsVersion()) {
 					sh '''
-					npx lerna publish --canary --registry https://npm.lisk.io
+					npx lerna publish --canary --registry https://npm.lisk.com --yes
 					'''
 				}
 			}
