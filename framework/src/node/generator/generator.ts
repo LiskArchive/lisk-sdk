@@ -26,6 +26,7 @@ import {
 	decryptPassphraseWithPassword,
 	getAddressFromPublicKey,
 	getPrivateAndPublicKeyFromPassphrase,
+	getPublicKeyFromPrivateKey,
 	parseEncryptedPassphrase,
 } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
@@ -73,6 +74,7 @@ import {
 } from './types';
 import { createAPIContext, createNewAPIContext } from '../state_machine/api_context';
 import { getOrDefaultLastGeneratedInfo, setLastGeneratedInfo } from './generated_info';
+import { CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED } from '../consensus/constants';
 
 interface GeneratorArgs {
 	genesisConfig: GenesisConfig;
@@ -242,6 +244,37 @@ export class Generator {
 				),
 			);
 		});
+
+		this._consensus.events.on(
+			CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED,
+			// eslint-disable-next-line @typescript-eslint/no-misused-promises
+			async ({ from, to }: { from: number; to: number }) => {
+				for (const [address, _] of this._keypairs.entries()) {
+					for (let height = from + 1; height < to + 1; height += 1) {
+						const blockHeader = await this._chain.dataAccess.getBlockHeaderByHeight(height);
+						const blsSecretKey = this._endpoint.blsKeys.get(address);
+
+						if (!blsSecretKey) {
+							throw new Error(
+								`Generator BLS Secret Key is not set for the address ${address.toString()}`,
+							);
+						}
+
+						const validatorInfo = {
+							address,
+							blsPublicKey: getPublicKeyFromPrivateKey(blsSecretKey),
+							blsSecretKey,
+						};
+
+						const singleCommit = this._consensus.commitPool.createSingleCommit(
+							blockHeader,
+							validatorInfo,
+							this._chain.networkIdentifier,
+						);
+					}
+				}
+			},
+		);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

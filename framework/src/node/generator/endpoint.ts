@@ -16,6 +16,7 @@ import { Transaction } from '@liskhq/lisk-chain';
 import { StateStore } from '@liskhq/lisk-chain/dist-node/state_store';
 import {
 	decryptPassphraseWithPassword,
+	generatePrivateKey,
 	getAddressFromPublicKey,
 	getPrivateAndPublicKeyFromPassphrase,
 	parseEncryptedPassphrase,
@@ -65,6 +66,8 @@ interface EndpointInit {
 
 export class Endpoint {
 	[key: string]: unknown;
+	public blsKeys!: dataStructures.BufferMap<Buffer>;
+
 	private readonly _keypairs: dataStructures.BufferMap<Keypair>;
 	private readonly _generators: Generator[];
 	private readonly _consensus: Consensus;
@@ -249,6 +252,8 @@ export class Endpoint {
 
 		// Enable delegate to forge by adding keypairs corresponding to address
 		this._keypairs.set(address, keypair);
+		const blsPrivateKey = generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
+		this.blsKeys.set(address, blsPrivateKey); // Will be encrypted in future
 		ctx.logger.info(`Block generation enabled on address: ${req.address}`);
 
 		return {

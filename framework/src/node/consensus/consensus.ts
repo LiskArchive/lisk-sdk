@@ -37,6 +37,7 @@ import {
 	CONSENSUS_EVENT_BLOCK_BROADCAST,
 	CONSENSUS_EVENT_BLOCK_DELETE,
 	CONSENSUS_EVENT_BLOCK_NEW,
+	CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED,
 	CONSENSUS_EVENT_FORK_DETECTED,
 	NETWORK_EVENT_POST_BLOCK,
 	NETWORK_EVENT_POST_NODE_INFO,
@@ -120,13 +121,13 @@ export class Consensus {
 		this._logger = args.logger;
 		this._db = args.db;
 		this._commitPool = new CommitPool({
+			db: this._db,
+			generatorAddress: Buffer.alloc(0),
 			blockTime: this._genesisConfig.blockTime,
 			bftAPI: this._bftAPI,
 			chain: this._chain,
-			db: this._db,
 			network: this._network,
 			validatorsAPI: this._validatorAPI,
-			generatorAddress: Buffer.alloc(0),
 		});
 		this._endpoint = new NetworkEndpoint({
 			chain: this._chain,
@@ -491,7 +492,12 @@ export class Consensus {
 		const bftVotes = await this._bftAPI.getBFTHeights(apiContext);
 
 		let { finalizedHeight } = this._chain;
+		let finalizedHeightChangeRange;
 		if (bftVotes.maxHeightPrecommitted > finalizedHeight) {
+			finalizedHeightChangeRange = {
+				from: finalizedHeight,
+				to: bftVotes.maxHeightPrecommitted,
+			};
 			finalizedHeight = bftVotes.maxHeightPrecommitted;
 		}
 
@@ -508,6 +514,11 @@ export class Consensus {
 		await this._chain.saveBlock(block, currentState, finalizedHeight, {
 			removeFromTempTable: options.removeFromTempTable ?? false,
 		});
+
+		const isFinalizedHeightChanged = !!finalizedHeightChangeRange;
+		if (isFinalizedHeightChanged) {
+			this.events.emit(CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED, finalizedHeightChangeRange);
+		}
 
 		this.events.emit(CONSENSUS_EVENT_BLOCK_NEW, block);
 		return block;
@@ -670,7 +681,7 @@ export class Consensus {
 				`Aggregate Commit is "undefined" for the block with id: ${block.header.id.toString('hex')}`,
 			);
 		}
-		const isVerified = await this._commitPool.verifyAggregateCommit(
+		const isVerified = await this.commitPool.verifyAggregateCommit(
 			apiContext,
 			block.header.aggregateCommit,
 		);
