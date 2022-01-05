@@ -139,8 +139,8 @@ describe('Node', () => {
 			jest.spyOn(node['_generator'], 'init');
 			jest.spyOn(node['_consensus'], 'init');
 			jest.spyOn(node['_consensus'].events, 'on');
-			jest.spyOn(sampleNodeModule, 'init');
 			const genesisBlock = await node.generateGenesisBlock({ assets: [] });
+			jest.spyOn(sampleNodeModule, 'init');
 			await node.init({
 				channel,
 				blockchainDB,

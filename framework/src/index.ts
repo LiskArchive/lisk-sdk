@@ -29,3 +29,24 @@ export type { BaseChannel } from './controller/channels';
 export type { EventsDefinition, EventCallback } from './controller/event';
 export * as testing from './testing';
 export * from './types';
+export { ValidatorsAPI, ValidatorsModule } from './modules/validators';
+export { BFTAPI, BFTModule } from './modules/bft';
+export {
+	TokenAPI,
+	TokenModule,
+	TransferCommand,
+	genesisTokenStoreSchema as tokenGenesisStoreSchema,
+} from './modules/token';
+export {
+	DPoSAPI,
+	DPoSModule,
+	DelegateRegistrationCommand,
+	ReportDelegateMisbehaviorCommand,
+	UnlockCommand,
+	UpdateGeneratorKeyCommand,
+	VoteCommand,
+	genesisStoreSchema as dposGenesisStoreSchema,
+} from './modules/dpos_v2';
+export { RewardAPI, RewardModule } from './modules/reward';
+export { FeeAPI, FeeModule } from './modules/fee';
+export { RandomAPI, RandomModule } from './modules/random';

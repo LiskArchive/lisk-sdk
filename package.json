@@ -26,6 +26,7 @@
 			"framework",
 			"framework-plugins/*",
 			"elements/*",
+			"examples/*",
 			"commander",
 			"sdk",
 			"protocol-specs"
@@ -50,7 +51,7 @@
 		"test:framework": "lerna run test --scope=lisk-framework",
 		"test:framework-plugins": "lerna run test --scope=@liskhq/lisk-framework-*",
 		"test:commander": "lerna run test --scope=lisk-commander",
-		"build": "lerna run build --ignore=lisk-commander",
+		"build": "lerna run build",
 		"init": "./scripts/init.sh",
 		"prepare": "husky install",
 		"postinstall": "husky install"

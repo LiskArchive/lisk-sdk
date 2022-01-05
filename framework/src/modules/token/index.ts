@@ -15,3 +15,4 @@
 export { TokenModule } from './module';
 export { TransferCommand } from './commands/transfer';
 export { TokenAPI } from './api';
+export { genesisTokenStoreSchema } from './schemas';
