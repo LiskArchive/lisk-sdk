@@ -17,7 +17,7 @@ import { dataStructures } from '@liskhq/lisk-utils';
 import { createAggSig } from '@liskhq/lisk-cryptography';
 import { KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { EMPTY_BUFFER, EVENT_COMMIT_MESSAGES, COMMIT_RANGE_STORED } from './constants';
+import { EMPTY_BUFFER, NETWORK_EVENT_COMMIT_MESSAGES, COMMIT_RANGE_STORED } from './constants';
 import { BFTParameterNotFoundError } from '../../../modules/bft/errors';
 import { APIContext } from '../../state_machine/types';
 import { BFTAPI, PkSigPair, ValidatorAPI, AggregateCommit } from '../types';
@@ -50,7 +50,7 @@ export class CommitPool {
 	private readonly _network: Network;
 	private readonly _db: KVStore;
 	private readonly _generatorAddress: Buffer;
-	private readonly _jobIntervalID: NodeJS.Timeout;
+	private _jobIntervalID!: NodeJS.Timeout;
 
 	public constructor(config: CommitPoolConfig) {
 		this._blockTime = config.blockTime;
@@ -60,7 +60,9 @@ export class CommitPool {
 		this._network = config.network;
 		this._db = config.db;
 		this._generatorAddress = config.generatorAddress;
+	}
 
+	public start() {
 		// Run job every BLOCK_TIME/2 interval
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._jobIntervalID = setInterval(async () => {
@@ -388,69 +390,26 @@ export class CommitPool {
 		const removalHeight = await this._getMaxRemovalHeight();
 		const { maxHeightPrecommitted } = await this._bftAPI.getBFTHeights(apiContext);
 
-		// 1. Clean up nonGossipedCommits
-		for (const height of this._nonGossipedCommits.keys()) {
-			// 1.1 Remove any single commit message m from nonGossipedCommits
-			if (height <= removalHeight) {
-				this._nonGossipedCommits.delete(height);
-				continue;
-			}
-			// 1.2 For every commit message m in nonGossipedCommits or gossipedCommits one of the following two conditions has to hold, otherwise it is discarded
-			const nonGossipedCommits = this._nonGossipedCommits.get(height) as SingleCommit[];
-			for (const singleCommit of nonGossipedCommits) {
-				// Condition #1
-				if (
-					!(
-						maxHeightPrecommitted - COMMIT_RANGE_STORED <= singleCommit.height ||
-						singleCommit.height <= maxHeightPrecommitted
-					)
-				) {
-					this._nonGossipedCommits.delete(singleCommit.height);
-					continue;
-				}
-				// Condition #2
-				const changeOfBFTParams = await this._bftAPI.existBFTParameters(
-					apiContext,
-					singleCommit.height + 1,
-				);
-				if (!changeOfBFTParams) {
-					this._nonGossipedCommits.delete(singleCommit.height);
-				}
-			}
+		// Clean up nonGossipedCommits
+		const deletedNonGossipedHeights = await this._getDeleteHeights(
+			apiContext,
+			this._nonGossipedCommits,
+			removalHeight,
+			maxHeightPrecommitted,
+		);
+		for (const height of deletedNonGossipedHeights) {
+			this._nonGossipedCommits.delete(height);
 		}
-
-		// 1. Clean up gossipedCommits
-		for (const height of this._gossipedCommits.keys()) {
-			// 1.1 Remove any single commit message m from nonGossipedCommits
-			if (height <= removalHeight) {
-				this._gossipedCommits.delete(height);
-				continue;
-			}
-
-			// 1.2 For every commit message m in nonGossipedCommits or gossipedCommits one of the following two conditions has to hold, otherwise it is discarded
-			const gossipedCommits = this._gossipedCommits.get(height) as SingleCommit[];
-			for (const singleCommit of gossipedCommits) {
-				// Condition #1
-				if (
-					!(
-						maxHeightPrecommitted - COMMIT_RANGE_STORED < singleCommit.height ||
-						singleCommit.height < maxHeightPrecommitted
-					)
-				) {
-					this._gossipedCommits.delete(singleCommit.height);
-					continue;
-				}
-				// Condition #2
-				const changeOfBFTParams = await this._bftAPI.existBFTParameters(
-					apiContext,
-					singleCommit.height + 1,
-				);
-				if (!changeOfBFTParams) {
-					this._gossipedCommits.delete(singleCommit.height);
-				}
-			}
+		// Clean up gossipedCommits
+		const deletedGossipedHeights = await this._getDeleteHeights(
+			apiContext,
+			this._gossipedCommits,
+			removalHeight,
+			maxHeightPrecommitted,
+		);
+		for (const height of deletedGossipedHeights) {
+			this._gossipedCommits.delete(height);
 		}
-
 		// 2. Select commits to gossip
 		const validators = await this._bftAPI.getCurrentValidators(apiContext);
 		const numActiveValidators = validators.length;
@@ -463,7 +422,7 @@ export class CommitPool {
 				break;
 			}
 
-			// 2.1 Choosing the commit with higher height first
+			// 2.1 Choosing the commit with smaller height first
 			if (commit.height < maxHeightPrecommitted - COMMIT_RANGE_STORED) {
 				selectedCommits.push(commit);
 			}
@@ -522,9 +481,50 @@ export class CommitPool {
 		);
 		// 3. Gossip an array of up to 2*numActiveValidators commit messages to 16 randomly chosen connected peers with at least 8 of them being outgoing peers (same parameters as block propagation)
 		this._network.send({
-			event: EVENT_COMMIT_MESSAGES,
+			event: NETWORK_EVENT_COMMIT_MESSAGES,
 			data: codec.encode(singleCommitsNetworkPacketSchema, { commits: encodedCommitArray }),
 		});
+	}
+
+	private async _getDeleteHeights(
+		apiContext: APIContext,
+		commitMap: Map<number, SingleCommit[]>,
+		removalHeight: number,
+		maxHeightPrecommitted: number,
+	): Promise<number[]> {
+		const deleteHeights = [];
+		for (const height of commitMap.keys()) {
+			// 1. Remove any single commit message m from nonGossipedCommits
+			if (height <= removalHeight) {
+				deleteHeights.push(height);
+				continue;
+			}
+			// 2. For every commit message m in nonGossipedCommits or gossipedCommits one of the following two conditions has to hold, otherwise it is discarded
+			const nonGossipedCommits = commitMap.get(height) as SingleCommit[];
+			for (const singleCommit of nonGossipedCommits) {
+				// Condition #1
+				if (
+					!(
+						maxHeightPrecommitted - COMMIT_RANGE_STORED <= singleCommit.height ||
+						singleCommit.height <= maxHeightPrecommitted
+					)
+				) {
+					continue;
+				}
+				// Condition #2
+				const changeOfBFTParams = await this._bftAPI.existBFTParameters(
+					apiContext,
+					singleCommit.height + 1,
+				);
+				if (!changeOfBFTParams) {
+					continue;
+				}
+
+				deleteHeights.push(height);
+			}
+		}
+
+		return deleteHeights;
 	}
 
 	private async _getMaxRemovalHeight() {
