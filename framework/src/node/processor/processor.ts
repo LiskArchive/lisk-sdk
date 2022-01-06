@@ -274,6 +274,11 @@ export class Processor {
 		this._chain.validateTransaction(transaction);
 		const customAsset = this._getAsset(transaction);
 		const decodedAsset = codec.decode(customAsset.schema, transaction.asset);
+		// Ensure no extraneous asset fields have been included
+		const encodedAsset = codec.encode(customAsset.schema, decodedAsset as object);
+		if (!transaction.asset.equals(encodedAsset)) {
+			throw new Error('Invalid asset')
+		}
 		const assetSchemaErrors = validator.validate(customAsset.schema, decodedAsset as object);
 		if (assetSchemaErrors.length) {
 			throw new LiskValidationError(assetSchemaErrors);
