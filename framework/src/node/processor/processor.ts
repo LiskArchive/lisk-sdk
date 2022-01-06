@@ -31,7 +31,13 @@ import { APP_EVENT_CHAIN_FORK } from '../../constants';
 import { Logger } from '../../logger';
 import { InMemoryChannel } from '../../controller/channels';
 import { BaseModule, BaseAsset } from '../../modules';
-import { ReducerHandler, Consensus, Delegate, StateStore as ModuleStateStore, GenesisConfig } from '../../types';
+import {
+	ReducerHandler,
+	Consensus,
+	Delegate,
+	StateStore as ModuleStateStore,
+	GenesisConfig,
+} from '../../types';
 import { TransactionApplyError, ApplyPenaltyError } from '../../errors';
 
 const forkStatusList = [
@@ -279,11 +285,14 @@ export class Processor {
 		const decodedAsset = codec.decode(customAsset.schema, transaction.asset);
 
 		// Ensure no extraneous asset fields have been included in bytes
-		const serializationFixHeight = (typeof this._config.serializationFixHeight === 'number') ? this._config.serializationFixHeight : 0;
+		const serializationFixHeight =
+			typeof this._config.serializationFixHeight === 'number'
+				? this._config.serializationFixHeight
+				: 0;
 		if (header.height >= serializationFixHeight) {
 			const encodedAsset = codec.encode(customAsset.schema, decodedAsset as object);
 			if (!transaction.asset.equals(encodedAsset)) {
-				throw new Error('Invalid asset')
+				throw new Error('Invalid asset');
 			}
 		}
 
