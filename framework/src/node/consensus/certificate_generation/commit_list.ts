@@ -23,7 +23,7 @@ export class CommitList {
 	private readonly _commitMap: Map<number, SingleCommit[]> = new Map<number, SingleCommit[]>();
 
 	public getByHeight(height: number) {
-		return this._commitMap.get(height);
+		return this._commitMap.get(height) ?? [];
 	}
 
 	public getHeights() {

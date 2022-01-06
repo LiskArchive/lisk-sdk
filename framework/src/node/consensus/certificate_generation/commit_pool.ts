@@ -148,8 +148,8 @@ export class CommitPool {
 	}
 
 	public getCommitsByHeight(height: number): SingleCommit[] {
-		const nonGossipedCommits = this._nonGossipedCommits.getByHeight(height) ?? [];
-		const gossipedCommits = this._gossipedCommits.getByHeight(height) ?? [];
+		const nonGossipedCommits = this._nonGossipedCommits.getByHeight(height);
+		const gossipedCommits = this._gossipedCommits.getByHeight(height);
 		return [...nonGossipedCommits, ...gossipedCommits];
 	}
 
@@ -330,8 +330,8 @@ export class CommitPool {
 
 		while (nextHeight > maxHeightCertified) {
 			const singleCommits = [
-				...(this._nonGossipedCommits.getByHeight(nextHeight) ?? []),
-				...(this._gossipedCommits.getByHeight(nextHeight) ?? []),
+				...this._nonGossipedCommits.getByHeight(nextHeight),
+				...this._gossipedCommits.getByHeight(nextHeight),
 			];
 			const nextValidators = singleCommits.map(commit => commit.validatorAddress);
 			let aggregateBFTWeight = BigInt(0);
@@ -458,7 +458,7 @@ export class CommitPool {
 				continue;
 			}
 			// 2. For every commit message m in nonGossipedCommits or gossipedCommits one of the following two conditions has to hold, otherwise it is discarded
-			const nonGossipedCommits = commitMap.getByHeight(height) as SingleCommit[];
+			const nonGossipedCommits = commitMap.getByHeight(height);
 			for (const singleCommit of nonGossipedCommits) {
 				// Condition #1
 				if (

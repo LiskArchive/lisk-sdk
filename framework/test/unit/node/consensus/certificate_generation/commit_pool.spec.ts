@@ -237,8 +237,8 @@ describe('CommitPool', () => {
 			// nonGossiped commits are moved to gossiped commits
 			expect(commitPool['_nonGossipedCommits'].getAllCommits()).toHaveLength(0);
 			expect(commitPool['_gossipedCommits'].getAllCommits()).toHaveLength(10);
-			expect(commitPool['_nonGossipedCommits'].getByHeight(1070)).toBeUndefined();
-			expect(commitPool['_gossipedCommits'].getByHeight(1070)).toBeUndefined();
+			expect(commitPool['_nonGossipedCommits'].getByHeight(1070)).toBeArrayOfSize(0);
+			expect(commitPool['_gossipedCommits'].getByHeight(1070)).toBeArrayOfSize(0);
 		});
 
 		it('should select non gossiped commits that are created by the generator of the node', async () => {
@@ -261,7 +261,7 @@ describe('CommitPool', () => {
 			// nonGossiped commits are moved to gossiped commits
 			expect(commitPool['_nonGossipedCommits'].getAllCommits()).toHaveLength(0);
 			expect(commitPool['_gossipedCommits'].getAllCommits()).toHaveLength(11);
-			expect(commitPool['_nonGossipedCommits'].getByHeight(1070)).toBeUndefined();
+			expect(commitPool['_nonGossipedCommits'].getByHeight(1070)).toBeArrayOfSize(0);
 			const commits = commitPool['_gossipedCommits'].getByHeight(1070);
 			expect(commits).toBeDefined();
 			expect(commits).toBeArray();
