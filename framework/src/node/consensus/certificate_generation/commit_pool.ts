@@ -73,7 +73,7 @@ export class CommitPool {
 	}
 
 	public addCommit(commit: SingleCommit): void {
-		if (!this._nonGossipedCommits.commitExist(commit)) {
+		if (!this._nonGossipedCommits.exists(commit)) {
 			this._nonGossipedCommits.add(commit);
 		}
 	}
@@ -88,9 +88,9 @@ export class CommitPool {
 		}
 
 		// Validation step 1
-		const existsInNonGossiped = this._nonGossipedCommits.commitExist(commit);
+		const existsInNonGossiped = this._nonGossipedCommits.exists(commit);
 
-		const existsInGossiped = this._gossipedCommits.commitExist(commit);
+		const existsInGossiped = this._gossipedCommits.exists(commit);
 
 		const doesCommitExist = existsInGossiped || existsInNonGossiped;
 

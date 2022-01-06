@@ -204,7 +204,7 @@ describe('CommitPool', () => {
 			// nonGossiped commits are moved to gossiped commits
 			expect(commitPool['_gossipedCommits'].getAllCommits()).toHaveLength(10);
 			// Should delete stale commit from gossipedList
-			expect(commitPool['_gossipedCommits'].commitExist(staleGossipedCommit)).toBeFalse();
+			expect(commitPool['_gossipedCommits'].exists(staleGossipedCommit)).toBeFalse();
 		});
 
 		it('should clean all the commits from nonGossipedCommit that does not have bftParams change', async () => {

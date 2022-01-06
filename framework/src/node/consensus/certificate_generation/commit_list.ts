@@ -27,7 +27,7 @@ export class CommitList {
 	}
 
 	public getHeights() {
-		return this._commitMap.keys();
+		return [...this._commitMap.keys()];
 	}
 
 	public add(commit: SingleCommit) {
@@ -36,7 +36,7 @@ export class CommitList {
 		this._commitMap.set(commit.height, [...currentCommits, commit]);
 	}
 
-	public commitExist(commit: SingleCommit) {
+	public exists(commit: SingleCommit) {
 		const currentCommits = this._commitMap.get(commit.height) ?? [];
 
 		return currentCommits.some(
