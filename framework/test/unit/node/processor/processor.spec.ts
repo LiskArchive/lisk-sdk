@@ -18,6 +18,7 @@ import { ForkStatus, BFT } from '@liskhq/lisk-bft';
 import { validator } from '@liskhq/lisk-validator';
 import { CustomModule0, CustomModule1 } from './custom_modules';
 import { Processor } from '../../../../src/node/processor';
+import { GenesisConfig } from '../../../../src';
 
 describe('processor', () => {
 	const defaultLastBlock = {
@@ -88,6 +89,7 @@ describe('processor', () => {
 			logger: loggerStub,
 			chainModule: chainModuleStub,
 			bftModule: bftModuleStub,
+			config: { serializationFixHeight: 1000000000 } as unknown as GenesisConfig,
 		});
 	});
 
