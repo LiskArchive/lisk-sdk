@@ -35,6 +35,7 @@ import { genesis, defaultAccountSchema } from '../../../fixtures';
 import { TokenModule } from '../../../../src/modules';
 import { TransferAsset } from '../../../../src/modules/token';
 import { transactionsSchema } from '../../../../src/node/transport/schemas';
+import { GenesisConfig } from '../../../../src';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -123,6 +124,7 @@ describe('Synchronizer', () => {
 			chainModule,
 			logger: loggerMock,
 			bftModule,
+			config: { serializationFixHeight: 1000000000 } as unknown as GenesisConfig,
 		});
 		processorModule.processValidated = jest.fn();
 		processorModule.deleteLastBlock = jest.fn();
