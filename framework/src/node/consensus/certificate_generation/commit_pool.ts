@@ -431,7 +431,7 @@ export class CommitPool {
 
 		const encodedCommitArray = selectedCommits.map(commit =>
 			codec.encode(singleCommitSchema, commit),
-			);
+		);
 		// 3. Gossip an array of up to 2*numActiveValidators commit messages to 16 randomly chosen connected peers with at least 8 of them being outgoing peers (same parameters as block propagation)
 		this._network.send({
 			event: NETWORK_EVENT_COMMIT_MESSAGES,
@@ -462,10 +462,8 @@ export class CommitPool {
 			for (const singleCommit of nonGossipedCommits) {
 				// Condition #1
 				if (
-					(
-						maxHeightPrecommitted - COMMIT_RANGE_STORED <= singleCommit.height &&
-						singleCommit.height <= maxHeightPrecommitted
-					)
+					maxHeightPrecommitted - COMMIT_RANGE_STORED <= singleCommit.height &&
+					singleCommit.height <= maxHeightPrecommitted
 				) {
 					continue;
 				}
@@ -494,6 +492,9 @@ export class CommitPool {
 
 	private _getAllCommits(ascendingHeight = COMMIT_SORT.ASC): SingleCommit[] {
 		// Flattened list of all the single commits from both gossiped and non gossiped list sorted by ascending order of height
-		return [...this._nonGossipedCommits.getAllCommits(ascendingHeight), ...this._gossipedCommits.getAllCommits(ascendingHeight)];
+		return [
+			...this._nonGossipedCommits.getAllCommits(ascendingHeight),
+			...this._gossipedCommits.getAllCommits(ascendingHeight),
+		];
 	}
 }

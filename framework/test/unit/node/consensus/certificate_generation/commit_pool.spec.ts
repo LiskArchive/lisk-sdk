@@ -31,7 +31,11 @@ import {
 	MESSAGE_TAG_CERTIFICATE,
 	NETWORK_EVENT_COMMIT_MESSAGES,
 } from '../../../../../src/node/consensus/certificate_generation/constants';
-import { certificateSchema, singleCommitSchema, singleCommitsNetworkPacketSchema } from '../../../../../src/node/consensus/certificate_generation/schema';
+import {
+	certificateSchema,
+	singleCommitSchema,
+	singleCommitsNetworkPacketSchema,
+} from '../../../../../src/node/consensus/certificate_generation/schema';
 import {
 	Certificate,
 	SingleCommit,
@@ -200,16 +204,16 @@ describe('CommitPool', () => {
 			// nonGossiped commits are moved to gossiped commits
 			expect(commitPool['_gossipedCommits'].getAllCommits()).toHaveLength(10);
 			// Should delete stale commit from gossipedList
-			expect(commitPool['_gossipedCommits'].commitExist(staleGossipedCommit));
+			expect(commitPool['_gossipedCommits'].commitExist(staleGossipedCommit)).toBeFalse();
 		});
 
 		it('should clean all the commits from nonGossipedCommit that does not have bftParams change', async () => {
 			commitPool['_nonGossipedCommits'].add({
-					blockID: getRandomBytes(32),
-					certificateSignature: getRandomBytes(96),
-					height: 1070,
-					validatorAddress: getRandomBytes(20),
-				});
+				blockID: getRandomBytes(32),
+				certificateSignature: getRandomBytes(96),
+				height: 1070,
+				validatorAddress: getRandomBytes(20),
+			});
 			commitPool['_gossipedCommits'].add({
 				blockID: getRandomBytes(32),
 				certificateSignature: getRandomBytes(96),
@@ -240,11 +244,11 @@ describe('CommitPool', () => {
 		it('should select non gossiped commits that are created by the generator of the node', async () => {
 			const generatorAddress = getRandomBytes(20);
 			commitPool['_nonGossipedCommits'].add({
-					blockID: getRandomBytes(32),
-					certificateSignature: getRandomBytes(96),
-					height: 1070,
-					validatorAddress: generatorAddress,
-				});
+				blockID: getRandomBytes(32),
+				certificateSignature: getRandomBytes(96),
+				height: 1070,
+				validatorAddress: generatorAddress,
+			});
 			// Assert
 			expect(commitPool['_gossipedCommits'].getAllCommits()).toHaveLength(6);
 			// Arrange
@@ -268,7 +272,7 @@ describe('CommitPool', () => {
 
 		it('should not have selected commits length more than 2 * numActiveValidators', async () => {
 			const maxHeightPrecommittedTest = 1090;
-			const commitHeight = 980
+			const commitHeight = 980;
 			const getSelectedCommits = (cp: CommitPool) => {
 				const selectedCommits = [];
 				const maxSelectedCommitsLength = 2 * numActiveValidators;
@@ -303,12 +307,14 @@ describe('CommitPool', () => {
 					selectedCommits.push(commit);
 				}
 
-				return selectedCommits.map(commit =>
-					codec.encode(singleCommitSchema, commit),
-					);
-			}
-			commitPool['_nonGossipedCommits'].getAllCommits().forEach(c => commitPool['_nonGossipedCommits'].deleteSingleCommit(c));
-			commitPool['_gossipedCommits'].getAllCommits().forEach(c => commitPool['_gossipedCommits'].deleteSingleCommit(c));
+				return selectedCommits.map(commit => codec.encode(singleCommitSchema, commit));
+			};
+			commitPool['_nonGossipedCommits']
+				.getAllCommits()
+				.forEach(c => commitPool['_nonGossipedCommits'].deleteSingleCommit(c));
+			commitPool['_gossipedCommits']
+				.getAllCommits()
+				.forEach(c => commitPool['_gossipedCommits'].deleteSingleCommit(c));
 
 			Array.from({ length: 105 }, () => ({
 				blockID,
@@ -329,7 +335,9 @@ describe('CommitPool', () => {
 
 			// Arrange
 			commitPool['_bftAPI'].existBFTParameters = jest.fn().mockResolvedValue(true);
-			commitPool['_bftAPI'].getBFTHeights = jest.fn().mockResolvedValue({ maxHeightPrecommitted: maxHeightPrecommittedTest });
+			commitPool['_bftAPI'].getBFTHeights = jest
+				.fn()
+				.mockResolvedValue({ maxHeightPrecommitted: maxHeightPrecommittedTest });
 			const context = createNewAPIContext(new InMemoryKVStore());
 			const selectedCommitsToGossip = getSelectedCommits(commitPool);
 			// Act

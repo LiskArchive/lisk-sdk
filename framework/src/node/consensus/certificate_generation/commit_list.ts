@@ -15,9 +15,9 @@
 import { SingleCommit } from './types';
 
 export enum COMMIT_SORT {
-    ASC = 0,
-    DSC,
-};
+	ASC = 0,
+	DSC,
+}
 
 export class CommitList {
 	private readonly _commitMap: Map<number, SingleCommit[]> = new Map<number, SingleCommit[]>();
@@ -26,9 +26,9 @@ export class CommitList {
 		return this._commitMap.get(height);
 	}
 
-    public getHeights() {
-        return this._commitMap.keys();
-    }
+	public getHeights() {
+		return this._commitMap.keys();
+	}
 
 	public add(commit: SingleCommit) {
 		const currentCommits = this._commitMap.get(commit.height) ?? [];
@@ -39,18 +39,20 @@ export class CommitList {
 	public commitExist(commit: SingleCommit) {
 		const currentCommits = this._commitMap.get(commit.height) ?? [];
 
-		return currentCommits.some(aCommit =>
-			(aCommit.blockID.equals(commit.blockID) && aCommit.validatorAddress.equals(commit.validatorAddress)),
+		return currentCommits.some(
+			aCommit =>
+				aCommit.blockID.equals(commit.blockID) &&
+				aCommit.validatorAddress.equals(commit.validatorAddress),
 		);
 	}
 
 	public deleteCommitsByHeight(height: number) {
 		if (this._commitMap.delete(height)) {
-            // Delete empty array entry
-            if (this._commitMap.get(height) && this._commitMap.get(height)?.length === 0) {
-                this._commitMap.delete(height);
-            }
-        }
+			// Delete empty array entry
+			if (this._commitMap.get(height) && this._commitMap.get(height)?.length === 0) {
+				this._commitMap.delete(height);
+			}
+		}
 	}
 
 	public getAllCommits(ascendingHeight = COMMIT_SORT.ASC) {
@@ -71,8 +73,8 @@ export class CommitList {
 
 		commitList.splice(index, 1);
 
-        if (commitList.length === 0) {
-            this._commitMap.delete(commit.height);
-        }
+		if (commitList.length === 0) {
+			this._commitMap.delete(commit.height);
+		}
 	}
 }
