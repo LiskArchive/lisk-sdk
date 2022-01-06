@@ -4,6 +4,11 @@ IFS=$'\n\t'
 
 COMMITISH=${1:-}
 
+if [ "$( uname -m )" = "arm64" ]; then
+  echo "ERROR: Only the x86_64 is supported at the moment."
+  exit 2
+fi
+
 usage() {
   echo "$0 <commit-ish>"
 }
