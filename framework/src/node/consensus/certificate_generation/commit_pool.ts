@@ -379,7 +379,7 @@ export class CommitPool {
 			maxHeightPrecommitted,
 		);
 		for (const height of deletedNonGossipedHeights) {
-			this._nonGossipedCommits.deleteCommitsByHeight(height);
+			this._nonGossipedCommits.deleteByHeight(height);
 		}
 		// Clean up gossipedCommits
 		const deletedGossipedHeights = await this._getDeleteHeights(
@@ -389,7 +389,7 @@ export class CommitPool {
 			maxHeightPrecommitted,
 		);
 		for (const height of deletedGossipedHeights) {
-			this._gossipedCommits.deleteCommitsByHeight(height);
+			this._gossipedCommits.deleteByHeight(height);
 		}
 		// 2. Select commits to gossip
 		const validators = await this._bftAPI.getCurrentValidators(apiContext);
@@ -409,7 +409,7 @@ export class CommitPool {
 			}
 		}
 		// Non gossiped commits with descending order of height
-		const sortedNonGossipedCommits = this._nonGossipedCommits.getAllCommits(COMMIT_SORT.DSC);
+		const sortedNonGossipedCommits = this._nonGossipedCommits.getAll(COMMIT_SORT.DSC);
 
 		// 2.2 Select newly created commits by generator
 		for (const [index, commit] of sortedNonGossipedCommits.entries()) {
@@ -440,7 +440,7 @@ export class CommitPool {
 		// 4. Move any gossiped commit message included in nonGossipedCommits to gossipedCommits.
 		for (const commit of selectedCommits) {
 			this._gossipedCommits.add(commit);
-			this._nonGossipedCommits.deleteSingleCommit(commit);
+			this._nonGossipedCommits.deleteSingle(commit);
 		}
 	}
 
@@ -493,8 +493,8 @@ export class CommitPool {
 	private _getAllCommits(ascendingHeight = COMMIT_SORT.ASC): SingleCommit[] {
 		// Flattened list of all the single commits from both gossiped and non gossiped list sorted by ascending order of height
 		return [
-			...this._nonGossipedCommits.getAllCommits(ascendingHeight),
-			...this._gossipedCommits.getAllCommits(ascendingHeight),
+			...this._nonGossipedCommits.getAll(ascendingHeight),
+			...this._gossipedCommits.getAll(ascendingHeight),
 		];
 	}
 }

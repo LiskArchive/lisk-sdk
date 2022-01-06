@@ -85,7 +85,7 @@ describe('CommitList', () => {
 		it('should initialize _commitMap', () => {
 			// Assert
 			expect(commitList['_commitMap']).toBeDefined();
-			expect(commitList.getAllCommits()).toBeArrayOfSize(0);
+			expect(commitList.getAll()).toBeArrayOfSize(0);
 		});
 	});
 
@@ -99,8 +99,8 @@ describe('CommitList', () => {
 
 		it('should get all the commits that are added', () => {
 			// Assert
-			expect(commitList.getAllCommits()).toHaveLength(sampleCommits.length);
-			expect(commitList.getAllCommits()).toContainAllValues(sampleCommits);
+			expect(commitList.getAll()).toHaveLength(sampleCommits.length);
+			expect(commitList.getAll()).toContainAllValues(sampleCommits);
 		});
 	});
 
@@ -165,12 +165,10 @@ describe('CommitList', () => {
 
 		it(`should delete commits for height ${height10}`, () => {
 			// Assert
-			expect(commitList.getAllCommits()).toHaveLength(
-				commitsHeight10.length + commitsHeight20.length,
-			);
-			commitList.deleteCommitsByHeight(height10);
-			expect(commitList.getAllCommits()).toHaveLength(commitsHeight20.length);
-			expect(commitList.getAllCommits()).toContainAllValues(commitsHeight20);
+			expect(commitList.getAll()).toHaveLength(commitsHeight10.length + commitsHeight20.length);
+			commitList.deleteByHeight(height10);
+			expect(commitList.getAll()).toHaveLength(commitsHeight20.length);
+			expect(commitList.getAll()).toContainAllValues(commitsHeight20);
 		});
 	});
 
@@ -190,10 +188,10 @@ describe('CommitList', () => {
 				(a, b) => a.height - b.height,
 			);
 			// Assert
-			expect(commitList.getAllCommits()).toHaveLength(
+			expect(commitList.getAll()).toHaveLength(
 				commitsHeight10.length + commitsHeight20.length + commitsHeight30.length,
 			);
-			expect(commitList.getAllCommits()).toEqual(ascSortedList);
+			expect(commitList.getAll()).toEqual(ascSortedList);
 		});
 
 		it('should return all the added commits in DESC order', () => {
@@ -202,10 +200,10 @@ describe('CommitList', () => {
 				(a, b) => b.height - a.height,
 			);
 			// Assert
-			expect(commitList.getAllCommits(COMMIT_SORT.DSC)).toHaveLength(
+			expect(commitList.getAll(COMMIT_SORT.DSC)).toHaveLength(
 				commitsHeight10.length + commitsHeight20.length + commitsHeight30.length,
 			);
-			expect(commitList.getAllCommits(COMMIT_SORT.DSC)).toEqual(descSortedList);
+			expect(commitList.getAll(COMMIT_SORT.DSC)).toEqual(descSortedList);
 		});
 	});
 
@@ -221,7 +219,7 @@ describe('CommitList', () => {
 		it('should delete the single commit and should not exist in the _commitMap', () => {
 			expect(commitList.exists(singleSampleCommit)).toBeTrue();
 			// Act
-			commitList.deleteSingleCommit(singleSampleCommit);
+			commitList.deleteSingle(singleSampleCommit);
 			// Assert
 			expect(commitList.exists(singleSampleCommit)).toBeFalse();
 		});

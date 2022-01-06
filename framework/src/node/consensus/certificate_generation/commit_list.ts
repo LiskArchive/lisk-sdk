@@ -46,7 +46,7 @@ export class CommitList {
 		);
 	}
 
-	public deleteCommitsByHeight(height: number) {
+	public deleteByHeight(height: number) {
 		if (this._commitMap.delete(height)) {
 			// Delete empty array entry
 			if (this._commitMap.get(height) && this._commitMap.get(height)?.length === 0) {
@@ -55,13 +55,13 @@ export class CommitList {
 		}
 	}
 
-	public getAllCommits(ascendingHeight = COMMIT_SORT.ASC) {
+	public getAll(ascendingHeight = COMMIT_SORT.ASC) {
 		return ascendingHeight === COMMIT_SORT.ASC
 			? [...this._commitMap.values()].flat().sort((a, b) => a.height - b.height)
 			: [...this._commitMap.values()].flat().sort((a, b) => b.height - a.height);
 	}
 
-	public deleteSingleCommit(commit: SingleCommit) {
+	public deleteSingle(commit: SingleCommit) {
 		const commitList = this._commitMap.get(commit.height);
 		if (!commitList) {
 			return;

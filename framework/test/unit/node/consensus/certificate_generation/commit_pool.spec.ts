@@ -181,7 +181,7 @@ describe('CommitPool', () => {
 
 		it('should clean all the commits from nonGossipedCommit list with height below removal height', async () => {
 			// Assert
-			expect(commitPool['_nonGossipedCommits'].getAllCommits()).toHaveLength(6);
+			expect(commitPool['_nonGossipedCommits'].getAll()).toHaveLength(6);
 			// Arrange
 			commitPool['_bftAPI'].existBFTParameters = jest.fn().mockResolvedValue(true);
 			const context = createNewAPIContext(new InMemoryKVStore());
@@ -189,12 +189,12 @@ describe('CommitPool', () => {
 			await commitPool['_job'](context);
 			// Assert
 			// nonGossiped commits are moved to gossiped commits and stale commit is deleted
-			expect(commitPool['_nonGossipedCommits'].getAllCommits()).toHaveLength(0);
+			expect(commitPool['_nonGossipedCommits'].getAll()).toHaveLength(0);
 		});
 
 		it('should move/delete commits in gossipedCommit list with height below removal height', async () => {
 			// Assert
-			expect(commitPool['_gossipedCommits'].getAllCommits()).toHaveLength(6);
+			expect(commitPool['_gossipedCommits'].getAll()).toHaveLength(6);
 			// Arrange
 			commitPool['_bftAPI'].existBFTParameters = jest.fn().mockResolvedValue(true);
 			const context = createNewAPIContext(new InMemoryKVStore());
@@ -202,7 +202,7 @@ describe('CommitPool', () => {
 			await commitPool['_job'](context);
 			// Assert
 			// nonGossiped commits are moved to gossiped commits
-			expect(commitPool['_gossipedCommits'].getAllCommits()).toHaveLength(10);
+			expect(commitPool['_gossipedCommits'].getAll()).toHaveLength(10);
 			// Should delete stale commit from gossipedList
 			expect(commitPool['_gossipedCommits'].exists(staleGossipedCommit)).toBeFalse();
 		});
@@ -221,7 +221,7 @@ describe('CommitPool', () => {
 				validatorAddress: getRandomBytes(20),
 			});
 			// Assert
-			expect(commitPool['_nonGossipedCommits'].getAllCommits()).toHaveLength(7);
+			expect(commitPool['_nonGossipedCommits'].getAll()).toHaveLength(7);
 			// Arrange
 			const bftParamsMock = jest.fn();
 			commitPool['_bftAPI'].existBFTParameters = bftParamsMock;
@@ -235,8 +235,8 @@ describe('CommitPool', () => {
 			await commitPool['_job'](context);
 			// Assert
 			// nonGossiped commits are moved to gossiped commits
-			expect(commitPool['_nonGossipedCommits'].getAllCommits()).toHaveLength(0);
-			expect(commitPool['_gossipedCommits'].getAllCommits()).toHaveLength(10);
+			expect(commitPool['_nonGossipedCommits'].getAll()).toHaveLength(0);
+			expect(commitPool['_gossipedCommits'].getAll()).toHaveLength(10);
 			expect(commitPool['_nonGossipedCommits'].getByHeight(1070)).toBeArrayOfSize(0);
 			expect(commitPool['_gossipedCommits'].getByHeight(1070)).toBeArrayOfSize(0);
 		});
@@ -250,7 +250,7 @@ describe('CommitPool', () => {
 				validatorAddress: generatorAddress,
 			});
 			// Assert
-			expect(commitPool['_gossipedCommits'].getAllCommits()).toHaveLength(6);
+			expect(commitPool['_gossipedCommits'].getAll()).toHaveLength(6);
 			// Arrange
 			commitPool['_bftAPI'].existBFTParameters = jest.fn().mockResolvedValue(true);
 			(commitPool['_generatorAddress'] as any) = generatorAddress;
@@ -259,8 +259,8 @@ describe('CommitPool', () => {
 			await commitPool['_job'](context);
 			// Assert
 			// nonGossiped commits are moved to gossiped commits
-			expect(commitPool['_nonGossipedCommits'].getAllCommits()).toHaveLength(0);
-			expect(commitPool['_gossipedCommits'].getAllCommits()).toHaveLength(11);
+			expect(commitPool['_nonGossipedCommits'].getAll()).toHaveLength(0);
+			expect(commitPool['_gossipedCommits'].getAll()).toHaveLength(11);
 			expect(commitPool['_nonGossipedCommits'].getByHeight(1070)).toBeArrayOfSize(0);
 			const commits = commitPool['_gossipedCommits'].getByHeight(1070);
 			expect(commits).toBeDefined();
@@ -288,7 +288,7 @@ describe('CommitPool', () => {
 					}
 				}
 
-				const sortedNonGossipedCommits = cp['_nonGossipedCommits'].getAllCommits(COMMIT_SORT.DSC);
+				const sortedNonGossipedCommits = cp['_nonGossipedCommits'].getAll(COMMIT_SORT.DSC);
 
 				for (const [index, commit] of sortedNonGossipedCommits.entries()) {
 					if (selectedCommits.length >= maxSelectedCommitsLength) {
@@ -310,11 +310,11 @@ describe('CommitPool', () => {
 				return selectedCommits.map(commit => codec.encode(singleCommitSchema, commit));
 			};
 			commitPool['_nonGossipedCommits']
-				.getAllCommits()
-				.forEach(c => commitPool['_nonGossipedCommits'].deleteSingleCommit(c));
+				.getAll()
+				.forEach(c => commitPool['_nonGossipedCommits'].deleteSingle(c));
 			commitPool['_gossipedCommits']
-				.getAllCommits()
-				.forEach(c => commitPool['_gossipedCommits'].deleteSingleCommit(c));
+				.getAll()
+				.forEach(c => commitPool['_gossipedCommits'].deleteSingle(c));
 
 			Array.from({ length: 105 }, () => ({
 				blockID,
@@ -330,8 +330,8 @@ describe('CommitPool', () => {
 				validatorAddress: getRandomBytes(20),
 			})).forEach(c => commitPool['_gossipedCommits'].add(c));
 
-			expect(commitPool['_nonGossipedCommits'].getAllCommits()).toHaveLength(105);
-			expect(commitPool['_gossipedCommits'].getAllCommits()).toHaveLength(105);
+			expect(commitPool['_nonGossipedCommits'].getAll()).toHaveLength(105);
+			expect(commitPool['_gossipedCommits'].getAll()).toHaveLength(105);
 
 			// Arrange
 			commitPool['_bftAPI'].existBFTParameters = jest.fn().mockResolvedValue(true);
