@@ -1,42 +1,31 @@
 #!/bin/bash
-
-# Unofficial strict mode
 set -euo pipefail
 IFS=$'\n\t'
 
-TAG=${1:-}
+COMMITISH=${1:-}
 
-# Ask for commit/tag if not given
-if [ "$TAG" == "" ]; then
-	echo "Please enter github tag to publish"
-	read TAG
-fi
+usage() {
+  echo "$0 <commit-ish>"
+}
 
-if [ "$TAG" == "" ]; then
-	echo "Tag must be specified as the first argument or entered manually"
+if [ -z "$COMMITISH" ]; then
+	usage
 	exit 1
 fi
 
-# Clean working directory if exist
-WORKING_DIR="/tmp/lisk-sdk-publish/$TAG"
-echo "Working dir is $WORKING_DIR"
+set -x
 
-if [ -d "$WORKING_DIR" ]; then rm -Rf $WORKING_DIR; fi
-# Create working dir
-mkdir -p $WORKING_DIR
+WORKING_DIR="$( mktemp -d )"
+git clone --depth 1 --branch "$COMMITISH" https://github.com/LiskHQ/lisk-sdk.git "$WORKING_DIR"
 
-# Clone the commit
-git clone --depth 1 --branch $TAG https://github.com/LiskHQ/lisk-sdk.git $WORKING_DIR
-
-cd $WORKING_DIR
-
+cd "$WORKING_DIR"
 yarn
 yarn build
 yarn lint
 yarn format
 
-
-echo "Please enter OTP"
-read OTP
-
-npx lerna publish --from-package --otp=$OTP --yes
+OTP_OPTS=""
+if [ -n "$OTP" ]; then
+	OTP_OPTS="--otp=$OTP"
+fi
+npx lerna publish --from-package $OTP_OPTS --yes
