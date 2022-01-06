@@ -29,6 +29,17 @@ trap cleanup INT QUIT TERM EXIT
 
 git clone --depth 1 --branch "$COMMITISH" https://github.com/LiskHQ/lisk-sdk.git "$WORKING_DIR"
 
+if [ -e "$HOME/.nvm/nvm.sh" ]; then
+	set +e; source "$HOME/.nvm/nvm.sh"; set -e
+	NODEJS_VERSION="$( cat $( cd $( dirname ${BASH_SOURCE[0]} ) && pwd )/../.nvmrc )"
+	nvm install "$NODEJS_VERSION"
+	nvm use "$NODEJS_VERSION"
+	npm install --global yarn
+else
+	echo "WARN: Not using nvm."
+	echo "Make sure you are running nodejs version $NODEJS_VERSION and have installed yarn."
+fi
+
 cd "$WORKING_DIR"
 
 set -x
