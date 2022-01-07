@@ -25,6 +25,7 @@ import { nodeUtils } from '../../../utils';
 import { TransferAsset } from '../../../../src/modules/token/transfer_asset';
 import { Processor } from '../../../../src/node/processor';
 import * as testing from '../../../../src/testing';
+import { GenesisConfig } from '../../../../src';
 
 describe('when processing a block with transfer transaction', () => {
 	const databasePath = '/tmp/lisk/transfer/test';
@@ -40,6 +41,9 @@ describe('when processing a block with transfer transaction', () => {
 			processEnv = await testing.getBlockProcessingEnv({
 				options: {
 					databasePath,
+					genesisConfig: ({
+						serializationFixHeight: 10000000000,
+					} as unknown) as GenesisConfig,
 				},
 			});
 			networkIdentifier = processEnv.getNetworkId();
@@ -207,6 +211,9 @@ describe('when processing a block with transfer transaction', () => {
 			processEnv = await testing.getBlockProcessingEnv({
 				options: {
 					databasePath,
+					genesisConfig: ({
+						serializationFixHeight: 10000000000,
+					} as unknown) as GenesisConfig,
 				},
 			});
 			networkIdentifier = processEnv.getNetworkId();
