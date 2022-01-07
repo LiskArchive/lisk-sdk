@@ -131,7 +131,7 @@ const getProcessor = (
 		logger: loggerMock,
 		chainModule,
 		bftModule,
-		config: appConfig.genesisConfig
+		config: appConfig.genesisConfig,
 	});
 
 	for (const InstantiableModule of modules) {
