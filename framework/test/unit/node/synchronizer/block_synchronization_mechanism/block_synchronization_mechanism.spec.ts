@@ -18,7 +18,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
 import { BFT, ForkStatus } from '@liskhq/lisk-bft';
 import { objects } from '@liskhq/lisk-utils';
-
+import { GenesisConfig } from '../../../../../src';
 import { BlockSynchronizationMechanism } from '../../../../../src/node/synchronizer';
 import { computeBlockHeightsList } from '../../../../../src/node/synchronizer/utils';
 
@@ -141,6 +141,9 @@ describe('block_synchronization_mechanism', () => {
 			chainModule,
 			logger: loggerMock,
 			bftModule,
+			config: ({
+				serializationFixHeight: 100000000,
+			} as unknown) as GenesisConfig,
 		});
 		processorModule.processValidated = jest.fn().mockImplementation(block => {
 			chainModule._lastBlock = block;
