@@ -286,7 +286,7 @@ export class Processor {
 
 		// Ensure no extraneous asset fields have been included in bytes
 		const serializationFixHeight =
-			typeof this._config.serializationFixHeight === 'number'
+			typeof this._config?.serializationFixHeight === 'number'
 				? this._config.serializationFixHeight
 				: 0;
 		if (header.height >= serializationFixHeight) {
