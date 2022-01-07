@@ -89,7 +89,7 @@ describe('processor', () => {
 			logger: loggerStub,
 			chainModule: chainModuleStub,
 			bftModule: bftModuleStub,
-			config: { serializationFixHeight: 1000000000 } as unknown as GenesisConfig,
+			config: ({ serializationFixHeight: 1000000000 } as unknown) as GenesisConfig,
 		});
 	});
 
