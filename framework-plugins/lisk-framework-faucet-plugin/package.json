@@ -37,8 +37,7 @@
 		"build:node": "tsc",
 		"build:web": "node scripts/build.js --jsx react",
 		"start:web": "NODE_ENV=development node scripts/start.js",
-		"build:check": "node -e \"require('./dist-node')\"",
-		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
+		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
 		"@liskhq/lisk-api-client": "^5.1.4",
