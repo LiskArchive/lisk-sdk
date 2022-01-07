@@ -141,7 +141,7 @@ describe('block_synchronization_mechanism', () => {
 			chainModule,
 			logger: loggerMock,
 			bftModule,
-			config: ({} as unknown) as GenesisConfig,
+			config: {} as GenesisConfig,
 		});
 		processorModule.processValidated = jest.fn().mockImplementation(block => {
 			chainModule._lastBlock = block;
