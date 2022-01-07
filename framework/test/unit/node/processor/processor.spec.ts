@@ -914,19 +914,10 @@ describe('processor', () => {
 				config: ({ serializationFixHeight: 0 } as unknown) as GenesisConfig,
 			});
 			processor.register(customModule0);
-			const trx = new Transaction({
-				asset: Buffer.from('invalid bytes', 'utf8'),
-				moduleID: 3,
-				assetID: 0,
-				fee: BigInt(10000000),
-				nonce: BigInt(3),
-				senderPublicKey: Buffer.from('0a08736f6d6520737472', 'hex'),
-				signatures: [],
-			});
 
 			expect(() =>
-				processor.validateTransaction(trx, defaultLastBlock.header as BlockHeader),
-			).toThrow();
+				processor.validateTransaction(tx, defaultLastBlock.header as BlockHeader),
+			).toThrow('Invalid asset');
 		});
 	});
 
