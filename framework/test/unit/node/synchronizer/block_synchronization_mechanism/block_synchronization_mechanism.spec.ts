@@ -142,7 +142,7 @@ describe('block_synchronization_mechanism', () => {
 			logger: loggerMock,
 			bftModule,
 			config: ({
-				serializationFixHeight: 100000000,
+				serializationFixHeight: 0,
 			} as unknown) as GenesisConfig,
 		});
 		processorModule.processValidated = jest.fn().mockImplementation(block => {
