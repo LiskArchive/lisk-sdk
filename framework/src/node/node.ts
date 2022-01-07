@@ -574,6 +574,7 @@ export class Node {
 			logger: this._logger,
 			chainModule: this._chain,
 			bftModule: this._bft,
+			config: this._options.genesisConfig,
 		});
 
 		this._transactionPool = new TransactionPool({

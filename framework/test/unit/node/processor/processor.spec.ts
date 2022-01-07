@@ -11,13 +11,14 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
+import { codec } from '@liskhq/lisk-codec';
 import { GenesisBlock, Chain, Block, Transaction, BlockHeader } from '@liskhq/lisk-chain';
 import { jobHandlers } from '@liskhq/lisk-utils';
 import { ForkStatus, BFT } from '@liskhq/lisk-bft';
 import { validator } from '@liskhq/lisk-validator';
-import { CustomModule0, CustomModule1 } from './custom_modules';
+import { CustomAsset0, CustomModule0, CustomModule1 } from './custom_modules';
 import { Processor } from '../../../../src/node/processor';
+import { GenesisConfig } from '../../../../src';
 
 describe('processor', () => {
 	const defaultLastBlock = {
@@ -88,6 +89,7 @@ describe('processor', () => {
 			logger: loggerStub,
 			chainModule: chainModuleStub,
 			bftModule: bftModuleStub,
+			config: ({ serializationFixHeight: 1000000000 } as unknown) as GenesisConfig,
 		});
 	});
 
@@ -876,6 +878,46 @@ describe('processor', () => {
 			expect(() =>
 				processor.validateTransaction(tx, defaultLastBlock.header as BlockHeader),
 			).not.toThrow();
+		});
+
+		it('should not throw if asset is valid and past serialization fix height', () => {
+			processor = new Processor({
+				channel: channelStub,
+				logger: loggerStub,
+				chainModule: chainModuleStub,
+				bftModule: bftModuleStub,
+				config: ({ serializationFixHeight: 0 } as unknown) as GenesisConfig,
+			});
+			processor.register(customModule0);
+			const encodedAsset = codec.encode(new CustomAsset0().schema, { data: 'hello' });
+			const trx = new Transaction({
+				asset: encodedAsset,
+				moduleID: 3,
+				assetID: 0,
+				fee: BigInt(10000000),
+				nonce: BigInt(3),
+				senderPublicKey: Buffer.from('0a08736f6d6520737472', 'hex'),
+				signatures: [],
+			});
+
+			expect(() =>
+				processor.validateTransaction(trx, defaultLastBlock.header as BlockHeader),
+			).not.toThrow();
+		});
+
+		it('should throw if asset is invalid and past serialization fix height', () => {
+			processor = new Processor({
+				channel: channelStub,
+				logger: loggerStub,
+				chainModule: chainModuleStub,
+				bftModule: bftModuleStub,
+				config: ({ serializationFixHeight: 0 } as unknown) as GenesisConfig,
+			});
+			processor.register(customModule0);
+
+			expect(() =>
+				processor.validateTransaction(tx, defaultLastBlock.header as BlockHeader),
+			).toThrow('Invalid asset');
 		});
 	});
 
