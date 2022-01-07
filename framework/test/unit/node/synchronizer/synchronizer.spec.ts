@@ -124,7 +124,7 @@ describe('Synchronizer', () => {
 			chainModule,
 			logger: loggerMock,
 			bftModule,
-			config: ({ serializationFixHeight: 1000000000 } as unknown) as GenesisConfig,
+			config: {} as GenesisConfig,
 		});
 		processorModule.processValidated = jest.fn();
 		processorModule.deleteLastBlock = jest.fn();
