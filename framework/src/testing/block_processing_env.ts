@@ -131,9 +131,7 @@ const getProcessor = (
 		logger: loggerMock,
 		chainModule,
 		bftModule,
-		config: ({
-			serializationFixHeight: 100000000,
-		} as unknown) as GenesisConfig,
+		config: appConfig.genesisConfig
 	});
 
 	for (const InstantiableModule of modules) {
