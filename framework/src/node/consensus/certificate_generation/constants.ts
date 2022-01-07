@@ -15,3 +15,4 @@
 export const MESSAGE_TAG_CERTIFICATE = 'LSK_CE_';
 export const COMMIT_RANGE_STORED = 100;
 export const EMPTY_BUFFER = Buffer.alloc(0);
+export const NETWORK_EVENT_COMMIT_MESSAGES = 'postSingleCommitMessages';
