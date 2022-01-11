@@ -37,6 +37,7 @@ import { CommitList, COMMIT_SORT } from './commit_list';
 
 export class CommitPool {
 	private readonly _nonGossipedCommits: CommitList;
+	private readonly _nonGossipedCommitsLocal: CommitList;
 	private readonly _gossipedCommits: CommitList;
 	private readonly _blockTime: number;
 	private readonly _bftAPI: BFTAPI;
@@ -44,7 +45,6 @@ export class CommitPool {
 	private readonly _chain: Chain;
 	private readonly _network: Network;
 	private readonly _db: KVStore;
-	private readonly _generatorAddress: Buffer;
 	private _jobIntervalID!: NodeJS.Timeout;
 
 	public constructor(config: CommitPoolConfig) {
@@ -54,8 +54,8 @@ export class CommitPool {
 		this._chain = config.chain;
 		this._network = config.network;
 		this._db = config.db;
-		this._generatorAddress = config.generatorAddress;
 		this._nonGossipedCommits = new CommitList();
+		this._nonGossipedCommitsLocal = new CommitList();
 		this._gossipedCommits = new CommitList();
 	}
 
@@ -72,9 +72,10 @@ export class CommitPool {
 		clearInterval(this._jobIntervalID);
 	}
 
-	public addCommit(commit: SingleCommit): void {
-		if (!this._nonGossipedCommits.exists(commit)) {
-			this._nonGossipedCommits.add(commit);
+	public addCommit(commit: SingleCommit, local = false): void {
+		if (!this._nonGossipedCommits.exists(commit) && !this._nonGossipedCommitsLocal.exists(commit)) {
+			// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+			local ? this._nonGossipedCommitsLocal.add(commit) : this._nonGossipedCommits.add(commit);
 		}
 	}
 
@@ -90,9 +91,11 @@ export class CommitPool {
 		// Validation step 1
 		const existsInNonGossiped = this._nonGossipedCommits.exists(commit);
 
+		const existsInNonGossipedLocal = this._nonGossipedCommitsLocal.exists(commit);
+
 		const existsInGossiped = this._gossipedCommits.exists(commit);
 
-		const doesCommitExist = existsInGossiped || existsInNonGossiped;
+		const doesCommitExist = existsInGossiped || existsInNonGossiped || existsInNonGossipedLocal;
 
 		if (doesCommitExist) {
 			return false;
@@ -149,8 +152,9 @@ export class CommitPool {
 
 	public getCommitsByHeight(height: number): SingleCommit[] {
 		const nonGossipedCommits = this._nonGossipedCommits.getByHeight(height);
+		const nonGossipedCommitsLocal = this._nonGossipedCommitsLocal.getByHeight(height);
 		const gossipedCommits = this._gossipedCommits.getByHeight(height);
-		return [...nonGossipedCommits, ...gossipedCommits];
+		return [...nonGossipedCommits, ...nonGossipedCommitsLocal, ...gossipedCommits];
 	}
 
 	public createSingleCommit(
@@ -331,6 +335,7 @@ export class CommitPool {
 		while (nextHeight > maxHeightCertified) {
 			const singleCommits = [
 				...this._nonGossipedCommits.getByHeight(nextHeight),
+				...this._nonGossipedCommitsLocal.getByHeight(nextHeight),
 				...this._gossipedCommits.getByHeight(nextHeight),
 			];
 			const nextValidators = singleCommits.map(commit => commit.validatorAddress);
@@ -381,6 +386,16 @@ export class CommitPool {
 		for (const height of deletedNonGossipedHeights) {
 			this._nonGossipedCommits.deleteByHeight(height);
 		}
+		// Clean up nonGossipedCommitsLocal
+		const deletedNonGossipedHeightsLocal = await this._getDeleteHeights(
+			apiContext,
+			this._nonGossipedCommitsLocal,
+			removalHeight,
+			maxHeightPrecommitted,
+		);
+		for (const height of deletedNonGossipedHeightsLocal) {
+			this._nonGossipedCommits.deleteByHeight(height);
+		}
 		// Clean up gossipedCommits
 		const deletedGossipedHeights = await this._getDeleteHeights(
 			apiContext,
@@ -411,15 +426,15 @@ export class CommitPool {
 		// Non gossiped commits with descending order of height
 		const sortedNonGossipedCommits = this._nonGossipedCommits.getAll(COMMIT_SORT.DSC);
 
+		// Non gossiped commits with descending order of height by generator
+		const sortedNonGossipedCommitsLocal = this._nonGossipedCommitsLocal.getAll(COMMIT_SORT.DSC);
+
 		// 2.2 Select newly created commits by generator
-		for (const [index, commit] of sortedNonGossipedCommits.entries()) {
+		for (const commit of sortedNonGossipedCommitsLocal) {
 			if (selectedCommits.length >= maxSelectedCommitsLength) {
 				break;
 			}
-			if (commit.validatorAddress.equals(this._generatorAddress)) {
-				selectedCommits.push(commit);
-				sortedNonGossipedCommits.splice(index, 1);
-			}
+			selectedCommits.push(commit);
 		}
 		// 2.3 Select newly received commits by others
 		for (const commit of sortedNonGossipedCommits) {
@@ -437,10 +452,11 @@ export class CommitPool {
 			event: NETWORK_EVENT_COMMIT_MESSAGES,
 			data: codec.encode(singleCommitsNetworkPacketSchema, { commits: encodedCommitArray }),
 		});
-		// 4. Move any gossiped commit message included in nonGossipedCommits to gossipedCommits.
+		// 4. Move any gossiped commit message included in nonGossipedCommits, nonGossipedCommitsLocal to gossipedCommits.
 		for (const commit of selectedCommits) {
 			this._gossipedCommits.add(commit);
 			this._nonGossipedCommits.deleteSingle(commit);
+			this._nonGossipedCommitsLocal.deleteSingle(commit);
 		}
 	}
 
@@ -494,6 +510,7 @@ export class CommitPool {
 		// Flattened list of all the single commits from both gossiped and non gossiped list sorted by ascending order of height
 		return [
 			...this._nonGossipedCommits.getAll(ascendingHeight),
+			...this._nonGossipedCommitsLocal.getAll(ascendingHeight),
 			...this._gossipedCommits.getAll(ascendingHeight),
 		];
 	}
