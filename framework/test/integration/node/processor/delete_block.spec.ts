@@ -16,31 +16,33 @@ import { formatInt, NotFoundError } from '@liskhq/lisk-db';
 import {
 	Block,
 	stateDiffSchema,
-	Account,
 	Transaction,
-	DB_KEY_CONSENSUS_STATE_VALIDATORS,
 	DB_KEY_DIFF_STATE,
-	DB_KEY_ACCOUNTS_ADDRESS,
 	concatDBKeys,
+	DB_KEY_STATE_STORE,
 } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 
+import { intToBuffer } from '@liskhq/lisk-cryptography';
 import { nodeUtils } from '../../../utils';
-import { genesis, DefaultAccountProps } from '../../../fixtures';
-import { createTransferTransaction } from '../../../utils/node/transaction';
+import {
+	createDelegateRegisterTransaction,
+	createDelegateVoteTransaction,
+	createTransferTransaction,
+} from '../../../utils/node/transaction';
 import * as testing from '../../../../src/testing';
-import { Processor } from '../../../../src/node/processor';
+import { TokenModule } from '../../../../src';
 
 describe('Delete block', () => {
 	let processEnv: testing.BlockProcessingEnv;
 	let networkIdentifier: Buffer;
-	let processor: Processor;
 	const databasePath = '/tmp/lisk/delete_block/test';
 	const emptyDiffState = codec.encode(stateDiffSchema, {
 		updated: [],
 		created: [],
 		deleted: [],
 	});
+	const genesis = testing.fixtures.defaultFaucetAccount;
 
 	beforeAll(async () => {
 		processEnv = await testing.getBlockProcessingEnv({
@@ -49,7 +51,6 @@ describe('Delete block', () => {
 			},
 		});
 		networkIdentifier = processEnv.getNetworkId();
-		processor = processEnv.getProcessor();
 	});
 
 	afterAll(async () => {
@@ -59,7 +60,7 @@ describe('Delete block', () => {
 	describe('given there is only a genesis block', () => {
 		describe('when deleteLastBlock is called', () => {
 			it('should fail to delete genesis block', async () => {
-				await expect(processEnv.getProcessor().deleteLastBlock()).rejects.toEqual(
+				await expect(processEnv.getConsensus()['_deleteLastBlock']()).rejects.toEqual(
 					expect.objectContaining({
 						message: expect.stringContaining(
 							'Can not delete block below or same as finalized height',
@@ -75,17 +76,23 @@ describe('Delete block', () => {
 
 		let newBlock: Block;
 		let transaction: Transaction;
-		let genesisAccount: Account<DefaultAccountProps>;
+		let originalBalance: { availableBalance: string };
 
 		describe('when deleteLastBlock is called', () => {
 			beforeEach(async () => {
-				genesisAccount = await processEnv
-					.getDataAccess()
-					.getAccountByAddress<DefaultAccountProps>(genesis.address);
+				const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
+					address: genesis.address.toString('hex'),
+				});
+				originalBalance = await processEnv.invoke<{ availableBalance: string }>(
+					'token_getBalance',
+					{
+						address: genesis.address.toString('hex'),
+					},
+				);
 				transaction = createTransferTransaction({
-					nonce: genesisAccount.sequence.nonce,
+					nonce: BigInt(authData.nonce),
 					recipientAddress: recipientAccount.address,
-					amount: BigInt('100000000000'),
+					amount: BigInt('1000000000'),
 					networkIdentifier,
 					passphrase: genesis.passphrase,
 				});
@@ -94,7 +101,7 @@ describe('Delete block', () => {
 					.getBlockchainDB()
 					.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(newBlock.header.height)), emptyDiffState);
 				await processEnv.process(newBlock);
-				await processor.deleteLastBlock();
+				await processEnv.getConsensus()['_deleteLastBlock']();
 			});
 
 			it('should delete the block from the database', async () => {
@@ -110,18 +117,23 @@ describe('Delete block', () => {
 			});
 
 			it('should match the sender account to the original state', async () => {
-				const genesisAfter = await processEnv
-					.getDataAccess()
-					.getAccountByAddress<DefaultAccountProps>(genesis.address);
-				expect(genesisAfter.token.balance.toString()).toEqual(
-					genesisAccount.token.balance.toString(),
+				const afterBalance = await processEnv.invoke<{ availableBalance: string }>(
+					'token_getBalance',
+					{
+						address: genesis.address.toString('hex'),
+					},
 				);
+				expect(afterBalance).toEqual(originalBalance);
 			});
 
 			it('should not persist virgin recipient account', async () => {
-				await expect(
-					processEnv.getDataAccess().getAccountByAddress(recipientAccount.address),
-				).rejects.toBeInstanceOf(NotFoundError);
+				const recipientBalance = await processEnv.invoke<{ availableBalance: string }>(
+					'token_getBalance',
+					{
+						address: recipientAccount.address.toString('hex'),
+					},
+				);
+				expect(recipientBalance.availableBalance).toEqual('0');
 			});
 
 			it('should not persist the state diff for that block height', async () => {
@@ -138,13 +150,18 @@ describe('Delete block', () => {
 		describe('when the deleteLastBlock is called', () => {
 			it('should rollback all the accounts to the previous state', async () => {
 				// Arrange
-				const genesisAccount = await processEnv
-					.getDataAccess()
-					.getAccountByAddress<DefaultAccountProps>(genesis.address);
-				const genesisBalance = genesisAccount.token.balance;
+				const genesisAuth = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
+					address: genesis.address.toString('hex'),
+				});
+				const genesisBalance = await processEnv.invoke<{ availableBalance: string }>(
+					'token_getBalance',
+					{
+						address: genesis.address.toString('hex'),
+					},
+				);
 				const recipientAccount = nodeUtils.createAccount();
 				const transaction1 = createTransferTransaction({
-					nonce: genesisAccount.sequence.nonce,
+					nonce: BigInt(genesisAuth.nonce),
 					recipientAddress: recipientAccount.address,
 					amount: BigInt('100000000000'),
 					networkIdentifier,
@@ -152,19 +169,23 @@ describe('Delete block', () => {
 				});
 				const newBlock = await processEnv.createBlock([transaction1]);
 				await processEnv.process(newBlock);
-				await processor.deleteLastBlock();
+				await processEnv.getConsensus()['_deleteLastBlock']();
 				// Assert
-				await expect(
-					processEnv.getDataAccess().getAccountByAddress(recipientAccount.address),
-				).rejects.toThrow(
-					`Specified key ${concatDBKeys(DB_KEY_ACCOUNTS_ADDRESS, recipientAccount.address).toString(
-						'hex',
-					)} does not exist`,
+				const dbKey = concatDBKeys(
+					DB_KEY_STATE_STORE,
+					intToBuffer(new TokenModule().id, 4),
+					intToBuffer(0, 2),
 				);
-				const revertedGenesisAccount = await processEnv
-					.getDataAccess()
-					.getAccountByAddress<DefaultAccountProps>(genesisAccount.address);
-				expect(revertedGenesisAccount.token.balance).toEqual(genesisBalance);
+				await expect(processEnv.getBlockchainDB().get(dbKey)).rejects.toThrow(
+					`Specified key ${dbKey.toString('hex')} does not exist`,
+				);
+				const revertedBalance = await processEnv.invoke<{ availableBalance: string }>(
+					'token_getBalance',
+					{
+						address: genesis.address.toString('hex'),
+					},
+				);
+				expect(revertedBalance).toEqual(genesisBalance);
 			});
 		});
 	});
@@ -173,25 +194,54 @@ describe('Delete block', () => {
 		describe('when the deleteLastBlock is called', () => {
 			it('should rollback validators to the previous state', async () => {
 				// Arrange
-				const lastBootstrapHeight = await processEnv.getChain()['_getLastBootstrapHeight']();
-				while (processEnv.getLastBlock().header.height !== lastBootstrapHeight - 1) {
-					const newBlock = await processEnv.createBlock([]);
-					await processEnv.process(newBlock);
-				}
-				const consensusStateBefore = await processEnv
-					.getDataAccess()
-					.getConsensusState(DB_KEY_CONSENSUS_STATE_VALIDATORS);
+				jest.setTimeout(30000);
+
+				const genesisAuth = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
+					address: genesis.address.toString('hex'),
+				});
+				const recipientAccount = nodeUtils.createAccount();
+				const transaction1 = createTransferTransaction({
+					nonce: BigInt(genesisAuth.nonce),
+					recipientAddress: recipientAccount.address,
+					amount: BigInt('1000000000000'),
+					networkIdentifier,
+					passphrase: genesis.passphrase,
+				});
+				const transaction2 = createDelegateRegisterTransaction({
+					nonce: BigInt(0),
+					username: 'rand',
+					networkIdentifier,
+					passphrase: recipientAccount.passphrase,
+				});
+				const transaction3 = createDelegateVoteTransaction({
+					nonce: BigInt(1),
+					networkIdentifier,
+					passphrase: recipientAccount.passphrase,
+					votes: [
+						{
+							delegateAddress: recipientAccount.address,
+							amount: BigInt('100000000000'),
+						},
+					],
+				});
+				const initBlock = await processEnv.createBlock([transaction1, transaction2, transaction3]);
+				await processEnv.process(initBlock);
+				await processEnv.processUntilHeight(308);
+				const validatorsBefore = await processEnv
+					.getValidatorAPI()
+					.getGeneratorList(processEnv.getAPIContext());
+
 				const newBlock = await processEnv.createBlock([]);
 				await processEnv.process(newBlock);
-				const consensusStateAfter = await processEnv
-					.getDataAccess()
-					.getConsensusState(DB_KEY_CONSENSUS_STATE_VALIDATORS);
-				expect(consensusStateBefore).not.toEqual(consensusStateAfter);
-				await processor.deleteLastBlock();
-				const consensusStateReverted = await processEnv
-					.getDataAccess()
-					.getConsensusState(DB_KEY_CONSENSUS_STATE_VALIDATORS);
-				expect(consensusStateReverted).toEqual(consensusStateBefore);
+				const validatorsAfter = await processEnv
+					.getValidatorAPI()
+					.getGeneratorList(processEnv.getAPIContext());
+				expect(validatorsBefore).not.toEqual(validatorsAfter);
+				await processEnv.getConsensus()['_deleteLastBlock']();
+				const validatorsReverted = await processEnv
+					.getValidatorAPI()
+					.getGeneratorList(processEnv.getAPIContext());
+				expect(validatorsReverted).toEqual(validatorsBefore);
 			});
 		});
 	});

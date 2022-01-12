@@ -55,6 +55,7 @@ export interface BlockProcessingEnv {
 	createBlock: (transactions?: Transaction[], timestamp?: number) => Promise<Block>;
 	getConsensus: () => Consensus;
 	getChain: () => Chain;
+	getAPIContext: () => APIContext;
 	getValidatorAPI: () => ValidatorsAPI;
 	getBFTAPI: () => BFTAPI;
 	getBlockchainDB: () => KVStore;
@@ -177,10 +178,11 @@ export const getBlockProcessingEnv = async (
 		getConsensus: () => node['_consensus'],
 		getValidatorAPI: () => node['_validatorsModule'].api,
 		getBFTAPI: () => node['_bftModule'].api,
+		getAPIContext: () => createNewAPIContext(node['_blockchainDB']),
 		getBlockchainDB: () => blockchainDB,
 		process: async (block): Promise<void> => node['_consensus']['_execute'](block, 'peer-id'),
 		processUntilHeight: async (height): Promise<void> => {
-			for (let index = 0; index < height; index += 1) {
+			while (node['_chain'].lastBlock.header.height < height) {
 				const nextBlock = await createProcessableBlock(node, []);
 				await node['_consensus'].execute(nextBlock);
 			}
