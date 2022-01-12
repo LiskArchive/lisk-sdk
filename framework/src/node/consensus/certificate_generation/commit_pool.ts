@@ -74,8 +74,11 @@ export class CommitPool {
 
 	public addCommit(commit: SingleCommit, local = false): void {
 		if (!this._nonGossipedCommits.exists(commit) && !this._nonGossipedCommitsLocal.exists(commit)) {
-			// eslint-disable-next-line @typescript-eslint/no-unused-expressions
-			local ? this._nonGossipedCommitsLocal.add(commit) : this._nonGossipedCommits.add(commit);
+			if (local) {
+				this._nonGossipedCommitsLocal.add(commit);
+			} else {
+				this._nonGossipedCommits.add(commit);
+			}
 		}
 	}
 
