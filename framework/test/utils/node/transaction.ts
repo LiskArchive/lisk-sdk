@@ -221,13 +221,13 @@ export const createReportMisbehaviorTransaction = (input: {
 	fee?: bigint;
 }): Transaction => {
 	const encodedAsset = codec.encode(pomCommandParamsSchema, {
-		header1: input.header1,
-		header2: input.header2,
+		header1: input.header1.getBytes(),
+		header2: input.header2.getBytes(),
 	});
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.passphrase);
 
 	const tx = new Transaction({
-		moduleID: 5,
+		moduleID: 13,
 		commandID: 3,
 		nonce: input.nonce,
 		senderPublicKey: publicKey,

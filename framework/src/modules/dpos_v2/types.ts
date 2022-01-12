@@ -208,7 +208,6 @@ export interface PomCommandDependencies {
 	bftAPI: BFTAPI;
 	tokenAPI: TokenAPI;
 	validatorsAPI: ValidatorsAPI;
-	tokenIDDPoS: TokenIDDPoS;
 }
 
 export interface ValidatorKeys {
@@ -217,7 +216,6 @@ export interface ValidatorKeys {
 }
 
 export interface UnlockCommandDependencies {
-	tokenIDDPoS: TokenIDDPoS;
 	tokenAPI: TokenAPI;
 }
 

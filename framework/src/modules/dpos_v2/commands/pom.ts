@@ -13,7 +13,7 @@
  */
 
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
-import { BlockHeader, TAG_BLOCK_HEADER } from '@liskhq/lisk-chain';
+import { BlockHeader } from '@liskhq/lisk-chain';
 import {
 	CommandVerifyContext,
 	VerificationResult,
@@ -38,7 +38,7 @@ import {
 	TokenIDDPoS,
 	ValidatorsAPI,
 } from '../types';
-import { getPunishmentPeriod, validateSignature } from '../utils';
+import { getPunishmentPeriod } from '../utils';
 import { ValidationError } from '../../../errors';
 
 export class ReportDelegateMisbehaviorCommand extends BaseCommand {
@@ -54,6 +54,9 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 		this._bftAPI = args.bftAPI;
 		this._tokenAPI = args.tokenAPI;
 		this._validatorsAPI = args.validatorsAPI;
+	}
+
+	public init(args: { tokenIDDPoS: TokenIDDPoS }) {
 		this._tokenIDDPoS = args.tokenIDDPoS;
 	}
 
@@ -140,40 +143,19 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 			throw new Error('Cannot apply proof-of-misbehavior. Delegate is already punished.');
 		}
 
-		const { generatorKey: generatorPublicKey1 } = await this._validatorsAPI.getValidatorAccount(
+		if (!header1.generatorAddress.equals(header2.generatorAddress)) {
+			throw new Error('Different generator address never contradict to each other');
+		}
+
+		const { generatorKey } = await this._validatorsAPI.getValidatorAccount(
 			getAPIContext(),
 			header1.generatorAddress,
-		);
-		const { generatorKey: generatorPublicKey2 } = await this._validatorsAPI.getValidatorAccount(
-			getAPIContext(),
-			header2.generatorAddress,
 		);
 		/*
 			Check block signatures validity
 		*/
-		if (
-			!validateSignature(
-				TAG_BLOCK_HEADER,
-				networkIdentifier,
-				generatorPublicKey1,
-				header1.signature,
-				params.header1,
-			)
-		) {
-			throw new Error('Invalid block signature for header 1.');
-		}
-
-		if (
-			!validateSignature(
-				TAG_BLOCK_HEADER,
-				networkIdentifier,
-				generatorPublicKey2,
-				header2.signature,
-				params.header2,
-			)
-		) {
-			throw new Error('Invalid block signature for header 2.');
-		}
+		header1.validateSignature(generatorKey, networkIdentifier);
+		header2.validateSignature(generatorKey, networkIdentifier);
 
 		/*
 			Update sender account
