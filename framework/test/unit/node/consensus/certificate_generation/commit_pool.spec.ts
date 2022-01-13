@@ -242,25 +242,36 @@ describe('CommitPool', () => {
 		});
 
 		it('should select non gossiped commits that are created by the generator of the node', async () => {
+			// Arrange
 			const generatorAddress = getRandomBytes(20);
-			commitPool['_nonGossipedCommits'].add({
+			commitPool.addCommit(
+				{
+					blockID: getRandomBytes(32),
+					certificateSignature: getRandomBytes(96),
+					height: 1070,
+					validatorAddress: generatorAddress,
+				},
+				true,
+			);
+			// Added to nonGossipedCommitsLocal
+			expect(commitPool['_nonGossipedCommitsLocal'].getAll()).toHaveLength(1);
+			commitPool.addCommit({
 				blockID: getRandomBytes(32),
 				certificateSignature: getRandomBytes(96),
 				height: 1070,
-				validatorAddress: generatorAddress,
+				validatorAddress: getRandomBytes(20),
 			});
 			// Assert
 			expect(commitPool['_gossipedCommits'].getAll()).toHaveLength(6);
 			// Arrange
 			commitPool['_bftAPI'].existBFTParameters = jest.fn().mockResolvedValue(true);
-			(commitPool['_generatorAddress'] as any) = generatorAddress;
 			const context = createNewAPIContext(new InMemoryKVStore());
 			// Act
 			await commitPool['_job'](context);
 			// Assert
 			// nonGossiped commits are moved to gossiped commits
 			expect(commitPool['_nonGossipedCommits'].getAll()).toHaveLength(0);
-			expect(commitPool['_gossipedCommits'].getAll()).toHaveLength(11);
+			expect(commitPool['_gossipedCommits'].getAll()).toHaveLength(12);
 			expect(commitPool['_nonGossipedCommits'].getByHeight(1070)).toBeArrayOfSize(0);
 			const commits = commitPool['_gossipedCommits'].getByHeight(1070);
 			expect(commits).toBeDefined();
@@ -289,15 +300,15 @@ describe('CommitPool', () => {
 				}
 
 				const sortedNonGossipedCommits = cp['_nonGossipedCommits'].getAll(COMMIT_SORT.DSC);
+				const sortedNonGossipedCommitsLocal = cp['_nonGossipedCommitsLocal'].getAll(
+					COMMIT_SORT.DSC,
+				);
 
-				for (const [index, commit] of sortedNonGossipedCommits.entries()) {
+				for (const commit of sortedNonGossipedCommitsLocal) {
 					if (selectedCommits.length >= maxSelectedCommitsLength) {
 						break;
 					}
-					if (commit.validatorAddress.equals(cp['_generatorAddress'])) {
-						selectedCommits.push(commit);
-						sortedNonGossipedCommits.splice(index, 1);
-					}
+					selectedCommits.push(commit);
 				}
 				// 2.3 Select newly received commits by others
 				for (const commit of sortedNonGossipedCommits) {
