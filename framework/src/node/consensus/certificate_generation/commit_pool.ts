@@ -257,7 +257,7 @@ export class CommitPool {
 		);
 	}
 
-	public async getAggregageCommit(apiContext: APIContext): Promise<AggregateCommit> {
+	public async getAggregateCommit(apiContext: APIContext): Promise<AggregateCommit> {
 		return this._selectAggregateCommit(apiContext);
 	}
 
