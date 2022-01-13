@@ -225,6 +225,7 @@ export class Generator {
 	}
 
 	public async start(): Promise<void> {
+		this._networkEndpoint.start();
 		this._pool.events.on(events.EVENT_TRANSACTION_REMOVED, event => {
 			this._logger.debug(event, 'Transaction was removed from the pool.');
 		});
@@ -249,6 +250,7 @@ export class Generator {
 		this._broadcaster.stop();
 		this._pool.stop();
 		this._generationJob.stop();
+		this._networkEndpoint.stop();
 	}
 
 	public onNewBlock(block: Block): void {

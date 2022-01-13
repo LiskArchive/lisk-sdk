@@ -128,6 +128,7 @@ export class Consensus {
 			db: this._db,
 		} as EndpointArgs); // TODO: Remove casting in issue where commitPool is added here
 		const blockExecutor = this._createBlockExecutor();
+		this._endpoint.start();
 		const blockSyncMechanism = new BlockSynchronizationMechanism({
 			chain: this._chain,
 			logger: this._logger,
@@ -312,6 +313,7 @@ export class Consensus {
 		this._stop = true;
 		// Add mutex to wait for the current mutex to finish
 		await this._mutex.acquire();
+		this._endpoint.stop();
 	}
 
 	public isSynced(height: number, maxHeightPrevoted: number): boolean {

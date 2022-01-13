@@ -17,13 +17,25 @@ interface RateTracker {
 	[key: string]: { [key: string]: number };
 }
 
+export const DEFAULT_RATE_RESET_TIME = 10000;
 export class BaseNetworkEndpoint {
 	protected network: Network;
 
 	private _rateTracker: RateTracker = {};
+	private _limitResetInterval!: NodeJS.Timeout;
 
 	public constructor(network: Network) {
 		this.network = network;
+	}
+
+	public start() {
+		this._limitResetInterval = setInterval(() => {
+			this._rateTracker = {};
+		}, DEFAULT_RATE_RESET_TIME);
+	}
+
+	public stop() {
+		clearInterval(this._limitResetInterval);
 	}
 
 	protected addRateLimit(procedure: string, peerId: string, limit: number): void {

@@ -39,6 +39,7 @@ import { CommitPool } from './certificate_generation/commit_pool';
 import { singleCommitSchema } from './certificate_generation/schema';
 import { APIContext } from '../state_machine/types';
 import { createNewAPIContext } from '../state_machine/api_context';
+import { BaseNetworkEndpoint } from '../network/base_network_endpoint';
 
 export interface EndpointArgs {
 	logger: Logger;
@@ -48,40 +49,34 @@ export interface EndpointArgs {
 	db: KVStore;
 }
 
-interface RateTracker {
-	[key: string]: { [key: string]: number };
-}
-
 const DEFAULT_SINGLE_COMMIT_FROM_IDS_RATE_LIMIT_FREQUENCY = 10;
 const DEFAULT_LAST_BLOCK_RATE_LIMIT_FREQUENCY = 10;
 const DEFAULT_COMMON_BLOCK_RATE_LIMIT_FREQUENCY = 10;
 const DEFAULT_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY = 100;
 
-export class NetworkEndpoint {
+export class NetworkEndpoint extends BaseNetworkEndpoint {
 	private readonly _logger: Logger;
 	private readonly _chain: Chain;
 	private readonly _network: Network;
 	private readonly _commitPool: CommitPool;
 	private readonly _apiContext: APIContext;
 
-	private _rateTracker: RateTracker;
-
 	public constructor(args: EndpointArgs) {
+		super(args.network);
 		this._logger = args.logger;
 		this._chain = args.chain;
 		this._network = args.network;
 		this._commitPool = args.commitPool;
-		this._rateTracker = {};
 		this._apiContext = createNewAPIContext(args.db);
 	}
 
 	public handleRPCGetLastBlock(peerId: string): Buffer {
-		this._addRateLimit(NETWORK_RPC_GET_LAST_BLOCK, peerId, DEFAULT_LAST_BLOCK_RATE_LIMIT_FREQUENCY);
+		this.addRateLimit(NETWORK_RPC_GET_LAST_BLOCK, peerId, DEFAULT_LAST_BLOCK_RATE_LIMIT_FREQUENCY);
 		return this._chain.lastBlock.getBytes();
 	}
 
 	public async handleRPCGetBlocksFromId(data: unknown, peerId: string): Promise<Buffer> {
-		this._addRateLimit(
+		this.addRateLimit(
 			NETWORK_RPC_GET_BLOCKS_FROM_ID,
 			peerId,
 			DEFAULT_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY,
@@ -147,7 +142,7 @@ export class NetworkEndpoint {
 		data: unknown,
 		peerId: string,
 	): Promise<Buffer | undefined> {
-		this._addRateLimit(
+		this.addRateLimit(
 			NETWORK_RPC_GET_HIGHEST_COMMON_BLOCK,
 			peerId,
 			DEFAULT_COMMON_BLOCK_RATE_LIMIT_FREQUENCY,
@@ -183,7 +178,7 @@ export class NetworkEndpoint {
 	}
 
 	public async handleEventSingleCommit(data: unknown, peerId: string): Promise<void> {
-		this._addRateLimit(
+		this.addRateLimit(
 			NETWORK_RPC_GET_SINGLE_COMMIT_FROM_ID,
 			peerId,
 			DEFAULT_SINGLE_COMMIT_FROM_IDS_RATE_LIMIT_FREQUENCY,
@@ -248,24 +243,5 @@ export class NetworkEndpoint {
 		}
 
 		this._commitPool.addCommit(decodedData.singleCommit);
-	}
-
-	private _addRateLimit(procedure: string, peerId: string, limit: number): void {
-		if (this._rateTracker[procedure] === undefined) {
-			this._rateTracker[procedure] = { [peerId]: 0 };
-		}
-		this._rateTracker[procedure][peerId] = this._rateTracker[procedure][peerId]
-			? this._rateTracker[procedure][peerId] + 1
-			: 1;
-		if (this._rateTracker[procedure][peerId] > limit) {
-			this._logger.debug(
-				{ peerId, penalty: 10 },
-				'Adding penalty on peer for exceeding rate limit.',
-			);
-			this._network.applyPenaltyOnPeer({
-				peerId,
-				penalty: 10,
-			});
-		}
 	}
 }
