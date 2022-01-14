@@ -18,6 +18,7 @@ import { Options } from '@liskhq/lisk-db';
 import { Logger } from '../../logger';
 import { BFTParameters } from '../../modules/bft/schemas';
 import { BFTHeights } from '../consensus';
+import { AggregateCommit } from '../consensus/types';
 import { APIContext, BlockHeader, ImmutableAPIContext, ImmutableSubStore } from '../state_machine';
 
 export interface Keypair {
@@ -33,6 +34,7 @@ export interface GeneratorStore {
 export interface Consensus {
 	execute: (block: Block) => Promise<void>;
 	isSynced: (height: number, maxHeightPrevoted: number) => boolean;
+	getAggregateCommit: (apiContext: APIContext) => Promise<AggregateCommit>;
 }
 
 export interface BFTAPI {

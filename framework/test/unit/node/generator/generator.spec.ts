@@ -109,6 +109,7 @@ describe('generator', () => {
 		} as never;
 		consensus = {
 			execute: jest.fn(),
+			getAggregateCommit: jest.fn(),
 		} as never;
 		validatorAPI = {
 			getSlotNumber: jest.fn(),
@@ -554,6 +555,11 @@ describe('generator', () => {
 		const currentTime = Math.floor(Date.now() / 1000);
 		const validatorsHash = hash(getRandomBytes(32));
 		const assetHash = hash(getRandomBytes(32));
+		const aggregateCommit = {
+			aggregationBits: Buffer.alloc(0),
+			certificateSignature: getRandomBytes(96),
+			height: 3456,
+		};
 
 		beforeEach(async () => {
 			mod1 = {
@@ -572,6 +578,9 @@ describe('generator', () => {
 			jest
 				.spyOn(generator['_bftAPI'], 'getBFTParameters')
 				.mockResolvedValue({ validatorsHash } as never);
+			jest
+				.spyOn(generator['_consensus'], 'getAggregateCommit')
+				.mockResolvedValue(aggregateCommit as never);
 			await generator.init({
 				blockchainDB,
 				generatorDB,
@@ -629,6 +638,17 @@ describe('generator', () => {
 			});
 
 			expect(block.header.assetsRoot).toEqual(assetHash);
+		});
+
+		it('should assign aggregateCommit to the block', async () => {
+			const block = await generator.generateBlock({
+				generatorAddress,
+				timestamp: currentTime,
+				privateKey: keypair.privateKey,
+				height: 2,
+			});
+
+			expect(block.header.aggregateCommit).toEqual(aggregateCommit);
 		});
 	});
 });

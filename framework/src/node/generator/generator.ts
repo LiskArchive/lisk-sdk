@@ -600,6 +600,7 @@ export class Generator {
 		const { validatorsHash } = await this._bftAPI.getBFTParameters(apiContext, height + 1);
 		blockHeader.validatorsHash = validatorsHash;
 		blockHeader.sign(this._chain.networkIdentifier, privateKey);
+		blockHeader.aggregateCommit = await this._consensus.getAggregateCommit(apiContext);
 
 		const generatedBlock = new Block(blockHeader, transactions, blockAssets);
 

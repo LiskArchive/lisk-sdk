@@ -103,6 +103,7 @@ describe('consensus', () => {
 		} as never;
 		commitPool = {
 			verifyAggregateCommit: jest.fn(),
+			getAggregateCommit: jest.fn(),
 		};
 		consensus = new Consensus({
 			chain,
