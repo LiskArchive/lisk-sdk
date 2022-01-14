@@ -234,6 +234,31 @@ export const isPunished = (
 	);
 };
 
+export const lastHeightOfRound = (height: number, genesisHeight: number, roundLength: number) => {
+	const roundNumber = Math.ceil((height - genesisHeight) / roundLength);
+
+	return roundNumber * roundLength + genesisHeight;
+};
+
+export const isCertificateGenerated = (options: {
+	unlockObject: UnlockingObject;
+	genesisHeight: number;
+	maxHeightCertified: number;
+	roundLength: number;
+}) => {
+	if (
+		lastHeightOfRound(
+			options.unlockObject.unvoteHeight + 2 * options.roundLength,
+			options.genesisHeight,
+			options.roundLength,
+		) <= options.maxHeightCertified
+	) {
+		return true;
+	}
+
+	return false;
+};
+
 export const getMinPunishedHeight = (
 	senderAddress: Buffer,
 	delegateAddress: Buffer,
