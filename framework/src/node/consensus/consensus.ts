@@ -308,10 +308,16 @@ export class Consensus {
 		});
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async start(): Promise<void> {
+		this._endpoint.start();
+	}
+
 	public async stop(): Promise<void> {
 		this._stop = true;
 		// Add mutex to wait for the current mutex to finish
 		await this._mutex.acquire();
+		this._endpoint.stop();
 	}
 
 	public async getAggregateCommit(apiContext: APIContext): Promise<AggregateCommit> {
