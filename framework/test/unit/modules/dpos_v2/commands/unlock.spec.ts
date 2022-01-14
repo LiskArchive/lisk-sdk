@@ -18,17 +18,28 @@ import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import * as testing from '../../../../../src/testing';
 import { UnlockCommand } from '../../../../../src/modules/dpos_v2/commands/unlock';
 import {
+	EMPTY_KEY,
 	SELF_VOTE_PUNISH_TIME,
 	VOTER_PUNISH_TIME,
 	WAIT_TIME_SELF_VOTE,
 	WAIT_TIME_VOTE,
 	MODULE_ID_DPOS,
 	STORE_PREFIX_DELEGATE,
+	STORE_PREFIX_GENESIS_DATA,
 	STORE_PREFIX_VOTER,
 	COMMAND_ID_UNLOCK,
 } from '../../../../../src/modules/dpos_v2/constants';
-import { delegateStoreSchema, voterStoreSchema } from '../../../../../src/modules/dpos_v2/schemas';
-import { TokenAPI, UnlockingObject, VoterData } from '../../../../../src/modules/dpos_v2/types';
+import {
+	delegateStoreSchema,
+	genesisDataStoreSchema,
+	voterStoreSchema,
+} from '../../../../../src/modules/dpos_v2/schemas';
+import {
+	BFTAPI,
+	TokenAPI,
+	UnlockingObject,
+	VoterData,
+} from '../../../../../src/modules/dpos_v2/types';
 import { CommandExecuteContext } from '../../../../../src/node/state_machine/types';
 import { liskToBeddows } from '../../../../utils/assets';
 
@@ -38,7 +49,9 @@ describe('UnlockCommand', () => {
 	let stateStore: StateStore;
 	let delegateSubstore: StateStore;
 	let voterSubstore: StateStore;
+	let genesisSubstore: StateStore;
 	let mockTokenAPI: TokenAPI;
+	let mockBFTAPI: BFTAPI;
 	let blockHeight: number;
 	let header: BlockHeader;
 	let unlockableObject: UnlockingObject;
@@ -84,20 +97,37 @@ describe('UnlockCommand', () => {
 			transfer: jest.fn(),
 			getLockedAmount: jest.fn(),
 		};
+		mockBFTAPI = {
+			setBFTParameters: jest.fn(),
+			getBFTParameters: jest.fn(),
+			areHeadersContradicting: jest.fn(),
+			getBFTHeights: jest.fn().mockResolvedValue({ maxHeightCertified: 8760000 }),
+		};
 		unlockCommand.addDependencies({
 			tokenIDDPoS: { chainID: 0, localID: 0 },
 			tokenAPI: mockTokenAPI,
+			bftAPI: mockBFTAPI,
 		});
 		db = new InMemoryKVStore() as never;
 		stateStore = new StateStore(db);
 		delegateSubstore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
 		voterSubstore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_VOTER);
+		genesisSubstore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_GENESIS_DATA);
 		blockHeight = 8760000;
 		header = testing.createFakeBlockHeader({ height: blockHeight });
 	});
 
 	describe(`when non self-voted non-punished account waits ${WAIT_TIME_VOTE} blocks since unvoteHeight`, () => {
 		beforeEach(async () => {
+			await genesisSubstore.setWithSchema(
+				EMPTY_KEY,
+				{
+					height: 8760000,
+					initRounds: 1,
+					initDelegates: [],
+				},
+				genesisDataStoreSchema,
+			);
 			await delegateSubstore.setWithSchema(
 				delegate1.address,
 				{
@@ -114,6 +144,7 @@ describe('UnlockCommand', () => {
 				},
 				delegateStoreSchema,
 			);
+
 			unlockableObject = {
 				delegateAddress: delegate1.address,
 				amount: delegate1.amount,
@@ -160,6 +191,15 @@ describe('UnlockCommand', () => {
 
 	describe(`when self-voted non-punished account waits ${WAIT_TIME_SELF_VOTE} blocks since unvoteHeight`, () => {
 		beforeEach(async () => {
+			await genesisSubstore.setWithSchema(
+				EMPTY_KEY,
+				{
+					height: 8760000,
+					initRounds: 1,
+					initDelegates: [],
+				},
+				genesisDataStoreSchema,
+			);
 			await delegateSubstore.setWithSchema(
 				transaction.senderAddress,
 				{
@@ -215,6 +255,15 @@ describe('UnlockCommand', () => {
 
 	describe(`when non self-voted punished account waits ${VOTER_PUNISH_TIME} blocks and unvoteHeight + ${WAIT_TIME_VOTE} blocks since last pomHeight`, () => {
 		beforeEach(async () => {
+			await genesisSubstore.setWithSchema(
+				EMPTY_KEY,
+				{
+					height: 8760000,
+					initRounds: 1,
+					initDelegates: [],
+				},
+				genesisDataStoreSchema,
+			);
 			await delegateSubstore.setWithSchema(
 				delegate1.address,
 				{
@@ -328,6 +377,15 @@ describe('UnlockCommand', () => {
 
 	describe(`when self-voted punished account waits ${SELF_VOTE_PUNISH_TIME} blocks and waits unvoteHeight + ${WAIT_TIME_SELF_VOTE} blocks since pomHeight`, () => {
 		beforeEach(async () => {
+			await genesisSubstore.setWithSchema(
+				EMPTY_KEY,
+				{
+					height: 8760000,
+					initRounds: 1,
+					initDelegates: [],
+				},
+				genesisDataStoreSchema,
+			);
 			await delegateSubstore.setWithSchema(
 				transaction.senderAddress,
 				{
@@ -387,6 +445,15 @@ describe('UnlockCommand', () => {
 
 	describe(`when self-voted punished account does not wait ${SELF_VOTE_PUNISH_TIME} blocks and waits unvoteHeight + ${WAIT_TIME_SELF_VOTE} blocks since pomHeight`, () => {
 		beforeEach(async () => {
+			await genesisSubstore.setWithSchema(
+				EMPTY_KEY,
+				{
+					height: 8760000,
+					initRounds: 1,
+					initDelegates: [],
+				},
+				genesisDataStoreSchema,
+			);
 			await delegateSubstore.setWithSchema(
 				transaction.senderAddress,
 				{
