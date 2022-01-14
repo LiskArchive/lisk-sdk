@@ -11,109 +11,153 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { KVStore } from '@liskhq/lisk-db';
-import { Account } from '@liskhq/lisk-chain';
-import { validator } from '@liskhq/lisk-validator';
-import { nodeUtils } from '../../utils';
-import { createDB, removeDB } from '../../utils/kv_store';
-import { Node } from '../../../src/node';
-import { genesis, genesisBlock as getGenesisBlock, DefaultAccountProps } from '../../fixtures';
+import { codec } from '@liskhq/lisk-codec';
+import { Chain, StateStore } from '@liskhq/lisk-chain';
+import * as testing from '../../../src/testing';
 import { createTransferTransaction } from '../../utils/node/transaction';
+import { TokenModule } from '../../../src';
+import { genesisTokenStoreSchema } from '../../../src/modules/token';
+import { GenesisTokenStore } from '../../../src/modules/token/types';
+import { Consensus } from '../../../src/node/consensus';
+import { createAPIContext, EventQueue } from '../../../src/node/state_machine';
+import { Network } from '../../../src/node/network';
 
 describe('genesis block', () => {
-	const dbName = 'genesis_block';
-	const genesisBlock = getGenesisBlock();
-	let node: Node;
-	let blockchainDB: KVStore;
-	let forgerDB: KVStore;
+	const databasePath = '/tmp/lisk/genesis_block/test';
+	const genesis = testing.fixtures.defaultFaucetAccount;
+
+	let processEnv: testing.BlockProcessingEnv;
+	let networkIdentifier: Buffer;
 
 	beforeAll(async () => {
-		({ blockchainDB, forgerDB } = createDB(dbName));
-		node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
-		// Since node start the forging so we have to stop the job
-		// Our test make use of manual forging of blocks
-		node['_forgingJob'].stop();
+		processEnv = await testing.getBlockProcessingEnv({
+			options: {
+				databasePath,
+			},
+		});
+		networkIdentifier = processEnv.getNetworkId();
 	});
 
 	afterAll(async () => {
-		await node.cleanup();
-		await blockchainDB.close();
-		await forgerDB.close();
-		removeDB(dbName);
+		await processEnv.cleanup({ databasePath });
 	});
 
 	describe('given the application has not been initialized', () => {
 		describe('when chain module is bootstrapped', () => {
 			it('should save genesis block to the database', async () => {
-				const block = await node['_chain'].dataAccess.getBlockByID(genesisBlock.header.id);
+				const block = await processEnv.getChain().dataAccess.getBlockByHeight(0);
 
 				expect(block.header.version).toEqual(0);
-				expect(block.header).toEqual(genesisBlock.header);
+				expect(block.header.toObject()).toEqual(processEnv.getGenesisBlock().header.toObject());
 			});
 
 			it('should save accounts from genesis block assets', async () => {
 				// Get genesis accounts
-				const genesisAccounts = genesisBlock.header.asset.accounts;
-
-				// Get delegate accounts in genesis block from the database
-				const accountsFromDb = await Promise.all(
-					genesisAccounts.map(async account =>
-						node['_chain'].dataAccess.getAccountByAddress(account.address),
-					),
+				const tokenAsset = processEnv.getGenesisBlock().assets.getAsset(new TokenModule().id);
+				const decoded = codec.decode<GenesisTokenStore>(
+					genesisTokenStoreSchema,
+					tokenAsset as Buffer,
 				);
 
-				expect(genesisAccounts).toEqual(accountsFromDb);
+				// Get delegate accounts in genesis block from the database
+				expect.assertions(decoded.userSubstore.length);
+				for (const data of decoded.userSubstore) {
+					const balance = await processEnv.invoke<{ availableBalance: string }>(
+						'token_getBalance',
+						{
+							address: data.address.toString('hex'),
+						},
+					);
+					expect(balance.availableBalance).toEqual(data.availableBalance.toString());
+				}
 			});
 
 			it('should have correct delegate list', async () => {
-				const delegateListFromChain = await nodeUtils.getDelegateList(node);
-				expect(delegateListFromChain).toMatchSnapshot();
+				const validators = await processEnv.invoke<{ list: string[] }>(
+					'validators_getGeneratorList',
+					{},
+				);
+				expect(validators.list).toMatchSnapshot();
 			});
 		});
 	});
 
 	describe('given the application was initialized earlier', () => {
-		const account = (genesisBlock.header.asset.accounts[
-			genesisBlock.header.asset.accounts.length - 1
-		] as unknown) as Account<DefaultAccountProps>;
 		let newBalance: bigint;
 		let oldBalance: bigint;
+		let recipientAddress: Buffer;
 
 		beforeEach(async () => {
-			// FIXME: Remove with #5572
-			validator.removeSchema('/block/header');
-			const genesisAccount = await node[
-				'_chain'
-			].dataAccess.getAccountByAddress<DefaultAccountProps>(genesis.address);
-			const recipient = await node['_chain'].dataAccess.getAccountByAddress<DefaultAccountProps>(
-				account.address,
+			const tokenAsset = processEnv.getGenesisBlock().assets.getAsset(new TokenModule().id);
+			const decoded = codec.decode<GenesisTokenStore>(
+				genesisTokenStoreSchema,
+				tokenAsset as Buffer,
 			);
-			oldBalance = account.token.balance;
+			recipientAddress = decoded.userSubstore[decoded.userSubstore.length - 1].address;
+			const recipient = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
+				address: recipientAddress.toString('hex'),
+			});
+			oldBalance = BigInt(recipient.availableBalance);
 			newBalance = oldBalance + BigInt('100000000000');
+			const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
+				address: genesis.address.toString('hex'),
+			});
 
 			const transaction = createTransferTransaction({
 				amount: BigInt('100000000000'),
-				recipientAddress: recipient.address,
-				networkIdentifier: node['_networkIdentifier'],
-				nonce: genesisAccount.sequence.nonce,
+				recipientAddress,
+				networkIdentifier,
+				nonce: BigInt(authData.nonce),
 				passphrase: genesis.passphrase,
 			});
-			const newBlock = await nodeUtils.createBlock(node, [transaction]);
-			await node['_processor'].process(newBlock);
+			const newBlock = await processEnv.createBlock([transaction]);
+			await processEnv.process(newBlock);
 		});
 
 		describe('when chain module is bootstrapped', () => {
 			it('should not apply the genesis block again', async () => {
 				// Act
-				// Re-initialize the node
-				node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
+				const consensus = processEnv.getConsensus();
+
+				const chain = new Chain({
+					maxTransactionsSize: 15 * 1024,
+				});
+				const newConsensus = new Consensus({
+					bftAPI: consensus['_bftAPI'],
+					chain,
+					genesisConfig: consensus['_genesisConfig'],
+					network: ({
+						registerEndpoint: () => {},
+						registerHandler: () => {},
+					} as unknown) as Network,
+					stateMachine: consensus['_stateMachine'],
+					validatorAPI: consensus['_validatorAPI'],
+				});
+				chain.init({
+					db: processEnv.getBlockchainDB(),
+					genesisBlock: processEnv.getGenesisBlock(),
+					networkIdentifier: processEnv.getNetworkId(),
+				});
+				await newConsensus.init({
+					db: consensus['_db'],
+					genesisBlock: processEnv.getGenesisBlock(),
+					logger: consensus['_logger'],
+				});
+
+				const tokenModule = consensus['_stateMachine']['_findModule'](
+					new TokenModule().id,
+				) as TokenModule;
+				const balance = await tokenModule.api.getAvailableBalance(
+					createAPIContext({
+						stateStore: new StateStore(newConsensus['_db']),
+						eventQueue: new EventQueue(),
+					}),
+					recipientAddress,
+					{ chainID: 0, localID: 0 },
+				);
 
 				// Arrange & Assert
-				const recipient = await node['_chain'].dataAccess.getAccountByAddress<DefaultAccountProps>(
-					account.address,
-				);
-				expect(recipient.token.balance).toEqual(newBalance);
+				expect(balance).toEqual(newBalance);
 			});
 		});
 	});

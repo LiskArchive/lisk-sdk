@@ -11,62 +11,59 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { KVStore } from '@liskhq/lisk-db';
 import { Transaction } from '@liskhq/lisk-chain';
+import * as testing from '../../../../src/testing';
 import { nodeUtils } from '../../../utils';
-import { createDB, removeDB } from '../../../utils/kv_store';
-import { genesis } from '../../../fixtures';
 import { createTransferTransaction } from '../../../utils/node/transaction';
 
 describe('Transaction pool', () => {
-	const dbName = 'transaction_pool';
-	let node: any;
-	let blockchainDB: KVStore;
-	let forgerDB: KVStore;
+	const databasePath = '/tmp/lisk/generator/transaction_pool';
+	const genesis = testing.fixtures.defaultFaucetAccount;
+
+	let processEnv: testing.BlockProcessingEnv;
 
 	beforeAll(async () => {
-		({ blockchainDB, forgerDB } = createDB(dbName));
-		node = await nodeUtils.createAndLoadNode(blockchainDB, forgerDB);
+		processEnv = await testing.getBlockProcessingEnv({
+			options: {
+				databasePath,
+			},
+		});
 	});
 
 	afterAll(async () => {
-		await node.cleanup();
-		await blockchainDB.close();
-		await forgerDB.close();
-		removeDB(dbName);
+		await processEnv.cleanup({ databasePath });
 	});
 
-	describe('given a valid transaction while forging is disabled', () => {
+	describe('given a valid transaction while generation is disabled', () => {
 		let transaction: Transaction;
 
 		beforeAll(async () => {
-			const genesisAccount = await node._chain.dataAccess.getAccountByAddress(genesis.address);
+			const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
+				address: genesis.address.toString('hex'),
+			});
 			const account = nodeUtils.createAccount();
 			transaction = createTransferTransaction({
-				nonce: genesisAccount.sequence.nonce,
+				nonce: BigInt(authData.nonce),
 				recipientAddress: account.address,
 				amount: BigInt('100000000000'),
-				networkIdentifier: Buffer.from(node._networkIdentifier, 'hex'),
+				networkIdentifier: processEnv.getNetworkId(),
 				passphrase: genesis.passphrase,
 			});
-			await node._transport.handleEventPostTransaction({
-				transaction: transaction.getBytes().toString('hex'),
-			});
+			await processEnv.getGenerator()['_pool'].add(transaction);
 		});
 
 		describe('when transaction is pass to the transaction pool', () => {
 			it('should be added to the transaction pool', () => {
-				expect(node._transactionPool.contains(transaction.id)).toBeTrue();
+				expect(processEnv.getGenerator()['_pool'].contains(transaction.id)).toBeTrue();
 			});
 
 			it('should expire after X sec', async () => {
-				const tx = node._transactionPool.get(transaction.id);
+				const tx = processEnv.getGenerator()['_pool'].get(transaction.id);
 				// Mutate received at to be expired (3 hours + 1s)
-				tx.receivedAt = new Date(Date.now() - 10801000);
+				(tx as any).receivedAt = new Date(Date.now() - 10801000);
 				// Forcefully call expire
-				await node._transactionPool._expire();
-				expect(node._transactionPool.contains(transaction.id)).toBeFalse();
+				await processEnv.getGenerator()['_pool']['_expire']();
+				expect(processEnv.getGenerator()['_pool'].contains(transaction.id)).toBeFalse();
 			});
 		});
 	});

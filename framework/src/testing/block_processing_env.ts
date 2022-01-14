@@ -38,6 +38,7 @@ import { FeeModule } from '../modules/fee';
 import { RewardModule } from '../modules/reward';
 import { RandomModule } from '../modules/random';
 import { DPoSModule } from '../modules/dpos_v2';
+import { Generator } from '../node/generator';
 
 type Options = {
 	genesis?: GenesisConfig;
@@ -54,6 +55,8 @@ interface BlockProcessingParams {
 export interface BlockProcessingEnv {
 	createBlock: (transactions?: Transaction[], timestamp?: number) => Promise<Block>;
 	getConsensus: () => Consensus;
+	getGenerator: () => Generator;
+	getGenesisBlock: () => Block;
 	getChain: () => Chain;
 	getAPIContext: () => APIContext;
 	getValidatorAPI: () => ValidatorsAPI;
@@ -174,8 +177,10 @@ export const getBlockProcessingEnv = async (
 	return {
 		createBlock: async (transactions: Transaction[] = [], timestamp?: number): Promise<Block> =>
 			createProcessableBlock(node, transactions, timestamp),
+		getGenesisBlock: () => genesisBlock,
 		getChain: () => node['_chain'],
 		getConsensus: () => node['_consensus'],
+		getGenerator: () => node['_generator'],
 		getValidatorAPI: () => node['_validatorsModule'].api,
 		getBFTAPI: () => node['_bftModule'].api,
 		getAPIContext: () => createNewAPIContext(node['_blockchainDB']),

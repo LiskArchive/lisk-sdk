@@ -144,9 +144,7 @@ export const createMultiSignRegisterTransaction = (input: {
 		numberOfSignatures: input.numberOfSignatures,
 	};
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.senderPassphrase);
-	const transaction = [input.senderPassphrase, ...input.passphrases].reduce<
-		Record<string, unknown>
-	>(
+	const transaction = [...input.passphrases].reduce<Record<string, unknown>>(
 		(prev, current) => {
 			return signMultiSignatureTransaction(
 				registerMultisignatureParamsSchema,
