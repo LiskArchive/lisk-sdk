@@ -13,6 +13,7 @@
  */
 
 import { BlockHeader } from '@liskhq/lisk-chain';
+import { BFTHeights } from '../bft/types';
 import { Validator } from '../../node/consensus/types';
 import { APIContext, ImmutableAPIContext } from '../../node/state_machine/types';
 
@@ -54,6 +55,7 @@ export interface BFTAPI {
 		validators: Validator[];
 	}>;
 	areHeadersContradicting(bftHeader1: BlockHeader, bftHeader2: BlockHeader): boolean;
+	getBFTHeights(context: ImmutableAPIContext): Promise<BFTHeights>;
 }
 
 export interface RandomAPI {
@@ -219,6 +221,7 @@ export interface ValidatorKeys {
 export interface UnlockCommandDependencies {
 	tokenIDDPoS: TokenIDDPoS;
 	tokenAPI: TokenAPI;
+	bftAPI: BFTAPI;
 }
 
 export interface SnapshotStoreData {
@@ -234,7 +237,7 @@ export interface PreviousTimestampData {
 }
 
 export interface GenesisData {
-	heigth: number;
+	height: number;
 	initRounds: number;
 	initDelegates: Buffer[];
 }
