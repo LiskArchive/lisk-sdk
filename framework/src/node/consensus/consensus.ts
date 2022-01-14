@@ -308,7 +308,8 @@ export class Consensus {
 		});
 	}
 
-	public start(): void {
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async start(): Promise<void> {
 		this._endpoint.start();
 	}
 

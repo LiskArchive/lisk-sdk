@@ -294,7 +294,7 @@ export class Node {
 	public async start() {
 		await this._network.start();
 		await this._generator.start();
-		this._consensus.start();
+		await this._consensus.start();
 	}
 
 	public async stop(): Promise<void> {

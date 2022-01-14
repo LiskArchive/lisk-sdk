@@ -281,6 +281,7 @@ describe('Application', () => {
 
 		beforeEach(async () => {
 			({ app } = Application.defaultApplication(config));
+			jest.spyOn(app['_node'], 'start').mockResolvedValue();
 			jest.spyOn(app['_node']['_network'], 'start').mockResolvedValue();
 			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
 			// jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
@@ -361,6 +362,7 @@ describe('Application', () => {
 		beforeEach(async () => {
 			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 			({ app } = Application.defaultApplication(config));
+			jest.spyOn(app['_node'], 'start').mockResolvedValue();
 			jest.spyOn(app['_node']['_network'], 'start').mockResolvedValue();
 			jest.spyOn(app['_node']['_stateMachine'], 'executeGenesisBlock').mockResolvedValue();
 
