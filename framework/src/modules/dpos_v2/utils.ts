@@ -245,19 +245,12 @@ export const isCertificateGenerated = (options: {
 	genesisHeight: number;
 	maxHeightCertified: number;
 	roundLength: number;
-}) => {
-	if (
-		lastHeightOfRound(
-			options.unlockObject.unvoteHeight + 2 * options.roundLength,
-			options.genesisHeight,
-			options.roundLength,
-		) <= options.maxHeightCertified
-	) {
-		return true;
-	}
-
-	return false;
-};
+}) =>
+	lastHeightOfRound(
+		options.unlockObject.unvoteHeight + 2 * options.roundLength,
+		options.genesisHeight,
+		options.roundLength,
+	) <= options.maxHeightCertified;
 
 export const getMinPunishedHeight = (
 	senderAddress: Buffer,
