@@ -126,18 +126,6 @@ export class DPoSModule extends BaseModule {
 		voteCommand.addDependencies({
 			tokenAPI: this._tokenAPI,
 		});
-
-		const unlockCommand = this.commands.find(command => command.id === COMMAND_ID_UNLOCK) as
-			| UnlockCommand
-			| undefined;
-		if (!unlockCommand) {
-			throw new Error("'unlockCommand' is missing from DPoS module");
-		}
-		unlockCommand.addDependencies({
-			bftAPI: this._bftAPI,
-			tokenAPI: this._tokenAPI,
-			tokenIDDPoS: this._moduleConfig.tokenIDDPoS,
-		});
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -160,6 +148,20 @@ export class DPoSModule extends BaseModule {
 			throw new Error("'voteCommand' is missing from DPoS module");
 		}
 		voteCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
+
+		const unlockCommand = this.commands.find(command => command.id === COMMAND_ID_UNLOCK) as
+			| UnlockCommand
+			| undefined;
+		if (!unlockCommand) {
+			throw new Error("'unlockCommand' is missing from DPoS module");
+		}
+
+		// Dependency added here since we need access to moduleConfig for tokenIDDPoS
+		unlockCommand.addDependencies({
+			bftAPI: this._bftAPI,
+			tokenAPI: this._tokenAPI,
+			tokenIDDPoS: this._moduleConfig.tokenIDDPoS,
+		});
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
