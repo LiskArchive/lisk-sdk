@@ -128,7 +128,6 @@ export class Consensus {
 			db: this._db,
 		} as EndpointArgs); // TODO: Remove casting in issue where commitPool is added here
 		const blockExecutor = this._createBlockExecutor();
-		this._endpoint.start();
 		const blockSyncMechanism = new BlockSynchronizationMechanism({
 			chain: this._chain,
 			logger: this._logger,
@@ -307,6 +306,10 @@ export class Consensus {
 		await this._mutex.runExclusive(async () => {
 			await this._executeValidated(block);
 		});
+	}
+
+	public start(): void {
+		this._endpoint.start();
 	}
 
 	public async stop(): Promise<void> {
