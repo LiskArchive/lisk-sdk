@@ -107,7 +107,7 @@ export const createValidDefaultBlock = async (
 			aggregationBits: Buffer.alloc(0),
 			certificateSignature: Buffer.alloc(0),
 		},
-		assetsRoot: getRandomBytes(32),
+		assetsRoot: hash(Buffer.alloc(0)),
 		maxHeightPrevoted: 0,
 		maxHeightGenerated: 0,
 		validatorsHash: getRandomBytes(32),

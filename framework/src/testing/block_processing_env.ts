@@ -201,7 +201,7 @@ export const getBlockProcessingEnv = async (
 
 			return passphrase;
 		},
-		invoke: async <T>(path: string, input: Record<string, unknown> = {}): Promise<T> => {
+		async invoke<T = void>(path: string, input: Record<string, unknown> = {}): Promise<T> {
 			const [mod, method] = path.split('_');
 			const endpoints = node.getModuleEndpoints();
 			const endpoint = endpoints[mod];

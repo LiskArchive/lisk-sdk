@@ -70,7 +70,7 @@ export class RandomModule extends BaseModule {
 		if (errors.length) {
 			throw new LiskValidationError(errors);
 		}
-		if (generatorConfig) {
+		if (generatorConfig && Object.entries(generatorConfig).length > 0) {
 			const generatorErrors = validator.validate(randomModuleGeneratorConfig, generatorConfig);
 			if (generatorErrors.length) {
 				throw new LiskValidationError(generatorErrors);

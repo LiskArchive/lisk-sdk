@@ -23,7 +23,6 @@ import {
 } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { ReportDelegateMisbehaviorCommand } from '../../../../../src/modules/dpos_v2/commands/pom';
-import * as dposUtils from '../../../../../src/modules/dpos_v2/utils';
 import * as testing from '../../../../../src/testing';
 import {
 	COMMAND_ID_POM,
@@ -101,7 +100,6 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			getGeneratorAtTimestamp: jest.fn(),
 		};
 		pomCommand.addDependencies({
-			tokenIDDPoS: { chainID: 0, localID: 0 },
 			tokenAPI: mockTokenAPI,
 			bftAPI: mockBFTAPI,
 			validatorsAPI: mockValidatorsAPI,
@@ -132,6 +130,8 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			tokenAPI: mockTokenAPI,
 			validatorsAPI: mockValidatorsAPI,
 			bftAPI: mockBFTAPI,
+		});
+		pomCommand.init({
 			tokenIDDPoS: { chainID: 0, localID: 0 },
 		});
 		db = new InMemoryKVStore() as never;
@@ -385,16 +385,12 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 		let transactionParamsPreDecoded: any;
 
 		beforeEach(() => {
-			jest.spyOn(dposUtils, 'validateSignature').mockReturnValue(true);
+			jest.spyOn(BlockHeader.prototype, 'validateSignature').mockReturnValue(undefined);
 
 			transactionParamsPreDecoded = {
 				header1: { ...header1, height: block1Height },
 				header2: { ...header2, height: block2Height },
 			};
-		});
-
-		afterEach(() => {
-			(dposUtils.validateSignature as any).mockClear();
 		});
 
 		it('should not throw error with valid transactions', async () => {
@@ -476,24 +472,10 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				})
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
-			when(dposUtils.validateSignature as any)
-				.calledWith(
-					'LSK_BH_',
-					expect.any(Buffer),
-					expect.any(Buffer),
-					transactionParamsPreDecoded.header1.signature,
-					expect.any(Buffer),
-				)
-				.mockReturnValue(false);
-			when(dposUtils.validateSignature as any)
-				.calledWith(
-					'LSK_BH_',
-					expect.any(Buffer),
-					expect.any(Buffer),
-					transactionParamsPreDecoded.header2.signature,
-					expect.any(Buffer),
-				)
-				.mockReturnValue(true);
+			jest.spyOn(BlockHeader.prototype, 'validateSignature').mockImplementationOnce(() => {
+				throw new Error('Invalid block signature for header 1');
+			});
+			jest.spyOn(BlockHeader.prototype, 'validateSignature').mockReturnValueOnce(undefined);
 
 			await expect(pomCommand.execute(context)).rejects.toThrow(
 				'Invalid block signature for header 1',
@@ -515,24 +497,10 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				})
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
-			when(dposUtils.validateSignature as any)
-				.calledWith(
-					'LSK_BH_',
-					expect.any(Buffer),
-					expect.any(Buffer),
-					transactionParamsPreDecoded.header1.signature,
-					expect.any(Buffer),
-				)
-				.mockReturnValue(true);
-			when(dposUtils.validateSignature as any)
-				.calledWith(
-					'LSK_BH_',
-					expect.any(Buffer),
-					expect.any(Buffer),
-					transactionParamsPreDecoded.header2.signature,
-					expect.any(Buffer),
-				)
-				.mockReturnValue(false);
+			jest.spyOn(BlockHeader.prototype, 'validateSignature').mockReturnValueOnce(undefined);
+			jest.spyOn(BlockHeader.prototype, 'validateSignature').mockImplementationOnce(() => {
+				throw new Error('Invalid block signature for header 2');
+			});
 
 			await expect(pomCommand.execute(context)).rejects.toThrow(
 				'Invalid block signature for header 2',

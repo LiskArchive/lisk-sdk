@@ -85,7 +85,6 @@ describe('UnlockCommand', () => {
 			getLockedAmount: jest.fn(),
 		};
 		unlockCommand.addDependencies({
-			tokenIDDPoS: { chainID: 0, localID: 0 },
 			tokenAPI: mockTokenAPI,
 		});
 		db = new InMemoryKVStore() as never;

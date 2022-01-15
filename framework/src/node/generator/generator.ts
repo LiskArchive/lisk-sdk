@@ -585,14 +585,14 @@ export class Generator {
 			await this._stateMachine.executeTransaction(txContext);
 		}
 
+		await this._stateMachine.afterExecuteBlock(blockCtx);
+
 		for (const mod of this._modules) {
 			if (!mod.sealBlock) {
 				continue;
 			}
 			await mod.sealBlock(genContext.getBlockGenerateContext());
 		}
-
-		await this._stateMachine.afterExecuteBlock(blockCtx);
 		// Create SMT Store to now update SMT by calling finalize
 		const smtStore = new SMTStore(this._blockchainDB);
 		const smt = new SparseMerkleTree({

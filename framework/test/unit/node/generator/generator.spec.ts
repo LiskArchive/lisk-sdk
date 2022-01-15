@@ -126,10 +126,11 @@ describe('generator', () => {
 		} as never;
 
 		stateMachine = {
-			verifyTransaction: jest.fn(),
+			verifyTransaction: jest.fn().mockResolvedValue({ status: 1 }),
 			beforeExecuteBlock: jest.fn(),
 			afterExecuteBlock: jest.fn(),
 			executeGenesisBlock: jest.fn(),
+			executeTransaction: jest.fn(),
 		} as never;
 		network = {
 			registerEndpoint: jest.fn(),
@@ -599,7 +600,7 @@ describe('generator', () => {
 			expect(mod2.sealBlock).toHaveBeenCalledTimes(1);
 			expect(stateMachine.beforeExecuteBlock).toHaveBeenCalledTimes(1);
 			expect(stateMachine.afterExecuteBlock).toHaveBeenCalledTimes(1);
-			expect(stateMachine.afterExecuteBlock).toHaveBeenCalledAfter(mod2.sealBlock as jest.Mock);
+			expect(stateMachine.afterExecuteBlock).toHaveBeenCalledBefore(mod2.sealBlock as jest.Mock);
 
 			expect(block.transactions).toHaveLength(1);
 			expect(block.header.signature).toHaveLength(64);
