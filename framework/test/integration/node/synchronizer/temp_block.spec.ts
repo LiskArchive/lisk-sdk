@@ -22,8 +22,6 @@ import {
 	restoreBlocks,
 } from '../../../../src/node/consensus/synchronizer/utils';
 
-jest.setTimeout(60000);
-
 describe('Temp block', () => {
 	let processEnv: testing.BlockProcessingEnv;
 	let chain: Chain;

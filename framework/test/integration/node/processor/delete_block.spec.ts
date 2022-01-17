@@ -193,9 +193,6 @@ describe('Delete block', () => {
 	describe('given an block that introduces consensus state change', () => {
 		describe('when the deleteLastBlock is called', () => {
 			it('should rollback validators to the previous state', async () => {
-				// Arrange
-				jest.setTimeout(30000);
-
 				const genesisAuth = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
 					address: genesis.address.toString('hex'),
 				});
