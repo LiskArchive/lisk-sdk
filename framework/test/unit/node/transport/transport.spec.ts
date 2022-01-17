@@ -81,6 +81,11 @@ describe('Transport', () => {
 				encodeBlockHeader: jest.fn().mockReturnValue(encodedBlock),
 				encode: jest.fn().mockReturnValue(encodedBlock),
 			},
+			lastBlock: {
+				header: {
+					height: 0,
+				},
+			},
 		};
 		processorStub = {
 			validateTransaction: jest.fn(),

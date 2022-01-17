@@ -19,6 +19,7 @@ import {
 	signData,
 	signDataWithPrivateKey,
 	hash,
+	getPublicKey,
 } from '@liskhq/lisk-cryptography';
 import { validateTransaction } from './validate';
 import { baseTransactionSchema } from './schema';
@@ -250,8 +251,6 @@ export const signMultiSignatureTransactionWithPrivateKey = (
 		throw validationErrors;
 	}
 
-	const { senderPublicKey: publicKey } = transactionObject;
-
 	// Sort keys
 	keys.mandatoryKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
 	keys.optionalKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
@@ -263,17 +262,23 @@ export const signMultiSignatureTransactionWithPrivateKey = (
 
 	const signature = signDataWithPrivateKey(transactionWithNetworkIdentifierBytes, privateKey);
 
-	if (includeSenderSignature && Buffer.isBuffer(transactionObject.senderPublicKey)) {
+	const signerPublicKey = getPublicKey(privateKey);
+
+	if (
+		includeSenderSignature &&
+		Buffer.isBuffer(transactionObject.senderPublicKey) &&
+		signerPublicKey.equals(transactionObject.senderPublicKey)
+	) {
 		// eslint-disable-next-line no-param-reassign
 		transactionObject.signatures[0] = signature;
 	}
 
 	// Locate where this public key should go in the signatures array
 	const mandatoryKeyIndex = keys.mandatoryKeys.findIndex(aPublicKey =>
-		aPublicKey.equals(publicKey as Buffer),
+		aPublicKey.equals(signerPublicKey),
 	);
 	const optionalKeyIndex = keys.optionalKeys.findIndex(aPublicKey =>
-		aPublicKey.equals(publicKey as Buffer),
+		aPublicKey.equals(signerPublicKey),
 	);
 
 	// If it's a mandatory Public Key find where to add the signature

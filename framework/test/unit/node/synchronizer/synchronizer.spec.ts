@@ -19,7 +19,6 @@ import { BFT } from '@liskhq/lisk-bft';
 import { KVStore } from '@liskhq/lisk-db';
 import {
 	getAddressAndPublicKeyFromPassphrase,
-	getRandomBytes,
 	signDataWithPassphrase,
 } from '@liskhq/lisk-cryptography';
 
@@ -34,7 +33,9 @@ import {
 import * as synchronizerUtils from '../../../../src/node/synchronizer/utils';
 import { genesis, defaultAccountSchema } from '../../../fixtures';
 import { TokenModule } from '../../../../src/modules';
+import { TransferAsset } from '../../../../src/modules/token';
 import { transactionsSchema } from '../../../../src/node/transport/schemas';
+import { GenesisConfig } from '../../../../src';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -123,6 +124,7 @@ describe('Synchronizer', () => {
 			chainModule,
 			logger: loggerMock,
 			bftModule,
+			config: {} as GenesisConfig,
 		});
 		processorModule.processValidated = jest.fn();
 		processorModule.deleteLastBlock = jest.fn();
@@ -568,13 +570,18 @@ describe('Synchronizer', () => {
 		});
 
 		describe('when peer returns valid transaction response', () => {
+			const encodedAsset = codec.encode(new TransferAsset(BigInt(5000000)).schema, {
+				amount: BigInt('10000000'),
+				recipientAddress: Buffer.from('8f5685bf5dcb8c1d3b9bbc98cffb0d0c6077be17', 'hex'),
+				data: '',
+			});
 			const transaction = new Transaction({
 				moduleID: 2,
 				assetID: 0,
 				nonce: BigInt('0'),
 				fee: BigInt('100000000'),
 				senderPublicKey: getAddressAndPublicKeyFromPassphrase(genesis.passphrase).publicKey,
-				asset: getRandomBytes(100),
+				asset: encodedAsset,
 				signatures: [],
 			});
 			const signature = signDataWithPassphrase(

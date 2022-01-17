@@ -574,6 +574,7 @@ export class Node {
 			logger: this._logger,
 			chainModule: this._chain,
 			bftModule: this._bft,
+			config: this._options.genesisConfig,
 		});
 
 		this._transactionPool = new TransactionPool({
@@ -591,6 +592,7 @@ export class Node {
 			minReplacementFeeDifference: BigInt(
 				this._options.transactionPool.minReplacementFeeDifference,
 			),
+			maxPayloadLength: this._options.genesisConfig.maxPayloadLength,
 		});
 
 		const blockSyncMechanism = new BlockSynchronizationMechanism({

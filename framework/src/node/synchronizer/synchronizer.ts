@@ -206,7 +206,7 @@ export class Synchronizer {
 		);
 
 		for (const transaction of transactions) {
-			this.processorModule.validateTransaction(transaction);
+			this.processorModule.validateTransaction(transaction, this.chainModule.lastBlock.header);
 		}
 
 		const transactionCount = transactions.length;
