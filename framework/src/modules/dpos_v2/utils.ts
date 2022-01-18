@@ -245,7 +245,7 @@ export const isCertificateGenerated = (options: {
 	genesisHeight: number;
 	maxHeightCertified: number;
 	roundLength: number;
-}) =>
+}): boolean =>
 	lastHeightOfRound(
 		options.unlockObject.unvoteHeight + 2 * options.roundLength,
 		options.genesisHeight,
