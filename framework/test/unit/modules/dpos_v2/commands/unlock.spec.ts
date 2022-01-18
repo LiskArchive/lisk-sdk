@@ -525,12 +525,6 @@ describe('UnlockCommand', () => {
 				},
 				delegateStoreSchema,
 			);
-
-			unlockableObject = {
-				delegateAddress: delegate1.address,
-				amount: delegate1.amount,
-				unvoteHeight: blockHeight - WAIT_TIME_VOTE,
-			};
 			nonUnlockableObject = {
 				delegateAddress: delegate2.address,
 				amount: delegate2.amount,
@@ -542,7 +536,7 @@ describe('UnlockCommand', () => {
 					sentVotes: [
 						{ delegateAddress: unlockableObject.delegateAddress, amount: unlockableObject.amount },
 					],
-					pendingUnlocks: [unlockableObject, nonUnlockableObject],
+					pendingUnlocks: [nonUnlockableObject],
 				},
 				voterStoreSchema,
 			);
