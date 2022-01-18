@@ -497,4 +497,72 @@ describe('UnlockCommand', () => {
 			);
 		});
 	});
+
+	describe(`when certificate is not generated`, () => {
+		beforeEach(async () => {
+			await genesisSubstore.setWithSchema(
+				EMPTY_KEY,
+				{
+					height: 10,
+					initRounds: 1,
+					initDelegates: [],
+				},
+				genesisDataStoreSchema,
+			);
+			await delegateSubstore.setWithSchema(
+				delegate1.address,
+				{
+					name: delegate1.name,
+					...defaultDelegateInfo,
+				},
+				delegateStoreSchema,
+			);
+			await delegateSubstore.setWithSchema(
+				delegate2.address,
+				{
+					name: delegate2.name,
+					...defaultDelegateInfo,
+				},
+				delegateStoreSchema,
+			);
+
+			unlockableObject = {
+				delegateAddress: delegate1.address,
+				amount: delegate1.amount,
+				unvoteHeight: blockHeight - WAIT_TIME_VOTE,
+			};
+			nonUnlockableObject = {
+				delegateAddress: delegate2.address,
+				amount: delegate2.amount,
+				unvoteHeight: blockHeight,
+			};
+			await voterSubstore.setWithSchema(
+				transaction.senderAddress,
+				{
+					sentVotes: [
+						{ delegateAddress: unlockableObject.delegateAddress, amount: unlockableObject.amount },
+					],
+					pendingUnlocks: [unlockableObject, nonUnlockableObject],
+				},
+				voterStoreSchema,
+			);
+		});
+
+		it('should not unlock any votes', async () => {
+			// Arrange
+			mockBFTAPI.getBFTHeights = jest.fn().mockResolvedValue({ maxHeightCertified: 0 });
+			context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+					header,
+					networkIdentifier,
+				})
+				.createCommandExecuteContext();
+
+			await expect(unlockCommand.execute(context)).rejects.toThrow(
+				'No eligible voter data was found for unlocking',
+			);
+		});
+	});
 });
