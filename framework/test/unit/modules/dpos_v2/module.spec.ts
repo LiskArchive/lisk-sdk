@@ -116,7 +116,7 @@ describe('DPoS module', () => {
 					moduleConfig: { ...defaultConfigs, maxLengthName: 50 },
 					generatorConfig: {},
 				}),
-			).rejects.toThrow();
+			).rejects.toThrow("'voteCommand' is missing from DPoS module");
 		});
 	});
 
