@@ -16,28 +16,35 @@ import { CommandExecuteContext } from '../../../node/state_machine/types';
 import { BaseCommand } from '../../base_command';
 import {
 	COMMAND_ID_UNLOCK,
+	defaultConfig,
+	EMPTY_KEY,
 	STORE_PREFIX_DELEGATE,
+	STORE_PREFIX_GENESIS_DATA,
 	STORE_PREFIX_VOTER,
 	MODULE_ID_DPOS,
 } from '../constants';
-import { delegateStoreSchema, voterStoreSchema } from '../schemas';
+import { delegateStoreSchema, genesisDataStoreSchema, voterStoreSchema } from '../schemas';
 import {
+	BFTAPI,
 	DelegateAccount,
+	GenesisData,
 	TokenAPI,
 	TokenIDDPoS,
 	UnlockCommandDependencies,
 	VoterData,
 } from '../types';
-import { hasWaited, isPunished } from '../utils';
+import { hasWaited, isPunished, isCertificateGenerated } from '../utils';
 
 export class UnlockCommand extends BaseCommand {
 	public id = COMMAND_ID_UNLOCK;
 	public name = 'unlockToken';
 
+	private _bftAPI!: BFTAPI;
 	private _tokenAPI!: TokenAPI;
 	private _tokenIDDPoS!: TokenIDDPoS;
 
 	public addDependencies(args: UnlockCommandDependencies) {
+		this._bftAPI = args.bftAPI;
 		this._tokenAPI = args.tokenAPI;
 	}
 
@@ -56,6 +63,13 @@ export class UnlockCommand extends BaseCommand {
 		const voterSubstore = getStore(this.moduleID, STORE_PREFIX_VOTER);
 		const voterData = await voterSubstore.getWithSchema<VoterData>(senderAddress, voterStoreSchema);
 		const ineligibleUnlocks = [];
+		const genesisDataStore = context.getStore(MODULE_ID_DPOS, STORE_PREFIX_GENESIS_DATA);
+		const genesisData = await genesisDataStore.getWithSchema<GenesisData>(
+			EMPTY_KEY,
+			genesisDataStoreSchema,
+		);
+		const { height: genesisHeight } = genesisData;
+		const { maxHeightCertified } = await this._bftAPI.getBFTHeights(getAPIContext());
 
 		for (const unlockObject of voterData.pendingUnlocks) {
 			const { pomHeights } = await delegateSubstore.getWithSchema<DelegateAccount>(
@@ -65,7 +79,13 @@ export class UnlockCommand extends BaseCommand {
 
 			if (
 				hasWaited(unlockObject, senderAddress, height) &&
-				!isPunished(unlockObject, pomHeights, senderAddress, height)
+				!isPunished(unlockObject, pomHeights, senderAddress, height) &&
+				isCertificateGenerated({
+					unlockObject,
+					genesisHeight,
+					maxHeightCertified,
+					roundLength: defaultConfig.roundLength,
+				})
 			) {
 				await this._tokenAPI.unlock(
 					getAPIContext(),
