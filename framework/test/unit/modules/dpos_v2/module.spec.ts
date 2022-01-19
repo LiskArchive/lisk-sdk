@@ -106,6 +106,18 @@ describe('DPoS module', () => {
 
 			expect(dpos['_moduleConfig'].maxLengthName).toEqual(50);
 		});
+
+		it('should throw error if command missing', async () => {
+			dpos.commands = [];
+
+			await expect(
+				dpos.init({
+					genesisConfig: {} as any,
+					moduleConfig: { ...defaultConfigs, maxLengthName: 50 },
+					generatorConfig: {},
+				}),
+			).rejects.toThrow("'voteCommand' is missing from DPoS module");
+		});
 	});
 
 	describe('initGenesisState', () => {
@@ -122,6 +134,7 @@ describe('DPoS module', () => {
 				setBFTParameters: jest.fn(),
 				getBFTParameters: jest.fn(),
 				areHeadersContradicting: jest.fn(),
+				getBFTHeights: jest.fn(),
 			};
 			const validatorAPI = {
 				setGeneratorList: jest.fn(),
@@ -139,8 +152,8 @@ describe('DPoS module', () => {
 				transfer: jest.fn(),
 				getLockedAmount: jest.fn().mockResolvedValue(BigInt(101000000000)),
 			};
-
 			dpos.addDependencies(randomAPI, bftAPI, validatorAPI, tokenAPI);
+
 			await dpos.init({
 				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
@@ -778,6 +791,7 @@ describe('DPoS module', () => {
 									bftWeight: BigInt(1),
 								})),
 							}),
+							getBFTHeights: jest.fn(),
 							areHeadersContradicting: jest.fn(),
 						};
 						const validatorAPI = {
@@ -882,6 +896,7 @@ describe('DPoS module', () => {
 						})),
 					}),
 					areHeadersContradicting: jest.fn(),
+					getBFTHeights: jest.fn(),
 				};
 				validatorAPI = {
 					setGeneratorList: jest.fn(),
@@ -1448,7 +1463,7 @@ describe('DPoS module', () => {
 
 	describe('afterTransactionsExecute', () => {
 		const genesisData: GenesisData = {
-			heigth: 0,
+			height: 0,
 			initRounds: 3,
 			initDelegates: [],
 		};
