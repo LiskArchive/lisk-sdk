@@ -31,7 +31,13 @@ import { APP_EVENT_CHAIN_FORK } from '../../constants';
 import { Logger } from '../../logger';
 import { InMemoryChannel } from '../../controller/channels';
 import { BaseModule, BaseAsset } from '../../modules';
-import { ReducerHandler, Consensus, Delegate, StateStore as ModuleStateStore } from '../../types';
+import {
+	ReducerHandler,
+	Consensus,
+	Delegate,
+	StateStore as ModuleStateStore,
+	GenesisConfig,
+} from '../../types';
 import { TransactionApplyError, ApplyPenaltyError } from '../../errors';
 
 const forkStatusList = [
@@ -51,6 +57,7 @@ interface ProcessorInput {
 	readonly logger: Logger;
 	readonly chainModule: Chain;
 	readonly bftModule: BFT;
+	readonly config: GenesisConfig;
 }
 
 const BLOCK_VERSION = 2;
@@ -61,15 +68,17 @@ export class Processor {
 	private readonly _logger: Logger;
 	private readonly _chain: Chain;
 	private readonly _bft: BFT;
+	private readonly _config: GenesisConfig;
 	private readonly _mutex: jobHandlers.Mutex;
 	private readonly _modules: BaseModule[] = [];
 	private _stop = false;
 
-	public constructor({ channel, logger, chainModule, bftModule }: ProcessorInput) {
+	public constructor({ channel, logger, chainModule, bftModule, config }: ProcessorInput) {
 		this._channel = channel;
 		this._logger = logger;
 		this._chain = chainModule;
 		this._bft = bftModule;
+		this._config = config;
 		this._mutex = new jobHandlers.Mutex();
 		this.events = new EventEmitter();
 	}
@@ -270,18 +279,32 @@ export class Processor {
 		});
 	}
 
-	public validateTransaction(transaction: Transaction): void {
+	public validateTransaction(transaction: Transaction, header: BlockHeader): void {
 		this._chain.validateTransaction(transaction);
 		const customAsset = this._getAsset(transaction);
-		if (customAsset.validate) {
-			const decodedAsset = codec.decode(customAsset.schema, transaction.asset);
-			const assetSchemaErrors = validator.validate(customAsset.schema, decodedAsset as object);
-			if (assetSchemaErrors.length) {
-				throw new LiskValidationError(assetSchemaErrors);
+		const decodedAsset = codec.decode(customAsset.schema, transaction.asset);
+
+		// Ensure no extraneous asset fields have been included in bytes
+		const serializationFixHeight =
+			typeof this._config?.serializationFixHeight === 'number'
+				? this._config.serializationFixHeight
+				: 0;
+		if (header.height >= serializationFixHeight) {
+			const encodedAsset = codec.encode(customAsset.schema, decodedAsset as object);
+			if (!transaction.asset.equals(encodedAsset)) {
+				throw new Error('Invalid asset');
 			}
+		}
+
+		const assetSchemaErrors = validator.validate(customAsset.schema, decodedAsset as object);
+		if (assetSchemaErrors.length) {
+			throw new LiskValidationError(assetSchemaErrors);
+		}
+		if (customAsset.validate) {
 			customAsset.validate({
 				asset: decodedAsset,
 				transaction,
+				header,
 			});
 		}
 	}
@@ -426,7 +449,7 @@ export class Processor {
 			await this._chain.validateBlockHeader(block);
 			if (block.payload.length) {
 				for (const transaction of block.payload) {
-					this.validateTransaction(transaction);
+					this.validateTransaction(transaction, block.header);
 				}
 			}
 		} catch (error) {

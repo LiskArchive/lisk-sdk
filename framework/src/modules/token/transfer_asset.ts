@@ -15,7 +15,7 @@
 import { MAX_TRANSACTION_AMOUNT } from './constants';
 import { TokenAccount, Asset } from './types';
 import { BaseAsset } from '../base_asset';
-import { ApplyAssetContext } from '../../types';
+import { ApplyAssetContext, ValidateAssetContext } from '../../types';
 
 export class TransferAsset extends BaseAsset {
 	public name = 'transfer';
@@ -33,22 +33,33 @@ export class TransferAsset extends BaseAsset {
 			recipientAddress: {
 				dataType: 'bytes',
 				fieldNumber: 2,
-				minLength: 20,
-				maxLength: 20,
 			},
 			data: {
 				dataType: 'string',
 				fieldNumber: 3,
-				minLength: 0,
-				maxLength: 64,
 			},
 		},
 	};
-	private readonly _minRemainingBalance: bigint;
 
-	public constructor(minRemainingBalance: bigint) {
+	private readonly _minRemainingBalance: bigint;
+	private readonly _transferFixHeight: number;
+
+	public constructor(minRemainingBalance: bigint, transferFixHeight?: number) {
 		super();
 		this._minRemainingBalance = minRemainingBalance;
+		this._transferFixHeight = transferFixHeight ?? 0;
+	}
+
+	public validate({ asset, header }: ValidateAssetContext<Asset>): void {
+		if (header.height >= this._transferFixHeight) {
+			if (asset.recipientAddress.length !== 20) {
+				throw new Error(`Invalid recipient address length.`);
+			}
+
+			if (asset.data.length > 64) {
+				throw new Error(`Invalid data length.`);
+			}
+		}
 	}
 
 	public async apply({ asset, transaction, stateStore }: ApplyAssetContext<Asset>): Promise<void> {

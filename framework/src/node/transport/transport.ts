@@ -506,7 +506,7 @@ export class Transport {
 
 	private async _receiveTransaction(transaction: Transaction): Promise<Buffer> {
 		try {
-			this._processorModule.validateTransaction(transaction);
+			this._processorModule.validateTransaction(transaction, this._chainModule.lastBlock.header);
 		} catch (err) {
 			throw new InvalidTransactionError((err as Error).toString(), transaction.id);
 		}

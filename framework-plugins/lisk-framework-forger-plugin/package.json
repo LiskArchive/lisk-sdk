@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-framework-forger-plugin",
-	"version": "0.2.5",
+	"version": "0.2.6",
 	"description": "A plugin for lisk-framework that monitors configured delegates forging activity and voters information.",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -41,15 +41,15 @@
 		"@liskhq/lisk-codec": "^0.2.1",
 		"@liskhq/lisk-cryptography": "^3.2.0",
 		"@liskhq/lisk-db": "^0.2.0",
-		"@liskhq/lisk-transactions": "^5.2.0",
+		"@liskhq/lisk-transactions": "^5.2.1",
 		"@liskhq/lisk-utils": "^0.2.0",
 		"@liskhq/lisk-validator": "^0.6.1",
 		"debug": "4.3.1",
 		"fs-extra": "9.1.0",
-		"lisk-framework": "^0.9.0"
+		"lisk-framework": "^0.9.1"
 	},
 	"devDependencies": {
-		"@liskhq/lisk-api-client": "^5.1.4",
+		"@liskhq/lisk-api-client": "^5.1.5",
 		"@liskhq/lisk-genesis": "^0.2.3",
 		"@types/debug": "4.1.5",
 		"@types/jest": "26.0.21",
