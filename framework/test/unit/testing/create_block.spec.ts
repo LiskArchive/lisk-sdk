@@ -118,7 +118,7 @@ describe('Create Block', () => {
 
 		expect(block.header.previousBlockID).toEqual(genesisBlock.header.id);
 		expect(block.header.timestamp).toEqual(
-			genesisBlock.header.timestamp + defaultConfig.genesisConfig.blockTime,
+			genesisBlock.header.timestamp + defaultConfig.genesis.blockTime,
 		);
 	});
 });

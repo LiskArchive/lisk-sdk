@@ -46,6 +46,9 @@ export class UnlockCommand extends BaseCommand {
 	public addDependencies(args: UnlockCommandDependencies) {
 		this._bftAPI = args.bftAPI;
 		this._tokenAPI = args.tokenAPI;
+	}
+
+	public init(args: { tokenIDDPoS: TokenIDDPoS }) {
 		this._tokenIDDPoS = args.tokenIDDPoS;
 	}
 

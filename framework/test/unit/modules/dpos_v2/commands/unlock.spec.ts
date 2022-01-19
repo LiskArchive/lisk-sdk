@@ -104,7 +104,6 @@ describe('UnlockCommand', () => {
 			getBFTHeights: jest.fn().mockResolvedValue({ maxHeightCertified: 8760000 }),
 		};
 		unlockCommand.addDependencies({
-			tokenIDDPoS: { chainID: 0, localID: 0 },
 			tokenAPI: mockTokenAPI,
 			bftAPI: mockBFTAPI,
 		});

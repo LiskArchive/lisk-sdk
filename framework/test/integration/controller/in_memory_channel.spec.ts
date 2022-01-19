@@ -14,6 +14,7 @@
 
 import { homedir } from 'os';
 import { resolve as pathResolve } from 'path';
+import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { InMemoryChannel } from '../../../src/controller/channels';
 import { Bus } from '../../../src/controller/bus';
 
@@ -38,26 +39,22 @@ describe('InMemoryChannel', () => {
 	const alpha = {
 		moduleName: 'alphaName',
 		events: ['alpha1', 'alpha2'],
-		actions: {
-			multiplyByTwo: {
-				handler: (params: any) => params.val * 2,
-			},
-			multiplyByThree: {
-				handler: (params: any) => params.val * 3,
-			},
+		endpoints: {
+			// eslint-disable-next-line @typescript-eslint/require-await
+			multiplyByTwo: async (ctx: any): Promise<unknown> => ctx.params.val * 2,
+			// eslint-disable-next-line @typescript-eslint/require-await
+			multiplyByThree: async (ctx: any): Promise<unknown> => ctx.params.val * 3,
 		},
 	};
 
 	const beta = {
 		moduleName: 'betaName',
 		events: ['beta1', 'beta2'],
-		actions: {
-			divideByTwo: {
-				handler: (params: any) => params.val / 2,
-			},
-			divideByThree: {
-				handler: (params: any) => params.val / 3,
-			},
+		endpoints: {
+			// eslint-disable-next-line @typescript-eslint/require-await
+			divideByTwo: async (ctx: any): Promise<unknown> => ctx.params.val / 2,
+			// eslint-disable-next-line @typescript-eslint/require-await
+			divideByThree: async (ctx: any): Promise<unknown> => ctx.params.val / 3,
 		},
 	};
 
@@ -68,15 +65,28 @@ describe('InMemoryChannel', () => {
 
 		beforeEach(async () => {
 			// Arrange
-			bus = new Bus(logger, config);
+			bus = new Bus(config);
 
-			inMemoryChannelAlpha = new InMemoryChannel(alpha.moduleName, alpha.events, alpha.actions);
+			inMemoryChannelAlpha = new InMemoryChannel(
+				logger,
+				new InMemoryKVStore() as any,
+				alpha.moduleName,
+				alpha.events,
+				alpha.endpoints,
+			);
 
 			await inMemoryChannelAlpha.registerToBus(bus);
 
-			inMemoryChannelBeta = new InMemoryChannel(beta.moduleName, beta.events, beta.actions);
+			inMemoryChannelBeta = new InMemoryChannel(
+				logger,
+				new InMemoryKVStore() as any,
+				beta.moduleName,
+				beta.events,
+				beta.endpoints,
+			);
 			// eslint-disable-next-line @typescript-eslint/no-floating-promises
 			await inMemoryChannelBeta.registerToBus(bus);
+			await bus.start(logger);
 		});
 
 		describe('#subscribe', () => {
@@ -122,7 +132,13 @@ describe('InMemoryChannel', () => {
 				const omegaEventName = 'omegaEventName';
 				const omegaName = 'omegaName';
 				const dummyData = { data: '#DATA' };
-				const inMemoryChannelOmega = new InMemoryChannel(omegaName, [omegaEventName], {});
+				const inMemoryChannelOmega = new InMemoryChannel(
+					logger,
+					new InMemoryKVStore() as any,
+					omegaName,
+					[omegaEventName],
+					{},
+				);
 
 				const donePromise = new Promise<void>(resolve => {
 					// Act
@@ -164,39 +180,39 @@ describe('InMemoryChannel', () => {
 		});
 
 		describe('#invoke', () => {
-			it('should be able to invoke its own actions.', async () => {
+			it('should be able to invoke its own endpoints.', async () => {
 				// Act && Assert
 				await expect(
-					inMemoryChannelAlpha.invoke<number>(`${alpha.moduleName}:multiplyByTwo`, { val: 2 }),
+					inMemoryChannelAlpha.invoke<number>(`${alpha.moduleName}_multiplyByTwo`, { val: 2 }),
 				).resolves.toBe(4);
 
 				await expect(
-					inMemoryChannelAlpha.invoke<number>(`${alpha.moduleName}:multiplyByThree`, {
+					inMemoryChannelAlpha.invoke<number>(`${alpha.moduleName}_multiplyByThree`, {
 						val: 4,
 					}),
 				).resolves.toBe(12);
 			});
 
-			it("should be able to invoke other channels' actions.", async () => {
+			it("should be able to invoke other channels' endpoints.", async () => {
 				// Act && Assert
 				await expect(
-					inMemoryChannelAlpha.invoke<number>(`${beta.moduleName}:divideByTwo`, { val: 4 }),
+					inMemoryChannelAlpha.invoke<number>(`${beta.moduleName}_divideByTwo`, { val: 4 }),
 				).resolves.toBe(2);
 
 				await expect(
-					inMemoryChannelAlpha.invoke<number>(`${beta.moduleName}:divideByThree`, { val: 9 }),
+					inMemoryChannelAlpha.invoke<number>(`${beta.moduleName}_divideByThree`, { val: 9 }),
 				).resolves.toBe(3);
 			});
 
-			it('should throw error when trying to invoke an invalid action.', async () => {
+			it('should throw error when trying to invoke an invalid endpoint.', async () => {
 				// Arrange
-				const invalidActionName = 'INVALID_ACTION_NAME';
+				const invalidEndpointName = 'getSomething';
 
 				// Act && Assert
 				await expect(
-					inMemoryChannelAlpha.invoke(`${beta.moduleName}_${invalidActionName}`),
+					inMemoryChannelAlpha.invoke(`${beta.moduleName}_${invalidEndpointName}`),
 				).rejects.toThrow(
-					`Action name "${beta.moduleName}_${invalidActionName}" must be a valid name with module name and action name.`,
+					`Request '${beta.moduleName}_${invalidEndpointName}' is not registered to bus.`,
 				);
 			});
 		});

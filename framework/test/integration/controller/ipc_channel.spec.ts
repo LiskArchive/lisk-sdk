@@ -84,7 +84,7 @@ describe.skip('IPCChannel', () => {
 
 			config['internalIPCServer'] = internalIPCServer;
 			// Arrange
-			bus = new Bus(logger, config);
+			bus = new Bus(config);
 
 			alphaChannel = new IPCChannel(
 				alpha.logger,
@@ -102,7 +102,7 @@ describe.skip('IPCChannel', () => {
 				config,
 			);
 
-			await bus.init();
+			await bus.start(logger);
 			await alphaChannel.registerToBus();
 			await betaChannel.registerToBus();
 		});

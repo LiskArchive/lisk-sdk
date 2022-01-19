@@ -11,11 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Block, TAG_BLOCK_HEADER } from '@liskhq/lisk-chain';
-import { signData, getAddressFromPassphrase } from '@liskhq/lisk-cryptography';
+import { Block, BlockHeader } from '@liskhq/lisk-chain';
+import { getAddressFromPassphrase, getKeys } from '@liskhq/lisk-cryptography';
 
 import { nodeUtils } from '../../../utils';
-import { DefaultAccountProps } from '../../../fixtures';
 import {
 	createTransferTransaction,
 	createReportMisbehaviorTransaction,
@@ -29,6 +28,7 @@ describe('Transaction order', () => {
 	let newBlock: Block;
 	let senderAccount: { address: Buffer; passphrase: string };
 	const databasePath = '/tmp/lisk/report_misbehavior/test';
+	const genesis = testing.fixtures.defaultFaucetAccount;
 
 	beforeAll(async () => {
 		processEnv = await testing.getBlockProcessingEnv({
@@ -39,16 +39,16 @@ describe('Transaction order', () => {
 		networkIdentifier = processEnv.getNetworkId();
 		blockGenerator = await processEnv.getNextValidatorPassphrase(processEnv.getLastBlock().header);
 		// Fund sender account
-		const genesisAccount = await processEnv
-			.getDataAccess()
-			.getAccountByAddress<DefaultAccountProps>(testing.fixtures.defaultFaucetAccount.address);
+		const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
+			address: genesis.address.toString('hex'),
+		});
 		senderAccount = nodeUtils.createAccount();
 		const transaction = createTransferTransaction({
-			nonce: genesisAccount.sequence.nonce,
+			nonce: BigInt(authData.nonce),
 			recipientAddress: senderAccount.address,
 			amount: BigInt('10000000000'),
 			networkIdentifier,
-			passphrase: testing.fixtures.defaultFaucetAccount.passphrase,
+			passphrase: genesis.passphrase,
 			fee: BigInt(142000), // minFee not to give fee for generator
 		});
 		newBlock = await processEnv.createBlock([transaction]);
@@ -65,38 +65,43 @@ describe('Transaction order', () => {
 			// get last block
 			const { header } = processEnv.getLastBlock();
 			// create report misbehavior against last block
-			const conflictingBlockHeader = {
-				...header,
+			const conflictingHeader = new BlockHeader({
+				...header.toObject(),
 				height: 100,
-			};
-			const conflictingBytes = processEnv
-				.getDataAccess()
-				.encodeBlockHeader(conflictingBlockHeader, true);
-			const signature = signData(
-				TAG_BLOCK_HEADER,
-				networkIdentifier,
-				conflictingBytes,
-				blockGenerator,
+			});
+			const { privateKey } = getKeys(blockGenerator);
+			conflictingHeader.sign(networkIdentifier, privateKey);
+			const originalBalance = await processEnv.invoke<{ availableBalance: string }>(
+				'token_getBalance',
+				{
+					address: getAddressFromPassphrase(blockGenerator).toString('hex'),
+				},
 			);
+
 			const tx = createReportMisbehaviorTransaction({
 				nonce: BigInt(0),
 				passphrase: senderAccount.passphrase,
 				header1: header,
-				header2: {
-					...conflictingBlockHeader,
-					signature,
-				},
+				header2: conflictingHeader,
 				networkIdentifier,
 			});
 			// create a block and process them
 			const nextBlock = await processEnv.createBlock([tx]);
 
 			await processEnv.process(nextBlock);
-			const updatedDelegate = await processEnv
-				.getDataAccess()
-				.getAccountByAddress<DefaultAccountProps>(getAddressFromPassphrase(blockGenerator));
-			expect(updatedDelegate.dpos.delegate.pomHeights).toHaveLength(1);
-			expect(updatedDelegate.token.balance).toEqual(BigInt(0));
+			const updatedDelegate = await processEnv.invoke<{ pomHeights: number[] }>(
+				'dpos_getDelegate',
+				{
+					address: getAddressFromPassphrase(blockGenerator).toString('hex'),
+				},
+			);
+			expect(updatedDelegate.pomHeights).toHaveLength(1);
+			const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
+				address: getAddressFromPassphrase(blockGenerator).toString('hex'),
+			});
+			expect(balance.availableBalance).toEqual(
+				(BigInt(originalBalance.availableBalance) - BigInt(100000000)).toString(),
+			);
 		});
 	});
 });

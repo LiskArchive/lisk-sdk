@@ -22,4 +22,5 @@ export const copyBuffer = (value: Buffer): Buffer => {
 };
 
 export const toSMTKey = (value: Buffer): Buffer =>
-	Buffer.concat([value.slice(0, SMT_PREFIX_SIZE), hash(value.slice(SMT_PREFIX_SIZE))]);
+	// First byte is the DB prefix
+	Buffer.concat([value.slice(1, SMT_PREFIX_SIZE + 1), hash(value.slice(SMT_PREFIX_SIZE + 1))]);

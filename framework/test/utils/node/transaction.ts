@@ -15,7 +15,13 @@
 
 import { Transaction, BlockHeader, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { getAddressAndPublicKeyFromPassphrase, signData } from '@liskhq/lisk-cryptography';
+import {
+	getAddressAndPublicKeyFromPassphrase,
+	signData,
+	generatePrivateKey,
+	getPublicKeyFromPrivateKey,
+	blsPopProve,
+} from '@liskhq/lisk-cryptography';
 import { signMultiSignatureTransaction } from '@liskhq/lisk-transactions';
 import { registerMultisignatureParamsSchema } from '../../../src/modules/auth/schemas';
 import {
@@ -64,13 +70,19 @@ export const createDelegateRegisterTransaction = (input: {
 	username: string;
 	fee?: bigint;
 }): Transaction => {
-	const encodedAsset = codec.encode(delegateRegistrationCommandParamsSchema, {
-		username: input.username,
-	});
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.passphrase);
+	const blsSK = generatePrivateKey(Buffer.from(input.passphrase, 'utf-8'));
+	const blsPK = getPublicKeyFromPrivateKey(blsSK);
+	const blsPop = blsPopProve(blsSK);
+	const encodedAsset = codec.encode(delegateRegistrationCommandParamsSchema, {
+		name: input.username,
+		generatorKey: publicKey,
+		blsKey: blsPK,
+		proofOfPossession: blsPop,
+	});
 
 	const tx = new Transaction({
-		moduleID: 5,
+		moduleID: 13,
 		commandID: 0,
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
@@ -97,7 +109,7 @@ export const createDelegateVoteTransaction = (input: {
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.passphrase);
 
 	const tx = new Transaction({
-		moduleID: 5,
+		moduleID: 13,
 		commandID: 1,
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
@@ -132,9 +144,7 @@ export const createMultiSignRegisterTransaction = (input: {
 		numberOfSignatures: input.numberOfSignatures,
 	};
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.senderPassphrase);
-	const transaction = [input.senderPassphrase, ...input.passphrases].reduce<
-		Record<string, unknown>
-	>(
+	const transaction = [...input.passphrases].reduce<Record<string, unknown>>(
 		(prev, current) => {
 			return signMultiSignatureTransaction(
 				registerMultisignatureParamsSchema,
@@ -146,7 +156,7 @@ export const createMultiSignRegisterTransaction = (input: {
 			);
 		},
 		{
-			moduleID: 4,
+			moduleID: 12,
 			commandID: 0,
 			nonce: input.nonce,
 			senderPublicKey: publicKey,
@@ -209,13 +219,13 @@ export const createReportMisbehaviorTransaction = (input: {
 	fee?: bigint;
 }): Transaction => {
 	const encodedAsset = codec.encode(pomCommandParamsSchema, {
-		header1: input.header1,
-		header2: input.header2,
+		header1: input.header1.getBytes(),
+		header2: input.header2.getBytes(),
 	});
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.passphrase);
 
 	const tx = new Transaction({
-		moduleID: 5,
+		moduleID: 13,
 		commandID: 3,
 		nonce: input.nonce,
 		senderPublicKey: publicKey,

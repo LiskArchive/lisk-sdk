@@ -41,6 +41,16 @@ export class RewardAPI extends BaseAPI {
 		header: BlockHeader,
 		assets: BlockAssets,
 	): Promise<bigint> {
+		const defaultReward = calculateDefaultReward({
+			height: header.height,
+			brackets: this._brackets,
+			distance: this._distance,
+			offset: this._offset,
+		});
+		if (defaultReward === BigInt(0)) {
+			return defaultReward;
+		}
+
 		const isValidSeedReveal = await this._randomAPI.isSeedRevealValid(
 			context,
 			header.generatorAddress,
@@ -49,13 +59,6 @@ export class RewardAPI extends BaseAPI {
 		if (!isValidSeedReveal) {
 			return BigInt(0);
 		}
-
-		const defaultReward = calculateDefaultReward({
-			height: header.height,
-			brackets: this._brackets,
-			distance: this._distance,
-			offset: this._offset,
-		});
 
 		const impliesMaximalPrevotes = await this._bftAPI.impliesMaximalPrevotes(context, header);
 		if (!impliesMaximalPrevotes) {

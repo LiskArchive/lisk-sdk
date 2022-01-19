@@ -45,12 +45,8 @@ import {
 
 const convertDelegateFixture = (delegates: typeof genesisDelegates.delegates) =>
 	delegates.map(delegate => ({
-		encryptedPassphrase: delegate.encryptedPassphrase,
-		address: Buffer.from(delegate.address, 'hex'),
-		hashOnion: {
-			...delegate.hashOnion,
-			hashes: delegate.hashOnion.hashes.map(h => Buffer.from(h, 'hex')),
-		},
+		address: delegate.address,
+		hashOnion: delegate.hashOnion,
 	}));
 
 describe('RandomModule', () => {
@@ -68,14 +64,18 @@ describe('RandomModule', () => {
 	describe('init', () => {
 		it('should initialize config with default value when module config is empty', async () => {
 			await expect(
-				randomModule.init({ genesisConfig: {} as any, moduleConfig: {}, generatorConfig: {} }),
+				randomModule.init({
+					genesisConfig: {} as any,
+					moduleConfig: {},
+					generatorConfig: undefined as any,
+				}),
 			).toResolve();
 
 			expect(randomModule['_maxLengthReveals']).toEqual(206);
 		});
 
 		it('should assign config values', async () => {
-			const generatorConfig = { delegates: convertDelegateFixture(genesisDelegates.delegates) };
+			const generatorConfig = { hashOnions: convertDelegateFixture(genesisDelegates.delegates) };
 
 			await randomModule.init({
 				generatorConfig,
@@ -83,7 +83,7 @@ describe('RandomModule', () => {
 				moduleConfig: { maxLengthReveals: 20 },
 			});
 
-			expect(randomModule['_generatorConfig']).toEqual(generatorConfig);
+			expect(randomModule['_generatorConfig']).toHaveLength(generatorConfig.hashOnions.length);
 			expect(randomModule['_maxLengthReveals']).toEqual(20);
 		});
 	});
@@ -146,11 +146,10 @@ describe('RandomModule', () => {
 
 			const seed = targetDelegate.hashOnion.hashes[1];
 			const hashes = hashOnion(Buffer.from(seed, 'hex'), targetDelegate.hashOnion.distance, 1);
-			const forgingDelegates = convertDelegateFixture(genesisDelegates.delegates);
 
 			// Act
 			await randomModule.init({
-				generatorConfig: { delegates: forgingDelegates },
+				generatorConfig: { hashOnions: convertDelegateFixture(genesisDelegates.delegates) },
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
@@ -187,11 +186,10 @@ describe('RandomModule', () => {
 
 			const seed = targetDelegate.hashOnion.hashes[1];
 			const hashes = hashOnion(Buffer.from(seed, 'hex'), targetDelegate.hashOnion.distance, 1);
-			const forgingDelegates = convertDelegateFixture(genesisDelegates.delegates);
 
 			// Act
 			await randomModule.init({
-				generatorConfig: { delegates: forgingDelegates },
+				generatorConfig: { hashOnions: convertDelegateFixture(genesisDelegates.delegates) },
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
@@ -247,11 +245,10 @@ describe('RandomModule', () => {
 
 			const seed = targetDelegate.hashOnion.hashes[1];
 			const hashes = hashOnion(Buffer.from(seed, 'hex'), targetDelegate.hashOnion.distance, 1);
-			const forgingDelegates = convertDelegateFixture(genesisDelegates.delegates);
 
 			// Act
 			await randomModule.init({
-				generatorConfig: { delegates: forgingDelegates },
+				generatorConfig: { hashOnions: convertDelegateFixture(genesisDelegates.delegates) },
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
@@ -283,7 +280,6 @@ describe('RandomModule', () => {
 
 			const seed = targetDelegate.hashOnion.hashes[1];
 			const hashes = hashOnion(Buffer.from(seed, 'hex'), targetDelegate.hashOnion.distance, 1);
-			const forgingDelegates = convertDelegateFixture(genesisDelegates.delegates);
 
 			await blockGenerateContext
 				.getGeneratorStore(randomModule.id)
@@ -294,7 +290,7 @@ describe('RandomModule', () => {
 
 			// Act
 			await randomModule.init({
-				generatorConfig: { delegates: forgingDelegates },
+				generatorConfig: { hashOnions: convertDelegateFixture(genesisDelegates.delegates) },
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
@@ -371,7 +367,7 @@ describe('RandomModule', () => {
 
 			// Act
 			await randomModule.init({
-				generatorConfig: { delegates: forgingDelegates },
+				generatorConfig: { hashOnions: convertDelegateFixture(genesisDelegates.delegates) },
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
@@ -392,7 +388,7 @@ describe('RandomModule', () => {
 		let stateStore: StateStore;
 		beforeEach(async () => {
 			await randomModule.init({
-				generatorConfig: {},
+				generatorConfig: undefined as never,
 				genesisConfig: {} as never,
 				moduleConfig: {
 					maxLengthReveals: 206,

@@ -26,8 +26,6 @@ import { UpdateGeneratorKeyCommand } from './commands/update_generator_key';
 import { VoteCommand } from './commands/vote';
 import {
 	MODULE_ID_DPOS,
-	COMMAND_ID_UPDATE_GENERATOR_KEY,
-	COMMAND_ID_VOTE,
 	DELEGATE_LIST_ROUND_OFFSET,
 	STORE_PREFIX_DELEGATE,
 	STORE_PREFIX_SNAPSHOT,
@@ -40,7 +38,6 @@ import {
 	STORE_PREFIX_NAME,
 	STORE_PREFIX_VOTER,
 	defaultConfig,
-	COMMAND_ID_UNLOCK,
 } from './constants';
 import { DPoSEndpoint } from './endpoint';
 import {
@@ -83,12 +80,22 @@ export class DPoSModule extends BaseModule {
 	public api = new DPoSAPI(this.id);
 	public endpoint = new DPoSEndpoint(this.id);
 	public configSchema = configSchema;
+
+	private readonly _delegateRegistrationCommand = new DelegateRegistrationCommand(this.id);
+	private readonly _reportDelegateMisbehaviorCommand = new ReportDelegateMisbehaviorCommand(
+		this.id,
+	);
+	private readonly _unlockCommand = new UnlockCommand(this.id);
+	private readonly _updateGeneratorKeyCommand = new UpdateGeneratorKeyCommand(this.id);
+	private readonly _voteCommand = new VoteCommand(this.id);
+
+	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [
-		new DelegateRegistrationCommand(this.id),
-		new ReportDelegateMisbehaviorCommand(this.id),
-		new UnlockCommand(this.id),
-		new UpdateGeneratorKeyCommand(this.id),
-		new VoteCommand(this.id),
+		this._delegateRegistrationCommand,
+		this._reportDelegateMisbehaviorCommand,
+		this._unlockCommand,
+		this._updateGeneratorKeyCommand,
+		this._voteCommand,
 	];
 
 	private _randomAPI!: RandomAPI;
@@ -108,22 +115,18 @@ export class DPoSModule extends BaseModule {
 		this._validatorsAPI = validatorsAPI;
 		this._tokenAPI = tokenAPI;
 
-		const updateGeneratorKeyCommand = this.commands.find(
-			command => command.id === COMMAND_ID_UPDATE_GENERATOR_KEY,
-		) as UpdateGeneratorKeyCommand | undefined;
-
-		if (!updateGeneratorKeyCommand) {
-			throw Error("'updateGeneratorKeyCommand' is missing from DPoS module");
-		}
-		updateGeneratorKeyCommand.addDependencies(this._validatorsAPI);
-
-		const voteCommand = this.commands.find(command => command.id === COMMAND_ID_VOTE) as
-			| VoteCommand
-			| undefined;
-		if (!voteCommand) {
-			throw new Error("'voteCommand' is missing from DPoS module");
-		}
-		voteCommand.addDependencies({
+		this._delegateRegistrationCommand.addDependencies(this._validatorsAPI);
+		this._reportDelegateMisbehaviorCommand.addDependencies({
+			bftAPI: this._bftAPI,
+			tokenAPI: this._tokenAPI,
+			validatorsAPI: this._validatorsAPI,
+		});
+		this._unlockCommand.addDependencies({
+			tokenAPI: this._tokenAPI,
+			bftAPI: this._bftAPI,
+		});
+		this._updateGeneratorKeyCommand.addDependencies(this._validatorsAPI);
+		this._voteCommand.addDependencies({
 			tokenAPI: this._tokenAPI,
 		});
 	}
@@ -141,27 +144,9 @@ export class DPoSModule extends BaseModule {
 			minWeightStandby: BigInt(config.minWeightStandby),
 		} as ModuleConfig;
 
-		const voteCommand = this.commands.find(command => command.id === COMMAND_ID_VOTE) as
-			| VoteCommand
-			| undefined;
-		if (!voteCommand) {
-			throw new Error("'voteCommand' is missing from DPoS module");
-		}
-		voteCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
-
-		const unlockCommand = this.commands.find(command => command.id === COMMAND_ID_UNLOCK) as
-			| UnlockCommand
-			| undefined;
-		if (!unlockCommand) {
-			throw new Error("'unlockCommand' is missing from DPoS module");
-		}
-
-		// Dependency added here since we need access to moduleConfig for tokenIDDPoS
-		unlockCommand.addDependencies({
-			bftAPI: this._bftAPI,
-			tokenAPI: this._tokenAPI,
-			tokenIDDPoS: this._moduleConfig.tokenIDDPoS,
-		});
+		this._reportDelegateMisbehaviorCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
+		this._unlockCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
+		this._voteCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {

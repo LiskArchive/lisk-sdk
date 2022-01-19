@@ -125,7 +125,7 @@ export class StateMachine {
 			}
 			return { status: VerifyStatus.OK };
 		} catch (error) {
-			return { status: VerifyStatus.FAIL };
+			return { status: VerifyStatus.FAIL, error: error as Error };
 		}
 	}
 

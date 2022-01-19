@@ -34,7 +34,7 @@ export class ValidatorsEndpoint extends BaseEndpoint {
 			generatorListSchema,
 		);
 
-		return { list: generatorList.addresses.map(buf => buf.toString()) };
+		return { list: generatorList.addresses.map(buf => buf.toString('hex')) };
 	}
 
 	public async validateBLSKey(ctx: ModuleEndpointContext): Promise<{ valid: boolean }> {
