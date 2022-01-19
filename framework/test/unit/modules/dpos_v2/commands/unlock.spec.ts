@@ -559,4 +559,76 @@ describe('UnlockCommand', () => {
 			);
 		});
 	});
+
+	describe(`when certificate is generated`, () => {
+		beforeEach(async () => {
+			await genesisSubstore.setWithSchema(
+				EMPTY_KEY,
+				{
+					height: 8760000,
+					initRounds: 1,
+					initDelegates: [],
+				},
+				genesisDataStoreSchema,
+			);
+			await delegateSubstore.setWithSchema(
+				delegate1.address,
+				{
+					name: delegate1.name,
+					...defaultDelegateInfo,
+				},
+				delegateStoreSchema,
+			);
+			await delegateSubstore.setWithSchema(
+				delegate2.address,
+				{
+					name: delegate2.name,
+					...defaultDelegateInfo,
+				},
+				delegateStoreSchema,
+			);
+
+			unlockableObject = {
+				delegateAddress: delegate1.address,
+				amount: delegate1.amount,
+				unvoteHeight: blockHeight - WAIT_TIME_VOTE,
+			};
+			nonUnlockableObject = {
+				delegateAddress: delegate2.address,
+				amount: delegate2.amount,
+				unvoteHeight: blockHeight,
+			};
+			await voterSubstore.setWithSchema(
+				transaction.senderAddress,
+				{
+					sentVotes: [
+						{ delegateAddress: unlockableObject.delegateAddress, amount: unlockableObject.amount },
+					],
+					pendingUnlocks: [unlockableObject, nonUnlockableObject],
+				},
+				voterStoreSchema,
+			);
+			context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction,
+					header,
+					networkIdentifier,
+				})
+				.createCommandExecuteContext();
+			await unlockCommand.execute(context);
+			storedData = await voterSubstore.getWithSchema<VoterData>(
+				transaction.senderAddress,
+				voterStoreSchema,
+			);
+		});
+
+		it('should remove eligible pending unlock from voter substore', () => {
+			expect(storedData.pendingUnlocks).not.toContainEqual(unlockableObject);
+		});
+
+		it('should not remove ineligible pending unlock from voter substore', () => {
+			expect(storedData.pendingUnlocks).toContainEqual(nonUnlockableObject);
+		});
+	});
 });
