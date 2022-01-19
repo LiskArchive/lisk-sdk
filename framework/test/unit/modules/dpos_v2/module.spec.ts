@@ -106,18 +106,6 @@ describe('DPoS module', () => {
 
 			expect(dpos['_moduleConfig'].maxLengthName).toEqual(50);
 		});
-
-		it('should throw error if command missing', async () => {
-			dpos.commands = [];
-
-			await expect(
-				dpos.init({
-					genesisConfig: {} as any,
-					moduleConfig: { ...defaultConfigs, maxLengthName: 50 },
-					generatorConfig: {},
-				}),
-			).rejects.toThrow("'voteCommand' is missing from DPoS module");
-		});
 	});
 
 	describe('initGenesisState', () => {

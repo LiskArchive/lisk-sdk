@@ -123,6 +123,7 @@ export class DPoSModule extends BaseModule {
 		});
 		this._unlockCommand.addDependencies({
 			tokenAPI: this._tokenAPI,
+			bftAPI: this._bftAPI,
 		});
 		this._updateGeneratorKeyCommand.addDependencies(this._validatorsAPI);
 		this._voteCommand.addDependencies({
