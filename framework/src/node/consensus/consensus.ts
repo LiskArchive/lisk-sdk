@@ -12,7 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { EventEmitter } from 'events';
-import { Block, Chain, Slots, SMTStore, StateStore, CurrentState } from '@liskhq/lisk-chain';
+import {
+	Block,
+	Chain,
+	Slots,
+	SMTStore,
+	StateStore,
+	CurrentState,
+	BlockHeader,
+} from '@liskhq/lisk-chain';
 import { jobHandlers, objects } from '@liskhq/lisk-utils';
 import { KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
@@ -51,6 +59,7 @@ import { APIContext, createAPIContext } from '../state_machine';
 import { forkChoice, ForkStatus } from './fork_choice/fork_choice_rule';
 import { createNewAPIContext } from '../state_machine/api_context';
 import { CommitPool } from './certificate_generation/commit_pool';
+import { ValidatorInfo } from './certificate_generation/types';
 
 interface ConsensusArgs {
 	stateMachine: StateMachine;
@@ -122,7 +131,6 @@ export class Consensus {
 		this._db = args.db;
 		this._commitPool = new CommitPool({
 			db: this._db,
-			generatorAddress: Buffer.alloc(0),
 			blockTime: this._genesisConfig.blockTime,
 			bftAPI: this._bftAPI,
 			chain: this._chain,
@@ -331,6 +339,22 @@ export class Consensus {
 	public async getAggregateCommit(apiContext: APIContext): Promise<AggregateCommit> {
 		const aggCommit = await this._commitPool.getAggregateCommit(apiContext);
 		return aggCommit;
+	}
+
+	public certifySingleCommit(blockHeader: BlockHeader, validatorInfo: ValidatorInfo): void {
+		const singleCommit = this._commitPool.createSingleCommit(
+			blockHeader,
+			validatorInfo,
+			this._chain.networkIdentifier,
+		);
+		this._commitPool.addCommit(singleCommit, true);
+	}
+
+	public async getMaxRemovalHeight(): Promise<number> {
+		const finalizedBlockHeader = await this._chain.dataAccess.getBlockHeaderByHeight(
+			this._chain.finalizedHeight,
+		);
+		return finalizedBlockHeader.aggregateCommit.height;
 	}
 
 	public isSynced(height: number, maxHeightPrevoted: number): boolean {
@@ -681,7 +705,7 @@ export class Consensus {
 				`Aggregate Commit is "undefined" for the block with id: ${block.header.id.toString('hex')}`,
 			);
 		}
-		const isVerified = await this.commitPool.verifyAggregateCommit(
+		const isVerified = await this._commitPool.verifyAggregateCommit(
 			apiContext,
 			block.header.aggregateCommit,
 		);

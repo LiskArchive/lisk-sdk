@@ -12,18 +12,26 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Block, Transaction } from '@liskhq/lisk-chain';
+import { EventEmitter } from 'events';
+import { Block, Transaction, BlockHeader } from '@liskhq/lisk-chain';
 import { Schema } from '@liskhq/lisk-codec';
 import { Options } from '@liskhq/lisk-db';
 import { Logger } from '../../logger';
 import { BFTParameters } from '../../modules/bft/schemas';
 import { BFTHeights } from '../consensus';
 import { AggregateCommit } from '../consensus/types';
-import { APIContext, BlockHeader, ImmutableAPIContext, ImmutableSubStore } from '../state_machine';
+import {
+	APIContext,
+	BlockHeader as IBlockHeader,
+	ImmutableAPIContext,
+	ImmutableSubStore,
+} from '../state_machine';
+import { ValidatorInfo } from '../consensus/certificate_generation/types';
 
 export interface Keypair {
 	publicKey: Buffer;
 	privateKey: Buffer;
+	blsSecretKey: Buffer;
 }
 
 export interface GeneratorStore {
@@ -35,11 +43,15 @@ export interface Consensus {
 	execute: (block: Block) => Promise<void>;
 	isSynced: (height: number, maxHeightPrevoted: number) => boolean;
 	getAggregateCommit: (apiContext: APIContext) => Promise<AggregateCommit>;
+	certifySingleCommit: (blockHeader: BlockHeader, validatorInfo: ValidatorInfo) => void;
+	getMaxRemovalHeight: () => Promise<number>;
+	readonly events: EventEmitter;
 }
 
 export interface BFTAPI {
 	getBFTHeights: (_apiClient: ImmutableAPIContext) => Promise<BFTHeights>;
 	getBFTParameters: (apiContext: ImmutableAPIContext, height: number) => Promise<BFTParameters>;
+	existBFTParameters(context: ImmutableAPIContext, height: number): Promise<boolean>;
 }
 
 export interface ValidatorAPI {
@@ -58,7 +70,7 @@ export interface BlockGenerateContext {
 	networkIdentifier: Buffer;
 	getAPIContext: () => APIContext;
 	getStore: (moduleID: number, storePrefix: number) => ImmutableSubStore;
-	header: BlockHeader;
+	header: IBlockHeader;
 	assets: WritableBlockAssets;
 	getGeneratorStore: (moduleID: number) => GeneratorStore;
 	getFinalizedHeight(): number;

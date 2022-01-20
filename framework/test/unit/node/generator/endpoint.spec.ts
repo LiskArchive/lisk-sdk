@@ -288,6 +288,7 @@ describe('generator endpoint', () => {
 			endpoint['_keypairs'].set(Buffer.from(config.address, 'hex'), {
 				publicKey: Buffer.alloc(0),
 				privateKey: Buffer.alloc(0),
+				blsSecretKey: Buffer.alloc(0),
 			});
 			await expect(
 				endpoint.updateForgingStatus({

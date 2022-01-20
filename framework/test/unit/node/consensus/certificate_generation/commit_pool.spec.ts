@@ -101,7 +101,6 @@ describe('CommitPool', () => {
 			chain,
 			network,
 			db: jest.fn() as any,
-			generatorAddress: getRandomBytes(20),
 		});
 	});
 
@@ -158,7 +157,6 @@ describe('CommitPool', () => {
 				chain,
 				network,
 				db: dbMock as any,
-				generatorAddress: getRandomBytes(20),
 			});
 
 			gossipedCommits.forEach(commit => commitPool['_gossipedCommits'].add(commit));
@@ -1099,7 +1097,6 @@ describe('CommitPool', () => {
 				network,
 				chain,
 				db: jest.fn() as any,
-				generatorAddress: getRandomBytes(20),
 			});
 			context = createTransientAPIContext({});
 			when(validatorsAPI.getValidatorAccount)
@@ -1227,7 +1224,6 @@ describe('CommitPool', () => {
 				network,
 				chain,
 				db: jest.fn() as any,
-				generatorAddress: getRandomBytes(20),
 			});
 			commitPool['_nonGossipedCommits'].add(singleCommit1);
 			commitPool['_gossipedCommits'].add(singleCommit2);

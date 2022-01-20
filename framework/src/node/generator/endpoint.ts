@@ -66,7 +66,6 @@ interface EndpointInit {
 
 export class Endpoint {
 	[key: string]: unknown;
-	public blsKeys!: dataStructures.BufferMap<Buffer>;
 
 	private readonly _keypairs: dataStructures.BufferMap<Keypair>;
 	private readonly _generators: Generator[];
@@ -191,7 +190,11 @@ export class Endpoint {
 			throw new Error('Invalid password and public key combination.');
 		}
 
-		const keypair: Keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
+		const blsSK = generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
+		const keypair = {
+			...getPrivateAndPublicKeyFromPassphrase(passphrase),
+			blsSecretKey: blsSK,
+		};
 
 		if (!getAddressFromPublicKey(keypair.publicKey).equals(Buffer.from(req.address, 'hex'))) {
 			throw new Error(
@@ -252,8 +255,6 @@ export class Endpoint {
 
 		// Enable delegate to forge by adding keypairs corresponding to address
 		this._keypairs.set(address, keypair);
-		const blsPrivateKey = generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
-		this.blsKeys.set(address, blsPrivateKey); // Will be encrypted in future
 		ctx.logger.info(`Block generation enabled on address: ${req.address}`);
 
 		return {

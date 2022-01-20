@@ -24,6 +24,7 @@ import {
 import { codec } from '@liskhq/lisk-codec';
 import {
 	decryptPassphraseWithPassword,
+	generatePrivateKey,
 	getAddressFromPublicKey,
 	getPrivateAndPublicKeyFromPassphrase,
 	getPublicKeyFromPrivateKey,
@@ -45,6 +46,7 @@ import {
 	VerifyStatus,
 	BlockContext,
 	GenesisBlockContext,
+	APIContext,
 } from '../state_machine';
 import { Broadcaster } from './broadcaster';
 import {
@@ -71,6 +73,7 @@ import {
 	ValidatorAPI,
 	BlockGenerateInput,
 	GenesisBlockGenerateInput,
+	Keypair,
 } from './types';
 import { createAPIContext, createNewAPIContext } from '../state_machine/api_context';
 import { getOrDefaultLastGeneratedInfo, setLastGeneratedInfo } from './generated_info';
@@ -91,11 +94,6 @@ interface GeneratorInitArgs {
 	generatorDB: KVStore;
 	blockchainDB: KVStore;
 	logger: Logger;
-}
-
-interface Keypair {
-	publicKey: Buffer;
-	privateKey: Buffer;
 }
 
 const BLOCK_VERSION = 2;
@@ -212,6 +210,11 @@ export class Generator {
 		this._network.registerEndpoint(NETWORK_RPC_GET_TRANSACTIONS, async ({ data, peerId }) =>
 			this._networkEndpoint.handleRPCGetTransactions(data, peerId),
 		);
+
+		const apiContext = createNewAPIContext(this._blockchainDB);
+		const maxRemovalHeight = await this._consensus.getMaxRemovalHeight();
+		const { maxHeightPrecommitted } = await this._bftAPI.getBFTHeights(apiContext);
+		await Promise.all(this._handleFinalizedHeightChanged(maxRemovalHeight, maxHeightPrecommitted));
 	}
 
 	public get endpoint(): Endpoint {
@@ -247,32 +250,10 @@ export class Generator {
 
 		this._consensus.events.on(
 			CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED,
-			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			async ({ from, to }: { from: number; to: number }) => {
-				for (const [address, _] of this._keypairs.entries()) {
-					for (let height = from + 1; height < to + 1; height += 1) {
-						const blockHeader = await this._chain.dataAccess.getBlockHeaderByHeight(height);
-						const blsSecretKey = this._endpoint.blsKeys.get(address);
-
-						if (!blsSecretKey) {
-							throw new Error(
-								`Generator BLS Secret Key is not set for the address ${address.toString()}`,
-							);
-						}
-
-						const validatorInfo = {
-							address,
-							blsPublicKey: getPublicKeyFromPrivateKey(blsSecretKey),
-							blsSecretKey,
-						};
-
-						const singleCommit = this._consensus.commitPool.createSingleCommit(
-							blockHeader,
-							validatorInfo,
-							this._chain.networkIdentifier,
-						);
-					}
-				}
+			({ from, to }: { from: number; to: number }) => {
+				Promise.all(this._handleFinalizedHeightChanged(from, to)).catch((err: Error) =>
+					this._logger.error({ err }, 'Fail to certify single commit'),
+				);
 			},
 		);
 	}
@@ -437,6 +418,7 @@ export class Generator {
 
 			const keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
 			const delegateAddress = getAddressFromPublicKey(keypair.publicKey);
+			const blsSK = generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
 
 			if (!delegateAddress.equals(Buffer.from(encryptedItem.address, 'hex'))) {
 				throw new Error(
@@ -446,7 +428,10 @@ export class Generator {
 
 			const validatorAddress = getAddressFromPublicKey(keypair.publicKey);
 
-			this._keypairs.set(validatorAddress, keypair);
+			this._keypairs.set(validatorAddress, {
+				...keypair,
+				blsSecretKey: blsSK,
+			});
 			this._logger.info(`Forging enabled on account: ${validatorAddress.toString('hex')}`);
 		}
 	}
@@ -645,8 +630,8 @@ export class Generator {
 		// Set validatorsHash
 		const { validatorsHash } = await this._bftAPI.getBFTParameters(apiContext, height + 1);
 		blockHeader.validatorsHash = validatorsHash;
-		blockHeader.sign(this._chain.networkIdentifier, privateKey);
 		blockHeader.aggregateCommit = await this._consensus.getAggregateCommit(apiContext);
+		blockHeader.sign(this._chain.networkIdentifier, privateKey);
 
 		const generatedBlock = new Block(blockHeader, transactions, blockAssets);
 
@@ -657,5 +642,73 @@ export class Generator {
 		await batch.write();
 
 		return generatedBlock;
+	}
+
+	private _handleFinalizedHeightChanged(from: number, to: number): Promise<void>[] {
+		const promises = [];
+		const apiContext = createNewAPIContext(this._blockchainDB);
+		for (const [address, pairs] of this._keypairs.entries()) {
+			for (let height = from + 1; height <= to; height += 1) {
+				promises.push(
+					this._certifySingleCommitForChangedHeight(
+						apiContext,
+						height,
+						address,
+						pairs.blsSecretKey,
+					),
+				);
+			}
+			promises.push(
+				this._certifySingleCommitForFinalizedHeight(apiContext, to, address, pairs.blsSecretKey),
+			);
+		}
+		return promises;
+	}
+
+	private async _certifySingleCommitForChangedHeight(
+		apiContext: APIContext,
+		height: number,
+		generatorAddress: Buffer,
+		blsSK: Buffer,
+	): Promise<void> {
+		const paramExist = await this._bftAPI.existBFTParameters(apiContext, height + 1);
+		if (!paramExist) {
+			return;
+		}
+		await this._certifySingleCommit(apiContext, height, generatorAddress, blsSK);
+	}
+
+	private async _certifySingleCommitForFinalizedHeight(
+		apiContext: APIContext,
+		height: number,
+		generatorAddress: Buffer,
+		blsSK: Buffer,
+	): Promise<void> {
+		const paramExist = await this._bftAPI.existBFTParameters(apiContext, height + 1);
+		if (paramExist) {
+			return;
+		}
+		await this._certifySingleCommit(apiContext, height, generatorAddress, blsSK);
+	}
+
+	private async _certifySingleCommit(
+		apiContext: APIContext,
+		height: number,
+		generatorAddress: Buffer,
+		blsSK: Buffer,
+	): Promise<void> {
+		const params = await this._bftAPI.getBFTParameters(apiContext, height);
+		const isActive = params.validators.find(v => v.address.equals(generatorAddress)) !== undefined;
+		if (!isActive) {
+			return;
+		}
+
+		const blockHeader = await this._chain.dataAccess.getBlockHeaderByHeight(height);
+		const validatorInfo = {
+			address: generatorAddress,
+			blsPublicKey: getPublicKeyFromPrivateKey(blsSK),
+			blsSecretKey: blsSK,
+		};
+		this._consensus.certifySingleCommit(blockHeader, validatorInfo);
 	}
 }

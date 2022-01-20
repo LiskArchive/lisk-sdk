@@ -230,12 +230,6 @@ export class Node {
 			genesisBlock,
 			logger: this._logger,
 		});
-		await this._generator.init({
-			blockchainDB: this._blockchainDB,
-			generatorDB: this._forgerDB,
-			logger: this._logger,
-		});
-
 		for (const mod of this._registeredModules) {
 			const { modules, ...remainingGenesisConfig } = this._options.genesis;
 			if (mod.init) {
@@ -246,6 +240,12 @@ export class Node {
 				});
 			}
 		}
+
+		await this._generator.init({
+			blockchainDB: this._blockchainDB,
+			generatorDB: this._forgerDB,
+			logger: this._logger,
+		});
 
 		this._consensus.events.on(CONSENSUS_EVENT_BLOCK_NEW, (block: Block) => {
 			this._generator.onNewBlock(block);
