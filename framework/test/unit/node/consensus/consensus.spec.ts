@@ -218,7 +218,7 @@ describe('consensus', () => {
 		});
 	});
 
-	describe('createSingleCommit', () => {
+	describe('certifySingleCommit', () => {
 		const passphrase = Mnemonic.generateMnemonic(256);
 		const address = getAddressFromPassphrase(passphrase);
 		const blsSK = generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
@@ -232,7 +232,6 @@ describe('consensus', () => {
 				genesisBlock: genesis,
 			});
 
-			jest.spyOn(consensus['_commitPool'], 'createSingleCommit');
 			jest.spyOn(consensus['_commitPool'], 'addCommit');
 		});
 

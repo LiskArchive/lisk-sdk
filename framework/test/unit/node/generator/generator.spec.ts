@@ -731,7 +731,7 @@ describe('generator', () => {
 			jest.spyOn(generator['_consensus'], 'certifySingleCommit');
 		});
 
-		it('should call certifySingleCommit for range and when params for height + 1 exist', async () => {
+		it('should call certifySingleCommit for range when params for height + 1 exist', async () => {
 			// Act
 			await Promise.all(generator['_handleFinalizedHeightChanged'](10, 50));
 
