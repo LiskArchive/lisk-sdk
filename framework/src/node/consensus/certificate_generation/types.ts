@@ -42,7 +42,6 @@ export interface CommitPoolConfig {
 	readonly validatorsAPI: ValidatorAPI;
 	readonly chain: Chain;
 	readonly db: KVStore;
-	readonly generatorAddress: Buffer;
 }
 
 export interface ValidatorInfo {

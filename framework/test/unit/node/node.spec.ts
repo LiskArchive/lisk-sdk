@@ -136,7 +136,7 @@ describe('Node', () => {
 			jest.spyOn(node['_chain'], 'genesisBlockExist').mockResolvedValue(true);
 			jest.spyOn(node['_chain'], 'loadLastBlocks').mockResolvedValue();
 			jest.spyOn(node['_network'], 'init');
-			jest.spyOn(node['_generator'], 'init');
+			jest.spyOn(node['_generator'], 'init').mockResolvedValue();
 			jest.spyOn(node['_consensus'], 'init');
 			jest.spyOn(node['_consensus'].events, 'on');
 			const genesisBlock = await node.generateGenesisBlock({ assets: [] });
@@ -356,6 +356,7 @@ describe('Node', () => {
 			jest.spyOn(node['_chain'], 'genesisBlockExist').mockResolvedValue(true);
 			jest.spyOn(node['_chain'], 'loadLastBlocks').mockResolvedValue();
 			jest.spyOn(node['_network'], 'start');
+			jest.spyOn(node['_generator'], 'init').mockResolvedValue();
 			jest.spyOn(node['_generator'], 'start');
 			const genesisBlock = await node.generateGenesisBlock({ assets: [] });
 			await node.init({

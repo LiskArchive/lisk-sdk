@@ -19,6 +19,11 @@ import { when } from 'jest-when';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { SparseMerkleTree } from '@liskhq/lisk-tree';
+import {
+	generatePrivateKey,
+	getAddressFromPassphrase,
+	getPublicKeyFromPrivateKey,
+} from '@liskhq/lisk-cryptography';
 import { ApplyPenaltyError } from '../../../../src/errors';
 import { BFTAPI, ValidatorAPI } from '../../../../src/node/consensus';
 import { Consensus } from '../../../../src/node/consensus/consensus';
@@ -66,6 +71,7 @@ describe('consensus', () => {
 			finalizedHeight: 0,
 			loadLastBlocks: jest.fn(),
 			lastBlock,
+			networkIdentifier: Buffer.from('network-identifier'),
 			verifyAssets: jest.fn(),
 			validateTransaction: jest.fn(),
 			removeBlock: jest.fn(),
@@ -209,6 +215,42 @@ describe('consensus', () => {
 					genesisBlock: genesis,
 				}),
 			).rejects.toThrow('Genesis block validators hash is invalid');
+		});
+	});
+
+	describe('certifySingleCommit', () => {
+		const passphrase = Mnemonic.generateMnemonic(256);
+		const address = getAddressFromPassphrase(passphrase);
+		const blsSK = generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
+		const blsPK = getPublicKeyFromPrivateKey(blsSK);
+		const blockHeader = createFakeBlockHeader({ height: 303 });
+
+		beforeEach(async () => {
+			await consensus.init({
+				logger: loggerMock,
+				db: dbMock,
+				genesisBlock: genesis,
+			});
+
+			jest.spyOn(consensus['_commitPool'], 'addCommit');
+		});
+
+		it('should add created single commit to the pool', () => {
+			consensus.certifySingleCommit(blockHeader, {
+				address,
+				blsPublicKey: blsPK,
+				blsSecretKey: blsSK,
+			});
+
+			expect(consensus['_commitPool'].addCommit).toHaveBeenCalledWith(
+				{
+					blockID: blockHeader.id,
+					validatorAddress: address,
+					certificateSignature: expect.any(Buffer),
+					height: 303,
+				},
+				true,
+			);
 		});
 	});
 

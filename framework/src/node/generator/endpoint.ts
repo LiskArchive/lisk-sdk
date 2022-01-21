@@ -16,6 +16,7 @@ import { Transaction } from '@liskhq/lisk-chain';
 import { StateStore } from '@liskhq/lisk-chain/dist-node/state_store';
 import {
 	decryptPassphraseWithPassword,
+	generatePrivateKey,
 	getAddressFromPublicKey,
 	getPrivateAndPublicKeyFromPassphrase,
 	parseEncryptedPassphrase,
@@ -65,6 +66,7 @@ interface EndpointInit {
 
 export class Endpoint {
 	[key: string]: unknown;
+
 	private readonly _keypairs: dataStructures.BufferMap<Keypair>;
 	private readonly _generators: Generator[];
 	private readonly _consensus: Consensus;
@@ -188,7 +190,11 @@ export class Endpoint {
 			throw new Error('Invalid password and public key combination.');
 		}
 
-		const keypair: Keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
+		const blsSK = generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
+		const keypair = {
+			...getPrivateAndPublicKeyFromPassphrase(passphrase),
+			blsSecretKey: blsSK,
+		};
 
 		if (!getAddressFromPublicKey(keypair.publicKey).equals(Buffer.from(req.address, 'hex'))) {
 			throw new Error(

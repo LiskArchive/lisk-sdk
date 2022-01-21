@@ -12,7 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { EventEmitter } from 'events';
-import { Block, Chain, Slots, SMTStore, StateStore, CurrentState } from '@liskhq/lisk-chain';
+import {
+	Block,
+	Chain,
+	Slots,
+	SMTStore,
+	StateStore,
+	CurrentState,
+	BlockHeader,
+} from '@liskhq/lisk-chain';
 import { jobHandlers, objects } from '@liskhq/lisk-utils';
 import { KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
@@ -37,6 +45,7 @@ import {
 	CONSENSUS_EVENT_BLOCK_BROADCAST,
 	CONSENSUS_EVENT_BLOCK_DELETE,
 	CONSENSUS_EVENT_BLOCK_NEW,
+	CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED,
 	CONSENSUS_EVENT_FORK_DETECTED,
 	NETWORK_EVENT_POST_BLOCK,
 	NETWORK_EVENT_POST_NODE_INFO,
@@ -50,6 +59,7 @@ import { APIContext, createAPIContext } from '../state_machine';
 import { forkChoice, ForkStatus } from './fork_choice/fork_choice_rule';
 import { createNewAPIContext } from '../state_machine/api_context';
 import { CommitPool } from './certificate_generation/commit_pool';
+import { ValidatorInfo } from './certificate_generation/types';
 
 interface ConsensusArgs {
 	stateMachine: StateMachine;
@@ -120,13 +130,12 @@ export class Consensus {
 		this._logger = args.logger;
 		this._db = args.db;
 		this._commitPool = new CommitPool({
+			db: this._db,
 			blockTime: this._genesisConfig.blockTime,
 			bftAPI: this._bftAPI,
 			chain: this._chain,
-			db: this._db,
 			network: this._network,
 			validatorsAPI: this._validatorAPI,
-			generatorAddress: Buffer.alloc(0),
 		});
 		this._endpoint = new NetworkEndpoint({
 			chain: this._chain,
@@ -332,6 +341,22 @@ export class Consensus {
 		return aggCommit;
 	}
 
+	public certifySingleCommit(blockHeader: BlockHeader, validatorInfo: ValidatorInfo): void {
+		const singleCommit = this._commitPool.createSingleCommit(
+			blockHeader,
+			validatorInfo,
+			this._chain.networkIdentifier,
+		);
+		this._commitPool.addCommit(singleCommit, true);
+	}
+
+	public async getMaxRemovalHeight(): Promise<number> {
+		const finalizedBlockHeader = await this._chain.dataAccess.getBlockHeaderByHeight(
+			this._chain.finalizedHeight,
+		);
+		return finalizedBlockHeader.aggregateCommit.height;
+	}
+
 	public isSynced(height: number, maxHeightPrevoted: number): boolean {
 		const lastBlockHeader = this._chain.lastBlock.header;
 		if (lastBlockHeader.version === 0) {
@@ -491,7 +516,12 @@ export class Consensus {
 		const bftVotes = await this._bftAPI.getBFTHeights(apiContext);
 
 		let { finalizedHeight } = this._chain;
+		let finalizedHeightChangeRange;
 		if (bftVotes.maxHeightPrecommitted > finalizedHeight) {
+			finalizedHeightChangeRange = {
+				from: finalizedHeight,
+				to: bftVotes.maxHeightPrecommitted,
+			};
 			finalizedHeight = bftVotes.maxHeightPrecommitted;
 		}
 
@@ -508,6 +538,11 @@ export class Consensus {
 		await this._chain.saveBlock(block, currentState, finalizedHeight, {
 			removeFromTempTable: options.removeFromTempTable ?? false,
 		});
+
+		const isFinalizedHeightChanged = !!finalizedHeightChangeRange;
+		if (isFinalizedHeightChanged) {
+			this.events.emit(CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED, finalizedHeightChangeRange);
+		}
 
 		this.events.emit(CONSENSUS_EVENT_BLOCK_NEW, block);
 		return block;
