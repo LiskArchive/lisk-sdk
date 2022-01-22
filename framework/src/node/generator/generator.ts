@@ -123,6 +123,7 @@ export class Generator {
 		this._config = args.generationConfig;
 		this._keypairs = new dataStructures.BufferMap();
 		this._pool = new TransactionPool({
+			maxPayloadLength: args.genesisConfig.maxTransactionsSize,
 			minFeePerByte: args.genesisConfig.minFeePerByte,
 			baseFees: args.genesisConfig.baseFees.map(fees => ({
 				...fees,

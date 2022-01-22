@@ -28,6 +28,7 @@ import {
 } from '../src/sign';
 import * as multisigScenario from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
 import { baseTransactionSchema } from '../src/schema';
+import { TAG_TRANSACTION } from '../src';
 
 interface Transaction {
 	params: Buffer;
@@ -158,11 +159,11 @@ describe('sign', () => {
 			const signingBytes = getSigningBytes(validParamsSchema, { ...validTransaction });
 			expect(signingBytes).toMatchSnapshot();
 			const decodedTransaction = codec.decode<object>(baseTransactionSchema, signingBytes);
-			const decodedAsset = codec.decode<object>(
+			const decodedParams = codec.decode<object>(
 				validParamsSchema,
 				(decodedTransaction as any).params,
 			);
-			return expect({ ...decodedTransaction, params: { ...decodedAsset } }).toEqual({
+			return expect({ ...decodedTransaction, params: { ...decodedParams } }).toEqual({
 				...validTransaction,
 				signatures: [],
 			});
@@ -545,11 +546,11 @@ describe('sign', () => {
 
 			const multisignatureRegistrationTrx = {
 				moduleID: 4,
-				assetID: 0,
+				commandID: 0,
 				nonce: BigInt('1'),
 				fee: BigInt('10000000'),
 				senderPublicKey: account1.publicKey,
-				asset: {
+				params: {
 					mandatoryKeys,
 					optionalKeys,
 					numberOfSignatures: 2,
@@ -559,7 +560,7 @@ describe('sign', () => {
 
 			// Sign with the senderPublic key sender of the transaction
 			const signedTransaction = signMultiSignatureTransactionWithPrivateKey(
-				multisigRegAsset,
+				multisigRegParams,
 				transactionObject,
 				networkIdentifier,
 				account1.privateKey,
@@ -568,12 +569,12 @@ describe('sign', () => {
 			);
 			const transactionWithNetworkIdentifierBytes = Buffer.concat([
 				networkIdentifier,
-				getSigningBytes(multisigRegAsset, transactionObject),
+				getSigningBytes(multisigRegParams, transactionObject),
 			]);
 
 			// Signing with non sender second mandatory key
 			const signedTransactionNonSender = signMultiSignatureTransactionWithPrivateKey(
-				multisigRegAsset,
+				multisigRegParams,
 				signedTransaction,
 				networkIdentifier,
 				account2.privateKey,
@@ -582,14 +583,18 @@ describe('sign', () => {
 			);
 			const transactionWithNetworkIdentifierBytesNonSender = Buffer.concat([
 				networkIdentifier,
-				getSigningBytes(multisigRegAsset, signedTransaction),
+				getSigningBytes(multisigRegParams, signedTransaction),
 			]);
 
 			const signature = signDataWithPrivateKey(
+				TAG_TRANSACTION,
+				networkIdentifier,
 				transactionWithNetworkIdentifierBytes,
 				account1.privateKey,
 			);
 			const signatureNonSender = signDataWithPrivateKey(
+				TAG_TRANSACTION,
+				networkIdentifier,
 				transactionWithNetworkIdentifierBytesNonSender,
 				account2.privateKey,
 			);
@@ -605,11 +610,11 @@ describe('sign', () => {
 			// Sender public key of account1
 			const transaction = {
 				moduleID: 2,
-				assetID: 0,
+				commandID: 0,
 				nonce: BigInt('1'),
 				fee: BigInt('10000000'),
 				senderPublicKey: account1.publicKey,
-				asset: {
+				params: {
 					recipientAddress: Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex'),
 					amount: BigInt('4008489300000000'),
 					data: '',
@@ -620,7 +625,7 @@ describe('sign', () => {
 
 			// Sign with the senderPublic key of the transaction
 			const signedTransaction = signMultiSignatureTransactionWithPrivateKey(
-				validAssetSchema,
+				validParamsSchema,
 				transactionObject,
 				networkIdentifier,
 				account1.privateKey,
@@ -628,17 +633,19 @@ describe('sign', () => {
 			);
 			const transactionWithNetworkIdentifierBytes = Buffer.concat([
 				networkIdentifier,
-				getSigningBytes(validAssetSchema, transactionObject),
+				getSigningBytes(validParamsSchema, transactionObject),
 			]);
 
 			const signature = signDataWithPrivateKey(
+				TAG_TRANSACTION,
+				networkIdentifier,
 				transactionWithNetworkIdentifierBytes,
 				account1.privateKey,
 			);
 
 			// Sign with the mandatory key of the multi-signature account
 			const signedTransactionMandatoryKey = signMultiSignatureTransactionWithPrivateKey(
-				validAssetSchema,
+				validParamsSchema,
 				signedTransaction,
 				networkIdentifier,
 				account2.privateKey,
@@ -647,10 +654,12 @@ describe('sign', () => {
 
 			const transactionMandatoryKeyWithNetworkIdentifierBytes = Buffer.concat([
 				networkIdentifier,
-				getSigningBytes(validAssetSchema, signedTransaction),
+				getSigningBytes(validParamsSchema, signedTransaction),
 			]);
 
 			const signatureMandatoryAccount = signDataWithPrivateKey(
+				TAG_TRANSACTION,
+				networkIdentifier,
 				transactionMandatoryKeyWithNetworkIdentifierBytes,
 				account2.privateKey,
 			);
@@ -714,14 +723,14 @@ describe('sign', () => {
 				baseTransactionSchema,
 				Buffer.from(testCase.output.transaction, 'hex'),
 			);
-			const decodedAsset = codec.decode<MultiSignatureParams>(
+			const decodedParams = codec.decode<MultiSignatureParams>(
 				multisigRegParams,
 				decodedBaseTransaction.params,
 			);
 			const { signatures, ...transactionObject } = decodedBaseTransaction;
 			const signedMultiSigTransaction = {
 				...transactionObject,
-				params: { ...decodedAsset },
+				params: { ...decodedParams },
 				signatures: signatures.slice(0, 1),
 			};
 			const senderAccount = {
@@ -739,7 +748,7 @@ describe('sign', () => {
 					signedMultiSigTransaction,
 					_networkIdentifier,
 					member.passphrase,
-					decodedAsset,
+					decodedParams,
 					true,
 				),
 			);

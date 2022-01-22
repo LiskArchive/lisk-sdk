@@ -604,7 +604,7 @@ describe('TransactionPool class', () => {
 				maxTransactions: MAX_TRANSACTIONS,
 				baseFees: [
 					{
-						assetID: 0,
+						commandID: 0,
 						baseFee: BigInt(1),
 						moduleID: 3,
 					},
@@ -620,7 +620,7 @@ describe('TransactionPool class', () => {
 				const tempTx = {
 					id: Buffer.from(`${i.toString()}`),
 					moduleID: 3,
-					assetID: 0,
+					commandID: 0,
 					nonce: BigInt(1),
 					fee: BigInt(30000),
 					senderPublicKey: generateRandomPublicKeys()[0],
@@ -651,7 +651,7 @@ describe('TransactionPool class', () => {
 			const lowFeePriorityTx = {
 				id: Buffer.from('11'),
 				moduleID: 3,
-				assetID: 0,
+				commandID: 0,
 				nonce: BigInt(1),
 				fee: BigInt(30000),
 				senderPublicKey: generateRandomPublicKeys()[0],
