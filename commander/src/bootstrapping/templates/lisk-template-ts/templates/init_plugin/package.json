@@ -28,7 +28,7 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
-		"lisk-sdk": "^5.1.0"
+		"lisk-sdk": "^5.2.1"
 	},
 	"devDependencies": {
 		"@types/jest": "26.0.21",
