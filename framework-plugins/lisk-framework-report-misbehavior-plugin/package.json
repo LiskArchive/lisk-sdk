@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-framework-report-misbehavior-plugin",
-	"version": "0.2.5",
+	"version": "0.2.6",
 	"description": "A plugin for lisk-framework that provides automatic detection of delegate misbehavior and sends a reportDelegateMisbehaviorTransaction to the running node",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -34,12 +34,11 @@
 		"test:functional": "jest --config=./test/functional/jest.config.js --runInBand",
 		"prebuild": "rm -r dist-node/* || mkdir dist-node || true",
 		"build": "tsc",
-		"build:check": "node -e \"require('./dist-node')\"",
-		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
+		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
 		"fs-extra": "9.1.0",
-		"lisk-sdk": "^5.2.0"
+		"lisk-sdk": "^5.2.1"
 	},
 	"devDependencies": {
 		"@types/jest": "26.0.21",

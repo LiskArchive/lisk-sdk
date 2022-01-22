@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-transaction-pool",
-	"version": "0.5.1",
+	"version": "0.5.2",
 	"description": "Transaction pool library for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -33,8 +33,7 @@
 		"test:watch": "npm test -- --watch",
 		"prebuild": "rm -r dist-node/* || mkdir dist-node || true",
 		"build": "tsc",
-		"build:check": "node -e \"require('./dist-node')\"",
-		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
+		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
 		"@liskhq/lisk-cryptography": "^3.2.0",

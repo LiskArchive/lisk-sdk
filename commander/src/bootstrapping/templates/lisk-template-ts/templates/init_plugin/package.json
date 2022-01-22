@@ -25,11 +25,10 @@
 		"prebuild": "rm -r dist-node/* || mkdir dist-node || true",
 		"build": "tsc",
 		"test:unit": "jest --config=./test/unit/jest.config.js --coverage=true --coverage-reporters=json --verbose",
-		"build:check": "node -e \"require('./dist-node')\"",
-		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
+		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
-		"lisk-sdk": "^5.1.0"
+		"lisk-sdk": "^5.2.1"
 	},
 	"devDependencies": {
 		"@types/jest": "26.0.21",

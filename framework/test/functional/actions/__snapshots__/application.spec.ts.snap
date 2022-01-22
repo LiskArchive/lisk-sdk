@@ -504,14 +504,10 @@ Object {
           "data": Object {
             "dataType": "string",
             "fieldNumber": 3,
-            "maxLength": 64,
-            "minLength": 0,
           },
           "recipientAddress": Object {
             "dataType": "bytes",
             "fieldNumber": 2,
-            "maxLength": 20,
-            "minLength": 20,
           },
         },
         "required": Array [

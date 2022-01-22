@@ -22,7 +22,7 @@ The following is a set of guidelines for contributing to Lisk SDK, which are hos
 
 ## Code of Conduct
 
-This project and everyone participating in it is governed by the [Lisk SDK Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [info@lisk.com](mailto:info@lisk.com).
+This project and everyone participating in it is governed by the [Lisk SDK Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [admin@lisk.com](mailto:admin@lisk.com).
 
 ## Project License
 

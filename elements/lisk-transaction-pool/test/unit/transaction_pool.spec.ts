@@ -13,7 +13,7 @@
  *
  */
 import { when } from 'jest-when';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { getAddressFromPublicKey, getRandomBytes } from '@liskhq/lisk-cryptography';
 import { TransactionList } from '../../src/transaction_list';
 import { TransactionPool } from '../../src/transaction_pool';
 import { Transaction, Status, TransactionStatus } from '../../src/types';
@@ -35,6 +35,7 @@ describe('TransactionPool class', () => {
 				},
 			],
 			minFeePerByte: 1000,
+			maxPayloadLength: 15360,
 		});
 		jest.spyOn(transactionPool.events, 'emit');
 	});
@@ -67,6 +68,7 @@ describe('TransactionPool class', () => {
 						},
 					],
 					minFeePerByte: 1000,
+					maxPayloadLength: 15360,
 				});
 
 				expect((transactionPool as any)._maxTransactions).toEqual(2048);
@@ -246,8 +248,21 @@ describe('TransactionPool class', () => {
 			senderPublicKey: generateRandomPublicKeys()[0],
 		} as Transaction;
 
-		txGetBytesStub = jest.fn();
-		tx.getBytes = txGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
+		beforeEach(() => {
+			txGetBytesStub = jest.fn();
+			tx.getBytes = txGetBytesStub.mockReturnValue(Buffer.from(new Array(10)));
+		});
+
+		it('should throw error when transaction size is higher than maxPayloadLength', async () => {
+			// Arrange
+			const txGetBytesTempStub = jest.fn();
+			tx.getBytes = txGetBytesTempStub.mockReturnValue(getRandomBytes(15400));
+			// Act
+			const { status } = await transactionPool.add(tx);
+			txGetBytesTempStub.mockReset();
+
+			expect(status).toEqual(Status.FAIL);
+		});
 
 		it('should add a valid transaction to the transaction list as processable', async () => {
 			// Act
@@ -355,6 +370,7 @@ describe('TransactionPool class', () => {
 					},
 				],
 				minFeePerByte: 1000,
+				maxPayloadLength: 15360,
 			});
 			const lowFeeTrx = {
 				id: Buffer.from('1'),
@@ -390,6 +406,7 @@ describe('TransactionPool class', () => {
 					},
 				],
 				minFeePerByte: 1000,
+				maxPayloadLength: 15360,
 			});
 
 			const tempApplyTransactionsStub = jest.fn();
@@ -454,6 +471,7 @@ describe('TransactionPool class', () => {
 					},
 				],
 				minFeePerByte: 1000,
+				maxPayloadLength: 15360,
 			});
 
 			const tempApplyTransactionsStub = jest.fn();
@@ -533,6 +551,7 @@ describe('TransactionPool class', () => {
 					},
 				],
 				minFeePerByte: 1000,
+				maxPayloadLength: 15360,
 			});
 
 			const tempApplyTransactionsStub = jest.fn();
@@ -575,6 +594,80 @@ describe('TransactionPool class', () => {
 			const { status } = await transactionPool.add(lowFeePriorityTx);
 
 			expect(status).toEqual(Status.FAIL);
+		});
+
+		it('should accept a transaction with a lower feePriority than the unprocessable trx with lowest feePriority present in TxPool', async () => {
+			const MAX_TRANSACTIONS = 10;
+			transactionPool = new TransactionPool({
+				applyTransactions: jest.fn(),
+				minEntranceFeePriority: BigInt(10),
+				maxTransactions: MAX_TRANSACTIONS,
+				baseFees: [
+					{
+						assetID: 0,
+						baseFee: BigInt(1),
+						moduleID: 3,
+					},
+				],
+				minFeePerByte: 1000,
+				maxPayloadLength: 15360,
+			});
+
+			const tempApplyTransactionsStub = jest.fn();
+			(transactionPool as any)._applyFunction = tempApplyTransactionsStub;
+			txGetBytesStub = jest.fn();
+			for (let i = 0; i < MAX_TRANSACTIONS; i += 1) {
+				const tempTx = {
+					id: Buffer.from(`${i.toString()}`),
+					moduleID: 3,
+					assetID: 0,
+					nonce: BigInt(1),
+					fee: BigInt(30000),
+					senderPublicKey: generateRandomPublicKeys()[0],
+				} as Transaction;
+				tempTx.getBytes = txGetBytesStub.mockReturnValue(
+					Buffer.from(new Array(MAX_TRANSACTIONS + i)),
+				);
+
+				// half the trx are unprocessable
+				if (i < 5) {
+					when(tempApplyTransactionsStub)
+						.calledWith([tempTx])
+						.mockRejectedValue({
+							transactionError: { code: 'ERR_NONCE_OUT_OF_BOUNDS' },
+							code: 'ERR_TRANSACTION_VERIFICATION_FAIL',
+						});
+				} else {
+					when(tempApplyTransactionsStub)
+						.calledWith([tempTx])
+						.mockResolvedValue([{ status: Status.OK, errors: [] }]);
+				}
+
+				await transactionPool.add(tempTx);
+			}
+
+			expect(transactionPool.getAll()).toHaveLength(MAX_TRANSACTIONS);
+
+			const lowFeePriorityTx = {
+				id: Buffer.from('11'),
+				moduleID: 3,
+				assetID: 0,
+				nonce: BigInt(1),
+				fee: BigInt(30000),
+				senderPublicKey: generateRandomPublicKeys()[0],
+			} as Transaction;
+
+			lowFeePriorityTx.getBytes = txGetBytesStub.mockReturnValue(
+				Buffer.from(new Array(MAX_TRANSACTIONS + 10)),
+			);
+
+			when(tempApplyTransactionsStub)
+				.calledWith([lowFeePriorityTx])
+				.mockResolvedValue([{ status: Status.OK, errors: [] }]);
+
+			const { status } = await transactionPool.add(lowFeePriorityTx);
+
+			expect(status).toEqual(Status.OK);
 		});
 	});
 
@@ -702,6 +795,7 @@ describe('TransactionPool class', () => {
 					},
 				],
 				minFeePerByte: 1000,
+				maxPayloadLength: 15360,
 			});
 			jest.spyOn(transactionPool.events, 'emit');
 			await transactionPool.add(transactions[0]);
@@ -792,6 +886,7 @@ describe('TransactionPool class', () => {
 					},
 				],
 				minFeePerByte: 1000,
+				maxPayloadLength: 15360,
 			});
 			jest.spyOn(transactionPool.events, 'emit');
 			await transactionPool.add(transactionsFromSender1[0]);
@@ -814,7 +909,7 @@ describe('TransactionPool class', () => {
 			expect((transactionPool as any)._allTransactions).not.toContain(transactionsFromSender2[1]);
 			// To check if evicted processable transaction is the higher nonce transaction of an account
 			expect(higherNonceTrxs).toContain(transactionsFromSender2[1]);
-			expect(transactionPool.events.emit).toHaveBeenCalledTimes(1);
+			expect(transactionPool.events.emit).toHaveBeenCalledTimes(2);
 		});
 	});
 
@@ -889,6 +984,7 @@ describe('TransactionPool class', () => {
 					},
 				],
 				minFeePerByte: 1000,
+				maxPayloadLength: 15360,
 			});
 			await transactionPool.add(transactionsFromSender1[0]);
 			await transactionPool.add(transactionsFromSender1[1]);
