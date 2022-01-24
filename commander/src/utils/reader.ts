@@ -326,7 +326,7 @@ export const prepareQuestions = (schema: Schema): Question[] => {
 	return questions;
 };
 
-export const getAssetFromPrompt = async (
+export const getParamsFromPrompt = async (
 	assetSchema: Schema,
 	output: Array<{ [key: string]: string }> = [],
 ): Promise<NestedAsset | Record<string, unknown>> => {
@@ -340,7 +340,7 @@ export const getAssetFromPrompt = async (
 		// if its a multiple questions prompt user again
 		if (inquirerResult.askAgain) {
 			output.push(inquirerResult);
-			return getAssetFromPrompt(assetSchema, output);
+			return getParamsFromPrompt(assetSchema, output);
 		}
 		output.push(inquirerResult);
 		return Promise.resolve(answer);

@@ -26,7 +26,7 @@ $ npm i
 
 Benchmark embedded databases:
 
-Default payload size is 1024, pass payload size according to benchmarking
+Default transactions size is 1024, pass transactions size according to benchmarking
 
 ```sh
 $ node ./benchmark/index.js 15000

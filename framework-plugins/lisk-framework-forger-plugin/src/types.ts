@@ -33,7 +33,7 @@ export interface TransactionFees {
 	readonly minFeePerByte: number;
 	readonly baseFees: {
 		readonly moduleID: number;
-		readonly assetID: number;
+		readonly commandID: number;
 		readonly baseFee: string;
 	}[];
 }

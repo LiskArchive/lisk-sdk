@@ -38,7 +38,7 @@ describe('Transaction related actions', () => {
 
 	describe('getTransactionsFromPool', () => {
 		it('should return valid encoded encodedTransactions', async () => {
-			const encodedTransactions = await app['_channel'].invoke('app:getTransactionsFromPool');
+			const encodedTransactions = await app['_channel'].invoke('app_getTransactionsFromPool');
 			expect(encodedTransactions).toHaveLength(0);
 		});
 	});
@@ -59,7 +59,7 @@ describe('Transaction related actions', () => {
 			});
 
 			await expect(
-				app['_channel'].invoke('app:postTransaction', {
+				app['_channel'].invoke('app_postTransaction', {
 					transaction: fundingTx.getBytes().toString('hex'),
 				}),
 			).resolves.toEqual({ transactionId: fundingTx.id.toString('hex') });
@@ -68,7 +68,7 @@ describe('Transaction related actions', () => {
 
 	describe('getTransactionByID', () => {
 		it('should return valid encoded transaction', async () => {
-			const encodedTx = await app['_channel'].invoke('app:getTransactionByID', {
+			const encodedTx = await app['_channel'].invoke('app_getTransactionByID', {
 				id: sentTx.id.toString('hex'),
 			});
 			expect(encodedTx).toBeString();
@@ -81,7 +81,7 @@ describe('Transaction related actions', () => {
 
 	describe('getTransactionsByIDs', () => {
 		it('should return valid encoded transactions', async () => {
-			const encodedTxs: string[] = await app['_channel'].invoke('app:getTransactionsByIDs', {
+			const encodedTxs: string[] = await app['_channel'].invoke('app_getTransactionsByIDs', {
 				ids: [sentTx.id.toString('hex')],
 			});
 			expect(encodedTxs).toHaveLength(1);

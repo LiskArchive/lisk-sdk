@@ -15,9 +15,8 @@
 
 import { when } from 'jest-when';
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
-import { codec } from '@liskhq/lisk-codec';
 import { Transaction } from '../../src/transaction';
-import { nodeInfo, schema, tx, accountSchema } from '../utils/transaction';
+import { nodeInfo, schema, tx } from '../utils/transaction';
 
 describe('transaction', () => {
 	let channelMock: any;
@@ -34,17 +33,15 @@ describe('transaction', () => {
 	);
 	const txHex =
 		'0802100018362080ade2042a20dd4ff255fe04dd0159a468e9e9c8872c4f4466220f7e326377a0ceb9df2fa21a321d0880ade2041214654087c2df870402ab0b1996616fd3355d61f62c1a003a4079cb29dca7bb9fce73a1e8ca28264f779074d259c341b536bae9a54c0a2e4713580fcb192f9f15f43730650d69bb1f3dcfb4cb6da7d69ca990a763ed78569700';
-	const accountHex =
-		'0a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb8581512050880c2d72f1a020800220208002a3b0a1a0a0a67656e657369735f3834180020850528003080a094a58d1d121d0a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151080a094a58d1d';
 	const encodedTx = Buffer.from(txHex, 'hex');
 
 	const validTransaction = {
 		moduleID: 2,
-		assetID: 0,
+		commandID: 0,
 		nonce: BigInt('1'),
 		fee: BigInt('10000000'),
 		senderPublicKey: publicKey1,
-		asset: {
+		params: {
 			recipientAddress: Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex'),
 			amount: BigInt('4008489300000000'),
 			data: '',
@@ -61,13 +58,18 @@ describe('transaction', () => {
 		};
 
 		when(channelMock.invoke)
-			.calledWith('app:getAccount', expect.anything())
-			.mockResolvedValue(accountHex as never)
-			.calledWith('app:getTransactionByID', expect.anything())
+			.calledWith('auth_getAuthAccount', expect.anything())
+			.mockResolvedValue({
+				nonce: '1',
+				numberOfSignatures: 0,
+				mandatoryKeys: [],
+				optionalKeys: [],
+			} as never)
+			.calledWith('app_getTransactionByID', expect.anything())
 			.mockResolvedValue(txHex as never)
-			.calledWith('app:getTransactionsFromPool')
+			.calledWith('app_getTransactionsFromPool')
 			.mockResolvedValue([txHex] as never)
-			.calledWith('app:postTransaction', expect.anything())
+			.calledWith('app_postTransaction', expect.anything())
 			.mockResolvedValue(txHex as never);
 
 		transaction = new Transaction(channelMock, schema, nodeInfo);
@@ -82,20 +84,20 @@ describe('transaction', () => {
 
 		describe('get', () => {
 			describe('transaction by id as buffer', () => {
-				it('should invoke app:getTransactionByID', async () => {
+				it('should invoke app_getTransactionByID', async () => {
 					await transaction.get(txId);
 					expect(channelMock.invoke).toHaveBeenCalledTimes(1);
-					expect(channelMock.invoke).toHaveBeenCalledWith('app:getTransactionByID', {
+					expect(channelMock.invoke).toHaveBeenCalledWith('app_getTransactionByID', {
 						id: txId.toString('hex'),
 					});
 				});
 			});
 
 			describe('transaction by id as hex', () => {
-				it('should invoke app:getTransactionByID', async () => {
+				it('should invoke app_getTransactionByID', async () => {
 					await transaction.get(txId.toString('hex'));
 					expect(channelMock.invoke).toHaveBeenCalledTimes(1);
-					expect(channelMock.invoke).toHaveBeenCalledWith('app:getTransactionByID', {
+					expect(channelMock.invoke).toHaveBeenCalledWith('app_getTransactionByID', {
 						id: txId.toString('hex'),
 					});
 				});
@@ -103,10 +105,10 @@ describe('transaction', () => {
 		});
 
 		describe('getFromPool', () => {
-			it('should invoke app:getTransactionsFromPool', async () => {
+			it('should invoke app_getTransactionsFromPool', async () => {
 				await transaction.getFromPool();
 				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
-				expect(channelMock.invoke).toHaveBeenCalledWith('app:getTransactionsFromPool');
+				expect(channelMock.invoke).toHaveBeenCalledWith('app_getTransactionsFromPool');
 			});
 		});
 
@@ -130,8 +132,8 @@ describe('transaction', () => {
 			describe('when called without asset id and asset name in input', () => {
 				it('should throw error', async () => {
 					await expect(
-						transaction.create({ ...validTransaction, assetID: undefined }, passphrase1),
-					).rejects.toThrow('Missing assetID and assetName');
+						transaction.create({ ...validTransaction, commandID: undefined }, passphrase1),
+					).rejects.toThrow('Missing commandID and commandName');
 				});
 			});
 
@@ -150,36 +152,21 @@ describe('transaction', () => {
 				it('should throw error', async () => {
 					await expect(
 						transaction.create(
-							{ ...validTransaction, assetID: undefined, assetName: 'newAsset' },
+							{ ...validTransaction, commandID: undefined, commandName: 'newAsset' },
 							passphrase1,
 						),
-					).rejects.toThrow('Asset corresponding to name newAsset not registered.');
+					).rejects.toThrow('Command corresponding to name newAsset not registered.');
 				});
 			});
 
 			describe('when called without nonce in input and account does not support nonce either', () => {
-				beforeEach(() => {
-					(codec as any)['_compileSchemas'] = [];
-				});
-				afterEach(() => {
-					(codec as any)['_compileSchemas'] = [];
-				});
 				it('should throw error', async () => {
-					const updatedSchema = {
-						...schema,
-						account: {
-							...schema.account,
-							properties: {
-								address: schema.account.properties.address,
-								keys: schema.account.properties.keys,
-							},
-							required: ['address', 'keys'],
-						},
-					};
-					transaction = new Transaction(channelMock, updatedSchema, nodeInfo);
+					when(channelMock.invoke)
+						.calledWith('auth_getAuthAccount', expect.anything())
+						.mockRejectedValue(new Error('endpoint does not exist') as never);
 					await expect(
 						transaction.create({ ...validTransaction, nonce: undefined }, passphrase1),
-					).rejects.toThrow('Unsupported account type');
+					).rejects.toThrow('Auth module is not registered or does not have "getAuthAccount"');
 				});
 			});
 
@@ -216,19 +203,14 @@ describe('transaction', () => {
 			describe('when called with multi-signature account in input', () => {
 				it('should return created tx', async () => {
 					const multisigAccount = {
-						address: Buffer.from('ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815', 'hex'),
-						token: { balance: BigInt('100000000') },
-						sequence: { nonce: BigInt('0') },
-						keys: {
-							numberOfSignatures: 1,
-							mandatoryKeys: [publicKey1],
-							optionalKeys: [publicKey2],
-						},
+						nonce: '0',
+						numberOfSignatures: 1,
+						mandatoryKeys: [publicKey1.toString('hex')],
+						optionalKeys: [publicKey2.toString('hex')],
 					};
-					const multisigAccountHex = codec.encode(accountSchema, multisigAccount);
 					when(channelMock.invoke)
-						.calledWith('app:getAccount', expect.anything())
-						.mockResolvedValue(multisigAccountHex.toString('hex') as never);
+						.calledWith('auth_getAuthAccount', expect.anything())
+						.mockResolvedValue(multisigAccount as never);
 					const returnedTx = await transaction.create(validTransaction, passphrase1);
 					expect(returnedTx.signatures).toHaveLength(2);
 					expect(returnedTx.signatures).toMatchSnapshot();
@@ -262,19 +244,14 @@ describe('transaction', () => {
 			describe('when called with multi-signature account in input', () => {
 				it('should return created tx', async () => {
 					const multisigAccount = {
-						address: Buffer.from('ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815', 'hex'),
-						token: { balance: BigInt('100000000') },
-						sequence: { nonce: BigInt('0') },
-						keys: {
-							numberOfSignatures: 1,
-							mandatoryKeys: [publicKey1],
-							optionalKeys: [publicKey2],
-						},
+						nonce: '0',
+						numberOfSignatures: 1,
+						mandatoryKeys: [publicKey1.toString('hex')],
+						optionalKeys: [publicKey2.toString('hex')],
 					};
-					const multisigAccountHex = codec.encode(accountSchema, multisigAccount);
 					when(channelMock.invoke)
-						.calledWith('app:getAccount', expect.anything())
-						.mockResolvedValue(multisigAccountHex.toString('hex') as never);
+						.calledWith('auth_getAuthAccount', expect.anything())
+						.mockResolvedValue(multisigAccount as never);
 					const returnedTx = await transaction.sign(validTransaction, passphrases);
 					expect(returnedTx.signatures).toHaveLength(2);
 					expect(returnedTx.signatures).toMatchSnapshot();
@@ -298,11 +275,11 @@ describe('transaction', () => {
 		});
 
 		describe('send', () => {
-			it('should invoke app:postTransaction', async () => {
+			it('should invoke app_postTransaction', async () => {
 				const trxId = await transaction.send(tx);
 
 				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
-				expect(channelMock.invoke).toHaveBeenCalledWith('app:postTransaction', {
+				expect(channelMock.invoke).toHaveBeenCalledWith('app_postTransaction', {
 					transaction: txHex,
 				});
 				expect(trxId).toEqual(txHex);

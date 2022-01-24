@@ -1,0 +1,293 @@
+/*
+ * Copyright © 2021 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+import { codec } from '@liskhq/lisk-codec';
+import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { objects as objectUtils } from '@liskhq/lisk-utils';
+import { TransactionPool } from '@liskhq/lisk-transaction-pool';
+import { Chain, Transaction } from '@liskhq/lisk-chain';
+import { StateStore } from '@liskhq/lisk-chain/dist-node/state_store';
+import { KVStore } from '@liskhq/lisk-db';
+import { Logger } from '../../logger';
+import { Network } from '../network';
+import { BaseNetworkEndpoint } from '../network/base_network_endpoint';
+import {
+	NETWORK_RPC_GET_TRANSACTIONS,
+	DEFAULT_RATE_LIMIT_FREQUENCY,
+	DEFAULT_RELEASE_LIMIT,
+	NETWORK_EVENT_POST_TRANSACTIONS_ANNOUNCEMENT,
+} from './constants';
+import {
+	GetTransactionRequest,
+	getTransactionRequestSchema,
+	GetTransactionResponse,
+	getTransactionsResponseSchema,
+	PostTransactionsAnnouncement,
+	postTransactionsAnnouncementSchema,
+} from './schemas';
+import { InvalidTransactionError } from './errors';
+import { TransactionContext, EventQueue, StateMachine, VerifyStatus } from '../state_machine';
+import { Broadcaster } from './broadcaster';
+
+interface NetworkEndpointArgs {
+	network: Network;
+	pool: TransactionPool;
+	chain: Chain;
+	stateMachine: StateMachine;
+	broadcaster: Broadcaster;
+}
+
+interface NetworkEndpointInitArgs {
+	logger: Logger;
+	blockchainDB: KVStore;
+}
+
+export class NetworkEndpoint extends BaseNetworkEndpoint {
+	private readonly _pool: TransactionPool;
+	private readonly _chain: Chain;
+	private readonly _broadcaster: Broadcaster;
+	private readonly _stateMachine: StateMachine;
+
+	private _logger!: Logger;
+	private _blockchainDB!: KVStore;
+
+	public constructor(args: NetworkEndpointArgs) {
+		super(args.network);
+		this._pool = args.pool;
+		this._chain = args.chain;
+		this._stateMachine = args.stateMachine;
+		this._broadcaster = args.broadcaster;
+	}
+
+	public init(args: NetworkEndpointInitArgs): void {
+		this._logger = args.logger;
+		this._blockchainDB = args.blockchainDB;
+	}
+
+	public async handleRPCGetTransactions(data: unknown, peerId: string): Promise<Buffer> {
+		this.addRateLimit(NETWORK_RPC_GET_TRANSACTIONS, peerId, DEFAULT_RATE_LIMIT_FREQUENCY);
+		let decodedData: GetTransactionRequest = { transactionIds: [] };
+
+		if (Buffer.isBuffer(data)) {
+			decodedData = codec.decode<GetTransactionRequest>(getTransactionRequestSchema, data);
+			const errors = validator.validate(getTransactionRequestSchema, decodedData);
+			if (errors.length || !objectUtils.bufferArrayUniqueItems(decodedData.transactionIds)) {
+				this._logger.warn({ err: errors, peerId }, 'Received invalid getTransactions body');
+				this.network.applyPenaltyOnPeer({
+					peerId,
+					penalty: 100,
+				});
+				throw new LiskValidationError(errors);
+			}
+		}
+
+		const { transactionIds } = decodedData;
+		if (!transactionIds?.length) {
+			// Get processable transactions from pool and collect transactions across accounts
+			// Limit the transactions to send based on releaseLimit
+			const transactionsBySender = this._pool.getProcessableTransactions();
+			const transactions = transactionsBySender
+				.values()
+				.flat()
+				.map(tx => tx.getBytes());
+			transactions.splice(DEFAULT_RELEASE_LIMIT);
+
+			return codec.encode(getTransactionsResponseSchema, {
+				transactions,
+			});
+		}
+
+		if (transactionIds.length > DEFAULT_RELEASE_LIMIT) {
+			const error = new Error(
+				`Requested number of transactions ${transactionIds.length} exceeds maximum allowed.`,
+			);
+			this._logger.warn({ err: error, peerId }, 'Received invalid request.');
+			this.network.applyPenaltyOnPeer({
+				peerId,
+				penalty: 100,
+			});
+			throw error;
+		}
+
+		const transactionsFromQueues = [];
+		const idsNotInPool = [];
+
+		for (const id of transactionIds) {
+			// Check if any transaction is in the queues.
+			const transaction = this._pool.get(id);
+
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+			if (transaction) {
+				transactionsFromQueues.push(transaction.getBytes());
+			} else {
+				idsNotInPool.push(id);
+			}
+		}
+
+		if (idsNotInPool.length) {
+			// Check if any transaction that was not in the queues, is in the database instead.
+			const transactionsFromDatabase = await this._chain.dataAccess.getTransactionsByIDs(
+				idsNotInPool,
+			);
+
+			return codec.encode(getTransactionsResponseSchema, {
+				transactions: transactionsFromQueues.concat(
+					transactionsFromDatabase.map(t => t.getBytes()),
+				),
+			});
+		}
+
+		return codec.encode(getTransactionsResponseSchema, {
+			transactions: transactionsFromQueues,
+		});
+	}
+
+	/**
+	 * Process transactions IDs announcement. First validates, filter the known transactions
+	 * and finally ask to the emitter the ones that are unknown.
+	 */
+	public async handleEventPostTransactionsAnnouncement(
+		data: unknown,
+		peerId: string,
+	): Promise<void> {
+		this.addRateLimit(
+			NETWORK_EVENT_POST_TRANSACTIONS_ANNOUNCEMENT,
+			peerId,
+			DEFAULT_RATE_LIMIT_FREQUENCY,
+		);
+		if (!Buffer.isBuffer(data)) {
+			const errorMessage = 'Received invalid transaction announcement data';
+			this._logger.warn({ peerId }, errorMessage);
+			this.network.applyPenaltyOnPeer({
+				peerId,
+				penalty: 100,
+			});
+			throw new Error(errorMessage);
+		}
+
+		const decodedData = codec.decode<PostTransactionsAnnouncement>(
+			postTransactionsAnnouncementSchema,
+			data,
+		);
+		const errors = validator.validate(postTransactionsAnnouncementSchema, decodedData);
+
+		if (errors.length) {
+			this._logger.warn({ err: errors, peerId }, 'Received invalid transactions body');
+			this.network.applyPenaltyOnPeer({
+				peerId,
+				penalty: 100,
+			});
+			throw new LiskValidationError(errors);
+		}
+
+		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(
+			decodedData.transactionIds,
+		);
+		if (unknownTransactionIDs.length > 0) {
+			const transactionIdsBuffer = codec.encode(getTransactionRequestSchema, {
+				transactionIds: unknownTransactionIDs,
+			});
+			const { data: encodedData } = (await this.network.requestFromPeer({
+				procedure: NETWORK_RPC_GET_TRANSACTIONS,
+				data: transactionIdsBuffer,
+				peerId,
+			})) as {
+				data: Buffer;
+			};
+			const transactionsData = codec.decode<GetTransactionResponse>(
+				getTransactionsResponseSchema,
+				encodedData,
+			);
+
+			try {
+				for (const transactionBytes of transactionsData.transactions) {
+					const transaction = Transaction.fromBytes(transactionBytes);
+					await this._receiveTransaction(transaction);
+				}
+			} catch (err) {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+				this._logger.warn({ err, peerId }, 'Received invalid transactions.');
+				if (err instanceof InvalidTransactionError) {
+					this.network.applyPenaltyOnPeer({
+						peerId,
+						penalty: 100,
+					});
+				}
+			}
+		}
+	}
+
+	private async _receiveTransaction(transaction: Transaction) {
+		const txContext = new TransactionContext({
+			eventQueue: new EventQueue(),
+			logger: this._logger,
+			networkIdentifier: this._chain.networkIdentifier,
+			stateStore: new StateStore(this._blockchainDB),
+			transaction,
+		});
+		const result = await this._stateMachine.verifyTransaction(txContext);
+		if (result.status === VerifyStatus.FAIL) {
+			throw new InvalidTransactionError(
+				result.error?.message ?? 'Transaction verification failed.',
+				transaction.id,
+			);
+		}
+		if (this._pool.contains(transaction.id)) {
+			return;
+		}
+
+		// Broadcast transaction to network if not present in pool
+		this._broadcaster.enqueueTransactionId(transaction.id);
+
+		const { error } = await this._pool.add(transaction);
+
+		if (!error) {
+			this._logger.info(
+				{
+					id: transaction.id,
+					nonce: transaction.nonce.toString(),
+					senderPublicKey: transaction.senderPublicKey,
+				},
+				'Added transaction to pool',
+			);
+			return;
+		}
+
+		this._logger.error({ err: error }, 'Failed to add transaction to pool.');
+		throw new InvalidTransactionError(
+			error.message ?? 'Transaction verification failed.',
+			transaction.id,
+		);
+	}
+
+	private async _obtainUnknownTransactionIDs(ids: Buffer[]): Promise<Buffer[]> {
+		// Check if any transaction is in the queues.
+		const unknownTransactionsIDs = ids.filter(id => !this._pool.contains(id));
+
+		if (unknownTransactionsIDs.length) {
+			// Check if any transaction exists in the database.
+			const existingTransactions: Transaction[] = await this._chain.dataAccess.getTransactionsByIDs(
+				unknownTransactionsIDs,
+			);
+
+			return unknownTransactionsIDs.filter(
+				id =>
+					existingTransactions.find(existingTransaction => existingTransaction.id.equals(id)) ===
+					undefined,
+			);
+		}
+
+		return unknownTransactionsIDs;
+	}
+}

@@ -132,7 +132,11 @@ export class SparseMerkleTree {
 			// Condition of one leaf per empty subtree
 			// Note: h is set to the last value from the previous loop
 			const currentNodeBinaryKey = binaryExpansion(currentNode.key, this.keyLength);
-			while (binaryKey.charAt(h) === currentNodeBinaryKey.charAt(h)) {
+			while (
+				binaryKey.length > h &&
+				currentNodeBinaryKey.length > h &&
+				binaryKey.charAt(h) === currentNodeBinaryKey.charAt(h)
+			) {
 				// Create branch node with empty value
 				const newBranch = new Branch(EMPTY_HASH, EMPTY_HASH);
 				// Append defaultBranch to ancestorNodes

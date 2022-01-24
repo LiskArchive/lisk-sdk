@@ -11,10 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { DPoSVoteAsset, TokenTransferAsset, Transaction, testing } from 'lisk-framework';
-import { convertLSKToBeddows, TAG_TRANSACTION } from '@liskhq/lisk-transactions';
-import { codec } from '@liskhq/lisk-codec';
-import { signData } from '@liskhq/lisk-cryptography';
+import { Transaction, testing, codec, transactions, cryptography } from 'lisk-sdk';
 
 export const createTransferTransaction = ({
 	amount,
@@ -32,20 +29,25 @@ export const createTransferTransaction = ({
 	const genesisAccount = testing.fixtures.defaultFaucetAccount;
 	const encodedAsset = codec.encode(new TokenTransferAsset(BigInt(5000000)).schema, {
 		recipientAddress: Buffer.from(recipientAddress, 'hex'),
-		amount: BigInt(convertLSKToBeddows(amount)),
+		amount: BigInt(transactions.convertLSKToBeddows(amount)),
 		data: '',
 	});
 	const tx = new Transaction({
 		moduleID: 2,
-		assetID: 0,
+		commandID: 0,
 		nonce: BigInt(nonce),
 		senderPublicKey: genesisAccount.publicKey,
-		fee: BigInt(convertLSKToBeddows(fee)),
-		asset: encodedAsset,
+		fee: BigInt(transactions.convertLSKToBeddows(fee)),
+		params: encodedAsset,
 		signatures: [],
 	});
-	(tx.signatures as Buffer[]).push(
-		signData(TAG_TRANSACTION, networkIdentifier, tx.getSigningBytes(), genesisAccount.passphrase),
+	tx.signatures.push(
+		cryptography.signData(
+			transactions.TAG_TRANSACTION,
+			networkIdentifier,
+			tx.getSigningBytes(),
+			genesisAccount.passphrase,
+		),
 	);
 	return tx;
 };
@@ -68,22 +70,27 @@ export const createVoteTransaction = ({
 		votes: [
 			{
 				delegateAddress: Buffer.from(recipientAddress, 'hex'),
-				amount: BigInt(convertLSKToBeddows(amount)),
+				amount: BigInt(transactions.convertLSKToBeddows(amount)),
 			},
 		],
 	});
 
 	const tx = new Transaction({
 		moduleID: 5,
-		assetID: 1,
+		commandID: 1,
 		nonce: BigInt(nonce),
 		senderPublicKey: genesisAccount.publicKey,
-		fee: BigInt(convertLSKToBeddows(fee)),
-		asset: encodedAsset,
+		fee: BigInt(transactions.convertLSKToBeddows(fee)),
+		params: encodedAsset,
 		signatures: [],
 	});
-	(tx.signatures as Buffer[]).push(
-		signData(TAG_TRANSACTION, networkIdentifier, tx.getSigningBytes(), genesisAccount.passphrase),
+	tx.signatures.push(
+		cryptography.signData(
+			transactions.TAG_TRANSACTION,
+			networkIdentifier,
+			tx.getSigningBytes(),
+			genesisAccount.passphrase,
+		),
 	);
 	return tx;
 };

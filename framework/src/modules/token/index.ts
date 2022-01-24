@@ -12,5 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export * from './token_module';
-export * from './transfer_asset';
+export { TokenModule } from './module';
+export { TransferCommand } from './commands/transfer';
+export { TokenAPI } from './api';
+export { genesisTokenStoreSchema } from './schemas';

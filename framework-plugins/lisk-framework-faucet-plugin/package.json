@@ -48,7 +48,7 @@
 		"@liskhq/lisk-validator": "^0.6.1",
 		"axios": "0.21.2",
 		"express": "4.17.1",
-		"lisk-framework": "^0.9.1",
+		"lisk-sdk": "^5.2.1",
 		"react": "^17.0.1",
 		"react-dom": "^17.0.1",
 		"react-router-dom": "^5.2.0"

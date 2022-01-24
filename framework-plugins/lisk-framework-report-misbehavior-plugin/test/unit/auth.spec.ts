@@ -12,11 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseChannel, GenesisConfig } from 'lisk-framework';
+import { ApplicationConfigForPlugin, BaseChannel, GenesisConfig, testing } from 'lisk-sdk';
 import { ReportMisbehaviorPlugin } from '../../src';
 import { configSchema } from '../../src/schemas';
 
-const appConfigForPlugin = {
+const appConfigForPlugin: ApplicationConfigForPlugin = {
 	rootPath: '~/.lisk',
 	label: 'my-app',
 	logger: {
@@ -36,10 +36,11 @@ const appConfigForPlugin = {
 			host: '127.0.0.1',
 		},
 	},
-	forging: {
+	generation: {
 		force: false,
 		waitThreshold: 2,
-		delegates: [],
+		generators: [],
+		modules: {},
 	},
 	network: {
 		seedPeers: [],
@@ -54,7 +55,7 @@ const appConfigForPlugin = {
 	},
 	version: '',
 	networkVersion: '',
-	genesisConfig: {} as GenesisConfig,
+	genesis: {} as GenesisConfig,
 };
 
 const validPluginOptions = {
@@ -71,7 +72,6 @@ const channelMock = {
 
 describe('auth action', () => {
 	let reportMisbehaviorPlugin: ReportMisbehaviorPlugin;
-	let authorizeAction: any;
 
 	beforeEach(async () => {
 		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin();
@@ -83,36 +83,38 @@ describe('auth action', () => {
 			},
 			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
+			logger: testing.mocks.loggerMock,
 		});
-		authorizeAction = reportMisbehaviorPlugin.actions.authorize;
 	});
 
-	it('should disable the reporting when enable=false', () => {
+	it('should disable the reporting when enable=false', async () => {
 		const params = {
 			enable: false,
 			password: '123',
 		};
-		const response = authorizeAction(params);
+		const response = await reportMisbehaviorPlugin.endpoint.authorize({ params } as any);
 
 		expect(response.result).toContain('Successfully disabled the reporting of misbehavior.');
 	});
 
-	it('should enable the reporting when enable=true', () => {
+	it('should enable the reporting when enable=true', async () => {
 		const params = {
 			enable: true,
 			password: '123',
 		};
-		const response = authorizeAction(params);
+		const response = await reportMisbehaviorPlugin.endpoint.authorize({ params } as any);
 
 		expect(response.result).toContain('Successfully enabled the reporting of misbehavior.');
 	});
 
-	it('should fail when encrypted passphrase does not match with password given', () => {
+	it('should fail when encrypted passphrase does not match with password given', async () => {
 		const params = {
 			enable: true,
 			password: '1234',
 		};
 
-		expect(() => authorizeAction(params)).toThrow('Password given is not valid.');
+		await expect(reportMisbehaviorPlugin.endpoint.authorize({ params } as any)).rejects.toThrow(
+			'Password given is not valid.',
+		);
 	});
 });

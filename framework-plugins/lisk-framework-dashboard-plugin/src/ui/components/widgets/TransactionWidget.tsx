@@ -28,7 +28,7 @@ interface WidgetProps {
 const getModuleAsset = (
 	nodeInfo: NodeInfo | undefined,
 	moduleID: number,
-	assetID: number,
+	commandID: number,
 ): string => {
 	if (!nodeInfo) {
 		return 'unknown';
@@ -37,7 +37,7 @@ const getModuleAsset = (
 	if (!registeredModule) {
 		return 'unknown';
 	}
-	const registeredAsset = registeredModule.transactionAssets?.find(ta => ta.id === assetID);
+	const registeredAsset = registeredModule.commands?.find(ta => ta.id === commandID);
 	if (!registeredAsset) {
 		return `${registeredModule.name}:unknown`;
 	}
@@ -83,7 +83,7 @@ const TransactionWidget: React.FC<WidgetProps> = props => {
 								</td>
 								<td>
 									<Text>
-										{getModuleAsset(props.nodeInfo, transaction.moduleID, transaction.assetID)}
+										{getModuleAsset(props.nodeInfo, transaction.moduleID, transaction.commandID)}
 									</Text>
 								</td>
 								<td>

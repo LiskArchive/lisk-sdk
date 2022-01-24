@@ -12,11 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getAddressFromPublicKey, getKeys, getRandomBytes } from '@liskhq/lisk-cryptography';
+import { cryptography } from 'lisk-sdk';
 
 export const getRandomAccount = () => {
-	const { publicKey, privateKey } = getKeys(getRandomBytes(20).toString('hex'));
-	const address = getAddressFromPublicKey(publicKey);
+	const { publicKey, privateKey } = cryptography.getKeys(
+		cryptography.getRandomBytes(20).toString('hex'),
+	);
+	const address = cryptography.getAddressFromPublicKey(publicKey);
 
 	return {
 		address: address.toString('hex'),

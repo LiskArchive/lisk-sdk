@@ -11,10 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { Schema } from '@liskhq/lisk-codec';
-import { objects } from '@liskhq/lisk-utils';
-
 export const blockSchema = {
 	$id: '/block',
 	type: 'object',
@@ -23,105 +19,109 @@ export const blockSchema = {
 			dataType: 'bytes',
 			fieldNumber: 1,
 		},
-		payload: {
+		transactions: {
 			type: 'array',
 			items: {
 				dataType: 'bytes',
 			},
 			fieldNumber: 2,
 		},
+		assets: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+			},
+			fieldNumber: 3,
+		},
 	},
-	required: ['header', 'payload'],
+	required: ['header', 'transactions', 'assets'],
 };
 
 export const signingBlockHeaderSchema = {
-	$id: '/block/header/signing',
+	$id: '/block/header/signing/3',
 	type: 'object',
 	properties: {
 		version: { dataType: 'uint32', fieldNumber: 1 },
 		timestamp: { dataType: 'uint32', fieldNumber: 2 },
 		height: { dataType: 'uint32', fieldNumber: 3 },
 		previousBlockID: { dataType: 'bytes', fieldNumber: 4 },
-		transactionRoot: { dataType: 'bytes', fieldNumber: 5 },
-		generatorPublicKey: { dataType: 'bytes', fieldNumber: 6 },
-		reward: { dataType: 'uint64', fieldNumber: 7 },
-		asset: { dataType: 'bytes', fieldNumber: 8 },
+		generatorAddress: { dataType: 'bytes', fieldNumber: 5 },
+		transactionRoot: { dataType: 'bytes', fieldNumber: 6 },
+		assetsRoot: { dataType: 'bytes', fieldNumber: 7 },
+		stateRoot: { dataType: 'bytes', fieldNumber: 8 },
+		maxHeightPrevoted: { dataType: 'uint32', fieldNumber: 9 },
+		maxHeightGenerated: { dataType: 'uint32', fieldNumber: 10 },
+		validatorsHash: { dataType: 'bytes', fieldNumber: 11 },
+		aggregateCommit: {
+			type: 'object',
+			fieldNumber: 12,
+			required: ['height', 'aggregationBits', 'certificateSignature'],
+			properties: {
+				height: {
+					dataType: 'uint32',
+					fieldNumber: 1,
+				},
+				aggregationBits: {
+					dataType: 'bytes',
+					fieldNumber: 2,
+				},
+				certificateSignature: {
+					dataType: 'bytes',
+					fieldNumber: 3,
+				},
+			},
+		},
 	},
 	required: [
 		'version',
 		'timestamp',
 		'height',
 		'previousBlockID',
+		'generatorAddress',
 		'transactionRoot',
-		'generatorPublicKey',
-		'reward',
-		'asset',
+		'assetsRoot',
+		'stateRoot',
+		'maxHeightPrevoted',
+		'maxHeightGenerated',
+		'validatorsHash',
+		'aggregateCommit',
 	],
 };
 
 export const blockHeaderSchema = {
 	...signingBlockHeaderSchema,
-	$id: '/block/header',
+	$id: '/block/header/3',
+	required: [...signingBlockHeaderSchema.required, 'signature'],
 	properties: {
 		...signingBlockHeaderSchema.properties,
-		signature: { dataType: 'bytes', fieldNumber: 9 },
+		signature: { dataType: 'bytes', fieldNumber: 13 },
 	},
 };
 
-export const baseGenesisBlockHeaderAssetSchema = {
-	$id: '/genesisBlock/header/asset',
-	type: 'object',
-	required: ['accounts', 'initDelegates', 'initRounds'],
+export const blockHeaderSchemaWithId = {
+	...blockHeaderSchema,
+	$id: '/block/header/3',
+	required: [...blockHeaderSchema.required, 'id'],
 	properties: {
-		accounts: {
-			type: 'array',
-			fieldNumber: 1,
-		},
-		initDelegates: {
-			type: 'array',
-			items: {
-				dataType: 'bytes',
-			},
-			fieldNumber: 2,
-			minItems: 1,
-		},
-		initRounds: {
-			dataType: 'uint32',
-			fieldNumber: 3,
-			minimum: 3,
-		},
+		...blockHeaderSchema.properties,
+		id: { dataType: 'bytes', fieldNumber: 14 },
 	},
 };
 
-export const baseAccountSchema = {
-	$id: '/account/base',
+export const blockAssetSchema = {
+	$id: '/block/asset/3',
 	type: 'object',
+	required: ['moduleID', 'data'],
 	properties: {
-		address: { dataType: 'bytes', fieldNumber: 1 },
-	},
-	required: ['address'],
-};
-
-export const blockHeaderAssetSchema = {
-	$id: '/blockHeader/asset/v2',
-	type: 'object',
-	properties: {
-		maxHeightPreviouslyForged: {
+		moduleID: {
 			dataType: 'uint32',
 			fieldNumber: 1,
 		},
-		maxHeightPrevoted: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-		},
-		seedReveal: {
+		data: {
 			dataType: 'bytes',
-			minLength: 16,
-			maxLength: 16,
-			fieldNumber: 3,
+			fieldNumber: 2,
 		},
 	},
-	required: ['maxHeightPreviouslyForged', 'maxHeightPrevoted', 'seedReveal'],
 };
 
 export const stateDiffSchema = {
@@ -136,7 +136,7 @@ export const stateDiffSchema = {
 				type: 'object',
 				properties: {
 					key: {
-						dataType: 'string',
+						dataType: 'bytes',
 						fieldNumber: 1,
 					},
 					value: {
@@ -150,7 +150,7 @@ export const stateDiffSchema = {
 			type: 'array',
 			fieldNumber: 2,
 			items: {
-				dataType: 'string',
+				dataType: 'bytes',
 			},
 		},
 		deleted: {
@@ -160,7 +160,7 @@ export const stateDiffSchema = {
 				type: 'object',
 				properties: {
 					key: {
-						dataType: 'string',
+						dataType: 'bytes',
 						fieldNumber: 1,
 					},
 					value: {
@@ -172,69 +172,3 @@ export const stateDiffSchema = {
 		},
 	},
 };
-
-export const validatorsSchema = {
-	$id: '/state/validators',
-	type: 'object',
-	required: ['validators'],
-	properties: {
-		validators: {
-			type: 'array',
-			fieldNumber: 1,
-			items: {
-				type: 'object',
-				properties: {
-					address: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-					minActiveHeight: {
-						dataType: 'uint32',
-						fieldNumber: 2,
-					},
-					isConsensusParticipant: {
-						dataType: 'boolean',
-						fieldNumber: 3,
-					},
-				},
-				required: ['address', 'minActiveHeight', 'isConsensusParticipant'],
-			},
-		},
-	},
-};
-
-export const genesisInfoSchema = {
-	$id: '/state/genesisInfo',
-	type: 'object',
-	properties: {
-		height: {
-			dataType: 'uint32',
-			fieldNumber: 1,
-		},
-		initRounds: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-		},
-	},
-	required: ['height', 'initRounds'],
-};
-
-export const getGenesisBlockHeaderAssetSchema = (accountSchema: Schema): Schema =>
-	objects.mergeDeep({}, baseGenesisBlockHeaderAssetSchema, {
-		properties: {
-			accounts: {
-				items: {
-					...accountSchema,
-				},
-			},
-		},
-	}) as Schema;
-
-export const getRegisteredBlockAssetSchema = (
-	accountSchema: Schema,
-): {
-	readonly [key: number]: Schema;
-} => ({
-	0: getGenesisBlockHeaderAssetSchema(accountSchema),
-	2: blockHeaderAssetSchema,
-});

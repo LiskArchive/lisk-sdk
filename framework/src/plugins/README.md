@@ -52,7 +52,7 @@ export class MyPlugin extends BasePlugin {
     *
     * Method which will be invoked by controller to load the plugin.
     * Make sure all loading logic get completed during the life cycle of load.
-    * Controller emit an event `app:ready` which you can use to perform
+    * Controller emit an event `app_ready` which you can use to perform
     * some activities which you want to perform when every other plugin is loaded.
     *
     * @param {Channel} channel - An instance of a communication channel.
@@ -70,7 +70,7 @@ export class MyPlugin extends BasePlugin {
 
     /**
      * List of valid events which this plugin wants to register with the controller.
-     * Each event name will be prefixed by plugin name, e.g. pluginName:event1.
+     * Each event name will be prefixed by plugin name, e.g. pluginName_event1.
      * Listing an event means to register the event in the application.
      * Any plugin can subscribe or publish that event in the application.
      *
@@ -80,7 +80,7 @@ export class MyPlugin extends BasePlugin {
 
     /**
      * Object of valid actions which this plugin want to register with the controller.
-     * Each action name will be prefixed by plugin name, e.g. pluginName:action1.
+     * Each action name will be prefixed by plugin name, e.g. pluginName_action1.
      * Source plugin can define the action while others can invoke that action.
      *
      * @return {Object} actions - Contains all available action names as key, and the corresponding function as value.
@@ -118,14 +118,3 @@ Communicates with plugins which do not reside in the same process as the Control
 To load a plugin as a child process, make sure you have `ipc` enabled in the config file and set the option `loadAsChildProcess: true` when registering the plugin using the Application method `registerPlugin`.
 
 Currently, the only Lisk native plugin supported is HTTP API plugin which will be loaded as child process if you have `ipc` enabled.
-
-## Plugin Life Cycle
-
-The controller will load/unload each plugin one after another.
-A plugins' life cycle consists of following events in the right order:
-
-**Loading**
-
-- _plugin_:registeredToBus
-- _plugin_:loading:started
-- _plugin_:loading:finished

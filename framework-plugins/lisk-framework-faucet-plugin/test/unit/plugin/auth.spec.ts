@@ -12,11 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseChannel, GenesisConfig } from 'lisk-framework';
+import { ApplicationConfigForPlugin, BaseChannel, GenesisConfig, testing } from 'lisk-sdk';
 import { FaucetPlugin } from '../../../src/plugin';
 import { configSchema } from '../../../src/plugin/schemas';
 
-const appConfigForPlugin = {
+const appConfigForPlugin: ApplicationConfigForPlugin = {
 	rootPath: '~/.lisk',
 	label: 'my-app',
 	logger: {
@@ -36,10 +36,12 @@ const appConfigForPlugin = {
 			host: '127.0.0.1',
 		},
 	},
-	forging: {
+	genesis: {} as GenesisConfig,
+	generation: {
 		force: false,
 		waitThreshold: 2,
-		delegates: [],
+		generators: [],
+		modules: {},
 	},
 	network: {
 		seedPeers: [],
@@ -52,10 +54,8 @@ const appConfigForPlugin = {
 		minEntranceFeePriority: '0',
 		minReplacementFeeDifference: '10',
 	},
-	plugins: {},
 	version: '',
 	networkVersion: '',
-	genesisConfig: {} as GenesisConfig,
 };
 
 const validPluginOptions = {
@@ -72,9 +72,10 @@ const channelMock = {
 	once: jest.fn().mockImplementation((_eventName, cb) => cb()),
 };
 
+const logger = testing.mocks.loggerMock;
+
 describe('auth action', () => {
 	let faucetPlugin: FaucetPlugin;
-	let authorizeAction: any;
 
 	beforeEach(async () => {
 		faucetPlugin = new FaucetPlugin();
@@ -86,35 +87,38 @@ describe('auth action', () => {
 			},
 			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
+			logger,
 		});
-		authorizeAction = faucetPlugin.actions.authorize;
 	});
 
-	it('should disable faucet when enable=false', () => {
+	it('should disable faucet when enable=false', async () => {
 		const params = {
 			enable: false,
 			password: '123',
 		};
-		const response = authorizeAction(params);
+		const response = await faucetPlugin.endpoint.authorize({ params } as any);
 
 		expect(response.result).toContain('Successfully disabled the faucet.');
 	});
 
-	it('should enable the faucet when enable=true', () => {
+	it('should enable the faucet when enable=true', async () => {
 		const params = {
 			enable: true,
 			password: '123',
 		};
-		const response = authorizeAction(params);
+		const response = await faucetPlugin.endpoint.authorize({ params } as any);
 
 		expect(response.result).toContain('Successfully enabled the faucet.');
 	});
-	it('should fail when encrypted passphrase does not match with password given', () => {
+
+	it('should fail when encrypted passphrase does not match with password given', async () => {
 		const params = {
 			enable: true,
 			password: '1234',
 		};
 
-		expect(() => authorizeAction(params)).toThrow('Password given is not valid.');
+		await expect(faucetPlugin.endpoint.authorize({ params } as any)).rejects.toThrow(
+			'Password given is not valid.',
+		);
 	});
 });

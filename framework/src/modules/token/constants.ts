@@ -11,6 +11,14 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-export const CHAIN_STATE_BURNT_FEE = 'token:burntFee';
-export const GENESIS_BLOCK_MAX_BALANCE = BigInt(2) ** BigInt(63) - BigInt(1);
+
+export const MODULE_ID_TOKEN = 2;
+export const COMMAND_ID_TRANSFER = 0;
+
 export const MAX_TRANSACTION_AMOUNT = '9223372036854775807';
+export const DEFAULT_MIN_REMAINING_BALANCE = '5000000';
+
+export const STORE_PREFIX_USER = 0;
+export const defaultConfig = {
+	minBalance: DEFAULT_MIN_REMAINING_BALANCE,
+};

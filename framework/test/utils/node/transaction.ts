@@ -15,13 +15,23 @@
 
 import { Transaction, BlockHeader, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { getAddressAndPublicKeyFromPassphrase, signData } from '@liskhq/lisk-cryptography';
+import {
+	getAddressAndPublicKeyFromPassphrase,
+	signData,
+	generatePrivateKey,
+	getPublicKeyFromPrivateKey,
+	blsPopProve,
+} from '@liskhq/lisk-cryptography';
 import { signMultiSignatureTransaction } from '@liskhq/lisk-transactions';
-import { TransferAsset } from '../../../src/modules/token/transfer_asset';
-import { RegisterTransactionAsset } from '../../../src/modules/dpos/transaction_assets/register_transaction_asset';
-import { RegisterAsset as MultisignatureRegisterAsset } from '../../../src/modules/keys/register_asset';
-import { VoteTransactionAsset } from '../../../src/modules/dpos/transaction_assets/vote_transaction_asset';
-import { PomTransactionAsset } from '../../../src/modules/dpos';
+import { registerMultisignatureParamsSchema } from '../../../src/modules/auth/schemas';
+import {
+	delegateRegistrationCommandParamsSchema,
+	pomCommandParamsSchema,
+	voteCommandParamsSchema,
+} from '../../../src/modules/dpos_v2/schemas';
+import { TransferCommand } from '../../../src/modules/token/commands/transfer';
+import { MODULE_ID_TOKEN } from '../../../src/modules/token/constants';
+import { transferParamsSchema } from '../../../src/modules/token/schemas';
 
 export const createTransferTransaction = (input: {
 	recipientAddress: Buffer;
@@ -31,7 +41,7 @@ export const createTransferTransaction = (input: {
 	passphrase: string;
 	fee?: bigint;
 }): Transaction => {
-	const encodedAsset = codec.encode(new TransferAsset(BigInt(5000000)).schema, {
+	const encodedParams = codec.encode(transferParamsSchema, {
 		recipientAddress: input.recipientAddress,
 		amount: input.amount ?? BigInt('10000000000'),
 		data: '',
@@ -40,14 +50,14 @@ export const createTransferTransaction = (input: {
 
 	const tx = new Transaction({
 		moduleID: 2,
-		assetID: 0,
+		commandID: 0,
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('200000'),
-		asset: encodedAsset,
+		params: encodedParams,
 		signatures: [],
 	});
-	(tx.signatures as Buffer[]).push(
+	tx.signatures.push(
 		signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.passphrase),
 	);
 	return tx;
@@ -60,21 +70,27 @@ export const createDelegateRegisterTransaction = (input: {
 	username: string;
 	fee?: bigint;
 }): Transaction => {
-	const encodedAsset = codec.encode(new RegisterTransactionAsset().schema, {
-		username: input.username,
-	});
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.passphrase);
+	const blsSK = generatePrivateKey(Buffer.from(input.passphrase, 'utf-8'));
+	const blsPK = getPublicKeyFromPrivateKey(blsSK);
+	const blsPop = blsPopProve(blsSK);
+	const encodedAsset = codec.encode(delegateRegistrationCommandParamsSchema, {
+		name: input.username,
+		generatorKey: publicKey,
+		blsKey: blsPK,
+		proofOfPossession: blsPop,
+	});
 
 	const tx = new Transaction({
-		moduleID: 5,
-		assetID: 0,
+		moduleID: 13,
+		commandID: 0,
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('2500000000'),
-		asset: encodedAsset,
+		params: encodedAsset,
 		signatures: [],
 	});
-	(tx.signatures as Buffer[]).push(
+	tx.signatures.push(
 		signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.passphrase),
 	);
 	return tx;
@@ -87,21 +103,21 @@ export const createDelegateVoteTransaction = (input: {
 	fee?: bigint;
 	votes: { delegateAddress: Buffer; amount: bigint }[];
 }): Transaction => {
-	const encodedAsset = codec.encode(new VoteTransactionAsset().schema, {
+	const encodedAsset = codec.encode(voteCommandParamsSchema, {
 		votes: input.votes,
 	});
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.passphrase);
 
 	const tx = new Transaction({
-		moduleID: 5,
-		assetID: 1,
+		moduleID: 13,
+		commandID: 1,
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('100000000'),
-		asset: encodedAsset,
+		params: encodedAsset,
 		signatures: [],
 	});
-	(tx.signatures as Buffer[]).push(
+	tx.signatures.push(
 		signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.passphrase),
 	);
 	return tx;
@@ -117,43 +133,40 @@ export const createMultiSignRegisterTransaction = (input: {
 	senderPassphrase: string;
 	passphrases: string[];
 }): Transaction => {
-	const encodedAsset = codec.encode(new MultisignatureRegisterAsset().schema, {
+	const encodedAsset = codec.encode(registerMultisignatureParamsSchema, {
 		mandatoryKeys: input.mandatoryKeys,
 		optionalKeys: input.optionalKeys,
 		numberOfSignatures: input.numberOfSignatures,
 	});
-	const { schema } = new MultisignatureRegisterAsset();
-	const asset = {
+	const params = {
 		mandatoryKeys: input.mandatoryKeys,
 		optionalKeys: input.optionalKeys,
 		numberOfSignatures: input.numberOfSignatures,
 	};
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.senderPassphrase);
-	const transaction = [input.senderPassphrase, ...input.passphrases].reduce<
-		Record<string, unknown>
-	>(
+	const transaction = [...input.passphrases].reduce<Record<string, unknown>>(
 		(prev, current) => {
 			return signMultiSignatureTransaction(
-				schema,
+				registerMultisignatureParamsSchema,
 				prev,
 				input.networkIdentifier,
 				current,
-				asset,
+				params,
 				true,
 			);
 		},
 		{
-			moduleID: 4,
-			assetID: 0,
+			moduleID: 12,
+			commandID: 0,
 			nonce: input.nonce,
 			senderPublicKey: publicKey,
 			fee: input.fee ?? BigInt('1100000000'),
-			asset,
+			params,
 			signatures: [],
 		},
 	);
 
-	const tx = new Transaction({ ...transaction, asset: encodedAsset } as any);
+	const tx = new Transaction({ ...transaction, params: encodedAsset } as any);
 	return tx;
 };
 
@@ -168,32 +181,32 @@ export const createMultisignatureTransferTransaction = (input: {
 	senderPublicKey: Buffer;
 	passphrases: string[];
 }): Transaction => {
-	const { schema } = new TransferAsset(BigInt(5000000));
-	const asset = {
+	const command = new TransferCommand(MODULE_ID_TOKEN);
+	const params = {
 		recipientAddress: input.recipientAddress,
 		amount: BigInt('10000000000'),
 		data: '',
 	};
-	const encodedAsset = codec.encode(schema, asset);
+	const encodedAsset = codec.encode(command.schema, params);
 	const transaction = input.passphrases.reduce<Record<string, unknown>>(
 		(prev, current) => {
-			return signMultiSignatureTransaction(schema, prev, input.networkIdentifier, current, {
+			return signMultiSignatureTransaction(command.schema, prev, input.networkIdentifier, current, {
 				mandatoryKeys: input.mandatoryKeys,
 				optionalKeys: input.optionalKeys,
 			});
 		},
 		{
 			moduleID: 2,
-			assetID: 0,
+			commandID: 0,
 			nonce: input.nonce,
 			senderPublicKey: input.senderPublicKey,
 			fee: input.fee ?? BigInt('1100000000'),
-			asset,
+			params,
 			signatures: [],
 		},
 	);
 
-	const tx = new Transaction({ ...transaction, asset: encodedAsset } as any);
+	const tx = new Transaction({ ...transaction, params: encodedAsset } as any);
 	return tx;
 };
 
@@ -205,22 +218,22 @@ export const createReportMisbehaviorTransaction = (input: {
 	header2: BlockHeader;
 	fee?: bigint;
 }): Transaction => {
-	const encodedAsset = codec.encode(new PomTransactionAsset().schema, {
-		header1: input.header1,
-		header2: input.header2,
+	const encodedAsset = codec.encode(pomCommandParamsSchema, {
+		header1: input.header1.getBytes(),
+		header2: input.header2.getBytes(),
 	});
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.passphrase);
 
 	const tx = new Transaction({
-		moduleID: 5,
-		assetID: 3,
+		moduleID: 13,
+		commandID: 3,
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('50000000'),
-		asset: encodedAsset,
+		params: encodedAsset,
 		signatures: [],
 	});
-	(tx.signatures as Buffer[]).push(
+	tx.signatures.push(
 		signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.passphrase),
 	);
 	return tx;

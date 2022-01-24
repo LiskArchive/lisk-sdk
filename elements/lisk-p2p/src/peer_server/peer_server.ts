@@ -143,7 +143,7 @@ export class PeerServer extends EventEmitter {
 			this._bindInvalidControlFrameEvents(socket);
 		});
 
-		// Handle incoming invalid payload
+		// Handle incoming invalid transactions
 		// eslint-disable-next-line
 		(this._scServer as any).wsServer.on('connection', (ws: any, req: any) => {
 			this._handleIncomingPayload(ws, req);
@@ -433,7 +433,7 @@ export class PeerServer extends EventEmitter {
 					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 					parsed.event?.length > MAX_EVENT_NAME_LENGTH
 				) {
-					throw new InvalidPayloadError('Received invalid payload', parsed);
+					throw new InvalidPayloadError('Received invalid transactions', parsed);
 				}
 
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
