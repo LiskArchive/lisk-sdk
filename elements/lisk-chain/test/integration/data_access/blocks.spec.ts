@@ -14,21 +14,27 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { KVStore, formatInt, NotFoundError } from '@liskhq/lisk-db';
+import { KVStore, formatInt, NotFoundError, InMemoryKVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
+import { getRandomBytes, hash, intToBuffer } from '@liskhq/lisk-cryptography';
+import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import { Storage } from '../../../src/data_access/storage';
-import {
-	createValidDefaultBlock,
-	encodeDefaultBlockHeader,
-	encodedDefaultBlock,
-	registeredBlockHeaders,
-} from '../../utils/block';
+import { createValidDefaultBlock } from '../../utils/block';
 import { getTransaction } from '../../utils/transaction';
-import { Block, Transaction } from '../../../src';
+import { Block, BlockAssets, CurrentState, SMTStore, StateStore, Transaction } from '../../../src';
 import { DataAccess } from '../../../src/data_access';
 import { stateDiffSchema } from '../../../src/schema';
-import { defaultAccountSchema, createFakeDefaultAccount } from '../../utils/account';
-import { DB_KEY_ACCOUNTS_ADDRESS } from '../../../src/data_access/constants';
+import {
+	DB_KEY_BLOCKS_ID,
+	DB_KEY_BLOCKS_HEIGHT,
+	DB_KEY_TRANSACTIONS_ID,
+	DB_KEY_TEMPBLOCKS_HEIGHT,
+	DB_KEY_DIFF_STATE,
+	DB_KEY_TRANSACTIONS_BLOCK_ID,
+	DB_KEY_STATE_STORE,
+} from '../../../src/db_keys';
+import { concatDBKeys } from '../../../src/utils';
+import { toSMTKey } from '../../../src/state_store/utils';
 
 describe('dataAccess.blocks', () => {
 	const emptyEncodedDiff = codec.encode(stateDiffSchema, {
@@ -51,55 +57,57 @@ describe('dataAccess.blocks', () => {
 	beforeEach(async () => {
 		dataAccess = new DataAccess({
 			db,
-			accountSchema: defaultAccountSchema,
-			registeredBlockHeaders,
 			minBlockHeaderCache: 3,
 			maxBlockHeaderCache: 5,
 		});
 		// Prepare sample data
 		const block300 = await createValidDefaultBlock({
 			header: { height: 300 },
-			payload: [getTransaction()],
+			transactions: [getTransaction()],
 		});
 
 		const block301 = await createValidDefaultBlock({ header: { height: 301 } });
 
 		const block302 = await createValidDefaultBlock({
 			header: { height: 302 },
-			payload: [getTransaction({ nonce: BigInt(1) }), getTransaction({ nonce: BigInt(2) })],
+			transactions: [getTransaction({ nonce: BigInt(1) }), getTransaction({ nonce: BigInt(2) })],
+			assets: new BlockAssets([{ moduleID: 3, data: getRandomBytes(64) }]),
 		});
 
-		const block303 = await createValidDefaultBlock({ header: { height: 303 } });
+		const block303 = await createValidDefaultBlock({
+			header: { height: 303 },
+			assets: new BlockAssets([{ moduleID: 3, data: getRandomBytes(64) }]),
+		});
 
 		blocks = [block300, block301, block302, block303];
 		const batch = db.batch();
 		for (const block of blocks) {
-			const { payload, header } = block;
-			batch.put(`blocks:id:${header.id.toString('binary')}`, encodeDefaultBlockHeader(header));
-			batch.put(`blocks:height:${formatInt(header.height)}`, header.id);
-			if (payload.length) {
+			const { transactions, header } = block;
+			batch.put(concatDBKeys(DB_KEY_BLOCKS_ID, header.id), header.getBytes());
+			batch.put(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(header.height)), header.id);
+			if (transactions.length) {
 				batch.put(
-					`transactions:blockID:${header.id.toString('binary')}`,
-					Buffer.concat(payload.map(tx => tx.id)),
+					concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, header.id),
+					Buffer.concat(transactions.map(tx => tx.id)),
 				);
-				for (const tx of payload) {
-					batch.put(`transactions:id:${tx.id.toString('binary')}`, tx.getBytes());
+
+				for (const tx of transactions) {
+					batch.put(concatDBKeys(DB_KEY_TRANSACTIONS_ID, tx.id), tx.getBytes());
 				}
 			}
 			batch.put(
-				`tempBlocks:height:${formatInt(blocks[2].header.height)}`,
-				encodedDefaultBlock(blocks[2]),
+				concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(blocks[2].header.height)),
+				blocks[2].getBytes(),
 			);
 			batch.put(
-				`tempBlocks:height:${formatInt(blocks[3].header.height)}`,
-				encodedDefaultBlock(blocks[3]),
+				concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(blocks[3].header.height)),
+				blocks[3].getBytes(),
 			);
 			batch.put(
-				// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-				`tempBlocks:height:${formatInt(blocks[3].header.height + 1)}`,
-				encodedDefaultBlock(blocks[3]),
+				concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(blocks[3].header.height + 1)),
+				blocks[3].getBytes(),
 			);
-			batch.put(`diff:${formatInt(block.header.height)}`, emptyEncodedDiff);
+			batch.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(block.header.height)), emptyEncodedDiff);
 		}
 		await batch.write();
 		dataAccess.resetBlockHeaderCache();
@@ -123,15 +131,18 @@ describe('dataAccess.blocks', () => {
 
 		it('should return block header by ID', async () => {
 			const header = await dataAccess.getBlockHeaderByID(blocks[0].header.id);
-			expect(header).toStrictEqual(blocks[0].header);
+			expect(header.toObject()).toStrictEqual(blocks[0].header.toObject());
 		});
 	});
 
 	describe('getBlockHeadersByIDs', () => {
 		it('should not throw "not found" error if non existent ID is specified', async () => {
-			await expect(
-				dataAccess.getBlockHeadersByIDs([Buffer.from('random-id'), blocks[1].header.id]),
-			).resolves.toEqual([blocks[1].header]);
+			const res = await dataAccess.getBlockHeadersByIDs([
+				Buffer.from('random-id'),
+				blocks[1].header.id,
+			]);
+
+			expect(res.map(h => h.toObject())).toEqual([blocks[1].header.toObject()]);
 		});
 
 		it('should return existent blocks headers if non existent ID is specified', async () => {
@@ -141,7 +152,10 @@ describe('dataAccess.blocks', () => {
 				blocks[1].header.id,
 			]);
 
-			expect(res).toEqual([blocks[0].header, blocks[1].header]);
+			expect(res.map(b => b.toObject())).toEqual([
+				blocks[0].header.toObject(),
+				blocks[1].header.toObject(),
+			]);
 		});
 
 		it('should return block headers by ID', async () => {
@@ -151,16 +165,16 @@ describe('dataAccess.blocks', () => {
 			]);
 			const { header } = blocks[1];
 
-			expect(headers[0]).toEqual(header);
+			expect(headers[0].toObject()).toEqual(header.toObject());
 			expect(headers).toHaveLength(2);
 		});
 	});
 
 	describe('getBlocksByIDs', () => {
 		it('should not throw "not found" error if non existent ID is specified', async () => {
-			await expect(
-				dataAccess.getBlocksByIDs([Buffer.from('random-id'), blocks[1].header.id]),
-			).resolves.toEqual([blocks[1]]);
+			const res = await dataAccess.getBlocksByIDs([Buffer.from('random-id'), blocks[1].header.id]);
+			expect(res).toHaveLength(1);
+			expect(res[0].header.toObject()).toEqual(blocks[1].header.toObject());
 		});
 
 		it('should return existent blocks if non existent ID is specified', async () => {
@@ -170,10 +184,10 @@ describe('dataAccess.blocks', () => {
 				blocks[1].header.id,
 			]);
 
-			expect(blocksFound[0].header).toEqual(blocks[0].header);
-			expect(blocksFound[0].payload[0]).toBeInstanceOf(Transaction);
-			expect(blocksFound[0].payload[0].id).toEqual(blocks[0].payload[0].id);
-			expect(blocksFound[1].header).toEqual(blocks[1].header);
+			expect(blocksFound[0].header.toObject()).toEqual(blocks[0].header.toObject());
+			expect(blocksFound[0].transactions[0]).toBeInstanceOf(Transaction);
+			expect(blocksFound[0].transactions[0].id).toEqual(blocks[0].transactions[0].id);
+			expect(blocksFound[1].header.toObject()).toEqual(blocks[1].header.toObject());
 			expect(blocksFound).toHaveLength(2);
 		});
 
@@ -184,10 +198,10 @@ describe('dataAccess.blocks', () => {
 			]);
 
 			expect(blocksFound).toHaveLength(2);
-			expect(blocksFound[0].header).toEqual(blocks[1].header);
-			expect(blocksFound[1].header).toEqual(blocks[0].header);
-			expect(blocksFound[1].payload[0]).toBeInstanceOf(Transaction);
-			expect(blocksFound[1].payload[0].id).toEqual(blocks[0].payload[0].id);
+			expect(blocksFound[0].header.toObject()).toEqual(blocks[1].header.toObject());
+			expect(blocksFound[1].header.toObject()).toEqual(blocks[0].header.toObject());
+			expect(blocksFound[1].transactions[0]).toBeInstanceOf(Transaction);
+			expect(blocksFound[1].transactions[0].id).toEqual(blocks[0].transactions[0].id);
 		});
 	});
 
@@ -200,15 +214,14 @@ describe('dataAccess.blocks', () => {
 			const { header } = blocks[2];
 
 			expect(headers).toHaveLength(3);
-			expect(headers[0]).toEqual(header);
+			expect(headers[0].toObject()).toEqual(header.toObject());
 		});
 	});
 
 	describe('getBlockHeadersWithHeights', () => {
 		it('should not throw "not found" error if one of heights does not exist', async () => {
-			await expect(
-				dataAccess.getBlockHeadersWithHeights([blocks[1].header.height, 500]),
-			).resolves.toEqual([blocks[1].header]);
+			const res = await dataAccess.getBlockHeadersWithHeights([blocks[1].header.height, 500]);
+			expect(res.map(h => h.toObject())).toEqual([blocks[1].header.toObject()]);
 		});
 
 		it('should return existent blocks if non existent height is specified', async () => {
@@ -218,7 +231,10 @@ describe('dataAccess.blocks', () => {
 				500,
 			]);
 
-			expect(headers).toEqual([blocks[1].header, blocks[3].header]);
+			expect(headers.map(h => h.toObject())).toEqual([
+				blocks[1].header.toObject(),
+				blocks[3].header.toObject(),
+			]);
 			expect(headers).toHaveLength(2);
 		});
 
@@ -228,8 +244,8 @@ describe('dataAccess.blocks', () => {
 				blocks[3].header.height,
 			]);
 
-			expect(headers[0]).toEqual(blocks[1].header);
-			expect(headers[1]).toEqual(blocks[3].header);
+			expect(headers[0].toObject()).toEqual(blocks[1].header.toObject());
+			expect(headers[1].toObject()).toEqual(blocks[3].header.toObject());
 			expect(headers).toHaveLength(2);
 		});
 	});
@@ -237,18 +253,18 @@ describe('dataAccess.blocks', () => {
 	describe('getLastBlockHeader', () => {
 		it('should return block header with highest height', async () => {
 			const lastBlockHeader = await dataAccess.getLastBlockHeader();
-			expect(lastBlockHeader).toEqual(blocks[3].header);
+			expect(lastBlockHeader.toObject()).toEqual(blocks[3].header.toObject());
 		});
 	});
 
 	describe('getLastCommonBlockHeader', () => {
-		it('should return highest block header which exist in the list and non-existent should not throw', async () => {
-			const header = await dataAccess.getHighestCommonBlockID([
+		it('should return highest block header id which exist in the list and non-existent should not throw', async () => {
+			const commonBlockID = await dataAccess.getHighestCommonBlockID([
 				blocks[3].header.id,
 				Buffer.from('random-id'),
 				blocks[1].header.id,
 			]);
-			expect(header).toEqual(blocks[3].header.id);
+			expect(commonBlockID).toEqual(blocks[3].header.id);
 		});
 	});
 
@@ -265,9 +281,10 @@ describe('dataAccess.blocks', () => {
 
 		it('should return full block by ID', async () => {
 			const block = await dataAccess.getBlockByID(blocks[0].header.id);
-			expect(block.header).toStrictEqual(blocks[0].header);
-			expect(block.payload[0]).toBeInstanceOf(Transaction);
-			expect(block.payload[0].id).toStrictEqual(blocks[0].payload[0].id);
+			expect(block.header.toObject()).toStrictEqual(blocks[0].header.toObject());
+			expect(block.transactions[0]).toBeInstanceOf(Transaction);
+			expect(block.transactions[0].id).toStrictEqual(blocks[0].transactions[0].id);
+			expect(block.assets.getAsset(3)).toEqual(blocks[0].assets.getAsset(3));
 		});
 	});
 
@@ -284,16 +301,17 @@ describe('dataAccess.blocks', () => {
 
 		it('should return full block by height', async () => {
 			const block = await dataAccess.getBlockByHeight(blocks[2].header.height);
-			expect(block.header).toStrictEqual(blocks[2].header);
-			expect(block.payload[0]).toBeInstanceOf(Transaction);
-			expect(block.payload[0].id).toStrictEqual(blocks[2].payload[0].id);
+			expect(block.header.toObject()).toStrictEqual(blocks[2].header.toObject());
+			expect(block.transactions[0]).toBeInstanceOf(Transaction);
+			expect(block.transactions[0].id).toStrictEqual(blocks[2].transactions[0].id);
 		});
 	});
 
 	describe('getLastBlock', () => {
 		it('should return highest height full block', async () => {
 			const block = await dataAccess.getLastBlock();
-			expect(block).toStrictEqual(blocks[3]);
+			expect(block.header.toObject()).toStrictEqual(blocks[3].header.toObject());
+			expect(block.transactions).toStrictEqual(blocks[3].transactions);
 		});
 	});
 
@@ -323,193 +341,378 @@ describe('dataAccess.blocks', () => {
 
 	describe('saveBlock', () => {
 		let block: Block;
-		// eslint-disable-next-line @typescript-eslint/no-empty-function
-		const stateStore = { finalize: () => {} };
-		beforeAll(async () => {
+		let currentState: CurrentState;
+
+		beforeEach(async () => {
+			const stateStore = new StateStore(db);
 			block = await createValidDefaultBlock({
 				header: { height: 304 },
-				payload: [getTransaction({ nonce: BigInt(10) }), getTransaction({ nonce: BigInt(20) })],
+				transactions: [
+					getTransaction({ nonce: BigInt(10) }),
+					getTransaction({ nonce: BigInt(20) }),
+				],
 			});
+			const smtStore = new SMTStore(db);
+			const batchLocal = db.batch();
+			const smt = new SparseMerkleTree({ db: smtStore, rootHash: block.header.stateRoot });
+			const diff = await stateStore.finalize(batchLocal, smt);
+			smtStore.finalize(batchLocal);
+
+			currentState = {
+				smt,
+				smtStore,
+				batch: batchLocal,
+				diff,
+				stateStore,
+			};
 		});
 
 		it('should create block with all index required', async () => {
-			await dataAccess.saveBlock(block, stateStore as any, 0);
+			await dataAccess.saveBlock(block, currentState, 0);
 
+			await expect(db.exists(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id))).resolves.toBeTrue();
 			await expect(
-				db.exists(`blocks:id:${block.header.id.toString('binary')}`),
+				db.exists(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(block.header.height))),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(`blocks:height:${formatInt(block.header.height)}`),
+				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, block.header.id)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(`transactions:blockID:${block.header.id.toString('binary')}`),
+				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, block.transactions[0].id)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(`transactions:id:${block.payload[0].id.toString('binary')}`),
+				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, block.transactions[1].id)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(`transactions:id:${block.payload[1].id.toString('binary')}`),
-			).resolves.toBeTrue();
-			await expect(
-				db.exists(`tempBlocks:height:${formatInt(block.header.height)}`),
+				db.exists(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(block.header.height))),
 			).resolves.toBeTrue();
 			const createdBlock = await dataAccess.getBlockByID(block.header.id);
-			expect(createdBlock.header).toStrictEqual(block.header);
-			expect(createdBlock.payload[0]).toBeInstanceOf(Transaction);
-			expect(createdBlock.payload[0].id).toStrictEqual(block.payload[0].id);
-			expect(createdBlock.payload[1]).toBeInstanceOf(Transaction);
-			expect(createdBlock.payload[1].id).toStrictEqual(block.payload[1].id);
+			expect(createdBlock.header.toObject()).toStrictEqual(block.header.toObject());
+			expect(createdBlock.transactions[0]).toBeInstanceOf(Transaction);
+			expect(createdBlock.transactions[0].id).toStrictEqual(block.transactions[0].id);
+			expect(createdBlock.transactions[1]).toBeInstanceOf(Transaction);
+			expect(createdBlock.transactions[1].id).toStrictEqual(block.transactions[1].id);
 		});
 
 		it('should create block with all index required and remove the same height block from temp', async () => {
-			await dataAccess.saveBlock(block, stateStore as any, 0, true);
+			await dataAccess.saveBlock(block, currentState, 0, true);
 
+			await expect(db.exists(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id))).resolves.toBeTrue();
 			await expect(
-				db.exists(`blocks:id:${block.header.id.toString('binary')}`),
+				db.exists(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(block.header.height))),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(`blocks:height:${formatInt(block.header.height)}`),
+				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, block.header.id)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(`transactions:blockID:${block.header.id.toString('binary')}`),
+				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, block.transactions[0].id)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(`transactions:id:${block.payload[0].id.toString('binary')}`),
+				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, block.transactions[1].id)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(`transactions:id:${block.payload[1].id.toString('binary')}`),
-			).resolves.toBeTrue();
-			await expect(
-				db.exists(`tempBlocks:height:${formatInt(block.header.height)}`),
+				db.exists(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(block.header.height))),
 			).resolves.toBeFalse();
 			const createdBlock = await dataAccess.getBlockByID(block.header.id);
-			expect(createdBlock.header).toStrictEqual(block.header);
-			expect(createdBlock.payload[0]).toBeInstanceOf(Transaction);
-			expect(createdBlock.payload[0].id).toStrictEqual(block.payload[0].id);
-			expect(createdBlock.payload[1]).toBeInstanceOf(Transaction);
-			expect(createdBlock.payload[1].id).toStrictEqual(block.payload[1].id);
+			expect(createdBlock.header.toObject()).toStrictEqual(block.header.toObject());
+			expect(createdBlock.transactions[0]).toBeInstanceOf(Transaction);
+			expect(createdBlock.transactions[0].id).toStrictEqual(block.transactions[0].id);
+			expect(createdBlock.transactions[1]).toBeInstanceOf(Transaction);
+			expect(createdBlock.transactions[1].id).toStrictEqual(block.transactions[1].id);
 		});
 
 		it('should delete diff before the finalized height', async () => {
-			await db.put(`diff:${formatInt(99)}`, Buffer.from('random diff'));
-			await db.put(`diff:${formatInt(100)}`, Buffer.from('random diff 2'));
-			await dataAccess.saveBlock(block, stateStore as any, 100, true);
+			await db.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(99)), Buffer.from('random diff'));
+			await db.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(100)), Buffer.from('random diff 2'));
+			await dataAccess.saveBlock(block, currentState, 100, true);
 
-			await expect(db.exists(`diff:${formatInt(100)}`)).resolves.toBeTrue();
-			await expect(db.exists(`diff:${formatInt(99)}`)).resolves.toBeFalse();
+			await expect(db.exists(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(100)))).resolves.toBeTrue();
+			await expect(db.exists(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(99)))).resolves.toBeFalse();
 		});
 	});
 
 	describe('deleteBlock', () => {
-		// eslint-disable-next-line @typescript-eslint/no-empty-function
-		const stateStore = { finalize: () => {} };
+		let currentState: CurrentState;
+
+		beforeEach(async () => {
+			const stateStore = new StateStore(db);
+			const smtStore = new SMTStore(db);
+			const batch = db.batch();
+			const smt = new SparseMerkleTree({ db: smtStore });
+			const diff = await stateStore.finalize(batch, smt);
+			smtStore.finalize(batch);
+
+			currentState = {
+				smt,
+				smtStore,
+				batch,
+				diff,
+				stateStore,
+			};
+		});
 
 		it('should delete block and all related indexes', async () => {
 			// Deleting temp blocks to test the saving
 			await dataAccess.clearTempBlocks();
-			await dataAccess.deleteBlock(blocks[2], stateStore as any);
+			await dataAccess.deleteBlock(blocks[2], currentState);
 
 			await expect(
-				db.exists(`blocks:id:${blocks[2].header.id.toString('binary')}`),
+				db.exists(concatDBKeys(DB_KEY_BLOCKS_ID, blocks[2].header.id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(`blocks:height:${formatInt(blocks[2].header.height)}`),
+				db.exists(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(blocks[2].header.height))),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(`transactions:blockID:${blocks[2].header.id.toString('binary')}`),
+				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].header.id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(`transactions:id:${blocks[2].payload[0].id.toString('binary')}`),
+				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].transactions[0].id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(`transactions:id:${blocks[2].payload[1].id.toString('binary')}`),
+				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].transactions[1].id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(`tempBlocks:height:${formatInt(blocks[2].header.height)}`),
+				db.exists(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(blocks[2].header.height))),
 			).resolves.toBeFalse();
-		});
-
-		it('should return all updated accounts', async () => {
-			// Deleting temp blocks to test the saving
-			await dataAccess.clearTempBlocks();
-			const deletedAccount = createFakeDefaultAccount({
-				token: {
-					balance: BigInt(200),
-				},
-			});
-			const updatedAccount = createFakeDefaultAccount({
-				token: {
-					balance: BigInt(100000000),
-				},
-			});
-			await db.put(
-				`diff:${formatInt(blocks[2].header.height)}`,
-				codec.encode(stateDiffSchema, {
-					created: [],
-					updated: [
-						{
-							key: `${DB_KEY_ACCOUNTS_ADDRESS}:${updatedAccount.address.toString('binary')}`,
-							value: dataAccess.encodeAccount(updatedAccount),
-						},
-					],
-					deleted: [
-						{
-							key: `${DB_KEY_ACCOUNTS_ADDRESS}:${deletedAccount.address.toString('binary')}`,
-							value: dataAccess.encodeAccount(deletedAccount),
-						},
-					],
-				}),
-			);
-			const diffAccounts = await dataAccess.deleteBlock(blocks[2], stateStore as any);
-
-			expect(diffAccounts).toHaveLength(2);
-			expect(
-				(diffAccounts.find(a => a.address.equals(deletedAccount.address)) as any).token.balance,
-			).toEqual(BigInt(200));
-			expect(
-				(diffAccounts.find(a => a.address.equals(deletedAccount.address)) as any).token.balance,
-			).toEqual(BigInt(200));
 		});
 
 		it('should throw an error when there is no diff', async () => {
 			// Deleting temp blocks to test the saving
-			await db.del(`diff:${formatInt(blocks[2].header.height)}`);
+			const key = concatDBKeys(DB_KEY_DIFF_STATE, formatInt(blocks[2].header.height));
+			await db.del(key);
 			await dataAccess.clearTempBlocks();
 
-			await expect(dataAccess.deleteBlock(blocks[2], stateStore as any)).rejects.toThrow(
-				'Specified key diff:0000012e does not exist',
+			await expect(dataAccess.deleteBlock(blocks[2], currentState)).rejects.toThrow(
+				`Specified key ${key.toString('hex')} does not exist`,
 			);
 		});
 
 		it('should delete block and all related indexes and save to temp', async () => {
 			// Deleting temp blocks to test the saving
 			await dataAccess.clearTempBlocks();
-			await dataAccess.deleteBlock(blocks[2], stateStore as any, true);
+			await dataAccess.deleteBlock(blocks[2], currentState, true);
 
 			await expect(
-				db.exists(`blocks:id:${blocks[2].header.id.toString('binary')}`),
+				db.exists(concatDBKeys(DB_KEY_BLOCKS_ID, blocks[2].header.id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(`blocks:height:${formatInt(blocks[2].header.height)}`),
+				db.exists(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(blocks[2].header.height))),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(`transactions:blockID:${blocks[2].header.id.toString('binary')}`),
+				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].header.id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(`transactions:id:${blocks[2].payload[0].id.toString('binary')}`),
+				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].transactions[0].id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(`transactions:id:${blocks[2].payload[1].id.toString('binary')}`),
+				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].transactions[1].id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(`tempBlocks:height:${formatInt(blocks[2].header.height)}`),
+				db.exists(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(blocks[2].header.height))),
 			).resolves.toBeTrue();
 
 			const tempBlocks = await dataAccess.getTempBlocks();
 			expect(tempBlocks).toHaveLength(1);
-			expect(tempBlocks[0].header).toStrictEqual(blocks[2].header);
-			expect(tempBlocks[0].payload[0]).toBeInstanceOf(Transaction);
-			expect(tempBlocks[0].payload[0].id).toStrictEqual(blocks[2].payload[0].id);
+			expect(tempBlocks[0].header.toObject()).toStrictEqual(blocks[2].header.toObject());
+			expect(tempBlocks[0].transactions[0]).toBeInstanceOf(Transaction);
+			expect(tempBlocks[0].transactions[0].id).toStrictEqual(blocks[2].transactions[0].id);
+		});
+	});
+
+	describe('State root calculation after save/delete block', () => {
+		const sequenceSchema = {
+			$id: 'modules/seq/',
+			type: 'object',
+			properties: {
+				nonce: {
+					dataType: 'uint32',
+					fieldNumber: 1,
+				},
+			},
+			required: ['nonce'],
+		};
+
+		const MODULE_ID = 14;
+		const STORE_PREFIX = 1;
+		let currentState: CurrentState;
+		let stateStore: StateStore;
+		let tempDB: InMemoryKVStore;
+
+		const prefixedKey = (
+			key: Buffer,
+			moduleID: number = MODULE_ID,
+			storePrefix: number = STORE_PREFIX,
+		) => {
+			const moduleIDBuffer = intToBuffer(moduleID, 4);
+			const storePrefixBuffer = intToBuffer(storePrefix, 2);
+
+			return Buffer.concat([DB_KEY_STATE_STORE, moduleIDBuffer, storePrefixBuffer, key]);
+		};
+
+		beforeEach(() => {
+			stateStore = new StateStore(db);
+			tempDB = new InMemoryKVStore();
+		});
+
+		afterAll(async () => {
+			await tempDB.clear();
+		});
+
+		it('should return current stateRoot calculated after saveBlock', async () => {
+			const subStore = stateStore.getStore(MODULE_ID, STORE_PREFIX);
+
+			// 3 accounts being set with data
+			const address1 = getRandomBytes(20);
+			const address2 = getRandomBytes(20);
+			const address3 = getRandomBytes(20);
+
+			const data1 = codec.encode(sequenceSchema, { nonce: 10 });
+			const data2 = codec.encode(sequenceSchema, { nonce: 17 });
+			const data3 = codec.encode(sequenceSchema, { nonce: 29 });
+
+			// Set 3 accounts in stateStore
+			await subStore.set(address1, data1);
+			await subStore.set(address2, data2);
+			await subStore.set(address3, data3);
+
+			// To calculate SMT root hash from updating each address above manually
+			const smtStoreTemp = new SMTStore(tempDB);
+			const smtTemp = new SparseMerkleTree({ db: smtStoreTemp });
+
+			await smtTemp.update(toSMTKey(prefixedKey(address1)), hash(data1));
+			await smtTemp.update(toSMTKey(prefixedKey(address2)), hash(data2));
+			await smtTemp.update(toSMTKey(prefixedKey(address3)), hash(data3));
+			const { rootHash: expectedStateRoot } = smtTemp;
+
+			// Add the expected state root calculated to a block to be saved
+			const firstBlock = await createValidDefaultBlock({
+				header: { height: 304, stateRoot: expectedStateRoot },
+				transactions: [
+					getTransaction({ nonce: BigInt(10) }),
+					getTransaction({ nonce: BigInt(20) }),
+				],
+			});
+
+			// Run all the finalizeStore steps: create SMT store, batch, smt and pass it to saveBlock()
+			const smtStore = new SMTStore(db);
+			const batchLocal = db.batch();
+			const smt = new SparseMerkleTree({ db: smtStore });
+			const diff1 = await stateStore.finalize(batchLocal, smt);
+			smtStore.finalize(batchLocal);
+
+			currentState = {
+				smt,
+				smtStore,
+				batch: batchLocal,
+				diff: diff1,
+				stateStore,
+			};
+			await dataAccess.saveBlock(firstBlock, currentState, 100);
+
+			expect(smt.rootHash).toEqual(firstBlock.header.stateRoot);
+
+			// Test another with deleting one of the keys
+			await smtTemp.remove(toSMTKey(prefixedKey(address3)));
+			// Add the expected state root calculated to a block to be saved
+			const secondBlock = await createValidDefaultBlock({
+				header: { height: 304, stateRoot: smtTemp.rootHash },
+				transactions: [getTransaction({ nonce: BigInt(10) })],
+			});
+
+			const secondSubStore = stateStore.getStore(14, 1);
+			await secondSubStore.del(address3);
+			const secondSMTStore = new SMTStore(db);
+			const secondBatch = db.batch();
+			const secondSMT = new SparseMerkleTree({ db: secondSMTStore });
+			const diff2 = await stateStore.finalize(secondBatch, secondSMT);
+			secondSMTStore.finalize(secondBatch);
+
+			const newCurrentState = {
+				smt: secondSMT,
+				smtStore: secondSMTStore,
+				batch: secondBatch,
+				diff: diff2,
+				stateStore,
+			};
+			await dataAccess.saveBlock(secondBlock, newCurrentState, 100);
+			expect(secondSMT.rootHash).toEqual(secondBlock.header.stateRoot);
+		});
+
+		it('should return previous stateRoot calculated after delete', async () => {
+			const subStore = stateStore.getStore(14, 1);
+
+			// 3 accounts being set with data
+			const address1 = getRandomBytes(20);
+			const address2 = getRandomBytes(20);
+			const address3 = getRandomBytes(20);
+
+			const data1 = codec.encode(sequenceSchema, { nonce: 10 });
+			const data2 = codec.encode(sequenceSchema, { nonce: 17 });
+			const data3 = codec.encode(sequenceSchema, { nonce: 29 });
+
+			// Set 3 accounts in stateStore
+			await subStore.set(address1, data1);
+			await subStore.set(address2, data2);
+			await subStore.set(address3, data3);
+
+			// To calculate SMT root hash from updating each address above manually
+			const smtStoreTemp = new SMTStore(tempDB);
+			const smtTemp = new SparseMerkleTree({ db: smtStoreTemp });
+
+			await smtTemp.update(toSMTKey(prefixedKey(address1)), hash(data1));
+			await smtTemp.update(toSMTKey(prefixedKey(address2)), hash(data2));
+			await smtTemp.update(toSMTKey(prefixedKey(address3)), hash(data3));
+			const { rootHash: expectedStateRoot } = smtTemp;
+
+			// Add the expected state root calculated to a block to be saved
+			const firstBlock = await createValidDefaultBlock({
+				header: { height: 304, stateRoot: expectedStateRoot },
+				transactions: [
+					getTransaction({ nonce: BigInt(10) }),
+					getTransaction({ nonce: BigInt(20) }),
+				],
+			});
+
+			// Run all the finalizeStore steps: create SMT store, batch, smt and pass it to saveBlock()
+			const smtStore = new SMTStore(db);
+			const batchLocal = db.batch();
+			const smt = new SparseMerkleTree({ db: smtStore });
+			const diff1 = await stateStore.finalize(batchLocal, smt);
+			smtStore.finalize(batchLocal);
+
+			currentState = {
+				smt,
+				smtStore,
+				batch: batchLocal,
+				diff: diff1,
+				stateStore,
+			};
+			await dataAccess.saveBlock(firstBlock, currentState, 100);
+
+			expect(smt.rootHash).toEqual(firstBlock.header.stateRoot);
+
+			// Delete all the keys that were added in the last block
+			await smtTemp.remove(toSMTKey(prefixedKey(address1)));
+			await smtTemp.remove(toSMTKey(prefixedKey(address2)));
+			await smtTemp.remove(toSMTKey(prefixedKey(address3)));
+
+			const secondSMTStore = new SMTStore(db);
+			const secondBatch = db.batch();
+			const secondSMT = new SparseMerkleTree({
+				db: secondSMTStore,
+				rootHash: firstBlock.header.stateRoot,
+			});
+
+			const newCurrentState = {
+				smt: secondSMT,
+				smtStore: secondSMTStore,
+				batch: secondBatch,
+				diff: { updated: [], created: [], deleted: [] },
+				stateStore,
+			};
+
+			await dataAccess.deleteBlock(firstBlock, newCurrentState);
+			expect(secondSMT.rootHash).toEqual(smtTemp.rootHash);
 		});
 	});
 });

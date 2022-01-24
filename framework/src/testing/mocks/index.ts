@@ -11,12 +11,5 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { testing } from '@liskhq/lisk-chain';
-
-export const { StateStoreMock } = testing;
-export declare type StateStoreMock = testing.StateStoreMock;
 export * from './channel_mock';
-export * from './consensus_mock';
-export * from './data_access_mock';
 export * from './logger_mock';
-export * from './reducer_handler_mock';

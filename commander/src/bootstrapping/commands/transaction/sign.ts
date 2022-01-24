@@ -25,13 +25,14 @@ import {
 	encodeTransaction,
 	getApiClient,
 	transactionToJSON,
-	getAssetSchema,
+	getParamsSchema,
 } from '../../../utils/transaction';
 import { getDefaultPath } from '../../../utils/path';
 import { isApplicationRunning } from '../../../utils/application';
 import { PromiseResolvedType } from '../../../types';
 
-interface KeysAsset {
+interface AuthAccount {
+	nonce: string;
 	mandatoryKeys: Array<Readonly<string>>;
 	optionalKeys: Array<Readonly<string>>;
 }
@@ -61,10 +62,10 @@ const signTransaction = async (
 ) => {
 	const transactionObject = decodeTransaction(registeredSchema, transactionHexStr);
 	// eslint-disable-next-line @typescript-eslint/ban-types
-	const assetSchema = getAssetSchema(
+	const paramsSchema = getParamsSchema(
 		registeredSchema,
 		transactionObject.moduleID as number,
-		transactionObject.assetID as number,
+		transactionObject.commandID as number,
 	) as object;
 	const networkIdentifierBuffer = Buffer.from(networkIdentifier as string, 'hex');
 	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
@@ -72,7 +73,7 @@ const signTransaction = async (
 	// sign from multi sig account offline using input keys
 	if (!flags['include-sender'] && !flags['sender-public-key']) {
 		return transactions.signTransaction(
-			assetSchema,
+			paramsSchema,
 			transactionObject,
 			networkIdentifierBuffer,
 			passphrase,
@@ -80,7 +81,7 @@ const signTransaction = async (
 	}
 
 	return transactions.signMultiSignatureTransaction(
-		assetSchema,
+		paramsSchema,
 		transactionObject,
 		networkIdentifierBuffer,
 		passphrase,
@@ -148,16 +149,19 @@ const signTransactionOnline = async (
 	}
 
 	// Sign multi-sig transaction
-	const account = (await client.account.get(address)) as { keys: KeysAsset };
-	let keysAsset: KeysAsset;
-	if (account.keys?.mandatoryKeys.length === 0 && account.keys?.optionalKeys.length === 0) {
-		keysAsset = transactionObject.asset as KeysAsset;
+
+	const account = await client.invoke<AuthAccount>('auth_getAuthAccount', {
+		address: address.toString('hex'),
+	});
+	let authAccount: AuthAccount;
+	if (account.mandatoryKeys.length === 0 && account.optionalKeys.length === 0) {
+		authAccount = transactionObject.params as AuthAccount;
 	} else {
-		keysAsset = account.keys;
+		authAccount = account;
 	}
 	const keys = {
-		mandatoryKeys: keysAsset.mandatoryKeys.map(k => Buffer.from(k, 'hex')),
-		optionalKeys: keysAsset.optionalKeys.map(k => Buffer.from(k, 'hex')),
+		mandatoryKeys: authAccount.mandatoryKeys.map(k => Buffer.from(k, 'hex')),
+		optionalKeys: authAccount.optionalKeys.map(k => Buffer.from(k, 'hex')),
 	};
 
 	signedTransaction = await client.transaction.sign(transactionObject, [passphrase], {

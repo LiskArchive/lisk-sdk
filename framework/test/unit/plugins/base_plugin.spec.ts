@@ -15,10 +15,10 @@
 
 import { transactionSchema } from '@liskhq/lisk-chain';
 import { when } from 'jest-when';
-import { BaseChannel, BasePlugin, GenesisConfig } from '../../../src';
+import { BaseChannel, BasePlugin, GenerationConfig, GenesisConfig } from '../../../src';
 import * as loggerModule from '../../../src/logger';
-import { TransferAsset } from '../../../src/modules/token/transfer_asset';
 import { getPluginExportPath } from '../../../src/plugins/base_plugin';
+import { fakeLogger } from '../../utils/node';
 
 const appConfigForPlugin = {
 	rootPath: '/my/path',
@@ -61,6 +61,17 @@ const appConfigForPlugin = {
 class MyPlugin extends BasePlugin {
 	public name = 'my_plugin';
 
+	public configSchema = {
+		$id: 'my_plugin/schema',
+		type: 'object',
+		properties: {
+			obj: {
+				type: 'string',
+			},
+		},
+		default: {},
+	};
+
 	public get nodeModulePath(): string {
 		return '';
 	}
@@ -85,17 +96,15 @@ const loggerMock = {
 };
 
 const schemas = {
-	accountSchema: {},
-	transactionSchema,
-	transactionsAssetSchemas: [
+	transaction: transactionSchema,
+	commands: [
 		{
 			moduleID: 2,
 			assetID: 0,
-			schema: new TransferAsset(BigInt(5000000)).schema,
+			schema: {},
 		},
 	],
 	blockHeader: {},
-	blockHeadersAssets: {},
 };
 
 describe('base_plugin', () => {
@@ -106,85 +115,60 @@ describe('base_plugin', () => {
 			plugin = new MyPlugin();
 
 			jest.spyOn(loggerModule, 'createLogger').mockReturnValue(loggerMock as never);
-			when(channelMock.invoke).calledWith('app:getSchema').mockResolvedValue(schemas);
+			when(channelMock.invoke).calledWith('app_getSchema').mockResolvedValue(schemas);
 		});
 
 		describe('init', () => {
-			it('should assign "codec" namespace', async () => {
+			it('should assign "apiClient" property', async () => {
 				// Act
 				await plugin.init({
 					appConfig: {
 						...appConfigForPlugin,
 						version: '',
 						networkVersion: '',
-						genesisConfig: ({} as unknown) as GenesisConfig,
+						genesis: ({} as unknown) as GenesisConfig,
+						generation: ({} as unknown) as GenerationConfig,
 					},
 					channel: (channelMock as unknown) as BaseChannel,
-					config: {},
+					logger: fakeLogger,
+					config: {
+						obj: 'valid obj prop',
+					},
 				});
 
 				// Assert
-				expect(plugin['codec']).toEqual(
-					expect.objectContaining({
-						decodeTransaction: expect.any(Function),
+				expect(plugin['apiClient'].constructor.name).toEqual('APIClient');
+			});
+
+			it('should reject config given does not satisfy configSchema defined', async () => {
+				await expect(
+					plugin.init({
+						appConfig: {
+							...appConfigForPlugin,
+							version: '',
+							networkVersion: '',
+							genesis: ({} as unknown) as GenesisConfig,
+							generation: ({} as unknown) as GenerationConfig,
+						},
+						channel: (channelMock as unknown) as BaseChannel,
+						logger: fakeLogger,
+						config: {
+							obj: false,
+						},
 					}),
-				);
-			});
-
-			it('should create logger instance', async () => {
-				// Act
-				await plugin.init({
-					appConfig: {
-						...appConfigForPlugin,
-						version: '',
-						networkVersion: '',
-						genesisConfig: ({} as unknown) as GenesisConfig,
-					},
-					channel: (channelMock as unknown) as BaseChannel,
-					config: {},
-				});
-
-				// Assert
-				expect(loggerModule.createLogger).toHaveBeenCalledTimes(1);
-				expect(loggerModule.createLogger).toHaveBeenCalledWith({
-					consoleLogLevel: appConfigForPlugin.logger.consoleLogLevel,
-					fileLogLevel: appConfigForPlugin.logger.fileLogLevel,
-					logFilePath: `${appConfigForPlugin.rootPath}/${appConfigForPlugin.label}/logs/plugin-${plugin.name}.log`,
-					module: `plugin:${plugin.name}`,
-				});
-				expect(plugin['logger']).toBe(loggerMock);
-			});
-
-			it('should fetch schemas and assign to instance', async () => {
-				// Act
-				await plugin.init({
-					appConfig: {
-						...appConfigForPlugin,
-						version: '',
-						networkVersion: '',
-						genesisConfig: ({} as unknown) as GenesisConfig,
-					},
-					channel: (channelMock as unknown) as BaseChannel,
-					config: {},
-				});
-
-				// Assert
-				expect(channelMock.once).toHaveBeenCalledTimes(1);
-				expect(channelMock.once).toHaveBeenCalledWith('app:ready', expect.any(Function));
-				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
-				expect(channelMock.invoke).toHaveBeenCalledWith('app:getSchema');
-				expect(plugin['schemas']).toBe(schemas);
+				).rejects.toThrow();
 			});
 		});
 	});
 
 	describe('getPluginExportPath', () => {
+		const plugin = new MyPlugin();
 		afterEach(() => {
 			jest.clearAllMocks();
 		});
 
 		it('should return undefined if name is not an npm package and nodeModulePath is not defined', () => {
-			expect(getPluginExportPath(MyPlugin)).toBeUndefined();
+			expect(getPluginExportPath(plugin)).toBeUndefined();
 		});
 
 		it('should return name if its a valid npm package', () => {
@@ -204,7 +188,7 @@ describe('base_plugin', () => {
 				{ virtual: true },
 			);
 
-			expect(getPluginExportPath(MyPlugin2)).toEqual('my_plugin');
+			expect(getPluginExportPath(new MyPlugin2())).toEqual('my_plugin');
 		});
 
 		it('should return undefined if exported class is not the same from npm package', () => {
@@ -219,7 +203,7 @@ describe('base_plugin', () => {
 				{ virtual: true },
 			);
 
-			expect(getPluginExportPath(MyPlugin)).toBeUndefined();
+			expect(getPluginExportPath(new MyPlugin())).toBeUndefined();
 		});
 
 		it('should return undefined if exported class is not the same from export path', () => {
@@ -241,7 +225,7 @@ describe('base_plugin', () => {
 				{ virtual: true },
 			);
 
-			expect(getPluginExportPath(MyPlugin2)).toBeUndefined();
+			expect(getPluginExportPath(new MyPlugin2())).toBeUndefined();
 		});
 	});
 });

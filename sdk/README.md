@@ -70,7 +70,10 @@ It is quite simple to have a working blockchain application, mirroring the confi
 ```js
 const { Application, genesisBlockDevnet, configDevnet } = require('lisk-sdk');
 
-const app = Application.defaultApplication(genesisBlockDevnet, configDevnet);
+const { app } = Application.defaultApplication(
+	genesisBlockDevnet,
+	configDevnet
+);
 
 app
 	.run()
@@ -89,14 +92,14 @@ node index.js
 
 ### Configure your blockchain parameters
 
-You can also define your blockchain application parameters such as `blockTime`, `maxPayloadLength` and more with an optional configurations object.
+You can also define your blockchain application parameters such as `blockTime`, `maxTransactionsSize` and more with an optional configurations object.
 
 ```js
-const app = Application.defaultApplication(genesisBlockDevnet, {
+const { app } = Application.defaultApplication(genesisBlockDevnet, {
     genesisConfig: {
       communityIdentifier: 'newChain',
       blockTime: 5,
-      maxPayloadLength: 100 * 1024,
+      maxTransactionsSize: 100 * 1024,
       minRemainingBalance: "5000000",
 	  activeDelegates: 101,
 	  standbyDelegates: 2,
@@ -119,7 +122,10 @@ const { Application, genesisBlockDevnet, configDevnet } = require('lisk-sdk');
 const MyModule = require('./my_module');
 const MyPlugin = require('./my_plugin');
 
-const app = Application.defaultApplication(genesisBlockDevnet, configDevnet);
+const { app } = Application.defaultApplication(
+	genesisBlockDevnet,
+	configDevnet
+);
 
 app.registerModule(MyModule); // register the custom module
 app.registerPlugin(MyPlugin); // register the custom plugin

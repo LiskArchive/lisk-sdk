@@ -26,6 +26,9 @@ Object {
   "testMatch": Array [
     "<rootDir>/test/unit/**/*.(spec|test).(js|ts)",
   ],
+  "testPathIgnorePatterns": Array [
+    "/node_modules",
+  ],
   "transform": Object {
     "^.+\\\\.(ts|tsx)$": "ts-jest",
   },

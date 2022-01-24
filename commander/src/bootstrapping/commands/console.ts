@@ -15,7 +15,7 @@
 
 import { REPLServer, start } from 'repl';
 import Command, { flags as flagParser } from '@oclif/command';
-import * as liskClient from '@liskhq/lisk-client';
+import * as apiClient from '@liskhq/lisk-api-client';
 
 interface ConsoleFlags {
 	readonly 'api-ipc'?: string;
@@ -63,19 +63,8 @@ export class ConsoleCommand extends Command {
 	}
 
 	async initREPLContext(replServer: REPLServer, flags: ConsoleFlags): Promise<void> {
-		const clientLibraries = liskClient as Record<string, unknown>;
-		Object.keys(clientLibraries).forEach(key => {
-			// Skip client buffer library to avoid nodejs native buffer namespace collision
-			if (key.toLowerCase() !== 'buffer') {
-				Object.defineProperty(replServer.context, key, {
-					enumerable: true,
-					value: clientLibraries[key],
-				});
-			}
-		});
-
 		if (flags['api-ipc']) {
-			const ipcClient = await liskClient.apiClient.createIPCClient(flags['api-ipc']);
+			const ipcClient = await apiClient.createIPCClient(flags['api-ipc']);
 			Object.defineProperty(replServer.context, 'client', {
 				enumerable: true,
 				value: ipcClient,
@@ -83,7 +72,7 @@ export class ConsoleCommand extends Command {
 		}
 
 		if (flags['api-ws']) {
-			const wsClient = await liskClient.apiClient.createWSClient(flags['api-ws']);
+			const wsClient = await apiClient.createWSClient(flags['api-ws']);
 			Object.defineProperty(replServer.context, 'client', {
 				enumerable: true,
 				value: wsClient,

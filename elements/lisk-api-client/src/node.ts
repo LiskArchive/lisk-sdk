@@ -22,18 +22,18 @@ export class Node {
 	}
 
 	public async getNodeInfo(): Promise<NodeInfo> {
-		return this._channel.invoke('app:getNodeInfo');
+		return this._channel.invoke('app_getNodeInfo');
 	}
 
 	public async getNetworkStats(): Promise<NetworkStats> {
-		return this._channel.invoke('app:getNetworkStats');
+		return this._channel.invoke('app_getNetworkStats');
 	}
 
 	public async getConnectedPeers(): Promise<PeerInfo[]> {
-		return this._channel.invoke('app:getConnectedPeers');
+		return this._channel.invoke('app_getConnectedPeers');
 	}
 
 	public async getDisconnectedPeers(): Promise<PeerInfo[]> {
-		return this._channel.invoke('app:getDisconnectedPeers');
+		return this._channel.invoke('app_getDisconnectedPeers');
 	}
 }

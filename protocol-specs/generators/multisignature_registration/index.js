@@ -119,20 +119,20 @@ const multisigRegAsset = {
 const getAssetBytes = asset => codec.encode(multisigRegAsset, asset);
 
 const getSignBytes = tx => {
-	const assetBytes = getAssetBytes(tx.asset);
+	const assetBytes = getAssetBytes(tx.params);
 	const signingTx = {
 		...tx,
-		asset: assetBytes,
+		params: assetBytes,
 		signatures: [],
 	};
 	return codec.encode(baseTransactionSchema, signingTx);
 };
 
 const encode = tx => {
-	const assetBytes = getAssetBytes(tx.asset);
+	const assetBytes = getAssetBytes(tx.params);
 	const txWithAssetBytes = {
 		...tx,
-		asset: assetBytes,
+		params: assetBytes,
 	};
 	return codec.encode(baseTransactionSchema, txWithAssetBytes);
 };
@@ -150,15 +150,15 @@ const createSignatureObject = (txBuffer, account) => ({
 const generateValidMultisignatureRegistrationTransaction = () => {
 	// basic transaction
 	const unsignedTransaction = {
-		moduleID: 4,
-		assetID: 0,
+		moduleID: 12,
+		commandID: 0,
 		senderPublicKey: Buffer.from(
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 			'hex',
 		),
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
-		asset: {
+		params: {
 			mandatoryKeys: [
 				Buffer.from('4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39', 'hex'),
 				Buffer.from('f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3', 'hex'),
@@ -173,12 +173,12 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 
 	const tx = {
 		...unsignedTransaction,
-		asset: { ...unsignedTransaction.asset },
+		params: { ...unsignedTransaction.params },
 		signatures: [],
 	};
 
-	sortKeysAscending(tx.asset.mandatoryKeys);
-	sortKeysAscending(tx.asset.optionalKeys);
+	sortKeysAscending(tx.params.mandatoryKeys);
+	sortKeysAscending(tx.params.optionalKeys);
 
 	const txBuffer = getSignBytes(tx);
 
@@ -219,9 +219,9 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 		),
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
-		moduleID: 4,
-		assetID: 0,
-		asset: {
+		moduleID: 12,
+		commandID: 0,
+		params: {
 			mandatoryKeys: [
 				Buffer.from('0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe', 'hex'),
 				Buffer.from('4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39', 'hex'),
@@ -238,12 +238,12 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 
 	const tx = {
 		...unsignedTransaction,
-		asset: { ...unsignedTransaction.asset },
+		params: { ...unsignedTransaction.params },
 		signatures: [],
 	};
 
-	sortKeysAscending(tx.asset.mandatoryKeys);
-	sortKeysAscending(tx.asset.optionalKeys);
+	sortKeysAscending(tx.params.mandatoryKeys);
+	sortKeysAscending(tx.params.optionalKeys);
 
 	const txBuffer = getSignBytes(tx);
 
@@ -288,9 +288,9 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 		),
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
-		moduleID: 4,
-		assetID: 0,
-		asset: {
+		moduleID: 12,
+		commandID: 0,
+		params: {
 			mandatoryKeys: [],
 			optionalKeys: [
 				Buffer.from('57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4', 'hex'),
@@ -303,12 +303,12 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 
 	const tx = {
 		...unsignedTransaction,
-		asset: { ...unsignedTransaction.asset },
+		params: { ...unsignedTransaction.params },
 		signatures: [],
 	};
 
-	sortKeysAscending(tx.asset.mandatoryKeys);
-	sortKeysAscending(tx.asset.optionalKeys);
+	sortKeysAscending(tx.params.mandatoryKeys);
+	sortKeysAscending(tx.params.optionalKeys);
 
 	const txBuffer = getSignBytes(tx);
 
@@ -345,9 +345,9 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 		),
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
-		moduleID: 4,
-		assetID: 0,
-		asset: {
+		moduleID: 12,
+		commandID: 0,
+		params: {
 			mandatoryKeys: [
 				Buffer.from('4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39', 'hex'),
 				Buffer.from('f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3', 'hex'),
@@ -360,12 +360,12 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 
 	const tx = {
 		...unsignedTransaction,
-		asset: { ...unsignedTransaction.asset },
+		params: { ...unsignedTransaction.params },
 		signatures: [],
 	};
 
-	sortKeysAscending(tx.asset.mandatoryKeys);
-	sortKeysAscending(tx.asset.optionalKeys);
+	sortKeysAscending(tx.params.mandatoryKeys);
+	sortKeysAscending(tx.params.optionalKeys);
 
 	const txBuffer = getSignBytes(tx);
 
@@ -416,9 +416,9 @@ const generateFormerSecondSignatureTransactioon = () => {
 		),
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
-		moduleID: 4,
-		assetID: 0,
-		asset: {
+		moduleID: 12,
+		commandID: 0,
+		params: {
 			mandatoryKeys: [
 				Buffer.from('0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe', 'hex'),
 				secondSignature.publicKey,
@@ -431,12 +431,12 @@ const generateFormerSecondSignatureTransactioon = () => {
 
 	const tx = {
 		...unsignedTransaction,
-		asset: { ...unsignedTransaction.asset },
+		params: { ...unsignedTransaction.params },
 		signatures: [],
 	};
 
-	sortKeysAscending(tx.asset.mandatoryKeys);
-	sortKeysAscending(tx.asset.optionalKeys);
+	sortKeysAscending(tx.params.mandatoryKeys);
+	sortKeysAscending(tx.params.optionalKeys);
 
 	const txBuffer = getSignBytes(tx);
 

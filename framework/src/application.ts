@@ -16,41 +16,22 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as psList from 'ps-list';
 import * as assert from 'assert';
-import { promisify } from 'util';
+import { Block } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { objects, jobHandlers } from '@liskhq/lisk-utils';
+import { APP_EVENT_SHUTDOWN, APP_EVENT_READY } from './constants';
 import {
-	APP_EVENT_BLOCK_NEW,
-	APP_EVENT_CHAIN_FORK,
-	APP_EVENT_SHUTDOWN,
-	APP_EVENT_READY,
-	APP_IDENTIFIER,
-	APP_EVENT_NETWORK_EVENT,
-	APP_EVENT_TRANSACTION_NEW,
-	APP_EVENT_BLOCK_DELETE,
-	APP_EVENT_CHAIN_VALIDATORS_CHANGE,
-	APP_EVENT_NETWORK_READY,
-} from './constants';
-import {
-	RPCConfig,
 	ApplicationConfig,
-	GenesisConfig,
-	EventPostTransactionData,
 	PluginConfig,
 	RegisteredSchema,
 	RegisteredModule,
-	UpdateForgingStatusInput,
 	PartialApplicationConfig,
-	ApplicationConfigForPlugin,
+	EndpointHandlers,
+	PluginEndpointContext,
 } from './types';
 
-import {
-	BasePlugin,
-	getPluginExportPath,
-	InstantiablePlugin,
-	validatePluginSpec,
-} from './plugins/base_plugin';
+import { BasePlugin } from './plugins/base_plugin';
 import { systemDirs } from './system_dirs';
 import { Controller, InMemoryChannel } from './controller';
 import { applicationConfigSchema } from './schema';
@@ -58,11 +39,19 @@ import { Node } from './node';
 import { Logger, createLogger } from './logger';
 
 import { DuplicateAppInstanceError } from './errors';
-import { BaseModule, TokenModule, SequenceModule, KeysModule, DPoSModule } from './modules';
+import { BaseModule } from './modules/base_module';
+import { getEndpointHandlers, mergeEndpointHandlers } from './endpoint';
+import { ValidatorsAPI } from './modules/validators';
+import { BFTAPI } from './modules/bft';
+import { TokenModule, TokenAPI } from './modules/token';
+import { AuthModule, AuthAPI } from './modules/auth';
+import { FeeModule, FeeAPI } from './modules/fee';
+import { RewardModule, RewardAPI } from './modules/reward';
+import { RandomModule, RandomAPI } from './modules/random';
+import { DPoSModule, DPoSAPI } from './modules/dpos_v2';
+import { GenesisBlockGenerateInput } from './node/generator';
 
 const MINIMUM_EXTERNAL_MODULE_ID = 1000;
-// eslint-disable-next-line @typescript-eslint/no-misused-promises
-const rm = promisify(fs.unlink);
 
 const isPidRunning = async (pid: number): Promise<boolean> =>
 	psList().then(list => list.some(x => x.pid === pid));
@@ -112,32 +101,39 @@ const registerProcessHooks = (app: Application): void => {
 	});
 };
 
-type InstantiableBaseModule = new (genesisConfig: GenesisConfig) => BaseModule;
+interface DefaultApplication {
+	app: Application;
+	api: {
+		validator: ValidatorsAPI;
+		bft: BFTAPI;
+		auth: AuthAPI;
+		token: TokenAPI;
+		fee: FeeAPI;
+		random: RandomAPI;
+		reward: RewardAPI;
+		dpos: DPoSAPI;
+	};
+}
 
 export class Application {
 	public config: ApplicationConfig;
 	public logger!: Logger;
 
 	private readonly _node: Node;
-	private _controller!: Controller;
-	private _plugins: { [key: string]: InstantiablePlugin };
-	private _channel!: InMemoryChannel;
+	private readonly _controller: Controller;
 
-	private _genesisBlock!: Record<string, unknown> | undefined;
 	private _blockchainDB!: KVStore;
 	private _nodeDB!: KVStore;
 	private _forgerDB!: KVStore;
 
 	private readonly _mutex = new jobHandlers.Mutex();
 
-	public constructor(genesisBlock: Record<string, unknown>, config: PartialApplicationConfig = {}) {
-		// Don't change the object parameters provided
-		this._genesisBlock = genesisBlock;
+	public constructor(config: PartialApplicationConfig = {}) {
 		const appConfig = objects.cloneDeep(applicationConfigSchema.default);
 
 		appConfig.label =
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			config.label ?? `lisk-${config.genesisConfig?.communityIdentifier}`;
+			config.label ?? `lisk-${config.genesis?.communityIdentifier}`;
 
 		const mergedConfig = objects.mergeDeep({}, appConfig, config) as ApplicationConfig;
 		const applicationConfigErrors = validator.validate(applicationConfigSchema, mergedConfig);
@@ -146,12 +142,14 @@ export class Application {
 		}
 		this.config = mergedConfig;
 
-		// Private members
-		this._plugins = {};
 		// Initialize node
 		const { plugins, ...rootConfigs } = this.config;
 		this._node = new Node({
 			options: rootConfigs,
+		});
+		this._controller = new Controller({
+			appConfig: rootConfigs,
+			pluginConfigs: plugins,
 		});
 	}
 
@@ -159,60 +157,73 @@ export class Application {
 		return this._node.networkIdentifier;
 	}
 
-	public static getDefaultModules(): typeof BaseModule[] {
-		return [TokenModule, SequenceModule, KeysModule, DPoSModule];
-	}
-
-	public static defaultApplication(
-		genesisBlock: Record<string, unknown>,
-		config: PartialApplicationConfig = {},
-	): Application {
-		const application = new Application(genesisBlock, config);
-		for (const Module of Application.getDefaultModules()) {
-			application._registerModule(Module);
+	public get channel(): InMemoryChannel {
+		if (!this._controller.channel) {
+			throw new Error('Controller is not initialized yet.');
 		}
-
-		return application;
+		return this._controller.channel;
 	}
 
-	public registerPlugin<T extends BasePlugin>(
-		PluginKlass: InstantiablePlugin<T>,
-		options: PluginConfig = { loadAsChildProcess: false },
-	): void {
-		assert(PluginKlass, 'Plugin implementation is required');
-		assert(typeof options === 'object', 'Plugin options must be provided or set to empty object.');
-		const plugin = new PluginKlass();
-		const pluginName = plugin.name;
+	public get validatorAPI(): ValidatorsAPI {
+		return this._node.validatorAPI;
+	}
 
-		assert(
-			!Object.keys(this._plugins).includes(pluginName),
-			`A plugin with name "${pluginName}" already registered.`,
+	public get bftAPI(): BFTAPI {
+		return this._node.bftAPI;
+	}
+
+	public static defaultApplication(config: PartialApplicationConfig = {}): DefaultApplication {
+		const application = new Application(config);
+		// create module instances
+		const authModule = new AuthModule();
+		const tokenModule = new TokenModule();
+		const feeModule = new FeeModule();
+		const rewardModule = new RewardModule();
+		const randomModule = new RandomModule();
+		const dposModule = new DPoSModule();
+
+		// resolve dependencies
+		feeModule.addDependencies(tokenModule.api);
+		rewardModule.addDependencies(tokenModule.api, randomModule.api, application.bftAPI);
+		dposModule.addDependencies(
+			randomModule.api,
+			application.bftAPI,
+			application.validatorAPI,
+			tokenModule.api,
 		);
 
-		if (options.loadAsChildProcess) {
-			if (!getPluginExportPath(PluginKlass)) {
-				throw new Error(
-					`Unable to register plugin "${pluginName}" to load as child process. \n -> To load plugin as child process it must be exported. \n -> You can specify npm package as "name". \n -> Or you can specify any static path as "nodeModulePath". \n -> To fix this issue you can simply assign __filename to nodeModulePath in your plugin.`,
-				);
-			}
-		}
+		// register modules
+		application._registerModule(authModule);
+		application._registerModule(tokenModule);
+		application._registerModule(feeModule);
+		application._registerModule(rewardModule);
+		application._registerModule(randomModule);
+		application._registerModule(dposModule);
 
-		this.config.plugins[pluginName] = Object.assign(this.config.plugins[pluginName] ?? {}, options);
-
-		validatePluginSpec(plugin);
-
-		this._plugins[pluginName] = PluginKlass;
-	}
-
-	public updatePluginConfig(name: string, options?: PluginConfig): void {
-		assert(Object.keys(this._plugins).includes(name), `No plugin ${name} is registered`);
-		this.config.plugins[name] = {
-			...this.config.plugins[name],
-			...options,
+		return {
+			app: application,
+			api: {
+				validator: application._node.validatorAPI,
+				bft: application._node.bftAPI,
+				token: tokenModule.api,
+				auth: authModule.api,
+				fee: feeModule.api,
+				dpos: dposModule.api,
+				random: randomModule.api,
+				reward: rewardModule.api,
+			},
 		};
 	}
 
-	public registerModule(Module: typeof BaseModule): void {
+	public registerPlugin(
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		plugin: BasePlugin<any>,
+		options: PluginConfig = { loadAsChildProcess: false },
+	): void {
+		this._controller.registerPlugin(plugin, options);
+	}
+
+	public registerModule(Module: BaseModule): void {
 		this._registerModule(Module, true);
 	}
 
@@ -220,15 +231,11 @@ export class Application {
 		return this._node.getSchema();
 	}
 
-	public getDefaultAccount(): Record<string, unknown> {
-		return this._node.getDefaultAccount();
-	}
-
 	public getRegisteredModules(): RegisteredModule[] {
 		return this._node.getRegisteredModules();
 	}
 
-	public async run(): Promise<void> {
+	public async run(genesisBlock: Block): Promise<void> {
 		Object.freeze(this.config);
 
 		registerProcessHooks(this);
@@ -255,39 +262,31 @@ export class Application {
 		this._blockchainDB = this._getDBInstance(this.config, 'blockchain.db');
 		this._nodeDB = this._getDBInstance(this.config, 'node.db');
 
-		const dirs = systemDirs(this.config.label, this.config.rootPath);
-
 		await this._mutex.runExclusive<void>(async () => {
 			// Initialize all objects
-			this._channel = this._initChannel();
-
-			this._controller = this._initController();
-
-			await this._controller.load();
-
-			if (!this._genesisBlock) {
-				throw new Error('Genesis block must be provided to start a node');
-			}
+			this._controller.init({
+				logger: this.logger,
+				blockchainDB: this._blockchainDB,
+				endpoints: this._rootEndpoints(),
+				events: this._rootEvents(),
+				networkIdentifier: this.networkIdentifier,
+			});
 
 			await this._node.init({
-				dataPath: dirs.data,
-				genesisBlockJSON: this._genesisBlock,
-				bus: this._controller.bus,
-				channel: this._channel,
+				channel: this.channel,
+				genesisBlock,
 				forgerDB: this._forgerDB,
 				blockchainDB: this._blockchainDB,
 				nodeDB: this._nodeDB,
 				logger: this.logger,
 			});
 
-			await this._loadPlugins();
-			this.logger.debug(this._controller.bus.getEvents(), 'Application listening to events');
-			this.logger.debug(this._controller.bus.getActions(), 'Application ready for actions');
+			await this._controller.start();
+			await this._node.start();
+			this.logger.debug(this._controller.getEvents(), 'Application listening to events');
+			this.logger.debug(this._controller.getEndpoints(), 'Application ready for actions');
 
-			this._channel.publish(APP_EVENT_READY);
-			// TODO: Update genesis block to be provided in this function
-			// For now, the memory should be free up
-			delete this._genesisBlock;
+			this.channel.publish(APP_EVENT_READY);
 		});
 	}
 
@@ -297,9 +296,9 @@ export class Application {
 		const release = await this._mutex.acquire();
 
 		try {
-			this._channel.publish(APP_EVENT_SHUTDOWN);
-			await this._node.cleanup();
-			await this._controller.cleanup(errorCode, message);
+			this.channel.publish(APP_EVENT_SHUTDOWN);
+			await this._node.stop();
+			await this._controller.stop(errorCode, message);
 			await this._blockchainDB.close();
 			await this._forgerDB.close();
 			await this._nodeDB.close();
@@ -319,30 +318,23 @@ export class Application {
 		}
 	}
 
+	public async generateGenesisBlock(input: GenesisBlockGenerateInput): Promise<Block> {
+		return this._node.generateGenesisBlock(input);
+	}
+
 	// --------------------------------------
 	// Private
 	// --------------------------------------
 
-	private _registerModule(Module: typeof BaseModule, validateModuleID = false): void {
-		assert(Module, 'Module implementation is required');
-		const InstantiableModule = Module as InstantiableBaseModule;
-		const moduleInstance = new InstantiableModule(this.config.genesisConfig);
-
-		if (Application.getDefaultModules().includes(Module)) {
-			this._node.registerModule(moduleInstance);
-		} else if (validateModuleID && moduleInstance.id < MINIMUM_EXTERNAL_MODULE_ID) {
+	private _registerModule(mod: BaseModule, validateModuleID = false): void {
+		assert(mod, 'Module implementation is required');
+		if (validateModuleID && mod.id < MINIMUM_EXTERNAL_MODULE_ID) {
 			throw new Error(
 				`Custom module must have id greater than or equal to ${MINIMUM_EXTERNAL_MODULE_ID}`,
 			);
-		} else {
-			this._node.registerModule(moduleInstance);
 		}
-	}
-
-	private async _loadPlugins(): Promise<void> {
-		const { plugins: pluginsConfig, ...rest } = this.config;
-		const appConfigForPlugin: ApplicationConfigForPlugin = rest;
-		await this._controller.loadPlugins(this._plugins, pluginsConfig, appConfigForPlugin);
+		this._node.registerModule(mod);
+		this._controller.registerEndpoint(mod.name, getEndpointHandlers(mod.endpoint));
 	}
 
 	private _initLogger(): Logger {
@@ -354,119 +346,24 @@ export class Application {
 		});
 	}
 
-	private _initChannel(): InMemoryChannel {
-		/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-		/* eslint-disable @typescript-eslint/explicit-function-return-type */
-		return new InMemoryChannel(
-			APP_IDENTIFIER,
-			[
-				APP_EVENT_READY.replace('app:', ''),
-				APP_EVENT_SHUTDOWN.replace('app:', ''),
-				APP_EVENT_NETWORK_EVENT.replace('app:', ''),
-				APP_EVENT_NETWORK_READY.replace('app:', ''),
-				APP_EVENT_TRANSACTION_NEW.replace('app:', ''),
-				APP_EVENT_CHAIN_FORK.replace('app:', ''),
-				APP_EVENT_CHAIN_VALIDATORS_CHANGE.replace('app:', ''),
-				APP_EVENT_BLOCK_NEW.replace('app:', ''),
-				APP_EVENT_BLOCK_DELETE.replace('app:', ''),
-			],
-			{
-				getConnectedPeers: {
-					handler: () => this._node.actions.getConnectedPeers(),
-				},
-				getDisconnectedPeers: {
-					handler: () => this._node.actions.getDisconnectedPeers(),
-				},
-				getNetworkStats: {
-					handler: () => this._node.actions.getNetworkStats(),
-				},
-				getForgers: {
-					handler: async () => this._node.actions.getValidators(),
-				},
-				updateForgingStatus: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.updateForgingStatus((params as unknown) as UpdateForgingStatusInput),
-				},
-				getForgingStatus: {
-					handler: async () => this._node.actions.getForgingStatus(),
-				},
-				getTransactionsFromPool: {
-					handler: () => this._node.actions.getTransactionsFromPool(),
-				},
-				postTransaction: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.postTransaction((params as unknown) as EventPostTransactionData),
-				},
-				getLastBlock: {
-					handler: () => this._node.actions.getLastBlock(),
-				},
-				getAccount: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.getAccount(params as { address: string }),
-				},
-				getAccounts: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.getAccounts(params as { address: readonly string[] }),
-				},
-				getBlockByID: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.getBlockByID(params as { id: string }),
-				},
-				getBlocksByIDs: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.getBlocksByIDs(params as { ids: readonly string[] }),
-				},
-				getBlockByHeight: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.getBlockByHeight(params as { height: number }),
-				},
-				getBlocksByHeightBetween: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.getBlocksByHeightBetween(params as { from: number; to: number }),
-				},
-				getTransactionByID: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.getTransactionByID(params as { id: string }),
-				},
-				getTransactionsByIDs: {
-					handler: async (params?: Record<string, unknown>) =>
-						this._node.actions.getTransactionsByIDs(params as { ids: readonly string[] }),
-				},
-				getSchema: {
-					handler: () => this._node.actions.getSchema(),
-				},
-				getRegisteredModules: {
-					handler: () => this._node.actions.getRegisteredModules(),
-				},
-				getNodeInfo: {
-					handler: () => this._node.actions.getNodeInfo(),
-				},
-				getRegisteredActions: {
-					handler: () => this._controller.bus.getActions(),
-				},
-				getRegisteredEvents: {
-					handler: () => this._controller.bus.getEvents(),
-				},
-			},
-			{ skipInternalEvents: true },
-		);
-		/* eslint-enable @typescript-eslint/explicit-module-boundary-types */
-		/* eslint-enable @typescript-eslint/explicit-function-return-type */
+	private _rootEndpoints(): EndpointHandlers {
+		const nodeEndpoint = this._node.getEndpoints();
+		const applicationEndpoint: EndpointHandlers = {
+			// eslint-disable-next-line @typescript-eslint/require-await
+			getRegisteredActions: async (_: PluginEndpointContext) => this._controller.getEndpoints(),
+			// eslint-disable-next-line @typescript-eslint/require-await
+			getRegisteredEvents: async (_: PluginEndpointContext) => this._controller.getEvents(),
+		};
+		return mergeEndpointHandlers(applicationEndpoint, nodeEndpoint);
 	}
 
-	private _initController(): Controller {
-		return new Controller({
-			appLabel: this.config.label,
-			config: {
-				rootPath: this.config.rootPath,
-				rpc: objects.mergeDeep(
-					{ ipc: { path: systemDirs(this.config.label, this.config.rootPath).sockets } },
-					this.config.rpc,
-				) as RPCConfig,
-			},
-			logger: this.logger,
-			channel: this._channel,
-		});
+	private _rootEvents(): string[] {
+		const nodeEvents = this._node.getEvents();
+		return [
+			APP_EVENT_READY.replace('app:', ''),
+			APP_EVENT_SHUTDOWN.replace('app:', ''),
+			...nodeEvents,
+		];
 	}
 
 	private async _setupDirectories(): Promise<void> {
@@ -478,7 +375,9 @@ export class Application {
 		const { sockets } = systemDirs(this.config.label, this.config.rootPath);
 		const socketFiles = fs.readdirSync(sockets);
 
-		await Promise.all(socketFiles.map(async aSocketFile => rm(path.join(sockets, aSocketFile))));
+		await Promise.all(
+			socketFiles.map(async aSocketFile => fs.unlink(path.join(sockets, aSocketFile))),
+		);
 	}
 
 	private async _validatePidFile(): Promise<void> {

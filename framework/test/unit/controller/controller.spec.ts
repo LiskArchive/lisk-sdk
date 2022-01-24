@@ -14,20 +14,16 @@
 
 import * as childProcess from 'child_process';
 import * as os from 'os';
-import { when } from 'jest-when';
-import { BasePlugin } from '../../../src';
-
-jest.mock('../../../src/controller/bus');
-jest.mock('../../../src/controller/channels/in_memory_channel');
-
-/* eslint-disable import/first  */
-
+import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
+import { BasePlugin } from '../../../src/plugins/base_plugin';
 import * as controllerModule from '../../../src/controller/controller';
 import { Controller } from '../../../src/controller/controller';
 import { Bus } from '../../../src/controller/bus';
 import { InMemoryChannel } from '../../../src/controller/channels';
 import * as basePluginModule from '../../../src/plugins/base_plugin';
-import { IPCServer } from '../../../src/controller/ipc/ipc_server';
+import { ApplicationConfigForPlugin, EndpointHandlers } from '../../../src';
+
+jest.mock('zeromq');
 
 const createMockPlugin = ({
 	name,
@@ -39,19 +35,18 @@ const createMockPlugin = ({
 	initStub?: any;
 	loadStub?: any;
 	unloadStub?: any;
-}): typeof BasePlugin => {
-	function Plugin(this: any) {
-		this.name = name;
-		this.load = loadStub ?? jest.fn();
-		this.init = initStub ?? jest.fn();
-		this.unload = unloadStub ?? jest.fn();
-		this.configSchema = {};
-		this.events = [];
-		this.actions = {};
-	}
-
-	return (Plugin as unknown) as typeof BasePlugin;
+}): BasePlugin => {
+	return ({
+		name,
+		load: loadStub ?? jest.fn(),
+		init: initStub ?? jest.fn(),
+		unload: unloadStub ?? jest.fn(),
+		configSchema: {},
+		events: [],
+		endpoint: {},
+	} as unknown) as BasePlugin;
 };
+
 describe('Controller Class', () => {
 	// Arrange
 	const appLabel = '#LABEL';
@@ -63,11 +58,6 @@ describe('Controller Class', () => {
 		fatal: jest.fn(),
 		warn: jest.fn(),
 		level: jest.fn(),
-	};
-	const channelMock: any = {
-		registerToBus: jest.fn(),
-		once: jest.fn(),
-		publish: jest.fn(),
 	};
 	const rpcConfig = {
 		modes: ['ipc'],
@@ -100,211 +90,118 @@ describe('Controller Class', () => {
 		dirs: systemDirs,
 		rpc: rpcConfig,
 	};
+	const appConfig = {
+		rootPath: '/user/.lisk',
+		label: '#LABEL',
+		rpc: rpcConfig,
+	} as ApplicationConfigForPlugin;
+	const pluginConfigs = {};
 
 	const params = {
-		appLabel,
-		config,
+		appConfig,
+		pluginConfigs,
+	};
+
+	const initParams = {
+		blockchainDB: (new InMemoryKVStore() as unknown) as KVStore,
 		logger: loggerMock,
-		channel: channelMock,
+		events: ['app_start', 'app_blockNew'],
+		endpoints: {
+			getBlockByID: jest.fn(),
+		} as EndpointHandlers,
+		networkIdentifier: Buffer.alloc(0),
 	};
 
 	let controller: controllerModule.Controller;
-	let busConfig: any;
+	let inMemoryPlugin: BasePlugin;
+	let childProcessPlugin: BasePlugin;
 
 	beforeEach(() => {
 		// Act
+		jest.spyOn(basePluginModule, 'getPluginExportPath').mockReturnValue('plugin2');
 		controller = new Controller(params);
-		busConfig = {
-			externalIPCServer: new IPCServer({
-				name: 'bus',
-				socketsDir: controller.config.rpc.ipc?.path as string,
-				externalSocket: true,
-			}),
-			internalIPCServer: new IPCServer({
-				name: 'bus',
-				socketsDir: controller.config.dirs.sockets,
-			}),
-			wsServer: undefined,
-			httpServer: undefined,
-		};
+		inMemoryPlugin = createMockPlugin({
+			name: 'plugin1',
+		});
+		childProcessPlugin = createMockPlugin({
+			name: 'plugin2',
+		});
+
+		controller.registerEndpoint('dpos', {});
+		controller.registerEndpoint('auth', {});
+		controller.registerPlugin(inMemoryPlugin, { loadAsChildProcess: false });
+		controller.registerPlugin(childProcessPlugin, { loadAsChildProcess: true });
 		jest
 			.spyOn(childProcess, 'fork')
 			.mockReturnValue((childProcessMock as unknown) as childProcess.ChildProcess);
 		jest.spyOn(os, 'homedir').mockReturnValue('/user');
-	});
-
-	afterEach(async () => {
-		// Act
-		await controller.cleanup();
+		controller.init(initParams);
 	});
 
 	describe('#constructor', () => {
 		it('should initialize the instance correctly when valid arguments were provided.', () => {
 			// Assert
-			expect(controller.logger).toEqual(loggerMock);
-			expect(controller.appLabel).toEqual(appLabel);
-			expect(controller.config).toEqual(configController);
-			expect(controller.channel).toBe(channelMock);
-			expect(controller.bus).toBeUndefined();
+			expect(controller['_config']).toEqual(configController);
 			expect(controller['_inMemoryPlugins']).toEqual({});
 			expect(controller['_childProcesses']).toEqual({});
+			expect(controller['_bus']).toBeInstanceOf(Bus);
+			expect(controller['_logger']).not.toBeUndefined();
+			expect(controller['_internalIPCServer']).not.toBeUndefined();
+			expect(controller['_externalIPCServer']).not.toBeUndefined();
+			expect(controller['_wsServer']).toBeUndefined();
+			expect(controller['_httpServer']).toBeUndefined();
 		});
 	});
 
-	describe('#load', () => {
+	describe('#start', () => {
 		beforeEach(async () => {
-			await controller.load();
-		});
-
-		describe('_setupBus', () => {
-			it('should set created `Bus` instance to `controller.bus` property.', () => {
-				// Assert
-				expect(Bus).toHaveBeenCalledWith(loggerMock, busConfig);
-				expect(controller.bus).toBeInstanceOf(Bus);
+			jest.spyOn(controller['_bus'], 'registerChannel');
+			jest.spyOn(controller['_bus'], 'publish').mockResolvedValue(undefined as never);
+			// eslint-disable-next-line @typescript-eslint/require-await
+			jest.spyOn(controller['_bus'], 'start').mockImplementation(async logger => {
+				controller['_bus']['_logger'] = logger;
 			});
+			jest.spyOn(controller['_channel'] as InMemoryChannel, 'registerToBus');
 
-			it('should call `controller.bus.init()` method.', () => {
-				// Assert
-				expect(controller.bus.init).toHaveBeenCalled();
-			});
-
-			it('should call `controller.channel.registerToBus()` method.', () => {
-				// Assert
-				expect(controller.bus.init).toHaveBeenCalled();
-			});
-		});
-	});
-
-	describe('#loadPlugins', () => {
-		let plugins: any;
-		let pluginOptions: any;
-		let Plugin1: any;
-		let Plugin2: any;
-
-		beforeEach(async () => {
-			Plugin1 = createMockPlugin({ name: 'plugin1' });
-			Plugin2 = createMockPlugin({ name: 'plugin2' });
-
-			plugins = {
-				plugin1: Plugin1,
-				plugin2: Plugin2,
-			};
-
-			pluginOptions = {
-				plugin1: { option: '#OPTIONS1' },
-				plugin2: { option2: '#OPTIONS2' },
-			};
-
-			await controller.load();
+			// To avoid waiting for events
+			jest.spyOn(Promise, 'race').mockResolvedValue(true);
+			await controller.start();
 		});
 
-		it('should throw error if bus is not initialized', async () => {
-			// Arrange
-			controller = new Controller(params);
-
-			// Act && Assert
-			await expect(controller.loadPlugins(plugins, pluginOptions, {} as never)).rejects.toThrow(
-				'Controller bus is not initialized. Plugins can not be loaded.',
-			);
+		it('should register main channel to bus', () => {
+			// Assert
+			expect(controller['_channel']?.registerToBus).toHaveBeenCalledWith(controller['_bus']);
 		});
 
-		it.todo('should load plugins in sequence');
+		it('should start bus', () => {
+			// Assert
+			expect(controller['_bus'].start).toHaveBeenCalledWith(loggerMock);
+		});
+
+		it('should register channels for each endpoiont namespace', () => {
+			// Assert
+			// 2 modules, 2 plugins
+			expect(controller['_bus'].registerChannel).toHaveBeenCalledTimes(4);
+		});
 
 		describe('in-memory plugin', () => {
-			it('should load plugin in-memory if "loadAsChildProcess" is set to false', async () => {
-				// Act
-				await controller.loadPlugins(plugins, pluginOptions, {} as never);
-
+			it('should call `plugin.init` method', () => {
 				// Assert
-				expect(loggerMock.info).toHaveBeenCalledWith('plugin1', 'Loading in-memory plugin');
-				expect(loggerMock.info).toHaveBeenCalledWith('plugin2', 'Loading in-memory plugin');
+				expect(inMemoryPlugin.init).toHaveBeenCalledTimes(1);
 			});
 
-			it('should create instance of in-memory channel', async () => {
-				// Act
-				await controller.loadPlugins(plugins, pluginOptions, {} as never);
-
+			it('should call `plugin.load` method', () => {
 				// Assert
-				expect(InMemoryChannel).toHaveBeenCalledTimes(2);
+				expect(inMemoryPlugin.load).toHaveBeenCalledTimes(1);
 			});
 
-			it('should register channel to bus', async () => {
-				// Act
-				await controller.loadPlugins(plugins, pluginOptions, {} as never);
-
-				// Assert
-				expect(InMemoryChannel.prototype.registerToBus).toHaveBeenCalledTimes(2);
-				expect(InMemoryChannel.prototype.registerToBus).toHaveBeenCalledWith(controller.bus);
-			});
-
-			it('should publish `registeredToBus:started` event before loading plugin', async () => {
-				// Act
-				await controller.loadPlugins(plugins, pluginOptions, {} as never);
-
-				// Assert
-				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith('plugin1:registeredToBus');
-				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith('plugin2:registeredToBus');
-			});
-
-			it('should publish `loading:started` event before loading plugin', async () => {
-				// Act
-				await controller.loadPlugins(plugins, pluginOptions, {} as never);
-
-				// Assert
-				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith('plugin1:loading:started');
-				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith('plugin2:loading:started');
-			});
-
-			it('should call `plugin.init` method', async () => {
-				// Arrange
-				const initMock = jest.fn();
-				plugins.plugin1 = createMockPlugin({ name: 'plugin1', initStub: initMock });
-				plugins.plugin2 = createMockPlugin({ name: 'plugin2', initStub: initMock });
-
-				// Act
-				await controller.loadPlugins(plugins, pluginOptions, {} as never);
-
-				// Assert
-				expect(initMock).toHaveBeenCalledTimes(2);
-			});
-
-			it('should call `plugin.load` method', async () => {
-				// Arrange
-				const loadMock = jest.fn();
-				plugins.plugin1 = createMockPlugin({ name: 'plugin1', loadStub: loadMock });
-				plugins.plugin2 = createMockPlugin({ name: 'plugin2', loadStub: loadMock });
-
-				// Act
-				await controller.loadPlugins(plugins, pluginOptions, {} as never);
-
-				// Assert
-				expect(loadMock).toHaveBeenCalledTimes(2);
-				expect(loadMock).toHaveBeenCalledWith(expect.any(InMemoryChannel));
-			});
-
-			it('should publish `loading:finished` after loading plugin', async () => {
-				// Act
-				await controller.loadPlugins(plugins, pluginOptions, {} as never);
-
-				// Assert
-				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith('plugin1:loading:finished');
-				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith('plugin2:loading:finished');
-			});
-
-			it('should add plugin to `controller._inMemoryPlugins` object', async () => {
-				// Act
-				await controller.loadPlugins(plugins, pluginOptions, {} as never);
-
+			it('should add plugin to `controller._inMemoryPlugins` object', () => {
 				// Assert
 				expect(controller['_inMemoryPlugins']).toEqual(
 					expect.objectContaining({
 						plugin1: {
 							channel: expect.any(InMemoryChannel),
-							plugin: expect.any(Plugin1),
-						},
-						plugin2: {
-							channel: expect.any(InMemoryChannel),
-							plugin: expect.any(Plugin2),
+							plugin: inMemoryPlugin,
 						},
 					}),
 				);
@@ -312,228 +209,70 @@ describe('Controller Class', () => {
 		});
 
 		describe('child-process plugin', () => {
-			beforeEach(async () => {
-				const updatedParams = { ...params };
-
-				pluginOptions.plugin1.loadAsChildProcess = true;
-				pluginOptions.plugin2.loadAsChildProcess = true;
-
-				jest.spyOn(basePluginModule, 'getPluginExportPath');
-
-				when(basePluginModule.getPluginExportPath as any)
-					.calledWith(plugins.plugin1)
-					.mockReturnValue('plugin1');
-
-				when(basePluginModule.getPluginExportPath as any)
-					.calledWith(plugins.plugin2)
-					.mockReturnValue('plugin2');
-
-				controller = new Controller(updatedParams);
-				controller.config.rpc = { modes: ['ipc'] } as never;
-				await controller.load();
-
-				// To avoid waiting for events
-				jest.spyOn(Promise, 'race').mockResolvedValue(true);
-			});
-
-			it('should load plugin in child process if "loadAsChildProcess" and IPC is enabled', async () => {
-				// Act
-				await controller.loadPlugins(plugins, pluginOptions, {} as never);
-
+			it('should run plugin in child process when specified', () => {
 				// Assert
-				expect(loggerMock.info).toHaveBeenCalledWith('plugin1', 'Loading child-process plugin');
-				expect(loggerMock.info).toHaveBeenCalledWith('plugin2', 'Loading child-process plugin');
-			});
-
-			it('should load child process with childProcess.fork', async () => {
-				// Arrange & Act
-				await controller.loadPlugins(plugins, pluginOptions, {} as never);
-
-				// Assert
-				expect(childProcess.fork).toHaveBeenCalledTimes(2);
+				expect(childProcess.fork).toHaveBeenCalledTimes(1);
 				expect(childProcess.fork).toHaveBeenCalledWith(
 					expect.stringContaining('child_process_loader'),
-					['plugin1', 'Plugin'],
-					{ execArgv: undefined },
-				);
-				expect(childProcess.fork).toHaveBeenCalledWith(
-					expect.stringContaining('child_process_loader'),
-					['plugin2', 'Plugin'],
+					['plugin2', expect.any(String)],
 					{ execArgv: undefined },
 				);
 			});
 
-			it('should send "load" action to child process', async () => {
-				// Arrange & Act
-				await controller.loadPlugins(plugins, pluginOptions, {} as never);
-
+			it('should send "load" action to child process', () => {
 				// Assert
-				expect(childProcessMock.send).toHaveBeenCalledTimes(2);
+				expect(childProcessMock.send).toHaveBeenCalledTimes(1);
 				expect(childProcessMock.send).toHaveBeenCalledWith({
 					action: 'load',
-					appConfig: {},
-					config: pluginOptions.plugin1,
-					ipcConfig: controller.config,
-				});
-				expect(childProcessMock.send).toHaveBeenCalledWith({
-					action: 'load',
-					appConfig: {},
-					config: pluginOptions.plugin2,
-					ipcConfig: controller.config,
+					appConfig,
+					config: {
+						loadAsChildProcess: true,
+					},
+					ipcConfig: controller['_config'],
 				});
 			});
 		});
 	});
 
-	describe('#unloadPlugins', () => {
-		let loadStubs: any;
-		let unloadStubs: any;
-		let pluginOptions: any;
-		let plugins: any;
-		let updatedParams: any;
-
+	describe('#stop', () => {
 		beforeEach(async () => {
-			updatedParams = { ...params };
-			controller = new Controller(updatedParams);
-
-			loadStubs = {
-				plugin1: jest.fn(),
-				plugin2: jest.fn(),
-			};
-
-			unloadStubs = {
-				plugin1: jest.fn(),
-				plugin2: jest.fn(),
-			};
-
-			plugins = {
-				plugin1: createMockPlugin({
-					name: 'plugin1',
-					loadStub: loadStubs.plugin1,
-					unloadStub: unloadStubs.plugin1,
-				}),
-				plugin2: createMockPlugin({
-					name: 'plugin2',
-					loadStub: loadStubs.plugin2,
-					unloadStub: unloadStubs.plugin2,
-				}),
-			};
-			pluginOptions = {
-				plugin1: {
-					loadAsChildProcess: false,
-				},
-				plugin2: {
-					loadAsChildProcess: false,
-				},
-			};
-
-			await controller.load();
-			await controller.loadPlugins(plugins, pluginOptions, {} as never);
-		});
-
-		it('should unload plugins in sequence', async () => {
-			// Act
-			await controller.unloadPlugins();
-
-			// Assert
-			expect(unloadStubs.plugin1).toHaveBeenCalled();
-			expect(unloadStubs.plugin2).toHaveBeenCalled();
-			expect(unloadStubs.plugin2).toHaveBeenCalledAfter(unloadStubs.plugin1);
-		});
-
-		it('should unload all plugins if plugins argument was not provided', async () => {
-			// Act
-			await controller.unloadPlugins();
-
-			// Assert
-			expect(controller['_inMemoryPlugins']).toEqual({});
-		});
-
-		it('should unload given plugins if plugins argument was provided', async () => {
-			// Act
-			await controller.unloadPlugins(['plugin2']);
-
-			// Assert
-			expect(Object.keys(controller['_inMemoryPlugins'])).toEqual(['plugin1']);
+			jest.spyOn(controller['_bus'], 'publish').mockResolvedValue(undefined as never);
+			jest.spyOn(Promise, 'race').mockResolvedValue(true);
+			jest.spyOn(InMemoryChannel.prototype, 'publish');
+			await controller.start();
+			childProcessMock.connected = true;
+			await controller.stop();
 		});
 
 		describe('unload in-memory plugins', () => {
-			beforeEach(async () => {
-				pluginOptions.plugin1.loadAsChildProcess = false;
-				pluginOptions.plugin2.loadAsChildProcess = false;
-
-				controller = new Controller(updatedParams);
-
-				await controller.load();
-				await controller.loadPlugins(plugins, pluginOptions, {} as never);
+			it('should unload in-memory plugins in sequence', () => {
+				// Assert
+				expect(inMemoryPlugin.unload).toHaveBeenCalled();
 			});
 
-			it('should publish unloading:started event', async () => {
-				// Act
-				await controller.unloadPlugins();
-
+			it('should unload all plugins if plugins argument was not provided', () => {
 				// Assert
-				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith('plugin1:unloading:started');
-				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith('plugin2:unloading:started');
-			});
-
-			it('should publish unloading:finished event', async () => {
-				// Act
-				await controller.unloadPlugins();
-
-				// Assert
-				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith(
-					'plugin1:unloading:finished',
-				);
-				expect(InMemoryChannel.prototype.publish).toHaveBeenCalledWith(
-					'plugin2:unloading:finished',
-				);
+				expect(controller['_inMemoryPlugins']).toEqual({});
 			});
 		});
 
 		describe('unload child-process plugins', () => {
-			beforeEach(async () => {
-				pluginOptions.plugin1.loadAsChildProcess = true;
-				pluginOptions.plugin2.loadAsChildProcess = true;
-				childProcessMock.connected = true;
-
-				jest.spyOn(Promise, 'race').mockResolvedValue(true);
-
-				controller = new Controller(updatedParams);
-				controller.config.rpc = {
-					modes: ['ipc'],
-				} as never;
-
-				await controller.load();
-				await controller.loadPlugins(plugins, pluginOptions, {} as never);
-			});
-
 			it('should kill child process if its not connected', async () => {
 				// Arrange
 				childProcessMock.connected = false;
 
 				// Act && Assert
-				await expect(controller.unloadPlugins()).rejects.toThrow('Unload Plugins failed');
-				expect(childProcessMock.kill).toHaveBeenCalledTimes(2);
+				await expect(controller['_unloadPlugins']()).rejects.toThrow('Unload Plugins failed');
+				expect(childProcessMock.kill).toHaveBeenCalledTimes(1);
 				expect(childProcessMock.kill).toHaveBeenCalledWith('SIGTERM');
 			});
 
-			it('should send "unload" action to child process', async () => {
-				// Arrange & Act
-				await controller.unloadPlugins();
-
+			it('should send "unload" action to child process', () => {
 				// Assert
 				expect(childProcessMock.send).toHaveBeenCalledWith({
 					action: 'unload',
 				});
-				expect(childProcessMock.send).toHaveBeenCalledWith({
-					action: 'unload',
-				});
 			});
-
-			it.todo('should publish unloading:started event');
-
-			it.todo('should publish unloading:finished event');
 		});
 	});
 });

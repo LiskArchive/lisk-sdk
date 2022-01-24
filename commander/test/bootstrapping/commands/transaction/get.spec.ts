@@ -52,10 +52,10 @@ describe('transaction:get command', () => {
 		},
 	};
 
-	const transactionsAssets = [
+	const commands = [
 		{
 			moduleID: 2,
-			assetID: 0,
+			commandID: 0,
 			schema: transferAssetSchema,
 		},
 	];
@@ -68,7 +68,7 @@ describe('transaction:get command', () => {
 	const encodedTransaction = encodeTransactionFromJSON(
 		transferTransaction as any,
 		transactionSchema,
-		transactionsAssets,
+		commands,
 	);
 
 	let stdout: string[];
@@ -90,7 +90,7 @@ describe('transaction:get command', () => {
 			disconnect: jest.fn(),
 			schemas: {
 				transaction: transactionSchema,
-				transactionsAssets,
+				commands,
 			},
 			transaction: {
 				get: getMock,

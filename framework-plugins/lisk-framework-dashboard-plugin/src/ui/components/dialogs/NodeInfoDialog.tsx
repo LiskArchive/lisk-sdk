@@ -73,8 +73,8 @@ const NodeInfoDialog: React.FC<NodeInfoDialogProps> = props => {
 
 					<Grid row>
 						<NodeInfoItem
-							label={'Max payload length'}
-							value={nodeInfo.genesisConfig.maxPayloadLength.toLocaleString()}
+							label={'Max transactions length'}
+							value={nodeInfo.genesisConfig.maxTransactionsSize.toLocaleString()}
 						/>
 						<NodeInfoItem
 							label={'BFT threshold'}
@@ -105,7 +105,7 @@ const NodeInfoDialog: React.FC<NodeInfoDialogProps> = props => {
 								<Text>{fee.moduleID}</Text>
 							</Grid>
 							<Grid xs={4}>
-								<Text>{fee.assetID}</Text>
+								<Text>{fee.commandID}</Text>
 							</Grid>
 							<Grid xs={4}>
 								<Text>{fee.baseFee}</Text>

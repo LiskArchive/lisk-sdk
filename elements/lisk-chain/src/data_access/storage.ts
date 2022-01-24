@@ -13,9 +13,8 @@
  */
 import { KVStore, formatInt, getFirstPrefix, getLastPrefix, NotFoundError } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
+import { hash } from '@liskhq/lisk-cryptography';
 import { RawBlock, StateDiff } from '../types';
-import { StateStore } from '../state_store';
 
 import {
 	DB_KEY_BLOCKS_ID,
@@ -23,13 +22,40 @@ import {
 	DB_KEY_TRANSACTIONS_BLOCK_ID,
 	DB_KEY_TRANSACTIONS_ID,
 	DB_KEY_TEMPBLOCKS_HEIGHT,
-	DB_KEY_ACCOUNTS_ADDRESS,
-	DB_KEY_CHAIN_STATE,
-	DB_KEY_CONSENSUS_STATE,
 	DB_KEY_DIFF_STATE,
-} from './constants';
-import { keyString } from '../utils';
+	DB_KEY_FINALIZED_HEIGHT,
+	DB_KEY_BLOCK_ASSETS_BLOCK_ID,
+} from '../db_keys';
+import { concatDBKeys } from '../utils';
 import { stateDiffSchema } from '../schema';
+import { CurrentState } from '../state_store';
+import { toSMTKey } from '../state_store/utils';
+
+const bytesArraySchema = {
+	$id: 'lisk-chain/bytesarray',
+	type: 'object',
+	required: ['list'],
+	properties: {
+		list: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				dataType: 'bytes',
+			},
+		},
+	},
+};
+
+interface ByteArrayContainer {
+	list: Buffer[];
+}
+
+const decodeByteArray = (val: Buffer): Buffer[] => {
+	const decoded = codec.decode<ByteArrayContainer>(bytesArraySchema, val);
+	return decoded.list;
+};
+
+const encodeByteArray = (val: Buffer[]): Buffer => codec.encode(bytesArraySchema, { list: val });
 
 export class Storage {
 	private readonly _db: KVStore;
@@ -42,7 +68,7 @@ export class Storage {
 		Block headers
 	*/
 	public async getBlockHeaderByID(id: Buffer): Promise<Buffer> {
-		const block = await this._db.get(`${DB_KEY_BLOCKS_ID}:${keyString(id)}`);
+		const block = await this._db.get(concatDBKeys(DB_KEY_BLOCKS_ID, id));
 		return block;
 	}
 
@@ -50,7 +76,7 @@ export class Storage {
 		const blocks = [];
 		for (const id of arrayOfBlockIds) {
 			try {
-				const block = await this._db.get(`${DB_KEY_BLOCKS_ID}:${keyString(id)}`);
+				const block = await this._db.get(concatDBKeys(DB_KEY_BLOCKS_ID, id));
 				blocks.push(block);
 			} catch (dbError) {
 				if (dbError instanceof NotFoundError) {
@@ -63,8 +89,7 @@ export class Storage {
 	}
 
 	public async getBlockHeaderByHeight(height: number): Promise<Buffer> {
-		const stringHeight = formatInt(height);
-		const id = await this._db.get(`${DB_KEY_BLOCKS_HEIGHT}:${stringHeight}`);
+		const id = await this._db.get(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(height)));
 		return this.getBlockHeaderByID(id);
 	}
 
@@ -73,8 +98,8 @@ export class Storage {
 		toHeight: number,
 	): Promise<Buffer[]> {
 		const stream = this._db.createReadStream({
-			gte: `${DB_KEY_BLOCKS_HEIGHT}:${formatInt(fromHeight)}`,
-			lte: `${DB_KEY_BLOCKS_HEIGHT}:${formatInt(toHeight)}`,
+			gte: concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(fromHeight)),
+			lte: concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(toHeight)),
 			reverse: true,
 		});
 		const blockIDs = await new Promise<Buffer[]>((resolve, reject) => {
@@ -138,16 +163,18 @@ export class Storage {
 	}
 
 	/*
-		Extended blocks with transaction payload
+		Extended blocks with transaction transactions
 	*/
 
 	public async getBlockByID(id: Buffer): Promise<RawBlock> {
 		const blockHeader = await this.getBlockHeaderByID(id);
 		const transactions = await this._getTransactions(id);
+		const assets = await this._getBlockAssets(id);
 
 		return {
 			header: blockHeader,
-			payload: transactions,
+			transactions,
+			assets,
 		};
 	}
 
@@ -173,10 +200,12 @@ export class Storage {
 		const header = await this.getBlockHeaderByHeight(height);
 		const blockID = hash(header);
 		const transactions = await this._getTransactions(blockID);
+		const assets = await this._getBlockAssets(blockID);
 
 		return {
 			header,
-			payload: transactions,
+			transactions,
+			assets,
 		};
 	}
 
@@ -186,7 +215,8 @@ export class Storage {
 		for (const header of headers) {
 			const blockID = hash(header);
 			const transactions = await this._getTransactions(blockID);
-			blocks.push({ header, payload: transactions });
+			const assets = await this._getBlockAssets(blockID);
+			blocks.push({ header, transactions, assets });
 		}
 
 		return blocks;
@@ -196,10 +226,12 @@ export class Storage {
 		const header = await this.getLastBlockHeader();
 		const blockID = hash(header);
 		const transactions = await this._getTransactions(blockID);
+		const assets = await this._getBlockAssets(blockID);
 
 		return {
 			header,
-			payload: transactions,
+			transactions,
+			assets,
 		};
 	}
 
@@ -257,84 +289,14 @@ export class Storage {
 	}
 
 	public async isBlockPersisted(blockID: Buffer): Promise<boolean> {
-		return this._db.exists(`${DB_KEY_BLOCKS_ID}:${keyString(blockID)}`);
-	}
-
-	/*
-		ChainState
-	*/
-	public async getChainState(key: string): Promise<Buffer | undefined> {
-		try {
-			const value = await this._db.get(`${DB_KEY_CHAIN_STATE}:${key}`);
-
-			return value;
-		} catch (error) {
-			if (error instanceof NotFoundError) {
-				return undefined;
-			}
-			throw error;
-		}
-	}
-
-	/*
-		ConsensusState
-	*/
-	public async getConsensusState(key: string): Promise<Buffer | undefined> {
-		try {
-			const value = await this._db.get(`${DB_KEY_CONSENSUS_STATE}:${key}`);
-
-			return value;
-		} catch (error) {
-			if (error instanceof NotFoundError) {
-				return undefined;
-			}
-			throw error;
-		}
-	}
-
-	// TODO: Remove in next version
-	// Warning: This function should never be used. This exist only for migration purpose.
-	// Specifically, only to set genesis state between 5.1.2 => 5.1.3
-	public async setConsensusState(key: string, val: Buffer): Promise<void> {
-		await this._db.put(`${DB_KEY_CONSENSUS_STATE}:${key}`, val);
-	}
-
-	/*
-		Accounts
-	*/
-	public async getAccountByAddress(address: Buffer): Promise<Buffer> {
-		const account = await this._db.get(`${DB_KEY_ACCOUNTS_ADDRESS}:${keyString(address)}`);
-		return account;
-	}
-
-	public async getAccountsByPublicKey(arrayOfPublicKeys: ReadonlyArray<Buffer>): Promise<Buffer[]> {
-		const addresses = arrayOfPublicKeys.map(getAddressFromPublicKey);
-
-		return this.getAccountsByAddress(addresses);
-	}
-
-	public async getAccountsByAddress(arrayOfAddresses: ReadonlyArray<Buffer>): Promise<Buffer[]> {
-		const accounts = [];
-		for (const address of arrayOfAddresses) {
-			try {
-				const account = await this.getAccountByAddress(address);
-				accounts.push(account);
-			} catch (dbError) {
-				if (dbError instanceof NotFoundError) {
-					continue;
-				}
-				throw dbError;
-			}
-		}
-
-		return accounts;
+		return this._db.exists(concatDBKeys(DB_KEY_BLOCKS_ID, blockID));
 	}
 
 	/*
 		Transactions
 	*/
 	public async getTransactionByID(id: Buffer): Promise<Buffer> {
-		const transaction = await this._db.get(`${DB_KEY_TRANSACTIONS_ID}:${keyString(id)}`);
+		const transaction = await this._db.get(concatDBKeys(DB_KEY_TRANSACTIONS_ID, id));
 
 		return transaction;
 	}
@@ -359,7 +321,12 @@ export class Storage {
 	}
 
 	public async isTransactionPersisted(transactionId: Buffer): Promise<boolean> {
-		return this._db.exists(`${DB_KEY_TRANSACTIONS_ID}:${keyString(transactionId)}`);
+		return this._db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, transactionId));
+	}
+
+	public async getFinalizedHeight(): Promise<number> {
+		const finalizedHeightBytes = await this._db.get(DB_KEY_FINALIZED_HEIGHT);
+		return finalizedHeightBytes.readUInt32BE(0);
 	}
 
 	/*
@@ -370,26 +337,37 @@ export class Storage {
 		height: number,
 		finalizedHeight: number,
 		header: Buffer,
-		payload: { id: Buffer; value: Buffer }[],
-		stateStore: StateStore,
+		transactions: { id: Buffer; value: Buffer }[],
+		assets: Buffer[],
+		state: CurrentState,
 		removeFromTemp = false,
 	): Promise<void> {
-		const heightStr = formatInt(height);
-		const batch = this._db.batch();
-		batch.put(`${DB_KEY_BLOCKS_ID}:${keyString(id)}`, header);
-		batch.put(`${DB_KEY_BLOCKS_HEIGHT}:${heightStr}`, id);
-		if (payload.length > 0) {
+		const heightBuf = formatInt(height);
+		const { batch, diff } = state;
+		batch.put(concatDBKeys(DB_KEY_BLOCKS_ID, id), header);
+		batch.put(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, heightBuf), id);
+		if (transactions.length > 0) {
 			const ids = [];
-			for (const { id: txID, value } of payload) {
+			for (const { id: txID, value } of transactions) {
 				ids.push(txID);
-				batch.put(`${DB_KEY_TRANSACTIONS_ID}:${keyString(txID)}`, value);
+				batch.put(concatDBKeys(DB_KEY_TRANSACTIONS_ID, txID), value);
 			}
-			batch.put(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${keyString(id)}`, Buffer.concat(ids));
+			batch.put(concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, id), Buffer.concat(ids));
+		}
+		if (assets.length > 0) {
+			const encodedAsset = encodeByteArray(assets);
+			batch.put(concatDBKeys(DB_KEY_BLOCK_ASSETS_BLOCK_ID, id), encodedAsset);
 		}
 		if (removeFromTemp) {
-			batch.del(`${DB_KEY_TEMPBLOCKS_HEIGHT}:${heightStr}`);
+			batch.del(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, heightBuf));
 		}
-		stateStore.finalize(heightStr, batch);
+
+		const encodedDiff = codec.encode(stateDiffSchema, diff);
+		batch.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(height)), encodedDiff);
+		const finalizedHeightBytes = Buffer.alloc(4);
+		finalizedHeightBytes.writeUInt32BE(finalizedHeight, 0);
+		batch.put(DB_KEY_FINALIZED_HEIGHT, finalizedHeightBytes);
+
 		await batch.write();
 		await this._cleanUntil(finalizedHeight);
 	}
@@ -398,25 +376,29 @@ export class Storage {
 		id: Buffer,
 		height: number,
 		txIDs: Buffer[],
+		assets: Buffer[],
 		fullBlock: Buffer,
-		stateStore: StateStore,
+		state: CurrentState,
 		saveToTemp = false,
 	): Promise<StateDiff> {
-		const batch = this._db.batch();
-		const heightStr = formatInt(height);
-		batch.del(`${DB_KEY_BLOCKS_ID}:${keyString(id)}`);
-		batch.del(`${DB_KEY_BLOCKS_HEIGHT}:${heightStr}`);
+		const { batch, smt, smtStore } = state;
+		const heightBuf = formatInt(height);
+		batch.del(concatDBKeys(DB_KEY_BLOCKS_ID, id));
+		batch.del(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, heightBuf));
 		if (txIDs.length > 0) {
 			for (const txID of txIDs) {
-				batch.del(`${DB_KEY_TRANSACTIONS_ID}:${keyString(txID)}`);
+				batch.del(concatDBKeys(DB_KEY_TRANSACTIONS_ID, txID));
 			}
-			batch.del(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${keyString(id)}`);
+			batch.del(concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, id));
+		}
+		if (assets.length > 0) {
+			batch.del(concatDBKeys(DB_KEY_BLOCK_ASSETS_BLOCK_ID, id));
 		}
 		if (saveToTemp) {
-			batch.put(`${DB_KEY_TEMPBLOCKS_HEIGHT}:${heightStr}`, fullBlock);
+			batch.put(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, heightBuf), fullBlock);
 		}
 		// Take the diff to revert back states
-		const diffKey = `${DB_KEY_DIFF_STATE}:${heightStr}`;
+		const diffKey = concatDBKeys(DB_KEY_DIFF_STATE, heightBuf);
 
 		// If there is no diff, the key might not exist
 		const stateDiff = await this._db.get(diffKey);
@@ -426,19 +408,23 @@ export class Storage {
 			updated: updatedStates,
 			deleted: deletedStates,
 		} = codec.decode<StateDiff>(stateDiffSchema, stateDiff);
+
 		// Delete all the newly created states
 		for (const key of createdStates) {
 			batch.del(key);
+			await smt.remove(toSMTKey(key));
 		}
 		// Revert all deleted values
 		for (const { key, value: previousValue } of deletedStates) {
 			batch.put(key, previousValue);
+			await smt.update(toSMTKey(key), hash(previousValue));
 		}
 		for (const { key, value: previousValue } of updatedStates) {
 			batch.put(key, previousValue);
+			await smt.update(toSMTKey(key), hash(previousValue));
 		}
-		stateStore.finalize(heightStr, batch);
 
+		smtStore.finalize(batch);
 		// Delete stored diff at particular height
 		batch.del(diffKey);
 
@@ -454,15 +440,27 @@ export class Storage {
 	// This function is out of batch, but even if it fails, it will run again next time
 	private async _cleanUntil(height: number): Promise<void> {
 		await this._db.clear({
-			gte: `${DB_KEY_DIFF_STATE}:${formatInt(0)}`,
-			lt: `${DB_KEY_DIFF_STATE}:${formatInt(height)}`,
+			gte: concatDBKeys(DB_KEY_DIFF_STATE, formatInt(0)),
+			lt: concatDBKeys(DB_KEY_DIFF_STATE, formatInt(height)),
 		});
+	}
+
+	private async _getBlockAssets(blockID: Buffer): Promise<Buffer[]> {
+		try {
+			const encodedAssets = await this._db.get(concatDBKeys(DB_KEY_BLOCK_ASSETS_BLOCK_ID, blockID));
+			return decodeByteArray(encodedAssets);
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+			return [];
+		}
 	}
 
 	private async _getTransactions(blockID: Buffer): Promise<Buffer[]> {
 		const txIDs: Buffer[] = [];
 		try {
-			const ids = await this._db.get(`${DB_KEY_TRANSACTIONS_BLOCK_ID}:${keyString(blockID)}`);
+			const ids = await this._db.get(concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, blockID));
 			const idLength = 32;
 			for (let i = 0; i < ids.length; i += idLength) {
 				txIDs.push(ids.slice(i, i + idLength));
@@ -477,7 +475,7 @@ export class Storage {
 		}
 		const transactions = [];
 		for (const txID of txIDs) {
-			const tx = await this._db.get(`${DB_KEY_TRANSACTIONS_ID}:${keyString(txID)}`);
+			const tx = await this._db.get(concatDBKeys(DB_KEY_TRANSACTIONS_ID, txID));
 			transactions.push(tx);
 		}
 

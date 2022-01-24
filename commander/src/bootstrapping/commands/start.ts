@@ -19,6 +19,7 @@ import { Command, flags as flagParser } from '@oclif/command';
 import * as fs from 'fs-extra';
 import { ApplicationConfig, Application, PartialApplicationConfig } from 'lisk-framework';
 import * as utils from '@liskhq/lisk-utils';
+import { Block } from '@liskhq/lisk-chain';
 import { flagsWithParser } from '../../utils/flags';
 
 import {
@@ -219,8 +220,9 @@ export abstract class StartCommand extends Command {
 
 		// Get application and start
 		try {
-			const app = this.getApplication(genesisBlock, config);
-			await app.run();
+			const genesis = Block.fromJSON(genesisBlock);
+			const app = this.getApplication(config);
+			await app.run(genesis);
 		} catch (errors) {
 			this.error(
 				Array.isArray(errors) ? errors.map(err => (err as Error).message).join(',') : errors,
@@ -228,10 +230,7 @@ export abstract class StartCommand extends Command {
 		}
 	}
 
-	abstract getApplication(
-		genesisBlock: Record<string, unknown>,
-		config: PartialApplicationConfig,
-	): Application;
+	abstract getApplication(config: PartialApplicationConfig): Application;
 
 	abstract getApplicationConfigDir(): string;
 }

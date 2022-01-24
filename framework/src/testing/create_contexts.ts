@@ -13,88 +13,229 @@
  *
  */
 
-import { Block, GenesisBlock, Transaction, BlockHeader } from '@liskhq/lisk-chain';
+import { BlockAssets, BlockHeader, StateStore, Transaction } from '@liskhq/lisk-chain';
+import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
+import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { ModuleEndpointContext } from '../types';
+import { Logger } from '../logger';
 import {
-	AfterBlockApplyContext,
-	AfterGenesisBlockApplyContext,
-	ApplyAssetContext,
-	BeforeBlockApplyContext,
-	Consensus,
-	ReducerHandler,
-	StateStore,
-	TransactionApplyContext,
-	ValidateAssetContext,
-} from '../types';
-import { ModuleClass } from './types';
-import { consensusMock, reducerHandlerMock, StateStoreMock } from './mocks';
-import { createGenesisBlock } from './create_genesis_block';
+	APIContext,
+	BlockContext,
+	createAPIContext,
+	EventQueue,
+	GenesisBlockContext,
+	ImmutableSubStore,
+	TransactionContext,
+} from '../node/state_machine';
+import { loggerMock } from './mocks';
+import { BlockGenerateContext } from '../node/generator';
+import { WritableBlockAssets } from '../node/generator/types';
+import { GeneratorStore } from '../node/generator/generator_store';
 
-export const createAfterGenesisBlockApplyContext = <T = unknown>(params: {
-	modules?: ModuleClass[];
-	genesisBlock?: GenesisBlock<T>;
-	reducerHandler?: ReducerHandler;
+export const createGenesisBlockContext = (params: {
+	header?: BlockHeader;
 	stateStore?: StateStore;
-}): AfterGenesisBlockApplyContext<T> => {
-	const modules = params.modules ?? [];
-	const genesisBlock = params.genesisBlock ?? createGenesisBlock<T>({ modules }).genesisBlock;
-	const stateStore = params.stateStore ?? new StateStoreMock();
-	const reducerHandler = params.reducerHandler ?? reducerHandlerMock;
-
-	return { genesisBlock, stateStore, reducerHandler };
+	eventQueue?: EventQueue;
+	assets?: BlockAssets;
+	logger?: Logger;
+}): GenesisBlockContext => {
+	const logger = params.logger ?? loggerMock;
+	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
+	const eventQueue = params.eventQueue ?? new EventQueue();
+	const header =
+		params.header ??
+		new BlockHeader({
+			height: 0,
+			generatorAddress: getRandomBytes(20),
+			previousBlockID: Buffer.alloc(0),
+			timestamp: Math.floor(Date.now() / 1000),
+			version: 0,
+			transactionRoot: hash(Buffer.alloc(0)),
+			stateRoot: hash(Buffer.alloc(0)),
+			maxHeightGenerated: 0,
+			maxHeightPrevoted: 0,
+			assetsRoot: hash(Buffer.alloc(0)),
+			aggregateCommit: {
+				height: 0,
+				aggregationBits: Buffer.alloc(0),
+				certificateSignature: Buffer.alloc(0),
+			},
+			validatorsHash: hash(Buffer.alloc(0)),
+		});
+	const ctx = new GenesisBlockContext({
+		eventQueue,
+		stateStore,
+		header,
+		assets: params.assets ?? new BlockAssets(),
+		logger,
+	});
+	return ctx;
 };
 
-export const createBeforeBlockApplyContext = (params: {
-	block: Block;
-	reducerHandler?: ReducerHandler;
+export const createBlockContext = (params: {
 	stateStore?: StateStore;
-}): BeforeBlockApplyContext => {
-	const stateStore = params.stateStore ?? new StateStoreMock();
-	const reducerHandler = params.reducerHandler ?? reducerHandlerMock;
-
-	return { block: params.block, stateStore, reducerHandler };
+	eventQueue?: EventQueue;
+	logger?: Logger;
+	header?: BlockHeader;
+	assets?: BlockAssets;
+	transactions?: Transaction[];
+}): BlockContext => {
+	const logger = params.logger ?? loggerMock;
+	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
+	const eventQueue = params.eventQueue ?? new EventQueue();
+	const header =
+		params.header ??
+		new BlockHeader({
+			height: 0,
+			generatorAddress: getRandomBytes(20),
+			previousBlockID: Buffer.alloc(0),
+			timestamp: Math.floor(Date.now() / 1000),
+			version: 0,
+			transactionRoot: hash(Buffer.alloc(0)),
+			stateRoot: hash(Buffer.alloc(0)),
+			maxHeightGenerated: 0,
+			maxHeightPrevoted: 0,
+			assetsRoot: hash(Buffer.alloc(0)),
+			aggregateCommit: {
+				height: 0,
+				aggregationBits: Buffer.alloc(0),
+				certificateSignature: Buffer.alloc(0),
+			},
+			validatorsHash: hash(Buffer.alloc(0)),
+		});
+	const ctx = new BlockContext({
+		stateStore,
+		logger,
+		eventQueue,
+		transactions: params.transactions ?? [],
+		header,
+		assets: params.assets ?? new BlockAssets(),
+		networkIdentifier: getRandomBytes(32),
+	});
+	return ctx;
 };
 
-export const createAfterBlockApplyContext = (params: {
-	block: Block;
-	reducerHandler?: ReducerHandler;
-	stateStore?: StateStore;
-	consensus?: Consensus;
-}): AfterBlockApplyContext => {
-	const consensus = params.consensus ?? consensusMock;
-	const stateStore = params.stateStore ?? new StateStoreMock();
-	const reducerHandler = params.reducerHandler ?? reducerHandlerMock;
+export const createBlockGenerateContext = (params: {
+	assets?: WritableBlockAssets;
+	getGeneratorStore?: (moduleID: number) => GeneratorStore;
+	logger?: Logger;
+	getAPIContext?: () => APIContext;
+	getStore?: (moduleID: number, storePrefix: number) => ImmutableSubStore;
+	header: BlockHeader;
+	finalizedHeight?: number;
+	networkIdentifier?: Buffer;
+}): BlockGenerateContext => {
+	const db = new InMemoryKVStore();
+	const generatorStore = new GeneratorStore(db);
+	const getGeneratorStore = (moduleID: number) => generatorStore.getGeneratorStore(moduleID);
+	const header =
+		params.header ??
+		new BlockHeader({
+			height: 0,
+			generatorAddress: getRandomBytes(20),
+			previousBlockID: Buffer.alloc(0),
+			timestamp: Math.floor(Date.now() / 1000),
+			version: 0,
+			transactionRoot: hash(Buffer.alloc(0)),
+			stateRoot: hash(Buffer.alloc(0)),
+			maxHeightGenerated: 0,
+			maxHeightPrevoted: 0,
+			assetsRoot: hash(Buffer.alloc(0)),
+			aggregateCommit: {
+				height: 0,
+				aggregationBits: Buffer.alloc(0),
+				certificateSignature: Buffer.alloc(0),
+			},
+			validatorsHash: hash(Buffer.alloc(0)),
+		});
+	const stateStoreDB = new InMemoryKVStore();
+	const stateStore = new StateStore(stateStoreDB);
+	const getStore = (moduleID: number, storePrefix: number) =>
+		stateStore.getStore(moduleID, storePrefix);
 
-	return { block: params.block, stateStore, reducerHandler, consensus };
+	const ctx: BlockGenerateContext = {
+		assets: params.assets ?? new BlockAssets([]),
+		getGeneratorStore: params.getGeneratorStore ?? getGeneratorStore,
+		logger: params.logger ?? loggerMock,
+		networkIdentifier: params.networkIdentifier ?? getRandomBytes(32),
+		getAPIContext: params.getAPIContext ?? (() => ({ getStore, eventQueue: new EventQueue() })),
+		getStore: params.getStore ?? getStore,
+		getFinalizedHeight: () => params.finalizedHeight ?? 0,
+		header,
+	};
+
+	return ctx;
 };
 
-export const createTransactionApplyContext = (params: {
+export const createTransactionContext = (params: {
+	stateStore?: StateStore;
+	eventQueue?: EventQueue;
+	logger?: Logger;
+	header?: BlockHeader;
+	assets?: BlockAssets;
+	networkIdentifier?: Buffer;
 	transaction: Transaction;
-	reducerHandler?: ReducerHandler;
-	stateStore?: StateStore;
-}): TransactionApplyContext => {
-	const stateStore = params.stateStore ?? new StateStoreMock();
-	const reducerHandler = params.reducerHandler ?? reducerHandlerMock;
-
-	return { transaction: params.transaction, stateStore, reducerHandler };
+}): TransactionContext => {
+	const logger = params.logger ?? loggerMock;
+	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
+	const eventQueue = params.eventQueue ?? new EventQueue();
+	const header =
+		params.header ??
+		new BlockHeader({
+			height: 0,
+			generatorAddress: getRandomBytes(20),
+			previousBlockID: Buffer.alloc(0),
+			timestamp: Math.floor(Date.now() / 1000),
+			version: 0,
+			transactionRoot: hash(Buffer.alloc(0)),
+			stateRoot: hash(Buffer.alloc(0)),
+			maxHeightGenerated: 0,
+			maxHeightPrevoted: 0,
+			assetsRoot: hash(Buffer.alloc(0)),
+			aggregateCommit: {
+				height: 0,
+				aggregationBits: Buffer.alloc(0),
+				certificateSignature: Buffer.alloc(0),
+			},
+			validatorsHash: hash(Buffer.alloc(0)),
+		});
+	const ctx = new TransactionContext({
+		stateStore,
+		logger,
+		eventQueue,
+		header,
+		assets: params.assets ?? new BlockAssets(),
+		networkIdentifier: params.networkIdentifier ?? getRandomBytes(32),
+		transaction: params.transaction,
+	});
+	return ctx;
 };
 
-export const createApplyAssetContext = <T>(params: {
-	transaction: Transaction;
-	asset: T;
-	reducerHandler?: ReducerHandler;
+export const createTransientAPIContext = (params: {
 	stateStore?: StateStore;
-}): ApplyAssetContext<T> => {
-	const stateStore = params.stateStore ?? new StateStoreMock();
-	const reducerHandler = params.reducerHandler ?? reducerHandlerMock;
-
-	return { transaction: params.transaction, stateStore, reducerHandler, asset: params.asset };
+	eventQueue?: EventQueue;
+}): APIContext => {
+	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
+	const eventQueue = params.eventQueue ?? new EventQueue();
+	const ctx = createAPIContext({ stateStore, eventQueue });
+	return ctx;
 };
 
-export const createValidateAssetContext = <T>(params: {
-	transaction: Transaction;
-	asset: T;
-}): ValidateAssetContext<T> => ({
-	transaction: params.transaction,
-	asset: params.asset,
-	header: {} as BlockHeader,
-});
+export const createTransientModuleEndpointContext = (params: {
+	stateStore?: StateStore;
+	params?: Record<string, unknown>;
+	logger?: Logger;
+	networkIdentifier?: Buffer;
+}): ModuleEndpointContext => {
+	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
+	const parameters = params.params ?? {};
+	const logger = params.logger ?? loggerMock;
+	const networkIdentifier = params.networkIdentifier ?? Buffer.alloc(0);
+	const ctx = {
+		getStore: (moduleID: number, storePrefix: number) => stateStore.getStore(moduleID, storePrefix),
+		params: parameters,
+		logger,
+		networkIdentifier,
+	};
+	return ctx;
+};

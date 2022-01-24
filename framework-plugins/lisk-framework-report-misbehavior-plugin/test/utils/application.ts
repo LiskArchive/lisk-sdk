@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Application } from 'lisk-framework';
+import { Application } from 'lisk-sdk';
 import { ReportMisbehaviorPlugin } from '../../src';
 
 export const getReportMisbehaviorPlugin = (app: Application): ReportMisbehaviorPlugin => {
@@ -45,5 +45,5 @@ export const callNetwork = async (
 
 export const publishEvent = (app: Application, block: string): void => {
 	const eventInfo = { event: 'postBlock', data: { block } };
-	app['_channel'].publish('app:network:event', eventInfo);
+	app['channel'].publish('app:networkEvent', eventInfo);
 };

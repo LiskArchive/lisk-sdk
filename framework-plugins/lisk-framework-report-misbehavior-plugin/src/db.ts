@@ -12,15 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { formatInt, KVStore, getFirstPrefix, getLastPrefix } from '@liskhq/lisk-db';
-import { codec } from '@liskhq/lisk-codec';
-import { RawBlockHeader, BlockHeader } from '@liskhq/lisk-chain';
-import { areHeadersContradicting } from '@liskhq/lisk-bft';
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
-import { RegisteredSchema } from 'lisk-framework';
-import { hash } from '@liskhq/lisk-cryptography';
+import { cryptography, codec, chain, db as liskDB, BasePlugin } from 'lisk-sdk';
+
+const { BlockHeader } = chain;
+const { formatInt, getFirstPrefix, getLastPrefix } = liskDB;
+const { hash } = cryptography;
 
 export const blockHeadersSchema = {
 	$id: 'lisk/reportMisbehavior/blockHeaders',
@@ -50,16 +49,16 @@ interface BlockHeaders {
 export const getDBInstance = async (
 	dataPath: string,
 	dbName = 'lisk-framework-report-misbehavior-plugin.db',
-): Promise<KVStore> => {
+): Promise<liskDB.KVStore> => {
 	const dirPath = join(dataPath.replace('~', os.homedir()), 'plugins/data', dbName);
 	await ensureDir(dirPath);
 
-	return new KVStore(dirPath);
+	return new liskDB.KVStore(dirPath);
 };
 
 export const getBlockHeaders = async (
-	db: KVStore,
-	dbKeyBlockHeader: string,
+	db: liskDB.KVStore,
+	dbKeyBlockHeader: Buffer,
 ): Promise<BlockHeaders> => {
 	try {
 		const encodedBlockHeaders = await db.get(dbKeyBlockHeader);
@@ -69,29 +68,19 @@ export const getBlockHeaders = async (
 	}
 };
 
-export const decodeBlockHeader = (encodedHeader: Buffer, schema: RegisteredSchema): BlockHeader => {
-	const id = hash(encodedHeader);
-	const blockHeader = codec.decode<RawBlockHeader>(schema.blockHeader, encodedHeader);
-	const assetSchema = schema.blockHeadersAssets[blockHeader.version];
-	const asset = codec.decode<BlockHeaderAsset>(assetSchema, blockHeader.asset);
-	return {
-		...blockHeader,
-		asset,
-		id,
-	};
-};
-
 export const saveBlockHeaders = async (
-	db: KVStore,
-	schemas: RegisteredSchema,
-	header: Buffer,
+	db: liskDB.KVStore,
+	headerBytes: Buffer,
 ): Promise<boolean> => {
-	const blockId = hash(header);
-	const { generatorPublicKey, height } = codec.decode<RawBlockHeader>(schemas.blockHeader, header);
-	const dbKey = `${generatorPublicKey.toString('binary')}:${formatInt(height)}`;
+	const header = BlockHeader.fromBytes(headerBytes);
+	const dbKey = Buffer.concat([
+		header.generatorAddress,
+		Buffer.from(':', 'utf8'),
+		formatInt(header.height),
+	]);
 	const { blockHeaders } = await getBlockHeaders(db, dbKey);
 
-	if (!blockHeaders.find(blockHeader => hash(blockHeader).equals(blockId))) {
+	if (!blockHeaders.find(blockHeader => hash(blockHeader).equals(header.id))) {
 		await db.put(
 			dbKey,
 			codec.encode(blockHeadersSchema, {
@@ -106,47 +95,55 @@ export const saveBlockHeaders = async (
 type IteratableStream = NodeJS.ReadableStream & { destroy: (err?: Error) => void };
 
 export const getContradictingBlockHeader = async (
-	db: KVStore,
-	blockHeader: BlockHeader,
-	schemas: RegisteredSchema,
-): Promise<BlockHeader | undefined> =>
-	new Promise((resolve, reject) => {
+	db: liskDB.KVStore,
+	blockHeader: chain.BlockHeader,
+	apiClient: BasePlugin['apiClient'],
+): Promise<chain.BlockHeader | undefined> => {
+	const header1 = blockHeader.getBytes().toString('hex');
+	const existingHeaders = await new Promise<string[]>((resolve, reject) => {
 		const stream = db.createReadStream({
-			gte: getFirstPrefix(blockHeader.generatorPublicKey.toString('binary')),
-			lte: getLastPrefix(blockHeader.generatorPublicKey.toString('binary')),
+			gte: getFirstPrefix(blockHeader.generatorAddress),
+			lte: getLastPrefix(blockHeader.generatorAddress),
 		}) as IteratableStream;
+		const results: string[] = [];
 		stream
 			.on('data', ({ value }: { value: Buffer }) => {
 				const { blockHeaders } = codec.decode<BlockHeaders>(blockHeadersSchema, value);
 				for (const encodedHeader of blockHeaders) {
-					const decodedBlockHeader = decodeBlockHeader(encodedHeader, schemas);
-					if (areHeadersContradicting(blockHeader, decodedBlockHeader)) {
-						stream.destroy();
-						resolve(decodedBlockHeader);
-					}
+					results.push(encodedHeader.toString('hex'));
 				}
 			})
 			.on('error', error => {
 				reject(error);
 			})
 			.on('end', () => {
-				resolve(undefined);
+				resolve(results);
 			});
 	});
+	for (const header2 of existingHeaders) {
+		const contradicting = await apiClient.invoke('bft_areHeadersContradicting', {
+			header1,
+			header2,
+		});
+		if (contradicting) {
+			return BlockHeader.fromBytes(Buffer.from(header2, 'hex'));
+		}
+	}
+	return undefined;
+};
 
 export const clearBlockHeaders = async (
-	db: KVStore,
-	schemas: RegisteredSchema,
+	db: liskDB.KVStore,
 	currentHeight: number,
 ): Promise<void> => {
-	const keys = await new Promise<string[]>((resolve, reject) => {
+	const keys = await new Promise<Buffer[]>((resolve, reject) => {
 		const stream = db.createReadStream() as IteratableStream;
-		const res: string[] = [];
+		const res: Buffer[] = [];
 		stream
-			.on('data', ({ key, value }: { key: string; value: Buffer }) => {
+			.on('data', ({ key, value }: { key: Buffer; value: Buffer }) => {
 				const { blockHeaders } = codec.decode<BlockHeaders>(blockHeadersSchema, value);
 				for (const encodedHeader of blockHeaders) {
-					const decodedBlockHeader = decodeBlockHeader(encodedHeader, schemas);
+					const decodedBlockHeader = BlockHeader.fromBytes(encodedHeader);
 					if (decodedBlockHeader.height < currentHeight - 260000) {
 						res.push(key);
 					}

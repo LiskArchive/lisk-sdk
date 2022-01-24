@@ -14,16 +14,22 @@
 
 // Parameters passed by `child_process.fork(_, parameters)`
 
-import { BasePlugin, InstantiablePlugin } from '../plugins/base_plugin';
+import { join } from 'path';
+import { createLogger, Logger } from '../logger';
+import { getEndpointHandlers } from '../endpoint';
+import { BasePlugin } from '../plugins/base_plugin';
+import { systemDirs } from '../system_dirs';
 import { ApplicationConfigForPlugin, PluginConfig, SocketPaths } from '../types';
 import { IPCChannel } from './channels';
 
+type InstantiablePlugin<T extends BasePlugin = BasePlugin> = new () => T;
 const modulePath: string = process.argv[2];
 const moduleExportName: string = process.argv[3];
 // eslint-disable-next-line import/no-dynamic-require,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-require-imports,@typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-member-access
 const Klass: InstantiablePlugin = require(modulePath)[moduleExportName];
 let channel: IPCChannel;
 let plugin: BasePlugin;
+let logger: Logger;
 
 const _loadPlugin = async (
 	config: Record<string, unknown>,
@@ -36,33 +42,55 @@ const _loadPlugin = async (
 	plugin = new Klass();
 	const pluginName = plugin.name;
 
-	channel = new IPCChannel(pluginName, plugin.events, plugin.actions, {
-		socketsPath: ipcConfig.rpc.ipc.path,
+	const dirs = systemDirs(appConfig.label, appConfig.rootPath);
+	logger = createLogger({
+		consoleLogLevel: appConfig.logger.consoleLogLevel,
+		fileLogLevel: appConfig.logger.fileLogLevel,
+		logFilePath: join(dirs.logs, `plugin-${pluginName}.log`),
+		module: `plugin_${pluginName}`,
 	});
+
+	channel = new IPCChannel(
+		logger,
+		pluginName,
+		plugin.events,
+		plugin.endpoint ? getEndpointHandlers(plugin.endpoint) : {},
+		{
+			socketsPath: ipcConfig.rpc.ipc.path,
+		},
+	);
 
 	await channel.registerToBus();
 
-	channel.publish(`${pluginName}:registeredToBus`);
-	channel.publish(`${pluginName}:loading:started`);
+	logger.debug({ plugin: pluginName }, 'Plugin is registered to bus');
 
-	await plugin.init({ appConfig, channel, config });
+	await plugin.init({ appConfig, channel, config, logger });
 	await plugin.load(channel);
 
-	channel.publish(`${pluginName}:loading:finished`);
+	logger.debug({ plugin: pluginName }, 'Plugin is successfully loaded');
+	if (process.send) {
+		process.send({ action: 'loaded' });
+	}
 };
 
 const _unloadPlugin = async (code = 0) => {
 	const pluginName = plugin.name;
 
-	channel.publish(`${pluginName}:unloading:started`);
+	logger.debug({ plugin: pluginName }, 'Unloading plugin');
 	try {
 		await plugin.unload();
-		channel.publish(`${pluginName}:unloading:finished`);
+		logger.debug({ plugin: pluginName }, 'Successfully unloaded plugin');
 		channel.cleanup();
+		if (process.send) {
+			process.send({ action: 'unloaded' });
+		}
 		process.exit(code);
 	} catch (error) {
-		channel.publish(`${pluginName}:unloading:error`, error);
+		logger.debug({ plugin: pluginName, err: error as Error }, 'Fail to unload plugin');
 		channel.cleanup();
+		if (process.send) {
+			process.send({ action: 'unloadedWithError', err: error as Error });
+		}
 		process.exit(1);
 	}
 };

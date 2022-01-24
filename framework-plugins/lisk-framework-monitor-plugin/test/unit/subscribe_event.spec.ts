@@ -11,11 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { testing, BaseChannel, GenesisConfig } from 'lisk-framework';
+import { testing, BaseChannel, GenesisConfig, ApplicationConfigForPlugin } from 'lisk-sdk';
 import { MonitorPlugin } from '../../src';
 import { configSchema } from '../../src/schemas';
 
-const appConfigForPlugin = {
+const appConfigForPlugin: ApplicationConfigForPlugin = {
 	rootPath: '~/.lisk',
 	label: 'my-app',
 	logger: {
@@ -35,10 +35,11 @@ const appConfigForPlugin = {
 			host: '127.0.0.1',
 		},
 	},
-	forging: {
+	generation: {
 		force: false,
 		waitThreshold: 2,
-		delegates: [],
+		generators: [],
+		modules: {},
 	},
 	network: {
 		seedPeers: [],
@@ -53,7 +54,7 @@ const appConfigForPlugin = {
 	},
 	version: '',
 	networkVersion: '',
-	genesisConfig: {} as GenesisConfig,
+	genesis: {} as GenesisConfig,
 };
 
 const validPluginOptions = configSchema.default;
@@ -73,16 +74,17 @@ describe('subscribe to event', () => {
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
+			logger: testing.mocks.loggerMock,
 		});
 		(monitorPlugin as any)._channel = channelMock;
 	});
 
-	it('should register listener to network:event', () => {
+	it('should register listener to networkEvent', () => {
 		// Act
 		monitorPlugin['_subscribeToEvents']();
 		// Assert
 		expect(subscribeMock).toHaveBeenCalledTimes(2);
-		expect(subscribeMock).toHaveBeenCalledWith('app:network:event', expect.any(Function));
+		expect(subscribeMock).toHaveBeenCalledWith('app_networkEvent', expect.any(Function));
 	});
 
 	it('should not handle block when data is invalid', () => {

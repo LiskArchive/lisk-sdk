@@ -11,16 +11,15 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseChannel, GenesisConfig } from 'lisk-framework';
-import * as fs from 'fs-extra';
 import {
-	blockHeaderAssetSchema,
-	blockHeaderSchema,
-	blockSchema,
-	transactionSchema,
-} from '@liskhq/lisk-chain';
-import { codec } from '@liskhq/lisk-codec';
-import { testing } from 'lisk-framework';
+	ApplicationConfigForPlugin,
+	BaseChannel,
+	GenesisConfig,
+	testing,
+	chain,
+	codec,
+} from 'lisk-sdk';
+import * as fs from 'fs-extra';
 
 import { ReportMisbehaviorPlugin } from '../../src';
 import { blockHeadersSchema } from '../../src/db';
@@ -28,7 +27,7 @@ import { blockHeadersSchema } from '../../src/db';
 import { configSchema } from '../../src/schemas';
 import { waitTill } from '../utils/application';
 
-const appConfigForPlugin = {
+const appConfigForPlugin: ApplicationConfigForPlugin = {
 	rootPath: '~/.lisk',
 	label: 'my-app',
 	logger: {
@@ -48,10 +47,11 @@ const appConfigForPlugin = {
 			host: '127.0.0.1',
 		},
 	},
-	forging: {
+	generation: {
 		force: false,
 		waitThreshold: 2,
-		delegates: [],
+		generators: [],
+		modules: {},
 	},
 	network: {
 		seedPeers: [],
@@ -66,7 +66,7 @@ const appConfigForPlugin = {
 	},
 	version: '',
 	networkVersion: '',
-	genesisConfig: {} as GenesisConfig,
+	genesis: {} as GenesisConfig,
 };
 
 const validPluginOptions = {
@@ -78,22 +78,6 @@ const validPluginOptions = {
 
 describe('Clean up old blocks', () => {
 	let reportMisbehaviorPlugin: ReportMisbehaviorPlugin;
-	const accountSchema = {
-		$id: 'accountSchema',
-		type: 'object',
-		properties: {
-			sequence: {
-				type: 'object',
-				fieldNumber: 3,
-				properties: {
-					nonce: {
-						fieldNumber: 1,
-						dataType: 'uint64',
-					},
-				},
-			},
-		},
-	};
 	const channelMock = {
 		registerToBus: jest.fn(),
 		once: jest.fn(),
@@ -120,36 +104,34 @@ describe('Clean up old blocks', () => {
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
+			logger: testing.mocks.loggerMock,
 		});
 		(reportMisbehaviorPlugin as any)._channel = channelMock;
 
 		await fs.remove(reportMisbehaviorPlugin.dataPath);
 
-		reportMisbehaviorPlugin['schemas'] = {
-			block: blockSchema,
-			blockHeader: blockHeaderSchema,
-			blockHeadersAssets: {
-				2: blockHeaderAssetSchema,
-			},
-			transaction: transactionSchema,
-			transactionsAssets: [
+		jest.spyOn(reportMisbehaviorPlugin['apiClient'], 'schemas', 'get').mockReturnValue({
+			block: chain.blockSchema,
+			blockHeader: chain.blockHeaderSchema,
+			transaction: chain.transactionSchema,
+			commands: [
 				{
 					moduleID: 5,
 					moduleName: 'dpos',
-					assetID: 3,
-					assetName: 'reportDelegateMisbehavior',
+					commandID: 3,
+					commandName: 'reportDelegateMisbehavior',
 					schema: {
 						$id: 'lisk/dpos/pom',
 						type: 'object',
 						required: ['header1', 'header2'],
 						properties: {
 							header1: {
-								...blockHeaderSchema,
+								...chain.blockHeaderSchema,
 								$id: 'block-header1',
 								fieldNumber: 1,
 							},
 							header2: {
-								...blockHeaderSchema,
+								...chain.blockHeaderSchema,
 								$id: 'block-header2',
 								fieldNumber: 2,
 							},
@@ -157,8 +139,7 @@ describe('Clean up old blocks', () => {
 					},
 				},
 			],
-			account: accountSchema,
-		} as any;
+		} as never);
 		(reportMisbehaviorPlugin as any)._state = {
 			passphrase: testing.fixtures.defaultFaucetAccount.passphrase,
 			publicKey: testing.fixtures.defaultFaucetAccount.publicKey,

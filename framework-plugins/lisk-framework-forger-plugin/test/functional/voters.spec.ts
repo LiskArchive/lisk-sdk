@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { testing, PartialApplicationConfig } from 'lisk-framework';
+import { testing, PartialApplicationConfig } from 'lisk-sdk';
 import { waitTill } from '../utils/application';
 import { createVoteTransaction } from '../utils/transactions';
 import { ForgerPlugin } from '../../src';
@@ -31,7 +31,7 @@ describe('forger:getVoters action', () => {
 
 		appEnv = testing.createDefaultApplicationEnv({
 			config,
-			plugins: [ForgerPlugin],
+			plugins: [new ForgerPlugin()],
 		});
 		await appEnv.startApplication();
 		// The test application generates a dynamic genesis block so we need to get the networkID like this

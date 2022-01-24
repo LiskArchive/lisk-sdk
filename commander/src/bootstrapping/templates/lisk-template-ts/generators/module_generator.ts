@@ -90,7 +90,7 @@ export default class ModuleGenerator extends Generator {
 			.getInitializerIfKindOrThrow(SyntaxKind.ArrowFunction);
 
 		registerFunction.setBodyText(
-			`${registerFunction.getBodyText()}\napp.registerModule(${this._moduleClass});`,
+			`${registerFunction.getBodyText()}\napp.registerModule(new ${this._moduleClass}());`,
 		);
 
 		modulesFile.organizeImports();

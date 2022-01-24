@@ -50,7 +50,7 @@ describe('HTTP server', () => {
 	describe('communication', () => {
 		it('should respond with invalid jsonrpc request if "id" is missing', async () => {
 			// Arrange
-			const requestData = { jsonrpc: '2.0', method: 'app:getNodeInfo' };
+			const requestData = { jsonrpc: '2.0', method: 'app_getNodeInfo' };
 
 			// Act
 			const result = await requestHTTPServer(app.config.rpc.http!, requestData);
@@ -82,7 +82,7 @@ describe('HTTP server', () => {
 
 		it('should respond with Internal error request if "method" invoked is invalid', async () => {
 			// Arrange
-			const requestData = { jsonrpc: '2.0', method: 'app:unknownMethod', id: 67879 };
+			const requestData = { jsonrpc: '2.0', method: 'app_unknownMethod', id: 67879 };
 
 			// Act
 			const result = await requestHTTPServer(app.config.rpc.http!, requestData);
@@ -92,7 +92,7 @@ describe('HTTP server', () => {
 				jsonrpc: '2.0',
 				error: {
 					message: 'Internal error',
-					data: "Action 'app:unknownMethod' is not registered to bus.",
+					data: "Action 'app_unknownMethod' is not registered to bus.",
 					code: -32603,
 				},
 				id: 67879,
@@ -101,7 +101,7 @@ describe('HTTP server', () => {
 
 		it('should respond to valid jsonrpc request', async () => {
 			// Arrange
-			const requestData = { jsonrpc: '2.0', method: 'app:getNodeInfo', id: 6729833 };
+			const requestData = { jsonrpc: '2.0', method: 'app_getNodeInfo', id: 6729833 };
 
 			// Act
 			const result = await requestHTTPServer(app.config.rpc.http!, requestData);

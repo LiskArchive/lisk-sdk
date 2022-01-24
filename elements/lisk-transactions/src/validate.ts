@@ -17,24 +17,27 @@ import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { baseTransactionSchema } from './schema';
 
 export const validateTransaction = (
-	assetSchema: object,
+	paramsSchema: object,
 	transactionObject: Record<string, unknown>,
 ): LiskValidationError | Error | undefined => {
-	const transactionObjectWithEmptyAsset = {
+	const transactionObjectWithEmptyParameters = {
 		...transactionObject,
-		asset: Buffer.alloc(0),
+		params: Buffer.alloc(0),
 	};
-	const schemaErrors = validator.validate(baseTransactionSchema, transactionObjectWithEmptyAsset);
+	const schemaErrors = validator.validate(
+		baseTransactionSchema,
+		transactionObjectWithEmptyParameters,
+	);
 	if (schemaErrors.length) {
 		return new LiskValidationError([...schemaErrors]);
 	}
 
-	if (typeof transactionObject.asset !== 'object' || transactionObject.asset === null) {
-		return new Error('Transaction object asset must be of type object and not null');
+	if (typeof transactionObject.params !== 'object' || transactionObject.params === null) {
+		return new Error('Transaction object params must be of type object and not null');
 	}
-	const assetSchemaErrors = validator.validate(assetSchema, transactionObject.asset);
-	if (assetSchemaErrors.length) {
-		return new LiskValidationError([...assetSchemaErrors]);
+	const paramsSchemaErrors = validator.validate(paramsSchema, transactionObject.params);
+	if (paramsSchemaErrors.length) {
+		return new LiskValidationError([...paramsSchemaErrors]);
 	}
 	return undefined;
 };

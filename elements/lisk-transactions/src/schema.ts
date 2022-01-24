@@ -15,13 +15,13 @@
 export const baseTransactionSchema = {
 	$id: 'lisk/base-transaction',
 	type: 'object',
-	required: ['moduleID', 'assetID', 'nonce', 'fee', 'senderPublicKey', 'asset'],
+	required: ['moduleID', 'commandID', 'nonce', 'fee', 'senderPublicKey', 'params'],
 	properties: {
 		moduleID: {
 			dataType: 'uint32',
 			fieldNumber: 1,
 		},
-		assetID: {
+		commandID: {
 			dataType: 'uint32',
 			fieldNumber: 2,
 		},
@@ -37,7 +37,7 @@ export const baseTransactionSchema = {
 			dataType: 'bytes',
 			fieldNumber: 5,
 		},
-		asset: {
+		params: {
 			dataType: 'bytes',
 			fieldNumber: 6,
 		},

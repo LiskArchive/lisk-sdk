@@ -11,15 +11,19 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseChannel, GenesisConfig } from 'lisk-framework';
-import { blockHeaderSchema, blockSchema } from '@liskhq/lisk-chain';
-import { codec } from '@liskhq/lisk-codec';
-import { testing } from 'lisk-framework';
+import {
+	BaseChannel,
+	GenesisConfig,
+	testing,
+	ApplicationConfigForPlugin,
+	chain,
+	cryptography,
+} from 'lisk-sdk';
 import { when } from 'jest-when';
 import { MonitorPlugin } from '../../src';
 import { configSchema } from '../../src/schemas';
 
-const appConfigForPlugin = {
+const appConfigForPlugin: ApplicationConfigForPlugin = {
 	rootPath: '~/.lisk',
 	label: 'my-app',
 	logger: {
@@ -39,11 +43,13 @@ const appConfigForPlugin = {
 			host: '127.0.0.1',
 		},
 	},
-	forging: {
+	generation: {
 		force: false,
 		waitThreshold: 2,
-		delegates: [],
+		generators: [],
+		modules: {},
 	},
+	genesis: {} as GenesisConfig,
 	network: {
 		seedPeers: [],
 		port: 5000,
@@ -57,19 +63,36 @@ const appConfigForPlugin = {
 	},
 	version: '',
 	networkVersion: '',
-	genesisConfig: {} as GenesisConfig,
 };
 
+const logger = testing.mocks.loggerMock;
 const validPluginOptions = configSchema.default;
 
 describe('_handlePostBlock', () => {
 	let monitorPlugin: MonitorPlugin;
-	let blockHeaderString: string;
 	let encodedBlock: string;
-	let channelInvokeMock;
 	const {
 		mocks: { channelMock },
 	} = testing;
+	const header = new chain.BlockHeader({
+		generatorAddress: Buffer.alloc(0),
+		height: 800000,
+		version: 0,
+		previousBlockID: Buffer.alloc(0),
+		timestamp: Math.floor(Date.now() / 1000 - 24 * 60 * 60),
+		stateRoot: cryptography.hash(Buffer.alloc(0)),
+		maxHeightGenerated: 0,
+		maxHeightPrevoted: 0,
+		assetsRoot: cryptography.hash(Buffer.alloc(0)),
+		validatorsHash: cryptography.getRandomBytes(32),
+		aggregateCommit: {
+			height: 0,
+			aggregationBits: Buffer.alloc(0),
+			certificateSignature: Buffer.alloc(0),
+		},
+		transactionRoot: cryptography.hash(Buffer.alloc(0)),
+		signature: Buffer.alloc(0),
+	});
 
 	beforeEach(async () => {
 		monitorPlugin = new MonitorPlugin();
@@ -77,19 +100,16 @@ describe('_handlePostBlock', () => {
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
+			logger,
 		});
-		await monitorPlugin.load(channelMock);
-		monitorPlugin['schemas'] = { block: blockSchema, blockHeader: blockHeaderSchema } as any;
-		blockHeaderString =
-			'080210c08db7011880ea3022209696342ed355848b4cd6d7c77093121ae3fc10f449447f41044972174e75bc2b2a20e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8553220addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca93880c8afa025421a08e0dc2a10e0dc2a1a10c8c557b5dba8527c0e760124128fd15c4a40d90764813046127a50acf4b449fccad057944e7665ab065d7057e56983e42abe55a3cbc1eb35a8c126f54597d0a0b426f2ad9a2d62769185ad8e3b4a5b3af909';
-		encodedBlock = codec
-			.encode(blockSchema, { header: Buffer.from(blockHeaderString, 'hex'), payload: [] })
-			.toString('hex');
+		jest.spyOn(monitorPlugin['apiClient'], 'schemas', 'get').mockReturnValue({
+			block: chain.blockSchema,
+			blockHeader: chain.blockHeaderSchema,
+		} as never);
+		encodedBlock = new chain.Block(header, [], new chain.BlockAssets()).getBytes().toString('hex');
 
-		channelInvokeMock = jest.fn();
-		channelMock.invoke = channelInvokeMock;
-		when(channelInvokeMock)
-			.calledWith('app:getConnectedPeers')
+		when(jest.spyOn(monitorPlugin['apiClient'], 'invoke'))
+			.calledWith('app_getConnectedPeers')
 			.mockResolvedValue([] as never);
 	});
 
@@ -98,7 +118,7 @@ describe('_handlePostBlock', () => {
 		const expectedState = {
 			averageReceivedBlocks: 1,
 			blocks: {
-				'706a8b678f1d4a9ad585f50ba06ef242c5598d22c03f13eacc230e041014dbb7': {
+				[header.id.toString('hex')]: {
 					count: 1,
 					height: 800000,
 				},
@@ -110,7 +130,7 @@ describe('_handlePostBlock', () => {
 		(monitorPlugin as any)._handlePostBlock({ block: encodedBlock });
 
 		// Assert
-		expect(await (monitorPlugin.actions as any).getBlockStats()).toEqual(expectedState);
+		expect(await monitorPlugin.endpoint.getBlockStats({} as any)).toEqual(expectedState);
 	});
 
 	it('should remove blocks in state older than 300 blocks', () => {

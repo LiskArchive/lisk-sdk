@@ -21,20 +21,20 @@ import { Schema } from '../types';
 import { getDefaultPath } from './path';
 import { isApplicationRunning } from './application';
 
-export const getAssetSchema = (
+export const getParamsSchema = (
 	registeredSchema: RegisteredSchema,
 	moduleID: number,
-	assetID: number,
+	commandID: number,
 ): Schema | undefined => {
-	const transactionsAsset = registeredSchema.transactionsAssets.find(
-		schema => schema.moduleID === Number(moduleID) && schema.assetID === Number(assetID),
+	const command = registeredSchema.commands.find(
+		schema => schema.moduleID === Number(moduleID) && schema.commandID === Number(commandID),
 	);
-	if (!transactionsAsset) {
+	if (!command) {
 		throw new Error(
-			`Transaction moduleID:${moduleID} with assetID:${assetID} is not registered in the application.`,
+			`Transaction moduleID:${moduleID} with commandID:${commandID} is not registered in the application.`,
 		);
 	}
-	return transactionsAsset.schema;
+	return command.schema;
 };
 
 export const decodeTransaction = (
@@ -48,11 +48,11 @@ export const decodeTransaction = (
 	}
 	const id = cryptography.hash(transactionBytes);
 	const transaction = codec.decode<Transaction>(schema.transaction, transactionBytes);
-	const assetSchema = getAssetSchema(schema, transaction.moduleID, transaction.assetID);
-	const asset = codec.decode<Record<string, unknown>>(assetSchema as Schema, transaction.asset);
+	const paramsSchema = getParamsSchema(schema, transaction.moduleID, transaction.commandID);
+	const params = codec.decode<Record<string, unknown>>(paramsSchema as Schema, transaction.params);
 	return {
 		...transaction,
-		asset,
+		params,
 		id,
 	};
 };
@@ -65,13 +65,13 @@ export const encodeTransaction = (
 	if (apiClient) {
 		return apiClient.transaction.encode(transaction);
 	}
-	const assetSchema = getAssetSchema(
+	const paramsSchema = getParamsSchema(
 		schema,
 		transaction.moduleID as number,
-		transaction.assetID as number,
+		transaction.commandID as number,
 	);
-	const assetBytes = codec.encode(assetSchema as Schema, transaction.asset as object);
-	const txBytes = codec.encode(schema.transaction, { ...transaction, asset: assetBytes });
+	const paramsBytes = codec.encode(paramsSchema as Schema, transaction.params as object);
+	const txBytes = codec.encode(schema.transaction, { ...transaction, params: paramsBytes });
 	return txBytes;
 };
 
@@ -83,17 +83,17 @@ export const transactionToJSON = (
 	if (apiClient) {
 		return apiClient.transaction.toJSON(transaction);
 	}
-	const assetSchema = getAssetSchema(
+	const paramsSchema = getParamsSchema(
 		schema,
 		transaction.moduleID as number,
-		transaction.assetID as number,
+		transaction.commandID as number,
 	);
-	const assetJSON = codec.toJSON(assetSchema as Schema, transaction.asset as object);
-	const { id, asset, ...txWithoutAsset } = transaction;
-	const txJSON = codec.toJSON(schema.transaction, txWithoutAsset);
+	const paramsJSON = codec.toJSON(paramsSchema as Schema, transaction.params as object);
+	const { id, params, ...txWithoutParams } = transaction;
+	const txJSON = codec.toJSON(schema.transaction, txWithoutParams);
 	return {
 		...txJSON,
-		asset: assetJSON,
+		params: paramsJSON,
 		id: Buffer.isBuffer(id) ? id.toString('hex') : undefined,
 	};
 };

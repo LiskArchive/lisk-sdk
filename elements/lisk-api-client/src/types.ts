@@ -55,16 +55,14 @@ export interface Channel {
 }
 
 export interface RegisteredSchemas {
-	account: Schema;
 	block: Schema;
 	blockHeader: Schema;
-	blockHeadersAssets: { [version: number]: Schema };
 	transaction: Schema;
-	transactionsAssets: {
+	commands: {
 		moduleID: number;
 		moduleName: string;
-		assetID: number;
-		assetName: string;
+		commandID: number;
+		commandName: string;
 		schema: Schema;
 	}[];
 }
@@ -74,8 +72,7 @@ export interface RegisteredModule {
 	name: string;
 	actions: string[];
 	events: string[];
-	reducers: string[];
-	transactionAssets: {
+	commands: {
 		id: number;
 		name: string;
 	}[];
@@ -86,7 +83,7 @@ export interface GenesisConfig {
 	readonly bftThreshold: number;
 	readonly communityIdentifier: string;
 	readonly blockTime: number;
-	readonly maxPayloadLength: number;
+	readonly maxTransactionsSize: number;
 	readonly rewards: {
 		readonly milestones: string[];
 		readonly offset: number;
@@ -95,7 +92,7 @@ export interface GenesisConfig {
 	readonly minFeePerByte: number;
 	readonly baseFees: {
 		readonly moduleID: number;
-		readonly assetID: number;
+		readonly commandID: number;
 		readonly baseFee: string;
 	}[];
 }
@@ -183,9 +180,9 @@ export interface Block<T = Buffer | string> {
 		[key: string]: unknown;
 		id?: T;
 		version: number;
-		asset: Record<string, unknown>;
 	};
-	payload: {
+	assets: T[];
+	transactions: {
 		[key: string]: unknown;
 		id?: T;
 	}[];

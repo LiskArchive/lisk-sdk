@@ -56,9 +56,11 @@ describe('start', () => {
 		jest.spyOn(StartCommandExtended.prototype, 'getApplication').mockReturnValue(app);
 		jest.spyOn(process.stdout, 'write').mockImplementation(val => stdout.push(val as string) > -1);
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
-		jest.spyOn(application, 'getApplication').mockReturnValue({
-			run: async () => Promise.resolve(),
-		} as Application);
+		jest.spyOn(application, 'getApplication').mockReturnValue(({
+			app: {
+				run: async () => Promise.resolve(),
+			},
+		} as unknown) as Application);
 		jest.spyOn(fs, 'readJSON');
 		when(fs.readJSON as jest.Mock)
 			.calledWith('~/.lisk/lisk-core/config/default/config.json')
@@ -95,9 +97,8 @@ describe('start', () => {
 	describe('when starting without flag', () => {
 		it('should start with default config', async () => {
 			await StartCommandExtended.run([], config);
-			const [usedGenesisBlock, usedConfig] = (StartCommandExtended.prototype
+			const [usedConfig] = (StartCommandExtended.prototype
 				.getApplication as jest.Mock).mock.calls[0];
-			expect(usedGenesisBlock.header.id).toEqual(devnetGenesisBlock.header.id);
 			expect(usedConfig.version).toBe(pJSON.version);
 			expect(usedConfig.label).toBe('lisk-core');
 		});
@@ -122,7 +123,7 @@ describe('start', () => {
 	describe('when --api-ipc is specified', () => {
 		it('should update the config value', async () => {
 			await StartCommandExtended.run(['--api-ipc'], config);
-			const [, usedConfig] = (StartCommandExtended.prototype
+			const [usedConfig] = (StartCommandExtended.prototype
 				.getApplication as jest.Mock).mock.calls[0];
 			expect(usedConfig.rpc.enable).toBe(true);
 			expect(usedConfig.rpc.mode).toBe('ipc');
@@ -132,7 +133,7 @@ describe('start', () => {
 	describe('when --api-ws is specified', () => {
 		it('should update the config value', async () => {
 			await StartCommandExtended.run(['--api-ws'], config);
-			const [, usedConfig] = (StartCommandExtended.prototype
+			const [usedConfig] = (StartCommandExtended.prototype
 				.getApplication as jest.Mock).mock.calls[0];
 			expect(usedConfig.rpc.enable).toBe(true);
 			expect(usedConfig.rpc.mode).toBe('ws');
@@ -142,7 +143,7 @@ describe('start', () => {
 	describe('when custom port with --api-ws-port is specified along with --api-ws', () => {
 		it('should update the config value', async () => {
 			await StartCommandExtended.run(['--api-ws', '--api-ws-port', '8888'], config);
-			const [, usedConfig] = (StartCommandExtended.prototype
+			const [usedConfig] = (StartCommandExtended.prototype
 				.getApplication as jest.Mock).mock.calls[0];
 			expect(usedConfig.rpc.port).toBe(8888);
 		});
@@ -151,7 +152,7 @@ describe('start', () => {
 	describe('when config is specified', () => {
 		it('should update the config value', async () => {
 			await StartCommandExtended.run(['--config=./config.json'], config);
-			const [, usedConfig] = (StartCommandExtended.prototype
+			const [usedConfig] = (StartCommandExtended.prototype
 				.getApplication as jest.Mock).mock.calls[0];
 			expect(fs.readJSON).toHaveBeenCalledWith('./config.json');
 			expect(usedConfig.logger.consoleLogLevel).toBe('error');
@@ -161,7 +162,7 @@ describe('start', () => {
 	describe('when log is specified', () => {
 		it('should update the config value', async () => {
 			await StartCommandExtended.run(['--console-log=trace'], config);
-			const [, usedConfig] = (StartCommandExtended.prototype
+			const [usedConfig] = (StartCommandExtended.prototype
 				.getApplication as jest.Mock).mock.calls[0];
 			expect(usedConfig.logger.consoleLogLevel).toBe('trace');
 		});
@@ -169,7 +170,7 @@ describe('start', () => {
 		it('should update the config value from env', async () => {
 			process.env.LISK_CONSOLE_LOG_LEVEL = 'error';
 			await StartCommandExtended.run([], config);
-			const [, usedConfig] = (StartCommandExtended.prototype
+			const [usedConfig] = (StartCommandExtended.prototype
 				.getApplication as jest.Mock).mock.calls[0];
 			expect(usedConfig.logger.consoleLogLevel).toBe('error');
 			process.env.LISK_CONSOLE_LOG_LEVEL = '';
@@ -179,7 +180,7 @@ describe('start', () => {
 	describe('when file log is specified', () => {
 		it('should update the config value', async () => {
 			await StartCommandExtended.run(['--log=trace'], config);
-			const [, usedConfig] = (StartCommandExtended.prototype
+			const [usedConfig] = (StartCommandExtended.prototype
 				.getApplication as jest.Mock).mock.calls[0];
 			expect(usedConfig.logger.fileLogLevel).toBe('trace');
 		});
@@ -187,7 +188,7 @@ describe('start', () => {
 		it('should update the config value for env', async () => {
 			process.env.LISK_FILE_LOG_LEVEL = 'trace';
 			await StartCommandExtended.run([], config);
-			const [, usedConfig] = (StartCommandExtended.prototype
+			const [usedConfig] = (StartCommandExtended.prototype
 				.getApplication as jest.Mock).mock.calls[0];
 			expect(usedConfig.logger.fileLogLevel).toBe('trace');
 			process.env.LISK_FILE_LOG_LEVEL = '';
@@ -197,7 +198,7 @@ describe('start', () => {
 	describe('when port is specified', () => {
 		it('should update the config value', async () => {
 			await StartCommandExtended.run(['--port=1111'], config);
-			const [, usedConfig] = (StartCommandExtended.prototype
+			const [usedConfig] = (StartCommandExtended.prototype
 				.getApplication as jest.Mock).mock.calls[0];
 			expect(usedConfig.network.port).toBe(1111);
 		});
@@ -205,7 +206,7 @@ describe('start', () => {
 		it('should update the config value for env', async () => {
 			process.env.LISK_PORT = '1234';
 			await StartCommandExtended.run([], config);
-			const [, usedConfig] = (StartCommandExtended.prototype
+			const [usedConfig] = (StartCommandExtended.prototype
 				.getApplication as jest.Mock).mock.calls[0];
 			expect(usedConfig.network.port).toBe(1234);
 			process.env.LISK_PORT = '';
@@ -215,7 +216,7 @@ describe('start', () => {
 	describe('when seed peer is specified', () => {
 		it('should update the config value', async () => {
 			await StartCommandExtended.run(['--seed-peers=localhost:12234'], config);
-			const [, usedConfig] = (StartCommandExtended.prototype
+			const [usedConfig] = (StartCommandExtended.prototype
 				.getApplication as jest.Mock).mock.calls[0];
 			expect(usedConfig.network.seedPeers).toEqual([{ ip: 'localhost', port: 12234 }]);
 		});
@@ -223,7 +224,7 @@ describe('start', () => {
 		it('should update the config value using env variable', async () => {
 			process.env.LISK_SEED_PEERS = 'localhost:12234,74.49.3.35:2238';
 			await StartCommandExtended.run([], config);
-			const [, usedConfig] = (StartCommandExtended.prototype
+			const [usedConfig] = (StartCommandExtended.prototype
 				.getApplication as jest.Mock).mock.calls[0];
 			expect(usedConfig.network.seedPeers).toEqual([
 				{ ip: 'localhost', port: 12234 },
