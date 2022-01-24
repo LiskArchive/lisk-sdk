@@ -13,12 +13,8 @@
  *
  */
 
-import {
-	blockHeaderSchema,
-	blockSchema,
-	blockHeaderAssetSchema,
-	transactionSchema,
-} from '@liskhq/lisk-chain';
+import { blockHeaderSchema, blockSchema, transactionSchema } from '@liskhq/lisk-chain';
+import { hash } from '@liskhq/lisk-cryptography';
 import { Channel } from '../../src/types';
 import { Block } from '../../src/block';
 import { schema as schemas } from '../utils/transaction';
@@ -28,70 +24,43 @@ describe('block', () => {
 	let block: Block;
 	const sampleHeight = 1;
 	const encodedBlock =
-		'0ad601080210a7feddfc0518b0c90c2220e69286cc8efdfc794a3aabc7755415bd201832b80c29493d9f2c50e597aab4562a20e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8553220e91e2241030b0dad7022ec05d98343394043e0f31bc63f296ed07cce35cbd3d53880cab5ee01421a08cdc80c10ecc80c1a10fe22dd75b833d917e98539f586954ba54a40fb67faefdb95a624a83cb02115c5aacd6d22bd7074e69f2b31f0a261570e27518e2d93eb2ffb1e0eaf9ab0ce5b69889672ea344ff6e4d4bdc315c299fc2d010e';
+		'0ac001080110c4d23d18c4d23d22144a462ea57a8c9f72d866c09770e5ec70cef187272a14be63fb1c0426573352556f18b21efd5b6183c39c3214b27ca21f40d44113c2090ca8f05fb706c54e87dd3a14b27ca21f40d44113c2090ca8f05fb706c54e87dd42147f9d96a09a3fd17f3478eb7bef3a8bda00e1238b489c8c3d509c8c3d5a20e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8556206080012001a006a146da88e2fd4435e26e02682435f108002ccc3ddd5';
 	const encodedBlockBuffer = Buffer.from(encodedBlock, 'hex');
 	const sampleBlock = {
 		header: {
-			version: 2,
-			timestamp: 1603764007,
-			height: 206000,
-			previousBlockID: Buffer.from(
-				'e69286cc8efdfc794a3aabc7755415bd201832b80c29493d9f2c50e597aab456',
-				'hex',
-			),
-			transactionRoot: Buffer.from(
-				'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-				'hex',
-			),
-			generatorPublicKey: Buffer.from(
-				'e91e2241030b0dad7022ec05d98343394043e0f31bc63f296ed07cce35cbd3d5',
-				'hex',
-			),
-			reward: BigInt('500000000'),
-			asset: {
-				maxHeightPreviouslyForged: 205901,
-				maxHeightPrevoted: 205932,
-				seedReveal: Buffer.from('fe22dd75b833d917e98539f586954ba5', 'hex'),
+			version: 1,
+			timestamp: 1009988,
+			height: 1009988,
+			previousBlockID: Buffer.from('4a462ea57a8c9f72d866c09770e5ec70cef18727', 'hex'),
+			stateRoot: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
+			transactionRoot: Buffer.from('b27ca21f40d44113c2090ca8f05fb706c54e87dd', 'hex'),
+			assetsRoot: Buffer.from('b27ca21f40d44113c2090ca8f05fb706c54e87dd', 'hex'),
+			generatorAddress: Buffer.from('be63fb1c0426573352556f18b21efd5b6183c39c', 'hex'),
+			maxHeightPrevoted: 1000988,
+			maxHeightGenerated: 1000988,
+			validatorsHash: hash(Buffer.alloc(0)),
+			aggregateCommit: {
+				height: 0,
+				aggregationBits: Buffer.alloc(0),
+				certificateSignature: Buffer.alloc(0),
 			},
-			signature: Buffer.from(
-				'fb67faefdb95a624a83cb02115c5aacd6d22bd7074e69f2b31f0a261570e27518e2d93eb2ffb1e0eaf9ab0ce5b69889672ea344ff6e4d4bdc315c299fc2d010e',
-				'hex',
-			),
-			id: Buffer.from('ff960b7762cad26b2b6e22e47e9aecbb933f7238ecb54ec36e212260dba82db7', 'hex'),
+			signature: Buffer.from('6da88e2fd4435e26e02682435f108002ccc3ddd5', 'hex'),
+			id: Buffer.from('097ce5adc1a34680d6c939287011dec9b70a3bc1f5f896a3f9024fc9bed59992', 'hex'),
 		},
-		payload: [],
+		assets: [],
+		transactions: [],
 	};
 	const blockId = sampleBlock.header.id;
-	const accountSchema = {
-		$id: 'accountSchema',
-		type: 'object',
-		properties: {
-			sequence: {
-				type: 'object',
-				fieldNumber: 3,
-				properties: {
-					nonce: {
-						fieldNumber: 1,
-						dataType: 'uint64',
-					},
-				},
-			},
-		},
-	};
 	const schema = {
-		account: accountSchema,
 		block: blockSchema,
 		blockHeader: blockHeaderSchema,
-		blockHeadersAssets: {
-			2: blockHeaderAssetSchema,
-		},
 		transaction: transactionSchema,
-		transactionsAssets: [
+		commands: [
 			{
 				moduleID: 5,
 				moduleName: 'dpos',
-				assetID: 3,
-				assetName: 'reportDelegateMisbehavior',
+				commandID: 3,
+				commandName: 'reportDelegateMisbehavior',
 				schema: {
 					$id: 'lisk/dpos/pom',
 					type: 'object',
@@ -108,7 +77,7 @@ describe('block', () => {
 					},
 				},
 			},
-			...schemas.transactionsAssets,
+			...schemas.commands,
 		],
 	} as any;
 
@@ -131,26 +100,26 @@ describe('block', () => {
 
 		describe('get', () => {
 			describe('block by id as buffer', () => {
-				it('should invoke app:getBlockByID', async () => {
+				it('should invoke app_getBlockByID', async () => {
 					// Act
 					await block.get(blockId);
 
 					// Assert
 					expect(channel.invoke).toHaveBeenCalledTimes(1);
-					expect(channel.invoke).toHaveBeenCalledWith('app:getBlockByID', {
+					expect(channel.invoke).toHaveBeenCalledWith('app_getBlockByID', {
 						id: blockId.toString('hex'),
 					});
 				});
 			});
 
 			describe('block by id as hex', () => {
-				it('should invoke app:getBlockByID', async () => {
+				it('should invoke app_getBlockByID', async () => {
 					// Act
 					await block.get(blockId.toString('hex'));
 
 					// Assert
 					expect(channel.invoke).toHaveBeenCalledTimes(1);
-					expect(channel.invoke).toHaveBeenCalledWith('app:getBlockByID', {
+					expect(channel.invoke).toHaveBeenCalledWith('app_getBlockByID', {
 						id: blockId.toString('hex'),
 					});
 				});
@@ -158,13 +127,13 @@ describe('block', () => {
 		});
 
 		describe('getByHeight', () => {
-			it('should invoke app:getBlockByHeight', async () => {
+			it('should invoke app_getBlockByHeight', async () => {
 				// Act
 				await block.getByHeight(1);
 
 				// Assert
 				expect(channel.invoke).toHaveBeenCalledTimes(sampleHeight);
-				expect(channel.invoke).toHaveBeenCalledWith('app:getBlockByHeight', {
+				expect(channel.invoke).toHaveBeenCalledWith('app_getBlockByHeight', {
 					height: sampleHeight,
 				});
 			});
@@ -207,14 +176,14 @@ describe('block', () => {
 				// Arrange
 				const tx = {
 					moduleID: 2,
-					assetID: 0,
+					commandID: 0,
 					nonce: BigInt('54'),
 					fee: BigInt('10000000'),
 					senderPublicKey: Buffer.from(
 						'dd4ff255fe04dd0159a468e9e9c8872c4f4466220f7e326377a0ceb9df2fa21a',
 						'hex',
 					),
-					asset: {
+					params: {
 						amount: BigInt('10000000'),
 						recipientAddress: Buffer.from('654087c2df870402ab0b1996616fd3355d61f62c', 'hex'),
 						data: '',
@@ -228,7 +197,7 @@ describe('block', () => {
 					id: 'dd93e4ca5b48d0b604e7cf2e57ce21be43a3163f853c83d88d383032fd830bbf',
 				};
 				const decodedBlock = block.decode(encodedBlockBuffer);
-				(decodedBlock as any).payload.push(tx);
+				(decodedBlock as any).transactions.push(tx);
 				// Act
 				const decodedBlockJSON = block.toJSON(decodedBlock as any);
 				// Assert
@@ -241,14 +210,14 @@ describe('block', () => {
 				// Arrange
 				const tx = {
 					moduleID: 2,
-					assetID: 0,
+					commandID: 0,
 					nonce: BigInt('54'),
 					fee: BigInt('10000000'),
 					senderPublicKey: Buffer.from(
 						'dd4ff255fe04dd0159a468e9e9c8872c4f4466220f7e326377a0ceb9df2fa21a',
 						'hex',
 					),
-					asset: {
+					params: {
 						amount: BigInt('10000000'),
 						recipientAddress: Buffer.from('654087c2df870402ab0b1996616fd3355d61f62c', 'hex'),
 						data: '',
@@ -265,7 +234,7 @@ describe('block', () => {
 					),
 				};
 				const decodedBlock = block.decode(encodedBlockBuffer);
-				(decodedBlock as any).payload.push(tx);
+				(decodedBlock as any).transactions.push(tx);
 				const decodedBlockJSON = block.toJSON(decodedBlock as any);
 				// Act
 				const decodedBlockFromJSON = block.fromJSON(decodedBlockJSON as any);

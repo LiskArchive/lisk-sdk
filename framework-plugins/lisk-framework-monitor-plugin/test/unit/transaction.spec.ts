@@ -13,11 +13,11 @@
  */
 
 import { randomBytes } from 'crypto';
-import { testing, BaseChannel, GenesisConfig } from 'lisk-framework';
+import { testing, BaseChannel, GenesisConfig, ApplicationConfigForPlugin } from 'lisk-sdk';
 import { MonitorPlugin } from '../../src/monitor_plugin';
 import { configSchema } from '../../src/schemas';
 
-const appConfigForPlugin = {
+const appConfigForPlugin: ApplicationConfigForPlugin = {
 	rootPath: '~/.lisk',
 	label: 'my-app',
 	logger: {
@@ -37,10 +37,11 @@ const appConfigForPlugin = {
 			host: '127.0.0.1',
 		},
 	},
-	forging: {
+	generation: {
 		force: false,
 		waitThreshold: 2,
-		delegates: [],
+		generators: [],
+		modules: {},
 	},
 	network: {
 		seedPeers: [],
@@ -55,7 +56,7 @@ const appConfigForPlugin = {
 	},
 	version: '',
 	networkVersion: '',
-	genesisConfig: {} as GenesisConfig,
+	genesis: {} as GenesisConfig,
 };
 
 const validPluginOptions = configSchema.default;
@@ -72,8 +73,8 @@ describe('_handlePostTransactionAnnounce', () => {
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
+			logger: testing.mocks.loggerMock,
 		});
-		await monitorPluginInstance.load(channelMock);
 	});
 
 	it('should add new transactions to state', () => {
@@ -110,8 +111,8 @@ describe('_cleanUpTransactionStats', () => {
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
+			logger: testing.mocks.loggerMock,
 		});
-		await monitorPluginInstance.load(channelMock);
 	});
 
 	it('should remove transaction stats that are more than 10 minutes old', () => {

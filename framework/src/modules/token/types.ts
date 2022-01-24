@@ -11,14 +11,23 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-export interface Asset {
-	readonly amount: bigint;
-	readonly recipientAddress: Buffer;
-	readonly data: string;
+
+export interface TokenID {
+	chainID: number;
+	localID: number;
 }
 
-export interface TokenAccount {
-	token: {
-		balance: bigint;
-	};
+export interface GenesisTokenStore {
+	userSubstore: {
+		address: Buffer;
+		tokenID: {
+			chainID: number;
+			localID: number;
+		};
+		availableBalance: bigint;
+		lockedBalances: {
+			moduleID: number;
+			amount: bigint;
+		}[];
+	}[];
 }

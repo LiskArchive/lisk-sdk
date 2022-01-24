@@ -12,10 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseChannel, GenesisConfig } from 'lisk-framework';
+import { ApplicationConfigForPlugin, BaseChannel, GenesisConfig, testing } from 'lisk-sdk';
 import { FaucetPlugin } from '../../../src/plugin';
 
-const appConfigForPlugin = {
+const appConfigForPlugin: ApplicationConfigForPlugin = {
 	rootPath: '~/.lisk',
 	label: 'my-app',
 	logger: { consoleLogLevel: 'info', fileLogLevel: 'none', logFileName: 'plugin-FaucetPlugin.log' },
@@ -31,10 +31,12 @@ const appConfigForPlugin = {
 			host: '127.0.0.1',
 		},
 	},
-	forging: {
+	genesis: {} as GenesisConfig,
+	generation: {
 		force: false,
 		waitThreshold: 2,
-		delegates: [],
+		generators: [],
+		modules: {},
 	},
 	network: {
 		seedPeers: [],
@@ -49,8 +51,8 @@ const appConfigForPlugin = {
 	},
 	version: '',
 	networkVersion: '',
-	genesisConfig: {} as GenesisConfig,
 };
+const logger = testing.mocks.loggerMock;
 
 const validOptions = {
 	captchaSitekey: '123',
@@ -66,7 +68,7 @@ const channelMock = {
 
 describe('FaucetPlugin', () => {
 	describe('configSchema', () => {
-		it('should return valid config schema with default options', async () => {
+		it('should return valid config schema with default options', () => {
 			const plugin = new FaucetPlugin();
 
 			expect(plugin.configSchema).toMatchSnapshot();
@@ -80,6 +82,7 @@ describe('FaucetPlugin', () => {
 				config: validOptions,
 				channel: (channelMock as unknown) as BaseChannel,
 				appConfig: appConfigForPlugin,
+				logger,
 			});
 
 			expect(plugin.config).toMatchSnapshot();
@@ -92,6 +95,7 @@ describe('FaucetPlugin', () => {
 					config: { captchaSitekey: '123', captchaSecretkey: '123' },
 					channel: (channelMock as unknown) as BaseChannel,
 					appConfig: appConfigForPlugin,
+					logger,
 				}),
 			).rejects.toThrow(
 				"Lisk validator found 1 error[s]:\nMissing property, must have required property 'encryptedPassphrase'",
@@ -104,6 +108,7 @@ describe('FaucetPlugin', () => {
 				config: { ...validOptions, tokenPrefix: 'myToken' },
 				channel: (channelMock as unknown) as BaseChannel,
 				appConfig: appConfigForPlugin,
+				logger,
 			});
 
 			expect(plugin.config.tokenPrefix).toEqual('myToken');
@@ -122,6 +127,7 @@ describe('FaucetPlugin', () => {
 				config: options,
 				channel: (channelMock as unknown) as BaseChannel,
 				appConfig: appConfigForPlugin,
+				logger,
 			});
 
 			expect(plugin.config).toMatchObject(expect.objectContaining(options));

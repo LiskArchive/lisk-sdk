@@ -11,8 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Application } from 'lisk-framework';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { Application } from 'lisk-sdk';
 
 import { ForgerPlugin } from '../../src';
 import { getForgerInfo as getForgerInfoFromDB } from '../../src/db';
@@ -28,22 +27,6 @@ export const waitTill = async (ms: number): Promise<void> =>
 			r();
 		}, ms),
 	);
-
-export const getForgerInfoByPublicKey = async (
-	forgerPluginInstance: ForgerPlugin,
-	generatorPublicKey: string,
-): Promise<ForgerInfo> => {
-	const forgerAddress = getAddressFromPublicKey(Buffer.from(generatorPublicKey, 'hex')).toString(
-		'binary',
-	);
-
-	const forgerInfo = await getForgerInfoFromDB(
-		forgerPluginInstance['_forgerPluginDB'],
-		forgerAddress,
-	);
-
-	return forgerInfo;
-};
 
 export const getForgerInfoByAddress = async (
 	forgerPluginInstance: ForgerPlugin,

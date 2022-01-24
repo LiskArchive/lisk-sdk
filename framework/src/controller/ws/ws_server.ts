@@ -25,27 +25,27 @@ export class WSServer {
 	public server!: WebSocket.Server;
 
 	private _pingTimer!: NodeJS.Timeout;
+	private _logger!: Logger;
 	private readonly _port: number;
 	private readonly _host?: string;
 	private readonly _path: string;
-	private readonly _logger: Logger;
 	// subscription holds url: event names array
 	private readonly _subscriptions: Record<string, Set<string>> = {};
 
 	private readonly _registeredEvents: string[] = [];
 
-	public constructor(options: { port: number; host?: string; path: string; logger: Logger }) {
+	public constructor(options: { port: number; host?: string; path: string }) {
 		this._port = options.port;
 		this._host = options.host;
 		this._path = options.path;
-		this._logger = options.logger;
 	}
 
 	public registerAllowedEvent(events: string[]) {
 		this._registeredEvents.push(...events);
 	}
 
-	public start(messageHandler: WSMessageHandler): WebSocket.Server {
+	public start(logger: Logger, messageHandler: WSMessageHandler): WebSocket.Server {
+		this._logger = logger;
 		this.server = new WebSocket.Server({
 			path: this._path,
 			port: this._port,

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { testing, PartialApplicationConfig } from 'lisk-framework';
+import { testing, PartialApplicationConfig, BasePlugin } from 'lisk-sdk';
 import { FaucetPlugin } from '../../src';
 
 describe('faucet plugin', () => {
@@ -35,7 +35,7 @@ describe('faucet plugin', () => {
 
 		appEnv = testing.createDefaultApplicationEnv({
 			config,
-			plugins: [FaucetPlugin],
+			plugins: [new FaucetPlugin() as BasePlugin<any>],
 		});
 		await appEnv.startApplication();
 	});

@@ -13,11 +13,8 @@ export class SignCommand extends TransactionSignCommand {
 
 	static args = [...TransactionSignCommand.args];
 
-	public getApplication(
-		genesisBlock: Record<string, unknown>,
-		config: PartialApplicationConfig,
-	): Application {
-		const app = getApplication(genesisBlock, config);
+	public getApplication(config: PartialApplicationConfig): Application {
+		const { app } = getApplication(config);
 		return app;
 	}
 }

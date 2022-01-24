@@ -33,7 +33,7 @@ describe('node:info command', () => {
 		unconfirmedTransactions: 0,
 		genesisConfig: {
 			blockTime: 10,
-			maxPayloadLength: 15360,
+			maxTransactionsSize: 15360,
 			rewards: {
 				milestones: ['500000000', '400000000', '300000000', '200000000', '100000000'],
 				offset: 2160,

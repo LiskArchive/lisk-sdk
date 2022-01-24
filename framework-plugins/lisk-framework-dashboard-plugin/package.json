@@ -40,11 +40,9 @@
 	},
 	"dependencies": {
 		"@liskhq/lisk-client": "^5.2.1",
-		"@liskhq/lisk-cryptography": "^3.2.0",
-		"@liskhq/lisk-utils": "^0.2.0",
 		"express": "4.17.1",
 		"json-format-highlight": "1.0.4",
-		"lisk-framework": "^0.9.1",
+		"lisk-sdk": "^5.2.1",
 		"react": "^17.0.1",
 		"react-dom": "^17.0.1",
 		"react-router-dom": "^5.2.0",

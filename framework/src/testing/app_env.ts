@@ -20,24 +20,17 @@ import { Block } from '@liskhq/lisk-chain';
 import { objects } from '@liskhq/lisk-utils';
 import { homedir } from 'os';
 import { existsSync, rmdirSync } from 'fs-extra';
-
-import { ModuleClass } from './types';
-import {
-	defaultConfig,
-	defaultAccounts,
-	defaultFaucetAccount,
-	createDefaultAccount,
-} from './fixtures';
-import { createGenesisBlock } from './create_genesis_block';
+import { defaultConfig } from './fixtures';
 import { PartialApplicationConfig } from '../types';
 import { Application } from '../application';
-import { InstantiablePlugin } from '../plugins/base_plugin';
-import { TokenModule, SequenceModule, KeysModule, DPoSModule } from '../modules';
+import { BaseModule } from '../modules';
 import { RPC_MODES } from '../constants';
+import { BasePlugin } from '../plugins/base_plugin';
 
 interface ApplicationEnvConfig {
-	modules: ModuleClass[];
-	plugins?: InstantiablePlugin[];
+	modules: BaseModule[];
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	plugins?: BasePlugin<any>[];
 	config?: PartialApplicationConfig;
 	genesisBlockJSON?: Record<string, unknown>;
 }
@@ -46,7 +39,7 @@ export class ApplicationEnv {
 	private _application!: Application;
 	private _dataPath!: string;
 	private _ipcClient!: APIClient;
-	private _genesisBlock!: Record<string, unknown>;
+	private _genesisBlock!: Block;
 
 	public constructor(appConfig: ApplicationEnvConfig) {
 		this._initApplication(appConfig);
@@ -74,10 +67,11 @@ export class ApplicationEnv {
 	}
 
 	public async startApplication(): Promise<void> {
-		// eslint-disable-next-line dot-notation
-		this._application['_genesisBlock'] = this._genesisBlock;
+		this._genesisBlock = await this._application.generateGenesisBlock({
+			assets: [],
+		});
 		await Promise.race([
-			this._application.run(),
+			this._application.run(this._genesisBlock),
 			new Promise(resolve => setTimeout(resolve, 3000)),
 		]);
 		// Only start client when ipc is enabled
@@ -105,8 +99,7 @@ export class ApplicationEnv {
 		// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
 		const height = this.lastBlock.header.height + n;
 		return new Promise(resolve => {
-			// eslint-disable-next-line dot-notation
-			this._application['_channel'].subscribe('app:block:new', () => {
+			this._application.channel.subscribe('app_block:new', () => {
 				if (this.lastBlock.header.height >= height) {
 					resolve();
 				}
@@ -118,17 +111,14 @@ export class ApplicationEnv {
 		// As we can call this function with different configuration
 		// so we need to make sure existing schemas are already clear
 		codec.clearCache();
-		const { genesisBlockJSON } = createGenesisBlock({ modules: appConfig.modules });
-		this._genesisBlock = appConfig.genesisBlockJSON ?? genesisBlockJSON;
 		// In order for application to start forging, update force to true
 		const config = objects.mergeDeep({}, defaultConfig, appConfig.config ?? {});
 		const { label } = config;
 
-		const application = new Application(this._genesisBlock, config as PartialApplicationConfig);
+		const application = new Application(config as PartialApplicationConfig);
 		appConfig.modules.map(module => application.registerModule(module));
 		appConfig.plugins?.map(plugin => application.registerPlugin(plugin));
 		this._dataPath = join(application.config.rootPath, label);
-
 		this._application = application;
 		return application;
 	}
@@ -146,34 +136,16 @@ export const createDefaultApplicationEnv = (
 		rmdirSync(dataPath, { recursive: true });
 	}
 
-	const defaultModules = [TokenModule, SequenceModule, KeysModule, DPoSModule];
-	const modules = [...new Set([...(appEnvConfig.modules ?? []), ...defaultModules])];
+	const modules: BaseModule[] = [];
 
-	const faucetAccount = {
-		address: defaultFaucetAccount.address,
-		token: { balance: BigInt(defaultFaucetAccount.balance) },
-		sequence: { nonce: BigInt('0') },
-	};
-	const defaultDelegateAccounts = defaultAccounts().map((a, i) =>
-		createDefaultAccount(modules, {
-			address: a.address,
-			dpos: {
-				delegate: {
-					username: `delegate_${i}`,
-				},
-			},
-		}),
-	);
-	const accounts = [faucetAccount, ...defaultDelegateAccounts];
-	const { genesisBlockJSON } = createGenesisBlock({
-		modules,
-		accounts,
-	});
+	for (const mod of appEnvConfig.modules ?? []) {
+		modules.push(mod);
+	}
 
 	const appEnv = new ApplicationEnv({
 		...appEnvConfig,
 		modules,
-		genesisBlockJSON,
+		genesisBlockJSON: {},
 	});
 
 	return appEnv;

@@ -15,36 +15,38 @@
 export {
 	Transaction,
 	transactionSchema,
-	readGenesisBlockJSON,
 	blockHeaderSchema,
 	blockSchema,
 	signingBlockHeaderSchema,
-	getAccountSchemaWithDefault,
-	getGenesisBlockHeaderAssetSchema,
-	blockHeaderAssetSchema,
 } from '@liskhq/lisk-chain';
-export {
-	BaseModule,
-	BaseAsset,
-	TokenModule,
-	TokenTransferAsset,
-	SequenceModule,
-	KeysModule,
-	KeysRegisterAsset,
-	DPoSModule,
-	DPoSRegisterAsset,
-	DPoSVoteAsset,
-	DPoSUnlockAsset,
-	DPoSPoMAsset,
-} from './modules';
+export { BaseModule, BaseAPI, BaseCommand, BaseEndpoint } from './modules';
 export { Application } from './application';
 export { systemDirs } from './system_dirs';
-export { BasePlugin } from './plugins/base_plugin';
-// TODO: THe export "BlockHeaderJSON" should be removed
-export { BlockHeaderJSON, PluginCodec } from './plugins/plugin_codec';
+export { BasePlugin, PluginInitContext } from './plugins/base_plugin';
+export { BasePluginEndpoint } from './plugins/base_plugin_endpoint';
 export { IPCChannel } from './controller/channels';
 export type { BaseChannel } from './controller/channels';
 export type { EventsDefinition, EventCallback } from './controller/event';
-export type { ActionsDefinition, ActionHandler } from './controller/action';
 export * as testing from './testing';
 export * from './types';
+export { ValidatorsAPI, ValidatorsModule } from './modules/validators';
+export { BFTAPI, BFTModule } from './modules/bft';
+export {
+	TokenAPI,
+	TokenModule,
+	TransferCommand,
+	genesisTokenStoreSchema as tokenGenesisStoreSchema,
+} from './modules/token';
+export {
+	DPoSAPI,
+	DPoSModule,
+	DelegateRegistrationCommand,
+	ReportDelegateMisbehaviorCommand,
+	UnlockCommand,
+	UpdateGeneratorKeyCommand,
+	VoteCommand,
+	genesisStoreSchema as dposGenesisStoreSchema,
+} from './modules/dpos_v2';
+export { RewardAPI, RewardModule } from './modules/reward';
+export { FeeAPI, FeeModule } from './modules/fee';
+export { RandomAPI, RandomModule } from './modules/random';

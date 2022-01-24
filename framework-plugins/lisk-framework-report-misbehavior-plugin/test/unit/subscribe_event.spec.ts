@@ -12,12 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseChannel, GenesisConfig } from 'lisk-framework';
-import { codec } from '@liskhq/lisk-codec';
+import { BaseChannel, GenesisConfig, codec, ApplicationConfigForPlugin, testing } from 'lisk-sdk';
 import { ReportMisbehaviorPlugin } from '../../src';
 import { configSchema } from '../../src/schemas';
 
-const appConfigForPlugin = {
+const appConfigForPlugin: ApplicationConfigForPlugin = {
 	rootPath: '~/.lisk',
 	label: 'my-app',
 	logger: {
@@ -37,10 +36,11 @@ const appConfigForPlugin = {
 			host: '127.0.0.1',
 		},
 	},
-	forging: {
+	generation: {
 		force: false,
 		waitThreshold: 2,
-		delegates: [],
+		generators: [],
+		modules: {},
 	},
 	network: {
 		seedPeers: [],
@@ -55,7 +55,7 @@ const appConfigForPlugin = {
 	},
 	version: '',
 	networkVersion: '',
-	genesisConfig: {} as GenesisConfig,
+	genesis: {} as GenesisConfig,
 };
 
 const validPluginOptions = {
@@ -67,24 +67,22 @@ const validPluginOptions = {
 
 const channelMock1 = {
 	invoke: jest.fn(),
+	subscribe: jest.fn(),
 	once: jest.fn().mockImplementation((_eventName, cb) => cb()),
 };
 
 describe('subscribe to event', () => {
 	let reportMisbehaviorPlugin: ReportMisbehaviorPlugin;
-	let subscribeMock: jest.Mock;
+	let subscribeMock: jest.SpyInstance;
 	beforeEach(async () => {
-		subscribeMock = jest.fn();
-		const channelMock = {
-			subscribe: subscribeMock,
-		};
 		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin();
 		await reportMisbehaviorPlugin.init({
 			config: validPluginOptions,
 			channel: (channelMock1 as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
+			logger: testing.mocks.loggerMock,
 		});
-		(reportMisbehaviorPlugin as any)._channel = channelMock;
+		subscribeMock = jest.spyOn(reportMisbehaviorPlugin['apiClient'], 'subscribe');
 		reportMisbehaviorPlugin['logger'] = {
 			error: jest.fn(),
 		} as any;
@@ -95,7 +93,7 @@ describe('subscribe to event', () => {
 		reportMisbehaviorPlugin['_subscribeToChannel']();
 		// Assert
 		expect(subscribeMock).toHaveBeenCalledTimes(1);
-		expect(subscribeMock).toHaveBeenCalledWith('app:network:event', expect.any(Function));
+		expect(subscribeMock).toHaveBeenCalledWith('app_networkEvent', expect.any(Function));
 	});
 
 	it('should not decode block when data is invalid', () => {

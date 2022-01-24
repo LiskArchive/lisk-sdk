@@ -380,36 +380,7 @@ Array [
 
 exports[`transaction Transaction decode transaction from input as buffer should return decoded transaction 1`] = `
 Object {
-  "asset": Object {
-    "amount": 10000000n,
-    "data": "",
-    "recipientAddress": Object {
-      "data": Array [
-        101,
-        64,
-        135,
-        194,
-        223,
-        135,
-        4,
-        2,
-        171,
-        11,
-        25,
-        150,
-        97,
-        111,
-        211,
-        53,
-        93,
-        97,
-        246,
-        44,
-      ],
-      "type": "Buffer",
-    },
-  },
-  "assetID": 0,
+  "commandID": 0,
   "fee": 10000000n,
   "id": Object {
     "data": Array [
@@ -450,6 +421,35 @@ Object {
   },
   "moduleID": 2,
   "nonce": 54n,
+  "params": Object {
+    "amount": 10000000n,
+    "data": "",
+    "recipientAddress": Object {
+      "data": Array [
+        101,
+        64,
+        135,
+        194,
+        223,
+        135,
+        4,
+        2,
+        171,
+        11,
+        25,
+        150,
+        97,
+        111,
+        211,
+        53,
+        93,
+        97,
+        246,
+        44,
+      ],
+      "type": "Buffer",
+    },
+  },
   "senderPublicKey": Object {
     "data": Array [
       221,
@@ -563,36 +563,7 @@ Object {
 
 exports[`transaction Transaction decode transaction from input as hex should return decoded transaction 1`] = `
 Object {
-  "asset": Object {
-    "amount": 10000000n,
-    "data": "",
-    "recipientAddress": Object {
-      "data": Array [
-        101,
-        64,
-        135,
-        194,
-        223,
-        135,
-        4,
-        2,
-        171,
-        11,
-        25,
-        150,
-        97,
-        111,
-        211,
-        53,
-        93,
-        97,
-        246,
-        44,
-      ],
-      "type": "Buffer",
-    },
-  },
-  "assetID": 0,
+  "commandID": 0,
   "fee": 10000000n,
   "id": Object {
     "data": Array [
@@ -633,6 +604,35 @@ Object {
   },
   "moduleID": 2,
   "nonce": 54n,
+  "params": Object {
+    "amount": 10000000n,
+    "data": "",
+    "recipientAddress": Object {
+      "data": Array [
+        101,
+        64,
+        135,
+        194,
+        223,
+        135,
+        4,
+        2,
+        171,
+        11,
+        25,
+        150,
+        97,
+        111,
+        211,
+        53,
+        93,
+        97,
+        246,
+        44,
+      ],
+      "type": "Buffer",
+    },
+  },
   "senderPublicKey": Object {
     "data": Array [
       221,

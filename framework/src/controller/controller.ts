@@ -12,14 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { KVStore } from '@liskhq/lisk-db';
 import * as childProcess from 'child_process';
 import { ChildProcess } from 'child_process';
 import * as path from 'path';
-import { RPC_MODES } from '../constants';
+import { APP_IDENTIFIER, RPC_MODES } from '../constants';
 import { Logger } from '../logger';
-import { BasePlugin, getPluginExportPath, InstantiablePlugin } from '../plugins/base_plugin';
+import { getEndpointHandlers } from '../endpoint';
+import { BasePlugin, getPluginExportPath, validatePluginSpec } from '../plugins/base_plugin';
 import { systemDirs } from '../system_dirs';
-import { ApplicationConfigForPlugin, PluginConfig, RPCConfig } from '../types';
+import { ApplicationConfigForPlugin, EndpointHandlers, PluginConfig, RPCConfig } from '../types';
 import { Bus } from './bus';
 import { BaseChannel } from './channels';
 import { InMemoryChannel } from './channels/in_memory_channel';
@@ -28,13 +30,16 @@ import { IPCServer } from './ipc/ipc_server';
 import { WSServer } from './ws/ws_server';
 
 export interface ControllerOptions {
-	readonly appLabel: string;
-	readonly config: {
-		readonly rootPath: string;
-		readonly rpc: RPCConfig;
-	};
+	readonly appConfig: ApplicationConfigForPlugin;
+	readonly pluginConfigs: Record<string, PluginConfig>;
+}
+
+interface ControllerInitArg {
+	readonly blockchainDB: KVStore;
 	readonly logger: Logger;
-	readonly channel: InMemoryChannel;
+	readonly endpoints: EndpointHandlers;
+	readonly events: string[];
+	readonly networkIdentifier: Buffer;
 }
 
 interface ControllerConfig {
@@ -50,104 +55,199 @@ interface ControllerConfig {
 	rpc: RPCConfig;
 }
 
-interface PluginsObject {
-	readonly [key: string]: InstantiablePlugin;
-}
-
 export class Controller {
-	public readonly logger: Logger;
-	public readonly appLabel: string;
-	public readonly channel: InMemoryChannel;
-	public readonly config: ControllerConfig;
-	public bus!: Bus;
-
+	private readonly _appConfig: ApplicationConfigForPlugin;
+	private readonly _pluginConfigs: Record<string, PluginConfig>;
+	private readonly _config: ControllerConfig;
 	private readonly _childProcesses: Record<string, ChildProcess>;
 	private readonly _inMemoryPlugins: Record<string, { plugin: BasePlugin; channel: BaseChannel }>;
-	private readonly _externalIPCServer?: IPCServer;
+	private readonly _plugins: { [key: string]: BasePlugin };
+	private readonly _endpointHandlers: { [namespace: string]: EndpointHandlers };
+
+	private readonly _bus: Bus;
 	private readonly _internalIPCServer: IPCServer;
+	private readonly _externalIPCServer?: IPCServer;
 	private readonly _wsServer?: WSServer;
 	private readonly _httpServer?: HTTPServer;
 
-	public constructor(options: ControllerOptions) {
-		this.logger = options.logger;
-		this.appLabel = options.appLabel;
-		this.channel = options.channel;
-		this.logger.info('Initializing controller');
+	// Injected at init
+	private _logger!: Logger;
+	private _blockchainDB!: KVStore;
+	private _networkIdentifier!: Buffer;
 
-		const dirs = systemDirs(this.appLabel, options.config.rootPath);
-		this.config = {
+	// Assigned at init
+	private _channel?: InMemoryChannel;
+
+	public constructor(options: ControllerOptions) {
+		this._plugins = {};
+		this._inMemoryPlugins = {};
+		this._childProcesses = {};
+		this._endpointHandlers = {};
+
+		this._appConfig = options.appConfig;
+		this._pluginConfigs = options.pluginConfigs ?? {};
+		const dirs = systemDirs(options.appConfig.label, options.appConfig.rootPath);
+		this._config = {
 			dataPath: dirs.dataPath,
-			dirs: {
-				...dirs,
+			dirs,
+			rpc: {
+				modes: options.appConfig.rpc.modes,
+				ipc: {
+					path: options.appConfig.rpc.ipc?.path ?? dirs.sockets,
+				},
+				ws: options.appConfig.rpc.ws,
+				http: options.appConfig.rpc.http,
 			},
-			rpc: options.config.rpc,
 		};
 
 		this._internalIPCServer = new IPCServer({
-			socketsDir: this.config.dirs.sockets,
+			socketsDir: this._config.dirs.sockets,
 			name: 'bus',
 		});
 
-		if (this.config.rpc.modes.includes(RPC_MODES.IPC) && this.config.rpc.ipc) {
+		if (this._config.rpc.modes.includes(RPC_MODES.IPC) && this._config.rpc.ipc) {
 			this._externalIPCServer = new IPCServer({
-				socketsDir: this.config.rpc.ipc.path,
+				socketsDir: this._config.rpc.ipc.path,
 				name: 'bus',
 				externalSocket: true,
 			});
 		}
 
-		if (this.config.rpc.modes.includes(RPC_MODES.WS) && this.config.rpc.ws) {
+		if (this._config.rpc.modes.includes(RPC_MODES.WS) && this._config.rpc.ws) {
 			this._wsServer = new WSServer({
-				path: this.config.rpc.ws.path,
-				port: this.config.rpc.ws.port,
-				host: this.config.rpc.ws.host,
-				logger: this.logger,
+				path: this._config.rpc.ws.path,
+				port: this._config.rpc.ws.port,
+				host: this._config.rpc.ws.host,
 			});
 		}
 
-		if (this.config.rpc.modes.includes(RPC_MODES.HTTP) && this.config.rpc.http) {
+		if (this._config.rpc.modes.includes(RPC_MODES.HTTP) && this._config.rpc.http) {
 			this._httpServer = new HTTPServer({
-				host: this.config.rpc.http.host,
-				port: this.config.rpc.http.port,
-				logger: this.logger,
+				host: this._config.rpc.http.host,
+				port: this._config.rpc.http.port,
 			});
 		}
 
-		this._inMemoryPlugins = {};
-		this._childProcesses = {};
+		this._bus = new Bus({
+			externalIPCServer: this._externalIPCServer,
+			internalIPCServer: this._internalIPCServer,
+			wsServer: this._wsServer,
+			httpServer: this._httpServer,
+		});
 	}
 
-	public async load(): Promise<void> {
-		this.logger.info('Loading controller');
-		await this._setupBus();
+	public get channel(): InMemoryChannel {
+		if (!this._channel) {
+			throw new Error('Channel is not initialized.');
+		}
+		return this._channel;
 	}
 
-	public async loadPlugins(
-		plugins: PluginsObject,
-		pluginConfig: { [key: string]: PluginConfig },
-		appConfig: ApplicationConfigForPlugin,
-	): Promise<void> {
-		if (!this.bus) {
-			throw new Error('Controller bus is not initialized. Plugins can not be loaded.');
+	public getEndpoints(): ReadonlyArray<string> {
+		return this._bus.getEndpoints();
+	}
+
+	public getEvents(): ReadonlyArray<string> {
+		return this._bus.getEvents();
+	}
+
+	public init(arg: ControllerInitArg): void {
+		this._networkIdentifier = arg.networkIdentifier;
+		this._blockchainDB = arg.blockchainDB;
+		this._logger = arg.logger;
+		// Create root channel
+		this._channel = new InMemoryChannel(
+			this._logger,
+			this._blockchainDB,
+			APP_IDENTIFIER,
+			arg.events,
+			arg.endpoints,
+		);
+	}
+
+	public registerPlugin(plugin: BasePlugin, options: PluginConfig): void {
+		const pluginName = plugin.name;
+
+		if (Object.keys(this._plugins).includes(pluginName)) {
+			throw new Error(`A plugin with name "${pluginName}" already registered.`);
 		}
 
-		for (const name of Object.keys(plugins)) {
-			const klass = plugins[name];
-			const config = pluginConfig[name];
+		if (options.loadAsChildProcess) {
+			if (!getPluginExportPath(plugin)) {
+				throw new Error(
+					`Unable to register plugin "${pluginName}" to load as child process. Package name or __filename must be specified in nodeModulePath.`,
+				);
+			}
+		}
+
+		this._pluginConfigs[pluginName] = Object.assign(this._pluginConfigs[pluginName] ?? {}, options);
+
+		validatePluginSpec(plugin);
+
+		this._plugins[pluginName] = plugin;
+	}
+
+	public registerEndpoint(namespace: string, handlers: EndpointHandlers): void {
+		if (this._endpointHandlers[namespace]) {
+			throw new Error(`Endpoint for ${namespace} is already registered.`);
+		}
+		this._endpointHandlers[namespace] = handlers;
+	}
+
+	public async start(): Promise<void> {
+		this._logger.info('Starting controller');
+		await this.channel.registerToBus(this._bus);
+		for (const [namespace, handlers] of Object.entries(this._endpointHandlers)) {
+			const channel = new InMemoryChannel(
+				this._logger,
+				this._blockchainDB,
+				namespace,
+				[],
+				handlers,
+				this._networkIdentifier,
+			);
+			await channel.registerToBus(this._bus);
+		}
+		await this._bus.start(this._logger);
+		for (const name of Object.keys(this._plugins)) {
+			const plugin = this._plugins[name];
+			const config = this._pluginConfigs[name] ?? {};
 
 			if (config.loadAsChildProcess) {
-				await this._loadChildProcessPlugin(klass, config, appConfig);
+				await this._loadChildProcessPlugin(plugin, config, this._appConfig);
 			} else {
-				await this._loadInMemoryPlugin(klass, config, appConfig);
+				await this._loadInMemoryPlugin(plugin, config, this._appConfig);
 			}
 		}
 	}
 
-	public async unloadPlugins(plugins: string[] = []): Promise<void> {
-		const pluginsToUnload =
-			plugins.length > 0
-				? plugins
-				: [...Object.keys(this._inMemoryPlugins), ...Object.keys(this._childProcesses)];
+	public async stop(_code?: number, reason?: string): Promise<void> {
+		this._logger.info('Stopping Controller');
+
+		if (reason) {
+			this._logger.debug(`Reason: ${reason}`);
+		}
+
+		try {
+			this._logger.debug('Plugins cleanup started');
+			await this._unloadPlugins();
+			this._logger.debug('Plugins cleanup completed');
+
+			this._logger.debug('Bus cleanup started');
+			await this._bus.cleanup();
+			this._logger.debug('Bus cleanup completed');
+
+			this._logger.info('Controller cleanup completed');
+		} catch (err) {
+			this._logger.error(err, 'Controller cleanup failed');
+		}
+	}
+
+	private async _unloadPlugins(): Promise<void> {
+		const pluginsToUnload = [
+			...Object.keys(this._inMemoryPlugins),
+			...Object.keys(this._childProcesses),
+		];
 
 		let hasError = false;
 
@@ -164,7 +264,7 @@ export class Controller {
 					throw new Error(`Unknown plugin "${name}" was asked to unload.`);
 				}
 			} catch (error) {
-				this.logger.error(error);
+				this._logger.error(error);
 				hasError = true;
 			}
 		}
@@ -174,74 +274,42 @@ export class Controller {
 		}
 	}
 
-	public async cleanup(_code?: number, reason?: string): Promise<void> {
-		this.logger.info('Controller cleanup started');
-
-		if (reason) {
-			this.logger.debug(`Reason: ${reason}`);
-		}
-
-		try {
-			this.logger.debug('Plugins cleanup started');
-			await this.unloadPlugins();
-			this.logger.debug('Plugins cleanup completed');
-
-			this.logger.debug('Bus cleanup started');
-			await this.bus.cleanup();
-			this.logger.debug('Bus cleanup completed');
-
-			this.logger.info('Controller cleanup completed');
-		} catch (err) {
-			this.logger.error(err, 'Controller cleanup failed');
-		}
-	}
-
-	private async _setupBus(): Promise<void> {
-		this.bus = new Bus(this.logger, {
-			externalIPCServer: this._externalIPCServer,
-			internalIPCServer: this._internalIPCServer,
-			wsServer: this._wsServer,
-			httpServer: this._httpServer,
-		});
-		await this.channel.registerToBus(this.bus);
-		await this.bus.init();
-	}
-
 	private async _loadInMemoryPlugin(
-		Klass: InstantiablePlugin,
+		plugin: BasePlugin,
 		config: PluginConfig,
 		appConfig: ApplicationConfigForPlugin,
 	): Promise<void> {
-		const plugin: BasePlugin = new Klass();
 		const { name } = plugin;
-		this.logger.info(name, 'Loading in-memory plugin');
+		this._logger.info(name, 'Loading in-memory plugin');
 
-		const channel = new InMemoryChannel(name, plugin.events, plugin.actions);
-		await channel.registerToBus(this.bus);
-		channel.publish(`${name}:registeredToBus`);
-		channel.publish(`${name}:loading:started`);
+		const channel = new InMemoryChannel(
+			this._logger,
+			this._blockchainDB,
+			name,
+			plugin.events,
+			plugin.endpoint ? getEndpointHandlers(plugin.endpoint) : {},
+		);
+		await channel.registerToBus(this._bus);
+		this._logger.debug({ plugin: name }, 'Plugin is registered to bus');
 
-		await plugin.init({ config, channel, appConfig });
+		await plugin.init({ config, channel, appConfig, logger: this._logger });
 		await plugin.load(channel);
 
-		channel.publish(`${name}:loading:finished`);
+		this._logger.debug({ plugin: name }, 'Plugin is successfully loaded');
 
 		this._inMemoryPlugins[name] = { plugin, channel };
-
-		this.logger.info(name, 'Loaded in-memory plugin');
 	}
 
 	private async _loadChildProcessPlugin(
-		Klass: InstantiablePlugin,
+		plugin: BasePlugin,
 		config: PluginConfig,
 		appConfig: ApplicationConfigForPlugin,
 	): Promise<void> {
-		const plugin: BasePlugin = new Klass();
 		const { name } = plugin;
 
-		this.logger.info(name, 'Loading child-process plugin');
+		this._logger.info(name, 'Loading child-process plugin');
 		const program = path.resolve(__dirname, 'child_process_loader');
-		const parameters = [getPluginExportPath(Klass) as string, Klass.name];
+		const parameters = [getPluginExportPath(plugin) as string, plugin.constructor.name];
 
 		// Avoid child processes and the main process sharing the same debugging ports causing a conflict
 		const forkedProcessOptions: { execArgv: string[] | undefined } = {
@@ -261,7 +329,7 @@ export class Controller {
 			action: 'load',
 			config,
 			appConfig,
-			ipcConfig: this.config,
+			ipcConfig: this._config,
 		});
 
 		this._childProcesses[name] = child;
@@ -269,19 +337,21 @@ export class Controller {
 		child.on('exit', (code, signal) => {
 			// If child process exited with error
 			if (code !== null && code !== undefined && code !== 0) {
-				this.logger.error({ name, code, signal: signal ?? '' }, 'Child process plugin exited');
+				this._logger.error({ name, code, signal: signal ?? '' }, 'Child process plugin exited');
 			}
 		});
 
 		child.on('error', error => {
-			this.logger.error(error, `Child process for "${name}" faced error.`);
+			this._logger.error(error, `Child process for "${name}" faced error.`);
 		});
 
 		await Promise.race([
 			new Promise<void>(resolve => {
-				this.channel.once(`${name}:loading:finished`, () => {
-					this.logger.info({ name }, 'Loaded child-process plugin');
-					resolve();
+				child.on('message', ({ action }: { action: string }) => {
+					if (action === 'loaded') {
+						this._logger.info({ name }, 'Loaded child-process plugin');
+						resolve();
+					}
 				});
 			}),
 			new Promise((_, reject) => {
@@ -293,12 +363,12 @@ export class Controller {
 	}
 
 	private async _unloadInMemoryPlugin(name: string): Promise<void> {
-		this._inMemoryPlugins[name].channel.publish(`${name}:unloading:started`);
+		this._logger.debug({ plugin: name }, 'Unloading plugin');
 		try {
 			await this._inMemoryPlugins[name].plugin.unload();
-			this._inMemoryPlugins[name].channel.publish(`${name}:unloading:finished`);
+			this._logger.debug({ plugin: name }, 'Successfully unloaded plugin');
 		} catch (error) {
-			this._inMemoryPlugins[name].channel.publish(`${name}:unloading:error`, error);
+			this._logger.debug({ plugin: name, err: error as Error }, 'Fail to unload plugin');
 		} finally {
 			delete this._inMemoryPlugins[name];
 		}
@@ -316,20 +386,24 @@ export class Controller {
 		});
 
 		await Promise.race([
-			new Promise<void>(resolve => {
-				this.channel.once(`${name}:unloading:finished`, () => {
-					this.logger.info(`Child process plugin "${name}" unloaded`);
-					delete this._childProcesses[name];
-					resolve();
-				});
-			}),
-			new Promise((_, reject) => {
-				this.channel.once(`${name}:unloading:error`, data => {
-					this.logger.info(`Child process plugin "${name}" unloaded with error`);
-					this.logger.error(data ?? {}, 'Unloading plugin error.');
-					delete this._childProcesses[name];
-					reject(data);
-				});
+			new Promise<void>((resolve, reject) => {
+				this._childProcesses[name].on(
+					'message',
+					({ action, err }: { action: string; err?: Error }) => {
+						if (action !== 'unloaded' && action !== 'unloadedWithError') {
+							return;
+						}
+						delete this._childProcesses[name];
+						if (action === 'unloaded') {
+							this._logger.info(`Child process plugin "${name}" unloaded`);
+							resolve();
+						} else {
+							this._logger.info(`Child process plugin "${name}" unloaded with error`);
+							this._logger.error({ err }, 'Unloading plugin error.');
+							reject(err);
+						}
+					},
+				);
 			}),
 			new Promise((_, reject) => {
 				setTimeout(() => {

@@ -12,19 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { KVStore } from '@liskhq/lisk-db';
 import {
-	ActionsDefinition,
 	BasePlugin,
 	BaseChannel,
-	EventsDefinition,
-	TransactionJSON,
-	BlockHeaderJSON,
 	GenesisConfig,
-} from 'lisk-framework';
-import { dataStructures } from '@liskhq/lisk-utils';
-
+	utils,
+	codec,
+	chain,
+	db as liskDB,
+	PluginInitContext,
+} from 'lisk-sdk';
 import {
 	getDBInstance,
 	getForgerInfo,
@@ -33,15 +30,21 @@ import {
 	setForgerSyncInfo,
 } from './db';
 import { Forger, TransactionFees, Voters } from './types';
-import * as actions from './actions';
+import { Endpoint } from './endpoint';
+
+const { Block, blockSchema } = chain;
+type BlockHeader = chain.BlockHeader;
+type Transaction = chain.Transaction;
 
 const BLOCKS_BATCH_TO_SYNC = 1000;
+const MODULE_ID_DPOS = 5;
+const COMMAND_ID_VOTE = 1;
 
 interface Data {
 	readonly block: string;
 }
 
-interface Asset {
+interface VotesParams {
 	readonly votes: Array<Readonly<Vote>>;
 }
 interface Vote {
@@ -49,12 +52,12 @@ interface Vote {
 	amount: string;
 }
 
-interface ForgerPayloadInfo {
+interface ForgerTransactionsInfo {
 	forgerAddress: string;
 	forgerAddressBuffer: Buffer;
 	forgerAddressBinary: string;
-	header: BlockHeaderJSON;
-	payload: readonly TransactionJSON[];
+	header: BlockHeader;
+	transactions: readonly Transaction[];
 }
 
 interface NodeInfo {
@@ -76,10 +79,11 @@ const getAddressBuffer = (hexAddressStr: string) => Buffer.from(hexAddressStr, '
 
 export class ForgerPlugin extends BasePlugin {
 	public name = 'forger';
+	public endpoint = new Endpoint();
 
-	private _forgerPluginDB!: KVStore;
+	private _forgerPluginDB!: liskDB.KVStore;
 	private _channel!: BaseChannel;
-	private _forgersList!: dataStructures.BufferMap<boolean>;
+	private _forgersList!: utils.dataStructures.BufferMap<boolean>;
 	private _transactionFees!: TransactionFees;
 	private _syncingWithNode!: boolean;
 
@@ -87,17 +91,13 @@ export class ForgerPlugin extends BasePlugin {
 		return __filename;
 	}
 
-	public get events(): EventsDefinition {
+	public get events(): string[] {
 		return ['block:created', 'block:missed'];
 	}
 
-	public get actions(): ActionsDefinition {
-		return {
-			getVoters: async () =>
-				actions.voters.getVoters(this._channel, this.codec, this._forgerPluginDB),
-			getForgingInfo: async () =>
-				actions.forgingInfo.getForgingInfo(this._channel, this.codec, this._forgerPluginDB),
-		};
+	public async init(context: PluginInitContext): Promise<void> {
+		await super.init(context);
+		this.endpoint.init(this._forgerPluginDB, this.apiClient);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -108,22 +108,19 @@ export class ForgerPlugin extends BasePlugin {
 		// eslint-disable-next-line new-cap
 		this._forgerPluginDB = await getDBInstance(this.dataPath);
 
-		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this._channel.once('app:ready', async () => {
-			// Fetch and set forger list from the app
-			await this._setForgersList();
+		// Fetch and set forger list from the app
+		await this._setForgersList();
 
-			// Fetch and set transactions fees
-			await this._setTransactionFees();
+		// Fetch and set transactions fees
+		await this._setTransactionFees();
 
-			// Sync the information
-			this._syncingWithNode = true;
-			await this._syncForgerInfo();
-			this._syncingWithNode = false;
+		// Sync the information
+		this._syncingWithNode = true;
+		await this._syncForgerInfo();
+		this._syncingWithNode = false;
 
-			// Listen to new block and delete block events
-			this._subscribeToChannel();
-		});
+		// Listen to new block and delete block events
+		this._subscribeToChannel();
 	}
 
 	public async unload(): Promise<void> {
@@ -131,26 +128,24 @@ export class ForgerPlugin extends BasePlugin {
 	}
 
 	private async _setForgersList(): Promise<void> {
-		this._forgersList = new dataStructures.BufferMap<boolean>();
-		const forgersList = await this._channel.invoke<Forger[]>('app:getForgingStatus');
+		this._forgersList = new utils.dataStructures.BufferMap<boolean>();
+		const forgersList = await this._channel.invoke<Forger[]>('app_getForgingStatus');
 		for (const { address, forging } of forgersList) {
 			this._forgersList.set(Buffer.from(address, 'hex'), forging);
 		}
 	}
 
 	private async _setTransactionFees(): Promise<void> {
-		const { genesisConfig } = await this._channel.invoke<NodeInfo>('app:getNodeInfo');
+		const { genesisConfig } = await this._channel.invoke<NodeInfo>('app_getNodeInfo');
 		this._transactionFees = {
 			minFeePerByte: genesisConfig.minFeePerByte,
 			baseFees: genesisConfig.baseFees,
 		};
 	}
 
-	private _getForgerHeaderAndPayloadInfo(block: string): ForgerPayloadInfo {
-		const { header, payload } = this.codec.decodeBlock(block);
-		const forgerAddress = getAddressFromPublicKey(
-			Buffer.from(header.generatorPublicKey, 'hex'),
-		).toString('hex');
+	private _getForgerHeaderAndTransactionsInfo(blockBytes: string): ForgerTransactionsInfo {
+		const block = Block.fromBytes(Buffer.from(blockBytes, 'hex'));
+		const forgerAddress = block.header.generatorAddress.toString('hex');
 		const forgerAddressBuffer = getAddressBuffer(forgerAddress);
 		const forgerAddressBinary = getBinaryAddress(forgerAddress);
 
@@ -158,17 +153,18 @@ export class ForgerPlugin extends BasePlugin {
 			forgerAddress,
 			forgerAddressBuffer,
 			forgerAddressBinary,
-			header,
-			payload,
+			header: block.header,
+			transactions: block.transactions,
 		};
 	}
 
 	private async _syncForgerInfo(): Promise<void> {
+		const lastBlockBytes = await this._channel.invoke<string>('app_getLastBlock');
 		const {
 			header: { height: lastBlockHeight },
-		} = this.codec.decodeBlock(await this._channel.invoke<string>('app:getLastBlock'));
+		} = Block.fromBytes(Buffer.from(lastBlockBytes, 'hex'));
 		const { syncUptoHeight } = await getForgerSyncInfo(this._forgerPluginDB);
-		const { genesisHeight } = await this._channel.invoke<NodeInfo>('app:getNodeInfo');
+		const { genesisHeight } = await this._channel.invoke<NodeInfo>('app_getNodeInfo');
 		const forgerPluginSyncedHeight = syncUptoHeight === 0 ? genesisHeight : syncUptoHeight;
 
 		if (forgerPluginSyncedHeight === lastBlockHeight) {
@@ -194,15 +190,15 @@ export class ForgerPlugin extends BasePlugin {
 					? BLOCKS_BATCH_TO_SYNC
 					: lastBlockHeight - needleHeight);
 
-			const blocks = await this._channel.invoke<string[]>('app:getBlocksByHeightBetween', {
+			const blocks = await this._channel.invoke<string[]>('app_getBlocksByHeightBetween', {
 				from: needleHeight,
 				to: toHeight,
 			});
 
 			// Reverse the blocks to get blocks from lower height to highest
 			for (const block of blocks.reverse()) {
-				const forgerPayloadInfo = this._getForgerHeaderAndPayloadInfo(block);
-				await this._addForgerInfo(block, forgerPayloadInfo);
+				const forgerTransactionsInfo = this._getForgerHeaderAndTransactionsInfo(block);
+				await this._addForgerInfo(block, forgerTransactionsInfo);
 			}
 
 			needleHeight = toHeight + 1;
@@ -216,50 +212,48 @@ export class ForgerPlugin extends BasePlugin {
 
 	private _subscribeToChannel(): void {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this._channel.subscribe('app:block:new', async (data?: Record<string, unknown>) => {
+		this._channel.subscribe('app_block:new', async (data?: Record<string, unknown>) => {
 			const { block } = (data as unknown) as Data;
-			const forgerPayloadInfo = this._getForgerHeaderAndPayloadInfo(block);
+			const forgerTransactionsInfo = this._getForgerHeaderAndTransactionsInfo(block);
 			const {
 				header: { height },
-			} = forgerPayloadInfo;
+			} = forgerTransactionsInfo;
 
-			await this._addForgerInfo(block, forgerPayloadInfo);
+			await this._addForgerInfo(block, forgerTransactionsInfo);
 			await setForgerSyncInfo(this._forgerPluginDB, height);
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this._channel.subscribe('app:block:delete', async (data?: Record<string, unknown>) => {
+		this._channel.subscribe('app_block:delete', async (data?: Record<string, unknown>) => {
 			const { block } = (data as unknown) as Data;
-			const forgerPayloadInfo = this._getForgerHeaderAndPayloadInfo(block);
+			const forgerTransactionsInfo = this._getForgerHeaderAndTransactionsInfo(block);
 			const {
 				header: { height },
-			} = forgerPayloadInfo;
+			} = forgerTransactionsInfo;
 
-			await this._revertForgerInfo(block, forgerPayloadInfo);
+			await this._revertForgerInfo(block, forgerTransactionsInfo);
 			await setForgerSyncInfo(this._forgerPluginDB, height);
 		});
 	}
 
 	private async _addForgerInfo(
 		encodedBlock: string,
-		forgerPayloadInfo: ForgerPayloadInfo,
+		forgerTransactionsInfo: ForgerTransactionsInfo,
 	): Promise<void> {
 		const {
 			forgerAddress,
 			forgerAddressBuffer,
 			forgerAddressBinary,
-			header: { reward, height },
-			payload,
-		} = forgerPayloadInfo;
+			header: { height },
+			transactions,
+		} = forgerTransactionsInfo;
 		const forgerInfo = await getForgerInfo(this._forgerPluginDB, forgerAddressBinary);
 
 		if (this._forgersList.has(forgerAddressBuffer)) {
 			forgerInfo.totalProducedBlocks += 1;
-			forgerInfo.totalReceivedRewards += BigInt(reward);
-			forgerInfo.totalReceivedFees += this._getFee(payload, encodedBlock);
+			forgerInfo.totalReceivedFees += this._getFee(transactions, encodedBlock);
 
 			this._channel.publish('forger:block:created', {
-				reward,
 				forgerAddress,
 				height,
 				timestamp: Date.now(),
@@ -267,39 +261,40 @@ export class ForgerPlugin extends BasePlugin {
 			await setForgerInfo(this._forgerPluginDB, forgerAddressBinary, { ...forgerInfo });
 		}
 
-		await this._addVotesReceived(payload);
+		await this._addVotesReceived(transactions);
 		await this._updateMissedBlock(encodedBlock);
 	}
 
 	private async _revertForgerInfo(
 		encodedBlock: string,
-		forgerPayloadInfo: ForgerPayloadInfo,
+		forgerTransactionsInfo: ForgerTransactionsInfo,
 	): Promise<void> {
-		const {
-			forgerAddressBuffer,
-			forgerAddressBinary,
-			header: { reward },
-			payload,
-		} = forgerPayloadInfo;
+		const { forgerAddressBuffer, forgerAddressBinary, transactions } = forgerTransactionsInfo;
 		const forgerInfo = await getForgerInfo(this._forgerPluginDB, forgerAddressBinary);
 
 		if (this._forgersList.has(forgerAddressBuffer)) {
 			forgerInfo.totalProducedBlocks -= 1;
-			forgerInfo.totalReceivedRewards -= BigInt(reward);
-			forgerInfo.totalReceivedFees -= this._getFee(payload, encodedBlock);
+			forgerInfo.totalReceivedFees -= this._getFee(transactions, encodedBlock);
 			await setForgerInfo(this._forgerPluginDB, forgerAddressBinary, { ...forgerInfo });
 		}
 
-		await this._revertVotesReceived(payload);
+		await this._revertVotesReceived(transactions);
 	}
 
-	private _getForgerReceivedVotes(payload: ReadonlyArray<TransactionJSON>): ForgerReceivedVotes {
+	private _getForgerReceivedVotes(transactions: ReadonlyArray<Transaction>): ForgerReceivedVotes {
 		const forgerReceivedVotes: ForgerReceivedVotes = {};
 
-		for (const trx of payload) {
-			if (trx.moduleID === 5 && trx.assetID === 1) {
-				const senderAddress = getAddressFromPublicKey(Buffer.from(trx.senderPublicKey, 'hex'));
-				(trx.asset as Asset).votes.reduce((acc: ForgerReceivedVotes, curr) => {
+		const dposVotesSchema = this.apiClient.schemas.commands.find(
+			c => c.moduleID === MODULE_ID_DPOS && c.commandID === COMMAND_ID_VOTE,
+		);
+		if (!dposVotesSchema) {
+			throw new Error('DPoS votes command is not registered.');
+		}
+
+		for (const trx of transactions) {
+			if (trx.moduleID === MODULE_ID_DPOS && trx.commandID === COMMAND_ID_VOTE) {
+				const params = codec.decode<VotesParams>(dposVotesSchema.schema, trx.params);
+				params.votes.reduce((acc: ForgerReceivedVotes, curr) => {
 					if (
 						this._forgersList.has(getAddressBuffer(curr.delegateAddress)) &&
 						acc[curr.delegateAddress]
@@ -307,7 +302,7 @@ export class ForgerPlugin extends BasePlugin {
 						acc[curr.delegateAddress].amount += BigInt(curr.amount);
 					} else {
 						acc[curr.delegateAddress] = {
-							address: senderAddress,
+							address: trx.senderAddress,
 							amount: BigInt(curr.amount),
 						};
 					}
@@ -319,8 +314,8 @@ export class ForgerPlugin extends BasePlugin {
 		return forgerReceivedVotes;
 	}
 
-	private async _addVotesReceived(payload: ReadonlyArray<TransactionJSON>): Promise<void> {
-		const forgerReceivedVotes = this._getForgerReceivedVotes(payload);
+	private async _addVotesReceived(transactions: ReadonlyArray<Transaction>): Promise<void> {
+		const forgerReceivedVotes = this._getForgerReceivedVotes(transactions);
 
 		for (const [delegateAddress, votesReceived] of Object.entries(forgerReceivedVotes)) {
 			const forgerInfo = await getForgerInfo(
@@ -344,8 +339,8 @@ export class ForgerPlugin extends BasePlugin {
 		}
 	}
 
-	private async _revertVotesReceived(payload: ReadonlyArray<TransactionJSON>): Promise<void> {
-		const forgerReceivedVotes = this._getForgerReceivedVotes(payload);
+	private async _revertVotesReceived(transactions: ReadonlyArray<Transaction>): Promise<void> {
+		const forgerReceivedVotes = this._getForgerReceivedVotes(transactions);
 
 		for (const [delegateAddress, votesReceived] of Object.entries(forgerReceivedVotes)) {
 			const forgerInfo = await getForgerInfo(
@@ -367,19 +362,22 @@ export class ForgerPlugin extends BasePlugin {
 		}
 	}
 
-	private _getFee(payload: ReadonlyArray<TransactionJSON>, block: string): bigint {
-		const { payload: payloadBuffer } = this.codec.decodeRawBlock(block);
+	private _getFee(transactions: ReadonlyArray<Transaction>, block: string): bigint {
+		const { transactions: transactionsBuffer } = codec.decode<{ transactions: Buffer[] }>(
+			blockSchema,
+			Buffer.from(block),
+		);
 		let fee = BigInt(0);
 
-		for (let index = 0; index < payload.length; index += 1) {
-			const trx = payload[index];
+		for (let index = 0; index < transactions.length; index += 1) {
+			const trx = transactions[index];
 			const baseFee =
 				this._transactionFees.baseFees.find(
-					bf => bf.moduleID === trx.moduleID && bf.assetID === trx.assetID,
+					bf => bf.moduleID === trx.moduleID && bf.commandID === trx.commandID,
 				)?.baseFee ?? '0';
 			const minFeeRequired =
 				BigInt(baseFee) +
-				BigInt(this._transactionFees.minFeePerByte) * BigInt(payloadBuffer[index].length);
+				BigInt(this._transactionFees.minFeePerByte) * BigInt(transactionsBuffer[index].length);
 			fee += BigInt(trx.fee) - minFeeRequired;
 		}
 
@@ -390,20 +388,20 @@ export class ForgerPlugin extends BasePlugin {
 		const {
 			header: { height, timestamp },
 			forgerAddress,
-		} = this._getForgerHeaderAndPayloadInfo(block);
-		const previousBlockStr = await this._channel.invoke<string>('app:getBlockByHeight', {
+		} = this._getForgerHeaderAndTransactionsInfo(block);
+		const previousBlockStr = await this._channel.invoke<string>('app_getBlockByHeight', {
 			height: height - 1,
 		});
 		const {
 			genesisConfig: { blockTime },
-		} = await this._channel.invoke<NodeInfo>('app:getNodeInfo');
-		const { header: previousBlock } = this.codec.decodeBlock(previousBlockStr);
+		} = await this._channel.invoke<NodeInfo>('app_getNodeInfo');
+		const { header: previousBlock } = Block.fromBytes(Buffer.from(previousBlockStr, 'hex'));
 		const missedBlocks = Math.ceil((timestamp - previousBlock.timestamp) / blockTime) - 1;
 
 		if (missedBlocks > 0) {
 			const forgersInfo = await this._channel.invoke<
 				readonly { address: string; nextForgingTime: number }[]
-			>('app:getForgers');
+			>('app_getForgers');
 			const forgersRoundLength = forgersInfo.length;
 			const forgerIndex = forgersInfo.findIndex(f => f.address === forgerAddress);
 

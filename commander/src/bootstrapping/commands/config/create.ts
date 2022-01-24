@@ -63,7 +63,7 @@ export class CreateCommand extends Command {
 		const filePath = join(configPath, 'config');
 
 		defaultConfig.label = label;
-		defaultConfig.genesisConfig.communityIdentifier = communityIdentifier;
+		defaultConfig.genesis.communityIdentifier = communityIdentifier;
 
 		// check for existing file at given location & ask the user before overwriting
 		if (fs.existsSync(filePath)) {

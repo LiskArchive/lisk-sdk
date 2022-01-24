@@ -27,7 +27,7 @@ else
 fi
 
 BUFFER_PACKAGE_PATH="$PACKAGES_PATH/server/node_modules/node-libs-browser/node_modules/buffer"
-LOCAL_BUFFER_PATH=`realpath $SOURCE/../../node_modules/buffer`
+LOCAL_BUFFER_PATH=`realpath $SOURCE/../../../../node_modules/buffer`
 
-rm -r $BUFFER_PACKAGE_PATH
+if [ -d "$BUFFER_PACKAGE_PATH" ]; then rm -r $BUFFER_PACKAGE_PATH; fi
 cp -r $LOCAL_BUFFER_PATH $BUFFER_PACKAGE_PATH

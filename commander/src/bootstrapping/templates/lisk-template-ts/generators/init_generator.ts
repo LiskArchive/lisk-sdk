@@ -85,6 +85,11 @@ export default class InitGenerator extends Generator {
 	public end(): void {
 		this.log('Generating genesis block and config.');
 		this.spawnCommandSync(`${this.destinationPath('bin/run')}`, [
+			'config:create',
+			'--output',
+			'config/default',
+		]);
+		this.spawnCommandSync(`${this.destinationPath('bin/run')}`, [
 			'genesis-block:create',
 			'--output',
 			'config/default',
@@ -94,11 +99,6 @@ export default class InitGenerator extends Generator {
 			'10000',
 			'--validators-hash-onion-distance',
 			'1000',
-		]);
-		this.spawnCommandSync(`${this.destinationPath('bin/run')}`, [
-			'config:create',
-			'--output',
-			'config/default',
 		]);
 
 		const password = JSON.parse(
@@ -110,9 +110,9 @@ export default class InitGenerator extends Generator {
 		const config = JSON.parse(
 			fs.readFileSync(`${this.destinationPath('config/default/config.json')}`, 'utf8'),
 		) as ApplicationConfig;
-		config.forging.force = true;
-		config.forging.delegates = forgingInfo;
-		config.forging.defaultPassword = password.defaultPassword as string;
+		config.generation.force = true;
+		config.generation.generators = forgingInfo;
+		config.generation.defaultPassword = password.defaultPassword as string;
 
 		fs.writeJSONSync(`${this.destinationPath('config/default/config.json')}`, config, {
 			spaces: '\t',

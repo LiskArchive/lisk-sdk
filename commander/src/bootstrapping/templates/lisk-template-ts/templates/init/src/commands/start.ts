@@ -4,15 +4,10 @@
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
 import { flags as flagParser } from '@oclif/command';
 import { BaseStartCommand } from 'lisk-commander';
-import {
-	Application,
-	ApplicationConfig,
-	PartialApplicationConfig,
-	HTTPAPIPlugin,
-	ForgerPlugin,
-	MonitorPlugin,
-	ReportMisbehaviorPlugin,
-} from 'lisk-sdk';
+import { Application, ApplicationConfig, PartialApplicationConfig } from 'lisk-sdk';
+import { ForgerPlugin } from '@liskhq/lisk-framework-forger-plugin';
+import { MonitorPlugin } from '@liskhq/lisk-framework-monitor-plugin';
+import { ReportMisbehaviorPlugin } from '@liskhq/lisk-framework-report-misbehavior-plugin';
 import { DashboardPlugin } from '@liskhq/lisk-framework-dashboard-plugin';
 import { FaucetPlugin } from '@liskhq/lisk-framework-faucet-plugin';
 import { join } from 'path';
@@ -23,19 +18,6 @@ interface Flags {
 }
 
 const setPluginConfig = (config: ApplicationConfig, flags: Flags): void => {
-	if (flags['http-api-plugin-port'] !== undefined) {
-		config.plugins[HTTPAPIPlugin.name] = config.plugins[HTTPAPIPlugin.name] ?? {};
-		config.plugins[HTTPAPIPlugin.name].port = flags['http-api-plugin-port'];
-	}
-	if (
-		flags['http-api-plugin-whitelist'] !== undefined &&
-		typeof flags['http-api-plugin-whitelist'] === 'string'
-	) {
-		config.plugins[HTTPAPIPlugin.name] = config.plugins[HTTPAPIPlugin.name] ?? {};
-		config.plugins[HTTPAPIPlugin.name].whiteList = flags['http-api-plugin-whitelist']
-			.split(',')
-			.filter(Boolean);
-	}
 	if (flags['monitor-plugin-port'] !== undefined) {
 		config.plugins[MonitorPlugin.name] = config.plugins[MonitorPlugin.name] ?? {};
 		config.plugins[MonitorPlugin.name].port = flags['monitor-plugin-port'];
@@ -64,24 +46,6 @@ type StartFlags = typeof BaseStartCommand.flags & flagParser.Input<any>;
 export class StartCommand extends BaseStartCommand {
 	static flags: StartFlags = {
 		...BaseStartCommand.flags,
-		'enable-http-api-plugin': flagParser.boolean({
-			description:
-				'Enable HTTP API Plugin. Environment variable "LISK_ENABLE_HTTP_API_PLUGIN" can also be used.',
-			env: 'LISK_ENABLE_HTTP_API_PLUGIN',
-			default: false,
-		}),
-		'http-api-plugin-port': flagParser.integer({
-			description:
-				'Port to be used for HTTP API Plugin. Environment variable "LISK_HTTP_API_PLUGIN_PORT" can also be used.',
-			env: 'LISK_HTTP_API_PLUGIN_PORT',
-			dependsOn: ['enable-http-api-plugin'],
-		}),
-		'http-api-plugin-whitelist': flagParser.string({
-			description:
-				'List of IPs in comma separated value to allow the connection. Environment variable "LISK_HTTP_API_PLUGIN_WHITELIST" can also be used.',
-			env: 'LISK_HTTP_API_PLUGIN_WHITELIST',
-			dependsOn: ['enable-http-api-plugin'],
-		}),
 		'enable-forger-plugin': flagParser.boolean({
 			description:
 				'Enable Forger Plugin. Environment variable "LISK_ENABLE_FORGER_PLUGIN" can also be used.',
@@ -138,33 +102,27 @@ export class StartCommand extends BaseStartCommand {
 		}),
 	};
 
-	public getApplication(
-		genesisBlock: Record<string, unknown>,
-		config: PartialApplicationConfig,
-	): Application {
+	public getApplication(config: PartialApplicationConfig): Application {
 		/* eslint-disable @typescript-eslint/no-unsafe-call */
 		const { flags } = this.parse(StartCommand);
 		// Set Plugins Config
 		setPluginConfig(config as ApplicationConfig, flags);
-		const app = getApplication(genesisBlock, config);
+		const app = getApplication(config);
 
-		if (flags['enable-http-api-plugin']) {
-			app.registerPlugin(HTTPAPIPlugin, { loadAsChildProcess: true });
-		}
 		if (flags['enable-forger-plugin']) {
-			app.registerPlugin(ForgerPlugin, { loadAsChildProcess: true });
+			app.registerPlugin(new ForgerPlugin(), { loadAsChildProcess: true });
 		}
 		if (flags['enable-monitor-plugin']) {
-			app.registerPlugin(MonitorPlugin, { loadAsChildProcess: true });
+			app.registerPlugin(new MonitorPlugin(), { loadAsChildProcess: true });
 		}
 		if (flags['enable-report-misbehavior-plugin']) {
-			app.registerPlugin(ReportMisbehaviorPlugin, { loadAsChildProcess: true });
+			app.registerPlugin(new ReportMisbehaviorPlugin(), { loadAsChildProcess: true });
 		}
 		if (flags['enable-faucet-plugin']) {
-			app.registerPlugin(FaucetPlugin, { loadAsChildProcess: true });
+			app.registerPlugin(new FaucetPlugin(), { loadAsChildProcess: true });
 		}
 		if (flags['enable-dashboard-plugin']) {
-			app.registerPlugin(DashboardPlugin, { loadAsChildProcess: true });
+			app.registerPlugin(new DashboardPlugin(), { loadAsChildProcess: true });
 		}
 
 		return app;

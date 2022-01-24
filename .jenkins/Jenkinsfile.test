@@ -117,7 +117,7 @@ pipeline {
 					steps {
 						setup()
 						nvm(getNodejsVersion()) {
-							sh 'npx lerna run test:ci --ignore lisk-{framework,commander,@liskhq/lisk-framework-*} --ignore @liskhq/lisk-p2p'
+							sh 'npx lerna run test:ci --ignore lisk-framework --ignore lisk-commander --ignore=@liskhq/lisk-framework-* --ignore @liskhq/lisk-p2p'
 						}
 					}
 					post {
@@ -221,15 +221,15 @@ pipeline {
 						}
 					}
 				}
-				stage('Lisk Framework Plugins Integration') {
-					agent { node { label 'lisk-framework' }}
-					steps {
-						setup()
-						nvm(getNodejsVersion()) {
-							sh 'npx lerna run test:integration --scope=@liskhq/lisk-framework-* --concurrency 1'
-						}
-					}
-				}
+				// stage('Lisk Framework Plugins Integration') {
+				// 	agent { node { label 'lisk-framework' }}
+				// 	steps {
+				// 		setup()
+				// 		nvm(getNodejsVersion()) {
+				// 			sh 'npx lerna run test:integration --scope=@liskhq/lisk-framework-* --concurrency 1'
+				// 		}
+				// 	}
+				// }
 				// stage('Lisk Framework Plugins Functional') {
 				// 	agent { node { label 'lisk-sdk-quirky' }}
 				// 	steps {
@@ -243,56 +243,56 @@ pipeline {
 		}
 	}
 	post {
-		always {
-			script {
-				try {
-					unstash "coverage_elements"
-				} catch(err) {
-					println "Could not unstash elements. Continuing."
-				}
-				try {
-					unstash "coverage_commander"
-				} catch(err) {
-					println "Could not unstash commander. Continuing."
-				}
-				try {
-					unstash "coverage_jest_unit"
-				} catch(err) {
-					println "Could not unstash jest_unit. Continuing."
-				}
-				try {
-					unstash "coverage_framework_plugins"
-				} catch(err) {
-					println "Could not unstash framework_plugins. Continuing."
-				}
-				sh '''
-					rm -rf .nyc_output; mkdir -p .nyc_output
-					rm -rf ci_coverage; mkdir -p ci_coverage
-					cp -r coverage_elements/* ./.nyc_output
-					cp -r coverage_framework_plugins/* ./.nyc_output
-					cp -r coverage_commander/* ./.nyc_output
-					cp coverage_jest_unit/coverage-final.json ./.nyc_output/coverage-framework-unit.json
-				'''
-				try {
-					nvm(getNodejsVersion()) {
-						sh '''
-						npx nyc merge ./.nyc_output ci_coverage/coverage.json
-						node scripts/map_coverage.js ci_coverage/coverage.json
-						'''
-					}
-					cobertura coberturaReportFile: 'coverage/cobertura-coverage.xml'
-				} catch(err) {
-					println "Could not report coverage statistics:\n${err}"
-				}
-				currentBuild.result = 'SUCCESS'
-				if (env.BRANCH_NAME == 'master') {
-					step([$class: 'MasterCoverageAction', scmVars: [GIT_URL: env.GIT_URL]])
-				}
-				if (env.CHANGE_ID != null) {
-					step([$class: 'CompareCoverageAction', publishResultAs: 'statusCheck', scmVars: [GIT_URL: env.GIT_URL]])
-				}
-			}
-		}
+		// always {
+		// 	script {
+		// 		try {
+		// 			unstash "coverage_elements"
+		// 		} catch(err) {
+		// 			println "Could not unstash elements. Continuing."
+		// 		}
+		// 		try {
+		// 			unstash "coverage_commander"
+		// 		} catch(err) {
+		// 			println "Could not unstash commander. Continuing."
+		// 		}
+		// 		try {
+		// 			unstash "coverage_jest_unit"
+		// 		} catch(err) {
+		// 			println "Could not unstash jest_unit. Continuing."
+		// 		}
+		// 		try {
+		// 			unstash "coverage_framework_plugins"
+		// 		} catch(err) {
+		// 			println "Could not unstash framework_plugins. Continuing."
+		// 		}
+		// 		sh '''
+		// 			rm -rf .nyc_output; mkdir -p .nyc_output
+		// 			rm -rf ci_coverage; mkdir -p ci_coverage
+		// 			cp -r coverage_elements/* ./.nyc_output
+		// 			cp -r coverage_framework_plugins/* ./.nyc_output
+		// 			cp -r coverage_commander/* ./.nyc_output
+		// 			cp coverage_jest_unit/coverage-final.json ./.nyc_output/coverage-framework-unit.json
+		// 		'''
+		// 		try {
+		// 			nvm(getNodejsVersion()) {
+		// 				sh '''
+		// 				npx nyc merge ./.nyc_output ci_coverage/coverage.json
+		// 				node scripts/map_coverage.js ci_coverage/coverage.json
+		// 				'''
+		// 			}
+		// 			cobertura coberturaReportFile: 'coverage/cobertura-coverage.xml'
+		// 		} catch(err) {
+		// 			println "Could not report coverage statistics:\n${err}"
+		// 		}
+		// 		currentBuild.result = 'SUCCESS'
+		// 		if (env.BRANCH_NAME == 'master') {
+		// 			step([$class: 'MasterCoverageAction', scmVars: [GIT_URL: env.GIT_URL]])
+		// 		}
+		// 		if (env.CHANGE_ID != null) {
+		// 			step([$class: 'CompareCoverageAction', publishResultAs: 'statusCheck', scmVars: [GIT_URL: env.GIT_URL]])
+		// 		}
+		// 	}
+		// }
 		cleanup {
 			cleanWs()
 		}

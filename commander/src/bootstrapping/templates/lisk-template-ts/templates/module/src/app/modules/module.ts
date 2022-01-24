@@ -2,33 +2,22 @@
 
 import {
     BaseModule,
-    AfterBlockApplyContext,
-    TransactionApplyContext,
-    BeforeBlockApplyContext,
-    AfterGenesisBlockApplyContext,
-    // GenesisConfig
+    ModuleInitArgs,
+    BlockGenerateContext,
+	BlockVerifyContext,
+	TransactionVerifyContext,
+	VerificationResult,
+	TransactionExecuteContext,
+	GenesisBlockExecuteContext,
+	BlockExecuteContext,
+	BlockAfterExecuteContext,
 } from 'lisk-sdk';
+import { <%= moduleClass %>Endpoint } from './endpoint';
+import { <%= moduleClass %>API } from './api';
 
 export class <%= moduleClass %> extends BaseModule {
-    public actions = {
-        // Example below
-        // getBalance: async (params) => this._dataAccess.account.get(params.address).token.balance,
-        // getBlockByID: async (params) => this._dataAccess.blocks.get(params.id),
-    };
-    public reducers = {
-        // Example below
-        // getBalance: async (
-		// 	params: Record<string, unknown>,
-		// 	stateStore: StateStore,
-		// ): Promise<bigint> => {
-		// 	const { address } = params;
-		// 	if (!Buffer.isBuffer(address)) {
-		// 		throw new Error('Address must be a buffer');
-		// 	}
-		// 	const account = await stateStore.account.getOrDefault<TokenAccount>(address);
-		// 	return account.token.balance;
-		// },
-    };
+    public endpoint = new <%= moduleClass %>Endpoint();
+    public api = new <%= moduleClass %>API();
     public name = '<%= moduleName %>';
     public transactionAssets = [];
     public events = [
@@ -37,35 +26,46 @@ export class <%= moduleClass %> extends BaseModule {
     ];
     public id = <%= moduleID %>;
 
-    // public constructor(genesisConfig: GenesisConfig) {
-    //     super(genesisConfig);
-    // }
+    // Lifecycle hooks
+    public async init(_args: ModuleInitArgs): Promise<void> {
+		// initialize this module when starting a node
+	}
+
+	public async initBlock(_context: BlockGenerateContext): Promise<void> {
+		// initialize block generation, add asset
+	}
+	public async sealBlock(_context: BlockGenerateContext): Promise<void> {
+		// finalize block asset
+	}
+	public async verifyAssets(_context: BlockVerifyContext): Promise<void> {
+		// verify block
+	}
 
     // Lifecycle hooks
-    public async beforeBlockApply(_input: BeforeBlockApplyContext) {
-        // Get any data from stateStore using block info, below is an example getting a generator
-        // const generatorAddress = getAddressFromPublicKey(_input.block.header.generatorPublicKey);
-		// const generator = await _input.stateStore.account.get<TokenAccount>(generatorAddress);
-    }
+	public async verifyTransaction(_context: TransactionVerifyContext): Promise<VerificationResult> {
+		// verify transaction will be called multiple times in the transaction pool
 
-    public async afterBlockApply(_input: AfterBlockApplyContext) {
-        // Get any data from stateStore using block info, below is an example getting a generator
-        // const generatorAddress = getAddressFromPublicKey(_input.block.header.generatorPublicKey);
-		// const generator = await _input.stateStore.account.get<TokenAccount>(generatorAddress);
-    }
+	}
 
-    public async beforeTransactionApply(_input: TransactionApplyContext) {
-        // Get any data from stateStore using transaction info, below is an example
-        // const sender = await _input.stateStore.account.getOrDefault<TokenAccount>(_input.transaction.senderAddress);
-    }
+	public async beforeCommandExecute(_context: TransactionExecuteContext): Promise<void> {
+	}
 
-    public async afterTransactionApply(_input: TransactionApplyContext) {
-        // Get any data from stateStore using transaction info, below is an example
-        // const sender = await _input.stateStore.account.getOrDefault<TokenAccount>(_input.transaction.senderAddress);
-    }
+	public async afterCommandExecute(_context: TransactionExecuteContext): Promise<void> {
 
-    public async afterGenesisBlockApply(_input: AfterGenesisBlockApplyContext) {
-        // Get any data from genesis block, for example get all genesis accounts
-        // const genesisAccounts = genesisBlock.header.asset.accounts;
-    }
+	}
+	public async initGenesisState(_context: GenesisBlockExecuteContext): Promise<void> {
+
+	}
+
+	public async finalizeGenesisState(_context: GenesisBlockExecuteContext): Promise<void> {
+
+	}
+
+	public async beforeTransactionsExecute(_context: BlockExecuteContext): Promise<void> {
+
+	}
+
+	public async afterTransactionsExecute(_context: BlockAfterExecuteContext): Promise<void> {
+
+	}
 }

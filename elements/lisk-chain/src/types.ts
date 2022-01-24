@@ -11,14 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Transaction } from './transaction';
-
-export interface Context {
-	readonly blockVersion: number;
-	readonly blockHeight: number;
-	readonly blockTimestamp: number;
-}
-export type Contexter = (() => Context) | Context;
 
 export interface BlockRewardOptions {
 	readonly distance: number;
@@ -26,51 +18,10 @@ export interface BlockRewardOptions {
 	readonly milestones: ReadonlyArray<bigint>;
 }
 
-export interface BaseBlockHeader {
-	readonly id: Buffer;
-	readonly version: number;
-	readonly timestamp: number;
-	readonly height: number;
-	readonly previousBlockID: Buffer;
-	readonly transactionRoot: Buffer;
-	readonly generatorPublicKey: Buffer;
-	readonly reward: bigint;
-	readonly signature: Buffer;
-}
-
-export type RawBlockHeader = BaseBlockHeader & { asset: Buffer };
-
 export interface RawBlock {
 	header: Buffer;
-	payload: ReadonlyArray<Buffer>;
-}
-
-export interface GenesisBlockHeaderAsset<T = AccountDefaultProps> {
-	readonly accounts: ReadonlyArray<Account<T>>;
-	readonly initDelegates: ReadonlyArray<Buffer>;
-	readonly initRounds: number;
-}
-
-export interface BlockHeaderAsset {
-	readonly seedReveal: Buffer;
-	readonly maxHeightPreviouslyForged: number;
-	readonly maxHeightPrevoted: number;
-}
-
-export type BlockHeader<T = BlockHeaderAsset> = BaseBlockHeader & { asset: T };
-
-export type GenesisBlockHeader<T = AccountDefaultProps> = BaseBlockHeader & {
-	asset: GenesisBlockHeaderAsset<T>;
-};
-
-export interface Block<T = BlockHeaderAsset> {
-	header: BlockHeader<T>;
-	payload: ReadonlyArray<Transaction>;
-}
-
-export interface GenesisBlock<T = AccountDefaultProps> {
-	header: GenesisBlockHeader<T>;
-	payload: ReadonlyArray<Transaction>;
+	transactions: ReadonlyArray<Buffer>;
+	assets: ReadonlyArray<Buffer>;
 }
 
 export interface DiffHistory {
@@ -80,35 +31,22 @@ export interface DiffHistory {
 
 export interface StateDiff {
 	readonly updated: Array<Readonly<UpdatedDiff>>;
-	readonly created: Array<Readonly<string>>;
+	readonly created: Array<Buffer>;
 	readonly deleted: Array<Readonly<UpdatedDiff>>;
 }
 
 export interface UpdatedDiff {
-	readonly key: string;
+	readonly key: Buffer;
 	readonly value: Buffer;
 }
 
-export interface AccountSchema {
-	type: string;
-	fieldNumber: number;
-	properties: Record<string, unknown>;
-	default: Record<string, unknown>;
-}
+type Primitive = string | number | bigint | boolean | null | undefined;
+type Replaced<T, TReplace, TWith, TKeep = Primitive> = T extends TReplace | TKeep
+	? T extends TReplace
+		? TWith | Exclude<T, TReplace>
+		: T
+	: {
+			[P in keyof T]: Replaced<T[P], TReplace, TWith, TKeep>;
+	  };
 
-export type AccountDefaultProps = {
-	[name: string]: { [key: string]: unknown } | undefined | Buffer;
-};
-
-export type Account<T = AccountDefaultProps> = T & { address: Buffer };
-
-export interface Validator {
-	address: Buffer;
-	minActiveHeight: number;
-	isConsensusParticipant: boolean;
-}
-
-export interface GenesisInfo {
-	height: number;
-	initRounds: number;
-}
+export type JSONObject<T> = Replaced<T, bigint | Buffer, string>;
