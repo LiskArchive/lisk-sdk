@@ -13,7 +13,6 @@
  */
 import {
 	BasePlugin,
-	BaseChannel,
 	PluginInitContext,
 	db as liskDB,
 	codec,
@@ -54,7 +53,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async load(_channel: BaseChannel): Promise<void> {
+	public async load(): Promise<void> {
 		// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6201
 		this._pluginDB = await getDBInstance(this.dataPath);
 		// Listen to new block and delete block events

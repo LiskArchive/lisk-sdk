@@ -293,7 +293,7 @@ export class Controller {
 		this._logger.debug({ plugin: name }, 'Plugin is registered to bus');
 
 		await plugin.init({ config, channel, appConfig, logger: this._logger });
-		await plugin.load(channel);
+		await plugin.load();
 
 		this._logger.debug({ plugin: name }, 'Plugin is successfully loaded');
 

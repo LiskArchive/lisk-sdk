@@ -76,7 +76,7 @@ class MyPlugin extends BasePlugin {
 		return '';
 	}
 
-	public async load(_channel: BaseChannel) {
+	public async load() {
 		return Promise.resolve();
 	}
 

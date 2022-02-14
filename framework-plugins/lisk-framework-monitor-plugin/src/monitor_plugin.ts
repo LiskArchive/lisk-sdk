@@ -12,13 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Server } from 'http';
-import {
-	BaseChannel,
-	BasePlugin,
-	validator as liskValidator,
-	chain,
-	PluginInitContext,
-} from 'lisk-sdk';
+import { BasePlugin, validator as liskValidator, chain, PluginInitContext } from 'lisk-sdk';
 import * as express from 'express';
 import type { Express } from 'express';
 import * as cors from 'cors';
@@ -63,7 +57,7 @@ export class MonitorPlugin extends BasePlugin<MonitorPluginConfig> {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async load(_channel: BaseChannel): Promise<void> {
+	public async load(): Promise<void> {
 		this._app = express();
 
 		this._registerMiddlewares(this.config);
