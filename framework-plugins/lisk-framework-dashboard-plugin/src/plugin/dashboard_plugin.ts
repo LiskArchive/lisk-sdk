@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BasePlugin, BaseChannel } from 'lisk-sdk';
+import { BasePlugin } from 'lisk-sdk';
 import * as express from 'express';
 import { join } from 'path';
 import { Server } from 'http';
@@ -30,7 +30,7 @@ export class DashboardPlugin extends BasePlugin<DashboardPluginConfig> {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async load(_channel: BaseChannel): Promise<void> {
+	public async load(): Promise<void> {
 		const config = {
 			applicationUrl: this.config.applicationUrl,
 			applicationName: this.config.applicationName,

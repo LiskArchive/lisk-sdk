@@ -18,7 +18,7 @@ import * as fs from 'fs-extra';
 import * as os from 'os';
 import { join } from 'path';
 import { Block, BlockAssets } from '@liskhq/lisk-chain';
-import { BaseChannel, BasePlugin } from '../../src';
+import { BasePlugin } from '../../src';
 import { Application } from '../../src/application';
 import { Bus } from '../../src/controller/bus';
 // import { IPCServer } from '../../src/controller/ipc/ipc_server';
@@ -52,7 +52,7 @@ class TestPlugin extends BasePlugin {
 		return __filename;
 	}
 
-	public async load(_channel: BaseChannel): Promise<void> {}
+	public async load(): Promise<void> {}
 
 	public async unload(): Promise<void> {}
 }

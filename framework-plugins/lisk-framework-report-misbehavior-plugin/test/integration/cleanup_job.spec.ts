@@ -106,7 +106,7 @@ describe('Clean up old blocks', () => {
 			appConfig: appConfigForPlugin,
 			logger: testing.mocks.loggerMock,
 		});
-		(reportMisbehaviorPlugin as any)._channel = channelMock;
+		(reportMisbehaviorPlugin as any).channel = channelMock;
 
 		await fs.remove(reportMisbehaviorPlugin.dataPath);
 
@@ -152,7 +152,7 @@ describe('Clean up old blocks', () => {
 	});
 
 	it('should clear old block headers', async () => {
-		await reportMisbehaviorPlugin.load(channelMock);
+		await reportMisbehaviorPlugin.load();
 		await (reportMisbehaviorPlugin as any)._pluginDB.put(
 			dbKey,
 			codec.encode(blockHeadersSchema, {

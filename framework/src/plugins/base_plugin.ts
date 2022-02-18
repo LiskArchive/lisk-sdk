@@ -86,6 +86,7 @@ export abstract class BasePlugin<T = Record<string, unknown>> {
 
 	protected apiClient!: APIClient;
 	protected logger!: Logger;
+	protected channel!: BaseChannel;
 
 	private _config!: T;
 	private _appConfig!: ApplicationConfigForPlugin;
@@ -112,6 +113,7 @@ export abstract class BasePlugin<T = Record<string, unknown>> {
 
 	public async init(context: PluginInitContext): Promise<void> {
 		this.logger = context.logger;
+		this.channel = context.channel;
 		if (this.configSchema) {
 			this._config = objects.mergeDeep({}, this.configSchema.default ?? {}, context.config) as T;
 
@@ -129,6 +131,6 @@ export abstract class BasePlugin<T = Record<string, unknown>> {
 	}
 
 	public abstract get nodeModulePath(): string;
-	public abstract load(channel: BaseChannel): Promise<void>;
+	public abstract load(): Promise<void>;
 	public abstract unload(): Promise<void>;
 }
