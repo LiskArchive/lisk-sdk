@@ -14,7 +14,6 @@
 
 import {
 	BasePlugin,
-	BaseChannel,
 	GenesisConfig,
 	utils,
 	codec,
@@ -82,7 +81,6 @@ export class ForgerPlugin extends BasePlugin {
 	public endpoint = new Endpoint();
 
 	private _forgerPluginDB!: liskDB.KVStore;
-	private _channel!: BaseChannel;
 	private _forgersList!: utils.dataStructures.BufferMap<boolean>;
 	private _transactionFees!: TransactionFees;
 	private _syncingWithNode!: boolean;
@@ -101,9 +99,7 @@ export class ForgerPlugin extends BasePlugin {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async load(channel: BaseChannel): Promise<void> {
-		this._channel = channel;
-
+	public async load(): Promise<void> {
 		// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6201
 		// eslint-disable-next-line new-cap
 		this._forgerPluginDB = await getDBInstance(this.dataPath);
@@ -129,14 +125,14 @@ export class ForgerPlugin extends BasePlugin {
 
 	private async _setForgersList(): Promise<void> {
 		this._forgersList = new utils.dataStructures.BufferMap<boolean>();
-		const forgersList = await this._channel.invoke<Forger[]>('app_getForgingStatus');
+		const forgersList = await this.channel.invoke<Forger[]>('app_getForgingStatus');
 		for (const { address, forging } of forgersList) {
 			this._forgersList.set(Buffer.from(address, 'hex'), forging);
 		}
 	}
 
 	private async _setTransactionFees(): Promise<void> {
-		const { genesisConfig } = await this._channel.invoke<NodeInfo>('app_getNodeInfo');
+		const { genesisConfig } = await this.channel.invoke<NodeInfo>('app_getNodeInfo');
 		this._transactionFees = {
 			minFeePerByte: genesisConfig.minFeePerByte,
 			baseFees: genesisConfig.baseFees,
@@ -159,12 +155,12 @@ export class ForgerPlugin extends BasePlugin {
 	}
 
 	private async _syncForgerInfo(): Promise<void> {
-		const lastBlockBytes = await this._channel.invoke<string>('app_getLastBlock');
+		const lastBlockBytes = await this.channel.invoke<string>('app_getLastBlock');
 		const {
 			header: { height: lastBlockHeight },
 		} = Block.fromBytes(Buffer.from(lastBlockBytes, 'hex'));
 		const { syncUptoHeight } = await getForgerSyncInfo(this._forgerPluginDB);
-		const { genesisHeight } = await this._channel.invoke<NodeInfo>('app_getNodeInfo');
+		const { genesisHeight } = await this.channel.invoke<NodeInfo>('app_getNodeInfo');
 		const forgerPluginSyncedHeight = syncUptoHeight === 0 ? genesisHeight : syncUptoHeight;
 
 		if (forgerPluginSyncedHeight === lastBlockHeight) {
@@ -190,7 +186,7 @@ export class ForgerPlugin extends BasePlugin {
 					? BLOCKS_BATCH_TO_SYNC
 					: lastBlockHeight - needleHeight);
 
-			const blocks = await this._channel.invoke<string[]>('app_getBlocksByHeightBetween', {
+			const blocks = await this.channel.invoke<string[]>('app_getBlocksByHeightBetween', {
 				from: needleHeight,
 				to: toHeight,
 			});
@@ -212,7 +208,7 @@ export class ForgerPlugin extends BasePlugin {
 
 	private _subscribeToChannel(): void {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this._channel.subscribe('app_block:new', async (data?: Record<string, unknown>) => {
+		this.channel.subscribe('app_block:new', async (data?: Record<string, unknown>) => {
 			const { block } = (data as unknown) as Data;
 			const forgerTransactionsInfo = this._getForgerHeaderAndTransactionsInfo(block);
 			const {
@@ -224,7 +220,7 @@ export class ForgerPlugin extends BasePlugin {
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this._channel.subscribe('app_block:delete', async (data?: Record<string, unknown>) => {
+		this.channel.subscribe('app_block:delete', async (data?: Record<string, unknown>) => {
 			const { block } = (data as unknown) as Data;
 			const forgerTransactionsInfo = this._getForgerHeaderAndTransactionsInfo(block);
 			const {
@@ -253,7 +249,7 @@ export class ForgerPlugin extends BasePlugin {
 			forgerInfo.totalProducedBlocks += 1;
 			forgerInfo.totalReceivedFees += this._getFee(transactions, encodedBlock);
 
-			this._channel.publish('forger:block:created', {
+			this.channel.publish('forger:block:created', {
 				forgerAddress,
 				height,
 				timestamp: Date.now(),
@@ -389,17 +385,17 @@ export class ForgerPlugin extends BasePlugin {
 			header: { height, timestamp },
 			forgerAddress,
 		} = this._getForgerHeaderAndTransactionsInfo(block);
-		const previousBlockStr = await this._channel.invoke<string>('app_getBlockByHeight', {
+		const previousBlockStr = await this.channel.invoke<string>('app_getBlockByHeight', {
 			height: height - 1,
 		});
 		const {
 			genesisConfig: { blockTime },
-		} = await this._channel.invoke<NodeInfo>('app_getNodeInfo');
+		} = await this.channel.invoke<NodeInfo>('app_getNodeInfo');
 		const { header: previousBlock } = Block.fromBytes(Buffer.from(previousBlockStr, 'hex'));
 		const missedBlocks = Math.ceil((timestamp - previousBlock.timestamp) / blockTime) - 1;
 
 		if (missedBlocks > 0) {
-			const forgersInfo = await this._channel.invoke<
+			const forgersInfo = await this.channel.invoke<
 				readonly { address: string; nextForgingTime: number }[]
 			>('app_getForgers');
 			const forgersRoundLength = forgersInfo.length;
@@ -420,7 +416,7 @@ export class ForgerPlugin extends BasePlugin {
 
 			// Only emit event if block missed and the plugin is not syncing with the forging node
 			if (!this._syncingWithNode) {
-				this._channel.publish('forger:block:missed', {
+				this.channel.publish('forger:block:missed', {
 					missedBlocksByAddress,
 					height,
 					timestamp: Date.now(),
