@@ -50,4 +50,4 @@ export {
 export { RewardAPI, RewardModule } from './modules/reward';
 export { FeeAPI, FeeModule } from './modules/fee';
 export { RandomAPI, RandomModule } from './modules/random';
-export { GenesisBlockExecuteContext } from './node/state_machine/types';
+export { GenesisBlockExecuteContext, CommandExecuteContext } from './node/state_machine/types';
