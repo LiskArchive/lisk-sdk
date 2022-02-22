@@ -13,4 +13,4 @@
  */
 require('../config/setup');
 
-jest.setTimeout(120000);
+jest.setTimeout(1200000);
