@@ -14,9 +14,9 @@
 
 ## Sapphire phase [<img src="https://lisk.com/sites/default/files/2021-05/ico-sapphire.png" style="width:24px;vertical-align:middle">](https://lisk.com/roadmap)
 
-We have completed [Emerald phase](https://lisk.com/roadmap)[<img src="https://lisk.com/sites/default/files/2021-05/ico-emerald.png" style="width:20px;vertical-align:middle">](https://lisk.com/roadmap) that encapsulates improvement in the key areas of network security and reliability, economics, consensus, and longevity, whereby a new address system, a new fee system, and upgrading the consensus algorithm to an improved version of DPoS were successfully completed. During the Emerald phase all protocol improvements in form of 36 Lisk Improvement Proposals (LIPs) were researched, published and are implemented in Lisk SDK.
+We have completed [Emerald phase](https://lisk.com/roadmap)[<img src="https://lisk.com/sites/default/files/2021-05/ico-emerald.png" style="width:20px;vertical-align:middle">](https://lisk.com/roadmap) that encapsulates improvement in the key areas of network security and reliability, economics, consensus and longevity. Specifically a new address system, new fee system and and an upgraded consensus algorithm for an improved version of DPoS were successfully completed. During the Emerald phase all protocol improvements in the form of 36 Lisk Improvement Proposals (LIPs) were researched, published and implemented in Lisk SDK.
 
-We are currently working on [Sapphire phase](https://lisk.com/roadmap)[<img src="https://lisk.com/sites/default/files/2021-05/ico-sapphire.png" style="width:20px;vertical-align:middle">](https://lisk.com/roadmap) that brings the [Lisk interoperability solution blog](https://lisk.com/blog/research/lisk-interoperability-solution-published) which is fully researched and all Lisk Improvement Proposals (LIPs) are published and currently being actively developed. It consists of 8 roadmap objectives,
+We are currently working on [Sapphire phase](https://lisk.com/roadmap)[<img src="https://lisk.com/sites/default/files/2021-05/ico-sapphire.png" style="width:20px;vertical-align:middle">](https://lisk.com/roadmap) that brings the [Lisk interoperability solution](https://lisk.com/blog/research/lisk-interoperability-solution-published) which is fully researched and all Lisk Improvement Proposals (LIPs) are published and currently being actively developed. It consists of 8 roadmap objectives,
 
 - Define cross-chain messaging protocol
 - Define sidechain registration and lifecycle
@@ -27,7 +27,7 @@ We are currently working on [Sapphire phase](https://lisk.com/roadmap)[<img src=
 - Update Lisk-BFT for interoperability
 - Update block header format
 
-To learn more about the Lisk Interoperability and the current development status, check out [Lisk Improvement Proposal](https://github.com/LiskHQ/lips), [Research Forum](https://research.lisk.com/), [Lisk interoperability solution blog](https://lisk.com/blog/research/lisk-interoperability-solution-published) and [development board](https://github.com/orgs/LiskHQ/projects/10/views/4).
+To learn more about the Lisk Interoperability and the current development status, check out [Lisk Improvement Proposal](https://github.com/LiskHQ/lips), [Research Forum](https://research.lisk.com/), [Lisk interoperability solution blog](https://lisk.com/blog/research/lisk-interoperability-solution-published) and [Lisk SDK v6.0.0 project board](https://github.com/orgs/LiskHQ/projects/10/views/4).
 
 We hope you enjoy building your proof-of-concept blockchain applications using the Lisk SDK, and shall look forward to receiving your feedback and contributions during the beta phase.
 
