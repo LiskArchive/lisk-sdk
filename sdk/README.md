@@ -2,7 +2,7 @@
 
 # Lisk SDK
 
-[![Build Status](https://jenkins.lisk.com/job/lisk-sdk/job/development/badge/icon)](https://jenkins.lisk.com/job/lisk-sdk/job/development/)
+[![Build Status](https://jenkins.lisk.com/job/lisk-sdk/job/lisk-sdk/job/development/badge/icon)](https://jenkins.lisk.com/job/lisk-sdk/job/lisk-sdk/job/development/)
 ![npm](https://img.shields.io/npm/v/lisk-sdk)
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/liskHQ/lisk-sdk)
 ![GitHub repo size](https://img.shields.io/github/repo-size/liskhq/lisk-sdk)
@@ -12,15 +12,22 @@
 ![Jenkins Coverage](https://img.shields.io/jenkins/coverage/cobertura?jobUrl=https%3A%2F%2Fjenkins.lisk.com%2Fjob%2Flisk-sdk%2Fjob%2Fdevelopment)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
-## Beta phase
+## Sapphire phase [<img src="https://lisk.com/sites/default/files/2021-05/ico-sapphire.png" style="width:24px;vertical-align:middle">](https://lisk.com/roadmap)
 
-Please read this carefully. With this repository we have opened access to the beta release of the Lisk SDK. We have released the Lisk SDK in its current form in order for us to improve the development experience through community feedback and contributions.
+We have completed [Emerald phase](https://lisk.com/roadmap)[<img src="https://lisk.com/sites/default/files/2021-05/ico-emerald.png" style="width:20px;vertical-align:middle">](https://lisk.com/roadmap) that encapsulates improvement in the key areas of network security and reliability, economics, consensus and longevity. Specifically a new address system, new fee system and and an upgraded consensus algorithm for an improved version of DPoS were successfully completed. During the Emerald phase all protocol improvements in the form of 36 Lisk Improvement Proposals (LIPs) were researched, published and implemented in Lisk SDK.
 
-We strictly discourage anyone from using the beta release of the Lisk SDK for any production-based blockchain applications, i.e. a blockchain operating on a real mainnet. Throughout the beta phase, there will be significant changes in the Lisk protocol and implementation, which will eventually bring accessibility and reliability to a level that is feasible for production-based blockchain applications. At this time we only recommend the Lisk SDK for proof-of-concept blockchain applications, i.e. a blockchain operating on a fake testnet.
+We are currently working on [Sapphire phase](https://lisk.com/roadmap)[<img src="https://lisk.com/sites/default/files/2021-05/ico-sapphire.png" style="width:20px;vertical-align:middle">](https://lisk.com/roadmap) that brings the [Lisk interoperability solution](https://lisk.com/blog/research/lisk-interoperability-solution-published). All related Lisk Improvement Proposals (LIPs) are published and implementation is currently being actively developed. It consists of 8 roadmap objectives,
 
-The only application built using the Lisk SDK currently feasible for production usage is [Lisk Core](https://github.com/liskhq/lisk-core), the client of the Lisk network itself.
+- Define cross-chain messaging protocol
+- Define sidechain registration and lifecycle
+- Introduce token standards for the Lisk ecosystem
+- Introduce alternative validator selection mechanism for sidechains
+- Enhance signature scheme
+- Define state model and state root
+- Update Lisk-BFT for interoperability
+- Update block header format
 
-Please be advised, although we have stabilized the architecture of SDK, we cannot guarantee a blockchain application created with the beta release of the Lisk SDK will remain compatible with our planned release candidates.
+To learn more about the Lisk Interoperability and the current development status, check out [Lisk Improvement Proposal](https://github.com/LiskHQ/lips), [Research Forum](https://research.lisk.com/), [Lisk interoperability solution blog](https://lisk.com/blog/research/lisk-interoperability-solution-published) and [Lisk SDK v6.0.0 project board](https://github.com/orgs/LiskHQ/projects/10/views/4).
 
 We hope you enjoy building your proof-of-concept blockchain applications using the Lisk SDK, and shall look forward to receiving your feedback and contributions during the beta phase.
 
