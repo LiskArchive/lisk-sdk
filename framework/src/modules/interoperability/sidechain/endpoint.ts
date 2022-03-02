@@ -12,11 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule } from '../base_module';
-import { BaseCrossChainCommand } from './base_cross_chain_command';
-import { BaseInteroperableAPI } from './base_interoperable_api';
+import { BaseEndpoint } from '../../base_endpoint';
 
-export abstract class BaseInteroperableModule extends BaseModule {
-	public crossChainCommand: BaseCrossChainCommand[] = [];
-	public abstract crossChainAPI: BaseInteroperableAPI;
-}
+export class SidechainInteroperabilityEndpoint extends BaseEndpoint {}
