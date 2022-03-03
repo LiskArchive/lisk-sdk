@@ -19,6 +19,6 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 	public id = MODULE_ID_INTEROPERABILITY; // Common id for mainchain/sidechain interoperability module
 	public name = MODULE_NAME_INTEROPERABILITY; // Common name for mainchain/sidechain interoperability module
 	// To manage interoperable modules
-	protected interoperaberableModules = new Map<number, BaseInteroperableModule>();
+	protected interoperableModules = new Map<number, BaseInteroperableModule>();
 	public abstract registerInteroperableModule(): void;
 }
