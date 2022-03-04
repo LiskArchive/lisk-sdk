@@ -84,3 +84,49 @@ export interface RecoverCCMsgAPIContext extends CCAPIContext {
 	storeKey: number;
 	storeValue: Buffer;
 }
+
+export interface SendInternalContext {
+	feeAddress: Buffer;
+	moduleID: number;
+	crossChainCommandID: number;
+	receivingChainID: number;
+	fee: bigint;
+	status: number;
+	params: Buffer;
+}
+
+export interface LastCertificate {
+	height: number;
+	timestamp: number;
+	stateRoot: Buffer;
+	validatorsHash: Buffer;
+}
+export interface ChainAccount {
+	name: string;
+	networkID: Buffer;
+	lastCertificate: LastCertificate;
+	status: number;
+}
+
+export interface Inbox {
+	appendPath: Buffer[];
+	size: bigint;
+	root: Buffer;
+}
+
+export interface Outbox {
+	appendPath: Buffer[];
+	size: bigint;
+	root: Buffer;
+}
+
+export interface MessageFeeTokenID {
+	chainID: number;
+	localID: number;
+}
+export interface ChannelData {
+	inbox: Inbox;
+	putbox: Outbox;
+	partnerChainOutboxRoot: Buffer;
+	messageFeeTokenID: MessageFeeTokenID;
+}
