@@ -42,7 +42,6 @@ export abstract class BaseInteroperabilityStore {
 	public abstract appendToInboxTree(chainID: number, appendData: Buffer): Promise<void>;
 	public abstract appendToOutboxTree(chainID: number, appendData: Buffer): Promise<void>;
 	public abstract addToOutbox(chainID: Buffer, ccm: CCMsg): Promise<void>;
-	public abstract addToInbox(chainID: Buffer, ccm: CCMsg): Promise<void>;
 	public abstract terminateChainInternal(chainID: number): Promise<void>;
 	public abstract createTerminatedOutboxAccount(
 		chainID: number,
