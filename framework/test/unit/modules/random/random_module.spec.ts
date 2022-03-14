@@ -382,6 +382,33 @@ describe('RandomModule', () => {
 				'All of the hash onion has been used already. Please update to the new hash onion.',
 			);
 		});
+
+		it('should use random seedReveal when there is no associated generator config', async () => {
+			// Arrange
+			const loggerMock = {
+				warn: jest.fn(),
+			};
+
+			const blockGenerateContext: BlockGenerateContext = testing.createBlockGenerateContext({
+				assets: assetStub,
+				logger: loggerMock as any,
+				networkIdentifier: defaultNetworkIdentifier,
+				getAPIContext: jest.fn() as any,
+				getStore: jest.fn() as any,
+				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
+			});
+
+			// Act
+			await randomModule.init({
+				generatorConfig: { hashOnions: [] },
+				genesisConfig: {} as GenesisConfig,
+				moduleConfig: {},
+			});
+			await expect(randomModule.initBlock(blockGenerateContext)).toResolve();
+
+			// Assert
+			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
+		});
 	});
 
 	describe('initGenesisState', () => {
