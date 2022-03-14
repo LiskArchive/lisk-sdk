@@ -446,7 +446,10 @@ export class Consensus {
 					block,
 				});
 
-				block.validate();
+				this._chain.validateBlock(block, {
+					version: BLOCK_VERSION,
+					acceptedModuleIDs: this._stateMachine.getAllModuleIDs(),
+				});
 				const previousLastBlock = objects.cloneDeep(lastBlock);
 				await this._deleteBlock(lastBlock);
 				try {
@@ -471,7 +474,10 @@ export class Consensus {
 				{ id: block.header.id, height: block.header.height },
 				'Processing valid block',
 			);
-			block.validate();
+			this._chain.validateBlock(block, {
+				version: BLOCK_VERSION,
+				acceptedModuleIDs: this._stateMachine.getAllModuleIDs(),
+			});
 			await this._executeValidated(block);
 
 			this._network.applyNodeInfo({
@@ -549,14 +555,6 @@ export class Consensus {
 	}
 
 	private async _verify(block: Block): Promise<void> {
-		// If the schema or bytes does not match with version 2, it fails even before this
-		// This is for fail safe, and genesis block does not use this function
-		if (block.header.version !== BLOCK_VERSION) {
-			throw new ApplyPenaltyError(`Block version must be ${BLOCK_VERSION}`);
-		}
-		// Check if moduleID is registered
-		this._validateBlockAsset(block);
-
 		const apiContext = createNewAPIContext(this._db);
 
 		// Verify timestamp
@@ -736,14 +734,6 @@ export class Consensus {
 		}
 	}
 
-	private _validateBlockAsset(block: Block): void {
-		for (const asset of block.assets.getAll()) {
-			if (!this._stateMachine.getAllModuleIDs().includes(asset.moduleID)) {
-				throw new Error(`Module with ID: ${asset.moduleID} is not registered.`);
-			}
-		}
-	}
-
 	private _verifyStateRoot(block: Block, stateRoot: Buffer): void {
 		if (!block.header.stateRoot || !stateRoot.equals(block.header.stateRoot)) {
 			throw new Error(
@@ -851,6 +841,11 @@ export class Consensus {
 			deleteLastBlock: async (options: DeleteOptions = {}) => this._deleteLastBlock(options),
 			executeValidated: async (block: Block, options?: ExecuteOptions) =>
 				this._executeValidated(block, options),
+			validate: (block: Block) =>
+				this._chain.validateBlock(block, {
+					version: BLOCK_VERSION,
+					acceptedModuleIDs: this._stateMachine.getAllModuleIDs(),
+				}),
 			verify: async (block: Block) => this._verify(block),
 			getCurrentValidators: async () => this._bftAPI.getCurrentValidators(apiContext),
 			getSlotNumber: async timestamp => this._validatorAPI.getSlotNumber(apiContext, timestamp),

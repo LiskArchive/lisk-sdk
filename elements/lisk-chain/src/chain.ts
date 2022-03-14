@@ -15,7 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import * as createDebug from 'debug';
-import { MerkleTree } from '@liskhq/lisk-tree';
+import { regularMerkleTree } from '@liskhq/lisk-tree';
 import {
 	DEFAULT_MAX_BLOCK_HEADER_CACHE,
 	DEFAULT_MIN_BLOCK_HEADER_CACHE,
@@ -43,6 +43,11 @@ interface ChainInitArgs {
 	readonly db: KVStore;
 	readonly networkIdentifier: Buffer;
 	readonly genesisBlock: Block;
+}
+
+interface BlockValidationInput {
+	readonly version: number;
+	readonly acceptedModuleIDs: number[];
 }
 
 const debug = createDebug('lisk:chain');
@@ -156,8 +161,16 @@ export class Chain {
 		return true;
 	}
 
-	public async verifyAssets(block: Block): Promise<void> {
+	public validateBlock(block: Block, inputs: BlockValidationInput): void {
 		block.validate();
+		if (block.header.version !== inputs.version) {
+			throw new Error(`Block version must be ${inputs.version}.`);
+		}
+		for (const asset of block.assets.getAll()) {
+			if (!inputs.acceptedModuleIDs.includes(asset.moduleID)) {
+				throw new Error(`Block asset from moduleID: ${asset.moduleID} is not accepted.`);
+			}
+		}
 		const transactionIDs = [];
 		let transactionsSize = 0;
 		for (const tx of block.transactions) {
@@ -169,9 +182,9 @@ export class Chain {
 				`Transactions length is longer than configured length: ${this.constants.maxTransactionsSize}.`,
 			);
 		}
-		const tree = new MerkleTree();
-		await tree.init(transactionIDs);
-		if (!tree.root.equals(block.header.transactionRoot as Buffer)) {
+
+		const transactionRoot = regularMerkleTree.calculateMerkleRootWithLeaves(transactionIDs);
+		if (!transactionRoot.equals(block.header.transactionRoot as Buffer)) {
 			throw new Error('Invalid transaction root.');
 		}
 	}

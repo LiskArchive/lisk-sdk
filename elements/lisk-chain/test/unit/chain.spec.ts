@@ -34,6 +34,7 @@ import {
 	DEFAULT_MAX_BLOCK_HEADER_CACHE,
 	DEFAULT_MIN_BLOCK_HEADER_CACHE,
 } from '../../src/constants';
+import { BlockAssets } from '../../src';
 
 describe('chain', () => {
 	const constants = {
@@ -316,7 +317,7 @@ describe('chain', () => {
 		});
 	});
 
-	describe('verifyAssets', () => {
+	describe('validateBlock', () => {
 		let block: Block;
 
 		it('should throw error if transaction root does not match', async () => {
@@ -326,7 +327,9 @@ describe('chain', () => {
 				header: { transactionRoot: Buffer.from('1234567890') },
 			});
 			// Act & assert
-			await expect(chainInstance.verifyAssets(block)).rejects.toThrow('Invalid transaction root');
+			expect(() =>
+				chainInstance.validateBlock(block, { version: 2, acceptedModuleIDs: [] }),
+			).toThrow('Invalid transaction root');
 		});
 
 		it('should throw error if transactions exceeds max transactions length', async () => {
@@ -335,9 +338,33 @@ describe('chain', () => {
 			const txs = new Array(200).fill(0).map(() => getTransaction());
 			block = await createValidDefaultBlock({ transactions: txs });
 			// Act & assert
-			await expect(chainInstance.verifyAssets(block)).rejects.toThrow(
-				'Transactions length is longer than configured length: 100.',
-			);
+			expect(() =>
+				chainInstance.validateBlock(block, { version: 2, acceptedModuleIDs: [] }),
+			).toThrow('Transactions length is longer than configured length: 100.');
+		});
+
+		it('should throw error if block version is not as expected', async () => {
+			// Arrange
+			(chainInstance as any).constants.maxTransactionsSize = 100;
+			const txs = new Array(200).fill(0).map(() => getTransaction());
+			block = await createValidDefaultBlock({ transactions: txs });
+			(block.header as any).version = 3;
+			// Act & assert
+			expect(() =>
+				chainInstance.validateBlock(block, { version: 2, acceptedModuleIDs: [] }),
+			).toThrow('Block version must be 2.');
+		});
+
+		it('should throw error if assets data from unknown module', async () => {
+			// Arrange
+			(chainInstance as any).constants.maxTransactionsSize = 100;
+			const txs = new Array(200).fill(0).map(() => getTransaction());
+			const assets = new BlockAssets([{ moduleID: 1515, data: getRandomBytes(32) }]);
+			block = await createValidDefaultBlock({ transactions: txs, assets });
+			// Act & assert
+			expect(() =>
+				chainInstance.validateBlock(block, { version: 2, acceptedModuleIDs: [] }),
+			).toThrow('Block asset from moduleID: 1515 is not accepted.');
 		});
 	});
 });

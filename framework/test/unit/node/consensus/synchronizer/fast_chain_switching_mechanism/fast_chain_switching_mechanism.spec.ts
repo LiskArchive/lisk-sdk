@@ -85,6 +85,7 @@ describe('fast_chain_switching_mechanism', () => {
 		chainModule.dataAccess = dataAccessMock;
 
 		blockExecutor = {
+			validate: jest.fn(),
 			verify: jest.fn(),
 			executeValidated: jest.fn(),
 			deleteLastBlock: jest.fn(),
