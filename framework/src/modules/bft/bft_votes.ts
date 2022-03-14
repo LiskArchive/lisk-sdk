@@ -88,11 +88,7 @@ export const updatePrevotesPrecommits = async (
 				v.address.equals(blockBFTInfo.generatorAddress),
 			);
 			if (!bftValidator) {
-				throw new Error(
-					`Invalid state. Validator ${blockBFTInfo.generatorAddress.toString(
-						'hex',
-					)} must be in the BFT parameters at height ${blockBFTInfo.height}`,
-				);
+				continue;
 			}
 			blockBFTInfo.precommitWeight += bftValidator.bftWeight;
 			if (!hasPrecommitted) {
@@ -123,11 +119,7 @@ export const updatePrevotesPrecommits = async (
 			v.address.equals(blockBFTInfo.generatorAddress),
 		);
 		if (!bftValidator) {
-			throw new Error(
-				`Invalid state. Validator ${blockBFTInfo.generatorAddress.toString(
-					'hex',
-				)} must be in the BFT parameters at height ${blockBFTInfo.height}`,
-			);
+			continue;
 		}
 		blockBFTInfo.prevoteWeight += bftValidator.bftWeight;
 	}
