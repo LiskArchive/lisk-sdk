@@ -12,25 +12,25 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { KVStore } from '@liskhq/lisk-db';
 import { BaseInteroperableModule } from './base_interoperable_module';
-import { CCMsg, CCUpdateParams, ChainAccount, ChannelData, SendInternalContext } from './types';
+import { CCMsg, CCUpdateParams, SendInternalContext } from './types';
+import { SubStore } from '../../node/state_machine/types';
 
 export abstract class BaseInteroperabilityStore {
+	public readonly getStore: (moduleID: number, storePrefix: number) => SubStore;
 	private readonly _moduleID: number;
 	private readonly _interoperableModules = new Map<number, BaseInteroperableModule>();
-	private readonly _getStore: (moduleID: number, storePrefix: number) => KVStore;
 
 	public constructor(
 		moduleID: number,
-		getStore: (moduleID: number, storePrefix: number) => KVStore,
+		getStore: (moduleID: number, storePrefix: number) => SubStore,
 		interoperableModules: Map<number, BaseInteroperableModule>,
 	) {
 		this._moduleID = moduleID;
 		this._interoperableModules = interoperableModules;
-		this._getStore = getStore;
+		this.getStore = getStore;
 		// eslint-disable-next-line no-console
-		console.log(!this._moduleID, !this._interoperableModules, !this._getStore);
+		console.log(!this._moduleID, !this._interoperableModules, !this.getStore);
 	}
 
 	// Different in mainchain and sidechain so to be implemented in each module store separately
@@ -40,8 +40,8 @@ export abstract class BaseInteroperabilityStore {
 	// To be implemented in base class
 	public abstract apply(ccu: CCUpdateParams, ccm: CCMsg): Promise<void>;
 	public abstract appendToInboxTree(chainID: number, appendData: Buffer): Promise<void>;
-	public abstract appendToOutboxTree(chainID: number, appendData: Buffer): Promise<void>;
-	public abstract addToOutbox(chainID: Buffer, ccm: CCMsg): Promise<void>;
+	public abstract appendToOutboxTree(chainID: Buffer, appendData: Buffer): Promise<boolean>;
+	public abstract addToOutbox(chainID: Buffer, ccm: CCMsg): Promise<boolean>;
 	public abstract terminateChainInternal(chainID: number): Promise<void>;
 	public abstract createTerminatedOutboxAccount(
 		chainID: number,
@@ -53,6 +53,6 @@ export abstract class BaseInteroperabilityStore {
 	public abstract getTerminatedStateAccount(chainID: number): Promise<void>;
 	public abstract getInboxRoot(chainID: number): Promise<void>;
 	public abstract getOutboxRoot(chainID: number): Promise<void>;
-	public abstract getChainAccount(chainID: number): Promise<ChainAccount>;
-	public abstract getChannel(chainID: number): Promise<ChannelData>;
+	public abstract getChainAccount(chainID: number): Promise<void>; // TODO: Update to Promise<ChainAccount> after implementation
+	public abstract getChannel(chainID: number): Promise<void>; // TODO: Update to Promise<ChannelData> after implementation
 }
