@@ -126,7 +126,7 @@ export interface MessageFeeTokenID {
 }
 export interface ChannelData {
 	inbox: Inbox;
-	putbox: Outbox;
+	outbox: Outbox;
 	partnerChainOutboxRoot: Buffer;
 	messageFeeTokenID: MessageFeeTokenID;
 }
