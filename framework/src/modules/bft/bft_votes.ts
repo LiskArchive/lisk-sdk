@@ -85,10 +85,14 @@ export const updatePrevotesPrecommits = async (
 		const params = await paramsCache.getParameters(blockBFTInfo.height);
 		if (blockBFTInfo.prevoteWeight >= params.prevoteThreshold) {
 			const bftValidator = params.validators.find(v =>
-				v.address.equals(blockBFTInfo.generatorAddress),
+				v.address.equals(newBlockBFTInfo.generatorAddress),
 			);
 			if (!bftValidator) {
-				continue;
+				throw new Error(
+					`Invalid state. Validator ${newBlockBFTInfo.generatorAddress.toString(
+						'hex',
+					)} must be in the BFT parameters at height ${newBlockBFTInfo.height}`,
+				);
 			}
 			blockBFTInfo.precommitWeight += bftValidator.bftWeight;
 			if (!hasPrecommitted) {
@@ -116,10 +120,14 @@ export const updatePrevotesPrecommits = async (
 		}
 		const params = await paramsCache.getParameters(blockBFTInfo.height);
 		const bftValidator = params.validators.find(v =>
-			v.address.equals(blockBFTInfo.generatorAddress),
+			v.address.equals(newBlockBFTInfo.generatorAddress),
 		);
 		if (!bftValidator) {
-			continue;
+			throw new Error(
+				`Invalid state. Validator ${newBlockBFTInfo.generatorAddress.toString(
+					'hex',
+				)} must be in the BFT parameters at height ${newBlockBFTInfo.height}`,
+			);
 		}
 		blockBFTInfo.prevoteWeight += bftValidator.bftWeight;
 	}
