@@ -116,7 +116,7 @@ export interface Inbox {
 
 export interface Outbox {
 	appendPath: Buffer[];
-	size: bigint;
+	size: number;
 	root: Buffer;
 }
 

@@ -30,7 +30,8 @@ export const channelSchema = {
 					fieldNumber: 1,
 				},
 				size: {
-					dataType: 'uint64',
+					// TODO: Update to uint64 after issue 7075
+					dataType: 'uint32',
 					fieldNumber: 2,
 				},
 				root: {
@@ -52,7 +53,8 @@ export const channelSchema = {
 					fieldNumber: 1,
 				},
 				size: {
-					dataType: 'uint64',
+					// TODO: Update to uint64 after issue 7075
+					dataType: 'uint32',
 					fieldNumber: 2,
 				},
 				root: {
