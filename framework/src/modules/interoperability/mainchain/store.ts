@@ -21,6 +21,15 @@ import { ccmSchema, channelSchema, outboxRootSchema } from '../schema';
 import { CCMsg, CCUpdateParams, ChannelData, SendInternalContext } from '../types';
 
 export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
+	public async appendToOutboxTree(chainID: Buffer, appendData: Buffer) {
+		const channelSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA);
+		const channel = await channelSubstore.getWithSchema<ChannelData>(chainID, channelSchema);
+		const outboxTreeInfo = regularMerkleTree.calculateMerkleRoot({ value: hash(appendData), appendPath: channel.outbox.appendPath, size: channel.outbox.size });
+		await channelSubstore.setWithSchema(chainID, { ...channel, outbox: outboxTreeInfo }, channelSchema);
+
+		return true;
+	}
+
 	public async apply(ccu: CCUpdateParams, ccm: CCMsg): Promise<void> {
 		console.log(ccu, ccm);
 	}
