@@ -30,7 +30,6 @@ export const channelSchema = {
 					fieldNumber: 1,
 				},
 				size: {
-					// TODO: Update to uint64 after issue 7075
 					dataType: 'uint32',
 					fieldNumber: 2,
 				},
@@ -53,7 +52,6 @@ export const channelSchema = {
 					fieldNumber: 1,
 				},
 				size: {
-					// TODO: Update to uint64 after issue 7075
 					dataType: 'uint32',
 					fieldNumber: 2,
 				},
@@ -100,11 +98,48 @@ export const outboxRootSchema = {
 export const ccmSchema = {
 	$id: 'modules/interoperability/ccm',
 	type: 'object',
-	required: ['root'],
+	required: [
+		'nonce',
+		'moduleID',
+		'crossChainCommandID',
+		'sendingChainID',
+		'receivingChainID',
+		'fee',
+		'status',
+		'params',
+	],
 	properties: {
-		root: {
-			dataType: 'bytes',
+		nonce: {
+			dataType: 'uint64',
 			fieldNumber: 1,
+		},
+		moduleID: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+		crossChainCommandID: {
+			dataType: 'uint32',
+			fieldNumber: 3,
+		},
+		sendingChainID: {
+			dataType: 'uint32',
+			fieldNumber: 4,
+		},
+		receivingChainID: {
+			dataType: 'uint32',
+			fieldNumber: 5,
+		},
+		fee: {
+			dataType: 'uint64',
+			fieldNumber: 6,
+		},
+		status: {
+			dataType: 'uint32',
+			fieldNumber: 7,
+		},
+		params: {
+			dataType: 'bytes',
+			fieldNumber: 8,
 		},
 	},
 };
