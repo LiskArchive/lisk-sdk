@@ -28,14 +28,14 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	public async appendToOutboxTree(chainID: Buffer, appendData: Buffer) {
 		const channelSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA);
 		const channel = await channelSubstore.getWithSchema<ChannelData>(chainID, channelSchema);
-		const outboxTreeInfo = regularMerkleTree.calculateMerkleRoot({
+		const updatedOutbox = regularMerkleTree.calculateMerkleRoot({
 			value: hash(appendData),
 			appendPath: channel.outbox.appendPath,
 			size: channel.outbox.size,
 		});
 		await channelSubstore.setWithSchema(
 			chainID,
-			{ ...channel, outbox: outboxTreeInfo },
+			{ ...channel, outbox: updatedOutbox },
 			channelSchema,
 		);
 
