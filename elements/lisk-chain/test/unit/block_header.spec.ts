@@ -155,8 +155,12 @@ describe('block_header', () => {
 		});
 
 		describe('validate', () => {
-			it('should validate the block header without error', () => {
+			it('should validate the block header without error if all the properties are valid', () => {
 				const data = getBlockAttrs();
+				data.signature = Buffer.from(
+					'41f7d923c8957664923b49d7a893153476bc60e0392702cf111a26a92d74279a00c41f1999504c9faeee7b3d05393ca04d61a0768c3ae4d324f3097ab0b52201',
+					'hex',
+				);
 				const blockHeader = new BlockHeader(data);
 
 				expect(blockHeader.validate()).toBeUndefined();
@@ -167,6 +171,13 @@ describe('block_header', () => {
 				const blockHeader = new BlockHeader({ ...data, previousBlockID: Buffer.alloc(0) });
 
 				expect(() => blockHeader.validate()).toThrow('Previous block id must not be empty.');
+			});
+
+			it('should throw error if signature length is not correct', () => {
+				const data = getBlockAttrs();
+				const blockHeader = new BlockHeader(data);
+
+				expect(() => blockHeader.validate()).toThrow('Signature length must be 64 bytes.');
 			});
 		});
 
