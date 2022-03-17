@@ -36,13 +36,13 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"bip39": "3.0.3"
+		"bip39": "3.0.4"
 	},
 	"devDependencies": {
 		"@types/bip39": "3.0.0",
 		"@types/jest": "26.0.21",
 		"@types/jest-when": "2.7.2",
-		"@types/node": "12.20.6",
+		"@types/node": "16.11.26",
 		"@typescript-eslint/eslint-plugin": "4.19.0",
 		"@typescript-eslint/parser": "4.19.0",
 		"eslint": "7.22.0",

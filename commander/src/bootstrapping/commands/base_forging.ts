@@ -43,7 +43,7 @@ export abstract class BaseForgingCommand extends BaseIPCClientCommand {
 		overwrite: flagParser.boolean({
 			description: 'Overwrites the forger info',
 			default: false,
-		}),
+		}) as flagParser.IFlag<boolean>,
 	};
 
 	protected forging!: boolean;
@@ -96,7 +96,7 @@ export abstract class BaseForgingCommand extends BaseIPCClientCommand {
 			this.log('Forging status:');
 			this.printJSON(result);
 		} catch (error) {
-			this.error(error);
+			this.error(error as Error);
 		}
 	}
 }

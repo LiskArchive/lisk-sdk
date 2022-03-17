@@ -23,7 +23,7 @@ import * as validator from '@liskhq/lisk-validator';
 import Command, { flags as flagParser } from '@oclif/command';
 import { Application, PartialApplicationConfig, RegisteredSchema } from 'lisk-framework';
 import { PromiseResolvedType } from '../../../types';
-import { flagsWithParser } from '../../../utils/flags';
+import { flags as defaultFlags, flagsWithParser } from '../../../utils/flags';
 import { getDefaultPath } from '../../../utils/path';
 import { getAssetFromPrompt, getPassphraseFromPrompt } from '../../../utils/reader';
 import {
@@ -43,12 +43,13 @@ interface CreateFlags {
 	'network-identifier'?: string;
 	passphrase?: string;
 	asset?: string;
-	pretty: boolean;
+	pretty?: boolean;
 	offline: boolean;
 	'data-path'?: string;
 	'no-signature': boolean;
 	'sender-public-key'?: string;
 	nonce?: string;
+	json?: boolean;
 }
 
 interface Transaction {
@@ -150,7 +151,7 @@ const createTransactionOffline = async (
 ) => {
 	const asset = await getAssetObject(registeredSchema, flags, args);
 	const { passphrase, publicKey } = await getPassphraseAddressAndPublicKey(flags);
-	transaction.nonce = BigInt(flags.nonce);
+	transaction.nonce = BigInt(flags.nonce ?? 0);
 	transaction.asset = asset;
 	transaction.senderPublicKey =
 		publicKey || Buffer.from(flags['sender-public-key'] as string, 'hex');
@@ -237,7 +238,7 @@ export abstract class CreateCommand extends Command {
 		'transaction:create 2 0 100000000 --offline --network mainnet --network-identifier 873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3 --nonce 1 --asset=\'{"amount":100000000,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}\'',
 	];
 
-	static flags = {
+	static flags: flagParser.Input<CreateFlags> = {
 		passphrase: flagsWithParser.passphrase,
 		asset: flagParser.string({
 			char: 'a',
@@ -246,7 +247,7 @@ export abstract class CreateCommand extends Command {
 		json: flagsWithParser.json,
 		// We can't specify default value with `dependsOn` https://github.com/oclif/oclif/issues/211
 		offline: flagParser.boolean({
-			...flagsWithParser.offline,
+			description: defaultFlags.offline.description,
 			dependsOn: ['network-identifier', 'nonce'],
 			exclusive: ['data-path'],
 		}),
@@ -312,16 +313,16 @@ export abstract class CreateCommand extends Command {
 		}
 
 		if (flags.json) {
-			this.printJSON(flags.pretty, {
+			this.printJSON(!!flags.pretty, {
 				transaction: encodeTransaction(this._schema, transactionObject, this._client).toString(
 					'hex',
 				),
 			});
-			this.printJSON(flags.pretty, {
+			this.printJSON(!!flags.pretty, {
 				transaction: transactionToJSON(this._schema, transactionObject, this._client),
 			});
 		} else {
-			this.printJSON(flags.pretty, {
+			this.printJSON(!!flags.pretty, {
 				transaction: encodeTransaction(this._schema, transactionObject, this._client).toString(
 					'hex',
 				),

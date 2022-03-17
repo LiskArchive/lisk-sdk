@@ -53,50 +53,50 @@ export abstract class StartCommand extends Command {
 		'overwrite-config': flagParser.boolean({
 			description: 'Overwrite network configs if they exist already',
 			default: false,
-		}),
+		}) as flagParser.IFlag<boolean | undefined>,
 		port: flagParser.integer({
 			char: 'p',
 			description:
 				'Open port for the peer to peer incoming connections. Environment variable "LISK_PORT" can also be used.',
 			env: 'LISK_PORT',
-		}),
+		}) as flagParser.IFlag<number | undefined>,
 		'api-ipc': flagParser.boolean({
 			description:
 				'Enable IPC communication. This will load plugins as a child process and communicate over IPC. Environment variable "LISK_API_IPC" can also be used.',
 			env: 'LISK_API_IPC',
 			default: false,
 			exclusive: ['api-ws'],
-		}),
+		}) as flagParser.IFlag<boolean>,
 		'api-ws': flagParser.boolean({
 			description:
 				'Enable websocket communication for api-client. Environment variable "LISK_API_WS" can also be used.',
 			env: 'LISK_API_WS',
 			default: false,
 			exclusive: ['api-ipc'],
-		}),
+		}) as flagParser.IFlag<boolean>,
 		'api-ws-port': flagParser.integer({
 			description:
 				'Port to be used for api-client websocket. Environment variable "LISK_API_WS_PORT" can also be used.',
 			env: 'LISK_API_WS_PORT',
 			dependsOn: ['api-ws'],
-		}),
+		}) as flagParser.IFlag<number | undefined>,
 		'console-log': flagParser.string({
 			description:
 				'Console log level. Environment variable "LISK_CONSOLE_LOG_LEVEL" can also be used.',
 			env: 'LISK_CONSOLE_LOG_LEVEL',
 			options: LOG_OPTIONS,
-		}),
+		}) as flagParser.IFlag<string | undefined>,
 		log: flagParser.string({
 			char: 'l',
 			description: 'File log level. Environment variable "LISK_FILE_LOG_LEVEL" can also be used.',
 			env: 'LISK_FILE_LOG_LEVEL',
 			options: LOG_OPTIONS,
-		}),
+		}) as flagParser.IFlag<string | undefined>,
 		'seed-peers': flagParser.string({
 			env: 'LISK_SEED_PEERS',
 			description:
 				'Seed peers to initially connect to in format of comma separated "ip:port". IP can be DNS name or IPV4 format. Environment variable "LISK_SEED_PEERS" can also be used.',
-		}),
+		}) as flagParser.IFlag<string | undefined>,
 	};
 
 	async run(): Promise<void> {
@@ -223,7 +223,9 @@ export abstract class StartCommand extends Command {
 			await app.run();
 		} catch (errors) {
 			this.error(
-				Array.isArray(errors) ? errors.map(err => (err as Error).message).join(',') : errors,
+				Array.isArray(errors)
+					? errors.map(err => (err as Error).message).join(',')
+					: (errors as string),
 			);
 		}
 	}

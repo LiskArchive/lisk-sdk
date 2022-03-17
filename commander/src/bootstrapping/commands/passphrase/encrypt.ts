@@ -37,7 +37,7 @@ export class EncryptCommand extends Command {
 		passphrase: flagsWithParser.passphrase,
 		'output-public-key': flagParser.boolean({
 			description: outputPublicKeyOptionDescription,
-		}),
+		}) as flagParser.IFlag<boolean | undefined>,
 		pretty: flagsWithParser.pretty,
 	};
 
@@ -53,7 +53,7 @@ export class EncryptCommand extends Command {
 
 		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 		const password = passwordSource ?? (await getPasswordFromPrompt('password', true));
-		const result = encryptPassphrase(passphrase, password, outputPublicKey);
+		const result = encryptPassphrase(passphrase, password, !!outputPublicKey);
 
 		this.printJSON(result, pretty);
 	}

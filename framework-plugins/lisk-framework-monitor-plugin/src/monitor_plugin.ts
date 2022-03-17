@@ -125,7 +125,7 @@ export class MonitorPlugin extends BasePlugin {
 	private _registerMiddlewares(options: Options): void {
 		// Register middlewares
 		this._app.use(cors(options.cors));
-		this._app.use(express.json());
+		this._app.use(express.json() as express.RequestHandler);
 		this._app.use(rateLimit(options.limits));
 		this._app.use(middlewares.whiteListMiddleware(options));
 	}

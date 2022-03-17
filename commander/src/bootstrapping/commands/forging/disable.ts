@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import { BaseForgingCommand } from '../base_forging';
 
 export abstract class DisableCommand extends BaseForgingCommand {

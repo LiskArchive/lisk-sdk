@@ -49,7 +49,7 @@ export class ValidateCommand extends Command {
 			);
 		} catch (error) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			this.error(error.message);
+			this.error((error as Error).message);
 		}
 	}
 }

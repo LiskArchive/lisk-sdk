@@ -44,7 +44,7 @@ export abstract class ImportCommand extends Command {
 		force: flagParser.boolean({
 			char: 'f',
 			description: 'To overwrite the existing data if present.',
-		}),
+		}) as flagParser.IFlag<boolean | undefined>,
 	};
 
 	async run(): Promise<void> {

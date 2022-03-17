@@ -144,24 +144,24 @@ export const flagsWithParser = {
 	dataPath: flagParser.string({
 		...flags.dataPath,
 		env: 'LISK_DATA_PATH',
-	}),
+	}) as flagParser.IFlag<string | undefined>,
 	network: flagParser.string({
 		...flags.network,
 		env: 'LISK_NETWORK',
 		default: DEFAULT_NETWORK,
-	}),
+	}) as flagParser.IFlag<string>,
 	config: flagParser.string({
 		...flags.config,
 		env: 'LISK_CONFIG_FILE',
-	}),
-	pretty: flagParser.boolean(flags.pretty),
+	}) as flagParser.IFlag<string | undefined>,
+	pretty: flagParser.boolean(flags.pretty) as flagParser.IFlag<boolean | undefined>,
 	passphrase: flagParser.string(flags.passphrase),
 	output: flagParser.string(flags.output),
 	password: flagParser.string(flags.password),
 	offline: flagParser.boolean({
 		...flags.offline,
-	}),
-	json: flagParser.boolean(flags.json),
+	}) as flagParser.IFlag<boolean | undefined>,
+	json: flagParser.boolean(flags.json) as flagParser.IFlag<boolean | undefined>,
 	senderPublicKey: flagParser.string(flags.senderPublicKey),
 	networkIdentifier: flagParser.string(flags.networkIdentifier),
 };

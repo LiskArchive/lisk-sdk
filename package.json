@@ -73,6 +73,6 @@
 		"lint-staged": "10.5.4",
 		"prettier": "2.2.1",
 		"typescript": "4.2.3",
-		"yarn": "1.22.10"
+		"yarn": "1.22.17"
 	}
 }

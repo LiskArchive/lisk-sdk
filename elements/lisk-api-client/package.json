@@ -42,13 +42,13 @@
 		"isomorphic-ws": "4.0.1",
 		"pm2-axon": "4.0.1",
 		"pm2-axon-rpc": "0.7.1",
-		"ws": "7.4.6"
+		"ws": "8.5.0"
 	},
 	"devDependencies": {
 		"@liskhq/lisk-chain": "^0.3.3",
 		"@types/jest": "26.0.21",
 		"@types/jest-when": "2.7.2",
-		"@types/node": "12.20.6",
+		"@types/node": "16.11.26",
 		"@typescript-eslint/eslint-plugin": "4.19.0",
 		"@typescript-eslint/parser": "4.19.0",
 		"eslint": "7.22.0",

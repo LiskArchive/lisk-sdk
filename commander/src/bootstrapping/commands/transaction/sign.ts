@@ -45,7 +45,9 @@ interface SignFlags {
 	'network-identifier': string | undefined;
 	passphrase: string | undefined;
 	'include-sender': boolean;
-	offline: boolean;
+	offline?: boolean;
+	json?: boolean;
+	pretty?: boolean;
 	'data-path': string | undefined;
 	'sender-public-key': string | undefined;
 	'mandatory-keys': string[];
@@ -178,7 +180,7 @@ export abstract class SignCommand extends Command {
 		},
 	];
 
-	static flags = {
+	static flags: flagParser.Input<SignFlags> = {
 		passphrase: flagsWithParser.passphrase,
 		json: flagsWithParser.json,
 		offline: {
@@ -240,16 +242,16 @@ export abstract class SignCommand extends Command {
 		}
 
 		if (flags.json) {
-			this.printJSON(flags.pretty, {
+			this.printJSON(!!flags.pretty, {
 				transaction: encodeTransaction(this._schema, signedTransaction, this._client).toString(
 					'hex',
 				),
 			});
-			this.printJSON(flags.pretty, {
+			this.printJSON(!!flags.pretty, {
 				transaction: transactionToJSON(this._schema, signedTransaction, this._client),
 			});
 		} else {
-			this.printJSON(flags.pretty, {
+			this.printJSON(!!flags.pretty, {
 				transaction: encodeTransaction(this._schema, signedTransaction, this._client).toString(
 					'hex',
 				),

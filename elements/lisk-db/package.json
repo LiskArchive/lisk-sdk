@@ -36,17 +36,17 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"debug": "4.3.1",
+		"debug": "4.3.4",
 		"levelup": "4.4.0",
 		"rocksdb": "5.1.1"
 	},
 	"devDependencies": {
-		"@types/debug": "4.1.5",
+		"@types/debug": "4.1.7",
 		"@types/encoding-down": "5.0.0",
 		"@types/jest": "26.0.21",
 		"@types/jest-when": "2.7.2",
 		"@types/levelup": "4.3.0",
-		"@types/node": "12.20.6",
+		"@types/node": "16.11.26",
 		"@types/rocksdb": "3.0.1",
 		"@typescript-eslint/eslint-plugin": "4.19.0",
 		"@typescript-eslint/parser": "4.19.0",
