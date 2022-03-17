@@ -15,7 +15,7 @@
 import { signDataWithPrivateKey, hash, verifyData } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
-import { EMPTY_BUFFER, EMPTY_HASH, TAG_BLOCK_HEADER } from './constants';
+import { EMPTY_BUFFER, EMPTY_HASH, SIGNATURE_LENGTH_BYTES, TAG_BLOCK_HEADER } from './constants';
 import { blockHeaderSchema, blockHeaderSchemaWithId, signingBlockHeaderSchema } from './schema';
 import { JSONObject } from './types';
 
@@ -167,6 +167,9 @@ export class BlockHeader {
 		}
 		if (this.previousBlockID.length === 0) {
 			throw new Error('Previous block id must not be empty.');
+		}
+		if (this.signature.length !== SIGNATURE_LENGTH_BYTES) {
+			throw new Error('Signature length must be 64 bytes.');
 		}
 	}
 
