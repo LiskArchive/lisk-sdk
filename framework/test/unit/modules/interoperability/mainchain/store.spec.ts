@@ -27,7 +27,6 @@ import {
 	chainAccountSchema,
 	terminatedStateSchema,
 } from '../../../../../src/modules/interoperability/schema';
-import { ChainAccount } from '../../../../../src/modules/interoperability/types';
 
 describe('Mainchain interoperability store', () => {
 	const chainID = Buffer.from(MAINCHAIN_ID.toString(16), 'hex');
@@ -79,15 +78,13 @@ describe('Mainchain interoperability store', () => {
 			expect(bool).toBe(false);
 		});
 
-		it('should return false if liveness requirement is not satisfied', async () => {
+		it('should return false if chain is not terminated & liveness requirement is not satisfied', async () => {
 			chainAccount.lastCertificate.timestamp = timestamp - LIVENESS_LIMIT - 1;
 			await chainSubstore.setWithSchema(chainID, chainAccount, chainAccountSchema);
-			const expected = await chainSubstore.getWithSchema<ChainAccount>(chainID, chainAccountSchema);
-			// eslint-disable-next-line no-console
-			console.log(expected);
-			// const bool = await mainchainInteroperabilityStore.isLive(chainID, timestamp);
 
-			expect(expected).toBeDefined();
+			const bool = await mainchainInteroperabilityStore.isLive(chainID, timestamp);
+
+			expect(bool).toBe(false);
 		});
 
 		it('should return true if chain is not terminated & liveness requirement is satisfied', async () => {

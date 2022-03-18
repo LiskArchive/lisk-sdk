@@ -45,6 +45,14 @@ export abstract class BaseInteroperabilityStore {
 		console.log(!this._moduleID, !this._interoperableModules, !this.getStore);
 	}
 
+	public async hasTerminatedStateAccount(chainID: Buffer): Promise<boolean> {
+		const terminatedStateSubstore = this.getStore(
+			MODULE_ID_INTEROPERABILITY,
+			STORE_PREFIX_TERMINATED_STATE,
+		);
+		return terminatedStateSubstore.has(chainID);
+	}
+
 	public async getChainAccount(chainID: Buffer): Promise<ChainAccount> {
 		const chainSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
 		return chainSubstore.getWithSchema<ChainAccount>(chainID, chainAccountSchema);

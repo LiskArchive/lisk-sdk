@@ -18,19 +18,16 @@ import { CCMsg, CCUpdateParams, SendInternalContext } from '../types';
 
 export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	public async isLive(chainID: Buffer, timestamp: number): Promise<boolean> {
-		try {
-			const terminatedStateAccount = await this.getTerminatedStateAccount(chainID);
-			if (terminatedStateAccount) {
-				return false;
-			}
-		} catch (error) {
-			if (
-				timestamp - (await this.getChainAccount(chainID)).lastCertificate.timestamp >
-				LIVENESS_LIMIT
-			) {
-				return false;
-			}
+		const isTerminated = await this.hasTerminatedStateAccount(chainID);
+		if (isTerminated) {
+			return false;
 		}
+
+		const chainAccount = await this.getChainAccount(chainID);
+		if (timestamp - chainAccount.lastCertificate.timestamp > LIVENESS_LIMIT) {
+			return false;
+		}
+
 		return true;
 	}
 
