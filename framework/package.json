@@ -61,7 +61,7 @@
 		"pm2-axon-rpc": "0.7.1",
 		"ps-list": "7.0.0",
 		"sodium-native": "3.2.0",
-		"ws": "8.5.0"
+		"ws": "7.5.7"
 	},
 	"devDependencies": {
 		"@liskhq/lisk-passphrase": "^3.1.0",

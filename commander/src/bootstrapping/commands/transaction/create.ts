@@ -313,16 +313,16 @@ export abstract class CreateCommand extends Command {
 		}
 
 		if (flags.json) {
-			this.printJSON(!!flags.pretty, {
+			this.printJSON(flags.pretty, {
 				transaction: encodeTransaction(this._schema, transactionObject, this._client).toString(
 					'hex',
 				),
 			});
-			this.printJSON(!!flags.pretty, {
+			this.printJSON(flags.pretty, {
 				transaction: transactionToJSON(this._schema, transactionObject, this._client),
 			});
 		} else {
-			this.printJSON(!!flags.pretty, {
+			this.printJSON(flags.pretty, {
 				transaction: encodeTransaction(this._schema, transactionObject, this._client).toString(
 					'hex',
 				),
@@ -330,7 +330,7 @@ export abstract class CreateCommand extends Command {
 		}
 	}
 
-	printJSON(pretty: boolean, message?: Record<string, unknown>): void {
+	printJSON(pretty?: boolean, message?: Record<string, unknown>): void {
 		if (pretty) {
 			this.log(JSON.stringify(message, undefined, '  '));
 		} else {

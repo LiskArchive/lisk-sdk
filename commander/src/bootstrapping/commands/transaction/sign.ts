@@ -242,16 +242,16 @@ export abstract class SignCommand extends Command {
 		}
 
 		if (flags.json) {
-			this.printJSON(!!flags.pretty, {
+			this.printJSON(flags.pretty, {
 				transaction: encodeTransaction(this._schema, signedTransaction, this._client).toString(
 					'hex',
 				),
 			});
-			this.printJSON(!!flags.pretty, {
+			this.printJSON(flags.pretty, {
 				transaction: transactionToJSON(this._schema, signedTransaction, this._client),
 			});
 		} else {
-			this.printJSON(!!flags.pretty, {
+			this.printJSON(flags.pretty, {
 				transaction: encodeTransaction(this._schema, signedTransaction, this._client).toString(
 					'hex',
 				),
@@ -259,7 +259,7 @@ export abstract class SignCommand extends Command {
 		}
 	}
 
-	printJSON(pretty: boolean, message?: Record<string, unknown>): void {
+	printJSON(pretty?: boolean, message?: Record<string, unknown>): void {
 		if (pretty) {
 			this.log(JSON.stringify(message, undefined, '  '));
 		} else {

@@ -14,6 +14,7 @@
 
 import { createServer, Server } from 'http';
 import * as WebSocket from 'isomorphic-ws';
+import { Socket } from 'net';
 import { WSChannel } from '../../src/ws_channel';
 
 jest.unmock('isomorphic-ws');
@@ -53,7 +54,7 @@ describe('WSChannel', () => {
 			// https://github.com/websockets/ws/issues/377#issuecomment-462152231
 			http.on('upgrade', (request, socket, head) => {
 				setTimeout(() => {
-					server.handleUpgrade(request, socket, head, ws => {
+					server.handleUpgrade(request, socket as Socket, head, ws => {
 						server.emit('connection', ws, request);
 					});
 				}, 3000);

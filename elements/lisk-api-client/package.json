@@ -42,7 +42,7 @@
 		"isomorphic-ws": "4.0.1",
 		"pm2-axon": "4.0.1",
 		"pm2-axon-rpc": "0.7.1",
-		"ws": "8.5.0"
+		"ws": "7.5.7"
 	},
 	"devDependencies": {
 		"@liskhq/lisk-chain": "^0.3.3",

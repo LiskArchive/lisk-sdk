@@ -33,7 +33,7 @@ export class ShowCommand extends Command {
 		'config:show --config ./custom-config.json --data-path ./data',
 	];
 
-	static flag = {
+	static flags = {
 		'data-path': flagsWithParser.dataPath,
 		config: flagsWithParser.config,
 		pretty: flagsWithParser.pretty,
