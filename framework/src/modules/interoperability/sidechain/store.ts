@@ -17,10 +17,15 @@ import { CCMsg, CCUpdateParams, SendInternalContext } from '../types';
 
 export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 	public async isLive(chainID: Buffer): Promise<boolean> {
-		const isTerminated = await this.getTerminatedStateAccount(chainID);
-		if (isTerminated) {
-			return false;
+		try {
+			const terminatedStateAccount = await this.getTerminatedStateAccount(chainID);
+			if (terminatedStateAccount) {
+				return false;
+			}
+		} catch (error) {
+			return true;
 		}
+
 		return true;
 	}
 

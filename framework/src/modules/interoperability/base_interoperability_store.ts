@@ -51,11 +51,11 @@ export abstract class BaseInteroperabilityStore {
 	}
 
 	public async getTerminatedStateAccount(chainID: Buffer): Promise<TerminatedStateAccount> {
-		const terminatedChainSubstore = this.getStore(
+		const terminatedStateSubstore = this.getStore(
 			MODULE_ID_INTEROPERABILITY,
 			STORE_PREFIX_TERMINATED_STATE,
 		);
-		return terminatedChainSubstore.getWithSchema<TerminatedStateAccount>(
+		return terminatedStateSubstore.getWithSchema<TerminatedStateAccount>(
 			chainID,
 			terminatedStateSchema,
 		);
