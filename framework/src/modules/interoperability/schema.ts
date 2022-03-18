@@ -15,134 +15,62 @@
 export const chainAccountSchema = {
 	$id: 'modules/interoperability/chainAccount',
 	type: 'object',
-	required: [
-		'inbox',
-		'outbox',
-		'networkID',
-		'lastCertifiedStateRoot',
-		'lastCertifiedTimestamp',
-		'lastCertifiedHeight',
-		'partnerChainOutboxRoot',
-		'partnerChainOutboxSize',
-		'partnerChainInboxSize',
-		'name',
-		'status',
-		'activeValidators',
-		'certificateThreshold',
-	],
+	required: ['name', 'networkID', 'lastCertificate', 'status'],
 	properties: {
-		inbox: {
-			type: 'object',
+		name: {
+			dataType: 'string',
 			fieldNumber: 1,
-			required: ['appendPath', 'size', 'root'],
-			properties: {
-				appendPath: {
-					type: 'array',
-					items: {
-						dataType: 'bytes',
-					},
-					fieldNumber: 1,
-				},
-				size: {
-					dataType: 'uint64',
-					fieldNumber: 2,
-				},
-				root: {
-					dataType: 'bytes',
-					fieldNumber: 3,
-				},
-			},
-		},
-		outbox: {
-			type: 'object',
-			fieldNumber: 2,
-			required: ['appendPath', 'size', 'root'],
-			properties: {
-				appendPath: {
-					type: 'array',
-					items: {
-						dataType: 'bytes',
-					},
-					fieldNumber: 1,
-				},
-				size: {
-					dataType: 'uint64',
-					fieldNumber: 2,
-				},
-				root: {
-					dataType: 'bytes',
-					fieldNumber: 3,
-				},
-			},
 		},
 		networkID: {
 			dataType: 'bytes',
+			fieldNumber: 2,
+		},
+		lastCertificate: {
+			type: 'object',
 			fieldNumber: 3,
-		},
-		lastCertifiedStateRoot: {
-			dataType: 'bytes',
-			fieldNumber: 4,
-		},
-		lastCertifiedTimestamp: {
-			dataType: 'uint32',
-			fieldNumber: 5,
-		},
-		lastCertifiedHeight: {
-			dataType: 'uint32',
-			fieldNumber: 6,
-		},
-		partnerChainOutboxRoot: {
-			dataType: 'bytes',
-			fieldNumber: 7,
-		},
-		partnerChainOutboxSize: {
-			dataType: 'uint64',
-			fieldNumber: 8,
-		},
-		partnerChainInboxSize: {
-			dataType: 'uint64',
-			fieldNumber: 9,
-		},
-		name: {
-			dataType: 'string',
-			fieldNumber: 10,
-		},
-		status: {
-			dataType: 'uint32',
-			fieldNumber: 11,
-		},
-		activeValidators: {
-			type: 'array',
-			fieldNumber: 12,
-			items: {
-				type: 'object',
-				required: ['blsKey', 'bftWeight'],
-				properties: {
-					blsKey: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-					bftWeight: {
-						dataType: 'uint64',
-						fieldNumber: 2,
-					},
+			required: ['height', 'timestamp', 'stateRoot', 'validatorsHash'],
+			properties: {
+				height: {
+					dataType: 'uint32',
+					fieldNumber: 1,
+				},
+				timestamp: {
+					dataType: 'uint32',
+					fieldNumber: 2,
+				},
+				stateRoot: {
+					dataType: 'bytes',
+					fieldNumber: 3,
+				},
+				validatorsHash: {
+					dataType: 'bytes',
+					fieldNumber: 4,
 				},
 			},
 		},
-		certificateThreshold: {
-			dataType: 'uint64',
-			fieldNumber: 13,
+		status: {
+			dataType: 'uint32',
+			fieldNumber: 4,
 		},
 	},
 };
 
-export const terminatedChain = {
+export const terminatedStateSchema = {
+	$id: 'modules/interoperability/terminatedState',
 	type: 'object',
 	required: ['stateRoot'],
 	properties: {
 		stateRoot: {
 			dataType: 'bytes',
 			fieldNumber: 1,
+		},
+		mainchainStateRoot: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+		},
+		initialized: {
+			dataType: 'boolean',
+			fieldNumber: 3,
 		},
 	},
 };

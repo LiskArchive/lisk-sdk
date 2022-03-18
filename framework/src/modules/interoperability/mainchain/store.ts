@@ -29,7 +29,6 @@
 import { BaseInteroperabilityStore } from '../base_interoperability_store';
 import {
 	LIVENESS_LIMIT,
-	MAINCHAIN_ID,
 	MODULE_ID_INTEROPERABILITY,
 	STORE_PREFIX_CHAIN_DATA,
 	STORE_PREFIX_TERMINATED_STATE,
@@ -41,14 +40,10 @@ import {
 	SendInternalContext,
 	TerminatedStateAccount,
 } from '../types';
-import { chainAccountSchema, terminatedChain } from '../schema';
+import { chainAccountSchema, terminatedStateSchema } from '../schema';
 
 export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	public async isLive(chainID: Buffer, timestamp: number): Promise<boolean> {
-		if (chainID.equals(Buffer.from(MAINCHAIN_ID.toString(16), 'hex'))) {
-			return true;
-		}
-
 		const isTerminated = await this.getTerminatedStateAccount(chainID);
 		if (isTerminated) {
 			return false;
@@ -74,7 +69,10 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 			MODULE_ID_INTEROPERABILITY,
 			STORE_PREFIX_TERMINATED_STATE,
 		);
-		return terminatedChainSubstore.getWithSchema<TerminatedStateAccount>(chainID, terminatedChain);
+		return terminatedChainSubstore.getWithSchema<TerminatedStateAccount>(
+			chainID,
+			terminatedStateSchema,
+		);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
