@@ -21,6 +21,12 @@ import {
 	TerminatedStateAccount,
 } from './types';
 import { SubStore } from '../../node/state_machine/types';
+import {
+	MODULE_ID_INTEROPERABILITY,
+	STORE_PREFIX_CHAIN_DATA,
+	STORE_PREFIX_TERMINATED_STATE,
+} from './constants';
+import { chainAccountSchema, terminatedStateSchema } from './schema';
 
 export abstract class BaseInteroperabilityStore {
 	public readonly getStore: (moduleID: number, storePrefix: number) => SubStore;
@@ -39,8 +45,24 @@ export abstract class BaseInteroperabilityStore {
 		console.log(!this._moduleID, !this._interoperableModules, !this.getStore);
 	}
 
+	public async getChainAccount(chainID: Buffer): Promise<ChainAccount> {
+		const chainSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
+		return chainSubstore.getWithSchema<ChainAccount>(chainID, chainAccountSchema);
+	}
+
+	public async getTerminatedStateAccount(chainID: Buffer): Promise<TerminatedStateAccount> {
+		const terminatedChainSubstore = this.getStore(
+			MODULE_ID_INTEROPERABILITY,
+			STORE_PREFIX_TERMINATED_STATE,
+		);
+		return terminatedChainSubstore.getWithSchema<TerminatedStateAccount>(
+			chainID,
+			terminatedStateSchema,
+		);
+	}
+
 	// Different in mainchain and sidechain so to be implemented in each module store separately
-	public abstract isLive(chainID: Buffer, timestamp: number): Promise<boolean>;
+	public abstract isLive(chainID: Buffer, timestamp?: number): Promise<boolean>;
 	public abstract sendInternal(sendContext: SendInternalContext): Promise<void>;
 
 	// To be implemented in base class
@@ -56,9 +78,7 @@ export abstract class BaseInteroperabilityStore {
 		partnerChainInboxSize: bigint,
 	): Promise<void>;
 	public abstract createTerminatedStateAccount(chainID: Buffer, stateRoot?: Buffer): Promise<void>;
-	public abstract getTerminatedStateAccount(chainID: Buffer): Promise<TerminatedStateAccount>;
 	public abstract getInboxRoot(chainID: number): Promise<void>;
 	public abstract getOutboxRoot(chainID: number): Promise<void>;
-	public abstract getChainAccount(chainID: Buffer): Promise<ChainAccount>;
 	public abstract getChannel(chainID: number): Promise<void>; // TODO: Update to Promise<ChannelData> after implementation
 }

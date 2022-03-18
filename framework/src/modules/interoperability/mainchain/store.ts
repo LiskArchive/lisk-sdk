@@ -12,35 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-/*
- * Copyright © 2022 Lisk Foundation
- *
- * See the LICENSE file at the top-level directory of this distribution
- * for licensing information.
- *
- * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
- * no part of this software, including this file, may be copied, modified,
- * propagated, or distributed except according to the terms contained in the
- * LICENSE file.
- *
- * Removal or modification of this copyright notice is prohibited.
- */
-
 import { BaseInteroperabilityStore } from '../base_interoperability_store';
-import {
-	LIVENESS_LIMIT,
-	MODULE_ID_INTEROPERABILITY,
-	STORE_PREFIX_CHAIN_DATA,
-	STORE_PREFIX_TERMINATED_STATE,
-} from '../constants';
-import {
-	CCMsg,
-	CCUpdateParams,
-	ChainAccount,
-	SendInternalContext,
-	TerminatedStateAccount,
-} from '../types';
-import { chainAccountSchema, terminatedStateSchema } from '../schema';
+import { LIVENESS_LIMIT } from '../constants';
+import { CCMsg, CCUpdateParams, SendInternalContext } from '../types';
 
 export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	public async isLive(chainID: Buffer, timestamp: number): Promise<boolean> {
@@ -57,22 +31,6 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 		}
 
 		return true;
-	}
-
-	public async getChainAccount(chainID: Buffer): Promise<ChainAccount> {
-		const chainSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
-		return chainSubstore.getWithSchema<ChainAccount>(chainID, chainAccountSchema);
-	}
-
-	public async getTerminatedStateAccount(chainID: Buffer): Promise<TerminatedStateAccount> {
-		const terminatedChainSubstore = this.getStore(
-			MODULE_ID_INTEROPERABILITY,
-			STORE_PREFIX_TERMINATED_STATE,
-		);
-		return terminatedChainSubstore.getWithSchema<TerminatedStateAccount>(
-			chainID,
-			terminatedStateSchema,
-		);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
