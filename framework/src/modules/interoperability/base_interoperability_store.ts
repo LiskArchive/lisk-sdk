@@ -12,29 +12,35 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { KVStore } from '@liskhq/lisk-db';
 import { BaseInteroperableModule } from './base_interoperable_module';
-import { CCMsg, CCUpdateParams, ChainAccount, ChannelData, SendInternalContext } from './types';
+import {
+	CCMsg,
+	CCUpdateParams,
+	ChainAccount,
+	SendInternalContext,
+	TerminatedStateAccount,
+} from './types';
+import { SubStore } from '../../node/state_machine/types';
 
 export abstract class BaseInteroperabilityStore {
+	public readonly getStore: (moduleID: number, storePrefix: number) => SubStore;
 	private readonly _moduleID: number;
 	private readonly _interoperableModules = new Map<number, BaseInteroperableModule>();
-	private readonly _getStore: (moduleID: number, storePrefix: number) => KVStore;
 
 	public constructor(
 		moduleID: number,
-		getStore: (moduleID: number, storePrefix: number) => KVStore,
+		getStore: (moduleID: number, storePrefix: number) => SubStore,
 		interoperableModules: Map<number, BaseInteroperableModule>,
 	) {
 		this._moduleID = moduleID;
 		this._interoperableModules = interoperableModules;
-		this._getStore = getStore;
+		this.getStore = getStore;
 		// eslint-disable-next-line no-console
-		console.log(!this._moduleID, !this._interoperableModules, !this._getStore);
+		console.log(!this._moduleID, !this._interoperableModules, !this.getStore);
 	}
 
 	// Different in mainchain and sidechain so to be implemented in each module store separately
-	public abstract isLive(chainID: number): Promise<void>;
+	public abstract isLive(chainID: number, timestamp: number): Promise<boolean>;
 	public abstract sendInternal(sendContext: SendInternalContext): Promise<void>;
 
 	// To be implemented in base class
@@ -50,9 +56,9 @@ export abstract class BaseInteroperabilityStore {
 		partnerChainInboxSize: bigint,
 	): Promise<void>;
 	public abstract createTerminatedStateAccount(chainID: Buffer, stateRoot?: Buffer): Promise<void>;
-	public abstract getTerminatedStateAccount(chainID: number): Promise<void>;
+	public abstract getTerminatedStateAccount(chainID: number): Promise<TerminatedStateAccount>;
 	public abstract getInboxRoot(chainID: number): Promise<void>;
 	public abstract getOutboxRoot(chainID: number): Promise<void>;
 	public abstract getChainAccount(chainID: number): Promise<ChainAccount>;
-	public abstract getChannel(chainID: number): Promise<ChannelData>;
+	public abstract getChannel(chainID: number): Promise<void>; // TODO: Update to Promise<ChannelData> after implementation
 }
