@@ -44,8 +44,8 @@ import {
 import { chainAccountSchema, terminatedChain } from '../schema';
 
 export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
-	public async isLive(chainID: number, timestamp: number): Promise<boolean> {
-		if (chainID === MAINCHAIN_ID) {
+	public async isLive(chainID: Buffer, timestamp: number): Promise<boolean> {
+		if (chainID.equals(Buffer.from(MAINCHAIN_ID.toString(16), 'hex'))) {
 			return true;
 		}
 
@@ -64,12 +64,12 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 		return true;
 	}
 
-	public async getChainAccount(chainID: number): Promise<ChainAccount> {
+	public async getChainAccount(chainID: Buffer): Promise<ChainAccount> {
 		const chainSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
 		return chainSubstore.getWithSchema<ChainAccount>(chainID, chainAccountSchema);
 	}
 
-	public async getTerminatedStateAccount(chainID: number): Promise<TerminatedStateAccount> {
+	public async getTerminatedStateAccount(chainID: Buffer): Promise<TerminatedStateAccount> {
 		const terminatedChainSubstore = this.getStore(
 			MODULE_ID_INTEROPERABILITY,
 			STORE_PREFIX_TERMINATED_STATE,

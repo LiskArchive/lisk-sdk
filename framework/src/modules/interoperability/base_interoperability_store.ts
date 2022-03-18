@@ -40,7 +40,7 @@ export abstract class BaseInteroperabilityStore {
 	}
 
 	// Different in mainchain and sidechain so to be implemented in each module store separately
-	public abstract isLive(chainID: number, timestamp: number): Promise<boolean>;
+	public abstract isLive(chainID: Buffer, timestamp: number): Promise<boolean>;
 	public abstract sendInternal(sendContext: SendInternalContext): Promise<void>;
 
 	// To be implemented in base class
@@ -56,9 +56,9 @@ export abstract class BaseInteroperabilityStore {
 		partnerChainInboxSize: bigint,
 	): Promise<void>;
 	public abstract createTerminatedStateAccount(chainID: Buffer, stateRoot?: Buffer): Promise<void>;
-	public abstract getTerminatedStateAccount(chainID: number): Promise<TerminatedStateAccount>;
+	public abstract getTerminatedStateAccount(chainID: Buffer): Promise<TerminatedStateAccount>;
 	public abstract getInboxRoot(chainID: number): Promise<void>;
 	public abstract getOutboxRoot(chainID: number): Promise<void>;
-	public abstract getChainAccount(chainID: number): Promise<ChainAccount>;
+	public abstract getChainAccount(chainID: Buffer): Promise<ChainAccount>;
 	public abstract getChannel(chainID: number): Promise<void>; // TODO: Update to Promise<ChannelData> after implementation
 }
