@@ -49,6 +49,14 @@ describe('Mainchain interoperability store', () => {
 		),
 		size: 1,
 	};
+	const updatedOutboxTree = {
+		root: Buffer.from('888d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
+		appendPath: Buffer.from(
+			'aaaa1e95b7cb484862aa577320dbb4999971569e0b7c21fc02e9fda4d1d8485c',
+			'hex',
+		),
+		size: 2,
+	};
 	const channelData = {
 		inbox: {},
 		outbox: outboxTree,
@@ -64,7 +72,7 @@ describe('Mainchain interoperability store', () => {
 	let mockGetStore: any;
 
 	beforeEach(() => {
-		regularMerkleTree.calculateMerkleRoot = jest.fn().mockReturnValue(outboxTree);
+		regularMerkleTree.calculateMerkleRoot = jest.fn().mockReturnValue(updatedOutboxTree);
 		channelSubstore = {
 			getWithSchema: jest.fn().mockResolvedValue(channelData),
 			setWithSchema: jest.fn(),
@@ -92,7 +100,10 @@ describe('Mainchain interoperability store', () => {
 			// Assert
 			expect(channelSubstore.setWithSchema).toHaveBeenCalledWith(
 				chainID,
-				channelData,
+				{
+					...channelData,
+					outbox: updatedOutboxTree,
+				},
 				channelSchema,
 			);
 		});
