@@ -130,3 +130,7 @@ export interface ChannelData {
 	partnerChainOutboxRoot: Buffer;
 	messageFeeTokenID: MessageFeeTokenID;
 }
+
+export interface TerminatedStateAccount {
+	stateRoot: Buffer;
+}

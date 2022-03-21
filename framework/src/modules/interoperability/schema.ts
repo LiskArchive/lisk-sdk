@@ -11,3 +11,66 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+export const chainAccountSchema = {
+	$id: 'modules/interoperability/chainAccount',
+	type: 'object',
+	required: ['name', 'networkID', 'lastCertificate', 'status'],
+	properties: {
+		name: {
+			dataType: 'string',
+			fieldNumber: 1,
+		},
+		networkID: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+		},
+		lastCertificate: {
+			type: 'object',
+			fieldNumber: 3,
+			required: ['height', 'timestamp', 'stateRoot', 'validatorsHash'],
+			properties: {
+				height: {
+					dataType: 'uint32',
+					fieldNumber: 1,
+				},
+				timestamp: {
+					dataType: 'uint32',
+					fieldNumber: 2,
+				},
+				stateRoot: {
+					dataType: 'bytes',
+					fieldNumber: 3,
+				},
+				validatorsHash: {
+					dataType: 'bytes',
+					fieldNumber: 4,
+				},
+			},
+		},
+		status: {
+			dataType: 'uint32',
+			fieldNumber: 4,
+		},
+	},
+};
+
+export const terminatedStateSchema = {
+	$id: 'modules/interoperability/terminatedState',
+	type: 'object',
+	required: ['stateRoot'],
+	properties: {
+		stateRoot: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+		mainchainStateRoot: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+		},
+		initialized: {
+			dataType: 'boolean',
+			fieldNumber: 3,
+		},
+	},
+};
