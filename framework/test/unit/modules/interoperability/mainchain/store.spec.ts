@@ -73,26 +73,26 @@ describe('Mainchain interoperability store', () => {
 	describe('isLive', () => {
 		it('should return false if chain is already terminated', async () => {
 			await terminatedStateSubstore.setWithSchema(chainID, chainAccount, terminatedStateSchema);
-			const bool = await mainchainInteroperabilityStore.isLive(chainID, timestamp);
+			const isLive = await mainchainInteroperabilityStore.isLive(chainID, timestamp);
 
-			expect(bool).toBe(false);
+			expect(isLive).toBe(false);
 		});
 
 		it('should return false if chain is not terminated & liveness requirement is not satisfied', async () => {
 			chainAccount.lastCertificate.timestamp = timestamp - LIVENESS_LIMIT - 1;
 			await chainSubstore.setWithSchema(chainID, chainAccount, chainAccountSchema);
 
-			const bool = await mainchainInteroperabilityStore.isLive(chainID, timestamp);
+			const isLive = await mainchainInteroperabilityStore.isLive(chainID, timestamp);
 
-			expect(bool).toBe(false);
+			expect(isLive).toBe(false);
 		});
 
 		it('should return true if chain is not terminated & liveness requirement is satisfied', async () => {
 			chainAccount.lastCertificate.timestamp = timestamp - LIVENESS_LIMIT + 1;
 			await chainSubstore.setWithSchema(chainID, chainAccount, chainAccountSchema);
-			const bool = await mainchainInteroperabilityStore.isLive(chainID, timestamp);
+			const isLive = await mainchainInteroperabilityStore.isLive(chainID, timestamp);
 
-			expect(bool).toBe(true);
+			expect(isLive).toBe(true);
 		});
 	});
 });

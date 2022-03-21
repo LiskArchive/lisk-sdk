@@ -18,11 +18,7 @@ import { CCMsg, CCUpdateParams, SendInternalContext } from '../types';
 export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 	public async isLive(chainID: Buffer): Promise<boolean> {
 		const isTerminated = await this.hasTerminatedStateAccount(chainID);
-		if (isTerminated) {
-			return false;
-		}
-
-		return true;
+		return !isTerminated;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

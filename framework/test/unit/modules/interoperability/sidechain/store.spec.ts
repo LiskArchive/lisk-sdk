@@ -62,15 +62,15 @@ describe('Sidechain interoperability store', () => {
 	describe('isLive', () => {
 		it('should return false if chain is already terminated', async () => {
 			await terminatedStateSubstore.setWithSchema(chainID, chainAccount, terminatedStateSchema);
-			const bool = await sidechainInteroperabilityStore.isLive(chainID);
+			const isLive = await sidechainInteroperabilityStore.isLive(chainID);
 
-			expect(bool).toBe(false);
+			expect(isLive).toBe(false);
 		});
 
 		it('should return true if chain is not terminated', async () => {
-			const bool = await sidechainInteroperabilityStore.isLive(chainID);
+			const isLive = await sidechainInteroperabilityStore.isLive(chainID);
 
-			expect(bool).toBe(true);
+			expect(isLive).toBe(true);
 		});
 	});
 });
