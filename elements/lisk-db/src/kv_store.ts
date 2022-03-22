@@ -18,7 +18,7 @@ import levelup, { LevelUp } from 'levelup';
 import { NotFoundError } from './errors';
 
 // rocksdb removed the default export. However, @types/rocksdb still only exposes default.
-// Therefore, temporally requiree with below syntax.
+// Therefore, temporarily require with below syntax.
 // eslint-disable-next-line import/order
 import rocksDB = require('rocksdb');
 
