@@ -72,7 +72,7 @@ describe('consensus', () => {
 			loadLastBlocks: jest.fn(),
 			lastBlock,
 			networkIdentifier: Buffer.from('network-identifier'),
-			verifyAssets: jest.fn(),
+			validateBlock: jest.fn(),
 			validateTransaction: jest.fn(),
 			removeBlock: jest.fn(),
 		} as unknown) as Chain;
@@ -382,7 +382,6 @@ describe('consensus', () => {
 					jest.spyOn(forkchoice, 'forkChoice').mockReturnValue(forkchoice.ForkStatus.TIE_BREAK);
 					jest.spyOn(consensus.events, 'emit');
 					jest.spyOn(consensus, '_executeValidated' as any).mockResolvedValue(undefined);
-					jest.spyOn(Block.prototype, 'validate');
 					jest.spyOn(consensus, 'finalizedHeight').mockReturnValue(0);
 					await consensus.onBlockReceive(input, peerID);
 				});
@@ -392,7 +391,7 @@ describe('consensus', () => {
 				});
 
 				it('should validate block', () => {
-					expect(Block.prototype.validate).toHaveBeenCalled();
+					expect(chain.validateBlock).toHaveBeenCalled();
 				});
 
 				it('should revert the last block', () => {
@@ -408,7 +407,6 @@ describe('consensus', () => {
 				beforeEach(async () => {
 					jest.spyOn(forkchoice, 'forkChoice').mockReturnValue(forkchoice.ForkStatus.TIE_BREAK);
 					jest.spyOn(consensus.events, 'emit');
-					jest.spyOn(Block.prototype, 'validate');
 					jest
 						.spyOn(consensus, '_executeValidated' as any)
 						.mockRejectedValueOnce(new Error('invalid block'));
@@ -422,7 +420,7 @@ describe('consensus', () => {
 				});
 
 				it('should validate block', () => {
-					expect(Block.prototype.validate).toHaveBeenCalled();
+					expect(chain.validateBlock).toHaveBeenCalled();
 				});
 
 				it('should revert the last block', () => {
@@ -443,14 +441,13 @@ describe('consensus', () => {
 						.spyOn(forkchoice, 'forkChoice')
 						.mockReturnValue(forkchoice.ForkStatus.DIFFERENT_CHAIN);
 					jest.spyOn(consensus.events, 'emit');
-					jest.spyOn(Block.prototype, 'validate');
 					jest.spyOn(consensus, '_executeValidated' as any);
 					jest.spyOn(consensus['_synchronizer'], 'run').mockResolvedValue(undefined);
 					await consensus.onBlockReceive(input, peerID);
 				});
 
 				it('should not validate block', () => {
-					expect(Block.prototype.validate).not.toHaveBeenCalled();
+					expect(chain.validateBlock).not.toHaveBeenCalled();
 				});
 
 				it('should not execute block', () => {
@@ -548,13 +545,12 @@ describe('consensus', () => {
 				beforeEach(async () => {
 					jest.spyOn(forkchoice, 'forkChoice').mockReturnValue(forkchoice.ForkStatus.DISCARD);
 					jest.spyOn(consensus.events, 'emit');
-					jest.spyOn(Block.prototype, 'validate');
 					jest.spyOn(consensus, '_executeValidated' as any).mockResolvedValue(undefined);
 					await consensus.onBlockReceive(input, peerID);
 				});
 
 				it('should not validate block', () => {
-					expect(Block.prototype.validate).not.toHaveBeenCalled();
+					expect(chain.validateBlock).not.toHaveBeenCalled();
 				});
 
 				it('should not execute block', () => {
@@ -570,13 +566,12 @@ describe('consensus', () => {
 				beforeEach(async () => {
 					jest.spyOn(forkchoice, 'forkChoice').mockReturnValue(forkchoice.ForkStatus.VALID_BLOCK);
 					jest.spyOn(consensus.events, 'emit');
-					jest.spyOn(Block.prototype, 'validate');
 					jest.spyOn(consensus, '_executeValidated' as any).mockResolvedValue(undefined);
 					await consensus.onBlockReceive(input, peerID);
 				});
 
 				it('should validate block', () => {
-					expect(Block.prototype.validate).toHaveBeenCalled();
+					expect(chain.validateBlock).toHaveBeenCalled();
 				});
 
 				it('should execute block', () => {
@@ -920,66 +915,6 @@ describe('consensus', () => {
 					await expect(
 						consensus['_verifyAggregateCommit'](apiContext, block as any),
 					).resolves.toBeUndefined();
-				});
-			});
-
-			describe('validateBlockAsset', () => {
-				it('should throw error if a module is not registered', async () => {
-					const assetList = [
-						{
-							moduleID: 1,
-							data: cryptography.getRandomBytes(64),
-						},
-						{
-							moduleID: 2,
-							data: cryptography.getRandomBytes(64),
-						},
-						{
-							moduleID: 3,
-							data: cryptography.getRandomBytes(64),
-						},
-						{
-							moduleID: 4,
-							data: cryptography.getRandomBytes(64),
-						},
-					];
-
-					const invalidBlock = await createValidDefaultBlock({
-						assets: new BlockAssets(assetList),
-					});
-					jest.spyOn(stateMachine, 'getAllModuleIDs').mockReturnValue([1, 2, 3]);
-
-					expect(() => consensus['_validateBlockAsset'](invalidBlock as any)).toThrow(
-						'Module with ID: 4 is not registered.',
-					);
-				});
-
-				it('should be success if a module is registered', async () => {
-					const assetList = [
-						{
-							moduleID: 1,
-							data: cryptography.getRandomBytes(64),
-						},
-						{
-							moduleID: 2,
-							data: cryptography.getRandomBytes(64),
-						},
-						{
-							moduleID: 3,
-							data: cryptography.getRandomBytes(64),
-						},
-						{
-							moduleID: 4,
-							data: cryptography.getRandomBytes(64),
-						},
-					];
-
-					const invalidBlock = await createValidDefaultBlock({
-						assets: new BlockAssets(assetList),
-					});
-					jest.spyOn(stateMachine, 'getAllModuleIDs').mockReturnValue([1, 2, 3, 4]);
-
-					expect(consensus['_validateBlockAsset'](invalidBlock as any)).toBeUndefined();
 				});
 			});
 		});
