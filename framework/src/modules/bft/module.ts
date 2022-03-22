@@ -24,7 +24,7 @@ import {
 	STORE_PREFIX_BFT_VOTES,
 } from './constants';
 import { bftModuleConfig, BFTVotes, bftVotesSchema } from './schemas';
-import { BlockAfterExecuteContext, GenesisBlockExecuteContext } from '../../node/state_machine';
+import { BlockExecuteContext, GenesisBlockExecuteContext } from '../../node/state_machine';
 import { ValidatorsAPI } from './types';
 import {
 	insertBlockBFTInfo,
@@ -76,7 +76,7 @@ export class BFTModule extends BaseModule {
 		);
 	}
 
-	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
+	public async beforeTransactionsExecute(context: BlockExecuteContext): Promise<void> {
 		const votesStore = context.getStore(this.id, STORE_PREFIX_BFT_VOTES);
 		const paramsStore = context.getStore(this.id, STORE_PREFIX_BFT_PARAMETERS);
 		const paramsCache = new BFTParametersCache(paramsStore);
