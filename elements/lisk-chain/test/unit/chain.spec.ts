@@ -320,6 +320,17 @@ describe('chain', () => {
 	describe('validateBlock', () => {
 		let block: Block;
 
+		it('should not throw error with a valid block', async () => {
+			const txs = new Array(20).fill(0).map(() => getTransaction());
+			block = await createValidDefaultBlock({
+				transactions: txs,
+			});
+			// Act & assert
+			expect(() =>
+				chainInstance.validateBlock(block, { version: 2, acceptedModuleIDs: [] }),
+			).not.toThrow();
+		});
+
 		it('should throw error if transaction root does not match', async () => {
 			const txs = new Array(20).fill(0).map(() => getTransaction());
 			block = await createValidDefaultBlock({
@@ -364,7 +375,7 @@ describe('chain', () => {
 			// Act & assert
 			expect(() =>
 				chainInstance.validateBlock(block, { version: 2, acceptedModuleIDs: [] }),
-			).toThrow('Block asset from moduleID: 1515 is not accepted.');
+			).toThrow('Block asset with moduleID: 1515 is not accepted.');
 		});
 	});
 });

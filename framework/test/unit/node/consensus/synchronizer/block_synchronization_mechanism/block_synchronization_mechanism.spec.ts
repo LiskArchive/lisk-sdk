@@ -761,7 +761,7 @@ describe('block_synchronization_mechanism', () => {
 					requestedBlocks.findIndex(block => block.header.id.equals(aBlock.header.id)) + 1,
 				);
 
-				expect(blockExecutor.validate).toHaveBeenCalledTimes(blocksToApply.length - 1);
+				expect(blockExecutor.validate).toHaveBeenCalledTimes(blocksToApply.length + 1);
 				expect(blockExecutor.verify).toHaveBeenCalledTimes(blocksToApply.length);
 				expect(blockExecutor.executeValidated).toHaveBeenCalledTimes(blocksToApply.length);
 				for (const requestedBlock of blocksToApply) {

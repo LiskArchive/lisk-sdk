@@ -168,7 +168,7 @@ export class Chain {
 		}
 		for (const asset of block.assets.getAll()) {
 			if (!inputs.acceptedModuleIDs.includes(asset.moduleID)) {
-				throw new Error(`Block asset from moduleID: ${asset.moduleID} is not accepted.`);
+				throw new Error(`Block asset with moduleID: ${asset.moduleID} is not accepted.`);
 			}
 		}
 		const transactionIDs = [];
