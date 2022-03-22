@@ -14,7 +14,7 @@ export class SignCommand extends TransactionSignCommand {
 	static args = [...TransactionSignCommand.args];
 
 	public getApplication(config: PartialApplicationConfig): Application {
-		const { app } = getApplication(config);
+		const app = getApplication(config);
 		return app;
 	}
 }
