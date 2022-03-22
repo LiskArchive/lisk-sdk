@@ -225,11 +225,6 @@ export class Node {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
 		});
-		await this._consensus.init({
-			db: this._blockchainDB,
-			genesisBlock,
-			logger: this._logger,
-		});
 		for (const mod of this._registeredModules) {
 			const { modules, ...remainingGenesisConfig } = this._options.genesis;
 			if (mod.init) {
@@ -240,6 +235,11 @@ export class Node {
 				});
 			}
 		}
+		await this._consensus.init({
+			db: this._blockchainDB,
+			genesisBlock,
+			logger: this._logger,
+		});
 
 		await this._generator.init({
 			blockchainDB: this._blockchainDB,
