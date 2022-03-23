@@ -18,12 +18,9 @@ import {
 	MODULE_ID_INTEROPERABILITY,
 	STORE_PREFIX_CHANNEL_DATA,
 	STORE_PREFIX_OUTBOX_ROOT,
-} from '../../../../../src/modules/interoperability/constants';
-import { MainchainInteroperabilityStore } from '../../../../../src/modules/interoperability/mainchain/store';
-import {
-	channelSchema,
-	outboxRootSchema,
-} from '../../../../../src/modules/interoperability/schema';
+} from '../../../../src/modules/interoperability/constants';
+import { MainchainInteroperabilityStore } from '../../../../src/modules/interoperability/mainchain/store';
+import { channelSchema, outboxRootSchema } from '../../../../src/modules/interoperability/schema';
 
 describe('Mainchain interoperability store', () => {
 	const chainID = Buffer.from('01', 'hex');
