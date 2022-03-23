@@ -22,7 +22,7 @@ import {
 import { MainchainInteroperabilityStore } from '../../../../src/modules/interoperability/mainchain/store';
 import { channelSchema, outboxRootSchema } from '../../../../src/modules/interoperability/schema';
 
-describe('Mainchain interoperability store', () => {
+describe('Base interoperability store', () => {
 	const chainID = Buffer.from('01', 'hex');
 	const appendData = Buffer.from(
 		'0c4c839c0fd8155fd0d52efc7dd29d2a71919dee517d50967cd26f4db2e0d1c5b',
