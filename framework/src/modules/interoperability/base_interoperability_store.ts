@@ -15,15 +15,30 @@
 import { codec } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
-import { BaseInteroperableModule } from './base_interoperable_module';
-import { CCMsg, CCUpdateParams, ChannelData, SendInternalContext } from './types';
 import { SubStore } from '../../node/state_machine/types';
 import {
 	MODULE_ID_INTEROPERABILITY,
+	STORE_PREFIX_CHAIN_DATA,
+	STORE_PREFIX_TERMINATED_STATE,
 	STORE_PREFIX_CHANNEL_DATA,
 	STORE_PREFIX_OUTBOX_ROOT,
 } from './constants';
-import { ccmSchema, channelSchema, outboxRootSchema } from './schema';
+import {
+	chainAccountSchema,
+	terminatedStateSchema,
+	ccmSchema,
+	channelSchema,
+	outboxRootSchema,
+} from './schema';
+import { BaseInteroperableModule } from './base_interoperable_module';
+import {
+	ChannelData,
+	CCMsg,
+	CCUpdateParams,
+	ChainAccount,
+	SendInternalContext,
+	TerminatedStateAccount,
+} from './types';
 
 export abstract class BaseInteroperabilityStore {
 	public readonly getStore: (moduleID: number, storePrefix: number) => SubStore;
@@ -72,8 +87,32 @@ export abstract class BaseInteroperabilityStore {
 		return true;
 	}
 
+	public async hasTerminatedStateAccount(chainID: Buffer): Promise<boolean> {
+		const terminatedStateSubstore = this.getStore(
+			MODULE_ID_INTEROPERABILITY,
+			STORE_PREFIX_TERMINATED_STATE,
+		);
+		return terminatedStateSubstore.has(chainID);
+	}
+
+	public async getChainAccount(chainID: Buffer): Promise<ChainAccount> {
+		const chainSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
+		return chainSubstore.getWithSchema<ChainAccount>(chainID, chainAccountSchema);
+	}
+
+	public async getTerminatedStateAccount(chainID: Buffer): Promise<TerminatedStateAccount> {
+		const terminatedStateSubstore = this.getStore(
+			MODULE_ID_INTEROPERABILITY,
+			STORE_PREFIX_TERMINATED_STATE,
+		);
+		return terminatedStateSubstore.getWithSchema<TerminatedStateAccount>(
+			chainID,
+			terminatedStateSchema,
+		);
+	}
+
 	// Different in mainchain and sidechain so to be implemented in each module store separately
-	public abstract isLive(chainID: number): Promise<void>;
+	public abstract isLive(chainID: Buffer, timestamp?: number): Promise<boolean>;
 	public abstract sendInternal(sendContext: SendInternalContext): Promise<void>;
 
 	// To be implemented in base class
@@ -86,9 +125,7 @@ export abstract class BaseInteroperabilityStore {
 		partnerChainInboxSize: bigint,
 	): Promise<void>;
 	public abstract createTerminatedStateAccount(chainID: Buffer, stateRoot?: Buffer): Promise<void>;
-	public abstract getTerminatedStateAccount(chainID: number): Promise<void>;
 	public abstract getInboxRoot(chainID: number): Promise<void>;
 	public abstract getOutboxRoot(chainID: number): Promise<void>;
-	public abstract getChainAccount(chainID: number): Promise<void>; // TODO: Update to Promise<ChainAccount> after implementation
 	public abstract getChannel(chainID: number): Promise<void>; // TODO: Update to Promise<ChannelData> after implementation
 }

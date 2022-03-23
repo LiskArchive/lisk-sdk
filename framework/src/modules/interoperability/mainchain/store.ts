@@ -13,9 +13,36 @@
  */
 
 import { BaseInteroperabilityStore } from '../base_interoperability_store';
+import { LIVENESS_LIMIT } from '../constants';
 import { CCMsg, CCUpdateParams, SendInternalContext } from '../types';
 
 export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
+	public async isLive(chainID: Buffer, timestamp: number): Promise<boolean> {
+		const isTerminated = await this.hasTerminatedStateAccount(chainID);
+		if (isTerminated) {
+			return false;
+		}
+
+		const chainAccount = await this.getChainAccount(chainID);
+		if (timestamp - chainAccount.lastCertificate.timestamp > LIVENESS_LIMIT) {
+			return false;
+		}
+
+		return true;
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async appendToOutboxTree(chainID: number, appendData: Buffer): Promise<void> {
+		// eslint-disable-next-line no-console
+		console.log(chainID, appendData);
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async addToOutbox(chainID: Buffer, ccm: CCMsg): Promise<void> {
+		// eslint-disable-next-line no-console
+		console.log(chainID, ccm);
+	}
+
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async appendToInboxTree(chainID: number, appendData: Buffer): Promise<void> {
 		// eslint-disable-next-line no-console
@@ -29,21 +56,9 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async isLive(chainID: number): Promise<void> {
-		// eslint-disable-next-line no-console
-		console.log(chainID);
-	}
-
-	// eslint-disable-next-line @typescript-eslint/require-await
 	public async sendInternal(sendContext: SendInternalContext): Promise<void> {
 		// eslint-disable-next-line no-console
 		console.log(sendContext);
-	}
-
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getChainAccount(chainID: number): Promise<void> {
-		// eslint-disable-next-line no-console
-		console.log(chainID);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -56,12 +71,6 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	public async createTerminatedStateAccount(chainID: Buffer, stateRoot?: Buffer): Promise<void> {
 		// eslint-disable-next-line no-console
 		console.log(chainID, stateRoot);
-	}
-
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getTerminatedStateAccount(chainID: number): Promise<void> {
-		// eslint-disable-next-line no-console
-		console.log(chainID);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
