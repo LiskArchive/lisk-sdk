@@ -57,7 +57,7 @@ export abstract class GetCommand extends BaseIPCClientCommand {
 			if (/^Specified key transactions:id:(.*)does not exist/.test((errors as Error).message)) {
 				this.error(`Transaction with id '${transactionId}' was not found.`);
 			} else {
-				this.error(errorMessage);
+				this.error(errorMessage as string);
 			}
 		}
 	}

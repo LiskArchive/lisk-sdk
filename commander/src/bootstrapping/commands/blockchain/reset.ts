@@ -33,7 +33,7 @@ export class ResetCommand extends Command {
 		yes: flagParser.boolean({
 			char: 'y',
 			description: 'Skip confirmation prompt.',
-		}),
+		}) as flagParser.IFlag<boolean | undefined>,
 	};
 
 	async run(): Promise<void> {

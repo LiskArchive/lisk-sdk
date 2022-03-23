@@ -36,7 +36,7 @@ export abstract class InfoCommand extends BaseIPCClientCommand {
 				? errors.map(err => (err as Error).message).join(',')
 				: errors;
 
-			this.error(errorMessage);
+			this.error(errorMessage as string);
 		}
 	}
 }

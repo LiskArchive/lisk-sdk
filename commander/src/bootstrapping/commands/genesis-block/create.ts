@@ -65,34 +65,34 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			char: 'o',
 			description: 'Output folder path of the generated genesis block',
 			default: 'config',
-		}),
+		}) as flagParser.IFlag<string>,
 		accounts: flagParser.integer({
 			char: 'a',
 			description: 'Number of non-validator accounts to generate',
 			default: 10,
-		}),
+		}) as flagParser.IFlag<number>,
 		validators: flagParser.integer({
 			char: 'v',
 			description: 'Number of validator accounts to generate',
 			default: 103,
-		}),
+		}) as flagParser.IFlag<number>,
 		'token-distribution': flagParser.integer({
 			char: 't',
 			description: 'Amount of tokens distributed to each account',
 			default: 100000000000,
-		}),
+		}) as flagParser.IFlag<number>,
 		'validators-passphrase-encryption-iterations': flagParser.integer({
 			description: 'Number of iterations to use for passphrase encryption',
 			default: 1000000,
-		}),
+		}) as flagParser.IFlag<number>,
 		'validators-hash-onion-count': flagParser.integer({
 			description: 'Number of hashes to produce for each hash-onion',
 			default: 100000,
-		}),
+		}) as flagParser.IFlag<number>,
 		'validators-hash-onion-distance': flagParser.integer({
 			description: 'Distance between each hashes for hash-onion',
 			default: 1000,
-		}),
+		}) as flagParser.IFlag<number>,
 	};
 
 	async run(): Promise<void> {

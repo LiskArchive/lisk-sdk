@@ -30,7 +30,8 @@ interface PrintFlags {
 }
 
 export default abstract class BaseCommand extends Command {
-	static flags = {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	static flags: flagParser.Input<any> = {
 		json: flagParser.boolean({
 			char: 'j',
 			description: jsonDescription,

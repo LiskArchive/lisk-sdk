@@ -35,16 +35,16 @@ export default class PluginCommand extends BaseBootstrapCommand {
 		...BaseBootstrapCommand.flags,
 		standalone: flagParser.boolean({
 			description: 'Create a standalone plugin package.',
-		}),
+		}) as flagParser.IFlag<boolean | undefined>,
 		output: flagParser.string({
 			description: 'Path to create the plugin.',
 			char: 'o',
 			dependsOn: ['standalone'],
-		}),
+		}) as flagParser.IFlag<string | undefined>,
 		registry: flagParser.string({
 			description: 'URL of a registry to download dependencies from.',
 			dependsOn: ['standalone'],
-		}),
+		}) as flagParser.IFlag<string | undefined>,
 	};
 
 	async run(): Promise<void> {

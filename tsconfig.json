@@ -10,6 +10,7 @@
 		"noImplicitReturns": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
+		"skipLibCheck": true,
 		"pretty": true,
 		"removeComments": true,
 		"resolveJsonModule": true,

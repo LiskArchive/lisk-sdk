@@ -27,7 +27,7 @@ export default class InitCommand extends BaseBootstrapCommand {
 		'init /project/path --template lisk-ts',
 	];
 
-	static flags = {
+	static flags: flagParser.Input<any> = {
 		...BaseBootstrapCommand.flags,
 		registry: flagParser.string({
 			description: 'URL of a registry to download dependencies from.',

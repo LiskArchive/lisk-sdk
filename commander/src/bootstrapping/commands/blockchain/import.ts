@@ -43,7 +43,7 @@ export class ImportCommand extends Command {
 			char: 'f',
 			description: 'Delete and overwrite existing blockchain data',
 			default: false,
-		}),
+		}) as flagParser.IFlag<boolean | undefined>,
 	};
 
 	async run(): Promise<void> {

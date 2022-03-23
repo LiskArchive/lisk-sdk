@@ -18,8 +18,8 @@
 		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
-		"node": ">=12.13.0 <=12",
-		"npm": ">=6.12.0"
+		"node": ">=16.14.1 <=16",
+		"npm": ">=8.1.0"
 	},
 	"main": "dist-node/index.js",
 	"scripts": {
@@ -48,7 +48,7 @@
 		"@liskhq/lisk-utils": "^0.2.0",
 		"@liskhq/lisk-validator": "^0.6.1",
 		"axios": "0.21.1",
-		"express": "4.17.1",
+		"express": "4.17.3",
 		"lisk-framework": "^0.9.1",
 		"react": "^17.0.1",
 		"react-dom": "^17.0.1",
@@ -59,13 +59,13 @@
 		"@pmmmwh/react-refresh-webpack-plugin": "0.4.3",
 		"@svgr/webpack": "5.5.0",
 		"@types/cors": "2.8.6",
-		"@types/debug": "4.1.5",
+		"@types/debug": "4.1.7",
 		"@types/express": "4.17.6",
 		"@types/express-rate-limit": "5.0.0",
 		"@types/ip": "1.1.0",
 		"@types/jest": "26.0.21",
 		"@types/jest-when": "2.7.2",
-		"@types/node": "12.20.6",
+		"@types/node": "16.11.26",
 		"@types/react": "^17.0.0",
 		"@types/react-dom": "^17.0.0",
 		"@types/react-router-dom": "5.1.7",
@@ -82,7 +82,7 @@
 		"dotenv": "8.2.0",
 		"dotenv-expand": "5.1.0",
 		"eslint": "7.22.0",
-		"eslint-config-lisk-base": "2.0.0",
+		"eslint-config-lisk-base": "2.0.1",
 		"eslint-config-react-app": "^6.0.0",
 		"eslint-plugin-flowtype": "^5.2.0",
 		"eslint-plugin-import": "2.22.1",
@@ -107,7 +107,7 @@
 		"postcss-preset-env": "6.7.0",
 		"postcss-safe-parser": "5.0.2",
 		"prettier": "2.2.1",
-		"prompts": "2.4.0",
+		"prompts": "2.4.2",
 		"react-app-polyfill": "^2.0.0",
 		"react-dev-utils": "^11.0.2",
 		"react-refresh": "^0.8.3",

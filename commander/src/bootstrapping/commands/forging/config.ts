@@ -33,18 +33,18 @@ export class ConfigCommand extends Command {
 	];
 
 	static flags = {
-		password: flagsWithParser.password,
+		password: flagsWithParser.password as flagParser.IFlag<string | undefined>,
 		passphrase: flagsWithParser.passphrase,
 		count: flagParser.integer({
 			char: 'c',
 			description: 'Total number of hashes to produce',
 			default: 1000000,
-		}),
+		}) as flagParser.IFlag<number>,
 		distance: flagParser.integer({
 			char: 'd',
 			description: 'Distance between each hashes',
 			default: 1000,
-		}),
+		}) as flagParser.IFlag<number>,
 		output: flagsWithParser.output,
 		pretty: flagsWithParser.pretty,
 	};

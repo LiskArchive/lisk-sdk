@@ -42,6 +42,6 @@ export const smartConvert = (message: string, delimiter: string, format: string)
 			if (isASCIIChar(s)) {
 				return s;
 			}
-			return Buffer.from(s, 'binary').toString(format);
+			return Buffer.from(s, 'binary').toString(format as BufferEncoding);
 		})
 		.join(delimiter);
