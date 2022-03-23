@@ -12,9 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
+import { hash } from '@liskhq/lisk-cryptography';
+import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { BaseInteroperableModule } from './base_interoperable_module';
-import { CCMsg, CCUpdateParams, SendInternalContext } from './types';
+import { CCMsg, CCUpdateParams, ChannelData, SendInternalContext } from './types';
 import { SubStore } from '../../node/state_machine/types';
+import {
+	MODULE_ID_INTEROPERABILITY,
+	STORE_PREFIX_CHANNEL_DATA,
+	STORE_PREFIX_OUTBOX_ROOT,
+} from './constants';
+import { ccmSchema, channelSchema, outboxRootSchema } from './schema';
 
 export abstract class BaseInteroperabilityStore {
 	public readonly getStore: (moduleID: number, storePrefix: number) => SubStore;
@@ -33,15 +42,42 @@ export abstract class BaseInteroperabilityStore {
 		console.log(!this._moduleID, !this._interoperableModules, !this.getStore);
 	}
 
+	public async appendToOutboxTree(chainID: Buffer, appendData: Buffer) {
+		const channelSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA);
+		const channel = await channelSubstore.getWithSchema<ChannelData>(chainID, channelSchema);
+		const updatedOutbox = regularMerkleTree.calculateMerkleRoot({
+			value: hash(appendData),
+			appendPath: channel.outbox.appendPath,
+			size: channel.outbox.size,
+		});
+		await channelSubstore.setWithSchema(
+			chainID,
+			{ ...channel, outbox: updatedOutbox },
+			channelSchema,
+		);
+
+		return true;
+	}
+
+	public async addToOutbox(chainID: Buffer, ccm: CCMsg) {
+		const serializedMessage = codec.encode(ccmSchema, ccm);
+		await this.appendToOutboxTree(chainID, serializedMessage);
+
+		const channelSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA);
+		const channel = await channelSubstore.getWithSchema<ChannelData>(chainID, channelSchema);
+
+		const outboxRootSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_OUTBOX_ROOT);
+		await outboxRootSubstore.setWithSchema(chainID, channel.outbox.root, outboxRootSchema);
+
+		return true;
+	}
+
 	// Different in mainchain and sidechain so to be implemented in each module store separately
 	public abstract isLive(chainID: number): Promise<void>;
 	public abstract sendInternal(sendContext: SendInternalContext): Promise<void>;
 
 	// To be implemented in base class
 	public abstract apply(ccu: CCUpdateParams, ccm: CCMsg): Promise<void>;
-	public abstract appendToInboxTree(chainID: number, appendData: Buffer): Promise<void>;
-	public abstract appendToOutboxTree(chainID: Buffer, appendData: Buffer): Promise<boolean>;
-	public abstract addToOutbox(chainID: Buffer, ccm: CCMsg): Promise<boolean>;
 	public abstract terminateChainInternal(chainID: number): Promise<void>;
 	public abstract createTerminatedOutboxAccount(
 		chainID: number,
