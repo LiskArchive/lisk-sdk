@@ -12,21 +12,33 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
+import { hash } from '@liskhq/lisk-cryptography';
+import { regularMerkleTree } from '@liskhq/lisk-tree';
+import { SubStore } from '../../node/state_machine/types';
+import {
+	MODULE_ID_INTEROPERABILITY,
+	STORE_PREFIX_CHAIN_DATA,
+	STORE_PREFIX_TERMINATED_STATE,
+	STORE_PREFIX_CHANNEL_DATA,
+	STORE_PREFIX_OUTBOX_ROOT,
+} from './constants';
+import {
+	chainAccountSchema,
+	terminatedStateSchema,
+	ccmSchema,
+	channelSchema,
+	outboxRootSchema,
+} from './schema';
 import { BaseInteroperableModule } from './base_interoperable_module';
 import {
+	ChannelData,
 	CCMsg,
 	CCUpdateParams,
 	ChainAccount,
 	SendInternalContext,
 	TerminatedStateAccount,
 } from './types';
-import { SubStore } from '../../node/state_machine/types';
-import {
-	MODULE_ID_INTEROPERABILITY,
-	STORE_PREFIX_CHAIN_DATA,
-	STORE_PREFIX_TERMINATED_STATE,
-} from './constants';
-import { chainAccountSchema, terminatedStateSchema } from './schema';
 
 export abstract class BaseInteroperabilityStore {
 	public readonly getStore: (moduleID: number, storePrefix: number) => SubStore;
@@ -43,6 +55,32 @@ export abstract class BaseInteroperabilityStore {
 		this.getStore = getStore;
 		// eslint-disable-next-line no-console
 		console.log(!this._moduleID, !this._interoperableModules, !this.getStore);
+	}
+
+	public async appendToOutboxTree(chainID: Buffer, appendData: Buffer) {
+		const channelSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA);
+		const channel = await channelSubstore.getWithSchema<ChannelData>(chainID, channelSchema);
+		const updatedOutbox = regularMerkleTree.calculateMerkleRoot({
+			value: hash(appendData),
+			appendPath: channel.outbox.appendPath,
+			size: channel.outbox.size,
+		});
+		await channelSubstore.setWithSchema(
+			chainID,
+			{ ...channel, outbox: updatedOutbox },
+			channelSchema,
+		);
+	}
+
+	public async addToOutbox(chainID: Buffer, ccm: CCMsg) {
+		const serializedMessage = codec.encode(ccmSchema, ccm);
+		await this.appendToOutboxTree(chainID, serializedMessage);
+
+		const channelSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA);
+		const channel = await channelSubstore.getWithSchema<ChannelData>(chainID, channelSchema);
+
+		const outboxRootSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_OUTBOX_ROOT);
+		await outboxRootSubstore.setWithSchema(chainID, channel.outbox.root, outboxRootSchema);
 	}
 
 	public async hasTerminatedStateAccount(chainID: Buffer): Promise<boolean> {
@@ -75,9 +113,6 @@ export abstract class BaseInteroperabilityStore {
 
 	// To be implemented in base class
 	public abstract apply(ccu: CCUpdateParams, ccm: CCMsg): Promise<void>;
-	public abstract appendToInboxTree(chainID: number, appendData: Buffer): Promise<void>;
-	public abstract appendToOutboxTree(chainID: number, appendData: Buffer): Promise<void>;
-	public abstract addToOutbox(chainID: Buffer, ccm: CCMsg): Promise<void>;
 	public abstract terminateChainInternal(chainID: number): Promise<void>;
 	public abstract createTerminatedOutboxAccount(
 		chainID: number,

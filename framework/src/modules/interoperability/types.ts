@@ -116,7 +116,7 @@ export interface Inbox {
 
 export interface Outbox {
 	appendPath: Buffer[];
-	size: bigint;
+	size: number;
 	root: Buffer;
 }
 
@@ -126,7 +126,7 @@ export interface MessageFeeTokenID {
 }
 export interface ChannelData {
 	inbox: Inbox;
-	putbox: Outbox;
+	outbox: Outbox;
 	partnerChainOutboxRoot: Buffer;
 	messageFeeTokenID: MessageFeeTokenID;
 }
