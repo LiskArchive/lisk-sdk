@@ -32,12 +32,6 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async appendToInboxTree(chainID: number, appendData: Buffer): Promise<void> {
-		// eslint-disable-next-line no-console
-		console.log(chainID, appendData);
-	}
-
-	// eslint-disable-next-line @typescript-eslint/require-await
 	public async apply(ccu: CCUpdateParams, ccm: CCMsg): Promise<void> {
 		// eslint-disable-next-line no-console
 		console.log(ccu, ccm);

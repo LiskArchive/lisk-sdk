@@ -110,7 +110,7 @@ export interface ChainAccount {
 
 export interface Inbox {
 	appendPath: Buffer[];
-	size: bigint;
+	size: number;
 	root: Buffer;
 }
 

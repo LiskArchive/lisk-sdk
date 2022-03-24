@@ -38,6 +38,22 @@ describe('Base interoperability store', () => {
 		status: 1,
 		params: Buffer.alloc(0),
 	};
+	const inboxTree = {
+		root: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
+		appendPath: Buffer.from(
+			'6d391e95b7cb484862aa577320dbb4999971569e0b7c21fc02e9fda4d1d8485c',
+			'hex',
+		),
+		size: 1,
+	};
+	const updatedInboxTree = {
+		root: Buffer.from('888d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
+		appendPath: Buffer.from(
+			'aaaa1e95b7cb484862aa577320dbb4999971569e0b7c21fc02e9fda4d1d8485c',
+			'hex',
+		),
+		size: 2,
+	};
 	const outboxTree = {
 		root: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
 		appendPath: Buffer.from(
@@ -55,7 +71,7 @@ describe('Base interoperability store', () => {
 		size: 2,
 	};
 	const channelData = {
-		inbox: {},
+		inbox: inboxTree,
 		outbox: outboxTree,
 		partnerChainOutboxRoot: Buffer.alloc(0),
 		messageFeeTokenID: {
@@ -87,6 +103,23 @@ describe('Base interoperability store', () => {
 			mockGetStore,
 			new Map(),
 		);
+	});
+
+	describe('appendToInboxTree', () => {
+		it('should update the channel store with the new inbox tree info', async () => {
+			// Act
+			await mainchainInteroperabilityStore.appendToInboxTree(chainID, appendData);
+
+			// Assert
+			expect(channelSubstore.setWithSchema).toHaveBeenCalledWith(
+				chainID,
+				{
+					...channelData,
+					inbox: updatedInboxTree,
+				},
+				channelSchema,
+			);
+		});
 	});
 
 	describe('appendToOutboxTree', () => {
