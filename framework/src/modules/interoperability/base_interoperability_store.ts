@@ -70,8 +70,6 @@ export abstract class BaseInteroperabilityStore {
 			{ ...channel, outbox: updatedOutbox },
 			channelSchema,
 		);
-
-		return true;
 	}
 
 	public async addToOutbox(chainID: Buffer, ccm: CCMsg) {
@@ -83,8 +81,6 @@ export abstract class BaseInteroperabilityStore {
 
 		const outboxRootSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_OUTBOX_ROOT);
 		await outboxRootSubstore.setWithSchema(chainID, channel.outbox.root, outboxRootSchema);
-
-		return true;
 	}
 
 	public async hasTerminatedStateAccount(chainID: Buffer): Promise<boolean> {
