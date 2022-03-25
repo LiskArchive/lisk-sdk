@@ -57,6 +57,21 @@ export abstract class BaseInteroperabilityStore {
 		console.log(!this._moduleID, !this._interoperableModules, !this.getStore);
 	}
 
+	public async appendToInboxTree(chainID: Buffer, appendData: Buffer) {
+		const channelSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA);
+		const channel = await channelSubstore.getWithSchema<ChannelData>(chainID, channelSchema);
+		const updatedInbox = regularMerkleTree.calculateMerkleRoot({
+			value: hash(appendData),
+			appendPath: channel.inbox.appendPath,
+			size: channel.inbox.size,
+		});
+		await channelSubstore.setWithSchema(
+			chainID,
+			{ ...channel, inbox: updatedInbox },
+			channelSchema,
+		);
+	}
+
 	public async appendToOutboxTree(chainID: Buffer, appendData: Buffer) {
 		const channelSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA);
 		const channel = await channelSubstore.getWithSchema<ChannelData>(chainID, channelSchema);
