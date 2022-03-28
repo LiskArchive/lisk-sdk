@@ -18,9 +18,14 @@ import {
 	MODULE_ID_INTEROPERABILITY,
 	STORE_PREFIX_CHANNEL_DATA,
 	STORE_PREFIX_OUTBOX_ROOT,
+	STORE_PREFIX_TERMINATED_OUTBOX,
 } from '../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityStore } from '../../../../src/modules/interoperability/mainchain/store';
-import { channelSchema, outboxRootSchema } from '../../../../src/modules/interoperability/schema';
+import {
+	channelSchema,
+	outboxRootSchema,
+	terminatedOutboxSchema,
+} from '../../../../src/modules/interoperability/schema';
 
 describe('Base interoperability store', () => {
 	const chainID = Buffer.from('01', 'hex');
@@ -82,6 +87,8 @@ describe('Base interoperability store', () => {
 	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
 	let channelSubstore: any;
 	let outboxRootSubstore: any;
+	let terminatedOutboxSubstore: any;
+
 	let mockGetStore: any;
 
 	beforeEach(() => {
@@ -91,6 +98,7 @@ describe('Base interoperability store', () => {
 			setWithSchema: jest.fn(),
 		};
 		outboxRootSubstore = { getWithSchema: jest.fn(), setWithSchema: jest.fn() };
+		terminatedOutboxSubstore = { getWithSchema: jest.fn(), setWithSchema: jest.fn() };
 		mockGetStore = jest.fn();
 		when(mockGetStore)
 			.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA)
@@ -98,6 +106,9 @@ describe('Base interoperability store', () => {
 		when(mockGetStore)
 			.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_OUTBOX_ROOT)
 			.mockReturnValue(outboxRootSubstore);
+		when(mockGetStore)
+			.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_TERMINATED_OUTBOX)
+			.mockReturnValue(terminatedOutboxSubstore);
 		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
 			MODULE_ID_INTEROPERABILITY,
 			mockGetStore,
@@ -149,6 +160,31 @@ describe('Base interoperability store', () => {
 				chainID,
 				outboxTree.root,
 				outboxRootSchema,
+			);
+		});
+	});
+
+	describe('createTerminatedOutboxAccount', () => {
+		it('should initialise terminated outbox account in store', async () => {
+			const partnerChainInboxSize = 2;
+
+			// Act
+			await mainchainInteroperabilityStore.createTerminatedOutboxAccount(
+				chainID,
+				outboxTree.root,
+				outboxTree.size,
+				partnerChainInboxSize,
+			);
+
+			// Assert
+			expect(terminatedOutboxSubstore.setWithSchema).toHaveBeenCalledWith(
+				chainID,
+				{
+					outboxRoot: outboxTree.root,
+					outboxSize: outboxTree.size,
+					partnerChainInboxSize,
+				},
+				terminatedOutboxSchema,
 			);
 		});
 	});
