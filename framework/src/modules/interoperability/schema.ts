@@ -206,3 +206,23 @@ export const terminatedStateSchema = {
 		},
 	},
 };
+
+export const terminatedOutboxSchema = {
+	$id: 'modules/interoperability/terminatedOutbox',
+	type: 'object',
+	required: ['outboxRoot', 'outboxSize', 'partnerChainInboxSize'],
+	properties: {
+		outboxRoot: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+		outboxSize: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+		partnerChainInboxSize: {
+			dataType: 'uint32',
+			fieldNumber: 3,
+		},
+	},
+};
