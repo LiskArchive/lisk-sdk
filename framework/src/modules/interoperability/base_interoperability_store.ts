@@ -22,6 +22,7 @@ import {
 	STORE_PREFIX_TERMINATED_STATE,
 	STORE_PREFIX_CHANNEL_DATA,
 	STORE_PREFIX_OUTBOX_ROOT,
+	STORE_PREFIX_TERMINATED_OUTBOX,
 } from './constants';
 import {
 	chainAccountSchema,
@@ -29,6 +30,7 @@ import {
 	ccmSchema,
 	channelSchema,
 	outboxRootSchema,
+	terminatedOutboxSchema,
 } from './schema';
 import { BaseInteroperableModule } from './base_interoperable_module';
 import {
@@ -122,6 +124,26 @@ export abstract class BaseInteroperabilityStore {
 		);
 	}
 
+	public async createTerminatedOutboxAccount(
+		chainID: Buffer,
+		outboxRoot: Buffer,
+		outboxSize: number,
+		partnerChainInboxSize: number,
+	): Promise<void> {
+		const terminatedOutboxSubstore = this.getStore(
+			MODULE_ID_INTEROPERABILITY,
+			STORE_PREFIX_TERMINATED_OUTBOX,
+		);
+
+		const terminatedOutbox = {
+			outboxRoot,
+			outboxSize,
+			partnerChainInboxSize,
+		};
+
+		await terminatedOutboxSubstore.setWithSchema(chainID, terminatedOutbox, terminatedOutboxSchema);
+	}
+
 	// Different in mainchain and sidechain so to be implemented in each module store separately
 	public abstract isLive(chainID: Buffer, timestamp?: number): Promise<boolean>;
 	public abstract sendInternal(sendContext: SendInternalContext): Promise<void>;
@@ -129,12 +151,6 @@ export abstract class BaseInteroperabilityStore {
 	// To be implemented in base class
 	public abstract apply(ccu: CCUpdateParams, ccm: CCMsg): Promise<void>;
 	public abstract terminateChainInternal(chainID: number): Promise<void>;
-	public abstract createTerminatedOutboxAccount(
-		chainID: number,
-		outboxRoot: Buffer,
-		outboxSize: bigint,
-		partnerChainInboxSize: bigint,
-	): Promise<void>;
 	public abstract createTerminatedStateAccount(chainID: Buffer, stateRoot?: Buffer): Promise<void>;
 	public abstract getInboxRoot(chainID: number): Promise<void>;
 	public abstract getOutboxRoot(chainID: number): Promise<void>;
