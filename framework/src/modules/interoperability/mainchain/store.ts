@@ -62,17 +62,6 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async createTerminatedOutboxAccount(
-		chainID: number,
-		outboxRoot: Buffer,
-		outboxSize: bigint,
-		partnerChainInboxSize: bigint,
-	): Promise<void> {
-		// eslint-disable-next-line no-console
-		console.log(chainID, outboxRoot, outboxSize, partnerChainInboxSize);
-	}
-
-	// eslint-disable-next-line @typescript-eslint/require-await
 	public async getInboxRoot(chainID: number): Promise<void> {
 		// eslint-disable-next-line no-console
 		console.log(chainID);
