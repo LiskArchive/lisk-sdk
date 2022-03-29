@@ -70,7 +70,7 @@ export interface BeforeApplyCCMsgAPIContext extends CCAPIContext {
 }
 
 export interface BeforeSendCCMsgAPIContext extends CCAPIContext {
-	payFromAddress: Buffer;
+	feeAddress: Buffer;
 }
 
 export interface BeforeRecoverCCMsgAPIContext extends CCAPIContext {
@@ -86,13 +86,14 @@ export interface RecoverCCMsgAPIContext extends CCAPIContext {
 }
 
 export interface SendInternalContext {
-	feeAddress: Buffer;
 	moduleID: number;
 	crossChainCommandID: number;
 	receivingChainID: number;
 	fee: bigint;
 	status: number;
 	params: Buffer;
+	timestamp: number;
+	beforeSendContext: BeforeSendCCMsgAPIContext;
 }
 
 export interface LastCertificate {
@@ -106,6 +107,12 @@ export interface ChainAccount {
 	networkID: Buffer;
 	lastCertificate: LastCertificate;
 	status: number;
+}
+
+export interface OwnChainAccount {
+	name: string;
+	id: number;
+	nonce: bigint;
 }
 
 export interface Inbox {
