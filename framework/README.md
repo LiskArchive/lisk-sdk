@@ -45,7 +45,7 @@ To test the changes in framework you can run example application under `examples
 
 `./bin/run start`
 
-If you want to test the changes in `lisk-sdk/elements` to reflect in `lisk-sdk/framework`, please make sure you run `npm run build` at `lisk-sdk` after making any changes in elements library and run above.
+If you want to test the changes in `lisk-sdk/elements` to reflect in `lisk-sdk/framework`, please make sure you run `npm run build` at `lisk-sdk` after making any changes in elements library and run the example app above.
 
 ## Get Involved
 
