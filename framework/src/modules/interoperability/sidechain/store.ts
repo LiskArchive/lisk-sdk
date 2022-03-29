@@ -34,7 +34,7 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 		const receivingChainIDAsStoreKey = getIDAsKeyForStore(sendContext.receivingChainID);
 		let partnerChainID;
 		try {
-			partnerChainID = await this.getChainAccount(receivingChainIDAsStoreKey);
+			await this.getChainAccount(receivingChainIDAsStoreKey);
 			partnerChainID = sendContext.receivingChainID;
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
