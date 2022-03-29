@@ -126,6 +126,26 @@ export const chainAccountSchema = {
 	},
 };
 
+export const ownChainAccountSchema = {
+	$id: 'modules/interoperability/ownChainAccount',
+	type: 'object',
+	required: ['name', 'id', 'nonce'],
+	properties: {
+		name: {
+			dataType: 'string',
+			fieldNumber: 1,
+		},
+		id: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+		nonce: {
+			dataType: 'uint64',
+			fieldNumber: 3,
+		},
+	},
+};
+
 export const outboxRootSchema = {
 	$id: 'modules/interoperability/outbox',
 	type: 'object',
