@@ -88,7 +88,7 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 		for (const mod of this._interoperableModules.values()) {
 			if (mod?.crossChainAPI?.beforeSendCCM) {
 				try {
-					await mod.crossChainAPI?.beforeSendCCM(sendContext.beforeSendContext);
+					await mod.crossChainAPI.beforeSendCCM(sendContext.beforeSendContext);
 				} catch (error) {
 					return false;
 				}

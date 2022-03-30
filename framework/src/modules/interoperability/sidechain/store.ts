@@ -44,7 +44,6 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 
 		const partnerChainAccount = await this.getChainAccount(partnerChainIDAsStoreKey);
 		// Chain must be live; This checks is always on the receivingChainID
-		// Chain must be live; This check is always on the receivingChainID
 		const isReceivingChainLive = await this.isLive(receivingChainIDAsStoreKey);
 		if (!isReceivingChainLive) {
 			return false;
@@ -75,7 +74,7 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 		for (const mod of this._interoperableModules.values()) {
 			if (mod?.crossChainAPI?.beforeSendCCM) {
 				try {
-					await mod.crossChainAPI?.beforeSendCCM(sendContext.beforeSendContext);
+					await mod.crossChainAPI.beforeSendCCM(sendContext.beforeSendContext);
 				} catch (error) {
 					return false;
 				}
