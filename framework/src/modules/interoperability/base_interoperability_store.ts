@@ -13,6 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
+import { NotFoundError } from '@liskhq/lisk-chain';
 import { hash } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { SubStore } from '../../node/state_machine/types';
@@ -133,6 +134,20 @@ export abstract class BaseInteroperabilityStore {
 	public async getChainAccount(chainID: Buffer): Promise<ChainAccount> {
 		const chainSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
 		return chainSubstore.getWithSchema<ChainAccount>(chainID, chainAccountSchema);
+	}
+
+	public async chainAccountExist(chainID: Buffer): Promise<Boolean> {
+		const chainSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
+		try {
+			await chainSubstore.getWithSchema<ChainAccount>(chainID, chainAccountSchema);
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+			return false;
+		}
+
+		return true;
 	}
 
 	public async getTerminatedStateAccount(chainID: Buffer): Promise<TerminatedStateAccount> {

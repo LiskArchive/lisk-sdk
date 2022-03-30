@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { NotFoundError } from '@liskhq/lisk-chain';
 import { BaseInteroperabilityStore } from '../base_interoperability_store';
 import { CHAIN_ACTIVE, MAINCHAIN_ID } from '../constants';
 import { CCMsg, CCUpdateParams, SendInternalContext } from '../types';
@@ -32,16 +31,15 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 
 	public async sendInternal(sendContext: SendInternalContext): Promise<boolean> {
 		const receivingChainIDAsStoreKey = getIDAsKeyForStore(sendContext.receivingChainID);
+		const isReceivingChainExist = await this.chainAccountExist(receivingChainIDAsStoreKey);
+
 		let partnerChainID;
-		try {
-			await this.getChainAccount(receivingChainIDAsStoreKey);
+		if (isReceivingChainExist) {
 			partnerChainID = sendContext.receivingChainID;
-		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
-				throw error;
-			}
+		} else {
 			partnerChainID = MAINCHAIN_ID;
 		}
+
 		const partnerChainIDAsStoreKey = getIDAsKeyForStore(partnerChainID);
 
 		const partnerChainAccount = await this.getChainAccount(partnerChainIDAsStoreKey);
@@ -76,7 +74,11 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 
 		for (const mod of this._interoperableModules.values()) {
 			if (mod?.crossChainAPI?.beforeSendCCM) {
-				await mod.crossChainAPI?.beforeSendCCM(sendContext.beforeSendContext);
+				try {
+					await mod.crossChainAPI?.beforeSendCCM(sendContext.beforeSendContext);
+				} catch (error) {
+					return false;
+				}
 			}
 		}
 

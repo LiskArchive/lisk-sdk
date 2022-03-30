@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { NotFoundError } from '@liskhq/lisk-chain';
 import { BaseInteroperabilityStore } from '../base_interoperability_store';
 import { CHAIN_ACTIVE, LIVENESS_LIMIT } from '../constants';
 import { CCMsg, CCUpdateParams, SendInternalContext } from '../types';
@@ -45,6 +46,10 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 			// Chain has to exist on mainchain
 			receivingChainAccount = await this.getChainAccount(receivingChainIDAsStoreKey);
 		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+
 			return false;
 		}
 
@@ -82,7 +87,11 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 
 		for (const mod of this._interoperableModules.values()) {
 			if (mod?.crossChainAPI?.beforeSendCCM) {
-				await mod.crossChainAPI?.beforeSendCCM(sendContext.beforeSendContext);
+				try {
+					await mod.crossChainAPI?.beforeSendCCM(sendContext.beforeSendContext);
+				} catch (error) {
+					return false;
+				}
 			}
 		}
 		await this.addToOutbox(receivingChainIDAsStoreKey, ccm);
