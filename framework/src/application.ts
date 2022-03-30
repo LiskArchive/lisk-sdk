@@ -360,8 +360,8 @@ export class Application {
 	private _rootEvents(): string[] {
 		const nodeEvents = this._node.getEvents();
 		return [
-			APP_EVENT_READY.replace('app:', ''),
-			APP_EVENT_SHUTDOWN.replace('app:', ''),
+			APP_EVENT_READY.replace('app_', ''),
+			APP_EVENT_SHUTDOWN.replace('app_', ''),
 			...nodeEvents,
 		];
 	}
@@ -399,7 +399,7 @@ export class Application {
 				throw new DuplicateAppInstanceError(this.config.label, pidPath);
 			}
 		}
-		await fs.writeFile(pidPath, process.pid);
+		await fs.writeFile(pidPath, process.pid.toString());
 	}
 
 	private _clearControllerPidFile() {

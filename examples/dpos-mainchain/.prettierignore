@@ -1,0 +1,35 @@
+# Files
+Jenkinsfile*
+Makefile
+Dockerfile
+LICENSE
+.DS_Store
+data/
+.idea
+logs/
+
+.gitkeep
+
+# rc files
+.*rc
+
+## ignore files
+.*ignore
+
+# Ignore extensions
+*.png
+*.sql
+
+## jest snapshot
+*.snap
+*.tsbuildinfo
+
+# project specific paths
+dist/
+bin
+tmp/
+
+*.pid
+*.gz
+
+docker/*
