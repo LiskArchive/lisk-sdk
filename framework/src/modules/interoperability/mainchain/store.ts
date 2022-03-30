@@ -12,9 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { NotFoundError } from '@liskhq/lisk-chain';
 import { BaseInteroperabilityStore } from '../base_interoperability_store';
-import { LIVENESS_LIMIT } from '../constants';
+import { CHAIN_ACTIVE, LIVENESS_LIMIT } from '../constants';
 import { CCMsg, CCUpdateParams, SendInternalContext } from '../types';
+import { getIDAsKeyForStore, validateFormat } from '../utils';
 
 export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	public async isLive(chainID: Buffer, timestamp: number): Promise<boolean> {
@@ -37,10 +39,66 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 		console.log(ccu, ccm);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async sendInternal(sendContext: SendInternalContext): Promise<void> {
-		// eslint-disable-next-line no-console
-		console.log(sendContext);
+	public async sendInternal(sendContext: SendInternalContext): Promise<boolean> {
+		const receivingChainIDAsStoreKey = getIDAsKeyForStore(sendContext.receivingChainID);
+		let receivingChainAccount;
+		try {
+			// Chain has to exist on mainchain
+			receivingChainAccount = await this.getChainAccount(receivingChainIDAsStoreKey);
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+
+			return false;
+		}
+
+		// Chain must be live; This check is always on the receivingChainID
+		const isReceivingChainLive = await this.isLive(
+			receivingChainIDAsStoreKey,
+			sendContext.timestamp,
+		);
+		if (!isReceivingChainLive) {
+			return false;
+		}
+		// Chain status must be active
+		if (receivingChainAccount.status !== CHAIN_ACTIVE) {
+			return false;
+		}
+
+		const ownChainAccount = await this.getOwnChainAccount();
+		// Create cross-chain message
+		const ccm: CCMsg = {
+			crossChainCommandID: sendContext.crossChainCommandID,
+			fee: sendContext.fee,
+			moduleID: sendContext.moduleID,
+			nonce: ownChainAccount.nonce,
+			params: sendContext.params,
+			receivingChainID: sendContext.receivingChainID,
+			sendingChainID: ownChainAccount.id,
+			status: sendContext.status,
+		};
+
+		try {
+			validateFormat(ccm);
+		} catch (error) {
+			return false;
+		}
+
+		for (const mod of this._interoperableModules.values()) {
+			if (mod?.crossChainAPI?.beforeSendCCM) {
+				try {
+					await mod.crossChainAPI.beforeSendCCM(sendContext.beforeSendContext);
+				} catch (error) {
+					return false;
+				}
+			}
+		}
+		await this.addToOutbox(receivingChainIDAsStoreKey, ccm);
+		ownChainAccount.nonce += BigInt(1);
+		await this.setOwnChainAccount(ownChainAccount);
+
+		return true;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

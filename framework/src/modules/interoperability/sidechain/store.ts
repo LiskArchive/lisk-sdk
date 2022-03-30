@@ -13,7 +13,9 @@
  */
 
 import { BaseInteroperabilityStore } from '../base_interoperability_store';
+import { CHAIN_ACTIVE, MAINCHAIN_ID } from '../constants';
 import { CCMsg, CCUpdateParams, SendInternalContext } from '../types';
+import { getIDAsKeyForStore, validateFormat } from '../utils';
 
 export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 	public async isLive(chainID: Buffer): Promise<boolean> {
@@ -27,10 +29,63 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 		console.log(ccu, ccm);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async sendInternal(sendContext: SendInternalContext): Promise<void> {
-		// eslint-disable-next-line no-console
-		console.log(sendContext);
+	public async sendInternal(sendContext: SendInternalContext): Promise<boolean> {
+		const receivingChainIDAsStoreKey = getIDAsKeyForStore(sendContext.receivingChainID);
+		const isReceivingChainExist = await this.chainAccountExist(receivingChainIDAsStoreKey);
+
+		let partnerChainID;
+		if (isReceivingChainExist) {
+			partnerChainID = sendContext.receivingChainID;
+		} else {
+			partnerChainID = MAINCHAIN_ID;
+		}
+
+		const partnerChainIDAsStoreKey = getIDAsKeyForStore(partnerChainID);
+
+		const partnerChainAccount = await this.getChainAccount(partnerChainIDAsStoreKey);
+		// Chain must be live; This checks is always on the receivingChainID
+		const isReceivingChainLive = await this.isLive(receivingChainIDAsStoreKey);
+		if (!isReceivingChainLive) {
+			return false;
+		}
+		// Chain status must be active
+		if (partnerChainAccount.status !== CHAIN_ACTIVE) {
+			return false;
+		}
+		const ownChainAccount = await this.getOwnChainAccount();
+		// Create cross-chain message
+		const ccm: CCMsg = {
+			crossChainCommandID: sendContext.crossChainCommandID,
+			fee: sendContext.fee,
+			moduleID: sendContext.moduleID,
+			nonce: ownChainAccount.nonce,
+			params: sendContext.params,
+			receivingChainID: sendContext.receivingChainID,
+			sendingChainID: ownChainAccount.id,
+			status: sendContext.status,
+		};
+
+		try {
+			validateFormat(ccm);
+		} catch (error) {
+			return false;
+		}
+
+		for (const mod of this._interoperableModules.values()) {
+			if (mod?.crossChainAPI?.beforeSendCCM) {
+				try {
+					await mod.crossChainAPI.beforeSendCCM(sendContext.beforeSendContext);
+				} catch (error) {
+					return false;
+				}
+			}
+		}
+
+		await this.addToOutbox(partnerChainIDAsStoreKey, ccm);
+		ownChainAccount.nonce += BigInt(1);
+		await this.setOwnChainAccount(ownChainAccount);
+
+		return true;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

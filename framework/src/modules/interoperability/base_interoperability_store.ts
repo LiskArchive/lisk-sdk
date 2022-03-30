@@ -13,6 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
+import { NotFoundError } from '@liskhq/lisk-chain';
 import { hash } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { SubStore } from '../../node/state_machine/types';
@@ -23,6 +24,8 @@ import {
 	STORE_PREFIX_CHANNEL_DATA,
 	STORE_PREFIX_OUTBOX_ROOT,
 	STORE_PREFIX_TERMINATED_OUTBOX,
+	STORE_PREFIX_OWN_CHAIN_DATA,
+	MAINCHAIN_ID,
 } from './constants';
 import {
 	chainAccountSchema,
@@ -31,6 +34,7 @@ import {
 	channelSchema,
 	outboxRootSchema,
 	terminatedOutboxSchema,
+	ownChainAccountSchema,
 } from './schema';
 import { BaseInteroperableModule } from './base_interoperable_module';
 import {
@@ -40,12 +44,14 @@ import {
 	ChainAccount,
 	SendInternalContext,
 	TerminatedStateAccount,
+	OwnChainAccount,
 } from './types';
+import { getIDAsKeyForStore } from './utils';
 
 export abstract class BaseInteroperabilityStore {
 	public readonly getStore: (moduleID: number, storePrefix: number) => SubStore;
-	private readonly _moduleID: number;
-	private readonly _interoperableModules = new Map<number, BaseInteroperableModule>();
+	protected readonly _moduleID: number;
+	protected readonly _interoperableModules = new Map<number, BaseInteroperableModule>();
 
 	public constructor(
 		moduleID: number,
@@ -57,6 +63,23 @@ export abstract class BaseInteroperabilityStore {
 		this.getStore = getStore;
 		// eslint-disable-next-line no-console
 		console.log(!this._moduleID, !this._interoperableModules, !this.getStore);
+	}
+
+	public async getOwnChainAccount(): Promise<OwnChainAccount> {
+		const ownChainAccountStore = this.getStore(this._moduleID, STORE_PREFIX_OWN_CHAIN_DATA);
+		return ownChainAccountStore.getWithSchema<OwnChainAccount>(
+			getIDAsKeyForStore(MAINCHAIN_ID),
+			ownChainAccountSchema,
+		);
+	}
+
+	public async setOwnChainAccount(ownChainAccount: OwnChainAccount): Promise<void> {
+		const ownChainAccountStore = this.getStore(this._moduleID, STORE_PREFIX_OWN_CHAIN_DATA);
+		await ownChainAccountStore.setWithSchema(
+			getIDAsKeyForStore(MAINCHAIN_ID),
+			ownChainAccount,
+			ownChainAccountSchema,
+		);
 	}
 
 	public async appendToInboxTree(chainID: Buffer, appendData: Buffer) {
@@ -113,6 +136,20 @@ export abstract class BaseInteroperabilityStore {
 		return chainSubstore.getWithSchema<ChainAccount>(chainID, chainAccountSchema);
 	}
 
+	public async chainAccountExist(chainID: Buffer): Promise<Boolean> {
+		const chainSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
+		try {
+			await chainSubstore.getWithSchema<ChainAccount>(chainID, chainAccountSchema);
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+			return false;
+		}
+
+		return true;
+	}
+
 	public async getTerminatedStateAccount(chainID: Buffer): Promise<TerminatedStateAccount> {
 		const terminatedStateSubstore = this.getStore(
 			MODULE_ID_INTEROPERABILITY,
@@ -146,7 +183,7 @@ export abstract class BaseInteroperabilityStore {
 
 	// Different in mainchain and sidechain so to be implemented in each module store separately
 	public abstract isLive(chainID: Buffer, timestamp?: number): Promise<boolean>;
-	public abstract sendInternal(sendContext: SendInternalContext): Promise<void>;
+	public abstract sendInternal(sendContext: SendInternalContext): Promise<boolean>;
 
 	// To be implemented in base class
 	public abstract apply(ccu: CCUpdateParams, ccm: CCMsg): Promise<void>;
