@@ -1020,7 +1020,7 @@ describe('DPoS module', () => {
 
 				const missedBlocks: Record<string, number> = {};
 				// Make every delegate miss its block-slot except start and end slots
-				for (let i = 1; i < 102; i += 1) {
+				for (let i = 0; i < 102; i += 1) {
 					missedBlocks[delegateAddresses[i].toString('binary')] = 1;
 				}
 
@@ -1047,8 +1047,6 @@ describe('DPoS module', () => {
 					if (delegateAddress.equals(generatorAddress)) {
 						expect(currentDelegate.consecutiveMissedBlocks).toBe(0);
 						expect(currentDelegate.lastGeneratedHeight).toBe(nextForgedHeight);
-					} else if (delegateAddress.equals(delegateAddresses[0])) {
-						expect(currentDelegate.consecutiveMissedBlocks).toBe(0);
 					} else {
 						expect(currentDelegate.consecutiveMissedBlocks).toBe(1);
 					}
@@ -1128,6 +1126,9 @@ describe('DPoS module', () => {
 				const currentTimestamp = 10290;
 				const lastForgedHeight = 926;
 				const nextForgedHeight = lastForgedHeight + 1;
+				// Last block slot is not included because it is currently generated
+				// and is not related to this test case
+				const delegatesExceptGenerator = delegateAddresses.slice(0, 102);
 
 				const context = createBlockContext({
 					header: {
@@ -1146,9 +1147,6 @@ describe('DPoS module', () => {
 
 				const missedBlocks: Record<string, number> = {};
 				for (const delegateAddress of delegateAddresses) {
-					if (delegateAddress.equals(lastForgerAddress)) {
-						continue;
-					}
 					missedBlocks[delegateAddress.toString('binary')] = 1;
 				}
 				for (const delegateAddress of missedMoreThan1Block) {
@@ -1169,20 +1167,14 @@ describe('DPoS module', () => {
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
 
-				expect.assertions(delegateAddresses.length);
-				for (const delegateAddress of delegateAddresses) {
+				expect.assertions(delegateAddresses.length - 1);
+				for (const delegateAddress of delegatesExceptGenerator) {
 					const currentDelegate = await delegateStore.getWithSchema<DelegateAccount>(
 						delegateAddress,
 						delegateStoreSchema,
 					);
-					if (delegateAddress.equals(generatorAddress)) {
-						expect(currentDelegate.consecutiveMissedBlocks).toBe(0);
-					} else if (
-						missedMoreThan1Block.some(missedForger => missedForger.equals(delegateAddress))
-					) {
+					if (missedMoreThan1Block.some(missedForger => missedForger.equals(delegateAddress))) {
 						expect(currentDelegate.consecutiveMissedBlocks).toBe(2);
-					} else if (delegateAddress.equals(lastForgerAddress)) {
-						expect(currentDelegate.consecutiveMissedBlocks).toBe(0);
 					} else {
 						expect(currentDelegate.consecutiveMissedBlocks).toBe(1);
 					}
