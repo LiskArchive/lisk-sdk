@@ -1,5 +1,6 @@
 {
 	"name": "dpos-mainchain",
+	"private": true,
 	"version": "0.1.0",
 	"description": "Lisk-SDK Application",
 	"author": "Lisk Foundation &lt;admin@lisk.com&gt;, lightcurve GmbH &lt;admin@lightcurve.io&gt;",
