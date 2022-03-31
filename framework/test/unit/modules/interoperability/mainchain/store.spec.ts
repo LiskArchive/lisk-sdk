@@ -337,4 +337,63 @@ describe('Mainchain interoperability store', () => {
 			expect(mod2.crossChainAPI.beforeSendCCM).toHaveBeenCalledTimes(1);
 		});
 	});
+
+	describe('terminateChainInternal', () => {
+		const ccm = {
+			nonce: BigInt(0),
+			moduleID: 1,
+			crossChainCommandID: 1,
+			sendingChainID: 2,
+			receivingChainID: 3,
+			fee: BigInt(1),
+			status: 1,
+			params: Buffer.alloc(0),
+		};
+		const beforeSendCCMContext = testing.createBeforeSendCCMsgAPIContext({
+			ccm,
+			feeAddress: getRandomBytes(32),
+		});
+
+		beforeEach(() => {
+			mainchainInteroperabilityStore.sendInternal = jest.fn().mockResolvedValue(true);
+			mainchainInteroperabilityStore.createTerminatedStateAccount = jest
+				.fn()
+				.mockResolvedValue(true);
+		});
+
+		it('should return true if sendInternal and createTerminatedStateAccount return true', async () => {
+			expect(
+				await mainchainInteroperabilityStore.terminateChainInternal(
+					MAINCHAIN_ID,
+					beforeSendCCMContext,
+				),
+			).toBe(true);
+		});
+
+		it('should return false if sendInternal returns false', async () => {
+			// Arrange
+			mainchainInteroperabilityStore.sendInternal = jest.fn().mockResolvedValue(false);
+
+			expect(
+				await mainchainInteroperabilityStore.terminateChainInternal(
+					MAINCHAIN_ID,
+					beforeSendCCMContext,
+				),
+			).toBe(false);
+		});
+
+		it('should return false if createTerminatedStateAccount returns false', async () => {
+			// Arrange
+			mainchainInteroperabilityStore.createTerminatedStateAccount = jest
+				.fn()
+				.mockResolvedValue(false);
+
+			expect(
+				await mainchainInteroperabilityStore.terminateChainInternal(
+					MAINCHAIN_ID,
+					beforeSendCCMContext,
+				),
+			).toBe(false);
+		});
+	});
 });
