@@ -13,10 +13,10 @@
  */
 
 import { BaseModule } from '../base_module';
-import { BaseCrossChainCommand } from './base_cross_chain_command';
+import { BaseCCCommand } from './base_cross_chain_command';
 import { BaseInteroperableAPI } from './base_interoperable_api';
 
 export abstract class BaseInteroperableModule extends BaseModule {
-	public crossChainCommand: BaseCrossChainCommand[] = [];
+	public crossChainCommand: BaseCCCommand[] = [];
 	public abstract crossChainAPI: BaseInteroperableAPI;
 }

@@ -12,11 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseCrossChainCommand } from '../base_cross_chain_command';
+import { BaseCCCommand } from '../base_cross_chain_command';
 import { CROSS_CHAIN_COMMAND_ID_REGISTRATION } from '../constants';
 import { registrationCCMParamsSchema } from '../schema';
 
-export class CrossChainRegistrationCommand extends BaseCrossChainCommand {
+export class CCRegistrationCommand extends BaseCCCommand {
 	public ID = CROSS_CHAIN_COMMAND_ID_REGISTRATION;
 	public name = 'registration';
 	public schema = registrationCCMParamsSchema;

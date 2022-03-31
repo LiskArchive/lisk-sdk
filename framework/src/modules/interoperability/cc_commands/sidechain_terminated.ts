@@ -12,11 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseCrossChainCommand } from '../base_cross_chain_command';
+import { BaseCCCommand } from '../base_cross_chain_command';
 import { CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED } from '../constants';
 import { sidechainTerminatedCCMParamsSchema } from '../schema';
 
-export class CrossChainSidechainTerminatedCommand extends BaseCrossChainCommand {
+export class CCSidechainTerminatedCommand extends BaseCCCommand {
 	public ID = CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED;
 	public name = 'sidechainTerminated';
 	public schema = sidechainTerminatedCCMParamsSchema;

@@ -14,7 +14,7 @@
 
 import { Schema } from '@liskhq/lisk-codec';
 
-export abstract class BaseCrossChainCommand {
+export abstract class BaseCCCommand {
 	public abstract ID: number;
 	public abstract name: string;
 	public abstract schema: Schema;
