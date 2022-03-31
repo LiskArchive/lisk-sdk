@@ -184,10 +184,7 @@ export abstract class BaseInteroperabilityStore {
 
 	// Different in mainchain and sidechain so to be implemented in each module store separately
 	public abstract isLive(chainID: Buffer, timestamp?: number): Promise<boolean>;
-	public abstract sendInternal(
-		sendContext: SendInternalContext,
-		beforeSendContext: BeforeSendCCMsgAPIContext,
-	): Promise<boolean>;
+	public abstract sendInternal(sendContext: SendInternalContext): Promise<boolean>;
 
 	// To be implemented in base class
 	public abstract apply(ccu: CCUpdateParams, ccm: CCMsg): Promise<void>;
