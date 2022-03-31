@@ -38,6 +38,7 @@ import {
 } from './schema';
 import { BaseInteroperableModule } from './base_interoperable_module';
 import {
+	BeforeSendCCMsgAPIContext,
 	ChannelData,
 	CCMsg,
 	CCUpdateParams,
@@ -136,7 +137,7 @@ export abstract class BaseInteroperabilityStore {
 		return chainSubstore.getWithSchema<ChainAccount>(chainID, chainAccountSchema);
 	}
 
-	public async chainAccountExist(chainID: Buffer): Promise<Boolean> {
+	public async chainAccountExist(chainID: Buffer): Promise<boolean> {
 		const chainSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
 		try {
 			await chainSubstore.getWithSchema<ChainAccount>(chainID, chainAccountSchema);
@@ -183,12 +184,21 @@ export abstract class BaseInteroperabilityStore {
 
 	// Different in mainchain and sidechain so to be implemented in each module store separately
 	public abstract isLive(chainID: Buffer, timestamp?: number): Promise<boolean>;
-	public abstract sendInternal(sendContext: SendInternalContext): Promise<boolean>;
+	public abstract sendInternal(
+		sendContext: SendInternalContext,
+		beforeSendContext: BeforeSendCCMsgAPIContext,
+	): Promise<boolean>;
 
 	// To be implemented in base class
 	public abstract apply(ccu: CCUpdateParams, ccm: CCMsg): Promise<void>;
-	public abstract terminateChainInternal(chainID: number): Promise<void>;
-	public abstract createTerminatedStateAccount(chainID: Buffer, stateRoot?: Buffer): Promise<void>;
+	public abstract terminateChainInternal(
+		chainID: number,
+		beforeSendContext: BeforeSendCCMsgAPIContext,
+	): Promise<boolean>;
+	public abstract createTerminatedStateAccount(
+		chainID: number,
+		stateRoot?: Buffer,
+	): Promise<boolean>;
 	public abstract getInboxRoot(chainID: number): Promise<void>;
 	public abstract getOutboxRoot(chainID: number): Promise<void>;
 	public abstract getChannel(chainID: number): Promise<void>; // TODO: Update to Promise<ChannelData> after implementation
