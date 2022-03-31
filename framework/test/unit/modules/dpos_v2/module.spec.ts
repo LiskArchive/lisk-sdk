@@ -1126,9 +1126,6 @@ describe('DPoS module', () => {
 				const currentTimestamp = 10290;
 				const lastForgedHeight = 926;
 				const nextForgedHeight = lastForgedHeight + 1;
-				// Last block slot is not included because it is currently generated
-				// and is not related to this test case
-				const delegatesExceptGenerator = delegateAddresses.slice(0, 102);
 
 				const context = createBlockContext({
 					header: {
@@ -1167,14 +1164,16 @@ describe('DPoS module', () => {
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
 
-				expect.assertions(delegateAddresses.length - 1);
-				for (const delegateAddress of delegatesExceptGenerator) {
+				expect.assertions(delegateAddresses.length);
+				for (const delegateAddress of delegateAddresses) {
 					const currentDelegate = await delegateStore.getWithSchema<DelegateAccount>(
 						delegateAddress,
 						delegateStoreSchema,
 					);
 					if (missedMoreThan1Block.some(missedForger => missedForger.equals(delegateAddress))) {
 						expect(currentDelegate.consecutiveMissedBlocks).toBe(2);
+					} else if (delegateAddress.equals(generatorAddress)) {
+						expect(currentDelegate.consecutiveMissedBlocks).toBe(0);
 					} else {
 						expect(currentDelegate.consecutiveMissedBlocks).toBe(1);
 					}
