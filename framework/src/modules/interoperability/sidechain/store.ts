@@ -13,8 +13,15 @@
  */
 
 import { BaseInteroperabilityStore } from '../base_interoperability_store';
-import { CHAIN_ACTIVE, MAINCHAIN_ID } from '../constants';
-import { CCMsg, CCUpdateParams, SendInternalContext } from '../types';
+import {
+	CCM_STATUS_OK,
+	CHAIN_ACTIVE,
+	CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED,
+	EMPTY_BYTES,
+	MAINCHAIN_ID,
+	MODULE_ID_INTEROPERABILITY,
+} from '../constants';
+import { BeforeSendCCMsgAPIContext, CCMsg, CCUpdateParams, SendInternalContext } from '../types';
 import { getIDAsKeyForStore, validateFormat } from '../utils';
 
 export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
@@ -88,6 +95,28 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 		return true;
 	}
 
+	public async terminateChainInternal(
+		chainID: number,
+		beforeSendContext: BeforeSendCCMsgAPIContext,
+	): Promise<boolean> {
+		const messageSent = await this.sendInternal({
+			moduleID: MODULE_ID_INTEROPERABILITY,
+			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED,
+			receivingChainID: chainID,
+			fee: BigInt(0),
+			status: CCM_STATUS_OK,
+			params: EMPTY_BYTES,
+			timestamp: Date.now(),
+			beforeSendContext,
+		});
+
+		if (!messageSent) {
+			return false;
+		}
+
+		return this.createTerminatedStateAccount(chainID);
+	}
+
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async getChannel(chainID: number): Promise<void> {
 		// eslint-disable-next-line no-console
@@ -95,15 +124,12 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async createTerminatedStateAccount(chainID: Buffer, stateRoot?: Buffer): Promise<void> {
+	public async createTerminatedStateAccount(chainID: number, stateRoot?: Buffer): Promise<boolean> {
 		// eslint-disable-next-line no-console
 		console.log(chainID, stateRoot);
-	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async terminateChainInternal(chainID: number): Promise<void> {
-		// eslint-disable-next-line no-console
-		console.log(chainID);
+		// TODO: Update after implementation
+		return true;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
