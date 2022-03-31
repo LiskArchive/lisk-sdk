@@ -14,15 +14,8 @@
 
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { BaseInteroperabilityStore } from '../base_interoperability_store';
-import {
-	MODULE_ID_INTEROPERABILITY,
-	CCM_STATUS_OK,
-	CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED,
-	CHAIN_ACTIVE,
-	LIVENESS_LIMIT,
-	EMPTY_BYTES,
-} from '../constants';
-import { BeforeSendCCMsgAPIContext, CCMsg, CCUpdateParams, SendInternalContext } from '../types';
+import { CHAIN_ACTIVE, LIVENESS_LIMIT } from '../constants';
+import { CCMsg, CCUpdateParams, SendInternalContext } from '../types';
 import { getIDAsKeyForStore, validateFormat } from '../utils';
 
 export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
@@ -106,28 +99,6 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 		await this.setOwnChainAccount(ownChainAccount);
 
 		return true;
-	}
-
-	public async terminateChainInternal(
-		chainID: number,
-		beforeSendContext: BeforeSendCCMsgAPIContext,
-	): Promise<boolean> {
-		const messageSent = await this.sendInternal({
-			moduleID: MODULE_ID_INTEROPERABILITY,
-			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED,
-			receivingChainID: chainID,
-			fee: BigInt(0),
-			status: CCM_STATUS_OK,
-			params: EMPTY_BYTES,
-			timestamp: Date.now(),
-			beforeSendContext,
-		});
-
-		if (!messageSent) {
-			return false;
-		}
-
-		return this.createTerminatedStateAccount(chainID);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
