@@ -246,3 +246,57 @@ export const terminatedOutboxSchema = {
 		},
 	},
 };
+
+// Cross chain commands schemas
+export const registrationCCMParamsSchema = {
+	$id: 'modules/interoperability/ccCommand/registration',
+	type: 'object',
+	required: ['networkID', 'name', 'messageFeeTokenID'],
+	properties: {
+		networkID: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+		name: {
+			dataType: 'string',
+			fieldNumber: 2,
+		},
+		messageFeeTokenID: {
+			type: 'object',
+			fieldNumber: 3,
+			required: ['chainID', 'localID'],
+			properties: {
+				chainID: {
+					dataType: 'uint32',
+					fieldNumber: 1,
+				},
+				localID: {
+					dataType: 'uint32',
+					fieldNumber: 2,
+				},
+			},
+		},
+	},
+};
+
+export const channelTerminatedCCMParamsSchema = {
+	$id: 'modules/interoperability/ccCommand/channelTerminated',
+	type: 'object',
+	properties: {},
+};
+
+export const sidechainTerminatedCCMParamsSchema = {
+	$id: 'modules/interoperability/ccCommand/sidechainTerminated',
+	type: 'object',
+	required: ['chainID', 'stateRoot'],
+	properties: {
+		chainID: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		stateRoot: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+		},
+	},
+};
