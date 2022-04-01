@@ -108,15 +108,12 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async createTerminatedStateAccount(chainID: Buffer, stateRoot?: Buffer): Promise<void> {
+	public async createTerminatedStateAccount(chainID: number, stateRoot?: Buffer): Promise<boolean> {
 		// eslint-disable-next-line no-console
 		console.log(chainID, stateRoot);
-	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async terminateChainInternal(chainID: number): Promise<void> {
-		// eslint-disable-next-line no-console
-		console.log(chainID);
+		// TODO: Update after implementation
+		return true;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
