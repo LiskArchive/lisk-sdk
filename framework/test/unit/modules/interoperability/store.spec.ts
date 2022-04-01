@@ -34,6 +34,7 @@ import {
 	terminatedOutboxSchema,
 	terminatedStateSchema,
 } from '../../../../src/modules/interoperability/schema';
+import { getIDAsKeyForStore } from '../../../../src/modules/interoperability/utils';
 
 describe('Base interoperability store', () => {
 	const chainID = Buffer.from('01', 'hex');
@@ -214,7 +215,8 @@ describe('Base interoperability store', () => {
 
 	describe('createTerminatedStateAccount', () => {
 		const chainId = 5;
-		const chainIdBuffer = Buffer.from(chainId.toString(16), 'hex');
+		const chainIdAsStoreKey = getIDAsKeyForStore(chainId);
+		// const chainIdBuffer = Buffer.from(chainId.toString(16), 'hex');
 		const chainAccount = {
 			name: 'account1',
 			networkID: Buffer.alloc(0),
@@ -240,11 +242,11 @@ describe('Base interoperability store', () => {
 		};
 
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account exists for the id and state root is provided', async () => {
-			await chainSubstore.setWithSchema(chainIdBuffer, chainAccount, chainAccountSchema);
+			await chainSubstore.setWithSchema(chainIdAsStoreKey, chainAccount, chainAccountSchema);
 			await mainchainInteroperabilityStore.createTerminatedStateAccount(chainId, stateRoot);
 
 			await expect(
-				terminatedStateSubstore.getWithSchema(chainIdBuffer, terminatedStateSchema),
+				terminatedStateSubstore.getWithSchema(chainIdAsStoreKey, terminatedStateSchema),
 			).resolves.toStrictEqual({
 				stateRoot,
 				mainchainStateRoot: EMPTY_BYTES,
@@ -253,11 +255,11 @@ describe('Base interoperability store', () => {
 		});
 
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account exists for the id but state root is not provided', async () => {
-			await chainSubstore.setWithSchema(chainIdBuffer, chainAccount, chainAccountSchema);
+			await chainSubstore.setWithSchema(chainIdAsStoreKey, chainAccount, chainAccountSchema);
 			await mainchainInteroperabilityStore.createTerminatedStateAccount(chainId);
 
 			await expect(
-				terminatedStateSubstore.getWithSchema(chainIdBuffer, terminatedStateSchema),
+				terminatedStateSubstore.getWithSchema(chainIdAsStoreKey, terminatedStateSchema),
 			).resolves.toStrictEqual({
 				stateRoot: chainAccount.lastCertificate.stateRoot,
 				mainchainStateRoot: EMPTY_BYTES,
@@ -266,6 +268,19 @@ describe('Base interoperability store', () => {
 		});
 
 		it('should return false if chain account does not exist for the id and ownchain account id is not the same as mainchain id', async () => {
+			const chainIdNew = 9;
+			jest
+				.spyOn(mainchainInteroperabilityStore, 'getOwnChainAccount')
+				.mockResolvedValue(ownChainAccount1 as never);
+
+			await expect(
+				mainchainInteroperabilityStore.createTerminatedStateAccount(chainIdNew),
+			).resolves.toEqual(false);
+		});
+
+		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account does not exist for the id but ownchain account id is the same as mainchain id', async () => {
+			const chainIdNew = 10;
+			const chainIdNewAsStoreKey = getIDAsKeyForStore(chainIdNew);
 			jest
 				.spyOn(mainchainInteroperabilityStore, 'getOwnChainAccount')
 				.mockResolvedValue(ownChainAccount2 as never);
@@ -274,25 +289,10 @@ describe('Base interoperability store', () => {
 				chainAccount,
 				chainAccountSchema,
 			);
+			await mainchainInteroperabilityStore.createTerminatedStateAccount(chainIdNew);
 
 			await expect(
-				mainchainInteroperabilityStore.createTerminatedStateAccount(chainId),
-			).resolves.toEqual(false);
-		});
-
-		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account does not exist for the id but ownchain account id is the same as mainchain id', async () => {
-			jest
-				.spyOn(mainchainInteroperabilityStore, 'getOwnChainAccount')
-				.mockResolvedValue(ownChainAccount1 as never);
-			await chainSubstore.setWithSchema(
-				Buffer.from(MAINCHAIN_ID.toString(16), 'hex'),
-				chainAccount,
-				chainAccountSchema,
-			);
-			await mainchainInteroperabilityStore.createTerminatedStateAccount(chainId);
-
-			await expect(
-				terminatedStateSubstore.getWithSchema(chainIdBuffer, terminatedStateSchema),
+				terminatedStateSubstore.getWithSchema(chainIdNewAsStoreKey, terminatedStateSchema),
 			).resolves.toStrictEqual({
 				stateRoot: EMPTY_BYTES,
 				mainchainStateRoot: chainAccount.lastCertificate.stateRoot,
