@@ -35,3 +35,4 @@ export const STORE_PREFIX_REGISTERED_NETWORK_IDS = 0xf000;
 export const CHAIN_REGISTERED = 0;
 export const CHAIN_ACTIVE = 1;
 export const CHAIN_TERMINATED = 2;
+export const EMPTY_BYTES = Buffer.alloc(0);
