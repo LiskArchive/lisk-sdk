@@ -18,6 +18,9 @@ import { hash } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { SubStore } from '../../node/state_machine/types';
 import {
+	CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED,
+	CCM_STATUS_OK,
+	EMPTY_BYTES,
 	MODULE_ID_INTEROPERABILITY,
 	STORE_PREFIX_CHAIN_DATA,
 	STORE_PREFIX_TERMINATED_STATE,
@@ -38,6 +41,7 @@ import {
 } from './schema';
 import { BaseInteroperableModule } from './base_interoperable_module';
 import {
+	BeforeSendCCMsgAPIContext,
 	ChannelData,
 	CCMsg,
 	CCUpdateParams,
@@ -136,7 +140,7 @@ export abstract class BaseInteroperabilityStore {
 		return chainSubstore.getWithSchema<ChainAccount>(chainID, chainAccountSchema);
 	}
 
-	public async chainAccountExist(chainID: Buffer): Promise<Boolean> {
+	public async chainAccountExist(chainID: Buffer): Promise<boolean> {
 		const chainSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
 		try {
 			await chainSubstore.getWithSchema<ChainAccount>(chainID, chainAccountSchema);
@@ -181,14 +185,39 @@ export abstract class BaseInteroperabilityStore {
 		await terminatedOutboxSubstore.setWithSchema(chainID, terminatedOutbox, terminatedOutboxSchema);
 	}
 
+	public async terminateChainInternal(
+		chainID: number,
+		beforeSendContext: BeforeSendCCMsgAPIContext,
+	): Promise<boolean> {
+		const messageSent = await this.sendInternal({
+			moduleID: MODULE_ID_INTEROPERABILITY,
+			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED,
+			receivingChainID: chainID,
+			fee: BigInt(0),
+			status: CCM_STATUS_OK,
+			params: EMPTY_BYTES,
+			timestamp: Date.now(),
+			beforeSendContext,
+		});
+
+		if (!messageSent) {
+			return false;
+		}
+
+		return this.createTerminatedStateAccount(chainID);
+	}
+
 	// Different in mainchain and sidechain so to be implemented in each module store separately
 	public abstract isLive(chainID: Buffer, timestamp?: number): Promise<boolean>;
 	public abstract sendInternal(sendContext: SendInternalContext): Promise<boolean>;
 
 	// To be implemented in base class
 	public abstract apply(ccu: CCUpdateParams, ccm: CCMsg): Promise<void>;
-	public abstract terminateChainInternal(chainID: number): Promise<void>;
-	public abstract createTerminatedStateAccount(chainID: Buffer, stateRoot?: Buffer): Promise<void>;
+
+	public abstract createTerminatedStateAccount(
+		chainID: number,
+		stateRoot?: Buffer,
+	): Promise<boolean>;
 	public abstract getInboxRoot(chainID: number): Promise<void>;
 	public abstract getOutboxRoot(chainID: number): Promise<void>;
 	public abstract getChannel(chainID: number): Promise<void>; // TODO: Update to Promise<ChannelData> after implementation

@@ -19,6 +19,8 @@ export const MODULE_NAME_INTEROPERABILITY = 'interoperability';
 export const MAINCHAIN_ID = 1;
 export const LIVENESS_LIMIT = 2592000; // 30*24*3600
 export const MAX_CCM_SIZE = 10240;
+export const EMPTY_FEE_ADDRESS = Buffer.alloc(0);
+export const EMPTY_BYTES = Buffer.alloc(0);
 
 // Store prefixes
 export const STORE_PREFIX_OUTBOX_ROOT = 0x0000;

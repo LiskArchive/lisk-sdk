@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { when } from 'jest-when';
 import {
@@ -26,6 +27,7 @@ import {
 	outboxRootSchema,
 	terminatedOutboxSchema,
 } from '../../../../src/modules/interoperability/schema';
+import { testing } from '../../../../src';
 
 describe('Base interoperability store', () => {
 	const chainID = Buffer.from('01', 'hex');
@@ -186,6 +188,66 @@ describe('Base interoperability store', () => {
 				},
 				terminatedOutboxSchema,
 			);
+		});
+	});
+
+	describe('terminateChainInternal', () => {
+		const SIDECHAIN_ID = 2;
+		const ccm = {
+			nonce: BigInt(0),
+			moduleID: 1,
+			crossChainCommandID: 1,
+			sendingChainID: 2,
+			receivingChainID: 3,
+			fee: BigInt(1),
+			status: 1,
+			params: Buffer.alloc(0),
+		};
+		const beforeSendCCMContext = testing.createBeforeSendCCMsgAPIContext({
+			ccm,
+			feeAddress: getRandomBytes(32),
+		});
+
+		beforeEach(() => {
+			mainchainInteroperabilityStore.sendInternal = jest.fn().mockResolvedValue(true);
+			mainchainInteroperabilityStore.createTerminatedStateAccount = jest
+				.fn()
+				.mockResolvedValue(true);
+		});
+
+		it('should return true if sendInternal and createTerminatedStateAccount return true', async () => {
+			expect(
+				await mainchainInteroperabilityStore.terminateChainInternal(
+					SIDECHAIN_ID,
+					beforeSendCCMContext,
+				),
+			).toBe(true);
+		});
+
+		it('should return false if sendInternal returns false', async () => {
+			// Arrange
+			mainchainInteroperabilityStore.sendInternal = jest.fn().mockResolvedValue(false);
+
+			expect(
+				await mainchainInteroperabilityStore.terminateChainInternal(
+					SIDECHAIN_ID,
+					beforeSendCCMContext,
+				),
+			).toBe(false);
+		});
+
+		it('should return false if createTerminatedStateAccount returns false', async () => {
+			// Arrange
+			mainchainInteroperabilityStore.createTerminatedStateAccount = jest
+				.fn()
+				.mockResolvedValue(false);
+
+			expect(
+				await mainchainInteroperabilityStore.terminateChainInternal(
+					SIDECHAIN_ID,
+					beforeSendCCMContext,
+				),
+			).toBe(false);
 		});
 	});
 });
