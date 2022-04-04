@@ -399,7 +399,7 @@ export abstract class BaseInteroperabilityStore {
 			getStore,
 		});
 
-		await ccCommand?.execute(ccCommandExecuteContext);
+		await ccCommand.execute(ccCommandExecuteContext);
 	}
 
 	// Different in mainchain and sidechain so to be implemented in each module store separately
