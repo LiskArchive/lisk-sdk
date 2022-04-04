@@ -33,12 +33,6 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 		return true;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async apply(ccu: CCUpdateParams, ccm: CCMsg): Promise<void> {
-		// eslint-disable-next-line no-console
-		console.log(ccu, ccm);
-	}
-
 	public async bounce(ccm: CCMsg): Promise<void> {
 		const terminatedStateAccountExists = await this.hasTerminatedStateAccount(
 			getIDAsKeyForStore(ccm.sendingChainID),

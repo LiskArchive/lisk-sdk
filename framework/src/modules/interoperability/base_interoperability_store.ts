@@ -30,6 +30,10 @@ import {
 	STORE_PREFIX_OWN_CHAIN_DATA,
 	MAINCHAIN_ID,
 	CHAIN_TERMINATED,
+	MIN_RETURN_FEE,
+	EMPTY_FEE_ADDRESS,
+	CCM_STATUS_MODULE_NOT_SUPPORTED,
+	CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
 } from './constants';
 import {
 	chainAccountSchema,
@@ -45,13 +49,18 @@ import {
 	BeforeSendCCMsgAPIContext,
 	ChannelData,
 	CCMsg,
-	CCUpdateParams,
 	ChainAccount,
 	SendInternalContext,
 	TerminatedStateAccount,
 	OwnChainAccount,
+	CCMApplyContext,
 } from './types';
-import { getIDAsKeyForStore } from './utils';
+import { getCCMSize, getIDAsKeyForStore } from './utils';
+import {
+	createCCCommandExecuteContext,
+	createCCMsgBeforeApplyContext,
+	createCCMsgBeforeSendContext,
+} from './context';
 
 export abstract class BaseInteroperabilityStore {
 	public readonly getStore: (moduleID: number, storePrefix: number) => SubStore;
@@ -286,12 +295,118 @@ export abstract class BaseInteroperabilityStore {
 		return this.createTerminatedStateAccount(chainID);
 	}
 
+	public async apply(ccmApplyContext: CCMApplyContext): Promise<void> {
+		const { ccm, eventQueue, logger, networkIdentifier, getAPIContext, getStore } = ccmApplyContext;
+		const isTerminated = await this.hasTerminatedStateAccount(
+			getIDAsKeyForStore(ccm.sendingChainID),
+		);
+		if (isTerminated) {
+			return;
+		}
+
+		const beforeCCMApplyContext = createCCMsgBeforeApplyContext(
+			{
+				logger,
+				ccm,
+				eventQueue,
+				getAPIContext,
+				getStore,
+				networkIdentifier,
+			},
+			ccmApplyContext.ccu,
+		);
+
+		for (const mod of this._interoperableModules.values()) {
+			if (mod?.crossChainAPI?.beforeApplyCCM) {
+				try {
+					await mod.crossChainAPI.beforeApplyCCM(beforeCCMApplyContext);
+				} catch (error) {
+					return;
+				}
+			}
+		}
+
+		if (ccm.status !== CCM_STATUS_OK || ccm.fee < MIN_RETURN_FEE * BigInt(getCCMSize(ccm))) {
+			return;
+		}
+
+		const interoperableModule = this._interoperableModules.get(ccm.moduleID);
+
+		// When moduleID is not supported
+		if (!interoperableModule) {
+			const beforeCCMSendContext = createCCMsgBeforeSendContext(
+				{
+					ccm,
+					eventQueue,
+					getAPIContext,
+					logger,
+					networkIdentifier,
+					getStore,
+				},
+				EMPTY_FEE_ADDRESS,
+			);
+
+			await this.sendInternal({
+				beforeSendContext: beforeCCMSendContext,
+				crossChainCommandID: ccm.crossChainCommandID,
+				moduleID: ccm.moduleID,
+				fee: BigInt(0),
+				params: ccm.params,
+				receivingChainID: ccm.receivingChainID,
+				status: CCM_STATUS_MODULE_NOT_SUPPORTED,
+				timestamp: Date.now(),
+			});
+
+			return;
+		}
+		const ccCommand = interoperableModule.crossChainCommand.find(
+			cmd => cmd.ID === ccm.crossChainCommandID,
+		);
+		// When commandID is not supported
+		if (!ccCommand) {
+			const beforeCCMSendContext = createCCMsgBeforeSendContext(
+				{
+					ccm,
+					eventQueue,
+					getAPIContext,
+					logger,
+					networkIdentifier,
+					getStore,
+				},
+				EMPTY_FEE_ADDRESS,
+			);
+
+			await this.sendInternal({
+				beforeSendContext: beforeCCMSendContext,
+				crossChainCommandID: ccm.crossChainCommandID,
+				moduleID: ccm.moduleID,
+				fee: BigInt(0),
+				params: ccm.params,
+				receivingChainID: ccm.receivingChainID,
+				status: CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
+				timestamp: Date.now(),
+			});
+
+			return;
+		}
+
+		const ccCommandExecuteContext = createCCCommandExecuteContext({
+			ccm,
+			eventQueue,
+			logger,
+			networkIdentifier,
+			getAPIContext,
+			getStore,
+		});
+
+		await ccCommand?.execute(ccCommandExecuteContext);
+	}
+
 	// Different in mainchain and sidechain so to be implemented in each module store separately
 	public abstract isLive(chainID: Buffer, timestamp?: number): Promise<boolean>;
 	public abstract sendInternal(sendContext: SendInternalContext): Promise<boolean>;
 
 	// To be implemented in base class
-	public abstract apply(ccu: CCUpdateParams, ccm: CCMsg): Promise<void>;
 	public abstract getInboxRoot(chainID: number): Promise<void>;
 	public abstract getOutboxRoot(chainID: number): Promise<void>;
 	public abstract getChannel(chainID: number): Promise<void>; // TODO: Update to Promise<ChannelData> after implementation
