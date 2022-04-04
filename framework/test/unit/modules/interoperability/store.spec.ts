@@ -18,7 +18,10 @@ import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { when } from 'jest-when';
 import {
+	CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
+	CCM_STATUS_MODULE_NOT_SUPPORTED,
 	EMPTY_BYTES,
+	EMPTY_FEE_ADDRESS,
 	MAINCHAIN_ID,
 	MODULE_ID_INTEROPERABILITY,
 	STORE_PREFIX_CHAIN_DATA,
@@ -37,6 +40,7 @@ import {
 } from '../../../../src/modules/interoperability/schema';
 import { getIDAsKeyForStore } from '../../../../src/modules/interoperability/utils';
 import { testing } from '../../../../src';
+import { CCMApplyContext, CCUpdateParams } from '../../../../src/modules/interoperability/types';
 
 describe('Base interoperability store', () => {
 	const chainID = Buffer.from('01', 'hex');
@@ -359,6 +363,226 @@ describe('Base interoperability store', () => {
 					beforeSendCCMContext,
 				),
 			).toBe(false);
+		});
+	});
+
+	describe('apply', () => {
+		let mainchainStoreLocal: MainchainInteroperabilityStore;
+
+		const ccm = {
+			nonce: BigInt(0),
+			moduleID: 1,
+			crossChainCommandID: 1,
+			sendingChainID: 2,
+			receivingChainID: 3,
+			fee: BigInt(20000),
+			status: 0,
+			params: Buffer.alloc(0),
+		};
+
+		const inboxUpdate = {
+			crossChainMessages: [],
+			messageWitness: {
+				partnerChainOutboxSize: BigInt(0),
+				siblingHashes: [],
+			},
+			outboxRootWitness: {
+				bitmap: Buffer.alloc(0),
+				siblingHashes: [],
+			},
+		};
+
+		const mod1 = {
+			crossChainAPI: {
+				beforeSendCCM: jest.fn(),
+				beforeApplyCCM: jest.fn(),
+				crossChainCommand: [
+					{
+						ID: ccm.crossChainCommandID,
+						execute: jest.fn(),
+					},
+				],
+			},
+		};
+		const mod2 = {
+			crossChainAPI: {
+				beforeSendCCM: jest.fn(),
+				beforeApplyCCM: jest.fn(),
+			},
+		};
+
+		const modsMap = new Map();
+		modsMap.set(1, mod1);
+		modsMap.set(2, mod2);
+
+		const ccu: CCUpdateParams = {
+			activeValidatorsUpdate: [],
+			certificate: Buffer.alloc(0),
+			inboxUpdate,
+			newCertificateThreshold: BigInt(0),
+			sendingChainID: 2,
+		};
+
+		const beforeSendCCMContext = testing.createBeforeSendCCMsgAPIContext({
+			ccm,
+			feeAddress: getRandomBytes(32),
+		});
+
+		const beforeApplyCCMContext = testing.createBeforeApplyCCMsgAPIContext({
+			...beforeSendCCMContext,
+			ccm,
+			ccu,
+			payFromAddress: EMPTY_FEE_ADDRESS,
+		});
+
+		const ccmApplyContext: CCMApplyContext = {
+			ccm,
+			ccu,
+			eventQueue: beforeSendCCMContext.eventQueue,
+			getAPIContext: beforeSendCCMContext.getAPIContext,
+			getStore: beforeSendCCMContext.getStore,
+			logger: beforeSendCCMContext.logger,
+			networkIdentifier: beforeSendCCMContext.networkIdentifier,
+		};
+
+		beforeEach(async () => {
+			mainchainStoreLocal = new MainchainInteroperabilityStore(
+				MODULE_ID_INTEROPERABILITY,
+				mockGetStore,
+				modsMap,
+			);
+		});
+
+		it('should return immediately if sending chain is terminated', async () => {
+			// Arrange
+			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(true);
+
+			// Act & Assert
+			await expect(mainchainStoreLocal.apply(ccmApplyContext)).resolves.toBeUndefined();
+			expect(mod1.crossChainAPI.beforeApplyCCM).toBeCalledTimes(0);
+		});
+
+		it('should return call all the interoperable beforeApplyCCM hooks', async () => {
+			// Arrange
+			const mod = {
+				crossChainAPI: {
+					beforeSendCCM: jest.fn(),
+					beforeApplyCCM: jest.fn(),
+				},
+				crossChainCommand: [
+					{
+						ID: ccm.crossChainCommandID,
+						execute: jest.fn(),
+					},
+				],
+			};
+			mainchainStoreLocal = new MainchainInteroperabilityStore(
+				MODULE_ID_INTEROPERABILITY,
+				mockGetStore,
+				new Map().set(1, mod),
+			);
+			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
+			jest.spyOn(mainchainStoreLocal, 'sendInternal');
+
+			// Act & Assert
+			await expect(mainchainStoreLocal.apply(ccmApplyContext)).resolves.toBeUndefined();
+			expect(mod.crossChainAPI.beforeApplyCCM).toBeCalledTimes(1);
+			expect(mod.crossChainAPI.beforeApplyCCM).toBeCalledTimes(1);
+			expect(mod.crossChainAPI.beforeApplyCCM).toHaveBeenCalledWith(
+				expect.toContainAllKeys(Object.keys(beforeApplyCCMContext)),
+			);
+		});
+
+		it('should not execute CCMs and return when moduleID is not supported', async () => {
+			// Arrange
+			mainchainStoreLocal = new MainchainInteroperabilityStore(
+				MODULE_ID_INTEROPERABILITY,
+				mockGetStore,
+				new Map().set(3, mod1),
+			);
+			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
+			jest.spyOn(mainchainStoreLocal, 'sendInternal');
+
+			// Act & Assert
+			await expect(mainchainStoreLocal.apply(ccmApplyContext)).resolves.toBeUndefined();
+			expect(mod1.crossChainAPI.beforeApplyCCM).toBeCalledTimes(1);
+			expect(mod1.crossChainAPI.beforeApplyCCM).toBeCalledTimes(1);
+			expect(mod1.crossChainAPI.beforeApplyCCM).toHaveBeenCalledWith(
+				expect.toContainAllKeys(Object.keys(beforeApplyCCMContext)),
+			);
+			expect(mainchainStoreLocal.sendInternal).toBeCalledTimes(1);
+			expect(mainchainStoreLocal.sendInternal).toHaveBeenCalledWith(
+				expect.objectContaining({ status: CCM_STATUS_MODULE_NOT_SUPPORTED }),
+			);
+		});
+
+		it('should not execute CCMs and return when commandID is not supported', async () => {
+			// Arrange
+			const mod = {
+				crossChainAPI: {
+					beforeSendCCM: jest.fn(),
+					beforeApplyCCM: jest.fn(),
+				},
+				crossChainCommand: [{}],
+			};
+			mainchainStoreLocal = new MainchainInteroperabilityStore(
+				MODULE_ID_INTEROPERABILITY,
+				mockGetStore,
+				new Map().set(1, mod),
+			);
+			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
+			jest.spyOn(mainchainStoreLocal, 'sendInternal');
+
+			// Act & Assert
+			await expect(mainchainStoreLocal.apply(ccmApplyContext)).resolves.toBeUndefined();
+			expect(mod.crossChainAPI.beforeApplyCCM).toBeCalledTimes(1);
+			expect(mod.crossChainAPI.beforeApplyCCM).toBeCalledTimes(1);
+			expect(mod.crossChainAPI.beforeApplyCCM).toHaveBeenCalledWith(
+				expect.toContainAllKeys(Object.keys(beforeApplyCCMContext)),
+			);
+			expect(mainchainStoreLocal.sendInternal).toBeCalledTimes(1);
+			expect(mainchainStoreLocal.sendInternal).toHaveBeenCalledWith(
+				expect.objectContaining({ status: CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED }),
+			);
+		});
+
+		it('should execute the cross chain command of interoperable module with ID=1', async () => {
+			// Arrange
+			const mod = {
+				crossChainAPI: {
+					beforeSendCCM: jest.fn(),
+					beforeApplyCCM: jest.fn(),
+				},
+				crossChainCommand: [
+					{
+						ID: ccm.crossChainCommandID,
+						execute: jest.fn(),
+					},
+				],
+			};
+			mainchainStoreLocal = new MainchainInteroperabilityStore(
+				MODULE_ID_INTEROPERABILITY,
+				mockGetStore,
+				new Map().set(1, mod),
+			);
+			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
+			jest.spyOn(mainchainStoreLocal, 'sendInternal');
+			const executeCCMContext = testing.createExecuteCCMsgAPIContext({
+				...beforeSendCCMContext,
+			});
+
+			// Act & Assert
+			await expect(mainchainStoreLocal.apply(ccmApplyContext)).resolves.toBeUndefined();
+			expect(mod.crossChainAPI.beforeApplyCCM).toBeCalledTimes(1);
+			expect(mod.crossChainAPI.beforeApplyCCM).toBeCalledTimes(1);
+			expect(mod.crossChainAPI.beforeApplyCCM).toHaveBeenCalledWith(
+				expect.objectContaining({ ccu: beforeApplyCCMContext.ccu }),
+			);
+			expect(mainchainStoreLocal.sendInternal).toBeCalledTimes(0);
+			expect(mod.crossChainCommand[0].execute).toBeCalledTimes(1);
+			expect(mod.crossChainCommand[0].execute).toHaveBeenCalledWith(
+				expect.objectContaining({ ccm: executeCCMContext.ccm }),
+			);
 		});
 	});
 });
