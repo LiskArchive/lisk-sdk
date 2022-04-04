@@ -21,8 +21,7 @@ import {
 	MODULE_ID_INTEROPERABILITY,
 	STORE_PREFIX_TERMINATED_STATE,
 } from '../constants';
-import { terminatedStateSchema } from '../schema';
-import { CCMsg, CCUpdateParams, SendInternalContext, TerminatedStateAccount } from '../types';
+import { CCMsg, CCUpdateParams, SendInternalContext } from '../types';
 import { getIDAsKeyForStore, validateFormat } from '../utils';
 
 export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
