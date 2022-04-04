@@ -124,7 +124,7 @@ describe('Mainchain interoperability store', () => {
 		};
 
 		beforeEach(() => {
-			jest.spyOn(mainchainInteroperabilityStore, 'addToOutbox');
+			mainchainInteroperabilityStore.addToOutbox = jest.fn();
 		});
 
 		it('should not call addToOutbox if terminatedStateAccount exists', async () => {
