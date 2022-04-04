@@ -185,9 +185,9 @@ export abstract class BaseInteroperabilityStore {
 
 	public async createTerminatedStateAccount(chainID: number, stateRoot?: Buffer): Promise<boolean> {
 		const chainIDAsStoreKey = getIDAsKeyForStore(chainID);
-		let terminatedState: TerminatedStateAccount;
 		const chainSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
 		const isExist = await this.chainAccountExist(chainIDAsStoreKey);
+		let terminatedState: TerminatedStateAccount;
 
 		if (stateRoot) {
 			if (isExist) {
@@ -196,6 +196,7 @@ export abstract class BaseInteroperabilityStore {
 					chainAccountSchema,
 				);
 				chainAccount.status = CHAIN_TERMINATED;
+				await chainSubstore.setWithSchema(chainIDAsStoreKey, chainAccount, chainAccountSchema);
 				const outboxRootSubstore = this.getStore(
 					MODULE_ID_INTEROPERABILITY,
 					STORE_PREFIX_OUTBOX_ROOT,
@@ -213,6 +214,7 @@ export abstract class BaseInteroperabilityStore {
 				chainAccountSchema,
 			);
 			chainAccount.status = CHAIN_TERMINATED;
+			await chainSubstore.setWithSchema(chainIDAsStoreKey, chainAccount, chainAccountSchema);
 			const outboxRootSubstore = this.getStore(
 				MODULE_ID_INTEROPERABILITY,
 				STORE_PREFIX_OUTBOX_ROOT,
@@ -236,7 +238,7 @@ export abstract class BaseInteroperabilityStore {
 				return false;
 			}
 			const chainAccount = await chainSubstore.getWithSchema<ChainAccount>(
-				Buffer.from(MAINCHAIN_ID.toString(16), 'hex'),
+				getIDAsKeyForStore(MAINCHAIN_ID),
 				chainAccountSchema,
 			);
 			terminatedState = {

@@ -216,7 +216,6 @@ describe('Base interoperability store', () => {
 	describe('createTerminatedStateAccount', () => {
 		const chainId = 5;
 		const chainIdAsStoreKey = getIDAsKeyForStore(chainId);
-		// const chainIdBuffer = Buffer.from(chainId.toString(16), 'hex');
 		const chainAccount = {
 			name: 'account1',
 			networkID: Buffer.alloc(0),
@@ -285,7 +284,7 @@ describe('Base interoperability store', () => {
 				.spyOn(mainchainInteroperabilityStore, 'getOwnChainAccount')
 				.mockResolvedValue(ownChainAccount2 as never);
 			await chainSubstore.setWithSchema(
-				Buffer.from(MAINCHAIN_ID.toString(16), 'hex'),
+				getIDAsKeyForStore(MAINCHAIN_ID),
 				chainAccount,
 				chainAccountSchema,
 			);
