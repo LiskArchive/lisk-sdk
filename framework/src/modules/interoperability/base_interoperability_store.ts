@@ -29,6 +29,7 @@ import {
 	STORE_PREFIX_TERMINATED_OUTBOX,
 	STORE_PREFIX_OWN_CHAIN_DATA,
 	MAINCHAIN_ID,
+	CHAIN_TERMINATED,
 } from './constants';
 import {
 	chainAccountSchema,
@@ -185,6 +186,84 @@ export abstract class BaseInteroperabilityStore {
 		await terminatedOutboxSubstore.setWithSchema(chainID, terminatedOutbox, terminatedOutboxSchema);
 	}
 
+	public async createTerminatedStateAccount(chainID: number, stateRoot?: Buffer): Promise<boolean> {
+		const chainIDAsStoreKey = getIDAsKeyForStore(chainID);
+		const chainSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
+		const isExist = await this.chainAccountExist(chainIDAsStoreKey);
+		let terminatedState: TerminatedStateAccount;
+
+		if (stateRoot) {
+			if (isExist) {
+				const chainAccount = await chainSubstore.getWithSchema<ChainAccount>(
+					chainIDAsStoreKey,
+					chainAccountSchema,
+				);
+				chainAccount.status = CHAIN_TERMINATED;
+				await chainSubstore.setWithSchema(chainIDAsStoreKey, chainAccount, chainAccountSchema);
+				const outboxRootSubstore = this.getStore(
+					MODULE_ID_INTEROPERABILITY,
+					STORE_PREFIX_OUTBOX_ROOT,
+				);
+				await outboxRootSubstore.del(chainIDAsStoreKey);
+			}
+			terminatedState = {
+				stateRoot,
+				mainchainStateRoot: EMPTY_BYTES,
+				initialized: true,
+			};
+		} else if (isExist) {
+			const chainAccount = await chainSubstore.getWithSchema<ChainAccount>(
+				chainIDAsStoreKey,
+				chainAccountSchema,
+			);
+			chainAccount.status = CHAIN_TERMINATED;
+			await chainSubstore.setWithSchema(chainIDAsStoreKey, chainAccount, chainAccountSchema);
+			const outboxRootSubstore = this.getStore(
+				MODULE_ID_INTEROPERABILITY,
+				STORE_PREFIX_OUTBOX_ROOT,
+			);
+			await outboxRootSubstore.del(chainIDAsStoreKey);
+
+			terminatedState = {
+				stateRoot: chainAccount.lastCertificate.stateRoot,
+				mainchainStateRoot: EMPTY_BYTES,
+				initialized: true,
+			};
+		}
+
+		// State root is not available, set it to empty bytes temporarily.
+		// This should only happen on a sidechain.
+		else {
+			// Processing on the mainchain
+			const ownChainAccount = await this.getOwnChainAccount();
+			if (ownChainAccount.id === MAINCHAIN_ID) {
+				// If the account does not exist on the mainchain, the input chainID is invalid.
+				return false;
+			}
+			const chainAccount = await chainSubstore.getWithSchema<ChainAccount>(
+				getIDAsKeyForStore(MAINCHAIN_ID),
+				chainAccountSchema,
+			);
+			terminatedState = {
+				stateRoot: EMPTY_BYTES,
+				mainchainStateRoot: chainAccount.lastCertificate.stateRoot,
+				initialized: false,
+			};
+		}
+
+		const terminatedStateSubstore = this.getStore(
+			MODULE_ID_INTEROPERABILITY,
+			STORE_PREFIX_TERMINATED_STATE,
+		);
+		await terminatedStateSubstore.setWithSchema(
+			chainIDAsStoreKey,
+			terminatedState,
+			terminatedStateSchema,
+		);
+
+		return true;
+	}
+
 	public async terminateChainInternal(
 		chainID: number,
 		beforeSendContext: BeforeSendCCMsgAPIContext,
@@ -213,11 +292,6 @@ export abstract class BaseInteroperabilityStore {
 
 	// To be implemented in base class
 	public abstract apply(ccu: CCUpdateParams, ccm: CCMsg): Promise<void>;
-
-	public abstract createTerminatedStateAccount(
-		chainID: number,
-		stateRoot?: Buffer,
-	): Promise<boolean>;
 	public abstract getInboxRoot(chainID: number): Promise<void>;
 	public abstract getOutboxRoot(chainID: number): Promise<void>;
 	public abstract getChannel(chainID: number): Promise<void>; // TODO: Update to Promise<ChannelData> after implementation

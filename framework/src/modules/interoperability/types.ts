@@ -140,4 +140,6 @@ export interface ChannelData {
 
 export interface TerminatedStateAccount {
 	stateRoot: Buffer;
+	mainchainStateRoot?: Buffer;
+	initialized?: boolean;
 }
