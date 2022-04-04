@@ -34,3 +34,9 @@ export const validateFormat = (ccm: CCMsg) => {
 		throw new Error(`Cross chain message is over the the max ccm size limit of ${MAX_CCM_SIZE}`);
 	}
 };
+
+export const getCCMSize = (ccm: CCMsg) => {
+	const serializedCCM = codec.encode(ccmSchema, ccm);
+
+	return serializedCCM.byteLength;
+};
