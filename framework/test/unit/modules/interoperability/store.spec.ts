@@ -299,7 +299,7 @@ describe('Base interoperability store', () => {
 				mainchainStateRoot: chainAccount.lastCertificate.stateRoot,
 				initialized: false,
 			});
-    });
+		});
 	});
 
 	describe('terminateChainInternal', () => {

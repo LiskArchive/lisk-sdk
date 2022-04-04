@@ -30,7 +30,6 @@ import {
 	STORE_PREFIX_OWN_CHAIN_DATA,
 	MAINCHAIN_ID,
 	CHAIN_TERMINATED,
-	EMPTY_BYTES,
 } from './constants';
 import {
 	chainAccountSchema,
@@ -186,7 +185,7 @@ export abstract class BaseInteroperabilityStore {
 
 		await terminatedOutboxSubstore.setWithSchema(chainID, terminatedOutbox, terminatedOutboxSchema);
 	}
-  
+
 	public async createTerminatedStateAccount(chainID: number, stateRoot?: Buffer): Promise<boolean> {
 		const chainIDAsStoreKey = getIDAsKeyForStore(chainID);
 		const chainSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
@@ -263,8 +262,8 @@ export abstract class BaseInteroperabilityStore {
 		);
 
 		return true;
-  }
-  
+	}
+
 	public async terminateChainInternal(
 		chainID: number,
 		beforeSendContext: BeforeSendCCMsgAPIContext,
