@@ -123,6 +123,10 @@ describe('Mainchain interoperability store', () => {
 			status: CCM_STATUS_CHANNEL_UNAVAILABLE,
 		};
 
+		beforeEach(() => {
+			jest.spyOn(mainchainInteroperabilityStore, 'addToOutbox');
+		});
+
 		it('should not call addToOutbox if terminatedStateAccount exists', async () => {
 			// Arrange
 			terminatedStateSubstore.has = jest.fn().mockResolvedValue(true);
