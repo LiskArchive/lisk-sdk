@@ -282,12 +282,7 @@ export const createExecuteCCMsgAPIContext = (params: {
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
 	eventQueue?: EventQueue;
-}): CCCommandExecuteContext => {
-	const ccAPIContext = createCCAPIContext(params);
-	return {
-		...ccAPIContext,
-	};
-};
+}): CCCommandExecuteContext => createCCAPIContext(params);
 
 export const createBeforeSendCCMsgAPIContext = (params: {
 	ccm: CCMsg;
@@ -297,13 +292,10 @@ export const createBeforeSendCCMsgAPIContext = (params: {
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
 	eventQueue?: EventQueue;
-}): BeforeSendCCMsgAPIContext => {
-	const ccAPIContext = createCCAPIContext(params);
-	return {
-		...ccAPIContext,
-		feeAddress: params.feeAddress,
-	};
-};
+}): BeforeSendCCMsgAPIContext => ({
+	...createCCAPIContext(params),
+	feeAddress: params.feeAddress,
+});
 
 export const createBeforeApplyCCMsgAPIContext = (params: {
 	ccm: CCMsg;
@@ -314,13 +306,10 @@ export const createBeforeApplyCCMsgAPIContext = (params: {
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
 	eventQueue?: EventQueue;
-}): BeforeApplyCCMsgAPIContext => {
-	const ccAPIContext = createCCAPIContext(params);
-	return {
-		...ccAPIContext,
-		ccu: params.ccu,
-	};
-};
+}): BeforeApplyCCMsgAPIContext => ({
+	...createCCAPIContext(params),
+	ccu: params.ccu,
+});
 
 export const createBeforeRecoverCCMsgAPIContext = (params: {
 	ccm: CCMsg;
@@ -330,13 +319,10 @@ export const createBeforeRecoverCCMsgAPIContext = (params: {
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
 	eventQueue?: EventQueue;
-}): BeforeRecoverCCMsgAPIContext => {
-	const ccAPIContext = createCCAPIContext(params);
-	return {
-		...ccAPIContext,
-		trsSender: params.trsSender,
-	};
-};
+}): BeforeRecoverCCMsgAPIContext => ({
+	...createCCAPIContext(params),
+	trsSender: params.trsSender,
+});
 
 export const createRecoverCCMsgAPIContext = (params: {
 	ccm: CCMsg;
@@ -350,14 +336,11 @@ export const createRecoverCCMsgAPIContext = (params: {
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
 	eventQueue?: EventQueue;
-}): RecoverCCMsgAPIContext => {
-	const ccAPIContext = createCCAPIContext(params);
-	return {
-		...ccAPIContext,
-		terminatedChainID: params.terminatedChainID,
-		moduleID: params.moduleID,
-		storePrefix: params.storePrefix,
-		storeKey: params.storeKey,
-		storeValue: params.storeValue,
-	};
-};
+}): RecoverCCMsgAPIContext => ({
+	...createCCAPIContext(params),
+	terminatedChainID: params.terminatedChainID,
+	moduleID: params.moduleID,
+	storePrefix: params.storePrefix,
+	storeKey: params.storeKey,
+	storeValue: params.storeValue,
+});

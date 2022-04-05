@@ -462,7 +462,7 @@ describe('Base interoperability store', () => {
 			expect(mod1.crossChainAPI.beforeApplyCCM).toBeCalledTimes(0);
 		});
 
-		it('should return call all the interoperable beforeApplyCCM hooks', async () => {
+		it('should call all the interoperable beforeApplyCCM hooks', async () => {
 			// Arrange
 			const mod = {
 				crossChainAPI: {
@@ -487,7 +487,6 @@ describe('Base interoperability store', () => {
 			// Act & Assert
 			await expect(mainchainStoreLocal.apply(ccmApplyContext)).resolves.toBeUndefined();
 			expect(mod.crossChainAPI.beforeApplyCCM).toBeCalledTimes(1);
-			expect(mod.crossChainAPI.beforeApplyCCM).toBeCalledTimes(1);
 			expect(mod.crossChainAPI.beforeApplyCCM).toHaveBeenCalledWith(
 				expect.toContainAllKeys(Object.keys(beforeApplyCCMContext)),
 			);
@@ -505,7 +504,6 @@ describe('Base interoperability store', () => {
 
 			// Act & Assert
 			await expect(mainchainStoreLocal.apply(ccmApplyContext)).resolves.toBeUndefined();
-			expect(mod1.crossChainAPI.beforeApplyCCM).toBeCalledTimes(1);
 			expect(mod1.crossChainAPI.beforeApplyCCM).toBeCalledTimes(1);
 			expect(mod1.crossChainAPI.beforeApplyCCM).toHaveBeenCalledWith(
 				expect.toContainAllKeys(Object.keys(beforeApplyCCMContext)),
@@ -535,7 +533,6 @@ describe('Base interoperability store', () => {
 
 			// Act & Assert
 			await expect(mainchainStoreLocal.apply(ccmApplyContext)).resolves.toBeUndefined();
-			expect(mod.crossChainAPI.beforeApplyCCM).toBeCalledTimes(1);
 			expect(mod.crossChainAPI.beforeApplyCCM).toBeCalledTimes(1);
 			expect(mod.crossChainAPI.beforeApplyCCM).toHaveBeenCalledWith(
 				expect.toContainAllKeys(Object.keys(beforeApplyCCMContext)),
@@ -573,7 +570,6 @@ describe('Base interoperability store', () => {
 
 			// Act & Assert
 			await expect(mainchainStoreLocal.apply(ccmApplyContext)).resolves.toBeUndefined();
-			expect(mod.crossChainAPI.beforeApplyCCM).toBeCalledTimes(1);
 			expect(mod.crossChainAPI.beforeApplyCCM).toBeCalledTimes(1);
 			expect(mod.crossChainAPI.beforeApplyCCM).toHaveBeenCalledWith(
 				expect.objectContaining({ ccu: beforeApplyCCMContext.ccu }),
