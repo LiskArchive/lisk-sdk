@@ -316,7 +316,7 @@ describe('Application', () => {
 			expect(fs.writeFile).toHaveBeenCalledWith(
 				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 				`${dirs.pids}/controller.pid`,
-				expect.toBeNumber(),
+				expect.toBeString(),
 			);
 		});
 	});

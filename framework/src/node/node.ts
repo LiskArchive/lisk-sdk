@@ -135,11 +135,11 @@ export class Node {
 
 	public getEvents(): ReadonlyArray<string> {
 		return [
-			APP_EVENT_NETWORK_READY,
-			APP_EVENT_TRANSACTION_NEW,
-			APP_EVENT_CHAIN_FORK,
-			APP_EVENT_BLOCK_NEW,
-			APP_EVENT_BLOCK_DELETE,
+			APP_EVENT_NETWORK_READY.replace('app_', ''),
+			APP_EVENT_TRANSACTION_NEW.replace('app_', ''),
+			APP_EVENT_CHAIN_FORK.replace('app_', ''),
+			APP_EVENT_BLOCK_NEW.replace('app_', ''),
+			APP_EVENT_BLOCK_DELETE.replace('app_', ''),
 		];
 	}
 
