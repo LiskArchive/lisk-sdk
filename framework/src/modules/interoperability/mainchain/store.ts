@@ -14,13 +14,7 @@
 
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { BaseInteroperabilityStore } from '../base_interoperability_store';
-import {
-	CCM_STATUS_CHANNEL_UNAVAILABLE,
-	CHAIN_ACTIVE,
-	LIVENESS_LIMIT,
-	MODULE_ID_INTEROPERABILITY,
-	STORE_PREFIX_TERMINATED_STATE,
-} from '../constants';
+import { CCM_STATUS_CHANNEL_UNAVAILABLE, CHAIN_ACTIVE, LIVENESS_LIMIT } from '../constants';
 import { CCMsg, CCUpdateParams, SendInternalContext } from '../types';
 import { getIDAsKeyForStore, validateFormat } from '../utils';
 
