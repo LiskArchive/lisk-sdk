@@ -14,7 +14,7 @@
 
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { BaseInteroperabilityStore } from '../base_interoperability_store';
-import { CHAIN_ACTIVE, LIVENESS_LIMIT } from '../constants';
+import { CCM_STATUS_CHANNEL_UNAVAILABLE, CHAIN_ACTIVE, LIVENESS_LIMIT } from '../constants';
 import { CCMsg, CCUpdateParams, SendInternalContext } from '../types';
 import { getIDAsKeyForStore, validateFormat } from '../utils';
 
@@ -37,6 +37,26 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	public async apply(ccu: CCUpdateParams, ccm: CCMsg): Promise<void> {
 		// eslint-disable-next-line no-console
 		console.log(ccu, ccm);
+	}
+
+	public async bounce(ccm: CCMsg): Promise<void> {
+		const terminatedStateAccountExists = await this.hasTerminatedStateAccount(
+			getIDAsKeyForStore(ccm.sendingChainID),
+		);
+
+		// Messages from terminated chains are discarded, and never returned
+		if (terminatedStateAccountExists) {
+			return;
+		}
+
+		const newCCM = {
+			...ccm,
+			sendingChainID: ccm.receivingChainID,
+			receivingChainID: ccm.sendingChainID,
+			status: CCM_STATUS_CHANNEL_UNAVAILABLE,
+		};
+
+		await this.addToOutbox(getIDAsKeyForStore(newCCM.receivingChainID), newCCM);
 	}
 
 	public async sendInternal(sendContext: SendInternalContext): Promise<boolean> {

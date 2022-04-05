@@ -18,6 +18,7 @@ import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { when } from 'jest-when';
 import { testing } from '../../../../../src';
 import {
+	CCM_STATUS_CHANNEL_UNAVAILABLE,
 	MODULE_ID_INTEROPERABILITY,
 	MAINCHAIN_ID,
 	STORE_PREFIX_TERMINATED_STATE,
@@ -101,6 +102,53 @@ describe('Mainchain interoperability store', () => {
 			mockGetStore,
 			new Map(),
 		);
+	});
+
+	describe('bounce', () => {
+		const ccm = {
+			nonce: BigInt(0),
+			moduleID: 1,
+			crossChainCommandID: 1,
+			sendingChainID: 2,
+			receivingChainID: 3,
+			fee: BigInt(1),
+			status: 1,
+			params: Buffer.alloc(0),
+		};
+
+		const newCCM = {
+			...ccm,
+			sendingChainID: ccm.receivingChainID,
+			receivingChainID: ccm.sendingChainID,
+			status: CCM_STATUS_CHANNEL_UNAVAILABLE,
+		};
+
+		beforeEach(() => {
+			mainchainInteroperabilityStore.addToOutbox = jest.fn();
+		});
+
+		it('should not call addToOutbox if terminatedStateAccount exists', async () => {
+			// Arrange
+			terminatedStateSubstore.has = jest.fn().mockResolvedValue(true);
+
+			// Act
+			await mainchainInteroperabilityStore.bounce(ccm);
+
+			expect(mainchainInteroperabilityStore.addToOutbox).not.toHaveBeenCalled();
+		});
+
+		it('should call addToOutbox with new CCM if terminatedStateAccount does exist', async () => {
+			// Arrange
+			terminatedStateSubstore.has = jest.fn().mockResolvedValue(false);
+
+			// Act
+			await mainchainInteroperabilityStore.bounce(ccm);
+
+			expect(mainchainInteroperabilityStore.addToOutbox).toHaveBeenCalledWith(
+				getIDAsKeyForStore(newCCM.receivingChainID),
+				newCCM,
+			);
+		});
 	});
 
 	describe('isLive', () => {
