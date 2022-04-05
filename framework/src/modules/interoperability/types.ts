@@ -14,7 +14,7 @@
 
 import { Logger } from '../../logger';
 import { APIContext, EventQueue } from '../../node/state_machine';
-import { SubStore } from '../../node/state_machine/types';
+import { ImmutableAPIContext, SubStore } from '../../node/state_machine/types';
 
 export interface CCMsg {
 	readonly nonce: bigint;
@@ -142,4 +142,13 @@ export interface TerminatedStateAccount {
 	stateRoot: Buffer;
 	mainchainStateRoot?: Buffer;
 	initialized?: boolean;
+}
+
+export interface CCCommandExecuteContext {
+	logger: Logger;
+	networkIdentifier: Buffer;
+	eventQueue: EventQueue;
+	ccm: CCMsg;
+	getAPIContext: () => ImmutableAPIContext;
+	getStore: (moduleID: number, storePrefix: number) => SubStore;
 }

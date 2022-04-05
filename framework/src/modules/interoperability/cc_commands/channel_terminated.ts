@@ -15,14 +15,20 @@
 import { BaseCCCommand } from '../base_cross_chain_command';
 import { CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED } from '../constants';
 import { channelTerminatedCCMParamsSchema } from '../schema';
+import { CCCommandExecuteContext } from '../types';
 
 export class CCChannelTerminatedCommand extends BaseCCCommand {
 	public ID = CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED;
 	public name = 'channelTerminated';
 	public schema = channelTerminatedCCMParamsSchema;
-	// TODO
+
+	public async execute(context: CCCommandExecuteContext): Promise<void> {
+		await this._createTerminatedStateAccount(context.ccm.sendingChainID);
+	}
+
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async execute(): Promise<void> {
-		throw new Error('Method not implemented.');
+	private async _createTerminatedStateAccount(chainID: number, stateRoot?: Buffer): Promise<void> {
+		// eslint-disable-next-line no-console
+		console.log(chainID, stateRoot);
 	}
 }

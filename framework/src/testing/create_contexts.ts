@@ -35,6 +35,7 @@ import {
 	BeforeApplyCCMsgAPIContext,
 	BeforeRecoverCCMsgAPIContext,
 	BeforeSendCCMsgAPIContext,
+	CCCommandExecuteContext,
 	CCMsg,
 	CCUpdateParams,
 	RecoverCCMsgAPIContext,
@@ -272,6 +273,16 @@ const createCCAPIContext = (params: {
 		ccm: params.ccm,
 	};
 };
+
+export const createExecuteCCMsgAPIContext = (params: {
+	ccm: CCMsg;
+	feeAddress: Buffer;
+	stateStore?: StateStore;
+	logger?: Logger;
+	networkIdentifier?: Buffer;
+	getAPIContext?: () => APIContext;
+	eventQueue?: EventQueue;
+}): CCCommandExecuteContext => createCCAPIContext(params);
 
 export const createBeforeSendCCMsgAPIContext = (params: {
 	ccm: CCMsg;
