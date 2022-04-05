@@ -623,13 +623,6 @@ export class DPoSModule extends BaseModule {
 			header.timestamp,
 		);
 
-		const generatorAtPreviousTimestamp = await this._validatorsAPI.getGeneratorAtTimestamp(
-			apiContext,
-			previousTimestamp,
-		);
-
-		missedBlocks[generatorAtPreviousTimestamp.toString('binary')] -= 1;
-
 		const delegateStore = getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
 		for (const addressString of Object.keys(missedBlocks)) {
 			const address = Buffer.from(addressString, 'binary');

@@ -126,6 +126,10 @@ export class ValidatorsAPI extends BaseAPI {
 		apiContext: ImmutableAPIContext,
 		address: Buffer,
 	): Promise<ValidatorKeys> {
+		if (address.length !== 20) {
+			throw new Error('Address is not valid.');
+		}
+
 		const validatorsSubStore = apiContext.getStore(this.moduleID, STORE_PREFIX_VALIDATORS_DATA);
 		return validatorsSubStore.getWithSchema<ValidatorKeys>(address, validatorAccountSchema);
 	}
@@ -260,8 +264,14 @@ export class ValidatorsAPI extends BaseAPI {
 			throw new Error('Input timestamp must be greater than genesis timestamp.');
 		}
 
-		const startSlotNumber = Math.floor((startTimestamp - genesisData.timestamp) / this._blockTime);
-		const endSlotNumber = Math.floor((endTimestamp - genesisData.timestamp) / this._blockTime);
+		const startSlotNumber =
+			Math.floor((startTimestamp - genesisData.timestamp) / this._blockTime) + 1;
+		const endSlotNumber = Math.floor((endTimestamp - genesisData.timestamp) / this._blockTime) - 1;
+
+		if (startSlotNumber > endSlotNumber) {
+			return {};
+		}
+
 		let totalSlots = endSlotNumber - startSlotNumber + 1;
 
 		const generatorListSubStore = apiContext.getStore(this.moduleID, STORE_PREFIX_GENERATOR_LIST);
