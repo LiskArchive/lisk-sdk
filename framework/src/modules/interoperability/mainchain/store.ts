@@ -46,12 +46,7 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	}
 
 	public async bounce(ccm: CCMsg): Promise<void> {
-		const terminatedStateSubstore = this.getStore(
-			MODULE_ID_INTEROPERABILITY,
-			STORE_PREFIX_TERMINATED_STATE,
-		);
-
-		const terminatedStateAccountExists = await terminatedStateSubstore.has(
+		const terminatedStateAccountExists = await this.hasTerminatedStateAccount(
 			getIDAsKeyForStore(ccm.sendingChainID),
 		);
 
