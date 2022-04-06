@@ -96,6 +96,16 @@ export interface SendInternalContext {
 	beforeSendContext: BeforeSendCCMsgAPIContext;
 }
 
+export interface CCMApplyContext {
+	getAPIContext: () => APIContext;
+	getStore: (moduleID: number, storePrefix: number) => SubStore;
+	logger: Logger;
+	networkIdentifier: Buffer;
+	eventQueue: EventQueue;
+	ccm: CCMsg;
+	ccu: CCUpdateParams;
+}
+
 export interface LastCertificate {
 	height: number;
 	timestamp: number;

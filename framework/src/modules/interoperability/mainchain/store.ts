@@ -15,7 +15,7 @@
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { BaseInteroperabilityStore } from '../base_interoperability_store';
 import { CCM_STATUS_CHANNEL_UNAVAILABLE, CHAIN_ACTIVE, LIVENESS_LIMIT } from '../constants';
-import { CCMsg, CCUpdateParams, SendInternalContext } from '../types';
+import { CCMsg, SendInternalContext } from '../types';
 import { getIDAsKeyForStore, validateFormat } from '../utils';
 
 export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
@@ -31,12 +31,6 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 		}
 
 		return true;
-	}
-
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async apply(ccu: CCUpdateParams, ccm: CCMsg): Promise<void> {
-		// eslint-disable-next-line no-console
-		console.log(ccu, ccm);
 	}
 
 	public async bounce(ccm: CCMsg): Promise<void> {
