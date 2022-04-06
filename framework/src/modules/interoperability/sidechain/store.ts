@@ -14,19 +14,13 @@
 
 import { BaseInteroperabilityStore } from '../base_interoperability_store';
 import { CHAIN_ACTIVE, MAINCHAIN_ID } from '../constants';
-import { CCMsg, CCUpdateParams, SendInternalContext } from '../types';
+import { CCMsg, SendInternalContext } from '../types';
 import { getIDAsKeyForStore, validateFormat } from '../utils';
 
 export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 	public async isLive(chainID: Buffer): Promise<boolean> {
 		const isTerminated = await this.hasTerminatedStateAccount(chainID);
 		return !isTerminated;
-	}
-
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async apply(ccu: CCUpdateParams, ccm: CCMsg): Promise<void> {
-		// eslint-disable-next-line no-console
-		console.log(ccu, ccm);
 	}
 
 	public async sendInternal(sendContext: SendInternalContext): Promise<boolean> {
