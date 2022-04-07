@@ -14,7 +14,7 @@
 
 import { BaseInteroperabilityStore } from '../base_interoperability_store';
 import { CHAIN_ACTIVE, MAINCHAIN_ID } from '../constants';
-import { CCMsg, SendInternalContext } from '../types';
+import { CCMsg, InteroperableCommandsAndAPI, SendInternalContext } from '../types';
 import { getIDAsKeyForStore, validateFormat } from '../utils';
 
 export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
@@ -23,7 +23,10 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 		return !isTerminated;
 	}
 
-	public async sendInternal(sendContext: SendInternalContext): Promise<boolean> {
+	public async sendInternal(
+		sendContext: SendInternalContext,
+		interoperableModules: Map<number, InteroperableCommandsAndAPI>,
+	): Promise<boolean> {
 		const receivingChainIDAsStoreKey = getIDAsKeyForStore(sendContext.receivingChainID);
 		const isReceivingChainExist = await this.chainAccountExist(receivingChainIDAsStoreKey);
 
@@ -65,10 +68,10 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 			return false;
 		}
 
-		for (const mod of this._interoperableModules.values()) {
-			if (mod?.crossChainAPI?.beforeSendCCM) {
+		for (const mod of interoperableModules.values()) {
+			if (mod?.ccAPI?.beforeSendCCM) {
 				try {
-					await mod.crossChainAPI.beforeSendCCM(sendContext.beforeSendContext);
+					await mod.ccAPI.beforeSendCCM(sendContext.beforeSendContext);
 				} catch (error) {
 					return false;
 				}
@@ -80,12 +83,6 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 		await this.setOwnChainAccount(ownChainAccount);
 
 		return true;
-	}
-
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getChannel(chainID: number): Promise<void> {
-		// eslint-disable-next-line no-console
-		console.log(chainID);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

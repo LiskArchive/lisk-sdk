@@ -14,11 +14,12 @@
 
 import { BaseInteroperableModule } from './base_interoperable_module';
 import { MODULE_ID_INTEROPERABILITY, MODULE_NAME_INTEROPERABILITY } from './constants';
+import { InteroperableCommandsAndAPI } from './types';
 
 export abstract class BaseInteroperabilityModule extends BaseInteroperableModule {
 	public id = MODULE_ID_INTEROPERABILITY; // Common id for mainchain/sidechain interoperability module
 	public name = MODULE_NAME_INTEROPERABILITY; // Common name for mainchain/sidechain interoperability module
 	// To manage interoperable modules
-	protected interoperableModules = new Map<number, BaseInteroperableModule>();
+	protected interoperableModules = new Map<number, InteroperableCommandsAndAPI>();
 	public abstract registerInteroperableModule(): void;
 }

@@ -38,6 +38,7 @@ import {
 	CCCommandExecuteContext,
 	CCMsg,
 	CCUpdateParams,
+	InteroperableCommandsAndAPI,
 	RecoverCCMsgAPIContext,
 } from '../modules/interoperability/types';
 
@@ -277,17 +278,20 @@ const createCCAPIContext = (params: {
 export const createExecuteCCMsgAPIContext = (params: {
 	ccm: CCMsg;
 	feeAddress: Buffer;
-	stateStore?: StateStore;
-	logger?: Logger;
-	networkIdentifier?: Buffer;
-	getAPIContext?: () => APIContext;
-	eventQueue?: EventQueue;
-}): CCCommandExecuteContext => createCCAPIContext(params);
+	logger: Logger;
+	networkIdentifier: Buffer;
+	getAPIContext: () => APIContext;
+	eventQueue: EventQueue;
+	interoperableModules: Map<number, InteroperableCommandsAndAPI>;
+}): CCCommandExecuteContext => ({
+	...createCCAPIContext(params),
+	feeAddress: params.feeAddress,
+	interoperableModules: params.interoperableModules,
+});
 
 export const createBeforeSendCCMsgAPIContext = (params: {
 	ccm: CCMsg;
 	feeAddress: Buffer;
-	stateStore?: StateStore;
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;

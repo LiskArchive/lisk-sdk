@@ -18,15 +18,18 @@ import {
 	CCAPIContext,
 	CCCommandExecuteContext,
 	CCUpdateParams,
+	InteroperableCommandsAndAPI,
 } from './types';
 
-export const createCCCommandExecuteContext = (params: CCAPIContext): CCCommandExecuteContext => ({
+export const createCCCommandExecuteContext = (params: CCAPIContext, feeAddress: Buffer, interoperableModules: Map<number, InteroperableCommandsAndAPI>): CCCommandExecuteContext => ({
 	logger: params.logger,
 	networkIdentifier: params.networkIdentifier,
 	eventQueue: params.eventQueue,
 	getAPIContext: params.getAPIContext,
 	getStore: params.getStore,
 	ccm: params.ccm,
+	feeAddress,
+	interoperableModules,
 });
 
 export const createCCMsgBeforeApplyContext = (
