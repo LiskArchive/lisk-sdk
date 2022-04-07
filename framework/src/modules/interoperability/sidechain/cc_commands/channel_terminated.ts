@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseCCCommand } from '../base_cross_chain_command';
-import { CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED } from '../constants';
-import { channelTerminatedCCMParamsSchema } from '../schema';
+import { BaseCCCommand } from '../../base_cross_chain_command';
+import { CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED } from '../../constants';
+import { channelTerminatedCCMParamsSchema } from '../../schema';
 
 export class CCChannelTerminatedCommand extends BaseCCCommand {
 	public ID = CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED;
