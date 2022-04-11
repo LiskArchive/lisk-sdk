@@ -28,7 +28,7 @@ interface CCMRegistrationParams {
 	messageFeeTokenID: MessageFeeTokenID;
 }
 
-export class CCRegistrationCommand extends BaseCCCommand {
+export class MainchainCCRegistrationCommand extends BaseCCCommand {
 	public ID = CROSS_CHAIN_COMMAND_ID_REGISTRATION;
 	public name = 'registration';
 	public schema = registrationCCMParamsSchema;
@@ -48,15 +48,17 @@ export class CCRegistrationCommand extends BaseCCCommand {
 		const interoperabilityStore = this._getInteroperabilityStore(ctx.getStore);
 		const sendingChainChannelAccount = await interoperabilityStore.getChannel(ccm.sendingChainID);
 		const ownChainAccount = await interoperabilityStore.getOwnChainAccount();
+
 		if (
 			sendingChainChannelAccount.inbox.size !== 1 ||
 			ownChainAccount.id !== ccm.receivingChainID ||
 			ownChainAccount.name !== decodedParams.name ||
-			(sendingChainChannelAccount.messageFeeTokenID.chainID !==
-				decodedParams.messageFeeTokenID.chainID &&
-				sendingChainChannelAccount.messageFeeTokenID.localID !==
-					decodedParams.messageFeeTokenID.localID) ||
-			!decodedParams.networkID.equals(ctx.networkIdentifier)
+			sendingChainChannelAccount.messageFeeTokenID.chainID !==
+				decodedParams.messageFeeTokenID.chainID ||
+			sendingChainChannelAccount.messageFeeTokenID.localID !==
+				decodedParams.messageFeeTokenID.localID ||
+			!decodedParams.networkID.equals(ctx.networkIdentifier) ||
+			ccm.nonce !== BigInt(0) // Only in mainchain
 		) {
 			const beforeSendContext = createCCMsgBeforeSendContext({
 				ccm,

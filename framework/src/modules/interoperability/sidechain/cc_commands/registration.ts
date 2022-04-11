@@ -28,7 +28,7 @@ interface CCMRegistrationParams {
 	messageFeeTokenID: MessageFeeTokenID;
 }
 
-export class CCRegistrationCommand extends BaseCCCommand {
+export class SidechainCCRegistrationCommand extends BaseCCCommand {
 	public ID = CROSS_CHAIN_COMMAND_ID_REGISTRATION;
 	public name = 'registration';
 	public schema = registrationCCMParamsSchema;
