@@ -53,7 +53,6 @@ import {
 	TerminatedStateAccount,
 	OwnChainAccount,
 	CCMApplyContext,
-	InteroperableCommandsAndAPI,
 } from './types';
 import { getCCMSize, getIDAsKeyForStore } from './utils';
 import {
@@ -61,19 +60,22 @@ import {
 	createCCMsgBeforeApplyContext,
 	createCCMsgBeforeSendContext,
 } from './context';
+import { BaseInteroperableAPI } from './base_interoperable_api';
+import { BaseCCCommand } from './base_cross_chain_command';
 
 export abstract class BaseInteroperabilityStore {
 	public readonly getStore: (moduleID: number, storePrefix: number) => SubStore;
 	protected readonly _moduleID: number;
+	protected _interoperableModuleAPIs: Map<number, BaseInteroperableAPI>;
 
 	public constructor(
 		moduleID: number,
 		getStore: (moduleID: number, storePrefix: number) => SubStore,
+		interoperableModuleAPIs: Map<number, BaseInteroperableAPI>,
 	) {
 		this._moduleID = moduleID;
 		this.getStore = getStore;
-		// eslint-disable-next-line no-console
-		console.log(!this._moduleID, !this.getStore);
+		this._interoperableModuleAPIs = interoperableModuleAPIs;
 	}
 
 	public async getOwnChainAccount(): Promise<OwnChainAccount> {
@@ -290,21 +292,17 @@ export abstract class BaseInteroperabilityStore {
 	public async terminateChainInternal(
 		chainID: number,
 		beforeSendContext: BeforeSendCCMsgAPIContext,
-		interoperableModules: Map<number, InteroperableCommandsAndAPI>,
 	): Promise<boolean> {
-		const messageSent = await this.sendInternal(
-			{
-				moduleID: MODULE_ID_INTEROPERABILITY,
-				crossChainCommandID: CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED,
-				receivingChainID: chainID,
-				fee: BigInt(0),
-				status: CCM_STATUS_OK,
-				params: EMPTY_BYTES,
-				timestamp: Date.now(),
-				beforeSendContext,
-			},
-			interoperableModules,
-		);
+		const messageSent = await this.sendInternal({
+			moduleID: MODULE_ID_INTEROPERABILITY,
+			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED,
+			receivingChainID: chainID,
+			fee: BigInt(0),
+			status: CCM_STATUS_OK,
+			params: EMPTY_BYTES,
+			timestamp: Date.now(),
+			beforeSendContext,
+		});
 
 		if (!messageSent) {
 			return false;
@@ -315,7 +313,7 @@ export abstract class BaseInteroperabilityStore {
 
 	public async apply(
 		ccmApplyContext: CCMApplyContext,
-		interoperableModules: Map<number, InteroperableCommandsAndAPI>,
+		interoperableCCCommands: Map<number, BaseCCCommand[]>,
 	): Promise<void> {
 		const { ccm, eventQueue, logger, networkIdentifier, getAPIContext, getStore } = ccmApplyContext;
 		const isTerminated = await this.hasTerminatedStateAccount(
@@ -333,14 +331,15 @@ export abstract class BaseInteroperabilityStore {
 				getAPIContext,
 				getStore,
 				networkIdentifier,
+				feeAddress: ccmApplyContext.feeAddress,
 			},
 			ccmApplyContext.ccu,
 		);
 
-		for (const mod of interoperableModules.values()) {
-			if (mod?.ccAPI?.beforeApplyCCM) {
+		for (const mod of this._interoperableModuleAPIs.values()) {
+			if (mod?.beforeApplyCCM) {
 				try {
-					await mod.ccAPI.beforeApplyCCM(beforeCCMApplyContext);
+					await mod.beforeApplyCCM(beforeCCMApplyContext);
 				} catch (error) {
 					return;
 				}
@@ -351,68 +350,56 @@ export abstract class BaseInteroperabilityStore {
 			return;
 		}
 
-		const interoperableModule = interoperableModules.get(ccm.moduleID);
-
+		const ccCommands = interoperableCCCommands.get(ccm.moduleID);
 		// When moduleID is not supported
-		if (!interoperableModule) {
-			const beforeCCMSendContext = createCCMsgBeforeSendContext(
-				{
-					ccm,
-					eventQueue,
-					getAPIContext,
-					logger,
-					networkIdentifier,
-					getStore,
-				},
-				EMPTY_FEE_ADDRESS,
-			);
+		if (!ccCommands) {
+			const beforeCCMSendContext = createCCMsgBeforeSendContext({
+				ccm,
+				eventQueue,
+				getAPIContext,
+				logger,
+				networkIdentifier,
+				getStore,
+				feeAddress: EMPTY_FEE_ADDRESS,
+			});
 
-			await this.sendInternal(
-				{
-					beforeSendContext: beforeCCMSendContext,
-					crossChainCommandID: ccm.crossChainCommandID,
-					moduleID: ccm.moduleID,
-					fee: BigInt(0),
-					params: ccm.params,
-					receivingChainID: ccm.receivingChainID,
-					status: CCM_STATUS_MODULE_NOT_SUPPORTED,
-					timestamp: Date.now(),
-				},
-				interoperableModules,
-			);
+			await this.sendInternal({
+				beforeSendContext: beforeCCMSendContext,
+				crossChainCommandID: ccm.crossChainCommandID,
+				moduleID: ccm.moduleID,
+				fee: BigInt(0),
+				params: ccm.params,
+				receivingChainID: ccm.receivingChainID,
+				status: CCM_STATUS_MODULE_NOT_SUPPORTED,
+				timestamp: Date.now(),
+			});
 
 			return;
 		}
-		const ccCommand = interoperableModule.ccCommands.find(
-			cmd => cmd.ID === ccm.crossChainCommandID,
-		);
+		const ccCommand = ccCommands.find(cmd => cmd.ID === ccm.crossChainCommandID);
 		// When commandID is not supported
-		if (!ccCommand) {
-			const beforeCCMSendContext = createCCMsgBeforeSendContext(
-				{
-					ccm,
-					eventQueue,
-					getAPIContext,
-					logger,
-					networkIdentifier,
-					getStore,
-				},
-				EMPTY_FEE_ADDRESS,
-			);
 
-			await this.sendInternal(
-				{
-					beforeSendContext: beforeCCMSendContext,
-					crossChainCommandID: ccm.crossChainCommandID,
-					moduleID: ccm.moduleID,
-					fee: BigInt(0),
-					params: ccm.params,
-					receivingChainID: ccm.receivingChainID,
-					status: CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
-					timestamp: Date.now(),
-				},
-				interoperableModules,
-			);
+		if (!ccCommand) {
+			const beforeCCMSendContext = createCCMsgBeforeSendContext({
+				ccm,
+				eventQueue,
+				getAPIContext,
+				logger,
+				networkIdentifier,
+				getStore,
+				feeAddress: EMPTY_FEE_ADDRESS,
+			});
+
+			await this.sendInternal({
+				beforeSendContext: beforeCCMSendContext,
+				crossChainCommandID: ccm.crossChainCommandID,
+				moduleID: ccm.moduleID,
+				fee: BigInt(0),
+				params: ccm.params,
+				receivingChainID: ccm.receivingChainID,
+				status: CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
+				timestamp: Date.now(),
+			});
 
 			return;
 		}
@@ -424,6 +411,7 @@ export abstract class BaseInteroperabilityStore {
 			networkIdentifier,
 			getAPIContext,
 			getStore,
+			feeAddress: ccmApplyContext.feeAddress,
 		});
 
 		await ccCommand.execute(ccCommandExecuteContext);
@@ -431,10 +419,7 @@ export abstract class BaseInteroperabilityStore {
 
 	// Different in mainchain and sidechain so to be implemented in each module store separately
 	public abstract isLive(chainID: Buffer, timestamp?: number): Promise<boolean>;
-	public abstract sendInternal(
-		sendContext: SendInternalContext,
-		interoperableModules: Map<number, InteroperableCommandsAndAPI>,
-	): Promise<boolean>;
+	public abstract sendInternal(sendContext: SendInternalContext): Promise<boolean>;
 
 	// To be implemented in base class
 	public abstract getInboxRoot(chainID: number): Promise<void>;

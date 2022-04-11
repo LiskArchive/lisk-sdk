@@ -14,7 +14,7 @@
 
 import { BaseInteroperabilityStore } from '../base_interoperability_store';
 import { CHAIN_ACTIVE, MAINCHAIN_ID } from '../constants';
-import { CCMsg, InteroperableCommandsAndAPI, SendInternalContext } from '../types';
+import { CCMsg, SendInternalContext } from '../types';
 import { getIDAsKeyForStore, validateFormat } from '../utils';
 
 export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
@@ -23,10 +23,7 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 		return !isTerminated;
 	}
 
-	public async sendInternal(
-		sendContext: SendInternalContext,
-		interoperableModules: Map<number, InteroperableCommandsAndAPI>,
-	): Promise<boolean> {
+	public async sendInternal(sendContext: SendInternalContext): Promise<boolean> {
 		const receivingChainIDAsStoreKey = getIDAsKeyForStore(sendContext.receivingChainID);
 		const isReceivingChainExist = await this.chainAccountExist(receivingChainIDAsStoreKey);
 
@@ -68,10 +65,10 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 			return false;
 		}
 
-		for (const mod of interoperableModules.values()) {
-			if (mod?.ccAPI?.beforeSendCCM) {
+		for (const mod of this._interoperableModuleAPIs.values()) {
+			if (mod?.beforeSendCCM) {
 				try {
-					await mod.ccAPI.beforeSendCCM(sendContext.beforeSendContext);
+					await mod.beforeSendCCM(sendContext.beforeSendContext);
 				} catch (error) {
 					return false;
 				}

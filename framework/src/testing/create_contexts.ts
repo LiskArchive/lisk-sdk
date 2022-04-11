@@ -38,7 +38,6 @@ import {
 	CCCommandExecuteContext,
 	CCMsg,
 	CCUpdateParams,
-	InteroperableCommandsAndAPI,
 	RecoverCCMsgAPIContext,
 } from '../modules/interoperability/types';
 
@@ -257,6 +256,7 @@ const createCCAPIContext = (params: {
 	getAPIContext?: () => APIContext;
 	eventQueue?: EventQueue;
 	ccm: CCMsg;
+	feeAddress: Buffer;
 }) => {
 	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
 	const logger = params.logger ?? loggerMock;
@@ -272,6 +272,7 @@ const createCCAPIContext = (params: {
 		getAPIContext: params.getAPIContext ?? (() => ({ getStore, eventQueue })),
 		eventQueue,
 		ccm: params.ccm,
+		feeAddress: params.feeAddress,
 	};
 };
 
@@ -282,11 +283,9 @@ export const createExecuteCCMsgAPIContext = (params: {
 	networkIdentifier: Buffer;
 	getAPIContext: () => APIContext;
 	eventQueue: EventQueue;
-	interoperableModules: Map<number, InteroperableCommandsAndAPI>;
 }): CCCommandExecuteContext => ({
 	...createCCAPIContext(params),
 	feeAddress: params.feeAddress,
-	interoperableModules: params.interoperableModules,
 });
 
 export const createBeforeSendCCMsgAPIContext = (params: {
@@ -296,10 +295,7 @@ export const createBeforeSendCCMsgAPIContext = (params: {
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
 	eventQueue?: EventQueue;
-}): BeforeSendCCMsgAPIContext => ({
-	...createCCAPIContext(params),
-	feeAddress: params.feeAddress,
-});
+}): BeforeSendCCMsgAPIContext => createCCAPIContext(params);
 
 export const createBeforeApplyCCMsgAPIContext = (params: {
 	ccm: CCMsg;
@@ -310,6 +306,7 @@ export const createBeforeApplyCCMsgAPIContext = (params: {
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
 	eventQueue?: EventQueue;
+	feeAddress: Buffer;
 }): BeforeApplyCCMsgAPIContext => ({
 	...createCCAPIContext(params),
 	ccu: params.ccu,
@@ -322,6 +319,7 @@ export const createBeforeRecoverCCMsgAPIContext = (params: {
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
+	feeAddress: Buffer;
 	eventQueue?: EventQueue;
 }): BeforeRecoverCCMsgAPIContext => ({
 	...createCCAPIContext(params),
@@ -339,6 +337,7 @@ export const createRecoverCCMsgAPIContext = (params: {
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
+	feeAddress: Buffer;
 	eventQueue?: EventQueue;
 }): RecoverCCMsgAPIContext => ({
 	...createCCAPIContext(params),

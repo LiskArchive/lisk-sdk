@@ -15,7 +15,7 @@
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { BaseInteroperabilityStore } from '../base_interoperability_store';
 import { CCM_STATUS_CHANNEL_UNAVAILABLE, CHAIN_ACTIVE, LIVENESS_LIMIT } from '../constants';
-import { CCMsg, InteroperableCommandsAndAPI, SendInternalContext } from '../types';
+import { CCMsg, SendInternalContext } from '../types';
 import { getIDAsKeyForStore, validateFormat } from '../utils';
 
 export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
@@ -53,10 +53,7 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 		await this.addToOutbox(getIDAsKeyForStore(newCCM.receivingChainID), newCCM);
 	}
 
-	public async sendInternal(
-		sendContext: SendInternalContext,
-		interoperableModules: Map<number, InteroperableCommandsAndAPI>,
-	): Promise<boolean> {
+	public async sendInternal(sendContext: SendInternalContext): Promise<boolean> {
 		const receivingChainIDAsStoreKey = getIDAsKeyForStore(sendContext.receivingChainID);
 		let receivingChainAccount;
 		try {
@@ -102,10 +99,10 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 			return false;
 		}
 
-		for (const mod of interoperableModules.values()) {
-			if (mod?.ccAPI?.beforeSendCCM) {
+		for (const mod of this._interoperableModuleAPIs.values()) {
+			if (mod?.beforeSendCCM) {
 				try {
-					await mod.ccAPI.beforeSendCCM(sendContext.beforeSendContext);
+					await mod.beforeSendCCM(sendContext.beforeSendContext);
 				} catch (error) {
 					return false;
 				}

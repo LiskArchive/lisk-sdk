@@ -18,7 +18,9 @@ import { CROSS_CHAIN_COMMAND_ID_REGISTRATION } from '../../constants';
 import { SidechainInteroperabilityStore } from '../store';
 import { registrationCCMParamsSchema } from '../../schema';
 import { CCCommandExecuteContext, MessageFeeTokenID } from '../../types';
-import { createBeforeSendCCMsgAPIContext } from '../../../../testing';
+import { BaseInteroperableAPI } from '../../base_interoperable_api';
+import { SubStore } from '../../../../node/state_machine/types';
+import { createCCMsgBeforeSendContext } from '../../context';
 
 interface CCMRegistrationParams {
 	networkID: Buffer;
@@ -30,6 +32,12 @@ export class CCRegistrationCommand extends BaseCCCommand {
 	public ID = CROSS_CHAIN_COMMAND_ID_REGISTRATION;
 	public name = 'registration';
 	public schema = registrationCCMParamsSchema;
+	private readonly _interoperableCCAPIs: Map<number, BaseInteroperableAPI>;
+
+	public constructor(moduleID: number, interoperableCCAPIs: Map<number, BaseInteroperableAPI>) {
+		super(moduleID);
+		this._interoperableCCAPIs = interoperableCCAPIs;
+	}
 
 	public async execute(ctx: CCCommandExecuteContext): Promise<void> {
 		const { ccm } = ctx;
@@ -37,7 +45,7 @@ export class CCRegistrationCommand extends BaseCCCommand {
 			registrationCCMParamsSchema,
 			ccm.params,
 		);
-		const interoperabilityStore = new SidechainInteroperabilityStore(this.moduleID, ctx.getStore);
+		const interoperabilityStore = this._getInteroperabilityStore(ctx.getStore);
 		const sendingChainChannelAccount = await interoperabilityStore.getChannel(ccm.sendingChainID);
 		const ownChainAccount = await interoperabilityStore.getOwnChainAccount();
 		if (
@@ -50,19 +58,20 @@ export class CCRegistrationCommand extends BaseCCCommand {
 					decodedParams.messageFeeTokenID.localID) ||
 			!decodedParams.networkID.equals(ctx.networkIdentifier)
 		) {
-			const beforeSendContext = createBeforeSendCCMsgAPIContext({
+			const beforeSendContext = createCCMsgBeforeSendContext({
 				ccm,
-				feeAddress: ctx.feeAddress,
 				eventQueue: ctx.eventQueue,
 				getAPIContext: ctx.getAPIContext,
+				getStore: ctx.getStore,
 				logger: ctx.logger,
 				networkIdentifier: ctx.networkIdentifier,
+				feeAddress: ctx.feeAddress,
 			});
-			await interoperabilityStore.terminateChainInternal(
-				ccm.sendingChainID,
-				beforeSendContext,
-				ctx.interoperableModules,
-			);
+			await interoperabilityStore.terminateChainInternal(ccm.sendingChainID, beforeSendContext);
 		}
+	}
+
+	private _getInteroperabilityStore(getStore: (moduleID: number, storePrefix: number) => SubStore) {
+		return new SidechainInteroperabilityStore(this.moduleID, getStore, this._interoperableCCAPIs);
 	}
 }

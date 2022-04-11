@@ -18,18 +18,16 @@ import {
 	CCAPIContext,
 	CCCommandExecuteContext,
 	CCUpdateParams,
-	InteroperableCommandsAndAPI,
 } from './types';
 
-export const createCCCommandExecuteContext = (params: CCAPIContext, feeAddress: Buffer, interoperableModules: Map<number, InteroperableCommandsAndAPI>): CCCommandExecuteContext => ({
+export const createCCCommandExecuteContext = (params: CCAPIContext): CCCommandExecuteContext => ({
 	logger: params.logger,
 	networkIdentifier: params.networkIdentifier,
 	eventQueue: params.eventQueue,
 	getAPIContext: params.getAPIContext,
 	getStore: params.getStore,
 	ccm: params.ccm,
-	feeAddress,
-	interoperableModules,
+	feeAddress: params.feeAddress,
 });
 
 export const createCCMsgBeforeApplyContext = (
@@ -43,17 +41,15 @@ export const createCCMsgBeforeApplyContext = (
 	getStore: params.getStore,
 	ccm: params.ccm,
 	ccu,
+	feeAddress: params.feeAddress,
 });
 
-export const createCCMsgBeforeSendContext = (
-	params: CCAPIContext,
-	feeAddress: Buffer,
-): BeforeSendCCMsgAPIContext => ({
+export const createCCMsgBeforeSendContext = (params: CCAPIContext): BeforeSendCCMsgAPIContext => ({
 	logger: params.logger,
 	networkIdentifier: params.networkIdentifier,
 	eventQueue: params.eventQueue,
 	getAPIContext: params.getAPIContext,
 	getStore: params.getStore,
 	ccm: params.ccm,
-	feeAddress,
+	feeAddress: params.feeAddress,
 });

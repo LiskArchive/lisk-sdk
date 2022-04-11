@@ -15,13 +15,6 @@
 import { Logger } from '../../logger';
 import { APIContext, EventQueue } from '../../node/state_machine';
 import { SubStore } from '../../node/state_machine/types';
-import { BaseCCCommand } from './base_cross_chain_command';
-import { BaseInteroperableAPI } from './base_interoperable_api';
-
-export interface InteroperableCommandsAndAPI {
-	ccAPI: BaseInteroperableAPI;
-	ccCommands: BaseCCCommand[];
-}
 
 export interface CCMsg {
 	readonly nonce: bigint;
@@ -70,6 +63,7 @@ export interface CCAPIContext {
 	networkIdentifier: Buffer;
 	eventQueue: EventQueue;
 	ccm: CCMsg;
+	feeAddress: Buffer;
 }
 
 export interface BeforeApplyCCMsgAPIContext extends CCAPIContext {
@@ -109,6 +103,7 @@ export interface CCMApplyContext {
 	logger: Logger;
 	networkIdentifier: Buffer;
 	eventQueue: EventQueue;
+	feeAddress: Buffer;
 	ccm: CCMsg;
 	ccu: CCUpdateParams;
 }
@@ -166,8 +161,7 @@ export interface CCCommandExecuteContext {
 	networkIdentifier: Buffer;
 	eventQueue: EventQueue;
 	ccm: CCMsg;
-	feeAddress: Buffer;
 	getAPIContext: () => APIContext;
 	getStore: (moduleID: number, storePrefix: number) => SubStore;
-	interoperableModules: Map<number, InteroperableCommandsAndAPI>;
+	feeAddress: Buffer;
 }
