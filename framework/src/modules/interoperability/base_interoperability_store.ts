@@ -351,6 +351,7 @@ export abstract class BaseInteroperabilityStore {
 		}
 
 		const ccCommands = interoperableCCCommands.get(ccm.moduleID);
+
 		// When moduleID is not supported
 		if (!ccCommands) {
 			const beforeCCMSendContext = createCCMsgBeforeSendContext({
@@ -377,8 +378,8 @@ export abstract class BaseInteroperabilityStore {
 			return;
 		}
 		const ccCommand = ccCommands.find(cmd => cmd.ID === ccm.crossChainCommandID);
-		// When commandID is not supported
 
+		// When commandID is not supported
 		if (!ccCommand) {
 			const beforeCCMSendContext = createCCMsgBeforeSendContext({
 				ccm,
