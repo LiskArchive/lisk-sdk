@@ -17,10 +17,18 @@ export const MODULE_NAME_INTEROPERABILITY = 'interoperability';
 
 // General constants
 export const MAINCHAIN_ID = 1;
+export const MAINCHAIN_NAME = 'lisk-mainchain';
+export const TAG_CHAIN_REG_MESSAGE = 'LSK_CHAIN_REGISTRATION';
 export const LIVENESS_LIMIT = 2592000; // 30*24*3600
 export const MAX_CCM_SIZE = 10240;
 export const EMPTY_FEE_ADDRESS = Buffer.alloc(0);
 export const EMPTY_BYTES = Buffer.alloc(0);
+export const REGISTRATION_FEE = 1000000000;
+export const MAX_NUM_VALIDATORS = 199;
+export const MAX_LENGTH_NAME = 40;
+export const MAX_UINT32 = 4294967295;
+export const MAX_UINT64 = 18446744073709551615;
+export const THRESHOLD_MAINCHAIN = 68;
 
 // Store prefixes
 export const STORE_PREFIX_OUTBOX_ROOT = 0x0000;
@@ -48,3 +56,7 @@ export const CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED = 2;
 export const CCM_STATUS_CHANNEL_UNAVAILABLE = 3;
 export const CCM_STATUS_RECOVERED = 4;
 export const MIN_RETURN_FEE = BigInt(1000);
+
+// Commands
+export const COMMAND_ID_SIDECHAIN_REG = 0;
+export const COMMAND_ID_MAINCHAIN_REG = 1;
