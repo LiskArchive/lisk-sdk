@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseCCCommand } from '../../base_cross_chain_command';
+import { BaseCCCommand } from '../../base_cc_command';
 import { CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED } from '../../constants';
 import { sidechainTerminatedCCMParamsSchema } from '../../schema';
 

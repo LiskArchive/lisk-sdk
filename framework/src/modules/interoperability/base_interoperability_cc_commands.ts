@@ -12,11 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule } from '../base_module';
 import { BaseCCCommand } from './base_cc_command';
 import { BaseInteroperableAPI } from './base_interoperable_api';
 
-export abstract class BaseInteroperableModule extends BaseModule {
-	public crossChainCommand: BaseCCCommand[] = [];
-	public abstract crossChainAPI: BaseInteroperableAPI;
+export abstract class BaseInteroperabilityCCCommand extends BaseCCCommand {
+	protected readonly _interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
+
+	public constructor(moduleID: number, interoperableCCAPIs: Map<number, BaseInteroperableAPI>) {
+		super(moduleID);
+		this._interoperableCCAPIs = interoperableCCAPIs;
+	}
 }

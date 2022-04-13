@@ -13,14 +13,13 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { BaseCCCommand } from '../../base_cross_chain_command';
 import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_ID_REGISTRATION } from '../../constants';
 import { MainchainInteroperabilityStore } from '../store';
 import { registrationCCMParamsSchema } from '../../schema';
 import { CCCommandExecuteContext, MessageFeeTokenID } from '../../types';
-import { BaseInteroperableAPI } from '../../base_interoperable_api';
 import { createCCMsgBeforeSendContext } from '../../context';
 import { SubStore } from '../../../../node/state_machine/types';
+import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
 
 interface CCMRegistrationParams {
 	networkID: Buffer;
@@ -28,16 +27,10 @@ interface CCMRegistrationParams {
 	messageFeeTokenID: MessageFeeTokenID;
 }
 
-export class MainchainCCRegistrationCommand extends BaseCCCommand {
+export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCCommand {
 	public ID = CROSS_CHAIN_COMMAND_ID_REGISTRATION;
 	public name = 'registration';
 	public schema = registrationCCMParamsSchema;
-	private readonly _interoperableCCAPIs: Map<number, BaseInteroperableAPI>;
-
-	public constructor(moduleID: number, interoperableCCAPIs: Map<number, BaseInteroperableAPI>) {
-		super(moduleID);
-		this._interoperableCCAPIs = interoperableCCAPIs;
-	}
 
 	public async execute(ctx: CCCommandExecuteContext): Promise<void> {
 		const { ccm } = ctx;

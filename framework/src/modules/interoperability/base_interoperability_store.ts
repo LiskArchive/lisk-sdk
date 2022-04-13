@@ -61,7 +61,7 @@ import {
 	createCCMsgBeforeSendContext,
 } from './context';
 import { BaseInteroperableAPI } from './base_interoperable_api';
-import { BaseCCCommand } from './base_cross_chain_command';
+import { BaseCCCommand } from './base_cc_command';
 
 export abstract class BaseInteroperabilityStore {
 	public readonly getStore: (moduleID: number, storePrefix: number) => SubStore;
