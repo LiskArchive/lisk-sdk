@@ -148,6 +148,33 @@ describe('SidechainCCRegistrationCommand', () => {
 		);
 	});
 
+	it('should call terminateChainInternal when ccm.status !== CCM_STATUS_OK', async () => {
+		// Arrange
+		const invalidCCM = {
+			nonce: BigInt(0),
+			moduleID: 1,
+			crossChainCommandID: 1,
+			sendingChainID: 2,
+			receivingChainID: 1,
+			fee: BigInt(20000),
+			status: 1,
+			params: encodedRegistrationParams,
+		};
+
+		getOwnChainAccountMock.mockResolvedValue(ownChainAccount);
+
+		await ccRegistrationCommand.execute({ ...sampleExecuteContext, ccm: invalidCCM });
+
+		expect(terminateChainInternalMock).toBeCalledTimes(1);
+		expect(terminateChainInternalMock).toHaveBeenCalledWith(
+			ccm.sendingChainID,
+			expect.objectContaining({
+				networkIdentifier,
+				ccm: invalidCCM,
+			}),
+		);
+	});
+
 	it('should call terminateChainInternal when ownChainAccount.id !== ccm.receivingChainID', async () => {
 		// Arrange
 		getChannelMock.mockResolvedValue(channelData);

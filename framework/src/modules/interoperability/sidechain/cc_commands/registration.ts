@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { BaseCCCommand } from '../../base_cross_chain_command';
-import { CROSS_CHAIN_COMMAND_ID_REGISTRATION } from '../../constants';
+import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_ID_REGISTRATION } from '../../constants';
 import { SidechainInteroperabilityStore } from '../store';
 import { registrationCCMParamsSchema } from '../../schema';
 import { CCCommandExecuteContext, MessageFeeTokenID } from '../../types';
@@ -50,6 +50,7 @@ export class SidechainCCRegistrationCommand extends BaseCCCommand {
 		const ownChainAccount = await interoperabilityStore.getOwnChainAccount();
 		if (
 			sendingChainChannelAccount.inbox.size !== 1 ||
+			ccm.status !== CCM_STATUS_OK ||
 			ownChainAccount.id !== ccm.receivingChainID ||
 			ownChainAccount.name !== decodedParams.name ||
 			(sendingChainChannelAccount.messageFeeTokenID.chainID !==
