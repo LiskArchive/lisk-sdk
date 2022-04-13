@@ -65,7 +65,7 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 			return false;
 		}
 
-		for (const mod of this._interoperableModuleAPIs.values()) {
+		for (const mod of this.interoperableModuleAPIs.values()) {
 			if (mod?.beforeSendCCM) {
 				try {
 					await mod.beforeSendCCM(sendContext.beforeSendContext);

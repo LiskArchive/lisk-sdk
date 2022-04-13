@@ -107,7 +107,7 @@ describe('MainchainCCRegistrationCommand', () => {
 		mainchainInteroperabilityStore.getOwnChainAccount = getOwnChainAccountMock;
 
 		ccRegistrationCommand = new MainchainCCRegistrationCommand(1, ccAPIsMap);
-		(ccRegistrationCommand as any)['_getInteroperabilityStore'] = jest
+		(ccRegistrationCommand as any)['getInteroperabilityStore'] = jest
 			.fn()
 			.mockReturnValue(mainchainInteroperabilityStore);
 	});

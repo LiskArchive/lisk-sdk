@@ -14,12 +14,18 @@
 
 import { BaseCCCommand } from './base_cc_command';
 import { BaseInteroperableAPI } from './base_interoperable_api';
+import { SidechainInteroperabilityStore } from './sidechain/store';
+import { getStoreFunction } from './types';
 
 export abstract class BaseInteroperabilityCCCommand extends BaseCCCommand {
-	protected readonly _interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
+	protected readonly interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
 
 	public constructor(moduleID: number, interoperableCCAPIs: Map<number, BaseInteroperableAPI>) {
 		super(moduleID);
-		this._interoperableCCAPIs = interoperableCCAPIs;
+		this.interoperableCCAPIs = interoperableCCAPIs;
+	}
+
+	protected getInteroperabilityStore(getStore: getStoreFunction) {
+		return new SidechainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
 	}
 }

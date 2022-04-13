@@ -281,7 +281,7 @@ const createCCAPIContext = (params: {
 		getAPIContext: params.getAPIContext ?? (() => ({ getStore, eventQueue })),
 		eventQueue,
 		ccm,
-		feeAddress: params.feeAddress ?? getRandomBytes(32),
+		feeAddress: params.feeAddress ?? getRandomBytes(20),
 	};
 };
 

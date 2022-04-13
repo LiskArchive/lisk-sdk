@@ -53,6 +53,7 @@ import {
 	TerminatedStateAccount,
 	OwnChainAccount,
 	CCMApplyContext,
+	getStoreFunction,
 } from './types';
 import { getCCMSize, getIDAsKeyForStore } from './utils';
 import {
@@ -64,22 +65,22 @@ import { BaseInteroperableAPI } from './base_interoperable_api';
 import { BaseCCCommand } from './base_cc_command';
 
 export abstract class BaseInteroperabilityStore {
-	public readonly getStore: (moduleID: number, storePrefix: number) => SubStore;
-	protected readonly _moduleID: number;
-	protected _interoperableModuleAPIs: Map<number, BaseInteroperableAPI>;
+	public readonly getStore: getStoreFunction;
+	protected readonly moduleID: number;
+	protected readonly interoperableModuleAPIs = new Map<number, BaseInteroperableAPI>();
 
 	public constructor(
 		moduleID: number,
 		getStore: (moduleID: number, storePrefix: number) => SubStore,
 		interoperableModuleAPIs: Map<number, BaseInteroperableAPI>,
 	) {
-		this._moduleID = moduleID;
+		this.moduleID = moduleID;
 		this.getStore = getStore;
-		this._interoperableModuleAPIs = interoperableModuleAPIs;
+		this.interoperableModuleAPIs = interoperableModuleAPIs;
 	}
 
 	public async getOwnChainAccount(): Promise<OwnChainAccount> {
-		const ownChainAccountStore = this.getStore(this._moduleID, STORE_PREFIX_OWN_CHAIN_DATA);
+		const ownChainAccountStore = this.getStore(this.moduleID, STORE_PREFIX_OWN_CHAIN_DATA);
 		return ownChainAccountStore.getWithSchema<OwnChainAccount>(
 			getIDAsKeyForStore(MAINCHAIN_ID),
 			ownChainAccountSchema,
@@ -87,7 +88,7 @@ export abstract class BaseInteroperabilityStore {
 	}
 
 	public async setOwnChainAccount(ownChainAccount: OwnChainAccount): Promise<void> {
-		const ownChainAccountStore = this.getStore(this._moduleID, STORE_PREFIX_OWN_CHAIN_DATA);
+		const ownChainAccountStore = this.getStore(this.moduleID, STORE_PREFIX_OWN_CHAIN_DATA);
 		await ownChainAccountStore.setWithSchema(
 			getIDAsKeyForStore(MAINCHAIN_ID),
 			ownChainAccount,
@@ -96,7 +97,7 @@ export abstract class BaseInteroperabilityStore {
 	}
 
 	public async getChannel(chainID: number): Promise<ChannelData> {
-		const channelAccountStore = this.getStore(this._moduleID, STORE_PREFIX_CHANNEL_DATA);
+		const channelAccountStore = this.getStore(this.moduleID, STORE_PREFIX_CHANNEL_DATA);
 		return channelAccountStore.getWithSchema<ChannelData>(
 			getIDAsKeyForStore(chainID),
 			channelSchema,
@@ -104,7 +105,7 @@ export abstract class BaseInteroperabilityStore {
 	}
 
 	public async setChannel(chainID: number, channeldata: ChannelData): Promise<void> {
-		const channelAccountStore = this.getStore(this._moduleID, STORE_PREFIX_CHANNEL_DATA);
+		const channelAccountStore = this.getStore(this.moduleID, STORE_PREFIX_CHANNEL_DATA);
 		await channelAccountStore.setWithSchema(
 			getIDAsKeyForStore(chainID),
 			channeldata,
@@ -336,7 +337,7 @@ export abstract class BaseInteroperabilityStore {
 			ccmApplyContext.ccu,
 		);
 
-		for (const mod of this._interoperableModuleAPIs.values()) {
+		for (const mod of this.interoperableModuleAPIs.values()) {
 			if (mod?.beforeApplyCCM) {
 				try {
 					await mod.beforeApplyCCM(beforeCCMApplyContext);

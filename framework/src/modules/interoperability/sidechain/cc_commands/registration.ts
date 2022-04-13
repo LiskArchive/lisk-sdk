@@ -14,10 +14,8 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_ID_REGISTRATION } from '../../constants';
-import { SidechainInteroperabilityStore } from '../store';
 import { registrationCCMParamsSchema } from '../../schema';
 import { CCCommandExecuteContext, MessageFeeTokenID } from '../../types';
-import { SubStore } from '../../../../node/state_machine/types';
 import { createCCMsgBeforeSendContext } from '../../context';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
 
@@ -38,7 +36,7 @@ export class SidechainCCRegistrationCommand extends BaseInteroperabilityCCComman
 			registrationCCMParamsSchema,
 			ccm.params,
 		);
-		const interoperabilityStore = this._getInteroperabilityStore(ctx.getStore);
+		const interoperabilityStore = this.getInteroperabilityStore(ctx.getStore);
 		const sendingChainChannelAccount = await interoperabilityStore.getChannel(ccm.sendingChainID);
 		const ownChainAccount = await interoperabilityStore.getOwnChainAccount();
 		if (
@@ -63,9 +61,5 @@ export class SidechainCCRegistrationCommand extends BaseInteroperabilityCCComman
 			});
 			await interoperabilityStore.terminateChainInternal(ccm.sendingChainID, beforeSendContext);
 		}
-	}
-
-	private _getInteroperabilityStore(getStore: (moduleID: number, storePrefix: number) => SubStore) {
-		return new SidechainInteroperabilityStore(this.moduleID, getStore, this._interoperableCCAPIs);
 	}
 }
