@@ -13,10 +13,27 @@
  */
 
 import { NotFoundError } from '@liskhq/lisk-chain';
+import { MODULE_ID_TOKEN } from '../../token/constants';
 import { BaseInteroperabilityStore } from '../base_interoperability_store';
-import { CCM_STATUS_CHANNEL_UNAVAILABLE, CHAIN_ACTIVE, LIVENESS_LIMIT } from '../constants';
-import { CCMsg, SendInternalContext } from '../types';
-import { getIDAsKeyForStore, validateFormat } from '../utils';
+import {
+	CCM_STATUS_CHANNEL_UNAVAILABLE,
+	CCM_STATUS_OK,
+	CHAIN_ACTIVE,
+	CHAIN_REGISTERED,
+	CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED,
+	EMPTY_FEE_ADDRESS,
+	LIVENESS_LIMIT,
+	MODULE_ID_INTEROPERABILITY,
+} from '../constants';
+import { createCCMsgBeforeSendContext } from '../context';
+import { CCMForwardContext, CCMsg, SendInternalContext } from '../types';
+import {
+	getEncodedSidechainTerminatedCCMParam,
+	getIDAsKeyForStore,
+	nullOnError,
+	validateFormat,
+} from '../utils';
+import { TokenCCAPI } from '../cc_apis';
 
 export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	public async isLive(chainID: Buffer, timestamp: number): Promise<boolean> {
@@ -31,6 +48,75 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 		}
 
 		return true;
+	}
+
+	public async forward(ccmForwardContext: CCMForwardContext): Promise<void> {
+		const {
+			ccm,
+			eventQueue,
+			logger,
+			networkIdentifier,
+			getAPIContext,
+			getStore,
+		} = ccmForwardContext;
+		const apiContext = getAPIContext();
+		const tokenCCAPI = this.interoperableModuleAPIs.get(MODULE_ID_TOKEN) as TokenCCAPI | undefined;
+		const beforeCCMSendContext = createCCMsgBeforeSendContext({
+			ccm,
+			eventQueue,
+			getAPIContext,
+			logger,
+			networkIdentifier,
+			getStore,
+			feeAddress: EMPTY_FEE_ADDRESS,
+		});
+
+		if (!tokenCCAPI) {
+			throw new Error('TokenCCAPI does not exist.');
+		}
+
+		const receivingChainIDAsStoreKey = getIDAsKeyForStore(ccm.receivingChainID);
+		const receivingChainAccount = await nullOnError(
+			this.getChainAccount(receivingChainIDAsStoreKey),
+		);
+
+		const isLive = await this.isLive(receivingChainIDAsStoreKey, Date.now());
+
+		if (receivingChainAccount?.status === CHAIN_ACTIVE && isLive) {
+			const isTokenTransferred = await nullOnError(tokenCCAPI.forwardMessageFee(apiContext, ccm));
+
+			if (!isTokenTransferred) {
+				throw new Error('Could not forward message fee.');
+			}
+
+			await this.addToOutbox(receivingChainIDAsStoreKey, ccm);
+			return;
+		}
+
+		if (ccm.status !== CCM_STATUS_OK) {
+			throw new Error('CCM is invalid.');
+		}
+
+		await this.bounce(ccm);
+
+		if (!receivingChainAccount || receivingChainAccount.status === CHAIN_REGISTERED) {
+			throw new Error('Receiving chain does not exist or is not yet active.');
+		}
+
+		if (receivingChainAccount.status === CHAIN_ACTIVE) {
+			await this.terminateChainInternal(ccm.receivingChainID, beforeCCMSendContext);
+		}
+
+		await this.sendInternal({
+			beforeSendContext: beforeCCMSendContext,
+			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED,
+			moduleID: MODULE_ID_INTEROPERABILITY,
+			fee: BigInt(0),
+			params: getEncodedSidechainTerminatedCCMParam(ccm, receivingChainAccount),
+			receivingChainID: ccm.sendingChainID,
+			status: CCM_STATUS_OK,
+			timestamp: Date.now(),
+		});
 	}
 
 	public async bounce(ccm: CCMsg): Promise<void> {

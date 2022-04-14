@@ -16,8 +16,8 @@ import { codec } from '@liskhq/lisk-codec';
 import { intToBuffer } from '@liskhq/lisk-cryptography';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { MAX_CCM_SIZE } from './constants';
-import { ccmSchema } from './schema';
-import { ActiveValidators, CCMsg } from './types';
+import { ActiveValidators, CCMsg, ChainAccount } from './types';
+import { ccmSchema, sidechainTerminatedCCMParamsSchema } from './schema';
 
 // Returns the big endian uint32 serialization of an integer x, with 0 <= x < 2^32 which is 4 bytes long.
 export const getIDAsKeyForStore = (id: number) => intToBuffer(id, 4);
@@ -63,4 +63,28 @@ export const updateActiveValidators = (
 	}
 
 	return activeValidators;
+}
+
+export const getEncodedSidechainTerminatedCCMParam = (
+	ccm: CCMsg,
+	receivingChainAccount: ChainAccount,
+) => {
+	const params = {
+		chainID: ccm.receivingChainID,
+		stateRoot: receivingChainAccount.lastCertificate.stateRoot,
+	};
+
+	const encodedParams = codec.encode(sidechainTerminatedCCMParamsSchema, params);
+
+	return encodedParams;
+};
+
+export const nullOnError = async <T>(promise: Promise<T>) => {
+	let result;
+	try {
+		result = await promise;
+	} catch {
+		result = null;
+	}
+	return result;
 };

@@ -110,6 +110,17 @@ export interface CCMApplyContext {
 	ccu: CCUpdateParams;
 }
 
+export interface CCMForwardContext {
+	getAPIContext: () => APIContext;
+	getStore: StoreCallback;
+	logger: Logger;
+	networkIdentifier: Buffer;
+	eventQueue: EventQueue;
+	feeAddress: Buffer;
+	ccm: CCMsg;
+	ccu: CCUpdateParams;
+}
+
 export interface LastCertificate {
 	height: number;
 	timestamp: number;
