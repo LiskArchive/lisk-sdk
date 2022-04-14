@@ -247,6 +247,86 @@ export const terminatedOutboxSchema = {
 	},
 };
 
+export const sidechainRegParams = {
+	$id: '/modules/interoperability/mainchain/sidechain_registration',
+	type: 'object',
+	required: ['name', 'genesisBlockID', 'initValidators', 'certificateThreshold'],
+	properties: {
+		name: {
+			dataType: 'string',
+			fieldNumber: 1,
+		},
+		genesisBlockID: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+		},
+		initValidators: {
+			type: 'array',
+			fieldNumber: 3,
+			items: {
+				type: 'object',
+				required: ['blsKey', 'bftWeight'],
+				properties: {
+					blsKey: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					bftWeight: {
+						dataType: 'uint64',
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+		certificateThreshold: {
+			dataType: 'uint64',
+			fieldNumber: 4,
+		},
+	},
+};
+
+export const mainchainRegParams = {
+	$id: '/modules/interoperability/sidechain/mainchain_registration',
+	type: 'object',
+	required: ['ownChainID', 'ownName', 'mainchainValidators', 'signature', 'aggregationBits'],
+	properties: {
+		ownChainID: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		ownName: {
+			dataType: 'string',
+			fieldNumber: 2,
+		},
+		mainchainValidators: {
+			type: 'array',
+			fieldNumber: 3,
+			items: {
+				type: 'object',
+				required: ['blsKey', 'bftWeight'],
+				properties: {
+					blsKey: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					bftWeight: {
+						dataType: 'uint64',
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+		signature: {
+			dataType: 'bytes',
+			fieldNumber: 4,
+		},
+		aggregationBits: {
+			dataType: 'bytes',
+			fieldNumber: 5,
+		},
+	},
+};
+
 // Cross chain commands schemas
 export const registrationCCMParamsSchema = {
 	$id: 'modules/interoperability/ccCommand/registration',
