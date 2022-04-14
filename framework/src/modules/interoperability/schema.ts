@@ -248,7 +248,7 @@ export const terminatedOutboxSchema = {
 };
 
 export const sidechainRegParams = {
-	$id: 'modules/interoperability/mainchain/sidechain_registration',
+	$id: '/modules/interoperability/mainchain/sidechain_registration',
 	type: 'object',
 	required: ['name', 'genesisBlockID', 'initValidators', 'certificateThreshold'],
 	properties: {
@@ -286,7 +286,7 @@ export const sidechainRegParams = {
 };
 
 export const mainchainRegParams = {
-	$id: 'modules/interoperability/sidechain/mainchain_registration',
+	$id: '/modules/interoperability/sidechain/mainchain_registration',
 	type: 'object',
 	required: ['ownChainID', 'ownName', 'mainchainValidators', 'signature', 'aggregationBits'],
 	properties: {
