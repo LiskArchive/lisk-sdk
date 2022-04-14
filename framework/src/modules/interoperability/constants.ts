@@ -27,7 +27,7 @@ export const REGISTRATION_FEE = 1000000000;
 export const MAX_NUM_VALIDATORS = 199;
 export const MAX_LENGTH_NAME = 40;
 export const MAX_UINT32 = 4294967295;
-export const MAX_UINT64 = 18446744073709551615;
+export const MAX_UINT64 = BigInt('18446744073709551615'); // BigInt((2 ** 64) - 1) - 1
 export const THRESHOLD_MAINCHAIN = 68;
 
 // Store prefixes
