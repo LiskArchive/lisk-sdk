@@ -12,17 +12,59 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseCCCommand } from '../../base_cc_command';
-import { CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED } from '../../constants';
+import { codec } from '@liskhq/lisk-codec';
+import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
+import { CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED, MAINCHAIN_ID } from '../../constants';
+import { createCCMsgBeforeSendContext } from '../../context';
 import { sidechainTerminatedCCMParamsSchema } from '../../schema';
+import { CCCommandExecuteContext, StoreCallback } from '../../types';
+import { getIDAsKeyForStore } from '../../utils';
+import { MainchainInteroperabilityStore } from '../store';
 
-export class CCSidechainTerminatedCommand extends BaseCCCommand {
+interface CCMSidechainTerminatedParams {
+	chainID: number;
+	stateRoot: Buffer;
+}
+
+export class CCSidechainTerminatedCommand extends BaseInteroperabilityCCCommand {
 	public ID = CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED;
 	public name = 'sidechainTerminated';
 	public schema = sidechainTerminatedCCMParamsSchema;
-	// TODO
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async execute(): Promise<void> {
-		throw new Error('Method not implemented.');
+
+	public async execute(context: CCCommandExecuteContext): Promise<void> {
+		const { ccm } = context;
+		const decodedParams = codec.decode<CCMSidechainTerminatedParams>(
+			sidechainTerminatedCCMParamsSchema,
+			ccm.params,
+		);
+		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+
+		if (ccm.sendingChainID === MAINCHAIN_ID) {
+			const isTerminated = await interoperabilityStore.hasTerminatedStateAccount(
+				getIDAsKeyForStore(decodedParams.chainID),
+			);
+			if (isTerminated) {
+				return;
+			}
+			await interoperabilityStore.createTerminatedStateAccount(
+				decodedParams.chainID,
+				decodedParams.stateRoot,
+			);
+		} else {
+			const beforeSendContext = createCCMsgBeforeSendContext({
+				ccm,
+				eventQueue: context.eventQueue,
+				getAPIContext: context.getAPIContext,
+				getStore: context.getStore,
+				logger: context.logger,
+				networkIdentifier: context.networkIdentifier,
+				feeAddress: context.feeAddress,
+			});
+			await interoperabilityStore.terminateChainInternal(ccm.sendingChainID, beforeSendContext);
+		}
+	}
+
+	protected getInteroperabilityStore(getStore: StoreCallback): MainchainInteroperabilityStore {
+		return new MainchainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
 	}
 }
