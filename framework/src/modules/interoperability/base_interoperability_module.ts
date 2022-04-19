@@ -12,13 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { BaseInteroperabilityCCCommand } from './base_interoperability_cc_commands';
+import { BaseInteroperableAPI } from './base_interoperable_api';
 import { BaseInteroperableModule } from './base_interoperable_module';
 import { MODULE_ID_INTEROPERABILITY, MODULE_NAME_INTEROPERABILITY } from './constants';
 
 export abstract class BaseInteroperabilityModule extends BaseInteroperableModule {
 	public id = MODULE_ID_INTEROPERABILITY; // Common id for mainchain/sidechain interoperability module
 	public name = MODULE_NAME_INTEROPERABILITY; // Common name for mainchain/sidechain interoperability module
-	// To manage interoperable modules
-	protected interoperableModules = new Map<number, BaseInteroperableModule>();
+	protected interoperableCCCommands = new Map<number, BaseInteroperabilityCCCommand[]>();
+	protected interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
 	public abstract registerInteroperableModule(): void;
 }

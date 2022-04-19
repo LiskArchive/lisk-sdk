@@ -65,10 +65,10 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 			return false;
 		}
 
-		for (const mod of this._interoperableModules.values()) {
-			if (mod?.crossChainAPI?.beforeSendCCM) {
+		for (const mod of this.interoperableModuleAPIs.values()) {
+			if (mod?.beforeSendCCM) {
 				try {
-					await mod.crossChainAPI.beforeSendCCM(sendContext.beforeSendContext);
+					await mod.beforeSendCCM(sendContext.beforeSendContext);
 				} catch (error) {
 					return false;
 				}
@@ -80,12 +80,6 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 		await this.setOwnChainAccount(ownChainAccount);
 
 		return true;
-	}
-
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getChannel(chainID: number): Promise<void> {
-		// eslint-disable-next-line no-console
-		console.log(chainID);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

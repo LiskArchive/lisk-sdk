@@ -44,7 +44,6 @@ import {
 	terminatedOutboxSchema,
 	ownChainAccountSchema,
 } from './schema';
-import { BaseInteroperableModule } from './base_interoperable_module';
 import {
 	BeforeSendCCMsgAPIContext,
 	ChannelData,
@@ -54,6 +53,7 @@ import {
 	TerminatedStateAccount,
 	OwnChainAccount,
 	CCMApplyContext,
+	StoreCallback,
 } from './types';
 import { getCCMSize, getIDAsKeyForStore } from './utils';
 import {
@@ -61,26 +61,26 @@ import {
 	createCCMsgBeforeApplyContext,
 	createCCMsgBeforeSendContext,
 } from './context';
+import { BaseInteroperableAPI } from './base_interoperable_api';
+import { BaseCCCommand } from './base_cc_command';
 
 export abstract class BaseInteroperabilityStore {
-	public readonly getStore: (moduleID: number, storePrefix: number) => SubStore;
-	protected readonly _moduleID: number;
-	protected readonly _interoperableModules = new Map<number, BaseInteroperableModule>();
+	public readonly getStore: StoreCallback;
+	protected readonly moduleID: number;
+	protected readonly interoperableModuleAPIs = new Map<number, BaseInteroperableAPI>();
 
 	public constructor(
 		moduleID: number,
 		getStore: (moduleID: number, storePrefix: number) => SubStore,
-		interoperableModules: Map<number, BaseInteroperableModule>,
+		interoperableModuleAPIs: Map<number, BaseInteroperableAPI>,
 	) {
-		this._moduleID = moduleID;
-		this._interoperableModules = interoperableModules;
+		this.moduleID = moduleID;
 		this.getStore = getStore;
-		// eslint-disable-next-line no-console
-		console.log(!this._moduleID, !this._interoperableModules, !this.getStore);
+		this.interoperableModuleAPIs = interoperableModuleAPIs;
 	}
 
 	public async getOwnChainAccount(): Promise<OwnChainAccount> {
-		const ownChainAccountStore = this.getStore(this._moduleID, STORE_PREFIX_OWN_CHAIN_DATA);
+		const ownChainAccountStore = this.getStore(this.moduleID, STORE_PREFIX_OWN_CHAIN_DATA);
 		return ownChainAccountStore.getWithSchema<OwnChainAccount>(
 			getIDAsKeyForStore(MAINCHAIN_ID),
 			ownChainAccountSchema,
@@ -88,11 +88,28 @@ export abstract class BaseInteroperabilityStore {
 	}
 
 	public async setOwnChainAccount(ownChainAccount: OwnChainAccount): Promise<void> {
-		const ownChainAccountStore = this.getStore(this._moduleID, STORE_PREFIX_OWN_CHAIN_DATA);
+		const ownChainAccountStore = this.getStore(this.moduleID, STORE_PREFIX_OWN_CHAIN_DATA);
 		await ownChainAccountStore.setWithSchema(
 			getIDAsKeyForStore(MAINCHAIN_ID),
 			ownChainAccount,
 			ownChainAccountSchema,
+		);
+	}
+
+	public async getChannel(chainID: number): Promise<ChannelData> {
+		const channelAccountStore = this.getStore(this.moduleID, STORE_PREFIX_CHANNEL_DATA);
+		return channelAccountStore.getWithSchema<ChannelData>(
+			getIDAsKeyForStore(chainID),
+			channelSchema,
+		);
+	}
+
+	public async setChannel(chainID: number, channeldata: ChannelData): Promise<void> {
+		const channelAccountStore = this.getStore(this.moduleID, STORE_PREFIX_CHANNEL_DATA);
+		await channelAccountStore.setWithSchema(
+			getIDAsKeyForStore(chainID),
+			channeldata,
+			channelSchema,
 		);
 	}
 
@@ -295,7 +312,10 @@ export abstract class BaseInteroperabilityStore {
 		return this.createTerminatedStateAccount(chainID);
 	}
 
-	public async apply(ccmApplyContext: CCMApplyContext): Promise<void> {
+	public async apply(
+		ccmApplyContext: CCMApplyContext,
+		interoperableCCCommands: Map<number, BaseCCCommand[]>,
+	): Promise<void> {
 		const { ccm, eventQueue, logger, networkIdentifier, getAPIContext, getStore } = ccmApplyContext;
 		const isTerminated = await this.hasTerminatedStateAccount(
 			getIDAsKeyForStore(ccm.sendingChainID),
@@ -312,14 +332,15 @@ export abstract class BaseInteroperabilityStore {
 				getAPIContext,
 				getStore,
 				networkIdentifier,
+				feeAddress: ccmApplyContext.feeAddress,
 			},
 			ccmApplyContext.ccu,
 		);
 
-		for (const mod of this._interoperableModules.values()) {
-			if (mod?.crossChainAPI?.beforeApplyCCM) {
+		for (const mod of this.interoperableModuleAPIs.values()) {
+			if (mod?.beforeApplyCCM) {
 				try {
-					await mod.crossChainAPI.beforeApplyCCM(beforeCCMApplyContext);
+					await mod.beforeApplyCCM(beforeCCMApplyContext);
 				} catch (error) {
 					return;
 				}
@@ -330,21 +351,19 @@ export abstract class BaseInteroperabilityStore {
 			return;
 		}
 
-		const interoperableModule = this._interoperableModules.get(ccm.moduleID);
+		const ccCommands = interoperableCCCommands.get(ccm.moduleID);
 
 		// When moduleID is not supported
-		if (!interoperableModule) {
-			const beforeCCMSendContext = createCCMsgBeforeSendContext(
-				{
-					ccm,
-					eventQueue,
-					getAPIContext,
-					logger,
-					networkIdentifier,
-					getStore,
-				},
-				EMPTY_FEE_ADDRESS,
-			);
+		if (!ccCommands) {
+			const beforeCCMSendContext = createCCMsgBeforeSendContext({
+				ccm,
+				eventQueue,
+				getAPIContext,
+				logger,
+				networkIdentifier,
+				getStore,
+				feeAddress: EMPTY_FEE_ADDRESS,
+			});
 
 			await this.sendInternal({
 				beforeSendContext: beforeCCMSendContext,
@@ -359,22 +378,19 @@ export abstract class BaseInteroperabilityStore {
 
 			return;
 		}
-		const ccCommand = interoperableModule.crossChainCommand.find(
-			cmd => cmd.ID === ccm.crossChainCommandID,
-		);
+		const ccCommand = ccCommands.find(cmd => cmd.ID === ccm.crossChainCommandID);
+
 		// When commandID is not supported
 		if (!ccCommand) {
-			const beforeCCMSendContext = createCCMsgBeforeSendContext(
-				{
-					ccm,
-					eventQueue,
-					getAPIContext,
-					logger,
-					networkIdentifier,
-					getStore,
-				},
-				EMPTY_FEE_ADDRESS,
-			);
+			const beforeCCMSendContext = createCCMsgBeforeSendContext({
+				ccm,
+				eventQueue,
+				getAPIContext,
+				logger,
+				networkIdentifier,
+				getStore,
+				feeAddress: EMPTY_FEE_ADDRESS,
+			});
 
 			await this.sendInternal({
 				beforeSendContext: beforeCCMSendContext,
@@ -397,6 +413,7 @@ export abstract class BaseInteroperabilityStore {
 			networkIdentifier,
 			getAPIContext,
 			getStore,
+			feeAddress: ccmApplyContext.feeAddress,
 		});
 
 		await ccCommand.execute(ccCommandExecuteContext);
@@ -409,5 +426,4 @@ export abstract class BaseInteroperabilityStore {
 	// To be implemented in base class
 	public abstract getInboxRoot(chainID: number): Promise<void>;
 	public abstract getOutboxRoot(chainID: number): Promise<void>;
-	public abstract getChannel(chainID: number): Promise<void>; // TODO: Update to Promise<ChannelData> after implementation
 }

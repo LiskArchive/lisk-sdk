@@ -392,28 +392,27 @@ describe('Base interoperability store', () => {
 			},
 		};
 
-		const mod1 = {
-			crossChainAPI: {
-				beforeSendCCM: jest.fn(),
-				beforeApplyCCM: jest.fn(),
-				crossChainCommand: [
-					{
-						ID: ccm.crossChainCommandID,
-						execute: jest.fn(),
-					},
-				],
+		const ccCommands = [
+			{
+				ID: ccm.crossChainCommandID,
+				execute: jest.fn(),
 			},
+		];
+		const ccCommandsMap = new Map();
+		ccCommandsMap.set(1, ccCommands);
+
+		const ccAPIMod1 = {
+			beforeSendCCM: jest.fn(),
+			beforeApplyCCM: jest.fn(),
 		};
-		const mod2 = {
-			crossChainAPI: {
-				beforeSendCCM: jest.fn(),
-				beforeApplyCCM: jest.fn(),
-			},
+		const ccAPIMod2 = {
+			beforeSendCCM: jest.fn(),
+			beforeApplyCCM: jest.fn(),
 		};
 
-		const modsMap = new Map();
-		modsMap.set(1, mod1);
-		modsMap.set(2, mod2);
+		const ccAPIModsMap = new Map();
+		ccAPIModsMap.set(1, ccAPIMod1);
+		ccAPIModsMap.set(2, ccAPIMod2);
 
 		const ccu: CCUpdateParams = {
 			activeValidatorsUpdate: [],
@@ -443,13 +442,14 @@ describe('Base interoperability store', () => {
 			getStore: beforeSendCCMContext.getStore,
 			logger: beforeSendCCMContext.logger,
 			networkIdentifier: beforeSendCCMContext.networkIdentifier,
+			feeAddress: Buffer.alloc(0),
 		};
 
 		beforeEach(async () => {
 			mainchainStoreLocal = new MainchainInteroperabilityStore(
 				MODULE_ID_INTEROPERABILITY,
 				mockGetStore,
-				modsMap,
+				ccAPIModsMap,
 			);
 		});
 
@@ -458,54 +458,58 @@ describe('Base interoperability store', () => {
 			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(true);
 
 			// Act & Assert
-			await expect(mainchainStoreLocal.apply(ccmApplyContext)).resolves.toBeUndefined();
-			expect(mod1.crossChainAPI.beforeApplyCCM).toBeCalledTimes(0);
+			await expect(
+				mainchainStoreLocal.apply(ccmApplyContext, ccCommandsMap),
+			).resolves.toBeUndefined();
+			expect(ccAPIMod1.beforeApplyCCM).toBeCalledTimes(0);
 		});
 
 		it('should call all the interoperable beforeApplyCCM hooks', async () => {
 			// Arrange
-			const mod = {
-				crossChainAPI: {
-					beforeSendCCM: jest.fn(),
-					beforeApplyCCM: jest.fn(),
-				},
-				crossChainCommand: [
-					{
-						ID: ccm.crossChainCommandID,
-						execute: jest.fn(),
-					},
-				],
+			const ccAPISampleMod = {
+				beforeSendCCM: jest.fn(),
+				beforeApplyCCM: jest.fn(),
 			};
 			mainchainStoreLocal = new MainchainInteroperabilityStore(
 				MODULE_ID_INTEROPERABILITY,
 				mockGetStore,
-				new Map().set(1, mod),
+				new Map().set(1, ccAPISampleMod),
 			);
 			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
 			jest.spyOn(mainchainStoreLocal, 'sendInternal');
 
 			// Act & Assert
-			await expect(mainchainStoreLocal.apply(ccmApplyContext)).resolves.toBeUndefined();
-			expect(mod.crossChainAPI.beforeApplyCCM).toBeCalledTimes(1);
-			expect(mod.crossChainAPI.beforeApplyCCM).toHaveBeenCalledWith(
+			await expect(
+				mainchainStoreLocal.apply(ccmApplyContext, ccCommandsMap),
+			).resolves.toBeUndefined();
+			expect(ccAPISampleMod.beforeApplyCCM).toBeCalledTimes(1);
+			expect(ccAPISampleMod.beforeApplyCCM).toHaveBeenCalledWith(
 				expect.toContainAllKeys(Object.keys(beforeApplyCCMContext)),
 			);
 		});
 
 		it('should not execute CCMs and return when moduleID is not supported', async () => {
 			// Arrange
+			const localCCCommandsMap = new Map().set(4, [
+				{
+					ID: 1,
+					execute: jest.fn(),
+				},
+			]);
 			mainchainStoreLocal = new MainchainInteroperabilityStore(
 				MODULE_ID_INTEROPERABILITY,
 				mockGetStore,
-				new Map().set(3, mod1),
+				new Map().set(4, ccAPIMod1),
 			);
 			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
 			jest.spyOn(mainchainStoreLocal, 'sendInternal');
 
 			// Act & Assert
-			await expect(mainchainStoreLocal.apply(ccmApplyContext)).resolves.toBeUndefined();
-			expect(mod1.crossChainAPI.beforeApplyCCM).toBeCalledTimes(1);
-			expect(mod1.crossChainAPI.beforeApplyCCM).toHaveBeenCalledWith(
+			await expect(
+				mainchainStoreLocal.apply(ccmApplyContext, localCCCommandsMap),
+			).resolves.toBeUndefined();
+			expect(ccAPIMod1.beforeApplyCCM).toBeCalledTimes(1);
+			expect(ccAPIMod1.beforeApplyCCM).toHaveBeenCalledWith(
 				expect.toContainAllKeys(Object.keys(beforeApplyCCMContext)),
 			);
 			expect(mainchainStoreLocal.sendInternal).toBeCalledTimes(1);
@@ -516,25 +520,30 @@ describe('Base interoperability store', () => {
 
 		it('should not execute CCMs and return when commandID is not supported', async () => {
 			// Arrange
-			const mod = {
-				crossChainAPI: {
-					beforeSendCCM: jest.fn(),
-					beforeApplyCCM: jest.fn(),
+			const localCCCommandsMap = new Map().set(1, [
+				{
+					ID: 3,
+					execute: jest.fn(),
 				},
-				crossChainCommand: [{}],
+			]);
+			const ccAPISampleMod = {
+				beforeSendCCM: jest.fn(),
+				beforeApplyCCM: jest.fn(),
 			};
 			mainchainStoreLocal = new MainchainInteroperabilityStore(
 				MODULE_ID_INTEROPERABILITY,
 				mockGetStore,
-				new Map().set(1, mod),
+				new Map().set(1, ccAPISampleMod),
 			);
 			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
 			jest.spyOn(mainchainStoreLocal, 'sendInternal');
 
 			// Act & Assert
-			await expect(mainchainStoreLocal.apply(ccmApplyContext)).resolves.toBeUndefined();
-			expect(mod.crossChainAPI.beforeApplyCCM).toBeCalledTimes(1);
-			expect(mod.crossChainAPI.beforeApplyCCM).toHaveBeenCalledWith(
+			await expect(
+				mainchainStoreLocal.apply(ccmApplyContext, localCCCommandsMap),
+			).resolves.toBeUndefined();
+			expect(ccAPISampleMod.beforeApplyCCM).toBeCalledTimes(1);
+			expect(ccAPISampleMod.beforeApplyCCM).toHaveBeenCalledWith(
 				expect.toContainAllKeys(Object.keys(beforeApplyCCMContext)),
 			);
 			expect(mainchainStoreLocal.sendInternal).toBeCalledTimes(1);
@@ -545,22 +554,14 @@ describe('Base interoperability store', () => {
 
 		it('should execute the cross chain command of interoperable module with ID=1', async () => {
 			// Arrange
-			const mod = {
-				crossChainAPI: {
-					beforeSendCCM: jest.fn(),
-					beforeApplyCCM: jest.fn(),
-				},
-				crossChainCommand: [
-					{
-						ID: ccm.crossChainCommandID,
-						execute: jest.fn(),
-					},
-				],
+			const ccAPISampleMod = {
+				beforeSendCCM: jest.fn(),
+				beforeApplyCCM: jest.fn(),
 			};
 			mainchainStoreLocal = new MainchainInteroperabilityStore(
 				MODULE_ID_INTEROPERABILITY,
 				mockGetStore,
-				new Map().set(1, mod),
+				new Map().set(1, ccAPISampleMod),
 			);
 			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
 			jest.spyOn(mainchainStoreLocal, 'sendInternal');
@@ -569,14 +570,16 @@ describe('Base interoperability store', () => {
 			});
 
 			// Act & Assert
-			await expect(mainchainStoreLocal.apply(ccmApplyContext)).resolves.toBeUndefined();
-			expect(mod.crossChainAPI.beforeApplyCCM).toBeCalledTimes(1);
-			expect(mod.crossChainAPI.beforeApplyCCM).toHaveBeenCalledWith(
+			await expect(
+				mainchainStoreLocal.apply(ccmApplyContext, ccCommandsMap),
+			).resolves.toBeUndefined();
+			expect(ccAPISampleMod.beforeApplyCCM).toBeCalledTimes(1);
+			expect(ccAPISampleMod.beforeApplyCCM).toHaveBeenCalledWith(
 				expect.objectContaining({ ccu: beforeApplyCCMContext.ccu }),
 			);
 			expect(mainchainStoreLocal.sendInternal).toBeCalledTimes(0);
-			expect(mod.crossChainCommand[0].execute).toBeCalledTimes(1);
-			expect(mod.crossChainCommand[0].execute).toHaveBeenCalledWith(
+			expect(ccCommands[0].execute).toBeCalledTimes(1);
+			expect(ccCommands[0].execute).toHaveBeenCalledWith(
 				expect.objectContaining({ ccm: executeCCMContext.ccm }),
 			);
 		});

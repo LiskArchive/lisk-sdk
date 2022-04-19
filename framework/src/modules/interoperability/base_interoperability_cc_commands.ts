@@ -12,11 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseModule } from '../base_module';
 import { BaseCCCommand } from './base_cc_command';
+import { BaseInteroperabilityStore } from './base_interoperability_store';
 import { BaseInteroperableAPI } from './base_interoperable_api';
+import { StoreCallback } from './types';
 
-export abstract class BaseInteroperableModule extends BaseModule {
-	public crossChainCommand: BaseCCCommand[] = [];
-	public abstract crossChainAPI: BaseInteroperableAPI;
+export abstract class BaseInteroperabilityCCCommand extends BaseCCCommand {
+	protected readonly interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
+
+	public constructor(moduleID: number, interoperableCCAPIs: Map<number, BaseInteroperableAPI>) {
+		super(moduleID);
+		this.interoperableCCAPIs = interoperableCCAPIs;
+	}
+
+	protected abstract getInteroperabilityStore(getStore: StoreCallback): BaseInteroperabilityStore;
 }

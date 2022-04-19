@@ -178,20 +178,16 @@ describe('Mainchain interoperability store', () => {
 	});
 
 	describe('sendInternal', () => {
-		const mod1 = {
-			crossChainAPI: {
-				beforeSendCCM: jest.fn(),
-			},
+		const ccAPIMod1 = {
+			beforeSendCCM: jest.fn(),
 		};
-		const mod2 = {
-			crossChainAPI: {
-				beforeSendCCM: jest.fn(),
-			},
+		const ccAPIMod2 = {
+			beforeSendCCM: jest.fn(),
 		};
 
 		const modsMap = new Map();
-		modsMap.set('1', mod1);
-		modsMap.set('2', mod2);
+		modsMap.set('1', ccAPIMod1);
+		modsMap.set('2', ccAPIMod2);
 
 		const ccm = {
 			nonce: BigInt(0),
@@ -381,8 +377,8 @@ describe('Mainchain interoperability store', () => {
 			).resolves.toEqual(true);
 			expect(mainchainInteropStoreLocal.isLive).toHaveBeenCalledTimes(1);
 			expect(mainchainInteropStoreLocal.appendToOutboxTree).toHaveBeenCalledTimes(1);
-			expect(mod1.crossChainAPI.beforeSendCCM).toHaveBeenCalledTimes(1);
-			expect(mod2.crossChainAPI.beforeSendCCM).toHaveBeenCalledTimes(1);
+			expect(ccAPIMod1.beforeSendCCM).toHaveBeenCalledTimes(1);
+			expect(ccAPIMod2.beforeSendCCM).toHaveBeenCalledTimes(1);
 		});
 	});
 });

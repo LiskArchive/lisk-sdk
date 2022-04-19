@@ -255,7 +255,8 @@ const createCCAPIContext = (params: {
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
 	eventQueue?: EventQueue;
-	ccm: CCMsg;
+	ccm?: CCMsg;
+	feeAddress?: Buffer;
 }) => {
 	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
 	const logger = params.logger ?? loggerMock;
@@ -263,21 +264,30 @@ const createCCAPIContext = (params: {
 	const eventQueue = params.eventQueue ?? new EventQueue();
 	const getStore = (moduleID: number, storePrefix: number) =>
 		stateStore.getStore(moduleID, storePrefix);
-
+	const ccm = params.ccm ?? {
+		nonce: BigInt(0),
+		moduleID: 1,
+		crossChainCommandID: 1,
+		sendingChainID: 2,
+		receivingChainID: 3,
+		fee: BigInt(20000),
+		status: 0,
+		params: Buffer.alloc(0),
+	};
 	return {
 		getStore: (moduleID: number, storePrefix: number) => stateStore.getStore(moduleID, storePrefix),
 		logger,
 		networkIdentifier,
 		getAPIContext: params.getAPIContext ?? (() => ({ getStore, eventQueue })),
 		eventQueue,
-		ccm: params.ccm,
+		ccm,
+		feeAddress: params.feeAddress ?? getRandomBytes(20),
 	};
 };
 
 export const createExecuteCCMsgAPIContext = (params: {
-	ccm: CCMsg;
-	feeAddress: Buffer;
-	stateStore?: StateStore;
+	ccm?: CCMsg;
+	feeAddress?: Buffer;
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
@@ -287,15 +297,11 @@ export const createExecuteCCMsgAPIContext = (params: {
 export const createBeforeSendCCMsgAPIContext = (params: {
 	ccm: CCMsg;
 	feeAddress: Buffer;
-	stateStore?: StateStore;
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
 	eventQueue?: EventQueue;
-}): BeforeSendCCMsgAPIContext => ({
-	...createCCAPIContext(params),
-	feeAddress: params.feeAddress,
-});
+}): BeforeSendCCMsgAPIContext => createCCAPIContext(params);
 
 export const createBeforeApplyCCMsgAPIContext = (params: {
 	ccm: CCMsg;
@@ -306,6 +312,7 @@ export const createBeforeApplyCCMsgAPIContext = (params: {
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
 	eventQueue?: EventQueue;
+	feeAddress: Buffer;
 }): BeforeApplyCCMsgAPIContext => ({
 	...createCCAPIContext(params),
 	ccu: params.ccu,
@@ -318,6 +325,7 @@ export const createBeforeRecoverCCMsgAPIContext = (params: {
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
+	feeAddress: Buffer;
 	eventQueue?: EventQueue;
 }): BeforeRecoverCCMsgAPIContext => ({
 	...createCCAPIContext(params),
@@ -335,6 +343,7 @@ export const createRecoverCCMsgAPIContext = (params: {
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
+	feeAddress: Buffer;
 	eventQueue?: EventQueue;
 }): RecoverCCMsgAPIContext => ({
 	...createCCAPIContext(params),

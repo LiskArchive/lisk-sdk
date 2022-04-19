@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseCCCommand } from '../base_cross_chain_command';
-import { CROSS_CHAIN_COMMAND_ID_REGISTRATION } from '../constants';
-import { registrationCCMParamsSchema } from '../schema';
+import { BaseCCCommand } from '../../base_cc_command';
+import { CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED } from '../../constants';
+import { sidechainTerminatedCCMParamsSchema } from '../../schema';
 
-export class CCRegistrationCommand extends BaseCCCommand {
-	public ID = CROSS_CHAIN_COMMAND_ID_REGISTRATION;
-	public name = 'registration';
-	public schema = registrationCCMParamsSchema;
+export class CCSidechainTerminatedCommand extends BaseCCCommand {
+	public ID = CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED;
+	public name = 'sidechainTerminated';
+	public schema = sidechainTerminatedCCMParamsSchema;
 	// TODO
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async execute(): Promise<void> {
