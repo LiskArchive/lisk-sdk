@@ -16,7 +16,8 @@ import { Logger } from '../../logger';
 import { APIContext, EventQueue } from '../../node/state_machine';
 import { SubStore } from '../../node/state_machine/types';
 
-export type getStoreFunction = (moduleID: number, storePrefix: number) => SubStore;
+export type StoreCallback = (moduleID: number, storePrefix: number) => SubStore;
+
 export interface CCMsg {
 	readonly nonce: bigint;
 	readonly moduleID: number;
@@ -59,7 +60,7 @@ export interface CCUpdateParams {
 
 export interface CCAPIContext {
 	getAPIContext: () => APIContext;
-	getStore: getStoreFunction;
+	getStore: StoreCallback;
 	logger: Logger;
 	networkIdentifier: Buffer;
 	eventQueue: EventQueue;
@@ -100,7 +101,7 @@ export interface SendInternalContext {
 
 export interface CCMApplyContext {
 	getAPIContext: () => APIContext;
-	getStore: getStoreFunction;
+	getStore: StoreCallback;
 	logger: Logger;
 	networkIdentifier: Buffer;
 	eventQueue: EventQueue;
@@ -163,6 +164,6 @@ export interface CCCommandExecuteContext {
 	eventQueue: EventQueue;
 	ccm: CCMsg;
 	getAPIContext: () => APIContext;
-	getStore: getStoreFunction;
+	getStore: StoreCallback;
 	feeAddress: Buffer;
 }

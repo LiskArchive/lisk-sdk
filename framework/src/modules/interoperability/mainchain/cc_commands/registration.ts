@@ -15,9 +15,10 @@
 import { codec } from '@liskhq/lisk-codec';
 import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_ID_REGISTRATION } from '../../constants';
 import { registrationCCMParamsSchema } from '../../schema';
-import { CCCommandExecuteContext, MessageFeeTokenID } from '../../types';
+import { CCCommandExecuteContext, StoreCallback, MessageFeeTokenID } from '../../types';
 import { createCCMsgBeforeSendContext } from '../../context';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
+import { MainchainInteroperabilityStore } from '../store';
 
 interface CCMRegistrationParams {
 	networkID: Buffer;
@@ -63,5 +64,9 @@ export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCComman
 			});
 			await interoperabilityStore.terminateChainInternal(ccm.sendingChainID, beforeSendContext);
 		}
+	}
+
+	protected getInteroperabilityStore(getStore: StoreCallback): MainchainInteroperabilityStore {
+		return new MainchainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
 	}
 }

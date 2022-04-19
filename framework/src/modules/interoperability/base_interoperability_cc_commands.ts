@@ -13,9 +13,9 @@
  */
 
 import { BaseCCCommand } from './base_cc_command';
+import { BaseInteroperabilityStore } from './base_interoperability_store';
 import { BaseInteroperableAPI } from './base_interoperable_api';
-import { SidechainInteroperabilityStore } from './sidechain/store';
-import { getStoreFunction } from './types';
+import { StoreCallback } from './types';
 
 export abstract class BaseInteroperabilityCCCommand extends BaseCCCommand {
 	protected readonly interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
@@ -25,7 +25,5 @@ export abstract class BaseInteroperabilityCCCommand extends BaseCCCommand {
 		this.interoperableCCAPIs = interoperableCCAPIs;
 	}
 
-	protected getInteroperabilityStore(getStore: getStoreFunction) {
-		return new SidechainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
-	}
+	protected abstract getInteroperabilityStore(getStore: StoreCallback): BaseInteroperabilityStore;
 }

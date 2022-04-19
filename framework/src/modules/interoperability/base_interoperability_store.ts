@@ -53,7 +53,7 @@ import {
 	TerminatedStateAccount,
 	OwnChainAccount,
 	CCMApplyContext,
-	getStoreFunction,
+	StoreCallback,
 } from './types';
 import { getCCMSize, getIDAsKeyForStore } from './utils';
 import {
@@ -65,7 +65,7 @@ import { BaseInteroperableAPI } from './base_interoperable_api';
 import { BaseCCCommand } from './base_cc_command';
 
 export abstract class BaseInteroperabilityStore {
-	public readonly getStore: getStoreFunction;
+	public readonly getStore: StoreCallback;
 	protected readonly moduleID: number;
 	protected readonly interoperableModuleAPIs = new Map<number, BaseInteroperableAPI>();
 
