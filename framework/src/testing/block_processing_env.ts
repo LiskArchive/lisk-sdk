@@ -157,8 +157,7 @@ const getMaxHeightPreviouslyForged = async (
 	passphrase: string,
 ): Promise<number> => {
 	const NUM_OF_ROUNDS = 3;
-	const ROUND_LENGTH =
-		defaultConfig.genesisConfig.roundLength;
+	const ROUND_LENGTH = defaultConfig.genesisConfig.roundLength;
 	const toHeight = previousBlock.height;
 	const fromHeight = Math.max(0, toHeight - ROUND_LENGTH * NUM_OF_ROUNDS);
 	const { publicKey } = getPrivateAndPublicKeyFromPassphrase(passphrase);

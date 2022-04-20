@@ -460,9 +460,7 @@ describe('fast_chain_switching_mechanism', () => {
 				// Assert
 				checkIfAbortIsCalled(
 					new Errors.AbortError(
-						`Height difference between both chains is higher than ${
-							chainModule.roundLength * 2
-						}`,
+						`Height difference between both chains is higher than ${chainModule.roundLength * 2}`,
 					),
 				);
 				expect(fastChainSwitchingMechanism['_queryBlocks']).toHaveBeenCalledWith(
@@ -551,9 +549,7 @@ describe('fast_chain_switching_mechanism', () => {
 				// Assert
 				checkIfAbortIsCalled(
 					new Errors.AbortError(
-						`Height difference between both chains is higher than ${
-							chainModule.roundLength * 2
-						}`,
+						`Height difference between both chains is higher than ${chainModule.roundLength * 2}`,
 					),
 				);
 				expect(fastChainSwitchingMechanism['_queryBlocks']).toHaveBeenCalledWith(

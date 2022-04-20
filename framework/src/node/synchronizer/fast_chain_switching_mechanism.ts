@@ -164,9 +164,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 			receivedBlock.header.height - highestCommonBlock.height > this._chain.roundLength * 2
 		) {
 			throw new AbortError(
-				`Height difference between both chains is higher than ${
-					this._chain.roundLength * 2
-				}`,
+				`Height difference between both chains is higher than ${this._chain.roundLength * 2}`,
 			);
 		}
 
@@ -315,9 +313,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 	}
 
 	private _computeLastTwoRoundsHeights(): number[] {
-		return new Array(
-			Math.min(this._chain.roundLength * 2, this._chain.lastBlock.header.height),
-		)
+		return new Array(Math.min(this._chain.roundLength * 2, this._chain.lastBlock.header.height))
 			.fill(0)
 			.map((_, index) => this._chain.lastBlock.header.height - index);
 	}

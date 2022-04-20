@@ -372,9 +372,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		let numberOfRequests = 1; // Keeps track of the number of requests made to the remote peer
 		let highestCommonBlock; // Holds the common block returned by the peer if found.
-		let currentRound = Math.ceil(
-			this._chain.lastBlock.header.height / this._chain.roundLength,
-		); // Holds the current round number
+		let currentRound = Math.ceil(this._chain.lastBlock.header.height / this._chain.roundLength); // Holds the current round number
 		let currentHeight = currentRound * this._chain.roundLength;
 
 		while (
