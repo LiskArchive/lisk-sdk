@@ -18,7 +18,7 @@ import { channelTerminatedCCMParamsSchema } from '../../schema';
 import { CCCommandExecuteContext, StoreCallback } from '../../types';
 import { SidechainInteroperabilityStore } from '../store';
 
-export class CCChannelTerminatedCommand extends BaseInteroperabilityCCCommand {
+export class SidechainCCChannelTerminatedCommand extends BaseInteroperabilityCCCommand {
 	public ID = CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED;
 	public name = 'channelTerminated';
 	public schema = channelTerminatedCCMParamsSchema;

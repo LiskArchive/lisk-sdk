@@ -15,13 +15,13 @@
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { MAINCHAIN_ID } from '../../../../../../src/modules/interoperability/constants';
-import { CCSidechainTerminatedCommand } from '../../../../../../src/modules/interoperability/mainchain/cc_commands/sidechain_terminated';
+import { MainchainCCSidechainTerminatedCommand } from '../../../../../../src/modules/interoperability/mainchain/cc_commands/sidechain_terminated';
 import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
 import { sidechainTerminatedCCMParamsSchema } from '../../../../../../src/modules/interoperability/schema';
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
 import { createExecuteCCMsgAPIContext } from '../../../../../../src/testing';
 
-describe('CCSidechainTerminatedCommand', () => {
+describe('MainchainCCSidechainTerminatedCommand', () => {
 	const terminateChainInternalMock = jest.fn();
 	const hasTerminatedStateAccountMock = jest.fn();
 	const createTerminatedStateAccountMock = jest.fn();
@@ -76,7 +76,7 @@ describe('CCSidechainTerminatedCommand', () => {
 	});
 
 	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
-	let ccSidechainTerminatedCommand: CCSidechainTerminatedCommand;
+	let ccSidechainTerminatedCommand: MainchainCCSidechainTerminatedCommand;
 
 	beforeEach(() => {
 		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
@@ -88,7 +88,7 @@ describe('CCSidechainTerminatedCommand', () => {
 		mainchainInteroperabilityStore.hasTerminatedStateAccount = hasTerminatedStateAccountMock;
 		mainchainInteroperabilityStore.createTerminatedStateAccount = createTerminatedStateAccountMock;
 
-		ccSidechainTerminatedCommand = new CCSidechainTerminatedCommand(1, ccAPIsMap);
+		ccSidechainTerminatedCommand = new MainchainCCSidechainTerminatedCommand(1, ccAPIsMap);
 		(ccSidechainTerminatedCommand as any)['getInteroperabilityStore'] = jest
 			.fn()
 			.mockReturnValue(mainchainInteroperabilityStore);

@@ -13,12 +13,12 @@
  */
 
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { CCChannelTerminatedCommand } from '../../../../../../src/modules/interoperability/mainchain/cc_commands/channel_terminated';
+import { SidechainCCChannelTerminatedCommand } from '../../../../../../src/modules/interoperability/sidechain/cc_commands/channel_terminated';
 import { SidechainInteroperabilityStore } from '../../../../../../src/modules/interoperability/sidechain/store';
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
 import { createExecuteCCMsgAPIContext } from '../../../../../../src/testing';
 
-describe('CCChannelTerminatedCommand', () => {
+describe('SidechainCCChannelTerminatedCommand', () => {
 	const createTerminatedStateAccountMock = jest.fn();
 
 	const ccAPIMod1 = {
@@ -48,7 +48,7 @@ describe('CCChannelTerminatedCommand', () => {
 		networkIdentifier,
 	});
 
-	const ccChannelTerminatedCommand = new CCChannelTerminatedCommand(1, ccAPIsMap);
+	const ccChannelTerminatedCommand = new SidechainCCChannelTerminatedCommand(1, ccAPIsMap);
 	const mainchainInteroperabilityStore = new SidechainInteroperabilityStore(
 		ccm.moduleID,
 		sampleExecuteContext.getStore,

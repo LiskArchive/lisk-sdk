@@ -26,7 +26,7 @@ interface CCMSidechainTerminatedParams {
 	stateRoot: Buffer;
 }
 
-export class CCSidechainTerminatedCommand extends BaseInteroperabilityCCCommand {
+export class MainchainCCSidechainTerminatedCommand extends BaseInteroperabilityCCCommand {
 	public ID = CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED;
 	public name = 'sidechainTerminated';
 	public schema = sidechainTerminatedCCMParamsSchema;
