@@ -367,7 +367,6 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * corresponding to the first block of descendent consecutive rounds (starting from the last one).
 	 */
 	private async _requestLastCommonBlock(peerId: string): Promise<BlockHeader | undefined> {
-		console.log('-------->', this._chain.roundLength)
 		const blocksPerRequestLimit = 10; // Maximum number of block IDs to be included in a single request
 		const requestLimit = 3; // Maximum number of requests to be made to the remote peer
 
