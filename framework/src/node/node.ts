@@ -373,10 +373,10 @@ export class Node {
 				const startTime = this._chain.slots.getSlotTime(slot);
 
 				let nextForgingTime = startTime;
-				const slotInRound = slot % this._chain.numberOfValidators;
+				const slotInRound = slot % this._chain.roundLength;
 				const blockTime = this._chain.slots.blockTime();
 				const forgersInfo = [];
-				for (let i = slotInRound; i < slotInRound + this._chain.numberOfValidators; i += 1) {
+				for (let i = slotInRound; i < slotInRound + this._chain.roundLength; i += 1) {
 					const validator = validators[i % validators.length];
 					forgersInfo.push({
 						...validator,
@@ -561,6 +561,7 @@ export class Node {
 			accountSchemas: this._registeredAccountSchemas,
 			minFeePerByte: this._options.genesisConfig.minFeePerByte,
 			baseFees: this._options.genesisConfig.baseFees,
+			roundLength: this._options.genesisConfig.roundLength,
 		});
 
 		this._bft = new BFT({

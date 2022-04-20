@@ -56,8 +56,7 @@ export const defaultConfig = {
 			distance: 3000000, // Distance between each milestone
 		},
 		minRemainingBalance: '5000000',
-		activeDelegates: 101,
-		standbyDelegates: 2,
+		roundLength: 103,
 		delegateListRoundOffset: 2,
 	},
 	forging: {

@@ -68,7 +68,7 @@ describe('finality_manager', () => {
 				dataAccess: {
 					getConsensusState: jest.fn(),
 				},
-				numberOfValidators: 103,
+				roundLength: 103,
 			} as unknown) as Chain;
 
 			finalityManager = new FinalityManager({
@@ -89,7 +89,7 @@ describe('finality_manager', () => {
 			});
 
 			it('should throw error if number of validator is not positive', () => {
-				(chainStub as any).numberOfValidators = -3;
+				(chainStub as any).roundLength = -3;
 				expect(
 					() =>
 						new FinalityManager({

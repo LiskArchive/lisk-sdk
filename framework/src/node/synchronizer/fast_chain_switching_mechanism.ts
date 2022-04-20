@@ -92,7 +92,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 		const { lastBlock } = this._chain;
 
 		// 3. Step: Check whether B justifies fast chain switching mechanism
-		const twoRounds = this._chain.numberOfValidators * 2;
+		const twoRounds = this._chain.roundLength * 2;
 		if (Math.abs(receivedBlock.header.height - lastBlock.header.height) > twoRounds) {
 			return false;
 		}
@@ -160,12 +160,12 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 
 		if (
 			this._chain.lastBlock.header.height - highestCommonBlock.height >
-				this._chain.numberOfValidators * 2 ||
-			receivedBlock.header.height - highestCommonBlock.height > this._chain.numberOfValidators * 2
+				this._chain.roundLength * 2 ||
+			receivedBlock.header.height - highestCommonBlock.height > this._chain.roundLength * 2
 		) {
 			throw new AbortError(
 				`Height difference between both chains is higher than ${
-					this._chain.numberOfValidators * 2
+					this._chain.roundLength * 2
 				}`,
 			);
 		}
@@ -316,7 +316,7 @@ export class FastChainSwitchingMechanism extends BaseSynchronizer {
 
 	private _computeLastTwoRoundsHeights(): number[] {
 		return new Array(
-			Math.min(this._chain.numberOfValidators * 2, this._chain.lastBlock.header.height),
+			Math.min(this._chain.roundLength * 2, this._chain.lastBlock.header.height),
 		)
 			.fill(0)
 			.map((_, index) => this._chain.lastBlock.header.height - index);

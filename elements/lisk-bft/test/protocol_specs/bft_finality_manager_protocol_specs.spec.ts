@@ -91,7 +91,7 @@ describe('FinalityManager', () => {
 						dataAccess: {
 							getConsensusState: jest.fn(),
 						},
-						numberOfValidators: scenario.config.activeDelegates,
+						roundLength: scenario.config.activeDelegates,
 					} as unknown) as Chain;
 
 					finalityManager = new FinalityManager({

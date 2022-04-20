@@ -135,6 +135,7 @@ export interface GenesisConfig {
 		distance: number;
 	};
 	minFeePerByte: number;
+	roundLength: number;
 	baseFees: {
 		moduleID: number;
 		assetID: number;

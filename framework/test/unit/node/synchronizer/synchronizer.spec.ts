@@ -87,6 +87,7 @@ describe('Synchronizer', () => {
 			blockTime: constants.blockTime,
 			minFeePerByte: constants.minFeePerByte,
 			baseFees: constants.baseFees,
+			roundLength: constants.roundLength,
 		});
 
 		dataAccessMock = {

@@ -147,15 +147,15 @@ export class FinalityManager extends EventEmitter {
 		// Threshold to consider a block pre-committed (or finalized)
 		this.preCommitThreshold = threshold;
 
-		if (this._chain.numberOfValidators <= 0) {
+		if (this._chain.roundLength <= 0) {
 			throw new Error('Invalid number of validators for BFT property');
 		}
 
 		// Limit for blocks to make perform verification or pre-vote/pre-commit (1 block less than 3 rounds)
-		this.processingThreshold = this._chain.numberOfValidators * BFT_ROUND_THRESHOLD - 1;
+		this.processingThreshold = this._chain.roundLength * BFT_ROUND_THRESHOLD - 1;
 
 		// Maximum headers to store (5 rounds)
-		this.maxHeaders = this._chain.numberOfValidators * 5;
+		this.maxHeaders = this._chain.roundLength * 5;
 
 		// Height up to which blocks are finalized
 		this.finalizedHeight = finalizedHeight;

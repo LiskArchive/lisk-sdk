@@ -101,8 +101,8 @@ describe('block_synchronization_mechanism', () => {
 			blockTime: constants.blockTime,
 			minFeePerByte: constants.minFeePerByte,
 			baseFees: constants.baseFees,
+			roundLength: constants.roundLength,
 		});
-		chainModule['_numberOfValidators'] = 103;
 
 		dataAccessMock = {
 			getConsensusState: jest.fn(),
@@ -219,14 +219,13 @@ describe('block_synchronization_mechanism', () => {
 			.mockReturnValue(peersList.connectedPeers as never);
 
 		await chainModule.init(genesisBlock);
-		chainModule['_numberOfValidators'] = 103;
 
 		// Used in getHighestCommonBlock network action payload
 		const blockHeightsList = computeBlockHeightsList(
 			bftModule.finalizedHeight,
-			chainModule.numberOfValidators,
+			chainModule.roundLength,
 			10,
-			Math.ceil(chainModule.lastBlock.header.height / chainModule.numberOfValidators),
+			Math.ceil(chainModule.lastBlock.header.height / chainModule.roundLength),
 		);
 
 		blockList = [finalizedBlock as any];
@@ -616,9 +615,9 @@ describe('block_synchronization_mechanism', () => {
 					// Used in getHighestCommonBlock network action payload
 					const blockHeightsList = computeBlockHeightsList(
 						bftModule.finalizedHeight,
-						chainModule.numberOfValidators,
+						chainModule.roundLength,
 						10,
-						Math.ceil(lastBlock.header.height / chainModule.numberOfValidators),
+						Math.ceil(lastBlock.header.height / chainModule.roundLength),
 					);
 
 					const receivedBlock = createValidDefaultBlock({
@@ -685,7 +684,6 @@ describe('block_synchronization_mechanism', () => {
 						.mockResolvedValue([lastBlock] as never);
 
 					await chainModule.init(genesisBlock);
-					chainModule['_numberOfValidators'] = 103;
 
 					try {
 						await blockSynchronizationMechanism.run(receivedBlock);
@@ -711,9 +709,9 @@ describe('block_synchronization_mechanism', () => {
 					// Used in getHighestCommonBlock network action payload
 					const blockHeightsList = computeBlockHeightsList(
 						bftModule.finalizedHeight,
-						chainModule.numberOfValidators,
+						chainModule.roundLength,
 						10,
-						Math.ceil(chainModule.lastBlock.header.height / chainModule.numberOfValidators),
+						Math.ceil(chainModule.lastBlock.header.height / chainModule.roundLength),
 					);
 
 					blockList = [finalizedBlock];
@@ -1172,9 +1170,9 @@ describe('block_synchronization_mechanism', () => {
 			it('should return height list for given round', () => {
 				const heightList = computeBlockHeightsList(
 					bftModule.finalizedHeight,
-					chainModule.numberOfValidators,
+					chainModule.roundLength,
 					10,
-					Math.ceil(chainModule.lastBlock.header.height / chainModule.numberOfValidators),
+					Math.ceil(chainModule.lastBlock.header.height / chainModule.roundLength),
 				);
 				expect(heightList).not.toBeEmpty();
 			});

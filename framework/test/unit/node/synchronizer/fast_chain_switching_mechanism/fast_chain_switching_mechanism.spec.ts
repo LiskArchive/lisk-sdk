@@ -87,8 +87,8 @@ describe('fast_chain_switching_mechanism', () => {
 			blockTime: constants.blockTime,
 			minFeePerByte: constants.minFeePerByte,
 			baseFees: constants.baseFees,
+			roundLength: constants.roundLength,
 		});
-		chainModule['_numberOfValidators'] = 103;
 
 		dataAccessMock = {
 			getConsensusState: jest.fn(),
@@ -452,7 +452,7 @@ describe('fast_chain_switching_mechanism', () => {
 				// the difference in height between the common block and the received block is > delegatesPerRound*2
 				const receivedBlock = createValidDefaultBlock({
 					header: {
-						height: highestCommonBlock.height + chainModule.numberOfValidators * 2 + 1,
+						height: highestCommonBlock.height + chainModule.roundLength * 2 + 1,
 					},
 				});
 				await fastChainSwitchingMechanism.run(receivedBlock, aPeerId);
@@ -461,7 +461,7 @@ describe('fast_chain_switching_mechanism', () => {
 				checkIfAbortIsCalled(
 					new Errors.AbortError(
 						`Height difference between both chains is higher than ${
-							chainModule.numberOfValidators * 2
+							chainModule.roundLength * 2
 						}`,
 					),
 				);
@@ -480,7 +480,7 @@ describe('fast_chain_switching_mechanism', () => {
 				// Difference in height between the common block and the last block is > delegatesPerRound*2
 				lastBlock = createValidDefaultBlock({
 					header: {
-						height: highestCommonBlock.height + chainModule.numberOfValidators * 2 + 1,
+						height: highestCommonBlock.height + chainModule.roundLength * 2 + 1,
 					},
 				});
 				when(chainModule.dataAccess.getBlockHeaderByHeight)
@@ -513,7 +513,7 @@ describe('fast_chain_switching_mechanism', () => {
 					.mockResolvedValue([lastBlock] as never);
 
 				const heightList = new Array(
-					Math.min(chainModule.numberOfValidators * 2, chainModule.lastBlock.header.height),
+					Math.min(chainModule.roundLength * 2, chainModule.lastBlock.header.height),
 				)
 					.fill(0)
 					.map((_, index) => chainModule.lastBlock.header.height - index);
@@ -543,7 +543,7 @@ describe('fast_chain_switching_mechanism', () => {
 				// Act
 				const receivedBlock = createValidDefaultBlock({
 					header: {
-						height: highestCommonBlock.height + chainModule.numberOfValidators * 2 + 1,
+						height: highestCommonBlock.height + chainModule.roundLength * 2 + 1,
 					},
 				});
 				await fastChainSwitchingMechanism.run(receivedBlock, aPeerId);
@@ -552,7 +552,7 @@ describe('fast_chain_switching_mechanism', () => {
 				checkIfAbortIsCalled(
 					new Errors.AbortError(
 						`Height difference between both chains is higher than ${
-							chainModule.numberOfValidators * 2
+							chainModule.roundLength * 2
 						}`,
 					),
 				);
