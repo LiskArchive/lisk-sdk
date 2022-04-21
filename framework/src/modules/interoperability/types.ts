@@ -183,3 +183,10 @@ export interface ActiveValidators {
 	blsKey: Buffer;
 	bftWeight: bigint;
 }
+
+export interface SidechainRegistrationParams {
+	name: string;
+	genesisBlockID: Buffer;
+	initValidators: ActiveValidators[];
+	certificateThreshold: bigint;
+}
