@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { MAX_NUM_VALIDATORS } from './constants';
+
 export const channelSchema = {
 	$id: 'modules/interoperability/channel',
 	type: 'object',
@@ -270,6 +272,8 @@ export const sidechainRegParams = {
 					blsKey: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						minLength: 48,
+						maxLength: 48,
 					},
 					bftWeight: {
 						dataType: 'uint64',
@@ -277,6 +281,8 @@ export const sidechainRegParams = {
 					},
 				},
 			},
+			minLength: 1,
+			maxLength: MAX_NUM_VALIDATORS,
 		},
 		certificateThreshold: {
 			dataType: 'uint64',
@@ -465,6 +471,30 @@ export const sidechainTerminatedCCMParamsSchema = {
 		stateRoot: {
 			dataType: 'bytes',
 			fieldNumber: 2,
+		},
+	},
+};
+
+export const nameSchema = {
+	$id: 'modules/interoperability/name',
+	type: 'object',
+	required: ['name'],
+	properties: {
+		name: {
+			dataType: 'string',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export const chainIDSchema = {
+	$id: 'modules/interoperability/name',
+	type: 'object',
+	required: ['ID'],
+	properties: {
+		ID: {
+			dataType: 'uint32',
+			fieldNumber: 1,
 		},
 	},
 };
