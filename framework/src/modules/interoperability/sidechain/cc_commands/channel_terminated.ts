@@ -12,17 +12,23 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseCCCommand } from '../../base_cc_command';
+import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
 import { CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED } from '../../constants';
 import { channelTerminatedCCMParamsSchema } from '../../schema';
+import { CCCommandExecuteContext, StoreCallback } from '../../types';
+import { SidechainInteroperabilityStore } from '../store';
 
-export class CCChannelTerminatedCommand extends BaseCCCommand {
+export class SidechainCCChannelTerminatedCommand extends BaseInteroperabilityCCCommand {
 	public ID = CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED;
 	public name = 'channelTerminated';
 	public schema = channelTerminatedCCMParamsSchema;
-	// TODO
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async execute(): Promise<void> {
-		throw new Error('Method not implemented.');
+
+	public async execute(context: CCCommandExecuteContext): Promise<void> {
+		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+		await interoperabilityStore.createTerminatedStateAccount(context.ccm.sendingChainID);
+	}
+
+	protected getInteroperabilityStore(getStore: StoreCallback): SidechainInteroperabilityStore {
+		return new SidechainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
 	}
 }
