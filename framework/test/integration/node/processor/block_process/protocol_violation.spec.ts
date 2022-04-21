@@ -125,7 +125,7 @@ describe('given a block with protocol violation', () => {
 		it('should accept a block if reward is full and forger did not forget last 2 rounds', async () => {
 			// Arrange
 			await processEnv.processUntilHeight(1);
-			const targetHeight = chain.numberOfValidators * 2 + chain.lastBlock.header.height;
+			const targetHeight = chain.roundLength * 2 + chain.lastBlock.header.height;
 			const targetGenerator = chain.lastBlock.header.generatorPublicKey;
 			const target = getAddressFromPublicKey(targetGenerator);
 			// Forge 2 rounds of block without generator of the last block
@@ -149,7 +149,7 @@ describe('given a block with protocol violation', () => {
 	describe('when BFT protocol is violated', () => {
 		it('should reject a block if reward is not quarter', async () => {
 			await processEnv.processUntilHeight(1);
-			const targetHeight = chain.numberOfValidators * 2 + chain.lastBlock.header.height;
+			const targetHeight = chain.roundLength * 2 + chain.lastBlock.header.height;
 			const targetGenerator = chain.lastBlock.header.generatorPublicKey;
 			const target = getAddressFromPublicKey(targetGenerator);
 			// Forge 2 rounds of block without generator of the last block
@@ -169,7 +169,7 @@ describe('given a block with protocol violation', () => {
 
 		it('should accept a block if reward is quarter', async () => {
 			await processEnv.processUntilHeight(1);
-			const targetHeight = chain.numberOfValidators * 2 + chain.lastBlock.header.height;
+			const targetHeight = chain.roundLength * 2 + chain.lastBlock.header.height;
 			const targetGenerator = chain.lastBlock.header.generatorPublicKey;
 			const target = getAddressFromPublicKey(targetGenerator);
 			// Forge 2 rounds of block without generator of the last block

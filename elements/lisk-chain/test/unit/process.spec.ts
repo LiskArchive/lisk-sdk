@@ -55,6 +55,7 @@ describe('chain/process block', () => {
 		totalAmount: BigInt('10000000000000000'),
 		blockTime: 10,
 		minFeePerByte: 1000,
+		roundLength: 103,
 		baseFees: [
 			{
 				moduleID: 2,
@@ -549,10 +550,6 @@ describe('chain/process block', () => {
 				height: 1,
 			},
 		];
-
-		beforeEach(() => {
-			chainInstance['_numberOfValidators'] = 103;
-		});
 
 		describe('Given delegate was only active in last three rounds', () => {
 			it('should return false if current block seedReveal is not a preimage of previous block', () => {

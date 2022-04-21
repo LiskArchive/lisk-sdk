@@ -61,7 +61,7 @@ export const applicationConfigSchema = {
 		genesisConfig: {
 			$id: '#/config/genesisConfig',
 			type: 'object',
-			required: ['blockTime', 'communityIdentifier', 'maxPayloadLength', 'rewards'],
+			required: ['blockTime', 'communityIdentifier', 'maxPayloadLength', 'rewards', 'roundLength'],
 			properties: {
 				blockTime: {
 					type: 'number',
@@ -82,6 +82,11 @@ export const applicationConfigSchema = {
 					type: 'integer',
 					minimum: 0,
 					description: 'Minimum fee per bytes required for a transaction to be valid',
+				},
+				roundLength: {
+					type: 'number',
+					minimum: 1,
+					description: 'Number of slots in a round',
 				},
 				baseFees: {
 					type: 'array',
@@ -383,6 +388,7 @@ export const applicationConfigSchema = {
 			bftThreshold: 68,
 			minFeePerByte: 1000,
 			baseFees: [],
+			roundLength: 103,
 			rewards: {
 				milestones: [
 					'500000000', // Initial Reward

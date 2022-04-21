@@ -55,6 +55,7 @@ describe('DPoSModule', () => {
 			communityIdentifier: 'lisk',
 			maxPayloadLength: 15360,
 			minFeePerByte: 1,
+			roundLength: 103,
 			rewards: {
 				distance: 1,
 				milestones: ['milestone'],

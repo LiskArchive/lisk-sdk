@@ -77,6 +77,7 @@ interface ChainConstructor {
 	readonly rewardDistance: number;
 	readonly rewardOffset: number;
 	readonly minFeePerByte: number;
+	readonly roundLength: number;
 	readonly baseFees: {
 		readonly moduleID: number;
 		readonly assetID: number;
@@ -101,6 +102,7 @@ export class Chain {
 		readonly rewardMilestones: ReadonlyArray<bigint>;
 		readonly networkIdentifier: Buffer;
 		readonly minFeePerByte: number;
+		readonly roundLength: number;
 		readonly baseFees: {
 			readonly moduleID: number;
 			readonly assetID: number;
@@ -117,7 +119,6 @@ export class Chain {
 		readonly [key: number]: Schema;
 	};
 	private readonly _defaultAccount: Record<string, unknown>;
-	private _numberOfValidators: number;
 
 	public constructor({
 		db,
@@ -134,10 +135,10 @@ export class Chain {
 		rewardMilestones,
 		minFeePerByte,
 		baseFees,
+		roundLength,
 		minBlockHeaderCache = DEFAULT_MIN_BLOCK_HEADER_CACHE,
 		maxBlockHeaderCache = DEFAULT_MAX_BLOCK_HEADER_CACHE,
 	}: ChainConstructor) {
-		this._numberOfValidators = -1;
 		this.events = new EventEmitter();
 
 		const { default: defaultAccount, ...schema } = getAccountSchemaWithDefault(accountSchemas);
@@ -186,6 +187,7 @@ export class Chain {
 			networkIdentifier,
 			minFeePerByte,
 			baseFees,
+			roundLength,
 		};
 	}
 
@@ -197,8 +199,8 @@ export class Chain {
 		return this._lastBlock;
 	}
 
-	public get numberOfValidators(): number {
-		return this._numberOfValidators;
+	public get roundLength(): number {
+		return this.constants.roundLength;
 	}
 
 	public get accountSchema(): Schema {
@@ -234,9 +236,6 @@ export class Chain {
 			);
 		}
 
-		const validators = await this.getValidators();
-		this._numberOfValidators = validators.length;
-
 		this._lastBlock = storageLastBlock;
 	}
 
@@ -258,7 +257,7 @@ export class Chain {
 		const genesisInfo = await this._getGenesisInfo();
 		const fromHeight = Math.max(
 			genesisInfo?.height ?? 0,
-			this._lastBlock.header.height - this.numberOfValidators * 3 - skipLastHeights,
+			this._lastBlock.header.height - this.constants.roundLength * 3 - skipLastHeights,
 		);
 		const toHeight = Math.max(this._lastBlock.header.height - skipLastHeights, 1);
 		const lastBlockHeaders = await this.dataAccess.getBlockHeadersByHeightBetween(
@@ -299,7 +298,7 @@ export class Chain {
 	}
 
 	public isValidSeedReveal(blockHeader: BlockHeader, stateStore: StateStore): boolean {
-		return isValidSeedReveal(blockHeader, stateStore, this.numberOfValidators);
+		return isValidSeedReveal(blockHeader, stateStore, this.constants.roundLength);
 	}
 
 	public validateGenesisBlockHeader(block: GenesisBlock): void {
@@ -327,7 +326,6 @@ export class Chain {
 				initRounds: block.header.asset.initRounds,
 			}),
 		);
-		this._numberOfValidators = block.header.asset.initDelegates.length;
 	}
 
 	public validateTransaction(transaction: Transaction): void {
@@ -376,7 +374,7 @@ export class Chain {
 	public async verifyBlockHeader(block: Block, stateStore: StateStore): Promise<void> {
 		verifyPreviousBlockId(block, this._lastBlock);
 		validateBlockSlot(block, this._lastBlock, this.slots);
-		verifyReward(block.header, stateStore, this.numberOfValidators);
+		verifyReward(block.header, stateStore, this.constants.roundLength);
 		await verifyBlockGenerator(block.header, this.slots, stateStore);
 	}
 
@@ -503,7 +501,7 @@ export class Chain {
 		if (!genesisInfo) {
 			throw new Error('genesis info not stored');
 		}
-		return this._numberOfValidators * genesisInfo.initRounds + genesisInfo.height;
+		return this.constants.roundLength * genesisInfo.initRounds + genesisInfo.height;
 	}
 
 	private async _getGenesisInfo(): Promise<GenesisInfo | undefined> {
