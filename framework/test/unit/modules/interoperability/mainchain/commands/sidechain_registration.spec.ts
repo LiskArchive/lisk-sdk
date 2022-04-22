@@ -20,6 +20,7 @@ import * as testing from '../../../../../../src/testing';
 import { SidechainRegistrationCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/sidechain_registration';
 import {
 	COMMAND_ID_SIDECHAIN_REG,
+	MAX_UINT64,
 	MODULE_ID_INTEROPERABILITY,
 	STORE_PREFIX_REGISTERED_NAMES,
 	STORE_PREFIX_REGISTERED_NETWORK_IDS,
