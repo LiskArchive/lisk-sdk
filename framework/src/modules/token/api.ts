@@ -17,13 +17,17 @@ import { ImmutableAPIContext, APIContext } from '../../node/state_machine';
 import { BaseAPI } from '../base_api';
 import { STORE_PREFIX_USER } from './constants';
 import { UserStoreData, userStoreSchema } from './schemas';
-import { TokenID } from './types';
+import { MinBalance, TokenID } from './types';
 
 export class TokenAPI extends BaseAPI {
-	private _minBalance!: bigint;
+	private _minBalances!: MinBalance[];
+	// TODO: remove when updating the API
+	private readonly _minBalance: bigint = BigInt(0);
 
-	public init(args: { minBalance: bigint }): void {
-		this._minBalance = args.minBalance;
+	public init(args: { minBalances: MinBalance[] }): void {
+		this._minBalances = args.minBalances;
+		// eslint-disable-next-line no-console -- TODO: Remove when updating the API
+		console.log(this._minBalances);
 	}
 
 	public async getAvailableBalance(

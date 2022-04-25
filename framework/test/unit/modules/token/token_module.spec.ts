@@ -27,19 +27,24 @@ describe('token module', () => {
 				tokenModule.init({ genesisConfig: {} as any, moduleConfig: {}, generatorConfig: {} }),
 			).toResolve();
 
-			expect(tokenModule['_minBalance']).toEqual(BigInt(5000000));
+			expect(tokenModule['_minBalances'][0].amount.toString()).toEqual('5000000');
+			expect(tokenModule['_minBalances'][0].tokenID).toEqual(Buffer.from('000000010000', 'hex'));
 		});
 
 		it('should initialize config with given value', async () => {
 			await expect(
 				tokenModule.init({
 					genesisConfig: {} as any,
-					moduleConfig: { minBalance: '100' },
+					moduleConfig: {
+						minBalances: [{ amount: '900000000', tokenID: '000000010000' }],
+						supportedTokenID: ['000000020000'],
+					},
 					generatorConfig: {},
 				}),
 			).toResolve();
 
-			expect(tokenModule['_minBalance']).toEqual(BigInt(100));
+			expect(tokenModule['_minBalances'][0].amount.toString()).toEqual('900000000');
+			expect(tokenModule['_minBalances'][0].tokenID).toEqual(Buffer.from('000000010000', 'hex'));
 		});
 	});
 

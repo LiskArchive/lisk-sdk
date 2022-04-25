@@ -21,7 +21,7 @@ import { GenesisBlockExecuteContext } from '../../node/state_machine';
 import { configSchema, genesisTokenStoreSchema, userStoreSchema } from './schemas';
 import { TokenAPI } from './api';
 import { TokenEndpoint } from './endpoint';
-import { GenesisTokenStore } from './types';
+import { GenesisTokenStore, MinBalance, ModuleConfig } from './types';
 
 export class TokenModule extends BaseModule {
 	public name = 'token';
@@ -29,7 +29,7 @@ export class TokenModule extends BaseModule {
 	public api = new TokenAPI(this.id);
 	public endpoint = new TokenEndpoint(this.id);
 
-	private _minBalance!: bigint;
+	private _minBalances!: MinBalance[];
 	private readonly _transferCommand = new TransferCommand(this.id);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
@@ -38,13 +38,16 @@ export class TokenModule extends BaseModule {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs) {
 		const { moduleConfig } = args;
-		const config = objects.mergeDeep({}, defaultConfig, moduleConfig);
+		const config = objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfig;
 		const errors = validator.validate(configSchema, config);
 		if (errors.length) {
 			throw new LiskValidationError(errors);
 		}
-		this._minBalance = BigInt(config.minBalance);
-		this.api.init({ minBalance: this._minBalance });
+		this._minBalances = config.minBalances.map(mb => ({
+			tokenID: Buffer.from(mb.tokenID, 'hex'),
+			amount: BigInt(mb.amount),
+		}));
+		this.api.init({ minBalances: this._minBalances });
 		this._transferCommand.init({
 			api: this.api,
 		});
