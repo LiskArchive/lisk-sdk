@@ -17,7 +17,7 @@ import { intToBuffer } from '@liskhq/lisk-cryptography';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { MAX_CCM_SIZE } from './constants';
 import { ccmSchema } from './schema';
-import { CCMsg } from './types';
+import { ActiveValidators, CCMsg } from './types';
 
 // Returns the big endian uint32 serialization of an integer x, with 0 <= x < 2^32 which is 4 bytes long.
 export const getIDAsKeyForStore = (id: number) => intToBuffer(id, 4);
@@ -39,4 +39,28 @@ export const getCCMSize = (ccm: CCMsg) => {
 	const serializedCCM = codec.encode(ccmSchema, ccm);
 
 	return serializedCCM.byteLength;
+};
+
+export const updateActiveValidators = (
+	activeValidators: ActiveValidators[],
+	activeValidatorsUpdate: ActiveValidators[],
+): ActiveValidators[] => {
+	for (const updatedValidator of activeValidatorsUpdate) {
+		const currentValidator = activeValidators.find(v => v.blsKey.equals(updatedValidator.blsKey));
+		if (currentValidator) {
+			currentValidator.bftWeight = updatedValidator.bftWeight;
+		} else {
+			activeValidators.push(updatedValidator);
+			activeValidators.sort((v1, v2) => v1.blsKey.compare(v2.blsKey));
+		}
+	}
+
+	for (const currentValidator of activeValidators) {
+		if (currentValidator.bftWeight === BigInt(0)) {
+			const index = activeValidators.findIndex(v => v.blsKey.equals(currentValidator.blsKey));
+			activeValidators.splice(index, 1);
+		}
+	}
+
+	return activeValidators;
 };
