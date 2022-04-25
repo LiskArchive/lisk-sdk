@@ -29,6 +29,7 @@ export const MAX_LENGTH_NAME = 40;
 export const MAX_UINT32 = 4294967295;
 export const MAX_UINT64 = BigInt('18446744073709551615'); // BigInt((2 ** 64) - 1) - 1
 export const THRESHOLD_MAINCHAIN = 68;
+export const MESSAGE_TAG_CERTIFICATE = Buffer.from('LSK_CE_', 'ascii');
 
 // Store prefixes
 export const STORE_PREFIX_OUTBOX_ROOT = 0x0000;
@@ -60,3 +61,5 @@ export const MIN_RETURN_FEE = BigInt(1000);
 // Commands
 export const COMMAND_ID_SIDECHAIN_REG = 0;
 export const COMMAND_ID_MAINCHAIN_REG = 1;
+export const COMMAND_ID_SIDECHAIN_CCU = 2;
+export const COMMAND_ID_MAINCHAIN_CCU = 3;

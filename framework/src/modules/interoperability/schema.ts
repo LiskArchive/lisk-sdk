@@ -327,6 +327,94 @@ export const mainchainRegParams = {
 	},
 };
 
+export const crossChainUpdateTransactionParams = {
+	$id: '/modules/interoperability/ccu',
+	type: 'object',
+	required: [
+		'sendingChainID',
+		'certificate',
+		'activeValidatorsUpdate',
+		'newCertificateThreshold',
+		'inboxUpdate',
+	],
+	properties: {
+		sendingChainID: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		certificate: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+		},
+		activeValidatorsUpdate: {
+			type: 'array',
+			fieldNumber: 3,
+			items: {
+				type: 'object',
+				required: ['blsKey', 'bftWeight'],
+				properties: {
+					blsKey: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					bftWeight: {
+						dataType: 'uint64',
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+		newCertificateThreshold: {
+			dataType: 'uint64',
+			fieldNumber: 4,
+		},
+		inboxUpdate: {
+			type: 'object',
+			fieldNumber: 5,
+			required: ['crossChainMessages', 'messageWitness', 'outboxRootWitness'],
+			properties: {
+				crossChainMessages: {
+					type: 'array',
+					fieldNumber: 1,
+					items: { dataType: 'bytes' },
+				},
+				messageWitness: {
+					type: 'object',
+					fieldNumber: 2,
+					required: ['partnerChainOutboxSize', 'siblingHashes'],
+					properties: {
+						partnerChainOutboxSize: {
+							dataType: 'uint64',
+							fieldNumber: 1,
+						},
+						siblingHashes: {
+							type: 'array',
+							fieldNumber: 2,
+							items: { dataType: 'bytes' },
+						},
+					},
+				},
+				outboxRootWitness: {
+					type: 'object',
+					fieldNumber: 3,
+					required: ['bitmap', 'siblingHashes'],
+					properties: {
+						bitmap: {
+							dataType: 'bytes',
+							fieldNumber: 1,
+						},
+						siblingHashes: {
+							type: 'array',
+							fieldNumber: 2,
+							items: { dataType: 'bytes' },
+						},
+					},
+				},
+			},
+		},
+	},
+};
+
 // Cross chain commands schemas
 export const registrationCCMParamsSchema = {
 	$id: 'modules/interoperability/ccCommand/registration',
