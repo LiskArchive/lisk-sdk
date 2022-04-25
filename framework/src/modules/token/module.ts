@@ -21,7 +21,7 @@ import { GenesisBlockExecuteContext } from '../../node/state_machine';
 import { configSchema, genesisTokenStoreSchema, userStoreSchema } from './schemas';
 import { TokenAPI } from './api';
 import { TokenEndpoint } from './endpoint';
-import { GenesisTokenStore, MinBalance, ModuleConfig } from './types';
+import { GenesisTokenStore, InteroperabilityAPI, MinBalance, ModuleConfig } from './types';
 
 export class TokenModule extends BaseModule {
 	public name = 'token';
@@ -34,6 +34,10 @@ export class TokenModule extends BaseModule {
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [this._transferCommand];
+
+	public addDependencies(interoperabilityAPI: InteroperabilityAPI) {
+		this.api.addDependencies(interoperabilityAPI);
+	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs) {

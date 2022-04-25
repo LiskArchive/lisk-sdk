@@ -17,17 +17,21 @@ import { ImmutableAPIContext, APIContext } from '../../node/state_machine';
 import { BaseAPI } from '../base_api';
 import { STORE_PREFIX_USER } from './constants';
 import { UserStoreData, userStoreSchema } from './schemas';
-import { MinBalance, TokenID } from './types';
+import { InteroperabilityAPI, MinBalance, TokenID } from './types';
+import { getNativeTokenID, getUserStoreKey, splitTokenID } from './utils';
 
 export class TokenAPI extends BaseAPI {
 	private _minBalances!: MinBalance[];
+	private _interoperabilityAPI!: InteroperabilityAPI;
 	// TODO: remove when updating the API
 	private readonly _minBalance: bigint = BigInt(0);
 
 	public init(args: { minBalances: MinBalance[] }): void {
 		this._minBalances = args.minBalances;
-		// eslint-disable-next-line no-console -- TODO: Remove when updating the API
-		console.log(this._minBalances);
+	}
+
+	public addDependencies(interoperabilityAPI: InteroperabilityAPI) {
+		this._interoperabilityAPI = interoperabilityAPI;
 	}
 
 	public async getAvailableBalance(
@@ -56,26 +60,38 @@ export class TokenAPI extends BaseAPI {
 		apiContext: APIContext,
 		senderAddress: Buffer,
 		recipientAddress: Buffer,
-		_tokenID: TokenID,
+		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void> {
+		const canonicalTokenID = await this._getCanonicalTokenID(tokenID);
+		const minBalance = this._getMinBalance(tokenID);
 		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
-		const sender = await userStore.getWithSchema<UserStoreData>(senderAddress, userStoreSchema);
-		if (sender.availableBalance < amount + this._minBalance) {
+		const sender = await userStore.getWithSchema<UserStoreData>(
+			getUserStoreKey(senderAddress, canonicalTokenID),
+			userStoreSchema,
+		);
+		if (sender.availableBalance < amount + minBalance) {
 			throw new Error(
 				`Sender ${senderAddress.toString(
 					'hex',
 				)} balance ${sender.availableBalance.toString()} is not sufficient for ${(
-					amount + this._minBalance
+					amount + minBalance
 				).toString()}`,
 			);
 		}
 		sender.availableBalance -= amount;
-		await userStore.setWithSchema(senderAddress, sender, userStoreSchema);
+		await userStore.setWithSchema(
+			getUserStoreKey(senderAddress, canonicalTokenID),
+			sender,
+			userStoreSchema,
+		);
 
 		let recipient: UserStoreData;
 		try {
-			recipient = await userStore.getWithSchema<UserStoreData>(recipientAddress, userStoreSchema);
+			recipient = await userStore.getWithSchema<UserStoreData>(
+				getUserStoreKey(recipientAddress, canonicalTokenID),
+				userStoreSchema,
+			);
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
@@ -85,15 +101,19 @@ export class TokenAPI extends BaseAPI {
 				lockedBalances: [],
 			};
 		}
-		if (recipient.availableBalance + amount < this._minBalance) {
+		if (recipient.availableBalance + amount < minBalance) {
 			throw new Error(
 				`Recipient ${recipientAddress.toString('hex')} balance ${(
 					recipient.availableBalance + amount
-				).toString()} is not sufficient for min balance ${this._minBalance.toString()}`,
+				).toString()} is not sufficient for min balance ${minBalance}`,
 			);
 		}
 		recipient.availableBalance += amount;
-		await userStore.setWithSchema(recipientAddress, recipient, userStoreSchema);
+		await userStore.setWithSchema(
+			getUserStoreKey(recipientAddress, canonicalTokenID),
+			recipient,
+			userStoreSchema,
+		);
 	}
 
 	public async lock(
@@ -234,5 +254,19 @@ export class TokenAPI extends BaseAPI {
 			}
 			return prev;
 		}, BigInt(0));
+	}
+
+	private async _getCanonicalTokenID(tokenID: TokenID): Promise<TokenID> {
+		const [chainID] = splitTokenID(tokenID);
+		const { id } = await this._interoperabilityAPI.getOwnChainAccount();
+		if (chainID.equals(id)) {
+			return getNativeTokenID(tokenID);
+		}
+		return tokenID;
+	}
+
+	private _getMinBalance(tokenID: TokenID): bigint {
+		const minBalance = this._minBalances.find(mb => mb.tokenID.equals(tokenID));
+		return minBalance?.amount ?? BigInt(0);
 	}
 }

@@ -12,10 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export interface TokenID {
-	chainID: number;
-	localID: number;
-}
+export type TokenID = Buffer;
 
 export interface ModuleConfig {
 	minBalances: {
@@ -56,4 +53,8 @@ export interface GenesisTokenStore {
 		nextAvailableLocalID: number;
 	};
 	terminatedEscrowSubstore: number[];
+}
+
+export interface InteroperabilityAPI {
+	getOwnChainAccount(): Promise<{ id: Buffer }>;
 }

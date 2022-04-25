@@ -122,21 +122,27 @@ export const transferParamsSchema = {
 	$id: 'lisk/transfer-params',
 	title: 'Transfer transaction params',
 	type: 'object',
-	required: ['amount', 'recipientAddress', 'data'],
+	required: ['tokenID', 'amount', 'recipientAddress', 'data'],
 	properties: {
+		tokenID: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+			minLength: 6,
+			maxLength: 6,
+		},
 		amount: {
 			dataType: 'uint64',
-			fieldNumber: 1,
+			fieldNumber: 2,
 		},
 		recipientAddress: {
 			dataType: 'bytes',
-			fieldNumber: 2,
+			fieldNumber: 3,
 			minLength: 20,
 			maxLength: 20,
 		},
 		data: {
 			dataType: 'string',
-			fieldNumber: 3,
+			fieldNumber: 4,
 			minLength: 0,
 			maxLength: 64,
 		},

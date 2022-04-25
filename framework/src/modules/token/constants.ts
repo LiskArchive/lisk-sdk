@@ -33,10 +33,14 @@ export const CCM_STATUS_MIN_BALANCE_NOT_REACHED = 66;
 
 export const MIN_BALANCE = BigInt(5000000);
 
-export const CHAIN_ID_ALIAS_NATIVE = 0;
+export const CHAIN_ID_ALIAS_NATIVE = Buffer.from('00000000', 'hex');
 export const LOCAL_ID_LSK = 0;
 export const TOKEN_ID_LSK = { chainID: 1, localID: 0 };
 export const TOKEN_ID_LSK_MAINCHAIN = { chainID: 0, localID: 0 };
+
+export const TOKEN_ID_LENGTH = 6;
+export const CHAIN_ID_LENGTH = 4;
+export const LOCAL_ID_LENGTH = 2;
 
 export const defaultConfig = {
 	minBalances: [
