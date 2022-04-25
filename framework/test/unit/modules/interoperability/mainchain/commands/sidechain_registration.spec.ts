@@ -386,7 +386,7 @@ describe('Sidechain registration command', () => {
 			const result = await sidechainRegistrationCommand.verify(context);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('Certificate threshold exceeds total bft weight');
+			expect(result.error?.message).toInclude('Certificate threshold above maximum bft weight');
 		});
 	});
 });
