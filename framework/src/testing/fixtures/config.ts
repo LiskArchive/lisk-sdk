@@ -35,7 +35,7 @@ export const defaultConfig = {
 		baseFees: [
 			{
 				moduleID: 12,
-				assetID: 0,
+				commandID: 0,
 				baseFee: '1000000000',
 			},
 		],

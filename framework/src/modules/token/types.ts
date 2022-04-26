@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { ImmutableAPIContext } from '../../node/state_machine';
+
 export type TokenID = Buffer;
 
 export interface ModuleConfig {
@@ -30,10 +32,7 @@ export interface MinBalance {
 export interface GenesisTokenStore {
 	userSubstore: {
 		address: Buffer;
-		tokenID: {
-			chainID: number;
-			localID: number;
-		};
+		tokenID: Buffer;
 		availableBalance: bigint;
 		lockedBalances: {
 			moduleID: number;
@@ -56,5 +55,5 @@ export interface GenesisTokenStore {
 }
 
 export interface InteroperabilityAPI {
-	getOwnChainAccount(): Promise<{ id: Buffer }>;
+	getOwnChainAccount(apiContext: ImmutableAPIContext): Promise<{ id: Buffer }>;
 }

@@ -28,7 +28,7 @@ describe('token module', () => {
 			).toResolve();
 
 			expect(tokenModule['_minBalances'][0].amount.toString()).toEqual('5000000');
-			expect(tokenModule['_minBalances'][0].tokenID).toEqual(Buffer.from('000000010000', 'hex'));
+			expect(tokenModule['_minBalances'][0].tokenID).toEqual(Buffer.from('000000000000', 'hex'));
 		});
 
 		it('should initialize config with given value', async () => {

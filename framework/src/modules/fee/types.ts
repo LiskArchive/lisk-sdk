@@ -20,13 +20,10 @@ export interface BaseFee {
 	baseFee: bigint;
 }
 
-export interface FeeTokenID {
-	chainID: number;
-	localID: number;
-}
+export type FeeTokenID = Buffer;
 
 export interface ModuleConfig {
-	feeTokenID: FeeTokenID;
+	feeTokenID: string;
 }
 
 export interface TokenAPI {
@@ -34,9 +31,10 @@ export interface TokenAPI {
 		apiContext: APIContext,
 		senderAddress: Buffer,
 		generatorAddress: Buffer,
-		id: FeeTokenID,
+		id: Buffer,
 		amount: bigint,
 	) => Promise<void>;
+	isNative: (apiContext: APIContext, id: FeeTokenID) => Promise<boolean>;
 	burn: (
 		apiContext: APIContext,
 		senderAddress: Buffer,

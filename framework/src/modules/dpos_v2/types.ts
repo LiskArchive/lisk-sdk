@@ -17,10 +17,7 @@ import { BFTHeights } from '../bft/types';
 import { Validator } from '../../node/consensus/types';
 import { APIContext, ImmutableAPIContext } from '../../node/state_machine/types';
 
-export interface TokenIDDPoS {
-	chainID: number;
-	localID: number;
-}
+export type TokenIDDPoS = Buffer;
 
 export interface ModuleConfig {
 	factorSelfVotes: number;

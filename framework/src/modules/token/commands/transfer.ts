@@ -21,8 +21,7 @@ import {
 } from '../../../node/state_machine';
 import { TokenAPI } from '../api';
 import { transferParamsSchema } from '../schemas';
-import { CHAIN_ID_ALIAS_NATIVE, COMMAND_ID_TRANSFER } from '../constants';
-import { splitTokenID } from '../utils';
+import { COMMAND_ID_TRANSFER } from '../constants';
 
 interface Params {
 	tokenID: Buffer;
@@ -49,13 +48,6 @@ export class TransferCommand extends BaseCommand {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new LiskValidationError(errors),
-			};
-		}
-		const [chainID] = splitTokenID(params.tokenID);
-		if (chainID.equals(CHAIN_ID_ALIAS_NATIVE)) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('Invalid tokenID. ChainID cannot be native alias.'),
 			};
 		}
 		return {

@@ -16,8 +16,8 @@ import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs } from '../base_module';
-import { defaultConfig, MODULE_ID_FEE, NATIVE_TOKEN_CHAIN_ID } from './constants';
-import { BaseFee, TokenAPI, ModuleConfig } from './types';
+import { defaultConfig, MODULE_ID_FEE } from './constants';
+import { BaseFee, TokenAPI } from './types';
 import {
 	TransactionExecuteContext,
 	TransactionVerifyContext,
@@ -37,7 +37,7 @@ export class FeeModule extends BaseModule {
 	private _tokenAPI!: TokenAPI;
 	private _minFeePerByte!: number;
 	private _baseFees!: Array<BaseFee>;
-	private _moduleConfig!: ModuleConfig;
+	private _tokenID!: Buffer;
 
 	public addDependencies(tokenAPI: TokenAPI) {
 		this._tokenAPI = tokenAPI;
@@ -51,7 +51,7 @@ export class FeeModule extends BaseModule {
 		if (errors.length) {
 			throw new LiskValidationError(errors);
 		}
-		this._moduleConfig = (config as unknown) as ModuleConfig;
+		this._tokenID = Buffer.from(config.feeTokenID, 'hex');
 		this._minFeePerByte = genesisConfig.minFeePerByte;
 		this._baseFees = genesisConfig.baseFees.map(fee => ({ ...fee, baseFee: BigInt(fee.baseFee) }));
 	}
@@ -80,13 +80,14 @@ export class FeeModule extends BaseModule {
 		const senderAddress = getAddressFromPublicKey(context.transaction.senderPublicKey);
 		const apiContext = context.getAPIContext();
 
-		if (this._moduleConfig.feeTokenID.chainID === NATIVE_TOKEN_CHAIN_ID) {
-			await this._tokenAPI.burn(apiContext, senderAddress, this._moduleConfig.feeTokenID, minFee);
+		const isNative = await this._tokenAPI.isNative(apiContext, this._tokenID);
+		if (isNative) {
+			await this._tokenAPI.burn(apiContext, senderAddress, this._tokenID, minFee);
 			await this._tokenAPI.transfer(
 				apiContext,
 				senderAddress,
 				context.header.generatorAddress,
-				this._moduleConfig.feeTokenID,
+				this._tokenID,
 				context.transaction.fee - minFee,
 			);
 
@@ -97,7 +98,7 @@ export class FeeModule extends BaseModule {
 			apiContext,
 			senderAddress,
 			context.header.generatorAddress,
-			this._moduleConfig.feeTokenID,
+			this._tokenID,
 			context.transaction.fee,
 		);
 	}

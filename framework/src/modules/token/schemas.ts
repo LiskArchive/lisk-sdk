@@ -114,8 +114,12 @@ export const getBalanceRequestSchema = {
 			type: 'string',
 			format: 'hex',
 		},
+		tokenID: {
+			type: 'string',
+			format: 'hex',
+		},
 	},
-	required: ['address'],
+	required: ['address', 'tokenID'],
 };
 
 export const transferParamsSchema = {
@@ -309,19 +313,8 @@ export const genesisTokenStoreSchema = {
 						fieldNumber: 1,
 					},
 					tokenID: {
-						type: 'object',
+						dataType: 'bytes',
 						fieldNumber: 2,
-						required: ['chainID', 'localID'],
-						properties: {
-							chainID: {
-								dataType: 'uint32',
-								fieldNumber: 1,
-							},
-							localID: {
-								dataType: 'uint32',
-								fieldNumber: 2,
-							},
-						},
 					},
 					availableBalance: {
 						dataType: 'uint64',

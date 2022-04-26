@@ -45,7 +45,7 @@ export const LOCAL_ID_LENGTH = 2;
 export const defaultConfig = {
 	minBalances: [
 		{
-			tokenID: '000000010000',
+			tokenID: '000000000000',
 			amount: DEFAULT_MIN_REMAINING_BALANCE,
 		},
 	],

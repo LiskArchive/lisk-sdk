@@ -75,29 +75,6 @@ describe('Transfer command', () => {
 			expect(result.error?.message).toInclude(".tokenID' minLength not satisfied");
 		});
 
-		it('should fail when tokenID uses native alias', async () => {
-			const context = createTransactionContext({
-				transaction: new Transaction({
-					moduleID: MODULE_ID_TOKEN,
-					commandID: COMMAND_ID_TRANSFER,
-					fee: BigInt(5000000),
-					nonce: BigInt(0),
-					senderPublicKey: getRandomBytes(32),
-					params: codec.encode(transferParamsSchema, {
-						tokenID: Buffer.from('000000000000', 'hex'),
-						amount: BigInt(100000000),
-						recipientAddress: getRandomBytes(20),
-						data: '',
-					}),
-					signatures: [getRandomBytes(64)],
-				}),
-			});
-			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
-
-			expect(result.status).toEqual(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude('ChainID cannot be native alias');
-		});
-
 		it('should fail when recipientAddress is not 20 btyes', async () => {
 			const context = createTransactionContext({
 				transaction: new Transaction({

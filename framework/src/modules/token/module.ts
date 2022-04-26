@@ -22,6 +22,7 @@ import { configSchema, genesisTokenStoreSchema, userStoreSchema } from './schema
 import { TokenAPI } from './api';
 import { TokenEndpoint } from './endpoint';
 import { GenesisTokenStore, InteroperabilityAPI, MinBalance, ModuleConfig } from './types';
+import { getUserStoreKey } from './utils';
 
 export class TokenModule extends BaseModule {
 	public name = 'token';
@@ -66,7 +67,11 @@ export class TokenModule extends BaseModule {
 		const genesisStore = codec.decode<GenesisTokenStore>(genesisTokenStoreSchema, assetBytes);
 		const userStore = context.getStore(this.id, STORE_PREFIX_USER);
 		for (const userData of genesisStore.userSubstore) {
-			await userStore.setWithSchema(userData.address, userData, userStoreSchema);
+			await userStore.setWithSchema(
+				getUserStoreKey(userData.address, userData.tokenID),
+				userData,
+				userStoreSchema,
+			);
 		}
 	}
 }

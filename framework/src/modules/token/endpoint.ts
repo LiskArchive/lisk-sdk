@@ -18,6 +18,7 @@ import { JSONObject, ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
 import { STORE_PREFIX_USER } from './constants';
 import { getBalanceRequestSchema, UserStoreData, userStoreSchema } from './schemas';
+import { getUserStoreKey } from './utils';
 
 export class TokenEndpoint extends BaseEndpoint {
 	public async getBalance(context: ModuleEndpointContext): Promise<JSONObject<UserStoreData>> {
@@ -26,9 +27,13 @@ export class TokenEndpoint extends BaseEndpoint {
 			throw new LiskValidationError(errors);
 		}
 		const address = Buffer.from(context.params.address as string, 'hex');
+		const tokenID = Buffer.from(context.params.tokenID as string, 'hex');
 		const userStore = context.getStore(this.moduleID, STORE_PREFIX_USER);
 		try {
-			const user = await userStore.getWithSchema<UserStoreData>(address, userStoreSchema);
+			const user = await userStore.getWithSchema<UserStoreData>(
+				getUserStoreKey(address, tokenID),
+				userStoreSchema,
+			);
 			return {
 				availableBalance: user.availableBalance.toString(),
 				lockedBalances: user.lockedBalances.map(b => ({

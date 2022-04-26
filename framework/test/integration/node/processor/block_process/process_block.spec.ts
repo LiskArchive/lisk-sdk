@@ -21,6 +21,7 @@ import {
 	createDelegateRegisterTransaction,
 	createDelegateVoteTransaction,
 	createTransferTransaction,
+	DEFAULT_TOKEN_ID,
 } from '../../../../utils/node/transaction';
 import { getPassphraseFromDefaultConfig } from '../../../../../src/testing/fixtures';
 
@@ -73,6 +74,7 @@ describe('Process block', () => {
 			it('should save account state changes from the transaction', async () => {
 				const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
 					address: genesis.address.toString('hex'),
+					tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 				});
 				const expected = originalBalance - transaction.fee - amount;
 				expect(balance.availableBalance).toEqual(expected.toString());
@@ -224,7 +226,7 @@ describe('Process block', () => {
 				});
 				const senderBalance = await processEnv.invoke<{ availableBalance: string }>(
 					'token_getBalance',
-					{ address: account.address.toString('hex') },
+					{ address: account.address.toString('hex'), tokenID: DEFAULT_TOKEN_ID.toString('hex') },
 				);
 				const voteAmount = BigInt('1000000000');
 				const voteTransaction = createDelegateVoteTransaction({
@@ -246,6 +248,7 @@ describe('Process block', () => {
 				// Assess
 				const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
 					address: account.address.toString('hex'),
+					tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 				});
 				const votes = await processEnv.invoke<{ sentVotes: Record<string, unknown>[] }>(
 					'dpos_getVoter',

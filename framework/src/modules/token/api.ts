@@ -15,7 +15,7 @@
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { ImmutableAPIContext, APIContext } from '../../node/state_machine';
 import { BaseAPI } from '../base_api';
-import { STORE_PREFIX_USER } from './constants';
+import { CHAIN_ID_ALIAS_NATIVE, STORE_PREFIX_USER } from './constants';
 import { UserStoreData, userStoreSchema } from './schemas';
 import { InteroperabilityAPI, MinBalance, TokenID } from './types';
 import { getNativeTokenID, getUserStoreKey, splitTokenID } from './utils';
@@ -37,11 +37,14 @@ export class TokenAPI extends BaseAPI {
 	public async getAvailableBalance(
 		apiContext: ImmutableAPIContext,
 		address: Buffer,
-		_tokenID: TokenID,
+		tokenID: TokenID,
 	): Promise<bigint> {
 		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
 		try {
-			const user = await userStore.getWithSchema<UserStoreData>(address, userStoreSchema);
+			const user = await userStore.getWithSchema<UserStoreData>(
+				getUserStoreKey(address, tokenID),
+				userStoreSchema,
+			);
 			return user.availableBalance;
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
@@ -63,7 +66,7 @@ export class TokenAPI extends BaseAPI {
 		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void> {
-		const canonicalTokenID = await this._getCanonicalTokenID(tokenID);
+		const canonicalTokenID = await this._getCanonicalTokenID(apiContext, tokenID);
 		const minBalance = this._getMinBalance(tokenID);
 		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
 		const sender = await userStore.getWithSchema<UserStoreData>(
@@ -120,11 +123,14 @@ export class TokenAPI extends BaseAPI {
 		apiContext: APIContext,
 		address: Buffer,
 		moduleID: number,
-		_tokenID: TokenID,
+		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void> {
 		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
-		const user = await userStore.getWithSchema<UserStoreData>(address, userStoreSchema);
+		const user = await userStore.getWithSchema<UserStoreData>(
+			getUserStoreKey(address, tokenID),
+			userStoreSchema,
+		);
 		if (user.availableBalance < amount + this._minBalance) {
 			throw new Error(
 				`User ${address.toString(
@@ -149,7 +155,7 @@ export class TokenAPI extends BaseAPI {
 			});
 		}
 		user.lockedBalances.sort((a, b) => a.moduleID - b.moduleID);
-		await userStore.setWithSchema(address, user, userStoreSchema);
+		await userStore.setWithSchema(getUserStoreKey(address, tokenID), user, userStoreSchema);
 	}
 
 	public async unlock(
@@ -184,11 +190,14 @@ export class TokenAPI extends BaseAPI {
 	public async burn(
 		apiContext: APIContext,
 		senderAddress: Buffer,
-		_id: TokenID,
+		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void> {
 		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
-		const sender = await userStore.getWithSchema<UserStoreData>(senderAddress, userStoreSchema);
+		const sender = await userStore.getWithSchema<UserStoreData>(
+			getUserStoreKey(senderAddress, tokenID),
+			userStoreSchema,
+		);
 		if (sender.availableBalance < amount + this._minBalance) {
 			throw new Error(
 				`Sender ${senderAddress.toString(
@@ -199,7 +208,7 @@ export class TokenAPI extends BaseAPI {
 			);
 		}
 		sender.availableBalance -= amount;
-		await userStore.setWithSchema(senderAddress, sender, userStoreSchema);
+		await userStore.setWithSchema(getUserStoreKey(senderAddress, tokenID), sender, userStoreSchema);
 	}
 
 	public async mint(
@@ -256,9 +265,22 @@ export class TokenAPI extends BaseAPI {
 		}, BigInt(0));
 	}
 
-	private async _getCanonicalTokenID(tokenID: TokenID): Promise<TokenID> {
+	public async isNative(apiContext: ImmutableAPIContext, tokenID: TokenID): Promise<boolean> {
+		const canonicalTokenID = await this._getCanonicalTokenID(apiContext, tokenID);
+		const [chainID] = splitTokenID(canonicalTokenID);
+		return chainID.equals(CHAIN_ID_ALIAS_NATIVE);
+	}
+
+	private async _getCanonicalTokenID(
+		apiContext: ImmutableAPIContext,
+		tokenID: TokenID,
+	): Promise<TokenID> {
 		const [chainID] = splitTokenID(tokenID);
-		const { id } = await this._interoperabilityAPI.getOwnChainAccount();
+		// tokenID is already canonical
+		if (chainID.equals(CHAIN_ID_ALIAS_NATIVE)) {
+			return tokenID;
+		}
+		const { id } = await this._interoperabilityAPI.getOwnChainAccount(apiContext);
 		if (chainID.equals(id)) {
 			return getNativeTokenID(tokenID);
 		}

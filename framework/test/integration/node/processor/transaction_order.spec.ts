@@ -142,7 +142,7 @@ describe('Transaction order', () => {
 				optionalKeys.sort((a, b) => a.compare(b));
 				const registerMultisigTx = createMultiSignRegisterTransaction({
 					nonce: BigInt(0),
-					fee: BigInt('110000000'),
+					fee: BigInt('1000416000'),
 					mandatoryKeys: [newAccount.publicKey],
 					optionalKeys,
 					numberOfSignatures: 2,
