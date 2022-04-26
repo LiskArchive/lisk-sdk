@@ -605,7 +605,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
 			when(pomCommand['_tokenAPI'].getAvailableBalance as any)
-				.calledWith(context.getAPIContext(), delegate1Address, { chainID: 0, localID: 0 })
+				.calledWith(context.getAPIContext(), delegate1Address, DEFAULT_TOKEN_ID)
 				.mockResolvedValue(remainingBalance as never);
 			when(pomCommand['_tokenAPI'].getMinRemainingBalance as any)
 				.calledWith(context.getAPIContext())
@@ -617,7 +617,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				context.getAPIContext(),
 				delegate1Address,
 				context.transaction.senderAddress,
-				{ chainID: 0, localID: 0 },
+				DEFAULT_TOKEN_ID,
 				reportPunishmentReward,
 			);
 		});
@@ -641,7 +641,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
 			when(pomCommand['_tokenAPI'].getAvailableBalance as any)
-				.calledWith(context.getAPIContext(), delegate1Address, { chainID: 0, localID: 0 })
+				.calledWith(context.getAPIContext(), delegate1Address, DEFAULT_TOKEN_ID)
 				.mockResolvedValue(remainingBalance as never);
 			when(pomCommand['_tokenAPI'].getMinRemainingBalance as any)
 				.calledWith(context.getAPIContext())
@@ -654,7 +654,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				context.getAPIContext(),
 				delegate1Address,
 				context.transaction.senderAddress,
-				{ chainID: 0, localID: 0 },
+				DEFAULT_TOKEN_ID,
 				BigInt(0),
 			);
 		});
@@ -678,7 +678,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
 			when(pomCommand['_tokenAPI'].getAvailableBalance as any)
-				.calledWith(context.getAPIContext(), delegate1Address, { chainID: 0, localID: 0 })
+				.calledWith(context.getAPIContext(), delegate1Address, DEFAULT_TOKEN_ID)
 				.mockResolvedValue(remainingBalance as never);
 			when(pomCommand['_tokenAPI'].getMinRemainingBalance as any)
 				.calledWith(context.getAPIContext())
@@ -690,7 +690,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				context.getAPIContext(),
 				delegate1Address,
 				context.transaction.senderAddress,
-				{ chainID: 0, localID: 0 },
+				DEFAULT_TOKEN_ID,
 				remainingBalance - minRemainingBalance,
 			);
 		});

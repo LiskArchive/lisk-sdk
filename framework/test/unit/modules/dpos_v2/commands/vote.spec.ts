@@ -36,7 +36,7 @@ import { DEFAULT_TOKEN_ID } from '../../../../utils/node/transaction';
 
 describe('VoteCommand', () => {
 	const lastBlockHeight = 200;
-	const tokenIDDPoS = { chainID: 0, localID: 0 };
+	const tokenIDDPoS = DEFAULT_TOKEN_ID;
 	const senderPublicKey = getRandomBytes(32);
 	const senderAddress = getAddressFromPublicKey(senderPublicKey);
 	const delegateAddress1 = getRandomBytes(20);
