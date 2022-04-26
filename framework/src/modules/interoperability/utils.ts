@@ -79,7 +79,7 @@ export const getEncodedSidechainTerminatedCCMParam = (
 	return encodedParams;
 };
 
-export const nullOnError = async <T>(promise: Promise<T>) => {
+export const handlePromiseErrorWithNull = async <T>(promise: Promise<T>) => {
 	let result;
 	try {
 		result = await promise;

@@ -30,10 +30,11 @@ import { CCMForwardContext, CCMsg, SendInternalContext } from '../types';
 import {
 	getEncodedSidechainTerminatedCCMParam,
 	getIDAsKeyForStore,
-	nullOnError,
+	handlePromiseErrorWithNull,
 	validateFormat,
 } from '../utils';
 import { TokenCCAPI } from '../cc_apis';
+import { ForwardResult } from './types';
 
 export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	public async isLive(chainID: Buffer, timestamp: number): Promise<boolean> {
@@ -50,7 +51,7 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 		return true;
 	}
 
-	public async forward(ccmForwardContext: CCMForwardContext): Promise<void> {
+	public async forward(ccmForwardContext: CCMForwardContext): Promise<ForwardResult> {
 		const {
 			ccm,
 			eventQueue,
@@ -76,31 +77,33 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 		}
 
 		const receivingChainIDAsStoreKey = getIDAsKeyForStore(ccm.receivingChainID);
-		const receivingChainAccount = await nullOnError(
+		const receivingChainAccount = await handlePromiseErrorWithNull(
 			this.getChainAccount(receivingChainIDAsStoreKey),
 		);
 
 		const isLive = await this.isLive(receivingChainIDAsStoreKey, Date.now());
 
 		if (receivingChainAccount?.status === CHAIN_ACTIVE && isLive) {
-			const isTokenTransferred = await nullOnError(tokenCCAPI.forwardMessageFee(apiContext, ccm));
+			const isTokenTransferred = await handlePromiseErrorWithNull(
+				tokenCCAPI.forwardMessageFee(apiContext, ccm),
+			);
 
 			if (!isTokenTransferred) {
-				throw new Error('Could not forward message fee.');
+				return ForwardResult.COULD_NOT_TRANSFER_FWD_FEE;
 			}
 
 			await this.addToOutbox(receivingChainIDAsStoreKey, ccm);
-			return;
+			return ForwardResult.SUCCESS;
 		}
 
 		if (ccm.status !== CCM_STATUS_OK) {
-			throw new Error('CCM is invalid.');
+			return ForwardResult.INVALID_CCM;
 		}
 
 		await this.bounce(ccm);
 
 		if (!receivingChainAccount || receivingChainAccount.status === CHAIN_REGISTERED) {
-			throw new Error('Receiving chain does not exist or is not yet active.');
+			return ForwardResult.NO_ACTIVE_RECV_CHAIN;
 		}
 
 		if (receivingChainAccount.status === CHAIN_ACTIVE) {
@@ -117,6 +120,8 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 			status: CCM_STATUS_OK,
 			timestamp: Date.now(),
 		});
+
+		return ForwardResult.INFORM_SIDECHAIN_TERMINATION;
 	}
 
 	public async bounce(ccm: CCMsg): Promise<void> {
