@@ -39,6 +39,7 @@ import {
 } from '../../../../../src/modules/dpos_v2/types';
 import { delegateStoreSchema } from '../../../../../src/modules/dpos_v2/schemas';
 import { VerifyStatus } from '../../../../../src/node/state_machine/types';
+import { DEFAULT_TOKEN_ID } from '../../../../utils/node/transaction';
 
 describe('ReportDelegateMisbehaviorCommand', () => {
 	let pomCommand: ReportDelegateMisbehaviorCommand;
@@ -133,7 +134,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			bftAPI: mockBFTAPI,
 		});
 		pomCommand.init({
-			tokenIDDPoS: { chainID: 0, localID: 0 },
+			tokenIDDPoS: DEFAULT_TOKEN_ID,
 		});
 		db = new InMemoryKVStore() as never;
 		stateStore = new StateStore(db);
