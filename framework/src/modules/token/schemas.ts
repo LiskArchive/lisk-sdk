@@ -88,17 +88,25 @@ export const supplyStoreSchema = {
 	},
 };
 
+export interface AvailableLocalIDStoreData {
+	nextAvailableLocalID: Buffer;
+}
+
 export const availableLocalIDStoreSchema = {
 	$id: '/token/store/availableLocalID',
 	type: 'object',
 	required: ['nextAvailableLocalID'],
 	properties: {
 		nextAvailableLocalID: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
 	},
 };
+
+export interface EscrowStoreData {
+	amount: bigint;
+}
 
 export const escrowStoreSchema = {
 	$id: '/token/store/escrow',
@@ -107,6 +115,22 @@ export const escrowStoreSchema = {
 	properties: {
 		amount: {
 			dataType: 'uint64',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export interface TerminatedEscrowStoreData {
+	escrowTerminated: boolean;
+}
+
+export const terminatedEscrowStoreSchema = {
+	$id: '/token/store/terminatedEscrow',
+	type: 'object',
+	required: ['escrowTerminated'],
+	properties: {
+		escrowTerminated: {
+			dataType: 'boolean',
 			fieldNumber: 1,
 		},
 	},
@@ -317,10 +341,14 @@ export const genesisTokenStoreSchema = {
 					address: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						minLength: 20,
+						maxLength: 20,
 					},
 					tokenID: {
 						dataType: 'bytes',
 						fieldNumber: 2,
+						minLength: 6,
+						maxLength: 6,
 					},
 					availableBalance: {
 						dataType: 'uint64',
@@ -357,6 +385,8 @@ export const genesisTokenStoreSchema = {
 					localID: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						minLength: 2,
+						maxLength: 2,
 					},
 					totalSupply: {
 						dataType: 'uint64',
@@ -375,10 +405,14 @@ export const genesisTokenStoreSchema = {
 					escrowChainID: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						minLength: 4,
+						maxLength: 4,
 					},
 					localID: {
 						dataType: 'uint32',
 						fieldNumber: 2,
+						minLength: 2,
+						maxLength: 2,
 					},
 					amount: {
 						dataType: 'uint64',
@@ -393,8 +427,10 @@ export const genesisTokenStoreSchema = {
 			fieldNumber: 4,
 			properties: {
 				nextAvailableLocalID: {
-					dataType: 'uint32',
+					dataType: 'bytes',
 					fieldNumber: 1,
+					minLength: 2,
+					maxLength: 2,
 				},
 			},
 		},
@@ -402,7 +438,9 @@ export const genesisTokenStoreSchema = {
 			type: 'array',
 			fieldNumber: 5,
 			items: {
-				type: 'uint32',
+				type: 'bytes',
+				minLength: 4,
+				maxLength: 4,
 			},
 		},
 	},
