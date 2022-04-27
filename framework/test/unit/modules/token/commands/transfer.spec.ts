@@ -37,6 +37,8 @@ import { getUserStoreKey } from '../../../../../src/modules/token/utils';
 import { createTransactionContext } from '../../../../../src/testing';
 
 describe('Transfer command', () => {
+	const localTokenID = Buffer.from([0, 0, 0, 0, 0, 0]);
+	const secondTokenID = Buffer.from([1, 0, 0, 0, 0, 0]);
 	let command: TransferCommand;
 	let interopAPI: {
 		getOwnChainAccount: jest.Mock;
@@ -51,7 +53,10 @@ describe('Transfer command', () => {
 		const api = new TokenAPI(moduleID);
 		api.addDependencies(interopAPI);
 		api.init({
-			minBalances: [{ tokenID: Buffer.from([0, 0, 0, 1, 0, 0]), amount: BigInt(MIN_BALANCE) }],
+			minBalances: [
+				{ tokenID: localTokenID, amount: BigInt(MIN_BALANCE) },
+				{ tokenID: secondTokenID, amount: BigInt(MIN_BALANCE) },
+			],
 		});
 		command.init({
 			api,
@@ -155,7 +160,7 @@ describe('Transfer command', () => {
 		let stateStore: StateStore;
 		const sender = getAddressAndPublicKeyFromPassphrase('sender');
 		const recipient = getAddressAndPublicKeyFromPassphrase('recipient');
-		const localTokenID = Buffer.from([0, 0, 0, 0, 0, 0]);
+		const thirdTokenID = Buffer.from([1, 0, 0, 0, 4, 0]);
 		const tokenID = Buffer.from([0, 0, 0, 1, 0, 0]);
 		const senderBalance = BigInt(200000000);
 		const totalSupply = BigInt('1000000000000');
@@ -166,6 +171,16 @@ describe('Transfer command', () => {
 			const userStore = stateStore.getStore(MODULE_ID_TOKEN, STORE_PREFIX_USER);
 			await userStore.setWithSchema(
 				getUserStoreKey(sender.address, localTokenID),
+				{ availableBalance: senderBalance, lockedBalances: [] },
+				userStoreSchema,
+			);
+			await userStore.setWithSchema(
+				getUserStoreKey(sender.address, secondTokenID),
+				{ availableBalance: senderBalance, lockedBalances: [] },
+				userStoreSchema,
+			);
+			await userStore.setWithSchema(
+				getUserStoreKey(sender.address, thirdTokenID),
 				{ availableBalance: senderBalance, lockedBalances: [] },
 				userStoreSchema,
 			);
@@ -201,7 +216,7 @@ describe('Transfer command', () => {
 			).rejects.toThrow('balance 200000000 is not sufficient');
 		});
 
-		it('should resolve when recipient exist but does not have enough balance for minBalance', async () => {
+		it('should resolve when recipient exist for different tokenID but does not have enough balance for minBalance', async () => {
 			const context = createTransactionContext({
 				stateStore,
 				transaction: new Transaction({
@@ -211,7 +226,7 @@ describe('Transfer command', () => {
 					nonce: BigInt(0),
 					senderPublicKey: sender.publicKey,
 					params: codec.encode(transferParamsSchema, {
-						tokenID,
+						tokenID: thirdTokenID,
 						amount: recipientBalance + BigInt(1),
 						recipientAddress: recipient.address,
 						data: '1'.repeat(64),
@@ -221,7 +236,65 @@ describe('Transfer command', () => {
 			});
 			await expect(
 				command.execute(context.createCommandExecuteContext(transferParamsSchema)),
-			).toResolve();
+			).resolves.toBeUndefined();
+
+			// Recipient should receive full amount
+			const userStore = stateStore.getStore(MODULE_ID_TOKEN, STORE_PREFIX_USER);
+			const result = await userStore.getWithSchema<UserStoreData>(
+				getUserStoreKey(recipient.address, thirdTokenID),
+				userStoreSchema,
+			);
+			expect(result.availableBalance).toEqual(recipientBalance + BigInt(1));
+		});
+
+		it('should reject when recipient does not exist and the token does not have min balance set', async () => {
+			const recipientAddress = getRandomBytes(20);
+			const amount = BigInt(100000000);
+			const context = createTransactionContext({
+				stateStore,
+				transaction: new Transaction({
+					moduleID: MODULE_ID_TOKEN,
+					commandID: COMMAND_ID_TRANSFER,
+					fee: BigInt(0),
+					nonce: BigInt(0),
+					senderPublicKey: sender.publicKey,
+					params: codec.encode(transferParamsSchema, {
+						tokenID: thirdTokenID,
+						amount,
+						recipientAddress,
+						data: '1'.repeat(64),
+					}),
+					signatures: [getRandomBytes(64)],
+				}),
+			});
+			await expect(
+				command.execute(context.createCommandExecuteContext(transferParamsSchema)),
+			).rejects.toThrow('Address cannot be initialized because min balance is not set');
+		});
+
+		it('should reject when recipient does not exist and amount is less than minBalance', async () => {
+			const recipientAddress = getRandomBytes(20);
+			const amount = BigInt(100);
+			const context = createTransactionContext({
+				stateStore,
+				transaction: new Transaction({
+					moduleID: MODULE_ID_TOKEN,
+					commandID: COMMAND_ID_TRANSFER,
+					fee: BigInt(0),
+					nonce: BigInt(0),
+					senderPublicKey: sender.publicKey,
+					params: codec.encode(transferParamsSchema, {
+						tokenID,
+						amount,
+						recipientAddress,
+						data: '1'.repeat(64),
+					}),
+					signatures: [getRandomBytes(64)],
+				}),
+			});
+			await expect(
+				command.execute(context.createCommandExecuteContext(transferParamsSchema)),
+			).rejects.toThrow('does not satisfy min balance requirement');
 		});
 
 		it('should resolve when recipient does not exist but amount is greater than minBalance', async () => {
@@ -246,7 +319,7 @@ describe('Transfer command', () => {
 			});
 			await expect(
 				command.execute(context.createCommandExecuteContext(transferParamsSchema)),
-			).toResolve();
+			).resolves.toBeUndefined();
 
 			// Recipient should receive amount - min balance if not exist
 			const userStore = stateStore.getStore(MODULE_ID_TOKEN, STORE_PREFIX_USER);
@@ -263,6 +336,47 @@ describe('Transfer command', () => {
 				supplyStoreSchema,
 			);
 			expect(supply.totalSupply).toEqual(totalSupply - MIN_BALANCE);
+		});
+
+		it('should resolve and not burn supply when tokenID is not native and recipient does not exist', async () => {
+			const recipientAddress = getRandomBytes(20);
+			const amount = BigInt(100000000);
+			const context = createTransactionContext({
+				stateStore,
+				transaction: new Transaction({
+					moduleID: MODULE_ID_TOKEN,
+					commandID: COMMAND_ID_TRANSFER,
+					fee: BigInt(0),
+					nonce: BigInt(0),
+					senderPublicKey: sender.publicKey,
+					params: codec.encode(transferParamsSchema, {
+						tokenID: secondTokenID,
+						amount,
+						recipientAddress,
+						data: '1'.repeat(64),
+					}),
+					signatures: [getRandomBytes(64)],
+				}),
+			});
+			await expect(
+				command.execute(context.createCommandExecuteContext(transferParamsSchema)),
+			).resolves.toBeUndefined();
+
+			// Recipient should receive amount - min balance if not exist
+			const userStore = stateStore.getStore(MODULE_ID_TOKEN, STORE_PREFIX_USER);
+			const result = await userStore.getWithSchema<UserStoreData>(
+				getUserStoreKey(recipientAddress, secondTokenID),
+				userStoreSchema,
+			);
+			expect(result.availableBalance).toEqual(amount - MIN_BALANCE);
+
+			// Total supply should not change
+			// const supplyStore = stateStore.getStore(MODULE_ID_TOKEN, STORE_PREFIX_SUPPLY);
+			// const supply = await supplyStore.getWithSchema<SupplyStoreData>(
+			// 	localTokenID.slice(4),
+			// 	supplyStoreSchema,
+			// );
+			// expect(supply.totalSupply).toEqual(totalSupply);
 		});
 
 		it('should resolve when recipient receive enough amount and sender has enough balance', async () => {

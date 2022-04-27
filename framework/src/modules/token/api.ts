@@ -13,9 +13,14 @@
  */
 
 import { NotFoundError } from '@liskhq/lisk-chain';
-import { ImmutableAPIContext, APIContext } from '../../node/state_machine';
+import { ImmutableAPIContext, APIContext, ImmutableSubStore } from '../../node/state_machine';
 import { BaseAPI } from '../base_api';
-import { CHAIN_ID_ALIAS_NATIVE, STORE_PREFIX_SUPPLY, STORE_PREFIX_USER } from './constants';
+import {
+	CHAIN_ID_ALIAS_NATIVE,
+	STORE_PREFIX_SUPPLY,
+	STORE_PREFIX_USER,
+	TOKEN_ID_LENGTH,
+} from './constants';
 import { SupplyStoreData, supplyStoreSchema, UserStoreData, userStoreSchema } from './schemas';
 import { InteroperabilityAPI, MinBalance, TokenID } from './types';
 import { getNativeTokenID, getUserStoreKey, splitTokenID } from './utils';
@@ -79,50 +84,55 @@ export class TokenAPI extends BaseAPI {
 				)} balance ${sender.availableBalance.toString()} is not sufficient for ${amount.toString()}`,
 			);
 		}
-
 		sender.availableBalance -= amount;
-
 		await userStore.setWithSchema(
 			getUserStoreKey(senderAddress, canonicalTokenID),
 			sender,
 			userStoreSchema,
 		);
 
-		let recipient: UserStoreData;
-		let recipientExist = false;
-		try {
-			recipient = await userStore.getWithSchema<UserStoreData>(
-				getUserStoreKey(recipientAddress, canonicalTokenID),
-				userStoreSchema,
-			);
-			recipientExist = true;
-		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
-				throw error;
-			}
+		const recipientExist = await this._accountExist(userStore, recipientAddress);
 
-			recipient = {
-				availableBalance: BigInt(0),
-				lockedBalances: [],
-			};
-		}
-		const minBalance = this._getMinBalance(tokenID);
+		const minBalance = this._getMinBalance(canonicalTokenID);
 		let receivedAmount = amount;
 		if (!recipientExist) {
+			if (!minBalance) {
+				throw new Error(
+					`Address cannot be initialized because min balance is not set for TokenID ${canonicalTokenID.toString(
+						'hex',
+					)}.`,
+				);
+			}
 			if (minBalance > receivedAmount) {
 				throw new Error(
 					`Amount ${receivedAmount.toString()} does not satisfy min balance requirement.`,
 				);
 			}
 			receivedAmount -= minBalance;
-			const isNative = await this.isNative(apiContext, tokenID);
-			if (isNative) {
+			const [chainID] = splitTokenID(canonicalTokenID);
+			if (chainID.equals(CHAIN_ID_ALIAS_NATIVE)) {
 				const supplyStore = apiContext.getStore(this.moduleID, STORE_PREFIX_SUPPLY);
-				const [, localID] = splitTokenID(tokenID);
+				const [, localID] = splitTokenID(canonicalTokenID);
 				const supply = await supplyStore.getWithSchema<SupplyStoreData>(localID, supplyStoreSchema);
 				supply.totalSupply -= minBalance;
 				await supplyStore.setWithSchema(localID, supply, supplyStoreSchema);
 			}
+		}
+
+		let recipient: UserStoreData;
+		try {
+			recipient = await userStore.getWithSchema<UserStoreData>(
+				getUserStoreKey(recipientAddress, canonicalTokenID),
+				userStoreSchema,
+			);
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+			recipient = {
+				availableBalance: BigInt(0),
+				lockedBalances: [],
+			};
 		}
 		recipient.availableBalance += receivedAmount;
 		await userStore.setWithSchema(
@@ -300,8 +310,16 @@ export class TokenAPI extends BaseAPI {
 		return tokenID;
 	}
 
-	private _getMinBalance(tokenID: TokenID): bigint {
+	private _getMinBalance(tokenID: TokenID): bigint | undefined {
 		const minBalance = this._minBalances.find(mb => mb.tokenID.equals(tokenID));
-		return minBalance?.amount ?? BigInt(0);
+		return minBalance?.amount;
+	}
+
+	private async _accountExist(userStore: ImmutableSubStore, address: Buffer): Promise<boolean> {
+		const allUserData = await userStore.iterate({
+			start: Buffer.concat([address, Buffer.alloc(TOKEN_ID_LENGTH, 0)]),
+			end: Buffer.concat([address, Buffer.alloc(TOKEN_ID_LENGTH, 255)]),
+		});
+		return allUserData.length !== 0;
 	}
 }
