@@ -40,7 +40,11 @@ import {
 } from '../../../../src/modules/interoperability/schema';
 import { getIDAsKeyForStore } from '../../../../src/modules/interoperability/utils';
 import { testing } from '../../../../src';
-import { CCMApplyContext, CCUpdateParams } from '../../../../src/modules/interoperability/types';
+import {
+	CCMApplyContext,
+	CCUpdateParams,
+	TerminatedOutboxAccount,
+} from '../../../../src/modules/interoperability/types';
 
 describe('Base interoperability store', () => {
 	const chainID = Buffer.from('01', 'hex');
@@ -582,6 +586,143 @@ describe('Base interoperability store', () => {
 			expect(ccCommands[0].execute).toHaveBeenCalledWith(
 				expect.objectContaining({ ccm: executeCCMContext.ccm }),
 			);
+		});
+	});
+
+	describe('getTerminatedOutboxAccount', () => {
+		let terminatedChainID: Buffer;
+		let terminatedOutboxAccount: TerminatedOutboxAccount;
+
+		beforeEach(async () => {
+			terminatedOutboxSubstore = stateStore.getStore(
+				MODULE_ID_INTEROPERABILITY,
+				STORE_PREFIX_TERMINATED_OUTBOX,
+			);
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_TERMINATED_OUTBOX)
+				.mockReturnValue(terminatedOutboxSubstore);
+
+			terminatedChainID = getRandomBytes(32);
+
+			terminatedOutboxAccount = {
+				outboxRoot: Buffer.alloc(32),
+				outboxSize: 0,
+				partnerChainInboxSize: 1,
+			};
+
+			await terminatedOutboxSubstore.setWithSchema(
+				terminatedChainID,
+				terminatedOutboxAccount,
+				terminatedOutboxSchema,
+			);
+		});
+
+		it('should successfully retrieve the account', async () => {
+			const account = await mainchainInteroperabilityStore.getTerminatedOutboxAccount(
+				terminatedChainID,
+			);
+			expect(account).toEqual(terminatedOutboxAccount);
+		});
+
+		it('should throw when terminated outbox account does not exist', async () => {
+			await expect(
+				mainchainInteroperabilityStore.getTerminatedOutboxAccount(getRandomBytes(32)),
+			).rejects.toThrow();
+		});
+	});
+
+	describe('setTerminatedOutboxAccount', () => {
+		let terminatedChainID: Buffer;
+		let terminatedOutboxAccount: TerminatedOutboxAccount;
+
+		beforeEach(async () => {
+			terminatedOutboxSubstore = stateStore.getStore(
+				MODULE_ID_INTEROPERABILITY,
+				STORE_PREFIX_TERMINATED_OUTBOX,
+			);
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_TERMINATED_OUTBOX)
+				.mockReturnValue(terminatedOutboxSubstore);
+
+			terminatedChainID = getRandomBytes(32);
+
+			terminatedOutboxAccount = {
+				outboxRoot: Buffer.alloc(32),
+				outboxSize: 0,
+				partnerChainInboxSize: 1,
+			};
+
+			await terminatedOutboxSubstore.setWithSchema(
+				terminatedChainID,
+				terminatedOutboxAccount,
+				terminatedOutboxSchema,
+			);
+		});
+
+		it('should return false when outbox account does not exist', async () => {
+			// Assign
+			const isValueChanged = await mainchainInteroperabilityStore.setTerminatedOutboxAccount(
+				getRandomBytes(32),
+				{ outboxRoot: getRandomBytes(32) },
+			);
+
+			// Assert
+			expect(isValueChanged).toBeFalse();
+		});
+
+		it('should return false when no params provided', async () => {
+			// Assign
+			const isValueChanged = await mainchainInteroperabilityStore.setTerminatedOutboxAccount(
+				getRandomBytes(32),
+				{},
+			);
+
+			// Assert
+			expect(isValueChanged).toBeFalse();
+		});
+
+		describe('when setting a new value with the call', () => {
+			const testCases: { title: string; changedValues: Partial<TerminatedOutboxAccount> }[] = [
+				{
+					title: 'should change outboxRoot',
+					changedValues: {
+						outboxRoot: getRandomBytes(32),
+					},
+				},
+				{
+					title: 'should change outboxRoot and outboxSize',
+					changedValues: {
+						outboxRoot: getRandomBytes(32),
+						outboxSize: 2,
+					},
+				},
+				{
+					title: 'should change outboxRoot, outboxSize and partnerChainInboxSize',
+					changedValues: {
+						outboxRoot: getRandomBytes(32),
+						outboxSize: 3,
+						partnerChainInboxSize: 3,
+					},
+				},
+			];
+
+			// TODO: I have no idea why `$title` is not working, fix this
+			it.each(testCases)('$title', async ({ changedValues }) => {
+				// Assign
+				const isValueChanged = await mainchainInteroperabilityStore.setTerminatedOutboxAccount(
+					terminatedChainID,
+					changedValues,
+				);
+
+				const changedAccount = await (terminatedOutboxSubstore as StateStore).getWithSchema<TerminatedOutboxAccount>(
+					terminatedChainID,
+					terminatedOutboxSchema,
+				);
+
+				// Assert
+				expect(isValueChanged).toBeTrue();
+				expect(changedAccount).toEqual({ ...terminatedOutboxAccount, ...changedValues });
+			});
 		});
 	});
 });

@@ -13,9 +13,9 @@
  */
 
 import { BaseCommand } from '../base_command';
+import { BaseCCCommand } from './base_cc_command';
 import { BaseInteroperabilityStore } from './base_interoperability_store';
 import { BaseInteroperableAPI } from './base_interoperable_api';
-import { BaseCCCommand } from './base_cc_command';
 import { StoreCallback } from './types';
 
 export abstract class BaseInteroperabilityCommand extends BaseCommand {
