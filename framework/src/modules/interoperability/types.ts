@@ -167,3 +167,8 @@ export interface CCCommandExecuteContext {
 	getStore: StoreCallback;
 	feeAddress: Buffer;
 }
+
+export interface ActiveValidators {
+	blsKey: Buffer;
+	bftWeight: bigint;
+}
