@@ -248,7 +248,7 @@ describe('Transaction order', () => {
 
 				// Execution of transaction will fail in block generation now with the same logic
 				await expect(processEnv.createBlock([fundingTx, spendingTx, refundingTx])).rejects.toThrow(
-					' is not sufficient for 14005000000',
+					' is not sufficient for 14000000000',
 				);
 			});
 		});

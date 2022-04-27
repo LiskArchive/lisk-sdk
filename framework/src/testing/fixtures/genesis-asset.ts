@@ -690,6 +690,12 @@ export const blockAssetsJSON = [
 					lockedBalances: [],
 				},
 			],
+			supplySubstore: [
+				{
+					localID: '0000',
+					totalSupply: '1000000000000000',
+				},
+			],
 		},
 		schema: {
 			$id: '/token/module/genesis',
@@ -732,6 +738,24 @@ export const blockAssetsJSON = [
 										},
 									},
 								},
+							},
+						},
+					},
+				},
+				supplySubstore: {
+					type: 'array',
+					fieldNumber: 2,
+					items: {
+						type: 'object',
+						required: ['localID', 'totalSupply'],
+						properties: {
+							localID: {
+								dataType: 'bytes',
+								fieldNumber: 1,
+							},
+							totalSupply: {
+								dataType: 'uint64',
+								fieldNumber: 2,
 							},
 						},
 					},

@@ -40,7 +40,7 @@ export interface GenesisTokenStore {
 		}[];
 	}[];
 	supplySubstore: {
-		localID: number;
+		localID: Buffer;
 		totalSupply: bigint;
 	}[];
 	escrowSubstore: {

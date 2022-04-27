@@ -70,6 +70,10 @@ export const userStoreSchema = {
 	},
 };
 
+export interface SupplyStoreData {
+	totalSupply: bigint;
+}
+
 export const supplyStoreSchema = {
 	$id: '/token/store/supply',
 	type: 'object',
@@ -349,12 +353,12 @@ export const genesisTokenStoreSchema = {
 				required: ['localID', 'totalSupply'],
 				properties: {
 					localID: {
-						dataType: 'uint32',
+						dataType: 'bytes',
 						fieldNumber: 1,
 					},
 					totalSupply: {
 						dataType: 'uint64',
-						fieldNumber: 1,
+						fieldNumber: 2,
 					},
 				},
 			},

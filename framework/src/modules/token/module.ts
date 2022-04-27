@@ -14,11 +14,21 @@
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { objects } from '@liskhq/lisk-utils';
-import { defaultConfig, MODULE_ID_TOKEN, STORE_PREFIX_USER } from './constants';
+import {
+	defaultConfig,
+	MODULE_ID_TOKEN,
+	STORE_PREFIX_SUPPLY,
+	STORE_PREFIX_USER,
+} from './constants';
 import { TransferCommand } from './commands/transfer';
 import { BaseModule, ModuleInitArgs } from '../base_module';
 import { GenesisBlockExecuteContext } from '../../node/state_machine';
-import { configSchema, genesisTokenStoreSchema, userStoreSchema } from './schemas';
+import {
+	configSchema,
+	genesisTokenStoreSchema,
+	supplyStoreSchema,
+	userStoreSchema,
+} from './schemas';
 import { TokenAPI } from './api';
 import { TokenEndpoint } from './endpoint';
 import { GenesisTokenStore, InteroperabilityAPI, MinBalance, ModuleConfig } from './types';
@@ -71,6 +81,14 @@ export class TokenModule extends BaseModule {
 				getUserStoreKey(userData.address, userData.tokenID),
 				userData,
 				userStoreSchema,
+			);
+		}
+		const supplyStore = context.getStore(this.id, STORE_PREFIX_SUPPLY);
+		for (const supplyData of genesisStore.supplySubstore) {
+			await supplyStore.setWithSchema(
+				supplyData.localID,
+				{ totalSupply: supplyData.totalSupply },
+				supplyStoreSchema,
 			);
 		}
 	}

@@ -15,8 +15,8 @@
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { ImmutableAPIContext, APIContext } from '../../node/state_machine';
 import { BaseAPI } from '../base_api';
-import { CHAIN_ID_ALIAS_NATIVE, STORE_PREFIX_USER } from './constants';
-import { UserStoreData, userStoreSchema } from './schemas';
+import { CHAIN_ID_ALIAS_NATIVE, STORE_PREFIX_SUPPLY, STORE_PREFIX_USER } from './constants';
+import { SupplyStoreData, supplyStoreSchema, UserStoreData, userStoreSchema } from './schemas';
 import { InteroperabilityAPI, MinBalance, TokenID } from './types';
 import { getNativeTokenID, getUserStoreKey, splitTokenID } from './utils';
 
@@ -67,22 +67,21 @@ export class TokenAPI extends BaseAPI {
 		amount: bigint,
 	): Promise<void> {
 		const canonicalTokenID = await this._getCanonicalTokenID(apiContext, tokenID);
-		const minBalance = this._getMinBalance(tokenID);
 		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
 		const sender = await userStore.getWithSchema<UserStoreData>(
 			getUserStoreKey(senderAddress, canonicalTokenID),
 			userStoreSchema,
 		);
-		if (sender.availableBalance < amount + minBalance) {
+		if (sender.availableBalance < amount) {
 			throw new Error(
 				`Sender ${senderAddress.toString(
 					'hex',
-				)} balance ${sender.availableBalance.toString()} is not sufficient for ${(
-					amount + minBalance
-				).toString()}`,
+				)} balance ${sender.availableBalance.toString()} is not sufficient for ${amount.toString()}`,
 			);
 		}
+
 		sender.availableBalance -= amount;
+
 		await userStore.setWithSchema(
 			getUserStoreKey(senderAddress, canonicalTokenID),
 			sender,
@@ -90,28 +89,42 @@ export class TokenAPI extends BaseAPI {
 		);
 
 		let recipient: UserStoreData;
+		let recipientExist = false;
 		try {
 			recipient = await userStore.getWithSchema<UserStoreData>(
 				getUserStoreKey(recipientAddress, canonicalTokenID),
 				userStoreSchema,
 			);
+			recipientExist = true;
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
 			}
+
 			recipient = {
 				availableBalance: BigInt(0),
 				lockedBalances: [],
 			};
 		}
-		if (recipient.availableBalance + amount < minBalance) {
-			throw new Error(
-				`Recipient ${recipientAddress.toString('hex')} balance ${(
-					recipient.availableBalance + amount
-				).toString()} is not sufficient for min balance ${minBalance}`,
-			);
+		const minBalance = this._getMinBalance(tokenID);
+		let receivedAmount = amount;
+		if (!recipientExist) {
+			if (minBalance > receivedAmount) {
+				throw new Error(
+					`Amount ${receivedAmount.toString()} does not satisfy min balance requirement.`,
+				);
+			}
+			receivedAmount -= minBalance;
+			const isNative = await this.isNative(apiContext, tokenID);
+			if (isNative) {
+				const supplyStore = apiContext.getStore(this.moduleID, STORE_PREFIX_SUPPLY);
+				const [, localID] = splitTokenID(tokenID);
+				const supply = await supplyStore.getWithSchema<SupplyStoreData>(localID, supplyStoreSchema);
+				supply.totalSupply -= minBalance;
+				await supplyStore.setWithSchema(localID, supply, supplyStoreSchema);
+			}
 		}
-		recipient.availableBalance += amount;
+		recipient.availableBalance += receivedAmount;
 		await userStore.setWithSchema(
 			getUserStoreKey(recipientAddress, canonicalTokenID),
 			recipient,
