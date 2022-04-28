@@ -182,7 +182,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		const end = intToBuffer(MAX_UINT32, 4, BIG_ENDIAN);
 		const chainIDs = await chainSubstore.iterate({ start, end, limit: 1, reverse: true });
 		if (!chainIDs.length) {
-			throw new Error('No existing entries found in chainID store');
+			throw new Error('No existing entries found in chain store');
 		}
 		const chainID = chainIDs[0].key.readUInt32BE(0) + 1;
 		const chainIDBuffer = intToBuffer(chainID, 4, BIG_ENDIAN);
