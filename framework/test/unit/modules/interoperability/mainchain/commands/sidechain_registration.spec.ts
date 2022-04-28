@@ -50,12 +50,6 @@ import { VerifyStatus } from '../../../../../../src/node/state_machine';
 import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
 
 describe('Sidechain registration command', () => {
-	let sidechainRegistrationCommand: SidechainRegistrationCommand;
-	let db: KVStore;
-	let stateStore: StateStore;
-	let nameSubstore: StateStore;
-	let networkIDSubstore: StateStore;
-
 	const transactionParams = {
 		name: 'sidechain',
 		genesisBlockID: Buffer.alloc(0),
@@ -77,7 +71,6 @@ describe('Sidechain registration command', () => {
 		],
 		certificateThreshold: BigInt(10),
 	};
-
 	const encodedTransactionParams = codec.encode(sidechainRegParams, transactionParams);
 	const publicKey = getRandomBytes(32);
 	const transaction = new Transaction({
@@ -94,6 +87,11 @@ describe('Sidechain registration command', () => {
 		'hex',
 	);
 	const networkID = hash(Buffer.concat([Buffer.alloc(0), transaction.senderAddress]));
+	let sidechainRegistrationCommand: SidechainRegistrationCommand;
+	let db: KVStore;
+	let stateStore: StateStore;
+	let nameSubstore: StateStore;
+	let networkIDSubstore: StateStore;
 
 	beforeEach(() => {
 		sidechainRegistrationCommand = new SidechainRegistrationCommand(
