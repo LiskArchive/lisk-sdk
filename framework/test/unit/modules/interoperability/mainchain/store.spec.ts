@@ -35,7 +35,7 @@ import {
 } from '../../../../../src/modules/interoperability/constants';
 import { createCCMsgBeforeSendContext } from '../../../../../src/modules/interoperability/context';
 import { MainchainInteroperabilityStore } from '../../../../../src/modules/interoperability/mainchain/store';
-import { ForwardResult } from '../../../../../src/modules/interoperability/mainchain/types';
+import { ForwardCCMsgResult } from '../../../../../src/modules/interoperability/mainchain/types';
 import {
 	chainAccountSchema,
 	channelSchema,
@@ -508,14 +508,14 @@ describe('Mainchain interoperability store', () => {
 				receivingChainIDAsStoreKey,
 				ccm,
 			);
-			expect(result).toBe(ForwardResult.SUCCESS);
+			expect(result).toBe(ForwardCCMsgResult.SUCCESS);
 		});
 
 		it('should bounce and inform terminated sidechain when sidechain is not active', async () => {
 			const result = await mainchainInteroperabilityStore.forward(context);
 			expect(mainchainInteroperabilityStore.bounce).toHaveBeenCalledWith(ccm);
 			expect(mainchainInteroperabilityStore.sendInternal).toHaveBeenCalled();
-			expect(result).toBe(ForwardResult.INFORM_SIDECHAIN_TERMINATION);
+			expect(result).toBe(ForwardCCMsgResult.INFORM_SIDECHAIN_TERMINATION);
 		});
 
 		it('should throw when tokenCCAPI is not present', async () => {
@@ -528,7 +528,7 @@ describe('Mainchain interoperability store', () => {
 		it('should return early when ccm status is not OK', async () => {
 			(ccm as any).status = -1;
 			await expect(mainchainInteroperabilityStore.forward(context)).resolves.toBe(
-				ForwardResult.INVALID_CCM,
+				ForwardCCMsgResult.INVALID_CCM,
 			);
 		});
 
@@ -536,14 +536,14 @@ describe('Mainchain interoperability store', () => {
 			receivingChainAccount.status = CHAIN_REGISTERED;
 			const result = await mainchainInteroperabilityStore.forward(context);
 			expect(mainchainInteroperabilityStore.bounce).toHaveBeenCalledWith(ccm);
-			expect(result).toBe(ForwardResult.NO_ACTIVE_RECV_CHAIN);
+			expect(result).toBe(ForwardCCMsgResult.INACTIVE_RECEIVING_CHAIN);
 		});
 
 		it('should return early when receiving chain is not yet active after bounce', async () => {
 			receivingChainAccount.status = CHAIN_REGISTERED;
 			const result = await mainchainInteroperabilityStore.forward(context);
 			expect(mainchainInteroperabilityStore.bounce).toHaveBeenCalledWith(ccm);
-			expect(result).toBe(ForwardResult.NO_ACTIVE_RECV_CHAIN);
+			expect(result).toBe(ForwardCCMsgResult.INACTIVE_RECEIVING_CHAIN);
 		});
 
 		it('should terminate receiving chain when it is active and ccm is bounced', async () => {

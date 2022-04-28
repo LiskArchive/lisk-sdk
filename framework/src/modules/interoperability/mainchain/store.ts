@@ -34,7 +34,7 @@ import {
 	validateFormat,
 } from '../utils';
 import { TokenCCAPI } from '../cc_apis';
-import { ForwardResult } from './types';
+import { ForwardCCMsgResult } from './types';
 
 export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	public async isLive(chainID: Buffer, timestamp: number): Promise<boolean> {
@@ -51,7 +51,7 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 		return true;
 	}
 
-	public async forward(ccmForwardContext: CCMForwardContext): Promise<ForwardResult> {
+	public async forward(ccmForwardContext: CCMForwardContext): Promise<ForwardCCMsgResult> {
 		const {
 			ccm,
 			eventQueue,
@@ -89,21 +89,21 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 			);
 
 			if (!isTokenTransferred) {
-				return ForwardResult.COULD_NOT_TRANSFER_FWD_FEE;
+				return ForwardCCMsgResult.COULD_NOT_TRANSFER_FORWARD_FEE;
 			}
 
 			await this.addToOutbox(receivingChainIDAsStoreKey, ccm);
-			return ForwardResult.SUCCESS;
+			return ForwardCCMsgResult.SUCCESS;
 		}
 
 		if (ccm.status !== CCM_STATUS_OK) {
-			return ForwardResult.INVALID_CCM;
+			return ForwardCCMsgResult.INVALID_CCM;
 		}
 
 		await this.bounce(ccm);
 
 		if (!receivingChainAccount || receivingChainAccount.status === CHAIN_REGISTERED) {
-			return ForwardResult.NO_ACTIVE_RECV_CHAIN;
+			return ForwardCCMsgResult.INACTIVE_RECEIVING_CHAIN;
 		}
 
 		if (receivingChainAccount.status === CHAIN_ACTIVE) {
@@ -121,7 +121,7 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 			timestamp: Date.now(),
 		});
 
-		return ForwardResult.INFORM_SIDECHAIN_TERMINATION;
+		return ForwardCCMsgResult.INFORM_SIDECHAIN_TERMINATION;
 	}
 
 	public async bounce(ccm: CCMsg): Promise<void> {
