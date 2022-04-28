@@ -105,7 +105,7 @@ export const isValidName = (username: string): boolean => {
 };
 
 export const computeValidatorsHash = (
-	initValidators: ActiveValidator[],
+	initValidators: ActiveValidators[],
 	certificateThreshold: bigint,
 ) => {
 	const input = {
