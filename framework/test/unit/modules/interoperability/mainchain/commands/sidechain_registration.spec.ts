@@ -538,7 +538,7 @@ describe('Sidechain registration command', () => {
 			// Act
 			// Assert
 			await expect(sidechainRegistrationCommand.execute(context)).rejects.toThrow(
-				'No existing entries found in chainID store',
+				'No existing entries found in chain store',
 			);
 		});
 
