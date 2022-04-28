@@ -498,3 +498,54 @@ export const chainIDSchema = {
 		},
 	},
 };
+
+export const validatorsSchema = {
+	$id: 'modules/interoperability/validators',
+	type: 'object',
+	required: ['activeValidators', 'certificateThreshold'],
+	properties: {
+		activeValidators: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['blsKey', 'bftWeight'],
+				properties: {
+					blsKey: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					bftWeight: {
+						dataType: 'uint64',
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+		certificateThreshold: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+	},
+};
+
+export const validatorsHashInputSchema = {
+	$id: 'modules/interoperability/validatorsHashInput',
+	type: 'object',
+	required: ['activeValidators', 'certificateThreshold'],
+	properties: {
+		activeValidators: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['blsKey', 'bftWeight'],
+				properties: {
+					blsKey: { dataType: 'bytes', fieldNumber: 1 },
+					bftWeight: { dataType: 'uint64', fieldNumber: 2 },
+				},
+			},
+		},
+		certificateThreshold: { dataType: 'uint64', fieldNumber: 2 },
+	},
+};
