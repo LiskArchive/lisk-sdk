@@ -63,7 +63,7 @@ export const updateActiveValidators = (
 	}
 
 	return activeValidators;
-}
+};
 
 export const getEncodedSidechainTerminatedCCMParam = (
 	ccm: CCMsg,
