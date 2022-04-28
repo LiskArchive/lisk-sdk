@@ -12,19 +12,39 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash } from '@liskhq/lisk-cryptography';
+import { codec } from '@liskhq/lisk-codec';
+import { BIG_ENDIAN, hash, intToBuffer } from '@liskhq/lisk-cryptography';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
-import { BaseCommand } from '../../../base_command';
+import { MainchainInteroperabilityStore } from '../store';
+import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import {
 	COMMAND_ID_SIDECHAIN_REG,
+	CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+	EMPTY_HASH,
 	MODULE_ID_INTEROPERABILITY,
+	STORE_PREFIX_CHAIN_DATA,
 	STORE_PREFIX_REGISTERED_NETWORK_IDS,
 	STORE_PREFIX_REGISTERED_NAMES,
+	MAX_UINT32,
 	MAX_UINT64,
+	STORE_PREFIX_CHANNEL_DATA,
+	STORE_PREFIX_CHAIN_VALIDATORS,
+	STORE_PREFIX_OUTBOX_ROOT,
+	MAINCHAIN_ID,
+	CCM_STATUS_OK,
+	EMPTY_FEE_ADDRESS,
 } from '../../constants';
-import { sidechainRegParams } from '../../schema';
-import { SidechainRegistrationParams } from '../../types';
-import { isValidName } from '../../utils';
+import {
+	chainAccountSchema,
+	chainIDSchema,
+	channelSchema,
+	outboxRootSchema,
+	registrationCCMParamsSchema,
+	sidechainRegParams,
+	validatorsSchema,
+} from '../../schema';
+import { SidechainRegistrationParams, StoreCallback } from '../../types';
+import { computeValidatorsHash, isValidName } from '../../utils';
 import {
 	CommandVerifyContext,
 	VerificationResult,
@@ -32,7 +52,7 @@ import {
 	CommandExecuteContext,
 } from '../../../../node/state_machine/types';
 
-export class SidechainRegistrationCommand extends BaseCommand {
+export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 	public id = COMMAND_ID_SIDECHAIN_REG;
 	public name = 'sidechainRegistration';
 	public schema = sidechainRegParams;
@@ -75,19 +95,19 @@ export class SidechainRegistrationCommand extends BaseCommand {
 			};
 		}
 
-		const netID = hash(Buffer.concat([genesisBlockID, transaction.senderAddress]));
+		const networkID = hash(Buffer.concat([genesisBlockID, transaction.senderAddress]));
 
-		// 	netId has to be unique with respect to the set of already registered sidechain network IDs in the blockchain state.
+		// 	networkId has to be unique with respect to the set of already registered sidechain network IDs in the blockchain state.
 		const networkIDSubstore = context.getStore(
 			MODULE_ID_INTEROPERABILITY,
 			STORE_PREFIX_REGISTERED_NETWORK_IDS,
 		);
-		const networkIDExists = await networkIDSubstore.has(netID);
+		const networkIDExists = await networkIDSubstore.has(networkID);
 
 		if (networkIDExists) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('Network ID substore must not have an entry for the store key netID'),
+				error: new Error('Network ID substore must not have an entry for the store key networkID'),
 			};
 		}
 
@@ -145,11 +165,128 @@ export class SidechainRegistrationCommand extends BaseCommand {
 		};
 	}
 
-	// TODO
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async execute(
-		_context: CommandExecuteContext<SidechainRegistrationParams>,
-	): Promise<void> {
-		throw new Error('Method not implemented.');
+	public async execute(context: CommandExecuteContext<SidechainRegistrationParams>): Promise<void> {
+		const {
+			transaction,
+			params: { certificateThreshold, initValidators, genesisBlockID, name },
+			getStore,
+		} = context;
+
+		const networkID = hash(Buffer.concat([genesisBlockID, transaction.senderAddress]));
+
+		// Add an entry in the chain substore
+		const chainSubstore = getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
+
+		// Find the latest chainID from db
+		const start = intToBuffer(0, 4, BIG_ENDIAN);
+		const end = intToBuffer(MAX_UINT32, 4, BIG_ENDIAN);
+		const chainIDs = await chainSubstore.iterate({ start, end, limit: 1, reverse: true });
+		if (!chainIDs.length) {
+			throw new Error('No existing entries found in chainID store');
+		}
+		const chainID = chainIDs[0].key.readUInt32BE(0) + 1;
+		const chainIDBuffer = intToBuffer(chainID, 4, BIG_ENDIAN);
+
+		await chainSubstore.setWithSchema(
+			chainIDBuffer,
+			{
+				name,
+				networkID,
+				lastCertificate: {
+					height: 0,
+					timestamp: 0,
+					stateRoot: EMPTY_HASH,
+					validatorsHash: computeValidatorsHash(initValidators, certificateThreshold),
+				},
+				status: 0,
+			},
+			chainAccountSchema,
+		);
+
+		// Add an entry in the channel substore
+		const channelSubstore = getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA);
+		await channelSubstore.setWithSchema(
+			chainIDBuffer,
+			{
+				inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
+				outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
+				partnerChainOutboxRoot: EMPTY_HASH,
+				messageFeeTokenID: { chainID: 1, localID: 0 },
+			},
+			channelSchema,
+		);
+
+		// sendInternal registration CCM
+		const interoperabilityStore = this.getInteroperabilityStore(getStore);
+
+		const encodedParams = codec.encode(registrationCCMParamsSchema, {
+			networkID,
+			name,
+			messageFeeTokenID: { chainID: MAINCHAIN_ID, localID: 0 },
+		});
+		const ccm = {
+			nonce: BigInt(0),
+			moduleID: MODULE_ID_INTEROPERABILITY,
+			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+			sendingChainID: MAINCHAIN_ID,
+			receivingChainID: chainID,
+			fee: BigInt(0),
+			status: CCM_STATUS_OK,
+			params: encodedParams,
+		};
+
+		await interoperabilityStore.sendInternal({
+			moduleID: MODULE_ID_INTEROPERABILITY,
+			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+			receivingChainID: chainID,
+			fee: BigInt(0),
+			status: CCM_STATUS_OK,
+			params: encodedParams,
+			timestamp: Date.now(),
+			beforeSendContext: { ...context, ccm, feeAddress: EMPTY_FEE_ADDRESS },
+		});
+
+		// Add an entry in the chain validators substore
+		const chainValidatorsSubstore = getStore(
+			MODULE_ID_INTEROPERABILITY,
+			STORE_PREFIX_CHAIN_VALIDATORS,
+		);
+		await chainValidatorsSubstore.setWithSchema(
+			chainIDBuffer,
+			{ sidechainValidators: { activeValidators: initValidators, certificateThreshold } },
+			validatorsSchema,
+		);
+
+		// Add an entry in the outbox root substore
+		const outboxRootSubstore = getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_OUTBOX_ROOT);
+		await outboxRootSubstore.setWithSchema(chainIDBuffer, { root: EMPTY_HASH }, outboxRootSchema);
+
+		// Add an entry in the registered names substore
+		const registeredNamesSubstore = getStore(
+			MODULE_ID_INTEROPERABILITY,
+			STORE_PREFIX_REGISTERED_NAMES,
+		);
+		await registeredNamesSubstore.setWithSchema(
+			Buffer.from(name, 'utf-8'),
+			chainIDBuffer,
+			// Note: Same as chainID schema
+			chainIDSchema,
+		);
+
+		// Add an entry in the registered network IDs substore
+		const registeredNetworkIDsSubstore = getStore(
+			MODULE_ID_INTEROPERABILITY,
+			STORE_PREFIX_REGISTERED_NETWORK_IDS,
+		);
+		await registeredNetworkIDsSubstore.setWithSchema(
+			networkID,
+			chainIDBuffer,
+			// Note: Same as chainID schema
+			chainIDSchema,
+		);
+	}
+
+	protected getInteroperabilityStore(getStore: StoreCallback): MainchainInteroperabilityStore {
+		return new MainchainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
 	}
 }
