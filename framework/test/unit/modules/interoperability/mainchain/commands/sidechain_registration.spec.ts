@@ -22,9 +22,7 @@ import { SidechainRegistrationCommand } from '../../../../../../src/modules/inte
 import {
 	CCM_STATUS_OK,
 	COMMAND_ID_SIDECHAIN_REG,
-	CROSS_CHAIN_COMMAND_ID_REGISTRATION,
 	EMPTY_HASH,
-	MAINCHAIN_ID,
 	MAX_UINT64,
 	MODULE_ID_INTEROPERABILITY,
 	STORE_PREFIX_CHAIN_DATA,
@@ -33,7 +31,6 @@ import {
 	STORE_PREFIX_OUTBOX_ROOT,
 	STORE_PREFIX_REGISTERED_NAMES,
 	STORE_PREFIX_REGISTERED_NETWORK_IDS,
-	EMPTY_FEE_ADDRESS,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
 	nameSchema,
@@ -43,7 +40,6 @@ import {
 	channelSchema,
 	validatorsSchema,
 	outboxRootSchema,
-	registrationCCMParamsSchema,
 } from '../../../../../../src/modules/interoperability/schema';
 import { SidechainRegistrationParams } from '../../../../../../src/modules/interoperability/types';
 import { VerifyStatus } from '../../../../../../src/node/state_machine';
