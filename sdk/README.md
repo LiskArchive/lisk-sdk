@@ -40,7 +40,7 @@ Before running Lisk SDK, the following dependencies need to be installed in orde
 
 | Dependencies | Version |
 | ------------ | ------- |
-| NodeJS       | 12+     |
+| NodeJS       | 16+     |
 
 ### Installation
 
