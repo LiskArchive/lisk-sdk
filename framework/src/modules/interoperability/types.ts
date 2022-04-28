@@ -192,6 +192,6 @@ export interface SidechainRegistrationParams {
 }
 
 export interface ValidatorsHashInput {
-	activeValidators: RegistrationParametersValidator[];
+	activeValidators: ActiveValidator[];
 	certificateThreshold: bigint;
 }
