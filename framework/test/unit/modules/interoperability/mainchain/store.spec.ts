@@ -525,21 +525,21 @@ describe('Mainchain interoperability store', () => {
 			);
 		});
 
-		it('should throw error when ccm status is not OK', async () => {
+		it('should return early when ccm status is not OK', async () => {
 			(ccm as any).status = -1;
 			await expect(mainchainInteroperabilityStore.forward(context)).resolves.toBe(
 				ForwardResult.INVALID_CCM,
 			);
 		});
 
-		it('should throw error when receiving chain does not exist after bounce', async () => {
+		it('should return early when receiving chain does not exist after bounce', async () => {
 			receivingChainAccount.status = CHAIN_REGISTERED;
 			const result = await mainchainInteroperabilityStore.forward(context);
 			expect(mainchainInteroperabilityStore.bounce).toHaveBeenCalledWith(ccm);
 			expect(result).toBe(ForwardResult.NO_ACTIVE_RECV_CHAIN);
 		});
 
-		it('should throw error when receiving chain is not yet active after bounce', async () => {
+		it('should return early when receiving chain is not yet active after bounce', async () => {
 			receivingChainAccount.status = CHAIN_REGISTERED;
 			const result = await mainchainInteroperabilityStore.forward(context);
 			expect(mainchainInteroperabilityStore.bounce).toHaveBeenCalledWith(ccm);
