@@ -12,26 +12,42 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash, getRandomBytes } from '@liskhq/lisk-cryptography';
+import { BIG_ENDIAN, hash, intToBuffer, getRandomBytes } from '@liskhq/lisk-cryptography';
 import { StateStore, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
+import { when } from 'jest-when';
 import * as testing from '../../../../../../src/testing';
 import { SidechainRegistrationCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/sidechain_registration';
 import {
+	CCM_STATUS_OK,
 	COMMAND_ID_SIDECHAIN_REG,
+	CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+	EMPTY_HASH,
+	MAINCHAIN_ID,
 	MAX_UINT64,
 	MODULE_ID_INTEROPERABILITY,
+	STORE_PREFIX_CHAIN_DATA,
+	STORE_PREFIX_CHAIN_VALIDATORS,
+	STORE_PREFIX_CHANNEL_DATA,
+	STORE_PREFIX_OUTBOX_ROOT,
 	STORE_PREFIX_REGISTERED_NAMES,
 	STORE_PREFIX_REGISTERED_NETWORK_IDS,
+	EMPTY_FEE_ADDRESS,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
 	nameSchema,
 	chainIDSchema,
 	sidechainRegParams,
+	chainAccountSchema,
+	channelSchema,
+	validatorsSchema,
+	outboxRootSchema,
+	registrationCCMParamsSchema,
 } from '../../../../../../src/modules/interoperability/schema';
 import { SidechainRegistrationParams } from '../../../../../../src/modules/interoperability/types';
 import { VerifyStatus } from '../../../../../../src/node/state_machine';
+import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
 
 describe('Sidechain registration command', () => {
 	let sidechainRegistrationCommand: SidechainRegistrationCommand;
@@ -77,10 +93,14 @@ describe('Sidechain registration command', () => {
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
 		'hex',
 	);
-	const netID = hash(Buffer.concat([Buffer.alloc(0), transaction.senderAddress]));
+	const networkID = hash(Buffer.concat([Buffer.alloc(0), transaction.senderAddress]));
 
 	beforeEach(() => {
-		sidechainRegistrationCommand = new SidechainRegistrationCommand(MODULE_ID_INTEROPERABILITY);
+		sidechainRegistrationCommand = new SidechainRegistrationCommand(
+			MODULE_ID_INTEROPERABILITY,
+			new Map(),
+			new Map(),
+		);
 		db = new InMemoryKVStore() as never;
 		stateStore = new StateStore(db);
 		nameSubstore = stateStore.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_REGISTERED_NAMES);
@@ -151,8 +171,8 @@ describe('Sidechain registration command', () => {
 			);
 		});
 
-		it('should return error if store key netID already exists in networkID store', async () => {
-			await networkIDSubstore.setWithSchema(netID, { chainID: 0 }, chainIDSchema);
+		it('should return error if store key networkID already exists in networkID store', async () => {
+			await networkIDSubstore.setWithSchema(networkID, { chainID: 0 }, chainIDSchema);
 			const context = testing
 				.createTransactionContext({
 					stateStore,
@@ -164,7 +184,7 @@ describe('Sidechain registration command', () => {
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(
-				'Network ID substore must not have an entry for the store key netID',
+				'Network ID substore must not have an entry for the store key networkID',
 			);
 		});
 
@@ -387,6 +407,252 @@ describe('Sidechain registration command', () => {
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude('Certificate threshold above maximum bft weight');
+		});
+	});
+
+	describe('execute', () => {
+		const genesisBlockID = Buffer.alloc(0);
+		const newChainID = intToBuffer(2, 4, BIG_ENDIAN);
+		const existingChainID = Buffer.alloc(4);
+		existingChainID.writeUInt32BE(1, 0);
+		const params = {
+			name: 'sidechain',
+			genesisBlockID,
+			initValidators: [
+				{
+					blsKey: Buffer.from(
+						'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
+						'hex',
+					),
+					bftWeight: BigInt(10),
+				},
+				{
+					blsKey: Buffer.from(
+						'4c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
+						'hex',
+					),
+					bftWeight: BigInt(10),
+				},
+			],
+			certificateThreshold: BigInt(10),
+		};
+		const chainAccount = {
+			name: 'sidechain',
+			networkID,
+			lastCertificate: {
+				height: 0,
+				timestamp: 0,
+				stateRoot: EMPTY_HASH,
+				validatorsHash: computeValidatorsHash(params.initValidators, params.certificateThreshold),
+			},
+		};
+		const mockGetStore = jest.fn();
+		const context = {
+			logger: jest.fn(),
+			eventQueue: jest.fn(),
+			networkIdentifier: Buffer.alloc(0),
+			header: {},
+			assets: {},
+			transaction,
+			params,
+			getAPIContext: jest.fn(),
+			getStore: mockGetStore,
+		} as any;
+		const chainSubstore = {
+			getWithSchema: jest.fn().mockResolvedValue(chainAccount),
+			setWithSchema: jest.fn(),
+			iterate: jest.fn().mockResolvedValue([{ key: existingChainID, value: {} }]),
+		};
+		const channelSubstore = {
+			setWithSchema: jest.fn(),
+		};
+		const validatorsSubstore = {
+			setWithSchema: jest.fn(),
+		};
+		const outboxRootSubstore = { setWithSchema: jest.fn() };
+		const registeredNamesSubstore = {
+			setWithSchema: jest.fn(),
+		};
+		const registeredNetworkIDsSubstore = {
+			setWithSchema: jest.fn(),
+		};
+		const sendInternal = jest.fn();
+
+		beforeEach(() => {
+			sidechainRegistrationCommand['getInteroperabilityStore'] = jest
+				.fn()
+				.mockReturnValue({ sendInternal });
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA)
+				.mockReturnValue(chainSubstore);
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA)
+				.mockReturnValue(channelSubstore);
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_VALIDATORS)
+				.mockReturnValue(validatorsSubstore);
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_OUTBOX_ROOT)
+				.mockReturnValue(outboxRootSubstore);
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_REGISTERED_NAMES)
+				.mockReturnValue(registeredNamesSubstore);
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_REGISTERED_NETWORK_IDS)
+				.mockReturnValue(registeredNetworkIDsSubstore);
+		});
+
+		it('should add an entry to chain account substore', async () => {
+			// Arrange
+			const expectedValue = {
+				name: 'sidechain',
+				networkID,
+				lastCertificate: {
+					height: 0,
+					timestamp: 0,
+					stateRoot: EMPTY_HASH,
+					validatorsHash: computeValidatorsHash(params.initValidators, params.certificateThreshold),
+				},
+				status: CCM_STATUS_OK,
+			};
+
+			// Act
+			await sidechainRegistrationCommand.execute(context);
+
+			// Assert
+			expect(chainSubstore.setWithSchema).toHaveBeenCalledWith(
+				newChainID,
+				expectedValue,
+				chainAccountSchema,
+			);
+		});
+
+		it('should throw error if no entries found in chain account substore', async () => {
+			// Arrange
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA)
+				.mockReturnValue({
+					getWithSchema: jest.fn().mockResolvedValue(chainAccount),
+					setWithSchema: jest.fn(),
+					iterate: jest.fn().mockResolvedValue([]),
+				});
+
+			// Act
+			// Assert
+			await expect(sidechainRegistrationCommand.execute(context)).rejects.toThrow(
+				'No existing entries found in chainID store',
+			);
+		});
+
+		it('should add an entry to channel account substore', async () => {
+			// Arrange
+			const expectedValue = {
+				inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
+				outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
+				partnerChainOutboxRoot: EMPTY_HASH,
+				messageFeeTokenID: { chainID: 1, localID: 0 },
+			};
+
+			// Act
+			await sidechainRegistrationCommand.execute(context);
+
+			// Assert
+			expect(channelSubstore.setWithSchema).toHaveBeenCalledWith(
+				newChainID,
+				expectedValue,
+				channelSchema,
+			);
+		});
+
+		it('should call sendInternal with a registration ccm', async () => {
+			// Arrange
+			const encodedParams = codec.encode(registrationCCMParamsSchema, {
+				networkID,
+				name: 'sidechain',
+				messageFeeTokenID: { chainID: MAINCHAIN_ID, localID: 0 },
+			});
+			const expectedCCM = {
+				nonce: BigInt(0),
+				moduleID: MODULE_ID_INTEROPERABILITY,
+				crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+				sendingChainID: MAINCHAIN_ID,
+				receivingChainID: 2,
+				fee: BigInt(0),
+				status: CCM_STATUS_OK,
+				params: encodedParams,
+			};
+
+			// Act
+			await sidechainRegistrationCommand.execute(context);
+
+			// Assert
+			expect(sendInternal).toHaveBeenCalledWith({
+				moduleID: MODULE_ID_INTEROPERABILITY,
+				crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+				receivingChainID: 2,
+				fee: BigInt(0),
+				status: CCM_STATUS_OK,
+				params: encodedParams,
+				timestamp: Date.now(),
+				beforeSendContext: { ...context, ccm: expectedCCM, feeAddress: EMPTY_FEE_ADDRESS },
+			});
+		});
+
+		it('should add an entry to chain validators substore', async () => {
+			// Arrange
+			const expectedValue = {
+				sidechainValidators: {
+					activeValidators: params.initValidators,
+					certificateThreshold: params.certificateThreshold,
+				},
+			};
+
+			// Act
+			await sidechainRegistrationCommand.execute(context);
+			expect(validatorsSubstore.setWithSchema).toHaveBeenCalledWith(
+				newChainID,
+				expectedValue,
+				validatorsSchema,
+			);
+		});
+
+		it('should add an entry to outbox root substore', async () => {
+			// Arrange
+			const expectedValue = { root: EMPTY_HASH };
+
+			// Act
+			await sidechainRegistrationCommand.execute(context);
+
+			// Assert
+			expect(outboxRootSubstore.setWithSchema).toHaveBeenCalledWith(
+				newChainID,
+				expectedValue,
+				outboxRootSchema,
+			);
+		});
+
+		it('should add an entry to registered names substore', async () => {
+			// Act
+			await sidechainRegistrationCommand.execute(context);
+
+			// Assert
+			expect(registeredNamesSubstore.setWithSchema).toHaveBeenCalledWith(
+				Buffer.from(params.name, 'utf-8'),
+				newChainID,
+				chainIDSchema,
+			);
+		});
+
+		it('should add an entry to registered network IDs substore', async () => {
+			// Act
+			await sidechainRegistrationCommand.execute(context);
+
+			// Assert
+			expect(registeredNetworkIDsSubstore.setWithSchema).toHaveBeenCalledWith(
+				networkID,
+				newChainID,
+				chainIDSchema,
+			);
 		});
 	});
 });
