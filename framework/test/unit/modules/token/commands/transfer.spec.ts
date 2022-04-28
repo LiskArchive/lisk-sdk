@@ -37,8 +37,8 @@ import { getUserStoreKey } from '../../../../../src/modules/token/utils';
 import { createTransactionContext } from '../../../../../src/testing';
 
 describe('Transfer command', () => {
-	const localTokenID = Buffer.from([0, 0, 0, 0, 0, 0]);
-	const secondTokenID = Buffer.from([1, 0, 0, 0, 0, 0]);
+	const localTokenID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
+	const secondTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
 	let command: TransferCommand;
 	let interopAPI: {
 		getOwnChainAccount: jest.Mock;
@@ -142,7 +142,7 @@ describe('Transfer command', () => {
 					nonce: BigInt(0),
 					senderPublicKey: getRandomBytes(32),
 					params: codec.encode(transferParamsSchema, {
-						tokenID: Buffer.from('000000010000', 'hex'),
+						tokenID: Buffer.from('0000000100000000', 'hex'),
 						amount: BigInt(100000000),
 						recipientAddress: getRandomBytes(20),
 						data: '1'.repeat(64),
@@ -160,8 +160,8 @@ describe('Transfer command', () => {
 		let stateStore: StateStore;
 		const sender = getAddressAndPublicKeyFromPassphrase('sender');
 		const recipient = getAddressAndPublicKeyFromPassphrase('recipient');
-		const thirdTokenID = Buffer.from([1, 0, 0, 0, 4, 0]);
-		const tokenID = Buffer.from([0, 0, 0, 1, 0, 0]);
+		const thirdTokenID = Buffer.from([1, 0, 0, 0, 4, 0, 0, 0]);
+		const tokenID = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
 		const senderBalance = BigInt(200000000);
 		const totalSupply = BigInt('1000000000000');
 		const recipientBalance = BigInt(1000);

@@ -33,7 +33,7 @@ import { TransferCommand } from '../../../src/modules/token/commands/transfer';
 import { MODULE_ID_TOKEN } from '../../../src/modules/token/constants';
 import { transferParamsSchema } from '../../../src/modules/token/schemas';
 
-export const DEFAULT_TOKEN_ID = Buffer.from([0, 0, 0, 0, 0, 0]);
+export const DEFAULT_TOKEN_ID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
 
 export const createTransferTransaction = (input: {
 	recipientAddress: Buffer;

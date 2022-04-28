@@ -49,7 +49,7 @@ describe('FeeModule', () => {
 				feeModule.init({ genesisConfig, moduleConfig: {}, generatorConfig: {} }),
 			).toResolve();
 
-			expect(feeModule['_tokenID']).toEqual(Buffer.from([0, 0, 0, 0, 0, 0]));
+			expect(feeModule['_tokenID']).toEqual(Buffer.alloc(8, 0));
 		});
 
 		it('should set the minFeePerByte property', () => {

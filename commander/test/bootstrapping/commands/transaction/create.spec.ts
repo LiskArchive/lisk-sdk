@@ -42,7 +42,7 @@ describe('transaction:create command', () => {
 	];
 	const passphrase = 'peanut hundred pen hawk invite exclude brain chunk gadget wait wrong ready';
 	const transferParams =
-		'{"tokenID": "000000000000","amount":100,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}';
+		'{"tokenID": "0000000000000000","amount":100,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}';
 	const voteParams =
 		'{"votes":[{"delegateAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","amount":100},{"delegateAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","amount":-50}]}';
 	const unVoteParams =
@@ -52,7 +52,7 @@ describe('transaction:create command', () => {
 	const mockEncodedTransaction = Buffer.from('encoded transaction');
 	const mockJSONTransaction = {
 		params: {
-			tokenID: '000000000000',
+			tokenID: '0000000000000000',
 			amount: '100',
 			data: 'send token',
 			recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
@@ -114,7 +114,7 @@ describe('transaction:create command', () => {
 		} as any;
 		jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(clientMock);
 		jest.spyOn(inquirer, 'prompt').mockResolvedValue({
-			tokenID: '000000000000',
+			tokenID: '0000000000000000',
 			amount: 100,
 			recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
 			data: 'send token',
@@ -244,7 +244,7 @@ describe('transaction:create command', () => {
 								'2',
 								'0',
 								'100000000',
-								'--params={"tokenID":"000000000000","amount":100,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815"}',
+								'--params={"tokenID":"0000000000000000","amount":100,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815"}',
 								`--passphrase=${passphrase}`,
 								'--offline',
 								'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
@@ -443,7 +443,7 @@ describe('transaction:create command', () => {
 							fee: '100000000',
 							senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 							params: {
-								tokenID: '000000000000',
+								tokenID: '0000000000000000',
 								amount: '100',
 								data: 'send token',
 								recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
@@ -483,7 +483,7 @@ describe('transaction:create command', () => {
 							id: expect.any(String),
 							senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 							params: {
-								tokenID: '000000000000',
+								tokenID: '0000000000000000',
 								amount: '100',
 								data: 'send token',
 								recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
@@ -683,7 +683,7 @@ describe('transaction:create command', () => {
 							fee: '100000000',
 							senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 							params: {
-								tokenID: '000000000000',
+								tokenID: '0000000000000000',
 								amount: '100',
 								data: 'send token',
 								recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',

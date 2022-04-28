@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { TOKEN_ID_LENGTH } from './constants';
+
 export const configSchema = {
 	$id: '/token/config',
 	type: 'object',
@@ -135,8 +137,8 @@ export const transferParamsSchema = {
 		tokenID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
-			minLength: 6,
-			maxLength: 6,
+			minLength: TOKEN_ID_LENGTH,
+			maxLength: TOKEN_ID_LENGTH,
 		},
 		amount: {
 			dataType: 'uint64',

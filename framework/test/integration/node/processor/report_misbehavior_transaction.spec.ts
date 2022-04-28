@@ -50,7 +50,7 @@ describe('Transaction order', () => {
 			amount: BigInt('10000000000'),
 			networkIdentifier,
 			passphrase: genesis.passphrase,
-			fee: BigInt(150000), // minFee not to give fee for generator
+			fee: BigInt(152000), // minFee not to give fee for generator
 		});
 		newBlock = await processEnv.createBlock([transaction]);
 

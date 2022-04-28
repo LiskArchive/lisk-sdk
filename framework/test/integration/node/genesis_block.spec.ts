@@ -155,7 +155,7 @@ describe('genesis block', () => {
 						eventQueue: new EventQueue(),
 					}),
 					recipientAddress,
-					Buffer.from([0, 0, 0, 0, 0, 0]),
+					Buffer.alloc(8, 0),
 				);
 
 				// Arrange & Assert

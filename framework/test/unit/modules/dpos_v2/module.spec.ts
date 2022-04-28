@@ -72,7 +72,7 @@ describe('DPoS module', () => {
 		minWeightStandby: (BigInt(1000) * BigInt(10 ** 8)).toString(),
 		numberActiveDelegates: 101,
 		numberStandbyDelegates: 2,
-		tokenIDDPoS: '000000000000',
+		tokenIDDPoS: '0000000000000000',
 	};
 
 	describe('init', () => {
