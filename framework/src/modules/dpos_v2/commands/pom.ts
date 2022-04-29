@@ -165,16 +165,10 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 			delegateAddress,
 			this._tokenIDDPoS,
 		);
-		const minRemainingBalance = await this._tokenAPI.getMinRemainingBalance(getAPIContext());
-
-		const delegateSubtractableBalance =
-			delegateAccountBalance - minRemainingBalance > BigInt(0)
-				? delegateAccountBalance - minRemainingBalance
-				: BigInt(0);
 
 		const reward =
-			REPORTING_PUNISHMENT_REWARD > delegateSubtractableBalance
-				? delegateSubtractableBalance
+			REPORTING_PUNISHMENT_REWARD > delegateAccountBalance
+				? delegateAccountBalance
 				: REPORTING_PUNISHMENT_REWARD;
 
 		delegateAccount.pomHeights.push(currentHeight);

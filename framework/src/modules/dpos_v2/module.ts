@@ -385,8 +385,8 @@ export class DPoSModule extends BaseModule {
 			const lockedAmount = await this._tokenAPI.getLockedAmount(
 				apiContext,
 				voterData.key,
-				this.id,
 				this._moduleConfig.tokenIDDPoS,
+				this.id,
 			);
 			if (lockedAmount !== votedAmount) {
 				throw new Error('Voted amount is not locked');

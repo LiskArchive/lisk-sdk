@@ -88,17 +88,25 @@ export const supplyStoreSchema = {
 	},
 };
 
+export interface AvailableLocalIDStoreData {
+	nextAvailableLocalID: Buffer;
+}
+
 export const availableLocalIDStoreSchema = {
 	$id: '/token/store/availableLocalID',
 	type: 'object',
 	required: ['nextAvailableLocalID'],
 	properties: {
 		nextAvailableLocalID: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
 	},
 };
+
+export interface EscrowStoreData {
+	amount: bigint;
+}
 
 export const escrowStoreSchema = {
 	$id: '/token/store/escrow',
