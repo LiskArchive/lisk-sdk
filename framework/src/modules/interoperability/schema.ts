@@ -468,3 +468,112 @@ export const sidechainTerminatedCCMParamsSchema = {
 		},
 	},
 };
+
+export const nameSchema = {
+	$id: 'modules/interoperability/name',
+	type: 'object',
+	required: ['name'],
+	properties: {
+		name: {
+			dataType: 'string',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export const chainIDSchema = {
+	$id: 'modules/interoperability/name',
+	type: 'object',
+	required: ['ID'],
+	properties: {
+		ID: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export const validatorsSchema = {
+	$id: 'modules/interoperability/validators',
+	type: 'object',
+	required: ['activeValidators', 'certificateThreshold'],
+	properties: {
+		activeValidators: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['blsKey', 'bftWeight'],
+				properties: {
+					blsKey: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					bftWeight: {
+						dataType: 'uint64',
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+		certificateThreshold: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+	},
+};
+
+export const validatorsHashInputSchema = {
+	$id: 'modules/interoperability/validatorsHashInput',
+	type: 'object',
+	required: ['activeValidators', 'certificateThreshold'],
+	properties: {
+		activeValidators: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['blsKey', 'bftWeight'],
+				properties: {
+					blsKey: { dataType: 'bytes', fieldNumber: 1 },
+					bftWeight: { dataType: 'uint64', fieldNumber: 2 },
+				},
+			},
+		},
+		certificateThreshold: { dataType: 'uint64', fieldNumber: 2 },
+	},
+};
+
+export const registrationSignatureMessageSchema = {
+	$id: '/modules/interoperability/sidechain/registration_signature_message',
+	type: 'object',
+	required: ['ownChainID', 'ownName', 'mainchainValidators'],
+	properties: {
+		ownChainID: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		ownName: {
+			dataType: 'string',
+			fieldNumber: 2,
+		},
+		mainchainValidators: {
+			type: 'array',
+			fieldNumber: 3,
+			items: {
+				type: 'object',
+				required: ['blsKey', 'bftWeight'],
+				properties: {
+					blsKey: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					bftWeight: {
+						dataType: 'uint64',
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+	},
+};

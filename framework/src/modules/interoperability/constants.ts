@@ -12,17 +12,24 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { hash } from '@liskhq/lisk-cryptography';
+
 export const MODULE_ID_INTEROPERABILITY = 64;
 export const MODULE_NAME_INTEROPERABILITY = 'interoperability';
 
 // General constants
 export const MAINCHAIN_ID = 1;
 export const MAINCHAIN_NAME = 'lisk-mainchain';
+export const MAINCHAIN_NETWORK_ID = Buffer.from(
+	'03693f3126b9d0df3096c4ebd59e5c42af4a7f0e313cd7c96a07b6e9f8f54924',
+	'hex',
+); // TBD
 export const TAG_CHAIN_REG_MESSAGE = 'LSK_CHAIN_REGISTRATION';
 export const LIVENESS_LIMIT = 2592000; // 30*24*3600
 export const MAX_CCM_SIZE = 10240;
 export const EMPTY_FEE_ADDRESS = Buffer.alloc(0);
 export const EMPTY_BYTES = Buffer.alloc(0);
+export const EMPTY_HASH = hash(EMPTY_BYTES);
 export const REGISTRATION_FEE = BigInt(1000000000);
 export const MAX_NUM_VALIDATORS = 199;
 export const MAX_LENGTH_NAME = 40;
