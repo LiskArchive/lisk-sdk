@@ -33,6 +33,7 @@ export const CCM_STATUS_MIN_BALANCE_NOT_REACHED = 66;
 
 export const MIN_BALANCE = BigInt(5000000);
 
+export const ADDRESS_LENGTH = 20;
 export const CHAIN_ID_LENGTH = 4;
 export const LOCAL_ID_LENGTH = 4;
 export const TOKEN_ID_LENGTH = CHAIN_ID_LENGTH + LOCAL_ID_LENGTH;
@@ -48,3 +49,5 @@ export const defaultConfig = {
 	],
 	supportedTokenIDs: [],
 };
+
+export const EMPTY_BYTES = Buffer.alloc(0);

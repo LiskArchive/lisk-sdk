@@ -63,6 +63,7 @@ export class TokenModule extends BaseModule {
 			amount: BigInt(mb.amount),
 		}));
 		this.api.init({ minBalances: this._minBalances });
+		this.endpoint.init(this.api, config.supportedTokenIDs);
 		this._transferCommand.init({
 			api: this.api,
 		});

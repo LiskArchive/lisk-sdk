@@ -17,7 +17,7 @@ export { TransactionContext } from './transaction_context';
 export { BlockContext } from './block_context';
 export { GenesisBlockContext } from './genesis_block_context';
 export { EventQueue } from './event_queue';
-export { createAPIContext } from './api_context';
+export { createAPIContext, createImmutableAPIContext } from './api_context';
 export {
 	APIContext,
 	BlockHeader,
