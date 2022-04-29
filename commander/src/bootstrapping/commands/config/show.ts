@@ -41,6 +41,7 @@ export class ShowCommand extends Command {
 
 	async run(): Promise<void> {
 		const { flags } = this.parse(ShowCommand);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const dataPath = flags['data-path']
 			? flags['data-path']
 			: getDefaultPath(this.config.pjson.name);
@@ -50,6 +51,7 @@ export class ShowCommand extends Command {
 		const configDir = getConfigDirs(dataPath);
 		// If config file exist, do not copy unless overwrite-config is specified
 		if (configDir.length !== 1) {
+			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 			this.error(`Folder in ${dataPath} does not contain valid config`);
 		}
 		// If genesis block file exist, do not copy unless overwrite-config is specified

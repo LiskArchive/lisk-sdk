@@ -2199,6 +2199,7 @@ Object {
       ],
       "offset": 2160,
     },
+    "roundLength": 103,
     "standbyDelegates": 2,
   },
   "label": "devnet",

@@ -51,7 +51,7 @@ describe('Temp block', () => {
 	describe('given a blockchain with more than 3 rounds', () => {
 		describe('when deleting 100 blocks and saving to the temp blocks chain', () => {
 			it('should successfully store to temp block and restore from temp block', async () => {
-				const targetHeight = processEnv.getLastBlock().header.height + chain.numberOfValidators * 3;
+				const targetHeight = processEnv.getLastBlock().header.height + chain.roundLength * 3;
 				while (chain.lastBlock.header.height < targetHeight) {
 					const genesisAccount = await chain.dataAccess.getAccountByAddress<DefaultAccountProps>(
 						genesis.address,
@@ -83,7 +83,7 @@ describe('Temp block', () => {
 			});
 
 			it('should successfully store to temp block and build new chain on top', async () => {
-				const targetHeight = chain.lastBlock.header.height + chain.numberOfValidators * 3;
+				const targetHeight = chain.lastBlock.header.height + chain.roundLength * 3;
 				while (chain.lastBlock.header.height < targetHeight) {
 					const genesisAccount = await chain.dataAccess.getAccountByAddress<DefaultAccountProps>(
 						genesis.address,

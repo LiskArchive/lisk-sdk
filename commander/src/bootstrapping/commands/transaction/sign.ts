@@ -45,7 +45,9 @@ interface SignFlags {
 	'network-identifier': string | undefined;
 	passphrase: string | undefined;
 	'include-sender': boolean;
-	offline: boolean;
+	offline?: boolean;
+	json?: boolean;
+	pretty?: boolean;
 	'data-path': string | undefined;
 	'sender-public-key': string | undefined;
 	'mandatory-keys': string[];
@@ -178,7 +180,7 @@ export abstract class SignCommand extends Command {
 		},
 	];
 
-	static flags = {
+	static flags: flagParser.Input<SignFlags> = {
 		passphrase: flagsWithParser.passphrase,
 		json: flagsWithParser.json,
 		offline: {
@@ -257,7 +259,7 @@ export abstract class SignCommand extends Command {
 		}
 	}
 
-	printJSON(pretty: boolean, message?: Record<string, unknown>): void {
+	printJSON(pretty?: boolean, message?: Record<string, unknown>): void {
 		if (pretty) {
 			this.log(JSON.stringify(message, undefined, '  '));
 		} else {

@@ -44,7 +44,7 @@ describe('FinalityManager', () => {
 				dataAccess: {
 					getConsensusState: jest.fn(),
 				},
-				numberOfValidators: 103,
+				roundLength: 103,
 			} as unknown) as Chain;
 			stateStore = (new StateStoreMock() as unknown) as StateStore;
 		});

@@ -15,8 +15,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { debug } from 'debug';
 import levelup, { LevelUp } from 'levelup';
-import rocksDB from 'rocksdb';
 import { NotFoundError } from './errors';
+
+// rocksdb removed the default export. However, @types/rocksdb still only exposes default.
+// Therefore, temporarily require with below syntax.
+// eslint-disable-next-line import/order
+import rocksDB = require('rocksdb');
 
 const logger = debug('db');
 
@@ -44,7 +48,7 @@ export interface ReadStreamOptions extends Options {
 }
 
 export class KVStore {
-	private readonly _db: LevelUp<rocksDB>;
+	private readonly _db: LevelUp<unknown>;
 
 	public constructor(filePath: string) {
 		logger('opening file', { filePath });
@@ -52,7 +56,8 @@ export class KVStore {
 		if (!fs.existsSync(parentDir)) {
 			throw new Error(`${parentDir} does not exist`);
 		}
-		this._db = levelup(rocksDB(filePath));
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-explicit-any
+		this._db = levelup((rocksDB as any)(filePath));
 	}
 
 	public async close(): Promise<void> {

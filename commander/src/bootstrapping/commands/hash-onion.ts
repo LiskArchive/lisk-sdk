@@ -32,17 +32,17 @@ export class HashOnionCommand extends Command {
 		output: flagParser.string({
 			char: 'o',
 			description: 'Output file path',
-		}),
+		}) as flagParser.IFlag<string | undefined>,
 		count: flagParser.integer({
 			char: 'c',
 			description: 'Total number of hashes to produce',
 			default: 1000000,
-		}),
+		}) as flagParser.IFlag<number>,
 		distance: flagParser.integer({
 			char: 'd',
 			description: 'Distance between each hashes',
 			default: 1000,
-		}),
+		}) as flagParser.IFlag<number>,
 		pretty: flagsWithParser.pretty,
 	};
 

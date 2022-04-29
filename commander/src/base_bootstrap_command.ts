@@ -21,7 +21,7 @@ interface BootstrapFlags {
 }
 
 export default abstract class BaseBootstrapCommand extends Command {
-	static flags = {
+	static flags: flagParser.Input<any> = {
 		template: flagParser.string({
 			char: 't',
 			description:

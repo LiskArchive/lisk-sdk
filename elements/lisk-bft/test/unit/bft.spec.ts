@@ -71,7 +71,7 @@ describe('bft', () => {
 				dataAccess: {
 					getConsensusState: jest.fn(),
 				},
-				numberOfValidators: 103,
+				roundLength: 103,
 			} as unknown) as Chain;
 
 			threshold = 68;

@@ -53,6 +53,7 @@ describe('chain', () => {
 		networkIdentifier: defaultNetworkIdentifier,
 		minFeePerByte: 1000,
 		baseFees: [],
+		roundLength: 103,
 	};
 	const emptyEncodedDiff = codec.encode(stateDiffSchema, {
 		created: [],
@@ -147,13 +148,11 @@ describe('chain', () => {
 			chainInstance['_lastBlock'] = createValidDefaultBlock({
 				header: { height: 1 },
 			});
-			chainInstance['_numberOfValidators'] = 103;
 			await chainInstance.newStateStore();
 			expect(chainInstance.dataAccess.getBlockHeadersByHeightBetween).toHaveBeenCalledWith(0, 1);
 		});
 
 		it('should return with the chain state with lastBlock.height to lastBlock.height - 309', async () => {
-			chainInstance['_numberOfValidators'] = 103;
 			await chainInstance.newStateStore();
 			expect(chainInstance.dataAccess.getBlockHeadersByHeightBetween).toHaveBeenCalledWith(
 				chainInstance.lastBlock.header.height - 309,
@@ -162,7 +161,6 @@ describe('chain', () => {
 		});
 
 		it('should get the rewards of the last block', async () => {
-			chainInstance['_numberOfValidators'] = 103;
 			const stateStore = await chainInstance.newStateStore();
 
 			expect(stateStore.chain.lastBlockReward.toString()).toEqual(
@@ -171,7 +169,6 @@ describe('chain', () => {
 		});
 
 		it('should return with the chain state with lastBlock.height to lastBlock.height - 310', async () => {
-			chainInstance['_numberOfValidators'] = 103;
 			await chainInstance.newStateStore(1);
 			expect(chainInstance.dataAccess.getBlockHeadersByHeightBetween).toHaveBeenCalledWith(
 				chainInstance.lastBlock.header.height - 310,
@@ -441,7 +438,7 @@ describe('chain', () => {
 				height: 0,
 				initRounds: 3,
 			});
-			chainInstance['_numberOfValidators'] = 103;
+
 			when(db.get)
 				.calledWith(`consensus:${CONSENSUS_STATE_VALIDATORS_KEY}`)
 				.mockResolvedValue(validatorBuffer as never)

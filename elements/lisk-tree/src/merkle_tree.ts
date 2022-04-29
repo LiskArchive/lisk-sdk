@@ -241,7 +241,7 @@ export class MerkleTree {
 	public clear(): void {
 		this._width = 0;
 		this._root = EMPTY_HASH;
-		this._hashToValueMap = { [this._root.toString('2')]: Buffer.alloc(0) };
+		this._hashToValueMap = { [this._root.toString('binary')]: Buffer.alloc(0) };
 	}
 
 	public toString(): string {

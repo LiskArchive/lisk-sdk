@@ -6,6 +6,9 @@ declare module 'pm2-axon' {
 	import NetSocket = NodeJS.Socket;
 
 	export class Socket extends EventEmitter {
+		public on(name: string, val: any): void;
+		public removeAllListeners(name?: string): void;
+
 		public set(name: string, val: any): Socket;
 
 		public get(name: string): any;

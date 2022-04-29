@@ -29,6 +29,7 @@ Object {
           ],
           "offset": 2160,
         },
+        "roundLength": 103,
       },
       "label": "beta-sdk-app",
       "logger": Object {
@@ -206,12 +207,18 @@ Object {
             ],
             "type": "object",
           },
+          "roundLength": Object {
+            "description": "Number of slots in a round",
+            "minimum": 1,
+            "type": "number",
+          },
         },
         "required": Array [
           "blockTime",
           "communityIdentifier",
           "maxPayloadLength",
           "rewards",
+          "roundLength",
         ],
         "type": "object",
       },

@@ -77,7 +77,7 @@ export abstract class GetCommand extends BaseIPCClientCommand {
 					this.error('Block with given id or height was not found.');
 				}
 			} else {
-				this.error(errorMessage);
+				this.error(errorMessage as string);
 			}
 		}
 	}

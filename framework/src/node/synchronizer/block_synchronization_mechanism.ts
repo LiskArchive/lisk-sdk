@@ -122,7 +122,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		);
 		const finalizedBlockSlot = this._chain.slots.getSlotNumber(finalizedBlock.timestamp);
 		const currentBlockSlot = this._chain.slots.getSlotNumber();
-		const threeRounds = this._chain.numberOfValidators * 3;
+		const threeRounds = this._chain.roundLength * 3;
 
 		return currentBlockSlot - finalizedBlockSlot > threeRounds;
 	}
@@ -372,10 +372,8 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 
 		let numberOfRequests = 1; // Keeps track of the number of requests made to the remote peer
 		let highestCommonBlock; // Holds the common block returned by the peer if found.
-		let currentRound = Math.ceil(
-			this._chain.lastBlock.header.height / this._chain.numberOfValidators,
-		); // Holds the current round number
-		let currentHeight = currentRound * this._chain.numberOfValidators;
+		let currentRound = Math.ceil(this._chain.lastBlock.header.height / this._chain.roundLength); // Holds the current round number
+		let currentHeight = currentRound * this._chain.roundLength;
 
 		while (
 			!highestCommonBlock &&
@@ -384,7 +382,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 		) {
 			const heightList = computeBlockHeightsList(
 				this.bft.finalizedHeight,
-				this._chain.numberOfValidators,
+				this._chain.roundLength,
 				blocksPerRequestLimit,
 				currentRound,
 			);
@@ -408,7 +406,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			highestCommonBlock = data; // If no common block, data is undefined.
 
 			currentRound -= blocksPerRequestLimit;
-			currentHeight = currentRound * this._chain.numberOfValidators;
+			currentHeight = currentRound * this._chain.roundLength;
 		}
 
 		return highestCommonBlock;
