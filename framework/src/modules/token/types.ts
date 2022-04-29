@@ -49,7 +49,7 @@ export interface GenesisTokenStore {
 		amount: bigint;
 	}[];
 	availableLocalIDSubstore: {
-		nextAvailableLocalID: number;
+		nextAvailableLocalID: Buffer;
 	};
 	terminatedEscrowSubstore: Buffer[];
 }

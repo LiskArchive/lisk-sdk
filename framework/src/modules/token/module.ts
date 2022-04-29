@@ -18,6 +18,7 @@ import {
 	CHAIN_ID_ALIAS_NATIVE,
 	defaultConfig,
 	EMPTY_BYTES,
+	LOCAL_ID_LENGTH,
 	MODULE_ID_TOKEN,
 	STORE_PREFIX_AVAILABLE_LOCAL_ID,
 	STORE_PREFIX_ESCROW,
@@ -95,7 +96,7 @@ export class TokenModule extends BaseModule {
 		const userStore = context.getStore(this.id, STORE_PREFIX_USER);
 		const copiedUserStore = [...genesisStore.userSubstore];
 		copiedUserStore.sort((a, b) => {
-			if (a.address.equals(b.address)) {
+			if (!a.address.equals(b.address)) {
 				return a.address.compare(b.address);
 			}
 			return a.tokenID.compare(b.tokenID);
@@ -118,7 +119,7 @@ export class TokenModule extends BaseModule {
 			// Validate sorting of userSubstore
 			if (
 				!userData.address.equals(copiedUserStore[i].address) ||
-				!userData.tokenID.equals(copiedUserStore[i].address)
+				!userData.tokenID.equals(copiedUserStore[i].tokenID)
 			) {
 				throw new Error('UserSubstore must be sorted by address and tokenID.');
 			}
@@ -204,7 +205,7 @@ export class TokenModule extends BaseModule {
 			escrowKeySet.add(key);
 			// validate terminated escrow chain ID/local ID order
 			if (
-				escrowData.escrowChainID.equals(copiedEscrowStore[i].escrowChainID) ||
+				!escrowData.escrowChainID.equals(copiedEscrowStore[i].escrowChainID) ||
 				!escrowData.localID.equals(copiedEscrowStore[i].localID)
 			) {
 				throw new Error('EscrowSubstore must be sorted by escrowChainID and localID.');
@@ -284,10 +285,10 @@ export class TokenModule extends BaseModule {
 		const storedSupply = new dataStructures.BufferMap<bigint>();
 		const allSupplies = await supplyStore.iterateWithSchema<SupplyStoreData>(
 			{
-				start: Buffer.alloc(2, 0),
-				end: Buffer.alloc(2, 255),
+				start: Buffer.alloc(LOCAL_ID_LENGTH, 0),
+				end: Buffer.alloc(LOCAL_ID_LENGTH, 255),
 			},
-			escrowStoreSchema,
+			supplyStoreSchema,
 		);
 		const maxLocalID = allSupplies[allSupplies.length - 1].key;
 		for (const { key, value } of allSupplies) {
@@ -315,7 +316,7 @@ export class TokenModule extends BaseModule {
 		);
 		// If maxLocalID is larger than nextAvailableLocalID, it is invalid
 		if (maxLocalID.compare(nextAvailableLocalID) > 0) {
-			throw new Error('Native token local ID is higher than next availableLocalID');
+			throw new Error('Max token local ID is higher than next availableLocalID');
 		}
 	}
 }

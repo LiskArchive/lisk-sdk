@@ -1,3 +1,5 @@
+import { genesisTokenStoreSchema } from '../../modules/token';
+
 /*
  * Copyright © 2021 Lisk Foundation
  *
@@ -693,75 +695,16 @@ export const blockAssetsJSON = [
 			supplySubstore: [
 				{
 					localID: '00000000',
-					totalSupply: '1000000000000000',
+					totalSupply: '1120000000000000',
 				},
 			],
-		},
-		schema: {
-			$id: '/token/module/genesis',
-			type: 'object',
-			required: ['userSubstore'],
-			properties: {
-				userSubstore: {
-					type: 'array',
-					fieldNumber: 1,
-					items: {
-						type: 'object',
-						required: ['address', 'tokenID', 'availableBalance', 'lockedBalances'],
-						properties: {
-							address: {
-								dataType: 'bytes',
-								fieldNumber: 1,
-							},
-							tokenID: {
-								dataType: 'bytes',
-								fieldNumber: 2,
-							},
-							availableBalance: {
-								dataType: 'uint64',
-								fieldNumber: 3,
-							},
-							lockedBalances: {
-								type: 'array',
-								fieldNumber: 4,
-								items: {
-									type: 'object',
-									required: ['moduleID', 'amount'],
-									properties: {
-										moduleID: {
-											dataType: 'uint32',
-											fieldNumber: 1,
-										},
-										amount: {
-											dataType: 'uint64',
-											fieldNumber: 2,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-				supplySubstore: {
-					type: 'array',
-					fieldNumber: 2,
-					items: {
-						type: 'object',
-						required: ['localID', 'totalSupply'],
-						properties: {
-							localID: {
-								dataType: 'bytes',
-								fieldNumber: 1,
-							},
-							totalSupply: {
-								dataType: 'uint64',
-								fieldNumber: 2,
-							},
-						},
-					},
-				},
+			escrowSubstore: [],
+			availableLocalIDSubstore: {
+				nextAvailableLocalID: '00000000',
 			},
+			terminatedEscrowSubstore: [],
 		},
+		schema: genesisTokenStoreSchema,
 	},
 	{
 		moduleID: 13,

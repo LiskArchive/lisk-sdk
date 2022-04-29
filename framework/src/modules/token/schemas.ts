@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { TOKEN_ID_LENGTH } from './constants';
+import { CHAIN_ID_LENGTH, LOCAL_ID_LENGTH, TOKEN_ID_LENGTH } from './constants';
 
 export const configSchema = {
 	$id: '/token/config',
@@ -347,8 +347,8 @@ export const genesisTokenStoreSchema = {
 					tokenID: {
 						dataType: 'bytes',
 						fieldNumber: 2,
-						minLength: 6,
-						maxLength: 6,
+						minLength: TOKEN_ID_LENGTH,
+						maxLength: TOKEN_ID_LENGTH,
 					},
 					availableBalance: {
 						dataType: 'uint64',
@@ -385,8 +385,8 @@ export const genesisTokenStoreSchema = {
 					localID: {
 						dataType: 'bytes',
 						fieldNumber: 1,
-						minLength: 2,
-						maxLength: 2,
+						minLength: LOCAL_ID_LENGTH,
+						maxLength: LOCAL_ID_LENGTH,
 					},
 					totalSupply: {
 						dataType: 'uint64',
@@ -405,14 +405,14 @@ export const genesisTokenStoreSchema = {
 					escrowChainID: {
 						dataType: 'bytes',
 						fieldNumber: 1,
-						minLength: 4,
-						maxLength: 4,
+						minLength: CHAIN_ID_LENGTH,
+						maxLength: CHAIN_ID_LENGTH,
 					},
 					localID: {
-						dataType: 'uint32',
+						dataType: 'bytes',
 						fieldNumber: 2,
-						minLength: 2,
-						maxLength: 2,
+						minLength: LOCAL_ID_LENGTH,
+						maxLength: LOCAL_ID_LENGTH,
 					},
 					amount: {
 						dataType: 'uint64',
@@ -429,8 +429,8 @@ export const genesisTokenStoreSchema = {
 				nextAvailableLocalID: {
 					dataType: 'bytes',
 					fieldNumber: 1,
-					minLength: 2,
-					maxLength: 2,
+					minLength: LOCAL_ID_LENGTH,
+					maxLength: LOCAL_ID_LENGTH,
 				},
 			},
 		},
@@ -438,9 +438,9 @@ export const genesisTokenStoreSchema = {
 			type: 'array',
 			fieldNumber: 5,
 			items: {
-				type: 'bytes',
-				minLength: 4,
-				maxLength: 4,
+				dataType: 'bytes',
+				minLength: CHAIN_ID_LENGTH,
+				maxLength: CHAIN_ID_LENGTH,
 			},
 		},
 	},
