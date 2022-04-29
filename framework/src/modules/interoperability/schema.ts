@@ -487,6 +487,7 @@ export const nameSchema = {
 	},
 };
 
+// Note: Changed to lower-case `id` as ajv requires it
 export const chainIDSchema = {
 	$id: 'modules/interoperability/chainId',
 	type: 'object',
