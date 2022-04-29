@@ -601,25 +601,31 @@ describe('Sidechain registration command', () => {
 		});
 
 		it('should add an entry to registered names substore', async () => {
+			// Arrange
+			const expectedValue = { id: newChainID };
+
 			// Act
 			await sidechainRegistrationCommand.execute(context);
 
 			// Assert
 			expect(registeredNamesSubstore.setWithSchema).toHaveBeenCalledWith(
 				Buffer.from(params.name, 'utf-8'),
-				newChainID,
+				expectedValue,
 				chainIDSchema,
 			);
 		});
 
 		it('should add an entry to registered network IDs substore', async () => {
+			// Arrange
+			const expectedValue = { id: newChainID };
+
 			// Act
 			await sidechainRegistrationCommand.execute(context);
 
 			// Assert
 			expect(registeredNetworkIDsSubstore.setWithSchema).toHaveBeenCalledWith(
 				networkID,
-				newChainID,
+				expectedValue,
 				chainIDSchema,
 			);
 		});
