@@ -488,11 +488,11 @@ export const nameSchema = {
 };
 
 export const chainIDSchema = {
-	$id: 'modules/interoperability/chainID',
+	$id: 'modules/interoperability/chainId',
 	type: 'object',
-	required: ['ID'],
+	required: ['id'],
 	properties: {
-		ID: {
+		id: {
 			dataType: 'uint32',
 			fieldNumber: 1,
 		},
