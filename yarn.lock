@@ -2515,45 +2515,6 @@
   dependencies:
     "@types/node" "11.11.2"
 
-"@liskhq/lisk-codec@0.2.2-alpha.0":
-  version "0.2.2-alpha.0"
-  resolved "https://npm.lisk.com/@liskhq%2flisk-codec/-/lisk-codec-0.2.2-alpha.0.tgz#6e414b8540f348f12a43edf972e50c19b312c400"
-  integrity sha512-5b/BPEhrXXgbNb7JrXdiDlmV55kt4dtArUtuzYo789MWPGTKTdsBRsF5Mja/66Zpxoeu9N8lREOevwwbNWdu9Q==
-  dependencies:
-    "@liskhq/lisk-utils" "^0.2.1-alpha.0"
-    "@liskhq/lisk-validator" "^0.6.2-alpha.0"
-
-"@liskhq/lisk-cryptography@3.2.1-alpha.0":
-  version "3.2.1-alpha.0"
-  resolved "https://npm.lisk.com/@liskhq%2flisk-cryptography/-/lisk-cryptography-3.2.1-alpha.0.tgz#645a8f901912d973847c4f1205d849f771a638ae"
-  integrity sha512-IoX3/k6sz//eT6eEC47fZ0TVFsoJoSwNMfAgM94XAlrCIWUOrM2s9L2rGY+iNrqvLzz5y0BCwULQcRDPqhNBGA==
-  dependencies:
-    buffer-reverse "1.0.1"
-    ed2curve "0.3.0"
-    tweetnacl "1.0.3"
-    varuint-bitcoin "1.1.2"
-  optionalDependencies:
-    sodium-native "3.2.1"
-
-"@liskhq/lisk-passphrase@3.1.1-alpha.0":
-  version "3.1.1-alpha.0"
-  resolved "https://npm.lisk.com/@liskhq%2flisk-passphrase/-/lisk-passphrase-3.1.1-alpha.0.tgz#7ca4a28b2ccfc912c223b2ddad4afd87e0669b0d"
-  integrity sha512-KpyViYG/Gp0IQ2eknF0xnQ2Pgt15b3+CrMsiwN+Jzy+rsQPhoFC0yDZXT/1SXH/mQnf2PANwOgsTLz63pPbMNw==
-  dependencies:
-    bip39 "3.0.4"
-
-"@liskhq/lisk-validator@0.6.2-alpha.0":
-  version "0.6.2-alpha.0"
-  resolved "https://npm.lisk.com/@liskhq%2flisk-validator/-/lisk-validator-0.6.2-alpha.0.tgz#57c8e9f1275f58e7d3348a728b230d1dfadf6684"
-  integrity sha512-7JWqbQcxgd64bSKT6sP9qEnbYiHGgU5noE8rQ1NCDzMOf5pIfVQVsrkC947sD3Eib+3psFLMtajQ79zRiqJHmQ==
-  dependencies:
-    "@liskhq/lisk-cryptography" "^3.2.1-alpha.0"
-    ajv "8.1.0"
-    ajv-formats "2.0.2"
-    debug "4.3.4"
-    semver "7.3.5"
-    validator "13.7.0"
-
 "@nodelib/fs.scandir@2.1.3":
   version "2.1.3"
   resolved "https://registry.yarnpkg.com/@nodelib/fs.scandir/-/fs.scandir-2.1.3.tgz#3a582bdb53804c6ba6d146579c46e52130cf4a3b"
