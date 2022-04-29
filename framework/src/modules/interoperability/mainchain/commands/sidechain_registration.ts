@@ -268,8 +268,8 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		);
 		await registeredNamesSubstore.setWithSchema(
 			Buffer.from(name, 'utf-8'),
-			chainIDBuffer,
-			// Note: Same as chainID schema
+			{ id: chainIDBuffer },
+			// Note: Uses chainIDSchema
 			chainIDSchema,
 		);
 
@@ -280,8 +280,8 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		);
 		await registeredNetworkIDsSubstore.setWithSchema(
 			networkID,
-			chainIDBuffer,
-			// Note: Same as chainID schema
+			{ id: chainIDBuffer },
+			// Note: Uses chainIDSchema
 			chainIDSchema,
 		);
 	}
