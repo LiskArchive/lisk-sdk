@@ -488,7 +488,7 @@ export const nameSchema = {
 };
 
 export const chainIDSchema = {
-	$id: 'modules/interoperability/name',
+	$id: 'modules/interoperability/chainID',
 	type: 'object',
 	required: ['ID'],
 	properties: {
