@@ -24,7 +24,6 @@ import {
 	MAINCHAIN_ID,
 	MAINCHAIN_NAME,
 	MAINCHAIN_NETWORK_ID,
-	MAX_UINT32,
 	MODULE_ID_INTEROPERABILITY,
 	STORE_PREFIX_CHAIN_DATA,
 	STORE_PREFIX_CHAIN_VALIDATORS,
@@ -83,20 +82,13 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 	public async verify(
 		context: CommandVerifyContext<MainchainRegistrationParams>,
 	): Promise<VerificationResult> {
-		const { ownChainID, ownName, mainchainValidators } = context.params;
+		const { ownName, mainchainValidators } = context.params;
 		const errors = validator.validate(mainchainRegParams, context.params);
 
 		if (errors.length > 0) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new LiskValidationError(errors),
-			};
-		}
-
-		if (ownChainID > MAX_UINT32) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error(`Sidechain ID is invalid: ${ownChainID}`),
 			};
 		}
 
