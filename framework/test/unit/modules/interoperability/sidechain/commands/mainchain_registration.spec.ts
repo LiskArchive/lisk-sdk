@@ -12,26 +12,56 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import * as crypto from '@liskhq/lisk-cryptography';
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { LiskValidationError } from '@liskhq/lisk-validator';
+import { when } from 'jest-when';
 import * as testing from '../../../../../../src/testing';
 import { MainchainRegistrationCommand } from '../../../../../../src/modules/interoperability/sidechain/commands/mainchain_registration';
 import {
+	CHAIN_REGISTERED,
 	COMMAND_ID_MAINCHAIN_REG,
+	EMPTY_HASH,
+	MAINCHAIN_ID,
+	MAINCHAIN_NAME,
+	MAINCHAIN_NETWORK_ID,
 	MAX_UINT32,
 	MODULE_ID_INTEROPERABILITY,
+	STORE_PREFIX_CHAIN_DATA,
+	STORE_PREFIX_CHAIN_VALIDATORS,
+	STORE_PREFIX_CHANNEL_DATA,
+	STORE_PREFIX_OUTBOX_ROOT,
+	STORE_PREFIX_OWN_CHAIN_DATA,
+	TAG_CHAIN_REG_MESSAGE,
+	THRESHOLD_MAINCHAIN,
 } from '../../../../../../src/modules/interoperability/constants';
-import { mainchainRegParams } from '../../../../../../src/modules/interoperability/schema';
+import {
+	chainAccountSchema,
+	channelSchema,
+	mainchainRegParams,
+	outboxRootSchema,
+	ownChainAccountSchema,
+	registrationSignatureMessageSchema,
+	validatorsSchema,
+} from '../../../../../../src/modules/interoperability/schema';
 import {
 	ActiveValidators,
 	MainchainRegistrationParams,
 } from '../../../../../../src/modules/interoperability/types';
 import { VerifyStatus, CommandVerifyContext } from '../../../../../../src/node/state_machine';
-import { sortValidatorsByBLSKey } from '../../../../../../src/modules/interoperability/utils';
+import {
+	computeValidatorsHash,
+	getIDAsKeyForStore,
+	sortValidatorsByBLSKey,
+} from '../../../../../../src/modules/interoperability/utils';
+
+jest.mock('@liskhq/lisk-cryptography', () => ({
+	...jest.requireActual('@liskhq/lisk-cryptography'),
+}));
 
 describe('Mainchain registration command', () => {
+	const { getRandomBytes } = crypto;
 	const unsortedMainchainValidators: ActiveValidators[] = [];
 	for (let i = 0; i < 101; i += 1) {
 		unsortedMainchainValidators.push({ blsKey: getRandomBytes(48), bftWeight: BigInt(1) });
@@ -151,6 +181,246 @@ describe('Mainchain registration command', () => {
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude('Validator bft weight must be equal to 1');
+		});
+	});
+
+	describe('execute', () => {
+		const mainchainIdAsKey = getIDAsKeyForStore(MAINCHAIN_ID);
+		const params = {
+			ownChainID: 11,
+			ownName: 'testchain',
+			mainchainValidators,
+			aggregationBits: Buffer.alloc(0),
+			signature: Buffer.alloc(0),
+		};
+		const chainAccount = {
+			name: MAINCHAIN_NAME,
+			networkID: MAINCHAIN_NETWORK_ID,
+			lastCertificate: {
+				height: 0,
+				timestamp: 0,
+				stateRoot: EMPTY_HASH,
+				validatorsHash: computeValidatorsHash(mainchainValidators, BigInt(THRESHOLD_MAINCHAIN)),
+			},
+			status: CHAIN_REGISTERED,
+		};
+		const bftParams = {
+			prevoteThreshold: BigInt(20),
+			precommitThreshold: BigInt(30),
+			certificateThreshold: BigInt(40),
+			validators: [
+				{
+					address: getRandomBytes(20),
+					bftWeight: BigInt(10),
+				},
+				{
+					address: getRandomBytes(20),
+					bftWeight: BigInt(5),
+				},
+			],
+			validatorsHash: getRandomBytes(32),
+		};
+		const blsKey1 = getRandomBytes(48);
+		const blsKey2 = getRandomBytes(48);
+		const validatorAccounts = [
+			{
+				generatorKey: getRandomBytes(48),
+				blsKey: blsKey1 < blsKey2 ? blsKey1 : blsKey2,
+			},
+			{
+				generatorKey: getRandomBytes(48),
+				blsKey: blsKey1 < blsKey2 ? blsKey2 : blsKey1,
+			},
+		];
+		const mockBFTAPI = {
+			getBFTParameters: jest.fn(),
+		};
+		const mockValidatorsAPI = {
+			getValidatorAccount: jest.fn(),
+		};
+		const mockGetStore = jest.fn();
+		const context = {
+			logger: jest.fn(),
+			eventQueue: jest.fn(),
+			networkIdentifier: Buffer.alloc(0),
+			header: {},
+			assets: {},
+			transaction,
+			params,
+			getAPIContext: jest.fn(),
+			getStore: mockGetStore,
+		} as any;
+		const chainSubstore = {
+			setWithSchema: jest.fn(),
+		};
+		const channelSubstore = {
+			setWithSchema: jest.fn(),
+		};
+		const validatorsSubstore = {
+			setWithSchema: jest.fn(),
+		};
+		const outboxRootSubstore = { setWithSchema: jest.fn() };
+		const ownChainAccountSubstore = {
+			setWithSchema: jest.fn(),
+		};
+		const sendInternal = jest.fn();
+
+		beforeEach(() => {
+			mainchainRegistrationCommand.addDependencies({
+				bftAPI: mockBFTAPI,
+				validatorsAPI: mockValidatorsAPI,
+			});
+			mainchainRegistrationCommand['getInteroperabilityStore'] = jest
+				.fn()
+				.mockReturnValue({ sendInternal });
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA)
+				.mockReturnValue(chainSubstore);
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA)
+				.mockReturnValue(channelSubstore);
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_VALIDATORS)
+				.mockReturnValue(validatorsSubstore);
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_OUTBOX_ROOT)
+				.mockReturnValue(outboxRootSubstore);
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_OWN_CHAIN_DATA)
+				.mockReturnValue(ownChainAccountSubstore);
+
+			const spyValidators = jest.spyOn(
+				mainchainRegistrationCommand['_validatorsAPI'],
+				'getValidatorAccount',
+			);
+			when(spyValidators)
+				.calledWith(context.getAPIContext(), bftParams.validators[0].address)
+				.mockResolvedValue(validatorAccounts[0]);
+			when(spyValidators)
+				.calledWith(context.getAPIContext(), bftParams.validators[1].address)
+				.mockResolvedValue(validatorAccounts[1]);
+
+			jest
+				.spyOn(mainchainRegistrationCommand['_bftAPI'], 'getBFTParameters')
+				.mockResolvedValue(bftParams);
+		});
+
+		it('should call verifyWeightedAggSig with appropriate parameters', async () => {
+			// Arrange
+			const message = codec.encode(registrationSignatureMessageSchema, {
+				ownChainID: params.ownChainID,
+				ownName: params.ownName,
+				mainchainValidators,
+			});
+
+			const keyList = [validatorAccounts[0].blsKey, validatorAccounts[1].blsKey];
+			const weights = [bftParams.validators[0].bftWeight, bftParams.validators[1].bftWeight];
+
+			jest.spyOn(crypto, 'verifyWeightedAggSig');
+
+			// Act
+			await mainchainRegistrationCommand.execute(context);
+
+			// Assert
+			expect(crypto.verifyWeightedAggSig).toHaveBeenCalledWith(
+				keyList,
+				params.aggregationBits,
+				params.signature,
+				TAG_CHAIN_REG_MESSAGE,
+				context.networkIdentifier,
+				message,
+				weights,
+				bftParams.certificateThreshold,
+			);
+		});
+
+		it('should add an entry to chain account substore', async () => {
+			// Act
+			await mainchainRegistrationCommand.execute(context);
+
+			// Assert
+			expect(chainSubstore.setWithSchema).toHaveBeenCalledWith(
+				mainchainIdAsKey,
+				chainAccount,
+				chainAccountSchema,
+			);
+		});
+
+		it('should add an entry to channel account substore', async () => {
+			// Arrange
+			const expectedValue = {
+				inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
+				outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
+				partnerChainOutboxRoot: EMPTY_HASH,
+				messageFeeTokenID: { chainID: MAINCHAIN_ID, localID: 0 },
+			};
+
+			// Act
+			await mainchainRegistrationCommand.execute(context);
+
+			// Assert
+			expect(channelSubstore.setWithSchema).toHaveBeenCalledWith(
+				mainchainIdAsKey,
+				expectedValue,
+				channelSchema,
+			);
+		});
+
+		it('should call sendInternal with a registration ccm', async () => {
+			// Act
+			await mainchainRegistrationCommand.execute(context);
+
+			// Assert
+			// Due to `timestamp` difference for input object on test run between execution and expectation, we only checking that it was called
+			expect(sendInternal).toHaveBeenCalled();
+		});
+
+		it('should add an entry to chain validators substore', async () => {
+			// Arrange
+			const expectedValue = {
+				mainchainValidators: {
+					activeValidators: mainchainValidators,
+					certificateThreshold: THRESHOLD_MAINCHAIN,
+				},
+			};
+
+			// Act
+			await mainchainRegistrationCommand.execute(context);
+			expect(validatorsSubstore.setWithSchema).toHaveBeenCalledWith(
+				mainchainIdAsKey,
+				expectedValue,
+				validatorsSchema,
+			);
+		});
+
+		it('should add an entry to outbox root substore', async () => {
+			// Arrange
+			const expectedValue = { root: EMPTY_HASH };
+
+			// Act
+			await mainchainRegistrationCommand.execute(context);
+
+			// Assert
+			expect(outboxRootSubstore.setWithSchema).toHaveBeenCalledWith(
+				mainchainIdAsKey,
+				expectedValue,
+				outboxRootSchema,
+			);
+		});
+
+		it('should add an entry to registered names substore', async () => {
+			// Arrange
+			const expectedValue = { name: params.ownName, id: params.ownChainID, nonce: BigInt(0) };
+
+			// Act
+			await mainchainRegistrationCommand.execute(context);
+
+			// Assert
+			expect(ownChainAccountSubstore.setWithSchema).toHaveBeenCalledWith(
+				getIDAsKeyForStore(0),
+				expectedValue,
+				ownChainAccountSchema,
+			);
 		});
 	});
 });

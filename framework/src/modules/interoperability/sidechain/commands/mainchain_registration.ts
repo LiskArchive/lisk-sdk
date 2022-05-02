@@ -17,6 +17,7 @@ import { verifyWeightedAggSig } from '@liskhq/lisk-cryptography';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import {
 	CCM_STATUS_OK,
+	CHAIN_REGISTERED,
 	COMMAND_ID_MAINCHAIN_REG,
 	CROSS_CHAIN_COMMAND_ID_REGISTRATION,
 	EMPTY_FEE_ADDRESS,
@@ -179,15 +180,15 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 		await chainSubstore.setWithSchema(
 			mainchainIdAsKey,
 			{
-				MAINCHAIN_NAME,
-				MAINCHAIN_NETWORK_ID,
+				name: MAINCHAIN_NAME,
+				networkID: MAINCHAIN_NETWORK_ID,
 				lastCertificate: {
 					height: 0,
 					timestamp: 0,
 					stateRoot: EMPTY_HASH,
 					validatorsHash: computeValidatorsHash(mainchainValidators, BigInt(THRESHOLD_MAINCHAIN)),
 				},
-				status: 0,
+				status: CHAIN_REGISTERED,
 			},
 			chainAccountSchema,
 		);
@@ -207,8 +208,8 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 		const interoperabilityStore = this.getInteroperabilityStore(getStore);
 
 		const encodedParams = codec.encode(registrationCCMParamsSchema, {
-			MAINCHAIN_NETWORK_ID,
-			MAINCHAIN_NAME,
+			networkID: MAINCHAIN_NETWORK_ID,
+			name: MAINCHAIN_NAME,
 			messageFeeTokenID: { chainID: MAINCHAIN_ID, localID: 0 },
 		});
 		const ccm = {
@@ -239,7 +240,12 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 		);
 		await chainValidatorsSubstore.setWithSchema(
 			mainchainIdAsKey,
-			{ mainchainValidators: { activeValidators: mainchainValidators, THRESHOLD_MAINCHAIN } },
+			{
+				mainchainValidators: {
+					activeValidators: mainchainValidators,
+					certificateThreshold: THRESHOLD_MAINCHAIN,
+				},
+			},
 			validatorsSchema,
 		);
 
@@ -250,8 +256,11 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			outboxRootSchema,
 		);
 
-		const ownChainAccountStore = getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_OWN_CHAIN_DATA);
-		await ownChainAccountStore.setWithSchema(
+		const ownChainAccountSubstore = getStore(
+			MODULE_ID_INTEROPERABILITY,
+			STORE_PREFIX_OWN_CHAIN_DATA,
+		);
+		await ownChainAccountSubstore.setWithSchema(
 			getIDAsKeyForStore(0),
 			{ name: ownName, id: ownChainID, nonce: BigInt(0) },
 			ownChainAccountSchema,
