@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { TOKEN_ID_LENGTH } from './constants';
+import { ADDRESS_LENGTH, CHAIN_ID_LENGTH, MAX_DATA_LENGTH, TOKEN_ID_LENGTH } from './constants';
 
 export const configSchema = {
 	$id: '/token/config',
@@ -155,14 +155,14 @@ export const transferParamsSchema = {
 		recipientAddress: {
 			dataType: 'bytes',
 			fieldNumber: 3,
-			minLength: 20,
-			maxLength: 20,
+			minLength: ADDRESS_LENGTH,
+			maxLength: ADDRESS_LENGTH,
 		},
 		data: {
 			dataType: 'string',
 			fieldNumber: 4,
 			minLength: 0,
-			maxLength: 64,
+			maxLength: MAX_DATA_LENGTH,
 		},
 	},
 };
@@ -173,35 +173,32 @@ export const crossChainTransferParams = {
 	required: ['tokenID', 'amount', 'receivingChainID', 'recipientAddress', 'data', 'messageFee'],
 	properties: {
 		tokenID: {
-			type: 'object',
+			dataType: 'bytes',
 			fieldNumber: 1,
-			required: ['chainID', 'localID'],
-			properties: {
-				chainID: {
-					dataType: 'uint32',
-					fieldNumber: 1,
-				},
-				localID: {
-					dataType: 'uint32',
-					fieldNumber: 2,
-				},
-			},
+			minLength: TOKEN_ID_LENGTH,
+			maxLength: TOKEN_ID_LENGTH,
 		},
 		amount: {
 			dataType: 'uint64',
 			fieldNumber: 2,
 		},
 		receivingChainID: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 3,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 		},
 		recipientAddress: {
 			dataType: 'bytes',
 			fieldNumber: 4,
+			minLength: ADDRESS_LENGTH,
+			maxLength: ADDRESS_LENGTH,
 		},
 		data: {
 			dataType: 'string',
 			fieldNumber: 5,
+			minLength: 0,
+			maxLength: MAX_DATA_LENGTH,
 		},
 		messageFee: {
 			dataType: 'uint64',
@@ -216,19 +213,10 @@ export const crossChainTransferMessageParams = {
 	required: ['tokenID', 'amount', 'senderAddress', 'recipientAddress', 'data'],
 	properties: {
 		tokenID: {
-			type: 'object',
+			dataType: 'bytes',
 			fieldNumber: 1,
-			required: ['chainID', 'localID'],
-			properties: {
-				chainID: {
-					dataType: 'uint32',
-					fieldNumber: 1,
-				},
-				localID: {
-					dataType: 'uint32',
-					fieldNumber: 2,
-				},
-			},
+			minLength: TOKEN_ID_LENGTH,
+			maxLength: TOKEN_ID_LENGTH,
 		},
 		amount: {
 			dataType: 'uint64',
@@ -237,14 +225,20 @@ export const crossChainTransferMessageParams = {
 		senderAddress: {
 			dataType: 'bytes',
 			fieldNumber: 3,
+			minLength: ADDRESS_LENGTH,
+			maxLength: ADDRESS_LENGTH,
 		},
 		recipientAddress: {
 			dataType: 'bytes',
 			fieldNumber: 4,
+			minLength: ADDRESS_LENGTH,
+			maxLength: ADDRESS_LENGTH,
 		},
 		data: {
 			dataType: 'string',
 			fieldNumber: 5,
+			minLength: 0,
+			maxLength: MAX_DATA_LENGTH,
 		},
 	},
 };
@@ -263,19 +257,10 @@ export const crossChainForwardMessageParams = {
 	],
 	properties: {
 		tokenID: {
-			type: 'object',
+			dataType: 'bytes',
 			fieldNumber: 1,
-			required: ['chainID', 'localID'],
-			properties: {
-				chainID: {
-					dataType: 'uint32',
-					fieldNumber: 1,
-				},
-				localID: {
-					dataType: 'uint32',
-					fieldNumber: 2,
-				},
-			},
+			minLength: TOKEN_ID_LENGTH,
+			maxLength: TOKEN_ID_LENGTH,
 		},
 		amount: {
 			dataType: 'uint64',
@@ -284,18 +269,26 @@ export const crossChainForwardMessageParams = {
 		senderAddress: {
 			dataType: 'bytes',
 			fieldNumber: 3,
+			minLength: ADDRESS_LENGTH,
+			maxLength: ADDRESS_LENGTH,
 		},
 		forwardToChainID: {
 			dataType: 'bytes',
 			fieldNumber: 4,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 		},
 		recipientAddress: {
 			dataType: 'bytes',
 			fieldNumber: 5,
+			minLength: ADDRESS_LENGTH,
+			maxLength: ADDRESS_LENGTH,
 		},
 		data: {
 			dataType: 'string',
 			fieldNumber: 6,
+			minLength: 0,
+			maxLength: MAX_DATA_LENGTH,
 		},
 		forwardedMessageFee: {
 			dataType: 'uint64',

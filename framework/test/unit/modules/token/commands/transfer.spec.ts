@@ -42,6 +42,7 @@ describe('Transfer command', () => {
 	let command: TransferCommand;
 	let interopAPI: {
 		getOwnChainAccount: jest.Mock;
+		send: jest.Mock;
 	};
 
 	beforeEach(() => {
@@ -49,6 +50,7 @@ describe('Transfer command', () => {
 		command = new TransferCommand(moduleID);
 		interopAPI = {
 			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
+			send: jest.fn(),
 		};
 		const api = new TokenAPI(moduleID);
 		api.addDependencies(interopAPI);

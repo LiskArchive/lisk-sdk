@@ -18,6 +18,9 @@ export const COMMAND_ID_CROSS_CHAIN_TRANSFER = 1;
 export const CROSS_CHAIN_COMMAND_ID_TRANSFER = 0;
 export const CROSS_CHAIN_COMMAND_ID_FORWARD = 1;
 
+export const ADDRESS_LENGTH = 20;
+export const MAX_DATA_LENGTH = 64;
+
 export const MAX_TRANSACTION_AMOUNT = '9223372036854775807';
 export const DEFAULT_MIN_REMAINING_BALANCE = '5000000';
 
@@ -38,6 +41,7 @@ export const CHAIN_ID_LENGTH = 4;
 export const LOCAL_ID_LENGTH = 4;
 export const TOKEN_ID_LENGTH = CHAIN_ID_LENGTH + LOCAL_ID_LENGTH;
 export const LOCAL_ID_LSK = Buffer.alloc(LOCAL_ID_LENGTH, 0);
+export const TOKEN_ID_LSK = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
 export const CHAIN_ID_ALIAS_NATIVE = Buffer.alloc(CHAIN_ID_LENGTH, 0);
 
 export const defaultConfig = {

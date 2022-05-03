@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ImmutableAPIContext } from '../../node/state_machine';
+import { APIContext, ImmutableAPIContext } from '../../node/state_machine';
 
 export type TokenID = Buffer;
 
@@ -56,4 +56,14 @@ export interface GenesisTokenStore {
 
 export interface InteroperabilityAPI {
 	getOwnChainAccount(apiContext: ImmutableAPIContext): Promise<{ id: Buffer }>;
+	send(
+		apiContext: APIContext,
+		feeAddress: Buffer,
+		moduleID: number,
+		crossChainCommandID: number,
+		receivingChainID: Buffer,
+		fee: bigint,
+		status: number,
+		parameters: Buffer,
+	): Promise<boolean>;
 }
