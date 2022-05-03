@@ -116,7 +116,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			) {
 				return {
 					status: VerifyStatus.FAIL,
-					error: new Error('Validators blsKeys must be unique and lexigraphically ordered'),
+					error: new Error('Validators blsKeys must be unique and lexicographically ordered'),
 				};
 			}
 

@@ -151,7 +151,7 @@ describe('Mainchain registration command', () => {
 			);
 		});
 
-		it('should return error if bls keys are not lexigraphically ordered', async () => {
+		it('should return error if bls keys are not lexicographically ordered', async () => {
 			const temp = verifyContext.params.mainchainValidators[0].blsKey;
 			verifyContext.params.mainchainValidators[0].blsKey =
 				verifyContext.params.mainchainValidators[1].blsKey;
@@ -160,7 +160,7 @@ describe('Mainchain registration command', () => {
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(
-				'Validators blsKeys must be unique and lexigraphically ordered',
+				'Validators blsKeys must be unique and lexicographically ordered',
 			);
 		});
 
@@ -171,7 +171,7 @@ describe('Mainchain registration command', () => {
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(
-				'Validators blsKeys must be unique and lexigraphically ordered',
+				'Validators blsKeys must be unique and lexicographically ordered',
 			);
 		});
 
