@@ -43,6 +43,9 @@ describe('Transfer command', () => {
 	let interopAPI: {
 		getOwnChainAccount: jest.Mock;
 		send: jest.Mock;
+		error: jest.Mock;
+		terminateChain: jest.Mock;
+		getChannel: jest.Mock;
 	};
 
 	beforeEach(() => {
@@ -51,6 +54,9 @@ describe('Transfer command', () => {
 		interopAPI = {
 			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
 			send: jest.fn(),
+			error: jest.fn(),
+			terminateChain: jest.fn(),
+			getChannel: jest.fn(),
 		};
 		const api = new TokenAPI(moduleID);
 		api.addDependencies(interopAPI);

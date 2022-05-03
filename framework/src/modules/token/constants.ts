@@ -14,7 +14,6 @@
 
 export const MODULE_ID_TOKEN = 2;
 export const COMMAND_ID_TRANSFER = 0;
-export const COMMAND_ID_CROSS_CHAIN_TRANSFER = 1;
 export const CROSS_CHAIN_COMMAND_ID_TRANSFER = 0;
 export const CROSS_CHAIN_COMMAND_ID_FORWARD = 1;
 
@@ -35,6 +34,7 @@ export const CCM_STATUS_PROTOCOL_VIOLATION = 65;
 export const CCM_STATUS_MIN_BALANCE_NOT_REACHED = 66;
 
 export const MIN_BALANCE = BigInt(5000000);
+export const MIN_RETURN_FEE = BigInt(1000);
 
 export const EMPTY_BYTES = Buffer.alloc(0);
 export const CHAIN_ID_LENGTH = 4;

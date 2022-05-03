@@ -207,6 +207,14 @@ export const crossChainTransferParams = {
 	},
 };
 
+export interface CCTransferMessageParams {
+	tokenID: Buffer;
+	amount: bigint;
+	senderAddress: Buffer;
+	recipientAddress: Buffer;
+	data: string;
+}
+
 export const crossChainTransferMessageParams = {
 	$id: 'lisk/cc-transfer-message-params',
 	type: 'object',
@@ -242,6 +250,16 @@ export const crossChainTransferMessageParams = {
 		},
 	},
 };
+
+export interface CCForwardMessageParams {
+	tokenID: Buffer;
+	amount: bigint;
+	senderAddress: Buffer;
+	forwardToChainID: Buffer;
+	recipientAddress: Buffer;
+	data: string;
+	forwardedMessageFee: bigint;
+}
 
 export const crossChainForwardMessageParams = {
 	$id: 'lisk/cc-forward-message-params',

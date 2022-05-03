@@ -13,6 +13,7 @@
  */
 
 import { APIContext, ImmutableAPIContext } from '../../node/state_machine';
+import { CCMsg } from './interop_types';
 
 export type TokenID = Buffer;
 
@@ -66,4 +67,7 @@ export interface InteroperabilityAPI {
 		status: number,
 		parameters: Buffer,
 	): Promise<boolean>;
+	error(apiContext: APIContext, ccm: CCMsg, code: number): Promise<void>;
+	terminateChain(apiContext: APIContext, chainID: Buffer): Promise<void>;
+	getChannel(apiContext: APIContext, chainID: Buffer): Promise<{ messageFeeTokenID: Buffer }>;
 }
