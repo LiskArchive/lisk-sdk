@@ -182,7 +182,7 @@ describe('token module', () => {
 			await expect(api.accountExists(apiContext, defaultAddress)).resolves.toBeTrue();
 		});
 
-		it('should return faslse if account does not exist', async () => {
+		it('should return false if account does not exist', async () => {
 			await expect(api.accountExists(apiContext, getRandomBytes(20))).resolves.toBeFalse();
 		});
 	});
