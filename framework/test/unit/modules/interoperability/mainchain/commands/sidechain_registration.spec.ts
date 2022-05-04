@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BIG_ENDIAN, hash, intToBuffer, getRandomBytes } from '@liskhq/lisk-cryptography';
+import { hash, intToBuffer, getRandomBytes } from '@liskhq/lisk-cryptography';
 import { StateStore, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
@@ -42,7 +42,7 @@ import {
 	outboxRootSchema,
 } from '../../../../../../src/modules/interoperability/schema';
 import { SidechainRegistrationParams } from '../../../../../../src/modules/interoperability/types';
-import { VerifyStatus } from '../../../../../../src/node/state_machine';
+import { CommandVerifyContext, VerifyStatus } from '../../../../../../src/node/state_machine';
 import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
 
 describe('Sidechain registration command', () => {
@@ -88,6 +88,7 @@ describe('Sidechain registration command', () => {
 	let stateStore: StateStore;
 	let nameSubstore: StateStore;
 	let networkIDSubstore: StateStore;
+	let verifyContext: CommandVerifyContext<SidechainRegistrationParams>;
 
 	beforeEach(() => {
 		sidechainRegistrationCommand = new SidechainRegistrationCommand(
@@ -105,38 +106,24 @@ describe('Sidechain registration command', () => {
 	});
 
 	describe('verify', () => {
-		it('should return status OK for valid params', async () => {
-			const context = testing
+		beforeEach(() => {
+			verifyContext = testing
 				.createTransactionContext({
+					stateStore,
 					transaction,
 					networkIdentifier,
 				})
 				.createCommandVerifyContext<SidechainRegistrationParams>(sidechainRegParams);
-			const result = await sidechainRegistrationCommand.verify(context);
+		});
+
+		it('should return status OK for valid params', async () => {
+			const result = await sidechainRegistrationCommand.verify(verifyContext);
 			expect(result.status).toBe(VerifyStatus.OK);
 		});
 
 		it('should return error if name is invalid', async () => {
-			const invalidParams = codec.encode(sidechainRegParams, {
-				...transactionParams,
-				name: '*@#&$_2',
-			});
-			const invalidTransaction = new Transaction({
-				moduleID: MODULE_ID_INTEROPERABILITY,
-				commandID: COMMAND_ID_SIDECHAIN_REG,
-				senderPublicKey: publicKey,
-				nonce: BigInt(0),
-				fee: BigInt(100000000),
-				params: invalidParams,
-				signatures: [publicKey],
-			});
-			const context = testing
-				.createTransactionContext({
-					transaction: invalidTransaction,
-					networkIdentifier,
-				})
-				.createCommandVerifyContext<SidechainRegistrationParams>(sidechainRegParams);
-			const result = await sidechainRegistrationCommand.verify(context);
+			verifyContext.params.name = '*@#&$_2';
+			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(
@@ -150,14 +137,7 @@ describe('Sidechain registration command', () => {
 				{ chainID: 0 },
 				nameSchema,
 			);
-			const context = testing
-				.createTransactionContext({
-					stateStore,
-					transaction,
-					networkIdentifier,
-				})
-				.createCommandVerifyContext<SidechainRegistrationParams>(sidechainRegParams);
-			const result = await sidechainRegistrationCommand.verify(context);
+			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(
@@ -167,14 +147,8 @@ describe('Sidechain registration command', () => {
 
 		it('should return error if store key networkID already exists in networkID store', async () => {
 			await networkIDSubstore.setWithSchema(networkID, { chainID: 0 }, chainIDSchema);
-			const context = testing
-				.createTransactionContext({
-					stateStore,
-					transaction,
-					networkIdentifier,
-				})
-				.createCommandVerifyContext<SidechainRegistrationParams>(sidechainRegParams);
-			const result = await sidechainRegistrationCommand.verify(context);
+
+			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(
@@ -182,222 +156,119 @@ describe('Sidechain registration command', () => {
 			);
 		});
 
-		it('should return error if bls keys are not lexigraphically ordered', async () => {
-			const invalidParams = codec.encode(sidechainRegParams, {
-				...transactionParams,
-				initValidators: [
-					{
-						blsKey: Buffer.from(
-							'4c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-							'hex',
-						),
-						bftWeight: BigInt(10),
-					},
-					{
-						blsKey: Buffer.from(
-							'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-							'hex',
-						),
-						bftWeight: BigInt(10),
-					},
-				],
-			});
-			const invalidTransaction = new Transaction({
-				moduleID: MODULE_ID_INTEROPERABILITY,
-				commandID: COMMAND_ID_SIDECHAIN_REG,
-				senderPublicKey: publicKey,
-				nonce: BigInt(0),
-				fee: BigInt(100000000),
-				params: invalidParams,
-				signatures: [publicKey],
-			});
-			const context = testing
-				.createTransactionContext({
-					transaction: invalidTransaction,
-					networkIdentifier,
-				})
-				.createCommandVerifyContext<SidechainRegistrationParams>(sidechainRegParams);
-			const result = await sidechainRegistrationCommand.verify(context);
+		it('should return error if bls keys are not lexicographically ordered', async () => {
+			verifyContext.params.initValidators = [
+				{
+					blsKey: Buffer.from(
+						'4c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
+						'hex',
+					),
+					bftWeight: BigInt(10),
+				},
+				{
+					blsKey: Buffer.from(
+						'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
+						'hex',
+					),
+					bftWeight: BigInt(10),
+				},
+			];
+
+			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(
-				'Validators blsKeys must be unique and lexigraphically ordered',
+				'Validators blsKeys must be unique and lexicographically ordered',
 			);
 		});
 
 		it('should return error if duplicate bls keys', async () => {
-			const invalidParams = codec.encode(sidechainRegParams, {
-				...transactionParams,
-				initValidators: [
-					{
-						blsKey: Buffer.from(
-							'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-							'hex',
-						),
-						bftWeight: BigInt(10),
-					},
-					{
-						blsKey: Buffer.from(
-							'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-							'hex',
-						),
-						bftWeight: BigInt(10),
-					},
-				],
-			});
-			const invalidTransaction = new Transaction({
-				moduleID: MODULE_ID_INTEROPERABILITY,
-				commandID: COMMAND_ID_SIDECHAIN_REG,
-				senderPublicKey: publicKey,
-				nonce: BigInt(0),
-				fee: BigInt(100000000),
-				params: invalidParams,
-				signatures: [publicKey],
-			});
-			const context = testing
-				.createTransactionContext({
-					transaction: invalidTransaction,
-					networkIdentifier,
-				})
-				.createCommandVerifyContext<SidechainRegistrationParams>(sidechainRegParams);
-			const result = await sidechainRegistrationCommand.verify(context);
+			verifyContext.params.initValidators = [
+				{
+					blsKey: Buffer.from(
+						'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
+						'hex',
+					),
+					bftWeight: BigInt(10),
+				},
+				{
+					blsKey: Buffer.from(
+						'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
+						'hex',
+					),
+					bftWeight: BigInt(10),
+				},
+			];
+
+			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(
-				'Validators blsKeys must be unique and lexigraphically ordered',
+				'Validators blsKeys must be unique and lexicographically ordered',
 			);
 		});
 
 		it('should return error if invalid bft weight', async () => {
-			const invalidParams = codec.encode(sidechainRegParams, {
-				...transactionParams,
-				certificateThreshold: BigInt(0),
-				initValidators: [
-					{
-						blsKey: Buffer.from(
-							'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-							'hex',
-						),
-						bftWeight: BigInt(0),
-					},
-					{
-						blsKey: Buffer.from(
-							'4c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-							'hex',
-						),
-						bftWeight: BigInt(0),
-					},
-				],
-			});
-			const invalidTransaction = new Transaction({
-				moduleID: MODULE_ID_INTEROPERABILITY,
-				commandID: COMMAND_ID_SIDECHAIN_REG,
-				senderPublicKey: publicKey,
-				nonce: BigInt(0),
-				fee: BigInt(100000000),
-				params: invalidParams,
-				signatures: [publicKey],
-			});
-			const context = testing
-				.createTransactionContext({
-					transaction: invalidTransaction,
-					networkIdentifier,
-				})
-				.createCommandVerifyContext<SidechainRegistrationParams>(sidechainRegParams);
-			const result = await sidechainRegistrationCommand.verify(context);
+			verifyContext.params.initValidators = [
+				{
+					blsKey: Buffer.from(
+						'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
+						'hex',
+					),
+					bftWeight: BigInt(0),
+				},
+				{
+					blsKey: Buffer.from(
+						'4c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
+						'hex',
+					),
+					bftWeight: BigInt(0),
+				},
+			];
+
+			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude('Validator bft weight must be greater than 0');
 		});
 
 		it(`should return error if totalBftWeight exceeds ${MAX_UINT64}`, async () => {
-			const invalidParams = codec.encode(sidechainRegParams, {
-				...transactionParams,
-				initValidators: [
-					{
-						blsKey: Buffer.from(
-							'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-							'hex',
-						),
-						bftWeight: MAX_UINT64,
-					},
-					{
-						blsKey: Buffer.from(
-							'4c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
-							'hex',
-						),
-						bftWeight: BigInt(10),
-					},
-				],
-			});
-			const invalidTransaction = new Transaction({
-				moduleID: MODULE_ID_INTEROPERABILITY,
-				commandID: COMMAND_ID_SIDECHAIN_REG,
-				senderPublicKey: publicKey,
-				nonce: BigInt(0),
-				fee: BigInt(100000000),
-				params: invalidParams,
-				signatures: [publicKey],
-			});
-			const context = testing
-				.createTransactionContext({
-					transaction: invalidTransaction,
-					networkIdentifier,
-				})
-				.createCommandVerifyContext<SidechainRegistrationParams>(sidechainRegParams);
-			const result = await sidechainRegistrationCommand.verify(context);
+			verifyContext.params.initValidators = [
+				{
+					blsKey: Buffer.from(
+						'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
+						'hex',
+					),
+					bftWeight: MAX_UINT64,
+				},
+				{
+					blsKey: Buffer.from(
+						'4c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
+						'hex',
+					),
+					bftWeight: BigInt(10),
+				},
+			];
+
+			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(`Validator bft weight must not exceed ${MAX_UINT64}`);
 		});
 
 		it('should return error if certificate theshold below minimum weight', async () => {
-			const invalidParams = codec.encode(sidechainRegParams, {
-				...transactionParams,
-				certificateThreshold: BigInt(1),
-			});
-			const invalidTransaction = new Transaction({
-				moduleID: MODULE_ID_INTEROPERABILITY,
-				commandID: COMMAND_ID_SIDECHAIN_REG,
-				senderPublicKey: publicKey,
-				nonce: BigInt(0),
-				fee: BigInt(100000000),
-				params: invalidParams,
-				signatures: [publicKey],
-			});
-			const context = testing
-				.createTransactionContext({
-					transaction: invalidTransaction,
-					networkIdentifier,
-				})
-				.createCommandVerifyContext<SidechainRegistrationParams>(sidechainRegParams);
-			const result = await sidechainRegistrationCommand.verify(context);
+			verifyContext.params.certificateThreshold = BigInt(1);
+
+			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude('Certificate threshold below minimum bft weight');
 		});
 
 		it('should return error if certificate theshold exceeds maximum weight', async () => {
-			const invalidParams = codec.encode(sidechainRegParams, {
-				...transactionParams,
-				certificateThreshold: BigInt(1000),
-			});
-			const invalidTransaction = new Transaction({
-				moduleID: MODULE_ID_INTEROPERABILITY,
-				commandID: COMMAND_ID_SIDECHAIN_REG,
-				senderPublicKey: publicKey,
-				nonce: BigInt(0),
-				fee: BigInt(100000000),
-				params: invalidParams,
-				signatures: [publicKey],
-			});
-			const context = testing
-				.createTransactionContext({
-					transaction: invalidTransaction,
-					networkIdentifier,
-				})
-				.createCommandVerifyContext<SidechainRegistrationParams>(sidechainRegParams);
-			const result = await sidechainRegistrationCommand.verify(context);
+			verifyContext.params.certificateThreshold = BigInt(1000);
+
+			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude('Certificate threshold above maximum bft weight');
@@ -406,7 +277,7 @@ describe('Sidechain registration command', () => {
 
 	describe('execute', () => {
 		const genesisBlockID = Buffer.alloc(0);
-		const newChainID = intToBuffer(2, 4, BIG_ENDIAN);
+		const newChainID = intToBuffer(2, 4);
 		const existingChainID = Buffer.alloc(4);
 		existingChainID.writeUInt32BE(1, 0);
 		const params = {
