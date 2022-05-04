@@ -15,7 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { hash, intToBuffer } from '@liskhq/lisk-cryptography';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
-import { MAX_CCM_SIZE } from './constants';
+import { MAX_CCM_SIZE, MAX_LENGTH_NAME } from './constants';
 import { ActiveValidators, CCMsg, ChainAccount } from './types';
 import { ccmSchema, sidechainTerminatedCCMParamsSchema, validatorsHashInputSchema } from './schema';
 
@@ -98,6 +98,10 @@ export const isValidName = (username: string): boolean => {
 	}
 
 	if (username !== username.trim().toLowerCase()) {
+		return false;
+	}
+
+	if (username.length > MAX_LENGTH_NAME) {
 		return false;
 	}
 
