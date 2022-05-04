@@ -202,12 +202,6 @@ describe('token module', () => {
 			).rejects.toThrow('Token is already initialized');
 		});
 
-		it('should create empty supply', async () => {
-			await expect(
-				api.initializeToken(apiContext, defaultTokenID.slice(CHAIN_ID_LENGTH)),
-			).rejects.toThrow('Token is already initialized');
-		});
-
 		it('should not update next available local ID if local ID is less than existing one', async () => {
 			await expect(
 				api.initializeToken(apiContext, Buffer.from([0, 0, 0, 2])),
@@ -234,7 +228,7 @@ describe('token module', () => {
 			).rejects.toThrow('Only native token can be minted');
 		});
 
-		it('should reject amount is less than zero', async () => {
+		it('should reject if amount is less than zero', async () => {
 			await expect(
 				api.mint(apiContext, defaultAddress, defaultTokenID, BigInt(-1)),
 			).rejects.toThrow('Amount must be a positive integer to mint');
@@ -360,13 +354,13 @@ describe('token module', () => {
 			).rejects.toThrow('Amount must be a positive integer to unlock');
 		});
 
-		it('should reject if address does not have corresponding locked balance', async () => {
+		it('should reject if address does not have corresponding locked balance for the specified module', async () => {
 			await expect(
 				api.unlock(apiContext, defaultAddress, 15, defaultTokenID, BigInt(100)),
 			).rejects.toThrow('No balance is locked for module ID 15');
 		});
 
-		it('should reject if address does not have enoguth corresponding locked balance', async () => {
+		it('should reject if address does not have sufficient balance in the corresponding locked balance', async () => {
 			await expect(
 				api.unlock(
 					apiContext,
