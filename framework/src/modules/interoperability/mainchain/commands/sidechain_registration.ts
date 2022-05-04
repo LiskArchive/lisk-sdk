@@ -13,11 +13,12 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { BIG_ENDIAN, hash, intToBuffer } from '@liskhq/lisk-cryptography';
+import { hash, intToBuffer } from '@liskhq/lisk-cryptography';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { MainchainInteroperabilityStore } from '../store';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import {
+	CHAIN_REGISTERED,
 	COMMAND_ID_SIDECHAIN_REG,
 	CROSS_CHAIN_COMMAND_ID_REGISTRATION,
 	EMPTY_HASH,
@@ -115,14 +116,14 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		for (let i = 0; i < initValidators.length; i += 1) {
 			const currentValidator = initValidators[i];
 
-			// The blsKeys must be lexigraphically ordered and unique within the array.
+			// The blsKeys must be lexicographically ordered and unique within the array.
 			if (
 				initValidators[i + 1] &&
 				currentValidator.blsKey.compare(initValidators[i + 1].blsKey) > -1
 			) {
 				return {
 					status: VerifyStatus.FAIL,
-					error: new Error('Validators blsKeys must be unique and lexigraphically ordered'),
+					error: new Error('Validators blsKeys must be unique and lexicographically ordered'),
 				};
 			}
 
@@ -178,14 +179,14 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		const chainSubstore = getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
 
 		// Find the latest chainID from db
-		const start = intToBuffer(0, 4, BIG_ENDIAN);
-		const end = intToBuffer(MAX_UINT32, 4, BIG_ENDIAN);
+		const start = intToBuffer(0, 4);
+		const end = intToBuffer(MAX_UINT32, 4);
 		const chainIDs = await chainSubstore.iterate({ start, end, limit: 1, reverse: true });
 		if (!chainIDs.length) {
 			throw new Error('No existing entries found in chain store');
 		}
 		const chainID = chainIDs[0].key.readUInt32BE(0) + 1;
-		const chainIDBuffer = intToBuffer(chainID, 4, BIG_ENDIAN);
+		const chainIDBuffer = intToBuffer(chainID, 4);
 
 		await chainSubstore.setWithSchema(
 			chainIDBuffer,
@@ -198,7 +199,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 					stateRoot: EMPTY_HASH,
 					validatorsHash: computeValidatorsHash(initValidators, certificateThreshold),
 				},
-				status: 0,
+				status: CHAIN_REGISTERED,
 			},
 			chainAccountSchema,
 		);
