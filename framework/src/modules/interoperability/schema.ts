@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { MAX_LENGTH_NAME, NUMBER_MAINCHAIN_VALIDATORS } from './constants';
+
 export const channelSchema = {
 	$id: 'modules/interoperability/channel',
 	type: 'object',
@@ -297,6 +299,8 @@ export const mainchainRegParams = {
 		ownName: {
 			dataType: 'string',
 			fieldNumber: 2,
+			minLength: 1,
+			maxLength: MAX_LENGTH_NAME,
 		},
 		mainchainValidators: {
 			type: 'array',
@@ -508,6 +512,8 @@ export const validatorsSchema = {
 					blsKey: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						minLength: 48,
+						maxLength: 48,
 					},
 					bftWeight: {
 						dataType: 'uint64',
@@ -515,6 +521,8 @@ export const validatorsSchema = {
 					},
 				},
 			},
+			minItems: NUMBER_MAINCHAIN_VALIDATORS,
+			maxItems: NUMBER_MAINCHAIN_VALIDATORS,
 		},
 		certificateThreshold: {
 			dataType: 'uint64',

@@ -26,6 +26,7 @@ import {
 	MAINCHAIN_NAME,
 	MAINCHAIN_NETWORK_ID,
 	MODULE_ID_INTEROPERABILITY,
+	NUMBER_MAINCHAIN_VALIDATORS,
 	STORE_PREFIX_CHAIN_DATA,
 	STORE_PREFIX_CHAIN_VALIDATORS,
 	STORE_PREFIX_CHANNEL_DATA,
@@ -84,12 +85,12 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 		context: CommandVerifyContext<MainchainRegistrationParams>,
 	): Promise<VerificationResult> {
 		const { ownName, mainchainValidators } = context.params;
-		const errors = validator.validate(mainchainRegParams, context.params);
 
-		if (errors.length > 0) {
+		const registrationParamsErrors = validator.validate(mainchainRegParams, context.params);
+		if (registrationParamsErrors.length > 0) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new LiskValidationError(errors),
+				error: new LiskValidationError(registrationParamsErrors),
 			};
 		}
 
@@ -100,14 +101,18 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			};
 		}
 
-		if (mainchainValidators.length !== 101) {
+		const validatorsSchemaErrors = validator.validate(validatorsSchema, {
+			activeValidators: mainchainValidators,
+			certificateThreshold: BigInt(THRESHOLD_MAINCHAIN),
+		});
+		if (validatorsSchemaErrors.length > 0) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error(`Number of mainchain validators must be equal to 101`),
+				error: new LiskValidationError(validatorsSchemaErrors),
 			};
 		}
 
-		for (let i = 0; i < 101; i += 1) {
+		for (let i = 0; i < NUMBER_MAINCHAIN_VALIDATORS; i += 1) {
 			const currentValidator = mainchainValidators[i];
 
 			if (
@@ -230,7 +235,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			fee: BigInt(0),
 			status: CCM_STATUS_OK,
 			params: encodedParams,
-			timestamp: Date.now(),
+			timestamp: header.timestamp,
 			beforeSendContext: { ...context, ccm, feeAddress: EMPTY_FEE_ADDRESS },
 		});
 
@@ -243,7 +248,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			{
 				mainchainValidators: {
 					activeValidators: mainchainValidators,
-					certificateThreshold: THRESHOLD_MAINCHAIN,
+					certificateThreshold: BigInt(THRESHOLD_MAINCHAIN),
 				},
 			},
 			validatorsSchema,

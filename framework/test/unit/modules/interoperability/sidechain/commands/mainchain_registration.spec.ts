@@ -20,14 +20,18 @@ import { when } from 'jest-when';
 import * as testing from '../../../../../../src/testing';
 import { MainchainRegistrationCommand } from '../../../../../../src/modules/interoperability/sidechain/commands/mainchain_registration';
 import {
+	CCM_STATUS_OK,
 	CHAIN_REGISTERED,
 	COMMAND_ID_MAINCHAIN_REG,
+	CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+	EMPTY_FEE_ADDRESS,
 	EMPTY_HASH,
 	MAINCHAIN_ID,
 	MAINCHAIN_NAME,
 	MAINCHAIN_NETWORK_ID,
 	MAX_UINT32,
 	MODULE_ID_INTEROPERABILITY,
+	NUMBER_MAINCHAIN_VALIDATORS,
 	STORE_PREFIX_CHAIN_DATA,
 	STORE_PREFIX_CHAIN_VALIDATORS,
 	STORE_PREFIX_CHANNEL_DATA,
@@ -42,6 +46,7 @@ import {
 	mainchainRegParams,
 	outboxRootSchema,
 	ownChainAccountSchema,
+	registrationCCMParamsSchema,
 	registrationSignatureMessageSchema,
 	validatorsSchema,
 } from '../../../../../../src/modules/interoperability/schema';
@@ -63,7 +68,7 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 describe('Mainchain registration command', () => {
 	const { getRandomBytes } = crypto;
 	const unsortedMainchainValidators: ActiveValidators[] = [];
-	for (let i = 0; i < 101; i += 1) {
+	for (let i = 0; i < NUMBER_MAINCHAIN_VALIDATORS; i += 1) {
 		unsortedMainchainValidators.push({ blsKey: getRandomBytes(48), bftWeight: BigInt(1) });
 	}
 	const mainchainValidators = sortValidatorsByBLSKey(unsortedMainchainValidators);
@@ -128,7 +133,15 @@ describe('Mainchain registration command', () => {
 			const result = await mainchainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error).toBeInstanceOf(Error);
+			expect(result.error).toBeInstanceOf(LiskValidationError);
+		});
+
+		it('should return error if name is greater than max length of name', async () => {
+			verifyContext.params.ownName = getRandomBytes(21).toString('hex');
+			const result = await mainchainRegistrationCommand.verify(verifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error).toBeInstanceOf(LiskValidationError);
 		});
 
 		it('should return error if name is invalid', async () => {
@@ -141,14 +154,12 @@ describe('Mainchain registration command', () => {
 			);
 		});
 
-		it('should return error if number of mainchain validators is not 101', async () => {
+		it('should return error if number of mainchain validators is not equal to number of mainchain validators', async () => {
 			verifyContext.params.mainchainValidators.pop();
 			const result = await mainchainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				`Number of mainchain validators must be equal to 101`,
-			);
+			expect(result.error).toBeInstanceOf(LiskValidationError);
 		});
 
 		it('should return error if bls keys are not lexicographically ordered', async () => {
@@ -243,7 +254,7 @@ describe('Mainchain registration command', () => {
 			logger: jest.fn(),
 			eventQueue: jest.fn(),
 			networkIdentifier: Buffer.alloc(0),
-			header: {},
+			header: { timestamp: Date.now() },
 			assets: {},
 			transaction,
 			params,
@@ -367,12 +378,36 @@ describe('Mainchain registration command', () => {
 		});
 
 		it('should call sendInternal with a registration ccm', async () => {
+			const receivingChainID = MAINCHAIN_ID;
+			const encodedParams = codec.encode(registrationCCMParamsSchema, {
+				networkID: MAINCHAIN_NETWORK_ID,
+				name: MAINCHAIN_NAME,
+				messageFeeTokenID: { chainID: MAINCHAIN_ID, localID: 0 },
+			});
+			const ccm = {
+				nonce: BigInt(0),
+				moduleID: MODULE_ID_INTEROPERABILITY,
+				crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+				sendingChainID: params.ownChainID,
+				receivingChainID,
+				fee: BigInt(0),
+				status: CCM_STATUS_OK,
+				params: encodedParams,
+			};
 			// Act
 			await mainchainRegistrationCommand.execute(context);
 
 			// Assert
-			// Due to `timestamp` difference for input object on test run between execution and expectation, we only checking that it was called
-			expect(sendInternal).toHaveBeenCalled();
+			expect(sendInternal).toHaveBeenCalledWith({
+				moduleID: MODULE_ID_INTEROPERABILITY,
+				crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+				receivingChainID,
+				fee: BigInt(0),
+				status: CCM_STATUS_OK,
+				params: encodedParams,
+				timestamp: expect.any(Number),
+				beforeSendContext: { ...context, ccm, feeAddress: EMPTY_FEE_ADDRESS },
+			});
 		});
 
 		it('should add an entry to chain validators substore', async () => {
@@ -380,7 +415,7 @@ describe('Mainchain registration command', () => {
 			const expectedValue = {
 				mainchainValidators: {
 					activeValidators: mainchainValidators,
-					certificateThreshold: THRESHOLD_MAINCHAIN,
+					certificateThreshold: BigInt(THRESHOLD_MAINCHAIN),
 				},
 			};
 
