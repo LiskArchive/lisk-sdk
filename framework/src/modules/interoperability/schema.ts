@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MAX_NUM_VALIDATORS } from './constants';
+import { MAX_NUM_VALIDATORS, MAX_LENGTH_NAME } from './constants';
 
 export const channelSchema = {
 	$id: 'modules/interoperability/channel',
@@ -257,6 +257,8 @@ export const sidechainRegParams = {
 		name: {
 			dataType: 'string',
 			fieldNumber: 1,
+			minLength: 1,
+			maxLength: MAX_LENGTH_NAME,
 		},
 		genesisBlockID: {
 			dataType: 'bytes',
