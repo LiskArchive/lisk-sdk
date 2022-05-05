@@ -168,6 +168,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 
 	public async execute(context: CommandExecuteContext<SidechainRegistrationParams>): Promise<void> {
 		const {
+			header,
 			transaction,
 			params: { certificateThreshold, initValidators, genesisBlockID, name },
 			getStore,
@@ -243,7 +244,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			fee: BigInt(0),
 			status: CCM_STATUS_OK,
 			params: encodedParams,
-			timestamp: Date.now(),
+			timestamp: header.timestamp,
 			beforeSendContext: { ...context, ccm, feeAddress: EMPTY_FEE_ADDRESS },
 		});
 
