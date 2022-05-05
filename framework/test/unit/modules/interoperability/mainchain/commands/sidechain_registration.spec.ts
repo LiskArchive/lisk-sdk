@@ -22,7 +22,10 @@ import { SidechainRegistrationCommand } from '../../../../../../src/modules/inte
 import {
 	CCM_STATUS_OK,
 	COMMAND_ID_SIDECHAIN_REG,
+	CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+	EMPTY_FEE_ADDRESS,
 	EMPTY_HASH,
+	MAINCHAIN_ID,
 	MAX_UINT64,
 	MODULE_ID_INTEROPERABILITY,
 	STORE_PREFIX_CHAIN_DATA,
@@ -40,6 +43,7 @@ import {
 	channelSchema,
 	validatorsSchema,
 	outboxRootSchema,
+	registrationCCMParamsSchema,
 } from '../../../../../../src/modules/interoperability/schema';
 import { SidechainRegistrationParams } from '../../../../../../src/modules/interoperability/types';
 import { CommandVerifyContext, VerifyStatus } from '../../../../../../src/node/state_machine';
@@ -316,7 +320,7 @@ describe('Sidechain registration command', () => {
 			logger: jest.fn(),
 			eventQueue: jest.fn(),
 			networkIdentifier: Buffer.alloc(0),
-			header: {},
+			header: { timestamp: Date.now() },
 			assets: {},
 			transaction,
 			params,
@@ -430,12 +434,38 @@ describe('Sidechain registration command', () => {
 		});
 
 		it('should call sendInternal with a registration ccm', async () => {
+			// Arrange
+			const receivingChainID = 2;
+			const encodedParams = codec.encode(registrationCCMParamsSchema, {
+				networkID,
+				name: chainAccount.name,
+				messageFeeTokenID: { chainID: MAINCHAIN_ID, localID: 0 },
+			});
+			const ccm = {
+				nonce: BigInt(0),
+				moduleID: MODULE_ID_INTEROPERABILITY,
+				crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+				sendingChainID: MAINCHAIN_ID,
+				receivingChainID,
+				fee: BigInt(0),
+				status: CCM_STATUS_OK,
+				params: encodedParams,
+			};
+
 			// Act
 			await sidechainRegistrationCommand.execute(context);
 
 			// Assert
-			// Due to `timestamp` difference for input object on test run between execution and expectation, we only checking that it was called
-			expect(sendInternal).toHaveBeenCalled();
+			expect(sendInternal).toHaveBeenCalledWith({
+				moduleID: MODULE_ID_INTEROPERABILITY,
+				crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+				receivingChainID,
+				fee: BigInt(0),
+				status: CCM_STATUS_OK,
+				params: encodedParams,
+				timestamp: expect.any(Number),
+				beforeSendContext: { ...context, ccm, feeAddress: EMPTY_FEE_ADDRESS },
+			});
 		});
 
 		it('should add an entry to chain validators substore', async () => {
