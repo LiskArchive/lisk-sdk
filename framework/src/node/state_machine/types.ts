@@ -91,6 +91,7 @@ export interface CommandVerifyContext<T = undefined> {
 
 export interface CommandExecuteContext<T = undefined> {
 	logger: Logger;
+	eventQueue: EventQueue;
 	networkIdentifier: Buffer;
 	header: BlockHeader;
 	assets: BlockAssets;

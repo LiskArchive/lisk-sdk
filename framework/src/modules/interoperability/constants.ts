@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { hash } from '@liskhq/lisk-cryptography';
+
 export const MODULE_ID_INTEROPERABILITY = 64;
 export const MODULE_NAME_INTEROPERABILITY = 'interoperability';
 
@@ -23,6 +25,7 @@ export const LIVENESS_LIMIT = 2592000; // 30*24*3600
 export const MAX_CCM_SIZE = 10240;
 export const EMPTY_FEE_ADDRESS = Buffer.alloc(0);
 export const EMPTY_BYTES = Buffer.alloc(0);
+export const EMPTY_HASH = hash(EMPTY_BYTES);
 export const REGISTRATION_FEE = BigInt(1000000000);
 export const MAX_NUM_VALIDATORS = 199;
 export const MAX_LENGTH_NAME = 40;

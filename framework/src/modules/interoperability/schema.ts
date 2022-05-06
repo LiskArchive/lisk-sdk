@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { MAX_NUM_VALIDATORS, MAX_LENGTH_NAME } from './constants';
+
 export const channelSchema = {
 	$id: 'modules/interoperability/channel',
 	type: 'object',
@@ -255,6 +257,8 @@ export const sidechainRegParams = {
 		name: {
 			dataType: 'string',
 			fieldNumber: 1,
+			minLength: 1,
+			maxLength: MAX_LENGTH_NAME,
 		},
 		genesisBlockID: {
 			dataType: 'bytes',
@@ -270,6 +274,8 @@ export const sidechainRegParams = {
 					blsKey: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						minLength: 48,
+						maxLength: 48,
 					},
 					bftWeight: {
 						dataType: 'uint64',
@@ -277,6 +283,8 @@ export const sidechainRegParams = {
 					},
 				},
 			},
+			minItems: 1,
+			maxItems: MAX_NUM_VALIDATORS,
 		},
 		certificateThreshold: {
 			dataType: 'uint64',
@@ -466,5 +474,85 @@ export const sidechainTerminatedCCMParamsSchema = {
 			dataType: 'bytes',
 			fieldNumber: 2,
 		},
+	},
+};
+
+export const nameSchema = {
+	$id: 'modules/interoperability/name',
+	type: 'object',
+	required: ['name'],
+	properties: {
+		name: {
+			dataType: 'string',
+			fieldNumber: 1,
+			minLength: 1,
+			maxLength: MAX_LENGTH_NAME,
+		},
+	},
+};
+
+// Note: Changed to lower-case `id` as ajv requires it
+export const chainIDSchema = {
+	$id: 'modules/interoperability/chainId',
+	type: 'object',
+	required: ['id'],
+	properties: {
+		id: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export const validatorsSchema = {
+	$id: 'modules/interoperability/validators',
+	type: 'object',
+	required: ['activeValidators', 'certificateThreshold'],
+	properties: {
+		activeValidators: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['blsKey', 'bftWeight'],
+				properties: {
+					blsKey: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+						minLength: 48,
+						maxLength: 48,
+					},
+					bftWeight: {
+						dataType: 'uint64',
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+		certificateThreshold: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+	},
+};
+
+export const validatorsHashInputSchema = {
+	$id: 'modules/interoperability/validatorsHashInput',
+	type: 'object',
+	required: ['activeValidators', 'certificateThreshold'],
+	properties: {
+		activeValidators: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['blsKey', 'bftWeight'],
+				properties: {
+					blsKey: { dataType: 'bytes', fieldNumber: 1 },
+					bftWeight: { dataType: 'uint64', fieldNumber: 2 },
+				},
+			},
+		},
+		certificateThreshold: { dataType: 'uint64', fieldNumber: 2 },
 	},
 };

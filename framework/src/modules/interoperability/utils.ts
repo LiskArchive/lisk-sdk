@@ -13,11 +13,11 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { hash, intToBuffer } from '@liskhq/lisk-cryptography';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { MAX_CCM_SIZE } from './constants';
 import { ActiveValidators, CCMsg, ChainAccount } from './types';
-import { ccmSchema, sidechainTerminatedCCMParamsSchema } from './schema';
+import { ccmSchema, sidechainTerminatedCCMParamsSchema, validatorsHashInputSchema } from './schema';
 
 // Returns the big endian uint32 serialization of an integer x, with 0 <= x < 2^32 which is 4 bytes long.
 export const getIDAsKeyForStore = (id: number) => intToBuffer(id, 4);
@@ -87,4 +87,19 @@ export const handlePromiseErrorWithNull = async <T>(promise: Promise<T>) => {
 		result = null;
 	}
 	return result;
+};
+
+export const isValidName = (username: string): boolean => /^[a-z0-9!@$&_.]+$/g.test(username);
+
+export const computeValidatorsHash = (
+	initValidators: ActiveValidators[],
+	certificateThreshold: bigint,
+) => {
+	const input = {
+		activeValidators: initValidators,
+		certificateThreshold,
+	};
+
+	const encodedValidatorsHashInput = codec.encode(validatorsHashInputSchema, input);
+	return hash(encodedValidatorsHashInput);
 };

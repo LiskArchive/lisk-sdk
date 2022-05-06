@@ -115,6 +115,7 @@ export class TransactionContext {
 		return {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
+			eventQueue: this._eventQueue,
 			getAPIContext: () =>
 				createAPIContext({ stateStore: this._stateStore, eventQueue: this._eventQueue }),
 			getStore: (moduleID: number, storePrefix: number) =>
