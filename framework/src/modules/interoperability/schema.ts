@@ -525,8 +525,6 @@ export const validatorsSchema = {
 					},
 				},
 			},
-			minItems: NUMBER_MAINCHAIN_VALIDATORS,
-			maxItems: NUMBER_MAINCHAIN_VALIDATORS,
 		},
 		certificateThreshold: {
 			dataType: 'uint64',
