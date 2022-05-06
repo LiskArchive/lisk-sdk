@@ -142,6 +142,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 		const {
 			getAPIContext,
 			header,
+			networkIdentifier,
 			getStore,
 			params: { ownChainID, ownName, mainchainValidators, aggregationBits, signature },
 		} = context;
@@ -175,7 +176,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			aggregationBits,
 			signature,
 			TAG_CHAIN_REG_MESSAGE,
-			context.networkIdentifier,
+			networkIdentifier,
 			message,
 			weights,
 			certificateThreshold,
