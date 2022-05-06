@@ -41,7 +41,7 @@ describe('token module', () => {
 	const defaultAddress = getRandomBytes(20);
 	const defaultTokenIDAlias = Buffer.alloc(TOKEN_ID_LENGTH, 0);
 	const defaultTokenID = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
-	const defaultForeginTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
+	const defaultForeignTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
 	const defaultAccount = {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
@@ -81,7 +81,7 @@ describe('token module', () => {
 			userStoreSchema,
 		);
 		await userStore.setWithSchema(
-			getUserStoreKey(defaultAddress, defaultForeginTokenID),
+			getUserStoreKey(defaultAddress, defaultForeignTokenID),
 			defaultAccount,
 			userStoreSchema,
 		);
@@ -106,7 +106,7 @@ describe('token module', () => {
 		const escrowStore = apiContext.getStore(MODULE_ID_TOKEN, STORE_PREFIX_ESCROW);
 		await escrowStore.setWithSchema(
 			Buffer.concat([
-				defaultForeginTokenID.slice(0, CHAIN_ID_LENGTH),
+				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 				defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
 			]),
 			{ amount: defaultEscrowAmount },
@@ -150,8 +150,8 @@ describe('token module', () => {
 			await expect(
 				api.getEscrowedAmount(
 					apiContext,
-					defaultForeginTokenID.slice(0, CHAIN_ID_LENGTH),
-					defaultForeginTokenID,
+					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID,
 				),
 			).rejects.toThrow('Only native token can have escrow amount');
 		});
@@ -224,7 +224,7 @@ describe('token module', () => {
 	describe('mint', () => {
 		it('should reject if token is not native', async () => {
 			await expect(
-				api.mint(apiContext, defaultAddress, defaultForeginTokenID, BigInt(10000)),
+				api.mint(apiContext, defaultAddress, defaultForeignTokenID, BigInt(10000)),
 			).rejects.toThrow('Only native token can be minted');
 		});
 
@@ -268,7 +268,7 @@ describe('token module', () => {
 	describe('burn', () => {
 		it('should reject if token is not native', async () => {
 			await expect(
-				api.burn(apiContext, defaultAddress, defaultForeginTokenID, BigInt(10000)),
+				api.burn(apiContext, defaultAddress, defaultForeignTokenID, BigInt(10000)),
 			).rejects.toThrow('Only native token can be burnt');
 		});
 
