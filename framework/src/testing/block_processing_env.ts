@@ -28,7 +28,7 @@ import { ApplicationConfig, GenesisConfig } from '../types';
 import { Consensus } from '../node/consensus';
 import { APIContext } from '../node/state_machine';
 import { Node } from '../node';
-import { createNewAPIContext } from '../node/state_machine/api_context';
+import { createImmutableAPIContext, createNewAPIContext } from '../node/state_machine/api_context';
 import { blockAssetsJSON } from './fixtures/genesis-asset';
 import { ValidatorsAPI } from '../modules/validators';
 import { BFTAPI } from '../modules/bft';
@@ -216,6 +216,7 @@ export const getBlockProcessingEnv = async (
 			const result = await handler({
 				getStore: (moduleID: number, storePrefix: number) =>
 					stateStore.getStore(moduleID, storePrefix),
+				getImmutableAPIContext: () => createImmutableAPIContext(stateStore),
 				logger: node['_logger'],
 				networkIdentifier: node['_chain'].networkIdentifier,
 				params: input,

@@ -71,7 +71,7 @@ export class TokenAPI extends BaseAPI {
 		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void> {
-		const canonicalTokenID = await this._getCanonicalTokenID(apiContext, tokenID);
+		const canonicalTokenID = await this.getCanonicalTokenID(apiContext, tokenID);
 		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
 		const sender = await userStore.getWithSchema<UserStoreData>(
 			getUserStoreKey(senderAddress, canonicalTokenID),
@@ -289,12 +289,12 @@ export class TokenAPI extends BaseAPI {
 	}
 
 	public async isNative(apiContext: ImmutableAPIContext, tokenID: TokenID): Promise<boolean> {
-		const canonicalTokenID = await this._getCanonicalTokenID(apiContext, tokenID);
+		const canonicalTokenID = await this.getCanonicalTokenID(apiContext, tokenID);
 		const [chainID] = splitTokenID(canonicalTokenID);
 		return chainID.equals(CHAIN_ID_ALIAS_NATIVE);
 	}
 
-	private async _getCanonicalTokenID(
+	public async getCanonicalTokenID(
 		apiContext: ImmutableAPIContext,
 		tokenID: TokenID,
 	): Promise<TokenID> {

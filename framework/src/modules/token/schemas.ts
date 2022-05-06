@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { CHAIN_ID_LENGTH, LOCAL_ID_LENGTH, TOKEN_ID_LENGTH } from './constants';
+import { CHAIN_ID_LENGTH, LOCAL_ID_LENGTH, TOKEN_ID_LENGTH, ADDRESS_LENGTH } from './constants';
 
 export const configSchema = {
 	$id: '/token/config',
@@ -136,22 +136,6 @@ export const terminatedEscrowStoreSchema = {
 	},
 };
 
-export const getBalanceRequestSchema = {
-	$id: '/token/endpoint/getBalance',
-	type: 'object',
-	properties: {
-		address: {
-			type: 'string',
-			format: 'hex',
-		},
-		tokenID: {
-			type: 'string',
-			format: 'hex',
-		},
-	},
-	required: ['address', 'tokenID'],
-};
-
 export const transferParamsSchema = {
 	$id: 'lisk/transfer-params',
 	title: 'Transfer transaction params',
@@ -171,8 +155,8 @@ export const transferParamsSchema = {
 		recipientAddress: {
 			dataType: 'bytes',
 			fieldNumber: 3,
-			minLength: 20,
-			maxLength: 20,
+			minLength: ADDRESS_LENGTH,
+			maxLength: ADDRESS_LENGTH,
 		},
 		data: {
 			dataType: 'string',
@@ -444,4 +428,38 @@ export const genesisTokenStoreSchema = {
 			},
 		},
 	},
+};
+
+export const getBalanceRequestSchema = {
+	$id: '/token/endpoint/getBalance',
+	type: 'object',
+	properties: {
+		address: {
+			type: 'string',
+			format: 'hex',
+			minLength: ADDRESS_LENGTH * 2,
+			maxLength: ADDRESS_LENGTH * 2,
+		},
+		tokenID: {
+			type: 'string',
+			format: 'hex',
+			minLength: TOKEN_ID_LENGTH * 2,
+			maxLength: TOKEN_ID_LENGTH * 2,
+		},
+	},
+	required: ['address', 'tokenID'],
+};
+
+export const getBalancesRequestSchema = {
+	$id: '/token/endpoint/getBalance',
+	type: 'object',
+	properties: {
+		address: {
+			type: 'string',
+			format: 'hex',
+			minLength: ADDRESS_LENGTH * 2,
+			maxLength: ADDRESS_LENGTH * 2,
+		},
+	},
+	required: ['address'],
 };

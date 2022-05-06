@@ -22,6 +22,7 @@ import {
 	APIContext,
 	BlockContext,
 	createAPIContext,
+	createImmutableAPIContext,
 	EventQueue,
 	GenesisBlockContext,
 	ImmutableSubStore,
@@ -233,6 +234,7 @@ export const createTransientModuleEndpointContext = (params: {
 	const networkIdentifier = params.networkIdentifier ?? Buffer.alloc(0);
 	const ctx = {
 		getStore: (moduleID: number, storePrefix: number) => stateStore.getStore(moduleID, storePrefix),
+		getImmutableAPIContext: () => createImmutableAPIContext(stateStore),
 		params: parameters,
 		logger,
 		networkIdentifier,
