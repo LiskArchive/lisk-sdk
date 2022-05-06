@@ -283,8 +283,8 @@ export const sidechainRegParams = {
 					},
 				},
 			},
-			minLength: 1,
-			maxLength: MAX_NUM_VALIDATORS,
+			minItems: 1,
+			maxItems: MAX_NUM_VALIDATORS,
 		},
 		certificateThreshold: {
 			dataType: 'uint64',
@@ -517,6 +517,8 @@ export const validatorsSchema = {
 					blsKey: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						minLength: 48,
+						maxLength: 48,
 					},
 					bftWeight: {
 						dataType: 'uint64',

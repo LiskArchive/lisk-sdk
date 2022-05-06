@@ -27,6 +27,7 @@ import {
 	EMPTY_HASH,
 	MAINCHAIN_ID,
 	MAX_UINT64,
+	MAX_LENGTH_NAME,
 	MODULE_ID_INTEROPERABILITY,
 	STORE_PREFIX_CHAIN_DATA,
 	STORE_PREFIX_CHAIN_VALIDATORS,
@@ -34,6 +35,7 @@ import {
 	STORE_PREFIX_OUTBOX_ROOT,
 	STORE_PREFIX_REGISTERED_NAMES,
 	STORE_PREFIX_REGISTERED_NETWORK_IDS,
+	MAX_NUM_VALIDATORS,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
 	nameSchema,
@@ -135,6 +137,16 @@ describe('Sidechain registration command', () => {
 			);
 		});
 
+		it(`should return error if name is more than ${MAX_LENGTH_NAME} characters long`, async () => {
+			verifyContext.params.name = new Array(MAX_LENGTH_NAME + 2).join('a');
+			const result = await sidechainRegistrationCommand.verify(verifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(
+				`Property '.name' must NOT have more than ${MAX_LENGTH_NAME} characters`,
+			);
+		});
+
 		it('should return error if store key name already exists in name store', async () => {
 			await nameSubstore.setWithSchema(
 				Buffer.from(transactionParams.name, 'utf8'),
@@ -157,6 +169,60 @@ describe('Sidechain registration command', () => {
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(
 				'Network ID substore must not have an entry for the store key networkID',
+			);
+		});
+
+		it(`should return error if initValidators array count exceeds ${MAX_NUM_VALIDATORS}`, async () => {
+			verifyContext.params.initValidators = new Array(MAX_NUM_VALIDATORS + 2).fill({
+				blsKey: getRandomBytes(48),
+				bftWeight: BigInt(1),
+			});
+			const result = await sidechainRegistrationCommand.verify(verifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(
+				`must NOT have more than ${MAX_NUM_VALIDATORS} items`,
+			);
+		});
+
+		it('should return error if initValidators array does not have any elements', async () => {
+			verifyContext.params.initValidators = [];
+
+			const result = await sidechainRegistrationCommand.verify(verifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude('must NOT have fewer than 1 items');
+		});
+
+		it('should return error if bls key is below minimum length', async () => {
+			verifyContext.params.initValidators = [
+				{
+					blsKey: getRandomBytes(2),
+					bftWeight: BigInt(10),
+				},
+			];
+
+			const result = await sidechainRegistrationCommand.verify(verifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(
+				"Property '.initValidators.0.blsKey' minLength not satisfied",
+			);
+		});
+
+		it('should return error if bls key is above maximum length', async () => {
+			verifyContext.params.initValidators = [
+				{
+					blsKey: getRandomBytes(50),
+					bftWeight: BigInt(10),
+				},
+			];
+
+			const result = await sidechainRegistrationCommand.verify(verifyContext);
+
+			expect(result.status).toBe(VerifyStatus.FAIL);
+			expect(result.error?.message).toInclude(
+				"Property '.initValidators.0.blsKey' maxLength exceeded",
 			);
 		});
 
