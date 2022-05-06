@@ -18,7 +18,6 @@ import { APIContext, EventQueue } from '../../node/state_machine';
 import { ImmutableAPIContext, SubStore } from '../../node/state_machine/types';
 
 export type StoreCallback = (moduleID: number, storePrefix: number) => SubStore;
-
 export interface CCMsg {
 	readonly nonce: bigint;
 	readonly moduleID: number;
@@ -128,6 +127,7 @@ export interface LastCertificate {
 	stateRoot: Buffer;
 	validatorsHash: Buffer;
 }
+
 export interface ChainAccount {
 	name: string;
 	networkID: Buffer;
@@ -229,4 +229,9 @@ export interface ValidatorsAPI {
 export interface MainchainRegistrationCommandDependencies {
 	bftAPI: BFTAPI;
 	validatorsAPI: ValidatorsAPI;
+}
+
+export interface ValidatorsHashInput {
+	activeValidators: ActiveValidator[];
+	certificateThreshold: bigint;
 }

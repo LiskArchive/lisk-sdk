@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MAX_LENGTH_NAME, NUMBER_MAINCHAIN_VALIDATORS } from './constants';
+import { MAX_LENGTH_NAME, NUMBER_MAINCHAIN_VALIDATORS, MAX_NUM_VALIDATORS } from './constants';
 
 export const channelSchema = {
 	$id: 'modules/interoperability/channel',
@@ -257,6 +257,8 @@ export const sidechainRegParams = {
 		name: {
 			dataType: 'string',
 			fieldNumber: 1,
+			minLength: 1,
+			maxLength: MAX_LENGTH_NAME,
 		},
 		genesisBlockID: {
 			dataType: 'bytes',
@@ -272,6 +274,8 @@ export const sidechainRegParams = {
 					blsKey: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						minLength: 48,
+						maxLength: 48,
 					},
 					bftWeight: {
 						dataType: 'uint64',
@@ -279,6 +283,8 @@ export const sidechainRegParams = {
 					},
 				},
 			},
+			minItems: 1,
+			maxItems: MAX_NUM_VALIDATORS,
 		},
 		certificateThreshold: {
 			dataType: 'uint64',
@@ -491,12 +497,13 @@ export const nameSchema = {
 	},
 };
 
+// Note: Changed to lower-case `id` as ajv requires it
 export const chainIDSchema = {
-	$id: 'modules/interoperability/name',
+	$id: 'modules/interoperability/chainId',
 	type: 'object',
-	required: ['ID'],
+	required: ['id'],
 	properties: {
-		ID: {
+		id: {
 			dataType: 'uint32',
 			fieldNumber: 1,
 		},
