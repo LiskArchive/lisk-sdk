@@ -14,41 +14,41 @@
 
 // import { getRandomBytes } from '@liskhq/lisk-cryptography';
 
-const oneLisk = BigInt('100000000');
+const oneUnit = BigInt('100000000');
 
 const validData = {
 	userSubstore: [
 		{
 			address: Buffer.alloc(20, 0),
 			tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
-			availableBalance: oneLisk,
-			lockedBalances: [{ moduleID: 3, amount: oneLisk }],
+			availableBalance: oneUnit,
+			lockedBalances: [{ moduleID: 3, amount: oneUnit }],
 		},
 		{
 			address: Buffer.alloc(20, 0),
 			tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 1, 0]),
-			availableBalance: oneLisk,
-			lockedBalances: [{ moduleID: 3, amount: oneLisk }],
+			availableBalance: oneUnit,
+			lockedBalances: [{ moduleID: 3, amount: oneUnit }],
 		},
 		{
 			address: Buffer.alloc(20, 1),
 			tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
-			availableBalance: oneLisk,
+			availableBalance: oneUnit,
 			lockedBalances: [
-				{ moduleID: 3, amount: oneLisk },
-				{ moduleID: 4, amount: oneLisk },
+				{ moduleID: 3, amount: oneUnit },
+				{ moduleID: 4, amount: oneUnit },
 			],
 		},
 	],
 	supplySubstore: [
-		{ localID: Buffer.from([0, 0, 0, 0]), totalSupply: oneLisk * BigInt(6) },
-		{ localID: Buffer.from([0, 0, 1, 0]), totalSupply: oneLisk * BigInt(2) },
+		{ localID: Buffer.from([0, 0, 0, 0]), totalSupply: oneUnit * BigInt(6) },
+		{ localID: Buffer.from([0, 0, 1, 0]), totalSupply: oneUnit * BigInt(2) },
 	],
 	escrowSubstore: [
 		{
 			escrowChainID: Buffer.from([0, 0, 0, 2]),
 			localID: Buffer.from([0, 0, 0, 0]),
-			amount: oneLisk,
+			amount: oneUnit,
 		},
 	],
 	availableLocalIDSubstore: {
@@ -68,8 +68,8 @@ export const invalidGenesisAssets = [
 				{
 					address: Buffer.alloc(10, 0),
 					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
-					availableBalance: oneLisk,
-					lockedBalances: [{ moduleID: 3, amount: oneLisk }],
+					availableBalance: oneUnit,
+					lockedBalances: [{ moduleID: 3, amount: oneUnit }],
 				},
 				...validData.userSubstore.slice(1),
 			],
@@ -84,8 +84,8 @@ export const invalidGenesisAssets = [
 				{
 					address: Buffer.alloc(20, 0),
 					tokenID: Buffer.from([9, 0, 0, 0, 0, 0, 0, 0, 0]),
-					availableBalance: oneLisk,
-					lockedBalances: [{ moduleID: 3, amount: oneLisk }],
+					availableBalance: oneUnit,
+					lockedBalances: [{ moduleID: 3, amount: oneUnit }],
 				},
 				...validData.userSubstore.slice(1),
 			],
@@ -101,7 +101,7 @@ export const invalidGenesisAssets = [
 					address: Buffer.alloc(20, 0),
 					tokenID: Buffer.from([9, 0, 0, 0, 0, 0, 0, 0, 0]),
 					availableBalance: BigInt('1000000000000000000000000000'),
-					lockedBalances: [{ moduleID: 3, amount: oneLisk }],
+					lockedBalances: [{ moduleID: 3, amount: oneUnit }],
 				},
 				...validData.userSubstore.slice(1),
 			],
@@ -117,7 +117,7 @@ export const invalidGenesisAssets = [
 					address: Buffer.alloc(20, 9),
 					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
 					availableBalance: BigInt('1000'),
-					lockedBalances: [{ moduleID: 3, amount: oneLisk }],
+					lockedBalances: [{ moduleID: 3, amount: oneUnit }],
 				},
 				...validData.userSubstore.slice(1),
 			],
@@ -135,8 +135,8 @@ export const invalidGenesisAssets = [
 					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
 					availableBalance: BigInt('1000'),
 					lockedBalances: [
-						{ moduleID: 3, amount: oneLisk },
-						{ moduleID: 2, amount: oneLisk },
+						{ moduleID: 3, amount: oneUnit },
+						{ moduleID: 2, amount: oneUnit },
 					],
 				},
 			],
@@ -154,8 +154,8 @@ export const invalidGenesisAssets = [
 					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
 					availableBalance: BigInt('1000'),
 					lockedBalances: [
-						{ moduleID: 2, amount: oneLisk },
-						{ moduleID: 2, amount: oneLisk },
+						{ moduleID: 2, amount: oneUnit },
+						{ moduleID: 2, amount: oneUnit },
 					],
 				},
 			],
@@ -200,7 +200,7 @@ export const invalidGenesisAssets = [
 			...validData,
 			supplySubstore: [
 				...validData.supplySubstore,
-				{ localID: Buffer.from([0, 0, 1, 0]), totalSupply: oneLisk * BigInt(6) },
+				{ localID: Buffer.from([0, 0, 1, 0]), totalSupply: oneUnit * BigInt(6) },
 			],
 		},
 		'Supply store local ID 00000100 is duplicated.',
@@ -211,7 +211,7 @@ export const invalidGenesisAssets = [
 			...validData,
 			supplySubstore: [
 				...validData.supplySubstore,
-				{ localID: Buffer.from([0, 0, 0, 1]), totalSupply: oneLisk * BigInt(6) },
+				{ localID: Buffer.from([0, 0, 0, 1]), totalSupply: oneUnit * BigInt(6) },
 			],
 		},
 		'SupplySubstore must be sorted by localID',
@@ -225,7 +225,7 @@ export const invalidGenesisAssets = [
 				{
 					escrowChainID: Buffer.from([0, 0, 0, 2]),
 					localID: Buffer.from([0, 0, 0, 0]),
-					amount: oneLisk,
+					amount: oneUnit,
 				},
 			],
 		},
@@ -240,7 +240,7 @@ export const invalidGenesisAssets = [
 				{
 					escrowChainID: Buffer.from([0, 0, 0, 0]),
 					localID: Buffer.from([0, 0, 0, 0]),
-					amount: oneLisk,
+					amount: oneUnit,
 				},
 			],
 		},
@@ -271,21 +271,21 @@ export const invalidGenesisAssets = [
 					address: Buffer.alloc(20, 0),
 					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
 					availableBalance: BigInt(2) ** BigInt(64) - BigInt(10),
-					lockedBalances: [{ moduleID: 3, amount: oneLisk }],
+					lockedBalances: [{ moduleID: 3, amount: oneUnit }],
 				},
 				{
 					address: Buffer.alloc(20, 0),
 					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 1, 0]),
-					availableBalance: oneLisk,
-					lockedBalances: [{ moduleID: 3, amount: oneLisk }],
+					availableBalance: oneUnit,
+					lockedBalances: [{ moduleID: 3, amount: oneUnit }],
 				},
 				{
 					address: Buffer.alloc(20, 1),
 					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
 					availableBalance: BigInt(2) ** BigInt(64) - BigInt(10),
 					lockedBalances: [
-						{ moduleID: 3, amount: oneLisk },
-						{ moduleID: 4, amount: oneLisk },
+						{ moduleID: 3, amount: oneUnit },
+						{ moduleID: 4, amount: oneUnit },
 					],
 				},
 			],
@@ -297,8 +297,8 @@ export const invalidGenesisAssets = [
 		{
 			...validData,
 			supplySubstore: [
-				{ localID: Buffer.from([0, 0, 0, 0]), totalSupply: oneLisk * BigInt(4) },
-				{ localID: Buffer.from([0, 0, 1, 0]), totalSupply: oneLisk * BigInt(2) },
+				{ localID: Buffer.from([0, 0, 0, 0]), totalSupply: oneUnit * BigInt(4) },
+				{ localID: Buffer.from([0, 0, 1, 0]), totalSupply: oneUnit * BigInt(2) },
 			],
 		},
 		'Stored total supply conflicts with computed supply',
@@ -309,7 +309,7 @@ export const invalidGenesisAssets = [
 			...validData,
 			supplySubstore: [
 				...validData.supplySubstore,
-				{ localID: Buffer.from([0, 0, 9, 9]), totalSupply: oneLisk * BigInt(2) },
+				{ localID: Buffer.from([0, 0, 9, 9]), totalSupply: oneUnit * BigInt(2) },
 			],
 		},
 		'Stored total supply is non zero but cannot be computed',
@@ -322,6 +322,6 @@ export const invalidGenesisAssets = [
 				nextAvailableLocalID: Buffer.from([0, 0, 0, 0]),
 			},
 		},
-		'Max token local ID is higher than next availableLocalID',
+		'Max local ID is higher than next availableLocalID',
 	],
 ];

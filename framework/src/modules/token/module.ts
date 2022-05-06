@@ -213,8 +213,8 @@ export class TokenModule extends BaseModule {
 			await escrowStore.setWithSchema(key, { amount: escrowData.amount }, escrowStoreSchema);
 		}
 
-		const nextAvailableLocakIDStore = context.getStore(this.id, STORE_PREFIX_AVAILABLE_LOCAL_ID);
-		await nextAvailableLocakIDStore.setWithSchema(
+		const nextAvailableLocalIDStore = context.getStore(this.id, STORE_PREFIX_AVAILABLE_LOCAL_ID);
+		await nextAvailableLocalIDStore.setWithSchema(
 			EMPTY_BYTES,
 			{ nextAvailableLocalID: genesisStore.availableLocalIDSubstore.nextAvailableLocalID },
 			availableLocalIDStoreSchema,
@@ -310,13 +310,13 @@ export class TokenModule extends BaseModule {
 		// validate next available ID
 		const {
 			nextAvailableLocalID,
-		} = await nextAvailableLocakIDStore.getWithSchema<AvailableLocalIDStoreData>(
+		} = await nextAvailableLocalIDStore.getWithSchema<AvailableLocalIDStoreData>(
 			EMPTY_BYTES,
 			availableLocalIDStoreSchema,
 		);
 		// If maxLocalID is larger than nextAvailableLocalID, it is invalid
 		if (maxLocalID.compare(nextAvailableLocalID) > 0) {
-			throw new Error('Max token local ID is higher than next availableLocalID');
+			throw new Error('Max local ID is higher than next availableLocalID');
 		}
 	}
 }
