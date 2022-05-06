@@ -25,6 +25,7 @@ export const STORE_PREFIX_USER = 0x0000;
 export const STORE_PREFIX_SUPPLY = 0x8000;
 export const STORE_PREFIX_ESCROW = 0xc000;
 export const STORE_PREFIX_AVAILABLE_LOCAL_ID = 0xd000;
+export const STORE_PREFIX_TERMINATED_ESCROW = 0xe000;
 
 export const CCM_STATUS_OK = 0;
 export const CCM_STATUS_TOKEN_NOT_SUPPORTED = 64;
@@ -33,7 +34,7 @@ export const CCM_STATUS_MIN_BALANCE_NOT_REACHED = 66;
 
 export const MIN_BALANCE = BigInt(5000000);
 
-export const EMPTY_BYTES = Buffer.alloc(0);
+export const ADDRESS_LENGTH = 20;
 export const CHAIN_ID_LENGTH = 4;
 export const LOCAL_ID_LENGTH = 4;
 export const TOKEN_ID_LENGTH = CHAIN_ID_LENGTH + LOCAL_ID_LENGTH;
@@ -49,3 +50,5 @@ export const defaultConfig = {
 	],
 	supportedTokenIDs: [],
 };
+
+export const EMPTY_BYTES = Buffer.alloc(0);

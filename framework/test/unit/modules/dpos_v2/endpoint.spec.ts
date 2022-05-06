@@ -77,6 +77,7 @@ describe('DposModuleEndpoint', () => {
 				getStore1.mockReturnValue(voterSubStore);
 				const voterDataReturned = await dposEndpoint.getVoter({
 					getStore: getStore1,
+					getImmutableAPIContext: jest.fn(),
 					logger,
 					params: {
 						address: address.toString('hex'),
@@ -92,6 +93,7 @@ describe('DposModuleEndpoint', () => {
 				getStore1.mockReturnValue(voterSubStore);
 				const voterDataReturned = await dposEndpoint.getVoter({
 					getStore: getStore1,
+					getImmutableAPIContext: jest.fn(),
 					logger,
 					params: {
 						address: address.toString('hex'),
@@ -114,6 +116,7 @@ describe('DposModuleEndpoint', () => {
 				getStore1.mockReturnValue(delegateSubStore);
 				const delegateDataReturned = await dposEndpoint.getDelegate({
 					getStore: getStore1,
+					getImmutableAPIContext: jest.fn(),
 					logger,
 					params: {
 						address: address.toString('hex'),
@@ -135,6 +138,7 @@ describe('DposModuleEndpoint', () => {
 				getStore1.mockReturnValue(delegateSubStore);
 				const delegateDataReturned = await dposEndpoint.getDelegate({
 					getStore: getStore1,
+					getImmutableAPIContext: jest.fn(),
 					logger,
 					params: {
 						address: address.toString('hex'),
@@ -156,6 +160,7 @@ describe('DposModuleEndpoint', () => {
 				getStore1.mockReturnValue(delegateSubStore);
 				const delegatesDataReturned = await dposEndpoint.getAllDelegates({
 					getStore: getStore1,
+					getImmutableAPIContext: jest.fn(),
 					logger,
 					params: {},
 					networkIdentifier,
@@ -175,6 +180,7 @@ describe('DposModuleEndpoint', () => {
 				getStore1.mockReturnValue(delegateSubStore);
 				const delegatesDataReturned = await dposEndpoint.getAllDelegates({
 					getStore: getStore1,
+					getImmutableAPIContext: jest.fn(),
 					logger,
 					params: {},
 					networkIdentifier,

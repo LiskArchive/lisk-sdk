@@ -15,7 +15,7 @@
 import { StateStore } from '@liskhq/lisk-chain';
 import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { EventQueue } from './event_queue';
-import { SubStore } from './types';
+import { SubStore, ImmutableSubStore, ImmutableAPIContext } from './types';
 
 interface Params {
 	stateStore: StateStore;
@@ -26,6 +26,18 @@ export const createAPIContext = (params: Params) => new APIContext(params);
 
 export const createNewAPIContext = (db: KVStore | InMemoryKVStore) =>
 	new APIContext({ stateStore: new StateStore(db), eventQueue: new EventQueue() });
+
+interface ImmutableSubStoreGetter {
+	getStore: (moduleID: number, storePrefix: number) => ImmutableSubStore;
+}
+
+export const createImmutableAPIContext = (
+	immutableSubstoreGetter: ImmutableSubStoreGetter,
+): ImmutableAPIContext => ({
+	eventQueue: new EventQueue(),
+	getStore: (moduleID: number, storePrefix: number) =>
+		immutableSubstoreGetter.getStore(moduleID, storePrefix),
+});
 
 export class APIContext {
 	private readonly _stateStore: StateStore;

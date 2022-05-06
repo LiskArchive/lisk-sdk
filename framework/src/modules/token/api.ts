@@ -56,7 +56,7 @@ export class TokenAPI extends BaseAPI {
 		address: Buffer,
 		tokenID: TokenID,
 	): Promise<bigint> {
-		const canonicalTokenID = await this._getCanonicalTokenID(apiContext, tokenID);
+		const canonicalTokenID = await this.getCanonicalTokenID(apiContext, tokenID);
 		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
 		try {
 			const user = await userStore.getWithSchema<UserStoreData>(
@@ -78,7 +78,7 @@ export class TokenAPI extends BaseAPI {
 		tokenID: TokenID,
 		moduleID: number,
 	): Promise<bigint> {
-		const canonicalTokenID = await this._getCanonicalTokenID(apiContext, tokenID);
+		const canonicalTokenID = await this.getCanonicalTokenID(apiContext, tokenID);
 		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
 		try {
 			const user = await userStore.getWithSchema<UserStoreData>(
@@ -99,7 +99,7 @@ export class TokenAPI extends BaseAPI {
 		escrowChainID: Buffer,
 		tokenID: TokenID,
 	): Promise<bigint> {
-		const canonicalTokenID = await this._getCanonicalTokenID(apiContext, tokenID);
+		const canonicalTokenID = await this.getCanonicalTokenID(apiContext, tokenID);
 		const isNative = await this.isNative(apiContext, canonicalTokenID);
 		if (!isNative) {
 			throw new Error('Only native token can have escrow amount.');
@@ -175,7 +175,7 @@ export class TokenAPI extends BaseAPI {
 		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void> {
-		const canonicalTokenID = await this._getCanonicalTokenID(apiContext, tokenID);
+		const canonicalTokenID = await this.getCanonicalTokenID(apiContext, tokenID);
 		const isNative = await this.isNative(apiContext, canonicalTokenID);
 		if (!isNative) {
 			throw new Error('Only native token can be minted.');
@@ -246,7 +246,7 @@ export class TokenAPI extends BaseAPI {
 		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void> {
-		const canonicalTokenID = await this._getCanonicalTokenID(apiContext, tokenID);
+		const canonicalTokenID = await this.getCanonicalTokenID(apiContext, tokenID);
 		const isNative = await this.isNative(apiContext, canonicalTokenID);
 		if (!isNative) {
 			throw new Error('Only native token can be burnt.');
@@ -287,7 +287,7 @@ export class TokenAPI extends BaseAPI {
 		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void> {
-		const canonicalTokenID = await this._getCanonicalTokenID(apiContext, tokenID);
+		const canonicalTokenID = await this.getCanonicalTokenID(apiContext, tokenID);
 		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
 		const sender = await userStore.getWithSchema<UserStoreData>(
 			getUserStoreKey(senderAddress, canonicalTokenID),
@@ -365,7 +365,7 @@ export class TokenAPI extends BaseAPI {
 		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void> {
-		const canonicalTokenID = await this._getCanonicalTokenID(apiContext, tokenID);
+		const canonicalTokenID = await this.getCanonicalTokenID(apiContext, tokenID);
 		if (amount < BigInt(0)) {
 			throw new Error('Amount must be a positive integer to lock.');
 		}
@@ -410,7 +410,7 @@ export class TokenAPI extends BaseAPI {
 		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void> {
-		const canonicalTokenID = await this._getCanonicalTokenID(apiContext, tokenID);
+		const canonicalTokenID = await this.getCanonicalTokenID(apiContext, tokenID);
 		if (amount < BigInt(0)) {
 			throw new Error('Amount must be a positive integer to unlock.');
 		}
@@ -445,12 +445,12 @@ export class TokenAPI extends BaseAPI {
 	}
 
 	public async isNative(apiContext: ImmutableAPIContext, tokenID: TokenID): Promise<boolean> {
-		const canonicalTokenID = await this._getCanonicalTokenID(apiContext, tokenID);
+		const canonicalTokenID = await this.getCanonicalTokenID(apiContext, tokenID);
 		const [chainID] = splitTokenID(canonicalTokenID);
 		return chainID.equals(CHAIN_ID_ALIAS_NATIVE);
 	}
 
-	private async _getCanonicalTokenID(
+	public async getCanonicalTokenID(
 		apiContext: ImmutableAPIContext,
 		tokenID: TokenID,
 	): Promise<TokenID> {

@@ -235,6 +235,7 @@ describe('InMemoryChannel Channel', () => {
 				expect(params.endpoints.action1).toHaveBeenCalledWith({
 					networkIdentifier: params.networkIdentifier,
 					getStore: expect.anything(),
+					getImmutableAPIContext: expect.anything(),
 					logger: expect.anything(),
 					params: expect.anything(),
 				});
