@@ -354,13 +354,13 @@ describe('token module', () => {
 			).rejects.toThrow('Amount must be a positive integer to unlock');
 		});
 
-		it('should reject if address does not have corresponding locked balance for the specified module', async () => {
+		it('should reject if address does not have any corresponding locked balance for the specified module', async () => {
 			await expect(
 				api.unlock(apiContext, defaultAddress, 15, defaultTokenID, BigInt(100)),
 			).rejects.toThrow('No balance is locked for module ID 15');
 		});
 
-		it('should reject if address does not have sufficient balance in the corresponding locked balance', async () => {
+		it('should reject if address does not have sufficient corresponding locked balance for the specified module', async () => {
 			await expect(
 				api.unlock(
 					apiContext,
