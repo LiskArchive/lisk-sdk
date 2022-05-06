@@ -12,22 +12,48 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export interface TokenID {
-	chainID: number;
-	localID: number;
+import { ImmutableAPIContext } from '../../node/state_machine';
+
+export type TokenID = Buffer;
+
+export interface ModuleConfig {
+	minBalances: {
+		tokenID: string;
+		amount: string;
+	}[];
+	supportedTokenIDs: string[];
+}
+
+export interface MinBalance {
+	tokenID: Buffer;
+	amount: bigint;
 }
 
 export interface GenesisTokenStore {
 	userSubstore: {
 		address: Buffer;
-		tokenID: {
-			chainID: number;
-			localID: number;
-		};
+		tokenID: Buffer;
 		availableBalance: bigint;
 		lockedBalances: {
 			moduleID: number;
 			amount: bigint;
 		}[];
 	}[];
+	supplySubstore: {
+		localID: Buffer;
+		totalSupply: bigint;
+	}[];
+	escrowSubstore: {
+		escrowChainID: Buffer;
+		localID: number;
+		amount: bigint;
+	}[];
+	availableLocalIDSubstore: {
+		nextAvailableLocalID: number;
+	};
+	terminatedEscrowSubstore: number[];
+}
+
+export interface InteroperabilityAPI {
+	getOwnChainAccount(apiContext: ImmutableAPIContext): Promise<{ id: Buffer }>;
 }

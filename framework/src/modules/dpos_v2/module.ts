@@ -142,6 +142,7 @@ export class DPoSModule extends BaseModule {
 		this._moduleConfig = {
 			...config,
 			minWeightStandby: BigInt(config.minWeightStandby),
+			tokenIDDPoS: Buffer.from(config.tokenIDDPoS, 'hex'),
 		} as ModuleConfig;
 
 		this._reportDelegateMisbehaviorCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });

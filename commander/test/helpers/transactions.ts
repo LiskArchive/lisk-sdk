@@ -28,21 +28,25 @@ export const tokenTransferParamsSchema = {
 	$id: 'lisk/transfer-command',
 	title: 'Transfer transaction command',
 	type: 'object',
-	required: ['amount', 'recipientAddress', 'data'],
+	required: ['tokenID', 'amount', 'recipientAddress', 'data'],
 	properties: {
+		tokenID: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
 		amount: {
 			dataType: 'uint64',
-			fieldNumber: 1,
+			fieldNumber: 2,
 		},
 		recipientAddress: {
 			dataType: 'bytes',
-			fieldNumber: 2,
+			fieldNumber: 3,
 			minLength: 20,
 			maxLength: 20,
 		},
 		data: {
 			dataType: 'string',
-			fieldNumber: 3,
+			fieldNumber: 4,
 			minLength: 0,
 			maxLength: 64,
 		},
@@ -147,6 +151,7 @@ export const createTransferTransaction = ({
 			fee: BigInt(transactions.convertLSKToBeddows(fee)),
 			senderPublicKey: Buffer.from(account.publicKey, 'hex'),
 			params: {
+				tokenID: Buffer.from([0, 0, 0, 0, 0, 0]),
 				amount: BigInt(transactions.convertLSKToBeddows(amount)),
 				recipientAddress: Buffer.from(recipientAddress, 'hex'),
 				data: '',
@@ -163,6 +168,7 @@ export const createTransferTransaction = ({
 		signatures: transaction.signatures.map((s: Buffer) => s.toString('hex')),
 		params: {
 			...transaction.params,
+			tokenID: transaction.params.tokenID.toString('hex'),
 			amount: transaction.params.amount.toString(),
 			recipientAddress: transaction.params.recipientAddress.toString('hex'),
 		},

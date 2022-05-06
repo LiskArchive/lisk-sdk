@@ -29,6 +29,7 @@ describe('prompt', () => {
 		it('should return array of questions for given asset schema', () => {
 			const questions = prepareQuestions(tokenTransferParamsSchema);
 			expect(questions).toEqual([
+				{ type: 'input', name: 'tokenID', message: 'Please enter: tokenID: ' },
 				{ type: 'input', name: 'amount', message: 'Please enter: amount: ' },
 				{
 					type: 'input',

@@ -39,6 +39,7 @@ import {
 } from '../../../../../src/modules/dpos_v2/types';
 import { delegateStoreSchema } from '../../../../../src/modules/dpos_v2/schemas';
 import { VerifyStatus } from '../../../../../src/node/state_machine/types';
+import { DEFAULT_TOKEN_ID } from '../../../../utils/node/transaction';
 
 describe('ReportDelegateMisbehaviorCommand', () => {
 	let pomCommand: ReportDelegateMisbehaviorCommand;
@@ -133,7 +134,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			bftAPI: mockBFTAPI,
 		});
 		pomCommand.init({
-			tokenIDDPoS: { chainID: 0, localID: 0 },
+			tokenIDDPoS: DEFAULT_TOKEN_ID,
 		});
 		db = new InMemoryKVStore() as never;
 		stateStore = new StateStore(db);
@@ -604,7 +605,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
 			when(pomCommand['_tokenAPI'].getAvailableBalance as any)
-				.calledWith(context.getAPIContext(), delegate1Address, { chainID: 0, localID: 0 })
+				.calledWith(context.getAPIContext(), delegate1Address, DEFAULT_TOKEN_ID)
 				.mockResolvedValue(remainingBalance as never);
 			when(pomCommand['_tokenAPI'].getMinRemainingBalance as any)
 				.calledWith(context.getAPIContext())
@@ -616,7 +617,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				context.getAPIContext(),
 				delegate1Address,
 				context.transaction.senderAddress,
-				{ chainID: 0, localID: 0 },
+				DEFAULT_TOKEN_ID,
 				reportPunishmentReward,
 			);
 		});
@@ -640,7 +641,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
 			when(pomCommand['_tokenAPI'].getAvailableBalance as any)
-				.calledWith(context.getAPIContext(), delegate1Address, { chainID: 0, localID: 0 })
+				.calledWith(context.getAPIContext(), delegate1Address, DEFAULT_TOKEN_ID)
 				.mockResolvedValue(remainingBalance as never);
 			when(pomCommand['_tokenAPI'].getMinRemainingBalance as any)
 				.calledWith(context.getAPIContext())
@@ -653,7 +654,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				context.getAPIContext(),
 				delegate1Address,
 				context.transaction.senderAddress,
-				{ chainID: 0, localID: 0 },
+				DEFAULT_TOKEN_ID,
 				BigInt(0),
 			);
 		});
@@ -677,7 +678,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
 			when(pomCommand['_tokenAPI'].getAvailableBalance as any)
-				.calledWith(context.getAPIContext(), delegate1Address, { chainID: 0, localID: 0 })
+				.calledWith(context.getAPIContext(), delegate1Address, DEFAULT_TOKEN_ID)
 				.mockResolvedValue(remainingBalance as never);
 			when(pomCommand['_tokenAPI'].getMinRemainingBalance as any)
 				.calledWith(context.getAPIContext())
@@ -689,7 +690,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				context.getAPIContext(),
 				delegate1Address,
 				context.transaction.senderAddress,
-				{ chainID: 0, localID: 0 },
+				DEFAULT_TOKEN_ID,
 				remainingBalance - minRemainingBalance,
 			);
 		});

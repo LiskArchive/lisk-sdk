@@ -13,27 +13,43 @@
  */
 
 import { NotFoundError } from '@liskhq/lisk-chain';
-import { ImmutableAPIContext, APIContext } from '../../node/state_machine';
+import { ImmutableAPIContext, APIContext, ImmutableSubStore } from '../../node/state_machine';
 import { BaseAPI } from '../base_api';
-import { STORE_PREFIX_USER } from './constants';
-import { UserStoreData, userStoreSchema } from './schemas';
-import { TokenID } from './types';
+import {
+	CHAIN_ID_ALIAS_NATIVE,
+	STORE_PREFIX_SUPPLY,
+	STORE_PREFIX_USER,
+	TOKEN_ID_LENGTH,
+} from './constants';
+import { SupplyStoreData, supplyStoreSchema, UserStoreData, userStoreSchema } from './schemas';
+import { InteroperabilityAPI, MinBalance, TokenID } from './types';
+import { getNativeTokenID, getUserStoreKey, splitTokenID } from './utils';
 
 export class TokenAPI extends BaseAPI {
-	private _minBalance!: bigint;
+	private _minBalances!: MinBalance[];
+	private _interoperabilityAPI!: InteroperabilityAPI;
+	// TODO: remove when updating the API
+	private readonly _minBalance: bigint = BigInt(0);
 
-	public init(args: { minBalance: bigint }): void {
-		this._minBalance = args.minBalance;
+	public init(args: { minBalances: MinBalance[] }): void {
+		this._minBalances = args.minBalances;
+	}
+
+	public addDependencies(interoperabilityAPI: InteroperabilityAPI) {
+		this._interoperabilityAPI = interoperabilityAPI;
 	}
 
 	public async getAvailableBalance(
 		apiContext: ImmutableAPIContext,
 		address: Buffer,
-		_tokenID: TokenID,
+		tokenID: TokenID,
 	): Promise<bigint> {
 		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
 		try {
-			const user = await userStore.getWithSchema<UserStoreData>(address, userStoreSchema);
+			const user = await userStore.getWithSchema<UserStoreData>(
+				getUserStoreKey(address, tokenID),
+				userStoreSchema,
+			);
 			return user.availableBalance;
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
@@ -52,26 +68,63 @@ export class TokenAPI extends BaseAPI {
 		apiContext: APIContext,
 		senderAddress: Buffer,
 		recipientAddress: Buffer,
-		_tokenID: TokenID,
+		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void> {
+		const canonicalTokenID = await this._getCanonicalTokenID(apiContext, tokenID);
 		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
-		const sender = await userStore.getWithSchema<UserStoreData>(senderAddress, userStoreSchema);
-		if (sender.availableBalance < amount + this._minBalance) {
+		const sender = await userStore.getWithSchema<UserStoreData>(
+			getUserStoreKey(senderAddress, canonicalTokenID),
+			userStoreSchema,
+		);
+		if (sender.availableBalance < amount) {
 			throw new Error(
 				`Sender ${senderAddress.toString(
 					'hex',
-				)} balance ${sender.availableBalance.toString()} is not sufficient for ${(
-					amount + this._minBalance
-				).toString()}`,
+				)} balance ${sender.availableBalance.toString()} is not sufficient for ${amount.toString()}`,
 			);
 		}
 		sender.availableBalance -= amount;
-		await userStore.setWithSchema(senderAddress, sender, userStoreSchema);
+		await userStore.setWithSchema(
+			getUserStoreKey(senderAddress, canonicalTokenID),
+			sender,
+			userStoreSchema,
+		);
+
+		const recipientExist = await this._accountExist(userStore, recipientAddress);
+
+		const minBalance = this._getMinBalance(canonicalTokenID);
+		let receivedAmount = amount;
+		if (!recipientExist) {
+			if (!minBalance) {
+				throw new Error(
+					`Address cannot be initialized because min balance is not set for TokenID ${canonicalTokenID.toString(
+						'hex',
+					)}.`,
+				);
+			}
+			if (minBalance > receivedAmount) {
+				throw new Error(
+					`Amount ${receivedAmount.toString()} does not satisfy min balance requirement.`,
+				);
+			}
+			receivedAmount -= minBalance;
+			const [chainID] = splitTokenID(canonicalTokenID);
+			if (chainID.equals(CHAIN_ID_ALIAS_NATIVE)) {
+				const supplyStore = apiContext.getStore(this.moduleID, STORE_PREFIX_SUPPLY);
+				const [, localID] = splitTokenID(canonicalTokenID);
+				const supply = await supplyStore.getWithSchema<SupplyStoreData>(localID, supplyStoreSchema);
+				supply.totalSupply -= minBalance;
+				await supplyStore.setWithSchema(localID, supply, supplyStoreSchema);
+			}
+		}
 
 		let recipient: UserStoreData;
 		try {
-			recipient = await userStore.getWithSchema<UserStoreData>(recipientAddress, userStoreSchema);
+			recipient = await userStore.getWithSchema<UserStoreData>(
+				getUserStoreKey(recipientAddress, canonicalTokenID),
+				userStoreSchema,
+			);
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
@@ -81,26 +134,26 @@ export class TokenAPI extends BaseAPI {
 				lockedBalances: [],
 			};
 		}
-		if (recipient.availableBalance + amount < this._minBalance) {
-			throw new Error(
-				`Recipient ${recipientAddress.toString('hex')} balance ${(
-					recipient.availableBalance + amount
-				).toString()} is not sufficient for min balance ${this._minBalance.toString()}`,
-			);
-		}
-		recipient.availableBalance += amount;
-		await userStore.setWithSchema(recipientAddress, recipient, userStoreSchema);
+		recipient.availableBalance += receivedAmount;
+		await userStore.setWithSchema(
+			getUserStoreKey(recipientAddress, canonicalTokenID),
+			recipient,
+			userStoreSchema,
+		);
 	}
 
 	public async lock(
 		apiContext: APIContext,
 		address: Buffer,
 		moduleID: number,
-		_tokenID: TokenID,
+		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void> {
 		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
-		const user = await userStore.getWithSchema<UserStoreData>(address, userStoreSchema);
+		const user = await userStore.getWithSchema<UserStoreData>(
+			getUserStoreKey(address, tokenID),
+			userStoreSchema,
+		);
 		if (user.availableBalance < amount + this._minBalance) {
 			throw new Error(
 				`User ${address.toString(
@@ -125,7 +178,7 @@ export class TokenAPI extends BaseAPI {
 			});
 		}
 		user.lockedBalances.sort((a, b) => a.moduleID - b.moduleID);
-		await userStore.setWithSchema(address, user, userStoreSchema);
+		await userStore.setWithSchema(getUserStoreKey(address, tokenID), user, userStoreSchema);
 	}
 
 	public async unlock(
@@ -160,11 +213,14 @@ export class TokenAPI extends BaseAPI {
 	public async burn(
 		apiContext: APIContext,
 		senderAddress: Buffer,
-		_id: TokenID,
+		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void> {
 		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
-		const sender = await userStore.getWithSchema<UserStoreData>(senderAddress, userStoreSchema);
+		const sender = await userStore.getWithSchema<UserStoreData>(
+			getUserStoreKey(senderAddress, tokenID),
+			userStoreSchema,
+		);
 		if (sender.availableBalance < amount + this._minBalance) {
 			throw new Error(
 				`Sender ${senderAddress.toString(
@@ -175,7 +231,7 @@ export class TokenAPI extends BaseAPI {
 			);
 		}
 		sender.availableBalance -= amount;
-		await userStore.setWithSchema(senderAddress, sender, userStoreSchema);
+		await userStore.setWithSchema(getUserStoreKey(senderAddress, tokenID), sender, userStoreSchema);
 	}
 
 	public async mint(
@@ -230,5 +286,40 @@ export class TokenAPI extends BaseAPI {
 			}
 			return prev;
 		}, BigInt(0));
+	}
+
+	public async isNative(apiContext: ImmutableAPIContext, tokenID: TokenID): Promise<boolean> {
+		const canonicalTokenID = await this._getCanonicalTokenID(apiContext, tokenID);
+		const [chainID] = splitTokenID(canonicalTokenID);
+		return chainID.equals(CHAIN_ID_ALIAS_NATIVE);
+	}
+
+	private async _getCanonicalTokenID(
+		apiContext: ImmutableAPIContext,
+		tokenID: TokenID,
+	): Promise<TokenID> {
+		const [chainID] = splitTokenID(tokenID);
+		// tokenID is already canonical
+		if (chainID.equals(CHAIN_ID_ALIAS_NATIVE)) {
+			return tokenID;
+		}
+		const { id } = await this._interoperabilityAPI.getOwnChainAccount(apiContext);
+		if (chainID.equals(id)) {
+			return getNativeTokenID(tokenID);
+		}
+		return tokenID;
+	}
+
+	private _getMinBalance(tokenID: TokenID): bigint | undefined {
+		const minBalance = this._minBalances.find(mb => mb.tokenID.equals(tokenID));
+		return minBalance?.amount;
+	}
+
+	private async _accountExist(userStore: ImmutableSubStore, address: Buffer): Promise<boolean> {
+		const allUserData = await userStore.iterate({
+			start: Buffer.concat([address, Buffer.alloc(TOKEN_ID_LENGTH, 0)]),
+			end: Buffer.concat([address, Buffer.alloc(TOKEN_ID_LENGTH, 255)]),
+		});
+		return allUserData.length !== 0;
 	}
 }

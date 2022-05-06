@@ -12,16 +12,35 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { TOKEN_ID_LENGTH } from './constants';
+
 export const configSchema = {
 	$id: '/token/config',
 	type: 'object',
 	properties: {
-		minBalance: {
-			type: 'string',
-			format: 'uint64',
+		minBalances: {
+			type: 'array',
+			items: {
+				type: 'object',
+				properties: {
+					tokenID: {
+						type: 'string',
+						format: 'hex',
+					},
+					amount: {
+						type: 'string',
+						format: 'uint64',
+					},
+				},
+			},
+		},
+		supportedTokenIDs: {
+			items: {
+				type: 'string',
+				format: 'hex',
+			},
 		},
 	},
-	required: ['minBalance'],
 };
 
 export interface UserStoreData {
@@ -53,6 +72,46 @@ export const userStoreSchema = {
 	},
 };
 
+export interface SupplyStoreData {
+	totalSupply: bigint;
+}
+
+export const supplyStoreSchema = {
+	$id: '/token/store/supply',
+	type: 'object',
+	required: ['totalSupply'],
+	properties: {
+		totalSupply: {
+			dataType: 'uint64',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export const availableLocalIDStoreSchema = {
+	$id: '/token/store/availableLocalID',
+	type: 'object',
+	required: ['nextAvailableLocalID'],
+	properties: {
+		nextAvailableLocalID: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export const escrowStoreSchema = {
+	$id: '/token/store/escrow',
+	type: 'object',
+	required: ['amount'],
+	properties: {
+		amount: {
+			dataType: 'uint64',
+			fieldNumber: 1,
+		},
+	},
+};
+
 export const getBalanceRequestSchema = {
 	$id: '/token/endpoint/getBalance',
 	type: 'object',
@@ -61,31 +120,178 @@ export const getBalanceRequestSchema = {
 			type: 'string',
 			format: 'hex',
 		},
+		tokenID: {
+			type: 'string',
+			format: 'hex',
+		},
 	},
-	required: ['address'],
+	required: ['address', 'tokenID'],
 };
 
 export const transferParamsSchema = {
 	$id: 'lisk/transfer-params',
 	title: 'Transfer transaction params',
 	type: 'object',
-	required: ['amount', 'recipientAddress', 'data'],
+	required: ['tokenID', 'amount', 'recipientAddress', 'data'],
 	properties: {
+		tokenID: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+			minLength: TOKEN_ID_LENGTH,
+			maxLength: TOKEN_ID_LENGTH,
+		},
 		amount: {
 			dataType: 'uint64',
-			fieldNumber: 1,
+			fieldNumber: 2,
 		},
 		recipientAddress: {
 			dataType: 'bytes',
-			fieldNumber: 2,
+			fieldNumber: 3,
 			minLength: 20,
 			maxLength: 20,
 		},
 		data: {
 			dataType: 'string',
-			fieldNumber: 3,
+			fieldNumber: 4,
 			minLength: 0,
 			maxLength: 64,
+		},
+	},
+};
+
+export const crossChainTransferParams = {
+	$id: 'lisk/cc-transfer-params',
+	type: 'object',
+	required: ['tokenID', 'amount', 'receivingChainID', 'recipientAddress', 'data', 'messageFee'],
+	properties: {
+		tokenID: {
+			type: 'object',
+			fieldNumber: 1,
+			required: ['chainID', 'localID'],
+			properties: {
+				chainID: {
+					dataType: 'uint32',
+					fieldNumber: 1,
+				},
+				localID: {
+					dataType: 'uint32',
+					fieldNumber: 2,
+				},
+			},
+		},
+		amount: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		receivingChainID: {
+			dataType: 'uint32',
+			fieldNumber: 3,
+		},
+		recipientAddress: {
+			dataType: 'bytes',
+			fieldNumber: 4,
+		},
+		data: {
+			dataType: 'string',
+			fieldNumber: 5,
+		},
+		messageFee: {
+			dataType: 'uint64',
+			fieldNumber: 6,
+		},
+	},
+};
+
+export const crossChainTransferMessageParams = {
+	$id: 'lisk/cc-transfer-message-params',
+	type: 'object',
+	required: ['tokenID', 'amount', 'senderAddress', 'recipientAddress', 'data'],
+	properties: {
+		tokenID: {
+			type: 'object',
+			fieldNumber: 1,
+			required: ['chainID', 'localID'],
+			properties: {
+				chainID: {
+					dataType: 'uint32',
+					fieldNumber: 1,
+				},
+				localID: {
+					dataType: 'uint32',
+					fieldNumber: 2,
+				},
+			},
+		},
+		amount: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		senderAddress: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+		},
+		recipientAddress: {
+			dataType: 'bytes',
+			fieldNumber: 4,
+		},
+		data: {
+			dataType: 'string',
+			fieldNumber: 5,
+		},
+	},
+};
+
+export const crossChainForwardMessageParams = {
+	$id: 'lisk/cc-forward-message-params',
+	type: 'object',
+	required: [
+		'tokenID',
+		'amount',
+		'senderAddress',
+		'forwardToChainID',
+		'recipientAddress',
+		'data',
+		'forwardedMessageFee',
+	],
+	properties: {
+		tokenID: {
+			type: 'object',
+			fieldNumber: 1,
+			required: ['chainID', 'localID'],
+			properties: {
+				chainID: {
+					dataType: 'uint32',
+					fieldNumber: 1,
+				},
+				localID: {
+					dataType: 'uint32',
+					fieldNumber: 2,
+				},
+			},
+		},
+		amount: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		senderAddress: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+		},
+		forwardToChainID: {
+			dataType: 'bytes',
+			fieldNumber: 4,
+		},
+		recipientAddress: {
+			dataType: 'bytes',
+			fieldNumber: 5,
+		},
+		data: {
+			dataType: 'string',
+			fieldNumber: 6,
+		},
+		forwardedMessageFee: {
+			dataType: 'uint64',
+			fieldNumber: 7,
 		},
 	},
 };
@@ -93,7 +299,13 @@ export const transferParamsSchema = {
 export const genesisTokenStoreSchema = {
 	$id: '/token/module/genesis',
 	type: 'object',
-	required: ['userSubstore'],
+	required: [
+		'userSubstore',
+		'supplySubstore',
+		'escrowSubstore',
+		'availableLocalIDSubstore',
+		'terminatedEscrowSubstore',
+	],
 	properties: {
 		userSubstore: {
 			type: 'array',
@@ -107,19 +319,8 @@ export const genesisTokenStoreSchema = {
 						fieldNumber: 1,
 					},
 					tokenID: {
-						type: 'object',
+						dataType: 'bytes',
 						fieldNumber: 2,
-						required: ['chainID', 'localID'],
-						properties: {
-							chainID: {
-								dataType: 'uint32',
-								fieldNumber: 1,
-							},
-							localID: {
-								dataType: 'uint32',
-								fieldNumber: 2,
-							},
-						},
 					},
 					availableBalance: {
 						dataType: 'uint64',
@@ -144,6 +345,64 @@ export const genesisTokenStoreSchema = {
 						},
 					},
 				},
+			},
+		},
+		supplySubstore: {
+			type: 'array',
+			fieldNumber: 2,
+			items: {
+				type: 'object',
+				required: ['localID', 'totalSupply'],
+				properties: {
+					localID: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					totalSupply: {
+						dataType: 'uint64',
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+		escrowSubstore: {
+			type: 'array',
+			fieldNumber: 3,
+			items: {
+				type: 'object',
+				required: ['escrowChainID', 'localID', 'amount'],
+				properties: {
+					escrowChainID: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					localID: {
+						dataType: 'uint32',
+						fieldNumber: 2,
+					},
+					amount: {
+						dataType: 'uint64',
+						fieldNumber: 3,
+					},
+				},
+			},
+		},
+		availableLocalIDSubstore: {
+			type: 'object',
+			required: ['nextAvailableLocalID'],
+			fieldNumber: 4,
+			properties: {
+				nextAvailableLocalID: {
+					dataType: 'uint32',
+					fieldNumber: 1,
+				},
+			},
+		},
+		terminatedEscrowSubstore: {
+			type: 'array',
+			fieldNumber: 5,
+			items: {
+				type: 'uint32',
 			},
 		},
 	},

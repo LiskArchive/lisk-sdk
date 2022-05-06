@@ -142,7 +142,7 @@ describe('Transaction order', () => {
 				optionalKeys.sort((a, b) => a.compare(b));
 				const registerMultisigTx = createMultiSignRegisterTransaction({
 					nonce: BigInt(0),
-					fee: BigInt('110000000'),
+					fee: BigInt('1000416000'),
 					mandatoryKeys: [newAccount.publicKey],
 					optionalKeys,
 					numberOfSignatures: 2,
@@ -248,7 +248,7 @@ describe('Transaction order', () => {
 
 				// Execution of transaction will fail in block generation now with the same logic
 				await expect(processEnv.createBlock([fundingTx, spendingTx, refundingTx])).rejects.toThrow(
-					' is not sufficient for 14005000000',
+					' is not sufficient for 14000000000',
 				);
 			});
 		});

@@ -32,10 +32,11 @@ import { getVoterOrDefault } from '../../../../../src/modules/dpos_v2/utils';
 import { VerifyStatus } from '../../../../../src/node/state_machine/types';
 import { createTransactionContext } from '../../../../../src/testing';
 import { liskToBeddows } from '../../../../utils/assets';
+import { DEFAULT_TOKEN_ID } from '../../../../utils/node/transaction';
 
 describe('VoteCommand', () => {
 	const lastBlockHeight = 200;
-	const tokenIDDPoS = { chainID: 0, localID: 0 };
+	const tokenIDDPoS = DEFAULT_TOKEN_ID;
 	const senderPublicKey = getRandomBytes(32);
 	const senderAddress = getAddressFromPublicKey(senderPublicKey);
 	const delegateAddress1 = getRandomBytes(20);
@@ -75,7 +76,7 @@ describe('VoteCommand', () => {
 			},
 		});
 		command.init({
-			tokenIDDPoS: { chainID: 0, localID: 0 },
+			tokenIDDPoS: DEFAULT_TOKEN_ID,
 		});
 
 		stateStore = {

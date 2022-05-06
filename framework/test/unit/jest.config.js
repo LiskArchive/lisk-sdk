@@ -19,5 +19,5 @@ module.exports = {
 	testMatch: ['<rootDir>/test/unit/**/*.(spec|test).(js|ts)'],
 	testPathIgnorePatterns: ['/node_modules'],
 	coverageDirectory: '.coverage/unit',
-	collectCoverageFrom: ['src/controller/**', 'src/application/**'],
+	collectCoverageFrom: ['src/**'],
 };

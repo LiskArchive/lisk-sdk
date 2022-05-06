@@ -14,7 +14,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { Chain, StateStore } from '@liskhq/lisk-chain';
 import * as testing from '../../../src/testing';
-import { createTransferTransaction } from '../../utils/node/transaction';
+import { createTransferTransaction, DEFAULT_TOKEN_ID } from '../../utils/node/transaction';
 import { TokenModule } from '../../../src';
 import { genesisTokenStoreSchema } from '../../../src/modules/token';
 import { GenesisTokenStore } from '../../../src/modules/token/types';
@@ -65,6 +65,7 @@ describe('genesis block', () => {
 					const balance = await processEnv.invoke<{ availableBalance: string }>(
 						'token_getBalance',
 						{
+							tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 							address: data.address.toString('hex'),
 						},
 					);
@@ -96,6 +97,7 @@ describe('genesis block', () => {
 			recipientAddress = decoded.userSubstore[decoded.userSubstore.length - 1].address;
 			const recipient = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
 				address: recipientAddress.toString('hex'),
+				tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 			});
 			oldBalance = BigInt(recipient.availableBalance);
 			newBalance = oldBalance + BigInt('100000000000');
@@ -153,7 +155,7 @@ describe('genesis block', () => {
 						eventQueue: new EventQueue(),
 					}),
 					recipientAddress,
-					{ chainID: 0, localID: 0 },
+					Buffer.alloc(8, 0),
 				);
 
 				// Arrange & Assert
