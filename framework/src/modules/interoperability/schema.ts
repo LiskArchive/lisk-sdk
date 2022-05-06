@@ -568,6 +568,8 @@ export const registrationSignatureMessageSchema = {
 		ownName: {
 			dataType: 'string',
 			fieldNumber: 2,
+			minLength: 1,
+			maxLength: MAX_LENGTH_NAME,
 		},
 		mainchainValidators: {
 			type: 'array',
@@ -579,6 +581,8 @@ export const registrationSignatureMessageSchema = {
 					blsKey: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						minLength: 48,
+						maxLength: 48,
 					},
 					bftWeight: {
 						dataType: 'uint64',
@@ -586,6 +590,8 @@ export const registrationSignatureMessageSchema = {
 					},
 				},
 			},
+			minItems: NUMBER_MAINCHAIN_VALIDATORS,
+			maxItems: NUMBER_MAINCHAIN_VALIDATORS,
 		},
 	},
 };

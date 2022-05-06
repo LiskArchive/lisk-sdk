@@ -163,10 +163,10 @@ describe('Mainchain registration command', () => {
 		});
 
 		it('should return error if bls keys are not lexicographically ordered', async () => {
-			const temp = verifyContext.params.mainchainValidators[0].blsKey;
-			verifyContext.params.mainchainValidators[0].blsKey =
-				verifyContext.params.mainchainValidators[1].blsKey;
-			verifyContext.params.mainchainValidators[1].blsKey = temp;
+			[verifyContext.params.mainchainValidators[0], verifyContext.params.mainchainValidators[1]] = [
+				verifyContext.params.mainchainValidators[1],
+				verifyContext.params.mainchainValidators[0],
+			];
 			const result = await mainchainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
