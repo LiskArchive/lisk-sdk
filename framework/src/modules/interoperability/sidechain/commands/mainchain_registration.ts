@@ -101,17 +101,6 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			};
 		}
 
-		const validatorsSchemaErrors = validator.validate(validatorsSchema, {
-			activeValidators: mainchainValidators,
-			certificateThreshold: BigInt(THRESHOLD_MAINCHAIN),
-		});
-		if (validatorsSchemaErrors.length > 0) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new LiskValidationError(validatorsSchemaErrors),
-			};
-		}
-
 		for (let i = 0; i < NUMBER_MAINCHAIN_VALIDATORS; i += 1) {
 			const currentValidator = mainchainValidators[i];
 

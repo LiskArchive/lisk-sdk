@@ -312,6 +312,8 @@ export const mainchainRegParams = {
 					blsKey: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						minLength: 48,
+						maxLength: 48,
 					},
 					bftWeight: {
 						dataType: 'uint64',
@@ -319,6 +321,8 @@ export const mainchainRegParams = {
 					},
 				},
 			},
+			minItems: NUMBER_MAINCHAIN_VALIDATORS,
+			maxItems: NUMBER_MAINCHAIN_VALIDATORS,
 		},
 		signature: {
 			dataType: 'bytes',
