@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MAX_NUM_VALIDATORS, MAX_LENGTH_NAME } from './constants';
+import { MAX_LENGTH_NAME, NUMBER_MAINCHAIN_VALIDATORS, MAX_NUM_VALIDATORS } from './constants';
 
 export const channelSchema = {
 	$id: 'modules/interoperability/channel',
@@ -305,6 +305,8 @@ export const mainchainRegParams = {
 		ownName: {
 			dataType: 'string',
 			fieldNumber: 2,
+			minLength: 1,
+			maxLength: MAX_LENGTH_NAME,
 		},
 		mainchainValidators: {
 			type: 'array',
@@ -316,6 +318,8 @@ export const mainchainRegParams = {
 					blsKey: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						minLength: 48,
+						maxLength: 48,
 					},
 					bftWeight: {
 						dataType: 'uint64',
@@ -323,6 +327,8 @@ export const mainchainRegParams = {
 					},
 				},
 			},
+			minItems: NUMBER_MAINCHAIN_VALIDATORS,
+			maxItems: NUMBER_MAINCHAIN_VALIDATORS,
 		},
 		signature: {
 			dataType: 'bytes',
@@ -554,5 +560,45 @@ export const validatorsHashInputSchema = {
 			},
 		},
 		certificateThreshold: { dataType: 'uint64', fieldNumber: 2 },
+	},
+};
+
+export const registrationSignatureMessageSchema = {
+	$id: '/modules/interoperability/sidechain/registration_signature_message',
+	type: 'object',
+	required: ['ownChainID', 'ownName', 'mainchainValidators'],
+	properties: {
+		ownChainID: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		ownName: {
+			dataType: 'string',
+			fieldNumber: 2,
+			minLength: 1,
+			maxLength: MAX_LENGTH_NAME,
+		},
+		mainchainValidators: {
+			type: 'array',
+			fieldNumber: 3,
+			items: {
+				type: 'object',
+				required: ['blsKey', 'bftWeight'],
+				properties: {
+					blsKey: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+						minLength: 48,
+						maxLength: 48,
+					},
+					bftWeight: {
+						dataType: 'uint64',
+						fieldNumber: 2,
+					},
+				},
+			},
+			minItems: NUMBER_MAINCHAIN_VALIDATORS,
+			maxItems: NUMBER_MAINCHAIN_VALIDATORS,
+		},
 	},
 };

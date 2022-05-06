@@ -103,3 +103,6 @@ export const computeValidatorsHash = (
 	const encodedValidatorsHashInput = codec.encode(validatorsHashInputSchema, input);
 	return hash(encodedValidatorsHashInput);
 };
+
+export const sortValidatorsByBLSKey = (validators: ActiveValidators[]) =>
+	validators.sort((a, b) => a.blsKey.compare(b.blsKey));

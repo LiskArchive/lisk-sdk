@@ -13,8 +13,9 @@
  */
 
 import { Logger } from '../../logger';
+import { Validator } from '../../node/consensus/types';
 import { APIContext, EventQueue } from '../../node/state_machine';
-import { SubStore } from '../../node/state_machine/types';
+import { ImmutableAPIContext, SubStore } from '../../node/state_machine/types';
 
 export type StoreCallback = (moduleID: number, storePrefix: number) => SubStore;
 export interface CCMsg {
@@ -184,11 +185,50 @@ export interface ActiveValidators {
 	bftWeight: bigint;
 }
 
+export interface RegistrationParametersValidator {
+	blsKey: Buffer;
+	bftWeight: bigint;
+}
+
 export interface SidechainRegistrationParams {
 	name: string;
 	genesisBlockID: Buffer;
-	initValidators: ActiveValidators[];
+	initValidators: RegistrationParametersValidator[];
 	certificateThreshold: bigint;
+}
+
+export interface MainchainRegistrationParams {
+	ownChainID: number;
+	ownName: string;
+	mainchainValidators: RegistrationParametersValidator[];
+	signature: Buffer;
+	aggregationBits: Buffer;
+}
+
+export interface ValidatorKeys {
+	generatorKey: Buffer;
+	blsKey: Buffer;
+}
+
+export interface BFTAPI {
+	getBFTParameters(
+		context: ImmutableAPIContext,
+		height: number,
+	): Promise<{
+		prevoteThreshold: bigint;
+		precommitThreshold: bigint;
+		certificateThreshold: bigint;
+		validators: Validator[];
+	}>;
+}
+
+export interface ValidatorsAPI {
+	getValidatorAccount(apiContext: ImmutableAPIContext, address: Buffer): Promise<ValidatorKeys>;
+}
+
+export interface MainchainRegistrationCommandDependencies {
+	bftAPI: BFTAPI;
+	validatorsAPI: ValidatorsAPI;
 }
 
 export interface ValidatorsHashInput {
