@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { TOKEN_ID_LENGTH } from './constants';
+import { CHAIN_ID_LENGTH, LOCAL_ID_LENGTH, TOKEN_ID_LENGTH } from './constants';
 
 export const configSchema = {
 	$id: '/token/config',
@@ -88,17 +88,25 @@ export const supplyStoreSchema = {
 	},
 };
 
+export interface AvailableLocalIDStoreData {
+	nextAvailableLocalID: Buffer;
+}
+
 export const availableLocalIDStoreSchema = {
 	$id: '/token/store/availableLocalID',
 	type: 'object',
 	required: ['nextAvailableLocalID'],
 	properties: {
 		nextAvailableLocalID: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
 	},
 };
+
+export interface EscrowStoreData {
+	amount: bigint;
+}
 
 export const escrowStoreSchema = {
 	$id: '/token/store/escrow',
@@ -107,6 +115,22 @@ export const escrowStoreSchema = {
 	properties: {
 		amount: {
 			dataType: 'uint64',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export interface TerminatedEscrowStoreData {
+	escrowTerminated: boolean;
+}
+
+export const terminatedEscrowStoreSchema = {
+	$id: '/token/store/terminatedEscrow',
+	type: 'object',
+	required: ['escrowTerminated'],
+	properties: {
+		escrowTerminated: {
+			dataType: 'boolean',
 			fieldNumber: 1,
 		},
 	},
@@ -317,10 +341,14 @@ export const genesisTokenStoreSchema = {
 					address: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						minLength: 20,
+						maxLength: 20,
 					},
 					tokenID: {
 						dataType: 'bytes',
 						fieldNumber: 2,
+						minLength: TOKEN_ID_LENGTH,
+						maxLength: TOKEN_ID_LENGTH,
 					},
 					availableBalance: {
 						dataType: 'uint64',
@@ -357,6 +385,8 @@ export const genesisTokenStoreSchema = {
 					localID: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						minLength: LOCAL_ID_LENGTH,
+						maxLength: LOCAL_ID_LENGTH,
 					},
 					totalSupply: {
 						dataType: 'uint64',
@@ -375,10 +405,14 @@ export const genesisTokenStoreSchema = {
 					escrowChainID: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						minLength: CHAIN_ID_LENGTH,
+						maxLength: CHAIN_ID_LENGTH,
 					},
 					localID: {
-						dataType: 'uint32',
+						dataType: 'bytes',
 						fieldNumber: 2,
+						minLength: LOCAL_ID_LENGTH,
+						maxLength: LOCAL_ID_LENGTH,
 					},
 					amount: {
 						dataType: 'uint64',
@@ -393,8 +427,10 @@ export const genesisTokenStoreSchema = {
 			fieldNumber: 4,
 			properties: {
 				nextAvailableLocalID: {
-					dataType: 'uint32',
+					dataType: 'bytes',
 					fieldNumber: 1,
+					minLength: LOCAL_ID_LENGTH,
+					maxLength: LOCAL_ID_LENGTH,
 				},
 			},
 		},
@@ -402,7 +438,9 @@ export const genesisTokenStoreSchema = {
 			type: 'array',
 			fieldNumber: 5,
 			items: {
-				type: 'uint32',
+				dataType: 'bytes',
+				minLength: CHAIN_ID_LENGTH,
+				maxLength: CHAIN_ID_LENGTH,
 			},
 		},
 	},
