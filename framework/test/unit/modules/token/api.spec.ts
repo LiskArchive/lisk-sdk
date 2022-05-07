@@ -76,6 +76,9 @@ describe('token module', () => {
 		api.addDependencies({
 			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
 			send: jest.fn().mockResolvedValue(true),
+			error: jest.fn(),
+			terminateChain: jest.fn(),
+			getChannel: jest.fn(),
 		});
 		apiContext = createAPIContext({
 			stateStore: new StateStore(new InMemoryKVStore()),

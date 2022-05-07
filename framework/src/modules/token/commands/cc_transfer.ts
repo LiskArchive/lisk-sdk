@@ -21,7 +21,7 @@ import {
 } from '../../../node/state_machine';
 import { TokenAPI } from '../api';
 import { crossChainTransferParams } from '../schemas';
-import { COMMAND_ID_CROSS_CHAIN_TRANSFER } from '../constants';
+import { CROSS_CHAIN_COMMAND_ID_TRANSFER } from '../constants';
 
 interface Params {
 	tokenID: Buffer;
@@ -34,7 +34,7 @@ interface Params {
 
 export class CCTransferCommand extends BaseCommand {
 	public name = 'crossChaintransfer';
-	public id = COMMAND_ID_CROSS_CHAIN_TRANSFER;
+	public id = CROSS_CHAIN_COMMAND_ID_TRANSFER;
 	public schema = crossChainTransferParams;
 	private _api!: TokenAPI;
 
