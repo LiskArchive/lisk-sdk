@@ -70,6 +70,10 @@ describe('token endpoint', () => {
 		});
 		api.addDependencies({
 			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
+			send: jest.fn().mockResolvedValue(true),
+			error: jest.fn(),
+			terminateChain: jest.fn(),
+			getChannel: jest.fn(),
 		});
 		endpoint.init(api, supportedTokenIDs);
 		stateStore = new StateStore(new InMemoryKVStore());
