@@ -12,11 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { StateStore } from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { TokenAPI } from '../../../../src/modules/token';
 import {
+	CCM_STATUS_OK,
 	CHAIN_ID_LENGTH,
+	CROSS_CHAIN_COMMAND_ID_FORWARD,
+	CROSS_CHAIN_COMMAND_ID_TRANSFER,
 	EMPTY_BYTES,
 	MODULE_ID_TOKEN,
 	STORE_PREFIX_AVAILABLE_LOCAL_ID,
@@ -27,6 +31,8 @@ import {
 } from '../../../../src/modules/token/constants';
 import {
 	availableLocalIDStoreSchema,
+	crossChainForwardMessageParams,
+	crossChainTransferMessageParams,
 	escrowStoreSchema,
 	SupplyStoreData,
 	supplyStoreSchema,
@@ -69,6 +75,10 @@ describe('token module', () => {
 		});
 		api.addDependencies({
 			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
+			send: jest.fn().mockResolvedValue(true),
+			error: jest.fn(),
+			terminateChain: jest.fn(),
+			getChannel: jest.fn(),
 		});
 		apiContext = createAPIContext({
 			stateStore: new StateStore(new InMemoryKVStore()),
@@ -406,6 +416,284 @@ describe('token module', () => {
 				userStoreSchema,
 			);
 			expect(lockedBalances).toHaveLength(0);
+		});
+	});
+
+	describe('transferCrossChain', () => {
+		it('should reject when amount is less than zero', async () => {
+			await expect(
+				api.transferCrossChain(
+					apiContext,
+					defaultAddress,
+					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
+					getRandomBytes(20),
+					defaultTokenID,
+					BigInt('-3'),
+					BigInt('10000'),
+					'data',
+				),
+			).rejects.toThrow('Amount must be greater or equal to zero');
+		});
+
+		it('should reject when sender address length is invalid', async () => {
+			await expect(
+				api.transferCrossChain(
+					apiContext,
+					defaultAddress.slice(1),
+					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
+					getRandomBytes(20),
+					defaultTokenID,
+					BigInt('100'),
+					BigInt('10000'),
+					'data',
+				),
+			).rejects.toThrow('Invalid sender address');
+		});
+
+		it('should reject when recipient address length is invalid', async () => {
+			await expect(
+				api.transferCrossChain(
+					apiContext,
+					defaultAddress,
+					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
+					getRandomBytes(19),
+					defaultTokenID,
+					BigInt('100'),
+					BigInt('10000'),
+					'data',
+				),
+			).rejects.toThrow('Invalid recipient address');
+		});
+
+		it('should reject when sender balance is less than amount', async () => {
+			await expect(
+				api.transferCrossChain(
+					apiContext,
+					defaultAddress,
+					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
+					getRandomBytes(20),
+					defaultTokenID,
+					defaultAccount.availableBalance + BigInt(100000),
+					BigInt('10000'),
+					'data',
+				),
+			).rejects.toThrow('is not sufficient for');
+		});
+
+		it('should not update sender balance if send fail and chain id is native chain', async () => {
+			jest.spyOn(api['_interoperabilityAPI'], 'send').mockResolvedValue(false);
+			await api.transferCrossChain(
+				apiContext,
+				defaultAddress,
+				defaultTokenID.slice(0, CHAIN_ID_LENGTH),
+				getRandomBytes(20),
+				defaultTokenID,
+				defaultAccount.availableBalance,
+				BigInt('10000'),
+				'data',
+			);
+
+			await expect(
+				api.getAvailableBalance(apiContext, defaultAddress, defaultTokenID),
+			).resolves.toEqual(defaultAccount.availableBalance);
+		});
+
+		it('should not update sender balance if send fail and chain id is mainchain', async () => {
+			jest.spyOn(api['_interoperabilityAPI'], 'send').mockResolvedValue(false);
+			jest
+				.spyOn(api['_interoperabilityAPI'], 'getOwnChainAccount')
+				.mockResolvedValue({ id: Buffer.from([0, 0, 0, 2]) });
+			const receivingChainID = Buffer.from([0, 0, 0, 3]);
+			const messageFee = BigInt('10000');
+			const userStore = apiContext.getStore(MODULE_ID_TOKEN, STORE_PREFIX_USER);
+			await userStore.setWithSchema(
+				getUserStoreKey(defaultAddress, defaultTokenID),
+				defaultAccount,
+				userStoreSchema,
+			);
+			await api.transferCrossChain(
+				apiContext,
+				defaultAddress,
+				receivingChainID,
+				getRandomBytes(20),
+				defaultTokenID,
+				defaultAccount.availableBalance - messageFee,
+				messageFee,
+				'data',
+			);
+			await expect(
+				api.getAvailableBalance(apiContext, defaultAddress, defaultTokenID),
+			).resolves.toEqual(defaultAccount.availableBalance);
+		});
+
+		describe('when chainID is native chain', () => {
+			beforeEach(async () => {
+				jest.spyOn(codec, 'encode');
+				await api.transferCrossChain(
+					apiContext,
+					defaultAddress,
+					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
+					getRandomBytes(20),
+					defaultTokenID,
+					defaultAccount.availableBalance,
+					BigInt('10000'),
+					'data',
+				);
+			});
+
+			it('should send transfer message', () => {
+				expect(codec.encode).toHaveBeenCalledWith(crossChainTransferMessageParams, {
+					tokenID: Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]),
+					amount: defaultAccount.availableBalance,
+					senderAddress: defaultAddress,
+					recipientAddress: expect.any(Buffer),
+					data: 'data',
+				});
+				expect(api['_interoperabilityAPI'].send).toHaveBeenCalledWith(
+					apiContext,
+					defaultAddress,
+					MODULE_ID_TOKEN,
+					CROSS_CHAIN_COMMAND_ID_TRANSFER,
+					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
+					BigInt('10000'),
+					CCM_STATUS_OK,
+					expect.any(Buffer),
+				);
+			});
+
+			it('should deduct amount from sender', async () => {
+				await expect(
+					api.getAvailableBalance(apiContext, defaultAddress, defaultTokenID),
+				).resolves.toEqual(BigInt(0));
+			});
+
+			it('should add amount to escrow', async () => {
+				await expect(
+					api.getEscrowedAmount(
+						apiContext,
+						defaultTokenID.slice(0, CHAIN_ID_LENGTH),
+						defaultTokenID,
+					),
+				).resolves.toEqual(defaultAccount.availableBalance);
+			});
+		});
+
+		describe('when chainID is receiving chain id', () => {
+			beforeEach(async () => {
+				jest.spyOn(codec, 'encode');
+				jest.spyOn(apiContext, 'getStore');
+				await api.transferCrossChain(
+					apiContext,
+					defaultAddress,
+					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					getRandomBytes(20),
+					defaultForeignTokenID,
+					defaultAccount.availableBalance,
+					BigInt('10000'),
+					'data',
+				);
+			});
+
+			it('should send transfer message', () => {
+				expect(codec.encode).toHaveBeenCalledWith(crossChainTransferMessageParams, {
+					tokenID: Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]),
+					amount: defaultAccount.availableBalance,
+					senderAddress: defaultAddress,
+					recipientAddress: expect.any(Buffer),
+					data: 'data',
+				});
+				expect(api['_interoperabilityAPI'].send).toHaveBeenCalledWith(
+					apiContext,
+					defaultAddress,
+					MODULE_ID_TOKEN,
+					CROSS_CHAIN_COMMAND_ID_TRANSFER,
+					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					BigInt('10000'),
+					CCM_STATUS_OK,
+					expect.any(Buffer),
+				);
+			});
+
+			it('should deduct amount from sender', async () => {
+				await expect(
+					api.getAvailableBalance(apiContext, defaultAddress, defaultForeignTokenID),
+				).resolves.toEqual(BigInt(0));
+			});
+
+			it('should not add amount to escrow', () => {
+				expect(apiContext.getStore).not.toHaveBeenCalledWith(MODULE_ID_TOKEN, STORE_PREFIX_ESCROW);
+			});
+		});
+
+		describe('when chainID is mainchain id', () => {
+			const messageFee = BigInt('10000');
+			const receivingChainID = Buffer.from([0, 0, 0, 3]);
+
+			beforeEach(async () => {
+				jest.spyOn(codec, 'encode');
+				jest
+					.spyOn(api['_interoperabilityAPI'], 'getOwnChainAccount')
+					.mockResolvedValue({ id: Buffer.from([0, 0, 0, 2]) });
+				const userStore = apiContext.getStore(MODULE_ID_TOKEN, STORE_PREFIX_USER);
+				await userStore.setWithSchema(
+					getUserStoreKey(defaultAddress, defaultTokenID),
+					defaultAccount,
+					userStoreSchema,
+				);
+				await api.transferCrossChain(
+					apiContext,
+					defaultAddress,
+					receivingChainID,
+					getRandomBytes(20),
+					defaultTokenID,
+					defaultAccount.availableBalance - messageFee,
+					messageFee,
+					'data',
+				);
+			});
+
+			it('should fail if sender does not have amount + messageFee', async () => {
+				await expect(
+					api.transferCrossChain(
+						apiContext,
+						defaultAddress,
+						receivingChainID,
+						getRandomBytes(20),
+						defaultTokenID,
+						defaultAccount.availableBalance,
+						BigInt('10000'),
+						'data',
+					),
+				).rejects.toThrow('is not sufficient for');
+			});
+
+			it('should forward transfer message', () => {
+				expect(codec.encode).toHaveBeenCalledWith(crossChainForwardMessageParams, {
+					tokenID: Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]),
+					amount: defaultAccount.availableBalance - messageFee,
+					senderAddress: defaultAddress,
+					forwardToChainID: receivingChainID,
+					recipientAddress: expect.any(Buffer),
+					data: 'data',
+					forwardedMessageFee: messageFee,
+				});
+				expect(api['_interoperabilityAPI'].send).toHaveBeenCalledWith(
+					apiContext,
+					defaultAddress,
+					MODULE_ID_TOKEN,
+					CROSS_CHAIN_COMMAND_ID_FORWARD,
+					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
+					BigInt('0'),
+					CCM_STATUS_OK,
+					expect.any(Buffer),
+				);
+			});
+
+			it('should deduct amount and message fee from sender', async () => {
+				await expect(
+					api.getAvailableBalance(apiContext, defaultAddress, defaultTokenID),
+				).resolves.toEqual(BigInt(0));
+			});
 		});
 	});
 });

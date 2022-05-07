@@ -14,21 +14,29 @@
 
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { MAX_UINT64 } from '@liskhq/lisk-validator';
+import { codec } from '@liskhq/lisk-codec';
 import { ImmutableAPIContext, APIContext, ImmutableSubStore } from '../../node/state_machine';
 import { BaseAPI } from '../base_api';
 import {
+	ADDRESS_LENGTH,
+	CCM_STATUS_OK,
 	CHAIN_ID_ALIAS_NATIVE,
 	EMPTY_BYTES,
 	LOCAL_ID_LENGTH,
 	STORE_PREFIX_AVAILABLE_LOCAL_ID,
+	CROSS_CHAIN_COMMAND_ID_FORWARD,
+	CROSS_CHAIN_COMMAND_ID_TRANSFER,
 	STORE_PREFIX_ESCROW,
 	STORE_PREFIX_SUPPLY,
 	STORE_PREFIX_USER,
 	TOKEN_ID_LENGTH,
+	TOKEN_ID_LSK,
 } from './constants';
 import {
 	AvailableLocalIDStoreData,
 	availableLocalIDStoreSchema,
+	crossChainForwardMessageParams,
+	crossChainTransferMessageParams,
 	EscrowStoreData,
 	escrowStoreSchema,
 	SupplyStoreData,
@@ -37,7 +45,7 @@ import {
 	userStoreSchema,
 } from './schemas';
 import { InteroperabilityAPI, MinBalance, TokenID } from './types';
-import { getNativeTokenID, getUserStoreKey, splitTokenID } from './utils';
+import { addEscrowAmount, getNativeTokenID, getUserStoreKey, splitTokenID } from './utils';
 
 export class TokenAPI extends BaseAPI {
 	private _minBalances!: MinBalance[];
@@ -448,6 +456,127 @@ export class TokenAPI extends BaseAPI {
 		const canonicalTokenID = await this.getCanonicalTokenID(apiContext, tokenID);
 		const [chainID] = splitTokenID(canonicalTokenID);
 		return chainID.equals(CHAIN_ID_ALIAS_NATIVE);
+	}
+
+	public async transferCrossChain(
+		apiContext: APIContext,
+		senderAddress: Buffer,
+		receivingChainID: Buffer,
+		recipientAddress: Buffer,
+		tokenID: Buffer,
+		amount: bigint,
+		messageFee: bigint,
+		data: string,
+	): Promise<void> {
+		if (amount < BigInt(0)) {
+			throw new Error('Amount must be greater or equal to zero.');
+		}
+		if (senderAddress.length !== ADDRESS_LENGTH) {
+			throw new Error(`Invalid sender address ${senderAddress.toString('hex')}.`);
+		}
+		if (recipientAddress.length !== ADDRESS_LENGTH) {
+			throw new Error(`Invalid recipient address ${recipientAddress.toString('hex')}.`);
+		}
+
+		const canonicalTokenID = await this.getCanonicalTokenID(apiContext, tokenID);
+		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
+		const sender = await userStore.getWithSchema<UserStoreData>(
+			getUserStoreKey(senderAddress, canonicalTokenID),
+			userStoreSchema,
+		);
+
+		if (sender.availableBalance < amount) {
+			throw new Error(
+				`Sender ${senderAddress.toString(
+					'hex',
+				)} balance ${sender.availableBalance.toString()} is not sufficient for ${amount.toString()}`,
+			);
+		}
+		const [chainID, localID] = splitTokenID(canonicalTokenID);
+
+		const [LSK_CHAIN_ID] = splitTokenID(TOKEN_ID_LSK);
+		const possibleChainIDs = [CHAIN_ID_ALIAS_NATIVE, receivingChainID, LSK_CHAIN_ID];
+		const isAllowed = possibleChainIDs.some(id => id.equals(chainID));
+		if (!isAllowed) {
+			throw new Error(`Invalid chain id ${chainID.toString('hex')} for transfer cross chain.`);
+		}
+		let newTokenID: Buffer;
+		if (CHAIN_ID_ALIAS_NATIVE.equals(chainID)) {
+			const { id: ownChainID } = await this._interoperabilityAPI.getOwnChainAccount(apiContext);
+			newTokenID = Buffer.concat([ownChainID, localID]);
+		} else {
+			newTokenID = tokenID;
+		}
+
+		if ([CHAIN_ID_ALIAS_NATIVE, receivingChainID].some(id => id.equals(chainID))) {
+			const message = codec.encode(crossChainTransferMessageParams, {
+				tokenID: newTokenID,
+				amount,
+				senderAddress,
+				recipientAddress,
+				data,
+			});
+			const sendResult = await this._interoperabilityAPI.send(
+				apiContext,
+				senderAddress,
+				this.moduleID,
+				CROSS_CHAIN_COMMAND_ID_TRANSFER,
+				receivingChainID,
+				messageFee,
+				CCM_STATUS_OK,
+				message,
+			);
+			if (!sendResult) {
+				return;
+			}
+			sender.availableBalance -= amount;
+			await userStore.setWithSchema(
+				getUserStoreKey(senderAddress, canonicalTokenID),
+				sender,
+				userStoreSchema,
+			);
+			if (chainID.equals(CHAIN_ID_ALIAS_NATIVE)) {
+				await addEscrowAmount(apiContext, this.moduleID, receivingChainID, localID, amount);
+			}
+			return;
+		}
+		if (sender.availableBalance < amount + messageFee) {
+			throw new Error(
+				`Sender ${senderAddress.toString(
+					'hex',
+				)} balance ${sender.availableBalance.toString()} is not sufficient for ${(
+					amount + messageFee
+				).toString()}`,
+			);
+		}
+		const message = codec.encode(crossChainForwardMessageParams, {
+			tokenID,
+			amount,
+			senderAddress,
+			forwardToChainID: receivingChainID,
+			recipientAddress,
+			data,
+			forwardedMessageFee: messageFee,
+		});
+		const sendResult = await this._interoperabilityAPI.send(
+			apiContext,
+			senderAddress,
+			this.moduleID,
+			CROSS_CHAIN_COMMAND_ID_FORWARD,
+			chainID,
+			BigInt(0),
+			CCM_STATUS_OK,
+			message,
+		);
+		if (!sendResult) {
+			return;
+		}
+		sender.availableBalance -= amount + messageFee;
+		await userStore.setWithSchema(
+			getUserStoreKey(senderAddress, canonicalTokenID),
+			sender,
+			userStoreSchema,
+		);
 	}
 
 	public async getCanonicalTokenID(

@@ -12,7 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { CHAIN_ID_LENGTH, LOCAL_ID_LENGTH, TOKEN_ID_LENGTH, ADDRESS_LENGTH } from './constants';
+import {
+	CHAIN_ID_LENGTH,
+	LOCAL_ID_LENGTH,
+	TOKEN_ID_LENGTH,
+	ADDRESS_LENGTH,
+	MAX_DATA_LENGTH,
+} from './constants';
 
 export const configSchema = {
 	$id: '/token/config',
@@ -162,7 +168,7 @@ export const transferParamsSchema = {
 			dataType: 'string',
 			fieldNumber: 4,
 			minLength: 0,
-			maxLength: 64,
+			maxLength: MAX_DATA_LENGTH,
 		},
 	},
 };
@@ -173,35 +179,32 @@ export const crossChainTransferParams = {
 	required: ['tokenID', 'amount', 'receivingChainID', 'recipientAddress', 'data', 'messageFee'],
 	properties: {
 		tokenID: {
-			type: 'object',
+			dataType: 'bytes',
 			fieldNumber: 1,
-			required: ['chainID', 'localID'],
-			properties: {
-				chainID: {
-					dataType: 'uint32',
-					fieldNumber: 1,
-				},
-				localID: {
-					dataType: 'uint32',
-					fieldNumber: 2,
-				},
-			},
+			minLength: TOKEN_ID_LENGTH,
+			maxLength: TOKEN_ID_LENGTH,
 		},
 		amount: {
 			dataType: 'uint64',
 			fieldNumber: 2,
 		},
 		receivingChainID: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 3,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 		},
 		recipientAddress: {
 			dataType: 'bytes',
 			fieldNumber: 4,
+			minLength: ADDRESS_LENGTH,
+			maxLength: ADDRESS_LENGTH,
 		},
 		data: {
 			dataType: 'string',
 			fieldNumber: 5,
+			minLength: 0,
+			maxLength: MAX_DATA_LENGTH,
 		},
 		messageFee: {
 			dataType: 'uint64',
@@ -210,25 +213,24 @@ export const crossChainTransferParams = {
 	},
 };
 
+export interface CCTransferMessageParams {
+	tokenID: Buffer;
+	amount: bigint;
+	senderAddress: Buffer;
+	recipientAddress: Buffer;
+	data: string;
+}
+
 export const crossChainTransferMessageParams = {
 	$id: 'lisk/cc-transfer-message-params',
 	type: 'object',
 	required: ['tokenID', 'amount', 'senderAddress', 'recipientAddress', 'data'],
 	properties: {
 		tokenID: {
-			type: 'object',
+			dataType: 'bytes',
 			fieldNumber: 1,
-			required: ['chainID', 'localID'],
-			properties: {
-				chainID: {
-					dataType: 'uint32',
-					fieldNumber: 1,
-				},
-				localID: {
-					dataType: 'uint32',
-					fieldNumber: 2,
-				},
-			},
+			minLength: TOKEN_ID_LENGTH,
+			maxLength: TOKEN_ID_LENGTH,
 		},
 		amount: {
 			dataType: 'uint64',
@@ -237,17 +239,33 @@ export const crossChainTransferMessageParams = {
 		senderAddress: {
 			dataType: 'bytes',
 			fieldNumber: 3,
+			minLength: ADDRESS_LENGTH,
+			maxLength: ADDRESS_LENGTH,
 		},
 		recipientAddress: {
 			dataType: 'bytes',
 			fieldNumber: 4,
+			minLength: ADDRESS_LENGTH,
+			maxLength: ADDRESS_LENGTH,
 		},
 		data: {
 			dataType: 'string',
 			fieldNumber: 5,
+			minLength: 0,
+			maxLength: MAX_DATA_LENGTH,
 		},
 	},
 };
+
+export interface CCForwardMessageParams {
+	tokenID: Buffer;
+	amount: bigint;
+	senderAddress: Buffer;
+	forwardToChainID: Buffer;
+	recipientAddress: Buffer;
+	data: string;
+	forwardedMessageFee: bigint;
+}
 
 export const crossChainForwardMessageParams = {
 	$id: 'lisk/cc-forward-message-params',
@@ -263,19 +281,10 @@ export const crossChainForwardMessageParams = {
 	],
 	properties: {
 		tokenID: {
-			type: 'object',
+			dataType: 'bytes',
 			fieldNumber: 1,
-			required: ['chainID', 'localID'],
-			properties: {
-				chainID: {
-					dataType: 'uint32',
-					fieldNumber: 1,
-				},
-				localID: {
-					dataType: 'uint32',
-					fieldNumber: 2,
-				},
-			},
+			minLength: TOKEN_ID_LENGTH,
+			maxLength: TOKEN_ID_LENGTH,
 		},
 		amount: {
 			dataType: 'uint64',
@@ -284,18 +293,26 @@ export const crossChainForwardMessageParams = {
 		senderAddress: {
 			dataType: 'bytes',
 			fieldNumber: 3,
+			minLength: ADDRESS_LENGTH,
+			maxLength: ADDRESS_LENGTH,
 		},
 		forwardToChainID: {
 			dataType: 'bytes',
 			fieldNumber: 4,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 		},
 		recipientAddress: {
 			dataType: 'bytes',
 			fieldNumber: 5,
+			minLength: ADDRESS_LENGTH,
+			maxLength: ADDRESS_LENGTH,
 		},
 		data: {
 			dataType: 'string',
 			fieldNumber: 6,
+			minLength: 0,
+			maxLength: MAX_DATA_LENGTH,
 		},
 		forwardedMessageFee: {
 			dataType: 'uint64',
