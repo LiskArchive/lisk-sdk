@@ -46,13 +46,13 @@ export interface GenesisTokenStore {
 	}[];
 	escrowSubstore: {
 		escrowChainID: Buffer;
-		localID: number;
+		localID: Buffer;
 		amount: bigint;
 	}[];
 	availableLocalIDSubstore: {
-		nextAvailableLocalID: number;
+		nextAvailableLocalID: Buffer;
 	};
-	terminatedEscrowSubstore: number[];
+	terminatedEscrowSubstore: Buffer[];
 }
 
 export interface InteroperabilityAPI {

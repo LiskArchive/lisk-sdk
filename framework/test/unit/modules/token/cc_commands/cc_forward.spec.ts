@@ -50,7 +50,7 @@ describe('CrossChain Forward command', () => {
 	const defaultAddress = getRandomBytes(20);
 	const defaultTokenIDAlias = Buffer.alloc(TOKEN_ID_LENGTH, 0);
 	const defaultTokenID = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
-	const defaultForeginTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
+	const defaultForeignTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
 	const defaultAccount = {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
@@ -89,7 +89,7 @@ describe('CrossChain Forward command', () => {
 		};
 		const minBalances = [
 			{ tokenID: defaultTokenIDAlias, amount: BigInt(MIN_BALANCE) },
-			{ tokenID: defaultForeginTokenID, amount: BigInt(MIN_BALANCE) },
+			{ tokenID: defaultForeignTokenID, amount: BigInt(MIN_BALANCE) },
 		];
 		api.addDependencies(interopAPI);
 		command.addDependencies(interopAPI);
@@ -109,7 +109,7 @@ describe('CrossChain Forward command', () => {
 			userStoreSchema,
 		);
 		await userStore.setWithSchema(
-			getUserStoreKey(defaultAddress, defaultForeginTokenID),
+			getUserStoreKey(defaultAddress, defaultForeignTokenID),
 			defaultAccount,
 			userStoreSchema,
 		);
@@ -134,7 +134,7 @@ describe('CrossChain Forward command', () => {
 		const escrowStore = apiContext.getStore(MODULE_ID_TOKEN, STORE_PREFIX_ESCROW);
 		await escrowStore.setWithSchema(
 			Buffer.concat([
-				defaultForeginTokenID.slice(0, CHAIN_ID_LENGTH),
+				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 				defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
 			]),
 			{ amount: defaultEscrowAmount },
@@ -358,7 +358,7 @@ describe('CrossChain Forward command', () => {
 						fee: BigInt(3000000),
 						status: CCM_STATUS_TOKEN_NOT_SUPPORTED,
 						params: codec.encode(crossChainForwardMessageParams, {
-							tokenID: defaultForeginTokenID,
+							tokenID: defaultForeignTokenID,
 							amount: BigInt(1000),
 							senderAddress: defaultAddress,
 							forwardToChainID: Buffer.from([4, 0, 0, 0]),
@@ -389,12 +389,12 @@ describe('CrossChain Forward command', () => {
 						crossChainCommandID: CROSS_CHAIN_COMMAND_ID_FORWARD,
 						moduleID: MODULE_ID_TOKEN,
 						nonce: BigInt(1),
-						sendingChainID: defaultForeginTokenID.slice(0, CHAIN_ID_LENGTH),
+						sendingChainID: defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
 						fee: BigInt(3000000),
 						status: CCM_STATUS_TOKEN_NOT_SUPPORTED,
 						params: codec.encode(crossChainForwardMessageParams, {
-							tokenID: defaultForeginTokenID,
+							tokenID: defaultForeignTokenID,
 							amount: BigInt(1000),
 							senderAddress: defaultAddress,
 							forwardToChainID: Buffer.from([4, 0, 0, 0]),
@@ -413,7 +413,7 @@ describe('CrossChain Forward command', () => {
 				}),
 			).resolves.toBeUndefined();
 			await expect(
-				api.getAvailableBalance(apiContext, defaultAddress, defaultForeginTokenID),
+				api.getAvailableBalance(apiContext, defaultAddress, defaultForeignTokenID),
 			).resolves.toEqual(defaultAccount.availableBalance + BigInt(1000) + BigInt(2000));
 		});
 
@@ -429,7 +429,7 @@ describe('CrossChain Forward command', () => {
 						fee: BigInt(3000000),
 						status: CCM_STATUS_OK,
 						params: codec.encode(crossChainForwardMessageParams, {
-							tokenID: defaultForeginTokenID,
+							tokenID: defaultForeignTokenID,
 							amount: BigInt(1000),
 							senderAddress: defaultAddress,
 							forwardToChainID: Buffer.from([4, 0, 0, 0]),

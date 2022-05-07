@@ -199,7 +199,7 @@ export class TokenAPI extends BaseAPI {
 		}
 		const supply = await supplyStore.getWithSchema<SupplyStoreData>(localID, supplyStoreSchema);
 		if (supply.totalSupply > MAX_UINT64 - amount) {
-			throw new Error('Supply cannot exceed MAX_UINT64.');
+			throw new Error(`Supply cannot exceed MAX_UINT64 ${MAX_UINT64.toString()}.`);
 		}
 
 		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);

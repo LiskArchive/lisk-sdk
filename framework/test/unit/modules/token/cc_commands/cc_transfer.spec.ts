@@ -49,7 +49,7 @@ describe('CrossChain Transfer command', () => {
 	const defaultAddress = getRandomBytes(20);
 	const defaultTokenIDAlias = Buffer.alloc(TOKEN_ID_LENGTH, 0);
 	const defaultTokenID = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
-	const defaultForeginTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
+	const defaultForeignTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
 	const defaultAccount = {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
@@ -88,7 +88,7 @@ describe('CrossChain Transfer command', () => {
 		};
 		const minBalances = [
 			{ tokenID: defaultTokenIDAlias, amount: BigInt(MIN_BALANCE) },
-			{ tokenID: defaultForeginTokenID, amount: BigInt(MIN_BALANCE) },
+			{ tokenID: defaultForeignTokenID, amount: BigInt(MIN_BALANCE) },
 		];
 		api.addDependencies(interopAPI);
 		command.addDependencies(interopAPI);
@@ -112,7 +112,7 @@ describe('CrossChain Transfer command', () => {
 			userStoreSchema,
 		);
 		await userStore.setWithSchema(
-			getUserStoreKey(defaultAddress, defaultForeginTokenID),
+			getUserStoreKey(defaultAddress, defaultForeignTokenID),
 			defaultAccount,
 			userStoreSchema,
 		);
@@ -137,7 +137,7 @@ describe('CrossChain Transfer command', () => {
 		const escrowStore = apiContext.getStore(MODULE_ID_TOKEN, STORE_PREFIX_ESCROW);
 		await escrowStore.setWithSchema(
 			Buffer.concat([
-				defaultForeginTokenID.slice(0, CHAIN_ID_LENGTH),
+				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 				defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
 			]),
 			{ amount: defaultEscrowAmount },
@@ -232,7 +232,7 @@ describe('CrossChain Transfer command', () => {
 						fee: BigInt(30000),
 						status: CCM_STATUS_OK,
 						params: codec.encode(crossChainTransferMessageParams, {
-							tokenID: defaultForeginTokenID,
+							tokenID: defaultForeignTokenID,
 							amount: BigInt(1000),
 							senderAddress: getRandomBytes(21),
 							recipientAddress: defaultAddress,
@@ -269,7 +269,7 @@ describe('CrossChain Transfer command', () => {
 						fee: BigInt(30000),
 						status: CCM_STATUS_OK,
 						params: codec.encode(crossChainTransferMessageParams, {
-							tokenID: defaultForeginTokenID,
+							tokenID: defaultForeignTokenID,
 							amount: BigInt(1000),
 							senderAddress: defaultAddress,
 							recipientAddress: getRandomBytes(19),
@@ -306,7 +306,7 @@ describe('CrossChain Transfer command', () => {
 						fee: BigInt(30000),
 						status: CCM_STATUS_OK,
 						params: codec.encode(crossChainTransferMessageParams, {
-							tokenID: defaultForeginTokenID,
+							tokenID: defaultForeignTokenID,
 							amount: BigInt(1000),
 							senderAddress: defaultAddress,
 							recipientAddress: defaultAddress,
@@ -423,7 +423,7 @@ describe('CrossChain Transfer command', () => {
 						fee: BigInt(3000000),
 						status: CCM_STATUS_OK,
 						params: codec.encode(crossChainTransferMessageParams, {
-							tokenID: defaultForeginTokenID,
+							tokenID: defaultForeignTokenID,
 							amount: defaultEscrowAmount - BigInt(10),
 							senderAddress: defaultAddress,
 							recipientAddress: defaultAddress,

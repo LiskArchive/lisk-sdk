@@ -47,7 +47,7 @@ describe('token module', () => {
 	const defaultAddress = getRandomBytes(20);
 	const defaultTokenIDAlias = Buffer.alloc(TOKEN_ID_LENGTH, 0);
 	const defaultTokenID = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
-	const defaultForeginTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
+	const defaultForeignTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
 	const defaultAccount = {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
@@ -91,7 +91,7 @@ describe('token module', () => {
 			userStoreSchema,
 		);
 		await userStore.setWithSchema(
-			getUserStoreKey(defaultAddress, defaultForeginTokenID),
+			getUserStoreKey(defaultAddress, defaultForeignTokenID),
 			defaultAccount,
 			userStoreSchema,
 		);
@@ -116,7 +116,7 @@ describe('token module', () => {
 		const escrowStore = apiContext.getStore(MODULE_ID_TOKEN, STORE_PREFIX_ESCROW);
 		await escrowStore.setWithSchema(
 			Buffer.concat([
-				defaultForeginTokenID.slice(0, CHAIN_ID_LENGTH),
+				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 				defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
 			]),
 			{ amount: defaultEscrowAmount },
@@ -160,8 +160,8 @@ describe('token module', () => {
 			await expect(
 				api.getEscrowedAmount(
 					apiContext,
-					defaultForeginTokenID.slice(0, CHAIN_ID_LENGTH),
-					defaultForeginTokenID,
+					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID,
 				),
 			).rejects.toThrow('Only native token can have escrow amount');
 		});
@@ -192,7 +192,7 @@ describe('token module', () => {
 			await expect(api.accountExists(apiContext, defaultAddress)).resolves.toBeTrue();
 		});
 
-		it('should return faslse if account does not exist', async () => {
+		it('should return false if account does not exist', async () => {
 			await expect(api.accountExists(apiContext, getRandomBytes(20))).resolves.toBeFalse();
 		});
 	});
@@ -207,12 +207,6 @@ describe('token module', () => {
 
 	describe('initializeToken', () => {
 		it('should reject if supply already exist', async () => {
-			await expect(
-				api.initializeToken(apiContext, defaultTokenID.slice(CHAIN_ID_LENGTH)),
-			).rejects.toThrow('Token is already initialized');
-		});
-
-		it('should create empty supply', async () => {
 			await expect(
 				api.initializeToken(apiContext, defaultTokenID.slice(CHAIN_ID_LENGTH)),
 			).rejects.toThrow('Token is already initialized');
@@ -240,11 +234,11 @@ describe('token module', () => {
 	describe('mint', () => {
 		it('should reject if token is not native', async () => {
 			await expect(
-				api.mint(apiContext, defaultAddress, defaultForeginTokenID, BigInt(10000)),
+				api.mint(apiContext, defaultAddress, defaultForeignTokenID, BigInt(10000)),
 			).rejects.toThrow('Only native token can be minted');
 		});
 
-		it('should reject amount is less than zero', async () => {
+		it('should reject if amount is less than zero', async () => {
 			await expect(
 				api.mint(apiContext, defaultAddress, defaultTokenID, BigInt(-1)),
 			).rejects.toThrow('Amount must be a positive integer to mint');
@@ -284,7 +278,7 @@ describe('token module', () => {
 	describe('burn', () => {
 		it('should reject if token is not native', async () => {
 			await expect(
-				api.burn(apiContext, defaultAddress, defaultForeginTokenID, BigInt(10000)),
+				api.burn(apiContext, defaultAddress, defaultForeignTokenID, BigInt(10000)),
 			).rejects.toThrow('Only native token can be burnt');
 		});
 
@@ -370,13 +364,13 @@ describe('token module', () => {
 			).rejects.toThrow('Amount must be a positive integer to unlock');
 		});
 
-		it('should reject if address does not have corresponding locked balance', async () => {
+		it('should reject if address does not have any corresponding locked balance for the specified module', async () => {
 			await expect(
 				api.unlock(apiContext, defaultAddress, 15, defaultTokenID, BigInt(100)),
 			).rejects.toThrow('No balance is locked for module ID 15');
 		});
 
-		it('should reject if address does not have enoguth corresponding locked balance', async () => {
+		it('should reject if address does not have sufficient corresponding locked balance for the specified module', async () => {
 			await expect(
 				api.unlock(
 					apiContext,
@@ -591,9 +585,9 @@ describe('token module', () => {
 				await api.transferCrossChain(
 					apiContext,
 					defaultAddress,
-					defaultForeginTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 					getRandomBytes(20),
-					defaultForeginTokenID,
+					defaultForeignTokenID,
 					defaultAccount.availableBalance,
 					BigInt('10000'),
 					'data',
@@ -613,7 +607,7 @@ describe('token module', () => {
 					defaultAddress,
 					MODULE_ID_TOKEN,
 					CROSS_CHAIN_COMMAND_ID_TRANSFER,
-					defaultForeginTokenID.slice(0, CHAIN_ID_LENGTH),
+					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 					BigInt('10000'),
 					CCM_STATUS_OK,
 					expect.any(Buffer),
@@ -622,7 +616,7 @@ describe('token module', () => {
 
 			it('should deduct amount from sender', async () => {
 				await expect(
-					api.getAvailableBalance(apiContext, defaultAddress, defaultForeginTokenID),
+					api.getAvailableBalance(apiContext, defaultAddress, defaultForeignTokenID),
 				).resolves.toEqual(BigInt(0));
 			});
 

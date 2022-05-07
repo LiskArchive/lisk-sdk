@@ -22,6 +22,7 @@ import { Bus } from '../bus';
 import * as JSONRPC from '../jsonrpc/types';
 import { ChannelType, EndpointHandlers } from '../../types';
 import { Logger } from '../../logger';
+import { createImmutableAPIContext } from '../../node/state_machine';
 
 export class InMemoryChannel extends BaseChannel {
 	private bus!: Bus;
@@ -112,6 +113,7 @@ export class InMemoryChannel extends BaseChannel {
 					const stateStore = new StateStore(this._db);
 					return stateStore.getStore(moduleID, storePrefix);
 				},
+				getImmutableAPIContext: () => createImmutableAPIContext(new StateStore(this._db)),
 				...(this._networkIdentifier && { networkIdentifier: this._networkIdentifier }),
 			}) as Promise<T>;
 		}

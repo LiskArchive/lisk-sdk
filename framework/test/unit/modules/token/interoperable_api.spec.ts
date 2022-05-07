@@ -45,7 +45,7 @@ describe('CrossChain Forward command', () => {
 	const defaultAddress = getRandomBytes(20);
 	const defaultTokenIDAlias = Buffer.alloc(TOKEN_ID_LENGTH, 0);
 	const defaultTokenID = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
-	const defaultForeginTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
+	const defaultForeignTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
 	const defaultAccount = {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
@@ -102,7 +102,7 @@ describe('CrossChain Forward command', () => {
 		};
 		const minBalances = [
 			{ tokenID: defaultTokenIDAlias, amount: BigInt(MIN_BALANCE) },
-			{ tokenID: defaultForeginTokenID, amount: BigInt(MIN_BALANCE) },
+			{ tokenID: defaultForeignTokenID, amount: BigInt(MIN_BALANCE) },
 		];
 		tokenAPI.addDependencies(interopAPI);
 		tokenInteropAPI.addDependencies(interopAPI);
@@ -122,7 +122,7 @@ describe('CrossChain Forward command', () => {
 			userStoreSchema,
 		);
 		await userStore.setWithSchema(
-			getUserStoreKey(defaultAddress, defaultForeginTokenID),
+			getUserStoreKey(defaultAddress, defaultForeignTokenID),
 			defaultAccount,
 			userStoreSchema,
 		);
@@ -147,7 +147,7 @@ describe('CrossChain Forward command', () => {
 		const escrowStore = apiContext.getStore(MODULE_ID_TOKEN, STORE_PREFIX_ESCROW);
 		await escrowStore.setWithSchema(
 			Buffer.concat([
-				defaultForeginTokenID.slice(0, CHAIN_ID_LENGTH),
+				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 				defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
 			]),
 			{ amount: defaultEscrowAmount },
@@ -187,7 +187,7 @@ describe('CrossChain Forward command', () => {
 		});
 
 		it('should credit fee to transaction sender if fee token id is not native', async () => {
-			interopAPI.getChannel.mockResolvedValue({ messageFeeTokenID: defaultForeginTokenID });
+			interopAPI.getChannel.mockResolvedValue({ messageFeeTokenID: defaultForeignTokenID });
 			await expect(
 				tokenInteropAPI.beforeApplyCCM({
 					ccm: {
@@ -211,7 +211,7 @@ describe('CrossChain Forward command', () => {
 				}),
 			).resolves.toBeUndefined();
 			await expect(
-				tokenAPI.getAvailableBalance(apiContext, defaultAddress, defaultForeginTokenID),
+				tokenAPI.getAvailableBalance(apiContext, defaultAddress, defaultForeignTokenID),
 			).resolves.toEqual(defaultAccount.availableBalance + fee);
 		});
 
@@ -299,7 +299,7 @@ describe('CrossChain Forward command', () => {
 		});
 
 		it('should credit fee to transaction sender if message fee token id is not native', async () => {
-			interopAPI.getChannel.mockResolvedValue({ messageFeeTokenID: defaultForeginTokenID });
+			interopAPI.getChannel.mockResolvedValue({ messageFeeTokenID: defaultForeignTokenID });
 			await expect(
 				tokenInteropAPI.beforeRecoverCCM({
 					ccm: {
@@ -322,7 +322,7 @@ describe('CrossChain Forward command', () => {
 				}),
 			).resolves.toBeUndefined();
 			await expect(
-				tokenAPI.getAvailableBalance(apiContext, defaultAddress, defaultForeginTokenID),
+				tokenAPI.getAvailableBalance(apiContext, defaultAddress, defaultForeignTokenID),
 			).resolves.toEqual(defaultAccount.availableBalance + fee);
 		});
 
@@ -565,7 +565,7 @@ describe('CrossChain Forward command', () => {
 					logger: fakeLogger,
 					networkIdentifier: getRandomBytes(32),
 					moduleID: MODULE_ID_TOKEN,
-					storeKey: Buffer.concat([defaultAddress, defaultForeginTokenID]),
+					storeKey: Buffer.concat([defaultAddress, defaultForeignTokenID]),
 					storePrefix: STORE_PREFIX_USER,
 					storeValue: codec.encode(userStoreSchema, {
 						availableBalance: defaultAccount.availableBalance * BigInt(2),
