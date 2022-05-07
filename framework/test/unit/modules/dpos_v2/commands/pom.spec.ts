@@ -83,7 +83,6 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			lock: jest.fn(),
 			unlock: jest.fn(),
 			getAvailableBalance: jest.fn(),
-			getMinRemainingBalance: jest.fn(),
 			transfer: jest.fn(),
 			getLockedAmount: jest.fn(),
 		};
@@ -588,7 +587,6 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 
 		it('should reward the sender with 1 LSK if delegate has enough balance', async () => {
 			const remainingBalance = reportPunishmentReward + BigInt('10000000000');
-			const minRemainingBalance = BigInt('5000000');
 
 			transactionParamsDecoded = {
 				header1: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header1),
@@ -607,9 +605,6 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			when(pomCommand['_tokenAPI'].getAvailableBalance as any)
 				.calledWith(context.getAPIContext(), delegate1Address, DEFAULT_TOKEN_ID)
 				.mockResolvedValue(remainingBalance as never);
-			when(pomCommand['_tokenAPI'].getMinRemainingBalance as any)
-				.calledWith(context.getAPIContext())
-				.mockResolvedValue(minRemainingBalance as never);
 
 			await pomCommand.execute(context);
 
@@ -624,7 +619,6 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 
 		it('should not reward the sender if delegate does not has enough minimum remaining balance', async () => {
 			const remainingBalance = BigInt(100);
-			const minRemainingBalance = BigInt('5000000');
 
 			transactionParamsDecoded = {
 				header1: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header1),
@@ -643,9 +637,6 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			when(pomCommand['_tokenAPI'].getAvailableBalance as any)
 				.calledWith(context.getAPIContext(), delegate1Address, DEFAULT_TOKEN_ID)
 				.mockResolvedValue(remainingBalance as never);
-			when(pomCommand['_tokenAPI'].getMinRemainingBalance as any)
-				.calledWith(context.getAPIContext())
-				.mockResolvedValue(minRemainingBalance as never);
 
 			await pomCommand.execute(context);
 
@@ -661,7 +652,6 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 
 		it('should add (remaining balance - min remaining balance) of delegate to balance of the sender if delegate balance is less than report punishment reward', async () => {
 			const remainingBalance = reportPunishmentReward - BigInt(1);
-			const minRemainingBalance = BigInt('5000000');
 
 			transactionParamsDecoded = {
 				header1: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header1),
@@ -680,9 +670,6 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			when(pomCommand['_tokenAPI'].getAvailableBalance as any)
 				.calledWith(context.getAPIContext(), delegate1Address, DEFAULT_TOKEN_ID)
 				.mockResolvedValue(remainingBalance as never);
-			when(pomCommand['_tokenAPI'].getMinRemainingBalance as any)
-				.calledWith(context.getAPIContext())
-				.mockResolvedValue(minRemainingBalance as never);
 
 			await pomCommand.execute(context);
 
@@ -691,7 +678,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				delegate1Address,
 				context.transaction.senderAddress,
 				DEFAULT_TOKEN_ID,
-				remainingBalance - minRemainingBalance,
+				remainingBalance,
 			);
 		});
 

@@ -70,7 +70,6 @@ describe('VoteCommand', () => {
 				lock: lockFn,
 				unlock: jest.fn(),
 				getAvailableBalance: jest.fn(),
-				getMinRemainingBalance: jest.fn(),
 				transfer: jest.fn(),
 				getLockedAmount: jest.fn(),
 			},

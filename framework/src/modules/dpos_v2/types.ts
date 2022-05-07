@@ -99,7 +99,6 @@ export interface TokenAPI {
 		address: Buffer,
 		tokenID: TokenIDDPoS,
 	): Promise<bigint>;
-	getMinRemainingBalance(apiContext: ImmutableAPIContext): Promise<bigint>;
 	transfer(
 		apiContext: APIContext,
 		senderAddress: Buffer,
@@ -117,8 +116,8 @@ export interface TokenAPI {
 	getLockedAmount(
 		apiContext: ImmutableAPIContext,
 		address: Buffer,
-		moduleID: number,
 		tokenID: TokenIDDPoS,
+		moduleID: number,
 	): Promise<bigint>;
 }
 
