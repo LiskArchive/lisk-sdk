@@ -328,18 +328,8 @@ export const configSchema = {
 			format: 'uint32',
 		},
 		tokenIDDPoS: {
-			type: 'object',
-			properties: {
-				chainID: {
-					type: 'integer',
-					format: 'uint32',
-				},
-				localID: {
-					type: 'integer',
-					format: 'uint32',
-				},
-			},
-			required: ['chainID', 'localID'],
+			type: 'string',
+			format: 'hex',
 		},
 	},
 	required: [

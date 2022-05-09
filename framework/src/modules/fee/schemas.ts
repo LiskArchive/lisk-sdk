@@ -17,15 +17,8 @@ export const configSchema = {
 	type: 'object',
 	properties: {
 		feeTokenID: {
-			type: 'object',
-			properties: {
-				chainID: {
-					dataType: 'uint32',
-				},
-				localID: {
-					dataType: 'uint32',
-				},
-			},
+			type: 'string',
+			format: 'hex',
 		},
 	},
 	required: ['feeTokenID'],

@@ -20,20 +20,22 @@ import {
 	VerifyStatus,
 } from '../../../node/state_machine';
 import { TokenAPI } from '../api';
-import { transferParamsSchema } from '../schemas';
-import { COMMAND_ID_TRANSFER } from '../constants';
+import { crossChainTransferParams } from '../schemas';
+import { CROSS_CHAIN_COMMAND_ID_TRANSFER } from '../constants';
 
 interface Params {
 	tokenID: Buffer;
 	amount: bigint;
+	receivingChainID: Buffer;
 	recipientAddress: Buffer;
 	data: string;
+	messageFee: bigint;
 }
 
-export class TransferCommand extends BaseCommand {
-	public name = 'transfer';
-	public id = COMMAND_ID_TRANSFER;
-	public schema = transferParamsSchema;
+export class CCTransferCommand extends BaseCommand {
+	public name = 'crossChaintransfer';
+	public id = CROSS_CHAIN_COMMAND_ID_TRANSFER;
+	public schema = crossChainTransferParams;
 	private _api!: TokenAPI;
 
 	public init(args: { api: TokenAPI }) {
@@ -43,7 +45,7 @@ export class TransferCommand extends BaseCommand {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(context: CommandVerifyContext<Params>): Promise<VerificationResult> {
 		const { params } = context;
-		const errors = validator.validate(transferParamsSchema, params);
+		const errors = validator.validate(this.schema, params);
 		if (errors.length) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -56,13 +58,19 @@ export class TransferCommand extends BaseCommand {
 	}
 
 	public async execute(context: CommandExecuteContext<Params>): Promise<void> {
-		const { params } = context;
-		await this._api.transfer(
+		const {
+			params,
+			transaction: { senderAddress },
+		} = context;
+		await this._api.transferCrossChain(
 			context.getAPIContext(),
-			context.transaction.senderAddress,
+			senderAddress,
+			params.receivingChainID,
 			params.recipientAddress,
 			params.tokenID,
 			params.amount,
+			params.messageFee,
+			params.data,
 		);
 	}
 }

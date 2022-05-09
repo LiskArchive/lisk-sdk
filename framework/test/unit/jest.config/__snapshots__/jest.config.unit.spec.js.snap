@@ -5,8 +5,7 @@ Object {
   "clearMocks": true,
   "collectCoverage": false,
   "collectCoverageFrom": Array [
-    "src/controller/**",
-    "src/application/**",
+    "src/**",
   ],
   "coverageDirectory": ".coverage/unit",
   "coverageReporters": Array [

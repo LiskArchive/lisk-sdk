@@ -17,10 +17,7 @@ import { BFTHeights } from '../bft/types';
 import { Validator } from '../../node/consensus/types';
 import { APIContext, ImmutableAPIContext } from '../../node/state_machine/types';
 
-export interface TokenIDDPoS {
-	chainID: number;
-	localID: number;
-}
+export type TokenIDDPoS = Buffer;
 
 export interface ModuleConfig {
 	factorSelfVotes: number;
@@ -102,7 +99,6 @@ export interface TokenAPI {
 		address: Buffer,
 		tokenID: TokenIDDPoS,
 	): Promise<bigint>;
-	getMinRemainingBalance(apiContext: ImmutableAPIContext): Promise<bigint>;
 	transfer(
 		apiContext: APIContext,
 		senderAddress: Buffer,
@@ -120,8 +116,8 @@ export interface TokenAPI {
 	getLockedAmount(
 		apiContext: ImmutableAPIContext,
 		address: Buffer,
-		moduleID: number,
 		tokenID: TokenIDDPoS,
+		moduleID: number,
 	): Promise<bigint>;
 }
 

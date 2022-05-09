@@ -18,6 +18,7 @@ import { nodeUtils } from '../../../utils';
 import {
 	createTransferTransaction,
 	createReportMisbehaviorTransaction,
+	DEFAULT_TOKEN_ID,
 } from '../../../utils/node/transaction';
 import * as testing from '../../../../src/testing';
 
@@ -49,7 +50,7 @@ describe('Transaction order', () => {
 			amount: BigInt('10000000000'),
 			networkIdentifier,
 			passphrase: genesis.passphrase,
-			fee: BigInt(142000), // minFee not to give fee for generator
+			fee: BigInt(152000), // minFee not to give fee for generator
 		});
 		newBlock = await processEnv.createBlock([transaction]);
 
@@ -75,6 +76,7 @@ describe('Transaction order', () => {
 				'token_getBalance',
 				{
 					address: getAddressFromPassphrase(blockGenerator).toString('hex'),
+					tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 				},
 			);
 
@@ -98,6 +100,7 @@ describe('Transaction order', () => {
 			expect(updatedDelegate.pomHeights).toHaveLength(1);
 			const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
 				address: getAddressFromPassphrase(blockGenerator).toString('hex'),
+				tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 			});
 			expect(balance.availableBalance).toEqual(
 				(BigInt(originalBalance.availableBalance) - BigInt(100000000)).toString(),

@@ -142,6 +142,7 @@ export class DPoSModule extends BaseModule {
 		this._moduleConfig = {
 			...config,
 			minWeightStandby: BigInt(config.minWeightStandby),
+			tokenIDDPoS: Buffer.from(config.tokenIDDPoS, 'hex'),
 		} as ModuleConfig;
 
 		this._reportDelegateMisbehaviorCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
@@ -384,8 +385,8 @@ export class DPoSModule extends BaseModule {
 			const lockedAmount = await this._tokenAPI.getLockedAmount(
 				apiContext,
 				voterData.key,
-				this.id,
 				this._moduleConfig.tokenIDDPoS,
+				this.id,
 			);
 			if (lockedAmount !== votedAmount) {
 				throw new Error('Voted amount is not locked');

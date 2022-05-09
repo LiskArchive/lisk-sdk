@@ -39,7 +39,7 @@ describe('FeeModule', () => {
 		generatorConfig = {};
 		feeModule = new FeeModule();
 		await feeModule.init({ genesisConfig, moduleConfig, generatorConfig });
-		feeModule.addDependencies({ burn: jest.fn(), transfer: jest.fn() } as any);
+		feeModule.addDependencies({ burn: jest.fn(), transfer: jest.fn(), isNative: jest.fn() } as any);
 	});
 
 	describe('init', () => {
@@ -49,11 +49,7 @@ describe('FeeModule', () => {
 				feeModule.init({ genesisConfig, moduleConfig: {}, generatorConfig: {} }),
 			).toResolve();
 
-			expect(feeModule['_moduleConfig']).toEqual(moduleConfig);
-		});
-
-		it('should set the moduleConfig property', () => {
-			expect(feeModule['_moduleConfig']).toEqual(moduleConfig);
+			expect(feeModule['_tokenID']).toEqual(Buffer.alloc(8, 0));
 		});
 
 		it('should set the minFeePerByte property', () => {
@@ -127,6 +123,8 @@ describe('FeeModule', () => {
 
 	describe('beforeCommandExecute', () => {
 		it('should transfer transaction fee minus min fee to generator and burn min fee when native token', async () => {
+			jest.spyOn(feeModule['_tokenAPI'], 'isNative').mockResolvedValue(true);
+
 			const transaction = new Transaction({
 				moduleID: 5,
 				commandID: 0,
@@ -148,20 +146,20 @@ describe('FeeModule', () => {
 			expect(feeModule['_tokenAPI'].burn).toHaveBeenCalledWith(
 				apiContext,
 				senderAddress,
-				feeModule['_moduleConfig'].feeTokenID,
+				feeModule['_tokenID'],
 				minFee,
 			);
 			expect(feeModule['_tokenAPI'].transfer).toHaveBeenCalledWith(
 				apiContext,
 				senderAddress,
 				transactionExecuteContext.header.generatorAddress,
-				feeModule['_moduleConfig'].feeTokenID,
+				feeModule['_tokenID'],
 				transaction.fee - minFee,
 			);
 		});
 
 		it('should transfer transaction fee to generator and not burn min fee when non-native token', async () => {
-			feeModule['_moduleConfig'].feeTokenID = { chainID: 2, localID: 0 };
+			jest.spyOn(feeModule['_tokenAPI'], 'isNative').mockResolvedValue(false);
 			const transaction = new Transaction({
 				moduleID: 5,
 				commandID: 0,
@@ -183,7 +181,7 @@ describe('FeeModule', () => {
 				apiContext,
 				senderAddress,
 				transactionExecuteContext.header.generatorAddress,
-				feeModule['_moduleConfig'].feeTokenID,
+				feeModule['_tokenID'],
 				transaction.fee,
 			);
 		});

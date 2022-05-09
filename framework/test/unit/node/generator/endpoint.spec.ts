@@ -95,6 +95,7 @@ describe('generator endpoint', () => {
 			it('should reject with validation error', async () => {
 				await expect(
 					endpoint.postTransaction({
+						getImmutableAPIContext: jest.fn(),
 						getStore: jest.fn(),
 						logger,
 						params: {
@@ -108,6 +109,7 @@ describe('generator endpoint', () => {
 			it('should reject with error when transaction bytes is invalid', async () => {
 				await expect(
 					endpoint.postTransaction({
+						getImmutableAPIContext: jest.fn(),
 						getStore: jest.fn(),
 						logger,
 						params: {
@@ -126,6 +128,7 @@ describe('generator endpoint', () => {
 				});
 				await expect(
 					endpoint.postTransaction({
+						getImmutableAPIContext: jest.fn(),
 						getStore: jest.fn(),
 						logger,
 						params: {
@@ -142,6 +145,7 @@ describe('generator endpoint', () => {
 				(pool.contains as jest.Mock).mockReturnValue(true);
 				await expect(
 					endpoint.postTransaction({
+						getImmutableAPIContext: jest.fn(),
 						getStore: jest.fn(),
 						logger,
 						params: {
@@ -162,6 +166,7 @@ describe('generator endpoint', () => {
 				});
 				await expect(
 					endpoint.postTransaction({
+						getImmutableAPIContext: jest.fn(),
 						getStore: jest.fn(),
 						logger,
 						params: {
@@ -178,6 +183,7 @@ describe('generator endpoint', () => {
 				await expect(
 					endpoint.postTransaction({
 						logger,
+						getImmutableAPIContext: jest.fn(),
 						getStore: jest.fn(),
 						params: {
 							transaction: tx.getBytes().toString('hex'),
@@ -204,6 +210,7 @@ describe('generator endpoint', () => {
 				endpoint.updateForgingStatus({
 					logger,
 					getStore: jest.fn(),
+					getImmutableAPIContext: jest.fn(),
 					params: {
 						enable: true,
 						password: defaultPassword,
@@ -220,6 +227,7 @@ describe('generator endpoint', () => {
 				endpoint.updateForgingStatus({
 					logger,
 					getStore: jest.fn(),
+					getImmutableAPIContext: jest.fn(),
 					params: {
 						address: getRandomBytes(20).toString('hex'),
 						enable: true,
@@ -237,6 +245,7 @@ describe('generator endpoint', () => {
 				endpoint.updateForgingStatus({
 					logger,
 					getStore: jest.fn(),
+					getImmutableAPIContext: jest.fn(),
 					params: {
 						address: config.address,
 						enable: true,
@@ -254,6 +263,7 @@ describe('generator endpoint', () => {
 				endpoint.updateForgingStatus({
 					logger,
 					getStore: jest.fn(),
+					getImmutableAPIContext: jest.fn(),
 					params: {
 						address: invalidConfig.address,
 						enable: true,
@@ -272,6 +282,7 @@ describe('generator endpoint', () => {
 				endpoint.updateForgingStatus({
 					logger,
 					getStore: jest.fn(),
+					getImmutableAPIContext: jest.fn(),
 					params: {
 						address: config.address,
 						enable: true,
@@ -294,6 +305,7 @@ describe('generator endpoint', () => {
 				endpoint.updateForgingStatus({
 					logger,
 					getStore: jest.fn(),
+					getImmutableAPIContext: jest.fn(),
 					params: {
 						address: config.address,
 						enable: false,
@@ -315,6 +327,7 @@ describe('generator endpoint', () => {
 				endpoint.updateForgingStatus({
 					logger,
 					getStore: jest.fn(),
+					getImmutableAPIContext: jest.fn(),
 					params: {
 						address: config.address,
 						enable: true,
@@ -342,6 +355,7 @@ describe('generator endpoint', () => {
 				endpoint.updateForgingStatus({
 					logger,
 					getStore: jest.fn(),
+					getImmutableAPIContext: jest.fn(),
 					params: {
 						address: config.address,
 						enable: true,
@@ -370,6 +384,7 @@ describe('generator endpoint', () => {
 				endpoint.updateForgingStatus({
 					logger,
 					getStore: jest.fn(),
+					getImmutableAPIContext: jest.fn(),
 					params: {
 						address: config.address,
 						enable: true,
@@ -406,6 +421,7 @@ describe('generator endpoint', () => {
 				endpoint.updateForgingStatus({
 					logger,
 					getStore: jest.fn(),
+					getImmutableAPIContext: jest.fn(),
 					params: {
 						address: config.address,
 						enable: true,
@@ -442,6 +458,7 @@ describe('generator endpoint', () => {
 				endpoint.updateForgingStatus({
 					logger,
 					getStore: jest.fn(),
+					getImmutableAPIContext: jest.fn(),
 					params: {
 						address: config.address,
 						enable: true,
@@ -475,6 +492,7 @@ describe('generator endpoint', () => {
 				endpoint.updateForgingStatus({
 					logger,
 					getStore: jest.fn(),
+					getImmutableAPIContext: jest.fn(),
 					params: {
 						address: config.address,
 						enable: true,
