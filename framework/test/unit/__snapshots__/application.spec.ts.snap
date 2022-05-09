@@ -2223,6 +2223,9 @@ Object {
       "port": 8080,
     },
   },
+  "system": Object {
+    "keepEventsForHeights": 300,
+  },
   "transactionPool": Object {
     "maxTransactions": 4096,
     "maxTransactionsPerAccount": 64,

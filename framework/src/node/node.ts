@@ -80,6 +80,7 @@ export class Node {
 
 		this._chain = new Chain({
 			maxTransactionsSize: this._options.genesis.maxTransactionsSize,
+			keepEventsForHeights: this._options.system.keepEventsForHeights,
 		});
 
 		this._stateMachine = new StateMachine();

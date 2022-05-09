@@ -340,6 +340,8 @@ export class Generator {
 		const apiContext = createAPIContext({ stateStore, eventQueue });
 		const bftParams = await this._bftAPI.getBFTParameters(apiContext, height + 1);
 		header.stateRoot = smt.rootHash;
+		// TODO: Add event root calculation
+		header.eventRoot = EMPTY_HASH;
 		header.validatorsHash = bftParams.validatorsHash;
 
 		return new Block(header, [], assets);
@@ -628,6 +630,8 @@ export class Generator {
 		blockHeader.assetsRoot = await blockAssets.getRoot();
 		// Assign root hash calculated in SMT to state root of block header
 		blockHeader.stateRoot = smt.rootHash;
+		// TODO: Add event root calculation
+		blockHeader.eventRoot = EMPTY_HASH;
 		// Set validatorsHash
 		const { validatorsHash } = await this._bftAPI.getBFTParameters(apiContext, height + 1);
 		blockHeader.validatorsHash = validatorsHash;

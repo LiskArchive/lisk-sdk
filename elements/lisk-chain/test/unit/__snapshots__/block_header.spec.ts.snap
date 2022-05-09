@@ -5,7 +5,7 @@ Object {
   "$id": "/block/header/3",
   "properties": Object {
     "aggregateCommit": Object {
-      "fieldNumber": 12,
+      "fieldNumber": 13,
       "properties": Object {
         "aggregationBits": Object {
           "dataType": "bytes",
@@ -31,6 +31,10 @@ Object {
       "dataType": "bytes",
       "fieldNumber": 7,
     },
+    "eventRoot": Object {
+      "dataType": "bytes",
+      "fieldNumber": 8,
+    },
     "generatorAddress": Object {
       "dataType": "bytes",
       "fieldNumber": 5,
@@ -41,11 +45,11 @@ Object {
     },
     "maxHeightGenerated": Object {
       "dataType": "uint32",
-      "fieldNumber": 10,
+      "fieldNumber": 11,
     },
     "maxHeightPrevoted": Object {
       "dataType": "uint32",
-      "fieldNumber": 9,
+      "fieldNumber": 10,
     },
     "previousBlockID": Object {
       "dataType": "bytes",
@@ -53,11 +57,11 @@ Object {
     },
     "signature": Object {
       "dataType": "bytes",
-      "fieldNumber": 13,
+      "fieldNumber": 14,
     },
     "stateRoot": Object {
       "dataType": "bytes",
-      "fieldNumber": 8,
+      "fieldNumber": 9,
     },
     "timestamp": Object {
       "dataType": "uint32",
@@ -69,7 +73,7 @@ Object {
     },
     "validatorsHash": Object {
       "dataType": "bytes",
-      "fieldNumber": 11,
+      "fieldNumber": 12,
     },
     "version": Object {
       "dataType": "uint32",
@@ -84,6 +88,7 @@ Object {
     "generatorAddress",
     "transactionRoot",
     "assetsRoot",
+    "eventRoot",
     "stateRoot",
     "maxHeightPrevoted",
     "maxHeightGenerated",
@@ -100,7 +105,7 @@ Object {
   "$id": "/block/header/3",
   "properties": Object {
     "aggregateCommit": Object {
-      "fieldNumber": 12,
+      "fieldNumber": 13,
       "properties": Object {
         "aggregationBits": Object {
           "dataType": "bytes",
@@ -126,6 +131,10 @@ Object {
       "dataType": "bytes",
       "fieldNumber": 7,
     },
+    "eventRoot": Object {
+      "dataType": "bytes",
+      "fieldNumber": 8,
+    },
     "generatorAddress": Object {
       "dataType": "bytes",
       "fieldNumber": 5,
@@ -136,15 +145,15 @@ Object {
     },
     "id": Object {
       "dataType": "bytes",
-      "fieldNumber": 14,
+      "fieldNumber": 15,
     },
     "maxHeightGenerated": Object {
       "dataType": "uint32",
-      "fieldNumber": 10,
+      "fieldNumber": 11,
     },
     "maxHeightPrevoted": Object {
       "dataType": "uint32",
-      "fieldNumber": 9,
+      "fieldNumber": 10,
     },
     "previousBlockID": Object {
       "dataType": "bytes",
@@ -152,11 +161,11 @@ Object {
     },
     "signature": Object {
       "dataType": "bytes",
-      "fieldNumber": 13,
+      "fieldNumber": 14,
     },
     "stateRoot": Object {
       "dataType": "bytes",
-      "fieldNumber": 8,
+      "fieldNumber": 9,
     },
     "timestamp": Object {
       "dataType": "uint32",
@@ -168,7 +177,7 @@ Object {
     },
     "validatorsHash": Object {
       "dataType": "bytes",
-      "fieldNumber": 11,
+      "fieldNumber": 12,
     },
     "version": Object {
       "dataType": "uint32",
@@ -183,6 +192,7 @@ Object {
     "generatorAddress",
     "transactionRoot",
     "assetsRoot",
+    "eventRoot",
     "stateRoot",
     "maxHeightPrevoted",
     "maxHeightGenerated",
@@ -200,7 +210,7 @@ Object {
   "$id": "/block/header/signing/3",
   "properties": Object {
     "aggregateCommit": Object {
-      "fieldNumber": 12,
+      "fieldNumber": 13,
       "properties": Object {
         "aggregationBits": Object {
           "dataType": "bytes",
@@ -226,6 +236,10 @@ Object {
       "dataType": "bytes",
       "fieldNumber": 7,
     },
+    "eventRoot": Object {
+      "dataType": "bytes",
+      "fieldNumber": 8,
+    },
     "generatorAddress": Object {
       "dataType": "bytes",
       "fieldNumber": 5,
@@ -236,11 +250,11 @@ Object {
     },
     "maxHeightGenerated": Object {
       "dataType": "uint32",
-      "fieldNumber": 10,
+      "fieldNumber": 11,
     },
     "maxHeightPrevoted": Object {
       "dataType": "uint32",
-      "fieldNumber": 9,
+      "fieldNumber": 10,
     },
     "previousBlockID": Object {
       "dataType": "bytes",
@@ -248,7 +262,7 @@ Object {
     },
     "stateRoot": Object {
       "dataType": "bytes",
-      "fieldNumber": 8,
+      "fieldNumber": 9,
     },
     "timestamp": Object {
       "dataType": "uint32",
@@ -260,7 +274,7 @@ Object {
     },
     "validatorsHash": Object {
       "dataType": "bytes",
-      "fieldNumber": 11,
+      "fieldNumber": 12,
     },
     "version": Object {
       "dataType": "uint32",
@@ -275,6 +289,7 @@ Object {
     "generatorAddress",
     "transactionRoot",
     "assetsRoot",
+    "eventRoot",
     "stateRoot",
     "maxHeightPrevoted",
     "maxHeightGenerated",
