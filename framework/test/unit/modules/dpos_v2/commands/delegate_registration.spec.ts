@@ -279,10 +279,9 @@ describe('Delegate registration command', () => {
 					delegateRegistrationCommandParamsSchema,
 				);
 			await delegateRegistrationCommand.execute(context);
-			const apiContext = context.getAPIContext();
 
 			expect(mockValidatorsAPI.registerValidatorKeys).toHaveBeenCalledWith(
-				apiContext,
+				expect.anything(),
 				transaction.senderAddress,
 				context.params.blsKey,
 				context.params.generatorKey,

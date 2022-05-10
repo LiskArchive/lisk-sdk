@@ -20,6 +20,7 @@ import {
 	BlockAssets,
 	StateStore,
 	SMTStore,
+	EVENT_KEY_LENGTH,
 } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import {
@@ -340,8 +341,20 @@ export class Generator {
 		const apiContext = createAPIContext({ stateStore, eventQueue });
 		const bftParams = await this._bftAPI.getBFTParameters(apiContext, height + 1);
 		header.stateRoot = smt.rootHash;
-		// TODO: Add event root calculation
-		header.eventRoot = EMPTY_HASH;
+
+		const blockEvents = blockCtx.eventQueue.getEvents();
+		const eventSmtStore = new SMTStore(new InMemoryKVStore());
+		const eventSMT = new SparseMerkleTree({
+			db: eventSmtStore,
+			keyLength: EVENT_KEY_LENGTH,
+		});
+		for (const e of blockEvents) {
+			const pairs = e.keyPair();
+			for (const pair of pairs) {
+				await eventSMT.update(pair.key, pair.value);
+			}
+		}
+		header.eventRoot = eventSMT.rootHash;
 		header.validatorsHash = bftParams.validatorsHash;
 
 		return new Block(header, [], assets);
@@ -630,8 +643,22 @@ export class Generator {
 		blockHeader.assetsRoot = await blockAssets.getRoot();
 		// Assign root hash calculated in SMT to state root of block header
 		blockHeader.stateRoot = smt.rootHash;
-		// TODO: Add event root calculation
-		blockHeader.eventRoot = EMPTY_HASH;
+
+		// Add event root calculation
+		const blockEvents = blockCtx.eventQueue.getEvents();
+		const eventSmtStore = new SMTStore(new InMemoryKVStore());
+		const eventSMT = new SparseMerkleTree({
+			db: eventSmtStore,
+			keyLength: EVENT_KEY_LENGTH,
+		});
+		for (const e of blockEvents) {
+			const pairs = e.keyPair();
+			for (const pair of pairs) {
+				await eventSMT.update(pair.key, pair.value);
+			}
+		}
+		blockHeader.eventRoot = eventSMT.rootHash;
+
 		// Set validatorsHash
 		const { validatorsHash } = await this._bftAPI.getBFTParameters(apiContext, height + 1);
 		blockHeader.validatorsHash = validatorsHash;

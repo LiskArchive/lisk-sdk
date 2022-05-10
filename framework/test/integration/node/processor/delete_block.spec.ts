@@ -118,6 +118,12 @@ describe('Delete block', () => {
 				).resolves.toBeFalse();
 			});
 
+			it('should delete the events from the database', async () => {
+				await expect(processEnv.getDataAccess().getEvents(newBlock.header.height)).rejects.toThrow(
+					'does not exist',
+				);
+			});
+
 			it('should match the sender account to the original state', async () => {
 				const afterBalance = await processEnv.invoke<{ availableBalance: string }>(
 					'token_getBalance',

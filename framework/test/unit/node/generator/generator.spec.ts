@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { EventEmitter } from 'events';
-import { Block, BlockAssets, Chain, Transaction } from '@liskhq/lisk-chain';
+import { Block, BlockAssets, Chain, Event, Transaction } from '@liskhq/lisk-chain';
 import {
 	generatePrivateKey,
 	getAddressFromPassphrase,
@@ -29,7 +29,7 @@ import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { Generator } from '../../../../src/node/generator';
 import { Consensus, GeneratorModule } from '../../../../src/node/generator/types';
 import { Network } from '../../../../src/node/network';
-import { StateMachine } from '../../../../src/node/state_machine';
+import { EventQueue, StateMachine } from '../../../../src/node/state_machine';
 import { configUtils } from '../../../utils';
 import { fakeLogger } from '../../../utils/node';
 
@@ -559,6 +559,27 @@ describe('generator', () => {
 			expect(genesisBlock.header.height).toEqual(height);
 		});
 
+		it('should assign eventRoot to the block when event is empty', async () => {
+			const genesisBlock = await generator.generateGenesisBlock({ assets });
+
+			expect(genesisBlock.header.eventRoot).toEqual(hash(Buffer.alloc(0)));
+		});
+
+		it('should assign non empty eventRoot to the block when event exist', async () => {
+			jest.spyOn(EventQueue.prototype, 'getEvents').mockReturnValue([
+				new Event({
+					data: getRandomBytes(32),
+					index: 0,
+					moduleID: Buffer.from([0, 0, 0, 3]),
+					topics: [Buffer.from([0])],
+					typeID: Buffer.from([0, 0, 0, 1]),
+				}),
+			]);
+			const genesisBlock = await generator.generateGenesisBlock({ assets });
+
+			expect(genesisBlock.header.eventRoot).not.toEqual(hash(Buffer.alloc(0)));
+		});
+
 		it('should include sorted assets to the genesis block', async () => {
 			const genesisBlock = await generator.generateGenesisBlock({ assets });
 
@@ -672,6 +693,37 @@ describe('generator', () => {
 			});
 
 			expect(block.header.assetsRoot).toEqual(assetHash);
+		});
+
+		it('should assign eventRoot to the block when event is empty', async () => {
+			const block = await generator.generateBlock({
+				generatorAddress,
+				timestamp: currentTime,
+				privateKey: keypair.privateKey,
+				height: 2,
+			});
+
+			expect(block.header.eventRoot).toEqual(hash(Buffer.alloc(0)));
+		});
+
+		it('should assign non empty eventRoot to the block when event exist', async () => {
+			jest.spyOn(EventQueue.prototype, 'getEvents').mockReturnValue([
+				new Event({
+					data: getRandomBytes(32),
+					index: 0,
+					moduleID: Buffer.from([0, 0, 0, 3]),
+					topics: [Buffer.from([0])],
+					typeID: Buffer.from([0, 0, 0, 1]),
+				}),
+			]);
+			const block = await generator.generateBlock({
+				generatorAddress,
+				timestamp: currentTime,
+				privateKey: keypair.privateKey,
+				height: 2,
+			});
+
+			expect(block.header.eventRoot).not.toEqual(hash(Buffer.alloc(0)));
 		});
 
 		it('should assign aggregateCommit to the block', async () => {

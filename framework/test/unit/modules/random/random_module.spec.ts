@@ -429,7 +429,7 @@ describe('RandomModule', () => {
 				stateStore,
 			});
 
-			await randomModule.initGenesisState(context.createGenesisBlockExecuteContext());
+			await randomModule.initGenesisState(context.createInitGenesisStateContext());
 
 			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
 

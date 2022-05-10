@@ -89,6 +89,11 @@ describe('Process block', () => {
 				const [processedTx] = await dataAccess.getTransactionsByIDs([transaction.id]);
 				expect(processedTx.id).toEqual(transaction.id);
 			});
+
+			it('should save the events to the database', async () => {
+				const events = await dataAccess.getEvents(newBlock.header.height);
+				expect(events).toHaveLength(1);
+			});
 		});
 	});
 
@@ -104,6 +109,12 @@ describe('Process block', () => {
 			it('should add the block to the chain', async () => {
 				const processedBlock = await dataAccess.getBlockByID(newBlock.header.id);
 				expect(processedBlock.header.id).toEqual(newBlock.header.id);
+			});
+
+			it('should not save the events to the database', async () => {
+				await expect(dataAccess.getEvents(newBlock.header.height)).rejects.toThrow(
+					'does not exist',
+				);
 			});
 		});
 	});
