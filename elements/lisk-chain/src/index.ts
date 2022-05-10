@@ -44,4 +44,4 @@ export { Block, BlockJSON } from './block';
 export { BlockAsset, BlockAssets, BlockAssetJSON } from './block_assets';
 export { BlockHeader, BlockHeaderAttrs, BlockHeaderJSON } from './block_header';
 export { DataAccess } from './data_access';
-export { Event } from './event';
+export { Event, EventAttr } from './event';
