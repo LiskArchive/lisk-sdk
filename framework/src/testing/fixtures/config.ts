@@ -2598,9 +2598,16 @@ export const defaultConfig = {
 	},
 	plugins: {},
 	rpc: {
-		enable: true,
-		port: 8080,
-		mode: 'ipc',
+		modes: ['ipc'],
+		ws: {
+			port: 8080,
+			host: '127.0.0.1',
+			path: '/ws',
+		},
+		http: {
+			port: 8000,
+			host: '127.0.0.1',
+		},
 	},
 };
 
