@@ -14,6 +14,7 @@
 
 import { verifyProof, verifyDataBlock } from './merkle_tree/verify_proof';
 import { calculateRootFromUpdateData } from './merkle_tree/calculate';
+import { calculateRootFromRightWitness, verifyRightWitness } from './merkle_tree/right_witness';
 import { MerkleTree } from './merkle_tree/merkle_tree';
 import { calculateMerkleRoot, calculateMerkleRootWithLeaves } from './merkle_tree/utils';
 import { SparseMerkleTree } from './sparse_merkle_tree/sparse_merkle_tree';
@@ -26,6 +27,8 @@ export const regularMerkleTree = {
 	calculateMerkleRoot,
 	calculateMerkleRootWithLeaves,
 	MerkleTree,
+	calculateRootFromRightWitness,
+	verifyRightWitness,
 };
 
 export const sparseMerkleTree = {
