@@ -685,3 +685,30 @@ export const stateRecoveryParamsSchema = {
 		},
 	},
 };
+
+export const stateRecoveryInitParams = {
+	$id: '/modules/interoperability/mainchain/stateRecoveryInitialization',
+	type: 'object',
+	required: ['chainID', 'sidechainChainAccount', 'bitmap', 'siblingHashes'],
+	properties: {
+		chainID: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		sidechainChainAccount: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+		},
+		bitmap: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+		},
+		siblingHashes: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+			},
+			fieldNumber: 4,
+		},
+	},
+};
