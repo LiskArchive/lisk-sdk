@@ -12,33 +12,40 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Chain } from '@liskhq/lisk-chain';
-import { ModuleEndpointContext } from '../../types';
+import { BaseModule } from '../../modules';
+import { ModuleMetadata } from '../../modules/base_module';
 import { Consensus } from '../consensus';
 import { Generator } from '../generator';
+import { RequestContext } from '../rpc/rpc_server';
 import { NodeOptions } from '../types';
 
 interface EndpointArgs {
 	chain: Chain;
 	consensus: Consensus;
 	generator: Generator;
+	registeredModules: BaseModule[];
 	options: NodeOptions;
 }
 
+type ModuleMetadataWithRoot = { id: number; name: string } & ModuleMetadata;
 export class SystemEndpoint {
 	[key: string]: unknown;
 	private readonly _chain: Chain;
 	private readonly _consensus: Consensus;
 	private readonly _generator: Generator;
 	private readonly _options: NodeOptions;
+	private readonly _registeredModules: BaseModule[];
 
 	public constructor(args: EndpointArgs) {
 		this._chain = args.chain;
 		this._consensus = args.consensus;
 		this._generator = args.generator;
 		this._options = args.options;
+		this._registeredModules = args.registeredModules;
 	}
 
-	public getNodeInfo(_context: ModuleEndpointContext) {
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async getNodeInfo(_context: RequestContext) {
 		return {
 			version: this._options.version,
 			networkVersion: this._options.networkVersion,
@@ -59,6 +66,22 @@ export class SystemEndpoint {
 				fixedPeers: this._options.network.fixedPeers,
 				whitelistedPeers: this._options.network.whitelistedPeers,
 			},
+		};
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async getMetadata(_ctx: RequestContext): Promise<{ modules: ModuleMetadataWithRoot[] }> {
+		const modules = this._registeredModules.map(mod => {
+			const meta = mod.metadata();
+			return {
+				id: mod.id,
+				name: mod.name,
+				...meta,
+			};
+		});
+		modules.sort((a, b) => a.id - b.id);
+		return {
+			modules,
 		};
 	}
 }

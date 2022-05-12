@@ -158,7 +158,7 @@ describe('DposModuleEndpoint', () => {
 				await delegateSubStore.setWithSchema(address1, delegateData, delegateStoreSchema);
 				await delegateSubStore.setWithSchema(address2, delegateData, delegateStoreSchema);
 				getStore1.mockReturnValue(delegateSubStore);
-				const delegatesDataReturned = await dposEndpoint.getAllDelegates({
+				const { delegates: delegatesDataReturned } = await dposEndpoint.getAllDelegates({
 					getStore: getStore1,
 					getImmutableAPIContext: jest.fn(),
 					logger,
@@ -178,7 +178,7 @@ describe('DposModuleEndpoint', () => {
 				await delegateSubStore.setWithSchema(address, delegateData, delegateStoreSchema);
 				await delegateSubStore.setWithSchema(address1, delegateData, delegateStoreSchema);
 				getStore1.mockReturnValue(delegateSubStore);
-				const delegatesDataReturned = await dposEndpoint.getAllDelegates({
+				const { delegates: delegatesDataReturned } = await dposEndpoint.getAllDelegates({
 					getStore: getStore1,
 					getImmutableAPIContext: jest.fn(),
 					logger,

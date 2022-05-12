@@ -16,12 +16,13 @@ import { rmdirSync, existsSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
 import { ApplicationEnv } from '../../../src/testing';
-import { BaseAsset, BaseModule, TokenModule } from '../../../src';
+import { BaseAPI, BaseCommand, BaseEndpoint, BaseModule, TokenModule } from '../../../src';
+import { ModuleMetadata } from '../../../src/modules/base_module';
 
 const appLabel = 'beta-sdk-app';
 const dataPath = join(homedir(), '.lisk', appLabel);
 
-class SampleAsset extends BaseAsset {
+class SampleCommand extends BaseCommand {
 	public name = 'asset';
 	public id = 0;
 	public schema = {
@@ -29,12 +30,22 @@ class SampleAsset extends BaseAsset {
 		type: 'object',
 		properties: {},
 	};
-	public async apply(): Promise<void> {}
+	public async execute(): Promise<void> {}
 }
 class SampleModule extends BaseModule {
 	public name = 'SampleModule';
 	public id = 999999;
-	public transactionAssets = [new SampleAsset()];
+	public api = {} as BaseAPI;
+	public endpoint = {} as BaseEndpoint;
+	public commands = [new SampleCommand(this.id)];
+	public metadata(): ModuleMetadata {
+		return {
+			assets: [],
+			commands: [],
+			endpoints: [],
+			events: [],
+		};
+	}
 }
 
 describe('Application Environment', () => {
@@ -66,7 +77,7 @@ describe('Application Environment', () => {
 		});
 
 		it('should return valid environment with custom module', async () => {
-			appEnv = new ApplicationEnv({ modules: [TokenModule], config: { label: appLabel } });
+			appEnv = new ApplicationEnv({ modules: [new TokenModule()], config: { label: appLabel } });
 			await appEnv.startApplication();
 
 			expect(appEnv.application).toBeDefined();
@@ -106,7 +117,7 @@ describe('Application Environment', () => {
 
 		it('should start application with custom module', async () => {
 			appEnv = new ApplicationEnv({
-				modules: [TokenModule, SampleModule],
+				modules: [new TokenModule(), new SampleModule()],
 				plugins: [],
 			});
 

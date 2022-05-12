@@ -13,6 +13,7 @@
  */
 /* eslint-disable class-methods-use-this */
 
+import { Schema } from '@liskhq/lisk-codec';
 import { GenesisConfig } from '../types';
 import {
 	BlockAfterExecuteContext,
@@ -34,6 +35,27 @@ export interface ModuleInitArgs {
 	generatorConfig: Record<string, unknown>;
 }
 
+export interface ModuleMetadata {
+	endpoints: {
+		name: string;
+		request?: Schema;
+		response: Schema;
+	}[];
+	events: {
+		typeID: string;
+		data: Schema;
+	}[];
+	commands: {
+		id: number;
+		name: string;
+		params?: Schema;
+	}[];
+	assets: {
+		version: number;
+		data: Schema;
+	}[];
+}
+
 export abstract class BaseModule {
 	public commands: BaseCommand[] = [];
 	public events: string[] = [];
@@ -53,4 +75,6 @@ export abstract class BaseModule {
 	public async finalizeGenesisState?(context: GenesisBlockExecuteContext): Promise<void>;
 	public async beforeTransactionsExecute?(context: BlockExecuteContext): Promise<void>;
 	public async afterTransactionsExecute?(context: BlockAfterExecuteContext): Promise<void>;
+
+	public abstract metadata(): ModuleMetadata;
 }

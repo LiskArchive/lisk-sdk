@@ -25,7 +25,7 @@ import { nodeOptions } from '../../fixtures/node';
 import { InMemoryChannel } from '../../../src/controller';
 import { fakeLogger } from '../../utils/node';
 import { BaseAPI, BaseCommand, BaseEndpoint, BaseModule } from '../../../src';
-import { ModuleInitArgs } from '../../../src/modules/base_module';
+import { ModuleInitArgs, ModuleMetadata } from '../../../src/modules/base_module';
 import {
 	CONSENSUS_EVENT_BLOCK_DELETE,
 	CONSENSUS_EVENT_BLOCK_NEW,
@@ -54,6 +54,15 @@ class SampleNodeModule extends BaseModule {
 	public addDependencies(bftAPI: BFTAPI, validatorAPI: ValidatorsAPI) {
 		this._bftAPI = bftAPI;
 		this._validatorAPI = validatorAPI;
+	}
+
+	public metadata(): ModuleMetadata {
+		return {
+			assets: [],
+			commands: [],
+			endpoints: [],
+			events: [],
+		};
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {

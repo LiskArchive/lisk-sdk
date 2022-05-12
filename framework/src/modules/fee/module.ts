@@ -15,7 +15,7 @@
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
-import { BaseModule, ModuleInitArgs } from '../base_module';
+import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { defaultConfig, MODULE_ID_FEE } from './constants';
 import { BaseFee, TokenAPI } from './types';
 import {
@@ -41,6 +41,15 @@ export class FeeModule extends BaseModule {
 
 	public addDependencies(tokenAPI: TokenAPI) {
 		this._tokenAPI = tokenAPI;
+	}
+
+	public metadata(): ModuleMetadata {
+		return {
+			endpoints: [],
+			commands: [],
+			events: [],
+			assets: [],
+		};
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
