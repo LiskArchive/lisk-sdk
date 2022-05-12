@@ -138,7 +138,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		// If params contains a non-empty activeValidatorsUpdate property (with deserialized value not equal to {activeValidatorsUpdate:[]}), or a non-zero newCertificateThreshold
 		if (
 			txParams.activeValidatorsUpdate &&
-			txParams.activeValidatorsUpdate !== [] &&
+			txParams.activeValidatorsUpdate.length !== 0 &&
 			txParams.newCertificateThreshold > BigInt(0)
 		) {
 			// Non-empty certificate
@@ -181,16 +181,15 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		let newInboxAppendPath;
 		let newInboxSize;
 		for (const ccm of ccmHashes) {
-			const { appendPath, root, size } = regularMerkleTree.calculateMerkleRoot({
+			const { appendPath, size } = regularMerkleTree.calculateMerkleRoot({
 				value: ccm,
 				appendPath: partnerChannelData.inbox.appendPath,
 				size: partnerChannelData.inbox.size,
 			});
-			newInboxRoot = root;
 			newInboxAppendPath = appendPath;
 			newInboxSize = size;
 		}
-		if (txParams.certificate && txParams.inboxUpdate) {
+		if (txParams.certificate) {
 			// If inboxUpdate contains a non-empty messageWitness, then update newInboxRoot to the output
 			newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
 				newInboxSize as number,
@@ -224,7 +223,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 					),
 				};
 			}
-		} else if (!txParams.certificate && txParams.inboxUpdate) {
+		} else if (!txParams.certificate) {
 			newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
 				newInboxSize as number,
 				newInboxAppendPath as Buffer[],
@@ -339,7 +338,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 			serialized: ccm,
 			deserilized: codec.decode<CCMsg>(ccmSchema, ccm),
 		}));
-		if (partnerChainAccount.status === CHAIN_REGISTERED && txParams.inboxUpdate) {
+		if (partnerChainAccount.status === CHAIN_REGISTERED) {
 			// If the first CCM in inboxUpdate is a registration CCM
 			if (
 				decodedCCMs[0].deserilized.crossChainCommandID === CROSS_CHAIN_COMMAND_ID_REGISTRATION &&
@@ -389,6 +388,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 				ccm.serialized,
 			);
 
+			// Only apply in case of sidechain
 			await interoperabilityStore.apply(
 				{
 					ccm: ccm.deserilized,
