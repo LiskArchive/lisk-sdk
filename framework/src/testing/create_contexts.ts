@@ -295,7 +295,7 @@ export const createExecuteCCMsgAPIContext = (params: {
 }): CCCommandExecuteContext => createCCAPIContext(params);
 
 export const createBeforeSendCCMsgAPIContext = (params: {
-	ccm: CCMsg;
+	ccm?: CCMsg;
 	feeAddress: Buffer;
 	logger?: Logger;
 	networkIdentifier?: Buffer;
