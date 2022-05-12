@@ -16,7 +16,7 @@ import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { codec } from '@liskhq/lisk-codec';
 import { hash, intToBuffer } from '@liskhq/lisk-cryptography';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
-import { CCM_STATUS_OK, MAX_CCM_SIZE } from './constants';
+import { CCM_STATUS_OK, MAX_CCM_SIZE, MODULE_ID_INTEROPERABILITY } from './constants';
 import {
 	ActiveValidators,
 	CCMsg,
@@ -24,6 +24,7 @@ import {
 	MessageRecoveryVerificationParams,
 	TerminatedOutboxAccount,
 } from './types';
+import { DB_KEY_STATE_STORE } from '@liskhq/lisk-chain';
 import { ccmSchema, sidechainTerminatedCCMParamsSchema, validatorsHashInputSchema } from './schema';
 import { VerifyStatus } from '../../node/state_machine/types';
 
@@ -175,3 +176,11 @@ export const swapReceivingAndSendingChainIDs = (ccm: CCMsg) => ({
 	receivingChainID: ccm.sendingChainID,
 	sendingChainID: ccm.receivingChainID,
 });
+export const rawStateStoreKey = (storePrefix: number) => {
+	const moduleIDBuffer = Buffer.alloc(4);
+	moduleIDBuffer.writeInt32BE(MODULE_ID_INTEROPERABILITY, 0);
+	const storePrefixBuffer = Buffer.alloc(2);
+	storePrefixBuffer.writeUInt16BE(storePrefix, 0);
+
+	return Buffer.concat([DB_KEY_STATE_STORE, moduleIDBuffer, storePrefixBuffer]);
+};

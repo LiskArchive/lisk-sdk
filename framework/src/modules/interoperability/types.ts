@@ -35,7 +35,7 @@ export interface ActiveValidator {
 }
 
 export interface MsgWitness {
-	partnerChainOutboxSize: bigint;
+	partnerChainOutboxSize: number;
 	siblingHashes: Buffer[];
 }
 
@@ -220,6 +220,12 @@ export interface BFTAPI {
 		certificateThreshold: bigint;
 		validators: Validator[];
 	}>;
+	setBFTParameters(
+		apiContext: APIContext,
+		precommitThreshold: bigint,
+		certificateThreshold: bigint,
+		validators: Validator[],
+	): Promise<void>;
 }
 
 export interface ValidatorsAPI {
@@ -227,6 +233,11 @@ export interface ValidatorsAPI {
 }
 
 export interface MainchainRegistrationCommandDependencies {
+	bftAPI: BFTAPI;
+	validatorsAPI: ValidatorsAPI;
+}
+
+export interface CrossChainCommandDependencies {
 	bftAPI: BFTAPI;
 	validatorsAPI: ValidatorsAPI;
 }
@@ -274,4 +285,12 @@ export interface StateRecoveryInitParams {
 	sidechainChainAccount: Buffer;
 	bitmap: Buffer;
 	siblingHashes: Buffer[];
+}
+
+export interface CrossChainUpdateTransactionParams {
+	sendingChainID: number;
+	certificate: Buffer;
+	activeValidatorsUpdate: ActiveValidator[];
+	newCertificateThreshold: bigint;
+	inboxUpdate: InboxUpdate;
 }
