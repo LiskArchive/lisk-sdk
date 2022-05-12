@@ -15,22 +15,9 @@
 import { Event, StateStore } from '@liskhq/lisk-chain';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
-import { ModuleEndpointContext } from '../../../src';
 import { Endpoint } from '../../../src/node/endpoint';
-import { createImmutableAPIContext } from '../../../src/node/state_machine';
 import { nodeConfig } from '../../utils/configs';
-import { fakeLogger } from '../../utils/node';
-
-const createContext = (
-	stateStore: StateStore,
-	params: Record<string, unknown>,
-): ModuleEndpointContext => ({
-	getImmutableAPIContext: () => createImmutableAPIContext(stateStore),
-	getStore: (moduleID: number, prefix: number) => stateStore.getStore(moduleID, prefix),
-	logger: fakeLogger,
-	networkIdentifier: getRandomBytes(32),
-	params,
-});
+import { createContext } from '../../utils/node/endpoint';
 
 describe('endpoint', () => {
 	let stateStore: StateStore;
