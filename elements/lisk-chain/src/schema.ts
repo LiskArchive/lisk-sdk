@@ -196,6 +196,7 @@ export const eventSchema = {
 			type: 'array',
 			fieldNumber: 4,
 			items: {
+				maxItems: 4,
 				dataType: 'bytes',
 			},
 		},

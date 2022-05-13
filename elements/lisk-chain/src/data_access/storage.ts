@@ -66,7 +66,7 @@ interface StorageOption {
 
 export class Storage {
 	private readonly _db: KVStore;
-	private readonly _keepEventsForHeights;
+	private readonly _keepEventsForHeights: number;
 
 	public constructor(db: KVStore, options?: StorageOption) {
 		this._db = db;
