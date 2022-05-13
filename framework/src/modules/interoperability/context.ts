@@ -13,6 +13,7 @@
  */
 
 import {
+	CCMsg,
 	BeforeApplyCCMsgAPIContext,
 	BeforeSendCCMsgAPIContext,
 	CCAPIContext,
@@ -20,7 +21,9 @@ import {
 	CCUpdateParams,
 } from './types';
 
-export const createCCCommandExecuteContext = (params: CCAPIContext): CCCommandExecuteContext => ({
+export const createCCCommandExecuteContext = (
+	params: CCAPIContext & { ccm: CCMsg },
+): CCCommandExecuteContext => ({
 	logger: params.logger,
 	networkIdentifier: params.networkIdentifier,
 	eventQueue: params.eventQueue,
