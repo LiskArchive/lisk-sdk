@@ -20,7 +20,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { EMPTY_BUFFER, NETWORK_EVENT_COMMIT_MESSAGES, COMMIT_RANGE_STORED } from './constants';
 import { BFTParameterNotFoundError } from '../../../modules/bft/errors';
 import { APIContext } from '../../state_machine/types';
-import { BFTAPI, PkSigPair, ValidatorAPI, AggregateCommit } from '../types';
+import { BFTAPI, PkSigPair, AggregateCommit } from '../types';
 import { Certificate, CommitPoolConfig, SingleCommit, ValidatorInfo } from './types';
 
 import {
@@ -41,7 +41,6 @@ export class CommitPool {
 	private readonly _gossipedCommits: CommitList;
 	private readonly _blockTime: number;
 	private readonly _bftAPI: BFTAPI;
-	private readonly _validatorsAPI: ValidatorAPI;
 	private readonly _chain: Chain;
 	private readonly _network: Network;
 	private readonly _db: KVStore;
@@ -50,7 +49,6 @@ export class CommitPool {
 	public constructor(config: CommitPoolConfig) {
 		this._blockTime = config.blockTime;
 		this._bftAPI = config.bftAPI;
-		this._validatorsAPI = config.validatorsAPI;
 		this._chain = config.chain;
 		this._network = config.network;
 		this._db = config.db;
@@ -134,9 +132,10 @@ export class CommitPool {
 
 		// Validation Step 6
 		const certificate = computeCertificateFromBlockHeader(blockHeaderAtCommitHeight);
-		const { blsKey } = await this._validatorsAPI.getValidatorAccount(
+		const { blsKey } = await this._bftAPI.getValidator(
 			apiContext,
 			commit.validatorAddress,
+			commit.height,
 		);
 		const { networkIdentifier } = this._chain;
 		const isSingleCertificateVerified = verifySingleCertificateSignature(
@@ -237,13 +236,9 @@ export class CommitPool {
 
 		const validatorKeysWithWeights = [];
 		for (const validator of bftParams.validators) {
-			const validatorAccount = await this._validatorsAPI.getValidatorAccount(
-				apiContext,
-				validator.address,
-			);
 			validatorKeysWithWeights.push({
 				weight: validator.bftWeight,
-				blsKey: validatorAccount.blsKey,
+				blsKey: validator.blsKey,
 			});
 		}
 		const { weights, validatorKeys } = getSortedWeightsAndValidatorKeys(validatorKeysWithWeights);
@@ -277,12 +272,8 @@ export class CommitPool {
 		const validatorKeys: Buffer[] = [];
 
 		for (const validator of validators) {
-			const validatorAccount = await this._validatorsAPI.getValidatorAccount(
-				apiContext,
-				validator.address,
-			);
-			addressToBlsKey.set(validator.address, validatorAccount.blsKey);
-			validatorKeys.push(validatorAccount.blsKey);
+			addressToBlsKey.set(validator.address, validator.blsKey);
+			validatorKeys.push(validator.blsKey);
 		}
 
 		const pubKeySignaturePairs: PkSigPair[] = [];

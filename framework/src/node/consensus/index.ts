@@ -19,5 +19,5 @@ export {
 	CONSENSUS_EVENT_BLOCK_DELETE,
 	CONSENSUS_EVENT_BLOCK_NEW,
 } from './constants';
-export { BFTAPI, ValidatorAPI } from './types';
+export { BFTAPI } from './types';
 export { BFTHeights } from '../../modules/bft/types';

@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { Validator } from './types';
+
 export const bftModuleConfig = {
 	$id: 'modules/bft/config',
 	type: 'object',
@@ -24,16 +26,11 @@ export const bftModuleConfig = {
 	},
 };
 
-export interface BFTParametersValidator {
-	address: Buffer;
-	bftWeight: bigint;
-}
-
 export interface BFTParameters {
 	prevoteThreshold: bigint;
 	precommitThreshold: bigint;
 	certificateThreshold: bigint;
-	validators: BFTParametersValidator[];
+	validators: Validator[];
 	validatorsHash: Buffer;
 }
 
@@ -74,6 +71,14 @@ export const bftParametersSchema = {
 					bftWeight: {
 						dataType: 'uint64',
 						fieldNumber: 2,
+					},
+					generatorKey: {
+						dataType: 'bytes',
+						fieldNumber: 3,
+					},
+					blsKey: {
+						dataType: 'bytes',
+						fieldNumber: 4,
 					},
 				},
 			},

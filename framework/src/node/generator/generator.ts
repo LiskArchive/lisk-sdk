@@ -71,7 +71,6 @@ import {
 	Consensus,
 	GeneratorModule,
 	BFTAPI,
-	ValidatorAPI,
 	BlockGenerateInput,
 	GenesisBlockGenerateInput,
 	Keypair,
@@ -86,7 +85,6 @@ interface GeneratorArgs {
 	chain: Chain;
 	consensus: Consensus;
 	bftAPI: BFTAPI;
-	validatorAPI: ValidatorAPI;
 	stateMachine: StateMachine;
 	network: Network;
 }
@@ -106,7 +104,6 @@ export class Generator {
 	private readonly _chain: Chain;
 	private readonly _consensus: Consensus;
 	private readonly _bftAPI: BFTAPI;
-	private readonly _validatorAPI: ValidatorAPI;
 	private readonly _stateMachine: StateMachine;
 	private readonly _network: Network;
 	private readonly _endpoint: Endpoint;
@@ -139,7 +136,6 @@ export class Generator {
 			);
 		}
 		this._chain = args.chain;
-		this._validatorAPI = args.validatorAPI;
 		this._bftAPI = args.bftAPI;
 		this._consensus = args.consensus;
 		this._stateMachine = args.stateMachine;
@@ -491,22 +487,25 @@ export class Generator {
 
 		const MS_IN_A_SEC = 1000;
 		const currentTime = Math.floor(new Date().getTime() / MS_IN_A_SEC);
-		const currentSlot = await this._validatorAPI.getSlotNumber(apiContext, currentTime);
+		const currentSlot = this._consensus.getSlotNumber(currentTime);
 
-		const currentSlotTime = await this._validatorAPI.getSlotTime(apiContext, currentSlot);
+		const currentSlotTime = this._consensus.getSlotTime(currentSlot);
 
 		const { waitThreshold } = this._config;
-		const lastBlockSlot = await this._validatorAPI.getSlotNumber(
-			apiContext,
-			this._chain.lastBlock.header.timestamp,
-		);
+		const lastBlockSlot = this._consensus.getSlotNumber(this._chain.lastBlock.header.timestamp);
 
 		if (currentSlot === lastBlockSlot) {
 			this._logger.trace({ slot: currentSlot }, 'Block already forged for the current slot');
 			return;
 		}
 
-		const generator = await this._validatorAPI.getGeneratorAtTimestamp(apiContext, currentTime);
+		const nextHeight = this._chain.lastBlock.header.height + 1;
+
+		const generator = await this._consensus.getGeneratorAtTimestamp(
+			apiContext,
+			nextHeight,
+			currentTime,
+		);
 		const validatorKeypair = this._keypairs.get(generator);
 
 		if (validatorKeypair === undefined) {
@@ -529,7 +528,7 @@ export class Generator {
 			return;
 		}
 		const generatedBlock = await this._generateBlock({
-			height: this._chain.lastBlock.header.height + 1,
+			height: nextHeight,
 			generatorAddress: generator,
 			privateKey: validatorKeypair.privateKey,
 			timestamp: currentTime,

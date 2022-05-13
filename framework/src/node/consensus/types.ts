@@ -14,7 +14,6 @@
 
 import { BFTParameters } from '../../modules/bft/schemas';
 import { BFTHeights } from '../../modules/bft/types';
-import { ValidatorKeys } from '../../modules/validators/types';
 import { BlockHeader, ImmutableAPIContext, APIContext } from '../state_machine';
 
 export interface BFTHeader {
@@ -31,17 +30,17 @@ export interface BFTHeader {
 export interface Validator {
 	address: Buffer;
 	bftWeight: bigint;
-}
-
-export interface ValidatorAPI {
-	getGeneratorAtTimestamp: (apiContext: ImmutableAPIContext, timestamp: number) => Promise<Buffer>;
-	getSlotNumber: (apiContext: ImmutableAPIContext, timestamp: number) => Promise<number>;
-	getSlotTime: (apiContext: ImmutableAPIContext, slot: number) => Promise<number>;
-	getValidatorAccount: (apiContext: ImmutableAPIContext, address: Buffer) => Promise<ValidatorKeys>;
+	generatorKey: Buffer;
+	blsKey: Buffer;
 }
 
 export interface BFTAPI {
 	getCurrentValidators: (apiContext: ImmutableAPIContext) => Promise<Validator[]>;
+	getValidator: (
+		context: ImmutableAPIContext,
+		address: Buffer,
+		height: number,
+	) => Promise<Validator>;
 	getBFTHeights: (apiClient: ImmutableAPIContext) => Promise<BFTHeights>;
 	getBFTParameters: (apiContext: ImmutableAPIContext, height: number) => Promise<BFTParameters>;
 	getNextHeightBFTParameters: (apiContext: ImmutableAPIContext, height: number) => Promise<number>;

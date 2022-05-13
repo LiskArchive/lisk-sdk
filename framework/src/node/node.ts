@@ -93,13 +93,11 @@ export class Node {
 			chain: this._chain,
 			genesisConfig: this._options.genesis,
 			bftAPI: this._bftModule.api,
-			validatorAPI: this._validatorsModule.api,
 		});
 		this._generator = new Generator({
 			chain: this._chain,
 			consensus: this._consensus,
 			bftAPI: this._bftModule.api,
-			validatorAPI: this._validatorsModule.api,
 			generationConfig: this._options.generation,
 			network: this._network,
 			stateMachine: this._stateMachine,
@@ -111,7 +109,6 @@ export class Node {
 			consensus: this._consensus,
 			generator: this._generator,
 		});
-		this._bftModule.addDependencies(this._validatorsModule.api);
 		this._stateMachine.registerSystemModule(this._validatorsModule);
 		this._stateMachine.registerSystemModule(this._bftModule);
 		this._generator.registerModule(this._validatorsModule);

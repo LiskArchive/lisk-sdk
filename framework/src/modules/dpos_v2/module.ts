@@ -71,7 +71,6 @@ import {
 	selectStandbyDelegates,
 	shuffleDelegateList,
 	sortUnlocking,
-	validtorsEqual,
 } from './utils';
 
 export class DPoSModule extends BaseModule {
@@ -395,13 +394,26 @@ export class DPoSModule extends BaseModule {
 
 		const initDelegates = [...genesisStore.genesisData.initDelegates];
 		initDelegates.sort((a, b) => a.compare(b));
-		const bftWeights = initDelegates.map(d => ({
-			bftWeight: BigInt(1),
-			address: d,
-		}));
 		const initBFTThreshold = BigInt(Math.floor((2 * initDelegates.length) / 3) + 1);
-		await this._bftAPI.setBFTParameters(apiContext, initBFTThreshold, initBFTThreshold, bftWeights);
-		await this._validatorsAPI.setGeneratorList(apiContext, initDelegates);
+		const bftValidators = [];
+		for (const validatorAddress of initDelegates) {
+			const validatorAccount = await this._validatorsAPI.getValidatorAccount(
+				apiContext,
+				validatorAddress,
+			);
+			bftValidators.push({
+				address: validatorAddress,
+				generatorKey: validatorAccount.generatorKey,
+				blsKey: validatorAccount.blsKey,
+				bftWeight: BigInt(1),
+			});
+		}
+		await this._bftAPI.setBFTParameters(
+			apiContext,
+			initBFTThreshold,
+			initBFTThreshold,
+			bftValidators,
+		);
 
 		const MAX_UINT32 = 2 ** 32 - 1;
 		const snapshotStore = context.getStore(this.id, STORE_PREFIX_SNAPSHOT);
@@ -564,27 +576,9 @@ export class DPoSModule extends BaseModule {
 
 		const apiContext = context.getAPIContext();
 
-		// get the last stored BFT parameters, and update them if needed
-		const currentBFTParams = await this._bftAPI.getBFTParameters(apiContext, height);
-		// snapshot.activeDelegates order should not be changed here to use it below
-		const bftWeight = [...snapshot.activeDelegates]
-			.sort((a, b) => a.compare(b))
-			.map(address => ({ address, bftWeight: BigInt(1) }));
-		if (
-			!validtorsEqual(currentBFTParams.validators, bftWeight) ||
-			currentBFTParams.precommitThreshold !== BigInt(this._moduleConfig.bftThreshold) ||
-			currentBFTParams.certificateThreshold !== BigInt(this._moduleConfig.bftThreshold)
-		) {
-			await this._bftAPI.setBFTParameters(
-				apiContext,
-				BigInt(this._moduleConfig.bftThreshold),
-				BigInt(this._moduleConfig.bftThreshold),
-				bftWeight,
-			);
-		}
-
 		// Update the validators
 		const validators = [...snapshot.activeDelegates];
+		let standbyDelegates: Buffer[] = [];
 		const randomSeed1 = await this._randomAPI.getRandomBytes(
 			apiContext,
 			height + 1 - Math.floor((this._moduleConfig.roundLength * 3) / 2),
@@ -596,18 +590,40 @@ export class DPoSModule extends BaseModule {
 				height + 1 - 2 * this._moduleConfig.roundLength,
 				this._moduleConfig.roundLength,
 			);
-			const standbyDelegates = selectStandbyDelegates(
+			standbyDelegates = selectStandbyDelegates(
 				snapshot.delegateWeightSnapshot,
 				randomSeed1,
 				randomSeed2,
 			);
 			validators.push(...standbyDelegates);
 		} else if (this._moduleConfig.numberStandbyDelegates === 1) {
-			const standbyDelegates = selectStandbyDelegates(snapshot.delegateWeightSnapshot, randomSeed1);
+			standbyDelegates = selectStandbyDelegates(snapshot.delegateWeightSnapshot, randomSeed1);
 			validators.push(...standbyDelegates);
 		}
 		const shuffledValidators = shuffleDelegateList(randomSeed1, validators);
-		await this._validatorsAPI.setGeneratorList(apiContext, shuffledValidators);
+		const bftValidators = [];
+		for (const validatorAddress of shuffledValidators) {
+			const validatorAccount = await this._validatorsAPI.getValidatorAccount(
+				apiContext,
+				validatorAddress,
+			);
+			const bftWeight =
+				standbyDelegates.findIndex(addr => addr.equals(validatorAddress)) > -1
+					? BigInt(0)
+					: BigInt(1);
+			bftValidators.push({
+				address: validatorAddress,
+				generatorKey: validatorAccount.generatorKey,
+				blsKey: validatorAccount.blsKey,
+				bftWeight,
+			});
+		}
+		await this._bftAPI.setBFTParameters(
+			apiContext,
+			BigInt(this._moduleConfig.bftThreshold),
+			BigInt(this._moduleConfig.bftThreshold),
+			bftValidators,
+		);
 	}
 
 	private async _updateProductivity(context: BlockAfterExecuteContext, previousTimestamp: number) {

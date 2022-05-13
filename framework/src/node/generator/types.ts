@@ -45,6 +45,13 @@ export interface Consensus {
 	getAggregateCommit: (apiContext: APIContext) => Promise<AggregateCommit>;
 	certifySingleCommit: (blockHeader: BlockHeader, validatorInfo: ValidatorInfo) => void;
 	getMaxRemovalHeight: () => Promise<number>;
+	getGeneratorAtTimestamp: (
+		apiContext: APIContext,
+		height: number,
+		timestamp: number,
+	) => Promise<Buffer>;
+	getSlotNumber: (timestamp: number) => number;
+	getSlotTime: (slot: number) => number;
 	readonly events: EventEmitter;
 }
 
@@ -52,12 +59,6 @@ export interface BFTAPI {
 	getBFTHeights: (_apiClient: ImmutableAPIContext) => Promise<BFTHeights>;
 	getBFTParameters: (apiContext: ImmutableAPIContext, height: number) => Promise<BFTParameters>;
 	existBFTParameters(context: ImmutableAPIContext, height: number): Promise<boolean>;
-}
-
-export interface ValidatorAPI {
-	getGeneratorAtTimestamp: (apiContext: APIContext, timestamp: number) => Promise<Buffer>;
-	getSlotNumber: (apiContext: APIContext, timestamp: number) => Promise<number>;
-	getSlotTime: (apiContext: APIContext, slot: number) => Promise<number>;
 }
 
 export interface WritableBlockAssets {

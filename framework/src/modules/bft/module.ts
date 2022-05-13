@@ -25,7 +25,6 @@ import {
 } from './constants';
 import { bftModuleConfig, BFTVotes, bftVotesSchema } from './schemas';
 import { BlockExecuteContext, GenesisBlockExecuteContext } from '../../node/state_machine';
-import { ValidatorsAPI } from './types';
 import {
 	insertBlockBFTInfo,
 	updateMaxHeightCertified,
@@ -55,10 +54,6 @@ export class BFTModule extends BaseModule {
 		this._batchSize = config.batchSize as number;
 		this.api.init(this._batchSize);
 		this._maxLengthBlockBFTInfos = 3 * this._batchSize;
-	}
-
-	public addDependencies(validatorsAPI: ValidatorsAPI) {
-		this.api.addDependencies(validatorsAPI);
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {

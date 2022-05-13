@@ -39,7 +39,7 @@ import {
 	bftParametersSchema,
 	BFTVotesActiveValidatorsVoteInfo,
 } from './schemas';
-import { BFTHeights, Validator, ValidatorsAPI } from './types';
+import { BFTHeights, Validator } from './types';
 import { BFTParameterNotFoundError } from './errors';
 
 export interface BlockHeaderAsset {
@@ -48,12 +48,7 @@ export interface BlockHeaderAsset {
 }
 
 export class BFTAPI extends BaseAPI {
-	private _validatorsAPI!: ValidatorsAPI;
 	private _batchSize!: number;
-
-	public addDependencies(validatorsAPI: ValidatorsAPI): void {
-		this._validatorsAPI = validatorsAPI;
-	}
 
 	public init(batchSize: number) {
 		this._batchSize = batchSize;
@@ -113,8 +108,10 @@ export class BFTAPI extends BaseAPI {
 		const votesStore = context.getStore(this.moduleID, STORE_PREFIX_BFT_VOTES);
 		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
 		const [lastHeader] = bftVotes.blockBFTInfos;
-		if (header.height !== lastHeader.height + 1) {
-			return false;
+		if (header.height !== lastHeader.height) {
+			throw new Error(
+				'impliesMaximalPrevotes can only be called for the currently executing block',
+			);
 		}
 		const previousHeight = header.maxHeightGenerated;
 
@@ -168,9 +165,6 @@ export class BFTAPI extends BaseAPI {
 		}
 		let aggregateBFTWeight = BigInt(0);
 		for (const validator of validators) {
-			if (validator.bftWeight <= 0) {
-				throw new Error('Invalid BFT weight. BFT weight must be a positive integer.');
-			}
 			aggregateBFTWeight += validator.bftWeight;
 		}
 		if (
@@ -185,13 +179,7 @@ export class BFTAPI extends BaseAPI {
 		) {
 			throw new Error('Invalid certificateThreshold input.');
 		}
-		const validatorsHash = await this._computeValidatorsHash(
-			context,
-			validators,
-			certificateThreshold,
-		);
-
-		sortValidatorsByAddress(validators);
+		const validatorsHash = this._computeValidatorsHash(validators, certificateThreshold);
 
 		const bftParams: BFTParameters = {
 			prevoteThreshold: (BigInt(2) * aggregateBFTWeight) / BigInt(3) + BigInt(1),
@@ -214,6 +202,9 @@ export class BFTAPI extends BaseAPI {
 
 		const nextActiveValidators: BFTVotesActiveValidatorsVoteInfo[] = [];
 		for (const validator of validators) {
+			if (validator.bftWeight === BigInt(0)) {
+				continue;
+			}
 			const existingValidator = bftVotes.activeValidatorsVoteInfo.find(v =>
 				v.address.equals(validator.address),
 			);
@@ -244,16 +235,26 @@ export class BFTAPI extends BaseAPI {
 		return params.validators;
 	}
 
-	private async _computeValidatorsHash(
+	public async getValidator(
 		context: ImmutableAPIContext,
-		validators: Validator[],
-		certificateThreshold: bigint,
-	): Promise<Buffer> {
+		address: Buffer,
+		height: number,
+	): Promise<Validator> {
+		const params = await this.getBFTParameters(context, height);
+		const validator = params.validators.find(val => val.address.equals(address));
+		if (!validator) {
+			throw new Error(
+				`Validator with address ${address.toString('hex')} does not exist for height ${height}`,
+			);
+		}
+		return validator;
+	}
+
+	private _computeValidatorsHash(validators: Validator[], certificateThreshold: bigint) {
 		const activeValidators: ValidatorsHashInfo[] = [];
 		for (const validator of validators) {
-			const { blsKey } = await this._validatorsAPI.getValidatorAccount(context, validator.address);
 			activeValidators.push({
-				blsKey,
+				blsKey: validator.blsKey,
 				bftWeight: validator.bftWeight,
 			});
 		}
