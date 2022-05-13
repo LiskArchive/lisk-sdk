@@ -156,7 +156,7 @@ describe('state_machine', () => {
 			expect(mod.afterCommandExecute).toHaveBeenCalledTimes(1);
 		});
 
-		it('should add event with a topic with transaciton id', async () => {
+		it('should add event with a topic with transaction id', async () => {
 			stateMachine.registerModule(new CustomModule2());
 			const ctx = new TransactionContext({
 				eventQueue,

@@ -758,7 +758,7 @@ export class Consensus {
 
 	private async _verifyEventRoot(block: Block, events: Event[]): Promise<void> {
 		if (events.length > MAX_EVENTS_PER_BLOCK) {
-			throw new Error(`Number of event cannot exceed ${MAX_EVENTS_PER_BLOCK} per block`);
+			throw new Error(`Number of events cannot exceed ${MAX_EVENTS_PER_BLOCK} per block`);
 		}
 		const smtStore = new SMTStore(new InMemoryKVStore());
 		const smt = new SparseMerkleTree({
