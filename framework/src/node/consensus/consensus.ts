@@ -221,7 +221,7 @@ export class Consensus {
 			) {
 				throw new Error('Genesis block validators hash is invalid');
 			}
-			await this._chain.saveBlock(args.genesisBlock, state, args.genesisBlock.header.height);
+			await this._chain.saveBlock(args.genesisBlock, [], state, args.genesisBlock.header.height);
 		}
 		await this._chain.loadLastBlocks(args.genesisBlock);
 		this._genesisBlockTimestamp = args.genesisBlock.header.timestamp;
@@ -541,7 +541,7 @@ export class Consensus {
 		);
 		this._verifyStateRoot(block, currentState.smt.rootHash);
 
-		await this._chain.saveBlock(block, currentState, finalizedHeight, {
+		await this._chain.saveBlock(block, [], currentState, finalizedHeight, {
 			removeFromTempTable: options.removeFromTempTable ?? false,
 		});
 

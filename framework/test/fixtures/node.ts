@@ -21,6 +21,9 @@ export const nodeOptions = ({
 	networkVersion: '1.0',
 	rootPath: '~/.lisk',
 	label: 'default',
+	system: {
+		keepEventsForHeights: 300,
+	},
 	network: {
 		maxInboundConnections: 0,
 		seedPeers: [{ ip: '127.0.0.1', port: 5000 }],

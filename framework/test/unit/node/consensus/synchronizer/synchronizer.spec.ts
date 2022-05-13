@@ -50,6 +50,7 @@ describe('Synchronizer', () => {
 
 		chainModule = new Chain({
 			maxTransactionsSize: applicationConfigSchema.default.genesis.maxTransactionsSize,
+			keepEventsForHeights: applicationConfigSchema.default.system.keepEventsForHeights,
 		});
 		chainModule.init({
 			db: new InMemoryKVStore(),

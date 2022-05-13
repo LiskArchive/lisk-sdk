@@ -25,7 +25,13 @@ export {
 	signingBlockHeaderSchema,
 	stateDiffSchema,
 } from './schema';
-export { TAG_BLOCK_HEADER, TAG_TRANSACTION } from './constants';
+export {
+	TAG_BLOCK_HEADER,
+	TAG_TRANSACTION,
+	EVENT_MAX_TOPICS_PER_EVENT,
+	EVENT_MAX_EVENT_SIZE_BYTES,
+	MAX_EVENTS_PER_BLOCK,
+} from './constants';
 export * from './db_keys';
 export type { RawBlock } from './types';
 export { Slots } from './slots';
@@ -36,3 +42,4 @@ export { Block, BlockJSON } from './block';
 export { BlockAsset, BlockAssets, BlockAssetJSON } from './block_assets';
 export { BlockHeader, BlockHeaderAttrs, BlockHeaderJSON } from './block_header';
 export { DataAccess } from './data_access';
+export { Event } from './event';

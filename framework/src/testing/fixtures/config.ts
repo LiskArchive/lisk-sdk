@@ -27,6 +27,9 @@ export const defaultConfig = {
 		consoleLogLevel: 'none',
 		logFileName: 'lisk.log',
 	},
+	system: {
+		keepEventsForHeights: -1,
+	},
 	genesis: {
 		blockTime: 10,
 		communityIdentifier: 'sdk',

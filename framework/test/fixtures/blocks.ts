@@ -35,6 +35,7 @@ export const genesisBlock = (): Block => {
 		previousBlockID: getRandomBytes(32),
 		timestamp: Math.floor(Date.now() / 1000 - 24 * 60 * 60),
 		stateRoot: hash(Buffer.alloc(0)),
+		eventRoot: hash(Buffer.alloc(0)),
 		maxHeightGenerated: 0,
 		maxHeightPrevoted: 0,
 		assetsRoot: hash(Buffer.alloc(0)),
@@ -73,6 +74,7 @@ export const createFakeBlockHeader = (header?: Partial<BlockHeaderAttrs>): Block
 		},
 		validatorsHash: header?.validatorsHash ?? getRandomBytes(32),
 		stateRoot: header?.stateRoot ?? hash(getRandomBytes(4)),
+		eventRoot: header?.eventRoot ?? hash(getRandomBytes(4)),
 		generatorAddress: header?.generatorAddress ?? getRandomBytes(32),
 		signature: header?.signature ?? getRandomBytes(64),
 	});
@@ -101,6 +103,7 @@ export const createValidDefaultBlock = async (
 		timestamp: 1000,
 		transactionRoot: txTree.root,
 		stateRoot: getRandomBytes(32),
+		eventRoot: getRandomBytes(32),
 		generatorAddress: getAddressFromPublicKey(keypair.publicKey),
 		aggregateCommit: {
 			height: 0,
