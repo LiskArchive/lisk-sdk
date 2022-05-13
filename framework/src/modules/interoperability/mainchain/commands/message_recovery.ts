@@ -26,7 +26,7 @@ import { CommandExecuteContext, VerificationResult } from '../../../../node/stat
 import { CCMsg, StoreCallback, MessageRecoveryParams } from '../../types';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { MainchainInteroperabilityStore } from '../store';
-import { getIDAsKeyForStore, swapChainIDs } from '../../utils';
+import { getIDAsKeyForStore, swapReceivingAndSendingChainIDs } from '../../utils';
 import { BaseInteroperableAPI } from '../../base_interoperable_api';
 
 export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
@@ -44,7 +44,7 @@ export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
 		const { transaction, params, getAPIContext, logger, networkIdentifier, getStore } = context;
 		const apiContext = getAPIContext();
 
-		let chainIdAsBuffer = getIDAsKeyForStore(params.chainID);
+		const chainIdAsBuffer = getIDAsKeyForStore(params.chainID);
 
 		const updatedCCMs: Buffer[] = [];
 		const deserializedCCMs = params.crossChainMessages.map(serializedCCMsg =>
@@ -106,23 +106,23 @@ export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
 		});
 
 		for (const ccm of deserializedCCMs) {
-			const newCcm = swapChainIDs(ccm);
+			const newCcm = swapReceivingAndSendingChainIDs(ccm);
 
-			chainIdAsBuffer = getIDAsKeyForStore(newCcm.receivingChainID);
-			const chainAccountExist = await interoperabilityStore.chainAccountExist(chainIdAsBuffer);
-			const isLive = await interoperabilityStore.isLive(chainIdAsBuffer, Date.now());
+			const ccmChainIdAsBuffer = getIDAsKeyForStore(newCcm.receivingChainID);
+			const chainAccountExist = await interoperabilityStore.chainAccountExist(ccmChainIdAsBuffer);
+			const isLive = await interoperabilityStore.isLive(ccmChainIdAsBuffer, Date.now());
 
 			if (!chainAccountExist || !isLive) {
 				continue;
 			}
 
-			const chainAccount = await interoperabilityStore.getChainAccount(chainIdAsBuffer);
+			const chainAccount = await interoperabilityStore.getChainAccount(ccmChainIdAsBuffer);
 
 			if (chainAccount.status !== CHAIN_ACTIVE) {
 				continue;
 			}
 
-			await interoperabilityStore.addToOutbox(chainIdAsBuffer, newCcm);
+			await interoperabilityStore.addToOutbox(ccmChainIdAsBuffer, newCcm);
 		}
 	}
 

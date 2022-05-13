@@ -107,15 +107,8 @@ export const computeValidatorsHash = (
 export const sortValidatorsByBLSKey = (validators: ActiveValidators[]) =>
 	validators.sort((a, b) => a.blsKey.compare(b.blsKey));
 
-export const swapChainIDs = (ccm: CCMsg) => {
-	const newCcm = { ...ccm };
-
-	// Swap sendingChainID and receivingChainID of CCM without intermediary variable
-	/* eslint-disable no-bitwise */
-	newCcm.sendingChainID ^= newCcm.receivingChainID;
-	newCcm.receivingChainID ^= newCcm.sendingChainID;
-	newCcm.sendingChainID ^= newCcm.receivingChainID;
-	/* eslint-enable no-bitwise */
-
-	return newCcm;
-};
+export const swapReceivingAndSendingChainIDs = (ccm: CCMsg) => ({
+	...ccm,
+	receivingChainID: ccm.sendingChainID,
+	sendingChainID: ccm.receivingChainID,
+});

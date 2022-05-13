@@ -1,6 +1,7 @@
 import { Transaction } from '@liskhq/lisk-chain';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
+import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { when } from 'jest-when';
 import { CCMsg, MessageRecoveryParams } from '../../../../../../src/modules/interoperability/types';
 import { MessageRecoveryCommand } from '../../../../../../src/modules/interoperability/sidechain/commands/message_recovery';
@@ -19,13 +20,52 @@ import {
 import { createTransactionContext } from '../../../../../../src/testing';
 import {
 	getIDAsKeyForStore,
-	swapChainIDs,
+	swapReceivingAndSendingChainIDs,
 } from '../../../../../../src/modules/interoperability/utils';
 import { SidechainInteroperabilityStore } from '../../../../../../src/modules/interoperability/sidechain/store';
 import { Mocked } from '../../../../../utils/types';
 
 describe('Sidechain MessageRecoveryCommand', () => {
-	type StoreMock = Mocked<SidechainInteroperabilityStore, 'getOwnChainAccount'>;
+	const createCommandExecuteContext = (ccms: CCMsg[]) => {
+		const ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+
+		transactionParams = {
+			chainID: 3,
+			crossChainMessages: [...ccmsEncoded],
+			idxs: [0],
+			siblingHashes: [getRandomBytes(32)],
+		};
+
+		encodedTransactionParams = codec.encode(messageRecoveryParams, transactionParams);
+
+		transaction = new Transaction({
+			moduleID: MODULE_ID_INTEROPERABILITY,
+			commandID: COMMAND_ID_MESSAGE_RECOVERY,
+			fee: BigInt(100000000),
+			nonce: BigInt(0),
+			params: encodedTransactionParams,
+			senderPublicKey: getRandomBytes(32),
+			signatures: [],
+		});
+
+		transactionContext = createTransactionContext({
+			transaction,
+		});
+
+		commandExecuteContext = transactionContext.createCommandExecuteContext<MessageRecoveryParams>(
+			messageRecoveryParams,
+		);
+
+		return commandExecuteContext;
+	};
+
+	type StoreMock = Mocked<
+		SidechainInteroperabilityStore,
+		| 'getOwnChainAccount'
+		| 'getTerminatedOutboxAccount'
+		| 'setTerminatedOutboxAccount'
+		| 'terminatedOutboxAccountExist'
+	>;
 
 	const moduleID = 1;
 
@@ -62,7 +102,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 				params: Buffer.alloc(0),
 			},
 			{
-				nonce: BigInt(0),
+				nonce: BigInt(1),
 				moduleID: moduleID + 1,
 				crossChainCommandID: 1,
 				sendingChainID: 2,
@@ -71,54 +111,21 @@ describe('Sidechain MessageRecoveryCommand', () => {
 				status: 1,
 				params: Buffer.alloc(0),
 			},
-			{
-				nonce: BigInt(0),
-				moduleID: moduleID + 1,
-				crossChainCommandID: 2,
-				sendingChainID: 2,
-				receivingChainID: 3,
-				fee: BigInt(1),
-				status: 1,
-				params: Buffer.alloc(0),
-			},
 		];
 
-		const ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
-
-		transactionParams = {
-			chainID: 3,
-			crossChainMessages: [...ccmsEncoded],
-			idxs: [0],
-			siblingHashes: [getRandomBytes(32)],
-		};
-
-		encodedTransactionParams = codec.encode(messageRecoveryParams, transactionParams);
-
-		transaction = new Transaction({
-			moduleID: MODULE_ID_INTEROPERABILITY,
-			commandID: COMMAND_ID_MESSAGE_RECOVERY,
-			fee: BigInt(100000000),
-			nonce: BigInt(0),
-			params: encodedTransactionParams,
-			senderPublicKey: getRandomBytes(32),
-			signatures: [],
-		});
-
-		transactionContext = createTransactionContext({
-			transaction,
-		});
-
-		commandExecuteContext = transactionContext.createCommandExecuteContext<MessageRecoveryParams>(
-			messageRecoveryParams,
-		);
+		commandExecuteContext = createCommandExecuteContext(ccms);
 
 		storeMock = {
 			getOwnChainAccount: jest.fn(),
+			getTerminatedOutboxAccount: jest.fn(),
+			setTerminatedOutboxAccount: jest.fn(),
+			terminatedOutboxAccountExist: jest.fn().mockResolvedValue(true),
 		};
 
 		jest
 			.spyOn(messageRecoveryCommand, 'getInteroperabilityStore' as any)
 			.mockImplementation(() => storeMock);
+		jest.spyOn(regularMerkleTree, 'calculateRootFromUpdateData').mockReturnValue(Buffer.alloc(32));
 
 		for (const ccm of ccms) {
 			const chainID = getIDAsKeyForStore(ccm.sendingChainID);
@@ -150,11 +157,21 @@ describe('Sidechain MessageRecoveryCommand', () => {
 				},
 			] as unknown) as BaseCCCommand[]);
 		}
+
+		const chainID = getIDAsKeyForStore(transactionParams.chainID);
+
+		when(storeMock.getTerminatedOutboxAccount)
+			.calledWith(chainID)
+			.mockResolvedValue({
+				outboxRoot: getRandomBytes(32),
+				outboxSize: 1,
+				partnerChainInboxSize: 1,
+			});
 	});
 
 	it('should process CCM successfully', async () => {
 		// Arrange
-		const ccmsWithSwappedChainIds = ccms.map(swapChainIDs);
+		const ccmsWithSwappedChainIds = ccms.map(swapReceivingAndSendingChainIDs);
 
 		// Act
 		await messageRecoveryCommand.execute(commandExecuteContext);
@@ -170,6 +187,90 @@ describe('Sidechain MessageRecoveryCommand', () => {
 				}),
 			);
 		}
+	});
+
+	it('should not trigger command execute for a sendingChainID different than ownChainAccountID', async () => {
+		// Arrange & Assign
+		const newCcm = {
+			nonce: BigInt(2),
+			moduleID: moduleID + 1,
+			crossChainCommandID: 2,
+			sendingChainID: 3,
+			receivingChainID: 2,
+			fee: BigInt(1),
+			status: 1,
+			params: Buffer.alloc(0),
+		};
+
+		ccms.push(newCcm);
+
+		const previousCCCommands = ccCommands.get(newCcm.moduleID) ?? [];
+		ccCommands.set(newCcm.moduleID, ([
+			...previousCCCommands,
+			{
+				moduleID: newCcm.moduleID,
+				ID: newCcm.crossChainCommandID,
+				name: 'ccCommand',
+				execute: jest.fn(),
+				schema: {
+					$id: 'id',
+					type: 'object',
+					properties: {},
+				},
+			},
+		] as unknown) as BaseCCCommand[]);
+
+		commandExecuteContext = createCommandExecuteContext(ccms);
+
+		const ccmsWithSwappedChainIds = ccms.map(swapReceivingAndSendingChainIDs);
+
+		// Act
+		await messageRecoveryCommand.execute(commandExecuteContext);
+
+		// Assert
+		expect.assertions(ccmsWithSwappedChainIds.length);
+		for (const ccm of ccmsWithSwappedChainIds) {
+			const commands = ccCommands.get(ccm.moduleID) as BaseCCCommand[];
+			const command = commands.find(cmd => cmd.ID === ccm.crossChainCommandID) as BaseCCCommand;
+			if (ccm.sendingChainID === transactionParams.chainID) {
+				expect(command.execute).toHaveBeenCalledWith(
+					expect.objectContaining({
+						ccm,
+					}),
+				);
+			} else {
+				expect(command.execute).not.toHaveBeenCalled();
+			}
+		}
+	});
+
+	it('should throw when beforeRecoverCCM of ccAPIs of the ccm fails', async () => {
+		// Assign & Arrange
+		const api = ({
+			beforeRecoverCCM: jest.fn(() => {
+				throw new Error('beforeRecoverCCM Error');
+			}),
+			moduleID,
+		} as unknown) as BaseInteroperableAPI;
+
+		interoperableCCAPIs.set(moduleID, api);
+
+		// Assert
+		await expect(messageRecoveryCommand.execute(commandExecuteContext)).rejects.toThrow(
+			'beforeRecoverCCM Error',
+		);
+	});
+
+	it('should throw when terminated chain outbox does not exist', async () => {
+		// Assign & Arrange
+		const chainID = getIDAsKeyForStore(transactionParams.chainID);
+
+		when(storeMock.terminatedOutboxAccountExist).calledWith(chainID).mockResolvedValue(false);
+
+		// Assert
+		await expect(messageRecoveryCommand.execute(commandExecuteContext)).rejects.toThrow(
+			'Terminated outbox account does not exist',
+		);
 	});
 
 	it("should skip CCM's proccessing when ownchainID is not equal to CCM's sendingChainID", async () => {

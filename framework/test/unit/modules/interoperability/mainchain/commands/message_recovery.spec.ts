@@ -34,7 +34,7 @@ import {
 import { CCMsg, MessageRecoveryParams } from '../../../../../../src/modules/interoperability/types';
 import {
 	getIDAsKeyForStore,
-	swapChainIDs,
+	swapReceivingAndSendingChainIDs,
 } from '../../../../../../src/modules/interoperability/utils';
 import { TransactionContext } from '../../../../../../src/node/state_machine';
 import { createTransactionContext } from '../../../../../../src/testing';
@@ -52,6 +52,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		| 'terminatedOutboxAccountExist'
 	>;
 
+	const moduleID = 1;
 	const networkID = getRandomBytes(32);
 
 	let messageRecoveryCommand: MessageRecoveryCommand;
@@ -78,10 +79,30 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		ccms = [
 			{
 				nonce: BigInt(0),
-				moduleID: 1,
+				moduleID,
 				crossChainCommandID: 1,
 				sendingChainID: 2,
 				receivingChainID: 3,
+				fee: BigInt(1),
+				status: 1,
+				params: Buffer.alloc(0),
+			},
+			{
+				nonce: BigInt(1),
+				moduleID: moduleID + 1,
+				crossChainCommandID: 1,
+				sendingChainID: 2,
+				receivingChainID: 3,
+				fee: BigInt(1),
+				status: 1,
+				params: Buffer.alloc(0),
+			},
+			{
+				nonce: BigInt(2),
+				moduleID: moduleID + 1,
+				crossChainCommandID: 2,
+				sendingChainID: 3,
+				receivingChainID: 2,
 				fee: BigInt(1),
 				status: 1,
 				params: Buffer.alloc(0),
@@ -185,13 +206,15 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			// Assign
 			const chainID = getIDAsKeyForStore(ccm.sendingChainID);
 			// Assert
-			expect(storeMock.addToOutbox).toHaveBeenCalledWith(chainID, swapChainIDs(ccm));
+			expect(storeMock.addToOutbox).toHaveBeenCalledWith(
+				chainID,
+				swapReceivingAndSendingChainIDs(ccm),
+			);
 		}
 	});
 
 	it('should throw when beforeRecoverCCM of ccAPIs of the ccm fails', async () => {
 		// Assign & Arrange
-		const moduleID = 1;
 		const api = ({
 			beforeRecoverCCM: jest.fn(() => {
 				throw new Error('beforeRecoverCCM Error');
