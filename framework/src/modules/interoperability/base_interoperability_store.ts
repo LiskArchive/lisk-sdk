@@ -54,6 +54,7 @@ import {
 	OwnChainAccount,
 	CCMApplyContext,
 	StoreCallback,
+	TerminatedOutboxAccount,
 } from './types';
 import { getCCMSize, getIDAsKeyForStore } from './utils';
 import {
@@ -71,7 +72,7 @@ export abstract class BaseInteroperabilityStore {
 
 	public constructor(
 		moduleID: number,
-		getStore: (moduleID: number, storePrefix: number) => SubStore,
+		getStore: StoreCallback,
 		interoperableModuleAPIs: Map<number, BaseInteroperableAPI>,
 	) {
 		this.moduleID = moduleID;
@@ -88,7 +89,10 @@ export abstract class BaseInteroperabilityStore {
 	}
 
 	public async setOwnChainAccount(ownChainAccount: OwnChainAccount): Promise<void> {
-		const ownChainAccountStore = this.getStore(this.moduleID, STORE_PREFIX_OWN_CHAIN_DATA);
+		const ownChainAccountStore = this.getStore(
+			this.moduleID,
+			STORE_PREFIX_OWN_CHAIN_DATA,
+		) as SubStore;
 		await ownChainAccountStore.setWithSchema(
 			getIDAsKeyForStore(MAINCHAIN_ID),
 			ownChainAccount,
@@ -105,7 +109,7 @@ export abstract class BaseInteroperabilityStore {
 	}
 
 	public async setChannel(chainID: number, channeldata: ChannelData): Promise<void> {
-		const channelAccountStore = this.getStore(this.moduleID, STORE_PREFIX_CHANNEL_DATA);
+		const channelAccountStore = this.getStore(this.moduleID, STORE_PREFIX_CHANNEL_DATA) as SubStore;
 		await channelAccountStore.setWithSchema(
 			getIDAsKeyForStore(chainID),
 			channeldata,
@@ -114,7 +118,10 @@ export abstract class BaseInteroperabilityStore {
 	}
 
 	public async appendToInboxTree(chainID: Buffer, appendData: Buffer) {
-		const channelSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA);
+		const channelSubstore = this.getStore(
+			MODULE_ID_INTEROPERABILITY,
+			STORE_PREFIX_CHANNEL_DATA,
+		) as SubStore;
 		const channel = await channelSubstore.getWithSchema<ChannelData>(chainID, channelSchema);
 		const updatedInbox = regularMerkleTree.calculateMerkleRoot({
 			value: hash(appendData),
@@ -129,7 +136,10 @@ export abstract class BaseInteroperabilityStore {
 	}
 
 	public async appendToOutboxTree(chainID: Buffer, appendData: Buffer) {
-		const channelSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA);
+		const channelSubstore = this.getStore(
+			MODULE_ID_INTEROPERABILITY,
+			STORE_PREFIX_CHANNEL_DATA,
+		) as SubStore;
 		const channel = await channelSubstore.getWithSchema<ChannelData>(chainID, channelSchema);
 		const updatedOutbox = regularMerkleTree.calculateMerkleRoot({
 			value: hash(appendData),
@@ -150,7 +160,10 @@ export abstract class BaseInteroperabilityStore {
 		const channelSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA);
 		const channel = await channelSubstore.getWithSchema<ChannelData>(chainID, channelSchema);
 
-		const outboxRootSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_OUTBOX_ROOT);
+		const outboxRootSubstore = this.getStore(
+			MODULE_ID_INTEROPERABILITY,
+			STORE_PREFIX_OUTBOX_ROOT,
+		) as SubStore;
 		await outboxRootSubstore.setWithSchema(chainID, channel.outbox.root, outboxRootSchema);
 	}
 
@@ -201,7 +214,7 @@ export abstract class BaseInteroperabilityStore {
 		const terminatedOutboxSubstore = this.getStore(
 			MODULE_ID_INTEROPERABILITY,
 			STORE_PREFIX_TERMINATED_OUTBOX,
-		);
+		) as SubStore;
 
 		const terminatedOutbox = {
 			outboxRoot,
@@ -212,9 +225,33 @@ export abstract class BaseInteroperabilityStore {
 		await terminatedOutboxSubstore.setWithSchema(chainID, terminatedOutbox, terminatedOutboxSchema);
 	}
 
+	public async hasTerminatedOutboxAccount(chainID: Buffer) {
+		const terminatedOutboxSubstore = this.getStore(
+			MODULE_ID_INTEROPERABILITY,
+			STORE_PREFIX_TERMINATED_OUTBOX,
+		);
+
+		return terminatedOutboxSubstore.has(chainID);
+	}
+
+	public async getTerminatedOutboxAccount(chainID: Buffer) {
+		const terminatedOutboxSubstore = this.getStore(
+			MODULE_ID_INTEROPERABILITY,
+			STORE_PREFIX_TERMINATED_OUTBOX,
+		);
+
+		return terminatedOutboxSubstore.getWithSchema<TerminatedOutboxAccount>(
+			chainID,
+			terminatedOutboxSchema,
+		);
+	}
+
 	public async createTerminatedStateAccount(chainID: number, stateRoot?: Buffer): Promise<boolean> {
 		const chainIDAsStoreKey = getIDAsKeyForStore(chainID);
-		const chainSubstore = this.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
+		const chainSubstore = this.getStore(
+			MODULE_ID_INTEROPERABILITY,
+			STORE_PREFIX_CHAIN_DATA,
+		) as SubStore;
 		const isExist = await this.chainAccountExist(chainIDAsStoreKey);
 		let terminatedState: TerminatedStateAccount;
 
@@ -229,7 +266,7 @@ export abstract class BaseInteroperabilityStore {
 				const outboxRootSubstore = this.getStore(
 					MODULE_ID_INTEROPERABILITY,
 					STORE_PREFIX_OUTBOX_ROOT,
-				);
+				) as SubStore;
 				await outboxRootSubstore.del(chainIDAsStoreKey);
 			}
 			terminatedState = {
@@ -247,7 +284,7 @@ export abstract class BaseInteroperabilityStore {
 			const outboxRootSubstore = this.getStore(
 				MODULE_ID_INTEROPERABILITY,
 				STORE_PREFIX_OUTBOX_ROOT,
-			);
+			) as SubStore;
 			await outboxRootSubstore.del(chainIDAsStoreKey);
 
 			terminatedState = {
@@ -280,7 +317,7 @@ export abstract class BaseInteroperabilityStore {
 		const terminatedStateSubstore = this.getStore(
 			MODULE_ID_INTEROPERABILITY,
 			STORE_PREFIX_TERMINATED_STATE,
-		);
+		) as SubStore;
 		await terminatedStateSubstore.setWithSchema(
 			chainIDAsStoreKey,
 			terminatedState,

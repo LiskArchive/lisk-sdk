@@ -15,9 +15,9 @@
 import { Logger } from '../../logger';
 import { Validator } from '../../node/consensus/types';
 import { APIContext, EventQueue } from '../../node/state_machine';
-import { ImmutableAPIContext, SubStore } from '../../node/state_machine/types';
+import { ImmutableAPIContext, ImmutableSubStore, SubStore } from '../../node/state_machine/types';
 
-export type StoreCallback = (moduleID: number, storePrefix: number) => SubStore;
+export type StoreCallback = (moduleID: number, storePrefix: number) => SubStore | ImmutableSubStore;
 export interface CCMsg {
 	readonly nonce: bigint;
 	readonly moduleID: number;
@@ -234,4 +234,17 @@ export interface MainchainRegistrationCommandDependencies {
 export interface ValidatorsHashInput {
 	activeValidators: ActiveValidator[];
 	certificateThreshold: bigint;
+}
+
+export interface TerminatedOutboxAccount {
+	outboxRoot: Buffer;
+	outboxSize: number;
+	partnerChainInboxSize: number;
+}
+
+export interface MessageRecoveryParams {
+	chainID: number;
+	crossChainMessages: Buffer[];
+	idxs: number[];
+	siblingHashes: Buffer[];
 }
