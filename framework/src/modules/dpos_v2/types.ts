@@ -13,7 +13,7 @@
  */
 
 import { BlockHeader } from '@liskhq/lisk-chain';
-import { BFTHeights } from '../bft/types';
+import { BFTHeights } from '../../node/bft/types';
 import { Validator } from '../../node/consensus/types';
 import { APIContext, ImmutableAPIContext } from '../../node/state_machine/types';
 

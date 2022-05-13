@@ -42,7 +42,7 @@ import { DuplicateAppInstanceError } from './errors';
 import { BaseModule } from './modules/base_module';
 import { getEndpointHandlers, mergeEndpointHandlers } from './endpoint';
 import { ValidatorsAPI } from './modules/validators';
-import { BFTAPI } from './modules/bft';
+import { BFTAPI } from './node/bft';
 import { TokenModule, TokenAPI } from './modules/token';
 import { AuthModule, AuthAPI } from './modules/auth';
 import { FeeModule, FeeAPI } from './modules/fee';

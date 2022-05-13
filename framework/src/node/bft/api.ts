@@ -15,8 +15,8 @@
 import { BlockHeader as ChainBlockHeader } from '@liskhq/lisk-chain';
 import { BIG_ENDIAN, hash, intToBuffer } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
-import { BaseAPI } from '../base_api';
-import { APIContext, BlockHeader, ImmutableAPIContext } from '../../node/state_machine';
+import { BaseAPI } from '../../modules/base_api';
+import { APIContext, BlockHeader, ImmutableAPIContext } from '../state_machine';
 import {
 	areDistinctHeadersContradicting,
 	sortValidatorsByAddress,

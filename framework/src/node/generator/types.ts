@@ -17,7 +17,7 @@ import { Block, Transaction, BlockHeader } from '@liskhq/lisk-chain';
 import { Schema } from '@liskhq/lisk-codec';
 import { Options } from '@liskhq/lisk-db';
 import { Logger } from '../../logger';
-import { BFTParameters } from '../../modules/bft/schemas';
+import { BFTParameters } from '../bft/schemas';
 import { BFTHeights } from '../consensus';
 import { AggregateCommit } from '../consensus/types';
 import {

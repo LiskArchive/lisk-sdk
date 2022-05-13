@@ -14,8 +14,8 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { BIG_ENDIAN, intToBuffer } from '@liskhq/lisk-cryptography';
-import { ImmutableSubStore } from '../../node/state_machine';
-import { SubStore } from '../../node/state_machine/types';
+import { ImmutableSubStore } from '../state_machine';
+import { SubStore } from '../state_machine/types';
 import { BFTParameterNotFoundError } from './errors';
 import { BFTParameters, bftParametersSchema } from './schemas';
 

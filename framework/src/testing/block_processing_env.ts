@@ -31,7 +31,7 @@ import { Node } from '../node';
 import { createImmutableAPIContext, createNewAPIContext } from '../node/state_machine/api_context';
 import { blockAssetsJSON } from './fixtures/genesis-asset';
 import { ValidatorsAPI } from '../modules/validators';
-import { BFTAPI } from '../modules/bft';
+import { BFTAPI } from '../node/bft';
 import { TokenModule } from '../modules/token';
 import { AuthModule } from '../modules/auth';
 import { FeeModule } from '../modules/fee';

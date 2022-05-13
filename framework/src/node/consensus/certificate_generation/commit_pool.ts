@@ -18,7 +18,7 @@ import { createAggSig } from '@liskhq/lisk-cryptography';
 import { KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { EMPTY_BUFFER, NETWORK_EVENT_COMMIT_MESSAGES, COMMIT_RANGE_STORED } from './constants';
-import { BFTParameterNotFoundError } from '../../../modules/bft/errors';
+import { BFTParameterNotFoundError } from '../../bft/errors';
 import { APIContext } from '../../state_machine/types';
 import { BFTAPI, PkSigPair, AggregateCommit } from '../types';
 import { Certificate, CommitPoolConfig, SingleCommit, ValidatorInfo } from './types';

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader } from '../../node/state_machine';
+import { BlockHeader } from '../state_machine';
 import { BFTVotesBlockInfo } from './schemas';
 import { BFTHeader } from './types';
 

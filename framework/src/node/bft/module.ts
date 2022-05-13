@@ -13,7 +13,7 @@
  */
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { objects } from '@liskhq/lisk-utils';
-import { BaseModule, ModuleInitArgs } from '../base_module';
+import { BaseModule, ModuleInitArgs } from '../../modules/base_module';
 import { BFTAPI } from './api';
 import { BFTEndpoint } from './endpoint';
 import {
@@ -24,7 +24,7 @@ import {
 	STORE_PREFIX_BFT_VOTES,
 } from './constants';
 import { bftModuleConfig, BFTVotes, bftVotesSchema } from './schemas';
-import { BlockExecuteContext, GenesisBlockExecuteContext } from '../../node/state_machine';
+import { BlockExecuteContext, GenesisBlockExecuteContext } from '../state_machine';
 import {
 	insertBlockBFTInfo,
 	updateMaxHeightCertified,

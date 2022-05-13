@@ -20,4 +20,4 @@ export {
 	CONSENSUS_EVENT_BLOCK_NEW,
 } from './constants';
 export { BFTAPI } from './types';
-export { BFTHeights } from '../../modules/bft/types';
+export { BFTHeights } from '../bft/types';

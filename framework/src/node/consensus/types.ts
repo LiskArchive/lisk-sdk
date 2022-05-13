@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BFTParameters } from '../../modules/bft/schemas';
-import { BFTHeights } from '../../modules/bft/types';
+import { BFTParameters } from '../bft/schemas';
+import { BFTHeights } from '../bft/types';
 import { BlockHeader, ImmutableAPIContext, APIContext } from '../state_machine';
 
 export interface BFTHeader {

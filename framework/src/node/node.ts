@@ -29,7 +29,7 @@ import { Endpoint } from './endpoint';
 import { getRegisteredModules, getSchema } from './utils/modules';
 import { getEndpointHandlers, mergeEndpointHandlers } from '../endpoint';
 import { ValidatorsAPI, ValidatorsModule } from '../modules/validators';
-import { BFTAPI, BFTModule } from '../modules/bft';
+import { BFTAPI, BFTModule } from './bft';
 import {
 	APP_EVENT_BLOCK_DELETE,
 	APP_EVENT_BLOCK_NEW,

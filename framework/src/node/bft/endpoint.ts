@@ -15,7 +15,7 @@
 import { BlockHeader } from '@liskhq/lisk-chain';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { ModuleEndpointContext } from '../../types';
-import { BaseEndpoint } from '../base_endpoint';
+import { BaseEndpoint } from '../../modules/base_endpoint';
 import { areHeadersContradictingRequestSchema } from './schemas';
 import { areDistinctHeadersContradicting } from './utils';
 
