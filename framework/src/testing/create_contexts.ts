@@ -333,7 +333,7 @@ export const createBeforeRecoverCCMsgAPIContext = (params: {
 });
 
 export const createRecoverCCMsgAPIContext = (params: {
-	ccm: CCMsg;
+	ccm?: CCMsg;
 	terminatedChainID: number;
 	moduleID: number;
 	storePrefix: number;
