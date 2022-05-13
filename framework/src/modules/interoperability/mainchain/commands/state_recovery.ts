@@ -61,15 +61,24 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 			MODULE_ID_INTEROPERABILITY,
 			STORE_PREFIX_TERMINATED_STATE,
 		);
+		const terminatedStateAccountExists = await terminatedStateSubstore.has(chainIDBuffer);
+
+		if (!terminatedStateAccountExists) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('The terminated account does not exist'),
+			};
+		}
+
 		const terminatedStateAccount = await terminatedStateSubstore.getWithSchema<TerminatedStateAccount>(
 			chainIDBuffer,
 			terminatedStateSchema,
 		);
 
-		if (!terminatedStateAccount || !terminatedStateAccount.initialized) {
+		if (!terminatedStateAccount.initialized) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('The terminated account does not exist or is not initialized'),
+				error: new Error('The terminated account is not initialized'),
 			};
 		}
 
