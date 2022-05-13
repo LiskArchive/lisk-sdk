@@ -13,7 +13,7 @@
  */
 
 import { sparseMerkleTree } from '@liskhq/lisk-tree';
-import { hash, intToBuffer } from '@liskhq/lisk-cryptography';
+import { hash } from '@liskhq/lisk-cryptography';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { MainchainInteroperabilityStore } from '../store';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
