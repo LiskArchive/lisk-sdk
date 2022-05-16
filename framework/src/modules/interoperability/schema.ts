@@ -429,7 +429,7 @@ export const crossChainUpdateTransactionParams = {
 	},
 };
 
-export const messageRecoveryParams = {
+export const messageRecoveryParamsSchema = {
 	$id: '/modules/interoperability/mainchain/messageRecovery',
 	type: 'object',
 	required: ['chainID', 'crossChainMessages', 'idxs', 'siblingHashes'],

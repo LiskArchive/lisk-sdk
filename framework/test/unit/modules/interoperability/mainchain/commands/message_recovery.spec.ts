@@ -29,7 +29,7 @@ import { MessageRecoveryCommand } from '../../../../../../src/modules/interopera
 import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
 import {
 	ccmSchema,
-	messageRecoveryParams,
+	messageRecoveryParamsSchema,
 	terminatedOutboxSchema,
 } from '../../../../../../src/modules/interoperability/schema';
 import { CCMsg, MessageRecoveryParams } from '../../../../../../src/modules/interoperability/types';
@@ -135,7 +135,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			siblingHashes: proof.siblingHashes,
 		};
 		chainID = getIDAsKeyForStore(transactionParams.chainID);
-		encodedTransactionParams = codec.encode(messageRecoveryParams, transactionParams);
+		encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
 
 		transaction = new Transaction({
 			moduleID: MODULE_ID_INTEROPERABILITY,
@@ -148,7 +148,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		});
 		commandVerifyContext = createTransactionContext({
 			transaction,
-		}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParams);
+		}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParamsSchema);
 
 		jest
 			.spyOn(messageRecoveryCommand, 'getInteroperabilityStore' as any)
@@ -191,7 +191,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 
 	it('should return error if cross chain messages are still pending', async () => {
 		transactionParams.idxs = [0];
-		encodedTransactionParams = codec.encode(messageRecoveryParams, transactionParams);
+		encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
 		transaction = new Transaction({
 			moduleID: MODULE_ID_INTEROPERABILITY,
 			commandID: COMMAND_ID_MESSAGE_RECOVERY,
@@ -203,7 +203,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		});
 		commandVerifyContext = createTransactionContext({
 			transaction,
-		}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParams);
+		}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParamsSchema);
 
 		const result = await messageRecoveryCommand.verify(commandVerifyContext);
 
@@ -261,7 +261,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			idxs: proof.indexes,
 			siblingHashes: proof.siblingHashes,
 		};
-		encodedTransactionParams = codec.encode(messageRecoveryParams, transactionParams);
+		encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
 		transaction = new Transaction({
 			moduleID: MODULE_ID_INTEROPERABILITY,
 			commandID: COMMAND_ID_MESSAGE_RECOVERY,
@@ -273,7 +273,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		});
 		commandVerifyContext = createTransactionContext({
 			transaction,
-		}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParams);
+		}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParamsSchema);
 		await terminatedOutboxSubstore.setWithSchema(
 			chainID,
 			{
