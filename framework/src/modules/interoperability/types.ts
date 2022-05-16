@@ -294,3 +294,8 @@ export interface CrossChainUpdateTransactionParams {
 	newCertificateThreshold: bigint;
 	inboxUpdate: InboxUpdate;
 }
+
+export interface ChainValidators {
+	activeValidators: ActiveValidator[];
+	certificateThreshold: bigint;
+}

@@ -32,10 +32,12 @@ import {
 	CHAIN_TERMINATED,
 	COMMAND_ID_SIDECHAIN_CCU,
 	CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+	EMPTY_BYTES,
 	LIVENESS_LIMIT,
 	MESSAGE_TAG_CERTIFICATE,
 	SMT_KEY_LENGTH,
 	STORE_PREFIX_CHAIN_DATA,
+	STORE_PREFIX_CHAIN_VALIDATORS,
 	STORE_PREFIX_CHANNEL_DATA,
 	STORE_PREFIX_OUTBOX_ROOT,
 	VALID_BLS_KEY_LENGTH,
@@ -44,25 +46,22 @@ import { createCCMsgBeforeSendContext } from '../../context';
 import {
 	ccmSchema,
 	chainAccountSchema,
+	chainValidatorsSchema,
 	channelSchema,
 	crossChainUpdateTransactionParams,
 } from '../../schema';
 import {
-	ActiveValidators,
-	BFTAPI,
 	CCMsg,
 	ChainAccount,
+	ChainValidators,
 	ChannelData,
-	CrossChainCommandDependencies,
 	CrossChainUpdateTransactionParams,
 	StoreCallback,
-	ValidatorsAPI,
 } from '../../types';
 import {
 	computeValidatorsHash,
 	getIDAsKeyForStore,
 	rawStateStoreKey,
-	sortValidatorsByBLSKey,
 	updateActiveValidators,
 	validateFormat,
 } from '../../utils';
@@ -72,13 +71,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 	public name = 'sidechainCCUpdate';
 	public id = COMMAND_ID_SIDECHAIN_CCU;
 	public schema = crossChainUpdateTransactionParams;
-	private _bftAPI!: BFTAPI;
-	private _validatorsAPI!: ValidatorsAPI;
 
-	public addDependencies(args: CrossChainCommandDependencies) {
-		this._bftAPI = args.bftAPI;
-		this._validatorsAPI = args.validatorsAPI;
-	}
 	public async verify(
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
 	): Promise<VerificationResult> {
@@ -99,7 +92,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 			chainAccountSchema,
 		);
 
-		// Liveness of Partner Chain
+		// Section: Liveness of Partner Chain
 		if (partnerChainAccount.status === CHAIN_TERMINATED) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -115,10 +108,10 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 			};
 		}
 
-		// Liveness Requirement for the First CCU
+		// Section: Liveness Requirement for the First CCU
 		if (partnerChainAccount.status === CHAIN_REGISTERED) {
 			// Certificate must not be empty for first CCU
-			if (!txParams.certificate) {
+			if (txParams.certificate.equals(EMPTY_BYTES)) {
 				return {
 					status: VerifyStatus.FAIL,
 					error: new Error(
@@ -127,25 +120,44 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 				};
 			}
 		}
+		// Section: Certificate and Validators Update Validity
+
+		// Certificate follows the schema
 		const decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
-		const invalidCertificateErrors = validator.validate(certificateSchema, decodedCertificate);
-		if (invalidCertificateErrors.length > 0) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('Certificate does not follow valid certificate schema.'),
-			};
+		if (!txParams.certificate.equals(EMPTY_BYTES)) {
+			if (
+				decodedCertificate.blockID.equals(EMPTY_BYTES) ||
+				decodedCertificate.stateRoot.equals(EMPTY_BYTES) ||
+				decodedCertificate.validatorsHash.equals(EMPTY_BYTES) ||
+				decodedCertificate.timestamp === 0
+			) {
+				return {
+					status: VerifyStatus.FAIL,
+					error: new Error('Certificate is missing required values.'),
+				};
+			}
+
+			// Last certificate height should be less than new certificate height
+			if (decodedCertificate.height <= partnerChainAccount.lastCertificate.height) {
+				return {
+					status: VerifyStatus.FAIL,
+					error: new Error('Certificate height should be greater than last certificate height.'),
+				};
+			}
 		}
-		// If params contains a non-empty activeValidatorsUpdate property (with deserialized value not equal to {activeValidatorsUpdate:[]}), or a non-zero newCertificateThreshold
+
+		// If params contains a non-empty activeValidatorsUpdate
 		if (
-			txParams.activeValidatorsUpdate &&
-			txParams.activeValidatorsUpdate.length !== 0 &&
+			txParams.activeValidatorsUpdate.length !== 0 ||
 			txParams.newCertificateThreshold > BigInt(0)
 		) {
 			// Non-empty certificate
-			if (!txParams.certificate) {
+			if (txParams.certificate.equals(EMPTY_BYTES)) {
 				return {
 					status: VerifyStatus.FAIL,
-					error: new Error('Certificate cannot be empty.'),
+					error: new Error(
+						'Certificate cannot be empty when activeValidatorsUpdate is non-empty or newCertificateThreshold >0.',
+					),
 				};
 			}
 
@@ -173,27 +185,31 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 			partnerChainIDBuffer,
 			channelSchema,
 		);
-		// InboxUpdate Validity
+		// Section: InboxUpdate Validity
 		const { crossChainMessages, messageWitness, outboxRootWitness } = txParams.inboxUpdate;
 		const ccmHashes = crossChainMessages.map(ccm => hash(ccm));
 
 		let newInboxRoot;
-		let newInboxAppendPath;
-		let newInboxSize;
+		let newInboxAppendPath = partnerChannelData.inbox.appendPath;
+		let newInboxSize = partnerChannelData.inbox.size;
 		for (const ccm of ccmHashes) {
 			const { appendPath, size } = regularMerkleTree.calculateMerkleRoot({
 				value: ccm,
-				appendPath: partnerChannelData.inbox.appendPath,
-				size: partnerChannelData.inbox.size,
+				appendPath: newInboxAppendPath,
+				size: newInboxSize,
 			});
 			newInboxAppendPath = appendPath;
 			newInboxSize = size;
 		}
-		if (txParams.certificate) {
-			// If inboxUpdate contains a non-empty messageWitness, then update newInboxRoot to the output
+		// If inboxUpdate contains a non-empty messageWitness, then update newInboxRoot to the output
+		if (
+			!txParams.certificate.equals(EMPTY_BYTES) &&
+			txParams.inboxUpdate.messageWitness.siblingHashes.length !== 0 &&
+			txParams.inboxUpdate.messageWitness.partnerChainOutboxSize > 0
+		) {
 			newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
-				newInboxSize as number,
-				newInboxAppendPath as Buffer[],
+				newInboxSize,
+				newInboxAppendPath,
 				messageWitness.siblingHashes,
 			);
 
@@ -223,10 +239,14 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 					),
 				};
 			}
-		} else if (!txParams.certificate) {
+		} else if (
+			txParams.certificate.equals(EMPTY_BYTES) &&
+			txParams.inboxUpdate.messageWitness.siblingHashes.length !== 0 &&
+			txParams.inboxUpdate.messageWitness.partnerChainOutboxSize > 0
+		) {
 			newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
-				newInboxSize as number,
-				newInboxAppendPath as Buffer[],
+				newInboxSize,
+				newInboxAppendPath,
 				messageWitness.siblingHashes,
 			);
 
@@ -250,45 +270,15 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 	): Promise<void> {
 		const { transaction, header, params: txParams } = context;
 		const chainIDBuffer = getIDAsKeyForStore(txParams.sendingChainID);
-		const partnerChainStore = context.getStore(transaction.moduleID, STORE_PREFIX_CHAIN_DATA);
+		const partnerChainStore = context.getStore(this.moduleID, STORE_PREFIX_CHAIN_DATA);
 		const partnerChainAccount = await partnerChainStore.getWithSchema<ChainAccount>(
 			chainIDBuffer,
 			chainAccountSchema,
 		);
 
-		const {
-			validators,
-			certificateThreshold,
-			precommitThreshold,
-		} = await this._bftAPI.getBFTParameters(context.getAPIContext(), header.height);
-
-		const activeValidators: ActiveValidators[] = [];
-		const updatedValidators = [];
-		const keyList: Buffer[] = [];
-		const weights: bigint[] = [];
-		for (const v of validators) {
-			const { blsKey } = await this._validatorsAPI.getValidatorAccount(
-				context.getAPIContext(),
-				v.address,
-			);
-			updatedValidators.push({
-				bftWeight: v.bftWeight,
-				address: v.address,
-			});
-			activeValidators.push({
-				blsKey,
-				bftWeight: v.bftWeight,
-			});
-		}
-		sortValidatorsByBLSKey(activeValidators);
-		for (const v of activeValidators) {
-			keyList.push(v.blsKey);
-			weights.push(v.bftWeight);
-		}
-
 		const decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
 
-		// if the CCU also contains a non-empty inboxUpdate, the certificate is only valid if it allows the sidechain account to remain live for a reasonable amount of time
+		// if the CCU also contains a non-empty inboxUpdate, check the validity of certificate with liveness check
 		if (
 			txParams.inboxUpdate &&
 			!(header.timestamp - decodedCertificate.timestamp < LIVENESS_LIMIT / 2)
@@ -297,39 +287,50 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 				`Certificate is not valid as it passed Liveness limit of ${LIVENESS_LIMIT} seconds.`,
 			);
 		}
-		// Certificate and Validators Update Validity
-		const verifySignature = verifyWeightedAggSig(
-			keyList,
-			decodedCertificate.aggregationBits as Buffer,
-			decodedCertificate.signature as Buffer,
-			MESSAGE_TAG_CERTIFICATE.toString('hex'),
-			partnerChainAccount.networkID,
-			txParams.certificate,
-			weights,
-			certificateThreshold,
-		);
 
-		if (
-			!(decodedCertificate.height > partnerChainAccount.lastCertificate.height) ||
-			decodedCertificate.timestamp >= header.timestamp ||
-			!verifySignature
-		) {
-			throw Error(
-				`Certificate is invalid due to invalid last certified height or timestamp or signature.`,
+		const partnerValidatorStore = context.getStore(this.moduleID, STORE_PREFIX_CHAIN_VALIDATORS);
+		const partnerValidators = await partnerValidatorStore.getWithSchema<ChainValidators>(
+			chainIDBuffer,
+			chainValidatorsSchema,
+		);
+		const { activeValidators, certificateThreshold } = partnerValidators;
+
+		// Certificate and Validators Update Validity
+		if (!txParams.certificate.equals(EMPTY_BYTES)) {
+			const verifySignature = verifyWeightedAggSig(
+				activeValidators.map(v => v.blsKey),
+				decodedCertificate.aggregationBits as Buffer,
+				decodedCertificate.signature as Buffer,
+				MESSAGE_TAG_CERTIFICATE.toString('hex'),
+				partnerChainAccount.networkID,
+				txParams.certificate,
+				activeValidators.map(v => v.bftWeight),
+				certificateThreshold,
 			);
+
+			if (!verifySignature || decodedCertificate.timestamp >= header.timestamp)
+				throw Error(
+					`Certificate is invalid due to invalid last certified height or timestamp or signature.`,
+				);
 		}
 
-		const newActiveValidators = updateActiveValidators(
-			activeValidators,
-			txParams.activeValidatorsUpdate,
-		);
-		const validatorsHash = computeValidatorsHash(
-			newActiveValidators,
-			txParams.newCertificateThreshold || certificateThreshold,
-		);
+		// If params contains a non-empty activeValidatorsUpdate
+		if (
+			txParams.activeValidatorsUpdate.length !== 0 ||
+			txParams.newCertificateThreshold > BigInt(0)
+		) {
+			const newActiveValidators = updateActiveValidators(
+				activeValidators,
+				txParams.activeValidatorsUpdate,
+			);
+			const validatorsHash = computeValidatorsHash(
+				newActiveValidators,
+				txParams.newCertificateThreshold || certificateThreshold,
+			);
 
-		if (!decodedCertificate.validatorsHash.equals(validatorsHash)) {
-			throw new Error('Validators hash is incorrect given in the certificate.');
+			if (!decodedCertificate.validatorsHash.equals(validatorsHash)) {
+				throw new Error('Validators hash is incorrect given in the certificate.');
+			}
 		}
 
 		// CCM execution
@@ -338,11 +339,17 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 			serialized: ccm,
 			deserilized: codec.decode<CCMsg>(ccmSchema, ccm),
 		}));
-		if (partnerChainAccount.status === CHAIN_REGISTERED) {
+		if (
+			partnerChainAccount.status === CHAIN_REGISTERED &&
+			txParams.inboxUpdate.crossChainMessages.length !== 0 &&
+			txParams.inboxUpdate.messageWitness.siblingHashes.length !== 0 &&
+			txParams.inboxUpdate.outboxRootWitness.siblingHashes.length !== 0
+		) {
 			// If the first CCM in inboxUpdate is a registration CCM
 			if (
+				decodedCCMs.length > 0 &&
 				decodedCCMs[0].deserilized.crossChainCommandID === CROSS_CHAIN_COMMAND_ID_REGISTRATION &&
-				decodedCCMs[0].deserilized.sendingChainID === txParams.sendingChainID
+				decodedCCMs[0].deserilized.receivingChainID === txParams.sendingChainID
 			) {
 				partnerChainAccount.status = CHAIN_ACTIVE;
 			} else {
@@ -357,6 +364,8 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 					txParams.sendingChainID,
 					beforeSendContext,
 				);
+
+				return; // Exit CCU processing
 			}
 		}
 
@@ -388,7 +397,6 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 				ccm.serialized,
 			);
 
-			// Only apply in case of sidechain
 			await interoperabilityStore.apply(
 				{
 					ccm: ccm.deserilized,
@@ -403,18 +411,26 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 				this.ccCommands,
 			);
 		}
-
 		// Common ccm execution logic
-		await this._bftAPI.setBFTParameters(
-			context.getAPIContext(),
-			precommitThreshold,
-			txParams.newCertificateThreshold ?? certificateThreshold,
-			updatedValidators,
+		const newActiveValidators = updateActiveValidators(
+			activeValidators,
+			txParams.activeValidatorsUpdate,
 		);
-		partnerChainAccount.lastCertificate.stateRoot = decodedCertificate.stateRoot;
-		partnerChainAccount.lastCertificate.timestamp = decodedCertificate.timestamp;
-		partnerChainAccount.lastCertificate.height = decodedCertificate.height;
-		partnerChainAccount.lastCertificate.validatorsHash = decodedCertificate.validatorsHash;
+		partnerValidators.activeValidators = newActiveValidators;
+		if (txParams.newCertificateThreshold !== BigInt(0)) {
+			partnerValidators.certificateThreshold = txParams.newCertificateThreshold;
+		}
+		await partnerValidatorStore.setWithSchema(
+			chainIDBuffer,
+			partnerValidators,
+			chainValidatorsSchema,
+		);
+		if (!txParams.certificate.equals(EMPTY_BYTES)) {
+			partnerChainAccount.lastCertificate.stateRoot = decodedCertificate.stateRoot;
+			partnerChainAccount.lastCertificate.timestamp = decodedCertificate.timestamp;
+			partnerChainAccount.lastCertificate.height = decodedCertificate.height;
+			partnerChainAccount.lastCertificate.validatorsHash = decodedCertificate.validatorsHash;
+		}
 
 		await partnerChainStore.setWithSchema(chainIDBuffer, partnerChainAccount, chainAccountSchema);
 

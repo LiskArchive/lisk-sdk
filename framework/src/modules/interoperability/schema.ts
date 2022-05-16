@@ -128,6 +128,36 @@ export const chainAccountSchema = {
 	},
 };
 
+export const chainValidatorsSchema = {
+	$id: 'modules/interoperability/chainValidators',
+	type: 'object',
+	required: ['activeValidators', 'certificateThreshold'],
+	properties: {
+		activeValidators: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['blsKey', 'bftWeight'],
+				properties: {
+					blsKey: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					bftWeight: {
+						dataType: 'uint64',
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+		certificateThreshold: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+	},
+};
+
 export const ownChainAccountSchema = {
 	$id: 'modules/interoperability/ownChainAccount',
 	type: 'object',
