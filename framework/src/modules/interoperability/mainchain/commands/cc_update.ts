@@ -13,7 +13,6 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { verifyWeightedAggSig } from '@liskhq/lisk-cryptography';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { certificateSchema } from '../../../../node/consensus/certificate_generation/schema';
 import { Certificate } from '../../../../node/consensus/certificate_generation/types';
@@ -31,10 +30,7 @@ import {
 	CHAIN_TERMINATED,
 	COMMAND_ID_MAINCHAIN_CCU,
 	CROSS_CHAIN_COMMAND_ID_REGISTRATION,
-	EMPTY_BYTES,
-	LIVENESS_LIMIT,
 	MAINCHAIN_ID,
-	MESSAGE_TAG_CERTIFICATE,
 	STORE_PREFIX_CHAIN_DATA,
 	STORE_PREFIX_CHAIN_VALIDATORS,
 	STORE_PREFIX_CHANNEL_DATA,
@@ -57,12 +53,14 @@ import {
 } from '../../types';
 import {
 	checkActiveValidatorsUpdate,
+	checkCertificateTimestampAndSignature,
 	checkCertificateValidity,
 	checkInboxUpdateValidity,
 	checkLivenessRequirementFirstCCU,
-	computeValidatorsHash,
+	checkValidatorsHashWithCertificate,
+	checkValidCertificateLiveness,
+	commonCCUExecutelogic,
 	getIDAsKeyForStore,
-	updateActiveValidators,
 	validateFormat,
 } from '../../utils';
 import { MainchainInteroperabilityStore } from '../store';
@@ -148,7 +146,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 	public async execute(
 		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
 	): Promise<void> {
-		const { transaction, header, params: txParams } = context;
+		const { header, params: txParams } = context;
 		const chainIDBuffer = getIDAsKeyForStore(txParams.sendingChainID);
 		const partnerChainStore = context.getStore(this.moduleID, STORE_PREFIX_CHAIN_DATA);
 		const partnerChainAccount = await partnerChainStore.getWithSchema<ChainAccount>(
@@ -159,59 +157,25 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 		const decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
 
 		// if the CCU also contains a non-empty inboxUpdate, check the validity of certificate with liveness check
-		if (
-			txParams.inboxUpdate &&
-			!(header.timestamp - decodedCertificate.timestamp < LIVENESS_LIMIT / 2)
-		) {
-			throw Error(
-				`Certificate is not valid as it passed Liveness limit of ${LIVENESS_LIMIT} seconds.`,
-			);
-		}
+		checkValidCertificateLiveness(txParams, header, decodedCertificate);
 
 		const partnerValidatorStore = context.getStore(this.moduleID, STORE_PREFIX_CHAIN_VALIDATORS);
 		const partnerValidators = await partnerValidatorStore.getWithSchema<ChainValidators>(
 			chainIDBuffer,
 			chainValidatorsSchema,
 		);
-		const { activeValidators, certificateThreshold } = partnerValidators;
 
 		// Certificate and Validators Update Validity
-		if (!txParams.certificate.equals(EMPTY_BYTES)) {
-			const verifySignature = verifyWeightedAggSig(
-				activeValidators.map(v => v.blsKey),
-				decodedCertificate.aggregationBits as Buffer,
-				decodedCertificate.signature as Buffer,
-				MESSAGE_TAG_CERTIFICATE.toString('hex'),
-				partnerChainAccount.networkID,
-				txParams.certificate,
-				activeValidators.map(v => v.bftWeight),
-				certificateThreshold,
-			);
-
-			if (!verifySignature || decodedCertificate.timestamp >= header.timestamp)
-				throw Error(
-					`Certificate is invalid due to invalid last certified height or timestamp or signature.`,
-				);
-		}
+		checkCertificateTimestampAndSignature(
+			txParams,
+			partnerValidators,
+			partnerChainAccount,
+			decodedCertificate,
+			header,
+		);
 
 		// If params contains a non-empty activeValidatorsUpdate
-		if (
-			txParams.activeValidatorsUpdate.length !== 0 ||
-			txParams.newCertificateThreshold > BigInt(0)
-		) {
-			const newActiveValidators = updateActiveValidators(
-				activeValidators,
-				txParams.activeValidatorsUpdate,
-			);
-			const validatorsHash = computeValidatorsHash(
-				newActiveValidators,
-				txParams.newCertificateThreshold || certificateThreshold,
-			);
-
-			if (!decodedCertificate.validatorsHash.equals(validatorsHash)) {
-				throw new Error('Validators hash is incorrect given in the certificate.');
-			}
-		}
+		checkValidatorsHashWithCertificate(txParams, decodedCertificate, partnerValidators);
 
 		// CCM execution
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
@@ -304,35 +268,16 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 				);
 			}
 		}
-		// Common ccm execution logic
-		const newActiveValidators = updateActiveValidators(
-			activeValidators,
-			txParams.activeValidatorsUpdate,
-		);
-		partnerValidators.activeValidators = newActiveValidators;
-		if (txParams.newCertificateThreshold !== BigInt(0)) {
-			partnerValidators.certificateThreshold = txParams.newCertificateThreshold;
-		}
-		await partnerValidatorStore.setWithSchema(
+		// Common ccu execution logic
+		await commonCCUExecutelogic({
+			certificate: decodedCertificate,
 			chainIDBuffer,
+			context,
+			partnerChainAccount,
+			partnerChainStore,
+			partnerValidatorStore,
 			partnerValidators,
-			chainValidatorsSchema,
-		);
-		if (!txParams.certificate.equals(EMPTY_BYTES)) {
-			partnerChainAccount.lastCertificate.stateRoot = decodedCertificate.stateRoot;
-			partnerChainAccount.lastCertificate.timestamp = decodedCertificate.timestamp;
-			partnerChainAccount.lastCertificate.height = decodedCertificate.height;
-			partnerChainAccount.lastCertificate.validatorsHash = decodedCertificate.validatorsHash;
-		}
-
-		await partnerChainStore.setWithSchema(chainIDBuffer, partnerChainAccount, chainAccountSchema);
-
-		const partnerChannelStore = context.getStore(transaction.moduleID, STORE_PREFIX_CHANNEL_DATA);
-		const partnerChannelData = await partnerChannelStore.getWithSchema<ChannelData>(
-			chainIDBuffer,
-			channelSchema,
-		);
-		await partnerChainStore.setWithSchema(chainIDBuffer, partnerChannelData, channelSchema);
+		});
 	}
 
 	protected getInteroperabilityStore(getStore: StoreCallback): MainchainInteroperabilityStore {

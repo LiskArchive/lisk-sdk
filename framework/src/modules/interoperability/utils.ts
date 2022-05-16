@@ -14,7 +14,7 @@
 
 import { regularMerkleTree, sparseMerkleTree } from '@liskhq/lisk-tree';
 import { codec } from '@liskhq/lisk-codec';
-import { hash, intToBuffer } from '@liskhq/lisk-cryptography';
+import { hash, intToBuffer, verifyWeightedAggSig } from '@liskhq/lisk-cryptography';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { DB_KEY_STATE_STORE } from '@liskhq/lisk-chain';
 import {
@@ -25,23 +25,44 @@ import {
 	TerminatedOutboxAccount,
 	ChannelData,
 	CrossChainUpdateTransactionParams,
+	ChainValidators,
 } from './types';
-import { ccmSchema, sidechainTerminatedCCMParamsSchema, validatorsHashInputSchema } from './schema';
 import {
 	CCM_STATUS_OK,
 	CHAIN_REGISTERED,
 	EMPTY_BYTES,
+	LIVENESS_LIMIT,
 	MAX_CCM_SIZE,
+	MESSAGE_TAG_CERTIFICATE,
 	MODULE_ID_INTEROPERABILITY,
 	SMT_KEY_LENGTH,
+	STORE_PREFIX_CHANNEL_DATA,
 	STORE_PREFIX_OUTBOX_ROOT,
 	VALID_BLS_KEY_LENGTH,
 } from './constants';
 
-import { VerificationResult, VerifyStatus } from '../../node/state_machine';
+import {
+	ccmSchema,
+	chainAccountSchema,
+	chainValidatorsSchema,
+	channelSchema,
+	sidechainTerminatedCCMParamsSchema,
+	validatorsHashInputSchema,
+} from './schema';
+import { BlockHeader, VerificationResult, VerifyStatus } from '../../node/state_machine';
 import { Certificate } from '../../node/consensus/certificate_generation/types';
 import { certificateSchema } from '../../node/consensus/certificate_generation/schema';
+import { CommandExecuteContext, SubStore } from '../../node/state_machine/types';
 
+interface CommonExecutionLogicArgs {
+	context: CommandExecuteContext<CrossChainUpdateTransactionParams>;
+	certificate: Certificate;
+	partnerValidators: ChainValidators;
+	partnerChainAccount: ChainAccount;
+	partnerValidatorStore: SubStore;
+	partnerChainStore: SubStore;
+	chainIDBuffer: Buffer;
+}
 // Returns the big endian uint32 serialization of an integer x, with 0 <= x < 2^32 which is 4 bytes long.
 export const getIDAsKeyForStore = (id: number) => intToBuffer(id, 4);
 
@@ -373,4 +394,111 @@ export const checkInboxUpdateValidity = (
 	return {
 		status: VerifyStatus.OK,
 	};
+};
+
+export const checkValidCertificateLiveness = (
+	txParams: CrossChainUpdateTransactionParams,
+	header: BlockHeader,
+	certificate: Certificate,
+) => {
+	if (txParams.inboxUpdate && !(header.timestamp - certificate.timestamp < LIVENESS_LIMIT / 2)) {
+		throw Error(
+			`Certificate is not valid as it passed Liveness limit of ${LIVENESS_LIMIT} seconds.`,
+		);
+	}
+};
+
+export const checkCertificateTimestampAndSignature = (
+	txParams: CrossChainUpdateTransactionParams,
+	partnerValidators: ChainValidators,
+	partnerChainAccount: ChainAccount,
+	certificate: Certificate,
+	header: BlockHeader,
+) => {
+	// Certificate and Validators Update Validity
+	const { activeValidators, certificateThreshold } = partnerValidators;
+	if (!txParams.certificate.equals(EMPTY_BYTES)) {
+		const verifySignature = verifyWeightedAggSig(
+			activeValidators.map(v => v.blsKey),
+			certificate.aggregationBits as Buffer,
+			certificate.signature as Buffer,
+			MESSAGE_TAG_CERTIFICATE.toString('hex'),
+			partnerChainAccount.networkID,
+			txParams.certificate,
+			activeValidators.map(v => v.bftWeight),
+			certificateThreshold,
+		);
+
+		if (!verifySignature || certificate.timestamp >= header.timestamp)
+			throw Error(
+				`Certificate is invalid due to invalid last certified height or timestamp or signature.`,
+			);
+	}
+};
+
+export const checkValidatorsHashWithCertificate = (
+	txParams: CrossChainUpdateTransactionParams,
+	certificate: Certificate,
+	partnerValidators: ChainValidators,
+) => {
+	if (
+		txParams.activeValidatorsUpdate.length !== 0 ||
+		txParams.newCertificateThreshold > BigInt(0)
+	) {
+		const newActiveValidators = updateActiveValidators(
+			partnerValidators.activeValidators,
+			txParams.activeValidatorsUpdate,
+		);
+		const validatorsHash = computeValidatorsHash(
+			newActiveValidators,
+			txParams.newCertificateThreshold || partnerValidators.certificateThreshold,
+		);
+
+		if (!certificate.validatorsHash.equals(validatorsHash)) {
+			throw new Error('Validators hash is incorrect given in the certificate.');
+		}
+	}
+};
+
+export const commonCCUExecutelogic = async (args: CommonExecutionLogicArgs) => {
+	const {
+		certificate,
+		partnerChainAccount,
+		partnerValidatorStore,
+		partnerChainStore,
+		partnerValidators,
+		chainIDBuffer,
+		context,
+	} = args;
+	const newActiveValidators = updateActiveValidators(
+		partnerValidators.activeValidators,
+		context.params.activeValidatorsUpdate,
+	);
+	partnerValidators.activeValidators = newActiveValidators;
+	if (context.params.newCertificateThreshold !== BigInt(0)) {
+		partnerValidators.certificateThreshold = context.params.newCertificateThreshold;
+	}
+	await partnerValidatorStore.setWithSchema(
+		chainIDBuffer,
+		partnerValidators,
+		chainValidatorsSchema,
+	);
+	if (!context.params.certificate.equals(EMPTY_BYTES)) {
+		partnerChainAccount.lastCertificate.stateRoot = certificate.stateRoot;
+		partnerChainAccount.lastCertificate.timestamp = certificate.timestamp;
+		partnerChainAccount.lastCertificate.height = certificate.height;
+		partnerChainAccount.lastCertificate.validatorsHash = certificate.validatorsHash;
+	}
+
+	await partnerChainStore.setWithSchema(chainIDBuffer, partnerChainAccount, chainAccountSchema);
+
+	const partnerChannelStore = context.getStore(
+		context.transaction.moduleID,
+		STORE_PREFIX_CHANNEL_DATA,
+	);
+	const partnerChannelData = await partnerChannelStore.getWithSchema<ChannelData>(
+		chainIDBuffer,
+		channelSchema,
+	);
+	await partnerChainStore.setWithSchema(chainIDBuffer, partnerChannelData, channelSchema);
 };
