@@ -53,6 +53,13 @@ describe('Mainchain MessageRecoveryCommand', () => {
 	let ccms: CCMsg[];
 	let chainID: Buffer;
 	let terminatedChainOutboxSize: number;
+	let proof: any;
+	let hashedCCMs: Buffer[];
+	let ccmsEncoded: Buffer[];
+	let outboxRoot: Buffer;
+	let queryHashes: Buffer[];
+	let merkleTree: MerkleTree;
+	let generatedProof: any;
 
 	beforeEach(async () => {
 		interoperableCCAPIs = new Map();
@@ -100,10 +107,10 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				params: Buffer.alloc(0),
 			},
 		];
-		const ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
-		const merkleTree = new MerkleTree();
+		ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+		merkleTree = new MerkleTree();
 		await merkleTree.init(ccmsEncoded);
-		const queryHashes = [];
+		queryHashes = [];
 		for (const data of ccmsEncoded) {
 			const leafValueWithoutNodeIndex = Buffer.concat(
 				[LEAF_PREFIX, data],
@@ -112,15 +119,15 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			const leafHash = hash(leafValueWithoutNodeIndex);
 			queryHashes.push(leafHash);
 		}
-		const generatedProof = await merkleTree.generateProof(queryHashes);
+		generatedProof = await merkleTree.generateProof(queryHashes);
 		terminatedChainOutboxSize = generatedProof.size;
-		const proof = {
+		proof = {
 			size: terminatedChainOutboxSize,
 			indexes: generatedProof.idxs as number[],
 			siblingHashes: generatedProof.siblingHashes as Buffer[],
 		};
-		const hashedCCMs = ccmsEncoded.map(ccm => hash(ccm));
-		const outboxRoot = regularMerkleTree.calculateRootFromUpdateData(hashedCCMs, proof);
+		hashedCCMs = ccmsEncoded.map(ccm => hash(ccm));
+		outboxRoot = regularMerkleTree.calculateRootFromUpdateData(hashedCCMs, proof);
 		transactionParams = {
 			chainID: 3,
 			crossChainMessages: [...ccmsEncoded],
@@ -146,7 +153,6 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		jest
 			.spyOn(messageRecoveryCommand, 'getInteroperabilityStore' as any)
 			.mockImplementation(() => mainchainInteroperabilityStore);
-		jest.spyOn(regularMerkleTree, 'calculateRootFromUpdateData').mockReturnValue(Buffer.alloc(32));
 
 		await terminatedOutboxSubstore.setWithSchema(
 			chainID,
@@ -217,13 +223,43 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				status: 1,
 				params: Buffer.alloc(0),
 			},
+			{
+				nonce: BigInt(1),
+				moduleID: 1,
+				crossChainCommandID: 1,
+				sendingChainID: 4,
+				receivingChainID: 5,
+				fee: BigInt(2),
+				status: 0,
+				params: Buffer.alloc(0),
+			},
 		];
-		const ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+		ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+		merkleTree = new MerkleTree();
+		await merkleTree.init(ccmsEncoded);
+		queryHashes = [];
+		for (const data of ccmsEncoded) {
+			const leafValueWithoutNodeIndex = Buffer.concat(
+				[LEAF_PREFIX, data],
+				LEAF_PREFIX.length + data.length,
+			);
+			const leafHash = hash(leafValueWithoutNodeIndex);
+			queryHashes.push(leafHash);
+		}
+		generatedProof = await merkleTree.generateProof(queryHashes);
+		terminatedChainOutboxSize = generatedProof.size;
+		proof = {
+			size: terminatedChainOutboxSize,
+			indexes: generatedProof.idxs as number[],
+			siblingHashes: generatedProof.siblingHashes as Buffer[],
+		};
+		hashedCCMs = ccmsEncoded.map(ccm => hash(ccm));
+		outboxRoot = regularMerkleTree.calculateRootFromUpdateData(hashedCCMs, proof);
 		transactionParams = {
 			chainID: 3,
 			crossChainMessages: [...ccmsEncoded],
-			idxs: [1],
-			siblingHashes: [getRandomBytes(32)],
+			idxs: proof.indexes,
+			siblingHashes: proof.siblingHashes,
 		};
 		encodedTransactionParams = codec.encode(messageRecoveryParams, transactionParams);
 		transaction = new Transaction({
@@ -238,14 +274,6 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		commandVerifyContext = createTransactionContext({
 			transaction,
 		}).createCommandVerifyContext<MessageRecoveryParams>(messageRecoveryParams);
-		const proof = {
-			size: terminatedChainOutboxSize,
-			indexes: transactionParams.idxs,
-			siblingHashes: transactionParams.siblingHashes,
-		};
-		const hashedCCMs = ccmsEncoded.map(ccm => hash(ccm));
-		const outboxRoot = regularMerkleTree.calculateRootFromUpdateData(hashedCCMs, proof);
-
 		await terminatedOutboxSubstore.setWithSchema(
 			chainID,
 			{
