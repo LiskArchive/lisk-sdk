@@ -120,5 +120,10 @@ describe('EventQueue', () => {
 		eventQueue.restoreSnapshot();
 
 		expect(eventQueue.getEvents()).toHaveLength(events.length + 1);
+		const queuedEvents = eventQueue.getEvents();
+		// eslint-disable-next-line @typescript-eslint/prefer-for-of
+		for (let i = 0; i < queuedEvents.length; i += 1) {
+			expect(queuedEvents[i].toObject().index).toEqual(i);
+		}
 	});
 });
