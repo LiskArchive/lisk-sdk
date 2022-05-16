@@ -17,7 +17,7 @@ import { Consensus } from '../consensus';
 import { Generator } from '../generator';
 import { NodeOptions } from '../types';
 
-interface EndpoinArgs {
+interface EndpointArgs {
 	chain: Chain;
 	consensus: Consensus;
 	generator: Generator;
