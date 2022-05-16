@@ -82,7 +82,7 @@ export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
 			siblingHashes,
 		};
 		const hashedCCMs = crossChainMessages.map(ccm => hash(ccm));
-		const isVerified = regularMerkleTree.verifyProof(
+		const isVerified = regularMerkleTree.verifyDataBlock(
 			hashedCCMs,
 			proof,
 			terminatedChainOutboxAccount.outboxRoot,

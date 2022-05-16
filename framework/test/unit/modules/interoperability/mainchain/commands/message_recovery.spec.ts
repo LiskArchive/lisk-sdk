@@ -16,7 +16,7 @@ import { Transaction, StateStore } from '@liskhq/lisk-chain';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
-import { regularMerkleTree } from '@liskhq/lisk-tree';
+import { MerkleTree, regularMerkleTree } from '@liskhq/lisk-tree';
 import { when } from 'jest-when';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
 import { BaseInteroperableAPI } from '../../../../../../src/modules/interoperability/base_interoperable_api';
@@ -38,6 +38,7 @@ import { CommandVerifyContext, VerifyStatus } from '../../../../../../src/node/s
 import { createTransactionContext } from '../../../../../../src/testing';
 
 describe('Mainchain MessageRecoveryCommand', () => {
+	const LEAF_PREFIX = Buffer.from('00', 'hex');
 	let stateStore: StateStore;
 	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
 	let terminatedOutboxSubstore: any;
@@ -88,15 +89,38 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				status: 0,
 				params: Buffer.alloc(0),
 			},
+			{
+				nonce: BigInt(1),
+				moduleID: 1,
+				crossChainCommandID: 1,
+				sendingChainID: 4,
+				receivingChainID: 5,
+				fee: BigInt(2),
+				status: 0,
+				params: Buffer.alloc(0),
+			},
 		];
 		const ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
-		terminatedChainOutboxSize = 1;
+		const merkleTree = new MerkleTree();
+		await merkleTree.init(ccmsEncoded);
+		const queryHashes = [];
+		for (const data of ccmsEncoded) {
+			const leafValueWithoutNodeIndex = Buffer.concat(
+				[LEAF_PREFIX, data],
+				LEAF_PREFIX.length + data.length,
+			);
+			const leafHash = hash(leafValueWithoutNodeIndex);
+			queryHashes.push(leafHash);
+		}
+		const generatedProof = await merkleTree.generateProof(queryHashes);
+		terminatedChainOutboxSize = generatedProof.size;
 		const proof = {
 			size: terminatedChainOutboxSize,
-			indexes: [1],
-			siblingHashes: [getRandomBytes(32)],
+			indexes: generatedProof.idxs as number[],
+			siblingHashes: generatedProof.siblingHashes as Buffer[],
 		};
-		const outboxRoot = getRandomBytes(32);
+		const hashedCCMs = ccmsEncoded.map(ccm => hash(ccm));
+		const outboxRoot = regularMerkleTree.calculateRootFromUpdateData(hashedCCMs, proof);
 		transactionParams = {
 			chainID: 3,
 			crossChainMessages: [...ccmsEncoded],
@@ -136,6 +160,15 @@ describe('Mainchain MessageRecoveryCommand', () => {
 	});
 
 	it('should return error if the sidechain outbox root is not valid', async () => {
+		await terminatedOutboxSubstore.setWithSchema(
+			chainID,
+			{
+				outboxRoot: getRandomBytes(32),
+				outboxSize: terminatedChainOutboxSize,
+				partnerChainInboxSize: 1,
+			},
+			terminatedOutboxSchema,
+		);
 		const result = await messageRecoveryCommand.verify(commandVerifyContext);
 
 		expect(result.status).toBe(VerifyStatus.FAIL);
@@ -231,8 +264,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		);
 	});
 
-	// eslint-disable-next-line jest/no-disabled-tests
-	it.skip('should return status OK for valid params', async () => {
+	it('should return status OK for valid params', async () => {
 		const result = await messageRecoveryCommand.verify(commandVerifyContext);
 
 		expect(result.status).toBe(VerifyStatus.OK);
