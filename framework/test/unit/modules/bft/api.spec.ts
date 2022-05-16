@@ -16,21 +16,21 @@ import { StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { BIG_ENDIAN, getRandomBytes, hash, intToBuffer } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
-import { BFTAPI } from '../../../../src/modules/bft/api';
+import { BFTAPI } from '../../../../src/node/bft/api';
 import {
 	EMPTY_KEY,
 	MODULE_ID_BFT,
 	STORE_PREFIX_BFT_PARAMETERS,
 	STORE_PREFIX_BFT_VOTES,
-} from '../../../../src/modules/bft/constants';
-import { BFTParameterNotFoundError } from '../../../../src/modules/bft/errors';
+} from '../../../../src/node/bft/constants';
+import { BFTParameterNotFoundError } from '../../../../src/node/bft/errors';
 import {
 	BFTParameters,
 	bftParametersSchema,
 	BFTVotes,
 	bftVotesSchema,
 	validatorsHashInputSchema,
-} from '../../../../src/modules/bft/schemas';
+} from '../../../../src/node/bft/schemas';
 import { EventQueue } from '../../../../src/node/state_machine';
 import { APIContext } from '../../../../src/node/state_machine/api_context';
 import { createFakeBlockHeader } from '../../../../src/testing';
@@ -46,7 +46,6 @@ describe('BFT API', () => {
 	beforeEach(() => {
 		bftAPI = new BFTAPI(bftModuleID);
 		validatorsAPI = { getValidatorAccount: jest.fn() };
-		bftAPI.addDependencies(validatorsAPI);
 		bftAPI.init(103);
 	});
 
@@ -212,10 +211,14 @@ describe('BFT API', () => {
 				{
 					address: getRandomBytes(20),
 					bftWeight: BigInt(1),
+					blsKey: getRandomBytes(42),
+					generatorKey: getRandomBytes(32),
 				},
 				{
 					address: getRandomBytes(20),
 					bftWeight: BigInt(1),
+					blsKey: getRandomBytes(42),
+					generatorKey: getRandomBytes(32),
 				},
 			],
 			validatorsHash: getRandomBytes(32),
@@ -315,7 +318,7 @@ describe('BFT API', () => {
 					blockBFTInfos: [
 						{
 							height: 103,
-							generatorAddress: getRandomBytes(20),
+							generatorAddress,
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
 							prevoteWeight: 0,
@@ -350,13 +353,15 @@ describe('BFT API', () => {
 				bftAPI.impliesMaximalPrevotes(
 					apiContext,
 					createFakeBlockHeader({
-						height: 105,
+						height: 104,
 						generatorAddress: getRandomBytes(20),
 						maxHeightGenerated: 0,
 						maxHeightPrevoted: 0,
 					}),
 				),
-			).resolves.toBeFalse();
+			).rejects.toThrow(
+				'impliesMaximalPrevotes can only be called for the currently executing block',
+			);
 		});
 
 		it('should return false if maxHeightGenerated is greater than the height', async () => {
@@ -364,7 +369,7 @@ describe('BFT API', () => {
 				bftAPI.impliesMaximalPrevotes(
 					apiContext,
 					createFakeBlockHeader({
-						height: 104,
+						height: 103,
 						generatorAddress: getRandomBytes(20),
 						maxHeightGenerated: 120,
 						maxHeightPrevoted: 0,
@@ -378,7 +383,7 @@ describe('BFT API', () => {
 				bftAPI.impliesMaximalPrevotes(
 					apiContext,
 					createFakeBlockHeader({
-						height: 104,
+						height: 103,
 						generatorAddress: getRandomBytes(20),
 						maxHeightGenerated: 1,
 						maxHeightPrevoted: 0,
@@ -392,7 +397,7 @@ describe('BFT API', () => {
 				bftAPI.impliesMaximalPrevotes(
 					apiContext,
 					createFakeBlockHeader({
-						height: 104,
+						height: 103,
 						generatorAddress: getRandomBytes(20),
 						maxHeightGenerated: 101,
 						maxHeightPrevoted: 0,
@@ -406,7 +411,7 @@ describe('BFT API', () => {
 				bftAPI.impliesMaximalPrevotes(
 					apiContext,
 					createFakeBlockHeader({
-						height: 104,
+						height: 103,
 						generatorAddress,
 						maxHeightGenerated: 102,
 						maxHeightPrevoted: 0,
@@ -555,24 +560,11 @@ describe('BFT API', () => {
 					new Array(bftAPI['_batchSize'] + 1).fill(0).map(() => ({
 						address: getRandomBytes(20),
 						bftWeight: BigInt(1),
+						blsKey: getRandomBytes(42),
+						generatorKey: getRandomBytes(32),
 					})),
 				),
 			).rejects.toThrow('Invalid validators size.');
-		});
-
-		it('should throw when any BFT weight is less or equal to zero', async () => {
-			await expect(
-				bftAPI.setBFTParameters(apiContext, BigInt(68), BigInt(68), [
-					{
-						address: getRandomBytes(20),
-						bftWeight: BigInt(103),
-					},
-					{
-						address: getRandomBytes(20),
-						bftWeight: BigInt(0),
-					},
-				]),
-			).rejects.toThrow('Invalid BFT weight.');
 		});
 
 		it('should throw when less than 1/3 of aggregateBFTWeight for precommitThreshold is given', async () => {
@@ -581,14 +573,20 @@ describe('BFT API', () => {
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(50),
+						blsKey: getRandomBytes(42),
+						generatorKey: getRandomBytes(32),
 					},
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(50),
+						blsKey: getRandomBytes(42),
+						generatorKey: getRandomBytes(32),
 					},
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(3),
+						blsKey: getRandomBytes(42),
+						generatorKey: getRandomBytes(32),
 					},
 				]),
 			).rejects.toThrow('Invalid precommitThreshold input.');
@@ -600,14 +598,20 @@ describe('BFT API', () => {
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(50),
+						blsKey: getRandomBytes(42),
+						generatorKey: getRandomBytes(32),
 					},
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(50),
+						blsKey: getRandomBytes(42),
+						generatorKey: getRandomBytes(32),
 					},
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(3),
+						blsKey: getRandomBytes(42),
+						generatorKey: getRandomBytes(32),
 					},
 				]),
 			).rejects.toThrow('Invalid precommitThreshold input.');
@@ -619,14 +623,20 @@ describe('BFT API', () => {
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(50),
+						blsKey: getRandomBytes(42),
+						generatorKey: getRandomBytes(32),
 					},
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(50),
+						blsKey: getRandomBytes(42),
+						generatorKey: getRandomBytes(32),
 					},
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(3),
+						blsKey: getRandomBytes(42),
+						generatorKey: getRandomBytes(32),
 					},
 				]),
 			).rejects.toThrow('Invalid certificateThreshold input.');
@@ -638,38 +648,51 @@ describe('BFT API', () => {
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(50),
+						blsKey: getRandomBytes(42),
+						generatorKey: getRandomBytes(32),
 					},
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(50),
+						blsKey: getRandomBytes(42),
+						generatorKey: getRandomBytes(32),
 					},
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(3),
+						blsKey: getRandomBytes(42),
+						generatorKey: getRandomBytes(32),
 					},
 				]),
 			).rejects.toThrow('Invalid certificateThreshold input.');
 		});
 
 		describe('when setBFTParameters is successful', () => {
+			const validators = [
+				{
+					address: generatorAddress,
+					bftWeight: BigInt(50),
+					blsKey: getRandomBytes(42),
+					generatorKey: getRandomBytes(32),
+				},
+				{
+					address: getRandomBytes(20),
+					bftWeight: BigInt(50),
+					blsKey: getRandomBytes(42),
+					generatorKey: getRandomBytes(32),
+				},
+				{
+					address: getRandomBytes(20),
+					bftWeight: BigInt(3),
+					blsKey: getRandomBytes(42),
+					generatorKey: getRandomBytes(32),
+				},
+			];
 			beforeEach(async () => {
-				await bftAPI.setBFTParameters(apiContext, BigInt(68), BigInt(68), [
-					{
-						address: generatorAddress,
-						bftWeight: BigInt(50),
-					},
-					{
-						address: getRandomBytes(20),
-						bftWeight: BigInt(50),
-					},
-					{
-						address: getRandomBytes(20),
-						bftWeight: BigInt(3),
-					},
-				]);
+				await bftAPI.setBFTParameters(apiContext, BigInt(68), BigInt(68), validators);
 			});
 
-			it('should store validators ordered lexicographically by address', async () => {
+			it('should store validators in order of the input', async () => {
 				const paramsStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 				const params = await paramsStore.getWithSchema<BFTParameters>(
 					intToBuffer(104, 4, BIG_ENDIAN),
@@ -677,8 +700,9 @@ describe('BFT API', () => {
 				);
 
 				expect(params.validators).toHaveLength(3);
-				// -1 will be asc
-				expect(params.validators[0].address.compare(params.validators[1].address)).toEqual(-1);
+				expect(params.validators[0].address).toEqual(validators[0].address);
+				expect(params.validators[1].address).toEqual(validators[1].address);
+				expect(params.validators[2].address).toEqual(validators[2].address);
 			});
 
 			it('should store BFT parameters with height maxHeightPrevoted + 1 if blockBFTInfo does not exist', async () => {
@@ -705,14 +729,20 @@ describe('BFT API', () => {
 					{
 						address: generatorAddress,
 						bftWeight: BigInt(50),
+						blsKey: getRandomBytes(42),
+						generatorKey: getRandomBytes(32),
 					},
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(50),
+						blsKey: getRandomBytes(42),
+						generatorKey: getRandomBytes(32),
 					},
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(3),
+						blsKey: getRandomBytes(42),
+						generatorKey: getRandomBytes(32),
 					},
 				]);
 
@@ -772,28 +802,26 @@ describe('BFT API', () => {
 		});
 
 		describe('validatorsHash', () => {
-			it('should sort validators ordered lexicographically by blsKey and include certificateThreshold', async () => {
+			it('should sort validators ordered lexicographically by blsKey and include certificateThreshold', () => {
 				const accounts = [
 					{
 						address: getRandomBytes(20),
 						blsKey: getRandomBytes(32),
 						bftWeight: BigInt(20),
+						generatorKey: getRandomBytes(32),
 					},
 					{
 						address: getRandomBytes(20),
 						blsKey: getRandomBytes(32),
 						bftWeight: BigInt(20),
+						generatorKey: getRandomBytes(32),
 					},
 				];
 				validatorsAPI.getValidatorAccount.mockImplementation((_, address: Buffer) => {
 					return { blsKey: accounts.find(k => k.address.equals(address))?.blsKey };
 				});
 
-				const validatorsHash = await bftAPI['_computeValidatorsHash'](
-					apiContext,
-					accounts,
-					BigInt(99),
-				);
+				const validatorsHash = bftAPI['_computeValidatorsHash'](accounts, BigInt(99));
 
 				const sortedAccounts = [...accounts];
 				sortedAccounts.sort((a, b) => a.blsKey.compare(b.blsKey));
@@ -827,10 +855,14 @@ describe('BFT API', () => {
 				{
 					address: getRandomBytes(20),
 					bftWeight: BigInt(1),
+					blsKey: getRandomBytes(42),
+					generatorKey: getRandomBytes(32),
 				},
 				{
 					address: getRandomBytes(20),
 					bftWeight: BigInt(1),
+					blsKey: getRandomBytes(42),
+					generatorKey: getRandomBytes(32),
 				},
 			],
 			validatorsHash: getRandomBytes(32),

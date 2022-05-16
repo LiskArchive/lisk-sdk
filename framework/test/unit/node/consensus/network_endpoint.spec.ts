@@ -260,6 +260,7 @@ describe('p2p endpoint', () => {
 		});
 
 		it('should add commit with valid commit', async () => {
+			// eslint-disable-next-line @typescript-eslint/require-await
 			commitPool.validateCommit = jest.fn(async () => true);
 			commitPool.addCommit = jest.fn();
 			await expect(

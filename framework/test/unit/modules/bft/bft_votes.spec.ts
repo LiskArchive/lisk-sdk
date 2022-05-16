@@ -16,7 +16,7 @@ import { StateStore } from '@liskhq/lisk-chain';
 import { BIG_ENDIAN, getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
-import { BFTParametersCache } from '../../../../src/modules/bft/bft_params';
+import { BFTParametersCache } from '../../../../src/node/bft/bft_params';
 import {
 	getHeightNotPrevoted,
 	insertBlockBFTInfo,
@@ -24,9 +24,9 @@ import {
 	updateMaxHeightPrecommitted,
 	updateMaxHeightPrevoted,
 	updatePrevotesPrecommits,
-} from '../../../../src/modules/bft/bft_votes';
-import { MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS } from '../../../../src/modules/bft/constants';
-import { bftParametersSchema, BFTVotes } from '../../../../src/modules/bft/schemas';
+} from '../../../../src/node/bft/bft_votes';
+import { MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS } from '../../../../src/node/bft/constants';
+import { bftParametersSchema, BFTVotes } from '../../../../src/node/bft/schemas';
 import { createFakeBlockHeader } from '../../../../src/testing';
 
 describe('BFT votes', () => {

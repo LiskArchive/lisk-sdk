@@ -24,7 +24,7 @@ import {
 } from '@liskhq/lisk-cryptography';
 import * as crypto from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
-import { BFTParameterNotFoundError } from '../../../../../src/modules/bft/errors';
+import { BFTParameterNotFoundError } from '../../../../../src/node/bft/errors';
 import { CommitPool } from '../../../../../src/node/consensus/certificate_generation/commit_pool';
 import {
 	COMMIT_RANGE_STORED,
@@ -63,7 +63,6 @@ describe('CommitPool', () => {
 
 	let commitPool: CommitPool;
 	let bftAPI: any;
-	let validatorsAPI: any;
 	let blockTime: number;
 	let chain: any;
 	let network: any;
@@ -71,14 +70,12 @@ describe('CommitPool', () => {
 
 	beforeEach(() => {
 		bftAPI = {
+			getValidator: jest.fn(),
 			getBFTHeights: jest.fn(),
 			getBFTParameters: jest.fn(),
 			getNextHeightBFTParameters: jest.fn(),
 			selectAggregateCommit: jest.fn(),
 			existBFTParameters: jest.fn(),
-		};
-		validatorsAPI = {
-			getValidatorAccount: jest.fn(),
 		};
 
 		blockTime = 10;
@@ -96,7 +93,6 @@ describe('CommitPool', () => {
 
 		commitPool = new CommitPool({
 			bftAPI,
-			validatorsAPI,
 			blockTime,
 			chain,
 			network,
@@ -152,7 +148,6 @@ describe('CommitPool', () => {
 
 			commitPool = new CommitPool({
 				bftAPI,
-				validatorsAPI,
 				blockTime,
 				chain,
 				network,
@@ -482,11 +477,13 @@ describe('CommitPool', () => {
 			validators = weights.map(weight => ({
 				address: getRandomBytes(20),
 				bftWeight: BigInt(weight),
+				blsKey: getRandomBytes(48),
 			}));
 			// Single commit owner must be an active validator
 			validators[0] = {
 				address: commit.validatorAddress,
 				bftWeight: BigInt(1),
+				blsKey: publicKey,
 			};
 
 			when(chain.dataAccess.getBlockHeaderByHeight)
@@ -503,8 +500,8 @@ describe('CommitPool', () => {
 				validators,
 			});
 
-			when(validatorsAPI.getValidatorAccount)
-				.calledWith(apiContext, commit.validatorAddress)
+			when(bftAPI.getValidator)
+				.calledWith(apiContext, commit.validatorAddress, commit.height)
 				.mockReturnValue({ blsKey: publicKey });
 
 			bftAPI.existBFTParameters.mockReturnValue(true);
@@ -649,8 +646,8 @@ describe('CommitPool', () => {
 		});
 
 		it('should throw error when bls key of the validator is not matching with the certificate signature', async () => {
-			when(validatorsAPI.getValidatorAccount)
-				.calledWith(apiContext, commit.validatorAddress)
+			when(bftAPI.getValidator)
+				.calledWith(apiContext, commit.validatorAddress, commit.height)
 				.mockReturnValue({ blsKey: getRandomBytes(48) });
 
 			await expect(commitPool.validateCommit(apiContext, commit)).rejects.toThrow(
@@ -830,9 +827,10 @@ describe('CommitPool', () => {
 				height,
 			};
 
-			validators = weights.map(weight => ({
+			validators = weights.map((weight, i) => ({
 				address: getRandomBytes(20),
 				bftWeight: BigInt(weight),
+				blsKey: keysList[i],
 			}));
 
 			when(chain.dataAccess.getBlockHeaderByHeight).calledWith(height).mockReturnValue(blockHeader);
@@ -852,16 +850,6 @@ describe('CommitPool', () => {
 				.mockImplementation(() => {
 					throw new BFTParameterNotFoundError();
 				});
-
-			for (const [i, validator] of Object.entries<any>(validators)) {
-				const index = Number(i);
-				const { address } = validator;
-				const blsKey = keysList[index];
-
-				when(validatorsAPI.getValidatorAccount)
-					.calledWith(apiContext, address)
-					.mockReturnValue({ blsKey });
-			}
 		});
 
 		it('should return true with proper parameters', async () => {
@@ -1092,22 +1080,12 @@ describe('CommitPool', () => {
 		beforeEach(() => {
 			commitPool = new CommitPool({
 				bftAPI,
-				validatorsAPI,
 				blockTime,
 				network,
 				chain,
 				db: jest.fn() as any,
 			});
 			context = createTransientAPIContext({});
-			when(validatorsAPI.getValidatorAccount)
-				.calledWith(expect.any(Object), validatorInfo1.address)
-				.mockReturnValue({ blsKey: validatorInfo1.blsPublicKey });
-			when(validatorsAPI.getValidatorAccount)
-				.calledWith(expect.any(Object), validatorInfo2.address)
-				.mockReturnValue({ blsKey: validatorInfo2.blsPublicKey });
-			when(validatorsAPI.getValidatorAccount)
-				.calledWith(expect.any(Object), validatorInfo3.address)
-				.mockReturnValue({ blsKey: validatorInfo3.blsPublicKey });
 		});
 
 		it('should throw if there are no single commits', async () => {
@@ -1123,7 +1101,7 @@ describe('CommitPool', () => {
 				certificateSignature: aggregateSignature1,
 			};
 			bftAPI.getBFTParameters.mockReturnValue({
-				validators: [{ address: validatorInfo1.address }],
+				validators: [{ address: validatorInfo1.address, blsKey: validatorInfo1.blsPublicKey }],
 			});
 
 			await expect(
@@ -1135,9 +1113,9 @@ describe('CommitPool', () => {
 			expectedCommit = { height, aggregationBits, certificateSignature: aggregateSignature };
 			bftAPI.getBFTParameters.mockReturnValue({
 				validators: [
-					{ address: validatorInfo1.address },
-					{ address: validatorInfo2.address },
-					{ address: validatorInfo3.address },
+					{ address: validatorInfo1.address, blsKey: validatorInfo1.blsPublicKey },
+					{ address: validatorInfo2.address, blsKey: validatorInfo2.blsPublicKey },
+					{ address: validatorInfo3.address, blsKey: validatorInfo3.blsPublicKey },
 				],
 			});
 
@@ -1149,7 +1127,10 @@ describe('CommitPool', () => {
 		it('should throw if no bls public key is found for the validator', async () => {
 			expectedCommit = { height, aggregationBits, certificateSignature: aggregateSignature };
 			bftAPI.getBFTParameters.mockReturnValue({
-				validators: [{ address: validatorInfo1.address }, { address: validatorInfo2.address }],
+				validators: [
+					{ address: validatorInfo1.address, blsKey: validatorInfo1.blsPublicKey },
+					{ address: validatorInfo2.address, blsKey: validatorInfo2.blsPublicKey },
+				],
 			});
 
 			await expect(commitPool.aggregateSingleCommits(context, singleCommits)).rejects.toThrow(
@@ -1163,9 +1144,9 @@ describe('CommitPool', () => {
 			const spy = jest.spyOn(crypto, 'createAggSig');
 			bftAPI.getBFTParameters.mockReturnValue({
 				validators: [
-					{ address: validatorInfo1.address },
-					{ address: validatorInfo2.address },
-					{ address: validatorInfo3.address },
+					{ address: validatorInfo1.address, blsKey: validatorInfo1.blsPublicKey },
+					{ address: validatorInfo2.address, blsKey: validatorInfo2.blsPublicKey },
+					{ address: validatorInfo3.address, blsKey: validatorInfo3.blsPublicKey },
 				],
 			});
 
@@ -1219,7 +1200,6 @@ describe('CommitPool', () => {
 		beforeEach(() => {
 			commitPool = new CommitPool({
 				bftAPI,
-				validatorsAPI,
 				blockTime,
 				network,
 				chain,

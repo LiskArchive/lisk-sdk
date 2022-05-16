@@ -101,6 +101,8 @@ export class BFTAPI extends BaseAPI {
 		};
 	}
 
+	// This function expects to be called after blockBFTInfos has been inserted for the executiong block.
+	// blockBFTInfos must be inserted first because for the block genesis block + 1, bftVotes.blockBFTInfos will be empty
 	public async impliesMaximalPrevotes(
 		context: ImmutableAPIContext,
 		header: BlockHeader,
@@ -121,7 +123,7 @@ export class BFTAPI extends BaseAPI {
 		}
 
 		// there is no block info stored for previousHeight and header implies the maximal number of prevotes
-		const offset = lastHeader.height - previousHeight;
+		const offset = lastHeader.height - previousHeight - 1;
 		if (offset >= bftVotes.blockBFTInfos.length) {
 			return true;
 		}
@@ -164,7 +166,11 @@ export class BFTAPI extends BaseAPI {
 			);
 		}
 		let aggregateBFTWeight = BigInt(0);
+		const activeValidators: Validator[] = [];
 		for (const validator of validators) {
+			if (validator.bftWeight > BigInt(0)) {
+				activeValidators.push(validator);
+			}
 			aggregateBFTWeight += validator.bftWeight;
 		}
 		if (
@@ -179,7 +185,8 @@ export class BFTAPI extends BaseAPI {
 		) {
 			throw new Error('Invalid certificateThreshold input.');
 		}
-		const validatorsHash = this._computeValidatorsHash(validators, certificateThreshold);
+		// ValidatorsHash only includes validator with BFT weight
+		const validatorsHash = this._computeValidatorsHash(activeValidators, certificateThreshold);
 
 		const bftParams: BFTParameters = {
 			prevoteThreshold: (BigInt(2) * aggregateBFTWeight) / BigInt(3) + BigInt(1),
@@ -202,6 +209,11 @@ export class BFTAPI extends BaseAPI {
 
 		const nextActiveValidators: BFTVotesActiveValidatorsVoteInfo[] = [];
 		for (const validator of validators) {
+			if (validator.bftWeight < BigInt(0)) {
+				throw new Error(
+					`BFT weight must be greater or equal to zero, but received ${validator.bftWeight.toString()}`,
+				);
+			}
 			if (validator.bftWeight === BigInt(0)) {
 				continue;
 			}

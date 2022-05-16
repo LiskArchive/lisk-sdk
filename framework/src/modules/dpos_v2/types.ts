@@ -36,12 +36,6 @@ export interface ModuleConfig {
 }
 
 export interface BFTAPI {
-	setBFTParameters(
-		apiContext: APIContext,
-		precommitThreshold: bigint,
-		certificateThreshold: bigint,
-		validators: Validator[],
-	): Promise<void>;
 	getBFTParameters(
 		context: ImmutableAPIContext,
 		height: number,
@@ -51,6 +45,12 @@ export interface BFTAPI {
 		certificateThreshold: bigint;
 		validators: Validator[];
 	}>;
+	setBFTParameters(
+		apiContext: APIContext,
+		precommitThreshold: bigint,
+		certificateThreshold: bigint,
+		validators: Validator[],
+	): Promise<void>;
 	areHeadersContradicting(bftHeader1: BlockHeader, bftHeader2: BlockHeader): boolean;
 	getBFTHeights(context: ImmutableAPIContext): Promise<BFTHeights>;
 }
@@ -64,7 +64,6 @@ export interface RandomAPI {
 }
 
 export interface ValidatorsAPI {
-	setGeneratorList(apiContext: APIContext, generatorAddresses: Buffer[]): Promise<boolean>;
 	setValidatorGeneratorKey(
 		apiContext: APIContext,
 		validatorAddress: Buffer,
@@ -82,8 +81,8 @@ export interface ValidatorsAPI {
 		apiContext: ImmutableAPIContext,
 		startTimestamp: number,
 		endTimestamp: number,
+		validators: { address: Buffer }[],
 	): Promise<Record<string, number>>;
-	getGeneratorAtTimestamp(apiContext: ImmutableAPIContext, timestamp: number): Promise<Buffer>;
 }
 
 export interface TokenAPI {

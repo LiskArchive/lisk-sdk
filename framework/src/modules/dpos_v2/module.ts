@@ -634,10 +634,12 @@ export class DPoSModule extends BaseModule {
 
 		const newHeight = header.height;
 		const apiContext = getAPIContext();
+		const { validators } = await this._bftAPI.getBFTParameters(apiContext, newHeight);
 		const missedBlocks = await this._validatorsAPI.getGeneratorsBetweenTimestamps(
 			apiContext,
 			previousTimestamp,
 			header.timestamp,
+			validators,
 		);
 
 		const delegateStore = getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);

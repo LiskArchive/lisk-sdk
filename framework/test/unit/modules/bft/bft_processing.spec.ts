@@ -21,14 +21,14 @@ import {
 } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { GenesisConfig } from '../../../../src';
-import { BFTModule } from '../../../../src/modules/bft';
+import { BFTModule } from '../../../../src/node/bft';
 import {
 	EMPTY_KEY,
 	STORE_PREFIX_BFT_PARAMETERS,
 	STORE_PREFIX_BFT_VOTES,
-} from '../../../../src/modules/bft/constants';
-import { bftParametersSchema, BFTVotes, bftVotesSchema } from '../../../../src/modules/bft/schemas';
-import { Validator } from '../../../../src/modules/bft/types';
+} from '../../../../src/node/bft/constants';
+import { bftParametersSchema, BFTVotes, bftVotesSchema } from '../../../../src/node/bft/schemas';
+import { Validator } from '../../../../src/node/bft/types';
 import { createBlockContext } from '../../../../src/testing';
 import * as scenario4DelegatesMissedSlots from './bft_processing/4_delegates_missed_slots.json';
 import * as scenario4DelegatesSimple from './bft_processing/4_delegates_simple.json';
@@ -54,9 +54,6 @@ describe('BFT processing', () => {
 
 			beforeAll(async () => {
 				bftModule = new BFTModule();
-				bftModule.addDependencies({
-					getValidatorAccount: jest.fn().mockResolvedValue({ blsKey: getRandomBytes(32) }),
-				});
 				await bftModule.init({
 					moduleConfig: {
 						batchSize: scenario.config.activeDelegates,
@@ -79,6 +76,8 @@ describe('BFT processing', () => {
 							address: generatorAddress,
 							minHeightActive: testCase.input.blockHeader.delegateMinHeightActive,
 							bftWeight: BigInt(1),
+							generatorKey: Buffer.from(testCase.input.blockHeader.generatorPublicKey, 'hex'),
+							blsKey: getRandomBytes(42),
 						});
 					}
 				}

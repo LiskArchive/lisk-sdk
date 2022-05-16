@@ -36,7 +36,7 @@ import { fakeLogger } from '../../../utils/node';
 import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
 import { NETWORK_RPC_GET_TRANSACTIONS } from '../../../../src/node/generator/constants';
 import { getTransactionsResponseSchema } from '../../../../src/node/generator/schemas';
-import { BFTAPI, ValidatorAPI } from '../../../../src/node/consensus';
+import { BFTAPI } from '../../../../src/node/consensus';
 import { createFakeBlockHeader } from '../../../../src/testing';
 
 describe('generator', () => {
@@ -95,7 +95,6 @@ describe('generator', () => {
 	let network: Network;
 	let blockchainDB: KVStore;
 	let generatorDB: KVStore;
-	let validatorAPI: ValidatorAPI;
 	let bftAPI: BFTAPI;
 	let consensusEvent: EventEmitter;
 
@@ -123,15 +122,13 @@ describe('generator', () => {
 		consensusEvent = new EventEmitter();
 		consensus = {
 			execute: jest.fn(),
+			getSlotNumber: jest.fn(),
+			getSlotTime: jest.fn(),
+			getGeneratorAtTimestamp: jest.fn(),
 			getAggregateCommit: jest.fn(),
 			certifySingleCommit: jest.fn(),
 			getMaxRemovalHeight: jest.fn().mockResolvedValue(0),
 			events: consensusEvent,
-		} as never;
-		validatorAPI = {
-			getSlotNumber: jest.fn(),
-			getSlotTime: jest.fn(),
-			getGeneratorAtTimestamp: jest.fn(),
 		} as never;
 		bftAPI = {
 			getBFTHeights: jest.fn().mockResolvedValue({
@@ -168,7 +165,6 @@ describe('generator', () => {
 			consensus,
 			network,
 			stateMachine,
-			validatorAPI,
 			bftAPI,
 			generationConfig: {
 				generators: genesisDelegates.delegates,
@@ -409,18 +405,18 @@ describe('generator', () => {
 		});
 
 		it('should not generate if current block slot is same as last block slot', async () => {
-			(validatorAPI.getSlotNumber as jest.Mock).mockResolvedValue(lastBlockSlot);
-			(validatorAPI.getSlotTime as jest.Mock).mockResolvedValue(Math.floor(Date.now() / 1000));
+			(consensus.getSlotNumber as jest.Mock).mockReturnValue(lastBlockSlot);
+			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000));
 			await generator['_generateLoop']();
 
-			expect(validatorAPI.getGeneratorAtTimestamp).not.toHaveBeenCalled();
+			expect(consensus.getGeneratorAtTimestamp).not.toHaveBeenCalled();
 		});
 
 		it('should not generate if validator is not registered for given time', async () => {
-			(validatorAPI.getSlotNumber as jest.Mock)
-				.mockResolvedValueOnce(currentSlot)
-				.mockResolvedValueOnce(lastBlockSlot);
-			(validatorAPI.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(getRandomBytes(20));
+			(consensus.getSlotNumber as jest.Mock)
+				.mockReturnValueOnce(currentSlot)
+				.mockReturnValueOnce(lastBlockSlot);
+			(consensus.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(getRandomBytes(20));
 			jest.spyOn(generator, '_generateBlock' as never);
 			await generator['_generateLoop']();
 
@@ -428,11 +424,11 @@ describe('generator', () => {
 		});
 
 		it('should wait for threshold time if last block not received', async () => {
-			(validatorAPI.getSlotNumber as jest.Mock)
-				.mockResolvedValueOnce(currentSlot)
-				.mockResolvedValueOnce(lastBlockSlot - 1);
-			(validatorAPI.getSlotTime as jest.Mock).mockResolvedValue(Math.floor(Date.now() / 1000));
-			(validatorAPI.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
+			(consensus.getSlotNumber as jest.Mock)
+				.mockReturnValueOnce(currentSlot)
+				.mockReturnValueOnce(lastBlockSlot - 1);
+			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000));
+			(consensus.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
 				Buffer.from(genesisDelegates.delegates[0].address, 'hex'),
 			);
 			jest.spyOn(generator, '_generateBlock' as never);
@@ -443,11 +439,11 @@ describe('generator', () => {
 		});
 
 		it('should not wait if threshold time passed and last block not received', async () => {
-			(validatorAPI.getSlotNumber as jest.Mock)
-				.mockResolvedValueOnce(currentSlot)
-				.mockResolvedValueOnce(lastBlockSlot - 1);
-			(validatorAPI.getSlotTime as jest.Mock).mockResolvedValue(Math.floor(Date.now() / 1000) - 5);
-			(validatorAPI.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
+			(consensus.getSlotNumber as jest.Mock)
+				.mockReturnValueOnce(currentSlot)
+				.mockReturnValueOnce(lastBlockSlot - 1);
+			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000) - 5);
+			(consensus.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
 				Buffer.from(genesisDelegates.delegates[0].address, 'hex'),
 			);
 
@@ -459,11 +455,11 @@ describe('generator', () => {
 		});
 
 		it('should not wait if threshold remaining but last block already received', async () => {
-			(validatorAPI.getSlotNumber as jest.Mock)
-				.mockResolvedValueOnce(currentSlot)
-				.mockResolvedValueOnce(lastBlockSlot);
-			(validatorAPI.getSlotTime as jest.Mock).mockResolvedValue(Math.floor(Date.now() / 1000) + 5);
-			(validatorAPI.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
+			(consensus.getSlotNumber as jest.Mock)
+				.mockReturnValueOnce(currentSlot)
+				.mockReturnValueOnce(lastBlockSlot);
+			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000) + 5);
+			(consensus.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
 				Buffer.from(genesisDelegates.delegates[0].address, 'hex'),
 			);
 

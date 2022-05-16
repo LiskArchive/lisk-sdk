@@ -17,26 +17,10 @@ import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { NotFoundError } from '@liskhq/lisk-db';
 import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
-import { generatorListSchema, ValidateBLSKeyRequest, validateBLSKeyRequestSchema } from './schemas';
-import {
-	MODULE_ID_VALIDATORS,
-	STORE_PREFIX_BLS_KEYS,
-	STORE_PREFIX_GENERATOR_LIST,
-} from './constants';
-import { GeneratorList } from './types';
+import { ValidateBLSKeyRequest, validateBLSKeyRequestSchema } from './schemas';
+import { MODULE_ID_VALIDATORS, STORE_PREFIX_BLS_KEYS } from './constants';
 
 export class ValidatorsEndpoint extends BaseEndpoint {
-	public async getGeneratorList(ctx: ModuleEndpointContext): Promise<{ list: string[] }> {
-		const generatorListSubStore = ctx.getStore(MODULE_ID_VALIDATORS, STORE_PREFIX_GENERATOR_LIST);
-		const emptyKey = Buffer.alloc(0);
-		const generatorList = await generatorListSubStore.getWithSchema<GeneratorList>(
-			emptyKey,
-			generatorListSchema,
-		);
-
-		return { list: generatorList.addresses.map(buf => buf.toString('hex')) };
-	}
-
 	public async validateBLSKey(ctx: ModuleEndpointContext): Promise<{ valid: boolean }> {
 		const reqErrors = validator.validate(validateBLSKeyRequestSchema, ctx.params);
 		if (reqErrors?.length) {

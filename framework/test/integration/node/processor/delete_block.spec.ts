@@ -237,20 +237,33 @@ describe('Delete block', () => {
 				await processEnv.process(initBlock);
 				await processEnv.processUntilHeight(308);
 				const validatorsBefore = await processEnv
-					.getValidatorAPI()
-					.getGeneratorList(processEnv.getAPIContext());
+					.getBFTAPI()
+					.getBFTParameters(
+						processEnv.getAPIContext(),
+						processEnv.getLastBlock().header.height + 1,
+					);
 
 				const newBlock = await processEnv.createBlock([]);
 				await processEnv.process(newBlock);
 				const validatorsAfter = await processEnv
-					.getValidatorAPI()
-					.getGeneratorList(processEnv.getAPIContext());
-				expect(validatorsBefore).not.toEqual(validatorsAfter);
+					.getBFTAPI()
+					.getBFTParameters(
+						processEnv.getAPIContext(),
+						processEnv.getLastBlock().header.height + 1,
+					);
+				expect(validatorsBefore.validators.map(v => v.address)).not.toEqual(
+					validatorsAfter.validators.map(v => v.address),
+				);
 				await processEnv.getConsensus()['_deleteLastBlock']();
 				const validatorsReverted = await processEnv
-					.getValidatorAPI()
-					.getGeneratorList(processEnv.getAPIContext());
-				expect(validatorsReverted).toEqual(validatorsBefore);
+					.getBFTAPI()
+					.getBFTParameters(
+						processEnv.getAPIContext(),
+						processEnv.getLastBlock().header.height + 1,
+					);
+				expect(validatorsReverted.validators.map(v => v.address)).toEqual(
+					validatorsBefore.validators.map(v => v.address),
+				);
 			});
 		});
 	});
