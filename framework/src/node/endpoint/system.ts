@@ -31,7 +31,7 @@ export class SystemEndpoint {
 	private readonly _generator: Generator;
 	private readonly _options: NodeOptions;
 
-	public constructor(args: EndpoinArgs) {
+	public constructor(args: EndpointArgs) {
 		this._chain = args.chain;
 		this._consensus = args.consensus;
 		this._generator = args.generator;
