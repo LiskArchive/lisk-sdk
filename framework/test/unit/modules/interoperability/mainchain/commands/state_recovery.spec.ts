@@ -17,7 +17,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { sparseMerkleTree } from '@liskhq/lisk-tree';
-import { CommandVerifyContext } from '../../../../../../src';
+import { CommandExecuteContext, CommandVerifyContext } from '../../../../../../src';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
 import { BaseInteroperableAPI } from '../../../../../../src/modules/interoperability/base_interoperable_api';
 import {
@@ -42,7 +42,9 @@ describe('Mainchain StateRecoveryCommand', () => {
 	let chainIDAsBuffer: Buffer;
 	let stateRecoveryCommand: StateRecoveryCommand;
 	let commandVerifyContext: CommandVerifyContext<StateRecoveryParams>;
+	let commandExecuteContext: CommandExecuteContext<StateRecoveryParams>;
 	let interoperableCCAPIs: Map<number, BaseInteroperableAPI>;
+	let interoperableAPI: any;
 	let ccCommands: Map<number, BaseCCCommand[]>;
 	let transaction: Transaction;
 	let transactionParams: StateRecoveryParams;
@@ -54,6 +56,10 @@ describe('Mainchain StateRecoveryCommand', () => {
 
 	beforeEach(async () => {
 		interoperableCCAPIs = new Map();
+		interoperableAPI = {
+			recover: jest.fn(),
+		};
+		interoperableCCAPIs.set(1, interoperableAPI);
 		ccCommands = new Map();
 		stateRecoveryCommand = new StateRecoveryCommand(
 			MODULE_ID_INTEROPERABILITY,
@@ -66,12 +72,12 @@ describe('Mainchain StateRecoveryCommand', () => {
 			storeEntries: [
 				{
 					storePrefix: 1,
-					storeKey: Buffer.alloc(0),
-					storeValue: Buffer.alloc(0),
-					bitmap: Buffer.alloc(0),
+					storeKey: getRandomBytes(32),
+					storeValue: getRandomBytes(32),
+					bitmap: getRandomBytes(32),
 				},
 			],
-			siblingHashes: [Buffer.alloc(0)],
+			siblingHashes: [getRandomBytes(32)],
 		};
 		chainIDAsBuffer = getIDAsKeyForStore(transactionParams.chainID);
 		encodedTransactionParams = codec.encode(stateRecoveryParams, transactionParams);
@@ -108,8 +114,11 @@ describe('Mainchain StateRecoveryCommand', () => {
 		commandVerifyContext = transactionContext.createCommandVerifyContext<StateRecoveryParams>(
 			stateRecoveryParams,
 		);
-
+		commandExecuteContext = transactionContext.createCommandExecuteContext<StateRecoveryParams>(
+			stateRecoveryParams,
+		);
 		jest.spyOn(sparseMerkleTree, 'verify').mockReturnValue(true);
+		jest.spyOn(sparseMerkleTree, 'calculateRoot').mockReturnValue(getRandomBytes(32));
 	});
 
 	describe('verify', () => {
@@ -145,6 +154,36 @@ describe('Mainchain StateRecoveryCommand', () => {
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude('Failed to verify proof of inclusion');
+		});
+	});
+
+	describe('execute', () => {
+		it('should resolve if params are valid', async () => {
+			await expect(stateRecoveryCommand.execute(commandExecuteContext)).resolves.toBeUndefined();
+		});
+
+		it('should throw error if recover api fails', async () => {
+			interoperableAPI.recover = jest.fn().mockRejectedValue(new Error('error'));
+
+			await expect(stateRecoveryCommand.execute(commandExecuteContext)).rejects.toThrow(
+				'Recovery failed',
+			);
+		});
+
+		it('should set root value for terminated state substore', async () => {
+			const newStateRoot = getRandomBytes(32);
+			jest.spyOn(sparseMerkleTree, 'calculateRoot').mockReturnValue(newStateRoot);
+
+			await stateRecoveryCommand.execute(commandExecuteContext);
+
+			const newTerminatedStateAccount = await terminatedStateSubstore.getWithSchema<TerminatedStateAccount>(
+				chainIDAsBuffer,
+				terminatedStateSchema,
+			);
+
+			expect(newTerminatedStateAccount.stateRoot.toString('hex')).toBe(
+				newStateRoot.toString('hex'),
+			);
 		});
 	});
 });
