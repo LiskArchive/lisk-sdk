@@ -33,6 +33,9 @@ export class SidechainCCRegistrationCommand extends BaseInteroperabilityCCComman
 
 	public async execute(ctx: CCCommandExecuteContext): Promise<void> {
 		const { ccm } = ctx;
+		if (!ccm) {
+			throw new Error('CCM is missing to execute registration cross chain command.');
+		}
 		const decodedParams = codec.decode<CCMRegistrationParams>(
 			registrationCCMParamsSchema,
 			ccm.params,
