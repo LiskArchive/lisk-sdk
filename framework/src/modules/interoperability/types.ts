@@ -35,7 +35,7 @@ export interface ActiveValidator {
 }
 
 export interface MsgWitness {
-	partnerChainOutboxSize: number;
+	partnerChainOutboxSize: bigint;
 	siblingHashes: Buffer[];
 }
 
