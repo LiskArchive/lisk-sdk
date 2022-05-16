@@ -13,8 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { hash, verifyWeightedAggSig } from '@liskhq/lisk-cryptography';
-import { regularMerkleTree, sparseMerkleTree } from '@liskhq/lisk-tree';
+import { verifyWeightedAggSig } from '@liskhq/lisk-cryptography';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { certificateSchema } from '../../../../node/consensus/certificate_generation/schema';
 import { Certificate } from '../../../../node/consensus/certificate_generation/types';
@@ -36,12 +35,9 @@ import {
 	LIVENESS_LIMIT,
 	MAINCHAIN_ID,
 	MESSAGE_TAG_CERTIFICATE,
-	SMT_KEY_LENGTH,
 	STORE_PREFIX_CHAIN_DATA,
 	STORE_PREFIX_CHAIN_VALIDATORS,
 	STORE_PREFIX_CHANNEL_DATA,
-	STORE_PREFIX_OUTBOX_ROOT,
-	VALID_BLS_KEY_LENGTH,
 } from '../../constants';
 import { createCCMsgBeforeSendContext } from '../../context';
 import {
@@ -60,9 +56,12 @@ import {
 	StoreCallback,
 } from '../../types';
 import {
+	checkActiveValidatorsUpdate,
+	checkCertificateValidity,
+	checkInboxUpdateValidity,
+	checkLivenessRequirementFirstCCU,
 	computeValidatorsHash,
 	getIDAsKeyForStore,
-	rawStateStoreKey,
 	updateActiveValidators,
 	validateFormat,
 } from '../../utils';
@@ -110,75 +109,24 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 		}
 
 		// Section: Liveness Requirement for the First CCU
-		if (partnerChainAccount.status === CHAIN_REGISTERED) {
-			// Certificate must not be empty for first CCU
-			if (txParams.certificate.equals(EMPTY_BYTES)) {
-				return {
-					status: VerifyStatus.FAIL,
-					error: new Error(
-						`Sending partner chain ${txParams.sendingChainID} is in registered status so certificate cannot be empty.`,
-					),
-				};
-			}
+		const livenessRequirementFirstCCU = checkLivenessRequirementFirstCCU(
+			partnerChainAccount,
+			txParams,
+		);
+		if (livenessRequirementFirstCCU.error) {
+			return livenessRequirementFirstCCU;
 		}
 		// Section: Certificate and Validators Update Validity
+		const certificateValidity = checkCertificateValidity(partnerChainAccount, txParams.certificate);
 
-		// Certificate follows the schema
-		const decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
-		if (!txParams.certificate.equals(EMPTY_BYTES)) {
-			if (
-				decodedCertificate.blockID.equals(EMPTY_BYTES) ||
-				decodedCertificate.stateRoot.equals(EMPTY_BYTES) ||
-				decodedCertificate.validatorsHash.equals(EMPTY_BYTES) ||
-				decodedCertificate.timestamp === 0
-			) {
-				return {
-					status: VerifyStatus.FAIL,
-					error: new Error('Certificate is missing required values.'),
-				};
-			}
-
-			// Last certificate height should be less than new certificate height
-			if (decodedCertificate.height <= partnerChainAccount.lastCertificate.height) {
-				return {
-					status: VerifyStatus.FAIL,
-					error: new Error('Certificate height should be greater than last certificate height.'),
-				};
-			}
+		if (certificateValidity.error) {
+			return certificateValidity;
 		}
 
 		// If params contains a non-empty activeValidatorsUpdate
-		if (
-			txParams.activeValidatorsUpdate.length !== 0 ||
-			txParams.newCertificateThreshold > BigInt(0)
-		) {
-			// Non-empty certificate
-			if (txParams.certificate.equals(EMPTY_BYTES)) {
-				return {
-					status: VerifyStatus.FAIL,
-					error: new Error(
-						'Certificate cannot be empty when activeValidatorsUpdate is non-empty or newCertificateThreshold >0.',
-					),
-				};
-			}
-
-			// params.activeValidatorsUpdate has the correct format
-			for (let i = 0; i < txParams.activeValidatorsUpdate.length; i += 1) {
-				const currentValidator = txParams.activeValidatorsUpdate[i];
-				const nextValidator = txParams.activeValidatorsUpdate[i + 1];
-				if (currentValidator.blsKey.byteLength !== VALID_BLS_KEY_LENGTH) {
-					return {
-						status: VerifyStatus.FAIL,
-						error: new Error(`BlsKey length should be equal to ${VALID_BLS_KEY_LENGTH}.`),
-					};
-				}
-				if (currentValidator.blsKey.compare(nextValidator.blsKey) > -1) {
-					return {
-						status: VerifyStatus.FAIL,
-						error: new Error('Validators blsKeys must be unique and lexicographically ordered'),
-					};
-				}
-			}
+		const activeValidatorsValidity = checkActiveValidatorsUpdate(txParams);
+		if (activeValidatorsValidity.error) {
+			return activeValidatorsValidity;
 		}
 
 		const partnerChannelStore = context.getStore(transaction.moduleID, STORE_PREFIX_CHANNEL_DATA);
@@ -187,78 +135,9 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 			channelSchema,
 		);
 		// Section: InboxUpdate Validity
-		const { crossChainMessages, messageWitness, outboxRootWitness } = txParams.inboxUpdate;
-		const ccmHashes = crossChainMessages.map(ccm => hash(ccm));
-
-		let newInboxRoot;
-		let newInboxAppendPath = partnerChannelData.inbox.appendPath;
-		let newInboxSize = partnerChannelData.inbox.size;
-		for (const ccm of ccmHashes) {
-			const { appendPath, size } = regularMerkleTree.calculateMerkleRoot({
-				value: ccm,
-				appendPath: newInboxAppendPath,
-				size: newInboxSize,
-			});
-			newInboxAppendPath = appendPath;
-			newInboxSize = size;
-		}
-		// If inboxUpdate contains a non-empty messageWitness, then update newInboxRoot to the output
-		if (
-			!txParams.certificate.equals(EMPTY_BYTES) &&
-			txParams.inboxUpdate.messageWitness.siblingHashes.length !== 0 &&
-			txParams.inboxUpdate.messageWitness.partnerChainOutboxSize > 0
-		) {
-			newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
-				newInboxSize,
-				newInboxAppendPath,
-				messageWitness.siblingHashes,
-			);
-
-			const proof = {
-				siblingHashes: outboxRootWitness.siblingHashes,
-				queries: [
-					{
-						key: partnerChainIDBuffer,
-						value: newInboxRoot,
-						bitmap: outboxRootWitness.bitmap,
-					},
-				],
-			};
-			const outboxKey = rawStateStoreKey(STORE_PREFIX_OUTBOX_ROOT);
-			const querykeys = [outboxKey];
-			const isSMTRootValid = sparseMerkleTree.verify(
-				querykeys,
-				proof,
-				decodedCertificate.stateRoot,
-				SMT_KEY_LENGTH,
-			);
-			if (!isSMTRootValid) {
-				return {
-					status: VerifyStatus.FAIL,
-					error: new Error(
-						'Failed at verifying state root when messageWitness and certificate are non-empty.',
-					),
-				};
-			}
-		} else if (
-			txParams.certificate.equals(EMPTY_BYTES) &&
-			txParams.inboxUpdate.messageWitness.siblingHashes.length !== 0 &&
-			txParams.inboxUpdate.messageWitness.partnerChainOutboxSize > 0
-		) {
-			newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
-				newInboxSize,
-				newInboxAppendPath,
-				messageWitness.siblingHashes,
-			);
-
-			if (!newInboxRoot.equals(partnerChannelData.partnerChainOutboxRoot)) {
-				return {
-					status: VerifyStatus.FAIL,
-					error: new Error(
-						'Failed at verifying state root when messageWitness is non-empty and certificate is empty.',
-					),
-				};
-			}
+		const inboxUpdateValidity = checkInboxUpdateValidity(txParams, partnerChannelData);
+		if (inboxUpdateValidity.error) {
+			return inboxUpdateValidity;
 		}
 
 		return {
