@@ -42,10 +42,10 @@ export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
 		const chainIdAsBuffer = getIDAsKeyForStore(chainID);
 		const interoperabilityStore = this.getInteroperabilityStore(getStore);
 
-		const doesTerminatedOutboxAccountExist = await interoperabilityStore.hasTerminatedOutboxAccount(
+		const terminatedOutboxAccountExists = await interoperabilityStore.hasTerminatedOutboxAccount(
 			chainIdAsBuffer,
 		);
-		if (!doesTerminatedOutboxAccountExist) {
+		if (!terminatedOutboxAccountExists) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('Terminated outbox account does not exist'),
