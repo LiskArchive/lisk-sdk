@@ -23,7 +23,7 @@ import {
 	STORE_PREFIX_TERMINATED_STATE,
 	COMMAND_ID_STATE_RECOVERY,
 } from '../../constants';
-import { stateRecoveryParams, terminatedStateSchema } from '../../schema';
+import { stateRecoveryParamsSchema, terminatedStateSchema } from '../../schema';
 import { StateRecoveryParams, TerminatedStateAccount, StoreCallback } from '../../types';
 import {
 	CommandExecuteContext,
@@ -38,7 +38,7 @@ import { getIDAsKeyForStore } from '../../utils';
 export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 	public id = COMMAND_ID_STATE_RECOVERY;
 	public name = 'stateRecovery';
-	public schema = stateRecoveryParams;
+	public schema = stateRecoveryParamsSchema;
 
 	public async verify(
 		context: CommandVerifyContext<StateRecoveryParams>,
@@ -47,7 +47,7 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 			params: { chainID, storeEntries, siblingHashes },
 		} = context;
 		const chainIDBuffer = getIDAsKeyForStore(chainID);
-		const errors = validator.validate(stateRecoveryParams, context.params);
+		const errors = validator.validate(this.schema, context.params);
 
 		if (errors.length > 0) {
 			return {

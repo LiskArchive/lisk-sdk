@@ -637,8 +637,8 @@ export const registrationSignatureMessageSchema = {
 	},
 };
 
-export const stateRecoveryParams = {
-	$id: '/modules/interoperability/mainchain/commands/state_recovery',
+export const stateRecoveryParamsSchema = {
+	$id: '/modules/interoperability/mainchain/commands/stateRecovery',
 	type: 'object',
 	required: ['chainID', 'moduleID', 'storeEntries', 'siblingHashes'],
 	properties: {
