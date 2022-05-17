@@ -16,7 +16,7 @@ import { Chain, Block } from '@liskhq/lisk-chain';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { KVStore } from '@liskhq/lisk-db';
 import { Logger } from '../logger';
-import { EndpointHandlers, RegisteredModule, RegisteredSchema } from '../types';
+import { RegisteredModule, RegisteredSchema } from '../types';
 import { NodeOptions } from './types';
 import { InMemoryChannel } from '../controller/channels';
 import { Network } from './network';
@@ -25,18 +25,14 @@ import { BaseCommand } from '../modules/base_command';
 import { StateMachine } from './state_machine';
 import { Consensus, CONSENSUS_EVENT_BLOCK_DELETE, CONSENSUS_EVENT_BLOCK_NEW } from './consensus';
 import { BlockGenerateInput, Generator, GenesisBlockGenerateInput } from './generator';
-import { Endpoint } from './endpoint';
 import { getRegisteredModules, getSchema } from './utils/modules';
-import { getEndpointHandlers, mergeEndpointHandlers } from '../endpoint';
+import { getEndpointHandlers } from '../endpoint';
 import { ValidatorsAPI, ValidatorsModule } from '../modules/validators';
 import { BFTAPI, BFTModule } from '../modules/bft';
-import {
-	APP_EVENT_BLOCK_DELETE,
-	APP_EVENT_BLOCK_NEW,
-	APP_EVENT_CHAIN_FORK,
-	APP_EVENT_NETWORK_READY,
-	APP_EVENT_TRANSACTION_NEW,
-} from './events';
+import { APP_EVENT_BLOCK_DELETE, APP_EVENT_BLOCK_NEW } from './events';
+import { NotFoundHandler, RPCServer } from './rpc/rpc_server';
+import { ChainEndpoint } from './endpoint/chain';
+import { SystemEndpoint } from './endpoint/system';
 
 const MINIMUM_MODULE_ID = 2;
 
@@ -61,10 +57,9 @@ export class Node {
 	private readonly _generator: Generator;
 	private readonly _network: Network;
 	private readonly _chain: Chain;
-	private readonly _endpoint: Endpoint;
 	private readonly _validatorsModule: ValidatorsModule;
 	private readonly _bftModule: BFTModule;
-	private _channel!: InMemoryChannel;
+	private readonly _rpcServer: RPCServer;
 	private _logger!: Logger;
 	private _nodeDB!: KVStore;
 	private _forgerDB!: KVStore;
@@ -105,43 +100,12 @@ export class Node {
 			stateMachine: this._stateMachine,
 			genesisConfig: this._options.genesis,
 		});
-		this._endpoint = new Endpoint({
-			options: this._options,
-			chain: this._chain,
-			consensus: this._consensus,
-			generator: this._generator,
-		});
 		this._bftModule.addDependencies(this._validatorsModule.api);
 		this._stateMachine.registerSystemModule(this._validatorsModule);
 		this._stateMachine.registerSystemModule(this._bftModule);
 		this._generator.registerModule(this._validatorsModule);
 		this._generator.registerModule(this._bftModule);
-	}
-
-	public getEndpoints(): EndpointHandlers {
-		const rootEndpoints = getEndpointHandlers(this._endpoint);
-		const generatorEndpoint = getEndpointHandlers(this._generator.endpoint);
-		return mergeEndpointHandlers(rootEndpoints, generatorEndpoint);
-	}
-
-	public getModuleEndpoints(): { [moduleName: string]: EndpointHandlers } {
-		return this._registeredModules.reduce(
-			(prev, mod) => ({
-				...prev,
-				[mod.name]: getEndpointHandlers(mod.endpoint),
-			}),
-			{},
-		);
-	}
-
-	public getEvents(): ReadonlyArray<string> {
-		return [
-			APP_EVENT_NETWORK_READY.replace('app_', ''),
-			APP_EVENT_TRANSACTION_NEW.replace('app_', ''),
-			APP_EVENT_CHAIN_FORK.replace('app_', ''),
-			APP_EVENT_BLOCK_NEW.replace('app_', ''),
-			APP_EVENT_BLOCK_DELETE.replace('app_', ''),
-		];
+		this._rpcServer = new RPCServer(options.rpc);
 	}
 
 	public getSchema(): RegisteredSchema {
@@ -194,14 +158,12 @@ export class Node {
 	}
 
 	public async init({
-		channel,
 		genesisBlock,
 		blockchainDB,
 		forgerDB,
 		logger,
 		nodeDB,
 	}: NodeInitInput): Promise<void> {
-		this._channel = channel;
 		this._logger = logger;
 		this._blockchainDB = blockchainDB;
 		this._forgerDB = forgerDB;
@@ -215,10 +177,6 @@ export class Node {
 			db: this._blockchainDB,
 			networkIdentifier: this._networkIdentifier,
 			genesisBlock,
-		});
-
-		this._endpoint.init({
-			registeredModules: this._registeredModules,
 		});
 
 		await this._network.init({
@@ -250,12 +208,36 @@ export class Node {
 
 		this._consensus.events.on(CONSENSUS_EVENT_BLOCK_NEW, (block: Block) => {
 			this._generator.onNewBlock(block);
-			this._channel.publish(APP_EVENT_BLOCK_NEW, { block: block.getBytes().toString('hex') });
+			this._rpcServer.publish(APP_EVENT_BLOCK_NEW, { block: block.getBytes().toString('hex') });
 		});
 		this._consensus.events.on(CONSENSUS_EVENT_BLOCK_DELETE, (block: Block) => {
 			this._generator.onDeleteBlock(block);
-			this._channel.publish(APP_EVENT_BLOCK_DELETE, { block: block.getBytes().toString('hex') });
+			this._rpcServer.publish(APP_EVENT_BLOCK_DELETE, { block: block.getBytes().toString('hex') });
 		});
+
+		this._rpcServer.init({
+			logger: this._logger,
+			networkIdentifier: this._chain.networkIdentifier,
+		});
+		const chainEndpoint = new ChainEndpoint({
+			chain: this._chain,
+		});
+		const systemEndpoint = new SystemEndpoint({
+			chain: this._chain,
+			consensus: this._consensus,
+			generator: this._generator,
+			options: this._options,
+		});
+
+		for (const [name, handler] of Object.entries(getEndpointHandlers(chainEndpoint))) {
+			this._rpcServer.registerEndpoint('chain', name, handler);
+		}
+		for (const [name, handler] of Object.entries(getEndpointHandlers(systemEndpoint))) {
+			this._rpcServer.registerEndpoint('system', name, handler);
+		}
+		for (const [name, handler] of Object.entries(getEndpointHandlers(this._generator.endpoint))) {
+			this._rpcServer.registerEndpoint('endpoint', name, handler);
+		}
 
 		this._logger.info('Node ready and launched');
 	}
@@ -278,6 +260,10 @@ export class Node {
 		return this._generator.generateBlock(input);
 	}
 
+	public registerNotFoundHandler(handler: NotFoundHandler): void {
+		this._rpcServer.registerNotFoundEndpoint(handler);
+	}
+
 	public get bftAPI(): BFTAPI {
 		return this._bftModule.api;
 	}
@@ -294,6 +280,7 @@ export class Node {
 		await this._network.start();
 		await this._generator.start();
 		await this._consensus.start();
+		await this._rpcServer.start();
 	}
 
 	public async stop(): Promise<void> {
@@ -301,6 +288,7 @@ export class Node {
 		await this._network.stop();
 		await this._generator.stop();
 		await this._consensus.stop();
+		this._rpcServer.stop();
 		this._logger.info('Node cleanup completed');
 	}
 }

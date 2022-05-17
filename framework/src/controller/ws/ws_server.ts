@@ -156,7 +156,7 @@ export class WSServer {
 		for (const eventName of params.topics) {
 			// skip not matching event to be added
 			const exist = this._registeredEvents.some(name => name.includes(eventName));
-			if (!exist) {
+			if (this.registerAllowedEvent.length > 0 && !exist) {
 				continue;
 			}
 			this._subscriptions[socket.url].add(eventName);

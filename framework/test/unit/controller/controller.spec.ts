@@ -147,9 +147,6 @@ describe('Controller Class', () => {
 			expect(controller['_bus']).toBeInstanceOf(Bus);
 			expect(controller['_logger']).not.toBeUndefined();
 			expect(controller['_internalIPCServer']).not.toBeUndefined();
-			expect(controller['_externalIPCServer']).not.toBeUndefined();
-			expect(controller['_wsServer']).toBeUndefined();
-			expect(controller['_httpServer']).toBeUndefined();
 		});
 	});
 

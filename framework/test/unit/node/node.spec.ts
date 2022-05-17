@@ -119,7 +119,6 @@ describe('Node', () => {
 			expect(node['_bftModule']).toBeDefined();
 			expect(node['_consensus']).toBeDefined();
 			expect(node['_generator']).toBeDefined();
-			expect(node['_endpoint']).toBeDefined();
 		});
 
 		it('should register system modules to state machine and generator', () => {
@@ -182,32 +181,6 @@ describe('Node', () => {
 	describe('getRegisteredModules', () => {
 		// eslint-disable-next-line jest/expect-expect
 		it('should return currently registered modules information', () => {});
-	});
-
-	describe('getEndpoints', () => {
-		let endpoints: Record<string, unknown>;
-		beforeEach(() => {
-			endpoints = node.getEndpoints();
-		});
-
-		it('should not change the exposed endpoints unintentionally', () => {
-			expect(Object.keys(endpoints)).toMatchSnapshot();
-		});
-
-		it('should return generator endpoint', () => {
-			expect(endpoints).toHaveProperty('postTransaction');
-		});
-
-		it('should return all node endpoints', () => {
-			expect(endpoints).toHaveProperty('getBlockByID');
-		});
-
-		it('should return all module endpoints', () => {
-			const moduleEndpoints = node.getModuleEndpoints();
-
-			expect(moduleEndpoints).toHaveProperty('sample');
-			expect(moduleEndpoints['sample']).toHaveProperty('do');
-		});
 	});
 
 	describe('getSchema', () => {
