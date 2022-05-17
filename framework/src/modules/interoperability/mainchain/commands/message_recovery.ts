@@ -12,21 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { codec } from '@liskhq/lisk-codec';
-import { regularMerkleTree } from '@liskhq/lisk-tree';
-import { hash } from '@liskhq/lisk-cryptography';
-import { CCM_STATUS_OK, COMMAND_ID_MESSAGE_RECOVERY } from '../../constants';
-import { ccmSchema } from '../../schema';
+import { NotFoundError } from '@liskhq/lisk-chain';
+import { COMMAND_ID_MESSAGE_RECOVERY } from '../../constants';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
 	VerificationResult,
-	VerifyStatus,
 } from '../../../../node/state_machine/types';
-import { CCMsg, StoreCallback, MessageRecoveryParams } from '../../types';
+import { StoreCallback, MessageRecoveryParams, TerminatedOutboxAccount } from '../../types';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { MainchainInteroperabilityStore } from '../store';
-import { getIDAsKeyForStore } from '../../utils';
+import { getIDAsKeyForStore, verifyMessageRecovery } from '../../utils';
 
 export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
 	public id = COMMAND_ID_MESSAGE_RECOVERY;
@@ -41,62 +37,23 @@ export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
 		} = context;
 		const chainIdAsBuffer = getIDAsKeyForStore(chainID);
 		const interoperabilityStore = this.getInteroperabilityStore(getStore);
+		let terminatedChainOutboxAccount: TerminatedOutboxAccount;
 
-		const terminatedOutboxAccountExists = await interoperabilityStore.hasTerminatedOutboxAccount(
-			chainIdAsBuffer,
-		);
-		if (!terminatedOutboxAccountExists) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('Terminated outbox account does not exist'),
-			};
-		}
-
-		const terminatedChainOutboxAccount = await interoperabilityStore.getTerminatedOutboxAccount(
-			chainIdAsBuffer,
-		);
-		for (const index of idxs) {
-			if (index < terminatedChainOutboxAccount.partnerChainInboxSize) {
-				return {
-					status: VerifyStatus.FAIL,
-					error: new Error('Cross chain messages are still pending'),
-				};
+		try {
+			terminatedChainOutboxAccount = await interoperabilityStore.getTerminatedOutboxAccount(
+				chainIdAsBuffer,
+			);
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
 			}
+			return verifyMessageRecovery({ idxs, crossChainMessages, siblingHashes });
 		}
 
-		const deserializedCCMs = crossChainMessages.map(serializedCcm =>
-			codec.decode<CCMsg>(ccmSchema, serializedCcm),
+		return verifyMessageRecovery(
+			{ idxs, crossChainMessages, siblingHashes },
+			terminatedChainOutboxAccount,
 		);
-		for (const ccm of deserializedCCMs) {
-			if (ccm.status !== CCM_STATUS_OK) {
-				return {
-					status: VerifyStatus.FAIL,
-					error: new Error('Cross chain message that needs to be recovered is not valid'),
-				};
-			}
-		}
-
-		const proof = {
-			size: terminatedChainOutboxAccount.outboxSize,
-			idxs,
-			siblingHashes,
-		};
-		const hashedCCMs = crossChainMessages.map(ccm => hash(ccm));
-		const isVerified = regularMerkleTree.verifyDataBlock(
-			hashedCCMs,
-			proof,
-			terminatedChainOutboxAccount.outboxRoot,
-		);
-		if (!isVerified) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error('The sidechain outbox root is not valid'),
-			};
-		}
-
-		return {
-			status: VerifyStatus.OK,
-		};
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
