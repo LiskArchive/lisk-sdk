@@ -20,7 +20,6 @@ import { BaseInteroperabilityCommand } from '../../base_interoperability_command
 import {
 	EMPTY_HASH,
 	MODULE_ID_INTEROPERABILITY,
-	EMPTY_FEE_ADDRESS,
 	STORE_PREFIX_TERMINATED_STATE,
 	COMMAND_ID_STATE_RECOVERY,
 } from '../../constants';
@@ -117,25 +116,25 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 
 	public async execute(context: CommandExecuteContext<StateRecoveryParams>): Promise<void> {
 		const {
+			transaction,
 			params: { chainID, storeEntries, moduleID, siblingHashes },
 		} = context;
 		const chainIDBuffer = getIDAsKeyForStore(chainID);
 		const storeQueries = [];
 
-		const apisWithRecover = [...this.interoperableCCAPIs.values()].filter(api =>
-			Reflect.has(api, 'recover'),
-		) as Pick<Required<BaseInteroperableAPI>, 'recover'>[];
-
 		for (const entry of storeEntries) {
+			const moduleApisWithRecover = [...this.interoperableCCAPIs.values()].filter(
+				api => api.moduleID === moduleID && Reflect.has(api, 'recover'),
+			) as Pick<Required<BaseInteroperableAPI>, 'recover'>[];
 			// The recover function corresponding to the module ID applies the recovery logic
-			for (const api of apisWithRecover) {
+			for (const api of moduleApisWithRecover) {
 				const recoverContext = createRecoverCCMsgAPIContext({
 					terminatedChainID: chainID,
 					moduleID,
 					storePrefix: entry.storePrefix,
 					storeKey: entry.storeKey.readUInt32BE(0),
 					storeValue: entry.storeValue,
-					feeAddress: EMPTY_FEE_ADDRESS,
+					feeAddress: transaction.senderAddress,
 				});
 				try {
 					await api.recover(recoverContext);
