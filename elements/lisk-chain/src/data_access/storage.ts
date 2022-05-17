@@ -15,7 +15,7 @@ import { KVStore, formatInt, getFirstPrefix, getLastPrefix, NotFoundError } from
 import { codec } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
 import { RawBlock, StateDiff } from '../types';
-
+import { Event } from '../event';
 import {
 	DB_KEY_BLOCKS_ID,
 	DB_KEY_BLOCKS_HEIGHT,
@@ -25,11 +25,13 @@ import {
 	DB_KEY_DIFF_STATE,
 	DB_KEY_FINALIZED_HEIGHT,
 	DB_KEY_BLOCK_ASSETS_BLOCK_ID,
+	DB_KEY_BLOCK_EVENTS,
 } from '../db_keys';
 import { concatDBKeys } from '../utils';
 import { stateDiffSchema } from '../schema';
 import { CurrentState } from '../state_store';
 import { toSMTKey } from '../state_store/utils';
+import { DEFAULT_KEEP_EVENTS_FOR_HEIGHTS } from '../constants';
 
 const bytesArraySchema = {
 	$id: 'lisk-chain/bytesarray',
@@ -55,13 +57,20 @@ const decodeByteArray = (val: Buffer): Buffer[] => {
 	return decoded.list;
 };
 
-const encodeByteArray = (val: Buffer[]): Buffer => codec.encode(bytesArraySchema, { list: val });
+export const encodeByteArray = (val: Buffer[]): Buffer =>
+	codec.encode(bytesArraySchema, { list: val });
+
+interface StorageOption {
+	keepEventsForHeights?: number;
+}
 
 export class Storage {
 	private readonly _db: KVStore;
+	private readonly _keepEventsForHeights: number;
 
-	public constructor(db: KVStore) {
+	public constructor(db: KVStore, options?: StorageOption) {
 		this._db = db;
+		this._keepEventsForHeights = options?.keepEventsForHeights ?? DEFAULT_KEEP_EVENTS_FOR_HEIGHTS;
 	}
 
 	/*
@@ -235,6 +244,13 @@ export class Storage {
 		};
 	}
 
+	public async getEvents(height: number): Promise<Event[]> {
+		const eventsByte = await this._db.get(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(height)));
+		const events = decodeByteArray(eventsByte);
+
+		return events.map(e => Event.fromBytes(e));
+	}
+
 	public async getTempBlocks(): Promise<Buffer[]> {
 		const stream = this._db.createReadStream({
 			gte: getFirstPrefix(DB_KEY_TEMPBLOCKS_HEIGHT),
@@ -338,6 +354,7 @@ export class Storage {
 		finalizedHeight: number,
 		header: Buffer,
 		transactions: { id: Buffer; value: Buffer }[],
+		events: Buffer[],
 		assets: Buffer[],
 		state: CurrentState,
 		removeFromTemp = false,
@@ -354,6 +371,10 @@ export class Storage {
 			}
 			batch.put(concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, id), Buffer.concat(ids));
 		}
+		if (events.length > 0) {
+			const encodedEvents = encodeByteArray(events);
+			batch.put(concatDBKeys(DB_KEY_BLOCK_EVENTS, heightBuf), encodedEvents);
+		}
 		if (assets.length > 0) {
 			const encodedAsset = encodeByteArray(assets);
 			batch.put(concatDBKeys(DB_KEY_BLOCK_ASSETS_BLOCK_ID, id), encodedAsset);
@@ -369,7 +390,7 @@ export class Storage {
 		batch.put(DB_KEY_FINALIZED_HEIGHT, finalizedHeightBytes);
 
 		await batch.write();
-		await this._cleanUntil(finalizedHeight);
+		await this._cleanUntil(height, finalizedHeight);
 	}
 
 	public async deleteBlock(
@@ -391,6 +412,7 @@ export class Storage {
 			}
 			batch.del(concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, id));
 		}
+		batch.del(concatDBKeys(DB_KEY_BLOCK_EVENTS, heightBuf));
 		if (assets.length > 0) {
 			batch.del(concatDBKeys(DB_KEY_BLOCK_ASSETS_BLOCK_ID, id));
 		}
@@ -438,11 +460,28 @@ export class Storage {
 	}
 
 	// This function is out of batch, but even if it fails, it will run again next time
-	private async _cleanUntil(height: number): Promise<void> {
+	private async _cleanUntil(currentHeight: number, finalizedHeight: number): Promise<void> {
 		await this._db.clear({
 			gte: concatDBKeys(DB_KEY_DIFF_STATE, formatInt(0)),
-			lt: concatDBKeys(DB_KEY_DIFF_STATE, formatInt(height)),
+			lt: concatDBKeys(DB_KEY_DIFF_STATE, formatInt(finalizedHeight)),
 		});
+
+		// Delete outdated events if keepEventsForHeights is positive.
+		if (this._keepEventsForHeights > -1) {
+			// events are removed only if finalized and below height - keepEventsForHeights
+			const minEventDeleteHeight = Math.min(
+				finalizedHeight,
+				Math.max(0, currentHeight - this._keepEventsForHeights),
+			);
+			if (minEventDeleteHeight > 0) {
+				const endHeight = Buffer.alloc(4);
+				endHeight.writeUInt32BE(minEventDeleteHeight - 1, 0);
+				await this._db.clear({
+					gte: Buffer.concat([DB_KEY_BLOCK_EVENTS, Buffer.alloc(4, 0)]),
+					lte: Buffer.concat([DB_KEY_BLOCK_EVENTS, endHeight]),
+				});
+			}
+		}
 	}
 
 	private async _getBlockAssets(blockID: Buffer): Promise<Buffer[]> {

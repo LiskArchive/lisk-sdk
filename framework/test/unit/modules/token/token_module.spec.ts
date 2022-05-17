@@ -73,7 +73,7 @@ describe('token module', () => {
 
 	describe('initGenesisState', () => {
 		it('should setup initial state', async () => {
-			const context = createGenesisBlockContext({}).createGenesisBlockExecuteContext();
+			const context = createGenesisBlockContext({}).createInitGenesisStateContext();
 			return expect(tokenModule.initGenesisState(context)).resolves.toBeUndefined();
 		});
 
@@ -84,7 +84,7 @@ describe('token module', () => {
 			const encodedAsset = codec.encode(genesisTokenStoreSchema, input);
 			const context = createGenesisBlockContext({
 				assets: new BlockAssets([{ moduleID: MODULE_ID_TOKEN, data: encodedAsset }]),
-			}).createGenesisBlockExecuteContext();
+			}).createInitGenesisStateContext();
 
 			await expect(tokenModule.initGenesisState(context)).resolves.toBeUndefined();
 			// Expect stored
@@ -139,7 +139,7 @@ describe('token module', () => {
 			const encodedAsset = codec.encode(genesisTokenStoreSchema, input);
 			const context = createGenesisBlockContext({
 				assets: new BlockAssets([{ moduleID: MODULE_ID_TOKEN, data: encodedAsset }]),
-			}).createGenesisBlockExecuteContext();
+			}).createInitGenesisStateContext();
 
 			await expect(tokenModule.initGenesisState(context)).rejects.toThrow(err as string);
 		});

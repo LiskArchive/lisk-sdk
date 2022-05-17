@@ -24,6 +24,9 @@ const appConfigForPlugin = {
 	rootPath: '/my/path',
 	label: 'my-app',
 	logger: { consoleLogLevel: 'debug', fileLogLevel: '123', logFileName: 'plugin1.log' },
+	system: {
+		keepEventsForHeights: -1,
+	},
 	rpc: {
 		modes: ['ipc'],
 		ws: {

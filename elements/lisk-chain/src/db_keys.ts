@@ -19,6 +19,7 @@ export const DB_KEY_TRANSACTIONS_BLOCK_ID = Buffer.from([5]);
 export const DB_KEY_TRANSACTIONS_ID = Buffer.from([6]);
 export const DB_KEY_TEMPBLOCKS_HEIGHT = Buffer.from([7]);
 export const DB_KEY_BLOCK_ASSETS_BLOCK_ID = Buffer.from([8]);
+export const DB_KEY_BLOCK_EVENTS = Buffer.from([9]);
 
 export const DB_KEY_STATE_STORE = Buffer.from([10]);
 

@@ -15,14 +15,17 @@ import { EventEmitter } from 'events';
 import {
 	Block,
 	Chain,
+	Event,
 	Slots,
 	SMTStore,
 	StateStore,
 	CurrentState,
 	BlockHeader,
+	MAX_EVENTS_PER_BLOCK,
+	EVENT_KEY_LENGTH,
 } from '@liskhq/lisk-chain';
 import { jobHandlers, objects } from '@liskhq/lisk-utils';
-import { KVStore } from '@liskhq/lisk-db';
+import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import { Logger } from '../../logger';
@@ -221,7 +224,15 @@ export class Consensus {
 			) {
 				throw new Error('Genesis block validators hash is invalid');
 			}
-			await this._chain.saveBlock(args.genesisBlock, state, args.genesisBlock.header.height);
+			const events = ctx.eventQueue.getEvents();
+			await this._verifyEventRoot(args.genesisBlock, events);
+
+			await this._chain.saveBlock(
+				args.genesisBlock,
+				events,
+				state,
+				args.genesisBlock.header.height,
+			);
 		}
 		await this._chain.loadLastBlocks(args.genesisBlock);
 		this._genesisBlockTimestamp = args.genesisBlock.header.timestamp;
@@ -541,7 +552,10 @@ export class Consensus {
 		);
 		this._verifyStateRoot(block, currentState.smt.rootHash);
 
-		await this._chain.saveBlock(block, currentState, finalizedHeight, {
+		const events = ctx.eventQueue.getEvents();
+		await this._verifyEventRoot(block, events);
+
+		await this._chain.saveBlock(block, events, currentState, finalizedHeight, {
 			removeFromTempTable: options.removeFromTempTable ?? false,
 		});
 
@@ -738,6 +752,28 @@ export class Consensus {
 		if (!block.header.stateRoot || !stateRoot.equals(block.header.stateRoot)) {
 			throw new Error(
 				`State root is not valid for the block with id: ${block.header.id.toString('hex')}`,
+			);
+		}
+	}
+
+	private async _verifyEventRoot(block: Block, events: Event[]): Promise<void> {
+		if (events.length > MAX_EVENTS_PER_BLOCK) {
+			throw new Error(`Number of events cannot exceed ${MAX_EVENTS_PER_BLOCK} per block`);
+		}
+		const smtStore = new SMTStore(new InMemoryKVStore());
+		const smt = new SparseMerkleTree({
+			db: smtStore,
+			keyLength: EVENT_KEY_LENGTH,
+		});
+		for (const e of events) {
+			const pairs = e.keyPair();
+			for (const pair of pairs) {
+				await smt.update(pair.key, pair.value);
+			}
+		}
+		if (!block.header.eventRoot || !smt.rootHash.equals(block.header.eventRoot)) {
+			throw new Error(
+				`Event root is not valid for the block with id: ${block.header.id.toString('hex')}`,
 			);
 		}
 	}

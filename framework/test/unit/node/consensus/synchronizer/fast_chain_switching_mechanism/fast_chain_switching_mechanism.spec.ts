@@ -61,6 +61,7 @@ describe('fast_chain_switching_mechanism', () => {
 
 		chainModule = new Chain({
 			maxTransactionsSize: 15000,
+			keepEventsForHeights: -1,
 		});
 		chainModule.init({
 			db: new InMemoryKVStore(),

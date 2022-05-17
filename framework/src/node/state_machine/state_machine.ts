@@ -12,7 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Schema } from '@liskhq/lisk-codec';
+import { EVENT_STANDARD_TYPE_ID } from '@liskhq/lisk-chain';
+import { standardEventDataSchema } from '@liskhq/lisk-chain/dist-node/schema';
+import { codec, Schema } from '@liskhq/lisk-codec';
 import { BlockContext } from './block_context';
 import { GenesisBlockContext } from './genesis_block_context';
 import { TransactionContext } from './transaction_context';
@@ -73,25 +75,26 @@ export class StateMachine {
 	}
 
 	public async executeGenesisBlock(ctx: GenesisBlockContext): Promise<void> {
-		const blockContext = ctx.createGenesisBlockExecuteContext();
+		const initContext = ctx.createInitGenesisStateContext();
 		for (const mod of this._systemModules) {
 			if (mod.initGenesisState) {
-				await mod.initGenesisState(blockContext);
+				await mod.initGenesisState(initContext);
 			}
 		}
 		for (const mod of this._modules) {
 			if (mod.initGenesisState) {
-				await mod.initGenesisState(blockContext);
+				await mod.initGenesisState(initContext);
 			}
 		}
+		const finalizeContext = ctx.createFinalizeGenesisStateContext();
 		for (const mod of this._modules) {
 			if (mod.finalizeGenesisState) {
-				await mod.finalizeGenesisState(blockContext);
+				await mod.finalizeGenesisState(finalizeContext);
 			}
 		}
 		for (const mod of this._systemModules) {
 			if (mod.finalizeGenesisState) {
-				await mod.finalizeGenesisState(blockContext);
+				await mod.finalizeGenesisState(finalizeContext);
 			}
 		}
 	}
@@ -143,8 +146,17 @@ export class StateMachine {
 		}
 		const command = this._getCommand(ctx.transaction.moduleID, ctx.transaction.commandID);
 		// Execute command
+		ctx.eventQueue.createSnapshot();
+		// TODO: When adding failing transaction with https://github.com/LiskHQ/lisk-sdk/issues/7149, it should add try-catch, restoresnapshot and fail event
 		const commandContext = ctx.createCommandExecuteContext(command.schema);
 		await command.execute(commandContext);
+		// TODO: This should be moved to engine with https://github.com/LiskHQ/lisk-sdk/issues/7011
+		ctx.eventQueue.add(
+			ctx.transaction.moduleID,
+			EVENT_STANDARD_TYPE_ID,
+			codec.encode(standardEventDataSchema, { success: true }),
+			[ctx.transaction.id],
+		);
 
 		// Execute after transaction hooks
 		for (const mod of this._modules) {

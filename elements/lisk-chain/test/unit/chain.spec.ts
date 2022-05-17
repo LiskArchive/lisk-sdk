@@ -39,6 +39,7 @@ import { BlockAssets } from '../../src';
 describe('chain', () => {
 	const constants = {
 		maxTransactionsSize: 15 * 1024,
+		keepEventsForHeights: 300,
 	};
 	const emptyEncodedDiff = codec.encode(stateDiffSchema, {
 		created: [],
@@ -176,7 +177,7 @@ describe('chain', () => {
 		});
 
 		it('should remove diff until finalized height', async () => {
-			await chainInstance.saveBlock(savingBlock, currentState, 1, {
+			await chainInstance.saveBlock(savingBlock, [], currentState, 1, {
 				removeFromTempTable: true,
 			});
 			expect(db.clear).toHaveBeenCalledWith({
@@ -186,7 +187,7 @@ describe('chain', () => {
 		});
 
 		it('should remove tempBlock by height when removeFromTempTable is true', async () => {
-			await chainInstance.saveBlock(savingBlock, currentState, 0, {
+			await chainInstance.saveBlock(savingBlock, [], currentState, 0, {
 				removeFromTempTable: true,
 			});
 			expect(batch.del).toHaveBeenCalledWith(
@@ -195,7 +196,7 @@ describe('chain', () => {
 		});
 
 		it('should save block', async () => {
-			await chainInstance.saveBlock(savingBlock, currentState, 0);
+			await chainInstance.saveBlock(savingBlock, [], currentState, 0);
 			expect(batch.put).toHaveBeenCalledWith(
 				concatDBKeys(DB_KEY_BLOCKS_ID, savingBlock.header.id),
 				expect.anything(),

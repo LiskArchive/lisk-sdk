@@ -40,6 +40,7 @@ export const createBlockHeaderWithDefaults = (header?: Partial<BlockHeaderAttrs>
 		previousBlockID: header?.previousBlockID ?? hash(getRandomBytes(4)),
 		transactionRoot: header?.transactionRoot ?? hash(getRandomBytes(4)),
 		stateRoot: header?.stateRoot ?? hash(getRandomBytes(4)),
+		eventRoot: header?.eventRoot ?? hash(getRandomBytes(4)),
 		generatorAddress: header?.generatorAddress ?? getRandomBytes(32),
 		aggregateCommit: header?.aggregateCommit ?? {
 			height: 0,
@@ -76,6 +77,7 @@ export const createBlock = async ({
 		previousBlockID,
 		timestamp,
 		transactionRoot: header?.transactionRoot ?? txTree.root,
+		eventRoot: header?.eventRoot,
 		stateRoot: header?.stateRoot,
 		generatorAddress: getAddressFromPublicKey(publicKey),
 		...header,

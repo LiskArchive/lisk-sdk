@@ -46,6 +46,9 @@ Object {
         "port": 8080,
       },
     },
+    "system": Object {
+      "keepEventsForHeights": 300,
+    },
     "transactionPool": Object {
       "maxTransactions": 4096,
       "maxTransactionsPerAccount": 64,
@@ -434,6 +437,17 @@ Object {
           "type": "object",
         },
       },
+      "type": "object",
+    },
+    "system": Object {
+      "properties": Object {
+        "keepEventsForHeights": Object {
+          "type": "integer",
+        },
+      },
+      "required": Array [
+        "keepEventsForHeights",
+      ],
       "type": "object",
     },
     "transactionPool": Object {

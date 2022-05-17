@@ -149,10 +149,9 @@ describe('Update generator key command', () => {
 					updateGeneratorKeyCommandParamsSchema,
 				);
 			await updateGeneratorCommand.execute(context);
-			const apiContext = context.getAPIContext();
 
 			expect(mockValidatorsAPI.setValidatorGeneratorKey).toHaveBeenCalledWith(
-				apiContext,
+				expect.anything(),
 				transaction.senderAddress,
 				context.params.generatorKey,
 			);

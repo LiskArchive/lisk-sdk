@@ -17,6 +17,7 @@ import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import * as createDebug from 'debug';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import {
+	DEFAULT_KEEP_EVENTS_FOR_HEIGHTS,
 	DEFAULT_MAX_BLOCK_HEADER_CACHE,
 	DEFAULT_MIN_BLOCK_HEADER_CACHE,
 	GENESIS_BLOCK_VERSION,
@@ -29,11 +30,13 @@ import {
 	stateDiffSchema,
 } from './schema';
 import { Block } from './block';
+import { Event } from './event';
 import { BlockHeader } from './block_header';
 import { CurrentState } from './state_store/smt_store';
 
 interface ChainConstructor {
 	// Constants
+	readonly keepEventsForHeights: number;
 	readonly maxTransactionsSize: number;
 	readonly minBlockHeaderCache?: number;
 	readonly maxBlockHeaderCache?: number;
@@ -58,6 +61,7 @@ export class Chain {
 		readonly maxTransactionsSize: number;
 		readonly minBlockHeaderCache: number;
 		readonly maxBlockHeaderCache: number;
+		readonly keepEventsForHeights: number;
 	};
 
 	private _lastBlock?: Block;
@@ -68,6 +72,7 @@ export class Chain {
 	public constructor({
 		// Constants
 		maxTransactionsSize,
+		keepEventsForHeights = DEFAULT_KEEP_EVENTS_FOR_HEIGHTS,
 		minBlockHeaderCache = DEFAULT_MIN_BLOCK_HEADER_CACHE,
 		maxBlockHeaderCache = DEFAULT_MAX_BLOCK_HEADER_CACHE,
 	}: ChainConstructor) {
@@ -81,6 +86,7 @@ export class Chain {
 			maxTransactionsSize,
 			maxBlockHeaderCache,
 			minBlockHeaderCache,
+			keepEventsForHeights,
 		};
 	}
 
@@ -112,6 +118,7 @@ export class Chain {
 			db: args.db,
 			minBlockHeaderCache: this.constants.minBlockHeaderCache,
 			maxBlockHeaderCache: this.constants.maxBlockHeaderCache,
+			keepEventsForHeights: this.constants.keepEventsForHeights,
 		});
 	}
 
@@ -191,13 +198,14 @@ export class Chain {
 
 	public async saveBlock(
 		block: Block,
+		events: Event[],
 		state: CurrentState,
 		finalizedHeight: number,
 		{ removeFromTempTable } = {
 			removeFromTempTable: false,
 		},
 	): Promise<void> {
-		await this.dataAccess.saveBlock(block, state, finalizedHeight, removeFromTempTable);
+		await this.dataAccess.saveBlock(block, events, state, finalizedHeight, removeFromTempTable);
 		this.dataAccess.addBlockHeader(block.header);
 		this._finalizedHeight = finalizedHeight;
 		this._lastBlock = block;

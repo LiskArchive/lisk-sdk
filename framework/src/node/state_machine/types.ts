@@ -15,7 +15,10 @@ import { Transaction } from '@liskhq/lisk-chain';
 import { IterateOptions } from '@liskhq/lisk-chain/dist-node/state_store';
 import { Schema } from '@liskhq/lisk-codec';
 import { Logger } from '../../logger';
-import { EventQueue } from './event_queue';
+
+export interface EventQueueAdder {
+	add(moduleID: number, typeID: Buffer, data: Buffer, topics?: Buffer[], noRevert?: boolean): void;
+}
 
 export interface ImmutableSubStore {
 	get(key: Buffer): Promise<Buffer>;
@@ -34,12 +37,11 @@ export interface SubStore extends ImmutableSubStore {
 
 export interface ImmutableAPIContext {
 	getStore: (moduleID: number, storePrefix: number) => ImmutableSubStore;
-	eventQueue: EventQueue;
 }
 
 export interface APIContext {
 	getStore: (moduleID: number, storePrefix: number) => SubStore;
-	eventQueue: EventQueue;
+	eventQueue: EventQueueAdder;
 }
 
 export enum VerifyStatus {
@@ -92,6 +94,7 @@ export interface CommandVerifyContext<T = undefined> {
 export interface CommandExecuteContext<T = undefined> {
 	logger: Logger;
 	networkIdentifier: Buffer;
+	eventQueue: EventQueueAdder;
 	header: BlockHeader;
 	assets: BlockAssets;
 	transaction: Transaction; // without decoding params
@@ -102,7 +105,7 @@ export interface CommandExecuteContext<T = undefined> {
 
 export interface GenesisBlockExecuteContext {
 	logger: Logger;
-	eventQueue: EventQueue;
+	eventQueue: EventQueueAdder;
 	getAPIContext: () => APIContext;
 	getStore: (moduleID: number, storePrefix: number) => SubStore;
 	header: BlockHeader;
@@ -112,7 +115,7 @@ export interface GenesisBlockExecuteContext {
 export interface TransactionExecuteContext {
 	logger: Logger;
 	networkIdentifier: Buffer;
-	eventQueue: EventQueue;
+	eventQueue: EventQueueAdder;
 	getAPIContext: () => APIContext;
 	getStore: (moduleID: number, storePrefix: number) => SubStore;
 	header: BlockHeader;
@@ -123,7 +126,6 @@ export interface TransactionExecuteContext {
 export interface BlockVerifyContext {
 	logger: Logger;
 	networkIdentifier: Buffer;
-	eventQueue: EventQueue;
 	getAPIContext: () => ImmutableAPIContext;
 	getStore: (moduleID: number, storePrefix: number) => ImmutableSubStore;
 	header: BlockHeader;
@@ -133,7 +135,7 @@ export interface BlockVerifyContext {
 export interface BlockExecuteContext {
 	logger: Logger;
 	networkIdentifier: Buffer;
-	eventQueue: EventQueue;
+	eventQueue: EventQueueAdder;
 	getAPIContext: () => APIContext;
 	getStore: (moduleID: number, storePrefix: number) => SubStore;
 	header: BlockHeader;

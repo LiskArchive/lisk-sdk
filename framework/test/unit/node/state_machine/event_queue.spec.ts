@@ -12,15 +12,37 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { EVENT_MAX_EVENT_SIZE_BYTES } from '@liskhq/lisk-chain';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { EventQueue } from '../../../../src/node/state_machine/event_queue';
 
 describe('EventQueue', () => {
 	// Arrange
 	const events = [
-		{ key: 'moduleA:beforeX', value: Buffer.from('Module A Before X started', 'utf-8') },
-		{ key: 'moduleB:beforeX', value: Buffer.from('Module B Before X started', 'utf-8') },
-		{ key: 'moduleB:afterX', value: Buffer.from('Module B Before X end', 'utf-8') },
-		{ key: 'moduleA:afterX', value: Buffer.from('Module A Before X end', 'utf-8') },
+		{
+			moduleID: 3,
+			typeID: Buffer.from([0, 0, 0, 0]),
+			data: getRandomBytes(20),
+			topics: [getRandomBytes(32), getRandomBytes(20)],
+		},
+		{
+			moduleID: 4,
+			typeID: Buffer.from([0, 0, 0, 0]),
+			data: getRandomBytes(20),
+			topics: [getRandomBytes(32), getRandomBytes(20)],
+		},
+		{
+			moduleID: 2,
+			typeID: Buffer.from([0, 0, 0, 0]),
+			data: getRandomBytes(20),
+			topics: [getRandomBytes(32)],
+		},
+		{
+			moduleID: 1,
+			typeID: Buffer.from([0, 0, 0, 0]),
+			data: getRandomBytes(20),
+			topics: [getRandomBytes(32), getRandomBytes(20), getRandomBytes(20), getRandomBytes(20)],
+		},
 	];
 	let eventQueue: EventQueue;
 
@@ -28,66 +50,80 @@ describe('EventQueue', () => {
 		eventQueue = new EventQueue();
 	});
 
-	it('should expose interface for add, createSnapshot, restoreSnapshot, and getEvents', () => {
-		// Asset
-		expect(eventQueue.add).toBeFunction();
-		expect(eventQueue.createSnapshot).toBeFunction();
-		expect(eventQueue.restoreSnapshot).toBeFunction();
-		return expect(eventQueue.getEvents).toBeFunction();
+	it('should throw error if data size exceeds maximum allowed', () => {
+		expect(() =>
+			eventQueue.add(2, Buffer.from([0, 0, 0, 1]), getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES + 1), [
+				getRandomBytes(32),
+			]),
+		).toThrow('Max size of event data is');
+	});
+
+	it('should throw error if topics is empty', () => {
+		expect(() =>
+			eventQueue.add(2, Buffer.from([0, 0, 0, 1]), getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES), []),
+		).toThrow('Topics must have at least one element');
+	});
+
+	it('should throw error if topics length exceeds maxumum allowed', () => {
+		expect(() =>
+			eventQueue.add(
+				2,
+				Buffer.from([0, 0, 0, 1]),
+				getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES),
+				new Array(5).fill(0).map(() => getRandomBytes(32)),
+			),
+		).toThrow('Max topics per event is');
 	});
 
 	it('should be able to add events to queue', () => {
 		// Act
-		events.map(e => eventQueue.add(e.key, e.value));
+		events.map(e => eventQueue.add(e.moduleID, e.typeID, e.data, e.topics));
 		const addedEvents = eventQueue.getEvents();
 
 		// Asset
+		expect(addedEvents).toHaveLength(events.length);
 		addedEvents.forEach((e, i) => {
-			expect(e.key).toEqual(events[i].key);
-			expect(e.value.equals(events[i].value)).toBeTrue();
+			expect(e.toObject()).toEqual({
+				...events[i],
+				moduleID: intToBuffer(events[i].moduleID, 4),
+				index: i,
+			});
 		});
-		return expect(addedEvents).toHaveLength(events.length);
 	});
 
-	it('should be able to createSnapshot for events', () => {
-		// Act
-		events.map(e => eventQueue.add(e.key, e.value));
+	it('should return original set of events when create and restore snapshot', () => {
+		events.map(e => eventQueue.add(e.moduleID, e.typeID, e.data, e.topics));
+		expect(eventQueue.getEvents()).toHaveLength(events.length);
+
 		eventQueue.createSnapshot();
-		const originalEvents = eventQueue['_originalEvents'];
-
-		// Asset
-		originalEvents.forEach((e, i) => {
-			expect(e.key).toEqual(events[i].key);
-			expect(e.value.equals(events[i].value)).toBeTrue();
-		});
-		return expect(originalEvents).toHaveLength(events.length);
-	});
-
-	it('should be able to restoreSnapshot for events', () => {
-		// Act
-		events.map(e => eventQueue.add(e.key, e.value));
-		const addedEvents = eventQueue.getEvents();
+		eventQueue.add(3, Buffer.from([0, 0, 0, 1]), getRandomBytes(100), [getRandomBytes(32)]);
 		eventQueue.restoreSnapshot();
 
-		// Asset
-		expect(eventQueue['_originalEvents']).toBeEmpty();
-		addedEvents.forEach((e, i) => {
-			expect(e.key).toEqual(events[i].key);
-			expect(e.value.equals(events[i].value)).toBeTrue();
+		expect(eventQueue.getEvents()).toHaveLength(events.length);
+		eventQueue.getEvents().forEach((e, i) => {
+			expect(e.toObject()).toEqual({
+				...events[i],
+				moduleID: intToBuffer(events[i].moduleID, 4),
+				index: i,
+			});
 		});
-		return expect(addedEvents).toHaveLength(events.length);
 	});
 
-	it('should be able to getEvents added', () => {
-		// Act
-		events.map(e => eventQueue.add(e.key, e.value));
-		const addedEvents = eventQueue.getEvents();
+	it('should maintain new nonRevertible events when restoring the snapshot', () => {
+		events.map(e => eventQueue.add(e.moduleID, e.typeID, e.data, e.topics));
+		expect(eventQueue.getEvents()).toHaveLength(events.length);
 
-		// Asset
-		addedEvents.forEach((e, i) => {
-			expect(e.key).toEqual(events[i].key);
-			expect(e.value.equals(events[i].value)).toBeTrue();
-		});
-		return expect(addedEvents).toHaveLength(events.length);
+		eventQueue.createSnapshot();
+		eventQueue.add(3, Buffer.from([0, 0, 0, 1]), getRandomBytes(100), [getRandomBytes(32)], false);
+		eventQueue.add(3, Buffer.from([0, 0, 0, 1]), getRandomBytes(100), [getRandomBytes(32)], true);
+		eventQueue.add(3, Buffer.from([0, 0, 0, 1]), getRandomBytes(100), [getRandomBytes(32)], false);
+		eventQueue.restoreSnapshot();
+
+		expect(eventQueue.getEvents()).toHaveLength(events.length + 1);
+		const queuedEvents = eventQueue.getEvents();
+		// eslint-disable-next-line @typescript-eslint/prefer-for-of
+		for (let i = 0; i < queuedEvents.length; i += 1) {
+			expect(queuedEvents[i].toObject().index).toEqual(i);
+		}
 	});
 });
