@@ -24,6 +24,7 @@ export {
 	blockSchema,
 	signingBlockHeaderSchema,
 	stateDiffSchema,
+	blockAssetSchema,
 } from './schema';
 export {
 	TAG_BLOCK_HEADER,
