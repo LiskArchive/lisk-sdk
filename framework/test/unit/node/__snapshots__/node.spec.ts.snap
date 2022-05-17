@@ -12,6 +12,8 @@ Array [
   "getSchema",
   "getRegisteredModules",
   "getNodeInfo",
+  "getEvents",
+  "proveEvents",
   "postTransaction",
   "getForgingStatus",
   "getTransactionsFromPool",
