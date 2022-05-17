@@ -39,7 +39,7 @@ describe('RewardModule', () => {
 		rewardModule.addDependencies(
 			{ mint } as any,
 			{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
-			{ impliesMaximalPrevotes: jest.fn().mockReturnValue(true) } as any,
+			{ currentHeaderImpliesMaximalPrevotes: jest.fn().mockReturnValue(true) } as any,
 		);
 	});
 
