@@ -30,7 +30,9 @@ export {
 	TAG_TRANSACTION,
 	EVENT_MAX_TOPICS_PER_EVENT,
 	EVENT_MAX_EVENT_SIZE_BYTES,
+	EVENT_STANDARD_TYPE_ID,
 	MAX_EVENTS_PER_BLOCK,
+	EVENT_KEY_LENGTH,
 } from './constants';
 export * from './db_keys';
 export type { RawBlock } from './types';

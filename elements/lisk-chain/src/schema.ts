@@ -213,7 +213,7 @@ export const standardEventDataSchema = {
 	required: ['success'],
 	properties: {
 		success: {
-			dataType: 'bool',
+			dataType: 'boolean',
 			fieldNumber: 1,
 		},
 	},

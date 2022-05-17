@@ -14,7 +14,8 @@
 
 import { StateStore } from '@liskhq/lisk-chain';
 import { Logger } from '../../logger';
-import { APIContext } from './api_context';
+import { APIContext, wrapEventQueue } from './api_context';
+import { EVENT_INDEX_FINALIZE_GENESIS_STATE, EVENT_INDEX_INIT_GENESIS_STATE } from './constants';
 import { EventQueue } from './event_queue';
 import { BlockAssets, BlockHeader, GenesisBlockExecuteContext } from './types';
 
@@ -41,16 +42,35 @@ export class GenesisBlockContext {
 		this._assets = params.assets;
 	}
 
-	public createGenesisBlockExecuteContext(): GenesisBlockExecuteContext {
+	public createInitGenesisStateContext(): GenesisBlockExecuteContext {
+		const wrappedEventQueue = wrapEventQueue(this._eventQueue, EVENT_INDEX_INIT_GENESIS_STATE);
 		return {
-			eventQueue: this._eventQueue,
+			eventQueue: wrappedEventQueue,
 			getAPIContext: () =>
-				new APIContext({ stateStore: this._stateStore, eventQueue: this._eventQueue }),
+				new APIContext({ stateStore: this._stateStore, eventQueue: wrappedEventQueue }),
 			getStore: (moduleID: number, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
 			logger: this._logger,
 			assets: this._assets,
 		};
+	}
+
+	public createFinalizeGenesisStateContext(): GenesisBlockExecuteContext {
+		const wrappedEventQueue = wrapEventQueue(this._eventQueue, EVENT_INDEX_FINALIZE_GENESIS_STATE);
+		return {
+			eventQueue: wrappedEventQueue,
+			getAPIContext: () =>
+				new APIContext({ stateStore: this._stateStore, eventQueue: wrappedEventQueue }),
+			getStore: (moduleID: number, storePrefix: number) =>
+				this._stateStore.getStore(moduleID, storePrefix),
+			header: this._header,
+			logger: this._logger,
+			assets: this._assets,
+		};
+	}
+
+	public get eventQueue(): EventQueue {
+		return this._eventQueue;
 	}
 }

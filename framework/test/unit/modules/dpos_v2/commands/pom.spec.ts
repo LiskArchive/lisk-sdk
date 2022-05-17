@@ -603,13 +603,13 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
 			when(pomCommand['_tokenAPI'].getAvailableBalance as any)
-				.calledWith(context.getAPIContext(), delegate1Address, DEFAULT_TOKEN_ID)
+				.calledWith(expect.anything(), delegate1Address, DEFAULT_TOKEN_ID)
 				.mockResolvedValue(remainingBalance as never);
 
 			await pomCommand.execute(context);
 
 			expect(pomCommand['_tokenAPI'].transfer).toHaveBeenCalledWith(
-				context.getAPIContext(),
+				expect.anything(),
 				delegate1Address,
 				context.transaction.senderAddress,
 				DEFAULT_TOKEN_ID,
@@ -635,14 +635,14 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
 			when(pomCommand['_tokenAPI'].getAvailableBalance as any)
-				.calledWith(context.getAPIContext(), delegate1Address, DEFAULT_TOKEN_ID)
+				.calledWith(expect.anything(), delegate1Address, DEFAULT_TOKEN_ID)
 				.mockResolvedValue(remainingBalance as never);
 
 			await pomCommand.execute(context);
 
 			// If amount is zero, it should not call the transfer
 			expect(pomCommand['_tokenAPI'].transfer).not.toHaveBeenCalledWith(
-				context.getAPIContext(),
+				expect.anything(),
 				delegate1Address,
 				context.transaction.senderAddress,
 				DEFAULT_TOKEN_ID,
@@ -668,13 +668,13 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
 			when(pomCommand['_tokenAPI'].getAvailableBalance as any)
-				.calledWith(context.getAPIContext(), delegate1Address, DEFAULT_TOKEN_ID)
+				.calledWith(expect.anything(), delegate1Address, DEFAULT_TOKEN_ID)
 				.mockResolvedValue(remainingBalance as never);
 
 			await pomCommand.execute(context);
 
 			expect(pomCommand['_tokenAPI'].transfer).toHaveBeenCalledWith(
-				context.getAPIContext(),
+				expect.anything(),
 				delegate1Address,
 				context.transaction.senderAddress,
 				DEFAULT_TOKEN_ID,

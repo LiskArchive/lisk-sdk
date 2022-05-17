@@ -136,7 +136,6 @@ describe('FeeModule', () => {
 			});
 			const context = createTransactionContext({ transaction });
 			const transactionExecuteContext = context.createTransactionExecuteContext();
-			const apiContext = transactionExecuteContext.getAPIContext();
 			const senderAddress = getAddressFromPublicKey(context.transaction.senderPublicKey);
 			const minFee =
 				BigInt(feeModule['_minFeePerByte'] * transaction.getBytes().length) +
@@ -144,13 +143,13 @@ describe('FeeModule', () => {
 			await feeModule.beforeCommandExecute(transactionExecuteContext);
 
 			expect(feeModule['_tokenAPI'].burn).toHaveBeenCalledWith(
-				apiContext,
+				expect.anything(),
 				senderAddress,
 				feeModule['_tokenID'],
 				minFee,
 			);
 			expect(feeModule['_tokenAPI'].transfer).toHaveBeenCalledWith(
-				apiContext,
+				expect.anything(),
 				senderAddress,
 				transactionExecuteContext.header.generatorAddress,
 				feeModule['_tokenID'],
@@ -171,14 +170,13 @@ describe('FeeModule', () => {
 			});
 			const context = createTransactionContext({ transaction });
 			const transactionExecuteContext = context.createTransactionExecuteContext();
-			const apiContext = transactionExecuteContext.getAPIContext();
 			const senderAddress = getAddressFromPublicKey(context.transaction.senderPublicKey);
 
 			await feeModule.beforeCommandExecute(transactionExecuteContext);
 
 			expect(feeModule['_tokenAPI'].burn).not.toHaveBeenCalled();
 			expect(feeModule['_tokenAPI'].transfer).toHaveBeenCalledWith(
-				apiContext,
+				expect.anything(),
 				senderAddress,
 				transactionExecuteContext.header.generatorAddress,
 				feeModule['_tokenID'],

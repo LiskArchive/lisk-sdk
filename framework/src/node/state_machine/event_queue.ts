@@ -68,7 +68,15 @@ export class EventQueue {
 
 	public restoreSnapshot(): void {
 		const newEvents = this._events.splice(this._snapshotIndex);
-		const nonRevertableEvents = newEvents.filter(eventData => eventData.noRevert);
+		const nonRevertableEvents = newEvents
+			.filter(eventData => eventData.noRevert)
+			.map((eventData, i) => ({
+				event: new Event({
+					...eventData.event.toObject(),
+					index: this._snapshotIndex + i,
+				}),
+				noRevert: false,
+			}));
 		this._events.push(...nonRevertableEvents);
 		this._snapshotIndex = -1;
 	}
