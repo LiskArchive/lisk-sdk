@@ -261,3 +261,10 @@ export interface StateRecoveryParams {
 	storeEntries: StoreEntry[];
 	siblingHashes: Buffer[];
 }
+
+export interface StateRecoveryInitParams {
+	chainID: number;
+	sidechainChainAccount: Buffer;
+	bitmap: Buffer;
+	siblingHashes: Buffer[];
+}
