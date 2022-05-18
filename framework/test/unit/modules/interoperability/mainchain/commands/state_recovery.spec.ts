@@ -57,6 +57,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 	beforeEach(async () => {
 		interoperableCCAPIs = new Map();
 		interoperableAPI = {
+			moduleID: 1,
 			recover: jest.fn(),
 		};
 		interoperableCCAPIs.set(1, interoperableAPI);
@@ -68,7 +69,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 		);
 		transactionParams = {
 			chainID: 3,
-			moduleID: 2,
+			moduleID: 1,
 			storeEntries: [
 				{
 					storePrefix: 1,
