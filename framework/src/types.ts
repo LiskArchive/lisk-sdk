@@ -83,6 +83,10 @@ export interface TransactionPoolConfig {
 	readonly minReplacementFeeDifference?: string;
 }
 
+export interface SystemConfig {
+	keepEventsForHeights: number;
+}
+
 type RecursivePartial<T> = {
 	[P in keyof T]?: RecursivePartial<T[P]>;
 };
@@ -128,6 +132,7 @@ export interface ApplicationConfig {
 	genesis: GenesisConfig;
 	generation: GenerationConfig;
 	network: NetworkConfig;
+	system: SystemConfig;
 	logger: {
 		logFileName: string;
 		fileLogLevel: string;

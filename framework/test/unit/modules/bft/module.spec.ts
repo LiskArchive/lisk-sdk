@@ -58,7 +58,7 @@ describe('bft module', () => {
 				stateStore,
 			});
 
-			await bftModule.initGenesisState(context.createGenesisBlockExecuteContext());
+			await bftModule.initGenesisState(context.createInitGenesisStateContext());
 
 			const votesStore = stateStore.getStore(bftModule.id, STORE_PREFIX_BFT_VOTES);
 

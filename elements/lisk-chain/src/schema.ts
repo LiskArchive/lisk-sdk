@@ -48,13 +48,14 @@ export const signingBlockHeaderSchema = {
 		generatorAddress: { dataType: 'bytes', fieldNumber: 5 },
 		transactionRoot: { dataType: 'bytes', fieldNumber: 6 },
 		assetsRoot: { dataType: 'bytes', fieldNumber: 7 },
-		stateRoot: { dataType: 'bytes', fieldNumber: 8 },
-		maxHeightPrevoted: { dataType: 'uint32', fieldNumber: 9 },
-		maxHeightGenerated: { dataType: 'uint32', fieldNumber: 10 },
-		validatorsHash: { dataType: 'bytes', fieldNumber: 11 },
+		eventRoot: { dataType: 'bytes', fieldNumber: 8 },
+		stateRoot: { dataType: 'bytes', fieldNumber: 9 },
+		maxHeightPrevoted: { dataType: 'uint32', fieldNumber: 10 },
+		maxHeightGenerated: { dataType: 'uint32', fieldNumber: 11 },
+		validatorsHash: { dataType: 'bytes', fieldNumber: 12 },
 		aggregateCommit: {
 			type: 'object',
-			fieldNumber: 12,
+			fieldNumber: 13,
 			required: ['height', 'aggregationBits', 'certificateSignature'],
 			properties: {
 				height: {
@@ -80,6 +81,7 @@ export const signingBlockHeaderSchema = {
 		'generatorAddress',
 		'transactionRoot',
 		'assetsRoot',
+		'eventRoot',
 		'stateRoot',
 		'maxHeightPrevoted',
 		'maxHeightGenerated',
@@ -94,7 +96,7 @@ export const blockHeaderSchema = {
 	required: [...signingBlockHeaderSchema.required, 'signature'],
 	properties: {
 		...signingBlockHeaderSchema.properties,
-		signature: { dataType: 'bytes', fieldNumber: 13 },
+		signature: { dataType: 'bytes', fieldNumber: 14 },
 	},
 };
 
@@ -104,7 +106,7 @@ export const blockHeaderSchemaWithId = {
 	required: [...blockHeaderSchema.required, 'id'],
 	properties: {
 		...blockHeaderSchema.properties,
-		id: { dataType: 'bytes', fieldNumber: 14 },
+		id: { dataType: 'bytes', fieldNumber: 15 },
 	},
 };
 
@@ -169,6 +171,50 @@ export const stateDiffSchema = {
 					},
 				},
 			},
+		},
+	},
+};
+
+export const eventSchema = {
+	$id: '/block/event',
+	type: 'object',
+	required: ['moduleID', 'typeID', 'data', 'topics', 'index'],
+	properties: {
+		moduleID: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+		typeID: {
+			dataType: 'bytes',
+			fieldNumber: 2,
+		},
+		data: {
+			dataType: 'bytes',
+			fieldNumber: 3,
+		},
+		topics: {
+			type: 'array',
+			fieldNumber: 4,
+			items: {
+				maxItems: 4,
+				dataType: 'bytes',
+			},
+		},
+		index: {
+			dataType: 'uint32',
+			fieldNumber: 5,
+		},
+	},
+};
+
+export const standardEventDataSchema = {
+	$id: '/block/event/standard',
+	type: 'object',
+	required: ['success'],
+	properties: {
+		success: {
+			dataType: 'boolean',
+			fieldNumber: 1,
 		},
 	},
 };

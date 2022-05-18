@@ -14,7 +14,8 @@
 
 import { Transaction, StateStore } from '@liskhq/lisk-chain';
 import { Logger } from '../../logger';
-import { createAPIContext } from './api_context';
+import { createAPIContext, createImmutableAPIContext, wrapEventQueue } from './api_context';
+import { EVENT_INDEX_AFTER_TRANSACTIONS, EVENT_INDEX_BEFORE_TRANSACTIONS } from './constants';
 import { EventQueue } from './event_queue';
 import { TransactionContext } from './transaction_context';
 import {
@@ -69,9 +70,7 @@ export class BlockContext {
 		return {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
-			eventQueue: this._eventQueue,
-			getAPIContext: () =>
-				createAPIContext({ stateStore: this._stateStore, eventQueue: this._eventQueue }),
+			getAPIContext: () => createImmutableAPIContext(this._stateStore),
 			getStore: (moduleID: number, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
@@ -80,12 +79,13 @@ export class BlockContext {
 	}
 
 	public getBlockExecuteContext(): BlockExecuteContext {
+		const wrappedEventQueue = wrapEventQueue(this._eventQueue, EVENT_INDEX_BEFORE_TRANSACTIONS);
 		return {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
-			eventQueue: this._eventQueue,
+			eventQueue: wrappedEventQueue,
 			getAPIContext: () =>
-				createAPIContext({ stateStore: this._stateStore, eventQueue: this._eventQueue }),
+				createAPIContext({ stateStore: this._stateStore, eventQueue: wrappedEventQueue }),
 			getStore: (moduleID: number, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
@@ -97,12 +97,13 @@ export class BlockContext {
 		if (!this._transactions) {
 			throw new Error('Cannot create block after execute context without transactions');
 		}
+		const wrappedEventQueue = wrapEventQueue(this._eventQueue, EVENT_INDEX_AFTER_TRANSACTIONS);
 		return {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
-			eventQueue: this._eventQueue,
+			eventQueue: wrappedEventQueue,
 			getAPIContext: () =>
-				createAPIContext({ stateStore: this._stateStore, eventQueue: this._eventQueue }),
+				createAPIContext({ stateStore: this._stateStore, eventQueue: wrappedEventQueue }),
 			getStore: (moduleID: number, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
@@ -121,5 +122,9 @@ export class BlockContext {
 			header: this._header,
 			assets: this._assets,
 		});
+	}
+
+	public get eventQueue(): EventQueue {
+		return this._eventQueue;
 	}
 }

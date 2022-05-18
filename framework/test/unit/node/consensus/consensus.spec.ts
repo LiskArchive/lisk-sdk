@@ -12,9 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Block, BlockAssets, Chain, CurrentState, SMTStore, StateStore } from '@liskhq/lisk-chain';
+import {
+	Block,
+	BlockAssets,
+	Chain,
+	CurrentState,
+	SMTStore,
+	StateStore,
+	Event,
+} from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import * as cryptography from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
@@ -22,7 +29,11 @@ import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import {
 	generatePrivateKey,
 	getAddressFromPassphrase,
+	getAddressFromPublicKey,
+	getPrivateAndPublicKeyFromPassphrase,
 	getPublicKeyFromPrivateKey,
+	getRandomBytes,
+	hash,
 } from '@liskhq/lisk-cryptography';
 import { ApplyPenaltyError } from '../../../../src/errors';
 import { BFTAPI, ValidatorAPI } from '../../../../src/node/consensus';
@@ -185,7 +196,7 @@ describe('consensus', () => {
 			// Arrange
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(false);
 			jest.spyOn(consensus as any, '_prepareFinalizingState').mockReturnValue({
-				smt: { rootHash: cryptography.getRandomBytes(32) },
+				smt: { rootHash: getRandomBytes(32) },
 			});
 			jest.spyOn(consensus['_bftAPI'] as any, 'getBFTParameters').mockResolvedValue({
 				validatorsHash: genesis.header.validatorsHash,
@@ -199,6 +210,25 @@ describe('consensus', () => {
 			).rejects.toThrow('Genesis block state root is invalid');
 		});
 
+		it('should fail initialization if eventRoot is invalid', async () => {
+			// Arrange
+			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(false);
+			jest.spyOn(consensus['_bftAPI'] as any, 'getBFTParameters').mockResolvedValue({
+				validatorsHash: genesis.header.validatorsHash,
+			});
+			jest
+				.spyOn(consensus, '_verifyEventRoot' as never)
+				.mockRejectedValue(new Error('Event root is not valid for the block') as never);
+
+			await expect(
+				consensus.init({
+					logger: loggerMock,
+					db: dbMock,
+					genesisBlock: genesis,
+				}),
+			).rejects.toThrow('Event root is not valid for the block');
+		});
+
 		it('should fail initialization if validatorsHash is invalid', async () => {
 			// Arrange
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(false);
@@ -206,7 +236,7 @@ describe('consensus', () => {
 				smt: { rootHash: genesis.header.stateRoot },
 			});
 			jest.spyOn(consensus['_bftAPI'] as any, 'getBFTParameters').mockResolvedValue({
-				validatorsHash: cryptography.getRandomBytes(32),
+				validatorsHash: getRandomBytes(32),
 			});
 			await expect(
 				consensus.init({
@@ -602,6 +632,7 @@ describe('consensus', () => {
 				jest.spyOn(consensus.events, 'emit');
 				consensus['_db'] = dbMock;
 				consensus['_verifyStateRoot'] = jest.fn().mockReturnValue(undefined);
+				consensus['_verifyEventRoot'] = jest.fn().mockReturnValue(undefined);
 
 				await consensus.init({
 					db: dbMock,
@@ -695,7 +726,7 @@ describe('consensus', () => {
 			describe('previousBlockID', () => {
 				it('should throw error for invalid previousBlockID', () => {
 					const invalidBlock = { ...block };
-					(invalidBlock.header as any).previousBlockID = cryptography.getRandomBytes(64);
+					(invalidBlock.header as any).previousBlockID = getRandomBytes(64);
 
 					expect(() => consensus['_verifyPreviousBlockID'](block as any)).toThrow(
 						`Invalid previousBlockID ${invalidBlock.header.previousBlockID.toString(
@@ -714,7 +745,7 @@ describe('consensus', () => {
 			describe('generatorAddress', () => {
 				it('should throw error if [generatorAddress.length !== 20]', async () => {
 					const invalidBlock = { ...block };
-					(invalidBlock.header as any).generatorAddress = cryptography.getRandomBytes(64);
+					(invalidBlock.header as any).generatorAddress = getRandomBytes(64);
 					await expect(
 						consensus['_verifyGeneratorAddress'](apiContext, invalidBlock as any),
 					).rejects.toThrow(
@@ -727,7 +758,7 @@ describe('consensus', () => {
 				it('should throw error if generatorAddress has wrong block slot', async () => {
 					when(consensus['_validatorAPI'].getGeneratorAtTimestamp as never)
 						.calledWith(apiContext, (block.header as any).timestamp)
-						.mockResolvedValue(cryptography.getRandomBytes(20) as never);
+						.mockResolvedValue(getRandomBytes(20) as never);
 
 					await expect(
 						consensus['_verifyGeneratorAddress'](apiContext, block as any),
@@ -795,7 +826,7 @@ describe('consensus', () => {
 
 			describe('signature', () => {
 				it('should throw error for invalid signature', async () => {
-					const generatorKey = cryptography.getRandomBytes(32);
+					const generatorKey = getRandomBytes(32);
 
 					when(consensus['_validatorAPI'].getValidatorAccount as never)
 						.calledWith(apiContext, block.header.generatorAddress)
@@ -812,12 +843,10 @@ describe('consensus', () => {
 
 				it('should be success when valid signature', async () => {
 					const passphrase = Mnemonic.generateMnemonic();
-					const keyPair = cryptography.getPrivateAndPublicKeyFromPassphrase(passphrase);
+					const keyPair = getPrivateAndPublicKeyFromPassphrase(passphrase);
 
 					const blockHeader = createFakeBlockHeader();
-					(blockHeader as any).generatorAddress = cryptography.getAddressFromPublicKey(
-						keyPair.publicKey,
-					);
+					(blockHeader as any).generatorAddress = getAddressFromPublicKey(keyPair.publicKey);
 					(consensus['_chain'] as any).networkIdentifier = defaultNetworkIdentifier;
 
 					blockHeader.sign(consensus['_chain'].networkIdentifier, keyPair.privateKey);
@@ -838,12 +867,12 @@ describe('consensus', () => {
 					when(consensus['_bftAPI'].getBFTParameters as never)
 						.calledWith(apiContext, block.header.height + 1)
 						.mockResolvedValue({
-							validatorsHash: cryptography.hash(cryptography.getRandomBytes(32)),
+							validatorsHash: hash(getRandomBytes(32)),
 						} as never);
 
 					block.header.validatorsHash = undefined;
-					block.header['_signature'] = cryptography.getRandomBytes(64);
-					block.header['_id'] = cryptography.getRandomBytes(64);
+					block.header['_signature'] = getRandomBytes(64);
+					block.header['_id'] = getRandomBytes(64);
 
 					await expect(
 						consensus['_verifyValidatorsHash'](apiContext, block as any),
@@ -858,7 +887,7 @@ describe('consensus', () => {
 					when(consensus['_bftAPI'].getBFTParameters as never)
 						.calledWith(apiContext, block.header.height + 1)
 						.mockResolvedValue({
-							validatorsHash: cryptography.hash(cryptography.getRandomBytes(32)),
+							validatorsHash: hash(getRandomBytes(32)),
 						} as never);
 
 					await expect(
@@ -921,9 +950,7 @@ describe('consensus', () => {
 
 		describe('_verifyStateRoot', () => {
 			it('should throw error when stateRoot is not equal to calculated state root', () => {
-				expect(() =>
-					consensus['_verifyStateRoot'](block as any, cryptography.getRandomBytes(32)),
-				).toThrow(
+				expect(() => consensus['_verifyStateRoot'](block as any, getRandomBytes(32))).toThrow(
 					`State root is not valid for the block with id: ${block.header.id.toString('hex')}`,
 				);
 			});
@@ -932,6 +959,29 @@ describe('consensus', () => {
 				expect(
 					consensus['_verifyStateRoot'](block as any, block.header.stateRoot as Buffer),
 				).toBeUndefined();
+			});
+		});
+
+		describe('_verifyEventRoot', () => {
+			it('should throw error when eventRoot is not equal to calculated event root', async () => {
+				await expect(
+					consensus['_verifyEventRoot'](block as any, [
+						new Event({
+							data: getRandomBytes(20),
+							index: 0,
+							moduleID: Buffer.from([0, 0, 0, 2]),
+							topics: [Buffer.from([0])],
+							typeID: Buffer.from([0, 0, 0, 1]),
+						}),
+					]),
+				).rejects.toThrow(
+					`Event root is not valid for the block with id: ${block.header.id.toString('hex')}`,
+				);
+			});
+
+			it('should be success when eventRoot is equal to blocks eventRoot', async () => {
+				block.header.eventRoot = hash(Buffer.alloc(0));
+				await expect(consensus['_verifyEventRoot'](block as any, [])).resolves.toBeUndefined();
 			});
 		});
 

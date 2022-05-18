@@ -17,6 +17,7 @@ import { Transaction } from '../transaction';
 import { RawBlock } from '../types';
 import { BlockHeader } from '../block_header';
 import { Block } from '../block';
+import { Event } from '../event';
 
 import { BlockCache } from './cache';
 import { Storage as StorageAccess } from './storage';
@@ -27,14 +28,20 @@ interface DAConstructor {
 	readonly db: KVStore;
 	readonly minBlockHeaderCache: number;
 	readonly maxBlockHeaderCache: number;
+	readonly keepEventsForHeights: number;
 }
 
 export class DataAccess {
 	private readonly _storage: StorageAccess;
 	private readonly _blocksCache: BlockCache;
 
-	public constructor({ db, minBlockHeaderCache, maxBlockHeaderCache }: DAConstructor) {
-		this._storage = new StorageAccess(db);
+	public constructor({
+		db,
+		minBlockHeaderCache,
+		maxBlockHeaderCache,
+		keepEventsForHeights,
+	}: DAConstructor) {
+		this._storage = new StorageAccess(db, { keepEventsForHeights });
 		this._blocksCache = new BlockCache(minBlockHeaderCache, maxBlockHeaderCache);
 	}
 
@@ -230,6 +237,12 @@ export class DataAccess {
 		return this._decodeRawBlock(block);
 	}
 
+	public async getEvents(height: number): Promise<Event[]> {
+		const events = await this._storage.getEvents(height);
+
+		return events;
+	}
+
 	public async isBlockPersisted(blockId: Buffer): Promise<boolean> {
 		const isPersisted = await this._storage.isBlockPersisted(blockId);
 
@@ -283,6 +296,7 @@ export class DataAccess {
 	*/
 	public async saveBlock(
 		block: Block,
+		events: Event[],
 		state: CurrentState,
 		finalizedHeight: number,
 		removeFromTemp = false,
@@ -296,12 +310,14 @@ export class DataAccess {
 			const encodedTx = tx.getBytes();
 			encodedTransactions.push({ id: txID, value: encodedTx });
 		}
+		const encodedEvents = events.map(e => e.getBytes());
 		await this._storage.saveBlock(
 			blockID,
 			height,
 			finalizedHeight,
 			encodedHeader,
 			encodedTransactions,
+			encodedEvents,
 			block.assets.getBytes(),
 			state,
 			removeFromTemp,

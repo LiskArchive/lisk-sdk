@@ -11,11 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Chain } from '@liskhq/lisk-chain';
-import { NotFoundError } from '@liskhq/lisk-db';
-import { isHexString } from '@liskhq/lisk-validator';
+import { Chain, EventAttr, EVENT_KEY_LENGTH, SMTStore } from '@liskhq/lisk-chain';
+import { InMemoryKVStore, NotFoundError } from '@liskhq/lisk-db';
+import { isHexString, LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { SparseMerkleTree, SMTProof } from '@liskhq/lisk-tree';
 import { BaseModule } from '../modules';
-import { ModuleEndpointContext, RegisteredModule, RegisteredSchema } from '../types';
+import { JSONObject, ModuleEndpointContext, RegisteredModule, RegisteredSchema } from '../types';
 import { Consensus } from './consensus';
 import { Generator } from './generator';
 import { getRegisteredModules, getSchema } from './utils/modules';
@@ -31,6 +32,25 @@ interface EndpoinArgs {
 interface InitArgs {
 	registeredModules: BaseModule[];
 }
+
+const proveEventsRequestSchema = {
+	$id: '/node/endpoint/proveEventsRequestSchema',
+	type: 'object',
+	required: ['height', 'queries'],
+	properties: {
+		height: {
+			type: 'integer',
+			minimum: 0,
+		},
+		queries: {
+			type: 'array',
+			items: {
+				type: 'string',
+				format: 'hex',
+			},
+		},
+	},
+};
 
 export class Endpoint {
 	[key: string]: unknown;
@@ -172,6 +192,47 @@ export class Endpoint {
 				fixedPeers: this._options.network.fixedPeers,
 				whitelistedPeers: this._options.network.whitelistedPeers,
 			},
+		};
+	}
+
+	public async getEvents(context: ModuleEndpointContext): Promise<JSONObject<EventAttr[]>> {
+		const { height } = context.params;
+		if (typeof height !== 'number' || height < 0) {
+			throw new Error('Invalid parameters. height must be zero or a positive number.');
+		}
+		const events = await this._chain.dataAccess.getEvents(height);
+
+		return events.map(e => e.toJSON());
+	}
+
+	public async proveEvents(context: ModuleEndpointContext): Promise<JSONObject<SMTProof>> {
+		const errors = validator.validate(proveEventsRequestSchema, context.params);
+		if (errors.length) {
+			throw new LiskValidationError(errors);
+		}
+		const { height, queries } = context.params as { height: number; queries: string[] };
+		const queryBytes = queries.map(q => Buffer.from(q, 'hex'));
+		const events = await this._chain.dataAccess.getEvents(height);
+
+		const eventSmtStore = new SMTStore(new InMemoryKVStore());
+		const eventSMT = new SparseMerkleTree({
+			db: eventSmtStore,
+			keyLength: EVENT_KEY_LENGTH,
+		});
+		for (const e of events) {
+			const pairs = e.keyPair();
+			for (const pair of pairs) {
+				await eventSMT.update(pair.key, pair.value);
+			}
+		}
+		const proof = await eventSMT.generateMultiProof(queryBytes);
+		return {
+			queries: proof.queries.map(q => ({
+				bitmap: q.bitmap.toString('hex'),
+				key: q.key.toString('hex'),
+				value: q.value.toString('hex'),
+			})),
+			siblingHashes: proof.siblingHashes.map(h => h.toString('hex')),
 		};
 	}
 }

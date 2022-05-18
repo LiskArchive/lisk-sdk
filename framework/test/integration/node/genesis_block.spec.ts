@@ -123,6 +123,7 @@ describe('genesis block', () => {
 
 				const chain = new Chain({
 					maxTransactionsSize: 15 * 1024,
+					keepEventsForHeights: -1,
 				});
 				const newConsensus = new Consensus({
 					bftAPI: consensus['_bftAPI'],

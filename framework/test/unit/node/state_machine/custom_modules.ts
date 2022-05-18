@@ -13,6 +13,13 @@
  */
 /* eslint-disable max-classes-per-file */
 
+import {
+	BlockAfterExecuteContext,
+	BlockExecuteContext,
+	GenesisBlockExecuteContext,
+	TransactionExecuteContext,
+} from '../../../../src/node/state_machine';
+
 export class CustomCommand0 {
 	public id = 0;
 	public name = 'customCommand0';
@@ -58,10 +65,52 @@ export class CustomModule1 {
 	public afterCommandExecute = jest.fn();
 }
 
+export class CustomCommand2 {
+	public id = 0;
+	public name = 'customCommand2';
+	public schema = {
+		$id: 'lisk/custom-command-2',
+		type: 'object',
+		properties: {
+			data: {
+				dataType: 'string',
+				fieldNumber: 1,
+			},
+		},
+	};
+
+	public verify = jest.fn().mockResolvedValue({ status: 1 });
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async execute(ctx: TransactionExecuteContext): Promise<void> {
+		ctx.eventQueue.add(5, Buffer.from([0, 0, 0, 1]), Buffer.from([0, 0, 2]));
+	}
+}
+
 export class CustomModule2 {
 	public id = 5;
 	public name = 'customModule2';
-	public commands = [];
+	public commands = [new CustomCommand2()];
 
 	public verifyTransaction = jest.fn().mockResolvedValue({ status: 0 });
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async initGenesisState(ctx: GenesisBlockExecuteContext): Promise<void> {
+		ctx.eventQueue.add(this.id, Buffer.from([0, 0, 0, 1]), Buffer.from([0, 0, 2]));
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async finalizeGenesisState(ctx: GenesisBlockExecuteContext): Promise<void> {
+		ctx.eventQueue.add(this.id, Buffer.from([0, 0, 0, 1]), Buffer.from([0, 0, 2]));
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async beforeTransactionsExecute(ctx: BlockExecuteContext): Promise<void> {
+		ctx.eventQueue.add(this.id, Buffer.from([0, 0, 0, 1]), Buffer.from([0, 0, 2]));
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async afterTransactionsExecute(ctx: BlockAfterExecuteContext): Promise<void> {
+		ctx.eventQueue.add(this.id, Buffer.from([0, 0, 0, 1]), Buffer.from([0, 0, 2]));
+	}
 }

@@ -89,6 +89,15 @@ export const applicationConfigSchema = {
 			description:
 				'The root path for storing temporary pid and socket file and data. Restricted length due to unix domain socket path length limitations.',
 		},
+		system: {
+			type: 'object',
+			required: ['keepEventsForHeights'],
+			properties: {
+				keepEventsForHeights: {
+					type: 'integer',
+				},
+			},
+		},
 		logger: {
 			type: 'object',
 			required: ['fileLogLevel', 'logFileName', 'consoleLogLevel'],
@@ -372,6 +381,9 @@ export const applicationConfigSchema = {
 		version: '0.0.0',
 		networkVersion: '1.1',
 		rootPath: '~/.lisk',
+		system: {
+			keepEventsForHeights: 300,
+		},
 		logger: {
 			fileLogLevel: 'info',
 			consoleLogLevel: 'none',

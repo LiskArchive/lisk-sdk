@@ -18,6 +18,9 @@ import { FaucetPlugin } from '../../../src/plugin';
 const appConfigForPlugin: ApplicationConfigForPlugin = {
 	rootPath: '~/.lisk',
 	label: 'my-app',
+	system: {
+		keepEventsForHeights: -1,
+	},
 	logger: { consoleLogLevel: 'info', fileLogLevel: 'none', logFileName: 'plugin-FaucetPlugin.log' },
 	rpc: {
 		modes: ['ipc'],

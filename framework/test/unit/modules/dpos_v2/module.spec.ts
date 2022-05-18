@@ -155,7 +155,7 @@ describe('DPoS module', () => {
 					stateStore,
 					header: createFakeBlockHeader({ height: 12345 }),
 					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
-				}).createGenesisBlockExecuteContext();
+				}).createInitGenesisStateContext();
 				jest.spyOn(dpos, 'finalizeGenesisState');
 
 				await expect(dpos.initGenesisState(context)).rejects.toThrow(errString as string);
@@ -182,7 +182,7 @@ describe('DPoS module', () => {
 				const context = createGenesisBlockContext({
 					stateStore,
 					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
-				}).createGenesisBlockExecuteContext();
+				}).createInitGenesisStateContext();
 				await dpos.initGenesisState(context);
 				await expect(dpos.finalizeGenesisState(context)).rejects.toThrow(
 					'When genensis height is zero, there should not be a snapshot',
@@ -197,7 +197,7 @@ describe('DPoS module', () => {
 					stateStore,
 					header: createFakeBlockHeader({ height: 12345 }),
 					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
-				}).createGenesisBlockExecuteContext();
+				}).createInitGenesisStateContext();
 				await dpos.initGenesisState(context);
 				await expect(dpos.finalizeGenesisState(context)).rejects.toThrow(
 					'When genesis height is non-zero, snapshot is required',
@@ -213,7 +213,7 @@ describe('DPoS module', () => {
 				context = createGenesisBlockContext({
 					stateStore,
 					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
-				}).createGenesisBlockExecuteContext();
+				}).createInitGenesisStateContext();
 			});
 
 			it('should store self vote and received votes', async () => {
@@ -1023,15 +1023,15 @@ describe('DPoS module', () => {
 				}
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(context.getAPIContext(), previousTimestamp, currentTimestamp)
+					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
 					.mockReturnValue(missedBlocks);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), currentTimestamp)
+					.calledWith(expect.anything(), currentTimestamp)
 					.mockReturnValue(generatorAddress);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), previousTimestamp)
+					.calledWith(expect.anything(), previousTimestamp)
 					.mockReturnValue(generatorAddress);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
@@ -1086,15 +1086,15 @@ describe('DPoS module', () => {
 				}
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(context.getAPIContext(), previousTimestamp, currentTimestamp)
+					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
 					.mockReturnValue(missedBlocks);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), currentTimestamp)
+					.calledWith(expect.anything(), currentTimestamp)
 					.mockReturnValue(generatorAddress);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), previousTimestamp)
+					.calledWith(expect.anything(), previousTimestamp)
 					.mockReturnValue(lastForgerAddress);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
@@ -1149,15 +1149,15 @@ describe('DPoS module', () => {
 				}
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(context.getAPIContext(), previousTimestamp, currentTimestamp)
+					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
 					.mockReturnValue(missedBlocks);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), currentTimestamp)
+					.calledWith(expect.anything(), currentTimestamp)
 					.mockReturnValue(generatorAddress);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), previousTimestamp)
+					.calledWith(expect.anything(), previousTimestamp)
 					.mockReturnValue(lastForgerAddress);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
@@ -1207,15 +1207,15 @@ describe('DPoS module', () => {
 				const missedBlocks: Record<string, number> = {};
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(context.getAPIContext(), previousTimestamp, currentTimestamp)
+					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
 					.mockReturnValue(missedBlocks);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), currentTimestamp)
+					.calledWith(expect.anything(), currentTimestamp)
 					.mockReturnValue(generatorAddress);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), previousTimestamp)
+					.calledWith(expect.anything(), previousTimestamp)
 					.mockReturnValue(lastForgerAddress);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
@@ -1265,15 +1265,15 @@ describe('DPoS module', () => {
 				missedBlocks[missedDelegate.toString('binary')] = 1;
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(context.getAPIContext(), previousTimestamp, currentTimestamp)
+					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
 					.mockReturnValue(missedBlocks);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), currentTimestamp)
+					.calledWith(expect.anything(), currentTimestamp)
 					.mockReturnValue(generatorAddress);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), previousTimestamp)
+					.calledWith(expect.anything(), previousTimestamp)
 					.mockReturnValue(lastForgerAddress);
 
 				delegateData[missedDelegateIndex].consecutiveMissedBlocks = 50;
@@ -1327,15 +1327,15 @@ describe('DPoS module', () => {
 				missedBlocks[missedDelegate.toString('binary')] = 1;
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(context.getAPIContext(), previousTimestamp, currentTimestamp)
+					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
 					.mockReturnValue(missedBlocks);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), currentTimestamp)
+					.calledWith(expect.anything(), currentTimestamp)
 					.mockReturnValue(generatorAddress);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), previousTimestamp)
+					.calledWith(expect.anything(), previousTimestamp)
 					.mockReturnValue(lastForgerAddress);
 
 				delegateData[missedDelegateIndex].consecutiveMissedBlocks = 40;
@@ -1389,15 +1389,15 @@ describe('DPoS module', () => {
 				missedBlocks[missedDelegate.toString('binary')] = 1;
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(context.getAPIContext(), previousTimestamp, currentTimestamp)
+					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
 					.mockReturnValue(missedBlocks);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), currentTimestamp)
+					.calledWith(expect.anything(), currentTimestamp)
 					.mockReturnValue(generatorAddress);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), previousTimestamp)
+					.calledWith(expect.anything(), previousTimestamp)
 					.mockReturnValue(lastForgerAddress);
 
 				delegateData[missedDelegateIndex].consecutiveMissedBlocks = 50;

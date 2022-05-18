@@ -26,6 +26,9 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 		fileLogLevel: 'none',
 		logFileName: 'plugin-MisbehaviourPlugin.log',
 	},
+	system: {
+		keepEventsForHeights: -1,
+	},
 	rpc: {
 		modes: ['ipc'],
 		ws: {
@@ -71,6 +74,11 @@ describe('Send PoM transaction', () => {
 	let reportMisbehaviorPlugin: ReportMisbehaviorPlugin;
 	const defaultNetworkIdentifier =
 		'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e';
+	const random32Bytes = Buffer.from(
+		'3d1b5dd1ef4ff7b22359598ebdf58966a51adcc03e02ad356632743e65898990',
+		'hex',
+	);
+	const random20Bytes = Buffer.from('40ff452fae2affe6eeef3c30e53e9eac35a1bc43', 'hex');
 	const channelMock = {
 		registerToBus: jest.fn(),
 		once: jest.fn(),
@@ -85,18 +93,31 @@ describe('Send PoM transaction', () => {
 		moduleName: '',
 		options: {},
 	} as any;
-	const header1 = chain.BlockHeader.fromBytes(
-		Buffer.from(
-			'080010fe86b28b06180022002a003220e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8553a20e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8554220e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855480050005a20f8da7f49e92286b0129fd75a9208eed942ef1d79df93c42c9b87e8b6bb9fc84f6206080012001a006a00',
-			'hex',
-		),
-	);
-	const header2 = chain.BlockHeader.fromBytes(
-		Buffer.from(
-			'080010bb87b28b06180022002a003220e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8553a20e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b8554220e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855480050005a20d800954794e0882c2419fe4736c2a191e6515859a7a894043ba5c911da6b72e76206080012001a006a00',
-			'hex',
-		),
-	);
+	const header1 = new chain.BlockHeader({
+		height: 100,
+		aggregateCommit: {
+			aggregationBits: Buffer.alloc(0),
+			certificateSignature: Buffer.alloc(0),
+			height: 0,
+		},
+		generatorAddress: random20Bytes,
+		maxHeightGenerated: 0,
+		maxHeightPrevoted: 50,
+		previousBlockID: random32Bytes,
+		timestamp: 100,
+		version: 2,
+		assetsRoot: random32Bytes,
+		eventRoot: random32Bytes,
+		stateRoot: random32Bytes,
+		transactionRoot: random32Bytes,
+		validatorsHash: random32Bytes,
+		signature: random32Bytes,
+	});
+	const header2 = new chain.BlockHeader({
+		...header1.toObject(),
+		height: 100,
+		maxHeightPrevoted: 32,
+	});
 
 	beforeEach(async () => {
 		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin();

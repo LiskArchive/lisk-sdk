@@ -18,6 +18,7 @@ import { MerkleTree } from './merkle_tree/merkle_tree';
 import { calculateMerkleRoot, calculateMerkleRootWithLeaves } from './merkle_tree/utils';
 import { SparseMerkleTree } from './sparse_merkle_tree/sparse_merkle_tree';
 import { verify, calculateRoot } from './sparse_merkle_tree/utils';
+import { Proof as SMTProof, Query as SMTQuery } from './sparse_merkle_tree/types';
 
 export const regularMerkleTree = {
 	verifyProof,
@@ -33,4 +34,4 @@ export const sparseMerkleTree = {
 	SparseMerkleTree,
 };
 
-export { MerkleTree, SparseMerkleTree };
+export { MerkleTree, SparseMerkleTree, SMTProof, SMTQuery };
