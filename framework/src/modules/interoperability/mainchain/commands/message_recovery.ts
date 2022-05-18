@@ -37,7 +37,7 @@ export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
 		} = context;
 		const chainIdAsBuffer = getIDAsKeyForStore(chainID);
 		const interoperabilityStore = this.getInteroperabilityStore(getStore);
-		let terminatedChainOutboxAccount: TerminatedOutboxAccount;
+		let terminatedChainOutboxAccount: TerminatedOutboxAccount | undefined;
 
 		try {
 			terminatedChainOutboxAccount = await interoperabilityStore.getTerminatedOutboxAccount(
@@ -47,7 +47,6 @@ export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
 			}
-			return verifyMessageRecovery({ idxs, crossChainMessages, siblingHashes });
 		}
 
 		return verifyMessageRecovery(
