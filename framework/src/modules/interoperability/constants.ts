@@ -39,7 +39,7 @@ export const MAX_LENGTH_NAME = 40;
 export const MAX_UINT32 = 4294967295;
 export const MAX_UINT64 = BigInt('18446744073709551615'); // BigInt((2 ** 64) - 1) - 1
 export const THRESHOLD_MAINCHAIN = 68;
-export const MESSAGE_TAG_CERTIFICATE = Buffer.from('LSK_CE_', 'utf-8');
+export const MESSAGE_TAG_CERTIFICATE = 'LSK_CE_';
 
 // Store prefixes
 export const STORE_PREFIX_OUTBOX_ROOT = 0x0000;
