@@ -64,7 +64,7 @@ export interface CCAPIContext {
 	logger: Logger;
 	networkIdentifier: Buffer;
 	eventQueue: EventQueue;
-	ccm: CCMsg;
+	ccm?: CCMsg;
 	feeAddress: Buffer;
 }
 
@@ -252,5 +252,26 @@ export interface MessageRecoveryParams {
 export interface MessageRecoveryVerificationParams {
 	crossChainMessages: Buffer[];
 	idxs: number[];
+	siblingHashes: Buffer[];
+}
+
+export interface StoreEntry {
+	storePrefix: number;
+	storeKey: Buffer;
+	storeValue: Buffer;
+	bitmap: Buffer;
+}
+
+export interface StateRecoveryParams {
+	chainID: number;
+	moduleID: number;
+	storeEntries: StoreEntry[];
+	siblingHashes: Buffer[];
+}
+
+export interface StateRecoveryInitParams {
+	chainID: number;
+	sidechainChainAccount: Buffer;
+	bitmap: Buffer;
 	siblingHashes: Buffer[];
 }

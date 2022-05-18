@@ -170,3 +170,8 @@ export const verifyMessageRecovery = (
 		status: VerifyStatus.OK,
 	};
 };
+export const swapReceivingAndSendingChainIDs = (ccm: CCMsg) => ({
+	...ccm,
+	receivingChainID: ccm.sendingChainID,
+	sendingChainID: ccm.receivingChainID,
+});

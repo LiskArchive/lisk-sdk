@@ -230,6 +230,48 @@ export abstract class BaseInteroperabilityStore {
 			MODULE_ID_INTEROPERABILITY,
 			STORE_PREFIX_TERMINATED_OUTBOX,
 		);
+		return terminatedOutboxSubstore.has(chainID);
+	}
+
+	public async setTerminatedOutboxAccount(
+		chainID: Buffer,
+		params: Partial<TerminatedOutboxAccount>,
+	): Promise<boolean> {
+		// Passed params is empty, no need to call this method
+		if (Object.keys(params).length === 0) {
+			return false;
+		}
+		const terminatedOutboxSubstore = this.getStore(
+			MODULE_ID_INTEROPERABILITY,
+			STORE_PREFIX_TERMINATED_OUTBOX,
+		) as SubStore;
+
+		const doesOutboxExist = await terminatedOutboxSubstore.has(chainID);
+
+		if (!doesOutboxExist) {
+			return false;
+		}
+
+		const account = await terminatedOutboxSubstore.getWithSchema<TerminatedOutboxAccount>(
+			chainID,
+			terminatedOutboxSchema,
+		);
+
+		const terminatedOutbox = {
+			...account,
+			...params,
+		};
+
+		await terminatedOutboxSubstore.setWithSchema(chainID, terminatedOutbox, terminatedOutboxSchema);
+
+		return true;
+	}
+
+	public async terminatedOutboxAccountExist(chainID: Buffer) {
+		const terminatedOutboxSubstore = this.getStore(
+			MODULE_ID_INTEROPERABILITY,
+			STORE_PREFIX_TERMINATED_OUTBOX,
+		);
 
 		return terminatedOutboxSubstore.has(chainID);
 	}
