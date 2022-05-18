@@ -28,6 +28,7 @@ import { BaseInteroperabilityCommand } from '../../base_interoperability_command
 import { MainchainInteroperabilityStore } from '../store';
 import { getIDAsKeyForStore, swapReceivingAndSendingChainIDs } from '../../utils';
 import { BaseInteroperableAPI } from '../../base_interoperable_api';
+import { createCCCommandExecuteContext } from '../../context';
 
 export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
 	public id = COMMAND_ID_MESSAGE_RECOVERY;
@@ -43,6 +44,7 @@ export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
 	public async execute(context: CommandExecuteContext<MessageRecoveryParams>): Promise<void> {
 		const { transaction, params, getAPIContext, logger, networkIdentifier, getStore } = context;
 		const apiContext = getAPIContext();
+		const { eventQueue } = apiContext;
 
 		const chainIdAsBuffer = getIDAsKeyForStore(params.chainID);
 
@@ -105,8 +107,36 @@ export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
 			outboxRoot,
 		});
 
+		const ownChainAccount = await interoperabilityStore.getOwnChainAccount();
 		for (const ccm of deserializedCCMs) {
 			const newCcm = swapReceivingAndSendingChainIDs(ccm);
+
+			if (ownChainAccount.id === ccm.receivingChainID) {
+				const ccCommands = this.ccCommands.get(newCcm.moduleID);
+
+				if (!ccCommands) {
+					continue;
+				}
+
+				const ccCommand = ccCommands.find(command => command.ID === newCcm.crossChainCommandID);
+
+				if (!ccCommand) {
+					continue;
+				}
+
+				const ccCommandExecuteContext = createCCCommandExecuteContext({
+					ccm: newCcm,
+					eventQueue,
+					feeAddress: EMPTY_FEE_ADDRESS,
+					getAPIContext,
+					getStore,
+					logger,
+					networkIdentifier,
+				});
+
+				await ccCommand.execute(ccCommandExecuteContext);
+				continue;
+			}
 
 			const ccmChainIdAsBuffer = getIDAsKeyForStore(newCcm.receivingChainID);
 			const chainAccountExist = await interoperabilityStore.chainAccountExist(ccmChainIdAsBuffer);

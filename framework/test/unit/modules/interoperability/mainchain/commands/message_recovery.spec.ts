@@ -41,6 +41,39 @@ import { createTransactionContext } from '../../../../../../src/testing';
 import { Mocked } from '../../../../../utils/types';
 
 describe('Mainchain MessageRecoveryCommand', () => {
+	const createCommandExecuteContext = (ccms: CCMsg[]) => {
+		const ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
+
+		transactionParams = {
+			chainID: 3,
+			crossChainMessages: [...ccmsEncoded],
+			idxs: [0],
+			siblingHashes: [getRandomBytes(32)],
+		};
+
+		encodedTransactionParams = codec.encode(messageRecoveryParams, transactionParams);
+
+		transaction = new Transaction({
+			moduleID: MODULE_ID_INTEROPERABILITY,
+			commandID: COMMAND_ID_MESSAGE_RECOVERY,
+			fee: BigInt(100000000),
+			nonce: BigInt(0),
+			params: encodedTransactionParams,
+			senderPublicKey: getRandomBytes(32),
+			signatures: [],
+		});
+
+		transactionContext = createTransactionContext({
+			transaction,
+		});
+
+		commandExecuteContext = transactionContext.createCommandExecuteContext<MessageRecoveryParams>(
+			messageRecoveryParams,
+		);
+
+		return commandExecuteContext;
+	};
+
 	type StoreMock = Mocked<
 		MainchainInteroperabilityStore,
 		| 'isLive'
@@ -50,6 +83,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		| 'getTerminatedOutboxAccount'
 		| 'chainAccountExist'
 		| 'terminatedOutboxAccountExist'
+		| 'getOwnChainAccount'
 	>;
 
 	const moduleID = 1;
@@ -97,46 +131,9 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				status: 1,
 				params: Buffer.alloc(0),
 			},
-			{
-				nonce: BigInt(2),
-				moduleID: moduleID + 1,
-				crossChainCommandID: 2,
-				sendingChainID: 3,
-				receivingChainID: 2,
-				fee: BigInt(1),
-				status: 1,
-				params: Buffer.alloc(0),
-			},
 		];
 
-		const ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
-
-		transactionParams = {
-			chainID: 3,
-			crossChainMessages: [...ccmsEncoded],
-			idxs: [0],
-			siblingHashes: [getRandomBytes(32)],
-		};
-
-		encodedTransactionParams = codec.encode(messageRecoveryParams, transactionParams);
-
-		transaction = new Transaction({
-			moduleID: MODULE_ID_INTEROPERABILITY,
-			commandID: COMMAND_ID_MESSAGE_RECOVERY,
-			fee: BigInt(100000000),
-			nonce: BigInt(0),
-			params: encodedTransactionParams,
-			senderPublicKey: getRandomBytes(32),
-			signatures: [],
-		});
-
-		transactionContext = createTransactionContext({
-			transaction,
-		});
-
-		commandExecuteContext = transactionContext.createCommandExecuteContext<MessageRecoveryParams>(
-			messageRecoveryParams,
-		);
+		commandExecuteContext = createCommandExecuteContext(ccms);
 
 		storeMock = {
 			addToOutbox: jest.fn(),
@@ -146,7 +143,14 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			chainAccountExist: jest.fn().mockResolvedValue(true),
 			isLive: jest.fn().mockResolvedValue(true),
 			terminatedOutboxAccountExist: jest.fn().mockResolvedValue(true),
+			getOwnChainAccount: jest.fn(),
 		};
+
+		storeMock.getOwnChainAccount.mockResolvedValue({
+			name: `mainchain`,
+			id: 0,
+			nonce: BigInt(0),
+		});
 
 		jest
 			.spyOn(messageRecoveryCommand, 'getInteroperabilityStore' as any)
@@ -293,6 +297,91 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		// Assert
 		expect.assertions(ccms.length);
 		for (const _ of ccms) {
+			expect(storeMock.addToOutbox).not.toHaveBeenCalled();
+		}
+	});
+
+	it('should execute referenced logic in CCM if ownChainAccountID equals to sendingChainID of the CCM', async () => {
+		// Arrange & Assign
+		commandExecuteContext = createCommandExecuteContext(
+			ccms.map(ccm => ({
+				...ccm,
+				receivingChainID: 0,
+			})),
+		);
+
+		for (const ccm of ccms) {
+			ccCommands.set(ccm.moduleID, ([
+				{
+					ID: ccm.crossChainCommandID,
+					execute: jest.fn(),
+				},
+			] as unknown) as BaseCCCommand[]);
+		}
+
+		const ccmsWithSwappedChainIds = ccms.map(swapReceivingAndSendingChainIDs);
+
+		// Act
+		await messageRecoveryCommand.execute(commandExecuteContext);
+
+		// Assert
+		expect.assertions(ccms.length);
+		for (const ccm of ccmsWithSwappedChainIds) {
+			const commands = ccCommands.get(ccm.moduleID) as BaseCCCommand[];
+			const command = commands.find(cmd => cmd.ID === ccm.crossChainCommandID) as BaseCCCommand;
+			expect(command.execute).toHaveBeenCalled();
+		}
+	});
+
+	it("should skip CCM's proccessing when there is no crossChainCommand associated with a module to execute", async () => {
+		// Arrange & Assign
+		commandExecuteContext = createCommandExecuteContext(
+			ccms.map(ccm => ({
+				...ccm,
+				receivingChainID: 0,
+			})),
+		);
+
+		for (const ccm of ccms) {
+			ccCommands.set(ccm.moduleID, ([
+				{
+					ID: -1,
+					execute: jest.fn(),
+				},
+			] as unknown) as BaseCCCommand[]);
+		}
+
+		BaseCCCommand.prototype.execute = jest.fn();
+
+		// Act
+		await messageRecoveryCommand.execute(commandExecuteContext);
+
+		// Assert
+		expect.assertions(ccms.length * 2);
+		for (const _ of ccms) {
+			expect(BaseCCCommand.prototype.execute).not.toHaveBeenCalled();
+			expect(storeMock.addToOutbox).not.toHaveBeenCalled();
+		}
+	});
+
+	it("should skip CCM's proccessing when there are no ccCommands to execute", async () => {
+		// Assign
+		commandExecuteContext = createCommandExecuteContext(
+			ccms.map(ccm => ({
+				...ccm,
+				receivingChainID: 0,
+			})),
+		);
+
+		BaseCCCommand.prototype.execute = jest.fn();
+
+		// Act
+		await messageRecoveryCommand.execute(commandExecuteContext);
+
+		// Assert
+		expect.assertions(ccms.length * 2);
+		for (const _ of ccms) {
+			expect(BaseCCCommand.prototype.execute).not.toHaveBeenCalled();
 			expect(storeMock.addToOutbox).not.toHaveBeenCalled();
 		}
 	});
