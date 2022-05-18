@@ -217,8 +217,6 @@ ${defaultSignature}
 		});
 
 		it('should sign a transaction', () => {
-			// eslint-disable-next-line no-console
-			console.log(signature.toString('hex'));
 			expect(signature).toEqual(Buffer.from(defaultDataSignature, 'hex'));
 		});
 	});
