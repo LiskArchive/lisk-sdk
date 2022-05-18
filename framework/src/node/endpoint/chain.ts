@@ -40,7 +40,6 @@ const proveEventsRequestSchema = {
 		},
 	},
 };
-
 export class ChainEndpoint {
 	[key: string]: unknown;
 	private readonly _chain: Chain;

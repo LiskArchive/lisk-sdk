@@ -16,13 +16,13 @@ import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
 import { STORE_PREFIX_RANDOM, EMPTY_KEY } from './constants';
-import { isSeedRevealValidParamsSchema, seedRevealSchema } from './schemas';
+import { isSeedRevealValidRequestSchema, seedRevealSchema } from './schemas';
 import { ValidatorReveals } from './types';
 import { getSeedRevealValidity } from './utils';
 
 export class RandomEndpoint extends BaseEndpoint {
 	public async isSeedRevealValid(context: ModuleEndpointContext): Promise<{ valid: boolean }> {
-		const errors = validator.validate(isSeedRevealValidParamsSchema, context.params);
+		const errors = validator.validate(isSeedRevealValidRequestSchema, context.params);
 		if (errors.length > 0) {
 			throw new LiskValidationError([...errors]);
 		}

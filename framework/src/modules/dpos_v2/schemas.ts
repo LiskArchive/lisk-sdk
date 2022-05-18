@@ -535,3 +535,123 @@ export const genesisStoreSchema = {
 		},
 	},
 };
+
+const delegateJSONSchema = {
+	type: 'object',
+	required: [
+		'name',
+		'totalVotesReceived',
+		'selfVotes',
+		'lastGeneratedHeight',
+		'isBanned',
+		'pomHeights',
+		'consecutiveMissedBlocks',
+	],
+	properties: {
+		name: {
+			type: 'string',
+		},
+		totalVotesReceived: {
+			type: 'string',
+			format: 'uint64',
+		},
+		selfVotes: {
+			type: 'string',
+			format: 'uint64',
+		},
+		lastGeneratedHeight: {
+			type: 'integer',
+			format: 'uint32',
+		},
+		isBanned: {
+			type: 'boolean',
+		},
+		pomHeights: {
+			type: 'array',
+			items: { type: 'integer', format: 'uint32' },
+		},
+		consecutiveMissedBlocks: {
+			type: 'integer',
+			format: 'uint32',
+		},
+	},
+};
+
+export const getDelegateRequestSchema = {
+	$id: 'modules/dpos/endpoint/getDelegateRequest',
+	type: 'object',
+	required: ['address'],
+	properties: {
+		address: {
+			type: 'string',
+			format: 'hex',
+		},
+	},
+};
+
+export const getDelegateResponseSchema = {
+	$id: 'modules/dpos/endpoint/getDelegateResponse',
+	...delegateJSONSchema,
+};
+
+export const getVoterRequestSchema = getDelegateRequestSchema;
+
+export const getVoterResponseSchema = {
+	$id: 'modules/dpos/endpoint/getVoterResponse',
+	type: 'object',
+	required: ['sentVotes', 'pendingUnlocks'],
+	properties: {
+		sentVotes: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['delegateAddress', 'amount'],
+				properties: {
+					delegateAddress: {
+						type: 'string',
+						format: 'hex',
+					},
+					amount: {
+						type: 'string',
+						format: 'uint64',
+					},
+				},
+			},
+		},
+		pendingUnlocks: {
+			type: 'array',
+			fieldNumber: 2,
+			items: {
+				type: 'object',
+				required: ['delegateAddress', 'amount', 'unvoteHeight'],
+				properties: {
+					delegateAddress: {
+						type: 'string',
+						format: 'hex',
+					},
+					amount: {
+						type: 'string',
+						format: 'uint64',
+					},
+					unvoteHeight: {
+						type: 'integer',
+						format: 'uint32',
+					},
+				},
+			},
+		},
+	},
+};
+
+export const getAllDelegatesResponseSchema = {
+	$id: 'modules/dpos/endpoint/getAllDelegatesResponse',
+	type: 'object',
+	required: ['delegates'],
+	properties: {
+		delegates: {
+			type: 'array',
+			items: delegateJSONSchema,
+		},
+	},
+};

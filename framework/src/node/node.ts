@@ -226,6 +226,7 @@ export class Node {
 			chain: this._chain,
 			consensus: this._consensus,
 			generator: this._generator,
+			registeredModules: this._registeredModules,
 			options: this._options,
 		});
 

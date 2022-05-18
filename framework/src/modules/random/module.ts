@@ -22,7 +22,7 @@ import {
 	BlockVerifyContext,
 	GenesisBlockExecuteContext,
 } from '../../node/state_machine';
-import { BaseModule, ModuleInitArgs } from '../base_module';
+import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { RandomAPI } from './api';
 import {
 	defaultConfig,
@@ -35,6 +35,8 @@ import {
 import { RandomEndpoint } from './endpoint';
 import {
 	blockHeaderAssetRandomModule,
+	isSeedRevealValidRequestSchema,
+	isSeedRevealValidResponseSchema,
 	randomModuleConfig,
 	randomModuleGeneratorConfig,
 	seedRevealSchema,
@@ -61,6 +63,26 @@ export class RandomModule extends BaseModule {
 
 	private _generatorConfig: HashOnion[] = [];
 	private _maxLengthReveals!: number;
+
+	public metadata(): ModuleMetadata {
+		return {
+			endpoints: [
+				{
+					name: this.endpoint.isSeedRevealValid.name,
+					request: isSeedRevealValidRequestSchema,
+					response: isSeedRevealValidResponseSchema,
+				},
+			],
+			commands: [],
+			events: [],
+			assets: [
+				{
+					version: 3,
+					data: blockHeaderAssetRandomModule,
+				},
+			],
+		};
+	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs): Promise<void> {
