@@ -32,7 +32,6 @@ import {
 	VerifyStatus,
 } from '../../../../node/state_machine/types';
 import { createRecoverCCMsgAPIContext } from '../../../../testing';
-import { BaseInteroperableAPI } from '../../base_interoperable_api';
 import { getIDAsKeyForStore } from '../../utils';
 
 export class StateRecoveryCommand extends BaseInteroperabilityCommand {
@@ -122,27 +121,26 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 		const chainIDBuffer = getIDAsKeyForStore(chainID);
 		const storeQueries = [];
 
-		for (const entry of storeEntries) {
-			const moduleApisWithRecover = [...this.interoperableCCAPIs.values()].filter(
-				api => api.moduleID === moduleID && Reflect.has(api, 'recover'),
-			) as Pick<Required<BaseInteroperableAPI>, 'recover'>[];
-			// The recover function corresponding to the module ID applies the recovery logic
-			for (const api of moduleApisWithRecover) {
-				const recoverContext = createRecoverCCMsgAPIContext({
-					terminatedChainID: chainID,
-					moduleID,
-					storePrefix: entry.storePrefix,
-					storeKey: entry.storeKey.readUInt32BE(0),
-					storeValue: entry.storeValue,
-					feeAddress: transaction.senderAddress,
-				});
-				try {
-					await api.recover(recoverContext);
-				} catch (err) {
-					throw new Error('Recovery failed');
-				}
-			}
+		// The recover function corresponding to the module ID applies the recovery logic
+		const moduleAPI = this.interoperableCCAPIs.get(moduleID);
+		if (!moduleAPI || !moduleAPI.recover) {
+			throw new Error('Recovery not available for module');
+		}
 
+		for (const entry of storeEntries) {
+			const recoverContext = createRecoverCCMsgAPIContext({
+				terminatedChainID: chainID,
+				moduleID,
+				storePrefix: entry.storePrefix,
+				storeKey: entry.storeKey.readUInt32BE(0),
+				storeValue: entry.storeValue,
+				feeAddress: transaction.senderAddress,
+			});
+			try {
+				await moduleAPI.recover(recoverContext);
+			} catch (err) {
+				throw new Error('Recovery failed');
+			}
 			storeQueries.push({
 				key: entry.storeKey,
 				value: EMPTY_HASH,
