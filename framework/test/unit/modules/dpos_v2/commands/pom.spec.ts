@@ -87,7 +87,8 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			getLockedAmount: jest.fn(),
 		};
 		mockBFTAPI = {
-			getBFTParameters: jest.fn(),
+			getGeneratorKeys: jest.fn(),
+			setGeneratorKeys: jest.fn(),
 			setBFTParameters: jest.fn(),
 			areHeadersContradicting: jest.fn(),
 			getBFTHeights: jest.fn(),

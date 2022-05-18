@@ -396,6 +396,7 @@ export class DPoSModule extends BaseModule {
 		initDelegates.sort((a, b) => a.compare(b));
 		const initBFTThreshold = BigInt(Math.floor((2 * initDelegates.length) / 3) + 1);
 		const bftValidators = [];
+		const generators = [];
 		for (const validatorAddress of initDelegates) {
 			const validatorAccount = await this._validatorsAPI.getValidatorAccount(
 				apiContext,
@@ -403,9 +404,12 @@ export class DPoSModule extends BaseModule {
 			);
 			bftValidators.push({
 				address: validatorAddress,
-				generatorKey: validatorAccount.generatorKey,
 				blsKey: validatorAccount.blsKey,
 				bftWeight: BigInt(1),
+			});
+			generators.push({
+				address: validatorAddress,
+				generatorKey: validatorAccount.generatorKey,
 			});
 		}
 		await this._bftAPI.setBFTParameters(
@@ -414,6 +418,7 @@ export class DPoSModule extends BaseModule {
 			initBFTThreshold,
 			bftValidators,
 		);
+		await this._bftAPI.setGeneratorKeys(apiContext, generators);
 
 		const MAX_UINT32 = 2 ** 32 - 1;
 		const snapshotStore = context.getStore(this.id, STORE_PREFIX_SNAPSHOT);
@@ -602,20 +607,23 @@ export class DPoSModule extends BaseModule {
 		}
 		const shuffledValidators = shuffleDelegateList(randomSeed1, validators);
 		const bftValidators = [];
+		const generators = [];
 		for (const validatorAddress of shuffledValidators) {
 			const validatorAccount = await this._validatorsAPI.getValidatorAccount(
 				apiContext,
 				validatorAddress,
 			);
-			const bftWeight =
-				standbyDelegates.findIndex(addr => addr.equals(validatorAddress)) > -1
-					? BigInt(0)
-					: BigInt(1);
-			bftValidators.push({
+			// if validator is active
+			if (standbyDelegates.findIndex(addr => addr.equals(validatorAddress)) === -1) {
+				bftValidators.push({
+					address: validatorAddress,
+					blsKey: validatorAccount.blsKey,
+					bftWeight: BigInt(1),
+				});
+			}
+			generators.push({
 				address: validatorAddress,
 				generatorKey: validatorAccount.generatorKey,
-				blsKey: validatorAccount.blsKey,
-				bftWeight,
 			});
 		}
 		await this._bftAPI.setBFTParameters(
@@ -624,6 +632,7 @@ export class DPoSModule extends BaseModule {
 			BigInt(this._moduleConfig.bftThreshold),
 			bftValidators,
 		);
+		await this._bftAPI.setGeneratorKeys(apiContext, generators);
 	}
 
 	private async _updateProductivity(context: BlockAfterExecuteContext, previousTimestamp: number) {
@@ -634,12 +643,12 @@ export class DPoSModule extends BaseModule {
 
 		const newHeight = header.height;
 		const apiContext = getAPIContext();
-		const { validators } = await this._bftAPI.getBFTParameters(apiContext, newHeight);
+		const generators = await this._bftAPI.getGeneratorKeys(apiContext, newHeight);
 		const missedBlocks = await this._validatorsAPI.getGeneratorsBetweenTimestamps(
 			apiContext,
 			previousTimestamp,
 			header.timestamp,
-			validators,
+			generators,
 		);
 
 		const delegateStore = getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);

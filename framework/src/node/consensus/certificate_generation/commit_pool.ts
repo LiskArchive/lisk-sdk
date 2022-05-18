@@ -20,7 +20,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { EMPTY_BUFFER, NETWORK_EVENT_COMMIT_MESSAGES, COMMIT_RANGE_STORED } from './constants';
 import { BFTParameterNotFoundError } from '../../bft/errors';
 import { APIContext } from '../../state_machine/types';
-import { BFTAPI, PkSigPair, AggregateCommit } from '../types';
+import { PkSigPair, AggregateCommit } from '../types';
 import { Certificate, CommitPoolConfig, SingleCommit, ValidatorInfo } from './types';
 
 import {
@@ -34,6 +34,7 @@ import { Network } from '../../network';
 import { singleCommitSchema, singleCommitsNetworkPacketSchema } from './schema';
 import { createNewAPIContext } from '../../state_machine/api_context';
 import { CommitList, COMMIT_SORT } from './commit_list';
+import { BFTAPI } from '../../bft';
 
 export class CommitPool {
 	private readonly _nonGossipedCommits: CommitList;
@@ -123,23 +124,16 @@ export class CommitPool {
 
 		// Validation Step 5
 		const { validators } = await this._bftAPI.getBFTParameters(apiContext, commit.height);
-		const isCommitValidatorActive = validators.find(validator =>
-			validator.address.equals(commit.validatorAddress),
-		);
-		if (!isCommitValidatorActive) {
+		const validator = validators.find(v => v.address.equals(commit.validatorAddress));
+		if (!validator) {
 			throw new Error('Commit validator was not active for its height.');
 		}
 
 		// Validation Step 6
 		const certificate = computeCertificateFromBlockHeader(blockHeaderAtCommitHeight);
-		const { blsKey } = await this._bftAPI.getValidator(
-			apiContext,
-			commit.validatorAddress,
-			commit.height,
-		);
 		const { networkIdentifier } = this._chain;
 		const isSingleCertificateVerified = verifySingleCertificateSignature(
-			blsKey,
+			validator.blsKey,
 			commit.certificateSignature,
 			networkIdentifier,
 			certificate,

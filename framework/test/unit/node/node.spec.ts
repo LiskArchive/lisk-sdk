@@ -73,6 +73,11 @@ class SampleNodeModule extends BaseModule {
 				address: keys.address,
 				bftWeight: BigInt(100),
 				blsKey: getRandomBytes(48),
+			},
+		]);
+		await this._bftAPI.setGeneratorKeys(context.getAPIContext(), [
+			{
+				address: keys.address,
 				generatorKey: getRandomBytes(32),
 			},
 		]);

@@ -15,6 +15,7 @@
 export const MODULE_ID_BFT = 9;
 
 export const STORE_PREFIX_BFT_PARAMETERS = 0x0000;
+export const STORE_PREFIX_GENERATOR_KEYS = 0x4000;
 export const STORE_PREFIX_BFT_VOTES = 0x8000;
 export const EMPTY_KEY = Buffer.alloc(0);
 export const MAX_UINT32 = 2 ** 32 - 1;

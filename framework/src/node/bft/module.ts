@@ -22,6 +22,7 @@ import {
 	MODULE_ID_BFT,
 	STORE_PREFIX_BFT_PARAMETERS,
 	STORE_PREFIX_BFT_VOTES,
+	STORE_PREFIX_GENERATOR_KEYS,
 } from './constants';
 import { bftModuleConfig, BFTVotes, bftVotesSchema } from './schemas';
 import { BlockExecuteContext, GenesisBlockExecuteContext } from '../state_machine';
@@ -33,6 +34,7 @@ import {
 	updatePrevotesPrecommits,
 } from './bft_votes';
 import { BFTParametersCache, deleteBFTParameters } from './bft_params';
+import { deleteGeneratorKeys } from './utils';
 
 export class BFTModule extends BaseModule {
 	public id = MODULE_ID_BFT;
@@ -92,5 +94,8 @@ export class BFTModule extends BaseModule {
 			bftVotes.maxHeightCertified + 1,
 		);
 		await deleteBFTParameters(paramsStore, minHeightBFTParametersRequired);
+
+		const keysStore = context.getStore(this.id, STORE_PREFIX_GENERATOR_KEYS);
+		await deleteGeneratorKeys(keysStore, minHeightBFTParametersRequired);
 	}
 }

@@ -57,12 +57,13 @@ import {
 	NETWORK_RPC_GET_LAST_BLOCK,
 } from './constants';
 import { GenesisConfig } from '../../types';
-import { BFTAPI, AggregateCommit } from './types';
+import { AggregateCommit } from './types';
 import { APIContext, createAPIContext, ImmutableAPIContext } from '../state_machine';
 import { forkChoice, ForkStatus } from './fork_choice/fork_choice_rule';
 import { createNewAPIContext } from '../state_machine/api_context';
 import { CommitPool } from './certificate_generation/commit_pool';
 import { ValidatorInfo } from './certificate_generation/types';
+import { BFTAPI } from '../bft';
 
 interface ConsensusArgs {
 	stateMachine: StateMachine;
@@ -382,9 +383,9 @@ export class Consensus {
 		height: number,
 		timestamp: number,
 	): Promise<Buffer> {
-		const bftParams = await this._bftAPI.getBFTParameters(apiContext, height);
+		const generators = await this._bftAPI.getGeneratorKeys(apiContext, height);
 		const currentSlot = this._blockSlot.getSlotNumber(timestamp);
-		const generator = bftParams.validators[currentSlot % bftParams.validators.length];
+		const generator = generators[currentSlot % generators.length];
 		return generator.address;
 	}
 
@@ -700,14 +701,18 @@ export class Consensus {
 	}
 
 	private async _verifyAssetsSignature(apiContext: APIContext, block: Block): Promise<void> {
-		const { generatorKey } = await this._bftAPI.getValidator(
-			apiContext,
-			block.header.generatorAddress,
-			block.header.height,
-		);
+		const generatorKeys = await this._bftAPI.getGeneratorKeys(apiContext, block.header.height);
+		const generator = generatorKeys.find(gen => gen.address.equals(block.header.generatorAddress));
+		if (!generator) {
+			throw new Error(
+				`Validator with address ${block.header.generatorAddress.toString(
+					'hex',
+				)} does not exist for height ${block.header.height}`,
+			);
+		}
 
 		try {
-			block.header.validateSignature(generatorKey, this._chain.networkIdentifier);
+			block.header.validateSignature(generator.generatorKey, this._chain.networkIdentifier);
 		} catch (error) {
 			throw new Error(
 				`Invalid signature ${block.header.signature.toString(

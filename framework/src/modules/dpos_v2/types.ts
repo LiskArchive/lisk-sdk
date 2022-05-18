@@ -36,21 +36,20 @@ export interface ModuleConfig {
 }
 
 export interface BFTAPI {
-	getBFTParameters(
-		context: ImmutableAPIContext,
-		height: number,
-	): Promise<{
-		prevoteThreshold: bigint;
-		precommitThreshold: bigint;
-		certificateThreshold: bigint;
-		validators: Validator[];
-	}>;
+	setGeneratorKeys(
+		context: APIContext,
+		validators: { address: Buffer; generatorKey: Buffer }[],
+	): Promise<void>;
 	setBFTParameters(
 		apiContext: APIContext,
 		precommitThreshold: bigint,
 		certificateThreshold: bigint,
 		validators: Validator[],
 	): Promise<void>;
+	getGeneratorKeys(
+		context: ImmutableAPIContext,
+		height: number,
+	): Promise<{ address: Buffer; generatorKey: Buffer }[]>;
 	areHeadersContradicting(bftHeader1: BlockHeader, bftHeader2: BlockHeader): boolean;
 	getBFTHeights(context: ImmutableAPIContext): Promise<BFTHeights>;
 }

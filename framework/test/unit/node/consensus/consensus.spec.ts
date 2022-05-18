@@ -36,7 +36,6 @@ import {
 	hash,
 } from '@liskhq/lisk-cryptography';
 import { ApplyPenaltyError } from '../../../../src/errors';
-import { BFTAPI } from '../../../../src/node/consensus';
 import { Consensus } from '../../../../src/node/consensus/consensus';
 import { NetworkEndpoint } from '../../../../src/node/consensus/network_endpoint';
 import { Synchronizer } from '../../../../src/node/consensus/synchronizer';
@@ -59,6 +58,7 @@ import { postBlockEventSchema } from '../../../../src/node/consensus/schema';
 import { APIContext } from '../../../../src/node/state_machine';
 import { createTransientAPIContext } from '../../../../src/testing';
 import { fakeLogger } from '../../../utils/node';
+import { BFTAPI } from '../../../../src/node/bft';
 
 describe('consensus', () => {
 	const genesis = (genesisBlock() as unknown) as Block;
@@ -100,7 +100,7 @@ describe('consensus', () => {
 			getAllModuleIDs: jest.fn(),
 		} as unknown) as StateMachine;
 		bftAPI = {
-			getValidator: jest.fn(),
+			getGeneratorKeys: jest.fn(),
 			getBFTHeights: jest
 				.fn()
 				.mockResolvedValue({ maxHeghgtPrevoted: 0, maxHeightPrecommitted: 0 }),
@@ -804,9 +804,9 @@ describe('consensus', () => {
 				it('should throw error for invalid signature', async () => {
 					const generatorKey = getRandomBytes(32);
 
-					when(consensus['_bftAPI'].getValidator as never)
-						.calledWith(apiContext, block.header.generatorAddress, block.header.height)
-						.mockResolvedValue({ generatorKey } as never);
+					when(consensus['_bftAPI'].getGeneratorKeys as never)
+						.calledWith(apiContext, block.header.height)
+						.mockResolvedValue([{ address: block.header.generatorAddress, generatorKey }] as never);
 
 					await expect(
 						consensus['_verifyAssetsSignature'](apiContext, block as any),
@@ -828,9 +828,11 @@ describe('consensus', () => {
 					blockHeader.sign(consensus['_chain'].networkIdentifier, keyPair.privateKey);
 					const validBlock = new Block(blockHeader, [], new BlockAssets());
 
-					when(consensus['_bftAPI'].getValidator as never)
-						.calledWith(apiContext, validBlock.header.generatorAddress, validBlock.header.height)
-						.mockResolvedValue({ generatorKey: keyPair.publicKey } as never);
+					when(consensus['_bftAPI'].getGeneratorKeys as never)
+						.calledWith(apiContext, validBlock.header.height)
+						.mockResolvedValue([
+							{ address: validBlock.header.generatorAddress, generatorKey: keyPair.publicKey },
+						] as never);
 
 					await expect(
 						consensus['_verifyAssetsSignature'](apiContext, validBlock as any),

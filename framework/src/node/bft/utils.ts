@@ -12,9 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader } from '../state_machine';
-import { BFTVotesBlockInfo } from './schemas';
-import { BFTHeader } from './types';
+import { codec } from '@liskhq/lisk-codec';
+import { BIG_ENDIAN, intToBuffer } from '@liskhq/lisk-cryptography';
+import { BlockHeader, ImmutableSubStore } from '../state_machine';
+import { SubStore } from '../state_machine/types';
+import { GeneratorKeysNotFoundError } from './errors';
+import { BFTVotesBlockInfo, GeneratorKeys, generatorKeysSchema } from './schemas';
+import { BFTHeader, BFTValidator } from './types';
 
 export const areDistinctHeadersContradicting = (b1: BFTHeader, b2: BFTHeader): boolean => {
 	let earlierBlock = b1;
@@ -71,3 +75,55 @@ export const sortValidatorsByAddress = (validators: { address: Buffer }[]) =>
 
 export const sortValidatorsByBLSKey = (validators: { blsKey: Buffer }[]) =>
 	validators.sort((a, b) => a.blsKey.compare(b.blsKey));
+
+export const validtorsEqual = (v1: BFTValidator[], v2: BFTValidator[]): boolean => {
+	if (v1.length !== v2.length) {
+		return false;
+	}
+	for (let i = 0; i < v1.length; i += 1) {
+		if (!v1[i].address.equals(v2[i].address)) {
+			return false;
+		}
+		if (v1[i].bftWeight !== v2[i].bftWeight) {
+			return false;
+		}
+	}
+
+	return true;
+};
+
+export const getGeneratorKeys = async (
+	keysStore: ImmutableSubStore,
+	height: number,
+): Promise<GeneratorKeys> => {
+	const start = intToBuffer(0, 4, BIG_ENDIAN);
+	const end = intToBuffer(height, 4, BIG_ENDIAN);
+	const results = await keysStore.iterate({
+		limit: 1,
+		start,
+		end,
+		reverse: true,
+	});
+	if (results.length !== 1) {
+		throw new GeneratorKeysNotFoundError();
+	}
+	const [result] = results;
+
+	return codec.decode<GeneratorKeys>(generatorKeysSchema, result.value);
+};
+
+export const deleteGeneratorKeys = async (keysStore: SubStore, height: number): Promise<void> => {
+	const start = intToBuffer(0, 4, BIG_ENDIAN);
+	const end = intToBuffer(height, 4, BIG_ENDIAN);
+	const results = await keysStore.iterate({
+		start,
+		end,
+	});
+	if (results.length <= 1) {
+		return;
+	}
+	// Delete all BFT Parameters except the one of largest height which is at most the input height
+	for (let i = 0; i < results.length - 1; i += 1) {
+		await keysStore.del(results[i].key);
+	}
+};

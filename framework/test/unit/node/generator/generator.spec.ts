@@ -36,7 +36,7 @@ import { fakeLogger } from '../../../utils/node';
 import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
 import { NETWORK_RPC_GET_TRANSACTIONS } from '../../../../src/node/generator/constants';
 import { getTransactionsResponseSchema } from '../../../../src/node/generator/schemas';
-import { BFTAPI } from '../../../../src/node/consensus';
+import { BFTAPI } from '../../../../src/node/bft';
 import { createFakeBlockHeader } from '../../../../src/testing';
 
 describe('generator', () => {

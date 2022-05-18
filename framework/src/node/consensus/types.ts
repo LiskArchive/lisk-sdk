@@ -12,9 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BFTParameters } from '../bft/schemas';
-import { BFTHeights } from '../bft/types';
-import { BlockHeader, ImmutableAPIContext, APIContext } from '../state_machine';
+import { APIContext } from '../state_machine';
 
 export interface BFTHeader {
 	id: Buffer;
@@ -30,25 +28,7 @@ export interface BFTHeader {
 export interface Validator {
 	address: Buffer;
 	bftWeight: bigint;
-	generatorKey: Buffer;
 	blsKey: Buffer;
-}
-
-export interface BFTAPI {
-	getCurrentValidators: (apiContext: ImmutableAPIContext) => Promise<Validator[]>;
-	getValidator: (
-		context: ImmutableAPIContext,
-		address: Buffer,
-		height: number,
-	) => Promise<Validator>;
-	getBFTHeights: (apiClient: ImmutableAPIContext) => Promise<BFTHeights>;
-	getBFTParameters: (apiContext: ImmutableAPIContext, height: number) => Promise<BFTParameters>;
-	getNextHeightBFTParameters: (apiContext: ImmutableAPIContext, height: number) => Promise<number>;
-	isHeaderContradictingChain: (
-		apiClient: ImmutableAPIContext,
-		header: BlockHeader,
-	) => Promise<boolean>;
-	existBFTParameters: (apiContext: ImmutableAPIContext, height: number) => Promise<boolean>;
 }
 
 export interface PkSigPair {

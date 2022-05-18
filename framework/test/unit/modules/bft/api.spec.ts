@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateStore } from '@liskhq/lisk-chain';
+import { NotFoundError, StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { BIG_ENDIAN, getRandomBytes, hash, intToBuffer } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
@@ -22,6 +22,7 @@ import {
 	MODULE_ID_BFT,
 	STORE_PREFIX_BFT_PARAMETERS,
 	STORE_PREFIX_BFT_VOTES,
+	STORE_PREFIX_GENERATOR_KEYS,
 } from '../../../../src/node/bft/constants';
 import { BFTParameterNotFoundError } from '../../../../src/node/bft/errors';
 import {
@@ -29,6 +30,7 @@ import {
 	bftParametersSchema,
 	BFTVotes,
 	bftVotesSchema,
+	generatorKeysSchema,
 	validatorsHashInputSchema,
 } from '../../../../src/node/bft/schemas';
 import { EventQueue } from '../../../../src/node/state_machine';
@@ -212,13 +214,11 @@ describe('BFT API', () => {
 					address: getRandomBytes(20),
 					bftWeight: BigInt(1),
 					blsKey: getRandomBytes(42),
-					generatorKey: getRandomBytes(32),
 				},
 				{
 					address: getRandomBytes(20),
 					bftWeight: BigInt(1),
 					blsKey: getRandomBytes(42),
-					generatorKey: getRandomBytes(32),
 				},
 			],
 			validatorsHash: getRandomBytes(32),
@@ -612,7 +612,6 @@ describe('BFT API', () => {
 						address: getRandomBytes(20),
 						bftWeight: BigInt(1),
 						blsKey: getRandomBytes(42),
-						generatorKey: getRandomBytes(32),
 					})),
 				),
 			).rejects.toThrow('Invalid validators size.');
@@ -625,19 +624,16 @@ describe('BFT API', () => {
 						address: getRandomBytes(20),
 						bftWeight: BigInt(50),
 						blsKey: getRandomBytes(42),
-						generatorKey: getRandomBytes(32),
 					},
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(50),
 						blsKey: getRandomBytes(42),
-						generatorKey: getRandomBytes(32),
 					},
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(3),
 						blsKey: getRandomBytes(42),
-						generatorKey: getRandomBytes(32),
 					},
 				]),
 			).rejects.toThrow('Invalid precommitThreshold input.');
@@ -650,19 +646,16 @@ describe('BFT API', () => {
 						address: getRandomBytes(20),
 						bftWeight: BigInt(50),
 						blsKey: getRandomBytes(42),
-						generatorKey: getRandomBytes(32),
 					},
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(50),
 						blsKey: getRandomBytes(42),
-						generatorKey: getRandomBytes(32),
 					},
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(3),
 						blsKey: getRandomBytes(42),
-						generatorKey: getRandomBytes(32),
 					},
 				]),
 			).rejects.toThrow('Invalid precommitThreshold input.');
@@ -675,19 +668,16 @@ describe('BFT API', () => {
 						address: getRandomBytes(20),
 						bftWeight: BigInt(50),
 						blsKey: getRandomBytes(42),
-						generatorKey: getRandomBytes(32),
 					},
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(50),
 						blsKey: getRandomBytes(42),
-						generatorKey: getRandomBytes(32),
 					},
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(3),
 						blsKey: getRandomBytes(42),
-						generatorKey: getRandomBytes(32),
 					},
 				]),
 			).rejects.toThrow('Invalid certificateThreshold input.');
@@ -700,19 +690,16 @@ describe('BFT API', () => {
 						address: getRandomBytes(20),
 						bftWeight: BigInt(50),
 						blsKey: getRandomBytes(42),
-						generatorKey: getRandomBytes(32),
 					},
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(50),
 						blsKey: getRandomBytes(42),
-						generatorKey: getRandomBytes(32),
 					},
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(3),
 						blsKey: getRandomBytes(42),
-						generatorKey: getRandomBytes(32),
 					},
 				]),
 			).rejects.toThrow('Invalid certificateThreshold input.');
@@ -724,23 +711,61 @@ describe('BFT API', () => {
 					address: generatorAddress,
 					bftWeight: BigInt(50),
 					blsKey: getRandomBytes(42),
-					generatorKey: getRandomBytes(32),
 				},
 				{
 					address: getRandomBytes(20),
 					bftWeight: BigInt(50),
 					blsKey: getRandomBytes(42),
-					generatorKey: getRandomBytes(32),
 				},
 				{
 					address: getRandomBytes(20),
 					bftWeight: BigInt(3),
 					blsKey: getRandomBytes(42),
-					generatorKey: getRandomBytes(32),
 				},
 			];
 			beforeEach(async () => {
 				await bftAPI.setBFTParameters(apiContext, BigInt(68), BigInt(68), validators);
+			});
+
+			it('should not create set BFTParameters when there is no change from previous params', async () => {
+				const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_VOTES);
+				const currentVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
+				const addresses = [getRandomBytes(20), getRandomBytes(20)];
+				currentVotes.blockBFTInfos = [
+					{
+						height: 104,
+						generatorAddress: addresses[0],
+						maxHeightGenerated: 0,
+						maxHeightPrevoted: 0,
+						prevoteWeight: BigInt(0),
+						precommitWeight: BigInt(0),
+					},
+					...currentVotes.blockBFTInfos,
+				];
+				await votesStore.setWithSchema(EMPTY_KEY, currentVotes as never, bftVotesSchema);
+
+				await bftAPI.setBFTParameters(apiContext, BigInt(68), BigInt(68), validators);
+
+				const paramsStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
+
+				await expect(
+					paramsStore.getWithSchema<BFTParameters>(
+						intToBuffer(105, 4, BIG_ENDIAN),
+						bftParametersSchema,
+					),
+				).rejects.toThrow(NotFoundError);
+			});
+
+			it('should store validators ordered lexicographically by address', async () => {
+				const paramsStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
+				const params = await paramsStore.getWithSchema<BFTParameters>(
+					intToBuffer(104, 4, BIG_ENDIAN),
+					bftParametersSchema,
+				);
+
+				expect(params.validators).toHaveLength(3);
+				// -1 will be asc
+				expect(params.validators[0].address.compare(params.validators[1].address)).toEqual(-1);
 			});
 
 			it('should store validators in order of the input', async () => {
@@ -781,19 +806,16 @@ describe('BFT API', () => {
 						address: generatorAddress,
 						bftWeight: BigInt(50),
 						blsKey: getRandomBytes(42),
-						generatorKey: getRandomBytes(32),
 					},
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(50),
 						blsKey: getRandomBytes(42),
-						generatorKey: getRandomBytes(32),
 					},
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(3),
 						blsKey: getRandomBytes(42),
-						generatorKey: getRandomBytes(32),
 					},
 				]);
 
@@ -859,13 +881,11 @@ describe('BFT API', () => {
 						address: getRandomBytes(20),
 						blsKey: getRandomBytes(32),
 						bftWeight: BigInt(20),
-						generatorKey: getRandomBytes(32),
 					},
 					{
 						address: getRandomBytes(20),
 						blsKey: getRandomBytes(32),
 						bftWeight: BigInt(20),
-						generatorKey: getRandomBytes(32),
 					},
 				];
 				validatorsAPI.getValidatorAccount.mockImplementation((_, address: Buffer) => {
@@ -907,13 +927,11 @@ describe('BFT API', () => {
 					address: getRandomBytes(20),
 					bftWeight: BigInt(1),
 					blsKey: getRandomBytes(42),
-					generatorKey: getRandomBytes(32),
 				},
 				{
 					address: getRandomBytes(20),
 					bftWeight: BigInt(1),
 					blsKey: getRandomBytes(42),
-					generatorKey: getRandomBytes(32),
 				},
 			],
 			validatorsHash: getRandomBytes(32),
@@ -994,6 +1012,135 @@ describe('BFT API', () => {
 			await expect(bftAPI.getCurrentValidators(apiContext)).rejects.toThrow(
 				'There are no BFT info stored.',
 			);
+		});
+	});
+
+	describe('getGeneratorKeys', () => {
+		const createKeys = () => ({
+			generators: [
+				{
+					address: getRandomBytes(20),
+					generatorKey: getRandomBytes(32),
+				},
+				{
+					address: getRandomBytes(20),
+					generatorKey: getRandomBytes(32),
+				},
+			],
+		});
+		const keys20 = createKeys();
+		const keys30 = createKeys();
+		beforeEach(async () => {
+			stateStore = new StateStore(new InMemoryKVStore());
+			const keysStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_GENERATOR_KEYS);
+			await keysStore.setWithSchema(intToBuffer(20, 4, BIG_ENDIAN), keys20, generatorKeysSchema);
+			await keysStore.setWithSchema(intToBuffer(30, 4, BIG_ENDIAN), keys30, generatorKeysSchema);
+		});
+
+		it('should current generators', async () => {
+			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_VOTES);
+			await votesStore.setWithSchema(
+				EMPTY_KEY,
+				{
+					maxHeightPrevoted: 10,
+					maxHeightPrecommitted: 0,
+					maxHeightCertified: 0,
+					blockBFTInfos: [
+						{
+							height: 35,
+							generatorAddress: getRandomBytes(20),
+							maxHeightGenerated: 0,
+							maxHeightPrevoted: 0,
+							prevoteWeight: 0,
+							precommitWeight: 0,
+						},
+						{
+							height: 34,
+							generatorAddress: getRandomBytes(20),
+							maxHeightGenerated: 0,
+							maxHeightPrevoted: 0,
+							prevoteWeight: 0,
+							precommitWeight: 0,
+						},
+						{
+							height: 33,
+							generatorAddress: getRandomBytes(20),
+							maxHeightGenerated: 0,
+							maxHeightPrevoted: 0,
+							prevoteWeight: 0,
+							precommitWeight: 0,
+						},
+					],
+					activeValidatorsVoteInfo: [],
+				},
+				bftVotesSchema,
+			);
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			await expect(bftAPI.getGeneratorKeys(apiContext, 50)).resolves.toEqual(keys30.generators);
+		});
+	});
+
+	describe('setGeneratorKeys', () => {
+		const createKeys = () => ({
+			generators: [
+				{
+					address: getRandomBytes(20),
+					generatorKey: getRandomBytes(32),
+				},
+				{
+					address: getRandomBytes(20),
+					generatorKey: getRandomBytes(32),
+				},
+			],
+		});
+		beforeEach(() => {
+			stateStore = new StateStore(new InMemoryKVStore());
+		});
+
+		it('should set generators to the next height', async () => {
+			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_VOTES);
+			await votesStore.setWithSchema(
+				EMPTY_KEY,
+				{
+					maxHeightPrevoted: 10,
+					maxHeightPrecommitted: 0,
+					maxHeightCertified: 0,
+					blockBFTInfos: [
+						{
+							height: 35,
+							generatorAddress: getRandomBytes(20),
+							maxHeightGenerated: 0,
+							maxHeightPrevoted: 0,
+							prevoteWeight: 0,
+							precommitWeight: 0,
+						},
+						{
+							height: 34,
+							generatorAddress: getRandomBytes(20),
+							maxHeightGenerated: 0,
+							maxHeightPrevoted: 0,
+							prevoteWeight: 0,
+							precommitWeight: 0,
+						},
+						{
+							height: 33,
+							generatorAddress: getRandomBytes(20),
+							maxHeightGenerated: 0,
+							maxHeightPrevoted: 0,
+							prevoteWeight: 0,
+							precommitWeight: 0,
+						},
+					],
+					activeValidatorsVoteInfo: [],
+				},
+				bftVotesSchema,
+			);
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			await expect(
+				bftAPI.setGeneratorKeys(apiContext, createKeys().generators),
+			).resolves.toBeUndefined();
+			const keysStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_GENERATOR_KEYS);
+			await expect(keysStore.has(intToBuffer(36, 4, BIG_ENDIAN))).resolves.toBeTrue();
 		});
 	});
 });

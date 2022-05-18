@@ -17,9 +17,8 @@ import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../../modules/base_endpoint';
 import { areHeadersContradictingRequestSchema, BFTVotes, bftVotesSchema } from './schemas';
-import { areDistinctHeadersContradicting } from './utils';
-import { EMPTY_KEY, STORE_PREFIX_BFT_PARAMETERS, STORE_PREFIX_BFT_VOTES } from './constants';
-import { getBFTParameters } from './bft_params';
+import { areDistinctHeadersContradicting, getGeneratorKeys } from './utils';
+import { EMPTY_KEY, STORE_PREFIX_BFT_VOTES, STORE_PREFIX_GENERATOR_KEYS } from './constants';
 
 export class BFTEndpoint extends BaseEndpoint {
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -42,11 +41,11 @@ export class BFTEndpoint extends BaseEndpoint {
 		const votesStore = ctx.getStore(this.moduleID, STORE_PREFIX_BFT_VOTES);
 		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
 		const { height: currentHeight } =
-			bftVotes.blockBFTInfos.length > 0 ? bftVotes.blockBFTInfos[0] : { height: 1 };
-		const paramsStore = ctx.getStore(this.moduleID, STORE_PREFIX_BFT_PARAMETERS);
-		const params = await getBFTParameters(paramsStore, currentHeight);
+			bftVotes.blockBFTInfos.length > 0 ? bftVotes.blockBFTInfos[0] : { height: 0 };
+		const keysStore = ctx.getStore(this.moduleID, STORE_PREFIX_GENERATOR_KEYS);
+		const keys = await getGeneratorKeys(keysStore, currentHeight + 1);
 		return {
-			list: params.validators.map(v => v.address.toString('hex')),
+			list: keys.generators.map(v => v.address.toString('hex')),
 		};
 	}
 }

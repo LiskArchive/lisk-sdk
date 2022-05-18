@@ -118,7 +118,8 @@ describe('DPoS module', () => {
 				getRandomBytes: jest.fn(),
 			};
 			const bftAPI = {
-				getBFTParameters: jest.fn(),
+				getGeneratorKeys: jest.fn(),
+				setGeneratorKeys: jest.fn(),
 				setBFTParameters: jest.fn(),
 				areHeadersContradicting: jest.fn(),
 				getBFTHeights: jest.fn(),
@@ -298,7 +299,6 @@ describe('DPoS module', () => {
 					validAsset.genesisData.initDelegates.map(d => ({
 						bftWeight: BigInt(1),
 						address: d,
-						generatorKey: expect.any(Buffer),
 						blsKey: expect.any(Buffer),
 					})),
 				);
@@ -761,7 +761,8 @@ describe('DPoS module', () => {
 								.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed2, 'hex')),
 						};
 						const bftAPI = {
-							getBFTParameters: jest.fn(),
+							getGeneratorKeys: jest.fn(),
+							setGeneratorKeys: jest.fn(),
 							setBFTParameters: jest.fn(),
 							getBFTHeights: jest.fn(),
 							areHeadersContradicting: jest.fn(),
@@ -849,7 +850,8 @@ describe('DPoS module', () => {
 						.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed2, 'hex')),
 				};
 				bftAPI = {
-					getBFTParameters: jest.fn(),
+					getGeneratorKeys: jest.fn(),
+					setGeneratorKeys: jest.fn(),
 					setBFTParameters: jest.fn(),
 					areHeadersContradicting: jest.fn(),
 					getBFTHeights: jest.fn(),
@@ -882,20 +884,20 @@ describe('DPoS module', () => {
 				await dpos['_updateValidators'](context);
 			});
 
-			it('should have activeDelegates + standbyDelegates delegates in the forgers list', () => {
+			it('should have activeDelegates + standbyDelegates delegates in the generators list', () => {
 				expect(bftAPI.setBFTParameters).toHaveBeenCalledTimes(1);
-				const forgersList = (bftAPI.setBFTParameters as jest.Mock).mock.calls[0][3];
+				const forgersList = (bftAPI.setGeneratorKeys as jest.Mock).mock.calls[0][1];
 				expect(forgersList).toHaveLength(defaultConfigs.roundLength);
 			});
 
-			it('should store selected stand by delegates in the forgers list', () => {
+			it('should store selected stand by delegates in the generators list', () => {
 				const { selectedForgers } = scenario.testCases.output;
 				const standbyDelegatesInFixture = [
 					Buffer.from(selectedForgers[selectedForgers.length - 1], 'hex'),
 					Buffer.from(selectedForgers[selectedForgers.length - 2], 'hex'),
 				].sort((a, b) => a.compare(b));
 
-				const forgersList = (bftAPI.setBFTParameters as jest.Mock).mock.calls[0][3] as {
+				const forgersList = (bftAPI.setGeneratorKeys as jest.Mock).mock.calls[0][1] as {
 					address: Buffer;
 				}[];
 				const standbyCandidatesAddresses = forgersList
@@ -937,7 +939,7 @@ describe('DPoS module', () => {
 			stateStore = new StateStore(new InMemoryKVStore());
 
 			bftAPI = {
-				getBFTParameters: jest.fn().mockResolvedValue({ validators: [] }),
+				getGeneratorKeys: jest.fn().mockResolvedValue([]),
 			};
 
 			validatorsAPI = {

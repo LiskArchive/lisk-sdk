@@ -28,7 +28,7 @@ import {
 	STORE_PREFIX_BFT_VOTES,
 } from '../../../../src/node/bft/constants';
 import { bftParametersSchema, BFTVotes, bftVotesSchema } from '../../../../src/node/bft/schemas';
-import { Validator } from '../../../../src/node/bft/types';
+import { BFTValidator, GeneratorKey } from '../../../../src/node/bft/types';
 import { createBlockContext } from '../../../../src/testing';
 import * as scenario4DelegatesMissedSlots from './bft_processing/4_delegates_missed_slots.json';
 import * as scenario4DelegatesSimple from './bft_processing/4_delegates_simple.json';
@@ -66,7 +66,7 @@ describe('BFT processing', () => {
 
 				const paramsStore = stateStore.getStore(bftModule.id, STORE_PREFIX_BFT_PARAMETERS);
 				const threshold = Math.floor((scenario.config.activeDelegates * 2) / 3) + 1;
-				const validators: (Validator & { minHeightActive: number })[] = [];
+				const validators: (BFTValidator & GeneratorKey & { minHeightActive: number })[] = [];
 				for (const testCase of scenario.testCases) {
 					const generatorAddress = getAddressFromPublicKey(
 						Buffer.from(testCase.input.blockHeader.generatorPublicKey, 'hex'),

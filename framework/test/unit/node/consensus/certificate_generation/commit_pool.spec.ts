@@ -646,9 +646,11 @@ describe('CommitPool', () => {
 		});
 
 		it('should throw error when bls key of the validator is not matching with the certificate signature', async () => {
-			when(bftAPI.getValidator)
-				.calledWith(apiContext, commit.validatorAddress, commit.height)
-				.mockReturnValue({ blsKey: getRandomBytes(48) });
+			when(bftAPI.getBFTParameters)
+				.calledWith(apiContext, commit.height)
+				.mockReturnValue({
+					validators: [{ address: commit.validatorAddress, blsKey: getRandomBytes(48) }],
+				});
 
 			await expect(commitPool.validateCommit(apiContext, commit)).rejects.toThrow(
 				'Certificate signature is not valid.',

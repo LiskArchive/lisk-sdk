@@ -25,9 +25,13 @@ export interface BFTHeights {
 	maxHeightCertified: number;
 }
 
-export interface Validator {
+export interface BFTValidator {
 	address: Buffer;
 	bftWeight: bigint;
-	generatorKey: Buffer;
 	blsKey: Buffer;
+}
+
+export interface GeneratorKey {
+	address: Buffer;
+	generatorKey: Buffer;
 }

@@ -19,8 +19,10 @@ import { BaseAPI } from '../../modules/base_api';
 import { APIContext, BlockHeader, ImmutableAPIContext } from '../state_machine';
 import {
 	areDistinctHeadersContradicting,
+	getGeneratorKeys,
 	sortValidatorsByAddress,
 	sortValidatorsByBLSKey,
+	validtorsEqual,
 } from './utils';
 import { getBFTParameters } from './bft_params';
 import {
@@ -28,6 +30,7 @@ import {
 	MAX_UINT32,
 	STORE_PREFIX_BFT_PARAMETERS,
 	STORE_PREFIX_BFT_VOTES,
+	STORE_PREFIX_GENERATOR_KEYS,
 } from './constants';
 import {
 	bftVotesSchema,
@@ -38,8 +41,9 @@ import {
 	validatorsHashInputSchema,
 	bftParametersSchema,
 	BFTVotesActiveValidatorsVoteInfo,
+	generatorKeysSchema,
 } from './schemas';
-import { BFTHeights, Validator } from './types';
+import { BFTHeights, GeneratorKey, BFTValidator } from './types';
 import { BFTParameterNotFoundError } from './errors';
 
 export interface BlockHeaderAsset {
@@ -150,7 +154,7 @@ export class BFTAPI extends BaseAPI {
 		context: APIContext,
 		precommitThreshold: bigint,
 		certificateThreshold: bigint,
-		validators: Validator[],
+		validators: BFTValidator[],
 	): Promise<void> {
 		if (validators.length > this._batchSize) {
 			throw new Error(
@@ -158,10 +162,9 @@ export class BFTAPI extends BaseAPI {
 			);
 		}
 		let aggregateBFTWeight = BigInt(0);
-		const activeValidators: Validator[] = [];
 		for (const validator of validators) {
-			if (validator.bftWeight > BigInt(0)) {
-				activeValidators.push(validator);
+			if (validator.bftWeight <= 0) {
+				throw new Error('Invalid BFT weight. BFT weight must be a positive integer.');
 			}
 			aggregateBFTWeight += validator.bftWeight;
 		}
@@ -177,8 +180,37 @@ export class BFTAPI extends BaseAPI {
 		) {
 			throw new Error('Invalid certificateThreshold input.');
 		}
-		// ValidatorsHash only includes validator with BFT weight
-		const validatorsHash = this._computeValidatorsHash(activeValidators, certificateThreshold);
+		sortValidatorsByAddress(validators);
+
+		const votesStore = context.getStore(this.moduleID, STORE_PREFIX_BFT_VOTES);
+		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
+		// This assumes bftVotes.blockBFTInfos will contain currently executing block
+		const currentHeight =
+			bftVotes.blockBFTInfos.length > 0
+				? bftVotes.blockBFTInfos[0].height
+				: bftVotes.maxHeightPrevoted;
+
+		let currentBFTParams: BFTParameters | undefined;
+		try {
+			currentBFTParams = await this.getBFTParameters(context, currentHeight);
+		} catch (error) {
+			if (!(error instanceof BFTParameterNotFoundError)) {
+				throw error;
+			}
+		}
+
+		// if there is no change in params, return
+		if (
+			currentBFTParams &&
+			validtorsEqual(currentBFTParams.validators, validators) &&
+			currentBFTParams.precommitThreshold === precommitThreshold &&
+			currentBFTParams.certificateThreshold === certificateThreshold
+		) {
+			return;
+		}
+
+		const nextHeight = currentHeight + 1;
+		const validatorsHash = this._computeValidatorsHash(validators, certificateThreshold);
 
 		const bftParams: BFTParameters = {
 			prevoteThreshold: (BigInt(2) * aggregateBFTWeight) / BigInt(3) + BigInt(1),
@@ -188,27 +220,13 @@ export class BFTAPI extends BaseAPI {
 			validatorsHash,
 		};
 
-		const votesStore = context.getStore(this.moduleID, STORE_PREFIX_BFT_VOTES);
 		const paramsStore = context.getStore(this.moduleID, STORE_PREFIX_BFT_PARAMETERS);
-		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
-		const nextHeight =
-			bftVotes.blockBFTInfos.length > 0
-				? bftVotes.blockBFTInfos[0].height + 1
-				: bftVotes.maxHeightPrevoted + 1;
 
 		const nextHeightBytes = intToBuffer(nextHeight, 4, BIG_ENDIAN);
 		await paramsStore.setWithSchema(nextHeightBytes, bftParams, bftParametersSchema);
 
 		const nextActiveValidators: BFTVotesActiveValidatorsVoteInfo[] = [];
 		for (const validator of validators) {
-			if (validator.bftWeight < BigInt(0)) {
-				throw new Error(
-					`BFT weight must be greater or equal to zero, but received ${validator.bftWeight.toString()}`,
-				);
-			}
-			if (validator.bftWeight === BigInt(0)) {
-				continue;
-			}
 			const existingValidator = bftVotes.activeValidatorsVoteInfo.find(v =>
 				v.address.equals(validator.address),
 			);
@@ -227,7 +245,32 @@ export class BFTAPI extends BaseAPI {
 		await votesStore.setWithSchema(EMPTY_KEY, bftVotes, bftVotesSchema);
 	}
 
-	public async getCurrentValidators(context: ImmutableAPIContext): Promise<Validator[]> {
+	public async getGeneratorKeys(
+		context: ImmutableAPIContext,
+		height: number,
+	): Promise<GeneratorKey[]> {
+		const keysStore = context.getStore(this.moduleID, STORE_PREFIX_GENERATOR_KEYS);
+		const { generators: validators } = await getGeneratorKeys(keysStore, height);
+
+		return validators;
+	}
+
+	public async setGeneratorKeys(context: APIContext, generators: GeneratorKey[]): Promise<void> {
+		const votesStore = context.getStore(this.moduleID, STORE_PREFIX_BFT_VOTES);
+		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
+		// This assumes bftVotes.blockBFTInfos will contain currently executing block
+		const nextHeight =
+			bftVotes.blockBFTInfos.length > 0
+				? bftVotes.blockBFTInfos[0].height + 1
+				: bftVotes.maxHeightPrevoted + 1;
+
+		const keysStore = context.getStore(this.moduleID, STORE_PREFIX_GENERATOR_KEYS);
+		const nextHeightBytes = intToBuffer(nextHeight, 4, BIG_ENDIAN);
+
+		await keysStore.setWithSchema(nextHeightBytes, { generators }, generatorKeysSchema);
+	}
+
+	public async getCurrentValidators(context: ImmutableAPIContext): Promise<BFTValidator[]> {
 		const votesStore = context.getStore(this.moduleID, STORE_PREFIX_BFT_VOTES);
 		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
 		if (bftVotes.blockBFTInfos.length === 0) {
@@ -235,26 +278,12 @@ export class BFTAPI extends BaseAPI {
 		}
 		const { height: currentHeight } = bftVotes.blockBFTInfos[0];
 		const paramsStore = context.getStore(this.moduleID, STORE_PREFIX_BFT_PARAMETERS);
-		const params = await getBFTParameters(paramsStore, currentHeight);
-		return params.validators;
+		const { validators } = await getBFTParameters(paramsStore, currentHeight);
+
+		return validators;
 	}
 
-	public async getValidator(
-		context: ImmutableAPIContext,
-		address: Buffer,
-		height: number,
-	): Promise<Validator> {
-		const params = await this.getBFTParameters(context, height);
-		const validator = params.validators.find(val => val.address.equals(address));
-		if (!validator) {
-			throw new Error(
-				`Validator with address ${address.toString('hex')} does not exist for height ${height}`,
-			);
-		}
-		return validator;
-	}
-
-	private _computeValidatorsHash(validators: Validator[], certificateThreshold: bigint) {
+	private _computeValidatorsHash(validators: BFTValidator[], certificateThreshold: bigint) {
 		const activeValidators: ValidatorsHashInfo[] = [];
 		for (const validator of validators) {
 			activeValidators.push({

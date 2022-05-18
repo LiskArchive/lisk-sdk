@@ -14,7 +14,7 @@
 
 import { Chain } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
-import { BFTAPI } from '../types';
+import { BFTAPI } from '../../bft';
 import { Network } from '../../network';
 
 // aggregationBits and signatures are optional as these properties are removed when signing certificates
