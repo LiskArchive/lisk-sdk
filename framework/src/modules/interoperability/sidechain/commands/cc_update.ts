@@ -60,6 +60,7 @@ import {
 	checkValidCertificateLiveness,
 	commonCCUExecutelogic,
 	getIDAsKeyForStore,
+	isInboxUpdateEmpty,
 	validateFormat,
 } from '../../utils';
 import { SidechainInteroperabilityStore } from '../store';
@@ -177,32 +178,37 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		checkValidatorsHashWithCertificate(txParams, decodedCertificate, partnerValidators);
 
 		// CCM execution
+		const beforeSendContext = createCCMsgBeforeSendContext({
+			feeAddress: context.transaction.senderAddress,
+			eventQueue: context.eventQueue,
+			getAPIContext: context.getAPIContext,
+			logger: context.logger,
+			networkIdentifier: context.networkIdentifier,
+			getStore: context.getStore,
+		});
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
-		const decodedCCMs = txParams.inboxUpdate.crossChainMessages.map(ccm => ({
-			serialized: ccm,
-			deserilized: codec.decode<CCMsg>(ccmSchema, ccm),
-		}));
-		if (
-			partnerChainAccount.status === CHAIN_REGISTERED &&
-			txParams.inboxUpdate.crossChainMessages.length !== 0 &&
-			txParams.inboxUpdate.messageWitness.siblingHashes.length !== 0 &&
-			txParams.inboxUpdate.outboxRootWitness.siblingHashes.length !== 0
-		) {
+		let decodedCCMs;
+		try {
+			decodedCCMs = txParams.inboxUpdate.crossChainMessages.map(ccm => ({
+				serialized: ccm,
+				deserilized: codec.decode<CCMsg>(ccmSchema, ccm),
+			}));
+		} catch (err) {
+			await interoperabilityStore.terminateChainInternal(
+				txParams.sendingChainID,
+				beforeSendContext,
+			);
+
+			throw err;
+		}
+		if (partnerChainAccount.status === CHAIN_REGISTERED && !isInboxUpdateEmpty) {
 			// If the first CCM in inboxUpdate is a registration CCM
 			if (
-				decodedCCMs.length > 0 &&
 				decodedCCMs[0].deserilized.crossChainCommandID === CROSS_CHAIN_COMMAND_ID_REGISTRATION &&
 				decodedCCMs[0].deserilized.receivingChainID === txParams.sendingChainID
 			) {
 				partnerChainAccount.status = CHAIN_ACTIVE;
 			} else {
-				const beforeSendContext = createBeforeSendCCMsgAPIContext({
-					feeAddress: context.transaction.senderAddress,
-					eventQueue: context.eventQueue,
-					getAPIContext: context.getAPIContext,
-					logger: context.logger,
-					networkIdentifier: context.networkIdentifier,
-				});
 				await interoperabilityStore.terminateChainInternal(
 					txParams.sendingChainID,
 					beforeSendContext,
@@ -213,14 +219,6 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		}
 
 		for (const ccm of decodedCCMs) {
-			const beforeSendContext = createCCMsgBeforeSendContext({
-				feeAddress: context.transaction.senderAddress,
-				eventQueue: context.eventQueue,
-				getAPIContext: context.getAPIContext,
-				logger: context.logger,
-				networkIdentifier: context.networkIdentifier,
-				getStore: context.getStore,
-			});
 			if (txParams.sendingChainID !== ccm.deserilized.sendingChainID) {
 				await interoperabilityStore.terminateChainInternal(
 					txParams.sendingChainID,

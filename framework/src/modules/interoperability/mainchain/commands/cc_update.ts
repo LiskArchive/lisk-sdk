@@ -22,7 +22,6 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../../node/state_machine';
-import { createBeforeSendCCMsgAPIContext } from '../../../../testing';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import {
 	CHAIN_ACTIVE,
