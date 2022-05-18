@@ -235,3 +235,16 @@ export interface ValidatorsHashInput {
 	activeValidators: ActiveValidator[];
 	certificateThreshold: bigint;
 }
+
+export interface TerminatedOutboxAccount {
+	outboxRoot: Buffer;
+	outboxSize: number;
+	partnerChainInboxSize: number;
+}
+
+export interface MessageRecoveryParams {
+	chainID: number;
+	crossChainMessages: Buffer[];
+	idxs: number[];
+	siblingHashes: Buffer[];
+}

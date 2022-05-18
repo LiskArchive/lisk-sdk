@@ -54,6 +54,7 @@ import {
 	OwnChainAccount,
 	CCMApplyContext,
 	StoreCallback,
+	TerminatedOutboxAccount as TerminatedOutbox,
 } from './types';
 import { getCCMSize, getIDAsKeyForStore } from './utils';
 import {
@@ -210,6 +211,65 @@ export abstract class BaseInteroperabilityStore {
 		};
 
 		await terminatedOutboxSubstore.setWithSchema(chainID, terminatedOutbox, terminatedOutboxSchema);
+	}
+
+	public async setTerminatedOutboxAccount(
+		chainID: Buffer,
+		params: Partial<TerminatedOutbox>,
+	): Promise<boolean> {
+		// Passed params is empty, no need to call this method
+		if (Object.keys(params).length === 0) {
+			return false;
+		}
+
+		const terminatedOutboxSubstore = this.getStore(
+			MODULE_ID_INTEROPERABILITY,
+			STORE_PREFIX_TERMINATED_OUTBOX,
+		);
+
+		const doesOutboxExist = await terminatedOutboxSubstore.has(chainID);
+
+		if (!doesOutboxExist) {
+			return false;
+		}
+
+		const account = await terminatedOutboxSubstore.getWithSchema<TerminatedOutbox>(
+			chainID,
+			terminatedOutboxSchema,
+		);
+
+		const terminatedOutbox = {
+			...account,
+			...params,
+		};
+
+		await terminatedOutboxSubstore.setWithSchema(chainID, terminatedOutbox, terminatedOutboxSchema);
+
+		return true;
+	}
+
+	public async terminatedOutboxAccountExist(chainID: Buffer) {
+		const terminatedOutboxSubstore = this.getStore(
+			MODULE_ID_INTEROPERABILITY,
+			STORE_PREFIX_TERMINATED_OUTBOX,
+		);
+
+		const doesOutboxExist = await terminatedOutboxSubstore.has(chainID);
+
+		return doesOutboxExist;
+	}
+
+	public async getTerminatedOutboxAccount(chainID: Buffer) {
+		const terminatedOutboxSubstore = this.getStore(
+			MODULE_ID_INTEROPERABILITY,
+			STORE_PREFIX_TERMINATED_OUTBOX,
+		);
+
+		const terminatedOutboxAccount = await terminatedOutboxSubstore.getWithSchema<TerminatedOutbox>(
+			chainID,
+			terminatedOutboxSchema,
+		);
+		return terminatedOutboxAccount;
 	}
 
 	public async createTerminatedStateAccount(chainID: number, stateRoot?: Buffer): Promise<boolean> {

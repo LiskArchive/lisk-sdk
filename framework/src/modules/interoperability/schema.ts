@@ -429,6 +429,40 @@ export const crossChainUpdateTransactionParams = {
 	},
 };
 
+export const messageRecoveryParams = {
+	$id: '/modules/interoperability/mainchain/messageRecovery',
+	type: 'object',
+	required: ['chainID', 'crossChainMessages', 'idxs', 'siblingHashes'],
+	properties: {
+		chainID: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		crossChainMessages: {
+			type: 'array',
+			minItems: 1,
+			items: {
+				dataType: 'bytes',
+			},
+			fieldNumber: 2,
+		},
+		idxs: {
+			type: 'array',
+			items: {
+				dataType: 'uint32',
+			},
+			fieldNumber: 3,
+		},
+		siblingHashes: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+			},
+			fieldNumber: 4,
+		},
+	},
+};
+
 // Cross chain commands schemas
 export const registrationCCMParamsSchema = {
 	$id: 'modules/interoperability/ccCommand/registration',

@@ -106,3 +106,9 @@ export const computeValidatorsHash = (
 
 export const sortValidatorsByBLSKey = (validators: ActiveValidators[]) =>
 	validators.sort((a, b) => a.blsKey.compare(b.blsKey));
+
+export const swapReceivingAndSendingChainIDs = (ccm: CCMsg) => ({
+	...ccm,
+	receivingChainID: ccm.sendingChainID,
+	sendingChainID: ccm.receivingChainID,
+});

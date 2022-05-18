@@ -71,3 +71,4 @@ export const COMMAND_ID_SIDECHAIN_REG = 0;
 export const COMMAND_ID_MAINCHAIN_REG = 1;
 export const COMMAND_ID_SIDECHAIN_CCU = 2;
 export const COMMAND_ID_MAINCHAIN_CCU = 3;
+export const COMMAND_ID_MESSAGE_RECOVERY = 5;
