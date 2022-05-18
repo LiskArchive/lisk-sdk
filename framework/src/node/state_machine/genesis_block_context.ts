@@ -17,7 +17,7 @@ import { Logger } from '../../logger';
 import { APIContext, wrapEventQueue } from './api_context';
 import { EVENT_INDEX_FINALIZE_GENESIS_STATE, EVENT_INDEX_INIT_GENESIS_STATE } from './constants';
 import { EventQueue } from './event_queue';
-import { BlockAssets, BlockHeader, GenesisBlockExecuteContext } from './types';
+import { BlockAssets, BlockHeader, GenesisBlockExecuteContext, Validator } from './types';
 
 export interface ContextParams {
 	logger: Logger;
@@ -33,6 +33,11 @@ export class GenesisBlockContext {
 	private readonly _header: BlockHeader;
 	private readonly _assets: BlockAssets;
 	private readonly _eventQueue: EventQueue;
+	private _nextValidators?: {
+		precommitThreshold: bigint;
+		certificateThreshold: bigint;
+		validators: Validator[];
+	};
 
 	public constructor(params: ContextParams) {
 		this._logger = params.logger;
@@ -53,6 +58,20 @@ export class GenesisBlockContext {
 			header: this._header,
 			logger: this._logger,
 			assets: this._assets,
+			setNextValidators: (
+				precommitThreshold: bigint,
+				certificateThreshold: bigint,
+				validators: Validator[],
+			) => {
+				if (this._nextValidators) {
+					throw new Error('Next validators can be set only once');
+				}
+				this._nextValidators = {
+					precommitThreshold,
+					certificateThreshold,
+					validators: [...validators],
+				};
+			},
 		};
 	}
 
@@ -67,10 +86,34 @@ export class GenesisBlockContext {
 			header: this._header,
 			logger: this._logger,
 			assets: this._assets,
+			setNextValidators: (
+				precommitThreshold: bigint,
+				certificateThreshold: bigint,
+				validators: Validator[],
+			) => {
+				if (this._nextValidators) {
+					throw new Error('Next validators can be set only once');
+				}
+				this._nextValidators = {
+					precommitThreshold,
+					certificateThreshold,
+					validators: [...validators],
+				};
+			},
 		};
 	}
 
 	public get eventQueue(): EventQueue {
 		return this._eventQueue;
+	}
+
+	public get nextValidators() {
+		return (
+			this._nextValidators ?? {
+				certificateThreshold: BigInt(0),
+				precommitThreshold: BigInt(0),
+				validators: [],
+			}
+		);
 	}
 }

@@ -32,6 +32,7 @@ import { loggerMock } from './mocks';
 import { BlockGenerateContext } from '../node/generator';
 import { WritableBlockAssets } from '../node/generator/types';
 import { GeneratorStore } from '../node/generator/generator_store';
+import { Validator } from '../abi';
 
 export const createGenesisBlockContext = (params: {
 	header?: BlockHeader;
@@ -80,6 +81,7 @@ export const createBlockContext = (params: {
 	header?: BlockHeader;
 	assets?: BlockAssets;
 	transactions?: Transaction[];
+	validators?: Validator[];
 }): BlockContext => {
 	const logger = params.logger ?? loggerMock;
 	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
@@ -112,6 +114,9 @@ export const createBlockContext = (params: {
 		header,
 		assets: params.assets ?? new BlockAssets(),
 		networkIdentifier: getRandomBytes(32),
+		currentValidators: params.validators ?? [],
+		impliesMaxPrevote: true,
+		maxHeightCertified: 0,
 	});
 	return ctx;
 };

@@ -24,6 +24,7 @@ import {
 	BlockVerifyContext,
 	BlockHeader,
 	BlockAssets,
+	Validator,
 } from './types';
 
 export interface ContextParams {
@@ -32,6 +33,9 @@ export interface ContextParams {
 	header: BlockHeader;
 	assets: BlockAssets;
 	logger: Logger;
+	currentValidators: Validator[];
+	impliesMaxPrevote: boolean;
+	maxHeightCertified: number;
 	eventQueue: EventQueue;
 	transactions?: ReadonlyArray<Transaction>;
 }
@@ -43,7 +47,15 @@ export class BlockContext {
 	private readonly _eventQueue: EventQueue;
 	private readonly _header: BlockHeader;
 	private readonly _assets: BlockAssets;
+	private readonly _currentValidators: Validator[];
+	private readonly _impliesMaxPrevote: boolean;
+	private readonly _maxHeightCertified: number;
 	private _transactions?: ReadonlyArray<Transaction>;
+	private _nextValidators?: {
+		precommitThreshold: bigint;
+		certificateThreshold: bigint;
+		validators: Validator[];
+	};
 
 	public constructor(params: ContextParams) {
 		this._logger = params.logger;
@@ -52,6 +64,9 @@ export class BlockContext {
 		this._eventQueue = params.eventQueue;
 		this._header = params.header;
 		this._assets = params.assets;
+		this._currentValidators = params.currentValidators;
+		this._impliesMaxPrevote = params.impliesMaxPrevote;
+		this._maxHeightCertified = params.maxHeightCertified;
 		this._transactions = params.transactions;
 	}
 
@@ -90,6 +105,9 @@ export class BlockContext {
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
 			assets: this._assets,
+			currentValidators: this._currentValidators,
+			impliesMaxPrevote: this._impliesMaxPrevote,
+			maxHeightCertified: this._maxHeightCertified,
 		};
 	}
 
@@ -109,6 +127,23 @@ export class BlockContext {
 			header: this._header,
 			assets: this._assets,
 			transactions: this._transactions,
+			currentValidators: this._currentValidators,
+			impliesMaxPrevote: this._impliesMaxPrevote,
+			maxHeightCertified: this._maxHeightCertified,
+			setNextValidators: (
+				precommitThreshold: bigint,
+				certificateThreshold: bigint,
+				validators: Validator[],
+			) => {
+				if (this._nextValidators) {
+					throw new Error('Next validators can be set only once');
+				}
+				this._nextValidators = {
+					precommitThreshold,
+					certificateThreshold,
+					validators: [...validators],
+				};
+			},
 		};
 	}
 
@@ -126,5 +161,15 @@ export class BlockContext {
 
 	public get eventQueue(): EventQueue {
 		return this._eventQueue;
+	}
+
+	public get nextValidators() {
+		return (
+			this._nextValidators ?? {
+				certificateThreshold: BigInt(0),
+				precommitThreshold: BigInt(0),
+				validators: [],
+			}
+		);
 	}
 }

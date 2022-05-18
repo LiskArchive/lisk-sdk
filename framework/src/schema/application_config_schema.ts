@@ -355,7 +355,7 @@ export const applicationConfigSchema = {
 		},
 		generation: {
 			type: 'object',
-			required: ['force', 'waitThreshold', 'delegates', 'modules'],
+			required: ['force', 'waitThreshold', 'generators', 'modules'],
 			properties: {
 				password: {
 					type: 'string',
@@ -368,7 +368,7 @@ export const applicationConfigSchema = {
 					description: 'Number of seconds to wait for previous block before forging',
 					type: 'integer',
 				},
-				delegates: { ...delegatesConfigSchema },
+				generators: { ...delegatesConfigSchema },
 				modules: {
 					...moduleConfigSchema,
 				},
@@ -425,7 +425,7 @@ export const applicationConfigSchema = {
 		generation: {
 			force: false,
 			waitThreshold: 2,
-			delegates: [],
+			generators: [],
 			modules: {},
 		},
 	},

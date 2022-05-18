@@ -72,6 +72,7 @@ describe('state_machine', () => {
 				getStore: expect.any(Function),
 				header: genesisHeader,
 				assets,
+				setNextValidators: expect.any(Function),
 			});
 		});
 
@@ -185,6 +186,9 @@ describe('state_machine', () => {
 				assets,
 				networkIdentifier,
 				transactions: [transaction],
+				currentValidators: [],
+				impliesMaxPrevote: false,
+				maxHeightCertified: 0,
 			});
 			await stateMachine.verifyAssets(ctx);
 			expect(mod.verifyAssets).toHaveBeenCalledWith({
@@ -210,6 +214,9 @@ describe('state_machine', () => {
 				assets,
 				networkIdentifier,
 				transactions: [transaction],
+				currentValidators: [],
+				impliesMaxPrevote: false,
+				maxHeightCertified: 0,
 			});
 			await stateMachine.beforeExecuteBlock(ctx);
 			expect(mod.beforeTransactionsExecute).toHaveBeenCalledWith({
@@ -220,6 +227,9 @@ describe('state_machine', () => {
 				eventQueue: expect.any(Object),
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
+				currentValidators: expect.any(Array),
+				impliesMaxPrevote: expect.any(Boolean),
+				maxHeightCertified: expect.any(Number),
 			});
 			expect(systemMod.beforeTransactionsExecute).toHaveBeenCalledTimes(1);
 			expect(mod.beforeTransactionsExecute).toHaveBeenCalledTimes(1);
@@ -235,6 +245,9 @@ describe('state_machine', () => {
 				assets,
 				networkIdentifier,
 				transactions: [transaction],
+				currentValidators: [],
+				impliesMaxPrevote: false,
+				maxHeightCertified: 0,
 			});
 			await stateMachine.beforeExecuteBlock(ctx);
 
@@ -254,6 +267,9 @@ describe('state_machine', () => {
 				assets,
 				networkIdentifier,
 				transactions: [transaction],
+				currentValidators: [],
+				impliesMaxPrevote: false,
+				maxHeightCertified: 0,
 			});
 			await stateMachine.afterExecuteBlock(ctx);
 			expect(mod.afterTransactionsExecute).toHaveBeenCalledWith({
@@ -265,6 +281,10 @@ describe('state_machine', () => {
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
 				transactions: [transaction],
+				currentValidators: expect.any(Array),
+				impliesMaxPrevote: expect.any(Boolean),
+				maxHeightCertified: expect.any(Number),
+				setNextValidators: expect.any(Function),
 			});
 			expect(mod.afterTransactionsExecute).toHaveBeenCalledTimes(1);
 		});
@@ -279,6 +299,9 @@ describe('state_machine', () => {
 				assets,
 				networkIdentifier,
 				transactions: [transaction],
+				currentValidators: [],
+				impliesMaxPrevote: false,
+				maxHeightCertified: 0,
 			});
 			await stateMachine.afterExecuteBlock(ctx);
 
@@ -298,6 +321,9 @@ describe('state_machine', () => {
 				assets,
 				networkIdentifier,
 				transactions: [transaction],
+				currentValidators: [],
+				impliesMaxPrevote: false,
+				maxHeightCertified: 0,
 			});
 			await stateMachine.executeBlock(ctx);
 			expect(mod.beforeTransactionsExecute).toHaveBeenCalledWith({
@@ -308,6 +334,9 @@ describe('state_machine', () => {
 				eventQueue: expect.any(Object),
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
+				currentValidators: expect.any(Array),
+				impliesMaxPrevote: expect.any(Boolean),
+				maxHeightCertified: expect.any(Number),
 			});
 			expect(systemMod.beforeTransactionsExecute).toHaveBeenCalledTimes(1);
 			expect(mod.beforeTransactionsExecute).toHaveBeenCalledTimes(1);
@@ -320,6 +349,10 @@ describe('state_machine', () => {
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
 				transactions: [transaction],
+				currentValidators: expect.any(Array),
+				impliesMaxPrevote: expect.any(Boolean),
+				maxHeightCertified: expect.any(Number),
+				setNextValidators: expect.any(Function),
 			});
 			expect(mod.afterTransactionsExecute).toHaveBeenCalledTimes(1);
 		});
