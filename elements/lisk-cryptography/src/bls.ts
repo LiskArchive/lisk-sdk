@@ -85,7 +85,7 @@ export const verifyAggSig = (
 		}
 	}
 
-	return blsFastAggregateVerify(keys, taggedMessage, signature);
+	return blsFastAggregateVerify(keys, hash(taggedMessage), signature);
 };
 
 export const verifyWeightedAggSig = (
@@ -113,5 +113,5 @@ export const verifyWeightedAggSig = (
 		return false;
 	}
 
-	return blsFastAggregateVerify(keys, taggedMessage, signature);
+	return blsFastAggregateVerify(keys, hash(taggedMessage), signature);
 };
