@@ -163,6 +163,14 @@ describe('Mainchain StateRecoveryCommand', () => {
 			await expect(stateRecoveryCommand.execute(commandExecuteContext)).resolves.toBeUndefined();
 		});
 
+		it('should throw error if recovery not available for module', async () => {
+			interoperableCCAPIs.delete(1);
+
+			await expect(stateRecoveryCommand.execute(commandExecuteContext)).rejects.toThrow(
+				'Recovery not available for module',
+			);
+		});
+
 		it('should throw error if recover api fails', async () => {
 			interoperableAPI.recover = jest.fn().mockRejectedValue(new Error('error'));
 
