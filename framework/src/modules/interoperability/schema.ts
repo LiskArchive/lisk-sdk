@@ -440,6 +440,7 @@ export const messageRecoveryParams = {
 		},
 		crossChainMessages: {
 			type: 'array',
+			minItems: 1,
 			items: {
 				dataType: 'bytes',
 			},
