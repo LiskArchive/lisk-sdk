@@ -636,3 +636,52 @@ export const registrationSignatureMessageSchema = {
 		},
 	},
 };
+
+export const stateRecoveryParamsSchema = {
+	$id: '/modules/interoperability/mainchain/commands/stateRecovery',
+	type: 'object',
+	required: ['chainID', 'moduleID', 'storeEntries', 'siblingHashes'],
+	properties: {
+		chainID: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		moduleID: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+		storeEntries: {
+			type: 'array',
+			fieldNumber: 3,
+			items: {
+				type: 'object',
+				properties: {
+					storePrefix: {
+						dataType: 'uint32',
+						fieldNumber: 1,
+					},
+					storeKey: {
+						dataType: 'bytes',
+						fieldNumber: 2,
+					},
+					storeValue: {
+						dataType: 'bytes',
+						fieldNumber: 3,
+					},
+					bitmap: {
+						dataType: 'bytes',
+						fieldNumber: 4,
+					},
+				},
+				required: ['storePrefix', 'storeKey', 'storeValue', 'bitmap'],
+			},
+		},
+		siblingHashes: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+			},
+			fieldNumber: 4,
+		},
+	},
+};
