@@ -13,7 +13,7 @@
  */
 
 export abstract class BaseAPI {
-	public moduleID: number;
+	protected moduleID: number;
 	public constructor(moduleID: number) {
 		this.moduleID = moduleID;
 	}
