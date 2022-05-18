@@ -246,6 +246,7 @@ export interface MessageRecoveryParams {
 	chainID: number;
 	crossChainMessages: Buffer[];
 	idxs: number[];
+	siblingHashes: Buffer[];
 }
 export interface StoreEntry {
 	storePrefix: number;
