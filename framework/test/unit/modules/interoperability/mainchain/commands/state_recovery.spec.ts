@@ -27,7 +27,7 @@ import {
 } from '../../../../../../src/modules/interoperability/constants';
 import { StateRecoveryCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/state_recovery';
 import {
-	stateRecoveryParams,
+	stateRecoveryParamsSchema,
 	terminatedStateSchema,
 } from '../../../../../../src/modules/interoperability/schema';
 import {
@@ -80,7 +80,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 			siblingHashes: [getRandomBytes(32)],
 		};
 		chainIDAsBuffer = getIDAsKeyForStore(transactionParams.chainID);
-		encodedTransactionParams = codec.encode(stateRecoveryParams, transactionParams);
+		encodedTransactionParams = codec.encode(stateRecoveryParamsSchema, transactionParams);
 		transaction = new Transaction({
 			moduleID: MODULE_ID_INTEROPERABILITY,
 			commandID: COMMAND_ID_STATE_RECOVERY,
@@ -112,10 +112,10 @@ describe('Mainchain StateRecoveryCommand', () => {
 			stateStore,
 		});
 		commandVerifyContext = transactionContext.createCommandVerifyContext<StateRecoveryParams>(
-			stateRecoveryParams,
+			stateRecoveryParamsSchema,
 		);
 		commandExecuteContext = transactionContext.createCommandExecuteContext<StateRecoveryParams>(
-			stateRecoveryParams,
+			stateRecoveryParamsSchema,
 		);
 		jest.spyOn(sparseMerkleTree, 'verify').mockReturnValue(true);
 		jest.spyOn(sparseMerkleTree, 'calculateRoot').mockReturnValue(getRandomBytes(32));
