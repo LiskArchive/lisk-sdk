@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { BIG_ENDIAN, intToBuffer } from '@liskhq/lisk-cryptography';
+import { intToBuffer } from '@liskhq/lisk-cryptography';
 import { BlockHeader, ImmutableSubStore } from '../state_machine';
 import { SubStore } from '../state_machine/types';
 import { GeneratorKeysNotFoundError } from './errors';
@@ -96,8 +96,8 @@ export const getGeneratorKeys = async (
 	keysStore: ImmutableSubStore,
 	height: number,
 ): Promise<GeneratorKeys> => {
-	const start = intToBuffer(0, 4, BIG_ENDIAN);
-	const end = intToBuffer(height, 4, BIG_ENDIAN);
+	const start = intToBuffer(0, 4);
+	const end = intToBuffer(height, 4);
 	const results = await keysStore.iterate({
 		limit: 1,
 		start,
@@ -113,8 +113,8 @@ export const getGeneratorKeys = async (
 };
 
 export const deleteGeneratorKeys = async (keysStore: SubStore, height: number): Promise<void> => {
-	const start = intToBuffer(0, 4, BIG_ENDIAN);
-	const end = intToBuffer(height, 4, BIG_ENDIAN);
+	const start = intToBuffer(0, 4);
+	const end = intToBuffer(height, 4);
 	const results = await keysStore.iterate({
 		start,
 		end,
