@@ -429,24 +429,26 @@ export const checkCertificateTimestampAndSignature = (
 	header: BlockHeader,
 ) => {
 	// Certificate and Validators Update Validity
-	const { activeValidators, certificateThreshold } = partnerValidators;
-	if (!txParams.certificate.equals(EMPTY_BYTES)) {
-		const verifySignature = verifyWeightedAggSig(
-			activeValidators.map(v => v.blsKey),
-			certificate.aggregationBits as Buffer,
-			certificate.signature as Buffer,
-			MESSAGE_TAG_CERTIFICATE,
-			partnerChainAccount.networkID,
-			txParams.certificate,
-			activeValidators.map(v => v.bftWeight),
-			certificateThreshold,
-		);
-
-		if (!verifySignature || certificate.timestamp >= header.timestamp)
-			throw Error(
-				`Certificate is invalid due to invalid last certified height or timestamp or signature.`,
-			);
+	if (txParams.certificate.equals(EMPTY_BYTES)) {
+		return;
 	}
+
+	const { activeValidators, certificateThreshold } = partnerValidators;
+	const verifySignature = verifyWeightedAggSig(
+		activeValidators.map(v => v.blsKey),
+		certificate.aggregationBits as Buffer,
+		certificate.signature as Buffer,
+		MESSAGE_TAG_CERTIFICATE,
+		partnerChainAccount.networkID,
+		txParams.certificate,
+		activeValidators.map(v => v.bftWeight),
+		certificateThreshold,
+	);
+
+	if (!verifySignature || certificate.timestamp >= header.timestamp)
+		throw Error(
+			'Certificate is invalid due to invalid last certified height or timestamp or signature.',
+		);
 };
 
 export const checkValidatorsHashWithCertificate = (
@@ -462,6 +464,7 @@ export const checkValidatorsHashWithCertificate = (
 			partnerValidators.activeValidators,
 			txParams.activeValidatorsUpdate,
 		);
+
 		const validatorsHash = computeValidatorsHash(
 			newActiveValidators,
 			txParams.newCertificateThreshold || partnerValidators.certificateThreshold,
@@ -501,9 +504,8 @@ export const commonCCUExecutelogic = async (args: CommonExecutionLogicArgs) => {
 		partnerChainAccount.lastCertificate.timestamp = certificate.timestamp;
 		partnerChainAccount.lastCertificate.height = certificate.height;
 		partnerChainAccount.lastCertificate.validatorsHash = certificate.validatorsHash;
+		await partnerChainStore.setWithSchema(chainIDBuffer, partnerChainAccount, chainAccountSchema);
 	}
-
-	await partnerChainStore.setWithSchema(chainIDBuffer, partnerChainAccount, chainAccountSchema);
 
 	const partnerChannelStore = context.getStore(
 		context.transaction.moduleID,
