@@ -16,7 +16,7 @@ import { KVStore } from '@liskhq/lisk-db';
 import * as childProcess from 'child_process';
 import { ChildProcess } from 'child_process';
 import * as path from 'path';
-import { APP_IDENTIFIER, RPC_MODES } from '../constants';
+import { APP_IDENTIFIER } from '../constants';
 import { Logger } from '../logger';
 import { getEndpointHandlers } from '../endpoint';
 import { BasePlugin, getPluginExportPath, validatePluginSpec } from '../plugins/base_plugin';
@@ -25,9 +25,7 @@ import { ApplicationConfigForPlugin, EndpointHandlers, PluginConfig, RPCConfig }
 import { Bus } from './bus';
 import { BaseChannel } from './channels';
 import { InMemoryChannel } from './channels/in_memory_channel';
-import { HTTPServer } from './http/http_server';
 import { IPCServer } from './ipc/ipc_server';
-import { WSServer } from './ws/ws_server';
 
 export interface ControllerOptions {
 	readonly appConfig: ApplicationConfigForPlugin;
@@ -66,9 +64,6 @@ export class Controller {
 
 	private readonly _bus: Bus;
 	private readonly _internalIPCServer: IPCServer;
-	private readonly _externalIPCServer?: IPCServer;
-	private readonly _wsServer?: WSServer;
-	private readonly _httpServer?: HTTPServer;
 
 	// Injected at init
 	private _logger!: Logger;
@@ -105,34 +100,8 @@ export class Controller {
 			name: 'bus',
 		});
 
-		if (this._config.rpc.modes.includes(RPC_MODES.IPC) && this._config.rpc.ipc) {
-			this._externalIPCServer = new IPCServer({
-				socketsDir: this._config.rpc.ipc.path,
-				name: 'bus',
-				externalSocket: true,
-			});
-		}
-
-		if (this._config.rpc.modes.includes(RPC_MODES.WS) && this._config.rpc.ws) {
-			this._wsServer = new WSServer({
-				path: this._config.rpc.ws.path,
-				port: this._config.rpc.ws.port,
-				host: this._config.rpc.ws.host,
-			});
-		}
-
-		if (this._config.rpc.modes.includes(RPC_MODES.HTTP) && this._config.rpc.http) {
-			this._httpServer = new HTTPServer({
-				host: this._config.rpc.http.host,
-				port: this._config.rpc.http.port,
-			});
-		}
-
 		this._bus = new Bus({
-			externalIPCServer: this._externalIPCServer,
 			internalIPCServer: this._internalIPCServer,
-			wsServer: this._wsServer,
-			httpServer: this._httpServer,
 		});
 	}
 

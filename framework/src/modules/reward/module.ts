@@ -14,13 +14,17 @@
 
 import { objects } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
-import { BaseModule, ModuleInitArgs } from '../base_module';
+import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { defaultConfig, MODULE_ID_REWARD } from './constants';
 import { BFTAPI, ModuleConfig, RandomAPI, TokenAPI, TokenIDReward } from './types';
 import { BlockAfterExecuteContext } from '../../node/state_machine';
 import { RewardAPI } from './api';
 import { RewardEndpoint } from './endpoint';
-import { configSchema } from './schemas';
+import {
+	configSchema,
+	getDefaultRewardAtHeightRequestSchema,
+	getDefaultRewardAtHeightResponseSchema,
+} from './schemas';
 
 export class RewardModule extends BaseModule {
 	public id = MODULE_ID_REWARD;
@@ -39,6 +43,21 @@ export class RewardModule extends BaseModule {
 		this._randomAPI = randomAPI;
 		this._bftAPI = bftAPI;
 		this.api.addDependencies(this._bftAPI, this._randomAPI);
+	}
+
+	public metadata(): ModuleMetadata {
+		return {
+			endpoints: [
+				{
+					name: this.endpoint.getDefaultRewardAtHeight.name,
+					request: getDefaultRewardAtHeightRequestSchema,
+					response: getDefaultRewardAtHeightResponseSchema,
+				},
+			],
+			commands: [],
+			events: [],
+			assets: [],
+		};
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

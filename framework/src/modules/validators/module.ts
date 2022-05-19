@@ -14,7 +14,7 @@
 
 import { objects } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
-import { BaseModule, ModuleInitArgs } from '../base_module';
+import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import {
 	defaultConfig,
 	EMPTY_KEY,
@@ -24,7 +24,12 @@ import {
 import { GenesisBlockExecuteContext } from '../../node/state_machine';
 import { ValidatorsAPI } from './api';
 import { ValidatorsEndpoint } from './endpoint';
-import { configSchema, genesisDataSchema } from './schemas';
+import {
+	configSchema,
+	genesisDataSchema,
+	validateBLSKeyRequestSchema,
+	validateBLSKeyResponseSchema,
+} from './schemas';
 
 export class ValidatorsModule extends BaseModule {
 	public id = MODULE_ID_VALIDATORS;
@@ -32,6 +37,22 @@ export class ValidatorsModule extends BaseModule {
 	public api = new ValidatorsAPI(this.id);
 	public endpoint = new ValidatorsEndpoint(this.id);
 	private _blockTime!: number;
+
+	public metadata(): ModuleMetadata {
+		return {
+			endpoints: [
+				// getGeneratorList is not listed since it will be moved to engine endpoint
+				{
+					name: this.endpoint.validateBLSKey.name,
+					request: validateBLSKeyRequestSchema,
+					response: validateBLSKeyResponseSchema,
+				},
+			],
+			commands: [],
+			events: [],
+			assets: [],
+		};
+	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs): Promise<void> {
