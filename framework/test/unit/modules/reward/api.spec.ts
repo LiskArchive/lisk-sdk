@@ -55,7 +55,7 @@ describe('RewardModuleAPI', () => {
 			rewardModule.addDependencies(
 				{ mint: jest.fn() } as any,
 				{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
-				{ impliesMaximalPrevotes: jest.fn().mockReturnValue(true) } as any,
+				{ currentHeaderImpliesMaximalPrevotes: jest.fn().mockReturnValue(true) } as any,
 			);
 			const blockHeader = createBlockHeaderWithDefaults({ height: currentHeight });
 			const rewardFromAPI = await rewardModule.api.getBlockReward(context, blockHeader, blockAsset);
@@ -67,7 +67,7 @@ describe('RewardModuleAPI', () => {
 			rewardModule.addDependencies(
 				{ mint: jest.fn() } as any,
 				{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
-				{ impliesMaximalPrevotes: jest.fn().mockReturnValue(false) } as any,
+				{ currentHeaderImpliesMaximalPrevotes: jest.fn().mockReturnValue(false) } as any,
 			);
 			const blockHeader = createBlockHeaderWithDefaults({ height: currentHeight });
 			const rewardFromAPI = await rewardModule.api.getBlockReward(context, blockHeader, blockAsset);
@@ -79,7 +79,7 @@ describe('RewardModuleAPI', () => {
 			rewardModule.addDependencies(
 				{ mint: jest.fn() } as any,
 				{ isSeedRevealValid: jest.fn().mockReturnValue(false) } as any,
-				{ impliesMaximalPrevotes: jest.fn().mockReturnValue(true) } as any,
+				{ currentHeaderImpliesMaximalPrevotes: jest.fn().mockReturnValue(true) } as any,
 			);
 			const blockHeader = createBlockHeaderWithDefaults({ height: currentHeight });
 			const rewardFromAPI = await rewardModule.api.getBlockReward(context, blockHeader, blockAsset);
@@ -92,7 +92,7 @@ describe('RewardModuleAPI', () => {
 		rewardModule.addDependencies(
 			{ mint: jest.fn() } as any,
 			{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
-			{ impliesMaximalPrevotes: jest.fn().mockReturnValue(true) } as any,
+			{ currentHeaderImpliesMaximalPrevotes: jest.fn().mockReturnValue(true) } as any,
 		);
 		const blockHeader = createBlockHeaderWithDefaults({ height: 1 });
 		const rewardFromAPI = await rewardModule.api.getBlockReward(context, blockHeader, blockAsset);

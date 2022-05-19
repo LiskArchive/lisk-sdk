@@ -27,5 +27,5 @@ export interface BlockExecutor {
 	) => Promise<Block>;
 	deleteLastBlock: (options?: { saveTempBlock?: boolean }) => Promise<void>;
 	getCurrentValidators(): Promise<{ address: Buffer; bftWeight: bigint }[]>;
-	getSlotNumber(timestamp: number): Promise<number>;
+	getSlotNumber(timestamp: number): number;
 }

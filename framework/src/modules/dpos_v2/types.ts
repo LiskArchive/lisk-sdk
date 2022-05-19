@@ -13,7 +13,7 @@
  */
 
 import { BlockHeader } from '@liskhq/lisk-chain';
-import { BFTHeights } from '../bft/types';
+import { BFTHeights } from '../../node/bft/types';
 import { Validator } from '../../node/consensus/types';
 import { APIContext, ImmutableAPIContext } from '../../node/state_machine/types';
 
@@ -36,21 +36,20 @@ export interface ModuleConfig {
 }
 
 export interface BFTAPI {
+	setGeneratorKeys(
+		context: APIContext,
+		validators: { address: Buffer; generatorKey: Buffer }[],
+	): Promise<void>;
 	setBFTParameters(
 		apiContext: APIContext,
 		precommitThreshold: bigint,
 		certificateThreshold: bigint,
 		validators: Validator[],
 	): Promise<void>;
-	getBFTParameters(
+	getGeneratorKeys(
 		context: ImmutableAPIContext,
 		height: number,
-	): Promise<{
-		prevoteThreshold: bigint;
-		precommitThreshold: bigint;
-		certificateThreshold: bigint;
-		validators: Validator[];
-	}>;
+	): Promise<{ address: Buffer; generatorKey: Buffer }[]>;
 	areHeadersContradicting(bftHeader1: BlockHeader, bftHeader2: BlockHeader): boolean;
 	getBFTHeights(context: ImmutableAPIContext): Promise<BFTHeights>;
 }
@@ -64,7 +63,6 @@ export interface RandomAPI {
 }
 
 export interface ValidatorsAPI {
-	setGeneratorList(apiContext: APIContext, generatorAddresses: Buffer[]): Promise<boolean>;
 	setValidatorGeneratorKey(
 		apiContext: APIContext,
 		validatorAddress: Buffer,
@@ -82,8 +80,8 @@ export interface ValidatorsAPI {
 		apiContext: ImmutableAPIContext,
 		startTimestamp: number,
 		endTimestamp: number,
+		validators: { address: Buffer }[],
 	): Promise<Record<string, number>>;
-	getGeneratorAtTimestamp(apiContext: ImmutableAPIContext, timestamp: number): Promise<Buffer>;
 }
 
 export interface TokenAPI {

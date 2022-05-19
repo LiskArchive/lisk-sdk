@@ -24,7 +24,6 @@ import {
 } from './constants';
 import { SubStore } from '../../node/state_machine/types';
 import { voterStoreSchema } from './schemas';
-import { Validator } from '../../node/consensus/types';
 
 export const sortUnlocking = (unlocks: UnlockingObject[]): void => {
 	unlocks.sort((a, b) => {
@@ -166,22 +165,6 @@ export const selectStandbyDelegates = (
 	result.push(secondStandby.delegateAddress);
 
 	return result;
-};
-
-export const validtorsEqual = (v1: Validator[], v2: Validator[]): boolean => {
-	if (v1.length !== v2.length) {
-		return false;
-	}
-	for (let i = 0; i < v1.length; i += 1) {
-		if (!v1[i].address.equals(v2[i].address)) {
-			return false;
-		}
-		if (v1[i].bftWeight !== v2[i].bftWeight) {
-			return false;
-		}
-	}
-
-	return true;
 };
 
 export const isCurrentlyPunished = (height: number, pomHeights: ReadonlyArray<number>): boolean => {

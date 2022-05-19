@@ -30,7 +30,7 @@ import {
 	CONSENSUS_EVENT_BLOCK_DELETE,
 	CONSENSUS_EVENT_BLOCK_NEW,
 } from '../../../src/node/consensus';
-import { BFTAPI } from '../../../src/modules/bft';
+import { BFTAPI } from '../../../src/node/bft';
 import { GenesisBlockExecuteContext } from '../../../src/node/state_machine';
 import { ValidatorsAPI } from '../../../src/modules/validators';
 
@@ -69,7 +69,17 @@ class SampleNodeModule extends BaseModule {
 			blsPop,
 		);
 		await this._bftAPI.setBFTParameters(context.getAPIContext(), BigInt(68), BigInt(68), [
-			{ address: keys.address, bftWeight: BigInt(100) },
+			{
+				address: keys.address,
+				bftWeight: BigInt(100),
+				blsKey: getRandomBytes(48),
+			},
+		]);
+		await this._bftAPI.setGeneratorKeys(context.getAPIContext(), [
+			{
+				address: keys.address,
+				generatorKey: getRandomBytes(32),
+			},
 		]);
 	}
 }

@@ -74,10 +74,7 @@ describe('genesis block', () => {
 			});
 
 			it('should have correct delegate list', async () => {
-				const validators = await processEnv.invoke<{ list: string[] }>(
-					'validators_getGeneratorList',
-					{},
-				);
+				const validators = await processEnv.invoke<{ list: string[] }>('bft_getGeneratorList', {});
 				expect(validators.list).toMatchSnapshot();
 			});
 		});
@@ -134,7 +131,6 @@ describe('genesis block', () => {
 						registerHandler: () => {},
 					} as unknown) as Network,
 					stateMachine: consensus['_stateMachine'],
-					validatorAPI: consensus['_validatorAPI'],
 				});
 				chain.init({
 					db: processEnv.getBlockchainDB(),

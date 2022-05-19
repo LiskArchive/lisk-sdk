@@ -17,14 +17,14 @@ import { codec } from '@liskhq/lisk-codec';
 import { BIG_ENDIAN, getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { SparseMerkleTree } from '@liskhq/lisk-tree';
-import { MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS } from '../../../../src/modules/bft/constants';
-import { BFTParameterNotFoundError } from '../../../../src/modules/bft/errors';
+import { MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS } from '../../../../src/node/bft/constants';
+import { BFTParameterNotFoundError } from '../../../../src/node/bft/errors';
 import {
 	BFTParametersCache,
 	deleteBFTParameters,
 	getBFTParameters,
-} from '../../../../src/modules/bft/bft_params';
-import { BFTParameters, bftParametersSchema } from '../../../../src/modules/bft/schemas';
+} from '../../../../src/node/bft/bft_params';
+import { BFTParameters, bftParametersSchema } from '../../../../src/node/bft/schemas';
 
 describe('BFT parameters', () => {
 	describe('getBFTParameters', () => {
@@ -46,6 +46,7 @@ describe('BFT parameters', () => {
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(10),
+						blsKey: getRandomBytes(42),
 					},
 				],
 				validatorsHash: getRandomBytes(32),
@@ -60,6 +61,7 @@ describe('BFT parameters', () => {
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(5),
+						blsKey: getRandomBytes(42),
 					},
 				],
 				validatorsHash: getRandomBytes(32),
@@ -112,6 +114,7 @@ describe('BFT parameters', () => {
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(10),
+						blsKey: getRandomBytes(42),
 					},
 				],
 				validatorsHash: getRandomBytes(32),
@@ -126,6 +129,7 @@ describe('BFT parameters', () => {
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(5),
+						blsKey: getRandomBytes(42),
 					},
 				],
 				validatorsHash: getRandomBytes(32),
@@ -175,6 +179,7 @@ describe('BFT parameters', () => {
 						{
 							address: getRandomBytes(20),
 							bftWeight: BigInt(10),
+							blsKey: getRandomBytes(42),
 						},
 					],
 					validatorsHash: getRandomBytes(32),
@@ -189,6 +194,7 @@ describe('BFT parameters', () => {
 						{
 							address: getRandomBytes(20),
 							bftWeight: BigInt(5),
+							blsKey: getRandomBytes(42),
 						},
 					],
 					validatorsHash: getRandomBytes(32),
@@ -203,6 +209,7 @@ describe('BFT parameters', () => {
 						{
 							address: getRandomBytes(20),
 							bftWeight: BigInt(5),
+							blsKey: getRandomBytes(42),
 						},
 					],
 					validatorsHash: getRandomBytes(32),

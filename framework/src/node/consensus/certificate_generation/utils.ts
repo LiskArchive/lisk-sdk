@@ -12,10 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { signBLS, verifyWeightedAggSig } from '@liskhq/lisk-cryptography';
+import { signBLS, verifyBLS, verifyWeightedAggSig } from '@liskhq/lisk-cryptography';
 import { BlockHeader } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { verifyBLS } from '@liskhq/lisk-cryptography';
 import { Certificate } from './types';
 import { certificateSchema } from './schema';
 import { MESSAGE_TAG_CERTIFICATE } from './constants';

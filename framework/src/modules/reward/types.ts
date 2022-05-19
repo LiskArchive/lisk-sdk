@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader, BlockAssets } from '../../node/state_machine';
+import { BlockAssets } from '../../node/state_machine';
 import { APIContext, ImmutableAPIContext } from '../../node/state_machine/types';
 
 export type TokenIDReward = Buffer;
@@ -37,10 +37,7 @@ export interface RandomAPI {
 }
 
 export interface BFTAPI {
-	impliesMaximalPrevotes(
-		apiContext: ImmutableAPIContext,
-		blockHeader: BlockHeader,
-	): Promise<boolean>;
+	currentHeaderImpliesMaximalPrevotes(apiContext: ImmutableAPIContext): Promise<boolean>;
 }
 
 export interface DefaultReward {

@@ -98,7 +98,8 @@ describe('UnlockCommand', () => {
 		};
 		mockBFTAPI = {
 			setBFTParameters: jest.fn(),
-			getBFTParameters: jest.fn(),
+			getGeneratorKeys: jest.fn(),
+			setGeneratorKeys: jest.fn(),
 			areHeadersContradicting: jest.fn(),
 			getBFTHeights: jest.fn().mockResolvedValue({ maxHeightCertified: 8760000 }),
 		};

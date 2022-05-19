@@ -48,6 +48,7 @@ import {
 	voterStoreSchema,
 } from '../../../../src/modules/dpos_v2/schemas';
 import {
+	BFTAPI,
 	DelegateAccount,
 	GenesisData,
 	PreviousTimestampData,
@@ -117,18 +118,19 @@ describe('DPoS module', () => {
 				getRandomBytes: jest.fn(),
 			};
 			const bftAPI = {
+				getGeneratorKeys: jest.fn(),
+				setGeneratorKeys: jest.fn(),
 				setBFTParameters: jest.fn(),
-				getBFTParameters: jest.fn(),
 				areHeadersContradicting: jest.fn(),
 				getBFTHeights: jest.fn(),
 			};
 			const validatorAPI = {
-				setGeneratorList: jest.fn(),
 				setValidatorGeneratorKey: jest.fn(),
 				registerValidatorKeys: jest.fn().mockResolvedValue(true),
-				getValidatorAccount: jest.fn(),
+				getValidatorAccount: jest
+					.fn()
+					.mockResolvedValue({ blsKey: getRandomBytes(48), generatorKey: getRandomBytes(32) }),
 				getGeneratorsBetweenTimestamps: jest.fn(),
-				getGeneratorAtTimestamp: jest.fn(),
 			};
 			const tokenAPI = {
 				lock: jest.fn(),
@@ -287,16 +289,6 @@ describe('DPoS module', () => {
 				});
 			});
 
-			it('should register all the validators', async () => {
-				await expect(dpos.initGenesisState(context)).toResolve();
-				await expect(dpos.finalizeGenesisState(context)).toResolve();
-
-				expect(dpos['_validatorsAPI'].setGeneratorList).toHaveBeenCalledWith(
-					expect.anything(),
-					validAsset.genesisData.initDelegates,
-				);
-			});
-
 			it('should register all active delegates as BFT validators', async () => {
 				await expect(dpos.initGenesisState(context)).toResolve();
 				await expect(dpos.finalizeGenesisState(context)).toResolve();
@@ -307,6 +299,7 @@ describe('DPoS module', () => {
 					validAsset.genesisData.initDelegates.map(d => ({
 						bftWeight: BigInt(1),
 						address: d,
+						blsKey: expect.any(Buffer),
 					})),
 				);
 			});
@@ -768,25 +761,20 @@ describe('DPoS module', () => {
 								.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed2, 'hex')),
 						};
 						const bftAPI = {
+							getGeneratorKeys: jest.fn(),
+							setGeneratorKeys: jest.fn(),
 							setBFTParameters: jest.fn(),
-							getBFTParameters: jest.fn().mockResolvedValueOnce({
-								precommitThreshold: defaultConfigs.bftThreshold,
-								certificateThreshold: defaultConfigs.bftThreshold,
-								validators: activeDelegates.map(d => ({
-									address: d,
-									bftWeight: BigInt(1),
-								})),
-							}),
 							getBFTHeights: jest.fn(),
 							areHeadersContradicting: jest.fn(),
 						};
 						const validatorAPI = {
-							setGeneratorList: jest.fn(),
 							setValidatorGeneratorKey: jest.fn(),
 							registerValidatorKeys: jest.fn(),
-							getValidatorAccount: jest.fn(),
+							getValidatorAccount: jest.fn().mockResolvedValue({
+								blsKey: getRandomBytes(48),
+								generatorKey: getRandomBytes(32),
+							}),
 							getGeneratorsBetweenTimestamps: jest.fn(),
-							getGeneratorAtTimestamp: jest.fn(),
 						};
 						const tokenAPI = {
 							lock: jest.fn(),
@@ -807,21 +795,10 @@ describe('DPoS module', () => {
 
 						await dpos['_updateValidators'](context);
 
-						expect(validatorAPI.setGeneratorList).toHaveBeenCalledTimes(1);
-						const forgersList = validatorAPI.setGeneratorList.mock.calls[0][1] as Buffer[];
+						expect(bftAPI.setBFTParameters).toHaveBeenCalledTimes(1);
+						const forgersList = bftAPI.setBFTParameters.mock.calls[0][3] as Buffer[];
 
 						expect(forgersList.length).toBeGreaterThan(1);
-
-						const forgersListAddresses = forgersList.sort((a, b) => a.compare(b));
-
-						const sortedFixturesForgersBuffer = scenario.testCases.output.selectedForgers
-							.map(aForger => Buffer.from(aForger, 'hex'))
-							.sort((a, b) => a.compare(b));
-
-						expect(forgersListAddresses).toEqual(sortedFixturesForgersBuffer);
-
-						expect(bftAPI.getBFTParameters).toHaveBeenCalledTimes(1);
-						expect(bftAPI.setBFTParameters).toHaveBeenCalledTimes(1);
 					});
 				});
 			}
@@ -830,6 +807,7 @@ describe('DPoS module', () => {
 		describe('when there are enough standby delegates', () => {
 			const defaultRound = 123;
 			let validatorAPI: ValidatorsAPI;
+			let bftAPI: BFTAPI;
 
 			const scenario = forgerSelectionMoreThan2StandByScenario;
 
@@ -871,26 +849,20 @@ describe('DPoS module', () => {
 						.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed1, 'hex'))
 						.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed2, 'hex')),
 				};
-				const bftAPI = {
+				bftAPI = {
+					getGeneratorKeys: jest.fn(),
+					setGeneratorKeys: jest.fn(),
 					setBFTParameters: jest.fn(),
-					getBFTParameters: jest.fn().mockResolvedValueOnce({
-						precommitThreshold: defaultConfigs.bftThreshold,
-						certificateThreshold: defaultConfigs.bftThreshold,
-						validators: activeDelegates.map(d => ({
-							address: d,
-							bftWeight: BigInt(1),
-						})),
-					}),
 					areHeadersContradicting: jest.fn(),
 					getBFTHeights: jest.fn(),
 				};
 				validatorAPI = {
-					setGeneratorList: jest.fn(),
 					setValidatorGeneratorKey: jest.fn(),
 					registerValidatorKeys: jest.fn(),
-					getValidatorAccount: jest.fn(),
+					getValidatorAccount: jest
+						.fn()
+						.mockResolvedValue({ blsKey: getRandomBytes(48), generatorKey: getRandomBytes(32) }),
 					getGeneratorsBetweenTimestamps: jest.fn(),
-					getGeneratorAtTimestamp: jest.fn(),
 				};
 				const tokenAPI = {
 					lock: jest.fn(),
@@ -912,26 +884,30 @@ describe('DPoS module', () => {
 				await dpos['_updateValidators'](context);
 			});
 
-			it('should have activeDelegates + standbyDelegates delegates in the forgers list', () => {
-				expect(validatorAPI.setGeneratorList).toHaveBeenCalledTimes(1);
-				const forgersList = (validatorAPI.setGeneratorList as jest.Mock).mock.calls[0][1];
+			it('should have activeDelegates + standbyDelegates delegates in the generators list', () => {
+				expect(bftAPI.setBFTParameters).toHaveBeenCalledTimes(1);
+				const forgersList = (bftAPI.setGeneratorKeys as jest.Mock).mock.calls[0][1];
 				expect(forgersList).toHaveLength(defaultConfigs.roundLength);
 			});
 
-			it('should store selected stand by delegates in the forgers list', () => {
+			it('should store selected stand by delegates in the generators list', () => {
 				const { selectedForgers } = scenario.testCases.output;
 				const standbyDelegatesInFixture = [
 					Buffer.from(selectedForgers[selectedForgers.length - 1], 'hex'),
 					Buffer.from(selectedForgers[selectedForgers.length - 2], 'hex'),
 				].sort((a, b) => a.compare(b));
 
-				const forgersList = (validatorAPI.setGeneratorList as jest.Mock).mock
-					.calls[0][1] as Buffer[];
+				const forgersList = (bftAPI.setGeneratorKeys as jest.Mock).mock.calls[0][1] as {
+					address: Buffer;
+				}[];
 				const standbyCandidatesAddresses = forgersList
 					.filter(
-						addr => standbyDelegatesInFixture.find(fixture => fixture.equals(addr)) !== undefined,
+						validator =>
+							standbyDelegatesInFixture.find(fixture => fixture.equals(validator.address)) !==
+							undefined,
 					)
-					.sort((a, b) => a.compare(b));
+					.sort((a, b) => a.address.compare(b.address))
+					.map(validator => validator.address);
 
 				expect(standbyCandidatesAddresses).toHaveLength(2);
 				expect(standbyCandidatesAddresses).toEqual(standbyDelegatesInFixture);
@@ -941,10 +917,10 @@ describe('DPoS module', () => {
 
 	describe('_updateProductivity', () => {
 		const randomAPI: any = {};
-		const bftAPI: any = {};
 		const tokenAPI: any = {};
 
 		let validatorsAPI: any;
+		let bftAPI: any;
 		let stateStore: StateStore;
 		let delegateData: DelegateAccount[];
 		let delegateAddresses: Buffer[];
@@ -962,9 +938,12 @@ describe('DPoS module', () => {
 
 			stateStore = new StateStore(new InMemoryKVStore());
 
+			bftAPI = {
+				getGeneratorKeys: jest.fn().mockResolvedValue([]),
+			};
+
 			validatorsAPI = {
 				getGeneratorsBetweenTimestamps: jest.fn(),
-				getGeneratorAtTimestamp: jest.fn(),
 			};
 
 			dpos.addDependencies(randomAPI, bftAPI, validatorsAPI, tokenAPI);
@@ -1023,16 +1002,13 @@ describe('DPoS module', () => {
 				}
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
+					.calledWith(
+						context.getAPIContext(),
+						previousTimestamp,
+						currentTimestamp,
+						expect.any(Array),
+					)
 					.mockReturnValue(missedBlocks);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), currentTimestamp)
-					.mockReturnValue(generatorAddress);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), previousTimestamp)
-					.mockReturnValue(generatorAddress);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
 
@@ -1054,7 +1030,6 @@ describe('DPoS module', () => {
 
 		describe('When only 2 delegate missed a block since last block', () => {
 			it('should increment "consecutiveMissedBlocks" only for forgers who missed a block', async () => {
-				const lastForgerAddress = delegateAddresses[delegateAddresses.length - 4];
 				const generatorAddress = delegateAddresses[delegateAddresses.length - 1];
 				const missedForgers = [
 					delegateAddresses[delegateAddresses.length - 2],
@@ -1086,16 +1061,13 @@ describe('DPoS module', () => {
 				}
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
+					.calledWith(
+						context.getAPIContext(),
+						previousTimestamp,
+						currentTimestamp,
+						expect.any(Array),
+					)
 					.mockReturnValue(missedBlocks);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), currentTimestamp)
-					.mockReturnValue(generatorAddress);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), previousTimestamp)
-					.mockReturnValue(lastForgerAddress);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
 
@@ -1118,7 +1090,6 @@ describe('DPoS module', () => {
 			it('should increment "consecutiveMissedBlocks"  for the number of blocks that delegate missed', async () => {
 				const generatorIndex = delegateAddresses.length - 1;
 				const generatorAddress = delegateAddresses[generatorIndex];
-				const lastForgerAddress = delegateAddresses[generatorIndex - 6];
 				const missedMoreThan1Block = delegateAddresses.slice(generatorIndex - 5, generatorIndex);
 				const previousTimestamp = 9200;
 				const currentTimestamp = 10290;
@@ -1149,16 +1120,13 @@ describe('DPoS module', () => {
 				}
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
+					.calledWith(
+						context.getAPIContext(),
+						previousTimestamp,
+						currentTimestamp,
+						expect.any(Array),
+					)
 					.mockReturnValue(missedBlocks);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), currentTimestamp)
-					.mockReturnValue(generatorAddress);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), previousTimestamp)
-					.mockReturnValue(lastForgerAddress);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
 
@@ -1183,7 +1151,6 @@ describe('DPoS module', () => {
 			it('must NOT update "consecutiveMissedBlocks" for anyone', async () => {
 				const generatorIndex = delegateAddresses.length - 1;
 				const generatorAddress = delegateAddresses[generatorIndex];
-				const lastForgerAddress = delegateAddresses[generatorIndex - 1];
 				const previousTimestamp = 10283;
 				const currentTimestamp = 10290;
 				const lastForgedHeight = 926;
@@ -1207,16 +1174,13 @@ describe('DPoS module', () => {
 				const missedBlocks: Record<string, number> = {};
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
+					.calledWith(
+						context.getAPIContext(),
+						previousTimestamp,
+						currentTimestamp,
+						expect.any(Array),
+					)
 					.mockReturnValue(missedBlocks);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), currentTimestamp)
-					.mockReturnValue(generatorAddress);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), previousTimestamp)
-					.mockReturnValue(lastForgerAddress);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
 
@@ -1240,7 +1204,6 @@ describe('DPoS module', () => {
 				const missedDelegateIndex = generatorIndex - 1;
 				const generatorAddress = delegateAddresses[generatorIndex];
 				const missedDelegate = delegateAddresses[missedDelegateIndex];
-				const lastForgerAddress = delegateAddresses[generatorIndex - 2];
 				const previousTimestamp = 10000270;
 				const currentTimestamp = 10000290;
 				const lastForgedHeight = 920006;
@@ -1265,16 +1228,13 @@ describe('DPoS module', () => {
 				missedBlocks[missedDelegate.toString('binary')] = 1;
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
+					.calledWith(
+						context.getAPIContext(),
+						previousTimestamp,
+						currentTimestamp,
+						expect.any(Array),
+					)
 					.mockReturnValue(missedBlocks);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), currentTimestamp)
-					.mockReturnValue(generatorAddress);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), previousTimestamp)
-					.mockReturnValue(lastForgerAddress);
 
 				delegateData[missedDelegateIndex].consecutiveMissedBlocks = 50;
 				delegateData[missedDelegateIndex].lastGeneratedHeight = nextForgedHeight - 260000 + 5000;
@@ -1302,7 +1262,6 @@ describe('DPoS module', () => {
 				const missedDelegateIndex = generatorIndex - 1;
 				const generatorAddress = delegateAddresses[generatorIndex];
 				const missedDelegate = delegateAddresses[missedDelegateIndex];
-				const lastForgerAddress = delegateAddresses[generatorIndex - 2];
 				const previousTimestamp = 10000270;
 				const currentTimestamp = 10000290;
 				const lastForgedHeight = 920006;
@@ -1327,16 +1286,13 @@ describe('DPoS module', () => {
 				missedBlocks[missedDelegate.toString('binary')] = 1;
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
+					.calledWith(
+						context.getAPIContext(),
+						previousTimestamp,
+						currentTimestamp,
+						expect.any(Array),
+					)
 					.mockReturnValue(missedBlocks);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), currentTimestamp)
-					.mockReturnValue(generatorAddress);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), previousTimestamp)
-					.mockReturnValue(lastForgerAddress);
 
 				delegateData[missedDelegateIndex].consecutiveMissedBlocks = 40;
 				delegateData[missedDelegateIndex].lastGeneratedHeight = nextForgedHeight - 260000 - 1;
@@ -1364,7 +1320,6 @@ describe('DPoS module', () => {
 				const missedDelegateIndex = generatorIndex - 1;
 				const generatorAddress = delegateAddresses[generatorIndex];
 				const missedDelegate = delegateAddresses[missedDelegateIndex];
-				const lastForgerAddress = delegateAddresses[generatorIndex - 2];
 				const previousTimestamp = 10000270;
 				const currentTimestamp = 10000290;
 				const lastForgedHeight = 920006;
@@ -1389,16 +1344,13 @@ describe('DPoS module', () => {
 				missedBlocks[missedDelegate.toString('binary')] = 1;
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
+					.calledWith(
+						context.getAPIContext(),
+						previousTimestamp,
+						currentTimestamp,
+						expect.any(Array),
+					)
 					.mockReturnValue(missedBlocks);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), currentTimestamp)
-					.mockReturnValue(generatorAddress);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), previousTimestamp)
-					.mockReturnValue(lastForgerAddress);
 
 				delegateData[missedDelegateIndex].consecutiveMissedBlocks = 50;
 				delegateData[missedDelegateIndex].lastGeneratedHeight = nextForgedHeight - 260000 - 1;

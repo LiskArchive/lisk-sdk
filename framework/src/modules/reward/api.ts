@@ -60,7 +60,7 @@ export class RewardAPI extends BaseAPI {
 			return BigInt(0);
 		}
 
-		const impliesMaximalPrevotes = await this._bftAPI.impliesMaximalPrevotes(context, header);
+		const impliesMaximalPrevotes = await this._bftAPI.currentHeaderImpliesMaximalPrevotes(context);
 		if (!impliesMaximalPrevotes) {
 			return defaultReward / BigInt(REWARD_REDUCTION_FACTOR_BFT);
 		}

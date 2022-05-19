@@ -41,7 +41,7 @@ describe('RewardModuleEndpoint', () => {
 		rewardModule.addDependencies(
 			{ mint: jest.fn() } as any,
 			{ isSeedRevealValid: jest.fn() } as any,
-			{ impliesMaximalPrevotes: jest.fn() } as any,
+			{ currentHeaderImpliesMaximalPrevotes: jest.fn() } as any,
 		);
 	});
 

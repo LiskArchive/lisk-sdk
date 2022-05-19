@@ -18,9 +18,9 @@ import { createAggSig } from '@liskhq/lisk-cryptography';
 import { KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { EMPTY_BUFFER, NETWORK_EVENT_COMMIT_MESSAGES, COMMIT_RANGE_STORED } from './constants';
-import { BFTParameterNotFoundError } from '../../../modules/bft/errors';
+import { BFTParameterNotFoundError } from '../../bft/errors';
 import { APIContext } from '../../state_machine/types';
-import { BFTAPI, PkSigPair, ValidatorAPI, AggregateCommit } from '../types';
+import { PkSigPair, AggregateCommit } from '../types';
 import { Certificate, CommitPoolConfig, SingleCommit, ValidatorInfo } from './types';
 
 import {
@@ -34,6 +34,7 @@ import { Network } from '../../network';
 import { singleCommitSchema, singleCommitsNetworkPacketSchema } from './schema';
 import { createNewAPIContext } from '../../state_machine/api_context';
 import { CommitList, COMMIT_SORT } from './commit_list';
+import { BFTAPI } from '../../bft';
 
 export class CommitPool {
 	private readonly _nonGossipedCommits: CommitList;
@@ -41,7 +42,6 @@ export class CommitPool {
 	private readonly _gossipedCommits: CommitList;
 	private readonly _blockTime: number;
 	private readonly _bftAPI: BFTAPI;
-	private readonly _validatorsAPI: ValidatorAPI;
 	private readonly _chain: Chain;
 	private readonly _network: Network;
 	private readonly _db: KVStore;
@@ -50,7 +50,6 @@ export class CommitPool {
 	public constructor(config: CommitPoolConfig) {
 		this._blockTime = config.blockTime;
 		this._bftAPI = config.bftAPI;
-		this._validatorsAPI = config.validatorsAPI;
 		this._chain = config.chain;
 		this._network = config.network;
 		this._db = config.db;
@@ -125,22 +124,16 @@ export class CommitPool {
 
 		// Validation Step 5
 		const { validators } = await this._bftAPI.getBFTParameters(apiContext, commit.height);
-		const isCommitValidatorActive = validators.find(validator =>
-			validator.address.equals(commit.validatorAddress),
-		);
-		if (!isCommitValidatorActive) {
+		const validator = validators.find(v => v.address.equals(commit.validatorAddress));
+		if (!validator) {
 			throw new Error('Commit validator was not active for its height.');
 		}
 
 		// Validation Step 6
 		const certificate = computeCertificateFromBlockHeader(blockHeaderAtCommitHeight);
-		const { blsKey } = await this._validatorsAPI.getValidatorAccount(
-			apiContext,
-			commit.validatorAddress,
-		);
 		const { networkIdentifier } = this._chain;
 		const isSingleCertificateVerified = verifySingleCertificateSignature(
-			blsKey,
+			validator.blsKey,
 			commit.certificateSignature,
 			networkIdentifier,
 			certificate,
@@ -237,13 +230,9 @@ export class CommitPool {
 
 		const validatorKeysWithWeights = [];
 		for (const validator of bftParams.validators) {
-			const validatorAccount = await this._validatorsAPI.getValidatorAccount(
-				apiContext,
-				validator.address,
-			);
 			validatorKeysWithWeights.push({
 				weight: validator.bftWeight,
-				blsKey: validatorAccount.blsKey,
+				blsKey: validator.blsKey,
 			});
 		}
 		const { weights, validatorKeys } = getSortedWeightsAndValidatorKeys(validatorKeysWithWeights);
@@ -277,12 +266,8 @@ export class CommitPool {
 		const validatorKeys: Buffer[] = [];
 
 		for (const validator of validators) {
-			const validatorAccount = await this._validatorsAPI.getValidatorAccount(
-				apiContext,
-				validator.address,
-			);
-			addressToBlsKey.set(validator.address, validatorAccount.blsKey);
-			validatorKeys.push(validatorAccount.blsKey);
+			addressToBlsKey.set(validator.address, validator.blsKey);
+			validatorKeys.push(validator.blsKey);
 		}
 
 		const pubKeySignaturePairs: PkSigPair[] = [];

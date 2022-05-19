@@ -28,7 +28,7 @@ describe('ValidatorsModuleEndpoint', () => {
 	const subStore = (new InMemoryKVStore() as unknown) as KVStore;
 	const networkIdentifier = Buffer.alloc(0);
 
-	beforeAll(async () => {
+	beforeAll(() => {
 		validatorsModule = new ValidatorsModule();
 	});
 

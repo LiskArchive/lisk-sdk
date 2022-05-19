@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ImmutableAPIContext } from '../../node/state_machine';
-
 export interface BFTHeader {
 	height: number;
 	generatorAddress: Buffer;
@@ -27,14 +25,13 @@ export interface BFTHeights {
 	maxHeightCertified: number;
 }
 
-export interface Validator {
+export interface BFTValidator {
 	address: Buffer;
 	bftWeight: bigint;
+	blsKey: Buffer;
 }
 
-export interface ValidatorsAPI {
-	getValidatorAccount(
-		context: ImmutableAPIContext,
-		address: Buffer,
-	): Promise<{ blsKey: Buffer; generatorKey: Buffer }>;
+export interface GeneratorKey {
+	address: Buffer;
+	generatorKey: Buffer;
 }

@@ -13,7 +13,7 @@
  */
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { objects } from '@liskhq/lisk-utils';
-import { BaseModule, ModuleInitArgs } from '../base_module';
+import { BaseModule, ModuleInitArgs } from '../../modules/base_module';
 import { BFTAPI } from './api';
 import { BFTEndpoint } from './endpoint';
 import {
@@ -22,10 +22,10 @@ import {
 	MODULE_ID_BFT,
 	STORE_PREFIX_BFT_PARAMETERS,
 	STORE_PREFIX_BFT_VOTES,
+	STORE_PREFIX_GENERATOR_KEYS,
 } from './constants';
 import { bftModuleConfig, BFTVotes, bftVotesSchema } from './schemas';
-import { BlockExecuteContext, GenesisBlockExecuteContext } from '../../node/state_machine';
-import { ValidatorsAPI } from './types';
+import { BlockExecuteContext, GenesisBlockExecuteContext } from '../state_machine';
 import {
 	insertBlockBFTInfo,
 	updateMaxHeightCertified,
@@ -34,6 +34,7 @@ import {
 	updatePrevotesPrecommits,
 } from './bft_votes';
 import { BFTParametersCache, deleteBFTParameters } from './bft_params';
+import { deleteGeneratorKeys } from './utils';
 
 export class BFTModule extends BaseModule {
 	public id = MODULE_ID_BFT;
@@ -55,10 +56,6 @@ export class BFTModule extends BaseModule {
 		this._batchSize = config.batchSize as number;
 		this.api.init(this._batchSize);
 		this._maxLengthBlockBFTInfos = 3 * this._batchSize;
-	}
-
-	public addDependencies(validatorsAPI: ValidatorsAPI) {
-		this.api.addDependencies(validatorsAPI);
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
@@ -97,5 +94,8 @@ export class BFTModule extends BaseModule {
 			bftVotes.maxHeightCertified + 1,
 		);
 		await deleteBFTParameters(paramsStore, minHeightBFTParametersRequired);
+
+		const keysStore = context.getStore(this.id, STORE_PREFIX_GENERATOR_KEYS);
+		await deleteGeneratorKeys(keysStore, minHeightBFTParametersRequired);
 	}
 }

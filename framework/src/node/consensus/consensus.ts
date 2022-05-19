@@ -57,12 +57,13 @@ import {
 	NETWORK_RPC_GET_LAST_BLOCK,
 } from './constants';
 import { GenesisConfig } from '../../types';
-import { ValidatorAPI, BFTAPI, AggregateCommit } from './types';
-import { APIContext, createAPIContext } from '../state_machine';
+import { AggregateCommit } from './types';
+import { APIContext, createAPIContext, ImmutableAPIContext } from '../state_machine';
 import { forkChoice, ForkStatus } from './fork_choice/fork_choice_rule';
 import { createNewAPIContext } from '../state_machine/api_context';
 import { CommitPool } from './certificate_generation/commit_pool';
 import { ValidatorInfo } from './certificate_generation/types';
+import { BFTAPI } from '../bft';
 
 interface ConsensusArgs {
 	stateMachine: StateMachine;
@@ -70,7 +71,6 @@ interface ConsensusArgs {
 	network: Network;
 	genesisConfig: GenesisConfig;
 	bftAPI: BFTAPI;
-	validatorAPI: ValidatorAPI;
 }
 
 interface InitArgs {
@@ -104,7 +104,6 @@ export class Consensus {
 	private readonly _chain: Chain;
 	private readonly _network: Network;
 	private readonly _mutex: jobHandlers.Mutex;
-	private readonly _validatorAPI: ValidatorAPI;
 	private readonly _bftAPI: BFTAPI;
 	private readonly _genesisConfig: GenesisConfig;
 
@@ -114,7 +113,7 @@ export class Consensus {
 	private _commitPool!: CommitPool;
 	private _endpoint!: NetworkEndpoint;
 	private _synchronizer!: Synchronizer;
-	private _genesisBlockTimestamp?: number;
+	private _blockSlot!: Slots;
 
 	private _stop = false;
 
@@ -124,7 +123,6 @@ export class Consensus {
 		this._chain = args.chain;
 		this._network = args.network;
 		this._mutex = new jobHandlers.Mutex();
-		this._validatorAPI = args.validatorAPI;
 		this._bftAPI = args.bftAPI;
 		this._genesisConfig = args.genesisConfig;
 	}
@@ -138,7 +136,6 @@ export class Consensus {
 			bftAPI: this._bftAPI,
 			chain: this._chain,
 			network: this._network,
-			validatorsAPI: this._validatorAPI,
 		});
 		this._endpoint = new NetworkEndpoint({
 			chain: this._chain,
@@ -164,6 +161,10 @@ export class Consensus {
 			logger: this._logger,
 			blockExecutor,
 			mechanisms: [blockSyncMechanism, fastChainSwitchMechanism],
+		});
+		this._blockSlot = new Slots({
+			genesisBlockTimestamp: args.genesisBlock.header.timestamp,
+			interval: this._genesisConfig.blockTime,
 		});
 
 		this._network.registerEndpoint(NETWORK_RPC_GET_LAST_BLOCK, ({ peerId }) => {
@@ -235,7 +236,6 @@ export class Consensus {
 			);
 		}
 		await this._chain.loadLastBlocks(args.genesisBlock);
-		this._genesisBlockTimestamp = args.genesisBlock.header.timestamp;
 		this._logger.info('Consensus component ready.');
 	}
 
@@ -378,6 +378,24 @@ export class Consensus {
 			(maxHeightPrevoted === lastBlockHeader.maxHeightPrevoted && height < lastBlockHeader.height)
 		);
 	}
+	public async getGeneratorAtTimestamp(
+		apiContext: ImmutableAPIContext,
+		height: number,
+		timestamp: number,
+	): Promise<Buffer> {
+		const generators = await this._bftAPI.getGeneratorKeys(apiContext, height);
+		const currentSlot = this._blockSlot.getSlotNumber(timestamp);
+		const generator = generators[currentSlot % generators.length];
+		return generator.address;
+	}
+
+	public getSlotNumber(timestamp: number): number {
+		return this._blockSlot.getSlotNumber(timestamp);
+	}
+
+	public getSlotTime(slot: number): number {
+		return this._blockSlot.getSlotTime(slot);
+	}
 
 	private async _execute(block: Block, peerID: string): Promise<void> {
 		if (this._stop) {
@@ -389,14 +407,7 @@ export class Consensus {
 				'Starting to process block',
 			);
 			const { lastBlock } = this._chain;
-			const forkStatus = forkChoice(
-				block.header,
-				lastBlock.header,
-				new Slots({
-					genesisBlockTimestamp: this._genesisBlockTimestamp ?? 0,
-					interval: this._genesisConfig.blockTime,
-				}),
-			);
+			const forkStatus = forkChoice(block.header, lastBlock.header, this._blockSlot);
 
 			if (!forkStatusList.includes(forkStatus)) {
 				this._logger.debug({ status: forkStatus, blockId: block.header.id }, 'Unknown fork status');
@@ -572,7 +583,7 @@ export class Consensus {
 		const apiContext = createNewAPIContext(this._db);
 
 		// Verify timestamp
-		await this._verifyTimestamp(apiContext, block);
+		this._verifyTimestamp(block);
 
 		// Verify height
 		this._verifyAssetsHeight(block);
@@ -593,14 +604,11 @@ export class Consensus {
 		await this._verifyAggregateCommit(apiContext, block);
 	}
 
-	private async _verifyTimestamp(apiContext: APIContext, block: Block): Promise<void> {
-		const blockSlotNumber = await this._validatorAPI.getSlotNumber(
-			apiContext,
-			block.header.timestamp,
-		);
+	private _verifyTimestamp(block: Block): void {
+		const blockSlotNumber = this._blockSlot.getSlotNumber(block.header.timestamp);
 		// Check that block is not from the future
 		const currentTimestamp = Math.floor(Date.now() / 1000);
-		const currentSlotNumber = await this._validatorAPI.getSlotNumber(apiContext, currentTimestamp);
+		const currentSlotNumber = this._blockSlot.getSlotNumber(currentTimestamp);
 		if (blockSlotNumber > currentSlotNumber) {
 			throw new Error(
 				`Invalid timestamp ${
@@ -611,10 +619,7 @@ export class Consensus {
 
 		// Check that block slot is strictly larger than the block slot of previousBlock
 		const { lastBlock } = this._chain;
-		const previousBlockSlotNumber = await this._validatorAPI.getSlotNumber(
-			apiContext,
-			lastBlock.header.timestamp,
-		);
+		const previousBlockSlotNumber = this._blockSlot.getSlotNumber(lastBlock.header.timestamp);
 		if (blockSlotNumber <= previousBlockSlotNumber) {
 			throw new Error(
 				`Invalid timestamp ${
@@ -657,8 +662,9 @@ export class Consensus {
 				)} of the block with id: ${block.header.id.toString('hex')}`,
 			);
 		}
-		const generatorAddress = await this._validatorAPI.getGeneratorAtTimestamp(
+		const generatorAddress = await this.getGeneratorAtTimestamp(
 			apiContext,
+			block.header.height,
 			block.header.timestamp,
 		);
 		// Check that the block generator is eligible to generate in this block slot.
@@ -695,13 +701,18 @@ export class Consensus {
 	}
 
 	private async _verifyAssetsSignature(apiContext: APIContext, block: Block): Promise<void> {
-		const { generatorKey } = await this._validatorAPI.getValidatorAccount(
-			apiContext,
-			block.header.generatorAddress,
-		);
+		const generatorKeys = await this._bftAPI.getGeneratorKeys(apiContext, block.header.height);
+		const generator = generatorKeys.find(gen => gen.address.equals(block.header.generatorAddress));
+		if (!generator) {
+			throw new Error(
+				`Validator with address ${block.header.generatorAddress.toString(
+					'hex',
+				)} does not exist for height ${block.header.height}`,
+			);
+		}
 
 		try {
-			block.header.validateSignature(generatorKey, this._chain.networkIdentifier);
+			block.header.validateSignature(generator.generatorKey, this._chain.networkIdentifier);
 		} catch (error) {
 			throw new Error(
 				`Invalid signature ${block.header.signature.toString(
@@ -884,7 +895,7 @@ export class Consensus {
 				}),
 			verify: async (block: Block) => this._verify(block),
 			getCurrentValidators: async () => this._bftAPI.getCurrentValidators(apiContext),
-			getSlotNumber: async timestamp => this._validatorAPI.getSlotNumber(apiContext, timestamp),
+			getSlotNumber: timestamp => this._blockSlot.getSlotNumber(timestamp),
 			getFinalizedHeight: () => this.finalizedHeight(),
 		};
 	}

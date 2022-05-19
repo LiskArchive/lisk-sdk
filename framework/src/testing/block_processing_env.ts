@@ -31,7 +31,7 @@ import { Node } from '../node';
 import { createImmutableAPIContext, createNewAPIContext } from '../node/state_machine/api_context';
 import { blockAssetsJSON } from './fixtures/genesis-asset';
 import { ValidatorsAPI } from '../modules/validators';
-import { BFTAPI } from '../modules/bft';
+import { BFTAPI } from '../node/bft';
 import { TokenModule } from '../modules/token';
 import { AuthModule } from '../modules/auth';
 import { FeeModule } from '../modules/fee';
@@ -87,12 +87,9 @@ const getAppConfig = (genesisConfig?: GenesisConfig): ApplicationConfig => {
 	return mergedConfig;
 };
 
-const getNextTimestamp = async (node: Node, apiContext: APIContext, previousBlock: BlockHeader) => {
-	const previousSlotNumber = await node.validatorAPI.getSlotNumber(
-		apiContext,
-		previousBlock.timestamp,
-	);
-	return node.validatorAPI.getSlotTime(apiContext, previousSlotNumber + 1);
+const getNextTimestamp = (node: Node, previousBlock: BlockHeader) => {
+	const previousSlotNumber = node['_consensus'].getSlotNumber(previousBlock.timestamp);
+	return node['_consensus'].getSlotTime(previousSlotNumber + 1);
 };
 
 const createProcessableBlock = async (
@@ -103,9 +100,12 @@ const createProcessableBlock = async (
 	// Get previous block and generate valid timestamp, seed reveal, maxHeightPrevoted, reward and maxHeightPreviouslyForged
 	const apiContext = createNewAPIContext(node['_blockchainDB']);
 	const previousBlockHeader = node['_chain'].lastBlock.header;
-	const nextTimestamp =
-		timestamp ?? (await getNextTimestamp(node, apiContext, previousBlockHeader));
-	const validator = await node.validatorAPI.getGeneratorAtTimestamp(apiContext, nextTimestamp);
+	const nextTimestamp = timestamp ?? getNextTimestamp(node, previousBlockHeader);
+	const validator = await node['_consensus'].getGeneratorAtTimestamp(
+		apiContext,
+		previousBlockHeader.height + 1,
+		nextTimestamp,
+	);
 	const passphrase = getPassphraseFromDefaultConfig(validator);
 	for (const tx of transactions) {
 		await node['_generator']['_pool'].add(tx);
@@ -195,8 +195,12 @@ export const getBlockProcessingEnv = async (
 		getLastBlock: () => node['_chain'].lastBlock,
 		getNextValidatorPassphrase: async (previousBlockHeader: BlockHeader): Promise<string> => {
 			const apiContext = createNewAPIContext(blockchainDB);
-			const nextTimestamp = await getNextTimestamp(node, apiContext, previousBlockHeader);
-			const validator = await node.validatorAPI.getGeneratorAtTimestamp(apiContext, nextTimestamp);
+			const nextTimestamp = getNextTimestamp(node, previousBlockHeader);
+			const validator = await node['_consensus'].getGeneratorAtTimestamp(
+				apiContext,
+				previousBlockHeader.height + 1,
+				nextTimestamp,
+			);
 			const passphrase = getPassphraseFromDefaultConfig(validator);
 
 			return passphrase;

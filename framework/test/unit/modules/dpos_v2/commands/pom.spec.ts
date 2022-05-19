@@ -87,18 +87,17 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			getLockedAmount: jest.fn(),
 		};
 		mockBFTAPI = {
+			getGeneratorKeys: jest.fn(),
+			setGeneratorKeys: jest.fn(),
 			setBFTParameters: jest.fn(),
-			getBFTParameters: jest.fn(),
 			areHeadersContradicting: jest.fn(),
 			getBFTHeights: jest.fn(),
 		};
 		mockValidatorsAPI = {
-			setGeneratorList: jest.fn(),
 			setValidatorGeneratorKey: jest.fn(),
 			registerValidatorKeys: jest.fn(),
 			getValidatorAccount: jest.fn().mockResolvedValue({ generatorKey: publicKey }),
 			getGeneratorsBetweenTimestamps: jest.fn(),
-			getGeneratorAtTimestamp: jest.fn(),
 		};
 		pomCommand.addDependencies({
 			tokenAPI: mockTokenAPI,

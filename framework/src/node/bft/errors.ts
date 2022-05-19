@@ -12,4 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+// eslint-disable-next-line max-classes-per-file
 export class BFTParameterNotFoundError extends Error {}
+export class GeneratorKeysNotFoundError extends Error {}
