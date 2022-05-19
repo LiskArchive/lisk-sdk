@@ -63,7 +63,7 @@ export const validatorSchema = {
 		},
 		bftWeight: {
 			fieldNumber: 2,
-			dataType: 'string',
+			dataType: 'uint64',
 		},
 		generatorKey: {
 			fieldNumber: 3,
@@ -474,12 +474,8 @@ export const verifyAssetsRequestSchema = {
 			fieldNumber: 1,
 			dataType: 'bytes',
 		},
-		header: {
-			fieldNumber: 2,
-			...blockHeaderSchema,
-		},
 		assets: {
-			fieldNumber: 3,
+			fieldNumber: 2,
 			type: 'array',
 			items: {
 				...blockAssetSchema,
@@ -572,11 +568,11 @@ export const afterTransactionsExecuteResponseSchema = {
 		},
 		preCommitThreshold: {
 			fieldNumber: 2,
-			dataType: 'uint32',
+			dataType: 'uint64',
 		},
 		certificateThreshold: {
 			fieldNumber: 3,
-			dataType: 'uint32',
+			dataType: 'uint64',
 		},
 		nextValidators: {
 			fieldNumber: 4,
@@ -596,8 +592,12 @@ export const verifyTransactionRequestSchema = {
 			fieldNumber: 1,
 			dataType: 'bytes',
 		},
-		transaction: {
+		networkIdentifier: {
 			fieldNumber: 2,
+			dataType: 'bytes',
+		},
+		transaction: {
+			fieldNumber: 3,
 			...transactionSchema,
 		},
 	},
@@ -622,23 +622,27 @@ export const executeTransactionRequestSchema = {
 			fieldNumber: 1,
 			dataType: 'bytes',
 		},
-		transaction: {
+		networkIdentifier: {
 			fieldNumber: 2,
+			dataType: 'bytes',
+		},
+		transaction: {
+			fieldNumber: 3,
 			...transactionSchema,
 		},
 		assets: {
-			fieldNumber: 3,
+			fieldNumber: 4,
 			type: 'array',
 			items: {
 				...blockAssetSchema,
 			},
 		},
 		dryRun: {
-			fieldNumber: 4,
+			fieldNumber: 5,
 			dataType: 'boolean',
 		},
 		header: {
-			fieldNumber: 5,
+			fieldNumber: 6,
 			...blockHeaderSchema,
 		},
 	},
@@ -815,8 +819,12 @@ export const proveRequestSchema = {
 	$id: 'abi/proveRequest',
 	type: 'object',
 	properties: {
-		keys: {
+		stateRoot: {
 			fieldNumber: 1,
+			dataType: 'bytes',
+		},
+		keys: {
+			fieldNumber: 2,
 			type: 'array',
 			items: {
 				dataType: 'bytes',
@@ -862,6 +870,54 @@ export const proveResponseSchema = {
 					},
 				},
 			},
+		},
+	},
+};
+
+export const ipcRequestSchema = {
+	$id: 'abi/ipcRequest',
+	type: 'object',
+	properties: {
+		id: {
+			fieldNumber: 1,
+			dataType: 'uint64',
+		},
+		method: {
+			fieldNumber: 2,
+			dataType: 'string',
+		},
+		params: {
+			fieldNumber: 3,
+			dataType: 'bytes',
+		},
+	},
+};
+
+export const ipcResponseSchema = {
+	$id: 'abi/ipcResponse',
+	type: 'object',
+	properties: {
+		id: {
+			fieldNumber: 1,
+			dataType: 'uint64',
+		},
+		success: {
+			fieldNumber: 2,
+			dataType: 'boolean',
+		},
+		error: {
+			type: 'object',
+			fieldNumber: 3,
+			properties: {
+				message: {
+					fieldNumber: 1,
+					dataType: 'string',
+				},
+			},
+		},
+		result: {
+			fieldNumber: 4,
+			dataType: 'bytes',
 		},
 	},
 };

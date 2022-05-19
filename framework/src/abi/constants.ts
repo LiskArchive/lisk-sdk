@@ -13,13 +13,13 @@
  */
 
 export enum TransactionVerifyResult {
-	Invalid = 0,
-	Pending = 1,
-	Ok = 2,
+	INVALID = 0,
+	PENDING = 1,
+	OK = 2,
 }
 
 export enum TransactionExecutionResult {
-	Invalid = 0,
-	Fail = 1,
-	Ok = 2,
+	INVALID = 0,
+	FAIL = 1,
+	OK = 2,
 }

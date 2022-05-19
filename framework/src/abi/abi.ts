@@ -50,7 +50,7 @@ export interface BlockHeader {
 	previousBlockID: Buffer;
 	generatorAddress: Buffer;
 	transactionRoot: Buffer;
-	assetRoot: Buffer;
+	assetsRoot: Buffer;
 	eventRoot: Buffer;
 	stateRoot: Buffer;
 	maxHeightPrevoted: number;
@@ -61,14 +61,13 @@ export interface BlockHeader {
 }
 
 export interface Transaction {
-	id: Buffer;
 	moduleID: number;
 	commandID: number;
-	nonce: number;
-	fee: number;
+	nonce: bigint;
+	fee: bigint;
 	senderPublicKey: Buffer;
 	params: Buffer;
-	signatures: Buffer[];
+	signatures: readonly Buffer[];
 }
 
 export interface BlockAsset {
@@ -78,12 +77,11 @@ export interface BlockAsset {
 
 export interface Block {
 	header: BlockHeader;
-	transaction: Transaction[];
+	transactions: Transaction[];
 	assets: BlockAsset[];
 }
 
 export interface Event {
-	id: Buffer;
 	moduleID: Buffer;
 	typeID: Buffer;
 	data: Buffer;
@@ -93,7 +91,7 @@ export interface Event {
 
 export interface Validator {
 	address: Buffer;
-	bftWeight: number;
+	bftWeight: bigint;
 	generatorKey: Buffer;
 	blsKey: Buffer;
 }
@@ -111,25 +109,25 @@ export interface SystemConfig {
 	maxBlockCache: number;
 }
 
-export interface IPCPRCConfig {
+export interface IPCRPCConfig {
 	path: string;
 }
 
-export interface WSPRCConfig {
+export interface WSRPCConfig {
 	host: string;
 	port: number;
 }
 
-export interface HTTPPRCConfig {
+export interface HTTPRPCConfig {
 	host: string;
 	port: number;
 }
 
 export interface RPCConfig {
 	modes: string[];
-	ipc: IPCPRCConfig;
-	ws: WSPRCConfig;
-	http: HTTPPRCConfig;
+	ipc: IPCRPCConfig;
+	ws: WSRPCConfig;
+	http: HTTPRPCConfig;
 }
 
 export interface LoggerConfig {
@@ -166,8 +164,8 @@ export interface TxpoolConfig {
 	maxTransactions: number;
 	maxTransactionsPerAccount: number;
 	transactionExpiryTime: number;
-	minEntranceFeePriority: number;
-	minReplacementFeeDifference: number;
+	minEntranceFeePriority: bigint;
+	minReplacementFeeDifference: bigint;
 }
 
 export interface Key {
@@ -214,8 +212,8 @@ export interface InitGenesisStateRequest {
 export interface InitGenesisStateResponse {
 	assets: BlockAsset[];
 	events: Event[];
-	preCommitThreshold: number;
-	certificateThreshold: number;
+	preCommitThreshold: bigint;
+	certificateThreshold: bigint;
 	nextValidators: Validator[];
 }
 
@@ -230,7 +228,6 @@ export interface InsertAssetsResponse {
 
 export interface VerifyAssetsRequest {
 	contextID: Buffer;
-	header: BlockHeader;
 	assets: BlockAsset[];
 }
 
@@ -261,13 +258,14 @@ export interface AfterTransactionsExecuteRequest {
 
 export interface AfterTransactionsExecuteResponse {
 	events: Event[];
-	preCommitThreshold: number;
-	certificateThreshold: number;
+	preCommitThreshold: bigint;
+	certificateThreshold: bigint;
 	nextValidators: Validator[];
 }
 
 export interface VerifyTransactionRequest {
 	contextID: Buffer;
+	networkIdentifier: Buffer;
 	transaction: Transaction;
 }
 
@@ -277,6 +275,7 @@ export interface VerifyTransactionResponse {
 
 export interface ExecuteTransactionRequest {
 	contextID: Buffer;
+	networkIdentifier: Buffer;
 	transaction: Transaction;
 	assets: BlockAsset[];
 	dryRun: boolean;
@@ -337,6 +336,7 @@ export interface QueryResponse {
 }
 
 export interface ProveRequest {
+	stateRoot: Buffer;
 	keys: Buffer[];
 }
 
@@ -353,4 +353,19 @@ export interface QueryProof {
 
 export interface ProveResponse {
 	proof: Proof;
+}
+
+export interface IPCRequest {
+	id: bigint;
+	method: string;
+	params: Buffer;
+}
+
+export interface IPCResponse {
+	id: bigint;
+	success: boolean;
+	error: {
+		message: string;
+	};
+	result: Buffer;
 }
