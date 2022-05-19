@@ -23,16 +23,11 @@ import { IPC_EVENTS } from './constants';
 import { Event, EventsDefinition } from './event';
 import { IPCServer } from './ipc/ipc_server';
 import * as JSONRPC from './jsonrpc';
-import { WSServer } from './ws/ws_server';
-import { HTTPServer } from './http/http_server';
 import { JSONRPCError } from './jsonrpc';
 import { getEndpointPath } from '../endpoint';
 
 interface BusConfiguration {
-	readonly httpServer?: HTTPServer;
 	readonly internalIPCServer: IPCServer;
-	readonly externalIPCServer?: IPCServer;
-	readonly wsServer?: WSServer;
 }
 
 interface RegisterChannelOptions {
@@ -80,15 +75,11 @@ export class Bus {
 	};
 	private readonly _rpcClients: { [key: string]: Dealer };
 	private readonly _internalIPCServer: IPCServer;
-	private readonly _externalIPCServer?: IPCServer;
 	private readonly _rpcRequestIds: Set<string>;
 	private readonly _emitter: EventEmitter2;
 
-	private readonly _wsServer?: WSServer;
-	private readonly _httpServer?: HTTPServer;
 	private readonly _handleRPCResponse: (rpcClient: Dealer) => Promise<void>;
 	private readonly _handleRPC: (rpcServer: Router) => Promise<void>;
-	private readonly _handleExternalRPC: (rpcServer: Router) => Promise<void>;
 	private readonly _handleEvents: (subSocket: Subscriber) => Promise<void>;
 
 	private _logger!: Logger;
@@ -107,9 +98,6 @@ export class Bus {
 		this._rpcClients = {};
 		this._rpcRequestIds = new Set();
 		this._internalIPCServer = config.internalIPCServer;
-		this._externalIPCServer = config.externalIPCServer;
-		this._httpServer = config.httpServer;
-		this._wsServer = config.wsServer;
 
 		// Handle RPC requests responses coming back from different ipcServers on rpcClient
 		this._handleRPCResponse = async (rpcClient: Dealer): Promise<void> => {
@@ -168,41 +156,6 @@ export class Bus {
 			}
 		};
 
-		this._handleExternalRPC = async (rpcServer: Router): Promise<void> => {
-			for await (const [sender, request, params] of rpcServer) {
-				switch (request.toString()) {
-					case IPC_EVENTS.RPC_EVENT: {
-						const requestData = JSON.parse(params.toString()) as JSONRPC.RequestObject;
-						this.invoke(requestData)
-							.then(result => {
-								// Send back result RPC request for a given requestId
-								rpcServer
-									.send([sender, requestData.id as string, JSON.stringify(result)])
-									.catch(error => {
-										this._logger.debug(
-											{ err: error as Error },
-											`Failed to send request response: ${requestData.id as string} to ipc client.`,
-										);
-									});
-							})
-							.catch((err: JSONRPCError) => {
-								rpcServer
-									.send([sender, requestData.id as string, JSON.stringify(err.response)])
-									.catch(error => {
-										this._logger.debug(
-											{ err: error as Error },
-											`Failed to send error response: ${requestData.id as string} to ipc client.`,
-										);
-									});
-							});
-						break;
-					}
-					default:
-						break;
-				}
-			}
-		};
-
 		this._handleEvents = async (subSocket: Subscriber) => {
 			for await (const [_event, eventData] of subSocket) {
 				this.publish(eventData.toString());
@@ -213,9 +166,6 @@ export class Bus {
 	public async start(logger: Logger): Promise<void> {
 		this._logger = logger;
 		await this._setupIPCInternalServer();
-		await this._setupIPCExternalServer();
-		await this._setupWSServer();
-		await this._setupHTTPServer();
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -236,7 +186,6 @@ export class Bus {
 			}
 			this._events[getEndpointPath(namespace, eventName)] = true;
 		});
-		this._wsServer?.registerAllowedEvent([...this.getEvents()]);
 
 		for (const methodName of Object.keys(endpointInfo)) {
 			if (this._endpointInfos[getEndpointPath(namespace, methodName)] !== undefined) {
@@ -334,7 +283,7 @@ export class Bus {
 					result,
 				}) as JSONRPC.ResponseObjectWithResult<T>;
 			} catch (error) {
-				throw parseError(request.id, error);
+				throw parseError(request.id, error as Error);
 			}
 		}
 
@@ -423,28 +372,6 @@ export class Bus {
 					);
 				});
 		}
-
-		if (this._externalIPCServer) {
-			this._externalIPCServer.pubSocket
-				.send([eventName, JSON.stringify(notification)])
-				.catch(error => {
-					this._logger.debug(
-						{ err: error as Error },
-						`Failed to publish event: ${eventName} to ipc server.`,
-					);
-				});
-		}
-
-		if (this._wsServer) {
-			try {
-				this._wsServer.broadcast(notification);
-			} catch (error) {
-				this._logger.debug(
-					{ err: error as Error },
-					`Failed to publish event: ${eventName} to ws server.`,
-				);
-			}
-		}
 	}
 
 	public subscribe(eventName: string, cb: ListenerFn): void {
@@ -489,9 +416,6 @@ export class Bus {
 	public async cleanup(): Promise<void> {
 		this._emitter.removeAllListeners();
 		this._internalIPCServer?.stop();
-		this._externalIPCServer?.stop();
-		this._wsServer?.stop();
-		this._httpServer?.stop();
 
 		// Close all the RPC Clients
 		for (const key of Object.keys(this._rpcClients)) {
@@ -511,53 +435,6 @@ export class Bus {
 
 		this._handleRPC(this._internalIPCServer.rpcServer).catch(err => {
 			this._logger.debug(err, 'Error occured while listening to RPCs on RPC router.');
-		});
-	}
-
-	private async _setupIPCExternalServer(): Promise<void> {
-		if (!this._externalIPCServer) {
-			return;
-		}
-		await this._externalIPCServer.start();
-
-		this._handleEvents(this._externalIPCServer.subSocket).catch(err => {
-			this._logger.debug(err, 'Error occured while listening to events on subscriber.');
-		});
-
-		this._handleExternalRPC(this._externalIPCServer.rpcServer).catch(err => {
-			this._logger.debug(err, 'Error occured while listening to RPCs on RPC router.');
-		});
-	}
-
-	// eslint-disable-next-line @typescript-eslint/require-await
-	private async _setupWSServer(): Promise<void> {
-		if (!this._wsServer) {
-			return;
-		}
-		this._wsServer.start(this._logger, (socket, message) => {
-			this.invoke(message)
-				.then(data => {
-					socket.send(JSON.stringify(data as JSONRPC.ResponseObjectWithResult));
-				})
-				.catch((error: JSONRPC.JSONRPCError) => {
-					socket.send(JSON.stringify(error.response));
-				});
-		});
-	}
-
-	// eslint-disable-next-line @typescript-eslint/require-await
-	private async _setupHTTPServer(): Promise<void> {
-		if (!this._httpServer) {
-			return;
-		}
-		this._httpServer.start(this._logger, (_req, res, message) => {
-			this.invoke(message)
-				.then(data => {
-					res.end(JSON.stringify(data as JSONRPC.ResponseObjectWithResult));
-				})
-				.catch((error: JSONRPC.JSONRPCError) => {
-					res.end(JSON.stringify(error.response));
-				});
 		});
 	}
 }

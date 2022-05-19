@@ -13,7 +13,7 @@
  */
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { objects } from '@liskhq/lisk-utils';
-import { BaseModule, ModuleInitArgs } from '../base_module';
+import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { BFTAPI } from './api';
 import { BFTEndpoint } from './endpoint';
 import {
@@ -59,6 +59,15 @@ export class BFTModule extends BaseModule {
 
 	public addDependencies(validatorsAPI: ValidatorsAPI) {
 		this.api.addDependencies(validatorsAPI);
+	}
+
+	public metadata(): ModuleMetadata {
+		return {
+			endpoints: [],
+			commands: [],
+			events: [],
+			assets: [],
+		};
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {

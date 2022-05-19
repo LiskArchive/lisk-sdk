@@ -13,3 +13,4 @@
  *
  */
 export { InfoCommand as NodeInfoCommand } from './info';
+export { MetadataCommand as NodeMetadataCommand } from './metadata';

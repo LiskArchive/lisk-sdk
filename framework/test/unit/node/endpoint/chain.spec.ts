@@ -15,25 +15,21 @@
 import { Event, StateStore } from '@liskhq/lisk-chain';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
-import { Endpoint } from '../../../src/node/endpoint';
-import { nodeConfig } from '../../utils/configs';
-import { createContext } from '../../utils/node/endpoint';
+import { ChainEndpoint } from '../../../../src/node/endpoint/chain';
+import { createContext } from '../../../utils/node/endpoint';
 
-describe('endpoint', () => {
+describe('Chain endpoint', () => {
 	let stateStore: StateStore;
-	let endpoint: Endpoint;
+	let endpoint: ChainEndpoint;
 
 	beforeEach(() => {
 		stateStore = new StateStore(new InMemoryKVStore());
-		endpoint = new Endpoint({
+		endpoint = new ChainEndpoint({
 			chain: {
 				dataAccess: {
 					getEvents: jest.fn(),
 				},
 			} as any,
-			consensus: {} as any,
-			generator: {} as any,
-			options: nodeConfig(),
 		});
 	});
 

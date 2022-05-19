@@ -25,7 +25,7 @@ import { nodeOptions } from '../../fixtures/node';
 import { InMemoryChannel } from '../../../src/controller';
 import { fakeLogger } from '../../utils/node';
 import { BaseAPI, BaseCommand, BaseEndpoint, BaseModule } from '../../../src';
-import { ModuleInitArgs } from '../../../src/modules/base_module';
+import { ModuleInitArgs, ModuleMetadata } from '../../../src/modules/base_module';
 import {
 	CONSENSUS_EVENT_BLOCK_DELETE,
 	CONSENSUS_EVENT_BLOCK_NEW,
@@ -54,6 +54,15 @@ class SampleNodeModule extends BaseModule {
 	public addDependencies(bftAPI: BFTAPI, validatorAPI: ValidatorsAPI) {
 		this._bftAPI = bftAPI;
 		this._validatorAPI = validatorAPI;
+	}
+
+	public metadata(): ModuleMetadata {
+		return {
+			assets: [],
+			commands: [],
+			endpoints: [],
+			events: [],
+		};
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
@@ -119,7 +128,6 @@ describe('Node', () => {
 			expect(node['_bftModule']).toBeDefined();
 			expect(node['_consensus']).toBeDefined();
 			expect(node['_generator']).toBeDefined();
-			expect(node['_endpoint']).toBeDefined();
 		});
 
 		it('should register system modules to state machine and generator', () => {
@@ -182,32 +190,6 @@ describe('Node', () => {
 	describe('getRegisteredModules', () => {
 		// eslint-disable-next-line jest/expect-expect
 		it('should return currently registered modules information', () => {});
-	});
-
-	describe('getEndpoints', () => {
-		let endpoints: Record<string, unknown>;
-		beforeEach(() => {
-			endpoints = node.getEndpoints();
-		});
-
-		it('should not change the exposed endpoints unintentionally', () => {
-			expect(Object.keys(endpoints)).toMatchSnapshot();
-		});
-
-		it('should return generator endpoint', () => {
-			expect(endpoints).toHaveProperty('postTransaction');
-		});
-
-		it('should return all node endpoints', () => {
-			expect(endpoints).toHaveProperty('getBlockByID');
-		});
-
-		it('should return all module endpoints', () => {
-			const moduleEndpoints = node.getModuleEndpoints();
-
-			expect(moduleEndpoints).toHaveProperty('sample');
-			expect(moduleEndpoints['sample']).toHaveProperty('do');
-		});
 	});
 
 	describe('getSchema', () => {

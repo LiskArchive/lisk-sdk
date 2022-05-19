@@ -27,7 +27,7 @@ import {
 	STORE_PREFIX_USER,
 } from './constants';
 import { TransferCommand } from './commands/transfer';
-import { BaseModule, ModuleInitArgs } from '../base_module';
+import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { GenesisBlockExecuteContext } from '../../node/state_machine';
 import {
 	AvailableLocalIDStoreData,
@@ -36,6 +36,12 @@ import {
 	EscrowStoreData,
 	escrowStoreSchema,
 	genesisTokenStoreSchema,
+	getBalanceRequestSchema,
+	getBalanceResponseSchema,
+	getBalancesRequestSchema,
+	getEscrowedAmountsResponseSchema,
+	getSupportedTokensResponseSchema,
+	getTotalSupplyResponseSchema,
 	SupplyStoreData,
 	supplyStoreSchema,
 	terminatedEscrowStoreSchema,
@@ -46,6 +52,7 @@ import { TokenAPI } from './api';
 import { TokenEndpoint } from './endpoint';
 import { GenesisTokenStore, InteroperabilityAPI, MinBalance, ModuleConfig } from './types';
 import { getUserStoreKey, splitTokenID } from './utils';
+import { CCTransferCommand } from './commands/cc_transfer';
 
 export class TokenModule extends BaseModule {
 	public name = 'token';
@@ -55,12 +62,54 @@ export class TokenModule extends BaseModule {
 
 	private _minBalances!: MinBalance[];
 	private readonly _transferCommand = new TransferCommand(this.id);
+	private readonly _ccTransferCommand = new CCTransferCommand(this.id);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
-	public commands = [this._transferCommand];
+	public commands = [this._transferCommand, this._ccTransferCommand];
 
 	public addDependencies(interoperabilityAPI: InteroperabilityAPI) {
 		this.api.addDependencies(interoperabilityAPI);
+	}
+
+	public metadata(): ModuleMetadata {
+		return {
+			endpoints: [
+				{
+					name: this.endpoint.getBalance.name,
+					request: getBalanceRequestSchema,
+					response: getBalanceResponseSchema,
+				},
+				{
+					name: this.endpoint.getBalances.name,
+					request: getBalancesRequestSchema,
+					response: getBalancesRequestSchema,
+				},
+				{
+					name: this.endpoint.getTotalSupply.name,
+					response: getTotalSupplyResponseSchema,
+				},
+				{
+					name: this.endpoint.getSupportedTokens.name,
+					response: getSupportedTokensResponseSchema,
+				},
+				{
+					name: this.endpoint.getEscrowedAmounts.name,
+					response: getEscrowedAmountsResponseSchema,
+				},
+			],
+			commands: this.commands.map(command => ({
+				id: command.id,
+				name: command.name,
+				params: command.schema,
+			})),
+			events: [],
+			assets: [
+				{
+					version: 0,
+					data: genesisTokenStoreSchema,
+				},
+			],
+		};
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

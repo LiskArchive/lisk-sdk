@@ -95,8 +95,6 @@ describe('generator endpoint', () => {
 			it('should reject with validation error', async () => {
 				await expect(
 					endpoint.postTransaction({
-						getImmutableAPIContext: jest.fn(),
-						getStore: jest.fn(),
 						logger,
 						params: {
 							invalid: 'schema',
@@ -109,8 +107,6 @@ describe('generator endpoint', () => {
 			it('should reject with error when transaction bytes is invalid', async () => {
 				await expect(
 					endpoint.postTransaction({
-						getImmutableAPIContext: jest.fn(),
-						getStore: jest.fn(),
 						logger,
 						params: {
 							transaction: 'xxxx',
@@ -128,8 +124,6 @@ describe('generator endpoint', () => {
 				});
 				await expect(
 					endpoint.postTransaction({
-						getImmutableAPIContext: jest.fn(),
-						getStore: jest.fn(),
 						logger,
 						params: {
 							transaction: tx.getBytes().toString('hex'),
@@ -145,8 +139,6 @@ describe('generator endpoint', () => {
 				(pool.contains as jest.Mock).mockReturnValue(true);
 				await expect(
 					endpoint.postTransaction({
-						getImmutableAPIContext: jest.fn(),
-						getStore: jest.fn(),
 						logger,
 						params: {
 							transaction: tx.getBytes().toString('hex'),
@@ -166,8 +158,6 @@ describe('generator endpoint', () => {
 				});
 				await expect(
 					endpoint.postTransaction({
-						getImmutableAPIContext: jest.fn(),
-						getStore: jest.fn(),
 						logger,
 						params: {
 							transaction: tx.getBytes().toString('hex'),
@@ -183,8 +173,6 @@ describe('generator endpoint', () => {
 				await expect(
 					endpoint.postTransaction({
 						logger,
-						getImmutableAPIContext: jest.fn(),
-						getStore: jest.fn(),
 						params: {
 							transaction: tx.getBytes().toString('hex'),
 						},
@@ -198,7 +186,7 @@ describe('generator endpoint', () => {
 		});
 	});
 
-	describe('updateForgingStatus', () => {
+	describe('updateStatus', () => {
 		const bftProps = {
 			height: 200,
 			maxHeightPrevoted: 200,
@@ -207,10 +195,8 @@ describe('generator endpoint', () => {
 
 		it('should reject with error when request schema is invalid', async () => {
 			await expect(
-				endpoint.updateForgingStatus({
+				endpoint.updateStatus({
 					logger,
-					getStore: jest.fn(),
-					getImmutableAPIContext: jest.fn(),
 					params: {
 						enable: true,
 						password: defaultPassword,
@@ -224,10 +210,8 @@ describe('generator endpoint', () => {
 
 		it('should reject with error when address is not in config', async () => {
 			await expect(
-				endpoint.updateForgingStatus({
+				endpoint.updateStatus({
 					logger,
-					getStore: jest.fn(),
-					getImmutableAPIContext: jest.fn(),
 					params: {
 						address: getRandomBytes(20).toString('hex'),
 						enable: true,
@@ -242,10 +226,8 @@ describe('generator endpoint', () => {
 
 		it('should return error with invalid password', async () => {
 			await expect(
-				endpoint.updateForgingStatus({
+				endpoint.updateStatus({
 					logger,
-					getStore: jest.fn(),
-					getImmutableAPIContext: jest.fn(),
 					params: {
 						address: config.address,
 						enable: true,
@@ -260,10 +242,8 @@ describe('generator endpoint', () => {
 
 		it('should return error with invalid publicKey', async () => {
 			await expect(
-				endpoint.updateForgingStatus({
+				endpoint.updateStatus({
 					logger,
-					getStore: jest.fn(),
-					getImmutableAPIContext: jest.fn(),
 					params: {
 						address: invalidConfig.address,
 						enable: true,
@@ -279,10 +259,8 @@ describe('generator endpoint', () => {
 		it('should return error if the node is not synced', async () => {
 			(consensus.isSynced as jest.Mock).mockReturnValue(false);
 			await expect(
-				endpoint.updateForgingStatus({
+				endpoint.updateStatus({
 					logger,
-					getStore: jest.fn(),
-					getImmutableAPIContext: jest.fn(),
 					params: {
 						address: config.address,
 						enable: true,
@@ -302,10 +280,8 @@ describe('generator endpoint', () => {
 				blsSecretKey: Buffer.alloc(0),
 			});
 			await expect(
-				endpoint.updateForgingStatus({
+				endpoint.updateStatus({
 					logger,
-					getStore: jest.fn(),
-					getImmutableAPIContext: jest.fn(),
 					params: {
 						address: config.address,
 						enable: false,
@@ -324,10 +300,8 @@ describe('generator endpoint', () => {
 
 		it('should update the keypair and return enabled', async () => {
 			await expect(
-				endpoint.updateForgingStatus({
+				endpoint.updateStatus({
 					logger,
-					getStore: jest.fn(),
-					getImmutableAPIContext: jest.fn(),
 					params: {
 						address: config.address,
 						enable: true,
@@ -352,10 +326,8 @@ describe('generator endpoint', () => {
 				logger,
 			});
 			await expect(
-				endpoint.updateForgingStatus({
+				endpoint.updateStatus({
 					logger,
-					getStore: jest.fn(),
-					getImmutableAPIContext: jest.fn(),
 					params: {
 						address: config.address,
 						enable: true,
@@ -381,10 +353,8 @@ describe('generator endpoint', () => {
 				logger,
 			});
 			await expect(
-				endpoint.updateForgingStatus({
+				endpoint.updateStatus({
 					logger,
-					getStore: jest.fn(),
-					getImmutableAPIContext: jest.fn(),
 					params: {
 						address: config.address,
 						enable: true,
@@ -418,10 +388,8 @@ describe('generator endpoint', () => {
 				logger,
 			});
 			await expect(
-				endpoint.updateForgingStatus({
+				endpoint.updateStatus({
 					logger,
-					getStore: jest.fn(),
-					getImmutableAPIContext: jest.fn(),
 					params: {
 						address: config.address,
 						enable: true,
@@ -455,10 +423,8 @@ describe('generator endpoint', () => {
 				logger,
 			});
 			await expect(
-				endpoint.updateForgingStatus({
+				endpoint.updateStatus({
 					logger,
-					getStore: jest.fn(),
-					getImmutableAPIContext: jest.fn(),
 					params: {
 						address: config.address,
 						enable: true,
@@ -489,10 +455,8 @@ describe('generator endpoint', () => {
 				logger,
 			});
 			await expect(
-				endpoint.updateForgingStatus({
+				endpoint.updateStatus({
 					logger,
-					getStore: jest.fn(),
-					getImmutableAPIContext: jest.fn(),
 					params: {
 						address: config.address,
 						enable: true,

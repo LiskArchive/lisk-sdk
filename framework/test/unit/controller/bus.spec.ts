@@ -12,12 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as HTTP from 'http';
-import * as WebSocket from 'ws';
 import { EventEmitter2 } from 'eventemitter2';
 import { Bus } from '../../../src/controller/bus';
 import { Request } from '../../../src/controller/request';
-import { WSServer } from '../../../src/controller/ws/ws_server';
 import { IPCServer } from '../../../src/controller/ipc/ipc_server';
 import { EndpointInfo } from '../../../src';
 
@@ -55,12 +52,6 @@ describe('Bus', () => {
 
 	beforeEach(async () => {
 		bus = new Bus(busConfig);
-		if (bus['_wsServer']) {
-			jest.spyOn(bus['_wsServer'], 'start').mockReturnValue({} as WebSocket.Server);
-		}
-		if (bus['_httpServer']) {
-			jest.spyOn(bus['_httpServer'], 'start').mockReturnValue({} as HTTP.Server);
-		}
 		await bus.start(loggerMock);
 	});
 
@@ -73,7 +64,6 @@ describe('Bus', () => {
 			// Assert
 			expect(bus['_endpointInfos']).toEqual({});
 			expect(bus['_events']).toEqual({});
-			expect(bus['_wsServer']).toBeUndefined();
 		});
 	});
 
@@ -92,22 +82,6 @@ describe('Bus', () => {
 
 			// Assert
 			return expect(bus['_internalIPCServer']?.start).toHaveBeenCalledTimes(1);
-		});
-
-		it('should setup only ws server if ws is only enabled', async () => {
-			// Arrange
-
-			bus = new Bus({
-				...busConfig,
-				wsServer: new WSServer({ path: '/ws', port: 5000 }),
-			});
-			jest.spyOn(bus['_wsServer'] as WSServer, 'start');
-
-			// Act
-			await bus.start(loggerMock);
-
-			// Assert
-			return expect(bus['_wsServer']?.start).toHaveBeenCalledTimes(1);
 		});
 	});
 
