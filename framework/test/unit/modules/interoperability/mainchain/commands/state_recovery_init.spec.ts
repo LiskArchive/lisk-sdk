@@ -179,24 +179,7 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 		});
 
 		it('should return error if chain id is same as mainchain id or own chain account id', async () => {
-			transactionParams.chainID = MAINCHAIN_ID;
-			encodedTransactionParams = codec.encode(stateRecoveryInitParams, transactionParams);
-			transaction = new Transaction({
-				moduleID: MODULE_ID_INTEROPERABILITY,
-				commandID: COMMAND_ID_STATE_RECOVERY_INIT,
-				fee: BigInt(100000000),
-				nonce: BigInt(0),
-				params: encodedTransactionParams,
-				senderPublicKey: getRandomBytes(32),
-				signatures: [],
-			});
-			transactionContext = createTransactionContext({
-				transaction,
-				stateStore,
-			});
-			commandVerifyContext = transactionContext.createCommandVerifyContext<StateRecoveryInitParams>(
-				stateRecoveryInitParams,
-			);
+			commandVerifyContext.params.chainID = MAINCHAIN_ID;
 
 			const result = await stateRecoveryInitCommand.verify(commandVerifyContext);
 
