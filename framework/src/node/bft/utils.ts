@@ -76,7 +76,7 @@ export const sortValidatorsByAddress = (validators: { address: Buffer }[]) =>
 export const sortValidatorsByBLSKey = (validators: { blsKey: Buffer }[]) =>
 	validators.sort((a, b) => a.blsKey.compare(b.blsKey));
 
-export const validtorsEqual = (v1: BFTValidator[], v2: BFTValidator[]): boolean => {
+export const validatorsEqual = (v1: BFTValidator[], v2: BFTValidator[]): boolean => {
 	if (v1.length !== v2.length) {
 		return false;
 	}

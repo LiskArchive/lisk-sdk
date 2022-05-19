@@ -22,7 +22,7 @@ import {
 	getGeneratorKeys,
 	sortValidatorsByAddress,
 	sortValidatorsByBLSKey,
-	validtorsEqual,
+	validatorsEqual,
 } from './utils';
 import { getBFTParameters } from './bft_params';
 import {
@@ -202,7 +202,7 @@ export class BFTAPI extends BaseAPI {
 		// if there is no change in params, return
 		if (
 			currentBFTParams &&
-			validtorsEqual(currentBFTParams.validators, validators) &&
+			validatorsEqual(currentBFTParams.validators, validators) &&
 			currentBFTParams.precommitThreshold === precommitThreshold &&
 			currentBFTParams.certificateThreshold === certificateThreshold
 		) {

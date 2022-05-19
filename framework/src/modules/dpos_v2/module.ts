@@ -614,7 +614,7 @@ export class DPoSModule extends BaseModule {
 				validatorAddress,
 			);
 			// if validator is active
-			if (standbyDelegates.findIndex(addr => addr.equals(validatorAddress)) === -1) {
+			if (snapshot.activeDelegates.findIndex(addr => addr.equals(validatorAddress)) > -1) {
 				bftValidators.push({
 					address: validatorAddress,
 					blsKey: validatorAccount.blsKey,
