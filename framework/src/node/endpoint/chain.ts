@@ -11,12 +11,27 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Chain, EventAttr, EVENT_KEY_LENGTH, SMTStore } from '@liskhq/lisk-chain';
-import { InMemoryKVStore, NotFoundError } from '@liskhq/lisk-db';
+import {
+	BlockHeader,
+	Chain,
+	EventAttr,
+	EVENT_KEY_LENGTH,
+	SMTStore,
+	StateStore,
+} from '@liskhq/lisk-chain';
+import { InMemoryKVStore, KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { isHexString, LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { SparseMerkleTree, SMTProof } from '@liskhq/lisk-tree';
 import { JSONObject } from '../../types';
 import { RequestContext } from '../rpc/rpc_server';
+import {
+	EMPTY_KEY,
+	MODULE_ID_BFT,
+	STORE_PREFIX_BFT_VOTES,
+	STORE_PREFIX_GENERATOR_KEYS,
+} from '../bft/constants';
+import { areHeadersContradictingRequestSchema, BFTVotes, bftVotesSchema } from '../bft/schemas';
+import { areDistinctHeadersContradicting, getGeneratorKeys } from '../bft/utils';
 
 interface EndpointArgs {
 	chain: Chain;
@@ -43,9 +58,14 @@ const proveEventsRequestSchema = {
 export class ChainEndpoint {
 	[key: string]: unknown;
 	private readonly _chain: Chain;
+	private _db!: KVStore;
 
 	public constructor(args: EndpointArgs) {
 		this._chain = args.chain;
+	}
+
+	public init(db: KVStore) {
+		this._db = db;
 	}
 
 	public async getBlockByID(context: RequestContext): Promise<string | undefined> {
@@ -174,5 +194,34 @@ export class ChainEndpoint {
 			})),
 			siblingHashes: proof.siblingHashes.map(h => h.toString('hex')),
 		};
+	}
+
+	public async getGeneratorList(_: RequestContext): Promise<{ list: string[] }> {
+		const stateStore = new StateStore(this._db);
+		const votesStore = stateStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_VOTES);
+		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
+		const { height: currentHeight } =
+			bftVotes.blockBFTInfos.length > 0 ? bftVotes.blockBFTInfos[0] : { height: 0 };
+		const keysStore = stateStore.getStore(MODULE_ID_BFT, STORE_PREFIX_GENERATOR_KEYS);
+		const keys = await getGeneratorKeys(keysStore, currentHeight + 1);
+		return {
+			list: keys.generators.map(v => v.address.toString('hex')),
+		};
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async areHeadersContradicting(context: RequestContext): Promise<boolean> {
+		const errors = validator.validate(areHeadersContradictingRequestSchema, context.params);
+		if (errors.length > 0) {
+			throw new LiskValidationError(errors);
+		}
+
+		const bftHeader1 = BlockHeader.fromBytes(Buffer.from(context.params.header1 as string, 'hex'));
+		const bftHeader2 = BlockHeader.fromBytes(Buffer.from(context.params.header2 as string, 'hex'));
+
+		if (bftHeader1.id.equals(bftHeader2.id)) {
+			return false;
+		}
+		return areDistinctHeadersContradicting(bftHeader1, bftHeader2);
 	}
 }

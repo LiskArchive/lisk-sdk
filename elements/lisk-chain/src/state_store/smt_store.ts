@@ -13,7 +13,6 @@
  */
 
 import { BatchChain, NotFoundError as DBNotFoundError } from '@liskhq/lisk-db';
-import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { StateStore } from './state_store';
 import { DB_KEY_STATE_SMT } from '../db_keys';
@@ -25,8 +24,6 @@ export interface CurrentState {
 	batch: BatchChain;
 	diff: StateDiff;
 	stateStore: StateStore;
-	smt: SparseMerkleTree;
-	smtStore: SMTStore;
 }
 
 export class SMTStore {

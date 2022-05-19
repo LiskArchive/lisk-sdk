@@ -156,6 +156,9 @@ export class BlockContext {
 			eventQueue: this._eventQueue,
 			header: this._header,
 			assets: this._assets,
+			currentValidators: this._currentValidators,
+			impliesMaxPrevote: this._impliesMaxPrevote,
+			maxHeightCertified: this._maxHeightCertified,
 		});
 	}
 

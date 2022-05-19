@@ -20,3 +20,4 @@ export {
 	CONSENSUS_EVENT_BLOCK_NEW,
 } from './constants';
 export { BFTHeights } from '../bft/types';
+export { isEmptyConsensusUpdate } from './utils';

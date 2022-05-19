@@ -14,10 +14,9 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { KVStore, formatInt, NotFoundError, InMemoryKVStore } from '@liskhq/lisk-db';
+import { KVStore, formatInt, NotFoundError } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes, hash, intToBuffer } from '@liskhq/lisk-cryptography';
-import { SparseMerkleTree } from '@liskhq/lisk-tree';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { encodeByteArray, Storage } from '../../../src/data_access/storage';
 import { createValidDefaultBlock } from '../../utils/block';
 import { getTransaction } from '../../utils/transaction';
@@ -32,11 +31,9 @@ import {
 	DB_KEY_TEMPBLOCKS_HEIGHT,
 	DB_KEY_DIFF_STATE,
 	DB_KEY_TRANSACTIONS_BLOCK_ID,
-	DB_KEY_STATE_STORE,
 	DB_KEY_BLOCK_EVENTS,
 } from '../../../src/db_keys';
 import { concatDBKeys } from '../../../src/utils';
-import { toSMTKey } from '../../../src/state_store/utils';
 
 describe('dataAccess.blocks', () => {
 	const emptyEncodedDiff = codec.encode(stateDiffSchema, {
@@ -395,13 +392,10 @@ describe('dataAccess.blocks', () => {
 			});
 			const smtStore = new SMTStore(db);
 			const batchLocal = db.batch();
-			const smt = new SparseMerkleTree({ db: smtStore, rootHash: block.header.stateRoot });
-			const diff = await stateStore.finalize(batchLocal, smt);
+			const diff = stateStore.finalize(batchLocal);
 			smtStore.finalize(batchLocal);
 
 			currentState = {
-				smt,
-				smtStore,
 				batch: batchLocal,
 				diff,
 				stateStore,
@@ -515,17 +509,14 @@ describe('dataAccess.blocks', () => {
 	describe('deleteBlock', () => {
 		let currentState: CurrentState;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			const stateStore = new StateStore(db);
 			const smtStore = new SMTStore(db);
 			const batch = db.batch();
-			const smt = new SparseMerkleTree({ db: smtStore });
-			const diff = await stateStore.finalize(batch, smt);
+			const diff = stateStore.finalize(batch);
 			smtStore.finalize(batch);
 
 			currentState = {
-				smt,
-				smtStore,
 				batch,
 				diff,
 				stateStore,
@@ -600,203 +591,6 @@ describe('dataAccess.blocks', () => {
 			expect(tempBlocks[0].header.toObject()).toStrictEqual(blocks[2].header.toObject());
 			expect(tempBlocks[0].transactions[0]).toBeInstanceOf(Transaction);
 			expect(tempBlocks[0].transactions[0].id).toStrictEqual(blocks[2].transactions[0].id);
-		});
-	});
-
-	describe('State root calculation after save/delete block', () => {
-		const sequenceSchema = {
-			$id: 'modules/seq/',
-			type: 'object',
-			properties: {
-				nonce: {
-					dataType: 'uint32',
-					fieldNumber: 1,
-				},
-			},
-			required: ['nonce'],
-		};
-
-		const MODULE_ID = 14;
-		const STORE_PREFIX = 1;
-		let currentState: CurrentState;
-		let stateStore: StateStore;
-		let tempDB: InMemoryKVStore;
-
-		const prefixedKey = (
-			key: Buffer,
-			moduleID: number = MODULE_ID,
-			storePrefix: number = STORE_PREFIX,
-		) => {
-			const moduleIDBuffer = intToBuffer(moduleID, 4);
-			const storePrefixBuffer = intToBuffer(storePrefix, 2);
-
-			return Buffer.concat([DB_KEY_STATE_STORE, moduleIDBuffer, storePrefixBuffer, key]);
-		};
-
-		beforeEach(() => {
-			stateStore = new StateStore(db);
-			tempDB = new InMemoryKVStore();
-		});
-
-		afterAll(async () => {
-			await tempDB.clear();
-		});
-
-		it('should return current stateRoot calculated after saveBlock', async () => {
-			const subStore = stateStore.getStore(MODULE_ID, STORE_PREFIX);
-
-			// 3 accounts being set with data
-			const address1 = getRandomBytes(20);
-			const address2 = getRandomBytes(20);
-			const address3 = getRandomBytes(20);
-
-			const data1 = codec.encode(sequenceSchema, { nonce: 10 });
-			const data2 = codec.encode(sequenceSchema, { nonce: 17 });
-			const data3 = codec.encode(sequenceSchema, { nonce: 29 });
-
-			// Set 3 accounts in stateStore
-			await subStore.set(address1, data1);
-			await subStore.set(address2, data2);
-			await subStore.set(address3, data3);
-
-			// To calculate SMT root hash from updating each address above manually
-			const smtStoreTemp = new SMTStore(tempDB);
-			const smtTemp = new SparseMerkleTree({ db: smtStoreTemp });
-
-			await smtTemp.update(toSMTKey(prefixedKey(address1)), hash(data1));
-			await smtTemp.update(toSMTKey(prefixedKey(address2)), hash(data2));
-			await smtTemp.update(toSMTKey(prefixedKey(address3)), hash(data3));
-			const { rootHash: expectedStateRoot } = smtTemp;
-
-			// Add the expected state root calculated to a block to be saved
-			const firstBlock = await createValidDefaultBlock({
-				header: { height: 304, stateRoot: expectedStateRoot },
-				transactions: [
-					getTransaction({ nonce: BigInt(10) }),
-					getTransaction({ nonce: BigInt(20) }),
-				],
-			});
-
-			// Run all the finalizeStore steps: create SMT store, batch, smt and pass it to saveBlock()
-			const smtStore = new SMTStore(db);
-			const batchLocal = db.batch();
-			const smt = new SparseMerkleTree({ db: smtStore });
-			const diff1 = await stateStore.finalize(batchLocal, smt);
-			smtStore.finalize(batchLocal);
-
-			currentState = {
-				smt,
-				smtStore,
-				batch: batchLocal,
-				diff: diff1,
-				stateStore,
-			};
-			await dataAccess.saveBlock(firstBlock, [], currentState, 100);
-
-			expect(smt.rootHash).toEqual(firstBlock.header.stateRoot);
-
-			// Test another with deleting one of the keys
-			await smtTemp.remove(toSMTKey(prefixedKey(address3)));
-			// Add the expected state root calculated to a block to be saved
-			const secondBlock = await createValidDefaultBlock({
-				header: { height: 304, stateRoot: smtTemp.rootHash },
-				transactions: [getTransaction({ nonce: BigInt(10) })],
-			});
-
-			const secondSubStore = stateStore.getStore(14, 1);
-			await secondSubStore.del(address3);
-			const secondSMTStore = new SMTStore(db);
-			const secondBatch = db.batch();
-			const secondSMT = new SparseMerkleTree({ db: secondSMTStore });
-			const diff2 = await stateStore.finalize(secondBatch, secondSMT);
-			secondSMTStore.finalize(secondBatch);
-
-			const newCurrentState = {
-				smt: secondSMT,
-				smtStore: secondSMTStore,
-				batch: secondBatch,
-				diff: diff2,
-				stateStore,
-			};
-			await dataAccess.saveBlock(secondBlock, [], newCurrentState, 100);
-			expect(secondSMT.rootHash).toEqual(secondBlock.header.stateRoot);
-		});
-
-		it('should return previous stateRoot calculated after delete', async () => {
-			const subStore = stateStore.getStore(14, 1);
-
-			// 3 accounts being set with data
-			const address1 = getRandomBytes(20);
-			const address2 = getRandomBytes(20);
-			const address3 = getRandomBytes(20);
-
-			const data1 = codec.encode(sequenceSchema, { nonce: 10 });
-			const data2 = codec.encode(sequenceSchema, { nonce: 17 });
-			const data3 = codec.encode(sequenceSchema, { nonce: 29 });
-
-			// Set 3 accounts in stateStore
-			await subStore.set(address1, data1);
-			await subStore.set(address2, data2);
-			await subStore.set(address3, data3);
-
-			// To calculate SMT root hash from updating each address above manually
-			const smtStoreTemp = new SMTStore(tempDB);
-			const smtTemp = new SparseMerkleTree({ db: smtStoreTemp });
-
-			await smtTemp.update(toSMTKey(prefixedKey(address1)), hash(data1));
-			await smtTemp.update(toSMTKey(prefixedKey(address2)), hash(data2));
-			await smtTemp.update(toSMTKey(prefixedKey(address3)), hash(data3));
-			const { rootHash: expectedStateRoot } = smtTemp;
-
-			// Add the expected state root calculated to a block to be saved
-			const firstBlock = await createValidDefaultBlock({
-				header: { height: 304, stateRoot: expectedStateRoot },
-				transactions: [
-					getTransaction({ nonce: BigInt(10) }),
-					getTransaction({ nonce: BigInt(20) }),
-				],
-			});
-
-			// Run all the finalizeStore steps: create SMT store, batch, smt and pass it to saveBlock()
-			const smtStore = new SMTStore(db);
-			const batchLocal = db.batch();
-			const smt = new SparseMerkleTree({ db: smtStore });
-			const diff1 = await stateStore.finalize(batchLocal, smt);
-			smtStore.finalize(batchLocal);
-
-			currentState = {
-				smt,
-				smtStore,
-				batch: batchLocal,
-				diff: diff1,
-				stateStore,
-			};
-			await dataAccess.saveBlock(firstBlock, [], currentState, 100);
-
-			expect(smt.rootHash).toEqual(firstBlock.header.stateRoot);
-
-			// Delete all the keys that were added in the last block
-			await smtTemp.remove(toSMTKey(prefixedKey(address1)));
-			await smtTemp.remove(toSMTKey(prefixedKey(address2)));
-			await smtTemp.remove(toSMTKey(prefixedKey(address3)));
-
-			const secondSMTStore = new SMTStore(db);
-			const secondBatch = db.batch();
-			const secondSMT = new SparseMerkleTree({
-				db: secondSMTStore,
-				rootHash: firstBlock.header.stateRoot,
-			});
-
-			const newCurrentState = {
-				smt: secondSMT,
-				smtStore: secondSMTStore,
-				batch: secondBatch,
-				diff: { updated: [], created: [], deleted: [] },
-				stateStore,
-			};
-
-			await dataAccess.deleteBlock(firstBlock, newCurrentState);
-			expect(secondSMT.rootHash).toEqual(smtTemp.rootHash);
 		});
 	});
 });

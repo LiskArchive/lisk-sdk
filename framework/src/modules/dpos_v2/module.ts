@@ -56,7 +56,6 @@ import {
 	voterStoreSchema,
 } from './schemas';
 import {
-	BFTAPI,
 	RandomAPI,
 	TokenAPI,
 	ValidatorsAPI,
@@ -103,31 +102,22 @@ export class DPoSModule extends BaseModule {
 	];
 
 	private _randomAPI!: RandomAPI;
-	private _bftAPI!: BFTAPI;
 	private _validatorsAPI!: ValidatorsAPI;
 	private _tokenAPI!: TokenAPI;
 	private _moduleConfig!: ModuleConfig;
 
-	public addDependencies(
-		randomAPI: RandomAPI,
-		bftAPI: BFTAPI,
-		validatorsAPI: ValidatorsAPI,
-		tokenAPI: TokenAPI,
-	) {
-		this._bftAPI = bftAPI;
+	public addDependencies(randomAPI: RandomAPI, validatorsAPI: ValidatorsAPI, tokenAPI: TokenAPI) {
 		this._randomAPI = randomAPI;
 		this._validatorsAPI = validatorsAPI;
 		this._tokenAPI = tokenAPI;
 
 		this._delegateRegistrationCommand.addDependencies(this._validatorsAPI);
 		this._reportDelegateMisbehaviorCommand.addDependencies({
-			bftAPI: this._bftAPI,
 			tokenAPI: this._tokenAPI,
 			validatorsAPI: this._validatorsAPI,
 		});
 		this._unlockCommand.addDependencies({
 			tokenAPI: this._tokenAPI,
-			bftAPI: this._bftAPI,
 		});
 		this._updateGeneratorKeyCommand.addDependencies(this._validatorsAPI);
 		this._voteCommand.addDependencies({
@@ -433,30 +423,20 @@ export class DPoSModule extends BaseModule {
 		const initDelegates = [...genesisStore.genesisData.initDelegates];
 		initDelegates.sort((a, b) => a.compare(b));
 		const initBFTThreshold = BigInt(Math.floor((2 * initDelegates.length) / 3) + 1);
-		const bftValidators = [];
-		const generators = [];
+		const validators = [];
 		for (const validatorAddress of initDelegates) {
 			const validatorAccount = await this._validatorsAPI.getValidatorAccount(
 				apiContext,
 				validatorAddress,
 			);
-			bftValidators.push({
+			validators.push({
 				address: validatorAddress,
 				blsKey: validatorAccount.blsKey,
+				generatorKey: validatorAccount.generatorKey,
 				bftWeight: BigInt(1),
 			});
-			generators.push({
-				address: validatorAddress,
-				generatorKey: validatorAccount.generatorKey,
-			});
 		}
-		await this._bftAPI.setBFTParameters(
-			apiContext,
-			initBFTThreshold,
-			initBFTThreshold,
-			bftValidators,
-		);
-		await this._bftAPI.setGeneratorKeys(apiContext, generators);
+		context.setNextValidators(initBFTThreshold, initBFTThreshold, validators);
 
 		const MAX_UINT32 = 2 ** 32 - 1;
 		const snapshotStore = context.getStore(this.id, STORE_PREFIX_SNAPSHOT);
@@ -645,32 +625,26 @@ export class DPoSModule extends BaseModule {
 		}
 		const shuffledValidators = shuffleDelegateList(randomSeed1, validators);
 		const bftValidators = [];
-		const generators = [];
 		for (const validatorAddress of shuffledValidators) {
 			const validatorAccount = await this._validatorsAPI.getValidatorAccount(
 				apiContext,
 				validatorAddress,
 			);
+			const isActive =
+				snapshot.activeDelegates.findIndex(addr => addr.equals(validatorAddress)) > -1;
 			// if validator is active
-			if (snapshot.activeDelegates.findIndex(addr => addr.equals(validatorAddress)) > -1) {
-				bftValidators.push({
-					address: validatorAddress,
-					blsKey: validatorAccount.blsKey,
-					bftWeight: BigInt(1),
-				});
-			}
-			generators.push({
+			bftValidators.push({
 				address: validatorAddress,
+				blsKey: validatorAccount.blsKey,
 				generatorKey: validatorAccount.generatorKey,
+				bftWeight: isActive ? BigInt(1) : BigInt(0),
 			});
 		}
-		await this._bftAPI.setBFTParameters(
-			apiContext,
+		context.setNextValidators(
 			BigInt(this._moduleConfig.bftThreshold),
 			BigInt(this._moduleConfig.bftThreshold),
 			bftValidators,
 		);
-		await this._bftAPI.setGeneratorKeys(apiContext, generators);
 	}
 
 	private async _updateProductivity(context: BlockAfterExecuteContext, previousTimestamp: number) {
@@ -681,7 +655,7 @@ export class DPoSModule extends BaseModule {
 
 		const newHeight = header.height;
 		const apiContext = getAPIContext();
-		const generators = await this._bftAPI.getGeneratorKeys(apiContext, newHeight);
+		const generators = context.currentValidators;
 		const missedBlocks = await this._validatorsAPI.getGeneratorsBetweenTimestamps(
 			apiContext,
 			previousTimestamp,

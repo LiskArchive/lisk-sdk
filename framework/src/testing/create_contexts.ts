@@ -26,13 +26,13 @@ import {
 	EventQueue,
 	GenesisBlockContext,
 	ImmutableSubStore,
+	InsertAssetContext,
 	TransactionContext,
 } from '../state_machine';
 import { loggerMock } from './mocks';
-import { BlockGenerateContext } from '../node/generator';
 import { WritableBlockAssets } from '../node/generator/types';
-import { GeneratorStore } from '../node/generator/generator_store';
 import { Validator } from '../abi';
+import { SubStore } from '../state_machine/types';
 
 export const createGenesisBlockContext = (params: {
 	header?: BlockHeader;
@@ -123,17 +123,17 @@ export const createBlockContext = (params: {
 
 export const createBlockGenerateContext = (params: {
 	assets?: WritableBlockAssets;
-	getGeneratorStore?: (moduleID: number) => GeneratorStore;
+	getGeneratorStore?: (moduleID: number) => SubStore;
 	logger?: Logger;
 	getAPIContext?: () => APIContext;
 	getStore?: (moduleID: number, storePrefix: number) => ImmutableSubStore;
 	header: BlockHeader;
 	finalizedHeight?: number;
 	networkIdentifier?: Buffer;
-}): BlockGenerateContext => {
+}): InsertAssetContext => {
 	const db = new InMemoryKVStore();
-	const generatorStore = new GeneratorStore(db);
-	const getGeneratorStore = (moduleID: number) => generatorStore.getGeneratorStore(moduleID);
+	const generatorStore = new StateStore(db);
+	const getGeneratorStore = (moduleID: number) => generatorStore.getStore(moduleID, 0);
 	const header =
 		params.header ??
 		new BlockHeader({
@@ -159,7 +159,7 @@ export const createBlockGenerateContext = (params: {
 	const getStore = (moduleID: number, storePrefix: number) =>
 		stateStore.getStore(moduleID, storePrefix);
 
-	const ctx: BlockGenerateContext = {
+	const ctx: InsertAssetContext = {
 		assets: params.assets ?? new BlockAssets([]),
 		getGeneratorStore: params.getGeneratorStore ?? getGeneratorStore,
 		logger: params.logger ?? loggerMock,
@@ -180,6 +180,9 @@ export const createTransactionContext = (params: {
 	header?: BlockHeader;
 	assets?: BlockAssets;
 	networkIdentifier?: Buffer;
+	currentValidators?: Validator[];
+	impliesMaxPrevote?: boolean;
+	maxHeightCertified?: number;
 	transaction: Transaction;
 }): TransactionContext => {
 	const logger = params.logger ?? loggerMock;
@@ -213,6 +216,9 @@ export const createTransactionContext = (params: {
 		assets: params.assets ?? new BlockAssets(),
 		networkIdentifier: params.networkIdentifier ?? getRandomBytes(32),
 		transaction: params.transaction,
+		currentValidators: params.currentValidators ?? [],
+		impliesMaxPrevote: params.impliesMaxPrevote ?? true,
+		maxHeightCertified: params.maxHeightCertified ?? 0,
 	});
 	return ctx;
 };

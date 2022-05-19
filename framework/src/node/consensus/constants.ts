@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { hash } from '@liskhq/lisk-cryptography';
+
 export const CONSENSUS_EVENT_FORK_DETECTED = 'CONSENSUS_EVENT_FORK_DETECTED';
 export const CONSENSUS_EVENT_BLOCK_BROADCAST = 'CONSENSUS_EVENT_BLOCK_BROADCAST';
 export const CONSENSUS_EVENT_BLOCK_NEW = 'CONSENSUS_EVENT_BLOCK_NEW';
@@ -24,3 +26,5 @@ export const NETWORK_RPC_GET_LAST_BLOCK = 'getLastBlock';
 export const NETWORK_RPC_GET_BLOCKS_FROM_ID = 'getBlocksFromId';
 export const NETWORK_RPC_GET_HIGHEST_COMMON_BLOCK = 'getHighestCommonBlock';
 export const NETWORK_RPC_GET_SINGLE_COMMIT_FROM_ID = 'getSingleCommit';
+
+export const EMPTY_HASH = hash(Buffer.alloc(0));

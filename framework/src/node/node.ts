@@ -11,169 +11,171 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { Chain, Block } from '@liskhq/lisk-chain';
+import * as path from 'path';
+import { Chain, Block, BlockHeader, BlockAssets } from '@liskhq/lisk-chain';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { KVStore } from '@liskhq/lisk-db';
-import { Logger } from '../logger';
-import { RegisteredModule, RegisteredSchema } from '../types';
-import { NodeOptions } from './types';
-import { InMemoryChannel } from '../controller/channels';
+import { createLogger, Logger } from '../logger';
 import { Network } from './network';
-import { BaseModule } from '../modules/base_module';
-import { BaseCommand } from '../modules/base_command';
-import { StateMachine } from '../state_machine';
 import { Consensus, CONSENSUS_EVENT_BLOCK_DELETE, CONSENSUS_EVENT_BLOCK_NEW } from './consensus';
-import { BlockGenerateInput, Generator, GenesisBlockGenerateInput } from './generator';
-import { getRegisteredModules, getSchema } from './utils/modules';
+import { BlockGenerateInput, Generator } from './generator';
 import { getEndpointHandlers } from '../endpoint';
-import { ValidatorsAPI, ValidatorsModule } from '../modules/validators';
-import { BFTAPI, BFTModule } from './bft';
+import { BFTModule } from './bft';
 import { APP_EVENT_BLOCK_DELETE, APP_EVENT_BLOCK_NEW } from './events';
-import { NotFoundHandler, RPCServer } from './rpc/rpc_server';
+import { RPCServer, RequestContext } from './rpc/rpc_server';
 import { ChainEndpoint } from './endpoint/chain';
 import { SystemEndpoint } from './endpoint/system';
+import { ABI, InitResponse } from '../abi';
 
-const MINIMUM_MODULE_ID = 2;
+const isEmpty = (value: unknown): boolean => {
+	switch (typeof value) {
+		case 'undefined':
+			return true;
+		case 'string':
+			return value === '';
+		case 'number':
+			return value === 0;
+		case 'bigint':
+			return value === BigInt(0);
+		case 'object':
+			if (value === null) {
+				return true;
+			}
+			if (Array.isArray(value) && value.length === 0) {
+				return true;
+			}
+			if (Object.keys(value).length === 0) {
+				return true;
+			}
+			return false;
+		default:
+			throw new Error('Unknown type.');
+	}
+};
 
-interface NodeConstructor {
-	readonly options: NodeOptions;
-}
-
-interface NodeInitInput {
-	readonly logger: Logger;
-	readonly genesisBlock: Block;
-	readonly channel: InMemoryChannel;
-	readonly forgerDB: KVStore;
-	readonly blockchainDB: KVStore;
-	readonly nodeDB: KVStore;
-}
+const emptyOrDefault = <T>(value: T, defaultValue: T): T => (isEmpty(value) ? defaultValue : value);
 
 export class Node {
-	private readonly _options: NodeOptions;
-	private readonly _registeredModules: BaseModule[] = [];
-	private readonly _stateMachine: StateMachine;
-	private readonly _consensus: Consensus;
-	private readonly _generator: Generator;
-	private readonly _network: Network;
-	private readonly _chain: Chain;
-	private readonly _validatorsModule: ValidatorsModule;
-	private readonly _bftModule: BFTModule;
-	private readonly _rpcServer: RPCServer;
+	private readonly _abi: ABI;
+	private _config!: InitResponse['config'];
+	private _consensus!: Consensus;
+	private _generator!: Generator;
+	private _network!: Network;
+	private _chain!: Chain;
+	private _bftModule!: BFTModule;
+	private _rpcServer!: RPCServer;
 	private _logger!: Logger;
 	private _nodeDB!: KVStore;
-	private _forgerDB!: KVStore;
+	private _generatorDB!: KVStore;
 	private _blockchainDB!: KVStore;
 	private _networkIdentifier!: Buffer;
 
-	public constructor({ options }: NodeConstructor) {
-		this._options = options;
+	public constructor(abi: ABI) {
+		this._abi = abi;
+	}
+
+	public async generateBlock(input: BlockGenerateInput): Promise<Block> {
+		return this._generator.generateBlock(input);
+	}
+
+	public async start() {
+		await this._init();
+		await this._network.start();
+		await this._generator.start();
+		await this._consensus.start();
+		await this._rpcServer.start();
+		this._logger.info('Node starting');
+	}
+
+	public async stop(): Promise<void> {
+		this._logger.info('Node cleanup started');
+		await this._network.stop();
+		await this._generator.stop();
+		await this._consensus.stop();
+		this._rpcServer.stop();
+		await this._closeDB();
+		this._logger.info('Node cleanup completed');
+	}
+
+	private async _init(): Promise<void> {
+		const { config, genesisBlock, registeredModules } = await this._abi.init({});
+		this._config = config;
+		this._logger = createLogger({
+			module: 'engine',
+			fileLogLevel: emptyOrDefault(config.logger.fileLogLevel, 'info'),
+			consoleLogLevel: emptyOrDefault(config.logger.consoleLogLevel, 'info'),
+			logFilePath: path.join(config.system.dataPath, 'logs'),
+		});
+		this._logger.info('Node initialization starting');
 		this._network = new Network({
-			networkVersion: this._options.networkVersion,
-			options: this._options.network,
+			networkVersion: this._config.system.networkVersion,
+			options: this._config.network,
 		});
 
 		this._chain = new Chain({
-			maxTransactionsSize: this._options.genesis.maxTransactionsSize,
-			keepEventsForHeights: this._options.system.keepEventsForHeights,
+			maxTransactionsSize: this._config.genesis.maxTransactionsSize,
+			keepEventsForHeights: this._config.system.keepEventsForHeights,
 		});
 
-		this._stateMachine = new StateMachine();
-		this._validatorsModule = new ValidatorsModule();
 		this._bftModule = new BFTModule();
-		this._registeredModules.push(this._validatorsModule, this._bftModule);
 		this._consensus = new Consensus({
-			stateMachine: this._stateMachine,
+			abi: this._abi,
 			network: this._network,
 			chain: this._chain,
-			genesisConfig: this._options.genesis,
-			bftAPI: this._bftModule.api,
+			genesisConfig: {
+				...this._config.genesis,
+				modules: {},
+				baseFees: [],
+			},
+			bft: this._bftModule,
 		});
 		this._generator = new Generator({
+			abi: this._abi,
 			chain: this._chain,
 			consensus: this._consensus,
-			bftAPI: this._bftModule.api,
-			generationConfig: this._options.generation,
+			bft: this._bftModule,
+			generationConfig: {
+				...this._config.generator,
+				waitThreshold: this._config.genesis.blockTime / 5,
+				generators: this._config.generator.keys,
+			},
 			network: this._network,
-			stateMachine: this._stateMachine,
-			genesisConfig: this._options.genesis,
+			genesisConfig: {
+				...this._config.genesis,
+				baseFees: [],
+				modules: {},
+			},
 		});
-		this._stateMachine.registerSystemModule(this._validatorsModule);
-		this._stateMachine.registerSystemModule(this._bftModule);
-		this._generator.registerModule(this._validatorsModule);
-		this._generator.registerModule(this._bftModule);
-		this._rpcServer = new RPCServer(options.rpc);
-	}
+		this._rpcServer = new RPCServer({
+			...this._config.rpc,
+			ws: {
+				...this._config.rpc.ws,
+				path: '/rpc',
+			},
+		});
 
-	public getSchema(): RegisteredSchema {
-		return getSchema(this._registeredModules);
-	}
+		const genesis = new Block(
+			new BlockHeader(genesisBlock.header),
+			[],
+			new BlockAssets(genesisBlock.assets),
+		);
 
-	public getRegisteredModules(): RegisteredModule[] {
-		return getRegisteredModules(this._registeredModules);
-	}
-
-	public registerModule(customModule: BaseModule): void {
-		const exist = this._registeredModules.find(rm => rm.id === customModule.id);
-		if (exist) {
-			throw new Error(`Custom module with id ${customModule.id} already exists.`);
-		}
-
-		if (!customModule.name || !customModule.id) {
-			throw new Error(
-				`Custom module '${customModule.constructor.name}' is missing either one or both of the required properties: 'id', 'name'.`,
-			);
-		}
-
-		if (customModule.id < MINIMUM_MODULE_ID) {
-			throw new Error(`Custom module must have id greater than ${MINIMUM_MODULE_ID}.`);
-		}
-
-		for (const command of customModule.commands) {
-			if (!(command instanceof BaseCommand)) {
-				throw new Error(
-					'Custom module contains command which does not extend `BaseCommand` class.',
-				);
-			}
-
-			if (typeof command.name !== 'string' || command.name === '') {
-				throw new Error('Custom module contains command with invalid `name` property.');
-			}
-
-			if (typeof command.id !== 'number') {
-				throw new Error('Custom module contains command with invalid `id` property.');
-			}
-
-			if (typeof command.execute !== 'function') {
-				throw new Error('Custom module contains command with invalid `execute` property.');
-			}
-		}
-
-		this._stateMachine.registerModule(customModule);
-		this._generator.registerModule(customModule);
-		this._registeredModules.push(customModule);
-	}
-
-	public async init({
-		genesisBlock,
-		blockchainDB,
-		forgerDB,
-		logger,
-		nodeDB,
-	}: NodeInitInput): Promise<void> {
-		this._logger = logger;
-		this._blockchainDB = blockchainDB;
-		this._forgerDB = forgerDB;
-		this._nodeDB = nodeDB;
+		this._blockchainDB = new KVStore(
+			path.join(this._config.system.dataPath, 'data', 'blockchain.db'),
+		);
+		this._generatorDB = new KVStore(
+			path.join(this._config.system.dataPath, 'data', 'generator.db'),
+		);
+		this._nodeDB = new KVStore(path.join(this._config.system.dataPath, 'data', 'node.db'));
 
 		this._networkIdentifier = getNetworkIdentifier(
-			genesisBlock.header.id,
-			this._options.genesis.communityIdentifier,
+			genesis.header.id,
+			this._config.genesis.communityIdentifier,
 		);
 		this._chain.init({
 			db: this._blockchainDB,
 			networkIdentifier: this._networkIdentifier,
-			genesisBlock,
+			genesisBlock: genesis,
 		});
 
 		await this._network.init({
@@ -181,25 +183,16 @@ export class Node {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
 		});
-		for (const mod of this._registeredModules) {
-			const { modules, ...remainingGenesisConfig } = this._options.genesis;
-			if (mod.init) {
-				await mod.init({
-					moduleConfig: this._options.genesis.modules[mod.name],
-					generatorConfig: this._options.generation.modules[mod.name],
-					genesisConfig: remainingGenesisConfig,
-				});
-			}
-		}
 		await this._consensus.init({
 			db: this._blockchainDB,
-			genesisBlock,
+			genesisBlock: genesis,
 			logger: this._logger,
+			moduleIDs: registeredModules.map(mod => mod.moduleID),
 		});
 
 		await this._generator.init({
 			blockchainDB: this._blockchainDB,
-			generatorDB: this._forgerDB,
+			generatorDB: this._generatorDB,
 			logger: this._logger,
 		});
 
@@ -219,12 +212,13 @@ export class Node {
 		const chainEndpoint = new ChainEndpoint({
 			chain: this._chain,
 		});
+		chainEndpoint.init(this._blockchainDB);
 		const systemEndpoint = new SystemEndpoint({
+			abi: this._abi,
 			chain: this._chain,
 			consensus: this._consensus,
 			generator: this._generator,
-			registeredModules: this._registeredModules,
-			options: this._options,
+			config: this._config,
 		});
 
 		for (const [name, handler] of Object.entries(getEndpointHandlers(chainEndpoint))) {
@@ -234,59 +228,24 @@ export class Node {
 			this._rpcServer.registerEndpoint('system', name, handler);
 		}
 		for (const [name, handler] of Object.entries(getEndpointHandlers(this._generator.endpoint))) {
-			this._rpcServer.registerEndpoint('endpoint', name, handler);
+			this._rpcServer.registerEndpoint('generator', name, handler);
 		}
-
-		this._logger.info('Node ready and launched');
-	}
-
-	public async generateGenesisBlock(input: GenesisBlockGenerateInput): Promise<Block> {
-		for (const mod of this._registeredModules) {
-			const { modules, ...remainingGenesisConfig } = this._options.genesis;
-			if (mod.init) {
-				await mod.init({
-					moduleConfig: this._options.genesis.modules[mod.name],
-					generatorConfig: this._options.generation.modules[mod.name],
-					genesisConfig: remainingGenesisConfig,
+		this._rpcServer.registerNotFoundEndpoint(
+			async (namespace: string, method: string, context: RequestContext) => {
+				const { data } = await this._abi.query({
+					header: this._chain.lastBlock.header.toObject(),
+					networkIdentifier: this._chain.networkIdentifier,
+					method: `${namespace}_${method}`,
+					params: Buffer.from(JSON.stringify(context.params), 'utf-8'),
 				});
-			}
-		}
-		return this._generator.generateGenesisBlock(input);
+				return JSON.parse(data.toString('utf-8')) as Record<string, unknown>;
+			},
+		);
 	}
 
-	public async generateBlock(input: BlockGenerateInput): Promise<Block> {
-		return this._generator.generateBlock(input);
-	}
-
-	public registerNotFoundHandler(handler: NotFoundHandler): void {
-		this._rpcServer.registerNotFoundEndpoint(handler);
-	}
-
-	public get bftAPI(): BFTAPI {
-		return this._bftModule.api;
-	}
-
-	public get validatorAPI(): ValidatorsAPI {
-		return this._validatorsModule.api;
-	}
-
-	public get networkIdentifier(): Buffer {
-		return this._networkIdentifier;
-	}
-
-	public async start() {
-		await this._network.start();
-		await this._generator.start();
-		await this._consensus.start();
-		await this._rpcServer.start();
-	}
-
-	public async stop(): Promise<void> {
-		this._logger.info('Node cleanup started');
-		await this._network.stop();
-		await this._generator.stop();
-		await this._consensus.stop();
-		this._rpcServer.stop();
-		this._logger.info('Node cleanup completed');
+	private async _closeDB(): Promise<void> {
+		await this._blockchainDB.close();
+		await this._generatorDB.close();
+		await this._nodeDB.close();
 	}
 }

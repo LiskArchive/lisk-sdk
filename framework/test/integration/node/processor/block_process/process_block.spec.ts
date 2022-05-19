@@ -149,9 +149,7 @@ describe('Process block', () => {
 				const { privateKey } = getKeys(passphrase);
 				invalidBlock.header.sign(processEnv.getNetworkId(), privateKey);
 				await expect(processEnv.process(invalidBlock)).rejects.toThrow(
-					expect.objectContaining({
-						message: expect.stringContaining('nonce is lower than account nonce'),
-					}),
+					'Failed to verify transaction',
 				);
 			});
 		});

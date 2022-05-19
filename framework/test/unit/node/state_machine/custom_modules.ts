@@ -13,6 +13,9 @@
  */
 /* eslint-disable max-classes-per-file */
 
+import { BaseAPI, BaseCommand, BaseEndpoint, BaseModule } from '../../../../src';
+import { TransactionVerifyResult } from '../../../../src/abi';
+import { ModuleMetadata } from '../../../../src/modules/base_module';
 import {
 	BlockAfterExecuteContext,
 	BlockExecuteContext,
@@ -20,7 +23,7 @@ import {
 	TransactionExecuteContext,
 } from '../../../../src/state_machine';
 
-export class CustomCommand0 {
+export class CustomCommand0 extends BaseCommand {
 	public id = 0;
 	public name = 'customCommand0';
 	public schema = {
@@ -38,13 +41,14 @@ export class CustomCommand0 {
 	public execute = jest.fn();
 }
 
-export class CustomModule0 {
+export class CustomModule0 extends BaseModule {
 	public id = 3;
 	public name = 'customModule0';
-	public commands = [new CustomCommand0()];
-	public api = {
+	public commands = [new CustomCommand0(3)];
+	public api = ({
 		testing: jest.fn(),
-	};
+	} as unknown) as BaseAPI;
+	public endpoint: BaseEndpoint = {} as BaseEndpoint;
 
 	public verifyAssets = jest.fn();
 	public initGenesisState = jest.fn();
@@ -53,19 +57,27 @@ export class CustomModule0 {
 	public verifyTransaction = jest.fn().mockResolvedValue({ status: 1 });
 	public beforeCommandExecute = jest.fn();
 	public afterCommandExecute = jest.fn();
+	public metadata(): ModuleMetadata {
+		throw new Error('Method not implemented.');
+	}
 }
 
-export class CustomModule1 {
+export class CustomModule1 extends BaseModule {
 	public id = 4;
 	public name = 'customModule1';
 	public commands = [];
+	public endpoint: BaseEndpoint = {} as BaseEndpoint;
+	public api: BaseAPI = {} as BaseAPI;
 
 	public verifyAssets = jest.fn();
 	public beforeTransactionsExecute = jest.fn();
 	public afterCommandExecute = jest.fn();
+	public metadata(): ModuleMetadata {
+		throw new Error('Method not implemented.');
+	}
 }
 
-export class CustomCommand2 {
+export class CustomCommand2 extends BaseCommand {
 	public id = 0;
 	public name = 'customCommand2';
 	public schema = {
@@ -79,7 +91,7 @@ export class CustomCommand2 {
 		},
 	};
 
-	public verify = jest.fn().mockResolvedValue({ status: 1 });
+	public verify = jest.fn().mockResolvedValue({ status: TransactionVerifyResult.INVALID });
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async execute(ctx: TransactionExecuteContext): Promise<void> {
@@ -87,12 +99,16 @@ export class CustomCommand2 {
 	}
 }
 
-export class CustomModule2 {
+export class CustomModule2 extends BaseModule {
 	public id = 5;
 	public name = 'customModule2';
-	public commands = [new CustomCommand2()];
+	public endpoint: BaseEndpoint = {} as BaseEndpoint;
+	public api: BaseAPI = {} as BaseAPI;
+	public commands = [new CustomCommand2(5)];
 
-	public verifyTransaction = jest.fn().mockResolvedValue({ status: 0 });
+	public verifyTransaction = jest
+		.fn()
+		.mockResolvedValue({ status: TransactionVerifyResult.INVALID });
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async initGenesisState(ctx: GenesisBlockExecuteContext): Promise<void> {
@@ -112,5 +128,9 @@ export class CustomModule2 {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async afterTransactionsExecute(ctx: BlockAfterExecuteContext): Promise<void> {
 		ctx.eventQueue.add(this.id, Buffer.from([0, 0, 0, 1]), Buffer.from([0, 0, 2]));
+	}
+
+	public metadata(): ModuleMetadata {
+		throw new Error('Method not implemented.');
 	}
 }

@@ -12,7 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
+import * as os from 'os';
+import * as path from 'path';
 import * as fs from 'fs-extra';
 import { Block } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
@@ -43,7 +44,7 @@ export const waitUntilBlockHeight = async ({
 	});
 
 // Database utils
-const defaultDatabasePath = '/tmp/lisk-framework/test';
+const defaultDatabasePath = path.join(os.tmpdir(), 'lisk-framework', Date.now().toString());
 export const getDBPath = (name: string, dbPath = defaultDatabasePath): string =>
 	`${dbPath}/${name}.db`;
 
@@ -54,4 +55,6 @@ export const createDB = (name: string, dbPath = defaultDatabasePath): KVStore =>
 };
 
 export const removeDB = (dbPath = defaultDatabasePath): void =>
-	['forger', 'blockchain', 'node'].forEach(name => fs.removeSync(getDBPath(name, dbPath)));
+	['module', 'blockchain', 'node', 'state', 'generator'].forEach(name =>
+		fs.removeSync(getDBPath(name, dbPath)),
+	);

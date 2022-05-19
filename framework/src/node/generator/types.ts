@@ -13,25 +13,28 @@
  */
 
 import { EventEmitter } from 'events';
-import { Block, Transaction, BlockHeader } from '@liskhq/lisk-chain';
-import { Schema } from '@liskhq/lisk-codec';
+import { Block, Transaction, BlockHeader, StateStore } from '@liskhq/lisk-chain';
 import { Options } from '@liskhq/lisk-db';
-import { Logger } from '../../logger';
-import { BFTParameters } from '../bft/schemas';
-import { BFTHeights } from '../consensus';
 import { AggregateCommit } from '../consensus/types';
-import {
-	APIContext,
-	BlockHeader as IBlockHeader,
-	ImmutableAPIContext,
-	ImmutableSubStore,
-} from '../../state_machine';
 import { ValidatorInfo } from '../consensus/certificate_generation/types';
+import { Consensus as ABIConsensus } from '../../abi';
 
 export interface Keypair {
 	publicKey: Buffer;
 	privateKey: Buffer;
 	blsSecretKey: Buffer;
+}
+
+export interface Generator {
+	readonly address: Buffer;
+	readonly encryptedPassphrase: string;
+}
+
+export interface GenerationConfig {
+	waitThreshold: number;
+	generators: Generator[];
+	force?: boolean;
+	password?: string;
 }
 
 export interface GeneratorStore {
@@ -42,45 +45,23 @@ export interface GeneratorStore {
 export interface Consensus {
 	execute: (block: Block) => Promise<void>;
 	isSynced: (height: number, maxHeightPrevoted: number) => boolean;
-	getAggregateCommit: (apiContext: APIContext) => Promise<AggregateCommit>;
+	getAggregateCommit: (stateStore: StateStore) => Promise<AggregateCommit>;
 	certifySingleCommit: (blockHeader: BlockHeader, validatorInfo: ValidatorInfo) => void;
 	getMaxRemovalHeight: () => Promise<number>;
 	getGeneratorAtTimestamp: (
-		apiContext: APIContext,
+		stateStore: StateStore,
 		height: number,
 		timestamp: number,
 	) => Promise<Buffer>;
 	getSlotNumber: (timestamp: number) => number;
 	getSlotTime: (slot: number) => number;
+	getConsensusParams: (stateStore: StateStore, blockHeader: BlockHeader) => Promise<ABIConsensus>;
 	readonly events: EventEmitter;
-}
-
-export interface BFTAPI {
-	getBFTHeights: (_apiClient: ImmutableAPIContext) => Promise<BFTHeights>;
-	getBFTParameters: (apiContext: ImmutableAPIContext, height: number) => Promise<BFTParameters>;
-	existBFTParameters(context: ImmutableAPIContext, height: number): Promise<boolean>;
 }
 
 export interface WritableBlockAssets {
 	getAsset: (moduleID: number) => Buffer | undefined;
 	setAsset: (moduleID: number, value: Buffer) => void;
-}
-
-export interface BlockGenerateContext {
-	logger: Logger;
-	networkIdentifier: Buffer;
-	getAPIContext: () => APIContext;
-	getStore: (moduleID: number, storePrefix: number) => ImmutableSubStore;
-	header: IBlockHeader;
-	assets: WritableBlockAssets;
-	getGeneratorStore: (moduleID: number) => GeneratorStore;
-	getFinalizedHeight(): number;
-}
-
-export interface GeneratorModule {
-	readonly id: number;
-	initBlock?: (ctx: BlockGenerateContext) => Promise<void>;
-	sealBlock?: (ctx: BlockGenerateContext) => Promise<void>;
 }
 
 export interface GeneratorDB {
@@ -90,17 +71,6 @@ export interface GeneratorDB {
 	close: () => Promise<void>;
 	get: (key: Buffer) => Promise<Buffer>;
 	exists(key: Buffer): Promise<boolean>;
-}
-
-export interface GenesisBlockGenerateInput {
-	height?: number;
-	timestamp?: number;
-	previousBlockID?: Buffer;
-	assets: {
-		schema: Schema;
-		moduleID: number;
-		data: Record<string, unknown>;
-	}[];
 }
 
 export interface BlockGenerateInput {

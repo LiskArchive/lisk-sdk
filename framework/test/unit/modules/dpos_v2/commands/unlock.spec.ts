@@ -34,12 +34,7 @@ import {
 	genesisDataStoreSchema,
 	voterStoreSchema,
 } from '../../../../../src/modules/dpos_v2/schemas';
-import {
-	BFTAPI,
-	TokenAPI,
-	UnlockingObject,
-	VoterData,
-} from '../../../../../src/modules/dpos_v2/types';
+import { TokenAPI, UnlockingObject, VoterData } from '../../../../../src/modules/dpos_v2/types';
 import { CommandExecuteContext } from '../../../../../src/state_machine/types';
 import { liskToBeddows } from '../../../../utils/assets';
 
@@ -51,7 +46,6 @@ describe('UnlockCommand', () => {
 	let voterSubstore: StateStore;
 	let genesisSubstore: StateStore;
 	let mockTokenAPI: TokenAPI;
-	let mockBFTAPI: BFTAPI;
 	let blockHeight: number;
 	let header: BlockHeader;
 	let unlockableObject: UnlockingObject;
@@ -96,16 +90,8 @@ describe('UnlockCommand', () => {
 			transfer: jest.fn(),
 			getLockedAmount: jest.fn(),
 		};
-		mockBFTAPI = {
-			setBFTParameters: jest.fn(),
-			getGeneratorKeys: jest.fn(),
-			setGeneratorKeys: jest.fn(),
-			areHeadersContradicting: jest.fn(),
-			getBFTHeights: jest.fn().mockResolvedValue({ maxHeightCertified: 8760000 }),
-		};
 		unlockCommand.addDependencies({
 			tokenAPI: mockTokenAPI,
-			bftAPI: mockBFTAPI,
 		});
 		db = new InMemoryKVStore() as never;
 		stateStore = new StateStore(db);
@@ -170,6 +156,7 @@ describe('UnlockCommand', () => {
 					transaction,
 					header,
 					networkIdentifier,
+					maxHeightCertified: blockHeight,
 				})
 				.createCommandExecuteContext();
 			await unlockCommand.execute(context);
@@ -234,6 +221,7 @@ describe('UnlockCommand', () => {
 					transaction,
 					header,
 					networkIdentifier,
+					maxHeightCertified: blockHeight,
 				})
 				.createCommandExecuteContext();
 			await unlockCommand.execute(context);
@@ -354,6 +342,7 @@ describe('UnlockCommand', () => {
 					transaction,
 					header,
 					networkIdentifier,
+					maxHeightCertified: blockHeight,
 				})
 				.createCommandExecuteContext();
 			await unlockCommand.execute(context);
@@ -424,6 +413,7 @@ describe('UnlockCommand', () => {
 					transaction,
 					header,
 					networkIdentifier,
+					maxHeightCertified: blockHeight,
 				})
 				.createCommandExecuteContext();
 			await unlockCommand.execute(context);
@@ -486,6 +476,7 @@ describe('UnlockCommand', () => {
 					transaction,
 					header,
 					networkIdentifier,
+					maxHeightCertified: blockHeight,
 				})
 				.createCommandExecuteContext();
 		});
@@ -543,13 +534,13 @@ describe('UnlockCommand', () => {
 
 		it('should not unlock any votes', async () => {
 			// Arrange
-			mockBFTAPI.getBFTHeights = jest.fn().mockResolvedValue({ maxHeightCertified: 0 });
 			context = testing
 				.createTransactionContext({
 					stateStore,
 					transaction,
 					header,
 					networkIdentifier,
+					maxHeightCertified: 0,
 				})
 				.createCommandExecuteContext();
 
@@ -613,6 +604,7 @@ describe('UnlockCommand', () => {
 					transaction,
 					header,
 					networkIdentifier,
+					maxHeightCertified: blockHeight,
 				})
 				.createCommandExecuteContext();
 			await unlockCommand.execute(context);

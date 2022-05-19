@@ -282,6 +282,7 @@ export interface ExecuteTransactionRequest {
 	assets: BlockAsset[];
 	dryRun: boolean;
 	header: BlockHeader;
+	consensus: Consensus;
 }
 
 export interface ExecuteTransactionResponse {

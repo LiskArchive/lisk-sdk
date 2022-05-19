@@ -24,8 +24,6 @@ import { APP_EVENT_SHUTDOWN, APP_EVENT_READY } from './constants';
 import {
 	ApplicationConfig,
 	PluginConfig,
-	RegisteredSchema,
-	RegisteredModule,
 	PartialApplicationConfig,
 	EndpointHandlers,
 	PluginEndpointContext,
@@ -39,18 +37,18 @@ import { Node } from './node';
 import { Logger, createLogger } from './logger';
 
 import { DuplicateAppInstanceError } from './errors';
-import { BaseModule } from './modules/base_module';
+import { BaseModule, ModuleMetadata } from './modules/base_module';
 import { getEndpointHandlers, mergeEndpointHandlers } from './endpoint';
-import { ValidatorsAPI } from './modules/validators';
-import { BFTAPI } from './node/bft';
+import { ValidatorsAPI, ValidatorsModule } from './modules/validators';
 import { TokenModule, TokenAPI } from './modules/token';
 import { AuthModule, AuthAPI } from './modules/auth';
 import { FeeModule, FeeAPI } from './modules/fee';
 import { RewardModule, RewardAPI } from './modules/reward';
 import { RandomModule, RandomAPI } from './modules/random';
 import { DPoSModule, DPoSAPI } from './modules/dpos_v2';
-import { GenesisBlockGenerateInput } from './node/generator';
-import { RequestContext } from './node/rpc/rpc_server';
+import { generateGenesisBlock, GenesisBlockGenerateInput } from './genesis_block';
+import { StateMachine } from './state_machine';
+import { ABIHandler } from './abi_handler/abi_handler';
 
 const MINIMUM_EXTERNAL_MODULE_ID = 1000;
 
@@ -106,7 +104,6 @@ interface DefaultApplication {
 	app: Application;
 	api: {
 		validator: ValidatorsAPI;
-		bft: BFTAPI;
 		auth: AuthAPI;
 		token: TokenAPI;
 		fee: FeeAPI;
@@ -120,12 +117,14 @@ export class Application {
 	public config: ApplicationConfig;
 	public logger!: Logger;
 
-	private readonly _node: Node;
 	private readonly _controller: Controller;
+	private readonly _registeredModules: BaseModule[] = [];
+	private readonly _stateMachine: StateMachine;
 
-	private _blockchainDB!: KVStore;
-	private _nodeDB!: KVStore;
-	private _forgerDB!: KVStore;
+	private _node!: Node;
+	private _stateDB!: KVStore;
+	private _moduleDB!: KVStore;
+	private _abiHandler!: ABIHandler;
 
 	private readonly _mutex = new jobHandlers.Mutex();
 
@@ -145,17 +144,11 @@ export class Application {
 
 		// Initialize node
 		const { plugins, ...rootConfigs } = this.config;
-		this._node = new Node({
-			options: rootConfigs,
-		});
 		this._controller = new Controller({
 			appConfig: rootConfigs,
 			pluginConfigs: plugins,
 		});
-	}
-
-	public get networkIdentifier(): Buffer {
-		return this._node.networkIdentifier;
+		this._stateMachine = new StateMachine();
 	}
 
 	public get channel(): InMemoryChannel {
@@ -163,14 +156,6 @@ export class Application {
 			throw new Error('Controller is not initialized yet.');
 		}
 		return this._controller.channel;
-	}
-
-	public get validatorAPI(): ValidatorsAPI {
-		return this._node.validatorAPI;
-	}
-
-	public get bftAPI(): BFTAPI {
-		return this._node.bftAPI;
 	}
 
 	public static defaultApplication(config: PartialApplicationConfig = {}): DefaultApplication {
@@ -181,17 +166,13 @@ export class Application {
 		const feeModule = new FeeModule();
 		const rewardModule = new RewardModule();
 		const randomModule = new RandomModule();
+		const validatorModule = new ValidatorsModule();
 		const dposModule = new DPoSModule();
 
 		// resolve dependencies
 		feeModule.addDependencies(tokenModule.api);
-		rewardModule.addDependencies(tokenModule.api, randomModule.api, application.bftAPI);
-		dposModule.addDependencies(
-			randomModule.api,
-			application.bftAPI,
-			application.validatorAPI,
-			tokenModule.api,
-		);
+		rewardModule.addDependencies(tokenModule.api, randomModule.api);
+		dposModule.addDependencies(randomModule.api, validatorModule.api, tokenModule.api);
 
 		// register modules
 		application._registerModule(authModule);
@@ -204,8 +185,7 @@ export class Application {
 		return {
 			app: application,
 			api: {
-				validator: application._node.validatorAPI,
-				bft: application._node.bftAPI,
+				validator: validatorModule.api,
 				token: tokenModule.api,
 				auth: authModule.api,
 				fee: feeModule.api,
@@ -228,12 +208,22 @@ export class Application {
 		this._registerModule(Module, true);
 	}
 
-	public getSchema(): RegisteredSchema {
-		return this._node.getSchema();
+	public getRegisteredModules(): BaseModule[] {
+		return this._registeredModules;
 	}
 
-	public getRegisteredModules(): RegisteredModule[] {
-		return this._node.getRegisteredModules();
+	public getMetadata(): (ModuleMetadata & { id: number; name: string })[] {
+		const modules = this._registeredModules.map(mod => {
+			const meta = mod.metadata();
+			return {
+				id: mod.id,
+				name: mod.name,
+				...meta,
+			};
+		});
+		modules.sort((a, b) => a.id - b.id);
+
+		return modules;
 	}
 
 	public async run(genesisBlock: Block): Promise<void> {
@@ -259,30 +249,28 @@ export class Application {
 		await this._validatePidFile();
 
 		// Initialize database instances
-		this._forgerDB = this._getDBInstance(this.config, 'forger.db');
-		this._blockchainDB = this._getDBInstance(this.config, 'blockchain.db');
-		this._nodeDB = this._getDBInstance(this.config, 'node.db');
+		this._moduleDB = this._getDBInstance(this.config, 'module.db');
+		this._stateDB = this._getDBInstance(this.config, 'state.db');
 
 		await this._mutex.runExclusive<void>(async () => {
 			// Initialize all objects
 			this._controller.init({
 				logger: this.logger,
-				blockchainDB: this._blockchainDB,
+				blockchainDB: this._stateDB,
 				endpoints: this._rootEndpoints(),
 				events: [APP_EVENT_READY.replace('app_', ''), APP_EVENT_SHUTDOWN.replace('app_', '')],
-				networkIdentifier: this.networkIdentifier,
 			});
-
-			await this._node.init({
-				channel: this.channel,
+			this._abiHandler = new ABIHandler({
+				channel: this._controller.channel,
+				config: this.config,
 				genesisBlock,
-				forgerDB: this._forgerDB,
-				blockchainDB: this._blockchainDB,
-				nodeDB: this._nodeDB,
 				logger: this.logger,
+				moduleDB: this._moduleDB,
+				modules: this._registeredModules,
+				stateDB: this._stateDB,
+				stateMachine: this._stateMachine,
 			});
-
-			this._node.registerNotFoundHandler(this._handleEndpoint.bind(this));
+			this._node = new Node(this._abiHandler);
 
 			await this._controller.start();
 			await this._node.start();
@@ -302,9 +290,8 @@ export class Application {
 			this.channel.publish(APP_EVENT_SHUTDOWN);
 			await this._node.stop();
 			await this._controller.stop(errorCode, message);
-			await this._blockchainDB.close();
-			await this._forgerDB.close();
-			await this._nodeDB.close();
+			await this._stateDB.close();
+			await this._moduleDB.close();
 			await this._emptySocketsDirectory();
 			this._clearControllerPidFile();
 			this.logger.info({ errorCode, message }, 'Application shutdown completed');
@@ -322,20 +309,20 @@ export class Application {
 	}
 
 	public async generateGenesisBlock(input: GenesisBlockGenerateInput): Promise<Block> {
-		return this._node.generateGenesisBlock(input);
+		if (!this.logger) {
+			this.logger = this._initLogger();
+		}
+		await this._stateMachine.init(
+			this.config.genesis,
+			this.config.generation.modules,
+			this.config.genesis.modules,
+		);
+		return generateGenesisBlock(this._stateMachine, this.logger, input);
 	}
 
 	// --------------------------------------
 	// Private
 	// --------------------------------------
-
-	private async _handleEndpoint(
-		namespace: string,
-		method: string,
-		context: RequestContext,
-	): Promise<unknown> {
-		return this._controller.channel.invoke(`${namespace}_${method}`, context.params);
-	}
 
 	private _registerModule(mod: BaseModule, validateModuleID = false): void {
 		assert(mod, 'Module implementation is required');
@@ -344,7 +331,8 @@ export class Application {
 				`Custom module must have id greater than or equal to ${MINIMUM_EXTERNAL_MODULE_ID}`,
 			);
 		}
-		this._node.registerModule(mod);
+		this._registeredModules.push(mod);
+		this._stateMachine.registerModule(mod);
 		this._controller.registerEndpoint(mod.name, getEndpointHandlers(mod.endpoint));
 	}
 

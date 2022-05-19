@@ -34,7 +34,6 @@ import {
 	seedRevealSchema,
 	usedHashOnionsStoreSchema,
 } from '../../../../src/modules/random/schemas';
-import { BlockGenerateContext } from '../../../../src/node/generator';
 import { defaultNetworkIdentifier } from '../../../fixtures';
 import { GenesisConfig, testing } from '../../../../src';
 import {
@@ -42,6 +41,7 @@ import {
 	createBlockHeaderWithDefaults,
 	createGenesisBlockContext,
 } from '../../../../src/testing';
+import { InsertAssetContext } from '../../../../src/state_machine';
 
 const convertDelegateFixture = (delegates: typeof genesisDelegates.delegates) =>
 	delegates.map(delegate => ({
@@ -128,7 +128,7 @@ describe('RandomModule', () => {
 
 		it('should assign seed reveal to block header asset', async () => {
 			// Arrange
-			const blockGenerateContext: BlockGenerateContext = testing.createBlockGenerateContext({
+			const blockGenerateContext: InsertAssetContext = testing.createBlockGenerateContext({
 				assets: assetStub,
 				logger: testing.mocks.loggerMock,
 				networkIdentifier: defaultNetworkIdentifier,
@@ -169,7 +169,7 @@ describe('RandomModule', () => {
 		it('should update the used hash onion', async () => {
 			// Arrange
 
-			const blockGenerateContext: BlockGenerateContext = testing.createBlockGenerateContext({
+			const blockGenerateContext: InsertAssetContext = testing.createBlockGenerateContext({
 				assets: assetStub,
 				logger: testing.mocks.loggerMock,
 				networkIdentifier: defaultNetworkIdentifier,
@@ -228,7 +228,7 @@ describe('RandomModule', () => {
 				],
 			};
 
-			const blockGenerateContext: BlockGenerateContext = testing.createBlockGenerateContext({
+			const blockGenerateContext: InsertAssetContext = testing.createBlockGenerateContext({
 				assets: assetStub,
 				logger: testing.mocks.loggerMock,
 				networkIdentifier: defaultNetworkIdentifier,
@@ -268,7 +268,7 @@ describe('RandomModule', () => {
 		it('should remove all used hash onions before finality height', async () => {
 			// Arrange
 			const finalizedHeight = 10;
-			const blockGenerateContext: BlockGenerateContext = testing.createBlockGenerateContext({
+			const blockGenerateContext: InsertAssetContext = testing.createBlockGenerateContext({
 				assets: assetStub,
 				logger: testing.mocks.loggerMock,
 				networkIdentifier: defaultNetworkIdentifier,
@@ -350,7 +350,7 @@ describe('RandomModule', () => {
 				warn: jest.fn(),
 			};
 
-			const blockGenerateContext: BlockGenerateContext = testing.createBlockGenerateContext({
+			const blockGenerateContext: InsertAssetContext = testing.createBlockGenerateContext({
 				assets: assetStub,
 				logger: loggerMock as any,
 				networkIdentifier: defaultNetworkIdentifier,
@@ -389,7 +389,7 @@ describe('RandomModule', () => {
 				warn: jest.fn(),
 			};
 
-			const blockGenerateContext: BlockGenerateContext = testing.createBlockGenerateContext({
+			const blockGenerateContext: InsertAssetContext = testing.createBlockGenerateContext({
 				assets: assetStub,
 				logger: loggerMock as any,
 				networkIdentifier: defaultNetworkIdentifier,

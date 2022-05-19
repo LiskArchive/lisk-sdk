@@ -14,9 +14,9 @@
 
 import { when } from 'jest-when';
 import { BlockHeader } from '@liskhq/lisk-chain/dist-node/block_header';
-import { getAddressFromPublicKey, hash } from '@liskhq/lisk-cryptography';
+import { getAddressFromPublicKey, getRandomBytes, hash } from '@liskhq/lisk-cryptography';
 import { dataStructures } from '@liskhq/lisk-utils';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { BlockAssets } from '@liskhq/lisk-chain';
 import { HighFeeGenerationStrategy } from '../../../../src/node/generator/strategies';
 import {
 	allValidCase,
@@ -24,8 +24,7 @@ import {
 	invalidTxCase,
 	allInvalidCase,
 } from './forging_fixtures';
-import { StateMachine, VerifyStatus } from '../../../../src/state_machine';
-import { fakeLogger } from '../../../utils/node';
+import { ABI, TransactionVerifyResult, TransactionExecutionResult } from '../../../../src/abi';
 
 const getTxMock = (
 	// eslint-disable-next-line @typescript-eslint/default-param-last
@@ -39,7 +38,7 @@ const getTxMock = (
 		basicBytes = 0,
 		valid = true,
 	} = {} as any,
-	stateMachine: StateMachine,
+	abi: ABI,
 ) => {
 	const tx = {
 		id: Buffer.from(id),
@@ -49,21 +48,31 @@ const getTxMock = (
 		feePriority,
 		getBytes: jest.fn().mockReturnValue(Array(bytes)),
 		getBasicBytes: jest.fn().mockReturnValue(Array(basicBytes)),
+		toObject: () => ({
+			id: Buffer.from(id),
+			senderPublicKey: Buffer.from(senderPublicKey, 'hex'),
+			nonce: BigInt(nonce),
+			fee: BigInt(fee),
+		}),
 	};
 
-	when(stateMachine.verifyTransaction as jest.Mock)
-		.calledWith(expect.objectContaining({ _transaction: tx }))
+	when(abi.verifyTransaction as jest.Mock)
+		.calledWith({
+			contextID: expect.any(Buffer),
+			transaction: tx.toObject(),
+			networkIdentifier: expect.any(Buffer),
+		})
 		.mockResolvedValueOnce({
-			status: valid === false ? VerifyStatus.PENDING : VerifyStatus.OK,
+			result: valid === false ? TransactionVerifyResult.PENDING : TransactionVerifyResult.OK,
 		} as never);
 
 	return tx;
 };
 
-const buildProcessableTxMock = (input: any, stateMachine: StateMachine) => {
+const buildProcessableTxMock = (input: any, abi: ABI) => {
 	const result = input
 		.map((tx: any) => {
-			return getTxMock(tx, stateMachine);
+			return getTxMock(tx, abi);
 		})
 		.reduce((res: any, tx: any) => {
 			const senderId = getAddressFromPublicKey(tx.senderPublicKey);
@@ -87,22 +96,23 @@ const buildProcessableTxMock = (input: any, stateMachine: StateMachine) => {
 
 describe('strategies', () => {
 	describe('HighFeeForgingStrategy', () => {
-		const logger = fakeLogger;
 		const maxTransactionsSize = 1000;
 		const mockTxPool = {
 			getProcessableTransactions: jest.fn().mockReturnValue(new dataStructures.BufferMap()),
 		} as any;
 		const chain = {
-			constants: {
-				networkIdentifier: Buffer.from('network identifier'),
-			},
+			networkIdentifier: Buffer.from('network identifier'),
 		} as never;
-		const stateMachine = {
-			verifyTransaction: jest.fn(),
-			executeTransaction: jest.fn(),
-		} as any;
+		const contextID = getRandomBytes(32);
+		const consensus = {
+			currentValidators: [],
+			implyMaxPrevote: true,
+			maxHeightCertified: 10,
+		};
+
 		let header: BlockHeader;
 		let strategy: HighFeeGenerationStrategy;
+		let abi: ABI;
 
 		beforeEach(() => {
 			header = new BlockHeader({
@@ -114,7 +124,9 @@ describe('strategies', () => {
 				maxHeightPrevoted: 0,
 				assetsRoot: hash(Buffer.alloc(0)),
 				transactionRoot: hash(Buffer.alloc(0)),
+				eventRoot: hash(Buffer.alloc(0)),
 				validatorsHash: hash(Buffer.alloc(0)),
+				signature: Buffer.alloc(0),
 				stateRoot: hash(Buffer.alloc(0)),
 				aggregateCommit: {
 					aggregationBits: Buffer.alloc(0),
@@ -123,40 +135,48 @@ describe('strategies', () => {
 				},
 				timestamp: 100000000,
 			});
+			abi = {
+				verifyTransaction: jest.fn().mockResolvedValue({ result: TransactionVerifyResult.OK }),
+				executeTransaction: jest
+					.fn()
+					.mockResolvedValue({ result: TransactionExecutionResult.OK, events: [] }),
+			} as never;
 			strategy = new HighFeeGenerationStrategy({
 				pool: mockTxPool,
 				chain,
-				stateMachine,
+				abi,
 				maxTransactionsSize,
-			});
-			strategy.init({
-				logger,
-				blockchainDB: new InMemoryKVStore() as never,
 			});
 		});
 
 		describe('getTransactionsForBlock', () => {
 			it('should fetch processable transactions from transaction pool', async () => {
 				// Act
-				await strategy.getTransactionsForBlock(header);
+				await strategy.getTransactionsForBlock(contextID, header, new BlockAssets(), consensus);
 
 				// Assert
 				expect(mockTxPool.getProcessableTransactions).toHaveBeenCalledTimes(1);
 			});
+
 			it('should return transactions in order by highest feePriority and lowest nonce', async () => {
 				// Arrange
 				mockTxPool.getProcessableTransactions.mockReturnValue(
-					buildProcessableTxMock(allValidCase.input.transactions, stateMachine),
+					buildProcessableTxMock(allValidCase.input.transactions, abi),
 				);
 				(strategy['_constants'] as any).maxTransactionsSize = BigInt(
 					allValidCase.input.maxTransactionsSize,
 				);
 
 				// Act
-				const result = await strategy.getTransactionsForBlock(header);
+				const result = await strategy.getTransactionsForBlock(
+					contextID,
+					header,
+					new BlockAssets(),
+					consensus,
+				);
 
 				// Assert
-				expect(result.map((tx: any) => tx.id.toString())).toEqual(
+				expect(result.transactions.map((tx: any) => tx.id.toString())).toEqual(
 					allValidCase.output.map(tx => tx.id),
 				);
 			});
@@ -164,17 +184,22 @@ describe('strategies', () => {
 			it('should forge transactions upto maximum transactions length', async () => {
 				// Arrange
 				mockTxPool.getProcessableTransactions.mockReturnValue(
-					buildProcessableTxMock(maxTransactionsSizeCase.input.transactions, stateMachine),
+					buildProcessableTxMock(maxTransactionsSizeCase.input.transactions, abi),
 				);
 				(strategy['_constants'] as any).maxTransactionsSize = BigInt(
 					maxTransactionsSizeCase.input.maxTransactionsSize,
 				);
 
 				// Act
-				const result = await strategy.getTransactionsForBlock(header);
+				const result = await strategy.getTransactionsForBlock(
+					contextID,
+					header,
+					new BlockAssets(),
+					consensus,
+				);
 
 				// Assert
-				expect(result.map((tx: any) => tx.id.toString())).toEqual(
+				expect(result.transactions.map((tx: any) => tx.id.toString())).toEqual(
 					maxTransactionsSizeCase.output.map(tx => tx.id),
 				);
 			});
@@ -182,17 +207,22 @@ describe('strategies', () => {
 			it('should not include subsequent transactions from same sender if one failed', async () => {
 				// Arrange
 				mockTxPool.getProcessableTransactions.mockReturnValue(
-					buildProcessableTxMock(invalidTxCase.input.transactions, stateMachine),
+					buildProcessableTxMock(invalidTxCase.input.transactions, abi),
 				);
 				(strategy['_constants'] as any).maxTransactionsSize = BigInt(
 					invalidTxCase.input.maxTransactionsSize,
 				);
 
 				// Act
-				const result = await strategy.getTransactionsForBlock(header);
+				const result = await strategy.getTransactionsForBlock(
+					contextID,
+					header,
+					new BlockAssets(),
+					consensus,
+				);
 
 				// Assert
-				expect(result.map((tx: any) => tx.id.toString())).toEqual(
+				expect(result.transactions.map((tx: any) => tx.id.toString())).toEqual(
 					invalidTxCase.output.map(tx => tx.id),
 				);
 			});
@@ -202,26 +232,36 @@ describe('strategies', () => {
 				mockTxPool.getProcessableTransactions.mockReturnValue([]);
 
 				// Act
-				const result = await strategy.getTransactionsForBlock(header);
+				const result = await strategy.getTransactionsForBlock(
+					contextID,
+					header,
+					new BlockAssets(),
+					consensus,
+				);
 
 				// Assert
-				expect(result).toEqual([]);
+				expect(result).toEqual({ transactions: [], events: [] });
 			});
 
 			it("should forge empty block if all processable transactions can't be processed", async () => {
 				// Arrange
 				mockTxPool.getProcessableTransactions.mockReturnValue(
-					buildProcessableTxMock(allInvalidCase.input.transactions, stateMachine),
+					buildProcessableTxMock(allInvalidCase.input.transactions, abi),
 				);
 				(strategy['_constants'] as any).maxTransactionsSize = BigInt(
 					allInvalidCase.input.maxTransactionsSize,
 				);
 
 				// Act
-				const result = await strategy.getTransactionsForBlock(header);
+				const result = await strategy.getTransactionsForBlock(
+					contextID,
+					header,
+					new BlockAssets(),
+					consensus,
+				);
 
 				// Assert
-				expect(result).toEqual([]);
+				expect(result).toEqual({ transactions: [], events: [] });
 			});
 		});
 	});

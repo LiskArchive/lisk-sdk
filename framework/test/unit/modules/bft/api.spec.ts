@@ -33,8 +33,6 @@ import {
 	generatorKeysSchema,
 	validatorsHashInputSchema,
 } from '../../../../src/node/bft/schemas';
-import { EventQueue } from '../../../../src/state_machine';
-import { APIContext } from '../../../../src/state_machine/api_context';
 import { createFakeBlockHeader } from '../../../../src/testing';
 
 describe('BFT API', () => {
@@ -43,7 +41,6 @@ describe('BFT API', () => {
 	let bftAPI: BFTAPI;
 	let validatorsAPI: { getValidatorAccount: jest.Mock };
 	let stateStore: StateStore;
-	let apiContext: APIContext;
 
 	beforeEach(() => {
 		bftAPI = new BFTAPI(bftModuleID);
@@ -131,13 +128,12 @@ describe('BFT API', () => {
 				},
 				bftVotesSchema,
 			);
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 		});
 
 		it('should return true when blockBFTInfos includes the block from the same generator and conflicting', async () => {
 			await expect(
 				bftAPI.isHeaderContradictingChain(
-					apiContext,
+					stateStore,
 					createFakeBlockHeader({
 						height: 4,
 						generatorAddress,
@@ -151,7 +147,7 @@ describe('BFT API', () => {
 		it('should return false when blockBFTInfos includes the block from the same generator but not conflicting', async () => {
 			await expect(
 				bftAPI.isHeaderContradictingChain(
-					apiContext,
+					stateStore,
 					createFakeBlockHeader({
 						height: 4,
 						generatorAddress,
@@ -165,7 +161,7 @@ describe('BFT API', () => {
 		it('should return false when blockBFTInfos does not include the block from the same generator', async () => {
 			await expect(
 				bftAPI.isHeaderContradictingChain(
-					apiContext,
+					stateStore,
 					createFakeBlockHeader({
 						height: 4,
 						generatorAddress: getRandomBytes(20),
@@ -192,15 +188,14 @@ describe('BFT API', () => {
 				},
 				bftParametersSchema,
 			);
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 		});
 
 		it('should return true if the BFT parameter exist for the height', async () => {
-			await expect(bftAPI.existBFTParameters(apiContext, 20)).resolves.toBeTrue();
+			await expect(bftAPI.existBFTParameters(stateStore, 20)).resolves.toBeTrue();
 		});
 
 		it('should return false if the BFT parameter does not exist for the height', async () => {
-			await expect(bftAPI.existBFTParameters(apiContext, 10)).resolves.toBeFalse();
+			await expect(bftAPI.existBFTParameters(stateStore, 10)).resolves.toBeFalse();
 		});
 	});
 
@@ -231,19 +226,18 @@ describe('BFT API', () => {
 			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 			await votesStore.setWithSchema(intToBuffer(20, 4, BIG_ENDIAN), params20, bftParametersSchema);
 			await votesStore.setWithSchema(intToBuffer(30, 4, BIG_ENDIAN), params30, bftParametersSchema);
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 		});
 
 		it('should return BFT parameters if it exists for the lower height', async () => {
-			await expect(bftAPI.getBFTParameters(apiContext, 25)).resolves.toEqual(params20);
+			await expect(bftAPI.getBFTParameters(stateStore, 25)).resolves.toEqual(params20);
 		});
 
 		it('should return BFT parameters if it exists for the height', async () => {
-			await expect(bftAPI.getBFTParameters(apiContext, 20)).resolves.toEqual(params20);
+			await expect(bftAPI.getBFTParameters(stateStore, 20)).resolves.toEqual(params20);
 		});
 
 		it('should throw if the BFT parameter does not exist for the height or lower', async () => {
-			await expect(bftAPI.getBFTParameters(apiContext, 19)).rejects.toThrow(
+			await expect(bftAPI.getBFTParameters(stateStore, 19)).rejects.toThrow(
 				BFTParameterNotFoundError,
 			);
 		});
@@ -291,11 +285,10 @@ describe('BFT API', () => {
 				},
 				bftVotesSchema,
 			);
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 		});
 
 		it('should return current BFT heights', async () => {
-			await expect(bftAPI.getBFTHeights(apiContext)).resolves.toEqual({
+			await expect(bftAPI.getBFTHeights(stateStore)).resolves.toEqual({
 				maxHeightPrevoted: 10,
 				maxHeightPrecommitted: 8,
 				maxHeightCertified: 1,
@@ -308,7 +301,6 @@ describe('BFT API', () => {
 
 		beforeEach(() => {
 			stateStore = new StateStore(new InMemoryKVStore());
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 		});
 
 		it('should return false if maxHeightGenerated is greater than the height', async () => {
@@ -348,7 +340,7 @@ describe('BFT API', () => {
 				bftVotesSchema,
 			);
 
-			await expect(bftAPI.currentHeaderImpliesMaximalPrevotes(apiContext)).resolves.toBeFalse();
+			await expect(bftAPI.currentHeaderImpliesMaximalPrevotes(stateStore)).resolves.toBeFalse();
 		});
 
 		it('should return true if blockBFTInfo does not contain the information', async () => {
@@ -388,7 +380,7 @@ describe('BFT API', () => {
 				bftVotesSchema,
 			);
 
-			await expect(bftAPI.currentHeaderImpliesMaximalPrevotes(apiContext)).resolves.toBeTrue();
+			await expect(bftAPI.currentHeaderImpliesMaximalPrevotes(stateStore)).resolves.toBeTrue();
 		});
 
 		it('should return false if the last generated height is generated by different address', async () => {
@@ -428,7 +420,7 @@ describe('BFT API', () => {
 				bftVotesSchema,
 			);
 
-			await expect(bftAPI.currentHeaderImpliesMaximalPrevotes(apiContext)).resolves.toBeFalse();
+			await expect(bftAPI.currentHeaderImpliesMaximalPrevotes(stateStore)).resolves.toBeFalse();
 		});
 
 		it('should return true when it is consecutive valid block header', async () => {
@@ -468,7 +460,7 @@ describe('BFT API', () => {
 				bftVotesSchema,
 			);
 
-			await expect(bftAPI.currentHeaderImpliesMaximalPrevotes(apiContext)).resolves.toBeTrue();
+			await expect(bftAPI.currentHeaderImpliesMaximalPrevotes(stateStore)).resolves.toBeTrue();
 		});
 	});
 
@@ -496,15 +488,14 @@ describe('BFT API', () => {
 			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 			await votesStore.setWithSchema(intToBuffer(20, 4, BIG_ENDIAN), params20, bftParametersSchema);
 			await votesStore.setWithSchema(intToBuffer(30, 4, BIG_ENDIAN), params30, bftParametersSchema);
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 		});
 
 		it('should return the next height strictly higher than the input where BFT parameter exists', async () => {
-			await expect(bftAPI.getNextHeightBFTParameters(apiContext, 20)).resolves.toEqual(30);
+			await expect(bftAPI.getNextHeightBFTParameters(stateStore, 20)).resolves.toEqual(30);
 		});
 
 		it('should throw when the next height strictly higher than the input BFT parameters does not exist', async () => {
-			await expect(bftAPI.getNextHeightBFTParameters(apiContext, 30)).rejects.toThrow(
+			await expect(bftAPI.getNextHeightBFTParameters(stateStore, 30)).rejects.toThrow(
 				BFTParameterNotFoundError,
 			);
 		});
@@ -599,13 +590,12 @@ describe('BFT API', () => {
 				},
 				bftVotesSchema,
 			);
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 		});
 
 		it('should throw when validators exceeds batch size', async () => {
 			await expect(
 				bftAPI.setBFTParameters(
-					apiContext,
+					stateStore,
 					BigInt(68),
 					BigInt(68),
 					new Array(bftAPI['_batchSize'] + 1).fill(0).map(() => ({
@@ -619,7 +609,7 @@ describe('BFT API', () => {
 
 		it('should throw when less than 1/3 of aggregateBFTWeight for precommitThreshold is given', async () => {
 			await expect(
-				bftAPI.setBFTParameters(apiContext, BigInt(34), BigInt(68), [
+				bftAPI.setBFTParameters(stateStore, BigInt(34), BigInt(68), [
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(50),
@@ -641,7 +631,7 @@ describe('BFT API', () => {
 
 		it('should throw when precommitThreshold is given is greater than aggregateBFTWeight', async () => {
 			await expect(
-				bftAPI.setBFTParameters(apiContext, BigInt(104), BigInt(68), [
+				bftAPI.setBFTParameters(stateStore, BigInt(104), BigInt(68), [
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(50),
@@ -663,7 +653,7 @@ describe('BFT API', () => {
 
 		it('should throw when less than 1/3 of aggregateBFTWeight for certificateThreshold is given', async () => {
 			await expect(
-				bftAPI.setBFTParameters(apiContext, BigInt(68), BigInt(34), [
+				bftAPI.setBFTParameters(stateStore, BigInt(68), BigInt(34), [
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(50),
@@ -685,7 +675,7 @@ describe('BFT API', () => {
 
 		it('should throw when certificateThreshold is given is greater than aggregateBFTWeight', async () => {
 			await expect(
-				bftAPI.setBFTParameters(apiContext, BigInt(68), BigInt(104), [
+				bftAPI.setBFTParameters(stateStore, BigInt(68), BigInt(104), [
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(50),
@@ -724,7 +714,7 @@ describe('BFT API', () => {
 				},
 			];
 			beforeEach(async () => {
-				await bftAPI.setBFTParameters(apiContext, BigInt(68), BigInt(68), validators);
+				await bftAPI.setBFTParameters(stateStore, BigInt(68), BigInt(68), validators);
 			});
 
 			it('should not create set BFTParameters when there is no change from previous params', async () => {
@@ -744,7 +734,7 @@ describe('BFT API', () => {
 				];
 				await votesStore.setWithSchema(EMPTY_KEY, currentVotes as never, bftVotesSchema);
 
-				await bftAPI.setBFTParameters(apiContext, BigInt(68), BigInt(68), validators);
+				await bftAPI.setBFTParameters(stateStore, BigInt(68), BigInt(68), validators);
 
 				const paramsStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 
@@ -801,7 +791,7 @@ describe('BFT API', () => {
 					bftVotesSchema,
 				);
 
-				await bftAPI.setBFTParameters(apiContext, BigInt(68), BigInt(68), [
+				await bftAPI.setBFTParameters(stateStore, BigInt(68), BigInt(68), [
 					{
 						address: generatorAddress,
 						bftWeight: BigInt(50),
@@ -991,8 +981,7 @@ describe('BFT API', () => {
 				},
 				bftVotesSchema,
 			);
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
-			await expect(bftAPI.getCurrentValidators(apiContext)).resolves.toEqual(params30.validators);
+			await expect(bftAPI.getCurrentValidators(stateStore)).resolves.toEqual(params30.validators);
 		});
 
 		it('should fail if there are no BFT block info', async () => {
@@ -1008,8 +997,7 @@ describe('BFT API', () => {
 				},
 				bftVotesSchema,
 			);
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
-			await expect(bftAPI.getCurrentValidators(apiContext)).rejects.toThrow(
+			await expect(bftAPI.getCurrentValidators(stateStore)).rejects.toThrow(
 				'There are no BFT info stored.',
 			);
 		});
@@ -1075,8 +1063,7 @@ describe('BFT API', () => {
 				},
 				bftVotesSchema,
 			);
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
-			await expect(bftAPI.getGeneratorKeys(apiContext, 50)).resolves.toEqual(keys30.generators);
+			await expect(bftAPI.getGeneratorKeys(stateStore, 50)).resolves.toEqual(keys30.generators);
 		});
 	});
 
@@ -1135,9 +1122,8 @@ describe('BFT API', () => {
 				},
 				bftVotesSchema,
 			);
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 			await expect(
-				bftAPI.setGeneratorKeys(apiContext, createKeys().generators),
+				bftAPI.setGeneratorKeys(stateStore, createKeys().generators),
 			).resolves.toBeUndefined();
 			const keysStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_GENERATOR_KEYS);
 			await expect(keysStore.has(intToBuffer(36, 4, BIG_ENDIAN))).resolves.toBeTrue();

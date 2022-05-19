@@ -19,7 +19,6 @@ import {
 	Slots,
 	SMTStore,
 	StateStore,
-	CurrentState,
 	BlockHeader,
 	MAX_EVENTS_PER_BLOCK,
 	EVENT_KEY_LENGTH,
@@ -28,9 +27,8 @@ import { jobHandlers, objects } from '@liskhq/lisk-utils';
 import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { SparseMerkleTree } from '@liskhq/lisk-tree';
+import { hash } from '@liskhq/lisk-cryptography';
 import { Logger } from '../../logger';
-import { StateMachine } from '../../state_machine/state_machine';
-import { BlockContext } from '../../state_machine/block_context';
 import {
 	BlockSynchronizationMechanism,
 	FastChainSwitchingMechanism,
@@ -38,9 +36,7 @@ import {
 } from './synchronizer';
 import { ApplyPenaltyError } from '../../errors';
 import { AbortError, ApplyPenaltyAndRestartError, RestartError } from './synchronizer/errors';
-import { EventQueue } from '../../state_machine/event_queue';
 import { BlockExecutor } from './synchronizer/type';
-import { GenesisBlockContext } from '../../state_machine/genesis_block_context';
 import { Network } from '../network';
 import { NetworkEndpoint, EndpointArgs } from './network_endpoint';
 import { EventPostBlockData, postBlockEventSchema } from './schema';
@@ -50,6 +46,7 @@ import {
 	CONSENSUS_EVENT_BLOCK_NEW,
 	CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED,
 	CONSENSUS_EVENT_FORK_DETECTED,
+	EMPTY_HASH,
 	NETWORK_EVENT_POST_BLOCK,
 	NETWORK_EVENT_POST_NODE_INFO,
 	NETWORK_RPC_GET_BLOCKS_FROM_ID,
@@ -58,25 +55,26 @@ import {
 } from './constants';
 import { GenesisConfig } from '../../types';
 import { AggregateCommit } from './types';
-import { APIContext, createAPIContext, ImmutableAPIContext } from '../../state_machine';
 import { forkChoice, ForkStatus } from './fork_choice/fork_choice_rule';
-import { createNewAPIContext } from '../../state_machine/api_context';
 import { CommitPool } from './certificate_generation/commit_pool';
 import { ValidatorInfo } from './certificate_generation/types';
-import { BFTAPI } from '../bft';
+import { BFTModule } from '../bft';
+import { ABI, TransactionExecutionResult, TransactionVerifyResult } from '../../abi';
+import { isEmptyConsensusUpdate } from './utils';
 
 interface ConsensusArgs {
-	stateMachine: StateMachine;
 	chain: Chain;
 	network: Network;
 	genesisConfig: GenesisConfig;
-	bftAPI: BFTAPI;
+	abi: ABI;
+	bft: BFTModule;
 }
 
 interface InitArgs {
 	logger: Logger;
 	genesisBlock: Block;
 	db: KVStore;
+	moduleIDs: number[];
 }
 
 interface ExecuteOptions {
@@ -100,11 +98,11 @@ const forkStatusList = [
 export class Consensus {
 	public readonly events: EventEmitter;
 
-	private readonly _stateMachine: StateMachine;
+	private readonly _abi: ABI;
 	private readonly _chain: Chain;
 	private readonly _network: Network;
 	private readonly _mutex: jobHandlers.Mutex;
-	private readonly _bftAPI: BFTAPI;
+	private readonly _bft: BFTModule;
 	private readonly _genesisConfig: GenesisConfig;
 
 	// init parameters
@@ -114,26 +112,28 @@ export class Consensus {
 	private _endpoint!: NetworkEndpoint;
 	private _synchronizer!: Synchronizer;
 	private _blockSlot!: Slots;
+	private _moduleIDs!: number[];
 
 	private _stop = false;
 
 	public constructor(args: ConsensusArgs) {
 		this.events = new EventEmitter();
-		this._stateMachine = args.stateMachine;
 		this._chain = args.chain;
+		this._abi = args.abi;
 		this._network = args.network;
 		this._mutex = new jobHandlers.Mutex();
-		this._bftAPI = args.bftAPI;
+		this._bft = args.bft;
 		this._genesisConfig = args.genesisConfig;
 	}
 
 	public async init(args: InitArgs): Promise<void> {
 		this._logger = args.logger;
 		this._db = args.db;
+		this._moduleIDs = args.moduleIDs;
 		this._commitPool = new CommitPool({
 			db: this._db,
 			blockTime: this._genesisConfig.blockTime,
-			bftAPI: this._bftAPI,
+			bftAPI: this._bft.api,
 			chain: this._chain,
 			network: this._network,
 		});
@@ -197,25 +197,9 @@ export class Consensus {
 		const stateStore = new StateStore(this._db);
 		if (!genesisExist) {
 			args.genesisBlock.validateGenesis();
-			const eventQueue = new EventQueue();
-			const ctx = new GenesisBlockContext({
-				eventQueue,
-				header: args.genesisBlock.header,
-				assets: args.genesisBlock.assets,
-				logger: this._logger,
-				stateStore: (stateStore as unknown) as StateStore,
-			});
-			await this._stateMachine.executeGenesisBlock(ctx);
-			const state = await this._prepareFinalizingState(stateStore);
-			if (
-				!args.genesisBlock.header.stateRoot ||
-				!state.smt.rootHash.equals(args.genesisBlock.header.stateRoot)
-			) {
-				throw new Error('Genesis block state root is invalid');
-			}
-			const apiContext = createAPIContext({ stateStore: state.stateStore, eventQueue });
-			const bftParams = await this._bftAPI.getBFTParameters(
-				apiContext,
+			const genesisEvents = await this._executeGenesisBlock(stateStore, args.genesisBlock);
+			const bftParams = await this._bft.api.getBFTParameters(
+				stateStore,
 				args.genesisBlock.header.height + 1,
 			);
 
@@ -225,13 +209,15 @@ export class Consensus {
 			) {
 				throw new Error('Genesis block validators hash is invalid');
 			}
-			const events = ctx.eventQueue.getEvents();
-			await this._verifyEventRoot(args.genesisBlock, events);
+			await this._verifyEventRoot(args.genesisBlock, genesisEvents);
+
+			const batch = this._db.batch();
+			const diff = stateStore.finalize(batch);
 
 			await this._chain.saveBlock(
 				args.genesisBlock,
-				events,
-				state,
+				genesisEvents,
+				{ batch, diff, stateStore },
 				args.genesisBlock.header.height,
 			);
 		}
@@ -347,7 +333,7 @@ export class Consensus {
 		this._endpoint.stop();
 	}
 
-	public async getAggregateCommit(apiContext: APIContext): Promise<AggregateCommit> {
+	public async getAggregateCommit(apiContext: StateStore): Promise<AggregateCommit> {
 		const aggCommit = await this._commitPool.getAggregateCommit(apiContext);
 		return aggCommit;
 	}
@@ -379,11 +365,11 @@ export class Consensus {
 		);
 	}
 	public async getGeneratorAtTimestamp(
-		apiContext: ImmutableAPIContext,
+		stateStore: StateStore,
 		height: number,
 		timestamp: number,
 	): Promise<Buffer> {
-		const generators = await this._bftAPI.getGeneratorKeys(apiContext, height);
+		const generators = await this._bft.api.getGeneratorKeys(stateStore, height);
 		const currentSlot = this._blockSlot.getSlotNumber(timestamp);
 		const generator = generators[currentSlot % generators.length];
 		return generator.address;
@@ -395,6 +381,26 @@ export class Consensus {
 
 	public getSlotTime(slot: number): number {
 		return this._blockSlot.getSlotTime(slot);
+	}
+
+	public async getConsensusParams(stateStore: StateStore, header: BlockHeader) {
+		const bftParams = await this._bft.api.getBFTParameters(stateStore, header.height);
+		const generatorKeys = await this._bft.api.getGeneratorKeys(stateStore, header.height);
+		const validators = generatorKeys.map(generator => {
+			const bftValidator = bftParams.validators.find(v => v.address.equals(generator.address));
+			return {
+				...generator,
+				bftWeight: bftValidator?.bftWeight ?? BigInt(0),
+				blsKey: bftValidator?.blsKey ?? Buffer.alloc(0),
+			};
+		});
+		const implyMaxPrevote = await this._bft.api.currentHeaderImpliesMaximalPrevotes(stateStore);
+		const { maxHeightCertified } = await this._bft.api.getBFTHeights(stateStore);
+		return {
+			currentValidators: validators,
+			implyMaxPrevote,
+			maxHeightCertified,
+		};
 	}
 
 	private async _execute(block: Block, peerID: string): Promise<void> {
@@ -470,7 +476,7 @@ export class Consensus {
 
 				this._chain.validateBlock(block, {
 					version: BLOCK_VERSION,
-					acceptedModuleIDs: this._stateMachine.getAllModuleIDs(),
+					acceptedModuleIDs: this._moduleIDs,
 				});
 				const previousLastBlock = objects.cloneDeep(lastBlock);
 				await this._deleteBlock(lastBlock);
@@ -498,7 +504,7 @@ export class Consensus {
 			);
 			this._chain.validateBlock(block, {
 				version: BLOCK_VERSION,
-				acceptedModuleIDs: this._stateMachine.getAllModuleIDs(),
+				acceptedModuleIDs: this._moduleIDs,
 			});
 			await this._executeValidated(block);
 
@@ -519,23 +525,8 @@ export class Consensus {
 		} = {},
 	): Promise<Block> {
 		const stateStore = new StateStore(this._db);
-		const eventQueue = new EventQueue();
-		const apiContext = createAPIContext({ stateStore, eventQueue });
-		const ctx = new BlockContext({
-			stateStore,
-			eventQueue,
-			networkIdentifier: this._chain.networkIdentifier,
-			logger: this._logger,
-			header: block.header,
-			assets: block.assets,
-			transactions: block.transactions,
-			// TODO: Add real value with https://github.com/LiskHQ/lisk-sdk/issues/7130
-			currentValidators: [],
-			impliesMaxPrevote: false,
-			maxHeightCertified: 0,
-		});
 		await this._verify(block);
-		await this._stateMachine.verifyAssets(ctx);
+		const contextID = await this._verifyAssets(block);
 
 		if (!options.skipBroadcast) {
 			this._network.send({ event: NETWORK_EVENT_POST_BLOCK, data: block });
@@ -543,9 +534,9 @@ export class Consensus {
 				block,
 			});
 		}
-		await this._stateMachine.executeBlock(ctx);
+		const events = await this._executeBlock(contextID, stateStore, block);
 
-		const bftVotes = await this._bftAPI.getBFTHeights(apiContext);
+		const bftVotes = await this._bft.api.getBFTHeights(stateStore);
 
 		let { finalizedHeight } = this._chain;
 		let finalizedHeightChangeRange;
@@ -557,25 +548,22 @@ export class Consensus {
 			finalizedHeight = bftVotes.maxHeightPrecommitted;
 		}
 
-		// Result Validation
-		// Verify validatorsHash
-		await this._verifyValidatorsHash(apiContext, block);
-		// Verify stateRoot
-		const currentState = await this._prepareFinalizingState(
-			stateStore,
-			this._chain.lastBlock.header.stateRoot,
-		);
-		this._verifyStateRoot(block, currentState.smt.rootHash);
-
-		const events = ctx.eventQueue.getEvents();
+		await this._verifyValidatorsHash(stateStore, block);
 		await this._verifyEventRoot(block, events);
 
-		await this._chain.saveBlock(block, events, currentState, finalizedHeight, {
+		const batch = this._db.batch();
+		const diff = stateStore.finalize(batch);
+
+		await this._commitBlock(contextID, block);
+		await this._chain.saveBlock(block, events, { batch, diff, stateStore }, finalizedHeight, {
 			removeFromTempTable: options.removeFromTempTable ?? false,
 		});
 
 		const isFinalizedHeightChanged = !!finalizedHeightChangeRange;
 		if (isFinalizedHeightChanged) {
+			await this._abi.finalize({
+				finalizedHeight,
+			});
 			this.events.emit(CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED, finalizedHeightChangeRange);
 		}
 
@@ -584,7 +572,7 @@ export class Consensus {
 	}
 
 	private async _verify(block: Block): Promise<void> {
-		const apiContext = createNewAPIContext(this._db);
+		const stateStore = new StateStore(this._db);
 
 		// Verify timestamp
 		this._verifyTimestamp(block);
@@ -596,16 +584,16 @@ export class Consensus {
 		this._verifyPreviousBlockID(block);
 
 		// Verify generatorAddress
-		await this._verifyGeneratorAddress(apiContext, block);
+		await this._verifyGeneratorAddress(stateStore, block);
 
 		// Verify BFT Properties
-		await this._verifyBFTProperties(apiContext, block);
+		await this._verifyBFTProperties(stateStore, block);
 
 		// verify Block signature
-		await this._verifyAssetsSignature(apiContext, block);
+		await this._verifyAssetsSignature(stateStore, block);
 
 		// verify aggregate commits
-		await this._verifyAggregateCommit(apiContext, block);
+		await this._verifyAggregateCommit(stateStore, block);
 	}
 
 	private _verifyTimestamp(block: Block): void {
@@ -657,7 +645,7 @@ export class Consensus {
 		}
 	}
 
-	private async _verifyGeneratorAddress(apiContext: APIContext, block: Block): Promise<void> {
+	private async _verifyGeneratorAddress(stateStore: StateStore, block: Block): Promise<void> {
 		// Check that the generatorAddress has the correct length of 20 bytes
 		if (block.header.generatorAddress.length !== 20) {
 			throw new Error(
@@ -667,7 +655,7 @@ export class Consensus {
 			);
 		}
 		const generatorAddress = await this.getGeneratorAtTimestamp(
-			apiContext,
+			stateStore,
 			block.header.height,
 			block.header.timestamp,
 		);
@@ -683,8 +671,8 @@ export class Consensus {
 		}
 	}
 
-	private async _verifyBFTProperties(apiContext: APIContext, block: Block): Promise<void> {
-		const bftParams = await this._bftAPI.getBFTHeights(apiContext);
+	private async _verifyBFTProperties(stateStore: StateStore, block: Block): Promise<void> {
+		const bftParams = await this._bft.api.getBFTHeights(stateStore);
 
 		if (block.header.maxHeightPrevoted !== bftParams.maxHeightPrevoted) {
 			throw new Error(
@@ -693,8 +681,8 @@ export class Consensus {
 				} of the block with id: ${block.header.id.toString('hex')}`,
 			);
 		}
-		const isContradictingHeaders = await this._bftAPI.isHeaderContradictingChain(
-			apiContext,
+		const isContradictingHeaders = await this._bft.api.isHeaderContradictingChain(
+			stateStore,
 			block.header,
 		);
 		if (isContradictingHeaders) {
@@ -704,8 +692,8 @@ export class Consensus {
 		}
 	}
 
-	private async _verifyAssetsSignature(apiContext: APIContext, block: Block): Promise<void> {
-		const generatorKeys = await this._bftAPI.getGeneratorKeys(apiContext, block.header.height);
+	private async _verifyAssetsSignature(stateStore: StateStore, block: Block): Promise<void> {
+		const generatorKeys = await this._bft.api.getGeneratorKeys(stateStore, block.header.height);
 		const generator = generatorKeys.find(gen => gen.address.equals(block.header.generatorAddress));
 		if (!generator) {
 			throw new Error(
@@ -726,14 +714,14 @@ export class Consensus {
 		}
 	}
 
-	private async _verifyAggregateCommit(apiContext: APIContext, block: Block): Promise<void> {
+	private async _verifyAggregateCommit(stateStore: StateStore, block: Block): Promise<void> {
 		if (!block.header.aggregateCommit) {
 			throw new Error(
 				`Aggregate Commit is "undefined" for the block with id: ${block.header.id.toString('hex')}`,
 			);
 		}
 		const isVerified = await this._commitPool.verifyAggregateCommit(
-			apiContext,
+			stateStore,
 			block.header.aggregateCommit,
 		);
 		if (!isVerified) {
@@ -743,13 +731,13 @@ export class Consensus {
 		}
 	}
 
-	private async _verifyValidatorsHash(apiContext: APIContext, block: Block): Promise<void> {
+	private async _verifyValidatorsHash(apiContext: StateStore, block: Block): Promise<void> {
 		if (!block.header.validatorsHash) {
 			throw new Error(
 				`Validators hash is "undefined" for the block with id: ${block.header.id.toString('hex')}`,
 			);
 		}
-		const { validatorsHash } = await this._bftAPI.getBFTParameters(
+		const { validatorsHash } = await this._bft.api.getBFTParameters(
 			apiContext,
 			block.header.height + 1,
 		);
@@ -759,14 +747,6 @@ export class Consensus {
 				`Invalid validatorsHash ${block.header.validatorsHash?.toString(
 					'hex',
 				)} of the block with id: ${block.header.id.toString('hex')}`,
-			);
-		}
-	}
-
-	private _verifyStateRoot(block: Block, stateRoot: Buffer): void {
-		if (!block.header.stateRoot || !stateRoot.equals(block.header.stateRoot)) {
-			throw new Error(
-				`State root is not valid for the block with id: ${block.header.id.toString('hex')}`,
 			);
 		}
 	}
@@ -797,52 +777,36 @@ export class Consensus {
 		if (block.header.height <= this._chain.finalizedHeight) {
 			throw new Error('Can not delete block below or same as finalized height');
 		}
+		let expectedStateRoot = EMPTY_HASH;
+		if (block.header.height - 1 > 0) {
+			const secondLastBlockHeader = await this._chain.dataAccess.getBlockHeaderByHeight(
+				block.header.height - 1,
+			);
+			expectedStateRoot = secondLastBlockHeader.stateRoot as Buffer;
+		}
+		try {
+			const { contextID } = await this._abi.initStateMachine({
+				header: block.header.toObject(),
+				networkIdentifier: this._chain.networkIdentifier,
+			});
+			await this._abi.revert({
+				contextID,
+				expectedStateRoot,
+				stateRoot: block.header.stateRoot as Buffer,
+			});
+		} finally {
+			await this._abi.clear({});
+		}
 
 		// Offset must be set to 1, because lastBlock is still this deleting block
 		const stateStore = new StateStore(this._db);
-		const currentState = await this._prepareFinalizingState(
-			stateStore,
-			this._chain.lastBlock.header.stateRoot,
-			false,
-		);
-		await this._chain.removeBlock(block, currentState, { saveTempBlock });
-		this.events.emit(CONSENSUS_EVENT_BLOCK_DELETE, block);
-	}
-
-	private async _prepareFinalizingState(
-		stateStore: StateStore,
-		stateRoot?: Buffer,
-		finalize = true,
-	): Promise<CurrentState> {
 		const batch = this._db.batch();
-		const smtStore = new SMTStore(this._db);
-		const smt = new SparseMerkleTree({
-			db: smtStore,
-			rootHash: stateRoot,
-		});
-
-		// On save, use finalize flag to finalize stores
-		if (finalize) {
-			const diff = await stateStore.finalize(batch, smt);
-			smtStore.finalize(batch);
-
-			return {
-				batch,
-				diff,
-				stateStore,
-				smt,
-				smtStore,
-			};
-		}
-
-		return {
-			batch,
-			// Pass initialized diff as its not needed on delete block
-			diff: { created: [], updated: [], deleted: [] },
-			stateStore,
-			smt,
-			smtStore,
-		};
+		await this._chain.removeBlock(
+			block,
+			{ batch, diff: { created: [], updated: [], deleted: [] }, stateStore },
+			{ saveTempBlock },
+		);
+		this.events.emit(CONSENSUS_EVENT_BLOCK_DELETE, block);
 	}
 
 	private async _deleteLastBlock({ saveTempBlock = false }: DeleteOptions = {}): Promise<void> {
@@ -887,7 +851,7 @@ export class Consensus {
 	}
 
 	private _createBlockExecutor(): BlockExecutor {
-		const apiContext = createNewAPIContext(this._db);
+		const stateStore = new StateStore(this._db);
 		return {
 			deleteLastBlock: async (options: DeleteOptions = {}) => this._deleteLastBlock(options),
 			executeValidated: async (block: Block, options?: ExecuteOptions) =>
@@ -895,12 +859,154 @@ export class Consensus {
 			validate: (block: Block) =>
 				this._chain.validateBlock(block, {
 					version: BLOCK_VERSION,
-					acceptedModuleIDs: this._stateMachine.getAllModuleIDs(),
+					acceptedModuleIDs: this._moduleIDs,
 				}),
 			verify: async (block: Block) => this._verify(block),
-			getCurrentValidators: async () => this._bftAPI.getCurrentValidators(apiContext),
+			getCurrentValidators: async () => this._bft.api.getCurrentValidators(stateStore),
 			getSlotNumber: timestamp => this._blockSlot.getSlotNumber(timestamp),
 			getFinalizedHeight: () => this.finalizedHeight(),
 		};
+	}
+
+	private async _verifyAssets(block: Block): Promise<Buffer> {
+		try {
+			const { contextID } = await this._abi.initStateMachine({
+				header: block.header.toObject(),
+				networkIdentifier: this._chain.networkIdentifier,
+			});
+			await this._abi.verifyAssets({
+				contextID,
+				assets: block.assets.getAll(),
+			});
+			return contextID;
+		} catch (err) {
+			await this._abi.clear({});
+			throw err;
+		}
+	}
+
+	private async _executeBlock(
+		contextID: Buffer,
+		stateStore: StateStore,
+		block: Block,
+	): Promise<Event[]> {
+		try {
+			await this._bft.beforeTransactionsExecute(stateStore, block.header);
+			const consensus = await this.getConsensusParams(stateStore, block.header);
+
+			const events = [];
+			const beforeResult = await this._abi.beforeTransactionsExecute({
+				contextID,
+				assets: block.assets.getAll(),
+				consensus,
+			});
+			events.push(...beforeResult.events.map(e => new Event(e)));
+			for (const transaction of block.transactions) {
+				const { result: verifyResult } = await this._abi.verifyTransaction({
+					contextID,
+					networkIdentifier: this._chain.networkIdentifier,
+					transaction: transaction.toObject(),
+				});
+				if (verifyResult !== TransactionVerifyResult.OK) {
+					throw new Error(`Failed to verify transaction ${transaction.id.toString('hex')}.`);
+				}
+				const txExecResult = await this._abi.executeTransaction({
+					contextID,
+					assets: block.assets.getAll(),
+					dryRun: false,
+					header: block.header.toObject(),
+					networkIdentifier: this._chain.networkIdentifier,
+					transaction: transaction.toObject(),
+					consensus,
+				});
+				if (txExecResult.result === TransactionExecutionResult.INVALID) {
+					throw new Error(`Failed to execute transaction ${transaction.id.toString('hex')}.`);
+				}
+				events.push(...txExecResult.events.map(e => new Event(e)));
+			}
+			const afterResult = await this._abi.afterTransactionsExecute({
+				contextID,
+				assets: block.assets.getAll(),
+				consensus,
+				transactions: block.transactions.map(tx => tx.toObject()),
+			});
+
+			if (
+				!isEmptyConsensusUpdate(
+					afterResult.preCommitThreshold,
+					afterResult.certificateThreshold,
+					afterResult.nextValidators,
+				)
+			) {
+				const activeValidators = afterResult.nextValidators.filter(
+					validator => validator.bftWeight > BigInt(0),
+				);
+				await this._bft.api.setBFTParameters(
+					stateStore,
+					afterResult.preCommitThreshold,
+					afterResult.certificateThreshold,
+					activeValidators,
+				);
+				await this._bft.api.setGeneratorKeys(stateStore, afterResult.nextValidators);
+			}
+
+			return events;
+		} catch (err) {
+			await this._abi.clear({});
+			throw err;
+		}
+	}
+
+	private async _commitBlock(contextID: Buffer, block: Block): Promise<void> {
+		try {
+			await this._abi.commit({
+				contextID,
+				dryRun: false,
+				expectedStateRoot: block.header.stateRoot as Buffer,
+				stateRoot: this._chain.lastBlock.header.stateRoot as Buffer,
+			});
+		} finally {
+			await this._abi.clear({});
+		}
+	}
+
+	private async _executeGenesisBlock(
+		stateStore: StateStore,
+		genesisBlock: Block,
+	): Promise<Event[]> {
+		try {
+			const { contextID } = await this._abi.initStateMachine({
+				header: genesisBlock.header.toObject(),
+				networkIdentifier: this._chain.networkIdentifier,
+			});
+			if (!genesisBlock.header.stateRoot) {
+				throw new Error('Genesis block stateRoot must not be empty.');
+			}
+			await this._bft.initGenesisState(stateStore, genesisBlock.header);
+			const result = await this._abi.initGenesisState({
+				contextID,
+				stateRoot: genesisBlock.header.stateRoot,
+			});
+			const activeValidators = result.nextValidators.filter(
+				validator => validator.bftWeight > BigInt(0),
+			);
+			await this._bft.api.setBFTParameters(
+				stateStore,
+				result.preCommitThreshold,
+				result.certificateThreshold,
+				activeValidators,
+			);
+			await this._bft.api.setGeneratorKeys(stateStore, result.nextValidators);
+
+			await this._abi.commit({
+				contextID,
+				dryRun: false,
+				stateRoot: hash(Buffer.alloc(0)),
+				expectedStateRoot: genesisBlock.header.stateRoot,
+			});
+			return result.events.map(e => new Event(e));
+		} finally {
+			await this._abi.clear({});
+		}
 	}
 }

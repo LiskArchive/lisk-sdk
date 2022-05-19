@@ -17,8 +17,6 @@ import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { Chain, Transaction } from '@liskhq/lisk-chain';
-import { StateStore } from '@liskhq/lisk-chain/dist-node/state_store';
-import { KVStore } from '@liskhq/lisk-db';
 import { Logger } from '../../logger';
 import { Network } from '../network';
 import { BaseNetworkEndpoint } from '../network/base_network_endpoint';
@@ -37,42 +35,39 @@ import {
 	postTransactionsAnnouncementSchema,
 } from './schemas';
 import { InvalidTransactionError } from './errors';
-import { TransactionContext, EventQueue, StateMachine, VerifyStatus } from '../../state_machine';
 import { Broadcaster } from './broadcaster';
+import { ABI, TransactionVerifyResult } from '../../abi';
 
 interface NetworkEndpointArgs {
 	network: Network;
 	pool: TransactionPool;
 	chain: Chain;
-	stateMachine: StateMachine;
+	abi: ABI;
 	broadcaster: Broadcaster;
 }
 
 interface NetworkEndpointInitArgs {
 	logger: Logger;
-	blockchainDB: KVStore;
 }
 
 export class NetworkEndpoint extends BaseNetworkEndpoint {
 	private readonly _pool: TransactionPool;
 	private readonly _chain: Chain;
 	private readonly _broadcaster: Broadcaster;
-	private readonly _stateMachine: StateMachine;
+	private readonly _abi: ABI;
 
 	private _logger!: Logger;
-	private _blockchainDB!: KVStore;
 
 	public constructor(args: NetworkEndpointArgs) {
 		super(args.network);
 		this._pool = args.pool;
 		this._chain = args.chain;
-		this._stateMachine = args.stateMachine;
+		this._abi = args.abi;
 		this._broadcaster = args.broadcaster;
 	}
 
 	public init(args: NetworkEndpointInitArgs): void {
 		this._logger = args.logger;
-		this._blockchainDB = args.blockchainDB;
 	}
 
 	public async handleRPCGetTransactions(data: unknown, peerId: string): Promise<Buffer> {
@@ -229,19 +224,13 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 	}
 
 	private async _receiveTransaction(transaction: Transaction) {
-		const txContext = new TransactionContext({
-			eventQueue: new EventQueue(),
-			logger: this._logger,
+		const { result } = await this._abi.verifyTransaction({
+			contextID: Buffer.alloc(0),
 			networkIdentifier: this._chain.networkIdentifier,
-			stateStore: new StateStore(this._blockchainDB),
-			transaction,
+			transaction: transaction.toObject(),
 		});
-		const result = await this._stateMachine.verifyTransaction(txContext);
-		if (result.status === VerifyStatus.FAIL) {
-			throw new InvalidTransactionError(
-				result.error?.message ?? 'Transaction verification failed.',
-				transaction.id,
-			);
+		if (result === TransactionVerifyResult.INVALID) {
+			throw new InvalidTransactionError('Transaction verification failed.', transaction.id);
 		}
 		if (this._pool.contains(transaction.id)) {
 			return;

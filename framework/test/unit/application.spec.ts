@@ -76,7 +76,7 @@ describe('Application', () => {
 		jest.spyOn(os, 'homedir').mockReturnValue('/user');
 		// jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
 		jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
-		jest.spyOn(Node.prototype, 'init').mockResolvedValue();
+		jest.spyOn(Node.prototype, 'start').mockResolvedValue();
 		jest.spyOn(process, 'exit').mockReturnValue(0 as never);
 	});
 
@@ -163,7 +163,7 @@ describe('Application', () => {
 
 			// Assert
 			expect(app.config).toMatchSnapshot();
-			expect(app['_node']).not.toBeUndefined();
+			expect(app['_stateMachine']).not.toBeUndefined();
 			expect(app['_controller']).not.toBeUndefined();
 		});
 
@@ -197,7 +197,7 @@ describe('Application', () => {
 			expect.assertions(5);
 			try {
 				Application.defaultApplication(invalidConfig);
-			} catch (error) {
+			} catch (error: any) {
 				/* eslint-disable jest/no-try-expect */
 				expect(error.errors).toHaveLength(4);
 				expect(error.errors[0].message).toContain('must match format "encryptedPassphrase"');
@@ -281,13 +281,10 @@ describe('Application', () => {
 
 		beforeEach(async () => {
 			({ app } = Application.defaultApplication(config));
-			jest.spyOn(app['_node'], 'start').mockResolvedValue();
-			jest.spyOn(app['_node']['_network'], 'start').mockResolvedValue();
 			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
 			// jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
 			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
-			jest.spyOn(app['_node']['_stateMachine'], 'executeGenesisBlock').mockResolvedValue();
 
 			await app.run(new Block(createFakeBlockHeader(), [], new BlockAssets()));
 
@@ -327,13 +324,11 @@ describe('Application', () => {
 
 		beforeEach(async () => {
 			({ app } = Application.defaultApplication(config));
-			jest.spyOn(app['_node'], 'init').mockResolvedValue();
-			jest.spyOn(app['_node'], 'start').mockResolvedValue();
-			jest.spyOn(app['_node'], 'stop').mockResolvedValue();
+			jest.spyOn(Node.prototype, 'start').mockResolvedValue();
+			jest.spyOn(Node.prototype, 'stop').mockResolvedValue();
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
 			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 			jest.spyOn(fs, 'unlink').mockResolvedValue();
-			jest.spyOn(app['_node']['_stateMachine'], 'executeGenesisBlock').mockResolvedValue();
 
 			await app.run(new Block(createFakeBlockHeader(), [], new BlockAssets()));
 			await app.shutdown();
@@ -357,23 +352,19 @@ describe('Application', () => {
 		let nodeCleanupSpy: jest.SpyInstance<any, unknown[]>;
 		let blockChainDBSpy: jest.SpyInstance<any, unknown[]>;
 		let forgerDBSpy: jest.SpyInstance<any, unknown[]>;
-		let _nodeDBSpy: jest.SpyInstance<any, unknown[]>;
 
 		beforeEach(async () => {
 			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 			({ app } = Application.defaultApplication(config));
-			jest.spyOn(app['_node'], 'start').mockResolvedValue();
-			jest.spyOn(app['_node']['_network'], 'start').mockResolvedValue();
-			jest.spyOn(app['_node']['_stateMachine'], 'executeGenesisBlock').mockResolvedValue();
+			jest.spyOn(Node.prototype, 'start').mockResolvedValue();
 
 			await app.run(new Block(createFakeBlockHeader(), [], new BlockAssets()));
 
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
 			nodeCleanupSpy = jest.spyOn(app['_node'], 'stop').mockResolvedValue();
 			jest.spyOn(app['_controller'], 'stop');
-			blockChainDBSpy = jest.spyOn(app['_blockchainDB'], 'close');
-			forgerDBSpy = jest.spyOn(app['_forgerDB'], 'close');
-			_nodeDBSpy = jest.spyOn(app['_nodeDB'], 'close');
+			blockChainDBSpy = jest.spyOn(app['_stateDB'], 'close');
+			forgerDBSpy = jest.spyOn(app['_moduleDB'], 'close');
 			emptySocketsDirectorySpy = jest
 				.spyOn(app as any, '_emptySocketsDirectory')
 				.mockResolvedValue([]);
@@ -387,7 +378,6 @@ describe('Application', () => {
 			expect(nodeCleanupSpy).toHaveBeenCalledTimes(1);
 			expect(blockChainDBSpy).toHaveBeenCalledTimes(1);
 			expect(forgerDBSpy).toHaveBeenCalledTimes(1);
-			expect(_nodeDBSpy).toHaveBeenCalledTimes(1);
 			expect(app['_controller'].stop).toHaveBeenCalledTimes(1);
 		});
 

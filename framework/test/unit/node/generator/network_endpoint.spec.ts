@@ -14,19 +14,18 @@
 
 import { Chain, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { when } from 'jest-when';
 import { Logger } from '../../../../src/logger';
 import { Broadcaster } from '../../../../src/node/generator/broadcaster';
 import { NETWORK_RPC_GET_TRANSACTIONS } from '../../../../src/node/generator/constants';
 import { NetworkEndpoint } from '../../../../src/node/generator/network_endpoint';
+import { ABI, TransactionVerifyResult } from '../../../../src/abi';
 import {
 	getTransactionsResponseSchema,
 	postTransactionsAnnouncementSchema,
 } from '../../../../src/node/generator/schemas';
 import { Network } from '../../../../src/node/network';
-import { StateMachine, VerifyStatus } from '../../../../src/state_machine';
 import { fakeLogger } from '../../../utils/node';
 
 describe('generator network endpoint', () => {
@@ -54,9 +53,9 @@ describe('generator network endpoint', () => {
 	let endpoint: NetworkEndpoint;
 	let broadcaster: Broadcaster;
 	let chain: Chain;
-	let stateMachine: StateMachine;
 	let pool: TransactionPool;
 	let network: Network;
+	let abi: ABI;
 
 	beforeEach(() => {
 		broadcaster = {
@@ -75,10 +74,8 @@ describe('generator network endpoint', () => {
 			contains: jest.fn().mockReturnValue(false),
 			add: jest.fn().mockResolvedValue({}),
 		} as never;
-		stateMachine = {
-			verifyTransaction: jest.fn().mockResolvedValue({
-				status: VerifyStatus.OK,
-			}),
+		abi = {
+			verifyTransaction: jest.fn().mockResolvedValue({ result: TransactionVerifyResult.OK }),
 		} as never;
 		network = {
 			applyPenaltyOnPeer: jest.fn(),
@@ -90,15 +87,14 @@ describe('generator network endpoint', () => {
 			broadcast: jest.fn(),
 		} as never;
 		endpoint = new NetworkEndpoint({
+			abi,
 			broadcaster,
 			chain,
 			network,
 			pool,
-			stateMachine,
 		});
 		endpoint.init({
 			logger,
-			blockchainDB: new InMemoryKVStore() as never,
 		});
 		jest.useFakeTimers();
 	});
@@ -196,7 +192,7 @@ describe('generator network endpoint', () => {
 					validTransactionsRequest,
 					defaultPeerId,
 				);
-				expect(stateMachine.verifyTransaction).toHaveBeenCalledTimes(2);
+				expect(abi.verifyTransaction).toHaveBeenCalledTimes(2);
 				expect(pool.contains).toHaveBeenCalledTimes(4);
 				expect(pool.add).toHaveBeenCalledTimes(2);
 			});
@@ -204,8 +200,8 @@ describe('generator network endpoint', () => {
 			it('should apply penalty when validateTransactions fails', async () => {
 				// Act
 				(pool.contains as jest.Mock).mockReturnValue(false);
-				(stateMachine.verifyTransaction as jest.Mock).mockResolvedValue({
-					status: VerifyStatus.FAIL,
+				(abi.verifyTransaction as jest.Mock).mockResolvedValue({
+					result: TransactionVerifyResult.INVALID,
 				});
 				await endpoint.handleEventPostTransactionsAnnouncement(
 					validTransactionsRequest,
@@ -282,7 +278,7 @@ describe('generator network endpoint', () => {
 				);
 
 				// Assert
-				expect(stateMachine.verifyTransaction).toHaveBeenCalledTimes(1);
+				expect(abi.verifyTransaction).toHaveBeenCalledTimes(1);
 				expect(pool.contains).toHaveBeenCalledTimes(3);
 				expect(pool.add).toHaveBeenCalledTimes(1);
 			});

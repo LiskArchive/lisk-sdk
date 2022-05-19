@@ -24,7 +24,11 @@ import * as forgerSelectionZeroStandbyScenario from '../../../fixtures/dpos_forg
 import * as forgerSelectionOneStandbyScenario from '../../../fixtures/dpos_forger_selection/dpos_forger_selection_exactly_1_standby.json';
 import * as forgerSelectionTwoStandbyScenario from '../../../fixtures/dpos_forger_selection/dpos_forger_selection_exactly_2_standby.json';
 import * as forgerSelectionMoreThan2StandByScenario from '../../../fixtures/dpos_forger_selection/dpos_forger_selection_more_than_2_standby.json';
-import { BlockAfterExecuteContext } from '../../../../src/state_machine';
+import {
+	BlockAfterExecuteContext,
+	BlockContext,
+	GenesisBlockContext,
+} from '../../../../src/state_machine';
 import {
 	createBlockContext,
 	createFakeBlockHeader,
@@ -48,7 +52,6 @@ import {
 	voterStoreSchema,
 } from '../../../../src/modules/dpos_v2/schemas';
 import {
-	BFTAPI,
 	DelegateAccount,
 	GenesisData,
 	PreviousTimestampData,
@@ -117,13 +120,6 @@ describe('DPoS module', () => {
 			const randomAPI = {
 				getRandomBytes: jest.fn(),
 			};
-			const bftAPI = {
-				getGeneratorKeys: jest.fn(),
-				setGeneratorKeys: jest.fn(),
-				setBFTParameters: jest.fn(),
-				areHeadersContradicting: jest.fn(),
-				getBFTHeights: jest.fn(),
-			};
 			const validatorAPI = {
 				setValidatorGeneratorKey: jest.fn(),
 				registerValidatorKeys: jest.fn().mockResolvedValue(true),
@@ -140,7 +136,7 @@ describe('DPoS module', () => {
 				transfer: jest.fn(),
 				getLockedAmount: jest.fn().mockResolvedValue(BigInt(101000000000)),
 			};
-			dpos.addDependencies(randomAPI, bftAPI, validatorAPI, tokenAPI);
+			dpos.addDependencies(randomAPI, validatorAPI, tokenAPI);
 
 			await dpos.init({
 				generatorConfig: {},
@@ -208,14 +204,16 @@ describe('DPoS module', () => {
 		});
 
 		describe('when the genesis asset is valid', () => {
+			let genesisContext: GenesisBlockContext;
 			let context: GenesisBlockExecuteContext;
 
 			beforeEach(() => {
 				const assetBytes = codec.encode(genesisStoreSchema, validAsset);
-				context = createGenesisBlockContext({
+				genesisContext = createGenesisBlockContext({
 					stateStore,
 					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
-				}).createInitGenesisStateContext();
+				});
+				context = genesisContext.createInitGenesisStateContext();
 			});
 
 			it('should store self vote and received votes', async () => {
@@ -292,14 +290,19 @@ describe('DPoS module', () => {
 			it('should register all active delegates as BFT validators', async () => {
 				await expect(dpos.initGenesisState(context)).toResolve();
 				await expect(dpos.finalizeGenesisState(context)).toResolve();
-				expect(dpos['_bftAPI'].setBFTParameters).toHaveBeenCalledWith(
-					expect.anything(),
-					BigInt(68),
-					BigInt(68),
+
+				expect(genesisContext.nextValidators.certificateThreshold).toEqual(BigInt(68));
+				expect(genesisContext.nextValidators.precommitThreshold).toEqual(BigInt(68));
+				const activeValidators = genesisContext.nextValidators.validators.filter(
+					v => v.bftWeight > BigInt(0),
+				);
+				expect(activeValidators).toHaveLength(101);
+				expect(activeValidators).toEqual(
 					validAsset.genesisData.initDelegates.map(d => ({
 						bftWeight: BigInt(1),
 						address: d,
 						blsKey: expect.any(Buffer),
+						generatorKey: expect.any(Buffer),
 					})),
 				);
 			});
@@ -760,13 +763,7 @@ describe('DPoS module', () => {
 								.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed1, 'hex'))
 								.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed2, 'hex')),
 						};
-						const bftAPI = {
-							getGeneratorKeys: jest.fn(),
-							setGeneratorKeys: jest.fn(),
-							setBFTParameters: jest.fn(),
-							getBFTHeights: jest.fn(),
-							areHeadersContradicting: jest.fn(),
-						};
+
 						const validatorAPI = {
 							setValidatorGeneratorKey: jest.fn(),
 							registerValidatorKeys: jest.fn(),
@@ -785,20 +782,18 @@ describe('DPoS module', () => {
 							getLockedAmount: jest.fn(),
 						};
 
-						dpos.addDependencies(randomAPI, bftAPI, validatorAPI, tokenAPI);
-						const context = createBlockContext({
+						dpos.addDependencies(randomAPI, validatorAPI, tokenAPI);
+						const blockContext = createBlockContext({
 							header: createFakeBlockHeader({
 								height: (defaultRound - 1) * defaultConfigs.roundLength,
 							}),
 							stateStore,
-						}).getBlockAfterExecuteContext();
+						});
+						const context = blockContext.getBlockAfterExecuteContext();
 
 						await dpos['_updateValidators'](context);
 
-						expect(bftAPI.setBFTParameters).toHaveBeenCalledTimes(1);
-						const forgersList = bftAPI.setBFTParameters.mock.calls[0][3] as Buffer[];
-
-						expect(forgersList.length).toBeGreaterThan(1);
+						expect(blockContext.nextValidators.validators.length).toBeGreaterThan(1);
 					});
 				});
 			}
@@ -807,7 +802,7 @@ describe('DPoS module', () => {
 		describe('when there are enough standby delegates', () => {
 			const defaultRound = 123;
 			let validatorAPI: ValidatorsAPI;
-			let bftAPI: BFTAPI;
+			let blockContext: BlockContext;
 
 			const scenario = forgerSelectionMoreThan2StandByScenario;
 
@@ -849,13 +844,6 @@ describe('DPoS module', () => {
 						.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed1, 'hex'))
 						.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed2, 'hex')),
 				};
-				bftAPI = {
-					getGeneratorKeys: jest.fn(),
-					setGeneratorKeys: jest.fn(),
-					setBFTParameters: jest.fn(),
-					areHeadersContradicting: jest.fn(),
-					getBFTHeights: jest.fn(),
-				};
 				validatorAPI = {
 					setValidatorGeneratorKey: jest.fn(),
 					registerValidatorKeys: jest.fn(),
@@ -873,21 +861,19 @@ describe('DPoS module', () => {
 					getLockedAmount: jest.fn(),
 				};
 
-				dpos.addDependencies(randomAPI, bftAPI, validatorAPI, tokenAPI);
-				const context = createBlockContext({
+				dpos.addDependencies(randomAPI, validatorAPI, tokenAPI);
+				blockContext = createBlockContext({
 					header: createFakeBlockHeader({
 						height: (defaultRound - 1) * defaultConfigs.roundLength,
 					}),
 					stateStore,
-				}).getBlockAfterExecuteContext();
+				});
 
-				await dpos['_updateValidators'](context);
+				await dpos['_updateValidators'](blockContext.getBlockAfterExecuteContext());
 			});
 
 			it('should have activeDelegates + standbyDelegates delegates in the generators list', () => {
-				expect(bftAPI.setBFTParameters).toHaveBeenCalledTimes(1);
-				const forgersList = (bftAPI.setGeneratorKeys as jest.Mock).mock.calls[0][1];
-				expect(forgersList).toHaveLength(defaultConfigs.roundLength);
+				expect(blockContext.nextValidators.validators).toHaveLength(defaultConfigs.roundLength);
 			});
 
 			it('should store selected stand by delegates in the generators list', () => {
@@ -897,10 +883,7 @@ describe('DPoS module', () => {
 					Buffer.from(selectedForgers[selectedForgers.length - 2], 'hex'),
 				].sort((a, b) => a.compare(b));
 
-				const forgersList = (bftAPI.setGeneratorKeys as jest.Mock).mock.calls[0][1] as {
-					address: Buffer;
-				}[];
-				const standbyCandidatesAddresses = forgersList
+				const standbyCandidatesAddresses = blockContext.nextValidators.validators
 					.filter(
 						validator =>
 							standbyDelegatesInFixture.find(fixture => fixture.equals(validator.address)) !==
@@ -920,7 +903,6 @@ describe('DPoS module', () => {
 		const tokenAPI: any = {};
 
 		let validatorsAPI: any;
-		let bftAPI: any;
 		let stateStore: StateStore;
 		let delegateData: DelegateAccount[];
 		let delegateAddresses: Buffer[];
@@ -938,15 +920,11 @@ describe('DPoS module', () => {
 
 			stateStore = new StateStore(new InMemoryKVStore());
 
-			bftAPI = {
-				getGeneratorKeys: jest.fn().mockResolvedValue([]),
-			};
-
 			validatorsAPI = {
 				getGeneratorsBetweenTimestamps: jest.fn(),
 			};
 
-			dpos.addDependencies(randomAPI, bftAPI, validatorsAPI, tokenAPI);
+			dpos.addDependencies(randomAPI, validatorsAPI, tokenAPI);
 
 			delegateData = Array(103)
 				.fill({})
@@ -1382,7 +1360,6 @@ describe('DPoS module', () => {
 		const bootstrapRounds = genesisData.initRounds;
 
 		const randomAPI: any = {};
-		const bftAPI: any = {};
 		const tokenAPI: any = {};
 		const validatorsAPI: any = {};
 
@@ -1402,7 +1379,7 @@ describe('DPoS module', () => {
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: defaultConfigs,
 			});
-			dpos.addDependencies(randomAPI, bftAPI, validatorsAPI, tokenAPI);
+			dpos.addDependencies(randomAPI, validatorsAPI, tokenAPI);
 
 			stateStore = new StateStore(new InMemoryKVStore());
 

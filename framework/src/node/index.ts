@@ -13,3 +13,4 @@
  */
 
 export { Node } from './node';
+export { computeValidatorsHash } from './bft';

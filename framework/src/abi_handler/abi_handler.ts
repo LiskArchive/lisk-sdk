@@ -407,6 +407,10 @@ export class ABIHandler implements ABI {
 			transaction: new Transaction(req.transaction),
 			stateStore,
 			networkIdentifier,
+			// These values are not used
+			currentValidators: [],
+			impliesMaxPrevote: true,
+			maxHeightCertified: 0,
 		});
 		const result = await this._stateMachine.verifyTransaction(context);
 
@@ -445,6 +449,9 @@ export class ABIHandler implements ABI {
 			networkIdentifier,
 			assets: new BlockAssets(req.assets),
 			header,
+			currentValidators: req.consensus.currentValidators,
+			impliesMaxPrevote: req.consensus.implyMaxPrevote,
+			maxHeightCertified: req.consensus.maxHeightCertified,
 		});
 		await this._stateMachine.executeTransaction(context);
 		return {
@@ -468,7 +475,7 @@ export class ABIHandler implements ABI {
 			rootHash: req.stateRoot,
 		});
 		const batch = this._stateDB.batch();
-		await this._executionContext.stateStore.finalize(batch, smt);
+		const diff = this._executionContext.stateStore.finalize(batch);
 		if (req.dryRun) {
 			return {
 				stateRoot: smt.rootHash,
@@ -481,6 +488,9 @@ export class ABIHandler implements ABI {
 				)} does not match with expected state root ${req.expectedStateRoot.toString('hex')}.`,
 			);
 		}
+		const heightBuf = formatInt(this._executionContext.header.height);
+		const diffKey = concatDBKeys(DB_KEY_DIFF_STATE, heightBuf);
+		batch.put(diffKey, codec.encode(stateDiffSchema, diff));
 
 		await batch.write();
 		return {
@@ -565,7 +575,19 @@ export class ABIHandler implements ABI {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async getMetadata(_req: MetadataRequest): Promise<MetadataResponse> {
-		throw new Error('Method not implemented.');
+		const modules = this._modules.map(mod => {
+			const meta = mod.metadata();
+			return {
+				id: mod.id,
+				name: mod.name,
+				...meta,
+			};
+		});
+		modules.sort((a, b) => a.id - b.id);
+		const data = Buffer.from(JSON.stringify({ modules }), 'utf-8');
+		return {
+			data,
+		};
 	}
 
 	public async query(req: QueryRequest): Promise<QueryResponse> {

@@ -25,7 +25,6 @@ import {
 } from '../constants';
 import { delegateStoreSchema, genesisDataStoreSchema, voterStoreSchema } from '../schemas';
 import {
-	BFTAPI,
 	DelegateAccount,
 	GenesisData,
 	TokenAPI,
@@ -39,12 +38,10 @@ export class UnlockCommand extends BaseCommand {
 	public id = COMMAND_ID_UNLOCK;
 	public name = 'unlockToken';
 
-	private _bftAPI!: BFTAPI;
 	private _tokenAPI!: TokenAPI;
 	private _tokenIDDPoS!: TokenIDDPoS;
 
 	public addDependencies(args: UnlockCommandDependencies) {
-		this._bftAPI = args.bftAPI;
 		this._tokenAPI = args.tokenAPI;
 	}
 
@@ -57,6 +54,7 @@ export class UnlockCommand extends BaseCommand {
 			transaction: { senderAddress },
 			getStore,
 			getAPIContext,
+			maxHeightCertified,
 			header: { height },
 		} = context;
 		const delegateSubstore = getStore(this.moduleID, STORE_PREFIX_DELEGATE);
@@ -69,7 +67,6 @@ export class UnlockCommand extends BaseCommand {
 			genesisDataStoreSchema,
 		);
 		const { height: genesisHeight } = genesisData;
-		const { maxHeightCertified } = await this._bftAPI.getBFTHeights(getAPIContext());
 
 		for (const unlockObject of voterData.pendingUnlocks) {
 			const { pomHeights } = await delegateSubstore.getWithSchema<DelegateAccount>(

@@ -35,7 +35,6 @@ describe('InMemoryChannel Channel', () => {
 			action3: jest.fn(),
 		},
 		options: {},
-		networkIdentifier: Buffer.alloc(0),
 	};
 	const config: any = {};
 	let inMemoryChannel: InMemoryChannel;
@@ -194,52 +193,6 @@ describe('InMemoryChannel Channel', () => {
 
 			// Assert
 			expect(inMemoryChannel['bus'].invoke).toHaveBeenCalled();
-		});
-	});
-
-	describe('with networkIdentifier', () => {
-		beforeEach(() => {
-			// Act & Assign
-			inMemoryChannel = new InMemoryChannel(
-				params.logger,
-				params.db,
-				params.namespace,
-				params.events,
-				params.endpoints,
-				params.networkIdentifier,
-			);
-		});
-
-		describe('#constructor', () => {
-			it('should create the instance with given arguments.', () => {
-				// Assert
-				expect(inMemoryChannel).toHaveProperty('_networkIdentifier');
-				expect(inMemoryChannel).toHaveProperty('_db');
-				expect(inMemoryChannel).toHaveProperty('namespace');
-				expect(inMemoryChannel).toHaveProperty('eventsList');
-				expect(inMemoryChannel).toHaveProperty('endpointsList');
-			});
-		});
-
-		describe('#invoke', () => {
-			const actionName = 'action1';
-
-			it('should module endpoint have been called with networkIdentifier in its context', async () => {
-				// Arrange
-				const actionFullName = `${inMemoryChannel.namespace}_${actionName}`;
-
-				// Act
-				await inMemoryChannel.invoke(actionFullName);
-
-				// Assert
-				expect(params.endpoints.action1).toHaveBeenCalledWith({
-					networkIdentifier: params.networkIdentifier,
-					getStore: expect.anything(),
-					getImmutableAPIContext: expect.anything(),
-					logger: expect.anything(),
-					params: expect.anything(),
-				});
-			});
 		});
 	});
 });

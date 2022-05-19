@@ -26,7 +26,7 @@ import { createFakeBlockHeader } from '../../../src/testing';
 import { channelMock } from '../../../src/testing/mocks';
 import { genesisBlock } from '../../fixtures';
 import { fakeLogger } from '../../utils/node';
-import { TransactionExecutionResult } from '../../../src/abi';
+import { TransactionExecutionResult, TransactionVerifyResult } from '../../../src/abi';
 
 describe('abi handler', () => {
 	let abiHandler: ABIHandler;
@@ -397,7 +397,7 @@ describe('abi handler', () => {
 					'_stateStore'
 				],
 			).toEqual(abiHandler['_executionContext']?.stateStore);
-			expect(resp.result).toEqual(0);
+			expect(resp.result).toEqual(TransactionVerifyResult.INVALID);
 		});
 
 		it('should execute verifyTransaction with new context when context ID is empty and resolve the response', async () => {
@@ -432,7 +432,7 @@ describe('abi handler', () => {
 					'_stateStore'
 				],
 			).not.toEqual(abiHandler['_executionContext']?.stateStore);
-			expect(resp.result).toEqual(0);
+			expect(resp.result).toEqual(TransactionVerifyResult.INVALID);
 		});
 	});
 
@@ -464,6 +464,18 @@ describe('abi handler', () => {
 				dryRun: false,
 				header: createFakeBlockHeader().toObject(),
 				transaction: tx.toObject(),
+				consensus: {
+					currentValidators: [
+						{
+							address: getRandomBytes(20),
+							bftWeight: BigInt(1),
+							blsKey: getRandomBytes(48),
+							generatorKey: getRandomBytes(32),
+						},
+					],
+					implyMaxPrevote: false,
+					maxHeightCertified: 0,
+				},
 			});
 
 			expect(abiHandler['_stateMachine'].executeTransaction).toHaveBeenCalledTimes(1);
@@ -502,6 +514,18 @@ describe('abi handler', () => {
 				dryRun: true,
 				header: createFakeBlockHeader().toObject(),
 				transaction: tx.toObject(),
+				consensus: {
+					currentValidators: [
+						{
+							address: getRandomBytes(20),
+							bftWeight: BigInt(1),
+							blsKey: getRandomBytes(48),
+							generatorKey: getRandomBytes(32),
+						},
+					],
+					implyMaxPrevote: false,
+					maxHeightCertified: 0,
+				},
 			});
 
 			expect(abiHandler['_stateMachine'].executeTransaction).toHaveBeenCalledTimes(1);

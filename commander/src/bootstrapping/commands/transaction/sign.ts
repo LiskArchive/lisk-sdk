@@ -15,7 +15,14 @@
 import Command, { flags as flagParser } from '@oclif/command';
 import * as apiClient from '@liskhq/lisk-api-client';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { Application, PartialApplicationConfig, RegisteredSchema } from 'lisk-framework';
+import {
+	Application,
+	blockHeaderSchema,
+	blockSchema,
+	PartialApplicationConfig,
+	RegisteredSchema,
+	transactionSchema,
+} from 'lisk-framework';
 import * as transactions from '@liskhq/lisk-transactions';
 
 import { flagsWithParser } from '../../../utils/flags';
@@ -230,7 +237,25 @@ export abstract class SignCommand extends Command {
 
 		if (offline) {
 			const app = this.getApplication({}, {});
-			this._schema = app.getSchema();
+			const metadata = app.getMetadata();
+			const commands = [];
+			for (const meta of metadata) {
+				for (const commandMeta of meta.commands) {
+					commands.push({
+						moduleID: meta.id,
+						moduleName: meta.name,
+						commandID: commandMeta.id,
+						commandName: commandMeta.name,
+						schema: commandMeta.params,
+					});
+				}
+			}
+			this._schema = {
+				blockHeader: blockHeaderSchema,
+				transaction: transactionSchema,
+				block: blockSchema,
+				commands,
+			};
 			signedTransaction = await signTransactionOffline(flags, this._schema, transaction);
 		} else {
 			this._client = await getApiClient(dataPath, this.config.pjson.name);

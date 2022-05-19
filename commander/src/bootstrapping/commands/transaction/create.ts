@@ -19,7 +19,14 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 import * as transactions from '@liskhq/lisk-transactions';
 import * as validator from '@liskhq/lisk-validator';
 import Command, { flags as flagParser } from '@oclif/command';
-import { Application, PartialApplicationConfig, RegisteredSchema } from 'lisk-framework';
+import {
+	Application,
+	PartialApplicationConfig,
+	RegisteredSchema,
+	blockHeaderSchema,
+	blockSchema,
+	transactionSchema,
+} from 'lisk-framework';
 import { PromiseResolvedType } from '../../../types';
 import { flagsWithParser } from '../../../utils/flags';
 import { getDefaultPath } from '../../../utils/path';
@@ -139,7 +146,7 @@ const createTransactionOffline = async (
 ) => {
 	const params = await getParamsObject(registeredSchema, flags, args);
 	const { passphrase, publicKey } = await getPassphraseAddressAndPublicKey(flags);
-	transaction.nonce = BigInt(flags.nonce);
+	transaction.nonce = BigInt(flags.nonce ?? '0');
 	transaction.params = params;
 	transaction.senderPublicKey =
 		publicKey || Buffer.from(flags['sender-public-key'] as string, 'hex');
@@ -275,7 +282,25 @@ export abstract class CreateCommand extends Command {
 
 		if (flags.offline) {
 			const app = this.getApplication({});
-			this._schema = app.getSchema();
+			const metadata = app.getMetadata();
+			const commands = [];
+			for (const meta of metadata) {
+				for (const commandMeta of meta.commands) {
+					commands.push({
+						moduleID: meta.id,
+						moduleName: meta.name,
+						commandID: commandMeta.id,
+						commandName: commandMeta.name,
+						schema: commandMeta.params,
+					});
+				}
+			}
+			this._schema = {
+				blockHeader: blockHeaderSchema,
+				transaction: transactionSchema,
+				block: blockSchema,
+				commands,
+			};
 
 			transactionObject = await createTransactionOffline(
 				args as Args,

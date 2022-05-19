@@ -13,7 +13,7 @@
  */
 
 import { InMemoryKVStore, NotFoundError } from '@liskhq/lisk-db';
-import { BlockHeader } from '@liskhq/lisk-chain';
+import { BlockHeader, StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import {
 	createAggSig,
@@ -40,14 +40,12 @@ import {
 	Certificate,
 	SingleCommit,
 } from '../../../../../src/node/consensus/certificate_generation/types';
-import { APIContext } from '../../../../../src/state_machine/types';
-import { createFakeBlockHeader, createTransientAPIContext } from '../../../../../src/testing';
+import { createFakeBlockHeader } from '../../../../../src/testing';
 import {
 	computeCertificateFromBlockHeader,
 	signCertificate,
 } from '../../../../../src/node/consensus/certificate_generation/utils';
 import { AggregateCommit } from '../../../../../src/node/consensus/types';
-import { createNewAPIContext } from '../../../../../src/state_machine/api_context';
 import { COMMIT_SORT } from '../../../../../src/node/consensus/certificate_generation/commit_list';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
@@ -177,7 +175,7 @@ describe('CommitPool', () => {
 			expect(commitPool['_nonGossipedCommits'].getAll()).toHaveLength(6);
 			// Arrange
 			commitPool['_bftAPI'].existBFTParameters = jest.fn().mockResolvedValue(true);
-			const context = createNewAPIContext(new InMemoryKVStore());
+			const context = new StateStore(new InMemoryKVStore());
 			// Act
 			await commitPool['_job'](context);
 			// Assert
@@ -190,7 +188,7 @@ describe('CommitPool', () => {
 			expect(commitPool['_gossipedCommits'].getAll()).toHaveLength(6);
 			// Arrange
 			commitPool['_bftAPI'].existBFTParameters = jest.fn().mockResolvedValue(true);
-			const context = createNewAPIContext(new InMemoryKVStore());
+			const context = new StateStore(new InMemoryKVStore());
 			// Act
 			await commitPool['_job'](context);
 			// Assert
@@ -218,7 +216,7 @@ describe('CommitPool', () => {
 			// Arrange
 			const bftParamsMock = jest.fn();
 			commitPool['_bftAPI'].existBFTParameters = bftParamsMock;
-			const context = createNewAPIContext(new InMemoryKVStore());
+			const context = new StateStore(new InMemoryKVStore());
 			when(bftParamsMock).calledWith(context, 1071).mockResolvedValue(false);
 			when(bftParamsMock).calledWith(context, maxHeightCertified).mockResolvedValue(true);
 			when(bftParamsMock)
@@ -258,7 +256,7 @@ describe('CommitPool', () => {
 			expect(commitPool['_gossipedCommits'].getAll()).toHaveLength(6);
 			// Arrange
 			commitPool['_bftAPI'].existBFTParameters = jest.fn().mockResolvedValue(true);
-			const context = createNewAPIContext(new InMemoryKVStore());
+			const context = new StateStore(new InMemoryKVStore());
 			// Act
 			await commitPool['_job'](context);
 			// Assert
@@ -342,7 +340,7 @@ describe('CommitPool', () => {
 			commitPool['_bftAPI'].getBFTHeights = jest
 				.fn()
 				.mockResolvedValue({ maxHeightPrecommitted: maxHeightPrecommittedTest });
-			const context = createNewAPIContext(new InMemoryKVStore());
+			const context = new StateStore(new InMemoryKVStore());
 			const selectedCommitsToGossip = getSelectedCommits(commitPool);
 			// Act
 			await commitPool['_job'](context);
@@ -357,7 +355,7 @@ describe('CommitPool', () => {
 		it('should call network send when the job runs', async () => {
 			// Arrange
 			commitPool['_bftAPI'].existBFTParameters = jest.fn().mockResolvedValue(true);
-			const context = createNewAPIContext(new InMemoryKVStore());
+			const context = new StateStore(new InMemoryKVStore());
 			// Act
 			await commitPool['_job'](context);
 			// Assert
@@ -424,7 +422,7 @@ describe('CommitPool', () => {
 		});
 	});
 	describe('validateCommit', () => {
-		let apiContext: APIContext;
+		let stateStore: StateStore;
 		let commit: SingleCommit;
 		let blockHeader: BlockHeader;
 		let blockHeaderOfFinalizedHeight: BlockHeader;
@@ -442,7 +440,7 @@ describe('CommitPool', () => {
 			maxHeightCertified = 1000;
 			maxHeightPrecommitted = 1050;
 
-			apiContext = createTransientAPIContext({});
+			stateStore = new StateStore(new InMemoryKVStore());
 
 			blockHeader = createFakeBlockHeader({
 				height: 1031,
@@ -495,13 +493,13 @@ describe('CommitPool', () => {
 				maxHeightPrecommitted,
 			});
 
-			when(bftAPI.getBFTParameters).calledWith(apiContext, commit.height).mockReturnValue({
+			when(bftAPI.getBFTParameters).calledWith(stateStore, commit.height).mockReturnValue({
 				certificateThreshold: threshold,
 				validators,
 			});
 
 			when(bftAPI.getValidator)
-				.calledWith(apiContext, commit.validatorAddress, commit.height)
+				.calledWith(stateStore, commit.validatorAddress, commit.height)
 				.mockReturnValue({ blsKey: publicKey });
 
 			bftAPI.existBFTParameters.mockReturnValue(true);
@@ -512,7 +510,7 @@ describe('CommitPool', () => {
 		});
 
 		it('should validate single commit successfully', async () => {
-			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
+			const isCommitValid = await commitPool.validateCommit(stateStore, commit);
 
 			expect(isCommitValid).toBeTrue();
 		});
@@ -522,7 +520,7 @@ describe('CommitPool', () => {
 				.calledWith(commit.height)
 				.mockReturnValue(createFakeBlockHeader({ id: getRandomBytes(32) }));
 
-			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
+			const isCommitValid = await commitPool.validateCommit(stateStore, commit);
 
 			expect(isCommitValid).toBeFalse();
 		});
@@ -530,7 +528,7 @@ describe('CommitPool', () => {
 		it('should return false when single commit exists in gossiped commits but not in non-gossipped commits', async () => {
 			commitPool['_gossipedCommits'].add(commit);
 
-			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
+			const isCommitValid = await commitPool.validateCommit(stateStore, commit);
 
 			expect(isCommitValid).toBeFalse();
 		});
@@ -538,7 +536,7 @@ describe('CommitPool', () => {
 		it('should return false when single commit exists in non-gossiped commits but not in gossipped commits', async () => {
 			commitPool['_nonGossipedCommits'].add(commit);
 
-			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
+			const isCommitValid = await commitPool.validateCommit(stateStore, commit);
 
 			expect(isCommitValid).toBeFalse();
 		});
@@ -546,7 +544,7 @@ describe('CommitPool', () => {
 		it('should return false when maxRemovalHeight is equal to single commit height', async () => {
 			(blockHeaderOfFinalizedHeight.aggregateCommit.height as any) = 1031;
 
-			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
+			const isCommitValid = await commitPool.validateCommit(stateStore, commit);
 
 			expect(isCommitValid).toBeFalse();
 		});
@@ -554,7 +552,7 @@ describe('CommitPool', () => {
 		it('should return false when maxRemovalHeight is above single commit height', async () => {
 			(blockHeaderOfFinalizedHeight.aggregateCommit.height as any) = 1032;
 
-			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
+			const isCommitValid = await commitPool.validateCommit(stateStore, commit);
 
 			expect(isCommitValid).toBeFalse();
 		});
@@ -568,7 +566,7 @@ describe('CommitPool', () => {
 				maxHeightPrecommitted,
 			});
 
-			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
+			const isCommitValid = await commitPool.validateCommit(stateStore, commit);
 
 			expect(isCommitValid).toBeTrue();
 		});
@@ -582,17 +580,17 @@ describe('CommitPool', () => {
 				maxHeightPrecommitted,
 			});
 
-			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
+			const isCommitValid = await commitPool.validateCommit(stateStore, commit);
 
 			expect(isCommitValid).toBeTrue();
 		});
 
 		it('should return true when bft parameter does not exist for next height but commit in range', async () => {
 			when(bftAPI.existBFTParameters)
-				.calledWith(apiContext, commit.height + 1)
+				.calledWith(stateStore, commit.height + 1)
 				.mockReturnValue(false);
 
-			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
+			const isCommitValid = await commitPool.validateCommit(stateStore, commit);
 
 			expect(isCommitValid).toBeTrue();
 		});
@@ -607,10 +605,10 @@ describe('CommitPool', () => {
 			});
 
 			when(bftAPI.existBFTParameters)
-				.calledWith(apiContext, commit.height + 1)
+				.calledWith(stateStore, commit.height + 1)
 				.mockReturnValue(false);
 
-			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
+			const isCommitValid = await commitPool.validateCommit(stateStore, commit);
 
 			expect(isCommitValid).toBeFalse();
 		});
@@ -625,10 +623,10 @@ describe('CommitPool', () => {
 			});
 
 			when(bftAPI.existBFTParameters)
-				.calledWith(apiContext, commit.height + 1)
+				.calledWith(stateStore, commit.height + 1)
 				.mockReturnValue(false);
 
-			const isCommitValid = await commitPool.validateCommit(apiContext, commit);
+			const isCommitValid = await commitPool.validateCommit(stateStore, commit);
 
 			expect(isCommitValid).toBeFalse();
 		});
@@ -640,19 +638,19 @@ describe('CommitPool', () => {
 				bftWeight: BigInt(1),
 			};
 
-			await expect(commitPool.validateCommit(apiContext, commit)).rejects.toThrow(
+			await expect(commitPool.validateCommit(stateStore, commit)).rejects.toThrow(
 				'Commit validator was not active for its height.',
 			);
 		});
 
 		it('should throw error when bls key of the validator is not matching with the certificate signature', async () => {
 			when(bftAPI.getBFTParameters)
-				.calledWith(apiContext, commit.height)
+				.calledWith(stateStore, commit.height)
 				.mockReturnValue({
 					validators: [{ address: commit.validatorAddress, blsKey: getRandomBytes(48) }],
 				});
 
-			await expect(commitPool.validateCommit(apiContext, commit)).rejects.toThrow(
+			await expect(commitPool.validateCommit(stateStore, commit)).rejects.toThrow(
 				'Certificate signature is not valid.',
 			);
 		});
@@ -764,7 +762,7 @@ describe('CommitPool', () => {
 		let maxHeightCertified: number;
 		let maxHeightPrecommitted: number;
 		let timestamp: number;
-		let apiContext: APIContext;
+		let stateStore: StateStore;
 		let aggregateCommit: AggregateCommit;
 		let certificate: Certificate;
 		let keysList: Buffer[];
@@ -790,7 +788,7 @@ describe('CommitPool', () => {
 				timestamp,
 			});
 
-			apiContext = createTransientAPIContext({});
+			stateStore = new StateStore(new InMemoryKVStore());
 
 			privateKeys = Array.from({ length: 103 }, _ => generatePrivateKey(getRandomBytes(32)));
 			publicKeys = privateKeys.map(priv => getPublicKeyFromPrivateKey(priv));
@@ -842,20 +840,20 @@ describe('CommitPool', () => {
 				maxHeightPrecommitted,
 			});
 
-			when(bftAPI.getBFTParameters).calledWith(apiContext, height).mockReturnValue({
+			when(bftAPI.getBFTParameters).calledWith(stateStore, height).mockReturnValue({
 				certificateThreshold: threshold,
 				validators,
 			});
 
 			when(bftAPI.getNextHeightBFTParameters)
-				.calledWith(apiContext, maxHeightCertified + 1)
+				.calledWith(stateStore, maxHeightCertified + 1)
 				.mockImplementation(() => {
 					throw new BFTParameterNotFoundError();
 				});
 		});
 
 		it('should return true with proper parameters', async () => {
-			const isCommitVerified = await commitPool.verifyAggregateCommit(apiContext, aggregateCommit);
+			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
 
 			expect(isCommitVerified).toBeTrue();
 		});
@@ -869,7 +867,7 @@ describe('CommitPool', () => {
 				maxHeightPrecommitted,
 			});
 
-			const isCommitVerified = await commitPool.verifyAggregateCommit(apiContext, aggregateCommit);
+			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
 
 			expect(isCommitVerified).toBeFalse();
 		});
@@ -881,7 +879,7 @@ describe('CommitPool', () => {
 				height,
 			};
 
-			const isCommitVerified = await commitPool.verifyAggregateCommit(apiContext, aggregateCommit);
+			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
 
 			expect(isCommitVerified).toBeFalse();
 		});
@@ -893,7 +891,7 @@ describe('CommitPool', () => {
 				height,
 			};
 
-			const isCommitVerified = await commitPool.verifyAggregateCommit(apiContext, aggregateCommit);
+			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
 
 			expect(isCommitVerified).toBeFalse();
 		});
@@ -905,7 +903,7 @@ describe('CommitPool', () => {
 				height: 5000,
 			};
 
-			const isCommitVerified = await commitPool.verifyAggregateCommit(apiContext, aggregateCommit);
+			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
 
 			expect(isCommitVerified).toBeFalse();
 		});
@@ -917,37 +915,37 @@ describe('CommitPool', () => {
 				height: 15000,
 			};
 
-			const isCommitVerified = await commitPool.verifyAggregateCommit(apiContext, aggregateCommit);
+			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
 
 			expect(isCommitVerified).toBeFalse();
 		});
 
 		it('should return false when aggregateCommit height is above nextBFTParameter height minus 1', async () => {
 			when(bftAPI.getNextHeightBFTParameters)
-				.calledWith(apiContext, maxHeightCertified + 1)
+				.calledWith(stateStore, maxHeightCertified + 1)
 				.mockReturnValue(1020);
 
-			const isCommitVerified = await commitPool.verifyAggregateCommit(apiContext, aggregateCommit);
+			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
 
 			expect(isCommitVerified).toBeFalse();
 		});
 
 		it('should return true when aggregateCommit height is equal nextBFTParameter height minus 1', async () => {
 			when(bftAPI.getNextHeightBFTParameters)
-				.calledWith(apiContext, maxHeightCertified + 1)
+				.calledWith(stateStore, maxHeightCertified + 1)
 				.mockReturnValue(height + 1);
 
-			const isCommitVerified = await commitPool.verifyAggregateCommit(apiContext, aggregateCommit);
+			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
 
 			expect(isCommitVerified).toBeTrue();
 		});
 
 		it('should return true when aggregateCommit height is below nextBFTParameter height minus 1', async () => {
 			when(bftAPI.getNextHeightBFTParameters)
-				.calledWith(apiContext, maxHeightCertified + 1)
+				.calledWith(stateStore, maxHeightCertified + 1)
 				.mockReturnValue(height + 10);
 
-			const isCommitVerified = await commitPool.verifyAggregateCommit(apiContext, aggregateCommit);
+			const isCommitVerified = await commitPool.verifyAggregateCommit(stateStore, aggregateCommit);
 
 			expect(isCommitVerified).toBeTrue();
 		});
@@ -1077,7 +1075,7 @@ describe('CommitPool', () => {
 		);
 
 		let expectedCommit: AggregateCommit;
-		let context: APIContext;
+		let stateStore: StateStore;
 
 		beforeEach(() => {
 			commitPool = new CommitPool({
@@ -1087,11 +1085,11 @@ describe('CommitPool', () => {
 				chain,
 				db: jest.fn() as any,
 			});
-			context = createTransientAPIContext({});
+			stateStore = new StateStore(new InMemoryKVStore());
 		});
 
 		it('should throw if there are no single commits', async () => {
-			await expect(commitPool.aggregateSingleCommits(context, [])).rejects.toThrow(
+			await expect(commitPool.aggregateSingleCommits(stateStore, [])).rejects.toThrow(
 				'No single commit found',
 			);
 		});
@@ -1107,7 +1105,7 @@ describe('CommitPool', () => {
 			});
 
 			await expect(
-				commitPool.aggregateSingleCommits(context, [singleCommit1]),
+				commitPool.aggregateSingleCommits(stateStore, [singleCommit1]),
 			).resolves.toStrictEqual(expectedCommit);
 		});
 
@@ -1122,7 +1120,7 @@ describe('CommitPool', () => {
 			});
 
 			await expect(
-				commitPool.aggregateSingleCommits(context, singleCommits),
+				commitPool.aggregateSingleCommits(stateStore, singleCommits),
 			).resolves.toStrictEqual(expectedCommit);
 		});
 
@@ -1135,7 +1133,7 @@ describe('CommitPool', () => {
 				],
 			});
 
-			await expect(commitPool.aggregateSingleCommits(context, singleCommits)).rejects.toThrow(
+			await expect(commitPool.aggregateSingleCommits(stateStore, singleCommits)).rejects.toThrow(
 				`No bls public key entry found for validatorAddress ${validatorInfo3.address.toString(
 					'hex',
 				)}`,
@@ -1152,7 +1150,7 @@ describe('CommitPool', () => {
 				],
 			});
 
-			await commitPool.aggregateSingleCommits(context, singleCommits);
+			await commitPool.aggregateSingleCommits(stateStore, singleCommits);
 
 			expect(spy).toHaveBeenCalledWith(validatorKeys, pubKeySignaturePairs);
 		});
@@ -1197,7 +1195,7 @@ describe('CommitPool', () => {
 				certificate2,
 			),
 		};
-		let apiContext: APIContext;
+		let stateStore: StateStore;
 
 		beforeEach(() => {
 			commitPool = new CommitPool({
@@ -1210,7 +1208,7 @@ describe('CommitPool', () => {
 			commitPool['_nonGossipedCommits'].add(singleCommit1);
 			commitPool['_gossipedCommits'].add(singleCommit2);
 			commitPool['aggregateSingleCommits'] = jest.fn();
-			apiContext = createTransientAPIContext({});
+			stateStore = new StateStore(new InMemoryKVStore());
 
 			bftAPI.getBFTHeights.mockResolvedValue({
 				maxHeightCertified,
@@ -1230,30 +1228,30 @@ describe('CommitPool', () => {
 
 		it('should call bft api getBFTHeights', async () => {
 			// Act
-			await commitPool['_selectAggregateCommit'](apiContext);
+			await commitPool['_selectAggregateCommit'](stateStore);
 
 			// Assert
-			expect(commitPool['_bftAPI'].getBFTHeights).toHaveBeenCalledWith(apiContext);
+			expect(commitPool['_bftAPI'].getBFTHeights).toHaveBeenCalledWith(stateStore);
 		});
 
 		it('should call bft api getNextHeightBFTParameters', async () => {
 			// Act
-			await commitPool['_selectAggregateCommit'](apiContext);
+			await commitPool['_selectAggregateCommit'](stateStore);
 
 			// Assert
 			expect(commitPool['_bftAPI'].getNextHeightBFTParameters).toHaveBeenCalledWith(
-				apiContext,
+				stateStore,
 				maxHeightCertified + 1,
 			);
 		});
 
 		it('should call bft api getBFTParameters with min(heightNextBFTParameters - 1, maxHeightPrecommitted)', async () => {
 			// Act
-			await commitPool['_selectAggregateCommit'](apiContext);
+			await commitPool['_selectAggregateCommit'](stateStore);
 
 			// Assert
 			expect(commitPool['_bftAPI'].getBFTParameters).toHaveBeenCalledWith(
-				apiContext,
+				stateStore,
 				Math.min(heightNextBFTParameters - 1, maxHeightPrecommitted),
 			);
 		});
@@ -1263,21 +1261,21 @@ describe('CommitPool', () => {
 			bftAPI.getNextHeightBFTParameters.mockRejectedValue(new BFTParameterNotFoundError('Error'));
 
 			// Act
-			await commitPool['_selectAggregateCommit'](apiContext);
+			await commitPool['_selectAggregateCommit'](stateStore);
 
 			// Assert
 			expect(commitPool['_bftAPI'].getBFTParameters).toHaveBeenCalledWith(
-				apiContext,
+				stateStore,
 				maxHeightPrecommitted,
 			);
 		});
 
 		it('should call aggregateSingleCommits when it reaches threshold', async () => {
 			// Act
-			await commitPool['_selectAggregateCommit'](apiContext);
+			await commitPool['_selectAggregateCommit'](stateStore);
 
 			// Assert
-			expect(commitPool['aggregateSingleCommits']).toHaveBeenCalledWith(apiContext, [
+			expect(commitPool['aggregateSingleCommits']).toHaveBeenCalledWith(stateStore, [
 				singleCommit2,
 			]);
 		});
@@ -1293,7 +1291,7 @@ describe('CommitPool', () => {
 			});
 
 			// Act
-			const result = await commitPool['_selectAggregateCommit'](apiContext);
+			const result = await commitPool['_selectAggregateCommit'](stateStore);
 
 			// Assert
 			expect(commitPool['aggregateSingleCommits']).not.toHaveBeenCalled();

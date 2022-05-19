@@ -14,18 +14,6 @@
 
 import { GeneratorKey, BFTValidator } from './types';
 
-export const bftModuleConfig = {
-	$id: 'modules/bft/config',
-	type: 'object',
-	required: ['batchSize'],
-	properties: {
-		batchSize: {
-			type: 'integer',
-			format: 'uint32',
-		},
-	},
-};
-
 export interface BFTParameters {
 	prevoteThreshold: bigint;
 	precommitThreshold: bigint;

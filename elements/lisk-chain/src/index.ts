@@ -25,6 +25,7 @@ export {
 	signingBlockHeaderSchema,
 	stateDiffSchema,
 	blockAssetSchema,
+	standardEventDataSchema,
 } from './schema';
 export {
 	TAG_BLOCK_HEADER,
@@ -40,7 +41,7 @@ export type { RawBlock } from './types';
 export { Slots } from './slots';
 export { concatDBKeys } from './utils';
 
-export { StateStore, NotFoundError, CurrentState, SMTStore } from './state_store';
+export { StateStore, NotFoundError, CurrentState, SMTStore, IterateOptions } from './state_store';
 export { Block, BlockJSON } from './block';
 export { BlockAsset, BlockAssets, BlockAssetJSON } from './block_assets';
 export { BlockHeader, BlockHeaderAttrs, BlockHeaderJSON } from './block_header';

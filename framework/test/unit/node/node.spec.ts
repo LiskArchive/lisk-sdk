@@ -12,359 +12,176 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
-import {
-	generatePrivateKey,
-	getPublicKeyFromPrivateKey,
-	getRandomBytes,
-	blsPopProve,
-	getAddressAndPublicKeyFromPassphrase,
-} from '@liskhq/lisk-cryptography';
+import { Chain } from '@liskhq/lisk-chain';
 import { Node } from '../../../src/node/node';
-import { nodeOptions } from '../../fixtures/node';
-import { InMemoryChannel } from '../../../src/controller';
-import { fakeLogger } from '../../utils/node';
-import { BaseAPI, BaseCommand, BaseEndpoint, BaseModule } from '../../../src';
-import { ModuleInitArgs, ModuleMetadata } from '../../../src/modules/base_module';
 import {
+	Consensus,
 	CONSENSUS_EVENT_BLOCK_DELETE,
 	CONSENSUS_EVENT_BLOCK_NEW,
 } from '../../../src/node/consensus';
-import { BFTAPI } from '../../../src/node/bft';
-import { GenesisBlockExecuteContext } from '../../../src/state_machine';
-import { ValidatorsAPI } from '../../../src/modules/validators';
+import { ABI } from '../../../src/abi';
+import { genesisBlock } from '../../fixtures';
+import * as logger from '../../../src/logger';
+import { fakeLogger } from '../../utils/node';
+import { BFTAPI } from '../../../src/node/bft/api';
+import { Network } from '../../../src/node/network';
+import { Generator } from '../../../src/node/generator';
+import { RPCServer } from '../../../src/node/rpc/rpc_server';
 
 jest.mock('fs-extra');
-
-class SampleEndpoint extends BaseEndpoint {
-	public do() {}
-}
-
-class SampleNodeModule extends BaseModule {
-	public endpoint = new SampleEndpoint(this.id);
-	public api: BaseAPI = {} as never;
-	public id = 1000;
-	public name = 'sample';
-
-	private _bftAPI!: BFTAPI;
-	private _validatorAPI!: ValidatorsAPI;
-
-	public async init(_args: ModuleInitArgs): Promise<void> {}
-
-	public addDependencies(bftAPI: BFTAPI, validatorAPI: ValidatorsAPI) {
-		this._bftAPI = bftAPI;
-		this._validatorAPI = validatorAPI;
-	}
-
-	public metadata(): ModuleMetadata {
-		return {
-			assets: [],
-			commands: [],
-			endpoints: [],
-			events: [],
-		};
-	}
-
-	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
-		const keys = getAddressAndPublicKeyFromPassphrase('passphrase');
-		const blsSK = generatePrivateKey(getRandomBytes(64));
-		const blsPK = getPublicKeyFromPrivateKey(blsSK);
-		const blsPop = blsPopProve(blsSK);
-		await this._validatorAPI.registerValidatorKeys(
-			context.getAPIContext(),
-			keys.address,
-			blsPK,
-			keys.publicKey,
-			blsPop,
-		);
-		await this._bftAPI.setBFTParameters(context.getAPIContext(), BigInt(68), BigInt(68), [
-			{
-				address: keys.address,
-				bftWeight: BigInt(100),
-				blsKey: getRandomBytes(48),
-			},
-		]);
-		await this._bftAPI.setGeneratorKeys(context.getAPIContext(), [
-			{
-				address: keys.address,
-				generatorKey: getRandomBytes(32),
-			},
-		]);
-	}
-}
+jest.mock('@liskhq/lisk-db');
 
 describe('Node', () => {
 	let node: Node;
-	let subscribedEvents: any;
-	let channel: InMemoryChannel;
-	let blockchainDB: KVStore;
-	let forgerDB: KVStore;
-	let nodeDB: KVStore;
-	let sampleNodeModule: SampleNodeModule;
+	let abi: ABI;
 
 	beforeEach(() => {
-		// Arrange
-		subscribedEvents = {};
-
-		blockchainDB = new InMemoryKVStore() as never;
-		forgerDB = new InMemoryKVStore() as never;
-		nodeDB = new InMemoryKVStore() as never;
-
-		/* Arranging Stubs start */
-
-		channel = {
-			invoke: jest.fn(),
-			subscribe: jest.fn((event, cb) => {
-				subscribedEvents[event] = cb;
+		abi = {
+			init: jest.fn().mockResolvedValue({
+				config: {
+					system: {
+						dataPath: `/home/lisk/.lisk-test`,
+					},
+					rpc: {
+						modes: [],
+					},
+					logger: {
+						consoleLogLevel: 'debug',
+						fileLogLevel: '',
+					},
+					genesis: {
+						communityIdentifier: 'Lisk',
+					},
+					network: {
+						port: '7887',
+						seedPeers: [],
+						fixedPeers: [],
+						whitelistedPeers: [],
+						blacklistedIPs: [],
+						maxOutboundConnections: 0,
+						maxInboundConnections: 0,
+						advertiseAddress: false,
+					},
+					txpool: {},
+					generator: {},
+				},
+				genesisBlock: {
+					header: genesisBlock().header,
+					assets: [],
+					transactions: [],
+				},
+				registeredModules: [],
 			}),
-			once: jest.fn(),
-			registerToBus: jest.fn(),
 		} as never;
+		jest.spyOn(logger, 'createLogger').mockReturnValue(fakeLogger);
+		jest.spyOn(Chain.prototype, 'genesisBlockExist').mockResolvedValue(true);
+		jest.spyOn(Chain.prototype, 'loadLastBlocks').mockResolvedValue(undefined);
+		jest.spyOn(Consensus.prototype, 'getMaxRemovalHeight').mockResolvedValue(0);
+		jest
+			.spyOn(BFTAPI.prototype, 'getBFTHeights')
+			.mockResolvedValue({ maxHeightPrecommitted: 0 } as never);
+		jest.spyOn(Network.prototype, 'init');
+		jest.spyOn(Network.prototype, 'start');
+		jest.spyOn(Network.prototype, 'stop');
+		jest.spyOn(Consensus.prototype, 'init');
+		jest.spyOn(Consensus.prototype, 'start');
+		jest.spyOn(Consensus.prototype, 'stop');
+		jest.spyOn(Generator.prototype, 'init');
+		jest.spyOn(Generator.prototype, 'start');
+		jest.spyOn(Generator.prototype, 'stop');
+		jest.spyOn(RPCServer.prototype, 'init');
+		jest.spyOn(RPCServer.prototype, 'start');
+		jest.spyOn(RPCServer.prototype, 'stop');
+		jest.spyOn(RPCServer.prototype, 'registerEndpoint');
+		jest.spyOn(RPCServer.prototype, 'registerNotFoundEndpoint');
 
-		node = new Node({
-			options: nodeOptions,
-		});
-		sampleNodeModule = new SampleNodeModule();
-		sampleNodeModule.addDependencies(node.bftAPI, node.validatorAPI);
-		node.registerModule(sampleNodeModule);
-	});
-
-	describe('constructor', () => {
-		it('should successfully create all instance', () => {
-			expect(node['_network']).toBeDefined();
-			expect(node['_chain']).toBeDefined();
-			expect(node['_stateMachine']).toBeDefined();
-			expect(node['_validatorsModule']).toBeDefined();
-			expect(node['_bftModule']).toBeDefined();
-			expect(node['_consensus']).toBeDefined();
-			expect(node['_generator']).toBeDefined();
-		});
-
-		it('should register system modules to state machine and generator', () => {
-			expect(node['_registeredModules']).toHaveLength(3);
-			expect(node['_stateMachine']['_systemModules']).toHaveLength(2);
-			expect(node['_stateMachine']['_modules']).toHaveLength(1);
-			expect(node['_generator']['_modules']).toHaveLength(3);
-		});
-	});
-
-	describe('init', () => {
-		beforeEach(async () => {
-			// Act
-			jest.spyOn(node['_chain'], 'genesisBlockExist').mockResolvedValue(true);
-			jest.spyOn(node['_chain'], 'loadLastBlocks').mockResolvedValue();
-			jest.spyOn(node['_network'], 'init');
-			jest.spyOn(node['_generator'], 'init').mockResolvedValue();
-			jest.spyOn(node['_consensus'], 'init');
-			jest.spyOn(node['_consensus'].events, 'on');
-			const genesisBlock = await node.generateGenesisBlock({ assets: [] });
-			jest.spyOn(sampleNodeModule, 'init');
-			await node.init({
-				channel,
-				blockchainDB,
-				forgerDB,
-				nodeDB,
-				logger: fakeLogger,
-				genesisBlock,
-			});
-		});
-
-		it('should initialize network', () => {
-			expect(node['_network'].init).toHaveBeenCalledTimes(1);
-		});
-
-		it('should initialize consensus', () => {
-			expect(node['_consensus'].init).toHaveBeenCalledTimes(1);
-		});
-
-		it('should initialize generator', () => {
-			expect(node['_generator'].init).toHaveBeenCalledTimes(1);
-		});
-
-		it('should initialize all register modules', () => {
-			expect(sampleNodeModule.init).toHaveBeenCalledTimes(1);
-		});
-
-		it('should register consensus event handler', () => {
-			expect(node['_consensus'].events.on).toHaveBeenCalledWith(
-				CONSENSUS_EVENT_BLOCK_NEW,
-				expect.anything(),
-			);
-			expect(node['_consensus'].events.on).toHaveBeenCalledWith(
-				CONSENSUS_EVENT_BLOCK_DELETE,
-				expect.anything(),
-			);
-		});
-	});
-
-	describe('getRegisteredModules', () => {
-		// eslint-disable-next-line jest/expect-expect
-		it('should return currently registered modules information', () => {});
-	});
-
-	describe('getSchema', () => {
-		it('should return schema for defaults and all registered modules', () => {
-			const schema = node.getSchema();
-			expect(schema.block).not.toBeEmpty();
-			expect(schema.blockHeader).not.toBeEmpty();
-			expect(schema.transaction).not.toBeEmpty();
-			expect(schema.commands).toBeEmpty();
-		});
-	});
-
-	describe('registerModule', () => {
-		let sampleModule: SampleNodeModule;
-
-		beforeEach(() => {
-			sampleModule = new SampleNodeModule();
-			sampleModule.id = 1024;
-			sampleModule.name = 'sample2';
-		});
-
-		it('should throw an error if id is less than 2 when registering a module', () => {
-			// Arrange
-			// Act
-			sampleModule.id = 1;
-			// Assert
-			expect(() => node.registerModule(sampleModule)).toThrow(
-				'Custom module must have id greater than 2',
-			);
-		});
-
-		it('should throw an error if module id is missing', () => {
-			// Act
-			sampleModule.id = undefined as never;
-			// Assert
-			expect(() => node.registerModule(sampleModule)).toThrow(
-				"Custom module 'SampleNodeModule' is missing either one or both of the required properties: 'id', 'name'.",
-			);
-		});
-
-		it('should throw an error if module name is missing', () => {
-			// Act
-			sampleModule.name = '';
-			// Assert
-			expect(() => node.registerModule(sampleModule)).toThrow(
-				"Custom module 'SampleNodeModule' is missing either one or both of the required properties: 'id', 'name'.",
-			);
-		});
-
-		it('should throw an error if command does not extend BaseCommand', () => {
-			// Act
-			class SampleCommand {
-				public name = 'asset';
-				public id = 0;
-				public schema = {
-					$id: 'lisk/sample',
-					type: 'object',
-					properties: {},
-				};
-				public async execute(): Promise<void> {}
-			}
-			sampleModule.name = 'SampleModule';
-			sampleModule.id = 999999;
-			sampleModule.commands.push(new SampleCommand() as any);
-			// Assert
-			expect(() => node.registerModule(sampleModule)).toThrow(
-				'Custom module contains command which does not extend `BaseCommand` class.',
-			);
-		});
-
-		it('should throw an error if command id is invalid', () => {
-			// Act
-			class SampleCommand extends BaseCommand {
-				public name = 'asset';
-				public id = null as any;
-				public schema = {
-					$id: 'lisk/sample',
-					type: 'object',
-					properties: {},
-				};
-				public async execute(): Promise<void> {}
-			}
-			sampleModule.name = 'SampleModule';
-			sampleModule.id = 999999;
-			sampleModule.commands.push(new SampleCommand(sampleModule.id));
-			// Assert
-			expect(() => node.registerModule(sampleModule)).toThrow(
-				'Custom module contains command with invalid `id` property.',
-			);
-		});
-
-		it('should throw an error if command name is invalid', () => {
-			// Act
-			class SampleCommand extends BaseCommand {
-				public name = '';
-				public id = 0;
-				public schema = {
-					$id: 'lisk/sample',
-					type: 'object',
-					properties: {},
-				};
-				public async execute(): Promise<void> {}
-			}
-			sampleModule.name = 'SampleModule';
-			sampleModule.id = 999999;
-			sampleModule.commands.push(new SampleCommand(sampleModule.id));
-			// Assert
-			expect(() => node.registerModule(sampleModule)).toThrow(
-				'Custom module contains command with invalid `name` property.',
-			);
-		});
-
-		it('should throw an error if command execute is invalid', () => {
-			// Act
-			class SampleCommand extends BaseCommand {
-				public name = 'asset';
-				public id = 0;
-				public schema = {
-					$id: 'lisk/sample',
-					type: 'object',
-					properties: {},
-				};
-				public execute = {} as any;
-			}
-			sampleModule.name = 'SampleModule';
-			sampleModule.id = 999999;
-			sampleModule.commands.push(new SampleCommand(sampleModule.id));
-			// Assert
-			expect(() => node.registerModule(sampleModule)).toThrow(
-				'Custom module contains command with invalid `execute` property.',
-			);
-		});
-
-		it('should add custom module to collection.', () => {
-			// Act
-			node.registerModule(sampleModule);
-
-			// Assert
-			expect(node['_registeredModules']).toHaveLength(4);
-		});
+		node = new Node(abi);
 	});
 
 	describe('start', () => {
 		beforeEach(async () => {
 			// Arrange
-			jest.spyOn(node['_chain'], 'genesisBlockExist').mockResolvedValue(true);
-			jest.spyOn(node['_chain'], 'loadLastBlocks').mockResolvedValue();
-			jest.spyOn(node['_network'], 'start');
-			jest.spyOn(node['_generator'], 'init').mockResolvedValue();
-			jest.spyOn(node['_generator'], 'start');
-			const genesisBlock = await node.generateGenesisBlock({ assets: [] });
-			await node.init({
-				channel,
-				blockchainDB,
-				forgerDB,
-				nodeDB,
-				logger: fakeLogger,
-				genesisBlock,
+			await node.start();
+		});
+
+		it('should initialize logger', () => {
+			expect(logger.createLogger).toHaveBeenCalledWith({
+				module: 'engine',
+				fileLogLevel: 'info',
+				consoleLogLevel: 'debug',
+				logFilePath: `/home/lisk/.lisk-test/logs`,
 			});
 		});
 
-		it('should call start for network and generator', async () => {
+		it('should initialize and start network', () => {
+			expect(Network.prototype.init).toHaveBeenCalledTimes(1);
+			expect(Network.prototype.start).toHaveBeenCalledTimes(1);
+		});
+
+		it('should initialize and start consensus', () => {
+			expect(Consensus.prototype.init).toHaveBeenCalledTimes(1);
+			expect(Consensus.prototype.start).toHaveBeenCalledTimes(1);
+		});
+
+		it('should initialize and start generator', () => {
+			expect(Generator.prototype.init).toHaveBeenCalledTimes(1);
+			expect(Generator.prototype.start).toHaveBeenCalledTimes(1);
+		});
+
+		it('should initialize and start rpc server', () => {
+			expect(RPCServer.prototype.init).toHaveBeenCalledTimes(1);
+			expect(RPCServer.prototype.start).toHaveBeenCalledTimes(1);
+		});
+
+		it('should register consensus event handler', () => {
+			expect(node['_consensus'].events.eventNames()).toHaveLength(3);
+			expect(node['_consensus'].events.eventNames()).toContain(CONSENSUS_EVENT_BLOCK_DELETE);
+			expect(node['_consensus'].events.eventNames()).toContain(CONSENSUS_EVENT_BLOCK_NEW);
+		});
+
+		it('should register endpoints', () => {
+			expect(node['_rpcServer'].registerEndpoint).toHaveBeenCalledWith(
+				'chain',
+				expect.any(String),
+				expect.any(Function),
+			);
+			expect(node['_rpcServer'].registerEndpoint).toHaveBeenCalledWith(
+				'system',
+				expect.any(String),
+				expect.any(Function),
+			);
+			expect(node['_rpcServer'].registerEndpoint).toHaveBeenCalledWith(
+				'generator',
+				expect.any(String),
+				expect.any(Function),
+			);
+			expect(node['_rpcServer'].registerNotFoundEndpoint).toHaveBeenCalledWith(
+				expect.any(Function),
+			);
+		});
+	});
+
+	describe('stop', () => {
+		beforeEach(async () => {
+			// Arrange
 			await node.start();
-			expect(node['_network'].start).toHaveBeenCalledTimes(1);
-			expect(node['_generator'].start).toHaveBeenCalledTimes(1);
+			await node.stop();
+		});
+
+		it('should stop network', () => {
+			expect(Network.prototype.stop).toHaveBeenCalledTimes(1);
+		});
+
+		it('should stop consensus', () => {
+			expect(Consensus.prototype.stop).toHaveBeenCalledTimes(1);
+		});
+
+		it('should stop generator', () => {
+			expect(Generator.prototype.stop).toHaveBeenCalledTimes(1);
+		});
+
+		it('should stop rpc server', () => {
+			expect(RPCServer.prototype.stop).toHaveBeenCalledTimes(1);
 		});
 	});
 });

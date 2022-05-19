@@ -12,43 +12,40 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Chain } from '@liskhq/lisk-chain';
-import { BaseModule } from '../../modules';
-import { ModuleMetadata } from '../../modules/base_module';
+import { ABI, InitResponse } from '../../abi';
 import { Consensus } from '../consensus';
 import { Generator } from '../generator';
 import { RequestContext } from '../rpc/rpc_server';
-import { NodeOptions } from '../types';
 
 interface EndpointArgs {
+	abi: ABI;
 	chain: Chain;
 	consensus: Consensus;
 	generator: Generator;
-	registeredModules: BaseModule[];
-	options: NodeOptions;
+	config: InitResponse['config'];
 }
 
-type ModuleMetadataWithRoot = { id: number; name: string } & ModuleMetadata;
 export class SystemEndpoint {
 	[key: string]: unknown;
+	private readonly _abi: ABI;
 	private readonly _chain: Chain;
 	private readonly _consensus: Consensus;
 	private readonly _generator: Generator;
-	private readonly _options: NodeOptions;
-	private readonly _registeredModules: BaseModule[];
+	private readonly _config: InitResponse['config'];
 
 	public constructor(args: EndpointArgs) {
+		this._abi = args.abi;
 		this._chain = args.chain;
 		this._consensus = args.consensus;
 		this._generator = args.generator;
-		this._options = args.options;
-		this._registeredModules = args.registeredModules;
+		this._config = args.config;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async getNodeInfo(_context: RequestContext) {
 		return {
-			version: this._options.version,
-			networkVersion: this._options.networkVersion,
+			version: this._config.system.version,
+			networkVersion: this._config.system.networkVersion,
 			networkIdentifier: this._chain.networkIdentifier.toString('hex'),
 			lastBlockID: this._chain.lastBlock.header.id.toString('hex'),
 			height: this._chain.lastBlock.header.height,
@@ -56,32 +53,21 @@ export class SystemEndpoint {
 			syncing: this._consensus.syncing(),
 			unconfirmedTransactions: this._generator.getPooledTransactions().length,
 			genesis: {
-				...this._options.genesis,
+				...this._config.genesis,
 			},
 			network: {
-				port: this._options.network.port,
-				hostIp: this._options.network.hostIp,
-				seedPeers: this._options.network.seedPeers,
-				blacklistedIPs: this._options.network.blacklistedIPs,
-				fixedPeers: this._options.network.fixedPeers,
-				whitelistedPeers: this._options.network.whitelistedPeers,
+				port: this._config.network.port,
+				hostIp: this._config.network.hostIP,
+				seedPeers: this._config.network.seedPeers,
+				blacklistedIPs: this._config.network.blacklistedIPs,
+				fixedPeers: this._config.network.fixedPeers,
+				whitelistedPeers: this._config.network.whitelistedPeers,
 			},
 		};
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getMetadata(_ctx: RequestContext): Promise<{ modules: ModuleMetadataWithRoot[] }> {
-		const modules = this._registeredModules.map(mod => {
-			const meta = mod.metadata();
-			return {
-				id: mod.id,
-				name: mod.name,
-				...meta,
-			};
-		});
-		modules.sort((a, b) => a.id - b.id);
-		return {
-			modules,
-		};
+	public async getMetadata(_ctx: RequestContext): Promise<Record<string, unknown>> {
+		const { data } = await this._abi.getMetadata({});
+		return JSON.parse(data.toString()) as Record<string, unknown>;
 	}
 }

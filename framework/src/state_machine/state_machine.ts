@@ -12,61 +12,31 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { EVENT_STANDARD_TYPE_ID } from '@liskhq/lisk-chain';
-import { standardEventDataSchema } from '@liskhq/lisk-chain/dist-node/schema';
-import { codec, Schema } from '@liskhq/lisk-codec';
+import { EVENT_STANDARD_TYPE_ID, standardEventDataSchema } from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
+import { BaseCommand, BaseModule } from '../modules';
+import { GenesisConfig } from '../types';
 import { BlockContext } from './block_context';
 import { GenerationContext } from './generator_context';
 import { GenesisBlockContext } from './genesis_block_context';
 import { TransactionContext } from './transaction_context';
-import {
-	BlockExecuteContext,
-	GenesisBlockExecuteContext,
-	TransactionVerifyContext,
-	TransactionExecuteContext,
-	VerifyStatus,
-	BlockVerifyContext,
-	VerificationResult,
-	CommandVerifyContext,
-	CommandExecuteContext,
-	BlockAfterExecuteContext,
-	InsertAssetContext,
-} from './types';
-
-export interface StateMachineCommand {
-	id: number;
-	schema?: Schema;
-	verify?: <T = unknown>(ctx: CommandVerifyContext<T>) => Promise<VerificationResult>;
-	execute: <T = unknown>(ctx: CommandExecuteContext<T>) => Promise<void>;
-}
-
-export interface StateMachineModule {
-	id: number;
-	commands: StateMachineCommand[];
-	initBlock?: (ctx: InsertAssetContext) => Promise<void>;
-	verifyTransaction?: (ctx: TransactionVerifyContext) => Promise<VerificationResult>;
-	initGenesisState?: (ctx: GenesisBlockExecuteContext) => Promise<void>;
-	finalizeGenesisState?: (ctx: GenesisBlockExecuteContext) => Promise<void>;
-	verifyAssets?: (ctx: BlockVerifyContext) => Promise<void>;
-	beforeTransactionsExecute?: (ctx: BlockExecuteContext) => Promise<void>;
-	afterTransactionsExecute?: (ctx: BlockAfterExecuteContext) => Promise<void>;
-	beforeCommandExecute?: (ctx: TransactionExecuteContext) => Promise<void>;
-	afterCommandExecute?: (ctx: TransactionExecuteContext) => Promise<void>;
-}
+import { VerifyStatus, VerificationResult } from './types';
 
 export class StateMachine {
-	private readonly _modules: StateMachineModule[] = [];
-	private readonly _systemModules: StateMachineModule[] = [];
+	private readonly _modules: BaseModule[] = [];
+	private readonly _systemModules: BaseModule[] = [];
 	private readonly _moduleIDs: number[] = [];
 
-	public registerModule(mod: StateMachineModule): void {
+	private _initialized = false;
+
+	public registerModule(mod: BaseModule): void {
 		this._validateExistingModuleID(mod.id);
 		this._modules.push(mod);
 		this._moduleIDs.push(mod.id);
 		this._moduleIDs.sort((a, b) => a - b);
 	}
 
-	public registerSystemModule(mod: StateMachineModule): void {
+	public registerSystemModule(mod: BaseModule): void {
 		this._validateExistingModuleID(mod.id);
 		this._systemModules.push(mod);
 		this._moduleIDs.push(mod.id);
@@ -75,6 +45,26 @@ export class StateMachine {
 
 	public getAllModuleIDs() {
 		return this._moduleIDs;
+	}
+
+	public async init(
+		genesisConfig: GenesisConfig,
+		generatorConfig: Record<string, Record<string, unknown>> = {},
+		moduleConfig: Record<string, Record<string, unknown>> = {},
+	): Promise<void> {
+		if (this._initialized) {
+			return;
+		}
+		for (const mod of this._modules) {
+			if (mod.init) {
+				await mod.init({
+					moduleConfig: moduleConfig[mod.name] ?? {},
+					generatorConfig: generatorConfig[mod.name] ?? {},
+					genesisConfig,
+				});
+			}
+		}
+		this._initialized = true;
 	}
 
 	public async executeGenesisBlock(ctx: GenesisBlockContext): Promise<void> {
@@ -246,7 +236,7 @@ export class StateMachine {
 		await this.afterExecuteBlock(ctx);
 	}
 
-	private _findModule(id: number): StateMachineModule | undefined {
+	private _findModule(id: number): BaseModule | undefined {
 		const existingModule = this._modules.find(m => m.id === id);
 		if (existingModule) {
 			return existingModule;
@@ -258,7 +248,7 @@ export class StateMachine {
 		return undefined;
 	}
 
-	private _getCommand(moduleID: number, commandID: number): StateMachineCommand {
+	private _getCommand(moduleID: number, commandID: number): BaseCommand {
 		const targetModule = this._findModule(moduleID);
 		if (!targetModule) {
 			throw new Error(`Module with ID ${moduleID} is not registered.`);
