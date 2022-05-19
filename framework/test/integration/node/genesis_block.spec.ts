@@ -19,7 +19,7 @@ import { TokenModule } from '../../../src';
 import { genesisTokenStoreSchema } from '../../../src/modules/token';
 import { GenesisTokenStore } from '../../../src/modules/token/types';
 import { Consensus } from '../../../src/node/consensus';
-import { createAPIContext, EventQueue } from '../../../src/node/state_machine';
+import { createAPIContext, EventQueue } from '../../../src/state_machine';
 import { Network } from '../../../src/node/network';
 
 describe('genesis block', () => {

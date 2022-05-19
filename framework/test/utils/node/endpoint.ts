@@ -16,7 +16,7 @@
 import { StateStore } from '@liskhq/lisk-chain';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { ModuleEndpointContext } from '../../../src';
-import { createImmutableAPIContext } from '../../../src/node/state_machine';
+import { createImmutableAPIContext } from '../../../src/state_machine';
 import { fakeLogger } from './node';
 
 export const createContext = (

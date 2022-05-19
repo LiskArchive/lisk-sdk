@@ -28,7 +28,7 @@ import {
 } from './constants';
 import { TransferCommand } from './commands/transfer';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
-import { GenesisBlockExecuteContext } from '../../node/state_machine';
+import { GenesisBlockExecuteContext } from '../../state_machine';
 import {
 	AvailableLocalIDStoreData,
 	availableLocalIDStoreSchema,

@@ -45,7 +45,7 @@ import {
 	AbortError,
 } from '../../../../src/node/consensus/synchronizer/errors';
 import { Network } from '../../../../src/node/network';
-import { StateMachine } from '../../../../src/node/state_machine/state_machine';
+import { StateMachine } from '../../../../src/state_machine/state_machine';
 import { loggerMock } from '../../../../src/testing/mocks';
 import {
 	createFakeBlockHeader,
@@ -55,7 +55,7 @@ import {
 } from '../../../fixtures';
 import * as forkchoice from '../../../../src/node/consensus/fork_choice/fork_choice_rule';
 import { postBlockEventSchema } from '../../../../src/node/consensus/schema';
-import { APIContext } from '../../../../src/node/state_machine';
+import { APIContext } from '../../../../src/state_machine';
 import { createTransientAPIContext } from '../../../../src/testing';
 import { fakeLogger } from '../../../utils/node';
 import { BFTAPI } from '../../../../src/node/bft';

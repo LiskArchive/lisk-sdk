@@ -14,7 +14,7 @@
 import { p2pTypes } from '@liskhq/lisk-p2p';
 import { Schema } from '@liskhq/lisk-codec';
 import { Logger } from './logger';
-import { ImmutableAPIContext, ImmutableSubStore } from './node/state_machine';
+import { ImmutableAPIContext, ImmutableSubStore } from './state_machine';
 import { RPC_MODES } from './constants';
 
 export interface SocketPaths {

@@ -27,7 +27,7 @@ import {
 	GenesisBlockContext,
 	ImmutableSubStore,
 	TransactionContext,
-} from '../node/state_machine';
+} from '../state_machine';
 import { loggerMock } from './mocks';
 import { BlockGenerateContext } from '../node/generator';
 import { WritableBlockAssets } from '../node/generator/types';

@@ -28,7 +28,7 @@ import {
 	updateGeneratorKeyCommandParamsSchema,
 } from '../../../../src/modules/dpos_v2/schemas';
 import { UpdateGeneratorKeyParams, ValidatorsAPI } from '../../../../src/modules/dpos_v2/types';
-import { VerifyStatus } from '../../../../src/node/state_machine';
+import { VerifyStatus } from '../../../../src/state_machine';
 
 describe('Update generator key command', () => {
 	let updateGeneratorCommand: UpdateGeneratorKeyCommand;

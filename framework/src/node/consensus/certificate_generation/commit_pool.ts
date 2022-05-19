@@ -19,7 +19,7 @@ import { KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { EMPTY_BUFFER, NETWORK_EVENT_COMMIT_MESSAGES, COMMIT_RANGE_STORED } from './constants';
 import { BFTParameterNotFoundError } from '../../bft/errors';
-import { APIContext } from '../../state_machine/types';
+import { APIContext } from '../../../state_machine/types';
 import { PkSigPair, AggregateCommit } from '../types';
 import { Certificate, CommitPoolConfig, SingleCommit, ValidatorInfo } from './types';
 
@@ -32,7 +32,7 @@ import {
 } from './utils';
 import { Network } from '../../network';
 import { singleCommitSchema, singleCommitsNetworkPacketSchema } from './schema';
-import { createNewAPIContext } from '../../state_machine/api_context';
+import { createNewAPIContext } from '../../../state_machine/api_context';
 import { CommitList, COMMIT_SORT } from './commit_list';
 import { BFTAPI } from '../../bft';
 

@@ -13,7 +13,7 @@
  */
 
 import { BlockAssets, BlockHeader, StateStore } from '@liskhq/lisk-chain';
-import { Logger } from '../../logger';
+import { Logger } from '../logger';
 import { createAPIContext } from './api_context';
 import { EventQueue } from './event_queue';
 import { InsertAssetContext } from './types';

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { CommandExecuteContext } from '../../../node/state_machine/types';
+import { CommandExecuteContext } from '../../../state_machine/types';
 import { BaseCommand } from '../../base_command';
 import {
 	COMMAND_ID_UNLOCK,

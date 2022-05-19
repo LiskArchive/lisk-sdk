@@ -41,8 +41,8 @@ import {
 	userStoreSchema,
 } from '../../../../../src/modules/token/schemas';
 import { getUserStoreKey } from '../../../../../src/modules/token/utils';
-import { EventQueue } from '../../../../../src/node/state_machine';
-import { APIContext, createAPIContext } from '../../../../../src/node/state_machine/api_context';
+import { EventQueue } from '../../../../../src/state_machine';
+import { APIContext, createAPIContext } from '../../../../../src/state_machine/api_context';
 import { fakeLogger } from '../../../../utils/node';
 
 describe('CrossChain Transfer command', () => {

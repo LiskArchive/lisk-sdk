@@ -38,7 +38,7 @@ import {
 	PomTransactionParams,
 } from '../../../../../src/modules/dpos_v2/types';
 import { delegateStoreSchema } from '../../../../../src/modules/dpos_v2/schemas';
-import { VerifyStatus } from '../../../../../src/node/state_machine/types';
+import { VerifyStatus } from '../../../../../src/state_machine/types';
 import { DEFAULT_TOKEN_ID } from '../../../../utils/node/transaction';
 
 describe('ReportDelegateMisbehaviorCommand', () => {

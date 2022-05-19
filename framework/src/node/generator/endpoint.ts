@@ -27,7 +27,7 @@ import { dataStructures } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { Logger } from '../../logger';
 import { Generator } from '../../types';
-import { EventQueue, StateMachine, TransactionContext, VerifyStatus } from '../state_machine';
+import { EventQueue, StateMachine, TransactionContext, VerifyStatus } from '../../state_machine';
 import { Broadcaster } from './broadcaster';
 import { InvalidTransactionError } from './errors';
 import { GeneratorStore } from './generator_store';

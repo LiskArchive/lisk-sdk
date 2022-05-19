@@ -29,8 +29,8 @@ import {
 	genesisDataSchema,
 	validatorAccountSchema,
 } from '../../../../src/modules/validators/schemas';
-import { APIContext, createNewAPIContext } from '../../../../src/node/state_machine/api_context';
-import { EventQueue } from '../../../../src/node/state_machine';
+import { APIContext, createNewAPIContext } from '../../../../src/state_machine/api_context';
+import { EventQueue } from '../../../../src/state_machine';
 import { ValidatorKeys } from '../../../../src/modules/validators/types';
 
 describe('ValidatorsModuleAPI', () => {

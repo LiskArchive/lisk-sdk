@@ -40,7 +40,7 @@ import {
 	UnlockingObject,
 	VoterData,
 } from '../../../../../src/modules/dpos_v2/types';
-import { CommandExecuteContext } from '../../../../../src/node/state_machine/types';
+import { CommandExecuteContext } from '../../../../../src/state_machine/types';
 import { liskToBeddows } from '../../../../utils/assets';
 
 describe('UnlockCommand', () => {

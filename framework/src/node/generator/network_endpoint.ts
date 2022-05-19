@@ -37,7 +37,7 @@ import {
 	postTransactionsAnnouncementSchema,
 } from './schemas';
 import { InvalidTransactionError } from './errors';
-import { TransactionContext, EventQueue, StateMachine, VerifyStatus } from '../state_machine';
+import { TransactionContext, EventQueue, StateMachine, VerifyStatus } from '../../state_machine';
 import { Broadcaster } from './broadcaster';
 
 interface NetworkEndpointArgs {

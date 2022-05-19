@@ -38,7 +38,7 @@ import {
 	userStoreSchema,
 } from '../../../../src/modules/token/schemas';
 import { getUserStoreKey } from '../../../../src/modules/token/utils';
-import { APIContext, createAPIContext, EventQueue } from '../../../../src/node/state_machine';
+import { APIContext, createAPIContext, EventQueue } from '../../../../src/state_machine';
 import { fakeLogger } from '../../../utils/node';
 
 describe('CrossChain Forward command', () => {

@@ -16,8 +16,8 @@
 
 import { Schema } from '@liskhq/lisk-codec';
 import { Logger } from '../../logger';
-import { APIContext, EventQueue } from '../../node/state_machine';
-import { SubStore } from '../../node/state_machine/types';
+import { APIContext, EventQueue } from '../../state_machine';
+import { SubStore } from '../../state_machine/types';
 
 export interface ActiveValidator {
 	blsKey: Buffer;

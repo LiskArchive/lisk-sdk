@@ -17,7 +17,7 @@ import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { defaultConfig, MODULE_ID_REWARD } from './constants';
 import { BFTAPI, ModuleConfig, RandomAPI, TokenAPI, TokenIDReward } from './types';
-import { BlockAfterExecuteContext } from '../../node/state_machine';
+import { BlockAfterExecuteContext } from '../../state_machine';
 import { RewardAPI } from './api';
 import { RewardEndpoint } from './endpoint';
 import {

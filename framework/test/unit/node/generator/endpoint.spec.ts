@@ -27,7 +27,7 @@ import { InvalidTransactionError } from '../../../../src/node/generator/errors';
 import { GeneratorStore } from '../../../../src/node/generator/generator_store';
 import { previouslyGeneratedInfoSchema } from '../../../../src/node/generator/schemas';
 import { Consensus, Keypair } from '../../../../src/node/generator/types';
-import { StateMachine, VerifyStatus } from '../../../../src/node/state_machine';
+import { StateMachine, VerifyStatus } from '../../../../src/state_machine';
 import { fakeLogger } from '../../../utils/node';
 
 describe('generator endpoint', () => {

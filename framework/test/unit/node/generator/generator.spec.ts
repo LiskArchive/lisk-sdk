@@ -29,7 +29,7 @@ import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { Generator } from '../../../../src/node/generator';
 import { Consensus, GeneratorModule } from '../../../../src/node/generator/types';
 import { Network } from '../../../../src/node/network';
-import { EventQueue, StateMachine } from '../../../../src/node/state_machine';
+import { EventQueue, StateMachine } from '../../../../src/state_machine';
 import { configUtils } from '../../../utils';
 import { fakeLogger } from '../../../utils/node';
 

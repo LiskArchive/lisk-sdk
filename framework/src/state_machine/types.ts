@@ -14,7 +14,7 @@
 import { Transaction } from '@liskhq/lisk-chain';
 import { IterateOptions } from '@liskhq/lisk-chain/dist-node/state_store';
 import { Schema } from '@liskhq/lisk-codec';
-import { Logger } from '../../logger';
+import { Logger } from '../logger';
 
 export interface EventQueueAdder {
 	add(moduleID: number, typeID: Buffer, data: Buffer, topics?: Buffer[], noRevert?: boolean): void;

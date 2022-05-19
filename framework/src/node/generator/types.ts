@@ -25,7 +25,7 @@ import {
 	BlockHeader as IBlockHeader,
 	ImmutableAPIContext,
 	ImmutableSubStore,
-} from '../state_machine';
+} from '../../state_machine';
 import { ValidatorInfo } from '../consensus/certificate_generation/types';
 
 export interface Keypair {

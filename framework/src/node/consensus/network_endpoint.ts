@@ -37,8 +37,8 @@ import {
 } from './schema';
 import { CommitPool } from './certificate_generation/commit_pool';
 import { singleCommitSchema } from './certificate_generation/schema';
-import { APIContext } from '../state_machine/types';
-import { createNewAPIContext } from '../state_machine/api_context';
+import { APIContext } from '../../state_machine/types';
+import { createNewAPIContext } from '../../state_machine/api_context';
 import { BaseNetworkEndpoint } from '../network/base_network_endpoint';
 
 export interface EndpointArgs {

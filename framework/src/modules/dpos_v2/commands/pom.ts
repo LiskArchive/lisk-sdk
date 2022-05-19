@@ -19,7 +19,7 @@ import {
 	VerificationResult,
 	VerifyStatus,
 	CommandExecuteContext,
-} from '../../../node/state_machine/types';
+} from '../../../state_machine/types';
 import { BaseCommand } from '../../base_command';
 import {
 	COMMAND_ID_POM,

@@ -22,7 +22,7 @@ import {
 	WAIT_TIME_SELF_VOTE,
 	WAIT_TIME_VOTE,
 } from './constants';
-import { SubStore } from '../../node/state_machine/types';
+import { SubStore } from '../../state_machine/types';
 import { voterStoreSchema } from './schemas';
 
 export const sortUnlocking = (unlocks: UnlockingObject[]): void => {

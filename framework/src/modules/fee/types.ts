@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { APIContext } from '../../node/state_machine/types';
+import { APIContext } from '../../state_machine/types';
 
 export interface BaseFee {
 	moduleID: number;

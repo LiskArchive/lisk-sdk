@@ -16,7 +16,7 @@ import { Transaction } from '@liskhq/lisk-chain';
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { verifyData } from '@liskhq/lisk-cryptography';
 import { isHexString } from '@liskhq/lisk-validator';
-import { VerificationResult, VerifyStatus } from '../../node/state_machine';
+import { VerificationResult, VerifyStatus } from '../../state_machine';
 import { InvalidNonceError } from './errors';
 import { AuthAccount, Keys } from './types';
 

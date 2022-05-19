@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ImmutableAPIContext } from '../../node/state_machine';
+import { ImmutableAPIContext } from '../../state_machine';
 import { BaseAPI } from '../base_api';
 import {
 	MAX_LENGTH_NAME,

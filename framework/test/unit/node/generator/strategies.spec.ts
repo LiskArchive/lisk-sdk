@@ -24,7 +24,7 @@ import {
 	invalidTxCase,
 	allInvalidCase,
 } from './forging_fixtures';
-import { StateMachine, VerifyStatus } from '../../../../src/node/state_machine';
+import { StateMachine, VerifyStatus } from '../../../../src/state_machine';
 import { fakeLogger } from '../../../utils/node';
 
 const getTxMock = (

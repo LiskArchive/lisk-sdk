@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ImmutableAPIContext, BlockHeader, BlockAssets } from '../../node/state_machine';
+import { ImmutableAPIContext, BlockHeader, BlockAssets } from '../../state_machine';
 import { BaseAPI } from '../base_api';
 import { calculateDefaultReward } from './calculate_reward';
 import { REWARD_REDUCTION_FACTOR_BFT } from './constants';

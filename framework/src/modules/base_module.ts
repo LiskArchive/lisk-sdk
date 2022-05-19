@@ -23,7 +23,7 @@ import {
 	TransactionVerifyContext,
 	BlockVerifyContext,
 	VerificationResult,
-} from '../node/state_machine';
+} from '../state_machine';
 import { BlockGenerateContext } from '../node/generator';
 import { BaseCommand } from './base_command';
 import { BaseEndpoint } from './base_endpoint';
