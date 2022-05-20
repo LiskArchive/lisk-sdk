@@ -17,7 +17,7 @@ import { objects as objectUtils, dataStructures, objects } from '@liskhq/lisk-ut
 import { isUInt64, LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { GenesisBlockExecuteContext, BlockAfterExecuteContext } from '../../node/state_machine';
-import { BaseModule, ModuleInitArgs } from '../base_module';
+import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { DPoSAPI } from './api';
 import { DelegateRegistrationCommand } from './commands/delegate_registration';
 import { ReportDelegateMisbehaviorCommand } from './commands/pom';
@@ -45,6 +45,11 @@ import {
 	delegateStoreSchema,
 	genesisDataStoreSchema,
 	genesisStoreSchema,
+	getAllDelegatesResponseSchema,
+	getDelegateRequestSchema,
+	getDelegateResponseSchema,
+	getVoterRequestSchema,
+	getVoterResponseSchema,
 	nameStoreSchema,
 	previousTimestampStoreSchema,
 	snapshotStoreSchema,
@@ -128,6 +133,39 @@ export class DPoSModule extends BaseModule {
 		this._voteCommand.addDependencies({
 			tokenAPI: this._tokenAPI,
 		});
+	}
+
+	public metadata(): ModuleMetadata {
+		return {
+			endpoints: [
+				{
+					name: this.endpoint.getAllDelegates.name,
+					response: getAllDelegatesResponseSchema,
+				},
+				{
+					name: this.endpoint.getDelegate.name,
+					request: getDelegateRequestSchema,
+					response: getDelegateResponseSchema,
+				},
+				{
+					name: this.endpoint.getVoter.name,
+					request: getVoterRequestSchema,
+					response: getVoterResponseSchema,
+				},
+			],
+			commands: this.commands.map(command => ({
+				id: command.id,
+				name: command.name,
+				params: command.schema,
+			})),
+			events: [],
+			assets: [
+				{
+					version: 0,
+					data: genesisStoreSchema,
+				},
+			],
+		};
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

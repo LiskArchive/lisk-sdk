@@ -13,7 +13,7 @@
  */
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { objects } from '@liskhq/lisk-utils';
-import { BaseModule, ModuleInitArgs } from '../../modules/base_module';
+import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../../modules/base_module';
 import { BFTAPI } from './api';
 import { BFTEndpoint } from './endpoint';
 import {
@@ -56,6 +56,15 @@ export class BFTModule extends BaseModule {
 		this._batchSize = config.batchSize as number;
 		this.api.init(this._batchSize);
 		this._maxLengthBlockBFTInfos = 3 * this._batchSize;
+	}
+
+	public metadata(): ModuleMetadata {
+		return {
+			endpoints: [],
+			commands: [],
+			events: [],
+			assets: [],
+		};
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {

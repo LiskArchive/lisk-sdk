@@ -89,3 +89,15 @@ export const validateBLSKeyRequestSchema = {
 	},
 	required: ['proofOfPossession', 'blsKey'],
 };
+
+export const validateBLSKeyResponseSchema = {
+	$id: '/validators/endpoint/validateBLSKeyResponse',
+	title: 'Bls Key Properties',
+	type: 'object',
+	properties: {
+		valid: {
+			type: 'boolean',
+		},
+	},
+	required: ['valid'],
+};

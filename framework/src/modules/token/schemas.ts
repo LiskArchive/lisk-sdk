@@ -467,6 +467,35 @@ export const getBalanceRequestSchema = {
 	required: ['address', 'tokenID'],
 };
 
+export const getBalanceResponseSchema = {
+	$id: '/token/endpoint/getBalanceResponse',
+	type: 'object',
+	required: ['availableBalance', 'lockedBalances'],
+	properties: {
+		availableBalance: {
+			type: 'string',
+			format: 'uint64',
+		},
+		lockedBalances: {
+			type: 'array',
+			items: {
+				type: 'object',
+				required: ['moduleID', 'amount'],
+				properties: {
+					moduleID: {
+						type: 'integer',
+						format: 'uint32',
+					},
+					amount: {
+						type: 'string',
+						format: 'uint64',
+					},
+				},
+			},
+		},
+	},
+};
+
 export const getBalancesRequestSchema = {
 	$id: '/token/endpoint/getBalance',
 	type: 'object',
@@ -479,4 +508,112 @@ export const getBalancesRequestSchema = {
 		},
 	},
 	required: ['address'],
+};
+
+export const getBalancesResponseSchema = {
+	$id: '/token/endpoint/getBalancesResponse',
+	type: 'object',
+	required: ['balances'],
+	properties: {
+		balances: {
+			type: 'array',
+			items: {
+				type: 'object',
+				required: ['availableBalance', 'lockedBalances', 'tokenID'],
+				properties: {
+					tokenID: {
+						type: 'string',
+						format: 'hex',
+					},
+					availableBalance: {
+						type: 'string',
+						format: 'uint64',
+					},
+					lockedBalances: {
+						type: 'array',
+						items: {
+							type: 'object',
+							required: ['moduleID', 'amount'],
+							properties: {
+								moduleID: {
+									type: 'integer',
+									format: 'uint32',
+								},
+								amount: {
+									type: 'string',
+									format: 'uint64',
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	},
+};
+
+export const getTotalSupplyResponseSchema = {
+	$id: '/token/endpoint/getTotalSupplyResponse',
+	type: 'object',
+	properties: {
+		totalSupply: {
+			type: 'array',
+			items: {
+				type: 'object',
+				required: ['totalSupply', 'tokenID'],
+				properties: {
+					tokenID: {
+						type: 'string',
+						format: 'hex',
+					},
+					totalSupply: {
+						type: 'string',
+						format: 'uint64',
+					},
+				},
+			},
+		},
+	},
+};
+
+export const getSupportedTokensResponseSchema = {
+	$id: '/token/endpoint/getSupportedTokensResponse',
+	type: 'object',
+	properties: {
+		tokenIDs: {
+			type: 'array',
+			items: {
+				type: 'string',
+				format: 'hex',
+			},
+		},
+	},
+};
+
+export const getEscrowedAmountsResponseSchema = {
+	$id: '/token/endpoint/getEscrowedAmountsResponse',
+	type: 'object',
+	properties: {
+		escrowedAmounts: {
+			type: 'array',
+			items: {
+				type: 'object',
+				required: ['escrowChainID', 'totalSupply', 'tokenID'],
+				properties: {
+					escrowChainID: {
+						type: 'string',
+						format: 'hex',
+					},
+					tokenID: {
+						type: 'string',
+						format: 'hex',
+					},
+					amount: {
+						type: 'string',
+						format: 'uint64',
+					},
+				},
+			},
+		},
+	},
 };
