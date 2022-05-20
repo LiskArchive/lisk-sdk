@@ -1,3 +1,17 @@
+/*
+ * Copyright © 2022 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
 import { Transaction } from '@liskhq/lisk-chain';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
@@ -15,7 +29,7 @@ import {
 } from '../../../../../../src/modules/interoperability/constants';
 import {
 	ccmSchema,
-	messageRecoveryParams,
+	messageRecoveryParamsSchema,
 } from '../../../../../../src/modules/interoperability/schema';
 import { createTransactionContext } from '../../../../../../src/testing';
 import {
@@ -36,7 +50,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 			siblingHashes: [getRandomBytes(32)],
 		};
 
-		encodedTransactionParams = codec.encode(messageRecoveryParams, transactionParams);
+		encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
 
 		transaction = new Transaction({
 			moduleID: MODULE_ID_INTEROPERABILITY,
@@ -53,7 +67,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		});
 
 		commandExecuteContext = transactionContext.createCommandExecuteContext<MessageRecoveryParams>(
-			messageRecoveryParams,
+			messageRecoveryParamsSchema,
 		);
 
 		return commandExecuteContext;
@@ -168,6 +182,8 @@ describe('Sidechain MessageRecoveryCommand', () => {
 				partnerChainInboxSize: 1,
 			});
 	});
+
+	// The verify hook is already tested under ../../mainchain/commands/message_recovery.ts hence not added here to avoid duplication
 
 	it('should process CCM successfully', async () => {
 		// Arrange

@@ -15,9 +15,9 @@
 import { Logger } from '../../logger';
 import { Validator } from '../../node/consensus/types';
 import { APIContext, EventQueue } from '../../node/state_machine';
-import { ImmutableAPIContext, SubStore } from '../../node/state_machine/types';
+import { ImmutableAPIContext, ImmutableSubStore, SubStore } from '../../node/state_machine/types';
 
-export type StoreCallback = (moduleID: number, storePrefix: number) => SubStore;
+export type StoreCallback = (moduleID: number, storePrefix: number) => SubStore | ImmutableSubStore;
 export interface CCMsg {
 	readonly nonce: bigint;
 	readonly moduleID: number;
@@ -248,6 +248,13 @@ export interface MessageRecoveryParams {
 	idxs: number[];
 	siblingHashes: Buffer[];
 }
+
+export interface MessageRecoveryVerificationParams {
+	crossChainMessages: Buffer[];
+	idxs: number[];
+	siblingHashes: Buffer[];
+}
+
 export interface StoreEntry {
 	storePrefix: number;
 	storeKey: Buffer;

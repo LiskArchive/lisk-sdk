@@ -1,29 +1,74 @@
+/*
+ * Copyright © 2022 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
 import { codec } from '@liskhq/lisk-codec';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { hash } from '@liskhq/lisk-cryptography';
-import { CommandExecuteContext, VerificationResult } from '../../../../node/state_machine';
+import { NotFoundError } from '@liskhq/lisk-chain';
+import {
+	CommandExecuteContext,
+	CommandVerifyContext,
+	VerificationResult,
+} from '../../../../node/state_machine/types';
+import { CCMsg, StoreCallback, MessageRecoveryParams, TerminatedOutboxAccount } from '../../types';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
-import { BaseInteroperableAPI } from '../../base_interoperable_api';
+import { SidechainInteroperabilityStore } from '../store';
+import {
+	getIDAsKeyForStore,
+	verifyMessageRecovery,
+	swapReceivingAndSendingChainIDs,
+} from '../../utils';
 import {
 	CCM_STATUS_RECOVERED,
 	COMMAND_ID_MESSAGE_RECOVERY,
 	EMPTY_FEE_ADDRESS,
 } from '../../constants';
+import { ccmSchema, messageRecoveryParamsSchema } from '../../schema';
+import { BaseInteroperableAPI } from '../../base_interoperable_api';
 import { createCCCommandExecuteContext } from '../../context';
-import { ccmSchema, messageRecoveryParams } from '../../schema';
-import { CCMsg, StoreCallback, MessageRecoveryParams } from '../../types';
-import { getIDAsKeyForStore, swapReceivingAndSendingChainIDs } from '../../utils';
-import { SidechainInteroperabilityStore } from '../store';
 
 export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
 	public id = COMMAND_ID_MESSAGE_RECOVERY;
 	public name = 'messageRecovery';
-	public schema = messageRecoveryParams;
+	public schema = messageRecoveryParamsSchema;
 
-	// TODO
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async verify(): Promise<VerificationResult> {
-		throw new Error('Method not implemented.');
+	public async verify(
+		context: CommandVerifyContext<MessageRecoveryParams>,
+	): Promise<VerificationResult> {
+		const {
+			params: { chainID, idxs, crossChainMessages, siblingHashes },
+			getStore,
+		} = context;
+		const chainIdAsBuffer = getIDAsKeyForStore(chainID);
+		const interoperabilityStore = this.getInteroperabilityStore(getStore);
+		let terminatedChainOutboxAccount: TerminatedOutboxAccount;
+
+		try {
+			terminatedChainOutboxAccount = await interoperabilityStore.getTerminatedOutboxAccount(
+				chainIdAsBuffer,
+			);
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+			return verifyMessageRecovery({ idxs, crossChainMessages, siblingHashes });
+		}
+
+		return verifyMessageRecovery(
+			{ idxs, crossChainMessages, siblingHashes },
+			terminatedChainOutboxAccount,
+		);
 	}
 
 	public async execute(context: CommandExecuteContext<MessageRecoveryParams>): Promise<void> {
