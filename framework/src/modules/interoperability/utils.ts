@@ -12,12 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { codec } from '@liskhq/lisk-codec';
 import { hash, intToBuffer } from '@liskhq/lisk-cryptography';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
-import { MAX_CCM_SIZE } from './constants';
-import { ActiveValidators, CCMsg, ChainAccount } from './types';
+import { CCM_STATUS_OK, MAX_CCM_SIZE } from './constants';
+import {
+	ActiveValidators,
+	CCMsg,
+	ChainAccount,
+	MessageRecoveryVerificationParams,
+	TerminatedOutboxAccount,
+} from './types';
 import { ccmSchema, sidechainTerminatedCCMParamsSchema, validatorsHashInputSchema } from './schema';
+import { VerifyStatus } from '../../node/state_machine/types';
 
 // Returns the big endian uint32 serialization of an integer x, with 0 <= x < 2^32 which is 4 bytes long.
 export const getIDAsKeyForStore = (id: number) => intToBuffer(id, 4);
@@ -107,6 +115,61 @@ export const computeValidatorsHash = (
 export const sortValidatorsByBLSKey = (validators: ActiveValidators[]) =>
 	validators.sort((a, b) => a.blsKey.compare(b.blsKey));
 
+export const verifyMessageRecovery = (
+	params: MessageRecoveryVerificationParams,
+	terminatedChainOutboxAccount?: TerminatedOutboxAccount,
+) => {
+	if (!terminatedChainOutboxAccount) {
+		return {
+			status: VerifyStatus.FAIL,
+			error: new Error('Terminated outbox account does not exist'),
+		};
+	}
+
+	const { idxs, crossChainMessages, siblingHashes } = params;
+	for (const index of idxs) {
+		if (index < terminatedChainOutboxAccount.partnerChainInboxSize) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Cross chain messages are still pending'),
+			};
+		}
+	}
+
+	const deserializedCCMs = crossChainMessages.map(serializedCcm =>
+		codec.decode<CCMsg>(ccmSchema, serializedCcm),
+	);
+	for (const ccm of deserializedCCMs) {
+		if (ccm.status !== CCM_STATUS_OK) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Cross chain message that needs to be recovered is not valid'),
+			};
+		}
+	}
+
+	const proof = {
+		size: terminatedChainOutboxAccount.outboxSize,
+		idxs,
+		siblingHashes,
+	};
+	const hashedCCMs = crossChainMessages.map(ccm => hash(ccm));
+	const isVerified = regularMerkleTree.verifyDataBlock(
+		hashedCCMs,
+		proof,
+		terminatedChainOutboxAccount.outboxRoot,
+	);
+	if (!isVerified) {
+		return {
+			status: VerifyStatus.FAIL,
+			error: new Error('The sidechain outbox root is not valid'),
+		};
+	}
+
+	return {
+		status: VerifyStatus.OK,
+	};
+};
 export const swapReceivingAndSendingChainIDs = (ccm: CCMsg) => ({
 	...ccm,
 	receivingChainID: ccm.sendingChainID,

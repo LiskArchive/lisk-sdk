@@ -54,7 +54,7 @@ import {
 	OwnChainAccount,
 	CCMApplyContext,
 	StoreCallback,
-	TerminatedOutboxAccount as TerminatedOutbox,
+	TerminatedOutboxAccount,
 } from './types';
 import { getCCMSize, getIDAsKeyForStore } from './utils';
 import {
@@ -225,15 +225,22 @@ export abstract class BaseInteroperabilityStore {
 		await terminatedOutboxSubstore.setWithSchema(chainID, terminatedOutbox, terminatedOutboxSchema);
 	}
 
+	public async hasTerminatedOutboxAccount(chainID: Buffer) {
+		const terminatedOutboxSubstore = this.getStore(
+			MODULE_ID_INTEROPERABILITY,
+			STORE_PREFIX_TERMINATED_OUTBOX,
+		);
+		return terminatedOutboxSubstore.has(chainID);
+	}
+
 	public async setTerminatedOutboxAccount(
 		chainID: Buffer,
-		params: Partial<TerminatedOutbox>,
+		params: Partial<TerminatedOutboxAccount>,
 	): Promise<boolean> {
 		// Passed params is empty, no need to call this method
 		if (Object.keys(params).length === 0) {
 			return false;
 		}
-
 		const terminatedOutboxSubstore = this.getStore(
 			MODULE_ID_INTEROPERABILITY,
 			STORE_PREFIX_TERMINATED_OUTBOX,
@@ -245,7 +252,7 @@ export abstract class BaseInteroperabilityStore {
 			return false;
 		}
 
-		const account = await terminatedOutboxSubstore.getWithSchema<TerminatedOutbox>(
+		const account = await terminatedOutboxSubstore.getWithSchema<TerminatedOutboxAccount>(
 			chainID,
 			terminatedOutboxSchema,
 		);
@@ -266,9 +273,7 @@ export abstract class BaseInteroperabilityStore {
 			STORE_PREFIX_TERMINATED_OUTBOX,
 		);
 
-		const doesOutboxExist = await terminatedOutboxSubstore.has(chainID);
-
-		return doesOutboxExist;
+		return terminatedOutboxSubstore.has(chainID);
 	}
 
 	public async getTerminatedOutboxAccount(chainID: Buffer) {
@@ -277,11 +282,10 @@ export abstract class BaseInteroperabilityStore {
 			STORE_PREFIX_TERMINATED_OUTBOX,
 		);
 
-		const terminatedOutboxAccount = await terminatedOutboxSubstore.getWithSchema<TerminatedOutbox>(
+		return terminatedOutboxSubstore.getWithSchema<TerminatedOutboxAccount>(
 			chainID,
 			terminatedOutboxSchema,
 		);
-		return terminatedOutboxAccount;
 	}
 
 	public async createTerminatedStateAccount(chainID: number, stateRoot?: Buffer): Promise<boolean> {

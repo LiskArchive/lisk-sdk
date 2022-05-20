@@ -248,6 +248,13 @@ export interface MessageRecoveryParams {
 	idxs: number[];
 	siblingHashes: Buffer[];
 }
+
+export interface MessageRecoveryVerificationParams {
+	crossChainMessages: Buffer[];
+	idxs: number[];
+	siblingHashes: Buffer[];
+}
+
 export interface StoreEntry {
 	storePrefix: number;
 	storeKey: Buffer;
