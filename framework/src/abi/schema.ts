@@ -56,6 +56,7 @@ export const eventSchema = {
 export const validatorSchema = {
 	$id: 'abi/validator',
 	type: 'object',
+	required: ['address', 'bftWeight', 'generatorKey', 'blsKey'],
 	properties: {
 		address: {
 			fieldNumber: 1,
@@ -79,6 +80,7 @@ export const validatorSchema = {
 export const consensusSchema = {
 	$id: 'abi/consensus',
 	type: 'object',
+	required: ['currentValidators', 'implyMaxPrevote', 'maxHeightCertified'],
 	properties: {
 		currentValidators: {
 			fieldNumber: 1,
@@ -107,6 +109,7 @@ export const initRequestSchema = {
 export const networkPeerSchema = {
 	$id: 'abi/networkPeer',
 	type: 'object',
+	required: ['ip', 'host'],
 	properties: {
 		ip: {
 			fieldNumber: 1,
@@ -119,9 +122,269 @@ export const networkPeerSchema = {
 	},
 };
 
+const systemConfigSchema = {
+	type: 'object',
+	required: [
+		'version',
+		'networkVersion',
+		'dataPath',
+		'maxBlockCache',
+		'maxBlockCache',
+		'keepEventsForHeights',
+	],
+	properties: {
+		version: {
+			fieldNumber: 1,
+			dataType: 'string',
+		},
+		networkVersion: {
+			fieldNumber: 2,
+			dataType: 'string',
+		},
+		dataPath: {
+			fieldNumber: 3,
+			dataType: 'string',
+		},
+		maxBlockCache: {
+			fieldNumber: 4,
+			dataType: 'uint32',
+		},
+		keepEventsForHeights: {
+			fieldNumber: 5,
+			dataType: 'uint32',
+		},
+	},
+};
+
+const rpcConfigSchema = {
+	type: 'object',
+	required: ['modes', 'ipc', 'ws', 'http'],
+	properties: {
+		modes: {
+			fieldNumber: 1,
+			type: 'array',
+			items: {
+				dataType: 'string',
+			},
+		},
+		ipc: {
+			fieldNumber: 2,
+			type: 'object',
+			required: ['path'],
+			properties: {
+				path: {
+					fieldNumber: 1,
+					dataType: 'string',
+				},
+			},
+		},
+		ws: {
+			fieldNumber: 3,
+			type: 'object',
+			required: ['host', 'port'],
+			properties: {
+				host: {
+					fieldNumber: 1,
+					dataType: 'string',
+				},
+				port: {
+					fieldNumber: 2,
+					dataType: 'uint32',
+				},
+			},
+		},
+		http: {
+			fieldNumber: 4,
+			type: 'object',
+			required: ['host', 'port'],
+			properties: {
+				host: {
+					fieldNumber: 1,
+					dataType: 'string',
+				},
+				port: {
+					fieldNumber: 2,
+					dataType: 'uint32',
+				},
+			},
+		},
+	},
+};
+
+const loggerConfigSchema = {
+	type: 'object',
+	required: ['consoleLogLevel', 'fileLogLevel'],
+	properties: {
+		consoleLogLevel: {
+			fieldNumber: 1,
+			dataType: 'string',
+		},
+		fileLogLevel: {
+			fieldNumber: 2,
+			dataType: 'string',
+		},
+	},
+};
+
+const genesisConfigSchema = {
+	type: 'object',
+	required: [
+		'communityIdentifier',
+		'maxTransactionsSize',
+		'minFeePerByte',
+		'blockTime',
+		'bftBatchSize',
+	],
+	properties: {
+		communityIdentifier: {
+			fieldNumber: 1,
+			dataType: 'string',
+		},
+		maxTransactionsSize: {
+			fieldNumber: 2,
+			dataType: 'uint32',
+		},
+		minFeePerByte: {
+			fieldNumber: 3,
+			dataType: 'uint32',
+		},
+		blockTime: {
+			fieldNumber: 4,
+			dataType: 'uint32',
+		},
+		bftBatchSize: {
+			fieldNumber: 5,
+			dataType: 'uint32',
+		},
+	},
+};
+
+const networkConfigSchema = {
+	type: 'object',
+	required: [
+		'port',
+		'hostIP',
+		'seedPeers',
+		'fixedPeers',
+		'whitelistedPeers',
+		'blacklistedIPs',
+		'maxOutboundConnections',
+		'maxInboundConnections',
+		'advertiseAddress',
+	],
+	properties: {
+		port: {
+			fieldNumber: 1,
+			dataType: 'uint32',
+		},
+		hostIP: {
+			fieldNumber: 2,
+			dataType: 'string',
+		},
+		seedPeers: {
+			fieldNumber: 3,
+			...networkPeerSchema,
+		},
+		fixedPeers: {
+			fieldNumber: 4,
+			...networkPeerSchema,
+		},
+		whitelistedPeers: {
+			fieldNumber: 5,
+			...networkPeerSchema,
+		},
+		blacklistedIPs: {
+			fieldNumber: 6,
+			type: 'array',
+			items: {
+				dataType: 'string',
+			},
+		},
+		maxOutboundConnections: {
+			fieldNumber: 7,
+			dataType: 'uint32',
+		},
+		maxInboundConnections: {
+			fieldNumber: 8,
+			dataType: 'uint32',
+		},
+		advertiseAddress: {
+			fieldNumber: 9,
+			dataType: 'boolean',
+		},
+	},
+};
+
+const txpoolConfigSchema = {
+	type: 'object',
+	required: [
+		'maxTransactions',
+		'maxTransactionsPerAccount',
+		'transactionExpiryTime',
+		'minEntranceFeePriority',
+		'minReplacementFeeDifference',
+	],
+	properties: {
+		maxTransactions: {
+			fieldNumber: 1,
+			dataType: 'uint32',
+		},
+		maxTransactionsPerAccount: {
+			fieldNumber: 2,
+			dataType: 'uint32',
+		},
+		transactionExpiryTime: {
+			fieldNumber: 3,
+			dataType: 'uint32',
+		},
+		minEntranceFeePriority: {
+			fieldNumber: 4,
+			dataType: 'uint32',
+		},
+		minReplacementFeeDifference: {
+			fieldNumber: 5,
+			dataType: 'uint32',
+		},
+	},
+};
+
+const generatorConfigSchema = {
+	type: 'object',
+	required: ['password', 'force', 'keys'],
+	properties: {
+		password: {
+			fieldNumber: 1,
+			dataType: 'string',
+		},
+		force: {
+			fieldNumber: 2,
+			dataType: 'boolean',
+		},
+		keys: {
+			fieldNumber: 3,
+			type: 'array',
+			items: {
+				type: 'object',
+				required: ['address', 'encryptedPassphrase'],
+				properties: {
+					address: {
+						fieldNumber: 1,
+						dataType: 'bytes',
+					},
+					encryptedPassphrase: {
+						fieldNumber: 2,
+						dataType: 'string',
+					},
+				},
+			},
+		},
+	},
+};
+
 export const initResponseSchema = {
 	$id: 'abi/initResponse',
 	type: 'object',
+	required: ['registeredModules', 'genesisBlock', 'config'],
 	properties: {
 		registeredModules: {
 			fieldNumber: 1,
@@ -150,214 +413,31 @@ export const initResponseSchema = {
 			properties: {
 				system: {
 					fieldNumber: 1,
-					type: 'object',
-					properties: {
-						networkVersion: {
-							fieldNumber: 1,
-							dataType: 'string',
-						},
-						dataPath: {
-							fieldNumber: 2,
-							dataType: 'string',
-						},
-						maxBlockCache: {
-							fieldNumber: 3,
-							dataType: 'uint32',
-						},
-					},
+					...systemConfigSchema,
 				},
 				rpc: {
 					fieldNumber: 2,
-					type: 'object',
-					properties: {
-						modes: {
-							fieldNumber: 1,
-							type: 'array',
-							items: {
-								dataType: 'string',
-							},
-						},
-						ipc: {
-							fieldNumber: 2,
-							type: 'object',
-							properties: {
-								path: {
-									fieldNumber: 1,
-									dataType: 'string',
-								},
-							},
-						},
-						ws: {
-							fieldNumber: 2,
-							type: 'object',
-							properties: {
-								host: {
-									fieldNumber: 1,
-									dataType: 'string',
-								},
-								port: {
-									fieldNumber: 2,
-									dataType: 'uint32',
-								},
-							},
-						},
-						http: {
-							fieldNumber: 3,
-							type: 'object',
-							properties: {
-								host: {
-									fieldNumber: 1,
-									dataType: 'string',
-								},
-								port: {
-									fieldNumber: 2,
-									dataType: 'uint32',
-								},
-							},
-						},
-					},
+					...rpcConfigSchema,
 				},
 				logger: {
 					fieldNumber: 3,
-					type: 'object',
-					properties: {
-						consoleLogLevel: {
-							fieldNumber: 1,
-							dataType: 'string',
-						},
-						fileLogLevel: {
-							fieldNumber: 2,
-							dataType: 'string',
-						},
-					},
+					...loggerConfigSchema,
 				},
 				genesis: {
 					fieldNumber: 4,
-					type: 'object',
-					properties: {
-						communityIdentifier: {
-							fieldNumber: 1,
-							dataType: 'string',
-						},
-						maxTransactionsSize: {
-							fieldNumber: 2,
-							dataType: 'uint32',
-						},
-						maxFeePerByte: {
-							fieldNumber: 3,
-							dataType: 'uint32',
-						},
-						blockTime: {
-							fieldNumber: 4,
-							dataType: 'uint32',
-						},
-						bftBatchSize: {
-							fieldNumber: 5,
-							dataType: 'uint32',
-						},
-					},
+					...genesisConfigSchema,
 				},
 				network: {
 					fieldNumber: 5,
-					type: 'object',
-					properties: {
-						port: {
-							fieldNumber: 1,
-							dataType: 'uint32',
-						},
-						hostIP: {
-							fieldNumber: 2,
-							dataType: 'string',
-						},
-						seedPeers: {
-							fieldNumber: 3,
-							...networkPeerSchema,
-						},
-						fixedPeers: {
-							fieldNumber: 4,
-							...networkPeerSchema,
-						},
-						whitelistedPeers: {
-							fieldNumber: 5,
-							...networkPeerSchema,
-						},
-						blackListedIPs: {
-							fieldNumber: 6,
-							type: 'array',
-							items: {
-								dataType: 'string',
-							},
-						},
-						maxOutboundConnections: {
-							fieldNumber: 7,
-							dataType: 'uint32',
-						},
-						maxInboundConnections: {
-							fieldNumber: 8,
-							dataType: 'uint32',
-						},
-						advertiseAddress: {
-							fieldNumber: 9,
-							dataType: 'boolean',
-						},
-					},
+					...networkConfigSchema,
 				},
 				txpool: {
 					fieldNumber: 6,
-					type: 'object',
-					properties: {
-						maxTransactions: {
-							fieldNumber: 1,
-							dataType: 'uint32',
-						},
-						maxTransactionsPerAccount: {
-							fieldNumber: 2,
-							dataType: 'uint32',
-						},
-						transactionExpiryTime: {
-							fieldNumber: 3,
-							dataType: 'uint32',
-						},
-						minEntranceFeePriority: {
-							fieldNumber: 4,
-							dataType: 'uint32',
-						},
-						minReplacementFeeDifference: {
-							fieldNumber: 5,
-							dataType: 'uint32',
-						},
-					},
+					...txpoolConfigSchema,
 				},
 				generator: {
 					fieldNumber: 7,
-					type: 'object',
-					properties: {
-						password: {
-							fieldNumber: 1,
-							dataType: 'string',
-						},
-						force: {
-							fieldNumber: 2,
-							dataType: 'boolean',
-						},
-						keys: {
-							fieldNumber: 3,
-							type: 'array',
-							items: {
-								type: 'object',
-								properties: {
-									address: {
-										fieldNumber: 1,
-										dataType: 'bytes',
-									},
-									encryptedPassphrase: {
-										fieldNumber: 2,
-										dataType: 'string',
-									},
-								},
-							},
-						},
-					},
+					...generatorConfigSchema,
 				},
 			},
 		},
@@ -367,6 +447,7 @@ export const initResponseSchema = {
 export const initStateMachineRequestSchema = {
 	$id: 'abi/initStateMachineRequest',
 	type: 'object',
+	required: ['networkIdentifier', 'header'],
 	properties: {
 		networkIdentifier: {
 			fieldNumber: 1,
@@ -382,6 +463,7 @@ export const initStateMachineRequestSchema = {
 export const initStateMachineResponseSchema = {
 	$id: 'abi/initStateMachineResponse',
 	type: 'object',
+	required: ['contextID'],
 	properties: {
 		contextID: {
 			fieldNumber: 1,
@@ -393,6 +475,7 @@ export const initStateMachineResponseSchema = {
 export const initGenesisStateRequestSchema = {
 	$id: 'abi/initGenesisStateRequest',
 	type: 'object',
+	required: ['contextID'],
 	properties: {
 		contextID: {
 			fieldNumber: 1,
@@ -404,6 +487,7 @@ export const initGenesisStateRequestSchema = {
 export const initGenesisStateResponseSchema = {
 	$id: 'abi/initGenesisStateResponse',
 	type: 'object',
+	required: ['assets', 'events', 'preCommitThreshold', 'certificateThreshold', 'nextValidators'],
 	properties: {
 		assets: {
 			fieldNumber: 1,
@@ -440,6 +524,7 @@ export const initGenesisStateResponseSchema = {
 export const insertAssetsRequestSchema = {
 	$id: 'abi/insertAssetsRequest',
 	type: 'object',
+	required: ['contextID', 'finalizedHeight'],
 	properties: {
 		contextID: {
 			fieldNumber: 1,
@@ -455,6 +540,7 @@ export const insertAssetsRequestSchema = {
 export const insertAssetsResponseSchema = {
 	$id: 'abi/insertAssetsResponse',
 	type: 'object',
+	required: ['assets'],
 	properties: {
 		assets: {
 			fieldNumber: 1,
@@ -469,6 +555,7 @@ export const insertAssetsResponseSchema = {
 export const verifyAssetsRequestSchema = {
 	$id: 'abi/verifyAssetsRequest',
 	type: 'object',
+	required: ['contextID', 'assets'],
 	properties: {
 		contextID: {
 			fieldNumber: 1,
@@ -493,6 +580,7 @@ export const verifyAssetsResponseSchema = {
 export const beforeTransactionsExecuteRequestSchema = {
 	$id: 'abi/beforeTransactionsExecuteRequest',
 	type: 'object',
+	required: ['contextID', 'assets', 'consensus'],
 	properties: {
 		contextID: {
 			fieldNumber: 1,
@@ -515,6 +603,7 @@ export const beforeTransactionsExecuteRequestSchema = {
 export const beforeTransactionsExecuteResponseSchema = {
 	$id: 'abi/beforeTransactionsExecuteResponse',
 	type: 'object',
+	required: ['events'],
 	properties: {
 		events: {
 			fieldNumber: 1,
@@ -529,6 +618,7 @@ export const beforeTransactionsExecuteResponseSchema = {
 export const afterTransactionsExecuteRequestSchema = {
 	$id: 'abi/afterTransactionsExecuteRequest',
 	type: 'object',
+	required: ['contextID', 'assets', 'consensus', 'transactions'],
 	properties: {
 		contextID: {
 			fieldNumber: 1,
@@ -558,6 +648,7 @@ export const afterTransactionsExecuteRequestSchema = {
 export const afterTransactionsExecuteResponseSchema = {
 	$id: 'abi/afterTransactionsExecuteResponse',
 	type: 'object',
+	required: ['events', 'preCommitThreshold', 'certificateThreshold', 'nextValidators'],
 	properties: {
 		events: {
 			fieldNumber: 1,
@@ -587,6 +678,7 @@ export const afterTransactionsExecuteResponseSchema = {
 export const verifyTransactionRequestSchema = {
 	$id: 'abi/verifyTransactionRequest',
 	type: 'object',
+	required: ['contextID', 'networkIdentifier', 'transaction'],
 	properties: {
 		contextID: {
 			fieldNumber: 1,
@@ -606,10 +698,11 @@ export const verifyTransactionRequestSchema = {
 export const verifyTransactionResponseSchema = {
 	$id: 'abi/verifyTransactionResponse',
 	type: 'object',
+	required: ['result'],
 	properties: {
 		result: {
 			fieldNumber: 1,
-			dataType: 'uint32',
+			dataType: 'sint32',
 		},
 	},
 };
@@ -617,6 +710,7 @@ export const verifyTransactionResponseSchema = {
 export const executeTransactionRequestSchema = {
 	$id: 'abi/executeTransactionRequest',
 	type: 'object',
+	required: ['contextID', 'networkIdentifier', 'transaction', 'assets', 'dryRun', 'header'],
 	properties: {
 		contextID: {
 			fieldNumber: 1,
@@ -651,6 +745,7 @@ export const executeTransactionRequestSchema = {
 export const executeTransactionResponseSchema = {
 	$id: 'abi/executeTransactionResponse',
 	type: 'object',
+	required: ['events', 'result'],
 	properties: {
 		events: {
 			fieldNumber: 1,
@@ -661,7 +756,7 @@ export const executeTransactionResponseSchema = {
 		},
 		result: {
 			fieldNumber: 2,
-			dataType: 'uint32',
+			dataType: 'sint32',
 		},
 	},
 };
@@ -669,6 +764,7 @@ export const executeTransactionResponseSchema = {
 export const commitRequestSchema = {
 	$id: 'abi/commitRequest',
 	type: 'object',
+	required: ['contextID', 'stateRoot', 'expectedStateRoot', 'dryRun'],
 	properties: {
 		contextID: {
 			fieldNumber: 1,
@@ -703,6 +799,7 @@ export const commitResponseSchema = {
 export const revertRequestSchema = {
 	$id: 'abi/revertRequest',
 	type: 'object',
+	required: ['contextID', 'stateRoot', 'expectedStateRoot'],
 	properties: {
 		contextID: {
 			fieldNumber: 1,
@@ -722,6 +819,7 @@ export const revertRequestSchema = {
 export const revertResponseSchema = {
 	$id: 'abi/revertResponse',
 	type: 'object',
+	required: ['stateRoot'],
 	properties: {
 		stateRoot: {
 			fieldNumber: 1,
@@ -733,6 +831,7 @@ export const revertResponseSchema = {
 export const finalizeRequestSchema = {
 	$id: 'abi/finalizeRequest',
 	type: 'object',
+	required: ['finalizedHeight'],
 	properties: {
 		finalizedHeight: {
 			fieldNumber: 1,
@@ -750,6 +849,7 @@ export const finalizeResponseSchema = {
 export const clearRequestSchema = {
 	$id: 'abi/clearRequest',
 	type: 'object',
+	required: ['finalizedHeight'],
 	properties: {
 		finalizedHeight: {
 			fieldNumber: 1,
@@ -773,6 +873,7 @@ export const metadataRequestSchema = {
 export const metadataResponseSchema = {
 	$id: 'abi/metadataResponse',
 	type: 'object',
+	required: ['data'],
 	properties: {
 		data: {
 			fieldNumber: 1,
@@ -784,6 +885,7 @@ export const metadataResponseSchema = {
 export const queryRequestSchema = {
 	$id: 'abi/queryRequest',
 	type: 'object',
+	required: ['method', 'params', 'networkIdentifier', 'header'],
 	properties: {
 		method: {
 			fieldNumber: 1,
@@ -807,6 +909,7 @@ export const queryRequestSchema = {
 export const queryResponseSchema = {
 	$id: 'abi/queryResponse',
 	type: 'object',
+	required: ['data'],
 	properties: {
 		data: {
 			fieldNumber: 1,
@@ -818,6 +921,7 @@ export const queryResponseSchema = {
 export const proveRequestSchema = {
 	$id: 'abi/proveRequest',
 	type: 'object',
+	required: ['stateRoot', 'keys'],
 	properties: {
 		stateRoot: {
 			fieldNumber: 1,
@@ -836,10 +940,12 @@ export const proveRequestSchema = {
 export const proveResponseSchema = {
 	$id: 'abi/proveResponse',
 	type: 'object',
+	required: ['proof'],
 	properties: {
 		proof: {
 			fieldNumber: 1,
 			type: 'object',
+			required: ['siblingHashes', 'queries'],
 			properties: {
 				siblingHashes: {
 					fieldNumber: 1,
@@ -853,6 +959,7 @@ export const proveResponseSchema = {
 					type: 'array',
 					items: {
 						type: 'object',
+						required: ['key', 'value', 'bitmap'],
 						properties: {
 							key: {
 								fieldNumber: 1,
@@ -877,6 +984,7 @@ export const proveResponseSchema = {
 export const ipcRequestSchema = {
 	$id: 'abi/ipcRequest',
 	type: 'object',
+	required: ['id', 'method', 'params'],
 	properties: {
 		id: {
 			fieldNumber: 1,
@@ -896,6 +1004,7 @@ export const ipcRequestSchema = {
 export const ipcResponseSchema = {
 	$id: 'abi/ipcResponse',
 	type: 'object',
+	required: ['id', 'success', 'error', 'result'],
 	properties: {
 		id: {
 			fieldNumber: 1,
@@ -908,6 +1017,7 @@ export const ipcResponseSchema = {
 		error: {
 			type: 'object',
 			fieldNumber: 3,
+			required: ['message'],
 			properties: {
 				message: {
 					fieldNumber: 1,

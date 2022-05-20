@@ -104,9 +104,11 @@ export interface ModuleMeta {
 export interface InitRequest {}
 
 export interface SystemConfig {
+	version: string;
 	networkVersion: string;
 	dataPath: string;
 	maxBlockCache: number;
+	keepEventsForHeights: number;
 }
 
 export interface IPCRPCConfig {
@@ -138,7 +140,7 @@ export interface LoggerConfig {
 export interface GenesisConfig {
 	communityIdentifier: string;
 	maxTransactionsSize: number;
-	maxFeePerByte: number;
+	minFeePerByte: number;
 	blockTime: number;
 	bftBatchSize: number;
 }
@@ -154,7 +156,7 @@ export interface NetworkConfig {
 	seedPeers: NetworkPeer[];
 	fixedPeers: NetworkPeer[];
 	whitelistedPeers: NetworkPeer[];
-	blackListedIPs: string[];
+	blacklistedIPs: string[];
 	maxOutboundConnections: number;
 	maxInboundConnections: number;
 	advertiseAddress: boolean;
