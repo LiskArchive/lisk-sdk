@@ -11,8 +11,8 @@ Object {
     "bftBatchSize": 10,
     "blockTime": 10,
     "communityIdentifier": "sdk",
-    "maxFeePerByte": 1000,
     "maxTransactionsSize": 15360,
+    "minFeePerByte": 1000,
   },
   "logger": Object {
     "consoleLogLevel": "none",
@@ -21,7 +21,7 @@ Object {
   },
   "network": Object {
     "advertiseAddress": false,
-    "blackListedIPs": Array [],
+    "blacklistedIPs": Array [],
     "fixedPeers": Array [],
     "hostIP": "127.0.0.1",
     "maxInboundConnections": 100,
@@ -48,8 +48,10 @@ Object {
   },
   "system": Object {
     "dataPath": "/User/lisk/.lisk/beta-sdk-app",
+    "keepEventsForHeights": 300,
     "maxBlockCache": 515,
     "networkVersion": "1.1",
+    "version": "0.0.0",
   },
   "txpool": Object {
     "maxTransactions": 4096,

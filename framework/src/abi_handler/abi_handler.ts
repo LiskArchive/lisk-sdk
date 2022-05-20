@@ -158,6 +158,8 @@ export class ABIHandler implements ABI {
 				logger: this._config.logger,
 				system: {
 					dataPath,
+					keepEventsForHeights: this._config.system.keepEventsForHeights,
+					version: this._config.version,
 					maxBlockCache: MAX_BLOCK_CACHE,
 					networkVersion: this._config.networkVersion,
 				},
@@ -165,7 +167,7 @@ export class ABIHandler implements ABI {
 					bftBatchSize: this._config.genesis.blockTime,
 					blockTime: this._config.genesis.blockTime,
 					communityIdentifier: this._config.genesis.communityIdentifier,
-					maxFeePerByte: this._config.genesis.minFeePerByte,
+					minFeePerByte: this._config.genesis.minFeePerByte,
 					maxTransactionsSize: this._config.genesis.maxTransactionsSize,
 				},
 				generator: {
@@ -192,7 +194,7 @@ export class ABIHandler implements ABI {
 				network: {
 					...this._config.network,
 					port: this._config.network.port ?? DEFAULT_PORT_P2P,
-					blackListedIPs: this._config.network.blacklistedIPs ?? [],
+					blacklistedIPs: this._config.network.blacklistedIPs ?? [],
 					advertiseAddress: this._config.network.advertiseAddress ?? false,
 					fixedPeers: this._config.network.fixedPeers ?? [],
 					seedPeers: this._config.network.seedPeers,
