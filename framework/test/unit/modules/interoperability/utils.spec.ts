@@ -22,7 +22,6 @@ import {
 	EMPTY_BYTES,
 	LIVENESS_LIMIT,
 	STORE_PREFIX_CHANNEL_DATA,
-	VALID_BLS_KEY_LENGTH,
 } from '../../../../src/modules/interoperability/constants';
 import { channelSchema } from '../../../../src/modules/interoperability/schema';
 import {
@@ -214,12 +213,6 @@ describe('Utils', () => {
 		const sortedValidatorsList = [...activeValidatorsUpdate].sort((v1, v2) =>
 			v1.blsKey.compare(v2.blsKey),
 		);
-		const activeValidatorsUpdateWithInvalidKeyLength = [
-			{ blsKey: cryptography.getRandomBytes(16), bftWeight: BigInt(1) },
-			{ blsKey: cryptography.getRandomBytes(48), bftWeight: BigInt(3) },
-			{ blsKey: cryptography.getRandomBytes(48), bftWeight: BigInt(4) },
-			{ blsKey: cryptography.getRandomBytes(48), bftWeight: BigInt(3) },
-		];
 
 		const txParams = {
 			activeValidatorsUpdate,
@@ -245,14 +238,6 @@ describe('Utils', () => {
 			inboxUpdate: {},
 		};
 
-		const txParamsWithInvalidActiveValidatorsKeyLength = {
-			activeValidatorsUpdate: activeValidatorsUpdateWithInvalidKeyLength,
-			newCertificateThreshold: BigInt(10),
-			certificate: Buffer.alloc(2),
-			sendingChainID: 2,
-			inboxUpdate: {},
-		};
-
 		it('should return VerifyStatus.FAIL when certificate is empty', () => {
 			const { status, error } = checkActiveValidatorsUpdate(
 				txParamsWithEmptyCertificate as CrossChainUpdateTransactionParams,
@@ -260,17 +245,8 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.FAIL);
 			expect(error?.message).toEqual(
-				'Certificate cannot be empty when activeValidatorsUpdate is non-empty or newCertificateThreshold >0.',
+				'Certificate cannot be empty when activeValidatorsUpdate is non-empty or newCertificateThreshold > 0.',
 			);
-		});
-
-		it('should return VerifyStatus.FAIL for invalid key validator blsKey', () => {
-			const { status, error } = checkActiveValidatorsUpdate(
-				txParamsWithInvalidActiveValidatorsKeyLength as CrossChainUpdateTransactionParams,
-			);
-
-			expect(status).toEqual(VerifyStatus.FAIL);
-			expect(error?.message).toEqual(`BlsKey length should be equal to ${VALID_BLS_KEY_LENGTH}.`);
 		});
 
 		it('should return VerifyStatus.FAIL when validators blsKeys are not unique and lexicographically ordered', () => {

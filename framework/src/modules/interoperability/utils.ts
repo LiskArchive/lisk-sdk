@@ -39,7 +39,6 @@ import {
 	SMT_KEY_LENGTH,
 	STORE_PREFIX_CHANNEL_DATA,
 	STORE_PREFIX_OUTBOX_ROOT,
-	VALID_BLS_KEY_LENGTH,
 } from './constants';
 import {
 	ccmSchema,
@@ -295,7 +294,7 @@ export const checkActiveValidatorsUpdate = (
 		return {
 			status: VerifyStatus.FAIL,
 			error: new Error(
-				'Certificate cannot be empty when activeValidatorsUpdate is non-empty or newCertificateThreshold >0.',
+				'Certificate cannot be empty when activeValidatorsUpdate is non-empty or newCertificateThreshold > 0.',
 			),
 		};
 	}
@@ -304,12 +303,6 @@ export const checkActiveValidatorsUpdate = (
 	for (let i = 0; i < txParams.activeValidatorsUpdate.length - 1; i += 1) {
 		const currentValidator = txParams.activeValidatorsUpdate[i];
 		const nextValidator = txParams.activeValidatorsUpdate[i + 1];
-		if (currentValidator.blsKey.byteLength !== VALID_BLS_KEY_LENGTH) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error(`BlsKey length should be equal to ${VALID_BLS_KEY_LENGTH}.`),
-			};
-		}
 		if (currentValidator.blsKey.compare(nextValidator.blsKey) > -1) {
 			return {
 				status: VerifyStatus.FAIL,

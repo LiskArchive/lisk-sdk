@@ -143,6 +143,8 @@ export const chainValidatorsSchema = {
 					blsKey: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						minLength: 48,
+						maxLength: 48,
 					},
 					bftWeight: {
 						dataType: 'uint64',
@@ -400,6 +402,8 @@ export const crossChainUpdateTransactionParams = {
 					blsKey: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						minLength: 48,
+						maxLength: 48,
 					},
 					bftWeight: {
 						dataType: 'uint64',

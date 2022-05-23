@@ -26,7 +26,7 @@ export class SidechainCCChannelTerminatedCommand extends BaseInteroperabilityCCC
 	public async execute(context: CCCommandExecuteContext): Promise<void> {
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
 		if (!context.ccm) {
-			throw new Error('CCM is missing to execute channel terminated cross chain command.');
+			throw new Error('CCM to execute channel terminated cross chain command is missing.');
 		}
 		await interoperabilityStore.createTerminatedStateAccount(context.ccm.sendingChainID);
 	}
