@@ -190,7 +190,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		try {
 			decodedCCMs = txParams.inboxUpdate.crossChainMessages.map(ccm => ({
 				serialized: ccm,
-				deserilized: codec.decode<CCMsg>(ccmSchema, ccm),
+				deserialized: codec.decode<CCMsg>(ccmSchema, ccm),
 			}));
 		} catch (err) {
 			await interoperabilityStore.terminateChainInternal(
@@ -200,11 +200,14 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 
 			throw err;
 		}
-		if (partnerChainAccount.status === CHAIN_REGISTERED && !isInboxUpdateEmpty) {
+		if (
+			partnerChainAccount.status === CHAIN_REGISTERED &&
+			!isInboxUpdateEmpty(txParams.inboxUpdate)
+		) {
 			// If the first CCM in inboxUpdate is a registration CCM
 			if (
-				decodedCCMs[0].deserilized.crossChainCommandID === CROSS_CHAIN_COMMAND_ID_REGISTRATION &&
-				decodedCCMs[0].deserilized.receivingChainID === txParams.sendingChainID
+				decodedCCMs[0].deserialized.crossChainCommandID === CROSS_CHAIN_COMMAND_ID_REGISTRATION &&
+				decodedCCMs[0].deserialized.receivingChainID === txParams.sendingChainID
 			) {
 				partnerChainAccount.status = CHAIN_ACTIVE;
 			} else {
@@ -218,19 +221,23 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		}
 
 		for (const ccm of decodedCCMs) {
-			if (txParams.sendingChainID !== ccm.deserilized.sendingChainID) {
+			if (txParams.sendingChainID !== ccm.deserialized.sendingChainID) {
 				await interoperabilityStore.terminateChainInternal(
 					txParams.sendingChainID,
 					beforeSendContext,
 				);
+
+				continue;
 			}
 			try {
-				validateFormat(ccm.deserilized);
+				validateFormat(ccm.deserialized);
 			} catch (error) {
 				await interoperabilityStore.terminateChainInternal(
 					txParams.sendingChainID,
 					beforeSendContext,
 				);
+
+				continue;
 			}
 			await interoperabilityStore.appendToInboxTree(
 				getIDAsKeyForStore(txParams.sendingChainID),
@@ -239,7 +246,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 
 			await interoperabilityStore.apply(
 				{
-					ccm: ccm.deserilized,
+					ccm: ccm.deserialized,
 					ccu: txParams,
 					eventQueue: context.eventQueue,
 					feeAddress: context.transaction.senderAddress,
