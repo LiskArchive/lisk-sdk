@@ -317,15 +317,15 @@ export class ABIClient implements ABI {
 				this._logger.debug({ err: error as Error }, 'Failed to decode ABI response');
 				continue;
 			}
-			const defered = this._pendingRequests[response.id.toString()];
-			if (!defered) {
+			const deferred = this._pendingRequests[response.id.toString()];
+			if (!deferred) {
 				continue;
 			}
 
 			if (!response.success) {
-				defered.reject(new Error(response.error.message));
+				deferred.reject(new Error(response.error.message));
 			} else {
-				defered.resolve(response.result);
+				deferred.resolve(response.result);
 			}
 
 			delete this._pendingRequests[response.id.toString()];
