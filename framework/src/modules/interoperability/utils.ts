@@ -220,11 +220,17 @@ export const rawStateStoreKey = (storePrefix: number) => {
 };
 
 export const isInboxUpdateEmpty = (inboxUpdate: InboxUpdate) =>
-	inboxUpdate.crossChainMessages.length === 0 ||
-	inboxUpdate.messageWitness.siblingHashes.length === 0 ||
-	inboxUpdate.messageWitness.partnerChainOutboxSize === BigInt(0) ||
-	inboxUpdate.outboxRootWitness.siblingHashes.length === 0 ||
+	inboxUpdate.crossChainMessages.length === 0 &&
+	inboxUpdate.messageWitness.siblingHashes.length === 0 &&
+	inboxUpdate.messageWitness.partnerChainOutboxSize === BigInt(0) &&
+	inboxUpdate.outboxRootWitness.siblingHashes.length === 0 &&
 	inboxUpdate.outboxRootWitness.bitmap.length === 0;
+
+export const isCertificateEmpty = (decodedCertificate: Certificate) =>
+	decodedCertificate.blockID.equals(EMPTY_BYTES) ||
+	decodedCertificate.stateRoot.equals(EMPTY_BYTES) ||
+	decodedCertificate.validatorsHash.equals(EMPTY_BYTES) ||
+	decodedCertificate.timestamp === 0;
 
 export const checkLivenessRequirementFirstCCU = (
 	partnerChainAccount: ChainAccount,
@@ -255,12 +261,7 @@ export const checkCertificateValidity = (
 	}
 
 	const decodedCertificate = codec.decode<Certificate>(certificateSchema, encodedCertificate);
-	if (
-		decodedCertificate.blockID.equals(EMPTY_BYTES) ||
-		decodedCertificate.stateRoot.equals(EMPTY_BYTES) ||
-		decodedCertificate.validatorsHash.equals(EMPTY_BYTES) ||
-		decodedCertificate.timestamp === 0
-	) {
+	if (isCertificateEmpty(decodedCertificate)) {
 		return {
 			status: VerifyStatus.FAIL,
 			error: new Error('Certificate is missing required values.'),
@@ -345,47 +346,54 @@ export const checkInboxUpdateValidity = (
 		newInboxRoot = root;
 	}
 	// If inboxUpdate contains a non-empty messageWitness, then update newInboxRoot to the output
-	if (!txParams.certificate.equals(EMPTY_BYTES)) {
-		newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
-			newInboxSize,
-			newInboxAppendPath,
-			messageWitness.siblingHashes,
-		);
-
-		const proof = {
-			siblingHashes: outboxRootWitness.siblingHashes,
-			queries: [
-				{
-					key: partnerChainIDBuffer,
-					value: newInboxRoot,
-					bitmap: outboxRootWitness.bitmap,
-				},
-			],
-		};
-		const outboxKey = rawStateStoreKey(STORE_PREFIX_OUTBOX_ROOT);
-		const querykeys = [outboxKey];
-		const isSMTRootValid = sparseMerkleTree.verify(
-			querykeys,
-			proof,
-			decodedCertificate.stateRoot,
-			SMT_KEY_LENGTH,
-		);
-		if (!isSMTRootValid) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error(
-					'Failed at verifying state root when messageWitness and certificate are non-empty.',
-				),
-			};
-		}
-	} else {
+	if (
+		!txParams.certificate.equals(EMPTY_BYTES) &&
+		txParams.inboxUpdate.messageWitness.partnerChainOutboxSize !== BigInt(0) &&
+		txParams.inboxUpdate.messageWitness.siblingHashes.length !== 0
+	) {
 		newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
 			newInboxSize,
 			newInboxAppendPath,
 			messageWitness.siblingHashes,
 		);
 	}
-	if (!newInboxRoot.equals(partnerChannelData.partnerChainOutboxRoot)) {
+
+	const proof = {
+		siblingHashes: outboxRootWitness.siblingHashes,
+		queries: [
+			{
+				key: partnerChainIDBuffer,
+				value: newInboxRoot as Buffer,
+				bitmap: outboxRootWitness.bitmap,
+			},
+		],
+	};
+	const outboxKey = rawStateStoreKey(STORE_PREFIX_OUTBOX_ROOT);
+	const querykeys = [outboxKey];
+	const isSMTRootValid = sparseMerkleTree.verify(
+		querykeys,
+		proof,
+		decodedCertificate.stateRoot,
+		SMT_KEY_LENGTH,
+	);
+	if (!isSMTRootValid) {
+		return {
+			status: VerifyStatus.FAIL,
+			error: new Error(
+				'Failed at verifying state root when messageWitness and certificate are non-empty.',
+			),
+		};
+	}
+
+	if (isCertificateEmpty(decodedCertificate) && isInboxUpdateEmpty(txParams.inboxUpdate)) {
+		newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
+			newInboxSize,
+			newInboxAppendPath,
+			messageWitness.siblingHashes,
+		);
+	}
+
+	if (!(newInboxRoot as Buffer).equals(partnerChannelData.partnerChainOutboxRoot)) {
 		return {
 			status: VerifyStatus.FAIL,
 			error: new Error(

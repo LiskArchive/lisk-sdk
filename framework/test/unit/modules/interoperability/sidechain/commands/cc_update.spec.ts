@@ -152,7 +152,8 @@ describe('CrossChainUpdateCommand', () => {
 			{ blsKey: cryptography.getRandomBytes(48), bftWeight: BigInt(3) },
 			{ blsKey: cryptography.getRandomBytes(48), bftWeight: BigInt(4) },
 			{ blsKey: cryptography.getRandomBytes(48), bftWeight: BigInt(3) },
-		];
+		].sort((v1, v2) => v2.blsKey.compare(v1.blsKey)); // unsorted list
+
 		sortedActiveValidatorsUpdate = [...activeValidatorsUpdate].sort((v1, v2) =>
 			v1.blsKey.compare(v2.blsKey),
 		);
