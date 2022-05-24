@@ -27,6 +27,7 @@ import {
 	CrossChainUpdateTransactionParams,
 	ChainValidators,
 	InboxUpdate,
+	MsgWitness,
 } from './types';
 import {
 	CCM_STATUS_OK,
@@ -232,6 +233,11 @@ export const isCertificateEmpty = (decodedCertificate: Certificate) =>
 	decodedCertificate.validatorsHash.equals(EMPTY_BYTES) ||
 	decodedCertificate.timestamp === 0;
 
+export const isMessageWitnessEmpty = (messageWitness: MsgWitness) =>
+	!(
+		messageWitness.partnerChainOutboxSize !== BigInt(0) || messageWitness.siblingHashes.length !== 0
+	);
+
 export const checkLivenessRequirementFirstCCU = (
 	partnerChainAccount: ChainAccount,
 	txParams: CrossChainUpdateTransactionParams,
@@ -321,14 +327,14 @@ export const checkInboxUpdateValidity = (
 	txParams: CrossChainUpdateTransactionParams,
 	partnerChannelData: ChannelData,
 ): VerificationResult => {
+	// If inboxUpdate is empty then return success
 	if (isInboxUpdateEmpty(txParams.inboxUpdate)) {
 		return {
 			status: VerifyStatus.OK,
 		};
 	}
-
-	const partnerChainIDBuffer = getIDAsKeyForStore(txParams.sendingChainID);
 	const decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
+	const partnerChainIDBuffer = getIDAsKeyForStore(txParams.sendingChainID);
 	const { crossChainMessages, messageWitness, outboxRootWitness } = txParams.inboxUpdate;
 	const ccmHashes = crossChainMessages.map(ccm => hash(ccm));
 
@@ -345,61 +351,62 @@ export const checkInboxUpdateValidity = (
 		newInboxSize = size;
 		newInboxRoot = root;
 	}
-	// If inboxUpdate contains a non-empty messageWitness, then update newInboxRoot to the output
-	if (
-		!txParams.certificate.equals(EMPTY_BYTES) &&
-		txParams.inboxUpdate.messageWitness.partnerChainOutboxSize !== BigInt(0) &&
-		txParams.inboxUpdate.messageWitness.siblingHashes.length !== 0
-	) {
-		newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
-			newInboxSize,
-			newInboxAppendPath,
-			messageWitness.siblingHashes,
-		);
-	}
-
-	const proof = {
-		siblingHashes: outboxRootWitness.siblingHashes,
-		queries: [
-			{
-				key: partnerChainIDBuffer,
-				value: newInboxRoot as Buffer,
-				bitmap: outboxRootWitness.bitmap,
-			},
-		],
-	};
-	const outboxKey = rawStateStoreKey(STORE_PREFIX_OUTBOX_ROOT);
-	const querykeys = [outboxKey];
-	const isSMTRootValid = sparseMerkleTree.verify(
-		querykeys,
-		proof,
-		decodedCertificate.stateRoot,
-		SMT_KEY_LENGTH,
-	);
-	if (!isSMTRootValid) {
-		return {
-			status: VerifyStatus.FAIL,
-			error: new Error(
-				'Failed at verifying state root when messageWitness and certificate are non-empty.',
-			),
+	// non-empty certificate and an inboxUpdate
+	if (!isCertificateEmpty(decodedCertificate) && !isInboxUpdateEmpty(txParams.inboxUpdate)) {
+		// If inboxUpdate contains a non-empty messageWitness, then update newInboxRoot to the output
+		if (!isMessageWitnessEmpty(txParams.inboxUpdate.messageWitness)) {
+			newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
+				newInboxSize,
+				newInboxAppendPath,
+				messageWitness.siblingHashes,
+			);
+		}
+		const proof = {
+			siblingHashes: outboxRootWitness.siblingHashes,
+			queries: [
+				{
+					key: partnerChainIDBuffer,
+					value: newInboxRoot as Buffer,
+					bitmap: outboxRootWitness.bitmap,
+				},
+			],
 		};
-	}
-
-	if (isCertificateEmpty(decodedCertificate) && isInboxUpdateEmpty(txParams.inboxUpdate)) {
-		newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
-			newInboxSize,
-			newInboxAppendPath,
-			messageWitness.siblingHashes,
+		const outboxKey = rawStateStoreKey(STORE_PREFIX_OUTBOX_ROOT);
+		const querykeys = [outboxKey];
+		const isSMTRootValid = sparseMerkleTree.verify(
+			querykeys,
+			proof,
+			decodedCertificate.stateRoot,
+			SMT_KEY_LENGTH,
 		);
+		if (!isSMTRootValid) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error(
+					'Failed at verifying state root when messageWitness and certificate are non-empty.',
+				),
+			};
+		}
 	}
 
-	if (!(newInboxRoot as Buffer).equals(partnerChannelData.partnerChainOutboxRoot)) {
-		return {
-			status: VerifyStatus.FAIL,
-			error: new Error(
-				'Failed at verifying state root when messageWitness is non-empty and certificate is empty.',
-			),
-		};
+	// empty certificate and a non-empty inboxUpdate
+	if (isCertificateEmpty(decodedCertificate) && !isInboxUpdateEmpty(txParams.inboxUpdate)) {
+		// If inboxUpdate contains a non-empty messageWitness, then update newInboxRoot to the output
+		if (!isMessageWitnessEmpty(txParams.inboxUpdate.messageWitness)) {
+			newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
+				newInboxSize,
+				newInboxAppendPath,
+				messageWitness.siblingHashes,
+			);
+		}
+		if (!(newInboxRoot as Buffer).equals(partnerChannelData.partnerChainOutboxRoot)) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error(
+					'Failed at verifying state root when messageWitness is non-empty and certificate is empty.',
+				),
+			};
+		}
 	}
 
 	return {
