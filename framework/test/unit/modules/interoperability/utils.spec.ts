@@ -211,8 +211,10 @@ describe('Utils', () => {
 	});
 
 	describe('checkActiveValidatorsUpdate', () => {
-		const activeValidatorsUpdate = [...defaultActiveValidatorsUpdate];
-		const sortedValidatorsList = [...activeValidatorsUpdate].sort((v1, v2) =>
+		const activeValidatorsUpdate = [...defaultActiveValidatorsUpdate].sort((v1, v2) =>
+			v2.blsKey.compare(v1.blsKey),
+		);
+		const sortedValidatorsList = [...defaultActiveValidatorsUpdate].sort((v1, v2) =>
 			v1.blsKey.compare(v2.blsKey),
 		);
 
