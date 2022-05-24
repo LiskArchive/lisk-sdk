@@ -34,7 +34,7 @@ import {
 } from '../../../../src/modules/token/schemas';
 import { getUserStoreKey } from '../../../../src/modules/token/utils';
 import { createTransientModuleEndpointContext } from '../../../../src/testing';
-import { DEFAULT_TOKEN_ID } from '../../../utils/node/transaction';
+import { DEFAULT_TOKEN_ID } from '../../../utils/mocks/transaction';
 
 describe('token endpoint', () => {
 	const defaultAddress = getRandomBytes(20);

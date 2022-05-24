@@ -25,7 +25,7 @@ import { hash } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import { Logger } from './logger';
-import { computeValidatorsHash } from './node';
+import { computeValidatorsHash } from './engine';
 import { EventQueue, GenesisBlockContext, StateMachine } from './state_machine';
 
 export interface GenesisBlockGenerateInput {

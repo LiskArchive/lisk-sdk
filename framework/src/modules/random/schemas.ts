@@ -107,7 +107,7 @@ export const blockHeaderAssetRandomModule = {
 
 export const registeredHashOnionsStoreSchema = {
 	title: 'Used hash onion',
-	$id: '/node/forger/registered_hash_onion',
+	$id: '//forger/registered_hash_onion',
 	type: 'object',
 	required: ['registeredHashOnions'],
 	properties: {

@@ -24,7 +24,7 @@ import {
 } from '../../../../src/modules/dpos_v2/constants';
 import { DPoSEndpoint } from '../../../../src/modules/dpos_v2/endpoint';
 import { delegateStoreSchema, voterStoreSchema } from '../../../../src/modules/dpos_v2/schemas';
-import { fakeLogger } from '../../../utils/node';
+import { fakeLogger } from '../../../utils/mocks';
 
 describe('DposModuleEndpoint', () => {
 	const logger: Logger = fakeLogger;

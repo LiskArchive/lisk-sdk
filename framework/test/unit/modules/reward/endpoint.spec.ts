@@ -13,7 +13,7 @@
  */
 import { Logger } from '../../../../src/logger';
 import { RewardModule } from '../../../../src/modules/reward';
-import { fakeLogger } from '../../../utils/node';
+import { fakeLogger } from '../../../utils/mocks';
 
 describe('RewardModuleEndpoint', () => {
 	const genesisConfig: any = {};

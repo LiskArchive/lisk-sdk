@@ -30,7 +30,7 @@ import {
 	TransactionContext,
 } from '../state_machine';
 import { loggerMock } from './mocks';
-import { WritableBlockAssets } from '../node/generator/types';
+import { WritableBlockAssets } from '../engine/generator/types';
 import { Validator } from '../abi';
 import { SubStore } from '../state_machine/types';
 

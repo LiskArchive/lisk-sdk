@@ -22,7 +22,7 @@ import {
 	createDelegateVoteTransaction,
 	createTransferTransaction,
 	DEFAULT_TOKEN_ID,
-} from '../../../../utils/node/transaction';
+} from '../../../../utils/mocks/transaction';
 import { getPassphraseFromDefaultConfig } from '../../../../../src/testing/fixtures';
 
 describe('Process block', () => {

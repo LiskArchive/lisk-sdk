@@ -20,7 +20,7 @@ import {
 	createMultiSignRegisterTransaction,
 	createMultisignatureTransferTransaction,
 	createDelegateVoteTransaction,
-} from '../../../utils/node/transaction';
+} from '../../../utils/mocks/transaction';
 import * as testing from '../../../../src/testing';
 
 describe('Transaction order', () => {

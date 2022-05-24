@@ -16,15 +16,15 @@ import { NotFoundError, StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { BIG_ENDIAN, getRandomBytes, hash, intToBuffer } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
-import { BFTAPI } from '../../../../src/node/bft/api';
+import { BFTAPI } from '../../../../src/engine/bft/api';
 import {
 	EMPTY_KEY,
 	MODULE_ID_BFT,
 	STORE_PREFIX_BFT_PARAMETERS,
 	STORE_PREFIX_BFT_VOTES,
 	STORE_PREFIX_GENERATOR_KEYS,
-} from '../../../../src/node/bft/constants';
-import { BFTParameterNotFoundError } from '../../../../src/node/bft/errors';
+} from '../../../../src/engine/bft/constants';
+import { BFTParameterNotFoundError } from '../../../../src/engine/bft/errors';
 import {
 	BFTParameters,
 	bftParametersSchema,
@@ -32,7 +32,7 @@ import {
 	bftVotesSchema,
 	generatorKeysSchema,
 	validatorsHashInputSchema,
-} from '../../../../src/node/bft/schemas';
+} from '../../../../src/engine/bft/schemas';
 import { createFakeBlockHeader } from '../../../../src/testing';
 
 describe('BFT API', () => {

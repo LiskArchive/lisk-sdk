@@ -19,7 +19,7 @@ import {
 	createTransferTransaction,
 	createReportMisbehaviorTransaction,
 	DEFAULT_TOKEN_ID,
-} from '../../../utils/node/transaction';
+} from '../../../utils/mocks/transaction';
 import * as testing from '../../../../src/testing';
 
 describe('Transaction order', () => {

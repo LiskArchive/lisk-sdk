@@ -39,7 +39,7 @@ import {
 } from '../../../../src/modules/token/schemas';
 import { getUserStoreKey } from '../../../../src/modules/token/utils';
 import { APIContext, createAPIContext, EventQueue } from '../../../../src/state_machine';
-import { fakeLogger } from '../../../utils/node';
+import { fakeLogger } from '../../../utils/mocks';
 
 describe('CrossChain Forward command', () => {
 	const defaultAddress = getRandomBytes(20);

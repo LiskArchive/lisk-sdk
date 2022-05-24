@@ -30,7 +30,7 @@ import {
 	createDelegateVoteTransaction,
 	createTransferTransaction,
 	DEFAULT_TOKEN_ID,
-} from '../../../utils/node/transaction';
+} from '../../../utils/mocks/transaction';
 import * as testing from '../../../../src/testing';
 import { TokenModule } from '../../../../src';
 

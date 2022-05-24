@@ -25,9 +25,9 @@ import { loggerMock, channelMock } from './mocks';
 import { defaultConfig, getPassphraseFromDefaultConfig } from './fixtures';
 import { createDB, removeDB } from './utils';
 import { ApplicationConfig, EndpointHandler, GenesisConfig } from '../types';
-import { Consensus } from '../node/consensus';
+import { Consensus } from '../engine/consensus';
 import { APIContext, StateMachine } from '../state_machine';
-import { Node } from '../node';
+import { Engine } from '../engine';
 import { createImmutableAPIContext, createNewAPIContext } from '../state_machine/api_context';
 import { blockAssetsJSON } from './fixtures/genesis-asset';
 import { ValidatorsModule } from '../modules/validators';
@@ -37,7 +37,7 @@ import { FeeModule } from '../modules/fee';
 import { RewardModule } from '../modules/reward';
 import { RandomModule } from '../modules/random';
 import { DPoSModule } from '../modules/dpos_v2';
-import { Generator } from '../node/generator';
+import { Generator } from '../engine/generator';
 import { ABIHandler } from '../abi_handler/abi_handler';
 import { generateGenesisBlock } from '../genesis_block';
 import { systemDirs } from '../system_dirs';
@@ -90,31 +90,31 @@ const getAppConfig = (genesisConfig?: GenesisConfig): ApplicationConfig => {
 	return mergedConfig;
 };
 
-const getNextTimestamp = (node: Node, previousBlock: BlockHeader) => {
-	const previousSlotNumber = node['_consensus'].getSlotNumber(previousBlock.timestamp);
-	return node['_consensus'].getSlotTime(previousSlotNumber + 1);
+const getNextTimestamp = (engine: Engine, previousBlock: BlockHeader) => {
+	const previousSlotNumber = engine['_consensus'].getSlotNumber(previousBlock.timestamp);
+	return engine['_consensus'].getSlotTime(previousSlotNumber + 1);
 };
 
 const createProcessableBlock = async (
-	node: Node,
+	engine: Engine,
 	transactions: Transaction[],
 	timestamp?: number,
 ): Promise<Block> => {
 	// Get previous block and generate valid timestamp, seed reveal, maxHeightPrevoted, reward and maxHeightPreviouslyForged
-	const stateStore = new StateStore(node['_blockchainDB']);
-	const previousBlockHeader = node['_chain'].lastBlock.header;
-	const nextTimestamp = timestamp ?? getNextTimestamp(node, previousBlockHeader);
-	const validator = await node['_consensus'].getGeneratorAtTimestamp(
+	const stateStore = new StateStore(engine['_blockchainDB']);
+	const previousBlockHeader = engine['_chain'].lastBlock.header;
+	const nextTimestamp = timestamp ?? getNextTimestamp(engine, previousBlockHeader);
+	const validator = await engine['_consensus'].getGeneratorAtTimestamp(
 		stateStore,
 		previousBlockHeader.height + 1,
 		nextTimestamp,
 	);
 	const passphrase = getPassphraseFromDefaultConfig(validator);
 	for (const tx of transactions) {
-		await node['_generator']['_pool'].add(tx);
+		await engine['_generator']['_pool'].add(tx);
 	}
 	const { privateKey } = getKeys(passphrase);
-	const block = await node.generateBlock({
+	const block = await engine.generateBlock({
 		generatorAddress: validator,
 		height: previousBlockHeader.height + 1,
 		privateKey,
@@ -190,8 +190,8 @@ export const getBlockProcessingEnv = async (
 		modules,
 		stateMachine,
 	});
-	const node = new Node(abiHandler);
-	await node['_init']();
+	const engine = new Engine(abiHandler);
+	await engine['_init']();
 
 	const networkIdentifier = getNetworkIdentifier(
 		genesisBlock.header.id,
@@ -200,26 +200,26 @@ export const getBlockProcessingEnv = async (
 
 	return {
 		createBlock: async (transactions: Transaction[] = [], timestamp?: number): Promise<Block> =>
-			createProcessableBlock(node, transactions, timestamp),
+			createProcessableBlock(engine, transactions, timestamp),
 		getGenesisBlock: () => genesisBlock,
-		getChain: () => node['_chain'],
-		getConsensus: () => node['_consensus'],
-		getConsensusStore: () => new StateStore(node['_blockchainDB']),
-		getGenerator: () => node['_generator'],
+		getChain: () => engine['_chain'],
+		getConsensus: () => engine['_consensus'],
+		getConsensusStore: () => new StateStore(engine['_blockchainDB']),
+		getGenerator: () => engine['_generator'],
 		getAPIContext: () => createNewAPIContext(stateDB),
-		getBlockchainDB: () => node['_blockchainDB'],
-		process: async (block): Promise<void> => node['_consensus']['_execute'](block, 'peer-id'),
+		getBlockchainDB: () => engine['_blockchainDB'],
+		process: async (block): Promise<void> => engine['_consensus']['_execute'](block, 'peer-id'),
 		processUntilHeight: async (height): Promise<void> => {
-			while (node['_chain'].lastBlock.header.height < height) {
-				const nextBlock = await createProcessableBlock(node, []);
-				await node['_consensus'].execute(nextBlock);
+			while (engine['_chain'].lastBlock.header.height < height) {
+				const nextBlock = await createProcessableBlock(engine, []);
+				await engine['_consensus'].execute(nextBlock);
 			}
 		},
-		getLastBlock: () => node['_chain'].lastBlock,
+		getLastBlock: () => engine['_chain'].lastBlock,
 		getNextValidatorPassphrase: async (previousBlockHeader: BlockHeader): Promise<string> => {
-			const stateStore = new StateStore(node['_blockchainDB']);
-			const nextTimestamp = getNextTimestamp(node, previousBlockHeader);
-			const validator = await node['_consensus'].getGeneratorAtTimestamp(
+			const stateStore = new StateStore(engine['_blockchainDB']);
+			const nextTimestamp = getNextTimestamp(engine, previousBlockHeader);
+			const validator = await engine['_consensus'].getGeneratorAtTimestamp(
 				stateStore,
 				previousBlockHeader.height + 1,
 				nextTimestamp,
@@ -230,11 +230,11 @@ export const getBlockProcessingEnv = async (
 		},
 		async invoke<T = void>(path: string, input: Record<string, unknown> = {}): Promise<T> {
 			const [namespace, method] = path.split('_');
-			const handler = node['_rpcServer']['_getHandler'](namespace, method);
+			const handler = engine['_rpcServer']['_getHandler'](namespace, method);
 			if (handler) {
 				const resp = (await handler({
 					logger: loggerMock,
-					networkIdentifier: node['_chain'].networkIdentifier,
+					networkIdentifier: engine['_chain'].networkIdentifier,
 					params: input,
 				})) as T;
 				return resp;
@@ -255,17 +255,17 @@ export const getBlockProcessingEnv = async (
 				getStore: (moduleID: number, storePrefix: number) =>
 					stateStore.getStore(moduleID, storePrefix),
 				getImmutableAPIContext: () => createImmutableAPIContext(stateStore),
-				logger: node['_logger'],
-				networkIdentifier: node['_chain'].networkIdentifier,
+				logger: engine['_logger'],
+				networkIdentifier: engine['_chain'].networkIdentifier,
 				params: input,
 			});
 
 			return result as T;
 		},
 		getNetworkId: () => networkIdentifier,
-		getDataAccess: () => node['_chain'].dataAccess,
+		getDataAccess: () => engine['_chain'].dataAccess,
 		cleanup: async ({ databasePath }): Promise<void> => {
-			await node['_closeDB']();
+			await engine['_closeDB']();
 			await moduleDB.close();
 			await stateDB.close();
 			removeDB(databasePath);
