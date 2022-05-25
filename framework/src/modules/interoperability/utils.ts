@@ -234,9 +234,7 @@ export const isCertificateEmpty = (decodedCertificate: Certificate) =>
 	decodedCertificate.timestamp === 0;
 
 export const isMessageWitnessEmpty = (messageWitness: MsgWitness) =>
-	!(
-		messageWitness.partnerChainOutboxSize !== BigInt(0) || messageWitness.siblingHashes.length !== 0
-	);
+	messageWitness.partnerChainOutboxSize === BigInt(0) && messageWitness.siblingHashes.length === 0;
 
 export const checkLivenessRequirementFirstCCU = (
 	partnerChainAccount: ChainAccount,
@@ -334,7 +332,6 @@ export const checkInboxUpdateValidity = (
 		};
 	}
 	const decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
-	const partnerChainIDBuffer = getIDAsKeyForStore(txParams.sendingChainID);
 	const { crossChainMessages, messageWitness, outboxRootWitness } = txParams.inboxUpdate;
 	const ccmHashes = crossChainMessages.map(ccm => hash(ccm));
 
@@ -352,7 +349,7 @@ export const checkInboxUpdateValidity = (
 		newInboxRoot = root;
 	}
 	// non-empty certificate and an inboxUpdate
-	if (!isCertificateEmpty(decodedCertificate) && !isInboxUpdateEmpty(txParams.inboxUpdate)) {
+	if (!isCertificateEmpty(decodedCertificate)) {
 		// If inboxUpdate contains a non-empty messageWitness, then update newInboxRoot to the output
 		if (!isMessageWitnessEmpty(txParams.inboxUpdate.messageWitness)) {
 			newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
@@ -361,17 +358,17 @@ export const checkInboxUpdateValidity = (
 				messageWitness.siblingHashes,
 			);
 		}
+		const outboxKey = rawStateStoreKey(STORE_PREFIX_OUTBOX_ROOT);
 		const proof = {
 			siblingHashes: outboxRootWitness.siblingHashes,
 			queries: [
 				{
-					key: partnerChainIDBuffer,
+					key: outboxKey,
 					value: newInboxRoot as Buffer,
 					bitmap: outboxRootWitness.bitmap,
 				},
 			],
 		};
-		const outboxKey = rawStateStoreKey(STORE_PREFIX_OUTBOX_ROOT);
 		const querykeys = [outboxKey];
 		const isSMTRootValid = sparseMerkleTree.verify(
 			querykeys,
@@ -390,7 +387,7 @@ export const checkInboxUpdateValidity = (
 	}
 
 	// empty certificate and a non-empty inboxUpdate
-	if (isCertificateEmpty(decodedCertificate) && !isInboxUpdateEmpty(txParams.inboxUpdate)) {
+	if (isCertificateEmpty(decodedCertificate)) {
 		// If inboxUpdate contains a non-empty messageWitness, then update newInboxRoot to the output
 		if (!isMessageWitnessEmpty(txParams.inboxUpdate.messageWitness)) {
 			newInboxRoot = regularMerkleTree.calculateRootFromRightWitness(
