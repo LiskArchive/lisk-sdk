@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockAssets } from '../../node/state_machine';
-import { APIContext, ImmutableAPIContext } from '../../node/state_machine/types';
+import { BlockAssets } from '../../state_machine';
+import { APIContext, ImmutableAPIContext } from '../../state_machine/types';
 
 export type TokenIDReward = Buffer;
 

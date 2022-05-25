@@ -27,8 +27,8 @@ import {
 	nameStoreSchema,
 	voterStoreSchema,
 } from '../../../../src/modules/dpos_v2/schemas';
-import { APIContext } from '../../../../src/node/state_machine/api_context';
-import { EventQueue } from '../../../../src/node/state_machine';
+import { APIContext } from '../../../../src/state_machine/api_context';
+import { EventQueue } from '../../../../src/state_machine';
 
 describe('DposModuleApi', () => {
 	let dposAPI: DPoSAPI;

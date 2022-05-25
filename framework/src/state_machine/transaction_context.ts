@@ -14,7 +14,7 @@
 
 import { Transaction, StateStore } from '@liskhq/lisk-chain';
 import { codec, Schema } from '@liskhq/lisk-codec';
-import { Logger } from '../../logger';
+import { Logger } from '../logger';
 import { createAPIContext, createImmutableAPIContext, wrapEventQueue } from './api_context';
 import { EventQueue } from './event_queue';
 import {

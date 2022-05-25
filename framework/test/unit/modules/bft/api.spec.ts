@@ -33,8 +33,8 @@ import {
 	generatorKeysSchema,
 	validatorsHashInputSchema,
 } from '../../../../src/node/bft/schemas';
-import { EventQueue } from '../../../../src/node/state_machine';
-import { APIContext } from '../../../../src/node/state_machine/api_context';
+import { EventQueue } from '../../../../src/state_machine';
+import { APIContext } from '../../../../src/state_machine/api_context';
 import { createFakeBlockHeader } from '../../../../src/testing';
 
 describe('BFT API', () => {

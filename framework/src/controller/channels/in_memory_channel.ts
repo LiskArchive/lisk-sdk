@@ -22,7 +22,7 @@ import { Bus } from '../bus';
 import * as JSONRPC from '../jsonrpc/types';
 import { ChannelType, EndpointHandlers } from '../../types';
 import { Logger } from '../../logger';
-import { createImmutableAPIContext } from '../../node/state_machine';
+import { createImmutableAPIContext } from '../../state_machine';
 
 export class InMemoryChannel extends BaseChannel {
 	private bus!: Bus;

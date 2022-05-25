@@ -16,7 +16,7 @@ import { BlockAssets, BlockHeader, StateStore } from '@liskhq/lisk-chain';
 import { Logger } from '../../logger';
 import { BlockGenerateContext } from './types';
 import { GeneratorStore } from './generator_store';
-import { createAPIContext, EventQueue } from '../state_machine';
+import { createAPIContext, EventQueue } from '../../state_machine';
 
 interface GenerationContextArgs {
 	logger: Logger;

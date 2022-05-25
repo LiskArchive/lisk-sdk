@@ -23,7 +23,7 @@ import {
 	TransactionVerifyContext,
 	VerificationResult,
 	VerifyStatus,
-} from '../../node/state_machine';
+} from '../../state_machine';
 import { FeeAPI } from './api';
 import { FeeEndpoint } from './endpoint';
 import { configSchema } from './schemas';

@@ -25,7 +25,7 @@ import {
 	STORE_PREFIX_GENERATOR_KEYS,
 } from './constants';
 import { bftModuleConfig, BFTVotes, bftVotesSchema } from './schemas';
-import { BlockExecuteContext, GenesisBlockExecuteContext } from '../state_machine';
+import { BlockExecuteContext, GenesisBlockExecuteContext } from '../../state_machine';
 import {
 	insertBlockBFTInfo,
 	updateMaxHeightCertified,

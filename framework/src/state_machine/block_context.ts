@@ -13,7 +13,7 @@
  */
 
 import { Transaction, StateStore } from '@liskhq/lisk-chain';
-import { Logger } from '../../logger';
+import { Logger } from '../logger';
 import { createAPIContext, createImmutableAPIContext, wrapEventQueue } from './api_context';
 import { EVENT_INDEX_AFTER_TRANSACTIONS, EVENT_INDEX_BEFORE_TRANSACTIONS } from './constants';
 import { EventQueue } from './event_queue';

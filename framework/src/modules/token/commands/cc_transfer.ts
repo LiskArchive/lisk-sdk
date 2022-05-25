@@ -18,7 +18,7 @@ import {
 	CommandVerifyContext,
 	VerificationResult,
 	VerifyStatus,
-} from '../../../node/state_machine';
+} from '../../../state_machine';
 import { TokenAPI } from '../api';
 import { crossChainTransferParams } from '../schemas';
 import { CROSS_CHAIN_COMMAND_ID_TRANSFER } from '../constants';

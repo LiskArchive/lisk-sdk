@@ -22,7 +22,7 @@ import { InMemoryChannel } from '../controller/channels';
 import { Network } from './network';
 import { BaseModule } from '../modules/base_module';
 import { BaseCommand } from '../modules/base_command';
-import { StateMachine } from './state_machine';
+import { StateMachine } from '../state_machine';
 import { Consensus, CONSENSUS_EVENT_BLOCK_DELETE, CONSENSUS_EVENT_BLOCK_NEW } from './consensus';
 import { BlockGenerateInput, Generator, GenesisBlockGenerateInput } from './generator';
 import { getRegisteredModules, getSchema } from './utils/modules';

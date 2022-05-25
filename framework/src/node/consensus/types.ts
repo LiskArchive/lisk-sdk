@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { APIContext } from '../state_machine';
+import { APIContext } from '../../state_machine';
 
 export interface BFTHeader {
 	id: Buffer;

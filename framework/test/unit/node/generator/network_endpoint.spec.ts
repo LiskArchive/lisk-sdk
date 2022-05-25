@@ -26,7 +26,7 @@ import {
 	postTransactionsAnnouncementSchema,
 } from '../../../../src/node/generator/schemas';
 import { Network } from '../../../../src/node/network';
-import { StateMachine, VerifyStatus } from '../../../../src/node/state_machine';
+import { StateMachine, VerifyStatus } from '../../../../src/state_machine';
 import { fakeLogger } from '../../../utils/node';
 
 describe('generator network endpoint', () => {

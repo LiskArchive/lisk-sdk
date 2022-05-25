@@ -15,7 +15,7 @@
 import { BlockHeader } from '@liskhq/lisk-chain';
 import { BFTHeights } from '../../node/bft/types';
 import { Validator } from '../../node/consensus/types';
-import { APIContext, ImmutableAPIContext } from '../../node/state_machine/types';
+import { APIContext, ImmutableAPIContext } from '../../state_machine/types';
 
 export type TokenIDDPoS = Buffer;
 

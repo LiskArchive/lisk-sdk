@@ -18,7 +18,7 @@ import {
 	BlockExecuteContext,
 	GenesisBlockExecuteContext,
 	TransactionExecuteContext,
-} from '../../../../src/node/state_machine';
+} from '../../../../src/state_machine';
 
 export class CustomCommand0 {
 	public id = 0;

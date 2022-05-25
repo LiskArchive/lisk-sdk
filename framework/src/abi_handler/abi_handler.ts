@@ -79,7 +79,7 @@ import {
 	GenesisBlockContext,
 	StateMachine,
 	TransactionContext,
-} from '../node/state_machine';
+} from '../state_machine';
 import { ApplicationConfig } from '../types';
 import {
 	DEFAULT_HOST,
@@ -89,7 +89,7 @@ import {
 	DEFAULT_PORT_RPC,
 	MAX_BLOCK_CACHE,
 } from '../constants';
-import { GenerationContext } from '../node/state_machine/generator_context';
+import { GenerationContext } from '../state_machine/generator_context';
 import { BaseChannel } from '../controller/channels';
 import { systemDirs } from '../system_dirs';
 

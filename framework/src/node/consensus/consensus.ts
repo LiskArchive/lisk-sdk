@@ -29,8 +29,8 @@ import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import { Logger } from '../../logger';
-import { StateMachine } from '../state_machine/state_machine';
-import { BlockContext } from '../state_machine/block_context';
+import { StateMachine } from '../../state_machine/state_machine';
+import { BlockContext } from '../../state_machine/block_context';
 import {
 	BlockSynchronizationMechanism,
 	FastChainSwitchingMechanism,
@@ -38,9 +38,9 @@ import {
 } from './synchronizer';
 import { ApplyPenaltyError } from '../../errors';
 import { AbortError, ApplyPenaltyAndRestartError, RestartError } from './synchronizer/errors';
-import { EventQueue } from '../state_machine/event_queue';
+import { EventQueue } from '../../state_machine/event_queue';
 import { BlockExecutor } from './synchronizer/type';
-import { GenesisBlockContext } from '../state_machine/genesis_block_context';
+import { GenesisBlockContext } from '../../state_machine/genesis_block_context';
 import { Network } from '../network';
 import { NetworkEndpoint, EndpointArgs } from './network_endpoint';
 import { EventPostBlockData, postBlockEventSchema } from './schema';
@@ -58,9 +58,9 @@ import {
 } from './constants';
 import { GenesisConfig } from '../../types';
 import { AggregateCommit } from './types';
-import { APIContext, createAPIContext, ImmutableAPIContext } from '../state_machine';
+import { APIContext, createAPIContext, ImmutableAPIContext } from '../../state_machine';
 import { forkChoice, ForkStatus } from './fork_choice/fork_choice_rule';
-import { createNewAPIContext } from '../state_machine/api_context';
+import { createNewAPIContext } from '../../state_machine/api_context';
 import { CommitPool } from './certificate_generation/commit_pool';
 import { ValidatorInfo } from './certificate_generation/types';
 import { BFTAPI } from '../bft';

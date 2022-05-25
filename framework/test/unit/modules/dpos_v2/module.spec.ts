@@ -24,7 +24,7 @@ import * as forgerSelectionZeroStandbyScenario from '../../../fixtures/dpos_forg
 import * as forgerSelectionOneStandbyScenario from '../../../fixtures/dpos_forger_selection/dpos_forger_selection_exactly_1_standby.json';
 import * as forgerSelectionTwoStandbyScenario from '../../../fixtures/dpos_forger_selection/dpos_forger_selection_exactly_2_standby.json';
 import * as forgerSelectionMoreThan2StandByScenario from '../../../fixtures/dpos_forger_selection/dpos_forger_selection_more_than_2_standby.json';
-import { BlockAfterExecuteContext } from '../../../../src/node/state_machine';
+import { BlockAfterExecuteContext } from '../../../../src/state_machine';
 import {
 	createBlockContext,
 	createFakeBlockHeader,
@@ -55,7 +55,7 @@ import {
 	SnapshotStoreData,
 	ValidatorsAPI,
 } from '../../../../src/modules/dpos_v2/types';
-import { GenesisBlockExecuteContext, SubStore } from '../../../../src/node/state_machine/types';
+import { GenesisBlockExecuteContext, SubStore } from '../../../../src/state_machine/types';
 import { invalidAssets, validAsset, validators } from './genesis_block_test_data';
 
 describe('DPoS module', () => {

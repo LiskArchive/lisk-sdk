@@ -23,7 +23,7 @@ import {
 	EventQueue,
 	TransactionContext,
 	BlockHeader,
-} from '../state_machine';
+} from '../../state_machine';
 import { Logger } from '../../logger';
 
 export class HighFeeGenerationStrategy {

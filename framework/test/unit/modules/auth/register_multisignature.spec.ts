@@ -25,7 +25,7 @@ import {
 	registerMultisignatureParamsSchema,
 } from '../../../../src/modules/auth/schemas';
 import { AuthAccount, RegisterMultisignatureParams } from '../../../../src/modules/auth/types';
-import { VerifyStatus } from '../../../../src/node/state_machine';
+import { VerifyStatus } from '../../../../src/state_machine';
 
 describe('Register Multisignature command', () => {
 	let registerMultisignatureCommand: RegisterMultisignatureCommand;

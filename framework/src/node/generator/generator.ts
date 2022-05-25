@@ -48,7 +48,7 @@ import {
 	BlockContext,
 	GenesisBlockContext,
 	APIContext,
-} from '../state_machine';
+} from '../../state_machine';
 import { Broadcaster } from './broadcaster';
 import {
 	DEFAULT_RELEASE_LIMIT,
@@ -75,7 +75,7 @@ import {
 	GenesisBlockGenerateInput,
 	Keypair,
 } from './types';
-import { createAPIContext, createNewAPIContext } from '../state_machine/api_context';
+import { createAPIContext, createNewAPIContext } from '../../state_machine/api_context';
 import { getOrDefaultLastGeneratedInfo, setLastGeneratedInfo } from './generated_info';
 import { CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED } from '../consensus/constants';
 

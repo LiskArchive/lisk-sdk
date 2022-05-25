@@ -16,7 +16,7 @@ import { intToBuffer } from '@liskhq/lisk-cryptography';
 import { objects as objectUtils, dataStructures, objects } from '@liskhq/lisk-utils';
 import { isUInt64, LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
-import { GenesisBlockExecuteContext, BlockAfterExecuteContext } from '../../node/state_machine';
+import { GenesisBlockExecuteContext, BlockAfterExecuteContext } from '../../state_machine';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { DPoSAPI } from './api';
 import { DelegateRegistrationCommand } from './commands/delegate_registration';

@@ -14,8 +14,8 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { intToBuffer } from '@liskhq/lisk-cryptography';
-import { BlockHeader, ImmutableSubStore } from '../state_machine';
-import { SubStore } from '../state_machine/types';
+import { BlockHeader, ImmutableSubStore } from '../../state_machine';
+import { SubStore } from '../../state_machine/types';
 import { GeneratorKeysNotFoundError } from './errors';
 import { BFTVotesBlockInfo, GeneratorKeys, generatorKeysSchema } from './schemas';
 import { BFTHeader, BFTValidator } from './types';

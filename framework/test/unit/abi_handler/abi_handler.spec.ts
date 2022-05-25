@@ -20,7 +20,7 @@ import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { BaseModule, TokenModule } from '../../../src';
 import { ABIHandler } from '../../../src/abi_handler/abi_handler';
 import { transferParamsSchema } from '../../../src/modules/token/schemas';
-import { StateMachine } from '../../../src/node/state_machine';
+import { StateMachine } from '../../../src/state_machine';
 import { applicationConfigSchema } from '../../../src/schema';
 import { createFakeBlockHeader } from '../../../src/testing';
 import { channelMock } from '../../../src/testing/mocks';

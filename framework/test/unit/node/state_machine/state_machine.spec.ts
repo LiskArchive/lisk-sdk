@@ -13,19 +13,19 @@
  */
 import { Transaction, StateStore, BlockAssets } from '@liskhq/lisk-chain';
 import { Logger } from '../../../../src/logger';
-import { BlockContext } from '../../../../src/node/state_machine/block_context';
-import { EventQueue } from '../../../../src/node/state_machine/event_queue';
-import { GenesisBlockContext } from '../../../../src/node/state_machine/genesis_block_context';
-import { StateMachine } from '../../../../src/node/state_machine/state_machine';
-import { TransactionContext } from '../../../../src/node/state_machine/transaction_context';
-import { BlockHeader, VerifyStatus } from '../../../../src/node/state_machine';
+import { BlockContext } from '../../../../src/state_machine/block_context';
+import { EventQueue } from '../../../../src/state_machine/event_queue';
+import { GenesisBlockContext } from '../../../../src/state_machine/genesis_block_context';
+import { StateMachine } from '../../../../src/state_machine/state_machine';
+import { TransactionContext } from '../../../../src/state_machine/transaction_context';
+import { BlockHeader, VerifyStatus } from '../../../../src/state_machine';
 import { CustomModule0, CustomModule1, CustomModule2 } from './custom_modules';
 import {
 	EVENT_INDEX_AFTER_TRANSACTIONS,
 	EVENT_INDEX_BEFORE_TRANSACTIONS,
 	EVENT_INDEX_FINALIZE_GENESIS_STATE,
 	EVENT_INDEX_INIT_GENESIS_STATE,
-} from '../../../../src/node/state_machine/constants';
+} from '../../../../src/state_machine/constants';
 
 describe('state_machine', () => {
 	const genesisHeader = {} as BlockHeader;

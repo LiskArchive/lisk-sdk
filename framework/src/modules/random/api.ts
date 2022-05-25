@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { BlockAssets, ImmutableAPIContext } from '../../node/state_machine';
+import { BlockAssets, ImmutableAPIContext } from '../../state_machine';
 import { BaseAPI } from '../base_api';
 import { EMPTY_KEY } from '../validators/constants';
 import { STORE_PREFIX_RANDOM } from './constants';

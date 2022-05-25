@@ -29,7 +29,7 @@ import {
 import { delegateStoreSchema, voterStoreSchema } from '../../../../../src/modules/dpos_v2/schemas';
 import { DelegateAccount, VoteTransactionParams } from '../../../../../src/modules/dpos_v2/types';
 import { getVoterOrDefault } from '../../../../../src/modules/dpos_v2/utils';
-import { VerifyStatus } from '../../../../../src/node/state_machine/types';
+import { VerifyStatus } from '../../../../../src/state_machine/types';
 import { createTransactionContext } from '../../../../../src/testing';
 import { liskToBeddows } from '../../../../utils/assets';
 import { DEFAULT_TOKEN_ID } from '../../../../utils/node/transaction';

@@ -21,7 +21,7 @@ import {
 	BlockAfterExecuteContext,
 	BlockVerifyContext,
 	GenesisBlockExecuteContext,
-} from '../../node/state_machine';
+} from '../../state_machine';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { RandomAPI } from './api';
 import {

@@ -56,4 +56,4 @@ export {
 	CommandVerifyContext,
 	VerificationResult,
 	VerifyStatus,
-} from './node/state_machine/types';
+} from './state_machine/types';

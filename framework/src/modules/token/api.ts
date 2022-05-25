@@ -15,7 +15,7 @@
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { MAX_UINT64 } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
-import { ImmutableAPIContext, APIContext, ImmutableSubStore } from '../../node/state_machine';
+import { ImmutableAPIContext, APIContext, ImmutableSubStore } from '../../state_machine';
 import { BaseAPI } from '../base_api';
 import {
 	ADDRESS_LENGTH,

@@ -14,7 +14,7 @@
 
 import { EVENT_MAX_EVENT_SIZE_BYTES } from '@liskhq/lisk-chain';
 import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
-import { EventQueue } from '../../../../src/node/state_machine/event_queue';
+import { EventQueue } from '../../../../src/state_machine/event_queue';
 
 describe('EventQueue', () => {
 	// Arrange

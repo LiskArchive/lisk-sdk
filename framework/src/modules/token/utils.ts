@@ -13,7 +13,7 @@
  */
 
 import { NotFoundError } from '@liskhq/lisk-chain';
-import { APIContext } from '../../node/state_machine';
+import { APIContext } from '../../state_machine';
 import {
 	CHAIN_ID_ALIAS_NATIVE,
 	CHAIN_ID_LENGTH,

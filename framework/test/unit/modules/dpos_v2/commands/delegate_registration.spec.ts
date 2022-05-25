@@ -33,7 +33,7 @@ import {
 	DelegateRegistrationParams,
 	ValidatorsAPI,
 } from '../../../../../src/modules/dpos_v2/types';
-import { VerifyStatus } from '../../../../../src/node/state_machine';
+import { VerifyStatus } from '../../../../../src/state_machine';
 
 describe('Delegate registration command', () => {
 	let delegateRegistrationCommand: DelegateRegistrationCommand;

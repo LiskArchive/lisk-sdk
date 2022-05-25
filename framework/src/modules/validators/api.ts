@@ -14,7 +14,7 @@
 
 import { blsPopVerify } from '@liskhq/lisk-cryptography';
 import { BaseAPI } from '../base_api';
-import { APIContext, ImmutableAPIContext } from '../../node/state_machine';
+import { APIContext, ImmutableAPIContext } from '../../state_machine';
 import {
 	EMPTY_KEY,
 	INVALID_BLS_KEY,

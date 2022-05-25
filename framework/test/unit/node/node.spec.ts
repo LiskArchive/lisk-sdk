@@ -31,7 +31,7 @@ import {
 	CONSENSUS_EVENT_BLOCK_NEW,
 } from '../../../src/node/consensus';
 import { BFTAPI } from '../../../src/node/bft';
-import { GenesisBlockExecuteContext } from '../../../src/node/state_machine';
+import { GenesisBlockExecuteContext } from '../../../src/state_machine';
 import { ValidatorsAPI } from '../../../src/modules/validators';
 
 jest.mock('fs-extra');

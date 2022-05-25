@@ -35,7 +35,7 @@ import * as fixtures from './fixtures.json';
 import * as testing from '../../../../src/testing';
 import { authAccountSchema, genesisAuthStoreSchema } from '../../../../src/modules/auth/schemas';
 import { AuthAccount } from '../../../../src/modules/auth/types';
-import { VerifyStatus } from '../../../../src/node/state_machine';
+import { VerifyStatus } from '../../../../src/state_machine';
 import { InvalidNonceError } from '../../../../src/modules/auth/errors';
 import { STORE_PREFIX_AUTH } from '../../../../src/modules/auth/constants';
 import { createGenesisBlockContext } from '../../../../src/testing';

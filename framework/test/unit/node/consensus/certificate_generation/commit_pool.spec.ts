@@ -40,14 +40,14 @@ import {
 	Certificate,
 	SingleCommit,
 } from '../../../../../src/node/consensus/certificate_generation/types';
-import { APIContext } from '../../../../../src/node/state_machine/types';
+import { APIContext } from '../../../../../src/state_machine/types';
 import { createFakeBlockHeader, createTransientAPIContext } from '../../../../../src/testing';
 import {
 	computeCertificateFromBlockHeader,
 	signCertificate,
 } from '../../../../../src/node/consensus/certificate_generation/utils';
 import { AggregateCommit } from '../../../../../src/node/consensus/types';
-import { createNewAPIContext } from '../../../../../src/node/state_machine/api_context';
+import { createNewAPIContext } from '../../../../../src/state_machine/api_context';
 import { COMMIT_SORT } from '../../../../../src/node/consensus/certificate_generation/commit_list';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
