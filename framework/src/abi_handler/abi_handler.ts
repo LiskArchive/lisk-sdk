@@ -69,6 +69,7 @@ import {
 	QueryResponse,
 	ProveRequest,
 	ProveResponse,
+	TransactionExecutionResult,
 } from '../abi';
 import { Logger } from '../logger';
 import { BaseModule } from '../modules';
@@ -448,7 +449,7 @@ export class ABIHandler implements ABI {
 		await this._stateMachine.executeTransaction(context);
 		return {
 			events: context.eventQueue.getEvents().map(e => e.toObject()),
-			result: 0,
+			result: TransactionExecutionResult.OK,
 		};
 	}
 
@@ -473,7 +474,7 @@ export class ABIHandler implements ABI {
 				stateRoot: smt.rootHash,
 			};
 		}
-		if (req.expectedStateRoot.length > 0 && req.expectedStateRoot.equals(smt.rootHash)) {
+		if (req.expectedStateRoot.length > 0 && !req.expectedStateRoot.equals(smt.rootHash)) {
 			throw new Error(
 				`State root ${smt.rootHash.toString(
 					'hex',

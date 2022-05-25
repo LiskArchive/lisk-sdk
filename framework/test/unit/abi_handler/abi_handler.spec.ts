@@ -26,6 +26,7 @@ import { createFakeBlockHeader } from '../../../src/testing';
 import { channelMock } from '../../../src/testing/mocks';
 import { genesisBlock } from '../../fixtures';
 import { fakeLogger } from '../../utils/node';
+import { TransactionExecutionResult } from '../../../src/abi';
 
 describe('abi handler', () => {
 	let abiHandler: ABIHandler;
@@ -471,7 +472,7 @@ describe('abi handler', () => {
 					'_stateStore'
 				],
 			).toEqual(abiHandler['_executionContext']?.stateStore);
-			expect(resp.result).toEqual(0);
+			expect(resp.result).toEqual(TransactionExecutionResult.OK);
 		});
 
 		it('should execute executeTransaction with new context when context ID is empty and resolve the response', async () => {
@@ -509,7 +510,7 @@ describe('abi handler', () => {
 					'_stateStore'
 				],
 			).not.toEqual(abiHandler['_executionContext']?.stateStore);
-			expect(resp.result).toEqual(0);
+			expect(resp.result).toEqual(TransactionExecutionResult.OK);
 		});
 	});
 
