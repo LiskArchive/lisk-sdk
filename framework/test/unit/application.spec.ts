@@ -14,6 +14,7 @@
 /* eslint-disable max-classes-per-file */
 
 import { objects } from '@liskhq/lisk-utils';
+import * as childProcess from 'child_process';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import { join } from 'path';
@@ -29,6 +30,7 @@ import { systemDirs } from '../../src/system_dirs';
 import * as basePluginModule from '../../src/plugins/base_plugin';
 import * as networkConfig from '../fixtures/config/devnet/config.json';
 import { createFakeBlockHeader } from '../fixtures';
+import { ABIServer } from '../../src/abi_handler/abi_server';
 
 jest.mock('fs-extra');
 jest.mock('zeromq', () => {
@@ -70,9 +72,19 @@ describe('Application', () => {
 		fatal: jest.fn(),
 	};
 
+	let engineProcessMock: {
+		on: jest.Mock;
+		kill: jest.Mock;
+	};
+
 	(createLogger as jest.Mock).mockReturnValue(loggerMock);
 
 	beforeEach(() => {
+		engineProcessMock = {
+			on: jest.fn(),
+			kill: jest.fn(),
+		};
+		jest.spyOn(childProcess, 'fork').mockReturnValue(engineProcessMock as never);
 		jest.spyOn(os, 'homedir').mockReturnValue('/user');
 		// jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
 		jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
@@ -275,6 +287,42 @@ describe('Application', () => {
 		});
 	});
 
+	describe('#run', () => {
+		let app: Application;
+
+		beforeEach(async () => {
+			({ app } = Application.defaultApplication(config));
+			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
+			// jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
+			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
+			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
+
+			jest.spyOn(ABIServer.prototype, 'start');
+			await app.run(new Block(createFakeBlockHeader(), [], new BlockAssets()));
+		});
+
+		afterEach(async () => {
+			await app.shutdown();
+		});
+
+		it('should start ABI server', () => {
+			expect(ABIServer.prototype.start).toHaveBeenCalledTimes(1);
+		});
+
+		it('should start engine', () => {
+			expect(childProcess.fork).toHaveBeenCalledTimes(1);
+			expect(childProcess.fork).toHaveBeenCalledWith(expect.stringContaining('engine_igniter'), [
+				expect.stringContaining('.ipc'),
+				'false',
+			]);
+		});
+
+		it('should register engine signal handler', () => {
+			expect(engineProcessMock.on).toHaveBeenCalledWith('exit', expect.any(Function));
+			expect(engineProcessMock.on).toHaveBeenCalledWith('error', expect.any(Function));
+		});
+	});
+
 	describe('#_setupDirectories', () => {
 		let app: Application;
 		let dirs: any;
@@ -349,7 +397,6 @@ describe('Application', () => {
 		const fakeSocketFiles = ['1.sock' as any, '2.sock' as any];
 		let clearControllerPidFileSpy: jest.SpyInstance<any, unknown[]>;
 		let emptySocketsDirectorySpy: jest.SpyInstance<any, unknown[]>;
-		let nodeCleanupSpy: jest.SpyInstance<any, unknown[]>;
 		let blockChainDBSpy: jest.SpyInstance<any, unknown[]>;
 		let forgerDBSpy: jest.SpyInstance<any, unknown[]>;
 
@@ -361,7 +408,6 @@ describe('Application', () => {
 			await app.run(new Block(createFakeBlockHeader(), [], new BlockAssets()));
 
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
-			nodeCleanupSpy = jest.spyOn(app['_node'], 'stop').mockResolvedValue();
 			jest.spyOn(app['_controller'], 'stop');
 			blockChainDBSpy = jest.spyOn(app['_stateDB'], 'close');
 			forgerDBSpy = jest.spyOn(app['_moduleDB'], 'close');
@@ -371,11 +417,15 @@ describe('Application', () => {
 			clearControllerPidFileSpy = jest.spyOn(app as any, '_clearControllerPidFile');
 		});
 
+		it('should stop the engine', async () => {
+			await app.shutdown();
+			expect(engineProcessMock.kill).toHaveBeenCalledTimes(1);
+		});
+
 		it('should call cleanup methods', async () => {
 			await app.shutdown();
 			expect(clearControllerPidFileSpy).toHaveBeenCalledTimes(1);
 			expect(emptySocketsDirectorySpy).toHaveBeenCalledTimes(1);
-			expect(nodeCleanupSpy).toHaveBeenCalledTimes(1);
 			expect(blockChainDBSpy).toHaveBeenCalledTimes(1);
 			expect(forgerDBSpy).toHaveBeenCalledTimes(1);
 			expect(app['_controller'].stop).toHaveBeenCalledTimes(1);

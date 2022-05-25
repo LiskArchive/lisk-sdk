@@ -109,7 +109,7 @@ describe('Node', () => {
 				module: 'engine',
 				fileLogLevel: 'info',
 				consoleLogLevel: 'debug',
-				logFilePath: `/home/lisk/.lisk-test/logs`,
+				logFilePath: `/home/lisk/.lisk-test/logs/engine.log`,
 			});
 		});
 

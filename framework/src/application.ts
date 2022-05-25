@@ -16,6 +16,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as psList from 'ps-list';
 import * as assert from 'assert';
+import * as childProcess from 'child_process';
 import { Block } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
@@ -33,7 +34,6 @@ import { BasePlugin } from './plugins/base_plugin';
 import { systemDirs } from './system_dirs';
 import { Controller, InMemoryChannel } from './controller';
 import { applicationConfigSchema } from './schema';
-import { Node } from './node';
 import { Logger, createLogger } from './logger';
 
 import { DuplicateAppInstanceError } from './errors';
@@ -49,6 +49,7 @@ import { DPoSModule, DPoSAPI } from './modules/dpos_v2';
 import { generateGenesisBlock, GenesisBlockGenerateInput } from './genesis_block';
 import { StateMachine } from './state_machine';
 import { ABIHandler } from './abi_handler/abi_handler';
+import { ABIServer } from './abi_handler/abi_server';
 
 const MINIMUM_EXTERNAL_MODULE_ID = 1000;
 
@@ -121,10 +122,11 @@ export class Application {
 	private readonly _registeredModules: BaseModule[] = [];
 	private readonly _stateMachine: StateMachine;
 
-	private _node!: Node;
+	private _abiServer!: ABIServer;
 	private _stateDB!: KVStore;
 	private _moduleDB!: KVStore;
 	private _abiHandler!: ABIHandler;
+	private _engineProcess!: childProcess.ChildProcess;
 
 	private readonly _mutex = new jobHandlers.Mutex();
 
@@ -142,7 +144,6 @@ export class Application {
 		}
 		this.config = mergedConfig;
 
-		// Initialize node
 		const { plugins, ...rootConfigs } = this.config;
 		this._controller = new Controller({
 			appConfig: rootConfigs,
@@ -176,6 +177,7 @@ export class Application {
 
 		// register modules
 		application._registerModule(authModule);
+		application._registerModule(validatorModule);
 		application._registerModule(tokenModule);
 		application._registerModule(feeModule);
 		application._registerModule(rewardModule);
@@ -260,6 +262,11 @@ export class Application {
 				endpoints: this._rootEndpoints(),
 				events: [APP_EVENT_READY.replace('app_', ''), APP_EVENT_SHUTDOWN.replace('app_', '')],
 			});
+			await this._stateMachine.init(
+				this.config.genesis,
+				this.config.generation.modules,
+				this.config.genesis.modules,
+			);
 			this._abiHandler = new ABIHandler({
 				channel: this._controller.channel,
 				config: this.config,
@@ -270,10 +277,27 @@ export class Application {
 				stateDB: this._stateDB,
 				stateMachine: this._stateMachine,
 			});
-			this._node = new Node(this._abiHandler);
+			const abiSocketPath = `ipc://${path.join(
+				systemDirs(this.config.label, this.config.rootPath).sockets,
+				'abi.ipc',
+			)}`;
 
+			this._abiServer = new ABIServer(this.logger, abiSocketPath, this._abiHandler);
 			await this._controller.start();
-			await this._node.start();
+			await this._abiServer.start();
+			const program = path.resolve(__dirname, 'engine_igniter');
+			const parameters = [abiSocketPath, 'false'];
+			this._engineProcess = childProcess.fork(program, parameters);
+			this._engineProcess.on('exit', (code, signal) => {
+				// If child process exited with error
+				if (code !== null && code !== undefined && code !== 0) {
+					this.logger.error({ code, signal: signal ?? '' }, 'Engine exited unexpectedly');
+				}
+				process.exit(code ?? 0);
+			});
+			this._engineProcess.on('error', error => {
+				this.logger.error({ err: error }, `Engine signaled error.`);
+			});
 			this.logger.debug(this._controller.getEvents(), 'Application listening to events');
 			this.logger.debug(this._controller.getEndpoints(), 'Application ready for actions');
 
@@ -288,7 +312,7 @@ export class Application {
 
 		try {
 			this.channel.publish(APP_EVENT_SHUTDOWN);
-			await this._node.stop();
+			this._engineProcess.kill(0);
 			await this._controller.stop(errorCode, message);
 			await this._stateDB.close();
 			await this._moduleDB.close();

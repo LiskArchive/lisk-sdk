@@ -285,7 +285,10 @@ export class ABIClient implements ABI {
 		requestSchema: Schema,
 		respSchema: Schema,
 	): Promise<T> {
-		const params = codec.encode(requestSchema, req);
+		const params =
+			Object.keys(requestSchema.properties).length > 0
+				? codec.encode(requestSchema, req)
+				: Buffer.alloc(0);
 		const requestBody = {
 			id: this._globalID,
 			method,
@@ -300,7 +303,8 @@ export class ABIClient implements ABI {
 			response.promise,
 			timeout(DEFAULT_TIMEOUT, `Response not received in ${DEFAULT_TIMEOUT}ms`),
 		]);
-		const decodedResp = codec.decode<T>(respSchema, resp);
+		const decodedResp =
+			Object.keys(respSchema.properties).length > 0 ? codec.decode<T>(respSchema, resp) : ({} as T);
 
 		if (this._globalID >= BigInt(2) ** BigInt(64)) {
 			this._globalID = BigInt(0);

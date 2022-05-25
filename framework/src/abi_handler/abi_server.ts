@@ -179,10 +179,14 @@ export class ABIServer {
 			const handler = this._abiHandlers[request.method];
 			if (!handler) {
 				await this._replyError(sender, `Method ${request.method} is not registered.`, request.id);
+				continue;
 			}
 			try {
 				// eslint-disable-next-line @typescript-eslint/ban-types
-				const params = codec.decode<object>(handler.request, request.params);
+				const params =
+					Object.keys(handler.request.properties).length > 0
+						? codec.decode<object>(handler.request, request.params)
+						: {};
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				const resp = await handler.func(params);
 				await this._router.send([
@@ -193,10 +197,14 @@ export class ABIServer {
 						error: {
 							message: '',
 						},
-						result: codec.encode(handler.response, resp),
+						result:
+							Object.keys(handler.response.properties).length > 0
+								? codec.encode(handler.response, resp)
+								: Buffer.alloc(0),
 					}),
 				]);
 			} catch (error) {
+				this._logger.error({ err: error as Error, method: request.method }, 'Fail to respond');
 				await this._replyError(sender, (error as Error).message, request.id);
 				continue;
 			}

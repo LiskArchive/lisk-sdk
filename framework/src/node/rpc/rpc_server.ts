@@ -14,6 +14,7 @@
  */
 
 import { Router } from 'zeromq';
+import * as fs from 'fs-extra';
 import { RPC_MODES } from '../../constants';
 import { HTTPServer } from '../../controller/http/http_server';
 import { IPCServer } from '../../controller/ipc/ipc_server';
@@ -54,6 +55,7 @@ export class RPCServer {
 	public constructor(config: RPCConfig) {
 		this._config = config;
 		if (this._config.modes.includes(RPC_MODES.IPC) && this._config.ipc) {
+			fs.mkdirsSync(this._config.ipc.path);
 			this._ipcServer = new IPCServer({
 				socketsDir: this._config.ipc.path,
 				name: 'ipc',

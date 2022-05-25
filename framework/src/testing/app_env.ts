@@ -57,11 +57,6 @@ export class ApplicationEnv {
 		return this._dataPath;
 	}
 
-	public get lastBlock(): Block {
-		// eslint-disable-next-line dot-notation
-		return this._application['_node']['_chain'].lastBlock;
-	}
-
 	public async startApplication(): Promise<void> {
 		this._genesisBlock = await this._application.generateGenesisBlock({
 			assets: [],
@@ -78,27 +73,12 @@ export class ApplicationEnv {
 
 	public async stopApplication(options: { clearDB: boolean } = { clearDB: true }): Promise<void> {
 		if (options.clearDB) {
-			// eslint-disable-next-line dot-notation
-			await this._application['_moduleDB'].clear();
-			// eslint-disable-next-line dot-notation
-			await this._application['_stateDB'].clear();
+			rmdirSync(this._dataPath);
 		}
 		if (this._application.config.rpc.modes.includes(RPC_MODES.IPC)) {
 			await this._ipcClient.disconnect();
 		}
 		await this._application.shutdown();
-	}
-
-	public async waitNBlocks(n = 1): Promise<void> {
-		// eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-		const height = this.lastBlock.header.height + n;
-		return new Promise(resolve => {
-			this._application.channel.subscribe('app_block:new', () => {
-				if (this.lastBlock.header.height >= height) {
-					resolve();
-				}
-			});
-		});
 	}
 
 	private _initApplication(appConfig: ApplicationEnvConfig): Application {
