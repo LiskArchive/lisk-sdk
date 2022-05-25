@@ -16,6 +16,7 @@ import { EVENT_STANDARD_TYPE_ID } from '@liskhq/lisk-chain';
 import { standardEventDataSchema } from '@liskhq/lisk-chain/dist-node/schema';
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { BlockContext } from './block_context';
+import { GenerationContext } from './generator_context';
 import { GenesisBlockContext } from './genesis_block_context';
 import { TransactionContext } from './transaction_context';
 import {
@@ -29,6 +30,7 @@ import {
 	CommandVerifyContext,
 	CommandExecuteContext,
 	BlockAfterExecuteContext,
+	InsertAssetContext,
 } from './types';
 
 export interface StateMachineCommand {
@@ -41,6 +43,7 @@ export interface StateMachineCommand {
 export interface StateMachineModule {
 	id: number;
 	commands: StateMachineCommand[];
+	initBlock?: (ctx: InsertAssetContext) => Promise<void>;
 	verifyTransaction?: (ctx: TransactionVerifyContext) => Promise<VerificationResult>;
 	initGenesisState?: (ctx: GenesisBlockExecuteContext) => Promise<void>;
 	finalizeGenesisState?: (ctx: GenesisBlockExecuteContext) => Promise<void>;
@@ -95,6 +98,20 @@ export class StateMachine {
 		for (const mod of this._systemModules) {
 			if (mod.finalizeGenesisState) {
 				await mod.finalizeGenesisState(finalizeContext);
+			}
+		}
+	}
+
+	public async insertAssets(ctx: GenerationContext): Promise<void> {
+		const initContext = ctx.getInsertAssetContext();
+		for (const mod of this._systemModules) {
+			if (mod.initBlock) {
+				await mod.initBlock(initContext);
+			}
+		}
+		for (const mod of this._modules) {
+			if (mod.initBlock) {
+				await mod.initBlock(initContext);
 			}
 		}
 	}

@@ -529,6 +529,10 @@ export class Consensus {
 			header: block.header,
 			assets: block.assets,
 			transactions: block.transactions,
+			// TODO: Add real value with https://github.com/LiskHQ/lisk-sdk/issues/7130
+			currentValidators: [],
+			impliesMaxPrevote: false,
+			maxHeightCertified: 0,
 		});
 		await this._verify(block);
 		await this._stateMachine.verifyAssets(ctx);

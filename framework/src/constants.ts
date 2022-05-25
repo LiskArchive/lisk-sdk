@@ -25,3 +25,12 @@ export const RPC_MODES = {
 	WS: 'ws',
 	HTTP: 'http',
 };
+
+export const DEFAULT_HOST = '127.0.0.1';
+export const DEFAULT_PORT_P2P = 7667;
+export const DEFAULT_PORT_RPC = 7887;
+
+export const MAX_BLOCK_CACHE = 515;
+
+export const DEFAULT_MAX_INBOUND_CONNECTIONS = 100;
+export const DEFAULT_MAX_OUTBOUND_CONNECTIONS = 20;

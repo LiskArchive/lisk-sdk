@@ -179,7 +179,7 @@ describe('Application', () => {
 			// Arrange
 			const invalidConfig = objects.mergeDeep({}, config, {
 				generation: {
-					delegates: [
+					generators: [
 						{
 							encryptedPassphrase:
 								'0dbd21ac5c154dbb72ce90a4e252a64b692203a4f8e25f8bfa1b1993e2ba7a9bd9e1ef1896d8d584a62daf17a8ccf12b99f29521b92cc98b74434ff501374f7e1c6d8371a6ce4e2d083489',

@@ -2170,6 +2170,7 @@ Object {
       },
     ],
     "force": true,
+    "generators": Array [],
     "modules": Object {},
     "waitThreshold": 2,
   },

@@ -597,6 +597,10 @@ export class Generator {
 			logger: this._logger,
 			networkIdentifier: this._chain.networkIdentifier,
 			stateStore,
+			// TODO: Add real value with https://github.com/LiskHQ/lisk-sdk/issues/7130
+			currentValidators: [],
+			impliesMaxPrevote: false,
+			maxHeightCertified: 0,
 		});
 		await this._stateMachine.beforeExecuteBlock(blockCtx);
 

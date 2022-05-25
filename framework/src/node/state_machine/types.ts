@@ -69,6 +69,10 @@ export interface BlockAssets {
 	getAsset: (moduleID: number) => Buffer | undefined;
 }
 
+export interface WritableBlockAssets extends BlockAssets {
+	setAsset: (moduleID: number, value: Buffer) => void;
+}
+
 export interface VerificationResult {
 	status: VerifyStatus;
 	error?: Error;
@@ -110,6 +114,11 @@ export interface GenesisBlockExecuteContext {
 	getStore: (moduleID: number, storePrefix: number) => SubStore;
 	header: BlockHeader;
 	assets: BlockAssets;
+	setNextValidators: (
+		preCommitThreshold: bigint,
+		certificateThreshold: bigint,
+		validators: Validator[],
+	) => void;
 }
 
 export interface TransactionExecuteContext {
@@ -140,8 +149,34 @@ export interface BlockExecuteContext {
 	getStore: (moduleID: number, storePrefix: number) => SubStore;
 	header: BlockHeader;
 	assets: BlockAssets;
+	currentValidators: Validator[];
+	impliesMaxPrevote: boolean;
+	maxHeightCertified: number;
+}
+
+export interface Validator {
+	address: Buffer;
+	bftWeight: bigint;
+	generatorKey: Buffer;
+	blsKey: Buffer;
 }
 
 export interface BlockAfterExecuteContext extends BlockExecuteContext {
 	transactions: ReadonlyArray<Transaction>;
+	setNextValidators: (
+		preCommitThreshold: bigint,
+		certificateThreshold: bigint,
+		validators: Validator[],
+	) => void;
+}
+
+export interface InsertAssetContext {
+	logger: Logger;
+	networkIdentifier: Buffer;
+	getAPIContext: () => APIContext;
+	getStore: (moduleID: number, storePrefix: number) => ImmutableSubStore;
+	header: BlockHeader;
+	assets: WritableBlockAssets;
+	getGeneratorStore: (moduleID: number) => SubStore;
+	getFinalizedHeight(): number;
 }
