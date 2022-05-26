@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { EventEmitter } from 'events';
 import * as path from 'path';
 import {
 	Block,
@@ -70,6 +71,8 @@ import {
 	ProveRequest,
 	ProveResponse,
 	TransactionExecutionResult,
+	ReadyRequest,
+	ReadyResponse,
 } from '../abi';
 import { Logger } from '../logger';
 import { BaseModule } from '../modules';
@@ -106,13 +109,16 @@ export interface ABIHandlerConstructor {
 
 interface ExecutionContext {
 	id: Buffer;
-	networkIdentifier: Buffer;
 	header: BlockHeader;
 	stateStore: StateStore;
 	moduleStore: StateStore;
 }
 
+export const EVENT_ENGINE_READY = 'EVENT_ENGINE_READY';
+
 export class ABIHandler implements ABI {
+	public readonly event = new EventEmitter();
+
 	private readonly _config: ApplicationConfig;
 	private readonly _logger: Logger;
 	private readonly _stateMachine: StateMachine;
@@ -123,6 +129,7 @@ export class ABIHandler implements ABI {
 
 	private _genesisBlock?: Block;
 	private _executionContext: ExecutionContext | undefined;
+	private _networkIdentifier?: Buffer;
 
 	public constructor(args: ABIHandlerConstructor) {
 		this._config = args.config;
@@ -133,6 +140,13 @@ export class ABIHandler implements ABI {
 		this._moduleDB = args.moduleDB;
 		this._modules = args.modules;
 		this._channel = args.channel;
+	}
+
+	public get networkIdentifier(): Buffer {
+		if (!this._networkIdentifier) {
+			throw new Error('Network identifier is not set.');
+		}
+		return this._networkIdentifier;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -226,6 +240,14 @@ export class ABIHandler implements ABI {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
+	public async ready(req: ReadyRequest): Promise<ReadyResponse> {
+		this._networkIdentifier = req.networkIdentifier;
+
+		this.event.emit(EVENT_ENGINE_READY);
+		return {};
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
 	public async initStateMachine(req: InitStateMachineRequest): Promise<InitStateMachineResponse> {
 		if (this._executionContext !== undefined) {
 			throw new Error(
@@ -238,7 +260,6 @@ export class ABIHandler implements ABI {
 		this._executionContext = {
 			id,
 			header: new BlockHeader(req.header),
-			networkIdentifier: req.networkIdentifier,
 			stateStore: new StateStore(this._stateDB),
 			moduleStore: new StateStore(this._moduleDB),
 		};
@@ -288,7 +309,7 @@ export class ABIHandler implements ABI {
 			header: this._executionContext.header,
 			logger: this._logger,
 			stateStore: this._executionContext.stateStore,
-			networkIdentifier: this._executionContext.networkIdentifier,
+			networkIdentifier: this.networkIdentifier,
 			generatorStore: this._executionContext.moduleStore,
 			finalizedHeight: req.finalizedHeight,
 		});
@@ -312,7 +333,7 @@ export class ABIHandler implements ABI {
 			header: this._executionContext.header,
 			logger: this._logger,
 			stateStore: this._executionContext.stateStore,
-			networkIdentifier: this._executionContext.networkIdentifier,
+			networkIdentifier: this.networkIdentifier,
 			assets: new BlockAssets(req.assets),
 			eventQueue: new EventQueue(),
 			// verifyAssets does not have access to transactions
@@ -341,7 +362,7 @@ export class ABIHandler implements ABI {
 			header: this._executionContext.header,
 			logger: this._logger,
 			stateStore: this._executionContext.stateStore,
-			networkIdentifier: this._executionContext.networkIdentifier,
+			networkIdentifier: this.networkIdentifier,
 			assets: new BlockAssets(req.assets),
 			eventQueue: new EventQueue(),
 			currentValidators: req.consensus.currentValidators,
@@ -371,7 +392,7 @@ export class ABIHandler implements ABI {
 			header: this._executionContext.header,
 			logger: this._logger,
 			stateStore: this._executionContext.stateStore,
-			networkIdentifier: this._executionContext.networkIdentifier,
+			networkIdentifier: this.networkIdentifier,
 			assets: new BlockAssets(req.assets),
 			eventQueue: new EventQueue(),
 			currentValidators: req.consensus.currentValidators,
@@ -393,20 +414,17 @@ export class ABIHandler implements ABI {
 		req: VerifyTransactionRequest,
 	): Promise<VerifyTransactionResponse> {
 		let stateStore: StateStore;
-		let networkIdentifier: Buffer;
 		if (!this._executionContext || !this._executionContext.id.equals(req.contextID)) {
 			stateStore = new StateStore(this._stateDB);
-			networkIdentifier = req.networkIdentifier;
 		} else {
 			stateStore = this._executionContext.stateStore;
-			networkIdentifier = this._executionContext.networkIdentifier;
 		}
 		const context = new TransactionContext({
 			eventQueue: new EventQueue(),
 			logger: this._logger,
 			transaction: new Transaction(req.transaction),
 			stateStore,
-			networkIdentifier,
+			networkIdentifier: this.networkIdentifier,
 			// These values are not used
 			currentValidators: [],
 			impliesMaxPrevote: true,
@@ -424,7 +442,6 @@ export class ABIHandler implements ABI {
 	): Promise<ExecuteTransactionResponse> {
 		let stateStore: StateStore;
 		let header: BlockHeader;
-		let networkIdentifier: Buffer;
 		if (!req.dryRun) {
 			if (!this._executionContext || !this._executionContext.id.equals(req.contextID)) {
 				throw new Error(
@@ -435,18 +452,16 @@ export class ABIHandler implements ABI {
 			}
 			stateStore = this._executionContext.stateStore;
 			header = this._executionContext.header;
-			networkIdentifier = this._executionContext.networkIdentifier;
 		} else {
 			stateStore = new StateStore(this._stateDB);
 			header = new BlockHeader(req.header);
-			networkIdentifier = req.networkIdentifier;
 		}
 		const context = new TransactionContext({
 			eventQueue: new EventQueue(),
 			logger: this._logger,
 			transaction: new Transaction(req.transaction),
 			stateStore,
-			networkIdentifier,
+			networkIdentifier: this.networkIdentifier,
 			assets: new BlockAssets(req.assets),
 			header,
 			currentValidators: req.consensus.currentValidators,
@@ -592,10 +607,23 @@ export class ABIHandler implements ABI {
 
 	public async query(req: QueryRequest): Promise<QueryResponse> {
 		const params = JSON.parse(req.params.toString('utf8')) as Record<string, unknown>;
-		const resp = await this._channel.invoke(req.method, params);
-		return {
-			data: Buffer.from(JSON.stringify(resp), 'utf-8'),
-		};
+		try {
+			const resp = await this._channel.invoke(req.method, params);
+			return {
+				data: Buffer.from(JSON.stringify(resp), 'utf-8'),
+			};
+		} catch (error) {
+			return {
+				data: Buffer.from(
+					JSON.stringify({
+						error: {
+							message: (error as Error).message,
+						},
+					}),
+					'utf-8',
+				),
+			};
+		}
 	}
 
 	public async prove(req: ProveRequest): Promise<ProveResponse> {

@@ -18,7 +18,7 @@ import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { EventEmitter } from 'events';
 import * as liskP2P from '@liskhq/lisk-p2p';
 
-import { APP_EVENT_NETWORK_READY } from '../events';
+import { EVENT_NETWORK_READY as ENGINE_EVENT_NETWORK_READY } from '../events';
 import { lookupPeersIPs } from './utils';
 import { Logger } from '../../logger';
 import { NetworkConfig } from '../../types';
@@ -219,7 +219,7 @@ export class Network {
 		// ---- START: Bind event handlers ----
 		this._p2p.on(EVENT_NETWORK_READY, () => {
 			this._logger.debug('Node connected to the network');
-			this.events.emit(APP_EVENT_NETWORK_READY);
+			this.events.emit(ENGINE_EVENT_NETWORK_READY);
 		});
 
 		this._p2p.on(

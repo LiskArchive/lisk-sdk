@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
+import { EventEmitter } from 'events';
 import {
 	Chain,
 	Block,
@@ -37,7 +37,7 @@ import { TransactionPool, events } from '@liskhq/lisk-transaction-pool';
 import { MerkleTree, SparseMerkleTree } from '@liskhq/lisk-tree';
 import { dataStructures, jobHandlers } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
-import { APP_EVENT_NETWORK_READY } from '../events';
+import { EVENT_NETWORK_READY } from '../events';
 import { Logger } from '../../logger';
 import { GenesisConfig } from '../../types';
 import { Network } from '../network';
@@ -49,6 +49,8 @@ import {
 	LOAD_TRANSACTION_RETRIES,
 	NETWORK_RPC_GET_TRANSACTIONS,
 	NETWORK_EVENT_POST_TRANSACTIONS_ANNOUNCEMENT,
+	GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT,
+	GENERATOR_EVENT_NEW_TRANSACTION,
 } from './constants';
 import { Endpoint } from './endpoint';
 import { GeneratorStore } from './generator_store';
@@ -86,6 +88,8 @@ interface GeneratorInitArgs {
 const BLOCK_VERSION = 2;
 
 export class Generator {
+	public readonly events = new EventEmitter();
+
 	private readonly _pool: TransactionPool;
 	private readonly _config: GenerationConfig;
 	private readonly _chain: Chain;
@@ -139,8 +143,6 @@ export class Generator {
 			generators: this._config.generators,
 			keypair: this._keypairs,
 			consensus: this._consensus,
-			broadcaster: this._broadcaster,
-			pool: this._pool,
 		});
 		this._networkEndpoint = new NetworkEndpoint({
 			abi: this._abi,
@@ -150,7 +152,6 @@ export class Generator {
 			pool: this._pool,
 		});
 		this._forgingStrategy = new HighFeeGenerationStrategy({
-			chain: this._chain,
 			maxTransactionsSize: this._chain.constants.maxTransactionsSize,
 			abi: this._abi,
 			pool: this._pool,
@@ -171,7 +172,6 @@ export class Generator {
 		});
 		this._endpoint.init({
 			generatorDB: this._generatorDB,
-			logger: this._logger,
 		});
 		this._networkEndpoint.init({
 			logger: this._logger,
@@ -193,6 +193,12 @@ export class Generator {
 		this._network.registerEndpoint(NETWORK_RPC_GET_TRANSACTIONS, async ({ data, peerId }) =>
 			this._networkEndpoint.handleRPCGetTransactions(data, peerId),
 		);
+		this._networkEndpoint.event.on(GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT, e => {
+			this.events.emit(GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT, e);
+		});
+		this._networkEndpoint.event.on(GENERATOR_EVENT_NEW_TRANSACTION, e => {
+			this.events.emit(GENERATOR_EVENT_NEW_TRANSACTION, e);
+		});
 
 		const stateStore = new StateStore(this._blockchainDB);
 		const maxRemovalHeight = await this._consensus.getMaxRemovalHeight();
@@ -202,6 +208,14 @@ export class Generator {
 
 	public get endpoint(): Endpoint {
 		return this._endpoint;
+	}
+
+	public get txpool(): TransactionPool {
+		return this._pool;
+	}
+
+	public get broadcaster(): Broadcaster {
+		return this._broadcaster;
 	}
 
 	public async start(): Promise<void> {
@@ -214,7 +228,7 @@ export class Generator {
 		// eslint-disable-next-line @typescript-eslint/no-floating-promises
 		this._generationJob.start();
 
-		this._network.events.on(APP_EVENT_NETWORK_READY, () => {
+		this._network.events.on(EVENT_NETWORK_READY, () => {
 			this._loadTransactionsFromNetwork().catch(err =>
 				this._logger.error(
 					{ err: err as Error },
@@ -295,7 +309,6 @@ export class Generator {
 			const { result: verifyResult } = await this._abi.verifyTransaction({
 				contextID: Buffer.alloc(0),
 				transaction,
-				networkIdentifier: this._chain.networkIdentifier,
 			});
 			if (verifyResult !== TransactionVerifyResult.OK) {
 				throw new Error('Transaction is not valid');
@@ -490,7 +503,6 @@ export class Generator {
 
 		const { contextID } = await this._abi.initStateMachine({
 			header: blockHeader.toObject(),
-			networkIdentifier: this._chain.networkIdentifier,
 		});
 		const { assets } = await this._abi.insertAssets({
 			contextID,
@@ -684,7 +696,6 @@ export class Generator {
 				const { result: verifyResult } = await this._abi.verifyTransaction({
 					contextID,
 					transaction,
-					networkIdentifier: this._chain.networkIdentifier,
 				});
 				if (verifyResult !== TransactionVerifyResult.OK) {
 					throw new Error('Transaction is not valid');
@@ -692,7 +703,6 @@ export class Generator {
 				const { events: txEvents, result: executeResult } = await this._abi.executeTransaction({
 					contextID,
 					header: header.toObject(),
-					networkIdentifier: this._chain.networkIdentifier,
 					transaction,
 					consensus,
 					assets: assets.getAll(),

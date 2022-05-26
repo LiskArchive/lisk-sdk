@@ -154,28 +154,12 @@ export interface EndpointInfo {
 	readonly method: string;
 }
 
-export interface RegisteredModule {
-	id: number;
-	name: string;
-	endpoints: string[];
-	events: string[];
-	commands: {
-		id: number;
-		name: string;
-	}[];
-}
-
 export interface RegisteredSchema {
 	block: Schema;
-	blockHeader: Schema;
+	header: Schema;
 	transaction: Schema;
-	commands: {
-		moduleID: number;
-		moduleName: string;
-		commandID: number;
-		commandName: string;
-		schema?: Schema;
-	}[];
+	asset: Schema;
+	event: Schema;
 }
 
 export interface SchemaWithDefault extends Schema {

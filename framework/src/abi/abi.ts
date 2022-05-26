@@ -15,6 +15,7 @@
 
 export interface ABI {
 	init(req: InitRequest): Promise<InitResponse>;
+	ready(req: ReadyRequest): Promise<ReadyResponse>;
 	initStateMachine(req: InitStateMachineRequest): Promise<InitStateMachineResponse>;
 	initGenesisState(req: InitGenesisStateRequest): Promise<InitGenesisStateResponse>;
 	insertAssets(req: InsertAssetsRequest): Promise<InsertAssetsResponse>;
@@ -197,8 +198,14 @@ export interface InitResponse {
 	config: Config;
 }
 
-export interface InitStateMachineRequest {
+export interface ReadyRequest {
 	networkIdentifier: Buffer;
+	lastBlockHeight: number;
+}
+
+export interface ReadyResponse {}
+
+export interface InitStateMachineRequest {
 	header: BlockHeader;
 }
 
@@ -267,7 +274,6 @@ export interface AfterTransactionsExecuteResponse {
 
 export interface VerifyTransactionRequest {
 	contextID: Buffer;
-	networkIdentifier: Buffer;
 	transaction: Transaction;
 }
 
@@ -277,7 +283,6 @@ export interface VerifyTransactionResponse {
 
 export interface ExecuteTransactionRequest {
 	contextID: Buffer;
-	networkIdentifier: Buffer;
 	transaction: Transaction;
 	assets: BlockAsset[];
 	dryRun: boolean;
@@ -330,7 +335,6 @@ export interface MetadataResponse {
 export interface QueryRequest {
 	method: string;
 	params: Buffer;
-	networkIdentifier: Buffer;
 	header: BlockHeader;
 }
 

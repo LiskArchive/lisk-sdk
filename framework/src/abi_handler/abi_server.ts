@@ -19,6 +19,8 @@ import {
 	IPCRequest,
 	ipcRequestSchema,
 	ipcResponseSchema,
+	readyRequestSchema,
+	readyResponseSchema,
 	afterTransactionsExecuteRequestSchema,
 	afterTransactionsExecuteResponseSchema,
 	beforeTransactionsExecuteRequestSchema,
@@ -77,6 +79,11 @@ export class ABIServer {
 			request: initRequestSchema,
 			response: initResponseSchema,
 			func: abi.init.bind(abi),
+		};
+		this._abiHandlers[abi.ready.name] = {
+			request: readyRequestSchema,
+			response: readyResponseSchema,
+			func: abi.ready.bind(abi),
 		};
 		this._abiHandlers[abi.initStateMachine.name] = {
 			request: initStateMachineRequestSchema,

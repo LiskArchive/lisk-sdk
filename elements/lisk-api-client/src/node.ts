@@ -22,7 +22,7 @@ export class Node {
 	}
 
 	public async getNodeInfo(): Promise<NodeInfo> {
-		return this._channel.invoke('app_getNodeInfo');
+		return this._channel.invoke('system_getNodeInfo');
 	}
 
 	public async getNetworkStats(): Promise<NetworkStats> {

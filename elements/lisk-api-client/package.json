@@ -38,6 +38,7 @@
 		"@liskhq/lisk-codec": "^0.2.1",
 		"@liskhq/lisk-cryptography": "^3.2.0",
 		"@liskhq/lisk-transactions": "^5.2.1",
+		"@liskhq/lisk-validator": "^0.6.1",
 		"isomorphic-ws": "4.0.1",
 		"ws": "7.4.6",
 		"zeromq": "6.0.0-beta.6"

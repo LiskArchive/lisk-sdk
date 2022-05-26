@@ -46,6 +46,8 @@ import {
 	CONSENSUS_EVENT_BLOCK_NEW,
 	CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED,
 	CONSENSUS_EVENT_FORK_DETECTED,
+	CONSENSUS_EVENT_NETWORK_BLOCK_NEW,
+	CONSENSUS_EVENT_VALIDATORS_CHANGED,
 	EMPTY_HASH,
 	NETWORK_EVENT_POST_BLOCK,
 	NETWORK_EVENT_POST_NODE_INFO,
@@ -293,6 +295,8 @@ export class Consensus {
 			});
 			throw error;
 		}
+
+		this.events.emit(CONSENSUS_EVENT_NETWORK_BLOCK_NEW, block);
 
 		try {
 			await this._execute(block, peerId);
@@ -787,7 +791,6 @@ export class Consensus {
 		try {
 			const { contextID } = await this._abi.initStateMachine({
 				header: block.header.toObject(),
-				networkIdentifier: this._chain.networkIdentifier,
 			});
 			await this._abi.revert({
 				contextID,
@@ -872,7 +875,6 @@ export class Consensus {
 		try {
 			const { contextID } = await this._abi.initStateMachine({
 				header: block.header.toObject(),
-				networkIdentifier: this._chain.networkIdentifier,
 			});
 			await this._abi.verifyAssets({
 				contextID,
@@ -904,7 +906,6 @@ export class Consensus {
 			for (const transaction of block.transactions) {
 				const { result: verifyResult } = await this._abi.verifyTransaction({
 					contextID,
-					networkIdentifier: this._chain.networkIdentifier,
 					transaction: transaction.toObject(),
 				});
 				if (verifyResult !== TransactionVerifyResult.OK) {
@@ -915,7 +916,6 @@ export class Consensus {
 					assets: block.assets.getAll(),
 					dryRun: false,
 					header: block.header.toObject(),
-					networkIdentifier: this._chain.networkIdentifier,
 					transaction: transaction.toObject(),
 					consensus,
 				});
@@ -948,6 +948,11 @@ export class Consensus {
 					activeValidators,
 				);
 				await this._bft.api.setGeneratorKeys(stateStore, afterResult.nextValidators);
+				this.events.emit(CONSENSUS_EVENT_VALIDATORS_CHANGED, {
+					preCommitThreshold: afterResult.preCommitThreshold,
+					certificateThreshold: afterResult.certificateThreshold,
+					nextValidators: afterResult.nextValidators,
+				});
 			}
 
 			return events;
@@ -977,7 +982,6 @@ export class Consensus {
 		try {
 			const { contextID } = await this._abi.initStateMachine({
 				header: genesisBlock.header.toObject(),
-				networkIdentifier: this._chain.networkIdentifier,
 			});
 			if (!genesisBlock.header.stateRoot) {
 				throw new Error('Genesis block stateRoot must not be empty.');
@@ -997,6 +1001,11 @@ export class Consensus {
 				activeValidators,
 			);
 			await this._bft.api.setGeneratorKeys(stateStore, result.nextValidators);
+			this.events.emit(CONSENSUS_EVENT_VALIDATORS_CHANGED, {
+				preCommitThreshold: result.preCommitThreshold,
+				certificateThreshold: result.certificateThreshold,
+				nextValidators: result.nextValidators,
+			});
 
 			await this._abi.commit({
 				contextID,

@@ -11,7 +11,14 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Chain } from '@liskhq/lisk-chain';
+import {
+	blockAssetSchema,
+	blockHeaderSchema,
+	blockSchema,
+	Chain,
+	eventSchema,
+	transactionSchema,
+} from '@liskhq/lisk-chain';
 import { ABI, InitResponse } from '../../abi';
 import { Consensus } from '../consensus';
 import { Generator } from '../generator';
@@ -69,5 +76,16 @@ export class SystemEndpoint {
 	public async getMetadata(_ctx: RequestContext): Promise<Record<string, unknown>> {
 		const { data } = await this._abi.getMetadata({});
 		return JSON.parse(data.toString()) as Record<string, unknown>;
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async getSchema(_ctx: RequestContext): Promise<Record<string, unknown>> {
+		return {
+			block: blockSchema,
+			header: blockHeaderSchema,
+			asset: blockAssetSchema,
+			transaction: transactionSchema,
+			event: eventSchema,
+		};
 	}
 }

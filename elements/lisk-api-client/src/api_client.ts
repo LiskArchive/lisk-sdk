@@ -12,14 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { EventCallback, Channel, RegisteredSchemas, NodeInfo } from './types';
+import { EventCallback, Channel, RegisteredSchemas, NodeInfo, ModuleMetadata } from './types';
 import { Node } from './node';
 import { Block } from './block';
 import { Transaction } from './transaction';
 
 export class APIClient {
 	private readonly _channel: Channel;
-	private _schemas!: RegisteredSchemas;
+	private _schema!: RegisteredSchemas;
+	private _metadata!: ModuleMetadata[];
 	private _nodeInfo!: NodeInfo;
 	private _node!: Node;
 	private _block!: Block;
@@ -30,11 +31,17 @@ export class APIClient {
 	}
 
 	public async init(): Promise<void> {
-		this._schemas = await this._channel.invoke<RegisteredSchemas>('app_getSchema');
+		this._metadata = await this._channel.invoke<ModuleMetadata[]>('system_getMetadata');
+		this._schema = await this._channel.invoke<RegisteredSchemas>('system_getSchema');
 		this._node = new Node(this._channel);
-		this._block = new Block(this._channel, this._schemas);
+		this._block = new Block(this._channel, this._schema, this._metadata);
 		this._nodeInfo = await this._node.getNodeInfo();
-		this._transaction = new Transaction(this._channel, this._schemas, this._nodeInfo);
+		this._transaction = new Transaction(
+			this._channel,
+			this._schema,
+			this._metadata,
+			this._nodeInfo,
+		);
 	}
 
 	public async disconnect(): Promise<void> {
@@ -52,8 +59,12 @@ export class APIClient {
 		this._channel.subscribe(eventName, cb);
 	}
 
-	public get schemas(): RegisteredSchemas {
-		return this._schemas;
+	public get schema(): RegisteredSchemas {
+		return this._schema;
+	}
+
+	public get metadata(): ModuleMetadata[] {
+		return this._metadata;
 	}
 
 	public get node(): Node {

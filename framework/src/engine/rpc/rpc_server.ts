@@ -58,7 +58,7 @@ export class RPCServer {
 			fs.mkdirsSync(this._config.ipc.path);
 			this._ipcServer = new IPCServer({
 				socketsDir: this._config.ipc.path,
-				name: 'ipc',
+				name: 'engine',
 				externalSocket: true,
 			});
 		}
@@ -90,6 +90,7 @@ export class RPCServer {
 			this._handleIPCRequest(this._ipcServer.rpcServer).catch(err => {
 				this._logger.debug(err, 'Error occured while listening to RPCs on RPC router.');
 			});
+			this._logger.info({ path: this._ipcServer.socketPaths }, 'Started IPC server');
 		}
 
 		if (this._wsServer) {

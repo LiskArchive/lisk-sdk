@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Transaction } from '@liskhq/lisk-chain';
 import {
 	decryptPassphraseWithPassword,
 	generatePrivateKey,
@@ -21,12 +20,8 @@ import {
 	parseEncryptedPassphrase,
 } from '@liskhq/lisk-cryptography';
 import { KVStore } from '@liskhq/lisk-db';
-import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
-import { Logger } from '../../logger';
-import { Broadcaster } from './broadcaster';
-import { InvalidTransactionError } from './errors';
 import { GeneratorStore } from './generator_store';
 import {
 	getLastGeneratedInfo,
@@ -37,29 +32,22 @@ import {
 import {
 	GeneratedInfo,
 	GetStatusResponse,
-	PostTransactionRequest,
-	postTransactionRequestSchema,
-	PostTransactionResponse,
 	UpdateStatusRequest,
 	updateStatusRequestSchema,
 	UpdateStatusResponse,
 } from './schemas';
 import { Consensus, Keypair, Generator } from './types';
 import { RequestContext } from '../rpc/rpc_server';
-import { ABI, TransactionVerifyResult } from '../../abi';
-import { EMPTY_BUFFER } from './constants';
+import { ABI } from '../../abi';
 
 interface EndpointArgs {
 	keypair: dataStructures.BufferMap<Keypair>;
 	generators: Generator[];
 	consensus: Consensus;
 	abi: ABI;
-	pool: TransactionPool;
-	broadcaster: Broadcaster;
 }
 
 interface EndpointInit {
-	logger: Logger;
 	generatorDB: KVStore;
 }
 
@@ -69,11 +57,7 @@ export class Endpoint {
 	private readonly _keypairs: dataStructures.BufferMap<Keypair>;
 	private readonly _generators: Generator[];
 	private readonly _consensus: Consensus;
-	private readonly _abi: ABI;
-	private readonly _pool: TransactionPool;
-	private readonly _broadcaster: Broadcaster;
 
-	private _logger!: Logger;
 	private _generatorDB!: KVStore;
 
 	public constructor(args: EndpointArgs) {
@@ -81,60 +65,10 @@ export class Endpoint {
 		this._generators = args.generators;
 		this._consensus = args.consensus;
 		this._abi = args.abi;
-		this._pool = args.pool;
-		this._broadcaster = args.broadcaster;
 	}
 
 	public init(args: EndpointInit) {
-		this._logger = args.logger;
 		this._generatorDB = args.generatorDB;
-	}
-
-	public async postTransaction(ctx: RequestContext): Promise<PostTransactionResponse> {
-		const reqErrors = validator.validate(postTransactionRequestSchema, ctx.params);
-		if (reqErrors?.length) {
-			throw new LiskValidationError(reqErrors);
-		}
-		const req = (ctx.params as unknown) as PostTransactionRequest;
-		const transaction = Transaction.fromBytes(Buffer.from(req.transaction, 'hex'));
-
-		const { result } = await this._abi.verifyTransaction({
-			contextID: EMPTY_BUFFER,
-			networkIdentifier: ctx.networkIdentifier,
-			transaction: transaction.toObject(),
-		});
-		if (result === TransactionVerifyResult.INVALID) {
-			throw new InvalidTransactionError('Transaction verification failed.', transaction.id);
-		}
-		if (this._pool.contains(transaction.id)) {
-			return {
-				transactionId: transaction.id.toString('hex'),
-			};
-		}
-
-		// Broadcast transaction to network if not present in pool
-		this._broadcaster.enqueueTransactionId(transaction.id);
-
-		const { error } = await this._pool.add(transaction);
-		if (error) {
-			this._logger.error({ err: error }, 'Failed to add transaction to pool.');
-			throw new InvalidTransactionError(
-				error.message ?? 'Transaction verification failed.',
-				transaction.id,
-			);
-		}
-
-		this._logger.info(
-			{
-				id: transaction.id,
-				nonce: transaction.nonce.toString(),
-				senderPublicKey: transaction.senderPublicKey,
-			},
-			'Added transaction to pool',
-		);
-		return {
-			transactionId: transaction.id.toString('hex'),
-		};
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -147,11 +81,6 @@ export class Endpoint {
 			});
 		}
 		return status;
-	}
-
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getTransactionsFromPool(_context: RequestContext): Promise<string[]> {
-		return this._pool.getAll().map(tx => tx.getBytes().toString('hex'));
 	}
 
 	public async updateStatus(ctx: RequestContext): Promise<UpdateStatusResponse> {

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as path from 'path';
-import { Chain, Block, BlockHeader, BlockAssets } from '@liskhq/lisk-chain';
+import { Chain, Block, BlockHeader, BlockAssets, TransactionJSON } from '@liskhq/lisk-chain';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
 import { KVStore } from '@liskhq/lisk-db';
 import { createLogger, Logger } from '../logger';
@@ -21,11 +21,27 @@ import { Consensus, CONSENSUS_EVENT_BLOCK_DELETE, CONSENSUS_EVENT_BLOCK_NEW } fr
 import { BlockGenerateInput, Generator } from './generator';
 import { getEndpointHandlers } from '../endpoint';
 import { BFTModule } from './bft';
-import { APP_EVENT_BLOCK_DELETE, APP_EVENT_BLOCK_NEW } from './events';
+import {
+	EVENT_CHAIN_BLOCK_DELETE,
+	EVENT_CHAIN_BLOCK_NEW,
+	EVENT_CHAIN_FORK,
+	EVENT_CHAIN_VALIDATORS_CHANGE,
+	EVENT_NETWORK_BLOCK_NEW,
+	EVENT_NETWORK_TRANSACTION_NEW,
+	EVENT_TX_POOL_TRANSACTION_NEW,
+} from './events';
 import { RPCServer, RequestContext } from './rpc/rpc_server';
 import { ChainEndpoint } from './endpoint/chain';
 import { SystemEndpoint } from './endpoint/system';
 import { ABI, InitResponse } from '../abi';
+import {
+	CONSENSUS_EVENT_FORK_DETECTED,
+	CONSENSUS_EVENT_NETWORK_BLOCK_NEW,
+	CONSENSUS_EVENT_VALIDATORS_CHANGED,
+} from './consensus/constants';
+import { TxpoolEndpoint } from './endpoint/txpool';
+import { ValidatorUpdate } from './consensus/types';
+import { GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT } from './generator/constants';
 
 const isEmpty = (value: unknown): boolean => {
 	switch (typeof value) {
@@ -84,6 +100,10 @@ export class Engine {
 		await this._generator.start();
 		await this._consensus.start();
 		await this._rpcServer.start();
+		await this._abi.ready({
+			lastBlockHeight: this._chain.lastBlock.header.height,
+			networkIdentifier: this._chain.networkIdentifier,
+		});
 		this._logger.info('Engine starting');
 	}
 
@@ -196,14 +216,7 @@ export class Engine {
 			logger: this._logger,
 		});
 
-		this._consensus.events.on(CONSENSUS_EVENT_BLOCK_NEW, (block: Block) => {
-			this._generator.onNewBlock(block);
-			this._rpcServer.publish(APP_EVENT_BLOCK_NEW, { block: block.getBytes().toString('hex') });
-		});
-		this._consensus.events.on(CONSENSUS_EVENT_BLOCK_DELETE, (block: Block) => {
-			this._generator.onDeleteBlock(block);
-			this._rpcServer.publish(APP_EVENT_BLOCK_DELETE, { block: block.getBytes().toString('hex') });
-		});
+		this._registerEventListeners();
 
 		this._rpcServer.init({
 			logger: this._logger,
@@ -220,6 +233,11 @@ export class Engine {
 			generator: this._generator,
 			config: this._config,
 		});
+		const txpoolEndpoint = new TxpoolEndpoint({
+			abi: this._abi,
+			broadcaster: this._generator.broadcaster,
+			pool: this._generator.txpool,
+		});
 
 		for (const [name, handler] of Object.entries(getEndpointHandlers(chainEndpoint))) {
 			this._rpcServer.registerEndpoint('chain', name, handler);
@@ -227,18 +245,67 @@ export class Engine {
 		for (const [name, handler] of Object.entries(getEndpointHandlers(systemEndpoint))) {
 			this._rpcServer.registerEndpoint('system', name, handler);
 		}
+		for (const [name, handler] of Object.entries(getEndpointHandlers(txpoolEndpoint))) {
+			this._rpcServer.registerEndpoint('txpool', name, handler);
+		}
 		for (const [name, handler] of Object.entries(getEndpointHandlers(this._generator.endpoint))) {
 			this._rpcServer.registerEndpoint('generator', name, handler);
+		}
+		for (const [name, handler] of Object.entries(getEndpointHandlers(this._network.endpoint))) {
+			this._rpcServer.registerEndpoint('network', name, handler);
 		}
 		this._rpcServer.registerNotFoundEndpoint(
 			async (namespace: string, method: string, context: RequestContext) => {
 				const { data } = await this._abi.query({
 					header: this._chain.lastBlock.header.toObject(),
-					networkIdentifier: this._chain.networkIdentifier,
 					method: `${namespace}_${method}`,
 					params: Buffer.from(JSON.stringify(context.params), 'utf-8'),
 				});
 				return JSON.parse(data.toString('utf-8')) as Record<string, unknown>;
+			},
+		);
+	}
+
+	private _registerEventListeners() {
+		this._consensus.events.on(CONSENSUS_EVENT_BLOCK_NEW, (block: Block) => {
+			this._generator.onNewBlock(block);
+			this._rpcServer.publish(EVENT_CHAIN_BLOCK_NEW, { blockHeader: block.header.toJSON() });
+			this._rpcServer.publish(EVENT_NETWORK_BLOCK_NEW, { blockHeader: block.header.toJSON() });
+		});
+		this._consensus.events.on(CONSENSUS_EVENT_BLOCK_DELETE, (block: Block) => {
+			this._generator.onDeleteBlock(block);
+			this._rpcServer.publish(EVENT_CHAIN_BLOCK_DELETE, { blockHeader: block.header.toJSON() });
+		});
+		this._consensus.events.on(CONSENSUS_EVENT_FORK_DETECTED, (block: Block) => {
+			this._rpcServer.publish(EVENT_CHAIN_FORK, { blockHeader: block.header.toJSON() });
+		});
+		this._consensus.events.on(CONSENSUS_EVENT_NETWORK_BLOCK_NEW, (block: Block) => {
+			this._rpcServer.publish(EVENT_NETWORK_BLOCK_NEW, { blockHeader: block.header.toJSON() });
+		});
+		this._consensus.events.on(CONSENSUS_EVENT_VALIDATORS_CHANGED, (update: ValidatorUpdate) => {
+			this._rpcServer.publish(EVENT_CHAIN_VALIDATORS_CHANGE, {
+				nextValidators: update.nextValidators.map(v => ({
+					address: v.address.toString('hex'),
+					blsKey: v.blsKey.toString('hex'),
+					generatorKey: v.generatorKey.toString('hex'),
+					bftWeight: v.bftWeight.toString(),
+				})),
+				preCommitThreshold: update.preCommitThreshold.toString(),
+				certificateThreshold: update.certificateThreshold.toString(),
+			});
+		});
+		this._generator.events.on(
+			GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT,
+			(event: { transactionIds: Buffer[] }) => {
+				this._rpcServer.publish(EVENT_NETWORK_TRANSACTION_NEW, {
+					transactionIDs: event.transactionIds.map(id => id.toString('hex')),
+				});
+			},
+		);
+		this._generator.events.on(
+			GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT,
+			(event: { transaction: TransactionJSON }) => {
+				this._rpcServer.publish(EVENT_TX_POOL_TRANSACTION_NEW, event);
 			},
 		);
 	}

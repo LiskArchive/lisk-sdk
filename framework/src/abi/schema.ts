@@ -479,17 +479,36 @@ export const initResponseSchema = {
 	},
 };
 
-export const initStateMachineRequestSchema = {
-	$id: 'abi/initStateMachineRequest',
+export const readyRequestSchema = {
+	$id: 'abi/readyRequest',
 	type: 'object',
-	required: ['networkIdentifier', 'header'],
+	required: ['networkIdentifier', 'lastBlockHeight'],
 	properties: {
 		networkIdentifier: {
 			fieldNumber: 1,
 			dataType: 'bytes',
 		},
-		header: {
+		lastBlockHeight: {
 			fieldNumber: 2,
+			dataType: 'uint32',
+		},
+	},
+};
+
+export const readyResponseSchema = {
+	$id: 'abi/readyResponse',
+	type: 'object',
+	required: [],
+	properties: {},
+};
+
+export const initStateMachineRequestSchema = {
+	$id: 'abi/initStateMachineRequest',
+	type: 'object',
+	required: ['header'],
+	properties: {
+		header: {
+			fieldNumber: 1,
 			...blockHeaderSchema,
 		},
 	},
@@ -713,18 +732,14 @@ export const afterTransactionsExecuteResponseSchema = {
 export const verifyTransactionRequestSchema = {
 	$id: 'abi/verifyTransactionRequest',
 	type: 'object',
-	required: ['contextID', 'networkIdentifier', 'transaction'],
+	required: ['contextID', 'transaction'],
 	properties: {
 		contextID: {
 			fieldNumber: 1,
 			dataType: 'bytes',
 		},
-		networkIdentifier: {
-			fieldNumber: 2,
-			dataType: 'bytes',
-		},
 		transaction: {
-			fieldNumber: 3,
+			fieldNumber: 2,
 			...transactionSchema,
 		},
 	},
@@ -745,37 +760,33 @@ export const verifyTransactionResponseSchema = {
 export const executeTransactionRequestSchema = {
 	$id: 'abi/executeTransactionRequest',
 	type: 'object',
-	required: ['contextID', 'networkIdentifier', 'transaction', 'assets', 'dryRun', 'header'],
+	required: ['contextID', 'transaction', 'assets', 'dryRun', 'header'],
 	properties: {
 		contextID: {
 			fieldNumber: 1,
 			dataType: 'bytes',
 		},
-		networkIdentifier: {
-			fieldNumber: 2,
-			dataType: 'bytes',
-		},
 		transaction: {
-			fieldNumber: 3,
+			fieldNumber: 2,
 			...transactionSchema,
 		},
 		assets: {
-			fieldNumber: 4,
+			fieldNumber: 3,
 			type: 'array',
 			items: {
 				...blockAssetSchema,
 			},
 		},
 		dryRun: {
-			fieldNumber: 5,
+			fieldNumber: 4,
 			dataType: 'boolean',
 		},
 		header: {
-			fieldNumber: 6,
+			fieldNumber: 5,
 			...blockHeaderSchema,
 		},
 		consensus: {
-			fieldNumber: 7,
+			fieldNumber: 6,
 			...consensusSchema,
 		},
 	},
@@ -924,7 +935,7 @@ export const metadataResponseSchema = {
 export const queryRequestSchema = {
 	$id: 'abi/queryRequest',
 	type: 'object',
-	required: ['method', 'params', 'networkIdentifier', 'header'],
+	required: ['method', 'params', 'header'],
 	properties: {
 		method: {
 			fieldNumber: 1,
@@ -934,12 +945,8 @@ export const queryRequestSchema = {
 			fieldNumber: 2,
 			dataType: 'bytes',
 		},
-		networkIdentifier: {
-			fieldNumber: 3,
-			dataType: 'bytes',
-		},
 		header: {
-			fieldNumber: 4,
+			fieldNumber: 3,
 			...blockHeaderSchema,
 		},
 	},

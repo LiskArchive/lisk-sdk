@@ -296,14 +296,15 @@ export class Bus {
 						reject(new Error('Request timed out on invoke.'));
 					}, IPC_EVENTS.RPC_REQUEST_TIMEOUT);
 					// Listen to this event once for serving the request
-					this._emitter.once(
-						request.id as string,
-						(response: JSONRPC.ResponseObjectWithResult<T>) => {
-							clearTimeout(requestTimeout);
-							this._rpcRequestIds.delete(request.id as string);
-							return resolve(response);
-						},
-					);
+					this._emitter.once(request.id as string, (response: JSONRPC.ResponseObject<T>) => {
+						clearTimeout(requestTimeout);
+						this._rpcRequestIds.delete(request.id as string);
+						if (response.error) {
+							reject(new Error(response.error.message));
+							return;
+						}
+						resolve(response);
+					});
 				})
 				.catch(err => {
 					this._logger.debug(err, 'Error occurred while sending RPC request.');

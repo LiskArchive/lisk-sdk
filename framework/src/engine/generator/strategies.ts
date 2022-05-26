@@ -13,12 +13,11 @@
  */
 import { TransactionPool, PooledTransaction } from '@liskhq/lisk-transaction-pool';
 import { dataStructures } from '@liskhq/lisk-utils';
-import { Chain, Transaction, BlockHeader, BlockAssets, Event } from '@liskhq/lisk-chain';
+import { Transaction, BlockHeader, BlockAssets, Event } from '@liskhq/lisk-chain';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { ABI, Consensus, TransactionExecutionResult, TransactionVerifyResult } from '../../abi';
 
 export class HighFeeGenerationStrategy {
-	private readonly _chain: Chain;
 	private readonly _abi: ABI;
 	private readonly _pool: TransactionPool;
 	private readonly _constants: {
@@ -27,18 +26,15 @@ export class HighFeeGenerationStrategy {
 
 	public constructor({
 		// Modules
-		chain,
 		abi,
 		pool,
 		// constants
 		maxTransactionsSize,
 	}: {
-		readonly chain: Chain;
 		readonly abi: ABI;
 		readonly pool: TransactionPool;
 		readonly maxTransactionsSize: number;
 	}) {
-		this._chain = chain;
 		this._abi = abi;
 		this._pool = pool;
 		this._constants = { maxTransactionsSize };
@@ -80,7 +76,6 @@ export class HighFeeGenerationStrategy {
 				const { result: verifyResult } = await this._abi.verifyTransaction({
 					contextID,
 					transaction: lowestNonceHighestFeeTrx.toObject(),
-					networkIdentifier: this._chain.networkIdentifier,
 				});
 				if (verifyResult !== TransactionVerifyResult.OK) {
 					throw new Error('Transaction is not valid');
@@ -91,7 +86,6 @@ export class HighFeeGenerationStrategy {
 				} = await this._abi.executeTransaction({
 					contextID,
 					header: header.toObject(),
-					networkIdentifier: this._chain.networkIdentifier,
 					transaction: lowestNonceHighestFeeTrx.toObject(),
 					assets: assets.getAll(),
 					consensus,

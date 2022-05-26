@@ -15,10 +15,9 @@
 import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { Block } from '@liskhq/lisk-chain';
 import { KVStore } from '@liskhq/lisk-db';
 
-import { APP_EVENT_BLOCK_NEW } from '../engine/events';
+import { EVENT_CHAIN_BLOCK_NEW } from '../engine/events';
 import { Data, WaitUntilBlockHeightOptions } from './types';
 
 export const waitUntilBlockHeight = async ({
@@ -33,9 +32,9 @@ export const waitUntilBlockHeight = async ({
 			}, timeout);
 		}
 
-		apiClient.subscribe(APP_EVENT_BLOCK_NEW, data => {
+		apiClient.subscribe(EVENT_CHAIN_BLOCK_NEW, data => {
 			const { block } = (data as unknown) as Data;
-			const { header } = apiClient.block.decode<Block>(block);
+			const { header } = apiClient.block.decode(block);
 
 			if (header.height >= height) {
 				resolve();

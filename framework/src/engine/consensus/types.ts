@@ -49,3 +49,9 @@ export interface CommitPool {
 	) => Promise<boolean>;
 	getAggregateCommit: (apiContext: APIContext) => Promise<AggregateCommit>;
 }
+
+export interface ValidatorUpdate {
+	preCommitThreshold: bigint;
+	certificateThreshold: bigint;
+	nextValidators: (Validator & { generatorKey: Buffer })[];
+}

@@ -20,6 +20,7 @@ interface InitArgs {
 }
 
 export class Endpoint {
+	[key: string]: unknown;
 	private _p2p!: P2P;
 
 	public init(args: InitArgs) {
@@ -54,7 +55,7 @@ export class Endpoint {
 		});
 	}
 
-	public getNetworkStats(): p2pTypes.NetworkStats {
+	public getStats(): p2pTypes.NetworkStats {
 		return this._p2p.getNetworkStats();
 	}
 }

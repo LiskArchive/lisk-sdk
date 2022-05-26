@@ -25,6 +25,7 @@ export {
 	signingBlockHeaderSchema,
 	stateDiffSchema,
 	blockAssetSchema,
+	eventSchema,
 	standardEventDataSchema,
 } from './schema';
 export {

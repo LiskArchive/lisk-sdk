@@ -34,10 +34,6 @@ let logger: Logger;
 const _loadPlugin = async (
 	config: Record<string, unknown>,
 	appConfig: ApplicationConfigForPlugin,
-	ipcConfig: {
-		[key: string]: unknown;
-		rpc: SocketPaths;
-	},
 ): Promise<void> => {
 	plugin = new Klass();
 	const pluginName = plugin.name;
@@ -56,7 +52,7 @@ const _loadPlugin = async (
 		plugin.events,
 		plugin.endpoint ? getEndpointHandlers(plugin.endpoint) : {},
 		{
-			socketsPath: ipcConfig.rpc.ipc.path,
+			socketsPath: dirs.sockets,
 		},
 	);
 
@@ -101,15 +97,10 @@ process.on(
 		action,
 		config,
 		appConfig,
-		ipcConfig,
 	}: {
 		action: string;
 		config: PluginConfig;
 		appConfig: ApplicationConfigForPlugin;
-		ipcConfig: {
-			[key: string]: unknown;
-			rpc: SocketPaths;
-		};
 	}) => {
 		const internalWorker = async (): Promise<void> => {
 			if (action === 'load') {
@@ -119,7 +110,6 @@ process.on(
 						rpc: SocketPaths;
 					},
 					appConfig,
-					ipcConfig,
 				);
 			} else if (action === 'unload') {
 				await _unloadPlugin();
@@ -127,7 +117,14 @@ process.on(
 				console.error(`Unknown child process plugin action: ${action}`);
 			}
 		};
-		internalWorker().catch((err: Error) => err);
+		internalWorker().catch((err: Error) => {
+			if (logger) {
+				logger.error({ err }, 'Fail to handle message.');
+				return;
+			}
+			console.error(err);
+			process.exit(1);
+		});
 	},
 );
 

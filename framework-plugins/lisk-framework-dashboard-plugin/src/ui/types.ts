@@ -48,24 +48,12 @@ export interface NodeInfo {
 	readonly syncing: boolean;
 	readonly unconfirmedTransactions: number;
 	readonly genesisConfig: GenesisConfig;
-	readonly registeredModules: RegisteredModule[];
 }
 
 export interface Fee {
 	moduleId: number;
 	commandId: number;
 	baseFee: number;
-}
-
-export interface RegisteredModule {
-	id: number;
-	name: string;
-	events: string[];
-	actions: string[];
-	commands: {
-		id: number;
-		name: string;
-	}[];
 }
 
 export interface BlockHeader {
