@@ -84,17 +84,17 @@ export class Engine {
 		await this._generator.start();
 		await this._consensus.start();
 		await this._rpcServer.start();
-		this._logger.info('Node starting');
+		this._logger.info('Engine starting');
 	}
 
 	public async stop(): Promise<void> {
-		this._logger.info('Node cleanup started');
+		this._logger.info('Engine cleanup started');
 		await this._network.stop();
 		await this._generator.stop();
 		await this._consensus.stop();
 		this._rpcServer.stop();
 		await this._closeDB();
-		this._logger.info('Node cleanup completed');
+		this._logger.info('Engine cleanup completed');
 	}
 
 	private async _init(): Promise<void> {
@@ -106,7 +106,7 @@ export class Engine {
 			consoleLogLevel: emptyOrDefault(config.logger.consoleLogLevel, 'info'),
 			logFilePath: path.join(config.system.dataPath, 'logs', 'engine.log'),
 		});
-		this._logger.info('Node initialization starting');
+		this._logger.info('Engine initialization starting');
 		this._network = new Network({
 			networkVersion: this._config.system.networkVersion,
 			options: this._config.network,
