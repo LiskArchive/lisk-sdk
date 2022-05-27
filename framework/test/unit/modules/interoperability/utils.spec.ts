@@ -404,12 +404,6 @@ describe('Utils', () => {
 	describe('checkValidatorsHashWithCertificate', () => {
 		const activeValidatorsUpdate = [...defaultActiveValidatorsUpdate];
 
-		const txParams: any = {
-			certificate: Buffer.alloc(2),
-			activeValidatorsUpdate,
-			newCertificateThreshold: BigInt(10),
-		};
-
 		const partnerValidators: any = {
 			certificateThreshold: BigInt(10),
 			activeValidators: activeValidatorsUpdate.map(v => ({
@@ -422,50 +416,119 @@ describe('Utils', () => {
 			partnerValidators.certificateThreshold,
 		);
 
-		const certificate: any = {
+		const certificate: Certificate = {
 			aggregationBits: Buffer.alloc(2),
 			signature: Buffer.alloc(2),
 			validatorsHash,
+			blockID: cryptography.getRandomBytes(20),
+			height: 20,
+			stateRoot: cryptography.getRandomBytes(32),
+			timestamp: Math.floor(Date.now() / 1000),
 		};
 
-		it('should throw error when validators hash is incorrect', () => {
-			expect(() =>
-				checkValidatorsHashWithCertificate(
-					txParams,
-					{ ...certificate, validatorsHash: cryptography.getRandomBytes(32) },
-					partnerValidators,
-				),
-			).toThrow('Validators hash given in the certificate is incorrect.');
+		const encodedCertificate = codec.encode(certificateSchema, certificate);
+
+		const txParams: any = {
+			certificate: encodedCertificate,
+			activeValidatorsUpdate,
+			newCertificateThreshold: BigInt(10),
+		};
+
+		it('should return VerifyStatus.FAIL when certificate is empty', () => {
+			const txParamsWithIncorrectHash = { ...txParams, certificate: EMPTY_BYTES };
+			const { status, error } = checkValidatorsHashWithCertificate(
+				txParamsWithIncorrectHash,
+				partnerValidators,
+			);
+
+			expect(status).toEqual(VerifyStatus.FAIL);
+			expect(error?.message).toEqual(
+				'Certificate cannot be empty when activeValidatorsUpdate or newCertificateThreshold has a non-empty value.',
+			);
 		});
 
-		it('should return undefined when validators hash is correct', () => {
-			expect(
-				checkValidatorsHashWithCertificate(
-					{ ...txParams, newCertificateThreshold: BigInt(0) },
-					certificate,
-					partnerValidators,
-				),
-			).toBeUndefined();
+		it('should return VerifyStatus.FAIL when certificate has missing fields', () => {
+			const txParamsWithIncorrectHash = { ...txParams, certificate: Buffer.alloc(2) };
+			const { status, error } = checkValidatorsHashWithCertificate(
+				txParamsWithIncorrectHash,
+				partnerValidators,
+			);
+
+			expect(status).toEqual(VerifyStatus.FAIL);
+			expect(error?.message).toEqual(
+				'Certificate should have all required values when activeValidatorsUpdate or newCertificateThreshold has a non-empty value.',
+			);
 		});
 
-		it('should return undefined when activeValidatorsUpdate is of zero length', () => {
-			expect(
-				checkValidatorsHashWithCertificate(
-					{ ...txParams, activeValidatorsUpdate: [] },
-					certificate,
-					partnerValidators,
-				),
-			).toBeUndefined();
+		it('should return VerifyStatus.FAIL when validators hash is incorrect', () => {
+			const certificateInvalidValidatorHash: Certificate = {
+				aggregationBits: Buffer.alloc(2),
+				signature: Buffer.alloc(2),
+				validatorsHash: cryptography.getRandomBytes(48),
+				blockID: cryptography.getRandomBytes(20),
+				height: 20,
+				stateRoot: cryptography.getRandomBytes(32),
+				timestamp: Math.floor(Date.now() / 1000),
+			};
+			const invalidEncodedCertificate = codec.encode(
+				certificateSchema,
+				certificateInvalidValidatorHash,
+			);
+
+			const txParamsWithIncorrectHash = { ...txParams, certificate: invalidEncodedCertificate };
+			const { status, error } = checkValidatorsHashWithCertificate(
+				txParamsWithIncorrectHash,
+				partnerValidators,
+			);
+
+			expect(status).toEqual(VerifyStatus.FAIL);
+			expect(error?.message).toEqual('Validators hash given in the certificate is incorrect.');
 		});
 
-		it('should return undefined when newCertificateThreshold is zero', () => {
-			expect(
-				checkValidatorsHashWithCertificate(
-					{ ...txParams, newCertificateThreshold: BigInt(0) },
-					certificate,
-					partnerValidators,
-				),
-			).toBeUndefined();
+		it('should return VerifyStatus.OK when validators hash is correct', () => {
+			const txParamsWithCorrectHash = { ...txParams };
+			const { status, error } = checkValidatorsHashWithCertificate(
+				txParamsWithCorrectHash,
+				partnerValidators,
+			);
+
+			expect(status).toEqual(VerifyStatus.OK);
+			expect(error).toBeUndefined();
+		});
+
+		it('should return VerifyStatus.OK when activeValidatorsUpdate.length === 0 and newCertificateThreshold === 0', () => {
+			const ineligibleTxParams = {
+				...txParams,
+				activeValidatorsUpdate: [],
+				newCertificateThreshold: BigInt(0),
+			};
+			const { status, error } = checkValidatorsHashWithCertificate(
+				ineligibleTxParams,
+				partnerValidators,
+			);
+
+			expect(status).toEqual(VerifyStatus.OK);
+			expect(error).toBeUndefined();
+		});
+
+		it('should return VerifyStatus.OK when newCertificateThreshold === 0 but activeValidatorsUpdate.length > 0', () => {
+			const { status, error } = checkValidatorsHashWithCertificate(
+				{ ...txParams, newCertificateThreshold: BigInt(0) },
+				partnerValidators,
+			);
+
+			expect(status).toEqual(VerifyStatus.OK);
+			expect(error).toBeUndefined();
+		});
+
+		it('should return VerifyStatus.OK when newCertificateThreshold > 0 but activeValidatorsUpdate.length === 0', () => {
+			const { status, error } = checkValidatorsHashWithCertificate(
+				{ ...txParams, activeValidatorsUpdate: [] },
+				partnerValidators,
+			);
+
+			expect(status).toEqual(VerifyStatus.OK);
+			expect(error).toBeUndefined();
 		});
 	});
 

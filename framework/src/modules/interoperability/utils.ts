@@ -456,13 +456,31 @@ export const checkCertificateTimestampAndSignature = (
 
 export const checkValidatorsHashWithCertificate = (
 	txParams: CrossChainUpdateTransactionParams,
-	certificate: Certificate,
 	partnerValidators: ChainValidators,
-) => {
+): VerificationResult => {
 	if (
 		txParams.activeValidatorsUpdate.length !== 0 ||
 		txParams.newCertificateThreshold > BigInt(0)
 	) {
+		if (txParams.certificate.equals(EMPTY_BYTES)) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error(
+					'Certificate cannot be empty when activeValidatorsUpdate or newCertificateThreshold has a non-empty value.',
+				),
+			};
+		}
+		const decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
+
+		if (isCertificateEmpty(decodedCertificate)) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error(
+					'Certificate should have all required values when activeValidatorsUpdate or newCertificateThreshold has a non-empty value.',
+				),
+			};
+		}
+
 		const newActiveValidators = updateActiveValidators(
 			partnerValidators.activeValidators,
 			txParams.activeValidatorsUpdate,
@@ -473,10 +491,17 @@ export const checkValidatorsHashWithCertificate = (
 			txParams.newCertificateThreshold || partnerValidators.certificateThreshold,
 		);
 
-		if (!certificate.validatorsHash.equals(validatorsHash)) {
-			throw new Error('Validators hash given in the certificate is incorrect.');
+		if (!decodedCertificate.validatorsHash.equals(validatorsHash)) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Validators hash given in the certificate is incorrect.'),
+			};
 		}
 	}
+
+	return {
+		status: VerifyStatus.OK,
+	};
 };
 
 export const commonCCUExecutelogic = async (args: CommonExecutionLogicArgs) => {

@@ -122,6 +122,17 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 			return certificateValidity;
 		}
 
+		const partnerValidatorStore = context.getStore(this.moduleID, STORE_PREFIX_CHAIN_VALIDATORS);
+		const partnerValidators = await partnerValidatorStore.getWithSchema<ChainValidators>(
+			partnerChainIDBuffer,
+			chainValidatorsSchema,
+		);
+		// If params contains a non-empty activeValidatorsUpdate
+		const validatorsHashValidity = checkValidatorsHashWithCertificate(txParams, partnerValidators);
+		if (validatorsHashValidity.error) {
+			return validatorsHashValidity;
+		}
+
 		// If params contains a non-empty activeValidatorsUpdate
 		const activeValidatorsValidity = checkActiveValidatorsUpdate(txParams);
 		if (activeValidatorsValidity.error) {
@@ -174,9 +185,6 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 			decodedCertificate,
 			header,
 		);
-
-		// If params contains a non-empty activeValidatorsUpdate
-		checkValidatorsHashWithCertificate(txParams, decodedCertificate, partnerValidators);
 
 		// CCM execution
 		const beforeSendContext = createCCMsgBeforeSendContext({

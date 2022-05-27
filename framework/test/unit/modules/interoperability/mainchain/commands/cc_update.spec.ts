@@ -55,6 +55,7 @@ import {
 } from '../../../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
 import { BlockHeader, EventQueue } from '../../../../../../src/node/state_machine';
+import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
@@ -123,7 +124,6 @@ describe('CrossChainUpdateCommand', () => {
 		},
 	};
 	const defaultTransaction = { moduleID: 1 };
-	const encodedDefaultCertificate = codec.encode(certificateSchema, defaultCertificateValues);
 
 	const partnerChainStore = {
 		getWithSchema: jest.fn(),
@@ -138,6 +138,7 @@ describe('CrossChainUpdateCommand', () => {
 		setWithSchema: jest.fn(),
 	};
 
+	let encodedDefaultCertificate: Buffer;
 	let partnerChainAccount: ChainAccount;
 	let partnerChannelAccount: ChannelData;
 	let verifyContext: CommandVerifyContext<CrossChainUpdateTransactionParams>;
@@ -154,6 +155,26 @@ describe('CrossChainUpdateCommand', () => {
 			{ blsKey: cryptography.getRandomBytes(48), bftWeight: BigInt(4) },
 			{ blsKey: cryptography.getRandomBytes(48), bftWeight: BigInt(3) },
 		].sort((v1, v2) => v2.blsKey.compare(v1.blsKey)); // unsorted list
+
+		const partnerValidators: any = {
+			certificateThreshold: BigInt(10),
+			activeValidators: activeValidatorsUpdate.map(v => ({
+				blsKey: v.blsKey,
+				bftWeight: v.bftWeight + BigInt(1),
+			})),
+		};
+		const partnerValidatorsData = {
+			activeValidators: [...activeValidatorsUpdate],
+			certificateThreshold: BigInt(10),
+		};
+		const validatorsHash = computeValidatorsHash(
+			activeValidatorsUpdate,
+			partnerValidators.certificateThreshold,
+		);
+		encodedDefaultCertificate = codec.encode(certificateSchema, {
+			...defaultCertificateValues,
+			validatorsHash,
+		});
 
 		sortedActiveValidatorsUpdate = [...activeValidatorsUpdate].sort((v1, v2) =>
 			v1.blsKey.compare(v2.blsKey),
@@ -208,11 +229,20 @@ describe('CrossChainUpdateCommand', () => {
 			.calledWith(defaultTransaction.moduleID, STORE_PREFIX_CHANNEL_DATA)
 			.mockReturnValueOnce(partnerChannelStore);
 
+		when(getStoreMock)
+			.calledWith(moduleID, STORE_PREFIX_CHAIN_VALIDATORS)
+			.mockReturnValueOnce(partnerValidatorStore);
+
+		when(partnerValidatorStore.getWithSchema)
+			.calledWith(defaultSendingChainIDBuffer, chainValidatorsSchema)
+			.mockResolvedValue(partnerValidatorsData);
+
 		jest
 			.spyOn(interopUtils, 'checkInboxUpdateValidity')
 			.mockReturnValue({ status: VerifyStatus.OK });
 
 		jest.spyOn(MainchainInteroperabilityStore.prototype, 'isLive').mockResolvedValue(true);
+		jest.spyOn(interopUtils, 'computeValidatorsHash').mockReturnValue(validatorsHash);
 	});
 
 	describe('verify', () => {
@@ -289,6 +319,20 @@ describe('CrossChainUpdateCommand', () => {
 			);
 		});
 
+		it('should return VerifyStatus.FAIL when checkValidatorsHashWithCertificate() throws error', async () => {
+			const certificateWithIncorrectValidatorHash = codec.encode(certificateSchema, {
+				...defaultCertificateValues,
+				validatorsHash: cryptography.getRandomBytes(48),
+			});
+
+			const { status, error } = await mainchainCCUUpdateCommand.verify({
+				...verifyContext,
+				params: { ...params, certificate: certificateWithIncorrectValidatorHash },
+			});
+			expect(status).toEqual(VerifyStatus.FAIL);
+			expect(error?.message).toContain('Validators hash given in the certificate is incorrect.');
+		});
+
 		it('should return error checkActiveValidatorsUpdate fails when Validators blsKeys are not unique and lexicographically ordered', async () => {
 			const { status, error } = await mainchainCCUUpdateCommand.verify({
 				...verifyContext,
@@ -327,18 +371,18 @@ describe('CrossChainUpdateCommand', () => {
 
 	describe('execute', () => {
 		let blockHeader: any;
-		let partnerValidatorsData: ChainValidators;
-		let activeValidators: ActiveValidator[];
+		let partnerValidatorsDataVerify: ChainValidators;
+		let activeValidatorsVerify: ActiveValidator[];
 
 		beforeEach(async () => {
-			activeValidators = [...activeValidatorsUpdate];
+			activeValidatorsVerify = [...activeValidatorsUpdate];
 			blockHeader = {
 				height: 25,
 				timestamp: Math.floor(Date.now() / 1000) + 100000,
 			};
 
-			partnerValidatorsData = {
-				activeValidators,
+			partnerValidatorsDataVerify = {
+				activeValidators: activeValidatorsVerify,
 				certificateThreshold: BigInt(10),
 			};
 
@@ -354,14 +398,13 @@ describe('CrossChainUpdateCommand', () => {
 				header: blockHeader as BlockHeader,
 			};
 
-			when(partnerValidatorStore.getWithSchema)
-				.calledWith(defaultSendingChainIDBuffer, chainValidatorsSchema)
-				.mockResolvedValue(partnerValidatorsData);
-
 			when(getStoreMock)
 				.calledWith(defaultTransaction.moduleID, STORE_PREFIX_CHAIN_VALIDATORS)
 				.mockReturnValueOnce(partnerValidatorStore);
 
+			when(partnerValidatorStore.getWithSchema)
+				.calledWith(defaultSendingChainIDBuffer, chainValidatorsSchema)
+				.mockResolvedValue(partnerValidatorsDataVerify);
 			mainchainCCUUpdateCommand = new MainchainCCUpdateCommand(moduleID, new Map(), new Map());
 		});
 
@@ -390,13 +433,6 @@ describe('CrossChainUpdateCommand', () => {
 				}),
 			).rejects.toThrow(
 				'Certificate is invalid due to invalid certificate timestamp or signature.',
-			);
-		});
-
-		it('should throw error when checkValidatorsHashWithCertificate() throws error', async () => {
-			jest.spyOn(cryptography, 'verifyWeightedAggSig').mockReturnValue(true);
-			await expect(mainchainCCUUpdateCommand.execute(executeContext)).rejects.toThrow(
-				'Validators hash given in the certificate is incorrect.',
 			);
 		});
 
