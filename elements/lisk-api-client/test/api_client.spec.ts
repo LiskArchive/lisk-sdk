@@ -35,11 +35,15 @@ describe('APIClient module', () => {
 		});
 
 		it('should get the registered schema', () => {
-			expect(channel.invoke).toHaveBeenCalledWith('app_getSchema');
+			expect(channel.invoke).toHaveBeenCalledWith('system_getSchema');
+		});
+
+		it('should get the metadata', () => {
+			expect(channel.invoke).toHaveBeenCalledWith('system_getMetadata');
 		});
 
 		it('should get the node info', () => {
-			expect(channel.invoke).toHaveBeenCalledWith('app_getNodeInfo');
+			expect(channel.invoke).toHaveBeenCalledWith('system_getNodeInfo');
 		});
 
 		it('should create node namespace', () => {
@@ -59,8 +63,8 @@ describe('APIClient module', () => {
 			const param = {
 				random: '123',
 			};
-			await client.invoke('some:action', param);
-			expect(channel.invoke).toHaveBeenCalledWith('some:action', param);
+			await client.invoke('some_action', param);
+			expect(channel.invoke).toHaveBeenCalledWith('some_action', param);
 		});
 	});
 
@@ -68,9 +72,9 @@ describe('APIClient module', () => {
 		it('should call subscribe of the channel', () => {
 			// eslint-disable-next-line @typescript-eslint/no-empty-function
 			const listener = () => {};
-			client.subscribe('some:event', listener);
+			client.subscribe('some_event', listener);
 
-			expect(channel.subscribe).toHaveBeenCalledWith('some:event', listener);
+			expect(channel.subscribe).toHaveBeenCalledWith('some_event', listener);
 		});
 	});
 });

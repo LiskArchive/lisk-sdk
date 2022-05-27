@@ -26,14 +26,14 @@ export class Node {
 	}
 
 	public async getNetworkStats(): Promise<NetworkStats> {
-		return this._channel.invoke('app_getNetworkStats');
+		return this._channel.invoke('network_getNetworkStats');
 	}
 
 	public async getConnectedPeers(): Promise<PeerInfo[]> {
-		return this._channel.invoke('app_getConnectedPeers');
+		return this._channel.invoke('network_getConnectedPeers');
 	}
 
 	public async getDisconnectedPeers(): Promise<PeerInfo[]> {
-		return this._channel.invoke('app_getDisconnectedPeers');
+		return this._channel.invoke('network_getDisconnectedPeers');
 	}
 }

@@ -202,7 +202,7 @@ export class Transaction {
 
 	public async getFromPool(): Promise<DecodedTransaction[]> {
 		const transactions = await this._channel.invoke<TransactionJSON[]>(
-			'chain_getTransactionsFromPool',
+			'txpool_getTransactionsFromPool',
 		);
 		return transactions.map(tx => this.fromJSON(tx));
 	}
@@ -272,7 +272,7 @@ export class Transaction {
 		const encodedTx = encodeTransaction(transaction, this._schema, this._metadata);
 		return this._channel.invoke<{
 			transactionId: string;
-		}>('generation_postTransaction', { transaction: encodedTx.toString('hex') });
+		}>('txpool_postTransaction', { transaction: encodedTx.toString('hex') });
 	}
 
 	public decode<T = Record<string, unknown>>(transaction: Buffer | string): DecodedTransaction<T> {

@@ -321,6 +321,7 @@ export const fromBlockJSON = (
 	metadata: ModuleMetadata[],
 ): DecodedBlock => {
 	const header = codec.fromJSON<BlockHeader>(registeredSchema.header, block.header);
+	const id = hash(codec.encode(registeredSchema.header, header));
 	const transactions = [];
 	for (const transaction of block.transactions) {
 		transactions.push(fromTransactionJSON(transaction, registeredSchema, metadata));
@@ -331,7 +332,10 @@ export const fromBlockJSON = (
 	}
 
 	return {
-		header,
+		header: {
+			...header,
+			id,
+		},
 		transactions,
 		assets,
 	};
@@ -353,7 +357,10 @@ export const toBlockJSON = (
 	}
 
 	return {
-		header,
+		header: {
+			...header,
+			id: block.header.id.toString('hex'),
+		},
 		transactions,
 		assets,
 	};
