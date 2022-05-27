@@ -150,11 +150,11 @@ export const createMultiSignRegisterTransaction = (input: {
 	const transaction = [...input.passphrases].reduce<Record<string, unknown>>(
 		(prev, current) => {
 			return signMultiSignatureTransaction(
-				registerMultisignatureParamsSchema,
 				prev,
 				input.networkIdentifier,
 				current,
 				params,
+				registerMultisignatureParamsSchema,
 				true,
 			);
 		},
@@ -194,10 +194,16 @@ export const createMultisignatureTransferTransaction = (input: {
 	const encodedAsset = codec.encode(command.schema, params);
 	const transaction = input.passphrases.reduce<Record<string, unknown>>(
 		(prev, current) => {
-			return signMultiSignatureTransaction(command.schema, prev, input.networkIdentifier, current, {
-				mandatoryKeys: input.mandatoryKeys,
-				optionalKeys: input.optionalKeys,
-			});
+			return signMultiSignatureTransaction(
+				prev,
+				input.networkIdentifier,
+				current,
+				{
+					mandatoryKeys: input.mandatoryKeys,
+					optionalKeys: input.optionalKeys,
+				},
+				command.schema,
+			);
 		},
 		{
 			moduleID: 2,

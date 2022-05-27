@@ -14,6 +14,7 @@
 
 import * as childProcess from 'child_process';
 import * as os from 'os';
+import * as fs from 'fs-extra';
 import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { BasePlugin } from '../../../src/plugins/base_plugin';
 import * as controllerModule from '../../../src/controller/controller';
@@ -118,6 +119,7 @@ describe('Controller Class', () => {
 
 	beforeEach(() => {
 		// Act
+		jest.spyOn(fs, 'ensureDirSync').mockReturnValue();
 		jest.spyOn(basePluginModule, 'getPluginExportPath').mockReturnValue('plugin2');
 		controller = new Controller(params);
 		inMemoryPlugin = createMockPlugin({
@@ -225,7 +227,6 @@ describe('Controller Class', () => {
 					config: {
 						loadAsChildProcess: true,
 					},
-					ipcConfig: controller['_config'],
 				});
 			});
 		});

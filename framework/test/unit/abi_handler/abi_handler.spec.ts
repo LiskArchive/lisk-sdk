@@ -27,6 +27,7 @@ import { channelMock } from '../../../src/testing/mocks';
 import { genesisBlock } from '../../fixtures';
 import { fakeLogger } from '../../utils/mocks';
 import { TransactionExecutionResult, TransactionVerifyResult } from '../../../src/abi';
+import { AuthModule } from '../../../src/modules/auth';
 
 describe('abi handler', () => {
 	let abiHandler: ABIHandler;
@@ -35,6 +36,7 @@ describe('abi handler', () => {
 	beforeEach(() => {
 		const stateMachine = new StateMachine();
 		const mod = new TokenModule();
+		const mod2 = new AuthModule();
 		jest.spyOn(mod.commands[0], 'execute').mockResolvedValue();
 		stateMachine.registerModule(mod as BaseModule);
 		abiHandler = new ABIHandler({
@@ -44,9 +46,10 @@ describe('abi handler', () => {
 			moduleDB: (new InMemoryKVStore() as unknown) as KVStore,
 			genesisBlock: genesis,
 			stateMachine,
-			modules: [mod],
+			modules: [mod2, mod],
 			config: applicationConfigSchema.default,
 		});
+		abiHandler['_networkIdentifier'] = getRandomBytes(32);
 	});
 
 	describe('init', () => {
@@ -59,8 +62,32 @@ describe('abi handler', () => {
 				assets: genesis.assets.getAll(),
 				transactions: [],
 			});
-			expect(resp.registeredModules).toHaveLength(1);
+			expect(resp.registeredModules).toHaveLength(2);
 			expect(resp.config).toMatchSnapshot();
+		});
+	});
+
+	describe('ready', () => {
+		it('should return valid response', async () => {
+			const stateMachine = new StateMachine();
+			const mod = new TokenModule();
+			jest.spyOn(mod.commands[0], 'execute').mockResolvedValue();
+			stateMachine.registerModule(mod as BaseModule);
+			abiHandler = new ABIHandler({
+				logger: fakeLogger,
+				channel: channelMock,
+				stateDB: (new InMemoryKVStore() as unknown) as KVStore,
+				moduleDB: (new InMemoryKVStore() as unknown) as KVStore,
+				genesisBlock: genesis,
+				stateMachine,
+				modules: [mod],
+				config: applicationConfigSchema.default,
+			});
+
+			const networkIdentifier = getRandomBytes(32);
+			await abiHandler.ready({ networkIdentifier, lastBlockHeight: 21 });
+
+			expect(abiHandler.networkIdentifier).toEqual(networkIdentifier);
 		});
 	});
 
@@ -72,20 +99,16 @@ describe('abi handler', () => {
 			await expect(
 				abiHandler.initStateMachine({
 					header: createFakeBlockHeader().toObject(),
-					networkIdentifier: getRandomBytes(32),
 				}),
 			).rejects.toThrow('Execution context is already initialized');
 		});
 
 		it('should create execution context and resolve context id', async () => {
-			const networkIdentifier = getRandomBytes(32);
 			const resp = await abiHandler.initStateMachine({
 				header: createFakeBlockHeader().toObject(),
-				networkIdentifier,
 			});
 			expect(resp.contextID).toHaveLength(32);
 			expect(abiHandler['_executionContext']).not.toBeUndefined();
-			expect(abiHandler['_executionContext']?.networkIdentifier).toEqual(networkIdentifier);
 			expect(abiHandler['_executionContext']?.stateStore).toBeInstanceOf(StateStore);
 		});
 	});
@@ -103,7 +126,6 @@ describe('abi handler', () => {
 		it('should fail if execution context does not match', async () => {
 			await abiHandler.initStateMachine({
 				header: createFakeBlockHeader().toObject(),
-				networkIdentifier: getRandomBytes(32),
 			});
 			await expect(
 				abiHandler.initGenesisState({
@@ -117,7 +139,6 @@ describe('abi handler', () => {
 			jest.spyOn(abiHandler['_stateMachine'], 'executeGenesisBlock');
 			const { contextID } = await abiHandler.initStateMachine({
 				header: createFakeBlockHeader().toObject(),
-				networkIdentifier: getRandomBytes(32),
 			});
 			const resp = await abiHandler.initGenesisState({
 				contextID,
@@ -146,7 +167,6 @@ describe('abi handler', () => {
 		it('should fail if execution context does not match', async () => {
 			await abiHandler.initStateMachine({
 				header: createFakeBlockHeader().toObject(),
-				networkIdentifier: getRandomBytes(32),
 			});
 			await expect(
 				abiHandler.insertAssets({
@@ -160,7 +180,6 @@ describe('abi handler', () => {
 			jest.spyOn(abiHandler['_stateMachine'], 'insertAssets');
 			const { contextID } = await abiHandler.initStateMachine({
 				header: createFakeBlockHeader().toObject(),
-				networkIdentifier: getRandomBytes(32),
 			});
 			const resp = await abiHandler.insertAssets({
 				contextID,
@@ -185,7 +204,6 @@ describe('abi handler', () => {
 		it('should fail if execution context does not match', async () => {
 			await abiHandler.initStateMachine({
 				header: createFakeBlockHeader().toObject(),
-				networkIdentifier: getRandomBytes(32),
 			});
 			await expect(
 				abiHandler.verifyAssets({
@@ -199,7 +217,6 @@ describe('abi handler', () => {
 			jest.spyOn(abiHandler['_stateMachine'], 'verifyAssets');
 			const { contextID } = await abiHandler.initStateMachine({
 				header: createFakeBlockHeader().toObject(),
-				networkIdentifier: getRandomBytes(32),
 			});
 			const resp = await abiHandler.verifyAssets({
 				contextID,
@@ -236,7 +253,6 @@ describe('abi handler', () => {
 		it('should fail if execution context does not match', async () => {
 			await abiHandler.initStateMachine({
 				header: createFakeBlockHeader().toObject(),
-				networkIdentifier: getRandomBytes(32),
 			});
 			await expect(
 				abiHandler.beforeTransactionsExecute({
@@ -262,7 +278,6 @@ describe('abi handler', () => {
 			jest.spyOn(abiHandler['_stateMachine'], 'beforeExecuteBlock');
 			const { contextID } = await abiHandler.initStateMachine({
 				header: createFakeBlockHeader().toObject(),
-				networkIdentifier: getRandomBytes(32),
 			});
 			const resp = await abiHandler.beforeTransactionsExecute({
 				contextID,
@@ -312,7 +327,6 @@ describe('abi handler', () => {
 		it('should fail if execution context does not match', async () => {
 			await abiHandler.initStateMachine({
 				header: createFakeBlockHeader().toObject(),
-				networkIdentifier: getRandomBytes(32),
 			});
 			await expect(
 				abiHandler.afterTransactionsExecute({
@@ -339,7 +353,6 @@ describe('abi handler', () => {
 			jest.spyOn(abiHandler['_stateMachine'], 'afterExecuteBlock');
 			const { contextID } = await abiHandler.initStateMachine({
 				header: createFakeBlockHeader().toObject(),
-				networkIdentifier: getRandomBytes(32),
 			});
 			const resp = await abiHandler.afterTransactionsExecute({
 				contextID,
@@ -369,7 +382,6 @@ describe('abi handler', () => {
 			jest.spyOn(abiHandler['_stateMachine'], 'verifyTransaction');
 			const { contextID } = await abiHandler.initStateMachine({
 				header: createFakeBlockHeader().toObject(),
-				networkIdentifier: getRandomBytes(32),
 			});
 			// Add random data to check if new state store is used or not
 			await abiHandler['_executionContext']?.stateStore.set(
@@ -387,7 +399,6 @@ describe('abi handler', () => {
 			});
 			const resp = await abiHandler.verifyTransaction({
 				contextID,
-				networkIdentifier: getRandomBytes(32),
 				transaction: tx.toObject(),
 			});
 
@@ -404,7 +415,6 @@ describe('abi handler', () => {
 			jest.spyOn(abiHandler['_stateMachine'], 'verifyTransaction');
 			await abiHandler.initStateMachine({
 				header: createFakeBlockHeader().toObject(),
-				networkIdentifier: getRandomBytes(32),
 			});
 			// Add random data to check if new state store is used or not
 			await abiHandler['_executionContext']?.stateStore.set(
@@ -422,7 +432,6 @@ describe('abi handler', () => {
 			});
 			const resp = await abiHandler.verifyTransaction({
 				contextID: Buffer.alloc(0),
-				networkIdentifier: getRandomBytes(32),
 				transaction: tx.toObject(),
 			});
 
@@ -441,7 +450,6 @@ describe('abi handler', () => {
 			jest.spyOn(abiHandler['_stateMachine'], 'executeTransaction');
 			const { contextID } = await abiHandler.initStateMachine({
 				header: createFakeBlockHeader().toObject(),
-				networkIdentifier: getRandomBytes(32),
 			});
 			// Add random data to check if new state store is used or not
 			await abiHandler['_executionContext']?.stateStore.set(
@@ -459,7 +467,6 @@ describe('abi handler', () => {
 			});
 			const resp = await abiHandler.executeTransaction({
 				contextID,
-				networkIdentifier: getRandomBytes(32),
 				assets: [{ data: getRandomBytes(30), moduleID: 2 }],
 				dryRun: false,
 				header: createFakeBlockHeader().toObject(),
@@ -491,7 +498,6 @@ describe('abi handler', () => {
 			jest.spyOn(abiHandler['_stateMachine'], 'executeTransaction');
 			await abiHandler.initStateMachine({
 				header: createFakeBlockHeader().toObject(),
-				networkIdentifier: getRandomBytes(32),
 			});
 			// Add random data to check if new state store is used or not
 			await abiHandler['_executionContext']?.stateStore.set(
@@ -509,7 +515,6 @@ describe('abi handler', () => {
 			});
 			const resp = await abiHandler.executeTransaction({
 				contextID: getRandomBytes(0),
-				networkIdentifier: getRandomBytes(32),
 				assets: [{ data: getRandomBytes(30), moduleID: 2 }],
 				dryRun: true,
 				header: createFakeBlockHeader().toObject(),
@@ -553,7 +558,6 @@ describe('abi handler', () => {
 		it('should fail if execution context does not match', async () => {
 			await abiHandler.initStateMachine({
 				header: createFakeBlockHeader().toObject(),
-				networkIdentifier: getRandomBytes(32),
 			});
 			await expect(
 				abiHandler.commit({
@@ -588,7 +592,6 @@ describe('abi handler', () => {
 		it('should fail if execution context does not match', async () => {
 			await abiHandler.initStateMachine({
 				header: createFakeBlockHeader().toObject(),
-				networkIdentifier: getRandomBytes(32),
 			});
 			await expect(
 				abiHandler.revert({
@@ -608,7 +611,6 @@ describe('abi handler', () => {
 		it('should clear the execution context', async () => {
 			await abiHandler.initStateMachine({
 				header: createFakeBlockHeader().toObject(),
-				networkIdentifier: getRandomBytes(32),
 			});
 			expect(abiHandler['_executionContext']).not.toBeUndefined();
 			await abiHandler.clear({});
@@ -629,13 +631,43 @@ describe('abi handler', () => {
 	});
 
 	describe('getMetadata', () => {
-		it.todo('should resolve metadata from all the modules');
+		it('should resolve metadata from all the modules', async () => {
+			const resp = await abiHandler.getMetadata({});
+			expect(resp.data).toBeInstanceOf(Buffer);
+			const body = JSON.parse(resp.data.toString('utf-8'));
+			expect(body.modules).toHaveLength(2);
+			expect(body.modules[0].id).toBeLessThan(body.modules[1].id);
+		});
 	});
 
 	describe('query', () => {
-		it.todo('should query module endpoint with expected context');
+		it('should query module endpoint with expected context and return response', async () => {
+			jest.spyOn(abiHandler['_channel'], 'invoke').mockResolvedValue({
+				some: 'response',
+			});
 
-		it.todo('should query plugin endpoint with expected context');
+			const resp = await abiHandler.query({
+				header: { height: 30 } as never,
+				method: 'sample_method',
+				params: Buffer.from(JSON.stringify({ random: 'info' })),
+			});
+
+			expect(JSON.parse(resp.data.toString('utf-8'))).toEqual({ some: 'response' });
+		});
+
+		it('should query endpoint and return error response when error happens', async () => {
+			jest.spyOn(abiHandler['_channel'], 'invoke').mockRejectedValue(new Error('invalid logic'));
+
+			const resp = await abiHandler.query({
+				header: { height: 30 } as never,
+				method: 'sample_method',
+				params: Buffer.from(JSON.stringify({ random: 'info' })),
+			});
+
+			expect(JSON.parse(resp.data.toString('utf-8'))).toEqual({
+				error: { message: 'invalid logic' },
+			});
+		});
 	});
 
 	describe('prove', () => {

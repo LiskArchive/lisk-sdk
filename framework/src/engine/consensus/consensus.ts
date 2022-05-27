@@ -296,7 +296,7 @@ export class Consensus {
 			throw error;
 		}
 
-		this.events.emit(CONSENSUS_EVENT_NETWORK_BLOCK_NEW, block);
+		this.events.emit(CONSENSUS_EVENT_NETWORK_BLOCK_NEW, { block });
 
 		try {
 			await this._execute(block, peerId);
@@ -571,7 +571,7 @@ export class Consensus {
 			this.events.emit(CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED, finalizedHeightChangeRange);
 		}
 
-		this.events.emit(CONSENSUS_EVENT_BLOCK_NEW, block);
+		this.events.emit(CONSENSUS_EVENT_BLOCK_NEW, { block });
 		return block;
 	}
 
@@ -809,7 +809,7 @@ export class Consensus {
 			{ batch, diff: { created: [], updated: [], deleted: [] }, stateStore },
 			{ saveTempBlock },
 		);
-		this.events.emit(CONSENSUS_EVENT_BLOCK_DELETE, block);
+		this.events.emit(CONSENSUS_EVENT_BLOCK_DELETE, { block });
 	}
 
 	private async _deleteLastBlock({ saveTempBlock = false }: DeleteOptions = {}): Promise<void> {

@@ -267,19 +267,19 @@ export class Engine {
 	}
 
 	private _registerEventListeners() {
-		this._consensus.events.on(CONSENSUS_EVENT_BLOCK_NEW, (block: Block) => {
+		this._consensus.events.on(CONSENSUS_EVENT_BLOCK_NEW, ({ block }: { block: Block }) => {
 			this._generator.onNewBlock(block);
 			this._rpcServer.publish(EVENT_CHAIN_BLOCK_NEW, { blockHeader: block.header.toJSON() });
 			this._rpcServer.publish(EVENT_NETWORK_BLOCK_NEW, { blockHeader: block.header.toJSON() });
 		});
-		this._consensus.events.on(CONSENSUS_EVENT_BLOCK_DELETE, (block: Block) => {
+		this._consensus.events.on(CONSENSUS_EVENT_BLOCK_DELETE, ({ block }: { block: Block }) => {
 			this._generator.onDeleteBlock(block);
 			this._rpcServer.publish(EVENT_CHAIN_BLOCK_DELETE, { blockHeader: block.header.toJSON() });
 		});
-		this._consensus.events.on(CONSENSUS_EVENT_FORK_DETECTED, (block: Block) => {
+		this._consensus.events.on(CONSENSUS_EVENT_FORK_DETECTED, ({ block }: { block: Block }) => {
 			this._rpcServer.publish(EVENT_CHAIN_FORK, { blockHeader: block.header.toJSON() });
 		});
-		this._consensus.events.on(CONSENSUS_EVENT_NETWORK_BLOCK_NEW, (block: Block) => {
+		this._consensus.events.on(CONSENSUS_EVENT_NETWORK_BLOCK_NEW, ({ block }: { block: Block }) => {
 			this._rpcServer.publish(EVENT_NETWORK_BLOCK_NEW, { blockHeader: block.header.toJSON() });
 		});
 		this._consensus.events.on(CONSENSUS_EVENT_VALIDATORS_CHANGED, (update: ValidatorUpdate) => {

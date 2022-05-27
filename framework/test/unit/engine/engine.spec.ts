@@ -18,6 +18,7 @@ import {
 	Consensus,
 	CONSENSUS_EVENT_BLOCK_DELETE,
 	CONSENSUS_EVENT_BLOCK_NEW,
+	CONSENSUS_EVENT_FORK_DETECTED,
 } from '../../../src/engine/consensus';
 import { ABI } from '../../../src/abi';
 import { genesisBlock } from '../../fixtures';
@@ -27,6 +28,10 @@ import { BFTAPI } from '../../../src/engine/bft/api';
 import { Network } from '../../../src/engine/network';
 import { Generator } from '../../../src/engine/generator';
 import { RPCServer } from '../../../src/engine/rpc/rpc_server';
+import {
+	CONSENSUS_EVENT_NETWORK_BLOCK_NEW,
+	CONSENSUS_EVENT_VALIDATORS_CHANGED,
+} from '../../../src/engine/consensus/constants';
 
 jest.mock('fs-extra');
 jest.mock('@liskhq/lisk-db');
@@ -72,10 +77,14 @@ describe('engine', () => {
 				},
 				registeredModules: [],
 			}),
+			ready: jest.fn(),
 		} as never;
 		jest.spyOn(logger, 'createLogger').mockReturnValue(fakeLogger);
 		jest.spyOn(Chain.prototype, 'genesisBlockExist').mockResolvedValue(true);
 		jest.spyOn(Chain.prototype, 'loadLastBlocks').mockResolvedValue(undefined);
+		jest
+			.spyOn(Chain.prototype, 'lastBlock', 'get')
+			.mockReturnValue({ header: { height: 300 } } as never);
 		jest.spyOn(Consensus.prototype, 'getMaxRemovalHeight').mockResolvedValue(0);
 		jest
 			.spyOn(BFTAPI.prototype, 'getBFTHeights')
@@ -134,9 +143,14 @@ describe('engine', () => {
 		});
 
 		it('should register consensus event handler', () => {
-			expect(engine['_consensus'].events.eventNames()).toHaveLength(3);
+			expect(engine['_consensus'].events.eventNames()).toHaveLength(6);
 			expect(engine['_consensus'].events.eventNames()).toContain(CONSENSUS_EVENT_BLOCK_DELETE);
 			expect(engine['_consensus'].events.eventNames()).toContain(CONSENSUS_EVENT_BLOCK_NEW);
+			expect(engine['_consensus'].events.eventNames()).toContain(CONSENSUS_EVENT_FORK_DETECTED);
+			expect(engine['_consensus'].events.eventNames()).toContain(
+				CONSENSUS_EVENT_VALIDATORS_CHANGED,
+			);
+			expect(engine['_consensus'].events.eventNames()).toContain(CONSENSUS_EVENT_NETWORK_BLOCK_NEW);
 		});
 
 		it('should register endpoints', () => {

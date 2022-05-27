@@ -59,7 +59,6 @@ const getTxMock = (
 		.calledWith({
 			contextID: expect.any(Buffer),
 			transaction: tx.toObject(),
-			networkIdentifier: expect.any(Buffer),
 		})
 		.mockResolvedValueOnce({
 			result: valid === false ? TransactionVerifyResult.PENDING : TransactionVerifyResult.OK,
@@ -99,9 +98,6 @@ describe('strategies', () => {
 		const mockTxPool = {
 			getProcessableTransactions: jest.fn().mockReturnValue(new dataStructures.BufferMap()),
 		} as any;
-		const chain = {
-			networkIdentifier: Buffer.from('network identifier'),
-		} as never;
 		const contextID = getRandomBytes(32);
 		const consensus = {
 			currentValidators: [],
@@ -142,7 +138,6 @@ describe('strategies', () => {
 			} as never;
 			strategy = new HighFeeGenerationStrategy({
 				pool: mockTxPool,
-				chain,
 				abi,
 				maxTransactionsSize,
 			});

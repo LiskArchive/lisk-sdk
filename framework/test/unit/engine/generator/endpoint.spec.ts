@@ -12,19 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
-import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { LiskValidationError } from '@liskhq/lisk-validator';
 import { ABI, TransactionVerifyResult } from '../../../../src/abi';
 import { Logger } from '../../../../src/logger';
-import { Broadcaster } from '../../../../src/engine/generator/broadcaster';
 import { GENERATOR_STORE_RESERVED_PREFIX } from '../../../../src/engine/generator/constants';
 import { Endpoint } from '../../../../src/engine/generator/endpoint';
-import { InvalidTransactionError } from '../../../../src/engine/generator/errors';
 import { GeneratorStore } from '../../../../src/engine/generator/generator_store';
 import { previouslyGeneratedInfoSchema } from '../../../../src/engine/generator/schemas';
 import { Consensus, Keypair } from '../../../../src/engine/generator/types';
@@ -32,15 +28,6 @@ import { fakeLogger } from '../../../utils/mocks';
 
 describe('generator endpoint', () => {
 	const logger: Logger = fakeLogger;
-	const tx = new Transaction({
-		params: Buffer.alloc(20),
-		commandID: 0,
-		fee: BigInt(100000),
-		moduleID: 2,
-		nonce: BigInt(0),
-		senderPublicKey: Buffer.alloc(32),
-		signatures: [Buffer.alloc(64)],
-	});
 	const config = {
 		address: Buffer.from('d04699e57c4a3846c988f3c15306796f8eae5c1c', 'hex'),
 		encryptedPassphrase:
@@ -54,132 +41,24 @@ describe('generator endpoint', () => {
 	const networkIdentifier = Buffer.alloc(0);
 
 	let endpoint: Endpoint;
-	let broadcaster: Broadcaster;
 	let consensus: Consensus;
-	let pool: TransactionPool;
 	let abi: ABI;
 
 	beforeEach(() => {
-		broadcaster = {
-			enqueueTransactionId: jest.fn(),
-		} as never;
 		consensus = {
 			isSynced: jest.fn().mockResolvedValue(true),
-		} as never;
-		pool = {
-			contains: jest.fn().mockReturnValue(false),
-			add: jest.fn().mockResolvedValue({}),
 		} as never;
 		abi = {
 			verifyTransaction: jest.fn().mockResolvedValue({ result: TransactionVerifyResult.OK }),
 		} as never;
 		endpoint = new Endpoint({
 			abi,
-			broadcaster,
 			consensus,
-			pool,
 			keypair: new dataStructures.BufferMap<Keypair>(),
 			generators: [config, invalidConfig],
 		});
 		endpoint.init({
 			generatorDB: new InMemoryKVStore() as never,
-			logger,
-		});
-	});
-
-	describe('postTransaction', () => {
-		describe('when request data is invalid', () => {
-			it('should reject with validation error', async () => {
-				await expect(
-					endpoint.postTransaction({
-						logger,
-						params: {
-							invalid: 'schema',
-						},
-						networkIdentifier,
-					}),
-				).rejects.toThrow(LiskValidationError);
-			});
-
-			it('should reject with error when transaction bytes is invalid', async () => {
-				await expect(
-					endpoint.postTransaction({
-						logger,
-						params: {
-							transaction: 'xxxx',
-						},
-						networkIdentifier,
-					}),
-				).rejects.toThrow();
-			});
-		});
-
-		describe('when verify transaction fails', () => {
-			it('should throw when transaction is invalid', async () => {
-				(abi.verifyTransaction as jest.Mock).mockResolvedValue({
-					result: TransactionVerifyResult.INVALID,
-				});
-				await expect(
-					endpoint.postTransaction({
-						logger,
-						params: {
-							transaction: tx.getBytes().toString('hex'),
-						},
-						networkIdentifier,
-					}),
-				).rejects.toThrow(InvalidTransactionError);
-			});
-		});
-
-		describe('when transaction pool already contains the transaction', () => {
-			it('should return the transaction id', async () => {
-				(pool.contains as jest.Mock).mockReturnValue(true);
-				await expect(
-					endpoint.postTransaction({
-						logger,
-						params: {
-							transaction: tx.getBytes().toString('hex'),
-						},
-						networkIdentifier,
-					}),
-				).resolves.toEqual({
-					transactionId: tx.id.toString('hex'),
-				});
-			});
-		});
-
-		describe('when failed to add to the transaction', () => {
-			it('should throw when transaction is invalid', async () => {
-				(pool.add as jest.Mock).mockResolvedValue({
-					error: new Error('invalid tx'),
-				});
-				await expect(
-					endpoint.postTransaction({
-						logger,
-						params: {
-							transaction: tx.getBytes().toString('hex'),
-						},
-						networkIdentifier,
-					}),
-				).rejects.toThrow(InvalidTransactionError);
-			});
-		});
-
-		describe('when successfully to add to the transaction pool', () => {
-			it('should return the transaction id', async () => {
-				await expect(
-					endpoint.postTransaction({
-						logger,
-						params: {
-							transaction: tx.getBytes().toString('hex'),
-						},
-						networkIdentifier,
-					}),
-				).resolves.toEqual({
-					transactionId: tx.id.toString('hex'),
-				});
-				expect(broadcaster.enqueueTransactionId).toHaveBeenCalledWith(tx.id);
-			});
 		});
 	});
 
@@ -319,7 +198,6 @@ describe('generator endpoint', () => {
 			const db = (new InMemoryKVStore() as unknown) as KVStore;
 			endpoint.init({
 				generatorDB: db,
-				logger,
 			});
 			await expect(
 				endpoint.updateStatus({
@@ -345,7 +223,6 @@ describe('generator endpoint', () => {
 			const db = (new InMemoryKVStore() as unknown) as KVStore;
 			endpoint.init({
 				generatorDB: db,
-				logger,
 			});
 			await expect(
 				endpoint.updateStatus({
@@ -379,7 +256,6 @@ describe('generator endpoint', () => {
 			await batch.write();
 			endpoint.init({
 				generatorDB: db,
-				logger,
 			});
 			await expect(
 				endpoint.updateStatus({
@@ -413,7 +289,6 @@ describe('generator endpoint', () => {
 			await batch.write();
 			endpoint.init({
 				generatorDB: db,
-				logger,
 			});
 			await expect(
 				endpoint.updateStatus({
@@ -444,7 +319,6 @@ describe('generator endpoint', () => {
 			await subStore.set(config.address, encodedInfo);
 			endpoint.init({
 				generatorDB: db,
-				logger,
 			});
 			await expect(
 				endpoint.updateStatus({
