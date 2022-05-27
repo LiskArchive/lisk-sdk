@@ -26,6 +26,9 @@ import { configSchema } from '../../src/schemas';
 const appConfigForPlugin: ApplicationConfigForPlugin = {
 	rootPath: '~/.lisk',
 	label: 'my-app',
+	system: {
+		keepEventsForHeights: -1,
+	},
 	logger: {
 		consoleLogLevel: 'info',
 		fileLogLevel: 'none',
@@ -81,6 +84,7 @@ describe('_handlePostBlock', () => {
 		previousBlockID: Buffer.alloc(0),
 		timestamp: Math.floor(Date.now() / 1000 - 24 * 60 * 60),
 		stateRoot: cryptography.hash(Buffer.alloc(0)),
+		eventRoot: cryptography.hash(Buffer.alloc(0)),
 		maxHeightGenerated: 0,
 		maxHeightPrevoted: 0,
 		assetsRoot: cryptography.hash(Buffer.alloc(0)),

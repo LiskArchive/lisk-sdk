@@ -29,6 +29,7 @@ import {
 	createDelegateRegisterTransaction,
 	createDelegateVoteTransaction,
 	createTransferTransaction,
+	DEFAULT_TOKEN_ID,
 } from '../../../utils/node/transaction';
 import * as testing from '../../../../src/testing';
 import { TokenModule } from '../../../../src';
@@ -87,6 +88,7 @@ describe('Delete block', () => {
 					'token_getBalance',
 					{
 						address: genesis.address.toString('hex'),
+						tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 					},
 				);
 				transaction = createTransferTransaction({
@@ -116,11 +118,18 @@ describe('Delete block', () => {
 				).resolves.toBeFalse();
 			});
 
+			it('should delete the events from the database', async () => {
+				await expect(processEnv.getDataAccess().getEvents(newBlock.header.height)).rejects.toThrow(
+					'does not exist',
+				);
+			});
+
 			it('should match the sender account to the original state', async () => {
 				const afterBalance = await processEnv.invoke<{ availableBalance: string }>(
 					'token_getBalance',
 					{
 						address: genesis.address.toString('hex'),
+						tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 					},
 				);
 				expect(afterBalance).toEqual(originalBalance);
@@ -131,6 +140,7 @@ describe('Delete block', () => {
 					'token_getBalance',
 					{
 						address: recipientAccount.address.toString('hex'),
+						tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 					},
 				);
 				expect(recipientBalance.availableBalance).toEqual('0');
@@ -157,6 +167,7 @@ describe('Delete block', () => {
 					'token_getBalance',
 					{
 						address: genesis.address.toString('hex'),
+						tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 					},
 				);
 				const recipientAccount = nodeUtils.createAccount();
@@ -183,6 +194,7 @@ describe('Delete block', () => {
 					'token_getBalance',
 					{
 						address: genesis.address.toString('hex'),
+						tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 					},
 				);
 				expect(revertedBalance).toEqual(genesisBalance);

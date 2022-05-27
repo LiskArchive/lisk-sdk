@@ -269,7 +269,7 @@ describe('AuthModule', () => {
 		});
 
 		it('should not throw error if asset does not exist', async () => {
-			const context = createGenesisBlockContext({ stateStore }).createGenesisBlockExecuteContext();
+			const context = createGenesisBlockContext({ stateStore }).createInitGenesisStateContext();
 			jest.spyOn(context, 'getStore');
 
 			await expect(authModule.initGenesisState(context)).toResolve();
@@ -281,7 +281,7 @@ describe('AuthModule', () => {
 			const context = createGenesisBlockContext({
 				stateStore,
 				assets: new BlockAssets([{ moduleID: authModule.id, data: assetBytes }]),
-			}).createGenesisBlockExecuteContext();
+			}).createInitGenesisStateContext();
 			jest.spyOn(context, 'getStore');
 
 			await expect(authModule.initGenesisState(context)).toResolve();
@@ -298,7 +298,7 @@ describe('AuthModule', () => {
 				const context = createGenesisBlockContext({
 					stateStore,
 					assets: new BlockAssets([{ moduleID: authModule.id, data: assetBytes }]),
-				}).createGenesisBlockExecuteContext();
+				}).createInitGenesisStateContext();
 
 				await expect(authModule.initGenesisState(context)).toReject();
 			});

@@ -72,10 +72,7 @@ describe('DPoS module', () => {
 		minWeightStandby: (BigInt(1000) * BigInt(10 ** 8)).toString(),
 		numberActiveDelegates: 101,
 		numberStandbyDelegates: 2,
-		tokenIDDPoS: {
-			chainID: 0,
-			localID: 0,
-		},
+		tokenIDDPoS: '0000000000000000',
 	};
 
 	describe('init', () => {
@@ -92,6 +89,7 @@ describe('DPoS module', () => {
 			expect(dpos['_moduleConfig']).toEqual({
 				...defaultConfigs,
 				minWeightStandby: BigInt(defaultConfigs.minWeightStandby),
+				tokenIDDPoS: Buffer.from(defaultConfigs.tokenIDDPoS, 'hex'),
 			});
 		});
 
@@ -157,7 +155,7 @@ describe('DPoS module', () => {
 					stateStore,
 					header: createFakeBlockHeader({ height: 12345 }),
 					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
-				}).createGenesisBlockExecuteContext();
+				}).createInitGenesisStateContext();
 				jest.spyOn(dpos, 'finalizeGenesisState');
 
 				await expect(dpos.initGenesisState(context)).rejects.toThrow(errString as string);
@@ -184,7 +182,7 @@ describe('DPoS module', () => {
 				const context = createGenesisBlockContext({
 					stateStore,
 					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
-				}).createGenesisBlockExecuteContext();
+				}).createInitGenesisStateContext();
 				await dpos.initGenesisState(context);
 				await expect(dpos.finalizeGenesisState(context)).rejects.toThrow(
 					'When genensis height is zero, there should not be a snapshot',
@@ -199,7 +197,7 @@ describe('DPoS module', () => {
 					stateStore,
 					header: createFakeBlockHeader({ height: 12345 }),
 					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
-				}).createGenesisBlockExecuteContext();
+				}).createInitGenesisStateContext();
 				await dpos.initGenesisState(context);
 				await expect(dpos.finalizeGenesisState(context)).rejects.toThrow(
 					'When genesis height is non-zero, snapshot is required',
@@ -215,7 +213,7 @@ describe('DPoS module', () => {
 				context = createGenesisBlockContext({
 					stateStore,
 					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
-				}).createGenesisBlockExecuteContext();
+				}).createInitGenesisStateContext();
 			});
 
 			it('should store self vote and received votes', async () => {
@@ -1019,25 +1017,21 @@ describe('DPoS module', () => {
 				);
 
 				const missedBlocks: Record<string, number> = {};
-				for (let i = 0; i < 103; i += 1) {
-					// Generator address forged last block of previous round where
-					// previousTimestamp points out and also forging current end
-					// of round block. Because of that updateDelegateProductivity
-					// function will substract 2 from its missed blocks and hence
-					// we assign it 2, results in 0 meaning block is not forged yet.
-					missedBlocks[delegateAddresses[i].toString('binary')] = i === 102 ? 2 : 1;
+				// Make every delegate miss its block-slot except start and end slots
+				for (let i = 0; i < 102; i += 1) {
+					missedBlocks[delegateAddresses[i].toString('binary')] = 1;
 				}
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(context.getAPIContext(), previousTimestamp, currentTimestamp)
+					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
 					.mockReturnValue(missedBlocks);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), currentTimestamp)
+					.calledWith(expect.anything(), currentTimestamp)
 					.mockReturnValue(generatorAddress);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), previousTimestamp)
+					.calledWith(expect.anything(), previousTimestamp)
 					.mockReturnValue(generatorAddress);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
@@ -1087,30 +1081,20 @@ describe('DPoS module', () => {
 				);
 
 				const missedBlocks: Record<string, number> = {};
-				for (let i = 0; i < missedForgers.length + 1 + 1; i += 1) {
-					if (i === 0) {
-						// 1 will be subtracted from this in updateDelegateProductivity
-						missedBlocks[lastForgerAddress.toString('binary')] = 1;
-					} else if (i > 0 && i < missedForgers.length + 1) {
-						// We missed blocks, nothing will be subtracted from this
-						missedBlocks[missedForgers[2 - i].toString('binary')] = 1;
-					} else {
-						// Since end of range, 1 will be subtracted from this
-						// meaning block is not forged yet
-						missedBlocks[generatorAddress.toString('binary')] = 1;
-					}
+				for (let i = 1; i < missedForgers.length + 1; i += 1) {
+					missedBlocks[missedForgers[2 - i].toString('binary')] = 1;
 				}
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(context.getAPIContext(), previousTimestamp, currentTimestamp)
+					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
 					.mockReturnValue(missedBlocks);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), currentTimestamp)
+					.calledWith(expect.anything(), currentTimestamp)
 					.mockReturnValue(generatorAddress);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), previousTimestamp)
+					.calledWith(expect.anything(), previousTimestamp)
 					.mockReturnValue(lastForgerAddress);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
@@ -1163,19 +1147,17 @@ describe('DPoS module', () => {
 				for (const delegateAddress of missedMoreThan1Block) {
 					missedBlocks[delegateAddress.toString('binary')] += 1;
 				}
-				missedBlocks[generatorAddress.toString('binary')] = 2;
-				missedBlocks[lastForgerAddress.toString('binary')] = 2;
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(context.getAPIContext(), previousTimestamp, currentTimestamp)
+					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
 					.mockReturnValue(missedBlocks);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), currentTimestamp)
+					.calledWith(expect.anything(), currentTimestamp)
 					.mockReturnValue(generatorAddress);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), previousTimestamp)
+					.calledWith(expect.anything(), previousTimestamp)
 					.mockReturnValue(lastForgerAddress);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
@@ -1186,12 +1168,10 @@ describe('DPoS module', () => {
 						delegateAddress,
 						delegateStoreSchema,
 					);
-					if (delegateAddress.equals(generatorAddress)) {
-						expect(currentDelegate.consecutiveMissedBlocks).toBe(0);
-					} else if (
-						missedMoreThan1Block.some(missedForger => missedForger.equals(delegateAddress))
-					) {
+					if (missedMoreThan1Block.some(missedForger => missedForger.equals(delegateAddress))) {
 						expect(currentDelegate.consecutiveMissedBlocks).toBe(2);
+					} else if (delegateAddress.equals(generatorAddress)) {
+						expect(currentDelegate.consecutiveMissedBlocks).toBe(0);
 					} else {
 						expect(currentDelegate.consecutiveMissedBlocks).toBe(1);
 					}
@@ -1225,19 +1205,17 @@ describe('DPoS module', () => {
 				);
 
 				const missedBlocks: Record<string, number> = {};
-				missedBlocks[generatorAddress.toString('binary')] = 1;
-				missedBlocks[lastForgerAddress.toString('binary')] = 1;
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(context.getAPIContext(), previousTimestamp, currentTimestamp)
+					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
 					.mockReturnValue(missedBlocks);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), currentTimestamp)
+					.calledWith(expect.anything(), currentTimestamp)
 					.mockReturnValue(generatorAddress);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), previousTimestamp)
+					.calledWith(expect.anything(), previousTimestamp)
 					.mockReturnValue(lastForgerAddress);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
@@ -1284,20 +1262,18 @@ describe('DPoS module', () => {
 				);
 
 				const missedBlocks: Record<string, number> = {};
-				missedBlocks[generatorAddress.toString('binary')] = 1;
 				missedBlocks[missedDelegate.toString('binary')] = 1;
-				missedBlocks[lastForgerAddress.toString('binary')] = 1;
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(context.getAPIContext(), previousTimestamp, currentTimestamp)
+					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
 					.mockReturnValue(missedBlocks);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), currentTimestamp)
+					.calledWith(expect.anything(), currentTimestamp)
 					.mockReturnValue(generatorAddress);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), previousTimestamp)
+					.calledWith(expect.anything(), previousTimestamp)
 					.mockReturnValue(lastForgerAddress);
 
 				delegateData[missedDelegateIndex].consecutiveMissedBlocks = 50;
@@ -1348,20 +1324,18 @@ describe('DPoS module', () => {
 				);
 
 				const missedBlocks: Record<string, number> = {};
-				missedBlocks[generatorAddress.toString('binary')] = 1;
 				missedBlocks[missedDelegate.toString('binary')] = 1;
-				missedBlocks[lastForgerAddress.toString('binary')] = 1;
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(context.getAPIContext(), previousTimestamp, currentTimestamp)
+					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
 					.mockReturnValue(missedBlocks);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), currentTimestamp)
+					.calledWith(expect.anything(), currentTimestamp)
 					.mockReturnValue(generatorAddress);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), previousTimestamp)
+					.calledWith(expect.anything(), previousTimestamp)
 					.mockReturnValue(lastForgerAddress);
 
 				delegateData[missedDelegateIndex].consecutiveMissedBlocks = 40;
@@ -1412,20 +1386,18 @@ describe('DPoS module', () => {
 				);
 
 				const missedBlocks: Record<string, number> = {};
-				missedBlocks[generatorAddress.toString('binary')] = 1;
 				missedBlocks[missedDelegate.toString('binary')] = 1;
-				missedBlocks[lastForgerAddress.toString('binary')] = 1;
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(context.getAPIContext(), previousTimestamp, currentTimestamp)
+					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
 					.mockReturnValue(missedBlocks);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), currentTimestamp)
+					.calledWith(expect.anything(), currentTimestamp)
 					.mockReturnValue(generatorAddress);
 
 				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(context.getAPIContext(), previousTimestamp)
+					.calledWith(expect.anything(), previousTimestamp)
 					.mockReturnValue(lastForgerAddress);
 
 				delegateData[missedDelegateIndex].consecutiveMissedBlocks = 50;

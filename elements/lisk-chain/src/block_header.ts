@@ -15,7 +15,7 @@
 import { signDataWithPrivateKey, hash, verifyData } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
-import { EMPTY_BUFFER, EMPTY_HASH, TAG_BLOCK_HEADER } from './constants';
+import { EMPTY_BUFFER, EMPTY_HASH, SIGNATURE_LENGTH_BYTES, TAG_BLOCK_HEADER } from './constants';
 import { blockHeaderSchema, blockHeaderSchemaWithId, signingBlockHeaderSchema } from './schema';
 import { JSONObject } from './types';
 
@@ -36,6 +36,7 @@ export interface BlockHeaderAttrs {
 	readonly stateRoot?: Buffer;
 	readonly transactionRoot?: Buffer;
 	readonly assetsRoot?: Buffer;
+	readonly eventRoot?: Buffer;
 	signature?: Buffer;
 	id?: Buffer;
 }
@@ -59,6 +60,7 @@ export class BlockHeader {
 	private _stateRoot?: Buffer;
 	private _transactionRoot?: Buffer;
 	private _assetsRoot?: Buffer;
+	private _eventRoot?: Buffer;
 	private _signature?: Buffer;
 	private _id?: Buffer;
 
@@ -73,6 +75,7 @@ export class BlockHeader {
 		aggregateCommit,
 		validatorsHash,
 		stateRoot,
+		eventRoot,
 		assetsRoot,
 		transactionRoot,
 		signature,
@@ -87,6 +90,7 @@ export class BlockHeader {
 		this.maxHeightGenerated = maxHeightGenerated;
 		this._aggregateCommit = aggregateCommit;
 		this._validatorsHash = validatorsHash;
+		this._eventRoot = eventRoot;
 		this._stateRoot = stateRoot;
 		this._transactionRoot = transactionRoot;
 		this._assetsRoot = assetsRoot;
@@ -109,6 +113,15 @@ export class BlockHeader {
 
 	public set stateRoot(val) {
 		this._stateRoot = val;
+		this._resetComputedValues();
+	}
+
+	public get eventRoot() {
+		return this._eventRoot;
+	}
+
+	public set eventRoot(val) {
+		this._eventRoot = val;
 		this._resetComputedValues();
 	}
 
@@ -167,6 +180,9 @@ export class BlockHeader {
 		}
 		if (this.previousBlockID.length === 0) {
 			throw new Error('Previous block id must not be empty.');
+		}
+		if (this.signature.length !== SIGNATURE_LENGTH_BYTES) {
+			throw new Error('Signature length must be 64 bytes.');
 		}
 	}
 
@@ -332,6 +348,9 @@ export class BlockHeader {
 		if (!this.assetsRoot) {
 			throw new Error('Asset root is empty.');
 		}
+		if (!this.eventRoot) {
+			throw new Error('Event root is empty.');
+		}
 		if (!this.stateRoot) {
 			throw new Error('State root is empty.');
 		}
@@ -348,6 +367,7 @@ export class BlockHeader {
 			previousBlockID: this.previousBlockID,
 			stateRoot: this.stateRoot,
 			assetsRoot: this.assetsRoot,
+			eventRoot: this.eventRoot,
 			transactionRoot: this.transactionRoot,
 			validatorsHash: this.validatorsHash,
 			aggregateCommit: this.aggregateCommit,

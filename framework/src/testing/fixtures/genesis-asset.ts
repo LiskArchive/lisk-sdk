@@ -1,3 +1,5 @@
+import { genesisTokenStoreSchema } from '../../modules/token';
+
 /*
  * Copyright © 2021 Lisk Foundation
  *
@@ -19,1072 +21,690 @@ export const blockAssetsJSON = [
 			userSubstore: [
 				{
 					address: '02793f74342b4d58174b4387f54252c80a605e66',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '04b004136b2839851eebe8cfba3c8539eeb74452',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '0d4252621f47895c6f4a43e105e68b344b7d5d34',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '0d4f07890f8b89bd9cd852fd92faef8130a82d3e',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '0f8e8b9df5245cccbe3404a3be0baae4876e333c',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '106a4e3186454c1929f2661a5a98e55644e68970',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '11e8aebf3f0da4b49dd42392648dd06d46e4e459',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '1348bdced23cbdfb92cf3c74742d8f3d96f436de',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '14785e33717634c91d63349ae1c0366c072be25c',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '14a0751c71e2871b5d88ed060c93a72a3834ba85',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '150fbd209c81c95de1e0eb3399baa0cf9d2853ed',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '173129339f6b56e72345fd6529a552db6ea87f15',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '18d0b82999dfab59e7a7d6592e9f2973798799cb',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '1aa54d505856beb417f706889d16cd36f677a4c8',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '1bea5df44a2bfa8b864cddfb6138c71a883895ed',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '1cc0e48484122141e38098e5083961cc8e430dca',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '1d7be48ed2d30cc901b1a1ee636f57b0c560878c',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '1dc798f399d525f9e8cc1ff3d566681c4f62b867',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '1e0652d45c9a2d37a53c40d0e060417c3c15d126',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '1e964184beb1d146f5a1e8de2e50341933bcbc5a',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '229ffdf682c09ffeb3bcf2d94e13467bd9a50861',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '244ce8c5bd9744aeff8a552bb150e56af78ac6b8',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '24645f4c3b1f536bb8c018528218d87120505edb',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '29a90d7c09c8eb26e505a684b5681785e76794ad',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '2e63c4d179887f3612c878928f4327a5d2649246',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '2f7f16feef2241085b6bca3ba877969a90e3f725',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '329a31a05227a3c07bac32b1b73b89d2432dd934',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '329bc1cbfdd588b92f66834d8bf3f02c8da4ccf1',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '3376eddd20564b9b45d630e7ce261311f0e230d9',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '3801ed0f31990a97b2c0a70da1ad2bb4aa1ea93d',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '39e43a8de34509a45c39e5ff338601567077b3c4',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '3c4742625f4ff24a4dcd5a608ec43e23e8a799ca',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '3f564ec4a9eb8b1541aa5ce4d694db6f0ded5242',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '44111c7045776d79e25df5d2cc3e15313516ffb6',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '4e1cf78a3fc35d288e7afb929cd58beab99a129b',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '4eb5eca5c4b0301804ac2c6c9879902f9584082c',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '54f82c814b4524f1d3937cc4105b02b288e950bc',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '5770ebefba0befa6e2eecad5a6d4f12b86cccfe7',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '589ca3fda0680e234473e4c44a84341f5eb1e752',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '58a01618f3a986c75aec5266b9c52722a1eec0d3',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '5dafaad782ef1e95c95d1a05ff7b3ac8b7a9d7a6',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '60ecadbe506ce2c7508cf8db14ca061f1c6e219f',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '62bf33222be25d000bda5cc4e671f5d7db68eddf',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '668769cc41b7d8bbcc82166d479bc27b3bf88677',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '66b49e0dd08e8152ed2d1ea30ebaae3bb0284340',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '66e0235892d17ddc6cf39862aa3ee64ec27f9bd1',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '66e06bdd6bcfac4eea7bdb79414fdec70efa1904',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '6bbfefd0c6ef251f63e42c430e1b98255f682c4b',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '6c57ee8cb03d6ce1b011dbc5170009f0326a4c53',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '6c955cf30dd41f1a6d8590b223043d91b41f890b',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '6d7be6b821ff082a5de312c49717262a8859464b',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '70942eaa33e0645945f3769cfe495ce2a1ffdb04',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '7b30ef13a16a61e9b560b1f9fadbc5de1ba16360',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '7e193c5e39092eb1b1f81ccded6f700652856d10',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '82026dec67e6d390195fe21c89c5423ac94d95c7',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '8415c1ac3b53f34039b1497589d7dcfaa11d41a9',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '84a7d87a34bac987b0c0d708e782ec27e1aba7f2',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '85f0e7a39531876e89c4d5eeab9d98adbbbaaf88',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '87a60bb1d1551b5ba17eabc220a8c6ad09dc1e87',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '8a00e7838582b4e432881d98952494837d903671',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '8aefb8f0a34bf10fdc1720c283fb73ea1ba117c6',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '8c66f23d15a9bf14c948ec6c060a0afbdec4246f',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '8d5cb3bd72d97bba55c980750fdfe0399c96dfc1',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '8e561cdaab90d883994b5f1582105894453f5cc8',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '8f6d2a3adc1d5250108f3207a25519955d90991f',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '8f8fe4d97de5e36fd626f68b5d5b11da1f867635',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '8ffd6d8167307044edaa5d61e5d89c5abdba41e8',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '92662e3f51c1c2616681602f8f2efe6540d08789',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '97008cacc691168b13c2e38eb645360cffc9c03b',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '983528b238517c93307546b7282ffd574bb111de',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '9b82f132f9a2ff243c4f5e2a363577158fb40f09',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '9d9d11db10cba9d06ec1ca40b8722b5b71d442c1',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: '9e4da082aa7ded71eb20a31a6f7de40ed9dfdae3',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'a1e0b9297715e31097d64c2cf931ae0ac1ac9a9b',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'a20f1e1958eaca23674f5255ed7ce5e89c7a6782',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'a35704117c4bc7d14282bd9893c79add67fe973b',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'a47fce35acb7a9301772ab043fd5b6d56bd4b5d0',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'aa12e60addf6601b6b4928e9abe39b8ed9f3115f',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'aa29d53de5361e4f226d1c377e96fbfae4fe9163',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'ae7905696771a06123da09e7a782beb35b2dfd7b',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'af711c5fecdc10bd1546b74860518586bef42fc3',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'b511353e8d4df37ad688ca0bb43965298cc37d69',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'b858435ecf44fd9c5f007be507da8faf777cb2bc',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'bae232c8f2689aea9a12577786fa3141f561171c',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'c391dde78f07171e191f8d6ba17d053873154998',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'c3ad0b22afcb9e8e948624283452bd181dcd04c3',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'c721ffa7c7a7cf11e13096fddc6af24974a4ee8e',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'cb4f44724bab013876473dfd65b87448bc4cd381',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'cd2764890d47e7aa0cdf15501b11c028a6e3aca0',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'ce07270e060615b80795adcf3a6526bfef3f5ceb',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'ce6f0506fa8050f100eb6a1deab37d7464f307aa',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'd04699e57c4a3846c988f3c15306796f8eae5c1c',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'd0f26e13c229e5d7c745ef0545bb4fb0f759e90e',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'd4bfee674d97f5b8724bfa1e1ddf8a55814cd341',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'db07dec164e52d22ddd0018fa17dde7a1c36732b',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'dd8386f4813122fc836f269de6d0a07c15f49583',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'ddbc46e77f8f183bf99fe3206c570c54da9e398a',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'dec7cd87252110c02fc681c81fad29cfa9f9231e',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'e4037d63d71c28bb144ff39c9de68a3060d5e631',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'e5bc74611fca712101f6a0d193725b336f550566',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'e74aa95a04a429d9d417584d90b325f3993068e9',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'e97bcae362ebba20268a264a59a96ed4c79ba551',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'ea5b7a4aa1b8bea278cfad3f5304606344dba4e5',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'ed0fc1cb6dc8e27ecbedb0b6faeede345db47837',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'ee531c16f419b1fce5a86150ef5d755d90a062bb',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'f0ad62b4f92e55db0943f4bb10645f213e0eab41',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'f42fe50d8008a4b30d4d2ac510e083c6cf1d6615',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'f598441241d79b620ccf61f0907291a08d460b66',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'f6da62ac39181b56eb28e917c49baf9771ee1980',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'f8a7fc8d5fdbf0dfd921202ed7e4b35350754b26',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'fccf1a0f5532234118250e894b299eacc0ed8c24',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 				{
 					address: 'ff52bc34f842b9102cb17f2d3e755b2414b3f70d',
-					tokenID: {
-						chainID: 0,
-						localID: 0,
-					},
+					tokenID: '0000000000000000',
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				},
 			],
-		},
-		schema: {
-			$id: '/token/module/genesis',
-			type: 'object',
-			required: ['userSubstore'],
-			properties: {
-				userSubstore: {
-					type: 'array',
-					fieldNumber: 1,
-					items: {
-						type: 'object',
-						required: ['address', 'tokenID', 'availableBalance', 'lockedBalances'],
-						properties: {
-							address: {
-								dataType: 'bytes',
-								fieldNumber: 1,
-							},
-							tokenID: {
-								type: 'object',
-								fieldNumber: 2,
-								required: ['chainID', 'localID'],
-								properties: {
-									chainID: {
-										dataType: 'uint32',
-										fieldNumber: 1,
-									},
-									localID: {
-										dataType: 'uint32',
-										fieldNumber: 2,
-									},
-								},
-							},
-							availableBalance: {
-								dataType: 'uint64',
-								fieldNumber: 3,
-							},
-							lockedBalances: {
-								type: 'array',
-								fieldNumber: 4,
-								items: {
-									type: 'object',
-									required: ['moduleID', 'amount'],
-									properties: {
-										moduleID: {
-											dataType: 'uint32',
-											fieldNumber: 1,
-										},
-										amount: {
-											dataType: 'uint64',
-											fieldNumber: 2,
-										},
-									},
-								},
-							},
-						},
-					},
+			supplySubstore: [
+				{
+					localID: '00000000',
+					totalSupply: '1120000000000000',
 				},
+			],
+			escrowSubstore: [],
+			availableLocalIDSubstore: {
+				nextAvailableLocalID: '00000000',
 			},
+			terminatedEscrowSubstore: [],
 		},
+		schema: genesisTokenStoreSchema,
 	},
 	{
 		moduleID: 13,

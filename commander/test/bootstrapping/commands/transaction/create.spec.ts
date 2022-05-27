@@ -42,7 +42,7 @@ describe('transaction:create command', () => {
 	];
 	const passphrase = 'peanut hundred pen hawk invite exclude brain chunk gadget wait wrong ready';
 	const transferParams =
-		'{"amount":100,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}';
+		'{"tokenID": "0000000000000000","amount":100,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}';
 	const voteParams =
 		'{"votes":[{"delegateAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","amount":100},{"delegateAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","amount":-50}]}';
 	const unVoteParams =
@@ -52,6 +52,7 @@ describe('transaction:create command', () => {
 	const mockEncodedTransaction = Buffer.from('encoded transaction');
 	const mockJSONTransaction = {
 		params: {
+			tokenID: '0000000000000000',
 			amount: '100',
 			data: 'send token',
 			recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
@@ -113,6 +114,7 @@ describe('transaction:create command', () => {
 		} as any;
 		jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(clientMock);
 		jest.spyOn(inquirer, 'prompt').mockResolvedValue({
+			tokenID: '0000000000000000',
 			amount: 100,
 			recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
 			data: 'send token',
@@ -242,7 +244,7 @@ describe('transaction:create command', () => {
 								'2',
 								'0',
 								'100000000',
-								'--params={"amount":100,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815"}',
+								'--params={"tokenID":"0000000000000000","amount":100,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815"}',
 								`--passphrase=${passphrase}`,
 								'--offline',
 								'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
@@ -274,8 +276,7 @@ describe('transaction:create command', () => {
 					);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-						transaction:
-							'0802100018012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a322408641214ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151a0a73656e6420746f6b656e3a400ed742c6e128729733b5e73996b1eb786d0131cbb0b8190090c6c5561589e305cf5099c82ab9e9b453d72defa67acab0fe6a828998110ddc0e784356cdf2df01',
+						transaction: expect.any(String),
 					});
 				});
 			});
@@ -298,8 +299,7 @@ describe('transaction:create command', () => {
 					);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-						transaction:
-							'0802100018012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a322408641214ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151a0a73656e6420746f6b656e',
+						transaction: expect.any(String),
 					});
 				});
 			});
@@ -321,8 +321,7 @@ describe('transaction:create command', () => {
 					);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-						transaction:
-							'080d100118012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a32350a190a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb8581510c8010a180a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb8581510633a403585552baaf606f8f7431c65876c195245228053b44bdc40c1bd52251447e5c8a496d72e5160255ae3323889e758f53240b8504b069e9c5d3e17f645067dcf09',
+						transaction: expect.any(String),
 					});
 				});
 			});
@@ -344,8 +343,7 @@ describe('transaction:create command', () => {
 					);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-						transaction:
-							'080d100118012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a321a0a180a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb8581510633a40038fb5b66afe923ff150d4219ea3b00462b30ee955dda70e3f14f1dc50ee2c6db632af0a643db5b1fcc7cf06a61bf42737d80b4ffa5fe92768e3aad4f114fe0b',
+						transaction: expect.any(String),
 					});
 				});
 			});
@@ -368,6 +366,7 @@ describe('transaction:create command', () => {
 					);
 					expect(inquirer.prompt).toHaveBeenCalledTimes(1);
 					expect(inquirer.prompt).toHaveBeenCalledWith([
+						{ message: 'Please enter: tokenID: ', name: 'tokenID', type: 'input' },
 						{ message: 'Please enter: amount: ', name: 'amount', type: 'input' },
 						{
 							message: 'Please enter: recipientAddress: ',
@@ -378,8 +377,7 @@ describe('transaction:create command', () => {
 					]);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-						transaction:
-							'0802100018012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a322408641214ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151a0a73656e6420746f6b656e3a400ed742c6e128729733b5e73996b1eb786d0131cbb0b8190090c6c5561589e305cf5099c82ab9e9b453d72defa67acab0fe6a828998110ddc0e784356cdf2df01',
+						transaction: expect.any(String),
 					});
 				});
 			});
@@ -399,6 +397,7 @@ describe('transaction:create command', () => {
 					);
 					expect(inquirer.prompt).toHaveBeenCalledTimes(1);
 					expect(inquirer.prompt).toHaveBeenCalledWith([
+						{ message: 'Please enter: tokenID: ', name: 'tokenID', type: 'input' },
 						{ message: 'Please enter: amount: ', name: 'amount', type: 'input' },
 						{
 							message: 'Please enter: recipientAddress: ',
@@ -410,8 +409,7 @@ describe('transaction:create command', () => {
 					expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase', true);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-						transaction:
-							'0802100018012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a322408641214ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151a0a73656e6420746f6b656e3a400ed742c6e128729733b5e73996b1eb786d0131cbb0b8190090c6c5561589e305cf5099c82ab9e9b453d72defa67acab0fe6a828998110ddc0e784356cdf2df01',
+						transaction: expect.any(String),
 					});
 				});
 			});
@@ -435,8 +433,7 @@ describe('transaction:create command', () => {
 					);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(2);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-						transaction:
-							'0802100018012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a322408641214ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151a0a73656e6420746f6b656e',
+						transaction: expect.any(String),
 					});
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction: {
@@ -446,6 +443,7 @@ describe('transaction:create command', () => {
 							fee: '100000000',
 							senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 							params: {
+								tokenID: '0000000000000000',
 								amount: '100',
 								data: 'send token',
 								recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
@@ -474,8 +472,7 @@ describe('transaction:create command', () => {
 					);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(2);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-						transaction:
-							'0802100018012080c2d72f2a200fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a322408641214ab0041a7d3f7b2c290b5b834d46bdc7b7eb858151a0a73656e6420746f6b656e3a400ed742c6e128729733b5e73996b1eb786d0131cbb0b8190090c6c5561589e305cf5099c82ab9e9b453d72defa67acab0fe6a828998110ddc0e784356cdf2df01',
+						transaction: expect.any(String),
 					});
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction: {
@@ -483,16 +480,15 @@ describe('transaction:create command', () => {
 							commandID: 0,
 							nonce: '1',
 							fee: '100000000',
-							id: '6da84697b2e9e275cf286a854d7525563b5132b07b99e4e75a3e66cd119f84fa',
+							id: expect.any(String),
 							senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 							params: {
+								tokenID: '0000000000000000',
 								amount: '100',
 								data: 'send token',
 								recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
 							},
-							signatures: [
-								'0ed742c6e128729733b5e73996b1eb786d0131cbb0b8190090c6c5561589e305cf5099c82ab9e9b453d72defa67acab0fe6a828998110ddc0e784356cdf2df01',
-							],
+							signatures: [expect.any(String)],
 						},
 					});
 				});
@@ -582,6 +578,7 @@ describe('transaction:create command', () => {
 					);
 					expect(inquirer.prompt).toHaveBeenCalledTimes(1);
 					expect(inquirer.prompt).toHaveBeenCalledWith([
+						{ message: 'Please enter: tokenID: ', name: 'tokenID', type: 'input' },
 						{ message: 'Please enter: amount: ', name: 'amount', type: 'input' },
 						{
 							message: 'Please enter: recipientAddress: ',
@@ -602,6 +599,7 @@ describe('transaction:create command', () => {
 					await CreateCommandExtended.run(['2', '0', '100000000', '--nonce=999'], config);
 					expect(inquirer.prompt).toHaveBeenCalledTimes(1);
 					expect(inquirer.prompt).toHaveBeenCalledWith([
+						{ message: 'Please enter: tokenID: ', name: 'tokenID', type: 'input' },
 						{ message: 'Please enter: amount: ', name: 'amount', type: 'input' },
 						{
 							message: 'Please enter: recipientAddress: ',
@@ -623,6 +621,7 @@ describe('transaction:create command', () => {
 					await CreateCommandExtended.run(['2', '0', '100000000'], config);
 					expect(inquirer.prompt).toHaveBeenCalledTimes(1);
 					expect(inquirer.prompt).toHaveBeenCalledWith([
+						{ message: 'Please enter: tokenID: ', name: 'tokenID', type: 'input' },
 						{ message: 'Please enter: amount: ', name: 'amount', type: 'input' },
 						{
 							message: 'Please enter: recipientAddress: ',
@@ -684,6 +683,7 @@ describe('transaction:create command', () => {
 							fee: '100000000',
 							senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 							params: {
+								tokenID: '0000000000000000',
 								amount: '100',
 								data: 'send token',
 								recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',

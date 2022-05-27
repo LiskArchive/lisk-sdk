@@ -33,7 +33,7 @@ export {
 	ForgingEnableCommand,
 	ForgingStatusCommand,
 } from './bootstrapping/commands/forging';
-export { NodeInfoCommand } from './bootstrapping/commands/node';
+export { NodeInfoCommand, NodeMetadataCommand } from './bootstrapping/commands/node';
 export {
 	PassphraseDecryptCommand,
 	PassphraseEncryptCommand,

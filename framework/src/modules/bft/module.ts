@@ -13,7 +13,7 @@
  */
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { objects } from '@liskhq/lisk-utils';
-import { BaseModule, ModuleInitArgs } from '../base_module';
+import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { BFTAPI } from './api';
 import { BFTEndpoint } from './endpoint';
 import {
@@ -24,7 +24,7 @@ import {
 	STORE_PREFIX_BFT_VOTES,
 } from './constants';
 import { bftModuleConfig, BFTVotes, bftVotesSchema } from './schemas';
-import { BlockAfterExecuteContext, GenesisBlockExecuteContext } from '../../node/state_machine';
+import { BlockExecuteContext, GenesisBlockExecuteContext } from '../../node/state_machine';
 import { ValidatorsAPI } from './types';
 import {
 	insertBlockBFTInfo,
@@ -61,6 +61,15 @@ export class BFTModule extends BaseModule {
 		this.api.addDependencies(validatorsAPI);
 	}
 
+	public metadata(): ModuleMetadata {
+		return {
+			endpoints: [],
+			commands: [],
+			events: [],
+			assets: [],
+		};
+	}
+
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
 		const votesStore = context.getStore(this.id, STORE_PREFIX_BFT_VOTES);
 		await votesStore.setWithSchema(
@@ -76,7 +85,7 @@ export class BFTModule extends BaseModule {
 		);
 	}
 
-	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
+	public async beforeTransactionsExecute(context: BlockExecuteContext): Promise<void> {
 		const votesStore = context.getStore(this.id, STORE_PREFIX_BFT_VOTES);
 		const paramsStore = context.getStore(this.id, STORE_PREFIX_BFT_PARAMETERS);
 		const paramsCache = new BFTParametersCache(paramsStore);

@@ -46,3 +46,27 @@ export const configSchema = {
 	},
 	required: ['tokenIDReward', 'offset', 'distance', 'brackets'],
 };
+
+export const getDefaultRewardAtHeightRequestSchema = {
+	$id: '/reward/endpoint/getDefaultRewardAtHeightRequest',
+	type: 'object',
+	required: ['height'],
+	properties: {
+		height: {
+			type: 'integer',
+			format: 'uint32',
+		},
+	},
+};
+
+export const getDefaultRewardAtHeightResponseSchema = {
+	$id: '/reward/endpoint/getDefaultRewardAtHeightResponse',
+	type: 'object',
+	required: ['reward'],
+	properties: {
+		reward: {
+			type: 'string',
+			format: 'uint64',
+		},
+	},
+};

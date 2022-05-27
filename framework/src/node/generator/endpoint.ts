@@ -26,7 +26,7 @@ import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { Logger } from '../../logger';
-import { Generator, ModuleEndpointContext } from '../../types';
+import { Generator } from '../../types';
 import { EventQueue, StateMachine, TransactionContext, VerifyStatus } from '../state_machine';
 import { Broadcaster } from './broadcaster';
 import { InvalidTransactionError } from './errors';
@@ -39,15 +39,16 @@ import {
 } from './generated_info';
 import {
 	GeneratedInfo,
-	GetForgingStatusResponse,
+	GetStatusResponse,
 	PostTransactionRequest,
 	postTransactionRequestSchema,
 	PostTransactionResponse,
-	UpdateForgingStatusRequest,
-	updateForgingStatusRequestSchema,
-	UpdateForgingStatusResponse,
+	UpdateStatusRequest,
+	updateStatusRequestSchema,
+	UpdateStatusResponse,
 } from './schemas';
 import { Consensus, Keypair } from './types';
+import { RequestContext } from '../rpc/rpc_server';
 
 interface EndpointArgs {
 	keypair: dataStructures.BufferMap<Keypair>;
@@ -93,7 +94,7 @@ export class Endpoint {
 		this._blockchainDB = args.blockchainDB;
 	}
 
-	public async postTransaction(ctx: ModuleEndpointContext): Promise<PostTransactionResponse> {
+	public async postTransaction(ctx: RequestContext): Promise<PostTransactionResponse> {
 		const reqErrors = validator.validate(postTransactionRequestSchema, ctx.params);
 		if (reqErrors?.length) {
 			throw new LiskValidationError(reqErrors);
@@ -146,10 +147,8 @@ export class Endpoint {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getForgingStatus(
-		_context: ModuleEndpointContext,
-	): Promise<GetForgingStatusResponse> {
-		const status: GetForgingStatusResponse = [];
+	public async getStatus(_context: RequestContext): Promise<GetStatusResponse> {
+		const status: GetStatusResponse = [];
 		for (const gen of this._generators) {
 			status.push({
 				address: gen.address,
@@ -160,18 +159,16 @@ export class Endpoint {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getTransactionsFromPool(_context: ModuleEndpointContext): Promise<string[]> {
+	public async getTransactionsFromPool(_context: RequestContext): Promise<string[]> {
 		return this._pool.getAll().map(tx => tx.getBytes().toString('hex'));
 	}
 
-	public async updateForgingStatus(
-		ctx: ModuleEndpointContext,
-	): Promise<UpdateForgingStatusResponse> {
-		const reqErrors = validator.validate(updateForgingStatusRequestSchema, ctx.params);
+	public async updateStatus(ctx: RequestContext): Promise<UpdateStatusResponse> {
+		const reqErrors = validator.validate(updateStatusRequestSchema, ctx.params);
 		if (reqErrors?.length) {
 			throw new LiskValidationError(reqErrors);
 		}
-		const req = (ctx.params as unknown) as UpdateForgingStatusRequest;
+		const req = (ctx.params as unknown) as UpdateStatusRequest;
 		const address = Buffer.from(req.address, 'hex');
 		const encryptedGenerator = this._generators.find(item => item.address === req.address);
 

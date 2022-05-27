@@ -50,6 +50,7 @@ describe('Synchronizer', () => {
 
 		chainModule = new Chain({
 			maxTransactionsSize: applicationConfigSchema.default.genesis.maxTransactionsSize,
+			keepEventsForHeights: applicationConfigSchema.default.system.keepEventsForHeights,
 		});
 		chainModule.init({
 			db: new InMemoryKVStore(),
@@ -75,6 +76,7 @@ describe('Synchronizer', () => {
 		chainModule.dataAccess = dataAccessMock;
 
 		blockExecutor = {
+			validate: jest.fn(),
 			verify: jest.fn(),
 			executeValidated: jest.fn(),
 			deleteLastBlock: jest.fn(),
@@ -423,23 +425,23 @@ describe('Synchronizer', () => {
 		});
 
 		it('should validate the block before sync', async () => {
-			jest.spyOn(blockExecutor, 'verify');
+			jest.spyOn(blockExecutor, 'validate');
 
 			await synchronizer.run(aReceivedBlock, aPeerId);
 
-			expect(blockExecutor.verify).toHaveBeenCalledWith(aReceivedBlock);
+			expect(blockExecutor.validate).toHaveBeenCalledWith(aReceivedBlock);
 		});
 
 		it('should reject with error if block validation failed', async () => {
-			(blockExecutor.verify as jest.Mock).mockRejectedValueOnce(
-				new Error('Invalid block signature'),
-			);
+			(blockExecutor.validate as jest.Mock).mockImplementationOnce(() => {
+				throw new Error('Invalid block version');
+			});
 			aReceivedBlock.header['_signature'] = Buffer.from(
 				'84d95f9a9c02b1b216bc89610961ca886a454c252e0782f8c4c437f5dff7f720fd63461774fbec4622c85c1c15c3f1d55baf7a4ad41e4e0e50589c5c1e4c7301',
 				'hex',
 			);
 			await expect(synchronizer.run(aReceivedBlock, aPeerId)).rejects.toThrow(
-				'Invalid block signature',
+				'Invalid block version',
 			);
 
 			expect(synchronizer.isActive).toBeFalsy();

@@ -31,7 +31,7 @@ import {
 	genesisDataSchema,
 	validatorAccountSchema,
 } from '../../../../src/modules/validators/schemas';
-import { APIContext } from '../../../../src/node/state_machine/api_context';
+import { APIContext, createNewAPIContext } from '../../../../src/node/state_machine/api_context';
 import { EventQueue } from '../../../../src/node/state_machine';
 import { GeneratorList, ValidatorKeys } from '../../../../src/modules/validators/types';
 
@@ -415,7 +415,7 @@ describe('ValidatorsModuleAPI', () => {
 			const result = await validatorsModule.api.getGeneratorsBetweenTimestamps(
 				apiContext,
 				genesisTimestamp,
-				genesisTimestamp + timePerRound + 1,
+				genesisTimestamp + timePerRound + 2 * blockTime + 1,
 			);
 			let genWithCountGreaterThanOne = 0;
 			for (const generatorAddress of Object.keys(result)) {
@@ -447,7 +447,7 @@ describe('ValidatorsModuleAPI', () => {
 			const result = await validatorsModule.api.getGeneratorsBetweenTimestamps(
 				apiContext,
 				genesisTimestamp,
-				genesisTimestamp + timePerRound * 2 + 1,
+				genesisTimestamp + timePerRound * 2 + 2 * blockTime + 1,
 			);
 
 			let genWithCountGreaterThanOne = 0;
@@ -468,7 +468,7 @@ describe('ValidatorsModuleAPI', () => {
 			expect(genWithCountGreaterThanTwo).toBeGreaterThan(0);
 		});
 
-		it('should be able to return at least one generator if input timestamps are valid and difference between input timestamps is zero', async () => {
+		it('should be able to return no generator if input timestamps are valid and difference between input timestamps is zero', async () => {
 			await genesisDataSubStore.setWithSchema(
 				EMPTY_KEY,
 				{ timestamp: genesisTimestamp },
@@ -487,10 +487,10 @@ describe('ValidatorsModuleAPI', () => {
 				genesisTimestamp,
 			);
 
-			expect(Object.keys(result)).toHaveLength(1);
+			expect(Object.keys(result)).toHaveLength(0);
 		});
 
-		it('should be able to return at least one generator if input timestamps are valid and difference between input timestamps is less than block time ', async () => {
+		it('should be able to return no generator if input timestamps are valid and difference between input timestamps is less than block time ', async () => {
 			const blockTime = 10;
 
 			await genesisDataSubStore.setWithSchema(
@@ -511,10 +511,10 @@ describe('ValidatorsModuleAPI', () => {
 				genesisTimestamp + blockTime - 1,
 			);
 
-			expect(Object.keys(result)).toHaveLength(1);
+			expect(Object.keys(result)).toHaveLength(0);
 		});
 
-		it('should be able to return more than one generators if input timestamps are valid and difference between input timestamps is equal to block time ', async () => {
+		it('should be able to return no generator if input timestamps are valid and difference between input timestamps is equal to block time ', async () => {
 			const blockTime = 10;
 
 			await genesisDataSubStore.setWithSchema(
@@ -535,7 +535,7 @@ describe('ValidatorsModuleAPI', () => {
 				genesisTimestamp + blockTime,
 			);
 
-			expect(Object.keys(result)).toHaveLength(2);
+			expect(Object.keys(result)).toHaveLength(0);
 		});
 
 		it('should throw if input timestamps are invalid', async () => {
@@ -570,6 +570,50 @@ describe('ValidatorsModuleAPI', () => {
 					genesisTimestamp + 1,
 				),
 			).rejects.toThrow('Input timestamp must be greater than genesis timestamp.');
+		});
+
+		it('should return empty result when startSlotNumber is lower than endSlotNumber but in the same block slot', async () => {
+			await genesisDataSubStore.setWithSchema(
+				EMPTY_KEY,
+				{ timestamp: genesisTimestamp },
+				genesisDataSchema,
+			);
+			await generatorListSubStore.setWithSchema(
+				EMPTY_KEY,
+				{ addresses: generatorList.map(addr => Buffer.from(addr, 'hex')) },
+				generatorListSchema,
+			);
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+
+			await expect(
+				validatorsModule.api.getGeneratorsBetweenTimestamps(
+					apiContext,
+					genesisTimestamp + 2,
+					genesisTimestamp + 3,
+				),
+			).resolves.toEqual({});
+		});
+
+		it('should return empty result when startSlotNumber equals endSlotNumber but in the same block slot', async () => {
+			await genesisDataSubStore.setWithSchema(
+				EMPTY_KEY,
+				{ timestamp: genesisTimestamp },
+				genesisDataSchema,
+			);
+			await generatorListSubStore.setWithSchema(
+				EMPTY_KEY,
+				{ addresses: generatorList.map(addr => Buffer.from(addr, 'hex')) },
+				generatorListSchema,
+			);
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+
+			await expect(
+				validatorsModule.api.getGeneratorsBetweenTimestamps(
+					apiContext,
+					genesisTimestamp + 2,
+					genesisTimestamp + 2,
+				),
+			).resolves.toEqual({});
 		});
 	});
 
@@ -615,6 +659,40 @@ describe('ValidatorsModuleAPI', () => {
 			await expect(
 				validatorsModule.api.setGeneratorList(apiContext, generatorListBuffer),
 			).resolves.toBe(false);
+		});
+	});
+
+	describe('getValidatorAccount', () => {
+		const validAddress = getRandomBytes(20);
+		let validatorAccount: ValidatorKeys;
+		beforeEach(async () => {
+			apiContext = createNewAPIContext(new InMemoryKVStore());
+
+			validatorAccount = {
+				generatorKey: getRandomBytes(48),
+				blsKey: getRandomBytes(32),
+			};
+
+			const validatorsStore = apiContext.getStore(
+				MODULE_ID_VALIDATORS,
+				STORE_PREFIX_VALIDATORS_DATA,
+			);
+			await validatorsStore.setWithSchema(validAddress, validatorAccount, validatorAccountSchema);
+		});
+
+		it('should get validator from store', async () => {
+			const receivedValidatorAccount = await validatorsAPI.getValidatorAccount(
+				apiContext,
+				validAddress,
+			);
+			expect(receivedValidatorAccount).toEqual(validatorAccount);
+		});
+
+		it('should throw when address length is not 20', async () => {
+			const invalidAddress = getRandomBytes(19);
+			await expect(validatorsAPI.getValidatorAccount(apiContext, invalidAddress)).rejects.toThrow(
+				'Address is not valid',
+			);
 		});
 	});
 });

@@ -14,7 +14,7 @@
 import { p2pTypes } from '@liskhq/lisk-p2p';
 import { Schema } from '@liskhq/lisk-codec';
 import { Logger } from './logger';
-import { ImmutableSubStore } from './node/state_machine';
+import { ImmutableAPIContext, ImmutableSubStore } from './node/state_machine';
 import { RPC_MODES } from './constants';
 
 export interface SocketPaths {
@@ -83,6 +83,10 @@ export interface TransactionPoolConfig {
 	readonly minReplacementFeeDifference?: string;
 }
 
+export interface SystemConfig {
+	keepEventsForHeights: number;
+}
+
 type RecursivePartial<T> = {
 	[P in keyof T]?: RecursivePartial<T[P]>;
 };
@@ -128,6 +132,7 @@ export interface ApplicationConfig {
 	genesis: GenesisConfig;
 	generation: GenerationConfig;
 	network: NetworkConfig;
+	system: SystemConfig;
 	logger: {
 		logFileName: string;
 		fileLogLevel: string;
@@ -184,6 +189,7 @@ export interface PluginEndpointContext {
 
 export interface ModuleEndpointContext extends PluginEndpointContext {
 	getStore: (moduleID: number, storePrefix: number) => ImmutableSubStore;
+	getImmutableAPIContext: () => ImmutableAPIContext;
 	networkIdentifier: Buffer;
 }
 

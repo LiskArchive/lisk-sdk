@@ -15,10 +15,7 @@
 import { BlockHeader, BlockAssets } from '../../node/state_machine';
 import { APIContext, ImmutableAPIContext } from '../../node/state_machine/types';
 
-export interface TokenIDReward {
-	chainID: number;
-	localID: number;
-}
+export type TokenIDReward = Buffer;
 
 export interface ModuleConfig {
 	tokenIDReward: TokenIDReward;
@@ -28,12 +25,7 @@ export interface ModuleConfig {
 }
 
 export interface TokenAPI {
-	mint: (
-		apiContext: APIContext,
-		address: Buffer,
-		id: TokenIDReward,
-		amount: bigint,
-	) => Promise<void>;
+	mint: (apiContext: APIContext, address: Buffer, id: Buffer, amount: bigint) => Promise<void>;
 }
 
 export interface RandomAPI {

@@ -35,6 +35,9 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 		fileLogLevel: 'none',
 		logFileName: 'plugin-reportMisbehavior.log',
 	},
+	system: {
+		keepEventsForHeights: -1,
+	},
 	rpc: {
 		modes: ['ipc'],
 		ws: {

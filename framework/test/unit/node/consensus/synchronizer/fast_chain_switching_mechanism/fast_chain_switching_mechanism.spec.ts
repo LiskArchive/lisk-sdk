@@ -61,6 +61,7 @@ describe('fast_chain_switching_mechanism', () => {
 
 		chainModule = new Chain({
 			maxTransactionsSize: 15000,
+			keepEventsForHeights: -1,
 		});
 		chainModule.init({
 			db: new InMemoryKVStore(),
@@ -85,6 +86,7 @@ describe('fast_chain_switching_mechanism', () => {
 		chainModule.dataAccess = dataAccessMock;
 
 		blockExecutor = {
+			validate: jest.fn(),
 			verify: jest.fn(),
 			executeValidated: jest.fn(),
 			deleteLastBlock: jest.fn(),

@@ -18,11 +18,12 @@ import { KVStore, formatInt, NotFoundError, InMemoryKVStore } from '@liskhq/lisk
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes, hash, intToBuffer } from '@liskhq/lisk-cryptography';
 import { SparseMerkleTree } from '@liskhq/lisk-tree';
-import { Storage } from '../../../src/data_access/storage';
+import { encodeByteArray, Storage } from '../../../src/data_access/storage';
 import { createValidDefaultBlock } from '../../utils/block';
 import { getTransaction } from '../../utils/transaction';
 import { Block, BlockAssets, CurrentState, SMTStore, StateStore, Transaction } from '../../../src';
 import { DataAccess } from '../../../src/data_access';
+import { Event } from '../../../src/event';
 import { stateDiffSchema } from '../../../src/schema';
 import {
 	DB_KEY_BLOCKS_ID,
@@ -32,6 +33,7 @@ import {
 	DB_KEY_DIFF_STATE,
 	DB_KEY_TRANSACTIONS_BLOCK_ID,
 	DB_KEY_STATE_STORE,
+	DB_KEY_BLOCK_EVENTS,
 } from '../../../src/db_keys';
 import { concatDBKeys } from '../../../src/utils';
 import { toSMTKey } from '../../../src/state_store/utils';
@@ -59,6 +61,7 @@ describe('dataAccess.blocks', () => {
 			db,
 			minBlockHeaderCache: 3,
 			maxBlockHeaderCache: 5,
+			keepEventsForHeights: -1,
 		});
 		// Prepare sample data
 		const block300 = await createValidDefaultBlock({
@@ -79,6 +82,23 @@ describe('dataAccess.blocks', () => {
 			assets: new BlockAssets([{ moduleID: 3, data: getRandomBytes(64) }]),
 		});
 
+		const events = [
+			new Event({
+				data: getRandomBytes(20),
+				index: 0,
+				moduleID: Buffer.from([0, 0, 0, 2]),
+				topics: [getRandomBytes(32)],
+				typeID: Buffer.from([0, 0, 0, 0]),
+			}),
+			new Event({
+				data: getRandomBytes(20),
+				index: 1,
+				moduleID: Buffer.from([0, 0, 0, 3]),
+				topics: [getRandomBytes(32)],
+				typeID: Buffer.from([0, 0, 0, 0]),
+			}),
+		];
+
 		blocks = [block300, block301, block302, block303];
 		const batch = db.batch();
 		for (const block of blocks) {
@@ -95,6 +115,10 @@ describe('dataAccess.blocks', () => {
 					batch.put(concatDBKeys(DB_KEY_TRANSACTIONS_ID, tx.id), tx.getBytes());
 				}
 			}
+			batch.put(
+				concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(block.header.height)),
+				encodeByteArray(events.map(e => e.getBytes())),
+			);
 			batch.put(
 				concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(blocks[2].header.height)),
 				blocks[2].getBytes(),
@@ -343,6 +367,23 @@ describe('dataAccess.blocks', () => {
 		let block: Block;
 		let currentState: CurrentState;
 
+		const events = [
+			new Event({
+				data: getRandomBytes(20),
+				index: 0,
+				moduleID: Buffer.from([0, 0, 0, 2]),
+				topics: [getRandomBytes(32)],
+				typeID: Buffer.from([0, 0, 0, 0]),
+			}),
+			new Event({
+				data: getRandomBytes(20),
+				index: 1,
+				moduleID: Buffer.from([0, 0, 0, 3]),
+				topics: [getRandomBytes(32)],
+				typeID: Buffer.from([0, 0, 0, 0]),
+			}),
+		];
+
 		beforeEach(async () => {
 			const stateStore = new StateStore(db);
 			block = await createValidDefaultBlock({
@@ -368,7 +409,7 @@ describe('dataAccess.blocks', () => {
 		});
 
 		it('should create block with all index required', async () => {
-			await dataAccess.saveBlock(block, currentState, 0);
+			await dataAccess.saveBlock(block, events, currentState, 0);
 
 			await expect(db.exists(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id))).resolves.toBeTrue();
 			await expect(
@@ -386,6 +427,9 @@ describe('dataAccess.blocks', () => {
 			await expect(
 				db.exists(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(block.header.height))),
 			).resolves.toBeTrue();
+			await expect(
+				db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(block.header.height))),
+			).resolves.toBeTrue();
 			const createdBlock = await dataAccess.getBlockByID(block.header.id);
 			expect(createdBlock.header.toObject()).toStrictEqual(block.header.toObject());
 			expect(createdBlock.transactions[0]).toBeInstanceOf(Transaction);
@@ -395,7 +439,7 @@ describe('dataAccess.blocks', () => {
 		});
 
 		it('should create block with all index required and remove the same height block from temp', async () => {
-			await dataAccess.saveBlock(block, currentState, 0, true);
+			await dataAccess.saveBlock(block, events, currentState, 0, true);
 
 			await expect(db.exists(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id))).resolves.toBeTrue();
 			await expect(
@@ -424,10 +468,47 @@ describe('dataAccess.blocks', () => {
 		it('should delete diff before the finalized height', async () => {
 			await db.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(99)), Buffer.from('random diff'));
 			await db.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(100)), Buffer.from('random diff 2'));
-			await dataAccess.saveBlock(block, currentState, 100, true);
+			await dataAccess.saveBlock(block, events, currentState, 100, true);
 
 			await expect(db.exists(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(100)))).resolves.toBeTrue();
 			await expect(db.exists(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(99)))).resolves.toBeFalse();
+		});
+
+		it('should not delete events before finalized height when keepEventsForHeights == -1', async () => {
+			await db.put(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(99)), Buffer.from('random diff'));
+			await db.put(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(100)), Buffer.from('random diff 2'));
+			await dataAccess.saveBlock(block, events, currentState, 100, true);
+
+			await expect(
+				db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(100))),
+			).resolves.toBeTrue();
+			await expect(db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(99)))).resolves.toBeTrue();
+		});
+
+		it('should delete events before finalized height when keepEventsForHeights == 1', async () => {
+			(dataAccess['_storage']['_keepEventsForHeights'] as any) = 1;
+			await db.put(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(99)), Buffer.from('random diff'));
+			await db.put(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(100)), Buffer.from('random diff 2'));
+			await dataAccess.saveBlock(block, events, currentState, 100, true);
+
+			await expect(
+				db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(100))),
+			).resolves.toBeTrue();
+			await expect(
+				db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(99))),
+			).resolves.toBeFalse();
+		});
+
+		it('should maintain events for not finalized blocks', async () => {
+			(dataAccess['_storage']['_keepEventsForHeights'] as any) = 0;
+			await db.put(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(99)), Buffer.from('random diff'));
+			await db.put(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(100)), Buffer.from('random diff 2'));
+			await dataAccess.saveBlock(block, events, currentState, 50, true);
+
+			await expect(
+				db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(100))),
+			).resolves.toBeTrue();
+			await expect(db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(99)))).resolves.toBeTrue();
 		});
 	});
 
@@ -473,6 +554,9 @@ describe('dataAccess.blocks', () => {
 			).resolves.toBeFalse();
 			await expect(
 				db.exists(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(blocks[2].header.height))),
+			).resolves.toBeFalse();
+			await expect(
+				db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(blocks[2].header.height))),
 			).resolves.toBeFalse();
 		});
 
@@ -607,7 +691,7 @@ describe('dataAccess.blocks', () => {
 				diff: diff1,
 				stateStore,
 			};
-			await dataAccess.saveBlock(firstBlock, currentState, 100);
+			await dataAccess.saveBlock(firstBlock, [], currentState, 100);
 
 			expect(smt.rootHash).toEqual(firstBlock.header.stateRoot);
 
@@ -634,7 +718,7 @@ describe('dataAccess.blocks', () => {
 				diff: diff2,
 				stateStore,
 			};
-			await dataAccess.saveBlock(secondBlock, newCurrentState, 100);
+			await dataAccess.saveBlock(secondBlock, [], newCurrentState, 100);
 			expect(secondSMT.rootHash).toEqual(secondBlock.header.stateRoot);
 		});
 
@@ -687,7 +771,7 @@ describe('dataAccess.blocks', () => {
 				diff: diff1,
 				stateStore,
 			};
-			await dataAccess.saveBlock(firstBlock, currentState, 100);
+			await dataAccess.saveBlock(firstBlock, [], currentState, 100);
 
 			expect(smt.rootHash).toEqual(firstBlock.header.stateRoot);
 

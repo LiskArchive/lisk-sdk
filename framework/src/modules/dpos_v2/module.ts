@@ -17,7 +17,7 @@ import { objects as objectUtils, dataStructures, objects } from '@liskhq/lisk-ut
 import { isUInt64, LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { GenesisBlockExecuteContext, BlockAfterExecuteContext } from '../../node/state_machine';
-import { BaseModule, ModuleInitArgs } from '../base_module';
+import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { DPoSAPI } from './api';
 import { DelegateRegistrationCommand } from './commands/delegate_registration';
 import { ReportDelegateMisbehaviorCommand } from './commands/pom';
@@ -45,6 +45,11 @@ import {
 	delegateStoreSchema,
 	genesisDataStoreSchema,
 	genesisStoreSchema,
+	getAllDelegatesResponseSchema,
+	getDelegateRequestSchema,
+	getDelegateResponseSchema,
+	getVoterRequestSchema,
+	getVoterResponseSchema,
 	nameStoreSchema,
 	previousTimestampStoreSchema,
 	snapshotStoreSchema,
@@ -131,6 +136,39 @@ export class DPoSModule extends BaseModule {
 		});
 	}
 
+	public metadata(): ModuleMetadata {
+		return {
+			endpoints: [
+				{
+					name: this.endpoint.getAllDelegates.name,
+					response: getAllDelegatesResponseSchema,
+				},
+				{
+					name: this.endpoint.getDelegate.name,
+					request: getDelegateRequestSchema,
+					response: getDelegateResponseSchema,
+				},
+				{
+					name: this.endpoint.getVoter.name,
+					request: getVoterRequestSchema,
+					response: getVoterResponseSchema,
+				},
+			],
+			commands: this.commands.map(command => ({
+				id: command.id,
+				name: command.name,
+				params: command.schema,
+			})),
+			events: [],
+			assets: [
+				{
+					version: 0,
+					data: genesisStoreSchema,
+				},
+			],
+		};
+	}
+
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs) {
 		const { moduleConfig } = args;
@@ -142,6 +180,7 @@ export class DPoSModule extends BaseModule {
 		this._moduleConfig = {
 			...config,
 			minWeightStandby: BigInt(config.minWeightStandby),
+			tokenIDDPoS: Buffer.from(config.tokenIDDPoS, 'hex'),
 		} as ModuleConfig;
 
 		this._reportDelegateMisbehaviorCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
@@ -384,8 +423,8 @@ export class DPoSModule extends BaseModule {
 			const lockedAmount = await this._tokenAPI.getLockedAmount(
 				apiContext,
 				voterData.key,
-				this.id,
 				this._moduleConfig.tokenIDDPoS,
+				this.id,
 			);
 			if (lockedAmount !== votedAmount) {
 				throw new Error('Voted amount is not locked');
@@ -622,13 +661,6 @@ export class DPoSModule extends BaseModule {
 			previousTimestamp,
 			header.timestamp,
 		);
-
-		const generatorAtPreviousTimestamp = await this._validatorsAPI.getGeneratorAtTimestamp(
-			apiContext,
-			previousTimestamp,
-		);
-
-		missedBlocks[generatorAtPreviousTimestamp.toString('binary')] -= 1;
 
 		const delegateStore = getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
 		for (const addressString of Object.keys(missedBlocks)) {

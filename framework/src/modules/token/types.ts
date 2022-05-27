@@ -12,22 +12,62 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export interface TokenID {
-	chainID: number;
-	localID: number;
+import { APIContext, ImmutableAPIContext } from '../../node/state_machine';
+import { CCMsg } from './interop_types';
+
+export type TokenID = Buffer;
+
+export interface ModuleConfig {
+	minBalances: {
+		tokenID: string;
+		amount: string;
+	}[];
+	supportedTokenIDs: string[];
+}
+
+export interface MinBalance {
+	tokenID: Buffer;
+	amount: bigint;
 }
 
 export interface GenesisTokenStore {
 	userSubstore: {
 		address: Buffer;
-		tokenID: {
-			chainID: number;
-			localID: number;
-		};
+		tokenID: Buffer;
 		availableBalance: bigint;
 		lockedBalances: {
 			moduleID: number;
 			amount: bigint;
 		}[];
 	}[];
+	supplySubstore: {
+		localID: Buffer;
+		totalSupply: bigint;
+	}[];
+	escrowSubstore: {
+		escrowChainID: Buffer;
+		localID: Buffer;
+		amount: bigint;
+	}[];
+	availableLocalIDSubstore: {
+		nextAvailableLocalID: Buffer;
+	};
+	terminatedEscrowSubstore: Buffer[];
+}
+
+export interface InteroperabilityAPI {
+	getOwnChainAccount(apiContext: ImmutableAPIContext): Promise<{ id: Buffer }>;
+	send(
+		apiContext: APIContext,
+		feeAddress: Buffer,
+		moduleID: number,
+		crossChainCommandID: number,
+		receivingChainID: Buffer,
+		fee: bigint,
+		status: number,
+		parameters: Buffer,
+	): Promise<boolean>;
+	error(apiContext: APIContext, ccm: CCMsg, code: number): Promise<void>;
+	terminateChain(apiContext: APIContext, chainID: Buffer): Promise<void>;
+	getChannel(apiContext: APIContext, chainID: Buffer): Promise<{ messageFeeTokenID: Buffer }>;
 }

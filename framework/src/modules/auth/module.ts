@@ -16,7 +16,7 @@ import { NotFoundError, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { codec } from '@liskhq/lisk-codec';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
-import { BaseModule } from '../base_module';
+import { BaseModule, ModuleMetadata } from '../base_module';
 import {
 	GenesisBlockExecuteContext,
 	TransactionExecuteContext,
@@ -54,6 +54,24 @@ export class AuthModule extends BaseModule {
 	public endpoint = new AuthEndpoint(this.id);
 	public configSchema = configSchema;
 	public commands = [new RegisterMultisignatureCommand(this.id)];
+
+	public metadata(): ModuleMetadata {
+		return {
+			endpoints: [],
+			commands: this.commands.map(command => ({
+				id: command.id,
+				name: command.name,
+				params: command.schema,
+			})),
+			events: [],
+			assets: [
+				{
+					version: 0,
+					data: genesisAuthStoreSchema,
+				},
+			],
+		};
+	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
 		const assetBytes = context.assets.getAsset(this.id);

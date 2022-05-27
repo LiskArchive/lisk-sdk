@@ -24,11 +24,11 @@ import { InMemoryChannel } from '../controller';
 import { loggerMock, channelMock } from './mocks';
 import { defaultConfig, getPassphraseFromDefaultConfig } from './fixtures';
 import { createDB, removeDB } from './utils';
-import { ApplicationConfig, GenesisConfig } from '../types';
+import { ApplicationConfig, EndpointHandler, GenesisConfig } from '../types';
 import { Consensus } from '../node/consensus';
 import { APIContext } from '../node/state_machine';
 import { Node } from '../node';
-import { createNewAPIContext } from '../node/state_machine/api_context';
+import { createImmutableAPIContext, createNewAPIContext } from '../node/state_machine/api_context';
 import { blockAssetsJSON } from './fixtures/genesis-asset';
 import { ValidatorsAPI } from '../modules/validators';
 import { BFTAPI } from '../modules/bft';
@@ -202,24 +202,38 @@ export const getBlockProcessingEnv = async (
 			return passphrase;
 		},
 		async invoke<T = void>(path: string, input: Record<string, unknown> = {}): Promise<T> {
-			const [mod, method] = path.split('_');
-			const endpoints = node.getModuleEndpoints();
-			const endpoint = endpoints[mod];
-			if (endpoint === undefined) {
-				throw new Error(`Invalid endpoint ${mod} to invoke`);
+			const [namespace, method] = path.split('_');
+			const handler = node['_rpcServer']['_getHandler'](namespace, method);
+			if (handler) {
+				const resp = (await handler({
+					logger: loggerMock,
+					networkIdentifier: node['_chain'].networkIdentifier,
+					params: input,
+				})) as T;
+				return resp;
 			}
-			const handler = endpoint[method];
-			if (handler === undefined) {
-				throw new Error(`Invalid endpoint ${method} is not registered for ${mod}`);
+			const modules = node['_registeredModules'];
+			const moduleIndex = modules.findIndex(mod => mod.name === namespace);
+			if (moduleIndex < 0) {
+				throw new Error(`namespace ${namespace} is not registered`);
 			}
+			const moduleHandler = modules[moduleIndex].endpoint[method] as EndpointHandler | undefined;
+			if (!moduleHandler) {
+				throw new Error(`Method ${method} in namespace ${namespace} is not registered`);
+			}
+			const bindedHandler = moduleHandler.bind(modules[moduleIndex].endpoint);
+
 			const stateStore = new StateStore(node['_blockchainDB']);
-			const result = await handler({
+
+			const result = await bindedHandler({
 				getStore: (moduleID: number, storePrefix: number) =>
 					stateStore.getStore(moduleID, storePrefix),
+				getImmutableAPIContext: () => createImmutableAPIContext(stateStore),
 				logger: node['_logger'],
 				networkIdentifier: node['_chain'].networkIdentifier,
 				params: input,
 			});
+
 			return result as T;
 		},
 		getNetworkId: () => networkIdentifier,

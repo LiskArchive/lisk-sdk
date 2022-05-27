@@ -27,6 +27,9 @@ export const defaultConfig = {
 		consoleLogLevel: 'none',
 		logFileName: 'lisk.log',
 	},
+	system: {
+		keepEventsForHeights: -1,
+	},
 	genesis: {
 		blockTime: 10,
 		communityIdentifier: 'sdk',
@@ -35,7 +38,7 @@ export const defaultConfig = {
 		baseFees: [
 			{
 				moduleID: 12,
-				assetID: 0,
+				commandID: 0,
 				baseFee: '1000000000',
 			},
 		],
@@ -2598,9 +2601,16 @@ export const defaultConfig = {
 	},
 	plugins: {},
 	rpc: {
-		enable: true,
-		port: 8080,
-		mode: 'ipc',
+		modes: ['ipc'],
+		ws: {
+			port: 8080,
+			host: '127.0.0.1',
+			path: '/ws',
+		},
+		http: {
+			port: 8000,
+			host: '127.0.0.1',
+		},
 	},
 };
 

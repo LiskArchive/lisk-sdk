@@ -19,6 +19,9 @@ import { configSchema } from '../../../src/plugin/schemas';
 const appConfigForPlugin: ApplicationConfigForPlugin = {
 	rootPath: '~/.lisk',
 	label: 'my-app',
+	system: {
+		keepEventsForHeights: -1,
+	},
 	logger: {
 		consoleLogLevel: 'debug',
 		fileLogLevel: 'none',

@@ -42,6 +42,7 @@ describe('ValidatorsModuleEndpoint', () => {
 				getStore1.mockReturnValue(subStore);
 				await expect(
 					validatorsModule.endpoint.validateBLSKey({
+						getImmutableAPIContext: jest.fn(),
 						getStore: getStore1,
 						logger,
 						params: {
@@ -58,6 +59,7 @@ describe('ValidatorsModuleEndpoint', () => {
 				await expect(
 					validatorsModule.endpoint.validateBLSKey({
 						getStore: getStore1,
+						getImmutableAPIContext: jest.fn(),
 						logger,
 						params: {
 							proofOfPossession: proof.toString('hex'),
@@ -72,6 +74,7 @@ describe('ValidatorsModuleEndpoint', () => {
 				await expect(
 					validatorsModule.endpoint.validateBLSKey({
 						getStore: getStore1,
+						getImmutableAPIContext: jest.fn(),
 						logger,
 						params: {
 							proofOfPossession:
@@ -90,6 +93,7 @@ describe('ValidatorsModuleEndpoint', () => {
 				await expect(
 					validatorsModule.endpoint.validateBLSKey({
 						getStore: jest.fn(),
+						getImmutableAPIContext: jest.fn(),
 						logger,
 						params: {
 							invalid: 'schema',
@@ -103,6 +107,7 @@ describe('ValidatorsModuleEndpoint', () => {
 				await expect(
 					validatorsModule.endpoint.validateBLSKey({
 						getStore: jest.fn(),
+						getImmutableAPIContext: jest.fn(),
 						logger,
 						params: {
 							proofOfPossession: 'xxxx',

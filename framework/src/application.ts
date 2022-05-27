@@ -50,6 +50,7 @@ import { RewardModule, RewardAPI } from './modules/reward';
 import { RandomModule, RandomAPI } from './modules/random';
 import { DPoSModule, DPoSAPI } from './modules/dpos_v2';
 import { GenesisBlockGenerateInput } from './node/generator';
+import { RequestContext } from './node/rpc/rpc_server';
 
 const MINIMUM_EXTERNAL_MODULE_ID = 1000;
 
@@ -268,7 +269,7 @@ export class Application {
 				logger: this.logger,
 				blockchainDB: this._blockchainDB,
 				endpoints: this._rootEndpoints(),
-				events: this._rootEvents(),
+				events: [APP_EVENT_READY.replace('app_', ''), APP_EVENT_SHUTDOWN.replace('app_', '')],
 				networkIdentifier: this.networkIdentifier,
 			});
 
@@ -280,6 +281,8 @@ export class Application {
 				nodeDB: this._nodeDB,
 				logger: this.logger,
 			});
+
+			this._node.registerNotFoundHandler(this._handleEndpoint.bind(this));
 
 			await this._controller.start();
 			await this._node.start();
@@ -326,6 +329,14 @@ export class Application {
 	// Private
 	// --------------------------------------
 
+	private async _handleEndpoint(
+		namespace: string,
+		method: string,
+		context: RequestContext,
+	): Promise<unknown> {
+		return this._controller.channel.invoke(`${namespace}_${method}`, context.params);
+	}
+
 	private _registerModule(mod: BaseModule, validateModuleID = false): void {
 		assert(mod, 'Module implementation is required');
 		if (validateModuleID && mod.id < MINIMUM_EXTERNAL_MODULE_ID) {
@@ -347,23 +358,13 @@ export class Application {
 	}
 
 	private _rootEndpoints(): EndpointHandlers {
-		const nodeEndpoint = this._node.getEndpoints();
 		const applicationEndpoint: EndpointHandlers = {
 			// eslint-disable-next-line @typescript-eslint/require-await
 			getRegisteredActions: async (_: PluginEndpointContext) => this._controller.getEndpoints(),
 			// eslint-disable-next-line @typescript-eslint/require-await
 			getRegisteredEvents: async (_: PluginEndpointContext) => this._controller.getEvents(),
 		};
-		return mergeEndpointHandlers(applicationEndpoint, nodeEndpoint);
-	}
-
-	private _rootEvents(): string[] {
-		const nodeEvents = this._node.getEvents();
-		return [
-			APP_EVENT_READY.replace('app:', ''),
-			APP_EVENT_SHUTDOWN.replace('app:', ''),
-			...nodeEvents,
-		];
+		return mergeEndpointHandlers(applicationEndpoint, {});
 	}
 
 	private async _setupDirectories(): Promise<void> {
@@ -399,7 +400,7 @@ export class Application {
 				throw new DuplicateAppInstanceError(this.config.label, pidPath);
 			}
 		}
-		await fs.writeFile(pidPath, process.pid);
+		await fs.writeFile(pidPath, process.pid.toString());
 	}
 
 	private _clearControllerPidFile() {

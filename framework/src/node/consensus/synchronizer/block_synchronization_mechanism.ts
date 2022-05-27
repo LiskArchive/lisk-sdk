@@ -140,6 +140,14 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 				},
 				'Applying obtained blocks from peer',
 			);
+			try {
+				for (const block of blocks) {
+					this.blockExecutor.validate(block);
+				}
+			} catch (err) {
+				this._logger.error({ err: err as Error }, 'Block validation failed');
+				throw new BlockProcessingError();
+			}
 
 			try {
 				for (const block of blocks) {
@@ -405,7 +413,7 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 			'Received tip of the chain from peer',
 		);
 
-		const { valid: validBlock } = await this._blockDetachedStatus(networkLastBlock);
+		const { valid: validBlock } = this._blockDetachedStatus(networkLastBlock);
 
 		const inDifferentChain =
 			isDifferentChain(this._chain.lastBlock.header, networkLastBlock.header) ||
@@ -426,11 +434,9 @@ export class BlockSynchronizationMechanism extends BaseSynchronizer {
 	 * of the Pipeline but not in other cases
 	 * that's why we wrap it here.
 	 */
-	private async _blockDetachedStatus(
-		networkLastBlock: Block,
-	): Promise<{ valid: boolean; err: Error | null }> {
+	private _blockDetachedStatus(networkLastBlock: Block): { valid: boolean; err: Error | null } {
 		try {
-			await this.blockExecutor.verify(networkLastBlock);
+			this.blockExecutor.validate(networkLastBlock);
 			return { valid: true, err: null };
 		} catch (err) {
 			return { valid: false, err: err as Error };

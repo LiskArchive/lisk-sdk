@@ -39,6 +39,7 @@ import {
 } from '../../../../../src/modules/dpos_v2/types';
 import { delegateStoreSchema } from '../../../../../src/modules/dpos_v2/schemas';
 import { VerifyStatus } from '../../../../../src/node/state_machine/types';
+import { DEFAULT_TOKEN_ID } from '../../../../utils/node/transaction';
 
 describe('ReportDelegateMisbehaviorCommand', () => {
 	let pomCommand: ReportDelegateMisbehaviorCommand;
@@ -82,7 +83,6 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			lock: jest.fn(),
 			unlock: jest.fn(),
 			getAvailableBalance: jest.fn(),
-			getMinRemainingBalance: jest.fn(),
 			transfer: jest.fn(),
 			getLockedAmount: jest.fn(),
 		};
@@ -133,7 +133,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			bftAPI: mockBFTAPI,
 		});
 		pomCommand.init({
-			tokenIDDPoS: { chainID: 0, localID: 0 },
+			tokenIDDPoS: DEFAULT_TOKEN_ID,
 		});
 		db = new InMemoryKVStore() as never;
 		stateStore = new StateStore(db);
@@ -587,7 +587,6 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 
 		it('should reward the sender with 1 LSK if delegate has enough balance', async () => {
 			const remainingBalance = reportPunishmentReward + BigInt('10000000000');
-			const minRemainingBalance = BigInt('5000000');
 
 			transactionParamsDecoded = {
 				header1: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header1),
@@ -604,26 +603,22 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
 			when(pomCommand['_tokenAPI'].getAvailableBalance as any)
-				.calledWith(context.getAPIContext(), delegate1Address, { chainID: 0, localID: 0 })
+				.calledWith(expect.anything(), delegate1Address, DEFAULT_TOKEN_ID)
 				.mockResolvedValue(remainingBalance as never);
-			when(pomCommand['_tokenAPI'].getMinRemainingBalance as any)
-				.calledWith(context.getAPIContext())
-				.mockResolvedValue(minRemainingBalance as never);
 
 			await pomCommand.execute(context);
 
 			expect(pomCommand['_tokenAPI'].transfer).toHaveBeenCalledWith(
-				context.getAPIContext(),
+				expect.anything(),
 				delegate1Address,
 				context.transaction.senderAddress,
-				{ chainID: 0, localID: 0 },
+				DEFAULT_TOKEN_ID,
 				reportPunishmentReward,
 			);
 		});
 
 		it('should not reward the sender if delegate does not has enough minimum remaining balance', async () => {
 			const remainingBalance = BigInt(100);
-			const minRemainingBalance = BigInt('5000000');
 
 			transactionParamsDecoded = {
 				header1: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header1),
@@ -640,27 +635,23 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
 			when(pomCommand['_tokenAPI'].getAvailableBalance as any)
-				.calledWith(context.getAPIContext(), delegate1Address, { chainID: 0, localID: 0 })
+				.calledWith(expect.anything(), delegate1Address, DEFAULT_TOKEN_ID)
 				.mockResolvedValue(remainingBalance as never);
-			when(pomCommand['_tokenAPI'].getMinRemainingBalance as any)
-				.calledWith(context.getAPIContext())
-				.mockResolvedValue(minRemainingBalance as never);
 
 			await pomCommand.execute(context);
 
 			// If amount is zero, it should not call the transfer
 			expect(pomCommand['_tokenAPI'].transfer).not.toHaveBeenCalledWith(
-				context.getAPIContext(),
+				expect.anything(),
 				delegate1Address,
 				context.transaction.senderAddress,
-				{ chainID: 0, localID: 0 },
+				DEFAULT_TOKEN_ID,
 				BigInt(0),
 			);
 		});
 
 		it('should add (remaining balance - min remaining balance) of delegate to balance of the sender if delegate balance is less than report punishment reward', async () => {
 			const remainingBalance = reportPunishmentReward - BigInt(1);
-			const minRemainingBalance = BigInt('5000000');
 
 			transactionParamsDecoded = {
 				header1: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header1),
@@ -677,20 +668,17 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
 			when(pomCommand['_tokenAPI'].getAvailableBalance as any)
-				.calledWith(context.getAPIContext(), delegate1Address, { chainID: 0, localID: 0 })
+				.calledWith(expect.anything(), delegate1Address, DEFAULT_TOKEN_ID)
 				.mockResolvedValue(remainingBalance as never);
-			when(pomCommand['_tokenAPI'].getMinRemainingBalance as any)
-				.calledWith(context.getAPIContext())
-				.mockResolvedValue(minRemainingBalance as never);
 
 			await pomCommand.execute(context);
 
 			expect(pomCommand['_tokenAPI'].transfer).toHaveBeenCalledWith(
-				context.getAPIContext(),
+				expect.anything(),
 				delegate1Address,
 				context.transaction.senderAddress,
-				{ chainID: 0, localID: 0 },
-				remainingBalance - minRemainingBalance,
+				DEFAULT_TOKEN_ID,
+				remainingBalance,
 			);
 		});
 

@@ -58,8 +58,5 @@ export const defaultConfig = {
 	minWeightStandby: '100000000000',
 	numberActiveDelegates: 101,
 	numberStandbyDelegates: 2,
-	tokenIDDPoS: {
-		chainID: 0,
-		localID: 0,
-	},
+	tokenIDDPoS: '0000000000000000',
 };

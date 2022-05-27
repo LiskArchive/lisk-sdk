@@ -15,8 +15,9 @@
 import { codec } from '@liskhq/lisk-codec';
 import { KVStore, NotFoundError } from '@liskhq/lisk-db';
 import * as createDebug from 'debug';
-import { MerkleTree } from '@liskhq/lisk-tree';
+import { regularMerkleTree } from '@liskhq/lisk-tree';
 import {
+	DEFAULT_KEEP_EVENTS_FOR_HEIGHTS,
 	DEFAULT_MAX_BLOCK_HEADER_CACHE,
 	DEFAULT_MIN_BLOCK_HEADER_CACHE,
 	GENESIS_BLOCK_VERSION,
@@ -29,11 +30,13 @@ import {
 	stateDiffSchema,
 } from './schema';
 import { Block } from './block';
+import { Event } from './event';
 import { BlockHeader } from './block_header';
 import { CurrentState } from './state_store/smt_store';
 
 interface ChainConstructor {
 	// Constants
+	readonly keepEventsForHeights: number;
 	readonly maxTransactionsSize: number;
 	readonly minBlockHeaderCache?: number;
 	readonly maxBlockHeaderCache?: number;
@@ -45,6 +48,11 @@ interface ChainInitArgs {
 	readonly genesisBlock: Block;
 }
 
+interface BlockValidationInput {
+	readonly version: number;
+	readonly acceptedModuleIDs: number[];
+}
+
 const debug = createDebug('lisk:chain');
 
 export class Chain {
@@ -53,6 +61,7 @@ export class Chain {
 		readonly maxTransactionsSize: number;
 		readonly minBlockHeaderCache: number;
 		readonly maxBlockHeaderCache: number;
+		readonly keepEventsForHeights: number;
 	};
 
 	private _lastBlock?: Block;
@@ -63,6 +72,7 @@ export class Chain {
 	public constructor({
 		// Constants
 		maxTransactionsSize,
+		keepEventsForHeights = DEFAULT_KEEP_EVENTS_FOR_HEIGHTS,
 		minBlockHeaderCache = DEFAULT_MIN_BLOCK_HEADER_CACHE,
 		maxBlockHeaderCache = DEFAULT_MAX_BLOCK_HEADER_CACHE,
 	}: ChainConstructor) {
@@ -76,6 +86,7 @@ export class Chain {
 			maxTransactionsSize,
 			maxBlockHeaderCache,
 			minBlockHeaderCache,
+			keepEventsForHeights,
 		};
 	}
 
@@ -107,6 +118,7 @@ export class Chain {
 			db: args.db,
 			minBlockHeaderCache: this.constants.minBlockHeaderCache,
 			maxBlockHeaderCache: this.constants.maxBlockHeaderCache,
+			keepEventsForHeights: this.constants.keepEventsForHeights,
 		});
 	}
 
@@ -156,8 +168,16 @@ export class Chain {
 		return true;
 	}
 
-	public async verifyAssets(block: Block): Promise<void> {
+	public validateBlock(block: Block, inputs: BlockValidationInput): void {
 		block.validate();
+		if (block.header.version !== inputs.version) {
+			throw new Error(`Block version must be ${inputs.version}.`);
+		}
+		for (const asset of block.assets.getAll()) {
+			if (!inputs.acceptedModuleIDs.includes(asset.moduleID)) {
+				throw new Error(`Block asset with moduleID: ${asset.moduleID} is not accepted.`);
+			}
+		}
 		const transactionIDs = [];
 		let transactionsSize = 0;
 		for (const tx of block.transactions) {
@@ -169,22 +189,23 @@ export class Chain {
 				`Transactions length is longer than configured length: ${this.constants.maxTransactionsSize}.`,
 			);
 		}
-		const tree = new MerkleTree();
-		await tree.init(transactionIDs);
-		if (!tree.root.equals(block.header.transactionRoot as Buffer)) {
+
+		const transactionRoot = regularMerkleTree.calculateMerkleRootWithLeaves(transactionIDs);
+		if (!transactionRoot.equals(block.header.transactionRoot as Buffer)) {
 			throw new Error('Invalid transaction root.');
 		}
 	}
 
 	public async saveBlock(
 		block: Block,
+		events: Event[],
 		state: CurrentState,
 		finalizedHeight: number,
 		{ removeFromTempTable } = {
 			removeFromTempTable: false,
 		},
 	): Promise<void> {
-		await this.dataAccess.saveBlock(block, state, finalizedHeight, removeFromTempTable);
+		await this.dataAccess.saveBlock(block, events, state, finalizedHeight, removeFromTempTable);
 		this.dataAccess.addBlockHeader(block.header);
 		this._finalizedHeight = finalizedHeight;
 		this._lastBlock = block;

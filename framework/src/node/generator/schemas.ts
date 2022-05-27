@@ -30,7 +30,7 @@ export const transactionIdsSchema = {
 	},
 };
 
-export interface UpdateForgingStatusRequest {
+export interface UpdateStatusRequest {
 	address: string;
 	enable: boolean;
 	password: string;
@@ -40,19 +40,19 @@ export interface UpdateForgingStatusRequest {
 	overwrite?: boolean;
 }
 
-export interface UpdateForgingStatusResponse {
+export interface UpdateStatusResponse {
 	address: string;
 	enabled: boolean;
 }
 
-export type GetForgingStatusResponse = {
+export type GetStatusResponse = {
 	address: string;
 	enabled: boolean;
 }[];
 
-export const updateForgingStatusRequestSchema = {
-	$id: 'lisk/updateForgingStatusRequest',
-	title: 'Update forging status',
+export const updateStatusRequestSchema = {
+	$id: 'lisk/updateStatusRequest',
+	title: 'Update block generation status',
 	type: 'object',
 	required: ['address', 'password', 'enable', 'height', 'maxHeightGenerated', 'maxHeightPrevoted'],
 	properties: {

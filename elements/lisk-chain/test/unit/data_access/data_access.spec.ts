@@ -14,6 +14,7 @@
 import { Readable } from 'stream';
 import { when } from 'jest-when';
 import { formatInt, NotFoundError, getFirstPrefix, getLastPrefix, KVStore } from '@liskhq/lisk-db';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { DataAccess } from '../../../src/data_access';
 import { createFakeBlockHeader, createValidDefaultBlock } from '../../utils/block';
 import { Transaction } from '../../../src/transaction';
@@ -23,9 +24,12 @@ import {
 	DB_KEY_BLOCKS_ID,
 	DB_KEY_TRANSACTIONS_ID,
 	DB_KEY_TEMPBLOCKS_HEIGHT,
+	DB_KEY_BLOCK_EVENTS,
 } from '../../../src/db_keys';
 import { Block } from '../../../src/block';
+import { Event } from '../../../src/event';
 import { BlockAssets, BlockHeader } from '../../../src';
+import { encodeByteArray } from '../../../src/data_access/storage';
 
 jest.mock('@liskhq/lisk-db');
 
@@ -48,6 +52,7 @@ describe('data_access', () => {
 			db,
 			minBlockHeaderCache: 3,
 			maxBlockHeaderCache: 5,
+			keepEventsForHeights: 1,
 		});
 		block = await createValidDefaultBlock({ header: { height: 1 } });
 	});
@@ -364,6 +369,32 @@ describe('data_access', () => {
 			// Assert
 			expect(db.createReadStream).toHaveBeenCalledTimes(1);
 			expect(db.get).toHaveBeenCalledTimes(3);
+		});
+	});
+
+	describe('#getEvents', () => {
+		it('should get the events related to heights', async () => {
+			const original = [
+				new Event({
+					data: getRandomBytes(20),
+					index: 0,
+					moduleID: Buffer.from([0, 0, 0, 2]),
+					topics: [getRandomBytes(32)],
+					typeID: Buffer.from([0, 0, 0, 0]),
+				}),
+				new Event({
+					data: getRandomBytes(20),
+					index: 1,
+					moduleID: Buffer.from([0, 0, 0, 3]),
+					topics: [getRandomBytes(32)],
+					typeID: Buffer.from([0, 0, 0, 0]),
+				}),
+			];
+			db.get.mockResolvedValue(encodeByteArray(original.map(e => e.getBytes())) as never);
+
+			const resp = await dataAccess.getEvents(30);
+			expect(db.get).toHaveBeenCalledWith(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(30)));
+			expect(resp).toEqual(original);
 		});
 	});
 

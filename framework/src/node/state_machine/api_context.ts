@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateStore } from '@liskhq/lisk-chain';
+import { StateStore, EVENT_STANDARD_TYPE_ID } from '@liskhq/lisk-chain';
 import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { EventQueue } from './event_queue';
-import { SubStore } from './types';
+import { SubStore, ImmutableSubStore, ImmutableAPIContext, EventQueueAdder } from './types';
 
 interface Params {
 	stateStore: StateStore;
-	eventQueue: EventQueue;
+	eventQueue: EventQueueAdder;
 }
 
 export const createAPIContext = (params: Params) => new APIContext(params);
@@ -27,9 +27,36 @@ export const createAPIContext = (params: Params) => new APIContext(params);
 export const createNewAPIContext = (db: KVStore | InMemoryKVStore) =>
 	new APIContext({ stateStore: new StateStore(db), eventQueue: new EventQueue() });
 
+interface ImmutableSubStoreGetter {
+	getStore: (moduleID: number, storePrefix: number) => ImmutableSubStore;
+}
+
+export const createImmutableAPIContext = (
+	immutableSubstoreGetter: ImmutableSubStoreGetter,
+): ImmutableAPIContext => ({
+	getStore: (moduleID: number, storePrefix: number) =>
+		immutableSubstoreGetter.getStore(moduleID, storePrefix),
+});
+
+export const wrapEventQueue = (eventQueue: EventQueue, topic: Buffer): EventQueueAdder => ({
+	add: (
+		moduleID: number,
+		typeID: Buffer,
+		data: Buffer,
+		topics?: Buffer[],
+		noRevert?: boolean,
+	): void => {
+		if (typeID.equals(EVENT_STANDARD_TYPE_ID)) {
+			throw new Error('Event type ID 0 is reserved for standard event.');
+		}
+		const topicsWithDefault = [topic, ...(topics ?? [])];
+		eventQueue.add(moduleID, typeID, data, topicsWithDefault, noRevert);
+	},
+});
+
 export class APIContext {
 	private readonly _stateStore: StateStore;
-	private readonly _eventQueue: EventQueue;
+	private readonly _eventQueue: EventQueueAdder;
 
 	public constructor(params: Params) {
 		this._eventQueue = params.eventQueue;
@@ -40,7 +67,7 @@ export class APIContext {
 		return this._stateStore.getStore(moduleID, storePrefix);
 	}
 
-	public get eventQueue(): EventQueue {
+	public get eventQueue(): EventQueueAdder {
 		return this._eventQueue;
 	}
 }

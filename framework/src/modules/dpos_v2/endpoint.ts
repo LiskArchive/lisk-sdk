@@ -52,7 +52,9 @@ export class DPoSEndpoint extends BaseEndpoint {
 		};
 	}
 
-	public async getAllDelegates(ctx: ModuleEndpointContext): Promise<DelegateAccountJSON[]> {
+	public async getAllDelegates(
+		ctx: ModuleEndpointContext,
+	): Promise<{ delegates: DelegateAccountJSON[] }> {
 		const delegateSubStore = ctx.getStore(this.moduleID, STORE_PREFIX_DELEGATE);
 		const startBuf = Buffer.alloc(20);
 		const endBuf = Buffer.alloc(20, 255);
@@ -72,6 +74,6 @@ export class DPoSEndpoint extends BaseEndpoint {
 			response.push(delegateJSON);
 		}
 
-		return response;
+		return { delegates: response };
 	}
 }

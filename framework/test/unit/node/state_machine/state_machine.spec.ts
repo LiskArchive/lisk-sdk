@@ -20,6 +20,12 @@ import { StateMachine } from '../../../../src/node/state_machine/state_machine';
 import { TransactionContext } from '../../../../src/node/state_machine/transaction_context';
 import { BlockHeader, VerifyStatus } from '../../../../src/node/state_machine';
 import { CustomModule0, CustomModule1, CustomModule2 } from './custom_modules';
+import {
+	EVENT_INDEX_AFTER_TRANSACTIONS,
+	EVENT_INDEX_BEFORE_TRANSACTIONS,
+	EVENT_INDEX_FINALIZE_GENESIS_STATE,
+	EVENT_INDEX_INIT_GENESIS_STATE,
+} from '../../../../src/node/state_machine/constants';
 
 describe('state_machine', () => {
 	const genesisHeader = {} as BlockHeader;
@@ -27,7 +33,7 @@ describe('state_machine', () => {
 	const logger = {} as Logger;
 	const assets = new BlockAssets();
 	const stateStore = {} as StateStore;
-	const eventQueue = new EventQueue();
+	let eventQueue: EventQueue;
 	const networkIdentifier = Buffer.from('network identifier', 'utf8');
 	const transaction = {
 		moduleID: 3,
@@ -40,6 +46,7 @@ describe('state_machine', () => {
 	let systemMod: CustomModule1;
 
 	beforeEach(() => {
+		eventQueue = new EventQueue();
 		stateMachine = new StateMachine();
 		mod = new CustomModule0();
 		systemMod = new CustomModule1();
@@ -60,12 +67,29 @@ describe('state_machine', () => {
 			expect(mod.initGenesisState).toHaveBeenCalledTimes(1);
 			expect(mod.initGenesisState).toHaveBeenCalledWith({
 				logger,
-				eventQueue,
+				eventQueue: expect.any(Object),
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
 				header: genesisHeader,
 				assets,
 			});
+		});
+
+		it('should add events with a topic with EVENT_INDEX_INIT_GENESIS_STATE and EVENT_INDEX_FINALIZE_GENESIS_STATE', async () => {
+			stateMachine.registerModule(new CustomModule2());
+			const ctx = new GenesisBlockContext({
+				eventQueue,
+				header: genesisHeader,
+				assets,
+				logger,
+				stateStore,
+			});
+			await stateMachine.executeGenesisBlock(ctx);
+
+			const events = ctx.eventQueue.getEvents();
+			expect(events).toHaveLength(2);
+			expect(events[0].toObject().topics[0]).toEqual(EVENT_INDEX_INIT_GENESIS_STATE);
+			expect(events[1].toObject().topics[0]).toEqual(EVENT_INDEX_FINALIZE_GENESIS_STATE);
 		});
 	});
 
@@ -124,12 +148,30 @@ describe('state_machine', () => {
 				transaction,
 				header,
 				assets,
-				eventQueue,
+				eventQueue: expect.any(Object),
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
 			});
 			expect(systemMod.afterCommandExecute).toHaveBeenCalledTimes(1);
 			expect(mod.afterCommandExecute).toHaveBeenCalledTimes(1);
+		});
+
+		it('should add event with a topic with transaction id', async () => {
+			stateMachine.registerModule(new CustomModule2());
+			const ctx = new TransactionContext({
+				eventQueue,
+				logger,
+				stateStore,
+				header,
+				assets,
+				networkIdentifier,
+				transaction,
+			});
+			await stateMachine.executeTransaction(ctx);
+
+			const events = ctx.eventQueue.getEvents();
+			expect(events).toHaveLength(1);
+			expect(events[0].toObject().topics[0]).toEqual(transaction.id);
 		});
 	});
 
@@ -150,7 +192,6 @@ describe('state_machine', () => {
 				logger,
 				header,
 				assets,
-				eventQueue,
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
 			});
@@ -176,12 +217,30 @@ describe('state_machine', () => {
 				logger,
 				header,
 				assets,
-				eventQueue,
+				eventQueue: expect.any(Object),
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
 			});
 			expect(systemMod.beforeTransactionsExecute).toHaveBeenCalledTimes(1);
 			expect(mod.beforeTransactionsExecute).toHaveBeenCalledTimes(1);
+		});
+
+		it('should add event with a topic EVENT_INDEX_BEFORE_TRANSACTIONS', async () => {
+			stateMachine.registerModule(new CustomModule2());
+			const ctx = new BlockContext({
+				eventQueue,
+				logger,
+				stateStore,
+				header,
+				assets,
+				networkIdentifier,
+				transactions: [transaction],
+			});
+			await stateMachine.beforeExecuteBlock(ctx);
+
+			const events = ctx.eventQueue.getEvents();
+			expect(events).toHaveLength(1);
+			expect(events[0].toObject().topics[0]).toEqual(EVENT_INDEX_BEFORE_TRANSACTIONS);
 		});
 	});
 
@@ -202,12 +261,30 @@ describe('state_machine', () => {
 				logger,
 				header,
 				assets,
-				eventQueue,
+				eventQueue: expect.any(Object),
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
 				transactions: [transaction],
 			});
 			expect(mod.afterTransactionsExecute).toHaveBeenCalledTimes(1);
+		});
+
+		it('should add event with a topic EVENT_INDEX_AFTER_TRANSACTIONS', async () => {
+			stateMachine.registerModule(new CustomModule2());
+			const ctx = new BlockContext({
+				eventQueue,
+				logger,
+				stateStore,
+				header,
+				assets,
+				networkIdentifier,
+				transactions: [transaction],
+			});
+			await stateMachine.afterExecuteBlock(ctx);
+
+			const events = ctx.eventQueue.getEvents();
+			expect(events).toHaveLength(1);
+			expect(events[0].toObject().topics[0]).toEqual(EVENT_INDEX_AFTER_TRANSACTIONS);
 		});
 	});
 
@@ -228,7 +305,7 @@ describe('state_machine', () => {
 				logger,
 				header,
 				assets,
-				eventQueue,
+				eventQueue: expect.any(Object),
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
 			});
@@ -239,7 +316,7 @@ describe('state_machine', () => {
 				logger,
 				header,
 				assets,
-				eventQueue,
+				eventQueue: expect.any(Object),
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
 				transactions: [transaction],

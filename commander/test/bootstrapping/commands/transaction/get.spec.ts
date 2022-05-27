@@ -22,41 +22,17 @@ import * as appUtils from '../../../../src/utils/application';
 import {
 	createTransferTransaction,
 	encodeTransactionFromJSON,
+	tokenTransferParamsSchema,
 } from '../../../helpers/transactions';
 import { GetCommand } from '../../../../src/bootstrapping/commands/transaction/get';
 import { getConfig } from '../../../helpers/config';
 
 describe('transaction:get command', () => {
-	const transferAssetSchema = {
-		$id: 'lisk/transfer-transaction',
-		title: 'Transfer transaction asset',
-		type: 'object',
-		required: ['amount', 'recipientAddress', 'data'],
-		properties: {
-			amount: {
-				dataType: 'uint64',
-				fieldNumber: 1,
-			},
-			recipientAddress: {
-				dataType: 'bytes',
-				fieldNumber: 2,
-				minLength: 20,
-				maxLength: 20,
-			},
-			data: {
-				dataType: 'string',
-				fieldNumber: 3,
-				minLength: 0,
-				maxLength: 64,
-			},
-		},
-	};
-
 	const commands = [
 		{
 			moduleID: 2,
 			commandID: 0,
-			schema: transferAssetSchema,
+			schema: tokenTransferParamsSchema,
 		},
 	];
 	const { id: transactionId, ...transferTransaction } = createTransferTransaction({

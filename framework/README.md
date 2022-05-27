@@ -41,11 +41,11 @@ npm run test:<testType> -- [testPathPattern] [jestCliOptions]
 
 ## Contribution
 
-To test the changes in framework you can run,
+To test the changes in framework you can run example application under `examples`,
 
-`node test/test_app`
+`./bin/run start`
 
-If you want to test the changes in `lisk-sdk/elements` to reflect in `lisk-sdk/framework`, please make sure you run `npm run build` at `lisk-sdk` after making any changes in elements library and run `node test/test_app`.
+If you want to test the changes in `lisk-sdk/elements` to reflect in `lisk-sdk/framework`, please make sure you run `npm run build` at `lisk-sdk` after making any changes in elements library and run the example app above.
 
 ## Get Involved
 

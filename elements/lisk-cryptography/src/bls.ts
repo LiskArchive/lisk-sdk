@@ -25,6 +25,7 @@ import {
 } from './bls_lib';
 import { tagMessage } from './message_tag';
 import { readBit, writeBit } from './utils';
+import { hash } from './hash';
 
 export { BLS_SUPPORTED };
 export const generatePrivateKey = blsKeyGen;
@@ -36,7 +37,7 @@ export const signBLS = (
 	networkIdentifier: Buffer,
 	data: Buffer,
 	privateKey: Buffer,
-): Buffer => blsSign(privateKey, tagMessage(tag, networkIdentifier, data));
+): Buffer => blsSign(privateKey, hash(tagMessage(tag, networkIdentifier, data)));
 
 export const verifyBLS = (
 	tag: string,
@@ -44,7 +45,7 @@ export const verifyBLS = (
 	data: Buffer,
 	signature: Buffer,
 	publicKey: Buffer,
-): boolean => blsVerify(publicKey, tagMessage(tag, networkIdentifier, data), signature);
+): boolean => blsVerify(publicKey, hash(tagMessage(tag, networkIdentifier, data)), signature);
 
 export const createAggSig = (
 	publicKeysList: Buffer[],
@@ -84,7 +85,7 @@ export const verifyAggSig = (
 		}
 	}
 
-	return blsFastAggregateVerify(keys, taggedMessage, signature);
+	return blsFastAggregateVerify(keys, hash(taggedMessage), signature);
 };
 
 export const verifyWeightedAggSig = (
@@ -112,5 +113,5 @@ export const verifyWeightedAggSig = (
 		return false;
 	}
 
-	return blsFastAggregateVerify(keys, taggedMessage, signature);
+	return blsFastAggregateVerify(keys, hash(taggedMessage), signature);
 };

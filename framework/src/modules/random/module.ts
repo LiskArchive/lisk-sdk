@@ -22,7 +22,7 @@ import {
 	BlockVerifyContext,
 	GenesisBlockExecuteContext,
 } from '../../node/state_machine';
-import { BaseModule, ModuleInitArgs } from '../base_module';
+import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { RandomAPI } from './api';
 import {
 	defaultConfig,
@@ -35,6 +35,8 @@ import {
 import { RandomEndpoint } from './endpoint';
 import {
 	blockHeaderAssetRandomModule,
+	isSeedRevealValidRequestSchema,
+	isSeedRevealValidResponseSchema,
 	randomModuleConfig,
 	randomModuleGeneratorConfig,
 	seedRevealSchema,
@@ -61,6 +63,26 @@ export class RandomModule extends BaseModule {
 
 	private _generatorConfig: HashOnion[] = [];
 	private _maxLengthReveals!: number;
+
+	public metadata(): ModuleMetadata {
+		return {
+			endpoints: [
+				{
+					name: this.endpoint.isSeedRevealValid.name,
+					request: isSeedRevealValidRequestSchema,
+					response: isSeedRevealValidResponseSchema,
+				},
+			],
+			commands: [],
+			events: [],
+			assets: [
+				{
+					version: 3,
+					data: blockHeaderAssetRandomModule,
+				},
+			],
+		};
+	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs): Promise<void> {
@@ -256,6 +278,12 @@ export class RandomModule extends BaseModule {
 			return prev;
 		}, undefined);
 		const hashOnionConfig = this._getHashOnionConfig(address);
+		if (!hashOnionConfig) {
+			return {
+				hash: generateHashOnionSeed(),
+				count: 0,
+			};
+		}
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!usedHashOnion) {
 			return {
@@ -288,10 +316,10 @@ export class RandomModule extends BaseModule {
 		};
 	}
 
-	private _getHashOnionConfig(address: Buffer): HashOnionConfig {
+	private _getHashOnionConfig(address: Buffer): HashOnionConfig | undefined {
 		const hashOnionConfig = this._generatorConfig.find(d => d.address.equals(address));
 		if (!hashOnionConfig?.hashOnion) {
-			throw new Error(`Account ${address.toString('hex')} does not have hash onion in the config`);
+			return undefined;
 		}
 
 		return hashOnionConfig.hashOnion;

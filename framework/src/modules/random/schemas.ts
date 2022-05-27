@@ -59,22 +59,6 @@ export const randomModuleGeneratorConfig = {
 	},
 };
 
-export const isSeedRevealValidParamsSchema = {
-	$id: 'modules/random/api/isSeedReveal/params',
-	type: 'object',
-	required: ['generatorAddress', 'seedReveal'],
-	properties: {
-		generatorAddress: {
-			type: 'string',
-			format: 'hex',
-		},
-		seedReveal: {
-			type: 'string',
-			format: 'hex',
-		},
-	},
-};
-
 export const seedRevealSchema = {
 	$id: 'modules/random/seedReveal',
 	type: 'object',
@@ -175,6 +159,33 @@ export const usedHashOnionsStoreSchema = {
 					},
 				},
 			},
+		},
+	},
+};
+
+export const isSeedRevealValidRequestSchema = {
+	$id: 'modules/random/endpoint/isSeedRevealRequest',
+	type: 'object',
+	required: ['generatorAddress', 'seedReveal'],
+	properties: {
+		generatorAddress: {
+			type: 'string',
+			format: 'hex',
+		},
+		seedReveal: {
+			type: 'string',
+			format: 'hex',
+		},
+	},
+};
+
+export const isSeedRevealValidResponseSchema = {
+	$id: 'modules/random/endpoint/isSeedRevealRequest',
+	type: 'object',
+	required: ['valid'],
+	properties: {
+		valid: {
+			type: 'boolean',
 		},
 	},
 };

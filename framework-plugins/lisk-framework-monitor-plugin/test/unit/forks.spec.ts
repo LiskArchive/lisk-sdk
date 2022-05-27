@@ -31,6 +31,9 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 		fileLogLevel: 'none',
 		logFileName: 'plugin-MisbehaviourPlugin.log',
 	},
+	system: {
+		keepEventsForHeights: -1,
+	},
 	rpc: {
 		modes: ['ipc'],
 		ws: {
@@ -80,6 +83,7 @@ describe('_handleFork', () => {
 		previousBlockID: Buffer.alloc(0),
 		timestamp: Math.floor(Date.now() / 1000 - 24 * 60 * 60),
 		stateRoot: cryptography.hash(Buffer.alloc(0)),
+		eventRoot: cryptography.hash(Buffer.alloc(0)),
 		maxHeightGenerated: 0,
 		maxHeightPrevoted: 0,
 		assetsRoot: cryptography.hash(Buffer.alloc(0)),
