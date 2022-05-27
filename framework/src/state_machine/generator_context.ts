@@ -16,11 +16,12 @@ import { BlockAssets, BlockHeader, StateStore } from '@liskhq/lisk-chain';
 import { Logger } from '../logger';
 import { createAPIContext } from './api_context';
 import { EventQueue } from './event_queue';
+import { PrefixedStateReadWriter } from './prefixed_state_read_writer';
 import { InsertAssetContext } from './types';
 
 interface GenerationContextArgs {
 	logger: Logger;
-	stateStore: StateStore;
+	stateStore: PrefixedStateReadWriter;
 	header: BlockHeader;
 	generatorStore: StateStore;
 	networkIdentifier: Buffer;
@@ -30,7 +31,7 @@ interface GenerationContextArgs {
 export class GenerationContext {
 	private readonly _logger: Logger;
 	private readonly _networkIdentifier: Buffer;
-	private readonly _stateStore: StateStore;
+	private readonly _stateStore: PrefixedStateReadWriter;
 	private readonly _header: BlockHeader;
 	private readonly _assets: BlockAssets;
 	private readonly _generatorStore: StateStore;

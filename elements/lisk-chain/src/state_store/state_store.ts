@@ -71,14 +71,14 @@ export class StateStore {
 			return copyBuffer(value);
 		}
 		if (deleted) {
-			throw new NotFoundError(prefixedKey);
+			throw new NotFoundError(`Specified key ${prefixedKey.toString('hex')} does not exist`);
 		}
 		let persistedValue;
 		try {
 			persistedValue = await this._db.get(prefixedKey);
 		} catch (error) {
 			if (error instanceof DBNotFoundError) {
-				throw new NotFoundError(prefixedKey);
+				throw new NotFoundError(`Specified key ${prefixedKey.toString('hex')} does not exist`);
 			}
 			throw error;
 		}

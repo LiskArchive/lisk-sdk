@@ -396,8 +396,8 @@ export class DPoSModule extends BaseModule {
 		const voterStore = context.getStore(this.id, STORE_PREFIX_VOTER);
 		const allVoters = await voterStore.iterateWithSchema<VoterData>(
 			{
-				start: Buffer.alloc(20),
-				end: Buffer.alloc(20, 255),
+				gte: Buffer.alloc(20),
+				lte: Buffer.alloc(20, 255),
 			},
 			voterStoreSchema,
 		);
@@ -441,8 +441,8 @@ export class DPoSModule extends BaseModule {
 		const MAX_UINT32 = 2 ** 32 - 1;
 		const snapshotStore = context.getStore(this.id, STORE_PREFIX_SNAPSHOT);
 		const allSnapshots = await snapshotStore.iterate({
-			start: intToBuffer(0, 4),
-			end: intToBuffer(MAX_UINT32, 4),
+			gte: intToBuffer(0, 4),
+			lte: intToBuffer(MAX_UINT32, 4),
 		});
 		if (context.header.height === 0 && allSnapshots.length > 0) {
 			throw new Error('When genensis height is zero, there should not be a snapshot.');
@@ -498,8 +498,8 @@ export class DPoSModule extends BaseModule {
 		const delegateStore = context.getStore(this.id, STORE_PREFIX_DELEGATE);
 		const delegates = await delegateStore.iterateWithSchema<DelegateAccount>(
 			{
-				start: Buffer.alloc(20),
-				end: Buffer.alloc(20, 255),
+				gte: Buffer.alloc(20),
+				lte: Buffer.alloc(20, 255),
 			},
 			delegateStoreSchema,
 		);
@@ -577,8 +577,8 @@ export class DPoSModule extends BaseModule {
 
 		// Remove outdated information
 		const oldData = await snapshotStore.iterate({
-			start: intToBuffer(0, 4),
-			end: intToBuffer(Math.max(0, snapshotRound - DELEGATE_LIST_ROUND_OFFSET - 1), 4),
+			gte: intToBuffer(0, 4),
+			lte: intToBuffer(Math.max(0, snapshotRound - DELEGATE_LIST_ROUND_OFFSET - 1), 4),
 		});
 		for (const { key } of oldData) {
 			await snapshotStore.del(key);

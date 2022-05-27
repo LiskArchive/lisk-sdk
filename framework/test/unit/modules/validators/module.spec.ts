@@ -11,17 +11,17 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { StateStore } from '@liskhq/lisk-chain';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { ValidatorsModule } from '../../../../src/modules/validators';
 import { EMPTY_KEY, STORE_PREFIX_GENESIS_DATA } from '../../../../src/modules/validators/constants';
 import { genesisDataSchema } from '../../../../src/modules/validators/schemas';
 import { GenesisData } from '../../../../src/modules/validators/types';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { createBlockContext, createBlockHeaderWithDefaults } from '../../../../src/testing';
+import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 
 describe('ValidatorsModule', () => {
-	let stateStore: StateStore;
-	let genesisDataSubStore: StateStore;
+	let stateStore: PrefixedStateReadWriter;
+	let genesisDataSubStore: PrefixedStateReadWriter;
 	let validatorsModule: ValidatorsModule;
 	const genesisTimestamp = 45672;
 
@@ -53,7 +53,7 @@ describe('ValidatorsModule', () => {
 
 	describe('afterTransactionsExecute', () => {
 		it(`should set genesis store with the correct timestamp`, async () => {
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			const blockHeader = createBlockHeaderWithDefaults({ timestamp: genesisTimestamp });
 			const blockAfterExecuteContext = createBlockContext({
 				header: blockHeader,

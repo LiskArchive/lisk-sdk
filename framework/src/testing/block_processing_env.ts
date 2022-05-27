@@ -14,16 +14,18 @@
  *
  */
 
+import * as fs from 'fs-extra';
+import * as path from 'path';
 import * as os from 'os';
 import { Block, Chain, DataAccess, BlockHeader, Transaction, StateStore } from '@liskhq/lisk-chain';
 import { getNetworkIdentifier, getKeys } from '@liskhq/lisk-cryptography';
-import { KVStore } from '@liskhq/lisk-db';
+import { Database, StateDB } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
 import { codec } from '@liskhq/lisk-codec';
 import { BaseModule } from '../modules';
 import { loggerMock, channelMock } from './mocks';
 import { defaultConfig, getPassphraseFromDefaultConfig } from './fixtures';
-import { createDB, removeDB } from './utils';
+import { removeDB } from './utils';
 import { ApplicationConfig, EndpointHandler, GenesisConfig } from '../types';
 import { Consensus } from '../engine/consensus';
 import { APIContext, StateMachine } from '../state_machine';
@@ -41,6 +43,7 @@ import { Generator } from '../engine/generator';
 import { ABIHandler } from '../abi_handler/abi_handler';
 import { generateGenesisBlock } from '../genesis_block';
 import { systemDirs } from '../system_dirs';
+import { PrefixedStateReadWriter } from '../state_machine/prefixed_state_read_writer';
 
 type Options = {
 	genesis?: GenesisConfig;
@@ -62,7 +65,7 @@ export interface BlockProcessingEnv {
 	getGenesisBlock: () => Block;
 	getChain: () => Chain;
 	getAPIContext: () => APIContext;
-	getBlockchainDB: () => KVStore;
+	getBlockchainDB: () => Database;
 	process: (block: Block) => Promise<void>;
 	processUntilHeight: (height: number) => Promise<void>;
 	getLastBlock: () => Block;
@@ -70,7 +73,7 @@ export interface BlockProcessingEnv {
 	getDataAccess: () => DataAccess;
 	getNetworkId: () => Buffer;
 	invoke: <T = void>(path: string, params?: Record<string, unknown>) => Promise<T>;
-	cleanup: (config: Options) => Promise<void>;
+	cleanup: (config: Options) => void;
 }
 
 const getAppConfig = (genesisConfig?: GenesisConfig): ApplicationConfig => {
@@ -133,8 +136,8 @@ export const getBlockProcessingEnv = async (
 	const systemDir = systemDirs(appConfig.label, appConfig.rootPath);
 
 	removeDB(systemDir.data);
-	const moduleDB = createDB('module', systemDir.data);
-	const stateDB = createDB('state', systemDir.data);
+	const moduleDB = new Database(path.join(systemDir.data, 'module.db'));
+	const stateDB = new StateDB(path.join(systemDir.data, 'state.db'));
 
 	const validatorsModule = new ValidatorsModule();
 	const authModule = new AuthModule();
@@ -210,7 +213,7 @@ export const getBlockProcessingEnv = async (
 		getConsensus: () => engine['_consensus'],
 		getConsensusStore: () => new StateStore(engine['_blockchainDB']),
 		getGenerator: () => engine['_generator'],
-		getAPIContext: () => createNewAPIContext(stateDB),
+		getAPIContext: () => createNewAPIContext(stateDB.newReadWriter()),
 		getBlockchainDB: () => engine['_blockchainDB'],
 		process: async (block): Promise<void> => engine['_consensus']['_execute'](block, 'peer-id'),
 		processUntilHeight: async (height): Promise<void> => {
@@ -232,8 +235,8 @@ export const getBlockProcessingEnv = async (
 
 			return passphrase;
 		},
-		async invoke<T = void>(path: string, input: Record<string, unknown> = {}): Promise<T> {
-			const [namespace, method] = path.split('_');
+		async invoke<T = void>(func: string, input: Record<string, unknown> = {}): Promise<T> {
+			const [namespace, method] = func.split('_');
 			const handler = engine['_rpcServer']['_getHandler'](namespace, method);
 			if (handler) {
 				const resp = (await handler({
@@ -253,7 +256,7 @@ export const getBlockProcessingEnv = async (
 			}
 			const bindedHandler = moduleHandler.bind(modules[moduleIndex].endpoint);
 
-			const stateStore = new StateStore(stateDB);
+			const stateStore = new PrefixedStateReadWriter(stateDB.newReadWriter());
 
 			const result = await bindedHandler({
 				getStore: (moduleID: number, storePrefix: number) =>
@@ -268,11 +271,11 @@ export const getBlockProcessingEnv = async (
 		},
 		getNetworkId: () => networkIdentifier,
 		getDataAccess: () => engine['_chain'].dataAccess,
-		cleanup: async ({ databasePath }): Promise<void> => {
-			await engine['_closeDB']();
-			await moduleDB.close();
-			await stateDB.close();
-			removeDB(databasePath);
+		cleanup: (_val): void => {
+			engine['_closeDB']();
+			moduleDB.close();
+			stateDB.close();
+			fs.removeSync(systemDir.data);
 		},
 	};
 };

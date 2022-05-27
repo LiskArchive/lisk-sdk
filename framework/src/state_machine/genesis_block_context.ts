@@ -12,23 +12,23 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateStore } from '@liskhq/lisk-chain';
 import { Logger } from '../logger';
 import { APIContext, wrapEventQueue } from './api_context';
 import { EVENT_INDEX_FINALIZE_GENESIS_STATE, EVENT_INDEX_INIT_GENESIS_STATE } from './constants';
 import { EventQueue } from './event_queue';
+import { PrefixedStateReadWriter } from './prefixed_state_read_writer';
 import { BlockAssets, BlockHeader, GenesisBlockExecuteContext, Validator } from './types';
 
 export interface ContextParams {
 	logger: Logger;
-	stateStore: StateStore;
+	stateStore: PrefixedStateReadWriter;
 	header: BlockHeader;
 	assets: BlockAssets;
 	eventQueue: EventQueue;
 }
 
 export class GenesisBlockContext {
-	private readonly _stateStore: StateStore;
+	private readonly _stateStore: PrefixedStateReadWriter;
 	private readonly _logger: Logger;
 	private readonly _header: BlockHeader;
 	private readonly _assets: BlockAssets;

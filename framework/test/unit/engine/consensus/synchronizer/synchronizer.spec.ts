@@ -15,7 +15,7 @@
 import { when } from 'jest-when';
 import { Block, Chain } from '@liskhq/lisk-chain';
 
-import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { Synchronizer } from '../../../../../src/engine/consensus/synchronizer/synchronizer';
 import {
 	createValidDefaultBlock,
@@ -53,7 +53,7 @@ describe('Synchronizer', () => {
 			keepEventsForHeights: applicationConfigSchema.default.system.keepEventsForHeights,
 		});
 		chainModule.init({
-			db: new InMemoryKVStore(),
+			db: new InMemoryDatabase(),
 			networkIdentifier: Buffer.from('network-id'),
 		});
 

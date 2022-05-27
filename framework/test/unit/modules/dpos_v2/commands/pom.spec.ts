@@ -13,8 +13,7 @@
  */
 
 import { when } from 'jest-when';
-import { BlockHeader, blockHeaderSchema, StateStore, Transaction } from '@liskhq/lisk-chain';
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
+import { BlockHeader, blockHeaderSchema, Transaction } from '@liskhq/lisk-chain';
 import { objects } from '@liskhq/lisk-utils';
 import {
 	getAddressAndPublicKeyFromPassphrase,
@@ -40,12 +39,13 @@ import { delegateStoreSchema } from '../../../../../src/modules/dpos_v2/schemas'
 import { VerifyStatus } from '../../../../../src/state_machine/types';
 import { DEFAULT_TOKEN_ID } from '../../../../utils/mocks/transaction';
 import * as bftUtil from '../../../../../src/engine/bft/utils';
+import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 
 describe('ReportDelegateMisbehaviorCommand', () => {
 	let pomCommand: ReportDelegateMisbehaviorCommand;
-	let stateStore: StateStore;
+	let stateStore: PrefixedStateReadWriter;
 	let delegateSubstore: any;
-	let db: KVStore;
 	let mockTokenAPI: TokenAPI;
 	let mockValidatorsAPI: ValidatorsAPI;
 	const blockHeight = 8760000;
@@ -95,8 +95,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			tokenAPI: mockTokenAPI,
 			validatorsAPI: mockValidatorsAPI,
 		});
-		db = new InMemoryKVStore() as never;
-		stateStore = new StateStore(db);
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		delegateSubstore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
 
 		misBehavingDelegate = { name: 'misBehavingDelegate', ...defaultDelegateInfo };
@@ -124,8 +123,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 		pomCommand.init({
 			tokenIDDPoS: DEFAULT_TOKEN_ID,
 		});
-		db = new InMemoryKVStore() as never;
-		stateStore = new StateStore(db);
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		delegateSubstore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
 		transaction = new Transaction({
 			moduleID: MODULE_ID_DPOS,

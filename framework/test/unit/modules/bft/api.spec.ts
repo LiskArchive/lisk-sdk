@@ -15,7 +15,7 @@
 import { NotFoundError, StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { BIG_ENDIAN, getRandomBytes, hash, intToBuffer } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { BFTAPI } from '../../../../src/engine/bft/api';
 import {
 	EMPTY_KEY,
@@ -90,7 +90,7 @@ describe('BFT API', () => {
 		const generatorAddress = getRandomBytes(20);
 
 		beforeEach(async () => {
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new StateStore(new InMemoryDatabase());
 			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_VOTES);
 			await votesStore.setWithSchema(
 				EMPTY_KEY,
@@ -175,7 +175,7 @@ describe('BFT API', () => {
 
 	describe('existBFTParameters', () => {
 		beforeEach(async () => {
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new StateStore(new InMemoryDatabase());
 			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 			await votesStore.setWithSchema(
 				intToBuffer(20, 4, BIG_ENDIAN),
@@ -222,7 +222,7 @@ describe('BFT API', () => {
 		const params30 = createParam();
 
 		beforeEach(async () => {
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new StateStore(new InMemoryDatabase());
 			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 			await votesStore.setWithSchema(intToBuffer(20, 4, BIG_ENDIAN), params20, bftParametersSchema);
 			await votesStore.setWithSchema(intToBuffer(30, 4, BIG_ENDIAN), params30, bftParametersSchema);
@@ -247,7 +247,7 @@ describe('BFT API', () => {
 		const generatorAddress = getRandomBytes(20);
 
 		beforeEach(async () => {
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new StateStore(new InMemoryDatabase());
 			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_VOTES);
 			await votesStore.setWithSchema(
 				EMPTY_KEY,
@@ -300,7 +300,7 @@ describe('BFT API', () => {
 		const generatorAddress = getRandomBytes(20);
 
 		beforeEach(() => {
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new StateStore(new InMemoryDatabase());
 		});
 
 		it('should return false if maxHeightGenerated is greater than the height', async () => {
@@ -484,7 +484,7 @@ describe('BFT API', () => {
 		const params20 = createParam();
 		const params30 = createParam();
 		beforeEach(async () => {
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new StateStore(new InMemoryDatabase());
 			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 			await votesStore.setWithSchema(intToBuffer(20, 4, BIG_ENDIAN), params20, bftParametersSchema);
 			await votesStore.setWithSchema(intToBuffer(30, 4, BIG_ENDIAN), params30, bftParametersSchema);
@@ -524,7 +524,7 @@ describe('BFT API', () => {
 
 		beforeEach(async () => {
 			validatorsAPI.getValidatorAccount.mockResolvedValue({ blsKey: getRandomBytes(32) });
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new StateStore(new InMemoryDatabase());
 			const paramsStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 			await paramsStore.setWithSchema(
 				intToBuffer(20, 4, BIG_ENDIAN),
@@ -929,7 +929,7 @@ describe('BFT API', () => {
 		const params20 = createParam();
 		const params30 = createParam();
 		beforeEach(async () => {
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new StateStore(new InMemoryDatabase());
 			const paramsStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 			await paramsStore.setWithSchema(
 				intToBuffer(20, 4, BIG_ENDIAN),
@@ -1019,7 +1019,7 @@ describe('BFT API', () => {
 		const keys20 = createKeys();
 		const keys30 = createKeys();
 		beforeEach(async () => {
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new StateStore(new InMemoryDatabase());
 			const keysStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_GENERATOR_KEYS);
 			await keysStore.setWithSchema(intToBuffer(20, 4, BIG_ENDIAN), keys20, generatorKeysSchema);
 			await keysStore.setWithSchema(intToBuffer(30, 4, BIG_ENDIAN), keys30, generatorKeysSchema);
@@ -1081,7 +1081,7 @@ describe('BFT API', () => {
 			],
 		});
 		beforeEach(() => {
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new StateStore(new InMemoryDatabase());
 		});
 
 		it('should set generators to the next height', async () => {

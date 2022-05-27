@@ -20,7 +20,6 @@ import {
 	BlockHeader,
 	BlockAssets,
 	StateStore,
-	SMTStore,
 	EVENT_KEY_LENGTH,
 } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
@@ -32,9 +31,9 @@ import {
 	getPublicKeyFromPrivateKey,
 	parseEncryptedPassphrase,
 } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
+import { Database, Batch, SparseMerkleTree } from '@liskhq/lisk-db';
 import { TransactionPool, events } from '@liskhq/lisk-transaction-pool';
-import { MerkleTree, SparseMerkleTree } from '@liskhq/lisk-tree';
+import { MerkleTree } from '@liskhq/lisk-tree';
 import { dataStructures, jobHandlers } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { EVENT_NETWORK_READY } from '../events';
@@ -51,6 +50,7 @@ import {
 	NETWORK_EVENT_POST_TRANSACTIONS_ANNOUNCEMENT,
 	GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT,
 	GENERATOR_EVENT_NEW_TRANSACTION,
+	EMPTY_HASH,
 } from './constants';
 import { Endpoint } from './endpoint';
 import { GeneratorStore } from './generator_store';
@@ -80,8 +80,8 @@ interface GeneratorArgs {
 }
 
 interface GeneratorInitArgs {
-	generatorDB: KVStore;
-	blockchainDB: KVStore;
+	generatorDB: Database;
+	blockchainDB: Database;
 	logger: Logger;
 }
 
@@ -105,8 +105,8 @@ export class Generator {
 	private readonly _forgingStrategy: HighFeeGenerationStrategy;
 
 	private _logger!: Logger;
-	private _generatorDB!: KVStore;
-	private _blockchainDB!: KVStore;
+	private _generatorDB!: Database;
+	private _blockchainDB!: Database;
 
 	public constructor(args: GeneratorArgs) {
 		this._config = args.generationConfig;
@@ -524,7 +524,7 @@ export class Generator {
 				blockHeader,
 				blockAssets,
 				consensus,
-				input.transactions,
+				input.transactions as any,
 			);
 			blockEvents.push(...txEvents);
 			transactions = executedTxs;
@@ -564,7 +564,7 @@ export class Generator {
 			await this._bft.api.setGeneratorKeys(stateStore, afterResult.nextValidators);
 		}
 
-		stateStore.finalize(this._blockchainDB.batch());
+		stateStore.finalize(new Batch());
 
 		// calculate transaction root
 		const txTree = new MerkleTree();
@@ -574,18 +574,16 @@ export class Generator {
 		blockHeader.assetsRoot = await blockAssets.getRoot();
 
 		// Add event root calculation
-		const eventSmtStore = new SMTStore(new InMemoryKVStore());
-		const eventSMT = new SparseMerkleTree({
-			db: eventSmtStore,
-			keyLength: EVENT_KEY_LENGTH,
-		});
+		const keypairs = [];
 		for (const e of blockEvents) {
 			const pairs = e.keyPair();
 			for (const pair of pairs) {
-				await eventSMT.update(pair.key, pair.value);
+				keypairs.push(pair);
 			}
 		}
-		blockHeader.eventRoot = eventSMT.rootHash;
+		const smt = new SparseMerkleTree(EVENT_KEY_LENGTH);
+		const eventRoot = await smt.update(EMPTY_HASH, keypairs);
+		blockHeader.eventRoot = eventRoot;
 		// Assign root hash calculated in SMT to state root of block header
 		const { stateRoot } = await this._abi.commit({
 			contextID,
@@ -605,9 +603,9 @@ export class Generator {
 
 		await setLastGeneratedInfo(generatorStore, blockHeader.generatorAddress, blockHeader);
 
-		const batch = this._generatorDB.batch();
+		const batch = new Batch();
 		generatorStore.finalize(batch);
-		await batch.write();
+		await this._generatorDB.write(batch);
 
 		await this._abi.clear({});
 

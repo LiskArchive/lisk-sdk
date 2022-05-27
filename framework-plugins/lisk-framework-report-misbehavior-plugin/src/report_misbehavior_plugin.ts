@@ -38,7 +38,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 	public configSchema = configSchema;
 	public endpoint = new Endpoint();
 
-	private _pluginDB!: liskDB.KVStore;
+	private _pluginDB!: liskDB.Database;
 	private readonly _state: State = { currentHeight: 0 };
 	private _clearBlockHeadersIntervalId!: NodeJS.Timer | undefined;
 
@@ -65,10 +65,11 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 		}, this.config.clearBlockHeadersInterval);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	public async unload(): Promise<void> {
 		clearInterval(this._clearBlockHeadersIntervalId as NodeJS.Timer);
 
-		await this._pluginDB.close();
+		this._pluginDB.close();
 	}
 
 	private _subscribeToChannel(): void {

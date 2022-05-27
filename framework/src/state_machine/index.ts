@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { NotFoundError } from '@liskhq/lisk-chain';
+import { NotFoundError } from '@liskhq/lisk-db';
 
 // Re-export not found error
 export { NotFoundError };

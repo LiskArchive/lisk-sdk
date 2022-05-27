@@ -15,7 +15,7 @@
 import { NotFoundError, StateStore, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressFromPublicKey, getRandomBytes } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { validator } from '@liskhq/lisk-validator';
 import { when } from 'jest-when';
 import { VoteCommand } from '../../../../../src/modules/dpos_v2/commands/vote';
@@ -124,7 +124,7 @@ describe('VoteCommand', () => {
 			.calledWith(senderAddress, voterStoreSchema)
 			.mockRejectedValue(new NotFoundError(Buffer.alloc(0)));
 
-		stateStore = new StateStore(new InMemoryKVStore());
+		stateStore = new StateStore(new InMemoryDatabase());
 		voterStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_VOTER);
 		delegateStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
 
@@ -578,7 +578,7 @@ describe('VoteCommand', () => {
 
 			it('should not change pendingUnlocks', async () => {
 				// Arrange
-				stateStore = new StateStore(new InMemoryKVStore());
+				stateStore = new StateStore(new InMemoryDatabase());
 				voterStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_VOTER);
 				delegateStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
 
@@ -607,7 +607,7 @@ describe('VoteCommand', () => {
 
 			it('should order voterData.sentVotes', async () => {
 				// Arrange
-				stateStore = new StateStore(new InMemoryKVStore());
+				stateStore = new StateStore(new InMemoryDatabase());
 				voterStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_VOTER);
 				delegateStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
 
@@ -643,7 +643,7 @@ describe('VoteCommand', () => {
 
 			it('should make upvoted delegate account to have correct totalVotesReceived', async () => {
 				// Arrange
-				stateStore = new StateStore(new InMemoryKVStore());
+				stateStore = new StateStore(new InMemoryDatabase());
 				delegateStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
 
 				await delegateStore.setWithSchema(delegateAddress1, delegateInfo1, delegateStoreSchema);
@@ -683,7 +683,7 @@ describe('VoteCommand', () => {
 
 			it('should update vote object when it exists before and create if it does not exist', async () => {
 				// Arrange
-				stateStore = new StateStore(new InMemoryKVStore());
+				stateStore = new StateStore(new InMemoryDatabase());
 				voterStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_VOTER);
 				delegateStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
 

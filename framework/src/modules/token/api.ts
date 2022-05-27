@@ -602,8 +602,8 @@ export class TokenAPI extends BaseAPI {
 
 	private async _accountExist(userStore: ImmutableSubStore, address: Buffer): Promise<boolean> {
 		const allUserData = await userStore.iterate({
-			start: Buffer.concat([address, Buffer.alloc(TOKEN_ID_LENGTH, 0)]),
-			end: Buffer.concat([address, Buffer.alloc(TOKEN_ID_LENGTH, 255)]),
+			gte: Buffer.concat([address, Buffer.alloc(TOKEN_ID_LENGTH, 0)]),
+			lte: Buffer.concat([address, Buffer.alloc(TOKEN_ID_LENGTH, 255)]),
 		});
 		return allUserData.length !== 0;
 	}

@@ -16,7 +16,7 @@ import { Block, BlockAssets, Chain, StateStore, Event } from '@liskhq/lisk-chain
 import { codec } from '@liskhq/lisk-codec';
 import { when } from 'jest-when';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase } from '@liskhq/lisk-db';
 import {
 	generatePrivateKey,
 	getAddressFromPassphrase,
@@ -610,7 +610,7 @@ describe('consensus', () => {
 				block = await createValidDefaultBlock({
 					header: { height: 2, previousBlockID: chain.lastBlock.header.id },
 				});
-				stateStore = new StateStore(new InMemoryKVStore());
+				stateStore = new StateStore(new InMemoryDatabase());
 				jest.spyOn(chain, 'saveBlock').mockResolvedValue();
 				jest.spyOn(consensus, 'finalizedHeight').mockReturnValue(0);
 				jest.spyOn(bft.api, 'getBFTParameters').mockResolvedValue({

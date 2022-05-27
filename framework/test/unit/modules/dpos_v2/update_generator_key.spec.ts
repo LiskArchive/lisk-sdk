@@ -12,10 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateStore, Transaction } from '@liskhq/lisk-chain';
+import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import * as testing from '../../../../src/testing';
 import { UpdateGeneratorKeyCommand } from '../../../../src/modules/dpos_v2/commands/update_generator_key';
 import {
@@ -29,12 +28,13 @@ import {
 } from '../../../../src/modules/dpos_v2/schemas';
 import { UpdateGeneratorKeyParams, ValidatorsAPI } from '../../../../src/modules/dpos_v2/types';
 import { VerifyStatus } from '../../../../src/state_machine';
+import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 
 describe('Update generator key command', () => {
 	let updateGeneratorCommand: UpdateGeneratorKeyCommand;
-	let db: KVStore;
-	let stateStore: StateStore;
-	let delegateSubstore: StateStore;
+	let stateStore: PrefixedStateReadWriter;
+	let delegateSubstore: PrefixedStateReadWriter;
 
 	const transactionParams = codec.encode(updateGeneratorKeyCommandParamsSchema, {
 		generatorKey: getRandomBytes(32),
@@ -58,8 +58,7 @@ describe('Update generator key command', () => {
 	beforeEach(async () => {
 		updateGeneratorCommand = new UpdateGeneratorKeyCommand(MODULE_ID_DPOS);
 		updateGeneratorCommand.addDependencies((mockValidatorsAPI as unknown) as ValidatorsAPI);
-		db = new InMemoryKVStore() as never;
-		stateStore = new StateStore(db);
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		delegateSubstore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
 		await delegateSubstore.setWithSchema(
 			transaction.senderAddress,

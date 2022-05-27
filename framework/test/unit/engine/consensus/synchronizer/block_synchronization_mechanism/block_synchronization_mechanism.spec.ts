@@ -16,7 +16,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
 import { objects } from '@liskhq/lisk-utils';
 
-import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import {
 	BlockSynchronizationMechanism,
@@ -83,7 +83,7 @@ describe('block_synchronization_mechanism', () => {
 			keepEventsForHeights: -1,
 		});
 		chainModule.init({
-			db: new InMemoryKVStore(),
+			db: new InMemoryDatabase(),
 			networkIdentifier: Buffer.from('network-id'),
 		});
 		const lastBlock = await createValidDefaultBlock({

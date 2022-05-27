@@ -14,7 +14,7 @@
 import * as path from 'path';
 import { Chain, Block, BlockHeader, BlockAssets, TransactionJSON } from '@liskhq/lisk-chain';
 import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
-import { KVStore } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import { createLogger, Logger } from '../logger';
 import { Network } from './network';
 import { Consensus, CONSENSUS_EVENT_BLOCK_DELETE, CONSENSUS_EVENT_BLOCK_NEW } from './consensus';
@@ -81,9 +81,9 @@ export class Engine {
 	private _bftModule!: BFTModule;
 	private _rpcServer!: RPCServer;
 	private _logger!: Logger;
-	private _nodeDB!: KVStore;
-	private _generatorDB!: KVStore;
-	private _blockchainDB!: KVStore;
+	private _nodeDB!: Database;
+	private _generatorDB!: Database;
+	private _blockchainDB!: Database;
 	private _networkIdentifier!: Buffer;
 
 	public constructor(abi: ABI) {
@@ -113,7 +113,7 @@ export class Engine {
 		await this._generator.stop();
 		await this._consensus.stop();
 		this._rpcServer.stop();
-		await this._closeDB();
+		this._closeDB();
 		this._logger.info('Engine cleanup completed');
 	}
 
@@ -180,13 +180,13 @@ export class Engine {
 			new BlockAssets(genesisBlock.assets),
 		);
 
-		this._blockchainDB = new KVStore(
+		this._blockchainDB = new Database(
 			path.join(this._config.system.dataPath, 'data', 'blockchain.db'),
 		);
-		this._generatorDB = new KVStore(
+		this._generatorDB = new Database(
 			path.join(this._config.system.dataPath, 'data', 'generator.db'),
 		);
-		this._nodeDB = new KVStore(path.join(this._config.system.dataPath, 'data', 'node.db'));
+		this._nodeDB = new Database(path.join(this._config.system.dataPath, 'data', 'node.db'));
 
 		this._networkIdentifier = getNetworkIdentifier(
 			genesis.header.id,
@@ -310,9 +310,9 @@ export class Engine {
 		);
 	}
 
-	private async _closeDB(): Promise<void> {
-		await this._blockchainDB.close();
-		await this._generatorDB.close();
-		await this._nodeDB.close();
+	private _closeDB(): void {
+		this._blockchainDB.close();
+		this._generatorDB.close();
+		this._nodeDB.close();
 	}
 }

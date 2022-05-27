@@ -12,8 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockAssets, StateStore } from '@liskhq/lisk-chain';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { BlockAssets } from '@liskhq/lisk-chain';
 import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
 import { codec } from '@liskhq/lisk-codec';
@@ -60,6 +59,8 @@ import {
 } from '../../../../src/modules/dpos_v2/types';
 import { GenesisBlockExecuteContext, SubStore } from '../../../../src/state_machine/types';
 import { invalidAssets, validAsset, validators } from './genesis_block_test_data';
+import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 
 describe('DPoS module', () => {
 	const EMPTY_KEY = Buffer.alloc(0);
@@ -112,11 +113,11 @@ describe('DPoS module', () => {
 
 	describe('initGenesisState', () => {
 		let dpos: DPoSModule;
-		let stateStore: StateStore;
+		let stateStore: PrefixedStateReadWriter;
 
 		beforeEach(async () => {
 			dpos = new DPoSModule();
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			const randomAPI = {
 				getRandomBytes: jest.fn(),
 			};
@@ -250,15 +251,15 @@ describe('DPoS module', () => {
 				await expect(dpos.initGenesisState(context)).toResolve();
 				const usernameStore = stateStore.getStore(dpos.id, STORE_PREFIX_NAME);
 				const allNames = await usernameStore.iterate({
-					start: Buffer.from([0]),
-					end: Buffer.from([255]),
+					gte: Buffer.from([0]),
+					lte: Buffer.from([255]),
 				});
 				expect(allNames).toHaveLength(validAsset.validators.length);
 
 				const delegateStore = context.getStore(dpos.id, STORE_PREFIX_DELEGATE);
 				const allDelegates = await delegateStore.iterate({
-					start: Buffer.alloc(20, 0),
-					end: Buffer.alloc(20, 255),
+					gte: Buffer.alloc(20, 0),
+					lte: Buffer.alloc(20, 255),
 				});
 				expect(allDelegates).toHaveLength(validAsset.validators.length);
 			});
@@ -341,10 +342,10 @@ describe('DPoS module', () => {
 			const fixtures = forgerSelectionLessTHan103Scenario.testCases.input.voteWeights;
 
 			let context: BlockAfterExecuteContext;
-			let stateStore: StateStore;
+			let stateStore: PrefixedStateReadWriter;
 
 			beforeEach(async () => {
-				stateStore = new StateStore(new InMemoryKVStore());
+				stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 				const delegateStore = stateStore.getStore(dpos.id, STORE_PREFIX_DELEGATE);
 				for (const data of fixtures) {
 					await delegateStore.setWithSchema(
@@ -385,10 +386,10 @@ describe('DPoS module', () => {
 			const fixtures = forgerSelectionZeroStandbyScenario.testCases.input.voteWeights;
 
 			let context: BlockAfterExecuteContext;
-			let stateStore: StateStore;
+			let stateStore: PrefixedStateReadWriter;
 
 			beforeEach(async () => {
-				stateStore = new StateStore(new InMemoryKVStore());
+				stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 				const delegateStore = stateStore.getStore(dpos.id, STORE_PREFIX_DELEGATE);
 				for (const data of fixtures) {
 					await delegateStore.setWithSchema(
@@ -437,10 +438,10 @@ describe('DPoS module', () => {
 			const fixtures = forgerSelectionOneStandbyScenario.testCases.input.voteWeights;
 
 			let context: BlockAfterExecuteContext;
-			let stateStore: StateStore;
+			let stateStore: PrefixedStateReadWriter;
 
 			beforeEach(async () => {
-				stateStore = new StateStore(new InMemoryKVStore());
+				stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 				const delegateStore = stateStore.getStore(dpos.id, STORE_PREFIX_DELEGATE);
 				for (const data of fixtures) {
 					await delegateStore.setWithSchema(
@@ -489,10 +490,10 @@ describe('DPoS module', () => {
 			const fixtures = forgerSelectionTwoStandbyScenario.testCases.input.voteWeights;
 
 			let context: BlockAfterExecuteContext;
-			let stateStore: StateStore;
+			let stateStore: PrefixedStateReadWriter;
 
 			beforeEach(async () => {
-				stateStore = new StateStore(new InMemoryKVStore());
+				stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 				const delegateStore = stateStore.getStore(dpos.id, STORE_PREFIX_DELEGATE);
 				// set first delegate to cap the delegate weight
 				await delegateStore.setWithSchema(
@@ -591,10 +592,10 @@ describe('DPoS module', () => {
 			const fixtures = forgerSelectionMoreThan2StandByScenario.testCases.input.voteWeights;
 
 			let context: BlockAfterExecuteContext;
-			let stateStore: StateStore;
+			let stateStore: PrefixedStateReadWriter;
 
 			beforeEach(async () => {
-				stateStore = new StateStore(new InMemoryKVStore());
+				stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 				const delegateStore = stateStore.getStore(dpos.id, STORE_PREFIX_DELEGATE);
 				// set first delegate banned
 				await delegateStore.setWithSchema(
@@ -744,7 +745,7 @@ describe('DPoS module', () => {
 							}
 							return a.delegateAddress.compare(b.delegateAddress);
 						});
-						const stateStore = new StateStore(new InMemoryKVStore());
+						const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 						const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 						const activeDelegates = delegates
 							.slice(0, defaultConfigs.numberActiveDelegates)
@@ -825,7 +826,7 @@ describe('DPoS module', () => {
 					return a.delegateAddress.compare(b.delegateAddress);
 				});
 
-				const stateStore = new StateStore(new InMemoryKVStore());
+				const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 				const activeDelegates = delegates
 					.slice(0, defaultConfigs.numberActiveDelegates)
@@ -903,7 +904,7 @@ describe('DPoS module', () => {
 		const tokenAPI: any = {};
 
 		let validatorsAPI: any;
-		let stateStore: StateStore;
+		let stateStore: PrefixedStateReadWriter;
 		let delegateData: DelegateAccount[];
 		let delegateAddresses: Buffer[];
 		let previousTimestampStore: SubStore;
@@ -918,7 +919,7 @@ describe('DPoS module', () => {
 				moduleConfig: defaultConfigs,
 			});
 
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
 			validatorsAPI = {
 				getGeneratorsBetweenTimestamps: jest.fn(),
@@ -974,7 +975,7 @@ describe('DPoS module', () => {
 				);
 
 				const missedBlocks: Record<string, number> = {};
-				// Make every delegate miss its block-slot except start and end slots
+				// Make every delegate miss its block-slot except gte and end slots
 				for (let i = 0; i < 102; i += 1) {
 					missedBlocks[delegateAddresses[i].toString('binary')] = 1;
 				}
@@ -1363,7 +1364,7 @@ describe('DPoS module', () => {
 		const tokenAPI: any = {};
 		const validatorsAPI: any = {};
 
-		let stateStore: StateStore;
+		let stateStore: PrefixedStateReadWriter;
 		let height: number;
 		let context: BlockAfterExecuteContext;
 		let dpos: DPoSModule;
@@ -1381,7 +1382,7 @@ describe('DPoS module', () => {
 			});
 			dpos.addDependencies(randomAPI, validatorsAPI, tokenAPI);
 
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
 			previousTimestampStore = stateStore.getStore(dpos.id, STORE_PREFIX_PREVIOUS_TIMESTAMP);
 			genesisDataStore = stateStore.getStore(dpos.id, STORE_PREFIX_GENESIS_DATA);

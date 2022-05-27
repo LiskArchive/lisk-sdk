@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export class NotFoundError extends Error {
-	public constructor(key: Buffer) {
-		super(`Specified key ${key.toString('hex')} does not exist`);
-	}
-}
+import { NotFoundError } from '@liskhq/lisk-db';
+
+export { NotFoundError };

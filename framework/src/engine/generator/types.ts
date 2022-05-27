@@ -14,7 +14,7 @@
 
 import { EventEmitter } from 'events';
 import { Block, Transaction, BlockHeader, StateStore } from '@liskhq/lisk-chain';
-import { Options } from '@liskhq/lisk-db';
+import { IterateOptions } from '@liskhq/lisk-db';
 import { AggregateCommit } from '../consensus/types';
 import { ValidatorInfo } from '../consensus/certificate_generation/types';
 import { Consensus as ABIConsensus } from '../../abi';
@@ -65,12 +65,12 @@ export interface WritableBlockAssets {
 }
 
 export interface GeneratorDB {
-	clear: (options?: Options) => Promise<void>;
-	put: (key: Buffer, val: Buffer) => Promise<void>;
+	clear: (options?: IterateOptions) => Promise<void>;
+	set: (key: Buffer, val: Buffer) => Promise<void>;
 	del: (key: Buffer) => Promise<void>;
-	close: () => Promise<void>;
+	close: () => void;
 	get: (key: Buffer) => Promise<Buffer>;
-	exists(key: Buffer): Promise<boolean>;
+	has(key: Buffer): Promise<boolean>;
 }
 
 export interface BlockGenerateInput {

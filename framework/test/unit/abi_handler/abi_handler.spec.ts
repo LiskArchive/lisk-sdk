@@ -13,10 +13,10 @@
  */
 
 import * as os from 'os';
-import { StateStore, Transaction } from '@liskhq/lisk-chain';
+import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { BaseModule, TokenModule } from '../../../src';
 import { ABIHandler } from '../../../src/abi_handler/abi_handler';
 import { transferParamsSchema } from '../../../src/modules/token/schemas';
@@ -28,12 +28,25 @@ import { genesisBlock } from '../../fixtures';
 import { fakeLogger } from '../../utils/mocks';
 import { TransactionExecutionResult, TransactionVerifyResult } from '../../../src/abi';
 import { AuthModule } from '../../../src/modules/auth';
+import { InMemoryPrefixedStateDB } from '../../../src/testing/in_memory_prefixed_state';
+import { PrefixedStateReadWriter } from '../../../src/state_machine/prefixed_state_read_writer';
 
 describe('abi handler', () => {
 	let abiHandler: ABIHandler;
+	let stateDBMock = {};
+
 	const genesis = genesisBlock();
 
 	beforeEach(() => {
+		stateDBMock = {
+			get: jest.fn(),
+			set: jest.fn(),
+			del: jest.fn(),
+			snapshot: jest.fn(),
+			restoreSnapshot: jest.fn(),
+			finalize: jest.fn(),
+			newReadWriter: () => new InMemoryPrefixedStateDB(),
+		};
 		const stateMachine = new StateMachine();
 		const mod = new TokenModule();
 		const mod2 = new AuthModule();
@@ -42,8 +55,8 @@ describe('abi handler', () => {
 		abiHandler = new ABIHandler({
 			logger: fakeLogger,
 			channel: channelMock,
-			stateDB: (new InMemoryKVStore() as unknown) as KVStore,
-			moduleDB: (new InMemoryKVStore() as unknown) as KVStore,
+			stateDB: stateDBMock as never,
+			moduleDB: new InMemoryDatabase() as never,
 			genesisBlock: genesis,
 			stateMachine,
 			modules: [mod2, mod],
@@ -76,8 +89,8 @@ describe('abi handler', () => {
 			abiHandler = new ABIHandler({
 				logger: fakeLogger,
 				channel: channelMock,
-				stateDB: (new InMemoryKVStore() as unknown) as KVStore,
-				moduleDB: (new InMemoryKVStore() as unknown) as KVStore,
+				stateDB: stateDBMock as never,
+				moduleDB: new InMemoryDatabase() as never,
 				genesisBlock: genesis,
 				stateMachine,
 				modules: [mod],
@@ -109,7 +122,7 @@ describe('abi handler', () => {
 			});
 			expect(resp.contextID).toHaveLength(32);
 			expect(abiHandler['_executionContext']).not.toBeUndefined();
-			expect(abiHandler['_executionContext']?.stateStore).toBeInstanceOf(StateStore);
+			expect(abiHandler['_executionContext']?.stateStore).toBeInstanceOf(PrefixedStateReadWriter);
 		});
 	});
 
@@ -417,10 +430,8 @@ describe('abi handler', () => {
 				header: createFakeBlockHeader().toObject(),
 			});
 			// Add random data to check if new state store is used or not
-			await abiHandler['_executionContext']?.stateStore.set(
-				getRandomBytes(20),
-				getRandomBytes(100),
-			);
+			const key = getRandomBytes(20);
+			await abiHandler['_executionContext']?.stateStore.set(key, getRandomBytes(100));
 			const tx = new Transaction({
 				commandID: 2,
 				fee: BigInt(30),
@@ -436,11 +447,10 @@ describe('abi handler', () => {
 			});
 
 			expect(abiHandler['_stateMachine'].verifyTransaction).toHaveBeenCalledTimes(1);
-			expect(
-				(abiHandler['_stateMachine'].verifyTransaction as jest.Mock).mock.calls[0][0][
-					'_stateStore'
-				],
-			).not.toEqual(abiHandler['_executionContext']?.stateStore);
+			const usedStateStore = (abiHandler['_stateMachine'].verifyTransaction as jest.Mock).mock
+				.calls[0][0]['_stateStore'];
+			// Expect used state store does not have previous information
+			await expect(usedStateStore.has(key)).resolves.toBeFalse();
 			expect(resp.result).toEqual(TransactionVerifyResult.INVALID);
 		});
 	});
@@ -500,10 +510,8 @@ describe('abi handler', () => {
 				header: createFakeBlockHeader().toObject(),
 			});
 			// Add random data to check if new state store is used or not
-			await abiHandler['_executionContext']?.stateStore.set(
-				getRandomBytes(20),
-				getRandomBytes(100),
-			);
+			const key = getRandomBytes(20);
+			await abiHandler['_executionContext']?.stateStore.set(key, getRandomBytes(100));
 			const tx = new Transaction({
 				commandID: 0,
 				fee: BigInt(30),
@@ -534,11 +542,10 @@ describe('abi handler', () => {
 			});
 
 			expect(abiHandler['_stateMachine'].executeTransaction).toHaveBeenCalledTimes(1);
-			expect(
-				(abiHandler['_stateMachine'].executeTransaction as jest.Mock).mock.calls[0][0][
-					'_stateStore'
-				],
-			).not.toEqual(abiHandler['_executionContext']?.stateStore);
+			const usedStateStore = (abiHandler['_stateMachine'].executeTransaction as jest.Mock).mock
+				.calls[0][0]['_stateStore'];
+			// Expect used state store does not have previous information
+			await expect(usedStateStore.has(key)).resolves.toBeFalse();
 			expect(resp.result).toEqual(TransactionExecutionResult.OK);
 		});
 	});
@@ -621,12 +628,12 @@ describe('abi handler', () => {
 
 	describe('finalized', () => {
 		it('should clean up all the finalized state', async () => {
-			jest.spyOn(abiHandler['_stateDB'], 'clear');
+			jest.spyOn(abiHandler['_stateDB'], 'finalize');
 
 			await abiHandler.finalize({
 				finalizedHeight: 10,
 			});
-			expect(abiHandler['_stateDB'].clear).toHaveBeenCalledTimes(1);
+			expect(abiHandler['_stateDB'].finalize).toHaveBeenCalledTimes(1);
 		});
 	});
 

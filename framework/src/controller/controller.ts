@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { KVStore } from '@liskhq/lisk-db';
+import { StateDB } from '@liskhq/lisk-db';
 import * as childProcess from 'child_process';
 import { ChildProcess } from 'child_process';
 import * as path from 'path';
@@ -33,7 +33,7 @@ export interface ControllerOptions {
 }
 
 interface ControllerInitArg {
-	readonly blockchainDB: KVStore;
+	readonly stateDB: StateDB;
 	readonly logger: Logger;
 	readonly endpoints: EndpointHandlers;
 	readonly events: string[];
@@ -66,7 +66,7 @@ export class Controller {
 
 	// Injected at init
 	private _logger!: Logger;
-	private _blockchainDB!: KVStore;
+	private _stateDB!: StateDB;
 
 	// Assigned at init
 	private _channel?: InMemoryChannel;
@@ -119,12 +119,12 @@ export class Controller {
 	}
 
 	public init(arg: ControllerInitArg): void {
-		this._blockchainDB = arg.blockchainDB;
+		this._stateDB = arg.stateDB;
 		this._logger = arg.logger;
 		// Create root channel
 		this._channel = new InMemoryChannel(
 			this._logger,
-			this._blockchainDB,
+			this._stateDB,
 			APP_IDENTIFIER,
 			arg.events,
 			arg.endpoints,
@@ -164,13 +164,7 @@ export class Controller {
 		this._logger.info('Starting controller');
 		await this.channel.registerToBus(this._bus);
 		for (const [namespace, handlers] of Object.entries(this._endpointHandlers)) {
-			const channel = new InMemoryChannel(
-				this._logger,
-				this._blockchainDB,
-				namespace,
-				[],
-				handlers,
-			);
+			const channel = new InMemoryChannel(this._logger, this._stateDB, namespace, [], handlers);
 			await channel.registerToBus(this._bus);
 		}
 		await this._bus.start(this._logger);
@@ -249,7 +243,7 @@ export class Controller {
 
 		const channel = new InMemoryChannel(
 			this._logger,
-			this._blockchainDB,
+			this._stateDB,
 			name,
 			plugin.events,
 			plugin.endpoint ? getEndpointHandlers(plugin.endpoint) : {},

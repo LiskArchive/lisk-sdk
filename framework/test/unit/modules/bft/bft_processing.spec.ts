@@ -19,7 +19,7 @@ import {
 	getRandomBytes,
 	intToBuffer,
 } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { BFTModule } from '../../../../src/engine/bft';
 import {
 	EMPTY_KEY,
@@ -47,13 +47,13 @@ describe('BFT processing', () => {
 		// eslint-disable-next-line no-loop-func
 		describe(`when running scenario "${scenario.handler}"`, () => {
 			let bftModule: BFTModule;
-			let db: InMemoryKVStore;
+			let db: InMemoryDatabase;
 			let stateStore: StateStore;
 
 			beforeAll(async () => {
 				bftModule = new BFTModule();
 				await bftModule.init(scenario.config.activeDelegates);
-				db = new InMemoryKVStore();
+				db = new InMemoryDatabase();
 				stateStore = new StateStore(db);
 
 				const paramsStore = stateStore.getStore(bftModule.id, STORE_PREFIX_BFT_PARAMETERS);

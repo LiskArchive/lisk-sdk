@@ -2523,10 +2523,10 @@
   dependencies:
     "@types/node" "11.11.2"
 
-"@liskhq/lisk-db@^0.3.0-debug.20-5ef9803cd390f491c89a12b8b12ffc84a7bf0710":
-  version "0.3.0-debug.20-5ef9803cd390f491c89a12b8b12ffc84a7bf0710"
-  resolved "https://npm.lisk.com/@liskhq%2flisk-db/-/lisk-db-0.3.0-debug.20-5ef9803cd390f491c89a12b8b12ffc84a7bf0710.tgz#ddd8a4dd618ca2d5651b97f8c793be538d5ecd1a"
-  integrity sha512-ub+2fst5h3KXNFZ9IOtWV1nPXp1QoWG7iEQ4Ox9yTkxUGE8Ah/Uve/SpNpWbpTDko26CTK9IzVaELS7WbJ0MJg==
+"@liskhq/lisk-db@^0.3.0-debug.20-8b13aaf79d0795ab2c23da3c7ccf40e7bc9110f0":
+  version "0.3.0-debug.20-8b13aaf79d0795ab2c23da3c7ccf40e7bc9110f0"
+  resolved "https://npm.lisk.com/@liskhq%2flisk-db/-/lisk-db-0.3.0-debug.20-8b13aaf79d0795ab2c23da3c7ccf40e7bc9110f0.tgz#d7b0bdecfb5193ff6d0f2b100e3eff678ee5b6d7"
+  integrity sha512-a0mCAXAnag3sO7UM0atyNCWncCYcf0i2iHCtjvCEEjtOUkTf9Of++DK6WaeMVCzpWlxD7B7jIa9jLJGvl0Okpw==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.9"
     "@types/node" "^16"

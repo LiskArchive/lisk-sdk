@@ -12,11 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Transaction, StateStore } from '@liskhq/lisk-chain';
+import { Transaction } from '@liskhq/lisk-chain';
 import { Logger } from '../logger';
 import { createAPIContext, createImmutableAPIContext, wrapEventQueue } from './api_context';
 import { EVENT_INDEX_AFTER_TRANSACTIONS, EVENT_INDEX_BEFORE_TRANSACTIONS } from './constants';
 import { EventQueue } from './event_queue';
+import { PrefixedStateReadWriter } from './prefixed_state_read_writer';
 import { TransactionContext } from './transaction_context';
 import {
 	BlockAfterExecuteContext,
@@ -29,7 +30,7 @@ import {
 
 export interface ContextParams {
 	networkIdentifier: Buffer;
-	stateStore: StateStore;
+	stateStore: PrefixedStateReadWriter;
 	header: BlockHeader;
 	assets: BlockAssets;
 	logger: Logger;
@@ -41,7 +42,7 @@ export interface ContextParams {
 }
 
 export class BlockContext {
-	private readonly _stateStore: StateStore;
+	private readonly _stateStore: PrefixedStateReadWriter;
 	private readonly _networkIdentifier: Buffer;
 	private readonly _logger: Logger;
 	private readonly _eventQueue: EventQueue;

@@ -13,7 +13,7 @@
  */
 
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase, Database, Batch } from '@liskhq/lisk-db';
 import { Logger } from '../../../../src/logger';
 import { ValidatorsModule } from '../../../../src/modules/validators';
 import { fakeLogger } from '../../../utils/mocks';
@@ -25,7 +25,7 @@ describe('ValidatorsModuleEndpoint', () => {
 	const address = getRandomBytes(48);
 	const proof = getRandomBytes(48);
 	const getStore1 = jest.fn();
-	const subStore = (new InMemoryKVStore() as unknown) as KVStore;
+	const subStore = (new InMemoryDatabase() as unknown) as Database;
 	const networkIdentifier = Buffer.alloc(0);
 
 	beforeAll(() => {
@@ -35,10 +35,10 @@ describe('ValidatorsModuleEndpoint', () => {
 	describe('validateBLSKey', () => {
 		describe('when request data is valid', () => {
 			it('should resolve with false when key already exists', async () => {
-				await subStore.put(pk, address);
-				const batch = subStore.batch();
-				batch.put(pk, address);
-				await batch.write();
+				await subStore.set(pk, address);
+				const batch = new Batch();
+				batch.set(pk, address);
+				await subStore.write(batch);
 				getStore1.mockReturnValue(subStore);
 				await expect(
 					validatorsModule.endpoint.validateBLSKey({

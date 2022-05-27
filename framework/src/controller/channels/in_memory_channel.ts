@@ -14,7 +14,7 @@
 
 import { ListenerFn } from 'eventemitter2';
 import { StateStore } from '@liskhq/lisk-chain';
-import { KVStore } from '@liskhq/lisk-db';
+import { StateDB } from '@liskhq/lisk-db';
 import { Event, EventCallback } from '../event';
 import { Request } from '../request';
 import { BaseChannel } from './base_channel';
@@ -26,11 +26,11 @@ import { createImmutableAPIContext } from '../../state_machine';
 
 export class InMemoryChannel extends BaseChannel {
 	private bus!: Bus;
-	private readonly _db: KVStore;
+	private readonly _db: StateDB;
 
 	public constructor(
 		logger: Logger,
-		db: KVStore,
+		db: StateDB,
 		namespace: string,
 		events: ReadonlyArray<string>,
 		endpoints: EndpointHandlers,

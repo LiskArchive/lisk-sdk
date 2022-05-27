@@ -12,20 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateStore, EVENT_STANDARD_TYPE_ID } from '@liskhq/lisk-chain';
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
+import { EVENT_STANDARD_TYPE_ID } from '@liskhq/lisk-chain';
 import { EventQueue } from './event_queue';
+import { PrefixedStateReadWriter, StateDBReadWriter } from './prefixed_state_read_writer';
 import { SubStore, ImmutableSubStore, ImmutableAPIContext, EventQueueAdder } from './types';
 
 interface Params {
-	stateStore: StateStore;
+	stateStore: PrefixedStateReadWriter;
 	eventQueue: EventQueueAdder;
 }
 
 export const createAPIContext = (params: Params) => new APIContext(params);
 
-export const createNewAPIContext = (db: KVStore | InMemoryKVStore) =>
-	new APIContext({ stateStore: new StateStore(db), eventQueue: new EventQueue() });
+export const createNewAPIContext = (db: StateDBReadWriter) =>
+	new APIContext({ stateStore: new PrefixedStateReadWriter(db), eventQueue: new EventQueue() });
 
 interface ImmutableSubStoreGetter {
 	getStore: (moduleID: number, storePrefix: number) => ImmutableSubStore;
@@ -55,7 +55,7 @@ export const wrapEventQueue = (eventQueue: EventQueue, topic: Buffer): EventQueu
 });
 
 export class APIContext {
-	private readonly _stateStore: StateStore;
+	private readonly _stateStore: PrefixedStateReadWriter;
 	private readonly _eventQueue: EventQueueAdder;
 
 	public constructor(params: Params) {

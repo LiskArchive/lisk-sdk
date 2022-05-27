@@ -15,7 +15,7 @@
 import * as childProcess from 'child_process';
 import * as os from 'os';
 import * as fs from 'fs-extra';
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase, StateDB } from '@liskhq/lisk-db';
 import { BasePlugin } from '../../../src/plugins/base_plugin';
 import * as controllerModule from '../../../src/controller/controller';
 import { Controller } from '../../../src/controller/controller';
@@ -104,7 +104,7 @@ describe('Controller Class', () => {
 	};
 
 	const initParams = {
-		blockchainDB: (new InMemoryKVStore() as unknown) as KVStore,
+		stateDB: (new InMemoryDatabase() as unknown) as StateDB,
 		logger: loggerMock,
 		events: ['app_start', 'app_blockNew'],
 		endpoints: {

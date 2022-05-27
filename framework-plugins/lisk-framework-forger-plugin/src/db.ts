@@ -23,8 +23,8 @@ import { ForgerInfo, ForgetSyncInfo } from './types';
 
 const debug = createDebug('plugin:forger:db');
 
-const { KVStore } = liskDB;
-type KVStore = liskDB.KVStore;
+const { Database } = liskDB;
+type KVStore = liskDB.Database;
 
 export const getDBInstance = async (
 	dataPath: string,
@@ -33,7 +33,7 @@ export const getDBInstance = async (
 	const dirPath = join(dataPath.replace('~', os.homedir()), 'plugins/data', dbName);
 	await ensureDir(dirPath);
 
-	return new KVStore(dirPath);
+	return new Database(dirPath);
 };
 
 export const getForgerSyncInfo = async (db: KVStore): Promise<ForgetSyncInfo> => {
@@ -50,7 +50,7 @@ export const getForgerSyncInfo = async (db: KVStore): Promise<ForgetSyncInfo> =>
 
 export const setForgerSyncInfo = async (db: KVStore, blockHeight: number): Promise<void> => {
 	const encodedSyncInfo = codec.encode(forgerSyncSchema, { syncUptoHeight: blockHeight });
-	await db.put(DB_KEY_FORGER_SYNC_INFO, encodedSyncInfo);
+	await db.set(DB_KEY_FORGER_SYNC_INFO, encodedSyncInfo);
 };
 
 export const setForgerInfo = async (
@@ -59,7 +59,7 @@ export const setForgerInfo = async (
 	forgerInfo: ForgerInfo,
 ): Promise<void> => {
 	const encodedForgerInfo = codec.encode(forgerInfoSchema, forgerInfo);
-	await db.put(
+	await db.set(
 		Buffer.concat([DB_KEY_FORGER_INFO, Buffer.from(`:${forgerAddress}`, 'utf8')]),
 		encodedForgerInfo,
 	);

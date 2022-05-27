@@ -22,7 +22,7 @@ import {
 	getRandomBytes,
 	hash,
 } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase, Database } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { when } from 'jest-when';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
@@ -92,15 +92,15 @@ describe('generator', () => {
 	let chain: Chain;
 	let consensus: Consensus;
 	let network: Network;
-	let blockchainDB: KVStore;
-	let generatorDB: KVStore;
+	let blockchainDB: Database;
+	let generatorDB: Database;
 	let abi: ABI;
 	let bft: BFTModule;
 	let consensusEvent: EventEmitter;
 
 	beforeEach(() => {
-		blockchainDB = new InMemoryKVStore() as never;
-		generatorDB = new InMemoryKVStore() as never;
+		blockchainDB = new InMemoryDatabase() as never;
+		generatorDB = new InMemoryDatabase() as never;
 		chain = {
 			networkIdentifier: getRandomBytes(32),
 			lastBlock: {
