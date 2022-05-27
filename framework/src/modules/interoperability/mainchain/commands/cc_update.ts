@@ -52,7 +52,7 @@ import {
 } from '../../types';
 import {
 	checkActiveValidatorsUpdate,
-	checkCertificateTimestampAndSignature,
+	checkCertificateTimestamp,
 	checkCertificateValidity,
 	checkInboxUpdateValidity,
 	checkLivenessRequirementFirstCCU,
@@ -62,6 +62,7 @@ import {
 	getIDAsKeyForStore,
 	isInboxUpdateEmpty,
 	validateFormat,
+	verifyCertificateSignature,
 } from '../../utils';
 import { MainchainInteroperabilityStore } from '../store';
 
@@ -128,7 +129,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 			partnerChainIDBuffer,
 			chainValidatorsSchema,
 		);
-		// If params contains a non-empty activeValidatorsUpdate
+		// If params contains a non-empty activeValidatorsUpdate and non-empty certificate
 		const validatorsHashValidity = checkValidatorsHashWithCertificate(txParams, partnerValidators);
 		if (validatorsHashValidity.error) {
 			return validatorsHashValidity;
@@ -138,6 +139,16 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 		const activeValidatorsValidity = checkActiveValidatorsUpdate(txParams);
 		if (activeValidatorsValidity.error) {
 			return activeValidatorsValidity;
+		}
+
+		// When certificate is non-empty
+		const verifyCertificateSignatureResult = verifyCertificateSignature(
+			txParams,
+			partnerValidators,
+			partnerChainAccount,
+		);
+		if (verifyCertificateSignatureResult.error) {
+			return verifyCertificateSignatureResult;
 		}
 
 		const partnerChannelStore = context.getStore(transaction.moduleID, STORE_PREFIX_CHANNEL_DATA);
@@ -178,14 +189,8 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 			chainValidatorsSchema,
 		);
 
-		// Certificate and Validators Update Validity
-		checkCertificateTimestampAndSignature(
-			txParams,
-			partnerValidators,
-			partnerChainAccount,
-			decodedCertificate,
-			header,
-		);
+		// Certificate timestamp Validity
+		checkCertificateTimestamp(txParams, decodedCertificate, header);
 
 		// CCM execution
 		const beforeSendContext = createCCMsgBeforeSendContext({

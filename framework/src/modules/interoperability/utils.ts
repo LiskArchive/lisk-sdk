@@ -426,23 +426,33 @@ export const checkValidCertificateLiveness = (
 	}
 };
 
-export const checkCertificateTimestampAndSignature = (
+export const verifyCertificateSignature = (
 	txParams: CrossChainUpdateTransactionParams,
 	partnerValidators: ChainValidators,
 	partnerChainAccount: ChainAccount,
-	certificate: Certificate,
-	header: BlockHeader,
-) => {
-	// Certificate Validity
+): VerificationResult => {
+	// Only check when ceritificate is non-empty
 	if (txParams.certificate.equals(EMPTY_BYTES)) {
-		return;
+		return {
+			status: VerifyStatus.OK,
+		};
 	}
 
+	const decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
+
+	if (isCertificateEmpty(decodedCertificate)) {
+		return {
+			status: VerifyStatus.FAIL,
+			error: new Error(
+				'Certificate should have all required values when activeValidatorsUpdate or newCertificateThreshold has a non-empty value.',
+			),
+		};
+	}
 	const { activeValidators, certificateThreshold } = partnerValidators;
 	const verifySignature = verifyWeightedAggSig(
 		activeValidators.map(v => v.blsKey),
-		certificate.aggregationBits as Buffer,
-		certificate.signature as Buffer,
+		decodedCertificate.aggregationBits as Buffer,
+		decodedCertificate.signature as Buffer,
 		MESSAGE_TAG_CERTIFICATE,
 		partnerChainAccount.networkID,
 		txParams.certificate,
@@ -450,8 +460,31 @@ export const checkCertificateTimestampAndSignature = (
 		certificateThreshold,
 	);
 
-	if (!verifySignature || certificate.timestamp >= header.timestamp)
-		throw Error('Certificate is invalid due to invalid certificate timestamp or signature.');
+	if (!verifySignature) {
+		return {
+			status: VerifyStatus.FAIL,
+			error: new Error('Certificate is invalid due to invalid signature.'),
+		};
+	}
+
+	return {
+		status: VerifyStatus.OK,
+	};
+};
+
+export const checkCertificateTimestamp = (
+	txParams: CrossChainUpdateTransactionParams,
+	certificate: Certificate,
+	header: BlockHeader,
+) => {
+	// Only check when ceritificate is non-empty
+	if (txParams.certificate.equals(EMPTY_BYTES)) {
+		return;
+	}
+
+	if (certificate.timestamp >= header.timestamp) {
+		throw Error('Certificate is invalid due to invalid timestamp.');
+	}
 };
 
 export const checkValidatorsHashWithCertificate = (
