@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { genesisAuthStoreSchema } from '../../auth/schemas';
+import { ModuleMetadata } from '../../base_module';
 import { BaseInteroperabilityModule } from '../base_interoperability_module';
 import { MainchainInteroperabilityAPI } from './api';
 import { MainchainCCAPI } from './cc_api';
@@ -24,5 +26,23 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public registerInteroperableModule(): void {
 		// TODO
+	}
+
+	public metadata(): ModuleMetadata {
+		return {
+			endpoints: [],
+			commands: this.commands.map(command => ({
+				id: command.id,
+				name: command.name,
+				params: command.schema,
+			})),
+			events: [],
+			assets: [
+				{
+					version: 0,
+					data: genesisAuthStoreSchema,
+				},
+			],
+		};
 	}
 }
