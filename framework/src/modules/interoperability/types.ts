@@ -174,7 +174,7 @@ export interface CCCommandExecuteContext {
 	logger: Logger;
 	networkIdentifier: Buffer;
 	eventQueue: EventQueue;
-	ccm: CCMsg;
+	ccm?: CCMsg;
 	getAPIContext: () => APIContext;
 	getStore: StoreCallback;
 	feeAddress: Buffer;
@@ -220,6 +220,12 @@ export interface BFTAPI {
 		certificateThreshold: bigint;
 		validators: Validator[];
 	}>;
+	setBFTParameters(
+		apiContext: APIContext,
+		precommitThreshold: bigint,
+		certificateThreshold: bigint,
+		validators: Validator[],
+	): Promise<void>;
 }
 
 export interface ValidatorsAPI {
@@ -227,6 +233,11 @@ export interface ValidatorsAPI {
 }
 
 export interface MainchainRegistrationCommandDependencies {
+	bftAPI: BFTAPI;
+	validatorsAPI: ValidatorsAPI;
+}
+
+export interface CrossChainCommandDependencies {
 	bftAPI: BFTAPI;
 	validatorsAPI: ValidatorsAPI;
 }
@@ -274,4 +285,17 @@ export interface StateRecoveryInitParams {
 	sidechainChainAccount: Buffer;
 	bitmap: Buffer;
 	siblingHashes: Buffer[];
+}
+
+export interface CrossChainUpdateTransactionParams {
+	sendingChainID: number;
+	certificate: Buffer;
+	activeValidatorsUpdate: ActiveValidator[];
+	newCertificateThreshold: bigint;
+	inboxUpdate: InboxUpdate;
+}
+
+export interface ChainValidators {
+	activeValidators: ActiveValidator[];
+	certificateThreshold: bigint;
 }

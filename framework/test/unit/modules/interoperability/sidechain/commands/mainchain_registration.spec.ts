@@ -245,6 +245,7 @@ describe('Mainchain registration command', () => {
 		];
 		const mockBFTAPI = {
 			getBFTParameters: jest.fn(),
+			setBFTParameters: jest.fn(),
 		};
 		const mockValidatorsAPI = {
 			getValidatorAccount: jest.fn(),

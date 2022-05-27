@@ -33,6 +33,9 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 
 	public async execute(context: CCCommandExecuteContext): Promise<void> {
 		const { ccm } = context;
+		if (!ccm) {
+			throw new Error('CCM to execute sidechain terminated cross chain command is missing.');
+		}
 		const decodedParams = codec.decode<CCMSidechainTerminatedParams>(
 			sidechainTerminatedCCMParamsSchema,
 			ccm.params,

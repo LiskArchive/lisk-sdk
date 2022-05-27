@@ -24,6 +24,8 @@ export const MAINCHAIN_NETWORK_ID = Buffer.from(
 	'03693f3126b9d0df3096c4ebd59e5c42af4a7f0e313cd7c96a07b6e9f8f54924',
 	'hex',
 ); // TBD
+export const VALID_BLS_KEY_LENGTH = 48;
+export const SMT_KEY_LENGTH = 38;
 export const NUMBER_MAINCHAIN_VALIDATORS = 101;
 export const TAG_CHAIN_REG_MESSAGE = 'LSK_CHAIN_REGISTRATION';
 export const LIVENESS_LIMIT = 2592000; // 30*24*3600
@@ -37,7 +39,7 @@ export const MAX_LENGTH_NAME = 40;
 export const MAX_UINT32 = 4294967295;
 export const MAX_UINT64 = BigInt('18446744073709551615'); // BigInt((2 ** 64) - 1) - 1
 export const THRESHOLD_MAINCHAIN = 68;
-export const MESSAGE_TAG_CERTIFICATE = Buffer.from('LSK_CE_', 'utf-8');
+export const MESSAGE_TAG_CERTIFICATE = 'LSK_CE_';
 
 // Store prefixes
 export const STORE_PREFIX_OUTBOX_ROOT = 0x0000;
