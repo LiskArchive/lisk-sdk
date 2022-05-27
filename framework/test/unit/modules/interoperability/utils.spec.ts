@@ -33,7 +33,7 @@ import {
 } from '../../../../src/modules/interoperability/types';
 import {
 	checkActiveValidatorsUpdate,
-	checkCertificateTimestampAndSignature,
+	checkCertificateTimestamp,
 	checkCertificateValidity,
 	checkInboxUpdateValidity,
 	checkLivenessRequirementFirstCCU,
@@ -43,6 +43,7 @@ import {
 	computeValidatorsHash,
 	getIDAsKeyForStore,
 	updateActiveValidators,
+	verifyCertificateSignature,
 } from '../../../../src/modules/interoperability/utils';
 import { certificateSchema } from '../../../../src/node/consensus/certificate_generation/schema';
 import { Certificate } from '../../../../src/node/consensus/certificate_generation/types';
@@ -332,11 +333,20 @@ describe('Utils', () => {
 		});
 	});
 
-	describe('checkCertificateTimestampAndSignature', () => {
-		const timestamp = Date.now();
+	describe('verifyCertificateSignature', () => {
 		const activeValidatorsUpdate = [...defaultActiveValidatorsUpdate];
+		const ceritificate: Certificate = {
+			blockID: cryptography.getRandomBytes(20),
+			height: 21,
+			timestamp: Math.floor(Date.now() / 1000),
+			stateRoot: cryptography.getRandomBytes(38),
+			validatorsHash: cryptography.getRandomBytes(48),
+			aggregationBits: cryptography.getRandomBytes(38),
+			signature: cryptography.getRandomBytes(32),
+		};
+		const encodedCertificate = codec.encode(certificateSchema, ceritificate);
 		const txParams: any = {
-			certificate: Buffer.alloc(2),
+			certificate: encodedCertificate,
 		};
 		const txParamsWithEmptyCertificate: any = {
 			certificate: Buffer.alloc(0),
@@ -346,6 +356,56 @@ describe('Utils', () => {
 			certificateThreshold: 10,
 		};
 		const partnerChainAccount: any = { networkID: cryptography.getRandomBytes(32) };
+
+		it('should return VerifyStatus.OK if certificate is empty', () => {
+			jest.spyOn(cryptography, 'verifyWeightedAggSig').mockReturnValue(true);
+			const { status, error } = verifyCertificateSignature(
+				txParamsWithEmptyCertificate,
+				partnerValidators,
+				partnerChainAccount,
+			);
+
+			expect(status).toEqual(VerifyStatus.OK);
+			expect(error?.message).toBeUndefined();
+			expect(cryptography.verifyWeightedAggSig).not.toHaveBeenCalled();
+		});
+
+		it('should return VerifyStatus.FAIL when certificate signature verification fails', () => {
+			jest.spyOn(cryptography, 'verifyWeightedAggSig').mockReturnValue(false);
+			const { status, error } = verifyCertificateSignature(
+				txParams,
+				partnerValidators,
+				partnerChainAccount,
+			);
+
+			expect(status).toEqual(VerifyStatus.FAIL);
+			expect(error?.message).toEqual('Certificate is invalid due to invalid signature.');
+			expect(cryptography.verifyWeightedAggSig).toHaveBeenCalledTimes(1);
+		});
+
+		it('should return VerifyStatus.OK when certificate signature verification passes', () => {
+			jest.spyOn(cryptography, 'verifyWeightedAggSig').mockReturnValue(true);
+
+			const { status, error } = verifyCertificateSignature(
+				txParams,
+				partnerValidators,
+				partnerChainAccount,
+			);
+
+			expect(status).toEqual(VerifyStatus.OK);
+			expect(error).toBeUndefined();
+			expect(cryptography.verifyWeightedAggSig).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	describe('checkCertificateTimestamp', () => {
+		const timestamp = Date.now();
+		const txParams: any = {
+			certificate: Buffer.alloc(2),
+		};
+		const txParamsWithEmptyCertificate: any = {
+			certificate: Buffer.alloc(0),
+		};
 		const certificate: any = {
 			aggregationBits: Buffer.alloc(2),
 			signature: Buffer.alloc(2),
@@ -360,44 +420,18 @@ describe('Utils', () => {
 
 		it('should return if certificate is empty', () => {
 			expect(
-				checkCertificateTimestampAndSignature(
-					txParamsWithEmptyCertificate,
-					partnerValidators,
-					partnerChainAccount,
-					certificate,
-					header,
-				),
+				checkCertificateTimestamp(txParamsWithEmptyCertificate, certificate, header),
 			).toBeUndefined();
 		});
 
-		it('should throw error when certificate signature verification fails', () => {
-			jest.spyOn(cryptography, 'verifyWeightedAggSig').mockReturnValue(false);
-
+		it('should throw error when certificate.timestamp is greater than header.timestamp', () => {
 			expect(() =>
-				checkCertificateTimestampAndSignature(
-					txParams,
-					partnerValidators,
-					partnerChainAccount,
-					certificate,
-					header,
-				),
-			).toThrow('Certificate is invalid due to invalid certificate timestamp or signature');
-			expect(cryptography.verifyWeightedAggSig).toHaveBeenCalledTimes(1);
+				checkCertificateTimestamp(txParams, certificateWithHigherTimestamp, header),
+			).toThrow('Certificate is invalid due to invalid timestamp.');
 		});
 
-		it('should throw error when certificate.timestamp is greater than header.timestamp', () => {
-			jest.spyOn(cryptography, 'verifyWeightedAggSig').mockReturnValue(true);
-
-			expect(() =>
-				checkCertificateTimestampAndSignature(
-					txParams,
-					partnerValidators,
-					partnerChainAccount,
-					certificateWithHigherTimestamp,
-					header,
-				),
-			).toThrow('Certificate is invalid due to invalid certificate timestamp or signature');
-			expect(cryptography.verifyWeightedAggSig).toHaveBeenCalledTimes(1);
+		it('should return undefined certificate.timestamp is less than header.timestamp', () => {
+			expect(checkCertificateTimestamp(txParams, certificate, header)).toBeUndefined();
 		});
 	});
 

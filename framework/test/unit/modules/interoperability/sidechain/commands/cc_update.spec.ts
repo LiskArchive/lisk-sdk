@@ -242,6 +242,7 @@ describe('CrossChainUpdateCommand', () => {
 		jest.spyOn(SidechainInteroperabilityStore.prototype, 'isLive').mockResolvedValue(true);
 
 		jest.spyOn(interopUtils, 'computeValidatorsHash').mockReturnValue(validatorsHash);
+		jest.spyOn(cryptography, 'verifyWeightedAggSig').mockReturnValue(true);
 	});
 
 	describe('verify', () => {
@@ -344,6 +345,18 @@ describe('CrossChainUpdateCommand', () => {
 			);
 		});
 
+		it('should return VerifyStatus.FAIL when verifyCertificateSignature fails', async () => {
+			jest.spyOn(interopUtils, 'verifyCertificateSignature').mockReturnValue({
+				status: VerifyStatus.FAIL,
+				error: new Error('Certificate is invalid due to invalid signature.'),
+			});
+
+			const { status, error } = await sidechainCCUUpdateCommand.verify(verifyContext);
+
+			expect(status).toEqual(VerifyStatus.FAIL);
+			expect(error?.message).toContain('Certificate is invalid due to invalid signature.');
+		});
+
 		it('should return error checkInboxUpdateValidity fails', async () => {
 			jest.spyOn(interopUtils, 'checkInboxUpdateValidity').mockReturnValue({
 				status: VerifyStatus.FAIL,
@@ -420,7 +433,7 @@ describe('CrossChainUpdateCommand', () => {
 			).rejects.toThrow('Certificate is not valid as it passed Liveness limit of 2592000 seconds.');
 		});
 
-		it('should throw error when checkCertificateTimestampAndSignature() throws error', async () => {
+		it('should throw error when checkCertificateTimestamp() throws error', async () => {
 			const blockHeaderWithInvalidTimestamp = {
 				height: 25,
 				timestamp: Math.floor(Date.now() / 1000) - LIVENESS_LIMIT,
@@ -430,14 +443,11 @@ describe('CrossChainUpdateCommand', () => {
 					...executeContext,
 					header: { ...blockHeader, timestamp: blockHeaderWithInvalidTimestamp.timestamp },
 				}),
-			).rejects.toThrow(
-				'Certificate is invalid due to invalid certificate timestamp or signature.',
-			);
+			).rejects.toThrow('Certificate is invalid due to invalid timestamp.');
 		});
 
 		it('should throw error and calls terminateChainInternal() if CCM decoding fails', async () => {
 			const invalidCCM = Buffer.from([1]);
-			jest.spyOn(cryptography, 'verifyWeightedAggSig').mockReturnValue(true);
 			jest
 				.spyOn(interopUtils, 'computeValidatorsHash')
 				.mockReturnValue(defaultCertificateValues.validatorsHash);
@@ -462,7 +472,6 @@ describe('CrossChainUpdateCommand', () => {
 				.calledWith(defaultSendingChainIDBuffer, chainAccountSchema)
 				.mockResolvedValue({ ...partnerChainAccount, status: CHAIN_REGISTERED });
 
-			jest.spyOn(cryptography, 'verifyWeightedAggSig').mockReturnValue(true);
 			jest
 				.spyOn(interopUtils, 'computeValidatorsHash')
 				.mockReturnValue(defaultCertificateValues.validatorsHash);
@@ -485,7 +494,6 @@ describe('CrossChainUpdateCommand', () => {
 				sendingChainID: 50,
 				status: CCM_STATUS_OK,
 			});
-			jest.spyOn(cryptography, 'verifyWeightedAggSig').mockReturnValue(true);
 			jest
 				.spyOn(interopUtils, 'computeValidatorsHash')
 				.mockReturnValue(defaultCertificateValues.validatorsHash);
@@ -517,7 +525,6 @@ describe('CrossChainUpdateCommand', () => {
 				status: CCM_STATUS_OK,
 			};
 			const invalidCCMSerialized = codec.encode(ccmSchema, invalidCCM);
-			jest.spyOn(cryptography, 'verifyWeightedAggSig').mockReturnValue(true);
 			jest
 				.spyOn(interopUtils, 'computeValidatorsHash')
 				.mockReturnValue(defaultCertificateValues.validatorsHash);
@@ -557,7 +564,6 @@ describe('CrossChainUpdateCommand', () => {
 				status: CCM_STATUS_OK,
 			};
 			const sidechainCCMSerialized = codec.encode(ccmSchema, sidechainCCM);
-			jest.spyOn(cryptography, 'verifyWeightedAggSig').mockReturnValue(true);
 			jest
 				.spyOn(interopUtils, 'computeValidatorsHash')
 				.mockReturnValue(defaultCertificateValues.validatorsHash);
