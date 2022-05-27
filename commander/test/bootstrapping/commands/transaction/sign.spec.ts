@@ -149,10 +149,38 @@ describe('transaction:sign command', () => {
 		jest.spyOn(readerUtils, 'getPassphraseFromPrompt').mockResolvedValue(senderPassphrase);
 		jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue({
 			disconnect: jest.fn(),
-			schemas: {
+			schema: {
 				transaction: transactionSchema,
-				commands,
 			},
+			metadata: [
+				{
+					id: 2,
+					commands: [
+						{
+							id: 0,
+							params: tokenTransferParamsSchema,
+						},
+					],
+				},
+				{
+					id: 12,
+					commands: [
+						{
+							id: 0,
+							params: keysRegisterParamsSchema,
+						},
+					],
+				},
+				{
+					id: 13,
+					commands: [
+						{
+							id: 1,
+							params: dposVoteParamsSchema,
+						},
+					],
+				},
+			],
 			transaction: {
 				sign: jest.fn().mockReturnValue(mockJSONTransaction),
 				encode: jest.fn().mockReturnValue(mockEncodedTransaction),

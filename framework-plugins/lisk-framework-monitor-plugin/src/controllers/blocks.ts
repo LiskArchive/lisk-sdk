@@ -34,7 +34,7 @@ export const getBlockStats = async (
 	client: BasePlugin['apiClient'],
 	state: SharedState,
 ): Promise<BlockStats> => {
-	const connectedPeers = await client.invoke<ReadonlyArray<PeerInfo>>('app_getConnectedPeers');
+	const connectedPeers = await client.invoke<ReadonlyArray<PeerInfo>>('network_getConnectedPeers');
 
 	return {
 		blocks: state.blocks,

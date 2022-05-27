@@ -28,18 +28,6 @@ import { getConfig } from '../../../helpers/config';
 import { PromiseResolvedType } from '../../../../src/types';
 
 describe('transaction:create command', () => {
-	const commandSchemas = [
-		{
-			moduleID: 2,
-			commandID: 0,
-			schema: tokenTransferParamsSchema,
-		},
-		{
-			moduleID: 13,
-			commandID: 1,
-			schema: dposVoteParamsSchema,
-		},
-	];
 	const passphrase = 'peanut hundred pen hawk invite exclude brain chunk gadget wait wrong ready';
 	const transferParams =
 		'{"tokenID": "0000000000000000","amount":100,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}';
@@ -91,10 +79,29 @@ describe('transaction:create command', () => {
 		jest.spyOn(CreateCommandExtended.prototype, 'printJSON').mockReturnValue();
 		clientMock = {
 			disconnect: jest.fn(),
-			schemas: {
+			schema: {
 				transaction: transactionSchema,
-				commands: commandSchemas,
 			},
+			metadata: [
+				{
+					id: 2,
+					commands: [
+						{
+							id: 0,
+							params: tokenTransferParamsSchema,
+						},
+					],
+				},
+				{
+					id: 13,
+					commands: [
+						{
+							id: 1,
+							params: dposVoteParamsSchema,
+						},
+					],
+				},
+			],
 			node: {
 				getNodeInfo: jest.fn().mockResolvedValue({
 					networkIdentifier: '873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3',
@@ -149,7 +156,7 @@ describe('transaction:create command', () => {
 	describe('transaction:create 99999 0 100000000', () => {
 		it('should throw an error when moduleID is not registered.', async () => {
 			await expect(CreateCommandExtended.run(['99999', '0', '100000000'], config)).rejects.toThrow(
-				'Transaction moduleID:99999 with commandID:0 is not registered in the application',
+				'ModuleID: 99999 is not registered',
 			);
 		});
 	});

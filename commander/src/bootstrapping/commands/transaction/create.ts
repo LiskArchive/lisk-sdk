@@ -69,7 +69,11 @@ interface Transaction {
 }
 
 const getParamsObject = async (metadata: ModuleMetadata[], flags: CreateFlags, args: Args) => {
-	const paramsSchema = getParamsSchema(metadata, args.moduleID, args.commandID) as Schema;
+	const paramsSchema = getParamsSchema(
+		metadata,
+		Number(args.moduleID),
+		Number(args.commandID),
+	) as Schema;
 	const rawParams = flags.params
 		? JSON.parse(flags.params)
 		: await getParamsFromPrompt(paramsSchema);

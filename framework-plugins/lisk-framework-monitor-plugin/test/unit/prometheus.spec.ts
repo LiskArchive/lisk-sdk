@@ -126,11 +126,11 @@ describe('networkStats', () => {
 		channelMock.invoke = channelInvokeMock;
 
 		when(channelInvokeMock)
-			.calledWith('app_getConnectedPeers')
+			.calledWith('network_getConnectedPeers')
 			.mockResolvedValue(connectedPeers)
-			.calledWith('app_getDisconnectedPeers')
+			.calledWith('network_getDisconnectedPeers')
 			.mockResolvedValue(disconnectedPeers)
-			.calledWith('app_getNodeInfo')
+			.calledWith('network_getNodeInfo')
 			.mockResolvedValue(nodeInfo);
 	});
 

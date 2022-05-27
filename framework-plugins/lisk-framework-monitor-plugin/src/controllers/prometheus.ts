@@ -61,9 +61,9 @@ export const getData = (client: BasePlugin['apiClient'], state: SharedState) => 
 	next: NextFunction,
 ): Promise<void> => {
 	try {
-		const connectedPeers: PeerInfo[] = await client.invoke('app_getConnectedPeers');
-		const disconnectedPeers: PeerInfo[] = await client.invoke('app_getDisconnectedPeers');
-		const nodeInfo: NodeInfo = await client.invoke('app_getNodeInfo');
+		const connectedPeers: PeerInfo[] = await client.invoke('network_getConnectedPeers');
+		const disconnectedPeers: PeerInfo[] = await client.invoke('network_getDisconnectedPeers');
+		const nodeInfo: NodeInfo = await client.invoke('network_getNodeInfo');
 		const blockStats = await getBlockStats(client, state);
 		const transactionStats = await getTransactionStats(client, state);
 
