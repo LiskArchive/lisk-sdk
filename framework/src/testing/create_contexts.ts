@@ -41,6 +41,7 @@ import {
 	CCUpdateParams,
 	RecoverCCMsgAPIContext,
 } from '../modules/interoperability/types';
+import { EventQueueAdder } from '../node/state_machine/types';
 
 export const createGenesisBlockContext = (params: {
 	header?: BlockHeader;
@@ -256,7 +257,7 @@ const createCCAPIContext = (params: {
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
-	eventQueue?: EventQueue;
+	eventQueue?: EventQueueAdder;
 	ccm?: CCMsg;
 	feeAddress?: Buffer;
 }) => {
@@ -293,7 +294,7 @@ export const createExecuteCCMsgAPIContext = (params: {
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
-	eventQueue?: EventQueue;
+	eventQueue?: EventQueueAdder;
 }): CCCommandExecuteContext => createCCAPIContext(params);
 
 export const createBeforeSendCCMsgAPIContext = (params: {
@@ -302,7 +303,7 @@ export const createBeforeSendCCMsgAPIContext = (params: {
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
-	eventQueue?: EventQueue;
+	eventQueue?: EventQueueAdder;
 }): BeforeSendCCMsgAPIContext => createCCAPIContext(params);
 
 export const createBeforeApplyCCMsgAPIContext = (params: {
@@ -313,7 +314,7 @@ export const createBeforeApplyCCMsgAPIContext = (params: {
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
-	eventQueue?: EventQueue;
+	eventQueue?: EventQueueAdder;
 	feeAddress: Buffer;
 }): BeforeApplyCCMsgAPIContext => ({
 	...createCCAPIContext(params),

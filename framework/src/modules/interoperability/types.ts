@@ -14,8 +14,13 @@
 
 import { Logger } from '../../logger';
 import { Validator } from '../../node/consensus/types';
-import { APIContext, EventQueue } from '../../node/state_machine';
-import { ImmutableAPIContext, ImmutableSubStore, SubStore } from '../../node/state_machine/types';
+import { APIContext } from '../../node/state_machine';
+import {
+	EventQueueAdder,
+	ImmutableAPIContext,
+	ImmutableSubStore,
+	SubStore,
+} from '../../node/state_machine/types';
 
 export type StoreCallback = (moduleID: number, storePrefix: number) => SubStore | ImmutableSubStore;
 export interface CCMsg {
@@ -63,7 +68,7 @@ export interface CCAPIContext {
 	getStore: StoreCallback;
 	logger: Logger;
 	networkIdentifier: Buffer;
-	eventQueue: EventQueue;
+	eventQueue: EventQueueAdder;
 	ccm?: CCMsg;
 	feeAddress: Buffer;
 }
@@ -104,7 +109,7 @@ export interface CCMApplyContext {
 	getStore: StoreCallback;
 	logger: Logger;
 	networkIdentifier: Buffer;
-	eventQueue: EventQueue;
+	eventQueue: EventQueueAdder;
 	feeAddress: Buffer;
 	ccm: CCMsg;
 	ccu: CCUpdateParams;
@@ -115,7 +120,7 @@ export interface CCMForwardContext {
 	getStore: StoreCallback;
 	logger: Logger;
 	networkIdentifier: Buffer;
-	eventQueue: EventQueue;
+	eventQueue: EventQueueAdder;
 	feeAddress: Buffer;
 	ccm: CCMsg;
 	ccu: CCUpdateParams;
@@ -173,7 +178,7 @@ export interface TerminatedStateAccount {
 export interface CCCommandExecuteContext {
 	logger: Logger;
 	networkIdentifier: Buffer;
-	eventQueue: EventQueue;
+	eventQueue: EventQueueAdder;
 	ccm?: CCMsg;
 	getAPIContext: () => APIContext;
 	getStore: StoreCallback;
