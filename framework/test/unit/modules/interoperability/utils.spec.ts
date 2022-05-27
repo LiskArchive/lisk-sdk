@@ -381,9 +381,7 @@ describe('Utils', () => {
 					certificate,
 					header,
 				),
-			).toThrow(
-				'Certificate is invalid due to invalid last certified height or timestamp or signature.',
-			);
+			).toThrow('Certificate is invalid due to invalid certificate timestamp or signature');
 			expect(cryptography.verifyWeightedAggSig).toHaveBeenCalledTimes(1);
 		});
 
@@ -398,9 +396,7 @@ describe('Utils', () => {
 					certificateWithHigherTimestamp,
 					header,
 				),
-			).toThrow(
-				'Certificate is invalid due to invalid last certified height or timestamp or signature.',
-			);
+			).toThrow('Certificate is invalid due to invalid certificate timestamp or signature');
 			expect(cryptography.verifyWeightedAggSig).toHaveBeenCalledTimes(1);
 		});
 	});
@@ -439,7 +435,7 @@ describe('Utils', () => {
 					{ ...certificate, validatorsHash: cryptography.getRandomBytes(32) },
 					partnerValidators,
 				),
-			).toThrow('Validators hash is incorrect given in the certificate.');
+			).toThrow('Validators hash given in the certificate is incorrect.');
 		});
 
 		it('should return undefined when validators hash is correct', () => {

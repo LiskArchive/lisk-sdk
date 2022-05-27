@@ -72,7 +72,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 	public async verify(
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
 	): Promise<VerificationResult> {
-		const { params: txParams, transaction } = context;
+		const { params: txParams, transaction, getStore } = context;
 		const errors = validator.validate(crossChainUpdateTransactionParams, context.params);
 
 		if (errors.length > 0) {
@@ -83,7 +83,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		}
 
 		const partnerChainIDBuffer = getIDAsKeyForStore(txParams.sendingChainID);
-		const partnerChainStore = context.getStore(transaction.moduleID, STORE_PREFIX_CHAIN_DATA);
+		const partnerChainStore = getStore(transaction.moduleID, STORE_PREFIX_CHAIN_DATA);
 		const partnerChainAccount = await partnerChainStore.getWithSchema<ChainAccount>(
 			partnerChainIDBuffer,
 			chainAccountSchema,
@@ -96,13 +96,15 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 				error: new Error(`Sending partner chain ${txParams.sendingChainID} is terminated.`),
 			};
 		}
-		const interoperabilityStore = this.getInteroperabilityStore(context.getStore as StoreCallback);
-		const isChainLive = await interoperabilityStore.isLive(partnerChainIDBuffer);
-		if (partnerChainAccount.status === CHAIN_ACTIVE && !isChainLive) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error(`Sending partner chain ${txParams.sendingChainID} is not live.`),
-			};
+		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+		if (partnerChainAccount.status === CHAIN_ACTIVE) {
+			const isChainLive = await interoperabilityStore.isLive(partnerChainIDBuffer);
+			if (!isChainLive) {
+				return {
+					status: VerifyStatus.FAIL,
+					error: new Error(`Sending partner chain ${txParams.sendingChainID} is not live.`),
+				};
+			}
 		}
 
 		// Section: Liveness Requirement for the First CCU
@@ -207,7 +209,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 			// If the first CCM in inboxUpdate is a registration CCM
 			if (
 				decodedCCMs[0].deserialized.crossChainCommandID === CROSS_CHAIN_COMMAND_ID_REGISTRATION &&
-				decodedCCMs[0].deserialized.receivingChainID === txParams.sendingChainID
+				decodedCCMs[0].deserialized.sendingChainID === txParams.sendingChainID
 			) {
 				partnerChainAccount.status = CHAIN_ACTIVE;
 			} else {

@@ -244,7 +244,7 @@ export const checkLivenessRequirementFirstCCU = (
 		return {
 			status: VerifyStatus.FAIL,
 			error: new Error(
-				`Sending partner chain ${txParams.sendingChainID} is in registered status so certificate cannot be empty.`,
+				`Sending partner chain ${txParams.sendingChainID} has a registered status so certificate cannot be empty.`,
 			),
 		};
 	}
@@ -273,7 +273,7 @@ export const checkCertificateValidity = (
 	}
 
 	// Last certificate height should be less than new certificate height
-	if (partnerChainAccount.lastCertificate.height > decodedCertificate.height) {
+	if (partnerChainAccount.lastCertificate.height >= decodedCertificate.height) {
 		return {
 			status: VerifyStatus.FAIL,
 			error: new Error('Certificate height should be greater than last certificate height.'),
@@ -433,7 +433,7 @@ export const checkCertificateTimestampAndSignature = (
 	certificate: Certificate,
 	header: BlockHeader,
 ) => {
-	// Certificate and Validators Update Validity
+	// Certificate Validity
 	if (txParams.certificate.equals(EMPTY_BYTES)) {
 		return;
 	}
@@ -451,9 +451,7 @@ export const checkCertificateTimestampAndSignature = (
 	);
 
 	if (!verifySignature || certificate.timestamp >= header.timestamp)
-		throw Error(
-			'Certificate is invalid due to invalid last certified height or timestamp or signature.',
-		);
+		throw Error('Certificate is invalid due to invalid certificate timestamp or signature.');
 };
 
 export const checkValidatorsHashWithCertificate = (
@@ -476,7 +474,7 @@ export const checkValidatorsHashWithCertificate = (
 		);
 
 		if (!certificate.validatorsHash.equals(validatorsHash)) {
-			throw new Error('Validators hash is incorrect given in the certificate.');
+			throw new Error('Validators hash given in the certificate is incorrect.');
 		}
 	}
 };

@@ -268,7 +268,7 @@ describe('CrossChainUpdateCommand', () => {
 			});
 			expect(status).toEqual(VerifyStatus.FAIL);
 			expect(error?.message).toContain(
-				`Sending partner chain ${defaultSendingChainID} is in registered status so certificate cannot be empty.`,
+				`Sending partner chain ${defaultSendingChainID} has a registered status so certificate cannot be empty.`,
 			);
 		});
 
@@ -388,14 +388,14 @@ describe('CrossChainUpdateCommand', () => {
 					header: { ...blockHeader, timestamp: blockHeaderWithInvalidTimestamp.timestamp },
 				}),
 			).rejects.toThrow(
-				'Certificate is invalid due to invalid last certified height or timestamp or signature.',
+				'Certificate is invalid due to invalid certificate timestamp or signature.',
 			);
 		});
 
 		it('should throw error when checkValidatorsHashWithCertificate() throws error', async () => {
 			jest.spyOn(cryptography, 'verifyWeightedAggSig').mockReturnValue(true);
 			await expect(sidechainCCUUpdateCommand.execute(executeContext)).rejects.toThrow(
-				'Validators hash is incorrect given in the certificate.',
+				'Validators hash given in the certificate is incorrect.',
 			);
 		});
 

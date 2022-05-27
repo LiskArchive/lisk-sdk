@@ -73,7 +73,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 	public async verify(
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
 	): Promise<VerificationResult> {
-		const { params: txParams, transaction } = context;
+		const { params: txParams, transaction, getStore } = context;
 		const errors = validator.validate(crossChainUpdateTransactionParams, context.params);
 
 		if (errors.length > 0) {
@@ -84,7 +84,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 		}
 
 		const partnerChainIDBuffer = getIDAsKeyForStore(txParams.sendingChainID);
-		const partnerChainStore = context.getStore(transaction.moduleID, STORE_PREFIX_CHAIN_DATA);
+		const partnerChainStore = getStore(transaction.moduleID, STORE_PREFIX_CHAIN_DATA);
 		const partnerChainAccount = await partnerChainStore.getWithSchema<ChainAccount>(
 			partnerChainIDBuffer,
 			chainAccountSchema,
@@ -97,13 +97,15 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 				error: new Error(`Sending partner chain ${txParams.sendingChainID} is terminated.`),
 			};
 		}
-		const interoperabilityStore = this.getInteroperabilityStore(context.getStore as StoreCallback);
-		const isChainLive = await interoperabilityStore.isLive(partnerChainIDBuffer, Date.now());
-		if (partnerChainAccount.status === CHAIN_ACTIVE && !isChainLive) {
-			return {
-				status: VerifyStatus.FAIL,
-				error: new Error(`Sending partner chain ${txParams.sendingChainID} is not live.`),
-			};
+		const interoperabilityStore = this.getInteroperabilityStore(getStore);
+		if (partnerChainAccount.status === CHAIN_ACTIVE) {
+			const isChainLive = await interoperabilityStore.isLive(partnerChainIDBuffer, Date.now());
+			if (!isChainLive) {
+				return {
+					status: VerifyStatus.FAIL,
+					error: new Error(`Sending partner chain ${txParams.sendingChainID} is not live.`),
+				};
+			}
 		}
 
 		// Section: Liveness Requirement for the First CCU
