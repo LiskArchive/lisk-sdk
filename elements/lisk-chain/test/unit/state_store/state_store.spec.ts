@@ -13,7 +13,7 @@
  */
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { DB_KEY_STATE_STORE } from '../../../src';
 import { NotFoundError, StateStore } from '../../../src/state_store';
 import { DatabaseWriter } from '../../../src/state_store/types';
@@ -38,20 +38,20 @@ describe('state store', () => {
 	const existingValue2 = getRandomBytes(64);
 
 	let stateStore: StateStore;
-	let db: InMemoryKVStore;
+	let db: InMemoryDatabase;
 
 	beforeEach(async () => {
-		db = new InMemoryKVStore();
+		db = new InMemoryDatabase();
 		stateStore = new StateStore(db);
 		const moduleIDBuffer = Buffer.alloc(4);
 		moduleIDBuffer.writeInt32BE(moduleID, 0);
 		const storePrefixBuffer = Buffer.alloc(2);
 		storePrefixBuffer.writeUInt16BE(storePrefix, 0);
-		await db.put(
+		await db.set(
 			Buffer.concat([stateStore['_prefix'], moduleIDBuffer, storePrefixBuffer, existingKey]),
 			existingValue,
 		);
-		await db.put(
+		await db.set(
 			Buffer.concat([stateStore['_prefix'], moduleIDBuffer, storePrefixBuffer, existingKey2]),
 			existingValue2,
 		);
@@ -342,7 +342,7 @@ describe('state store', () => {
 			}
 			await anotherStore.del(data[2].key);
 			batch = {
-				put: jest.fn(),
+				set: jest.fn(),
 				del: jest.fn(),
 			};
 		});
@@ -350,7 +350,7 @@ describe('state store', () => {
 		it('should set all the newly created and updated values', () => {
 			stateStore.finalize(batch);
 
-			expect(batch.put).toHaveBeenCalledTimes(3);
+			expect(batch.set).toHaveBeenCalledTimes(3);
 			expect(batch.del).toHaveBeenCalledTimes(1);
 		});
 

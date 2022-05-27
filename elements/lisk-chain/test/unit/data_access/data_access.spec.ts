@@ -13,17 +13,16 @@
  */
 import { Readable } from 'stream';
 import { when } from 'jest-when';
-import { formatInt, NotFoundError, getFirstPrefix, getLastPrefix, KVStore } from '@liskhq/lisk-db';
+import { NotFoundError, InMemoryDatabase } from '@liskhq/lisk-db';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { DataAccess } from '../../../src/data_access';
 import { createFakeBlockHeader, createValidDefaultBlock } from '../../utils/block';
 import { Transaction } from '../../../src/transaction';
-import { concatDBKeys } from '../../../src/utils';
+import { concatDBKeys, uint32BE } from '../../../src/utils';
 import {
 	DB_KEY_BLOCKS_HEIGHT,
 	DB_KEY_BLOCKS_ID,
 	DB_KEY_TRANSACTIONS_ID,
-	DB_KEY_TEMPBLOCKS_HEIGHT,
 	DB_KEY_BLOCK_EVENTS,
 } from '../../../src/db_keys';
 import { Block } from '../../../src/block';
@@ -39,15 +38,8 @@ describe('data_access', () => {
 	let block: Block;
 
 	beforeEach(async () => {
-		db = new KVStore('temp');
+		db = new InMemoryDatabase();
 		(db.createReadStream as jest.Mock).mockReturnValue(Readable.from([]));
-		(formatInt as jest.Mock).mockImplementation(n => {
-			const buf = Buffer.alloc(4);
-			buf.writeUInt32BE(n, 0);
-			return buf;
-		});
-		(getFirstPrefix as jest.Mock).mockImplementation(str => str);
-		(getLastPrefix as jest.Mock).mockImplementation(str => str);
 		dataAccess = new DataAccess({
 			db,
 			minBlockHeaderCache: 3,
@@ -121,7 +113,7 @@ describe('data_access', () => {
 				]),
 			);
 			when(db.get)
-				.calledWith(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(block.header.height)))
+				.calledWith(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, uint32BE(block.header.height)))
 				.mockResolvedValue(block.header.id as never)
 				.calledWith(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id))
 				.mockResolvedValue(block.header.getBytes() as never);
@@ -131,7 +123,7 @@ describe('data_access', () => {
 			// Assert
 			expect(db.get).toHaveBeenCalledTimes(2);
 			expect(db.get).toHaveBeenCalledWith(
-				concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(block.header.height)),
+				concatDBKeys(DB_KEY_BLOCKS_HEIGHT, uint32BE(block.header.height)),
 			);
 			expect(db.get).toHaveBeenCalledWith(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id));
 		});
@@ -186,7 +178,7 @@ describe('data_access', () => {
 		it('should return persisted blocks if cache does not exist', async () => {
 			// Arrange
 			when(db.get)
-				.calledWith(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(block.header.height)))
+				.calledWith(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, uint32BE(block.header.height)))
 				.mockResolvedValue(block.header.id as never)
 				.calledWith(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id))
 				.mockResolvedValue(block.header.getBytes() as never);
@@ -196,7 +188,7 @@ describe('data_access', () => {
 			// Assert
 			expect(db.get).toHaveBeenCalledTimes(2);
 			expect(db.get).toHaveBeenCalledWith(
-				concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(block.header.height)),
+				concatDBKeys(DB_KEY_BLOCKS_HEIGHT, uint32BE(block.header.height)),
 			);
 			expect(db.get).toHaveBeenCalledWith(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id));
 		});
@@ -316,13 +308,13 @@ describe('data_access', () => {
 			// Arrange
 			when(db.get)
 				.mockRejectedValue(new NotFoundError('Data not found') as never)
-				.calledWith(concatDBKeys(DB_KEY_BLOCKS_ID, formatInt(1)))
+				.calledWith(concatDBKeys(DB_KEY_BLOCKS_ID, uint32BE(1)))
 				.mockResolvedValue(block.header.getBytes() as never);
 			// Act
-			await dataAccess.getBlocksByIDs([formatInt(1)]);
+			await dataAccess.getBlocksByIDs([uint32BE(1)]);
 
 			// Assert
-			expect(db.get).toHaveBeenCalledWith(concatDBKeys(DB_KEY_BLOCKS_ID, formatInt(1)));
+			expect(db.get).toHaveBeenCalledWith(concatDBKeys(DB_KEY_BLOCKS_ID, uint32BE(1)));
 		});
 	});
 
@@ -393,7 +385,7 @@ describe('data_access', () => {
 			db.get.mockResolvedValue(encodeByteArray(original.map(e => e.getBytes())) as never);
 
 			const resp = await dataAccess.getEvents(30);
-			expect(db.get).toHaveBeenCalledWith(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(30)));
+			expect(db.get).toHaveBeenCalledWith(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(30)));
 			expect(resp).toEqual(original);
 		});
 	});
@@ -404,7 +396,7 @@ describe('data_access', () => {
 			await dataAccess.isBlockPersisted(block.header.id);
 
 			// Assert
-			expect(db.exists).toHaveBeenCalledWith(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id));
+			expect(db.has).toHaveBeenCalledWith(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id));
 		});
 	});
 
@@ -462,11 +454,7 @@ describe('data_access', () => {
 			await dataAccess.clearTempBlocks();
 
 			// Assert
-			expect(db.clear).toHaveBeenCalledTimes(1);
-			expect(db.clear).toHaveBeenCalledWith({
-				gte: DB_KEY_TEMPBLOCKS_HEIGHT,
-				lte: DB_KEY_TEMPBLOCKS_HEIGHT,
-			});
+			expect(db.write).toHaveBeenCalledTimes(1);
 		});
 	});
 
@@ -508,9 +496,7 @@ describe('data_access', () => {
 			await dataAccess.isTransactionPersisted(Buffer.from('1'));
 
 			// Assert
-			expect(db.exists).toHaveBeenCalledWith(
-				concatDBKeys(DB_KEY_TRANSACTIONS_ID, Buffer.from('1')),
-			);
+			expect(db.has).toHaveBeenCalledWith(concatDBKeys(DB_KEY_TRANSACTIONS_ID, Buffer.from('1')));
 		});
 	});
 

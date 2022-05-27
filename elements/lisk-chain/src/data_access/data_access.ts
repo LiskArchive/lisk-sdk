@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { KVStore, NotFoundError } from '@liskhq/lisk-db';
+import { Database, NotFoundError } from '@liskhq/lisk-db';
 import { Transaction } from '../transaction';
 import { RawBlock } from '../types';
 import { BlockHeader } from '../block_header';
@@ -25,7 +25,7 @@ import { BlockAssets } from '../block_assets';
 import { CurrentState } from '../state_store';
 
 interface DAConstructor {
-	readonly db: KVStore;
+	readonly db: Database;
 	readonly minBlockHeaderCache: number;
 	readonly maxBlockHeaderCache: number;
 	readonly keepEventsForHeights: number;

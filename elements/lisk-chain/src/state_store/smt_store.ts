@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BatchChain, NotFoundError as DBNotFoundError } from '@liskhq/lisk-db';
+import { Batch, NotFoundError as DBNotFoundError } from '@liskhq/lisk-db';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { StateStore } from './state_store';
 import { DB_KEY_STATE_SMT } from '../db_keys';
@@ -21,7 +21,7 @@ import { NotFoundError } from './errors';
 import { DatabaseReader, DatabaseWriter } from './types';
 
 export interface CurrentState {
-	batch: BatchChain;
+	batch: Batch;
 	diff: StateDiff;
 	stateStore: StateStore;
 }
@@ -67,7 +67,7 @@ export class SMTStore {
 
 	public finalize(batch: DatabaseWriter): void {
 		for (const [key, value] of this._data.entries()) {
-			batch.put(key, value);
+			batch.set(key, value);
 		}
 	}
 

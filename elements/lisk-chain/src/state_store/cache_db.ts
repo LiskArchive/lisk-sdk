@@ -168,7 +168,7 @@ export class CacheDB {
 			const keyBytes = Buffer.from(key, 'binary');
 			if (value.init === undefined) {
 				diff.created.push(keyBytes);
-				batch.put(keyBytes, value.value);
+				batch.set(keyBytes, value.value);
 				continue;
 			}
 			if (value.deleted) {
@@ -184,7 +184,7 @@ export class CacheDB {
 					key: keyBytes,
 					value: value.init,
 				});
-				batch.put(keyBytes, value.value);
+				batch.set(keyBytes, value.value);
 			}
 		}
 
