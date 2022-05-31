@@ -25,6 +25,7 @@ import {
 	DEFAULT_RATE_LIMIT_FREQUENCY,
 	DEFAULT_RELEASE_LIMIT,
 	NETWORK_EVENT_POST_TRANSACTIONS_ANNOUNCEMENT,
+	EMPTY_BUFFER,
 } from './constants';
 import {
 	GetTransactionRequest,
@@ -225,7 +226,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 
 	private async _receiveTransaction(transaction: Transaction) {
 		const { result } = await this._abi.verifyTransaction({
-			contextID: Buffer.alloc(0),
+			contextID: EMPTY_BUFFER,
 			networkIdentifier: this._chain.networkIdentifier,
 			transaction: transaction.toObject(),
 		});

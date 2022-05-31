@@ -47,6 +47,7 @@ import {
 import { Consensus, Keypair, Generator } from './types';
 import { RequestContext } from '../rpc/rpc_server';
 import { ABI, TransactionVerifyResult } from '../../abi';
+import { EMPTY_BUFFER } from './constants';
 
 interface EndpointArgs {
 	keypair: dataStructures.BufferMap<Keypair>;
@@ -98,7 +99,7 @@ export class Endpoint {
 		const transaction = Transaction.fromBytes(Buffer.from(req.transaction, 'hex'));
 
 		const { result } = await this._abi.verifyTransaction({
-			contextID: Buffer.alloc(0),
+			contextID: EMPTY_BUFFER,
 			networkIdentifier: ctx.networkIdentifier,
 			transaction: transaction.toObject(),
 		});
