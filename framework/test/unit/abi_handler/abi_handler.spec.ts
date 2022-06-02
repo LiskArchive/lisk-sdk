@@ -25,7 +25,7 @@ import { applicationConfigSchema } from '../../../src/schema';
 import { createFakeBlockHeader } from '../../../src/testing';
 import { channelMock } from '../../../src/testing/mocks';
 import { genesisBlock } from '../../fixtures';
-import { fakeLogger } from '../../utils/node';
+import { fakeLogger } from '../../utils/mocks';
 import { TransactionExecutionResult, TransactionVerifyResult } from '../../../src/abi';
 
 describe('abi handler', () => {

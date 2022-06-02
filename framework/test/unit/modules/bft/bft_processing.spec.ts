@@ -20,14 +20,14 @@ import {
 	intToBuffer,
 } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
-import { BFTModule } from '../../../../src/node/bft';
+import { BFTModule } from '../../../../src/engine/bft';
 import {
 	EMPTY_KEY,
 	STORE_PREFIX_BFT_PARAMETERS,
 	STORE_PREFIX_BFT_VOTES,
-} from '../../../../src/node/bft/constants';
-import { bftParametersSchema, BFTVotes, bftVotesSchema } from '../../../../src/node/bft/schemas';
-import { BFTValidator, GeneratorKey } from '../../../../src/node/bft/types';
+} from '../../../../src/engine/bft/constants';
+import { bftParametersSchema, BFTVotes, bftVotesSchema } from '../../../../src/engine/bft/schemas';
+import { BFTValidator, GeneratorKey } from '../../../../src/engine/bft/types';
 import * as scenario4DelegatesMissedSlots from './bft_processing/4_delegates_missed_slots.json';
 import * as scenario4DelegatesSimple from './bft_processing/4_delegates_simple.json';
 import * as scenario5DelegatesSwitchedCompletely from './bft_processing/5_delegates_switched_completely.json';

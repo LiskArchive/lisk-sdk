@@ -32,7 +32,7 @@ import { getVoterOrDefault } from '../../../../../src/modules/dpos_v2/utils';
 import { VerifyStatus } from '../../../../../src/state_machine/types';
 import { createTransactionContext } from '../../../../../src/testing';
 import { liskToBeddows } from '../../../../utils/assets';
-import { DEFAULT_TOKEN_ID } from '../../../../utils/node/transaction';
+import { DEFAULT_TOKEN_ID } from '../../../../utils/mocks/transaction';
 
 describe('VoteCommand', () => {
 	const lastBlockHeight = 200;

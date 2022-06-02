@@ -14,12 +14,12 @@
 import { codec } from '@liskhq/lisk-codec';
 import { Chain } from '@liskhq/lisk-chain';
 import * as testing from '../../../src/testing';
-import { createTransferTransaction, DEFAULT_TOKEN_ID } from '../../utils/node/transaction';
+import { createTransferTransaction, DEFAULT_TOKEN_ID } from '../../utils/mocks/transaction';
 import { TokenModule } from '../../../src';
 import { genesisTokenStoreSchema } from '../../../src/modules/token';
 import { GenesisTokenStore } from '../../../src/modules/token/types';
-import { Consensus } from '../../../src/node/consensus';
-import { Network } from '../../../src/node/network';
+import { Consensus } from '../../../src/engine/consensus';
+import { Network } from '../../../src/engine/network';
 
 describe('genesis block', () => {
 	const databasePath = '/tmp/lisk/genesis_block/test';

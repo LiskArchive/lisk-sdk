@@ -18,7 +18,7 @@ import { when } from 'jest-when';
 import { BaseChannel, BasePlugin, GenerationConfig, GenesisConfig } from '../../../src';
 import * as loggerModule from '../../../src/logger';
 import { getPluginExportPath } from '../../../src/plugins/base_plugin';
-import { fakeLogger } from '../../utils/node';
+import { fakeLogger } from '../../utils/mocks';
 
 const appConfigForPlugin = {
 	rootPath: '/my/path',

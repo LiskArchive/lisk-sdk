@@ -18,7 +18,7 @@ import { ABIHandler } from '../../../src/abi_handler/abi_handler';
 import { StateMachine } from '../../../src/state_machine';
 import { TokenModule } from '../../../src/modules/token';
 import { BaseModule } from '../../../src/modules';
-import { fakeLogger } from '../../utils/node';
+import { fakeLogger } from '../../utils/mocks';
 import { channelMock } from '../../../src/testing/mocks';
 import { genesisBlock } from '../../fixtures';
 import { applicationConfigSchema } from '../../../src/schema';

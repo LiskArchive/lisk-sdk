@@ -16,14 +16,14 @@ import { StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { BIG_ENDIAN, getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
-import { MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS } from '../../../../src/node/bft/constants';
-import { BFTParameterNotFoundError } from '../../../../src/node/bft/errors';
+import { MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS } from '../../../../src/engine/bft/constants';
+import { BFTParameterNotFoundError } from '../../../../src/engine/bft/errors';
 import {
 	BFTParametersCache,
 	deleteBFTParameters,
 	getBFTParameters,
-} from '../../../../src/node/bft/bft_params';
-import { BFTParameters, bftParametersSchema } from '../../../../src/node/bft/schemas';
+} from '../../../../src/engine/bft/bft_params';
+import { BFTParameters, bftParametersSchema } from '../../../../src/engine/bft/schemas';
 
 describe('BFT parameters', () => {
 	describe('getBFTParameters', () => {

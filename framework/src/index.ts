@@ -30,7 +30,7 @@ export type { EventsDefinition, EventCallback } from './controller/event';
 export * as testing from './testing';
 export * from './types';
 export { ValidatorsAPI, ValidatorsModule } from './modules/validators';
-export { BFTAPI, BFTModule } from './node/bft';
+export { BFTAPI, BFTModule } from './engine/bft';
 export {
 	TokenAPI,
 	TokenModule,

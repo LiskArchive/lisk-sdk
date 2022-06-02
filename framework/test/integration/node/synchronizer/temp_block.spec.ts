@@ -14,13 +14,13 @@
 import { Chain } from '@liskhq/lisk-chain';
 
 import { nodeUtils } from '../../../utils';
-import { createTransferTransaction } from '../../../utils/node/transaction';
+import { createTransferTransaction } from '../../../utils/mocks/transaction';
 import * as testing from '../../../../src/testing';
 import {
 	clearBlocksTempTable,
 	deleteBlocksAfterHeight,
 	restoreBlocks,
-} from '../../../../src/node/consensus/synchronizer/utils';
+} from '../../../../src/engine/consensus/synchronizer/utils';
 
 describe('Temp block', () => {
 	let processEnv: testing.BlockProcessingEnv;

@@ -38,8 +38,8 @@ import {
 } from '../../../../../src/modules/dpos_v2/types';
 import { delegateStoreSchema } from '../../../../../src/modules/dpos_v2/schemas';
 import { VerifyStatus } from '../../../../../src/state_machine/types';
-import { DEFAULT_TOKEN_ID } from '../../../../utils/node/transaction';
-import * as bftUtil from '../../../../../src/node/bft/utils';
+import { DEFAULT_TOKEN_ID } from '../../../../utils/mocks/transaction';
+import * as bftUtil from '../../../../../src/engine/bft/utils';
 
 describe('ReportDelegateMisbehaviorCommand', () => {
 	let pomCommand: ReportDelegateMisbehaviorCommand;

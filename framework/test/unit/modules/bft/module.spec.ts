@@ -14,9 +14,9 @@
 
 import { StateStore } from '@liskhq/lisk-chain';
 import { InMemoryKVStore } from '@liskhq/lisk-db';
-import { BFTModule } from '../../../../src/node/bft';
-import { EMPTY_KEY, STORE_PREFIX_BFT_VOTES } from '../../../../src/node/bft/constants';
-import { bftVotesSchema } from '../../../../src/node/bft/schemas';
+import { BFTModule } from '../../../../src/engine/bft';
+import { EMPTY_KEY, STORE_PREFIX_BFT_VOTES } from '../../../../src/engine/bft/constants';
+import { bftVotesSchema } from '../../../../src/engine/bft/schemas';
 import { createFakeBlockHeader } from '../../../../src/testing';
 
 describe('bft module', () => {

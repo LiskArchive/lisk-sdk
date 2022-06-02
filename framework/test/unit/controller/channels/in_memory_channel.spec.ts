@@ -20,7 +20,7 @@ import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { InMemoryChannel, BaseChannel } from '../../../../src/controller/channels';
 import { Bus } from '../../../../src/controller/bus';
 import { Event } from '../../../../src/controller/event';
-import { fakeLogger } from '../../../utils/node';
+import { fakeLogger } from '../../../utils/mocks';
 
 describe('InMemoryChannel Channel', () => {
 	// Arrange

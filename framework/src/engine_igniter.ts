@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Node } from './node';
+import { Engine } from './engine';
 import { ABIClient } from './abi_handler/abi_client';
 import { createLogger } from './logger';
 
@@ -27,15 +27,15 @@ const abiLogger = createLogger({
 
 let started = false;
 const client = new ABIClient(abiLogger, socketPath);
-const node = new Node(client);
+const engine = new Engine(client);
 client
 	.start()
 	.then(async () => {
-		await node.start();
+		await engine.start();
 		started = true;
 	})
 	.catch(err => {
-		abiLogger.error({ err: err as Error }, 'Fail to start node');
+		abiLogger.error({ err: err as Error }, 'Fail to start engine');
 		process.exit(1);
 	});
 
@@ -44,7 +44,7 @@ process.on('disconnect', () => {
 	if (!started) {
 		return;
 	}
-	node
+	engine
 		.stop()
 		.then(() => {
 			client.stop();

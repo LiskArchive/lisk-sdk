@@ -25,7 +25,7 @@ import { Bus } from '../../src/controller/bus';
 // import { IPCServer } from '../../src/controller/ipc/ipc_server';
 import { WSServer } from '../../src/controller/ws/ws_server';
 import { createLogger } from '../../src/logger';
-import { Node } from '../../src/node';
+import { Engine } from '../../src/engine';
 import { systemDirs } from '../../src/system_dirs';
 import * as basePluginModule from '../../src/plugins/base_plugin';
 import * as networkConfig from '../fixtures/config/devnet/config.json';
@@ -88,7 +88,7 @@ describe('Application', () => {
 		jest.spyOn(os, 'homedir').mockReturnValue('/user');
 		// jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
 		jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
-		jest.spyOn(Node.prototype, 'start').mockResolvedValue();
+		jest.spyOn(Engine.prototype, 'start').mockResolvedValue();
 		jest.spyOn(process, 'exit').mockReturnValue(0 as never);
 	});
 
@@ -372,8 +372,8 @@ describe('Application', () => {
 
 		beforeEach(async () => {
 			({ app } = Application.defaultApplication(config));
-			jest.spyOn(Node.prototype, 'start').mockResolvedValue();
-			jest.spyOn(Node.prototype, 'stop').mockResolvedValue();
+			jest.spyOn(Engine.prototype, 'start').mockResolvedValue();
+			jest.spyOn(Engine.prototype, 'stop').mockResolvedValue();
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
 			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 			jest.spyOn(fs, 'unlink').mockResolvedValue();
@@ -403,7 +403,7 @@ describe('Application', () => {
 		beforeEach(async () => {
 			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 			({ app } = Application.defaultApplication(config));
-			jest.spyOn(Node.prototype, 'start').mockResolvedValue();
+			jest.spyOn(Engine.prototype, 'start').mockResolvedValue();
 
 			await app.run(new Block(createFakeBlockHeader(), [], new BlockAssets()));
 

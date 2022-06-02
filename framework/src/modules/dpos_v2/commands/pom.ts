@@ -39,7 +39,7 @@ import {
 } from '../types';
 import { getPunishmentPeriod } from '../utils';
 import { ValidationError } from '../../../errors';
-import { areDistinctHeadersContradicting } from '../../../node/bft/utils';
+import { areDistinctHeadersContradicting } from '../../../engine/bft/utils';
 
 export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 	public id = COMMAND_ID_POM;
