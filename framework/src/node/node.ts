@@ -104,7 +104,7 @@ export class Node {
 			module: 'engine',
 			fileLogLevel: emptyOrDefault(config.logger.fileLogLevel, 'info'),
 			consoleLogLevel: emptyOrDefault(config.logger.consoleLogLevel, 'info'),
-			logFilePath: path.join(config.system.dataPath, 'logs'),
+			logFilePath: path.join(config.system.dataPath, 'logs', 'engine.log'),
 		});
 		this._logger.info('Node initialization starting');
 		this._network = new Network({

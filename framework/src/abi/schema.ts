@@ -107,15 +107,14 @@ export const initRequestSchema = {
 };
 
 export const networkPeerSchema = {
-	$id: 'abi/networkPeer',
 	type: 'object',
-	required: ['ip', 'host'],
+	required: ['ip', 'port'],
 	properties: {
 		ip: {
 			fieldNumber: 1,
 			dataType: 'string',
 		},
-		host: {
+		port: {
 			fieldNumber: 2,
 			dataType: 'uint32',
 		},
@@ -124,14 +123,7 @@ export const networkPeerSchema = {
 
 const systemConfigSchema = {
 	type: 'object',
-	required: [
-		'version',
-		'networkVersion',
-		'dataPath',
-		'maxBlockCache',
-		'maxBlockCache',
-		'keepEventsForHeights',
-	],
+	required: ['version', 'networkVersion', 'dataPath', 'maxBlockCache', 'keepEventsForHeights'],
 	properties: {
 		version: {
 			fieldNumber: 1,
@@ -283,15 +275,24 @@ const networkConfigSchema = {
 		},
 		seedPeers: {
 			fieldNumber: 3,
-			...networkPeerSchema,
+			type: 'array',
+			items: {
+				...networkPeerSchema,
+			},
 		},
 		fixedPeers: {
 			fieldNumber: 4,
-			...networkPeerSchema,
+			type: 'array',
+			items: {
+				...networkPeerSchema,
+			},
 		},
 		whitelistedPeers: {
 			fieldNumber: 5,
-			...networkPeerSchema,
+			type: 'array',
+			items: {
+				...networkPeerSchema,
+			},
 		},
 		blacklistedIPs: {
 			fieldNumber: 6,
@@ -339,11 +340,11 @@ const txpoolConfigSchema = {
 		},
 		minEntranceFeePriority: {
 			fieldNumber: 4,
-			dataType: 'uint32',
+			dataType: 'uint64',
 		},
 		minReplacementFeeDifference: {
 			fieldNumber: 5,
-			dataType: 'uint32',
+			dataType: 'uint64',
 		},
 	},
 };
@@ -388,24 +389,58 @@ export const initResponseSchema = {
 	properties: {
 		registeredModules: {
 			fieldNumber: 1,
-			type: 'object',
-			properties: {
-				moduleID: {
-					fieldNumber: 1,
-					dataType: 'bytes',
-				},
-				commandIDs: {
-					fieldNumber: 2,
-					type: 'array',
-					items: {
-						dataType: 'bytes',
+			type: 'array',
+			items: {
+				type: 'object',
+				properties: {
+					moduleID: {
+						fieldNumber: 1,
+						dataType: 'uint32',
+					},
+					commandIDs: {
+						fieldNumber: 2,
+						type: 'array',
+						items: {
+							dataType: 'uint32',
+						},
 					},
 				},
 			},
 		},
 		genesisBlock: {
 			fieldNumber: 2,
-			...blockSchema,
+			type: 'object',
+			properties: {
+				header: {
+					fieldNumber: 1,
+					...blockHeaderSchema,
+				},
+				transactions: {
+					type: 'array',
+					fieldNumber: 2,
+					items: {
+						...transactionSchema,
+					},
+				},
+				assets: {
+					type: 'array',
+					items: {
+						type: 'object',
+						required: ['moduleID', 'data'],
+						properties: {
+							moduleID: {
+								dataType: 'uint32',
+								fieldNumber: 1,
+							},
+							data: {
+								dataType: 'bytes',
+								fieldNumber: 2,
+							},
+						},
+					},
+					fieldNumber: 3,
+				},
+			},
 		},
 		config: {
 			fieldNumber: 3,
@@ -505,11 +540,11 @@ export const initGenesisStateResponseSchema = {
 		},
 		preCommitThreshold: {
 			fieldNumber: 3,
-			dataType: 'uint32',
+			dataType: 'uint64',
 		},
 		certificateThreshold: {
 			fieldNumber: 4,
-			dataType: 'uint32',
+			dataType: 'uint64',
 		},
 		nextValidators: {
 			fieldNumber: 5,
