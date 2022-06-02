@@ -31,7 +31,6 @@ import {
 	STORE_PREFIX_DELEGATE,
 } from '../../../../../src/modules/dpos_v2/constants';
 import {
-	BFTAPI,
 	DelegateAccount,
 	TokenAPI,
 	ValidatorsAPI,
@@ -40,6 +39,7 @@ import {
 import { delegateStoreSchema } from '../../../../../src/modules/dpos_v2/schemas';
 import { VerifyStatus } from '../../../../../src/state_machine/types';
 import { DEFAULT_TOKEN_ID } from '../../../../utils/node/transaction';
+import * as bftUtil from '../../../../../src/node/bft/utils';
 
 describe('ReportDelegateMisbehaviorCommand', () => {
 	let pomCommand: ReportDelegateMisbehaviorCommand;
@@ -48,7 +48,6 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 	let db: KVStore;
 	let mockTokenAPI: TokenAPI;
 	let mockValidatorsAPI: ValidatorsAPI;
-	let mockBFTAPI: BFTAPI;
 	const blockHeight = 8760000;
 	const reportPunishmentReward = REPORTING_PUNISHMENT_REWARD;
 	let context: any;
@@ -86,13 +85,6 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			transfer: jest.fn(),
 			getLockedAmount: jest.fn(),
 		};
-		mockBFTAPI = {
-			getGeneratorKeys: jest.fn(),
-			setGeneratorKeys: jest.fn(),
-			setBFTParameters: jest.fn(),
-			areHeadersContradicting: jest.fn(),
-			getBFTHeights: jest.fn(),
-		};
 		mockValidatorsAPI = {
 			setValidatorGeneratorKey: jest.fn(),
 			registerValidatorKeys: jest.fn(),
@@ -101,7 +93,6 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 		};
 		pomCommand.addDependencies({
 			tokenAPI: mockTokenAPI,
-			bftAPI: mockBFTAPI,
 			validatorsAPI: mockValidatorsAPI,
 		});
 		db = new InMemoryKVStore() as never;
@@ -129,7 +120,6 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 		pomCommand.addDependencies({
 			tokenAPI: mockTokenAPI,
 			validatorsAPI: mockValidatorsAPI,
-			bftAPI: mockBFTAPI,
 		});
 		pomCommand.init({
 			tokenIDDPoS: DEFAULT_TOKEN_ID,
@@ -190,7 +180,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				}),
 				header2: codec.encode(blockHeaderSchema, {
 					...header2,
-					generatorPublicKey: getRandomBytes(20),
+					generatorAddress: getRandomBytes(20),
 				}),
 			};
 			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
@@ -247,7 +237,10 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				header1: codec.encode(blockHeaderSchema, {
 					...header1,
 				}),
-				header2: codec.encode(blockHeaderSchema, { ...header2 }),
+				header2: codec.encode(blockHeaderSchema, {
+					...header2,
+					generatorAddress: getRandomBytes(20),
+				}),
 			};
 			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
 			transaction.params = transactionParams;
@@ -280,9 +273,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				})
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
-			jest
-				.spyOn(pomCommand['_bftAPI'], 'areHeadersContradicting')
-				.mockResolvedValueOnce(true as never);
+			jest.spyOn(bftUtil, 'areDistinctHeadersContradicting').mockReturnValue(true);
 
 			await expect(pomCommand.verify(context)).resolves.toHaveProperty('status', VerifyStatus.OK);
 		});

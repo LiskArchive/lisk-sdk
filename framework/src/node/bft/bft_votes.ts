@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader } from '../../state_machine';
+import { BlockHeader } from '@liskhq/lisk-chain';
 import { BFTParametersCache } from './bft_params';
 import { BFTVotes } from './schemas';
 import { getBlockBFTProperties } from './utils';

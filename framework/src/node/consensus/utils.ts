@@ -12,6 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ApplicationConfig } from '../types';
+import { Validator } from '../../abi';
 
-export type NodeOptions = Omit<ApplicationConfig, 'plugins'>;
+export const isEmptyConsensusUpdate = (
+	preCommitThreshold: bigint,
+	certificateThreshold: bigint,
+	nextValidators: Validator[],
+): boolean =>
+	nextValidators.length === 0 &&
+	preCommitThreshold === BigInt(0) &&
+	certificateThreshold === BigInt(0);

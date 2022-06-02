@@ -30,7 +30,6 @@ import {
 import { concatDBKeys } from '../utils';
 import { stateDiffSchema } from '../schema';
 import { CurrentState } from '../state_store';
-import { toSMTKey } from '../state_store/utils';
 import { DEFAULT_KEEP_EVENTS_FOR_HEIGHTS } from '../constants';
 
 const bytesArraySchema = {
@@ -402,7 +401,7 @@ export class Storage {
 		state: CurrentState,
 		saveToTemp = false,
 	): Promise<StateDiff> {
-		const { batch, smt, smtStore } = state;
+		const { batch } = state;
 		const heightBuf = formatInt(height);
 		batch.del(concatDBKeys(DB_KEY_BLOCKS_ID, id));
 		batch.del(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, heightBuf));
@@ -434,19 +433,15 @@ export class Storage {
 		// Delete all the newly created states
 		for (const key of createdStates) {
 			batch.del(key);
-			await smt.remove(toSMTKey(key));
 		}
 		// Revert all deleted values
 		for (const { key, value: previousValue } of deletedStates) {
 			batch.put(key, previousValue);
-			await smt.update(toSMTKey(key), hash(previousValue));
 		}
 		for (const { key, value: previousValue } of updatedStates) {
 			batch.put(key, previousValue);
-			await smt.update(toSMTKey(key), hash(previousValue));
 		}
 
-		smtStore.finalize(batch);
 		// Delete stored diff at particular height
 		batch.del(diffKey);
 

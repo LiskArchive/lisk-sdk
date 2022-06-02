@@ -163,16 +163,6 @@ describe('chain', () => {
 					created: [],
 					deleted: [],
 				},
-				smt: {
-					update: jest.fn(),
-					remove: jest.fn(),
-				} as any,
-				smtStore: {
-					get: jest.fn(),
-					set: jest.fn(),
-					del: jest.fn(),
-					finalize: jest.fn(),
-				} as any,
 			};
 		});
 
@@ -231,16 +221,6 @@ describe('chain', () => {
 					created: [],
 					deleted: [],
 				},
-				smt: {
-					update: jest.fn(),
-					remove: jest.fn(),
-				} as any,
-				smtStore: {
-					get: jest.fn(),
-					set: jest.fn(),
-					del: jest.fn(),
-					finalize: jest.fn(),
-				} as any,
 			};
 		});
 

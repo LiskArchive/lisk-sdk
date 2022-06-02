@@ -11,9 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Transaction } from '@liskhq/lisk-chain';
-import { IterateOptions } from '@liskhq/lisk-chain/dist-node/state_store';
+import { Transaction, IterateOptions } from '@liskhq/lisk-chain';
 import { Schema } from '@liskhq/lisk-codec';
+import { TransactionVerifyResult } from '../abi';
 import { Logger } from '../logger';
 
 export interface EventQueueAdder {
@@ -45,9 +45,9 @@ export interface APIContext {
 }
 
 export enum VerifyStatus {
-	FAIL = 0,
-	OK = 1,
-	PENDING = 2,
+	FAIL = TransactionVerifyResult.INVALID,
+	OK = TransactionVerifyResult.OK,
+	PENDING = TransactionVerifyResult.PENDING,
 }
 
 export interface BlockHeader {
@@ -101,6 +101,9 @@ export interface CommandExecuteContext<T = undefined> {
 	eventQueue: EventQueueAdder;
 	header: BlockHeader;
 	assets: BlockAssets;
+	currentValidators: Validator[];
+	impliesMaxPrevote: boolean;
+	maxHeightCertified: number;
 	transaction: Transaction; // without decoding params
 	params: T;
 	getAPIContext: () => APIContext;
@@ -130,6 +133,9 @@ export interface TransactionExecuteContext {
 	header: BlockHeader;
 	assets: BlockAssets;
 	transaction: Transaction;
+	currentValidators: Validator[];
+	impliesMaxPrevote: boolean;
+	maxHeightCertified: number;
 }
 
 export interface BlockVerifyContext {

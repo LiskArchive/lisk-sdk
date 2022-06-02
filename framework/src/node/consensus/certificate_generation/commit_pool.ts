@@ -12,14 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader, Chain } from '@liskhq/lisk-chain';
+import { BlockHeader, Chain, StateStore } from '@liskhq/lisk-chain';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { createAggSig } from '@liskhq/lisk-cryptography';
 import { KVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { EMPTY_BUFFER, NETWORK_EVENT_COMMIT_MESSAGES, COMMIT_RANGE_STORED } from './constants';
 import { BFTParameterNotFoundError } from '../../bft/errors';
-import { APIContext } from '../../../state_machine/types';
 import { PkSigPair, AggregateCommit } from '../types';
 import { Certificate, CommitPoolConfig, SingleCommit, ValidatorInfo } from './types';
 
@@ -32,7 +31,6 @@ import {
 } from './utils';
 import { Network } from '../../network';
 import { singleCommitSchema, singleCommitsNetworkPacketSchema } from './schema';
-import { createNewAPIContext } from '../../../state_machine/api_context';
 import { CommitList, COMMIT_SORT } from './commit_list';
 import { BFTAPI } from '../../bft';
 
@@ -62,8 +60,8 @@ export class CommitPool {
 		// Run job every BLOCK_TIME/2 interval
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this._jobIntervalID = setInterval(async () => {
-			const apiContext = createNewAPIContext(this._db);
-			await this._job(apiContext);
+			const stateStore = new StateStore(this._db);
+			await this._job(stateStore);
 		}, (this._blockTime / 2) * 1000);
 	}
 
@@ -81,7 +79,7 @@ export class CommitPool {
 		}
 	}
 
-	public async validateCommit(apiContext: APIContext, commit: SingleCommit): Promise<boolean> {
+	public async validateCommit(apiContext: StateStore, commit: SingleCommit): Promise<boolean> {
 		// Validation step 4
 		const blockHeaderAtCommitHeight = await this._chain.dataAccess.getBlockHeaderByHeight(
 			commit.height,
@@ -173,11 +171,11 @@ export class CommitPool {
 	}
 
 	public async verifyAggregateCommit(
-		apiContext: APIContext,
+		stateStore: StateStore,
 		aggregateCommit: AggregateCommit,
 	): Promise<boolean> {
 		const { maxHeightCertified, maxHeightPrecommitted } = await this._bftAPI.getBFTHeights(
-			apiContext,
+			stateStore,
 		);
 
 		if (
@@ -205,7 +203,7 @@ export class CommitPool {
 
 		try {
 			const heightNextBFTParameters = await this._bftAPI.getNextHeightBFTParameters(
-				apiContext,
+				stateStore,
 				maxHeightCertified + 1,
 			);
 
@@ -225,7 +223,7 @@ export class CommitPool {
 			signature: aggregateCommit.certificateSignature,
 		};
 		const { networkIdentifier } = this._chain;
-		const bftParams = await this._bftAPI.getBFTParameters(apiContext, aggregateCommit.height);
+		const bftParams = await this._bftAPI.getBFTParameters(stateStore, aggregateCommit.height);
 		const threshold = bftParams.certificateThreshold;
 
 		const validatorKeysWithWeights = [];
@@ -246,12 +244,12 @@ export class CommitPool {
 		);
 	}
 
-	public async getAggregateCommit(apiContext: APIContext): Promise<AggregateCommit> {
+	public async getAggregateCommit(apiContext: StateStore): Promise<AggregateCommit> {
 		return this._selectAggregateCommit(apiContext);
 	}
 
 	public async aggregateSingleCommits(
-		apiContext: APIContext,
+		apiContext: StateStore,
 		singleCommits: SingleCommit[],
 	): Promise<AggregateCommit> {
 		if (singleCommits.length === 0) {
@@ -300,7 +298,7 @@ export class CommitPool {
 		return aggregateCommit;
 	}
 
-	private async _selectAggregateCommit(apiContext: APIContext): Promise<AggregateCommit> {
+	private async _selectAggregateCommit(apiContext: StateStore): Promise<AggregateCommit> {
 		const { maxHeightCertified, maxHeightPrecommitted } = await this._bftAPI.getBFTHeights(
 			apiContext,
 		);
@@ -360,7 +358,7 @@ export class CommitPool {
 		};
 	}
 
-	private async _job(apiContext: APIContext): Promise<void> {
+	private async _job(apiContext: StateStore): Promise<void> {
 		const removalHeight = await this._getMaxRemovalHeight();
 		const { maxHeightPrecommitted } = await this._bftAPI.getBFTHeights(apiContext);
 
@@ -449,7 +447,7 @@ export class CommitPool {
 	}
 
 	private async _getDeleteHeights(
-		apiContext: APIContext,
+		apiContext: StateStore,
 		commitMap: CommitList,
 		removalHeight: number,
 		maxHeightPrecommitted: number,

@@ -13,7 +13,6 @@
  */
 
 import { Transaction } from '@liskhq/lisk-chain';
-import { StateStore } from '@liskhq/lisk-chain/dist-node/state_store';
 import {
 	decryptPassphraseWithPassword,
 	generatePrivateKey,
@@ -26,8 +25,6 @@ import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { Logger } from '../../logger';
-import { Generator } from '../../types';
-import { EventQueue, StateMachine, TransactionContext, VerifyStatus } from '../../state_machine';
 import { Broadcaster } from './broadcaster';
 import { InvalidTransactionError } from './errors';
 import { GeneratorStore } from './generator_store';
@@ -47,14 +44,16 @@ import {
 	updateStatusRequestSchema,
 	UpdateStatusResponse,
 } from './schemas';
-import { Consensus, Keypair } from './types';
+import { Consensus, Keypair, Generator } from './types';
 import { RequestContext } from '../rpc/rpc_server';
+import { ABI, TransactionVerifyResult } from '../../abi';
+import { EMPTY_BUFFER } from './constants';
 
 interface EndpointArgs {
 	keypair: dataStructures.BufferMap<Keypair>;
 	generators: Generator[];
 	consensus: Consensus;
-	stateMachine: StateMachine;
+	abi: ABI;
 	pool: TransactionPool;
 	broadcaster: Broadcaster;
 }
@@ -62,7 +61,6 @@ interface EndpointArgs {
 interface EndpointInit {
 	logger: Logger;
 	generatorDB: KVStore;
-	blockchainDB: KVStore;
 }
 
 export class Endpoint {
@@ -71,19 +69,18 @@ export class Endpoint {
 	private readonly _keypairs: dataStructures.BufferMap<Keypair>;
 	private readonly _generators: Generator[];
 	private readonly _consensus: Consensus;
-	private readonly _stateMachine: StateMachine;
+	private readonly _abi: ABI;
 	private readonly _pool: TransactionPool;
 	private readonly _broadcaster: Broadcaster;
 
 	private _logger!: Logger;
 	private _generatorDB!: KVStore;
-	private _blockchainDB!: KVStore;
 
 	public constructor(args: EndpointArgs) {
 		this._keypairs = args.keypair;
 		this._generators = args.generators;
 		this._consensus = args.consensus;
-		this._stateMachine = args.stateMachine;
+		this._abi = args.abi;
 		this._pool = args.pool;
 		this._broadcaster = args.broadcaster;
 	}
@@ -91,7 +88,6 @@ export class Endpoint {
 	public init(args: EndpointInit) {
 		this._logger = args.logger;
 		this._generatorDB = args.generatorDB;
-		this._blockchainDB = args.blockchainDB;
 	}
 
 	public async postTransaction(ctx: RequestContext): Promise<PostTransactionResponse> {
@@ -101,19 +97,14 @@ export class Endpoint {
 		}
 		const req = (ctx.params as unknown) as PostTransactionRequest;
 		const transaction = Transaction.fromBytes(Buffer.from(req.transaction, 'hex'));
-		const txContext = new TransactionContext({
-			eventQueue: new EventQueue(),
-			logger: this._logger,
+
+		const { result } = await this._abi.verifyTransaction({
+			contextID: EMPTY_BUFFER,
 			networkIdentifier: ctx.networkIdentifier,
-			stateStore: new StateStore(this._blockchainDB),
-			transaction,
+			transaction: transaction.toObject(),
 		});
-		const result = await this._stateMachine.verifyTransaction(txContext);
-		if (result.status === VerifyStatus.FAIL) {
-			throw new InvalidTransactionError(
-				result.error?.message ?? 'Transaction verification failed.',
-				transaction.id,
-			);
+		if (result === TransactionVerifyResult.INVALID) {
+			throw new InvalidTransactionError('Transaction verification failed.', transaction.id);
 		}
 		if (this._pool.contains(transaction.id)) {
 			return {
@@ -151,8 +142,8 @@ export class Endpoint {
 		const status: GetStatusResponse = [];
 		for (const gen of this._generators) {
 			status.push({
-				address: gen.address,
-				enabled: this._keypairs.has(Buffer.from(gen.address, 'hex')),
+				address: gen.address.toString('hex'),
+				enabled: this._keypairs.has(gen.address),
 			});
 		}
 		return status;
@@ -170,7 +161,7 @@ export class Endpoint {
 		}
 		const req = (ctx.params as unknown) as UpdateStatusRequest;
 		const address = Buffer.from(req.address, 'hex');
-		const encryptedGenerator = this._generators.find(item => item.address === req.address);
+		const encryptedGenerator = this._generators.find(item => item.address.equals(address));
 
 		let passphrase: string;
 

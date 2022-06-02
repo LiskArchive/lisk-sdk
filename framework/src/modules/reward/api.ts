@@ -16,10 +16,9 @@ import { ImmutableAPIContext, BlockHeader, BlockAssets } from '../../state_machi
 import { BaseAPI } from '../base_api';
 import { calculateDefaultReward } from './calculate_reward';
 import { REWARD_REDUCTION_FACTOR_BFT } from './constants';
-import { APIInitArgs, BFTAPI, RandomAPI } from './types';
+import { APIInitArgs, RandomAPI } from './types';
 
 export class RewardAPI extends BaseAPI {
-	private _bftAPI!: BFTAPI;
 	private _randomAPI!: RandomAPI;
 	private _brackets!: ReadonlyArray<bigint>;
 	private _offset!: number;
@@ -31,8 +30,7 @@ export class RewardAPI extends BaseAPI {
 		this._distance = args.config.distance;
 	}
 
-	public addDependencies(bftAPI: BFTAPI, randomAPI: RandomAPI): void {
-		this._bftAPI = bftAPI;
+	public addDependencies(randomAPI: RandomAPI): void {
 		this._randomAPI = randomAPI;
 	}
 
@@ -40,6 +38,7 @@ export class RewardAPI extends BaseAPI {
 		context: ImmutableAPIContext,
 		header: BlockHeader,
 		assets: BlockAssets,
+		impliesMaximalPrevotes: boolean,
 	): Promise<bigint> {
 		const defaultReward = calculateDefaultReward({
 			height: header.height,
@@ -60,7 +59,6 @@ export class RewardAPI extends BaseAPI {
 			return BigInt(0);
 		}
 
-		const impliesMaximalPrevotes = await this._bftAPI.currentHeaderImpliesMaximalPrevotes(context);
 		if (!impliesMaximalPrevotes) {
 			return defaultReward / BigInt(REWARD_REDUCTION_FACTOR_BFT);
 		}

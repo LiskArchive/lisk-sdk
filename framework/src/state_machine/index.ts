@@ -11,8 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { NotFoundError } from '@liskhq/lisk-chain';
 
-export { StateMachine } from './state_machine';
+// Re-export not found error
+export { NotFoundError };
+
 export { TransactionContext } from './transaction_context';
 export { BlockContext } from './block_context';
 export { GenesisBlockContext } from './genesis_block_context';
@@ -28,6 +31,7 @@ export {
 	BlockExecuteContext,
 	BlockAfterExecuteContext,
 	BlockVerifyContext,
+	InsertAssetContext,
 	GenesisBlockExecuteContext,
 	TransactionExecuteContext,
 	TransactionVerifyContext,
@@ -35,3 +39,5 @@ export {
 	CommandVerifyContext,
 	CommandExecuteContext,
 } from './types';
+
+export { StateMachine } from './state_machine';

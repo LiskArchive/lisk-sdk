@@ -12,12 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { StateStore, BlockHeader } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { intToBuffer } from '@liskhq/lisk-cryptography';
-import { BlockHeader, ImmutableSubStore } from '../../state_machine';
-import { SubStore } from '../../state_machine/types';
+import { hash, intToBuffer } from '@liskhq/lisk-cryptography';
 import { GeneratorKeysNotFoundError } from './errors';
-import { BFTVotesBlockInfo, GeneratorKeys, generatorKeysSchema } from './schemas';
+import {
+	BFTVotesBlockInfo,
+	GeneratorKeys,
+	generatorKeysSchema,
+	ValidatorsHashInfo,
+	ValidatorsHashInput,
+	validatorsHashInputSchema,
+} from './schemas';
 import { BFTHeader, BFTValidator } from './types';
 
 export const areDistinctHeadersContradicting = (b1: BFTHeader, b2: BFTHeader): boolean => {
@@ -93,7 +99,7 @@ export const validatorsEqual = (v1: BFTValidator[], v2: BFTValidator[]): boolean
 };
 
 export const getGeneratorKeys = async (
-	keysStore: ImmutableSubStore,
+	keysStore: StateStore,
 	height: number,
 ): Promise<GeneratorKeys> => {
 	const start = intToBuffer(0, 4);
@@ -112,7 +118,7 @@ export const getGeneratorKeys = async (
 	return codec.decode<GeneratorKeys>(generatorKeysSchema, result.value);
 };
 
-export const deleteGeneratorKeys = async (keysStore: SubStore, height: number): Promise<void> => {
+export const deleteGeneratorKeys = async (keysStore: StateStore, height: number): Promise<void> => {
 	const start = intToBuffer(0, 4);
 	const end = intToBuffer(height, 4);
 	const results = await keysStore.iterate({
@@ -126,4 +132,21 @@ export const deleteGeneratorKeys = async (keysStore: SubStore, height: number): 
 	for (let i = 0; i < results.length - 1; i += 1) {
 		await keysStore.del(results[i].key);
 	}
+};
+
+export const computeValidatorsHash = (validators: BFTValidator[], certificateThreshold: bigint) => {
+	const activeValidators: ValidatorsHashInfo[] = [];
+	for (const validator of validators) {
+		activeValidators.push({
+			blsKey: validator.blsKey,
+			bftWeight: validator.bftWeight,
+		});
+	}
+	sortValidatorsByBLSKey(activeValidators);
+	const input: ValidatorsHashInput = {
+		activeValidators,
+		certificateThreshold,
+	};
+	const encodedValidatorsHashInput = codec.encode(validatorsHashInputSchema, input);
+	return hash(encodedValidatorsHashInput);
 };

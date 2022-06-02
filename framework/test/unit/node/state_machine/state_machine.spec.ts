@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Transaction, StateStore, BlockAssets } from '@liskhq/lisk-chain';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { Logger } from '../../../../src/logger';
 import { BlockContext } from '../../../../src/state_machine/block_context';
 import { EventQueue } from '../../../../src/state_machine/event_queue';
@@ -103,6 +104,9 @@ describe('state_machine', () => {
 				header,
 				networkIdentifier,
 				transaction,
+				currentValidators: [],
+				impliesMaxPrevote: true,
+				maxHeightCertified: 0,
 			});
 			const result = await stateMachine.verifyTransaction(ctx);
 			expect(mod.verifyTransaction).toHaveBeenCalledWith({
@@ -124,6 +128,9 @@ describe('state_machine', () => {
 				header,
 				networkIdentifier,
 				transaction,
+				currentValidators: [],
+				impliesMaxPrevote: true,
+				maxHeightCertified: 0,
 			});
 			stateMachine.registerModule(new CustomModule2());
 			const result = await stateMachine.verifyTransaction(ctx);
@@ -141,6 +148,16 @@ describe('state_machine', () => {
 				assets,
 				networkIdentifier,
 				transaction,
+				currentValidators: [
+					{
+						address: getRandomBytes(20),
+						bftWeight: BigInt(1),
+						blsKey: getRandomBytes(48),
+						generatorKey: getRandomBytes(32),
+					},
+				],
+				impliesMaxPrevote: true,
+				maxHeightCertified: 22,
 			});
 			await stateMachine.executeTransaction(ctx);
 			expect(mod.beforeCommandExecute).toHaveBeenCalledWith({
@@ -152,6 +169,9 @@ describe('state_machine', () => {
 				eventQueue: expect.any(Object),
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
+				currentValidators: expect.any(Array),
+				impliesMaxPrevote: true,
+				maxHeightCertified: 22,
 			});
 			expect(systemMod.afterCommandExecute).toHaveBeenCalledTimes(1);
 			expect(mod.afterCommandExecute).toHaveBeenCalledTimes(1);
@@ -167,6 +187,9 @@ describe('state_machine', () => {
 				assets,
 				networkIdentifier,
 				transaction,
+				currentValidators: [],
+				impliesMaxPrevote: true,
+				maxHeightCertified: 0,
 			});
 			await stateMachine.executeTransaction(ctx);
 

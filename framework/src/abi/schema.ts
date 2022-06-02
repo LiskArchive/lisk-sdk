@@ -739,6 +739,10 @@ export const executeTransactionRequestSchema = {
 			fieldNumber: 6,
 			...blockHeaderSchema,
 		},
+		consensus: {
+			fieldNumber: 7,
+			...consensusSchema,
+		},
 	},
 };
 

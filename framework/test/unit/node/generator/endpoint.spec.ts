@@ -19,6 +19,7 @@ import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { LiskValidationError } from '@liskhq/lisk-validator';
+import { ABI, TransactionVerifyResult } from '../../../../src/abi';
 import { Logger } from '../../../../src/logger';
 import { Broadcaster } from '../../../../src/node/generator/broadcaster';
 import { GENERATOR_STORE_RESERVED_PREFIX } from '../../../../src/node/generator/constants';
@@ -27,7 +28,6 @@ import { InvalidTransactionError } from '../../../../src/node/generator/errors';
 import { GeneratorStore } from '../../../../src/node/generator/generator_store';
 import { previouslyGeneratedInfoSchema } from '../../../../src/node/generator/schemas';
 import { Consensus, Keypair } from '../../../../src/node/generator/types';
-import { StateMachine, VerifyStatus } from '../../../../src/state_machine';
 import { fakeLogger } from '../../../utils/node';
 
 describe('generator endpoint', () => {
@@ -42,13 +42,13 @@ describe('generator endpoint', () => {
 		signatures: [Buffer.alloc(64)],
 	});
 	const config = {
-		address: 'd04699e57c4a3846c988f3c15306796f8eae5c1c',
+		address: Buffer.from('d04699e57c4a3846c988f3c15306796f8eae5c1c', 'hex'),
 		encryptedPassphrase:
 			'iterations=10&cipherText=6541c04d7a46eacd666c07fbf030fef32c5db324466e3422e59818317ac5d15cfffb80c5f1e2589eaa6da4f8d611a94cba92eee86722fc0a4015a37cff43a5a699601121fbfec11ea022&iv=141edfe6da3a9917a42004be&salt=f523bba8316c45246c6ffa848b806188&tag=4ffb5c753d4a1dc96364c4a54865521a&version=1',
 	};
 	const invalidConfig = {
 		...config,
-		address: 'aaaaaaaaaa4a3846c988f3c15306796f8eae5c1c',
+		address: Buffer.from('aaaaaaaaaa4a3846c988f3c15306796f8eae5c1c', 'hex'),
 	};
 	const defaultPassword = 'elephant tree paris dragon chair galaxy';
 	const networkIdentifier = Buffer.alloc(0);
@@ -57,7 +57,7 @@ describe('generator endpoint', () => {
 	let broadcaster: Broadcaster;
 	let consensus: Consensus;
 	let pool: TransactionPool;
-	let stateMachine: StateMachine;
+	let abi: ABI;
 
 	beforeEach(() => {
 		broadcaster = {
@@ -70,21 +70,18 @@ describe('generator endpoint', () => {
 			contains: jest.fn().mockReturnValue(false),
 			add: jest.fn().mockResolvedValue({}),
 		} as never;
-		stateMachine = {
-			verifyTransaction: jest.fn().mockResolvedValue({
-				status: VerifyStatus.OK,
-			}),
+		abi = {
+			verifyTransaction: jest.fn().mockResolvedValue({ result: TransactionVerifyResult.OK }),
 		} as never;
 		endpoint = new Endpoint({
+			abi,
 			broadcaster,
 			consensus,
 			pool,
-			stateMachine,
 			keypair: new dataStructures.BufferMap<Keypair>(),
 			generators: [config, invalidConfig],
 		});
 		endpoint.init({
-			blockchainDB: new InMemoryKVStore() as never,
 			generatorDB: new InMemoryKVStore() as never,
 			logger,
 		});
@@ -119,8 +116,8 @@ describe('generator endpoint', () => {
 
 		describe('when verify transaction fails', () => {
 			it('should throw when transaction is invalid', async () => {
-				(stateMachine.verifyTransaction as jest.Mock).mockResolvedValue({
-					status: VerifyStatus.FAIL,
+				(abi.verifyTransaction as jest.Mock).mockResolvedValue({
+					result: TransactionVerifyResult.INVALID,
 				});
 				await expect(
 					endpoint.postTransaction({
@@ -229,7 +226,7 @@ describe('generator endpoint', () => {
 				endpoint.updateStatus({
 					logger,
 					params: {
-						address: config.address,
+						address: config.address.toString('hex'),
 						enable: true,
 						password: 'wrong password',
 						overwrite: true,
@@ -245,7 +242,7 @@ describe('generator endpoint', () => {
 				endpoint.updateStatus({
 					logger,
 					params: {
-						address: invalidConfig.address,
+						address: invalidConfig.address.toString('hex'),
 						enable: true,
 						password: defaultPassword,
 						overwrite: true,
@@ -262,7 +259,7 @@ describe('generator endpoint', () => {
 				endpoint.updateStatus({
 					logger,
 					params: {
-						address: config.address,
+						address: config.address.toString('hex'),
 						enable: true,
 						password: defaultPassword,
 						overwrite: true,
@@ -274,7 +271,7 @@ describe('generator endpoint', () => {
 		});
 
 		it('should delete the keypair if disabling', async () => {
-			endpoint['_keypairs'].set(Buffer.from(config.address, 'hex'), {
+			endpoint['_keypairs'].set(config.address, {
 				publicKey: Buffer.alloc(0),
 				privateKey: Buffer.alloc(0),
 				blsSecretKey: Buffer.alloc(0),
@@ -283,7 +280,7 @@ describe('generator endpoint', () => {
 				endpoint.updateStatus({
 					logger,
 					params: {
-						address: config.address,
+						address: config.address.toString('hex'),
 						enable: false,
 						password: defaultPassword,
 						overwrite: true,
@@ -292,10 +289,10 @@ describe('generator endpoint', () => {
 					networkIdentifier,
 				}),
 			).resolves.toEqual({
-				address: config.address,
+				address: config.address.toString('hex'),
 				enabled: false,
 			});
-			expect(endpoint['_keypairs'].has(Buffer.from(config.address, 'hex'))).toBeFalse();
+			expect(endpoint['_keypairs'].has(config.address)).toBeFalse();
 		});
 
 		it('should update the keypair and return enabled', async () => {
@@ -303,7 +300,7 @@ describe('generator endpoint', () => {
 				endpoint.updateStatus({
 					logger,
 					params: {
-						address: config.address,
+						address: config.address.toString('hex'),
 						enable: true,
 						password: defaultPassword,
 						overwrite: true,
@@ -312,16 +309,15 @@ describe('generator endpoint', () => {
 					networkIdentifier,
 				}),
 			).resolves.toEqual({
-				address: config.address,
+				address: config.address.toString('hex'),
 				enabled: true,
 			});
-			expect(endpoint['_keypairs'].has(Buffer.from(config.address, 'hex'))).toBeTrue();
+			expect(endpoint['_keypairs'].has(config.address)).toBeTrue();
 		});
 
 		it('should accept if BFT properties specified are zero and there is no previous values', async () => {
 			const db = (new InMemoryKVStore() as unknown) as KVStore;
 			endpoint.init({
-				blockchainDB: new InMemoryKVStore() as never,
 				generatorDB: db,
 				logger,
 			});
@@ -329,7 +325,7 @@ describe('generator endpoint', () => {
 				endpoint.updateStatus({
 					logger,
 					params: {
-						address: config.address,
+						address: config.address.toString('hex'),
 						enable: true,
 						password: defaultPassword,
 						overwrite: false,
@@ -340,7 +336,7 @@ describe('generator endpoint', () => {
 					networkIdentifier,
 				}),
 			).resolves.toEqual({
-				address: config.address,
+				address: config.address.toString('hex'),
 				enabled: true,
 			});
 		});
@@ -348,7 +344,6 @@ describe('generator endpoint', () => {
 		it('should reject if BFT properties specified are non-zero and there is no previous values', async () => {
 			const db = (new InMemoryKVStore() as unknown) as KVStore;
 			endpoint.init({
-				blockchainDB: new InMemoryKVStore() as never,
 				generatorDB: db,
 				logger,
 			});
@@ -356,7 +351,7 @@ describe('generator endpoint', () => {
 				endpoint.updateStatus({
 					logger,
 					params: {
-						address: config.address,
+						address: config.address.toString('hex'),
 						enable: true,
 						password: defaultPassword,
 						overwrite: false,
@@ -378,12 +373,11 @@ describe('generator endpoint', () => {
 			const db = (new InMemoryKVStore() as unknown) as KVStore;
 			const generatorStore = new GeneratorStore(db as never);
 			const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_RESERVED_PREFIX);
-			await subStore.set(Buffer.from(config.address, 'hex'), encodedInfo);
+			await subStore.set(config.address, encodedInfo);
 			const batch = db.batch();
 			subStore.finalize(batch);
 			await batch.write();
 			endpoint.init({
-				blockchainDB: new InMemoryKVStore() as never,
 				generatorDB: db,
 				logger,
 			});
@@ -391,7 +385,7 @@ describe('generator endpoint', () => {
 				endpoint.updateStatus({
 					logger,
 					params: {
-						address: config.address,
+						address: config.address.toString('hex'),
 						enable: true,
 						password: defaultPassword,
 						overwrite: false,
@@ -413,12 +407,11 @@ describe('generator endpoint', () => {
 			const db = (new InMemoryKVStore() as unknown) as KVStore;
 			const generatorStore = new GeneratorStore(db as never);
 			const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_RESERVED_PREFIX);
-			await subStore.set(Buffer.from(config.address, 'hex'), encodedInfo);
+			await subStore.set(config.address, encodedInfo);
 			const batch = db.batch();
 			subStore.finalize(batch);
 			await batch.write();
 			endpoint.init({
-				blockchainDB: new InMemoryKVStore() as never,
 				generatorDB: db,
 				logger,
 			});
@@ -426,7 +419,7 @@ describe('generator endpoint', () => {
 				endpoint.updateStatus({
 					logger,
 					params: {
-						address: config.address,
+						address: config.address.toString('hex'),
 						enable: true,
 						password: defaultPassword,
 						overwrite: false,
@@ -448,9 +441,8 @@ describe('generator endpoint', () => {
 			const db = (new InMemoryKVStore() as unknown) as KVStore;
 			const generatorStore = new GeneratorStore(db as never);
 			const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_RESERVED_PREFIX);
-			await subStore.set(Buffer.from(config.address, 'hex'), encodedInfo);
+			await subStore.set(config.address, encodedInfo);
 			endpoint.init({
-				blockchainDB: new InMemoryKVStore() as never,
 				generatorDB: db,
 				logger,
 			});
@@ -458,7 +450,7 @@ describe('generator endpoint', () => {
 				endpoint.updateStatus({
 					logger,
 					params: {
-						address: config.address,
+						address: config.address.toString('hex'),
 						enable: true,
 						password: defaultPassword,
 						overwrite: true,
@@ -469,12 +461,12 @@ describe('generator endpoint', () => {
 					networkIdentifier,
 				}),
 			).resolves.toEqual({
-				address: config.address,
+				address: config.address.toString('hex'),
 				enabled: true,
 			});
 			const updatedGeneratorStore = new GeneratorStore(db);
 			const updated = updatedGeneratorStore.getGeneratorStore(GENERATOR_STORE_RESERVED_PREFIX);
-			const val = await updated.get(Buffer.from(config.address, 'hex'));
+			const val = await updated.get(config.address);
 			const decodedInfo = codec.decode(previouslyGeneratedInfoSchema, val);
 			expect(decodedInfo).toEqual({
 				height: 100,

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { EventEmitter } from 'events';
-import { Block, BlockAssets, Chain, Event, Transaction } from '@liskhq/lisk-chain';
+import { BlockAssets, Chain, Transaction } from '@liskhq/lisk-chain';
 import {
 	generatePrivateKey,
 	getAddressFromPassphrase,
@@ -27,17 +27,17 @@ import { codec } from '@liskhq/lisk-codec';
 import { when } from 'jest-when';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { Generator } from '../../../../src/node/generator';
-import { Consensus, GeneratorModule } from '../../../../src/node/generator/types';
+import { Consensus } from '../../../../src/node/generator/types';
 import { Network } from '../../../../src/node/network';
-import { EventQueue, StateMachine } from '../../../../src/state_machine';
 import { configUtils } from '../../../utils';
 import { fakeLogger } from '../../../utils/node';
 
 import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
 import { NETWORK_RPC_GET_TRANSACTIONS } from '../../../../src/node/generator/constants';
 import { getTransactionsResponseSchema } from '../../../../src/node/generator/schemas';
-import { BFTAPI } from '../../../../src/node/bft';
+import { BFTModule } from '../../../../src/node/bft';
 import { createFakeBlockHeader } from '../../../../src/testing';
+import { ABI } from '../../../../src/abi';
 
 describe('generator', () => {
 	const logger = fakeLogger;
@@ -49,7 +49,7 @@ describe('generator', () => {
 			),
 			address: getAddressFromPublicKey(
 				Buffer.from('9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f', 'hex'),
-			).toString('hex'),
+			),
 			encryptedPassphrase:
 				'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 		},
@@ -60,7 +60,7 @@ describe('generator', () => {
 			),
 			address: getAddressFromPublicKey(
 				Buffer.from('141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a', 'hex'),
-			).toString('hex'),
+			),
 			encryptedPassphrase:
 				'iterations=1&salt=5c709afdae35d43d4090e9ef31d14d85&cipherText=c205189b91f797c3914f5d82ccc7cccfb3c620cef512c3bf8f50cd280bd5ff1450e8b9be997179582e62bec0cb655ca2eb8ff6833892f9e350dc5182b61bd648cd02f7f95468c7ec51aa3b43&iv=bfae7a255077c6de61a1ec59&tag=59cfd0a55d39a765a84725f4be464179&version=1',
 		},
@@ -71,7 +71,7 @@ describe('generator', () => {
 			),
 			address: getAddressFromPublicKey(
 				Buffer.from('3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135', 'hex'),
-			).toString('hex'),
+			),
 			encryptedPassphrase:
 				'iterations=1&salt=588600600cd7660cf2346cd390093900&cipherText=6469aca1fe386e709c89c9a1d644abd969e64326f0f27f7be25248727892ec860e1e2dae54d283e65b1d21657a74047fb46ba732d1c83b93c8e2c0c96e98c2a9c4d87d0ac23db6dec9e3728426e3&iv=357d723a607f5baaf1fb218a&tag=f42bc3722b2964806d83a8ca3da2f94d&version=1',
 		},
@@ -91,11 +91,11 @@ describe('generator', () => {
 	let generator: Generator;
 	let chain: Chain;
 	let consensus: Consensus;
-	let stateMachine: StateMachine;
 	let network: Network;
 	let blockchainDB: KVStore;
 	let generatorDB: KVStore;
-	let bftAPI: BFTAPI;
+	let abi: ABI;
+	let bft: BFTModule;
 	let consensusEvent: EventEmitter;
 
 	beforeEach(() => {
@@ -128,24 +128,12 @@ describe('generator', () => {
 			getAggregateCommit: jest.fn(),
 			certifySingleCommit: jest.fn(),
 			getMaxRemovalHeight: jest.fn().mockResolvedValue(0),
-			events: consensusEvent,
-		} as never;
-		bftAPI = {
-			getBFTHeights: jest.fn().mockResolvedValue({
-				maxHeightPrevoted: 0,
-				maxHeightPrecommitted: 0,
+			getConsensusParams: jest.fn().mockResolvedValue({
+				currentValidators: [],
+				implyMaxPrevote: true,
 				maxHeightCertified: 0,
 			}),
-			getBFTParameters: jest.fn().mockResolvedValue({ validators: [] }),
-			existBFTParameters: jest.fn().mockResolvedValue(false),
-		} as never;
-
-		stateMachine = {
-			verifyTransaction: jest.fn().mockResolvedValue({ status: 1 }),
-			beforeExecuteBlock: jest.fn(),
-			afterExecuteBlock: jest.fn(),
-			executeGenesisBlock: jest.fn(),
-			executeTransaction: jest.fn(),
+			events: consensusEvent,
 		} as never;
 		network = {
 			registerEndpoint: jest.fn(),
@@ -159,17 +147,48 @@ describe('generator', () => {
 				}),
 			}),
 		} as never;
+		abi = {
+			beforeTransactionsExecute: jest.fn().mockResolvedValue({ events: [] }),
+			afterTransactionsExecute: jest.fn().mockResolvedValue({
+				events: [],
+				nextValidators: [],
+				precommitThreshold: 0,
+				certificateThreshold: 0,
+			}),
+			clear: jest.fn(),
+			commit: jest.fn().mockResolvedValue({ stateRoot: getRandomBytes(32) }),
+			verifyTransaction: jest.fn(),
+			executeTransaction: jest.fn().mockResolvedValue({ events: [] }),
+			initStateMachine: jest.fn().mockResolvedValue({ contextID: getRandomBytes(32) }),
+			insertAssets: jest.fn().mockResolvedValue({ assets: [] }),
+		} as never;
+		bft = {
+			beforeTransactionsExecute: jest.fn(),
+			api: {
+				getBFTHeights: jest.fn().mockResolvedValue({
+					maxHeightPrevoted: 0,
+					maxHeightPrecommitted: 0,
+					maxHeightCertified: 0,
+				}),
+				setBFTParameters: jest.fn(),
+				setGeneratorKeys: jest.fn(),
+				getBFTParameters: jest.fn().mockResolvedValue({ validators: [] }),
+				existBFTParameters: jest.fn().mockResolvedValue(false),
+			},
+		} as never;
 
 		generator = new Generator({
+			abi,
+			bft,
 			chain,
 			consensus,
 			network,
-			stateMachine,
-			bftAPI,
 			generationConfig: {
-				generators: genesisDelegates.delegates,
-				defaultPassword: genesisDelegates.delegates[0].password,
-				modules: {},
+				generators: genesisDelegates.delegates.map(d => ({
+					address: Buffer.from(d.address, 'hex'),
+					encryptedPassphrase: d.encryptedPassphrase,
+				})),
+				password: genesisDelegates.delegates[0].password,
 				waitThreshold: 2,
 			},
 			genesisConfig: configUtils.constantsConfig(),
@@ -179,7 +198,7 @@ describe('generator', () => {
 	describe('init', () => {
 		describe('loadGenerator', () => {
 			let accountDetails: {
-				readonly address: string;
+				readonly address: Buffer;
 				readonly encryptedPassphrase: string;
 			};
 
@@ -187,7 +206,7 @@ describe('generator', () => {
 				accountDetails = {
 					address: getAddressFromPublicKey(
 						Buffer.from('9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f'),
-					).toString('hex'),
+					),
 					encryptedPassphrase:
 						'salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				};
@@ -243,7 +262,9 @@ describe('generator', () => {
 						logger,
 					}),
 				).rejects.toThrow(
-					`Invalid encryptedPassphrase for address: ${accountDetails.address}. Unsupported state or unable to authenticate data`,
+					`Invalid encryptedPassphrase for address: ${accountDetails.address.toString(
+						'hex',
+					)}. Unsupported state or unable to authenticate data`,
 				);
 			});
 
@@ -257,12 +278,17 @@ describe('generator', () => {
 						logger,
 					}),
 				).rejects.toThrow(
-					`Invalid encryptedPassphrase for address: ${accountDetails.address}. Unsupported state or unable to authenticate data`,
+					`Invalid encryptedPassphrase for address: ${accountDetails.address.toString(
+						'hex',
+					)}. Unsupported state or unable to authenticate data`,
 				);
 			});
 
 			it('should load all 101 delegates', async () => {
-				generator['_config'].generators = genesisDelegates.delegates;
+				generator['_config'].generators = genesisDelegates.delegates.map(d => ({
+					address: Buffer.from(d.address, 'hex'),
+					encryptedPassphrase: d.encryptedPassphrase,
+				}));
 
 				await generator.init({
 					blockchainDB,
@@ -276,7 +302,7 @@ describe('generator', () => {
 				jest.spyOn(generator, '_handleFinalizedHeightChanged' as any).mockReturnValue([] as never);
 				jest.spyOn(generator['_consensus'], 'getMaxRemovalHeight').mockResolvedValue(313);
 				jest
-					.spyOn(generator['_bftAPI'], 'getBFTHeights')
+					.spyOn(generator['_bft'].api, 'getBFTHeights')
 					.mockResolvedValue({ maxHeightPrecommitted: 515 } as never);
 
 				await generator.init({
@@ -471,133 +497,7 @@ describe('generator', () => {
 		});
 	});
 
-	describe('generateGenesisBlock', () => {
-		let mod1: GeneratorModule;
-		let mod2: GeneratorModule;
-
-		const validatorsHash = hash(getRandomBytes(32));
-		const assetSchema1 = {
-			$id: 'assetSchema1',
-			type: 'object',
-			properties: {
-				data: { fieldNumber: 1, dataType: 'uint32' },
-			},
-		};
-		const assetSchema2 = {
-			$id: 'assetSchema2',
-			type: 'object',
-			properties: {
-				data: { fieldNumber: 1, dataType: 'string' },
-			},
-		};
-		const assets = [
-			{
-				moduleID: 5,
-				data: { data: 'asset-schema2' },
-				schema: assetSchema2,
-			},
-			{
-				moduleID: 2,
-				data: { data: 123 },
-				schema: assetSchema1,
-			},
-		];
-
-		beforeEach(async () => {
-			mod1 = {
-				id: 1,
-				initBlock: jest.fn(),
-			};
-			mod2 = {
-				id: 2,
-				sealBlock: jest.fn(),
-			};
-			generator.registerModule(mod1);
-			generator.registerModule(mod2);
-			jest.spyOn(stateMachine, 'executeGenesisBlock');
-			jest
-				.spyOn(generator['_bftAPI'], 'getBFTParameters')
-				.mockResolvedValue({ validatorsHash } as never);
-			await generator.init({
-				blockchainDB,
-				generatorDB,
-				logger,
-			});
-		});
-
-		it('should execute genesis block', async () => {
-			const genesisBlock = await generator.generateGenesisBlock({ assets });
-
-			expect(stateMachine.executeGenesisBlock).toHaveBeenCalledTimes(1);
-			expect(genesisBlock).toBeInstanceOf(Block);
-		});
-
-		it('should get BFT parameters using next height', async () => {
-			const genesisBlock = await generator.generateGenesisBlock({ assets, height: 100 });
-
-			expect(generator['_bftAPI'].getBFTParameters).toHaveBeenCalledWith(expect.anything(), 101);
-			expect(genesisBlock).toBeInstanceOf(Block);
-		});
-
-		it('should set height, previousBlockID and timestamp to the genesis block', async () => {
-			const previousBlockID = getRandomBytes(32);
-			const timestamp = 1121222;
-			const height = 100;
-			const genesisBlock = await generator.generateGenesisBlock({
-				assets,
-				height,
-				timestamp,
-				previousBlockID,
-			});
-
-			expect(genesisBlock.header.previousBlockID).toEqual(previousBlockID);
-			expect(genesisBlock.header.timestamp).toEqual(timestamp);
-			expect(genesisBlock.header.height).toEqual(height);
-		});
-
-		it('should assign eventRoot to the block when event is empty', async () => {
-			const genesisBlock = await generator.generateGenesisBlock({ assets });
-
-			expect(genesisBlock.header.eventRoot).toEqual(hash(Buffer.alloc(0)));
-		});
-
-		it('should assign non empty eventRoot to the block when event exist', async () => {
-			jest.spyOn(EventQueue.prototype, 'getEvents').mockReturnValue([
-				new Event({
-					data: getRandomBytes(32),
-					index: 0,
-					moduleID: Buffer.from([0, 0, 0, 3]),
-					topics: [Buffer.from([0])],
-					typeID: Buffer.from([0, 0, 0, 1]),
-				}),
-			]);
-			const genesisBlock = await generator.generateGenesisBlock({ assets });
-
-			expect(genesisBlock.header.eventRoot).not.toEqual(hash(Buffer.alloc(0)));
-		});
-
-		it('should include sorted assets to the genesis block', async () => {
-			const genesisBlock = await generator.generateGenesisBlock({ assets });
-
-			expect(genesisBlock.assets['_assets'][0].moduleID).toEqual(2);
-			expect(genesisBlock.assets['_assets'][1].moduleID).toEqual(5);
-			expect(genesisBlock.header.validatorsHash).toEqual(validatorsHash);
-			expect(genesisBlock.header.assetsRoot).not.toBeUndefined();
-		});
-
-		it('should set default value to height, previousBlockID and timestamp to the genesis block', async () => {
-			const genesisBlock = await generator.generateGenesisBlock({ assets });
-
-			expect(genesisBlock.header.previousBlockID).toEqual(Buffer.alloc(32, 0));
-			expect(genesisBlock.header.timestamp).toBeGreaterThan(Math.floor(Date.now() / 1000) - 60000);
-			expect(genesisBlock.header.height).toEqual(0);
-		});
-	});
-
 	describe('generateBlock', () => {
-		let mod1: GeneratorModule;
-		let mod2: GeneratorModule;
-
 		const generatorAddress = getRandomBytes(20);
 		const keypair = {
 			publicKey: getRandomBytes(32),
@@ -613,21 +513,11 @@ describe('generator', () => {
 		};
 
 		beforeEach(async () => {
-			mod1 = {
-				id: 1,
-				initBlock: jest.fn(),
-			};
-			mod2 = {
-				id: 2,
-				sealBlock: jest.fn(),
-			};
-			generator.registerModule(mod1);
-			generator.registerModule(mod2);
-			jest.spyOn(stateMachine, 'beforeExecuteBlock');
-			jest.spyOn(stateMachine, 'afterExecuteBlock');
-			jest.spyOn(generator['_forgingStrategy'], 'getTransactionsForBlock').mockResolvedValue([tx]);
 			jest
-				.spyOn(generator['_bftAPI'], 'getBFTParameters')
+				.spyOn(generator['_forgingStrategy'], 'getTransactionsForBlock')
+				.mockResolvedValue({ transactions: [tx], events: [] });
+			jest
+				.spyOn(generator['_bft'].api, 'getBFTParameters')
 				.mockResolvedValue({ validatorsHash } as never);
 			jest
 				.spyOn(generator['_consensus'], 'getAggregateCommit')
@@ -646,11 +536,12 @@ describe('generator', () => {
 				privateKey: keypair.privateKey,
 				height: 2,
 			});
-			expect(mod1.initBlock).toHaveBeenCalledTimes(1);
-			expect(mod2.sealBlock).toHaveBeenCalledTimes(1);
-			expect(stateMachine.beforeExecuteBlock).toHaveBeenCalledTimes(1);
-			expect(stateMachine.afterExecuteBlock).toHaveBeenCalledTimes(1);
-			expect(stateMachine.afterExecuteBlock).toHaveBeenCalledBefore(mod2.sealBlock as jest.Mock);
+			expect(abi.initStateMachine).toHaveBeenCalledTimes(1);
+			expect(abi.insertAssets).toHaveBeenCalledTimes(1);
+			expect(abi.beforeTransactionsExecute).toHaveBeenCalledTimes(1);
+			expect(abi.afterTransactionsExecute).toHaveBeenCalledTimes(1);
+			expect(abi.commit).toHaveBeenCalledTimes(1);
+			expect(abi.clear).toHaveBeenCalledTimes(1);
 
 			expect(block.transactions).toHaveLength(1);
 			expect(block.header.signature).toHaveLength(64);
@@ -664,8 +555,10 @@ describe('generator', () => {
 				height: 2,
 			});
 
-			expect((mod1.initBlock as jest.Mock).mock.calls[0][0].getFinalizedHeight()).toEqual(100);
-			expect((mod2.sealBlock as jest.Mock).mock.calls[0][0].getFinalizedHeight()).toEqual(100);
+			expect(abi.insertAssets).toHaveBeenCalledWith({
+				contextID: expect.any(Buffer),
+				finalizedHeight: expect.any(Number),
+			});
 		});
 
 		it('should assign validatorsHash to the block', async () => {
@@ -703,15 +596,17 @@ describe('generator', () => {
 		});
 
 		it('should assign non empty eventRoot to the block when event exist', async () => {
-			jest.spyOn(EventQueue.prototype, 'getEvents').mockReturnValue([
-				new Event({
-					data: getRandomBytes(32),
-					index: 0,
-					moduleID: Buffer.from([0, 0, 0, 3]),
-					topics: [Buffer.from([0])],
-					typeID: Buffer.from([0, 0, 0, 1]),
-				}),
-			]);
+			jest.spyOn(abi, 'beforeTransactionsExecute').mockResolvedValue({
+				events: [
+					{
+						data: getRandomBytes(32),
+						index: 0,
+						moduleID: Buffer.from([0, 0, 0, 3]),
+						topics: [Buffer.from([0])],
+						typeID: Buffer.from([0, 0, 0, 1]),
+					},
+				],
+			});
 			const block = await generator.generateBlock({
 				generatorAddress,
 				timestamp: currentTime,
@@ -746,7 +641,7 @@ describe('generator', () => {
 
 		beforeEach(async () => {
 			generator['_keypairs'].set(address, keypair);
-			when(generator['_bftAPI'].existBFTParameters as jest.Mock)
+			when(generator['_bft'].api.existBFTParameters as jest.Mock)
 				.calledWith(expect.anything(), 1)
 				.mockResolvedValue(true as never)
 				.calledWith(expect.anything(), 12)
@@ -757,7 +652,7 @@ describe('generator', () => {
 				.mockResolvedValue(false as never)
 				.calledWith(expect.anything(), 55)
 				.mockResolvedValue(true as never);
-			when(generator['_bftAPI'].getBFTParameters as jest.Mock)
+			when(generator['_bft'].api.getBFTParameters as jest.Mock)
 				.calledWith(expect.anything(), 11)
 				.mockResolvedValue({ validators: [{ address }] })
 				.calledWith(expect.anything(), 20)

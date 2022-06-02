@@ -16,11 +16,12 @@ import { hashOnion, generateHashOnionSeed } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { dataStructures, objects } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
-import { BlockGenerateContext } from '../../node/generator';
 import {
 	BlockAfterExecuteContext,
 	BlockVerifyContext,
 	GenesisBlockExecuteContext,
+	InsertAssetContext,
+	NotFoundError,
 } from '../../state_machine';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { RandomAPI } from './api';
@@ -52,7 +53,6 @@ import {
 } from './types';
 import { Logger } from '../../logger';
 import { isSeedValidInput } from './utils';
-import { NotFoundError } from '../../node/generator/errors';
 import { JSONObject } from '../../types';
 
 export class RandomModule extends BaseModule {
@@ -110,7 +110,7 @@ export class RandomModule extends BaseModule {
 		this._maxLengthReveals = config.maxLengthReveals as number;
 	}
 
-	public async initBlock(context: BlockGenerateContext): Promise<void> {
+	public async initBlock(context: InsertAssetContext): Promise<void> {
 		const generatorSubStore = context.getGeneratorStore(this.id);
 		// Get used hash onions
 		let usedHashOnions: UsedHashOnion[] = [];

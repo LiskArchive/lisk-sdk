@@ -35,7 +35,36 @@ describe('system endpoint', () => {
 			generator: {
 				getPooledTransactions: jest.fn().mockReturnValue([]),
 			},
-			options: nodeOptions,
+			abi: {
+				getMetadata: jest.fn().mockResolvedValue({
+					data: Buffer.from(
+						JSON.stringify({
+							modules: [
+								{
+									id: 1,
+									name: 'token',
+									assets: [],
+									events: [],
+									commands: [],
+									endpoints: [],
+								},
+							],
+						}),
+					),
+				}),
+			},
+			config: {
+				system: {
+					version: nodeOptions.version,
+					networkVersion: nodeOptions.networkVersion,
+				},
+				network: {
+					...nodeOptions.network,
+				},
+				genesis: {
+					...nodeOptions.genesis,
+				},
+			},
 			registeredModules: [new TokenModule()],
 		} as never);
 	});

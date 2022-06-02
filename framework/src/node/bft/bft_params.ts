@@ -12,15 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { BIG_ENDIAN, intToBuffer } from '@liskhq/lisk-cryptography';
-import { ImmutableSubStore } from '../../state_machine';
-import { SubStore } from '../../state_machine/types';
 import { BFTParameterNotFoundError } from './errors';
 import { BFTParameters, bftParametersSchema } from './schemas';
 
 export const getBFTParameters = async (
-	paramsStore: ImmutableSubStore,
+	paramsStore: StateStore,
 	height: number,
 ): Promise<BFTParameters> => {
 	const start = intToBuffer(0, 4, BIG_ENDIAN);
@@ -38,7 +37,10 @@ export const getBFTParameters = async (
 	return codec.decode<BFTParameters>(bftParametersSchema, result.value);
 };
 
-export const deleteBFTParameters = async (paramsStore: SubStore, height: number): Promise<void> => {
+export const deleteBFTParameters = async (
+	paramsStore: StateStore,
+	height: number,
+): Promise<void> => {
 	const start = intToBuffer(0, 4, BIG_ENDIAN);
 	const end = intToBuffer(height, 4, BIG_ENDIAN);
 	const results = await paramsStore.iterate({
@@ -55,10 +57,10 @@ export const deleteBFTParameters = async (paramsStore: SubStore, height: number)
 };
 
 export class BFTParametersCache {
-	private readonly _paramsStore: ImmutableSubStore;
+	private readonly _paramsStore: StateStore;
 	private readonly _cache: Map<number, BFTParameters>;
 
-	public constructor(paramsStore: ImmutableSubStore) {
+	public constructor(paramsStore: StateStore) {
 		this._paramsStore = paramsStore;
 		this._cache = new Map<number, BFTParameters>();
 	}

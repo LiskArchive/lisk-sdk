@@ -237,18 +237,18 @@ describe('Delete block', () => {
 				await processEnv.process(initBlock);
 				await processEnv.processUntilHeight(308);
 				const validatorsBefore = await processEnv
-					.getBFTAPI()
-					.getBFTParameters(
-						processEnv.getAPIContext(),
+					.getConsensus()
+					['_bft'].api.getBFTParameters(
+						processEnv.getConsensusStore(),
 						processEnv.getLastBlock().header.height + 1,
 					);
 
 				const newBlock = await processEnv.createBlock([]);
 				await processEnv.process(newBlock);
 				const validatorsAfter = await processEnv
-					.getBFTAPI()
-					.getBFTParameters(
-						processEnv.getAPIContext(),
+					.getConsensus()
+					['_bft'].api.getBFTParameters(
+						processEnv.getConsensusStore(),
 						processEnv.getLastBlock().header.height + 1,
 					);
 				expect(validatorsBefore.validators.map(v => v.address)).not.toEqual(
@@ -256,9 +256,9 @@ describe('Delete block', () => {
 				);
 				await processEnv.getConsensus()['_deleteLastBlock']();
 				const validatorsReverted = await processEnv
-					.getBFTAPI()
-					.getBFTParameters(
-						processEnv.getAPIContext(),
+					.getConsensus()
+					['_bft'].api.getBFTParameters(
+						processEnv.getConsensusStore(),
 						processEnv.getLastBlock().header.height + 1,
 					);
 				expect(validatorsReverted.validators.map(v => v.address)).toEqual(

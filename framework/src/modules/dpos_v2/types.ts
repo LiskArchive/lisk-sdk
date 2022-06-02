@@ -12,9 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader } from '@liskhq/lisk-chain';
-import { BFTHeights } from '../../node/bft/types';
-import { Validator } from '../../node/consensus/types';
 import { APIContext, ImmutableAPIContext } from '../../state_machine/types';
 
 export type TokenIDDPoS = Buffer;
@@ -33,25 +30,6 @@ export interface ModuleConfig {
 	numberActiveDelegates: number;
 	numberStandbyDelegates: number;
 	tokenIDDPoS: TokenIDDPoS;
-}
-
-export interface BFTAPI {
-	setGeneratorKeys(
-		context: APIContext,
-		validators: { address: Buffer; generatorKey: Buffer }[],
-	): Promise<void>;
-	setBFTParameters(
-		apiContext: APIContext,
-		precommitThreshold: bigint,
-		certificateThreshold: bigint,
-		validators: Validator[],
-	): Promise<void>;
-	getGeneratorKeys(
-		context: ImmutableAPIContext,
-		height: number,
-	): Promise<{ address: Buffer; generatorKey: Buffer }[]>;
-	areHeadersContradicting(bftHeader1: BlockHeader, bftHeader2: BlockHeader): boolean;
-	getBFTHeights(context: ImmutableAPIContext): Promise<BFTHeights>;
 }
 
 export interface RandomAPI {
@@ -201,7 +179,6 @@ export interface PomTransactionParams {
 }
 
 export interface PomCommandDependencies {
-	bftAPI: BFTAPI;
 	tokenAPI: TokenAPI;
 	validatorsAPI: ValidatorsAPI;
 }
@@ -213,7 +190,6 @@ export interface ValidatorKeys {
 
 export interface UnlockCommandDependencies {
 	tokenAPI: TokenAPI;
-	bftAPI: BFTAPI;
 }
 
 export interface SnapshotStoreData {

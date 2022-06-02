@@ -14,24 +14,23 @@
  *
  */
 
+import * as os from 'os';
 import { Block, Chain, DataAccess, BlockHeader, Transaction, StateStore } from '@liskhq/lisk-chain';
 import { getNetworkIdentifier, getKeys } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
+import { KVStore } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
 import { codec } from '@liskhq/lisk-codec';
 import { BaseModule } from '../modules';
-import { InMemoryChannel } from '../controller';
 import { loggerMock, channelMock } from './mocks';
 import { defaultConfig, getPassphraseFromDefaultConfig } from './fixtures';
 import { createDB, removeDB } from './utils';
 import { ApplicationConfig, EndpointHandler, GenesisConfig } from '../types';
 import { Consensus } from '../node/consensus';
-import { APIContext } from '../state_machine';
+import { APIContext, StateMachine } from '../state_machine';
 import { Node } from '../node';
 import { createImmutableAPIContext, createNewAPIContext } from '../state_machine/api_context';
 import { blockAssetsJSON } from './fixtures/genesis-asset';
-import { ValidatorsAPI } from '../modules/validators';
-import { BFTAPI } from '../node/bft';
+import { ValidatorsModule } from '../modules/validators';
 import { TokenModule } from '../modules/token';
 import { AuthModule } from '../modules/auth';
 import { FeeModule } from '../modules/fee';
@@ -39,6 +38,9 @@ import { RewardModule } from '../modules/reward';
 import { RandomModule } from '../modules/random';
 import { DPoSModule } from '../modules/dpos_v2';
 import { Generator } from '../node/generator';
+import { ABIHandler } from '../abi_handler/abi_handler';
+import { generateGenesisBlock } from '../genesis_block';
+import { systemDirs } from '../system_dirs';
 
 type Options = {
 	genesis?: GenesisConfig;
@@ -55,12 +57,11 @@ interface BlockProcessingParams {
 export interface BlockProcessingEnv {
 	createBlock: (transactions?: Transaction[], timestamp?: number) => Promise<Block>;
 	getConsensus: () => Consensus;
+	getConsensusStore: () => StateStore;
 	getGenerator: () => Generator;
 	getGenesisBlock: () => Block;
 	getChain: () => Chain;
 	getAPIContext: () => APIContext;
-	getValidatorAPI: () => ValidatorsAPI;
-	getBFTAPI: () => BFTAPI;
 	getBlockchainDB: () => KVStore;
 	process: (block: Block) => Promise<void>;
 	processUntilHeight: (height: number) => Promise<void>;
@@ -77,6 +78,8 @@ const getAppConfig = (genesisConfig?: GenesisConfig): ApplicationConfig => {
 		{},
 		{
 			...defaultConfig,
+			rootPath: os.tmpdir(),
+			label: `lisk-framework-test-${Date.now().toString()}`,
 			genesis: {
 				...defaultConfig.genesis,
 				...(genesisConfig ?? {}),
@@ -98,11 +101,11 @@ const createProcessableBlock = async (
 	timestamp?: number,
 ): Promise<Block> => {
 	// Get previous block and generate valid timestamp, seed reveal, maxHeightPrevoted, reward and maxHeightPreviouslyForged
-	const apiContext = createNewAPIContext(node['_blockchainDB']);
+	const stateStore = new StateStore(node['_blockchainDB']);
 	const previousBlockHeader = node['_chain'].lastBlock.header;
 	const nextTimestamp = timestamp ?? getNextTimestamp(node, previousBlockHeader);
 	const validator = await node['_consensus'].getGeneratorAtTimestamp(
-		apiContext,
+		stateStore,
 		previousBlockHeader.height + 1,
 		nextTimestamp,
 	);
@@ -127,47 +130,68 @@ export const getBlockProcessingEnv = async (
 ): Promise<BlockProcessingEnv> => {
 	const appConfig = getAppConfig(params.options?.genesis);
 
-	removeDB(params.options?.databasePath);
-	const blockchainDB = createDB('blockchain', params.options?.databasePath);
-	const forgerDB = createDB('forger', params.options?.databasePath);
-	const node = new Node({
-		options: appConfig,
-	});
+	const systemDir = systemDirs(appConfig.label, appConfig.rootPath);
+
+	removeDB(systemDir.data);
+	const moduleDB = createDB('module', systemDir.data);
+	const stateDB = createDB('state', systemDir.data);
+
+	const validatorsModule = new ValidatorsModule();
 	const authModule = new AuthModule();
 	const tokenModule = new TokenModule();
 	const feeModule = new FeeModule();
 	const rewardModule = new RewardModule();
 	const randomModule = new RandomModule();
 	const dposModule = new DPoSModule();
+	const modules = [
+		validatorsModule,
+		authModule,
+		tokenModule,
+		feeModule,
+		rewardModule,
+		randomModule,
+		dposModule,
+	];
+	const stateMachine = new StateMachine();
 
 	// resolve dependencies
 	feeModule.addDependencies(tokenModule.api);
-	rewardModule.addDependencies(tokenModule.api, randomModule.api, node.bftAPI);
-	dposModule.addDependencies(randomModule.api, node.bftAPI, node.validatorAPI, tokenModule.api);
+	rewardModule.addDependencies(tokenModule.api, randomModule.api);
+	dposModule.addDependencies(randomModule.api, validatorsModule.api, tokenModule.api);
 
 	// register modules
-	node.registerModule(authModule);
-	node.registerModule(tokenModule);
-	node.registerModule(feeModule);
-	node.registerModule(rewardModule);
-	node.registerModule(randomModule);
-	node.registerModule(dposModule);
+	stateMachine.registerModule(authModule);
+	stateMachine.registerModule(validatorsModule);
+	stateMachine.registerModule(tokenModule);
+	stateMachine.registerModule(feeModule);
+	stateMachine.registerModule(rewardModule);
+	stateMachine.registerModule(randomModule);
+	stateMachine.registerModule(dposModule);
 	const blockAssets = blockAssetsJSON.map(asset => ({
 		...asset,
 		data: codec.fromJSON<Record<string, unknown>>(asset.schema, asset.data),
 	}));
-	const genesisBlock = await node.generateGenesisBlock({
+	await stateMachine.init(
+		appConfig.genesis,
+		appConfig.generation.modules,
+		appConfig.genesis.modules,
+	);
+	const genesisBlock = await generateGenesisBlock(stateMachine, loggerMock, {
 		timestamp: Math.floor(Date.now() / 1000) - 60 * 60,
 		assets: blockAssets,
 	});
-	await node.init({
-		blockchainDB,
-		channel: channelMock as InMemoryChannel,
-		forgerDB,
+	const abiHandler = new ABIHandler({
+		channel: channelMock,
+		config: appConfig,
 		genesisBlock,
 		logger: loggerMock,
-		nodeDB: (new InMemoryKVStore() as unknown) as KVStore,
+		stateDB,
+		moduleDB,
+		modules,
+		stateMachine,
 	});
+	const node = new Node(abiHandler);
+	await node['_init']();
 
 	const networkIdentifier = getNetworkIdentifier(
 		genesisBlock.header.id,
@@ -180,11 +204,10 @@ export const getBlockProcessingEnv = async (
 		getGenesisBlock: () => genesisBlock,
 		getChain: () => node['_chain'],
 		getConsensus: () => node['_consensus'],
+		getConsensusStore: () => new StateStore(node['_blockchainDB']),
 		getGenerator: () => node['_generator'],
-		getValidatorAPI: () => node['_validatorsModule'].api,
-		getBFTAPI: () => node['_bftModule'].api,
-		getAPIContext: () => createNewAPIContext(node['_blockchainDB']),
-		getBlockchainDB: () => blockchainDB,
+		getAPIContext: () => createNewAPIContext(stateDB),
+		getBlockchainDB: () => node['_blockchainDB'],
 		process: async (block): Promise<void> => node['_consensus']['_execute'](block, 'peer-id'),
 		processUntilHeight: async (height): Promise<void> => {
 			while (node['_chain'].lastBlock.header.height < height) {
@@ -194,10 +217,10 @@ export const getBlockProcessingEnv = async (
 		},
 		getLastBlock: () => node['_chain'].lastBlock,
 		getNextValidatorPassphrase: async (previousBlockHeader: BlockHeader): Promise<string> => {
-			const apiContext = createNewAPIContext(blockchainDB);
+			const stateStore = new StateStore(node['_blockchainDB']);
 			const nextTimestamp = getNextTimestamp(node, previousBlockHeader);
 			const validator = await node['_consensus'].getGeneratorAtTimestamp(
-				apiContext,
+				stateStore,
 				previousBlockHeader.height + 1,
 				nextTimestamp,
 			);
@@ -216,7 +239,6 @@ export const getBlockProcessingEnv = async (
 				})) as T;
 				return resp;
 			}
-			const modules = node['_registeredModules'];
 			const moduleIndex = modules.findIndex(mod => mod.name === namespace);
 			if (moduleIndex < 0) {
 				throw new Error(`namespace ${namespace} is not registered`);
@@ -227,7 +249,7 @@ export const getBlockProcessingEnv = async (
 			}
 			const bindedHandler = moduleHandler.bind(modules[moduleIndex].endpoint);
 
-			const stateStore = new StateStore(node['_blockchainDB']);
+			const stateStore = new StateStore(stateDB);
 
 			const result = await bindedHandler({
 				getStore: (moduleID: number, storePrefix: number) =>
@@ -243,8 +265,9 @@ export const getBlockProcessingEnv = async (
 		getNetworkId: () => networkIdentifier,
 		getDataAccess: () => node['_chain'].dataAccess,
 		cleanup: async ({ databasePath }): Promise<void> => {
-			await node.stop();
-			await blockchainDB.close();
+			await node['_closeDB']();
+			await moduleDB.close();
+			await stateDB.close();
 			removeDB(databasePath);
 		},
 	};

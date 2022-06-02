@@ -11,63 +11,47 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { StateStore } from '@liskhq/lisk-chain/dist-node/state_store';
 import { TransactionPool, PooledTransaction } from '@liskhq/lisk-transaction-pool';
 import { dataStructures } from '@liskhq/lisk-utils';
-import { Chain, Transaction } from '@liskhq/lisk-chain';
+import { Chain, Transaction, BlockHeader, BlockAssets, Event } from '@liskhq/lisk-chain';
 import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { KVStore } from '@liskhq/lisk-db';
-import {
-	StateMachine,
-	VerifyStatus,
-	EventQueue,
-	TransactionContext,
-	BlockHeader,
-} from '../../state_machine';
-import { Logger } from '../../logger';
+import { ABI, Consensus, TransactionExecutionResult, TransactionVerifyResult } from '../../abi';
 
 export class HighFeeGenerationStrategy {
 	private readonly _chain: Chain;
-	private readonly _stateMachine: StateMachine;
+	private readonly _abi: ABI;
 	private readonly _pool: TransactionPool;
 	private readonly _constants: {
 		readonly maxTransactionsSize: number;
 	};
 
-	private _blockchainDB!: KVStore;
-	private _logger!: Logger;
-
 	public constructor({
 		// Modules
 		chain,
-		stateMachine,
+		abi,
 		pool,
 		// constants
 		maxTransactionsSize,
 	}: {
 		readonly chain: Chain;
-		readonly stateMachine: StateMachine;
+		readonly abi: ABI;
 		readonly pool: TransactionPool;
 		readonly maxTransactionsSize: number;
 	}) {
 		this._chain = chain;
-		this._stateMachine = stateMachine;
+		this._abi = abi;
 		this._pool = pool;
 		this._constants = { maxTransactionsSize };
 	}
 
-	public init(args: { blockchainDB: KVStore; logger: Logger }) {
-		this._blockchainDB = args.blockchainDB;
-		this._logger = args.logger;
-	}
-
-	public async getTransactionsForBlock(header: BlockHeader): Promise<Transaction[]> {
+	public async getTransactionsForBlock(
+		contextID: Buffer,
+		header: BlockHeader,
+		assets: BlockAssets,
+		consensus: Consensus,
+	): Promise<{ transactions: Transaction[]; events: Event[] }> {
 		// Initialize array to select transactions
 		const readyTransactions = [];
-
-		// Initialize state store which will be discarded after selection
-		const stateStore = new StateStore(this._blockchainDB);
-		const eventQueue = new EventQueue();
 
 		// Get processable transactions from transaction pool
 		// transactions are sorted by lowest nonce per account
@@ -81,6 +65,8 @@ export class HighFeeGenerationStrategy {
 			feePriorityHeap.push(lowestNonceTrx.feePriority as bigint, lowestNonceTrx);
 		}
 
+		const events = [];
+
 		// Loop till we have last account exhausted to pick transactions
 		while (transactionsBySender.size > 0) {
 			// Get the transaction with highest fee and lowest nonce
@@ -90,27 +76,34 @@ export class HighFeeGenerationStrategy {
 			}
 			const senderId = getAddressFromPublicKey(lowestNonceHighestFeeTrx.senderPublicKey);
 			// Try to process transaction
-			const txContext = new TransactionContext({
-				eventQueue,
-				logger: this._logger,
-				networkIdentifier: this._chain.networkIdentifier,
-				stateStore,
-				transaction: lowestNonceHighestFeeTrx,
-				header,
-			});
-			stateStore.createSnapshot();
-			eventQueue.createSnapshot();
 			try {
-				const result = await this._stateMachine.verifyTransaction(txContext);
-				if (result.status !== VerifyStatus.OK) {
+				const { result: verifyResult } = await this._abi.verifyTransaction({
+					contextID,
+					transaction: lowestNonceHighestFeeTrx.toObject(),
+					networkIdentifier: this._chain.networkIdentifier,
+				});
+				if (verifyResult !== TransactionVerifyResult.OK) {
 					throw new Error('Transaction is not valid');
 				}
-				await this._stateMachine.executeTransaction(txContext);
+				const {
+					events: executedEvents,
+					result: executeResult,
+				} = await this._abi.executeTransaction({
+					contextID,
+					header: header.toObject(),
+					networkIdentifier: this._chain.networkIdentifier,
+					transaction: lowestNonceHighestFeeTrx.toObject(),
+					assets: assets.getAll(),
+					consensus,
+					dryRun: false,
+				});
+				if (executeResult === TransactionExecutionResult.INVALID) {
+					throw new Error('Transaction is not valid');
+				}
+				events.push(...executedEvents.map(e => new Event(e)));
 			} catch (error) {
 				// If transaction can't be processed then discard all transactions
 				// from that account as other transactions will be higher nonce
-				stateStore.restoreSnapshot();
-				eventQueue.restoreSnapshot();
 				transactionsBySender.delete(senderId);
 				continue;
 			}
@@ -152,6 +145,6 @@ export class HighFeeGenerationStrategy {
 			);
 		}
 
-		return readyTransactions;
+		return { transactions: readyTransactions, events };
 	}
 }

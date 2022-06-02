@@ -55,10 +55,14 @@ describe('RewardModuleAPI', () => {
 			rewardModule.addDependencies(
 				{ mint: jest.fn() } as any,
 				{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
-				{ currentHeaderImpliesMaximalPrevotes: jest.fn().mockReturnValue(true) } as any,
 			);
 			const blockHeader = createBlockHeaderWithDefaults({ height: currentHeight });
-			const rewardFromAPI = await rewardModule.api.getBlockReward(context, blockHeader, blockAsset);
+			const rewardFromAPI = await rewardModule.api.getBlockReward(
+				context,
+				blockHeader,
+				blockAsset,
+				true,
+			);
 
 			expect(rewardFromAPI).toBe(rewardFromConfig);
 		});
@@ -67,10 +71,14 @@ describe('RewardModuleAPI', () => {
 			rewardModule.addDependencies(
 				{ mint: jest.fn() } as any,
 				{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
-				{ currentHeaderImpliesMaximalPrevotes: jest.fn().mockReturnValue(false) } as any,
 			);
 			const blockHeader = createBlockHeaderWithDefaults({ height: currentHeight });
-			const rewardFromAPI = await rewardModule.api.getBlockReward(context, blockHeader, blockAsset);
+			const rewardFromAPI = await rewardModule.api.getBlockReward(
+				context,
+				blockHeader,
+				blockAsset,
+				false,
+			);
 
 			expect(rewardFromAPI).toBe(rewardFromConfig / BigInt(4));
 		});
@@ -79,10 +87,14 @@ describe('RewardModuleAPI', () => {
 			rewardModule.addDependencies(
 				{ mint: jest.fn() } as any,
 				{ isSeedRevealValid: jest.fn().mockReturnValue(false) } as any,
-				{ currentHeaderImpliesMaximalPrevotes: jest.fn().mockReturnValue(true) } as any,
 			);
 			const blockHeader = createBlockHeaderWithDefaults({ height: currentHeight });
-			const rewardFromAPI = await rewardModule.api.getBlockReward(context, blockHeader, blockAsset);
+			const rewardFromAPI = await rewardModule.api.getBlockReward(
+				context,
+				blockHeader,
+				blockAsset,
+				true,
+			);
 
 			expect(rewardFromAPI).toBe(BigInt(0));
 		});
@@ -92,10 +104,14 @@ describe('RewardModuleAPI', () => {
 		rewardModule.addDependencies(
 			{ mint: jest.fn() } as any,
 			{ isSeedRevealValid: jest.fn().mockReturnValue(true) } as any,
-			{ currentHeaderImpliesMaximalPrevotes: jest.fn().mockReturnValue(true) } as any,
 		);
 		const blockHeader = createBlockHeaderWithDefaults({ height: 1 });
-		const rewardFromAPI = await rewardModule.api.getBlockReward(context, blockHeader, blockAsset);
+		const rewardFromAPI = await rewardModule.api.getBlockReward(
+			context,
+			blockHeader,
+			blockAsset,
+			true,
+		);
 
 		expect(rewardFromAPI).toBe(BigInt(0));
 	});

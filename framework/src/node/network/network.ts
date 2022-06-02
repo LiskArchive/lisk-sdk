@@ -354,7 +354,7 @@ export class Network {
 					{ err: error as Error, procedure: request.procedure },
 					'Peer request not fulfilled event: Could not respond to peer request',
 				);
-				request.error(error); // Send an error back to the peer.
+				request.error(error as Error); // Send an error back to the peer.
 			}
 		});
 

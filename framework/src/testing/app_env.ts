@@ -57,10 +57,6 @@ export class ApplicationEnv {
 		return this._dataPath;
 	}
 
-	public get networkIdentifier(): Buffer {
-		return this._application.networkIdentifier;
-	}
-
 	public get lastBlock(): Block {
 		// eslint-disable-next-line dot-notation
 		return this._application['_node']['_chain'].lastBlock;
@@ -83,11 +79,9 @@ export class ApplicationEnv {
 	public async stopApplication(options: { clearDB: boolean } = { clearDB: true }): Promise<void> {
 		if (options.clearDB) {
 			// eslint-disable-next-line dot-notation
-			await this._application['_forgerDB'].clear();
+			await this._application['_moduleDB'].clear();
 			// eslint-disable-next-line dot-notation
-			await this._application['_blockchainDB'].clear();
-			// eslint-disable-next-line dot-notation
-			await this._application['_nodeDB'].clear();
+			await this._application['_stateDB'].clear();
 		}
 		if (this._application.config.rpc.modes.includes(RPC_MODES.IPC)) {
 			await this._ipcClient.disconnect();

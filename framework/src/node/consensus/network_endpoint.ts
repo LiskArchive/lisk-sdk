@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { KVStore } from '@liskhq/lisk-db';
-import { Chain } from '@liskhq/lisk-chain';
+import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
+import { Chain, StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { objects } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
@@ -37,8 +37,6 @@ import {
 } from './schema';
 import { CommitPool } from './certificate_generation/commit_pool';
 import { singleCommitSchema } from './certificate_generation/schema';
-import { APIContext } from '../../state_machine/types';
-import { createNewAPIContext } from '../../state_machine/api_context';
 import { BaseNetworkEndpoint } from '../network/base_network_endpoint';
 
 export interface EndpointArgs {
@@ -59,7 +57,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 	private readonly _chain: Chain;
 	private readonly _network: Network;
 	private readonly _commitPool: CommitPool;
-	private readonly _apiContext: APIContext;
+	private readonly _db: KVStore | InMemoryKVStore;
 
 	public constructor(args: EndpointArgs) {
 		super(args.network);
@@ -67,7 +65,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 		this._chain = args.chain;
 		this._network = args.network;
 		this._commitPool = args.commitPool;
-		this._apiContext = createNewAPIContext(args.db);
+		this._db = args.db;
 	}
 
 	public handleRPCGetLastBlock(peerId: string): Buffer {
@@ -222,7 +220,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 
 		try {
 			const isValidCommit = await this._commitPool.validateCommit(
-				this._apiContext,
+				new StateStore(this._db),
 				decodedData.singleCommit,
 			);
 
