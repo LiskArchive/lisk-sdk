@@ -120,7 +120,7 @@ export const signDataWithPrivateKey = (
 	networkIdentifier: Buffer,
 	data: Buffer,
 	privateKey: Buffer,
-): Buffer => signDetached(tagMessage(tag, networkIdentifier, data), privateKey);
+): Buffer => signDetached(hash(tagMessage(tag, networkIdentifier, data)), privateKey);
 
 export const signDataWithPassphrase = (
 	tag: string,
@@ -141,4 +141,4 @@ export const verifyData = (
 	data: Buffer,
 	signature: Buffer,
 	publicKey: Buffer,
-): boolean => verifyDetached(tagMessage(tag, networkIdentifier, data), signature, publicKey);
+): boolean => verifyDetached(hash(tagMessage(tag, networkIdentifier, data)), signature, publicKey);

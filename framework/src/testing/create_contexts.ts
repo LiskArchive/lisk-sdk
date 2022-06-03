@@ -258,3 +258,108 @@ export const createTransientModuleEndpointContext = (params: {
 	};
 	return ctx;
 };
+
+const createCCAPIContext = (params: {
+	stateStore?: StateStore;
+	logger?: Logger;
+	networkIdentifier?: Buffer;
+	getAPIContext?: () => APIContext;
+	eventQueue?: EventQueueAdder;
+	ccm?: CCMsg;
+	feeAddress?: Buffer;
+}) => {
+	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
+	const logger = params.logger ?? loggerMock;
+	const networkIdentifier = params.networkIdentifier ?? Buffer.alloc(0);
+	const eventQueue = params.eventQueue ?? new EventQueue();
+	const getStore = (moduleID: number, storePrefix: number) =>
+		stateStore.getStore(moduleID, storePrefix);
+	const ccm = params.ccm ?? {
+		nonce: BigInt(0),
+		moduleID: 1,
+		crossChainCommandID: 1,
+		sendingChainID: 2,
+		receivingChainID: 3,
+		fee: BigInt(20000),
+		status: 0,
+		params: Buffer.alloc(0),
+	};
+	return {
+		getStore: (moduleID: number, storePrefix: number) => stateStore.getStore(moduleID, storePrefix),
+		logger,
+		networkIdentifier,
+		getAPIContext: params.getAPIContext ?? (() => ({ getStore, eventQueue })),
+		eventQueue,
+		ccm,
+		feeAddress: params.feeAddress ?? getRandomBytes(20),
+	};
+};
+
+export const createExecuteCCMsgAPIContext = (params: {
+	ccm?: CCMsg;
+	feeAddress?: Buffer;
+	logger?: Logger;
+	networkIdentifier?: Buffer;
+	getAPIContext?: () => APIContext;
+	eventQueue?: EventQueueAdder;
+}): CCCommandExecuteContext => createCCAPIContext(params);
+
+export const createBeforeSendCCMsgAPIContext = (params: {
+	ccm?: CCMsg;
+	feeAddress: Buffer;
+	logger?: Logger;
+	networkIdentifier?: Buffer;
+	getAPIContext?: () => APIContext;
+	eventQueue?: EventQueueAdder;
+}): BeforeSendCCMsgAPIContext => createCCAPIContext(params);
+
+export const createBeforeApplyCCMsgAPIContext = (params: {
+	ccm: CCMsg;
+	ccu: CCUpdateParams;
+	payFromAddress: Buffer;
+	stateStore?: StateStore;
+	logger?: Logger;
+	networkIdentifier?: Buffer;
+	getAPIContext?: () => APIContext;
+	eventQueue?: EventQueueAdder;
+	feeAddress: Buffer;
+}): BeforeApplyCCMsgAPIContext => ({
+	...createCCAPIContext(params),
+	ccu: params.ccu,
+});
+
+export const createBeforeRecoverCCMsgAPIContext = (params: {
+	ccm: CCMsg;
+	trsSender: Buffer;
+	stateStore?: StateStore;
+	logger?: Logger;
+	networkIdentifier?: Buffer;
+	getAPIContext?: () => APIContext;
+	feeAddress: Buffer;
+	eventQueue?: EventQueue;
+}): BeforeRecoverCCMsgAPIContext => ({
+	...createCCAPIContext(params),
+	trsSender: params.trsSender,
+});
+
+export const createRecoverCCMsgAPIContext = (params: {
+	ccm?: CCMsg;
+	terminatedChainID: number;
+	moduleID: number;
+	storePrefix: number;
+	storeKey: number;
+	storeValue: Buffer;
+	stateStore?: StateStore;
+	logger?: Logger;
+	networkIdentifier?: Buffer;
+	getAPIContext?: () => APIContext;
+	feeAddress: Buffer;
+	eventQueue?: EventQueue;
+}): RecoverCCMsgAPIContext => ({
+	...createCCAPIContext(params),
+	terminatedChainID: params.terminatedChainID,
+	moduleID: params.moduleID,
+	storePrefix: params.storePrefix,
+	storeKey: params.storeKey,
+	storeValue: params.storeValue,
+});

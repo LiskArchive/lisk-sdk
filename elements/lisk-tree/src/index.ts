@@ -12,8 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { verifyProof } from './merkle_tree/verify_proof';
+import { verifyProof, verifyDataBlock } from './merkle_tree/verify_proof';
 import { calculateRootFromUpdateData } from './merkle_tree/calculate';
+import { calculateRootFromRightWitness, verifyRightWitness } from './merkle_tree/right_witness';
 import { MerkleTree } from './merkle_tree/merkle_tree';
 import { calculateMerkleRoot, calculateMerkleRootWithLeaves } from './merkle_tree/utils';
 import { SparseMerkleTree } from './sparse_merkle_tree/sparse_merkle_tree';
@@ -22,10 +23,13 @@ import { Proof as SMTProof, Query as SMTQuery } from './sparse_merkle_tree/types
 
 export const regularMerkleTree = {
 	verifyProof,
+	verifyDataBlock,
 	calculateRootFromUpdateData,
 	calculateMerkleRoot,
 	calculateMerkleRootWithLeaves,
 	MerkleTree,
+	calculateRootFromRightWitness,
+	verifyRightWitness,
 };
 
 export const sparseMerkleTree = {

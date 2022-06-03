@@ -11,6 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { hash } from '@liskhq/lisk-cryptography';
+import { LEAF_PREFIX } from './constants';
 import { Proof } from './types';
 import { calculatePathNodes, ROOT_INDEX } from './utils';
 
@@ -34,4 +36,22 @@ export const verifyProof = (
 		return false;
 	}
 	return calculatedRoot.equals(rootHash);
+};
+
+export const verifyDataBlock = (
+	queryData: ReadonlyArray<Buffer>,
+	proof: Proof,
+	rootHash: Buffer,
+): boolean => {
+	const queryHashes = [];
+	for (const data of queryData) {
+		const leafValueWithoutNodeIndex = Buffer.concat(
+			[LEAF_PREFIX, data],
+			LEAF_PREFIX.length + data.length,
+		);
+		const leafHash = hash(leafValueWithoutNodeIndex);
+		queryHashes.push(leafHash);
+	}
+
+	return verifyProof(queryHashes, proof, rootHash);
 };
