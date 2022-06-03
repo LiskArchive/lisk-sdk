@@ -237,15 +237,16 @@ describe('Mainchain registration command', () => {
 				address: getRandomBytes(20),
 				bftWeight: BigInt(10),
 				generatorKey: getRandomBytes(32),
-				blsKey: blsKey1 < blsKey2 ? blsKey1 : blsKey2,
+				blsKey: blsKey1,
 			},
 			{
 				address: getRandomBytes(20),
 				bftWeight: BigInt(5),
 				generatorKey: getRandomBytes(32),
-				blsKey: blsKey1 < blsKey2 ? blsKey2 : blsKey1,
+				blsKey: blsKey2,
 			},
 		];
+		validatorAccounts.sort((a, b) => a.blsKey.compare(b.blsKey));
 		const mockGetStore = jest.fn();
 		const context = {
 			logger: jest.fn(),
