@@ -284,7 +284,7 @@ const MainPage: React.FC = () => {
 					`ModuleID: ${data.moduleID} CommandID: ${data.commandID} is not registered`,
 				);
 			}
-			const commandMeta = moduleMeta.commands.find(m => m.id === data.commandID);
+			const commandMeta = moduleMeta.commands.find(cmd => cmd.id === data.commandID);
 			if (!commandMeta) {
 				throw new Error(
 					`ModuleID: ${data.moduleID} CommandID: ${data.commandID} is not registered`,
