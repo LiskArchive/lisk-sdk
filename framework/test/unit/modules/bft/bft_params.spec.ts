@@ -12,29 +12,28 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { SMTStore, StateStore } from '@liskhq/lisk-chain';
+import { StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { BIG_ENDIAN, getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
-import { SparseMerkleTree } from '@liskhq/lisk-tree';
-import { MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS } from '../../../../src/modules/bft/constants';
-import { BFTParameterNotFoundError } from '../../../../src/modules/bft/errors';
+import { InMemoryDatabase, Database, Batch } from '@liskhq/lisk-db';
+import { MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS } from '../../../../src/engine/bft/constants';
+import { BFTParameterNotFoundError } from '../../../../src/engine/bft/errors';
 import {
 	BFTParametersCache,
 	deleteBFTParameters,
 	getBFTParameters,
-} from '../../../../src/modules/bft/bft_params';
-import { BFTParameters, bftParametersSchema } from '../../../../src/modules/bft/schemas';
+} from '../../../../src/engine/bft/bft_params';
+import { BFTParameters, bftParametersSchema } from '../../../../src/engine/bft/schemas';
 
 describe('BFT parameters', () => {
 	describe('getBFTParameters', () => {
-		let db: KVStore;
+		let db: Database;
 		let stateStore: StateStore;
 		let bftParams1: BFTParameters;
 		let bftParams2: BFTParameters;
 
 		beforeEach(async () => {
-			db = new InMemoryKVStore() as never;
+			db = new InMemoryDatabase() as never;
 			const rootStore = new StateStore(db);
 			const paramsStore = rootStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
 			const height1Bytes = intToBuffer(309, 4, BIG_ENDIAN);
@@ -46,6 +45,7 @@ describe('BFT parameters', () => {
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(10),
+						blsKey: getRandomBytes(42),
 					},
 				],
 				validatorsHash: getRandomBytes(32),
@@ -60,16 +60,15 @@ describe('BFT parameters', () => {
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(5),
+						blsKey: getRandomBytes(42),
 					},
 				],
 				validatorsHash: getRandomBytes(32),
 			};
 			await paramsStore.set(height2Bytes, codec.encode(bftParametersSchema, bftParams2));
-			const batch = db.batch();
-			const smtStore = new SMTStore(db);
-			const smt = new SparseMerkleTree({ db: smtStore });
-			await rootStore.finalize(batch, smt);
-			await batch.write();
+			const batch = new Batch();
+			rootStore.finalize(batch);
+			await db.write(batch);
 
 			stateStore = new StateStore(db);
 		});
@@ -94,13 +93,13 @@ describe('BFT parameters', () => {
 	});
 
 	describe('deleteBFTParameters', () => {
-		let db: KVStore;
+		let db: Database;
 		let stateStore: StateStore;
 		let bftParams1: BFTParameters;
 		let bftParams2: BFTParameters;
 
 		beforeEach(async () => {
-			db = new InMemoryKVStore() as never;
+			db = new InMemoryDatabase() as never;
 			const rootStore = new StateStore(db);
 			const paramsStore = rootStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
 			const height1Bytes = intToBuffer(309, 4, BIG_ENDIAN);
@@ -112,6 +111,7 @@ describe('BFT parameters', () => {
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(10),
+						blsKey: getRandomBytes(42),
 					},
 				],
 				validatorsHash: getRandomBytes(32),
@@ -126,16 +126,15 @@ describe('BFT parameters', () => {
 					{
 						address: getRandomBytes(20),
 						bftWeight: BigInt(5),
+						blsKey: getRandomBytes(42),
 					},
 				],
 				validatorsHash: getRandomBytes(32),
 			};
 			await paramsStore.set(height2Bytes, codec.encode(bftParametersSchema, bftParams2));
-			const batch = db.batch();
-			const smtStore = new SMTStore(db);
-			const smt = new SparseMerkleTree({ db: smtStore });
-			await rootStore.finalize(batch, smt);
-			await batch.write();
+			const batch = new Batch();
+			rootStore.finalize(batch);
+			await db.write(batch);
 
 			stateStore = new StateStore(db);
 		});
@@ -160,10 +159,10 @@ describe('BFT parameters', () => {
 
 	describe('BFTParametersCache', () => {
 		describe('cache', () => {
-			let db: KVStore;
+			let db: Database;
 
 			it('should cache params for the specified range', async () => {
-				db = new InMemoryKVStore() as never;
+				db = new InMemoryDatabase() as never;
 				const rootStore = new StateStore(db);
 				const paramsStore = rootStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
 				const height1Bytes = intToBuffer(104, 4, BIG_ENDIAN);
@@ -175,6 +174,7 @@ describe('BFT parameters', () => {
 						{
 							address: getRandomBytes(20),
 							bftWeight: BigInt(10),
+							blsKey: getRandomBytes(42),
 						},
 					],
 					validatorsHash: getRandomBytes(32),
@@ -189,6 +189,7 @@ describe('BFT parameters', () => {
 						{
 							address: getRandomBytes(20),
 							bftWeight: BigInt(5),
+							blsKey: getRandomBytes(42),
 						},
 					],
 					validatorsHash: getRandomBytes(32),
@@ -203,16 +204,15 @@ describe('BFT parameters', () => {
 						{
 							address: getRandomBytes(20),
 							bftWeight: BigInt(5),
+							blsKey: getRandomBytes(42),
 						},
 					],
 					validatorsHash: getRandomBytes(32),
 				};
 				await paramsStore.set(height3Bytes, codec.encode(bftParametersSchema, bftParams3));
-				const batch = db.batch();
-				const smtStore = new SMTStore(db);
-				const smt = new SparseMerkleTree({ db: smtStore });
-				await rootStore.finalize(batch, smt);
-				await batch.write();
+				const batch = new Batch();
+				rootStore.finalize(batch);
+				await db.write(batch);
 
 				const stateStore = new StateStore(db);
 				const targetParamsStore = stateStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);

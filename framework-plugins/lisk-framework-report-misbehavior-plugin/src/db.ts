@@ -18,7 +18,6 @@ import { ensureDir } from 'fs-extra';
 import { cryptography, codec, chain, db as liskDB, BasePlugin } from 'lisk-sdk';
 
 const { BlockHeader } = chain;
-const { formatInt, getFirstPrefix, getLastPrefix } = liskDB;
 const { hash } = cryptography;
 
 export const blockHeadersSchema = {
@@ -49,15 +48,15 @@ interface BlockHeaders {
 export const getDBInstance = async (
 	dataPath: string,
 	dbName = 'lisk-framework-report-misbehavior-plugin.db',
-): Promise<liskDB.KVStore> => {
+): Promise<liskDB.Database> => {
 	const dirPath = join(dataPath.replace('~', os.homedir()), 'plugins/data', dbName);
 	await ensureDir(dirPath);
 
-	return new liskDB.KVStore(dirPath);
+	return new liskDB.Database(dirPath);
 };
 
 export const getBlockHeaders = async (
-	db: liskDB.KVStore,
+	db: liskDB.Database,
 	dbKeyBlockHeader: Buffer,
 ): Promise<BlockHeaders> => {
 	try {
@@ -69,22 +68,20 @@ export const getBlockHeaders = async (
 };
 
 export const saveBlockHeaders = async (
-	db: liskDB.KVStore,
+	db: liskDB.Database,
 	headerBytes: Buffer,
 ): Promise<boolean> => {
 	const header = BlockHeader.fromBytes(headerBytes);
-	const dbKey = Buffer.concat([
-		header.generatorAddress,
-		Buffer.from(':', 'utf8'),
-		formatInt(header.height),
-	]);
+	const heightBytes = Buffer.alloc(4);
+	heightBytes.writeUInt32BE(header.height, 0);
+	const dbKey = Buffer.concat([header.generatorAddress, Buffer.from(':', 'utf8'), heightBytes]);
 	const { blockHeaders } = await getBlockHeaders(db, dbKey);
 
 	if (!blockHeaders.find(blockHeader => hash(blockHeader).equals(header.id))) {
-		await db.put(
+		await db.set(
 			dbKey,
 			codec.encode(blockHeadersSchema, {
-				blockHeaders: [...blockHeaders, header],
+				blockHeaders: [...blockHeaders, header.getBytes()],
 			}),
 		);
 		return true;
@@ -95,15 +92,15 @@ export const saveBlockHeaders = async (
 type IteratableStream = NodeJS.ReadableStream & { destroy: (err?: Error) => void };
 
 export const getContradictingBlockHeader = async (
-	db: liskDB.KVStore,
+	db: liskDB.Database,
 	blockHeader: chain.BlockHeader,
 	apiClient: BasePlugin['apiClient'],
 ): Promise<chain.BlockHeader | undefined> => {
 	const header1 = blockHeader.getBytes().toString('hex');
 	const existingHeaders = await new Promise<string[]>((resolve, reject) => {
 		const stream = db.createReadStream({
-			gte: getFirstPrefix(blockHeader.generatorAddress),
-			lte: getLastPrefix(blockHeader.generatorAddress),
+			gte: Buffer.concat([blockHeader.generatorAddress, Buffer.alloc(4, 0)]),
+			lte: Buffer.concat([blockHeader.generatorAddress, Buffer.alloc(4, 255)]),
 		}) as IteratableStream;
 		const results: string[] = [];
 		stream
@@ -133,11 +130,11 @@ export const getContradictingBlockHeader = async (
 };
 
 export const clearBlockHeaders = async (
-	db: liskDB.KVStore,
+	db: liskDB.Database,
 	currentHeight: number,
 ): Promise<void> => {
 	const keys = await new Promise<Buffer[]>((resolve, reject) => {
-		const stream = db.createReadStream() as IteratableStream;
+		const stream = db.createReadStream();
 		const res: Buffer[] = [];
 		stream
 			.on('data', ({ key, value }: { key: Buffer; value: Buffer }) => {
@@ -156,9 +153,9 @@ export const clearBlockHeaders = async (
 				resolve(res);
 			});
 	});
-	const batch = db.batch();
+	const batch = new liskDB.Batch();
 	for (const k of keys) {
 		batch.del(k);
 	}
-	await batch.write();
+	await db.write(batch);
 };

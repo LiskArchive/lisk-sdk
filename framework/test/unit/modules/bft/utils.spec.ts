@@ -17,7 +17,7 @@ import { createFakeBlockHeader } from '../../../../src/testing';
 import {
 	areDistinctHeadersContradicting,
 	getBlockBFTProperties,
-} from '../../../../src/modules/bft/utils';
+} from '../../../../src/engine/bft/utils';
 
 describe('bft utils', () => {
 	const generatorAddress = getRandomBytes(20);

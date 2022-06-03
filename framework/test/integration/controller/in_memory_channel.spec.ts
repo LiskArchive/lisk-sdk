@@ -14,7 +14,7 @@
 
 import { homedir } from 'os';
 import { resolve as pathResolve } from 'path';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { InMemoryChannel } from '../../../src/controller/channels';
 import { Bus } from '../../../src/controller/bus';
 
@@ -69,7 +69,7 @@ describe('InMemoryChannel', () => {
 
 			inMemoryChannelAlpha = new InMemoryChannel(
 				logger,
-				new InMemoryKVStore() as any,
+				new InMemoryDatabase() as any,
 				alpha.moduleName,
 				alpha.events,
 				alpha.endpoints,
@@ -79,7 +79,7 @@ describe('InMemoryChannel', () => {
 
 			inMemoryChannelBeta = new InMemoryChannel(
 				logger,
-				new InMemoryKVStore() as any,
+				new InMemoryDatabase() as any,
 				beta.moduleName,
 				beta.events,
 				beta.endpoints,
@@ -134,7 +134,7 @@ describe('InMemoryChannel', () => {
 				const dummyData = { data: '#DATA' };
 				const inMemoryChannelOmega = new InMemoryChannel(
 					logger,
-					new InMemoryKVStore() as any,
+					new InMemoryDatabase() as any,
 					omegaName,
 					[omegaEventName],
 					{},

@@ -90,22 +90,22 @@ describe('token module', () => {
 			// Expect stored
 			const userStore = context.getStore(MODULE_ID_TOKEN, STORE_PREFIX_USER);
 			const allUsers = await userStore.iterate({
-				start: Buffer.alloc(26, 0),
-				end: Buffer.alloc(26, 255),
+				gte: Buffer.alloc(26, 0),
+				lte: Buffer.alloc(26, 255),
 			});
 			expect(allUsers).toHaveLength(input.userSubstore.length);
 
 			const supplyStore = context.getStore(MODULE_ID_TOKEN, STORE_PREFIX_SUPPLY);
 			const allSupplies = await supplyStore.iterate({
-				start: Buffer.alloc(LOCAL_ID_LENGTH, 0),
-				end: Buffer.alloc(LOCAL_ID_LENGTH, 255),
+				gte: Buffer.alloc(LOCAL_ID_LENGTH, 0),
+				lte: Buffer.alloc(LOCAL_ID_LENGTH, 255),
 			});
 			expect(allSupplies).toHaveLength(input.supplySubstore.length);
 
 			const escrowStore = context.getStore(MODULE_ID_TOKEN, STORE_PREFIX_ESCROW);
 			const allEscrows = await escrowStore.iterate({
-				start: Buffer.alloc(TOKEN_ID_LENGTH, 0),
-				end: Buffer.alloc(TOKEN_ID_LENGTH, 255),
+				gte: Buffer.alloc(TOKEN_ID_LENGTH, 0),
+				lte: Buffer.alloc(TOKEN_ID_LENGTH, 255),
 			});
 			expect(allEscrows).toHaveLength(input.escrowSubstore.length);
 
@@ -126,8 +126,8 @@ describe('token module', () => {
 				STORE_PREFIX_TERMINATED_ESCROW,
 			);
 			const allTerminatedEscrows = await terminatedEscrowStore.iterate({
-				start: Buffer.alloc(CHAIN_ID_LENGTH, 0),
-				end: Buffer.alloc(CHAIN_ID_LENGTH, 255),
+				gte: Buffer.alloc(CHAIN_ID_LENGTH, 0),
+				lte: Buffer.alloc(CHAIN_ID_LENGTH, 255),
 			});
 			expect(allTerminatedEscrows).toHaveLength(input.terminatedEscrowSubstore.length);
 		});

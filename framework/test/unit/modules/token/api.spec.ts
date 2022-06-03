@@ -11,10 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { TokenAPI } from '../../../../src/modules/token';
 import {
 	CCM_STATUS_OK,
@@ -40,8 +38,10 @@ import {
 	userStoreSchema,
 } from '../../../../src/modules/token/schemas';
 import { getUserStoreKey } from '../../../../src/modules/token/utils';
-import { APIContext, createAPIContext, EventQueue } from '../../../../src/node/state_machine';
-import { DEFAULT_TOKEN_ID } from '../../../utils/node/transaction';
+import { APIContext, createAPIContext, EventQueue } from '../../../../src/state_machine';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
+import { DEFAULT_TOKEN_ID } from '../../../utils/mocks/transaction';
 
 describe('token module', () => {
 	const defaultAddress = getRandomBytes(20);
@@ -81,7 +81,7 @@ describe('token module', () => {
 			getChannel: jest.fn(),
 		});
 		apiContext = createAPIContext({
-			stateStore: new StateStore(new InMemoryKVStore()),
+			stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
 			eventQueue: new EventQueue(),
 		});
 		const userStore = apiContext.getStore(MODULE_ID_TOKEN, STORE_PREFIX_USER);

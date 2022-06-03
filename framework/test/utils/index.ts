@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as nodeUtils from './node';
+import * as nodeUtils from './mocks';
 import * as configUtils from './configs';
 
 export { constants } from './constants';

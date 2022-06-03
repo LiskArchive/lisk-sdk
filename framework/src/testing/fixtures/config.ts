@@ -2073,7 +2073,7 @@ export const defaultConfig = {
 				],
 			},
 		},
-		delegates: [
+		generators: [
 			{
 				address: 'dec7cd87252110c02fc681c81fad29cfa9f9231e',
 				encryptedPassphrase:
@@ -2601,7 +2601,7 @@ export const defaultConfig = {
 	},
 	plugins: {},
 	rpc: {
-		modes: ['ipc'],
+		modes: [],
 		ws: {
 			port: 8080,
 			host: '127.0.0.1',
@@ -2615,7 +2615,7 @@ export const defaultConfig = {
 };
 
 const getDelegateFromDefaultConfig = (address: Buffer) => {
-	const delegateConfig = defaultConfig.generation.delegates.find(d =>
+	const delegateConfig = defaultConfig.generation.generators.find(d =>
 		address.equals(Buffer.from(d.address, 'hex')),
 	);
 	if (!delegateConfig) {

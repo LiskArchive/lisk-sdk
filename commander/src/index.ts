@@ -15,6 +15,7 @@
 export { run } from '@oclif/command';
 export { BaseIPCClientCommand } from './bootstrapping/commands/base_ipc_client';
 export { AccountCreateCommand, AccountValidateCommand } from './bootstrapping/commands/account';
+export { BlsKeyCreateCommand } from './bootstrapping/commands/blskey';
 export { BlockGetCommand } from './bootstrapping/commands/block';
 export {
 	BlockchainExportCommand,

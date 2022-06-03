@@ -21,7 +21,7 @@ import {
 	MODULE_ID_VALIDATORS,
 	STORE_PREFIX_GENESIS_DATA,
 } from './constants';
-import { GenesisBlockExecuteContext } from '../../node/state_machine';
+import { GenesisBlockExecuteContext } from '../../state_machine';
 import { ValidatorsAPI } from './api';
 import { ValidatorsEndpoint } from './endpoint';
 import {

@@ -20,7 +20,7 @@ import {
 import { Application, Transaction } from '../../../src';
 import { genesis, DefaultAccountProps } from '../../fixtures';
 import { nodeUtils } from '../../utils';
-import { createTransferTransaction } from '../../utils/node/transaction';
+import { createTransferTransaction } from '../../utils/mocks/transaction';
 
 describe('Transaction related actions', () => {
 	let app: Application;

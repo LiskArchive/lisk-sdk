@@ -20,25 +20,20 @@ import {
 	getAddressFromPublicKey,
 	signDataWithPassphrase,
 } from '@liskhq/lisk-cryptography';
-import {
-	Transaction,
-	transactionSchema,
-	TAG_TRANSACTION,
-	StateStore,
-	BlockAssets,
-} from '@liskhq/lisk-chain';
+import { Transaction, transactionSchema, TAG_TRANSACTION, BlockAssets } from '@liskhq/lisk-chain';
 import { objects as ObjectUtils } from '@liskhq/lisk-utils';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { when } from 'jest-when';
 import { AuthModule } from '../../../../src/modules/auth';
 import * as fixtures from './fixtures.json';
 import * as testing from '../../../../src/testing';
 import { authAccountSchema, genesisAuthStoreSchema } from '../../../../src/modules/auth/schemas';
 import { AuthAccount } from '../../../../src/modules/auth/types';
-import { VerifyStatus } from '../../../../src/node/state_machine';
+import { VerifyStatus } from '../../../../src/state_machine';
 import { InvalidNonceError } from '../../../../src/modules/auth/errors';
 import { STORE_PREFIX_AUTH } from '../../../../src/modules/auth/constants';
 import { createGenesisBlockContext } from '../../../../src/testing';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 
 describe('AuthModule', () => {
 	let decodedMultiSignature: any;
@@ -265,7 +260,7 @@ describe('AuthModule', () => {
 		];
 
 		beforeEach(() => {
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		});
 
 		it('should not throw error if asset does not exist', async () => {
@@ -1128,7 +1123,7 @@ describe('AuthModule', () => {
 
 	describe('afterCommandExecute', () => {
 		it('should correctly increment the nonce', async () => {
-			const stateStore1 = new StateStore(new InMemoryKVStore());
+			const stateStore1 = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			const authStore1 = stateStore1.getStore(authModule.id, STORE_PREFIX_AUTH);
 			const address = getAddressFromPublicKey(validTestTransaction.senderPublicKey);
 			const authAccount1 = {

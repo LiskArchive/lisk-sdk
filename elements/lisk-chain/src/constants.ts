@@ -20,6 +20,7 @@ export const DEFAULT_MAX_BLOCK_HEADER_CACHE = 515;
 
 export const EMPTY_BUFFER = Buffer.alloc(0);
 export const EMPTY_HASH = hash(EMPTY_BUFFER);
+export const MAX_UINT32 = 4294967295;
 
 export const GENESIS_BLOCK_VERSION = 0;
 export const GENESIS_BLOCK_GENERATOR_ADDRESS = EMPTY_BUFFER;

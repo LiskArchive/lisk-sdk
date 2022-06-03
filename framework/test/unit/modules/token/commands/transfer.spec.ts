@@ -12,10 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateStore, Transaction } from '@liskhq/lisk-chain';
+import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getAddressAndPublicKeyFromPassphrase, getRandomBytes } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { VerifyStatus } from '../../../../../src';
 import { TokenAPI } from '../../../../../src/modules/token/api';
 import { TransferCommand } from '../../../../../src/modules/token/commands/transfer';
@@ -34,7 +33,9 @@ import {
 	userStoreSchema,
 } from '../../../../../src/modules/token/schemas';
 import { getUserStoreKey } from '../../../../../src/modules/token/utils';
+import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { createTransactionContext } from '../../../../../src/testing';
+import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 
 describe('Transfer command', () => {
 	const localTokenID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
@@ -165,7 +166,7 @@ describe('Transfer command', () => {
 	});
 
 	describe('execute', () => {
-		let stateStore: StateStore;
+		let stateStore: PrefixedStateReadWriter;
 		const sender = getAddressAndPublicKeyFromPassphrase('sender');
 		const recipient = getAddressAndPublicKeyFromPassphrase('recipient');
 		const thirdTokenID = Buffer.from([1, 0, 0, 0, 4, 0, 0, 0]);
@@ -175,7 +176,7 @@ describe('Transfer command', () => {
 		const recipientBalance = BigInt(1000);
 
 		beforeEach(async () => {
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			const userStore = stateStore.getStore(MODULE_ID_TOKEN, STORE_PREFIX_USER);
 			await userStore.setWithSchema(
 				getUserStoreKey(sender.address, localTokenID),

@@ -20,7 +20,7 @@ import {
 	CommandVerifyContext,
 	VerificationResult,
 	VerifyStatus,
-} from '../../../node/state_machine';
+} from '../../../state_machine';
 import {
 	COMMAND_ID_MULTISIGNATURE_REGISTRATION,
 	MAX_KEYS_COUNT,

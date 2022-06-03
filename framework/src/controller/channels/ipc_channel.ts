@@ -86,15 +86,27 @@ export class IPCChannel extends BaseChannel {
 								this._rpcServer
 									.send([
 										sender,
-										request.id as string,
+										String(request.id),
 										JSON.stringify(request.buildJSONRPCResponse({ result })),
 									])
 									.catch(error => {
-										throw error;
+										this._logger.error({ err: error as Error }, 'Fail to send success response');
 									});
 							})
 							.catch(error => {
-								throw error;
+								this._rpcServer
+									.send([
+										sender,
+										String(request.id),
+										JSON.stringify(
+											request.buildJSONRPCResponse({
+												error: { code: -32600, message: (error as Error).message },
+											}),
+										),
+									])
+									.catch(err => {
+										this._logger.error({ err: err as Error }, 'Fail to send error response');
+									});
 							});
 					}
 					continue;

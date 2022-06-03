@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateStore } from '@liskhq/lisk-chain';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { when } from 'jest-when';
@@ -45,6 +43,9 @@ import {
 	CCUpdateParams,
 	TerminatedOutboxAccount,
 } from '../../../../src/modules/interoperability/types';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
+import { SubStore } from '../../../../src/state_machine/types';
 
 describe('Base interoperability store', () => {
 	const chainID = Buffer.from('01', 'hex');
@@ -107,14 +108,14 @@ describe('Base interoperability store', () => {
 	let channelSubstore: any;
 	let outboxRootSubstore: any;
 	let terminatedOutboxSubstore: any;
-	let stateStore: StateStore;
-	let chainSubstore: StateStore;
-	let terminatedStateSubstore: StateStore;
+	let stateStore: PrefixedStateReadWriter;
+	let chainSubstore: SubStore;
+	let terminatedStateSubstore: SubStore;
 
 	let mockGetStore: any;
 
 	beforeEach(() => {
-		stateStore = new StateStore(new InMemoryKVStore());
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		regularMerkleTree.calculateMerkleRoot = jest.fn().mockReturnValue(updatedOutboxTree);
 		channelSubstore = {
 			getWithSchema: jest.fn().mockResolvedValue(channelData),
@@ -714,7 +715,7 @@ describe('Base interoperability store', () => {
 					changedValues,
 				);
 
-				const changedAccount = await (terminatedOutboxSubstore as StateStore).getWithSchema<TerminatedOutboxAccount>(
+				const changedAccount = await (terminatedOutboxSubstore as SubStore).getWithSchema<TerminatedOutboxAccount>(
 					terminatedChainID,
 					terminatedOutboxSchema,
 				);

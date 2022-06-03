@@ -12,8 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockAssets, StateStore } from '@liskhq/lisk-chain';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { BlockAssets } from '@liskhq/lisk-chain';
 import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
 import { codec } from '@liskhq/lisk-codec';
@@ -24,7 +23,11 @@ import * as forgerSelectionZeroStandbyScenario from '../../../fixtures/dpos_forg
 import * as forgerSelectionOneStandbyScenario from '../../../fixtures/dpos_forger_selection/dpos_forger_selection_exactly_1_standby.json';
 import * as forgerSelectionTwoStandbyScenario from '../../../fixtures/dpos_forger_selection/dpos_forger_selection_exactly_2_standby.json';
 import * as forgerSelectionMoreThan2StandByScenario from '../../../fixtures/dpos_forger_selection/dpos_forger_selection_more_than_2_standby.json';
-import { BlockAfterExecuteContext } from '../../../../src/node/state_machine';
+import {
+	BlockAfterExecuteContext,
+	BlockContext,
+	GenesisBlockContext,
+} from '../../../../src/state_machine';
 import {
 	createBlockContext,
 	createFakeBlockHeader,
@@ -54,8 +57,10 @@ import {
 	SnapshotStoreData,
 	ValidatorsAPI,
 } from '../../../../src/modules/dpos_v2/types';
-import { GenesisBlockExecuteContext, SubStore } from '../../../../src/node/state_machine/types';
+import { GenesisBlockExecuteContext, SubStore } from '../../../../src/state_machine/types';
 import { invalidAssets, validAsset, validators } from './genesis_block_test_data';
+import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 
 describe('DPoS module', () => {
 	const EMPTY_KEY = Buffer.alloc(0);
@@ -108,27 +113,21 @@ describe('DPoS module', () => {
 
 	describe('initGenesisState', () => {
 		let dpos: DPoSModule;
-		let stateStore: StateStore;
+		let stateStore: PrefixedStateReadWriter;
 
 		beforeEach(async () => {
 			dpos = new DPoSModule();
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			const randomAPI = {
 				getRandomBytes: jest.fn(),
 			};
-			const bftAPI = {
-				setBFTParameters: jest.fn(),
-				getBFTParameters: jest.fn(),
-				areHeadersContradicting: jest.fn(),
-				getBFTHeights: jest.fn(),
-			};
 			const validatorAPI = {
-				setGeneratorList: jest.fn(),
 				setValidatorGeneratorKey: jest.fn(),
 				registerValidatorKeys: jest.fn().mockResolvedValue(true),
-				getValidatorAccount: jest.fn(),
+				getValidatorAccount: jest
+					.fn()
+					.mockResolvedValue({ blsKey: getRandomBytes(48), generatorKey: getRandomBytes(32) }),
 				getGeneratorsBetweenTimestamps: jest.fn(),
-				getGeneratorAtTimestamp: jest.fn(),
 			};
 			const tokenAPI = {
 				lock: jest.fn(),
@@ -138,7 +137,7 @@ describe('DPoS module', () => {
 				transfer: jest.fn(),
 				getLockedAmount: jest.fn().mockResolvedValue(BigInt(101000000000)),
 			};
-			dpos.addDependencies(randomAPI, bftAPI, validatorAPI, tokenAPI);
+			dpos.addDependencies(randomAPI, validatorAPI, tokenAPI);
 
 			await dpos.init({
 				generatorConfig: {},
@@ -206,14 +205,16 @@ describe('DPoS module', () => {
 		});
 
 		describe('when the genesis asset is valid', () => {
+			let genesisContext: GenesisBlockContext;
 			let context: GenesisBlockExecuteContext;
 
 			beforeEach(() => {
 				const assetBytes = codec.encode(genesisStoreSchema, validAsset);
-				context = createGenesisBlockContext({
+				genesisContext = createGenesisBlockContext({
 					stateStore,
 					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
-				}).createInitGenesisStateContext();
+				});
+				context = genesisContext.createInitGenesisStateContext();
 			});
 
 			it('should store self vote and received votes', async () => {
@@ -250,15 +251,15 @@ describe('DPoS module', () => {
 				await expect(dpos.initGenesisState(context)).toResolve();
 				const usernameStore = stateStore.getStore(dpos.id, STORE_PREFIX_NAME);
 				const allNames = await usernameStore.iterate({
-					start: Buffer.from([0]),
-					end: Buffer.from([255]),
+					gte: Buffer.from([0]),
+					lte: Buffer.from([255]),
 				});
 				expect(allNames).toHaveLength(validAsset.validators.length);
 
 				const delegateStore = context.getStore(dpos.id, STORE_PREFIX_DELEGATE);
 				const allDelegates = await delegateStore.iterate({
-					start: Buffer.alloc(20, 0),
-					end: Buffer.alloc(20, 255),
+					gte: Buffer.alloc(20, 0),
+					lte: Buffer.alloc(20, 255),
 				});
 				expect(allDelegates).toHaveLength(validAsset.validators.length);
 			});
@@ -287,26 +288,22 @@ describe('DPoS module', () => {
 				});
 			});
 
-			it('should register all the validators', async () => {
-				await expect(dpos.initGenesisState(context)).toResolve();
-				await expect(dpos.finalizeGenesisState(context)).toResolve();
-
-				expect(dpos['_validatorsAPI'].setGeneratorList).toHaveBeenCalledWith(
-					expect.anything(),
-					validAsset.genesisData.initDelegates,
-				);
-			});
-
 			it('should register all active delegates as BFT validators', async () => {
 				await expect(dpos.initGenesisState(context)).toResolve();
 				await expect(dpos.finalizeGenesisState(context)).toResolve();
-				expect(dpos['_bftAPI'].setBFTParameters).toHaveBeenCalledWith(
-					expect.anything(),
-					BigInt(68),
-					BigInt(68),
+
+				expect(genesisContext.nextValidators.certificateThreshold).toEqual(BigInt(68));
+				expect(genesisContext.nextValidators.precommitThreshold).toEqual(BigInt(68));
+				const activeValidators = genesisContext.nextValidators.validators.filter(
+					v => v.bftWeight > BigInt(0),
+				);
+				expect(activeValidators).toHaveLength(101);
+				expect(activeValidators).toEqual(
 					validAsset.genesisData.initDelegates.map(d => ({
 						bftWeight: BigInt(1),
 						address: d,
+						blsKey: expect.any(Buffer),
+						generatorKey: expect.any(Buffer),
 					})),
 				);
 			});
@@ -345,10 +342,10 @@ describe('DPoS module', () => {
 			const fixtures = forgerSelectionLessTHan103Scenario.testCases.input.voteWeights;
 
 			let context: BlockAfterExecuteContext;
-			let stateStore: StateStore;
+			let stateStore: PrefixedStateReadWriter;
 
 			beforeEach(async () => {
-				stateStore = new StateStore(new InMemoryKVStore());
+				stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 				const delegateStore = stateStore.getStore(dpos.id, STORE_PREFIX_DELEGATE);
 				for (const data of fixtures) {
 					await delegateStore.setWithSchema(
@@ -389,10 +386,10 @@ describe('DPoS module', () => {
 			const fixtures = forgerSelectionZeroStandbyScenario.testCases.input.voteWeights;
 
 			let context: BlockAfterExecuteContext;
-			let stateStore: StateStore;
+			let stateStore: PrefixedStateReadWriter;
 
 			beforeEach(async () => {
-				stateStore = new StateStore(new InMemoryKVStore());
+				stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 				const delegateStore = stateStore.getStore(dpos.id, STORE_PREFIX_DELEGATE);
 				for (const data of fixtures) {
 					await delegateStore.setWithSchema(
@@ -441,10 +438,10 @@ describe('DPoS module', () => {
 			const fixtures = forgerSelectionOneStandbyScenario.testCases.input.voteWeights;
 
 			let context: BlockAfterExecuteContext;
-			let stateStore: StateStore;
+			let stateStore: PrefixedStateReadWriter;
 
 			beforeEach(async () => {
-				stateStore = new StateStore(new InMemoryKVStore());
+				stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 				const delegateStore = stateStore.getStore(dpos.id, STORE_PREFIX_DELEGATE);
 				for (const data of fixtures) {
 					await delegateStore.setWithSchema(
@@ -493,10 +490,10 @@ describe('DPoS module', () => {
 			const fixtures = forgerSelectionTwoStandbyScenario.testCases.input.voteWeights;
 
 			let context: BlockAfterExecuteContext;
-			let stateStore: StateStore;
+			let stateStore: PrefixedStateReadWriter;
 
 			beforeEach(async () => {
-				stateStore = new StateStore(new InMemoryKVStore());
+				stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 				const delegateStore = stateStore.getStore(dpos.id, STORE_PREFIX_DELEGATE);
 				// set first delegate to cap the delegate weight
 				await delegateStore.setWithSchema(
@@ -595,10 +592,10 @@ describe('DPoS module', () => {
 			const fixtures = forgerSelectionMoreThan2StandByScenario.testCases.input.voteWeights;
 
 			let context: BlockAfterExecuteContext;
-			let stateStore: StateStore;
+			let stateStore: PrefixedStateReadWriter;
 
 			beforeEach(async () => {
-				stateStore = new StateStore(new InMemoryKVStore());
+				stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 				const delegateStore = stateStore.getStore(dpos.id, STORE_PREFIX_DELEGATE);
 				// set first delegate banned
 				await delegateStore.setWithSchema(
@@ -748,7 +745,7 @@ describe('DPoS module', () => {
 							}
 							return a.delegateAddress.compare(b.delegateAddress);
 						});
-						const stateStore = new StateStore(new InMemoryKVStore());
+						const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 						const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 						const activeDelegates = delegates
 							.slice(0, defaultConfigs.numberActiveDelegates)
@@ -767,26 +764,15 @@ describe('DPoS module', () => {
 								.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed1, 'hex'))
 								.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed2, 'hex')),
 						};
-						const bftAPI = {
-							setBFTParameters: jest.fn(),
-							getBFTParameters: jest.fn().mockResolvedValueOnce({
-								precommitThreshold: defaultConfigs.bftThreshold,
-								certificateThreshold: defaultConfigs.bftThreshold,
-								validators: activeDelegates.map(d => ({
-									address: d,
-									bftWeight: BigInt(1),
-								})),
-							}),
-							getBFTHeights: jest.fn(),
-							areHeadersContradicting: jest.fn(),
-						};
+
 						const validatorAPI = {
-							setGeneratorList: jest.fn(),
 							setValidatorGeneratorKey: jest.fn(),
 							registerValidatorKeys: jest.fn(),
-							getValidatorAccount: jest.fn(),
+							getValidatorAccount: jest.fn().mockResolvedValue({
+								blsKey: getRandomBytes(48),
+								generatorKey: getRandomBytes(32),
+							}),
 							getGeneratorsBetweenTimestamps: jest.fn(),
-							getGeneratorAtTimestamp: jest.fn(),
 						};
 						const tokenAPI = {
 							lock: jest.fn(),
@@ -797,31 +783,18 @@ describe('DPoS module', () => {
 							getLockedAmount: jest.fn(),
 						};
 
-						dpos.addDependencies(randomAPI, bftAPI, validatorAPI, tokenAPI);
-						const context = createBlockContext({
+						dpos.addDependencies(randomAPI, validatorAPI, tokenAPI);
+						const blockContext = createBlockContext({
 							header: createFakeBlockHeader({
 								height: (defaultRound - 1) * defaultConfigs.roundLength,
 							}),
 							stateStore,
-						}).getBlockAfterExecuteContext();
+						});
+						const context = blockContext.getBlockAfterExecuteContext();
 
 						await dpos['_updateValidators'](context);
 
-						expect(validatorAPI.setGeneratorList).toHaveBeenCalledTimes(1);
-						const forgersList = validatorAPI.setGeneratorList.mock.calls[0][1] as Buffer[];
-
-						expect(forgersList.length).toBeGreaterThan(1);
-
-						const forgersListAddresses = forgersList.sort((a, b) => a.compare(b));
-
-						const sortedFixturesForgersBuffer = scenario.testCases.output.selectedForgers
-							.map(aForger => Buffer.from(aForger, 'hex'))
-							.sort((a, b) => a.compare(b));
-
-						expect(forgersListAddresses).toEqual(sortedFixturesForgersBuffer);
-
-						expect(bftAPI.getBFTParameters).toHaveBeenCalledTimes(1);
-						expect(bftAPI.setBFTParameters).toHaveBeenCalledTimes(1);
+						expect(blockContext.nextValidators.validators.length).toBeGreaterThan(1);
 					});
 				});
 			}
@@ -830,6 +803,7 @@ describe('DPoS module', () => {
 		describe('when there are enough standby delegates', () => {
 			const defaultRound = 123;
 			let validatorAPI: ValidatorsAPI;
+			let blockContext: BlockContext;
 
 			const scenario = forgerSelectionMoreThan2StandByScenario;
 
@@ -852,7 +826,7 @@ describe('DPoS module', () => {
 					return a.delegateAddress.compare(b.delegateAddress);
 				});
 
-				const stateStore = new StateStore(new InMemoryKVStore());
+				const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 				const activeDelegates = delegates
 					.slice(0, defaultConfigs.numberActiveDelegates)
@@ -871,26 +845,13 @@ describe('DPoS module', () => {
 						.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed1, 'hex'))
 						.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed2, 'hex')),
 				};
-				const bftAPI = {
-					setBFTParameters: jest.fn(),
-					getBFTParameters: jest.fn().mockResolvedValueOnce({
-						precommitThreshold: defaultConfigs.bftThreshold,
-						certificateThreshold: defaultConfigs.bftThreshold,
-						validators: activeDelegates.map(d => ({
-							address: d,
-							bftWeight: BigInt(1),
-						})),
-					}),
-					areHeadersContradicting: jest.fn(),
-					getBFTHeights: jest.fn(),
-				};
 				validatorAPI = {
-					setGeneratorList: jest.fn(),
 					setValidatorGeneratorKey: jest.fn(),
 					registerValidatorKeys: jest.fn(),
-					getValidatorAccount: jest.fn(),
+					getValidatorAccount: jest
+						.fn()
+						.mockResolvedValue({ blsKey: getRandomBytes(48), generatorKey: getRandomBytes(32) }),
 					getGeneratorsBetweenTimestamps: jest.fn(),
-					getGeneratorAtTimestamp: jest.fn(),
 				};
 				const tokenAPI = {
 					lock: jest.fn(),
@@ -901,37 +862,36 @@ describe('DPoS module', () => {
 					getLockedAmount: jest.fn(),
 				};
 
-				dpos.addDependencies(randomAPI, bftAPI, validatorAPI, tokenAPI);
-				const context = createBlockContext({
+				dpos.addDependencies(randomAPI, validatorAPI, tokenAPI);
+				blockContext = createBlockContext({
 					header: createFakeBlockHeader({
 						height: (defaultRound - 1) * defaultConfigs.roundLength,
 					}),
 					stateStore,
-				}).getBlockAfterExecuteContext();
+				});
 
-				await dpos['_updateValidators'](context);
+				await dpos['_updateValidators'](blockContext.getBlockAfterExecuteContext());
 			});
 
-			it('should have activeDelegates + standbyDelegates delegates in the forgers list', () => {
-				expect(validatorAPI.setGeneratorList).toHaveBeenCalledTimes(1);
-				const forgersList = (validatorAPI.setGeneratorList as jest.Mock).mock.calls[0][1];
-				expect(forgersList).toHaveLength(defaultConfigs.roundLength);
+			it('should have activeDelegates + standbyDelegates delegates in the generators list', () => {
+				expect(blockContext.nextValidators.validators).toHaveLength(defaultConfigs.roundLength);
 			});
 
-			it('should store selected stand by delegates in the forgers list', () => {
+			it('should store selected stand by delegates in the generators list', () => {
 				const { selectedForgers } = scenario.testCases.output;
 				const standbyDelegatesInFixture = [
 					Buffer.from(selectedForgers[selectedForgers.length - 1], 'hex'),
 					Buffer.from(selectedForgers[selectedForgers.length - 2], 'hex'),
 				].sort((a, b) => a.compare(b));
 
-				const forgersList = (validatorAPI.setGeneratorList as jest.Mock).mock
-					.calls[0][1] as Buffer[];
-				const standbyCandidatesAddresses = forgersList
+				const standbyCandidatesAddresses = blockContext.nextValidators.validators
 					.filter(
-						addr => standbyDelegatesInFixture.find(fixture => fixture.equals(addr)) !== undefined,
+						validator =>
+							standbyDelegatesInFixture.find(fixture => fixture.equals(validator.address)) !==
+							undefined,
 					)
-					.sort((a, b) => a.compare(b));
+					.sort((a, b) => a.address.compare(b.address))
+					.map(validator => validator.address);
 
 				expect(standbyCandidatesAddresses).toHaveLength(2);
 				expect(standbyCandidatesAddresses).toEqual(standbyDelegatesInFixture);
@@ -941,11 +901,10 @@ describe('DPoS module', () => {
 
 	describe('_updateProductivity', () => {
 		const randomAPI: any = {};
-		const bftAPI: any = {};
 		const tokenAPI: any = {};
 
 		let validatorsAPI: any;
-		let stateStore: StateStore;
+		let stateStore: PrefixedStateReadWriter;
 		let delegateData: DelegateAccount[];
 		let delegateAddresses: Buffer[];
 		let previousTimestampStore: SubStore;
@@ -960,14 +919,13 @@ describe('DPoS module', () => {
 				moduleConfig: defaultConfigs,
 			});
 
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
 			validatorsAPI = {
 				getGeneratorsBetweenTimestamps: jest.fn(),
-				getGeneratorAtTimestamp: jest.fn(),
 			};
 
-			dpos.addDependencies(randomAPI, bftAPI, validatorsAPI, tokenAPI);
+			dpos.addDependencies(randomAPI, validatorsAPI, tokenAPI);
 
 			delegateData = Array(103)
 				.fill({})
@@ -1017,22 +975,19 @@ describe('DPoS module', () => {
 				);
 
 				const missedBlocks: Record<string, number> = {};
-				// Make every delegate miss its block-slot except start and end slots
+				// Make every delegate miss its block-slot except gte and end slots
 				for (let i = 0; i < 102; i += 1) {
 					missedBlocks[delegateAddresses[i].toString('binary')] = 1;
 				}
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
+					.calledWith(
+						context.getAPIContext(),
+						previousTimestamp,
+						currentTimestamp,
+						expect.any(Array),
+					)
 					.mockReturnValue(missedBlocks);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), currentTimestamp)
-					.mockReturnValue(generatorAddress);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), previousTimestamp)
-					.mockReturnValue(generatorAddress);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
 
@@ -1054,7 +1009,6 @@ describe('DPoS module', () => {
 
 		describe('When only 2 delegate missed a block since last block', () => {
 			it('should increment "consecutiveMissedBlocks" only for forgers who missed a block', async () => {
-				const lastForgerAddress = delegateAddresses[delegateAddresses.length - 4];
 				const generatorAddress = delegateAddresses[delegateAddresses.length - 1];
 				const missedForgers = [
 					delegateAddresses[delegateAddresses.length - 2],
@@ -1086,16 +1040,13 @@ describe('DPoS module', () => {
 				}
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
+					.calledWith(
+						context.getAPIContext(),
+						previousTimestamp,
+						currentTimestamp,
+						expect.any(Array),
+					)
 					.mockReturnValue(missedBlocks);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), currentTimestamp)
-					.mockReturnValue(generatorAddress);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), previousTimestamp)
-					.mockReturnValue(lastForgerAddress);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
 
@@ -1118,7 +1069,6 @@ describe('DPoS module', () => {
 			it('should increment "consecutiveMissedBlocks"  for the number of blocks that delegate missed', async () => {
 				const generatorIndex = delegateAddresses.length - 1;
 				const generatorAddress = delegateAddresses[generatorIndex];
-				const lastForgerAddress = delegateAddresses[generatorIndex - 6];
 				const missedMoreThan1Block = delegateAddresses.slice(generatorIndex - 5, generatorIndex);
 				const previousTimestamp = 9200;
 				const currentTimestamp = 10290;
@@ -1149,16 +1099,13 @@ describe('DPoS module', () => {
 				}
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
+					.calledWith(
+						context.getAPIContext(),
+						previousTimestamp,
+						currentTimestamp,
+						expect.any(Array),
+					)
 					.mockReturnValue(missedBlocks);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), currentTimestamp)
-					.mockReturnValue(generatorAddress);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), previousTimestamp)
-					.mockReturnValue(lastForgerAddress);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
 
@@ -1183,7 +1130,6 @@ describe('DPoS module', () => {
 			it('must NOT update "consecutiveMissedBlocks" for anyone', async () => {
 				const generatorIndex = delegateAddresses.length - 1;
 				const generatorAddress = delegateAddresses[generatorIndex];
-				const lastForgerAddress = delegateAddresses[generatorIndex - 1];
 				const previousTimestamp = 10283;
 				const currentTimestamp = 10290;
 				const lastForgedHeight = 926;
@@ -1207,16 +1153,13 @@ describe('DPoS module', () => {
 				const missedBlocks: Record<string, number> = {};
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
+					.calledWith(
+						context.getAPIContext(),
+						previousTimestamp,
+						currentTimestamp,
+						expect.any(Array),
+					)
 					.mockReturnValue(missedBlocks);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), currentTimestamp)
-					.mockReturnValue(generatorAddress);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), previousTimestamp)
-					.mockReturnValue(lastForgerAddress);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
 
@@ -1240,7 +1183,6 @@ describe('DPoS module', () => {
 				const missedDelegateIndex = generatorIndex - 1;
 				const generatorAddress = delegateAddresses[generatorIndex];
 				const missedDelegate = delegateAddresses[missedDelegateIndex];
-				const lastForgerAddress = delegateAddresses[generatorIndex - 2];
 				const previousTimestamp = 10000270;
 				const currentTimestamp = 10000290;
 				const lastForgedHeight = 920006;
@@ -1265,16 +1207,13 @@ describe('DPoS module', () => {
 				missedBlocks[missedDelegate.toString('binary')] = 1;
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
+					.calledWith(
+						context.getAPIContext(),
+						previousTimestamp,
+						currentTimestamp,
+						expect.any(Array),
+					)
 					.mockReturnValue(missedBlocks);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), currentTimestamp)
-					.mockReturnValue(generatorAddress);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), previousTimestamp)
-					.mockReturnValue(lastForgerAddress);
 
 				delegateData[missedDelegateIndex].consecutiveMissedBlocks = 50;
 				delegateData[missedDelegateIndex].lastGeneratedHeight = nextForgedHeight - 260000 + 5000;
@@ -1302,7 +1241,6 @@ describe('DPoS module', () => {
 				const missedDelegateIndex = generatorIndex - 1;
 				const generatorAddress = delegateAddresses[generatorIndex];
 				const missedDelegate = delegateAddresses[missedDelegateIndex];
-				const lastForgerAddress = delegateAddresses[generatorIndex - 2];
 				const previousTimestamp = 10000270;
 				const currentTimestamp = 10000290;
 				const lastForgedHeight = 920006;
@@ -1327,16 +1265,13 @@ describe('DPoS module', () => {
 				missedBlocks[missedDelegate.toString('binary')] = 1;
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
+					.calledWith(
+						context.getAPIContext(),
+						previousTimestamp,
+						currentTimestamp,
+						expect.any(Array),
+					)
 					.mockReturnValue(missedBlocks);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), currentTimestamp)
-					.mockReturnValue(generatorAddress);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), previousTimestamp)
-					.mockReturnValue(lastForgerAddress);
 
 				delegateData[missedDelegateIndex].consecutiveMissedBlocks = 40;
 				delegateData[missedDelegateIndex].lastGeneratedHeight = nextForgedHeight - 260000 - 1;
@@ -1364,7 +1299,6 @@ describe('DPoS module', () => {
 				const missedDelegateIndex = generatorIndex - 1;
 				const generatorAddress = delegateAddresses[generatorIndex];
 				const missedDelegate = delegateAddresses[missedDelegateIndex];
-				const lastForgerAddress = delegateAddresses[generatorIndex - 2];
 				const previousTimestamp = 10000270;
 				const currentTimestamp = 10000290;
 				const lastForgedHeight = 920006;
@@ -1389,16 +1323,13 @@ describe('DPoS module', () => {
 				missedBlocks[missedDelegate.toString('binary')] = 1;
 
 				when(validatorsAPI.getGeneratorsBetweenTimestamps)
-					.calledWith(expect.anything(), previousTimestamp, currentTimestamp)
+					.calledWith(
+						context.getAPIContext(),
+						previousTimestamp,
+						currentTimestamp,
+						expect.any(Array),
+					)
 					.mockReturnValue(missedBlocks);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), currentTimestamp)
-					.mockReturnValue(generatorAddress);
-
-				when(validatorsAPI.getGeneratorAtTimestamp)
-					.calledWith(expect.anything(), previousTimestamp)
-					.mockReturnValue(lastForgerAddress);
 
 				delegateData[missedDelegateIndex].consecutiveMissedBlocks = 50;
 				delegateData[missedDelegateIndex].lastGeneratedHeight = nextForgedHeight - 260000 - 1;
@@ -1430,11 +1361,10 @@ describe('DPoS module', () => {
 		const bootstrapRounds = genesisData.initRounds;
 
 		const randomAPI: any = {};
-		const bftAPI: any = {};
 		const tokenAPI: any = {};
 		const validatorsAPI: any = {};
 
-		let stateStore: StateStore;
+		let stateStore: PrefixedStateReadWriter;
 		let height: number;
 		let context: BlockAfterExecuteContext;
 		let dpos: DPoSModule;
@@ -1450,9 +1380,9 @@ describe('DPoS module', () => {
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: defaultConfigs,
 			});
-			dpos.addDependencies(randomAPI, bftAPI, validatorsAPI, tokenAPI);
+			dpos.addDependencies(randomAPI, validatorsAPI, tokenAPI);
 
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
 			previousTimestampStore = stateStore.getStore(dpos.id, STORE_PREFIX_PREVIOUS_TIMESTAMP);
 			genesisDataStore = stateStore.getStore(dpos.id, STORE_PREFIX_GENESIS_DATA);

@@ -45,8 +45,8 @@ import {
 	updateActiveValidators,
 	verifyCertificateSignature,
 } from '../../../../src/modules/interoperability/utils';
-import { certificateSchema } from '../../../../src/node/consensus/certificate_generation/schema';
-import { Certificate } from '../../../../src/node/consensus/certificate_generation/types';
+import { certificateSchema } from '../../../../src/engine/consensus/certificate_generation/schema';
+import { Certificate } from '../../../../src/engine/consensus/certificate_generation/types';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),

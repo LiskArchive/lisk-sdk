@@ -24,7 +24,7 @@ import * as configJSON from '../../fixtures/config/devnet/config.json';
 import { Application, PartialApplicationConfig, RPCConfig } from '../../../src';
 import { genesis } from '../../fixtures';
 import { nodeUtils } from '../../utils';
-import { createTransferTransaction } from '../../utils/node/transaction';
+import { createTransferTransaction } from '../../utils/mocks/transaction';
 import { HelloPlugin } from './hello_plugin';
 import { transactionIdsSchema, transactionsSchema } from '../../../src/node/transport/schemas';
 

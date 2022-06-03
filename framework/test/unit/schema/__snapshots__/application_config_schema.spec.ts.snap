@@ -6,8 +6,8 @@ Object {
   "additionalProperties": false,
   "default": Object {
     "generation": Object {
-      "delegates": Array [],
       "force": false,
+      "generators": Array [],
       "modules": Object {},
       "waitThreshold": 2,
     },
@@ -61,7 +61,10 @@ Object {
   "properties": Object {
     "generation": Object {
       "properties": Object {
-        "delegates": Object {
+        "force": Object {
+          "type": "boolean",
+        },
+        "generators": Object {
           "items": Object {
             "properties": Object {
               "address": Object {
@@ -107,9 +110,6 @@ Object {
           },
           "type": "array",
         },
-        "force": Object {
-          "type": "boolean",
-        },
         "modules": Object {
           "additionalProperties": Object {
             "type": "object",
@@ -131,7 +131,7 @@ Object {
       "required": Array [
         "force",
         "waitThreshold",
-        "delegates",
+        "generators",
         "modules",
       ],
       "type": "object",

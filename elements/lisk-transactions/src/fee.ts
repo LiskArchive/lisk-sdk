@@ -34,8 +34,8 @@ const DEFAULT_BASE_FEE = '0';
 const DEFAULT_SIGNATURE_BYTE_SIZE = 64;
 
 const computeTransactionMinFee = (
-	assetSchema: object,
 	trx: Record<string, unknown>,
+	assetSchema?: object,
 	options?: Options,
 ): bigint => {
 	const mockSignatures = new Array(
@@ -44,10 +44,13 @@ const computeTransactionMinFee = (
 	if (options?.numberOfEmptySignatures) {
 		mockSignatures.push(...new Array(options.numberOfEmptySignatures).fill(Buffer.alloc(0)));
 	}
-	const size = getBytes(assetSchema, {
-		...trx,
-		signatures: mockSignatures,
-	}).length;
+	const size = getBytes(
+		{
+			...trx,
+			signatures: mockSignatures,
+		},
+		assetSchema,
+	).length;
 	const baseFee =
 		options?.baseFees?.find(bf => bf.moduleID === trx.moduleID && bf.commandID === trx.assetID)
 			?.baseFee ?? DEFAULT_BASE_FEE;
@@ -55,18 +58,18 @@ const computeTransactionMinFee = (
 };
 
 export const computeMinFee = (
-	assetSchema: object,
 	trx: Record<string, unknown>,
+	assetSchema?: object,
 	options?: Options,
 ): bigint => {
 	const { fee, ...trxWithoutFee } = trx;
 	trxWithoutFee.fee = BigInt(0);
-	let minFee = computeTransactionMinFee(assetSchema, trxWithoutFee, options);
+	let minFee = computeTransactionMinFee(trxWithoutFee, assetSchema, options);
 
-	while (minFee > BigInt(trxWithoutFee.fee)) {
+	while (minFee > BigInt(trxWithoutFee.fee as bigint)) {
 		// eslint-disable-next-line no-param-reassign
 		trxWithoutFee.fee = minFee;
-		minFee = computeTransactionMinFee(assetSchema, trxWithoutFee, options);
+		minFee = computeTransactionMinFee(trxWithoutFee, assetSchema, options);
 	}
 	return minFee;
 };

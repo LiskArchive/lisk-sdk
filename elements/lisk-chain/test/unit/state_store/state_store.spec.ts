@@ -13,7 +13,7 @@
  */
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { DB_KEY_STATE_STORE } from '../../../src';
 import { NotFoundError, StateStore } from '../../../src/state_store';
 import { DatabaseWriter } from '../../../src/state_store/types';
@@ -38,20 +38,20 @@ describe('state store', () => {
 	const existingValue2 = getRandomBytes(64);
 
 	let stateStore: StateStore;
-	let db: InMemoryKVStore;
+	let db: InMemoryDatabase;
 
 	beforeEach(async () => {
-		db = new InMemoryKVStore();
+		db = new InMemoryDatabase();
 		stateStore = new StateStore(db);
 		const moduleIDBuffer = Buffer.alloc(4);
 		moduleIDBuffer.writeInt32BE(moduleID, 0);
 		const storePrefixBuffer = Buffer.alloc(2);
 		storePrefixBuffer.writeUInt16BE(storePrefix, 0);
-		await db.put(
+		await db.set(
 			Buffer.concat([stateStore['_prefix'], moduleIDBuffer, storePrefixBuffer, existingKey]),
 			existingValue,
 		);
-		await db.put(
+		await db.set(
 			Buffer.concat([stateStore['_prefix'], moduleIDBuffer, storePrefixBuffer, existingKey2]),
 			existingValue2,
 		);
@@ -328,11 +328,6 @@ describe('state store', () => {
 			return Buffer.concat([moduleIDBuffer, storePrefixBuffer]);
 		};
 
-		const smt = {
-			update: jest.fn(),
-			remove: jest.fn(),
-		};
-
 		let batch: DatabaseWriter;
 		let data: { key: Buffer; value: Buffer }[];
 
@@ -347,28 +342,28 @@ describe('state store', () => {
 			}
 			await anotherStore.del(data[2].key);
 			batch = {
-				put: jest.fn(),
+				set: jest.fn(),
 				del: jest.fn(),
 			};
 		});
 
-		it('should set all the newly created and updated values', async () => {
-			await stateStore.finalize(batch, smt as any);
+		it('should set all the newly created and updated values', () => {
+			stateStore.finalize(batch);
 
-			expect(batch.put).toHaveBeenCalledTimes(3);
+			expect(batch.set).toHaveBeenCalledTimes(3);
 			expect(batch.del).toHaveBeenCalledTimes(1);
 		});
 
-		it('should return state diff', async () => {
-			const diff = await stateStore.finalize(batch, smt as any);
+		it('should return state diff', () => {
+			const diff = stateStore.finalize(batch);
 			expect(diff.created).toHaveLength(2);
 			expect(diff.updated).toHaveLength(1);
 			expect(diff.deleted).toHaveLength(1);
 		});
 
-		it('should save only account state changes diff', async () => {
+		it('should save only account state changes diff', () => {
 			// Act
-			const diff = await stateStore.finalize(batch, smt as any);
+			const diff = stateStore.finalize(batch);
 
 			// Assert
 			expect(diff).toEqual({
@@ -391,10 +386,10 @@ describe('state store', () => {
 			});
 		});
 
-		it('should save empty diff if state was not changed', async () => {
+		it('should save empty diff if state was not changed', () => {
 			const newState = new StateStore(db);
 			// Act
-			const diff = await newState.finalize(batch, smt as any);
+			const diff = newState.finalize(batch);
 
 			// Assert
 			expect(diff).toStrictEqual({

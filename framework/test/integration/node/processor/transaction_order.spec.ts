@@ -20,7 +20,7 @@ import {
 	createMultiSignRegisterTransaction,
 	createMultisignatureTransferTransaction,
 	createDelegateVoteTransaction,
-} from '../../../utils/node/transaction';
+} from '../../../utils/mocks/transaction';
 import * as testing from '../../../../src/testing';
 
 describe('Transaction order', () => {
@@ -209,9 +209,10 @@ describe('Transaction order', () => {
 				});
 
 				// Execution of transaction will fail in block generation now with the same logic
-				await expect(
-					processEnv.createBlock([fundingTx, registerMultisigTx, transferTx]),
-				).rejects.toThrow('Transaction signatures does not match required number of signature');
+				const created = await processEnv.createBlock([fundingTx, registerMultisigTx, transferTx]);
+				expect(created.transactions).toHaveLength(2);
+				expect(created.transactions[0]).toEqual(fundingTx);
+				expect(created.transactions[1]).toEqual(registerMultisigTx);
 			});
 		});
 
@@ -247,9 +248,10 @@ describe('Transaction order', () => {
 				});
 
 				// Execution of transaction will fail in block generation now with the same logic
-				await expect(processEnv.createBlock([fundingTx, spendingTx, refundingTx])).rejects.toThrow(
-					' is not sufficient for 14000000000',
-				);
+				const created = await processEnv.createBlock([fundingTx, spendingTx, refundingTx]);
+				expect(created.transactions).toHaveLength(2);
+				expect(created.transactions[0]).toEqual(fundingTx);
+				expect(created.transactions[1]).toEqual(refundingTx);
 			});
 		});
 	});

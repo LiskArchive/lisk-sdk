@@ -12,9 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateStore } from '@liskhq/lisk-chain';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { when } from 'jest-when';
 import { testing } from '../../../../../src';
 import {
@@ -50,8 +48,11 @@ import {
 } from '../../../../../src/modules/interoperability/types';
 import { getIDAsKeyForStore } from '../../../../../src/modules/interoperability/utils';
 import { MODULE_ID_TOKEN } from '../../../../../src/modules/token/constants';
-import { APIContext } from '../../../../../src/node/state_machine';
+import { APIContext } from '../../../../../src/state_machine';
+import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
+import { SubStore } from '../../../../../src/state_machine/types';
 import { createTransientAPIContext } from '../../../../../src/testing';
+import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 import { loggerMock } from '../../../../../src/testing/mocks';
 
 describe('Mainchain interoperability store', () => {
@@ -59,13 +60,13 @@ describe('Mainchain interoperability store', () => {
 	const timestamp = 2592000 * 100;
 	let chainAccount: any;
 	let ownChainAccount: any;
-	let stateStore: StateStore;
+	let stateStore: PrefixedStateReadWriter;
 	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
-	let terminatedStateSubstore: StateStore;
-	let chainSubstore: StateStore;
-	let ownChainSubstore: StateStore;
-	let channelSubstore: StateStore;
-	let outboxRootSubstore: StateStore;
+	let terminatedStateSubstore: SubStore;
+	let chainSubstore: SubStore;
+	let ownChainSubstore: SubStore;
+	let channelSubstore: SubStore;
+	let outboxRootSubstore: SubStore;
 	let mockGetStore: any;
 
 	beforeEach(() => {
@@ -87,7 +88,7 @@ describe('Mainchain interoperability store', () => {
 			nonce: BigInt('0'),
 		};
 
-		stateStore = new StateStore(new InMemoryKVStore());
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		chainSubstore = stateStore.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
 		ownChainSubstore = stateStore.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_OWN_CHAIN_DATA);
 		channelSubstore = stateStore.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA);

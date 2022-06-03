@@ -94,7 +94,7 @@ describe('block assets', () => {
 
 	describe('validate', () => {
 		describe('when block asset schema is invalid', () => {
-			it(`should throw error when data type is incorrect`, async () => {
+			it(`should throw error when data type is incorrect`, () => {
 				assetList = [
 					{
 						moduleID: 3,
@@ -113,7 +113,7 @@ describe('block assets', () => {
 		});
 
 		describe('when an asset data has size more than the limit', () => {
-			it(`should throw error when asset data length is greater than ${MAX_ASSET_DATA_SIZE_BYTES}`, async () => {
+			it(`should throw error when asset data length is greater than ${MAX_ASSET_DATA_SIZE_BYTES}`, () => {
 				assetList = [
 					{
 						moduleID: 3,
@@ -130,7 +130,7 @@ describe('block assets', () => {
 				);
 			});
 
-			it(`should pass when asset data length is equal or less than ${MAX_ASSET_DATA_SIZE_BYTES}`, async () => {
+			it(`should pass when asset data length is equal or less than ${MAX_ASSET_DATA_SIZE_BYTES}`, () => {
 				assetList = [
 					{
 						moduleID: 3,
@@ -147,7 +147,7 @@ describe('block assets', () => {
 		});
 
 		describe('when the assets are not sorted by moduleID', () => {
-			it('should throw error when assets are not sorted by moduleID', async () => {
+			it('should throw error when assets are not sorted by moduleID', () => {
 				assetList = [
 					{
 						moduleID: 4,
@@ -164,7 +164,7 @@ describe('block assets', () => {
 				);
 			});
 
-			it('should pass when assets are sorted by moduleID', async () => {
+			it('should pass when assets are sorted by moduleID', () => {
 				assetList = [
 					{
 						moduleID: 2,
@@ -181,7 +181,7 @@ describe('block assets', () => {
 		});
 
 		describe('when there are multiple asset entries for a moduleID', () => {
-			it('should throw error when there are more than 1 assets for a module', async () => {
+			it('should throw error when there are more than 1 assets for a module', () => {
 				assetList = [
 					{
 						moduleID: 2,
@@ -202,7 +202,7 @@ describe('block assets', () => {
 				);
 			});
 
-			it('should pass when there is atmost 1 asset for a module', async () => {
+			it('should pass when there is atmost 1 asset for a module', () => {
 				assetList = [
 					{
 						moduleID: 2,
@@ -225,7 +225,7 @@ describe('block assets', () => {
 
 	describe('validateGenesis', () => {
 		describe('when block asset schema is invalid', () => {
-			it(`should throw error when data type is incorrect`, async () => {
+			it(`should throw error when data type is incorrect`, () => {
 				assetList = [
 					{
 						moduleID: 3,
@@ -243,7 +243,7 @@ describe('block assets', () => {
 		});
 
 		describe('when an asset data has size more than the limit', () => {
-			it(`should pass when asset data length is greater than ${MAX_ASSET_DATA_SIZE_BYTES}`, async () => {
+			it(`should pass when asset data length is greater than ${MAX_ASSET_DATA_SIZE_BYTES}`, () => {
 				assetList = [
 					{
 						moduleID: 3,
@@ -258,7 +258,7 @@ describe('block assets', () => {
 				expect(assets.validateGenesis()).toBeUndefined();
 			});
 
-			it(`should pass when asset data length is equal or less than ${MAX_ASSET_DATA_SIZE_BYTES}`, async () => {
+			it(`should pass when asset data length is equal or less than ${MAX_ASSET_DATA_SIZE_BYTES}`, () => {
 				assetList = [
 					{
 						moduleID: 3,
@@ -275,7 +275,7 @@ describe('block assets', () => {
 		});
 
 		describe('when the assets are not sorted by moduleID', () => {
-			it('should throw error when assets are not sorted by moduleID', async () => {
+			it('should throw error when assets are not sorted by moduleID', () => {
 				assetList = [
 					{
 						moduleID: 4,
@@ -292,7 +292,7 @@ describe('block assets', () => {
 				);
 			});
 
-			it('should pass when assets are sorted by moduleID', async () => {
+			it('should pass when assets are sorted by moduleID', () => {
 				assetList = [
 					{
 						moduleID: 2,
@@ -309,7 +309,7 @@ describe('block assets', () => {
 		});
 
 		describe('when there are multiple asset entries for a moduleID', () => {
-			it('should throw error when there are more than 1 assets for a module', async () => {
+			it('should throw error when there are more than 1 assets for a module', () => {
 				assetList = [
 					{
 						moduleID: 2,
@@ -330,7 +330,7 @@ describe('block assets', () => {
 				);
 			});
 
-			it('should pass when there is atmost 1 asset for a module', async () => {
+			it('should pass when there is atmost 1 asset for a module', () => {
 				assetList = [
 					{
 						moduleID: 2,

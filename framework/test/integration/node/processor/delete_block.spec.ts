@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { formatInt, NotFoundError } from '@liskhq/lisk-db';
+import { NotFoundError } from '@liskhq/lisk-db';
 import {
 	Block,
 	stateDiffSchema,
@@ -30,7 +30,7 @@ import {
 	createDelegateVoteTransaction,
 	createTransferTransaction,
 	DEFAULT_TOKEN_ID,
-} from '../../../utils/node/transaction';
+} from '../../../utils/mocks/transaction';
 import * as testing from '../../../../src/testing';
 import { TokenModule } from '../../../../src';
 
@@ -54,8 +54,8 @@ describe('Delete block', () => {
 		networkIdentifier = processEnv.getNetworkId();
 	});
 
-	afterAll(async () => {
-		await processEnv.cleanup({ databasePath });
+	afterAll(() => {
+		processEnv.cleanup({ databasePath });
 	});
 
 	describe('given there is only a genesis block', () => {
@@ -101,7 +101,10 @@ describe('Delete block', () => {
 				newBlock = await processEnv.createBlock([transaction]);
 				await processEnv
 					.getBlockchainDB()
-					.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(newBlock.header.height)), emptyDiffState);
+					.set(
+						concatDBKeys(DB_KEY_DIFF_STATE, intToBuffer(newBlock.header.height, 4)),
+						emptyDiffState,
+					);
 				await processEnv.process(newBlock);
 				await processEnv.getConsensus()['_deleteLastBlock']();
 			});
@@ -150,7 +153,7 @@ describe('Delete block', () => {
 				await expect(
 					processEnv
 						.getBlockchainDB()
-						.get(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(newBlock.header.height))),
+						.get(concatDBKeys(DB_KEY_DIFF_STATE, intToBuffer(newBlock.header.height, 4))),
 				).rejects.toBeInstanceOf(NotFoundError);
 			});
 		});
@@ -237,20 +240,33 @@ describe('Delete block', () => {
 				await processEnv.process(initBlock);
 				await processEnv.processUntilHeight(308);
 				const validatorsBefore = await processEnv
-					.getValidatorAPI()
-					.getGeneratorList(processEnv.getAPIContext());
+					.getConsensus()
+					['_bft'].api.getBFTParameters(
+						processEnv.getConsensusStore(),
+						processEnv.getLastBlock().header.height + 1,
+					);
 
 				const newBlock = await processEnv.createBlock([]);
 				await processEnv.process(newBlock);
 				const validatorsAfter = await processEnv
-					.getValidatorAPI()
-					.getGeneratorList(processEnv.getAPIContext());
-				expect(validatorsBefore).not.toEqual(validatorsAfter);
+					.getConsensus()
+					['_bft'].api.getBFTParameters(
+						processEnv.getConsensusStore(),
+						processEnv.getLastBlock().header.height + 1,
+					);
+				expect(validatorsBefore.validators.map(v => v.address)).not.toEqual(
+					validatorsAfter.validators.map(v => v.address),
+				);
 				await processEnv.getConsensus()['_deleteLastBlock']();
 				const validatorsReverted = await processEnv
-					.getValidatorAPI()
-					.getGeneratorList(processEnv.getAPIContext());
-				expect(validatorsReverted).toEqual(validatorsBefore);
+					.getConsensus()
+					['_bft'].api.getBFTParameters(
+						processEnv.getConsensusStore(),
+						processEnv.getLastBlock().header.height + 1,
+					);
+				expect(validatorsReverted.validators.map(v => v.address)).toEqual(
+					validatorsBefore.validators.map(v => v.address),
+				);
 			});
 		});
 	});

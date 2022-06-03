@@ -20,7 +20,7 @@ import {
 	CommandVerifyContext,
 	VerificationResult,
 	VerifyStatus,
-} from '../../../../node/state_machine';
+} from '../../../../state_machine';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import {
 	CHAIN_TERMINATED,

@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { NotFoundError } from '@liskhq/lisk-chain';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { NotFoundError } from '../../state_machine';
 import { JSONObject, ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
 import { TokenAPI } from './api';
@@ -57,8 +57,8 @@ export class TokenEndpoint extends BaseEndpoint {
 		const userStore = context.getStore(this.moduleID, STORE_PREFIX_USER);
 		const userData = await userStore.iterateWithSchema<UserStoreData>(
 			{
-				start: Buffer.concat([address, Buffer.alloc(TOKEN_ID_LENGTH, 0)]),
-				end: Buffer.concat([address, Buffer.alloc(TOKEN_ID_LENGTH, 255)]),
+				gte: Buffer.concat([address, Buffer.alloc(TOKEN_ID_LENGTH, 0)]),
+				lte: Buffer.concat([address, Buffer.alloc(TOKEN_ID_LENGTH, 255)]),
 			},
 			userStoreSchema,
 		);
@@ -116,8 +116,8 @@ export class TokenEndpoint extends BaseEndpoint {
 		const supplyStore = context.getStore(this.moduleID, STORE_PREFIX_SUPPLY);
 		const supplyData = await supplyStore.iterateWithSchema<SupplyStoreData>(
 			{
-				start: Buffer.concat([Buffer.alloc(LOCAL_ID_LENGTH, 0)]),
-				end: Buffer.concat([Buffer.alloc(LOCAL_ID_LENGTH, 255)]),
+				gte: Buffer.concat([Buffer.alloc(LOCAL_ID_LENGTH, 0)]),
+				lte: Buffer.concat([Buffer.alloc(LOCAL_ID_LENGTH, 255)]),
 			},
 			supplyStoreSchema,
 		);
@@ -148,8 +148,8 @@ export class TokenEndpoint extends BaseEndpoint {
 		const escrowStore = context.getStore(this.moduleID, STORE_PREFIX_ESCROW);
 		const escrowData = await escrowStore.iterateWithSchema<EscrowStoreData>(
 			{
-				start: Buffer.concat([Buffer.alloc(TOKEN_ID_LENGTH, 0)]),
-				end: Buffer.concat([Buffer.alloc(TOKEN_ID_LENGTH, 255)]),
+				gte: Buffer.concat([Buffer.alloc(TOKEN_ID_LENGTH, 0)]),
+				lte: Buffer.concat([Buffer.alloc(TOKEN_ID_LENGTH, 255)]),
 			},
 			escrowStoreSchema,
 		);

@@ -12,8 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { blockHeaderSchema, blockSchema, transactionSchema } from '@liskhq/lisk-chain';
-import { NodeInfo } from '../../src/types';
+import {
+	blockAssetSchema,
+	blockHeaderSchema,
+	blockSchema,
+	eventSchema,
+	transactionSchema,
+} from '@liskhq/lisk-chain';
+import { ModuleMetadata, NodeInfo } from '../../src/types';
 
 export const nodeInfo: NodeInfo = {
 	version:
@@ -43,23 +49,6 @@ export const nodeInfo: NodeInfo = {
 		standbyDelegates: 2,
 		delegateListRoundOffset: 2,
 	},
-	registeredModules: [
-		{
-			id: 2,
-			name: 'token',
-			actions: [],
-			events: [],
-			commands: [{ id: 0, name: 'transfer' }],
-		},
-		{ id: 3, name: 'sequence', actions: [], events: [], commands: [] },
-		{
-			id: 4,
-			name: 'keys',
-			actions: [],
-			events: [],
-			commands: [{ id: 0, name: 'registerMultisignatureGroup' }],
-		},
-	],
 	network: {
 		port: 8080,
 		seedPeers: [],
@@ -68,56 +57,100 @@ export const nodeInfo: NodeInfo = {
 
 export const schema = {
 	block: blockSchema,
-	blockHeader: blockHeaderSchema,
+	header: blockHeaderSchema,
 	transaction: transactionSchema,
-	commands: [
-		{
-			moduleID: 2,
-			moduleName: 'token',
-			commandID: 0,
-			commandName: 'transfer',
-			schema: {
-				$id: 'lisk/transfer-params',
-				title: 'Transfer transaction params',
-				type: 'object',
-				required: ['amount', 'recipientAddress', 'data'],
-				properties: {
-					amount: { dataType: 'uint64', fieldNumber: 1 },
-					recipientAddress: { dataType: 'bytes', fieldNumber: 2, minLength: 20, maxLength: 20 },
-					data: { dataType: 'string', fieldNumber: 3, minLength: 0, maxLength: 64 },
-				},
-			},
-		},
-		{
-			moduleID: 4,
-			moduleName: 'keys',
-			commandID: 0,
-			commandName: 'registerMultisignatureGroup',
-			schema: {
-				$id: 'lisk/keys/register',
-				type: 'object',
-				required: ['numberOfSignatures', 'optionalKeys', 'mandatoryKeys'],
-				properties: {
-					numberOfSignatures: { dataType: 'uint32', fieldNumber: 1, minimum: 1, maximum: 64 },
-					mandatoryKeys: {
-						type: 'array',
-						items: { dataType: 'bytes', minLength: 32, maxLength: 32 },
-						fieldNumber: 2,
-						minItems: 0,
-						maxItems: 64,
-					},
-					optionalKeys: {
-						type: 'array',
-						items: { dataType: 'bytes', minLength: 32, maxLength: 32 },
-						fieldNumber: 3,
-						minItems: 0,
-						maxItems: 64,
-					},
-				},
-			},
-		},
-	],
+	asset: blockAssetSchema,
+	event: eventSchema,
 };
+
+export const metadata: ModuleMetadata[] = [
+	{
+		id: 2,
+		name: 'token',
+		events: [],
+		assets: [],
+		endpoints: [],
+		commands: [
+			{
+				id: 0,
+				name: 'transfer',
+				params: {
+					$id: 'lisk/transfer-params',
+					type: 'object',
+					required: ['amount', 'recipientAddress', 'data'],
+					properties: {
+						amount: { dataType: 'uint64', fieldNumber: 1 },
+						recipientAddress: { dataType: 'bytes', fieldNumber: 2, minLength: 20, maxLength: 20 },
+						data: { dataType: 'string', fieldNumber: 3, minLength: 0, maxLength: 64 },
+					},
+				},
+			},
+		],
+	},
+	{
+		id: 4,
+		name: 'keys',
+		events: [],
+		assets: [],
+		endpoints: [],
+		commands: [
+			{
+				id: 0,
+				name: 'registerMultisignatureGroup',
+				params: {
+					$id: 'lisk/keys/register',
+					type: 'object',
+					required: ['numberOfSignatures', 'optionalKeys', 'mandatoryKeys'],
+					properties: {
+						numberOfSignatures: { dataType: 'uint32', fieldNumber: 1, minimum: 1, maximum: 64 },
+						mandatoryKeys: {
+							type: 'array',
+							items: { dataType: 'bytes', minLength: 32, maxLength: 32 },
+							fieldNumber: 2,
+							minItems: 0,
+							maxItems: 64,
+						},
+						optionalKeys: {
+							type: 'array',
+							items: { dataType: 'bytes', minLength: 32, maxLength: 32 },
+							fieldNumber: 3,
+							minItems: 0,
+							maxItems: 64,
+						},
+					},
+				},
+			},
+		],
+	},
+	{
+		id: 5,
+		name: 'dpos',
+		events: [],
+		assets: [],
+		endpoints: [],
+		commands: [
+			{
+				id: 0,
+				name: 'transfer',
+				params: {
+					$id: 'lisk/dpos/pom',
+					type: 'object',
+					required: ['header1', 'header2'],
+					properties: {
+						header1: {
+							...blockHeaderSchema,
+							fieldNumber: 1,
+						},
+						header2: {
+							...blockHeaderSchema,
+							fieldNumber: 2,
+						},
+					},
+				},
+			},
+		],
+	},
+];
 
 export const tx = {
 	moduleID: 2,
