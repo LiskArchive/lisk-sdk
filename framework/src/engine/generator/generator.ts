@@ -524,7 +524,7 @@ export class Generator {
 				blockHeader,
 				blockAssets,
 				consensus,
-				input.transactions as any,
+				input.transactions,
 			);
 			blockEvents.push(...txEvents);
 			transactions = executedTxs;
