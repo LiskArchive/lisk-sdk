@@ -161,7 +161,8 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 		// Chain must be live; This check is always on the receivingChainID
 		const isReceivingChainLive = await this.isLive(
 			receivingChainIDAsStoreKey,
-			sendContext.timestamp,
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			sendContext.timestamp!,
 		);
 		if (!isReceivingChainLive) {
 			return false;

@@ -225,7 +225,6 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			fee: BigInt(0),
 			status: CCM_STATUS_OK,
 			params: encodedParams,
-			timestamp: header.timestamp,
 			beforeSendContext: { ...context, ccm, feeAddress: EMPTY_FEE_ADDRESS },
 		});
 
