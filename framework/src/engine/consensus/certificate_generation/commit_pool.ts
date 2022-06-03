@@ -15,7 +15,7 @@
 import { BlockHeader, Chain, StateStore } from '@liskhq/lisk-chain';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { createAggSig } from '@liskhq/lisk-cryptography';
-import { KVStore } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { EMPTY_BUFFER, NETWORK_EVENT_COMMIT_MESSAGES, COMMIT_RANGE_STORED } from './constants';
 import { BFTParameterNotFoundError } from '../../bft/errors';
@@ -42,7 +42,7 @@ export class CommitPool {
 	private readonly _bftAPI: BFTAPI;
 	private readonly _chain: Chain;
 	private readonly _network: Network;
-	private readonly _db: KVStore;
+	private readonly _db: Database;
 	private _jobIntervalID!: NodeJS.Timeout;
 
 	public constructor(config: CommitPoolConfig) {

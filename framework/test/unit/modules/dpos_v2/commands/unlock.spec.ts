@@ -12,9 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader, StateStore, Transaction } from '@liskhq/lisk-chain';
+import { BlockHeader, Transaction } from '@liskhq/lisk-chain';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import * as testing from '../../../../../src/testing';
 import { UnlockCommand } from '../../../../../src/modules/dpos_v2/commands/unlock';
 import {
@@ -37,14 +36,15 @@ import {
 import { TokenAPI, UnlockingObject, VoterData } from '../../../../../src/modules/dpos_v2/types';
 import { CommandExecuteContext } from '../../../../../src/state_machine/types';
 import { liskToBeddows } from '../../../../utils/assets';
+import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 
 describe('UnlockCommand', () => {
 	let unlockCommand: UnlockCommand;
-	let db: KVStore;
-	let stateStore: StateStore;
-	let delegateSubstore: StateStore;
-	let voterSubstore: StateStore;
-	let genesisSubstore: StateStore;
+	let stateStore: PrefixedStateReadWriter;
+	let delegateSubstore: PrefixedStateReadWriter;
+	let voterSubstore: PrefixedStateReadWriter;
+	let genesisSubstore: PrefixedStateReadWriter;
 	let mockTokenAPI: TokenAPI;
 	let blockHeight: number;
 	let header: BlockHeader;
@@ -93,8 +93,7 @@ describe('UnlockCommand', () => {
 		unlockCommand.addDependencies({
 			tokenAPI: mockTokenAPI,
 		});
-		db = new InMemoryKVStore() as never;
-		stateStore = new StateStore(db);
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		delegateSubstore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
 		voterSubstore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_VOTER);
 		genesisSubstore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_GENESIS_DATA);

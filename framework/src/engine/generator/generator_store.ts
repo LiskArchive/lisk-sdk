@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BatchChain, NotFoundError as DBNotFoundError } from '@liskhq/lisk-db';
+import { Batch, NotFoundError as DBNotFoundError } from '@liskhq/lisk-db';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { NotFoundError } from './errors';
 import { GeneratorDB } from './types';
@@ -58,9 +58,9 @@ export class GeneratorStore {
 		this._data.set(prefixedKey, value);
 	}
 
-	public finalize(batch: BatchChain): void {
+	public finalize(batch: Batch): void {
 		for (const [key, value] of this._data.entries()) {
-			batch.put(key, value);
+			batch.set(key, value);
 		}
 	}
 

@@ -18,7 +18,7 @@ import * as psList from 'ps-list';
 import * as assert from 'assert';
 import * as childProcess from 'child_process';
 import { Block } from '@liskhq/lisk-chain';
-import { KVStore } from '@liskhq/lisk-db';
+import { Database, StateDB } from '@liskhq/lisk-db';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { objects, jobHandlers } from '@liskhq/lisk-utils';
 import { APP_EVENT_SHUTDOWN, APP_EVENT_READY } from './constants';
@@ -123,8 +123,8 @@ export class Application {
 	private readonly _stateMachine: StateMachine;
 
 	private _abiServer!: ABIServer;
-	private _stateDB!: KVStore;
-	private _moduleDB!: KVStore;
+	private _stateDB!: StateDB;
+	private _moduleDB!: Database;
 	private _abiHandler!: ABIHandler;
 	private _engineProcess!: childProcess.ChildProcess;
 
@@ -251,14 +251,17 @@ export class Application {
 		await this._validatePidFile();
 
 		// Initialize database instances
-		this._moduleDB = this._getDBInstance(this.config, 'module.db');
-		this._stateDB = this._getDBInstance(this.config, 'state.db');
+		const { data: dbFolder } = systemDirs(this.config.label, this.config.rootPath);
+		this.logger.debug({ dbFolder }, 'Create module.db database instance.');
+		this._moduleDB = new Database(path.join(dbFolder, 'module.db'));
+		this.logger.debug({ dbFolder }, 'Create state.db database instance.');
+		this._stateDB = new StateDB(path.join(dbFolder, 'state.db'));
 
 		await this._mutex.runExclusive<void>(async () => {
 			// Initialize all objects
 			this._controller.init({
 				logger: this.logger,
-				blockchainDB: this._stateDB,
+				stateDB: this._stateDB,
 				endpoints: this._rootEndpoints(),
 				events: [APP_EVENT_READY.replace('app_', ''), APP_EVENT_SHUTDOWN.replace('app_', '')],
 			});
@@ -321,8 +324,8 @@ export class Application {
 			this.channel.publish(APP_EVENT_SHUTDOWN);
 			this._engineProcess.kill(0);
 			await this._controller.stop(errorCode, message);
-			await this._stateDB.close();
-			await this._moduleDB.close();
+			this._stateDB.close();
+			this._moduleDB.close();
 			await this._emptySocketsDirectory();
 			this._clearControllerPidFile();
 			this.logger.info({ errorCode, message }, 'Application shutdown completed');
@@ -425,12 +428,5 @@ export class Application {
 	private _clearControllerPidFile() {
 		const dirs = systemDirs(this.config.label, this.config.rootPath);
 		fs.unlinkSync(path.join(dirs.pids, 'controller.pid'));
-	}
-
-	private _getDBInstance(options: ApplicationConfig, dbName: string): KVStore {
-		const dirs = systemDirs(options.label, options.rootPath);
-		const dbPath = `${dirs.data}/${dbName}`;
-		this.logger.debug({ dbName, dbPath }, 'Create database instance.');
-		return new KVStore(dbPath);
 	}
 }

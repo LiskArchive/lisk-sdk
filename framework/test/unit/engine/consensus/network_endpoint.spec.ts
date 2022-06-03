@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase, Database } from '@liskhq/lisk-db';
 import { Block, Chain } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
@@ -43,7 +43,7 @@ describe('p2p endpoint', () => {
 	let network: Network;
 	let lastBlock: Block;
 	let commitPool: CommitPool;
-	let db: KVStore;
+	let db: Database;
 
 	beforeEach(async () => {
 		lastBlock = await createValidDefaultBlock({ header: { height: 2 } });
@@ -66,7 +66,7 @@ describe('p2p endpoint', () => {
 			validateCommit: jest.fn(),
 			addCommit: jest.fn(),
 		} as unknown) as CommitPool;
-		db = (new InMemoryKVStore() as unknown) as KVStore;
+		db = (new InMemoryDatabase() as unknown) as Database;
 		endpoint = new NetworkEndpoint({
 			chain,
 			logger: loggerMock,

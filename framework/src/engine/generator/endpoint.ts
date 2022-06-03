@@ -19,7 +19,7 @@ import {
 	getPrivateAndPublicKeyFromPassphrase,
 	parseEncryptedPassphrase,
 } from '@liskhq/lisk-cryptography';
-import { KVStore } from '@liskhq/lisk-db';
+import { Batch, Database } from '@liskhq/lisk-db';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { GeneratorStore } from './generator_store';
@@ -48,7 +48,7 @@ interface EndpointArgs {
 }
 
 interface EndpointInit {
-	generatorDB: KVStore;
+	generatorDB: Database;
 }
 
 export class Endpoint {
@@ -58,7 +58,7 @@ export class Endpoint {
 	private readonly _generators: Generator[];
 	private readonly _consensus: Consensus;
 
-	private _generatorDB!: KVStore;
+	private _generatorDB!: Database;
 
 	public constructor(args: EndpointArgs) {
 		this._keypairs = args.keypair;
@@ -166,9 +166,9 @@ export class Endpoint {
 			await setLastGeneratedInfo(generatorStore, Buffer.from(req.address, 'hex'), req);
 		}
 
-		const batch = this._generatorDB.batch();
+		const batch = new Batch();
 		generatorStore.finalize(batch);
-		await batch.write();
+		await this._generatorDB.write(batch);
 
 		// Enable delegate to forge by adding keypairs corresponding to address
 		this._keypairs.set(address, keypair);

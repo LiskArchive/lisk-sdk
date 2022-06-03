@@ -12,9 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateStore } from '@liskhq/lisk-chain';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { DPoSAPI } from '../../../../src/modules/dpos_v2/api';
 import {
 	MODULE_ID_DPOS,
@@ -29,14 +27,16 @@ import {
 } from '../../../../src/modules/dpos_v2/schemas';
 import { APIContext } from '../../../../src/state_machine/api_context';
 import { EventQueue } from '../../../../src/state_machine';
+import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 
 describe('DposModuleApi', () => {
 	let dposAPI: DPoSAPI;
 	let apiContext: APIContext;
-	let stateStore: StateStore;
-	let voterSubStore: StateStore;
-	let delegateSubStore: StateStore;
-	let nameSubStore: StateStore;
+	let stateStore: PrefixedStateReadWriter;
+	let voterSubStore: PrefixedStateReadWriter;
+	let delegateSubStore: PrefixedStateReadWriter;
+	let nameSubStore: PrefixedStateReadWriter;
 	const address = getRandomBytes(20);
 	const voterData = {
 		sentVotes: [
@@ -66,7 +66,7 @@ describe('DposModuleApi', () => {
 
 	beforeEach(() => {
 		dposAPI = new DPoSAPI(MODULE_ID_DPOS);
-		stateStore = new StateStore(new InMemoryKVStore());
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		voterSubStore = stateStore.getStore(dposAPI['moduleID'], STORE_PREFIX_VOTER);
 		delegateSubStore = stateStore.getStore(dposAPI['moduleID'], STORE_PREFIX_DELEGATE);
 		nameSubStore = stateStore.getStore(dposAPI['moduleID'], STORE_PREFIX_NAME);

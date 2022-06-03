@@ -16,7 +16,7 @@ import { when } from 'jest-when';
 import { codec } from '@liskhq/lisk-codec';
 import { Block, Chain } from '@liskhq/lisk-chain';
 import { getAddressFromPublicKey, getRandomBytes } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase } from '@liskhq/lisk-db';
 import {
 	FastChainSwitchingMechanism,
 	Errors,
@@ -64,7 +64,7 @@ describe('fast_chain_switching_mechanism', () => {
 			keepEventsForHeights: -1,
 		});
 		chainModule.init({
-			db: new InMemoryKVStore(),
+			db: new InMemoryDatabase(),
 			networkIdentifier: Buffer.from('network-id'),
 		});
 		chainModule._lastBlock = { header: { height: 310 } };

@@ -156,7 +156,7 @@ describe('Clean up old blocks', () => {
 
 	it('should clear old block headers', async () => {
 		await reportMisbehaviorPlugin.load();
-		await (reportMisbehaviorPlugin as any)._pluginDB.put(
+		await (reportMisbehaviorPlugin as any)._pluginDB.set(
 			dbKey,
 			codec.encode(blockHeadersSchema, {
 				blockHeaders: [blockHeader1],

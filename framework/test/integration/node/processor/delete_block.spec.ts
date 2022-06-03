@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { formatInt, NotFoundError } from '@liskhq/lisk-db';
+import { NotFoundError } from '@liskhq/lisk-db';
 import {
 	Block,
 	stateDiffSchema,
@@ -54,8 +54,8 @@ describe('Delete block', () => {
 		networkIdentifier = processEnv.getNetworkId();
 	});
 
-	afterAll(async () => {
-		await processEnv.cleanup({ databasePath });
+	afterAll(() => {
+		processEnv.cleanup({ databasePath });
 	});
 
 	describe('given there is only a genesis block', () => {
@@ -101,7 +101,10 @@ describe('Delete block', () => {
 				newBlock = await processEnv.createBlock([transaction]);
 				await processEnv
 					.getBlockchainDB()
-					.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(newBlock.header.height)), emptyDiffState);
+					.set(
+						concatDBKeys(DB_KEY_DIFF_STATE, intToBuffer(newBlock.header.height, 4)),
+						emptyDiffState,
+					);
 				await processEnv.process(newBlock);
 				await processEnv.getConsensus()['_deleteLastBlock']();
 			});
@@ -150,7 +153,7 @@ describe('Delete block', () => {
 				await expect(
 					processEnv
 						.getBlockchainDB()
-						.get(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(newBlock.header.height))),
+						.get(concatDBKeys(DB_KEY_DIFF_STATE, intToBuffer(newBlock.header.height, 4))),
 				).rejects.toBeInstanceOf(NotFoundError);
 			});
 		});

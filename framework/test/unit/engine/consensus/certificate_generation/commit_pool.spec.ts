@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { InMemoryKVStore, NotFoundError } from '@liskhq/lisk-db';
+import { InMemoryDatabase, NotFoundError } from '@liskhq/lisk-db';
 import { BlockHeader, StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import {
@@ -175,7 +175,7 @@ describe('CommitPool', () => {
 			expect(commitPool['_nonGossipedCommits'].getAll()).toHaveLength(6);
 			// Arrange
 			commitPool['_bftAPI'].existBFTParameters = jest.fn().mockResolvedValue(true);
-			const context = new StateStore(new InMemoryKVStore());
+			const context = new StateStore(new InMemoryDatabase());
 			// Act
 			await commitPool['_job'](context);
 			// Assert
@@ -188,7 +188,7 @@ describe('CommitPool', () => {
 			expect(commitPool['_gossipedCommits'].getAll()).toHaveLength(6);
 			// Arrange
 			commitPool['_bftAPI'].existBFTParameters = jest.fn().mockResolvedValue(true);
-			const context = new StateStore(new InMemoryKVStore());
+			const context = new StateStore(new InMemoryDatabase());
 			// Act
 			await commitPool['_job'](context);
 			// Assert
@@ -216,7 +216,7 @@ describe('CommitPool', () => {
 			// Arrange
 			const bftParamsMock = jest.fn();
 			commitPool['_bftAPI'].existBFTParameters = bftParamsMock;
-			const context = new StateStore(new InMemoryKVStore());
+			const context = new StateStore(new InMemoryDatabase());
 			when(bftParamsMock).calledWith(context, 1071).mockResolvedValue(false);
 			when(bftParamsMock).calledWith(context, maxHeightCertified).mockResolvedValue(true);
 			when(bftParamsMock)
@@ -256,7 +256,7 @@ describe('CommitPool', () => {
 			expect(commitPool['_gossipedCommits'].getAll()).toHaveLength(6);
 			// Arrange
 			commitPool['_bftAPI'].existBFTParameters = jest.fn().mockResolvedValue(true);
-			const context = new StateStore(new InMemoryKVStore());
+			const context = new StateStore(new InMemoryDatabase());
 			// Act
 			await commitPool['_job'](context);
 			// Assert
@@ -340,7 +340,7 @@ describe('CommitPool', () => {
 			commitPool['_bftAPI'].getBFTHeights = jest
 				.fn()
 				.mockResolvedValue({ maxHeightPrecommitted: maxHeightPrecommittedTest });
-			const context = new StateStore(new InMemoryKVStore());
+			const context = new StateStore(new InMemoryDatabase());
 			const selectedCommitsToGossip = getSelectedCommits(commitPool);
 			// Act
 			await commitPool['_job'](context);
@@ -355,7 +355,7 @@ describe('CommitPool', () => {
 		it('should call network send when the job runs', async () => {
 			// Arrange
 			commitPool['_bftAPI'].existBFTParameters = jest.fn().mockResolvedValue(true);
-			const context = new StateStore(new InMemoryKVStore());
+			const context = new StateStore(new InMemoryDatabase());
 			// Act
 			await commitPool['_job'](context);
 			// Assert
@@ -440,7 +440,7 @@ describe('CommitPool', () => {
 			maxHeightCertified = 1000;
 			maxHeightPrecommitted = 1050;
 
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new StateStore(new InMemoryDatabase());
 
 			blockHeader = createFakeBlockHeader({
 				height: 1031,
@@ -788,7 +788,7 @@ describe('CommitPool', () => {
 				timestamp,
 			});
 
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new StateStore(new InMemoryDatabase());
 
 			privateKeys = Array.from({ length: 103 }, _ => generatePrivateKey(getRandomBytes(32)));
 			publicKeys = privateKeys.map(priv => getPublicKeyFromPrivateKey(priv));
@@ -1085,7 +1085,7 @@ describe('CommitPool', () => {
 				chain,
 				db: jest.fn() as any,
 			});
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new StateStore(new InMemoryDatabase());
 		});
 
 		it('should throw if there are no single commits', async () => {
@@ -1208,7 +1208,7 @@ describe('CommitPool', () => {
 			commitPool['_nonGossipedCommits'].add(singleCommit1);
 			commitPool['_gossipedCommits'].add(singleCommit2);
 			commitPool['aggregateSingleCommits'] = jest.fn();
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new StateStore(new InMemoryDatabase());
 
 			bftAPI.getBFTHeights.mockResolvedValue({
 				maxHeightCertified,

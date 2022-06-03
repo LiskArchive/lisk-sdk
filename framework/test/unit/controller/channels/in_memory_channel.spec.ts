@@ -16,7 +16,7 @@ jest.mock('../../../../src/controller/bus');
 
 /* eslint-disable import/first  */
 
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase, StateDB } from '@liskhq/lisk-db';
 import { InMemoryChannel, BaseChannel } from '../../../../src/controller/channels';
 import { Bus } from '../../../../src/controller/bus';
 import { Event } from '../../../../src/controller/event';
@@ -27,7 +27,7 @@ describe('InMemoryChannel Channel', () => {
 	const params = {
 		namespace: 'sample',
 		logger: fakeLogger,
-		db: (new InMemoryKVStore() as unknown) as KVStore,
+		db: (new InMemoryDatabase() as unknown) as StateDB,
 		events: ['event1', 'event2'],
 		endpoints: {
 			action1: jest.fn(),

@@ -15,7 +15,7 @@
 
 import { BlockAssets, BlockHeader, StateStore, Transaction } from '@liskhq/lisk-chain';
 import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { ModuleEndpointContext } from '../types';
 import { Logger } from '../logger';
 import {
@@ -33,16 +33,19 @@ import { loggerMock } from './mocks';
 import { WritableBlockAssets } from '../engine/generator/types';
 import { Validator } from '../abi';
 import { SubStore } from '../state_machine/types';
+import { PrefixedStateReadWriter } from '../state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from './in_memory_prefixed_state';
 
 export const createGenesisBlockContext = (params: {
 	header?: BlockHeader;
-	stateStore?: StateStore;
+	stateStore?: PrefixedStateReadWriter;
 	eventQueue?: EventQueue;
 	assets?: BlockAssets;
 	logger?: Logger;
 }): GenesisBlockContext => {
 	const logger = params.logger ?? loggerMock;
-	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
+	const stateStore =
+		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	const eventQueue = params.eventQueue ?? new EventQueue();
 	const header =
 		params.header ??
@@ -75,7 +78,7 @@ export const createGenesisBlockContext = (params: {
 };
 
 export const createBlockContext = (params: {
-	stateStore?: StateStore;
+	stateStore?: PrefixedStateReadWriter;
 	eventQueue?: EventQueue;
 	logger?: Logger;
 	header?: BlockHeader;
@@ -84,7 +87,8 @@ export const createBlockContext = (params: {
 	validators?: Validator[];
 }): BlockContext => {
 	const logger = params.logger ?? loggerMock;
-	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
+	const stateStore =
+		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	const eventQueue = params.eventQueue ?? new EventQueue();
 	const header =
 		params.header ??
@@ -131,7 +135,7 @@ export const createBlockGenerateContext = (params: {
 	finalizedHeight?: number;
 	networkIdentifier?: Buffer;
 }): InsertAssetContext => {
-	const db = new InMemoryKVStore();
+	const db = new InMemoryDatabase();
 	const generatorStore = new StateStore(db);
 	const getGeneratorStore = (moduleID: number) => generatorStore.getStore(moduleID, 0);
 	const header =
@@ -154,8 +158,7 @@ export const createBlockGenerateContext = (params: {
 			},
 			validatorsHash: hash(Buffer.alloc(0)),
 		});
-	const stateStoreDB = new InMemoryKVStore();
-	const stateStore = new StateStore(stateStoreDB);
+	const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	const getStore = (moduleID: number, storePrefix: number) =>
 		stateStore.getStore(moduleID, storePrefix);
 
@@ -174,7 +177,7 @@ export const createBlockGenerateContext = (params: {
 };
 
 export const createTransactionContext = (params: {
-	stateStore?: StateStore;
+	stateStore?: PrefixedStateReadWriter;
 	eventQueue?: EventQueue;
 	logger?: Logger;
 	header?: BlockHeader;
@@ -186,7 +189,8 @@ export const createTransactionContext = (params: {
 	transaction: Transaction;
 }): TransactionContext => {
 	const logger = params.logger ?? loggerMock;
-	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
+	const stateStore =
+		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	const eventQueue = params.eventQueue ?? new EventQueue();
 	const header =
 		params.header ??
@@ -224,22 +228,24 @@ export const createTransactionContext = (params: {
 };
 
 export const createTransientAPIContext = (params: {
-	stateStore?: StateStore;
+	stateStore?: PrefixedStateReadWriter;
 	eventQueue?: EventQueue;
 }): APIContext => {
-	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
+	const stateStore =
+		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	const eventQueue = params.eventQueue ?? new EventQueue();
 	const ctx = createAPIContext({ stateStore, eventQueue });
 	return ctx;
 };
 
 export const createTransientModuleEndpointContext = (params: {
-	stateStore?: StateStore;
+	stateStore?: PrefixedStateReadWriter;
 	params?: Record<string, unknown>;
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 }): ModuleEndpointContext => {
-	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
+	const stateStore =
+		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	const parameters = params.params ?? {};
 	const logger = params.logger ?? loggerMock;
 	const networkIdentifier = params.networkIdentifier ?? Buffer.alloc(0);

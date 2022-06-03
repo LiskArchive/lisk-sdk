@@ -14,7 +14,7 @@
 
 import { StateStore } from '@liskhq/lisk-chain';
 import { BIG_ENDIAN, getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
 import { BFTParametersCache } from '../../../../src/engine/bft/bft_params';
 import {
@@ -185,7 +185,7 @@ describe('BFT votes', () => {
 		let paramsCache: BFTParametersCache;
 
 		beforeEach(async () => {
-			const stateStore = new StateStore(new InMemoryKVStore());
+			const stateStore = new StateStore(new InMemoryDatabase());
 			const paramsStore = stateStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
 			await paramsStore.setWithSchema(
 				intToBuffer(101, 4, BIG_ENDIAN),
@@ -329,7 +329,7 @@ describe('BFT votes', () => {
 		let paramsCache: BFTParametersCache;
 
 		it('should store maximum height where prevote exceeds threshold', async () => {
-			const stateStore = new StateStore(new InMemoryKVStore());
+			const stateStore = new StateStore(new InMemoryDatabase());
 			const paramsStore = stateStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
 			await paramsStore.setWithSchema(
 				intToBuffer(101, 4, BIG_ENDIAN),
@@ -361,7 +361,7 @@ describe('BFT votes', () => {
 		});
 
 		it('should not update maxHeightPrevoted if no block info exceeds threshold', async () => {
-			const stateStore = new StateStore(new InMemoryKVStore());
+			const stateStore = new StateStore(new InMemoryDatabase());
 			const paramsStore = stateStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
 			await paramsStore.setWithSchema(
 				intToBuffer(101, 4, BIG_ENDIAN),
@@ -397,7 +397,7 @@ describe('BFT votes', () => {
 		let paramsCache: BFTParametersCache;
 
 		it('should store maximum height where prevote exceeds threshold', async () => {
-			const stateStore = new StateStore(new InMemoryKVStore());
+			const stateStore = new StateStore(new InMemoryDatabase());
 			const paramsStore = stateStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
 			await paramsStore.setWithSchema(
 				intToBuffer(101, 4, BIG_ENDIAN),
@@ -429,7 +429,7 @@ describe('BFT votes', () => {
 		});
 
 		it('should not update maxHeightPrevoted if no block info exceeds threshold', async () => {
-			const stateStore = new StateStore(new InMemoryKVStore());
+			const stateStore = new StateStore(new InMemoryDatabase());
 			const paramsStore = stateStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
 			await paramsStore.setWithSchema(
 				intToBuffer(101, 4, BIG_ENDIAN),

@@ -15,7 +15,7 @@
 import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { KVStore } from '@liskhq/lisk-db';
+import { Database, StateDB } from '@liskhq/lisk-db';
 
 import { EVENT_CHAIN_BLOCK_NEW } from '../engine/events';
 import { Data, WaitUntilBlockHeightOptions } from './types';
@@ -45,12 +45,18 @@ export const waitUntilBlockHeight = async ({
 // Database utils
 const defaultDatabasePath = path.join(os.tmpdir(), 'lisk-framework', Date.now().toString());
 export const getDBPath = (name: string, dbPath = defaultDatabasePath): string =>
-	`${dbPath}/${name}.db`;
+	path.join(dbPath, `${name}.db`);
 
-export const createDB = (name: string, dbPath = defaultDatabasePath): KVStore => {
+export const createDB = (name: string, dbPath = defaultDatabasePath): Database => {
 	fs.ensureDirSync(dbPath);
 	const filePath = getDBPath(name, dbPath);
-	return new KVStore(filePath);
+	return new Database(filePath);
+};
+
+export const createStateDB = (name: string, dbPath = defaultDatabasePath): StateDB => {
+	fs.ensureDirSync(dbPath);
+	const filePath = getDBPath(name, dbPath);
+	return new StateDB(filePath);
 };
 
 export const removeDB = (dbPath = defaultDatabasePath): void =>

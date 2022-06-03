@@ -14,7 +14,7 @@
 
 import { Event, StateStore } from '@liskhq/lisk-chain';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { ChainEndpoint } from '../../../../src/engine/endpoint/chain';
 import { createContext } from '../../../utils/mocks/endpoint';
 
@@ -23,7 +23,7 @@ describe('Chain endpoint', () => {
 	let endpoint: ChainEndpoint;
 
 	beforeEach(() => {
-		stateStore = new StateStore(new InMemoryKVStore());
+		stateStore = new StateStore(new InMemoryDatabase());
 		endpoint = new ChainEndpoint({
 			chain: {
 				dataAccess: {

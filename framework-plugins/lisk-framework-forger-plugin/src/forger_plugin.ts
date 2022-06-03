@@ -82,7 +82,7 @@ export class ForgerPlugin extends BasePlugin {
 	public name = 'forger';
 	public endpoint = new Endpoint();
 
-	private _forgerPluginDB!: liskDB.KVStore;
+	private _forgerPluginDB!: liskDB.Database;
 	private _forgersList!: utils.dataStructures.BufferMap<boolean>;
 	private _transactionFees!: TransactionFees;
 	private _syncingWithNode!: boolean;
@@ -103,7 +103,6 @@ export class ForgerPlugin extends BasePlugin {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async load(): Promise<void> {
 		// TODO: https://github.com/LiskHQ/lisk-sdk/issues/6201
-		// eslint-disable-next-line new-cap
 		this._forgerPluginDB = await getDBInstance(this.dataPath);
 
 		// Fetch and set forger list from the app
@@ -121,8 +120,9 @@ export class ForgerPlugin extends BasePlugin {
 		this._subscribeToChannel();
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	public async unload(): Promise<void> {
-		await this._forgerPluginDB.close();
+		this._forgerPluginDB.close();
 	}
 
 	private async _setForgersList(): Promise<void> {

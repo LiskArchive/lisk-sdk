@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { P2P } from '@liskhq/lisk-p2p';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { Network } from '../../../../src/engine/network';
@@ -25,7 +25,7 @@ describe('network', () => {
 	let network: Network;
 	jest.useFakeTimers();
 	beforeEach(async () => {
-		const db = new InMemoryKVStore();
+		const db = new InMemoryDatabase();
 		network = new Network({
 			networkVersion: '2.0',
 			options: {
@@ -183,9 +183,9 @@ describe('network', () => {
 
 			describe('Loading and saving previous peers on start up', () => {
 				it('should load all the previous peers into p2p and save after 10 mins', async () => {
-					const db = new InMemoryKVStore();
+					const db = new InMemoryDatabase();
 					jest.spyOn(db, 'get').mockResolvedValue(previousPeersBuffer);
-					jest.spyOn(db, 'put');
+					jest.spyOn(db, 'set');
 
 					const parseSpy = jest.spyOn(JSON, 'parse');
 					await network.init({
@@ -201,7 +201,7 @@ describe('network', () => {
 					} as any;
 
 					jest.advanceTimersByTime(600000);
-					expect(db.put).toHaveBeenCalledTimes(1);
+					expect(db.set).toHaveBeenCalledTimes(1);
 				});
 			});
 		});

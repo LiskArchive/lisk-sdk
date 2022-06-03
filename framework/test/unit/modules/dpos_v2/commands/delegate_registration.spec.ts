@@ -12,10 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateStore, Transaction } from '@liskhq/lisk-chain';
+import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import * as testing from '../../../../../src/testing';
 import { DelegateRegistrationCommand } from '../../../../../src/modules/dpos_v2/commands/delegate_registration';
 import {
@@ -34,13 +33,14 @@ import {
 	ValidatorsAPI,
 } from '../../../../../src/modules/dpos_v2/types';
 import { VerifyStatus } from '../../../../../src/state_machine';
+import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 
 describe('Delegate registration command', () => {
 	let delegateRegistrationCommand: DelegateRegistrationCommand;
-	let db: KVStore;
-	let stateStore: StateStore;
-	let delegateSubstore: StateStore;
-	let nameSubstore: StateStore;
+	let stateStore: PrefixedStateReadWriter;
+	let delegateSubstore: PrefixedStateReadWriter;
+	let nameSubstore: PrefixedStateReadWriter;
 	let mockValidatorsAPI: ValidatorsAPI;
 
 	const transactionParams = {
@@ -86,8 +86,7 @@ describe('Delegate registration command', () => {
 			getGeneratorsBetweenTimestamps: jest.fn(),
 		};
 		delegateRegistrationCommand.addDependencies(mockValidatorsAPI);
-		db = new InMemoryKVStore() as never;
-		stateStore = new StateStore(db);
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		delegateSubstore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
 		nameSubstore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_NAME);
 	});

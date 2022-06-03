@@ -17,14 +17,11 @@ import {
 	Block,
 	BlockAssets,
 	BlockHeader,
-	concatDBKeys,
-	DB_KEY_DIFF_STATE,
 	SMTStore,
-	stateDiffSchema,
 	StateStore,
 	Transaction,
 } from '@liskhq/lisk-chain';
-import { formatInt, KVStore } from '@liskhq/lisk-db';
+import { StateDB, Database } from '@liskhq/lisk-db';
 import {
 	DEFAULT_EXPIRY_TIME,
 	DEFAULT_MAX_TRANSACTIONS,
@@ -95,14 +92,15 @@ import {
 import { GenerationContext } from '../state_machine/generator_context';
 import { BaseChannel } from '../controller/channels';
 import { systemDirs } from '../system_dirs';
+import { PrefixedStateReadWriter } from '../state_machine/prefixed_state_read_writer';
 
 export interface ABIHandlerConstructor {
 	config: ApplicationConfig;
 	logger: Logger;
 	stateMachine: StateMachine;
 	genesisBlock: Block;
-	stateDB: KVStore;
-	moduleDB: KVStore;
+	stateDB: StateDB;
+	moduleDB: Database;
 	modules: BaseModule[];
 	channel: BaseChannel;
 }
@@ -110,7 +108,7 @@ export interface ABIHandlerConstructor {
 interface ExecutionContext {
 	id: Buffer;
 	header: BlockHeader;
-	stateStore: StateStore;
+	stateStore: PrefixedStateReadWriter;
 	moduleStore: StateStore;
 }
 
@@ -122,8 +120,8 @@ export class ABIHandler implements ABI {
 	private readonly _config: ApplicationConfig;
 	private readonly _logger: Logger;
 	private readonly _stateMachine: StateMachine;
-	private readonly _stateDB: KVStore;
-	private readonly _moduleDB: KVStore;
+	private readonly _stateDB: StateDB;
+	private readonly _moduleDB: Database;
 	private readonly _modules: BaseModule[];
 	private readonly _channel: BaseChannel;
 
@@ -260,7 +258,7 @@ export class ABIHandler implements ABI {
 		this._executionContext = {
 			id,
 			header: new BlockHeader(req.header),
-			stateStore: new StateStore(this._stateDB),
+			stateStore: new PrefixedStateReadWriter(this._stateDB.newReadWriter()),
 			moduleStore: new StateStore(this._moduleDB),
 		};
 		return {
@@ -413,9 +411,9 @@ export class ABIHandler implements ABI {
 	public async verifyTransaction(
 		req: VerifyTransactionRequest,
 	): Promise<VerifyTransactionResponse> {
-		let stateStore: StateStore;
+		let stateStore: PrefixedStateReadWriter;
 		if (!this._executionContext || !this._executionContext.id.equals(req.contextID)) {
-			stateStore = new StateStore(this._stateDB);
+			stateStore = new PrefixedStateReadWriter(this._stateDB.newReadWriter());
 		} else {
 			stateStore = this._executionContext.stateStore;
 		}
@@ -440,7 +438,7 @@ export class ABIHandler implements ABI {
 	public async executeTransaction(
 		req: ExecuteTransactionRequest,
 	): Promise<ExecuteTransactionResponse> {
-		let stateStore: StateStore;
+		let stateStore: PrefixedStateReadWriter;
 		let header: BlockHeader;
 		if (!req.dryRun) {
 			if (!this._executionContext || !this._executionContext.id.equals(req.contextID)) {
@@ -453,7 +451,7 @@ export class ABIHandler implements ABI {
 			stateStore = this._executionContext.stateStore;
 			header = this._executionContext.header;
 		} else {
-			stateStore = new StateStore(this._stateDB);
+			stateStore = new PrefixedStateReadWriter(this._stateDB.newReadWriter());
 			header = new BlockHeader(req.header);
 		}
 		const context = new TransactionContext({
@@ -475,7 +473,6 @@ export class ABIHandler implements ABI {
 		};
 	}
 
-	// TODO: Logic should be re-written with https://github.com/LiskHQ/lisk-sdk/issues/7128
 	public async commit(req: CommitRequest): Promise<CommitResponse> {
 		if (!this._executionContext || !this._executionContext.id.equals(req.contextID)) {
 			throw new Error(
@@ -484,32 +481,18 @@ export class ABIHandler implements ABI {
 				)}. Context is not initialized or different.`,
 			);
 		}
-		const smtStore = new SMTStore(this._stateDB);
-		const smt = new SparseMerkleTree({
-			db: smtStore,
-			rootHash: req.stateRoot,
-		});
-		const batch = this._stateDB.batch();
-		const diff = this._executionContext.stateStore.finalize(batch);
-		if (req.dryRun) {
-			return {
-				stateRoot: smt.rootHash,
-			};
-		}
-		if (req.expectedStateRoot.length > 0 && !req.expectedStateRoot.equals(smt.rootHash)) {
-			throw new Error(
-				`State root ${smt.rootHash.toString(
-					'hex',
-				)} does not match with expected state root ${req.expectedStateRoot.toString('hex')}.`,
-			);
-		}
-		const heightBuf = formatInt(this._executionContext.header.height);
-		const diffKey = concatDBKeys(DB_KEY_DIFF_STATE, heightBuf);
-		batch.put(diffKey, codec.encode(stateDiffSchema, diff));
-
-		await batch.write();
+		const stateRoot = await this._stateDB.commit(
+			this._executionContext.stateStore.inner,
+			this._executionContext.header.height,
+			req.stateRoot,
+			{
+				checkRoot: req.expectedStateRoot.length > 0,
+				readonly: req.dryRun,
+				expectedRoot: req.expectedStateRoot as never,
+			},
+		);
 		return {
-			stateRoot: smt.rootHash,
+			stateRoot,
 		};
 	}
 
@@ -522,52 +505,12 @@ export class ABIHandler implements ABI {
 				)}. Context is not initialized or different.`,
 			);
 		}
-		const heightBuf = formatInt(this._executionContext.header.height);
-		const diffKey = concatDBKeys(DB_KEY_DIFF_STATE, heightBuf);
-
-		const stateDiff = await this._stateDB.get(diffKey);
-
-		const {
-			created: createdStates,
-			updated: updatedStates,
-			deleted: deletedStates,
-		} = codec.decode<{
-			created: Buffer[];
-			updated: { key: Buffer; value: Buffer }[];
-			deleted: { key: Buffer; value: Buffer }[];
-		}>(stateDiffSchema, stateDiff);
-		const smtStore = new SMTStore(this._stateDB);
-		const smt = new SparseMerkleTree({
-			db: smtStore,
-			rootHash: req.stateRoot,
-		});
-
-		const batch = this._stateDB.batch();
-		const SMT_PREFIX_SIZE = 6;
-		const toSMTKey = (value: Buffer): Buffer =>
-			// First byte is the DB prefix
-			Buffer.concat([value.slice(1, SMT_PREFIX_SIZE + 1), hash(value.slice(SMT_PREFIX_SIZE + 1))]);
-		// Delete all the newly created states
-		for (const key of createdStates) {
-			batch.del(key);
-			await smt.remove(toSMTKey(key));
-		}
-		// Revert all deleted values
-		for (const { key, value: previousValue } of deletedStates) {
-			batch.put(key, previousValue);
-			await smt.update(toSMTKey(key), hash(previousValue));
-		}
-		for (const { key, value: previousValue } of updatedStates) {
-			batch.put(key, previousValue);
-			await smt.update(toSMTKey(key), hash(previousValue));
-		}
-
-		smtStore.finalize(batch);
-		// Delete stored diff at particular height
-		batch.del(diffKey);
-		await batch.write();
+		const stateRoot = await this._stateDB.revert(
+			req.stateRoot,
+			this._executionContext.header.height,
+		);
 		return {
-			stateRoot: smt.rootHash,
+			stateRoot,
 		};
 	}
 
@@ -581,10 +524,7 @@ export class ABIHandler implements ABI {
 		if (req.finalizedHeight === 0) {
 			return {};
 		}
-		await this._stateDB.clear({
-			gte: Buffer.concat([concatDBKeys(DB_KEY_DIFF_STATE), formatInt(0)]),
-			lte: concatDBKeys(DB_KEY_DIFF_STATE, formatInt(req.finalizedHeight - 1)),
-		});
+		await this._stateDB.finalize(req.finalizedHeight);
 		return {};
 	}
 

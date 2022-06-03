@@ -12,10 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { TokenAPI } from '../../../../src/modules/token';
 import {
 	CCM_STATUS_OK,
@@ -39,6 +37,8 @@ import {
 } from '../../../../src/modules/token/schemas';
 import { getUserStoreKey } from '../../../../src/modules/token/utils';
 import { APIContext, createAPIContext, EventQueue } from '../../../../src/state_machine';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { fakeLogger } from '../../../utils/mocks';
 
 describe('CrossChain Forward command', () => {
@@ -86,7 +86,7 @@ describe('CrossChain Forward command', () => {
 		terminateChain: jest.Mock;
 		getChannel: jest.Mock;
 	};
-	let stateStore: StateStore;
+	let stateStore: PrefixedStateReadWriter;
 	let apiContext: APIContext;
 
 	beforeEach(async () => {
@@ -110,9 +110,9 @@ describe('CrossChain Forward command', () => {
 			minBalances,
 		});
 
-		stateStore = new StateStore(new InMemoryKVStore());
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		apiContext = createAPIContext({
-			stateStore: new StateStore(new InMemoryKVStore()),
+			stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
 			eventQueue: new EventQueue(),
 		});
 		const userStore = apiContext.getStore(MODULE_ID_TOKEN, STORE_PREFIX_USER);

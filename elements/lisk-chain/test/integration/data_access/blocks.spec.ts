@@ -14,7 +14,7 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { KVStore, formatInt, NotFoundError } from '@liskhq/lisk-db';
+import { Batch, Database, NotFoundError } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { encodeByteArray, Storage } from '../../../src/data_access/storage';
@@ -33,7 +33,7 @@ import {
 	DB_KEY_TRANSACTIONS_BLOCK_ID,
 	DB_KEY_BLOCK_EVENTS,
 } from '../../../src/db_keys';
-import { concatDBKeys } from '../../../src/utils';
+import { concatDBKeys, uint32BE } from '../../../src/utils';
 
 describe('dataAccess.blocks', () => {
 	const emptyEncodedDiff = codec.encode(stateDiffSchema, {
@@ -41,7 +41,7 @@ describe('dataAccess.blocks', () => {
 		updated: [],
 		deleted: [],
 	});
-	let db: KVStore;
+	let db: Database;
 	let storage: Storage;
 	let dataAccess: DataAccess;
 	let blocks: Block[];
@@ -49,8 +49,12 @@ describe('dataAccess.blocks', () => {
 	beforeAll(() => {
 		const parentPath = path.join(__dirname, '../../tmp/blocks');
 		fs.ensureDirSync(parentPath);
-		db = new KVStore(path.join(parentPath, '/test-blocks.db'));
+		db = new Database(path.join(parentPath, '/test-blocks.db'));
 		storage = new Storage(db);
+	});
+
+	afterAll(() => {
+		db.close();
 	});
 
 	beforeEach(async () => {
@@ -97,40 +101,40 @@ describe('dataAccess.blocks', () => {
 		];
 
 		blocks = [block300, block301, block302, block303];
-		const batch = db.batch();
+		const batch = new Batch();
 		for (const block of blocks) {
 			const { transactions, header } = block;
-			batch.put(concatDBKeys(DB_KEY_BLOCKS_ID, header.id), header.getBytes());
-			batch.put(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(header.height)), header.id);
+			batch.set(concatDBKeys(DB_KEY_BLOCKS_ID, header.id), header.getBytes());
+			batch.set(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, uint32BE(header.height)), header.id);
 			if (transactions.length) {
-				batch.put(
+				batch.set(
 					concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, header.id),
 					Buffer.concat(transactions.map(tx => tx.id)),
 				);
 
 				for (const tx of transactions) {
-					batch.put(concatDBKeys(DB_KEY_TRANSACTIONS_ID, tx.id), tx.getBytes());
+					batch.set(concatDBKeys(DB_KEY_TRANSACTIONS_ID, tx.id), tx.getBytes());
 				}
 			}
-			batch.put(
-				concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(block.header.height)),
+			batch.set(
+				concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(block.header.height)),
 				encodeByteArray(events.map(e => e.getBytes())),
 			);
-			batch.put(
-				concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(blocks[2].header.height)),
+			batch.set(
+				concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, uint32BE(blocks[2].header.height)),
 				blocks[2].getBytes(),
 			);
-			batch.put(
-				concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(blocks[3].header.height)),
+			batch.set(
+				concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, uint32BE(blocks[3].header.height)),
 				blocks[3].getBytes(),
 			);
-			batch.put(
-				concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(blocks[3].header.height + 1)),
+			batch.set(
+				concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, uint32BE(blocks[3].header.height + 1)),
 				blocks[3].getBytes(),
 			);
-			batch.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(block.header.height)), emptyEncodedDiff);
+			batch.set(concatDBKeys(DB_KEY_DIFF_STATE, uint32BE(block.header.height)), emptyEncodedDiff);
 		}
-		await batch.write();
+		await db.write(batch);
 		dataAccess.resetBlockHeaderCache();
 	});
 
@@ -391,7 +395,7 @@ describe('dataAccess.blocks', () => {
 				],
 			});
 			const smtStore = new SMTStore(db);
-			const batchLocal = db.batch();
+			const batchLocal = new Batch();
 			const diff = stateStore.finalize(batchLocal);
 			smtStore.finalize(batchLocal);
 
@@ -405,24 +409,24 @@ describe('dataAccess.blocks', () => {
 		it('should create block with all index required', async () => {
 			await dataAccess.saveBlock(block, events, currentState, 0);
 
-			await expect(db.exists(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id))).resolves.toBeTrue();
+			await expect(db.has(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id))).resolves.toBeTrue();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(block.header.height))),
+				db.has(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, uint32BE(block.header.height))),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, block.header.id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, block.header.id)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, block.transactions[0].id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_ID, block.transactions[0].id)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, block.transactions[1].id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_ID, block.transactions[1].id)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(block.header.height))),
+				db.has(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, uint32BE(block.header.height))),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(block.header.height))),
+				db.has(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(block.header.height))),
 			).resolves.toBeTrue();
 			const createdBlock = await dataAccess.getBlockByID(block.header.id);
 			expect(createdBlock.header.toObject()).toStrictEqual(block.header.toObject());
@@ -435,21 +439,21 @@ describe('dataAccess.blocks', () => {
 		it('should create block with all index required and remove the same height block from temp', async () => {
 			await dataAccess.saveBlock(block, events, currentState, 0, true);
 
-			await expect(db.exists(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id))).resolves.toBeTrue();
+			await expect(db.has(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id))).resolves.toBeTrue();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(block.header.height))),
+				db.has(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, uint32BE(block.header.height))),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, block.header.id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, block.header.id)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, block.transactions[0].id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_ID, block.transactions[0].id)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, block.transactions[1].id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_ID, block.transactions[1].id)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(block.header.height))),
+				db.has(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, uint32BE(block.header.height))),
 			).resolves.toBeFalse();
 			const createdBlock = await dataAccess.getBlockByID(block.header.id);
 			expect(createdBlock.header.toObject()).toStrictEqual(block.header.toObject());
@@ -460,49 +464,41 @@ describe('dataAccess.blocks', () => {
 		});
 
 		it('should delete diff before the finalized height', async () => {
-			await db.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(99)), Buffer.from('random diff'));
-			await db.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(100)), Buffer.from('random diff 2'));
+			await db.set(concatDBKeys(DB_KEY_DIFF_STATE, uint32BE(99)), Buffer.from('random diff'));
+			await db.set(concatDBKeys(DB_KEY_DIFF_STATE, uint32BE(100)), Buffer.from('random diff 2'));
 			await dataAccess.saveBlock(block, events, currentState, 100, true);
 
-			await expect(db.exists(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(100)))).resolves.toBeTrue();
-			await expect(db.exists(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(99)))).resolves.toBeFalse();
+			await expect(db.has(concatDBKeys(DB_KEY_DIFF_STATE, uint32BE(100)))).resolves.toBeTrue();
+			await expect(db.has(concatDBKeys(DB_KEY_DIFF_STATE, uint32BE(99)))).resolves.toBeFalse();
 		});
 
 		it('should not delete events before finalized height when keepEventsForHeights == -1', async () => {
-			await db.put(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(99)), Buffer.from('random diff'));
-			await db.put(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(100)), Buffer.from('random diff 2'));
+			await db.set(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(99)), Buffer.from('random diff'));
+			await db.set(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(100)), Buffer.from('random diff 2'));
 			await dataAccess.saveBlock(block, events, currentState, 100, true);
 
-			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(100))),
-			).resolves.toBeTrue();
-			await expect(db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(99)))).resolves.toBeTrue();
+			await expect(db.has(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(100)))).resolves.toBeTrue();
+			await expect(db.has(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(99)))).resolves.toBeTrue();
 		});
 
 		it('should delete events before finalized height when keepEventsForHeights == 1', async () => {
 			(dataAccess['_storage']['_keepEventsForHeights'] as any) = 1;
-			await db.put(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(99)), Buffer.from('random diff'));
-			await db.put(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(100)), Buffer.from('random diff 2'));
+			await db.set(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(99)), Buffer.from('random diff'));
+			await db.set(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(100)), Buffer.from('random diff 2'));
 			await dataAccess.saveBlock(block, events, currentState, 100, true);
 
-			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(100))),
-			).resolves.toBeTrue();
-			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(99))),
-			).resolves.toBeFalse();
+			await expect(db.has(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(100)))).resolves.toBeTrue();
+			await expect(db.has(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(99)))).resolves.toBeFalse();
 		});
 
 		it('should maintain events for not finalized blocks', async () => {
 			(dataAccess['_storage']['_keepEventsForHeights'] as any) = 0;
-			await db.put(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(99)), Buffer.from('random diff'));
-			await db.put(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(100)), Buffer.from('random diff 2'));
+			await db.set(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(99)), Buffer.from('random diff'));
+			await db.set(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(100)), Buffer.from('random diff 2'));
 			await dataAccess.saveBlock(block, events, currentState, 50, true);
 
-			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(100))),
-			).resolves.toBeTrue();
-			await expect(db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(99)))).resolves.toBeTrue();
+			await expect(db.has(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(100)))).resolves.toBeTrue();
+			await expect(db.has(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(99)))).resolves.toBeTrue();
 		});
 	});
 
@@ -512,7 +508,7 @@ describe('dataAccess.blocks', () => {
 		beforeEach(() => {
 			const stateStore = new StateStore(db);
 			const smtStore = new SMTStore(db);
-			const batch = db.batch();
+			const batch = new Batch();
 			const diff = stateStore.finalize(batch);
 			smtStore.finalize(batch);
 
@@ -529,31 +525,31 @@ describe('dataAccess.blocks', () => {
 			await dataAccess.deleteBlock(blocks[2], currentState);
 
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCKS_ID, blocks[2].header.id)),
+				db.has(concatDBKeys(DB_KEY_BLOCKS_ID, blocks[2].header.id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(blocks[2].header.height))),
+				db.has(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, uint32BE(blocks[2].header.height))),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].header.id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].header.id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].transactions[0].id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].transactions[0].id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].transactions[1].id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].transactions[1].id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(blocks[2].header.height))),
+				db.has(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, uint32BE(blocks[2].header.height))),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(blocks[2].header.height))),
+				db.has(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(blocks[2].header.height))),
 			).resolves.toBeFalse();
 		});
 
 		it('should throw an error when there is no diff', async () => {
 			// Deleting temp blocks to test the saving
-			const key = concatDBKeys(DB_KEY_DIFF_STATE, formatInt(blocks[2].header.height));
+			const key = concatDBKeys(DB_KEY_DIFF_STATE, uint32BE(blocks[2].header.height));
 			await db.del(key);
 			await dataAccess.clearTempBlocks();
 
@@ -568,22 +564,22 @@ describe('dataAccess.blocks', () => {
 			await dataAccess.deleteBlock(blocks[2], currentState, true);
 
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCKS_ID, blocks[2].header.id)),
+				db.has(concatDBKeys(DB_KEY_BLOCKS_ID, blocks[2].header.id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(blocks[2].header.height))),
+				db.has(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, uint32BE(blocks[2].header.height))),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].header.id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].header.id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].transactions[0].id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].transactions[0].id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].transactions[1].id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].transactions[1].id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(blocks[2].header.height))),
+				db.has(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, uint32BE(blocks[2].header.height))),
 			).resolves.toBeTrue();
 
 			const tempBlocks = await dataAccess.getTempBlocks();

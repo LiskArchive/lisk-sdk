@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { KVStore, NotFoundError } from '@liskhq/lisk-db';
+import { Database, NotFoundError } from '@liskhq/lisk-db';
 import { EventEmitter } from 'events';
 import * as liskP2P from '@liskhq/lisk-p2p';
 
@@ -95,7 +95,7 @@ interface P2PEventHandlers {
 interface NetworkInitArgs {
 	networkIdentifier: Buffer;
 	logger: Logger;
-	nodeDB: KVStore;
+	nodeDB: Database;
 }
 
 export class Network {
@@ -105,7 +105,7 @@ export class Network {
 	private readonly _endpoint: Endpoint;
 
 	private _logger!: Logger;
-	private _nodeDB!: KVStore;
+	private _nodeDB!: Database;
 	private _networkID!: string;
 	private _secret: number | undefined;
 	private _p2p!: liskP2P.P2P;
@@ -151,7 +151,7 @@ export class Network {
 
 		if (!secret) {
 			secret = getRandomBytes(4);
-			await this._nodeDB.put(DB_KEY_NETWORK_NODE_SECRET, secret);
+			await this._nodeDB.set(DB_KEY_NETWORK_NODE_SECRET, secret);
 		}
 
 		this._secret = secret?.readUInt32BE(0);
@@ -404,7 +404,7 @@ export class Network {
 		this._saveIntervalID = setInterval(async () => {
 			const triedPeers = this._p2p.getTriedPeers();
 			if (triedPeers.length) {
-				await this._nodeDB.put(
+				await this._nodeDB.set(
 					DB_KEY_NETWORK_TRIED_PEERS_LIST,
 					Buffer.from(JSON.stringify(triedPeers), 'utf8'),
 				);

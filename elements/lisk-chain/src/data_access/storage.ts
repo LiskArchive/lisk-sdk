@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { KVStore, formatInt, getFirstPrefix, getLastPrefix, NotFoundError } from '@liskhq/lisk-db';
+import { Batch, Database, NotFoundError } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { hash } from '@liskhq/lisk-cryptography';
 import { RawBlock, StateDiff } from '../types';
@@ -27,10 +27,10 @@ import {
 	DB_KEY_BLOCK_ASSETS_BLOCK_ID,
 	DB_KEY_BLOCK_EVENTS,
 } from '../db_keys';
-import { concatDBKeys } from '../utils';
+import { concatDBKeys, uint32BE } from '../utils';
 import { stateDiffSchema } from '../schema';
 import { CurrentState } from '../state_store';
-import { DEFAULT_KEEP_EVENTS_FOR_HEIGHTS } from '../constants';
+import { DEFAULT_KEEP_EVENTS_FOR_HEIGHTS, MAX_UINT32 } from '../constants';
 
 const bytesArraySchema = {
 	$id: 'lisk-chain/bytesarray',
@@ -64,10 +64,10 @@ interface StorageOption {
 }
 
 export class Storage {
-	private readonly _db: KVStore;
+	private readonly _db: Database;
 	private readonly _keepEventsForHeights: number;
 
-	public constructor(db: KVStore, options?: StorageOption) {
+	public constructor(db: Database, options?: StorageOption) {
 		this._db = db;
 		this._keepEventsForHeights = options?.keepEventsForHeights ?? DEFAULT_KEEP_EVENTS_FOR_HEIGHTS;
 	}
@@ -97,7 +97,7 @@ export class Storage {
 	}
 
 	public async getBlockHeaderByHeight(height: number): Promise<Buffer> {
-		const id = await this._db.get(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(height)));
+		const id = await this._db.get(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, uint32BE(height)));
 		return this.getBlockHeaderByID(id);
 	}
 
@@ -106,8 +106,8 @@ export class Storage {
 		toHeight: number,
 	): Promise<Buffer[]> {
 		const stream = this._db.createReadStream({
-			gte: concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(fromHeight)),
-			lte: concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(toHeight)),
+			gte: concatDBKeys(DB_KEY_BLOCKS_HEIGHT, uint32BE(fromHeight)),
+			lte: concatDBKeys(DB_KEY_BLOCKS_HEIGHT, uint32BE(toHeight)),
 			reverse: true,
 		});
 		const blockIDs = await new Promise<Buffer[]>((resolve, reject) => {
@@ -145,8 +145,8 @@ export class Storage {
 
 	public async getLastBlockHeader(): Promise<Buffer> {
 		const stream = this._db.createReadStream({
-			gte: getFirstPrefix(DB_KEY_BLOCKS_HEIGHT),
-			lte: getLastPrefix(DB_KEY_BLOCKS_HEIGHT),
+			gte: concatDBKeys(DB_KEY_BLOCKS_HEIGHT, uint32BE(0)),
+			lte: concatDBKeys(DB_KEY_BLOCKS_HEIGHT, uint32BE(MAX_UINT32)),
 			reverse: true,
 			limit: 1,
 		});
@@ -244,7 +244,7 @@ export class Storage {
 	}
 
 	public async getEvents(height: number): Promise<Event[]> {
-		const eventsByte = await this._db.get(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(height)));
+		const eventsByte = await this._db.get(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(height)));
 		const events = decodeByteArray(eventsByte);
 
 		return events.map(e => Event.fromBytes(e));
@@ -252,8 +252,8 @@ export class Storage {
 
 	public async getTempBlocks(): Promise<Buffer[]> {
 		const stream = this._db.createReadStream({
-			gte: getFirstPrefix(DB_KEY_TEMPBLOCKS_HEIGHT),
-			lte: getLastPrefix(DB_KEY_TEMPBLOCKS_HEIGHT),
+			gte: concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, uint32BE(0)),
+			lte: concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, uint32BE(MAX_UINT32)),
 			reverse: true,
 		});
 		const tempBlocks = await new Promise<Buffer[]>((resolve, reject) => {
@@ -275,8 +275,8 @@ export class Storage {
 
 	public async isTempBlockEmpty(): Promise<boolean> {
 		const stream = this._db.createReadStream({
-			gte: getFirstPrefix(DB_KEY_TEMPBLOCKS_HEIGHT),
-			lte: getLastPrefix(DB_KEY_TEMPBLOCKS_HEIGHT),
+			gte: concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, uint32BE(0)),
+			lte: concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, uint32BE(MAX_UINT32)),
 			limit: 1,
 		});
 		const tempBlocks = await new Promise<Buffer[]>((resolve, reject) => {
@@ -297,14 +297,14 @@ export class Storage {
 	}
 
 	public async clearTempBlocks(): Promise<void> {
-		await this._db.clear({
-			gte: getFirstPrefix(DB_KEY_TEMPBLOCKS_HEIGHT),
-			lte: getLastPrefix(DB_KEY_TEMPBLOCKS_HEIGHT),
-		});
+		await this._clear(
+			concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, uint32BE(0)),
+			concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, uint32BE(MAX_UINT32)),
+		);
 	}
 
 	public async isBlockPersisted(blockID: Buffer): Promise<boolean> {
-		return this._db.exists(concatDBKeys(DB_KEY_BLOCKS_ID, blockID));
+		return this._db.has(concatDBKeys(DB_KEY_BLOCKS_ID, blockID));
 	}
 
 	/*
@@ -336,7 +336,7 @@ export class Storage {
 	}
 
 	public async isTransactionPersisted(transactionId: Buffer): Promise<boolean> {
-		return this._db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, transactionId));
+		return this._db.has(concatDBKeys(DB_KEY_TRANSACTIONS_ID, transactionId));
 	}
 
 	public async getFinalizedHeight(): Promise<number> {
@@ -358,37 +358,37 @@ export class Storage {
 		state: CurrentState,
 		removeFromTemp = false,
 	): Promise<void> {
-		const heightBuf = formatInt(height);
+		const heightBuf = uint32BE(height);
 		const { batch, diff } = state;
-		batch.put(concatDBKeys(DB_KEY_BLOCKS_ID, id), header);
-		batch.put(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, heightBuf), id);
+		batch.set(concatDBKeys(DB_KEY_BLOCKS_ID, id), header);
+		batch.set(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, heightBuf), id);
 		if (transactions.length > 0) {
 			const ids = [];
 			for (const { id: txID, value } of transactions) {
 				ids.push(txID);
-				batch.put(concatDBKeys(DB_KEY_TRANSACTIONS_ID, txID), value);
+				batch.set(concatDBKeys(DB_KEY_TRANSACTIONS_ID, txID), value);
 			}
-			batch.put(concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, id), Buffer.concat(ids));
+			batch.set(concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, id), Buffer.concat(ids));
 		}
 		if (events.length > 0) {
 			const encodedEvents = encodeByteArray(events);
-			batch.put(concatDBKeys(DB_KEY_BLOCK_EVENTS, heightBuf), encodedEvents);
+			batch.set(concatDBKeys(DB_KEY_BLOCK_EVENTS, heightBuf), encodedEvents);
 		}
 		if (assets.length > 0) {
 			const encodedAsset = encodeByteArray(assets);
-			batch.put(concatDBKeys(DB_KEY_BLOCK_ASSETS_BLOCK_ID, id), encodedAsset);
+			batch.set(concatDBKeys(DB_KEY_BLOCK_ASSETS_BLOCK_ID, id), encodedAsset);
 		}
 		if (removeFromTemp) {
 			batch.del(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, heightBuf));
 		}
 
 		const encodedDiff = codec.encode(stateDiffSchema, diff);
-		batch.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(height)), encodedDiff);
+		batch.set(concatDBKeys(DB_KEY_DIFF_STATE, uint32BE(height)), encodedDiff);
 		const finalizedHeightBytes = Buffer.alloc(4);
 		finalizedHeightBytes.writeUInt32BE(finalizedHeight, 0);
-		batch.put(DB_KEY_FINALIZED_HEIGHT, finalizedHeightBytes);
+		batch.set(DB_KEY_FINALIZED_HEIGHT, finalizedHeightBytes);
 
-		await batch.write();
+		await this._db.write(batch);
 		await this._cleanUntil(height, finalizedHeight);
 	}
 
@@ -402,7 +402,7 @@ export class Storage {
 		saveToTemp = false,
 	): Promise<StateDiff> {
 		const { batch } = state;
-		const heightBuf = formatInt(height);
+		const heightBuf = uint32BE(height);
 		batch.del(concatDBKeys(DB_KEY_BLOCKS_ID, id));
 		batch.del(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, heightBuf));
 		if (txIDs.length > 0) {
@@ -416,7 +416,7 @@ export class Storage {
 			batch.del(concatDBKeys(DB_KEY_BLOCK_ASSETS_BLOCK_ID, id));
 		}
 		if (saveToTemp) {
-			batch.put(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, heightBuf), fullBlock);
+			batch.set(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, heightBuf), fullBlock);
 		}
 		// Take the diff to revert back states
 		const diffKey = concatDBKeys(DB_KEY_DIFF_STATE, heightBuf);
@@ -436,17 +436,17 @@ export class Storage {
 		}
 		// Revert all deleted values
 		for (const { key, value: previousValue } of deletedStates) {
-			batch.put(key, previousValue);
+			batch.set(key, previousValue);
 		}
 		for (const { key, value: previousValue } of updatedStates) {
-			batch.put(key, previousValue);
+			batch.set(key, previousValue);
 		}
 
 		// Delete stored diff at particular height
 		batch.del(diffKey);
 
 		// Persist the whole batch
-		await batch.write();
+		await this._db.write(batch);
 		return {
 			deleted: deletedStates,
 			created: createdStates,
@@ -456,10 +456,12 @@ export class Storage {
 
 	// This function is out of batch, but even if it fails, it will run again next time
 	private async _cleanUntil(currentHeight: number, finalizedHeight: number): Promise<void> {
-		await this._db.clear({
-			gte: concatDBKeys(DB_KEY_DIFF_STATE, formatInt(0)),
-			lt: concatDBKeys(DB_KEY_DIFF_STATE, formatInt(finalizedHeight)),
-		});
+		if (finalizedHeight > 0) {
+			await this._clear(
+				concatDBKeys(DB_KEY_DIFF_STATE, uint32BE(0)),
+				concatDBKeys(DB_KEY_DIFF_STATE, uint32BE(finalizedHeight - 1)),
+			);
+		}
 
 		// Delete outdated events if keepEventsForHeights is positive.
 		if (this._keepEventsForHeights > -1) {
@@ -471,10 +473,10 @@ export class Storage {
 			if (minEventDeleteHeight > 0) {
 				const endHeight = Buffer.alloc(4);
 				endHeight.writeUInt32BE(minEventDeleteHeight - 1, 0);
-				await this._db.clear({
-					gte: Buffer.concat([DB_KEY_BLOCK_EVENTS, Buffer.alloc(4, 0)]),
-					lte: Buffer.concat([DB_KEY_BLOCK_EVENTS, endHeight]),
-				});
+				await this._clear(
+					Buffer.concat([DB_KEY_BLOCK_EVENTS, Buffer.alloc(4, 0)]),
+					Buffer.concat([DB_KEY_BLOCK_EVENTS, endHeight]),
+				);
 			}
 		}
 	}
@@ -514,5 +516,27 @@ export class Storage {
 		}
 
 		return transactions;
+	}
+
+	private async _clear(gte: Buffer, lte: Buffer): Promise<void> {
+		const stream = this._db.createReadStream({
+			gte,
+			lte,
+		});
+		const batch = new Batch();
+		await new Promise((resolve, reject) => {
+			const ids: Buffer[] = [];
+			stream
+				.on('data', ({ key }: { key: Buffer }) => {
+					batch.del(key);
+				})
+				.on('error', error => {
+					reject(error);
+				})
+				.on('end', () => {
+					resolve(ids);
+				});
+		});
+		await this._db.write(batch);
 	}
 }

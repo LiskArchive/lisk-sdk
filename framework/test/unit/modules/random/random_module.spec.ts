@@ -19,8 +19,7 @@ import {
 	hashOnion,
 } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
-import { BlockAssets, StateStore } from '@liskhq/lisk-chain';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { BlockAssets } from '@liskhq/lisk-chain';
 import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
 import { RandomModule } from '../../../../src/modules/random';
 import { UsedHashOnionStoreObject, ValidatorReveals } from '../../../../src/modules/random/types';
@@ -42,6 +41,8 @@ import {
 	createGenesisBlockContext,
 } from '../../../../src/testing';
 import { InsertAssetContext } from '../../../../src/state_machine';
+import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 
 const convertDelegateFixture = (delegates: typeof genesisDelegates.delegates) =>
 	delegates.map(delegate => ({
@@ -412,7 +413,7 @@ describe('RandomModule', () => {
 	});
 
 	describe('initGenesisState', () => {
-		let stateStore: StateStore;
+		let stateStore: PrefixedStateReadWriter;
 		beforeEach(async () => {
 			await randomModule.init({
 				generatorConfig: undefined as never,
@@ -421,7 +422,7 @@ describe('RandomModule', () => {
 					maxLengthReveals: 206,
 				},
 			});
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		});
 
 		it('should store empty array to the random data store', async () => {
@@ -491,7 +492,7 @@ describe('RandomModule', () => {
 	});
 
 	describe('afterTransactionsExecute', () => {
-		let stateStore: StateStore;
+		let stateStore: PrefixedStateReadWriter;
 		const generator1 = getRandomBytes(20);
 		const seed1 = getRandomBytes(16);
 		const generator2 = getRandomBytes(20);
@@ -514,7 +515,7 @@ describe('RandomModule', () => {
 					maxLengthReveals: 6,
 				},
 			});
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
 			const validatorReveals = [
 				{

@@ -45,8 +45,8 @@ describe('Process block', () => {
 		chain = processEnv.getChain();
 	});
 
-	afterAll(async () => {
-		await processEnv.cleanup({ databasePath });
+	afterAll(() => {
+		processEnv.cleanup({ databasePath });
 	});
 
 	describe('given an account has a balance', () => {

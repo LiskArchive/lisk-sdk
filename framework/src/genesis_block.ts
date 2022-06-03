@@ -11,22 +11,17 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import {
-	Block,
-	BlockAssets,
-	BlockHeader,
-	EVENT_KEY_LENGTH,
-	SMTStore,
-	StateStore,
-} from '@liskhq/lisk-chain';
+import * as os from 'os';
+import * as path from 'path';
+import { Block, BlockAssets, BlockHeader, EVENT_KEY_LENGTH, SMTStore } from '@liskhq/lisk-chain';
 import { codec, Schema } from '@liskhq/lisk-codec';
-import { hash } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
+import { InMemoryDatabase, StateDB } from '@liskhq/lisk-db';
 import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import { Logger } from './logger';
 import { computeValidatorsHash } from './engine';
 import { EventQueue, GenesisBlockContext, StateMachine } from './state_machine';
+import { PrefixedStateReadWriter } from './state_machine/prefixed_state_read_writer';
 
 export interface GenesisBlockGenerateInput {
 	height?: number;
@@ -77,8 +72,9 @@ export const generateGenesisBlock = async (
 		},
 	});
 
-	const db = new InMemoryKVStore();
-	const stateStore = new StateStore(db);
+	const tempPath = path.join(os.tmpdir(), getRandomBytes(3).toString('hex'), Date.now().toString());
+	const stateDB = new StateDB(tempPath);
+	const stateStore = new PrefixedStateReadWriter(stateDB.newReadWriter());
 
 	const blockCtx = new GenesisBlockContext({
 		eventQueue: new EventQueue(),
@@ -90,14 +86,15 @@ export const generateGenesisBlock = async (
 
 	await stateMachine.executeGenesisBlock(blockCtx);
 
-	const smtStore = new SMTStore(new InMemoryKVStore());
-	const smt = new SparseMerkleTree({ db: smtStore });
-	stateStore.finalize(db.batch());
+	const stateRoot = await stateDB.commit(stateStore.inner, height, EMPTY_HASH, {
+		checkRoot: false,
+		readonly: true,
+	});
 
-	header.stateRoot = smt.rootHash;
+	header.stateRoot = stateRoot;
 
 	const blockEvents = blockCtx.eventQueue.getEvents();
-	const eventSmtStore = new SMTStore(new InMemoryKVStore());
+	const eventSmtStore = new SMTStore(new InMemoryDatabase());
 	const eventSMT = new SparseMerkleTree({
 		db: eventSmtStore,
 		keyLength: EVENT_KEY_LENGTH,

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase, Database } from '@liskhq/lisk-db';
 import { Chain, StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { objects } from '@liskhq/lisk-utils';
@@ -44,7 +44,7 @@ export interface EndpointArgs {
 	chain: Chain;
 	network: Network;
 	commitPool: CommitPool;
-	db: KVStore;
+	db: Database;
 }
 
 const DEFAULT_SINGLE_COMMIT_FROM_IDS_RATE_LIMIT_FREQUENCY = 10;
@@ -57,7 +57,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 	private readonly _chain: Chain;
 	private readonly _network: Network;
 	private readonly _commitPool: CommitPool;
-	private readonly _db: KVStore | InMemoryKVStore;
+	private readonly _db: Database | InMemoryDatabase;
 
 	public constructor(args: EndpointArgs) {
 		super(args.network);

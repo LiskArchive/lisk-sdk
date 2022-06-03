@@ -17,16 +17,14 @@ import {
 	Chain,
 	Event,
 	Slots,
-	SMTStore,
 	StateStore,
 	BlockHeader,
 	MAX_EVENTS_PER_BLOCK,
 	EVENT_KEY_LENGTH,
 } from '@liskhq/lisk-chain';
 import { jobHandlers, objects } from '@liskhq/lisk-utils';
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
+import { Database, Batch, SparseMerkleTree } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import { hash } from '@liskhq/lisk-cryptography';
 import { Logger } from '../../logger';
 import {
@@ -75,7 +73,7 @@ interface ConsensusArgs {
 interface InitArgs {
 	logger: Logger;
 	genesisBlock: Block;
-	db: KVStore;
+	db: Database;
 	moduleIDs: number[];
 }
 
@@ -109,7 +107,7 @@ export class Consensus {
 
 	// init parameters
 	private _logger!: Logger;
-	private _db!: KVStore;
+	private _db!: Database;
 	private _commitPool!: CommitPool;
 	private _endpoint!: NetworkEndpoint;
 	private _synchronizer!: Synchronizer;
@@ -213,7 +211,7 @@ export class Consensus {
 			}
 			await this._verifyEventRoot(args.genesisBlock, genesisEvents);
 
-			const batch = this._db.batch();
+			const batch = new Batch();
 			const diff = stateStore.finalize(batch);
 
 			await this._chain.saveBlock(
@@ -555,7 +553,7 @@ export class Consensus {
 		await this._verifyValidatorsHash(stateStore, block);
 		await this._verifyEventRoot(block, events);
 
-		const batch = this._db.batch();
+		const batch = new Batch();
 		const diff = stateStore.finalize(batch);
 
 		await this._commitBlock(contextID, block);
@@ -759,18 +757,16 @@ export class Consensus {
 		if (events.length > MAX_EVENTS_PER_BLOCK) {
 			throw new Error(`Number of events cannot exceed ${MAX_EVENTS_PER_BLOCK} per block`);
 		}
-		const smtStore = new SMTStore(new InMemoryKVStore());
-		const smt = new SparseMerkleTree({
-			db: smtStore,
-			keyLength: EVENT_KEY_LENGTH,
-		});
+		const smt = new SparseMerkleTree(EVENT_KEY_LENGTH);
+		const keypairs = [];
 		for (const e of events) {
 			const pairs = e.keyPair();
 			for (const pair of pairs) {
-				await smt.update(pair.key, pair.value);
+				keypairs.push(pair);
 			}
 		}
-		if (!block.header.eventRoot || !smt.rootHash.equals(block.header.eventRoot)) {
+		const eventRoot = await smt.update(EMPTY_HASH, keypairs);
+		if (!block.header.eventRoot || !eventRoot.equals(block.header.eventRoot)) {
 			throw new Error(
 				`Event root is not valid for the block with id: ${block.header.id.toString('hex')}`,
 			);
@@ -803,7 +799,7 @@ export class Consensus {
 
 		// Offset must be set to 1, because lastBlock is still this deleting block
 		const stateStore = new StateStore(this._db);
-		const batch = this._db.batch();
+		const batch = new Batch();
 		await this._chain.removeBlock(
 			block,
 			{ batch, diff: { created: [], updated: [], deleted: [] }, stateStore },

@@ -13,7 +13,7 @@
  */
 
 import { Chain } from '@liskhq/lisk-chain';
-import { KVStore } from '@liskhq/lisk-db';
+import { Database } from '@liskhq/lisk-db';
 import { BFTAPI } from '../../bft';
 import { Network } from '../../network';
 
@@ -40,7 +40,7 @@ export interface CommitPoolConfig {
 	readonly blockTime: number;
 	readonly bftAPI: BFTAPI;
 	readonly chain: Chain;
-	readonly db: KVStore;
+	readonly db: Database;
 }
 
 export interface ValidatorInfo {

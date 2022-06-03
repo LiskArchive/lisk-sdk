@@ -22,7 +22,7 @@ import {
 	StateStore,
 	TransactionJSON,
 } from '@liskhq/lisk-chain';
-import { InMemoryKVStore, KVStore, NotFoundError } from '@liskhq/lisk-db';
+import { InMemoryDatabase, Database, NotFoundError } from '@liskhq/lisk-db';
 import { isHexString, LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { SparseMerkleTree, SMTProof } from '@liskhq/lisk-tree';
 import { JSONObject } from '../../types';
@@ -61,13 +61,13 @@ const proveEventsRequestSchema = {
 export class ChainEndpoint {
 	[key: string]: unknown;
 	private readonly _chain: Chain;
-	private _db!: KVStore;
+	private _db!: Database;
 
 	public constructor(args: EndpointArgs) {
 		this._chain = args.chain;
 	}
 
-	public init(db: KVStore) {
+	public init(db: Database) {
 		this._db = db;
 	}
 
@@ -195,7 +195,7 @@ export class ChainEndpoint {
 		const queryBytes = queries.map(q => Buffer.from(q, 'hex'));
 		const events = await this._chain.dataAccess.getEvents(height);
 
-		const eventSmtStore = new SMTStore(new InMemoryKVStore());
+		const eventSmtStore = new SMTStore(new InMemoryDatabase());
 		const eventSMT = new SparseMerkleTree({
 			db: eventSmtStore,
 			keyLength: EVENT_KEY_LENGTH,

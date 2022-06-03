@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase, Database, StateDB } from '@liskhq/lisk-db';
 import { ABIClient } from '../../../src/abi_handler/abi_client';
 import { ABIHandler } from '../../../src/abi_handler/abi_handler';
 import { StateMachine } from '../../../src/state_machine';
@@ -42,8 +42,8 @@ describe('ABI client', () => {
 		abiHandler = new ABIHandler({
 			logger: fakeLogger,
 			channel: channelMock,
-			stateDB: (new InMemoryKVStore() as unknown) as KVStore,
-			moduleDB: (new InMemoryKVStore() as unknown) as KVStore,
+			stateDB: (new InMemoryDatabase() as unknown) as StateDB,
+			moduleDB: (new InMemoryDatabase() as unknown) as Database,
 			genesisBlock: genesis,
 			stateMachine,
 			modules: [mod],

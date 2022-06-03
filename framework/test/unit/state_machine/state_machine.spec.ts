@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Transaction, StateStore, BlockAssets } from '@liskhq/lisk-chain';
+import { Transaction, BlockAssets } from '@liskhq/lisk-chain';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { Logger } from '../../../src/logger';
 import { BlockContext } from '../../../src/state_machine/block_context';
@@ -27,13 +27,14 @@ import {
 	EVENT_INDEX_FINALIZE_GENESIS_STATE,
 	EVENT_INDEX_INIT_GENESIS_STATE,
 } from '../../../src/state_machine/constants';
+import { PrefixedStateReadWriter } from '../../../src/state_machine/prefixed_state_read_writer';
 
 describe('state_machine', () => {
 	const genesisHeader = {} as BlockHeader;
 	const header = {} as BlockHeader;
 	const logger = {} as Logger;
 	const assets = new BlockAssets();
-	const stateStore = {} as StateStore;
+	const stateStore = {} as PrefixedStateReadWriter;
 	let eventQueue: EventQueue;
 	const networkIdentifier = Buffer.from('network identifier', 'utf8');
 	const transaction = {

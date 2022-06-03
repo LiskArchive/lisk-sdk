@@ -13,8 +13,6 @@
  */
 
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
-import { StateStore } from '@liskhq/lisk-chain';
 import { ValidatorsAPI, ValidatorsModule } from '../../../../src/modules/validators';
 import {
 	MODULE_ID_VALIDATORS,
@@ -32,15 +30,17 @@ import {
 import { APIContext, createNewAPIContext } from '../../../../src/state_machine/api_context';
 import { EventQueue } from '../../../../src/state_machine';
 import { ValidatorKeys } from '../../../../src/modules/validators/types';
+import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 
 describe('ValidatorsModuleAPI', () => {
 	let validatorsAPI: ValidatorsAPI;
 	let validatorsModule: ValidatorsModule;
 	let apiContext: APIContext;
-	let stateStore: StateStore;
-	let validatorsSubStore: StateStore;
-	let blsKeysSubStore: StateStore;
-	let genesisDataSubStore: StateStore;
+	let stateStore: PrefixedStateReadWriter;
+	let validatorsSubStore: PrefixedStateReadWriter;
+	let blsKeysSubStore: PrefixedStateReadWriter;
+	let genesisDataSubStore: PrefixedStateReadWriter;
 	const genesisConfig: any = {};
 	const moduleConfig: any = {
 		blockTime: 10,
@@ -59,7 +59,7 @@ describe('ValidatorsModuleAPI', () => {
 
 	beforeEach(() => {
 		validatorsAPI = new ValidatorsAPI(MODULE_ID_VALIDATORS);
-		stateStore = new StateStore(new InMemoryKVStore());
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		validatorsSubStore = stateStore.getStore(
 			validatorsAPI['moduleID'],
 			STORE_PREFIX_VALIDATORS_DATA,
@@ -484,7 +484,7 @@ describe('ValidatorsModuleAPI', () => {
 		const validAddress = getRandomBytes(20);
 		let validatorAccount: ValidatorKeys;
 		beforeEach(async () => {
-			apiContext = createNewAPIContext(new InMemoryKVStore());
+			apiContext = createNewAPIContext(new InMemoryPrefixedStateDB());
 
 			validatorAccount = {
 				generatorKey: getRandomBytes(48),

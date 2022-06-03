@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase, Database, Batch } from '@liskhq/lisk-db';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { LiskValidationError } from '@liskhq/lisk-validator';
 import { ABI, TransactionVerifyResult } from '../../../../src/abi';
@@ -58,7 +58,7 @@ describe('generator endpoint', () => {
 			generators: [config, invalidConfig],
 		});
 		endpoint.init({
-			generatorDB: new InMemoryKVStore() as never,
+			generatorDB: new InMemoryDatabase() as never,
 		});
 	});
 
@@ -195,7 +195,7 @@ describe('generator endpoint', () => {
 		});
 
 		it('should accept if BFT properties specified are zero and there is no previous values', async () => {
-			const db = (new InMemoryKVStore() as unknown) as KVStore;
+			const db = (new InMemoryDatabase() as unknown) as Database;
 			endpoint.init({
 				generatorDB: db,
 			});
@@ -220,7 +220,7 @@ describe('generator endpoint', () => {
 		});
 
 		it('should reject if BFT properties specified are non-zero and there is no previous values', async () => {
-			const db = (new InMemoryKVStore() as unknown) as KVStore;
+			const db = (new InMemoryDatabase() as unknown) as Database;
 			endpoint.init({
 				generatorDB: db,
 			});
@@ -247,13 +247,13 @@ describe('generator endpoint', () => {
 				maxHeightPrevoted: 40,
 				maxHeightGenerated: 3,
 			});
-			const db = (new InMemoryKVStore() as unknown) as KVStore;
+			const db = (new InMemoryDatabase() as unknown) as Database;
 			const generatorStore = new GeneratorStore(db as never);
 			const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_RESERVED_PREFIX);
 			await subStore.set(config.address, encodedInfo);
-			const batch = db.batch();
+			const batch = new Batch();
 			subStore.finalize(batch);
-			await batch.write();
+			await db.write(batch);
 			endpoint.init({
 				generatorDB: db,
 			});
@@ -280,13 +280,13 @@ describe('generator endpoint', () => {
 				maxHeightPrevoted: 40,
 				maxHeightGenerated: 3,
 			});
-			const db = (new InMemoryKVStore() as unknown) as KVStore;
+			const db = (new InMemoryDatabase() as unknown) as Database;
 			const generatorStore = new GeneratorStore(db as never);
 			const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_RESERVED_PREFIX);
 			await subStore.set(config.address, encodedInfo);
-			const batch = db.batch();
+			const batch = new Batch();
 			subStore.finalize(batch);
-			await batch.write();
+			await db.write(batch);
 			endpoint.init({
 				generatorDB: db,
 			});
@@ -313,7 +313,7 @@ describe('generator endpoint', () => {
 				maxHeightPrevoted: 40,
 				maxHeightGenerated: 3,
 			});
-			const db = (new InMemoryKVStore() as unknown) as KVStore;
+			const db = (new InMemoryDatabase() as unknown) as Database;
 			const generatorStore = new GeneratorStore(db as never);
 			const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_RESERVED_PREFIX);
 			await subStore.set(config.address, encodedInfo);
