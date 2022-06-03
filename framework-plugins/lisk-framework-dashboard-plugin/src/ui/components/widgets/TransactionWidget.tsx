@@ -12,36 +12,39 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as React from 'react';
+import { apiClient } from '@liskhq/lisk-client';
 import { TableBody, TableHeader, Table } from '../Table';
 import { Widget, WidgetHeader, WidgetBody } from '../widget';
 import Text from '../Text';
 import CopiableText from '../CopiableText';
-import { NodeInfo, Transaction } from '../../types';
+import { Transaction } from '../../types';
 import styles from './TransactionWidget.module.scss';
+
+type Metadata = apiClient.APIClient['metadata'];
 
 interface WidgetProps {
 	transactions: Transaction[];
-	nodeInfo?: NodeInfo;
+	metadata?: Metadata;
 	title: string;
 }
 
 const getModuleAsset = (
-	nodeInfo: NodeInfo | undefined,
+	nodeInfo: Metadata | undefined,
 	moduleID: number,
 	commandID: number,
 ): string => {
 	if (!nodeInfo) {
 		return 'unknown';
 	}
-	const registeredModule = nodeInfo.registeredModules.find(rm => rm.id === moduleID);
+	const registeredModule = nodeInfo.find(rm => rm.id === moduleID);
 	if (!registeredModule) {
 		return 'unknown';
 	}
-	const registeredAsset = registeredModule.commands?.find(ta => ta.id === commandID);
-	if (!registeredAsset) {
+	const registeredCommand = registeredModule.commands.find(ta => ta.id === commandID);
+	if (!registeredCommand) {
 		return `${registeredModule.name}:unknown`;
 	}
-	return `${registeredModule.name}:${registeredAsset.name}`;
+	return `${registeredModule.name}:${registeredCommand.name}`;
 };
 
 const TransactionWidget: React.FC<WidgetProps> = props => {
@@ -83,7 +86,7 @@ const TransactionWidget: React.FC<WidgetProps> = props => {
 								</td>
 								<td>
 									<Text>
-										{getModuleAsset(props.nodeInfo, transaction.moduleID, transaction.commandID)}
+										{getModuleAsset(props.metadata, transaction.moduleID, transaction.commandID)}
 									</Text>
 								</td>
 								<td>

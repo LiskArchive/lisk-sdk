@@ -31,6 +31,7 @@ import * as basePluginModule from '../../src/plugins/base_plugin';
 import * as networkConfig from '../fixtures/config/devnet/config.json';
 import { createFakeBlockHeader } from '../fixtures';
 import { ABIServer } from '../../src/abi_handler/abi_server';
+import { EVENT_ENGINE_READY } from '../../src/abi_handler/abi_handler';
 
 jest.mock('fs-extra');
 jest.mock('zeromq', () => {
@@ -379,6 +380,7 @@ describe('Application', () => {
 			jest.spyOn(fs, 'unlink').mockResolvedValue();
 
 			await app.run(new Block(createFakeBlockHeader(), [], new BlockAssets()));
+			app['_abiHandler'].event.emit(EVENT_ENGINE_READY);
 			await app.shutdown();
 		});
 
@@ -406,6 +408,7 @@ describe('Application', () => {
 			jest.spyOn(Engine.prototype, 'start').mockResolvedValue();
 
 			await app.run(new Block(createFakeBlockHeader(), [], new BlockAssets()));
+			app['_abiHandler'].event.emit(EVENT_ENGINE_READY);
 
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
 			jest.spyOn(app['_controller'], 'stop');

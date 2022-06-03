@@ -56,6 +56,8 @@ export interface ModuleMetadata {
 	}[];
 }
 
+export type RootModuleMetadata = ModuleMetadata & { id: number; name: string };
+
 export abstract class BaseModule {
 	public commands: BaseCommand[] = [];
 	public events: string[] = [];

@@ -48,7 +48,7 @@ import { RandomModule, RandomAPI } from './modules/random';
 import { DPoSModule, DPoSAPI } from './modules/dpos_v2';
 import { generateGenesisBlock, GenesisBlockGenerateInput } from './genesis_block';
 import { StateMachine } from './state_machine';
-import { ABIHandler } from './abi_handler/abi_handler';
+import { ABIHandler, EVENT_ENGINE_READY } from './abi_handler/abi_handler';
 import { ABIServer } from './abi_handler/abi_server';
 
 const MINIMUM_EXTERNAL_MODULE_ID = 1000;
@@ -283,7 +283,18 @@ export class Application {
 			)}`;
 
 			this._abiServer = new ABIServer(this.logger, abiSocketPath, this._abiHandler);
-			await this._controller.start();
+			this._abiHandler.event.on(EVENT_ENGINE_READY, () => {
+				this._controller
+					.start()
+					.then(() => {
+						this.logger.debug(this._controller.getEvents(), 'Application listening to events');
+						this.logger.debug(this._controller.getEndpoints(), 'Application ready for actions');
+						this.channel.publish(APP_EVENT_READY);
+					})
+					.catch(err => {
+						this.logger.error({ err: err as Error }, 'Fail to start controller');
+					});
+			});
 			await this._abiServer.start();
 			const program = path.resolve(__dirname, 'engine_igniter');
 			const parameters = [abiSocketPath, 'false'];
@@ -298,10 +309,6 @@ export class Application {
 			this._engineProcess.on('error', error => {
 				this.logger.error({ err: error }, `Engine signaled error.`);
 			});
-			this.logger.debug(this._controller.getEvents(), 'Application listening to events');
-			this.logger.debug(this._controller.getEndpoints(), 'Application ready for actions');
-
-			this.channel.publish(APP_EVENT_READY);
 		});
 	}
 

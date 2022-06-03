@@ -41,18 +41,6 @@ export const configSchema = {
 	},
 };
 
-export const postBlockEventSchema = {
-	$id: 'report-misbehavior/postBlockEvent',
-	type: 'object',
-	required: ['block'],
-	properties: {
-		block: {
-			type: 'string',
-			format: 'hex',
-		},
-	},
-};
-
 export const actionParamsSchema = {
 	$id: 'lisk/report_misbehavior/auth',
 	type: 'object',

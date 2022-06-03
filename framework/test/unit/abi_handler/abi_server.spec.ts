@@ -56,7 +56,7 @@ describe('ABI server', () => {
 	describe('constructor', () => {
 		it('should register abi handlers', () => {
 			const allFuncs = Object.getOwnPropertyNames(Object.getPrototypeOf(abiHandler)).filter(
-				name => name !== 'constructor',
+				name => name !== 'constructor' && name !== 'networkIdentifier',
 			);
 			expect(Object.keys(server['_abiHandlers'])).toEqual(allFuncs);
 		});

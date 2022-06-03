@@ -17,8 +17,8 @@ import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { baseTransactionSchema } from './schema';
 
 export const validateTransaction = (
-	paramsSchema: object,
 	transactionObject: Record<string, unknown>,
+	paramsSchema?: object,
 ): LiskValidationError | Error | undefined => {
 	const transactionObjectWithEmptyParameters = {
 		...transactionObject,
@@ -30,6 +30,9 @@ export const validateTransaction = (
 	);
 	if (schemaErrors.length) {
 		return new LiskValidationError([...schemaErrors]);
+	}
+	if (!paramsSchema) {
+		return undefined;
 	}
 
 	if (typeof transactionObject.params !== 'object' || transactionObject.params === null) {

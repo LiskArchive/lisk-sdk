@@ -19,6 +19,10 @@ import {
 	IPCResponse,
 	InitRequest,
 	InitResponse,
+	readyRequestSchema,
+	readyResponseSchema,
+	ReadyRequest,
+	ReadyResponse,
 	InitStateMachineRequest,
 	InitStateMachineResponse,
 	InitGenesisStateRequest,
@@ -158,6 +162,10 @@ export class ABIClient implements ABI {
 
 	public async init(req: InitRequest): Promise<InitResponse> {
 		return this._call<InitResponse>('init', req, initRequestSchema, initResponseSchema);
+	}
+
+	public async ready(req: ReadyRequest): Promise<ReadyResponse> {
+		return this._call<ReadyResponse>('ready', req, readyRequestSchema, readyResponseSchema);
 	}
 
 	public async initStateMachine(req: InitStateMachineRequest): Promise<InitStateMachineResponse> {

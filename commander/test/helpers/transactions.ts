@@ -143,7 +143,6 @@ export const createTransferTransaction = ({
 	nonce: number;
 }): Record<string, unknown> => {
 	const transaction = transactions.signTransaction(
-		tokenTransferParamsSchema,
 		{
 			moduleID: 2,
 			commandID: 0,
@@ -159,6 +158,7 @@ export const createTransferTransaction = ({
 		},
 		networkIdentifier,
 		account.passphrase,
+		tokenTransferParamsSchema,
 	) as any;
 
 	return {

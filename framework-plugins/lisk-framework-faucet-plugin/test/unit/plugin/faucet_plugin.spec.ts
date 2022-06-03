@@ -81,6 +81,10 @@ describe('FaucetPlugin', () => {
 	describe('init', () => {
 		it('should load default config', async () => {
 			const plugin = new FaucetPlugin();
+			plugin['_apiClient'] = {
+				schema: {},
+				invoke: jest.fn(),
+			};
 			await plugin.init({
 				config: validOptions,
 				channel: (channelMock as unknown) as BaseChannel,
@@ -93,6 +97,10 @@ describe('FaucetPlugin', () => {
 
 		it('should throw error if valid options are not passed', async () => {
 			const plugin = new FaucetPlugin();
+			plugin['_apiClient'] = {
+				schema: {},
+				invoke: jest.fn(),
+			};
 			await expect(
 				plugin.init({
 					config: { captchaSitekey: '123', captchaSecretkey: '123' },
@@ -107,6 +115,10 @@ describe('FaucetPlugin', () => {
 
 		it('should load custom tokenPrefix', async () => {
 			const plugin = new FaucetPlugin();
+			plugin['_apiClient'] = {
+				schema: {},
+				invoke: jest.fn(),
+			};
 			await plugin.init({
 				config: { ...validOptions, tokenPrefix: 'myToken' },
 				channel: (channelMock as unknown) as BaseChannel,
@@ -126,6 +138,10 @@ describe('FaucetPlugin', () => {
 				captcha: { config: { value: 'value' } },
 			} as never;
 			const plugin = new FaucetPlugin();
+			plugin['_apiClient'] = {
+				schema: {},
+				invoke: jest.fn(),
+			};
 			await plugin.init({
 				config: options,
 				channel: (channelMock as unknown) as BaseChannel,

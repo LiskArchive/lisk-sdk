@@ -14,6 +14,7 @@
 
 import { Publisher, Subscriber, Router } from 'zeromq';
 import { join } from 'path';
+import * as fs from 'fs-extra';
 
 export abstract class IPCSocket {
 	public pubSocket!: Publisher;
@@ -23,8 +24,10 @@ export abstract class IPCSocket {
 	protected readonly _eventSubSocketPath: string;
 	protected readonly _rpcSeverSocketPath: string;
 	private _rpcServer?: Router;
+	private readonly _socketsDir: string;
 
 	protected constructor(options: { socketsDir: string; name: string; externalSocket?: boolean }) {
+		this._socketsDir = options.socketsDir;
 		const sockFileName = options.externalSocket ? 'external' : 'internal';
 		this._eventPubSocketPath = `ipc://${join(options.socketsDir, `${sockFileName}.pub.ipc`)}`;
 		this._eventSubSocketPath = `ipc://${join(options.socketsDir, `${sockFileName}.sub.ipc`)}`;
@@ -42,6 +45,7 @@ export abstract class IPCSocket {
 	}
 
 	public async start(): Promise<void> {
+		fs.ensureDirSync(this._socketsDir);
 		this._rpcServer = new Router();
 		await this.rpcServer.bind(this._rpcSeverSocketPath);
 	}

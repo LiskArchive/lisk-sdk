@@ -96,7 +96,7 @@ export abstract class BaseForgingCommand extends BaseIPCClientCommand {
 			this.log('Forging status:');
 			this.printJSON(result);
 		} catch (error) {
-			this.error(error);
+			this.error(error as Error);
 		}
 	}
 }

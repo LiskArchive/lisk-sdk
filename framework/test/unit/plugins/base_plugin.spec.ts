@@ -13,8 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { transactionSchema } from '@liskhq/lisk-chain';
-import { when } from 'jest-when';
+import * as apiClient from '@liskhq/lisk-api-client';
 import { BaseChannel, BasePlugin, GenerationConfig, GenesisConfig } from '../../../src';
 import * as loggerModule from '../../../src/logger';
 import { getPluginExportPath } from '../../../src/plugins/base_plugin';
@@ -39,7 +38,7 @@ const appConfigForPlugin = {
 			host: '127.0.0.1',
 		},
 		ipc: {
-			path: '',
+			path: '/some/path',
 		},
 	},
 	forging: {
@@ -98,27 +97,17 @@ const loggerMock = {
 	info: jest.fn(),
 };
 
-const schemas = {
-	transaction: transactionSchema,
-	commands: [
-		{
-			moduleID: 2,
-			assetID: 0,
-			schema: {},
-		},
-	],
-	blockHeader: {},
-};
-
 describe('base_plugin', () => {
 	describe('BasePlugin', () => {
 		let plugin: MyPlugin;
 
 		beforeEach(() => {
 			plugin = new MyPlugin();
+			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue({
+				invoke: jest.fn(),
+			} as never);
 
 			jest.spyOn(loggerModule, 'createLogger').mockReturnValue(loggerMock as never);
-			when(channelMock.invoke).calledWith('app_getSchema').mockResolvedValue(schemas);
 		});
 
 		describe('init', () => {
@@ -140,7 +129,7 @@ describe('base_plugin', () => {
 				});
 
 				// Assert
-				expect(plugin['apiClient'].constructor.name).toEqual('APIClient');
+				expect(apiClient.createIPCClient).toHaveBeenCalledWith(appConfigForPlugin.rpc.ipc.path);
 			});
 
 			it('should reject config given does not satisfy configSchema defined', async () => {

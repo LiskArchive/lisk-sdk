@@ -112,7 +112,7 @@ export class InMemoryChannel extends BaseChannel {
 			}) as Promise<T>;
 		}
 
-		const { result } = await this.bus.invoke<T>(request.toJSONRPCRequest());
-		return result;
+		const resp = await this.bus.invoke<T>(request.toJSONRPCRequest());
+		return resp.result;
 	}
 }

@@ -24,11 +24,11 @@ const CONNECTION_TIME_OUT = 2000;
 const RESPONSE_TIMEOUT = 3000;
 
 const getSocketsPath = (dataPath: string) => {
-	const socketDir = path.join(path.resolve(dataPath.replace('~', homedir())), 'tmp', 'sockets');
+	const socketDir = path.join(path.resolve(dataPath.replace('~', homedir())));
 	return {
 		pub: `ipc://${socketDir}/external.pub.ipc`,
 		sub: `ipc://${socketDir}/external.sub.ipc`,
-		rpc: `ipc://${socketDir}/bus.external.rpc.ipc`,
+		rpc: `ipc://${socketDir}/engine.external.rpc.ipc`,
 	};
 };
 
@@ -118,7 +118,7 @@ export class IPCChannel implements Channel {
 			method: actionName,
 			params: params ?? {},
 		};
-		await this._rpcClient.send(['invoke', JSON.stringify(action)]);
+		await this._rpcClient.send([JSON.stringify(action)]);
 		const response = defer<T>();
 		this._pendingRequests[action.id] = response as Defer<unknown>;
 
@@ -139,7 +139,7 @@ export class IPCChannel implements Channel {
 	}
 
 	private async _listenToRPCResponse() {
-		for await (const [_event, eventData] of this._rpcClient) {
+		for await (const [eventData] of this._rpcClient) {
 			const res = JSON.parse(eventData.toString()) as JSONRPCResponse<unknown>;
 			const id = typeof res.id === 'number' ? res.id : parseInt(res.id, 10);
 			if (this._pendingRequests[id]) {

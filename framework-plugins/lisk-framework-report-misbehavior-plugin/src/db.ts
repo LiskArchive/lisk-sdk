@@ -84,7 +84,7 @@ export const saveBlockHeaders = async (
 		await db.put(
 			dbKey,
 			codec.encode(blockHeadersSchema, {
-				blockHeaders: [...blockHeaders, header],
+				blockHeaders: [...blockHeaders, header.getBytes()],
 			}),
 		);
 		return true;

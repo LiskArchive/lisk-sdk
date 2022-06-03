@@ -14,6 +14,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable no-param-reassign */
 import * as apiClient from '@liskhq/lisk-api-client';
+import { blockAssetSchema, eventSchema } from '@liskhq/lisk-chain';
 import { codec, Schema } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as transactions from '@liskhq/lisk-transactions';
@@ -26,6 +27,7 @@ import {
 	blockHeaderSchema,
 	blockSchema,
 	transactionSchema,
+	ModuleMetadata,
 } from 'lisk-framework';
 import { PromiseResolvedType } from '../../../types';
 import { flagsWithParser } from '../../../utils/flags';
@@ -66,12 +68,12 @@ interface Transaction {
 	signatures: never[];
 }
 
-const getParamsObject = async (
-	registeredSchema: RegisteredSchema,
-	flags: CreateFlags,
-	args: Args,
-) => {
-	const paramsSchema = getParamsSchema(registeredSchema, args.moduleID, args.commandID) as Schema;
+const getParamsObject = async (metadata: ModuleMetadata[], flags: CreateFlags, args: Args) => {
+	const paramsSchema = getParamsSchema(
+		metadata,
+		Number(args.moduleID),
+		Number(args.commandID),
+	) as Schema;
 	const rawParams = flags.params
 		? JSON.parse(flags.params)
 		: await getParamsFromPrompt(paramsSchema);
@@ -107,13 +109,14 @@ const getPassphraseAddressAndPublicKey = async (flags: CreateFlags) => {
 const validateAndSignTransaction = (
 	transaction: Transaction,
 	schema: RegisteredSchema,
+	metadata: ModuleMetadata[],
 	networkIdentifier: string,
 	passphrase: string,
 	noSignature: boolean,
 ) => {
 	const { params, ...transactionWithoutParams } = transaction;
 	const paramsSchema = getParamsSchema(
-		schema,
+		metadata,
 		transaction.moduleID,
 		transaction.commandID,
 	) as Schema;
@@ -128,10 +131,10 @@ const validateAndSignTransaction = (
 
 	if (!noSignature) {
 		return transactions.signTransaction(
-			paramsSchema,
 			(transaction as unknown) as Record<string, unknown>,
 			Buffer.from(networkIdentifier, 'hex'),
 			passphrase,
+			paramsSchema,
 		);
 	}
 
@@ -142,9 +145,10 @@ const createTransactionOffline = async (
 	args: Args,
 	flags: CreateFlags,
 	registeredSchema: RegisteredSchema,
+	metadata: ModuleMetadata[],
 	transaction: Transaction,
 ) => {
-	const params = await getParamsObject(registeredSchema, flags, args);
+	const params = await getParamsObject(metadata, flags, args);
 	const { passphrase, publicKey } = await getPassphraseAddressAndPublicKey(flags);
 	transaction.nonce = BigInt(flags.nonce ?? '0');
 	transaction.params = params;
@@ -154,6 +158,7 @@ const createTransactionOffline = async (
 	return validateAndSignTransaction(
 		transaction,
 		registeredSchema,
+		metadata,
 		flags['network-identifier'] as string,
 		passphrase,
 		flags['no-signature'],
@@ -165,6 +170,7 @@ const createTransactionOnline = async (
 	flags: CreateFlags,
 	client: apiClient.APIClient,
 	registeredSchema: RegisteredSchema,
+	metadata: ModuleMetadata[],
 	transaction: Transaction,
 ) => {
 	const nodeInfo = await client.node.getNodeInfo();
@@ -172,7 +178,7 @@ const createTransactionOnline = async (
 	const account = await client.invoke<{ nonce: string }>('auth_getAuthAccount', {
 		address: address.toString('hex'),
 	});
-	const params = await getParamsObject(registeredSchema, flags, args);
+	const params = await getParamsObject(metadata, flags, args);
 
 	if (flags['network-identifier'] && flags['network-identifier'] !== nodeInfo.networkIdentifier) {
 		throw new Error(
@@ -194,6 +200,7 @@ const createTransactionOnline = async (
 	return validateAndSignTransaction(
 		transaction,
 		registeredSchema,
+		metadata,
 		nodeInfo.networkIdentifier,
 		passphrase,
 		flags['no-signature'],
@@ -262,6 +269,7 @@ export abstract class CreateCommand extends Command {
 
 	protected _client!: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
 	protected _schema!: RegisteredSchema;
+	protected _metadata!: ModuleMetadata[];
 	protected _dataPath!: string;
 
 	async run(): Promise<void> {
@@ -282,59 +290,61 @@ export abstract class CreateCommand extends Command {
 
 		if (flags.offline) {
 			const app = this.getApplication({});
-			const metadata = app.getMetadata();
-			const commands = [];
-			for (const meta of metadata) {
-				for (const commandMeta of meta.commands) {
-					commands.push({
-						moduleID: meta.id,
-						moduleName: meta.name,
-						commandID: commandMeta.id,
-						commandName: commandMeta.name,
-						schema: commandMeta.params,
-					});
-				}
-			}
+			this._metadata = app.getMetadata();
 			this._schema = {
-				blockHeader: blockHeaderSchema,
+				header: blockHeaderSchema,
 				transaction: transactionSchema,
 				block: blockSchema,
-				commands,
+				asset: blockAssetSchema,
+				event: eventSchema,
 			};
 
 			transactionObject = await createTransactionOffline(
 				args as Args,
 				flags,
 				this._schema,
+				this._metadata,
 				incompleteTransaction,
 			);
 		} else {
 			this._client = await getApiClient(this._dataPath, this.config.pjson.name);
-			this._schema = this._client.schemas;
+			this._schema = this._client.schema;
 
 			transactionObject = await createTransactionOnline(
 				args as Args,
 				flags,
 				this._client,
 				this._schema,
+				this._client.metadata,
 				incompleteTransaction,
 			);
 		}
 
 		if (flags.json) {
 			this.printJSON(flags.pretty, {
-				transaction: encodeTransaction(this._schema, transactionObject, this._client).toString(
-					'hex',
-				),
+				transaction: encodeTransaction(
+					this._schema,
+					this._metadata,
+					transactionObject,
+					this._client,
+				).toString('hex'),
 			});
 			this.printJSON(flags.pretty, {
-				transaction: transactionToJSON(this._schema, transactionObject, this._client),
+				transaction: transactionToJSON(
+					this._schema,
+					this._metadata,
+					transactionObject,
+					this._client,
+				),
 			});
 		} else {
 			this.printJSON(flags.pretty, {
-				transaction: encodeTransaction(this._schema, transactionObject, this._client).toString(
-					'hex',
-				),
+				transaction: encodeTransaction(
+					this._schema,
+					this._metadata,
+					transactionObject,
+					this._client,
+				).toString('hex'),
 			});
 		}
 	}

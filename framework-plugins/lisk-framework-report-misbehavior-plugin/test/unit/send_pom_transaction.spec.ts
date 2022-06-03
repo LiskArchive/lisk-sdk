@@ -121,6 +121,44 @@ describe('Send PoM transaction', () => {
 
 	beforeEach(async () => {
 		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin();
+		reportMisbehaviorPlugin['_apiClient'] = {
+			schema: {
+				block: chain.blockSchema,
+				header: chain.blockHeaderSchema,
+				transaction: chain.transactionSchema,
+			},
+			metadata: [
+				{
+					id: 13,
+					name: 'dpos',
+					commands: [
+						{
+							id: 3,
+							name: 'reportDelegateMisbehavior',
+							params: {
+								$id: 'lisk/dpos/pom',
+								type: 'object',
+								required: ['header1', 'header2'],
+								properties: {
+									header1: {
+										...chain.blockHeaderSchema,
+										$id: 'block-header1',
+										fieldNumber: 1,
+									},
+									header2: {
+										...chain.blockHeaderSchema,
+										$id: 'block-header2',
+										fieldNumber: 2,
+									},
+								},
+							},
+						},
+					],
+				},
+			],
+			invoke: jest.fn(),
+			subscribe: jest.fn(),
+		};
 		await reportMisbehaviorPlugin.init({
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
@@ -132,36 +170,6 @@ describe('Send PoM transaction', () => {
 		reportMisbehaviorPlugin['logger'] = {
 			error: jest.fn(),
 		} as any;
-		jest.spyOn(reportMisbehaviorPlugin['apiClient'], 'schemas', 'get').mockReturnValue({
-			block: chain.blockSchema,
-			blockHeader: chain.blockHeaderSchema,
-			transaction: chain.transactionSchema,
-			commands: [
-				{
-					moduleID: 5,
-					moduleName: 'dpos',
-					commandID: 3,
-					commandName: 'reportDelegateMisbehavior',
-					schema: {
-						$id: 'lisk/dpos/pom',
-						type: 'object',
-						required: ['header1', 'header2'],
-						properties: {
-							header1: {
-								...chain.blockHeaderSchema,
-								$id: 'block-header1',
-								fieldNumber: 1,
-							},
-							header2: {
-								...chain.blockHeaderSchema,
-								$id: 'block-header2',
-								fieldNumber: 2,
-							},
-						},
-					},
-				},
-			],
-		});
 		(reportMisbehaviorPlugin as any)._state = {
 			passphrase: testing.fixtures.defaultFaucetAccount.passphrase,
 			publicKey: testing.fixtures.defaultFaucetAccount.publicKey,
@@ -170,17 +178,27 @@ describe('Send PoM transaction', () => {
 		when(jest.spyOn(reportMisbehaviorPlugin['apiClient'], 'invoke'))
 			.calledWith('auth_getAuthAccount', expect.anything())
 			.mockResolvedValue({ nonce: '0' } as never)
-			.calledWith('app_getNodeInfo')
+			.calledWith('system_getNodeInfo')
 			.mockResolvedValue({ networkIdentifier: defaultNetworkIdentifier } as never);
 	});
 
 	it('should throw error when pom transaction params schema is not found', async () => {
-		jest.spyOn(reportMisbehaviorPlugin['apiClient'], 'schemas', 'get').mockReturnValue({
-			block: chain.blockSchema,
-			blockHeader: chain.blockHeaderSchema,
-			transaction: chain.transactionSchema,
-			commands: [],
-		});
+		reportMisbehaviorPlugin['_apiClient'] = {
+			schema: {
+				block: chain.blockSchema,
+				header: chain.blockHeaderSchema,
+				transaction: chain.transactionSchema,
+			},
+			metadata: [
+				{
+					id: 13,
+					name: 'dpos',
+					commands: [],
+				},
+			],
+			invoke: jest.fn(),
+			subscribe: jest.fn(),
+		};
 		await expect(
 			(reportMisbehaviorPlugin as any)._createPoMTransaction(header1, header2),
 		).rejects.toThrow('PoM params schema is not registered in the application.');

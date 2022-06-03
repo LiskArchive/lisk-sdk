@@ -392,7 +392,7 @@ describe('consensus', () => {
 				});
 
 				it('should publish fork event', () => {
-					expect(consensus.events.emit).toHaveBeenCalledTimes(1);
+					expect(consensus.events.emit).toHaveBeenCalledTimes(2);
 				});
 			});
 
@@ -406,7 +406,7 @@ describe('consensus', () => {
 				});
 
 				it('should publish fork event', () => {
-					expect(consensus.events.emit).toHaveBeenCalledTimes(2);
+					expect(consensus.events.emit).toHaveBeenCalledTimes(3);
 				});
 
 				it('should validate block', () => {
@@ -435,7 +435,7 @@ describe('consensus', () => {
 				});
 
 				it('should publish fork event', () => {
-					expect(consensus.events.emit).toHaveBeenCalledTimes(2);
+					expect(consensus.events.emit).toHaveBeenCalledTimes(3);
 				});
 
 				it('should validate block', () => {
@@ -474,7 +474,7 @@ describe('consensus', () => {
 				});
 
 				it('should publish fork event', () => {
-					expect(consensus.events.emit).toHaveBeenCalledTimes(1);
+					expect(consensus.events.emit).toHaveBeenCalledTimes(2);
 				});
 
 				it('should start sync', () => {
@@ -577,7 +577,7 @@ describe('consensus', () => {
 				});
 
 				it('should publish fork event', () => {
-					expect(consensus.events.emit).toHaveBeenCalledTimes(1);
+					expect(consensus.events.emit).toHaveBeenCalledTimes(2);
 				});
 			});
 

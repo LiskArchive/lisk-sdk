@@ -197,6 +197,10 @@ export const getBlockProcessingEnv = async (
 		genesisBlock.header.id,
 		appConfig.genesis.communityIdentifier,
 	);
+	await abiHandler.ready({
+		networkIdentifier,
+		lastBlockHeight: engine['_chain'].lastBlock.header.height,
+	});
 
 	return {
 		createBlock: async (transactions: Transaction[] = [], timestamp?: number): Promise<Block> =>

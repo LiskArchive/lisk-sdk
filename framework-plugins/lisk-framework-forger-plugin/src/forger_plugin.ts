@@ -19,6 +19,7 @@ import {
 	codec,
 	chain,
 	db as liskDB,
+	cryptography,
 	PluginInitContext,
 } from 'lisk-sdk';
 import {
@@ -31,16 +32,17 @@ import {
 import { Forger, TransactionFees, Voters } from './types';
 import { Endpoint } from './endpoint';
 
-const { Block, blockSchema } = chain;
-type BlockHeader = chain.BlockHeader;
-type Transaction = chain.Transaction;
+const { Block } = chain;
+type BlockHeaderJSON = chain.BlockHeaderJSON;
+type BlockJSON = chain.BlockJSON;
+type TransactionJSON = chain.TransactionJSON;
 
 const BLOCKS_BATCH_TO_SYNC = 1000;
 const MODULE_ID_DPOS = 5;
 const COMMAND_ID_VOTE = 1;
 
 interface Data {
-	readonly block: string;
+	readonly blockHeader: BlockHeaderJSON;
 }
 
 interface VotesParams {
@@ -55,8 +57,8 @@ interface ForgerTransactionsInfo {
 	forgerAddress: string;
 	forgerAddressBuffer: Buffer;
 	forgerAddressBinary: string;
-	header: BlockHeader;
-	transactions: readonly Transaction[];
+	header: BlockHeaderJSON;
+	transactions: TransactionJSON[];
 }
 
 interface NodeInfo {
@@ -125,23 +127,25 @@ export class ForgerPlugin extends BasePlugin {
 
 	private async _setForgersList(): Promise<void> {
 		this._forgersList = new utils.dataStructures.BufferMap<boolean>();
-		const forgersList = await this.channel.invoke<Forger[]>('app_getForgingStatus');
+		const forgersList = await this.channel.invoke<Forger[]>('generator_getForgingStatus');
 		for (const { address, forging } of forgersList) {
 			this._forgersList.set(Buffer.from(address, 'hex'), forging);
 		}
 	}
 
 	private async _setTransactionFees(): Promise<void> {
-		const { genesisConfig } = await this.channel.invoke<NodeInfo>('app_getNodeInfo');
+		const { genesisConfig } = await this.channel.invoke<NodeInfo>('system_getNodeInfo');
 		this._transactionFees = {
 			minFeePerByte: genesisConfig.minFeePerByte,
 			baseFees: genesisConfig.baseFees,
 		};
 	}
 
-	private _getForgerHeaderAndTransactionsInfo(blockBytes: string): ForgerTransactionsInfo {
-		const block = Block.fromBytes(Buffer.from(blockBytes, 'hex'));
-		const forgerAddress = block.header.generatorAddress.toString('hex');
+	private _getForgerHeaderAndTransactionsInfo(
+		header: BlockHeaderJSON,
+		transactions: TransactionJSON[],
+	): ForgerTransactionsInfo {
+		const forgerAddress = header.generatorAddress;
 		const forgerAddressBuffer = getAddressBuffer(forgerAddress);
 		const forgerAddressBinary = getBinaryAddress(forgerAddress);
 
@@ -149,8 +153,8 @@ export class ForgerPlugin extends BasePlugin {
 			forgerAddress,
 			forgerAddressBuffer,
 			forgerAddressBinary,
-			header: block.header,
-			transactions: block.transactions,
+			header,
+			transactions,
 		};
 	}
 
@@ -160,7 +164,7 @@ export class ForgerPlugin extends BasePlugin {
 			header: { height: lastBlockHeight },
 		} = Block.fromBytes(Buffer.from(lastBlockBytes, 'hex'));
 		const { syncUptoHeight } = await getForgerSyncInfo(this._forgerPluginDB);
-		const { genesisHeight } = await this.channel.invoke<NodeInfo>('app_getNodeInfo');
+		const { genesisHeight } = await this.channel.invoke<NodeInfo>('system_getNodeInfo');
 		const forgerPluginSyncedHeight = syncUptoHeight === 0 ? genesisHeight : syncUptoHeight;
 
 		if (forgerPluginSyncedHeight === lastBlockHeight) {
@@ -186,15 +190,21 @@ export class ForgerPlugin extends BasePlugin {
 					? BLOCKS_BATCH_TO_SYNC
 					: lastBlockHeight - needleHeight);
 
-			const blocks = await this.channel.invoke<string[]>('app_getBlocksByHeightBetween', {
-				from: needleHeight,
-				to: toHeight,
-			});
+			const blocks = await this.channel.invoke<chain.BlockJSON[]>(
+				'chain_getBlocksByHeightBetween',
+				{
+					from: needleHeight,
+					to: toHeight,
+				},
+			);
 
 			// Reverse the blocks to get blocks from lower height to highest
 			for (const block of blocks.reverse()) {
-				const forgerTransactionsInfo = this._getForgerHeaderAndTransactionsInfo(block);
-				await this._addForgerInfo(block, forgerTransactionsInfo);
+				const forgerTransactionsInfo = this._getForgerHeaderAndTransactionsInfo(
+					block.header,
+					block.transactions,
+				);
+				await this._addForgerInfo(block.header, forgerTransactionsInfo);
 			}
 
 			needleHeight = toHeight + 1;
@@ -208,32 +218,46 @@ export class ForgerPlugin extends BasePlugin {
 
 	private _subscribeToChannel(): void {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this.channel.subscribe('app_block:new', async (data?: Record<string, unknown>) => {
-			const { block } = (data as unknown) as Data;
-			const forgerTransactionsInfo = this._getForgerHeaderAndTransactionsInfo(block);
+		this.channel.subscribe('chain_newBlock', async (data?: Record<string, unknown>) => {
+			const { blockHeader } = (data as unknown) as Data;
+			const transactions = await this.apiClient.invoke<TransactionJSON[]>(
+				'chain_getTransactionsByHeight',
+				{ height: blockHeader.height },
+			);
+			const forgerTransactionsInfo = this._getForgerHeaderAndTransactionsInfo(
+				blockHeader,
+				transactions,
+			);
 			const {
 				header: { height },
 			} = forgerTransactionsInfo;
 
-			await this._addForgerInfo(block, forgerTransactionsInfo);
+			await this._addForgerInfo(blockHeader, forgerTransactionsInfo);
 			await setForgerSyncInfo(this._forgerPluginDB, height);
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this.channel.subscribe('app_block:delete', async (data?: Record<string, unknown>) => {
-			const { block } = (data as unknown) as Data;
-			const forgerTransactionsInfo = this._getForgerHeaderAndTransactionsInfo(block);
+		this.channel.subscribe('chain_deleteBlock', async (data?: Record<string, unknown>) => {
+			const { blockHeader } = (data as unknown) as Data;
+			const transactions = await this.apiClient.invoke<TransactionJSON[]>(
+				'chain_getTransactionsByHeight',
+				{ height: blockHeader.height },
+			);
+			const forgerTransactionsInfo = this._getForgerHeaderAndTransactionsInfo(
+				blockHeader,
+				transactions,
+			);
 			const {
 				header: { height },
 			} = forgerTransactionsInfo;
 
-			await this._revertForgerInfo(block, forgerTransactionsInfo);
+			await this._revertForgerInfo(forgerTransactionsInfo);
 			await setForgerSyncInfo(this._forgerPluginDB, height);
 		});
 	}
 
 	private async _addForgerInfo(
-		encodedBlock: string,
+		header: BlockHeaderJSON,
 		forgerTransactionsInfo: ForgerTransactionsInfo,
 	): Promise<void> {
 		const {
@@ -247,7 +271,7 @@ export class ForgerPlugin extends BasePlugin {
 
 		if (this._forgersList.has(forgerAddressBuffer)) {
 			forgerInfo.totalProducedBlocks += 1;
-			forgerInfo.totalReceivedFees += this._getFee(transactions, encodedBlock);
+			forgerInfo.totalReceivedFees += this._getFee(transactions);
 
 			this.channel.publish('forger:block:created', {
 				forgerAddress,
@@ -258,38 +282,42 @@ export class ForgerPlugin extends BasePlugin {
 		}
 
 		await this._addVotesReceived(transactions);
-		await this._updateMissedBlock(encodedBlock);
+		await this._updateMissedBlock(header, transactions);
 	}
 
-	private async _revertForgerInfo(
-		encodedBlock: string,
-		forgerTransactionsInfo: ForgerTransactionsInfo,
-	): Promise<void> {
+	private async _revertForgerInfo(forgerTransactionsInfo: ForgerTransactionsInfo): Promise<void> {
 		const { forgerAddressBuffer, forgerAddressBinary, transactions } = forgerTransactionsInfo;
 		const forgerInfo = await getForgerInfo(this._forgerPluginDB, forgerAddressBinary);
 
 		if (this._forgersList.has(forgerAddressBuffer)) {
 			forgerInfo.totalProducedBlocks -= 1;
-			forgerInfo.totalReceivedFees -= this._getFee(transactions, encodedBlock);
+			forgerInfo.totalReceivedFees -= this._getFee(transactions);
 			await setForgerInfo(this._forgerPluginDB, forgerAddressBinary, { ...forgerInfo });
 		}
 
 		await this._revertVotesReceived(transactions);
 	}
 
-	private _getForgerReceivedVotes(transactions: ReadonlyArray<Transaction>): ForgerReceivedVotes {
+	private _getForgerReceivedVotes(
+		transactions: ReadonlyArray<TransactionJSON>,
+	): ForgerReceivedVotes {
 		const forgerReceivedVotes: ForgerReceivedVotes = {};
 
-		const dposVotesSchema = this.apiClient.schemas.commands.find(
-			c => c.moduleID === MODULE_ID_DPOS && c.commandID === COMMAND_ID_VOTE,
-		);
-		if (!dposVotesSchema) {
+		const dposModuleMeta = this.apiClient.metadata.find(c => c.id === MODULE_ID_DPOS);
+		if (!dposModuleMeta) {
+			throw new Error('DPoS votes command is not registered.');
+		}
+		const voteCommandMeta = dposModuleMeta.commands.find(c => c.id === COMMAND_ID_VOTE);
+		if (!voteCommandMeta || !voteCommandMeta.params) {
 			throw new Error('DPoS votes command is not registered.');
 		}
 
 		for (const trx of transactions) {
 			if (trx.moduleID === MODULE_ID_DPOS && trx.commandID === COMMAND_ID_VOTE) {
-				const params = codec.decode<VotesParams>(dposVotesSchema.schema, trx.params);
+				const params = codec.decode<VotesParams>(
+					voteCommandMeta.params,
+					Buffer.from(trx.params, 'hex'),
+				);
 				params.votes.reduce((acc: ForgerReceivedVotes, curr) => {
 					if (
 						this._forgersList.has(getAddressBuffer(curr.delegateAddress)) &&
@@ -298,7 +326,9 @@ export class ForgerPlugin extends BasePlugin {
 						acc[curr.delegateAddress].amount += BigInt(curr.amount);
 					} else {
 						acc[curr.delegateAddress] = {
-							address: trx.senderAddress,
+							address: cryptography.getAddressFromPublicKey(
+								Buffer.from(trx.senderPublicKey, 'hex'),
+							),
 							amount: BigInt(curr.amount),
 						};
 					}
@@ -310,7 +340,7 @@ export class ForgerPlugin extends BasePlugin {
 		return forgerReceivedVotes;
 	}
 
-	private async _addVotesReceived(transactions: ReadonlyArray<Transaction>): Promise<void> {
+	private async _addVotesReceived(transactions: ReadonlyArray<TransactionJSON>): Promise<void> {
 		const forgerReceivedVotes = this._getForgerReceivedVotes(transactions);
 
 		for (const [delegateAddress, votesReceived] of Object.entries(forgerReceivedVotes)) {
@@ -335,7 +365,7 @@ export class ForgerPlugin extends BasePlugin {
 		}
 	}
 
-	private async _revertVotesReceived(transactions: ReadonlyArray<Transaction>): Promise<void> {
+	private async _revertVotesReceived(transactions: ReadonlyArray<TransactionJSON>): Promise<void> {
 		const forgerReceivedVotes = this._getForgerReceivedVotes(transactions);
 
 		for (const [delegateAddress, votesReceived] of Object.entries(forgerReceivedVotes)) {
@@ -358,46 +388,44 @@ export class ForgerPlugin extends BasePlugin {
 		}
 	}
 
-	private _getFee(transactions: ReadonlyArray<Transaction>, block: string): bigint {
-		const { transactions: transactionsBuffer } = codec.decode<{ transactions: Buffer[] }>(
-			blockSchema,
-			Buffer.from(block),
-		);
+	private _getFee(transactions: ReadonlyArray<TransactionJSON>): bigint {
 		let fee = BigInt(0);
 
-		for (let index = 0; index < transactions.length; index += 1) {
-			const trx = transactions[index];
+		for (const txJSON of transactions) {
+			const trx = chain.Transaction.fromJSON(txJSON);
 			const baseFee =
 				this._transactionFees.baseFees.find(
 					bf => bf.moduleID === trx.moduleID && bf.commandID === trx.commandID,
 				)?.baseFee ?? '0';
 			const minFeeRequired =
 				BigInt(baseFee) +
-				BigInt(this._transactionFees.minFeePerByte) * BigInt(transactionsBuffer[index].length);
+				BigInt(this._transactionFees.minFeePerByte) * BigInt(trx.getBytes().length);
 			fee += BigInt(trx.fee) - minFeeRequired;
 		}
 
 		return fee;
 	}
 
-	private async _updateMissedBlock(block: string): Promise<void> {
+	private async _updateMissedBlock(
+		header: BlockHeaderJSON,
+		transactions: TransactionJSON[],
+	): Promise<void> {
 		const {
 			header: { height, timestamp },
 			forgerAddress,
-		} = this._getForgerHeaderAndTransactionsInfo(block);
-		const previousBlockStr = await this.channel.invoke<string>('app_getBlockByHeight', {
+		} = this._getForgerHeaderAndTransactionsInfo(header, transactions);
+		const previousBlock = await this.apiClient.invoke<BlockJSON>('chain_getBlockByHeight', {
 			height: height - 1,
 		});
 		const {
 			genesisConfig: { blockTime },
-		} = await this.channel.invoke<NodeInfo>('app_getNodeInfo');
-		const { header: previousBlock } = Block.fromBytes(Buffer.from(previousBlockStr, 'hex'));
-		const missedBlocks = Math.ceil((timestamp - previousBlock.timestamp) / blockTime) - 1;
+		} = await this.channel.invoke<NodeInfo>('system_getNodeInfo');
+		const missedBlocks = Math.ceil((timestamp - previousBlock.header.timestamp) / blockTime) - 1;
 
 		if (missedBlocks > 0) {
 			const forgersInfo = await this.channel.invoke<
 				readonly { address: string; nextForgingTime: number }[]
-			>('app_getForgers');
+			>('generator_getForgers');
 			const forgersRoundLength = forgersInfo.length;
 			const forgerIndex = forgersInfo.findIndex(f => f.address === forgerAddress);
 

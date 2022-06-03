@@ -91,30 +91,3 @@ export const configSchema = {
 		},
 	},
 };
-
-export const postBlockEventSchema = {
-	$id: 'monitor/postBlockEvent',
-	type: 'object',
-	required: ['block'],
-	properties: {
-		block: {
-			type: 'string',
-			format: 'hex',
-		},
-	},
-};
-
-export const transactionAnnouncementSchema = {
-	$id: 'monitor/transactionAnnouncement',
-	type: 'object',
-	required: ['transactionIds'],
-	properties: {
-		transactionIds: {
-			type: 'array',
-			items: {
-				type: 'string',
-				format: 'hex',
-			},
-		},
-	},
-};

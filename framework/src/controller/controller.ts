@@ -294,7 +294,6 @@ export class Controller {
 			action: 'load',
 			config,
 			appConfig,
-			ipcConfig: this._config,
 		});
 
 		this._childProcesses[name] = child;

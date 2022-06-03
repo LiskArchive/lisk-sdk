@@ -12,12 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import {
+	BlockAssetJSON,
 	BlockHeader,
+	BlockJSON,
 	Chain,
 	EventAttr,
 	EVENT_KEY_LENGTH,
 	SMTStore,
 	StateStore,
+	TransactionJSON,
 } from '@liskhq/lisk-chain';
 import { InMemoryKVStore, KVStore, NotFoundError } from '@liskhq/lisk-db';
 import { isHexString, LiskValidationError, validator } from '@liskhq/lisk-validator';
@@ -68,16 +71,16 @@ export class ChainEndpoint {
 		this._db = db;
 	}
 
-	public async getBlockByID(context: RequestContext): Promise<string | undefined> {
+	public async getBlockByID(context: RequestContext): Promise<BlockJSON> {
 		const { id } = context.params;
 		if (!isHexString(id)) {
 			throw new Error('Invalid parameters. id must be a valid hex string.');
 		}
 		const block = await this._chain.dataAccess.getBlockByID(Buffer.from(id as string, 'hex'));
-		return block.getBytes().toString('hex');
+		return block.toJSON();
 	}
 
-	public async getBlocksByIDs(context: RequestContext): Promise<readonly string[]> {
+	public async getBlocksByIDs(context: RequestContext): Promise<BlockJSON[]> {
 		const { ids } = context.params;
 		if (!Array.isArray(ids) || ids.length === 0) {
 			throw new Error('Invalid parameters. ids must be a non empty array.');
@@ -96,29 +99,29 @@ export class ChainEndpoint {
 				throw error;
 			}
 		}
-		return blocks.map(block => block.getBytes().toString('hex'));
+		return blocks.map(block => block.toJSON());
 	}
-	public async getBlockByHeight(context: RequestContext): Promise<string | undefined> {
+	public async getBlockByHeight(context: RequestContext): Promise<BlockJSON> {
 		const { height } = context.params;
 		if (typeof height !== 'number') {
 			throw new Error('Invalid parameters. height must be a number.');
 		}
 
 		const block = await this._chain.dataAccess.getBlockByHeight(height);
-		return block.getBytes().toString('hex');
+		return block.toJSON();
 	}
 
-	public async getBlocksByHeightBetween(context: RequestContext): Promise<readonly string[]> {
+	public async getBlocksByHeightBetween(context: RequestContext): Promise<BlockJSON[]> {
 		const { from, to } = context.params;
 		if (typeof from !== 'number' || typeof to !== 'number') {
 			throw new Error('Invalid parameters. from and to must be a number.');
 		}
 		const blocks = await this._chain.dataAccess.getBlocksByHeightBetween(from, to);
 
-		return blocks.map(b => b.getBytes().toString('hex'));
+		return blocks.map(b => b.toJSON());
 	}
 
-	public async getTransactionByID(context: RequestContext): Promise<string> {
+	public async getTransactionByID(context: RequestContext): Promise<TransactionJSON> {
 		const { id } = context.params;
 		if (!isHexString(id)) {
 			throw new Error('Invalid parameters. id must be a valid hex string.');
@@ -126,10 +129,10 @@ export class ChainEndpoint {
 		const transaction = await this._chain.dataAccess.getTransactionByID(
 			Buffer.from(id as string, 'hex'),
 		);
-		return transaction.getBytes().toString('hex');
+		return transaction.toJSON();
 	}
 
-	public async getTransactionsByIDs(context: RequestContext): Promise<string[]> {
+	public async getTransactionsByIDs(context: RequestContext): Promise<TransactionJSON[]> {
 		const { ids } = context.params;
 		if (!Array.isArray(ids) || ids.length === 0) {
 			throw new Error('Invalid parameters. ids must be a non empty array.');
@@ -148,11 +151,29 @@ export class ChainEndpoint {
 				throw error;
 			}
 		}
-		return transactions.map(tx => tx.getBytes().toString('hex'));
+		return transactions.map(tx => tx.toJSON());
 	}
 
-	public getLastBlock(): string {
-		return this._chain.lastBlock.getBytes().toString('hex');
+	public async getTransactionsByHeight(context: RequestContext): Promise<TransactionJSON[]> {
+		const { height } = context.params;
+		if (typeof height !== 'number' || height < 0) {
+			throw new Error('Invalid parameters. height must be zero or a positive number.');
+		}
+		const block = await this._chain.dataAccess.getBlockByHeight(height);
+		return block.transactions.map(tx => tx.toJSON());
+	}
+
+	public async getAssetsByHeight(context: RequestContext): Promise<BlockAssetJSON[]> {
+		const { height } = context.params;
+		if (typeof height !== 'number' || height < 0) {
+			throw new Error('Invalid parameters. height must be zero or a positive number.');
+		}
+		const block = await this._chain.dataAccess.getBlockByHeight(height);
+		return block.assets.toJSON();
+	}
+
+	public getLastBlock(): BlockJSON {
+		return this._chain.lastBlock.toJSON();
 	}
 
 	public async getEvents(context: RequestContext): Promise<JSONObject<EventAttr[]>> {
@@ -210,7 +231,7 @@ export class ChainEndpoint {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async areHeadersContradicting(context: RequestContext): Promise<boolean> {
+	public async areHeadersContradicting(context: RequestContext): Promise<{ valid: boolean }> {
 		const errors = validator.validate(areHeadersContradictingRequestSchema, context.params);
 		if (errors.length > 0) {
 			throw new LiskValidationError(errors);
@@ -220,8 +241,8 @@ export class ChainEndpoint {
 		const bftHeader2 = BlockHeader.fromBytes(Buffer.from(context.params.header2 as string, 'hex'));
 
 		if (bftHeader1.id.equals(bftHeader2.id)) {
-			return false;
+			return { valid: false };
 		}
-		return areDistinctHeadersContradicting(bftHeader1, bftHeader2);
+		return { valid: areDistinctHeadersContradicting(bftHeader1, bftHeader2) };
 	}
 }

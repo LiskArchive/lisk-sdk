@@ -16,9 +16,9 @@ import {
 	PluginInitContext,
 	db as liskDB,
 	codec,
-	validator as liskValidator,
 	chain,
 	cryptography,
+	blockHeaderSchema,
 } from 'lisk-sdk';
 import {
 	getDBInstance,
@@ -27,12 +27,11 @@ import {
 	clearBlockHeaders,
 } from './db';
 import { ReportMisbehaviorPluginConfig, State } from './types';
-import { postBlockEventSchema, configSchema } from './schemas';
+import { configSchema } from './schemas';
 import { Endpoint } from './endpoint';
 
 const { getAddressAndPublicKeyFromPassphrase, getAddressFromPassphrase, signData } = cryptography;
 const { BlockHeader, Transaction, TAG_TRANSACTION } = chain;
-const { validator } = liskValidator;
 
 export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginConfig> {
 	public name = 'reportMisbehavior';
@@ -73,26 +72,26 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 	}
 
 	private _subscribeToChannel(): void {
-		this.apiClient.subscribe('app_networkEvent', async (eventData?: Record<string, unknown>) => {
-			const { event, data } = eventData as { event: string; data: unknown };
-
-			if (event === 'postBlock') {
-				const errors = validator.validate(postBlockEventSchema, data as Record<string, unknown>);
-				if (errors.length > 0) {
-					this.logger.error(errors, 'Invalid block data');
+		this.apiClient.subscribe(
+			'network_newBlock',
+			async (event: Record<string, unknown> | undefined) => {
+				if (!event) {
+					this.logger.error('Invalid payload for network_newBlock');
 					return;
 				}
-				const blockData = data as { block: string };
-				const { header } = codec.decode<chain.RawBlock>(
-					this.apiClient.schemas.block,
-					Buffer.from(blockData.block, 'hex'),
+
+				const { blockHeader: blockHeaderJSON } = event;
+
+				const headerBytes = codec.encodeJSON(
+					blockHeaderSchema,
+					blockHeaderJSON as Record<string, unknown>,
 				);
 				try {
-					const saved = await saveBlockHeaders(this._pluginDB, header);
+					const saved = await saveBlockHeaders(this._pluginDB, headerBytes);
 					if (!saved) {
 						return;
 					}
-					const decodedBlockHeader = BlockHeader.fromBytes(header);
+					const decodedBlockHeader = BlockHeader.fromBytes(headerBytes);
 
 					// Set new currentHeight
 					if (decodedBlockHeader.height > this._state.currentHeight) {
@@ -119,20 +118,21 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 				} catch (error) {
 					this.logger.error(error);
 				}
-			}
-		});
+			},
+		);
 	}
 
 	private async _createPoMTransaction(
 		contradictingBlock: chain.BlockHeader,
 		decodedBlockHeader: chain.BlockHeader,
 	): Promise<string> {
-		// ModuleID:5 (DPoS), AssetID:3 (PoMAsset)
-		const pomParamsInfo = this.apiClient.schemas.commands.find(
-			({ moduleID, commandID }) => moduleID === 5 && commandID === 3,
-		);
-
-		if (!pomParamsInfo) {
+		// ModuleID:13 (DPoS), CommandID:3 (PoMCommand)
+		const dposMeta = this.apiClient.metadata.find(m => m.id === 13);
+		if (!dposMeta) {
+			throw new Error('DPoS module is not registered in the application.');
+		}
+		const pomParamsInfo = dposMeta.commands.find(m => m.id === 3);
+		if (!pomParamsInfo || !pomParamsInfo.params) {
 			throw new Error('PoM params schema is not registered in the application.');
 		}
 
@@ -149,14 +149,14 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 		};
 
 		const { networkIdentifier } = await this.apiClient.invoke<{ networkIdentifier: string }>(
-			'app_getNodeInfo',
+			'system_getNodeInfo',
 		);
 
-		const encodedParams = codec.encode(pomParamsInfo.schema, pomTransactionParams);
+		const encodedParams = codec.encode(pomParamsInfo.params, pomTransactionParams);
 
 		const tx = new Transaction({
-			moduleID: pomParamsInfo.moduleID,
-			commandID: pomParamsInfo.commandID,
+			moduleID: dposMeta.id,
+			commandID: pomParamsInfo.id,
 			nonce: BigInt(authAccount.nonce),
 			senderPublicKey:
 				this._state.publicKey ?? getAddressAndPublicKeyFromPassphrase(passphrase).publicKey,

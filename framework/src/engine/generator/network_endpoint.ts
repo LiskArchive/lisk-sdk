@@ -17,6 +17,7 @@ import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { Chain, Transaction } from '@liskhq/lisk-chain';
+import { EventEmitter } from 'events';
 import { Logger } from '../../logger';
 import { Network } from '../network';
 import { BaseNetworkEndpoint } from '../network/base_network_endpoint';
@@ -26,6 +27,8 @@ import {
 	DEFAULT_RELEASE_LIMIT,
 	NETWORK_EVENT_POST_TRANSACTIONS_ANNOUNCEMENT,
 	EMPTY_BUFFER,
+	GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT,
+	GENERATOR_EVENT_NEW_TRANSACTION,
 } from './constants';
 import {
 	GetTransactionRequest,
@@ -52,6 +55,7 @@ interface NetworkEndpointInitArgs {
 }
 
 export class NetworkEndpoint extends BaseNetworkEndpoint {
+	public event = new EventEmitter();
 	private readonly _pool: TransactionPool;
 	private readonly _chain: Chain;
 	private readonly _broadcaster: Broadcaster;
@@ -187,6 +191,8 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			throw new LiskValidationError(errors);
 		}
 
+		this.event.emit(GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT, decodedData);
+
 		const unknownTransactionIDs = await this._obtainUnknownTransactionIDs(
 			decodedData.transactionIds,
 		);
@@ -227,7 +233,6 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 	private async _receiveTransaction(transaction: Transaction) {
 		const { result } = await this._abi.verifyTransaction({
 			contextID: EMPTY_BUFFER,
-			networkIdentifier: this._chain.networkIdentifier,
 			transaction: transaction.toObject(),
 		});
 		if (result === TransactionVerifyResult.INVALID) {
@@ -243,6 +248,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 		const { error } = await this._pool.add(transaction);
 
 		if (!error) {
+			this.event.emit(GENERATOR_EVENT_NEW_TRANSACTION, { transaction: transaction.toJSON() });
 			this._logger.info(
 				{
 					id: transaction.id,
