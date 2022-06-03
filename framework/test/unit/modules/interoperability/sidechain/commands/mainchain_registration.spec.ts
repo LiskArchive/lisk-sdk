@@ -406,7 +406,6 @@ describe('Mainchain registration command', () => {
 				fee: BigInt(0),
 				status: CCM_STATUS_OK,
 				params: encodedParams,
-				timestamp: expect.any(Number),
 				beforeSendContext: { ...context, ccm, feeAddress: EMPTY_FEE_ADDRESS },
 			});
 		});
