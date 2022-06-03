@@ -158,11 +158,14 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 			return false;
 		}
 
+		if (!sendContext.timestamp) {
+			throw new Error('Timestamp is missing from the function parameters');
+		}
+
 		// Chain must be live; This check is always on the receivingChainID
 		const isReceivingChainLive = await this.isLive(
 			receivingChainIDAsStoreKey,
-			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			sendContext.timestamp!,
+			sendContext.timestamp,
 		);
 		if (!isReceivingChainLive) {
 			return false;

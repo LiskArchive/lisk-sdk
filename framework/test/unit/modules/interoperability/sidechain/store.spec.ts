@@ -17,7 +17,6 @@ import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { when } from 'jest-when';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import {
-	LIVENESS_LIMIT,
 	MAINCHAIN_ID,
 	MAX_CCM_SIZE,
 	MODULE_ID_INTEROPERABILITY,
@@ -39,7 +38,6 @@ import { getIDAsKeyForStore } from '../../../../../src/modules/interoperability/
 
 describe('Sidechain interoperability store', () => {
 	const chainID = Buffer.from('54', 'hex');
-	const timestamp = 2592000 * 100;
 	let ownChainAccount: any;
 	let chainAccount: any;
 	let stateStore: StateStore;
@@ -57,7 +55,7 @@ describe('Sidechain interoperability store', () => {
 			networkID: Buffer.alloc(0),
 			lastCertificate: {
 				height: 567467,
-				timestamp: timestamp - 500000,
+				timestamp: 500000,
 				stateRoot: Buffer.alloc(0),
 				validatorsHash: Buffer.alloc(0),
 			},
@@ -146,7 +144,7 @@ describe('Sidechain interoperability store', () => {
 			networkID: Buffer.alloc(0),
 			lastCertificate: {
 				height: 567467,
-				timestamp: timestamp - 500000,
+				timestamp: 500000,
 				stateRoot: Buffer.alloc(0),
 				validatorsHash: Buffer.alloc(0),
 			},
@@ -180,7 +178,6 @@ describe('Sidechain interoperability store', () => {
 		const sendInternalContext: SendInternalContext = {
 			beforeSendContext: beforeSendCCMContext,
 			...ccm,
-			timestamp,
 		};
 
 		// Sidechain case
@@ -247,7 +244,6 @@ describe('Sidechain interoperability store', () => {
 
 		it('should return false if the receiving chain is not live', async () => {
 			jest.spyOn(sidechainInteroperabilityStore, 'isLive');
-			chainAccount.lastCertificate.timestamp = timestamp - LIVENESS_LIMIT - 1;
 			await chainSubstore.setWithSchema(
 				getIDAsKeyForStore(ccm.receivingChainID),
 				chainAccount,
@@ -294,7 +290,6 @@ describe('Sidechain interoperability store', () => {
 			const sendInternalContextLocal: SendInternalContext = {
 				beforeSendContext: beforeSendCCMContextLocal,
 				...invalidCCM,
-				timestamp,
 			};
 
 			jest.spyOn(sidechainInteroperabilityStore, 'isLive');
@@ -331,7 +326,6 @@ describe('Sidechain interoperability store', () => {
 			const sendInternalContextLocal = {
 				beforeSendContext: beforeSendCCMContextLocal,
 				...invalidCCM,
-				timestamp,
 			};
 
 			jest.spyOn(sidechainInteroperabilityStore, 'isLive');
