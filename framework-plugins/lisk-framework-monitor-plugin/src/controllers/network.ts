@@ -37,9 +37,9 @@ const getMajorityHeight = (peers: PeerInfo[]): { height: number; count: number }
 };
 
 export const getNetworkStats = async (client: BasePlugin['apiClient']): Promise<NetworkStats> => {
-	const networkStats = await client.invoke('app_getNetworkStats');
-	const connectedPeers = await client.invoke<PeerInfo[]>('app_getConnectedPeers');
-	const disconnectedPeers = await client.invoke<PeerInfo[]>('app_getDisconnectedPeers');
+	const networkStats = await client.invoke('network_getStats');
+	const connectedPeers = await client.invoke<PeerInfo[]>('network_getConnectedPeers');
+	const disconnectedPeers = await client.invoke<PeerInfo[]>('network_getDisconnectedPeers');
 	const majorityHeight = getMajorityHeight(connectedPeers);
 	const totalPeers = {
 		connected: connectedPeers.length,

@@ -15,7 +15,9 @@ import { isUInt64, LiskValidationError, validator } from '@liskhq/lisk-validator
 import { codec } from '@liskhq/lisk-codec';
 import { objects, dataStructures } from '@liskhq/lisk-utils';
 import {
+	ADDRESS_LENGTH,
 	CHAIN_ID_ALIAS_NATIVE,
+	CHAIN_ID_LENGTH,
 	defaultConfig,
 	EMPTY_BYTES,
 	LOCAL_ID_LENGTH,
@@ -25,10 +27,11 @@ import {
 	STORE_PREFIX_SUPPLY,
 	STORE_PREFIX_TERMINATED_ESCROW,
 	STORE_PREFIX_USER,
+	TOKEN_ID_LENGTH,
 } from './constants';
 import { TransferCommand } from './commands/transfer';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
-import { GenesisBlockExecuteContext } from '../../node/state_machine';
+import { GenesisBlockExecuteContext } from '../../state_machine';
 import {
 	AvailableLocalIDStoreData,
 	availableLocalIDStoreSchema,
@@ -295,13 +298,13 @@ export class TokenModule extends BaseModule {
 		const computedSupply = new dataStructures.BufferMap<bigint>();
 		const allUsers = await userStore.iterateWithSchema<UserStoreData>(
 			{
-				start: Buffer.alloc(26, 0),
-				end: Buffer.alloc(26, 255),
+				gte: Buffer.alloc(ADDRESS_LENGTH + TOKEN_ID_LENGTH, 0),
+				lte: Buffer.alloc(ADDRESS_LENGTH + TOKEN_ID_LENGTH, 255),
 			},
 			userStoreSchema,
 		);
 		for (const { key, value: user } of allUsers) {
-			const tokenID = key.slice(20);
+			const tokenID = key.slice(ADDRESS_LENGTH);
 			const [chainID, localID] = splitTokenID(tokenID);
 			if (chainID.equals(CHAIN_ID_ALIAS_NATIVE)) {
 				const existingSupply = computedSupply.get(localID) ?? BigInt(0);
@@ -315,8 +318,8 @@ export class TokenModule extends BaseModule {
 		}
 		const allEscrows = await escrowStore.iterateWithSchema<EscrowStoreData>(
 			{
-				start: Buffer.alloc(6, 0),
-				end: Buffer.alloc(6, 255),
+				gte: Buffer.alloc(CHAIN_ID_LENGTH + LOCAL_ID_LENGTH, 0),
+				lte: Buffer.alloc(CHAIN_ID_LENGTH + LOCAL_ID_LENGTH, 255),
 			},
 			escrowStoreSchema,
 		);
@@ -335,8 +338,8 @@ export class TokenModule extends BaseModule {
 		const storedSupply = new dataStructures.BufferMap<bigint>();
 		const allSupplies = await supplyStore.iterateWithSchema<SupplyStoreData>(
 			{
-				start: Buffer.alloc(LOCAL_ID_LENGTH, 0),
-				end: Buffer.alloc(LOCAL_ID_LENGTH, 255),
+				gte: Buffer.alloc(LOCAL_ID_LENGTH, 0),
+				lte: Buffer.alloc(LOCAL_ID_LENGTH, 255),
 			},
 			supplyStoreSchema,
 		);

@@ -14,7 +14,7 @@
 
 import { EventCallback } from '../../../../src/controller/event';
 import { BaseChannel } from '../../../../src/controller/channels';
-import { fakeLogger } from '../../../utils/node';
+import { fakeLogger } from '../../../utils/mocks';
 
 class MyChannel extends BaseChannel {
 	public once(_eventName: string, _cb: EventCallback): void {}

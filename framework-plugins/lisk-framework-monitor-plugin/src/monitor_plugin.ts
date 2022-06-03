@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Server } from 'http';
-import { BasePlugin, validator as liskValidator, chain, PluginInitContext } from 'lisk-sdk';
+import { BasePlugin, PluginInitContext } from 'lisk-sdk';
 import * as express from 'express';
 import type { Express } from 'express';
 import * as cors from 'cors';
@@ -20,15 +20,16 @@ import * as rateLimit from 'express-rate-limit';
 import * as middlewares from './middlewares';
 import { MonitorPluginConfig, SharedState } from './types';
 import * as controllers from './controllers';
-import { transactionAnnouncementSchema, postBlockEventSchema, configSchema } from './schemas';
+import { configSchema } from './schemas';
 import { Endpoint } from './endpoint';
 
 interface BlockData {
-	readonly block: string;
+	readonly blockHeader: {
+		[key: string]: unknown;
+		id: string;
+		height: number;
+	};
 }
-
-const { validator } = liskValidator;
-const { Block } = chain;
 
 export class MonitorPlugin extends BasePlugin<MonitorPluginConfig> {
 	public name = 'monitor';
@@ -103,32 +104,18 @@ export class MonitorPlugin extends BasePlugin<MonitorPluginConfig> {
 	}
 
 	private _subscribeToEvents(): void {
-		this.apiClient.subscribe('app_networkEvent', (eventData?: Record<string, unknown>) => {
-			const { event, data } = eventData as { event: string; data: unknown };
-
-			if (event === 'postTransactionsAnnouncement') {
-				const errors = validator.validate(
-					transactionAnnouncementSchema,
-					data as Record<string, unknown>,
-				);
-				if (errors.length > 0) {
-					return;
-				}
-				this._handlePostTransactionAnnounce(data as { transactionIds: string[] });
-			}
-
-			if (event === 'postBlock') {
-				const errors = validator.validate(postBlockEventSchema, data as Record<string, unknown>);
-				if (errors.length > 0) {
-					return;
-				}
-				this._handlePostBlock(data as BlockData);
-			}
+		this.apiClient.subscribe('network_newBlock', (data?: Record<string, unknown>) => {
+			const { blockHeader } = (data as unknown) as BlockData;
+			this._handlePostBlock(blockHeader);
+		});
+		this.apiClient.subscribe('network_newTransaction', (data?: Record<string, unknown>) => {
+			const { transactionIds } = (data as unknown) as { transactionIds: string[] };
+			this._handlePostTransactionAnnounce({ transactionIds });
 		});
 
-		this.apiClient.subscribe('app_chainForked', (data?: Record<string, unknown>) => {
-			const { block } = (data as unknown) as BlockData;
-			this._handleFork(block);
+		this.apiClient.subscribe('chain_forked', (data?: Record<string, unknown>) => {
+			const { blockHeader } = (data as unknown) as BlockData;
+			this._handleFork(blockHeader);
 		});
 	}
 
@@ -155,10 +142,9 @@ export class MonitorPlugin extends BasePlugin<MonitorPluginConfig> {
 		}
 	}
 
-	private _handleFork(block: string) {
+	private _handleFork(header: BlockData['blockHeader']) {
 		this._state.forks.forkEventCount += 1;
-		const { header } = Block.fromBytes(Buffer.from(block, 'hex'));
-		const blockId = header.id.toString('hex');
+		const blockId = header.id;
 		if (this._state.forks.blockHeaders[blockId]) {
 			this._state.forks.blockHeaders[blockId].timeReceived = Date.now();
 		} else {
@@ -169,22 +155,20 @@ export class MonitorPlugin extends BasePlugin<MonitorPluginConfig> {
 		}
 	}
 
-	private _handlePostBlock(data: BlockData) {
-		const decodedBlock = Block.fromBytes(Buffer.from(data.block, 'hex'));
-
-		if (!this._state.blocks[decodedBlock.header.id.toString('hex')]) {
-			this._state.blocks[decodedBlock.header.id.toString('hex')] = {
+	private _handlePostBlock(header: BlockData['blockHeader']) {
+		if (!this._state.blocks[header.id]) {
+			this._state.blocks[header.id] = {
 				count: 0,
-				height: decodedBlock.header.height,
+				height: header.height,
 			};
 		}
 
-		this._state.blocks[decodedBlock.header.id.toString('hex')].count += 1;
+		this._state.blocks[header.id].count += 1;
 
 		// Clean up blocks older than current height minus 300 blocks
 		for (const id of Object.keys(this._state.blocks)) {
 			const blockInfo = this._state.blocks[id];
-			if (blockInfo.height < decodedBlock.header.height - 300) {
+			if (blockInfo.height < header.height - 300) {
 				delete this._state.blocks[id];
 			}
 		}

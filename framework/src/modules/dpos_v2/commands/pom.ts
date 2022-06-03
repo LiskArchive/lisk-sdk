@@ -19,7 +19,7 @@ import {
 	VerificationResult,
 	VerifyStatus,
 	CommandExecuteContext,
-} from '../../../node/state_machine/types';
+} from '../../../state_machine/types';
 import { BaseCommand } from '../../base_command';
 import {
 	COMMAND_ID_POM,
@@ -30,7 +30,6 @@ import {
 } from '../constants';
 import { delegateStoreSchema, pomCommandParamsSchema } from '../schemas';
 import {
-	BFTAPI,
 	DelegateAccount,
 	PomCommandDependencies,
 	PomTransactionParams,
@@ -40,18 +39,17 @@ import {
 } from '../types';
 import { getPunishmentPeriod } from '../utils';
 import { ValidationError } from '../../../errors';
+import { areDistinctHeadersContradicting } from '../../../engine/bft/utils';
 
 export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 	public id = COMMAND_ID_POM;
 	public name = 'reportDelegateMisbehavior';
 	public schema = pomCommandParamsSchema;
-	private _bftAPI!: BFTAPI;
 	private _tokenAPI!: TokenAPI;
 	private _validatorsAPI!: ValidatorsAPI;
 	private _tokenIDDPoS!: TokenIDDPoS;
 
 	public addDependencies(args: PomCommandDependencies) {
-		this._bftAPI = args.bftAPI;
 		this._tokenAPI = args.tokenAPI;
 		this._validatorsAPI = args.validatorsAPI;
 	}
@@ -80,7 +78,7 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 		header2.validate();
 
 		// Check for BFT violations:
-		if (!this._bftAPI.areHeadersContradicting(header1, header2)) {
+		if (header1.id.equals(header2.id) || !areDistinctHeadersContradicting(header1, header2)) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new ValidationError(

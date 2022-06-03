@@ -1,6 +1,5 @@
 import { when } from 'jest-when';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
-import { StateStore, Transaction } from '@liskhq/lisk-chain';
+import { Transaction } from '@liskhq/lisk-chain';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { sparseMerkleTree } from '@liskhq/lisk-tree';
@@ -23,7 +22,7 @@ import {
 	TerminatedStateAccount,
 } from '../../../../../../src/modules/interoperability/types';
 import { CommandExecuteContext } from '../../../../../../src';
-import { TransactionContext } from '../../../../../../src/node/state_machine';
+import { TransactionContext } from '../../../../../../src/state_machine';
 import {
 	chainAccountSchema,
 	stateRecoveryInitParams,
@@ -35,7 +34,9 @@ import {
 	CommandVerifyContext,
 	SubStore,
 	VerifyStatus,
-} from '../../../../../../src/node/state_machine/types';
+} from '../../../../../../src/state_machine/types';
+import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
 
 describe('Mainchain StateRecoveryInitCommand', () => {
 	type StoreMock = Mocked<
@@ -60,7 +61,7 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 	let terminatedStateSubstore: SubStore;
 	let terminatedStateAccount: TerminatedStateAccount;
 	let commandVerifyContext: CommandVerifyContext<StateRecoveryInitParams>;
-	let stateStore: StateStore;
+	let stateStore: PrefixedStateReadWriter;
 	let mainchainAccount: ChainAccount;
 
 	beforeEach(async () => {
@@ -109,7 +110,7 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 			initialized: false,
 		};
 
-		stateStore = new StateStore(new InMemoryKVStore());
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
 		terminatedStateSubstore = stateStore.getStore(
 			MODULE_ID_INTEROPERABILITY,

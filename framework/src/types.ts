@@ -14,7 +14,7 @@
 import { p2pTypes } from '@liskhq/lisk-p2p';
 import { Schema } from '@liskhq/lisk-codec';
 import { Logger } from './logger';
-import { ImmutableAPIContext, ImmutableSubStore } from './node/state_machine';
+import { ImmutableAPIContext, ImmutableSubStore } from './state_machine/types';
 import { RPC_MODES } from './constants';
 
 export interface SocketPaths {
@@ -154,28 +154,12 @@ export interface EndpointInfo {
 	readonly method: string;
 }
 
-export interface RegisteredModule {
-	id: number;
-	name: string;
-	endpoints: string[];
-	events: string[];
-	commands: {
-		id: number;
-		name: string;
-	}[];
-}
-
 export interface RegisteredSchema {
 	block: Schema;
-	blockHeader: Schema;
+	header: Schema;
 	transaction: Schema;
-	commands: {
-		moduleID: number;
-		moduleName: string;
-		commandID: number;
-		commandName: string;
-		schema?: Schema;
-	}[];
+	asset: Schema;
+	event: Schema;
 }
 
 export interface SchemaWithDefault extends Schema {

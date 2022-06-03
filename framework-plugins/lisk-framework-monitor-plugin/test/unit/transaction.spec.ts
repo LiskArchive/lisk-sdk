@@ -72,6 +72,9 @@ describe('_handlePostTransactionAnnounce', () => {
 
 	beforeEach(async () => {
 		monitorPluginInstance = new MonitorPlugin();
+		monitorPluginInstance['_apiClient'] = {
+			invoke: jest.fn(),
+		};
 		await monitorPluginInstance.init({
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
@@ -110,6 +113,9 @@ describe('_cleanUpTransactionStats', () => {
 
 	beforeEach(async () => {
 		monitorPluginInstance = new MonitorPlugin();
+		monitorPluginInstance['_apiClient'] = {
+			invoke: jest.fn(),
+		};
 		await monitorPluginInstance.init({
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,

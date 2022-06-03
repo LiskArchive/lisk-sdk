@@ -13,9 +13,8 @@
  */
 
 import { hash, intToBuffer, getRandomBytes } from '@liskhq/lisk-cryptography';
-import { StateStore, Transaction } from '@liskhq/lisk-chain';
+import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
 import { when } from 'jest-when';
 import * as testing from '../../../../../../src/testing';
 import { SidechainRegistrationCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/sidechain_registration';
@@ -48,8 +47,11 @@ import {
 	registrationCCMParamsSchema,
 } from '../../../../../../src/modules/interoperability/schema';
 import { SidechainRegistrationParams } from '../../../../../../src/modules/interoperability/types';
-import { CommandVerifyContext, VerifyStatus } from '../../../../../../src/node/state_machine';
+import { CommandVerifyContext, VerifyStatus } from '../../../../../../src/state_machine';
 import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
+import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
+import { SubStore } from '../../../../../../src/state_machine/types';
 
 describe('Sidechain registration command', () => {
 	const transactionParams = {
@@ -90,10 +92,9 @@ describe('Sidechain registration command', () => {
 	);
 	const networkID = hash(Buffer.concat([Buffer.alloc(0), transaction.senderAddress]));
 	let sidechainRegistrationCommand: SidechainRegistrationCommand;
-	let db: KVStore;
-	let stateStore: StateStore;
-	let nameSubstore: StateStore;
-	let networkIDSubstore: StateStore;
+	let stateStore: PrefixedStateReadWriter;
+	let nameSubstore: SubStore;
+	let networkIDSubstore: SubStore;
 	let verifyContext: CommandVerifyContext<SidechainRegistrationParams>;
 
 	beforeEach(() => {
@@ -102,8 +103,7 @@ describe('Sidechain registration command', () => {
 			new Map(),
 			new Map(),
 		);
-		db = new InMemoryKVStore() as never;
-		stateStore = new StateStore(db);
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		nameSubstore = stateStore.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_REGISTERED_NAMES);
 		networkIDSubstore = stateStore.getStore(
 			MODULE_ID_INTEROPERABILITY,

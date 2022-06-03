@@ -12,15 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ReadStreamOptions } from '@liskhq/lisk-db';
+import { IterateOptions } from '@liskhq/lisk-db';
 
 export interface DatabaseReader {
 	get: (key: Buffer) => Promise<Buffer>;
-	exists: (key: Buffer) => Promise<boolean>;
-	createReadStream: (options?: ReadStreamOptions) => NodeJS.ReadableStream;
+	has: (key: Buffer) => Promise<boolean>;
+	createReadStream: (options?: IterateOptions) => NodeJS.ReadableStream;
 }
 
 export interface DatabaseWriter {
-	put: (key: Buffer, value: Buffer) => void;
+	set: (key: Buffer, value: Buffer) => void;
 	del: (key: Buffer) => void;
 }

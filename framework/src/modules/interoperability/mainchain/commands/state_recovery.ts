@@ -30,7 +30,7 @@ import {
 	CommandVerifyContext,
 	VerificationResult,
 	VerifyStatus,
-} from '../../../../node/state_machine/types';
+} from '../../../../state_machine/types';
 import { createRecoverCCMsgAPIContext } from '../../../../testing';
 import { getIDAsKeyForStore } from '../../utils';
 

@@ -13,7 +13,7 @@
  */
 import * as HTTP from 'http';
 import { HTTPServer } from '../../../../src/controller/http/http_server';
-import { fakeLogger } from '../../../utils/node';
+import { fakeLogger } from '../../../utils/mocks';
 
 describe('HTTPServer', () => {
 	const logger = fakeLogger;

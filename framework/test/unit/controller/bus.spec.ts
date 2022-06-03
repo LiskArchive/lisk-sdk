@@ -13,6 +13,7 @@
  */
 
 import { EventEmitter2 } from 'eventemitter2';
+import * as fs from 'fs-extra';
 import { Bus } from '../../../src/controller/bus';
 import { Request } from '../../../src/controller/request';
 import { IPCServer } from '../../../src/controller/ipc/ipc_server';
@@ -51,6 +52,7 @@ describe('Bus', () => {
 	let bus: Bus;
 
 	beforeEach(async () => {
+		jest.spyOn(fs, 'ensureDirSync').mockReturnValue();
 		bus = new Bus(busConfig);
 		await bus.start(loggerMock);
 	});

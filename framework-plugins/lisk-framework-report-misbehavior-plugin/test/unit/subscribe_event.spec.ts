@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseChannel, GenesisConfig, codec, ApplicationConfigForPlugin, testing } from 'lisk-sdk';
+import { BaseChannel, GenesisConfig, ApplicationConfigForPlugin, testing } from 'lisk-sdk';
 import { ReportMisbehaviorPlugin } from '../../src';
 import { configSchema } from '../../src/schemas';
 
@@ -68,24 +68,21 @@ const validPluginOptions = {
 	dataPath: '/my/app',
 };
 
-const channelMock1 = {
-	invoke: jest.fn(),
-	subscribe: jest.fn(),
-	once: jest.fn().mockImplementation((_eventName, cb) => cb()),
-};
-
 describe('subscribe to event', () => {
 	let reportMisbehaviorPlugin: ReportMisbehaviorPlugin;
-	let subscribeMock: jest.SpyInstance;
 	beforeEach(async () => {
 		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin();
+		reportMisbehaviorPlugin['_apiClient'] = {
+			schema: {},
+			invoke: jest.fn(),
+			subscribe: jest.fn(),
+		};
 		await reportMisbehaviorPlugin.init({
 			config: validPluginOptions,
-			channel: (channelMock1 as unknown) as BaseChannel,
+			channel: ({} as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
 			logger: testing.mocks.loggerMock,
 		});
-		subscribeMock = jest.spyOn(reportMisbehaviorPlugin['apiClient'], 'subscribe');
 		reportMisbehaviorPlugin['logger'] = {
 			error: jest.fn(),
 		} as any;
@@ -95,16 +92,10 @@ describe('subscribe to event', () => {
 		// Act
 		reportMisbehaviorPlugin['_subscribeToChannel']();
 		// Assert
-		expect(subscribeMock).toHaveBeenCalledTimes(1);
-		expect(subscribeMock).toHaveBeenCalledWith('app_networkEvent', expect.any(Function));
-	});
-
-	it('should not decode block when data is invalid', () => {
-		jest.spyOn(codec, 'decode');
-		// Act
-		reportMisbehaviorPlugin['_subscribeToChannel']();
-		subscribeMock.mock.calls[0][1]({ event: 'postBlock', data: null });
-		// Assert
-		expect(codec.decode).not.toHaveBeenCalled();
+		expect(reportMisbehaviorPlugin.apiClient.subscribe).toHaveBeenCalledTimes(1);
+		expect(reportMisbehaviorPlugin.apiClient.subscribe).toHaveBeenCalledWith(
+			'network_newBlock',
+			expect.any(Function),
+		);
 	});
 });

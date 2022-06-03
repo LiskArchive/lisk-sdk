@@ -16,7 +16,7 @@ import { EventEmitter2 } from 'eventemitter2';
 import { IPCClient } from '../../../../src/controller/ipc/ipc_client';
 import { IPCChannel, BaseChannel } from '../../../../src/controller/channels';
 import { Event } from '../../../../src/controller/event';
-import { fakeLogger } from '../../../utils/node';
+import { fakeLogger } from '../../../utils/mocks';
 import { Request } from '../../../../src/controller/request';
 
 const getMockedCallback = (error: unknown, result: unknown) =>

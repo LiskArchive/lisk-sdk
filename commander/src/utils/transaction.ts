@@ -15,30 +15,31 @@
 import * as liskApiClient from '@liskhq/lisk-api-client';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
-import { RegisteredSchema, Transaction } from 'lisk-framework';
+import { ModuleMetadata, RegisteredSchema, Transaction } from 'lisk-framework';
 
 import { Schema } from '../types';
 import { getDefaultPath } from './path';
 import { isApplicationRunning } from './application';
 
 export const getParamsSchema = (
-	registeredSchema: RegisteredSchema,
+	metadata: ModuleMetadata[],
 	moduleID: number,
 	commandID: number,
 ): Schema | undefined => {
-	const command = registeredSchema.commands.find(
-		schema => schema.moduleID === Number(moduleID) && schema.commandID === Number(commandID),
-	);
-	if (!command) {
-		throw new Error(
-			`Transaction moduleID:${moduleID} with commandID:${commandID} is not registered in the application.`,
-		);
+	const moduleMeta = metadata.find(meta => meta.id === moduleID);
+	if (!moduleMeta) {
+		throw new Error(`ModuleID: ${moduleID} is not registered.`);
 	}
-	return command.schema;
+	const commandMeta = moduleMeta.commands.find(meta => meta.id === commandID);
+	if (!commandMeta) {
+		throw new Error(`ModuleID: ${moduleID} CommandID: ${commandID} is not registered.`);
+	}
+	return commandMeta.params;
 };
 
 export const decodeTransaction = (
 	schema: RegisteredSchema,
+	metadata: ModuleMetadata[],
 	transactionHexStr: string,
 	apiClient?: liskApiClient.APIClient,
 ): Record<string, unknown> => {
@@ -48,7 +49,7 @@ export const decodeTransaction = (
 	}
 	const id = cryptography.hash(transactionBytes);
 	const transaction = codec.decode<Transaction>(schema.transaction, transactionBytes);
-	const paramsSchema = getParamsSchema(schema, transaction.moduleID, transaction.commandID);
+	const paramsSchema = getParamsSchema(metadata, transaction.moduleID, transaction.commandID);
 	const params = codec.decode<Record<string, unknown>>(paramsSchema as Schema, transaction.params);
 	return {
 		...transaction,
@@ -59,6 +60,7 @@ export const decodeTransaction = (
 
 export const encodeTransaction = (
 	schema: RegisteredSchema,
+	metadata: ModuleMetadata[],
 	transaction: Record<string, unknown>,
 	apiClient?: liskApiClient.APIClient,
 ): Buffer => {
@@ -66,7 +68,7 @@ export const encodeTransaction = (
 		return apiClient.transaction.encode(transaction);
 	}
 	const paramsSchema = getParamsSchema(
-		schema,
+		metadata,
 		transaction.moduleID as number,
 		transaction.commandID as number,
 	);
@@ -77,6 +79,7 @@ export const encodeTransaction = (
 
 export const transactionToJSON = (
 	schema: RegisteredSchema,
+	metadata: ModuleMetadata[],
 	transaction: Record<string, unknown>,
 	apiClient?: liskApiClient.APIClient,
 ): Record<string, unknown> => {
@@ -84,7 +87,7 @@ export const transactionToJSON = (
 		return apiClient.transaction.toJSON(transaction);
 	}
 	const paramsSchema = getParamsSchema(
-		schema,
+		metadata,
 		transaction.moduleID as number,
 		transaction.commandID as number,
 	);

@@ -12,10 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockHeader } from '@liskhq/lisk-chain';
-import { BFTHeights } from '../bft/types';
-import { Validator } from '../../node/consensus/types';
-import { APIContext, ImmutableAPIContext } from '../../node/state_machine/types';
+import { APIContext, ImmutableAPIContext } from '../../state_machine/types';
 
 export type TokenIDDPoS = Buffer;
 
@@ -35,26 +32,6 @@ export interface ModuleConfig {
 	tokenIDDPoS: TokenIDDPoS;
 }
 
-export interface BFTAPI {
-	setBFTParameters(
-		apiContext: APIContext,
-		precommitThreshold: bigint,
-		certificateThreshold: bigint,
-		validators: Validator[],
-	): Promise<void>;
-	getBFTParameters(
-		context: ImmutableAPIContext,
-		height: number,
-	): Promise<{
-		prevoteThreshold: bigint;
-		precommitThreshold: bigint;
-		certificateThreshold: bigint;
-		validators: Validator[];
-	}>;
-	areHeadersContradicting(bftHeader1: BlockHeader, bftHeader2: BlockHeader): boolean;
-	getBFTHeights(context: ImmutableAPIContext): Promise<BFTHeights>;
-}
-
 export interface RandomAPI {
 	getRandomBytes(
 		apiContext: ImmutableAPIContext,
@@ -64,7 +41,6 @@ export interface RandomAPI {
 }
 
 export interface ValidatorsAPI {
-	setGeneratorList(apiContext: APIContext, generatorAddresses: Buffer[]): Promise<boolean>;
 	setValidatorGeneratorKey(
 		apiContext: APIContext,
 		validatorAddress: Buffer,
@@ -82,8 +58,8 @@ export interface ValidatorsAPI {
 		apiContext: ImmutableAPIContext,
 		startTimestamp: number,
 		endTimestamp: number,
+		validators: { address: Buffer }[],
 	): Promise<Record<string, number>>;
-	getGeneratorAtTimestamp(apiContext: ImmutableAPIContext, timestamp: number): Promise<Buffer>;
 }
 
 export interface TokenAPI {
@@ -203,7 +179,6 @@ export interface PomTransactionParams {
 }
 
 export interface PomCommandDependencies {
-	bftAPI: BFTAPI;
 	tokenAPI: TokenAPI;
 	validatorsAPI: ValidatorsAPI;
 }
@@ -215,7 +190,6 @@ export interface ValidatorKeys {
 
 export interface UnlockCommandDependencies {
 	tokenAPI: TokenAPI;
-	bftAPI: BFTAPI;
 }
 
 export interface SnapshotStoreData {

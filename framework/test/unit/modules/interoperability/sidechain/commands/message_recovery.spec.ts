@@ -22,7 +22,7 @@ import { MessageRecoveryCommand } from '../../../../../../src/modules/interopera
 import { CommandExecuteContext } from '../../../../../../src';
 import { BaseInteroperableAPI } from '../../../../../../src/modules/interoperability/base_interoperable_api';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
-import { TransactionContext } from '../../../../../../src/node/state_machine';
+import { TransactionContext } from '../../../../../../src/state_machine';
 import {
 	COMMAND_ID_MESSAGE_RECOVERY,
 	MODULE_ID_INTEROPERABILITY,

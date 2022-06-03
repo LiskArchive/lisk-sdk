@@ -12,8 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateStore, Transaction } from '@liskhq/lisk-chain';
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
+import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import * as fixtures from './fixtures.json';
@@ -25,13 +24,14 @@ import {
 	registerMultisignatureParamsSchema,
 } from '../../../../src/modules/auth/schemas';
 import { AuthAccount, RegisterMultisignatureParams } from '../../../../src/modules/auth/types';
-import { VerifyStatus } from '../../../../src/node/state_machine';
+import { VerifyStatus } from '../../../../src/state_machine';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 
 describe('Register Multisignature command', () => {
 	let registerMultisignatureCommand: RegisterMultisignatureCommand;
-	let db: KVStore;
-	let stateStore: StateStore;
-	let authStore: StateStore;
+	let stateStore: PrefixedStateReadWriter;
+	let authStore: PrefixedStateReadWriter;
 	let transaction: Transaction;
 	let decodedParams: RegisterMultisignatureParams;
 
@@ -396,8 +396,7 @@ describe('Register Multisignature command', () => {
 
 	describe('execute', () => {
 		beforeEach(() => {
-			db = new InMemoryKVStore() as never;
-			stateStore = new StateStore(db);
+			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			authStore = stateStore.getStore(MODULE_ID_AUTH, STORE_PREFIX_AUTH);
 		});
 

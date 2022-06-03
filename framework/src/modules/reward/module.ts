@@ -16,8 +16,8 @@ import { objects } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { defaultConfig, MODULE_ID_REWARD } from './constants';
-import { BFTAPI, ModuleConfig, RandomAPI, TokenAPI, TokenIDReward } from './types';
-import { BlockAfterExecuteContext } from '../../node/state_machine';
+import { ModuleConfig, RandomAPI, TokenAPI, TokenIDReward } from './types';
+import { BlockAfterExecuteContext } from '../../state_machine';
 import { RewardAPI } from './api';
 import { RewardEndpoint } from './endpoint';
 import {
@@ -33,16 +33,14 @@ export class RewardModule extends BaseModule {
 	public configSchema = configSchema;
 	public endpoint = new RewardEndpoint(this.id);
 	private _tokenAPI!: TokenAPI;
-	private _bftAPI!: BFTAPI;
 	private _randomAPI!: RandomAPI;
 	private _tokenIDReward!: TokenIDReward;
 	private _moduleConfig!: ModuleConfig;
 
-	public addDependencies(tokenAPI: TokenAPI, randomAPI: RandomAPI, bftAPI: BFTAPI) {
+	public addDependencies(tokenAPI: TokenAPI, randomAPI: RandomAPI) {
 		this._tokenAPI = tokenAPI;
 		this._randomAPI = randomAPI;
-		this._bftAPI = bftAPI;
-		this.api.addDependencies(this._bftAPI, this._randomAPI);
+		this.api.addDependencies(this._randomAPI);
 	}
 
 	public metadata(): ModuleMetadata {
@@ -93,6 +91,7 @@ export class RewardModule extends BaseModule {
 			context.getAPIContext(),
 			context.header,
 			context.assets,
+			context.impliesMaxPrevote,
 		);
 
 		if (blockReward <= BigInt(0)) {

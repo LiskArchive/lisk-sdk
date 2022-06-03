@@ -14,7 +14,7 @@
 import { Transaction } from '@liskhq/lisk-chain';
 import * as testing from '../../../../src/testing';
 import { nodeUtils } from '../../../utils';
-import { createTransferTransaction } from '../../../utils/node/transaction';
+import { createTransferTransaction } from '../../../utils/mocks/transaction';
 
 describe('Transaction pool', () => {
 	const databasePath = '/tmp/lisk/generator/transaction_pool';

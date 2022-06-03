@@ -22,7 +22,7 @@ import {
 	createDelegateVoteTransaction,
 	createTransferTransaction,
 	DEFAULT_TOKEN_ID,
-} from '../../../../utils/node/transaction';
+} from '../../../../utils/mocks/transaction';
 import { getPassphraseFromDefaultConfig } from '../../../../../src/testing/fixtures';
 
 describe('Process block', () => {
@@ -45,8 +45,8 @@ describe('Process block', () => {
 		chain = processEnv.getChain();
 	});
 
-	afterAll(async () => {
-		await processEnv.cleanup({ databasePath });
+	afterAll(() => {
+		processEnv.cleanup({ databasePath });
 	});
 
 	describe('given an account has a balance', () => {
@@ -149,9 +149,7 @@ describe('Process block', () => {
 				const { privateKey } = getKeys(passphrase);
 				invalidBlock.header.sign(processEnv.getNetworkId(), privateKey);
 				await expect(processEnv.process(invalidBlock)).rejects.toThrow(
-					expect.objectContaining({
-						message: expect.stringContaining('nonce is lower than account nonce'),
-					}),
+					'Failed to verify transaction',
 				);
 			});
 		});

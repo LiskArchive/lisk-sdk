@@ -28,8 +28,8 @@ import {
 } from '../../../../src/modules/random/schemas';
 import { ValidatorSeedReveal } from '../../../../src/modules/random/types';
 import { bitwiseXOR } from '../../../../src/modules/random/utils';
-import { APIContext } from '../../../../src/node/state_machine';
-import { SubStore } from '../../../../src/node/state_machine/types';
+import { APIContext } from '../../../../src/state_machine';
+import { SubStore } from '../../../../src/state_machine/types';
 import { createTransientAPIContext } from '../../../../src/testing';
 import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
 import { testCases } from './dpos_random_seed_generation/dpos_random_seed_generation_other_rounds.json';

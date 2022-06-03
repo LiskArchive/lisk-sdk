@@ -141,6 +141,10 @@ describe('networkStats', () => {
 
 	beforeEach(async () => {
 		monitorPlugin = new MonitorPlugin();
+		monitorPlugin['_apiClient'] = {
+			schema: {},
+			invoke: jest.fn(),
+		};
 		await monitorPlugin.init({
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
@@ -149,11 +153,11 @@ describe('networkStats', () => {
 		});
 
 		when(jest.spyOn(monitorPlugin['apiClient'], 'invoke'))
-			.calledWith('app_getNetworkStats')
+			.calledWith('network_getStats')
 			.mockResolvedValue(defaultNetworkStats as never)
-			.calledWith('app_getConnectedPeers')
+			.calledWith('network_getConnectedPeers')
 			.mockResolvedValue(connectedPeers as never)
-			.calledWith('app_getDisconnectedPeers')
+			.calledWith('network_getDisconnectedPeers')
 			.mockResolvedValue(disconnectedPeers as never);
 	});
 

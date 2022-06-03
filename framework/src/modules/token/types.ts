@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { APIContext, ImmutableAPIContext } from '../../node/state_machine';
+import { APIContext, ImmutableAPIContext } from '../../state_machine';
 import { CCMsg } from './interop_types';
 
 export type TokenID = Buffer;

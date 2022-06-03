@@ -58,7 +58,7 @@ export class DPoSEndpoint extends BaseEndpoint {
 		const delegateSubStore = ctx.getStore(this.moduleID, STORE_PREFIX_DELEGATE);
 		const startBuf = Buffer.alloc(20);
 		const endBuf = Buffer.alloc(20, 255);
-		const storeData = await delegateSubStore.iterate({ start: startBuf, end: endBuf });
+		const storeData = await delegateSubStore.iterate({ gte: startBuf, lte: endBuf });
 
 		const response = [];
 		for (const data of storeData) {

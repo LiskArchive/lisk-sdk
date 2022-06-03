@@ -17,10 +17,6 @@ export interface ValidatorKeys {
 	blsKey: Buffer;
 }
 
-export interface GeneratorList {
-	addresses: Buffer[];
-}
-
 export interface GenesisData {
 	timestamp: number;
 }

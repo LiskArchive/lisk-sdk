@@ -13,7 +13,7 @@
  */
 import { join } from 'path';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
-import { createClient, APIClient } from '@liskhq/lisk-api-client';
+import { APIClient, createIPCClient } from '@liskhq/lisk-api-client';
 import { objects } from '@liskhq/lisk-utils';
 import { BaseChannel } from '../controller/channels';
 import { Logger } from '../logger';
@@ -84,10 +84,10 @@ export abstract class BasePlugin<T = Record<string, unknown>> {
 	public readonly configSchema?: SchemaWithDefault;
 	public endpoint?: BasePluginEndpoint;
 
-	protected apiClient!: APIClient;
 	protected logger!: Logger;
 	protected channel!: BaseChannel;
 
+	private _apiClient!: APIClient;
 	private _config!: T;
 	private _appConfig!: ApplicationConfigForPlugin;
 
@@ -111,6 +111,13 @@ export abstract class BasePlugin<T = Record<string, unknown>> {
 		return [];
 	}
 
+	public get apiClient(): APIClient {
+		if (!this._apiClient) {
+			throw new Error('RPC with IPC protocol must be enabled to use APIClient.');
+		}
+		return this._apiClient;
+	}
+
 	public async init(context: PluginInitContext): Promise<void> {
 		this.logger = context.logger;
 		this.channel = context.channel;
@@ -127,7 +134,9 @@ export abstract class BasePlugin<T = Record<string, unknown>> {
 		}
 		this._appConfig = context.appConfig;
 
-		this.apiClient = await createClient(context.channel);
+		if (this._appConfig.rpc.modes.includes('ipc') && this._appConfig.rpc.ipc?.path !== undefined) {
+			this._apiClient = await createIPCClient(this._appConfig.rpc.ipc?.path);
+		}
 	}
 
 	public abstract get nodeModulePath(): string;

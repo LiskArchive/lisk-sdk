@@ -13,7 +13,7 @@
  */
 import * as WebSocket from 'ws';
 import { WSServer } from '../../../src/controller/ws/ws_server';
-import { fakeLogger } from '../../utils/node';
+import { fakeLogger } from '../../utils/mocks';
 
 describe('WSServer', () => {
 	const port = 34567;

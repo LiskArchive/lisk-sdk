@@ -15,9 +15,18 @@
 import Command, { flags as flagParser } from '@oclif/command';
 import * as apiClient from '@liskhq/lisk-api-client';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { Application, PartialApplicationConfig, RegisteredSchema } from 'lisk-framework';
+import {
+	Application,
+	blockHeaderSchema,
+	blockSchema,
+	ModuleMetadata,
+	PartialApplicationConfig,
+	RegisteredSchema,
+	transactionSchema,
+} from 'lisk-framework';
 import * as transactions from '@liskhq/lisk-transactions';
 
+import { blockAssetSchema, eventSchema } from '@liskhq/lisk-chain';
 import { flagsWithParser } from '../../../utils/flags';
 import { getPassphraseFromPrompt } from '../../../utils/reader';
 import {
@@ -56,14 +65,15 @@ interface SignFlags {
 const signTransaction = async (
 	flags: SignFlags,
 	registeredSchema: RegisteredSchema,
+	metadata: ModuleMetadata[],
 	transactionHexStr: string,
 	networkIdentifier: string | undefined,
 	keys: Keys,
 ) => {
-	const transactionObject = decodeTransaction(registeredSchema, transactionHexStr);
+	const transactionObject = decodeTransaction(registeredSchema, metadata, transactionHexStr);
 	// eslint-disable-next-line @typescript-eslint/ban-types
 	const paramsSchema = getParamsSchema(
-		registeredSchema,
+		metadata,
 		transactionObject.moduleID as number,
 		transactionObject.commandID as number,
 	) as object;
@@ -73,19 +83,19 @@ const signTransaction = async (
 	// sign from multi sig account offline using input keys
 	if (!flags['include-sender'] && !flags['sender-public-key']) {
 		return transactions.signTransaction(
-			paramsSchema,
 			transactionObject,
 			networkIdentifierBuffer,
 			passphrase,
+			paramsSchema,
 		);
 	}
 
 	return transactions.signMultiSignatureTransaction(
-		paramsSchema,
 		transactionObject,
 		networkIdentifierBuffer,
 		passphrase,
 		keys,
+		paramsSchema,
 		flags['include-sender'],
 	);
 };
@@ -93,6 +103,7 @@ const signTransaction = async (
 const signTransactionOffline = async (
 	flags: SignFlags,
 	registeredSchema: RegisteredSchema,
+	metadata: ModuleMetadata[],
 	transactionHexStr: string,
 ): Promise<Record<string, unknown>> => {
 	let signedTransaction: Record<string, unknown>;
@@ -101,6 +112,7 @@ const signTransactionOffline = async (
 		signedTransaction = await signTransaction(
 			flags,
 			registeredSchema,
+			metadata,
 			transactionHexStr,
 			flags['network-identifier'],
 			{} as Keys,
@@ -123,6 +135,7 @@ const signTransactionOffline = async (
 	signedTransaction = await signTransaction(
 		flags,
 		registeredSchema,
+		metadata,
 		transactionHexStr,
 		flags['network-identifier'],
 		keys,
@@ -134,10 +147,11 @@ const signTransactionOnline = async (
 	flags: SignFlags,
 	client: apiClient.APIClient,
 	registeredSchema: RegisteredSchema,
+	metadata: ModuleMetadata[],
 	transactionHexStr: string,
 ) => {
 	// Sign non multi-sig transaction
-	const transactionObject = decodeTransaction(registeredSchema, transactionHexStr);
+	const transactionObject = decodeTransaction(registeredSchema, metadata, transactionHexStr);
 	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
 	const address = cryptography.getAddressFromPassphrase(passphrase);
 
@@ -215,6 +229,7 @@ export abstract class SignCommand extends Command {
 
 	protected _client: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
 	protected _schema!: RegisteredSchema;
+	protected _metadata!: ModuleMetadata[];
 	protected _dataPath!: string;
 
 	async run(): Promise<void> {
@@ -230,33 +245,58 @@ export abstract class SignCommand extends Command {
 
 		if (offline) {
 			const app = this.getApplication({}, {});
-			this._schema = app.getSchema();
-			signedTransaction = await signTransactionOffline(flags, this._schema, transaction);
+			this._metadata = app.getMetadata();
+			this._schema = {
+				header: blockHeaderSchema,
+				transaction: transactionSchema,
+				block: blockSchema,
+				asset: blockAssetSchema,
+				event: eventSchema,
+			};
+			signedTransaction = await signTransactionOffline(
+				flags,
+				this._schema,
+				this._metadata,
+				transaction,
+			);
 		} else {
 			this._client = await getApiClient(dataPath, this.config.pjson.name);
-			this._schema = this._client.schemas;
+			this._schema = this._client.schema;
+			this._metadata = this._client.metadata;
 			signedTransaction = await signTransactionOnline(
 				flags,
 				this._client,
 				this._schema,
+				this._metadata,
 				transaction,
 			);
 		}
 
 		if (flags.json) {
 			this.printJSON(flags.pretty, {
-				transaction: encodeTransaction(this._schema, signedTransaction, this._client).toString(
-					'hex',
-				),
+				transaction: encodeTransaction(
+					this._schema,
+					this._metadata,
+					signedTransaction,
+					this._client,
+				).toString('hex'),
 			});
 			this.printJSON(flags.pretty, {
-				transaction: transactionToJSON(this._schema, signedTransaction, this._client),
+				transaction: transactionToJSON(
+					this._schema,
+					this._metadata,
+					signedTransaction,
+					this._client,
+				),
 			});
 		} else {
 			this.printJSON(flags.pretty, {
-				transaction: encodeTransaction(this._schema, signedTransaction, this._client).toString(
-					'hex',
-				),
+				transaction: encodeTransaction(
+					this._schema,
+					this._metadata,
+					signedTransaction,
+					this._client,
+				).toString('hex'),
 			});
 		}
 	}

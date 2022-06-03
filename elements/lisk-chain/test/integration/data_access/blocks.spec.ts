@@ -14,10 +14,9 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { KVStore, formatInt, NotFoundError, InMemoryKVStore } from '@liskhq/lisk-db';
+import { Batch, Database, NotFoundError } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes, hash, intToBuffer } from '@liskhq/lisk-cryptography';
-import { SparseMerkleTree } from '@liskhq/lisk-tree';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { encodeByteArray, Storage } from '../../../src/data_access/storage';
 import { createValidDefaultBlock } from '../../utils/block';
 import { getTransaction } from '../../utils/transaction';
@@ -32,11 +31,9 @@ import {
 	DB_KEY_TEMPBLOCKS_HEIGHT,
 	DB_KEY_DIFF_STATE,
 	DB_KEY_TRANSACTIONS_BLOCK_ID,
-	DB_KEY_STATE_STORE,
 	DB_KEY_BLOCK_EVENTS,
 } from '../../../src/db_keys';
-import { concatDBKeys } from '../../../src/utils';
-import { toSMTKey } from '../../../src/state_store/utils';
+import { concatDBKeys, uint32BE } from '../../../src/utils';
 
 describe('dataAccess.blocks', () => {
 	const emptyEncodedDiff = codec.encode(stateDiffSchema, {
@@ -44,7 +41,7 @@ describe('dataAccess.blocks', () => {
 		updated: [],
 		deleted: [],
 	});
-	let db: KVStore;
+	let db: Database;
 	let storage: Storage;
 	let dataAccess: DataAccess;
 	let blocks: Block[];
@@ -52,8 +49,12 @@ describe('dataAccess.blocks', () => {
 	beforeAll(() => {
 		const parentPath = path.join(__dirname, '../../tmp/blocks');
 		fs.ensureDirSync(parentPath);
-		db = new KVStore(path.join(parentPath, '/test-blocks.db'));
+		db = new Database(path.join(parentPath, '/test-blocks.db'));
 		storage = new Storage(db);
+	});
+
+	afterAll(() => {
+		db.close();
 	});
 
 	beforeEach(async () => {
@@ -100,40 +101,40 @@ describe('dataAccess.blocks', () => {
 		];
 
 		blocks = [block300, block301, block302, block303];
-		const batch = db.batch();
+		const batch = new Batch();
 		for (const block of blocks) {
 			const { transactions, header } = block;
-			batch.put(concatDBKeys(DB_KEY_BLOCKS_ID, header.id), header.getBytes());
-			batch.put(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(header.height)), header.id);
+			batch.set(concatDBKeys(DB_KEY_BLOCKS_ID, header.id), header.getBytes());
+			batch.set(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, uint32BE(header.height)), header.id);
 			if (transactions.length) {
-				batch.put(
+				batch.set(
 					concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, header.id),
 					Buffer.concat(transactions.map(tx => tx.id)),
 				);
 
 				for (const tx of transactions) {
-					batch.put(concatDBKeys(DB_KEY_TRANSACTIONS_ID, tx.id), tx.getBytes());
+					batch.set(concatDBKeys(DB_KEY_TRANSACTIONS_ID, tx.id), tx.getBytes());
 				}
 			}
-			batch.put(
-				concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(block.header.height)),
+			batch.set(
+				concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(block.header.height)),
 				encodeByteArray(events.map(e => e.getBytes())),
 			);
-			batch.put(
-				concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(blocks[2].header.height)),
+			batch.set(
+				concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, uint32BE(blocks[2].header.height)),
 				blocks[2].getBytes(),
 			);
-			batch.put(
-				concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(blocks[3].header.height)),
+			batch.set(
+				concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, uint32BE(blocks[3].header.height)),
 				blocks[3].getBytes(),
 			);
-			batch.put(
-				concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(blocks[3].header.height + 1)),
+			batch.set(
+				concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, uint32BE(blocks[3].header.height + 1)),
 				blocks[3].getBytes(),
 			);
-			batch.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(block.header.height)), emptyEncodedDiff);
+			batch.set(concatDBKeys(DB_KEY_DIFF_STATE, uint32BE(block.header.height)), emptyEncodedDiff);
 		}
-		await batch.write();
+		await db.write(batch);
 		dataAccess.resetBlockHeaderCache();
 	});
 
@@ -394,14 +395,11 @@ describe('dataAccess.blocks', () => {
 				],
 			});
 			const smtStore = new SMTStore(db);
-			const batchLocal = db.batch();
-			const smt = new SparseMerkleTree({ db: smtStore, rootHash: block.header.stateRoot });
-			const diff = await stateStore.finalize(batchLocal, smt);
+			const batchLocal = new Batch();
+			const diff = stateStore.finalize(batchLocal);
 			smtStore.finalize(batchLocal);
 
 			currentState = {
-				smt,
-				smtStore,
 				batch: batchLocal,
 				diff,
 				stateStore,
@@ -411,24 +409,24 @@ describe('dataAccess.blocks', () => {
 		it('should create block with all index required', async () => {
 			await dataAccess.saveBlock(block, events, currentState, 0);
 
-			await expect(db.exists(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id))).resolves.toBeTrue();
+			await expect(db.has(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id))).resolves.toBeTrue();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(block.header.height))),
+				db.has(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, uint32BE(block.header.height))),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, block.header.id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, block.header.id)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, block.transactions[0].id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_ID, block.transactions[0].id)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, block.transactions[1].id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_ID, block.transactions[1].id)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(block.header.height))),
+				db.has(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, uint32BE(block.header.height))),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(block.header.height))),
+				db.has(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(block.header.height))),
 			).resolves.toBeTrue();
 			const createdBlock = await dataAccess.getBlockByID(block.header.id);
 			expect(createdBlock.header.toObject()).toStrictEqual(block.header.toObject());
@@ -441,21 +439,21 @@ describe('dataAccess.blocks', () => {
 		it('should create block with all index required and remove the same height block from temp', async () => {
 			await dataAccess.saveBlock(block, events, currentState, 0, true);
 
-			await expect(db.exists(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id))).resolves.toBeTrue();
+			await expect(db.has(concatDBKeys(DB_KEY_BLOCKS_ID, block.header.id))).resolves.toBeTrue();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(block.header.height))),
+				db.has(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, uint32BE(block.header.height))),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, block.header.id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_BLOCK_ID, block.header.id)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, block.transactions[0].id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_ID, block.transactions[0].id)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, block.transactions[1].id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_ID, block.transactions[1].id)),
 			).resolves.toBeTrue();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(block.header.height))),
+				db.has(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, uint32BE(block.header.height))),
 			).resolves.toBeFalse();
 			const createdBlock = await dataAccess.getBlockByID(block.header.id);
 			expect(createdBlock.header.toObject()).toStrictEqual(block.header.toObject());
@@ -466,66 +464,55 @@ describe('dataAccess.blocks', () => {
 		});
 
 		it('should delete diff before the finalized height', async () => {
-			await db.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(99)), Buffer.from('random diff'));
-			await db.put(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(100)), Buffer.from('random diff 2'));
+			await db.set(concatDBKeys(DB_KEY_DIFF_STATE, uint32BE(99)), Buffer.from('random diff'));
+			await db.set(concatDBKeys(DB_KEY_DIFF_STATE, uint32BE(100)), Buffer.from('random diff 2'));
 			await dataAccess.saveBlock(block, events, currentState, 100, true);
 
-			await expect(db.exists(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(100)))).resolves.toBeTrue();
-			await expect(db.exists(concatDBKeys(DB_KEY_DIFF_STATE, formatInt(99)))).resolves.toBeFalse();
+			await expect(db.has(concatDBKeys(DB_KEY_DIFF_STATE, uint32BE(100)))).resolves.toBeTrue();
+			await expect(db.has(concatDBKeys(DB_KEY_DIFF_STATE, uint32BE(99)))).resolves.toBeFalse();
 		});
 
 		it('should not delete events before finalized height when keepEventsForHeights == -1', async () => {
-			await db.put(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(99)), Buffer.from('random diff'));
-			await db.put(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(100)), Buffer.from('random diff 2'));
+			await db.set(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(99)), Buffer.from('random diff'));
+			await db.set(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(100)), Buffer.from('random diff 2'));
 			await dataAccess.saveBlock(block, events, currentState, 100, true);
 
-			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(100))),
-			).resolves.toBeTrue();
-			await expect(db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(99)))).resolves.toBeTrue();
+			await expect(db.has(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(100)))).resolves.toBeTrue();
+			await expect(db.has(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(99)))).resolves.toBeTrue();
 		});
 
 		it('should delete events before finalized height when keepEventsForHeights == 1', async () => {
 			(dataAccess['_storage']['_keepEventsForHeights'] as any) = 1;
-			await db.put(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(99)), Buffer.from('random diff'));
-			await db.put(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(100)), Buffer.from('random diff 2'));
+			await db.set(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(99)), Buffer.from('random diff'));
+			await db.set(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(100)), Buffer.from('random diff 2'));
 			await dataAccess.saveBlock(block, events, currentState, 100, true);
 
-			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(100))),
-			).resolves.toBeTrue();
-			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(99))),
-			).resolves.toBeFalse();
+			await expect(db.has(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(100)))).resolves.toBeTrue();
+			await expect(db.has(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(99)))).resolves.toBeFalse();
 		});
 
 		it('should maintain events for not finalized blocks', async () => {
 			(dataAccess['_storage']['_keepEventsForHeights'] as any) = 0;
-			await db.put(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(99)), Buffer.from('random diff'));
-			await db.put(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(100)), Buffer.from('random diff 2'));
+			await db.set(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(99)), Buffer.from('random diff'));
+			await db.set(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(100)), Buffer.from('random diff 2'));
 			await dataAccess.saveBlock(block, events, currentState, 50, true);
 
-			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(100))),
-			).resolves.toBeTrue();
-			await expect(db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(99)))).resolves.toBeTrue();
+			await expect(db.has(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(100)))).resolves.toBeTrue();
+			await expect(db.has(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(99)))).resolves.toBeTrue();
 		});
 	});
 
 	describe('deleteBlock', () => {
 		let currentState: CurrentState;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			const stateStore = new StateStore(db);
 			const smtStore = new SMTStore(db);
-			const batch = db.batch();
-			const smt = new SparseMerkleTree({ db: smtStore });
-			const diff = await stateStore.finalize(batch, smt);
+			const batch = new Batch();
+			const diff = stateStore.finalize(batch);
 			smtStore.finalize(batch);
 
 			currentState = {
-				smt,
-				smtStore,
 				batch,
 				diff,
 				stateStore,
@@ -538,31 +525,31 @@ describe('dataAccess.blocks', () => {
 			await dataAccess.deleteBlock(blocks[2], currentState);
 
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCKS_ID, blocks[2].header.id)),
+				db.has(concatDBKeys(DB_KEY_BLOCKS_ID, blocks[2].header.id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(blocks[2].header.height))),
+				db.has(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, uint32BE(blocks[2].header.height))),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].header.id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].header.id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].transactions[0].id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].transactions[0].id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].transactions[1].id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].transactions[1].id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(blocks[2].header.height))),
+				db.has(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, uint32BE(blocks[2].header.height))),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCK_EVENTS, formatInt(blocks[2].header.height))),
+				db.has(concatDBKeys(DB_KEY_BLOCK_EVENTS, uint32BE(blocks[2].header.height))),
 			).resolves.toBeFalse();
 		});
 
 		it('should throw an error when there is no diff', async () => {
 			// Deleting temp blocks to test the saving
-			const key = concatDBKeys(DB_KEY_DIFF_STATE, formatInt(blocks[2].header.height));
+			const key = concatDBKeys(DB_KEY_DIFF_STATE, uint32BE(blocks[2].header.height));
 			await db.del(key);
 			await dataAccess.clearTempBlocks();
 
@@ -577,22 +564,22 @@ describe('dataAccess.blocks', () => {
 			await dataAccess.deleteBlock(blocks[2], currentState, true);
 
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCKS_ID, blocks[2].header.id)),
+				db.has(concatDBKeys(DB_KEY_BLOCKS_ID, blocks[2].header.id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, formatInt(blocks[2].header.height))),
+				db.has(concatDBKeys(DB_KEY_BLOCKS_HEIGHT, uint32BE(blocks[2].header.height))),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].header.id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].header.id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].transactions[0].id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].transactions[0].id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].transactions[1].id)),
+				db.has(concatDBKeys(DB_KEY_TRANSACTIONS_ID, blocks[2].transactions[1].id)),
 			).resolves.toBeFalse();
 			await expect(
-				db.exists(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, formatInt(blocks[2].header.height))),
+				db.has(concatDBKeys(DB_KEY_TEMPBLOCKS_HEIGHT, uint32BE(blocks[2].header.height))),
 			).resolves.toBeTrue();
 
 			const tempBlocks = await dataAccess.getTempBlocks();
@@ -600,203 +587,6 @@ describe('dataAccess.blocks', () => {
 			expect(tempBlocks[0].header.toObject()).toStrictEqual(blocks[2].header.toObject());
 			expect(tempBlocks[0].transactions[0]).toBeInstanceOf(Transaction);
 			expect(tempBlocks[0].transactions[0].id).toStrictEqual(blocks[2].transactions[0].id);
-		});
-	});
-
-	describe('State root calculation after save/delete block', () => {
-		const sequenceSchema = {
-			$id: 'modules/seq/',
-			type: 'object',
-			properties: {
-				nonce: {
-					dataType: 'uint32',
-					fieldNumber: 1,
-				},
-			},
-			required: ['nonce'],
-		};
-
-		const MODULE_ID = 14;
-		const STORE_PREFIX = 1;
-		let currentState: CurrentState;
-		let stateStore: StateStore;
-		let tempDB: InMemoryKVStore;
-
-		const prefixedKey = (
-			key: Buffer,
-			moduleID: number = MODULE_ID,
-			storePrefix: number = STORE_PREFIX,
-		) => {
-			const moduleIDBuffer = intToBuffer(moduleID, 4);
-			const storePrefixBuffer = intToBuffer(storePrefix, 2);
-
-			return Buffer.concat([DB_KEY_STATE_STORE, moduleIDBuffer, storePrefixBuffer, key]);
-		};
-
-		beforeEach(() => {
-			stateStore = new StateStore(db);
-			tempDB = new InMemoryKVStore();
-		});
-
-		afterAll(async () => {
-			await tempDB.clear();
-		});
-
-		it('should return current stateRoot calculated after saveBlock', async () => {
-			const subStore = stateStore.getStore(MODULE_ID, STORE_PREFIX);
-
-			// 3 accounts being set with data
-			const address1 = getRandomBytes(20);
-			const address2 = getRandomBytes(20);
-			const address3 = getRandomBytes(20);
-
-			const data1 = codec.encode(sequenceSchema, { nonce: 10 });
-			const data2 = codec.encode(sequenceSchema, { nonce: 17 });
-			const data3 = codec.encode(sequenceSchema, { nonce: 29 });
-
-			// Set 3 accounts in stateStore
-			await subStore.set(address1, data1);
-			await subStore.set(address2, data2);
-			await subStore.set(address3, data3);
-
-			// To calculate SMT root hash from updating each address above manually
-			const smtStoreTemp = new SMTStore(tempDB);
-			const smtTemp = new SparseMerkleTree({ db: smtStoreTemp });
-
-			await smtTemp.update(toSMTKey(prefixedKey(address1)), hash(data1));
-			await smtTemp.update(toSMTKey(prefixedKey(address2)), hash(data2));
-			await smtTemp.update(toSMTKey(prefixedKey(address3)), hash(data3));
-			const { rootHash: expectedStateRoot } = smtTemp;
-
-			// Add the expected state root calculated to a block to be saved
-			const firstBlock = await createValidDefaultBlock({
-				header: { height: 304, stateRoot: expectedStateRoot },
-				transactions: [
-					getTransaction({ nonce: BigInt(10) }),
-					getTransaction({ nonce: BigInt(20) }),
-				],
-			});
-
-			// Run all the finalizeStore steps: create SMT store, batch, smt and pass it to saveBlock()
-			const smtStore = new SMTStore(db);
-			const batchLocal = db.batch();
-			const smt = new SparseMerkleTree({ db: smtStore });
-			const diff1 = await stateStore.finalize(batchLocal, smt);
-			smtStore.finalize(batchLocal);
-
-			currentState = {
-				smt,
-				smtStore,
-				batch: batchLocal,
-				diff: diff1,
-				stateStore,
-			};
-			await dataAccess.saveBlock(firstBlock, [], currentState, 100);
-
-			expect(smt.rootHash).toEqual(firstBlock.header.stateRoot);
-
-			// Test another with deleting one of the keys
-			await smtTemp.remove(toSMTKey(prefixedKey(address3)));
-			// Add the expected state root calculated to a block to be saved
-			const secondBlock = await createValidDefaultBlock({
-				header: { height: 304, stateRoot: smtTemp.rootHash },
-				transactions: [getTransaction({ nonce: BigInt(10) })],
-			});
-
-			const secondSubStore = stateStore.getStore(14, 1);
-			await secondSubStore.del(address3);
-			const secondSMTStore = new SMTStore(db);
-			const secondBatch = db.batch();
-			const secondSMT = new SparseMerkleTree({ db: secondSMTStore });
-			const diff2 = await stateStore.finalize(secondBatch, secondSMT);
-			secondSMTStore.finalize(secondBatch);
-
-			const newCurrentState = {
-				smt: secondSMT,
-				smtStore: secondSMTStore,
-				batch: secondBatch,
-				diff: diff2,
-				stateStore,
-			};
-			await dataAccess.saveBlock(secondBlock, [], newCurrentState, 100);
-			expect(secondSMT.rootHash).toEqual(secondBlock.header.stateRoot);
-		});
-
-		it('should return previous stateRoot calculated after delete', async () => {
-			const subStore = stateStore.getStore(14, 1);
-
-			// 3 accounts being set with data
-			const address1 = getRandomBytes(20);
-			const address2 = getRandomBytes(20);
-			const address3 = getRandomBytes(20);
-
-			const data1 = codec.encode(sequenceSchema, { nonce: 10 });
-			const data2 = codec.encode(sequenceSchema, { nonce: 17 });
-			const data3 = codec.encode(sequenceSchema, { nonce: 29 });
-
-			// Set 3 accounts in stateStore
-			await subStore.set(address1, data1);
-			await subStore.set(address2, data2);
-			await subStore.set(address3, data3);
-
-			// To calculate SMT root hash from updating each address above manually
-			const smtStoreTemp = new SMTStore(tempDB);
-			const smtTemp = new SparseMerkleTree({ db: smtStoreTemp });
-
-			await smtTemp.update(toSMTKey(prefixedKey(address1)), hash(data1));
-			await smtTemp.update(toSMTKey(prefixedKey(address2)), hash(data2));
-			await smtTemp.update(toSMTKey(prefixedKey(address3)), hash(data3));
-			const { rootHash: expectedStateRoot } = smtTemp;
-
-			// Add the expected state root calculated to a block to be saved
-			const firstBlock = await createValidDefaultBlock({
-				header: { height: 304, stateRoot: expectedStateRoot },
-				transactions: [
-					getTransaction({ nonce: BigInt(10) }),
-					getTransaction({ nonce: BigInt(20) }),
-				],
-			});
-
-			// Run all the finalizeStore steps: create SMT store, batch, smt and pass it to saveBlock()
-			const smtStore = new SMTStore(db);
-			const batchLocal = db.batch();
-			const smt = new SparseMerkleTree({ db: smtStore });
-			const diff1 = await stateStore.finalize(batchLocal, smt);
-			smtStore.finalize(batchLocal);
-
-			currentState = {
-				smt,
-				smtStore,
-				batch: batchLocal,
-				diff: diff1,
-				stateStore,
-			};
-			await dataAccess.saveBlock(firstBlock, [], currentState, 100);
-
-			expect(smt.rootHash).toEqual(firstBlock.header.stateRoot);
-
-			// Delete all the keys that were added in the last block
-			await smtTemp.remove(toSMTKey(prefixedKey(address1)));
-			await smtTemp.remove(toSMTKey(prefixedKey(address2)));
-			await smtTemp.remove(toSMTKey(prefixedKey(address3)));
-
-			const secondSMTStore = new SMTStore(db);
-			const secondBatch = db.batch();
-			const secondSMT = new SparseMerkleTree({
-				db: secondSMTStore,
-				rootHash: firstBlock.header.stateRoot,
-			});
-
-			const newCurrentState = {
-				smt: secondSMT,
-				smtStore: secondSMTStore,
-				batch: secondBatch,
-				diff: { updated: [], created: [], deleted: [] },
-				stateStore,
-			};
-
-			await dataAccess.deleteBlock(firstBlock, newCurrentState);
-			expect(secondSMT.rootHash).toEqual(smtTemp.rootHash);
 		});
 	});
 });

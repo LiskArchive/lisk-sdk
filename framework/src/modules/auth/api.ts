@@ -14,7 +14,7 @@
 
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { BaseAPI } from '../base_api';
-import { ImmutableAPIContext } from '../../node/state_machine';
+import { ImmutableAPIContext } from '../../state_machine';
 import { authAccountSchema } from './schemas';
 import { STORE_PREFIX_AUTH } from './constants';
 import { AuthAccount } from './types';

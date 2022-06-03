@@ -14,7 +14,8 @@
 
 import * as childProcess from 'child_process';
 import * as os from 'os';
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
+import * as fs from 'fs-extra';
+import { InMemoryDatabase, StateDB } from '@liskhq/lisk-db';
 import { BasePlugin } from '../../../src/plugins/base_plugin';
 import * as controllerModule from '../../../src/controller/controller';
 import { Controller } from '../../../src/controller/controller';
@@ -103,7 +104,7 @@ describe('Controller Class', () => {
 	};
 
 	const initParams = {
-		blockchainDB: (new InMemoryKVStore() as unknown) as KVStore,
+		stateDB: (new InMemoryDatabase() as unknown) as StateDB,
 		logger: loggerMock,
 		events: ['app_start', 'app_blockNew'],
 		endpoints: {
@@ -118,6 +119,7 @@ describe('Controller Class', () => {
 
 	beforeEach(() => {
 		// Act
+		jest.spyOn(fs, 'ensureDirSync').mockReturnValue();
 		jest.spyOn(basePluginModule, 'getPluginExportPath').mockReturnValue('plugin2');
 		controller = new Controller(params);
 		inMemoryPlugin = createMockPlugin({
@@ -225,7 +227,6 @@ describe('Controller Class', () => {
 					config: {
 						loadAsChildProcess: true,
 					},
-					ipcConfig: controller['_config'],
 				});
 			});
 		});

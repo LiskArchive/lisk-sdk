@@ -16,18 +16,18 @@ jest.mock('../../../../src/controller/bus');
 
 /* eslint-disable import/first  */
 
-import { InMemoryKVStore, KVStore } from '@liskhq/lisk-db';
+import { InMemoryDatabase, StateDB } from '@liskhq/lisk-db';
 import { InMemoryChannel, BaseChannel } from '../../../../src/controller/channels';
 import { Bus } from '../../../../src/controller/bus';
 import { Event } from '../../../../src/controller/event';
-import { fakeLogger } from '../../../utils/node';
+import { fakeLogger } from '../../../utils/mocks';
 
 describe('InMemoryChannel Channel', () => {
 	// Arrange
 	const params = {
 		namespace: 'sample',
 		logger: fakeLogger,
-		db: (new InMemoryKVStore() as unknown) as KVStore,
+		db: (new InMemoryDatabase() as unknown) as StateDB,
 		events: ['event1', 'event2'],
 		endpoints: {
 			action1: jest.fn(),
@@ -35,7 +35,6 @@ describe('InMemoryChannel Channel', () => {
 			action3: jest.fn(),
 		},
 		options: {},
-		networkIdentifier: Buffer.alloc(0),
 	};
 	const config: any = {};
 	let inMemoryChannel: InMemoryChannel;
@@ -194,52 +193,6 @@ describe('InMemoryChannel Channel', () => {
 
 			// Assert
 			expect(inMemoryChannel['bus'].invoke).toHaveBeenCalled();
-		});
-	});
-
-	describe('with networkIdentifier', () => {
-		beforeEach(() => {
-			// Act & Assign
-			inMemoryChannel = new InMemoryChannel(
-				params.logger,
-				params.db,
-				params.namespace,
-				params.events,
-				params.endpoints,
-				params.networkIdentifier,
-			);
-		});
-
-		describe('#constructor', () => {
-			it('should create the instance with given arguments.', () => {
-				// Assert
-				expect(inMemoryChannel).toHaveProperty('_networkIdentifier');
-				expect(inMemoryChannel).toHaveProperty('_db');
-				expect(inMemoryChannel).toHaveProperty('namespace');
-				expect(inMemoryChannel).toHaveProperty('eventsList');
-				expect(inMemoryChannel).toHaveProperty('endpointsList');
-			});
-		});
-
-		describe('#invoke', () => {
-			const actionName = 'action1';
-
-			it('should module endpoint have been called with networkIdentifier in its context', async () => {
-				// Arrange
-				const actionFullName = `${inMemoryChannel.namespace}_${actionName}`;
-
-				// Act
-				await inMemoryChannel.invoke(actionFullName);
-
-				// Assert
-				expect(params.endpoints.action1).toHaveBeenCalledWith({
-					networkIdentifier: params.networkIdentifier,
-					getStore: expect.anything(),
-					getImmutableAPIContext: expect.anything(),
-					logger: expect.anything(),
-					params: expect.anything(),
-				});
-			});
 		});
 	});
 });

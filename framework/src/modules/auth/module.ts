@@ -22,7 +22,7 @@ import {
 	TransactionExecuteContext,
 	TransactionVerifyContext,
 	VerificationResult,
-} from '../../node/state_machine';
+} from '../../state_machine';
 import { AuthAPI } from './api';
 import { RegisterMultisignatureCommand } from './commands/register_multisignature';
 import {

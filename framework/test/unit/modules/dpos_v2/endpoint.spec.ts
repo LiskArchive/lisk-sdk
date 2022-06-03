@@ -12,9 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateStore } from '@liskhq/lisk-chain';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { Logger } from '../../../../src/logger';
 import {
@@ -24,14 +22,16 @@ import {
 } from '../../../../src/modules/dpos_v2/constants';
 import { DPoSEndpoint } from '../../../../src/modules/dpos_v2/endpoint';
 import { delegateStoreSchema, voterStoreSchema } from '../../../../src/modules/dpos_v2/schemas';
-import { fakeLogger } from '../../../utils/node';
+import { fakeLogger } from '../../../utils/mocks';
+import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 
 describe('DposModuleEndpoint', () => {
 	const logger: Logger = fakeLogger;
 	let dposEndpoint: DPoSEndpoint;
-	let stateStore: StateStore;
-	let voterSubStore: StateStore;
-	let delegateSubStore: StateStore;
+	let stateStore: PrefixedStateReadWriter;
+	let voterSubStore: PrefixedStateReadWriter;
+	let delegateSubStore: PrefixedStateReadWriter;
 	const address = getRandomBytes(20);
 	const address1 = getRandomBytes(20);
 	const address2 = getRandomBytes(20);
@@ -65,7 +65,7 @@ describe('DposModuleEndpoint', () => {
 
 	beforeEach(() => {
 		dposEndpoint = new DPoSEndpoint(MODULE_ID_DPOS);
-		stateStore = new StateStore(new InMemoryKVStore());
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		voterSubStore = stateStore.getStore(dposEndpoint['moduleID'], STORE_PREFIX_VOTER);
 		delegateSubStore = stateStore.getStore(dposEndpoint['moduleID'], STORE_PREFIX_DELEGATE);
 	});

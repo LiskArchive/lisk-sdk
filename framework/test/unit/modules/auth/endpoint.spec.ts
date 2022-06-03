@@ -131,7 +131,7 @@ describe('AuthEndpoint', () => {
 
 			when(subStoreMock)
 				.calledWith(nonExistingAddress, authAccountSchema)
-				.mockRejectedValue(new NotFoundError(Buffer.alloc(0)));
+				.mockRejectedValue(new NotFoundError());
 
 			const authAccount = await authEndpoint.getAuthAccount(context);
 

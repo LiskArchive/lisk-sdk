@@ -11,9 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { StateStore } from '@liskhq/lisk-chain';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { TokenAPI } from '../../../../src/modules/token';
 import {
 	CHAIN_ID_LENGTH,
@@ -33,8 +31,10 @@ import {
 	userStoreSchema,
 } from '../../../../src/modules/token/schemas';
 import { getUserStoreKey } from '../../../../src/modules/token/utils';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { createTransientModuleEndpointContext } from '../../../../src/testing';
-import { DEFAULT_TOKEN_ID } from '../../../utils/node/transaction';
+import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
+import { DEFAULT_TOKEN_ID } from '../../../utils/mocks/transaction';
 
 describe('token endpoint', () => {
 	const defaultAddress = getRandomBytes(20);
@@ -55,7 +55,7 @@ describe('token endpoint', () => {
 	const supportedTokenIDs = ['0000000000000000', '0000000200000000'];
 
 	let endpoint: TokenEndpoint;
-	let stateStore: StateStore;
+	let stateStore: PrefixedStateReadWriter;
 
 	beforeEach(async () => {
 		const api = new TokenAPI(MODULE_ID_TOKEN);
@@ -76,7 +76,7 @@ describe('token endpoint', () => {
 			getChannel: jest.fn(),
 		});
 		endpoint.init(api, supportedTokenIDs);
-		stateStore = new StateStore(new InMemoryKVStore());
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		const userStore = stateStore.getStore(MODULE_ID_TOKEN, STORE_PREFIX_USER);
 		await userStore.setWithSchema(
 			getUserStoreKey(defaultAddress, defaultTokenIDAlias),

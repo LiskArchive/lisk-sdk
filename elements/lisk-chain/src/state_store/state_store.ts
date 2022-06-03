@@ -14,7 +14,6 @@
 
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { NotFoundError as DBNotFoundError } from '@liskhq/lisk-db';
-import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import { DB_KEY_STATE_STORE } from '../db_keys';
 import { StateDiff } from '../types';
 import { CacheDB } from './cache_db';
@@ -72,14 +71,14 @@ export class StateStore {
 			return copyBuffer(value);
 		}
 		if (deleted) {
-			throw new NotFoundError(prefixedKey);
+			throw new NotFoundError(`Specified key ${prefixedKey.toString('hex')} does not exist`);
 		}
 		let persistedValue;
 		try {
 			persistedValue = await this._db.get(prefixedKey);
 		} catch (error) {
 			if (error instanceof DBNotFoundError) {
-				throw new NotFoundError(prefixedKey);
+				throw new NotFoundError(`Specified key ${prefixedKey.toString('hex')} does not exist`);
 			}
 			throw error;
 		}
@@ -124,7 +123,8 @@ export class StateStore {
 
 	public async setWithSchema(
 		key: Buffer,
-		value: Record<string, unknown>,
+		// eslint-disable-next-line @typescript-eslint/ban-types
+		value: object,
 		schema: Schema,
 	): Promise<void> {
 		const encodedValue = codec.encode(schema, value);
@@ -231,8 +231,8 @@ export class StateStore {
 		this._snapshot = undefined;
 	}
 
-	public async finalize(batch: DatabaseWriter, smt: SparseMerkleTree): Promise<StateDiff> {
-		return this._cache.finalize(batch, smt);
+	public finalize(batch: DatabaseWriter): StateDiff {
+		return this._cache.finalize(batch);
 	}
 
 	private async _ensureCache(prefixedKey: Buffer): Promise<boolean> {

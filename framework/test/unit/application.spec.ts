@@ -14,6 +14,7 @@
 /* eslint-disable max-classes-per-file */
 
 import { objects } from '@liskhq/lisk-utils';
+import * as childProcess from 'child_process';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import { join } from 'path';
@@ -24,11 +25,13 @@ import { Bus } from '../../src/controller/bus';
 // import { IPCServer } from '../../src/controller/ipc/ipc_server';
 import { WSServer } from '../../src/controller/ws/ws_server';
 import { createLogger } from '../../src/logger';
-import { Node } from '../../src/node';
+import { Engine } from '../../src/engine';
 import { systemDirs } from '../../src/system_dirs';
 import * as basePluginModule from '../../src/plugins/base_plugin';
 import * as networkConfig from '../fixtures/config/devnet/config.json';
 import { createFakeBlockHeader } from '../fixtures';
+import { ABIServer } from '../../src/abi_handler/abi_server';
+import { EVENT_ENGINE_READY } from '../../src/abi_handler/abi_handler';
 
 jest.mock('fs-extra');
 jest.mock('zeromq', () => {
@@ -70,13 +73,23 @@ describe('Application', () => {
 		fatal: jest.fn(),
 	};
 
+	let engineProcessMock: {
+		on: jest.Mock;
+		kill: jest.Mock;
+	};
+
 	(createLogger as jest.Mock).mockReturnValue(loggerMock);
 
 	beforeEach(() => {
+		engineProcessMock = {
+			on: jest.fn(),
+			kill: jest.fn(),
+		};
+		jest.spyOn(childProcess, 'fork').mockReturnValue(engineProcessMock as never);
 		jest.spyOn(os, 'homedir').mockReturnValue('/user');
 		// jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
 		jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
-		jest.spyOn(Node.prototype, 'init').mockResolvedValue();
+		jest.spyOn(Engine.prototype, 'start').mockResolvedValue();
 		jest.spyOn(process, 'exit').mockReturnValue(0 as never);
 	});
 
@@ -163,7 +176,7 @@ describe('Application', () => {
 
 			// Assert
 			expect(app.config).toMatchSnapshot();
-			expect(app['_node']).not.toBeUndefined();
+			expect(app['_stateMachine']).not.toBeUndefined();
 			expect(app['_controller']).not.toBeUndefined();
 		});
 
@@ -179,7 +192,7 @@ describe('Application', () => {
 			// Arrange
 			const invalidConfig = objects.mergeDeep({}, config, {
 				generation: {
-					delegates: [
+					generators: [
 						{
 							encryptedPassphrase:
 								'0dbd21ac5c154dbb72ce90a4e252a64b692203a4f8e25f8bfa1b1993e2ba7a9bd9e1ef1896d8d584a62daf17a8ccf12b99f29521b92cc98b74434ff501374f7e1c6d8371a6ce4e2d083489',
@@ -197,7 +210,7 @@ describe('Application', () => {
 			expect.assertions(5);
 			try {
 				Application.defaultApplication(invalidConfig);
-			} catch (error) {
+			} catch (error: any) {
 				/* eslint-disable jest/no-try-expect */
 				expect(error.errors).toHaveLength(4);
 				expect(error.errors[0].message).toContain('must match format "encryptedPassphrase"');
@@ -275,19 +288,52 @@ describe('Application', () => {
 		});
 	});
 
+	describe('#run', () => {
+		let app: Application;
+
+		beforeEach(async () => {
+			({ app } = Application.defaultApplication(config));
+			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
+			// jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
+			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
+			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
+
+			jest.spyOn(ABIServer.prototype, 'start');
+			await app.run(new Block(createFakeBlockHeader(), [], new BlockAssets()));
+		});
+
+		afterEach(async () => {
+			await app.shutdown();
+		});
+
+		it('should start ABI server', () => {
+			expect(ABIServer.prototype.start).toHaveBeenCalledTimes(1);
+		});
+
+		it('should start engine', () => {
+			expect(childProcess.fork).toHaveBeenCalledTimes(1);
+			expect(childProcess.fork).toHaveBeenCalledWith(expect.stringContaining('engine_igniter'), [
+				expect.stringContaining('.ipc'),
+				'false',
+			]);
+		});
+
+		it('should register engine signal handler', () => {
+			expect(engineProcessMock.on).toHaveBeenCalledWith('exit', expect.any(Function));
+			expect(engineProcessMock.on).toHaveBeenCalledWith('error', expect.any(Function));
+		});
+	});
+
 	describe('#_setupDirectories', () => {
 		let app: Application;
 		let dirs: any;
 
 		beforeEach(async () => {
 			({ app } = Application.defaultApplication(config));
-			jest.spyOn(app['_node'], 'start').mockResolvedValue();
-			jest.spyOn(app['_node']['_network'], 'start').mockResolvedValue();
 			jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
 			// jest.spyOn(IPCServer.prototype, 'start').mockResolvedValue();
 			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
-			jest.spyOn(app['_node']['_stateMachine'], 'executeGenesisBlock').mockResolvedValue();
 
 			await app.run(new Block(createFakeBlockHeader(), [], new BlockAssets()));
 
@@ -327,15 +373,14 @@ describe('Application', () => {
 
 		beforeEach(async () => {
 			({ app } = Application.defaultApplication(config));
-			jest.spyOn(app['_node'], 'init').mockResolvedValue();
-			jest.spyOn(app['_node'], 'start').mockResolvedValue();
-			jest.spyOn(app['_node'], 'stop').mockResolvedValue();
+			jest.spyOn(Engine.prototype, 'start').mockResolvedValue();
+			jest.spyOn(Engine.prototype, 'stop').mockResolvedValue();
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
 			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 			jest.spyOn(fs, 'unlink').mockResolvedValue();
-			jest.spyOn(app['_node']['_stateMachine'], 'executeGenesisBlock').mockResolvedValue();
 
 			await app.run(new Block(createFakeBlockHeader(), [], new BlockAssets()));
+			app['_abiHandler'].event.emit(EVENT_ENGINE_READY);
 			await app.shutdown();
 		});
 
@@ -354,40 +399,38 @@ describe('Application', () => {
 		const fakeSocketFiles = ['1.sock' as any, '2.sock' as any];
 		let clearControllerPidFileSpy: jest.SpyInstance<any, unknown[]>;
 		let emptySocketsDirectorySpy: jest.SpyInstance<any, unknown[]>;
-		let nodeCleanupSpy: jest.SpyInstance<any, unknown[]>;
 		let blockChainDBSpy: jest.SpyInstance<any, unknown[]>;
 		let forgerDBSpy: jest.SpyInstance<any, unknown[]>;
-		let _nodeDBSpy: jest.SpyInstance<any, unknown[]>;
 
 		beforeEach(async () => {
 			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 			({ app } = Application.defaultApplication(config));
-			jest.spyOn(app['_node'], 'start').mockResolvedValue();
-			jest.spyOn(app['_node']['_network'], 'start').mockResolvedValue();
-			jest.spyOn(app['_node']['_stateMachine'], 'executeGenesisBlock').mockResolvedValue();
+			jest.spyOn(Engine.prototype, 'start').mockResolvedValue();
 
 			await app.run(new Block(createFakeBlockHeader(), [], new BlockAssets()));
+			app['_abiHandler'].event.emit(EVENT_ENGINE_READY);
 
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
-			nodeCleanupSpy = jest.spyOn(app['_node'], 'stop').mockResolvedValue();
 			jest.spyOn(app['_controller'], 'stop');
-			blockChainDBSpy = jest.spyOn(app['_blockchainDB'], 'close');
-			forgerDBSpy = jest.spyOn(app['_forgerDB'], 'close');
-			_nodeDBSpy = jest.spyOn(app['_nodeDB'], 'close');
+			blockChainDBSpy = jest.spyOn(app['_stateDB'], 'close');
+			forgerDBSpy = jest.spyOn(app['_moduleDB'], 'close');
 			emptySocketsDirectorySpy = jest
 				.spyOn(app as any, '_emptySocketsDirectory')
 				.mockResolvedValue([]);
 			clearControllerPidFileSpy = jest.spyOn(app as any, '_clearControllerPidFile');
 		});
 
+		it('should stop the engine', async () => {
+			await app.shutdown();
+			expect(engineProcessMock.kill).toHaveBeenCalledTimes(1);
+		});
+
 		it('should call cleanup methods', async () => {
 			await app.shutdown();
 			expect(clearControllerPidFileSpy).toHaveBeenCalledTimes(1);
 			expect(emptySocketsDirectorySpy).toHaveBeenCalledTimes(1);
-			expect(nodeCleanupSpy).toHaveBeenCalledTimes(1);
 			expect(blockChainDBSpy).toHaveBeenCalledTimes(1);
 			expect(forgerDBSpy).toHaveBeenCalledTimes(1);
-			expect(_nodeDBSpy).toHaveBeenCalledTimes(1);
 			expect(app['_controller'].stop).toHaveBeenCalledTimes(1);
 		});
 

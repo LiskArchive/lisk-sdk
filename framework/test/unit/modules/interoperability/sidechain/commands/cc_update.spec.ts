@@ -31,8 +31,8 @@ import {
 	CrossChainUpdateTransactionParams,
 } from '../../../../../../src/modules/interoperability/types';
 import { SidechainCCUpdateCommand } from '../../../../../../src/modules/interoperability/sidechain/commands/cc_update';
-import { Certificate } from '../../../../../../src/node/consensus/certificate_generation/types';
-import { certificateSchema } from '../../../../../../src/node/consensus/certificate_generation/schema';
+import { Certificate } from '../../../../../../src/engine/consensus/certificate_generation/types';
+import { certificateSchema } from '../../../../../../src/engine/consensus/certificate_generation/schema';
 import * as interopUtils from '../../../../../../src/modules/interoperability/utils';
 import {
 	ccmSchema,
@@ -52,7 +52,7 @@ import {
 	STORE_PREFIX_CHAIN_VALIDATORS,
 	STORE_PREFIX_CHANNEL_DATA,
 } from '../../../../../../src/modules/interoperability/constants';
-import { BlockHeader, EventQueue } from '../../../../../../src/node/state_machine';
+import { BlockHeader, EventQueue } from '../../../../../../src/state_machine';
 import { SidechainInteroperabilityStore } from '../../../../../../src/modules/interoperability/sidechain/store';
 import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
 
@@ -407,6 +407,10 @@ describe('CrossChainUpdateCommand', () => {
 				assets: new BlockAssets(),
 				eventQueue: new EventQueue(),
 				header: blockHeader as BlockHeader,
+				certificateThreshold: BigInt(0),
+				currentValidators: [],
+				impliesMaxPrevote: true,
+				maxHeightCertified: 0,
 			};
 
 			when(getStoreMock)
