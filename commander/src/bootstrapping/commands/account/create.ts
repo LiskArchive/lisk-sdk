@@ -24,11 +24,15 @@ interface AccountInfo {
 	readonly passphrase: string;
 	readonly privateKey: string;
 	readonly publicKey: string;
+	readonly blsPrivateKey: string;
+	readonly blsPublicKey: string;
 }
 
 const createAccount = (prefix: string): AccountInfo => {
 	const generatedPassphrase = passphrase.Mnemonic.generateMnemonic();
 	const { privateKey, publicKey } = cryptography.getKeys(generatedPassphrase);
+	const blsPrivateKey = cryptography.generatePrivateKey(Buffer.from(generatedPassphrase, 'utf-8'));
+	const blsPublicKey = cryptography.getPublicKeyFromPrivateKey(blsPrivateKey);
 	const binaryAddress = cryptography.getAddressFromPublicKey(publicKey);
 	const address = cryptography.getLisk32AddressFromPublicKey(publicKey, prefix);
 
@@ -36,6 +40,8 @@ const createAccount = (prefix: string): AccountInfo => {
 		passphrase: generatedPassphrase,
 		privateKey: privateKey.toString('hex'),
 		publicKey: publicKey.toString('hex'),
+		blsPrivateKey: blsPrivateKey.toString('hex'),
+		blsPublicKey: blsPublicKey.toString('hex'),
 		binaryAddress: binaryAddress.toString('hex'),
 		address,
 	};
