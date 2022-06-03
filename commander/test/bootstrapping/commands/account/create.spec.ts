@@ -25,6 +25,10 @@ describe('account:create', () => {
 		'lab mirror fetch tuna village sell sphere truly excite manual planet capable';
 	const secondDefaultMnemonic =
 		'alone cabin buffalo blast region upper jealous basket brush put answer twice';
+	const blsPrivateKey = cryptography.generatePrivateKey(Buffer.from(defaultMnemonic, 'utf-8'));
+	const secondBlsPrivateKey = cryptography.generatePrivateKey(
+		Buffer.from(secondDefaultMnemonic, 'utf-8'),
+	);
 	let results: any;
 	let config: Config.IConfig;
 
@@ -45,6 +49,8 @@ describe('account:create', () => {
 				{
 					publicKey: cryptography.getKeys(defaultMnemonic).publicKey.toString('hex'),
 					privateKey: cryptography.getKeys(defaultMnemonic).privateKey.toString('hex'),
+					blsPublicKey: cryptography.getPublicKeyFromPrivateKey(blsPrivateKey).toString('hex'),
+					blsPrivateKey: blsPrivateKey.toString('hex'),
 					address: cryptography.getLisk32AddressFromPublicKey(
 						cryptography.getKeys(defaultMnemonic).publicKey,
 						'lsk',
@@ -64,6 +70,8 @@ describe('account:create', () => {
 				{
 					publicKey: cryptography.getKeys(defaultMnemonic).publicKey.toString('hex'),
 					privateKey: cryptography.getKeys(defaultMnemonic).privateKey.toString('hex'),
+					blsPublicKey: cryptography.getPublicKeyFromPrivateKey(blsPrivateKey).toString('hex'),
+					blsPrivateKey: blsPrivateKey.toString('hex'),
 					address: cryptography.getLisk32AddressFromPublicKey(
 						cryptography.getKeys(defaultMnemonic).publicKey,
 						'lsk',
@@ -74,6 +82,10 @@ describe('account:create', () => {
 				{
 					publicKey: cryptography.getKeys(secondDefaultMnemonic).publicKey.toString('hex'),
 					privateKey: cryptography.getKeys(secondDefaultMnemonic).privateKey.toString('hex'),
+					blsPublicKey: cryptography
+						.getPublicKeyFromPrivateKey(secondBlsPrivateKey)
+						.toString('hex'),
+					blsPrivateKey: secondBlsPrivateKey.toString('hex'),
 					address: cryptography.getLisk32AddressFromPublicKey(
 						cryptography.getKeys(secondDefaultMnemonic).publicKey,
 						'lsk',
