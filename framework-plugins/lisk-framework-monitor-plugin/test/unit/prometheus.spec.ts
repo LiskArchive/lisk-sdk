@@ -130,7 +130,7 @@ describe('networkStats', () => {
 			.mockResolvedValue(connectedPeers)
 			.calledWith('network_getDisconnectedPeers')
 			.mockResolvedValue(disconnectedPeers)
-			.calledWith('network_getNodeInfo')
+			.calledWith('system_getNodeInfo')
 			.mockResolvedValue(nodeInfo);
 	});
 
