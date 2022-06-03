@@ -258,6 +258,7 @@ describe('abi handler', () => {
 						],
 						implyMaxPrevote: false,
 						maxHeightCertified: 0,
+						certificateThreshold: BigInt(0),
 					},
 				}),
 			).rejects.toThrow('Context is not initialized or different');
@@ -282,6 +283,7 @@ describe('abi handler', () => {
 						],
 						implyMaxPrevote: false,
 						maxHeightCertified: 0,
+						certificateThreshold: BigInt(0),
 					},
 				}),
 			).rejects.toThrow('Context is not initialized or different');
@@ -306,6 +308,7 @@ describe('abi handler', () => {
 					],
 					implyMaxPrevote: false,
 					maxHeightCertified: 0,
+					certificateThreshold: BigInt(0),
 				},
 			});
 			expect(abiHandler['_stateMachine'].beforeExecuteBlock).toHaveBeenCalledTimes(1);
@@ -331,6 +334,7 @@ describe('abi handler', () => {
 						],
 						implyMaxPrevote: false,
 						maxHeightCertified: 0,
+						certificateThreshold: BigInt(0),
 					},
 					transactions: [],
 				}),
@@ -356,6 +360,7 @@ describe('abi handler', () => {
 						],
 						implyMaxPrevote: false,
 						maxHeightCertified: 0,
+						certificateThreshold: BigInt(0),
 					},
 					transactions: [],
 				}),
@@ -381,6 +386,7 @@ describe('abi handler', () => {
 					],
 					implyMaxPrevote: false,
 					maxHeightCertified: 0,
+					certificateThreshold: BigInt(0),
 				},
 				transactions: [],
 			});
@@ -492,6 +498,7 @@ describe('abi handler', () => {
 					],
 					implyMaxPrevote: false,
 					maxHeightCertified: 0,
+					certificateThreshold: BigInt(0),
 				},
 			});
 
@@ -538,6 +545,7 @@ describe('abi handler', () => {
 					],
 					implyMaxPrevote: false,
 					maxHeightCertified: 0,
+					certificateThreshold: BigInt(0),
 				},
 			});
 

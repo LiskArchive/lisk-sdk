@@ -103,6 +103,7 @@ describe('strategies', () => {
 			currentValidators: [],
 			implyMaxPrevote: true,
 			maxHeightCertified: 10,
+			certificateThreshold: BigInt(0),
 		};
 
 		let header: BlockHeader;
