@@ -27,7 +27,7 @@ describe('Plugins DB', () => {
 	const dbName = 'lisk-framework-forger-plugin.db';
 
 	beforeEach(() => {
-		jest.spyOn(db, 'KVStore');
+		jest.spyOn(db, 'Database');
 	});
 
 	it('should resolve to data directory', async () => {

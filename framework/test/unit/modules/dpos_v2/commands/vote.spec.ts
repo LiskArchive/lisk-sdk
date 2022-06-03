@@ -122,7 +122,7 @@ describe('VoteCommand', () => {
 
 		when(getWithSchemaMock)
 			.calledWith(senderAddress, voterStoreSchema)
-			.mockRejectedValue(new NotFoundError(Buffer.alloc(0)));
+			.mockRejectedValue(new NotFoundError());
 
 		stateStore = new StateStore(new InMemoryDatabase());
 		voterStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_VOTER);
