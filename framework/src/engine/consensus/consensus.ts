@@ -402,6 +402,7 @@ export class Consensus {
 			currentValidators: validators,
 			implyMaxPrevote,
 			maxHeightCertified,
+			certificateThreshold: bftParams.certificateThreshold,
 		};
 	}
 

@@ -97,6 +97,10 @@ export const consensusSchema = {
 			fieldNumber: 3,
 			dataType: 'uint32',
 		},
+		certificateThreshold: {
+			fieldNumber: 4,
+			dataType: 'uint64',
+		},
 	},
 };
 

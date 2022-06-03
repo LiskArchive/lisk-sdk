@@ -37,6 +37,7 @@ export interface ContextParams {
 	currentValidators: Validator[];
 	impliesMaxPrevote: boolean;
 	maxHeightCertified: number;
+	certificateThreshold: bigint;
 	eventQueue: EventQueue;
 	transactions?: ReadonlyArray<Transaction>;
 }
@@ -51,6 +52,7 @@ export class BlockContext {
 	private readonly _currentValidators: Validator[];
 	private readonly _impliesMaxPrevote: boolean;
 	private readonly _maxHeightCertified: number;
+	private readonly _certificateThreshold: bigint;
 	private _transactions?: ReadonlyArray<Transaction>;
 	private _nextValidators?: {
 		precommitThreshold: bigint;
@@ -68,6 +70,7 @@ export class BlockContext {
 		this._currentValidators = params.currentValidators;
 		this._impliesMaxPrevote = params.impliesMaxPrevote;
 		this._maxHeightCertified = params.maxHeightCertified;
+		this._certificateThreshold = params.certificateThreshold;
 		this._transactions = params.transactions;
 	}
 
@@ -109,6 +112,7 @@ export class BlockContext {
 			currentValidators: this._currentValidators,
 			impliesMaxPrevote: this._impliesMaxPrevote,
 			maxHeightCertified: this._maxHeightCertified,
+			certificateThreshold: this._certificateThreshold,
 		};
 	}
 
@@ -131,6 +135,7 @@ export class BlockContext {
 			currentValidators: this._currentValidators,
 			impliesMaxPrevote: this._impliesMaxPrevote,
 			maxHeightCertified: this._maxHeightCertified,
+			certificateThreshold: this._certificateThreshold,
 			setNextValidators: (
 				precommitThreshold: bigint,
 				certificateThreshold: bigint,
@@ -160,6 +165,7 @@ export class BlockContext {
 			currentValidators: this._currentValidators,
 			impliesMaxPrevote: this._impliesMaxPrevote,
 			maxHeightCertified: this._maxHeightCertified,
+			certificateThreshold: this._certificateThreshold,
 		});
 	}
 

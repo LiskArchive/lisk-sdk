@@ -340,6 +340,7 @@ export class ABIHandler implements ABI {
 			currentValidators: [],
 			impliesMaxPrevote: false,
 			maxHeightCertified: 0,
+			certificateThreshold: BigInt(0),
 		});
 		await this._stateMachine.verifyAssets(context);
 
@@ -366,6 +367,7 @@ export class ABIHandler implements ABI {
 			currentValidators: req.consensus.currentValidators,
 			impliesMaxPrevote: req.consensus.implyMaxPrevote,
 			maxHeightCertified: req.consensus.maxHeightCertified,
+			certificateThreshold: req.consensus.certificateThreshold,
 			transactions: [],
 		});
 		await this._stateMachine.beforeExecuteBlock(context);
@@ -396,6 +398,7 @@ export class ABIHandler implements ABI {
 			currentValidators: req.consensus.currentValidators,
 			impliesMaxPrevote: req.consensus.implyMaxPrevote,
 			maxHeightCertified: req.consensus.maxHeightCertified,
+			certificateThreshold: req.consensus.certificateThreshold,
 			transactions: req.transactions.map(tx => new Transaction(tx)),
 		});
 		await this._stateMachine.afterExecuteBlock(context);
@@ -427,6 +430,7 @@ export class ABIHandler implements ABI {
 			currentValidators: [],
 			impliesMaxPrevote: true,
 			maxHeightCertified: 0,
+			certificateThreshold: BigInt(0),
 		});
 		const result = await this._stateMachine.verifyTransaction(context);
 
@@ -465,6 +469,7 @@ export class ABIHandler implements ABI {
 			currentValidators: req.consensus.currentValidators,
 			impliesMaxPrevote: req.consensus.implyMaxPrevote,
 			maxHeightCertified: req.consensus.maxHeightCertified,
+			certificateThreshold: req.consensus.certificateThreshold,
 		});
 		await this._stateMachine.executeTransaction(context);
 		return {
