@@ -380,7 +380,6 @@ export abstract class BaseInteroperabilityStore {
 			fee: BigInt(0),
 			status: CCM_STATUS_OK,
 			params: EMPTY_BYTES,
-			timestamp: Date.now(),
 			beforeSendContext,
 		});
 
@@ -452,7 +451,6 @@ export abstract class BaseInteroperabilityStore {
 				params: ccm.params,
 				receivingChainID: ccm.receivingChainID,
 				status: CCM_STATUS_MODULE_NOT_SUPPORTED,
-				timestamp: Date.now(),
 			});
 
 			return;
@@ -479,7 +477,6 @@ export abstract class BaseInteroperabilityStore {
 				params: ccm.params,
 				receivingChainID: ccm.receivingChainID,
 				status: CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
-				timestamp: Date.now(),
 			});
 
 			return;
