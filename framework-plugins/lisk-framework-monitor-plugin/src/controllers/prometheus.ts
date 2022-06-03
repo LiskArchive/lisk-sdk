@@ -63,7 +63,7 @@ export const getData = (client: BasePlugin['apiClient'], state: SharedState) => 
 	try {
 		const connectedPeers: PeerInfo[] = await client.invoke('network_getConnectedPeers');
 		const disconnectedPeers: PeerInfo[] = await client.invoke('network_getDisconnectedPeers');
-		const nodeInfo: NodeInfo = await client.invoke('network_getNodeInfo');
+		const nodeInfo: NodeInfo = await client.invoke('system_getNodeInfo');
 		const blockStats = await getBlockStats(client, state);
 		const transactionStats = await getTransactionStats(client, state);
 
