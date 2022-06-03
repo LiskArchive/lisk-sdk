@@ -105,6 +105,7 @@ export interface CommandExecuteContext<T = undefined> {
 	currentValidators: Validator[];
 	impliesMaxPrevote: boolean;
 	maxHeightCertified: number;
+	certificateThreshold: bigint;
 	transaction: Transaction; // without decoding params
 	params: T;
 	getAPIContext: () => APIContext;
@@ -137,6 +138,7 @@ export interface TransactionExecuteContext {
 	currentValidators: Validator[];
 	impliesMaxPrevote: boolean;
 	maxHeightCertified: number;
+	certificateThreshold: bigint;
 }
 
 export interface BlockVerifyContext {
@@ -159,6 +161,7 @@ export interface BlockExecuteContext {
 	currentValidators: Validator[];
 	impliesMaxPrevote: boolean;
 	maxHeightCertified: number;
+	certificateThreshold: bigint;
 }
 
 export interface Validator {

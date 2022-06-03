@@ -49,10 +49,10 @@ import {
 	sidechainTerminatedCCMParamsSchema,
 	validatorsHashInputSchema,
 } from './schema';
-import { BlockHeader, VerificationResult, VerifyStatus } from '../../node/state_machine';
-import { Certificate } from '../../node/consensus/certificate_generation/types';
-import { certificateSchema } from '../../node/consensus/certificate_generation/schema';
-import { CommandExecuteContext, SubStore } from '../../node/state_machine/types';
+import { BlockHeader, VerificationResult, VerifyStatus } from '../../state_machine';
+import { Certificate } from '../../engine/consensus/certificate_generation/types';
+import { certificateSchema } from '../../engine/consensus/certificate_generation/schema';
+import { CommandExecuteContext, SubStore } from '../../state_machine/types';
 
 interface CommonExecutionLogicArgs {
 	context: CommandExecuteContext<CrossChainUpdateTransactionParams>;

@@ -37,6 +37,7 @@ interface ContextParams {
 	currentValidators: Validator[];
 	impliesMaxPrevote: boolean;
 	maxHeightCertified: number;
+	certificateThreshold: bigint;
 	header?: BlockHeader;
 	assets?: BlockAssets;
 }
@@ -52,6 +53,7 @@ export class TransactionContext {
 	private readonly _currentValidators: Validator[];
 	private readonly _impliesMaxPrevote: boolean;
 	private readonly _maxHeightCertified: number;
+	private readonly _certificateThreshold: bigint;
 
 	public constructor(params: ContextParams) {
 		this._stateStore = params.stateStore;
@@ -64,6 +66,7 @@ export class TransactionContext {
 		this._currentValidators = params.currentValidators;
 		this._impliesMaxPrevote = params.impliesMaxPrevote;
 		this._maxHeightCertified = params.maxHeightCertified;
+		this._certificateThreshold = params.certificateThreshold;
 	}
 
 	public createTransactionVerifyContext(): TransactionVerifyContext {
@@ -99,6 +102,7 @@ export class TransactionContext {
 			currentValidators: this._currentValidators,
 			impliesMaxPrevote: this._impliesMaxPrevote,
 			maxHeightCertified: this._maxHeightCertified,
+			certificateThreshold: this._certificateThreshold,
 		};
 	}
 
@@ -144,6 +148,7 @@ export class TransactionContext {
 			currentValidators: this._currentValidators,
 			impliesMaxPrevote: this._impliesMaxPrevote,
 			maxHeightCertified: this._maxHeightCertified,
+			certificateThreshold: this._certificateThreshold,
 		};
 	}
 

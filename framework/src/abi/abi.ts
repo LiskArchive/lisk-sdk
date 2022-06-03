@@ -244,6 +244,7 @@ export interface VerifyAssetsResponse {}
 
 export interface Consensus {
 	currentValidators: Validator[];
+	certificateThreshold: bigint;
 	implyMaxPrevote: boolean;
 	maxHeightCertified: number;
 }

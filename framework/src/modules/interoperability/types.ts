@@ -13,14 +13,13 @@
  */
 
 import { Logger } from '../../logger';
-import { Validator } from '../../node/consensus/types';
-import { APIContext } from '../../node/state_machine';
+import { APIContext } from '../../state_machine';
 import {
 	EventQueueAdder,
 	ImmutableAPIContext,
 	ImmutableSubStore,
 	SubStore,
-} from '../../node/state_machine/types';
+} from '../../state_machine/types';
 
 export type StoreCallback = (moduleID: number, storePrefix: number) => SubStore | ImmutableSubStore;
 export interface CCMsg {
@@ -215,35 +214,11 @@ export interface ValidatorKeys {
 	blsKey: Buffer;
 }
 
-export interface BFTAPI {
-	getBFTParameters(
-		context: ImmutableAPIContext,
-		height: number,
-	): Promise<{
-		prevoteThreshold: bigint;
-		precommitThreshold: bigint;
-		certificateThreshold: bigint;
-		validators: Validator[];
-	}>;
-	setBFTParameters(
-		apiContext: APIContext,
-		precommitThreshold: bigint,
-		certificateThreshold: bigint,
-		validators: Validator[],
-	): Promise<void>;
-}
-
 export interface ValidatorsAPI {
 	getValidatorAccount(apiContext: ImmutableAPIContext, address: Buffer): Promise<ValidatorKeys>;
 }
 
-export interface MainchainRegistrationCommandDependencies {
-	bftAPI: BFTAPI;
-	validatorsAPI: ValidatorsAPI;
-}
-
 export interface CrossChainCommandDependencies {
-	bftAPI: BFTAPI;
 	validatorsAPI: ValidatorsAPI;
 }
 

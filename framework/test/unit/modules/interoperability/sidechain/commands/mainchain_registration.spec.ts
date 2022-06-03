@@ -54,7 +54,7 @@ import {
 	ActiveValidators,
 	MainchainRegistrationParams,
 } from '../../../../../../src/modules/interoperability/types';
-import { VerifyStatus, CommandVerifyContext } from '../../../../../../src/node/state_machine';
+import { VerifyStatus, CommandVerifyContext } from '../../../../../../src/state_machine';
 import {
 	computeValidatorsHash,
 	getIDAsKeyForStore,
@@ -111,6 +111,21 @@ describe('Mainchain registration command', () => {
 				.createTransactionContext({
 					transaction,
 					networkIdentifier,
+					certificateThreshold: BigInt(40),
+					currentValidators: [
+						{
+							address: getRandomBytes(20),
+							bftWeight: BigInt(10),
+							blsKey: getRandomBytes(48),
+							generatorKey: getRandomBytes(32),
+						},
+						{
+							address: getRandomBytes(20),
+							bftWeight: BigInt(5),
+							generatorKey: getRandomBytes(32),
+							blsKey: getRandomBytes(48),
+						},
+					],
 				})
 				.createCommandVerifyContext<MainchainRegistrationParams>(mainchainRegParams);
 		});
@@ -215,41 +230,22 @@ describe('Mainchain registration command', () => {
 			},
 			status: CHAIN_REGISTERED,
 		};
-		const bftParams = {
-			prevoteThreshold: BigInt(20),
-			precommitThreshold: BigInt(30),
-			certificateThreshold: BigInt(40),
-			validators: [
-				{
-					address: getRandomBytes(20),
-					bftWeight: BigInt(10),
-				},
-				{
-					address: getRandomBytes(20),
-					bftWeight: BigInt(5),
-				},
-			],
-			validatorsHash: getRandomBytes(32),
-		};
 		const blsKey1 = getRandomBytes(48);
 		const blsKey2 = getRandomBytes(48);
 		const validatorAccounts = [
 			{
-				generatorKey: getRandomBytes(48),
+				address: getRandomBytes(20),
+				bftWeight: BigInt(10),
+				generatorKey: getRandomBytes(32),
 				blsKey: blsKey1 < blsKey2 ? blsKey1 : blsKey2,
 			},
 			{
-				generatorKey: getRandomBytes(48),
+				address: getRandomBytes(20),
+				bftWeight: BigInt(5),
+				generatorKey: getRandomBytes(32),
 				blsKey: blsKey1 < blsKey2 ? blsKey2 : blsKey1,
 			},
 		];
-		const mockBFTAPI = {
-			getBFTParameters: jest.fn(),
-			setBFTParameters: jest.fn(),
-		};
-		const mockValidatorsAPI = {
-			getValidatorAccount: jest.fn(),
-		};
 		const mockGetStore = jest.fn();
 		const context = {
 			logger: jest.fn(),
@@ -261,6 +257,8 @@ describe('Mainchain registration command', () => {
 			params,
 			getAPIContext: jest.fn(),
 			getStore: mockGetStore,
+			certificateThreshold: BigInt(40),
+			currentValidators: validatorAccounts,
 		} as any;
 		const chainSubstore = {
 			setWithSchema: jest.fn(),
@@ -278,10 +276,6 @@ describe('Mainchain registration command', () => {
 		const sendInternal = jest.fn();
 
 		beforeEach(() => {
-			mainchainRegistrationCommand.addDependencies({
-				bftAPI: mockBFTAPI,
-				validatorsAPI: mockValidatorsAPI,
-			});
 			mainchainRegistrationCommand['getInteroperabilityStore'] = jest
 				.fn()
 				.mockReturnValue({ sendInternal });
@@ -300,21 +294,6 @@ describe('Mainchain registration command', () => {
 			when(mockGetStore)
 				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_OWN_CHAIN_DATA)
 				.mockReturnValue(ownChainAccountSubstore);
-
-			const spyValidators = jest.spyOn(
-				mainchainRegistrationCommand['_validatorsAPI'],
-				'getValidatorAccount',
-			);
-			when(spyValidators)
-				.calledWith(context.getAPIContext(), bftParams.validators[0].address)
-				.mockResolvedValue(validatorAccounts[0]);
-			when(spyValidators)
-				.calledWith(context.getAPIContext(), bftParams.validators[1].address)
-				.mockResolvedValue(validatorAccounts[1]);
-
-			jest
-				.spyOn(mainchainRegistrationCommand['_bftAPI'], 'getBFTParameters')
-				.mockResolvedValue(bftParams);
 		});
 
 		it('should call verifyWeightedAggSig with appropriate parameters', async () => {
@@ -326,7 +305,7 @@ describe('Mainchain registration command', () => {
 			});
 
 			const keyList = [validatorAccounts[0].blsKey, validatorAccounts[1].blsKey];
-			const weights = [bftParams.validators[0].bftWeight, bftParams.validators[1].bftWeight];
+			const weights = [validatorAccounts[0].bftWeight, validatorAccounts[1].bftWeight];
 
 			jest.spyOn(crypto, 'verifyWeightedAggSig');
 
@@ -342,7 +321,7 @@ describe('Mainchain registration command', () => {
 				context.networkIdentifier,
 				message,
 				weights,
-				bftParams.certificateThreshold,
+				BigInt(40),
 			);
 		});
 

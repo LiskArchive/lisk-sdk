@@ -14,8 +14,7 @@
 
 import { when } from 'jest-when';
 import { codec } from '@liskhq/lisk-codec';
-import { Transaction, StateStore } from '@liskhq/lisk-chain';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
+import { Transaction } from '@liskhq/lisk-chain';
 import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
 import { MerkleTree, regularMerkleTree } from '@liskhq/lisk-tree';
 import { CommandExecuteContext } from '../../../../../../src';
@@ -35,19 +34,21 @@ import {
 	terminatedOutboxSchema,
 } from '../../../../../../src/modules/interoperability/schema';
 import { CCMsg, MessageRecoveryParams } from '../../../../../../src/modules/interoperability/types';
-import { CommandVerifyContext, VerifyStatus } from '../../../../../../src/node/state_machine/types';
+import { CommandVerifyContext, VerifyStatus } from '../../../../../../src/state_machine/types';
 import { createTransactionContext } from '../../../../../../src/testing';
 import {
 	getIDAsKeyForStore,
 	swapReceivingAndSendingChainIDs,
 } from '../../../../../../src/modules/interoperability/utils';
-import { TransactionContext } from '../../../../../../src/node/state_machine';
+import { TransactionContext } from '../../../../../../src/state_machine';
 import { Mocked } from '../../../../../utils/types';
+import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
 
 describe('Mainchain MessageRecoveryCommand', () => {
 	describe('verify', () => {
 		const LEAF_PREFIX = Buffer.from('00', 'hex');
-		let stateStore: StateStore;
+		let stateStore: PrefixedStateReadWriter;
 		let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
 		let terminatedOutboxSubstore: any;
 		let mockGetStore: any;
@@ -72,7 +73,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		beforeEach(async () => {
 			interoperableCCAPIs = new Map();
 			ccCommands = new Map();
-			stateStore = new StateStore(new InMemoryKVStore());
+			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
 			terminatedOutboxSubstore = stateStore.getStore(
 				MODULE_ID_INTEROPERABILITY,

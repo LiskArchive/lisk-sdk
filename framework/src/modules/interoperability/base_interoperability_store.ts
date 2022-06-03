@@ -16,7 +16,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { hash } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
-import { SubStore } from '../../node/state_machine/types';
+import { SubStore } from '../../state_machine/types';
 import {
 	CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED,
 	CCM_STATUS_OK,

@@ -32,9 +32,18 @@ import {
 import { loggerMock } from './mocks';
 import { WritableBlockAssets } from '../engine/generator/types';
 import { Validator } from '../abi';
-import { SubStore } from '../state_machine/types';
+import { EventQueueAdder, SubStore } from '../state_machine/types';
 import { PrefixedStateReadWriter } from '../state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from './in_memory_prefixed_state';
+import {
+	BeforeApplyCCMsgAPIContext,
+	BeforeRecoverCCMsgAPIContext,
+	BeforeSendCCMsgAPIContext,
+	CCCommandExecuteContext,
+	CCMsg,
+	CCUpdateParams,
+	RecoverCCMsgAPIContext,
+} from '../modules/interoperability/types';
 
 export const createGenesisBlockContext = (params: {
 	header?: BlockHeader;
@@ -121,6 +130,9 @@ export const createBlockContext = (params: {
 		currentValidators: params.validators ?? [],
 		impliesMaxPrevote: true,
 		maxHeightCertified: 0,
+		certificateThreshold: params.validators
+			? (BigInt(2) * BigInt(params.validators.length)) / BigInt(3) + BigInt(1)
+			: BigInt(0),
 	});
 	return ctx;
 };
@@ -186,6 +198,7 @@ export const createTransactionContext = (params: {
 	currentValidators?: Validator[];
 	impliesMaxPrevote?: boolean;
 	maxHeightCertified?: number;
+	certificateThreshold?: bigint;
 	transaction: Transaction;
 }): TransactionContext => {
 	const logger = params.logger ?? loggerMock;
@@ -223,6 +236,7 @@ export const createTransactionContext = (params: {
 		currentValidators: params.currentValidators ?? [],
 		impliesMaxPrevote: params.impliesMaxPrevote ?? true,
 		maxHeightCertified: params.maxHeightCertified ?? 0,
+		certificateThreshold: params.certificateThreshold ?? BigInt(0),
 	});
 	return ctx;
 };
@@ -268,7 +282,8 @@ const createCCAPIContext = (params: {
 	ccm?: CCMsg;
 	feeAddress?: Buffer;
 }) => {
-	const stateStore = params.stateStore ?? new StateStore(new InMemoryKVStore());
+	const stateStore =
+		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	const logger = params.logger ?? loggerMock;
 	const networkIdentifier = params.networkIdentifier ?? Buffer.alloc(0);
 	const eventQueue = params.eventQueue ?? new EventQueue();
