@@ -100,7 +100,7 @@ export interface SendInternalContext {
 	fee: bigint;
 	status: number;
 	params: Buffer;
-	timestamp: number;
+	timestamp?: number;
 	beforeSendContext: BeforeSendCCMsgAPIContext;
 }
 
