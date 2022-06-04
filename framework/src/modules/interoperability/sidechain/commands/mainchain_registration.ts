@@ -115,7 +115,6 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 
 	public async execute(context: CommandExecuteContext<MainchainRegistrationParams>): Promise<void> {
 		const {
-			header,
 			networkIdentifier,
 			getStore,
 			currentValidators: validators,
