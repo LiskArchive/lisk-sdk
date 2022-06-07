@@ -13,7 +13,7 @@
  */
 
 export const configSchema = {
-	$id: '#/plugins/lisk-dashboard/config',
+	$id: '#/plugins/liskDashboard/config',
 	type: 'object',
 	properties: {
 		applicationName: {

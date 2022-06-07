@@ -19,7 +19,7 @@ const prepareProtobuffersBooleans = () =>
 const { Boolean } = prepareProtobuffersBooleans();
 
 const schema = {
-	$id: 'object5',
+	$id: '/object5',
 	type: 'object',
 	properties: {
 		state: {

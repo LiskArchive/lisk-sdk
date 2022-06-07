@@ -69,7 +69,7 @@ const account = {
 };
 
 const testSchema = {
-	$id: 'accountSchema',
+	$id: '/accountSchema',
 	type: 'object',
 	properties: {
 		address: { dataType: 'bytes', fieldNumber: 1 },

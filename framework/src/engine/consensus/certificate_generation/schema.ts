@@ -13,7 +13,7 @@
  */
 
 export const certificateSchema = {
-	$id: 'consensus/certificate',
+	$id: '/consensus/certificate',
 	type: 'object',
 	required: ['blockID', 'height', 'timestamp', 'stateRoot', 'validatorsHash'],
 	properties: {
@@ -49,7 +49,7 @@ export const certificateSchema = {
 };
 
 export const singleCommitSchema = {
-	$id: 'consensus/singleCommit',
+	$id: '/consensus/singleCommit',
 	type: 'object',
 	required: ['blockID', 'height', 'validatorAddress', 'certificateSignature'],
 	properties: {
@@ -79,7 +79,7 @@ export const singleCommitSchema = {
 };
 
 export const singleCommitsNetworkPacketSchema = {
-	$id: 'consensus/singleCommitsNetworkPacket',
+	$id: '/consensus/singleCommitsNetworkPacket',
 	type: 'object',
 	required: ['commits'],
 	properties: {
@@ -94,7 +94,7 @@ export const singleCommitsNetworkPacketSchema = {
 };
 
 export const aggregateCommitSchema = {
-	$id: 'consensus/aggregateCommit',
+	$id: '/consensus/aggregateCommit',
 	type: 'object',
 	required: ['height', 'aggregationBits', 'certificateSignature'],
 	properties: {

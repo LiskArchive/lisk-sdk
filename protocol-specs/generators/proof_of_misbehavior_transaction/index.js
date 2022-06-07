@@ -34,7 +34,7 @@ const networkIdentifier = Buffer.from(
 );
 
 const pomAsset = {
-	$id: 'asset/pom',
+	$id: '/asset/pom',
 	type: 'object',
 	properties: {
 		header1: { dataType: 'bytes', fieldNumber: 1 },
@@ -44,7 +44,7 @@ const pomAsset = {
 };
 
 const blockHeaderWithoutSignature = {
-	$id: 'asset/header/no-signature',
+	$id: '/asset/header/no-signature',
 	type: 'object',
 	properties: {
 		version: { dataType: 'uint32', fieldNumber: 1 },
@@ -71,7 +71,7 @@ const blockHeaderWithoutSignature = {
 
 const blockHeader = {
 	...blockHeaderWithoutSignature,
-	$id: 'asset/header',
+	$id: '/asset/header',
 	properties: {
 		...blockHeaderWithoutSignature.properties,
 		signature: { dataType: 'bytes', fieldNumber: 9 },
@@ -80,7 +80,7 @@ const blockHeader = {
 
 const blockAsset = {
 	type: 'object',
-	$id: 'block/asset',
+	$id: '/block/asset',
 	properties: {
 		maxHeightPreviouslyForged: { dataType: 'uint32', fieldNumber: 1 },
 		maxHeightPrevoted: { dataType: 'uint32', fieldNumber: 2 },

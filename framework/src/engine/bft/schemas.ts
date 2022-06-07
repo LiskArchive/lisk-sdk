@@ -23,7 +23,7 @@ export interface BFTParameters {
 }
 
 export const bftParametersSchema = {
-	$id: 'modules/bft/bftParameters',
+	$id: '/modules/bft/bftParameters',
 	type: 'object',
 	required: [
 		'prevoteThreshold',
@@ -79,7 +79,7 @@ export interface GeneratorKeys {
 }
 
 export const generatorKeysSchema = {
-	$id: 'modules/bft/generatorKeys',
+	$id: '/modules/bft/generatorKeys',
 	type: 'object',
 	required: ['generators'],
 	properties: {
@@ -128,7 +128,7 @@ export interface BFTVotes {
 }
 
 export const bftVotesSchema = {
-	$id: 'modules/bft/bftVotes',
+	$id: '/modules/bft/bftVotes',
 	type: 'object',
 	required: [
 		'maxHeightPrevoted',
@@ -191,7 +191,7 @@ export interface ValidatorsHashInput {
 }
 
 export const validatorsHashInputSchema = {
-	$id: 'modules/bft/validatorsHashInput',
+	$id: '/modules/bft/validatorsHashInput',
 	type: 'object',
 	required: ['activeValidators', 'certificateThreshold'],
 	properties: {
@@ -217,7 +217,7 @@ export interface AreHeadersContradictingRequest {
 }
 
 export const areHeadersContradictingRequestSchema = {
-	$id: 'modules/bft/areHeadersContradictingRequest',
+	$id: '/modules/bft/areHeadersContradictingRequest',
 	type: 'object',
 	required: ['header1', 'header2'],
 	properties: {

@@ -24,7 +24,7 @@ const {
 } = prepareProtobuffersBaseTransaction();
 
 const baseTransactionSchema = {
-	$id: 'baseTransactionSchema',
+	$id: '/baseTransactionSchema',
 	type: 'object',
 	properties: {
 		moduleID: { dataType: 'uint32', fieldNumber: 1 },
@@ -39,7 +39,7 @@ const baseTransactionSchema = {
 };
 
 const voteAssetSchema = {
-	$id: 'voteAssetSchema',
+	$id: '/voteAssetSchema',
 	type: 'object',
 	properties: {
 		votes: {
@@ -59,7 +59,7 @@ const voteAssetSchema = {
 };
 
 const multisigAssetSchema = {
-	$id: 'multisigAssetSchema',
+	$id: '/multisigAssetSchema',
 	type: 'object',
 	properties: {
 		numberOfSignatures: { dataType: 'uint32', fieldNumber: 1 },
