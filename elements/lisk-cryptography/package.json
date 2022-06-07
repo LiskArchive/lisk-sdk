@@ -42,7 +42,7 @@
 	},
 	"peerDependencies": {
 		"sodium-native": "3.2.1",
-		"@chainsafe/blst": "0.2.0"
+		"@chainsafe/blst": "0.2.4"
 	},
 	"peerDependenciesMeta": {
 		"sodium-native": {
