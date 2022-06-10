@@ -55,3 +55,14 @@ export const isValidPath = (path: string) => {
 				: parseInt(segment, 10) <= MAX_UINT32 / 2;
 		});
 };
+
+export const getMasterKeyFromSeed = (seed: Buffer) => {
+	const hmac = crypto.createHmac('sha512', ED25519_CURVE);
+	const I = hmac.update(seed).digest();
+	const IL = I.slice(0, 32);
+	const IR = I.slice(32);
+	return {
+		key: IL,
+		chainCode: IR,
+	};
+};
