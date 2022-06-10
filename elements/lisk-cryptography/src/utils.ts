@@ -13,6 +13,9 @@
  *
  */
 
+import * as crypto from 'crypto';
+import { ED25519_CURVE, MAX_UINT32 } from './constants';
+
 export const readBit = (buf: Buffer, bit: number): boolean => {
 	const byteIndex = Math.floor(bit / 8);
 	const bitIndex = bit % 8;
@@ -32,4 +35,23 @@ export const writeBit = (buf: Buffer, bit: number, val: boolean): void => {
 		// eslint-disable-next-line no-bitwise, no-param-reassign
 		buf[byteIndex] &= ~(1 << bitIndex);
 	}
+};
+
+export const isValidPath = (path: string) => {
+	if (!path.startsWith('m') || !path.includes('/')) {
+		return false;
+	}
+
+	return path
+		.split('/')
+		.slice(1, path.length)
+		.every(segment => {
+			if (!/^[0-9']+$/g.test(segment)) {
+				return false;
+			}
+
+			return segment.includes(`'`)
+				? parseInt(segment.slice(0, -1), 10) <= MAX_UINT32 / 2
+				: parseInt(segment, 10) <= MAX_UINT32 / 2;
+		});
 };
