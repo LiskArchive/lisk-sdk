@@ -35,6 +35,7 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
+		"@liskhq/lisk-passphrase": "4.0.0-alpha.0",
 		"buffer-reverse": "1.0.1",
 		"ed2curve": "0.3.0",
 		"tweetnacl": "1.0.3",

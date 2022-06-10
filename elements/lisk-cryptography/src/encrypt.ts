@@ -13,7 +13,7 @@
  *
  */
 import * as crypto from 'crypto';
-import * as Mnemonic from 'bip39';
+import { Mnemonic } from '@liskhq/lisk-passphrase';
 
 import { bufferToHex, hexToBuffer } from './buffer';
 // eslint-disable-next-line import/no-cycle
