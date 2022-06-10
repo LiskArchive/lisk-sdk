@@ -35,7 +35,6 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
-		"bip39": "3.0.4",
 		"buffer-reverse": "1.0.1",
 		"ed2curve": "0.3.0",
 		"tweetnacl": "1.0.3",
