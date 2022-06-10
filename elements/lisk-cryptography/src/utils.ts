@@ -44,7 +44,7 @@ export const isValidPath = (path: string) => {
 
 	return path
 		.split('/')
-		.slice(1, path.length)
+		.slice(1)
 		.every(segment => {
 			if (!/^[0-9']+$/g.test(segment)) {
 				return false;
