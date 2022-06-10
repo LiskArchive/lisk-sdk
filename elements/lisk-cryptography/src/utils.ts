@@ -66,3 +66,17 @@ export const getMasterKeyFromSeed = (seed: Buffer) => {
 		chainCode: IR,
 	};
 };
+
+export const getChildKey = (node: { key: Buffer; chainCode: Buffer }, index: number) => {
+	const indexBuffer = Buffer.allocUnsafe(4);
+	indexBuffer.writeUInt32BE(index, 0);
+	const data = Buffer.concat([Buffer.alloc(1, 0), node.key, indexBuffer]);
+	const I = crypto.createHmac('sha512', node.chainCode).update(data).digest();
+	const IL = I.slice(0, 32);
+	const IR = I.slice(32);
+
+	return {
+		key: IL,
+		chainCode: IR,
+	};
+};
