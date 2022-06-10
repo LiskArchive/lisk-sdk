@@ -13,6 +13,7 @@
  *
  */
 import * as crypto from 'crypto';
+import * as Mnemonic from 'bip39';
 
 import { bufferToHex, hexToBuffer } from './buffer';
 // eslint-disable-next-line import/no-cycle
@@ -20,12 +21,14 @@ import { convertPrivateKeyEd2Curve, convertPublicKeyEd2Curve } from './convert';
 // eslint-disable-next-line import/no-cycle
 import { getPrivateAndPublicKeyFromPassphrase } from './keys';
 // eslint-disable-next-line import/no-cycle
-import { box, getRandomBytes, openBox } from './nacl';
+import { box, getRandomBytes, openBox, getKeyPair } from './nacl';
+import { getMasterKeyFromSeed, getChildKey, isValidPath } from './utils';
 
 const PBKDF2_ITERATIONS = 1e6;
 const PBKDF2_KEYLEN = 32;
 const PBKDF2_HASH_FUNCTION = 'sha256';
 const ENCRYPTION_VERSION = '1';
+const HARDENED_OFFSET = 0x80000000;
 
 export interface EncryptedMessageWithNonce {
 	readonly encryptedMessage: string;
@@ -166,3 +169,23 @@ const decryptAES256GCMWithPassword = (
 export const encryptPassphraseWithPassword = encryptAES256GCMWithPassword;
 
 export const decryptPassphraseWithPassword = decryptAES256GCMWithPassword;
+
+export const getKeyPairFromPhraseAndPath = async (phrase: string, path: string) => {
+	if (!isValidPath(path)) {
+		throw new Error('Invalid path format');
+	}
+
+	const masterSeed = await Mnemonic.mnemonicToSeed(phrase);
+	let node = getMasterKeyFromSeed(masterSeed);
+
+	// slice first element which is `m`
+	for (const segment of path.split('/').slice(1)) {
+		// if segment includes apostrophe, we must add HARDENED_OFFSET
+		const segmentWithOffset = segment.includes("'")
+			? parseInt(segment, 10) + HARDENED_OFFSET
+			: parseInt(segment, 10);
+		node = getChildKey(node, segmentWithOffset);
+	}
+
+	return getKeyPair(node.key);
+};
