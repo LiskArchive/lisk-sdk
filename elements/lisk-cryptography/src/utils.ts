@@ -14,7 +14,7 @@
  */
 
 import * as crypto from 'crypto';
-import { ED25519_CURVE, MAX_UINT32 } from './constants';
+import { HARDENED_OFFSET, ED25519_CURVE, MAX_UINT32 } from './constants';
 
 export const readBit = (buf: Buffer, bit: number): boolean => {
 	const byteIndex = Math.floor(bit / 8);
@@ -37,23 +37,36 @@ export const writeBit = (buf: Buffer, bit: number, val: boolean): void => {
 	}
 };
 
-export const isValidPath = (path: string) => {
+export const parseKeyDerivationPath = (path: string) => {
 	if (!path.startsWith('m') || !path.includes('/')) {
-		return false;
+		throw new Error('Invalid path format');
 	}
 
-	return path
-		.split('/')
-		.slice(1)
-		.every(segment => {
-			if (!/^[0-9']+$/g.test(segment)) {
-				return false;
-			}
+	return (
+		path
+			.split('/')
+			// slice first element which is `m`
+			.slice(1)
+			.map(segment => {
+				if (!/^[0-9']+$/g.test(segment)) {
+					throw new Error('Invalid path format');
+				}
 
-			return segment.includes(`'`)
-				? parseInt(segment.slice(0, -1), 10) <= MAX_UINT32 / 2
-				: parseInt(segment, 10) <= MAX_UINT32 / 2;
-		});
+				// if segment includes apostrophe add HARDENED_OFFSET
+				if (segment.includes(`'`)) {
+					if (parseInt(segment.slice(0, -1), 10) > MAX_UINT32 / 2) {
+						throw new Error('Invalid path format');
+					}
+					return parseInt(segment, 10) + HARDENED_OFFSET;
+				}
+
+				if (parseInt(segment, 10) <= MAX_UINT32 / 2) {
+					throw new Error('Invalid path format');
+				}
+
+				return parseInt(segment, 10);
+			})
+	);
 };
 
 export const getMasterKeyFromSeed = (seed: Buffer) => {
