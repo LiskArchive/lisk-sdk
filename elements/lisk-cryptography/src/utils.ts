@@ -58,12 +58,12 @@ export const isValidPath = (path: string) => {
 
 export const getMasterKeyFromSeed = (seed: Buffer) => {
 	const hmac = crypto.createHmac('sha512', ED25519_CURVE);
-	const I = hmac.update(seed).digest();
-	const IL = I.slice(0, 32);
-	const IR = I.slice(32);
+	const digest = hmac.update(seed).digest();
+	const leftBytes = digest.slice(0, 32);
+	const rightBytes = digest.slice(32);
 	return {
-		key: IL,
-		chainCode: IR,
+		key: leftBytes,
+		chainCode: rightBytes,
 	};
 };
 
@@ -71,12 +71,12 @@ export const getChildKey = (node: { key: Buffer; chainCode: Buffer }, index: num
 	const indexBuffer = Buffer.allocUnsafe(4);
 	indexBuffer.writeUInt32BE(index, 0);
 	const data = Buffer.concat([Buffer.alloc(1, 0), node.key, indexBuffer]);
-	const I = crypto.createHmac('sha512', node.chainCode).update(data).digest();
-	const IL = I.slice(0, 32);
-	const IR = I.slice(32);
+	const digest = crypto.createHmac('sha512', node.chainCode).update(data).digest();
+	const leftBytes = digest.slice(0, 32);
+	const rightBytes = digest.slice(32);
 
 	return {
-		key: IL,
-		chainCode: IR,
+		key: leftBytes,
+		chainCode: rightBytes,
 	};
 };
