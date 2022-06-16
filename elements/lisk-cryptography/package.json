@@ -39,7 +39,8 @@
 		"buffer-reverse": "1.0.1",
 		"ed2curve": "0.3.0",
 		"tweetnacl": "1.0.3",
-		"varuint-bitcoin": "1.1.2"
+		"varuint-bitcoin": "1.1.2",
+		"hash-wasm": "4.9.0"
 	},
 	"peerDependencies": {
 		"@chainsafe/blst": "0.2.4",
