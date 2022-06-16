@@ -51,7 +51,7 @@ export const forgerInfoSchema = {
 };
 
 export const forgerSyncSchema = {
-	$id: 'forger/sync',
+	$id: '/forger/sync',
 	type: 'object',
 	required: ['syncUptoHeight'],
 	properties: {
@@ -63,7 +63,7 @@ export const forgerSyncSchema = {
 };
 
 export const dposVoteParamsSchema = {
-	$id: 'forger/dpos/vote',
+	$id: '/forger/dpos/vote',
 	type: 'object',
 	required: ['votes'],
 	properties: {

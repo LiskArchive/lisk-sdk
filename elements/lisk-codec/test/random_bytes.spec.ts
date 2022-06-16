@@ -16,7 +16,7 @@ import { Codec } from '../src/codec';
 
 describe('random bytes', () => {
 	const schema = {
-		$id: 'testSchema',
+		$id: '/testSchema',
 		type: 'object',
 		properties: {
 			b: { fieldNumber: 2, dataType: 'string' },

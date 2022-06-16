@@ -197,7 +197,7 @@ const delegateAccounts = [
 ];
 
 const assetSchema = {
-	$id: 'protocol-spec/assets/vote',
+	$id: '/protocolSpec/assets/vote',
 	type: 'object',
 	properties: {
 		votes: {

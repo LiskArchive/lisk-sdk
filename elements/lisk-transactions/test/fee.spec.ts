@@ -18,7 +18,7 @@ import { computeMinFee, getBytes } from '../src';
 
 describe('fee', () => {
 	const validParamsSchema = {
-		$id: 'lisk/transfer-transaction',
+		$id: '/lisk/transfer-transaction',
 		title: 'Transfer transaction params',
 		type: 'object',
 		required: ['amount', 'recipientAddress', 'data'],
@@ -137,7 +137,7 @@ describe('fee', () => {
 			};
 			const options = { minFeePerByte: 1000, baseFees, numberOfSignatures: 1 };
 			const delegateRegisterParamsSchema = {
-				$id: 'lisk/dpos/register',
+				$id: '/lisk/dpos/register',
 				type: 'object',
 				required: ['username'],
 				properties: {

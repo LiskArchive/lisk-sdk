@@ -21,7 +21,9 @@ const { ArrayOfIntegers, ArrayBools, ArrayString, ArrayObjects } = prepareProtob
 
 const getArraySchemaFor = type => ({
 	type: 'object',
-	$id: `array-schema-${typeof type === 'string' ? type : typeof type}`,
+	$id: `/arraySchema${(typeof type === 'string' ? type : typeof type).replace(/^./, str =>
+		str.toUpperCase(),
+	)}`,
 	properties: {
 		list: {
 			type: 'array',

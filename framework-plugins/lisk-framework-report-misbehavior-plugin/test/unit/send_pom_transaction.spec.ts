@@ -136,18 +136,18 @@ describe('Send PoM transaction', () => {
 							id: 3,
 							name: 'reportDelegateMisbehavior',
 							params: {
-								$id: 'lisk/dpos/pom',
+								$id: '/lisk/dpos/pom',
 								type: 'object',
 								required: ['header1', 'header2'],
 								properties: {
 									header1: {
 										...chain.blockHeaderSchema,
-										$id: 'block-header1',
+										$id: 'blockHeader1',
 										fieldNumber: 1,
 									},
 									header2: {
 										...chain.blockHeaderSchema,
-										$id: 'block-header2',
+										$id: 'blockHeader2',
 										fieldNumber: 2,
 									},
 								},

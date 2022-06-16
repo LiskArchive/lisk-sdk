@@ -96,7 +96,7 @@ const diffString = {
 	created: ['chain:delegates', 'consensus:bft'],
 };
 const diffStringSchema = {
-	$id: '/state/diff-string',
+	$id: '/state/diffString',
 	type: 'object',
 	required: ['updated', 'created'],
 	properties: {
