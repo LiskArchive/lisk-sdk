@@ -14,7 +14,6 @@
 
 export const MODULE_ID_VALIDATORS = 11; // TBD
 export const STORE_PREFIX_VALIDATORS_DATA = 0x0000;
-export const STORE_PREFIX_GENERATOR_LIST = 0x4000;
 export const STORE_PREFIX_BLS_KEYS = 0x8000;
 export const STORE_PREFIX_GENESIS_DATA = 0xc000;
 export const INVALID_BLS_KEY = Buffer.alloc(48);

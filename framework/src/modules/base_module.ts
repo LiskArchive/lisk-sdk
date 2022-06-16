@@ -23,11 +23,11 @@ import {
 	TransactionVerifyContext,
 	BlockVerifyContext,
 	VerificationResult,
-} from '../node/state_machine';
-import { BlockGenerateContext } from '../node/generator';
+} from '../state_machine';
 import { BaseCommand } from './base_command';
 import { BaseEndpoint } from './base_endpoint';
 import { BaseAPI } from './base_api';
+import { InsertAssetContext } from '../state_machine/types';
 
 export interface ModuleInitArgs {
 	genesisConfig: Omit<GenesisConfig, 'modules'>;
@@ -56,6 +56,8 @@ export interface ModuleMetadata {
 	}[];
 }
 
+export type RootModuleMetadata = ModuleMetadata & { id: number; name: string };
+
 export abstract class BaseModule {
 	public commands: BaseCommand[] = [];
 	public events: string[] = [];
@@ -65,8 +67,7 @@ export abstract class BaseModule {
 	public abstract api: BaseAPI;
 
 	public async init?(args: ModuleInitArgs): Promise<void>;
-	public async initBlock?(context: BlockGenerateContext): Promise<void>;
-	public async sealBlock?(context: BlockGenerateContext): Promise<void>;
+	public async initBlock?(context: InsertAssetContext): Promise<void>;
 	public async verifyAssets?(context: BlockVerifyContext): Promise<void>;
 	public async verifyTransaction?(context: TransactionVerifyContext): Promise<VerificationResult>;
 	public async beforeCommandExecute?(context: TransactionExecuteContext): Promise<void>;

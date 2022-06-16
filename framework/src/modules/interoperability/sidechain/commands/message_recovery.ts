@@ -20,7 +20,7 @@ import {
 	CommandExecuteContext,
 	CommandVerifyContext,
 	VerificationResult,
-} from '../../../../node/state_machine/types';
+} from '../../../../state_machine/types';
 import { CCMsg, StoreCallback, MessageRecoveryParams, TerminatedOutboxAccount } from '../../types';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { SidechainInteroperabilityStore } from '../store';

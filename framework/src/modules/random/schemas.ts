@@ -13,7 +13,7 @@
  */
 
 export const randomModuleConfig = {
-	$id: 'modules/random/config',
+	$id: '/modules/random/config',
 	type: 'object',
 	required: ['maxLengthReveals'],
 	properties: {
@@ -25,7 +25,7 @@ export const randomModuleConfig = {
 };
 
 export const randomModuleGeneratorConfig = {
-	$id: 'modules/random/generator',
+	$id: '/modules/random/generator',
 	type: 'object',
 	required: [],
 	properties: {
@@ -60,7 +60,7 @@ export const randomModuleGeneratorConfig = {
 };
 
 export const seedRevealSchema = {
-	$id: 'modules/random/seedReveal',
+	$id: '/modules/random/seedReveal',
 	type: 'object',
 	properties: {
 		validatorReveals: {
@@ -94,7 +94,7 @@ export const seedRevealSchema = {
 };
 
 export const blockHeaderAssetRandomModule = {
-	$id: 'modules/random/block/header/asset',
+	$id: '/modules/random/block/header/asset',
 	type: 'object',
 	properties: {
 		seedReveal: {
@@ -107,7 +107,7 @@ export const blockHeaderAssetRandomModule = {
 
 export const registeredHashOnionsStoreSchema = {
 	title: 'Used hash onion',
-	$id: '/node/forger/registered_hash_onion',
+	$id: '/forger/registeredHashOnion',
 	type: 'object',
 	required: ['registeredHashOnions'],
 	properties: {
@@ -134,7 +134,7 @@ export const registeredHashOnionsStoreSchema = {
 
 export const usedHashOnionsStoreSchema = {
 	title: 'Used hash onion',
-	$id: '/node/forger/used_hash_onion',
+	$id: '/node/forger/usedHashOnion',
 	type: 'object',
 	required: ['usedHashOnions'],
 	properties: {
@@ -164,7 +164,7 @@ export const usedHashOnionsStoreSchema = {
 };
 
 export const isSeedRevealValidRequestSchema = {
-	$id: 'modules/random/endpoint/isSeedRevealRequest',
+	$id: '/modules/random/endpoint/isSeedRevealRequest',
 	type: 'object',
 	required: ['generatorAddress', 'seedReveal'],
 	properties: {
@@ -180,7 +180,7 @@ export const isSeedRevealValidRequestSchema = {
 };
 
 export const isSeedRevealValidResponseSchema = {
-	$id: 'modules/random/endpoint/isSeedRevealRequest',
+	$id: '/modules/random/endpoint/isSeedRevealRequest',
 	type: 'object',
 	required: ['valid'],
 	properties: {

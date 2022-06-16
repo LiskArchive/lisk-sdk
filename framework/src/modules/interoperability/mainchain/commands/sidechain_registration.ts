@@ -51,7 +51,7 @@ import {
 	VerificationResult,
 	VerifyStatus,
 	CommandExecuteContext,
-} from '../../../../node/state_machine/types';
+} from '../../../../state_machine/types';
 
 export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 	public id = COMMAND_ID_SIDECHAIN_REG;
@@ -180,9 +180,9 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		const chainSubstore = getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
 
 		// Find the latest chainID from db
-		const start = intToBuffer(0, 4);
-		const end = intToBuffer(MAX_UINT32, 4);
-		const chainIDs = await chainSubstore.iterate({ start, end, limit: 1, reverse: true });
+		const gte = intToBuffer(0, 4);
+		const lte = intToBuffer(MAX_UINT32, 4);
+		const chainIDs = await chainSubstore.iterate({ gte, lte, limit: 1, reverse: true });
 		if (!chainIDs.length) {
 			throw new Error('No existing entries found in chain store');
 		}

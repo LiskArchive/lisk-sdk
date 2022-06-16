@@ -14,14 +14,14 @@
 import * as React from 'react';
 import { Widget, WidgetHeader, WidgetBody } from '../widget';
 import Text from '../Text';
-import { RegisteredModule, SendTransactionOptions } from '../../types';
+import { SendTransactionOptions } from '../../types';
 import SelectInput, { SelectInputOptionType } from '../input/SelectInput';
 import { TextAreaInput } from '../input';
 import Box from '../Box';
 import Button from '../Button';
 
 interface WidgetProps {
-	modules: RegisteredModule[];
+	modules: { id: number; name: string; commands: { id: number; name: string }[] }[];
 	onSubmit: (data: SendTransactionOptions) => void;
 }
 

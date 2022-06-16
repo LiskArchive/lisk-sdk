@@ -16,7 +16,7 @@ import { intToBuffer } from '@liskhq/lisk-cryptography';
 import { objects as objectUtils, dataStructures, objects } from '@liskhq/lisk-utils';
 import { isUInt64, LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
-import { GenesisBlockExecuteContext, BlockAfterExecuteContext } from '../../node/state_machine';
+import { GenesisBlockExecuteContext, BlockAfterExecuteContext } from '../../state_machine';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { DPoSAPI } from './api';
 import { DelegateRegistrationCommand } from './commands/delegate_registration';
@@ -56,7 +56,6 @@ import {
 	voterStoreSchema,
 } from './schemas';
 import {
-	BFTAPI,
 	RandomAPI,
 	TokenAPI,
 	ValidatorsAPI,
@@ -76,7 +75,6 @@ import {
 	selectStandbyDelegates,
 	shuffleDelegateList,
 	sortUnlocking,
-	validtorsEqual,
 } from './utils';
 
 export class DPoSModule extends BaseModule {
@@ -104,31 +102,22 @@ export class DPoSModule extends BaseModule {
 	];
 
 	private _randomAPI!: RandomAPI;
-	private _bftAPI!: BFTAPI;
 	private _validatorsAPI!: ValidatorsAPI;
 	private _tokenAPI!: TokenAPI;
 	private _moduleConfig!: ModuleConfig;
 
-	public addDependencies(
-		randomAPI: RandomAPI,
-		bftAPI: BFTAPI,
-		validatorsAPI: ValidatorsAPI,
-		tokenAPI: TokenAPI,
-	) {
-		this._bftAPI = bftAPI;
+	public addDependencies(randomAPI: RandomAPI, validatorsAPI: ValidatorsAPI, tokenAPI: TokenAPI) {
 		this._randomAPI = randomAPI;
 		this._validatorsAPI = validatorsAPI;
 		this._tokenAPI = tokenAPI;
 
 		this._delegateRegistrationCommand.addDependencies(this._validatorsAPI);
 		this._reportDelegateMisbehaviorCommand.addDependencies({
-			bftAPI: this._bftAPI,
 			tokenAPI: this._tokenAPI,
 			validatorsAPI: this._validatorsAPI,
 		});
 		this._unlockCommand.addDependencies({
 			tokenAPI: this._tokenAPI,
-			bftAPI: this._bftAPI,
 		});
 		this._updateGeneratorKeyCommand.addDependencies(this._validatorsAPI);
 		this._voteCommand.addDependencies({
@@ -407,8 +396,8 @@ export class DPoSModule extends BaseModule {
 		const voterStore = context.getStore(this.id, STORE_PREFIX_VOTER);
 		const allVoters = await voterStore.iterateWithSchema<VoterData>(
 			{
-				start: Buffer.alloc(20),
-				end: Buffer.alloc(20, 255),
+				gte: Buffer.alloc(20),
+				lte: Buffer.alloc(20, 255),
 			},
 			voterStoreSchema,
 		);
@@ -433,19 +422,27 @@ export class DPoSModule extends BaseModule {
 
 		const initDelegates = [...genesisStore.genesisData.initDelegates];
 		initDelegates.sort((a, b) => a.compare(b));
-		const bftWeights = initDelegates.map(d => ({
-			bftWeight: BigInt(1),
-			address: d,
-		}));
 		const initBFTThreshold = BigInt(Math.floor((2 * initDelegates.length) / 3) + 1);
-		await this._bftAPI.setBFTParameters(apiContext, initBFTThreshold, initBFTThreshold, bftWeights);
-		await this._validatorsAPI.setGeneratorList(apiContext, initDelegates);
+		const validators = [];
+		for (const validatorAddress of initDelegates) {
+			const validatorAccount = await this._validatorsAPI.getValidatorAccount(
+				apiContext,
+				validatorAddress,
+			);
+			validators.push({
+				address: validatorAddress,
+				blsKey: validatorAccount.blsKey,
+				generatorKey: validatorAccount.generatorKey,
+				bftWeight: BigInt(1),
+			});
+		}
+		context.setNextValidators(initBFTThreshold, initBFTThreshold, validators);
 
 		const MAX_UINT32 = 2 ** 32 - 1;
 		const snapshotStore = context.getStore(this.id, STORE_PREFIX_SNAPSHOT);
 		const allSnapshots = await snapshotStore.iterate({
-			start: intToBuffer(0, 4),
-			end: intToBuffer(MAX_UINT32, 4),
+			gte: intToBuffer(0, 4),
+			lte: intToBuffer(MAX_UINT32, 4),
 		});
 		if (context.header.height === 0 && allSnapshots.length > 0) {
 			throw new Error('When genensis height is zero, there should not be a snapshot.');
@@ -501,8 +498,8 @@ export class DPoSModule extends BaseModule {
 		const delegateStore = context.getStore(this.id, STORE_PREFIX_DELEGATE);
 		const delegates = await delegateStore.iterateWithSchema<DelegateAccount>(
 			{
-				start: Buffer.alloc(20),
-				end: Buffer.alloc(20, 255),
+				gte: Buffer.alloc(20),
+				lte: Buffer.alloc(20, 255),
 			},
 			delegateStoreSchema,
 		);
@@ -580,8 +577,8 @@ export class DPoSModule extends BaseModule {
 
 		// Remove outdated information
 		const oldData = await snapshotStore.iterate({
-			start: intToBuffer(0, 4),
-			end: intToBuffer(Math.max(0, snapshotRound - DELEGATE_LIST_ROUND_OFFSET - 1), 4),
+			gte: intToBuffer(0, 4),
+			lte: intToBuffer(Math.max(0, snapshotRound - DELEGATE_LIST_ROUND_OFFSET - 1), 4),
 		});
 		for (const { key } of oldData) {
 			await snapshotStore.del(key);
@@ -602,27 +599,9 @@ export class DPoSModule extends BaseModule {
 
 		const apiContext = context.getAPIContext();
 
-		// get the last stored BFT parameters, and update them if needed
-		const currentBFTParams = await this._bftAPI.getBFTParameters(apiContext, height);
-		// snapshot.activeDelegates order should not be changed here to use it below
-		const bftWeight = [...snapshot.activeDelegates]
-			.sort((a, b) => a.compare(b))
-			.map(address => ({ address, bftWeight: BigInt(1) }));
-		if (
-			!validtorsEqual(currentBFTParams.validators, bftWeight) ||
-			currentBFTParams.precommitThreshold !== BigInt(this._moduleConfig.bftThreshold) ||
-			currentBFTParams.certificateThreshold !== BigInt(this._moduleConfig.bftThreshold)
-		) {
-			await this._bftAPI.setBFTParameters(
-				apiContext,
-				BigInt(this._moduleConfig.bftThreshold),
-				BigInt(this._moduleConfig.bftThreshold),
-				bftWeight,
-			);
-		}
-
 		// Update the validators
 		const validators = [...snapshot.activeDelegates];
+		let standbyDelegates: Buffer[] = [];
 		const randomSeed1 = await this._randomAPI.getRandomBytes(
 			apiContext,
 			height + 1 - Math.floor((this._moduleConfig.roundLength * 3) / 2),
@@ -634,18 +613,38 @@ export class DPoSModule extends BaseModule {
 				height + 1 - 2 * this._moduleConfig.roundLength,
 				this._moduleConfig.roundLength,
 			);
-			const standbyDelegates = selectStandbyDelegates(
+			standbyDelegates = selectStandbyDelegates(
 				snapshot.delegateWeightSnapshot,
 				randomSeed1,
 				randomSeed2,
 			);
 			validators.push(...standbyDelegates);
 		} else if (this._moduleConfig.numberStandbyDelegates === 1) {
-			const standbyDelegates = selectStandbyDelegates(snapshot.delegateWeightSnapshot, randomSeed1);
+			standbyDelegates = selectStandbyDelegates(snapshot.delegateWeightSnapshot, randomSeed1);
 			validators.push(...standbyDelegates);
 		}
 		const shuffledValidators = shuffleDelegateList(randomSeed1, validators);
-		await this._validatorsAPI.setGeneratorList(apiContext, shuffledValidators);
+		const bftValidators = [];
+		for (const validatorAddress of shuffledValidators) {
+			const validatorAccount = await this._validatorsAPI.getValidatorAccount(
+				apiContext,
+				validatorAddress,
+			);
+			const isActive =
+				snapshot.activeDelegates.findIndex(addr => addr.equals(validatorAddress)) > -1;
+			// if validator is active
+			bftValidators.push({
+				address: validatorAddress,
+				blsKey: validatorAccount.blsKey,
+				generatorKey: validatorAccount.generatorKey,
+				bftWeight: isActive ? BigInt(1) : BigInt(0),
+			});
+		}
+		context.setNextValidators(
+			BigInt(this._moduleConfig.bftThreshold),
+			BigInt(this._moduleConfig.bftThreshold),
+			bftValidators,
+		);
 	}
 
 	private async _updateProductivity(context: BlockAfterExecuteContext, previousTimestamp: number) {
@@ -656,10 +655,12 @@ export class DPoSModule extends BaseModule {
 
 		const newHeight = header.height;
 		const apiContext = getAPIContext();
+		const generators = context.currentValidators;
 		const missedBlocks = await this._validatorsAPI.getGeneratorsBetweenTimestamps(
 			apiContext,
 			previousTimestamp,
 			header.timestamp,
+			generators,
 		);
 
 		const delegateStore = getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);

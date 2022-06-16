@@ -14,69 +14,22 @@
 
 import { blsPopVerify } from '@liskhq/lisk-cryptography';
 import { BaseAPI } from '../base_api';
-import { APIContext, ImmutableAPIContext } from '../../node/state_machine';
+import { APIContext, ImmutableAPIContext } from '../../state_machine';
 import {
 	EMPTY_KEY,
 	INVALID_BLS_KEY,
 	STORE_PREFIX_BLS_KEYS,
-	STORE_PREFIX_GENERATOR_LIST,
 	STORE_PREFIX_GENESIS_DATA,
 	STORE_PREFIX_VALIDATORS_DATA,
 } from './constants';
-import { APIInitArgs, GeneratorList, GenesisData, ValidatorKeys } from './types';
-import {
-	generatorListSchema,
-	genesisDataSchema,
-	validatorAccountSchema,
-	validatorAddressSchema,
-} from './schemas';
+import { APIInitArgs, GenesisData, ValidatorKeys } from './types';
+import { genesisDataSchema, validatorAccountSchema, validatorAddressSchema } from './schemas';
 
 export class ValidatorsAPI extends BaseAPI {
 	private _blockTime!: number;
 
 	public init(args: APIInitArgs) {
 		this._blockTime = args.config.blockTime;
-	}
-
-	public async getGeneratorAtTimestamp(
-		apiContext: ImmutableAPIContext,
-		timestamp: number,
-	): Promise<Buffer> {
-		const genesisData = await this.getGenesisData(apiContext);
-
-		if (timestamp < genesisData.timestamp) {
-			throw new Error('Input timestamp must be greater than genesis timestamp.');
-		}
-
-		const elapsedTime = timestamp - genesisData.timestamp;
-
-		const generatorListSubStore = apiContext.getStore(this.moduleID, STORE_PREFIX_GENERATOR_LIST);
-		const generatorList = await generatorListSubStore.getWithSchema<GeneratorList>(
-			EMPTY_KEY,
-			generatorListSchema,
-		);
-		const slotIndex = Math.floor(elapsedTime / this._blockTime) % generatorList.addresses.length;
-		return generatorList.addresses[slotIndex];
-	}
-
-	public async getSlotNumber(apiContext: ImmutableAPIContext, timestamp: number): Promise<number> {
-		const genesisData = await this.getGenesisData(apiContext);
-
-		if (timestamp < genesisData.timestamp) {
-			throw new Error('Input timestamp must be greater than genesis timestamp.');
-		}
-
-		const elapsedTime = timestamp - genesisData.timestamp;
-		return Math.floor(elapsedTime / this._blockTime);
-	}
-
-	public async getSlotTime(apiContext: ImmutableAPIContext, slotNumber: number): Promise<number> {
-		if (slotNumber < 0) {
-			throw new Error('Input slot number must be positive.');
-		}
-		const slotGenesisTimeOffset = slotNumber * this._blockTime;
-		const genesisData = await this.getGenesisData(apiContext);
-		return genesisData.timestamp + slotGenesisTimeOffset;
 	}
 
 	public async registerValidatorKeys(
@@ -216,42 +169,11 @@ export class ValidatorsAPI extends BaseAPI {
 		return blsKeysSubStore.has(blsKey);
 	}
 
-	public async getGeneratorList(apiContext: ImmutableAPIContext): Promise<Buffer[]> {
-		const generatorListSubStore = apiContext.getStore(this.moduleID, STORE_PREFIX_GENERATOR_LIST);
-		const generatorList = await generatorListSubStore.getWithSchema<GeneratorList>(
-			EMPTY_KEY,
-			generatorListSchema,
-		);
-
-		return generatorList.addresses;
-	}
-
-	public async setGeneratorList(
-		apiContext: APIContext,
-		generatorAddresses: Buffer[],
-	): Promise<boolean> {
-		const generatorListSubStore = apiContext.getStore(this.moduleID, STORE_PREFIX_GENERATOR_LIST);
-		const validatorsSubStore = apiContext.getStore(this.moduleID, STORE_PREFIX_VALIDATORS_DATA);
-
-		for (const addr of generatorAddresses) {
-			const addressExists = await validatorsSubStore.has(addr);
-			if (!addressExists) {
-				return false;
-			}
-		}
-
-		await generatorListSubStore.setWithSchema(
-			EMPTY_KEY,
-			{ addresses: generatorAddresses },
-			generatorListSchema,
-		);
-		return true;
-	}
-
 	public async getGeneratorsBetweenTimestamps(
 		apiContext: ImmutableAPIContext,
 		startTimestamp: number,
 		endTimestamp: number,
+		validators: { address: Buffer }[],
 	): Promise<Record<string, number>> {
 		if (endTimestamp < startTimestamp) {
 			throw new Error('End timestamp must be greater than start timestamp.');
@@ -274,12 +196,7 @@ export class ValidatorsAPI extends BaseAPI {
 
 		let totalSlots = endSlotNumber - startSlotNumber + 1;
 
-		const generatorListSubStore = apiContext.getStore(this.moduleID, STORE_PREFIX_GENERATOR_LIST);
-		const generatorList = await generatorListSubStore.getWithSchema<GeneratorList>(
-			EMPTY_KEY,
-			generatorListSchema,
-		);
-		const generatorAddresses = generatorList.addresses.map(buf => buf.toString('binary'));
+		const generatorAddresses = validators.map(validator => validator.address.toString('binary'));
 		const baseSlots = Math.floor(totalSlots / generatorAddresses.length);
 
 		if (baseSlots > 0) {

@@ -54,7 +54,7 @@ describe('RandomModuleEndpoint', () => {
 			},
 		];
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			randomEndpoint = new RandomEndpoint(MODULE_ID_RANDOM);
 			context = createTransientModuleEndpointContext({
 				stateStore,

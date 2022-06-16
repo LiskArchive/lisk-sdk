@@ -34,7 +34,7 @@ describe('validateTransaction', () => {
 	};
 
 	const validParamsSchema = {
-		$id: 'lisk/transfer-transaction',
+		$id: '/lisk/transferTransaction',
 		title: 'Transfer transaction params',
 		type: 'object',
 		required: ['amount', 'recipientAddress', 'data'],
@@ -73,7 +73,7 @@ describe('validateTransaction', () => {
 
 	it('should return error when params is null', () => {
 		return expect(
-			validateTransaction(validParamsSchema, { ...validTransaction, params: null }),
+			validateTransaction({ ...validTransaction, params: null }, validParamsSchema),
 		).toEqual(new Error('Transaction object params must be of type object and not null'));
 	});
 
@@ -86,11 +86,11 @@ describe('validateTransaction', () => {
 			},
 		];
 		return invalidParams.forEach(transactionObject =>
-			expect(validateTransaction(validParamsSchema, transactionObject)).toBeInstanceOf(Error),
+			expect(validateTransaction(transactionObject, validParamsSchema)).toBeInstanceOf(Error),
 		);
 	});
 
 	it('should return undefined for valid transaction object', () => {
-		return expect(validateTransaction(validParamsSchema, validTransaction)).toBeUndefined();
+		return expect(validateTransaction(validTransaction, validParamsSchema)).toBeUndefined();
 	});
 });

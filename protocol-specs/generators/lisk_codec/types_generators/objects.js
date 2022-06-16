@@ -33,7 +33,7 @@ const object = {
 	},
 };
 const objectSchema = {
-	$id: 'object11',
+	$id: '/object11',
 	type: 'object',
 	properties: {
 		address: {
@@ -85,7 +85,7 @@ const objectWithOptionalProps = {
 };
 
 const objectWithOptionalPropsSchema = {
-	$id: 'object12',
+	$id: '/object12',
 	type: 'object',
 	properties: {
 		isActive: {

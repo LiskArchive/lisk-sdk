@@ -50,15 +50,8 @@ import {
 	CommandVerifyContext,
 	VerificationResult,
 	VerifyStatus,
-} from '../../../../node/state_machine';
-import {
-	BFTAPI,
-	MainchainRegistrationCommandDependencies,
-	MainchainRegistrationParams,
-	StoreCallback,
-	ValidatorsAPI,
-	ActiveValidators,
-} from '../../types';
+} from '../../../../state_machine';
+import { MainchainRegistrationParams, StoreCallback, ActiveValidators } from '../../types';
 import {
 	computeValidatorsHash,
 	getIDAsKeyForStore,
@@ -72,13 +65,6 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 	public id = COMMAND_ID_MAINCHAIN_REG;
 	public name = 'mainchainRegistration';
 	public schema = mainchainRegParams;
-	private _bftAPI!: BFTAPI;
-	private _validatorsAPI!: ValidatorsAPI;
-
-	public addDependencies(args: MainchainRegistrationCommandDependencies) {
-		this._bftAPI = args.bftAPI;
-		this._validatorsAPI = args.validatorsAPI;
-	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(
@@ -129,27 +115,16 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 
 	public async execute(context: CommandExecuteContext<MainchainRegistrationParams>): Promise<void> {
 		const {
-			getAPIContext,
-			header,
 			networkIdentifier,
 			getStore,
+			currentValidators: validators,
+			certificateThreshold,
 			params: { ownChainID, ownName, mainchainValidators, aggregationBits, signature },
 		} = context;
 		const mainchainIdAsKey = getIDAsKeyForStore(MAINCHAIN_ID);
-		const { validators, certificateThreshold } = await this._bftAPI.getBFTParameters(
-			getAPIContext(),
-			header.height,
-		);
-		const activeValidators: ActiveValidators[] = [];
+		const activeValidators: ActiveValidators[] = validators.filter(v => v.bftWeight > BigInt(0));
 		const keyList: Buffer[] = [];
 		const weights: bigint[] = [];
-		for (const v of validators) {
-			const { blsKey } = await this._validatorsAPI.getValidatorAccount(getAPIContext(), v.address);
-			activeValidators.push({
-				blsKey,
-				bftWeight: v.bftWeight,
-			});
-		}
 		sortValidatorsByBLSKey(activeValidators);
 		for (const v of activeValidators) {
 			keyList.push(v.blsKey);

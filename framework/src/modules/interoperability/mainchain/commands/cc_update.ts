@@ -14,14 +14,14 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
-import { certificateSchema } from '../../../../node/consensus/certificate_generation/schema';
-import { Certificate } from '../../../../node/consensus/certificate_generation/types';
+import { certificateSchema } from '../../../../engine/consensus/certificate_generation/schema';
+import { Certificate } from '../../../../engine/consensus/certificate_generation/types';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
 	VerificationResult,
 	VerifyStatus,
-} from '../../../../node/state_machine';
+} from '../../../../state_machine';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import {
 	CHAIN_ACTIVE,

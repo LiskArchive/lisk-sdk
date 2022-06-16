@@ -15,7 +15,7 @@
 
 import * as apiClient from '@liskhq/lisk-api-client';
 import { Command } from '@oclif/command';
-import { RegisteredSchema } from 'lisk-framework';
+import { RegisteredSchema, ModuleMetadata } from 'lisk-framework';
 import { PromiseResolvedType } from '../../types';
 import { isApplicationRunning } from '../../utils/application';
 import { flagsWithParser } from '../../utils/flags';
@@ -35,6 +35,7 @@ export abstract class BaseIPCClientCommand extends Command {
 	protected baseIPCClientFlags!: BaseIPCClientFlags;
 	protected _client!: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
 	protected _schema!: RegisteredSchema;
+	protected _metadata!: ModuleMetadata[];
 	protected _dataPath!: string;
 
 	async finally(): Promise<void> {
@@ -54,7 +55,8 @@ export abstract class BaseIPCClientCommand extends Command {
 			throw new Error(`Application at data path ${this._dataPath} is not running.`);
 		}
 		this._client = await apiClient.createIPCClient(this._dataPath);
-		this._schema = this._client.schemas;
+		this._schema = this._client.schema;
+		this._metadata = this._client.metadata;
 	}
 
 	printJSON(message?: Record<string, unknown>): void {

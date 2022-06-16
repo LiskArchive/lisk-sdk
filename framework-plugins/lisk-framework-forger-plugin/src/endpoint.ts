@@ -46,9 +46,9 @@ interface Delegate {
 
 export class Endpoint extends BasePluginEndpoint {
 	private _client!: BasePlugin['apiClient'];
-	private _db!: liskDB.KVStore;
+	private _db!: liskDB.Database;
 
-	public init(db: liskDB.KVStore, apiClient: BasePlugin['apiClient']) {
+	public init(db: liskDB.Database, apiClient: BasePlugin['apiClient']) {
 		this._db = db;
 		this._client = apiClient;
 	}

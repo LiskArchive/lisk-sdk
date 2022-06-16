@@ -12,10 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateStore, Transaction } from '@liskhq/lisk-chain';
+import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { sparseMerkleTree } from '@liskhq/lisk-tree';
 import { CommandExecuteContext, CommandVerifyContext } from '../../../../../../src';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
@@ -35,8 +34,11 @@ import {
 	TerminatedStateAccount,
 } from '../../../../../../src/modules/interoperability/types';
 import { getIDAsKeyForStore } from '../../../../../../src/modules/interoperability/utils';
-import { TransactionContext, VerifyStatus } from '../../../../../../src/node/state_machine';
+import { TransactionContext, VerifyStatus } from '../../../../../../src/state_machine';
+import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
+import { SubStore } from '../../../../../../src/state_machine/types';
 import { createTransactionContext } from '../../../../../../src/testing';
+import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
 
 describe('Mainchain StateRecoveryCommand', () => {
 	let chainIDAsBuffer: Buffer;
@@ -50,8 +52,8 @@ describe('Mainchain StateRecoveryCommand', () => {
 	let transactionParams: StateRecoveryParams;
 	let encodedTransactionParams: Buffer;
 	let transactionContext: TransactionContext;
-	let stateStore: StateStore;
-	let terminatedStateSubstore: StateStore;
+	let stateStore: PrefixedStateReadWriter;
+	let terminatedStateSubstore: SubStore;
 	let terminatedStateAccount: TerminatedStateAccount;
 
 	beforeEach(async () => {
@@ -91,7 +93,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 			senderPublicKey: getRandomBytes(32),
 			signatures: [],
 		});
-		stateStore = new StateStore(new InMemoryKVStore());
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		terminatedStateSubstore = stateStore.getStore(
 			MODULE_ID_INTEROPERABILITY,
 			STORE_PREFIX_TERMINATED_STATE,

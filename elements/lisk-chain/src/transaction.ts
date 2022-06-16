@@ -31,7 +31,7 @@ export interface TransactionAttrs {
 export type TransactionJSON = JSONObject<TransactionAttrs>;
 
 export const transactionSchema = {
-	$id: 'lisk/transaction',
+	$id: '/lisk/transaction',
 	type: 'object',
 	required: ['moduleID', 'commandID', 'nonce', 'fee', 'senderPublicKey', 'params'],
 	properties: {

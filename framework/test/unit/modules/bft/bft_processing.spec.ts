@@ -19,17 +19,15 @@ import {
 	getRandomBytes,
 	intToBuffer,
 } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
-import { GenesisConfig } from '../../../../src';
-import { BFTModule } from '../../../../src/modules/bft';
+import { InMemoryDatabase } from '@liskhq/lisk-db';
+import { BFTModule } from '../../../../src/engine/bft';
 import {
 	EMPTY_KEY,
 	STORE_PREFIX_BFT_PARAMETERS,
 	STORE_PREFIX_BFT_VOTES,
-} from '../../../../src/modules/bft/constants';
-import { bftParametersSchema, BFTVotes, bftVotesSchema } from '../../../../src/modules/bft/schemas';
-import { Validator } from '../../../../src/modules/bft/types';
-import { createBlockContext } from '../../../../src/testing';
+} from '../../../../src/engine/bft/constants';
+import { bftParametersSchema, BFTVotes, bftVotesSchema } from '../../../../src/engine/bft/schemas';
+import { BFTValidator, GeneratorKey } from '../../../../src/engine/bft/types';
 import * as scenario4DelegatesMissedSlots from './bft_processing/4_delegates_missed_slots.json';
 import * as scenario4DelegatesSimple from './bft_processing/4_delegates_simple.json';
 import * as scenario5DelegatesSwitchedCompletely from './bft_processing/5_delegates_switched_completely.json';
@@ -49,27 +47,18 @@ describe('BFT processing', () => {
 		// eslint-disable-next-line no-loop-func
 		describe(`when running scenario "${scenario.handler}"`, () => {
 			let bftModule: BFTModule;
-			let db: InMemoryKVStore;
+			let db: InMemoryDatabase;
 			let stateStore: StateStore;
 
 			beforeAll(async () => {
 				bftModule = new BFTModule();
-				bftModule.addDependencies({
-					getValidatorAccount: jest.fn().mockResolvedValue({ blsKey: getRandomBytes(32) }),
-				});
-				await bftModule.init({
-					moduleConfig: {
-						batchSize: scenario.config.activeDelegates,
-					},
-					generatorConfig: {},
-					genesisConfig: {} as GenesisConfig,
-				});
-				db = new InMemoryKVStore();
+				await bftModule.init(scenario.config.activeDelegates);
+				db = new InMemoryDatabase();
 				stateStore = new StateStore(db);
 
 				const paramsStore = stateStore.getStore(bftModule.id, STORE_PREFIX_BFT_PARAMETERS);
 				const threshold = Math.floor((scenario.config.activeDelegates * 2) / 3) + 1;
-				const validators: (Validator & { minHeightActive: number })[] = [];
+				const validators: (BFTValidator & GeneratorKey & { minHeightActive: number })[] = [];
 				for (const testCase of scenario.testCases) {
 					const generatorAddress = getAddressFromPublicKey(
 						Buffer.from(testCase.input.blockHeader.generatorPublicKey, 'hex'),
@@ -79,6 +68,8 @@ describe('BFT processing', () => {
 							address: generatorAddress,
 							minHeightActive: testCase.input.blockHeader.delegateMinHeightActive,
 							bftWeight: BigInt(1),
+							generatorKey: Buffer.from(testCase.input.blockHeader.generatorPublicKey, 'hex'),
+							blsKey: getRandomBytes(42),
 						});
 					}
 				}
@@ -117,22 +108,19 @@ describe('BFT processing', () => {
 					const generatorAddress = getAddressFromPublicKey(
 						Buffer.from(testCase.input.blockHeader.generatorPublicKey, 'hex'),
 					);
-					const context = createBlockContext({
-						header: new BlockHeader({
-							version: 2,
-							aggregateCommit: {
-								height: 0,
-								aggregationBits: Buffer.alloc(0),
-								certificateSignature: Buffer.alloc(0),
-							},
-							generatorAddress,
-							height: testCase.input.blockHeader.height,
-							maxHeightGenerated: testCase.input.blockHeader.maxHeightPreviouslyForged,
-							maxHeightPrevoted: testCase.input.blockHeader.maxHeightPrevoted,
-							previousBlockID: getRandomBytes(32),
-							timestamp: 0,
-						}),
-						stateStore,
+					const header = new BlockHeader({
+						version: 2,
+						aggregateCommit: {
+							height: 0,
+							aggregationBits: Buffer.alloc(0),
+							certificateSignature: Buffer.alloc(0),
+						},
+						generatorAddress,
+						height: testCase.input.blockHeader.height,
+						maxHeightGenerated: testCase.input.blockHeader.maxHeightPreviouslyForged,
+						maxHeightPrevoted: testCase.input.blockHeader.maxHeightPrevoted,
+						previousBlockID: getRandomBytes(32),
+						timestamp: 0,
 					});
 
 					// Update minActiveHeight which is written in input block header
@@ -161,7 +149,7 @@ describe('BFT processing', () => {
 						bftVotesSchema,
 					);
 
-					await bftModule.beforeTransactionsExecute(context.getBlockExecuteContext());
+					await bftModule.beforeTransactionsExecute(stateStore, header);
 
 					const votesStore = stateStore.getStore(bftModule.id, STORE_PREFIX_BFT_VOTES);
 					const result = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);

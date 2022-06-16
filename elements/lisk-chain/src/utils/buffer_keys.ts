@@ -12,3 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 export const concatDBKeys = (...keys: Buffer[]) => Buffer.concat(keys);
+
+export const uint32BE = (val: number): Buffer => {
+	const result = Buffer.alloc(4);
+	result.writeUInt32BE(val, 0);
+	return result;
+};

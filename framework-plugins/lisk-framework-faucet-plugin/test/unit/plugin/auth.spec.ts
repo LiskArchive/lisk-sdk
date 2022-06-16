@@ -82,6 +82,10 @@ describe('auth action', () => {
 
 	beforeEach(async () => {
 		faucetPlugin = new FaucetPlugin();
+		faucetPlugin['_apiClient'] = {
+			schema: {},
+			invoke: jest.fn(),
+		};
 		await faucetPlugin.init({
 			config: {
 				...validPluginOptions,

@@ -20,7 +20,7 @@ const cloneDeep = require('lodash.clonedeep');
 describe('LiskValidationError formatter', () => {
 	// Arrange
 	const validSchema = {
-		$id: '/my-schema',
+		$id: '/mySchema',
 		$schema: 'http://lisk.com/lisk-schema/schema#',
 		type: 'object',
 		properties: {
@@ -104,7 +104,7 @@ describe('LiskValidationError formatter', () => {
 
 	it('should format additional property errors', () => {
 		const schema = {
-			$id: '/my-schema',
+			$id: '/mySchema',
 			$schema: 'http://lisk.com/lisk-schema/schema#',
 			type: 'object',
 			properties: {

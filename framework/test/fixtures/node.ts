@@ -12,11 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { NodeOptions } from '../../src/node/types';
-
 export const cacheConfig = 'aCacheConfig';
 
-export const nodeOptions = ({
+export const nodeOptions = {
 	version: '1.0.0',
 	networkVersion: '1.0',
 	rootPath: '~/.lisk',
@@ -118,4 +116,4 @@ export const nodeOptions = ({
 		minEntranceFeePriority: '0',
 		minReplacementFeeDifference: '10',
 	},
-} as unknown) as NodeOptions;
+};

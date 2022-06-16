@@ -15,8 +15,8 @@
 	"homepage": "",
 	"repository": {},
 	"engines": {
-		"node": ">=12.13.0",
-		"npm": ">=6.12.0"
+		"node": ">=16.14.1 <=16",
+		"npm": ">=8.1.0"
 	},
 	"main": "dist/index.js",
 	"scripts": {
@@ -99,18 +99,18 @@
 		}
 	},
 	"dependencies": {
-		"@liskhq/lisk-framework-dashboard-plugin": "^0.1.6",
-		"@liskhq/lisk-framework-faucet-plugin": "^0.1.6",
-		"@liskhq/lisk-framework-monitor-plugin": "^0.2.6",
-		"@liskhq/lisk-framework-forger-plugin": "^0.2.6",
-		"@liskhq/lisk-framework-report-misbehavior-plugin": "^0.2.6",
+		"@liskhq/lisk-framework-dashboard-plugin": "^0.2.0-alpha.0",
+		"@liskhq/lisk-framework-faucet-plugin": "^0.2.0-alpha.0",
+		"@liskhq/lisk-framework-monitor-plugin": "^0.3.0-alpha.0",
+		"@liskhq/lisk-framework-forger-plugin": "^0.3.0-alpha.0",
+		"@liskhq/lisk-framework-report-misbehavior-plugin": "^0.3.0-alpha.0",
 		"@oclif/command": "1.8.0",
 		"@oclif/plugin-autocomplete": "0.3.0",
 		"@oclif/plugin-help": "3.2.2",
 		"fs-extra": "9.1.0",
 		"inquirer": "8.0.0",
-		"lisk-commander": "^5.1.9",
-		"lisk-sdk": "^5.2.1",
+		"lisk-commander": "^6.0.0-alpha.0",
+		"lisk-sdk": "^6.0.0-alpha.0",
 		"tar": "6.1.9",
 		"tslib": "1.14.1",
 		"axios": "0.21.2"

@@ -124,18 +124,18 @@ describe('Clean up old blocks', () => {
 					commandID: 3,
 					commandName: 'reportDelegateMisbehavior',
 					schema: {
-						$id: 'lisk/dpos/pom',
+						$id: '/lisk/dpos/pom',
 						type: 'object',
 						required: ['header1', 'header2'],
 						properties: {
 							header1: {
 								...chain.blockHeaderSchema,
-								$id: 'block-header1',
+								$id: 'blockHeader1',
 								fieldNumber: 1,
 							},
 							header2: {
 								...chain.blockHeaderSchema,
-								$id: 'block-header2',
+								$id: 'blockHeader2',
 								fieldNumber: 2,
 							},
 						},
@@ -156,7 +156,7 @@ describe('Clean up old blocks', () => {
 
 	it('should clear old block headers', async () => {
 		await reportMisbehaviorPlugin.load();
-		await (reportMisbehaviorPlugin as any)._pluginDB.put(
+		await (reportMisbehaviorPlugin as any)._pluginDB.set(
 			dbKey,
 			codec.encode(blockHeadersSchema, {
 				blockHeaders: [blockHeader1],

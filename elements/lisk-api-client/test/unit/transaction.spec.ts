@@ -16,7 +16,7 @@
 import { when } from 'jest-when';
 import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
 import { Transaction } from '../../src/transaction';
-import { nodeInfo, schema, tx } from '../utils/transaction';
+import { metadata, nodeInfo, schema, tx } from '../utils/transaction';
 
 describe('transaction', () => {
 	let channelMock: any;
@@ -47,6 +47,19 @@ describe('transaction', () => {
 			data: '',
 		},
 	};
+	const validTransactionJSON = {
+		id: tx.id,
+		moduleID: 2,
+		commandID: 0,
+		nonce: '1',
+		fee: '10000000',
+		senderPublicKey: publicKey1.toString('hex'),
+		params: {
+			recipientAddress: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
+			amount: '4008489300000000',
+			data: '',
+		},
+	};
 	const txId = Buffer.from(tx.id, 'hex');
 
 	beforeEach(() => {
@@ -65,14 +78,14 @@ describe('transaction', () => {
 				mandatoryKeys: [],
 				optionalKeys: [],
 			} as never)
-			.calledWith('app_getTransactionByID', expect.anything())
-			.mockResolvedValue(txHex as never)
-			.calledWith('app_getTransactionsFromPool')
-			.mockResolvedValue([txHex] as never)
-			.calledWith('app_postTransaction', expect.anything())
-			.mockResolvedValue(txHex as never);
+			.calledWith('chain_getTransactionByID', expect.anything())
+			.mockResolvedValue(validTransactionJSON as never)
+			.calledWith('txpool_getTransactionsFromPool')
+			.mockResolvedValue([validTransactionJSON] as never)
+			.calledWith('txpool_postTransaction', expect.anything())
+			.mockResolvedValue({ transactionId: tx.id } as never);
 
-		transaction = new Transaction(channelMock, schema, nodeInfo);
+		transaction = new Transaction(channelMock, schema, metadata, nodeInfo);
 	});
 
 	describe('Transaction', () => {
@@ -84,20 +97,20 @@ describe('transaction', () => {
 
 		describe('get', () => {
 			describe('transaction by id as buffer', () => {
-				it('should invoke app_getTransactionByID', async () => {
+				it('should invoke chain_getTransactionByID', async () => {
 					await transaction.get(txId);
 					expect(channelMock.invoke).toHaveBeenCalledTimes(1);
-					expect(channelMock.invoke).toHaveBeenCalledWith('app_getTransactionByID', {
+					expect(channelMock.invoke).toHaveBeenCalledWith('chain_getTransactionByID', {
 						id: txId.toString('hex'),
 					});
 				});
 			});
 
 			describe('transaction by id as hex', () => {
-				it('should invoke app_getTransactionByID', async () => {
+				it('should invoke chain_getTransactionByID', async () => {
 					await transaction.get(txId.toString('hex'));
 					expect(channelMock.invoke).toHaveBeenCalledTimes(1);
-					expect(channelMock.invoke).toHaveBeenCalledWith('app_getTransactionByID', {
+					expect(channelMock.invoke).toHaveBeenCalledWith('chain_getTransactionByID', {
 						id: txId.toString('hex'),
 					});
 				});
@@ -105,10 +118,10 @@ describe('transaction', () => {
 		});
 
 		describe('getFromPool', () => {
-			it('should invoke app_getTransactionsFromPool', async () => {
+			it('should invoke txpool_getTransactionsFromPool', async () => {
 				await transaction.getFromPool();
 				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
-				expect(channelMock.invoke).toHaveBeenCalledWith('app_getTransactionsFromPool');
+				expect(channelMock.invoke).toHaveBeenCalledWith('txpool_getTransactionsFromPool');
 			});
 		});
 
@@ -275,14 +288,14 @@ describe('transaction', () => {
 		});
 
 		describe('send', () => {
-			it('should invoke app_postTransaction', async () => {
-				const trxId = await transaction.send(tx);
+			it('should invoke txpool_postTransaction', async () => {
+				const { transactionId: trxId } = await transaction.send(tx);
 
 				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
-				expect(channelMock.invoke).toHaveBeenCalledWith('app_postTransaction', {
+				expect(channelMock.invoke).toHaveBeenCalledWith('txpool_postTransaction', {
 					transaction: txHex,
 				});
-				expect(trxId).toEqual(txHex);
+				expect(trxId).toEqual(tx.id);
 			});
 		});
 

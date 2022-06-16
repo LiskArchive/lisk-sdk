@@ -13,11 +13,10 @@
  *
  */
 
-import { blockHeaderSchema, blockSchema, transactionSchema } from '@liskhq/lisk-chain';
 import { hash } from '@liskhq/lisk-cryptography';
 import { Channel } from '../../src/types';
 import { Block } from '../../src/block';
-import { schema as schemas } from '../utils/transaction';
+import { metadata, schema } from '../utils/transaction';
 
 describe('block', () => {
 	let channel: Channel;
@@ -55,44 +54,40 @@ describe('block', () => {
 		transactions: [],
 	};
 	const blockId = sampleBlock.header.id;
-	const schema = {
-		block: blockSchema,
-		blockHeader: blockHeaderSchema,
-		transaction: transactionSchema,
-		commands: [
-			{
-				moduleID: 5,
-				moduleName: 'dpos',
-				commandID: 3,
-				commandName: 'reportDelegateMisbehavior',
-				schema: {
-					$id: 'lisk/dpos/pom',
-					type: 'object',
-					required: ['header1', 'header2'],
-					properties: {
-						header1: {
-							...blockHeaderSchema,
-							fieldNumber: 1,
-						},
-						header2: {
-							...blockHeaderSchema,
-							fieldNumber: 2,
-						},
-					},
-				},
+	const sampleBlockJSON = {
+		header: {
+			version: 1,
+			timestamp: 1009988,
+			height: 1009988,
+			previousBlockID: '4a462ea57a8c9f72d866c09770e5ec70cef18727',
+			stateRoot: '7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b',
+			transactionRoot: 'b27ca21f40d44113c2090ca8f05fb706c54e87dd',
+			assetsRoot: 'b27ca21f40d44113c2090ca8f05fb706c54e87dd',
+			eventRoot: '30dda4fbc395828e5a9f2f8824771e434fce4945a1e7820012440d09dd1e2b6d',
+			generatorAddress: 'be63fb1c0426573352556f18b21efd5b6183c39c',
+			maxHeightPrevoted: 1000988,
+			maxHeightGenerated: 1000988,
+			validatorsHash: hash(Buffer.alloc(0)).toString('hex'),
+			aggregateCommit: {
+				height: 0,
+				aggregationBits: '',
+				certificateSignature: '',
 			},
-			...schemas.commands,
-		],
-	} as any;
+			signature: '6da88e2fd4435e26e02682435f108002ccc3ddd5',
+			id: 'f14104e384546adaba487af56e658188eea07bb534a61b4cbb9ccaee54139b8c',
+		},
+		assets: [],
+		transactions: [],
+	};
 
 	beforeEach(() => {
 		channel = {
 			connect: jest.fn(),
 			disconnect: jest.fn(),
-			invoke: jest.fn().mockResolvedValue(encodedBlock),
+			invoke: jest.fn().mockResolvedValue(sampleBlockJSON),
 			subscribe: jest.fn(),
 		};
-		block = new Block(channel, schema);
+		block = new Block(channel, schema, metadata);
 	});
 
 	describe('Block', () => {
@@ -104,26 +99,26 @@ describe('block', () => {
 
 		describe('get', () => {
 			describe('block by id as buffer', () => {
-				it('should invoke app_getBlockByID', async () => {
+				it('should invoke chain_getBlockByID', async () => {
 					// Act
 					await block.get(blockId);
 
 					// Assert
 					expect(channel.invoke).toHaveBeenCalledTimes(1);
-					expect(channel.invoke).toHaveBeenCalledWith('app_getBlockByID', {
+					expect(channel.invoke).toHaveBeenCalledWith('chain_getBlockByID', {
 						id: blockId.toString('hex'),
 					});
 				});
 			});
 
 			describe('block by id as hex', () => {
-				it('should invoke app_getBlockByID', async () => {
+				it('should invoke chain_getBlockByID', async () => {
 					// Act
 					await block.get(blockId.toString('hex'));
 
 					// Assert
 					expect(channel.invoke).toHaveBeenCalledTimes(1);
-					expect(channel.invoke).toHaveBeenCalledWith('app_getBlockByID', {
+					expect(channel.invoke).toHaveBeenCalledWith('chain_getBlockByID', {
 						id: blockId.toString('hex'),
 					});
 				});
@@ -131,13 +126,13 @@ describe('block', () => {
 		});
 
 		describe('getByHeight', () => {
-			it('should invoke app_getBlockByHeight', async () => {
+			it('should invoke chain_getBlockByHeight', async () => {
 				// Act
 				await block.getByHeight(1);
 
 				// Assert
 				expect(channel.invoke).toHaveBeenCalledTimes(sampleHeight);
-				expect(channel.invoke).toHaveBeenCalledWith('app_getBlockByHeight', {
+				expect(channel.invoke).toHaveBeenCalledWith('chain_getBlockByHeight', {
 					height: sampleHeight,
 				});
 			});

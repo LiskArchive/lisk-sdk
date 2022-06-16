@@ -20,7 +20,7 @@ const cloneDeep = require('lodash.clonedeep');
 describe('validator', () => {
 	describe('validateSchema', () => {
 		const validSchema = {
-			$id: '/my-schema',
+			$id: '/mySchema',
 			$schema: 'http://lisk.com/lisk-schema/schema#',
 			type: 'object',
 			properties: {
@@ -40,7 +40,7 @@ describe('validator', () => {
 		it('should return error on schema with type other than "object"', () => {
 			// Arrange
 			const invalidSchema = {
-				$id: '/my-invalid-schema',
+				$id: '/myInvalidSchema',
 				$schema: 'http://lisk.com/lisk-schema/schema#',
 				type: 'string',
 				properties: {},

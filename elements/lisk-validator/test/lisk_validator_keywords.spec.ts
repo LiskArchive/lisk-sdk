@@ -24,7 +24,7 @@ const cloneDeep = require('lodash.clonedeep');
 describe('validator keywords', () => {
 	// Arrange
 	const validSchema = {
-		$id: '/my-schema',
+		$id: '/mySchema',
 		$schema: 'http://lisk.com/lisk-schema/schema#',
 		type: 'object',
 		properties: {

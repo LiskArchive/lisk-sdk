@@ -27,7 +27,7 @@ import {
 import { createProbe } from '../utils/probe';
 import { genesis, DefaultAccountProps } from '../../fixtures';
 import { nodeUtils } from '../../utils';
-import { createTransferTransaction } from '../../utils/node/transaction';
+import { createTransferTransaction } from '../../utils/mocks/transaction';
 import { transactionIdsSchema, transactionsSchema } from '../../../src/node/transport/schemas';
 
 describe('Public transaction related P2P endpoints', () => {

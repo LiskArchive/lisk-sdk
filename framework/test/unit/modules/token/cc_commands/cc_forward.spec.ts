@@ -12,10 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { TokenAPI } from '../../../../../src/modules/token/api';
 import { CCForwardCommand } from '../../../../../src/modules/token/cc_commands/cc_forward';
 import {
@@ -42,9 +40,11 @@ import {
 	userStoreSchema,
 } from '../../../../../src/modules/token/schemas';
 import { getUserStoreKey } from '../../../../../src/modules/token/utils';
-import { EventQueue } from '../../../../../src/node/state_machine';
-import { APIContext, createAPIContext } from '../../../../../src/node/state_machine/api_context';
-import { fakeLogger } from '../../../../utils/node';
+import { EventQueue } from '../../../../../src/state_machine';
+import { APIContext, createAPIContext } from '../../../../../src/state_machine/api_context';
+import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
+import { fakeLogger } from '../../../../utils/mocks';
 
 describe('CrossChain Forward command', () => {
 	const defaultAddress = getRandomBytes(20);
@@ -73,7 +73,7 @@ describe('CrossChain Forward command', () => {
 		terminateChain: jest.Mock;
 		getChannel: jest.Mock;
 	};
-	let stateStore: StateStore;
+	let stateStore: PrefixedStateReadWriter;
 	let apiContext: APIContext;
 
 	beforeEach(async () => {
@@ -97,9 +97,9 @@ describe('CrossChain Forward command', () => {
 			minBalances,
 		});
 
-		stateStore = new StateStore(new InMemoryKVStore());
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		apiContext = createAPIContext({
-			stateStore: new StateStore(new InMemoryKVStore()),
+			stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
 			eventQueue: new EventQueue(),
 		});
 		const userStore = apiContext.getStore(MODULE_ID_TOKEN, STORE_PREFIX_USER);

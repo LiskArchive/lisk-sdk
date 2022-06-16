@@ -14,11 +14,7 @@
 /* eslint-disable class-methods-use-this */
 
 import { Schema } from '@liskhq/lisk-codec';
-import {
-	CommandVerifyContext,
-	CommandExecuteContext,
-	VerificationResult,
-} from '../node/state_machine';
+import { CommandVerifyContext, CommandExecuteContext, VerificationResult } from '../state_machine';
 
 export abstract class BaseCommand<T = unknown> {
 	public schema?: Schema;

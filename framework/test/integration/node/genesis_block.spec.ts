@@ -12,15 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { codec } from '@liskhq/lisk-codec';
-import { Chain, StateStore } from '@liskhq/lisk-chain';
+import { Chain } from '@liskhq/lisk-chain';
 import * as testing from '../../../src/testing';
-import { createTransferTransaction, DEFAULT_TOKEN_ID } from '../../utils/node/transaction';
+import { createTransferTransaction, DEFAULT_TOKEN_ID } from '../../utils/mocks/transaction';
 import { TokenModule } from '../../../src';
 import { genesisTokenStoreSchema } from '../../../src/modules/token';
 import { GenesisTokenStore } from '../../../src/modules/token/types';
-import { Consensus } from '../../../src/node/consensus';
-import { createAPIContext, EventQueue } from '../../../src/node/state_machine';
-import { Network } from '../../../src/node/network';
+import { Consensus } from '../../../src/engine/consensus';
+import { Network } from '../../../src/engine/network';
 
 describe('genesis block', () => {
 	const databasePath = '/tmp/lisk/genesis_block/test';
@@ -75,7 +74,7 @@ describe('genesis block', () => {
 
 			it('should have correct delegate list', async () => {
 				const validators = await processEnv.invoke<{ list: string[] }>(
-					'validators_getGeneratorList',
+					'chain_getGeneratorList',
 					{},
 				);
 				expect(validators.list).toMatchSnapshot();
@@ -126,15 +125,14 @@ describe('genesis block', () => {
 					keepEventsForHeights: -1,
 				});
 				const newConsensus = new Consensus({
-					bftAPI: consensus['_bftAPI'],
+					abi: consensus['_abi'],
+					bft: consensus['_bft'],
 					chain,
 					genesisConfig: consensus['_genesisConfig'],
 					network: ({
 						registerEndpoint: () => {},
 						registerHandler: () => {},
 					} as unknown) as Network,
-					stateMachine: consensus['_stateMachine'],
-					validatorAPI: consensus['_validatorAPI'],
 				});
 				chain.init({
 					db: processEnv.getBlockchainDB(),
@@ -145,22 +143,16 @@ describe('genesis block', () => {
 					db: consensus['_db'],
 					genesisBlock: processEnv.getGenesisBlock(),
 					logger: consensus['_logger'],
+					moduleIDs: consensus['_moduleIDs'],
 				});
 
-				const tokenModule = consensus['_stateMachine']['_findModule'](
-					new TokenModule().id,
-				) as TokenModule;
-				const balance = await tokenModule.api.getAvailableBalance(
-					createAPIContext({
-						stateStore: new StateStore(newConsensus['_db']),
-						eventQueue: new EventQueue(),
-					}),
-					recipientAddress,
-					Buffer.alloc(8, 0),
-				);
+				const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
+					address: recipientAddress.toString('hex'),
+					tokenID: DEFAULT_TOKEN_ID.toString('hex'),
+				});
 
 				// Arrange & Assert
-				expect(balance).toEqual(newBalance);
+				expect(balance.availableBalance).toEqual(newBalance.toString());
 			});
 		});
 	});

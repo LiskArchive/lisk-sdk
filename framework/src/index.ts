@@ -19,7 +19,7 @@ export {
 	blockSchema,
 	signingBlockHeaderSchema,
 } from '@liskhq/lisk-chain';
-export { BaseModule, BaseAPI, BaseCommand, BaseEndpoint } from './modules';
+export { BaseModule, BaseAPI, BaseCommand, BaseEndpoint, ModuleMetadata } from './modules';
 export { Application } from './application';
 export { systemDirs } from './system_dirs';
 export { BasePlugin, PluginInitContext } from './plugins/base_plugin';
@@ -30,7 +30,7 @@ export type { EventsDefinition, EventCallback } from './controller/event';
 export * as testing from './testing';
 export * from './types';
 export { ValidatorsAPI, ValidatorsModule } from './modules/validators';
-export { BFTAPI, BFTModule } from './modules/bft';
+export { BFTAPI, BFTModule } from './engine/bft';
 export {
 	TokenAPI,
 	TokenModule,
@@ -56,4 +56,4 @@ export {
 	CommandVerifyContext,
 	VerificationResult,
 	VerifyStatus,
-} from './node/state_machine/types';
+} from './state_machine/types';

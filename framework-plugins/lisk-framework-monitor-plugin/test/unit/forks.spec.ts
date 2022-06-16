@@ -72,7 +72,6 @@ const logger = testing.mocks.loggerMock;
 
 describe('_handleFork', () => {
 	let monitorPluginInstance: MonitorPlugin;
-	let encodedBlock: string;
 	const {
 		mocks: { channelMock },
 	} = testing;
@@ -99,34 +98,34 @@ describe('_handleFork', () => {
 
 	beforeEach(async () => {
 		monitorPluginInstance = new MonitorPlugin();
+		monitorPluginInstance['_apiClient'] = {
+			schema: {
+				block: chain.blockSchema,
+				header: chain.blockHeaderSchema,
+			},
+			invoke: jest.fn(),
+		};
 		await monitorPluginInstance.init({
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
 			logger,
 		});
-		jest.spyOn(monitorPluginInstance['apiClient'], 'schemas', 'get').mockReturnValue({
-			block: chain.blockSchema,
-			blockHeader: chain.blockHeaderSchema,
-		} as never);
-		encodedBlock = new chain.Block(mockHeader, [], new chain.BlockAssets())
-			.getBytes()
-			.toString('hex');
 	});
 
 	it('should add new fork events to state', () => {
 		const monitorInstance = monitorPluginInstance as any;
-		monitorInstance._handleFork(encodedBlock);
+		monitorInstance._handleFork(mockHeader.toJSON());
 
 		expect(monitorInstance._state.forks.forkEventCount).toEqual(1);
 	});
 
 	it('should add new block headers for each fork event', () => {
 		const monitorInstance = monitorPluginInstance as any;
-		monitorInstance._handleFork(encodedBlock);
+		monitorInstance._handleFork(mockHeader.toJSON());
 
 		expect(
 			monitorInstance._state.forks.blockHeaders[mockHeader.id.toString('hex')].blockHeader,
-		).toEqual(mockHeader);
+		).toEqual(mockHeader.toJSON());
 	});
 });

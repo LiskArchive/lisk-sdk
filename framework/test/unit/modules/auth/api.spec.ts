@@ -16,8 +16,8 @@ import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { AuthAPI } from '../../../../src/modules/auth/api';
 import { STORE_PREFIX_AUTH, MODULE_ID_AUTH } from '../../../../src/modules/auth/constants';
 import { authAccountSchema } from '../../../../src/modules/auth/schemas';
-import { APIContext } from '../../../../src/node/state_machine';
-import { SubStore } from '../../../../src/node/state_machine/types';
+import { APIContext } from '../../../../src/state_machine';
+import { SubStore } from '../../../../src/state_machine/types';
 import { createTransientAPIContext } from '../../../../src/testing';
 
 describe('AuthAPI', () => {

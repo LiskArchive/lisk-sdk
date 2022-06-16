@@ -56,25 +56,32 @@ export interface Channel {
 
 export interface RegisteredSchemas {
 	block: Schema;
-	blockHeader: Schema;
+	header: Schema;
+	asset: Schema;
 	transaction: Schema;
-	commands: {
-		moduleID: number;
-		moduleName: string;
-		commandID: number;
-		commandName: string;
-		schema: Schema;
-	}[];
+	event: Schema;
 }
 
-export interface RegisteredModule {
+export interface ModuleMetadata {
 	id: number;
 	name: string;
-	actions: string[];
-	events: string[];
+	endpoints: {
+		name: string;
+		request?: Schema;
+		response: Schema;
+	}[];
+	events: {
+		typeID: string;
+		data: Schema;
+	}[];
 	commands: {
 		id: number;
 		name: string;
+		params?: Schema;
+	}[];
+	assets: {
+		version: number;
+		data: Schema;
 	}[];
 }
 
@@ -108,7 +115,6 @@ export interface NodeInfo {
 	readonly syncing: boolean;
 	readonly unconfirmedTransactions: number;
 	readonly genesisConfig: GenesisConfig;
-	readonly registeredModules: RegisteredModule[];
 	readonly network: {
 		readonly port: number;
 		readonly hostIp?: string;
@@ -175,15 +181,103 @@ export interface PeerInfo {
 	readonly options?: { [key: string]: unknown };
 }
 
-export interface Block<T = Buffer | string> {
-	header: {
-		[key: string]: unknown;
-		id?: T;
-		version: number;
+type Primitive = string | number | bigint | boolean | null | undefined;
+type Replaced<T, TReplace, TWith, TKeep = Primitive> = T extends TReplace | TKeep
+	? T extends TReplace
+		? TWith | Exclude<T, TReplace>
+		: T
+	: {
+			[P in keyof T]: Replaced<T[P], TReplace, TWith, TKeep>;
+	  };
+
+export type JSONObject<T> = Replaced<T, bigint | Buffer, string>;
+
+export interface BlockHeader {
+	readonly version: number;
+	readonly height: number;
+	readonly generatorAddress: Buffer;
+	readonly previousBlockID: Buffer;
+	readonly timestamp: number;
+	readonly maxHeightPrevoted: number;
+	readonly maxHeightGenerated: number;
+	readonly aggregateCommit: {
+		readonly height: number;
+		readonly aggregationBits: Buffer;
+		readonly certificateSignature: Buffer;
 	};
-	assets: T[];
-	transactions: {
-		[key: string]: unknown;
-		id?: T;
-	}[];
+	readonly validatorsHash: Buffer;
+	readonly stateRoot: Buffer;
+	readonly transactionRoot: Buffer;
+	readonly assetsRoot: Buffer;
+	readonly eventRoot: Buffer;
+	readonly signature: Buffer;
+	readonly id: Buffer;
 }
+
+export type BlockHeaderJSON = JSONObject<BlockHeader>;
+
+export interface BlockAsset {
+	moduleID: number;
+	data: Buffer;
+}
+
+export type BlockAssetJSON = JSONObject<BlockAsset>;
+export type DecodedBlockAsset<T = Record<string, unknown>> = Omit<BlockAsset, 'data'> & { data: T };
+export type DecodedBlockAssetJSON<T = Record<string, unknown>> = Omit<BlockAssetJSON, 'data'> & {
+	data: T;
+};
+
+export interface Transaction {
+	readonly moduleID: number;
+	readonly commandID: number;
+	readonly senderPublicKey: Buffer;
+	readonly nonce: bigint;
+	readonly fee: bigint;
+	readonly params: Buffer;
+	readonly signatures: ReadonlyArray<Buffer>;
+	readonly id: Buffer;
+}
+
+export type TransactionJSON = JSONObject<Transaction>;
+export type DecodedTransaction<T = Record<string, unknown>> = Omit<Transaction, 'params'> & {
+	params: T;
+};
+export type DecodedTransactionJSON<T = Record<string, unknown>> = Omit<
+	TransactionJSON,
+	'params'
+> & { params: T };
+
+export interface Block {
+	header: BlockHeader;
+	transactions: Transaction[];
+	assets: BlockAsset[];
+}
+
+export interface DecodedBlock {
+	header: BlockHeader;
+	transactions: DecodedTransaction[];
+	assets: DecodedBlockAsset[];
+}
+
+export interface BlockJSON {
+	header: BlockHeaderJSON;
+	transactions: TransactionJSON[];
+	assets: BlockAssetJSON[];
+}
+
+export interface DecodedBlockJSON {
+	header: BlockHeaderJSON;
+	transactions: DecodedTransactionJSON[];
+	assets: DecodedBlockAssetJSON[];
+}
+
+export interface Event {
+	readonly moduleID: string;
+	readonly typeID: Buffer;
+	readonly topics: Buffer[];
+	readonly index: number;
+	readonly data: Buffer;
+}
+
+export type EventJSON = JSONObject<Event>;
+export type DecodedEvent<T = Record<string, unknown>> = Omit<Event, 'data'> & { data: T };

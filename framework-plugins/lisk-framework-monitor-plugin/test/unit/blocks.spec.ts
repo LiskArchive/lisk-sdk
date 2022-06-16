@@ -73,7 +73,6 @@ const validPluginOptions = configSchema.default;
 
 describe('_handlePostBlock', () => {
 	let monitorPlugin: MonitorPlugin;
-	let encodedBlock: string;
 	const {
 		mocks: { channelMock },
 	} = testing;
@@ -100,20 +99,22 @@ describe('_handlePostBlock', () => {
 
 	beforeEach(async () => {
 		monitorPlugin = new MonitorPlugin();
+		monitorPlugin['_apiClient'] = {
+			schema: {
+				block: chain.blockSchema,
+				header: chain.blockHeaderSchema,
+			},
+			invoke: jest.fn(),
+		};
 		await monitorPlugin.init({
 			config: validPluginOptions,
 			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
 			logger,
 		});
-		jest.spyOn(monitorPlugin['apiClient'], 'schemas', 'get').mockReturnValue({
-			block: chain.blockSchema,
-			blockHeader: chain.blockHeaderSchema,
-		} as never);
-		encodedBlock = new chain.Block(header, [], new chain.BlockAssets()).getBytes().toString('hex');
 
-		when(jest.spyOn(monitorPlugin['apiClient'], 'invoke'))
-			.calledWith('app_getConnectedPeers')
+		when(jest.spyOn(monitorPlugin['_apiClient'], 'invoke'))
+			.calledWith('network_getConnectedPeers')
 			.mockResolvedValue([] as never);
 	});
 
@@ -131,7 +132,7 @@ describe('_handlePostBlock', () => {
 		};
 
 		// Act
-		(monitorPlugin as any)._handlePostBlock({ block: encodedBlock });
+		(monitorPlugin as any)._handlePostBlock(header.toJSON());
 
 		// Assert
 		expect(await monitorPlugin.endpoint.getBlockStats({} as any)).toEqual(expectedState);
@@ -142,7 +143,7 @@ describe('_handlePostBlock', () => {
 		(monitorPlugin as any)._state.blocks = { oldBlockId: { count: 1, height: 0 } };
 
 		// Act
-		(monitorPlugin as any)._handlePostBlock({ block: encodedBlock });
+		(monitorPlugin as any)._handlePostBlock(header.toJSON());
 
 		// Assert
 		expect((monitorPlugin as any)._state.blocks['oldBlockId']).toBeUndefined();

@@ -41,7 +41,7 @@ describe('db', () => {
 		const dbPath = path.join(os.homedir(), '~/.lisk/report-misbehavior-plugin/data/integration/db');
 		await fs.ensureDir(dbPath);
 		db = new liskDB.KVStore(dbPath);
-		await db.put(
+		await db.set(
 			Buffer.concat([
 				generatorPublicKey,
 				Buffer.from(':', 'utf8'),

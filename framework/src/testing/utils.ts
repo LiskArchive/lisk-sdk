@@ -12,12 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
+import * as os from 'os';
+import * as path from 'path';
 import * as fs from 'fs-extra';
-import { Block } from '@liskhq/lisk-chain';
-import { KVStore } from '@liskhq/lisk-db';
+import { Database, StateDB } from '@liskhq/lisk-db';
 
-import { APP_EVENT_BLOCK_NEW } from '../node/events';
+import { EVENT_CHAIN_BLOCK_NEW } from '../engine/events';
 import { Data, WaitUntilBlockHeightOptions } from './types';
 
 export const waitUntilBlockHeight = async ({
@@ -32,9 +32,9 @@ export const waitUntilBlockHeight = async ({
 			}, timeout);
 		}
 
-		apiClient.subscribe(APP_EVENT_BLOCK_NEW, data => {
+		apiClient.subscribe(EVENT_CHAIN_BLOCK_NEW, data => {
 			const { block } = (data as unknown) as Data;
-			const { header } = apiClient.block.decode<Block>(block);
+			const { header } = apiClient.block.decode(block);
 
 			if (header.height >= height) {
 				resolve();
@@ -43,15 +43,23 @@ export const waitUntilBlockHeight = async ({
 	});
 
 // Database utils
-const defaultDatabasePath = '/tmp/lisk-framework/test';
+const defaultDatabasePath = path.join(os.tmpdir(), 'lisk-framework', Date.now().toString());
 export const getDBPath = (name: string, dbPath = defaultDatabasePath): string =>
-	`${dbPath}/${name}.db`;
+	path.join(dbPath, `${name}.db`);
 
-export const createDB = (name: string, dbPath = defaultDatabasePath): KVStore => {
+export const createDB = (name: string, dbPath = defaultDatabasePath): Database => {
 	fs.ensureDirSync(dbPath);
 	const filePath = getDBPath(name, dbPath);
-	return new KVStore(filePath);
+	return new Database(filePath);
+};
+
+export const createStateDB = (name: string, dbPath = defaultDatabasePath): StateDB => {
+	fs.ensureDirSync(dbPath);
+	const filePath = getDBPath(name, dbPath);
+	return new StateDB(filePath);
 };
 
 export const removeDB = (dbPath = defaultDatabasePath): void =>
-	['forger', 'blockchain', 'node'].forEach(name => fs.removeSync(getDBPath(name, dbPath)));
+	['module', 'blockchain', 'node', 'state', 'generator'].forEach(name =>
+		fs.removeSync(getDBPath(name, dbPath)),
+	);

@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateStore } from '@liskhq/lisk-chain';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
 import { when } from 'jest-when';
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import {
@@ -35,18 +33,21 @@ import {
 import { testing } from '../../../../../src';
 import { SendInternalContext } from '../../../../../src/modules/interoperability/types';
 import { getIDAsKeyForStore } from '../../../../../src/modules/interoperability/utils';
+import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
+import { SubStore } from '../../../../../src/state_machine/types';
 
 describe('Sidechain interoperability store', () => {
 	const chainID = Buffer.from('54', 'hex');
 	let ownChainAccount: any;
 	let chainAccount: any;
-	let stateStore: StateStore;
+	let stateStore: PrefixedStateReadWriter;
 	let sidechainInteroperabilityStore: SidechainInteroperabilityStore;
-	let terminatedStateSubstore: StateStore;
-	let chainSubstore: StateStore;
-	let ownChainSubstore: StateStore;
-	let channelSubstore: StateStore;
-	let outboxRootSubstore: StateStore;
+	let terminatedStateSubstore: SubStore;
+	let chainSubstore: SubStore;
+	let ownChainSubstore: SubStore;
+	let channelSubstore: SubStore;
+	let outboxRootSubstore: SubStore;
 	let mockGetStore: any;
 
 	beforeEach(() => {
@@ -68,7 +69,7 @@ describe('Sidechain interoperability store', () => {
 			nonce: BigInt('0'),
 		};
 
-		stateStore = new StateStore(new InMemoryKVStore());
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		chainSubstore = stateStore.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
 		ownChainSubstore = stateStore.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_OWN_CHAIN_DATA);
 		channelSubstore = stateStore.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA);

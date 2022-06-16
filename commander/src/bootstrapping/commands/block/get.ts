@@ -17,20 +17,6 @@ import { BaseIPCClientCommand } from '../base_ipc_client';
 interface Args {
 	readonly input: string;
 }
-interface BlockType<T = Buffer | string> {
-	header: {
-		[key: string]: unknown;
-		id?: T;
-		version: number;
-		asset: Record<string, unknown>;
-	};
-	assets: string[];
-	transactions: {
-		[key: string]: unknown;
-		id?: T;
-	}[];
-}
-
 export abstract class GetCommand extends BaseIPCClientCommand {
 	static description = 'Get block information for a given id or height.';
 
@@ -66,7 +52,7 @@ export abstract class GetCommand extends BaseIPCClientCommand {
 				block = await this._client.block.get(Buffer.from(input, 'hex'));
 			}
 
-			this.printJSON(this._client.block.toJSON((block as unknown) as BlockType));
+			this.printJSON((this._client.block.toJSON(block) as unknown) as Record<string, unknown>);
 		} catch (errors) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			const errorMessage = Array.isArray(errors)
@@ -78,7 +64,7 @@ export abstract class GetCommand extends BaseIPCClientCommand {
 					this.error('Block with given id or height was not found.');
 				}
 			} else {
-				this.error(errorMessage);
+				this.error(errorMessage as string);
 			}
 		}
 	}

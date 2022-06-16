@@ -13,11 +13,10 @@
  */
 
 import { StateStore } from '@liskhq/lisk-chain';
-import { InMemoryKVStore } from '@liskhq/lisk-db';
-import { testing } from '../../../../src';
-import { BFTModule } from '../../../../src/modules/bft';
-import { EMPTY_KEY, STORE_PREFIX_BFT_VOTES } from '../../../../src/modules/bft/constants';
-import { bftVotesSchema } from '../../../../src/modules/bft/schemas';
+import { InMemoryDatabase } from '@liskhq/lisk-db';
+import { BFTModule } from '../../../../src/engine/bft';
+import { EMPTY_KEY, STORE_PREFIX_BFT_VOTES } from '../../../../src/engine/bft/constants';
+import { bftVotesSchema } from '../../../../src/engine/bft/schemas';
 import { createFakeBlockHeader } from '../../../../src/testing';
 
 describe('bft module', () => {
@@ -28,22 +27,8 @@ describe('bft module', () => {
 	});
 
 	describe('init', () => {
-		it('should initialize config with default value when module config is empty', async () => {
-			await expect(
-				bftModule.init({ genesisConfig: {} as any, moduleConfig: {}, generatorConfig: {} }),
-			).toResolve();
-
-			expect(bftModule['_batchSize']).toEqual(103);
-		});
-
 		it('should initialize config with given value', async () => {
-			await expect(
-				bftModule.init({
-					genesisConfig: {} as any,
-					moduleConfig: { batchSize: 20 },
-					generatorConfig: {},
-				}),
-			).toResolve();
+			await expect(bftModule.init(20)).toResolve();
 
 			expect(bftModule['_batchSize']).toEqual(20);
 		});
@@ -51,14 +36,13 @@ describe('bft module', () => {
 
 	describe('initGenesisState', () => {
 		it('should initialize vote store', async () => {
-			const stateStore = new StateStore(new InMemoryKVStore());
+			const stateStore = new StateStore(new InMemoryDatabase());
 			const genesisHeight = 20;
-			const context = testing.createGenesisBlockContext({
-				header: createFakeBlockHeader({ height: genesisHeight }),
-				stateStore,
-			});
 
-			await bftModule.initGenesisState(context.createInitGenesisStateContext());
+			await bftModule.initGenesisState(
+				stateStore,
+				createFakeBlockHeader({ height: genesisHeight }),
+			);
 
 			const votesStore = stateStore.getStore(bftModule.id, STORE_PREFIX_BFT_VOTES);
 

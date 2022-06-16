@@ -32,15 +32,21 @@ interface MultiSignatureKeys {
 
 // Validates transaction against schema and returns transaction bytes for signing
 export const getSigningBytes = (
-	paramsSchema: object,
 	transactionObject: Record<string, unknown>,
+	paramsSchema?: object,
 ): Buffer => {
-	const validationErrors = validateTransaction(paramsSchema, transactionObject);
+	const validationErrors = validateTransaction(transactionObject, paramsSchema);
 	if (validationErrors) {
 		throw validationErrors;
 	}
 	if (typeof transactionObject.params !== 'object' || transactionObject.params === null) {
-		throw new Error('Parameters must be of type object and not null');
+		const transactionBytes = codec.encode(baseTransactionSchema, {
+			...transactionObject,
+			params: Buffer.alloc(0),
+			signatures: [],
+		});
+
+		return transactionBytes;
 	}
 	const paramsBytes = codec.encode((paramsSchema as unknown) as Schema, transactionObject.params);
 	const transactionBytes = codec.encode(baseTransactionSchema, {
@@ -53,11 +59,16 @@ export const getSigningBytes = (
 };
 
 export const getBytes = (
-	paramsSchema: object,
 	transactionObject: Record<string, unknown>,
+	paramsSchema?: object,
 ): Buffer => {
 	if (typeof transactionObject.params !== 'object' || transactionObject.params === null) {
-		throw new Error('Parameters must be of type object and not null');
+		const transactionBytes = codec.encode(baseTransactionSchema, {
+			...transactionObject,
+			params: Buffer.alloc(0),
+		});
+
+		return transactionBytes;
 	}
 	const paramsBytes = codec.encode((paramsSchema as unknown) as Schema, transactionObject.params);
 	const transactionBytes = codec.encode(baseTransactionSchema, {
@@ -70,10 +81,10 @@ export const getBytes = (
 
 // Validates transaction against schema and returns transaction including signature
 export const signTransaction = (
-	paramsSchema: object,
 	transactionObject: Record<string, unknown>,
 	networkIdentifier: Buffer,
 	passphrase: string,
+	paramsSchema?: object,
 ): Record<string, unknown> => {
 	if (!networkIdentifier.length) {
 		throw new Error('Network identifier is required to sign a transaction');
@@ -82,7 +93,7 @@ export const signTransaction = (
 	if (!passphrase) {
 		throw new Error('Passphrase is required to sign a transaction');
 	}
-	const validationErrors = validateTransaction(paramsSchema, transactionObject);
+	const validationErrors = validateTransaction(transactionObject, paramsSchema);
 	if (validationErrors) {
 		throw validationErrors;
 	}
@@ -98,12 +109,12 @@ export const signTransaction = (
 	const signature = signData(
 		TAG_TRANSACTION,
 		networkIdentifier,
-		getSigningBytes(paramsSchema, transactionObject),
+		getSigningBytes(transactionObject, paramsSchema),
 		passphrase,
 	);
 	// eslint-disable-next-line no-param-reassign
 	transactionObject.signatures = [signature];
-	return { ...transactionObject, id: hash(getBytes(paramsSchema, transactionObject)) };
+	return { ...transactionObject, id: hash(getBytes(transactionObject, paramsSchema)) };
 };
 
 const sanitizeSignaturesArray = (
@@ -127,11 +138,11 @@ const sanitizeSignaturesArray = (
 
 // Validates transaction against schema and sign a multi-signature transaction
 export const signMultiSignatureTransaction = (
-	paramsSchema: object,
 	transactionObject: Record<string, unknown>,
 	networkIdentifier: Buffer,
 	passphrase: string,
 	keys: MultiSignatureKeys,
+	paramsSchema?: object,
 	includeSenderSignature = false,
 ): Record<string, unknown> => {
 	if (!networkIdentifier.length) {
@@ -146,7 +157,7 @@ export const signMultiSignatureTransaction = (
 		throw new Error('Signatures must be of type array');
 	}
 
-	const validationErrors = validateTransaction(paramsSchema, transactionObject);
+	const validationErrors = validateTransaction(transactionObject, paramsSchema);
 	if (validationErrors) {
 		throw validationErrors;
 	}
@@ -158,7 +169,7 @@ export const signMultiSignatureTransaction = (
 	const signature = signData(
 		TAG_TRANSACTION,
 		networkIdentifier,
-		getSigningBytes(paramsSchema, transactionObject),
+		getSigningBytes(transactionObject, paramsSchema),
 		passphrase,
 	);
 
@@ -194,14 +205,14 @@ export const signMultiSignatureTransaction = (
 
 	sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);
 
-	return { ...transactionObject, id: hash(getBytes(paramsSchema, transactionObject)) };
+	return { ...transactionObject, id: hash(getBytes(transactionObject, paramsSchema)) };
 };
 
 export const signTransactionWithPrivateKey = (
-	paramsSchema: object,
 	transactionObject: Record<string, unknown>,
 	networkIdentifier: Buffer,
 	privateKey: Buffer,
+	paramsSchema?: object,
 ): Record<string, unknown> => {
 	if (!networkIdentifier.length) {
 		throw new Error('Network identifier is required to sign a transaction');
@@ -211,14 +222,14 @@ export const signTransactionWithPrivateKey = (
 		throw new Error('Private key must be 64 bytes');
 	}
 
-	const validationErrors = validateTransaction(paramsSchema, transactionObject);
+	const validationErrors = validateTransaction(transactionObject, paramsSchema);
 	if (validationErrors) {
 		throw validationErrors;
 	}
 
 	const transactionWithNetworkIdentifierBytes = Buffer.concat([
 		networkIdentifier,
-		getSigningBytes(paramsSchema, transactionObject),
+		getSigningBytes(transactionObject, paramsSchema),
 	]);
 
 	const signature = signDataWithPrivateKey(
@@ -230,15 +241,15 @@ export const signTransactionWithPrivateKey = (
 
 	// eslint-disable-next-line no-param-reassign
 	transactionObject.signatures = [signature];
-	return { ...transactionObject, id: hash(getBytes(paramsSchema, transactionObject)) };
+	return { ...transactionObject, id: hash(getBytes(transactionObject, paramsSchema)) };
 };
 
 export const signMultiSignatureTransactionWithPrivateKey = (
-	paramsSchema: object,
 	transactionObject: Record<string, unknown>,
 	networkIdentifier: Buffer,
 	privateKey: Buffer,
 	keys: MultiSignatureKeys,
+	paramsSchema?: object,
 	includeSenderSignature = false,
 ): Record<string, unknown> => {
 	if (!networkIdentifier.length) {
@@ -253,7 +264,7 @@ export const signMultiSignatureTransactionWithPrivateKey = (
 		throw new Error('Signatures must be of type array');
 	}
 
-	const validationErrors = validateTransaction(paramsSchema, transactionObject);
+	const validationErrors = validateTransaction(transactionObject, paramsSchema);
 	if (validationErrors) {
 		throw validationErrors;
 	}
@@ -264,7 +275,7 @@ export const signMultiSignatureTransactionWithPrivateKey = (
 
 	const transactionWithNetworkIdentifierBytes = Buffer.concat([
 		networkIdentifier,
-		getSigningBytes(paramsSchema, transactionObject),
+		getSigningBytes(transactionObject, paramsSchema),
 	]);
 
 	const signature = signDataWithPrivateKey(
@@ -310,5 +321,5 @@ export const signMultiSignatureTransactionWithPrivateKey = (
 
 	sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);
 
-	return { ...transactionObject, id: hash(getBytes(paramsSchema, transactionObject)) };
+	return { ...transactionObject, id: hash(getBytes(transactionObject, paramsSchema)) };
 };

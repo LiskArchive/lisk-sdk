@@ -52,7 +52,6 @@ const nodeInfoDefaultValue: NodeInfo = {
 	height: 0,
 	finalizedHeight: 0,
 	lastBlockID: '',
-	registeredModules: [],
 	genesisConfig: {
 		communityIdentifier: '',
 		blockTime: 0,
@@ -279,18 +278,21 @@ const MainPage: React.FC = () => {
 			const { publicKey, address } = cryptography.getAddressAndPublicKeyFromPassphrase(
 				data.passphrase,
 			);
-			const paramsSchema = getClient().schemas.commands.find(
-				a => a.moduleID === data.moduleID && a.commandID === data.commandID,
-			);
-			if (!paramsSchema) {
+			const moduleMeta = getClient().metadata.find(a => a.id === data.moduleID);
+			if (!moduleMeta) {
 				throw new Error(
 					`ModuleID: ${data.moduleID} CommandID: ${data.commandID} is not registered`,
 				);
 			}
-			const paramsObject = codec.codec.fromJSON<Record<string, unknown>>(
-				paramsSchema.schema,
-				data.params,
-			);
+			const commandMeta = moduleMeta.commands.find(cmd => cmd.id === data.commandID);
+			if (!commandMeta) {
+				throw new Error(
+					`ModuleID: ${data.moduleID} CommandID: ${data.commandID} is not registered`,
+				);
+			}
+			const paramsObject = commandMeta.params
+				? codec.codec.fromJSON<Record<string, unknown>>(commandMeta.params, data.params)
+				: {};
 			const sender = await getClient().invoke<{ nonce: string }>('auth_getAuthData', {
 				address: address.toString('hex'),
 			});
@@ -483,14 +485,14 @@ const MainPage: React.FC = () => {
 					<Grid md={6} xs={12}>
 						<TransactionWidget
 							title="Recent Transactions"
-							nodeInfo={nodeInfo}
+							metadata={getClient().metadata}
 							transactions={confirmedTransactions}
 						></TransactionWidget>
 					</Grid>
 					<Grid md={6} xs={12}>
 						<TransactionWidget
 							title="Unconfirmed Transactions"
-							nodeInfo={nodeInfo}
+							metadata={getClient().metadata}
 							transactions={unconfirmedTransactions}
 						></TransactionWidget>
 					</Grid>
@@ -499,7 +501,7 @@ const MainPage: React.FC = () => {
 				<Grid row>
 					<Grid md={6} xs={12}>
 						<SendTransactionWidget
-							modules={nodeInfo.registeredModules}
+							modules={getClient().metadata}
 							onSubmit={data => {
 								handleSendTransaction(data).catch(console.error);
 							}}

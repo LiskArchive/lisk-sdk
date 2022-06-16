@@ -47,13 +47,16 @@ Before running Lisk SDK, the following dependencies need to be installed in orde
 
 | Dependencies | Version |
 | ------------ | ------- |
-| NodeJS       | 12+     |
+| NodeJS       | 16+     |
 
 For Mac M1 series,
 NodeJS must be above version 16. Additionally, to build `sodium-native` below tools are required.
 
 ```
-brew install libtool cmake autoconf automake
+brew install libtool cmake autoconf automake pyenv
+pyenv install 2.7.18
+pyenv global 2.7.18
+# Add `eval "$(pyenv init --path)"` to ~/.zshrc etc
 ```
 
 ### Installation

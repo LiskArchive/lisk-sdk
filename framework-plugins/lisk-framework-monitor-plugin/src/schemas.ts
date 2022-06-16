@@ -13,7 +13,7 @@
  */
 
 export const configSchema = {
-	$id: '#/plugins/lisk-monitor/config',
+	$id: '#/plugins/liskMonitor/config',
 	type: 'object',
 	properties: {
 		port: {
@@ -88,33 +88,6 @@ export const configSchema = {
 			windowMs: 60000,
 			headersTimeout: 5000,
 			serverSetTimeout: 20000,
-		},
-	},
-};
-
-export const postBlockEventSchema = {
-	$id: 'monitor/postBlockEvent',
-	type: 'object',
-	required: ['block'],
-	properties: {
-		block: {
-			type: 'string',
-			format: 'hex',
-		},
-	},
-};
-
-export const transactionAnnouncementSchema = {
-	$id: 'monitor/transactionAnnouncement',
-	type: 'object',
-	required: ['transactionIds'],
-	properties: {
-		transactionIds: {
-			type: 'array',
-			items: {
-				type: 'string',
-				format: 'hex',
-			},
 		},
 	},
 };

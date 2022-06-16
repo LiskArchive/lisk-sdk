@@ -42,22 +42,6 @@ export const validatorAccountSchema = {
 	required: ['generatorKey', 'blsKey'],
 };
 
-export const generatorListSchema = {
-	$id: '/validators/generatorListSubStore',
-	title: 'Generator Addresses',
-	type: 'object',
-	properties: {
-		addresses: {
-			type: 'array',
-			fieldNumber: 1,
-			items: {
-				dataType: 'bytes',
-			},
-		},
-	},
-	required: ['addresses'],
-};
-
 export const validatorAddressSchema = {
 	$id: '/validators/registeredBlsKeysSubStore',
 	title: 'Validators Addresses',
