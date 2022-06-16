@@ -60,7 +60,7 @@ export const parseKeyDerivationPath = (path: string) => {
 					return parseInt(segment, 10) + HARDENED_OFFSET;
 				}
 
-				if (parseInt(segment, 10) <= MAX_UINT32 / 2) {
+				if (parseInt(segment, 10) > MAX_UINT32) {
 					throw new Error('Invalid path format');
 				}
 
