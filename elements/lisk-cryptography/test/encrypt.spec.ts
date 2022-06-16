@@ -20,6 +20,7 @@ import {
 	encryptPassphraseWithPassword,
 	decryptPassphraseWithPassword,
 	getKeyPairFromPhraseAndPath,
+	getBLSPrivateKeyFromPhraseAndPath,
 } from '../src/encrypt';
 // Require is used for stubbing
 // eslint-disable-next-line
@@ -419,6 +420,17 @@ describe('encrypt', () => {
 				await expect(
 					getKeyPairFromPhraseAndPath(passphrase, `m/44'/134'/${MAX_UINT32}'`),
 				).rejects.toThrow('Invalid path format');
+			});
+		});
+
+		describe('getBLSPrivateKeyFromPhraseAndPath', () => {
+			const passphrase =
+				'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+			it('should get keypair from valid phrase and path', async () => {
+				const privateKey = await getBLSPrivateKeyFromPhraseAndPath(passphrase, [12381]);
+				expect(privateKey.readBigUInt64BE(0)).toBe(
+					BigInt('27531519788986738912817629815232258573173656766051821145387425994698573826996'),
+				);
 			});
 		});
 	});

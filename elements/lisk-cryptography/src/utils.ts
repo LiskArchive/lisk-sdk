@@ -14,7 +14,9 @@
  */
 
 import * as crypto from 'crypto';
-import { HARDENED_OFFSET, ED25519_CURVE, MAX_UINT32 } from './constants';
+import { blsKeyGen } from './bls_lib';
+import { HARDENED_OFFSET, ED25519_CURVE, MAX_UINT32, HASH_LENGTH } from './constants';
+import { hash } from './hash';
 
 export const readBit = (buf: Buffer, bit: number): boolean => {
 	const byteIndex = Math.floor(bit / 8);
@@ -92,4 +94,92 @@ export const getChildKey = (node: { key: Buffer; chainCode: Buffer }, index: num
 		key: leftBytes,
 		chainCode: rightBytes,
 	};
+};
+
+const flipBits = (buf: Buffer) => {
+	// eslint-disable-next-line no-bitwise
+	const newBuf = buf.map(x => x ^ 0xff);
+	return Buffer.from(newBuf);
+};
+
+const hkdfSHA256 = (ikm: Buffer, length: number, salt: Buffer, info: Buffer) => {
+	if (salt.length === 0) {
+		// eslint-disable-next-line no-param-reassign
+		salt = Buffer.from([
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+		]);
+	}
+	const PRK = crypto.createHmac('sha256', salt).update(ikm).digest();
+	let t = Buffer.from([]);
+	let OKM = Buffer.from([]);
+
+	for (let i = 0; i < Math.ceil(length / HASH_LENGTH); i += 1) {
+		t = crypto
+			.createHmac('sha256', PRK)
+			.update(Buffer.concat([t, info, Buffer.from([1 + i])]))
+			.digest();
+		OKM = Buffer.concat([OKM, t]);
+	}
+	return OKM.slice(0, length);
+};
+
+const toLamportSK = (IKM: Buffer, salt: Buffer) => {
+	const K = 32;
+	const L = K * 255;
+	const info = Buffer.from([]);
+	const OKM = hkdfSHA256(IKM, L, salt, info);
+
+	const lamportSK = [];
+	for (let i = 0; i < 255; i += 1) {
+		lamportSK.push(OKM.slice(i * 32, (i + 1) * 32));
+	}
+	return lamportSK;
+};
+
+const parentSKToLamportPK = (parentSK: Buffer, index: number) => {
+	const salt = Buffer.allocUnsafe(4);
+	salt.writeUIntBE(index, 0, 4);
+
+	const IKM = parentSK;
+	const hashedLamport0 = toLamportSK(IKM, salt).map(x => hash(x));
+	const hashedLamport1 = toLamportSK(flipBits(IKM), salt).map(x => hash(x));
+
+	const lamportPK = Buffer.concat(hashedLamport0.concat(hashedLamport1));
+	return hash(lamportPK);
+};
+
+export const deriveChildSK = (parentSK: Buffer, index: number) => {
+	const lamportPK = parentSKToLamportPK(parentSK, index);
+	return blsKeyGen(lamportPK);
 };
