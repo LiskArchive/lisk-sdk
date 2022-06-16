@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-p2p",
-	"version": "0.7.2",
+	"version": "0.8.0-alpha.0",
 	"description": "Unstructured P2P library for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -18,8 +18,8 @@
 		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
-		"node": ">=12.13.0",
-		"npm": ">=6.12.0"
+		"node": ">=16.14.1 <=16",
+		"npm": ">=8.1.0"
 	},
 	"main": "dist-node/index.js",
 	"scripts": {
@@ -41,9 +41,9 @@
 		"disableLocalIPs": "./scripts/disableTestLocalIPs.sh 2 19"
 	},
 	"dependencies": {
-		"@liskhq/lisk-codec": "^0.2.1",
-		"@liskhq/lisk-cryptography": "^3.2.0",
-		"@liskhq/lisk-validator": "^0.6.1",
+		"@liskhq/lisk-codec": "^0.3.0-alpha.0",
+		"@liskhq/lisk-cryptography": "^4.0.0-alpha.0",
+		"@liskhq/lisk-validator": "^0.7.0-alpha.0",
 		"lodash.shuffle": "4.2.0",
 		"semver": "7.3.5",
 		"socketcluster-client": "14.3.1",

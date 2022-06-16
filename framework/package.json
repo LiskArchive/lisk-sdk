@@ -1,6 +1,6 @@
 {
 	"name": "lisk-framework",
-	"version": "0.9.1",
+	"version": "0.10.0-alpha.0",
 	"description": "Lisk blockchain application platform",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -20,8 +20,8 @@
 		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
-		"node": ">=12.13.0",
-		"npm": ">=6.12.0"
+		"node": ">=16.14.1 <=16",
+		"npm": ">=8.1.0"
 	},
 	"main": "dist-node/index.js",
 	"scripts": {
@@ -41,17 +41,17 @@
 	},
 	"dependencies": {
 		"@chainsafe/blst": "0.2.0",
-		"@liskhq/lisk-api-client": "^5.1.5",
-		"@liskhq/lisk-chain": "^0.3.3",
-		"@liskhq/lisk-codec": "^0.2.1",
-		"@liskhq/lisk-cryptography": "^3.2.0",
+		"@liskhq/lisk-api-client": "^6.0.0-alpha.0",
+		"@liskhq/lisk-chain": "^0.4.0-alpha.0",
+		"@liskhq/lisk-codec": "^0.3.0-alpha.0",
+		"@liskhq/lisk-cryptography": "^4.0.0-alpha.0",
 		"@liskhq/lisk-db": "^0.3.0-debug.20-b44082d07ab158736d00f7fd1706ca72ca2c9d27",
-		"@liskhq/lisk-p2p": "^0.7.2",
-		"@liskhq/lisk-transaction-pool": "^0.5.2",
-		"@liskhq/lisk-transactions": "^5.2.1",
-		"@liskhq/lisk-tree": "^0.2.1",
-		"@liskhq/lisk-utils": "^0.2.0",
-		"@liskhq/lisk-validator": "^0.6.1",
+		"@liskhq/lisk-p2p": "^0.8.0-alpha.0",
+		"@liskhq/lisk-transaction-pool": "^0.6.0-alpha.0",
+		"@liskhq/lisk-transactions": "^6.0.0-alpha.0",
+		"@liskhq/lisk-tree": "^0.3.0-alpha.0",
+		"@liskhq/lisk-utils": "^0.3.0-alpha.0",
+		"@liskhq/lisk-validator": "^0.7.0-alpha.0",
 		"bunyan": "1.8.15",
 		"debug": "4.3.1",
 		"eventemitter2": "6.4.4",
@@ -62,7 +62,7 @@
 		"zeromq": "6.0.0-beta.6"
 	},
 	"devDependencies": {
-		"@liskhq/lisk-passphrase": "^3.1.0",
+		"@liskhq/lisk-passphrase": "^4.0.0-alpha.0",
 		"@types/bunyan": "1.8.6",
 		"@types/jest": "26.0.21",
 		"@types/jest-when": "2.7.2",

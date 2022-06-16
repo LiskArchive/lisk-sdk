@@ -75,7 +75,7 @@ export const metadata: ModuleMetadata[] = [
 				id: 0,
 				name: 'transfer',
 				params: {
-					$id: 'lisk/transfer-params',
+					$id: '/lisk/transferParams',
 					type: 'object',
 					required: ['amount', 'recipientAddress', 'data'],
 					properties: {
@@ -98,7 +98,7 @@ export const metadata: ModuleMetadata[] = [
 				id: 0,
 				name: 'registerMultisignatureGroup',
 				params: {
-					$id: 'lisk/keys/register',
+					$id: '/lisk/keys/register',
 					type: 'object',
 					required: ['numberOfSignatures', 'optionalKeys', 'mandatoryKeys'],
 					properties: {
@@ -133,7 +133,7 @@ export const metadata: ModuleMetadata[] = [
 				id: 0,
 				name: 'transfer',
 				params: {
-					$id: 'lisk/dpos/pom',
+					$id: '/lisk/dpos/pom',
 					type: 'object',
 					required: ['header1', 'header2'],
 					properties: {

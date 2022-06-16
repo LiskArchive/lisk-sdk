@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-framework-dashboard-plugin",
-	"version": "0.1.6",
+	"version": "0.2.0-alpha.0",
 	"description": "A plugin for interacting with a newly developed blockchain application.",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -18,8 +18,8 @@
 		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
-		"node": ">=12.13.0",
-		"npm": ">=6.12.0"
+		"node": ">=16.14.1 <=16",
+		"npm": ">=8.1.0"
 	},
 	"main": "dist-node/index.js",
 	"scripts": {
@@ -39,10 +39,10 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
-		"@liskhq/lisk-client": "^5.2.1",
+		"@liskhq/lisk-client": "^6.0.0-alpha.0",
 		"express": "4.17.1",
 		"json-format-highlight": "1.0.4",
-		"lisk-sdk": "^5.2.1",
+		"lisk-sdk": "^6.0.0-alpha.0",
 		"react": "^17.0.1",
 		"react-dom": "^17.0.1",
 		"react-router-dom": "^5.2.0",

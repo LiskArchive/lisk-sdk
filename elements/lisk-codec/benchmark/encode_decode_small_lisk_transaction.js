@@ -46,7 +46,7 @@ const transferLikeLiskTransaction = {
 };
 
 const testSchema = {
-	$id: 'testSchema',
+	$id: '/testSchema',
 	type: 'object',
 	properties: {
 		senderPublicKey: { fieldNumber: 1, dataType: 'bytes' },

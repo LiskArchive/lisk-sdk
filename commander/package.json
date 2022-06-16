@@ -1,6 +1,6 @@
 {
 	"name": "lisk-commander",
-	"version": "5.1.9",
+	"version": "6.0.0-alpha.0",
 	"description": "A command line interface for Lisk",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -20,8 +20,8 @@
 		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
-		"node": ">=12.13.0",
-		"npm": ">=6.12.0"
+		"node": ">=16.14.1 <=16",
+		"npm": ">=8.1.0"
 	},
 	"main": "dist/index.js",
 	"bin": {
@@ -90,15 +90,15 @@
 		"/docs"
 	],
 	"dependencies": {
-		"@liskhq/lisk-api-client": "^5.1.5",
-		"@liskhq/lisk-chain": "^0.3.3",
-		"@liskhq/lisk-codec": "^0.2.1",
-		"@liskhq/lisk-cryptography": "^3.2.0",
+		"@liskhq/lisk-api-client": "^6.0.0-alpha.0",
+		"@liskhq/lisk-chain": "^0.4.0-alpha.0",
+		"@liskhq/lisk-codec": "^0.3.0-alpha.0",
+		"@liskhq/lisk-cryptography": "^4.0.0-alpha.0",
 		"@liskhq/lisk-db": "^0.3.0-debug.20-b44082d07ab158736d00f7fd1706ca72ca2c9d27",
-		"@liskhq/lisk-passphrase": "^3.1.0",
-		"@liskhq/lisk-transactions": "^5.2.1",
-		"@liskhq/lisk-utils": "^0.2.0",
-		"@liskhq/lisk-validator": "^0.6.1",
+		"@liskhq/lisk-passphrase": "^4.0.0-alpha.0",
+		"@liskhq/lisk-transactions": "^6.0.0-alpha.0",
+		"@liskhq/lisk-utils": "^0.3.0-alpha.0",
+		"@liskhq/lisk-validator": "^0.7.0-alpha.0",
 		"@oclif/command": "1.8.0",
 		"@oclif/config": "1.17.0",
 		"@oclif/errors": "1.2.2",
@@ -111,7 +111,7 @@
 		"cli-table3": "0.6.0",
 		"fs-extra": "9.1.0",
 		"inquirer": "8.0.0",
-		"lisk-framework": "^0.9.1",
+		"lisk-framework": "^0.10.0-alpha.0",
 		"listr": "0.14.3",
 		"progress": "2.0.3",
 		"semver": "7.3.5",

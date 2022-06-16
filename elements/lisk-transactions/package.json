@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-transactions",
-	"version": "5.2.1",
+	"version": "6.0.0-alpha.0",
 	"description": "Utility functions related to transactions according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -17,8 +17,8 @@
 		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
-		"node": ">=12.13.0",
-		"npm": ">=6.12.0"
+		"node": ">=16.14.1 <=16",
+		"npm": ">=8.1.0"
 	},
 	"main": "dist-node/index.js",
 	"scripts": {
@@ -35,9 +35,9 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
-		"@liskhq/lisk-codec": "^0.2.1",
-		"@liskhq/lisk-cryptography": "^3.2.0",
-		"@liskhq/lisk-validator": "^0.6.1"
+		"@liskhq/lisk-codec": "^0.3.0-alpha.0",
+		"@liskhq/lisk-cryptography": "^4.0.0-alpha.0",
+		"@liskhq/lisk-validator": "^0.7.0-alpha.0"
 	},
 	"devDependencies": {
 		"@types/jest": "26.0.21",

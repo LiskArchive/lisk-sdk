@@ -42,7 +42,7 @@ export const configSchema = {
 };
 
 export const actionParamsSchema = {
-	$id: 'lisk/report_misbehavior/auth',
+	$id: '/lisk/reportMisbehavior/auth',
 	type: 'object',
 	required: ['password', 'enable'],
 	properties: {
