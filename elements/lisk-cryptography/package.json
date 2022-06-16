@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-cryptography",
-	"version": "3.2.0",
+	"version": "4.0.0-alpha.0",
 	"description": "General cryptographic functions for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.com>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "Apache-2.0",
@@ -17,8 +17,8 @@
 		"url": "https://github.com/LiskHQ/lisk-sdk/issues"
 	},
 	"engines": {
-		"node": ">=12.13.0",
-		"npm": ">=6.12.0"
+		"node": ">=16.14.1 <=16",
+		"npm": ">=8.1.0"
 	},
 	"main": "dist-node/index.js",
 	"scripts": {
@@ -35,14 +35,15 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
+		"@liskhq/lisk-passphrase": "4.0.0-alpha.0",
 		"buffer-reverse": "1.0.1",
 		"ed2curve": "0.3.0",
 		"tweetnacl": "1.0.3",
 		"varuint-bitcoin": "1.1.2"
 	},
 	"peerDependencies": {
-		"sodium-native": "3.2.1",
-		"@chainsafe/blst": "0.2.0"
+		"@chainsafe/blst": "0.2.4",
+		"sodium-native": "3.2.1"
 	},
 	"peerDependenciesMeta": {
 		"sodium-native": {
@@ -54,9 +55,9 @@
 	},
 	"devDependencies": {
 		"@types/ed2curve": "0.2.2",
-		"@types/js-yaml": "4.0.1",
 		"@types/jest": "26.0.21",
 		"@types/jest-when": "2.7.2",
+		"@types/js-yaml": "4.0.1",
 		"@types/node": "12.20.6",
 		"@typescript-eslint/eslint-plugin": "4.19.0",
 		"@typescript-eslint/parser": "4.19.0",
@@ -66,10 +67,10 @@
 		"eslint-plugin-import": "2.22.1",
 		"eslint-plugin-jest": "24.3.2",
 		"glob": "7.1.7",
-		"js-yaml": "4.1.0",
 		"jest": "26.6.3",
 		"jest-extended": "0.11.5",
 		"jest-when": "3.2.1",
+		"js-yaml": "4.1.0",
 		"prettier": "2.2.1",
 		"source-map-support": "0.5.19",
 		"ts-jest": "26.5.4",

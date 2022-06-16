@@ -11,8 +11,8 @@
 		"url": ""
 	},
 	"engines": {
-		"node": ">=12.13.0",
-		"npm": ">=6.12.0"
+		"node": ">=16.14.1 <=16",
+		"npm": ">=8.1.0"
 	},
 	"main": "dist-node/index.js",
 	"scripts": {
@@ -28,7 +28,7 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
-		"lisk-sdk": "^5.2.1"
+		"lisk-sdk": "^6.0.0-alpha.0"
 	},
 	"devDependencies": {
 		"@types/jest": "26.0.21",
