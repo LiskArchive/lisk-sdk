@@ -20,7 +20,7 @@ const prepareProtobuffersBlock = () =>
 const { GenesisBlockAsset } = prepareProtobuffersBlock();
 
 const genesisBlockAssetSchema = {
-	$id: 'genesisBlockAssetSchema',
+	$id: '/genesisBlockAssetSchema',
 	type: 'object',
 	required: ['accounts', 'initDelegates', 'initRounds'],
 	properties: {

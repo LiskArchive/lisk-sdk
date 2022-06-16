@@ -20,7 +20,7 @@ const prepareProtobuffersNumbers = () =>
 const { Number32, SignedNumber32, Number64, SignedNumber64 } = prepareProtobuffersNumbers();
 
 const getNumberSchema = type => ({
-	$id: `number-schema-${type}`,
+	$id: `/numberSchema${type.replace(/^./, str => str.toUpperCase())}`,
 	type: 'object',
 	properties: {
 		number: {

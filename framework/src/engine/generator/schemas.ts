@@ -13,7 +13,7 @@
  */
 
 export const transactionIdsSchema = {
-	$id: 'lisk/transactionIds',
+	$id: '/lisk/transactionIds',
 	title: 'Broadcast Transactions',
 	type: 'object',
 	required: ['transactionIds'],
@@ -51,7 +51,7 @@ export type GetStatusResponse = {
 }[];
 
 export const updateStatusRequestSchema = {
-	$id: 'lisk/updateStatusRequest',
+	$id: '/lisk/updateStatusRequest',
 	title: 'Update block generation status',
 	type: 'object',
 	required: ['address', 'password', 'enable', 'height', 'maxHeightGenerated', 'maxHeightPrevoted'],
@@ -89,7 +89,7 @@ export interface PostTransactionResponse {
 }
 
 export const postTransactionRequestSchema = {
-	$id: 'lisk/postTransaction',
+	$id: '/lisk/postTransaction',
 	title: 'Transactions',
 	type: 'object',
 	required: ['transaction'],
@@ -102,7 +102,7 @@ export const postTransactionRequestSchema = {
 };
 
 export const getTransactionRequestSchema = {
-	$id: 'lisk/getTransactionRequest',
+	$id: '/lisk/getTransactionRequest',
 	title: 'Broadcast Transactions',
 	type: 'object',
 	required: ['transactionIds'],
@@ -124,7 +124,7 @@ export interface GetTransactionRequest {
 }
 
 export const getTransactionsResponseSchema = {
-	$id: 'lisk/getTransactionsResponse',
+	$id: '/lisk/getTransactionsResponse',
 	title: 'Transactions',
 	type: 'object',
 	required: ['transactions'],
@@ -144,7 +144,7 @@ export interface GetTransactionResponse {
 }
 
 export const postTransactionsAnnouncementSchema = {
-	$id: 'lisk/postTransactionsAnnouncementSchema',
+	$id: '/lisk/postTransactionsAnnouncementSchema',
 	title: 'Post Transactions Announcement',
 	type: 'object',
 	required: ['transactionIds'],

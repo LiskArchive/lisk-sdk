@@ -143,7 +143,7 @@ export const terminatedEscrowStoreSchema = {
 };
 
 export const transferParamsSchema = {
-	$id: 'lisk/transfer-params',
+	$id: '/lisk/transferParams',
 	title: 'Transfer transaction params',
 	type: 'object',
 	required: ['tokenID', 'amount', 'recipientAddress', 'data'],
@@ -174,7 +174,7 @@ export const transferParamsSchema = {
 };
 
 export const crossChainTransferParams = {
-	$id: 'lisk/cc-transfer-params',
+	$id: '/lisk/ccTransferParams',
 	type: 'object',
 	required: ['tokenID', 'amount', 'receivingChainID', 'recipientAddress', 'data', 'messageFee'],
 	properties: {
@@ -222,7 +222,7 @@ export interface CCTransferMessageParams {
 }
 
 export const crossChainTransferMessageParams = {
-	$id: 'lisk/cc-transfer-message-params',
+	$id: '/lisk/ccTransferMessageParams',
 	type: 'object',
 	required: ['tokenID', 'amount', 'senderAddress', 'recipientAddress', 'data'],
 	properties: {
@@ -268,7 +268,7 @@ export interface CCForwardMessageParams {
 }
 
 export const crossChainForwardMessageParams = {
-	$id: 'lisk/cc-forward-message-params',
+	$id: '/lisk/ccForwardMessageParams',
 	type: 'object',
 	required: [
 		'tokenID',

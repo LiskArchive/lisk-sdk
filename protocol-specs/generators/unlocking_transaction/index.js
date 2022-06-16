@@ -175,7 +175,7 @@ const delegateAccounts = [
 ];
 
 const assetSchema = {
-	$id: 'asset/unlock',
+	$id: '/asset/unlock',
 	type: 'object',
 	properties: {
 		unlockObjects: {

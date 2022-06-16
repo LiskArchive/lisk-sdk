@@ -26,7 +26,7 @@ const block = {
 };
 
 const testSchema = {
-	$id: 'blockSchema',
+	$id: '/blockSchema',
 	type: 'object',
 	properties: {
 		header: { dataType: 'bytes', fieldNumber: 1 },
