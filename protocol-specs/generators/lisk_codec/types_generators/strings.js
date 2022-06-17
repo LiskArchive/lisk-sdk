@@ -20,7 +20,7 @@ const prepareProtobuffersStrings = () =>
 const { String } = prepareProtobuffersStrings();
 
 const schema = {
-	$id: 'string-schema',
+	$id: '/stringSchema',
 	type: 'object',
 	properties: {
 		data: {

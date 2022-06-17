@@ -164,7 +164,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 					name: 'ccCommand',
 					execute: jest.fn(),
 					schema: {
-						$id: 'id',
+						$id: '/id',
 						type: 'object',
 						properties: {},
 					},
@@ -229,7 +229,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 				name: 'ccCommand',
 				execute: jest.fn(),
 				schema: {
-					$id: 'id',
+					$id: '/id',
 					type: 'object',
 					properties: {},
 				},
@@ -341,7 +341,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 				name: 'ccCommand',
 				execute: jest.fn(),
 				schema: {
-					$id: 'id',
+					$id: '/id',
 					type: 'object',
 					properties: {},
 				},

@@ -13,7 +13,7 @@
  */
 
 export const configSchema = {
-	$id: '#/plugins/lisk-monitor/config',
+	$id: '#/plugins/liskMonitor/config',
 	type: 'object',
 	properties: {
 		port: {

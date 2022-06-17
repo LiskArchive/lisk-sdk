@@ -13,6 +13,7 @@
  *
  */
 import * as crypto from 'crypto';
+import { Mnemonic } from '@liskhq/lisk-passphrase';
 
 import { bufferToHex, hexToBuffer } from './buffer';
 // eslint-disable-next-line import/no-cycle
@@ -20,7 +21,8 @@ import { convertPrivateKeyEd2Curve, convertPublicKeyEd2Curve } from './convert';
 // eslint-disable-next-line import/no-cycle
 import { getPrivateAndPublicKeyFromPassphrase } from './keys';
 // eslint-disable-next-line import/no-cycle
-import { box, getRandomBytes, openBox } from './nacl';
+import { box, getRandomBytes, openBox, getKeyPair } from './nacl';
+import { getMasterKeyFromSeed, getChildKey, parseKeyDerivationPath } from './utils';
 
 const PBKDF2_ITERATIONS = 1e6;
 const PBKDF2_KEYLEN = 32;
@@ -166,3 +168,14 @@ const decryptAES256GCMWithPassword = (
 export const encryptPassphraseWithPassword = encryptAES256GCMWithPassword;
 
 export const decryptPassphraseWithPassword = decryptAES256GCMWithPassword;
+
+export const getKeyPairFromPhraseAndPath = async (phrase: string, path: string) => {
+	const masterSeed = await Mnemonic.mnemonicToSeed(phrase);
+	let node = getMasterKeyFromSeed(masterSeed);
+
+	for (const segment of parseKeyDerivationPath(path)) {
+		node = getChildKey(node, segment);
+	}
+
+	return getKeyPair(node.key);
+};

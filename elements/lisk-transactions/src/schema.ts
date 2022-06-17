@@ -13,7 +13,7 @@
  *
  */
 export const baseTransactionSchema = {
-	$id: 'lisk/base-transaction',
+	$id: '/lisk/baseTransaction',
 	type: 'object',
 	required: ['moduleID', 'commandID', 'nonce', 'fee', 'senderPublicKey', 'params'],
 	properties: {

@@ -34,7 +34,7 @@ describe('validateTransaction', () => {
 	};
 
 	const validParamsSchema = {
-		$id: 'lisk/transfer-transaction',
+		$id: '/lisk/transferTransaction',
 		title: 'Transfer transaction params',
 		type: 'object',
 		required: ['amount', 'recipientAddress', 'data'],

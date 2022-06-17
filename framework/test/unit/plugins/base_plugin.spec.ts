@@ -64,7 +64,7 @@ class MyPlugin extends BasePlugin {
 	public name = 'my_plugin';
 
 	public configSchema = {
-		$id: 'my_plugin/schema',
+		$id: '/myPlugin/schema',
 		type: 'object',
 		properties: {
 			obj: {

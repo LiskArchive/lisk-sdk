@@ -19,7 +19,7 @@ import { NotFoundError, StateStore } from '../../../src/state_store';
 import { DatabaseWriter } from '../../../src/state_store/types';
 
 const sampleSchema = {
-	$id: 'object9',
+	$id: '/object9',
 	type: 'object',
 	properties: {
 		address: {

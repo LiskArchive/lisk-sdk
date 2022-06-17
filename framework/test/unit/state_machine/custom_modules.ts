@@ -27,7 +27,7 @@ export class CustomCommand0 extends BaseCommand {
 	public id = 0;
 	public name = 'customCommand0';
 	public schema = {
-		$id: 'lisk/custom-command-0',
+		$id: '/lisk/customCommand0',
 		type: 'object',
 		properties: {
 			data: {
@@ -81,7 +81,7 @@ export class CustomCommand2 extends BaseCommand {
 	public id = 0;
 	public name = 'customCommand2';
 	public schema = {
-		$id: 'lisk/custom-command-2',
+		$id: '/lisk/customCommand2',
 		type: 'object',
 		properties: {
 			data: {

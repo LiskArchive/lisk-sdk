@@ -20,7 +20,7 @@ const prepareProtobuffersBlock = () =>
 const { BlockAsset } = prepareProtobuffersBlock();
 
 const blockAssetSchema = {
-	$id: 'blockAssetSchema',
+	$id: '/blockAssetSchema',
 	type: 'object',
 	properties: {
 		maxHeightPreviouslyForged: { dataType: 'uint32', fieldNumber: 1 },

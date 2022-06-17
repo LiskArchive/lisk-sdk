@@ -13,6 +13,9 @@
  *
  */
 
+import * as crypto from 'crypto';
+import { HARDENED_OFFSET, ED25519_CURVE, MAX_UINT32 } from './constants';
+
 export const readBit = (buf: Buffer, bit: number): boolean => {
 	const byteIndex = Math.floor(bit / 8);
 	const bitIndex = bit % 8;
@@ -32,4 +35,61 @@ export const writeBit = (buf: Buffer, bit: number, val: boolean): void => {
 		// eslint-disable-next-line no-bitwise, no-param-reassign
 		buf[byteIndex] &= ~(1 << bitIndex);
 	}
+};
+
+export const parseKeyDerivationPath = (path: string) => {
+	if (!path.startsWith('m') || !path.includes('/')) {
+		throw new Error('Invalid path format');
+	}
+
+	return (
+		path
+			.split('/')
+			// slice first element which is `m`
+			.slice(1)
+			.map(segment => {
+				if (!/^[0-9']+$/g.test(segment)) {
+					throw new Error('Invalid path format');
+				}
+
+				// if segment includes apostrophe add HARDENED_OFFSET
+				if (segment.includes(`'`)) {
+					if (parseInt(segment.slice(0, -1), 10) > MAX_UINT32 / 2) {
+						throw new Error('Invalid path format');
+					}
+					return parseInt(segment, 10) + HARDENED_OFFSET;
+				}
+
+				if (parseInt(segment, 10) <= MAX_UINT32 / 2) {
+					throw new Error('Invalid path format');
+				}
+
+				return parseInt(segment, 10);
+			})
+	);
+};
+
+export const getMasterKeyFromSeed = (seed: Buffer) => {
+	const hmac = crypto.createHmac('sha512', ED25519_CURVE);
+	const digest = hmac.update(seed).digest();
+	const leftBytes = digest.slice(0, 32);
+	const rightBytes = digest.slice(32);
+	return {
+		key: leftBytes,
+		chainCode: rightBytes,
+	};
+};
+
+export const getChildKey = (node: { key: Buffer; chainCode: Buffer }, index: number) => {
+	const indexBuffer = Buffer.allocUnsafe(4);
+	indexBuffer.writeUInt32BE(index, 0);
+	const data = Buffer.concat([Buffer.alloc(1, 0), node.key, indexBuffer]);
+	const digest = crypto.createHmac('sha512', node.chainCode).update(data).digest();
+	const leftBytes = digest.slice(0, 32);
+	const rightBytes = digest.slice(32);
+
+	return {
+		key: leftBytes,
+		chainCode: rightBytes,
+	};
 };
