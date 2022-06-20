@@ -296,16 +296,25 @@ describe('encrypt', () => {
 				).rejects.toThrow('Unsupported state or unable to authenticate data');
 			});
 
-			// FIXME:
-			it.skip('should decrypt a passphrase with a password and a custom number of iterations', async () => {
-				encryptedPassphrase.kdfparams.iterations = 12;
+			it('should decrypt a passphrase with a password and a custom number of iterations', async () => {
+				encryptedPassphrase = {
+					...encryptedPassphrase,
+					kdfparams: {
+						...encryptedPassphrase.kdfparams,
+						iterations: 12,
+						salt: '245c6859a96339a7735a6cac78ccf625',
+					},
+					ciphertext:
+						'1f06671e13c0329aee057fee995e08a516bdacd287c7ff2714a74be6099713c87bbc3e005c63d4d3d02f8ba89b42810a5854444ad2b76855007a0925fafa7d870875beb010',
+					cipherparams: { iv: '3a583b21bbac609c7df3e7e0', tag: '63653f1d4e8d422a42d98b25d3844792' },
+				};
 				const decrypted = await decryptPassphraseWithPassword(encryptedPassphrase, defaultPassword);
 				expect(decrypted).toBe(defaultPassphrase);
 			});
 		});
 
 		describe('integration test', () => {
-			it('should encrypt a given passphrase with a password and decrypt it back to the original passphrase @node-only', async () => {
+			it('should encrypt a given passphrase with a password and decrypt it back to the original passphrase with PBKDF2 @node-only', async () => {
 				const encryptedPassphrase = await encryptPassphraseWithPassword(
 					defaultPassphrase,
 					defaultPassword,
@@ -319,11 +328,38 @@ describe('encrypt', () => {
 				expect(decryptedString).toBe(defaultPassphrase);
 			});
 
-			it('should encrypt a given passphrase with a password and custom number of iterations and decrypt it back to the original passphrase @node-only', async () => {
+			it('should encrypt a given passphrase with a password and custom number of iterations and decrypt it back to the original passphrase with PBKDF2 @node-only', async () => {
 				const encryptedPassphrase = await encryptPassphraseWithPassword(
 					defaultPassphrase,
 					defaultPassword,
 					{ kdf: KDF.PBKDF2, kdfparams: { iterations: customIterations } },
+				);
+				const decryptedString = await decryptPassphraseWithPassword(
+					encryptedPassphrase,
+					defaultPassword,
+				);
+				expect(decryptedString).toBe(defaultPassphrase);
+			});
+
+			it('should encrypt a given passphrase with a password and decrypt it back to the original passphrase with ARGON2 @node-only', async () => {
+				const encryptedPassphrase = await encryptPassphraseWithPassword(
+					defaultPassphrase,
+					defaultPassword,
+					{ kdf: KDF.ARGON2 },
+				);
+
+				const decryptedString = await decryptPassphraseWithPassword(
+					encryptedPassphrase,
+					defaultPassword,
+				);
+				expect(decryptedString).toBe(defaultPassphrase);
+			});
+
+			it('should encrypt a given passphrase with a password and custom number of iterations and decrypt it back to the original passphrase with ARGON2 @node-only', async () => {
+				const encryptedPassphrase = await encryptPassphraseWithPassword(
+					defaultPassphrase,
+					defaultPassword,
+					{ kdf: KDF.ARGON2, kdfparams: { iterations: customIterations } },
 				);
 				const decryptedString = await decryptPassphraseWithPassword(
 					encryptedPassphrase,
