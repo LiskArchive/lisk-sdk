@@ -17,7 +17,7 @@ import * as ed2curve from 'ed2curve';
 import * as querystring from 'querystring';
 
 // eslint-disable-next-line import/no-cycle
-import { EncryptedPassphraseObject } from './encrypt';
+import { EncryptedPassphraseObject, KDF } from './encrypt';
 
 // eslint-disable-next-line import/order
 import reverse = require('buffer-reverse');
@@ -81,6 +81,8 @@ export const stringifyEncryptedPassphrase = (
 		throw new Error('Encrypted passphrase to stringify must be an object.');
 	}
 	const objectToStringify = {
+		kdf: encryptedPassphrase.kdf,
+		cipher: encryptedPassphrase.cipher,
 		version: encryptedPassphrase.version,
 		ciphertext: encryptedPassphrase.ciphertext,
 		mac: encryptedPassphrase.mac,
@@ -109,12 +111,18 @@ interface ParsedEncryptedPassphrase {
 	readonly version: string;
 	readonly ciphertext: string;
 	readonly mac: string;
-	readonly salt: string;
-	readonly iv: string;
-	readonly tag: string;
-	readonly iterations?: number;
-	readonly parallelism?: number;
-	readonly memorySize?: number;
+	readonly kdf: string | KDF;
+	readonly kdfparams?: {
+		parallelism?: number;
+		iterations?: number;
+		memorySize?: number;
+		salt: string;
+	};
+	readonly cipher: string | Cipher;
+	readonly cipherparams: {
+		iv: string;
+		tag: string;
+	};
 }
 
 export const parseEncryptedPassphrase = (
@@ -126,6 +134,8 @@ export const parseEncryptedPassphrase = (
 	const keyValuePairs = querystring.parse(encryptedPassphrase);
 
 	const {
+		kdf,
+		cipher,
 		iterations,
 		salt,
 		ciphertext,
@@ -139,11 +149,13 @@ export const parseEncryptedPassphrase = (
 
 	// Review, and find a better solution
 	if (
+		typeof kdf !== 'string' ||
+		typeof cipher !== 'string' ||
 		(typeof iterations !== 'string' && typeof iterations !== 'undefined') ||
-		typeof salt !== 'string' ||
 		typeof ciphertext !== 'string' ||
 		typeof iv !== 'string' ||
 		typeof tag !== 'string' ||
+		typeof salt !== 'string' ||
 		typeof version !== 'string' ||
 		(typeof mac !== 'string' && typeof mac !== 'undefined') ||
 		(typeof parallelism !== 'string' && typeof parallelism !== 'undefined') ||
@@ -156,11 +168,17 @@ export const parseEncryptedPassphrase = (
 		version,
 		ciphertext,
 		mac,
-		salt,
-		iv,
-		tag,
-		iterations: parseOption(iterations),
-		parallelism: parseOption(parallelism),
-		memorySize: parseOption(memorySize),
+		kdf,
+		kdfparams: {
+			parallelism: parseOption(parallelism),
+			iterations: parseOption(iterations),
+			memorySize: parseOption(memorySize),
+			salt,
+		},
+		cipher,
+		cipherparams: {
+			iv,
+			tag,
+		},
 	};
 };
