@@ -179,7 +179,7 @@ To contribute to `lisk-sdk`, `framework` or `elements`:
 
 1. Clone the repository: `git clone https://github.com/LiskHQ/lisk-sdk.git`
 
-2. Install yarn globally: [Install Yarn](https://classic.yarnpkg.com/en/docs/install)
+2. Install [Install Yarn Classic](https://classic.yarnpkg.com/en/docs/install) globally: (please note that we are still on Yarn 1.xx)
 
 3. Install dependencies and build:
    1. `yarn`
