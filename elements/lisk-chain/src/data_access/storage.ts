@@ -33,7 +33,7 @@ import { CurrentState } from '../state_store';
 import { DEFAULT_KEEP_EVENTS_FOR_HEIGHTS, MAX_UINT32 } from '../constants';
 
 const bytesArraySchema = {
-	$id: 'lisk-chain/bytesarray',
+	$id: '/liskChain/bytesarray',
 	type: 'object',
 	required: ['list'],
 	properties: {

@@ -54,7 +54,7 @@ export const eventSchema = {
 };
 
 export const validatorSchema = {
-	$id: 'abi/validator',
+	$id: '/abi/validator',
 	type: 'object',
 	required: ['address', 'bftWeight', 'generatorKey', 'blsKey'],
 	properties: {
@@ -78,7 +78,7 @@ export const validatorSchema = {
 };
 
 export const consensusSchema = {
-	$id: 'abi/consensus',
+	$id: '/abi/consensus',
 	type: 'object',
 	required: ['currentValidators', 'implyMaxPrevote', 'maxHeightCertified'],
 	properties: {
@@ -105,7 +105,7 @@ export const consensusSchema = {
 };
 
 export const initRequestSchema = {
-	$id: 'abi/initRequest',
+	$id: '/abi/initRequest',
 	type: 'object',
 	properties: {},
 };
@@ -387,7 +387,7 @@ const generatorConfigSchema = {
 };
 
 export const initResponseSchema = {
-	$id: 'abi/initResponse',
+	$id: '/abi/initResponse',
 	type: 'object',
 	required: ['registeredModules', 'genesisBlock', 'config'],
 	properties: {
@@ -484,7 +484,7 @@ export const initResponseSchema = {
 };
 
 export const readyRequestSchema = {
-	$id: 'abi/readyRequest',
+	$id: '/abi/readyRequest',
 	type: 'object',
 	required: ['networkIdentifier', 'lastBlockHeight'],
 	properties: {
@@ -500,14 +500,14 @@ export const readyRequestSchema = {
 };
 
 export const readyResponseSchema = {
-	$id: 'abi/readyResponse',
+	$id: '/abi/readyResponse',
 	type: 'object',
 	required: [],
 	properties: {},
 };
 
 export const initStateMachineRequestSchema = {
-	$id: 'abi/initStateMachineRequest',
+	$id: '/abi/initStateMachineRequest',
 	type: 'object',
 	required: ['header'],
 	properties: {
@@ -519,7 +519,7 @@ export const initStateMachineRequestSchema = {
 };
 
 export const initStateMachineResponseSchema = {
-	$id: 'abi/initStateMachineResponse',
+	$id: '/abi/initStateMachineResponse',
 	type: 'object',
 	required: ['contextID'],
 	properties: {
@@ -531,7 +531,7 @@ export const initStateMachineResponseSchema = {
 };
 
 export const initGenesisStateRequestSchema = {
-	$id: 'abi/initGenesisStateRequest',
+	$id: '/abi/initGenesisStateRequest',
 	type: 'object',
 	required: ['contextID'],
 	properties: {
@@ -543,7 +543,7 @@ export const initGenesisStateRequestSchema = {
 };
 
 export const initGenesisStateResponseSchema = {
-	$id: 'abi/initGenesisStateResponse',
+	$id: '/abi/initGenesisStateResponse',
 	type: 'object',
 	required: ['assets', 'events', 'preCommitThreshold', 'certificateThreshold', 'nextValidators'],
 	properties: {
@@ -580,7 +580,7 @@ export const initGenesisStateResponseSchema = {
 };
 
 export const insertAssetsRequestSchema = {
-	$id: 'abi/insertAssetsRequest',
+	$id: '/abi/insertAssetsRequest',
 	type: 'object',
 	required: ['contextID', 'finalizedHeight'],
 	properties: {
@@ -596,7 +596,7 @@ export const insertAssetsRequestSchema = {
 };
 
 export const insertAssetsResponseSchema = {
-	$id: 'abi/insertAssetsResponse',
+	$id: '/abi/insertAssetsResponse',
 	type: 'object',
 	required: ['assets'],
 	properties: {
@@ -611,7 +611,7 @@ export const insertAssetsResponseSchema = {
 };
 
 export const verifyAssetsRequestSchema = {
-	$id: 'abi/verifyAssetsRequest',
+	$id: '/abi/verifyAssetsRequest',
 	type: 'object',
 	required: ['contextID', 'assets'],
 	properties: {
@@ -630,13 +630,13 @@ export const verifyAssetsRequestSchema = {
 };
 
 export const verifyAssetsResponseSchema = {
-	$id: 'abi/verifyAssetsResponse',
+	$id: '/abi/verifyAssetsResponse',
 	type: 'object',
 	properties: {},
 };
 
 export const beforeTransactionsExecuteRequestSchema = {
-	$id: 'abi/beforeTransactionsExecuteRequest',
+	$id: '/abi/beforeTransactionsExecuteRequest',
 	type: 'object',
 	required: ['contextID', 'assets', 'consensus'],
 	properties: {
@@ -659,7 +659,7 @@ export const beforeTransactionsExecuteRequestSchema = {
 };
 
 export const beforeTransactionsExecuteResponseSchema = {
-	$id: 'abi/beforeTransactionsExecuteResponse',
+	$id: '/abi/beforeTransactionsExecuteResponse',
 	type: 'object',
 	required: ['events'],
 	properties: {
@@ -674,7 +674,7 @@ export const beforeTransactionsExecuteResponseSchema = {
 };
 
 export const afterTransactionsExecuteRequestSchema = {
-	$id: 'abi/afterTransactionsExecuteRequest',
+	$id: '/abi/afterTransactionsExecuteRequest',
 	type: 'object',
 	required: ['contextID', 'assets', 'consensus', 'transactions'],
 	properties: {
@@ -704,7 +704,7 @@ export const afterTransactionsExecuteRequestSchema = {
 };
 
 export const afterTransactionsExecuteResponseSchema = {
-	$id: 'abi/afterTransactionsExecuteResponse',
+	$id: '/abi/afterTransactionsExecuteResponse',
 	type: 'object',
 	required: ['events', 'preCommitThreshold', 'certificateThreshold', 'nextValidators'],
 	properties: {
@@ -734,7 +734,7 @@ export const afterTransactionsExecuteResponseSchema = {
 };
 
 export const verifyTransactionRequestSchema = {
-	$id: 'abi/verifyTransactionRequest',
+	$id: '/abi/verifyTransactionRequest',
 	type: 'object',
 	required: ['contextID', 'transaction'],
 	properties: {
@@ -750,7 +750,7 @@ export const verifyTransactionRequestSchema = {
 };
 
 export const verifyTransactionResponseSchema = {
-	$id: 'abi/verifyTransactionResponse',
+	$id: '/abi/verifyTransactionResponse',
 	type: 'object',
 	required: ['result'],
 	properties: {
@@ -762,7 +762,7 @@ export const verifyTransactionResponseSchema = {
 };
 
 export const executeTransactionRequestSchema = {
-	$id: 'abi/executeTransactionRequest',
+	$id: '/abi/executeTransactionRequest',
 	type: 'object',
 	required: ['contextID', 'transaction', 'assets', 'dryRun', 'header'],
 	properties: {
@@ -797,7 +797,7 @@ export const executeTransactionRequestSchema = {
 };
 
 export const executeTransactionResponseSchema = {
-	$id: 'abi/executeTransactionResponse',
+	$id: '/abi/executeTransactionResponse',
 	type: 'object',
 	required: ['events', 'result'],
 	properties: {
@@ -816,7 +816,7 @@ export const executeTransactionResponseSchema = {
 };
 
 export const commitRequestSchema = {
-	$id: 'abi/commitRequest',
+	$id: '/abi/commitRequest',
 	type: 'object',
 	required: ['contextID', 'stateRoot', 'expectedStateRoot', 'dryRun'],
 	properties: {
@@ -840,7 +840,7 @@ export const commitRequestSchema = {
 };
 
 export const commitResponseSchema = {
-	$id: 'abi/commitResponse',
+	$id: '/abi/commitResponse',
 	type: 'object',
 	properties: {
 		stateRoot: {
@@ -851,7 +851,7 @@ export const commitResponseSchema = {
 };
 
 export const revertRequestSchema = {
-	$id: 'abi/revertRequest',
+	$id: '/abi/revertRequest',
 	type: 'object',
 	required: ['contextID', 'stateRoot', 'expectedStateRoot'],
 	properties: {
@@ -871,7 +871,7 @@ export const revertRequestSchema = {
 };
 
 export const revertResponseSchema = {
-	$id: 'abi/revertResponse',
+	$id: '/abi/revertResponse',
 	type: 'object',
 	required: ['stateRoot'],
 	properties: {
@@ -883,7 +883,7 @@ export const revertResponseSchema = {
 };
 
 export const finalizeRequestSchema = {
-	$id: 'abi/finalizeRequest',
+	$id: '/abi/finalizeRequest',
 	type: 'object',
 	required: ['finalizedHeight'],
 	properties: {
@@ -895,13 +895,13 @@ export const finalizeRequestSchema = {
 };
 
 export const finalizeResponseSchema = {
-	$id: 'abi/finalizeResponse',
+	$id: '/abi/finalizeResponse',
 	type: 'object',
 	properties: {},
 };
 
 export const clearRequestSchema = {
-	$id: 'abi/clearRequest',
+	$id: '/abi/clearRequest',
 	type: 'object',
 	required: ['finalizedHeight'],
 	properties: {
@@ -913,19 +913,19 @@ export const clearRequestSchema = {
 };
 
 export const clearResponseSchema = {
-	$id: 'abi/clearResponse',
+	$id: '/abi/clearResponse',
 	type: 'object',
 	properties: {},
 };
 
 export const metadataRequestSchema = {
-	$id: 'abi/metadataRequest',
+	$id: '/abi/metadataRequest',
 	type: 'object',
 	properties: {},
 };
 
 export const metadataResponseSchema = {
-	$id: 'abi/metadataResponse',
+	$id: '/abi/metadataResponse',
 	type: 'object',
 	required: ['data'],
 	properties: {
@@ -937,7 +937,7 @@ export const metadataResponseSchema = {
 };
 
 export const queryRequestSchema = {
-	$id: 'abi/queryRequest',
+	$id: '/abi/queryRequest',
 	type: 'object',
 	required: ['method', 'params', 'header'],
 	properties: {
@@ -957,7 +957,7 @@ export const queryRequestSchema = {
 };
 
 export const queryResponseSchema = {
-	$id: 'abi/queryResponse',
+	$id: '/abi/queryResponse',
 	type: 'object',
 	required: ['data'],
 	properties: {
@@ -969,7 +969,7 @@ export const queryResponseSchema = {
 };
 
 export const proveRequestSchema = {
-	$id: 'abi/proveRequest',
+	$id: '/abi/proveRequest',
 	type: 'object',
 	required: ['stateRoot', 'keys'],
 	properties: {
@@ -988,7 +988,7 @@ export const proveRequestSchema = {
 };
 
 export const proveResponseSchema = {
-	$id: 'abi/proveResponse',
+	$id: '/abi/proveResponse',
 	type: 'object',
 	required: ['proof'],
 	properties: {
@@ -1032,7 +1032,7 @@ export const proveResponseSchema = {
 };
 
 export const ipcRequestSchema = {
-	$id: 'abi/ipcRequest',
+	$id: '/abi/ipcRequest',
 	type: 'object',
 	required: ['id', 'method', 'params'],
 	properties: {
@@ -1052,7 +1052,7 @@ export const ipcRequestSchema = {
 };
 
 export const ipcResponseSchema = {
-	$id: 'abi/ipcResponse',
+	$id: '/abi/ipcResponse',
 	type: 'object',
 	required: ['id', 'success', 'error', 'result'],
 	properties: {

@@ -20,7 +20,7 @@ const prepareProtobuffersBlock = () =>
 const { Account } = prepareProtobuffersBlock();
 
 const accountSchema = {
-	$id: 'accountSchema',
+	$id: '/accountSchema',
 	type: 'object',
 	properties: {
 		address: { dataType: 'bytes', fieldNumber: 1 },

@@ -19,7 +19,7 @@ const { codec } = require('../dist-node/codec');
 const suite = new Suite();
 
 const testSchema = {
-	$id: 'testSchema',
+	$id: '/testSchema',
 	type: 'object',
 	properties: {
 		b: { fieldNumber: 2, dataType: 'string' },

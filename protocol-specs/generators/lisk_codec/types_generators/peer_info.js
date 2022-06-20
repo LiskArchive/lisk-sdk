@@ -29,7 +29,7 @@ const peerInfo = {
 	height: 123,
 };
 const peerInfoSchema = {
-	$id: 'peerInfo',
+	$id: '/peerInfo',
 	type: 'object',
 	properties: {
 		ipAddress: {

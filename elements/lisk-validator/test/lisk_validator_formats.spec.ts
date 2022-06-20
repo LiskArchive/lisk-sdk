@@ -15,7 +15,7 @@
 import { validator } from '../src';
 
 describe('validator formats', () => {
-	const baseSchemaId = 'test/schema';
+	const baseSchemaId = '/test/schema';
 	let baseSchema: object;
 
 	beforeAll(() => {

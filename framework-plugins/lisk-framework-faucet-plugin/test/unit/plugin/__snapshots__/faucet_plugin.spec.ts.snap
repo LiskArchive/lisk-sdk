@@ -2,7 +2,7 @@
 
 exports[`FaucetPlugin configSchema should return valid config schema with default options 1`] = `
 Object {
-  "$id": "#/plugins/lisk-faucet/config",
+  "$id": "#/plugins/liskFaucet/config",
   "default": Object {
     "amount": "100",
     "applicationUrl": "ws://localhost:8080/ws",

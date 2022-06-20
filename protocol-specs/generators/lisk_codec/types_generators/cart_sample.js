@@ -52,7 +52,7 @@ const object = {
 };
 
 const schema = {
-	$id: 'cart_sample',
+	$id: '/cartSample',
 	type: 'object',
 	properties: {
 		orderId: {

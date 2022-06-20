@@ -51,7 +51,7 @@ export const getBlocksFromIdResponseSchema = {
 };
 
 export const getHighestCommonBlockRequestSchema = {
-	$id: 'lisk/getHighestCommonBlockRequest',
+	$id: '/lisk/getHighestCommonBlockRequest',
 	title: 'Get Highest Common Block Request',
 	type: 'object',
 	required: ['ids'],
@@ -74,7 +74,7 @@ export interface RPCHighestCommonBlockRequest {
 }
 
 export const getHighestCommonBlockResponseSchema = {
-	$id: 'lisk/getHighestCommonBlockResponse',
+	$id: '/lisk/getHighestCommonBlockResponse',
 	title: 'Get Highest Common Block Response',
 	type: 'object',
 	required: ['id'],
@@ -97,7 +97,7 @@ export interface EventPostBlockData {
 }
 
 export const postBlockEventSchema = {
-	$id: 'lisk/postBlockEvent',
+	$id: '/lisk/postBlockEvent',
 	title: 'Post Block Event',
 	type: 'object',
 	required: ['block'],
@@ -114,7 +114,7 @@ export interface SingleCommitData {
 }
 
 export const getSingleCommitEventSchema = {
-	$id: 'lisk/getSingleCommitEvent',
+	$id: '/lisk/getSingleCommitEvent',
 	title: 'Get SingleCommit Event',
 	type: 'object',
 	required: ['singleCommit'],

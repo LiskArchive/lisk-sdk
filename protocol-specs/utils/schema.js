@@ -13,7 +13,7 @@
  */
 
 const baseTransactionSchema = {
-	$id: 'baseTransactionSchema',
+	$id: '/baseTransactionSchema',
 	type: 'object',
 	required: ['moduleID', 'commandID', 'nonce', 'fee', 'senderPublicKey', 'params'],
 	properties: {
