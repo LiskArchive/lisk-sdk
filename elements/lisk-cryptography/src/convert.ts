@@ -80,57 +80,87 @@ export const stringifyEncryptedPassphrase = (
 	if (typeof encryptedPassphrase !== 'object' || encryptedPassphrase === null) {
 		throw new Error('Encrypted passphrase to stringify must be an object.');
 	}
-	const objectToStringify = encryptedPassphrase.iterations
-		? encryptedPassphrase
-		: {
-				salt: encryptedPassphrase.salt,
-				cipherText: encryptedPassphrase.cipherText,
-				iv: encryptedPassphrase.iv,
-				tag: encryptedPassphrase.tag,
-				version: encryptedPassphrase.version,
-		  };
+	const objectToStringify = {
+		version: encryptedPassphrase.version,
+		ciphertext: encryptedPassphrase.ciphertext,
+		mac: encryptedPassphrase.mac,
+		salt: encryptedPassphrase.kdfparams.salt,
+		iv: encryptedPassphrase.cipherparams.iv,
+		tag: encryptedPassphrase.cipherparams.tag,
+		iterations: encryptedPassphrase.kdfparams.iterations,
+		parallelism: encryptedPassphrase.kdfparams.parallelism,
+		memorySize: encryptedPassphrase.kdfparams.memorySize,
+	};
 
 	return querystring.stringify(objectToStringify);
 };
 
-const parseIterations = (iterationsString?: string): number | undefined => {
-	const iterations = iterationsString === undefined ? undefined : parseInt(iterationsString, 10);
+const parseOption = (optionsString?: string): number | undefined => {
+	const option = optionsString === undefined ? undefined : parseInt(optionsString, 10);
 
-	if (typeof iterations !== 'undefined' && Number.isNaN(iterations)) {
-		throw new Error('Could not parse iterations.');
+	if (typeof option !== 'undefined' && Number.isNaN(option)) {
+		throw new Error('Could not parse option.');
 	}
 
-	return iterations;
+	return option;
 };
+
+interface ParsedEncryptedPassphrase {
+	readonly version: string;
+	readonly ciphertext: string;
+	readonly mac: string;
+	readonly salt: string;
+	readonly iv: string;
+	readonly tag: string;
+	readonly iterations?: number;
+	readonly parallelism?: number;
+	readonly memorySize?: number;
+}
 
 export const parseEncryptedPassphrase = (
 	encryptedPassphrase: string,
-): EncryptedPassphraseObject => {
+): ParsedEncryptedPassphrase => {
 	if (typeof encryptedPassphrase !== 'string') {
 		throw new Error('Encrypted passphrase to parse must be a string.');
 	}
 	const keyValuePairs = querystring.parse(encryptedPassphrase);
 
-	const { iterations, salt, cipherText, iv, tag, version } = keyValuePairs;
+	const {
+		iterations,
+		salt,
+		ciphertext,
+		iv,
+		tag,
+		version,
+		mac,
+		parallelism,
+		memorySize,
+	} = keyValuePairs;
 
 	// Review, and find a better solution
 	if (
 		(typeof iterations !== 'string' && typeof iterations !== 'undefined') ||
 		typeof salt !== 'string' ||
-		typeof cipherText !== 'string' ||
+		typeof ciphertext !== 'string' ||
 		typeof iv !== 'string' ||
 		typeof tag !== 'string' ||
-		typeof version !== 'string'
+		typeof version !== 'string' ||
+		(typeof mac !== 'string' && typeof mac !== 'undefined') ||
+		(typeof parallelism !== 'string' && typeof parallelism !== 'undefined') ||
+		(typeof memorySize !== 'string' && typeof memorySize !== 'undefined')
 	) {
 		throw new Error('Encrypted passphrase to parse must have only one value per key.');
 	}
 
 	return {
-		iterations: parseIterations(iterations),
+		version,
+		ciphertext,
+		mac,
 		salt,
-		cipherText,
 		iv,
 		tag,
-		version,
+		iterations: parseOption(iterations),
+		parallelism: parseOption(parallelism),
+		memorySize: parseOption(memorySize),
 	};
 };
