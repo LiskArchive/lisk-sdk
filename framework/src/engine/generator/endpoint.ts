@@ -14,6 +14,7 @@
 
 import {
 	decryptPassphraseWithPassword,
+	EncryptedPassphraseObject,
 	generatePrivateKey,
 	getAddressFromPublicKey,
 	getPrivateAndPublicKeyFromPassphrase,
@@ -99,8 +100,10 @@ export class Endpoint {
 		}
 
 		try {
-			passphrase = decryptPassphraseWithPassword(
-				parseEncryptedPassphrase(encryptedGenerator.encryptedPassphrase),
+			passphrase = await decryptPassphraseWithPassword(
+				parseEncryptedPassphrase(
+					encryptedGenerator.encryptedPassphrase,
+				) as EncryptedPassphraseObject,
 				req.password,
 			);
 		} catch (e) {
