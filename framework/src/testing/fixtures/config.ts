@@ -12,7 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { decryptPassphraseWithPassword, parseEncryptedPassphrase } from '@liskhq/lisk-cryptography';
+import {
+	decryptPassphraseWithPassword,
+	EncryptedPassphraseObject,
+	parseEncryptedPassphrase,
+} from '@liskhq/lisk-cryptography';
 
 export const defaultPassword =
 	'tiger grit rigid pipe athlete cheese guitar hurdle remind gap peasant pond';
@@ -2627,10 +2631,15 @@ const getDelegateFromDefaultConfig = (address: Buffer) => {
 	return delegateConfig;
 };
 
-export const getPassphraseFromDefaultConfig = (address: Buffer): string => {
+export const getPassphraseFromDefaultConfig = async (address: Buffer): Promise<string> => {
 	const delegateConfig = getDelegateFromDefaultConfig(address);
-	const encryptedPassphraseObject = parseEncryptedPassphrase(delegateConfig.encryptedPassphrase);
-	const passphrase = decryptPassphraseWithPassword(encryptedPassphraseObject, defaultPassword);
+	const encryptedPassphraseObject = parseEncryptedPassphrase(
+		delegateConfig.encryptedPassphrase,
+	) as EncryptedPassphraseObject;
+	const passphrase = await decryptPassphraseWithPassword(
+		encryptedPassphraseObject,
+		defaultPassword,
+	);
 
 	return passphrase;
 };
