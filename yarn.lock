@@ -2500,38 +2500,6 @@
   dependencies:
     "@types/node" "11.11.2"
 
-"@liskhq/lisk-codec@0.2.1":
-  version "0.2.1"
-  resolved "https://npm.lisk.com/@liskhq%2flisk-codec/-/lisk-codec-0.2.1.tgz#ca00250638e0cf24435d0721af0c8757be51a851"
-  integrity sha512-c+eYwxPF8uDq395HU1CdymBKO8NO+7J/Iq1kIL1Wm/R4QoszbLAE7Dh6DXquqcervcVNyTFkoqzpPHjjemIsoA==
-  dependencies:
-    "@liskhq/lisk-utils" "^0.2.0"
-    "@liskhq/lisk-validator" "^0.6.1"
-
-"@liskhq/lisk-cryptography@3.2.0":
-  version "3.2.0"
-  resolved "https://npm.lisk.com/@liskhq%2flisk-cryptography/-/lisk-cryptography-3.2.0.tgz#df2c3dab6ffb85ffe898fcaa50756c85ccd98d1d"
-  integrity sha512-Dm0oYJS8HkyDutxrr0z4mSu/+t8kybpfASORKbHjjsgwLKz9xgRNy7nJJ0UJDO1At1muaoc7nM9hxNLiTDqC5A==
-  dependencies:
-    buffer-reverse "1.0.1"
-    ed2curve "0.3.0"
-    tweetnacl "1.0.3"
-    varuint-bitcoin "1.1.2"
-  optionalDependencies:
-    sodium-native "3.2.1"
-
-"@liskhq/lisk-cryptography@^3.2.0", "@liskhq/lisk-cryptography@^3.2.1":
-  version "3.2.1"
-  resolved "https://npm.lisk.com/@liskhq%2flisk-cryptography/-/lisk-cryptography-3.2.1.tgz#9e355386b3117cf9916d875a7aaf6ea15e017fdd"
-  integrity sha512-n1yoVXSzKj9ZeVMvOmVkpZwyRBcvInu0sXBB7Z7d1bsgAiTSGKJDz6TVGWTwpEkfn0kk79Sie2QBbulaON57YQ==
-  dependencies:
-    buffer-reverse "1.0.1"
-    ed2curve "0.3.0"
-    tweetnacl "1.0.3"
-    varuint-bitcoin "1.1.2"
-  optionalDependencies:
-    sodium-native "3.2.1"
-
 "@liskhq/lisk-db@^0.3.0-debug.20-b44082d07ab158736d00f7fd1706ca72ca2c9d27":
   version "0.3.0-debug.20-b44082d07ab158736d00f7fd1706ca72ca2c9d27"
   resolved "https://npm.lisk.com/@liskhq%2flisk-db/-/lisk-db-0.3.0-debug.20-b44082d07ab158736d00f7fd1706ca72ca2c9d27.tgz#596e6e645ea2e5f4763661f776f4b82086316705"
@@ -2539,44 +2507,6 @@
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.9"
     "@types/node" "^16"
-
-"@liskhq/lisk-passphrase@3.1.0":
-  version "3.1.0"
-  resolved "https://npm.lisk.com/@liskhq%2flisk-passphrase/-/lisk-passphrase-3.1.0.tgz#583b2137747c8a05ffa4590b0dfd971266d13bac"
-  integrity sha512-xylTDLNhyaZB9/9E6QvDv7uLi5iQodTGNOto4/nI5E2EteOBIc1F4/nb8dpccI1dxYIg9CXIGV8zXIQkV6RpGQ==
-  dependencies:
-    bip39 "3.0.3"
-
-"@liskhq/lisk-utils@^0.2.0":
-  version "0.2.1"
-  resolved "https://npm.lisk.com/@liskhq%2flisk-utils/-/lisk-utils-0.2.1.tgz#086779635250cdad771158963834e4cb7a6d34da"
-  integrity sha512-2vPLoCRVJVYEh8KUePBj/qBrD3i9aM5g3lhimn+RiEweKQSpBBe+BGcBIuNeKtCJtm2A0ChVjSXJV39t7nNh+A==
-  dependencies:
-    lodash.clonedeep "4.5.0"
-
-"@liskhq/lisk-validator@0.6.1":
-  version "0.6.1"
-  resolved "https://npm.lisk.com/@liskhq%2flisk-validator/-/lisk-validator-0.6.1.tgz#f4e48f2dc987111e51fa9c9e015a6ed66f75580e"
-  integrity sha512-pPvMAdFkB8mNFnEj+pWyZ0t6eDek+NfbKUsWSC0eQE98FHkWXCHimMkG99ovC4WIpDdNhiKNwB1qirTdImF+6Q==
-  dependencies:
-    "@liskhq/lisk-cryptography" "^3.2.0"
-    ajv "8.1.0"
-    ajv-formats "2.0.2"
-    debug "4.3.1"
-    semver "7.3.5"
-    validator "13.5.2"
-
-"@liskhq/lisk-validator@^0.6.1":
-  version "0.6.2"
-  resolved "https://npm.lisk.com/@liskhq%2flisk-validator/-/lisk-validator-0.6.2.tgz#95f270555ffe3acabf7b40e9eb2b81db25c1b933"
-  integrity sha512-BUqi74EqnrTtpVsjGVgD4et8/nJdA/Oau9tK+SeD2vCrzwA09+AI8Eow5d4arJMcvtjOeNbgX7FApJs8MQ38Xw==
-  dependencies:
-    "@liskhq/lisk-cryptography" "^3.2.1"
-    ajv "8.1.0"
-    ajv-formats "2.0.2"
-    debug "4.3.4"
-    semver "7.3.5"
-    validator "13.7.0"
 
 "@mapbox/node-pre-gyp@^1.0.9":
   version "1.0.9"
@@ -7244,13 +7174,6 @@ debug@4, debug@4.3.1, debug@^4.0.0, debug@^4.3.1:
   version "4.3.1"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.1.tgz#f0d229c505e0c6d8c49ac553d1b13dc183f6b2ee"
   integrity sha512-doEwdvm4PCeK4K3RQN2ZC2BYUBaxwLARCqZmMjtF8a51J2Rb0xpVloFRnCODwqjpwnAoao4pelN8l3RJdv3gRQ==
-  dependencies:
-    ms "2.1.2"
-
-debug@4.3.4:
-  version "4.3.4"
-  resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.4.tgz#1319f6579357f2338d3337d2cdd4914bb5dcc865"
-  integrity sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==
   dependencies:
     ms "2.1.2"
 
@@ -18178,11 +18101,6 @@ validate-npm-package-name@^3.0.0:
   integrity sha1-X6kS2B630MdK/BQN5zF/DKffQ34=
   dependencies:
     builtins "^1.0.3"
-
-validator@13.5.2:
-  version "13.5.2"
-  resolved "https://registry.yarnpkg.com/validator/-/validator-13.5.2.tgz#c97ae63ed4224999fb6f42c91eaca9567fe69a46"
-  integrity sha512-mD45p0rvHVBlY2Zuy3F3ESIe1h5X58GPfAtslBjY7EtTqGquZTj+VX/J4RnHWN8FKq0C9WRVt1oWAcytWRuYLQ==
 
 validator@13.7.0:
   version "13.7.0"
