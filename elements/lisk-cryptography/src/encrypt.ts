@@ -30,6 +30,9 @@ const PBKDF2_KEYLEN = 32;
 const PBKDF2_HASH_FUNCTION = 'sha256';
 const ENCRYPTION_VERSION = '1';
 const HASH_LENGTH = 32;
+const ARGON2_ITERATIONS = 1;
+const ARGON2_PARALLELISM = 4;
+const ARGON2_MEMORY = 2024;
 
 export interface EncryptedMessageWithNonce {
 	readonly encryptedMessage: string;
@@ -153,8 +156,8 @@ export interface EncryptedPassphraseObject {
 const encryptAES256GCMWithPassword = async (
 	plainText: string,
 	password: string,
-	options: {
-		kdf: KDF;
+	options?: {
+		kdf?: KDF;
 		kdfparams?: {
 			parallelism?: number;
 			iterations?: number;
@@ -162,14 +165,15 @@ const encryptAES256GCMWithPassword = async (
 		};
 	},
 ): Promise<EncryptedPassphraseObject> => {
-	const { kdf } = options;
+	const kdf = options?.kdf ?? KDF.ARGON2;
 	const IV_BUFFER_SIZE = 12;
 	const SALT_BUFFER_SIZE = 16;
 	const salt = crypto.randomBytes(SALT_BUFFER_SIZE);
 	const iv = crypto.randomBytes(IV_BUFFER_SIZE);
-	const iterations = kdf === KDF.ARGON2 ? 1 : options.kdfparams?.iterations ?? PBKDF2_ITERATIONS;
-	const parallelism = options.kdfparams?.parallelism ?? 4;
-	const memorySize = options.kdfparams?.parallelism ?? 2024;
+	const iterations =
+		kdf === KDF.ARGON2 ? ARGON2_ITERATIONS : options?.kdfparams?.iterations ?? PBKDF2_ITERATIONS;
+	const parallelism = options?.kdfparams?.parallelism ?? ARGON2_PARALLELISM;
+	const memorySize = options?.kdfparams?.parallelism ?? ARGON2_MEMORY;
 	const key =
 		kdf === KDF.ARGON2
 			? await getKeyFromPasswordWithArgon2({
