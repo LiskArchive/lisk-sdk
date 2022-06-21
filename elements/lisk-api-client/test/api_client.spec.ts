@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { when } from 'jest-when';
 import { APIClient } from '../src/api_client';
 import { Channel } from '../src/types';
 
@@ -31,6 +32,10 @@ describe('APIClient module', () => {
 
 	describe('when init is called', () => {
 		beforeEach(async () => {
+			when(channel.invoke as any)
+				.calledWith('system_getMetadata')
+				.mockResolvedValue({ modules: [] } as never);
+
 			await client.init();
 		});
 
