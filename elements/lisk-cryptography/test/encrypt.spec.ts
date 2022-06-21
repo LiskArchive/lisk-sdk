@@ -193,13 +193,13 @@ describe('encrypt', () => {
 			});
 
 			it('should accept and output a custom number of iterations', async () => {
-				const encryptedPassphraseWithIterations = await encryptPassphraseWithPassword(
+				encryptedPassphrase = await encryptPassphraseWithPassword(
 					defaultPassphrase,
 					defaultPassword,
 					{ kdf: KDF.PBKDF2, kdfparams: { iterations: customIterations } },
 				);
 
-				expect(encryptedPassphraseWithIterations.kdfparams.iterations).toBe(customIterations);
+				expect(encryptedPassphrase.kdfparams.iterations).toBe(customIterations);
 			});
 		});
 
