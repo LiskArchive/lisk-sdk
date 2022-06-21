@@ -17,7 +17,7 @@ import * as ed2curve from 'ed2curve';
 import * as querystring from 'querystring';
 
 // eslint-disable-next-line import/no-cycle
-import { EncryptedPassphraseObject, KDF } from './encrypt';
+import { EncryptedPassphraseObject, Cipher, KDF } from './encrypt';
 
 // eslint-disable-next-line import/order
 import reverse = require('buffer-reverse');
@@ -97,8 +97,8 @@ export const stringifyEncryptedPassphrase = (
 	return querystring.stringify(objectToStringify);
 };
 
-const parseOption = (optionsString?: string): number | undefined => {
-	const option = optionsString === undefined ? undefined : parseInt(optionsString, 10);
+const parseOption = (optionString?: string): number | undefined => {
+	const option = optionString === undefined ? undefined : parseInt(optionString, 10);
 
 	if (typeof option !== 'undefined' && Number.isNaN(option)) {
 		throw new Error('Could not parse option.');
@@ -151,13 +151,13 @@ export const parseEncryptedPassphrase = (
 	if (
 		typeof kdf !== 'string' ||
 		typeof cipher !== 'string' ||
-		(typeof iterations !== 'string' && typeof iterations !== 'undefined') ||
 		typeof ciphertext !== 'string' ||
 		typeof iv !== 'string' ||
 		typeof tag !== 'string' ||
 		typeof salt !== 'string' ||
 		typeof version !== 'string' ||
 		(typeof mac !== 'string' && typeof mac !== 'undefined') ||
+		(typeof iterations !== 'string' && typeof iterations !== 'undefined') ||
 		(typeof parallelism !== 'string' && typeof parallelism !== 'undefined') ||
 		(typeof memorySize !== 'string' && typeof memorySize !== 'undefined')
 	) {
@@ -170,9 +170,9 @@ export const parseEncryptedPassphrase = (
 		mac,
 		kdf,
 		kdfparams: {
-			parallelism: parseOption(parallelism),
-			iterations: parseOption(iterations),
-			memorySize: parseOption(memorySize),
+			parallelism: parallelism ? parseOption(parallelism) : undefined,
+			iterations: iterations ? parseOption(iterations) : undefined,
+			memorySize: memorySize ? parseOption(memorySize) : undefined,
 			salt,
 		},
 		cipher,
