@@ -232,16 +232,15 @@ export abstract class BaseGenesisBlockCommand extends Command {
 		const onionSeed = cryptography.generateHashOnionSeed();
 		const password = createMnemonicPassphrase();
 		const passwordList = { defaultPassword: password };
-		const generatorInfo = validatorList.map((val, index) => {
+		const generatorInfo = validatorList.map(async (val, index) => {
+			const encryptedPassphrase = await cryptography.encryptPassphraseWithPassword(
+				val.passphrase,
+				password,
+				{ kdfparams: { iterations: validatorsPassphraseEncryptionIterations } },
+			);
 			const info = {
 				// TODO: use a better password, user sourced using flag
-				encryptedPassphrase: cryptography.stringifyEncryptedPassphrase(
-					cryptography.encryptPassphraseWithPassword(
-						val.passphrase,
-						password,
-						validatorsPassphraseEncryptionIterations,
-					),
-				),
+				encryptedPassphrase: cryptography.stringifyEncryptedPassphrase(encryptedPassphrase),
 				hashOnion: {
 					count: validatorsHashOnionCount,
 					distance: validatorsHashOnionDistance,
@@ -276,7 +275,7 @@ export abstract class BaseGenesisBlockCommand extends Command {
 					genesisBlock.toJSON(),
 					formatAccountInfo(accountList),
 					formatValidatorInfo(validatorList),
-					generatorInfo,
+					generatorInfo as any,
 					passwordList,
 				);
 				this.log('\n');
@@ -289,7 +288,7 @@ export abstract class BaseGenesisBlockCommand extends Command {
 				genesisBlock.toJSON(),
 				formatAccountInfo(accountList),
 				formatValidatorInfo(validatorList),
-				generatorInfo,
+				generatorInfo as any,
 				passwordList,
 			);
 			this.log(`Configuration files saved at: ${configPath}`);
