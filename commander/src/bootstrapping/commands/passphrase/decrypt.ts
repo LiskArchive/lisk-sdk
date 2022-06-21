@@ -13,6 +13,7 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
+import { EncryptedPassphraseObject } from '@liskhq/lisk-cryptography';
 import Command from '@oclif/command';
 import { flagsWithParser } from '../../../utils/flags';
 import { getPasswordFromPrompt } from '../../../utils/reader';
@@ -21,10 +22,13 @@ interface Args {
 	readonly encryptedPassphrase?: string;
 }
 
-const processInputs = (password: string, encryptedPassphrase: string): Record<string, string> => {
+const processInputs = async (
+	password: string,
+	encryptedPassphrase: string,
+): Promise<Record<string, string>> => {
 	const encryptedPassphraseObject = cryptography.parseEncryptedPassphrase(encryptedPassphrase);
-	const passphrase = cryptography.decryptPassphraseWithPassword(
-		encryptedPassphraseObject,
+	const passphrase = await cryptography.decryptPassphraseWithPassword(
+		encryptedPassphraseObject as EncryptedPassphraseObject,
 		password,
 	);
 
