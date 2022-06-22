@@ -181,13 +181,11 @@ export const getKeyPairFromPhraseAndPath = async (phrase: string, path: string) 
 	return getKeyPair(node.key);
 };
 
-export const getBLSPrivateKeyFromPhraseAndPath = async (phrase: string, path: number[]) => {
+export const getBLSPrivateKeyFromPhraseAndPath = async (phrase: string, path: string) => {
 	const masterSeed = await Mnemonic.mnemonicToSeed(phrase);
 	let key = blsKeyGen(masterSeed);
 
-	// for (const segment of parseKeyDerivationPath(path)) {
-	// expecting the path as array of integers for now to test the current fixture
-	for (const segment of path) {
+	for (const segment of parseKeyDerivationPath(path)) {
 		key = deriveChildSK(key, segment);
 	}
 

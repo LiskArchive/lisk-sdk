@@ -16,7 +16,6 @@
 import * as crypto from 'crypto';
 import { blsKeyGen } from './bls_lib';
 import { HARDENED_OFFSET, ED25519_CURVE, MAX_UINT32, HASH_LENGTH } from './constants';
-import { hash } from './hash';
 
 export const readBit = (buf: Buffer, bit: number): boolean => {
 	const byteIndex = Math.floor(bit / 8);
@@ -62,7 +61,7 @@ export const parseKeyDerivationPath = (path: string) => {
 					return parseInt(segment, 10) + HARDENED_OFFSET;
 				}
 
-				if (parseInt(segment, 10) <= MAX_UINT32 / 2) {
+				if (parseInt(segment, 10) > MAX_UINT32) {
 					throw new Error('Invalid path format');
 				}
 
@@ -96,11 +95,10 @@ export const getChildKey = (node: { key: Buffer; chainCode: Buffer }, index: num
 	};
 };
 
-const flipBits = (buf: Buffer) => {
-	// eslint-disable-next-line no-bitwise
-	const newBuf = buf.map(x => x ^ 0xff);
-	return Buffer.from(newBuf);
-};
+// eslint-disable-next-line no-bitwise
+const flipBits = (buf: Buffer) => Buffer.from(buf.map(x => x ^ 0xff));
+
+const sha256 = (x: Buffer) => crypto.createHash('sha256').update(x).digest();
 
 const hkdfSHA256 = (ikm: Buffer, length: number, salt: Buffer, info: Buffer) => {
 	if (salt.length === 0) {
@@ -172,11 +170,11 @@ const parentSKToLamportPK = (parentSK: Buffer, index: number) => {
 	salt.writeUIntBE(index, 0, 4);
 
 	const IKM = parentSK;
-	const hashedLamport0 = toLamportSK(IKM, salt).map(x => hash(x));
-	const hashedLamport1 = toLamportSK(flipBits(IKM), salt).map(x => hash(x));
+	const hashedLamport0 = toLamportSK(IKM, salt).map(x => sha256(x));
+	const hashedLamport1 = toLamportSK(flipBits(IKM), salt).map(x => sha256(x));
 
 	const lamportPK = Buffer.concat(hashedLamport0.concat(hashedLamport1));
-	return hash(lamportPK);
+	return sha256(lamportPK);
 };
 
 export const deriveChildSK = (parentSK: Buffer, index: number) => {
