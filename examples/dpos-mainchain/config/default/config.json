@@ -9,10 +9,7 @@
 		"logFileName": "lisk.log"
 	},
 	"rpc": {
-		"modes": ["ipc"],
-		"ipc": {
-			"path": "~/.lisk/dpos-mainchain/socket/ipc"
-		}
+		"modes": ["ipc"]
 	},
 	"genesis": {
 		"blockTime": 10,
