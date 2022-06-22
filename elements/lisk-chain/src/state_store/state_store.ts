@@ -13,7 +13,7 @@
  */
 
 import { codec, Schema } from '@liskhq/lisk-codec';
-import { NotFoundError as DBNotFoundError } from '@liskhq/lisk-db';
+import { IterateOptions, NotFoundError as DBNotFoundError } from '@liskhq/lisk-db';
 import { DB_KEY_STATE_STORE } from '../db_keys';
 import { StateDiff } from '../types';
 import { CacheDB } from './cache_db';
@@ -21,12 +21,7 @@ import { NotFoundError } from './errors';
 import { DatabaseReader, DatabaseWriter } from './types';
 import { copyBuffer } from './utils';
 
-export interface IterateOptions {
-	start: Buffer;
-	end: Buffer;
-	limit?: number;
-	reverse?: boolean;
-}
+export { IterateOptions };
 
 export interface KeyValue {
 	key: Buffer;
@@ -140,8 +135,8 @@ export class StateStore {
 	}
 
 	public async iterate(options: IterateOptions): Promise<KeyValue[]> {
-		const start = this._getKey(options.start);
-		const end = this._getKey(options.end);
+		const start = this._getKey(options.gte as Buffer);
+		const end = this._getKey(options.lte as Buffer);
 		const stream = this._db.createReadStream({
 			gte: start,
 			lte: end,
