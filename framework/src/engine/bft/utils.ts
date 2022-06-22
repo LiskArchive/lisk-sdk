@@ -106,8 +106,8 @@ export const getGeneratorKeys = async (
 	const end = intToBuffer(height, 4);
 	const results = await keysStore.iterate({
 		limit: 1,
-		start,
-		end,
+		gte: start,
+		lte: end,
 		reverse: true,
 	});
 	if (results.length !== 1) {
@@ -122,8 +122,8 @@ export const deleteGeneratorKeys = async (keysStore: StateStore, height: number)
 	const start = intToBuffer(0, 4);
 	const end = intToBuffer(height, 4);
 	const results = await keysStore.iterate({
-		start,
-		end,
+		gte: start,
+		lte: end,
 	});
 	if (results.length <= 1) {
 		return;
