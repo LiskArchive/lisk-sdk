@@ -15,7 +15,14 @@
 
 import * as crypto from 'crypto';
 import { blsKeyGen } from './bls_lib';
-import { HARDENED_OFFSET, ED25519_CURVE, MAX_UINT32, HASH_LENGTH } from './constants';
+import {
+	HARDENED_OFFSET,
+	ED25519_CURVE,
+	MAX_UINT32,
+	HASH_LENGTH,
+	L,
+	EMPTY_SALT,
+} from './constants';
 
 export const readBit = (buf: Buffer, bit: number): boolean => {
 	const byteIndex = Math.floor(bit / 8);
@@ -100,61 +107,26 @@ const flipBits = (buf: Buffer) => Buffer.from(buf.map(x => x ^ 0xff));
 
 const sha256 = (x: Buffer) => crypto.createHash('sha256').update(x).digest();
 
+const hmacSHA256 = (key: Buffer, message: Buffer, hash: string) =>
+	crypto.createHmac(hash, key).update(message).digest();
+
 const hkdfSHA256 = (ikm: Buffer, length: number, salt: Buffer, info: Buffer) => {
 	if (salt.length === 0) {
 		// eslint-disable-next-line no-param-reassign
-		salt = Buffer.from([
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-		]);
+		salt = EMPTY_SALT;
 	}
-	const PRK = crypto.createHmac('sha256', salt).update(ikm).digest();
+	const PRK = hmacSHA256(salt, ikm, 'sha256');
 	let t = Buffer.from([]);
 	let OKM = Buffer.from([]);
 
 	for (let i = 0; i < Math.ceil(length / HASH_LENGTH); i += 1) {
-		t = crypto
-			.createHmac('sha256', PRK)
-			.update(Buffer.concat([t, info, Buffer.from([1 + i])]))
-			.digest();
+		t = hmacSHA256(PRK, Buffer.concat([t, info, Buffer.from([1 + i])]), 'sha256');
 		OKM = Buffer.concat([OKM, t]);
 	}
 	return OKM.slice(0, length);
 };
 
 const toLamportSK = (IKM: Buffer, salt: Buffer) => {
-	const K = 32;
-	const L = K * 255;
 	const info = Buffer.from([]);
 	const OKM = hkdfSHA256(IKM, L, salt, info);
 

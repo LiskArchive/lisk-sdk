@@ -20,3 +20,38 @@ export const ED25519_CURVE = 'ed25519 seed';
 export const MAX_UINT32 = 4294967295;
 export const HARDENED_OFFSET = 0x80000000;
 export const HASH_LENGTH = 32;
+export const L = 8160; // 32 * 255
+export const EMPTY_SALT = Buffer.from([
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+]);
