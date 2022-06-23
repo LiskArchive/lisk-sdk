@@ -170,9 +170,9 @@ export const parseEncryptedPassphrase = (
 		mac,
 		kdf,
 		kdfparams: {
-			parallelism: parallelism ? parseOption(parallelism) : undefined,
-			iterations: iterations ? parseOption(iterations) : undefined,
-			memorySize: memorySize ? parseOption(memorySize) : undefined,
+			parallelism: parseOption(parallelism),
+			iterations: parseOption(iterations),
+			memorySize: parseOption(memorySize),
 			salt,
 		},
 		cipher,
