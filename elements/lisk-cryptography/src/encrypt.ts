@@ -22,7 +22,8 @@ import { convertPrivateKeyEd2Curve, convertPublicKeyEd2Curve } from './convert';
 import { getPrivateAndPublicKeyFromPassphrase } from './keys';
 // eslint-disable-next-line import/no-cycle
 import { box, getRandomBytes, openBox, getKeyPair } from './nacl';
-import { getMasterKeyFromSeed, getChildKey, parseKeyDerivationPath } from './utils';
+import { getMasterKeyFromSeed, getChildKey, parseKeyDerivationPath, deriveChildSK } from './utils';
+import { blsKeyGen } from './bls_lib';
 
 const PBKDF2_ITERATIONS = 1e6;
 const PBKDF2_KEYLEN = 32;
@@ -178,4 +179,15 @@ export const getKeyPairFromPhraseAndPath = async (phrase: string, path: string) 
 	}
 
 	return getKeyPair(node.key);
+};
+
+export const getBLSPrivateKeyFromPhraseAndPath = async (phrase: string, path: string) => {
+	const masterSeed = await Mnemonic.mnemonicToSeed(phrase);
+	let key = blsKeyGen(masterSeed);
+
+	for (const segment of parseKeyDerivationPath(path)) {
+		key = deriveChildSK(key, segment);
+	}
+
+	return key;
 };
