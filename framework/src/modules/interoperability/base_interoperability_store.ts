@@ -100,21 +100,14 @@ export abstract class BaseInteroperabilityStore {
 		);
 	}
 
-	public async getChannel(chainID: number): Promise<ChannelData> {
+	public async getChannel(chainID: Buffer): Promise<ChannelData> {
 		const channelAccountStore = this.getStore(this.moduleID, STORE_PREFIX_CHANNEL_DATA);
-		return channelAccountStore.getWithSchema<ChannelData>(
-			getIDAsKeyForStore(chainID),
-			channelSchema,
-		);
+		return channelAccountStore.getWithSchema<ChannelData>(chainID, channelSchema);
 	}
 
-	public async setChannel(chainID: number, channeldata: ChannelData): Promise<void> {
+	public async setChannel(chainID: Buffer, channeldata: ChannelData): Promise<void> {
 		const channelAccountStore = this.getStore(this.moduleID, STORE_PREFIX_CHANNEL_DATA) as SubStore;
-		await channelAccountStore.setWithSchema(
-			getIDAsKeyForStore(chainID),
-			channeldata,
-			channelSchema,
-		);
+		await channelAccountStore.setWithSchema(chainID, channeldata, channelSchema);
 	}
 
 	public async appendToInboxTree(chainID: Buffer, appendData: Buffer) {
@@ -288,8 +281,8 @@ export abstract class BaseInteroperabilityStore {
 		);
 	}
 
-	public async createTerminatedStateAccount(chainID: number, stateRoot?: Buffer): Promise<boolean> {
-		const chainIDAsStoreKey = getIDAsKeyForStore(chainID);
+	public async createTerminatedStateAccount(chainID: Buffer, stateRoot?: Buffer): Promise<boolean> {
+		const chainIDAsStoreKey = chainID;
 		const chainSubstore = this.getStore(
 			MODULE_ID_INTEROPERABILITY,
 			STORE_PREFIX_CHAIN_DATA,
@@ -370,13 +363,13 @@ export abstract class BaseInteroperabilityStore {
 	}
 
 	public async terminateChainInternal(
-		chainID: number,
+		chainID: Buffer,
 		beforeSendContext: BeforeSendCCMsgAPIContext,
 	): Promise<boolean> {
 		const messageSent = await this.sendInternal({
 			moduleID: MODULE_ID_INTEROPERABILITY,
 			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED,
-			receivingChainID: chainID,
+			receivingChainID: chainID.readInt32BE(0),
 			fee: BigInt(0),
 			status: CCM_STATUS_OK,
 			params: EMPTY_BYTES,
@@ -500,6 +493,6 @@ export abstract class BaseInteroperabilityStore {
 	public abstract sendInternal(sendContext: SendInternalContext): Promise<boolean>;
 
 	// To be implemented in base class
-	public abstract getInboxRoot(chainID: number): Promise<void>;
-	public abstract getOutboxRoot(chainID: number): Promise<void>;
+	public abstract getInboxRoot(chainID: Buffer): Promise<void>;
+	public abstract getOutboxRoot(chainID: Buffer): Promise<void>;
 }

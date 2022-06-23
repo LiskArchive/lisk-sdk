@@ -22,7 +22,7 @@ import { getIDAsKeyForStore } from '../../utils';
 import { SidechainInteroperabilityStore } from '../store';
 
 interface CCMSidechainTerminatedParams {
-	chainID: number;
+	chainID: Buffer;
 	stateRoot: Buffer;
 }
 
@@ -44,7 +44,7 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 
 		if (ccm.sendingChainID === MAINCHAIN_ID) {
 			const isTerminated = await interoperabilityStore.hasTerminatedStateAccount(
-				getIDAsKeyForStore(decodedParams.chainID),
+				decodedParams.chainID,
 			);
 			if (isTerminated) {
 				return;
@@ -63,7 +63,10 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 				networkIdentifier: context.networkIdentifier,
 				feeAddress: context.feeAddress,
 			});
-			await interoperabilityStore.terminateChainInternal(ccm.sendingChainID, beforeSendContext);
+			await interoperabilityStore.terminateChainInternal(
+				getIDAsKeyForStore(ccm.sendingChainID),
+				beforeSendContext,
+			);
 		}
 	}
 

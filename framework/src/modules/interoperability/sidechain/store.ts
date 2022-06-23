@@ -83,13 +83,13 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getInboxRoot(chainID: number): Promise<void> {
+	public async getInboxRoot(chainID: Buffer): Promise<void> {
 		// eslint-disable-next-line no-console
 		console.log(chainID);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getOutboxRoot(chainID: number): Promise<void> {
+	public async getOutboxRoot(chainID: Buffer): Promise<void> {
 		// eslint-disable-next-line no-console
 		console.log(chainID);
 	}

@@ -41,7 +41,7 @@ import {
 } from '../../../utils/transaction';
 
 interface Args {
-	readonly moduleID: number;
+	readonly moduleID: Buffer;
 	readonly commandID: number;
 	readonly fee: string;
 }
@@ -59,7 +59,7 @@ interface CreateFlags {
 }
 
 interface Transaction {
-	moduleID: number;
+	moduleID: Buffer;
 	commandID: number;
 	nonce: bigint;
 	fee: bigint;
