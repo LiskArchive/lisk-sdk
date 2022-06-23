@@ -258,16 +258,6 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			return info;
 		});
 
-		type GeneratorInfo = Promise<{
-			encryptedPassphrase: string;
-			hashOnion: {
-				count: number;
-				distance: number;
-				hashes: string[];
-			};
-			address: string;
-		}>[];
-
 		// check for existing file at given location & ask the user before overwriting
 		// TODO: check for individual files
 		if (fs.existsSync(filePath)) {
