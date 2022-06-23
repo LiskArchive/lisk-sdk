@@ -21,7 +21,7 @@ const { BlockHeader } = chain;
 const { hash } = cryptography;
 
 export const blockHeadersSchema = {
-	$id: 'lisk/reportMisbehavior/blockHeaders',
+	$id: '/lisk/reportMisbehavior/blockHeaders',
 	type: 'object',
 	required: ['blockHeaders'],
 	properties: {

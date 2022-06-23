@@ -32,7 +32,7 @@ describe('node:metadata command', () => {
 					{
 						name: 'getBalance',
 						request: {
-							$id: 'schema-id',
+							$id: 'schemaId',
 							type: 'object',
 							properties: {
 								data: {
@@ -41,7 +41,7 @@ describe('node:metadata command', () => {
 							},
 						},
 						response: {
-							$id: 'schema-id',
+							$id: 'schemaId',
 							type: 'object',
 							properties: {
 								data: {
@@ -56,7 +56,7 @@ describe('node:metadata command', () => {
 						id: 0,
 						name: 'transfer',
 						params: {
-							$id: 'schema-id',
+							$id: 'schemaId',
 							type: 'object',
 							properties: {
 								data: {

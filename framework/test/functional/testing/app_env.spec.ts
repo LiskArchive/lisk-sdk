@@ -26,7 +26,7 @@ class SampleCommand extends BaseCommand {
 	public name = 'asset';
 	public id = 0;
 	public schema = {
-		$id: 'lisk/sample',
+		$id: '/lisk/sample',
 		type: 'object',
 		properties: {},
 	};

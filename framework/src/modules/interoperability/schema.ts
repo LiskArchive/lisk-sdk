@@ -15,7 +15,7 @@
 import { MAX_LENGTH_NAME, NUMBER_MAINCHAIN_VALIDATORS, MAX_NUM_VALIDATORS } from './constants';
 
 export const channelSchema = {
-	$id: 'modules/interoperability/channel',
+	$id: '/modules/interoperability/channel',
 	type: 'object',
 	required: ['inbox', 'outbox', 'partnerChainOutboxRoot', 'messageFeeTokenID'],
 	properties: {
@@ -86,7 +86,7 @@ export const channelSchema = {
 };
 
 export const chainAccountSchema = {
-	$id: 'modules/interoperability/chainAccount',
+	$id: '/modules/interoperability/chainAccount',
 	type: 'object',
 	required: ['name', 'networkID', 'lastCertificate', 'status'],
 	properties: {
@@ -129,7 +129,7 @@ export const chainAccountSchema = {
 };
 
 export const chainValidatorsSchema = {
-	$id: 'modules/interoperability/chainValidators',
+	$id: '/modules/interoperability/chainValidators',
 	type: 'object',
 	required: ['activeValidators', 'certificateThreshold'],
 	properties: {
@@ -161,7 +161,7 @@ export const chainValidatorsSchema = {
 };
 
 export const ownChainAccountSchema = {
-	$id: 'modules/interoperability/ownChainAccount',
+	$id: '/modules/interoperability/ownChainAccount',
 	type: 'object',
 	required: ['name', 'id', 'nonce'],
 	properties: {
@@ -181,7 +181,7 @@ export const ownChainAccountSchema = {
 };
 
 export const outboxRootSchema = {
-	$id: 'modules/interoperability/outbox',
+	$id: '/modules/interoperability/outbox',
 	type: 'object',
 	required: ['root'],
 	properties: {
@@ -193,7 +193,7 @@ export const outboxRootSchema = {
 };
 
 export const ccmSchema = {
-	$id: 'modules/interoperability/ccm',
+	$id: '/modules/interoperability/ccm',
 	type: 'object',
 	required: [
 		'nonce',
@@ -242,7 +242,7 @@ export const ccmSchema = {
 };
 
 export const terminatedStateSchema = {
-	$id: 'modules/interoperability/terminatedState',
+	$id: '/modules/interoperability/terminatedState',
 	type: 'object',
 	required: ['stateRoot'],
 	properties: {
@@ -262,7 +262,7 @@ export const terminatedStateSchema = {
 };
 
 export const terminatedOutboxSchema = {
-	$id: 'modules/interoperability/terminatedOutbox',
+	$id: '/modules/interoperability/terminatedOutbox',
 	type: 'object',
 	required: ['outboxRoot', 'outboxSize', 'partnerChainInboxSize'],
 	properties: {
@@ -282,7 +282,7 @@ export const terminatedOutboxSchema = {
 };
 
 export const sidechainRegParams = {
-	$id: '/modules/interoperability/mainchain/sidechain_registration',
+	$id: '/modules/interoperability/mainchain/sidechainRegistration',
 	type: 'object',
 	required: ['name', 'genesisBlockID', 'initValidators', 'certificateThreshold'],
 	properties: {
@@ -326,7 +326,7 @@ export const sidechainRegParams = {
 };
 
 export const mainchainRegParams = {
-	$id: '/modules/interoperability/sidechain/mainchain_registration',
+	$id: '/modules/interoperability/sidechain/mainchainRegistration',
 	type: 'object',
 	required: ['ownChainID', 'ownName', 'mainchainValidators', 'signature', 'aggregationBits'],
 	properties: {
@@ -499,7 +499,7 @@ export const messageRecoveryParamsSchema = {
 
 // Cross chain commands schemas
 export const registrationCCMParamsSchema = {
-	$id: 'modules/interoperability/ccCommand/registration',
+	$id: '/modules/interoperability/ccCommand/registration',
 	type: 'object',
 	required: ['networkID', 'name', 'messageFeeTokenID'],
 	properties: {
@@ -530,13 +530,13 @@ export const registrationCCMParamsSchema = {
 };
 
 export const channelTerminatedCCMParamsSchema = {
-	$id: 'modules/interoperability/ccCommand/channelTerminated',
+	$id: '/modules/interoperability/ccCommand/channelTerminated',
 	type: 'object',
 	properties: {},
 };
 
 export const sidechainTerminatedCCMParamsSchema = {
-	$id: 'modules/interoperability/ccCommand/sidechainTerminated',
+	$id: '/modules/interoperability/ccCommand/sidechainTerminated',
 	type: 'object',
 	required: ['chainID', 'stateRoot'],
 	properties: {
@@ -552,7 +552,7 @@ export const sidechainTerminatedCCMParamsSchema = {
 };
 
 export const nameSchema = {
-	$id: 'modules/interoperability/name',
+	$id: '/modules/interoperability/name',
 	type: 'object',
 	required: ['name'],
 	properties: {
@@ -567,7 +567,7 @@ export const nameSchema = {
 
 // Note: Changed to lower-case `id` as ajv requires it
 export const chainIDSchema = {
-	$id: 'modules/interoperability/chainId',
+	$id: '/modules/interoperability/chainId',
 	type: 'object',
 	required: ['id'],
 	properties: {
@@ -579,7 +579,7 @@ export const chainIDSchema = {
 };
 
 export const validatorsSchema = {
-	$id: 'modules/interoperability/validators',
+	$id: '/modules/interoperability/validators',
 	type: 'object',
 	required: ['activeValidators', 'certificateThreshold'],
 	properties: {
@@ -611,7 +611,7 @@ export const validatorsSchema = {
 };
 
 export const validatorsHashInputSchema = {
-	$id: 'modules/interoperability/validatorsHashInput',
+	$id: '/modules/interoperability/validatorsHashInput',
 	type: 'object',
 	required: ['activeValidators', 'certificateThreshold'],
 	properties: {
@@ -632,7 +632,7 @@ export const validatorsHashInputSchema = {
 };
 
 export const registrationSignatureMessageSchema = {
-	$id: '/modules/interoperability/sidechain/registration_signature_message',
+	$id: '/modules/interoperability/sidechain/registrationSignatureMessage',
 	type: 'object',
 	required: ['ownChainID', 'ownName', 'mainchainValidators'],
 	properties: {

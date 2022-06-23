@@ -19,7 +19,7 @@ import { NotFoundError, StateStore } from '../../../src/state_store';
 import { DatabaseWriter } from '../../../src/state_store/types';
 
 const sampleSchema = {
-	$id: 'object9',
+	$id: '/object9',
 	type: 'object',
 	properties: {
 		address: {
@@ -206,8 +206,8 @@ describe('state store', () => {
 			await subStore.set(Buffer.from([2]), getRandomBytes(40));
 
 			const result = await subStore.iterate({
-				start: Buffer.from([0]),
-				end: Buffer.from([255]),
+				gte: Buffer.from([0]),
+				lte: Buffer.from([255]),
 			});
 
 			expect(result).toHaveLength(3);
@@ -224,8 +224,8 @@ describe('state store', () => {
 			await subStore.set(Buffer.from([2]), getRandomBytes(40));
 
 			const result = await subStore.iterate({
-				start: Buffer.from([0]),
-				end: Buffer.from([255]),
+				gte: Buffer.from([0]),
+				lte: Buffer.from([255]),
 				reverse: true,
 				limit: 2,
 			});
@@ -243,8 +243,8 @@ describe('state store', () => {
 			await subStore.del(Buffer.from([1]));
 
 			const result = await subStore.iterate({
-				start: Buffer.from([0]),
-				end: Buffer.from([255]),
+				gte: Buffer.from([0]),
+				lte: Buffer.from([255]),
 			});
 
 			expect(result).toHaveLength(2);
@@ -262,8 +262,8 @@ describe('state store', () => {
 			await subStore.set(existingKey, expectedValue);
 
 			const result = await subStore.iterate({
-				start: Buffer.from([0]),
-				end: Buffer.from([255]),
+				gte: Buffer.from([0]),
+				lte: Buffer.from([255]),
 			});
 
 			expect(result).toHaveLength(5);
@@ -282,8 +282,8 @@ describe('state store', () => {
 
 			const result = await subStore.iterateWithSchema(
 				{
-					start: Buffer.from([0]),
-					end: Buffer.from([255]),
+					gte: Buffer.from([0]),
+					lte: Buffer.from([255]),
 				},
 				sampleSchema,
 			);

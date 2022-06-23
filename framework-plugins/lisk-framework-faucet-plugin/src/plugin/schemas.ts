@@ -13,7 +13,7 @@
  */
 
 export const configSchema = {
-	$id: '#/plugins/lisk-faucet/config',
+	$id: '#/plugins/liskFaucet/config',
 	type: 'object',
 	properties: {
 		port: {
@@ -73,7 +73,7 @@ export const configSchema = {
 };
 
 export const fundParamsSchema = {
-	$id: 'lisk/faucet/fund',
+	$id: '/lisk/faucet/fund',
 	type: 'object',
 	required: ['address'],
 	properties: {
@@ -88,7 +88,7 @@ export const fundParamsSchema = {
 };
 
 export const authorizeParamsSchema = {
-	$id: 'lisk/faucet/auth',
+	$id: '/lisk/faucet/auth',
 	type: 'object',
 	required: ['password', 'enable'],
 	properties: {

@@ -25,7 +25,7 @@ const account = {
 	address: '9cabee3d27426676b852ce6b804cb2fdff7cd0b5',
 };
 export const tokenTransferParamsSchema = {
-	$id: 'lisk/transfer-command',
+	$id: '/lisk/transferCommand',
 	title: 'Transfer transaction command',
 	type: 'object',
 	required: ['tokenID', 'amount', 'recipientAddress', 'data'],

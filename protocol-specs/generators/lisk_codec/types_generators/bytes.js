@@ -20,7 +20,7 @@ const prepareProtobuffersBytes = () =>
 const { Bytes } = prepareProtobuffersBytes();
 
 const schema = {
-	$id: 'object9',
+	$id: '/object9',
 	type: 'object',
 	properties: {
 		address: {

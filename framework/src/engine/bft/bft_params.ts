@@ -26,8 +26,8 @@ export const getBFTParameters = async (
 	const end = intToBuffer(height, 4, BIG_ENDIAN);
 	const results = await paramsStore.iterate({
 		limit: 1,
-		start,
-		end,
+		gte: start,
+		lte: end,
 		reverse: true,
 	});
 	if (results.length !== 1) {
@@ -44,8 +44,8 @@ export const deleteBFTParameters = async (
 	const start = intToBuffer(0, 4, BIG_ENDIAN);
 	const end = intToBuffer(height, 4, BIG_ENDIAN);
 	const results = await paramsStore.iterate({
-		start,
-		end,
+		gte: start,
+		lte: end,
 	});
 	if (results.length <= 1) {
 		return;
@@ -70,8 +70,8 @@ export class BFTParametersCache {
 		const end = intToBuffer(to, 4, BIG_ENDIAN);
 		const results = await this._paramsStore.iterateWithSchema<BFTParameters>(
 			{
-				start,
-				end,
+				gte: start,
+				lte: end,
 				reverse: true,
 			},
 			bftParametersSchema,

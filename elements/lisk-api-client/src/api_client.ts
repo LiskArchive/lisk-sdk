@@ -31,7 +31,10 @@ export class APIClient {
 	}
 
 	public async init(): Promise<void> {
-		this._metadata = await this._channel.invoke<ModuleMetadata[]>('system_getMetadata');
+		const { modules } = await this._channel.invoke<{ modules: ModuleMetadata[] }>(
+			'system_getMetadata',
+		);
+		this._metadata = modules;
 		this._schema = await this._channel.invoke<RegisteredSchemas>('system_getSchema');
 		this._node = new Node(this._channel);
 		this._block = new Block(this._channel, this._schema, this._metadata);
