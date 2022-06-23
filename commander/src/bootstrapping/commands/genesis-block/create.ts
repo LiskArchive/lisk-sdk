@@ -258,6 +258,16 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			return info;
 		});
 
+		type GeneratorInfo = Promise<{
+			encryptedPassphrase: string;
+			hashOnion: {
+				count: number;
+				distance: number;
+				hashes: string[];
+			};
+			address: string;
+		}>[];
+
 		// check for existing file at given location & ask the user before overwriting
 		// TODO: check for individual files
 		if (fs.existsSync(filePath)) {
@@ -275,7 +285,7 @@ export abstract class BaseGenesisBlockCommand extends Command {
 					genesisBlock.toJSON(),
 					formatAccountInfo(accountList),
 					formatValidatorInfo(validatorList),
-					generatorInfo as any,
+					(generatorInfo as unknown) as Record<string, unknown>[],
 					passwordList,
 				);
 				this.log('\n');
@@ -288,7 +298,7 @@ export abstract class BaseGenesisBlockCommand extends Command {
 				genesisBlock.toJSON(),
 				formatAccountInfo(accountList),
 				formatValidatorInfo(validatorList),
-				generatorInfo as any,
+				(generatorInfo as unknown) as Record<string, unknown>[],
 				passwordList,
 			);
 			this.log(`Configuration files saved at: ${configPath}`);
