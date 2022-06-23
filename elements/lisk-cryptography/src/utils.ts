@@ -22,6 +22,7 @@ import {
 	HASH_LENGTH,
 	L,
 	EMPTY_SALT,
+	SHA256,
 } from './constants';
 
 export const readBit = (buf: Buffer, bit: number): boolean => {
@@ -105,7 +106,7 @@ export const getChildKey = (node: { key: Buffer; chainCode: Buffer }, index: num
 // eslint-disable-next-line no-bitwise
 const flipBits = (buf: Buffer) => Buffer.from(buf.map(x => x ^ 0xff));
 
-const sha256 = (x: Buffer) => crypto.createHash('sha256').update(x).digest();
+const sha256 = (x: Buffer) => crypto.createHash(SHA256).update(x).digest();
 
 const hmacSHA256 = (key: Buffer, message: Buffer, hash: string) =>
 	crypto.createHmac(hash, key).update(message).digest();
@@ -115,12 +116,12 @@ const hkdfSHA256 = (ikm: Buffer, length: number, salt: Buffer, info: Buffer) => 
 		// eslint-disable-next-line no-param-reassign
 		salt = EMPTY_SALT;
 	}
-	const PRK = hmacSHA256(salt, ikm, 'sha256');
+	const PRK = hmacSHA256(salt, ikm, SHA256);
 	let t = Buffer.from([]);
 	let OKM = Buffer.from([]);
 
 	for (let i = 0; i < Math.ceil(length / HASH_LENGTH); i += 1) {
-		t = hmacSHA256(PRK, Buffer.concat([t, info, Buffer.from([1 + i])]), 'sha256');
+		t = hmacSHA256(PRK, Buffer.concat([t, info, Buffer.from([1 + i])]), SHA256);
 		OKM = Buffer.concat([OKM, t]);
 	}
 	return OKM.slice(0, length);
