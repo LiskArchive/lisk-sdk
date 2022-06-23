@@ -24,7 +24,7 @@ const CONNECTION_TIME_OUT = 2000;
 const RESPONSE_TIMEOUT = 3000;
 
 const getSocketsPath = (dataPath: string) => {
-	const socketDir = path.join(path.resolve(dataPath.replace('~', homedir())));
+	const socketDir = path.join(path.resolve(dataPath.replace('~', homedir())), 'socket', 'ipc');
 	return {
 		pub: `ipc://${socketDir}/external.pub.ipc`,
 		sub: `ipc://${socketDir}/external.sub.ipc`,
