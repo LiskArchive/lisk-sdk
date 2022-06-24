@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_ID_REGISTRATION } from '../../constants';
+import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER } from '../../constants';
 import { registrationCCMParamsSchema } from '../../schema';
 import { CCCommandExecuteContext, StoreCallback, MessageFeeTokenID } from '../../types';
 import { createCCMsgBeforeSendContext } from '../../context';
@@ -27,7 +27,7 @@ interface CCMRegistrationParams {
 }
 
 export class SidechainCCRegistrationCommand extends BaseInteroperabilityCCCommand {
-	public ID = CROSS_CHAIN_COMMAND_ID_REGISTRATION;
+	public ID = CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER;
 	public name = 'registration';
 	public schema = registrationCCMParamsSchema;
 

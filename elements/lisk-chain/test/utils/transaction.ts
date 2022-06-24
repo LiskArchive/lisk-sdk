@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getRandomBytes, signData } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer, signData } from '@liskhq/lisk-cryptography';
 import { defaultNetworkIdentifier } from './block';
 import { Transaction } from '../../src/transaction';
 import { TAG_TRANSACTION } from '../../src';
@@ -29,8 +29,8 @@ export const genesisAddress = {
 
 export const getTransaction = (input?: { nonce?: bigint }): Transaction => {
 	const tx = new Transaction({
-		moduleID: 2,
-		commandID: 0,
+		moduleID: intToBuffer(2, 4),
+		commandID: intToBuffer(0, 4),
 		fee: BigInt('10000000'),
 		nonce: input?.nonce ?? BigInt(0),
 		senderPublicKey: genesisAddress.publicKey,

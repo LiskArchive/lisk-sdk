@@ -12,7 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { intToBuffer } from '@liskhq/lisk-cryptography';
+
 export const MODULE_ID_AUTH = 12; // TBD
+export const MODULE_ID_AUTH_BUFFER = intToBuffer(MODULE_ID_AUTH, 4);
 export const STORE_PREFIX_AUTH = 0x0000;
 export const MAX_KEYS_COUNT = 64;
 

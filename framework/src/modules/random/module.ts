@@ -52,11 +52,11 @@ import {
 	ValidatorReveals,
 } from './types';
 import { Logger } from '../../logger';
-import { isSeedValidInput } from './utils';
+import { getIDAsKeyForStore, isSeedValidInput } from './utils';
 import { JSONObject } from '../../types';
 
 export class RandomModule extends BaseModule {
-	public id = MODULE_ID_RANDOM;
+	public id = getIDAsKeyForStore(MODULE_ID_RANDOM);
 	public name = 'random';
 	public api = new RandomAPI(this.id);
 	public endpoint = new RandomEndpoint(this.id);

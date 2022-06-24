@@ -74,8 +74,8 @@ const signTransaction = async (
 	// eslint-disable-next-line @typescript-eslint/ban-types
 	const paramsSchema = getParamsSchema(
 		metadata,
-		transactionObject.moduleID as number,
-		transactionObject.commandID as number,
+		transactionObject.moduleID as Buffer,
+		transactionObject.commandID as Buffer,
 	) as object;
 	const networkIdentifierBuffer = Buffer.from(networkIdentifier as string, 'hex');
 	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));

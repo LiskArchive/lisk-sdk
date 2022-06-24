@@ -68,8 +68,8 @@ export interface GenesisConfig {
 	minFeePerByte: number;
 	blockTime: number;
 	baseFees: {
-		moduleID: number;
-		commandID: number;
+		moduleID: Buffer;
+		commandID: Buffer;
 		baseFee: string;
 	}[];
 	modules: Record<string, Record<string, unknown>>;
@@ -172,7 +172,7 @@ export interface PluginEndpointContext {
 }
 
 export interface ModuleEndpointContext extends PluginEndpointContext {
-	getStore: (moduleID: number, storePrefix: number) => ImmutableSubStore;
+	getStore: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
 	getImmutableAPIContext: () => ImmutableAPIContext;
 	networkIdentifier: Buffer;
 }

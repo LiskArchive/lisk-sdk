@@ -29,7 +29,7 @@ export interface GenesisBlockGenerateInput {
 	previousBlockID?: Buffer;
 	assets: {
 		schema: Schema;
-		moduleID: number;
+		moduleID: Buffer;
 		data: Record<string, unknown>;
 	}[];
 }

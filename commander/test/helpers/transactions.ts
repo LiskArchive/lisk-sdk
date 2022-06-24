@@ -180,7 +180,7 @@ export const createTransferTransaction = ({
 export const encodeTransactionFromJSON = (
 	transaction: Record<string, unknown>,
 	baseSchema: Schema,
-	commandsSchemas: { moduleID: number; commandID: number; schema: Schema }[],
+	commandsSchemas: { moduleID: Buffer; commandID: Buffer; schema: Schema }[],
 ): string => {
 	const transactionTypeAssetSchema = commandsSchemas.find(
 		as => as.moduleID === transaction.moduleID && as.commandID === transaction.commandID,

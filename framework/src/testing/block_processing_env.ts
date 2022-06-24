@@ -18,7 +18,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
 import { Block, Chain, DataAccess, BlockHeader, Transaction, StateStore } from '@liskhq/lisk-chain';
-import { getNetworkIdentifier, getKeys } from '@liskhq/lisk-cryptography';
+import { getNetworkIdentifier, getKeys, intToBuffer } from '@liskhq/lisk-cryptography';
 import { Database, StateDB } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
 import { codec } from '@liskhq/lisk-codec';
@@ -172,6 +172,7 @@ export const getBlockProcessingEnv = async (
 	stateMachine.registerModule(dposModule);
 	const blockAssets = blockAssetsJSON.map(asset => ({
 		...asset,
+		moduleID: intToBuffer(asset.moduleID, 4),
 		data: codec.fromJSON<Record<string, unknown>>(asset.schema, asset.data),
 	}));
 	await stateMachine.init(
@@ -259,7 +260,7 @@ export const getBlockProcessingEnv = async (
 			const stateStore = new PrefixedStateReadWriter(stateDB.newReadWriter());
 
 			const result = await bindedHandler({
-				getStore: (moduleID: number, storePrefix: number) =>
+				getStore: (moduleID: Buffer, storePrefix: number) =>
 					stateStore.getStore(moduleID, storePrefix),
 				getImmutableAPIContext: () => createImmutableAPIContext(stateStore),
 				logger: engine['_logger'],

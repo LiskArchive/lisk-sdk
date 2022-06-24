@@ -27,8 +27,8 @@ const debug = createDebug('lisk:transaction_pool');
 type ApplyFunction = (transactions: ReadonlyArray<Transaction>) => Promise<void>;
 
 interface BaseFee {
-	readonly moduleID: number;
-	readonly commandID: number;
+	readonly moduleID: Buffer;
+	readonly commandID: Buffer;
 	readonly baseFee: bigint;
 }
 export interface TransactionPoolConfig {

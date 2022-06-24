@@ -62,8 +62,8 @@ export interface BlockHeader {
 }
 
 export interface Transaction {
-	moduleID: number;
-	commandID: number;
+	moduleID: Buffer;
+	commandID: Buffer;
 	nonce: bigint;
 	fee: bigint;
 	senderPublicKey: Buffer;
@@ -72,7 +72,7 @@ export interface Transaction {
 }
 
 export interface BlockAsset {
-	moduleID: number;
+	moduleID: Buffer;
 	data: Buffer;
 }
 
@@ -98,8 +98,8 @@ export interface Validator {
 }
 
 export interface ModuleMeta {
-	moduleID: number;
-	commandIDs: number[];
+	moduleID: Buffer;
+	commandIDs: Buffer[];
 }
 
 export interface InitRequest {}

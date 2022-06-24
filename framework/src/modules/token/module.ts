@@ -21,7 +21,7 @@ import {
 	defaultConfig,
 	EMPTY_BYTES,
 	LOCAL_ID_LENGTH,
-	MODULE_ID_TOKEN,
+	MODULE_ID_TOKEN_BUFFER,
 	STORE_PREFIX_AVAILABLE_LOCAL_ID,
 	STORE_PREFIX_ESCROW,
 	STORE_PREFIX_SUPPLY,
@@ -59,7 +59,7 @@ import { CCTransferCommand } from './commands/cc_transfer';
 
 export class TokenModule extends BaseModule {
 	public name = 'token';
-	public id = MODULE_ID_TOKEN;
+	public id = MODULE_ID_TOKEN_BUFFER;
 	public api = new TokenAPI(this.id);
 	public endpoint = new TokenEndpoint(this.id);
 
@@ -188,10 +188,10 @@ export class TokenModule extends BaseModule {
 					);
 				}
 				// Validate locked balances must be sorted
-				if (lockedBalance.moduleID < lastModuleID) {
+				if (lockedBalance.moduleID.readInt32BE(0) < lastModuleID) {
 					throw new Error('Locked balances must be sorted by moduleID.');
 				}
-				lastModuleID = lockedBalance.moduleID;
+				lastModuleID = lockedBalance.moduleID.readInt32BE(0);
 			}
 			// Validate locked balance module ID uniqueness
 			if (lockedBalanceModuleIDSet.size !== userData.lockedBalances.length) {

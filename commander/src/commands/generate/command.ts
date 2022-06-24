@@ -19,7 +19,7 @@ import BaseBootstrapCommand from '../../base_bootstrap_command';
 interface CommandCommandArgs {
 	moduleName: string;
 	commandName: string;
-	commandID: number;
+	commandID: Buffer;
 }
 
 export default class CommandCommand extends BaseBootstrapCommand {
@@ -82,7 +82,9 @@ export default class CommandCommand extends BaseBootstrapCommand {
 		}
 
 		this.log(
-			`Creating command skeleton with command name "${commandName}" and command ID "${commandID}" for module "${moduleName}"`,
+			`Creating command skeleton with command name "${commandName}" and command ID "${commandID.readInt32BE(
+				0,
+			)}" for module "${moduleName}"`,
 		);
 
 		return this._runBootstrapCommand('lisk:generate:command', {

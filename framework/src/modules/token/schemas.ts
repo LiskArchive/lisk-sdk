@@ -52,7 +52,7 @@ export const configSchema = {
 export interface UserStoreData {
 	availableBalance: bigint;
 	lockedBalances: {
-		moduleID: number;
+		moduleID: Buffer;
 		amount: bigint;
 	}[];
 }

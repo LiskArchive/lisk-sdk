@@ -13,7 +13,7 @@
  *
  */
 
-import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
+import { getAddressAndPublicKeyFromPassphrase, intToBuffer } from '@liskhq/lisk-cryptography';
 import { computeMinFee, getBytes } from '../src';
 
 describe('fee', () => {
@@ -44,8 +44,8 @@ describe('fee', () => {
 	const passphrase1 = 'trim elegant oven term access apple obtain error grain excite lawn neck';
 	const { publicKey: publicKey1 } = getAddressAndPublicKeyFromPassphrase(passphrase1);
 	const validTransaction = {
-		moduleID: 2,
-		commandID: 0,
+		moduleID: intToBuffer(2, 4),
+		commandID: intToBuffer(0, 4),
 		nonce: BigInt('1'),
 		senderPublicKey: publicKey1,
 		params: {
@@ -56,18 +56,18 @@ describe('fee', () => {
 	};
 	const baseFees = [
 		{
-			moduleID: 2,
-			commandID: 0,
+			moduleID: intToBuffer(2, 4),
+			commandID: intToBuffer(0, 4),
 			baseFee: '10000000',
 		},
 		{
-			moduleID: 5,
-			commandID: 0,
+			moduleID: intToBuffer(5, 4),
+			commandID: intToBuffer(0, 4),
 			baseFee: '1',
 		},
 		{
-			moduleID: 3,
-			commandID: 0,
+			moduleID: intToBuffer(3, 4),
+			commandID: intToBuffer(0, 4),
 			baseFee: '1',
 		},
 	];

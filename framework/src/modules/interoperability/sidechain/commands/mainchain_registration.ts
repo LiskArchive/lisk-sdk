@@ -18,14 +18,15 @@ import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import {
 	CCM_STATUS_OK,
 	CHAIN_REGISTERED,
-	COMMAND_ID_MAINCHAIN_REG,
-	CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+	COMMAND_ID_MAINCHAIN_REG_BUFFER,
+	CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
 	EMPTY_FEE_ADDRESS,
 	EMPTY_HASH,
 	MAINCHAIN_ID,
+	MAINCHAIN_ID_BUFFER,
 	MAINCHAIN_NAME,
 	MAINCHAIN_NETWORK_ID,
-	MODULE_ID_INTEROPERABILITY,
+	MODULE_ID_INTEROPERABILITY_BUFFER,
 	NUMBER_MAINCHAIN_VALIDATORS,
 	STORE_PREFIX_CHAIN_DATA,
 	STORE_PREFIX_CHAIN_VALIDATORS,
@@ -62,7 +63,7 @@ import { BaseInteroperabilityCommand } from '../../base_interoperability_command
 import { SidechainInteroperabilityStore } from '../store';
 
 export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
-	public id = COMMAND_ID_MAINCHAIN_REG;
+	public id = COMMAND_ID_MAINCHAIN_REG_BUFFER;
 	public name = 'mainchainRegistration';
 	public schema = mainchainRegParams;
 
@@ -146,7 +147,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			certificateThreshold,
 		);
 
-		const chainSubstore = getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
+		const chainSubstore = getStore(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_DATA);
 		await chainSubstore.setWithSchema(
 			mainchainIdAsKey,
 			{
@@ -163,7 +164,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			chainAccountSchema,
 		);
 
-		const channelSubstore = getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA);
+		const channelSubstore = getStore(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHANNEL_DATA);
 		await channelSubstore.setWithSchema(
 			mainchainIdAsKey,
 			{
@@ -184,19 +185,19 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 		});
 		const ccm = {
 			nonce: BigInt(0),
-			moduleID: MODULE_ID_INTEROPERABILITY,
-			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+			moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
+			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
 			sendingChainID: ownChainID,
-			receivingChainID: MAINCHAIN_ID,
+			receivingChainID: MAINCHAIN_ID_BUFFER,
 			fee: BigInt(0),
 			status: CCM_STATUS_OK,
 			params: encodedParams,
 		};
 
 		await interoperabilityStore.sendInternal({
-			moduleID: MODULE_ID_INTEROPERABILITY,
-			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION,
-			receivingChainID: MAINCHAIN_ID,
+			moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
+			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
+			receivingChainID: MAINCHAIN_ID_BUFFER,
 			fee: BigInt(0),
 			status: CCM_STATUS_OK,
 			params: encodedParams,
@@ -204,7 +205,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 		});
 
 		const chainValidatorsSubstore = getStore(
-			MODULE_ID_INTEROPERABILITY,
+			MODULE_ID_INTEROPERABILITY_BUFFER,
 			STORE_PREFIX_CHAIN_VALIDATORS,
 		);
 		await chainValidatorsSubstore.setWithSchema(
@@ -218,7 +219,10 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			validatorsSchema,
 		);
 
-		const outboxRootSubstore = getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_OUTBOX_ROOT);
+		const outboxRootSubstore = getStore(
+			MODULE_ID_INTEROPERABILITY_BUFFER,
+			STORE_PREFIX_OUTBOX_ROOT,
+		);
 		await outboxRootSubstore.setWithSchema(
 			mainchainIdAsKey,
 			{ root: EMPTY_HASH },
@@ -226,7 +230,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 		);
 
 		const ownChainAccountSubstore = getStore(
-			MODULE_ID_INTEROPERABILITY,
+			MODULE_ID_INTEROPERABILITY_BUFFER,
 			STORE_PREFIX_OWN_CHAIN_DATA,
 		);
 		await ownChainAccountSubstore.setWithSchema(

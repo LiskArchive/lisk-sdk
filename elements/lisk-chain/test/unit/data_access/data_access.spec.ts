@@ -14,7 +14,7 @@
 import { Readable } from 'stream';
 import { when } from 'jest-when';
 import { NotFoundError, InMemoryDatabase } from '@liskhq/lisk-db';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { DataAccess } from '../../../src/data_access';
 import { createFakeBlockHeader, createValidDefaultBlock } from '../../utils/block';
 import { Transaction } from '../../../src/transaction';
@@ -461,8 +461,8 @@ describe('data_access', () => {
 	describe('#getTransactionsByIDs', () => {
 		it('should get transaction by id', async () => {
 			const tx = new Transaction({
-				moduleID: 2,
-				commandID: 0,
+				moduleID: intToBuffer(2, 4),
+				commandID: intToBuffer(0, 4),
 				fee: BigInt('10000000'),
 				nonce: BigInt('0'),
 				senderPublicKey: Buffer.from(

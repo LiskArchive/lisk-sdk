@@ -19,13 +19,13 @@ import { BaseInteroperableAPI } from './base_interoperable_api';
 import { StoreCallback } from './types';
 
 export abstract class BaseInteroperabilityCommand extends BaseCommand {
-	protected readonly interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
-	protected readonly ccCommands = new Map<number, BaseCCCommand[]>();
+	protected readonly interoperableCCAPIs = new Map<Buffer, BaseInteroperableAPI>();
+	protected readonly ccCommands = new Map<Buffer, BaseCCCommand[]>();
 
 	public constructor(
-		moduleID: number,
-		interoperableCCAPIs: Map<number, BaseInteroperableAPI>,
-		ccCommands: Map<number, BaseCCCommand[]>,
+		moduleID: Buffer,
+		interoperableCCAPIs: Map<Buffer, BaseInteroperableAPI>,
+		ccCommands: Map<Buffer, BaseCCCommand[]>,
 	) {
 		super(moduleID);
 		this.interoperableCCAPIs = interoperableCCAPIs;

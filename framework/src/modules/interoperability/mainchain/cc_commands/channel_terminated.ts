@@ -13,13 +13,13 @@
  */
 
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
-import { CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED } from '../../constants';
+import { CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED_BUFFER } from '../../constants';
 import { channelTerminatedCCMParamsSchema } from '../../schema';
 import { CCCommandExecuteContext, StoreCallback } from '../../types';
 import { MainchainInteroperabilityStore } from '../store';
 
 export class MainchainCCChannelTerminatedCommand extends BaseInteroperabilityCCCommand {
-	public ID = CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED;
+	public ID = CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED_BUFFER;
 	public name = 'channelTerminated';
 	public schema = channelTerminatedCCMParamsSchema;
 

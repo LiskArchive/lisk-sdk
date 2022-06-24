@@ -20,7 +20,7 @@ import { MAX_ASSET_DATA_SIZE_BYTES } from './constants';
 import { JSONObject } from './types';
 
 export interface BlockAsset {
-	moduleID: number;
+	moduleID: Buffer;
 	data: Buffer;
 }
 
@@ -55,7 +55,7 @@ export class BlockAssets {
 		return this._assets.map(asset => codec.encode(blockAssetSchema, asset));
 	}
 
-	public getAsset(moduleID: number): Buffer | undefined {
+	public getAsset(moduleID: Buffer): Buffer | undefined {
 		return this._assets.find(a => a.moduleID === moduleID)?.data;
 	}
 
@@ -65,22 +65,22 @@ export class BlockAssets {
 
 	public toJSON(): BlockAssetJSON[] {
 		return this._assets.map(asset => ({
-			moduleID: asset.moduleID,
+			moduleID: asset.moduleID.toString('hex'),
 			data: asset.data.toString('hex'),
 		}));
 	}
 
-	public setAsset(moduleID: number, value: Buffer): void {
+	public setAsset(moduleID: Buffer, value: Buffer): void {
 		const asset = this.getAsset(moduleID);
 		if (asset) {
-			throw new Error(`Module asset for "${moduleID}" is already set.`);
+			throw new Error(`Module asset for "${moduleID.readInt32BE(0)}" is already set.`);
 		}
 
 		this._assets.push({ moduleID, data: value });
 	}
 
 	public sort(): void {
-		this._assets.sort((a1, a2) => a1.moduleID - a2.moduleID);
+		this._assets.sort((a1, a2) => a1.moduleID.readInt32BE(0) - a2.moduleID.readInt32BE(0));
 	}
 
 	public validate(): void {
@@ -94,15 +94,19 @@ export class BlockAssets {
 			// Data size of each module should not be greater than max asset data size
 			if (asset.data.byteLength > MAX_ASSET_DATA_SIZE_BYTES) {
 				throw new Error(
-					`Module with ID ${asset.moduleID} has data size more than ${MAX_ASSET_DATA_SIZE_BYTES} bytes.`,
+					`Module with ID ${asset.moduleID.readInt32BE(
+						0,
+					)} has data size more than ${MAX_ASSET_DATA_SIZE_BYTES} bytes.`,
 				);
 			}
 			if (last.moduleID > asset.moduleID) {
 				throw new Error('Assets are not sorted in the increasing values of moduleID.');
 			}
 			// Check for duplicates
-			if (i > 0 && asset.moduleID === last.moduleID) {
-				throw new Error(`Module with ID ${this._assets[i].moduleID} has duplicate entries.`);
+			if (i > 0 && asset.moduleID.equals(last.moduleID)) {
+				throw new Error(
+					`Module with ID ${this._assets[i].moduleID.readInt32BE(0)} has duplicate entries.`,
+				);
 			}
 			i += 1;
 			last = asset;
@@ -120,8 +124,10 @@ export class BlockAssets {
 			if (last.moduleID > asset.moduleID) {
 				throw new Error('Assets are not sorted in the increasing values of moduleID.');
 			}
-			if (i > 0 && asset.moduleID === last.moduleID) {
-				throw new Error(`Module with ID ${this._assets[i].moduleID} has duplicate entries.`);
+			if (i > 0 && asset.moduleID.equals(last.moduleID)) {
+				throw new Error(
+					`Module with ID ${this._assets[i].moduleID.readInt32BE(0)} has duplicate entries.`,
+				);
 			}
 			i += 1;
 			last = asset;

@@ -25,7 +25,7 @@ import { VerifyStatus, VerificationResult } from './types';
 export class StateMachine {
 	private readonly _modules: BaseModule[] = [];
 	private readonly _systemModules: BaseModule[] = [];
-	private readonly _moduleIDs: number[] = [];
+	private readonly _moduleIDs: Buffer[] = [];
 
 	private _initialized = false;
 
@@ -33,14 +33,14 @@ export class StateMachine {
 		this._validateExistingModuleID(mod.id);
 		this._modules.push(mod);
 		this._moduleIDs.push(mod.id);
-		this._moduleIDs.sort((a, b) => a - b);
+		this._moduleIDs.sort((a, b) => a.readInt32BE(0) - b.readInt32BE(0));
 	}
 
 	public registerSystemModule(mod: BaseModule): void {
 		this._validateExistingModuleID(mod.id);
 		this._systemModules.push(mod);
 		this._moduleIDs.push(mod.id);
-		this._moduleIDs.sort((a, b) => a - b);
+		this._moduleIDs.sort((a, b) => a.readInt32BE(0) - b.readInt32BE(0));
 	}
 
 	public getAllModuleIDs() {
@@ -236,8 +236,8 @@ export class StateMachine {
 		await this.afterExecuteBlock(ctx);
 	}
 
-	private _findModule(id: number): BaseModule | undefined {
-		const existingModule = this._modules.find(m => m.id === id);
+	private _findModule(id: Buffer): BaseModule | undefined {
+		const existingModule = this._modules.find(m => m.id.equals(id));
 		if (existingModule) {
 			return existingModule;
 		}
@@ -248,29 +248,31 @@ export class StateMachine {
 		return undefined;
 	}
 
-	private _getCommand(moduleID: number, commandID: number): BaseCommand {
+	private _getCommand(moduleID: Buffer, commandID: Buffer): BaseCommand {
 		const targetModule = this._findModule(moduleID);
 		if (!targetModule) {
-			throw new Error(`Module with ID ${moduleID} is not registered.`);
+			throw new Error(`Module with ID ${moduleID.readInt32BE(0)} is not registered.`);
 		}
 		// FIXME: Update assetID to commandID with https://github.com/LiskHQ/lisk-sdk/issues/6565
 		const command = targetModule.commands.find(c => c.id === commandID);
 		if (!command) {
 			throw new Error(
-				`Module with ID ${moduleID} does not have command with ID ${commandID} registered.`,
+				`Module with ID ${moduleID.readInt32BE(
+					0,
+				)} does not have command with ID ${commandID.readInt32BE(0)} registered.`,
 			);
 		}
 		return command;
 	}
 
-	private _validateExistingModuleID(id: number): void {
-		const existingModule = this._modules.find(m => m.id === id);
+	private _validateExistingModuleID(id: Buffer): void {
+		const existingModule = this._modules.find(m => m.id.equals(id));
 		if (existingModule) {
-			throw new Error(`Module with ID ${id} is registered.`);
+			throw new Error(`Module with ID ${id.readInt32BE(0)} is registered.`);
 		}
-		const existingSystemModule = this._systemModules.find(m => m.id === id);
+		const existingSystemModule = this._systemModules.find(m => m.id.equals(id));
 		if (existingSystemModule) {
-			throw new Error(`Module with ID ${id} is registered as a system module.`);
+			throw new Error(`Module with ID ${id.readInt32BE(0)} is registered as a system module.`);
 		}
 	}
 }

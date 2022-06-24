@@ -24,11 +24,13 @@ import {
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import {
 	CHAIN_TERMINATED,
-	COMMAND_ID_STATE_RECOVERY_INIT,
+	COMMAND_ID_STATE_RECOVERY_INIT_BUFFER,
 	EMPTY_BYTES,
 	LIVENESS_LIMIT,
 	MAINCHAIN_ID,
+	MAINCHAIN_ID_BUFFER,
 	MODULE_ID_INTEROPERABILITY,
+	MODULE_ID_INTEROPERABILITY_BUFFER,
 	STORE_PREFIX_CHAIN_DATA,
 	STORE_PREFIX_TERMINATED_STATE,
 } from '../../constants';
@@ -44,7 +46,7 @@ import { MainchainInteroperabilityStore } from '../store';
 
 export class StateRecoveryInitCommand extends BaseInteroperabilityCommand {
 	public name = 'stateRecoveryInitialization';
-	public id = COMMAND_ID_STATE_RECOVERY_INIT;
+	public id = COMMAND_ID_STATE_RECOVERY_INIT_BUFFER;
 	public schema = stateRecoveryInitParams;
 
 	public async verify(
@@ -54,11 +56,11 @@ export class StateRecoveryInitCommand extends BaseInteroperabilityCommand {
 			getStore,
 			params: { chainID, sidechainChainAccount, bitmap, siblingHashes },
 		} = context;
-		const chainIDBuffer = getIDAsKeyForStore(chainID);
+		const chainIDBuffer = chainID;
 		const interoperabilityStore = this.getInteroperabilityStore(getStore);
 		const ownChainAccount = await interoperabilityStore.getOwnChainAccount();
 
-		if (chainID === MAINCHAIN_ID || chainID === ownChainAccount.id) {
+		if (chainID.equals(MAINCHAIN_ID_BUFFER) || chainID.equals(ownChainAccount.id)) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error(`Sidechain id is not valid`),
@@ -66,7 +68,7 @@ export class StateRecoveryInitCommand extends BaseInteroperabilityCommand {
 		}
 
 		const terminatedStateSubstore = context.getStore(
-			MODULE_ID_INTEROPERABILITY,
+			MODULE_ID_INTEROPERABILITY_BUFFER,
 			STORE_PREFIX_TERMINATED_STATE,
 		);
 		const terminatedStateAccountExists = await terminatedStateSubstore.has(chainIDBuffer);
@@ -165,7 +167,7 @@ export class StateRecoveryInitCommand extends BaseInteroperabilityCommand {
 		const interoperabilityStore = this.getInteroperabilityStore(getStore);
 
 		const doesTerminatedStateAccountExist = await interoperabilityStore.hasTerminatedStateAccount(
-			getIDAsKeyForStore(params.chainID),
+			params.chainID,
 		);
 		if (doesTerminatedStateAccountExist) {
 			const newTerminatedStateAccount: TerminatedStateAccount = {
@@ -174,13 +176,9 @@ export class StateRecoveryInitCommand extends BaseInteroperabilityCommand {
 				initialized: true,
 			};
 
-			const store = getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_TERMINATED_STATE);
+			const store = getStore(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_TERMINATED_STATE);
 
-			await store.setWithSchema(
-				getIDAsKeyForStore(params.chainID),
-				newTerminatedStateAccount,
-				terminatedStateSchema,
-			);
+			await store.setWithSchema(params.chainID, newTerminatedStateAccount, terminatedStateSchema);
 			return;
 		}
 

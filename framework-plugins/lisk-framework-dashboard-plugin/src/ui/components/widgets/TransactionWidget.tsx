@@ -30,8 +30,8 @@ interface WidgetProps {
 
 const getModuleAsset = (
 	nodeInfo: Metadata | undefined,
-	moduleID: number,
-	commandID: number,
+	moduleID: Buffer,
+	commandID: Buffer,
 ): string => {
 	if (!nodeInfo) {
 		return 'unknown';

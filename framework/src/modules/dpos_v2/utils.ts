@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash, verifyData } from '@liskhq/lisk-cryptography';
+import { hash, intToBuffer, verifyData } from '@liskhq/lisk-cryptography';
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { UnlockingObject, VoterData } from './types';
 import {
@@ -263,3 +263,5 @@ export const getPunishmentPeriod = (
 
 	return remainingBlocks < 0 ? 0 : remainingBlocks;
 };
+
+export const getIDAsKeyForStore = (id: number) => intToBuffer(id, 4);

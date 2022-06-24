@@ -24,14 +24,10 @@ import {
 import { CCMsg, StoreCallback, MessageRecoveryParams, TerminatedOutboxAccount } from '../../types';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { SidechainInteroperabilityStore } from '../store';
-import {
-	getIDAsKeyForStore,
-	verifyMessageRecovery,
-	swapReceivingAndSendingChainIDs,
-} from '../../utils';
+import { verifyMessageRecovery, swapReceivingAndSendingChainIDs } from '../../utils';
 import {
 	CCM_STATUS_RECOVERED,
-	COMMAND_ID_MESSAGE_RECOVERY,
+	COMMAND_ID_MESSAGE_RECOVERY_BUFFER,
 	EMPTY_FEE_ADDRESS,
 } from '../../constants';
 import { ccmSchema, messageRecoveryParamsSchema } from '../../schema';
@@ -39,7 +35,7 @@ import { BaseInteroperableAPI } from '../../base_interoperable_api';
 import { createCCCommandExecuteContext } from '../../context';
 
 export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
-	public id = COMMAND_ID_MESSAGE_RECOVERY;
+	public id = COMMAND_ID_MESSAGE_RECOVERY_BUFFER;
 	public name = 'messageRecovery';
 	public schema = messageRecoveryParamsSchema;
 
@@ -50,7 +46,7 @@ export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
 			params: { chainID, idxs, crossChainMessages, siblingHashes },
 			getStore,
 		} = context;
-		const chainIdAsBuffer = getIDAsKeyForStore(chainID);
+		const chainIdAsBuffer = chainID;
 		const interoperabilityStore = this.getInteroperabilityStore(getStore);
 		let terminatedChainOutboxAccount: TerminatedOutboxAccount;
 
@@ -76,7 +72,7 @@ export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
 		const apiContext = getAPIContext();
 		const { eventQueue } = apiContext;
 
-		const chainIdAsBuffer = getIDAsKeyForStore(params.chainID);
+		const chainIdAsBuffer = params.chainID;
 
 		const updatedCCMs: Buffer[] = [];
 		const deserializedCCMs = params.crossChainMessages.map(serializedCCMsg =>

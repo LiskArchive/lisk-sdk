@@ -16,7 +16,10 @@ import { StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { BIG_ENDIAN, getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase, Database, Batch } from '@liskhq/lisk-db';
-import { MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS } from '../../../../src/engine/bft/constants';
+import {
+	MODULE_ID_BFT_BUFFER,
+	STORE_PREFIX_BFT_PARAMETERS,
+} from '../../../../src/engine/bft/constants';
 import { BFTParameterNotFoundError } from '../../../../src/engine/bft/errors';
 import {
 	BFTParametersCache,
@@ -35,7 +38,7 @@ describe('BFT parameters', () => {
 		beforeEach(async () => {
 			db = new InMemoryDatabase() as never;
 			const rootStore = new StateStore(db);
-			const paramsStore = rootStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
+			const paramsStore = rootStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_BFT_PARAMETERS);
 			const height1Bytes = intToBuffer(309, 4, BIG_ENDIAN);
 			bftParams1 = {
 				prevoteThreshold: BigInt(20),
@@ -74,19 +77,19 @@ describe('BFT parameters', () => {
 		});
 
 		it('should throw if BFT parameters lower than the height does not exist', async () => {
-			const paramsStore = stateStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
+			const paramsStore = stateStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_BFT_PARAMETERS);
 
 			await expect(getBFTParameters(paramsStore, 308)).rejects.toThrow(BFTParameterNotFoundError);
 		});
 
 		it('should return if BFT parameters equal to the input height exist', async () => {
-			const paramsStore = stateStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
+			const paramsStore = stateStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_BFT_PARAMETERS);
 
 			await expect(getBFTParameters(paramsStore, 514)).resolves.toEqual(bftParams1);
 		});
 
 		it('should return if BFT parameters lower than the input height exist', async () => {
-			const paramsStore = stateStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
+			const paramsStore = stateStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_BFT_PARAMETERS);
 
 			await expect(getBFTParameters(paramsStore, 1024)).resolves.toEqual(bftParams2);
 		});
@@ -101,7 +104,7 @@ describe('BFT parameters', () => {
 		beforeEach(async () => {
 			db = new InMemoryDatabase() as never;
 			const rootStore = new StateStore(db);
-			const paramsStore = rootStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
+			const paramsStore = rootStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_BFT_PARAMETERS);
 			const height1Bytes = intToBuffer(309, 4, BIG_ENDIAN);
 			bftParams1 = {
 				prevoteThreshold: BigInt(20),
@@ -140,7 +143,7 @@ describe('BFT parameters', () => {
 		});
 
 		it('should not delete anything if the param does not exist for the heigt', async () => {
-			const paramsStore = stateStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
+			const paramsStore = stateStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_BFT_PARAMETERS);
 			jest.spyOn(paramsStore, 'del');
 			await deleteBFTParameters(paramsStore, 308);
 
@@ -148,7 +151,7 @@ describe('BFT parameters', () => {
 		});
 
 		it('should delete all params strictly lower than height if the param exist for the heigt', async () => {
-			const paramsStore = stateStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
+			const paramsStore = stateStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_BFT_PARAMETERS);
 			jest.spyOn(paramsStore, 'del');
 			await deleteBFTParameters(paramsStore, 515);
 
@@ -164,7 +167,7 @@ describe('BFT parameters', () => {
 			it('should cache params for the specified range', async () => {
 				db = new InMemoryDatabase() as never;
 				const rootStore = new StateStore(db);
-				const paramsStore = rootStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
+				const paramsStore = rootStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_BFT_PARAMETERS);
 				const height1Bytes = intToBuffer(104, 4, BIG_ENDIAN);
 				const bftParams1 = {
 					prevoteThreshold: BigInt(20),
@@ -215,7 +218,10 @@ describe('BFT parameters', () => {
 				await db.write(batch);
 
 				const stateStore = new StateStore(db);
-				const targetParamsStore = stateStore.getStore(MODULE_ID_BFT, STORE_PREFIX_BFT_PARAMETERS);
+				const targetParamsStore = stateStore.getStore(
+					MODULE_ID_BFT_BUFFER,
+					STORE_PREFIX_BFT_PARAMETERS,
+				);
 				jest.spyOn(targetParamsStore, 'iterate');
 
 				const paramsCache = new BFTParametersCache(targetParamsStore);

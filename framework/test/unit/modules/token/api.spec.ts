@@ -12,15 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { TokenAPI } from '../../../../src/modules/token';
 import {
 	CCM_STATUS_OK,
 	CHAIN_ID_LENGTH,
-	CROSS_CHAIN_COMMAND_ID_FORWARD,
+	CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
 	CROSS_CHAIN_COMMAND_ID_TRANSFER,
 	EMPTY_BYTES,
-	MODULE_ID_TOKEN,
+	MODULE_ID_TOKEN_BUFFER,
 	STORE_PREFIX_AVAILABLE_LOCAL_ID,
 	STORE_PREFIX_ESCROW,
 	STORE_PREFIX_SUPPLY,
@@ -64,7 +64,7 @@ describe('token module', () => {
 	let apiContext: APIContext;
 
 	beforeEach(async () => {
-		api = new TokenAPI(MODULE_ID_TOKEN);
+		api = new TokenAPI(MODULE_ID_TOKEN_BUFFER);
 		api.init({
 			minBalances: [
 				{
@@ -84,7 +84,7 @@ describe('token module', () => {
 			stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
 			eventQueue: new EventQueue(),
 		});
-		const userStore = apiContext.getStore(MODULE_ID_TOKEN, STORE_PREFIX_USER);
+		const userStore = apiContext.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
 		await userStore.setWithSchema(
 			getUserStoreKey(defaultAddress, defaultTokenIDAlias),
 			defaultAccount,
@@ -96,7 +96,7 @@ describe('token module', () => {
 			userStoreSchema,
 		);
 
-		const supplyStore = apiContext.getStore(MODULE_ID_TOKEN, STORE_PREFIX_SUPPLY);
+		const supplyStore = apiContext.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_SUPPLY);
 		await supplyStore.setWithSchema(
 			defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
 			{ totalSupply: defaultTotalSupply },
@@ -104,7 +104,7 @@ describe('token module', () => {
 		);
 
 		const nextAvailableLocalIDStore = apiContext.getStore(
-			MODULE_ID_TOKEN,
+			MODULE_ID_TOKEN_BUFFER,
 			STORE_PREFIX_AVAILABLE_LOCAL_ID,
 		);
 		await nextAvailableLocalIDStore.setWithSchema(
@@ -113,7 +113,7 @@ describe('token module', () => {
 			availableLocalIDStoreSchema,
 		);
 
-		const escrowStore = apiContext.getStore(MODULE_ID_TOKEN, STORE_PREFIX_ESCROW);
+		const escrowStore = apiContext.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_ESCROW);
 		await escrowStore.setWithSchema(
 			Buffer.concat([
 				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
@@ -141,16 +141,16 @@ describe('token module', () => {
 	describe('getLockedAmount', () => {
 		it('should return zero if data does not exist', async () => {
 			await expect(
-				api.getLockedAmount(apiContext, getRandomBytes(20), defaultTokenID, 3),
+				api.getLockedAmount(apiContext, getRandomBytes(20), defaultTokenID, intToBuffer(3, 4)),
 			).resolves.toEqual(BigInt(0));
 			await expect(
-				api.getLockedAmount(apiContext, defaultAddress, defaultTokenID, 3),
+				api.getLockedAmount(apiContext, defaultAddress, defaultTokenID, intToBuffer(3, 4)),
 			).resolves.toEqual(BigInt(0));
 		});
 
 		it('should return balance if data exists', async () => {
 			await expect(
-				api.getLockedAmount(apiContext, defaultAddress, defaultTokenID, 12),
+				api.getLockedAmount(apiContext, defaultAddress, defaultTokenID, intToBuffer(12, 4)),
 			).resolves.toEqual(defaultAccount.lockedBalances[0].amount);
 		});
 	});
@@ -266,7 +266,7 @@ describe('token module', () => {
 			await expect(
 				api.getAvailableBalance(apiContext, defaultAddress, defaultTokenID),
 			).resolves.toEqual(defaultAccount.availableBalance + BigInt(10000));
-			const supplyStore = apiContext.getStore(MODULE_ID_TOKEN, STORE_PREFIX_SUPPLY);
+			const supplyStore = apiContext.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_SUPPLY);
 			const { totalSupply } = await supplyStore.getWithSchema<SupplyStoreData>(
 				defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
 				supplyStoreSchema,
@@ -307,7 +307,7 @@ describe('token module', () => {
 				api.getAvailableBalance(apiContext, defaultAddress, defaultTokenID),
 			).resolves.toEqual(BigInt(0));
 
-			const supplyStore = apiContext.getStore(MODULE_ID_TOKEN, STORE_PREFIX_SUPPLY);
+			const supplyStore = apiContext.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_SUPPLY);
 			const { totalSupply } = await supplyStore.getWithSchema<SupplyStoreData>(
 				defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
 				supplyStoreSchema,
@@ -319,7 +319,7 @@ describe('token module', () => {
 	describe('lock', () => {
 		it('should reject amount is less than zero', async () => {
 			await expect(
-				api.lock(apiContext, defaultAddress, 12, defaultTokenID, BigInt(-1)),
+				api.lock(apiContext, defaultAddress, intToBuffer(12, 4), defaultTokenID, BigInt(-1)),
 			).rejects.toThrow('Amount must be a positive integer to lock');
 		});
 
@@ -328,7 +328,7 @@ describe('token module', () => {
 				api.lock(
 					apiContext,
 					defaultAddress,
-					12,
+					intToBuffer(12, 4),
 					defaultTokenID,
 					defaultAccount.availableBalance + BigInt(1),
 				),
@@ -337,7 +337,13 @@ describe('token module', () => {
 
 		it('should update address balance', async () => {
 			await expect(
-				api.lock(apiContext, defaultAddress, 2, defaultTokenID, defaultAccount.availableBalance),
+				api.lock(
+					apiContext,
+					defaultAddress,
+					intToBuffer(2, 4),
+					defaultTokenID,
+					defaultAccount.availableBalance,
+				),
 			).resolves.toBeUndefined();
 			await expect(
 				api.getAvailableBalance(apiContext, defaultAddress, defaultTokenID),
@@ -346,9 +352,15 @@ describe('token module', () => {
 
 		it('should update locked balances to be sorted by module ID', async () => {
 			await expect(
-				api.lock(apiContext, defaultAddress, 2, defaultTokenID, defaultAccount.availableBalance),
+				api.lock(
+					apiContext,
+					defaultAddress,
+					intToBuffer(2, 4),
+					defaultTokenID,
+					defaultAccount.availableBalance,
+				),
 			).resolves.toBeUndefined();
-			const userStore = apiContext.getStore(MODULE_ID_TOKEN, STORE_PREFIX_USER);
+			const userStore = apiContext.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
 			const { lockedBalances } = await userStore.getWithSchema<UserStoreData>(
 				getUserStoreKey(defaultAddress, defaultTokenIDAlias),
 				userStoreSchema,
@@ -360,13 +372,13 @@ describe('token module', () => {
 	describe('unlock', () => {
 		it('should reject amount is less than zero', async () => {
 			await expect(
-				api.unlock(apiContext, defaultAddress, 12, defaultTokenID, BigInt(-1)),
+				api.unlock(apiContext, defaultAddress, intToBuffer(12, 4), defaultTokenID, BigInt(-1)),
 			).rejects.toThrow('Amount must be a positive integer to unlock');
 		});
 
 		it('should reject if address does not have any corresponding locked balance for the specified module', async () => {
 			await expect(
-				api.unlock(apiContext, defaultAddress, 15, defaultTokenID, BigInt(100)),
+				api.unlock(apiContext, defaultAddress, intToBuffer(15, 4), defaultTokenID, BigInt(100)),
 			).rejects.toThrow('No balance is locked for module ID 15');
 		});
 
@@ -375,7 +387,7 @@ describe('token module', () => {
 				api.unlock(
 					apiContext,
 					defaultAddress,
-					12,
+					intToBuffer(12, 4),
 					defaultTokenID,
 					defaultAccount.lockedBalances[0].amount + BigInt(1),
 				),
@@ -387,12 +399,12 @@ describe('token module', () => {
 				api.unlock(
 					apiContext,
 					defaultAddress,
-					12,
+					intToBuffer(12, 4),
 					defaultTokenID,
 					defaultAccount.lockedBalances[0].amount - BigInt(1),
 				),
 			).resolves.toBeUndefined();
-			const userStore = apiContext.getStore(MODULE_ID_TOKEN, STORE_PREFIX_USER);
+			const userStore = apiContext.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
 			const { lockedBalances } = await userStore.getWithSchema<UserStoreData>(
 				getUserStoreKey(defaultAddress, defaultTokenIDAlias),
 				userStoreSchema,
@@ -405,12 +417,12 @@ describe('token module', () => {
 				api.unlock(
 					apiContext,
 					defaultAddress,
-					12,
+					intToBuffer(12, 4),
 					defaultTokenID,
 					defaultAccount.lockedBalances[0].amount,
 				),
 			).resolves.toBeUndefined();
-			const userStore = apiContext.getStore(MODULE_ID_TOKEN, STORE_PREFIX_USER);
+			const userStore = apiContext.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
 			const { lockedBalances } = await userStore.getWithSchema<UserStoreData>(
 				getUserStoreKey(defaultAddress, defaultTokenIDAlias),
 				userStoreSchema,
@@ -505,7 +517,7 @@ describe('token module', () => {
 				.mockResolvedValue({ id: Buffer.from([0, 0, 0, 2]) });
 			const receivingChainID = Buffer.from([0, 0, 0, 3]);
 			const messageFee = BigInt('10000');
-			const userStore = apiContext.getStore(MODULE_ID_TOKEN, STORE_PREFIX_USER);
+			const userStore = apiContext.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
 			await userStore.setWithSchema(
 				getUserStoreKey(defaultAddress, defaultTokenID),
 				defaultAccount,
@@ -552,7 +564,7 @@ describe('token module', () => {
 				expect(api['_interoperabilityAPI'].send).toHaveBeenCalledWith(
 					apiContext,
 					defaultAddress,
-					MODULE_ID_TOKEN,
+					MODULE_ID_TOKEN_BUFFER,
 					CROSS_CHAIN_COMMAND_ID_TRANSFER,
 					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
 					BigInt('10000'),
@@ -605,7 +617,7 @@ describe('token module', () => {
 				expect(api['_interoperabilityAPI'].send).toHaveBeenCalledWith(
 					apiContext,
 					defaultAddress,
-					MODULE_ID_TOKEN,
+					MODULE_ID_TOKEN_BUFFER,
 					CROSS_CHAIN_COMMAND_ID_TRANSFER,
 					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 					BigInt('10000'),
@@ -621,7 +633,10 @@ describe('token module', () => {
 			});
 
 			it('should not add amount to escrow', () => {
-				expect(apiContext.getStore).not.toHaveBeenCalledWith(MODULE_ID_TOKEN, STORE_PREFIX_ESCROW);
+				expect(apiContext.getStore).not.toHaveBeenCalledWith(
+					MODULE_ID_TOKEN_BUFFER,
+					STORE_PREFIX_ESCROW,
+				);
 			});
 		});
 
@@ -634,7 +649,7 @@ describe('token module', () => {
 				jest
 					.spyOn(api['_interoperabilityAPI'], 'getOwnChainAccount')
 					.mockResolvedValue({ id: Buffer.from([0, 0, 0, 2]) });
-				const userStore = apiContext.getStore(MODULE_ID_TOKEN, STORE_PREFIX_USER);
+				const userStore = apiContext.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
 				await userStore.setWithSchema(
 					getUserStoreKey(defaultAddress, defaultTokenID),
 					defaultAccount,
@@ -680,8 +695,8 @@ describe('token module', () => {
 				expect(api['_interoperabilityAPI'].send).toHaveBeenCalledWith(
 					apiContext,
 					defaultAddress,
-					MODULE_ID_TOKEN,
-					CROSS_CHAIN_COMMAND_ID_FORWARD,
+					MODULE_ID_TOKEN_BUFFER,
+					CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
 					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
 					BigInt('0'),
 					CCM_STATUS_OK,

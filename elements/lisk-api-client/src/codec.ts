@@ -35,7 +35,7 @@ import {
 } from './types';
 
 export const getTransactionParamsSchema = (
-	transaction: { moduleID: number; commandID: number },
+	transaction: { moduleID: Buffer; commandID: Buffer },
 	metadata: ModuleMetadata[],
 ): Schema | undefined => {
 	const moduleMeta = metadata.find(meta => meta.id === transaction.moduleID);
@@ -57,17 +57,19 @@ export const getTransactionParamsSchema = (
 
 export const getAssetDataSchema = (
 	blockVersion: number,
-	asset: { moduleID: number },
+	asset: { moduleID: Buffer },
 	metadata: ModuleMetadata[],
 ): Schema => {
 	const moduleMeta = metadata.find(meta => meta.id === asset.moduleID);
 	if (!moduleMeta) {
-		throw new Error(`Asset schema ModuleID: ${asset.moduleID} is not registered.`);
+		throw new Error(`Asset schema ModuleID: ${asset.moduleID.readInt32BE(0)} is not registered.`);
 	}
 	const assetMeta = moduleMeta.assets.find(meta => meta.version === blockVersion);
 	if (!assetMeta) {
 		throw new Error(
-			`Asset schema for ModuleID: ${asset.moduleID} Version: ${blockVersion} is not registered.`,
+			`Asset schema for ModuleID: ${asset.moduleID.readInt32BE(
+				0,
+			)} Version: ${blockVersion} is not registered.`,
 		);
 	}
 	return assetMeta.data;
@@ -130,7 +132,12 @@ export const fromTransactionJSON = <T = Record<string, unknown>>(
 	registeredSchema: RegisteredSchemas,
 	metadata: ModuleMetadata[],
 ): DecodedTransaction<T> => {
-	const paramsSchema = getTransactionParamsSchema(transaction, metadata);
+	const transactionWithBufferParams = {
+		...transaction,
+		moduleID: Buffer.from(transaction.moduleID, 'hex'),
+		commandID: Buffer.from(transaction.commandID, 'hex'),
+	};
+	const paramsSchema = getTransactionParamsSchema(transactionWithBufferParams, metadata);
 	const tx = codec.fromJSON<Transaction>(registeredSchema.transaction, {
 		...transaction,
 		params: '',
@@ -228,7 +235,8 @@ export const fromBlockAssetJSON = <T = Record<string, unknown>>(
 	registeredSchema: RegisteredSchemas,
 	metadata: ModuleMetadata[],
 ): DecodedBlockAsset<T> => {
-	const dataSchema = getAssetDataSchema(blockVersion, asset, metadata);
+	const assetWithBufferParams = { ...asset, moduleID: Buffer.from(asset.moduleID, 'hex') };
+	const dataSchema = getAssetDataSchema(blockVersion, assetWithBufferParams, metadata);
 	if (typeof asset.data === 'string') {
 		return {
 			...codec.fromJSON(registeredSchema.asset, asset),

@@ -24,7 +24,7 @@ export const createContext = (
 	params: Record<string, unknown>,
 ): ModuleEndpointContext => ({
 	getImmutableAPIContext: () => createImmutableAPIContext(stateStore),
-	getStore: (moduleID: number, prefix: number) => stateStore.getStore(moduleID, prefix),
+	getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
 	logger: fakeLogger,
 	networkIdentifier: getRandomBytes(32),
 	params,

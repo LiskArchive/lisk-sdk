@@ -74,7 +74,7 @@ export class TransactionContext {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
 			getAPIContext: () => createImmutableAPIContext(this._stateStore),
-			getStore: (moduleID: number, storePrefix: number) =>
+			getStore: (moduleID: Buffer, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			transaction: this._transaction,
 		};
@@ -94,7 +94,7 @@ export class TransactionContext {
 			eventQueue: wrappedEventQueue,
 			getAPIContext: () =>
 				createAPIContext({ stateStore: this._stateStore, eventQueue: wrappedEventQueue }),
-			getStore: (moduleID: number, storePrefix: number) =>
+			getStore: (moduleID: Buffer, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
 			transaction: this._transaction,
@@ -112,7 +112,7 @@ export class TransactionContext {
 			networkIdentifier: this._networkIdentifier,
 			getAPIContext: () =>
 				createAPIContext({ stateStore: this._stateStore, eventQueue: this._eventQueue }),
-			getStore: (moduleID: number, storePrefix: number) =>
+			getStore: (moduleID: Buffer, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			transaction: this._transaction,
 			params: (paramsSchema
@@ -137,7 +137,7 @@ export class TransactionContext {
 			eventQueue: wrappedEventQueue,
 			getAPIContext: () =>
 				createAPIContext({ stateStore: this._stateStore, eventQueue: wrappedEventQueue }),
-			getStore: (moduleID: number, storePrefix: number) =>
+			getStore: (moduleID: Buffer, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
 			transaction: this._transaction,

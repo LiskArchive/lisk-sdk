@@ -15,7 +15,7 @@ import { BlockHeader, StateStore } from '@liskhq/lisk-chain';
 import { BFTAPI } from './api';
 import {
 	EMPTY_KEY,
-	MODULE_ID_BFT,
+	MODULE_ID_BFT_BUFFER,
 	STORE_PREFIX_BFT_PARAMETERS,
 	STORE_PREFIX_BFT_VOTES,
 	STORE_PREFIX_GENERATOR_KEYS,
@@ -32,7 +32,7 @@ import { BFTParametersCache, deleteBFTParameters } from './bft_params';
 import { deleteGeneratorKeys } from './utils';
 
 export class BFTModule {
-	public id = MODULE_ID_BFT;
+	public id = MODULE_ID_BFT_BUFFER;
 	public name = 'bft';
 	public api = new BFTAPI(this.id);
 

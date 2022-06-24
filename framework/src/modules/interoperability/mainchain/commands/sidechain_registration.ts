@@ -19,10 +19,7 @@ import { MainchainInteroperabilityStore } from '../store';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import {
 	CHAIN_REGISTERED,
-	COMMAND_ID_SIDECHAIN_REG,
-	CROSS_CHAIN_COMMAND_ID_REGISTRATION,
 	EMPTY_HASH,
-	MODULE_ID_INTEROPERABILITY,
 	STORE_PREFIX_CHAIN_DATA,
 	STORE_PREFIX_REGISTERED_NETWORK_IDS,
 	STORE_PREFIX_REGISTERED_NAMES,
@@ -34,6 +31,10 @@ import {
 	MAINCHAIN_ID,
 	CCM_STATUS_OK,
 	EMPTY_FEE_ADDRESS,
+	MODULE_ID_INTEROPERABILITY_BUFFER,
+	COMMAND_ID_SIDECHAIN_REG_BUFFER,
+	CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
+	MAINCHAIN_ID_BUFFER,
 } from '../../constants';
 import {
 	chainAccountSchema,
@@ -54,7 +55,7 @@ import {
 } from '../../../../state_machine/types';
 
 export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
-	public id = COMMAND_ID_SIDECHAIN_REG;
+	public id = COMMAND_ID_SIDECHAIN_REG_BUFFER;
 	public name = 'sidechainRegistration';
 	public schema = sidechainRegParams;
 
@@ -84,7 +85,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 
 		// 	The sidechain name has to be unique with respect to the set of already registered sidechain names in the blockchain state
 		const nameSubstore = context.getStore(
-			MODULE_ID_INTEROPERABILITY,
+			MODULE_ID_INTEROPERABILITY_BUFFER,
 			STORE_PREFIX_REGISTERED_NAMES,
 		);
 		const nameExists = await nameSubstore.has(Buffer.from(name, 'utf8'));
@@ -100,7 +101,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 
 		// 	networkId has to be unique with respect to the set of already registered sidechain network IDs in the blockchain state.
 		const networkIDSubstore = context.getStore(
-			MODULE_ID_INTEROPERABILITY,
+			MODULE_ID_INTEROPERABILITY_BUFFER,
 			STORE_PREFIX_REGISTERED_NETWORK_IDS,
 		);
 		const networkIDExists = await networkIDSubstore.has(networkID);
@@ -177,7 +178,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		const networkID = hash(Buffer.concat([genesisBlockID, transaction.senderAddress]));
 
 		// Add an entry in the chain substore
-		const chainSubstore = getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
+		const chainSubstore = getStore(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_DATA);
 
 		// Find the latest chainID from db
 		const gte = intToBuffer(0, 4);
@@ -206,7 +207,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		);
 
 		// Add an entry in the channel substore
-		const channelSubstore = getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA);
+		const channelSubstore = getStore(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHANNEL_DATA);
 		await channelSubstore.setWithSchema(
 			chainIDBuffer,
 			{
@@ -228,19 +229,19 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		});
 		const ccm = {
 			nonce: BigInt(0),
-			moduleID: MODULE_ID_INTEROPERABILITY,
-			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION,
-			sendingChainID: MAINCHAIN_ID,
-			receivingChainID: chainID,
+			moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
+			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
+			sendingChainID: MAINCHAIN_ID_BUFFER,
+			receivingChainID: chainIDBuffer,
 			fee: BigInt(0),
 			status: CCM_STATUS_OK,
 			params: encodedParams,
 		};
 
 		await interoperabilityStore.sendInternal({
-			moduleID: MODULE_ID_INTEROPERABILITY,
-			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION,
-			receivingChainID: chainID,
+			moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
+			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
+			receivingChainID: chainIDBuffer,
 			fee: BigInt(0),
 			status: CCM_STATUS_OK,
 			params: encodedParams,
@@ -250,7 +251,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 
 		// Add an entry in the chain validators substore
 		const chainValidatorsSubstore = getStore(
-			MODULE_ID_INTEROPERABILITY,
+			MODULE_ID_INTEROPERABILITY_BUFFER,
 			STORE_PREFIX_CHAIN_VALIDATORS,
 		);
 		await chainValidatorsSubstore.setWithSchema(
@@ -260,12 +261,15 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		);
 
 		// Add an entry in the outbox root substore
-		const outboxRootSubstore = getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_OUTBOX_ROOT);
+		const outboxRootSubstore = getStore(
+			MODULE_ID_INTEROPERABILITY_BUFFER,
+			STORE_PREFIX_OUTBOX_ROOT,
+		);
 		await outboxRootSubstore.setWithSchema(chainIDBuffer, { root: EMPTY_HASH }, outboxRootSchema);
 
 		// Add an entry in the registered names substore
 		const registeredNamesSubstore = getStore(
-			MODULE_ID_INTEROPERABILITY,
+			MODULE_ID_INTEROPERABILITY_BUFFER,
 			STORE_PREFIX_REGISTERED_NAMES,
 		);
 		await registeredNamesSubstore.setWithSchema(
@@ -277,7 +281,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 
 		// Add an entry in the registered network IDs substore
 		const registeredNetworkIDsSubstore = getStore(
-			MODULE_ID_INTEROPERABILITY,
+			MODULE_ID_INTEROPERABILITY_BUFFER,
 			STORE_PREFIX_REGISTERED_NETWORK_IDS,
 		);
 		await registeredNetworkIDsSubstore.setWithSchema(

@@ -20,9 +20,9 @@ import {
 	CCM_STATUS_PROTOCOL_VIOLATION,
 	CCM_STATUS_TOKEN_NOT_SUPPORTED,
 	CHAIN_ID_ALIAS_NATIVE,
-	CROSS_CHAIN_COMMAND_ID_TRANSFER,
+	CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
 	MIN_RETURN_FEE,
-	MODULE_ID_TOKEN,
+	MODULE_ID_TOKEN_BUFFER,
 	STORE_PREFIX_ESCROW,
 	STORE_PREFIX_SUPPLY,
 } from '../constants';
@@ -39,17 +39,17 @@ import { InteroperabilityAPI, MinBalance } from '../types';
 import { splitTokenID, tokenSupported, updateAvailableBalanceWithCreate } from '../utils';
 
 export class CCTransferCommand extends BaseCCCommand {
-	public ID = CROSS_CHAIN_COMMAND_ID_TRANSFER;
+	public ID = CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER;
 	public name = 'crossChainTransfer';
 	public schema = crossChainTransferMessageParams;
-	protected moduleID = MODULE_ID_TOKEN;
+	protected moduleID = MODULE_ID_TOKEN_BUFFER;
 
 	private readonly _tokenAPI: TokenAPI;
 	private _interopAPI!: InteroperabilityAPI;
 	private _supportedTokenIDs!: Buffer[];
 	private _minBalances!: MinBalance[];
 
-	public constructor(moduleID: number, tokenAPI: TokenAPI) {
+	public constructor(moduleID: Buffer, tokenAPI: TokenAPI) {
 		super(moduleID);
 		this._tokenAPI = tokenAPI;
 	}

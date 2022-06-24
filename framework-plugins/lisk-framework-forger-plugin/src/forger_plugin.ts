@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { intToBuffer } from '@liskhq/lisk-cryptography';
 import {
 	BasePlugin,
 	GenesisConfig,
@@ -39,7 +40,9 @@ type TransactionJSON = chain.TransactionJSON;
 
 const BLOCKS_BATCH_TO_SYNC = 1000;
 const MODULE_ID_DPOS = 5;
+const MODULE_ID_DPOS_BUFFER = intToBuffer(MODULE_ID_DPOS, 4);
 const COMMAND_ID_VOTE = 1;
+const COMMAND_ID_VOTE_BUFFER = intToBuffer(COMMAND_ID_VOTE, 4);
 
 interface Data {
 	readonly blockHeader: BlockHeaderJSON;
@@ -303,17 +306,20 @@ export class ForgerPlugin extends BasePlugin {
 	): ForgerReceivedVotes {
 		const forgerReceivedVotes: ForgerReceivedVotes = {};
 
-		const dposModuleMeta = this.apiClient.metadata.find(c => c.id === MODULE_ID_DPOS);
+		const dposModuleMeta = this.apiClient.metadata.find(c => c.id === MODULE_ID_DPOS_BUFFER);
 		if (!dposModuleMeta) {
 			throw new Error('DPoS votes command is not registered.');
 		}
-		const voteCommandMeta = dposModuleMeta.commands.find(c => c.id === COMMAND_ID_VOTE);
+		const voteCommandMeta = dposModuleMeta.commands.find(c => c.id === COMMAND_ID_VOTE_BUFFER);
 		if (!voteCommandMeta || !voteCommandMeta.params) {
 			throw new Error('DPoS votes command is not registered.');
 		}
 
 		for (const trx of transactions) {
-			if (trx.moduleID === MODULE_ID_DPOS && trx.commandID === COMMAND_ID_VOTE) {
+			if (
+				trx.moduleID === MODULE_ID_DPOS_BUFFER.toString('hex') &&
+				trx.commandID === COMMAND_ID_VOTE_BUFFER.toString('hex')
+			) {
 				const params = codec.decode<VotesParams>(
 					voteCommandMeta.params,
 					Buffer.from(trx.params, 'hex'),

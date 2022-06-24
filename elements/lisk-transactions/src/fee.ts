@@ -16,8 +16,8 @@
 import { getBytes } from './sign';
 
 interface BaseFee {
-	readonly moduleID: number;
-	readonly commandID: number;
+	readonly moduleID: Buffer;
+	readonly commandID: Buffer;
 	readonly baseFee: string;
 }
 

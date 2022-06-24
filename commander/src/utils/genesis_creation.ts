@@ -56,7 +56,7 @@ export const genesisAssetsSchema = {
 
 export interface GenesisAssetsInput {
 	assets: {
-		moduleID: number;
+		moduleID: Buffer;
 		data: Record<string, unknown>;
 		schema: Schema;
 	}[];

@@ -18,7 +18,7 @@ import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import * as fixtures from './fixtures.json';
 import * as testing from '../../../../src/testing';
 import { RegisterMultisignatureCommand } from '../../../../src/modules/auth/commands/register_multisignature';
-import { MODULE_ID_AUTH, STORE_PREFIX_AUTH } from '../../../../src/modules/auth/constants';
+import { MODULE_ID_AUTH_BUFFER, STORE_PREFIX_AUTH } from '../../../../src/modules/auth/constants';
 import {
 	authAccountSchema,
 	registerMultisignatureParamsSchema,
@@ -39,7 +39,7 @@ describe('Register Multisignature command', () => {
 	const networkIdentifier = Buffer.from(defaultTestCase.input.networkIdentifier, 'hex');
 
 	beforeEach(() => {
-		registerMultisignatureCommand = new RegisterMultisignatureCommand(MODULE_ID_AUTH);
+		registerMultisignatureCommand = new RegisterMultisignatureCommand(MODULE_ID_AUTH_BUFFER);
 		const buffer = Buffer.from(defaultTestCase.output.transaction, 'hex');
 		transaction = Transaction.fromBytes(buffer);
 		decodedParams = codec.decode<RegisterMultisignatureParams>(
@@ -397,7 +397,7 @@ describe('Register Multisignature command', () => {
 	describe('execute', () => {
 		beforeEach(() => {
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-			authStore = stateStore.getStore(MODULE_ID_AUTH, STORE_PREFIX_AUTH);
+			authStore = stateStore.getStore(MODULE_ID_AUTH_BUFFER, STORE_PREFIX_AUTH);
 		});
 
 		it('should not throw when registering for first time', async () => {
@@ -422,7 +422,7 @@ describe('Register Multisignature command', () => {
 				);
 
 			await expect(registerMultisignatureCommand.execute(context)).toResolve();
-			const updatedStore = stateStore.getStore(MODULE_ID_AUTH, STORE_PREFIX_AUTH);
+			const updatedStore = stateStore.getStore(MODULE_ID_AUTH_BUFFER, STORE_PREFIX_AUTH);
 			const updatedData = await updatedStore.getWithSchema<AuthAccount>(
 				transaction.senderAddress,
 				authAccountSchema,

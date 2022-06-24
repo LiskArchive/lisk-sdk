@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { ValidatorsAPI, ValidatorsModule } from '../../../../src/modules/validators';
 import {
 	MODULE_ID_VALIDATORS,
@@ -58,7 +58,7 @@ describe('ValidatorsModuleAPI', () => {
 	});
 
 	beforeEach(() => {
-		validatorsAPI = new ValidatorsAPI(MODULE_ID_VALIDATORS);
+		validatorsAPI = new ValidatorsAPI(intToBuffer(MODULE_ID_VALIDATORS, 4));
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		validatorsSubStore = stateStore.getStore(
 			validatorsAPI['moduleID'],
@@ -492,7 +492,7 @@ describe('ValidatorsModuleAPI', () => {
 			};
 
 			const validatorsStore = apiContext.getStore(
-				MODULE_ID_VALIDATORS,
+				intToBuffer(MODULE_ID_VALIDATORS, 4),
 				STORE_PREFIX_VALIDATORS_DATA,
 			);
 			await validatorsStore.setWithSchema(validAddress, validatorAccount, validatorAccountSchema);

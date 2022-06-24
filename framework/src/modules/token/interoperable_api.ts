@@ -38,12 +38,12 @@ import {
 } from './utils';
 
 export class TokenInteroperableAPI {
-	private readonly _moduleID: number;
+	private readonly _moduleID: Buffer;
 	private readonly _tokenAPI: TokenAPI;
 
 	private _interopAPI!: InteroperabilityAPI;
 
-	public constructor(moduleID: number, tokenAPI: TokenAPI) {
+	public constructor(moduleID: Buffer, tokenAPI: TokenAPI) {
 		this._moduleID = moduleID;
 		this._tokenAPI = tokenAPI;
 	}

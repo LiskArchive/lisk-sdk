@@ -63,7 +63,7 @@ export interface RegisteredSchemas {
 }
 
 export interface ModuleMetadata {
-	id: number;
+	id: Buffer;
 	name: string;
 	endpoints: {
 		name: string;
@@ -75,7 +75,7 @@ export interface ModuleMetadata {
 		data: Schema;
 	}[];
 	commands: {
-		id: number;
+		id: Buffer;
 		name: string;
 		params?: Schema;
 	}[];
@@ -98,8 +98,8 @@ export interface GenesisConfig {
 	};
 	readonly minFeePerByte: number;
 	readonly baseFees: {
-		readonly moduleID: number;
-		readonly commandID: number;
+		readonly moduleID: Buffer;
+		readonly commandID: Buffer;
 		readonly baseFee: string;
 	}[];
 }
@@ -217,7 +217,7 @@ export interface BlockHeader {
 export type BlockHeaderJSON = JSONObject<BlockHeader>;
 
 export interface BlockAsset {
-	moduleID: number;
+	moduleID: Buffer;
 	data: Buffer;
 }
 
@@ -228,8 +228,8 @@ export type DecodedBlockAssetJSON<T = Record<string, unknown>> = Omit<BlockAsset
 };
 
 export interface Transaction {
-	readonly moduleID: number;
-	readonly commandID: number;
+	readonly moduleID: Buffer;
+	readonly commandID: Buffer;
 	readonly senderPublicKey: Buffer;
 	readonly nonce: bigint;
 	readonly fee: bigint;

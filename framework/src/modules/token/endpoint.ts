@@ -69,7 +69,7 @@ export class TokenEndpoint extends BaseEndpoint {
 				availableBalance: user.availableBalance.toString(),
 				lockedBalances: user.lockedBalances.map(b => ({
 					amount: b.amount.toString(),
-					moduleID: b.moduleID,
+					moduleID: b.moduleID.readInt32BE(0).toString(),
 				})),
 			})),
 		};
@@ -96,7 +96,7 @@ export class TokenEndpoint extends BaseEndpoint {
 				availableBalance: user.availableBalance.toString(),
 				lockedBalances: user.lockedBalances.map(b => ({
 					amount: b.amount.toString(),
-					moduleID: b.moduleID,
+					moduleID: b.moduleID.readInt32BE(0).toString(),
 				})),
 			};
 		} catch (error) {

@@ -14,7 +14,7 @@
 
 import { NotFoundError, StateStore, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { getAddressFromPublicKey, getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getAddressFromPublicKey, getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { validator } from '@liskhq/lisk-validator';
 import { when } from 'jest-when';
@@ -22,7 +22,7 @@ import { VoteCommand } from '../../../../../src/modules/dpos_v2/commands/vote';
 import {
 	COMMAND_ID_VOTE,
 	MAX_UNLOCKING,
-	MODULE_ID_DPOS,
+	MODULE_ID_DPOS_BUFFER,
 	STORE_PREFIX_DELEGATE,
 	STORE_PREFIX_VOTER,
 } from '../../../../../src/modules/dpos_v2/constants';
@@ -64,7 +64,7 @@ describe('VoteCommand', () => {
 
 	beforeEach(async () => {
 		lockFn = jest.fn();
-		command = new VoteCommand(MODULE_ID_DPOS);
+		command = new VoteCommand(MODULE_ID_DPOS_BUFFER);
 		command.addDependencies({
 			tokenAPI: {
 				lock: lockFn,
@@ -125,8 +125,8 @@ describe('VoteCommand', () => {
 			.mockRejectedValue(new NotFoundError());
 
 		stateStore = new StateStore(new InMemoryDatabase());
-		voterStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_VOTER);
-		delegateStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
+		voterStore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_VOTER);
+		delegateStore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
 
 		await delegateStore.setWithSchema(delegateAddress1, delegateInfo1, delegateStoreSchema);
 		await delegateStore.setWithSchema(delegateAddress2, delegateInfo2, delegateStoreSchema);
@@ -150,8 +150,8 @@ describe('VoteCommand', () => {
 	describe('verify', () => {
 		beforeEach(() => {
 			transaction = new Transaction({
-				moduleID: MODULE_ID_DPOS,
-				commandID: COMMAND_ID_VOTE,
+				moduleID: MODULE_ID_DPOS_BUFFER,
+				commandID: intToBuffer(COMMAND_ID_VOTE, 4),
 				fee: BigInt(1500000),
 				nonce: BigInt(0),
 				params: Buffer.alloc(0),
@@ -488,8 +488,8 @@ describe('VoteCommand', () => {
 	describe('execute', () => {
 		beforeEach(() => {
 			transaction = new Transaction({
-				moduleID: MODULE_ID_DPOS,
-				commandID: COMMAND_ID_VOTE,
+				moduleID: MODULE_ID_DPOS_BUFFER,
+				commandID: intToBuffer(COMMAND_ID_VOTE, 4),
 				fee: BigInt(1500000),
 				nonce: BigInt(0),
 				params: transactionParams,
@@ -563,14 +563,14 @@ describe('VoteCommand', () => {
 				expect(lockFn).toHaveBeenCalledWith(
 					expect.anything(),
 					senderAddress,
-					MODULE_ID_DPOS,
+					MODULE_ID_DPOS_BUFFER,
 					tokenIDDPoS,
 					delegate1VoteAmount,
 				);
 				expect(lockFn).toHaveBeenCalledWith(
 					expect.anything(),
 					senderAddress,
-					MODULE_ID_DPOS,
+					MODULE_ID_DPOS_BUFFER,
 					tokenIDDPoS,
 					delegate2VoteAmount,
 				);
@@ -579,8 +579,8 @@ describe('VoteCommand', () => {
 			it('should not change pendingUnlocks', async () => {
 				// Arrange
 				stateStore = new StateStore(new InMemoryDatabase());
-				voterStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_VOTER);
-				delegateStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
+				voterStore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_VOTER);
+				delegateStore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
 
 				await delegateStore.setWithSchema(delegateAddress1, delegateInfo1, delegateStoreSchema);
 
@@ -608,8 +608,8 @@ describe('VoteCommand', () => {
 			it('should order voterData.sentVotes', async () => {
 				// Arrange
 				stateStore = new StateStore(new InMemoryDatabase());
-				voterStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_VOTER);
-				delegateStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
+				voterStore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_VOTER);
+				delegateStore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
 
 				await delegateStore.setWithSchema(delegateAddress1, delegateInfo1, delegateStoreSchema);
 				await delegateStore.setWithSchema(delegateAddress2, delegateInfo2, delegateStoreSchema);
@@ -644,7 +644,7 @@ describe('VoteCommand', () => {
 			it('should make upvoted delegate account to have correct totalVotesReceived', async () => {
 				// Arrange
 				stateStore = new StateStore(new InMemoryDatabase());
-				delegateStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
+				delegateStore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
 
 				await delegateStore.setWithSchema(delegateAddress1, delegateInfo1, delegateStoreSchema);
 				await delegateStore.setWithSchema(delegateAddress2, delegateInfo2, delegateStoreSchema);
@@ -684,8 +684,8 @@ describe('VoteCommand', () => {
 			it('should update vote object when it exists before and create if it does not exist', async () => {
 				// Arrange
 				stateStore = new StateStore(new InMemoryDatabase());
-				voterStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_VOTER);
-				delegateStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
+				voterStore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_VOTER);
+				delegateStore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
 
 				await delegateStore.setWithSchema(delegateAddress1, delegateInfo1, delegateStoreSchema);
 				transactionParamsDecoded = {
@@ -962,7 +962,7 @@ describe('VoteCommand', () => {
 				expect(lockFn).toHaveBeenCalledWith(
 					expect.anything(),
 					senderAddress,
-					MODULE_ID_DPOS,
+					MODULE_ID_DPOS_BUFFER,
 					tokenIDDPoS,
 					positiveVoteDelegate1,
 				);
@@ -1363,7 +1363,7 @@ describe('VoteCommand', () => {
 				expect(lockFn).toHaveBeenCalledWith(
 					expect.anything(),
 					senderAddress,
-					MODULE_ID_DPOS,
+					MODULE_ID_DPOS_BUFFER,
 					tokenIDDPoS,
 					senderVoteAmountPositive,
 				);

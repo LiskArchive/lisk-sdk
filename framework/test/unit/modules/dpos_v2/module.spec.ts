@@ -34,7 +34,7 @@ import {
 	createGenesisBlockContext,
 } from '../../../../src/testing';
 import {
-	MODULE_ID_DPOS,
+	MODULE_ID_DPOS_BUFFER,
 	STORE_PREFIX_DELEGATE,
 	STORE_PREFIX_GENESIS_DATA,
 	STORE_PREFIX_NAME,
@@ -940,8 +940,11 @@ describe('DPoS module', () => {
 				}));
 			delegateAddresses = Array.from({ length: 103 }, _ => getRandomBytes(20));
 
-			previousTimestampStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_PREVIOUS_TIMESTAMP);
-			delegateStore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
+			previousTimestampStore = stateStore.getStore(
+				MODULE_ID_DPOS_BUFFER,
+				STORE_PREFIX_PREVIOUS_TIMESTAMP,
+			);
+			delegateStore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
 
 			for (let i = 0; i < 103; i += 1) {
 				await delegateStore.setWithSchema(

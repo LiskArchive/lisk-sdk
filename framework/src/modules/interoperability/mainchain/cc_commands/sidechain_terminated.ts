@@ -14,20 +14,22 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
-import { CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED, MAINCHAIN_ID } from '../../constants';
+import {
+	CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED_BUFFER,
+	MAINCHAIN_ID_BUFFER,
+} from '../../constants';
 import { createCCMsgBeforeSendContext } from '../../context';
 import { sidechainTerminatedCCMParamsSchema } from '../../schema';
 import { CCCommandExecuteContext, StoreCallback } from '../../types';
-import { getIDAsKeyForStore } from '../../utils';
 import { MainchainInteroperabilityStore } from '../store';
 
 interface CCMSidechainTerminatedParams {
-	chainID: number;
+	chainID: Buffer;
 	stateRoot: Buffer;
 }
 
 export class MainchainCCSidechainTerminatedCommand extends BaseInteroperabilityCCCommand {
-	public ID = CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED;
+	public ID = CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED_BUFFER;
 	public name = 'sidechainTerminated';
 	public schema = sidechainTerminatedCCMParamsSchema;
 
@@ -42,9 +44,9 @@ export class MainchainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 		);
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
 
-		if (ccm.sendingChainID === MAINCHAIN_ID) {
+		if (ccm.sendingChainID === MAINCHAIN_ID_BUFFER) {
 			const isTerminated = await interoperabilityStore.hasTerminatedStateAccount(
-				getIDAsKeyForStore(decodedParams.chainID),
+				decodedParams.chainID,
 			);
 			if (isTerminated) {
 				return;

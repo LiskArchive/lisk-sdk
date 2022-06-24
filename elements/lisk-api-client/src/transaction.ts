@@ -48,8 +48,8 @@ interface MultiSignatureKeys {
 }
 
 interface BaseFee {
-	readonly moduleID: number;
-	readonly commandID: number;
+	readonly moduleID: Buffer;
+	readonly commandID: Buffer;
 	readonly baseFee: string;
 }
 
@@ -86,9 +86,9 @@ export class Transaction {
 
 	public async create<T = Record<string, unknown>>(
 		input: {
-			moduleID?: number; // id takes priority
+			moduleID?: Buffer; // id takes priority
 			moduleName?: string;
-			commandID?: number; // id takes priority
+			commandID?: Buffer; // id takes priority
 			commandName?: string;
 			fee: bigint;
 			nonce?: bigint;
@@ -133,7 +133,9 @@ export class Transaction {
 			}
 			const registeredModule = this._metadata.find(m => m.id === txInput.moduleID);
 			if (!registeredModule) {
-				throw new Error(`Module corresponding to id ${txInput.moduleID} not registered.`);
+				throw new Error(
+					`Module corresponding to id ${txInput.moduleID.readInt32BE(0)} not registered.`,
+				);
 			}
 			const registeredCommand = registeredModule.commands.find(
 				command => command.name === txInput.commandName,

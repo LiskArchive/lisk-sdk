@@ -107,3 +107,5 @@ export const bitwiseXOR = (bufferArray: Buffer[]): Buffer => {
 
 	return result;
 };
+
+export const getIDAsKeyForStore = (id: number) => intToBuffer(id, 4);

@@ -27,7 +27,7 @@ interface CCMSidechainTerminatedParams {
 }
 
 export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityCCCommand {
-	public ID = CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED;
+	public ID = getIDAsKeyForStore(CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED);
 	public name = 'sidechainTerminated';
 	public schema = sidechainTerminatedCCMParamsSchema;
 
@@ -42,7 +42,7 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 		);
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
 
-		if (ccm.sendingChainID === MAINCHAIN_ID) {
+		if (ccm.sendingChainID.equals(getIDAsKeyForStore(MAINCHAIN_ID))) {
 			const isTerminated = await interoperabilityStore.hasTerminatedStateAccount(
 				decodedParams.chainID,
 			);
@@ -63,10 +63,7 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 				networkIdentifier: context.networkIdentifier,
 				feeAddress: context.feeAddress,
 			});
-			await interoperabilityStore.terminateChainInternal(
-				getIDAsKeyForStore(ccm.sendingChainID),
-				beforeSendContext,
-			);
+			await interoperabilityStore.terminateChainInternal(ccm.sendingChainID, beforeSendContext);
 		}
 	}
 

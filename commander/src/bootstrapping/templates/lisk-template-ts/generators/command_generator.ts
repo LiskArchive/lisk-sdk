@@ -22,7 +22,7 @@ import { camelToPascal, camelToSnake } from '../../../../utils/convert';
 interface AssetGeneratorOptions extends Generator.GeneratorOptions {
 	moduleName: string;
 	commandName: string;
-	commandID: number;
+	commandID: Buffer;
 }
 
 export default class AssetGenerator extends Generator {
@@ -30,7 +30,7 @@ export default class AssetGenerator extends Generator {
 	protected _moduleName: string;
 	protected _moduleFileName: string;
 	protected _commandName: string;
-	protected _commandID: number;
+	protected _commandID: Buffer;
 	protected _commandFileName: string;
 	protected _templatePath: string;
 	protected _commandClass: string;

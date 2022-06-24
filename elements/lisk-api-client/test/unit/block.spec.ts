@@ -13,7 +13,7 @@
  *
  */
 
-import { hash } from '@liskhq/lisk-cryptography';
+import { hash, intToBuffer } from '@liskhq/lisk-cryptography';
 import { Channel } from '../../src/types';
 import { Block } from '../../src/block';
 import { metadata, schema } from '../utils/transaction';
@@ -174,8 +174,8 @@ describe('block', () => {
 			it('should return decoded block in JSON', () => {
 				// Arrange
 				const tx = {
-					moduleID: 2,
-					commandID: 0,
+					moduleID: intToBuffer(2, 4),
+					commandID: intToBuffer(0, 4),
 					nonce: BigInt('54'),
 					fee: BigInt('10000000'),
 					senderPublicKey: Buffer.from(
@@ -208,8 +208,8 @@ describe('block', () => {
 			it('should return object from JSON block', () => {
 				// Arrange
 				const tx = {
-					moduleID: 2,
-					commandID: 0,
+					moduleID: intToBuffer(2, 4),
+					commandID: intToBuffer(0, 4),
 					nonce: BigInt('54'),
 					fee: BigInt('10000000'),
 					senderPublicKey: Buffer.from(

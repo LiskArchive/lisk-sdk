@@ -128,11 +128,11 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 		decodedBlockHeader: chain.BlockHeader,
 	): Promise<string> {
 		// ModuleID:13 (DPoS), CommandID:3 (PoMCommand)
-		const dposMeta = this.apiClient.metadata.find(m => m.id === 13);
+		const dposMeta = this.apiClient.metadata.find(m => m.id.readInt32BE(0) === 13);
 		if (!dposMeta) {
 			throw new Error('DPoS module is not registered in the application.');
 		}
-		const pomParamsInfo = dposMeta.commands.find(m => m.id === 3);
+		const pomParamsInfo = dposMeta.commands.find(m => m.id.readInt32BE(0) === 3);
 		if (!pomParamsInfo || !pomParamsInfo.params) {
 			throw new Error('PoM params schema is not registered in the application.');
 		}
