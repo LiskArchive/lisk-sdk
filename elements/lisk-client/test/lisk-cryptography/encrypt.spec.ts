@@ -13,4 +13,6 @@
  */
 
 // TODO: Fix in issue #7235
-describe.skip('encrypt', () => {});
+describe('encrypt', () => {
+	it.todo('Revive all the tests');
+});
