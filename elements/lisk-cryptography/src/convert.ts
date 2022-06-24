@@ -98,7 +98,7 @@ export const stringifyEncryptedPassphrase = (
 };
 
 const parseOption = (optionString?: string): number | undefined => {
-	const option = optionString === undefined ? undefined : parseInt(optionString, 10);
+	const option = !optionString ? undefined : parseInt(optionString, 10);
 
 	if (typeof option !== 'undefined' && Number.isNaN(option)) {
 		throw new Error('Could not parse option.');
