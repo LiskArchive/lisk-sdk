@@ -59,7 +59,10 @@ describe('passphrase:encrypt', () => {
 		jest.spyOn(cryptography, 'getKeys').mockReturnValue(defaultKeys as never);
 		jest
 			.spyOn(cryptography, 'encryptPassphraseWithPassword')
-			.mockReturnValue(encryptedPassphraseObject);
+			// TODO: Fix in issue #7235
+			.mockReturnValue(
+				(encryptedPassphraseObject as unknown) as cryptography.EncryptedPassphraseObject,
+			);
 		jest
 			.spyOn(cryptography, 'stringifyEncryptedPassphrase')
 			.mockReturnValue(encryptedPassphraseString);
