@@ -50,10 +50,10 @@ describe('passphrase:decrypt', () => {
 		// TODO: Fix in issue #7235
 		jest
 			.spyOn(cryptography, 'parseEncryptedPassphrase')
-			.mockReturnValue(
-				(encryptedPassphraseObject as unknown) as cryptography.EncryptedPassphraseObject,
-			);
-		jest.spyOn(cryptography, 'decryptPassphraseWithPassword').mockResolvedValue(passphrase);
+			.mockReturnValue(encryptedPassphraseObject as never);
+		jest
+			.spyOn(cryptography, 'decryptPassphraseWithPassword')
+			.mockResolvedValue(passphrase as never);
 		jest.spyOn(readerUtils, 'getPasswordFromPrompt').mockResolvedValue(defaultInputs);
 	});
 

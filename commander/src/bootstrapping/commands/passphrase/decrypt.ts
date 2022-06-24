@@ -13,7 +13,6 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { EncryptedPassphraseObject } from '@liskhq/lisk-cryptography';
 import Command from '@oclif/command';
 import { flagsWithParser } from '../../../utils/flags';
 import { getPasswordFromPrompt } from '../../../utils/reader';
@@ -28,7 +27,7 @@ const processInputs = async (
 ): Promise<Record<string, string>> => {
 	const encryptedPassphraseObject = cryptography.parseEncryptedPassphrase(encryptedPassphrase);
 	const passphrase = await cryptography.decryptPassphraseWithPassword(
-		encryptedPassphraseObject as EncryptedPassphraseObject,
+		encryptedPassphraseObject as never,
 		password,
 	);
 
@@ -64,7 +63,7 @@ export class DecryptCommand extends Command {
 		} = this.parse(DecryptCommand);
 		const { encryptedPassphrase }: Args = args;
 		const password = passwordSource ?? (await getPasswordFromPrompt('password', true));
-		const result = processInputs(password, encryptedPassphrase as string);
+		const result = await processInputs(password, encryptedPassphrase as string);
 		this.printJSON(result, pretty);
 	}
 
