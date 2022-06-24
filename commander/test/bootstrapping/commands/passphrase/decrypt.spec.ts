@@ -47,8 +47,13 @@ describe('passphrase:decrypt', () => {
 		jest.spyOn(process.stdout, 'write').mockImplementation(val => stdout.push(val as string) > -1);
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
 		jest.spyOn(DecryptCommand.prototype, 'printJSON').mockReturnValue();
-		jest.spyOn(cryptography, 'parseEncryptedPassphrase').mockReturnValue(encryptedPassphraseObject);
-		jest.spyOn(cryptography, 'decryptPassphraseWithPassword').mockReturnValue(passphrase);
+		// TODO: Fix in issue #7235
+		jest
+			.spyOn(cryptography, 'parseEncryptedPassphrase')
+			.mockReturnValue(
+				(encryptedPassphraseObject as unknown) as cryptography.EncryptedPassphraseObject,
+			);
+		jest.spyOn(cryptography, 'decryptPassphraseWithPassword').mockResolvedValue(passphrase);
 		jest.spyOn(readerUtils, 'getPasswordFromPrompt').mockResolvedValue(defaultInputs);
 	});
 
