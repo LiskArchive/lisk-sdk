@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { argon2id } from 'hash-wasm';
 import * as crypto from 'crypto';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 
@@ -29,6 +30,10 @@ const PBKDF2_ITERATIONS = 1e6;
 const PBKDF2_KEYLEN = 32;
 const PBKDF2_HASH_FUNCTION = 'sha256';
 const ENCRYPTION_VERSION = '1';
+const HASH_LENGTH = 32;
+const ARGON2_ITERATIONS = 1;
+const ARGON2_PARALLELISM = 4;
+const ARGON2_MEMORY = 2024;
 
 export interface EncryptedMessageWithNonce {
 	readonly encryptedMessage: string;
@@ -103,38 +108,103 @@ export const decryptMessageWithPassphrase = (
 const getKeyFromPassword = (password: string, salt: Buffer, iterations: number): Buffer =>
 	crypto.pbkdf2Sync(password, salt, iterations, PBKDF2_KEYLEN, PBKDF2_HASH_FUNCTION);
 
-export interface EncryptedPassphraseObject {
-	readonly [key: string]: string | number | undefined;
-	readonly cipherText: string;
-	readonly iterations?: number;
-	readonly iv: string;
-	readonly salt: string;
-	readonly tag: string;
-	readonly version: string;
+const getKeyFromPasswordWithArgon2 = async (options: {
+	password: string;
+	salt: Buffer;
+	iterations: number;
+	parallelism: number;
+	memorySize: number;
+}): Promise<Buffer> =>
+	Buffer.from(
+		await argon2id({
+			password: options.password,
+			salt: options.salt,
+			parallelism: options.parallelism,
+			iterations: options.iterations,
+			memorySize: options.memorySize,
+			hashLength: HASH_LENGTH, // we use output size = 32 bytes
+			outputType: 'binary', // we use output binary
+		}),
+	);
+
+export enum Cipher {
+	AES256GCM = 'aes-256-gcm',
 }
 
-const encryptAES256GCMWithPassword = (
+export enum KDF {
+	ARGON2 = 'argon2id',
+	PBKDF2 = 'PBKDF2',
+}
+
+export interface EncryptedPassphraseObject {
+	readonly version: string;
+	readonly ciphertext: string;
+	readonly mac: string;
+	readonly kdf: KDF;
+	readonly kdfparams: {
+		parallelism: number;
+		iterations: number;
+		memorySize: number;
+		salt: string;
+	};
+	readonly cipher: Cipher;
+	readonly cipherparams: {
+		iv: string;
+		tag: string;
+	};
+}
+
+const encryptAES256GCMWithPassword = async (
 	plainText: string,
 	password: string,
-	iterations: number = PBKDF2_ITERATIONS,
-): EncryptedPassphraseObject => {
+	options?: {
+		kdf?: KDF;
+		kdfparams?: {
+			parallelism?: number;
+			iterations?: number;
+			memorySize?: number;
+		};
+	},
+): Promise<EncryptedPassphraseObject> => {
+	const kdf = options?.kdf ?? KDF.ARGON2;
 	const IV_BUFFER_SIZE = 12;
 	const SALT_BUFFER_SIZE = 16;
-	const iv = crypto.randomBytes(IV_BUFFER_SIZE);
 	const salt = crypto.randomBytes(SALT_BUFFER_SIZE);
-	const key = getKeyFromPassword(password, salt, iterations);
-
+	const iv = crypto.randomBytes(IV_BUFFER_SIZE);
+	const iterations =
+		kdf === KDF.ARGON2 ? ARGON2_ITERATIONS : options?.kdfparams?.iterations ?? PBKDF2_ITERATIONS;
+	const parallelism = options?.kdfparams?.parallelism ?? ARGON2_PARALLELISM;
+	const memorySize = options?.kdfparams?.parallelism ?? ARGON2_MEMORY;
+	const key =
+		kdf === KDF.ARGON2
+			? await getKeyFromPasswordWithArgon2({
+					password,
+					salt,
+					iterations,
+					parallelism,
+					memorySize,
+			  })
+			: getKeyFromPassword(password, salt, iterations);
 	const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
 	const firstBlock = cipher.update(plainText, 'utf8');
 	const encrypted = Buffer.concat([firstBlock, cipher.final()]);
 	const tag = cipher.getAuthTag();
 
 	return {
-		iterations,
-		cipherText: encrypted.toString('hex'),
-		iv: iv.toString('hex'),
-		salt: salt.toString('hex'),
-		tag: tag.toString('hex'),
+		ciphertext: encrypted.toString('hex'),
+		mac: crypto.createHash('sha256').update(key.slice(16, 32)).update(encrypted).digest('hex'),
+		kdf,
+		kdfparams: {
+			parallelism,
+			iterations,
+			memorySize,
+			salt: salt.toString('hex'),
+		},
+		cipher: Cipher.AES256GCM,
+		cipherparams: {
+			iv: iv.toString('hex'),
+			tag: tag.toString('hex'),
+		},
 		version: ENCRYPTION_VERSION,
 	};
 };
@@ -149,18 +219,32 @@ const getTagBuffer = (tag: string): Buffer => {
 	return tagBuffer;
 };
 
-const decryptAES256GCMWithPassword = (
+const decryptAES256GCMWithPassword = async (
 	encryptedPassphrase: EncryptedPassphraseObject,
 	password: string,
-): string => {
-	const { iterations = PBKDF2_ITERATIONS, cipherText, iv, salt, tag } = encryptedPassphrase;
+): Promise<string> => {
+	const {
+		kdf,
+		ciphertext,
+		cipherparams: { iv, tag },
+		kdfparams: { parallelism, salt, iterations, memorySize },
+	} = encryptedPassphrase;
 
 	const tagBuffer = getTagBuffer(tag);
-	const key = getKeyFromPassword(password, hexToBuffer(salt, 'Salt'), iterations);
+	const key =
+		kdf === KDF.ARGON2
+			? await getKeyFromPasswordWithArgon2({
+					password,
+					salt: hexToBuffer(salt, 'Salt'),
+					iterations,
+					parallelism,
+					memorySize,
+			  })
+			: getKeyFromPassword(password, hexToBuffer(salt, 'Salt'), iterations);
 
 	const decipher = crypto.createDecipheriv('aes-256-gcm', key, hexToBuffer(iv, 'IV'));
 	decipher.setAuthTag(tagBuffer);
-	const firstBlock = decipher.update(hexToBuffer(cipherText, 'Cipher text'));
+	const firstBlock = decipher.update(hexToBuffer(ciphertext, 'Cipher text'));
 	const decrypted = Buffer.concat([firstBlock, decipher.final()]);
 
 	return decrypted.toString();

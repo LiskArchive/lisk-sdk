@@ -26,12 +26,12 @@ export const liskSnapshotUrl = (url: string, network: NETWORK): string => {
 	return url;
 };
 
-export const encryptPassphrase = (
+export const encryptPassphrase = async (
 	passphrase: string,
 	password: string,
 	outputPublicKey: boolean,
-): Record<string, unknown> => {
-	const encryptedPassphraseObject = cryptography.encryptPassphraseWithPassword(
+): Promise<Record<string, unknown>> => {
+	const encryptedPassphraseObject = await cryptography.encryptPassphraseWithPassword(
 		passphrase,
 		password,
 	);

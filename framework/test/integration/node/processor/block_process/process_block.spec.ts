@@ -145,7 +145,9 @@ describe('Process block', () => {
 				invalidBlock.header.transactionRoot = regularMerkleTree.calculateMerkleRootWithLeaves([
 					transaction.id,
 				]);
-				const passphrase = getPassphraseFromDefaultConfig(invalidBlock.header.generatorAddress);
+				const passphrase = await getPassphraseFromDefaultConfig(
+					invalidBlock.header.generatorAddress,
+				);
 				const { privateKey } = getKeys(passphrase);
 				invalidBlock.header.sign(processEnv.getNetworkId(), privateKey);
 				await expect(processEnv.process(invalidBlock)).rejects.toThrow(
@@ -196,7 +198,7 @@ describe('Process block', () => {
 			beforeAll(async () => {
 				newBlock = await processEnv.createBlock();
 				(newBlock.header as any).height = 99;
-				const passphrase = getPassphraseFromDefaultConfig(newBlock.header.generatorAddress);
+				const passphrase = await getPassphraseFromDefaultConfig(newBlock.header.generatorAddress);
 				const { privateKey } = getKeys(passphrase);
 				newBlock.header.sign(processEnv.getNetworkId(), privateKey);
 			});
@@ -290,7 +292,9 @@ describe('Process block', () => {
 				invalidBlock.header.transactionRoot = regularMerkleTree.calculateMerkleRootWithLeaves([
 					transaction.id,
 				]);
-				const passphrase = getPassphraseFromDefaultConfig(invalidBlock.header.generatorAddress);
+				const passphrase = await getPassphraseFromDefaultConfig(
+					invalidBlock.header.generatorAddress,
+				);
 				const { privateKey } = getKeys(passphrase);
 				invalidBlock.header.sign(processEnv.getNetworkId(), privateKey);
 				try {

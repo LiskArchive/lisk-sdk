@@ -90,7 +90,7 @@ describe('auth action', () => {
 			config: {
 				...validPluginOptions,
 				encryptedPassphrase:
-					'iterations=1000000&cipherText=a31a3324ce12664a396329&iv=b476ef9d377397f4f9b0c1ae&salt=d81787ca5103be883a01d211746b1c3f&tag=e352880bb05a03bafc98af48b924fbf9&version=1',
+					'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=bd65587de1b7b42e289693e8ac14561c7c77370ff158133c6eb512849353446b339f04c8f45b6b8cc72e5e8485dab4031d9f5e2d7cb9d424076401ea58dad6d4a348fc1f013ceb5d8bb314&mac=6e017e6b2a341db10b91440462fc2626fe6e4b711ea09f8df3ac1df42a6de572&salt=e9f564ce7f8392acb2691fb4953e17c0&iv=57124bb910dbf9e24e37d401&tag=b769dcbd4ad0d3f44041afe5322aad82&iterations=1&parallelism=4&memorySize=2024',
 			},
 			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
@@ -101,7 +101,7 @@ describe('auth action', () => {
 	it('should disable faucet when enable=false', async () => {
 		const params = {
 			enable: false,
-			password: '123',
+			password: 'elephant tree paris dragon chair galaxy',
 		};
 		const response = await faucetPlugin.endpoint.authorize({ params } as any);
 
@@ -111,7 +111,7 @@ describe('auth action', () => {
 	it('should enable the faucet when enable=true', async () => {
 		const params = {
 			enable: true,
-			password: '123',
+			password: 'elephant tree paris dragon chair galaxy',
 		};
 		const response = await faucetPlugin.endpoint.authorize({ params } as any);
 
