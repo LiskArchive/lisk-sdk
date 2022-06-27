@@ -21,10 +21,13 @@ interface Args {
 	readonly encryptedPassphrase?: string;
 }
 
-const processInputs = (password: string, encryptedPassphrase: string): Record<string, string> => {
+const processInputs = async (
+	password: string,
+	encryptedPassphrase: string,
+): Promise<Record<string, string>> => {
 	const encryptedPassphraseObject = cryptography.parseEncryptedPassphrase(encryptedPassphrase);
-	const passphrase = cryptography.decryptPassphraseWithPassword(
-		encryptedPassphraseObject,
+	const passphrase = await cryptography.decryptPassphraseWithPassword(
+		encryptedPassphraseObject as never,
 		password,
 	);
 
@@ -60,7 +63,7 @@ export class DecryptCommand extends Command {
 		} = this.parse(DecryptCommand);
 		const { encryptedPassphrase }: Args = args;
 		const password = passwordSource ?? (await getPasswordFromPrompt('password', true));
-		const result = processInputs(password, encryptedPassphrase as string);
+		const result = await processInputs(password, encryptedPassphrase as string);
 		this.printJSON(result, pretty);
 	}
 

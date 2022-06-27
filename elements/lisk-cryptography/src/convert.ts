@@ -17,7 +17,7 @@ import * as ed2curve from 'ed2curve';
 import * as querystring from 'querystring';
 
 // eslint-disable-next-line import/no-cycle
-import { EncryptedPassphraseObject } from './encrypt';
+import { EncryptedPassphraseObject, Cipher, KDF } from './encrypt';
 
 // eslint-disable-next-line import/order
 import reverse = require('buffer-reverse');
@@ -80,57 +80,105 @@ export const stringifyEncryptedPassphrase = (
 	if (typeof encryptedPassphrase !== 'object' || encryptedPassphrase === null) {
 		throw new Error('Encrypted passphrase to stringify must be an object.');
 	}
-	const objectToStringify = encryptedPassphrase.iterations
-		? encryptedPassphrase
-		: {
-				salt: encryptedPassphrase.salt,
-				cipherText: encryptedPassphrase.cipherText,
-				iv: encryptedPassphrase.iv,
-				tag: encryptedPassphrase.tag,
-				version: encryptedPassphrase.version,
-		  };
+	const objectToStringify = {
+		kdf: encryptedPassphrase.kdf,
+		cipher: encryptedPassphrase.cipher,
+		version: encryptedPassphrase.version,
+		ciphertext: encryptedPassphrase.ciphertext,
+		mac: encryptedPassphrase.mac,
+		salt: encryptedPassphrase.kdfparams.salt,
+		iv: encryptedPassphrase.cipherparams.iv,
+		tag: encryptedPassphrase.cipherparams.tag,
+		iterations: encryptedPassphrase.kdfparams.iterations,
+		parallelism: encryptedPassphrase.kdfparams.parallelism,
+		memorySize: encryptedPassphrase.kdfparams.memorySize,
+	};
 
 	return querystring.stringify(objectToStringify);
 };
 
-const parseIterations = (iterationsString?: string): number | undefined => {
-	const iterations = iterationsString === undefined ? undefined : parseInt(iterationsString, 10);
+const parseOption = (optionString?: string): number | undefined => {
+	const option = !optionString ? undefined : parseInt(optionString, 10);
 
-	if (typeof iterations !== 'undefined' && Number.isNaN(iterations)) {
-		throw new Error('Could not parse iterations.');
+	if (typeof option !== 'undefined' && Number.isNaN(option)) {
+		throw new Error('Could not parse option.');
 	}
 
-	return iterations;
+	return option;
 };
+
+interface ParsedEncryptedPassphrase {
+	readonly version: string;
+	readonly ciphertext: string;
+	readonly mac: string;
+	readonly kdf: string | KDF;
+	readonly kdfparams?: {
+		parallelism?: number;
+		iterations?: number;
+		memorySize?: number;
+		salt: string;
+	};
+	readonly cipher: string | Cipher;
+	readonly cipherparams: {
+		iv: string;
+		tag: string;
+	};
+}
 
 export const parseEncryptedPassphrase = (
 	encryptedPassphrase: string,
-): EncryptedPassphraseObject => {
+): ParsedEncryptedPassphrase => {
 	if (typeof encryptedPassphrase !== 'string') {
 		throw new Error('Encrypted passphrase to parse must be a string.');
 	}
 	const keyValuePairs = querystring.parse(encryptedPassphrase);
 
-	const { iterations, salt, cipherText, iv, tag, version } = keyValuePairs;
+	const {
+		kdf,
+		cipher,
+		iterations,
+		salt,
+		ciphertext,
+		iv,
+		tag,
+		version,
+		mac,
+		parallelism,
+		memorySize,
+	} = keyValuePairs;
 
 	// Review, and find a better solution
 	if (
-		(typeof iterations !== 'string' && typeof iterations !== 'undefined') ||
-		typeof salt !== 'string' ||
-		typeof cipherText !== 'string' ||
+		typeof kdf !== 'string' ||
+		typeof cipher !== 'string' ||
+		typeof ciphertext !== 'string' ||
 		typeof iv !== 'string' ||
 		typeof tag !== 'string' ||
-		typeof version !== 'string'
+		typeof salt !== 'string' ||
+		typeof version !== 'string' ||
+		(typeof mac !== 'string' && typeof mac !== 'undefined') ||
+		(typeof iterations !== 'string' && typeof iterations !== 'undefined') ||
+		(typeof parallelism !== 'string' && typeof parallelism !== 'undefined') ||
+		(typeof memorySize !== 'string' && typeof memorySize !== 'undefined')
 	) {
 		throw new Error('Encrypted passphrase to parse must have only one value per key.');
 	}
 
 	return {
-		iterations: parseIterations(iterations),
-		salt,
-		cipherText,
-		iv,
-		tag,
 		version,
+		ciphertext,
+		mac,
+		kdf,
+		kdfparams: {
+			parallelism: parseOption(parallelism),
+			iterations: parseOption(iterations),
+			memorySize: parseOption(memorySize),
+			salt,
+		},
+		cipher,
+		cipherparams: {
+			iv,
+			tag,
+		},
 	};
 };

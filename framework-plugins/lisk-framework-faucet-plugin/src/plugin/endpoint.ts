@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { EncryptedPassphraseObject } from '@liskhq/lisk-cryptography';
 import axios from 'axios';
 import {
 	BasePluginEndpoint,
@@ -51,8 +52,8 @@ export class Endpoint extends BasePluginEndpoint {
 				this._config.encryptedPassphrase,
 			);
 
-			const passphrase = cryptography.decryptPassphraseWithPassword(
-				parsedEncryptedPassphrase,
+			const passphrase = await cryptography.decryptPassphraseWithPassword(
+				parsedEncryptedPassphrase as EncryptedPassphraseObject,
 				password as string,
 			);
 
