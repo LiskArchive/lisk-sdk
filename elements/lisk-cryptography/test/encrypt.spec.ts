@@ -34,7 +34,7 @@ const hashModule = require('../src/hash');
 
 describe('encrypt', () => {
 	const regHexadecimal = /[0-9A-Za-z]/g;
-	const PBKDF2_ITERATIONS = 1e6;
+	const ARGON2_ITERATIONS = 1;
 	const ENCRYPTION_VERSION = '1';
 	const defaultPassphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';
 	const defaultPrivateKey = Buffer.from(
@@ -154,13 +154,14 @@ describe('encrypt', () => {
 
 		describe('#encryptPassphraseWithPassword', () => {
 			let encryptedPassphrase: EncryptedPassphraseObject;
+			const passphrase =
+				'target cancel solution recipe vague faint bomb convince pink vendor fresh patrol';
+			const password = 'testpassword';
 
 			beforeEach(async () => {
-				encryptedPassphrase = await encryptPassphraseWithPassword(
-					defaultPassphrase,
-					defaultPassword,
-					{ kdf: KDF.PBKDF2 },
-				);
+				encryptedPassphrase = await encryptPassphraseWithPassword(passphrase, password, {
+					kdf: KDF.ARGON2,
+				});
 				return Promise.resolve();
 			});
 
@@ -190,7 +191,7 @@ describe('encrypt', () => {
 			});
 
 			it('should output the default number of iterations', () => {
-				expect(encryptedPassphrase.kdfparams).toHaveProperty('iterations', PBKDF2_ITERATIONS);
+				expect(encryptedPassphrase.kdfparams).toHaveProperty('iterations', ARGON2_ITERATIONS);
 			});
 
 			it('should accept and output a custom number of iterations', async () => {
@@ -206,31 +207,34 @@ describe('encrypt', () => {
 
 		describe('#decryptPassphraseWithPassword', () => {
 			let encryptedPassphrase: EncryptedPassphraseObject;
+			const passphrase =
+				'target cancel solution recipe vague faint bomb convince pink vendor fresh patrol';
+			const password = 'testpassword';
 
 			beforeEach(() => {
 				encryptedPassphrase = {
+					version: '1',
 					ciphertext:
-						'35e25c6278eaf16891e8bd436615eb5fcd7d94a5bbd553535287a4175c0f8b27a67ee3767c4a7d07d0eaa515679f6c9267c34a3c55c2e921b1ede893e7f6f570de6bbf3bea',
-					mac: '0ad2a34f25fe791dcb72f5e0f9b1689566f834efcddcf7f490f4e0962756b5f2',
-					kdf: KDF.PBKDF2,
-					kdfparams: {
-						parallelism: 4,
-						iterations: 1000000,
-						memorySize: 2024,
-						salt: 'c2561895bbfdb396cd70c8c1dd3da6c8',
-					},
+						'866c6f1cab3ef67514bdc54cf0143b8b824ebe7c045efb97707c158c81d313cd1a6399b7aa3002248984d39ea2604b0263fe7bdbd8cb04286a9cbd2d353fc79908daab9af04b2528bf4f06a82d79483c',
+					mac: 'a476979ca68fe90f3c96f8a5f3f0a9fe33aef8b091d1169861e44a11a680aae9',
 					cipher: Cipher.AES256GCM,
 					cipherparams: {
-						iv: 'abd164afd834b9da47ba5d17',
-						tag: '457b33c03e2f138b6c334c9cf12195b0',
+						iv: 'da7a74acbf34d20ffd3658f9',
+						tag: 'f4282899ed6cb0193e2981dca0d2ae8e',
 					},
-					version: '1',
+					kdf: KDF.ARGON2,
+					kdfparams: {
+						parallelism: 4,
+						iterations: 1,
+						memorySize: 2024,
+						salt: '2d4d7f0b7c68ccd977eae30ee10726f3',
+					},
 				};
 			});
 
 			it('should decrypt a passphrase with a password', async () => {
-				const decrypted = await decryptPassphraseWithPassword(encryptedPassphrase, defaultPassword);
-				expect(decrypted).toBe(defaultPassphrase);
+				const decrypted = await decryptPassphraseWithPassword(encryptedPassphrase, password);
+				expect(decrypted).toBe(passphrase);
 			});
 
 			it('should inform the user if cipherText is missing', async () => {
@@ -295,22 +299,6 @@ describe('encrypt', () => {
 				await expect(
 					decryptPassphraseWithPassword(encryptedPassphrase, defaultPassword),
 				).rejects.toThrow('Unsupported state or unable to authenticate data');
-			});
-
-			it('should decrypt a passphrase with a password and a custom number of iterations', async () => {
-				encryptedPassphrase = {
-					...encryptedPassphrase,
-					kdfparams: {
-						...encryptedPassphrase.kdfparams,
-						iterations: 12,
-						salt: '245c6859a96339a7735a6cac78ccf625',
-					},
-					ciphertext:
-						'1f06671e13c0329aee057fee995e08a516bdacd287c7ff2714a74be6099713c87bbc3e005c63d4d3d02f8ba89b42810a5854444ad2b76855007a0925fafa7d870875beb010',
-					cipherparams: { iv: '3a583b21bbac609c7df3e7e0', tag: '63653f1d4e8d422a42d98b25d3844792' },
-				};
-				const decrypted = await decryptPassphraseWithPassword(encryptedPassphrase, defaultPassword);
-				expect(decrypted).toBe(defaultPassphrase);
 			});
 		});
 
