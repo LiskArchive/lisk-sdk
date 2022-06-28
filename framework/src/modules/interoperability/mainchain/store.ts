@@ -61,9 +61,7 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 			getStore,
 		} = ccmForwardContext;
 		const apiContext = getAPIContext();
-		const tokenCCAPI = this.interoperableModuleAPIs.get(getIDAsKeyForStore(MODULE_ID_TOKEN)) as
-			| TokenCCAPI
-			| undefined;
+		const tokenCCAPI = this.interoperableModuleAPIs.get(MODULE_ID_TOKEN) as TokenCCAPI | undefined;
 		const beforeCCMSendContext = createCCMsgBeforeSendContext({
 			ccm,
 			eventQueue,
