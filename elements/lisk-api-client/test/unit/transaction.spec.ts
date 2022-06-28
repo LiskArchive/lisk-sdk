@@ -14,7 +14,7 @@
  */
 
 import { when } from 'jest-when';
-import { getAddressAndPublicKeyFromPassphrase } from '@liskhq/lisk-cryptography';
+import { getAddressAndPublicKeyFromPassphrase, intToBuffer } from '@liskhq/lisk-cryptography';
 import { Transaction } from '../../src/transaction';
 import { metadata, nodeInfo, schema, tx } from '../utils/transaction';
 
@@ -36,8 +36,8 @@ describe('transaction', () => {
 	const encodedTx = Buffer.from(txHex, 'hex');
 
 	const validTransaction = {
-		moduleID: 2,
-		commandID: 0,
+		moduleID: intToBuffer(2, 4),
+		commandID: intToBuffer(0, 4),
 		nonce: BigInt('1'),
 		fee: BigInt('10000000'),
 		senderPublicKey: publicKey1,
@@ -49,8 +49,8 @@ describe('transaction', () => {
 	};
 	const validTransactionJSON = {
 		id: tx.id,
-		moduleID: 2,
-		commandID: 0,
+		moduleID: intToBuffer(2, 4),
+		commandID: intToBuffer(0, 4),
 		nonce: '1',
 		fee: '10000000',
 		senderPublicKey: publicKey1.toString('hex'),

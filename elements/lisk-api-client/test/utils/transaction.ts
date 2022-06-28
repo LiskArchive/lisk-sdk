@@ -19,6 +19,7 @@ import {
 	eventSchema,
 	transactionSchema,
 } from '@liskhq/lisk-chain';
+import { intToBuffer } from '@liskhq/lisk-cryptography';
 import { ModuleMetadata, NodeInfo } from '../../src/types';
 
 export const nodeInfo: NodeInfo = {
@@ -37,7 +38,9 @@ export const nodeInfo: NodeInfo = {
 		maxTransactionsSize: 15360,
 		bftThreshold: 68,
 		minFeePerByte: 1000,
-		baseFees: [{ moduleID: 5, commandID: 0, baseFee: '1000000000' }],
+		baseFees: [
+			{ moduleID: intToBuffer(5, 4), commandID: intToBuffer(0, 4), baseFee: '1000000000' },
+		],
 		rewards: {
 			milestones: ['500000000', '400000000', '300000000', '200000000', '100000000'],
 			offset: 2160,
@@ -65,14 +68,14 @@ export const schema = {
 
 export const metadata: ModuleMetadata[] = [
 	{
-		id: 2,
+		id: intToBuffer(2, 4),
 		name: 'token',
 		events: [],
 		assets: [],
 		endpoints: [],
 		commands: [
 			{
-				id: 0,
+				id: intToBuffer(0, 4),
 				name: 'transfer',
 				params: {
 					$id: '/lisk/transferParams',
@@ -88,14 +91,14 @@ export const metadata: ModuleMetadata[] = [
 		],
 	},
 	{
-		id: 4,
+		id: intToBuffer(4, 4),
 		name: 'keys',
 		events: [],
 		assets: [],
 		endpoints: [],
 		commands: [
 			{
-				id: 0,
+				id: intToBuffer(0, 4),
 				name: 'registerMultisignatureGroup',
 				params: {
 					$id: '/lisk/keys/register',
@@ -123,14 +126,14 @@ export const metadata: ModuleMetadata[] = [
 		],
 	},
 	{
-		id: 5,
+		id: intToBuffer(5, 4),
 		name: 'dpos',
 		events: [],
 		assets: [],
 		endpoints: [],
 		commands: [
 			{
-				id: 0,
+				id: intToBuffer(0, 4),
 				name: 'transfer',
 				params: {
 					$id: '/lisk/dpos/pom',

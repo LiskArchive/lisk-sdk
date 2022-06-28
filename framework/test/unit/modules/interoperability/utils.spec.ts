@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { intToBuffer } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as merkleTree from '@liskhq/lisk-tree';
@@ -223,7 +224,7 @@ describe('Utils', () => {
 			activeValidatorsUpdate,
 			newCertificateThreshold: BigInt(10),
 			certificate: Buffer.alloc(2),
-			sendingChainID: 2,
+			sendingChainID: intToBuffer(2, 4),
 			inboxUpdate: {},
 		};
 
@@ -231,7 +232,7 @@ describe('Utils', () => {
 			activeValidatorsUpdate,
 			newCertificateThreshold: BigInt(10),
 			certificate: EMPTY_BYTES,
-			sendingChainID: 2,
+			sendingChainID: intToBuffer(2, 4),
 			inboxUpdate: {},
 		};
 
@@ -239,7 +240,7 @@ describe('Utils', () => {
 			activeValidatorsUpdate: sortedValidatorsList,
 			newCertificateThreshold: BigInt(10),
 			certificate: Buffer.alloc(2),
-			sendingChainID: 2,
+			sendingChainID: intToBuffer(2, 4),
 			inboxUpdate: {},
 		};
 
@@ -587,7 +588,7 @@ describe('Utils', () => {
 		const partnerChannelData: ChannelData = {
 			inbox: inboxTree,
 			messageFeeTokenID: {
-				chainID: 1,
+				chainID: intToBuffer(1, 4),
 				localID: 0,
 			},
 			outbox: outboxTree,
@@ -680,7 +681,7 @@ describe('Utils', () => {
 			activeValidatorsUpdate,
 			newCertificateThreshold: BigInt(10),
 			inboxUpdate,
-			sendingChainID: 20,
+			sendingChainID: intToBuffer(2, 4),
 		};
 
 		let newInboxRoot: Buffer;
@@ -748,7 +749,7 @@ describe('Utils', () => {
 					activeValidatorsUpdate,
 					newCertificateThreshold: BigInt(10),
 					inboxUpdate: inboxUpdateMessageWitnessEmpty,
-					sendingChainID: 20,
+					sendingChainID: intToBuffer(2, 4),
 				};
 				const { status, error } = checkInboxUpdateValidity(
 					txParamsEmptyMessageWitness,

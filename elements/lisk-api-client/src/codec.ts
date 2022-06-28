@@ -38,18 +38,20 @@ export const getTransactionParamsSchema = (
 	transaction: { moduleID: Buffer; commandID: Buffer },
 	metadata: ModuleMetadata[],
 ): Schema | undefined => {
-	const moduleMeta = metadata.find(meta => meta.id === transaction.moduleID);
+	const moduleMeta = metadata.find(meta => meta.id.equals(transaction.moduleID));
 	if (!moduleMeta) {
 		throw new Error(
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			`ModuleID: ${transaction.moduleID} is not registered.`,
+			`ModuleID: ${transaction.moduleID.readInt32BE(0)} is not registered.`,
 		);
 	}
-	const commandMeta = moduleMeta.commands.find(meta => meta.id === transaction.commandID);
+	const commandMeta = moduleMeta.commands.find(meta => meta.id.equals(transaction.commandID));
 	if (!commandMeta) {
 		throw new Error(
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			`ModuleID: ${transaction.moduleID} CommandID: ${transaction.commandID} is not registered.`,
+			`ModuleID: ${transaction.moduleID.readInt32BE(
+				0,
+			)} CommandID: ${transaction.commandID.readInt32BE(0)} is not registered.`,
 		);
 	}
 	return commandMeta.params;
@@ -60,7 +62,7 @@ export const getAssetDataSchema = (
 	asset: { moduleID: Buffer },
 	metadata: ModuleMetadata[],
 ): Schema => {
-	const moduleMeta = metadata.find(meta => meta.id === asset.moduleID);
+	const moduleMeta = metadata.find(meta => meta.id.equals(asset.moduleID));
 	if (!moduleMeta) {
 		throw new Error(`Asset schema ModuleID: ${asset.moduleID.readInt32BE(0)} is not registered.`);
 	}

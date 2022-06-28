@@ -135,7 +135,7 @@ describe('VoteCommand', () => {
 
 	describe('constructor', () => {
 		it('should have valid id', () => {
-			expect(command.id).toEqual(COMMAND_ID_VOTE);
+			expect(command.id.readInt32BE(0)).toEqual(COMMAND_ID_VOTE);
 		});
 
 		it('should have valid name', () => {

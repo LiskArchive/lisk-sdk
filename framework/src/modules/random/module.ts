@@ -28,7 +28,7 @@ import { RandomAPI } from './api';
 import {
 	defaultConfig,
 	EMPTY_KEY,
-	MODULE_ID_RANDOM,
+	MODULE_ID_RANDOM_BUFFER,
 	SEED_REVEAL_HASH_SIZE,
 	STORE_PREFIX_RANDOM,
 	STORE_PREFIX_USED_HASH_ONION,
@@ -52,11 +52,11 @@ import {
 	ValidatorReveals,
 } from './types';
 import { Logger } from '../../logger';
-import { getIDAsKeyForStore, isSeedValidInput } from './utils';
+import { isSeedValidInput } from './utils';
 import { JSONObject } from '../../types';
 
 export class RandomModule extends BaseModule {
-	public id = getIDAsKeyForStore(MODULE_ID_RANDOM);
+	public id = MODULE_ID_RANDOM_BUFFER;
 	public name = 'random';
 	public api = new RandomAPI(this.id);
 	public endpoint = new RandomEndpoint(this.id);

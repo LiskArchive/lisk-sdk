@@ -241,7 +241,7 @@ export class StateMachine {
 		if (existingModule) {
 			return existingModule;
 		}
-		const existingSystemModule = this._systemModules.find(m => m.id === id);
+		const existingSystemModule = this._systemModules.find(m => m.id.equals(id));
 		if (existingSystemModule) {
 			return existingSystemModule;
 		}
@@ -254,7 +254,7 @@ export class StateMachine {
 			throw new Error(`Module with ID ${moduleID.readInt32BE(0)} is not registered.`);
 		}
 		// FIXME: Update assetID to commandID with https://github.com/LiskHQ/lisk-sdk/issues/6565
-		const command = targetModule.commands.find(c => c.id === commandID);
+		const command = targetModule.commands.find(c => c.id.equals(commandID));
 		if (!command) {
 			throw new Error(
 				`Module with ID ${moduleID.readInt32BE(

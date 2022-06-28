@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { SidechainCCRegistrationCommand } from '../../../../../../src/modules/interoperability/sidechain/cc_commands/registration';
 import { registrationCCMParamsSchema } from '../../../../../../src/modules/interoperability/schema';
 import { SidechainInteroperabilityStore } from '../../../../../../src/modules/interoperability/sidechain/store';
@@ -63,10 +63,10 @@ describe('SidechainCCRegistrationCommand', () => {
 
 	const ccm = {
 		nonce: BigInt(0),
-		moduleID: 1,
-		crossChainCommandID: 1,
-		sendingChainID: 2,
-		receivingChainID: 1,
+		moduleID: intToBuffer(1, 4),
+		crossChainCommandID: intToBuffer(1, 4),
+		sendingChainID: intToBuffer(2, 4),
+		receivingChainID: intToBuffer(1, 4),
 		fee: BigInt(20000),
 		status: 0,
 		params: encodedRegistrationParams,
@@ -106,7 +106,7 @@ describe('SidechainCCRegistrationCommand', () => {
 		sidechainInteroperabilityStore.getChannel = getChannelMock;
 		sidechainInteroperabilityStore.getOwnChainAccount = getOwnChainAccountMock;
 
-		ccRegistrationCommand = new SidechainCCRegistrationCommand(1, ccAPIsMap);
+		ccRegistrationCommand = new SidechainCCRegistrationCommand(intToBuffer(1, 4), ccAPIsMap);
 		(ccRegistrationCommand as any)['getInteroperabilityStore'] = jest
 			.fn()
 			.mockReturnValue(sidechainInteroperabilityStore);
@@ -152,10 +152,10 @@ describe('SidechainCCRegistrationCommand', () => {
 		// Arrange
 		const invalidCCM = {
 			nonce: BigInt(0),
-			moduleID: 1,
-			crossChainCommandID: 1,
-			sendingChainID: 2,
-			receivingChainID: 1,
+			moduleID: intToBuffer(1, 4),
+			crossChainCommandID: intToBuffer(1, 4),
+			sendingChainID: intToBuffer(2, 4),
+			receivingChainID: intToBuffer(1, 4),
 			fee: BigInt(20000),
 			status: 1,
 			params: encodedRegistrationParams,

@@ -15,15 +15,15 @@
 import { when } from 'jest-when';
 import { codec } from '@liskhq/lisk-codec';
 import { Transaction } from '@liskhq/lisk-chain';
-import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, hash, intToBuffer } from '@liskhq/lisk-cryptography';
 import { MerkleTree, regularMerkleTree } from '@liskhq/lisk-tree';
 import { CommandExecuteContext } from '../../../../../../src';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
 import { BaseInteroperableAPI } from '../../../../../../src/modules/interoperability/base_interoperable_api';
 import {
 	CHAIN_ACTIVE,
-	COMMAND_ID_MESSAGE_RECOVERY,
-	MODULE_ID_INTEROPERABILITY,
+	COMMAND_ID_MESSAGE_RECOVERY_BUFFER,
+	MODULE_ID_INTEROPERABILITY_BUFFER,
 	STORE_PREFIX_TERMINATED_OUTBOX,
 } from '../../../../../../src/modules/interoperability/constants';
 import { MessageRecoveryCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/message_recovery';
@@ -36,10 +36,7 @@ import {
 import { CCMsg, MessageRecoveryParams } from '../../../../../../src/modules/interoperability/types';
 import { CommandVerifyContext, VerifyStatus } from '../../../../../../src/state_machine/types';
 import { createTransactionContext } from '../../../../../../src/testing';
-import {
-	getIDAsKeyForStore,
-	swapReceivingAndSendingChainIDs,
-} from '../../../../../../src/modules/interoperability/utils';
+import { swapReceivingAndSendingChainIDs } from '../../../../../../src/modules/interoperability/utils';
 import { TransactionContext } from '../../../../../../src/state_machine';
 import { Mocked } from '../../../../../utils/types';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
@@ -76,20 +73,20 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
 			terminatedOutboxSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY,
+				MODULE_ID_INTEROPERABILITY_BUFFER,
 				STORE_PREFIX_TERMINATED_OUTBOX,
 			);
 			mockGetStore = jest.fn();
 			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_TERMINATED_OUTBOX)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_TERMINATED_OUTBOX)
 				.mockReturnValue(terminatedOutboxSubstore);
 			mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
-				MODULE_ID_INTEROPERABILITY,
+				MODULE_ID_INTEROPERABILITY_BUFFER,
 				mockGetStore,
 				new Map(),
 			);
 			messageRecoveryCommand = new MessageRecoveryCommand(
-				MODULE_ID_INTEROPERABILITY,
+				MODULE_ID_INTEROPERABILITY_BUFFER,
 				interoperableCCAPIs,
 				ccCommands,
 			);
@@ -97,20 +94,20 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			ccms = [
 				{
 					nonce: BigInt(0),
-					moduleID: 1,
-					crossChainCommandID: 1,
-					sendingChainID: 2,
-					receivingChainID: 3,
+					moduleID: intToBuffer(1, 4),
+					crossChainCommandID: intToBuffer(1, 4),
+					sendingChainID: intToBuffer(2, 4),
+					receivingChainID: intToBuffer(3, 4),
 					fee: BigInt(1),
 					status: 0,
 					params: Buffer.alloc(0),
 				},
 				{
 					nonce: BigInt(1),
-					moduleID: 1,
-					crossChainCommandID: 1,
-					sendingChainID: 4,
-					receivingChainID: 5,
+					moduleID: intToBuffer(1, 4),
+					crossChainCommandID: intToBuffer(1, 4),
+					sendingChainID: intToBuffer(4, 4),
+					receivingChainID: intToBuffer(5, 4),
 					fee: BigInt(2),
 					status: 0,
 					params: Buffer.alloc(0),
@@ -138,17 +135,17 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			hashedCCMs = ccmsEncoded.map(ccm => hash(ccm));
 			outboxRoot = regularMerkleTree.calculateRootFromUpdateData(hashedCCMs, proof);
 			transactionParams = {
-				chainID: 3,
+				chainID: intToBuffer(3, 4),
 				crossChainMessages: [...ccmsEncoded],
 				idxs: proof.indexes,
 				siblingHashes: proof.siblingHashes,
 			};
-			chainID = getIDAsKeyForStore(transactionParams.chainID);
+			chainID = transactionParams.chainID;
 			encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
 
 			transaction = new Transaction({
-				moduleID: MODULE_ID_INTEROPERABILITY,
-				commandID: COMMAND_ID_MESSAGE_RECOVERY,
+				moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
+				commandID: COMMAND_ID_MESSAGE_RECOVERY_BUFFER,
 				fee: BigInt(100000000),
 				nonce: BigInt(0),
 				params: encodedTransactionParams,
@@ -202,8 +199,8 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			transactionParams.idxs = [0];
 			encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
 			transaction = new Transaction({
-				moduleID: MODULE_ID_INTEROPERABILITY,
-				commandID: COMMAND_ID_MESSAGE_RECOVERY,
+				moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
+				commandID: COMMAND_ID_MESSAGE_RECOVERY_BUFFER,
 				fee: BigInt(100000000),
 				nonce: BigInt(0),
 				params: encodedTransactionParams,
@@ -224,20 +221,20 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			ccms = [
 				{
 					nonce: BigInt(0),
-					moduleID: 1,
-					crossChainCommandID: 1,
-					sendingChainID: 2,
-					receivingChainID: 3,
+					moduleID: intToBuffer(1, 4),
+					crossChainCommandID: intToBuffer(1, 4),
+					sendingChainID: intToBuffer(2, 4),
+					receivingChainID: intToBuffer(3, 4),
 					fee: BigInt(1),
 					status: 1,
 					params: Buffer.alloc(0),
 				},
 				{
 					nonce: BigInt(1),
-					moduleID: 1,
-					crossChainCommandID: 1,
-					sendingChainID: 4,
-					receivingChainID: 5,
+					moduleID: intToBuffer(1, 4),
+					crossChainCommandID: intToBuffer(1, 4),
+					sendingChainID: intToBuffer(4, 4),
+					receivingChainID: intToBuffer(5, 4),
 					fee: BigInt(2),
 					status: 0,
 					params: Buffer.alloc(0),
@@ -265,15 +262,15 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			hashedCCMs = ccmsEncoded.map(ccm => hash(ccm));
 			outboxRoot = regularMerkleTree.calculateRootFromUpdateData(hashedCCMs, proof);
 			transactionParams = {
-				chainID: 3,
+				chainID: intToBuffer(3, 4),
 				crossChainMessages: [...ccmsEncoded],
 				idxs: proof.indexes,
 				siblingHashes: proof.siblingHashes,
 			};
 			encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
 			transaction = new Transaction({
-				moduleID: MODULE_ID_INTEROPERABILITY,
-				commandID: COMMAND_ID_MESSAGE_RECOVERY,
+				moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
+				commandID: COMMAND_ID_MESSAGE_RECOVERY_BUFFER,
 				fee: BigInt(100000000),
 				nonce: BigInt(0),
 				params: encodedTransactionParams,
@@ -313,7 +310,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			const ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
 
 			transactionParams = {
-				chainID: 3,
+				chainID: intToBuffer(3, 4),
 				crossChainMessages: [...ccmsEncoded],
 				idxs: [0],
 				siblingHashes: [getRandomBytes(32)],
@@ -322,8 +319,8 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
 
 			transaction = new Transaction({
-				moduleID: MODULE_ID_INTEROPERABILITY,
-				commandID: COMMAND_ID_MESSAGE_RECOVERY,
+				moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
+				commandID: COMMAND_ID_MESSAGE_RECOVERY_BUFFER,
 				fee: BigInt(100000000),
 				nonce: BigInt(0),
 				params: encodedTransactionParams,
@@ -354,7 +351,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			| 'getOwnChainAccount'
 		>;
 
-		const moduleID = 1;
+		const moduleID = intToBuffer(1, 4);
 		const networkID = getRandomBytes(32);
 
 		let messageRecoveryCommand: MessageRecoveryCommand;
@@ -373,7 +370,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			ccCommands = new Map();
 
 			messageRecoveryCommand = new MessageRecoveryCommand(
-				MODULE_ID_INTEROPERABILITY,
+				MODULE_ID_INTEROPERABILITY_BUFFER,
 				interoperableCCAPIs,
 				ccCommands,
 			);
@@ -382,19 +379,19 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				{
 					nonce: BigInt(0),
 					moduleID,
-					crossChainCommandID: 1,
-					sendingChainID: 2,
-					receivingChainID: 3,
+					crossChainCommandID: intToBuffer(1, 4),
+					sendingChainID: intToBuffer(2, 4),
+					receivingChainID: intToBuffer(3, 4),
 					fee: BigInt(1),
 					status: 1,
 					params: Buffer.alloc(0),
 				},
 				{
 					nonce: BigInt(1),
-					moduleID: moduleID + 1,
-					crossChainCommandID: 1,
-					sendingChainID: 2,
-					receivingChainID: 3,
+					moduleID: intToBuffer(moduleID.readInt32BE(0) + 1, 4),
+					crossChainCommandID: intToBuffer(1, 4),
+					sendingChainID: intToBuffer(2, 4),
+					receivingChainID: intToBuffer(3, 4),
 					fee: BigInt(1),
 					status: 1,
 					params: Buffer.alloc(0),
@@ -416,7 +413,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 
 			storeMock.getOwnChainAccount.mockResolvedValue({
 				name: `mainchain`,
-				id: 0,
+				id: intToBuffer(0, 4),
 				nonce: BigInt(0),
 			});
 
@@ -429,7 +426,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 
 			let chainID;
 			for (const ccm of ccms) {
-				chainID = getIDAsKeyForStore(ccm.sendingChainID);
+				chainID = ccm.sendingChainID;
 
 				when(storeMock.getChainAccount)
 					.calledWith(chainID)
@@ -446,7 +443,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 					});
 			}
 
-			chainID = getIDAsKeyForStore(transactionParams.chainID);
+			chainID = transactionParams.chainID;
 
 			when(storeMock.getTerminatedOutboxAccount)
 				.calledWith(chainID)
@@ -464,7 +461,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 
 			{
 				// Arrange
-				const chainID = getIDAsKeyForStore(transactionParams.chainID);
+				const chainID = { transactionParams };
 				const outboxRoot = Buffer.alloc(32);
 
 				// Assert
@@ -478,7 +475,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 
 			for (const ccm of ccms) {
 				// Assign
-				const chainID = getIDAsKeyForStore(ccm.sendingChainID);
+				const chainID = ccm.sendingChainID;
 				// Assert
 				expect(storeMock.addToOutbox).toHaveBeenCalledWith(
 					chainID,
@@ -496,7 +493,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				moduleID,
 			} as unknown) as BaseInteroperableAPI;
 
-			interoperableCCAPIs.set(moduleID, api);
+			interoperableCCAPIs.set(moduleID.readInt32BE(0), api);
 
 			// Assert
 			await expect(messageRecoveryCommand.execute(commandExecuteContext)).rejects.toThrow(
@@ -506,7 +503,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 
 		it('should throw when terminated chain outbox does not exist', async () => {
 			// Assign & Arrange
-			const chainID = getIDAsKeyForStore(transactionParams.chainID);
+			const chainID = { transactionParams };
 
 			when(storeMock.terminatedOutboxAccountExist).calledWith(chainID).mockResolvedValue(false);
 
@@ -519,7 +516,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		it('should not add CCM to outbox when sending chain of the CCM does not exist', async () => {
 			// Assign & Arrange & Act
 			for (const ccm of ccms) {
-				const chainID = getIDAsKeyForStore(ccm.sendingChainID);
+				const chainID = ccm.sendingChainID;
 
 				when(storeMock.chainAccountExist).calledWith(chainID).mockResolvedValue(false);
 			}
@@ -536,7 +533,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		it('should not add CCM to outbox when sending chain of the CCM is not live', async () => {
 			// Assign & Arrange & Act
 			for (const ccm of ccms) {
-				const chainID = getIDAsKeyForStore(ccm.sendingChainID);
+				const chainID = ccm.sendingChainID;
 
 				when(storeMock.isLive).calledWith(chainID).mockResolvedValue(false);
 			}
@@ -553,7 +550,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		it('should not add CCM to outbox when sending chain of the CCM is not active', async () => {
 			// Assign & Arrange & Act
 			for (const ccm of ccms) {
-				const chainID = getIDAsKeyForStore(ccm.sendingChainID);
+				const chainID = ccm.sendingChainID;
 
 				when(storeMock.getChainAccount)
 					.calledWith(chainID)
@@ -576,12 +573,12 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			commandExecuteContext = createCommandExecuteContext(
 				ccms.map(ccm => ({
 					...ccm,
-					receivingChainID: 0,
+					receivingChainID: intToBuffer(0, 4),
 				})),
 			);
 
 			for (const ccm of ccms) {
-				ccCommands.set(ccm.moduleID, ([
+				ccCommands.set(ccm.moduleID.readInt32BE(0), ([
 					{
 						ID: ccm.crossChainCommandID,
 						execute: jest.fn(),
@@ -597,7 +594,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			// Assert
 			expect.assertions(ccms.length);
 			for (const ccm of ccmsWithSwappedChainIds) {
-				const commands = ccCommands.get(ccm.moduleID) as BaseCCCommand[];
+				const commands = ccCommands.get(ccm.moduleID.readInt32BE(0)) as BaseCCCommand[];
 				const command = commands.find(cmd => cmd.ID === ccm.crossChainCommandID) as BaseCCCommand;
 				expect(command.execute).toHaveBeenCalled();
 			}
@@ -608,12 +605,12 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			commandExecuteContext = createCommandExecuteContext(
 				ccms.map(ccm => ({
 					...ccm,
-					receivingChainID: 0,
+					receivingChainID: intToBuffer(0, 4),
 				})),
 			);
 
 			for (const ccm of ccms) {
-				ccCommands.set(ccm.moduleID, ([
+				ccCommands.set(ccm.moduleID.readInt32BE(0), ([
 					{
 						ID: -1,
 						execute: jest.fn(),
@@ -639,7 +636,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			commandExecuteContext = createCommandExecuteContext(
 				ccms.map(ccm => ({
 					...ccm,
-					receivingChainID: 0,
+					receivingChainID: intToBuffer(0, 4),
 				})),
 			);
 

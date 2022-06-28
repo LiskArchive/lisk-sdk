@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { when } from 'jest-when';
 import {
@@ -21,7 +21,8 @@ import {
 	EMPTY_BYTES,
 	EMPTY_FEE_ADDRESS,
 	MAINCHAIN_ID,
-	MODULE_ID_INTEROPERABILITY,
+	MAINCHAIN_ID_BUFFER,
+	MODULE_ID_INTEROPERABILITY_BUFFER,
 	STORE_PREFIX_CHAIN_DATA,
 	STORE_PREFIX_CHANNEL_DATA,
 	STORE_PREFIX_OUTBOX_ROOT,
@@ -55,10 +56,10 @@ describe('Base interoperability store', () => {
 	);
 	const CCM = {
 		nonce: BigInt(0),
-		moduleID: 1,
-		crossChainCommandID: 1,
-		sendingChainID: 2,
-		receivingChainID: 3,
+		moduleID: intToBuffer(1, 4),
+		crossChainCommandID: intToBuffer(1, 4),
+		sendingChainID: intToBuffer(2, 4),
+		receivingChainID: intToBuffer(3, 4),
 		fee: BigInt(1),
 		status: 1,
 		params: Buffer.alloc(0),
@@ -123,29 +124,29 @@ describe('Base interoperability store', () => {
 		};
 		outboxRootSubstore = { getWithSchema: jest.fn(), setWithSchema: jest.fn(), del: jest.fn() };
 		terminatedOutboxSubstore = { getWithSchema: jest.fn(), setWithSchema: jest.fn() };
-		chainSubstore = stateStore.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
+		chainSubstore = stateStore.getStore(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_DATA);
 		terminatedStateSubstore = stateStore.getStore(
-			MODULE_ID_INTEROPERABILITY,
+			MODULE_ID_INTEROPERABILITY_BUFFER,
 			STORE_PREFIX_TERMINATED_STATE,
 		);
 		mockGetStore = jest.fn();
 		when(mockGetStore)
-			.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA)
+			.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHANNEL_DATA)
 			.mockReturnValue(channelSubstore);
 		when(mockGetStore)
-			.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_OUTBOX_ROOT)
+			.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_OUTBOX_ROOT)
 			.mockReturnValue(outboxRootSubstore);
 		when(mockGetStore)
-			.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_TERMINATED_OUTBOX)
+			.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_TERMINATED_OUTBOX)
 			.mockReturnValue(terminatedOutboxSubstore);
 		when(mockGetStore)
-			.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA)
+			.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_DATA)
 			.mockReturnValue(chainSubstore);
 		when(mockGetStore)
-			.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_TERMINATED_STATE)
+			.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_TERMINATED_STATE)
 			.mockReturnValue(terminatedStateSubstore);
 		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
-			MODULE_ID_INTEROPERABILITY,
+			MODULE_ID_INTEROPERABILITY_BUFFER,
 			mockGetStore,
 			new Map(),
 		);
@@ -225,8 +226,8 @@ describe('Base interoperability store', () => {
 	});
 
 	describe('createTerminatedStateAccount', () => {
-		const chainId = 5;
-		const chainIdAsStoreKey = getIDAsKeyForStore(chainId);
+		const chainId = intToBuffer(5, 4);
+		const chainIdAsStoreKey = chainId;
 		const chainAccount = {
 			name: 'account1',
 			networkID: Buffer.alloc(0),
@@ -241,7 +242,7 @@ describe('Base interoperability store', () => {
 		const stateRoot = Buffer.from('888d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex');
 		const ownChainAccount1 = {
 			name: 'mainchain',
-			id: MAINCHAIN_ID,
+			id: MAINCHAIN_ID_BUFFER,
 			nonce: BigInt('0'),
 		};
 
@@ -278,7 +279,7 @@ describe('Base interoperability store', () => {
 		});
 
 		it('should return false if chain account does not exist for the id and ownchain account id is not the same as mainchain id', async () => {
-			const chainIdNew = 9;
+			const chainIdNew = intToBuffer(9, 4);
 			jest
 				.spyOn(mainchainInteroperabilityStore, 'getOwnChainAccount')
 				.mockResolvedValue(ownChainAccount1 as never);
@@ -289,8 +290,8 @@ describe('Base interoperability store', () => {
 		});
 
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account does not exist for the id but ownchain account id is the same as mainchain id', async () => {
-			const chainIdNew = 10;
-			const chainIdNewAsStoreKey = getIDAsKeyForStore(chainIdNew);
+			const chainIdNew = intToBuffer(10, 4);
+			const chainIdNewAsStoreKey = chainIdNew;
 			jest
 				.spyOn(mainchainInteroperabilityStore, 'getOwnChainAccount')
 				.mockResolvedValue(ownChainAccount2 as never);
@@ -312,13 +313,13 @@ describe('Base interoperability store', () => {
 	});
 
 	describe('terminateChainInternal', () => {
-		const SIDECHAIN_ID = 2;
+		const SIDECHAIN_ID = intToBuffer(2, 4);
 		const ccm = {
 			nonce: BigInt(0),
-			moduleID: 1,
-			crossChainCommandID: 1,
-			sendingChainID: 2,
-			receivingChainID: 3,
+			moduleID: intToBuffer(1, 4),
+			crossChainCommandID: intToBuffer(1, 4),
+			sendingChainID: intToBuffer(2, 4),
+			receivingChainID: intToBuffer(3, 4),
 			fee: BigInt(1),
 			status: 1,
 			params: Buffer.alloc(0),
@@ -376,10 +377,10 @@ describe('Base interoperability store', () => {
 
 		const ccm = {
 			nonce: BigInt(0),
-			moduleID: 1,
-			crossChainCommandID: 1,
-			sendingChainID: 2,
-			receivingChainID: 3,
+			moduleID: intToBuffer(1, 4),
+			crossChainCommandID: intToBuffer(1, 4),
+			sendingChainID: intToBuffer(2, 4),
+			receivingChainID: intToBuffer(3, 4),
 			fee: BigInt(20000),
 			status: 0,
 			params: Buffer.alloc(0),
@@ -424,7 +425,7 @@ describe('Base interoperability store', () => {
 			certificate: Buffer.alloc(0),
 			inboxUpdate,
 			newCertificateThreshold: BigInt(0),
-			sendingChainID: 2,
+			sendingChainID: intToBuffer(2, 4),
 		};
 
 		const beforeSendCCMContext = testing.createBeforeSendCCMsgAPIContext({
@@ -452,7 +453,7 @@ describe('Base interoperability store', () => {
 
 		beforeEach(async () => {
 			mainchainStoreLocal = new MainchainInteroperabilityStore(
-				MODULE_ID_INTEROPERABILITY,
+				MODULE_ID_INTEROPERABILITY_BUFFER,
 				mockGetStore,
 				ccAPIModsMap,
 			);
@@ -476,7 +477,7 @@ describe('Base interoperability store', () => {
 				beforeApplyCCM: jest.fn(),
 			};
 			mainchainStoreLocal = new MainchainInteroperabilityStore(
-				MODULE_ID_INTEROPERABILITY,
+				MODULE_ID_INTEROPERABILITY_BUFFER,
 				mockGetStore,
 				new Map().set(1, ccAPISampleMod),
 			);
@@ -502,7 +503,7 @@ describe('Base interoperability store', () => {
 				},
 			]);
 			mainchainStoreLocal = new MainchainInteroperabilityStore(
-				MODULE_ID_INTEROPERABILITY,
+				MODULE_ID_INTEROPERABILITY_BUFFER,
 				mockGetStore,
 				new Map().set(4, ccAPIMod1),
 			);
@@ -536,7 +537,7 @@ describe('Base interoperability store', () => {
 				beforeApplyCCM: jest.fn(),
 			};
 			mainchainStoreLocal = new MainchainInteroperabilityStore(
-				MODULE_ID_INTEROPERABILITY,
+				MODULE_ID_INTEROPERABILITY_BUFFER,
 				mockGetStore,
 				new Map().set(1, ccAPISampleMod),
 			);
@@ -564,7 +565,7 @@ describe('Base interoperability store', () => {
 				beforeApplyCCM: jest.fn(),
 			};
 			mainchainStoreLocal = new MainchainInteroperabilityStore(
-				MODULE_ID_INTEROPERABILITY,
+				MODULE_ID_INTEROPERABILITY_BUFFER,
 				mockGetStore,
 				new Map().set(1, ccAPISampleMod),
 			);
@@ -596,11 +597,11 @@ describe('Base interoperability store', () => {
 
 		beforeEach(async () => {
 			terminatedOutboxSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY,
+				MODULE_ID_INTEROPERABILITY_BUFFER,
 				STORE_PREFIX_TERMINATED_OUTBOX,
 			);
 			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_TERMINATED_OUTBOX)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_TERMINATED_OUTBOX)
 				.mockReturnValue(terminatedOutboxSubstore);
 
 			terminatedChainID = getRandomBytes(32);
@@ -638,11 +639,11 @@ describe('Base interoperability store', () => {
 
 		beforeEach(async () => {
 			terminatedOutboxSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY,
+				MODULE_ID_INTEROPERABILITY_BUFFER,
 				STORE_PREFIX_TERMINATED_OUTBOX,
 			);
 			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_TERMINATED_OUTBOX)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_TERMINATED_OUTBOX)
 				.mockReturnValue(terminatedOutboxSubstore);
 
 			terminatedChainID = getRandomBytes(32);

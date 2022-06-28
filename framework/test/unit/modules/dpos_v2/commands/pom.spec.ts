@@ -159,7 +159,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 
 	describe('constructor', () => {
 		it('should have valid id', () => {
-			expect(pomCommand.id).toEqual(COMMAND_ID_POM);
+			expect(pomCommand.id.readInt32BE(0)).toEqual(COMMAND_ID_POM);
 		});
 
 		it('should have valid name', () => {

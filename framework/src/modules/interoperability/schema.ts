@@ -385,7 +385,7 @@ export const crossChainUpdateTransactionParams = {
 	],
 	properties: {
 		sendingChainID: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
 		certificate: {
@@ -677,11 +677,11 @@ export const stateRecoveryParamsSchema = {
 	required: ['chainID', 'moduleID', 'storeEntries', 'siblingHashes'],
 	properties: {
 		chainID: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
 		moduleID: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 2,
 		},
 		storeEntries: {
@@ -726,7 +726,7 @@ export const stateRecoveryInitParams = {
 	required: ['chainID', 'sidechainChainAccount', 'bitmap', 'siblingHashes'],
 	properties: {
 		chainID: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
 		sidechainChainAccount: {

@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { intToBuffer } from '@liskhq/lisk-cryptography';
 import * as crypto from '@liskhq/lisk-cryptography';
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
@@ -22,7 +23,7 @@ import { MainchainRegistrationCommand } from '../../../../../../src/modules/inte
 import {
 	CCM_STATUS_OK,
 	CHAIN_REGISTERED,
-	COMMAND_ID_MAINCHAIN_REG,
+	COMMAND_ID_MAINCHAIN_REG_BUFFER,
 	CROSS_CHAIN_COMMAND_ID_REGISTRATION,
 	EMPTY_FEE_ADDRESS,
 	EMPTY_HASH,
@@ -31,6 +32,7 @@ import {
 	MAINCHAIN_NETWORK_ID,
 	MAX_UINT32,
 	MODULE_ID_INTEROPERABILITY,
+	MODULE_ID_INTEROPERABILITY_BUFFER,
 	NUMBER_MAINCHAIN_VALIDATORS,
 	STORE_PREFIX_CHAIN_DATA,
 	STORE_PREFIX_CHAIN_VALIDATORS,
@@ -73,7 +75,7 @@ describe('Mainchain registration command', () => {
 	}
 	const mainchainValidators = sortValidatorsByBLSKey(unsortedMainchainValidators);
 	const transactionParams: MainchainRegistrationParams = {
-		ownChainID: 11,
+		ownChainID: intToBuffer(11, 4),
 		ownName: 'testchain',
 		mainchainValidators,
 		aggregationBits: Buffer.alloc(0),
@@ -82,8 +84,8 @@ describe('Mainchain registration command', () => {
 	const encodedTransactionParams = codec.encode(mainchainRegParams, transactionParams);
 	const publicKey = getRandomBytes(32);
 	const transaction = new Transaction({
-		moduleID: MODULE_ID_INTEROPERABILITY,
-		commandID: COMMAND_ID_MAINCHAIN_REG,
+		moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
+		commandID: COMMAND_ID_MAINCHAIN_REG_BUFFER,
 		senderPublicKey: publicKey,
 		nonce: BigInt(0),
 		fee: BigInt(100000000),
@@ -99,7 +101,7 @@ describe('Mainchain registration command', () => {
 
 	beforeEach(() => {
 		mainchainRegistrationCommand = new MainchainRegistrationCommand(
-			MODULE_ID_INTEROPERABILITY,
+			MODULE_ID_INTEROPERABILITY_BUFFER,
 			new Map(),
 			new Map(),
 		);
@@ -136,7 +138,7 @@ describe('Mainchain registration command', () => {
 		});
 
 		it('should return error if own chain id is greater than maximum uint32 number', async () => {
-			verifyContext.params.ownChainID = MAX_UINT32 + 1;
+			verifyContext.params.ownChainID = intToBuffer(MAX_UINT32 + 1, 4);
 			const result = await mainchainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);

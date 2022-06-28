@@ -20,14 +20,13 @@ import * as testing from '../../../../../../src/testing';
 import { SidechainRegistrationCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/sidechain_registration';
 import {
 	CCM_STATUS_OK,
-	COMMAND_ID_SIDECHAIN_REG,
 	CROSS_CHAIN_COMMAND_ID_REGISTRATION,
 	EMPTY_FEE_ADDRESS,
 	EMPTY_HASH,
 	MAINCHAIN_ID,
 	MAX_UINT64,
 	MAX_LENGTH_NAME,
-	MODULE_ID_INTEROPERABILITY,
+	MODULE_ID_INTEROPERABILITY_BUFFER,
 	STORE_PREFIX_CHAIN_DATA,
 	STORE_PREFIX_CHAIN_VALIDATORS,
 	STORE_PREFIX_CHANNEL_DATA,
@@ -35,6 +34,7 @@ import {
 	STORE_PREFIX_REGISTERED_NAMES,
 	STORE_PREFIX_REGISTERED_NETWORK_IDS,
 	MAX_NUM_VALIDATORS,
+	COMMAND_ID_SIDECHAIN_REG_BUFFER,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
 	nameSchema,
@@ -78,8 +78,8 @@ describe('Sidechain registration command', () => {
 	const encodedTransactionParams = codec.encode(sidechainRegParams, transactionParams);
 	const publicKey = getRandomBytes(32);
 	const transaction = new Transaction({
-		moduleID: MODULE_ID_INTEROPERABILITY,
-		commandID: COMMAND_ID_SIDECHAIN_REG,
+		moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
+		commandID: COMMAND_ID_SIDECHAIN_REG_BUFFER,
 		senderPublicKey: publicKey,
 		nonce: BigInt(0),
 		fee: BigInt(100000000),
@@ -99,14 +99,17 @@ describe('Sidechain registration command', () => {
 
 	beforeEach(() => {
 		sidechainRegistrationCommand = new SidechainRegistrationCommand(
-			MODULE_ID_INTEROPERABILITY,
+			MODULE_ID_INTEROPERABILITY_BUFFER,
 			new Map(),
 			new Map(),
 		);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		nameSubstore = stateStore.getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_REGISTERED_NAMES);
+		nameSubstore = stateStore.getStore(
+			MODULE_ID_INTEROPERABILITY_BUFFER,
+			STORE_PREFIX_REGISTERED_NAMES,
+		);
 		networkIDSubstore = stateStore.getStore(
-			MODULE_ID_INTEROPERABILITY,
+			MODULE_ID_INTEROPERABILITY_BUFFER,
 			STORE_PREFIX_REGISTERED_NETWORK_IDS,
 		);
 	});
@@ -418,22 +421,22 @@ describe('Sidechain registration command', () => {
 				.fn()
 				.mockReturnValue({ sendInternal });
 			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_DATA)
 				.mockReturnValue(chainSubstore);
 			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHANNEL_DATA)
 				.mockReturnValue(channelSubstore);
 			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_VALIDATORS)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_VALIDATORS)
 				.mockReturnValue(validatorsSubstore);
 			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_OUTBOX_ROOT)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_OUTBOX_ROOT)
 				.mockReturnValue(outboxRootSubstore);
 			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_REGISTERED_NAMES)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_REGISTERED_NAMES)
 				.mockReturnValue(registeredNamesSubstore);
 			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_REGISTERED_NETWORK_IDS)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_REGISTERED_NETWORK_IDS)
 				.mockReturnValue(registeredNetworkIDsSubstore);
 		});
 
@@ -465,7 +468,7 @@ describe('Sidechain registration command', () => {
 		it('should throw error if no entries found in chain account substore', async () => {
 			// Arrange
 			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_DATA)
 				.mockReturnValue({
 					getWithSchema: jest.fn().mockResolvedValue(chainAccount),
 					setWithSchema: jest.fn(),
@@ -509,7 +512,7 @@ describe('Sidechain registration command', () => {
 			});
 			const ccm = {
 				nonce: BigInt(0),
-				moduleID: MODULE_ID_INTEROPERABILITY,
+				moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
 				crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION,
 				sendingChainID: MAINCHAIN_ID,
 				receivingChainID,
@@ -523,7 +526,7 @@ describe('Sidechain registration command', () => {
 
 			// Assert
 			expect(sendInternal).toHaveBeenCalledWith({
-				moduleID: MODULE_ID_INTEROPERABILITY,
+				moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
 				crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION,
 				receivingChainID,
 				fee: BigInt(0),

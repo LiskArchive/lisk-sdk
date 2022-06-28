@@ -306,11 +306,11 @@ export class ForgerPlugin extends BasePlugin {
 	): ForgerReceivedVotes {
 		const forgerReceivedVotes: ForgerReceivedVotes = {};
 
-		const dposModuleMeta = this.apiClient.metadata.find(c => c.id === MODULE_ID_DPOS_BUFFER);
+		const dposModuleMeta = this.apiClient.metadata.find(c => c.id.equals(MODULE_ID_DPOS_BUFFER));
 		if (!dposModuleMeta) {
 			throw new Error('DPoS votes command is not registered.');
 		}
-		const voteCommandMeta = dposModuleMeta.commands.find(c => c.id === COMMAND_ID_VOTE_BUFFER);
+		const voteCommandMeta = dposModuleMeta.commands.find(c => c.id.equals(COMMAND_ID_VOTE_BUFFER));
 		if (!voteCommandMeta || !voteCommandMeta.params) {
 			throw new Error('DPoS votes command is not registered.');
 		}

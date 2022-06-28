@@ -26,11 +26,11 @@ export const getParamsSchema = (
 	moduleID: Buffer,
 	commandID: Buffer,
 ): Schema | undefined => {
-	const moduleMeta = metadata.find(meta => meta.id === moduleID);
+	const moduleMeta = metadata.find(meta => meta.id.equals(moduleID));
 	if (!moduleMeta) {
 		throw new Error(`ModuleID: ${moduleID.readInt32BE(0)} is not registered.`);
 	}
-	const commandMeta = moduleMeta.commands.find(meta => meta.id === commandID);
+	const commandMeta = moduleMeta.commands.find(meta => meta.id.equals(commandID));
 	if (!commandMeta) {
 		throw new Error(
 			`ModuleID: ${moduleID.readInt32BE(0)} CommandID: ${commandID.readInt32BE(

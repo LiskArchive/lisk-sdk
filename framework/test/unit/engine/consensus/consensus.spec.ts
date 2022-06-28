@@ -25,6 +25,7 @@ import {
 	getPublicKeyFromPrivateKey,
 	getRandomBytes,
 	hash,
+	intToBuffer,
 } from '@liskhq/lisk-cryptography';
 import { ApplyPenaltyError } from '../../../../src/errors';
 import { Consensus } from '../../../../src/engine/consensus/consensus';
@@ -51,7 +52,7 @@ import { ABI } from '../../../../src/abi';
 
 describe('consensus', () => {
 	const genesis = (genesisBlock() as unknown) as Block;
-	const moduleIDs = [2];
+	const moduleIDs = [intToBuffer(2, 4)];
 	let consensus: Consensus;
 	let chain: Chain;
 	let network: Network;

@@ -14,14 +14,14 @@
 
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { sparseMerkleTree } from '@liskhq/lisk-tree';
 import { CommandExecuteContext, CommandVerifyContext } from '../../../../../../src';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
 import { BaseInteroperableAPI } from '../../../../../../src/modules/interoperability/base_interoperable_api';
 import {
-	COMMAND_ID_STATE_RECOVERY,
-	MODULE_ID_INTEROPERABILITY,
+	COMMAND_ID_STATE_RECOVERY_BUFFER,
+	MODULE_ID_INTEROPERABILITY_BUFFER,
 	STORE_PREFIX_TERMINATED_STATE,
 } from '../../../../../../src/modules/interoperability/constants';
 import { StateRecoveryCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/state_recovery';
@@ -33,7 +33,6 @@ import {
 	StateRecoveryParams,
 	TerminatedStateAccount,
 } from '../../../../../../src/modules/interoperability/types';
-import { getIDAsKeyForStore } from '../../../../../../src/modules/interoperability/utils';
 import { TransactionContext, VerifyStatus } from '../../../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import { SubStore } from '../../../../../../src/state_machine/types';
@@ -59,19 +58,19 @@ describe('Mainchain StateRecoveryCommand', () => {
 	beforeEach(async () => {
 		interoperableCCAPIs = new Map();
 		interoperableAPI = {
-			moduleID: 1,
+			moduleID: intToBuffer(1, 4),
 			recover: jest.fn(),
 		};
 		interoperableCCAPIs.set(1, interoperableAPI);
 		ccCommands = new Map();
 		stateRecoveryCommand = new StateRecoveryCommand(
-			MODULE_ID_INTEROPERABILITY,
+			MODULE_ID_INTEROPERABILITY_BUFFER,
 			interoperableCCAPIs,
 			ccCommands,
 		);
 		transactionParams = {
-			chainID: 3,
-			moduleID: 1,
+			chainID: intToBuffer(3, 4),
+			moduleID: intToBuffer(1, 4),
 			storeEntries: [
 				{
 					storePrefix: 1,
@@ -82,11 +81,11 @@ describe('Mainchain StateRecoveryCommand', () => {
 			],
 			siblingHashes: [getRandomBytes(32)],
 		};
-		chainIDAsBuffer = getIDAsKeyForStore(transactionParams.chainID);
+		chainIDAsBuffer = transactionParams.chainID;
 		encodedTransactionParams = codec.encode(stateRecoveryParamsSchema, transactionParams);
 		transaction = new Transaction({
-			moduleID: MODULE_ID_INTEROPERABILITY,
-			commandID: COMMAND_ID_STATE_RECOVERY,
+			moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
+			commandID: COMMAND_ID_STATE_RECOVERY_BUFFER,
 			fee: BigInt(100000000),
 			nonce: BigInt(0),
 			params: encodedTransactionParams,
@@ -95,7 +94,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 		});
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		terminatedStateSubstore = stateStore.getStore(
-			MODULE_ID_INTEROPERABILITY,
+			MODULE_ID_INTEROPERABILITY_BUFFER,
 			STORE_PREFIX_TERMINATED_STATE,
 		);
 		terminatedStateAccount = {

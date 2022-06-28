@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { MainchainCCRegistrationCommand } from '../../../../../../src/modules/interoperability/mainchain/cc_commands/registration';
 import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
 import { registrationCCMParamsSchema } from '../../../../../../src/modules/interoperability/schema';
@@ -63,10 +63,10 @@ describe('MainchainCCRegistrationCommand', () => {
 
 	const ccm = {
 		nonce: BigInt(0),
-		moduleID: 1,
-		crossChainCommandID: 1,
-		sendingChainID: 2,
-		receivingChainID: 1,
+		moduleID: intToBuffer(1, 4),
+		crossChainCommandID: intToBuffer(1, 4),
+		sendingChainID: intToBuffer(2, 4),
+		receivingChainID: intToBuffer(1, 4),
 		fee: BigInt(20000),
 		status: 0,
 		params: encodedRegistrationParams,
@@ -106,7 +106,7 @@ describe('MainchainCCRegistrationCommand', () => {
 		mainchainInteroperabilityStore.getChannel = getChannelMock;
 		mainchainInteroperabilityStore.getOwnChainAccount = getOwnChainAccountMock;
 
-		ccRegistrationCommand = new MainchainCCRegistrationCommand(1, ccAPIsMap);
+		ccRegistrationCommand = new MainchainCCRegistrationCommand(intToBuffer(1, 4), ccAPIsMap);
 		(ccRegistrationCommand as any)['getInteroperabilityStore'] = jest
 			.fn()
 			.mockReturnValue(mainchainInteroperabilityStore);
@@ -152,10 +152,10 @@ describe('MainchainCCRegistrationCommand', () => {
 		// Arrange
 		const invalidCCM = {
 			nonce: BigInt(0),
-			moduleID: 1,
-			crossChainCommandID: 1,
-			sendingChainID: 2,
-			receivingChainID: 1,
+			moduleID: intToBuffer(1, 4),
+			crossChainCommandID: intToBuffer(1, 4),
+			sendingChainID: intToBuffer(2, 4),
+			receivingChainID: intToBuffer(1, 4),
 			fee: BigInt(20000),
 			status: 1,
 			params: encodedRegistrationParams,
@@ -307,10 +307,10 @@ describe('MainchainCCRegistrationCommand', () => {
 		// Arrange
 		const invalidCCM = {
 			nonce: BigInt(1), // nonce not equal to 0
-			moduleID: 1,
-			crossChainCommandID: 1,
-			sendingChainID: 2,
-			receivingChainID: 1,
+			moduleID: intToBuffer(1, 4),
+			crossChainCommandID: intToBuffer(1, 4),
+			sendingChainID: intToBuffer(2, 4),
+			receivingChainID: intToBuffer(1, 4),
 			fee: BigInt(20000),
 			status: 0,
 			params: encodedRegistrationParams,

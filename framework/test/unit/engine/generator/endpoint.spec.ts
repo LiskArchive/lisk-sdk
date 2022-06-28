@@ -19,7 +19,7 @@ import { dataStructures } from '@liskhq/lisk-utils';
 import { LiskValidationError } from '@liskhq/lisk-validator';
 import { ABI, TransactionVerifyResult } from '../../../../src/abi';
 import { Logger } from '../../../../src/logger';
-import { GENERATOR_STORE_RESERVED_PREFIX } from '../../../../src/engine/generator/constants';
+import { GENERATOR_STORE_RESERVED_PREFIX_BUFFER } from '../../../../src/engine/generator/constants';
 import { Endpoint } from '../../../../src/engine/generator/endpoint';
 import { GeneratorStore } from '../../../../src/engine/generator/generator_store';
 import { previouslyGeneratedInfoSchema } from '../../../../src/engine/generator/schemas';
@@ -249,7 +249,7 @@ describe('generator endpoint', () => {
 			});
 			const db = (new InMemoryDatabase() as unknown) as Database;
 			const generatorStore = new GeneratorStore(db as never);
-			const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_RESERVED_PREFIX);
+			const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_RESERVED_PREFIX_BUFFER);
 			await subStore.set(config.address, encodedInfo);
 			const batch = new Batch();
 			subStore.finalize(batch);
@@ -282,7 +282,7 @@ describe('generator endpoint', () => {
 			});
 			const db = (new InMemoryDatabase() as unknown) as Database;
 			const generatorStore = new GeneratorStore(db as never);
-			const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_RESERVED_PREFIX);
+			const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_RESERVED_PREFIX_BUFFER);
 			await subStore.set(config.address, encodedInfo);
 			const batch = new Batch();
 			subStore.finalize(batch);
@@ -315,7 +315,7 @@ describe('generator endpoint', () => {
 			});
 			const db = (new InMemoryDatabase() as unknown) as Database;
 			const generatorStore = new GeneratorStore(db as never);
-			const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_RESERVED_PREFIX);
+			const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_RESERVED_PREFIX_BUFFER);
 			await subStore.set(config.address, encodedInfo);
 			endpoint.init({
 				generatorDB: db,
@@ -339,7 +339,9 @@ describe('generator endpoint', () => {
 				enabled: true,
 			});
 			const updatedGeneratorStore = new GeneratorStore(db);
-			const updated = updatedGeneratorStore.getGeneratorStore(GENERATOR_STORE_RESERVED_PREFIX);
+			const updated = updatedGeneratorStore.getGeneratorStore(
+				GENERATOR_STORE_RESERVED_PREFIX_BUFFER,
+			);
 			const val = await updated.get(config.address);
 			const decodedInfo = codec.decode(previouslyGeneratedInfoSchema, val);
 			expect(decodedInfo).toEqual({

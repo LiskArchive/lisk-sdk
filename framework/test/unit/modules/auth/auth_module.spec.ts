@@ -58,6 +58,24 @@ describe('AuthModule', () => {
 		const buffer = Buffer.from(defaultTestCase.output.transaction, 'hex');
 		const id = hash(buffer);
 		decodedBaseTransaction = codec.decode<Transaction>(transactionSchema, buffer);
+		// eslint-disable-next-line no-console
+		console.log(decodedBaseTransaction);
+
+		const decodedMultiSignature1 = {
+			...decodedBaseTransaction,
+			moduleID: intToBuffer(12, 4),
+			commandID: intToBuffer(decodedBaseTransaction.commandID, 4),
+		};
+		// eslint-disable-next-line no-console
+		console.log(decodedMultiSignature1);
+		const asBuffer = codec.encode(transactionSchema, decodedMultiSignature1);
+		// eslint-disable-next-line no-console
+		console.log(asBuffer.toString('hex'));
+
+		const reverseDecoded = codec.decode<Transaction>(transactionSchema, asBuffer);
+		// eslint-disable-next-line no-console
+		console.log(reverseDecoded);
+
 		decodedMultiSignature = {
 			...decodedBaseTransaction,
 			id,

@@ -131,7 +131,8 @@ export class Transaction {
 			if (!txInput.commandName) {
 				throw new Error('Missing commandID and commandName');
 			}
-			const registeredModule = this._metadata.find(m => m.id === txInput.moduleID);
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			const registeredModule = this._metadata.find(m => m.id.equals(txInput.moduleID!));
 			if (!registeredModule) {
 				throw new Error(
 					`Module corresponding to id ${txInput.moduleID.readInt32BE(0)} not registered.`,
