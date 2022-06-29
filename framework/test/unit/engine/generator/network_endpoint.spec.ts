@@ -236,7 +236,7 @@ describe('generator network endpoint', () => {
 		describe('when some of the transactions ids are known', () => {
 			beforeEach(() => {
 				const transactionIds = codec.encode(postTransactionsAnnouncementSchema, {
-					transactionIds: [tx2.id],
+					transactionIds: [tx.id, tx2.id],
 				});
 
 				when(pool.contains as jest.Mock)

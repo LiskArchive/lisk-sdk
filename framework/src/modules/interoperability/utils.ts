@@ -244,7 +244,9 @@ export const checkLivenessRequirementFirstCCU = (
 		return {
 			status: VerifyStatus.FAIL,
 			error: new Error(
-				`Sending partner chain ${txParams.sendingChainID} has a registered status so certificate cannot be empty.`,
+				`Sending partner chain ${txParams.sendingChainID.readInt32BE(
+					0,
+				)} has a registered status so certificate cannot be empty.`,
 			),
 		};
 	}

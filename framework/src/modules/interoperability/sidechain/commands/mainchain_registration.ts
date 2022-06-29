@@ -65,7 +65,14 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 	public async verify(
 		context: CommandVerifyContext<MainchainRegistrationParams>,
 	): Promise<VerificationResult> {
-		const { ownName, mainchainValidators } = context.params;
+		const { ownName, mainchainValidators, ownChainID } = context.params;
+
+		if (ownChainID.length > 4) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error(`Own chain id cannot be greater than maximum uint32 number.`),
+			};
+		}
 
 		const registrationParamsErrors = validator.validate(mainchainRegParams, context.params);
 		if (registrationParamsErrors.length > 0) {

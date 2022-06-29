@@ -300,7 +300,9 @@ describe('CrossChainUpdateCommand', () => {
 			});
 			expect(status).toEqual(VerifyStatus.FAIL);
 			expect(error?.message).toContain(
-				`Sending partner chain ${defaultSendingChainID} has a registered status so certificate cannot be empty.`,
+				`Sending partner chain ${defaultSendingChainID.readInt32BE(
+					0,
+				)} has a registered status so certificate cannot be empty.`,
 			);
 		});
 

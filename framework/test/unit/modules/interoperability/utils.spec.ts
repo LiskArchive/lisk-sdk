@@ -121,6 +121,7 @@ describe('Utils', () => {
 
 		const txParamsEmptyCertificate = {
 			certificate: EMPTY_BYTES,
+			sendingChainID: intToBuffer(4, 4),
 		};
 
 		const txParamsNonEmptyCertificate = {

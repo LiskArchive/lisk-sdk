@@ -264,7 +264,7 @@ describe('CrossChainUpdateCommand', () => {
 		it('should return error when ccu params validation fails', async () => {
 			const { status, error } = await mainchainCCUUpdateCommand.verify({
 				...verifyContext,
-				params: { ...params, sendingChainID: Buffer.alloc(2) } as any,
+				params: { ...params, sendingChainID: 2 } as any,
 			});
 
 			expect(status).toEqual(VerifyStatus.FAIL);

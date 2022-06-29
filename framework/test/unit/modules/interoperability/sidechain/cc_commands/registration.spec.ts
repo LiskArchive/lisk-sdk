@@ -179,7 +179,7 @@ describe('SidechainCCRegistrationCommand', () => {
 		// Arrange
 		getChannelMock.mockResolvedValue(channelData);
 
-		getOwnChainAccountMock.mockResolvedValue({ ...ownChainAccount, id: 3 });
+		getOwnChainAccountMock.mockResolvedValue({ ...ownChainAccount, id: intToBuffer(3, 4) });
 
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 

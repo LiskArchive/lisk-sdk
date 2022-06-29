@@ -138,12 +138,13 @@ describe('Mainchain registration command', () => {
 		});
 
 		it('should return error if own chain id is greater than maximum uint32 number', async () => {
-			const maxIntBuffer = intToBuffer(MAX_UINT32, 4);
-			verifyContext.params.ownChainID = Buffer.concat([maxIntBuffer, intToBuffer(5, 4)]);
+			verifyContext.params.ownChainID = intToBuffer(MAX_UINT32 + 1, 5);
 			const result = await mainchainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error).toBeInstanceOf(LiskValidationError);
+			expect(result.error?.message).toInclude(
+				`Own chain id cannot be greater than maximum uint32 number.`,
+			);
 		});
 
 		it('should return error if bls key is not 48 bytes', async () => {

@@ -211,10 +211,14 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 				getTransactionsResponseSchema,
 				encodedData,
 			);
+			// eslint-disable-next-line no-console
+			console.log(transactionsData);
 
 			try {
 				for (const transactionBytes of transactionsData.transactions) {
 					const transaction = Transaction.fromBytes(transactionBytes);
+					// eslint-disable-next-line no-console
+					console.log(transactionBytes, transaction);
 					await this._receiveTransaction(transaction);
 				}
 			} catch (err) {
