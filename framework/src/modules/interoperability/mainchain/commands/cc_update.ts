@@ -242,7 +242,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 		}
 
 		for (const ccm of decodedCCMs) {
-			if (txParams.sendingChainID !== ccm.deserialized.sendingChainID) {
+			if (!txParams.sendingChainID.equals(ccm.deserialized.sendingChainID)) {
 				await interoperabilityStore.terminateChainInternal(
 					txParams.sendingChainID,
 					beforeSendContext,

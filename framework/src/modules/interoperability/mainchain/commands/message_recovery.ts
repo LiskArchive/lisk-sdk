@@ -144,7 +144,7 @@ export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
 					continue;
 				}
 
-				const ccCommand = ccCommands.find(command => command.ID === newCcm.crossChainCommandID);
+				const ccCommand = ccCommands.find(command => command.ID.equals(newCcm.crossChainCommandID));
 
 				if (!ccCommand) {
 					continue;

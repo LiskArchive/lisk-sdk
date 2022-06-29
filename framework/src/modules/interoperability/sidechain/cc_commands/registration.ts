@@ -46,12 +46,14 @@ export class SidechainCCRegistrationCommand extends BaseInteroperabilityCCComman
 		if (
 			sendingChainChannelAccount.inbox.size !== 1 ||
 			ccm.status !== CCM_STATUS_OK ||
-			ownChainAccount.id !== ccm.receivingChainID ||
+			!ownChainAccount.id.equals(ccm.receivingChainID) ||
 			ownChainAccount.name !== decodedParams.name ||
-			(sendingChainChannelAccount.messageFeeTokenID.chainID !==
-				decodedParams.messageFeeTokenID.chainID &&
-				sendingChainChannelAccount.messageFeeTokenID.localID !==
-					decodedParams.messageFeeTokenID.localID) ||
+			(!sendingChainChannelAccount.messageFeeTokenID.chainID.equals(
+				decodedParams.messageFeeTokenID.chainID,
+			) &&
+				!sendingChainChannelAccount.messageFeeTokenID.localID.equals(
+					decodedParams.messageFeeTokenID.localID,
+				)) ||
 			!decodedParams.networkID.equals(ctx.networkIdentifier)
 		) {
 			const beforeSendContext = createCCMsgBeforeSendContext({

@@ -224,9 +224,10 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		) {
 			// If the first CCM in inboxUpdate is a registration CCM
 			if (
-				decodedCCMs[0].deserialized.crossChainCommandID ===
-					CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER &&
-				decodedCCMs[0].deserialized.sendingChainID === txParams.sendingChainID
+				decodedCCMs[0].deserialized.crossChainCommandID.equals(
+					CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
+				) &&
+				decodedCCMs[0].deserialized.sendingChainID.equals(txParams.sendingChainID)
 			) {
 				partnerChainAccount.status = CHAIN_ACTIVE;
 			} else {
@@ -240,7 +241,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		}
 
 		for (const ccm of decodedCCMs) {
-			if (txParams.sendingChainID !== ccm.deserialized.sendingChainID) {
+			if (!txParams.sendingChainID.equals(ccm.deserialized.sendingChainID)) {
 				await interoperabilityStore.terminateChainInternal(
 					txParams.sendingChainID,
 					beforeSendContext,

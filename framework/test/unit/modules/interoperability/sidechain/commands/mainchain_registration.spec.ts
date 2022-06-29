@@ -138,7 +138,8 @@ describe('Mainchain registration command', () => {
 		});
 
 		it('should return error if own chain id is greater than maximum uint32 number', async () => {
-			verifyContext.params.ownChainID = intToBuffer(MAX_UINT32 + 1, 4);
+			const maxIntBuffer = intToBuffer(MAX_UINT32, 4);
+			verifyContext.params.ownChainID = Buffer.concat([maxIntBuffer, intToBuffer(5, 4)]);
 			const result = await mainchainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);

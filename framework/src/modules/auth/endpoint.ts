@@ -81,8 +81,8 @@ export class AuthEndpoint extends BaseEndpoint {
 		const transactionBytes = transaction.getSigningBytes();
 
 		if (
-			transaction.moduleID === this.moduleID &&
-			transaction.commandID === intToBuffer(COMMAND_ID_DELEGATE_REGISTRATION, 4)
+			transaction.moduleID.equals(this.moduleID) &&
+			transaction.commandID.readInt32BE(0) === COMMAND_ID_DELEGATE_REGISTRATION
 		) {
 			verifyRegisterMultiSignatureTransaction(
 				TAG_TRANSACTION,

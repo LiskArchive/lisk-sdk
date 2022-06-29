@@ -18,7 +18,7 @@ import {
 	CCM_STATUS_OK,
 	CHAIN_ID_LENGTH,
 	CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
-	CROSS_CHAIN_COMMAND_ID_TRANSFER,
+	CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
 	EMPTY_BYTES,
 	MODULE_ID_TOKEN_BUFFER,
 	STORE_PREFIX_AVAILABLE_LOCAL_ID,
@@ -365,7 +365,7 @@ describe('token module', () => {
 				getUserStoreKey(defaultAddress, defaultTokenIDAlias),
 				userStoreSchema,
 			);
-			expect(lockedBalances[0].moduleID).toEqual(2);
+			expect(lockedBalances[0].moduleID.readInt32BE(0)).toEqual(2);
 		});
 	});
 
@@ -565,7 +565,7 @@ describe('token module', () => {
 					apiContext,
 					defaultAddress,
 					MODULE_ID_TOKEN_BUFFER,
-					CROSS_CHAIN_COMMAND_ID_TRANSFER,
+					CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
 					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
 					BigInt('10000'),
 					CCM_STATUS_OK,
@@ -618,7 +618,7 @@ describe('token module', () => {
 					apiContext,
 					defaultAddress,
 					MODULE_ID_TOKEN_BUFFER,
-					CROSS_CHAIN_COMMAND_ID_TRANSFER,
+					CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
 					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 					BigInt('10000'),
 					CCM_STATUS_OK,

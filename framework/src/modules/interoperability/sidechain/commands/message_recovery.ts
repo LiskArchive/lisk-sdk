@@ -137,7 +137,7 @@ export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
 		for (const ccm of deserializedCCMs) {
 			const newCcm = swapReceivingAndSendingChainIDs(ccm);
 
-			if (ownChainAccount.id !== newCcm.receivingChainID) {
+			if (!ownChainAccount.id.equals(newCcm.receivingChainID)) {
 				continue;
 			}
 
@@ -147,7 +147,7 @@ export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
 				continue;
 			}
 
-			const ccCommand = ccCommands.find(command => command.ID === newCcm.crossChainCommandID);
+			const ccCommand = ccCommands.find(command => command.ID.equals(newCcm.crossChainCommandID));
 
 			if (!ccCommand) {
 				continue;

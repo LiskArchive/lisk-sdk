@@ -461,7 +461,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 
 			{
 				// Arrange
-				const chainID = { transactionParams };
+				const { chainID } = transactionParams;
 				const outboxRoot = Buffer.alloc(32);
 
 				// Assert
@@ -503,7 +503,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 
 		it('should throw when terminated chain outbox does not exist', async () => {
 			// Assign & Arrange
-			const chainID = { transactionParams };
+			const { chainID } = transactionParams;
 
 			when(storeMock.terminatedOutboxAccountExist).calledWith(chainID).mockResolvedValue(false);
 
@@ -614,7 +614,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			for (const ccm of ccms) {
 				ccCommands.set(ccm.moduleID.readInt32BE(0), ([
 					{
-						ID: -1,
+						ID: intToBuffer(500, 4),
 						execute: jest.fn(),
 					},
 				] as unknown) as BaseCCCommand[]);

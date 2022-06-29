@@ -93,7 +93,7 @@ export class TokenAPI extends BaseAPI {
 				getUserStoreKey(address, canonicalTokenID),
 				userStoreSchema,
 			);
-			return user.lockedBalances.find(lb => lb.moduleID === moduleID)?.amount ?? BigInt(0);
+			return user.lockedBalances.find(lb => lb.moduleID.equals(moduleID))?.amount ?? BigInt(0);
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
@@ -390,7 +390,7 @@ export class TokenAPI extends BaseAPI {
 			);
 		}
 		user.availableBalance -= amount;
-		const existingIndex = user.lockedBalances.findIndex(b => b.moduleID === moduleID);
+		const existingIndex = user.lockedBalances.findIndex(b => b.moduleID.equals(moduleID));
 		if (existingIndex > -1) {
 			const locked = user.lockedBalances[existingIndex].amount + amount;
 			user.lockedBalances[existingIndex] = {
@@ -428,7 +428,7 @@ export class TokenAPI extends BaseAPI {
 			getUserStoreKey(address, canonicalTokenID),
 			userStoreSchema,
 		);
-		const lockedIndex = user.lockedBalances.findIndex(b => b.moduleID === moduleID);
+		const lockedIndex = user.lockedBalances.findIndex(b => b.moduleID.equals(moduleID));
 		if (lockedIndex < 0) {
 			throw new Error(`No balance is locked for module ID ${moduleID.readInt32BE(0)}`);
 		}

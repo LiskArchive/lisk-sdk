@@ -44,7 +44,7 @@ export class MainchainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 		);
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
 
-		if (ccm.sendingChainID === MAINCHAIN_ID_BUFFER) {
+		if (ccm.sendingChainID.equals(MAINCHAIN_ID_BUFFER)) {
 			const isTerminated = await interoperabilityStore.hasTerminatedStateAccount(
 				decodedParams.chainID,
 			);

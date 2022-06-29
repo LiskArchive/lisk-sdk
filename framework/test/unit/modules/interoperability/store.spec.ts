@@ -498,7 +498,7 @@ describe('Base interoperability store', () => {
 			// Arrange
 			const localCCCommandsMap = new Map().set(4, [
 				{
-					ID: 4,
+					ID: intToBuffer(4, 4),
 					execute: jest.fn(),
 				},
 			]);
@@ -528,7 +528,7 @@ describe('Base interoperability store', () => {
 			// Arrange
 			const localCCCommandsMap = new Map().set(1, [
 				{
-					ID: 3,
+					ID: intToBuffer(3, 4),
 					execute: jest.fn(),
 				},
 			]);

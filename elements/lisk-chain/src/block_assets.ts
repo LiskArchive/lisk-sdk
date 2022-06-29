@@ -56,7 +56,7 @@ export class BlockAssets {
 	}
 
 	public getAsset(moduleID: Buffer): Buffer | undefined {
-		return this._assets.find(a => a.moduleID === moduleID)?.data;
+		return this._assets.find(a => a.moduleID.equals(moduleID))?.data;
 	}
 
 	public getAll(): BlockAsset[] {

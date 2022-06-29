@@ -114,7 +114,7 @@ export class FeeModule extends BaseModule {
 
 	private _extraFee(moduleID: Buffer, commandID: Buffer): bigint {
 		const foundFee = this._baseFees.find(
-			fee => fee.moduleID === moduleID && fee.commandID === commandID,
+			fee => fee.moduleID.equals(moduleID) && fee.commandID.equals(commandID),
 		);
 
 		return foundFee?.baseFee ?? BigInt(0);

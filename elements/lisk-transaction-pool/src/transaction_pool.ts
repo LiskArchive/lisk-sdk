@@ -332,7 +332,7 @@ export class TransactionPool {
 
 	private _calculateMinFee(trx: Transaction): bigint {
 		const foundBaseFee = this._baseFees.find(
-			f => f.moduleID === trx.moduleID && f.commandID === trx.commandID,
+			f => f.moduleID.equals(trx.moduleID) && f.commandID.equals(trx.commandID),
 		);
 
 		return (

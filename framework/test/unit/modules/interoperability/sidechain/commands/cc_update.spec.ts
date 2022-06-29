@@ -263,7 +263,7 @@ describe('CrossChainUpdateCommand', () => {
 		it('should return error when ccu params validation fails', async () => {
 			const { status, error } = await sidechainCCUUpdateCommand.verify({
 				...verifyContext,
-				params: { ...params, sendingChainID: Buffer.alloc(2) } as any,
+				params: { ...params, sendingChainID: 2 } as any,
 			});
 
 			expect(status).toEqual(VerifyStatus.FAIL);
@@ -583,7 +583,7 @@ describe('CrossChainUpdateCommand', () => {
 				.spyOn(SidechainInteroperabilityStore.prototype, 'apply')
 				.mockResolvedValue({} as never);
 
-			const invalidCCMContext = {
+			const validCCMContext = {
 				...executeContext,
 				params: {
 					...executeContext.params,
@@ -593,7 +593,7 @@ describe('CrossChainUpdateCommand', () => {
 					},
 				},
 			};
-			await expect(sidechainCCUUpdateCommand.execute(invalidCCMContext)).resolves.toBeUndefined();
+			await expect(sidechainCCUUpdateCommand.execute(validCCMContext)).resolves.toBeUndefined();
 			expect(appendToInboxTreeMock).toHaveBeenCalledTimes(1);
 			expect(applyMock).toHaveBeenCalledTimes(1);
 			expect(applyMock).toHaveBeenCalledTimes(1);

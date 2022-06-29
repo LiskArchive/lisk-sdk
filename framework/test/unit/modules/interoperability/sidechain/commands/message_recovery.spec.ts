@@ -169,7 +169,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 			] as unknown) as BaseCCCommand[]);
 		}
 
-		const chainID = { transactionParams };
+		const { chainID } = transactionParams;
 
 		when(storeMock.getTerminatedOutboxAccount)
 			.calledWith(chainID)
@@ -193,7 +193,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		expect.assertions(ccmsWithSwappedChainIds.length);
 		for (const ccm of ccmsWithSwappedChainIds) {
 			const commands = ccCommands.get(ccm.moduleID.readInt32BE(0)) as BaseCCCommand[];
-			const command = commands.find(cmd => cmd.ID === ccm.crossChainCommandID) as BaseCCCommand;
+			const command = commands.find(cmd => cmd.ID.equals(ccm.crossChainCommandID)) as BaseCCCommand;
 			expect(command.execute).toHaveBeenCalledWith(
 				expect.objectContaining({
 					ccm,
@@ -244,8 +244,8 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		expect.assertions(ccmsWithSwappedChainIds.length);
 		for (const ccm of ccmsWithSwappedChainIds) {
 			const commands = ccCommands.get(ccm.moduleID.readInt32BE(0)) as BaseCCCommand[];
-			const command = commands.find(cmd => cmd.ID === ccm.crossChainCommandID) as BaseCCCommand;
-			if (ccm.sendingChainID === transactionParams.chainID) {
+			const command = commands.find(cmd => cmd.ID.equals(ccm.crossChainCommandID)) as BaseCCCommand;
+			if (ccm.sendingChainID.equals(transactionParams.chainID)) {
 				expect(command.execute).toHaveBeenCalledWith(
 					expect.objectContaining({
 						ccm,
@@ -276,7 +276,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 
 	it('should throw when terminated chain outbox does not exist', async () => {
 		// Assign & Arrange
-		const chainID = { transactionParams };
+		const { chainID } = transactionParams;
 
 		when(storeMock.terminatedOutboxAccountExist).calledWith(chainID).mockResolvedValue(false);
 
@@ -334,7 +334,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		ccCommands.set(moduleID.readInt32BE(0), ([
 			{
 				moduleID,
-				ID: 3000,
+				ID: intToBuffer(3000, 4),
 				name: 'ccCommand',
 				execute: jest.fn(),
 				schema: {

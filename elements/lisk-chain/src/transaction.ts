@@ -79,8 +79,8 @@ export const calculateMinFee = (
 ): bigint => {
 	const size = tx.getBytes().length;
 	const baseFee =
-		baseFees.find(bf => bf.moduleID === tx.moduleID && bf.commandID === tx.commandID)?.baseFee ??
-		'0';
+		baseFees.find(bf => bf.moduleID.equals(tx.moduleID) && bf.commandID.equals(tx.commandID))
+			?.baseFee ?? '0';
 	return BigInt(minFeePerByte * size) + BigInt(baseFee);
 };
 

@@ -455,7 +455,7 @@ export abstract class BaseInteroperabilityStore {
 
 			return;
 		}
-		const ccCommand = ccCommands.find(cmd => cmd.ID === ccm.crossChainCommandID);
+		const ccCommand = ccCommands.find(cmd => cmd.ID.equals(ccm.crossChainCommandID));
 
 		// When commandID is not supported
 		if (!ccCommand) {

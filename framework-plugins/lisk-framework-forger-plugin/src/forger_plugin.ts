@@ -401,7 +401,7 @@ export class ForgerPlugin extends BasePlugin {
 			const trx = chain.Transaction.fromJSON(txJSON);
 			const baseFee =
 				this._transactionFees.baseFees.find(
-					bf => bf.moduleID === trx.moduleID && bf.commandID === trx.commandID,
+					bf => bf.moduleID.equals(trx.moduleID) && bf.commandID.equals(trx.commandID),
 				)?.baseFee ?? '0';
 			const minFeeRequired =
 				BigInt(baseFee) +

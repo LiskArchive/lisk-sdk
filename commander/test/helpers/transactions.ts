@@ -183,7 +183,9 @@ export const encodeTransactionFromJSON = (
 	commandsSchemas: { moduleID: Buffer; commandID: Buffer; schema: Schema }[],
 ): string => {
 	const transactionTypeAssetSchema = commandsSchemas.find(
-		as => as.moduleID === transaction.moduleID && as.commandID === transaction.commandID,
+		as =>
+			as.moduleID.equals(transaction.moduleID as Buffer) &&
+			as.commandID.equals(transaction.commandID as Buffer),
 	);
 
 	if (!transactionTypeAssetSchema) {

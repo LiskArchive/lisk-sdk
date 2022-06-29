@@ -35,7 +35,7 @@ describe('FeeModule', () => {
 			],
 			minFeePerByte: 1000,
 		};
-		moduleConfig = { feeTokenID: { chainID: 0, localID: 0 } };
+		moduleConfig = { feeTokenID: { chainID: intToBuffer(0, 4), localID: intToBuffer(0, 4) } };
 		generatorConfig = {};
 		feeModule = new FeeModule();
 		await feeModule.init({ genesisConfig, moduleConfig, generatorConfig });
