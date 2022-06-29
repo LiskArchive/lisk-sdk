@@ -13,7 +13,7 @@
  */
 
 import { TAG_TRANSACTION, NotFoundError } from '@liskhq/lisk-chain';
-import { getAddressFromPublicKey, intToBuffer } from '@liskhq/lisk-cryptography';
+import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
 import { isHexString } from '@liskhq/lisk-validator';
 import { ModuleEndpointContext } from '../../types';
 import { VerifyStatus } from '../../state_machine';
