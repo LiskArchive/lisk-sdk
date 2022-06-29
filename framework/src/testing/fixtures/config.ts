@@ -12,7 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { decryptPassphraseWithPassword, parseEncryptedPassphrase } from '@liskhq/lisk-cryptography';
+import {
+	decryptPassphraseWithPassword,
+	intToBuffer,
+	parseEncryptedPassphrase,
+} from '@liskhq/lisk-cryptography';
 
 export const defaultPassword =
 	'tiger grit rigid pipe athlete cheese guitar hurdle remind gap peasant pond';
@@ -37,8 +41,8 @@ export const defaultConfig = {
 		minFeePerByte: 1000,
 		baseFees: [
 			{
-				moduleID: 12,
-				commandID: 0,
+				moduleID: intToBuffer(12, 4),
+				commandID: intToBuffer(0, 4),
 				baseFee: '1000000000',
 			},
 		],

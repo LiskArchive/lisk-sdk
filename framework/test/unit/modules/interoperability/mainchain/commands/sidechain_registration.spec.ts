@@ -20,10 +20,8 @@ import * as testing from '../../../../../../src/testing';
 import { SidechainRegistrationCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/sidechain_registration';
 import {
 	CCM_STATUS_OK,
-	CROSS_CHAIN_COMMAND_ID_REGISTRATION,
 	EMPTY_FEE_ADDRESS,
 	EMPTY_HASH,
-	MAINCHAIN_ID,
 	MAX_UINT64,
 	MAX_LENGTH_NAME,
 	MODULE_ID_INTEROPERABILITY_BUFFER,
@@ -35,6 +33,8 @@ import {
 	STORE_PREFIX_REGISTERED_NETWORK_IDS,
 	MAX_NUM_VALIDATORS,
 	COMMAND_ID_SIDECHAIN_REG_BUFFER,
+	MAINCHAIN_ID_BUFFER,
+	CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
 	nameSchema,
@@ -153,7 +153,7 @@ describe('Sidechain registration command', () => {
 		it('should return error if store key name already exists in name store', async () => {
 			await nameSubstore.setWithSchema(
 				Buffer.from(transactionParams.name, 'utf8'),
-				{ chainID: 0 },
+				{ chainID: intToBuffer(0, 4) },
 				nameSchema,
 			);
 			const result = await sidechainRegistrationCommand.verify(verifyContext);
@@ -165,7 +165,11 @@ describe('Sidechain registration command', () => {
 		});
 
 		it('should return error if store key networkID already exists in networkID store', async () => {
-			await networkIDSubstore.setWithSchema(networkID, { chainID: 0 }, chainIDSchema);
+			await networkIDSubstore.setWithSchema(
+				networkID,
+				{ chainID: intToBuffer(0, 4) },
+				chainIDSchema,
+			);
 
 			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
@@ -488,7 +492,7 @@ describe('Sidechain registration command', () => {
 				inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				partnerChainOutboxRoot: EMPTY_HASH,
-				messageFeeTokenID: { chainID: 1, localID: 0 },
+				messageFeeTokenID: { chainID: intToBuffer(1, 4), localID: intToBuffer(0, 4) },
 			};
 
 			// Act
@@ -504,17 +508,17 @@ describe('Sidechain registration command', () => {
 
 		it('should call sendInternal with a registration ccm', async () => {
 			// Arrange
-			const receivingChainID = 2;
+			const receivingChainID = intToBuffer(2, 4);
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
 				networkID,
 				name: chainAccount.name,
-				messageFeeTokenID: { chainID: MAINCHAIN_ID, localID: 0 },
+				messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: intToBuffer(0, 4) },
 			});
 			const ccm = {
 				nonce: BigInt(0),
 				moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
-				crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION,
-				sendingChainID: MAINCHAIN_ID,
+				crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
+				sendingChainID: MAINCHAIN_ID_BUFFER,
 				receivingChainID,
 				fee: BigInt(0),
 				status: CCM_STATUS_OK,
@@ -527,7 +531,7 @@ describe('Sidechain registration command', () => {
 			// Assert
 			expect(sendInternal).toHaveBeenCalledWith({
 				moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
-				crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+				crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
 				receivingChainID,
 				fee: BigInt(0),
 				status: CCM_STATUS_OK,

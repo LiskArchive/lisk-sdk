@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { TokenAPI } from '../../../../src/modules/token';
 import {
 	CCM_STATUS_OK,
@@ -50,7 +50,7 @@ describe('CrossChain Forward command', () => {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
 			{
-				moduleID: 12,
+				moduleID: intToBuffer(12, 4),
 				amount: BigInt(100000000),
 			},
 		],
@@ -507,7 +507,7 @@ describe('CrossChain Forward command', () => {
 					storePrefix: STORE_PREFIX_ESCROW,
 					storeValue: codec.encode(userStoreSchema, {
 						availableBalance: defaultAccount.availableBalance * BigInt(2),
-						lockedBalances: [{ moduleID: 3, amount: BigInt(20) }],
+						lockedBalances: [{ moduleID: intToBuffer(3, 4), amount: BigInt(20) }],
 					}),
 					terminatedChainID: sendingChainID,
 				}),
@@ -538,7 +538,7 @@ describe('CrossChain Forward command', () => {
 					storePrefix: STORE_PREFIX_USER,
 					storeValue: codec.encode(userStoreSchema, {
 						availableBalance: defaultAccount.availableBalance * BigInt(2),
-						lockedBalances: [{ moduleID: 3, amount: BigInt(20) }],
+						lockedBalances: [{ moduleID: intToBuffer(3, 4), amount: BigInt(20) }],
 					}),
 					terminatedChainID: sendingChainID,
 				}),
@@ -569,7 +569,7 @@ describe('CrossChain Forward command', () => {
 					storePrefix: STORE_PREFIX_USER,
 					storeValue: codec.encode(userStoreSchema, {
 						availableBalance: defaultAccount.availableBalance * BigInt(2),
-						lockedBalances: [{ moduleID: 3, amount: BigInt(20) }],
+						lockedBalances: [{ moduleID: intToBuffer(3, 4), amount: BigInt(20) }],
 					}),
 					terminatedChainID: sendingChainID,
 				}),
@@ -601,7 +601,7 @@ describe('CrossChain Forward command', () => {
 					storePrefix: STORE_PREFIX_USER,
 					storeValue: codec.encode(userStoreSchema, {
 						availableBalance: defaultEscrowAmount,
-						lockedBalances: [{ moduleID: 3, amount: BigInt(20) }],
+						lockedBalances: [{ moduleID: intToBuffer(3, 4), amount: BigInt(20) }],
 					}),
 					terminatedChainID: sendingChainID,
 				}),

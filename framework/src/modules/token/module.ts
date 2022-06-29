@@ -180,7 +180,7 @@ export class TokenModule extends BaseModule {
 			const lockedBalanceModuleIDSet = new Set();
 			let lastModuleID = -1;
 			for (const lockedBalance of userData.lockedBalances) {
-				lockedBalanceModuleIDSet.add(lockedBalance.moduleID);
+				lockedBalanceModuleIDSet.add(lockedBalance.moduleID.readInt32BE(0));
 				// Validate locked balances must not be zero
 				if (lockedBalance.amount === BigInt(0)) {
 					throw new Error(

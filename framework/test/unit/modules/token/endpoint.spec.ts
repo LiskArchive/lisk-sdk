@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { TokenAPI } from '../../../../src/modules/token';
 import {
 	CHAIN_ID_LENGTH,
@@ -45,7 +45,7 @@ describe('token endpoint', () => {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
 			{
-				moduleID: 12,
+				moduleID: intToBuffer(12, 4),
 				amount: BigInt(100000000),
 			},
 		],
@@ -150,6 +150,7 @@ describe('token endpoint', () => {
 						availableBalance: defaultAccount.availableBalance.toString(),
 						lockedBalances: defaultAccount.lockedBalances.map(lb => ({
 							...lb,
+							moduleID: lb.moduleID.readInt32BE(0).toString(),
 							amount: lb.amount.toString(),
 						})),
 					},
@@ -158,6 +159,7 @@ describe('token endpoint', () => {
 						availableBalance: defaultAccount.availableBalance.toString(),
 						lockedBalances: defaultAccount.lockedBalances.map(lb => ({
 							...lb,
+							moduleID: lb.moduleID.readInt32BE(0).toString(),
 							amount: lb.amount.toString(),
 						})),
 					},
@@ -215,6 +217,7 @@ describe('token endpoint', () => {
 				availableBalance: defaultAccount.availableBalance.toString(),
 				lockedBalances: defaultAccount.lockedBalances.map(lb => ({
 					...lb,
+					moduleID: lb.moduleID.readInt32BE(0).toString(),
 					amount: lb.amount.toString(),
 				})),
 			});
@@ -233,6 +236,7 @@ describe('token endpoint', () => {
 				availableBalance: defaultAccount.availableBalance.toString(),
 				lockedBalances: defaultAccount.lockedBalances.map(lb => ({
 					...lb,
+					moduleID: lb.moduleID.readInt32BE(0).toString(),
 					amount: lb.amount.toString(),
 				})),
 			});

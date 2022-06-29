@@ -159,7 +159,7 @@ export interface Outbox {
 
 export interface MessageFeeTokenID {
 	chainID: Buffer;
-	localID: number;
+	localID: Buffer;
 }
 export interface ChannelData {
 	inbox: Inbox;

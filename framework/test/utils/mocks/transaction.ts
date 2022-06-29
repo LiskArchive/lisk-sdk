@@ -21,6 +21,7 @@ import {
 	generatePrivateKey,
 	getPublicKeyFromPrivateKey,
 	blsPopProve,
+	intToBuffer,
 } from '@liskhq/lisk-cryptography';
 import { signMultiSignatureTransaction } from '@liskhq/lisk-transactions';
 import { registerMultisignatureParamsSchema } from '../../../src/modules/auth/schemas';
@@ -30,7 +31,7 @@ import {
 	voteCommandParamsSchema,
 } from '../../../src/modules/dpos_v2/schemas';
 import { TransferCommand } from '../../../src/modules/token/commands/transfer';
-import { MODULE_ID_TOKEN } from '../../../src/modules/token/constants';
+import { MODULE_ID_TOKEN_BUFFER } from '../../../src/modules/token/constants';
 import { transferParamsSchema } from '../../../src/modules/token/schemas';
 
 export const DEFAULT_TOKEN_ID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
@@ -52,8 +53,8 @@ export const createTransferTransaction = (input: {
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.passphrase);
 
 	const tx = new Transaction({
-		moduleID: 2,
-		commandID: 0,
+		moduleID: intToBuffer(2, 4),
+		commandID: intToBuffer(0, 4),
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('200000'),
@@ -85,8 +86,8 @@ export const createDelegateRegisterTransaction = (input: {
 	});
 
 	const tx = new Transaction({
-		moduleID: 13,
-		commandID: 0,
+		moduleID: intToBuffer(13, 4),
+		commandID: intToBuffer(0, 4),
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('2500000000'),
@@ -112,8 +113,8 @@ export const createDelegateVoteTransaction = (input: {
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.passphrase);
 
 	const tx = new Transaction({
-		moduleID: 13,
-		commandID: 1,
+		moduleID: intToBuffer(13, 4),
+		commandID: intToBuffer(1, 4),
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('100000000'),
@@ -159,8 +160,8 @@ export const createMultiSignRegisterTransaction = (input: {
 			);
 		},
 		{
-			moduleID: 12,
-			commandID: 0,
+			moduleID: intToBuffer(12, 4),
+			commandID: intToBuffer(0, 4),
 			nonce: input.nonce,
 			senderPublicKey: publicKey,
 			fee: input.fee ?? BigInt('1100000000'),
@@ -184,7 +185,7 @@ export const createMultisignatureTransferTransaction = (input: {
 	senderPublicKey: Buffer;
 	passphrases: string[];
 }): Transaction => {
-	const command = new TransferCommand(MODULE_ID_TOKEN);
+	const command = new TransferCommand(MODULE_ID_TOKEN_BUFFER);
 	const params = {
 		tokenID: DEFAULT_TOKEN_ID,
 		recipientAddress: input.recipientAddress,
@@ -206,8 +207,8 @@ export const createMultisignatureTransferTransaction = (input: {
 			);
 		},
 		{
-			moduleID: 2,
-			commandID: 0,
+			moduleID: intToBuffer(2, 4),
+			commandID: intToBuffer(0, 4),
 			nonce: input.nonce,
 			senderPublicKey: input.senderPublicKey,
 			fee: input.fee ?? BigInt('1100000000'),
@@ -235,8 +236,8 @@ export const createReportMisbehaviorTransaction = (input: {
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.passphrase);
 
 	const tx = new Transaction({
-		moduleID: 13,
-		commandID: 3,
+		moduleID: intToBuffer(13, 4),
+		commandID: intToBuffer(3, 4),
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('50000000'),

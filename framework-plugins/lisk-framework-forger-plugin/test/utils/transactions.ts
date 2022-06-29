@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { intToBuffer } from '@liskhq/lisk-cryptography';
 import { Transaction, testing, codec, transactions, cryptography } from 'lisk-sdk';
 
 export const createTransferTransaction = ({
@@ -33,8 +34,8 @@ export const createTransferTransaction = ({
 		data: '',
 	});
 	const tx = new Transaction({
-		moduleID: 2,
-		commandID: 0,
+		moduleID: intToBuffer(2, 4),
+		commandID: intToBuffer(0, 4),
 		nonce: BigInt(nonce),
 		senderPublicKey: genesisAccount.publicKey,
 		fee: BigInt(transactions.convertLSKToBeddows(fee)),
@@ -76,8 +77,8 @@ export const createVoteTransaction = ({
 	});
 
 	const tx = new Transaction({
-		moduleID: 5,
-		commandID: 1,
+		moduleID: intToBuffer(5, 4),
+		commandID: intToBuffer(1, 4),
 		nonce: BigInt(nonce),
 		senderPublicKey: genesisAccount.publicKey,
 		fee: BigInt(transactions.convertLSKToBeddows(fee)),

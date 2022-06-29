@@ -24,14 +24,14 @@ import {
 	CCM_STATUS_OK,
 	CHAIN_REGISTERED,
 	COMMAND_ID_MAINCHAIN_REG_BUFFER,
-	CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+	CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
 	EMPTY_FEE_ADDRESS,
 	EMPTY_HASH,
 	MAINCHAIN_ID,
+	MAINCHAIN_ID_BUFFER,
 	MAINCHAIN_NAME,
 	MAINCHAIN_NETWORK_ID,
 	MAX_UINT32,
-	MODULE_ID_INTEROPERABILITY,
 	MODULE_ID_INTEROPERABILITY_BUFFER,
 	NUMBER_MAINCHAIN_VALIDATORS,
 	STORE_PREFIX_CHAIN_DATA,
@@ -215,7 +215,7 @@ describe('Mainchain registration command', () => {
 	describe('execute', () => {
 		const mainchainIdAsKey = getIDAsKeyForStore(MAINCHAIN_ID);
 		const params = {
-			ownChainID: 11,
+			ownChainID: intToBuffer(11, 4),
 			ownName: 'testchain',
 			mainchainValidators,
 			aggregationBits: Buffer.alloc(0),
@@ -283,19 +283,19 @@ describe('Mainchain registration command', () => {
 				.fn()
 				.mockReturnValue({ sendInternal });
 			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_DATA)
 				.mockReturnValue(chainSubstore);
 			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHANNEL_DATA)
 				.mockReturnValue(channelSubstore);
 			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_VALIDATORS)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_VALIDATORS)
 				.mockReturnValue(validatorsSubstore);
 			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_OUTBOX_ROOT)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_OUTBOX_ROOT)
 				.mockReturnValue(outboxRootSubstore);
 			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_OWN_CHAIN_DATA)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_OWN_CHAIN_DATA)
 				.mockReturnValue(ownChainAccountSubstore);
 		});
 
@@ -346,7 +346,7 @@ describe('Mainchain registration command', () => {
 				inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				partnerChainOutboxRoot: EMPTY_HASH,
-				messageFeeTokenID: { chainID: MAINCHAIN_ID, localID: 0 },
+				messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: intToBuffer(0, 4) },
 			};
 
 			// Act
@@ -361,16 +361,16 @@ describe('Mainchain registration command', () => {
 		});
 
 		it('should call sendInternal with a registration ccm', async () => {
-			const receivingChainID = MAINCHAIN_ID;
+			const receivingChainID = MAINCHAIN_ID_BUFFER;
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
 				networkID: MAINCHAIN_NETWORK_ID,
 				name: MAINCHAIN_NAME,
-				messageFeeTokenID: { chainID: MAINCHAIN_ID, localID: 0 },
+				messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: intToBuffer(0, 4) },
 			});
 			const ccm = {
 				nonce: BigInt(0),
-				moduleID: MODULE_ID_INTEROPERABILITY,
-				crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+				moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
+				crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
 				sendingChainID: params.ownChainID,
 				receivingChainID,
 				fee: BigInt(0),
@@ -382,8 +382,8 @@ describe('Mainchain registration command', () => {
 
 			// Assert
 			expect(sendInternal).toHaveBeenCalledWith({
-				moduleID: MODULE_ID_INTEROPERABILITY,
-				crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+				moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
+				crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
 				receivingChainID,
 				fee: BigInt(0),
 				status: CCM_STATUS_OK,

@@ -70,7 +70,7 @@ export const userStoreSchema = {
 				type: 'object',
 				required: ['moduleID', 'amount'],
 				properties: {
-					moduleID: { dataType: 'uint32', fieldNumber: 1 },
+					moduleID: { dataType: 'bytes', fieldNumber: 1 },
 					amount: { dataType: 'uint64', fieldNumber: 2 },
 				},
 			},
@@ -363,7 +363,7 @@ export const genesisTokenStoreSchema = {
 							required: ['moduleID', 'amount'],
 							properties: {
 								moduleID: {
-									dataType: 'uint32',
+									dataType: 'bytes',
 									fieldNumber: 1,
 								},
 								amount: {
@@ -483,7 +483,7 @@ export const getBalanceResponseSchema = {
 				required: ['moduleID', 'amount'],
 				properties: {
 					moduleID: {
-						type: 'integer',
+						type: 'string',
 						format: 'uint32',
 					},
 					amount: {
@@ -536,7 +536,7 @@ export const getBalancesResponseSchema = {
 							required: ['moduleID', 'amount'],
 							properties: {
 								moduleID: {
-									type: 'integer',
+									type: 'string',
 									format: 'uint32',
 								},
 								amount: {

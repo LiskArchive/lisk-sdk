@@ -27,7 +27,7 @@ describe('SidechainCCRegistrationCommand', () => {
 
 	const ownChainAccount = {
 		name: 'sidechain',
-		id: 1,
+		id: intToBuffer(1, 4),
 		nonce: BigInt(0),
 	};
 
@@ -51,8 +51,8 @@ describe('SidechainCCRegistrationCommand', () => {
 		networkID: networkIdentifier,
 		name: ownChainAccount.name,
 		messageFeeTokenID: {
-			chainID: 1,
-			localID: 0,
+			chainID: intToBuffer(1, 4),
+			localID: intToBuffer(0, 4),
 		},
 	};
 
@@ -78,8 +78,8 @@ describe('SidechainCCRegistrationCommand', () => {
 			size: 1,
 		},
 		messageFeeTokenID: {
-			chainID: 1,
-			localID: 0,
+			chainID: intToBuffer(1, 4),
+			localID: intToBuffer(0, 4),
 		},
 		outbox: {
 			appendPath: [],
@@ -121,8 +121,8 @@ describe('SidechainCCRegistrationCommand', () => {
 				size: 2,
 			},
 			messageFeeTokenID: {
-				chainID: 1,
-				localID: 0,
+				chainID: intToBuffer(1, 4),
+				localID: intToBuffer(0, 4),
 			},
 			outbox: {
 				appendPath: [],
@@ -220,8 +220,8 @@ describe('SidechainCCRegistrationCommand', () => {
 				size: 2,
 			},
 			messageFeeTokenID: {
-				chainID: 3,
-				localID: 0,
+				chainID: intToBuffer(3, 4),
+				localID: intToBuffer(0, 4),
 			},
 			outbox: {
 				appendPath: [],
@@ -255,8 +255,8 @@ describe('SidechainCCRegistrationCommand', () => {
 				size: 2,
 			},
 			messageFeeTokenID: {
-				chainID: 1,
-				localID: 5,
+				chainID: intToBuffer(1, 4),
+				localID: intToBuffer(5, 4),
 			},
 			outbox: {
 				appendPath: [],

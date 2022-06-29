@@ -101,8 +101,8 @@ describe('Base interoperability store', () => {
 		outbox: outboxTree,
 		partnerChainOutboxRoot: Buffer.alloc(0),
 		messageFeeTokenID: {
-			chainID: 0,
-			localID: 0,
+			chainID: intToBuffer(0, 4),
+			localID: intToBuffer(0, 4),
 		},
 	};
 	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
@@ -248,7 +248,7 @@ describe('Base interoperability store', () => {
 
 		const ownChainAccount2 = {
 			name: 'chain1',
-			id: 7,
+			id: intToBuffer(7, 4),
 			nonce: BigInt('0'),
 		};
 
@@ -498,7 +498,7 @@ describe('Base interoperability store', () => {
 			// Arrange
 			const localCCCommandsMap = new Map().set(4, [
 				{
-					ID: 1,
+					ID: 4,
 					execute: jest.fn(),
 				},
 			]);

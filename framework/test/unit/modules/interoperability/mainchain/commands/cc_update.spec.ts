@@ -197,7 +197,7 @@ describe('CrossChainUpdateCommand', () => {
 				root: cryptography.getRandomBytes(38),
 				size: 18,
 			},
-			messageFeeTokenID: { chainID: intToBuffer(1, 4), localID: 0 },
+			messageFeeTokenID: { chainID: intToBuffer(1, 4), localID: intToBuffer(0, 4) },
 			outbox: {
 				appendPath: [Buffer.alloc(1), Buffer.alloc(1)],
 				root: cryptography.getRandomBytes(38),
@@ -526,7 +526,7 @@ describe('CrossChainUpdateCommand', () => {
 				moduleID: intToBuffer(1, 4),
 				nonce: BigInt(1),
 				params: Buffer.alloc(MAX_CCM_SIZE + 10),
-				receivingChainID: 2,
+				receivingChainID: intToBuffer(2, 4),
 				sendingChainID: defaultSendingChainIDBuffer,
 				status: CCM_STATUS_OK,
 			};

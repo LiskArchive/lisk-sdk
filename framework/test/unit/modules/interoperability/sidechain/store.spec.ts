@@ -65,7 +65,7 @@ describe('Sidechain interoperability store', () => {
 
 		ownChainAccount = {
 			name: 'mainchain',
-			id: 2,
+			id: intToBuffer(2, 4),
 			nonce: BigInt('0'),
 		};
 
@@ -176,7 +176,7 @@ describe('Sidechain interoperability store', () => {
 			partnerChainOutboxRoot: Buffer.alloc(0),
 			messageFeeTokenID: {
 				chainID: intToBuffer(1, 4),
-				localID: 2,
+				localID: intToBuffer(2, 4),
 			},
 		};
 
@@ -305,10 +305,10 @@ describe('Sidechain interoperability store', () => {
 		it('should return false if the ccm created is invalid schema', async () => {
 			const invalidCCM = {
 				nonce: BigInt(0),
-				moduleID: 1,
-				crossChainCommandID: 1,
-				sendingChainID: 2,
-				receivingChainID: 3,
+				moduleID: intToBuffer(1, 4),
+				crossChainCommandID: intToBuffer(1, 4),
+				sendingChainID: intToBuffer(2, 4),
+				receivingChainID: intToBuffer(3, 4),
 				fee: BigInt(1),
 				status: 'ccm', // invalid field
 				params: Buffer.alloc(0),

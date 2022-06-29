@@ -589,32 +589,32 @@ describe('Utils', () => {
 			inbox: inboxTree,
 			messageFeeTokenID: {
 				chainID: intToBuffer(1, 4),
-				localID: 0,
+				localID: intToBuffer(0, 4),
 			},
 			outbox: outboxTree,
 			partnerChainOutboxRoot,
 		};
 
-		const defaultSendingChainID = 20;
+		const defaultSendingChainID = intToBuffer(20, 4);
 
 		const defaultCCMs = [
 			{
-				crossChainCommandID: 1,
+				crossChainCommandID: intToBuffer(1, 4),
 				fee: BigInt(0),
-				moduleID: 1,
+				moduleID: intToBuffer(1, 4),
 				nonce: BigInt(1),
 				params: Buffer.alloc(2),
-				receivingChainID: 2,
+				receivingChainID: intToBuffer(2, 4),
 				sendingChainID: defaultSendingChainID,
 				status: CCM_STATUS_OK,
 			},
 			{
-				crossChainCommandID: 2,
+				crossChainCommandID: intToBuffer(2, 4),
 				fee: BigInt(0),
-				moduleID: 1,
+				moduleID: intToBuffer(1, 4),
 				nonce: BigInt(1),
 				params: Buffer.alloc(2),
-				receivingChainID: 3,
+				receivingChainID: intToBuffer(3, 4),
 				sendingChainID: defaultSendingChainID,
 				status: CCM_STATUS_OK,
 			},
@@ -622,22 +622,22 @@ describe('Utils', () => {
 
 		const inboxUpdateCCMs = [
 			{
-				crossChainCommandID: 1,
+				crossChainCommandID: intToBuffer(1, 4),
 				fee: BigInt(0),
-				moduleID: 1,
+				moduleID: intToBuffer(1, 4),
 				nonce: BigInt(2),
 				params: Buffer.alloc(4),
-				receivingChainID: 90,
+				receivingChainID: intToBuffer(90, 4),
 				sendingChainID: defaultSendingChainID,
 				status: CCM_STATUS_OK,
 			},
 			{
-				crossChainCommandID: 2,
+				crossChainCommandID: intToBuffer(2, 4),
 				fee: BigInt(0),
-				moduleID: 1,
+				moduleID: intToBuffer(1, 4),
 				nonce: BigInt(10),
 				params: Buffer.alloc(4),
-				receivingChainID: 70,
+				receivingChainID: intToBuffer(70, 4),
 				sendingChainID: defaultSendingChainID,
 				status: CCM_STATUS_OK,
 			},
@@ -949,7 +949,7 @@ describe('Utils', () => {
 				getStore: jest.fn(),
 				params,
 				transaction: {
-					moduleID: 1,
+					moduleID: intToBuffer(1, 4),
 				},
 			};
 

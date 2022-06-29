@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { TokenAPI } from '../../../../../src/modules/token/api';
 import { CCTransferCommand } from '../../../../../src/modules/token/cc_commands/cc_transfer';
 import {
@@ -54,7 +54,7 @@ describe('CrossChain Transfer command', () => {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
 			{
-				moduleID: 12,
+				moduleID: intToBuffer(12, 4),
 				amount: BigInt(100000000),
 			},
 		],

@@ -131,8 +131,8 @@ describe('fee', () => {
 			// Arrange
 			const delegateRegisterTransaction = {
 				...validTransaction,
-				moduleID: 5,
-				commandID: 0,
+				moduleID: intToBuffer(5, 4),
+				commandID: intToBuffer(0, 4),
 				params: { username: 'delegate1' },
 			};
 			const options = { minFeePerByte: 1000, baseFees, numberOfSignatures: 1 };

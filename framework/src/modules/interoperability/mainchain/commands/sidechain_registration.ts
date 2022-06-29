@@ -28,7 +28,6 @@ import {
 	STORE_PREFIX_CHANNEL_DATA,
 	STORE_PREFIX_CHAIN_VALIDATORS,
 	STORE_PREFIX_OUTBOX_ROOT,
-	MAINCHAIN_ID,
 	CCM_STATUS_OK,
 	EMPTY_FEE_ADDRESS,
 	MODULE_ID_INTEROPERABILITY_BUFFER,
@@ -214,7 +213,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 				inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				partnerChainOutboxRoot: EMPTY_HASH,
-				messageFeeTokenID: { chainID: 1, localID: 0 },
+				messageFeeTokenID: { chainID: intToBuffer(1, 4), localID: intToBuffer(0, 4) },
 			},
 			channelSchema,
 		);
@@ -225,7 +224,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		const encodedParams = codec.encode(registrationCCMParamsSchema, {
 			networkID,
 			name,
-			messageFeeTokenID: { chainID: MAINCHAIN_ID, localID: 0 },
+			messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: intToBuffer(0, 4) },
 		});
 		const ccm = {
 			nonce: BigInt(0),

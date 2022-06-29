@@ -272,7 +272,7 @@ export interface DecodedBlockJSON {
 }
 
 export interface Event {
-	readonly moduleID: string;
+	readonly moduleID: Buffer;
 	readonly typeID: Buffer;
 	readonly topics: Buffer[];
 	readonly index: number;

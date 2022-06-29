@@ -20,10 +20,10 @@ export const configSchema = {
 			type: 'object',
 			properties: {
 				chainID: {
-					dataType: 'uint32',
+					dataType: 'bytes',
 				},
 				localID: {
-					dataType: 'uint32',
+					dataType: 'bytes',
 				},
 			},
 			required: ['chainID', 'localID'],

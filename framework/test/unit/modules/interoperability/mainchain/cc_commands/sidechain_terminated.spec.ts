@@ -43,7 +43,7 @@ describe('MainchainCCSidechainTerminatedCommand', () => {
 	const networkIdentifier = getRandomBytes(32);
 
 	const ccmSidechainTerminatedParams = {
-		chainID: 5,
+		chainID: intToBuffer(5, 4),
 		stateRoot: getRandomBytes(32),
 	};
 

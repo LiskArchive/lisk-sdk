@@ -73,11 +73,11 @@ export const channelSchema = {
 			required: ['chainID', 'localID'],
 			properties: {
 				chainID: {
-					dataType: 'uint32',
+					dataType: 'bytes',
 					fieldNumber: 1,
 				},
 				localID: {
-					dataType: 'uint32',
+					dataType: 'bytes',
 					fieldNumber: 2,
 				},
 			},
@@ -170,7 +170,7 @@ export const ownChainAccountSchema = {
 			fieldNumber: 1,
 		},
 		id: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 2,
 		},
 		nonce: {
@@ -211,19 +211,19 @@ export const ccmSchema = {
 			fieldNumber: 1,
 		},
 		moduleID: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 2,
 		},
 		crossChainCommandID: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 3,
 		},
 		sendingChainID: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 4,
 		},
 		receivingChainID: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 5,
 		},
 		fee: {
@@ -331,7 +331,7 @@ export const mainchainRegParams = {
 	required: ['ownChainID', 'ownName', 'mainchainValidators', 'signature', 'aggregationBits'],
 	properties: {
 		ownChainID: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
 		ownName: {
@@ -469,7 +469,7 @@ export const messageRecoveryParamsSchema = {
 	required: ['chainID', 'crossChainMessages', 'idxs', 'siblingHashes'],
 	properties: {
 		chainID: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
 		crossChainMessages: {
@@ -517,11 +517,11 @@ export const registrationCCMParamsSchema = {
 			required: ['chainID', 'localID'],
 			properties: {
 				chainID: {
-					dataType: 'uint32',
+					dataType: 'bytes',
 					fieldNumber: 1,
 				},
 				localID: {
-					dataType: 'uint32',
+					dataType: 'bytes',
 					fieldNumber: 2,
 				},
 			},
@@ -541,7 +541,7 @@ export const sidechainTerminatedCCMParamsSchema = {
 	required: ['chainID', 'stateRoot'],
 	properties: {
 		chainID: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
 		stateRoot: {
@@ -572,7 +572,7 @@ export const chainIDSchema = {
 	required: ['id'],
 	properties: {
 		id: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
 	},
@@ -637,7 +637,7 @@ export const registrationSignatureMessageSchema = {
 	required: ['ownChainID', 'ownName', 'mainchainValidators'],
 	properties: {
 		ownChainID: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
 		ownName: {

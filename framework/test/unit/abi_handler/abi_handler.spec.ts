@@ -651,7 +651,7 @@ describe('abi handler', () => {
 			expect(resp.data).toBeInstanceOf(Buffer);
 			const body = JSON.parse(resp.data.toString('utf-8'));
 			expect(body.modules).toHaveLength(2);
-			expect(body.modules[0].id).toBeLessThan(body.modules[1].id);
+			expect(body.modules[0].id.readInt32BE(0)).toBeLessThan(body.modules[1].id.readInt32BE(0));
 		});
 	});
 

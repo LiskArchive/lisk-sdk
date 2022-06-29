@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { intToBuffer } from '@liskhq/lisk-cryptography';
+
 export const cacheConfig = 'aCacheConfig';
 
 export const nodeOptions = {
@@ -50,7 +52,7 @@ export const nodeOptions = {
 		bftThreshold: 68, // Two third of active delegates Math.ceil(activeDelegates * 2 / 3)
 		baseFees: [
 			{
-				moduleID: 5,
+				moduleID: intToBuffer(5, 4),
 				assetID: 0,
 				baseFee: '1000000000',
 			},
@@ -87,7 +89,7 @@ export const nodeOptions = {
 		bftThreshold: 68, // Two third of active delegates Math.ceil(activeDelegates * 2 / 3)
 		baseFees: [
 			{
-				moduleID: 5,
+				moduleID: intToBuffer(5, 4),
 				assetID: 0,
 				baseFee: '1000000000',
 			},

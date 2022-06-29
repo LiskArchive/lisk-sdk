@@ -18,7 +18,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
 import { Block, Chain, DataAccess, BlockHeader, Transaction, StateStore } from '@liskhq/lisk-chain';
-import { getNetworkIdentifier, getKeys, intToBuffer } from '@liskhq/lisk-cryptography';
+import { getNetworkIdentifier, getKeys } from '@liskhq/lisk-cryptography';
 import { Database, StateDB } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
 import { codec } from '@liskhq/lisk-codec';
@@ -172,7 +172,7 @@ export const getBlockProcessingEnv = async (
 	stateMachine.registerModule(dposModule);
 	const blockAssets = blockAssetsJSON.map(asset => ({
 		...asset,
-		moduleID: intToBuffer(asset.moduleID, 4),
+		moduleID: asset.moduleID,
 		data: codec.fromJSON<Record<string, unknown>>(asset.schema, asset.data),
 	}));
 	await stateMachine.init(

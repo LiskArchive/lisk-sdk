@@ -30,6 +30,7 @@ import {
 	CHAIN_ACTIVE,
 	CHAIN_REGISTERED,
 	EMPTY_FEE_ADDRESS,
+	MAINCHAIN_ID_BUFFER,
 } from '../../../../../src/modules/interoperability/constants';
 import { createCCMsgBeforeSendContext } from '../../../../../src/modules/interoperability/context';
 import { MainchainInteroperabilityStore } from '../../../../../src/modules/interoperability/mainchain/store';
@@ -83,7 +84,7 @@ describe('Mainchain interoperability store', () => {
 
 		ownChainAccount = {
 			name: 'mainchain',
-			id: MAINCHAIN_ID,
+			id: MAINCHAIN_ID_BUFFER,
 			nonce: BigInt('0'),
 		};
 
@@ -239,8 +240,8 @@ describe('Mainchain interoperability store', () => {
 			},
 			partnerChainOutboxRoot: Buffer.alloc(0),
 			messageFeeTokenID: {
-				chainID: 1,
-				localID: 2,
+				chainID: intToBuffer(1, 4),
+				localID: intToBuffer(2, 4),
 			},
 		};
 

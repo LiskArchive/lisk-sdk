@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { intToBuffer } from '@liskhq/lisk-cryptography';
 import {
 	ApplicationConfigForPlugin,
 	BaseChannel,
@@ -119,9 +120,9 @@ describe('Clean up old blocks', () => {
 			transaction: chain.transactionSchema,
 			commands: [
 				{
-					moduleID: 5,
+					moduleID: intToBuffer(5, 4),
 					moduleName: 'dpos',
-					commandID: 3,
+					commandID: intToBuffer(3, 4),
 					commandName: 'reportDelegateMisbehavior',
 					schema: {
 						$id: '/lisk/dpos/pom',

@@ -399,13 +399,13 @@ export const initResponseSchema = {
 				properties: {
 					moduleID: {
 						fieldNumber: 1,
-						dataType: 'uint32',
+						dataType: 'bytes',
 					},
 					commandIDs: {
 						fieldNumber: 2,
 						type: 'array',
 						items: {
-							dataType: 'uint32',
+							dataType: 'bytes',
 						},
 					},
 				},
@@ -433,7 +433,7 @@ export const initResponseSchema = {
 						required: ['moduleID', 'data'],
 						properties: {
 							moduleID: {
-								dataType: 'uint32',
+								dataType: 'bytes',
 								fieldNumber: 1,
 							},
 							data: {

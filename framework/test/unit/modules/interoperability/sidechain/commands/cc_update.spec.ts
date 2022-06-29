@@ -123,7 +123,7 @@ describe('CrossChainUpdateCommand', () => {
 			siblingHashes: [Buffer.alloc(1)],
 		},
 	};
-	const defaultTransaction = { moduleID: 1 };
+	const defaultTransaction = { moduleID: intToBuffer(1, 4) };
 
 	const partnerChainStore = {
 		getWithSchema: jest.fn(),
@@ -195,7 +195,7 @@ describe('CrossChainUpdateCommand', () => {
 				root: cryptography.getRandomBytes(38),
 				size: 18,
 			},
-			messageFeeTokenID: { chainID: intToBuffer(1, 4), localID: 0 },
+			messageFeeTokenID: { chainID: intToBuffer(1, 4), localID: intToBuffer(0, 4) },
 			outbox: {
 				appendPath: [Buffer.alloc(1), Buffer.alloc(1)],
 				root: cryptography.getRandomBytes(38),
@@ -490,13 +490,13 @@ describe('CrossChainUpdateCommand', () => {
 
 		it('should call terminateChainInternal() for a ccm when txParams.sendingChainID !== ccm.deserilized.sendingChainID', async () => {
 			const invalidCCM = codec.encode(ccmSchema, {
-				crossChainCommandID: 1,
+				crossChainCommandID: intToBuffer(1, 4),
 				fee: BigInt(0),
-				moduleID: 1,
+				moduleID: intToBuffer(1, 4),
 				nonce: BigInt(1),
 				params: Buffer.alloc(2),
-				receivingChainID: 2,
-				sendingChainID: 50,
+				receivingChainID: intToBuffer(2, 4),
+				sendingChainID: intToBuffer(50, 4),
 				status: CCM_STATUS_OK,
 			});
 			jest
@@ -520,12 +520,12 @@ describe('CrossChainUpdateCommand', () => {
 
 		it('should call terminateChainInternal() for a ccm when it fails on validateFormat', async () => {
 			const invalidCCM = {
-				crossChainCommandID: 1,
+				crossChainCommandID: intToBuffer(1, 4),
 				fee: BigInt(0),
-				moduleID: 1,
+				moduleID: intToBuffer(1, 4),
 				nonce: BigInt(1),
 				params: Buffer.alloc(MAX_CCM_SIZE + 10),
-				receivingChainID: 2,
+				receivingChainID: intToBuffer(2, 4),
 				sendingChainID: defaultSendingChainID,
 				status: CCM_STATUS_OK,
 			};
@@ -559,12 +559,12 @@ describe('CrossChainUpdateCommand', () => {
 
 		it('should call apply() for all the valid CCMs', async () => {
 			const sidechainCCM = {
-				crossChainCommandID: 1,
+				crossChainCommandID: intToBuffer(1, 4),
 				fee: BigInt(0),
-				moduleID: 1,
+				moduleID: intToBuffer(1, 4),
 				nonce: BigInt(1),
 				params: Buffer.alloc(10),
-				receivingChainID: 80,
+				receivingChainID: intToBuffer(80, 4),
 				sendingChainID: defaultSendingChainID,
 				status: CCM_STATUS_OK,
 			};
