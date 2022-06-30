@@ -92,8 +92,7 @@ describe('forging:config command', () => {
 		});
 	});
 
-	// TODO: Update in issue #7235
-	describe.skip('forging:config', () => {
+	describe('forging:config', () => {
 		describe('generate forging config and print', () => {
 			it('should encrypt passphrase and with default hash-onions', async () => {
 				await ConfigCommand.run(['--count=2', '--distance=1', '--pretty'], config);
