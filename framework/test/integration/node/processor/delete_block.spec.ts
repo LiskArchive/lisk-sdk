@@ -185,11 +185,7 @@ describe('Delete block', () => {
 				await processEnv.process(newBlock);
 				await processEnv.getConsensus()['_deleteLastBlock']();
 				// Assert
-				const dbKey = concatDBKeys(
-					DB_KEY_STATE_STORE,
-					intToBuffer(new TokenModule().id, 4),
-					intToBuffer(0, 2),
-				);
+				const dbKey = concatDBKeys(DB_KEY_STATE_STORE, new TokenModule().id, intToBuffer(0, 2));
 				await expect(processEnv.getBlockchainDB().get(dbKey)).rejects.toThrow(
 					`Specified key ${dbKey.toString('hex')} does not exist`,
 				);

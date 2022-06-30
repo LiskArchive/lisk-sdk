@@ -381,7 +381,7 @@ describe('Base interoperability store', () => {
 			crossChainCommandID: intToBuffer(1, 4),
 			sendingChainID: intToBuffer(2, 4),
 			receivingChainID: intToBuffer(3, 4),
-			fee: BigInt(20000),
+			fee: BigInt(34000),
 			status: 0,
 			params: Buffer.alloc(0),
 		};

@@ -82,7 +82,7 @@ describe('FeeModule', () => {
 		});
 
 		it('should validate transaction with exactly the min fee', async () => {
-			const exactMinFee = BigInt(102001);
+			const exactMinFee = BigInt(108001);
 			const transaction = new Transaction({
 				moduleID: intToBuffer(5, 4),
 				commandID: intToBuffer(0, 4),
