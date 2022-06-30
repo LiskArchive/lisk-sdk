@@ -64,7 +64,7 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 const validPluginOptions = {
 	...configSchema.default,
 	encryptedPassphrase:
-		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1',
+		'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=da48673c7ba936b378eda567185e2eb234e64b9cd94c939d8fb486eebebbdfe7c173aa1fa10d690fd2f8e8eec9a4d8bad587d0ba48734a233626ee0a1f6e808c85aa879f2d0f7bc193da4b79921c6e8e&mac=fab6e036709b9950741677c8485f8eaa18c34e3b976221568f36b1a1b8b9e6ce&salt=cb004448538cb456114289fdf9e46104&iv=594001b8b4773ecae8137580&tag=394a9c4e96c7770436a3171452b0a348&iterations=1&parallelism=4&memorySize=2024',
 	dataPath: '/my/app',
 };
 
@@ -82,7 +82,7 @@ describe('auth action', () => {
 			config: {
 				...validPluginOptions,
 				encryptedPassphrase:
-					'iterations=1000000&ciphertext=a31a3324ce12664a396329&iv=b476ef9d377397f4f9b0c1ae&salt=d81787ca5103be883a01d211746b1c3f&tag=e352880bb05a03bafc98af48b924fbf9&version=1',
+					'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=da48673c7ba936b378eda567185e2eb234e64b9cd94c939d8fb486eebebbdfe7c173aa1fa10d690fd2f8e8eec9a4d8bad587d0ba48734a233626ee0a1f6e808c85aa879f2d0f7bc193da4b79921c6e8e&mac=fab6e036709b9950741677c8485f8eaa18c34e3b976221568f36b1a1b8b9e6ce&salt=cb004448538cb456114289fdf9e46104&iv=594001b8b4773ecae8137580&tag=394a9c4e96c7770436a3171452b0a348&iterations=1&parallelism=4&memorySize=2024',
 			},
 			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
@@ -90,22 +90,20 @@ describe('auth action', () => {
 		});
 	});
 
-	// TODO: Fix in next issue
-	it.skip('should disable the reporting when enable=false', async () => {
+	it('should disable the reporting when enable=false', async () => {
 		const params = {
 			enable: false,
-			password: '123',
+			password: 'testpassword',
 		};
 		const response = await reportMisbehaviorPlugin.endpoint.authorize({ params } as any);
 
 		expect(response.result).toContain('Successfully disabled the reporting of misbehavior.');
 	});
 
-	// TODO: Fix in next issue
-	it.skip('should enable the reporting when enable=true', async () => {
+	it('should enable the reporting when enable=true', async () => {
 		const params = {
 			enable: true,
-			password: '123',
+			password: 'testpassword',
 		};
 		const response = await reportMisbehaviorPlugin.endpoint.authorize({ params } as any);
 
