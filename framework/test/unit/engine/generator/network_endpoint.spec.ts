@@ -23,6 +23,7 @@ import { NETWORK_RPC_GET_TRANSACTIONS } from '../../../../src/engine/generator/c
 import { NetworkEndpoint } from '../../../../src/engine/generator/network_endpoint';
 import { ABI, TransactionVerifyResult } from '../../../../src/abi';
 import {
+	getTransactionRequestSchema,
 	getTransactionsResponseSchema,
 	postTransactionsAnnouncementSchema,
 } from '../../../../src/engine/generator/schemas';
@@ -239,14 +240,30 @@ describe('generator network endpoint', () => {
 					transactionIds: [tx.id, tx2.id],
 				});
 
+				const responseTransaction = codec.encode(getTransactionRequestSchema, {
+					transactionIds: [tx2.id],
+				});
+
 				when(pool.contains as jest.Mock)
 					.calledWith(tx.id)
-					.mockReturnValue(true);
+					.mockReturnValue(true)
+					.calledWith(tx2.id)
+					.mockReturnValue(false);
+
 				when(network.requestFromPeer as jest.Mock)
 					.calledWith(expect.anything())
 					.mockResolvedValue({
 						data: transactionIds,
 						peerId: defaultPeerId,
+					} as never);
+				when(network.requestFromPeer as jest.Mock)
+					.calledWith({
+						procedure: NETWORK_RPC_GET_TRANSACTIONS,
+						data: responseTransaction,
+						peerId: defaultPeerId,
+					})
+					.mockResolvedValue({
+						data: codec.encode(getTransactionsResponseSchema, { transactions: [tx2.getBytes()] }),
 					} as never);
 				(chain.dataAccess.getTransactionsByIDs as jest.Mock).mockResolvedValue([]);
 			});

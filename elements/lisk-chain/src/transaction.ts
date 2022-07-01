@@ -106,11 +106,7 @@ export class Transaction {
 	}
 
 	public static fromBytes(bytes: Buffer): Transaction {
-		// eslint-disable-next-line no-console
-		console.log(bytes);
 		const tx = codec.decode<TransactionAttrs>(transactionSchema, bytes);
-		// eslint-disable-next-line no-console
-		console.log(tx);
 		return new Transaction(tx);
 	}
 
