@@ -50,15 +50,15 @@ describe('Transaction order', () => {
 			amount: BigInt('10000000000'),
 			networkIdentifier,
 			passphrase: genesis.passphrase,
-			fee: BigInt(152000), // minFee not to give fee for generator
+			fee: BigInt(1520000), // minFee not to give fee for generator
 		});
 		newBlock = await processEnv.createBlock([transaction]);
 
 		await processEnv.process(newBlock);
 	});
 
-	afterAll(async () => {
-		await processEnv.cleanup({ databasePath });
+	afterAll(() => {
+		processEnv.cleanup({ databasePath });
 	});
 
 	describe('when report misbehavior transaction is submitted against the delegate', () => {
