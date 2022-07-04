@@ -420,8 +420,6 @@ export abstract class BaseInteroperabilityStore {
 				try {
 					await mod.beforeApplyCCM(beforeCCMApplyContext);
 				} catch (error) {
-					// eslint-disable-next-line no-console
-					console.log('dfsd', error);
 					return;
 				}
 			}

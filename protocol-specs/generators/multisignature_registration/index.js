@@ -183,7 +183,6 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 	const txBuffer = getSignBytes(tx);
 
 	// Sender signs
-	console.log(accounts.targetAccount);
 	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
 	// Members sign in order
 	tx.signatures.push(createSignatureObject(txBuffer, accounts.mandatoryTwo).signature);
