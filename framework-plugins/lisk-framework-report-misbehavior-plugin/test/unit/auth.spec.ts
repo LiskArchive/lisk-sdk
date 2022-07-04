@@ -73,6 +73,9 @@ const channelMock = {
 	once: jest.fn().mockImplementation((_eventName, cb) => cb()),
 };
 
+const encryptedPassphrase =
+	'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=11ac52fe63e95e996a845dbe01de2913fe16d7722008a998fbfb5722be1cb358d67810c7a71b22be167715018458d5705a8242ca18fcb9faa00b3b0dce57c2b7aa4c835b41529a0203598f10f5b8e911&mac=9f7f88d5f4e488dcc27d3d4a1176086e04a0f6ddf2f5bd90890e5002156dd096&salt=8e65503565a1f2352c13cf42c22e6f7c&iv=303a8a37e47fa8517c50fc00&tag=1f9c18ea7cb1dc64c5cabb7fa3ba73f5&iterations=1&parallelism=4&memorySize=2024';
+
 describe('auth action', () => {
 	let reportMisbehaviorPlugin: ReportMisbehaviorPlugin;
 
@@ -81,8 +84,7 @@ describe('auth action', () => {
 		await reportMisbehaviorPlugin.init({
 			config: {
 				...validPluginOptions,
-				encryptedPassphrase:
-					'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=da48673c7ba936b378eda567185e2eb234e64b9cd94c939d8fb486eebebbdfe7c173aa1fa10d690fd2f8e8eec9a4d8bad587d0ba48734a233626ee0a1f6e808c85aa879f2d0f7bc193da4b79921c6e8e&mac=fab6e036709b9950741677c8485f8eaa18c34e3b976221568f36b1a1b8b9e6ce&salt=cb004448538cb456114289fdf9e46104&iv=594001b8b4773ecae8137580&tag=394a9c4e96c7770436a3171452b0a348&iterations=1&parallelism=4&memorySize=2024',
+				encryptedPassphrase,
 			},
 			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
