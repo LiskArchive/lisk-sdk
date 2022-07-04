@@ -98,7 +98,7 @@ describe('validation', () => {
 		it('should return true when value is valid encrypted passphrase', () => {
 			return expect(
 				isEncryptedPassphrase(
-					'iterations=1&salt=d3e4c10d1f889d45fc1f23dd1a55a4ed&cipherText=c030aae98cb41b3cadf6cf8b71d8dc1304c709696880e09c6c5f41361666ced2ce804407ac99c05799f06ea513be9cb80bbb824db6e0e69fa252f3ce2fe654d34d4f7344fcaeafe143d3b1&iv=03414e5d5e79f22c04f20a57&tag=5025de28a5134e2cf6c4cc3a3212723b&version=1',
+					'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=bd65587de1b7b42e289693e8ac14561c7c77370ff158133c6eb512849353446b339f04c8f45b6b8cc72e5e8485dab4031d9f5e2d7cb9d424076401ea58dad6d4a348fc1f013ceb5d8bb314&mac=6e017e6b2a341db10b91440462fc2626fe6e4b711ea09f8df3ac1df42a6de572&salt=e9f564ce7f8392acb2691fb4953e17c0&iv=57124bb910dbf9e24e37d401&tag=b769dcbd4ad0d3f44041afe5322aad82&iterations=1&parallelism=4&memorySize=2024',
 				),
 			).toBeTrue();
 		});
@@ -116,7 +116,7 @@ describe('validation', () => {
 		it('should return true when 24 words bip39 Mnemonic was encrypted', () => {
 			return expect(
 				isEncryptedPassphrase(
-					'iterations=1000000&cipherText=d8d8bd8a883cd5a8a5b0c0a5ee7221f5fcd93bad0ab7675d156bec831f2aee8c10c683eb472188dd28e6caa1e9ed3d3f2769b9265c5a11e28428775cd0697ad023dc6f4b780f37f18ac03a2c14b51def04ec0391e7d258c0c65e3910b65812c61aebb8b098537a4240111a8c1509cffdc970b7cd0885c32811a0d5e7cd4539740fad661dd4c8a131a0438e7d17ed54e8d5127a81a663a0af127b01&iv=87a17399fe06332c2775dd75&salt=3503a17ea682784b490f22cf9d728563&tag=23be4e96c71d31eae005b29502179862&version=1',
+					'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=bd65587de1b7b42e289693e8ac14561c7c77370ff158133c6eb512849353446b339f04c8f45b6b8cc72e5e8485dab4031d9f5e2d7cb9d424076401ea58dad6d4a348fc1f013ceb5d8bb314&mac=6e017e6b2a341db10b91440462fc2626fe6e4b711ea09f8df3ac1df42a6de572&salt=e9f564ce7f8392acb2691fb4953e17c0&iv=57124bb910dbf9e24e37d401&tag=b769dcbd4ad0d3f44041afe5322aad82&iterations=1&parallelism=4&memorySize=2024',
 				),
 			).toBeTrue();
 		});

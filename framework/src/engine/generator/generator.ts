@@ -25,6 +25,7 @@ import {
 import { codec } from '@liskhq/lisk-codec';
 import {
 	decryptPassphraseWithPassword,
+	EncryptedPassphraseObject,
 	generatePrivateKey,
 	getAddressFromPublicKey,
 	getPrivateAndPublicKeyFromPassphrase,
@@ -335,8 +336,8 @@ export class Generator {
 		for (const encryptedItem of encryptedList) {
 			let passphrase;
 			try {
-				passphrase = decryptPassphraseWithPassword(
-					parseEncryptedPassphrase(encryptedItem.encryptedPassphrase),
+				passphrase = await decryptPassphraseWithPassword(
+					parseEncryptedPassphrase(encryptedItem.encryptedPassphrase) as EncryptedPassphraseObject,
 					this._config.password,
 				);
 			} catch (error) {

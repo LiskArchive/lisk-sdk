@@ -112,7 +112,7 @@ const createProcessableBlock = async (
 		previousBlockHeader.height + 1,
 		nextTimestamp,
 	);
-	const passphrase = getPassphraseFromDefaultConfig(validator);
+	const passphrase = await getPassphraseFromDefaultConfig(validator);
 	for (const tx of transactions) {
 		await engine['_generator']['_pool'].add(tx);
 	}

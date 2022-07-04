@@ -53,7 +53,7 @@ export class EncryptCommand extends Command {
 
 		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 		const password = passwordSource ?? (await getPasswordFromPrompt('password', true));
-		const result = encryptPassphrase(passphrase, password, outputPublicKey);
+		const result = await encryptPassphrase(passphrase, password, outputPublicKey);
 
 		this.printJSON(result, pretty);
 	}

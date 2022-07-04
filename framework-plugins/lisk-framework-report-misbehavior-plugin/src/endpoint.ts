@@ -49,8 +49,8 @@ export class Endpoint extends BasePluginEndpoint {
 		try {
 			const parsedEncryptedPassphrase = parseEncryptedPassphrase(this._config.encryptedPassphrase);
 
-			const passphrase = decryptPassphraseWithPassword(
-				parsedEncryptedPassphrase,
+			const passphrase = await decryptPassphraseWithPassword(
+				parsedEncryptedPassphrase as any,
 				password as string,
 			);
 

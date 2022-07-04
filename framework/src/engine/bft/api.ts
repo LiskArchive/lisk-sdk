@@ -130,8 +130,8 @@ export class BFTAPI extends BaseAPI {
 		const end = intToBuffer(MAX_UINT32, 4, BIG_ENDIAN);
 		const results = await paramsStore.iterate({
 			limit: 1,
-			start,
-			end,
+			gte: start,
+			lte: end,
 		});
 		if (results.length !== 1) {
 			throw new BFTParameterNotFoundError();
