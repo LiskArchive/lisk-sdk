@@ -68,7 +68,7 @@ describe('block assets', () => {
 		it('should create BlockAssets from JSON format', () => {
 			assets = BlockAssets.fromJSON([
 				{
-					moduleID: '4',
+					moduleID: intToBuffer(4, 4).toString('hex'),
 					data: getRandomBytes(30).toString('hex'),
 				},
 			]);
