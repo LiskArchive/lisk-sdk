@@ -127,7 +127,7 @@ export class Transaction {
 			}
 			txInput.moduleID = registeredModule.id;
 		}
-		if (typeof txInput.commandID !== 'number') {
+		if (!txInput.commandID) {
 			if (!txInput.commandName) {
 				throw new Error('Missing commandID and commandName');
 			}
