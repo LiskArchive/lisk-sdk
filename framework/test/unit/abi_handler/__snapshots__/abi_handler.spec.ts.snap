@@ -8,7 +8,7 @@ Object {
     "password": "",
   },
   "genesis": Object {
-    "bftBatchSize": 10,
+    "bftBatchSize": 103,
     "blockTime": 10,
     "communityIdentifier": "sdk",
     "maxTransactionsSize": 15360,
@@ -43,7 +43,7 @@ Object {
     ],
     "ws": Object {
       "host": "127.0.0.1",
-      "port": 8000,
+      "port": 8080,
     },
   },
   "system": Object {

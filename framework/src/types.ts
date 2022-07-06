@@ -67,6 +67,7 @@ export interface GenesisConfig {
 	maxTransactionsSize: number;
 	minFeePerByte: number;
 	blockTime: number;
+	bftBatchSize: number;
 	baseFees: {
 		moduleID: number;
 		commandID: number;

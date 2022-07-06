@@ -21,6 +21,12 @@ describe('schema/application_config_schema.js', () => {
 		expect(applicationConfigSchema).toMatchSnapshot();
 	});
 
+	it('should validate the defined schema', () => {
+		const errors = validator.validateSchema(applicationConfigSchema);
+
+		expect(errors).toHaveLength(0);
+	});
+
 	it('should validate if module properties are objects', () => {
 		const config = objects.cloneDeep(applicationConfigSchema.default);
 		config.genesis.modules = { myModule: { myProp: 1 } };
