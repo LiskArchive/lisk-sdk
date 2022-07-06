@@ -16,6 +16,7 @@ import {} from 'lisk-framework';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as transactions from '@liskhq/lisk-transactions';
 import { codec, Schema } from '@liskhq/lisk-codec';
+import { intToBuffer } from '@liskhq/lisk-cryptography';
 
 const account = {
 	passphrase: 'endless focus guilt bronze hold economy bulk parent soon tower cement venue',
@@ -144,8 +145,8 @@ export const createTransferTransaction = ({
 }): Record<string, unknown> => {
 	const transaction = transactions.signTransaction(
 		{
-			moduleID: 2,
-			commandID: 0,
+			moduleID: intToBuffer(2, 4),
+			commandID: intToBuffer(0, 4),
 			nonce: BigInt(nonce),
 			fee: BigInt(transactions.convertLSKToBeddows(fee)),
 			senderPublicKey: Buffer.from(account.publicKey, 'hex'),

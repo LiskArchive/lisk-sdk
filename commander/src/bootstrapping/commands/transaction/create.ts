@@ -41,8 +41,8 @@ import {
 } from '../../../utils/transaction';
 
 interface Args {
-	readonly moduleID: Buffer;
-	readonly commandID: Buffer;
+	readonly moduleID: number;
+	readonly commandID: number;
 	readonly fee: string;
 }
 
@@ -69,7 +69,11 @@ interface Transaction {
 }
 
 const getParamsObject = async (metadata: ModuleMetadata[], flags: CreateFlags, args: Args) => {
-	const paramsSchema = getParamsSchema(metadata, args.moduleID, args.commandID) as Schema;
+	const paramsSchema = getParamsSchema(
+		metadata,
+		cryptography.intToBuffer(args.moduleID, 4),
+		cryptography.intToBuffer(args.commandID, 4),
+	) as Schema;
 	const rawParams = flags.params
 		? JSON.parse(flags.params)
 		: await getParamsFromPrompt(paramsSchema);
@@ -272,8 +276,8 @@ export abstract class CreateCommand extends Command {
 		const { args, flags } = this.parse(CreateCommand);
 
 		const incompleteTransaction = {
-			moduleID: args.moduleID,
-			commandID: args.commandID,
+			moduleID: cryptography.intToBuffer(args.moduleID, 4),
+			commandID: cryptography.intToBuffer(args.commandID, 4),
 			fee: BigInt(args.fee),
 			nonce: BigInt(0),
 			senderPublicKey: Buffer.alloc(0),
