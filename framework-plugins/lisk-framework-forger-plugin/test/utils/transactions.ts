@@ -11,7 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { intToBuffer } from '@liskhq/lisk-cryptography';
 import { Transaction, testing, codec, transactions, cryptography } from 'lisk-sdk';
 
 export const createTransferTransaction = ({
@@ -27,6 +26,7 @@ export const createTransferTransaction = ({
 	nonce: number;
 	networkIdentifier: Buffer;
 }): Transaction => {
+	const { intToBuffer } = cryptography;
 	const genesisAccount = testing.fixtures.defaultFaucetAccount;
 	const encodedAsset = codec.encode(new TokenTransferAsset(BigInt(5000000)).schema, {
 		recipientAddress: Buffer.from(recipientAddress, 'hex'),
