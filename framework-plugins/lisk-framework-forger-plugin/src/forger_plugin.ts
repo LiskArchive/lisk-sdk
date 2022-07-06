@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { intToBuffer } from '@liskhq/lisk-cryptography';
 import {
 	BasePlugin,
 	GenesisConfig,
@@ -34,6 +33,7 @@ import { Forger, TransactionFees, Voters } from './types';
 import { Endpoint } from './endpoint';
 
 const { Block } = chain;
+const { intToBuffer } = cryptography;
 type BlockHeaderJSON = chain.BlockHeaderJSON;
 type BlockJSON = chain.BlockJSON;
 type TransactionJSON = chain.TransactionJSON;
