@@ -21,7 +21,8 @@ import { MainchainInteroperabilityEndpoint } from './endpoint';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainAPI = new MainchainCCAPI(this.id);
-	public api = new MainchainInteroperabilityAPI(this.id);
+	// TODO: inject interoperable cc apis
+	public api = new MainchainInteroperabilityAPI(this.id, new Map());
 	public endpoint = new MainchainInteroperabilityEndpoint(this.id);
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public registerInteroperableModule(): void {
