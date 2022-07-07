@@ -39,11 +39,11 @@
 		"consoleLogLevel": "info"
 	},
 	"network": {
-		"port": 5000,
+		"port": 7667,
 		"seedPeers": [
 			{
 				"ip": "127.0.0.1",
-				"port": 5000
+				"port": 7667
 			}
 		]
 	},

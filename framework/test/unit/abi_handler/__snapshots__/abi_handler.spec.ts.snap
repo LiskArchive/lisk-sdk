@@ -26,14 +26,14 @@ Object {
     "hostIP": "127.0.0.1",
     "maxInboundConnections": 100,
     "maxOutboundConnections": 20,
-    "port": 5000,
+    "port": 7667,
     "seedPeers": Array [],
     "whitelistedPeers": Array [],
   },
   "rpc": Object {
     "http": Object {
       "host": "127.0.0.1",
-      "port": 8000,
+      "port": 7887,
     },
     "ipc": Object {
       "path": "/User/lisk/.lisk/beta-sdk-app/socket/ipc",
@@ -43,7 +43,7 @@ Object {
     ],
     "ws": Object {
       "host": "127.0.0.1",
-      "port": 8000,
+      "port": 7887,
     },
   },
   "system": Object {
