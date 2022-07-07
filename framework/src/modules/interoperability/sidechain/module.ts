@@ -23,7 +23,8 @@ import { SidechainInteroperabilityEndpoint } from './endpoint';
 
 export class SidechainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainAPI: BaseInteroperableAPI = new SidechainCCAPI(this.id);
-	public api = new SidechainInteroperabilityAPI(this.id);
+	// TODO: inject interoperable cc apis once implemented
+	public api = new SidechainInteroperabilityAPI(this.id, new Map());
 	public endpoint = new SidechainInteroperabilityEndpoint(this.id);
 	// private readonly _mainchainRegistrationCommand = new MainchainRegistrationCommand(
 	// 	this.id,
