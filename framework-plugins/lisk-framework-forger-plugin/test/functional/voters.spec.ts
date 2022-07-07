@@ -76,7 +76,7 @@ describe('forger:getVoters action', () => {
 			});
 			accountNonce += 1;
 
-			await appEnv.ipcClient.invoke('app:postTransaction', {
+			await appEnv.ipcClient.invoke('txpool_postTransaction', {
 				transaction: transaction.getBytes().toString('hex'),
 			});
 			await appEnv.waitNBlocks(1);

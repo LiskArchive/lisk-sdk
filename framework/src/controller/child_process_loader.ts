@@ -60,7 +60,7 @@ const _loadPlugin = async (
 
 	logger.debug({ plugin: pluginName }, 'Plugin is registered to bus');
 
-	await plugin.init({ appConfig, channel, config, logger });
+	await plugin.init({ appConfig, config, logger });
 	await plugin.load();
 
 	logger.debug({ plugin: pluginName }, 'Plugin is successfully loaded');

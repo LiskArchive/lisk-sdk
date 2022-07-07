@@ -22,9 +22,9 @@ import {
 	getAddressFromPublicKey,
 } from '@liskhq/lisk-cryptography';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { codec } from '@liskhq/lisk-codec';
 import {
 	decodeTransaction,
-	decodeTransactionParams,
 	encodeTransaction,
 	fromTransactionJSON,
 	getTransactionParamsSchema,
@@ -40,12 +40,6 @@ import {
 	Transaction as ITransaction,
 	DecodedTransactionJSON,
 } from './types';
-
-interface MultiSignatureKeys {
-	readonly mandatoryKeys: Buffer[];
-	readonly optionalKeys: Buffer[];
-	readonly numberOfSignatures: number;
-}
 
 interface BaseFee {
 	readonly moduleID: Buffer;
@@ -86,25 +80,25 @@ export class Transaction {
 
 	public async create<T = Record<string, unknown>>(
 		input: {
-			moduleID?: Buffer; // id takes priority
+			moduleID?: string; // id takes priority
 			moduleName?: string;
-			commandID?: Buffer; // id takes priority
+			commandID?: string; // id takes priority
 			commandName?: string;
-			fee: bigint;
-			nonce?: bigint;
-			senderPublicKey?: Buffer;
+			fee: bigint | string;
+			nonce?: bigint | string;
+			senderPublicKey?: string;
 			params: T;
-			signatures?: Buffer[];
+			signatures?: string[];
 		},
 		passphrase: string,
 		options?: {
 			includeSenderSignature?: boolean;
 			multisignatureKeys?: {
-				mandatoryKeys: Buffer[];
-				optionalKeys: Buffer[];
+				mandatoryKeys: string[];
+				optionalKeys: string[];
 			};
 		},
-	): Promise<DecodedTransaction<T>> {
+	): Promise<DecodedTransactionJSON<T>> {
 		const txInput = input;
 		const networkIdentifier = Buffer.from(this._nodeInfo.networkIdentifier, 'hex');
 		const { publicKey, address } = getAddressAndPublicKeyFromPassphrase(passphrase);
@@ -131,12 +125,9 @@ export class Transaction {
 			if (!txInput.commandName) {
 				throw new Error('Missing commandID and commandName');
 			}
-			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			const registeredModule = this._metadata.find(m => m.id.equals(txInput.moduleID!));
+			const registeredModule = this._metadata.find(m => m.id === txInput.moduleID);
 			if (!registeredModule) {
-				throw new Error(
-					`Module corresponding to id ${txInput.moduleID.readInt32BE(0)} not registered.`,
-				);
+				throw new Error(`Module corresponding to id ${txInput.moduleID} not registered.`);
 			}
 			const registeredCommand = registeredModule.commands.find(
 				command => command.name === txInput.commandName,
@@ -146,24 +137,36 @@ export class Transaction {
 			}
 			txInput.commandID = registeredCommand.id;
 		}
-		if (typeof txInput.nonce !== 'bigint') {
+		if (typeof txInput.nonce !== 'bigint' && txInput.nonce !== 'string') {
 			txInput.nonce = BigInt(authAccount.nonce);
 		}
 		if (txInput.nonce < BigInt(0)) {
 			throw new Error('Nonce must be greater or equal to zero');
 		}
 		if (!txInput.senderPublicKey) {
-			txInput.senderPublicKey = publicKey;
+			txInput.senderPublicKey = publicKey.toString('hex');
 		}
 		// If signature is not set, assign empty array
 		txInput.signatures = txInput.signatures ?? [];
 		const commandSchema = getTransactionParamsSchema(
-			txInput as Omit<DecodedTransaction, 'id' | 'signatures'>,
+			txInput as { moduleID: string; commandID: string },
 			this._metadata,
 		);
+		const rawTx = {
+			...txInput,
+			moduleID: Buffer.from(txInput.moduleID, 'hex'),
+			commandID: Buffer.from(txInput.commandID, 'hex'),
+			nonce: BigInt(txInput.nonce),
+			fee: BigInt(txInput.fee),
+			signatures: txInput.signatures.map(s => Buffer.from(s, 'hex')),
+			senderPublicKey: Buffer.from(txInput.senderPublicKey, 'hex'),
+			params: commandSchema
+				? codec.fromJSON(commandSchema, txInput.params as Record<string, unknown>)
+				: {},
+		};
 		if (authAccount.numberOfSignatures > 0) {
-			return signMultiSignatureTransaction(
-				txInput,
+			const signedTx = signMultiSignatureTransaction(
+				rawTx,
 				networkIdentifier,
 				passphrase,
 				{
@@ -172,24 +175,25 @@ export class Transaction {
 				},
 				commandSchema,
 				options?.includeSenderSignature,
-			) as DecodedTransaction<T>;
+			);
+			return this.toJSON(signedTx) as DecodedTransactionJSON<T>;
 		}
 		if (options?.multisignatureKeys && options?.includeSenderSignature) {
-			return signMultiSignatureTransaction(
-				txInput,
+			const signedTx = signMultiSignatureTransaction(
+				rawTx,
 				networkIdentifier,
 				passphrase,
-				options.multisignatureKeys,
+				{
+					mandatoryKeys: authAccount.mandatoryKeys.map(k => Buffer.from(k, 'hex')),
+					optionalKeys: authAccount.optionalKeys.map(k => Buffer.from(k, 'hex')),
+				},
 				commandSchema,
 				options.includeSenderSignature,
-			) as DecodedTransaction<T>;
+			);
+			return this.toJSON(signedTx) as DecodedTransactionJSON<T>;
 		}
-		return signTransaction(
-			txInput,
-			networkIdentifier,
-			passphrase,
-			commandSchema,
-		) as DecodedTransaction<T>;
+		const signedTx = signTransaction(rawTx, networkIdentifier, passphrase, commandSchema);
+		return this.toJSON(signedTx) as DecodedTransactionJSON<T>;
 	}
 
 	public async get(id: Buffer | string): Promise<DecodedTransaction> {
@@ -216,19 +220,22 @@ export class Transaction {
 		options?: {
 			includeSenderSignature?: boolean;
 			multisignatureKeys?: {
-				mandatoryKeys: Buffer[];
-				optionalKeys: Buffer[];
+				mandatoryKeys: string[];
+				optionalKeys: string[];
 			};
 		},
-	): Promise<DecodedTransaction> {
-		this._validateTransaction(transaction);
-		const commandSchema = getTransactionParamsSchema(transaction, this._metadata);
+	): Promise<DecodedTransactionJSON> {
+		const commandSchema = getTransactionParamsSchema(
+			transaction as TransactionJSON,
+			this._metadata,
+		);
+		const decodedTx = this.fromJSON(transaction as TransactionJSON);
+		this._validateTransaction(decodedTx);
 		const networkIdentifier = Buffer.from(this._nodeInfo.networkIdentifier, 'hex');
-		const address = getAddressFromPublicKey(transaction.senderPublicKey);
+		const address = getAddressFromPublicKey(decodedTx.senderPublicKey);
 		const authAccount = await this._channel.invoke<AuthAccount>('auth_getAuthAccount', {
 			address: address.toString('hex'),
 		});
-		const decodedTx = decodeTransactionParams(transaction, this._metadata);
 		if (authAccount.numberOfSignatures > 0) {
 			for (const passphrase of passphrases) {
 				signMultiSignatureTransaction(
@@ -243,7 +250,7 @@ export class Transaction {
 					options?.includeSenderSignature,
 				);
 			}
-			return decodedTx;
+			return this.toJSON(decodedTx);
 		}
 		if (options?.multisignatureKeys && options?.includeSenderSignature) {
 			for (const passphrase of passphrases) {
@@ -251,28 +258,33 @@ export class Transaction {
 					decodedTx,
 					networkIdentifier,
 					passphrase,
-					options.multisignatureKeys as MultiSignatureKeys,
+					{
+						mandatoryKeys: options.multisignatureKeys.mandatoryKeys.map(k => Buffer.from(k, 'hex')),
+						optionalKeys: options.multisignatureKeys.optionalKeys.map(k => Buffer.from(k, 'hex')),
+					},
 					commandSchema,
 					options.includeSenderSignature,
 				);
 			}
-			return decodedTx;
+			return this.toJSON(decodedTx);
 		}
-		return signTransaction(
+		const signedTx = signTransaction(
 			decodedTx,
 			networkIdentifier,
 			passphrases[0],
 			commandSchema,
 		) as DecodedTransaction;
+		return this.toJSON(signedTx);
 	}
 
 	public async send(
-		transaction: Record<string, unknown>,
+		transaction: DecodedTransactionJSON,
 	): Promise<{
 		transactionId: string;
 	}> {
-		this._validateTransaction(transaction);
-		const encodedTx = encodeTransaction(transaction, this._schema, this._metadata);
+		const decodedTx = this.fromJSON(transaction);
+		this._validateTransaction(decodedTx);
+		const encodedTx = encodeTransaction(decodedTx, this._schema, this._metadata);
 		return this._channel.invoke<{
 			transactionId: string;
 		}>('txpool_postTransaction', { transaction: encodedTx.toString('hex') });
@@ -290,17 +302,22 @@ export class Transaction {
 		return encodeTransaction(transaction, this._schema, this._metadata);
 	}
 
-	public computeMinFee(transaction: Record<string, unknown>): bigint {
-		this._validateTransaction(transaction);
+	public computeMinFee(transaction: Omit<DecodedTransactionJSON, 'id'>): bigint {
+		const decodedTx = this.fromJSON(transaction as DecodedTransactionJSON);
+		this._validateTransaction(decodedTx);
 		const commandSchema = getTransactionParamsSchema(transaction, this._metadata);
-		const numberOfSignatures = transaction.signatures ? transaction.signatures.length : 1;
+		const numberOfSignatures = decodedTx.signatures ? decodedTx.signatures.length : 1;
 		const options: Options = {
 			minFeePerByte: this._nodeInfo.genesisConfig.minFeePerByte,
-			baseFees: this._nodeInfo.genesisConfig.baseFees,
+			baseFees: this._nodeInfo.genesisConfig.baseFees.map(fee => ({
+				baseFee: fee.baseFee,
+				commandID: Buffer.from(fee.commandID, 'hex'),
+				moduleID: Buffer.from(fee.moduleID, 'hex'),
+			})),
 			numberOfSignatures,
 		};
 
-		return computeMinFee(transaction, commandSchema, options);
+		return computeMinFee(decodedTx, commandSchema, options);
 	}
 
 	public toJSON(transaction: Record<string, unknown>): DecodedTransactionJSON {

@@ -12,14 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { intToBuffer } from '@liskhq/lisk-cryptography';
-import {
-	ApplicationConfigForPlugin,
-	BaseChannel,
-	GenesisConfig,
-	testing,
-	chain,
-	codec,
-} from 'lisk-sdk';
+import { ApplicationConfigForPlugin, GenesisConfig, testing, chain, codec } from 'lisk-sdk';
 import * as fs from 'fs-extra';
 
 import { ReportMisbehaviorPlugin } from '../../src';
@@ -106,7 +99,6 @@ describe('Clean up old blocks', () => {
 		reportMisbehaviorPlugin = new ReportMisbehaviorPlugin();
 		await reportMisbehaviorPlugin.init({
 			config: validPluginOptions,
-			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
 			logger: testing.mocks.loggerMock,
 		});
@@ -114,7 +106,7 @@ describe('Clean up old blocks', () => {
 
 		await fs.remove(reportMisbehaviorPlugin.dataPath);
 
-		jest.spyOn(reportMisbehaviorPlugin['apiClient'], 'schemas', 'get').mockReturnValue({
+		jest.spyOn(reportMisbehaviorPlugin['apiClient'], 'schema', 'get').mockReturnValue({
 			block: chain.blockSchema,
 			blockHeader: chain.blockHeaderSchema,
 			transaction: chain.transactionSchema,

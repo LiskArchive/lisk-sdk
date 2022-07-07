@@ -77,7 +77,7 @@ export class RandomModule extends BaseModule {
 			events: [],
 			assets: [
 				{
-					version: 3,
+					version: 2,
 					data: blockHeaderAssetRandomModule,
 				},
 			],

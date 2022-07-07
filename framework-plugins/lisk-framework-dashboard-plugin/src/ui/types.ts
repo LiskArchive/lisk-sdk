@@ -32,8 +32,8 @@ export interface GenesisConfig {
 	};
 	readonly minFeePerByte: number;
 	readonly baseFees: {
-		readonly moduleID: Buffer;
-		readonly commandID: Buffer;
+		readonly moduleID: string;
+		readonly commandID: string;
 		readonly baseFee: string;
 	}[];
 }
@@ -51,8 +51,8 @@ export interface NodeInfo {
 }
 
 export interface Fee {
-	moduleId: Buffer;
-	commandId: Buffer;
+	moduleId: string;
+	commandId: string;
 	baseFee: number;
 }
 
@@ -70,8 +70,8 @@ export interface Block {
 export interface Transaction {
 	id: string;
 	senderPublicKey: string;
-	moduleID: Buffer;
-	commandID: Buffer;
+	moduleID: string;
+	commandID: string;
 	fee: number;
 }
 
@@ -81,8 +81,8 @@ export interface EventData {
 }
 
 export interface SendTransactionOptions {
-	moduleID: Buffer;
-	commandID: Buffer;
+	moduleID: string;
+	commandID: string;
 	params: Record<string, unknown>;
 	passphrase: string;
 }
