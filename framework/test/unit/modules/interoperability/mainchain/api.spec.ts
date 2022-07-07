@@ -22,7 +22,7 @@ describe('Mainchain API', () => {
 	const interoperableCCAPIs = new Map();
 	const getStore = jest.fn().mockReturnValue({ getWithSchema: jest.fn() });
 	const apiContext = {
-		getStore: jest.fn().mockReturnValue({ getWithSchema: jest.fn() }),
+		getStore,
 		eventQueue: {
 			add: jest.fn(),
 		},
