@@ -16,12 +16,12 @@ import { Schema } from '@liskhq/lisk-codec';
 import { CCCommandExecuteContext } from './types';
 
 export abstract class BaseCCCommand {
-	protected moduleID: number;
-	public abstract ID: number;
+	protected moduleID: Buffer;
+	public abstract ID: Buffer;
 	public abstract name: string;
 	public abstract schema: Schema;
 
-	public constructor(moduleID: number) {
+	public constructor(moduleID: Buffer) {
 		this.moduleID = moduleID;
 	}
 	public abstract execute(ctx: CCCommandExecuteContext): Promise<void>;

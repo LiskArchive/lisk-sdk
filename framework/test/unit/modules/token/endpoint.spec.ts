@@ -11,12 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { TokenAPI } from '../../../../src/modules/token';
 import {
 	CHAIN_ID_LENGTH,
 	EMPTY_BYTES,
-	MODULE_ID_TOKEN,
+	MODULE_ID_TOKEN_BUFFER,
 	STORE_PREFIX_AVAILABLE_LOCAL_ID,
 	STORE_PREFIX_ESCROW,
 	STORE_PREFIX_SUPPLY,
@@ -45,7 +45,7 @@ describe('token endpoint', () => {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
 			{
-				moduleID: 12,
+				moduleID: intToBuffer(12, 4),
 				amount: BigInt(100000000),
 			},
 		],
@@ -58,8 +58,8 @@ describe('token endpoint', () => {
 	let stateStore: PrefixedStateReadWriter;
 
 	beforeEach(async () => {
-		const api = new TokenAPI(MODULE_ID_TOKEN);
-		endpoint = new TokenEndpoint(MODULE_ID_TOKEN);
+		const api = new TokenAPI(MODULE_ID_TOKEN_BUFFER);
+		endpoint = new TokenEndpoint(MODULE_ID_TOKEN_BUFFER);
 		api.init({
 			minBalances: [
 				{
@@ -77,7 +77,7 @@ describe('token endpoint', () => {
 		});
 		endpoint.init(api, supportedTokenIDs);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		const userStore = stateStore.getStore(MODULE_ID_TOKEN, STORE_PREFIX_USER);
+		const userStore = stateStore.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
 		await userStore.setWithSchema(
 			getUserStoreKey(defaultAddress, defaultTokenIDAlias),
 			defaultAccount,
@@ -89,7 +89,7 @@ describe('token endpoint', () => {
 			userStoreSchema,
 		);
 
-		const supplyStore = stateStore.getStore(MODULE_ID_TOKEN, STORE_PREFIX_SUPPLY);
+		const supplyStore = stateStore.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_SUPPLY);
 		await supplyStore.setWithSchema(
 			defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
 			{ totalSupply: defaultTotalSupply },
@@ -97,7 +97,7 @@ describe('token endpoint', () => {
 		);
 
 		const nextAvailableLocalIDStore = stateStore.getStore(
-			MODULE_ID_TOKEN,
+			MODULE_ID_TOKEN_BUFFER,
 			STORE_PREFIX_AVAILABLE_LOCAL_ID,
 		);
 		await nextAvailableLocalIDStore.setWithSchema(
@@ -106,7 +106,7 @@ describe('token endpoint', () => {
 			availableLocalIDStoreSchema,
 		);
 
-		const escrowStore = stateStore.getStore(MODULE_ID_TOKEN, STORE_PREFIX_ESCROW);
+		const escrowStore = stateStore.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_ESCROW);
 		await escrowStore.setWithSchema(
 			Buffer.concat([
 				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
@@ -150,6 +150,7 @@ describe('token endpoint', () => {
 						availableBalance: defaultAccount.availableBalance.toString(),
 						lockedBalances: defaultAccount.lockedBalances.map(lb => ({
 							...lb,
+							moduleID: lb.moduleID.readInt32BE(0).toString(),
 							amount: lb.amount.toString(),
 						})),
 					},
@@ -158,6 +159,7 @@ describe('token endpoint', () => {
 						availableBalance: defaultAccount.availableBalance.toString(),
 						lockedBalances: defaultAccount.lockedBalances.map(lb => ({
 							...lb,
+							moduleID: lb.moduleID.readInt32BE(0).toString(),
 							amount: lb.amount.toString(),
 						})),
 					},
@@ -215,6 +217,7 @@ describe('token endpoint', () => {
 				availableBalance: defaultAccount.availableBalance.toString(),
 				lockedBalances: defaultAccount.lockedBalances.map(lb => ({
 					...lb,
+					moduleID: lb.moduleID.readInt32BE(0).toString(),
 					amount: lb.amount.toString(),
 				})),
 			});
@@ -233,6 +236,7 @@ describe('token endpoint', () => {
 				availableBalance: defaultAccount.availableBalance.toString(),
 				lockedBalances: defaultAccount.lockedBalances.map(lb => ({
 					...lb,
+					moduleID: lb.moduleID.readInt32BE(0).toString(),
 					amount: lb.amount.toString(),
 				})),
 			});

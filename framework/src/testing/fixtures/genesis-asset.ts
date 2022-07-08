@@ -1,5 +1,3 @@
-import { genesisTokenStoreSchema } from '../../modules/token';
-
 /*
  * Copyright © 2021 Lisk Foundation
  *
@@ -14,9 +12,13 @@ import { genesisTokenStoreSchema } from '../../modules/token';
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
+import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { genesisTokenStoreSchema } from '../../modules/token';
+
 export const blockAssetsJSON = [
 	{
-		moduleID: 2,
+		moduleID: intToBuffer(2, 4),
 		data: {
 			userSubstore: [
 				{
@@ -707,7 +709,7 @@ export const blockAssetsJSON = [
 		schema: genesisTokenStoreSchema,
 	},
 	{
-		moduleID: 13,
+		moduleID: intToBuffer(13, 4),
 		data: {
 			validators: [
 				{

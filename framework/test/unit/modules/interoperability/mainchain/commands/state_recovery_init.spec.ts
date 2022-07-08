@@ -1,16 +1,17 @@
 import { when } from 'jest-when';
 import { Transaction } from '@liskhq/lisk-chain';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { sparseMerkleTree } from '@liskhq/lisk-tree';
 import {
 	CHAIN_ACTIVE,
 	CHAIN_TERMINATED,
-	COMMAND_ID_STATE_RECOVERY_INIT,
+	COMMAND_ID_STATE_RECOVERY_INIT_BUFFER,
 	EMPTY_BYTES,
 	LIVENESS_LIMIT,
 	MAINCHAIN_ID,
-	MODULE_ID_INTEROPERABILITY,
+	MAINCHAIN_ID_BUFFER,
+	MODULE_ID_INTEROPERABILITY_BUFFER,
 	STORE_PREFIX_TERMINATED_STATE,
 } from '../../../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
@@ -66,7 +67,7 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 
 	beforeEach(async () => {
 		stateRecoveryInitCommand = new StateRecoveryInitCommand(
-			MODULE_ID_INTEROPERABILITY,
+			MODULE_ID_INTEROPERABILITY_BUFFER,
 			new Map(),
 			new Map(),
 		);
@@ -86,7 +87,7 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 		sidechainChainAccountEncoded = codec.encode(chainAccountSchema, sidechainChainAccount);
 
 		transactionParams = {
-			chainID: 3,
+			chainID: intToBuffer(3, 4),
 			bitmap: Buffer.alloc(0),
 			siblingHashes: [],
 			sidechainChainAccount: sidechainChainAccountEncoded,
@@ -95,8 +96,8 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 		encodedTransactionParams = codec.encode(stateRecoveryInitParams, transactionParams);
 
 		transaction = new Transaction({
-			moduleID: MODULE_ID_INTEROPERABILITY,
-			commandID: COMMAND_ID_STATE_RECOVERY_INIT,
+			moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
+			commandID: COMMAND_ID_STATE_RECOVERY_INIT_BUFFER,
 			fee: BigInt(100000000),
 			nonce: BigInt(0),
 			params: encodedTransactionParams,
@@ -113,12 +114,12 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
 		terminatedStateSubstore = stateStore.getStore(
-			MODULE_ID_INTEROPERABILITY,
+			MODULE_ID_INTEROPERABILITY_BUFFER,
 			STORE_PREFIX_TERMINATED_STATE,
 		);
 
 		await terminatedStateSubstore.setWithSchema(
-			getIDAsKeyForStore(transactionParams.chainID),
+			transactionParams.chainID,
 			terminatedStateAccount,
 			terminatedStateSchema,
 		);
@@ -159,7 +160,7 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 			};
 			const ownChainAccount = {
 				name: 'mainchain',
-				id: MAINCHAIN_ID,
+				id: MAINCHAIN_ID_BUFFER,
 				nonce: BigInt('0'),
 			};
 			interopStoreMock = {
@@ -180,7 +181,7 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 		});
 
 		it('should return error if chain id is same as mainchain id or own chain account id', async () => {
-			commandVerifyContext.params.chainID = MAINCHAIN_ID;
+			commandVerifyContext.params.chainID = MAINCHAIN_ID_BUFFER;
 
 			const result = await stateRecoveryInitCommand.verify(commandVerifyContext);
 
@@ -190,7 +191,7 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 
 		it('should return error if terminated state account exists and is initialized', async () => {
 			await terminatedStateSubstore.setWithSchema(
-				getIDAsKeyForStore(transactionParams.chainID),
+				transactionParams.chainID,
 				{ ...terminatedStateAccount, initialized: true },
 				terminatedStateSchema,
 			);
@@ -217,15 +218,15 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 			};
 			sidechainChainAccountEncoded = codec.encode(chainAccountSchema, sidechainChainAccount);
 			transactionParams = {
-				chainID: 3,
+				chainID: intToBuffer(3, 4),
 				bitmap: Buffer.alloc(0),
 				siblingHashes: [],
 				sidechainChainAccount: sidechainChainAccountEncoded,
 			};
 			encodedTransactionParams = codec.encode(stateRecoveryInitParams, transactionParams);
 			transaction = new Transaction({
-				moduleID: MODULE_ID_INTEROPERABILITY,
-				commandID: COMMAND_ID_STATE_RECOVERY_INIT,
+				moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
+				commandID: COMMAND_ID_STATE_RECOVERY_INIT_BUFFER,
 				fee: BigInt(100000000),
 				nonce: BigInt(0),
 				params: encodedTransactionParams,
@@ -262,7 +263,7 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 				.calledWith(getIDAsKeyForStore(MAINCHAIN_ID))
 				.mockResolvedValue(mainchainAccount);
 			jest.spyOn(sparseMerkleTree, 'verify').mockReturnValue(false);
-			await terminatedStateSubstore.del(getIDAsKeyForStore(transactionParams.chainID));
+			await terminatedStateSubstore.del(transactionParams.chainID);
 
 			const result = await stateRecoveryInitCommand.verify(commandVerifyContext);
 
@@ -277,7 +278,7 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 			await stateRecoveryInitCommand.execute(commandExecuteContext);
 
 			const accountFromStore = await terminatedStateSubstore.getWithSchema(
-				getIDAsKeyForStore(transactionParams.chainID),
+				transactionParams.chainID,
 				terminatedStateSchema,
 			);
 
@@ -289,13 +290,13 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 		it('should update the terminated state account when there is one', async () => {
 			// Arrange & Assign & Act
 			when(interopStoreMock.hasTerminatedStateAccount)
-				.calledWith(getIDAsKeyForStore(transactionParams.chainID))
+				.calledWith(transactionParams.chainID)
 				.mockResolvedValue(false);
 
 			await stateRecoveryInitCommand.execute(commandExecuteContext);
 
 			const accountFromStore = await terminatedStateSubstore.getWithSchema(
-				getIDAsKeyForStore(transactionParams.chainID),
+				transactionParams.chainID,
 				terminatedStateSchema,
 			);
 

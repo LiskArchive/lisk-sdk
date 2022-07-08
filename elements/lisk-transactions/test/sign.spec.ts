@@ -17,6 +17,7 @@ import { codec } from '@liskhq/lisk-codec';
 import {
 	getAddressAndPublicKeyFromPassphrase,
 	getPrivateAndPublicKeyFromPassphrase,
+	intToBuffer,
 	signDataWithPrivateKey,
 } from '@liskhq/lisk-cryptography';
 import {
@@ -111,8 +112,8 @@ describe('sign', () => {
 	};
 
 	const validTransaction = {
-		moduleID: 2,
-		commandID: 0,
+		moduleID: intToBuffer(2, 4),
+		commandID: intToBuffer(0, 4),
 		nonce: BigInt('1'),
 		fee: BigInt('10000000'),
 		senderPublicKey: publicKey1,
@@ -533,8 +534,8 @@ describe('sign', () => {
 			const optionalKeys = [account3.publicKey];
 
 			const multisignatureRegistrationTrx = {
-				moduleID: 4,
-				commandID: 0,
+				moduleID: intToBuffer(4, 4),
+				commandID: intToBuffer(0, 4),
 				nonce: BigInt('1'),
 				fee: BigInt('10000000'),
 				senderPublicKey: account1.publicKey,
@@ -597,8 +598,8 @@ describe('sign', () => {
 			const account2 = getPrivateAndPublicKeyFromPassphrase(passphrase2);
 			// Sender public key of account1
 			const transaction = {
-				moduleID: 2,
-				commandID: 0,
+				moduleID: intToBuffer(2, 4),
+				commandID: intToBuffer(0, 4),
 				nonce: BigInt('1'),
 				fee: BigInt('10000000'),
 				senderPublicKey: account1.publicKey,

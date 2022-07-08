@@ -73,18 +73,18 @@ export interface BeforeRecoverCCMsgAPIContext extends CCAPIContext {
 
 export interface RecoverCCMsgAPIContext extends CCAPIContext {
 	terminatedChainID: Buffer; // TODO: id should be buffer
-	moduleID: number;
+	moduleID: Buffer;
 	storePrefix: number;
 	storeKey: Buffer; // TODO: key should be buffer
 	storeValue: Buffer;
 }
 
-export type StoreCallback = (moduleID: number, storePrefix: number) => SubStore;
+export type StoreCallback = (moduleID: Buffer, storePrefix: number) => SubStore;
 
 export interface CCMsg {
 	readonly nonce: bigint;
-	readonly moduleID: number;
-	readonly crossChainCommandID: number;
+	readonly moduleID: Buffer;
+	readonly crossChainCommandID: Buffer;
 	readonly sendingChainID: Buffer;
 	readonly receivingChainID: Buffer;
 	readonly fee: bigint;
@@ -104,12 +104,12 @@ export interface CCCommandExecuteContext {
 }
 
 export abstract class BaseCCCommand {
-	protected moduleID: number;
-	public abstract ID: number;
+	protected moduleID: Buffer;
+	public abstract ID: Buffer;
 	public abstract name: string;
 	public abstract schema: Schema;
 
-	public constructor(moduleID: number) {
+	public constructor(moduleID: Buffer) {
 		this.moduleID = moduleID;
 	}
 	public abstract execute(ctx: CCCommandExecuteContext): Promise<void>;

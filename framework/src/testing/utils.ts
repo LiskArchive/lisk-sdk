@@ -16,6 +16,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import { Database, StateDB } from '@liskhq/lisk-db';
+import { intToBuffer } from '@liskhq/lisk-cryptography';
 
 import { EVENT_CHAIN_BLOCK_NEW } from '../engine/events';
 import { Data, WaitUntilBlockHeightOptions } from './types';
@@ -63,3 +64,5 @@ export const removeDB = (dbPath = defaultDatabasePath): void =>
 	['module', 'blockchain', 'node', 'state', 'generator'].forEach(name =>
 		fs.removeSync(getDBPath(name, dbPath)),
 	);
+
+export const getIDAsKeyForStore = (id: number) => intToBuffer(id, 4);

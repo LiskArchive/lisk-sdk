@@ -18,10 +18,10 @@ import {
 	CCM_STATUS_OK,
 	CCM_STATUS_PROTOCOL_VIOLATION,
 	CHAIN_ID_ALIAS_NATIVE,
-	CROSS_CHAIN_COMMAND_ID_TRANSFER,
-	CROSS_CHAIN_COMMAND_ID_FORWARD,
-	MODULE_ID_TOKEN,
 	STORE_PREFIX_ESCROW,
+	MODULE_ID_TOKEN_BUFFER,
+	CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
+	CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
 } from '../constants';
 import { BaseCCCommand, CCCommandExecuteContext } from '../interop_types';
 import {
@@ -35,15 +35,15 @@ import { InteroperabilityAPI } from '../types';
 import { splitTokenID, updateAvailableBalance } from '../utils';
 
 export class CCForwardCommand extends BaseCCCommand {
-	public ID = CROSS_CHAIN_COMMAND_ID_FORWARD;
+	public ID = CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER;
 	public name = 'crossChainForward';
 	public schema = crossChainForwardMessageParams;
-	protected moduleID = MODULE_ID_TOKEN;
+	protected moduleID = MODULE_ID_TOKEN_BUFFER;
 
 	private readonly _tokenAPI: TokenAPI;
 	private _interopAPI!: InteroperabilityAPI;
 
-	public constructor(moduleID: number, tokenAPI: TokenAPI) {
+	public constructor(moduleID: Buffer, tokenAPI: TokenAPI) {
 		super(moduleID);
 		this._tokenAPI = tokenAPI;
 	}
@@ -142,7 +142,7 @@ export class CCForwardCommand extends BaseCCCommand {
 			apiContext,
 			params.senderAddress,
 			this.moduleID,
-			CROSS_CHAIN_COMMAND_ID_TRANSFER,
+			CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
 			params.forwardToChainID,
 			params.forwardedMessageFee,
 			CCM_STATUS_OK,

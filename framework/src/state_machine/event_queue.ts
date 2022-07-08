@@ -28,7 +28,7 @@ export class EventQueue {
 	}
 
 	public add(
-		moduleID: number,
+		moduleID: Buffer,
 		typeID: Buffer,
 		data: Buffer,
 		topics: Buffer[],
@@ -47,12 +47,9 @@ export class EventQueue {
 				`Max topics per event is ${EVENT_MAX_TOPICS_PER_EVENT} but received ${topics.length}`,
 			);
 		}
-		// TODO: Remove once moduleID becomes bytes
-		const moduleIDBytes = Buffer.alloc(4);
-		moduleIDBytes.writeUInt32BE(moduleID, 0);
 		this._events.push({
 			event: new Event({
-				moduleID: moduleIDBytes,
+				moduleID,
 				typeID,
 				index: this._events.length,
 				data,

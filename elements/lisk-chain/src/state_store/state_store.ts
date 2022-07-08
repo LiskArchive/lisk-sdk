@@ -45,14 +45,12 @@ export class StateStore {
 		this._cache = cache ?? new CacheDB();
 	}
 
-	public getStore(moduleID: number, storePrefix: number): StateStore {
-		const moduleIDBuffer = Buffer.alloc(4);
-		moduleIDBuffer.writeInt32BE(moduleID, 0);
+	public getStore(moduleID: Buffer, storePrefix: number): StateStore {
 		const storePrefixBuffer = Buffer.alloc(2);
 		storePrefixBuffer.writeUInt16BE(storePrefix, 0);
 		const subStore = new StateStore(
 			this._db,
-			Buffer.concat([DB_KEY_STATE_STORE, moduleIDBuffer, storePrefixBuffer]),
+			Buffer.concat([DB_KEY_STATE_STORE, moduleID, storePrefixBuffer]),
 			this._cache,
 		);
 

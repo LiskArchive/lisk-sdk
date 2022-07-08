@@ -22,14 +22,15 @@ import {
 import { BaseCommand } from '../../base_command';
 import {
 	COMMAND_ID_UPDATE_GENERATOR_KEY,
-	MODULE_ID_DPOS,
+	MODULE_ID_DPOS_BUFFER,
 	STORE_PREFIX_DELEGATE,
 } from '../constants';
 import { updateGeneratorKeyCommandParamsSchema } from '../schemas';
 import { UpdateGeneratorKeyParams, ValidatorsAPI } from '../types';
+import { getIDAsKeyForStore } from '../utils';
 
 export class UpdateGeneratorKeyCommand extends BaseCommand {
-	public id = COMMAND_ID_UPDATE_GENERATOR_KEY;
+	public id = getIDAsKeyForStore(COMMAND_ID_UPDATE_GENERATOR_KEY);
 	public name = 'updateGeneratorKey';
 	public schema = updateGeneratorKeyCommandParamsSchema;
 	private _validatorsAPI!: ValidatorsAPI;
@@ -53,7 +54,7 @@ export class UpdateGeneratorKeyCommand extends BaseCommand {
 			};
 		}
 
-		const delegateSubstore = context.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
+		const delegateSubstore = context.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
 		const entryExists = await delegateSubstore.has(transaction.senderAddress);
 
 		if (!entryExists) {

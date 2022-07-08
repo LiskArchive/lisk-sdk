@@ -38,6 +38,7 @@ import {
 	STORE_PREFIX_NAME,
 	STORE_PREFIX_VOTER,
 	defaultConfig,
+	MODULE_ID_DPOS_BUFFER,
 } from './constants';
 import { DPoSEndpoint } from './endpoint';
 import {
@@ -70,6 +71,7 @@ import {
 import { Rounds } from './rounds';
 import {
 	equalUnlocking,
+	getIDAsKeyForStore,
 	isCurrentlyPunished,
 	isUsername,
 	selectStandbyDelegates,
@@ -78,7 +80,7 @@ import {
 } from './utils';
 
 export class DPoSModule extends BaseModule {
-	public id = MODULE_ID_DPOS;
+	public id = getIDAsKeyForStore(MODULE_ID_DPOS);
 	public name = 'dpos';
 	public api = new DPoSAPI(this.id);
 	public endpoint = new DPoSEndpoint(this.id);
@@ -663,7 +665,7 @@ export class DPoSModule extends BaseModule {
 			generators,
 		);
 
-		const delegateStore = getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
+		const delegateStore = getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
 		for (const addressString of Object.keys(missedBlocks)) {
 			const address = Buffer.from(addressString, 'binary');
 			const delegate = await delegateStore.getWithSchema<DelegateAccount>(

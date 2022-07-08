@@ -19,11 +19,11 @@ import { CommandVerifyContext, CommandExecuteContext, VerificationResult } from 
 export abstract class BaseCommand<T = unknown> {
 	public schema?: Schema;
 
-	protected moduleID: number;
+	protected moduleID: Buffer;
 	public abstract name: string;
-	public abstract id: number;
+	public abstract id: Buffer;
 
-	public constructor(moduleID: number) {
+	public constructor(moduleID: Buffer) {
 		this.moduleID = moduleID;
 	}
 

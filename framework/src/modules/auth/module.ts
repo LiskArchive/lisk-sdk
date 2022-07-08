@@ -40,6 +40,7 @@ import {
 } from './schemas';
 import { AuthAccount, GenesisAuthStore } from './types';
 import {
+	getIDAsKeyForStore,
 	isMultisignatureAccount,
 	verifyMultiSignatureTransaction,
 	verifyNonce,
@@ -48,7 +49,7 @@ import {
 } from './utils';
 
 export class AuthModule extends BaseModule {
-	public id = MODULE_ID_AUTH;
+	public id = getIDAsKeyForStore(MODULE_ID_AUTH);
 	public name = 'auth';
 	public api = new AuthAPI(this.id);
 	public endpoint = new AuthEndpoint(this.id);
@@ -178,8 +179,10 @@ export class AuthModule extends BaseModule {
 
 		// Verify multisignature registration transaction
 		if (
-			transaction.moduleID === this.id &&
-			transaction.commandID === COMMAND_ID_MULTISIGNATURE_REGISTRATION
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			transaction.moduleID.equals(this.id) &&
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+			transaction.commandID.equals(getIDAsKeyForStore(COMMAND_ID_MULTISIGNATURE_REGISTRATION))
 		) {
 			verifyRegisterMultiSignatureTransaction(
 				TAG_TRANSACTION,

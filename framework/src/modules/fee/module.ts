@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { getAddressFromPublicKey, intToBuffer } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
@@ -29,7 +29,7 @@ import { FeeEndpoint } from './endpoint';
 import { configSchema } from './schemas';
 
 export class FeeModule extends BaseModule {
-	public id = MODULE_ID_FEE;
+	public id = intToBuffer(MODULE_ID_FEE, 4);
 	public name = 'fee';
 	public api = new FeeAPI(this.id);
 	public configSchema = configSchema;
@@ -112,9 +112,9 @@ export class FeeModule extends BaseModule {
 		);
 	}
 
-	private _extraFee(moduleID: number, commandID: number): bigint {
+	private _extraFee(moduleID: Buffer, commandID: Buffer): bigint {
 		const foundFee = this._baseFees.find(
-			fee => fee.moduleID === moduleID && fee.commandID === commandID,
+			fee => fee.moduleID.equals(moduleID) && fee.commandID.equals(commandID),
 		);
 
 		return foundFee?.baseFee ?? BigInt(0);

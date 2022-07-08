@@ -74,7 +74,7 @@ interface InitArgs {
 	logger: Logger;
 	genesisBlock: Block;
 	db: Database;
-	moduleIDs: number[];
+	moduleIDs: Buffer[];
 }
 
 interface ExecuteOptions {
@@ -112,7 +112,7 @@ export class Consensus {
 	private _endpoint!: NetworkEndpoint;
 	private _synchronizer!: Synchronizer;
 	private _blockSlot!: Slots;
-	private _moduleIDs!: number[];
+	private _moduleIDs!: Buffer[];
 
 	private _stop = false;
 

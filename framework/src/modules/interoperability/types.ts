@@ -21,13 +21,13 @@ import {
 	SubStore,
 } from '../../state_machine/types';
 
-export type StoreCallback = (moduleID: number, storePrefix: number) => SubStore | ImmutableSubStore;
+export type StoreCallback = (moduleID: Buffer, storePrefix: number) => SubStore | ImmutableSubStore;
 export interface CCMsg {
 	readonly nonce: bigint;
-	readonly moduleID: number;
-	readonly crossChainCommandID: number;
-	readonly sendingChainID: number;
-	readonly receivingChainID: number;
+	readonly moduleID: Buffer;
+	readonly crossChainCommandID: Buffer;
+	readonly sendingChainID: Buffer;
+	readonly receivingChainID: Buffer;
 	readonly fee: bigint;
 	readonly status: number;
 	readonly params: Buffer;
@@ -55,7 +55,7 @@ export interface InboxUpdate {
 }
 
 export interface CCUpdateParams {
-	sendingChainID: number;
+	sendingChainID: Buffer;
 	certificate: Buffer;
 	activeValidatorsUpdate: ActiveValidator[];
 	newCertificateThreshold: bigint;
@@ -85,17 +85,17 @@ export interface BeforeRecoverCCMsgAPIContext extends CCAPIContext {
 }
 
 export interface RecoverCCMsgAPIContext extends CCAPIContext {
-	terminatedChainID: number;
-	moduleID: number;
+	terminatedChainID: Buffer;
+	moduleID: Buffer;
 	storePrefix: number;
 	storeKey: number;
 	storeValue: Buffer;
 }
 
 export interface SendInternalContext {
-	moduleID: number;
-	crossChainCommandID: number;
-	receivingChainID: number;
+	moduleID: Buffer;
+	crossChainCommandID: Buffer;
+	receivingChainID: Buffer;
 	fee: bigint;
 	status: number;
 	params: Buffer;
@@ -141,7 +141,7 @@ export interface ChainAccount {
 
 export interface OwnChainAccount {
 	name: string;
-	id: number;
+	id: Buffer;
 	nonce: bigint;
 }
 
@@ -158,8 +158,8 @@ export interface Outbox {
 }
 
 export interface MessageFeeTokenID {
-	chainID: number;
-	localID: number;
+	chainID: Buffer;
+	localID: Buffer;
 }
 export interface ChannelData {
 	inbox: Inbox;
@@ -202,7 +202,7 @@ export interface SidechainRegistrationParams {
 }
 
 export interface MainchainRegistrationParams {
-	ownChainID: number;
+	ownChainID: Buffer;
 	ownName: string;
 	mainchainValidators: RegistrationParametersValidator[];
 	signature: Buffer;
@@ -234,7 +234,7 @@ export interface TerminatedOutboxAccount {
 }
 
 export interface MessageRecoveryParams {
-	chainID: number;
+	chainID: Buffer;
 	crossChainMessages: Buffer[];
 	idxs: number[];
 	siblingHashes: Buffer[];
@@ -254,21 +254,21 @@ export interface StoreEntry {
 }
 
 export interface StateRecoveryParams {
-	chainID: number;
-	moduleID: number;
+	chainID: Buffer;
+	moduleID: Buffer;
 	storeEntries: StoreEntry[];
 	siblingHashes: Buffer[];
 }
 
 export interface StateRecoveryInitParams {
-	chainID: number;
+	chainID: Buffer;
 	sidechainChainAccount: Buffer;
 	bitmap: Buffer;
 	siblingHashes: Buffer[];
 }
 
 export interface CrossChainUpdateTransactionParams {
-	sendingChainID: number;
+	sendingChainID: Buffer;
 	certificate: Buffer;
 	activeValidatorsUpdate: ActiveValidator[];
 	newCertificateThreshold: bigint;

@@ -36,7 +36,7 @@ export interface GenesisTokenStore {
 		tokenID: Buffer;
 		availableBalance: bigint;
 		lockedBalances: {
-			moduleID: number;
+			moduleID: Buffer;
 			amount: bigint;
 		}[];
 	}[];
@@ -60,8 +60,8 @@ export interface InteroperabilityAPI {
 	send(
 		apiContext: APIContext,
 		feeAddress: Buffer,
-		moduleID: number,
-		crossChainCommandID: number,
+		moduleID: Buffer,
+		crossChainCommandID: Buffer,
 		receivingChainID: Buffer,
 		fee: bigint,
 		status: number,

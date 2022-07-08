@@ -22,6 +22,7 @@ import {
 import { TokenAPI } from '../api';
 import { crossChainTransferParams } from '../schemas';
 import { CROSS_CHAIN_COMMAND_ID_TRANSFER } from '../constants';
+import { getIDAsKeyForStore } from '../utils';
 
 interface Params {
 	tokenID: Buffer;
@@ -34,7 +35,7 @@ interface Params {
 
 export class CCTransferCommand extends BaseCommand {
 	public name = 'crossChaintransfer';
-	public id = CROSS_CHAIN_COMMAND_ID_TRANSFER;
+	public id = getIDAsKeyForStore(CROSS_CHAIN_COMMAND_ID_TRANSFER);
 	public schema = crossChainTransferParams;
 	private _api!: TokenAPI;
 

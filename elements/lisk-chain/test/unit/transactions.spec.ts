@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { Transaction } from '../../src/transaction';
 
 describe('blocks/transactions', () => {
@@ -31,8 +31,8 @@ describe('blocks/transactions', () => {
 
 		it('should throw when sender public key is not 32 bytes', () => {
 			transaction = new Transaction({
-				moduleID: 2,
-				commandID: 0,
+				moduleID: intToBuffer(2, 4),
+				commandID: intToBuffer(0, 4),
 				fee: BigInt(613000),
 				params: getRandomBytes(500),
 				nonce: BigInt(2),
@@ -44,8 +44,8 @@ describe('blocks/transactions', () => {
 
 		it('should throw when signatures is empty', () => {
 			transaction = new Transaction({
-				moduleID: 2,
-				commandID: 0,
+				moduleID: intToBuffer(2, 4),
+				commandID: intToBuffer(0, 4),
 				fee: BigInt(613000),
 				params: getRandomBytes(500),
 				nonce: BigInt(2),
@@ -57,8 +57,8 @@ describe('blocks/transactions', () => {
 
 		it('should throw when any of signatures are not 64 bytes', () => {
 			transaction = new Transaction({
-				moduleID: 2,
-				commandID: 0,
+				moduleID: intToBuffer(2, 4),
+				commandID: intToBuffer(0, 4),
 				fee: BigInt(613000),
 				params: getRandomBytes(500),
 				nonce: BigInt(2),

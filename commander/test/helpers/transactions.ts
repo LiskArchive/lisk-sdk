@@ -16,6 +16,7 @@ import {} from 'lisk-framework';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as transactions from '@liskhq/lisk-transactions';
 import { codec, Schema } from '@liskhq/lisk-codec';
+import { intToBuffer } from '@liskhq/lisk-cryptography';
 
 const account = {
 	passphrase: 'endless focus guilt bronze hold economy bulk parent soon tower cement venue',
@@ -144,8 +145,8 @@ export const createTransferTransaction = ({
 }): Record<string, unknown> => {
 	const transaction = transactions.signTransaction(
 		{
-			moduleID: 2,
-			commandID: 0,
+			moduleID: intToBuffer(2, 4),
+			commandID: intToBuffer(0, 4),
 			nonce: BigInt(nonce),
 			fee: BigInt(transactions.convertLSKToBeddows(fee)),
 			senderPublicKey: Buffer.from(account.publicKey, 'hex'),
@@ -180,10 +181,12 @@ export const createTransferTransaction = ({
 export const encodeTransactionFromJSON = (
 	transaction: Record<string, unknown>,
 	baseSchema: Schema,
-	commandsSchemas: { moduleID: number; commandID: number; schema: Schema }[],
+	commandsSchemas: { moduleID: Buffer; commandID: Buffer; schema: Schema }[],
 ): string => {
 	const transactionTypeAssetSchema = commandsSchemas.find(
-		as => as.moduleID === transaction.moduleID && as.commandID === transaction.commandID,
+		as =>
+			as.moduleID.equals(transaction.moduleID as Buffer) &&
+			as.commandID.equals(transaction.commandID as Buffer),
 	);
 
 	if (!transactionTypeAssetSchema) {

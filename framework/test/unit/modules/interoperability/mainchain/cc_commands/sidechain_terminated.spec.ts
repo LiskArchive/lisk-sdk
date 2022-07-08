@@ -13,8 +13,8 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
-import { MAINCHAIN_ID } from '../../../../../../src/modules/interoperability/constants';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { MAINCHAIN_ID_BUFFER } from '../../../../../../src/modules/interoperability/constants';
 import { MainchainCCSidechainTerminatedCommand } from '../../../../../../src/modules/interoperability/mainchain/cc_commands/sidechain_terminated';
 import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
 import { sidechainTerminatedCCMParamsSchema } from '../../../../../../src/modules/interoperability/schema';
@@ -43,7 +43,7 @@ describe('MainchainCCSidechainTerminatedCommand', () => {
 	const networkIdentifier = getRandomBytes(32);
 
 	const ccmSidechainTerminatedParams = {
-		chainID: 5,
+		chainID: intToBuffer(5, 4),
 		stateRoot: getRandomBytes(32),
 	};
 
@@ -54,17 +54,17 @@ describe('MainchainCCSidechainTerminatedCommand', () => {
 
 	const ccm = {
 		nonce: BigInt(0),
-		moduleID: 1,
-		crossChainCommandID: 1,
-		sendingChainID: MAINCHAIN_ID,
-		receivingChainID: 1,
+		moduleID: intToBuffer(1, 4),
+		crossChainCommandID: intToBuffer(1, 4),
+		sendingChainID: MAINCHAIN_ID_BUFFER,
+		receivingChainID: intToBuffer(1, 4),
 		fee: BigInt(20000),
 		status: 0,
 		params: encodedSidechainTerminatedParams,
 	};
 	const ccmNew = {
 		...ccm,
-		sendingChainID: 2,
+		sendingChainID: intToBuffer(2, 4),
 	};
 	const sampleExecuteContext: CCCommandExecuteContext = createExecuteCCMsgAPIContext({
 		ccm,
@@ -88,7 +88,10 @@ describe('MainchainCCSidechainTerminatedCommand', () => {
 		mainchainInteroperabilityStore.hasTerminatedStateAccount = hasTerminatedStateAccountMock;
 		mainchainInteroperabilityStore.createTerminatedStateAccount = createTerminatedStateAccountMock;
 
-		ccSidechainTerminatedCommand = new MainchainCCSidechainTerminatedCommand(1, ccAPIsMap);
+		ccSidechainTerminatedCommand = new MainchainCCSidechainTerminatedCommand(
+			intToBuffer(1, 4),
+			ccAPIsMap,
+		);
 		(ccSidechainTerminatedCommand as any)['getInteroperabilityStore'] = jest
 			.fn()
 			.mockReturnValue(mainchainInteroperabilityStore);

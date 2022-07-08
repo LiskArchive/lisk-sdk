@@ -543,7 +543,7 @@ export class ABIHandler implements ABI {
 				...meta,
 			};
 		});
-		modules.sort((a, b) => a.id - b.id);
+		modules.sort((a, b) => a.id.readInt32BE(0) - b.id.readInt32BE(0));
 		const data = Buffer.from(JSON.stringify({ modules }), 'utf-8');
 		return {
 			data,

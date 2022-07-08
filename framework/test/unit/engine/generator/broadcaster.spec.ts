@@ -14,7 +14,7 @@
 
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { Broadcaster } from '../../../../src/engine/generator/broadcaster';
 import { postTransactionsAnnouncementSchema } from '../../../../src/engine/generator/schemas';
@@ -27,9 +27,9 @@ describe('broadcaster', () => {
 	const defaultReleaseLimit = 25;
 	const tx = new Transaction({
 		params: Buffer.alloc(20),
-		commandID: 0,
+		commandID: intToBuffer(0, 4),
 		fee: BigInt(100000),
-		moduleID: 2,
+		moduleID: intToBuffer(2, 4),
 		nonce: BigInt(0),
 		senderPublicKey: Buffer.alloc(32),
 		signatures: [Buffer.alloc(64)],

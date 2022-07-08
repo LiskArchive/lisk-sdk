@@ -214,7 +214,7 @@ export class Application {
 		return this._registeredModules;
 	}
 
-	public getMetadata(): (ModuleMetadata & { id: number; name: string })[] {
+	public getMetadata(): (ModuleMetadata & { id: Buffer; name: string })[] {
 		const modules = this._registeredModules.map(mod => {
 			const meta = mod.metadata();
 			return {
@@ -223,7 +223,7 @@ export class Application {
 				...meta,
 			};
 		});
-		modules.sort((a, b) => a.id - b.id);
+		modules.sort((a, b) => a.id.readInt32BE(0) - b.id.readInt32BE(0));
 
 		return modules;
 	}
@@ -360,7 +360,7 @@ export class Application {
 
 	private _registerModule(mod: BaseModule, validateModuleID = false): void {
 		assert(mod, 'Module implementation is required');
-		if (validateModuleID && mod.id < MINIMUM_EXTERNAL_MODULE_ID) {
+		if (validateModuleID && mod.id.readInt32BE(0) < MINIMUM_EXTERNAL_MODULE_ID) {
 			throw new Error(
 				`Custom module must have id greater than or equal to ${MINIMUM_EXTERNAL_MODULE_ID}`,
 			);

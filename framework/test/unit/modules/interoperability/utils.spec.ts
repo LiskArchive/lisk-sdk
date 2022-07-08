@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { intToBuffer } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as merkleTree from '@liskhq/lisk-tree';
@@ -120,6 +121,7 @@ describe('Utils', () => {
 
 		const txParamsEmptyCertificate = {
 			certificate: EMPTY_BYTES,
+			sendingChainID: intToBuffer(4, 4),
 		};
 
 		const txParamsNonEmptyCertificate = {
@@ -223,7 +225,7 @@ describe('Utils', () => {
 			activeValidatorsUpdate,
 			newCertificateThreshold: BigInt(10),
 			certificate: Buffer.alloc(2),
-			sendingChainID: 2,
+			sendingChainID: intToBuffer(2, 4),
 			inboxUpdate: {},
 		};
 
@@ -231,7 +233,7 @@ describe('Utils', () => {
 			activeValidatorsUpdate,
 			newCertificateThreshold: BigInt(10),
 			certificate: EMPTY_BYTES,
-			sendingChainID: 2,
+			sendingChainID: intToBuffer(2, 4),
 			inboxUpdate: {},
 		};
 
@@ -239,7 +241,7 @@ describe('Utils', () => {
 			activeValidatorsUpdate: sortedValidatorsList,
 			newCertificateThreshold: BigInt(10),
 			certificate: Buffer.alloc(2),
-			sendingChainID: 2,
+			sendingChainID: intToBuffer(2, 4),
 			inboxUpdate: {},
 		};
 
@@ -587,33 +589,33 @@ describe('Utils', () => {
 		const partnerChannelData: ChannelData = {
 			inbox: inboxTree,
 			messageFeeTokenID: {
-				chainID: 1,
-				localID: 0,
+				chainID: intToBuffer(1, 4),
+				localID: intToBuffer(0, 4),
 			},
 			outbox: outboxTree,
 			partnerChainOutboxRoot,
 		};
 
-		const defaultSendingChainID = 20;
+		const defaultSendingChainID = intToBuffer(20, 4);
 
 		const defaultCCMs = [
 			{
-				crossChainCommandID: 1,
+				crossChainCommandID: intToBuffer(1, 4),
 				fee: BigInt(0),
-				moduleID: 1,
+				moduleID: intToBuffer(1, 4),
 				nonce: BigInt(1),
 				params: Buffer.alloc(2),
-				receivingChainID: 2,
+				receivingChainID: intToBuffer(2, 4),
 				sendingChainID: defaultSendingChainID,
 				status: CCM_STATUS_OK,
 			},
 			{
-				crossChainCommandID: 2,
+				crossChainCommandID: intToBuffer(2, 4),
 				fee: BigInt(0),
-				moduleID: 1,
+				moduleID: intToBuffer(1, 4),
 				nonce: BigInt(1),
 				params: Buffer.alloc(2),
-				receivingChainID: 3,
+				receivingChainID: intToBuffer(3, 4),
 				sendingChainID: defaultSendingChainID,
 				status: CCM_STATUS_OK,
 			},
@@ -621,22 +623,22 @@ describe('Utils', () => {
 
 		const inboxUpdateCCMs = [
 			{
-				crossChainCommandID: 1,
+				crossChainCommandID: intToBuffer(1, 4),
 				fee: BigInt(0),
-				moduleID: 1,
+				moduleID: intToBuffer(1, 4),
 				nonce: BigInt(2),
 				params: Buffer.alloc(4),
-				receivingChainID: 90,
+				receivingChainID: intToBuffer(90, 4),
 				sendingChainID: defaultSendingChainID,
 				status: CCM_STATUS_OK,
 			},
 			{
-				crossChainCommandID: 2,
+				crossChainCommandID: intToBuffer(2, 4),
 				fee: BigInt(0),
-				moduleID: 1,
+				moduleID: intToBuffer(1, 4),
 				nonce: BigInt(10),
 				params: Buffer.alloc(4),
-				receivingChainID: 70,
+				receivingChainID: intToBuffer(70, 4),
 				sendingChainID: defaultSendingChainID,
 				status: CCM_STATUS_OK,
 			},
@@ -680,7 +682,7 @@ describe('Utils', () => {
 			activeValidatorsUpdate,
 			newCertificateThreshold: BigInt(10),
 			inboxUpdate,
-			sendingChainID: 20,
+			sendingChainID: intToBuffer(2, 4),
 		};
 
 		let newInboxRoot: Buffer;
@@ -748,7 +750,7 @@ describe('Utils', () => {
 					activeValidatorsUpdate,
 					newCertificateThreshold: BigInt(10),
 					inboxUpdate: inboxUpdateMessageWitnessEmpty,
-					sendingChainID: 20,
+					sendingChainID: intToBuffer(2, 4),
 				};
 				const { status, error } = checkInboxUpdateValidity(
 					txParamsEmptyMessageWitness,
@@ -948,7 +950,7 @@ describe('Utils', () => {
 				getStore: jest.fn(),
 				params,
 				transaction: {
-					moduleID: 1,
+					moduleID: intToBuffer(1, 4),
 				},
 			};
 

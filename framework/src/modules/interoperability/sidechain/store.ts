@@ -24,21 +24,18 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 	}
 
 	public async sendInternal(sendContext: SendInternalContext): Promise<boolean> {
-		const receivingChainIDAsStoreKey = getIDAsKeyForStore(sendContext.receivingChainID);
-		const isReceivingChainExist = await this.chainAccountExist(receivingChainIDAsStoreKey);
+		const isReceivingChainExist = await this.chainAccountExist(sendContext.receivingChainID);
 
 		let partnerChainID;
 		if (isReceivingChainExist) {
 			partnerChainID = sendContext.receivingChainID;
 		} else {
-			partnerChainID = MAINCHAIN_ID;
+			partnerChainID = getIDAsKeyForStore(MAINCHAIN_ID);
 		}
 
-		const partnerChainIDAsStoreKey = getIDAsKeyForStore(partnerChainID);
-
-		const partnerChainAccount = await this.getChainAccount(partnerChainIDAsStoreKey);
+		const partnerChainAccount = await this.getChainAccount(partnerChainID);
 		// Chain must be live; This checks is always on the receivingChainID
-		const isReceivingChainLive = await this.isLive(receivingChainIDAsStoreKey);
+		const isReceivingChainLive = await this.isLive(sendContext.receivingChainID);
 		if (!isReceivingChainLive) {
 			return false;
 		}
@@ -75,7 +72,7 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 			}
 		}
 
-		await this.addToOutbox(partnerChainIDAsStoreKey, ccm);
+		await this.addToOutbox(partnerChainID, ccm);
 		ownChainAccount.nonce += BigInt(1);
 		await this.setOwnChainAccount(ownChainAccount);
 
@@ -83,13 +80,13 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getInboxRoot(chainID: number): Promise<void> {
+	public async getInboxRoot(chainID: Buffer): Promise<void> {
 		// eslint-disable-next-line no-console
 		console.log(chainID);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getOutboxRoot(chainID: number): Promise<void> {
+	public async getOutboxRoot(chainID: Buffer): Promise<void> {
 		// eslint-disable-next-line no-console
 		console.log(chainID);
 	}

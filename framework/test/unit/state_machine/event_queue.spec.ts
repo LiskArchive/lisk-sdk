@@ -20,25 +20,25 @@ describe('EventQueue', () => {
 	// Arrange
 	const events = [
 		{
-			moduleID: 3,
+			moduleID: intToBuffer(3, 4),
 			typeID: Buffer.from([0, 0, 0, 0]),
 			data: getRandomBytes(20),
 			topics: [getRandomBytes(32), getRandomBytes(20)],
 		},
 		{
-			moduleID: 4,
+			moduleID: intToBuffer(4, 4),
 			typeID: Buffer.from([0, 0, 0, 0]),
 			data: getRandomBytes(20),
 			topics: [getRandomBytes(32), getRandomBytes(20)],
 		},
 		{
-			moduleID: 2,
+			moduleID: intToBuffer(2, 4),
 			typeID: Buffer.from([0, 0, 0, 0]),
 			data: getRandomBytes(20),
 			topics: [getRandomBytes(32)],
 		},
 		{
-			moduleID: 1,
+			moduleID: intToBuffer(1, 4),
 			typeID: Buffer.from([0, 0, 0, 0]),
 			data: getRandomBytes(20),
 			topics: [getRandomBytes(32), getRandomBytes(20), getRandomBytes(20), getRandomBytes(20)],
@@ -52,22 +52,30 @@ describe('EventQueue', () => {
 
 	it('should throw error if data size exceeds maximum allowed', () => {
 		expect(() =>
-			eventQueue.add(2, Buffer.from([0, 0, 0, 1]), getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES + 1), [
-				getRandomBytes(32),
-			]),
+			eventQueue.add(
+				intToBuffer(2, 4),
+				Buffer.from([0, 0, 0, 1]),
+				getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES + 1),
+				[getRandomBytes(32)],
+			),
 		).toThrow('Max size of event data is');
 	});
 
 	it('should throw error if topics is empty', () => {
 		expect(() =>
-			eventQueue.add(2, Buffer.from([0, 0, 0, 1]), getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES), []),
+			eventQueue.add(
+				intToBuffer(2, 4),
+				Buffer.from([0, 0, 0, 1]),
+				getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES),
+				[],
+			),
 		).toThrow('Topics must have at least one element');
 	});
 
 	it('should throw error if topics length exceeds maxumum allowed', () => {
 		expect(() =>
 			eventQueue.add(
-				2,
+				intToBuffer(2, 4),
 				Buffer.from([0, 0, 0, 1]),
 				getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES),
 				new Array(5).fill(0).map(() => getRandomBytes(32)),
@@ -85,7 +93,7 @@ describe('EventQueue', () => {
 		addedEvents.forEach((e, i) => {
 			expect(e.toObject()).toEqual({
 				...events[i],
-				moduleID: intToBuffer(events[i].moduleID, 4),
+				moduleID: events[i].moduleID,
 				index: i,
 			});
 		});
@@ -96,14 +104,16 @@ describe('EventQueue', () => {
 		expect(eventQueue.getEvents()).toHaveLength(events.length);
 
 		eventQueue.createSnapshot();
-		eventQueue.add(3, Buffer.from([0, 0, 0, 1]), getRandomBytes(100), [getRandomBytes(32)]);
+		eventQueue.add(intToBuffer(3, 4), Buffer.from([0, 0, 0, 1]), getRandomBytes(100), [
+			getRandomBytes(32),
+		]);
 		eventQueue.restoreSnapshot();
 
 		expect(eventQueue.getEvents()).toHaveLength(events.length);
 		eventQueue.getEvents().forEach((e, i) => {
 			expect(e.toObject()).toEqual({
 				...events[i],
-				moduleID: intToBuffer(events[i].moduleID, 4),
+				moduleID: events[i].moduleID,
 				index: i,
 			});
 		});
@@ -114,9 +124,27 @@ describe('EventQueue', () => {
 		expect(eventQueue.getEvents()).toHaveLength(events.length);
 
 		eventQueue.createSnapshot();
-		eventQueue.add(3, Buffer.from([0, 0, 0, 1]), getRandomBytes(100), [getRandomBytes(32)], false);
-		eventQueue.add(3, Buffer.from([0, 0, 0, 1]), getRandomBytes(100), [getRandomBytes(32)], true);
-		eventQueue.add(3, Buffer.from([0, 0, 0, 1]), getRandomBytes(100), [getRandomBytes(32)], false);
+		eventQueue.add(
+			intToBuffer(3, 4),
+			Buffer.from([0, 0, 0, 1]),
+			getRandomBytes(100),
+			[getRandomBytes(32)],
+			false,
+		);
+		eventQueue.add(
+			intToBuffer(3, 4),
+			Buffer.from([0, 0, 0, 1]),
+			getRandomBytes(100),
+			[getRandomBytes(32)],
+			true,
+		);
+		eventQueue.add(
+			intToBuffer(3, 4),
+			Buffer.from([0, 0, 0, 1]),
+			getRandomBytes(100),
+			[getRandomBytes(32)],
+			false,
+		);
 		eventQueue.restoreSnapshot();
 
 		expect(eventQueue.getEvents()).toHaveLength(events.length + 1);

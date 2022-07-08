@@ -22,6 +22,7 @@ import {
 	getLisk32AddressFromPublicKey,
 	getPublicKeyFromPrivateKey,
 	blsPopProve,
+	intToBuffer,
 } from '@liskhq/lisk-cryptography';
 import {
 	dposGenesisStoreSchema,
@@ -40,7 +41,7 @@ export const genesisAssetsSchema = {
 			required: ['moduleID', 'data', 'object'],
 			properties: {
 				moduleID: {
-					type: 'integer',
+					type: 'string',
 					format: 'uint32',
 				},
 				data: {
@@ -56,7 +57,7 @@ export const genesisAssetsSchema = {
 
 export interface GenesisAssetsInput {
 	assets: {
-		moduleID: number;
+		moduleID: Buffer;
 		data: Record<string, unknown>;
 		schema: Schema;
 	}[];
@@ -108,8 +109,8 @@ export const generateGenesisBlockDefaultDPoSAssets = (input: GenesisBlockDefault
 				userSubstore: accountList.map(a => ({
 					address: a.address,
 					tokenID: {
-						chainID: 0,
-						localID: 0,
+						chainID: intToBuffer(0, 4),
+						localID: intToBuffer(0, 4),
 					},
 					availableBalance: BigInt(input.tokenDistribution),
 					lockedBalances: [],

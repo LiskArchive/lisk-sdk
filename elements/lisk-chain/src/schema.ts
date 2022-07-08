@@ -116,7 +116,7 @@ export const blockAssetSchema = {
 	required: ['moduleID', 'data'],
 	properties: {
 		moduleID: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
 		data: {

@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { intToBuffer } from '@liskhq/lisk-cryptography';
 import { BaseChannel, GenesisConfig, testing, chain, ApplicationConfigForPlugin } from 'lisk-sdk';
 import { when } from 'jest-when';
 
@@ -129,11 +130,11 @@ describe('Send PoM transaction', () => {
 			},
 			metadata: [
 				{
-					id: 13,
+					id: intToBuffer(13, 4),
 					name: 'dpos',
 					commands: [
 						{
-							id: 3,
+							id: intToBuffer(3, 4),
 							name: 'reportDelegateMisbehavior',
 							params: {
 								$id: '/lisk/dpos/pom',
@@ -191,7 +192,7 @@ describe('Send PoM transaction', () => {
 			},
 			metadata: [
 				{
-					id: 13,
+					id: intToBuffer(13, 4),
 					name: 'dpos',
 					commands: [],
 				},

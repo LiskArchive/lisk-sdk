@@ -200,7 +200,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			const transactionIdsBuffer = codec.encode(getTransactionRequestSchema, {
 				transactionIds: unknownTransactionIDs,
 			});
-			const { data: encodedData } = (await this.network.requestFromPeer({
+			const encodedData = (await this.network.requestFromPeer({
 				procedure: NETWORK_RPC_GET_TRANSACTIONS,
 				data: transactionIdsBuffer,
 				peerId,
@@ -209,7 +209,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			};
 			const transactionsData = codec.decode<GetTransactionResponse>(
 				getTransactionsResponseSchema,
-				encodedData,
+				encodedData.data,
 			);
 
 			try {

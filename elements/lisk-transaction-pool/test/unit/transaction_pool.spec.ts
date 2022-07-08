@@ -17,7 +17,7 @@ import { getAddressFromPublicKey, getRandomBytes } from '@liskhq/lisk-cryptograp
 import { TransactionList } from '../../src/transaction_list';
 import { TransactionPool } from '../../src/transaction_pool';
 import { Transaction, Status, TransactionStatus } from '../../src/types';
-import { generateRandomPublicKeys } from '../utils/cryptography';
+import { generateRandomPublicKeys, getIDAsKeyForStore } from '../utils/cryptography';
 
 describe('TransactionPool class', () => {
 	let transactionPool: TransactionPool;
@@ -29,9 +29,9 @@ describe('TransactionPool class', () => {
 			transactionReorganizationInterval: 1,
 			baseFees: [
 				{
-					commandID: 0,
+					commandID: getIDAsKeyForStore(0),
 					baseFee: BigInt(1),
-					moduleID: 3,
+					moduleID: getIDAsKeyForStore(3),
 				},
 			],
 			minFeePerByte: 1000,
@@ -62,9 +62,9 @@ describe('TransactionPool class', () => {
 					transactionExpiryTime: 60 * 60 * 1000, // 1 hours in ms
 					baseFees: [
 						{
-							commandID: 0,
+							commandID: getIDAsKeyForStore(0),
 							baseFee: BigInt(1),
-							moduleID: 3,
+							moduleID: getIDAsKeyForStore(3),
 						},
 					],
 					minFeePerByte: 1000,
@@ -87,8 +87,8 @@ describe('TransactionPool class', () => {
 		beforeEach(async () => {
 			tx = {
 				id: Buffer.from('1'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(1),
 				fee: BigInt(30000),
 				senderPublicKey: generateRandomPublicKeys()[0],
@@ -115,8 +115,8 @@ describe('TransactionPool class', () => {
 		beforeEach(async () => {
 			tx = {
 				id: Buffer.from('1'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(1),
 				fee: BigInt(30000),
 				senderPublicKey: generateRandomPublicKeys()[0],
@@ -143,24 +143,24 @@ describe('TransactionPool class', () => {
 			const txs = [
 				{
 					id: Buffer.from('1'),
-					moduleID: 3,
-					commandID: 0,
+					moduleID: getIDAsKeyForStore(3),
+					commandID: getIDAsKeyForStore(0),
 					nonce: BigInt(1),
 					fee: BigInt(30000),
 					senderPublicKey: senderPublicKeys[0],
 				},
 				{
 					id: Buffer.from('2'),
-					moduleID: 3,
-					commandID: 0,
+					moduleID: getIDAsKeyForStore(3),
+					commandID: getIDAsKeyForStore(0),
 					nonce: BigInt(2),
 					fee: BigInt(30000),
 					senderPublicKey: senderPublicKeys[0],
 				},
 				{
 					id: Buffer.from('9'),
-					moduleID: 3,
-					commandID: 0,
+					moduleID: getIDAsKeyForStore(3),
+					commandID: getIDAsKeyForStore(0),
 					nonce: BigInt(9),
 					minFee: BigInt(10),
 					fee: BigInt(30000),
@@ -168,16 +168,16 @@ describe('TransactionPool class', () => {
 				},
 				{
 					id: Buffer.from('3'),
-					moduleID: 3,
-					commandID: 0,
+					moduleID: getIDAsKeyForStore(3),
+					commandID: getIDAsKeyForStore(0),
 					nonce: BigInt(1),
 					fee: BigInt(30000),
 					senderPublicKey: senderPublicKeys[1],
 				},
 				{
 					id: Buffer.from('10'),
-					moduleID: 3,
-					commandID: 0,
+					moduleID: getIDAsKeyForStore(3),
+					commandID: getIDAsKeyForStore(0),
 					nonce: BigInt(100),
 					fee: BigInt(30000),
 					senderPublicKey: senderPublicKeys[2],
@@ -242,8 +242,8 @@ describe('TransactionPool class', () => {
 		const tx = {
 			id: Buffer.from('1'),
 			nonce: BigInt(1),
-			moduleID: 3,
-			commandID: 0,
+			moduleID: getIDAsKeyForStore(3),
+			commandID: getIDAsKeyForStore(0),
 			fee: BigInt(30000),
 			senderPublicKey: generateRandomPublicKeys()[0],
 		} as Transaction;
@@ -364,9 +364,9 @@ describe('TransactionPool class', () => {
 				minEntranceFeePriority: BigInt(10),
 				baseFees: [
 					{
-						commandID: 0,
+						commandID: getIDAsKeyForStore(0),
 						baseFee: BigInt(1),
-						moduleID: 3,
+						moduleID: getIDAsKeyForStore(3),
 					},
 				],
 				minFeePerByte: 1000,
@@ -374,8 +374,8 @@ describe('TransactionPool class', () => {
 			});
 			const lowFeeTrx = {
 				id: Buffer.from('1'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(1),
 				fee: BigInt(3000),
 				senderPublicKey: generateRandomPublicKeys()[0],
@@ -400,9 +400,9 @@ describe('TransactionPool class', () => {
 				maxTransactions: MAX_TRANSACTIONS,
 				baseFees: [
 					{
-						commandID: 0,
+						commandID: getIDAsKeyForStore(0),
 						baseFee: BigInt(1),
-						moduleID: 3,
+						moduleID: getIDAsKeyForStore(3),
 					},
 				],
 				minFeePerByte: 1000,
@@ -416,8 +416,8 @@ describe('TransactionPool class', () => {
 			for (let i = 0; i < MAX_TRANSACTIONS; i += 1) {
 				const tempTx = {
 					id: Buffer.from(`${i.toString()}`),
-					moduleID: 3,
-					commandID: 0,
+					moduleID: getIDAsKeyForStore(3),
+					commandID: getIDAsKeyForStore(0),
 					nonce: BigInt(1),
 					fee: BigInt(30000),
 					senderPublicKey: generateRandomPublicKeys()[0],
@@ -435,8 +435,8 @@ describe('TransactionPool class', () => {
 
 			const highFeePriorityTx = {
 				id: Buffer.from('11'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(1),
 				fee: BigInt(50000),
 				senderPublicKey: generateRandomPublicKeys()[0],
@@ -465,9 +465,9 @@ describe('TransactionPool class', () => {
 				maxTransactions: MAX_TRANSACTIONS,
 				baseFees: [
 					{
-						commandID: 0,
+						commandID: getIDAsKeyForStore(0),
 						baseFee: BigInt(1),
-						moduleID: 3,
+						moduleID: getIDAsKeyForStore(3),
 					},
 				],
 				minFeePerByte: 1000,
@@ -481,8 +481,8 @@ describe('TransactionPool class', () => {
 			for (let i = 0; i < MAX_TRANSACTIONS - 1; i += 1) {
 				const tempTx = {
 					id: Buffer.from(`${i.toString()}`),
-					moduleID: 3,
-					commandID: 0,
+					moduleID: getIDAsKeyForStore(3),
+					commandID: getIDAsKeyForStore(0),
 					nonce: BigInt(1),
 					fee: BigInt(30000),
 					senderPublicKey: generateRandomPublicKeys()[0],
@@ -496,8 +496,8 @@ describe('TransactionPool class', () => {
 
 			const nonSequentialTx = {
 				id: Buffer.from('21'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(1),
 				fee: BigInt(30000),
 				senderPublicKey: generateRandomPublicKeys()[0],
@@ -517,8 +517,8 @@ describe('TransactionPool class', () => {
 
 			const highFeePriorityTx = {
 				id: Buffer.from('11'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(1),
 				fee: BigInt(50000),
 				senderPublicKey: generateRandomPublicKeys()[0],
@@ -545,9 +545,9 @@ describe('TransactionPool class', () => {
 				maxTransactions: MAX_TRANSACTIONS,
 				baseFees: [
 					{
-						commandID: 0,
+						commandID: getIDAsKeyForStore(0),
 						baseFee: BigInt(1),
-						moduleID: 3,
+						moduleID: getIDAsKeyForStore(3),
 					},
 				],
 				minFeePerByte: 1000,
@@ -561,8 +561,8 @@ describe('TransactionPool class', () => {
 			for (let i = 0; i < MAX_TRANSACTIONS; i += 1) {
 				const tempTx = {
 					id: Buffer.from(`${i.toString()}`),
-					moduleID: 3,
-					commandID: 0,
+					moduleID: getIDAsKeyForStore(3),
+					commandID: getIDAsKeyForStore(0),
 					nonce: BigInt(1),
 					fee: BigInt(30000),
 					senderPublicKey: generateRandomPublicKeys()[0],
@@ -578,8 +578,8 @@ describe('TransactionPool class', () => {
 
 			const lowFeePriorityTx = {
 				id: Buffer.from('11'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(1),
 				fee: BigInt(1000),
 				senderPublicKey: generateRandomPublicKeys()[0],
@@ -604,9 +604,9 @@ describe('TransactionPool class', () => {
 				maxTransactions: MAX_TRANSACTIONS,
 				baseFees: [
 					{
-						commandID: 0,
+						commandID: getIDAsKeyForStore(0),
 						baseFee: BigInt(1),
-						moduleID: 3,
+						moduleID: getIDAsKeyForStore(3),
 					},
 				],
 				minFeePerByte: 1000,
@@ -619,8 +619,8 @@ describe('TransactionPool class', () => {
 			for (let i = 0; i < MAX_TRANSACTIONS; i += 1) {
 				const tempTx = {
 					id: Buffer.from(`${i.toString()}`),
-					moduleID: 3,
-					commandID: 0,
+					moduleID: getIDAsKeyForStore(3),
+					commandID: getIDAsKeyForStore(0),
 					nonce: BigInt(1),
 					fee: BigInt(30000),
 					senderPublicKey: generateRandomPublicKeys()[0],
@@ -650,8 +650,8 @@ describe('TransactionPool class', () => {
 
 			const lowFeePriorityTx = {
 				id: Buffer.from('11'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(1),
 				fee: BigInt(30000),
 				senderPublicKey: generateRandomPublicKeys()[0],
@@ -676,16 +676,16 @@ describe('TransactionPool class', () => {
 		const senderPublicKey = generateRandomPublicKeys()[0];
 		const tx = {
 			id: Buffer.from('1'),
-			moduleID: 3,
-			commandID: 0,
+			moduleID: getIDAsKeyForStore(3),
+			commandID: getIDAsKeyForStore(0),
 			nonce: BigInt(1),
 			fee: BigInt(30000),
 			senderPublicKey,
 		} as Transaction;
 		const additionalTx = {
 			id: Buffer.from('2'),
-			moduleID: 3,
-			commandID: 0,
+			moduleID: getIDAsKeyForStore(3),
+			commandID: getIDAsKeyForStore(0),
 			nonce: BigInt(3),
 			fee: BigInt(30000),
 			senderPublicKey,
@@ -717,8 +717,8 @@ describe('TransactionPool class', () => {
 			// Remove a transaction that does not exist
 			const nonExistentTrx = {
 				id: Buffer.from('155'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(1),
 				fee: BigInt(1000),
 				senderPublicKey: generateRandomPublicKeys()[0],
@@ -761,16 +761,16 @@ describe('TransactionPool class', () => {
 		const transactions = [
 			{
 				id: Buffer.from('1'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(1),
 				fee: BigInt(20000),
 				senderPublicKey,
 			} as Transaction,
 			{
 				id: Buffer.from('3'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(3),
 				fee: BigInt(30000),
 				senderPublicKey,
@@ -789,9 +789,9 @@ describe('TransactionPool class', () => {
 				maxTransactions: 2,
 				baseFees: [
 					{
-						commandID: 0,
+						commandID: getIDAsKeyForStore(0),
 						baseFee: BigInt(1),
-						moduleID: 3,
+						moduleID: getIDAsKeyForStore(3),
 					},
 				],
 				minFeePerByte: 1000,
@@ -822,16 +822,16 @@ describe('TransactionPool class', () => {
 		const transactionsFromSender1 = [
 			{
 				id: Buffer.from('1'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(1),
 				fee: BigInt(30000),
 				senderPublicKey: senderPublicKey1,
 			} as Transaction,
 			{
 				id: Buffer.from('2'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(2),
 				fee: BigInt(60000),
 				senderPublicKey: senderPublicKey1,
@@ -841,16 +841,16 @@ describe('TransactionPool class', () => {
 		const transactionsFromSender2 = [
 			{
 				id: Buffer.from('11'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(1),
 				fee: BigInt(30000),
 				senderPublicKey: senderPublicKey2,
 			} as Transaction,
 			{
 				id: Buffer.from('12'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(2),
 				fee: BigInt(30000),
 				senderPublicKey: senderPublicKey2,
@@ -880,9 +880,9 @@ describe('TransactionPool class', () => {
 				maxTransactions: 2,
 				baseFees: [
 					{
-						commandID: 0,
+						commandID: getIDAsKeyForStore(0),
 						baseFee: BigInt(1),
-						moduleID: 3,
+						moduleID: getIDAsKeyForStore(3),
 					},
 				],
 				minFeePerByte: 1000,
@@ -919,24 +919,24 @@ describe('TransactionPool class', () => {
 		const transactionsFromSender1 = [
 			{
 				id: Buffer.from('1'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(1),
 				fee: BigInt(30000),
 				senderPublicKey: senderPublicKey1,
 			} as Transaction,
 			{
 				id: Buffer.from('2'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(2),
 				fee: BigInt(60000),
 				senderPublicKey: senderPublicKey1,
 			} as Transaction,
 			{
 				id: Buffer.from('3'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(3),
 				fee: BigInt(90000),
 				senderPublicKey: senderPublicKey1,
@@ -946,8 +946,8 @@ describe('TransactionPool class', () => {
 		const transactionsFromSender2 = [
 			{
 				id: Buffer.from('11'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(1),
 				fee: BigInt(30000),
 				senderPublicKey: senderPublicKey2,
@@ -978,9 +978,9 @@ describe('TransactionPool class', () => {
 				transactionReorganizationInterval: 1,
 				baseFees: [
 					{
-						commandID: 0,
+						commandID: getIDAsKeyForStore(0),
 						baseFee: BigInt(1),
-						moduleID: 3,
+						moduleID: getIDAsKeyForStore(3),
 					},
 				],
 				minFeePerByte: 1000,
@@ -1067,8 +1067,8 @@ describe('TransactionPool class', () => {
 		const transactionsForSender1 = [
 			{
 				id: Buffer.from('1'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(1),
 				fee: BigInt(1000),
 				senderPublicKey: senderPublicKey1,
@@ -1076,8 +1076,8 @@ describe('TransactionPool class', () => {
 			} as Transaction,
 			{
 				id: Buffer.from('2'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(2),
 				fee: BigInt(2000),
 				senderPublicKey: senderPublicKey1,
@@ -1085,8 +1085,8 @@ describe('TransactionPool class', () => {
 			} as Transaction,
 			{
 				id: Buffer.from('3'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(3),
 				fee: BigInt(3000),
 				senderPublicKey: senderPublicKey1,
@@ -1097,8 +1097,8 @@ describe('TransactionPool class', () => {
 		const transactionsForSender2 = [
 			{
 				id: Buffer.from('11'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(1),
 				fee: BigInt(1000),
 				senderPublicKey: senderPublicKey2,
@@ -1106,8 +1106,8 @@ describe('TransactionPool class', () => {
 			} as Transaction,
 			{
 				id: Buffer.from('12'),
-				moduleID: 3,
-				commandID: 0,
+				moduleID: getIDAsKeyForStore(3),
+				commandID: getIDAsKeyForStore(0),
 				nonce: BigInt(2),
 				fee: BigInt(2000),
 				senderPublicKey: senderPublicKey2,

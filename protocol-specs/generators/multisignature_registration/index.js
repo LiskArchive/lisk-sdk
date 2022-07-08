@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { signData } = require('@liskhq/lisk-cryptography');
+const { signData, intToBuffer } = require('@liskhq/lisk-cryptography');
 const { Codec } = require('@liskhq/lisk-codec');
 const BaseGenerator = require('../base_generator');
 const { baseTransactionSchema } = require('../../utils/schema');
@@ -142,7 +142,7 @@ const sortKeysAscending = publicKeys =>
 
 const createSignatureObject = (txBuffer, account) => ({
 	signature: Buffer.from(
-		signData(Buffer.concat([TAG_TRANSACTION, networkIdentifier, txBuffer]), account.passphrase),
+		signData(TAG_TRANSACTION, networkIdentifier, txBuffer, account.passphrase),
 		'hex',
 	),
 });
@@ -150,8 +150,8 @@ const createSignatureObject = (txBuffer, account) => ({
 const generateValidMultisignatureRegistrationTransaction = () => {
 	// basic transaction
 	const unsignedTransaction = {
-		moduleID: 12,
-		commandID: 0,
+		moduleID: intToBuffer(12, 4),
+		commandID: intToBuffer(0, 4),
 		senderPublicKey: Buffer.from(
 			'0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 			'hex',
@@ -219,8 +219,8 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 		),
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
-		moduleID: 12,
-		commandID: 0,
+		moduleID: intToBuffer(12, 4),
+		commandID: intToBuffer(0, 4),
 		params: {
 			mandatoryKeys: [
 				Buffer.from('0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe', 'hex'),
@@ -288,8 +288,8 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 		),
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
-		moduleID: 12,
-		commandID: 0,
+		moduleID: intToBuffer(12, 4),
+		commandID: intToBuffer(0, 4),
 		params: {
 			mandatoryKeys: [],
 			optionalKeys: [
@@ -345,8 +345,8 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 		),
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
-		moduleID: 12,
-		commandID: 0,
+		moduleID: intToBuffer(12, 4),
+		commandID: intToBuffer(0, 4),
 		params: {
 			mandatoryKeys: [
 				Buffer.from('4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39', 'hex'),
@@ -416,8 +416,8 @@ const generateFormerSecondSignatureTransactioon = () => {
 		),
 		nonce: BigInt('1'),
 		fee: BigInt('1500000000'),
-		moduleID: 12,
-		commandID: 0,
+		moduleID: intToBuffer(12, 4),
+		commandID: intToBuffer(0, 4),
 		params: {
 			mandatoryKeys: [
 				Buffer.from('0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe', 'hex'),

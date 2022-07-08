@@ -13,7 +13,7 @@
  */
 
 import { Transaction } from '@liskhq/lisk-chain';
-import { getAddressFromPublicKey, getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getAddressFromPublicKey, getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { FeeModule } from '../../../../src/modules/fee';
 import { VerifyStatus } from '../../../../src/state_machine';
 import { createTransactionContext } from '../../../../src/testing';
@@ -28,14 +28,14 @@ describe('FeeModule', () => {
 		genesisConfig = {
 			baseFees: [
 				{
-					commandID: 0,
+					commandID: intToBuffer(0, 4),
 					baseFee: '1',
-					moduleID: 5,
+					moduleID: intToBuffer(5, 4),
 				},
 			],
 			minFeePerByte: 1000,
 		};
-		moduleConfig = { feeTokenID: { chainID: 0, localID: 0 } };
+		moduleConfig = { feeTokenID: { chainID: intToBuffer(0, 4), localID: intToBuffer(0, 4) } };
 		generatorConfig = {};
 		feeModule = new FeeModule();
 		await feeModule.init({ genesisConfig, moduleConfig, generatorConfig });
@@ -66,8 +66,8 @@ describe('FeeModule', () => {
 	describe('verifyTransaction', () => {
 		it('should validate transaction with sufficient min fee', async () => {
 			const transaction = new Transaction({
-				moduleID: 5,
-				commandID: 0,
+				moduleID: intToBuffer(5, 4),
+				commandID: intToBuffer(0, 4),
 				fee: BigInt(1000000000),
 				nonce: BigInt(0),
 				senderPublicKey: getRandomBytes(32),
@@ -82,10 +82,10 @@ describe('FeeModule', () => {
 		});
 
 		it('should validate transaction with exactly the min fee', async () => {
-			const exactMinFee = BigInt(102001);
+			const exactMinFee = BigInt(108001);
 			const transaction = new Transaction({
-				moduleID: 5,
-				commandID: 0,
+				moduleID: intToBuffer(5, 4),
+				commandID: intToBuffer(0, 4),
 				fee: exactMinFee,
 				nonce: BigInt(0),
 				senderPublicKey: getRandomBytes(32),
@@ -101,8 +101,8 @@ describe('FeeModule', () => {
 
 		it('should invalidate transaction with insufficient min fee', async () => {
 			const transaction = new Transaction({
-				moduleID: 5,
-				commandID: 0,
+				moduleID: intToBuffer(5, 4),
+				commandID: intToBuffer(0, 4),
 				fee: BigInt(0),
 				nonce: BigInt(0),
 				senderPublicKey: getRandomBytes(32),
@@ -126,8 +126,8 @@ describe('FeeModule', () => {
 			jest.spyOn(feeModule['_tokenAPI'], 'isNative').mockResolvedValue(true);
 
 			const transaction = new Transaction({
-				moduleID: 5,
-				commandID: 0,
+				moduleID: intToBuffer(5, 4),
+				commandID: intToBuffer(0, 4),
 				fee: BigInt(1000000000),
 				nonce: BigInt(0),
 				senderPublicKey: getRandomBytes(32),
@@ -160,8 +160,8 @@ describe('FeeModule', () => {
 		it('should transfer transaction fee to generator and not burn min fee when non-native token', async () => {
 			jest.spyOn(feeModule['_tokenAPI'], 'isNative').mockResolvedValue(false);
 			const transaction = new Transaction({
-				moduleID: 5,
-				commandID: 0,
+				moduleID: intToBuffer(5, 4),
+				commandID: intToBuffer(0, 4),
 				fee: BigInt(1000000000),
 				nonce: BigInt(0),
 				senderPublicKey: getRandomBytes(32),

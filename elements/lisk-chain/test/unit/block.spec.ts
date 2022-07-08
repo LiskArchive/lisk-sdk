@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, hash, intToBuffer } from '@liskhq/lisk-cryptography';
 import { Block, BlockAsset, BlockAssets, Transaction } from '../../src';
 import { EMPTY_BUFFER, EMPTY_HASH } from '../../src/constants';
 import { createValidDefaultBlock } from '../utils/block';
@@ -27,11 +27,11 @@ describe('block', () => {
 		beforeEach(() => {
 			assetList = [
 				{
-					moduleID: 3,
+					moduleID: intToBuffer(3, 4),
 					data: getRandomBytes(64),
 				},
 				{
-					moduleID: 6,
+					moduleID: intToBuffer(6, 4),
 					data: getRandomBytes(64),
 				},
 			];
@@ -89,11 +89,11 @@ describe('block', () => {
 				// Arrange
 				const assets = [
 					{
-						moduleID: 2,
+						moduleID: intToBuffer(2, 4),
 						data: getRandomBytes(64),
 					},
 					{
-						moduleID: 3,
+						moduleID: intToBuffer(3, 4),
 						data: getRandomBytes(64),
 					},
 				];
@@ -138,11 +138,11 @@ describe('block', () => {
 		beforeEach(() => {
 			assetList = [
 				{
-					moduleID: 3,
+					moduleID: intToBuffer(3, 4),
 					data: getRandomBytes(64),
 				},
 				{
-					moduleID: 6,
+					moduleID: intToBuffer(6, 4),
 					data: getRandomBytes(64),
 				},
 			];
@@ -180,11 +180,11 @@ describe('block', () => {
 				// Arrange
 				const assets = [
 					{
-						moduleID: 2,
+						moduleID: intToBuffer(2, 4),
 						data: getRandomBytes(64),
 					},
 					{
-						moduleID: 3,
+						moduleID: intToBuffer(3, 4),
 						data: getRandomBytes(64),
 					},
 				];

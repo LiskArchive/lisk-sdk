@@ -14,7 +14,7 @@
 
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec, Schema } from '@liskhq/lisk-codec';
-import { verifyData } from '@liskhq/lisk-cryptography';
+import { intToBuffer, verifyData } from '@liskhq/lisk-cryptography';
 import { isHexString } from '@liskhq/lisk-validator';
 import { VerificationResult, VerifyStatus } from '../../state_machine';
 import { InvalidNonceError } from './errors';
@@ -204,3 +204,5 @@ export const getTransactionFromParameter = (transactionParameter: unknown) => {
 
 	return transaction;
 };
+
+export const getIDAsKeyForStore = (id: number) => intToBuffer(id, 4);

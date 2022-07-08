@@ -21,7 +21,7 @@ import Box from '../Box';
 import Button from '../Button';
 
 interface WidgetProps {
-	modules: { id: number; name: string; commands: { id: number; name: string }[] }[];
+	modules: { id: Buffer; name: string; commands: { id: Buffer; name: string }[] }[];
 	onSubmit: (data: SendTransactionOptions) => void;
 }
 
@@ -43,8 +43,8 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 		const paramsSelectedValue = selectedParams ? selectedParams.value : '';
 		const moduleName = paramsSelectedValue.split(':').shift();
 		const commandName = paramsSelectedValue.split(':').slice(1).join(':');
-		let moduleID: number | undefined;
-		let commandID: number | undefined;
+		let moduleID: Buffer | undefined;
+		let commandID: Buffer | undefined;
 
 		for (const m of props.modules) {
 			if (m.name === moduleName) {

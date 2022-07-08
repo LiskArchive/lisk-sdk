@@ -37,6 +37,7 @@
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
+		"@liskhq/lisk-cryptography": "^4.0.0-alpha.0",
 		"fs-extra": "9.1.0",
 		"lisk-sdk": "^6.0.0-alpha.0"
 	},

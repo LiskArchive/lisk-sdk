@@ -14,6 +14,7 @@
  */
 import {
 	decryptPassphraseWithPassword,
+	intToBuffer,
 	EncryptedPassphraseObject,
 	parseEncryptedPassphrase,
 } from '@liskhq/lisk-cryptography';
@@ -41,8 +42,8 @@ export const defaultConfig = {
 		minFeePerByte: 1000,
 		baseFees: [
 			{
-				moduleID: 12,
-				commandID: 0,
+				moduleID: intToBuffer(12, 4),
+				commandID: intToBuffer(0, 4),
 				baseFee: '1000000000',
 			},
 		],

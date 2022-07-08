@@ -56,9 +56,9 @@ export class GenerationContext {
 			logger: this._logger,
 			getAPIContext: () =>
 				createAPIContext({ stateStore: this._stateStore, eventQueue: new EventQueue() }),
-			getStore: (moduleID: number, storePrefix: number) =>
+			getStore: (moduleID: Buffer, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
-			getGeneratorStore: (moduleID: number) => this._generatorStore.getStore(moduleID, 0),
+			getGeneratorStore: (moduleID: Buffer) => this._generatorStore.getStore(moduleID, 0),
 			header: this._header,
 			assets: this._assets,
 			networkIdentifier: this._networkIdentifier,
