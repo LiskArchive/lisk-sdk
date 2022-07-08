@@ -13,6 +13,7 @@ Object {
     },
     "genesis": Object {
       "baseFees": Array [],
+      "bftBatchSize": 103,
       "blockTime": 10,
       "communityIdentifier": "sdk",
       "maxTransactionsSize": 15360,
@@ -160,6 +161,11 @@ Object {
           },
           "type": "array",
         },
+        "bftBatchSize": Object {
+          "description": "The length of a round",
+          "minimum": 1,
+          "type": "number",
+        },
         "blockTime": Object {
           "description": "Slot time interval in seconds",
           "minimum": 2,
@@ -192,6 +198,7 @@ Object {
       },
       "required": Array [
         "blockTime",
+        "bftBatchSize",
         "communityIdentifier",
         "maxTransactionsSize",
         "minFeePerByte",

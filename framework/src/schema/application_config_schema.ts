@@ -296,6 +296,7 @@ export const applicationConfigSchema = {
 			type: 'object',
 			required: [
 				'blockTime',
+				'bftBatchSize',
 				'communityIdentifier',
 				'maxTransactionsSize',
 				'minFeePerByte',
@@ -307,6 +308,11 @@ export const applicationConfigSchema = {
 					type: 'number',
 					minimum: 2,
 					description: 'Slot time interval in seconds',
+				},
+				bftBatchSize: {
+					type: 'number',
+					minimum: 1,
+					description: 'The length of a round',
 				},
 				communityIdentifier: {
 					type: 'string',
@@ -415,6 +421,7 @@ export const applicationConfigSchema = {
 		plugins: {},
 		genesis: {
 			blockTime: 10,
+			bftBatchSize: 103,
 			communityIdentifier: 'sdk',
 			// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 			maxTransactionsSize: 15 * 1024, // Kilo Bytes

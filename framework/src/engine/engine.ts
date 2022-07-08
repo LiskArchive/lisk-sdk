@@ -269,43 +269,57 @@ export class Engine {
 	private _registerEventListeners() {
 		this._consensus.events.on(CONSENSUS_EVENT_BLOCK_NEW, ({ block }: { block: Block }) => {
 			this._generator.onNewBlock(block);
-			this._rpcServer.publish(EVENT_CHAIN_BLOCK_NEW, { blockHeader: block.header.toJSON() });
-			this._rpcServer.publish(EVENT_NETWORK_BLOCK_NEW, { blockHeader: block.header.toJSON() });
+			Promise.all([
+				this._rpcServer.publish(EVENT_CHAIN_BLOCK_NEW, { blockHeader: block.header.toJSON() }),
+				this._rpcServer.publish(EVENT_NETWORK_BLOCK_NEW, { blockHeader: block.header.toJSON() }),
+			]).catch(err => this._logger.error({ err: err as Error }, 'Fail to publish event'));
 		});
 		this._consensus.events.on(CONSENSUS_EVENT_BLOCK_DELETE, ({ block }: { block: Block }) => {
 			this._generator.onDeleteBlock(block);
-			this._rpcServer.publish(EVENT_CHAIN_BLOCK_DELETE, { blockHeader: block.header.toJSON() });
+			this._rpcServer
+				.publish(EVENT_CHAIN_BLOCK_DELETE, { blockHeader: block.header.toJSON() })
+				.catch(err => this._logger.error({ err: err as Error }, 'Fail to publish event'));
 		});
 		this._consensus.events.on(CONSENSUS_EVENT_FORK_DETECTED, ({ block }: { block: Block }) => {
-			this._rpcServer.publish(EVENT_CHAIN_FORK, { blockHeader: block.header.toJSON() });
+			this._rpcServer
+				.publish(EVENT_CHAIN_FORK, { blockHeader: block.header.toJSON() })
+				.catch(err => this._logger.error({ err: err as Error }, 'Fail to publish event'));
 		});
 		this._consensus.events.on(CONSENSUS_EVENT_NETWORK_BLOCK_NEW, ({ block }: { block: Block }) => {
-			this._rpcServer.publish(EVENT_NETWORK_BLOCK_NEW, { blockHeader: block.header.toJSON() });
+			this._rpcServer
+				.publish(EVENT_NETWORK_BLOCK_NEW, { blockHeader: block.header.toJSON() })
+				.catch(err => this._logger.error({ err: err as Error }, 'Fail to publish event'));
 		});
 		this._consensus.events.on(CONSENSUS_EVENT_VALIDATORS_CHANGED, (update: ValidatorUpdate) => {
-			this._rpcServer.publish(EVENT_CHAIN_VALIDATORS_CHANGE, {
-				nextValidators: update.nextValidators.map(v => ({
-					address: v.address.toString('hex'),
-					blsKey: v.blsKey.toString('hex'),
-					generatorKey: v.generatorKey.toString('hex'),
-					bftWeight: v.bftWeight.toString(),
-				})),
-				preCommitThreshold: update.preCommitThreshold.toString(),
-				certificateThreshold: update.certificateThreshold.toString(),
-			});
+			this._rpcServer
+				.publish(EVENT_CHAIN_VALIDATORS_CHANGE, {
+					nextValidators: update.nextValidators.map(v => ({
+						address: v.address.toString('hex'),
+						blsKey: v.blsKey.toString('hex'),
+						generatorKey: v.generatorKey.toString('hex'),
+						bftWeight: v.bftWeight.toString(),
+					})),
+					preCommitThreshold: update.preCommitThreshold.toString(),
+					certificateThreshold: update.certificateThreshold.toString(),
+				})
+				.catch(err => this._logger.error({ err: err as Error }, 'Fail to publish event'));
 		});
 		this._generator.events.on(
 			GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT,
 			(event: { transactionIds: Buffer[] }) => {
-				this._rpcServer.publish(EVENT_NETWORK_TRANSACTION_NEW, {
-					transactionIDs: event.transactionIds.map(id => id.toString('hex')),
-				});
+				this._rpcServer
+					.publish(EVENT_NETWORK_TRANSACTION_NEW, {
+						transactionIDs: event.transactionIds.map(id => id.toString('hex')),
+					})
+					.catch(err => this._logger.error({ err: err as Error }, 'Fail to publish event'));
 			},
 		);
 		this._generator.events.on(
 			GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT,
 			(event: { transaction: TransactionJSON }) => {
-				this._rpcServer.publish(EVENT_TX_POOL_TRANSACTION_NEW, event);
+				this._rpcServer
+					.publish(EVENT_TX_POOL_TRANSACTION_NEW, event)
+					.catch(err => this._logger.error({ err: err as Error }, 'Fail to publish event'));
 			},
 		);
 	}
