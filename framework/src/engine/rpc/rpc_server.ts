@@ -132,8 +132,8 @@ export class RPCServer {
 		}
 	}
 
-	public publish(eventName: string, data: Record<string, unknown>): void {
-		this._publishIPC(eventName, data);
+	public async publish(eventName: string, data: Record<string, unknown>): Promise<void> {
+		await this._publishIPC(eventName, data);
 		this._publishWS(eventName, data);
 	}
 
@@ -235,17 +235,19 @@ export class RPCServer {
 		}
 	}
 
-	private _publishIPC(eventName: string, data: Record<string, unknown>): void {
+	private async _publishIPC(eventName: string, data: Record<string, unknown>): Promise<void> {
 		if (!this._ipcServer) {
 			return;
 		}
 		const notification = notificationRequest(eventName, data);
-		this._ipcServer.pubSocket.send([eventName, JSON.stringify(notification)]).catch(error => {
+		try {
+			await this._ipcServer.pubSocket.send([eventName, JSON.stringify(notification)]);
+		} catch (error) {
 			this._logger.debug(
 				{ err: error as Error },
 				`Failed to publish event: ${eventName} to ipc server.`,
 			);
-		});
+		}
 	}
 
 	private _publishWS(eventName: string, data: Record<string, unknown>): void {
