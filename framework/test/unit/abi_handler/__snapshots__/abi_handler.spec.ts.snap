@@ -8,7 +8,7 @@ Object {
     "password": "",
   },
   "genesis": Object {
-    "bftBatchSize": 10,
+    "bftBatchSize": 103,
     "blockTime": 10,
     "communityIdentifier": "sdk",
     "maxTransactionsSize": 15360,
