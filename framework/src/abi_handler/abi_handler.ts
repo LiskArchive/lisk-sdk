@@ -177,7 +177,7 @@ export class ABIHandler implements ABI {
 					networkVersion: this._config.networkVersion,
 				},
 				genesis: {
-					bftBatchSize: this._config.genesis.blockTime,
+					bftBatchSize: this._config.genesis.bftBatchSize,
 					blockTime: this._config.genesis.blockTime,
 					communityIdentifier: this._config.genesis.communityIdentifier,
 					minFeePerByte: this._config.genesis.minFeePerByte,
@@ -229,8 +229,8 @@ export class ABIHandler implements ABI {
 						port: this._config.rpc.http?.port ?? DEFAULT_PORT_RPC,
 					},
 					ws: {
-						host: this._config.rpc.http?.host ?? DEFAULT_HOST,
-						port: this._config.rpc.http?.port ?? DEFAULT_PORT_RPC,
+						host: this._config.rpc.ws?.host ?? DEFAULT_HOST,
+						port: this._config.rpc.ws?.port ?? DEFAULT_PORT_RPC,
 					},
 				},
 			},

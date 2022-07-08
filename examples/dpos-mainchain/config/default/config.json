@@ -13,6 +13,7 @@
 	},
 	"genesis": {
 		"blockTime": 10,
+		"bftBatchSize": 103,
 		"communityIdentifier": "sdk",
 		"maxTransactionsSize": 15360,
 		"minFeePerByte": 1000,

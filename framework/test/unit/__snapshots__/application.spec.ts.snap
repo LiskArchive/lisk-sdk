@@ -2182,6 +2182,7 @@ Object {
         "moduleID": 5,
       },
     ],
+    "bftBatchSize": 103,
     "blockTime": 10,
     "communityIdentifier": "Lisk",
     "maxTransactionsSize": 15360,
