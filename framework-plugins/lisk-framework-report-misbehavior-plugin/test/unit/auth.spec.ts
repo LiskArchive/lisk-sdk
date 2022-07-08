@@ -64,7 +64,7 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 const validPluginOptions = {
 	...configSchema.default,
 	encryptedPassphrase:
-		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1',
+		'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=11ac52fe63e95e996a845dbe01de2913fe16d7722008a998fbfb5722be1cb358d67810c7a71b22be167715018458d5705a8242ca18fcb9faa00b3b0dce57c2b7aa4c835b41529a0203598f10f5b8e911&mac=9f7f88d5f4e488dcc27d3d4a1176086e04a0f6ddf2f5bd90890e5002156dd096&salt=8e65503565a1f2352c13cf42c22e6f7c&iv=303a8a37e47fa8517c50fc00&tag=1f9c18ea7cb1dc64c5cabb7fa3ba73f5&iterations=1&parallelism=4&memorySize=2024',
 	dataPath: '/my/app',
 };
 
@@ -81,8 +81,6 @@ describe('auth action', () => {
 		await reportMisbehaviorPlugin.init({
 			config: {
 				...validPluginOptions,
-				encryptedPassphrase:
-					'iterations=1000000&ciphertext=a31a3324ce12664a396329&iv=b476ef9d377397f4f9b0c1ae&salt=d81787ca5103be883a01d211746b1c3f&tag=e352880bb05a03bafc98af48b924fbf9&version=1',
 			},
 			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
@@ -90,22 +88,20 @@ describe('auth action', () => {
 		});
 	});
 
-	// TODO: Fix in next issue
-	it.skip('should disable the reporting when enable=false', async () => {
+	it('should disable the reporting when enable=false', async () => {
 		const params = {
 			enable: false,
-			password: '123',
+			password: 'testpassword',
 		};
 		const response = await reportMisbehaviorPlugin.endpoint.authorize({ params } as any);
 
 		expect(response.result).toContain('Successfully disabled the reporting of misbehavior.');
 	});
 
-	// TODO: Fix in next issue
-	it.skip('should enable the reporting when enable=true', async () => {
+	it('should enable the reporting when enable=true', async () => {
 		const params = {
 			enable: true,
-			password: '123',
+			password: 'testpassword',
 		};
 		const response = await reportMisbehaviorPlugin.endpoint.authorize({ params } as any);
 
