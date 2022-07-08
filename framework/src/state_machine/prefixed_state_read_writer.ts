@@ -48,12 +48,10 @@ export class PrefixedStateReadWriter {
 		return this._readWriter;
 	}
 
-	public getStore(moduleID: number, prefix: number): PrefixedStateReadWriter {
-		const moduleIDBytes = Buffer.alloc(4);
-		moduleIDBytes.writeUInt32BE(moduleID, 0);
+	public getStore(moduleID: Buffer, prefix: number): PrefixedStateReadWriter {
 		const prefixBytes = Buffer.alloc(2);
 		prefixBytes.writeUInt16BE(prefix, 0);
-		const nextPrefix = Buffer.concat([this._prefix, moduleIDBytes, prefixBytes]);
+		const nextPrefix = Buffer.concat([this._prefix, moduleID, prefixBytes]);
 
 		return new PrefixedStateReadWriter(this._readWriter, nextPrefix);
 	}

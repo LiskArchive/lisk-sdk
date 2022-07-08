@@ -30,17 +30,17 @@ interface WidgetProps {
 
 const getModuleAsset = (
 	nodeInfo: Metadata | undefined,
-	moduleID: number,
-	commandID: number,
+	moduleID: Buffer,
+	commandID: Buffer,
 ): string => {
 	if (!nodeInfo) {
 		return 'unknown';
 	}
-	const registeredModule = nodeInfo.find(rm => rm.id === moduleID);
+	const registeredModule = nodeInfo.find(rm => rm.id.equals(moduleID));
 	if (!registeredModule) {
 		return 'unknown';
 	}
-	const registeredCommand = registeredModule.commands.find(ta => ta.id === commandID);
+	const registeredCommand = registeredModule.commands.find(ta => ta.id.equals(commandID));
 	if (!registeredCommand) {
 		return `${registeredModule.name}:unknown`;
 	}

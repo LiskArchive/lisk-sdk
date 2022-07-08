@@ -76,7 +76,7 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 			throw new Error('TokenCCAPI does not exist.');
 		}
 
-		const receivingChainIDAsStoreKey = getIDAsKeyForStore(ccm.receivingChainID);
+		const receivingChainIDAsStoreKey = ccm.receivingChainID;
 		const receivingChainAccount = await handlePromiseErrorWithNull(
 			this.getChainAccount(receivingChainIDAsStoreKey),
 		);
@@ -112,8 +112,8 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 
 		await this.sendInternal({
 			beforeSendContext: beforeCCMSendContext,
-			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED,
-			moduleID: MODULE_ID_INTEROPERABILITY,
+			crossChainCommandID: getIDAsKeyForStore(CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED),
+			moduleID: getIDAsKeyForStore(MODULE_ID_INTEROPERABILITY),
 			fee: BigInt(0),
 			params: getEncodedSidechainTerminatedCCMParam(ccm, receivingChainAccount),
 			receivingChainID: ccm.sendingChainID,
@@ -125,9 +125,7 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	}
 
 	public async bounce(ccm: CCMsg): Promise<void> {
-		const terminatedStateAccountExists = await this.hasTerminatedStateAccount(
-			getIDAsKeyForStore(ccm.sendingChainID),
-		);
+		const terminatedStateAccountExists = await this.hasTerminatedStateAccount(ccm.sendingChainID);
 
 		// Messages from terminated chains are discarded, and never returned
 		if (terminatedStateAccountExists) {
@@ -141,11 +139,11 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 			status: CCM_STATUS_CHANNEL_UNAVAILABLE,
 		};
 
-		await this.addToOutbox(getIDAsKeyForStore(newCCM.receivingChainID), newCCM);
+		await this.addToOutbox(newCCM.receivingChainID, newCCM);
 	}
 
 	public async sendInternal(sendContext: SendInternalContext): Promise<boolean> {
-		const receivingChainIDAsStoreKey = getIDAsKeyForStore(sendContext.receivingChainID);
+		const receivingChainIDAsStoreKey = sendContext.receivingChainID;
 		let receivingChainAccount;
 		try {
 			// Chain has to exist on mainchain
@@ -211,13 +209,13 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getInboxRoot(chainID: number): Promise<void> {
+	public async getInboxRoot(chainID: Buffer): Promise<void> {
 		// eslint-disable-next-line no-console
 		console.log(chainID);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async getOutboxRoot(chainID: number): Promise<void> {
+	public async getOutboxRoot(chainID: Buffer): Promise<void> {
 		// eslint-disable-next-line no-console
 		console.log(chainID);
 	}

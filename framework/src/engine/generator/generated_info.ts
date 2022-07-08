@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { GENERATOR_STORE_RESERVED_PREFIX } from './constants';
+import { GENERATOR_STORE_RESERVED_PREFIX_BUFFER } from './constants';
 import { NotFoundError } from './errors';
 import { GeneratorStore } from './generator_store';
 import { GeneratedInfo, previouslyGeneratedInfoSchema } from './schemas';
@@ -23,7 +23,7 @@ export const setLastGeneratedInfo = async (
 	generatorAddress: Buffer,
 	header: GeneratedInfo,
 ): Promise<void> => {
-	const subStore = store.getGeneratorStore(GENERATOR_STORE_RESERVED_PREFIX);
+	const subStore = store.getGeneratorStore(GENERATOR_STORE_RESERVED_PREFIX_BUFFER);
 	const generatedInfo: GeneratedInfo = {
 		height: header.height,
 		maxHeightGenerated: header.maxHeightGenerated,
@@ -37,7 +37,7 @@ export const getLastGeneratedInfo = async (
 	store: GeneratorStore,
 	generatorAddress: Buffer,
 ): Promise<GeneratedInfo> => {
-	const subStore = store.getGeneratorStore(GENERATOR_STORE_RESERVED_PREFIX);
+	const subStore = store.getGeneratorStore(GENERATOR_STORE_RESERVED_PREFIX_BUFFER);
 	const encodedGeneratedInfo = await subStore.get(generatorAddress);
 	return codec.decode<GeneratedInfo>(previouslyGeneratedInfoSchema, encodedGeneratedInfo);
 };

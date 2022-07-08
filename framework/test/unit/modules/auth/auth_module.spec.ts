@@ -19,6 +19,7 @@ import {
 	hash,
 	getAddressFromPublicKey,
 	signDataWithPassphrase,
+	intToBuffer,
 } from '@liskhq/lisk-cryptography';
 import { Transaction, transactionSchema, TAG_TRANSACTION, BlockAssets } from '@liskhq/lisk-chain';
 import { objects as ObjectUtils } from '@liskhq/lisk-utils';
@@ -57,6 +58,7 @@ describe('AuthModule', () => {
 		const buffer = Buffer.from(defaultTestCase.output.transaction, 'hex');
 		const id = hash(buffer);
 		decodedBaseTransaction = codec.decode<Transaction>(transactionSchema, buffer);
+
 		decodedMultiSignature = {
 			...decodedBaseTransaction,
 			id,
@@ -337,8 +339,8 @@ describe('AuthModule', () => {
 			it('should return PENDING status with no error when trx nonce is higher than account nonce', async () => {
 				// Arrange
 				const transaction = new Transaction({
-					moduleID: 2,
-					commandID: 0,
+					moduleID: intToBuffer(2, 4),
+					commandID: intToBuffer(0, 4),
 					nonce: BigInt('2'),
 					fee: BigInt('100000000'),
 					senderPublicKey: passphraseDerivedKeys.publicKey,
@@ -394,8 +396,8 @@ describe('AuthModule', () => {
 			it('should not throw for valid transaction', async () => {
 				// Arrange
 				const transaction = new Transaction({
-					moduleID: 2,
-					commandID: 0,
+					moduleID: intToBuffer(2, 4),
+					commandID: intToBuffer(0, 4),
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
 					senderPublicKey: passphraseDerivedKeys.publicKey,
@@ -429,8 +431,8 @@ describe('AuthModule', () => {
 			it('should throw if signature is missing', async () => {
 				// Arrange
 				const transaction = new Transaction({
-					moduleID: 2,
-					commandID: 0,
+					moduleID: intToBuffer(2, 4),
+					commandID: intToBuffer(0, 4),
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
 					senderPublicKey: passphraseDerivedKeys.publicKey,
@@ -457,8 +459,8 @@ describe('AuthModule', () => {
 			it('should throw error if account is not multi signature and more than one signature present', async () => {
 				// Arrange
 				const transaction = new Transaction({
-					moduleID: 2,
-					commandID: 0,
+					moduleID: intToBuffer(2, 4),
+					commandID: intToBuffer(0, 4),
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
 					senderPublicKey: passphraseDerivedKeys.publicKey,
@@ -553,8 +555,8 @@ describe('AuthModule', () => {
 					});
 
 				transaction = new Transaction({
-					moduleID: 2,
-					commandID: 0,
+					moduleID: intToBuffer(2, 4),
+					commandID: intToBuffer(0, 4),
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
 					senderPublicKey: (members as any).mainAccount.keys.publicKey,

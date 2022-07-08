@@ -14,12 +14,12 @@
 
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../../../src/testing';
 import { DelegateRegistrationCommand } from '../../../../../src/modules/dpos_v2/commands/delegate_registration';
 import {
 	COMMAND_ID_DELEGATE_REGISTRATION,
-	MODULE_ID_DPOS,
+	MODULE_ID_DPOS_BUFFER,
 	STORE_PREFIX_DELEGATE,
 	STORE_PREFIX_NAME,
 } from '../../../../../src/modules/dpos_v2/constants';
@@ -64,8 +64,8 @@ describe('Delegate registration command', () => {
 	);
 	const publicKey = getRandomBytes(32);
 	const transaction = new Transaction({
-		moduleID: MODULE_ID_DPOS,
-		commandID: COMMAND_ID_DELEGATE_REGISTRATION,
+		moduleID: MODULE_ID_DPOS_BUFFER,
+		commandID: intToBuffer(COMMAND_ID_DELEGATE_REGISTRATION, 4),
 		senderPublicKey: publicKey,
 		nonce: BigInt(0),
 		fee: BigInt(100000000),
@@ -78,7 +78,7 @@ describe('Delegate registration command', () => {
 	);
 
 	beforeEach(() => {
-		delegateRegistrationCommand = new DelegateRegistrationCommand(MODULE_ID_DPOS);
+		delegateRegistrationCommand = new DelegateRegistrationCommand(MODULE_ID_DPOS_BUFFER);
 		mockValidatorsAPI = {
 			setValidatorGeneratorKey: jest.fn(),
 			registerValidatorKeys: jest.fn().mockResolvedValue(true),
@@ -87,8 +87,8 @@ describe('Delegate registration command', () => {
 		};
 		delegateRegistrationCommand.addDependencies(mockValidatorsAPI);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		delegateSubstore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
-		nameSubstore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_NAME);
+		delegateSubstore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
+		nameSubstore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_NAME);
 	});
 
 	describe('verify', () => {
@@ -112,8 +112,8 @@ describe('Delegate registration command', () => {
 				name: '*@#&$_2',
 			});
 			const invalidTransaction = new Transaction({
-				moduleID: MODULE_ID_DPOS,
-				commandID: COMMAND_ID_DELEGATE_REGISTRATION,
+				moduleID: MODULE_ID_DPOS_BUFFER,
+				commandID: intToBuffer(COMMAND_ID_DELEGATE_REGISTRATION, 4),
 				senderPublicKey: publicKey,
 				nonce: BigInt(0),
 				fee: BigInt(100000000),
@@ -140,8 +140,8 @@ describe('Delegate registration command', () => {
 				generatorKey: getRandomBytes(64),
 			});
 			const invalidTransaction = new Transaction({
-				moduleID: MODULE_ID_DPOS,
-				commandID: COMMAND_ID_DELEGATE_REGISTRATION,
+				moduleID: MODULE_ID_DPOS_BUFFER,
+				commandID: intToBuffer(COMMAND_ID_DELEGATE_REGISTRATION, 4),
 				senderPublicKey: publicKey,
 				nonce: BigInt(0),
 				fee: BigInt(100000000),
@@ -168,8 +168,8 @@ describe('Delegate registration command', () => {
 				blsKey: getRandomBytes(64),
 			});
 			const invalidTransaction = new Transaction({
-				moduleID: MODULE_ID_DPOS,
-				commandID: COMMAND_ID_DELEGATE_REGISTRATION,
+				moduleID: MODULE_ID_DPOS_BUFFER,
+				commandID: intToBuffer(COMMAND_ID_DELEGATE_REGISTRATION, 4),
 				senderPublicKey: publicKey,
 				nonce: BigInt(0),
 				fee: BigInt(100000000),
@@ -196,8 +196,8 @@ describe('Delegate registration command', () => {
 				proofOfPossession: getRandomBytes(64),
 			});
 			const invalidTransaction = new Transaction({
-				moduleID: MODULE_ID_DPOS,
-				commandID: COMMAND_ID_DELEGATE_REGISTRATION,
+				moduleID: MODULE_ID_DPOS_BUFFER,
+				commandID: intToBuffer(COMMAND_ID_DELEGATE_REGISTRATION, 4),
 				senderPublicKey: publicKey,
 				nonce: BigInt(0),
 				fee: BigInt(100000000),

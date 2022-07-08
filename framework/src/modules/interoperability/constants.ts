@@ -12,13 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash } from '@liskhq/lisk-cryptography';
+import { hash, intToBuffer } from '@liskhq/lisk-cryptography';
 
 export const MODULE_ID_INTEROPERABILITY = 64;
+export const MODULE_ID_INTEROPERABILITY_BUFFER = intToBuffer(MODULE_ID_INTEROPERABILITY, 4);
 export const MODULE_NAME_INTEROPERABILITY = 'interoperability';
 
 // General constants
 export const MAINCHAIN_ID = 1;
+export const MAINCHAIN_ID_BUFFER = intToBuffer(MAINCHAIN_ID, 4);
 export const MAINCHAIN_NAME = 'lisk-mainchain';
 export const MAINCHAIN_NETWORK_ID = Buffer.from(
 	'03693f3126b9d0df3096c4ebd59e5c42af4a7f0e313cd7c96a07b6e9f8f54924',
@@ -59,8 +61,20 @@ export const CHAIN_TERMINATED = 2;
 
 // Cross chain commands
 export const CROSS_CHAIN_COMMAND_ID_REGISTRATION = 0;
+export const CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER = intToBuffer(
+	CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+	4,
+);
 export const CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED = 1;
+export const CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED_BUFFER = intToBuffer(
+	CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED,
+	4,
+);
 export const CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED = 2;
+export const CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED_BUFFER = intToBuffer(
+	CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED,
+	4,
+);
 export const CCM_STATUS_OK = 0;
 export const CCM_STATUS_MODULE_NOT_SUPPORTED = 1;
 export const CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED = 2;
@@ -70,9 +84,16 @@ export const MIN_RETURN_FEE = BigInt(1000);
 
 // Commands
 export const COMMAND_ID_SIDECHAIN_REG = 0;
+export const COMMAND_ID_SIDECHAIN_REG_BUFFER = intToBuffer(COMMAND_ID_SIDECHAIN_REG, 4);
 export const COMMAND_ID_MAINCHAIN_REG = 1;
+export const COMMAND_ID_MAINCHAIN_REG_BUFFER = intToBuffer(COMMAND_ID_MAINCHAIN_REG, 4);
 export const COMMAND_ID_SIDECHAIN_CCU = 2;
+export const COMMAND_ID_SIDECHAIN_CCU_BUFFER = intToBuffer(COMMAND_ID_SIDECHAIN_CCU, 4);
 export const COMMAND_ID_MAINCHAIN_CCU = 3;
+export const COMMAND_ID_MAINCHAIN_CCU_BUFFER = intToBuffer(COMMAND_ID_MAINCHAIN_CCU, 4);
 export const COMMAND_ID_STATE_RECOVERY = 4;
+export const COMMAND_ID_STATE_RECOVERY_BUFFER = intToBuffer(COMMAND_ID_STATE_RECOVERY, 4);
 export const COMMAND_ID_MESSAGE_RECOVERY = 5;
+export const COMMAND_ID_MESSAGE_RECOVERY_BUFFER = intToBuffer(COMMAND_ID_MESSAGE_RECOVERY, 4);
 export const COMMAND_ID_STATE_RECOVERY_INIT = 6;
+export const COMMAND_ID_STATE_RECOVERY_INIT_BUFFER = intToBuffer(COMMAND_ID_MESSAGE_RECOVERY, 4);

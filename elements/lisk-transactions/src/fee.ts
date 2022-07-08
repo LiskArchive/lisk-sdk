@@ -16,8 +16,8 @@
 import { getBytes } from './sign';
 
 interface BaseFee {
-	readonly moduleID: number;
-	readonly commandID: number;
+	readonly moduleID: Buffer;
+	readonly commandID: Buffer;
 	readonly baseFee: string;
 }
 
@@ -52,8 +52,10 @@ const computeTransactionMinFee = (
 		assetSchema,
 	).length;
 	const baseFee =
-		options?.baseFees?.find(bf => bf.moduleID === trx.moduleID && bf.commandID === trx.assetID)
-			?.baseFee ?? DEFAULT_BASE_FEE;
+		options?.baseFees?.find(
+			bf =>
+				bf.moduleID.equals(trx.moduleID as Buffer) && bf.commandID.equals(trx.commandID as Buffer),
+		)?.baseFee ?? DEFAULT_BASE_FEE;
 	return BigInt(size * (options?.minFeePerByte ?? DEFAULT_MIN_FEE_PER_BYTE)) + BigInt(baseFee);
 };
 

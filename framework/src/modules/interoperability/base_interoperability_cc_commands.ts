@@ -20,7 +20,7 @@ import { StoreCallback } from './types';
 export abstract class BaseInteroperabilityCCCommand extends BaseCCCommand {
 	protected readonly interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
 
-	public constructor(moduleID: number, interoperableCCAPIs: Map<number, BaseInteroperableAPI>) {
+	public constructor(moduleID: Buffer, interoperableCCAPIs: Map<number, BaseInteroperableAPI>) {
 		super(moduleID);
 		this.interoperableCCAPIs = interoperableCCAPIs;
 	}

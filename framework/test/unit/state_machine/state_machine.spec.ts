@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Transaction, BlockAssets } from '@liskhq/lisk-chain';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { Logger } from '../../../src/logger';
 import { BlockContext } from '../../../src/state_machine/block_context';
 import { EventQueue } from '../../../src/state_machine/event_queue';
@@ -38,8 +38,8 @@ describe('state_machine', () => {
 	let eventQueue: EventQueue;
 	const networkIdentifier = Buffer.from('network identifier', 'utf8');
 	const transaction = {
-		moduleID: 3,
-		commandID: 0,
+		moduleID: intToBuffer(3, 4),
+		commandID: intToBuffer(0, 4),
 		params: {},
 	} as Transaction;
 

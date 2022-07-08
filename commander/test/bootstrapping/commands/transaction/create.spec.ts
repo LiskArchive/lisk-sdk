@@ -84,19 +84,19 @@ describe('transaction:create command', () => {
 			},
 			metadata: [
 				{
-					id: 2,
+					id: cryptography.intToBuffer(2, 4),
 					commands: [
 						{
-							id: 0,
+							id: cryptography.intToBuffer(0, 4),
 							params: tokenTransferParamsSchema,
 						},
 					],
 				},
 				{
-					id: 13,
+					id: cryptography.intToBuffer(13, 4),
 					commands: [
 						{
-							id: 1,
+							id: cryptography.intToBuffer(1, 4),
 							params: dposVoteParamsSchema,
 						},
 					],
@@ -444,8 +444,8 @@ describe('transaction:create command', () => {
 					});
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction: {
-							moduleID: 2,
-							commandID: 0,
+							moduleID: '00000002',
+							commandID: '00000000',
 							nonce: '1',
 							fee: '100000000',
 							senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
@@ -483,8 +483,8 @@ describe('transaction:create command', () => {
 					});
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction: {
-							moduleID: 2,
-							commandID: 0,
+							moduleID: '00000002',
+							commandID: '00000000',
 							nonce: '1',
 							fee: '100000000',
 							id: expect.any(String),

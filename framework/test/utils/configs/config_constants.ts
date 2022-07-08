@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { intToBuffer } from '@liskhq/lisk-cryptography';
+
 export const constantsConfig = (overriddenConfigProperties = {}) => ({
 	blockTime: 10,
 	delegateListRoundOffset: 2,
@@ -28,12 +30,13 @@ export const constantsConfig = (overriddenConfigProperties = {}) => ({
 		distance: 3000000, // Distance between each milestone
 	},
 	bftThreshold: 68,
+	bftBatchSize: 103,
 	minRemainingBalance: '5000000',
 	minFeePerByte: 1000,
 	baseFees: [
 		{
-			moduleID: 5,
-			commandID: 0,
+			moduleID: intToBuffer(5, 4),
+			commandID: intToBuffer(0, 4),
 			baseFee: '1000000000',
 		},
 	],

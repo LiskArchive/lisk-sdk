@@ -28,19 +28,19 @@ export const createNewAPIContext = (db: StateDBReadWriter) =>
 	new APIContext({ stateStore: new PrefixedStateReadWriter(db), eventQueue: new EventQueue() });
 
 interface ImmutableSubStoreGetter {
-	getStore: (moduleID: number, storePrefix: number) => ImmutableSubStore;
+	getStore: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
 }
 
 export const createImmutableAPIContext = (
 	immutableSubstoreGetter: ImmutableSubStoreGetter,
 ): ImmutableAPIContext => ({
-	getStore: (moduleID: number, storePrefix: number) =>
+	getStore: (moduleID: Buffer, storePrefix: number) =>
 		immutableSubstoreGetter.getStore(moduleID, storePrefix),
 });
 
 export const wrapEventQueue = (eventQueue: EventQueue, topic: Buffer): EventQueueAdder => ({
 	add: (
-		moduleID: number,
+		moduleID: Buffer,
 		typeID: Buffer,
 		data: Buffer,
 		topics?: Buffer[],
@@ -63,7 +63,7 @@ export class APIContext {
 		this._stateStore = params.stateStore;
 	}
 
-	public getStore(moduleID: number, storePrefix: number): SubStore {
+	public getStore(moduleID: Buffer, storePrefix: number): SubStore {
 		return this._stateStore.getStore(moduleID, storePrefix);
 	}
 

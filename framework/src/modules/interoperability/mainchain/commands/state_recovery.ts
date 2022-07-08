@@ -19,9 +19,9 @@ import { MainchainInteroperabilityStore } from '../store';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import {
 	EMPTY_HASH,
-	MODULE_ID_INTEROPERABILITY,
 	STORE_PREFIX_TERMINATED_STATE,
-	COMMAND_ID_STATE_RECOVERY,
+	COMMAND_ID_STATE_RECOVERY_BUFFER,
+	MODULE_ID_INTEROPERABILITY_BUFFER,
 } from '../../constants';
 import { stateRecoveryParamsSchema, terminatedStateSchema } from '../../schema';
 import { StateRecoveryParams, TerminatedStateAccount, StoreCallback } from '../../types';
@@ -32,10 +32,9 @@ import {
 	VerifyStatus,
 } from '../../../../state_machine/types';
 import { createRecoverCCMsgAPIContext } from '../../../../testing';
-import { getIDAsKeyForStore } from '../../utils';
 
 export class StateRecoveryCommand extends BaseInteroperabilityCommand {
-	public id = COMMAND_ID_STATE_RECOVERY;
+	public id = COMMAND_ID_STATE_RECOVERY_BUFFER;
 	public name = 'stateRecovery';
 	public schema = stateRecoveryParamsSchema;
 
@@ -45,7 +44,7 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 		const {
 			params: { chainID, storeEntries, siblingHashes },
 		} = context;
-		const chainIDBuffer = getIDAsKeyForStore(chainID);
+		const chainIDBuffer = chainID;
 		const errors = validator.validate(this.schema, context.params);
 
 		if (errors.length > 0) {
@@ -56,7 +55,7 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 		}
 
 		const terminatedStateSubstore = context.getStore(
-			MODULE_ID_INTEROPERABILITY,
+			MODULE_ID_INTEROPERABILITY_BUFFER,
 			STORE_PREFIX_TERMINATED_STATE,
 		);
 		const terminatedStateAccountExists = await terminatedStateSubstore.has(chainIDBuffer);
@@ -118,11 +117,11 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 			transaction,
 			params: { chainID, storeEntries, moduleID, siblingHashes },
 		} = context;
-		const chainIDBuffer = getIDAsKeyForStore(chainID);
+		const chainIDBuffer = chainID;
 		const storeQueries = [];
 
 		// The recover function corresponding to the module ID applies the recovery logic
-		const moduleAPI = this.interoperableCCAPIs.get(moduleID);
+		const moduleAPI = this.interoperableCCAPIs.get(moduleID.readInt32BE(0));
 		if (!moduleAPI || !moduleAPI.recover) {
 			throw new Error('Recovery not available for module');
 		}
@@ -151,7 +150,7 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 		const root = sparseMerkleTree.calculateRoot(siblingHashes, storeQueries, storeEntries.length);
 
 		const terminatedStateSubstore = context.getStore(
-			MODULE_ID_INTEROPERABILITY,
+			MODULE_ID_INTEROPERABILITY_BUFFER,
 			STORE_PREFIX_TERMINATED_STATE,
 		);
 

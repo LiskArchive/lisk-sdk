@@ -16,7 +16,7 @@ import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { Logger } from '../../../../src/logger';
 import {
-	MODULE_ID_DPOS,
+	MODULE_ID_DPOS_BUFFER,
 	STORE_PREFIX_DELEGATE,
 	STORE_PREFIX_VOTER,
 } from '../../../../src/modules/dpos_v2/constants';
@@ -64,7 +64,7 @@ describe('DposModuleEndpoint', () => {
 	};
 
 	beforeEach(() => {
-		dposEndpoint = new DPoSEndpoint(MODULE_ID_DPOS);
+		dposEndpoint = new DPoSEndpoint(MODULE_ID_DPOS_BUFFER);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		voterSubStore = stateStore.getStore(dposEndpoint['moduleID'], STORE_PREFIX_VOTER);
 		delegateSubStore = stateStore.getStore(dposEndpoint['moduleID'], STORE_PREFIX_DELEGATE);

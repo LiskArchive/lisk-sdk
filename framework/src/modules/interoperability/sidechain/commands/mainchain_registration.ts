@@ -13,19 +13,19 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { verifyWeightedAggSig } from '@liskhq/lisk-cryptography';
+import { intToBuffer, verifyWeightedAggSig } from '@liskhq/lisk-cryptography';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import {
 	CCM_STATUS_OK,
 	CHAIN_REGISTERED,
-	COMMAND_ID_MAINCHAIN_REG,
-	CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+	COMMAND_ID_MAINCHAIN_REG_BUFFER,
+	CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
 	EMPTY_FEE_ADDRESS,
 	EMPTY_HASH,
-	MAINCHAIN_ID,
+	MAINCHAIN_ID_BUFFER,
 	MAINCHAIN_NAME,
 	MAINCHAIN_NETWORK_ID,
-	MODULE_ID_INTEROPERABILITY,
+	MODULE_ID_INTEROPERABILITY_BUFFER,
 	NUMBER_MAINCHAIN_VALIDATORS,
 	STORE_PREFIX_CHAIN_DATA,
 	STORE_PREFIX_CHAIN_VALIDATORS,
@@ -52,17 +52,12 @@ import {
 	VerifyStatus,
 } from '../../../../state_machine';
 import { MainchainRegistrationParams, StoreCallback, ActiveValidators } from '../../types';
-import {
-	computeValidatorsHash,
-	getIDAsKeyForStore,
-	isValidName,
-	sortValidatorsByBLSKey,
-} from '../../utils';
+import { computeValidatorsHash, isValidName, sortValidatorsByBLSKey } from '../../utils';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { SidechainInteroperabilityStore } from '../store';
 
 export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
-	public id = COMMAND_ID_MAINCHAIN_REG;
+	public id = COMMAND_ID_MAINCHAIN_REG_BUFFER;
 	public name = 'mainchainRegistration';
 	public schema = mainchainRegParams;
 
@@ -70,7 +65,14 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 	public async verify(
 		context: CommandVerifyContext<MainchainRegistrationParams>,
 	): Promise<VerificationResult> {
-		const { ownName, mainchainValidators } = context.params;
+		const { ownName, mainchainValidators, ownChainID } = context.params;
+
+		if (ownChainID.length > 4) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error(`Own chain id cannot be greater than maximum uint32 number.`),
+			};
+		}
 
 		const registrationParamsErrors = validator.validate(mainchainRegParams, context.params);
 		if (registrationParamsErrors.length > 0) {
@@ -121,7 +123,6 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			certificateThreshold,
 			params: { ownChainID, ownName, mainchainValidators, aggregationBits, signature },
 		} = context;
-		const mainchainIdAsKey = getIDAsKeyForStore(MAINCHAIN_ID);
 		const activeValidators: ActiveValidators[] = validators.filter(v => v.bftWeight > BigInt(0));
 		const keyList: Buffer[] = [];
 		const weights: bigint[] = [];
@@ -146,9 +147,9 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			certificateThreshold,
 		);
 
-		const chainSubstore = getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHAIN_DATA);
+		const chainSubstore = getStore(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_DATA);
 		await chainSubstore.setWithSchema(
-			mainchainIdAsKey,
+			MAINCHAIN_ID_BUFFER,
 			{
 				name: MAINCHAIN_NAME,
 				networkID: MAINCHAIN_NETWORK_ID,
@@ -163,14 +164,14 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			chainAccountSchema,
 		);
 
-		const channelSubstore = getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_CHANNEL_DATA);
+		const channelSubstore = getStore(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHANNEL_DATA);
 		await channelSubstore.setWithSchema(
-			mainchainIdAsKey,
+			MAINCHAIN_ID_BUFFER,
 			{
 				inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				partnerChainOutboxRoot: EMPTY_HASH,
-				messageFeeTokenID: { chainID: MAINCHAIN_ID, localID: 0 },
+				messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: intToBuffer(0, 4) },
 			},
 			channelSchema,
 		);
@@ -180,23 +181,23 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 		const encodedParams = codec.encode(registrationCCMParamsSchema, {
 			networkID: MAINCHAIN_NETWORK_ID,
 			name: MAINCHAIN_NAME,
-			messageFeeTokenID: { chainID: MAINCHAIN_ID, localID: 0 },
+			messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: intToBuffer(0, 4) },
 		});
 		const ccm = {
 			nonce: BigInt(0),
-			moduleID: MODULE_ID_INTEROPERABILITY,
-			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+			moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
+			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
 			sendingChainID: ownChainID,
-			receivingChainID: MAINCHAIN_ID,
+			receivingChainID: MAINCHAIN_ID_BUFFER,
 			fee: BigInt(0),
 			status: CCM_STATUS_OK,
 			params: encodedParams,
 		};
 
 		await interoperabilityStore.sendInternal({
-			moduleID: MODULE_ID_INTEROPERABILITY,
-			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION,
-			receivingChainID: MAINCHAIN_ID,
+			moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
+			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
+			receivingChainID: MAINCHAIN_ID_BUFFER,
 			fee: BigInt(0),
 			status: CCM_STATUS_OK,
 			params: encodedParams,
@@ -204,11 +205,11 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 		});
 
 		const chainValidatorsSubstore = getStore(
-			MODULE_ID_INTEROPERABILITY,
+			MODULE_ID_INTEROPERABILITY_BUFFER,
 			STORE_PREFIX_CHAIN_VALIDATORS,
 		);
 		await chainValidatorsSubstore.setWithSchema(
-			mainchainIdAsKey,
+			MAINCHAIN_ID_BUFFER,
 			{
 				mainchainValidators: {
 					activeValidators: mainchainValidators,
@@ -218,19 +219,22 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			validatorsSchema,
 		);
 
-		const outboxRootSubstore = getStore(MODULE_ID_INTEROPERABILITY, STORE_PREFIX_OUTBOX_ROOT);
+		const outboxRootSubstore = getStore(
+			MODULE_ID_INTEROPERABILITY_BUFFER,
+			STORE_PREFIX_OUTBOX_ROOT,
+		);
 		await outboxRootSubstore.setWithSchema(
-			mainchainIdAsKey,
+			MAINCHAIN_ID_BUFFER,
 			{ root: EMPTY_HASH },
 			outboxRootSchema,
 		);
 
 		const ownChainAccountSubstore = getStore(
-			MODULE_ID_INTEROPERABILITY,
+			MODULE_ID_INTEROPERABILITY_BUFFER,
 			STORE_PREFIX_OWN_CHAIN_DATA,
 		);
 		await ownChainAccountSubstore.setWithSchema(
-			getIDAsKeyForStore(0),
+			intToBuffer(0, 4),
 			{ name: ownName, id: ownChainID, nonce: BigInt(0) },
 			ownChainAccountSchema,
 		);

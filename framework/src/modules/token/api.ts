@@ -24,13 +24,13 @@ import {
 	EMPTY_BYTES,
 	LOCAL_ID_LENGTH,
 	STORE_PREFIX_AVAILABLE_LOCAL_ID,
-	CROSS_CHAIN_COMMAND_ID_FORWARD,
-	CROSS_CHAIN_COMMAND_ID_TRANSFER,
 	STORE_PREFIX_ESCROW,
 	STORE_PREFIX_SUPPLY,
 	STORE_PREFIX_USER,
 	TOKEN_ID_LENGTH,
 	TOKEN_ID_LSK,
+	CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
+	CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
 } from './constants';
 import {
 	AvailableLocalIDStoreData,
@@ -84,7 +84,7 @@ export class TokenAPI extends BaseAPI {
 		apiContext: ImmutableAPIContext,
 		address: Buffer,
 		tokenID: TokenID,
-		moduleID: number,
+		moduleID: Buffer,
 	): Promise<bigint> {
 		const canonicalTokenID = await this.getCanonicalTokenID(apiContext, tokenID);
 		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
@@ -93,7 +93,7 @@ export class TokenAPI extends BaseAPI {
 				getUserStoreKey(address, canonicalTokenID),
 				userStoreSchema,
 			);
-			return user.lockedBalances.find(lb => lb.moduleID === moduleID)?.amount ?? BigInt(0);
+			return user.lockedBalances.find(lb => lb.moduleID.equals(moduleID))?.amount ?? BigInt(0);
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
@@ -369,7 +369,7 @@ export class TokenAPI extends BaseAPI {
 	public async lock(
 		apiContext: APIContext,
 		address: Buffer,
-		moduleID: number,
+		moduleID: Buffer,
 		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void> {
@@ -390,7 +390,7 @@ export class TokenAPI extends BaseAPI {
 			);
 		}
 		user.availableBalance -= amount;
-		const existingIndex = user.lockedBalances.findIndex(b => b.moduleID === moduleID);
+		const existingIndex = user.lockedBalances.findIndex(b => b.moduleID.equals(moduleID));
 		if (existingIndex > -1) {
 			const locked = user.lockedBalances[existingIndex].amount + amount;
 			user.lockedBalances[existingIndex] = {
@@ -403,7 +403,7 @@ export class TokenAPI extends BaseAPI {
 				amount,
 			});
 		}
-		user.lockedBalances.sort((a, b) => a.moduleID - b.moduleID);
+		user.lockedBalances.sort((a, b) => a.moduleID.readInt32BE(0) - b.moduleID.readInt32BE(0));
 		await userStore.setWithSchema(
 			getUserStoreKey(address, canonicalTokenID),
 			user,
@@ -414,7 +414,7 @@ export class TokenAPI extends BaseAPI {
 	public async unlock(
 		apiContext: APIContext,
 		address: Buffer,
-		moduleID: number,
+		moduleID: Buffer,
 		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void> {
@@ -428,14 +428,16 @@ export class TokenAPI extends BaseAPI {
 			getUserStoreKey(address, canonicalTokenID),
 			userStoreSchema,
 		);
-		const lockedIndex = user.lockedBalances.findIndex(b => b.moduleID === moduleID);
+		const lockedIndex = user.lockedBalances.findIndex(b => b.moduleID.equals(moduleID));
 		if (lockedIndex < 0) {
-			throw new Error(`No balance is locked for module ID ${moduleID}`);
+			throw new Error(`No balance is locked for module ID ${moduleID.readInt32BE(0)}`);
 		}
 		const lockedObj = user.lockedBalances[lockedIndex];
 		if (lockedObj.amount < amount) {
 			throw new Error(
-				`Not enough amount is locked for module ${moduleID} to unlock ${amount.toString()}`,
+				`Not enough amount is locked for module ${moduleID.readInt32BE(
+					0,
+				)} to unlock ${amount.toString()}`,
 			);
 		}
 		lockedObj.amount -= amount;
@@ -520,7 +522,7 @@ export class TokenAPI extends BaseAPI {
 				apiContext,
 				senderAddress,
 				this.moduleID,
-				CROSS_CHAIN_COMMAND_ID_TRANSFER,
+				CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
 				receivingChainID,
 				messageFee,
 				CCM_STATUS_OK,
@@ -562,7 +564,7 @@ export class TokenAPI extends BaseAPI {
 			apiContext,
 			senderAddress,
 			this.moduleID,
-			CROSS_CHAIN_COMMAND_ID_FORWARD,
+			CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
 			chainID,
 			BigInt(0),
 			CCM_STATUS_OK,

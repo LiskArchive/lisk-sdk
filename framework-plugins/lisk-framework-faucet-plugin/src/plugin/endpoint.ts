@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { EncryptedPassphraseObject } from '@liskhq/lisk-cryptography';
+import { EncryptedPassphraseObject, intToBuffer } from '@liskhq/lisk-cryptography';
 import axios from 'axios';
 import {
 	BasePluginEndpoint,
@@ -113,8 +113,8 @@ export class Endpoint extends BasePluginEndpoint {
 
 		const transaction = await this._client.transaction.create(
 			{
-				moduleID: 2,
-				commandID: 0,
+				moduleID: intToBuffer(2, 4),
+				commandID: intToBuffer(0, 4),
 				senderPublicKey: this._state.publicKey as Buffer,
 				fee: BigInt(transactions.convertLSKToBeddows(this._config.fee)), // TODO: The static fee should be replaced by fee estimation calculation
 				params: transferTransactionParams,

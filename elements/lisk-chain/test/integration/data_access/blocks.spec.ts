@@ -16,7 +16,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { Batch, Database, NotFoundError } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { encodeByteArray, Storage } from '../../../src/data_access/storage';
 import { createValidDefaultBlock } from '../../utils/block';
 import { getTransaction } from '../../utils/transaction';
@@ -75,12 +75,12 @@ describe('dataAccess.blocks', () => {
 		const block302 = await createValidDefaultBlock({
 			header: { height: 302 },
 			transactions: [getTransaction({ nonce: BigInt(1) }), getTransaction({ nonce: BigInt(2) })],
-			assets: new BlockAssets([{ moduleID: 3, data: getRandomBytes(64) }]),
+			assets: new BlockAssets([{ moduleID: intToBuffer(3, 4), data: getRandomBytes(64) }]),
 		});
 
 		const block303 = await createValidDefaultBlock({
 			header: { height: 303 },
-			assets: new BlockAssets([{ moduleID: 3, data: getRandomBytes(64) }]),
+			assets: new BlockAssets([{ moduleID: intToBuffer(3, 4), data: getRandomBytes(64) }]),
 		});
 
 		const events = [
@@ -309,7 +309,9 @@ describe('dataAccess.blocks', () => {
 			expect(block.header.toObject()).toStrictEqual(blocks[0].header.toObject());
 			expect(block.transactions[0]).toBeInstanceOf(Transaction);
 			expect(block.transactions[0].id).toStrictEqual(blocks[0].transactions[0].id);
-			expect(block.assets.getAsset(3)).toEqual(blocks[0].assets.getAsset(3));
+			expect(block.assets.getAsset(intToBuffer(3, 4))).toEqual(
+				blocks[0].assets.getAsset(intToBuffer(3, 4)),
+			);
 		});
 	});
 

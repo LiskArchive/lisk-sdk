@@ -27,8 +27,8 @@ import {
 	CHAIN_ACTIVE,
 	CHAIN_REGISTERED,
 	CHAIN_TERMINATED,
-	COMMAND_ID_SIDECHAIN_CCU,
-	CROSS_CHAIN_COMMAND_ID_REGISTRATION,
+	COMMAND_ID_SIDECHAIN_CCU_BUFFER,
+	CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
 	STORE_PREFIX_CHAIN_DATA,
 	STORE_PREFIX_CHAIN_VALIDATORS,
 	STORE_PREFIX_CHANNEL_DATA,
@@ -58,7 +58,6 @@ import {
 	checkValidatorsHashWithCertificate,
 	checkValidCertificateLiveness,
 	commonCCUExecutelogic,
-	getIDAsKeyForStore,
 	isInboxUpdateEmpty,
 	validateFormat,
 	verifyCertificateSignature,
@@ -67,7 +66,7 @@ import { SidechainInteroperabilityStore } from '../store';
 
 export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 	public name = 'sidechainCCUpdate';
-	public id = COMMAND_ID_SIDECHAIN_CCU;
+	public id = COMMAND_ID_SIDECHAIN_CCU_BUFFER;
 	public schema = crossChainUpdateTransactionParams;
 
 	public async verify(
@@ -83,7 +82,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 			};
 		}
 
-		const partnerChainIDBuffer = getIDAsKeyForStore(txParams.sendingChainID);
+		const partnerChainIDBuffer = txParams.sendingChainID;
 		const partnerChainStore = getStore(transaction.moduleID, STORE_PREFIX_CHAIN_DATA);
 		const partnerChainAccount = await partnerChainStore.getWithSchema<ChainAccount>(
 			partnerChainIDBuffer,
@@ -94,7 +93,9 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		if (partnerChainAccount.status === CHAIN_TERMINATED) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error(`Sending partner chain ${txParams.sendingChainID} is terminated.`),
+				error: new Error(
+					`Sending partner chain ${txParams.sendingChainID.readInt32BE(0)} is terminated.`,
+				),
 			};
 		}
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
@@ -103,7 +104,9 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 			if (!isChainLive) {
 				return {
 					status: VerifyStatus.FAIL,
-					error: new Error(`Sending partner chain ${txParams.sendingChainID} is not live.`),
+					error: new Error(
+						`Sending partner chain ${txParams.sendingChainID.readInt32BE(0)} is not live.`,
+					),
 				};
 			}
 		}
@@ -170,7 +173,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		context: CommandExecuteContext<CrossChainUpdateTransactionParams>,
 	): Promise<void> {
 		const { header, params: txParams } = context;
-		const chainIDBuffer = getIDAsKeyForStore(txParams.sendingChainID);
+		const chainIDBuffer = txParams.sendingChainID;
 		const partnerChainStore = context.getStore(this.moduleID, STORE_PREFIX_CHAIN_DATA);
 		const partnerChainAccount = await partnerChainStore.getWithSchema<ChainAccount>(
 			chainIDBuffer,
@@ -221,8 +224,10 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		) {
 			// If the first CCM in inboxUpdate is a registration CCM
 			if (
-				decodedCCMs[0].deserialized.crossChainCommandID === CROSS_CHAIN_COMMAND_ID_REGISTRATION &&
-				decodedCCMs[0].deserialized.sendingChainID === txParams.sendingChainID
+				decodedCCMs[0].deserialized.crossChainCommandID.equals(
+					CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
+				) &&
+				decodedCCMs[0].deserialized.sendingChainID.equals(txParams.sendingChainID)
 			) {
 				partnerChainAccount.status = CHAIN_ACTIVE;
 			} else {
@@ -236,7 +241,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		}
 
 		for (const ccm of decodedCCMs) {
-			if (txParams.sendingChainID !== ccm.deserialized.sendingChainID) {
+			if (!txParams.sendingChainID.equals(ccm.deserialized.sendingChainID)) {
 				await interoperabilityStore.terminateChainInternal(
 					txParams.sendingChainID,
 					beforeSendContext,
@@ -254,10 +259,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 
 				continue;
 			}
-			await interoperabilityStore.appendToInboxTree(
-				getIDAsKeyForStore(txParams.sendingChainID),
-				ccm.serialized,
-			);
+			await interoperabilityStore.appendToInboxTree(txParams.sendingChainID, ccm.serialized);
 
 			await interoperabilityStore.apply(
 				{

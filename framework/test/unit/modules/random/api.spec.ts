@@ -18,7 +18,7 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 import { intToBuffer } from '@liskhq/lisk-cryptography';
 import { RandomAPI } from '../../../../src/modules/random/api';
 import {
-	MODULE_ID_RANDOM,
+	MODULE_ID_RANDOM_BUFFER,
 	SEED_REVEAL_HASH_SIZE,
 	STORE_PREFIX_RANDOM,
 } from '../../../../src/modules/random/constants';
@@ -69,7 +69,7 @@ describe('RandomModuleAPI', () => {
 		}
 
 		beforeEach(async () => {
-			randomAPI = new RandomAPI(MODULE_ID_RANDOM);
+			randomAPI = new RandomAPI(MODULE_ID_RANDOM_BUFFER);
 			context = createTransientAPIContext({});
 			randomStore = context.getStore(randomAPI['moduleID'], STORE_PREFIX_RANDOM);
 			await randomStore.setWithSchema(
@@ -198,7 +198,7 @@ describe('RandomModuleAPI', () => {
 		];
 
 		beforeEach(async () => {
-			randomAPI = new RandomAPI(MODULE_ID_RANDOM);
+			randomAPI = new RandomAPI(MODULE_ID_RANDOM_BUFFER);
 			context = createTransientAPIContext({});
 			randomStore = context.getStore(randomAPI['moduleID'], STORE_PREFIX_RANDOM);
 			await randomStore.setWithSchema(
@@ -356,7 +356,7 @@ describe('RandomModuleAPI', () => {
 			}
 
 			beforeEach(async () => {
-				randomAPI = new RandomAPI(MODULE_ID_RANDOM);
+				randomAPI = new RandomAPI(MODULE_ID_RANDOM_BUFFER);
 				context = createTransientAPIContext({});
 				randomStore = context.getStore(randomAPI['moduleID'], STORE_PREFIX_RANDOM);
 				await randomStore.setWithSchema(

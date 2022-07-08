@@ -13,7 +13,7 @@
  */
 
 import { BlockHeader, Transaction } from '@liskhq/lisk-chain';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../../../src/testing';
 import { UnlockCommand } from '../../../../../src/modules/dpos_v2/commands/unlock';
 import {
@@ -22,11 +22,11 @@ import {
 	VOTER_PUNISH_TIME,
 	WAIT_TIME_SELF_VOTE,
 	WAIT_TIME_VOTE,
-	MODULE_ID_DPOS,
 	STORE_PREFIX_DELEGATE,
 	STORE_PREFIX_GENESIS_DATA,
 	STORE_PREFIX_VOTER,
 	COMMAND_ID_UNLOCK,
+	MODULE_ID_DPOS_BUFFER,
 } from '../../../../../src/modules/dpos_v2/constants';
 import {
 	delegateStoreSchema,
@@ -68,8 +68,8 @@ describe('UnlockCommand', () => {
 	};
 	const publicKey = getRandomBytes(32);
 	const transaction = new Transaction({
-		moduleID: MODULE_ID_DPOS,
-		commandID: COMMAND_ID_UNLOCK,
+		moduleID: MODULE_ID_DPOS_BUFFER,
+		commandID: intToBuffer(COMMAND_ID_UNLOCK, 4),
 		senderPublicKey: publicKey,
 		nonce: BigInt(0),
 		fee: BigInt(100000000),
@@ -82,7 +82,7 @@ describe('UnlockCommand', () => {
 	);
 
 	beforeEach(() => {
-		unlockCommand = new UnlockCommand(MODULE_ID_DPOS);
+		unlockCommand = new UnlockCommand(MODULE_ID_DPOS_BUFFER);
 		mockTokenAPI = {
 			unlock: jest.fn(),
 			lock: jest.fn(),
@@ -94,9 +94,9 @@ describe('UnlockCommand', () => {
 			tokenAPI: mockTokenAPI,
 		});
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		delegateSubstore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
-		voterSubstore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_VOTER);
-		genesisSubstore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_GENESIS_DATA);
+		delegateSubstore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
+		voterSubstore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_VOTER);
+		genesisSubstore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_GENESIS_DATA);
 		blockHeight = 8760000;
 		header = testing.createFakeBlockHeader({ height: blockHeight });
 	});

@@ -23,16 +23,20 @@ import { isApplicationRunning } from './application';
 
 export const getParamsSchema = (
 	metadata: ModuleMetadata[],
-	moduleID: number,
-	commandID: number,
+	moduleID: Buffer,
+	commandID: Buffer,
 ): Schema | undefined => {
-	const moduleMeta = metadata.find(meta => meta.id === moduleID);
+	const moduleMeta = metadata.find(meta => meta.id.equals(moduleID));
 	if (!moduleMeta) {
-		throw new Error(`ModuleID: ${moduleID} is not registered.`);
+		throw new Error(`ModuleID: ${moduleID.readInt32BE(0)} is not registered.`);
 	}
-	const commandMeta = moduleMeta.commands.find(meta => meta.id === commandID);
+	const commandMeta = moduleMeta.commands.find(meta => meta.id.equals(commandID));
 	if (!commandMeta) {
-		throw new Error(`ModuleID: ${moduleID} CommandID: ${commandID} is not registered.`);
+		throw new Error(
+			`ModuleID: ${moduleID.readInt32BE(0)} CommandID: ${commandID.readInt32BE(
+				0,
+			)} is not registered.`,
+		);
 	}
 	return commandMeta.params;
 };
@@ -69,8 +73,8 @@ export const encodeTransaction = (
 	}
 	const paramsSchema = getParamsSchema(
 		metadata,
-		transaction.moduleID as number,
-		transaction.commandID as number,
+		transaction.moduleID as Buffer,
+		transaction.commandID as Buffer,
 	);
 	const paramsBytes = codec.encode(paramsSchema as Schema, transaction.params as object);
 	const txBytes = codec.encode(schema.transaction, { ...transaction, params: paramsBytes });
@@ -88,8 +92,8 @@ export const transactionToJSON = (
 	}
 	const paramsSchema = getParamsSchema(
 		metadata,
-		transaction.moduleID as number,
-		transaction.commandID as number,
+		transaction.moduleID as Buffer,
+		transaction.commandID as Buffer,
 	);
 	const paramsJSON = codec.toJSON(paramsSchema as Schema, transaction.params as object);
 	const { id, params, ...txWithoutParams } = transaction;

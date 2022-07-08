@@ -38,10 +38,10 @@ import {
 	VoteCommandDependencies,
 	VoteTransactionParams,
 } from '../types';
-import { getVoterOrDefault, sortUnlocking } from '../utils';
+import { getIDAsKeyForStore, getVoterOrDefault, sortUnlocking } from '../utils';
 
 export class VoteCommand extends BaseCommand {
-	public id = COMMAND_ID_VOTE;
+	public id = getIDAsKeyForStore(COMMAND_ID_VOTE);
 	public name = 'voteDelegate';
 	public schema = voteCommandParamsSchema;
 

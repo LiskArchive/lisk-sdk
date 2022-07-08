@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { intToBuffer } from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
@@ -63,7 +64,7 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 describe('CrossChainUpdateCommand', () => {
 	const getAPIContextMock = jest.fn();
 	const getStoreMock = jest.fn();
-	const moduleID = 1;
+	const moduleID = intToBuffer(1, 4);
 	const networkIdentifier = cryptography.getRandomBytes(32);
 	const defaultCertificateValues: Certificate = {
 		blockID: cryptography.getRandomBytes(20),
@@ -76,36 +77,36 @@ describe('CrossChainUpdateCommand', () => {
 	};
 
 	const defaultNewCertificateThreshold = BigInt(20);
-	const defaultSendingChainID = 20;
-	const defaultSendingChainIDBuffer = interopUtils.getIDAsKeyForStore(defaultSendingChainID);
+	const defaultSendingChainID = intToBuffer(20, 4);
+	const defaultSendingChainIDBuffer = defaultSendingChainID;
 	const defaultCCMs: CCMsg[] = [
 		{
-			crossChainCommandID: 1,
+			crossChainCommandID: intToBuffer(1, 4),
 			fee: BigInt(0),
-			moduleID: 1,
+			moduleID: intToBuffer(1, 4),
 			nonce: BigInt(1),
 			params: Buffer.alloc(2),
-			receivingChainID: 2,
+			receivingChainID: intToBuffer(2, 4),
 			sendingChainID: defaultSendingChainID,
 			status: CCM_STATUS_OK,
 		},
 		{
-			crossChainCommandID: 2,
+			crossChainCommandID: intToBuffer(2, 4),
 			fee: BigInt(0),
-			moduleID: 1,
+			moduleID: intToBuffer(1, 4),
 			nonce: BigInt(1),
 			params: Buffer.alloc(2),
-			receivingChainID: 3,
+			receivingChainID: intToBuffer(3, 4),
 			sendingChainID: defaultSendingChainID,
 			status: CCM_STATUS_OK,
 		},
 		{
-			crossChainCommandID: 3,
+			crossChainCommandID: intToBuffer(3, 4),
 			fee: BigInt(0),
-			moduleID: 1,
+			moduleID: intToBuffer(1, 4),
 			nonce: BigInt(1),
 			params: Buffer.alloc(2),
-			receivingChainID: 4,
+			receivingChainID: intToBuffer(4, 4),
 			sendingChainID: defaultSendingChainID,
 			status: CCM_STATUS_OK,
 		},
@@ -122,7 +123,7 @@ describe('CrossChainUpdateCommand', () => {
 			siblingHashes: [Buffer.alloc(1)],
 		},
 	};
-	const defaultTransaction = { moduleID: 1 };
+	const defaultTransaction = { moduleID: intToBuffer(1, 4) };
 
 	const partnerChainStore = {
 		getWithSchema: jest.fn(),
@@ -194,7 +195,7 @@ describe('CrossChainUpdateCommand', () => {
 				root: cryptography.getRandomBytes(38),
 				size: 18,
 			},
-			messageFeeTokenID: { chainID: 1, localID: 0 },
+			messageFeeTokenID: { chainID: intToBuffer(1, 4), localID: intToBuffer(0, 4) },
 			outbox: {
 				appendPath: [Buffer.alloc(1), Buffer.alloc(1)],
 				root: cryptography.getRandomBytes(38),
@@ -262,7 +263,7 @@ describe('CrossChainUpdateCommand', () => {
 		it('should return error when ccu params validation fails', async () => {
 			const { status, error } = await sidechainCCUUpdateCommand.verify({
 				...verifyContext,
-				params: { ...params, sendingChainID: Buffer.alloc(2) } as any,
+				params: { ...params, sendingChainID: 2 } as any,
 			});
 
 			expect(status).toEqual(VerifyStatus.FAIL);
@@ -299,7 +300,9 @@ describe('CrossChainUpdateCommand', () => {
 			});
 			expect(status).toEqual(VerifyStatus.FAIL);
 			expect(error?.message).toContain(
-				`Sending partner chain ${defaultSendingChainID} has a registered status so certificate cannot be empty.`,
+				`Sending partner chain ${defaultSendingChainID.readInt32BE(
+					0,
+				)} has a registered status so certificate cannot be empty.`,
 			);
 		});
 
@@ -489,13 +492,13 @@ describe('CrossChainUpdateCommand', () => {
 
 		it('should call terminateChainInternal() for a ccm when txParams.sendingChainID !== ccm.deserilized.sendingChainID', async () => {
 			const invalidCCM = codec.encode(ccmSchema, {
-				crossChainCommandID: 1,
+				crossChainCommandID: intToBuffer(1, 4),
 				fee: BigInt(0),
-				moduleID: 1,
+				moduleID: intToBuffer(1, 4),
 				nonce: BigInt(1),
 				params: Buffer.alloc(2),
-				receivingChainID: 2,
-				sendingChainID: 50,
+				receivingChainID: intToBuffer(2, 4),
+				sendingChainID: intToBuffer(50, 4),
 				status: CCM_STATUS_OK,
 			});
 			jest
@@ -519,12 +522,12 @@ describe('CrossChainUpdateCommand', () => {
 
 		it('should call terminateChainInternal() for a ccm when it fails on validateFormat', async () => {
 			const invalidCCM = {
-				crossChainCommandID: 1,
+				crossChainCommandID: intToBuffer(1, 4),
 				fee: BigInt(0),
-				moduleID: 1,
+				moduleID: intToBuffer(1, 4),
 				nonce: BigInt(1),
 				params: Buffer.alloc(MAX_CCM_SIZE + 10),
-				receivingChainID: 2,
+				receivingChainID: intToBuffer(2, 4),
 				sendingChainID: defaultSendingChainID,
 				status: CCM_STATUS_OK,
 			};
@@ -558,12 +561,12 @@ describe('CrossChainUpdateCommand', () => {
 
 		it('should call apply() for all the valid CCMs', async () => {
 			const sidechainCCM = {
-				crossChainCommandID: 1,
+				crossChainCommandID: intToBuffer(1, 4),
 				fee: BigInt(0),
-				moduleID: 1,
+				moduleID: intToBuffer(1, 4),
 				nonce: BigInt(1),
 				params: Buffer.alloc(10),
-				receivingChainID: 80,
+				receivingChainID: intToBuffer(80, 4),
 				sendingChainID: defaultSendingChainID,
 				status: CCM_STATUS_OK,
 			};
@@ -582,7 +585,7 @@ describe('CrossChainUpdateCommand', () => {
 				.spyOn(SidechainInteroperabilityStore.prototype, 'apply')
 				.mockResolvedValue({} as never);
 
-			const invalidCCMContext = {
+			const validCCMContext = {
 				...executeContext,
 				params: {
 					...executeContext.params,
@@ -592,7 +595,7 @@ describe('CrossChainUpdateCommand', () => {
 					},
 				},
 			};
-			await expect(sidechainCCUUpdateCommand.execute(invalidCCMContext)).resolves.toBeUndefined();
+			await expect(sidechainCCUUpdateCommand.execute(validCCMContext)).resolves.toBeUndefined();
 			expect(appendToInboxTreeMock).toHaveBeenCalledTimes(1);
 			expect(applyMock).toHaveBeenCalledTimes(1);
 			expect(applyMock).toHaveBeenCalledTimes(1);

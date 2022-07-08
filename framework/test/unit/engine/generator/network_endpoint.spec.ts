@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { intToBuffer } from '@liskhq/lisk-cryptography';
 import { Chain, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
@@ -22,6 +23,7 @@ import { NETWORK_RPC_GET_TRANSACTIONS } from '../../../../src/engine/generator/c
 import { NetworkEndpoint } from '../../../../src/engine/generator/network_endpoint';
 import { ABI, TransactionVerifyResult } from '../../../../src/abi';
 import {
+	getTransactionRequestSchema,
 	getTransactionsResponseSchema,
 	postTransactionsAnnouncementSchema,
 } from '../../../../src/engine/generator/schemas';
@@ -32,18 +34,18 @@ describe('generator network endpoint', () => {
 	const logger: Logger = fakeLogger;
 	const tx = new Transaction({
 		params: Buffer.alloc(20),
-		commandID: 0,
+		commandID: intToBuffer(0, 4),
 		fee: BigInt(100000),
-		moduleID: 2,
+		moduleID: intToBuffer(2, 4),
 		nonce: BigInt(0),
 		senderPublicKey: Buffer.alloc(32),
 		signatures: [Buffer.alloc(64)],
 	});
 	const tx2 = new Transaction({
 		params: Buffer.alloc(20),
-		commandID: 1,
+		commandID: intToBuffer(1, 4),
 		fee: BigInt(200000),
-		moduleID: 2,
+		moduleID: intToBuffer(2, 4),
 		nonce: BigInt(0),
 		senderPublicKey: Buffer.alloc(32),
 		signatures: [Buffer.alloc(64)],
@@ -235,17 +237,33 @@ describe('generator network endpoint', () => {
 		describe('when some of the transactions ids are known', () => {
 			beforeEach(() => {
 				const transactionIds = codec.encode(postTransactionsAnnouncementSchema, {
+					transactionIds: [tx.id, tx2.id],
+				});
+
+				const responseTransaction = codec.encode(getTransactionRequestSchema, {
 					transactionIds: [tx2.id],
 				});
 
 				when(pool.contains as jest.Mock)
 					.calledWith(tx.id)
-					.mockReturnValue(true);
+					.mockReturnValue(true)
+					.calledWith(tx2.id)
+					.mockReturnValue(false);
+
 				when(network.requestFromPeer as jest.Mock)
 					.calledWith(expect.anything())
 					.mockResolvedValue({
 						data: transactionIds,
 						peerId: defaultPeerId,
+					} as never);
+				when(network.requestFromPeer as jest.Mock)
+					.calledWith({
+						procedure: NETWORK_RPC_GET_TRANSACTIONS,
+						data: responseTransaction,
+						peerId: defaultPeerId,
+					})
+					.mockResolvedValue({
+						data: codec.encode(getTransactionsResponseSchema, { transactions: [tx2.getBytes()] }),
 					} as never);
 				(chain.dataAccess.getTransactionsByIDs as jest.Mock).mockResolvedValue([]);
 			});

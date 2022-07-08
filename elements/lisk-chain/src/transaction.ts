@@ -19,8 +19,8 @@ import { TAG_TRANSACTION } from './constants';
 import { JSONObject } from './types';
 
 export interface TransactionAttrs {
-	readonly moduleID: number;
-	readonly commandID: number;
+	readonly moduleID: Buffer;
+	readonly commandID: Buffer;
 	readonly senderPublicKey: Buffer;
 	readonly nonce: bigint;
 	readonly fee: bigint;
@@ -36,12 +36,12 @@ export const transactionSchema = {
 	required: ['moduleID', 'commandID', 'nonce', 'fee', 'senderPublicKey', 'params'],
 	properties: {
 		moduleID: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 1,
 			minimum: 2,
 		},
 		commandID: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 2,
 		},
 		nonce: {
@@ -75,18 +75,18 @@ export const transactionSchema = {
 export const calculateMinFee = (
 	tx: Transaction,
 	minFeePerByte: number,
-	baseFees: { moduleID: number; commandID: number; baseFee: string }[],
+	baseFees: { moduleID: Buffer; commandID: Buffer; baseFee: string }[],
 ): bigint => {
 	const size = tx.getBytes().length;
 	const baseFee =
-		baseFees.find(bf => bf.moduleID === tx.moduleID && bf.commandID === tx.commandID)?.baseFee ??
-		'0';
+		baseFees.find(bf => bf.moduleID.equals(tx.moduleID) && bf.commandID.equals(tx.commandID))
+			?.baseFee ?? '0';
 	return BigInt(minFeePerByte * size) + BigInt(baseFee);
 };
 
 export class Transaction {
-	public readonly moduleID: number;
-	public readonly commandID: number;
+	public readonly moduleID: Buffer;
+	public readonly commandID: Buffer;
 	public readonly params: Buffer;
 	public readonly nonce: bigint;
 	public readonly fee: bigint;

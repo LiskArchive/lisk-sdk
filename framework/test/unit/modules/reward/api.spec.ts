@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { intToBuffer } from '@liskhq/lisk-cryptography';
 import { RewardModule } from '../../../../src/modules/reward';
 import { createBlockHeaderWithDefaults, createTransientAPIContext } from '../../../../src/testing';
 
@@ -27,7 +28,7 @@ describe('RewardModuleAPI', () => {
 			'200000000', // Milestone 3
 			'100000000', // Milestone 4
 		],
-		tokenIDReward: { chainID: 0, localID: 0 },
+		tokenIDReward: { chainID: intToBuffer(0, 4), localID: intToBuffer(0, 4) },
 	};
 	const generatorConfig: any = {};
 

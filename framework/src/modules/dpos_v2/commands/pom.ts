@@ -37,12 +37,12 @@ import {
 	TokenIDDPoS,
 	ValidatorsAPI,
 } from '../types';
-import { getPunishmentPeriod } from '../utils';
+import { getIDAsKeyForStore, getPunishmentPeriod } from '../utils';
 import { ValidationError } from '../../../errors';
 import { areDistinctHeadersContradicting } from '../../../engine/bft/utils';
 
 export class ReportDelegateMisbehaviorCommand extends BaseCommand {
-	public id = COMMAND_ID_POM;
+	public id = getIDAsKeyForStore(COMMAND_ID_POM);
 	public name = 'reportDelegateMisbehavior';
 	public schema = pomCommandParamsSchema;
 	private _tokenAPI!: TokenAPI;

@@ -44,6 +44,7 @@ import {
 	CCUpdateParams,
 	RecoverCCMsgAPIContext,
 } from '../modules/interoperability/types';
+import { getIDAsKeyForStore } from './utils';
 
 export const createGenesisBlockContext = (params: {
 	header?: BlockHeader;
@@ -139,17 +140,17 @@ export const createBlockContext = (params: {
 
 export const createBlockGenerateContext = (params: {
 	assets?: WritableBlockAssets;
-	getGeneratorStore?: (moduleID: number) => SubStore;
+	getGeneratorStore?: (moduleID: Buffer) => SubStore;
 	logger?: Logger;
 	getAPIContext?: () => APIContext;
-	getStore?: (moduleID: number, storePrefix: number) => ImmutableSubStore;
+	getStore?: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
 	header: BlockHeader;
 	finalizedHeight?: number;
 	networkIdentifier?: Buffer;
 }): InsertAssetContext => {
 	const db = new InMemoryDatabase();
 	const generatorStore = new StateStore(db);
-	const getGeneratorStore = (moduleID: number) => generatorStore.getStore(moduleID, 0);
+	const getGeneratorStore = (moduleID: Buffer) => generatorStore.getStore(moduleID, 0);
 	const header =
 		params.header ??
 		new BlockHeader({
@@ -171,7 +172,7 @@ export const createBlockGenerateContext = (params: {
 			validatorsHash: hash(Buffer.alloc(0)),
 		});
 	const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-	const getStore = (moduleID: number, storePrefix: number) =>
+	const getStore = (moduleID: Buffer, storePrefix: number) =>
 		stateStore.getStore(moduleID, storePrefix);
 
 	const ctx: InsertAssetContext = {
@@ -264,7 +265,7 @@ export const createTransientModuleEndpointContext = (params: {
 	const logger = params.logger ?? loggerMock;
 	const networkIdentifier = params.networkIdentifier ?? Buffer.alloc(0);
 	const ctx = {
-		getStore: (moduleID: number, storePrefix: number) => stateStore.getStore(moduleID, storePrefix),
+		getStore: (moduleID: Buffer, storePrefix: number) => stateStore.getStore(moduleID, storePrefix),
 		getImmutableAPIContext: () => createImmutableAPIContext(stateStore),
 		params: parameters,
 		logger,
@@ -287,20 +288,20 @@ const createCCAPIContext = (params: {
 	const logger = params.logger ?? loggerMock;
 	const networkIdentifier = params.networkIdentifier ?? Buffer.alloc(0);
 	const eventQueue = params.eventQueue ?? new EventQueue();
-	const getStore = (moduleID: number, storePrefix: number) =>
+	const getStore = (moduleID: Buffer, storePrefix: number) =>
 		stateStore.getStore(moduleID, storePrefix);
 	const ccm = params.ccm ?? {
 		nonce: BigInt(0),
-		moduleID: 1,
-		crossChainCommandID: 1,
-		sendingChainID: 2,
-		receivingChainID: 3,
+		moduleID: getIDAsKeyForStore(1),
+		crossChainCommandID: getIDAsKeyForStore(1),
+		sendingChainID: getIDAsKeyForStore(2),
+		receivingChainID: getIDAsKeyForStore(3),
 		fee: BigInt(20000),
 		status: 0,
 		params: Buffer.alloc(0),
 	};
 	return {
-		getStore: (moduleID: number, storePrefix: number) => stateStore.getStore(moduleID, storePrefix),
+		getStore: (moduleID: Buffer, storePrefix: number) => stateStore.getStore(moduleID, storePrefix),
 		logger,
 		networkIdentifier,
 		getAPIContext: params.getAPIContext ?? (() => ({ getStore, eventQueue })),
@@ -359,8 +360,8 @@ export const createBeforeRecoverCCMsgAPIContext = (params: {
 
 export const createRecoverCCMsgAPIContext = (params: {
 	ccm?: CCMsg;
-	terminatedChainID: number;
-	moduleID: number;
+	terminatedChainID: Buffer;
+	moduleID: Buffer;
 	storePrefix: number;
 	storeKey: number;
 	storeValue: Buffer;

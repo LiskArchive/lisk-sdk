@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { MainchainCCChannelTerminatedCommand } from '../../../../../../src/modules/interoperability/mainchain/cc_commands/channel_terminated';
 import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
@@ -35,10 +35,10 @@ describe('MainchainCCChannelTerminatedCommand', () => {
 	const networkIdentifier = getRandomBytes(32);
 	const ccm = {
 		nonce: BigInt(0),
-		moduleID: 1,
-		crossChainCommandID: 1,
-		sendingChainID: 2,
-		receivingChainID: 3,
+		moduleID: intToBuffer(1, 4),
+		crossChainCommandID: intToBuffer(1, 4),
+		sendingChainID: intToBuffer(2, 4),
+		receivingChainID: intToBuffer(3, 4),
 		fee: BigInt(20000),
 		status: 0,
 		params: Buffer.alloc(0),
@@ -48,7 +48,10 @@ describe('MainchainCCChannelTerminatedCommand', () => {
 		networkIdentifier,
 	});
 
-	const ccChannelTerminatedCommand = new MainchainCCChannelTerminatedCommand(1, ccAPIsMap);
+	const ccChannelTerminatedCommand = new MainchainCCChannelTerminatedCommand(
+		intToBuffer(1, 4),
+		ccAPIsMap,
+	);
 	const mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
 		ccm.moduleID,
 		sampleExecuteContext.getStore,

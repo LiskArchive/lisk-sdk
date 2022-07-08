@@ -23,7 +23,7 @@ export abstract class BaseInteroperabilityCommand extends BaseCommand {
 	protected readonly ccCommands = new Map<number, BaseCCCommand[]>();
 
 	public constructor(
-		moduleID: number,
+		moduleID: Buffer,
 		interoperableCCAPIs: Map<number, BaseInteroperableAPI>,
 		ccCommands: Map<number, BaseCCCommand[]>,
 	) {

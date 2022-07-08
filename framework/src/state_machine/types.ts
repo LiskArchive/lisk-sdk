@@ -18,7 +18,7 @@ import { TransactionVerifyResult } from '../abi';
 import { Logger } from '../logger';
 
 export interface EventQueueAdder {
-	add(moduleID: number, typeID: Buffer, data: Buffer, topics?: Buffer[], noRevert?: boolean): void;
+	add(moduleID: Buffer, typeID: Buffer, data: Buffer, topics?: Buffer[], noRevert?: boolean): void;
 }
 
 export interface ImmutableSubStore {
@@ -37,11 +37,11 @@ export interface SubStore extends ImmutableSubStore {
 }
 
 export interface ImmutableAPIContext {
-	getStore: (moduleID: number, storePrefix: number) => ImmutableSubStore;
+	getStore: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
 }
 
 export interface APIContext {
-	getStore: (moduleID: number, storePrefix: number) => SubStore;
+	getStore: (moduleID: Buffer, storePrefix: number) => SubStore;
 	eventQueue: EventQueueAdder;
 }
 
@@ -67,11 +67,11 @@ export interface BlockHeader {
 }
 
 export interface BlockAssets {
-	getAsset: (moduleID: number) => Buffer | undefined;
+	getAsset: (moduleID: Buffer) => Buffer | undefined;
 }
 
 export interface WritableBlockAssets extends BlockAssets {
-	setAsset: (moduleID: number, value: Buffer) => void;
+	setAsset: (moduleID: Buffer, value: Buffer) => void;
 }
 
 export interface VerificationResult {
@@ -84,7 +84,7 @@ export interface TransactionVerifyContext {
 	logger: Logger;
 	transaction: Transaction;
 	getAPIContext: () => ImmutableAPIContext;
-	getStore: (moduleID: number, storePrefix: number) => ImmutableSubStore;
+	getStore: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
 }
 
 export interface CommandVerifyContext<T = undefined> {
@@ -93,7 +93,7 @@ export interface CommandVerifyContext<T = undefined> {
 	transaction: Transaction; // without decoding params
 	params: T;
 	getAPIContext: () => ImmutableAPIContext;
-	getStore: (moduleID: number, storePrefix: number) => ImmutableSubStore;
+	getStore: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
 }
 
 export interface CommandExecuteContext<T = undefined> {
@@ -109,14 +109,14 @@ export interface CommandExecuteContext<T = undefined> {
 	transaction: Transaction; // without decoding params
 	params: T;
 	getAPIContext: () => APIContext;
-	getStore: (moduleID: number, storePrefix: number) => SubStore;
+	getStore: (moduleID: Buffer, storePrefix: number) => SubStore;
 }
 
 export interface GenesisBlockExecuteContext {
 	logger: Logger;
 	eventQueue: EventQueueAdder;
 	getAPIContext: () => APIContext;
-	getStore: (moduleID: number, storePrefix: number) => SubStore;
+	getStore: (moduleID: Buffer, storePrefix: number) => SubStore;
 	header: BlockHeader;
 	assets: BlockAssets;
 	setNextValidators: (
@@ -131,7 +131,7 @@ export interface TransactionExecuteContext {
 	networkIdentifier: Buffer;
 	eventQueue: EventQueueAdder;
 	getAPIContext: () => APIContext;
-	getStore: (moduleID: number, storePrefix: number) => SubStore;
+	getStore: (moduleID: Buffer, storePrefix: number) => SubStore;
 	header: BlockHeader;
 	assets: BlockAssets;
 	transaction: Transaction;
@@ -145,7 +145,7 @@ export interface BlockVerifyContext {
 	logger: Logger;
 	networkIdentifier: Buffer;
 	getAPIContext: () => ImmutableAPIContext;
-	getStore: (moduleID: number, storePrefix: number) => ImmutableSubStore;
+	getStore: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
 	header: BlockHeader;
 	assets: BlockAssets;
 }
@@ -155,7 +155,7 @@ export interface BlockExecuteContext {
 	networkIdentifier: Buffer;
 	eventQueue: EventQueueAdder;
 	getAPIContext: () => APIContext;
-	getStore: (moduleID: number, storePrefix: number) => SubStore;
+	getStore: (moduleID: Buffer, storePrefix: number) => SubStore;
 	header: BlockHeader;
 	assets: BlockAssets;
 	currentValidators: Validator[];
@@ -184,9 +184,9 @@ export interface InsertAssetContext {
 	logger: Logger;
 	networkIdentifier: Buffer;
 	getAPIContext: () => APIContext;
-	getStore: (moduleID: number, storePrefix: number) => ImmutableSubStore;
+	getStore: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
 	header: BlockHeader;
 	assets: WritableBlockAssets;
-	getGeneratorStore: (moduleID: number) => SubStore;
+	getGeneratorStore: (moduleID: Buffer) => SubStore;
 	getFinalizedHeight(): number;
 }

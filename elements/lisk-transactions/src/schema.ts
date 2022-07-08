@@ -18,11 +18,11 @@ export const baseTransactionSchema = {
 	required: ['moduleID', 'commandID', 'nonce', 'fee', 'senderPublicKey', 'params'],
 	properties: {
 		moduleID: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
 		commandID: {
-			dataType: 'uint32',
+			dataType: 'bytes',
 			fieldNumber: 2,
 		},
 		nonce: {

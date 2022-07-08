@@ -59,8 +59,8 @@ interface CreateFlags {
 }
 
 interface Transaction {
-	moduleID: number;
-	commandID: number;
+	moduleID: Buffer;
+	commandID: Buffer;
 	nonce: bigint;
 	fee: bigint;
 	senderPublicKey: Buffer;
@@ -71,8 +71,8 @@ interface Transaction {
 const getParamsObject = async (metadata: ModuleMetadata[], flags: CreateFlags, args: Args) => {
 	const paramsSchema = getParamsSchema(
 		metadata,
-		Number(args.moduleID),
-		Number(args.commandID),
+		cryptography.intToBuffer(args.moduleID, 4),
+		cryptography.intToBuffer(args.commandID, 4),
 	) as Schema;
 	const rawParams = flags.params
 		? JSON.parse(flags.params)
@@ -276,8 +276,8 @@ export abstract class CreateCommand extends Command {
 		const { args, flags } = this.parse(CreateCommand);
 
 		const incompleteTransaction = {
-			moduleID: Number(args.moduleID),
-			commandID: Number(args.commandID),
+			moduleID: cryptography.intToBuffer(args.moduleID, 4),
+			commandID: cryptography.intToBuffer(args.commandID, 4),
 			fee: BigInt(args.fee),
 			nonce: BigInt(0),
 			senderPublicKey: Buffer.alloc(0),

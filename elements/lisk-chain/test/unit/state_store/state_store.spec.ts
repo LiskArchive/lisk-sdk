@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { DB_KEY_STATE_STORE } from '../../../src';
 import { NotFoundError, StateStore } from '../../../src/state_store';
@@ -30,7 +30,7 @@ const sampleSchema = {
 };
 
 describe('state store', () => {
-	const moduleID = 2;
+	let moduleID = intToBuffer(2, 4);
 	const storePrefix = 0;
 	const existingKey = getRandomBytes(20);
 	const existingKey2 = getRandomBytes(20);
@@ -43,16 +43,14 @@ describe('state store', () => {
 	beforeEach(async () => {
 		db = new InMemoryDatabase();
 		stateStore = new StateStore(db);
-		const moduleIDBuffer = Buffer.alloc(4);
-		moduleIDBuffer.writeInt32BE(moduleID, 0);
 		const storePrefixBuffer = Buffer.alloc(2);
 		storePrefixBuffer.writeUInt16BE(storePrefix, 0);
 		await db.set(
-			Buffer.concat([stateStore['_prefix'], moduleIDBuffer, storePrefixBuffer, existingKey]),
+			Buffer.concat([stateStore['_prefix'], moduleID, storePrefixBuffer, existingKey]),
 			existingValue,
 		);
 		await db.set(
-			Buffer.concat([stateStore['_prefix'], moduleIDBuffer, storePrefixBuffer, existingKey2]),
+			Buffer.concat([stateStore['_prefix'], moduleID, storePrefixBuffer, existingKey2]),
 			existingValue2,
 		);
 	});
@@ -61,17 +59,17 @@ describe('state store', () => {
 		it('should keep the same cache as the original state store', async () => {
 			const address = getRandomBytes(20);
 			const value = getRandomBytes(64);
-			const subStore = stateStore.getStore(2, 0);
+			const subStore = stateStore.getStore(intToBuffer(2, 4), 0);
 			await subStore.set(address, value);
 			// create different store from the state store
-			const newSubStore = stateStore.getStore(2, 0);
+			const newSubStore = stateStore.getStore(intToBuffer(2, 4), 0);
 			const valueFromNewStore = await newSubStore.get(address);
 
 			expect(valueFromNewStore).toEqual(value);
 		});
 
 		it('should append the prefix', () => {
-			const subStore = stateStore.getStore(2, 0);
+			const subStore = stateStore.getStore(intToBuffer(2, 4), 0);
 			// db prefix(1) + moduleID(4) + storePrefix(2)
 			expect(subStore['_prefix']).toHaveLength(1 + 4 + 2);
 		});
@@ -321,11 +319,11 @@ describe('state store', () => {
 	describe('finalize', () => {
 		const getRandomData = () => ({ key: getRandomBytes(20), value: getRandomBytes(50) });
 		const getKey = (mID: number, prefix: number) => {
-			const moduleIDBuffer = Buffer.alloc(4);
-			moduleIDBuffer.writeInt32BE(mID, 0);
+			moduleID = Buffer.alloc(4);
+			moduleID.writeInt32BE(mID, 0);
 			const storePrefixBuffer = Buffer.alloc(2);
 			storePrefixBuffer.writeUInt16BE(prefix, 0);
-			return Buffer.concat([moduleIDBuffer, storePrefixBuffer]);
+			return Buffer.concat([moduleID, storePrefixBuffer]);
 		};
 
 		let batch: DatabaseWriter;

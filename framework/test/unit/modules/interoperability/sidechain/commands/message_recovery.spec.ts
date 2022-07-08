@@ -13,7 +13,7 @@
  */
 
 import { Transaction } from '@liskhq/lisk-chain';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { when } from 'jest-when';
@@ -24,18 +24,15 @@ import { BaseInteroperableAPI } from '../../../../../../src/modules/interoperabi
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
 import { TransactionContext } from '../../../../../../src/state_machine';
 import {
-	COMMAND_ID_MESSAGE_RECOVERY,
-	MODULE_ID_INTEROPERABILITY,
+	COMMAND_ID_MESSAGE_RECOVERY_BUFFER,
+	MODULE_ID_INTEROPERABILITY_BUFFER,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
 	ccmSchema,
 	messageRecoveryParamsSchema,
 } from '../../../../../../src/modules/interoperability/schema';
 import { createTransactionContext } from '../../../../../../src/testing';
-import {
-	getIDAsKeyForStore,
-	swapReceivingAndSendingChainIDs,
-} from '../../../../../../src/modules/interoperability/utils';
+import { swapReceivingAndSendingChainIDs } from '../../../../../../src/modules/interoperability/utils';
 import { SidechainInteroperabilityStore } from '../../../../../../src/modules/interoperability/sidechain/store';
 import { Mocked } from '../../../../../utils/types';
 
@@ -44,7 +41,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		const ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
 
 		transactionParams = {
-			chainID: 3,
+			chainID: intToBuffer(3, 4),
 			crossChainMessages: [...ccmsEncoded],
 			idxs: [0],
 			siblingHashes: [getRandomBytes(32)],
@@ -53,8 +50,8 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
 
 		transaction = new Transaction({
-			moduleID: MODULE_ID_INTEROPERABILITY,
-			commandID: COMMAND_ID_MESSAGE_RECOVERY,
+			moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
+			commandID: COMMAND_ID_MESSAGE_RECOVERY_BUFFER,
 			fee: BigInt(100000000),
 			nonce: BigInt(0),
 			params: encodedTransactionParams,
@@ -81,7 +78,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		| 'terminatedOutboxAccountExist'
 	>;
 
-	const moduleID = 1;
+	const moduleID = intToBuffer(1, 4);
 
 	let messageRecoveryCommand: MessageRecoveryCommand;
 	let commandExecuteContext: CommandExecuteContext<MessageRecoveryParams>;
@@ -99,7 +96,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		ccCommands = new Map();
 
 		messageRecoveryCommand = new MessageRecoveryCommand(
-			MODULE_ID_INTEROPERABILITY,
+			MODULE_ID_INTEROPERABILITY_BUFFER,
 			interoperableCCAPIs,
 			ccCommands,
 		);
@@ -108,19 +105,19 @@ describe('Sidechain MessageRecoveryCommand', () => {
 			{
 				nonce: BigInt(0),
 				moduleID,
-				crossChainCommandID: 1,
-				sendingChainID: 2,
-				receivingChainID: 3,
+				crossChainCommandID: intToBuffer(1, 4),
+				sendingChainID: intToBuffer(2, 4),
+				receivingChainID: intToBuffer(3, 4),
 				fee: BigInt(1),
 				status: 1,
 				params: Buffer.alloc(0),
 			},
 			{
 				nonce: BigInt(1),
-				moduleID: moduleID + 1,
-				crossChainCommandID: 1,
-				sendingChainID: 2,
-				receivingChainID: 3,
+				moduleID: intToBuffer(moduleID.readInt32BE(0) + 1, 4),
+				crossChainCommandID: intToBuffer(1, 4),
+				sendingChainID: intToBuffer(2, 4),
+				receivingChainID: intToBuffer(3, 4),
 				fee: BigInt(1),
 				status: 1,
 				params: Buffer.alloc(0),
@@ -142,7 +139,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		jest.spyOn(regularMerkleTree, 'calculateRootFromUpdateData').mockReturnValue(Buffer.alloc(32));
 
 		for (const ccm of ccms) {
-			const chainID = getIDAsKeyForStore(ccm.sendingChainID);
+			const chainID = ccm.sendingChainID;
 
 			when(storeMock.getOwnChainAccount)
 				.calledWith()
@@ -155,8 +152,8 @@ describe('Sidechain MessageRecoveryCommand', () => {
 
 		// Set an example ccCommand for the message recovery command
 		for (const ccm of ccms) {
-			const previousCCCommands = ccCommands.get(ccm.moduleID) ?? [];
-			ccCommands.set(ccm.moduleID, ([
+			const previousCCCommands = ccCommands.get(ccm.moduleID.readInt32BE(0)) ?? [];
+			ccCommands.set(ccm.moduleID.readInt32BE(0), ([
 				...previousCCCommands,
 				{
 					moduleID: ccm.moduleID,
@@ -172,7 +169,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 			] as unknown) as BaseCCCommand[]);
 		}
 
-		const chainID = getIDAsKeyForStore(transactionParams.chainID);
+		const { chainID } = transactionParams;
 
 		when(storeMock.getTerminatedOutboxAccount)
 			.calledWith(chainID)
@@ -195,8 +192,8 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		// Assert
 		expect.assertions(ccmsWithSwappedChainIds.length);
 		for (const ccm of ccmsWithSwappedChainIds) {
-			const commands = ccCommands.get(ccm.moduleID) as BaseCCCommand[];
-			const command = commands.find(cmd => cmd.ID === ccm.crossChainCommandID) as BaseCCCommand;
+			const commands = ccCommands.get(ccm.moduleID.readInt32BE(0)) as BaseCCCommand[];
+			const command = commands.find(cmd => cmd.ID.equals(ccm.crossChainCommandID)) as BaseCCCommand;
 			expect(command.execute).toHaveBeenCalledWith(
 				expect.objectContaining({
 					ccm,
@@ -209,10 +206,10 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		// Arrange & Assign
 		const newCcm = {
 			nonce: BigInt(2),
-			moduleID: moduleID + 1,
-			crossChainCommandID: 2,
-			sendingChainID: 3,
-			receivingChainID: 2,
+			moduleID: intToBuffer(moduleID.readInt32BE(0) + 1, 4),
+			crossChainCommandID: intToBuffer(2, 4),
+			sendingChainID: intToBuffer(3, 4),
+			receivingChainID: intToBuffer(2, 4),
 			fee: BigInt(1),
 			status: 1,
 			params: Buffer.alloc(0),
@@ -220,8 +217,8 @@ describe('Sidechain MessageRecoveryCommand', () => {
 
 		ccms.push(newCcm);
 
-		const previousCCCommands = ccCommands.get(newCcm.moduleID) ?? [];
-		ccCommands.set(newCcm.moduleID, ([
+		const previousCCCommands = ccCommands.get(newCcm.moduleID.readInt32BE(0)) ?? [];
+		ccCommands.set(newCcm.moduleID.readInt32BE(0), ([
 			...previousCCCommands,
 			{
 				moduleID: newCcm.moduleID,
@@ -246,9 +243,9 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		// Assert
 		expect.assertions(ccmsWithSwappedChainIds.length);
 		for (const ccm of ccmsWithSwappedChainIds) {
-			const commands = ccCommands.get(ccm.moduleID) as BaseCCCommand[];
-			const command = commands.find(cmd => cmd.ID === ccm.crossChainCommandID) as BaseCCCommand;
-			if (ccm.sendingChainID === transactionParams.chainID) {
+			const commands = ccCommands.get(ccm.moduleID.readInt32BE(0)) as BaseCCCommand[];
+			const command = commands.find(cmd => cmd.ID.equals(ccm.crossChainCommandID)) as BaseCCCommand;
+			if (ccm.sendingChainID.equals(transactionParams.chainID)) {
 				expect(command.execute).toHaveBeenCalledWith(
 					expect.objectContaining({
 						ccm,
@@ -269,7 +266,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 			moduleID,
 		} as unknown) as BaseInteroperableAPI;
 
-		interoperableCCAPIs.set(moduleID, api);
+		interoperableCCAPIs.set(moduleID.readInt32BE(0), api);
 
 		// Assert
 		await expect(messageRecoveryCommand.execute(commandExecuteContext)).rejects.toThrow(
@@ -279,7 +276,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 
 	it('should throw when terminated chain outbox does not exist', async () => {
 		// Assign & Arrange
-		const chainID = getIDAsKeyForStore(transactionParams.chainID);
+		const { chainID } = transactionParams;
 
 		when(storeMock.terminatedOutboxAccountExist).calledWith(chainID).mockResolvedValue(false);
 
@@ -292,13 +289,13 @@ describe('Sidechain MessageRecoveryCommand', () => {
 	it("should skip CCM's proccessing when ownchainID is not equal to CCM's sendingChainID", async () => {
 		// Arrange & Assign
 		for (const ccm of ccms) {
-			const chainID = getIDAsKeyForStore(ccm.sendingChainID);
+			const chainID = ccm.sendingChainID;
 
 			when(storeMock.getOwnChainAccount)
 				.calledWith()
 				.mockResolvedValue({
 					name: `chain${chainID.toString('hex')}`,
-					id: 0,
+					id: intToBuffer(0, 4),
 					nonce: BigInt(0),
 				});
 		}
@@ -334,10 +331,10 @@ describe('Sidechain MessageRecoveryCommand', () => {
 
 	it("should skip CCM's proccessing when there is no crossChainCommand associated with a module to execute", async () => {
 		// Arrange & Assign
-		ccCommands.set(moduleID, ([
+		ccCommands.set(moduleID.readInt32BE(0), ([
 			{
 				moduleID,
-				ID: 3000,
+				ID: intToBuffer(3000, 4),
 				name: 'ccCommand',
 				execute: jest.fn(),
 				schema: {

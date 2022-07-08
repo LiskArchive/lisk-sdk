@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
+import { intToBuffer } from '@liskhq/lisk-cryptography';
 import * as fs from 'fs-extra';
 import { transactionSchema } from 'lisk-framework';
 import * as apiClient from '@liskhq/lisk-api-client';
@@ -30,8 +32,8 @@ import { getConfig } from '../../../helpers/config';
 describe('transaction:get command', () => {
 	const commands = [
 		{
-			moduleID: 2,
-			commandID: 0,
+			moduleID: intToBuffer(2, 4),
+			commandID: intToBuffer(0, 4),
 			schema: tokenTransferParamsSchema,
 		},
 	];

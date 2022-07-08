@@ -15,7 +15,7 @@
 import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { DPoSAPI } from '../../../../src/modules/dpos_v2/api';
 import {
-	MODULE_ID_DPOS,
+	MODULE_ID_DPOS_BUFFER,
 	STORE_PREFIX_DELEGATE,
 	STORE_PREFIX_NAME,
 	STORE_PREFIX_VOTER,
@@ -65,7 +65,7 @@ describe('DposModuleApi', () => {
 	};
 
 	beforeEach(() => {
-		dposAPI = new DPoSAPI(MODULE_ID_DPOS);
+		dposAPI = new DPoSAPI(MODULE_ID_DPOS_BUFFER);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		voterSubStore = stateStore.getStore(dposAPI['moduleID'], STORE_PREFIX_VOTER);
 		delegateSubStore = stateStore.getStore(dposAPI['moduleID'], STORE_PREFIX_DELEGATE);

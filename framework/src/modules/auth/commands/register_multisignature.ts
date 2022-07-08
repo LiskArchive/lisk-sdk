@@ -29,9 +29,10 @@ import {
 } from '../constants';
 import { authAccountSchema, registerMultisignatureParamsSchema } from '../schemas';
 import { AuthAccount, RegisterMultisignatureParams } from '../types';
+import { getIDAsKeyForStore } from '../utils';
 
 export class RegisterMultisignatureCommand extends BaseCommand {
-	public id = COMMAND_ID_MULTISIGNATURE_REGISTRATION;
+	public id = getIDAsKeyForStore(COMMAND_ID_MULTISIGNATURE_REGISTRATION);
 	public name = 'registerMultisignatureGroup';
 	public schema = registerMultisignatureParamsSchema;
 
@@ -149,7 +150,7 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 		context: CommandExecuteContext<RegisterMultisignatureParams>,
 	): Promise<void> {
 		const { transaction } = context;
-		const authSubstore = context.getStore(MODULE_ID_AUTH, STORE_PREFIX_AUTH);
+		const authSubstore = context.getStore(getIDAsKeyForStore(MODULE_ID_AUTH), STORE_PREFIX_AUTH);
 		const senderAccount = await authSubstore.getWithSchema<AuthAccount>(
 			transaction.senderAddress,
 			authAccountSchema,

@@ -278,16 +278,20 @@ const MainPage: React.FC = () => {
 			const { publicKey, address } = cryptography.getAddressAndPublicKeyFromPassphrase(
 				data.passphrase,
 			);
-			const moduleMeta = getClient().metadata.find(a => a.id === data.moduleID);
+			const moduleMeta = getClient().metadata.find(a => a.id.equals(data.moduleID));
 			if (!moduleMeta) {
 				throw new Error(
-					`ModuleID: ${data.moduleID} CommandID: ${data.commandID} is not registered`,
+					`ModuleID: ${data.moduleID.readInt32BE(0)} CommandID: ${data.commandID.readInt32BE(
+						0,
+					)} is not registered`,
 				);
 			}
-			const commandMeta = moduleMeta.commands.find(cmd => cmd.id === data.commandID);
+			const commandMeta = moduleMeta.commands.find(cmd => cmd.id.equals(data.commandID));
 			if (!commandMeta) {
 				throw new Error(
-					`ModuleID: ${data.moduleID} CommandID: ${data.commandID} is not registered`,
+					`ModuleID: ${data.moduleID.readInt32BE(0)} CommandID: ${data.commandID.readInt32BE(
+						0,
+					)} is not registered`,
 				);
 			}
 			const paramsObject = commandMeta.params

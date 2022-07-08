@@ -28,10 +28,8 @@ export class GeneratorStore {
 		this._data = data ?? new dataStructures.BufferMap();
 	}
 
-	public getGeneratorStore(moduleID: number): GeneratorStore {
-		const moduleIDBuffer = Buffer.alloc(4);
-		moduleIDBuffer.writeInt32BE(moduleID, 0);
-		return new GeneratorStore(this._db, moduleIDBuffer, this._data);
+	public getGeneratorStore(moduleID: Buffer): GeneratorStore {
+		return new GeneratorStore(this._db, moduleID, this._data);
 	}
 
 	public async get(key: Buffer): Promise<Buffer> {

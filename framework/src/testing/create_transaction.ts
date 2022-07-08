@@ -20,7 +20,7 @@ import { validateTransaction } from '@liskhq/lisk-transactions';
 import { CommandClass } from './types';
 
 interface CreateTransactionInput {
-	moduleID: number;
+	moduleID: Buffer;
 	commandClass: CommandClass;
 	params: Record<string, unknown> | undefined;
 	nonce?: bigint;

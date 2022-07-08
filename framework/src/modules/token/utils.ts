@@ -13,6 +13,7 @@
  */
 
 import { NotFoundError } from '@liskhq/lisk-chain';
+import { intToBuffer } from '@liskhq/lisk-cryptography';
 import { APIContext } from '../../state_machine';
 import {
 	CHAIN_ID_ALIAS_NATIVE,
@@ -59,7 +60,7 @@ export const tokenSupported = (supportedTokenIDs: Buffer[], tokenID: Buffer): bo
 
 export const updateAvailableBalance = async (
 	apiContext: APIContext,
-	moduleID: number,
+	moduleID: Buffer,
 	address: Buffer,
 	tokenID: Buffer,
 	amount: bigint,
@@ -75,7 +76,7 @@ export const updateAvailableBalance = async (
 
 export const updateAvailableBalanceWithCreate = async (
 	apiContext: APIContext,
-	moduleID: number,
+	moduleID: Buffer,
 	address: Buffer,
 	tokenID: Buffer,
 	amount: bigint,
@@ -102,7 +103,7 @@ export const updateAvailableBalanceWithCreate = async (
 
 export const addEscrowAmount = async (
 	apiContext: APIContext,
-	moduleID: number,
+	moduleID: Buffer,
 	sendingChainID: Buffer,
 	localID: Buffer,
 	amount: bigint,
@@ -125,7 +126,7 @@ export const addEscrowAmount = async (
 export const deductEscrowAmountWithTerminate = async (
 	apiContext: APIContext,
 	interopAPI: InteroperabilityAPI,
-	moduleID: number,
+	moduleID: Buffer,
 	sendingChainID: Buffer,
 	localID: Buffer,
 	amount: bigint,
@@ -149,3 +150,5 @@ export const deductEscrowAmountWithTerminate = async (
 	escrowData.amount -= amount;
 	await escrowStore.setWithSchema(escrowKey, escrowData, escrowStoreSchema);
 };
+
+export const getIDAsKeyForStore = (id: number) => intToBuffer(id, 4);

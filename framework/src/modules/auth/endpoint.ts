@@ -19,7 +19,7 @@ import { ModuleEndpointContext } from '../../types';
 import { VerifyStatus } from '../../state_machine';
 import { BaseEndpoint } from '../base_endpoint';
 import { COMMAND_ID_DELEGATE_REGISTRATION } from '../dpos_v2/constants';
-import { MODULE_ID_AUTH, STORE_PREFIX_AUTH } from './constants';
+import { MODULE_ID_AUTH_BUFFER, STORE_PREFIX_AUTH } from './constants';
 import { authAccountSchema, registerMultisignatureParamsSchema } from './schemas';
 import { AuthAccount, AuthAccountJSON, VerifyEndpointResultJSON } from './types';
 import {
@@ -43,7 +43,7 @@ export class AuthEndpoint extends BaseEndpoint {
 		}
 
 		const accountAddress = Buffer.from(address as string, 'hex');
-		const store = getStore(MODULE_ID_AUTH, STORE_PREFIX_AUTH);
+		const store = getStore(MODULE_ID_AUTH_BUFFER, STORE_PREFIX_AUTH);
 
 		try {
 			const authAccount = await store.getWithSchema<AuthAccount>(accountAddress, authAccountSchema);
@@ -75,14 +75,14 @@ export class AuthEndpoint extends BaseEndpoint {
 
 		const accountAddress = getAddressFromPublicKey(senderPublicKey);
 
-		const store = getStore(MODULE_ID_AUTH, STORE_PREFIX_AUTH);
+		const store = getStore(MODULE_ID_AUTH_BUFFER, STORE_PREFIX_AUTH);
 		const account = await store.getWithSchema<AuthAccount>(accountAddress, authAccountSchema);
 
 		const transactionBytes = transaction.getSigningBytes();
 
 		if (
-			transaction.moduleID === this.moduleID &&
-			transaction.commandID === COMMAND_ID_DELEGATE_REGISTRATION
+			transaction.moduleID.equals(this.moduleID) &&
+			transaction.commandID.readInt32BE(0) === COMMAND_ID_DELEGATE_REGISTRATION
 		) {
 			verifyRegisterMultiSignatureTransaction(
 				TAG_TRANSACTION,
@@ -129,7 +129,7 @@ export class AuthEndpoint extends BaseEndpoint {
 
 		const accountAddress = getAddressFromPublicKey(senderPublicKey);
 
-		const store = getStore(MODULE_ID_AUTH, STORE_PREFIX_AUTH);
+		const store = getStore(MODULE_ID_AUTH_BUFFER, STORE_PREFIX_AUTH);
 		const account = await store.getWithSchema<AuthAccount>(accountAddress, authAccountSchema);
 
 		const verificationResult = verifyNonce(transaction, account).status;

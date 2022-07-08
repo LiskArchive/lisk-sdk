@@ -19,6 +19,7 @@ import {
 	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPublicKey,
 	getRandomBytes,
+	intToBuffer,
 } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { ReportDelegateMisbehaviorCommand } from '../../../../../src/modules/dpos_v2/commands/pom';
@@ -26,7 +27,7 @@ import * as testing from '../../../../../src/testing';
 import {
 	COMMAND_ID_POM,
 	REPORTING_PUNISHMENT_REWARD,
-	MODULE_ID_DPOS,
+	MODULE_ID_DPOS_BUFFER,
 	STORE_PREFIX_DELEGATE,
 } from '../../../../../src/modules/dpos_v2/constants';
 import {
@@ -77,7 +78,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 	};
 
 	beforeEach(async () => {
-		pomCommand = new ReportDelegateMisbehaviorCommand(MODULE_ID_DPOS);
+		pomCommand = new ReportDelegateMisbehaviorCommand(MODULE_ID_DPOS_BUFFER);
 		mockTokenAPI = {
 			lock: jest.fn(),
 			unlock: jest.fn(),
@@ -96,7 +97,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			validatorsAPI: mockValidatorsAPI,
 		});
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		delegateSubstore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
+		delegateSubstore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
 
 		misBehavingDelegate = { name: 'misBehavingDelegate', ...defaultDelegateInfo };
 		normalDelegate = { name: 'normalDelegate', ...defaultDelegateInfo };
@@ -115,7 +116,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 		header1 = fakeBlockHeader1 as BlockHeader;
 		header2 = fakeBlockHeader2 as BlockHeader;
 
-		pomCommand = new ReportDelegateMisbehaviorCommand(MODULE_ID_DPOS);
+		pomCommand = new ReportDelegateMisbehaviorCommand(MODULE_ID_DPOS_BUFFER);
 		pomCommand.addDependencies({
 			tokenAPI: mockTokenAPI,
 			validatorsAPI: mockValidatorsAPI,
@@ -124,10 +125,10 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			tokenIDDPoS: DEFAULT_TOKEN_ID,
 		});
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		delegateSubstore = stateStore.getStore(MODULE_ID_DPOS, STORE_PREFIX_DELEGATE);
+		delegateSubstore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
 		transaction = new Transaction({
-			moduleID: MODULE_ID_DPOS,
-			commandID: COMMAND_ID_POM,
+			moduleID: MODULE_ID_DPOS_BUFFER,
+			commandID: intToBuffer(COMMAND_ID_POM, 4),
 			senderPublicKey: publicKey,
 			nonce: BigInt(0),
 			fee: BigInt(100000000),
@@ -158,7 +159,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 
 	describe('constructor', () => {
 		it('should have valid id', () => {
-			expect(pomCommand.id).toEqual(COMMAND_ID_POM);
+			expect(pomCommand.id.readInt32BE(0)).toEqual(COMMAND_ID_POM);
 		});
 
 		it('should have valid name', () => {
@@ -734,8 +735,8 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 
 		it('should not return balance if sender and delegate account are same', async () => {
 			transaction = new Transaction({
-				moduleID: MODULE_ID_DPOS,
-				commandID: COMMAND_ID_POM,
+				moduleID: MODULE_ID_DPOS_BUFFER,
+				commandID: intToBuffer(COMMAND_ID_POM, 4),
 				senderPublicKey: delegate1PublicKey,
 				nonce: BigInt(0),
 				fee: BigInt(100000000),
