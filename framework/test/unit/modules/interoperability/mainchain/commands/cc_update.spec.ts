@@ -78,8 +78,7 @@ describe('CrossChainUpdateCommand', () => {
 	};
 
 	const defaultNewCertificateThreshold = BigInt(20);
-	const defaultSendingChainID = 20;
-	const defaultSendingChainIDBuffer = interopUtils.getIDAsKeyForStore(defaultSendingChainID);
+	const defaultSendingChainID = cryptography.intToBuffer(20, 4);
 	const defaultCCMs: CCMsg[] = [
 		{
 			crossChainCommandID: intToBuffer(1, 4),
@@ -215,11 +214,11 @@ describe('CrossChainUpdateCommand', () => {
 		};
 
 		when(partnerChainStore.getWithSchema)
-			.calledWith(defaultSendingChainIDBuffer, chainAccountSchema)
+			.calledWith(defaultSendingChainID, chainAccountSchema)
 			.mockResolvedValue(partnerChainAccount);
 
 		when(partnerChannelStore.getWithSchema)
-			.calledWith(defaultSendingChainIDBuffer, channelSchema)
+			.calledWith(defaultSendingChainID, channelSchema)
 			.mockResolvedValue(partnerChannelAccount);
 
 		when(getStoreMock)
@@ -235,7 +234,7 @@ describe('CrossChainUpdateCommand', () => {
 			.mockReturnValueOnce(partnerValidatorStore);
 
 		when(partnerValidatorStore.getWithSchema)
-			.calledWith(defaultSendingChainIDBuffer, chainValidatorsSchema)
+			.calledWith(defaultSendingChainID, chainValidatorsSchema)
 			.mockResolvedValue(partnerValidatorsData);
 
 		jest
@@ -273,7 +272,7 @@ describe('CrossChainUpdateCommand', () => {
 
 		it('should return error when chain has terminated status', async () => {
 			when(partnerChainStore.getWithSchema)
-				.calledWith(defaultSendingChainIDBuffer, chainAccountSchema)
+				.calledWith(defaultSendingChainID, chainAccountSchema)
 				.mockResolvedValue({ ...partnerChainAccount, status: CHAIN_TERMINATED });
 
 			const { status, error } = await mainchainCCUUpdateCommand.verify(verifyContext);
@@ -292,7 +291,7 @@ describe('CrossChainUpdateCommand', () => {
 
 		it('should return error checkLivenessRequirementFirstCCU fails', async () => {
 			when(partnerChainStore.getWithSchema)
-				.calledWith(defaultSendingChainIDBuffer, chainAccountSchema)
+				.calledWith(defaultSendingChainID, chainAccountSchema)
 				.mockResolvedValue({ ...partnerChainAccount, status: CHAIN_REGISTERED });
 
 			const { status, error } = await mainchainCCUUpdateCommand.verify({
@@ -301,7 +300,9 @@ describe('CrossChainUpdateCommand', () => {
 			});
 			expect(status).toEqual(VerifyStatus.FAIL);
 			expect(error?.message).toContain(
-				`Sending partner chain ${defaultSendingChainID} has a registered status so certificate cannot be empty.`,
+				`Sending partner chain ${defaultSendingChainID.readInt32BE(
+					0,
+				)} has a registered status so certificate cannot be empty.`,
 			);
 		});
 
@@ -421,7 +422,7 @@ describe('CrossChainUpdateCommand', () => {
 				.mockReturnValueOnce(partnerValidatorStore);
 
 			when(partnerValidatorStore.getWithSchema)
-				.calledWith(defaultSendingChainIDBuffer, chainValidatorsSchema)
+				.calledWith(defaultSendingChainID, chainValidatorsSchema)
 				.mockResolvedValue(partnerValidatorsDataVerify);
 			mainchainCCUUpdateCommand = new MainchainCCUpdateCommand(moduleID, new Map(), new Map());
 		});
@@ -475,7 +476,7 @@ describe('CrossChainUpdateCommand', () => {
 
 		it('should throw error when chain.status === CHAIN_REGISTERED and inboxUpdate is non-empty and the first CCM is not a registration CCM', async () => {
 			when(partnerChainStore.getWithSchema)
-				.calledWith(defaultSendingChainIDBuffer, chainAccountSchema)
+				.calledWith(defaultSendingChainID, chainAccountSchema)
 				.mockResolvedValue({ ...partnerChainAccount, status: CHAIN_REGISTERED });
 
 			jest

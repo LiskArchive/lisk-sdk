@@ -152,8 +152,13 @@ describe('MainchainCCRegistrationCommand', () => {
 		// Arrange
 		const invalidCCM = {
 			nonce: BigInt(0),
+<<<<<<< HEAD
 			moduleID: intToBuffer(1, 4),
 			crossChainCommandID: intToBuffer(1, 4),
+=======
+			moduleID: 1,
+			crossChainCommandID: 1,
+>>>>>>> be4327e3da (✅ Fix all interoperability tests)
 			sendingChainID: intToBuffer(2, 4),
 			receivingChainID: intToBuffer(1, 4),
 			fee: BigInt(20000),
@@ -307,8 +312,13 @@ describe('MainchainCCRegistrationCommand', () => {
 		// Arrange
 		const invalidCCM = {
 			nonce: BigInt(1), // nonce not equal to 0
+<<<<<<< HEAD
 			moduleID: intToBuffer(1, 4),
 			crossChainCommandID: intToBuffer(1, 4),
+=======
+			moduleID: 1,
+			crossChainCommandID: 1,
+>>>>>>> be4327e3da (✅ Fix all interoperability tests)
 			sendingChainID: intToBuffer(2, 4),
 			receivingChainID: intToBuffer(1, 4),
 			fee: BigInt(20000),

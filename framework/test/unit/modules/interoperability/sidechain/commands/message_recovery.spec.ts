@@ -191,6 +191,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 
 		// Assert
 		expect.assertions(ccmsWithSwappedChainIds.length);
+
 		for (const ccm of ccmsWithSwappedChainIds) {
 			const commands = ccCommands.get(ccm.moduleID.readInt32BE(0)) as BaseCCCommand[];
 			const command = commands.find(cmd => cmd.ID.equals(ccm.crossChainCommandID)) as BaseCCCommand;

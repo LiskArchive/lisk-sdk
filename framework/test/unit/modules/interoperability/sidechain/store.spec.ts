@@ -31,7 +31,11 @@ import {
 	terminatedStateSchema,
 } from '../../../../../src/modules/interoperability/schema';
 import { testing } from '../../../../../src';
-import { SendInternalContext } from '../../../../../src/modules/interoperability/types';
+import {
+	ChainAccount,
+	ChannelData,
+	SendInternalContext,
+} from '../../../../../src/modules/interoperability/types';
 import { getIDAsKeyForStore } from '../../../../../src/modules/interoperability/utils';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
@@ -149,7 +153,7 @@ describe('Sidechain interoperability store', () => {
 			params: Buffer.alloc(0),
 		};
 
-		const activeChainAccount = {
+		const activeChainAccount: ChainAccount = {
 			name: 'account1',
 			networkID: Buffer.alloc(0),
 			lastCertificate: {
@@ -162,7 +166,7 @@ describe('Sidechain interoperability store', () => {
 		};
 
 		const randomOutboxRoot = getRandomBytes(32);
-		const channelData = {
+		const channelData: ChannelData = {
 			inbox: {
 				appendPath: [],
 				size: 0,
@@ -186,7 +190,7 @@ describe('Sidechain interoperability store', () => {
 		});
 
 		const sendInternalContext: SendInternalContext = {
-			beforeSendContext: beforeSendCCMContext,
+			...beforeSendCCMContext,
 			...ccm,
 		};
 
@@ -284,7 +288,7 @@ describe('Sidechain interoperability store', () => {
 			});
 
 			const sendInternalContextLocal: SendInternalContext = {
-				beforeSendContext: beforeSendCCMContextLocal,
+				...beforeSendCCMContextLocal,
 				...invalidCCM,
 			};
 

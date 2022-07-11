@@ -28,7 +28,7 @@ import {
 	STORE_PREFIX_USER,
 	TOKEN_ID_LENGTH,
 } from '../../../../src/modules/token/constants';
-import { TokenInteroperableAPI } from '../../../../src/modules/token/interoperable_api';
+import { TokenInteroperableAPI } from '../../../../src/modules/token/cc_api';
 import {
 	availableLocalIDStoreSchema,
 	escrowStoreSchema,

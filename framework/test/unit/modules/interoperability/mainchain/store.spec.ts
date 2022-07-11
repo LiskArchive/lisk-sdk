@@ -48,10 +48,9 @@ import {
 	SendInternalContext,
 } from '../../../../../src/modules/interoperability/types';
 import { MODULE_ID_TOKEN } from '../../../../../src/modules/token/constants';
-import { APIContext } from '../../../../../src/state_machine';
+import { EventQueue } from '../../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
-import { SubStore } from '../../../../../src/state_machine/types';
-import { createTransientAPIContext } from '../../../../../src/testing';
+import { APIContext, SubStore } from '../../../../../src/state_machine/types';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 import { loggerMock } from '../../../../../src/testing/mocks';
 
@@ -263,7 +262,7 @@ describe('Mainchain interoperability store', () => {
 		});
 
 		const sendInternalContext: SendInternalContext = {
-			beforeSendContext: beforeSendCCMContext,
+			...beforeSendCCMContext,
 			...ccm,
 			timestamp,
 		};
@@ -313,7 +312,7 @@ describe('Mainchain interoperability store', () => {
 			});
 
 			const sendInternalContextLocal: SendInternalContext = {
-				beforeSendContext: beforeSendCCMContextLocal,
+				...beforeSendCCMContextLocal,
 				...invalidCCM,
 				timestamp,
 			};
@@ -462,15 +461,13 @@ describe('Mainchain interoperability store', () => {
 				sendingChainID: intToBuffer(2, 4),
 			};
 
-			apiContext = createTransientAPIContext({});
-
 			context = {
 				ccm,
 				ccu,
-				eventQueue: apiContext.eventQueue,
+				eventQueue: new EventQueue(),
 				feeAddress: Buffer.alloc(0),
 				getAPIContext: jest.fn(() => apiContext),
-				getStore: apiContext.getStore,
+				getStore: jest.fn(),
 				logger: loggerMock,
 				networkIdentifier: Buffer.alloc(0),
 			};
@@ -546,7 +543,6 @@ describe('Mainchain interoperability store', () => {
 
 		it('should terminate receiving chain when it is active and ccm is bounced', async () => {
 			receivingChainAccount.status = CHAIN_ACTIVE;
-
 			await mainchainInteroperabilityStore.forward(context);
 			expect(mainchainInteroperabilityStore.bounce).toHaveBeenCalledWith(ccm);
 			expect(mainchainInteroperabilityStore.terminateChainInternal).toHaveBeenCalledWith(

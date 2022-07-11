@@ -56,8 +56,13 @@ describe('Base interoperability store', () => {
 	);
 	const CCM = {
 		nonce: BigInt(0),
+<<<<<<< HEAD
 		moduleID: intToBuffer(1, 4),
 		crossChainCommandID: intToBuffer(1, 4),
+=======
+		moduleID: 1,
+		crossChainCommandID: 1,
+>>>>>>> be4327e3da (✅ Fix all interoperability tests)
 		sendingChainID: intToBuffer(2, 4),
 		receivingChainID: intToBuffer(3, 4),
 		fee: BigInt(1),
@@ -227,7 +232,10 @@ describe('Base interoperability store', () => {
 
 	describe('createTerminatedStateAccount', () => {
 		const chainId = intToBuffer(5, 4);
+<<<<<<< HEAD
 		const chainIdAsStoreKey = chainId;
+=======
+>>>>>>> be4327e3da (✅ Fix all interoperability tests)
 		const chainAccount = {
 			name: 'account1',
 			networkID: Buffer.alloc(0),
@@ -253,11 +261,11 @@ describe('Base interoperability store', () => {
 		};
 
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account exists for the id and state root is provided', async () => {
-			await chainSubstore.setWithSchema(chainIdAsStoreKey, chainAccount, chainAccountSchema);
+			await chainSubstore.setWithSchema(chainId, chainAccount, chainAccountSchema);
 			await mainchainInteroperabilityStore.createTerminatedStateAccount(chainId, stateRoot);
 
 			await expect(
-				terminatedStateSubstore.getWithSchema(chainIdAsStoreKey, terminatedStateSchema),
+				terminatedStateSubstore.getWithSchema(chainId, terminatedStateSchema),
 			).resolves.toStrictEqual({
 				stateRoot,
 				mainchainStateRoot: EMPTY_BYTES,
@@ -266,11 +274,11 @@ describe('Base interoperability store', () => {
 		});
 
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account exists for the id but state root is not provided', async () => {
-			await chainSubstore.setWithSchema(chainIdAsStoreKey, chainAccount, chainAccountSchema);
+			await chainSubstore.setWithSchema(chainId, chainAccount, chainAccountSchema);
 			await mainchainInteroperabilityStore.createTerminatedStateAccount(chainId);
 
 			await expect(
-				terminatedStateSubstore.getWithSchema(chainIdAsStoreKey, terminatedStateSchema),
+				terminatedStateSubstore.getWithSchema(chainId, terminatedStateSchema),
 			).resolves.toStrictEqual({
 				stateRoot: chainAccount.lastCertificate.stateRoot,
 				mainchainStateRoot: EMPTY_BYTES,
@@ -291,7 +299,10 @@ describe('Base interoperability store', () => {
 
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account does not exist for the id but ownchain account id is the same as mainchain id', async () => {
 			const chainIdNew = intToBuffer(10, 4);
+<<<<<<< HEAD
 			const chainIdNewAsStoreKey = chainIdNew;
+=======
+>>>>>>> be4327e3da (✅ Fix all interoperability tests)
 			jest
 				.spyOn(mainchainInteroperabilityStore, 'getOwnChainAccount')
 				.mockResolvedValue(ownChainAccount2 as never);
@@ -303,7 +314,7 @@ describe('Base interoperability store', () => {
 			await mainchainInteroperabilityStore.createTerminatedStateAccount(chainIdNew);
 
 			await expect(
-				terminatedStateSubstore.getWithSchema(chainIdNewAsStoreKey, terminatedStateSchema),
+				terminatedStateSubstore.getWithSchema(chainIdNew, terminatedStateSchema),
 			).resolves.toStrictEqual({
 				stateRoot: EMPTY_BYTES,
 				mainchainStateRoot: chainAccount.lastCertificate.stateRoot,
@@ -316,8 +327,13 @@ describe('Base interoperability store', () => {
 		const SIDECHAIN_ID = intToBuffer(2, 4);
 		const ccm = {
 			nonce: BigInt(0),
+<<<<<<< HEAD
 			moduleID: intToBuffer(1, 4),
 			crossChainCommandID: intToBuffer(1, 4),
+=======
+			moduleID: 1,
+			crossChainCommandID: 1,
+>>>>>>> be4327e3da (✅ Fix all interoperability tests)
 			sendingChainID: intToBuffer(2, 4),
 			receivingChainID: intToBuffer(3, 4),
 			fee: BigInt(1),
@@ -339,7 +355,7 @@ describe('Base interoperability store', () => {
 		it('should return true if sendInternal and createTerminatedStateAccount return true', async () => {
 			expect(
 				await mainchainInteroperabilityStore.terminateChainInternal(
-					SIDECHAIN_ID,
+					intToBuffer(SIDECHAIN_ID, 4),
 					beforeSendCCMContext,
 				),
 			).toBe(true);
@@ -351,7 +367,7 @@ describe('Base interoperability store', () => {
 
 			expect(
 				await mainchainInteroperabilityStore.terminateChainInternal(
-					SIDECHAIN_ID,
+					intToBuffer(SIDECHAIN_ID, 4),
 					beforeSendCCMContext,
 				),
 			).toBe(false);
@@ -365,7 +381,7 @@ describe('Base interoperability store', () => {
 
 			expect(
 				await mainchainInteroperabilityStore.terminateChainInternal(
-					SIDECHAIN_ID,
+					intToBuffer(SIDECHAIN_ID, 4),
 					beforeSendCCMContext,
 				),
 			).toBe(false);
@@ -377,11 +393,19 @@ describe('Base interoperability store', () => {
 
 		const ccm = {
 			nonce: BigInt(0),
+<<<<<<< HEAD
 			moduleID: intToBuffer(1, 4),
 			crossChainCommandID: intToBuffer(1, 4),
 			sendingChainID: intToBuffer(2, 4),
 			receivingChainID: intToBuffer(3, 4),
 			fee: BigInt(34000),
+=======
+			moduleID: 1,
+			crossChainCommandID: 1,
+			sendingChainID: intToBuffer(2, 4),
+			receivingChainID: intToBuffer(3, 4),
+			fee: BigInt(30000),
+>>>>>>> be4327e3da (✅ Fix all interoperability tests)
 			status: 0,
 			params: Buffer.alloc(0),
 		};
@@ -438,6 +462,7 @@ describe('Base interoperability store', () => {
 			ccm,
 			ccu,
 			payFromAddress: EMPTY_FEE_ADDRESS,
+			trsSender: getRandomBytes(20),
 		});
 
 		const ccmApplyContext: CCMApplyContext = {
@@ -449,6 +474,7 @@ describe('Base interoperability store', () => {
 			logger: beforeSendCCMContext.logger,
 			networkIdentifier: beforeSendCCMContext.networkIdentifier,
 			feeAddress: Buffer.alloc(0),
+			trsSender: beforeApplyCCMContext.trsSender,
 		};
 
 		beforeEach(async () => {
