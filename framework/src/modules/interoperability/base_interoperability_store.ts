@@ -45,7 +45,6 @@ import {
 	ownChainAccountSchema,
 } from './schema';
 import {
-	BeforeSendCCMsgAPIContext,
 	ChannelData,
 	CCMsg,
 	ChainAccount,
@@ -55,6 +54,8 @@ import {
 	CCMApplyContext,
 	StoreCallback,
 	TerminatedOutboxAccount,
+	TerminateChainContext,
+	ImmutableStoreCallback,
 } from './types';
 import { getCCMSize, getIDAsKeyForStore } from './utils';
 import {
@@ -66,13 +67,13 @@ import { BaseInteroperableAPI } from './base_interoperable_api';
 import { BaseCCCommand } from './base_cc_command';
 
 export abstract class BaseInteroperabilityStore {
-	public readonly getStore: StoreCallback;
-	protected readonly moduleID: Buffer;
+	public readonly getStore: StoreCallback | ImmutableStoreCallback;
+	protected readonly moduleID: number;
 	protected readonly interoperableModuleAPIs = new Map<number, BaseInteroperableAPI>();
 
 	public constructor(
-		moduleID: Buffer,
-		getStore: StoreCallback,
+		moduleID: number,
+		getStore: StoreCallback | ImmutableStoreCallback,
 		interoperableModuleAPIs: Map<number, BaseInteroperableAPI>,
 	) {
 		this.moduleID = moduleID;
@@ -291,27 +292,26 @@ export abstract class BaseInteroperabilityStore {
 	}
 
 	public async createTerminatedStateAccount(chainID: Buffer, stateRoot?: Buffer): Promise<boolean> {
-		const chainIDAsStoreKey = chainID;
 		const chainSubstore = this.getStore(
 			getIDAsKeyForStore(MODULE_ID_INTEROPERABILITY),
 			STORE_PREFIX_CHAIN_DATA,
 		) as SubStore;
-		const isExist = await this.chainAccountExist(chainIDAsStoreKey);
+		const isExist = await this.chainAccountExist(chainID);
 		let terminatedState: TerminatedStateAccount;
 
 		if (stateRoot) {
 			if (isExist) {
 				const chainAccount = await chainSubstore.getWithSchema<ChainAccount>(
-					chainIDAsStoreKey,
+					chainID,
 					chainAccountSchema,
 				);
 				chainAccount.status = CHAIN_TERMINATED;
-				await chainSubstore.setWithSchema(chainIDAsStoreKey, chainAccount, chainAccountSchema);
+				await chainSubstore.setWithSchema(chainID, chainAccount, chainAccountSchema);
 				const outboxRootSubstore = this.getStore(
 					getIDAsKeyForStore(MODULE_ID_INTEROPERABILITY),
 					STORE_PREFIX_OUTBOX_ROOT,
 				) as SubStore;
-				await outboxRootSubstore.del(chainIDAsStoreKey);
+				await outboxRootSubstore.del(chainID);
 			}
 			terminatedState = {
 				stateRoot,
@@ -320,16 +320,16 @@ export abstract class BaseInteroperabilityStore {
 			};
 		} else if (isExist) {
 			const chainAccount = await chainSubstore.getWithSchema<ChainAccount>(
-				chainIDAsStoreKey,
+				chainID,
 				chainAccountSchema,
 			);
 			chainAccount.status = CHAIN_TERMINATED;
-			await chainSubstore.setWithSchema(chainIDAsStoreKey, chainAccount, chainAccountSchema);
+			await chainSubstore.setWithSchema(chainID, chainAccount, chainAccountSchema);
 			const outboxRootSubstore = this.getStore(
 				getIDAsKeyForStore(MODULE_ID_INTEROPERABILITY),
 				STORE_PREFIX_OUTBOX_ROOT,
 			) as SubStore;
-			await outboxRootSubstore.del(chainIDAsStoreKey);
+			await outboxRootSubstore.del(chainID);
 
 			terminatedState = {
 				stateRoot: chainAccount.lastCertificate.stateRoot,
@@ -362,18 +362,14 @@ export abstract class BaseInteroperabilityStore {
 			getIDAsKeyForStore(MODULE_ID_INTEROPERABILITY),
 			STORE_PREFIX_TERMINATED_STATE,
 		) as SubStore;
-		await terminatedStateSubstore.setWithSchema(
-			chainIDAsStoreKey,
-			terminatedState,
-			terminatedStateSchema,
-		);
+		await terminatedStateSubstore.setWithSchema(chainID, terminatedState, terminatedStateSchema);
 
 		return true;
 	}
 
 	public async terminateChainInternal(
 		chainID: Buffer,
-		beforeSendContext: BeforeSendCCMsgAPIContext,
+		terminateChainContext: TerminateChainContext,
 	): Promise<boolean> {
 		const messageSent = await this.sendInternal({
 			moduleID: getIDAsKeyForStore(MODULE_ID_INTEROPERABILITY),
@@ -382,7 +378,12 @@ export abstract class BaseInteroperabilityStore {
 			fee: BigInt(0),
 			status: CCM_STATUS_OK,
 			params: EMPTY_BYTES,
-			beforeSendContext,
+			eventQueue: terminateChainContext.eventQueue,
+			feeAddress: EMPTY_FEE_ADDRESS,
+			getAPIContext: terminateChainContext.getAPIContext,
+			getStore: terminateChainContext.getStore,
+			logger: terminateChainContext.logger,
+			networkIdentifier: terminateChainContext.networkIdentifier,
 		});
 
 		if (!messageSent) {
@@ -413,6 +414,7 @@ export abstract class BaseInteroperabilityStore {
 				feeAddress: ccmApplyContext.feeAddress,
 			},
 			ccmApplyContext.ccu,
+			ccmApplyContext.trsSender,
 		);
 
 		for (const mod of this.interoperableModuleAPIs.values()) {
@@ -444,7 +446,12 @@ export abstract class BaseInteroperabilityStore {
 			});
 
 			await this.sendInternal({
-				beforeSendContext: beforeCCMSendContext,
+				eventQueue: beforeCCMSendContext.eventQueue,
+				feeAddress: beforeCCMSendContext.feeAddress,
+				getAPIContext: beforeCCMSendContext.getAPIContext,
+				getStore: beforeCCMSendContext.getStore,
+				logger: beforeCCMSendContext.logger,
+				networkIdentifier: beforeCCMSendContext.networkIdentifier,
 				crossChainCommandID: ccm.crossChainCommandID,
 				moduleID: ccm.moduleID,
 				fee: BigInt(0),
@@ -470,7 +477,12 @@ export abstract class BaseInteroperabilityStore {
 			});
 
 			await this.sendInternal({
-				beforeSendContext: beforeCCMSendContext,
+				eventQueue: beforeCCMSendContext.eventQueue,
+				feeAddress: beforeCCMSendContext.feeAddress,
+				getAPIContext: beforeCCMSendContext.getAPIContext,
+				getStore: beforeCCMSendContext.getStore,
+				logger: beforeCCMSendContext.logger,
+				networkIdentifier: beforeCCMSendContext.networkIdentifier,
 				crossChainCommandID: ccm.crossChainCommandID,
 				moduleID: ccm.moduleID,
 				fee: BigInt(0),

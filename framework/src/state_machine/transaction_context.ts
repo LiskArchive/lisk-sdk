@@ -134,7 +134,7 @@ export class TransactionContext {
 		return {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
-			eventQueue: wrappedEventQueue,
+			eventQueue: this.eventQueue,
 			getAPIContext: () =>
 				createAPIContext({ stateStore: this._stateStore, eventQueue: wrappedEventQueue }),
 			getStore: (moduleID: Buffer, storePrefix: number) =>

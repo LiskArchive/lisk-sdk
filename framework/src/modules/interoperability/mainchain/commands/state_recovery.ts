@@ -58,7 +58,7 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 			MODULE_ID_INTEROPERABILITY_BUFFER,
 			STORE_PREFIX_TERMINATED_STATE,
 		);
-		const terminatedStateAccountExists = await terminatedStateSubstore.has(chainIDBuffer);
+		const terminatedStateAccountExists = await terminatedStateSubstore.has(chainID);
 
 		if (!terminatedStateAccountExists) {
 			return {
@@ -68,7 +68,7 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 		}
 
 		const terminatedStateAccount = await terminatedStateSubstore.getWithSchema<TerminatedStateAccount>(
-			chainIDBuffer,
+			chainID,
 			terminatedStateSchema,
 		);
 
@@ -117,7 +117,10 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 			transaction,
 			params: { chainID, storeEntries, moduleID, siblingHashes },
 		} = context;
+<<<<<<< HEAD
 		const chainIDBuffer = chainID;
+=======
+>>>>>>> b10459249b (♻️ Update types in interoperability store and contexts)
 		const storeQueries = [];
 
 		// The recover function corresponding to the module ID applies the recovery logic
@@ -131,7 +134,7 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 				terminatedChainID: chainID,
 				moduleID,
 				storePrefix: entry.storePrefix,
-				storeKey: entry.storeKey.readUInt32BE(0),
+				storeKey: entry.storeKey,
 				storeValue: entry.storeValue,
 				feeAddress: transaction.senderAddress,
 			});
@@ -155,12 +158,12 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 		);
 
 		const terminatedStateAccount = await terminatedStateSubstore.getWithSchema<TerminatedStateAccount>(
-			chainIDBuffer,
+			chainID,
 			terminatedStateSchema,
 		);
 
 		await terminatedStateSubstore.setWithSchema(
-			chainIDBuffer,
+			chainID,
 			{ ...terminatedStateAccount, stateRoot: root },
 			terminatedStateSchema,
 		);

@@ -36,6 +36,7 @@ export const createCCCommandExecuteContext = (
 export const createCCMsgBeforeApplyContext = (
 	params: CCAPIContext,
 	ccu: CCUpdateParams,
+	trsSender: Buffer,
 ): BeforeApplyCCMsgAPIContext => ({
 	logger: params.logger,
 	networkIdentifier: params.networkIdentifier,
@@ -45,6 +46,7 @@ export const createCCMsgBeforeApplyContext = (
 	ccm: params.ccm,
 	ccu,
 	feeAddress: params.feeAddress,
+	trsSender,
 });
 
 export const createCCMsgBeforeSendContext = (params: CCAPIContext): BeforeSendCCMsgAPIContext => ({
@@ -53,6 +55,6 @@ export const createCCMsgBeforeSendContext = (params: CCAPIContext): BeforeSendCC
 	eventQueue: params.eventQueue,
 	getAPIContext: params.getAPIContext,
 	getStore: params.getStore,
-	ccm: params.ccm,
 	feeAddress: params.feeAddress,
+	ccm: params.ccm,
 });

@@ -34,7 +34,6 @@ import {
 	STORE_PREFIX_CHAIN_VALIDATORS,
 	STORE_PREFIX_CHANNEL_DATA,
 } from '../../constants';
-import { createCCMsgBeforeSendContext } from '../../context';
 import {
 	ccmSchema,
 	chainAccountSchema,
@@ -48,7 +47,9 @@ import {
 	ChainValidators,
 	ChannelData,
 	CrossChainUpdateTransactionParams,
+	ImmutableStoreCallback,
 	StoreCallback,
+	TerminateChainContext,
 } from '../../types';
 import {
 	checkActiveValidatorsUpdate,
@@ -83,10 +84,13 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 			};
 		}
 
+<<<<<<< HEAD
 		const partnerChainIDBuffer = txParams.sendingChainID;
+=======
+>>>>>>> b10459249b (♻️ Update types in interoperability store and contexts)
 		const partnerChainStore = getStore(transaction.moduleID, STORE_PREFIX_CHAIN_DATA);
 		const partnerChainAccount = await partnerChainStore.getWithSchema<ChainAccount>(
-			partnerChainIDBuffer,
+			txParams.sendingChainID,
 			chainAccountSchema,
 		);
 
@@ -101,7 +105,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 		}
 		const interoperabilityStore = this.getInteroperabilityStore(getStore);
 		if (partnerChainAccount.status === CHAIN_ACTIVE) {
-			const isChainLive = await interoperabilityStore.isLive(partnerChainIDBuffer, Date.now());
+			const isChainLive = await interoperabilityStore.isLive(txParams.sendingChainID, Date.now());
 			if (!isChainLive) {
 				return {
 					status: VerifyStatus.FAIL,
@@ -129,7 +133,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 
 		const partnerValidatorStore = context.getStore(this.moduleID, STORE_PREFIX_CHAIN_VALIDATORS);
 		const partnerValidators = await partnerValidatorStore.getWithSchema<ChainValidators>(
-			partnerChainIDBuffer,
+			txParams.sendingChainID,
 			chainValidatorsSchema,
 		);
 		// If params contains a non-empty activeValidatorsUpdate and non-empty certificate
@@ -156,7 +160,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 
 		const partnerChannelStore = context.getStore(transaction.moduleID, STORE_PREFIX_CHANNEL_DATA);
 		const partnerChannelData = await partnerChannelStore.getWithSchema<ChannelData>(
-			partnerChainIDBuffer,
+			txParams.sendingChainID,
 			channelSchema,
 		);
 		// Section: InboxUpdate Validity
@@ -196,14 +200,13 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 		checkCertificateTimestamp(txParams, decodedCertificate, header);
 
 		// CCM execution
-		const beforeSendContext = createCCMsgBeforeSendContext({
-			feeAddress: context.transaction.senderAddress,
+		const terminateChainContext: TerminateChainContext = {
 			eventQueue: context.eventQueue,
 			getAPIContext: context.getAPIContext,
+			getStore: context.getStore,
 			logger: context.logger,
 			networkIdentifier: context.networkIdentifier,
-			getStore: context.getStore,
-		});
+		};
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
 		let decodedCCMs;
 		try {
@@ -214,7 +217,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 		} catch (err) {
 			await interoperabilityStore.terminateChainInternal(
 				txParams.sendingChainID,
-				beforeSendContext,
+				terminateChainContext,
 			);
 
 			throw err;
@@ -234,7 +237,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 			} else {
 				await interoperabilityStore.terminateChainInternal(
 					txParams.sendingChainID,
-					beforeSendContext,
+					terminateChainContext,
 				);
 
 				return; // Exit CCU processing
@@ -245,7 +248,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 			if (!txParams.sendingChainID.equals(ccm.deserialized.sendingChainID)) {
 				await interoperabilityStore.terminateChainInternal(
 					txParams.sendingChainID,
-					beforeSendContext,
+					terminateChainContext,
 				);
 
 				continue;
@@ -255,7 +258,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 			} catch (error) {
 				await interoperabilityStore.terminateChainInternal(
 					txParams.sendingChainID,
-					beforeSendContext,
+					terminateChainContext,
 				);
 
 				continue;
@@ -283,6 +286,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 						getStore: context.getStore,
 						logger: context.logger,
 						networkIdentifier: context.networkIdentifier,
+						trsSender: context.transaction.senderAddress,
 					},
 					this.ccCommands,
 				);
@@ -300,7 +304,9 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 		});
 	}
 
-	protected getInteroperabilityStore(getStore: StoreCallback): MainchainInteroperabilityStore {
+	protected getInteroperabilityStore(
+		getStore: StoreCallback | ImmutableStoreCallback,
+	): MainchainInteroperabilityStore {
 		return new MainchainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
 	}
 }
