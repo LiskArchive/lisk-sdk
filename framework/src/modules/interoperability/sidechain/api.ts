@@ -21,7 +21,7 @@ import { APIContext } from '../../../state_machine/types';
 export class SidechainInteroperabilityAPI extends BaseAPI {
 	protected readonly interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
 
-	public constructor(moduleID: number, interoperableCCAPIs: Map<number, BaseInteroperableAPI>) {
+	public constructor(moduleID: Buffer, interoperableCCAPIs: Map<number, BaseInteroperableAPI>) {
 		super(moduleID);
 		this.interoperableCCAPIs = interoperableCCAPIs;
 	}
@@ -32,7 +32,7 @@ export class SidechainInteroperabilityAPI extends BaseAPI {
 		await interoperabilityStore.getChainAccount(chainID);
 	}
 
-	public async getChannel(context: APIContext, chainID: number) {
+	public async getChannel(context: APIContext, chainID: Buffer) {
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
 
 		await interoperabilityStore.getChannel(chainID);

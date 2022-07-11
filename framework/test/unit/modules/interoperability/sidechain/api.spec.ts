@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { intToBuffer } from '@liskhq/lisk-cryptography';
 import { SidechainInteroperabilityAPI } from '../../../../../src/modules/interoperability/sidechain/api';
 import { SidechainInteroperabilityStore } from '../../../../../src/modules/interoperability/sidechain/store';
 
 describe('Sidechain API', () => {
-	const moduleID = 1;
-	const chainID = Buffer.alloc(0);
-	const chainIDasNumber = 1;
+	const moduleID = intToBuffer(1, 4);
+	const chainID = intToBuffer(1, 4);
 	const interoperableCCAPIs = new Map();
 	const getStore = jest.fn().mockReturnValue({ getWithSchema: jest.fn() });
 	const apiContext = {
@@ -69,7 +69,7 @@ describe('Sidechain API', () => {
 
 	describe('getChannel', () => {
 		it('should call getInteroperabilityStore', async () => {
-			await sidechainInteroperabilityAPI.getChannel(apiContext, chainIDasNumber);
+			await sidechainInteroperabilityAPI.getChannel(apiContext, chainID);
 
 			expect(sidechainInteroperabilityAPI['getInteroperabilityStore']).toHaveBeenCalledWith(
 				apiContext.getStore,
@@ -77,9 +77,9 @@ describe('Sidechain API', () => {
 		});
 
 		it('should call getChannel', async () => {
-			await sidechainInteroperabilityAPI.getChannel(apiContext, chainIDasNumber);
+			await sidechainInteroperabilityAPI.getChannel(apiContext, chainID);
 
-			expect(sidechainInteroperabilityStore.getChannel).toHaveBeenCalledWith(chainIDasNumber);
+			expect(sidechainInteroperabilityStore.getChannel).toHaveBeenCalledWith(chainID);
 		});
 	});
 
