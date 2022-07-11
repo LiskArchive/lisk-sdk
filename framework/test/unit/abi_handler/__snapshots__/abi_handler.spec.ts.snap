@@ -43,7 +43,7 @@ Object {
     ],
     "ws": Object {
       "host": "127.0.0.1",
-      "port": 7887,
+      "port": 7887, 
     },
   },
   "system": Object {
