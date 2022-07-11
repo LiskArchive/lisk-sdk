@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseInteroperabilityCCCommand } from './base_interoperability_cc_commands';
+import { BaseCCCommand } from './base_cc_command';
 import { BaseInteroperableAPI } from './base_interoperable_api';
 import { BaseInteroperableModule } from './base_interoperable_module';
 import { MODULE_ID_INTEROPERABILITY_BUFFER, MODULE_NAME_INTEROPERABILITY } from './constants';
@@ -20,7 +20,11 @@ import { MODULE_ID_INTEROPERABILITY_BUFFER, MODULE_NAME_INTEROPERABILITY } from 
 export abstract class BaseInteroperabilityModule extends BaseInteroperableModule {
 	public id = MODULE_ID_INTEROPERABILITY_BUFFER; // Common id for mainchain/sidechain interoperability module
 	public name = MODULE_NAME_INTEROPERABILITY; // Common name for mainchain/sidechain interoperability module
-	protected interoperableCCCommands = new Map<number, BaseInteroperabilityCCCommand[]>();
+	protected interoperableCCCommands = new Map<number, BaseCCCommand[]>();
 	protected interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
-	public abstract registerInteroperableModule(): void;
+
+	public registerInteroperableModule(module: BaseInteroperableModule): void {
+		this.interoperableCCAPIs.set(module.id, module.crossChainAPI);
+		this.interoperableCCCommands.set(module.id, module.crossChainCommand);
+	}
 }
