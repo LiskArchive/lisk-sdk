@@ -13,6 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
+import { BaseInteroperableAPI } from '../interoperability/base_interoperable_api';
 import { TokenAPI } from './api';
 import {
 	ADDRESS_LENGTH,
@@ -37,13 +38,14 @@ import {
 	updateAvailableBalanceWithCreate,
 } from './utils';
 
-export class TokenInteroperableAPI {
+export class TokenInteroperableAPI extends BaseInteroperableAPI {
 	private readonly _moduleID: Buffer;
 	private readonly _tokenAPI: TokenAPI;
 
 	private _interopAPI!: InteroperabilityAPI;
 
 	public constructor(moduleID: Buffer, tokenAPI: TokenAPI) {
+		super(moduleID);
 		this._moduleID = moduleID;
 		this._tokenAPI = tokenAPI;
 	}

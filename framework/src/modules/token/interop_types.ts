@@ -17,7 +17,7 @@
 import { Schema } from '@liskhq/lisk-codec';
 import { Logger } from '../../logger';
 import { APIContext, EventQueue } from '../../state_machine';
-import { SubStore } from '../../state_machine/types';
+import { EventQueueAdder, SubStore } from '../../state_machine/types';
 
 export interface ActiveValidator {
 	blsKey: Buffer;
@@ -53,25 +53,28 @@ export interface CCAPIContext {
 	getStore: StoreCallback;
 	logger: Logger;
 	networkIdentifier: Buffer;
-	eventQueue: EventQueue;
-	ccm: CCMsg;
+	eventQueue: EventQueueAdder;
 	feeAddress: Buffer;
 }
 
 export interface BeforeApplyCCMsgAPIContext extends CCAPIContext {
+	ccm: CCMsg;
 	ccu: CCUpdateParams;
 	trsSender: Buffer; // TODO: senderAddress would be more consistent with transaction
 }
 
 export interface BeforeSendCCMsgAPIContext extends CCAPIContext {
 	feeAddress: Buffer;
+	ccm: CCMsg;
 }
 
 export interface BeforeRecoverCCMsgAPIContext extends CCAPIContext {
+	ccm: CCMsg;
 	trsSender: Buffer; // TODO: senderAddress would be more consistent with transaction
 }
 
 export interface RecoverCCMsgAPIContext extends CCAPIContext {
+	ccm: CCMsg;
 	terminatedChainID: Buffer; // TODO: id should be buffer
 	moduleID: Buffer;
 	storePrefix: number;
