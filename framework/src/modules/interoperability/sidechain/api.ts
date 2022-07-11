@@ -12,11 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { APIContext } from '../../../state_machine';
 import { BaseAPI } from '../../base_api';
 import { SidechainInteroperabilityStore } from './store';
-import { StoreCallback } from '../types';
+import { CCMsg, StoreCallback } from '../types';
 import { BaseInteroperableAPI } from '../base_interoperable_api';
-import { APIContext } from '../../../state_machine/types';
 
 export class SidechainInteroperabilityAPI extends BaseAPI {
 	protected readonly interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
@@ -58,5 +58,27 @@ export class SidechainInteroperabilityAPI extends BaseAPI {
 
 	protected getInteroperabilityStore(getStore: StoreCallback): SidechainInteroperabilityStore {
 		return new SidechainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async send(
+		_apiContext: APIContext,
+		_feeAddress: Buffer,
+		_moduleID: number,
+		_crossChainCommandID: number,
+		_receivingChainID: Buffer,
+		_fee: bigint,
+		_status: number,
+		_parameters: Buffer,
+	): Promise<boolean> {
+		throw new Error('Need to be implemented');
+	}
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async error(_apiContext: APIContext, _ccm: CCMsg, _code: number): Promise<void> {
+		throw new Error('Need to be implemented');
+	}
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async terminateChain(_apiContext: APIContext, _chainID: Buffer): Promise<void> {
+		throw new Error('Need to be implemented');
 	}
 }
