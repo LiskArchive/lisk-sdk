@@ -15,7 +15,7 @@
 import * as os from 'os';
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { getRandomBytes } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { BaseModule, TokenModule } from '../../../src';
 import { ABIHandler } from '../../../src/abi_handler/abi_handler';
@@ -209,7 +209,7 @@ describe('abi handler', () => {
 			await expect(
 				abiHandler.verifyAssets({
 					contextID: getRandomBytes(32),
-					assets: [{ data: getRandomBytes(30), moduleID: intToBuffer(2, 4) }],
+					assets: [{ data: getRandomBytes(30), moduleID: 2 }],
 				}),
 			).rejects.toThrow('Context is not initialized or different');
 		});
@@ -221,7 +221,7 @@ describe('abi handler', () => {
 			await expect(
 				abiHandler.verifyAssets({
 					contextID: getRandomBytes(32),
-					assets: [{ data: getRandomBytes(30), moduleID: intToBuffer(2, 4) }],
+					assets: [{ data: getRandomBytes(30), moduleID: 2 }],
 				}),
 			).rejects.toThrow('Context is not initialized or different');
 		});
@@ -233,7 +233,7 @@ describe('abi handler', () => {
 			});
 			const resp = await abiHandler.verifyAssets({
 				contextID,
-				assets: [{ data: getRandomBytes(30), moduleID: intToBuffer(2, 4) }],
+				assets: [{ data: getRandomBytes(30), moduleID: 2 }],
 			});
 			expect(abiHandler['_stateMachine'].verifyAssets).toHaveBeenCalledTimes(1);
 
@@ -246,7 +246,7 @@ describe('abi handler', () => {
 			await expect(
 				abiHandler.beforeTransactionsExecute({
 					contextID: getRandomBytes(32),
-					assets: [{ data: getRandomBytes(30), moduleID: intToBuffer(2, 4) }],
+					assets: [{ data: getRandomBytes(30), moduleID: 2 }],
 					consensus: {
 						currentValidators: [
 							{
@@ -271,7 +271,7 @@ describe('abi handler', () => {
 			await expect(
 				abiHandler.beforeTransactionsExecute({
 					contextID: getRandomBytes(32),
-					assets: [{ data: getRandomBytes(30), moduleID: intToBuffer(2, 4) }],
+					assets: [{ data: getRandomBytes(30), moduleID: 2 }],
 					consensus: {
 						currentValidators: [
 							{
@@ -296,7 +296,7 @@ describe('abi handler', () => {
 			});
 			const resp = await abiHandler.beforeTransactionsExecute({
 				contextID,
-				assets: [{ data: getRandomBytes(30), moduleID: intToBuffer(2, 4) }],
+				assets: [{ data: getRandomBytes(30), moduleID: 2 }],
 				consensus: {
 					currentValidators: [
 						{
@@ -322,7 +322,7 @@ describe('abi handler', () => {
 			await expect(
 				abiHandler.afterTransactionsExecute({
 					contextID: getRandomBytes(32),
-					assets: [{ data: getRandomBytes(30), moduleID: intToBuffer(2, 4) }],
+					assets: [{ data: getRandomBytes(30), moduleID: 2 }],
 					consensus: {
 						currentValidators: [
 							{
@@ -348,7 +348,7 @@ describe('abi handler', () => {
 			await expect(
 				abiHandler.afterTransactionsExecute({
 					contextID: getRandomBytes(32),
-					assets: [{ data: getRandomBytes(30), moduleID: intToBuffer(2, 4) }],
+					assets: [{ data: getRandomBytes(30), moduleID: 2 }],
 					consensus: {
 						currentValidators: [
 							{
@@ -374,7 +374,7 @@ describe('abi handler', () => {
 			});
 			const resp = await abiHandler.afterTransactionsExecute({
 				contextID,
-				assets: [{ data: getRandomBytes(30), moduleID: intToBuffer(2, 4) }],
+				assets: [{ data: getRandomBytes(30), moduleID: 2 }],
 				consensus: {
 					currentValidators: [
 						{
@@ -408,9 +408,9 @@ describe('abi handler', () => {
 				getRandomBytes(100),
 			);
 			const tx = new Transaction({
-				commandID: intToBuffer(2, 4),
+				commandID: 2,
 				fee: BigInt(30),
-				moduleID: intToBuffer(2, 4),
+				moduleID: 2,
 				nonce: BigInt(2),
 				params: getRandomBytes(100),
 				senderPublicKey: getRandomBytes(32),
@@ -439,9 +439,9 @@ describe('abi handler', () => {
 			const key = getRandomBytes(20);
 			await abiHandler['_executionContext']?.stateStore.set(key, getRandomBytes(100));
 			const tx = new Transaction({
-				commandID: intToBuffer(2, 4),
+				commandID: 2,
 				fee: BigInt(30),
-				moduleID: intToBuffer(2, 4),
+				moduleID: 2,
 				nonce: BigInt(2),
 				params: getRandomBytes(100),
 				senderPublicKey: getRandomBytes(32),
@@ -473,9 +473,9 @@ describe('abi handler', () => {
 				getRandomBytes(100),
 			);
 			const tx = new Transaction({
-				commandID: intToBuffer(0, 4),
+				commandID: 0,
 				fee: BigInt(30),
-				moduleID: intToBuffer(2, 4),
+				moduleID: 2,
 				nonce: BigInt(2),
 				params: codec.encode(transferParamsSchema, {}),
 				senderPublicKey: getRandomBytes(32),
@@ -483,7 +483,7 @@ describe('abi handler', () => {
 			});
 			const resp = await abiHandler.executeTransaction({
 				contextID,
-				assets: [{ data: getRandomBytes(30), moduleID: intToBuffer(2, 4) }],
+				assets: [{ data: getRandomBytes(30), moduleID: 2 }],
 				dryRun: false,
 				header: createFakeBlockHeader().toObject(),
 				transaction: tx.toObject(),
@@ -520,9 +520,9 @@ describe('abi handler', () => {
 			const key = getRandomBytes(20);
 			await abiHandler['_executionContext']?.stateStore.set(key, getRandomBytes(100));
 			const tx = new Transaction({
-				commandID: intToBuffer(0, 4),
+				commandID: 0,
 				fee: BigInt(30),
-				moduleID: intToBuffer(2, 4),
+				moduleID: 2,
 				nonce: BigInt(2),
 				params: codec.encode(transferParamsSchema, {}),
 				senderPublicKey: getRandomBytes(32),
@@ -530,7 +530,7 @@ describe('abi handler', () => {
 			});
 			const resp = await abiHandler.executeTransaction({
 				contextID: getRandomBytes(0),
-				assets: [{ data: getRandomBytes(30), moduleID: intToBuffer(2, 4) }],
+				assets: [{ data: getRandomBytes(30), moduleID: 2 }],
 				dryRun: true,
 				header: createFakeBlockHeader().toObject(),
 				transaction: tx.toObject(),
@@ -651,9 +651,7 @@ describe('abi handler', () => {
 			expect(resp.data).toBeInstanceOf(Buffer);
 			const body = JSON.parse(resp.data.toString('utf-8'));
 			expect(body.modules).toHaveLength(2);
-			expect(Buffer.from(body.modules[0].id.data).readInt32BE(0)).toBeLessThan(
-				Buffer.from(body.modules[1].id.data).readInt32BE(0),
-			);
+			expect(body.modules[0].id).toBeLessThan(body.modules[1].id);
 		});
 	});
 
