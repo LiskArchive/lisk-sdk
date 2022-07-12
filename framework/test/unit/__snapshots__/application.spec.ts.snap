@@ -2214,7 +2214,7 @@ Object {
   "rpc": Object {
     "http": Object {
       "host": "127.0.0.1",
-      "port": 8000,
+      "port": 7887,
     },
     "modes": Array [
       "ipc",
@@ -2222,7 +2222,7 @@ Object {
     "ws": Object {
       "host": "127.0.0.1",
       "path": "/ws",
-      "port": 8080,
+      "port": 7887,
     },
   },
   "system": Object {

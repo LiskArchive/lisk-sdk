@@ -13,6 +13,8 @@
  *
  */
 
+import { DEFAULT_HOST, DEFAULT_PORT_P2P, DEFAULT_PORT_RPC } from '../constants';
+
 const moduleConfigSchema = {
 	type: 'object',
 	propertyNames: {
@@ -398,18 +400,18 @@ export const applicationConfigSchema = {
 		rpc: {
 			modes: ['ipc'],
 			ws: {
-				port: 8080,
-				host: '127.0.0.1',
+				port: DEFAULT_PORT_RPC,
+				host: DEFAULT_HOST,
 				path: '/ws',
 			},
 			http: {
-				port: 8000,
-				host: '127.0.0.1',
+				port: DEFAULT_PORT_RPC,
+				host: DEFAULT_HOST,
 			},
 		},
 		network: {
 			seedPeers: [],
-			port: 5000,
+			port: DEFAULT_PORT_P2P,
 		},
 		transactionPool: {
 			maxTransactions: 4096,
