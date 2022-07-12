@@ -34,18 +34,18 @@ import { getConfig } from '../../../helpers/config';
 describe('transaction:sign command', () => {
 	const commands = [
 		{
-			moduleID: intToBuffer(2, 4),
-			commandID: intToBuffer(0, 4),
+			moduleID: intToBuffer(2, 4).toString('hex'),
+			commandID: intToBuffer(0, 4).toString('hex'),
 			schema: tokenTransferParamsSchema,
 		},
 		{
-			moduleID: intToBuffer(12, 4),
-			commandID: intToBuffer(0, 4),
+			moduleID: intToBuffer(12, 4).toString('hex'),
+			commandID: intToBuffer(0, 4).toString('hex'),
 			schema: keysRegisterParamsSchema,
 		},
 		{
-			moduleID: intToBuffer(13, 4),
-			commandID: intToBuffer(1, 4),
+			moduleID: intToBuffer(13, 4).toString('hex'),
+			commandID: intToBuffer(1, 4).toString('hex'),
 			schema: dposVoteParamsSchema,
 		},
 	];
@@ -155,28 +155,28 @@ describe('transaction:sign command', () => {
 			},
 			metadata: [
 				{
-					id: intToBuffer(2, 4),
+					id: intToBuffer(2, 4).toString('hex'),
 					commands: [
 						{
-							id: intToBuffer(0, 4),
+							id: intToBuffer(0, 4).toString('hex'),
 							params: tokenTransferParamsSchema,
 						},
 					],
 				},
 				{
-					id: intToBuffer(12, 4),
+					id: intToBuffer(12, 4).toString('hex'),
 					commands: [
 						{
-							id: intToBuffer(0, 4),
+							id: intToBuffer(0, 4).toString('hex'),
 							params: keysRegisterParamsSchema,
 						},
 					],
 				},
 				{
-					id: intToBuffer(13, 4),
+					id: intToBuffer(13, 4).toString('hex'),
 					commands: [
 						{
-							id: intToBuffer(1, 4),
+							id: intToBuffer(1, 4).toString('hex'),
 							params: dposVoteParamsSchema,
 						},
 					],

@@ -11,14 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import {
-	BaseChannel,
-	GenesisConfig,
-	testing,
-	ApplicationConfigForPlugin,
-	chain,
-	cryptography,
-} from 'lisk-sdk';
+import { GenesisConfig, testing, ApplicationConfigForPlugin, chain, cryptography } from 'lisk-sdk';
 import { when } from 'jest-when';
 import { MonitorPlugin } from '../../src';
 import { configSchema } from '../../src/schemas';
@@ -73,9 +66,7 @@ const validPluginOptions = configSchema.default;
 
 describe('_handlePostBlock', () => {
 	let monitorPlugin: MonitorPlugin;
-	const {
-		mocks: { channelMock },
-	} = testing;
+
 	const header = new chain.BlockHeader({
 		generatorAddress: Buffer.alloc(0),
 		height: 800000,
@@ -108,7 +99,6 @@ describe('_handlePostBlock', () => {
 		};
 		await monitorPlugin.init({
 			config: validPluginOptions,
-			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
 			logger,
 		});

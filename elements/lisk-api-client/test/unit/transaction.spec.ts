@@ -36,16 +36,17 @@ describe('transaction', () => {
 	const encodedTx = Buffer.from(txHex, 'hex');
 
 	const validTransaction = {
-		moduleID: intToBuffer(2, 4),
-		commandID: intToBuffer(0, 4),
-		nonce: BigInt('1'),
-		fee: BigInt('10000000'),
-		senderPublicKey: publicKey1,
+		moduleID: intToBuffer(2, 4).toString('hex'),
+		commandID: intToBuffer(0, 4).toString('hex'),
+		nonce: '1',
+		fee: '10000000',
+		senderPublicKey: publicKey1.toString('hex'),
 		params: {
-			recipientAddress: Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex'),
-			amount: BigInt('4008489300000000'),
+			recipientAddress: '3a971fd02b4a07fc20aad1936d3cb1d263b96e0f',
+			amount: '4008489300000000',
 			data: '',
 		},
+		signatures: [],
 	};
 	const validTransactionJSON = {
 		id: tx.id,
@@ -61,6 +62,20 @@ describe('transaction', () => {
 		},
 	};
 	const txId = Buffer.from(tx.id, 'hex');
+	const txJSON = {
+		...tx,
+		moduleID: tx.moduleID.toString('hex'),
+		commandID: tx.commandID.toString('hex'),
+		nonce: tx.nonce.toString(),
+		fee: tx.fee.toString(),
+		senderPublicKey: tx.senderPublicKey.toString('hex'),
+		signatures: tx.signatures.map(k => k.toString('hex')),
+		params: {
+			...tx.params,
+			amount: tx.params.amount.toString(),
+			recipientAddress: tx.params.recipientAddress.toString('hex'),
+		},
+	};
 
 	beforeEach(() => {
 		channelMock = {
@@ -236,11 +251,11 @@ describe('transaction', () => {
 						includeSenderSignature: true,
 						multisignatureKeys: {
 							mandatoryKeys: [],
-							optionalKeys: [publicKey2],
+							optionalKeys: [publicKey2].map(k => k.toString('hex')),
 						},
 					};
 					const returnedTx = await transaction.create(validTransaction, passphrase1, options);
-					expect(returnedTx.signatures).toHaveLength(2);
+					expect(returnedTx.signatures).toHaveLength(1);
 					expect(returnedTx.signatures).toMatchSnapshot();
 				});
 			});
@@ -277,7 +292,7 @@ describe('transaction', () => {
 						includeSenderSignature: true,
 						multisignatureKeys: {
 							mandatoryKeys: [],
-							optionalKeys: [publicKey2],
+							optionalKeys: [publicKey2].map(k => k.toString('hex')),
 						},
 					};
 					const returnedTx = await transaction.sign(validTransaction, passphrases, options);
@@ -289,7 +304,7 @@ describe('transaction', () => {
 
 		describe('send', () => {
 			it('should invoke txpool_postTransaction', async () => {
-				const { transactionId: trxId } = await transaction.send(tx);
+				const { transactionId: trxId } = await transaction.send(txJSON);
 
 				expect(channelMock.invoke).toHaveBeenCalledTimes(1);
 				expect(channelMock.invoke).toHaveBeenCalledWith('txpool_postTransaction', {
@@ -324,7 +339,7 @@ describe('transaction', () => {
 
 		describe('computeMinFee', () => {
 			it('should return some value', () => {
-				const fee = transaction.computeMinFee(tx);
+				const fee = transaction.computeMinFee(txJSON);
 				expect(fee).toBeDefined();
 			});
 		});

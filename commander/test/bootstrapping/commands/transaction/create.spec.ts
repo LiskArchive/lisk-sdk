@@ -84,19 +84,19 @@ describe('transaction:create command', () => {
 			},
 			metadata: [
 				{
-					id: cryptography.intToBuffer(2, 4),
+					id: cryptography.intToBuffer(2, 4).toString('hex'),
 					commands: [
 						{
-							id: cryptography.intToBuffer(0, 4),
+							id: cryptography.intToBuffer(0, 4).toString('hex'),
 							params: tokenTransferParamsSchema,
 						},
 					],
 				},
 				{
-					id: cryptography.intToBuffer(13, 4),
+					id: cryptography.intToBuffer(13, 4).toString('hex'),
 					commands: [
 						{
-							id: cryptography.intToBuffer(1, 4),
+							id: cryptography.intToBuffer(1, 4).toString('hex'),
 							params: dposVoteParamsSchema,
 						},
 					],
@@ -153,11 +153,11 @@ describe('transaction:create command', () => {
 		});
 	});
 
-	describe('transaction:create 99999 0 100000000', () => {
+	describe('transaction:create 9999 0000 100000000', () => {
 		it('should throw an error when moduleID is not registered.', async () => {
-			await expect(CreateCommandExtended.run(['99999', '0', '100000000'], config)).rejects.toThrow(
-				'ModuleID: 99999 is not registered',
-			);
+			await expect(
+				CreateCommandExtended.run(['9999', '00000000', '100000000'], config),
+			).rejects.toThrow('ModuleID: 0000270f is not registered');
 		});
 	});
 

@@ -63,7 +63,7 @@ export interface RegisteredSchemas {
 }
 
 export interface ModuleMetadata {
-	id: Buffer;
+	id: string;
 	name: string;
 	endpoints: {
 		name: string;
@@ -75,7 +75,7 @@ export interface ModuleMetadata {
 		data: Schema;
 	}[];
 	commands: {
-		id: Buffer;
+		id: string;
 		name: string;
 		params?: Schema;
 	}[];
@@ -98,8 +98,8 @@ export interface GenesisConfig {
 	};
 	readonly minFeePerByte: number;
 	readonly baseFees: {
-		readonly moduleID: Buffer;
-		readonly commandID: Buffer;
+		readonly moduleID: string;
+		readonly commandID: string;
 		readonly baseFee: string;
 	}[];
 }

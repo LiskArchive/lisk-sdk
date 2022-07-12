@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { testing, BaseChannel, GenesisConfig, ApplicationConfigForPlugin } from 'lisk-sdk';
+import { testing, GenesisConfig, ApplicationConfigForPlugin } from 'lisk-sdk';
 import { MonitorPlugin } from '../../src';
 import { configSchema } from '../../src/schemas';
 
@@ -77,7 +77,6 @@ describe('subscribe to event', () => {
 		};
 		await monitorPlugin.init({
 			config: validPluginOptions,
-			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
 			logger: testing.mocks.loggerMock,
 		});
