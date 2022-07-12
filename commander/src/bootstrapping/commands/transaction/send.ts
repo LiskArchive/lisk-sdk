@@ -49,7 +49,7 @@ export abstract class SendCommand extends BaseIPCClientCommand {
 		}
 
 		const { transactionId } = await this._client.invoke<{ transactionId: string }>(
-			'app:postTransaction',
+			'txpool_postTransaction',
 			{ transaction },
 		);
 		this.log(`Transaction with id: '${transactionId}' received by node.`);

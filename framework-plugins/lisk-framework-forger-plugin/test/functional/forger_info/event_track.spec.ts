@@ -74,7 +74,7 @@ describe('Forger Info', () => {
 			});
 			accountNonce += 1;
 
-			await appEnv.ipcClient.invoke('app:postTransaction', {
+			await appEnv.ipcClient.invoke('txpool_postTransaction', {
 				transaction: transaction.getBytes().toString('hex'),
 			});
 			await appEnv.waitNBlocks(1);
@@ -105,7 +105,7 @@ describe('Forger Info', () => {
 				});
 				accountNonce += 1;
 
-				await appEnv.ipcClient.invoke('app:postTransaction', {
+				await appEnv.ipcClient.invoke('txpool_postTransaction', {
 					transaction: transaction1.getBytes().toString('hex'),
 				});
 				await appEnv.waitNBlocks(1);
@@ -141,10 +141,10 @@ describe('Forger Info', () => {
 				});
 				accountNonce += 1;
 
-				await appEnv.ipcClient.invoke('app:postTransaction', {
+				await appEnv.ipcClient.invoke('txpool_postTransaction', {
 					transaction: transaction1.getBytes().toString('hex'),
 				});
-				await appEnv.ipcClient.invoke('app:postTransaction', {
+				await appEnv.ipcClient.invoke('txpool_postTransaction', {
 					transaction: transaction2.getBytes().toString('hex'),
 				});
 				await appEnv.waitNBlocks(1);
@@ -180,10 +180,10 @@ describe('Forger Info', () => {
 				});
 				accountNonce += 1;
 
-				await appEnv.ipcClient.invoke('app:postTransaction', {
+				await appEnv.ipcClient.invoke('txpool_postTransaction', {
 					transaction: transaction1.getBytes().toString('hex'),
 				});
-				await appEnv.ipcClient.invoke('app:postTransaction', {
+				await appEnv.ipcClient.invoke('txpool_postTransaction', {
 					transaction: transaction2.getBytes().toString('hex'),
 				});
 				await appEnv.waitNBlocks(1);
@@ -220,10 +220,10 @@ describe('Forger Info', () => {
 				});
 				accountNonce += 1;
 
-				await appEnv.ipcClient.invoke('app:postTransaction', {
+				await appEnv.ipcClient.invoke('txpool_postTransaction', {
 					transaction: transaction1.getBytes().toString('hex'),
 				});
-				await appEnv.ipcClient.invoke('app:postTransaction', {
+				await appEnv.ipcClient.invoke('txpool_postTransaction', {
 					transaction: transaction2.getBytes().toString('hex'),
 				});
 				await appEnv.waitNBlocks(1);

@@ -59,7 +59,7 @@ describe('Transaction related actions', () => {
 			});
 
 			await expect(
-				app['_channel'].invoke('app_postTransaction', {
+				app['_channel'].invoke('txpool_postTransaction', {
 					transaction: fundingTx.getBytes().toString('hex'),
 				}),
 			).resolves.toEqual({ transactionId: fundingTx.id.toString('hex') });

@@ -13,7 +13,7 @@
  */
 
 import { intToBuffer } from '@liskhq/lisk-cryptography';
-import { BaseChannel, GenesisConfig, testing, chain, ApplicationConfigForPlugin } from 'lisk-sdk';
+import { GenesisConfig, testing, chain, ApplicationConfigForPlugin } from 'lisk-sdk';
 import { when } from 'jest-when';
 
 import { ReportMisbehaviorPlugin } from '../../src';
@@ -130,11 +130,11 @@ describe('Send PoM transaction', () => {
 			},
 			metadata: [
 				{
-					id: intToBuffer(13, 4),
+					id: intToBuffer(13, 4).toString('hex'),
 					name: 'dpos',
 					commands: [
 						{
-							id: intToBuffer(3, 4),
+							id: intToBuffer(3, 4).toString('hex'),
 							name: 'reportDelegateMisbehavior',
 							params: {
 								$id: '/lisk/dpos/pom',
@@ -162,7 +162,6 @@ describe('Send PoM transaction', () => {
 		};
 		await reportMisbehaviorPlugin.init({
 			config: validPluginOptions,
-			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
 			logger: testing.mocks.loggerMock,
 		});
@@ -192,7 +191,7 @@ describe('Send PoM transaction', () => {
 			},
 			metadata: [
 				{
-					id: intToBuffer(13, 4),
+					id: intToBuffer(13, 4).toString('hex'),
 					name: 'dpos',
 					commands: [],
 				},
