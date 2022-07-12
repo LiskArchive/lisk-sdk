@@ -11,7 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { shuffleDelegateList } from '../../../../src/modules/dpos_v2/utils';
+import { defaultConfig } from '../../../../src/modules/dpos_v2/constants';
+import { ModuleConfig } from '../../../../src/modules/dpos_v2/types';
+import { getModuleConfig, shuffleDelegateList } from '../../../../src/modules/dpos_v2/utils';
 import * as delegateShufflingScenario from '../../../fixtures/dpos_delegate_shuffling/uniformly_shuffled_delegate_list.json';
 
 describe('utils', () => {
@@ -34,6 +36,20 @@ describe('utils', () => {
 			expect(shuffledDelegateList.map(b => b.toString('hex'))).toEqual(
 				delegateShufflingScenario.testCases.output.delegateList,
 			);
+		});
+	});
+
+	describe('getModuleConfig', () => {
+		it('converts ModuleConfigJSON to ModuleConfg', () => {
+			const expected: ModuleConfig = {
+				...defaultConfig,
+				minWeightStandby: BigInt(defaultConfig.minWeightStandby),
+				tokenIDDPoS: Buffer.from(defaultConfig.tokenIDDPoS),
+			};
+
+			const actual: ModuleConfig = getModuleConfig(defaultConfig);
+
+			expect(actual).toStrictEqual(expected);
 		});
 	});
 });

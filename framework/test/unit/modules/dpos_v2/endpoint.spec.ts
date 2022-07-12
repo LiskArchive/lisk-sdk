@@ -19,12 +19,14 @@ import {
 	MODULE_ID_DPOS_BUFFER,
 	STORE_PREFIX_DELEGATE,
 	STORE_PREFIX_VOTER,
+	defaultConfig,
 } from '../../../../src/modules/dpos_v2/constants';
 import { DPoSEndpoint } from '../../../../src/modules/dpos_v2/endpoint';
 import { delegateStoreSchema, voterStoreSchema } from '../../../../src/modules/dpos_v2/schemas';
 import { fakeLogger } from '../../../utils/mocks';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
+import { ModuleConfig } from '../../../../src/modules/dpos_v2/types';
 
 describe('DposModuleEndpoint', () => {
 	const logger: Logger = fakeLogger;
@@ -63,8 +65,14 @@ describe('DposModuleEndpoint', () => {
 		consecutiveMissedBlocks: 0,
 	};
 
+	const config: ModuleConfig = {
+		...defaultConfig,
+		minWeightStandby: BigInt(defaultConfig.minWeightStandby),
+		tokenIDDPoS: Buffer.from(defaultConfig.tokenIDDPoS),
+	};
+
 	beforeEach(() => {
-		dposEndpoint = new DPoSEndpoint(MODULE_ID_DPOS_BUFFER);
+		dposEndpoint = new DPoSEndpoint(MODULE_ID_DPOS_BUFFER, config);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		voterSubStore = stateStore.getStore(dposEndpoint['moduleID'], STORE_PREFIX_VOTER);
 		delegateSubStore = stateStore.getStore(dposEndpoint['moduleID'], STORE_PREFIX_DELEGATE);
@@ -191,6 +199,14 @@ describe('DposModuleEndpoint', () => {
 				expect(delegatesDataReturned[1].totalVotesReceived).toBeString();
 				expect(delegatesDataReturned[1].selfVotes).toBeString();
 			});
+		});
+	});
+
+	describe('getConstants', () => {
+		it('should return DPoSModule configuration', async () => {
+			const constants = await dposEndpoint.getConstants();
+
+			expect(constants).toStrictEqual(defaultConfig);
 		});
 	});
 });
