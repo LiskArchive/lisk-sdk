@@ -34,7 +34,7 @@ import {
 	STORE_PREFIX_CHAIN_DATA,
 	STORE_PREFIX_TERMINATED_STATE,
 } from '../../constants';
-import { chainAccountSchema, stateRecoveryInitParams, terminatedStateSchema } from '../../schema';
+import { chainAccountSchema, stateRecoveryInitParams, terminatedStateSchema } from '../../schemas';
 import {
 	ChainAccount,
 	ImmutableStoreCallback,

@@ -52,6 +52,8 @@ import { ABIHandler, EVENT_ENGINE_READY } from './abi_handler/abi_handler';
 import { ABIServer } from './abi_handler/abi_server';
 import { SidechainInteroperabilityModule } from './modules/interoperability/sidechain/module';
 import { MainchainInteroperabilityModule } from './modules/interoperability/mainchain/module';
+import { SidechainInteroperabilityAPI } from './modules/interoperability/sidechain/api';
+import { MainchainInteroperabilityAPI } from './modules/interoperability/mainchain/api';
 
 const MINIMUM_EXTERNAL_MODULE_ID = 1000;
 
@@ -113,6 +115,7 @@ interface DefaultApplication {
 		random: RandomAPI;
 		reward: RewardAPI;
 		dpos: DPoSAPI;
+		interoperability: SidechainInteroperabilityAPI | MainchainInteroperabilityAPI;
 	};
 }
 
@@ -206,6 +209,7 @@ export class Application {
 				dpos: dposModule.api,
 				random: randomModule.api,
 				reward: rewardModule.api,
+				interoperability: interoperabilityModule.api,
 			},
 		};
 	}

@@ -37,11 +37,11 @@ import {
 	COMMAND_ID_MESSAGE_RECOVERY_BUFFER,
 	EMPTY_FEE_ADDRESS,
 } from '../../constants';
-import { ccmSchema, messageRecoveryParamsSchema } from '../../schema';
+import { ccmSchema, messageRecoveryParamsSchema } from '../../schemas';
 import { BaseInteroperableAPI } from '../../base_interoperable_api';
 import { createCCCommandExecuteContext } from '../../context';
 
-export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
+export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand {
 	public id = COMMAND_ID_MESSAGE_RECOVERY_BUFFER;
 	public name = 'messageRecovery';
 	public schema = messageRecoveryParamsSchema;

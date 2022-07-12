@@ -48,7 +48,7 @@ import {
 	channelSchema,
 	sidechainTerminatedCCMParamsSchema,
 	validatorsHashInputSchema,
-} from './schema';
+} from './schemas';
 import { BlockHeader, VerificationResult, VerifyStatus } from '../../state_machine';
 import { Certificate } from '../../engine/consensus/certificate_generation/types';
 import { certificateSchema } from '../../engine/consensus/certificate_generation/schema';

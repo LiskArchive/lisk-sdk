@@ -43,7 +43,7 @@ import {
 	outboxRootSchema,
 	terminatedOutboxSchema,
 	ownChainAccountSchema,
-} from './schema';
+} from './schemas';
 import {
 	ChannelData,
 	CCMsg,

@@ -14,7 +14,7 @@
 
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
 import { CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED_BUFFER } from '../../constants';
-import { channelTerminatedCCMParamsSchema } from '../../schema';
+import { channelTerminatedCCMParamsSchema } from '../../schemas';
 import { CCCommandExecuteContext, StoreCallback } from '../../types';
 import { SidechainInteroperabilityStore } from '../store';
 

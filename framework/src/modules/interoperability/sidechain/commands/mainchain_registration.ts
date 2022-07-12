@@ -44,7 +44,7 @@ import {
 	registrationCCMParamsSchema,
 	registrationSignatureMessageSchema,
 	validatorsSchema,
-} from '../../schema';
+} from '../../schemas';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,

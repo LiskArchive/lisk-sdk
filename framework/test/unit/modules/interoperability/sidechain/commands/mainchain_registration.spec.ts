@@ -51,7 +51,7 @@ import {
 	registrationCCMParamsSchema,
 	registrationSignatureMessageSchema,
 	validatorsSchema,
-} from '../../../../../../src/modules/interoperability/schema';
+} from '../../../../../../src/modules/interoperability/schemas';
 import {
 	ActiveValidators,
 	MainchainRegistrationParams,

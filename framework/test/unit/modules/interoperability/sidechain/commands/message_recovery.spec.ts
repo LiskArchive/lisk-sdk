@@ -18,7 +18,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { when } from 'jest-when';
 import { CCMsg, MessageRecoveryParams } from '../../../../../../src/modules/interoperability/types';
-import { MessageRecoveryCommand } from '../../../../../../src/modules/interoperability/sidechain/commands/message_recovery';
+import { SidechainMessageRecoveryCommand } from '../../../../../../src/modules/interoperability/sidechain/commands/message_recovery';
 import { CommandExecuteContext } from '../../../../../../src';
 import { BaseInteroperableAPI } from '../../../../../../src/modules/interoperability/base_interoperable_api';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
@@ -30,7 +30,7 @@ import {
 import {
 	ccmSchema,
 	messageRecoveryParamsSchema,
-} from '../../../../../../src/modules/interoperability/schema';
+} from '../../../../../../src/modules/interoperability/schemas';
 import { createTransactionContext } from '../../../../../../src/testing';
 import { swapReceivingAndSendingChainIDs } from '../../../../../../src/modules/interoperability/utils';
 import { SidechainInteroperabilityStore } from '../../../../../../src/modules/interoperability/sidechain/store';
@@ -80,7 +80,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 
 	const moduleID = intToBuffer(1, 4);
 
-	let messageRecoveryCommand: MessageRecoveryCommand;
+	let messageRecoveryCommand: SidechainMessageRecoveryCommand;
 	let commandExecuteContext: CommandExecuteContext<MessageRecoveryParams>;
 	let interoperableCCAPIs: Map<number, BaseInteroperableAPI>;
 	let ccCommands: Map<number, BaseCCCommand[]>;
@@ -95,7 +95,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		interoperableCCAPIs = new Map();
 		ccCommands = new Map();
 
-		messageRecoveryCommand = new MessageRecoveryCommand(
+		messageRecoveryCommand = new SidechainMessageRecoveryCommand(
 			MODULE_ID_INTEROPERABILITY_BUFFER,
 			interoperableCCAPIs,
 			ccCommands,

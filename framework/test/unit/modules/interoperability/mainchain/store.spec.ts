@@ -39,7 +39,7 @@ import {
 	chainAccountSchema,
 	channelSchema,
 	terminatedStateSchema,
-} from '../../../../../src/modules/interoperability/schema';
+} from '../../../../../src/modules/interoperability/schemas';
 import {
 	BeforeSendCCMsgAPIContext,
 	CCMForwardContext,

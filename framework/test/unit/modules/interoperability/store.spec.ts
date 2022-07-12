@@ -36,7 +36,7 @@ import {
 	outboxRootSchema,
 	terminatedOutboxSchema,
 	terminatedStateSchema,
-} from '../../../../src/modules/interoperability/schema';
+} from '../../../../src/modules/interoperability/schemas';
 import { getIDAsKeyForStore } from '../../../../src/modules/interoperability/utils';
 import { testing } from '../../../../src';
 import {

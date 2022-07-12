@@ -40,7 +40,7 @@ import {
 	chainAccountSchema,
 	chainValidatorsSchema,
 	channelSchema,
-} from '../../../../../../src/modules/interoperability/schema';
+} from '../../../../../../src/modules/interoperability/schemas';
 import {
 	CCM_STATUS_OK,
 	CHAIN_ACTIVE,

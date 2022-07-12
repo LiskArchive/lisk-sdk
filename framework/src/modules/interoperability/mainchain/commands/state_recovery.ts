@@ -23,7 +23,7 @@ import {
 	COMMAND_ID_STATE_RECOVERY_BUFFER,
 	MODULE_ID_INTEROPERABILITY_BUFFER,
 } from '../../constants';
-import { stateRecoveryParamsSchema, terminatedStateSchema } from '../../schema';
+import { stateRecoveryParamsSchema, terminatedStateSchema } from '../../schemas';
 import { StateRecoveryParams, TerminatedStateAccount, StoreCallback } from '../../types';
 import {
 	CommandExecuteContext,

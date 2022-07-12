@@ -43,7 +43,7 @@ import {
 	registrationCCMParamsSchema,
 	sidechainRegParams,
 	validatorsSchema,
-} from '../../schema';
+} from '../../schemas';
 import { SidechainRegistrationParams, StoreCallback } from '../../types';
 import { computeValidatorsHash, isValidName } from '../../utils';
 import {

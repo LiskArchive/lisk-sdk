@@ -39,7 +39,7 @@ import {
 	chainValidatorsSchema,
 	channelSchema,
 	crossChainUpdateTransactionParams,
-} from '../../schema';
+} from '../../schemas';
 import {
 	CCMsg,
 	ChainAccount,
