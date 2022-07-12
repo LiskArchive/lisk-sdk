@@ -19,7 +19,14 @@ export {
 	blockSchema,
 	signingBlockHeaderSchema,
 } from '@liskhq/lisk-chain';
-export { BaseModule, BaseAPI, BaseCommand, BaseEndpoint, ModuleMetadata } from './modules';
+export {
+	BaseModule,
+	BaseAPI,
+	BaseCommand,
+	BaseEndpoint,
+	ModuleMetadata,
+	ModuleMetadataJSON,
+} from './modules';
 export { Application } from './application';
 export { systemDirs } from './system_dirs';
 export { BasePlugin, PluginInitContext } from './plugins/base_plugin';

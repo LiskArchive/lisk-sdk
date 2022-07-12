@@ -278,20 +278,16 @@ const MainPage: React.FC = () => {
 			const { publicKey, address } = cryptography.getAddressAndPublicKeyFromPassphrase(
 				data.passphrase,
 			);
-			const moduleMeta = getClient().metadata.find(a => a.id.equals(data.moduleID));
+			const moduleMeta = getClient().metadata.find(a => a.id === data.moduleID);
 			if (!moduleMeta) {
 				throw new Error(
-					`ModuleID: ${data.moduleID.readInt32BE(0)} CommandID: ${data.commandID.readInt32BE(
-						0,
-					)} is not registered`,
+					`ModuleID: ${data.moduleID} CommandID: ${data.commandID} is not registered`,
 				);
 			}
-			const commandMeta = moduleMeta.commands.find(cmd => cmd.id.equals(data.commandID));
+			const commandMeta = moduleMeta.commands.find(cmd => cmd.id === data.commandID);
 			if (!commandMeta) {
 				throw new Error(
-					`ModuleID: ${data.moduleID.readInt32BE(0)} CommandID: ${data.commandID.readInt32BE(
-						0,
-					)} is not registered`,
+					`ModuleID: ${data.moduleID} CommandID: ${data.commandID} is not registered`,
 				);
 			}
 			const paramsObject = commandMeta.params
@@ -304,16 +300,18 @@ const MainPage: React.FC = () => {
 				moduleID: data.moduleID,
 				commandID: data.commandID,
 				params: paramsObject,
-				senderPublicKey: publicKey,
-				nonce: BigInt(sender.nonce),
+				senderPublicKey: publicKey.toString('hex'),
+				nonce: sender.nonce,
+				fee: '0',
+				signatures: [],
 			});
 			const transaction = await getClient().transaction.create(
 				{
 					moduleID: data.moduleID,
 					commandID: data.commandID,
 					params: paramsObject,
-					senderPublicKey: publicKey,
-					fee,
+					senderPublicKey: publicKey.toString('hex'),
+					fee: fee.toString(),
 				},
 				data.passphrase,
 			);

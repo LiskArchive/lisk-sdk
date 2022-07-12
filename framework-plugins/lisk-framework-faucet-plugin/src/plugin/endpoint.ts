@@ -106,17 +106,17 @@ export class Endpoint extends BasePluginEndpoint {
 
 	private async _transferFunds(address: string): Promise<void> {
 		const transferTransactionParams = {
-			amount: BigInt(transactions.convertLSKToBeddows(this._config.amount)),
-			recipientAddress: Buffer.from(address, 'hex'),
+			amount: transactions.convertLSKToBeddows(this._config.amount),
+			recipientAddress: address,
 			data: '',
 		};
 
 		const transaction = await this._client.transaction.create(
 			{
-				moduleID: intToBuffer(2, 4),
-				commandID: intToBuffer(0, 4),
-				senderPublicKey: this._state.publicKey as Buffer,
-				fee: BigInt(transactions.convertLSKToBeddows(this._config.fee)), // TODO: The static fee should be replaced by fee estimation calculation
+				moduleID: intToBuffer(2, 4).toString('hex'),
+				commandID: intToBuffer(0, 4).toString('hex'),
+				senderPublicKey: this._state.publicKey?.toString('hex'),
+				fee: transactions.convertLSKToBeddows(this._config.fee), // TODO: The static fee should be replaced by fee estimation calculation
 				params: transferTransactionParams,
 			},
 			this._state.passphrase as string,

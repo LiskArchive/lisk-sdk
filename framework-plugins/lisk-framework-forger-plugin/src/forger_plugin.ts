@@ -88,7 +88,6 @@ export class ForgerPlugin extends BasePlugin {
 	private _forgerPluginDB!: liskDB.Database;
 	private _forgersList!: utils.dataStructures.BufferMap<boolean>;
 	private _transactionFees!: TransactionFees;
-	private _syncingWithNode!: boolean;
 
 	public get nodeModulePath(): string {
 		return __filename;
@@ -115,9 +114,7 @@ export class ForgerPlugin extends BasePlugin {
 		await this._setTransactionFees();
 
 		// Sync the information
-		this._syncingWithNode = true;
 		await this._syncForgerInfo();
-		this._syncingWithNode = false;
 
 		// Listen to new block and delete block events
 		this._subscribeToChannel();
@@ -130,14 +127,14 @@ export class ForgerPlugin extends BasePlugin {
 
 	private async _setForgersList(): Promise<void> {
 		this._forgersList = new utils.dataStructures.BufferMap<boolean>();
-		const forgersList = await this.channel.invoke<Forger[]>('generator_getForgingStatus');
+		const forgersList = await this.apiClient.invoke<Forger[]>('generator_getForgingStatus');
 		for (const { address, forging } of forgersList) {
 			this._forgersList.set(Buffer.from(address, 'hex'), forging);
 		}
 	}
 
 	private async _setTransactionFees(): Promise<void> {
-		const { genesisConfig } = await this.channel.invoke<NodeInfo>('system_getNodeInfo');
+		const { genesisConfig } = await this.apiClient.invoke<NodeInfo>('system_getNodeInfo');
 		this._transactionFees = {
 			minFeePerByte: genesisConfig.minFeePerByte,
 			baseFees: genesisConfig.baseFees,
@@ -162,12 +159,12 @@ export class ForgerPlugin extends BasePlugin {
 	}
 
 	private async _syncForgerInfo(): Promise<void> {
-		const lastBlockBytes = await this.channel.invoke<string>('app_getLastBlock');
+		const lastBlockBytes = await this.apiClient.invoke<string>('app_getLastBlock');
 		const {
 			header: { height: lastBlockHeight },
 		} = Block.fromBytes(Buffer.from(lastBlockBytes, 'hex'));
 		const { syncUptoHeight } = await getForgerSyncInfo(this._forgerPluginDB);
-		const { genesisHeight } = await this.channel.invoke<NodeInfo>('system_getNodeInfo');
+		const { genesisHeight } = await this.apiClient.invoke<NodeInfo>('system_getNodeInfo');
 		const forgerPluginSyncedHeight = syncUptoHeight === 0 ? genesisHeight : syncUptoHeight;
 
 		if (forgerPluginSyncedHeight === lastBlockHeight) {
@@ -193,7 +190,7 @@ export class ForgerPlugin extends BasePlugin {
 					? BLOCKS_BATCH_TO_SYNC
 					: lastBlockHeight - needleHeight);
 
-			const blocks = await this.channel.invoke<chain.BlockJSON[]>(
+			const blocks = await this.apiClient.invoke<chain.BlockJSON[]>(
 				'chain_getBlocksByHeightBetween',
 				{
 					from: needleHeight,
@@ -221,7 +218,7 @@ export class ForgerPlugin extends BasePlugin {
 
 	private _subscribeToChannel(): void {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this.channel.subscribe('chain_newBlock', async (data?: Record<string, unknown>) => {
+		this.apiClient.subscribe('chain_newBlock', async (data?: Record<string, unknown>) => {
 			const { blockHeader } = (data as unknown) as Data;
 			const transactions = await this.apiClient.invoke<TransactionJSON[]>(
 				'chain_getTransactionsByHeight',
@@ -240,7 +237,7 @@ export class ForgerPlugin extends BasePlugin {
 		});
 
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		this.channel.subscribe('chain_deleteBlock', async (data?: Record<string, unknown>) => {
+		this.apiClient.subscribe('chain_deleteBlock', async (data?: Record<string, unknown>) => {
 			const { blockHeader } = (data as unknown) as Data;
 			const transactions = await this.apiClient.invoke<TransactionJSON[]>(
 				'chain_getTransactionsByHeight',
@@ -263,24 +260,13 @@ export class ForgerPlugin extends BasePlugin {
 		header: BlockHeaderJSON,
 		forgerTransactionsInfo: ForgerTransactionsInfo,
 	): Promise<void> {
-		const {
-			forgerAddress,
-			forgerAddressBuffer,
-			forgerAddressBinary,
-			header: { height },
-			transactions,
-		} = forgerTransactionsInfo;
+		const { forgerAddressBuffer, forgerAddressBinary, transactions } = forgerTransactionsInfo;
 		const forgerInfo = await getForgerInfo(this._forgerPluginDB, forgerAddressBinary);
 
 		if (this._forgersList.has(forgerAddressBuffer)) {
 			forgerInfo.totalProducedBlocks += 1;
 			forgerInfo.totalReceivedFees += this._getFee(transactions);
 
-			this.channel.publish('forger:block:created', {
-				forgerAddress,
-				height,
-				timestamp: Date.now(),
-			});
 			await setForgerInfo(this._forgerPluginDB, forgerAddressBinary, { ...forgerInfo });
 		}
 
@@ -306,11 +292,15 @@ export class ForgerPlugin extends BasePlugin {
 	): ForgerReceivedVotes {
 		const forgerReceivedVotes: ForgerReceivedVotes = {};
 
-		const dposModuleMeta = this.apiClient.metadata.find(c => c.id.equals(MODULE_ID_DPOS_BUFFER));
+		const dposModuleMeta = this.apiClient.metadata.find(
+			c => c.id === MODULE_ID_DPOS_BUFFER.toString('hex'),
+		);
 		if (!dposModuleMeta) {
 			throw new Error('DPoS votes command is not registered.');
 		}
-		const voteCommandMeta = dposModuleMeta.commands.find(c => c.id.equals(COMMAND_ID_VOTE_BUFFER));
+		const voteCommandMeta = dposModuleMeta.commands.find(
+			c => c.id === COMMAND_ID_VOTE_BUFFER.toString('hex'),
+		);
 		if (!voteCommandMeta || !voteCommandMeta.params) {
 			throw new Error('DPoS votes command is not registered.');
 		}
@@ -425,11 +415,11 @@ export class ForgerPlugin extends BasePlugin {
 		});
 		const {
 			genesisConfig: { blockTime },
-		} = await this.channel.invoke<NodeInfo>('system_getNodeInfo');
+		} = await this.apiClient.invoke<NodeInfo>('system_getNodeInfo');
 		const missedBlocks = Math.ceil((timestamp - previousBlock.header.timestamp) / blockTime) - 1;
 
 		if (missedBlocks > 0) {
-			const forgersInfo = await this.channel.invoke<
+			const forgersInfo = await this.apiClient.invoke<
 				readonly { address: string; nextForgingTime: number }[]
 			>('generator_getForgers');
 			const forgersRoundLength = forgersInfo.length;
@@ -446,15 +436,6 @@ export class ForgerPlugin extends BasePlugin {
 					missedBlocksByAddress[missedForgerInfo.address] === undefined
 						? 1
 						: (missedBlocksByAddress[missedForgerInfo.address] += 1);
-			}
-
-			// Only emit event if block missed and the plugin is not syncing with the forging node
-			if (!this._syncingWithNode) {
-				this.channel.publish('forger:block:missed', {
-					missedBlocksByAddress,
-					height,
-					timestamp: Date.now(),
-				});
 			}
 		}
 	}

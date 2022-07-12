@@ -538,12 +538,16 @@ export class ABIHandler implements ABI {
 		const modules = this._modules.map(mod => {
 			const meta = mod.metadata();
 			return {
-				id: mod.id,
-				name: mod.name,
 				...meta,
+				id: mod.id.toString('hex'),
+				name: mod.name,
+				commands: meta.commands.map(command => ({
+					...command,
+					id: command.id.toString('hex'),
+				})),
 			};
 		});
-		modules.sort((a, b) => a.id.readInt32BE(0) - b.id.readInt32BE(0));
+		modules.sort((a, b) => a.id.localeCompare(b.id, 'en'));
 		const data = Buffer.from(JSON.stringify({ modules }), 'utf-8');
 		return {
 			data,

@@ -37,7 +37,7 @@ import { applicationConfigSchema } from './schema';
 import { Logger, createLogger } from './logger';
 
 import { DuplicateAppInstanceError } from './errors';
-import { BaseModule, ModuleMetadata } from './modules/base_module';
+import { BaseModule, ModuleMetadataJSON } from './modules/base_module';
 import { getEndpointHandlers, mergeEndpointHandlers } from './endpoint';
 import { ValidatorsAPI, ValidatorsModule } from './modules/validators';
 import { TokenModule, TokenAPI } from './modules/token';
@@ -214,16 +214,20 @@ export class Application {
 		return this._registeredModules;
 	}
 
-	public getMetadata(): (ModuleMetadata & { id: Buffer; name: string })[] {
+	public getMetadata(): ModuleMetadataJSON[] {
 		const modules = this._registeredModules.map(mod => {
 			const meta = mod.metadata();
 			return {
-				id: mod.id,
-				name: mod.name,
 				...meta,
+				id: mod.id.toString('hex'),
+				name: mod.name,
+				commands: meta.commands.map(command => ({
+					...command,
+					id: command.id.toString('hex'),
+				})),
 			};
 		});
-		modules.sort((a, b) => a.id.readInt32BE(0) - b.id.readInt32BE(0));
+		modules.sort((a, b) => a.id.localeCompare(b.id, 'en'));
 
 		return modules;
 	}

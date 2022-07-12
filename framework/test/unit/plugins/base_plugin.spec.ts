@@ -14,7 +14,7 @@
  */
 
 import * as apiClient from '@liskhq/lisk-api-client';
-import { BaseChannel, BasePlugin, GenerationConfig, GenesisConfig } from '../../../src';
+import { BasePlugin, GenerationConfig, GenesisConfig } from '../../../src';
 import * as loggerModule from '../../../src/logger';
 import { getPluginExportPath } from '../../../src/plugins/base_plugin';
 import { fakeLogger } from '../../utils/mocks';
@@ -87,11 +87,6 @@ class MyPlugin extends BasePlugin {
 	}
 }
 
-const channelMock = {
-	invoke: jest.fn(),
-	once: jest.fn().mockImplementation((_eventName, cb) => cb()),
-};
-
 const loggerMock = {
 	debug: jest.fn(),
 	info: jest.fn(),
@@ -121,7 +116,6 @@ describe('base_plugin', () => {
 						genesis: ({} as unknown) as GenesisConfig,
 						generation: ({} as unknown) as GenerationConfig,
 					},
-					channel: (channelMock as unknown) as BaseChannel,
 					logger: fakeLogger,
 					config: {
 						obj: 'valid obj prop',
@@ -142,7 +136,6 @@ describe('base_plugin', () => {
 							genesis: ({} as unknown) as GenesisConfig,
 							generation: ({} as unknown) as GenerationConfig,
 						},
-						channel: (channelMock as unknown) as BaseChannel,
 						logger: fakeLogger,
 						config: {
 							obj: false,

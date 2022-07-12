@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseChannel, GenesisConfig, ApplicationConfigForPlugin, testing } from 'lisk-sdk';
+import { GenesisConfig, ApplicationConfigForPlugin, testing } from 'lisk-sdk';
 import { ReportMisbehaviorPlugin } from '../../src';
 import { configSchema } from '../../src/schemas';
 
@@ -79,7 +79,6 @@ describe('subscribe to event', () => {
 		};
 		await reportMisbehaviorPlugin.init({
 			config: validPluginOptions,
-			channel: ({} as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
 			logger: testing.mocks.loggerMock,
 		});
