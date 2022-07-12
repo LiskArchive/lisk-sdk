@@ -20,10 +20,10 @@ import {
 	CCM_STATUS_OK,
 	CHAIN_ACTIVE,
 	CHAIN_REGISTERED,
-	CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED,
+	CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED_BUFFER,
 	EMPTY_FEE_ADDRESS,
 	LIVENESS_LIMIT,
-	MODULE_ID_INTEROPERABILITY,
+	MODULE_ID_INTEROPERABILITY_BUFFER,
 } from '../constants';
 import { createCCMsgBeforeSendContext } from '../context';
 import { CCMForwardContext, CCMsg, SendInternalContext } from '../types';
@@ -115,8 +115,8 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 			getStore: ccmForwardContext.getStore,
 			logger: ccmForwardContext.logger,
 			networkIdentifier: ccmForwardContext.networkIdentifier,
-			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED,
-			moduleID: MODULE_ID_INTEROPERABILITY,
+			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED_BUFFER,
+			moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
 			fee: BigInt(0),
 			params: getEncodedSidechainTerminatedCCMParam(ccm, receivingChainAccount),
 			receivingChainID: ccm.sendingChainID,

@@ -239,12 +239,6 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 
 		for (const ccm of decodedCCMs) {
 			if (!txParams.sendingChainID.equals(ccm.deserialized.sendingChainID)) {
-<<<<<<< HEAD
-				await interoperabilityStore.terminateChainInternal(
-					txParams.sendingChainID,
-					beforeSendContext,
-				);
-=======
 				await interoperabilityStore.terminateChainInternal(txParams.sendingChainID, {
 					eventQueue: context.eventQueue,
 					getAPIContext: context.getAPIContext,
@@ -252,7 +246,6 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 					logger: context.logger,
 					networkIdentifier: context.networkIdentifier,
 				});
->>>>>>> b10459249b (♻️ Update types in interoperability store and contexts)
 
 				continue;
 			}

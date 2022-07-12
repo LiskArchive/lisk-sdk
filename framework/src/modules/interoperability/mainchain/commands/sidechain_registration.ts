@@ -231,7 +231,6 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
 			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
 			receivingChainID: chainIDBuffer,
-			sendingChainID: MAINCHAIN_ID_BUFFER,
 			fee: BigInt(0),
 			status: CCM_STATUS_OK,
 			params: encodedParams,

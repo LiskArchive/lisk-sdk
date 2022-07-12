@@ -84,10 +84,6 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 			};
 		}
 
-<<<<<<< HEAD
-		const partnerChainIDBuffer = txParams.sendingChainID;
-=======
->>>>>>> b10459249b (♻️ Update types in interoperability store and contexts)
 		const partnerChainStore = getStore(transaction.moduleID, STORE_PREFIX_CHAIN_DATA);
 		const partnerChainAccount = await partnerChainStore.getWithSchema<ChainAccount>(
 			txParams.sendingChainID,

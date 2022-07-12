@@ -57,7 +57,6 @@ export class StateRecoveryInitCommand extends BaseInteroperabilityCommand {
 			getStore,
 			params: { chainID, sidechainChainAccount, bitmap, siblingHashes },
 		} = context;
-		const chainIDBuffer = chainID;
 		const interoperabilityStore = this.getInteroperabilityStore(getStore);
 		const ownChainAccount = await interoperabilityStore.getOwnChainAccount();
 

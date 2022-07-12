@@ -64,8 +64,8 @@ export class SidechainInteroperabilityAPI extends BaseAPI {
 	public async send(
 		_apiContext: APIContext,
 		_feeAddress: Buffer,
-		_moduleID: number,
-		_crossChainCommandID: number,
+		_moduleID: Buffer,
+		_crossChainCommandID: Buffer,
 		_receivingChainID: Buffer,
 		_fee: bigint,
 		_status: number,

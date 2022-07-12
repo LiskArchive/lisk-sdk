@@ -14,7 +14,7 @@
  */
 
 import { BlockAssets, BlockHeader, StateStore, Transaction } from '@liskhq/lisk-chain';
-import { getRandomBytes, hash, intToBuffer } from '@liskhq/lisk-cryptography';
+import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { ModuleEndpointContext } from '../types';
 import { Logger } from '../logger';

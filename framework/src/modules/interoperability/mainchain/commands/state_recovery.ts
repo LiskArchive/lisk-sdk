@@ -44,7 +44,6 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 		const {
 			params: { chainID, storeEntries, siblingHashes },
 		} = context;
-		const chainIDBuffer = chainID;
 		const errors = validator.validate(this.schema, context.params);
 
 		if (errors.length > 0) {
@@ -117,10 +116,6 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 			transaction,
 			params: { chainID, storeEntries, moduleID, siblingHashes },
 		} = context;
-<<<<<<< HEAD
-		const chainIDBuffer = chainID;
-=======
->>>>>>> b10459249b (♻️ Update types in interoperability store and contexts)
 		const storeQueries = [];
 
 		// The recover function corresponding to the module ID applies the recovery logic

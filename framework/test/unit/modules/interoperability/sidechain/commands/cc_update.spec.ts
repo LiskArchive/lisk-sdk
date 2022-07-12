@@ -78,7 +78,6 @@ describe('CrossChainUpdateCommand', () => {
 
 	const defaultNewCertificateThreshold = BigInt(20);
 	const defaultSendingChainID = intToBuffer(20, 4);
-	const defaultSendingChainIDBuffer = defaultSendingChainID;
 	const defaultCCMs: CCMsg[] = [
 		{
 			crossChainCommandID: intToBuffer(1, 4),

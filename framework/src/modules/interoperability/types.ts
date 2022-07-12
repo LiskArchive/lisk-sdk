@@ -16,12 +16,12 @@ import { Logger } from '../../logger';
 import { APIContext, EventQueue } from '../../state_machine';
 import { ImmutableAPIContext, ImmutableSubStore, SubStore } from '../../state_machine/types';
 
-export type StoreCallback = (moduleID: number, storePrefix: number) => SubStore;
-export type ImmutableStoreCallback = (moduleID: number, storePrefix: number) => ImmutableSubStore;
+export type StoreCallback = (moduleID: Buffer, storePrefix: number) => SubStore;
+export type ImmutableStoreCallback = (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
 export interface CCMsg {
 	readonly nonce: bigint;
-	readonly moduleID: number;
-	readonly crossChainCommandID: number;
+	readonly moduleID: Buffer;
+	readonly crossChainCommandID: Buffer;
 	readonly sendingChainID: Buffer;
 	readonly receivingChainID: Buffer;
 	readonly fee: bigint;
@@ -266,7 +266,7 @@ export interface StoreEntry {
 
 export interface StateRecoveryParams {
 	chainID: Buffer;
-	moduleID: number;
+	moduleID: Buffer;
 	storeEntries: StoreEntry[];
 	siblingHashes: Buffer[];
 }

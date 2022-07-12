@@ -68,11 +68,11 @@ import { BaseCCCommand } from './base_cc_command';
 
 export abstract class BaseInteroperabilityStore {
 	public readonly getStore: StoreCallback | ImmutableStoreCallback;
-	protected readonly moduleID: number;
+	protected readonly moduleID: Buffer;
 	protected readonly interoperableModuleAPIs = new Map<number, BaseInteroperableAPI>();
 
 	public constructor(
-		moduleID: number,
+		moduleID: Buffer,
 		getStore: StoreCallback | ImmutableStoreCallback,
 		interoperableModuleAPIs: Map<number, BaseInteroperableAPI>,
 	) {

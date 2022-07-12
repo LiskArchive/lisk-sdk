@@ -20,8 +20,8 @@ import { MODULE_ID_INTEROPERABILITY_BUFFER, MODULE_NAME_INTEROPERABILITY } from 
 export abstract class BaseInteroperabilityModule extends BaseInteroperableModule {
 	public id = MODULE_ID_INTEROPERABILITY_BUFFER; // Common id for mainchain/sidechain interoperability module
 	public name = MODULE_NAME_INTEROPERABILITY; // Common name for mainchain/sidechain interoperability module
-	protected interoperableCCCommands = new Map<number, BaseCCCommand[]>();
-	protected interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
+	protected interoperableCCCommands = new Map<Buffer, BaseCCCommand[]>();
+	protected interoperableCCAPIs = new Map<Buffer, BaseInteroperableAPI>();
 
 	public registerInteroperableModule(module: BaseInteroperableModule): void {
 		this.interoperableCCAPIs.set(module.id, module.crossChainAPI);
