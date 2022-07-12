@@ -12,51 +12,48 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { APIContext } from '../../../state_machine';
+import { APIContext, ImmutableAPIContext } from '../../../state_machine';
 import { BaseAPI } from '../../base_api';
 import { MainchainInteroperabilityStore } from './store';
-import { CCMsg, StoreCallback } from '../types';
+import { CCMsg, ImmutableStoreCallback, StoreCallback } from '../types';
 import { BaseInteroperableAPI } from '../base_interoperable_api';
 
 export class MainchainInteroperabilityAPI extends BaseAPI {
-	protected readonly interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
+	protected readonly interoperableCCAPIs = new Map<Buffer, BaseInteroperableAPI>();
 
-	public constructor(moduleID: Buffer, interoperableCCAPIs: Map<number, BaseInteroperableAPI>) {
+	public constructor(moduleID: Buffer, interoperableCCAPIs: Map<Buffer, BaseInteroperableAPI>) {
 		super(moduleID);
 		this.interoperableCCAPIs = interoperableCCAPIs;
 	}
 
-	public async getChainAccount(context: APIContext, chainID: Buffer) {
-		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
-		await interoperabilityStore.getChainAccount(chainID);
-	}
-
-	public async getChannel(context: APIContext, chainID: Buffer) {
+	public async getChainAccount(context: ImmutableAPIContext, chainID: Buffer) {
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
 
-		await interoperabilityStore.getChannel(chainID);
+		return interoperabilityStore.getChainAccount(chainID);
 	}
 
-	public async getOwnChainAccount(context: APIContext) {
+	public async getChannel(context: ImmutableAPIContext, chainID: Buffer) {
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
 
-		await interoperabilityStore.getOwnChainAccount();
+		return interoperabilityStore.getChannel(chainID);
 	}
 
-	public async getTerminatedStateAccount(context: APIContext, chainID: Buffer) {
+	public async getOwnChainAccount(context: ImmutableAPIContext) {
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
 
-		await interoperabilityStore.getTerminatedStateAccount(chainID);
+		return interoperabilityStore.getOwnChainAccount();
 	}
 
-	public async getTerminatedOutboxAccount(context: APIContext, chainID: Buffer) {
+	public async getTerminatedStateAccount(context: ImmutableAPIContext, chainID: Buffer) {
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
 
-		await interoperabilityStore.getTerminatedOutboxAccount(chainID);
+		return interoperabilityStore.getTerminatedStateAccount(chainID);
 	}
 
-	protected getInteroperabilityStore(getStore: StoreCallback): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
+	public async getTerminatedOutboxAccount(context: ImmutableAPIContext, chainID: Buffer) {
+		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+
+		return interoperabilityStore.getTerminatedOutboxAccount(chainID);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -79,5 +76,11 @@ export class MainchainInteroperabilityAPI extends BaseAPI {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async terminateChain(_apiContext: APIContext, _chainID: Buffer): Promise<void> {
 		throw new Error('Need to be implemented');
+	}
+
+	protected getInteroperabilityStore(
+		getStore: StoreCallback | ImmutableStoreCallback,
+	): MainchainInteroperabilityStore {
+		return new MainchainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
 	}
 }

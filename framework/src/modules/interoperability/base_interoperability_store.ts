@@ -69,12 +69,12 @@ import { BaseCCCommand } from './base_cc_command';
 export abstract class BaseInteroperabilityStore {
 	public readonly getStore: StoreCallback | ImmutableStoreCallback;
 	protected readonly moduleID: Buffer;
-	protected readonly interoperableModuleAPIs = new Map<number, BaseInteroperableAPI>();
+	protected readonly interoperableModuleAPIs = new Map<Buffer, BaseInteroperableAPI>();
 
 	public constructor(
 		moduleID: Buffer,
 		getStore: StoreCallback | ImmutableStoreCallback,
-		interoperableModuleAPIs: Map<number, BaseInteroperableAPI>,
+		interoperableModuleAPIs: Map<Buffer, BaseInteroperableAPI>,
 	) {
 		this.moduleID = moduleID;
 		this.getStore = getStore;
@@ -395,7 +395,7 @@ export abstract class BaseInteroperabilityStore {
 
 	public async apply(
 		ccmApplyContext: CCMApplyContext,
-		interoperableCCCommands: Map<number, BaseCCCommand[]>,
+		interoperableCCCommands: Map<Buffer, BaseCCCommand[]>,
 	): Promise<void> {
 		const { ccm, eventQueue, logger, networkIdentifier, getAPIContext, getStore } = ccmApplyContext;
 		const isTerminated = await this.hasTerminatedStateAccount(ccm.sendingChainID);
@@ -431,7 +431,7 @@ export abstract class BaseInteroperabilityStore {
 			return;
 		}
 
-		const ccCommands = interoperableCCCommands.get(ccm.moduleID.readInt32BE(0));
+		const ccCommands = interoperableCCCommands.get(ccm.moduleID);
 
 		// When moduleID is not supported
 		if (!ccCommands) {

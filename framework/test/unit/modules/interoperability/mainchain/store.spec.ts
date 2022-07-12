@@ -47,7 +47,10 @@ import {
 	CCUpdateParams,
 	SendInternalContext,
 } from '../../../../../src/modules/interoperability/types';
-import { MODULE_ID_TOKEN } from '../../../../../src/modules/token/constants';
+import {
+	MODULE_ID_TOKEN,
+	MODULE_ID_TOKEN_BUFFER,
+} from '../../../../../src/modules/token/constants';
 import { EventQueue } from '../../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { APIContext, SubStore } from '../../../../../src/state_machine/types';
@@ -514,7 +517,7 @@ describe('Mainchain interoperability store', () => {
 		});
 
 		it('should throw when tokenCCAPI is not present', async () => {
-			mainchainInteroperabilityStore['interoperableModuleAPIs'].delete(MODULE_ID_TOKEN);
+			mainchainInteroperabilityStore['interoperableModuleAPIs'].delete(MODULE_ID_TOKEN_BUFFER);
 			await expect(mainchainInteroperabilityStore.forward(context)).rejects.toThrow(
 				'TokenCCAPI does not exist',
 			);

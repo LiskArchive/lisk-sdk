@@ -18,9 +18,9 @@ import { BaseInteroperableAPI } from './base_interoperable_api';
 import { StoreCallback } from './types';
 
 export abstract class BaseInteroperabilityCCCommand extends BaseCCCommand {
-	protected readonly interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
+	protected readonly interoperableCCAPIs = new Map<Buffer, BaseInteroperableAPI>();
 
-	public constructor(moduleID: Buffer, interoperableCCAPIs: Map<number, BaseInteroperableAPI>) {
+	public constructor(moduleID: Buffer, interoperableCCAPIs: Map<Buffer, BaseInteroperableAPI>) {
 		super(moduleID);
 		this.interoperableCCAPIs = interoperableCCAPIs;
 	}

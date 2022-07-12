@@ -53,11 +53,12 @@ import {
 } from './schemas';
 import { TokenAPI } from './api';
 import { TokenEndpoint } from './endpoint';
-import { GenesisTokenStore, InteroperabilityAPI, MinBalance, ModuleConfig } from './types';
+import { GenesisTokenStore, MinBalance, ModuleConfig } from './types';
 import { getUserStoreKey, splitTokenID } from './utils';
 import { CCTransferCommand } from './commands/cc_transfer';
 import { BaseInteroperableModule } from '../interoperability/base_interoperable_module';
 import { TokenInteroperableAPI } from './cc_api';
+import { MainchainInteroperabilityAPI, SidechainInteroperabilityAPI } from '../interoperability';
 
 export class TokenModule extends BaseInteroperableModule {
 	public name = 'token';
@@ -73,7 +74,9 @@ export class TokenModule extends BaseInteroperableModule {
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [this._transferCommand, this._ccTransferCommand];
 
-	public addDependencies(interoperabilityAPI: InteroperabilityAPI) {
+	public addDependencies(
+		interoperabilityAPI: MainchainInteroperabilityAPI | SidechainInteroperabilityAPI,
+	) {
 		this.api.addDependencies(interoperabilityAPI);
 	}
 
