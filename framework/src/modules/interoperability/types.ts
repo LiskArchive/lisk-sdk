@@ -189,7 +189,7 @@ export interface CCCommandExecuteContext {
 	logger: Logger;
 	networkIdentifier: Buffer;
 	eventQueue: EventQueue;
-	ccm?: CCMsg;
+	ccm: CCMsg;
 	getAPIContext: () => APIContext;
 	getStore: StoreCallback;
 	feeAddress: Buffer;

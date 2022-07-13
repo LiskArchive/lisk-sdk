@@ -14,6 +14,12 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { BaseInteroperableAPI } from '../interoperability/base_interoperable_api';
+import {
+	BeforeApplyCCMsgAPIContext,
+	BeforeRecoverCCMsgAPIContext,
+	BeforeSendCCMsgAPIContext,
+	RecoverCCMsgAPIContext,
+} from '../interoperability/types';
 import { TokenAPI } from './api';
 import {
 	ADDRESS_LENGTH,
@@ -22,12 +28,7 @@ import {
 	STORE_PREFIX_ESCROW,
 	STORE_PREFIX_USER,
 } from './constants';
-import {
-	BeforeApplyCCMsgAPIContext,
-	BeforeRecoverCCMsgAPIContext,
-	BeforeSendCCMsgAPIContext,
-	RecoverCCMsgAPIContext,
-} from './interop_types';
+
 import { EscrowStoreData, escrowStoreSchema, UserStoreData, userStoreSchema } from './schemas';
 import { InteroperabilityAPI } from './types';
 import {
