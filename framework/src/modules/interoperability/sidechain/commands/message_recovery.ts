@@ -145,7 +145,7 @@ export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand
 				continue;
 			}
 
-			const ccCommands = this.ccCommands.get(newCcm.moduleID);
+			const ccCommands = this.ccCommands.get(newCcm.moduleID.readInt32BE(0));
 
 			if (!ccCommands) {
 				continue;

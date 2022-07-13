@@ -13,7 +13,7 @@
  */
 
 import { NotFoundError } from '@liskhq/lisk-chain';
-import { MODULE_ID_TOKEN_BUFFER } from '../../token/constants';
+import { MODULE_ID_TOKEN } from '../../token/constants';
 import { BaseInteroperabilityStore } from '../base_interoperability_store';
 import {
 	CCM_STATUS_CHANNEL_UNAVAILABLE,
@@ -60,9 +60,7 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 			getStore,
 		} = ccmForwardContext;
 		const apiContext = getAPIContext();
-		const tokenCCAPI = this.interoperableModuleAPIs.get(MODULE_ID_TOKEN_BUFFER) as
-			| TokenCCAPI
-			| undefined;
+		const tokenCCAPI = this.interoperableModuleAPIs.get(MODULE_ID_TOKEN) as TokenCCAPI | undefined;
 		const beforeCCMSendContext = createCCMsgBeforeSendContext({
 			ccm,
 			eventQueue,

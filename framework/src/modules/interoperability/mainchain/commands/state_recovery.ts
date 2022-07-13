@@ -119,7 +119,7 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 		const storeQueries = [];
 
 		// The recover function corresponding to the module ID applies the recovery logic
-		const moduleAPI = this.interoperableCCAPIs.get(moduleID);
+		const moduleAPI = this.interoperableCCAPIs.get(moduleID.readInt32BE(0));
 		if (!moduleAPI || !moduleAPI.recover) {
 			throw new Error('Recovery not available for module');
 		}

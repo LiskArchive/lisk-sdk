@@ -82,8 +82,8 @@ describe('Sidechain MessageRecoveryCommand', () => {
 
 	let messageRecoveryCommand: SidechainMessageRecoveryCommand;
 	let commandExecuteContext: CommandExecuteContext<MessageRecoveryParams>;
-	let interoperableCCAPIs: Map<Buffer, BaseInteroperableAPI>;
-	let ccCommands: Map<Buffer, BaseCCCommand[]>;
+	let interoperableCCAPIs: Map<number, BaseInteroperableAPI>;
+	let ccCommands: Map<number, BaseCCCommand[]>;
 	let transaction: Transaction;
 	let transactionParams: MessageRecoveryParams;
 	let encodedTransactionParams: Buffer;
@@ -152,8 +152,8 @@ describe('Sidechain MessageRecoveryCommand', () => {
 
 		// Set an example ccCommand for the message recovery command
 		for (const ccm of ccms) {
-			const previousCCCommands = ccCommands.get(ccm.moduleID) ?? [];
-			ccCommands.set(ccm.moduleID, ([
+			const previousCCCommands = ccCommands.get(ccm.moduleID.readInt32BE(0)) ?? [];
+			ccCommands.set(ccm.moduleID.readInt32BE(0), ([
 				...previousCCCommands,
 				{
 					moduleID: ccm.moduleID,
@@ -193,7 +193,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		expect.assertions(ccmsWithSwappedChainIds.length);
 
 		for (const ccm of ccmsWithSwappedChainIds) {
-			const commands = ccCommands.get(ccm.moduleID) as BaseCCCommand[];
+			const commands = ccCommands.get(ccm.moduleID.readInt32BE(0)) as BaseCCCommand[];
 			const command = commands.find(cmd => cmd.ID.equals(ccm.crossChainCommandID)) as BaseCCCommand;
 			expect(command.execute).toHaveBeenCalledWith(
 				expect.objectContaining({
@@ -218,8 +218,8 @@ describe('Sidechain MessageRecoveryCommand', () => {
 
 		ccms.push(newCcm);
 
-		const previousCCCommands = ccCommands.get(newCcm.moduleID) ?? [];
-		ccCommands.set(newCcm.moduleID, ([
+		const previousCCCommands = ccCommands.get(newCcm.moduleID.readInt32BE(0)) ?? [];
+		ccCommands.set(newCcm.moduleID.readInt32BE(0), ([
 			...previousCCCommands,
 			{
 				moduleID: newCcm.moduleID,
@@ -244,7 +244,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		// Assert
 		expect.assertions(ccmsWithSwappedChainIds.length);
 		for (const ccm of ccmsWithSwappedChainIds) {
-			const commands = ccCommands.get(ccm.moduleID) as BaseCCCommand[];
+			const commands = ccCommands.get(ccm.moduleID.readInt32BE(0)) as BaseCCCommand[];
 			const command = commands.find(cmd => cmd.ID.equals(ccm.crossChainCommandID)) as BaseCCCommand;
 			if (ccm.sendingChainID.equals(transactionParams.chainID)) {
 				expect(command.execute).toHaveBeenCalledWith(
@@ -267,7 +267,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 			moduleID,
 		} as unknown) as BaseInteroperableAPI;
 
-		interoperableCCAPIs.set(moduleID, api);
+		interoperableCCAPIs.set(moduleID.readInt32BE(0), api);
 
 		// Assert
 		await expect(messageRecoveryCommand.execute(commandExecuteContext)).rejects.toThrow(
@@ -332,7 +332,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 
 	it("should skip CCM's proccessing when there is no crossChainCommand associated with a module to execute", async () => {
 		// Arrange & Assign
-		ccCommands.set(moduleID, ([
+		ccCommands.set(moduleID.readInt32BE(0), ([
 			{
 				moduleID,
 				ID: intToBuffer(3000, 4),

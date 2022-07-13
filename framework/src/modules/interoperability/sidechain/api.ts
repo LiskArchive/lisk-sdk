@@ -19,9 +19,9 @@ import { CCMsg, ImmutableStoreCallback, StoreCallback } from '../types';
 import { BaseInteroperableAPI } from '../base_interoperable_api';
 
 export class SidechainInteroperabilityAPI extends BaseAPI {
-	protected readonly interoperableCCAPIs = new Map<Buffer, BaseInteroperableAPI>();
+	protected readonly interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
 
-	public constructor(moduleID: Buffer, interoperableCCAPIs: Map<Buffer, BaseInteroperableAPI>) {
+	public constructor(moduleID: Buffer, interoperableCCAPIs: Map<number, BaseInteroperableAPI>) {
 		super(moduleID);
 		this.interoperableCCAPIs = interoperableCCAPIs;
 	}
