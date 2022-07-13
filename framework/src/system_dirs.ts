@@ -28,3 +28,14 @@ export const systemDirs = (appLabel: string, rootPath: string) => {
 		plugins: resolve(join(rootPathWithoutTilde, appLabel, 'plugins')),
 	};
 };
+
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export const systemDirsFromDataPath = (dataPath: string) => ({
+	dataPath,
+	data: resolve(join(dataPath, 'data')),
+	tmp: resolve(join(dataPath, 'tmp')),
+	logs: resolve(join(dataPath, 'logs')),
+	sockets: resolve(join(dataPath, 'tmp', 'sockets')),
+	pids: resolve(join(dataPath, 'tmp', 'pids')),
+	plugins: resolve(join(dataPath, 'plugins')),
+});

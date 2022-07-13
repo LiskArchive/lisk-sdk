@@ -25,22 +25,38 @@ export class HTTPServer {
 	public server!: HTTP.Server;
 	private readonly _port: number;
 	private readonly _host?: string;
+	private readonly _path: string;
+	private readonly _ignorePaths: string[];
 	private _logger!: Logger;
 
-	public constructor(options: { port: number; host?: string }) {
+	public constructor(options: {
+		port: number;
+		host?: string;
+		path?: string;
+		ignorePaths?: string[];
+	}) {
 		this._host = options.host;
 		this._port = options.port;
+		this._path = options.path ?? '/rpc';
+		this._ignorePaths = options.ignorePaths ?? [];
 	}
 
 	public start(logger: Logger, httpRequestListener: HTTPRequestListener): HTTP.Server {
 		this._logger = logger;
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this.server = HTTP.createServer(async (req, res) => {
+			if (this._ignorePaths.some(v => v === req.url)) {
+				return undefined;
+			}
 			const headers = {
 				'Access-Control-Allow-Origin': '*',
 				'Access-Control-Allow-Methods': ALLOWED_METHODS.join(','),
 				'Content-Type': 'application/json',
 			};
+			if (req.url !== this._path) {
+				res.writeHead(404, headers);
+				return res.end(`${req.url ?? ''} not found.`);
+			}
 
 			if (ALLOWED_METHODS.includes(req.method as string)) {
 				res.writeHead(200, headers);
@@ -57,11 +73,9 @@ export class HTTPServer {
 			return res.end(`${req.method as string} is not allowed for the request.`);
 		});
 
-		this.server.listen(this._port, this._host, () => {
-			this._logger.info(`RPC HTTP Server is listening at port ${this._port}`);
+		this.server.on('error', err => {
+			this._logger.error({ err }, 'Error on HTTP server');
 		});
-
-		this.server.on('error', this._logger.error);
 
 		return this.server;
 	}
@@ -70,5 +84,13 @@ export class HTTPServer {
 		if (this.server) {
 			this.server.close();
 		}
+	}
+
+	public listen(): void {
+		this.server.listen(this._port, this._host, () => {
+			this._logger.info(
+				`RPC HTTP Server starting at ${this._host ?? ''}:${this._port}${this._path}`,
+			);
+		});
 	}
 }

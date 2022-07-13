@@ -130,8 +130,9 @@ export abstract class BasePlugin<T = Record<string, unknown>> {
 		}
 		this._appConfig = context.appConfig;
 
-		if (this._appConfig.rpc.modes.includes('ipc') && this._appConfig.rpc.ipc?.path !== undefined) {
-			this._apiClient = await createIPCClient(this._appConfig.rpc.ipc?.path);
+		if (this._appConfig.rpc.modes.includes('ipc')) {
+			const dirs = systemDirs(this.appConfig.label, this.appConfig.rootPath);
+			this._apiClient = await createIPCClient(dirs.sockets);
 		}
 	}
 

@@ -93,19 +93,9 @@ type RecursivePartial<T> = {
 };
 
 export interface RPCConfig {
-	modes: (typeof RPC_MODES.IPC | typeof RPC_MODES.WS)[];
-	ws?: {
-		port: number;
-		path: string;
-		host: string;
-	};
-	ipc?: {
-		path: string;
-	};
-	http?: {
-		port: number;
-		host: string;
-	};
+	modes: (typeof RPC_MODES.IPC | typeof RPC_MODES.WS | typeof RPC_MODES.HTTP)[];
+	port: number;
+	host: string;
 }
 
 export interface Generator {
