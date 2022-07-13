@@ -16,18 +16,20 @@ jest.mock('../../../../src/controller/bus');
 
 /* eslint-disable import/first  */
 
-import { InMemoryDatabase, StateDB } from '@liskhq/lisk-db';
 import { InMemoryChannel, BaseChannel } from '../../../../src/controller/channels';
 import { Bus } from '../../../../src/controller/bus';
 import { Event } from '../../../../src/controller/event';
 import { fakeLogger } from '../../../utils/mocks';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 
 describe('InMemoryChannel Channel', () => {
 	// Arrange
 	const params = {
 		namespace: 'sample',
 		logger: fakeLogger,
-		db: (new InMemoryDatabase() as unknown) as StateDB,
+		db: {
+			newReadWriter: jest.fn(),
+		} as never,
 		events: ['event1', 'event2'],
 		endpoints: {
 			action1: jest.fn(),
@@ -179,6 +181,24 @@ describe('InMemoryChannel Channel', () => {
 
 			// Assert
 			expect(params.endpoints.action1).toHaveBeenCalled();
+		});
+
+		it('should execute the endpoint with PrefixedStateReadWriter', async () => {
+			// Arrange
+			const actionFullName = `${inMemoryChannel.namespace}_${actionName}`;
+
+			// Act
+			await inMemoryChannel.invoke(actionFullName);
+
+			// Assert
+			expect(
+				params.endpoints.action1.mock.calls[0][0].getStore(Buffer.from([0, 0, 0, 0]), 0),
+			).toBeInstanceOf(PrefixedStateReadWriter);
+			expect(
+				params.endpoints.action1.mock.calls[0][0]
+					.getImmutableAPIContext()
+					.getStore(Buffer.from([0, 0, 0, 0]), 0),
+			).toBeInstanceOf(PrefixedStateReadWriter);
 		});
 
 		it('should call bus.invoke if the action module is different to moduleName', async () => {
