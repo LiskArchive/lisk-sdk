@@ -13,6 +13,7 @@
  */
 
 import { APIContext, ImmutableAPIContext } from '../../state_machine/types';
+import { JSONObject } from '../../types';
 
 export type TokenIDDPoS = Buffer;
 
@@ -32,21 +33,7 @@ export interface ModuleConfig {
 	tokenIDDPoS: TokenIDDPoS;
 }
 
-export interface ModuleConfigJSON {
-	factorSelfVotes: number;
-	maxLengthName: number;
-	maxNumberSentVotes: number;
-	maxNumberPendingUnlocks: number;
-	failSafeMissedBlocks: number;
-	failSafeInactiveWindow: number;
-	punishmentWindow: number;
-	roundLength: number;
-	bftThreshold: number;
-	minWeightStandby: string;
-	numberActiveDelegates: number;
-	numberStandbyDelegates: number;
-	tokenIDDPoS: string;
-}
+export type ModuleConfigJSON = JSONObject<ModuleConfig>;
 
 export interface RandomAPI {
 	getRandomBytes(
