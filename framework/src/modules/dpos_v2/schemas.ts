@@ -656,65 +656,65 @@ export const getAllDelegatesResponseSchema = {
 	},
 };
 
-export const getConstantsResponseSchema = {
-	$id: 'modules/dpos/endpoint/getConstants',
-	type: 'object',
-	required: [
-		'factorSelfVotes',
-		'maxLengthName',
-		'maxNumberSentVotes',
-		'maxNumberPendingUnlocks',
-		'failSafeMissedBlocks',
-		'failSafeInactiveWindow',
-		'punishmentWindow',
-		'roundLength',
-		'bftThreshold',
-		'minWeightStandby',
-		'numberActiveDelegates',
-		'numberStandbyDelegates',
-		'tokenIDDPoS',
-	],
-	properties: {
-		factorSelfVotes: {
-			type: 'integer',
-		},
-		maxLengthName: {
-			type: 'integer',
-		},
-		maxNumberSentVotes: {
-			type: 'integer',
-		},
-		maxNumberPendingUnlocks: {
-			type: 'integer',
-		},
-		failSafeMissedBlocks: {
-			type: 'integer',
-		},
-		failSafeInactiveWindow: {
-			type: 'integer',
-		},
-		punishmentWindow: {
-			type: 'integer',
-		},
-		roundLength: {
-			type: 'integer',
-		},
-		bftThreshold: {
-			type: 'integer',
-		},
-		minWeightStandby: {
-			type: 'string',
-			format: 'uint64',
-		},
-		numberActiveDelegates: {
-			type: 'integer',
-		},
-		numberStandbyDelegates: {
-			type: 'integer',
-		},
-		tokenIDPoS: {
-			type: 'string',
-			format: 'uint64',
-		},
-	},
-};
+// export const getConstantsResponseSchema = {
+// 	$id: 'modules/dpos/endpoint/getConstants',
+// 	type: 'object',
+// 	required: [
+// 		'factorSelfVotes',
+// 		'maxLengthName',
+// 		'maxNumberSentVotes',
+// 		'maxNumberPendingUnlocks',
+// 		'failSafeMissedBlocks',
+// 		'failSafeInactiveWindow',
+// 		'punishmentWindow',
+// 		'roundLength',
+// 		'bftThreshold',
+// 		'minWeightStandby',
+// 		'numberActiveDelegates',
+// 		'numberStandbyDelegates',
+// 		'tokenIDDPoS',
+// 	],
+// 	properties: {
+// 		factorSelfVotes: {
+// 			type: 'integer',
+// 		},
+// 		maxLengthName: {
+// 			type: 'integer',
+// 		},
+// 		maxNumberSentVotes: {
+// 			type: 'integer',
+// 		},
+// 		maxNumberPendingUnlocks: {
+// 			type: 'integer',
+// 		},
+// 		failSafeMissedBlocks: {
+// 			type: 'integer',
+// 		},
+// 		failSafeInactiveWindow: {
+// 			type: 'integer',
+// 		},
+// 		punishmentWindow: {
+// 			type: 'integer',
+// 		},
+// 		roundLength: {
+// 			type: 'integer',
+// 		},
+// 		bftThreshold: {
+// 			type: 'integer',
+// 		},
+// 		minWeightStandby: {
+// 			type: 'string',
+// 			format: 'uint64',
+// 		},
+// 		numberActiveDelegates: {
+// 			type: 'integer',
+// 		},
+// 		numberStandbyDelegates: {
+// 			type: 'integer',
+// 		},
+// 		tokenIDPoS: {
+// 			type: 'string',
+// 			format: 'uint64',
+// 		},
+// 	},
+// };

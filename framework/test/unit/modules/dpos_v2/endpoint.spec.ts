@@ -68,11 +68,12 @@ describe('DposModuleEndpoint', () => {
 	const config: ModuleConfig = {
 		...defaultConfig,
 		minWeightStandby: BigInt(defaultConfig.minWeightStandby),
-		tokenIDDPoS: Buffer.from(defaultConfig.tokenIDDPoS),
+		tokenIDDPoS: Buffer.from(defaultConfig.tokenIDDPoS, 'hex'),
 	};
 
 	beforeEach(() => {
-		dposEndpoint = new DPoSEndpoint(MODULE_ID_DPOS_BUFFER, config);
+		dposEndpoint = new DPoSEndpoint(MODULE_ID_DPOS_BUFFER);
+		dposEndpoint.init(config);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		voterSubStore = stateStore.getStore(dposEndpoint['moduleID'], STORE_PREFIX_VOTER);
 		delegateSubStore = stateStore.getStore(dposEndpoint['moduleID'], STORE_PREFIX_DELEGATE);

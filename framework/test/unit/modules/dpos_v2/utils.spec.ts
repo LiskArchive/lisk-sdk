@@ -44,7 +44,7 @@ describe('utils', () => {
 			const expected: ModuleConfig = {
 				...defaultConfig,
 				minWeightStandby: BigInt(defaultConfig.minWeightStandby),
-				tokenIDDPoS: Buffer.from(defaultConfig.tokenIDDPoS),
+				tokenIDDPoS: Buffer.from(defaultConfig.tokenIDDPoS, 'hex'),
 			};
 
 			const actual: ModuleConfig = getModuleConfig(defaultConfig);

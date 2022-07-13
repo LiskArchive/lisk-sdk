@@ -27,12 +27,10 @@ import {
 } from './types';
 
 export class DPoSEndpoint extends BaseEndpoint {
-	private readonly _moduleConfig: ModuleConfig;
+	private _moduleConfig!: ModuleConfig;
 
-	public constructor(moduleID: Buffer, moduleConfig: ModuleConfig) {
-		super(moduleID);
-
-		this._moduleConfig = moduleConfig;
+	public init(moduleConfig: ModuleConfig) {
+		this._moduleConfig = moduleConfig
 	}
 
 	public async getVoter(ctx: ModuleEndpointContext): Promise<VoterDataJSON> {
@@ -93,22 +91,20 @@ export class DPoSEndpoint extends BaseEndpoint {
 	}
 
 	public async getConstants(): Promise<ModuleConfigJSON> {
-		return new Promise<ModuleConfigJSON>(resolve => {
-			resolve({
-				factorSelfVotes: this._moduleConfig.factorSelfVotes,
-				maxLengthName: this._moduleConfig.maxLengthName,
-				maxNumberSentVotes: this._moduleConfig.maxNumberSentVotes,
-				maxNumberPendingUnlocks: this._moduleConfig.maxNumberPendingUnlocks,
-				failSafeMissedBlocks: this._moduleConfig.failSafeMissedBlocks,
-				failSafeInactiveWindow: this._moduleConfig.failSafeInactiveWindow,
-				punishmentWindow: this._moduleConfig.punishmentWindow,
-				roundLength: this._moduleConfig.roundLength,
-				bftThreshold: this._moduleConfig.bftThreshold,
-				minWeightStandby: this._moduleConfig.minWeightStandby.toString(),
-				numberActiveDelegates: this._moduleConfig.numberActiveDelegates,
-				numberStandbyDelegates: this._moduleConfig.numberStandbyDelegates,
-				tokenIDDPoS: this._moduleConfig.tokenIDDPoS.toString(),
-			});
-		});
+		return {
+			factorSelfVotes: this._moduleConfig.factorSelfVotes,
+			maxLengthName: this._moduleConfig.maxLengthName,
+			maxNumberSentVotes: this._moduleConfig.maxNumberSentVotes,
+			maxNumberPendingUnlocks: this._moduleConfig.maxNumberPendingUnlocks,
+			failSafeMissedBlocks: this._moduleConfig.failSafeMissedBlocks,
+			failSafeInactiveWindow: this._moduleConfig.failSafeInactiveWindow,
+			punishmentWindow: this._moduleConfig.punishmentWindow,
+			roundLength: this._moduleConfig.roundLength,
+			bftThreshold: this._moduleConfig.bftThreshold,
+			minWeightStandby: this._moduleConfig.minWeightStandby.toString(),
+			numberActiveDelegates: this._moduleConfig.numberActiveDelegates,
+			numberStandbyDelegates: this._moduleConfig.numberStandbyDelegates,
+			tokenIDDPoS: this._moduleConfig.tokenIDDPoS.toString('hex'),
+		};
 	}
 }

@@ -67,6 +67,7 @@ import {
 	GenesisStore,
 	VoterData,
 	ModuleConfigJSON,
+	ModuleConfig,
 } from './types';
 import { Rounds } from './rounds';
 import {
@@ -85,8 +86,7 @@ export class DPoSModule extends BaseModule {
 	public name = 'dpos';
 	public api = new DPoSAPI(this.id);
 	public configSchema = configSchema;
-	public _moduleConfig = getModuleConfig(defaultConfig);
-	public endpoint = new DPoSEndpoint(this.id, this._moduleConfig);
+	public endpoint = new DPoSEndpoint(this.id);
 
 	private readonly _delegateRegistrationCommand = new DelegateRegistrationCommand(this.id);
 	private readonly _reportDelegateMisbehaviorCommand = new ReportDelegateMisbehaviorCommand(
@@ -108,6 +108,7 @@ export class DPoSModule extends BaseModule {
 	private _randomAPI!: RandomAPI;
 	private _validatorsAPI!: ValidatorsAPI;
 	private _tokenAPI!: TokenAPI;
+	private _moduleConfig!: ModuleConfig;
 
 	public addDependencies(randomAPI: RandomAPI, validatorsAPI: ValidatorsAPI, tokenAPI: TokenAPI) {
 		this._randomAPI = randomAPI;
@@ -174,7 +175,9 @@ export class DPoSModule extends BaseModule {
 			throw new LiskValidationError(errors);
 		}
 
-		objects.mergeDeep(this._moduleConfig, getModuleConfig(config));
+		this._moduleConfig = getModuleConfig(config);
+
+		this.endpoint.init(this._moduleConfig);
 
 		this._reportDelegateMisbehaviorCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
 		this._unlockCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
