@@ -60,16 +60,9 @@ describe('Controller Class', () => {
 		warn: jest.fn(),
 		level: jest.fn(),
 	};
-	const rpcConfig = {
-		modes: ['ipc'],
-		ws: { port: 8080, path: '/ws', host: '127.0.0.1' },
-		ipc: {
-			path: '/my/ipc/path',
-		},
-	};
+
 	const config = {
 		rootPath: '/user/.lisk',
-		rpc: rpcConfig,
 	};
 	const childProcessMock = {
 		send: jest.fn(),
@@ -89,12 +82,10 @@ describe('Controller Class', () => {
 	const configController = {
 		dataPath: '/user/.lisk/#LABEL',
 		dirs: systemDirs,
-		rpc: rpcConfig,
 	};
 	const appConfig = {
 		rootPath: '/user/.lisk',
 		label: '#LABEL',
-		rpc: rpcConfig,
 	} as ApplicationConfigForPlugin;
 	const pluginConfigs = {};
 
