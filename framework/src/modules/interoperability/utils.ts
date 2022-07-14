@@ -82,7 +82,7 @@ export const validateFormat = (ccm: CCMsg) => {
 export const getCCMSize = (ccm: CCMsg) => {
 	const serializedCCM = codec.encode(ccmSchema, ccm);
 
-	return serializedCCM.byteLength;
+	return BigInt(serializedCCM.byteLength);
 };
 
 export const updateActiveValidators = (

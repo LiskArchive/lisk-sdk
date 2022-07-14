@@ -30,7 +30,7 @@ import {
 } from '../../types';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { MainchainInteroperabilityStore } from '../store';
-import { verifyMessageRecovery, swapReceivingAndSendingChainIDs } from '../../utils';
+import { verifyMessageRecovery, swapReceivingAndSendingChainIDs, getCCMSize } from '../../utils';
 import {
 	CCM_STATUS_RECOVERED,
 	CHAIN_ACTIVE,
@@ -156,6 +156,7 @@ export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand
 
 				const ccCommandExecuteContext = createCCCommandExecuteContext({
 					ccm: newCcm,
+					ccmSize: getCCMSize(ccm),
 					eventQueue: context.eventQueue,
 					feeAddress: EMPTY_FEE_ADDRESS,
 					getAPIContext,

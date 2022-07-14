@@ -496,6 +496,7 @@ export abstract class BaseInteroperabilityStore {
 
 		const ccCommandExecuteContext = createCCCommandExecuteContext({
 			ccm,
+			ccmSize: getCCMSize(ccm),
 			eventQueue,
 			logger,
 			networkIdentifier,

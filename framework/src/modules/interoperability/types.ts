@@ -123,6 +123,7 @@ export interface CCMApplyContext {
 	ccm: CCMsg;
 	ccu: CCUpdateParams;
 	trsSender: Buffer;
+	ccmSize: bigint;
 }
 
 export interface CCMForwardContext {
@@ -190,6 +191,7 @@ export interface CCCommandExecuteContext {
 	networkIdentifier: Buffer;
 	eventQueue: EventQueue;
 	ccm: CCMsg;
+	ccmSize: bigint;
 	getAPIContext: () => APIContext;
 	getStore: StoreCallback;
 	feeAddress: Buffer;

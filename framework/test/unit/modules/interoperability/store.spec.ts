@@ -37,7 +37,7 @@ import {
 	terminatedOutboxSchema,
 	terminatedStateSchema,
 } from '../../../../src/modules/interoperability/schemas';
-import { getIDAsKeyForStore } from '../../../../src/modules/interoperability/utils';
+import { getCCMSize, getIDAsKeyForStore } from '../../../../src/modules/interoperability/utils';
 import { testing } from '../../../../src';
 import {
 	CCMApplyContext,
@@ -442,6 +442,7 @@ describe('Base interoperability store', () => {
 		const ccmApplyContext: CCMApplyContext = {
 			ccm,
 			ccu,
+			ccmSize: getCCMSize(ccm),
 			eventQueue: beforeSendCCMContext.eventQueue,
 			getAPIContext: beforeSendCCMContext.getAPIContext,
 			getStore: beforeSendCCMContext.getStore,

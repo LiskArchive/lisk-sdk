@@ -30,7 +30,7 @@ import {
 } from '../../types';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { SidechainInteroperabilityStore } from '../store';
-import { verifyMessageRecovery, swapReceivingAndSendingChainIDs } from '../../utils';
+import { verifyMessageRecovery, swapReceivingAndSendingChainIDs, getCCMSize } from '../../utils';
 import {
 	CCM_STATUS_RECOVERED,
 	COMMAND_ID_MESSAGE_RECOVERY_BUFFER,
@@ -159,6 +159,7 @@ export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand
 
 			const ccCommandExecuteContext = createCCCommandExecuteContext({
 				ccm: newCcm,
+				ccmSize: getCCMSize(ccm),
 				eventQueue: context.eventQueue,
 				feeAddress: EMPTY_FEE_ADDRESS,
 				getAPIContext,

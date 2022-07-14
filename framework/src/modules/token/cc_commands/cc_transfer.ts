@@ -15,7 +15,6 @@ import { codec } from '@liskhq/lisk-codec';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { BaseCCCommand } from '../../interoperability/base_cc_command';
 import { CCCommandExecuteContext } from '../../interoperability/types';
-import { getCCMSize } from '../../interoperability/utils';
 import { TokenAPI } from '../api';
 import {
 	CCM_STATUS_MIN_BALANCE_NOT_REACHED,
@@ -93,7 +92,7 @@ export class CCTransferCommand extends BaseCCCommand {
 			}
 		} catch (error) {
 			ctx.logger.debug({ err: error as Error }, 'Error verifying the params.');
-			if (ccm.status === CCM_STATUS_OK && ccm.fee >= MIN_RETURN_FEE * BigInt(getCCMSize(ctx.ccm))) {
+			if (ccm.status === CCM_STATUS_OK && ccm.fee >= MIN_RETURN_FEE * ctx.ccmSize) {
 				await this._interopAPI.error(apiContext, ccm, CCM_STATUS_PROTOCOL_VIOLATION);
 			}
 			await this._interopAPI.terminateChain(apiContext, ccm.sendingChainID);
@@ -103,7 +102,7 @@ export class CCTransferCommand extends BaseCCCommand {
 
 		if (
 			!tokenSupported(this._supportedTokenIDs, params.tokenID) &&
-			ccm.fee >= BigInt(getCCMSize(ctx.ccm)) * MIN_RETURN_FEE &&
+			ccm.fee >= ctx.ccmSize * MIN_RETURN_FEE &&
 			ccm.status === CCM_STATUS_OK
 		) {
 			await this._interopAPI.error(apiContext, ccm, CCM_STATUS_TOKEN_NOT_SUPPORTED);
@@ -121,10 +120,7 @@ export class CCTransferCommand extends BaseCCCommand {
 		if (!recipientExist) {
 			const minBalance = this._minBalances.find(mb => mb.tokenID.equals(canonicalTokenID))?.amount;
 			if (!minBalance || minBalance > params.amount) {
-				if (
-					ccm.fee >= MIN_RETURN_FEE * BigInt(getCCMSize(ctx.ccm)) &&
-					ccm.status === CCM_STATUS_OK
-				) {
+				if (ccm.fee >= MIN_RETURN_FEE * ctx.ccmSize && ccm.status === CCM_STATUS_OK) {
 					await this._interopAPI.error(apiContext, ccm, CCM_STATUS_MIN_BALANCE_NOT_REACHED);
 				}
 				return;

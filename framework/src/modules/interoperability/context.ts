@@ -22,7 +22,7 @@ import {
 } from './types';
 
 export const createCCCommandExecuteContext = (
-	params: CCAPIContext & { ccm: CCMsg },
+	params: CCAPIContext & { ccm: CCMsg; ccmSize: bigint },
 ): CCCommandExecuteContext => ({
 	logger: params.logger,
 	networkIdentifier: params.networkIdentifier,
@@ -31,6 +31,7 @@ export const createCCCommandExecuteContext = (
 	getStore: params.getStore,
 	ccm: params.ccm,
 	feeAddress: params.feeAddress,
+	ccmSize: params.ccmSize,
 });
 
 export const createCCMsgBeforeApplyContext = (

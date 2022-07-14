@@ -104,7 +104,7 @@ describe('CrossChain Forward command', () => {
 			{ tokenID: defaultTokenIDAlias, amount: BigInt(MIN_BALANCE) },
 			{ tokenID: defaultForeignTokenID, amount: BigInt(MIN_BALANCE) },
 		];
-		tokenAPI.addDependencies(interopAPI);
+		tokenAPI.addDependencies(interopAPI as never);
 		tokenInteropAPI.addDependencies(interopAPI);
 		tokenAPI.init({
 			minBalances,

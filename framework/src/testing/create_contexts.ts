@@ -45,6 +45,7 @@ import {
 	RecoverCCMsgAPIContext,
 } from '../modules/interoperability/types';
 import { getIDAsKeyForStore } from './utils';
+import { getCCMSize } from '../modules/interoperability/utils';
 
 export const createGenesisBlockContext = (params: {
 	header?: BlockHeader;
@@ -318,7 +319,13 @@ export const createExecuteCCMsgAPIContext = (params: {
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
 	eventQueue?: EventQueue;
-}): CCCommandExecuteContext => createCCAPIContext(params);
+}): CCCommandExecuteContext => {
+	const context = createCCAPIContext(params);
+	return {
+		...context,
+		ccmSize: getCCMSize(context.ccm),
+	};
+};
 
 export const createBeforeSendCCMsgAPIContext = (params: {
 	ccm?: CCMsg;
