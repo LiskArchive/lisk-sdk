@@ -110,7 +110,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 						);
 						const result = await this.apiClient.invoke<{
 							transactionId?: string;
-						}>('app_postTransaction', {
+						}>('txpool_postTransaction', {
 							transaction: encodedTransaction,
 						});
 
@@ -128,11 +128,15 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 		decodedBlockHeader: chain.BlockHeader,
 	): Promise<string> {
 		// ModuleID:13 (DPoS), CommandID:3 (PoMCommand)
-		const dposMeta = this.apiClient.metadata.find(m => m.id.readInt32BE(0) === 13);
+		const dposMeta = this.apiClient.metadata.find(
+			m => m.id === Buffer.from([0, 0, 0, 13]).toString('hex'),
+		);
 		if (!dposMeta) {
 			throw new Error('DPoS module is not registered in the application.');
 		}
-		const pomParamsInfo = dposMeta.commands.find(m => m.id.readInt32BE(0) === 3);
+		const pomParamsInfo = dposMeta.commands.find(
+			m => m.id === Buffer.from([0, 0, 0, 3]).toString('hex'),
+		);
 		if (!pomParamsInfo || !pomParamsInfo.params) {
 			throw new Error('PoM params schema is not registered in the application.');
 		}
@@ -156,8 +160,8 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 		const encodedParams = codec.encode(pomParamsInfo.params, pomTransactionParams);
 
 		const tx = new Transaction({
-			moduleID: dposMeta.id,
-			commandID: pomParamsInfo.id,
+			moduleID: Buffer.from(dposMeta.id, 'hex'),
+			commandID: Buffer.from(pomParamsInfo.id, 'hex'),
 			nonce: BigInt(authAccount.nonce),
 			senderPublicKey:
 				this._state.publicKey ?? getAddressAndPublicKeyFromPassphrase(passphrase).publicKey,

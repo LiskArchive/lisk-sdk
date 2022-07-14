@@ -19,7 +19,7 @@ import {
 	Application,
 	blockHeaderSchema,
 	blockSchema,
-	ModuleMetadata,
+	ModuleMetadataJSON,
 	PartialApplicationConfig,
 	RegisteredSchema,
 	transactionSchema,
@@ -27,6 +27,7 @@ import {
 import * as transactions from '@liskhq/lisk-transactions';
 
 import { blockAssetSchema, eventSchema } from '@liskhq/lisk-chain';
+import { codec } from '@liskhq/lisk-codec';
 import { flagsWithParser } from '../../../utils/flags';
 import { getPassphraseFromPrompt } from '../../../utils/reader';
 import {
@@ -65,7 +66,7 @@ interface SignFlags {
 const signTransaction = async (
 	flags: SignFlags,
 	registeredSchema: RegisteredSchema,
-	metadata: ModuleMetadata[],
+	metadata: ModuleMetadataJSON[],
 	transactionHexStr: string,
 	networkIdentifier: string | undefined,
 	keys: Keys,
@@ -74,16 +75,27 @@ const signTransaction = async (
 	// eslint-disable-next-line @typescript-eslint/ban-types
 	const paramsSchema = getParamsSchema(
 		metadata,
-		transactionObject.moduleID as Buffer,
-		transactionObject.commandID as Buffer,
-	) as object;
+		transactionObject.moduleID,
+		transactionObject.commandID,
+	);
 	const networkIdentifierBuffer = Buffer.from(networkIdentifier as string, 'hex');
 	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
+
+	const txObject = codec.fromJSON(registeredSchema.transaction, {
+		...transactionObject,
+		params: '',
+	});
+	const paramsObject = paramsSchema ? codec.fromJSON(paramsSchema, transactionObject.params) : {};
+
+	const decodedTx = {
+		...txObject,
+		params: paramsObject,
+	};
 
 	// sign from multi sig account offline using input keys
 	if (!flags['include-sender'] && !flags['sender-public-key']) {
 		return transactions.signTransaction(
-			transactionObject,
+			decodedTx,
 			networkIdentifierBuffer,
 			passphrase,
 			paramsSchema,
@@ -91,7 +103,7 @@ const signTransaction = async (
 	}
 
 	return transactions.signMultiSignatureTransaction(
-		transactionObject,
+		decodedTx,
 		networkIdentifierBuffer,
 		passphrase,
 		keys,
@@ -103,7 +115,7 @@ const signTransaction = async (
 const signTransactionOffline = async (
 	flags: SignFlags,
 	registeredSchema: RegisteredSchema,
-	metadata: ModuleMetadata[],
+	metadata: ModuleMetadataJSON[],
 	transactionHexStr: string,
 ): Promise<Record<string, unknown>> => {
 	let signedTransaction: Record<string, unknown>;
@@ -147,7 +159,7 @@ const signTransactionOnline = async (
 	flags: SignFlags,
 	client: apiClient.APIClient,
 	registeredSchema: RegisteredSchema,
-	metadata: ModuleMetadata[],
+	metadata: ModuleMetadataJSON[],
 	transactionHexStr: string,
 ) => {
 	// Sign non multi-sig transaction
@@ -169,13 +181,13 @@ const signTransactionOnline = async (
 	});
 	let authAccount: AuthAccount;
 	if (account.mandatoryKeys.length === 0 && account.optionalKeys.length === 0) {
-		authAccount = transactionObject.params as AuthAccount;
+		authAccount = (transactionObject.params as unknown) as AuthAccount;
 	} else {
 		authAccount = account;
 	}
 	const keys = {
-		mandatoryKeys: authAccount.mandatoryKeys.map(k => Buffer.from(k, 'hex')),
-		optionalKeys: authAccount.optionalKeys.map(k => Buffer.from(k, 'hex')),
+		mandatoryKeys: authAccount.mandatoryKeys,
+		optionalKeys: authAccount.optionalKeys,
 	};
 
 	signedTransaction = await client.transaction.sign(transactionObject, [passphrase], {
@@ -229,7 +241,7 @@ export abstract class SignCommand extends Command {
 
 	protected _client: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
 	protected _schema!: RegisteredSchema;
-	protected _metadata!: ModuleMetadata[];
+	protected _metadata!: ModuleMetadataJSON[];
 	protected _dataPath!: string;
 
 	async run(): Promise<void> {

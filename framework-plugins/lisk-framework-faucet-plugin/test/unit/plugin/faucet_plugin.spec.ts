@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ApplicationConfigForPlugin, BaseChannel, GenesisConfig, testing } from 'lisk-sdk';
+import { ApplicationConfigForPlugin, GenesisConfig, testing } from 'lisk-sdk';
 import { FaucetPlugin } from '../../../src/plugin';
 
 const appConfigForPlugin: ApplicationConfigForPlugin = {
@@ -23,16 +23,9 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 	},
 	logger: { consoleLogLevel: 'info', fileLogLevel: 'none', logFileName: 'plugin-FaucetPlugin.log' },
 	rpc: {
-		modes: ['ipc'],
-		ws: {
-			port: 8080,
-			host: '127.0.0.1',
-			path: '/ws',
-		},
-		http: {
-			port: 8000,
-			host: '127.0.0.1',
-		},
+		modes: [],
+		port: 8080,
+		host: '127.0.0.1',
 	},
 	genesis: {} as GenesisConfig,
 	generation: {
@@ -64,11 +57,6 @@ const validOptions = {
 		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1',
 };
 
-const channelMock = {
-	invoke: jest.fn(),
-	once: jest.fn().mockImplementation((_eventName, cb) => cb()),
-};
-
 describe('FaucetPlugin', () => {
 	describe('configSchema', () => {
 		it('should return valid config schema with default options', () => {
@@ -87,7 +75,6 @@ describe('FaucetPlugin', () => {
 			};
 			await plugin.init({
 				config: validOptions,
-				channel: (channelMock as unknown) as BaseChannel,
 				appConfig: appConfigForPlugin,
 				logger,
 			});
@@ -104,7 +91,6 @@ describe('FaucetPlugin', () => {
 			await expect(
 				plugin.init({
 					config: { captchaSitekey: '123', captchaSecretkey: '123' },
-					channel: (channelMock as unknown) as BaseChannel,
 					appConfig: appConfigForPlugin,
 					logger,
 				}),
@@ -121,7 +107,6 @@ describe('FaucetPlugin', () => {
 			};
 			await plugin.init({
 				config: { ...validOptions, tokenPrefix: 'myToken' },
-				channel: (channelMock as unknown) as BaseChannel,
 				appConfig: appConfigForPlugin,
 				logger,
 			});
@@ -144,7 +129,6 @@ describe('FaucetPlugin', () => {
 			};
 			await plugin.init({
 				config: options,
-				channel: (channelMock as unknown) as BaseChannel,
 				appConfig: appConfigForPlugin,
 				logger,
 			});

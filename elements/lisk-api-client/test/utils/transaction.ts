@@ -39,7 +39,11 @@ export const nodeInfo: NodeInfo = {
 		bftThreshold: 68,
 		minFeePerByte: 1000,
 		baseFees: [
-			{ moduleID: intToBuffer(5, 4), commandID: intToBuffer(0, 4), baseFee: '1000000000' },
+			{
+				moduleID: intToBuffer(5, 4).toString('hex'),
+				commandID: intToBuffer(0, 4).toString('hex'),
+				baseFee: '1000000000',
+			},
 		],
 		rewards: {
 			milestones: ['500000000', '400000000', '300000000', '200000000', '100000000'],
@@ -68,14 +72,14 @@ export const schema = {
 
 export const metadata: ModuleMetadata[] = [
 	{
-		id: intToBuffer(2, 4),
+		id: intToBuffer(2, 4).toString('hex'),
 		name: 'token',
 		events: [],
 		assets: [],
 		endpoints: [],
 		commands: [
 			{
-				id: intToBuffer(0, 4),
+				id: intToBuffer(0, 4).toString('hex'),
 				name: 'transfer',
 				params: {
 					$id: '/lisk/transferParams',
@@ -91,14 +95,14 @@ export const metadata: ModuleMetadata[] = [
 		],
 	},
 	{
-		id: intToBuffer(4, 4),
+		id: intToBuffer(4, 4).toString('hex'),
 		name: 'keys',
 		events: [],
 		assets: [],
 		endpoints: [],
 		commands: [
 			{
-				id: intToBuffer(0, 4),
+				id: intToBuffer(0, 4).toString('hex'),
 				name: 'registerMultisignatureGroup',
 				params: {
 					$id: '/lisk/keys/register',
@@ -126,14 +130,14 @@ export const metadata: ModuleMetadata[] = [
 		],
 	},
 	{
-		id: intToBuffer(5, 4),
+		id: intToBuffer(5, 4).toString('hex'),
 		name: 'dpos',
 		events: [],
 		assets: [],
 		endpoints: [],
 		commands: [
 			{
-				id: intToBuffer(0, 4),
+				id: intToBuffer(0, 4).toString('hex'),
 				name: 'transfer',
 				params: {
 					$id: '/lisk/dpos/pom',

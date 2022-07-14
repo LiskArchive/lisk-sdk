@@ -35,23 +35,21 @@ import {
 } from './types';
 
 export const getTransactionParamsSchema = (
-	transaction: { moduleID: Buffer; commandID: Buffer },
+	transaction: { moduleID: string; commandID: string },
 	metadata: ModuleMetadata[],
 ): Schema | undefined => {
-	const moduleMeta = metadata.find(meta => meta.id.equals(transaction.moduleID));
+	const moduleMeta = metadata.find(meta => meta.id === transaction.moduleID);
 	if (!moduleMeta) {
 		throw new Error(
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			`ModuleID: ${transaction.moduleID.readInt32BE(0)} is not registered.`,
+			`ModuleID: ${transaction.moduleID} is not registered.`,
 		);
 	}
-	const commandMeta = moduleMeta.commands.find(meta => meta.id.equals(transaction.commandID));
+	const commandMeta = moduleMeta.commands.find(meta => meta.id === transaction.commandID);
 	if (!commandMeta) {
 		throw new Error(
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			`ModuleID: ${transaction.moduleID.readInt32BE(
-				0,
-			)} CommandID: ${transaction.commandID.readInt32BE(0)} is not registered.`,
+			`ModuleID: ${transaction.moduleID} CommandID: ${transaction.commandID} is not registered.`,
 		);
 	}
 	return commandMeta.params;
@@ -59,19 +57,17 @@ export const getTransactionParamsSchema = (
 
 export const getAssetDataSchema = (
 	blockVersion: number,
-	asset: { moduleID: Buffer },
+	asset: { moduleID: string },
 	metadata: ModuleMetadata[],
 ): Schema => {
-	const moduleMeta = metadata.find(meta => meta.id.equals(asset.moduleID));
+	const moduleMeta = metadata.find(meta => meta.id === asset.moduleID);
 	if (!moduleMeta) {
-		throw new Error(`Asset schema ModuleID: ${asset.moduleID.readInt32BE(0)} is not registered.`);
+		throw new Error(`Asset schema ModuleID: ${asset.moduleID} is not registered.`);
 	}
 	const assetMeta = moduleMeta.assets.find(meta => meta.version === blockVersion);
 	if (!assetMeta) {
 		throw new Error(
-			`Asset schema for ModuleID: ${asset.moduleID.readInt32BE(
-				0,
-			)} Version: ${blockVersion} is not registered.`,
+			`Asset schema for ModuleID: ${asset.moduleID} Version: ${blockVersion} is not registered.`,
 		);
 	}
 	return assetMeta.data;
@@ -85,7 +81,13 @@ export const decodeTransactionParams = <T>(
 		return transaction as DecodedTransaction<T>;
 	}
 
-	const paramsSchema = getTransactionParamsSchema(transaction, metadata);
+	const paramsSchema = getTransactionParamsSchema(
+		{
+			moduleID: transaction.moduleID.toString('hex'),
+			commandID: transaction.commandID.toString('hex'),
+		},
+		metadata,
+	);
 	return {
 		...transaction,
 		params: paramsSchema ? codec.decode<T>(paramsSchema, transaction.params) : ({} as T),
@@ -98,7 +100,13 @@ export const decodeTransaction = <T = Record<string, unknown>>(
 	metadata: ModuleMetadata[],
 ): DecodedTransaction<T> => {
 	const transaction = codec.decode<Transaction>(registeredSchema.transaction, encodedTransaction);
-	const paramsSchema = getTransactionParamsSchema(transaction, metadata);
+	const paramsSchema = getTransactionParamsSchema(
+		{
+			moduleID: transaction.moduleID.toString('hex'),
+			commandID: transaction.commandID.toString('hex'),
+		},
+		metadata,
+	);
 	const params = paramsSchema ? codec.decode<T>(paramsSchema, transaction.params) : ({} as T);
 	const id = hash(encodedTransaction);
 	return {
@@ -115,7 +123,13 @@ export const encodeTransaction = (
 ): Buffer => {
 	let encodedParams;
 	if (!Buffer.isBuffer(transaction.params)) {
-		const paramsSchema = getTransactionParamsSchema(transaction, metadata);
+		const paramsSchema = getTransactionParamsSchema(
+			{
+				moduleID: transaction.moduleID.toString('hex'),
+				commandID: transaction.commandID.toString('hex'),
+			},
+			metadata,
+		);
 		encodedParams = paramsSchema ? codec.encode(paramsSchema, transaction.params) : Buffer.alloc(0);
 	} else {
 		encodedParams = transaction.params;
@@ -134,12 +148,7 @@ export const fromTransactionJSON = <T = Record<string, unknown>>(
 	registeredSchema: RegisteredSchemas,
 	metadata: ModuleMetadata[],
 ): DecodedTransaction<T> => {
-	const transactionWithBufferParams = {
-		...transaction,
-		moduleID: Buffer.from(transaction.moduleID, 'hex'),
-		commandID: Buffer.from(transaction.commandID, 'hex'),
-	};
-	const paramsSchema = getTransactionParamsSchema(transactionWithBufferParams, metadata);
+	const paramsSchema = getTransactionParamsSchema(transaction, metadata);
 	const tx = codec.fromJSON<Transaction>(registeredSchema.transaction, {
 		...transaction,
 		params: '',
@@ -155,7 +164,7 @@ export const fromTransactionJSON = <T = Record<string, unknown>>(
 
 	return {
 		...tx,
-		id: Buffer.from(transaction.id, 'hex'),
+		id: transaction.id ? Buffer.from(transaction.id, 'hex') : Buffer.alloc(0),
 		params,
 	};
 };
@@ -165,7 +174,13 @@ export const toTransactionJSON = <T = Record<string, unknown>>(
 	registeredSchema: RegisteredSchemas,
 	metadata: ModuleMetadata[],
 ): DecodedTransactionJSON<T> => {
-	const paramsSchema = getTransactionParamsSchema(transaction, metadata);
+	const paramsSchema = getTransactionParamsSchema(
+		{
+			moduleID: transaction.moduleID.toString('hex'),
+			commandID: transaction.commandID.toString('hex'),
+		},
+		metadata,
+	);
 	if (Buffer.isBuffer(transaction.params)) {
 		return {
 			...codec.toJSON(registeredSchema.transaction, transaction),
@@ -196,7 +211,11 @@ export const decodeAssets = (
 	);
 	const decodedAssets: DecodedBlockAsset[] = [];
 	for (const asset of assets) {
-		const assetSchema = getAssetDataSchema(blockVersion, asset, metadata);
+		const assetSchema = getAssetDataSchema(
+			blockVersion,
+			{ moduleID: asset.moduleID.toString('hex') },
+			metadata,
+		);
 		const decodedData = codec.decode<Record<string, unknown>>(assetSchema, asset.data);
 		decodedAssets.push({
 			...asset,
@@ -216,7 +235,11 @@ export const encodeAssets = (
 	for (const asset of assets) {
 		let encodedData;
 		if (!Buffer.isBuffer(asset.data)) {
-			const dataSchema = getAssetDataSchema(blockVersion, asset, metadata);
+			const dataSchema = getAssetDataSchema(
+				blockVersion,
+				{ moduleID: asset.moduleID.toString('hex') },
+				metadata,
+			);
 			encodedData = codec.encode(dataSchema, asset.data);
 		} else {
 			encodedData = asset.data;
@@ -237,8 +260,7 @@ export const fromBlockAssetJSON = <T = Record<string, unknown>>(
 	registeredSchema: RegisteredSchemas,
 	metadata: ModuleMetadata[],
 ): DecodedBlockAsset<T> => {
-	const assetWithBufferParams = { ...asset, moduleID: Buffer.from(asset.moduleID, 'hex') };
-	const dataSchema = getAssetDataSchema(blockVersion, assetWithBufferParams, metadata);
+	const dataSchema = getAssetDataSchema(blockVersion, asset, metadata);
 	if (typeof asset.data === 'string') {
 		return {
 			...codec.fromJSON(registeredSchema.asset, asset),
@@ -257,7 +279,11 @@ export const toBlockAssetJSON = <T = Record<string, unknown>>(
 	registeredSchema: RegisteredSchemas,
 	metadata: ModuleMetadata[],
 ): DecodedBlockAssetJSON<T> => {
-	const dataSchema = getAssetDataSchema(blockVersion, asset, metadata);
+	const dataSchema = getAssetDataSchema(
+		blockVersion,
+		{ moduleID: asset.moduleID.toString('hex') },
+		metadata,
+	);
 	if (Buffer.isBuffer(asset.data)) {
 		return {
 			...codec.toJSON(registeredSchema.asset, asset),
@@ -371,6 +397,35 @@ export const toBlockJSON = (
 			...header,
 			id: block.header.id.toString('hex'),
 		},
+		transactions,
+		assets,
+	};
+};
+
+export const decodeBlockJSON = (block: BlockJSON, metadata: ModuleMetadata[]): DecodedBlockJSON => {
+	const transactions = [];
+	for (const transaction of block.transactions) {
+		const params = Buffer.from(transaction.params, 'hex');
+		const paramsSchema = getTransactionParamsSchema(transaction, metadata);
+		const paramsJSON = paramsSchema
+			? codec.decodeJSON<Record<string, unknown>>(paramsSchema, params)
+			: {};
+		transactions.push({
+			...transaction,
+			params: paramsJSON,
+		});
+	}
+	const assets = [];
+	for (const asset of block.assets) {
+		const dataSchema = getAssetDataSchema(block.header.version, asset, metadata);
+		assets.push({
+			...asset,
+			data: codec.decodeJSON<Record<string, unknown>>(dataSchema, Buffer.from(asset.data, 'hex')),
+		});
+	}
+
+	return {
+		header: block.header,
 		transactions,
 		assets,
 	};

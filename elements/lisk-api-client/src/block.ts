@@ -21,7 +21,7 @@ import {
 	ModuleMetadata,
 	RegisteredSchemas,
 } from './types';
-import { decodeBlock, encodeBlock, fromBlockJSON, toBlockJSON } from './codec';
+import { decodeBlock, decodeBlockJSON, encodeBlock, fromBlockJSON, toBlockJSON } from './codec';
 
 export class Block {
 	private readonly _channel: Channel;
@@ -38,17 +38,17 @@ export class Block {
 		this._metadata = moduleMetadata;
 	}
 
-	public async get(id: Buffer | string): Promise<DecodedBlock> {
+	public async get(id: Buffer | string): Promise<DecodedBlockJSON> {
 		const idString: string = Buffer.isBuffer(id) ? id.toString('hex') : id;
 		const block = await this._channel.invoke<BlockJSON>('chain_getBlockByID', {
 			id: idString,
 		});
-		return this.fromJSON(block);
+		return decodeBlockJSON(block, this._metadata);
 	}
 
-	public async getByHeight(height: number): Promise<DecodedBlock> {
+	public async getByHeight(height: number): Promise<DecodedBlockJSON> {
 		const block = await this._channel.invoke<BlockJSON>('chain_getBlockByHeight', { height });
-		return this.fromJSON(block);
+		return decodeBlockJSON(block, this._metadata);
 	}
 
 	public encode(input: DecodedBlock): Buffer {

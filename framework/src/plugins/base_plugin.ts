@@ -15,7 +15,6 @@ import { join } from 'path';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { APIClient, createIPCClient } from '@liskhq/lisk-api-client';
 import { objects } from '@liskhq/lisk-utils';
-import { BaseChannel } from '../controller/channels';
 import { Logger } from '../logger';
 import { systemDirs } from '../system_dirs';
 import { ApplicationConfigForPlugin, PluginConfig, SchemaWithDefault } from '../types';
@@ -25,7 +24,6 @@ import { BasePluginEndpoint } from './base_plugin_endpoint';
 export interface PluginInitContext<T = Record<string, unknown>> {
 	logger: Logger;
 	config: PluginConfig & T;
-	channel: BaseChannel;
 	appConfig: ApplicationConfigForPlugin;
 }
 
@@ -85,7 +83,6 @@ export abstract class BasePlugin<T = Record<string, unknown>> {
 	public endpoint?: BasePluginEndpoint;
 
 	protected logger!: Logger;
-	protected channel!: BaseChannel;
 
 	private _apiClient!: APIClient;
 	private _config!: T;
@@ -120,7 +117,6 @@ export abstract class BasePlugin<T = Record<string, unknown>> {
 
 	public async init(context: PluginInitContext): Promise<void> {
 		this.logger = context.logger;
-		this.channel = context.channel;
 		if (this.configSchema) {
 			this._config = objects.mergeDeep({}, this.configSchema.default ?? {}, context.config) as T;
 
@@ -134,8 +130,9 @@ export abstract class BasePlugin<T = Record<string, unknown>> {
 		}
 		this._appConfig = context.appConfig;
 
-		if (this._appConfig.rpc.modes.includes('ipc') && this._appConfig.rpc.ipc?.path !== undefined) {
-			this._apiClient = await createIPCClient(this._appConfig.rpc.ipc?.path);
+		if (this._appConfig.rpc.modes.includes('ipc')) {
+			const dirs = systemDirs(this.appConfig.label, this.appConfig.rootPath);
+			this._apiClient = await createIPCClient(dirs.sockets);
 		}
 	}
 

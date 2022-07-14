@@ -27,7 +27,7 @@ import {
 	blockHeaderSchema,
 	blockSchema,
 	transactionSchema,
-	ModuleMetadata,
+	ModuleMetadataJSON,
 } from 'lisk-framework';
 import { PromiseResolvedType } from '../../../types';
 import { flagsWithParser } from '../../../utils/flags';
@@ -59,32 +59,24 @@ interface CreateFlags {
 }
 
 interface Transaction {
-	moduleID: Buffer;
-	commandID: Buffer;
-	nonce: bigint;
-	fee: bigint;
-	senderPublicKey: Buffer;
+	moduleID: string;
+	commandID: string;
+	nonce: string;
+	fee: string;
+	senderPublicKey: string;
 	params: object;
 	signatures: never[];
 }
 
-const getParamsObject = async (metadata: ModuleMetadata[], flags: CreateFlags, args: Args) => {
+const getParamsObject = async (metadata: ModuleMetadataJSON[], flags: CreateFlags, args: Args) => {
 	const paramsSchema = getParamsSchema(
 		metadata,
-		cryptography.intToBuffer(args.moduleID, 4),
-		cryptography.intToBuffer(args.commandID, 4),
+		cryptography.intToBuffer(args.moduleID, 4).toString('hex'),
+		cryptography.intToBuffer(args.commandID, 4).toString('hex'),
 	) as Schema;
-	const rawParams = flags.params
-		? JSON.parse(flags.params)
-		: await getParamsFromPrompt(paramsSchema);
-	const paramsObject = codec.fromJSON(paramsSchema, rawParams);
+	const params = flags.params ? JSON.parse(flags.params) : await getParamsFromPrompt(paramsSchema);
 
-	const paramsErrors = validator.validator.validate(paramsSchema, paramsObject);
-	if (paramsErrors.length) {
-		throw new validator.LiskValidationError([...paramsErrors]);
-	}
-
-	return paramsObject;
+	return params as Record<string, unknown>;
 };
 
 const getPassphraseAddressAndPublicKey = async (flags: CreateFlags) => {
@@ -109,7 +101,7 @@ const getPassphraseAddressAndPublicKey = async (flags: CreateFlags) => {
 const validateAndSignTransaction = (
 	transaction: Transaction,
 	schema: RegisteredSchema,
-	metadata: ModuleMetadata[],
+	metadata: ModuleMetadataJSON[],
 	networkIdentifier: string,
 	passphrase: string,
 	noSignature: boolean,
@@ -121,39 +113,43 @@ const validateAndSignTransaction = (
 		transaction.commandID,
 	) as Schema;
 
-	const transactionErrors = validator.validator.validate(schema.transaction, {
-		...transactionWithoutParams,
-		params: Buffer.alloc(0),
-	});
+	const txObject = codec.fromJSON(schema.transaction, { ...transactionWithoutParams, params: '' });
+	const transactionErrors = validator.validator.validate(schema.transaction, txObject);
+
 	if (transactionErrors.length) {
 		throw new validator.LiskValidationError([...transactionErrors]);
 	}
 
+	const paramsObject = paramsSchema ? codec.fromJSON(paramsSchema, params) : {};
+
+	const decodedTx = {
+		...txObject,
+		params: paramsObject,
+	};
+
 	if (!noSignature) {
 		return transactions.signTransaction(
-			(transaction as unknown) as Record<string, unknown>,
+			decodedTx,
 			Buffer.from(networkIdentifier, 'hex'),
 			passphrase,
 			paramsSchema,
 		);
 	}
-
-	return (transaction as unknown) as Record<string, unknown>;
+	return decodedTx;
 };
 
 const createTransactionOffline = async (
 	args: Args,
 	flags: CreateFlags,
 	registeredSchema: RegisteredSchema,
-	metadata: ModuleMetadata[],
+	metadata: ModuleMetadataJSON[],
 	transaction: Transaction,
 ) => {
 	const params = await getParamsObject(metadata, flags, args);
 	const { passphrase, publicKey } = await getPassphraseAddressAndPublicKey(flags);
-	transaction.nonce = BigInt(flags.nonce ?? '0');
+	transaction.nonce = flags.nonce ?? '0';
 	transaction.params = params;
-	transaction.senderPublicKey =
-		publicKey || Buffer.from(flags['sender-public-key'] as string, 'hex');
+	transaction.senderPublicKey = publicKey.toString('hex') || (flags['sender-public-key'] as string);
 
 	return validateAndSignTransaction(
 		transaction,
@@ -170,7 +166,7 @@ const createTransactionOnline = async (
 	flags: CreateFlags,
 	client: apiClient.APIClient,
 	registeredSchema: RegisteredSchema,
-	metadata: ModuleMetadata[],
+	metadata: ModuleMetadataJSON[],
 	transaction: Transaction,
 ) => {
 	const nodeInfo = await client.node.getNodeInfo();
@@ -192,10 +188,9 @@ const createTransactionOnline = async (
 		);
 	}
 
-	transaction.nonce = flags.nonce ? BigInt(flags.nonce) : BigInt(account.nonce);
+	transaction.nonce = flags.nonce ? flags.nonce : account.nonce;
 	transaction.params = params;
-	transaction.senderPublicKey =
-		publicKey || Buffer.from(flags['sender-public-key'] as string, 'hex');
+	transaction.senderPublicKey = publicKey.toString('hex') || (flags['sender-public-key'] as string);
 
 	return validateAndSignTransaction(
 		transaction,
@@ -269,18 +264,18 @@ export abstract class CreateCommand extends Command {
 
 	protected _client!: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
 	protected _schema!: RegisteredSchema;
-	protected _metadata!: ModuleMetadata[];
+	protected _metadata!: ModuleMetadataJSON[];
 	protected _dataPath!: string;
 
 	async run(): Promise<void> {
 		const { args, flags } = this.parse(CreateCommand);
 
 		const incompleteTransaction = {
-			moduleID: cryptography.intToBuffer(args.moduleID, 4),
-			commandID: cryptography.intToBuffer(args.commandID, 4),
-			fee: BigInt(args.fee),
-			nonce: BigInt(0),
-			senderPublicKey: Buffer.alloc(0),
+			moduleID: cryptography.intToBuffer(args.moduleID, 4).toString('hex'),
+			commandID: cryptography.intToBuffer(args.commandID, 4).toString('hex'),
+			fee: args.fee,
+			nonce: '0',
+			senderPublicKey: '',
 			params: {},
 			signatures: [],
 		};

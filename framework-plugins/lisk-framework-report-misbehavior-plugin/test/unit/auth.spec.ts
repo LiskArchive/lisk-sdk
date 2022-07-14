@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ApplicationConfigForPlugin, BaseChannel, GenesisConfig, testing } from 'lisk-sdk';
+import { ApplicationConfigForPlugin, GenesisConfig, testing } from 'lisk-sdk';
 import { ReportMisbehaviorPlugin } from '../../src';
 import { configSchema } from '../../src/schemas';
 
@@ -28,16 +28,9 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 		keepEventsForHeights: -1,
 	},
 	rpc: {
-		modes: ['ipc'],
-		ws: {
-			port: 8080,
-			host: '127.0.0.1',
-			path: '/ws',
-		},
-		http: {
-			port: 8000,
-			host: '127.0.0.1',
-		},
+		modes: [],
+		port: 8080,
+		host: '127.0.0.1',
 	},
 	generation: {
 		force: false,
@@ -68,11 +61,6 @@ const validPluginOptions = {
 	dataPath: '/my/app',
 };
 
-const channelMock = {
-	invoke: jest.fn(),
-	once: jest.fn().mockImplementation((_eventName, cb) => cb()),
-};
-
 describe('auth action', () => {
 	let reportMisbehaviorPlugin: ReportMisbehaviorPlugin;
 
@@ -82,7 +70,6 @@ describe('auth action', () => {
 			config: {
 				...validPluginOptions,
 			},
-			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
 			logger: testing.mocks.loggerMock,
 		});

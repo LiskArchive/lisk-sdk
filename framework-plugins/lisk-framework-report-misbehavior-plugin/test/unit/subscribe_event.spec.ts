@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseChannel, GenesisConfig, ApplicationConfigForPlugin, testing } from 'lisk-sdk';
+import { GenesisConfig, ApplicationConfigForPlugin, testing } from 'lisk-sdk';
 import { ReportMisbehaviorPlugin } from '../../src';
 import { configSchema } from '../../src/schemas';
 
@@ -28,16 +28,9 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 		keepEventsForHeights: -1,
 	},
 	rpc: {
-		modes: ['ipc'],
-		ws: {
-			port: 8080,
-			host: '127.0.0.1',
-			path: '/ws',
-		},
-		http: {
-			port: 8000,
-			host: '127.0.0.1',
-		},
+		modes: [],
+		port: 8080,
+		host: '127.0.0.1',
 	},
 	generation: {
 		force: false,
@@ -79,7 +72,6 @@ describe('subscribe to event', () => {
 		};
 		await reportMisbehaviorPlugin.init({
 			config: validPluginOptions,
-			channel: ({} as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
 			logger: testing.mocks.loggerMock,
 		});

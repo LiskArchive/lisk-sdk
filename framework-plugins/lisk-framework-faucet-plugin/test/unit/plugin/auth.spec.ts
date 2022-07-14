@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ApplicationConfigForPlugin, BaseChannel, GenesisConfig, testing } from 'lisk-sdk';
+import { ApplicationConfigForPlugin, GenesisConfig, testing } from 'lisk-sdk';
 import { FaucetPlugin } from '../../../src/plugin';
 import { configSchema } from '../../../src/plugin/schemas';
 
@@ -28,16 +28,9 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 		logFileName: 'plugin-FaucetPlugin.log',
 	},
 	rpc: {
-		modes: ['ipc'],
-		ws: {
-			port: 8080,
-			host: '127.0.0.1',
-			path: '/ws',
-		},
-		http: {
-			port: 8000,
-			host: '127.0.0.1',
-		},
+		modes: [],
+		port: 8080,
+		host: '127.0.0.1',
 	},
 	genesis: {} as GenesisConfig,
 	generation: {
@@ -70,11 +63,6 @@ const validPluginOptions = {
 	dataPath: '/my/app',
 };
 
-const channelMock = {
-	invoke: jest.fn(),
-	once: jest.fn().mockImplementation((_eventName, cb) => cb()),
-};
-
 const logger = testing.mocks.loggerMock;
 
 describe('auth action', () => {
@@ -92,7 +80,6 @@ describe('auth action', () => {
 				encryptedPassphrase:
 					'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=bd65587de1b7b42e289693e8ac14561c7c77370ff158133c6eb512849353446b339f04c8f45b6b8cc72e5e8485dab4031d9f5e2d7cb9d424076401ea58dad6d4a348fc1f013ceb5d8bb314&mac=6e017e6b2a341db10b91440462fc2626fe6e4b711ea09f8df3ac1df42a6de572&salt=e9f564ce7f8392acb2691fb4953e17c0&iv=57124bb910dbf9e24e37d401&tag=b769dcbd4ad0d3f44041afe5322aad82&iterations=1&parallelism=4&memorySize=2024',
 			},
-			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
 			logger,
 		});

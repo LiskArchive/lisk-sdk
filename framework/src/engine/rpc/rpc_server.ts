@@ -14,7 +14,6 @@
  */
 
 import { Router } from 'zeromq';
-import * as fs from 'fs-extra';
 import { RPC_MODES } from '../../constants';
 import { HTTPServer } from '../../controller/http/http_server';
 import { IPCServer } from '../../controller/ipc/ipc_server';
@@ -24,6 +23,7 @@ import { RPCConfig } from '../../types';
 import { Request } from '../../controller/request';
 import * as JSONRPC from '../../controller/jsonrpc';
 import { notificationRequest } from '../../controller/jsonrpc';
+import { systemDirsFromDataPath } from '../../system_dirs';
 
 export interface RequestContext {
 	params: Record<string, unknown>;
@@ -52,29 +52,31 @@ export class RPCServer {
 	private _logger!: Logger;
 	private _networkIdentifier!: Buffer;
 
-	public constructor(config: RPCConfig) {
+	public constructor(dataPath: string, config: RPCConfig) {
 		this._config = config;
-		if (this._config.modes.includes(RPC_MODES.IPC) && this._config.ipc) {
-			fs.mkdirsSync(this._config.ipc.path);
+		if (this._config.modes.includes(RPC_MODES.IPC)) {
+			const systemDirs = systemDirsFromDataPath(dataPath);
 			this._ipcServer = new IPCServer({
-				socketsDir: this._config.ipc.path,
+				socketsDir: systemDirs.sockets,
 				name: 'engine',
 				externalSocket: true,
 			});
 		}
 
-		if (this._config.modes.includes(RPC_MODES.WS) && this._config.ws) {
+		if (this._config.modes.includes(RPC_MODES.WS)) {
 			this._wsServer = new WSServer({
-				path: this._config.ws.path,
-				port: this._config.ws.port,
-				host: this._config.ws.host,
+				path: '/rpc-ws',
+				port: this._config.port,
+				host: this._config.host,
 			});
 		}
 
-		if (this._config.modes.includes(RPC_MODES.HTTP) && this._config.http) {
+		if (this._config.modes.includes(RPC_MODES.HTTP)) {
 			this._httpServer = new HTTPServer({
-				host: this._config.http.host,
-				port: this._config.http.port,
+				host: this._config.host,
+				port: this._config.port,
+				path: '/rpc',
+				ignorePaths: ['/rpc-ws'],
 			});
 		}
 	}
@@ -90,19 +92,7 @@ export class RPCServer {
 			this._handleIPCRequest(this._ipcServer.rpcServer).catch(err => {
 				this._logger.debug(err, 'Error occured while listening to RPCs on RPC router.');
 			});
-			this._logger.info({ path: this._ipcServer.socketPaths }, 'Started IPC server');
-		}
-
-		if (this._wsServer) {
-			this._wsServer.start(this._logger, (socket, message) => {
-				this._handleRequest(message)
-					.then(data => {
-						socket.send(JSON.stringify(data));
-					})
-					.catch((error: JSONRPC.JSONRPCError) => {
-						socket.send(JSON.stringify(error.response));
-					});
-			});
+			this._logger.info(`RPC IPC Server starting at ${this._ipcServer.socketPaths.rpcServer}`);
 		}
 
 		if (this._httpServer) {
@@ -116,6 +106,23 @@ export class RPCServer {
 					});
 			});
 		}
+
+		if (this._wsServer) {
+			this._wsServer.start(
+				this._logger,
+				(socket, message) => {
+					this._handleRequest(message)
+						.then(data => {
+							socket.send(JSON.stringify(data));
+						})
+						.catch((error: JSONRPC.JSONRPCError) => {
+							socket.send(JSON.stringify(error.response));
+						});
+				},
+				this._httpServer?.server,
+			);
+		}
+		this._httpServer?.listen();
 	}
 
 	public stop(): void {

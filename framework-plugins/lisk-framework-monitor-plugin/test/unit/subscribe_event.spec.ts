@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { testing, BaseChannel, GenesisConfig, ApplicationConfigForPlugin } from 'lisk-sdk';
+import { testing, GenesisConfig, ApplicationConfigForPlugin } from 'lisk-sdk';
 import { MonitorPlugin } from '../../src';
 import { configSchema } from '../../src/schemas';
 
@@ -27,16 +27,9 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 		keepEventsForHeights: -1,
 	},
 	rpc: {
-		modes: ['ipc'],
-		ws: {
-			port: 8080,
-			host: '127.0.0.1',
-			path: '/ws',
-		},
-		http: {
-			port: 8000,
-			host: '127.0.0.1',
-		},
+		modes: [],
+		port: 8080,
+		host: '127.0.0.1',
 	},
 	generation: {
 		force: false,
@@ -77,7 +70,6 @@ describe('subscribe to event', () => {
 		};
 		await monitorPlugin.init({
 			config: validPluginOptions,
-			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
 			logger: testing.mocks.loggerMock,
 		});

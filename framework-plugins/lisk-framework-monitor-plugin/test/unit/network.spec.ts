@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ApplicationConfigForPlugin, BaseChannel, GenesisConfig, testing } from 'lisk-sdk';
+import { ApplicationConfigForPlugin, GenesisConfig, testing } from 'lisk-sdk';
 import { when } from 'jest-when';
 import { PeerInfo } from '../../src/types';
 import { MonitorPlugin } from '../../src';
@@ -30,16 +30,9 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 		keepEventsForHeights: -1,
 	},
 	rpc: {
-		modes: ['ipc'],
-		ws: {
-			port: 8080,
-			host: '127.0.0.1',
-			path: '/ws',
-		},
-		http: {
-			port: 8000,
-			host: '127.0.0.1',
-		},
+		modes: [],
+		port: 8080,
+		host: '127.0.0.1',
 	},
 	generation: {
 		force: false,
@@ -67,9 +60,6 @@ const validPluginOptions = configSchema.default;
 
 describe('networkStats', () => {
 	let monitorPlugin: MonitorPlugin;
-	const {
-		mocks: { channelMock },
-	} = testing;
 
 	const connectedPeers: Partial<PeerInfo>[] = [
 		{ options: { height: 51 } },
@@ -147,7 +137,6 @@ describe('networkStats', () => {
 		};
 		await monitorPlugin.init({
 			config: validPluginOptions,
-			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
 			logger: testing.mocks.loggerMock,
 		});

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { EventEmitter } from 'events';
-import * as path from 'path';
 import {
 	Block,
 	BlockAssets,
@@ -86,7 +85,6 @@ import {
 	DEFAULT_MAX_INBOUND_CONNECTIONS,
 	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 	DEFAULT_PORT_P2P,
-	DEFAULT_PORT_RPC,
 	MAX_BLOCK_CACHE,
 } from '../constants';
 import { GenerationContext } from '../state_machine/generator_context';
@@ -218,21 +216,7 @@ export class ABIHandler implements ABI {
 						this._config.network.maxOutboundConnections ?? DEFAULT_MAX_OUTBOUND_CONNECTIONS,
 					whitelistedPeers: this._config.network.whitelistedPeers ?? [],
 				},
-				rpc: {
-					...this._config.rpc,
-					modes: this._config.rpc.modes,
-					ipc: {
-						path: this._config.rpc.ipc?.path ?? path.join(dataPath, 'socket', 'ipc'),
-					},
-					http: {
-						host: this._config.rpc.http?.host ?? DEFAULT_HOST,
-						port: this._config.rpc.http?.port ?? DEFAULT_PORT_RPC,
-					},
-					ws: {
-						host: this._config.rpc.ws?.host ?? DEFAULT_HOST,
-						port: this._config.rpc.ws?.port ?? DEFAULT_PORT_RPC,
-					},
-				},
+				rpc: this._config.rpc,
 			},
 		};
 	}
@@ -538,12 +522,16 @@ export class ABIHandler implements ABI {
 		const modules = this._modules.map(mod => {
 			const meta = mod.metadata();
 			return {
-				id: mod.id,
-				name: mod.name,
 				...meta,
+				id: mod.id.toString('hex'),
+				name: mod.name,
+				commands: meta.commands.map(command => ({
+					...command,
+					id: command.id.toString('hex'),
+				})),
 			};
 		});
-		modules.sort((a, b) => a.id.readInt32BE(0) - b.id.readInt32BE(0));
+		modules.sort((a, b) => a.id.localeCompare(b.id, 'en'));
 		const data = Buffer.from(JSON.stringify({ modules }), 'utf-8');
 		return {
 			data,

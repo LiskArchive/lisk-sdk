@@ -101,10 +101,10 @@ describe('transaction:send command', () => {
 	describe('transaction:send <hex encoded transaction> --data-path=<path to a running app>', () => {
 		it('should return the id of the sent transaction', async () => {
 			when(invokeMock)
-				.calledWith('app:postTransaction', { transaction: encodedTransaction })
+				.calledWith('txpool_postTransaction', { transaction: encodedTransaction })
 				.mockResolvedValue({ transactionId });
 			await SendCommand.run([encodedTransaction, `--data-path=${pathToAppPIDFiles}`], config);
-			expect(invokeMock).toHaveBeenCalledWith('app:postTransaction', {
+			expect(invokeMock).toHaveBeenCalledWith('txpool_postTransaction', {
 				transaction: encodedTransaction,
 			});
 			expect(stdout[0]).toContain(
@@ -116,7 +116,7 @@ describe('transaction:send command', () => {
 	describe('transaction:send <hex encoded invalid transaction> --data-path=<path to a not running app>', () => {
 		it('should throw error.', async () => {
 			when(invokeMock)
-				.calledWith('app:postTransaction', {
+				.calledWith('txpool_postTransaction', {
 					transaction: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
 				})
 				.mockRejectedValue(

@@ -13,7 +13,7 @@
  */
 
 import { randomBytes } from 'crypto';
-import { testing, BaseChannel, GenesisConfig, ApplicationConfigForPlugin } from 'lisk-sdk';
+import { testing, GenesisConfig, ApplicationConfigForPlugin } from 'lisk-sdk';
 import { MonitorPlugin } from '../../src/monitor_plugin';
 import { configSchema } from '../../src/schemas';
 
@@ -29,16 +29,9 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 		keepEventsForHeights: -1,
 	},
 	rpc: {
-		modes: ['ipc'],
-		ws: {
-			port: 8080,
-			host: '127.0.0.1',
-			path: '/ws',
-		},
-		http: {
-			port: 8000,
-			host: '127.0.0.1',
-		},
+		modes: [],
+		port: 8080,
+		host: '127.0.0.1',
 	},
 	generation: {
 		force: false,
@@ -66,9 +59,6 @@ const validPluginOptions = configSchema.default;
 
 describe('_handlePostTransactionAnnounce', () => {
 	let monitorPluginInstance: MonitorPlugin;
-	const {
-		mocks: { channelMock },
-	} = testing;
 
 	beforeEach(async () => {
 		monitorPluginInstance = new MonitorPlugin();
@@ -77,7 +67,6 @@ describe('_handlePostTransactionAnnounce', () => {
 		};
 		await monitorPluginInstance.init({
 			config: validPluginOptions,
-			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
 			logger: testing.mocks.loggerMock,
 		});
@@ -107,10 +96,6 @@ describe('_handlePostTransactionAnnounce', () => {
 
 describe('_cleanUpTransactionStats', () => {
 	let monitorPluginInstance: MonitorPlugin;
-	const {
-		mocks: { channelMock },
-	} = testing;
-
 	beforeEach(async () => {
 		monitorPluginInstance = new MonitorPlugin();
 		monitorPluginInstance['_apiClient'] = {
@@ -118,7 +103,6 @@ describe('_cleanUpTransactionStats', () => {
 		};
 		await monitorPluginInstance.init({
 			config: validPluginOptions,
-			channel: (channelMock as unknown) as BaseChannel,
 			appConfig: appConfigForPlugin,
 			logger: testing.mocks.loggerMock,
 		});

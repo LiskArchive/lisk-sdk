@@ -21,7 +21,7 @@ import { Logger } from '../logger';
 import { getEndpointHandlers } from '../endpoint';
 import { BasePlugin, getPluginExportPath, validatePluginSpec } from '../plugins/base_plugin';
 import { systemDirs } from '../system_dirs';
-import { ApplicationConfigForPlugin, EndpointHandlers, PluginConfig, RPCConfig } from '../types';
+import { ApplicationConfigForPlugin, EndpointHandlers, PluginConfig } from '../types';
 import { Bus } from './bus';
 import { BaseChannel } from './channels';
 import { InMemoryChannel } from './channels/in_memory_channel';
@@ -49,7 +49,6 @@ interface ControllerConfig {
 		readonly sockets: string;
 		readonly pids: string;
 	};
-	rpc: RPCConfig;
 }
 
 export class Controller {
@@ -83,14 +82,6 @@ export class Controller {
 		this._config = {
 			dataPath: dirs.dataPath,
 			dirs,
-			rpc: {
-				modes: options.appConfig.rpc.modes,
-				ipc: {
-					path: options.appConfig.rpc.ipc?.path ?? dirs.sockets,
-				},
-				ws: options.appConfig.rpc.ws,
-				http: options.appConfig.rpc.http,
-			},
 		};
 
 		this._internalIPCServer = new IPCServer({
@@ -251,7 +242,7 @@ export class Controller {
 		await channel.registerToBus(this._bus);
 		this._logger.debug({ plugin: name }, 'Plugin is registered to bus');
 
-		await plugin.init({ config, channel, appConfig, logger: this._logger });
+		await plugin.init({ config, appConfig, logger: this._logger });
 		await plugin.load();
 
 		this._logger.debug({ plugin: name }, 'Plugin is successfully loaded');

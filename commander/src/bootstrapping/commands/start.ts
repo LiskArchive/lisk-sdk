@@ -66,20 +66,28 @@ export abstract class StartCommand extends Command {
 				'Enable IPC communication. This will load plugins as a child process and communicate over IPC. Environment variable "LISK_API_IPC" can also be used.',
 			env: 'LISK_API_IPC',
 			default: false,
-			exclusive: ['api-ws'],
 		}),
 		'api-ws': flagParser.boolean({
 			description:
 				'Enable websocket communication for api-client. Environment variable "LISK_API_WS" can also be used.',
 			env: 'LISK_API_WS',
 			default: false,
-			exclusive: ['api-ipc'],
 		}),
-		'api-ws-port': flagParser.integer({
+		'api-http': flagParser.boolean({
 			description:
-				'Port to be used for api-client websocket. Environment variable "LISK_API_WS_PORT" can also be used.',
+				'Enable HTTP communication for api-client. Environment variable "LISK_API_HTTP" can also be used.',
+			env: 'LISK_API_HTTP',
+			default: false,
+		}),
+		'api-port': flagParser.integer({
+			description:
+				'Port to be used for api-client. Environment variable "LISK_API_PORT" can also be used.',
 			env: 'LISK_API_WS_PORT',
-			dependsOn: ['api-ws'],
+		}),
+		'api-host': flagParser.string({
+			description:
+				'Host to be used for api-client. Environment variable "LISK_API_HOST" can also be used.',
+			env: 'LISK_API_HOST',
 		}),
 		'console-log': flagParser.string({
 			description:
@@ -174,17 +182,29 @@ export abstract class StartCommand extends Command {
 		config.label = pathConfig.label;
 		config.version = this.config.pjson.version;
 		// Inject other properties specified
+		const modes = [];
 		if (flags['api-ipc']) {
-			config.rpc = utils.objects.mergeDeep({}, config.rpc, {
-				enable: flags['api-ipc'],
-				mode: 'ipc',
-			});
+			modes.push('ipc');
 		}
 		if (flags['api-ws']) {
+			modes.push('ws');
+		}
+		if (flags['api-http']) {
+			modes.push('http');
+		}
+		if (modes.length) {
 			config.rpc = utils.objects.mergeDeep({}, config.rpc, {
-				enable: flags['api-ws'],
-				mode: 'ws',
-				port: flags['api-ws-port'],
+				modes,
+			});
+		}
+		if (flags['api-host']) {
+			config.rpc = utils.objects.mergeDeep({}, config.rpc, {
+				host: flags['api-host'],
+			});
+		}
+		if (flags['api-port']) {
+			config.rpc = utils.objects.mergeDeep({}, config.rpc, {
+				port: flags['api-port'],
 			});
 		}
 		if (flags['console-log']) {
@@ -225,7 +245,9 @@ export abstract class StartCommand extends Command {
 			await app.run(genesis);
 		} catch (errors) {
 			this.error(
-				Array.isArray(errors) ? errors.map(err => (err as Error).message).join(',') : errors,
+				Array.isArray(errors)
+					? errors.map(err => (err as Error).message).join(',')
+					: (errors as string),
 			);
 		}
 	}
