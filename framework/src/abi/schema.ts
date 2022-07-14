@@ -154,7 +154,7 @@ const systemConfigSchema = {
 
 const rpcConfigSchema = {
 	type: 'object',
-	required: ['modes', 'ipc', 'ws', 'http'],
+	required: ['modes', 'host', 'port'],
 	properties: {
 		modes: {
 			fieldNumber: 1,
@@ -163,46 +163,13 @@ const rpcConfigSchema = {
 				dataType: 'string',
 			},
 		},
-		ipc: {
+		host: {
 			fieldNumber: 2,
-			type: 'object',
-			required: ['path'],
-			properties: {
-				path: {
-					fieldNumber: 1,
-					dataType: 'string',
-				},
-			},
+			dataType: 'string',
 		},
-		ws: {
+		port: {
 			fieldNumber: 3,
-			type: 'object',
-			required: ['host', 'port'],
-			properties: {
-				host: {
-					fieldNumber: 1,
-					dataType: 'string',
-				},
-				port: {
-					fieldNumber: 2,
-					dataType: 'uint32',
-				},
-			},
-		},
-		http: {
-			fieldNumber: 4,
-			type: 'object',
-			required: ['host', 'port'],
-			properties: {
-				host: {
-					fieldNumber: 1,
-					dataType: 'string',
-				},
-				port: {
-					fieldNumber: 2,
-					dataType: 'uint32',
-				},
-			},
+			dataType: 'uint32',
 		},
 	},
 };

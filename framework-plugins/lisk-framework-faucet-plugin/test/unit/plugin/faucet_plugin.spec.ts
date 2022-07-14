@@ -23,16 +23,9 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 	},
 	logger: { consoleLogLevel: 'info', fileLogLevel: 'none', logFileName: 'plugin-FaucetPlugin.log' },
 	rpc: {
-		modes: ['ipc'],
-		ws: {
-			port: 8080,
-			host: '127.0.0.1',
-			path: '/ws',
-		},
-		http: {
-			port: 8000,
-			host: '127.0.0.1',
-		},
+		modes: [],
+		port: 8080,
+		host: '127.0.0.1',
 	},
 	genesis: {} as GenesisConfig,
 	generation: {

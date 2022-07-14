@@ -259,39 +259,15 @@ export const applicationConfigSchema = {
 		},
 		rpc: {
 			type: 'object',
+			required: ['modes', 'host', 'port'],
 			properties: {
 				modes: {
 					type: 'array',
 					items: { type: 'string', enum: ['ipc', 'ws', 'http'] },
 					uniqueItems: true,
 				},
-				ipc: {
-					type: 'object',
-					required: ['path'],
-					properties: {
-						path: { type: 'string' },
-					},
-				},
-				ws: {
-					type: 'object',
-					required: ['host', 'port', 'path'],
-					properties: {
-						path: { type: 'string' },
-						port: { type: 'number', minimum: 1024, maximum: 65535 },
-						host: {
-							type: 'string',
-							format: 'ip',
-						},
-					},
-				},
-				http: {
-					type: 'object',
-					required: ['host', 'port'],
-					properties: {
-						host: { type: 'string' },
-						port: { type: 'number', minimum: 1024, maximum: 65535 },
-					},
-				},
+				host: { type: 'string' },
+				port: { type: 'number', minimum: 1024, maximum: 65535 },
 			},
 		},
 		genesis: {
@@ -399,15 +375,8 @@ export const applicationConfigSchema = {
 		},
 		rpc: {
 			modes: ['ipc'],
-			ws: {
-				port: DEFAULT_PORT_RPC,
-				host: DEFAULT_HOST,
-				path: '/ws',
-			},
-			http: {
-				port: DEFAULT_PORT_RPC,
-				host: DEFAULT_HOST,
-			},
+			port: DEFAULT_PORT_RPC,
+			host: DEFAULT_HOST,
 		},
 		network: {
 			seedPeers: [],

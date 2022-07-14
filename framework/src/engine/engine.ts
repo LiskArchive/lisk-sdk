@@ -166,13 +166,7 @@ export class Engine {
 				modules: {},
 			},
 		});
-		this._rpcServer = new RPCServer({
-			...this._config.rpc,
-			ws: {
-				...this._config.rpc.ws,
-				path: '/rpc',
-			},
-		});
+		this._rpcServer = new RPCServer(this._config.system.dataPath, this._config.rpc);
 
 		const genesis = new Block(
 			new BlockHeader(genesisBlock.header),

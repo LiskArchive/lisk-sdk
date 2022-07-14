@@ -13,7 +13,6 @@
  */
 
 import { ListenerFn } from 'eventemitter2';
-import { StateStore } from '@liskhq/lisk-chain';
 import { StateDB } from '@liskhq/lisk-db';
 import { Event, EventCallback } from '../event';
 import { Request } from '../request';
@@ -23,6 +22,7 @@ import * as JSONRPC from '../jsonrpc/types';
 import { ChannelType, EndpointHandlers } from '../../types';
 import { Logger } from '../../logger';
 import { createImmutableAPIContext } from '../../state_machine';
+import { PrefixedStateReadWriter } from '../../state_machine/prefixed_state_read_writer';
 
 export class InMemoryChannel extends BaseChannel {
 	private bus!: Bus;
@@ -105,10 +105,11 @@ export class InMemoryChannel extends BaseChannel {
 				logger: this._logger,
 				params: request.params ?? {},
 				getStore: (moduleID: Buffer, storePrefix: number) => {
-					const stateStore = new StateStore(this._db);
+					const stateStore = new PrefixedStateReadWriter(this._db.newReadWriter());
 					return stateStore.getStore(moduleID, storePrefix);
 				},
-				getImmutableAPIContext: () => createImmutableAPIContext(new StateStore(this._db)),
+				getImmutableAPIContext: () =>
+					createImmutableAPIContext(new PrefixedStateReadWriter(this._db.newReadWriter())),
 			}) as Promise<T>;
 		}
 

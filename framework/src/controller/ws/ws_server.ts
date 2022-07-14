@@ -44,14 +44,36 @@ export class WSServer {
 		this._registeredEvents.push(...events);
 	}
 
-	public start(logger: Logger, messageHandler: WSMessageHandler): WebSocket.Server {
+	public start(
+		logger: Logger,
+		messageHandler: WSMessageHandler,
+		httpServer?: WebSocket.ServerOptions['server'],
+	): WebSocket.Server {
 		this._logger = logger;
-		this.server = new WebSocket.Server({
-			path: this._path,
-			port: this._port,
-			host: this._host,
-			clientTracking: true,
-		});
+		if (httpServer) {
+			this.server = new WebSocket.Server({
+				noServer: true,
+			});
+			httpServer.on('upgrade', (request, socket, head) => {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+				if (request.url === this._path) {
+					this.server.handleUpgrade(request, socket, head, ws => {
+						this.server.emit('connection', ws, request);
+					});
+				} else {
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+					socket.destroy();
+				}
+			});
+		} else {
+			this.server = new WebSocket.Server({
+				path: this._path,
+				port: this._port,
+				host: this._host,
+				clientTracking: true,
+			});
+		}
+
 		this.server.on('connection', socket => this._handleConnection(socket, messageHandler));
 		this.server.on('error', error => {
 			this._logger.error(error);
@@ -68,6 +90,8 @@ export class WSServer {
 		});
 
 		this._pingTimer = this._setUpPing();
+
+		this._logger.info(`RPC WS Server starting at ${this._host ?? ''}:${this._port}${this._path}`);
 
 		return this.server;
 	}
