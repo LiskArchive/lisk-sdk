@@ -14,6 +14,7 @@
 
 import { EVENT_STANDARD_TYPE_ID, standardEventDataSchema } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
+import { TransactionExecutionResult } from '../abi/constants';
 import { BaseCommand, BaseModule } from '../modules';
 import { GenesisConfig } from '../types';
 import { BlockContext } from './block_context';
@@ -95,13 +96,13 @@ export class StateMachine {
 	public async insertAssets(ctx: GenerationContext): Promise<void> {
 		const initContext = ctx.getInsertAssetContext();
 		for (const mod of this._systemModules) {
-			if (mod.initBlock) {
-				await mod.initBlock(initContext);
+			if (mod.insertAssets) {
+				await mod.insertAssets(initContext);
 			}
 		}
 		for (const mod of this._modules) {
-			if (mod.initBlock) {
-				await mod.initBlock(initContext);
+			if (mod.insertAssets) {
+				await mod.insertAssets(initContext);
 			}
 		}
 	}
@@ -139,43 +140,73 @@ export class StateMachine {
 		}
 	}
 
-	public async executeTransaction(ctx: TransactionContext): Promise<void> {
+	public async executeTransaction(ctx: TransactionContext): Promise<number> {
+		let status = TransactionExecutionResult.OK;
 		const transactionContext = ctx.createTransactionExecuteContext();
 		for (const mod of this._systemModules) {
 			if (mod.beforeCommandExecute) {
-				await mod.beforeCommandExecute(transactionContext);
+				try {
+					await mod.beforeCommandExecute(transactionContext);
+				} catch (error) {
+					status = TransactionExecutionResult.INVALID;
+				}
 			}
 		}
 		for (const mod of this._modules) {
 			if (mod.beforeCommandExecute) {
-				await mod.beforeCommandExecute(transactionContext);
+				try {
+					await mod.beforeCommandExecute(transactionContext);
+				} catch (error) {
+					status = TransactionExecutionResult.INVALID;
+				}
 			}
 		}
 		const command = this._getCommand(ctx.transaction.moduleID, ctx.transaction.commandID);
 		// Execute command
 		ctx.eventQueue.createSnapshot();
-		// TODO: When adding failing transaction with https://github.com/LiskHQ/lisk-sdk/issues/7149, it should add try-catch, restoresnapshot and fail event
+		ctx.stateStore.createSnapshot();
 		const commandContext = ctx.createCommandExecuteContext(command.schema);
-		await command.execute(commandContext);
-		// TODO: This should be moved to engine with https://github.com/LiskHQ/lisk-sdk/issues/7011
-		ctx.eventQueue.add(
-			ctx.transaction.moduleID,
-			EVENT_STANDARD_TYPE_ID,
-			codec.encode(standardEventDataSchema, { success: true }),
-			[ctx.transaction.id],
-		);
+		try {
+			await command.execute(commandContext);
+			ctx.eventQueue.add(
+				ctx.transaction.moduleID,
+				EVENT_STANDARD_TYPE_ID,
+				codec.encode(standardEventDataSchema, { success: true }),
+				[ctx.transaction.id],
+			);
+		} catch (error) {
+			ctx.eventQueue.restoreSnapshot();
+			ctx.stateStore.restoreSnapshot();
+			ctx.eventQueue.add(
+				ctx.transaction.moduleID,
+				EVENT_STANDARD_TYPE_ID,
+				codec.encode(standardEventDataSchema, { success: false }),
+				[ctx.transaction.id],
+			);
+			status = TransactionExecutionResult.FAIL;
+		}
 
 		// Execute after transaction hooks
 		for (const mod of this._modules) {
 			if (mod.afterCommandExecute) {
-				await mod.afterCommandExecute(transactionContext);
+				try {
+					await mod.afterCommandExecute(transactionContext);
+				} catch (error) {
+					status = TransactionExecutionResult.INVALID;
+				}
 			}
 		}
 		for (const mod of this._systemModules) {
 			if (mod.afterCommandExecute) {
-				await mod.afterCommandExecute(transactionContext);
+				try {
+					await mod.afterCommandExecute(transactionContext);
+				} catch (error) {
+					status = TransactionExecutionResult.INVALID;
+				}
 			}
 		}
+
+		return status;
 	}
 
 	public async verifyAssets(ctx: BlockContext): Promise<void> {

@@ -92,6 +92,7 @@ export class HighFeeGenerationStrategy {
 					dryRun: false,
 				});
 				if (executeResult === TransactionExecutionResult.INVALID) {
+					this._pool.remove(lowestNonceHighestFeeTrx.toObject() as Transaction);
 					throw new Error('Transaction is not valid');
 				}
 				events.push(...executedEvents.map(e => new Event(e)));

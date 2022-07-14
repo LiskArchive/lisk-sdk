@@ -159,4 +159,8 @@ export class TransactionContext {
 	public get eventQueue(): EventQueue {
 		return this._eventQueue;
 	}
+
+	public get stateStore(): PrefixedStateReadWriter {
+		return this._stateStore;
+	}
 }

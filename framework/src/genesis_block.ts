@@ -50,7 +50,7 @@ export const generateGenesisBlock = async (
 		})),
 	);
 	assets.sort();
-	const assetsRoot = await assets.getRoot();
+	const assetRoot = await assets.getRoot();
 	const height = input.height ?? 0;
 	const previousBlockID = input.previousBlockID ?? Buffer.alloc(32, 0);
 	const timestamp = input.timestamp ?? Math.floor(Date.now() / 1000);
@@ -64,7 +64,7 @@ export const generateGenesisBlock = async (
 		maxHeightPrevoted: height,
 		signature: EMPTY_BUFFER,
 		transactionRoot: EMPTY_HASH,
-		assetsRoot,
+		assetRoot,
 		aggregateCommit: {
 			height: 0,
 			aggregationBits: EMPTY_BUFFER,

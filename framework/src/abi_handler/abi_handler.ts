@@ -67,7 +67,6 @@ import {
 	QueryResponse,
 	ProveRequest,
 	ProveResponse,
-	TransactionExecutionResult,
 	ReadyRequest,
 	ReadyResponse,
 } from '../abi';
@@ -471,10 +470,10 @@ export class ABIHandler implements ABI {
 			maxHeightCertified: req.consensus.maxHeightCertified,
 			certificateThreshold: req.consensus.certificateThreshold,
 		});
-		await this._stateMachine.executeTransaction(context);
+		const status = await this._stateMachine.executeTransaction(context);
 		return {
 			events: context.eventQueue.getEvents().map(e => e.toObject()),
-			result: TransactionExecutionResult.OK,
+			result: status,
 		};
 	}
 

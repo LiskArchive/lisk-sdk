@@ -84,7 +84,7 @@ describe('block', () => {
 			});
 		});
 
-		describe('when assetsRoot is invalid', () => {
+		describe('when assetRoot is invalid', () => {
 			it('should throw error', async () => {
 				// Arrange
 				const assets = [
@@ -102,7 +102,7 @@ describe('block', () => {
 					transactions: txs,
 					assets: new BlockAssets(assets),
 				});
-				block['header']['_assetsRoot'] = getRandomBytes(32);
+				block['header']['_assetRoot'] = getRandomBytes(32);
 
 				// Act & assert
 				expect(() => block.validate()).toThrow('Invalid assets root');
@@ -118,7 +118,7 @@ describe('block', () => {
 			previousBlockID: getRandomBytes(32),
 			stateRoot: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
 			transactionRoot: EMPTY_HASH,
-			assetsRoot: EMPTY_HASH,
+			assetRoot: EMPTY_HASH,
 			generatorAddress: EMPTY_BUFFER,
 			maxHeightPrevoted: 1009988,
 			maxHeightGenerated: 0,
@@ -175,7 +175,7 @@ describe('block', () => {
 			});
 		});
 
-		describe('when assetsRoot is invalid', () => {
+		describe('when assetRoot is invalid', () => {
 			it('should throw error', async () => {
 				// Arrange
 				const assets = [
@@ -194,7 +194,7 @@ describe('block', () => {
 					assets: new BlockAssets(assets),
 				});
 				block['header']['_signature'] = EMPTY_BUFFER;
-				block['header']['_assetsRoot'] = getRandomBytes(32);
+				block['header']['_assetRoot'] = getRandomBytes(32);
 
 				// Act & assert
 				expect(() => block.validateGenesis()).toThrow('Invalid assets root');

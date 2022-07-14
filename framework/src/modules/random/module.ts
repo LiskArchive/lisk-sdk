@@ -110,7 +110,7 @@ export class RandomModule extends BaseModule {
 		this._maxLengthReveals = config.maxLengthReveals as number;
 	}
 
-	public async initBlock(context: InsertAssetContext): Promise<void> {
+	public async insertAssets(context: InsertAssetContext): Promise<void> {
 		const generatorSubStore = context.getGeneratorStore(this.id);
 		// Get used hash onions
 		let usedHashOnions: UsedHashOnion[] = [];

@@ -77,7 +77,7 @@ describe('_handlePostBlock', () => {
 		eventRoot: cryptography.hash(Buffer.alloc(0)),
 		maxHeightGenerated: 0,
 		maxHeightPrevoted: 0,
-		assetsRoot: cryptography.hash(Buffer.alloc(0)),
+		assetRoot: cryptography.hash(Buffer.alloc(0)),
 		validatorsHash: cryptography.getRandomBytes(32),
 		aggregateCommit: {
 			height: 0,
