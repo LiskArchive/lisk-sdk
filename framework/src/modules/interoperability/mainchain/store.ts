@@ -20,16 +20,15 @@ import {
 	CCM_STATUS_OK,
 	CHAIN_ACTIVE,
 	CHAIN_REGISTERED,
-	CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED,
+	CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED_BUFFER,
 	EMPTY_FEE_ADDRESS,
 	LIVENESS_LIMIT,
-	MODULE_ID_INTEROPERABILITY,
+	MODULE_ID_INTEROPERABILITY_BUFFER,
 } from '../constants';
 import { createCCMsgBeforeSendContext } from '../context';
 import { CCMForwardContext, CCMsg, SendInternalContext } from '../types';
 import {
 	getEncodedSidechainTerminatedCCMParam,
-	getIDAsKeyForStore,
 	handlePromiseErrorWithNull,
 	validateFormat,
 } from '../utils';
@@ -76,12 +75,11 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 			throw new Error('TokenCCAPI does not exist.');
 		}
 
-		const receivingChainIDAsStoreKey = ccm.receivingChainID;
 		const receivingChainAccount = await handlePromiseErrorWithNull(
-			this.getChainAccount(receivingChainIDAsStoreKey),
+			this.getChainAccount(ccm.receivingChainID),
 		);
 
-		const isLive = await this.isLive(receivingChainIDAsStoreKey, Date.now());
+		const isLive = await this.isLive(ccm.receivingChainID, Date.now());
 
 		if (receivingChainAccount?.status === CHAIN_ACTIVE && isLive) {
 			const isTokenTransferred = await handlePromiseErrorWithNull(
@@ -92,7 +90,7 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 				return ForwardCCMsgResult.COULD_NOT_TRANSFER_FORWARD_FEE;
 			}
 
-			await this.addToOutbox(receivingChainIDAsStoreKey, ccm);
+			await this.addToOutbox(ccm.receivingChainID, ccm);
 			return ForwardCCMsgResult.SUCCESS;
 		}
 
@@ -111,9 +109,14 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 		}
 
 		await this.sendInternal({
-			beforeSendContext: beforeCCMSendContext,
-			crossChainCommandID: getIDAsKeyForStore(CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED),
-			moduleID: getIDAsKeyForStore(MODULE_ID_INTEROPERABILITY),
+			eventQueue: ccmForwardContext.eventQueue,
+			feeAddress: ccmForwardContext.feeAddress,
+			getAPIContext: ccmForwardContext.getAPIContext,
+			getStore: ccmForwardContext.getStore,
+			logger: ccmForwardContext.logger,
+			networkIdentifier: ccmForwardContext.networkIdentifier,
+			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED_BUFFER,
+			moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
 			fee: BigInt(0),
 			params: getEncodedSidechainTerminatedCCMParam(ccm, receivingChainAccount),
 			receivingChainID: ccm.sendingChainID,
@@ -143,11 +146,10 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	}
 
 	public async sendInternal(sendContext: SendInternalContext): Promise<boolean> {
-		const receivingChainIDAsStoreKey = sendContext.receivingChainID;
 		let receivingChainAccount;
 		try {
 			// Chain has to exist on mainchain
-			receivingChainAccount = await this.getChainAccount(receivingChainIDAsStoreKey);
+			receivingChainAccount = await this.getChainAccount(sendContext.receivingChainID);
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
@@ -159,10 +161,9 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 		if (!sendContext.timestamp) {
 			throw new Error('Timestamp is missing from the function parameters');
 		}
-
 		// Chain must be live; This check is always on the receivingChainID
 		const isReceivingChainLive = await this.isLive(
-			receivingChainIDAsStoreKey,
+			sendContext.receivingChainID,
 			sendContext.timestamp,
 		);
 		if (!isReceivingChainLive) {
@@ -192,16 +193,26 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 			return false;
 		}
 
+		const beforeSendContext = createCCMsgBeforeSendContext({
+			ccm,
+			eventQueue: sendContext.eventQueue,
+			feeAddress: sendContext.feeAddress,
+			getAPIContext: sendContext.getAPIContext,
+			getStore: sendContext.getStore,
+			logger: sendContext.logger,
+			networkIdentifier: sendContext.networkIdentifier,
+		});
+
 		for (const mod of this.interoperableModuleAPIs.values()) {
 			if (mod?.beforeSendCCM) {
 				try {
-					await mod.beforeSendCCM(sendContext.beforeSendContext);
+					await mod.beforeSendCCM(beforeSendContext);
 				} catch (error) {
 					return false;
 				}
 			}
 		}
-		await this.addToOutbox(receivingChainIDAsStoreKey, ccm);
+		await this.addToOutbox(sendContext.receivingChainID, ccm);
 		ownChainAccount.nonce += BigInt(1);
 		await this.setOwnChainAccount(ownChainAccount);
 

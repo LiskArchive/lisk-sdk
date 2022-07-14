@@ -26,13 +26,13 @@ import {
 	MODULE_ID_INTEROPERABILITY_BUFFER,
 	STORE_PREFIX_TERMINATED_OUTBOX,
 } from '../../../../../../src/modules/interoperability/constants';
-import { MessageRecoveryCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/message_recovery';
+import { MainchainMessageRecoveryCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/message_recovery';
 import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
 import {
 	ccmSchema,
 	messageRecoveryParamsSchema,
 	terminatedOutboxSchema,
-} from '../../../../../../src/modules/interoperability/schema';
+} from '../../../../../../src/modules/interoperability/schemas';
 import { CCMsg, MessageRecoveryParams } from '../../../../../../src/modules/interoperability/types';
 import { CommandVerifyContext, VerifyStatus } from '../../../../../../src/state_machine/types';
 import { createTransactionContext } from '../../../../../../src/testing';
@@ -49,7 +49,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
 		let terminatedOutboxSubstore: any;
 		let mockGetStore: any;
-		let messageRecoveryCommand: MessageRecoveryCommand;
+		let messageRecoveryCommand: MainchainMessageRecoveryCommand;
 		let commandVerifyContext: CommandVerifyContext<MessageRecoveryParams>;
 		let interoperableCCAPIs: Map<number, BaseInteroperableAPI>;
 		let ccCommands: Map<number, BaseCCCommand[]>;
@@ -85,7 +85,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				mockGetStore,
 				new Map(),
 			);
-			messageRecoveryCommand = new MessageRecoveryCommand(
+			messageRecoveryCommand = new MainchainMessageRecoveryCommand(
 				MODULE_ID_INTEROPERABILITY_BUFFER,
 				interoperableCCAPIs,
 				ccCommands,
@@ -354,7 +354,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		const moduleID = intToBuffer(1, 4);
 		const networkID = getRandomBytes(32);
 
-		let messageRecoveryCommand: MessageRecoveryCommand;
+		let messageRecoveryCommand: MainchainMessageRecoveryCommand;
 		let commandExecuteContext: CommandExecuteContext<MessageRecoveryParams>;
 		let interoperableCCAPIs: Map<number, BaseInteroperableAPI>;
 		let ccCommands: Map<number, BaseCCCommand[]>;
@@ -369,7 +369,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			interoperableCCAPIs = new Map();
 			ccCommands = new Map();
 
-			messageRecoveryCommand = new MessageRecoveryCommand(
+			messageRecoveryCommand = new MainchainMessageRecoveryCommand(
 				MODULE_ID_INTEROPERABILITY_BUFFER,
 				interoperableCCAPIs,
 				ccCommands,

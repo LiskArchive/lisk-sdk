@@ -43,7 +43,7 @@ import {
 	registrationCCMParamsSchema,
 	sidechainRegParams,
 	validatorsSchema,
-} from '../../schema';
+} from '../../schemas';
 import { SidechainRegistrationParams, StoreCallback } from '../../types';
 import { computeValidatorsHash, isValidName } from '../../utils';
 import {
@@ -226,16 +226,6 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			name,
 			messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: intToBuffer(0, 4) },
 		});
-		const ccm = {
-			nonce: BigInt(0),
-			moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
-			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
-			sendingChainID: MAINCHAIN_ID_BUFFER,
-			receivingChainID: chainIDBuffer,
-			fee: BigInt(0),
-			status: CCM_STATUS_OK,
-			params: encodedParams,
-		};
 
 		await interoperabilityStore.sendInternal({
 			moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
@@ -245,7 +235,12 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			status: CCM_STATUS_OK,
 			params: encodedParams,
 			timestamp: header.timestamp,
-			beforeSendContext: { ...context, ccm, feeAddress: EMPTY_FEE_ADDRESS },
+			eventQueue: context.eventQueue,
+			feeAddress: EMPTY_FEE_ADDRESS,
+			getAPIContext: context.getAPIContext,
+			getStore: context.getStore,
+			logger: context.logger,
+			networkIdentifier: context.networkIdentifier,
 		});
 
 		// Add an entry in the chain validators substore

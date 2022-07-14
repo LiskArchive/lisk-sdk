@@ -28,7 +28,7 @@ import {
 	chainAccountSchema,
 	stateRecoveryInitParams,
 	terminatedStateSchema,
-} from '../../../../../../src/modules/interoperability/schema';
+} from '../../../../../../src/modules/interoperability/schemas';
 import { createTransactionContext } from '../../../../../../src/testing';
 import { getIDAsKeyForStore } from '../../../../../../src/modules/interoperability/utils';
 import {

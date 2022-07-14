@@ -54,6 +54,18 @@ export {
 	VoteCommand,
 	genesisStoreSchema as dposGenesisStoreSchema,
 } from './modules/dpos_v2';
+export {
+	MainchainCCUpdateCommand,
+	MainchainInteroperabilityAPI,
+	MainchainInteroperabilityModule,
+	MainchainMessageRecoveryCommand,
+	MainchainRegistrationCommand,
+	SidechainCCUpdateCommand,
+	SidechainInteroperabilityAPI,
+	SidechainInteroperabilityModule,
+	SidechainMessageRecoveryCommand,
+	SidechainRegistrationCommand,
+} from './modules/interoperability';
 export { RewardAPI, RewardModule } from './modules/reward';
 export { FeeAPI, FeeModule } from './modules/fee';
 export { RandomAPI, RandomModule } from './modules/random';
