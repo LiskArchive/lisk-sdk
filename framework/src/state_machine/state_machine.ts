@@ -140,7 +140,7 @@ export class StateMachine {
 		}
 	}
 
-	public async executeTransaction(ctx: TransactionContext): Promise<number> {
+	public async executeTransaction(ctx: TransactionContext): Promise<TransactionExecutionResult> {
 		let status = TransactionExecutionResult.OK;
 		const transactionContext = ctx.createTransactionExecuteContext();
 		for (const mod of this._systemModules) {
@@ -149,6 +149,7 @@ export class StateMachine {
 					await mod.beforeCommandExecute(transactionContext);
 				} catch (error) {
 					status = TransactionExecutionResult.INVALID;
+					return status;
 				}
 			}
 		}
@@ -158,6 +159,7 @@ export class StateMachine {
 					await mod.beforeCommandExecute(transactionContext);
 				} catch (error) {
 					status = TransactionExecutionResult.INVALID;
+					return status;
 				}
 			}
 		}
@@ -193,6 +195,7 @@ export class StateMachine {
 					await mod.afterCommandExecute(transactionContext);
 				} catch (error) {
 					status = TransactionExecutionResult.INVALID;
+					return status;
 				}
 			}
 		}
