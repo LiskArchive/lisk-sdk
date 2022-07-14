@@ -90,8 +90,9 @@ export class DPoSEndpoint extends BaseEndpoint {
 		return { delegates: response };
 	}
 
+	// eslint-disable-next-line @typescript-eslint/require-await
 	public async getConstants(): Promise<ModuleConfigJSON> {
-		return Promise.resolve({
+		return {
 			factorSelfVotes: this._moduleConfig.factorSelfVotes,
 			maxLengthName: this._moduleConfig.maxLengthName,
 			maxNumberSentVotes: this._moduleConfig.maxNumberSentVotes,
@@ -105,6 +106,6 @@ export class DPoSEndpoint extends BaseEndpoint {
 			numberActiveDelegates: this._moduleConfig.numberActiveDelegates,
 			numberStandbyDelegates: this._moduleConfig.numberStandbyDelegates,
 			tokenIDDPoS: this._moduleConfig.tokenIDDPoS.toString('hex'),
-		});
+		};
 	}
 }
