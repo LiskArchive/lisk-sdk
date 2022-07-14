@@ -35,7 +35,7 @@ import {
 export class SidechainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainAPI: BaseInteroperableAPI = new SidechainCCAPI(this.id);
 	public api = new SidechainInteroperabilityAPI(this.id, this.interoperableCCAPIs);
-	public endpoint = new SidechainInteroperabilityEndpoint(this.id);
+	public endpoint = new SidechainInteroperabilityEndpoint(this.id, this.interoperableCCAPIs);
 	// private readonly _mainchainRegistrationCommand = new MainchainRegistrationCommand(
 	// 	this.id,
 	// 	new Map(),
