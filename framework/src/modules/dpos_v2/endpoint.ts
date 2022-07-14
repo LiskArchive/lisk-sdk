@@ -30,7 +30,7 @@ export class DPoSEndpoint extends BaseEndpoint {
 	private _moduleConfig!: ModuleConfig;
 
 	public init(moduleConfig: ModuleConfig) {
-		this._moduleConfig = moduleConfig
+		this._moduleConfig = moduleConfig;
 	}
 
 	public async getVoter(ctx: ModuleEndpointContext): Promise<VoterDataJSON> {
@@ -91,7 +91,7 @@ export class DPoSEndpoint extends BaseEndpoint {
 	}
 
 	public async getConstants(): Promise<ModuleConfigJSON> {
-		return {
+		return Promise.resolve({
 			factorSelfVotes: this._moduleConfig.factorSelfVotes,
 			maxLengthName: this._moduleConfig.maxLengthName,
 			maxNumberSentVotes: this._moduleConfig.maxNumberSentVotes,
@@ -105,6 +105,6 @@ export class DPoSEndpoint extends BaseEndpoint {
 			numberActiveDelegates: this._moduleConfig.numberActiveDelegates,
 			numberStandbyDelegates: this._moduleConfig.numberStandbyDelegates,
 			tokenIDDPoS: this._moduleConfig.tokenIDDPoS.toString('hex'),
-		};
+		});
 	}
 }
