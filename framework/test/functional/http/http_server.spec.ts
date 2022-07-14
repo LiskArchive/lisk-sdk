@@ -53,7 +53,7 @@ describe('HTTP server', () => {
 			const requestData = { jsonrpc: '2.0', method: 'app_getNodeInfo' };
 
 			// Act
-			const result = await requestHTTPServer(app.config.rpc.http!, requestData);
+			const result = await requestHTTPServer(app.config.rpc, requestData);
 
 			// Assert
 			expect(result).toEqual({
@@ -67,7 +67,7 @@ describe('HTTP server', () => {
 			const requestData = { jsonrpc: '2.0', id: 1234 };
 
 			// Act
-			const result = await requestHTTPServer(app.config.rpc.http!, requestData);
+			const result = await requestHTTPServer(app.config.rpc, requestData);
 
 			// Assert
 			expect(result).toEqual({
@@ -85,7 +85,7 @@ describe('HTTP server', () => {
 			const requestData = { jsonrpc: '2.0', method: 'app_unknownMethod', id: 67879 };
 
 			// Act
-			const result = await requestHTTPServer(app.config.rpc.http!, requestData);
+			const result = await requestHTTPServer(app.config.rpc, requestData);
 
 			// Assert
 			expect(result).toEqual({
@@ -104,7 +104,7 @@ describe('HTTP server', () => {
 			const requestData = { jsonrpc: '2.0', method: 'app_getNodeInfo', id: 6729833 };
 
 			// Act
-			const result = await requestHTTPServer(app.config.rpc.http!, requestData);
+			const result = await requestHTTPServer(app.config.rpc, requestData);
 
 			// Assert
 			expect(result).toContainAllKeys(['jsonrpc', 'id', 'result']);
