@@ -58,6 +58,7 @@ import {
 	checkValidatorsHashWithCertificate,
 	checkValidCertificateLiveness,
 	commonCCUExecutelogic,
+	getCCMSize,
 	isInboxUpdateEmpty,
 	validateFormat,
 	verifyCertificateSignature,
@@ -268,6 +269,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 				{
 					ccm: ccm.deserialized,
 					ccu: txParams,
+					ccmSize: getCCMSize(ccm.deserialized),
 					eventQueue: context.eventQueue,
 					feeAddress: context.transaction.senderAddress,
 					getAPIContext: context.getAPIContext,
