@@ -20,6 +20,17 @@ import { SidechainInteroperabilityAPI } from './api';
 import { SidechainCCAPI } from './cc_api';
 // import { MainchainRegistrationCommand } from './commands/mainchain_registration';
 import { SidechainInteroperabilityEndpoint } from './endpoint';
+import {
+	getChainAccountRequestSchema,
+	getChannelRequestSchema,
+	getTerminatedStateAccountRequestSchema,
+	getTerminatedOutboxAccountRequestSchema,
+	chainAccountSchema,
+	channelSchema,
+	ownChainAccountSchema,
+	terminatedStateSchema,
+	terminatedOutboxSchema,
+} from '../schema';
 
 export class SidechainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainAPI: BaseInteroperableAPI = new SidechainCCAPI(this.id);
@@ -38,7 +49,32 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 
 	public metadata(): ModuleMetadata {
 		return {
-			endpoints: [],
+			endpoints: [
+				{
+					name: this.endpoint.getChainAccount.name,
+					request: getChainAccountRequestSchema,
+					response: chainAccountSchema,
+				},
+				{
+					name: this.endpoint.getChannel.name,
+					request: getChannelRequestSchema,
+					response: channelSchema,
+				},
+				{
+					name: this.endpoint.getOwnChainAccount.name,
+					response: ownChainAccountSchema,
+				},
+				{
+					name: this.endpoint.getTerminatedStateAccount.name,
+					request: getTerminatedStateAccountRequestSchema,
+					response: terminatedStateSchema,
+				},
+				{
+					name: this.endpoint.getTerminatedOutboxAccount.name,
+					request: getTerminatedOutboxAccountRequestSchema,
+					response: terminatedOutboxSchema,
+				},
+			],
 			commands: this.commands.map(command => ({
 				id: command.id,
 				name: command.name,
