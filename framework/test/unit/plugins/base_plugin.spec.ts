@@ -14,7 +14,7 @@
  */
 
 import * as apiClient from '@liskhq/lisk-api-client';
-import { BasePlugin, GenerationConfig, GenesisConfig } from '../../../src';
+import { BasePlugin, GenerationConfig, GenesisConfig, systemDirs } from '../../../src';
 import * as loggerModule from '../../../src/logger';
 import { getPluginExportPath } from '../../../src/plugins/base_plugin';
 import { fakeLogger } from '../../utils/mocks';
@@ -28,18 +28,8 @@ const appConfigForPlugin = {
 	},
 	rpc: {
 		modes: ['ipc'],
-		ws: {
-			port: 8080,
-			host: '127.0.0.1',
-			path: '/ws',
-		},
-		http: {
-			port: 8000,
-			host: '127.0.0.1',
-		},
-		ipc: {
-			path: '/some/path',
-		},
+		port: 7887,
+		host: '127.0.0.1',
 	},
 	forging: {
 		force: false,
@@ -123,7 +113,9 @@ describe('base_plugin', () => {
 				});
 
 				// Assert
-				expect(apiClient.createIPCClient).toHaveBeenCalledWith(appConfigForPlugin.rpc.ipc.path);
+				expect(apiClient.createIPCClient).toHaveBeenCalledWith(
+					systemDirs(appConfigForPlugin.label, appConfigForPlugin.rootPath).sockets,
+				);
 			});
 
 			it('should reject config given does not satisfy configSchema defined', async () => {
