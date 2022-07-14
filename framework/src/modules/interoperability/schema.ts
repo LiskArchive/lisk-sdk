@@ -746,3 +746,33 @@ export const stateRecoveryInitParams = {
 		},
 	},
 };
+
+export const getChainAccountRequestSchema = {
+	$id: '/modules/interoperability/endpoint/getChainAccountRequest',
+	type: 'object',
+	required: ['chainID'],
+	properties: {
+		chainID: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export const getChainAccountResponseSchema = {
+	$id: '/modules/interoperability/endpoint/getChainAccountRequest',
+	type: 'object',
+	required: ['chainID'],
+	properties: {
+		name: {
+			dataType: 'string',
+			fieldNumber: 1,
+		},
+	},
+};
+
+export const getChannelRequestSchema = getChainAccountRequestSchema;
+
+export const getTerminatedStateAccountRequestSchema = getChainAccountRequestSchema;
+
+export const getTerminatedOutboxAccountRequestSchema = getChainAccountRequestSchema;
