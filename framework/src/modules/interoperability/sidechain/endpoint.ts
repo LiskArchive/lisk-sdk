@@ -13,5 +13,49 @@
  */
 
 import { BaseEndpoint } from '../../base_endpoint';
+import { SidechainInteroperabilityStore } from './store';
+import { StoreCallback } from '../types';
+import { BaseInteroperableAPI } from '../base_interoperable_api';
+import { ModuleEndpointContext } from '../../../types';
 
-export class SidechainInteroperabilityEndpoint extends BaseEndpoint {}
+export class SidechainInteroperabilityEndpoint extends BaseEndpoint {
+	protected readonly interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
+
+	public constructor(moduleID: Buffer, interoperableCCAPIs: Map<number, BaseInteroperableAPI>) {
+		super(moduleID);
+		this.interoperableCCAPIs = interoperableCCAPIs;
+	}
+
+	public async getChainAccount(context: ModuleEndpointContext, chainID: Buffer) {
+		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+		await interoperabilityStore.getChainAccount(chainID);
+	}
+
+	public async getChannel(context: ModuleEndpointContext, chainID: Buffer) {
+		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+
+		await interoperabilityStore.getChannel(chainID);
+	}
+
+	public async getOwnChainAccount(context: ModuleEndpointContext) {
+		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+
+		await interoperabilityStore.getOwnChainAccount();
+	}
+
+	public async getTerminatedStateAccount(context: ModuleEndpointContext, chainID: Buffer) {
+		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+
+		await interoperabilityStore.getTerminatedStateAccount(chainID);
+	}
+
+	public async getTerminatedOutboxAccount(context: ModuleEndpointContext, chainID: Buffer) {
+		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+
+		await interoperabilityStore.getTerminatedOutboxAccount(chainID);
+	}
+
+	protected getInteroperabilityStore(getStore: StoreCallback): SidechainInteroperabilityStore {
+		return new SidechainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
+	}
+}
