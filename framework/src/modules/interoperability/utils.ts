@@ -48,7 +48,7 @@ import {
 	channelSchema,
 	sidechainTerminatedCCMParamsSchema,
 	validatorsHashInputSchema,
-} from './schema';
+} from './schemas';
 import { BlockHeader, VerificationResult, VerifyStatus } from '../../state_machine';
 import { Certificate } from '../../engine/consensus/certificate_generation/types';
 import { certificateSchema } from '../../engine/consensus/certificate_generation/schema';
@@ -82,7 +82,7 @@ export const validateFormat = (ccm: CCMsg) => {
 export const getCCMSize = (ccm: CCMsg) => {
 	const serializedCCM = codec.encode(ccmSchema, ccm);
 
-	return serializedCCM.byteLength;
+	return BigInt(serializedCCM.byteLength);
 };
 
 export const updateActiveValidators = (

@@ -15,7 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { SidechainCCRegistrationCommand } from '../../../../../../src/modules/interoperability/sidechain/cc_commands/registration';
-import { registrationCCMParamsSchema } from '../../../../../../src/modules/interoperability/schema';
+import { registrationCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import { SidechainInteroperabilityStore } from '../../../../../../src/modules/interoperability/sidechain/store';
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
 import { createExecuteCCMsgAPIContext } from '../../../../../../src/testing';

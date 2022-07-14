@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER } from '../../constants';
-import { registrationCCMParamsSchema } from '../../schema';
+import { registrationCCMParamsSchema } from '../../schemas';
 import { CCCommandExecuteContext, StoreCallback, MessageFeeTokenID } from '../../types';
 import { createCCMsgBeforeSendContext } from '../../context';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';

@@ -36,8 +36,8 @@ import {
 	outboxRootSchema,
 	terminatedOutboxSchema,
 	terminatedStateSchema,
-} from '../../../../src/modules/interoperability/schema';
-import { getIDAsKeyForStore } from '../../../../src/modules/interoperability/utils';
+} from '../../../../src/modules/interoperability/schemas';
+import { getCCMSize, getIDAsKeyForStore } from '../../../../src/modules/interoperability/utils';
 import { testing } from '../../../../src';
 import {
 	CCMApplyContext,
@@ -227,7 +227,6 @@ describe('Base interoperability store', () => {
 
 	describe('createTerminatedStateAccount', () => {
 		const chainId = intToBuffer(5, 4);
-		const chainIdAsStoreKey = chainId;
 		const chainAccount = {
 			name: 'account1',
 			networkID: Buffer.alloc(0),
@@ -253,11 +252,11 @@ describe('Base interoperability store', () => {
 		};
 
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account exists for the id and state root is provided', async () => {
-			await chainSubstore.setWithSchema(chainIdAsStoreKey, chainAccount, chainAccountSchema);
+			await chainSubstore.setWithSchema(chainId, chainAccount, chainAccountSchema);
 			await mainchainInteroperabilityStore.createTerminatedStateAccount(chainId, stateRoot);
 
 			await expect(
-				terminatedStateSubstore.getWithSchema(chainIdAsStoreKey, terminatedStateSchema),
+				terminatedStateSubstore.getWithSchema(chainId, terminatedStateSchema),
 			).resolves.toStrictEqual({
 				stateRoot,
 				mainchainStateRoot: EMPTY_BYTES,
@@ -266,11 +265,11 @@ describe('Base interoperability store', () => {
 		});
 
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account exists for the id but state root is not provided', async () => {
-			await chainSubstore.setWithSchema(chainIdAsStoreKey, chainAccount, chainAccountSchema);
+			await chainSubstore.setWithSchema(chainId, chainAccount, chainAccountSchema);
 			await mainchainInteroperabilityStore.createTerminatedStateAccount(chainId);
 
 			await expect(
-				terminatedStateSubstore.getWithSchema(chainIdAsStoreKey, terminatedStateSchema),
+				terminatedStateSubstore.getWithSchema(chainId, terminatedStateSchema),
 			).resolves.toStrictEqual({
 				stateRoot: chainAccount.lastCertificate.stateRoot,
 				mainchainStateRoot: EMPTY_BYTES,
@@ -291,7 +290,6 @@ describe('Base interoperability store', () => {
 
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account does not exist for the id but ownchain account id is the same as mainchain id', async () => {
 			const chainIdNew = intToBuffer(10, 4);
-			const chainIdNewAsStoreKey = chainIdNew;
 			jest
 				.spyOn(mainchainInteroperabilityStore, 'getOwnChainAccount')
 				.mockResolvedValue(ownChainAccount2 as never);
@@ -303,7 +301,7 @@ describe('Base interoperability store', () => {
 			await mainchainInteroperabilityStore.createTerminatedStateAccount(chainIdNew);
 
 			await expect(
-				terminatedStateSubstore.getWithSchema(chainIdNewAsStoreKey, terminatedStateSchema),
+				terminatedStateSubstore.getWithSchema(chainIdNew, terminatedStateSchema),
 			).resolves.toStrictEqual({
 				stateRoot: EMPTY_BYTES,
 				mainchainStateRoot: chainAccount.lastCertificate.stateRoot,
@@ -438,17 +436,20 @@ describe('Base interoperability store', () => {
 			ccm,
 			ccu,
 			payFromAddress: EMPTY_FEE_ADDRESS,
+			trsSender: getRandomBytes(20),
 		});
 
 		const ccmApplyContext: CCMApplyContext = {
 			ccm,
 			ccu,
+			ccmSize: getCCMSize(ccm),
 			eventQueue: beforeSendCCMContext.eventQueue,
 			getAPIContext: beforeSendCCMContext.getAPIContext,
 			getStore: beforeSendCCMContext.getStore,
 			logger: beforeSendCCMContext.logger,
 			networkIdentifier: beforeSendCCMContext.networkIdentifier,
 			feeAddress: Buffer.alloc(0),
+			trsSender: beforeApplyCCMContext.trsSender,
 		};
 
 		beforeEach(async () => {

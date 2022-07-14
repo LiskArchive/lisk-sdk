@@ -33,20 +33,20 @@ import {
 	STORE_PREFIX_CHAIN_VALIDATORS,
 	STORE_PREFIX_CHANNEL_DATA,
 } from '../../constants';
-import { createCCMsgBeforeSendContext } from '../../context';
 import {
 	ccmSchema,
 	chainAccountSchema,
 	chainValidatorsSchema,
 	channelSchema,
 	crossChainUpdateTransactionParams,
-} from '../../schema';
+} from '../../schemas';
 import {
 	CCMsg,
 	ChainAccount,
 	ChainValidators,
 	ChannelData,
 	CrossChainUpdateTransactionParams,
+	ImmutableStoreCallback,
 	StoreCallback,
 } from '../../types';
 import {
@@ -58,6 +58,7 @@ import {
 	checkValidatorsHashWithCertificate,
 	checkValidCertificateLiveness,
 	commonCCUExecutelogic,
+	getCCMSize,
 	isInboxUpdateEmpty,
 	validateFormat,
 	verifyCertificateSignature,
@@ -88,7 +89,6 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 			partnerChainIDBuffer,
 			chainAccountSchema,
 		);
-
 		// Section: Liveness of Partner Chain
 		if (partnerChainAccount.status === CHAIN_TERMINATED) {
 			return {
@@ -195,14 +195,6 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		checkCertificateTimestamp(txParams, decodedCertificate, header);
 
 		// CCM execution
-		const beforeSendContext = createCCMsgBeforeSendContext({
-			feeAddress: context.transaction.senderAddress,
-			eventQueue: context.eventQueue,
-			getAPIContext: context.getAPIContext,
-			logger: context.logger,
-			networkIdentifier: context.networkIdentifier,
-			getStore: context.getStore,
-		});
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
 		let decodedCCMs;
 		try {
@@ -211,10 +203,13 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 				deserialized: codec.decode<CCMsg>(ccmSchema, ccm),
 			}));
 		} catch (err) {
-			await interoperabilityStore.terminateChainInternal(
-				txParams.sendingChainID,
-				beforeSendContext,
-			);
+			await interoperabilityStore.terminateChainInternal(txParams.sendingChainID, {
+				eventQueue: context.eventQueue,
+				getAPIContext: context.getAPIContext,
+				getStore: context.getStore,
+				logger: context.logger,
+				networkIdentifier: context.networkIdentifier,
+			});
 
 			throw err;
 		}
@@ -231,10 +226,13 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 			) {
 				partnerChainAccount.status = CHAIN_ACTIVE;
 			} else {
-				await interoperabilityStore.terminateChainInternal(
-					txParams.sendingChainID,
-					beforeSendContext,
-				);
+				await interoperabilityStore.terminateChainInternal(txParams.sendingChainID, {
+					eventQueue: context.eventQueue,
+					getAPIContext: context.getAPIContext,
+					getStore: context.getStore,
+					logger: context.logger,
+					networkIdentifier: context.networkIdentifier,
+				});
 
 				return; // Exit CCU processing
 			}
@@ -242,20 +240,26 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 
 		for (const ccm of decodedCCMs) {
 			if (!txParams.sendingChainID.equals(ccm.deserialized.sendingChainID)) {
-				await interoperabilityStore.terminateChainInternal(
-					txParams.sendingChainID,
-					beforeSendContext,
-				);
+				await interoperabilityStore.terminateChainInternal(txParams.sendingChainID, {
+					eventQueue: context.eventQueue,
+					getAPIContext: context.getAPIContext,
+					getStore: context.getStore,
+					logger: context.logger,
+					networkIdentifier: context.networkIdentifier,
+				});
 
 				continue;
 			}
 			try {
 				validateFormat(ccm.deserialized);
 			} catch (error) {
-				await interoperabilityStore.terminateChainInternal(
-					txParams.sendingChainID,
-					beforeSendContext,
-				);
+				await interoperabilityStore.terminateChainInternal(txParams.sendingChainID, {
+					eventQueue: context.eventQueue,
+					getAPIContext: context.getAPIContext,
+					getStore: context.getStore,
+					logger: context.logger,
+					networkIdentifier: context.networkIdentifier,
+				});
 
 				continue;
 			}
@@ -265,12 +269,14 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 				{
 					ccm: ccm.deserialized,
 					ccu: txParams,
+					ccmSize: getCCMSize(ccm.deserialized),
 					eventQueue: context.eventQueue,
 					feeAddress: context.transaction.senderAddress,
 					getAPIContext: context.getAPIContext,
 					getStore: context.getStore,
 					logger: context.logger,
 					networkIdentifier: context.networkIdentifier,
+					trsSender: context.transaction.senderAddress,
 				},
 				this.ccCommands,
 			);
@@ -287,7 +293,9 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		});
 	}
 
-	protected getInteroperabilityStore(getStore: StoreCallback): SidechainInteroperabilityStore {
+	protected getInteroperabilityStore(
+		getStore: StoreCallback | ImmutableStoreCallback,
+	): SidechainInteroperabilityStore {
 		return new SidechainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
 	}
 }

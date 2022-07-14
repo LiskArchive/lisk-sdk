@@ -13,6 +13,8 @@
  */
 import { codec } from '@liskhq/lisk-codec';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { BaseCCCommand } from '../../interoperability/base_cc_command';
+import { CCCommandExecuteContext } from '../../interoperability/types';
 import { TokenAPI } from '../api';
 import {
 	CCM_STATUS_OK,
@@ -23,7 +25,6 @@ import {
 	CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
 	CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
 } from '../constants';
-import { BaseCCCommand, CCCommandExecuteContext } from '../interop_types';
 import {
 	CCForwardMessageParams,
 	crossChainForwardMessageParams,

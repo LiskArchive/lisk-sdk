@@ -34,9 +34,10 @@ import {
 	STORE_PREFIX_CHAIN_DATA,
 	STORE_PREFIX_TERMINATED_STATE,
 } from '../../constants';
-import { chainAccountSchema, stateRecoveryInitParams, terminatedStateSchema } from '../../schema';
+import { chainAccountSchema, stateRecoveryInitParams, terminatedStateSchema } from '../../schemas';
 import {
 	ChainAccount,
+	ImmutableStoreCallback,
 	StateRecoveryInitParams,
 	StoreCallback,
 	TerminatedStateAccount,
@@ -56,7 +57,6 @@ export class StateRecoveryInitCommand extends BaseInteroperabilityCommand {
 			getStore,
 			params: { chainID, sidechainChainAccount, bitmap, siblingHashes },
 		} = context;
-		const chainIDBuffer = chainID;
 		const interoperabilityStore = this.getInteroperabilityStore(getStore);
 		const ownChainAccount = await interoperabilityStore.getOwnChainAccount();
 
@@ -71,11 +71,11 @@ export class StateRecoveryInitCommand extends BaseInteroperabilityCommand {
 			MODULE_ID_INTEROPERABILITY_BUFFER,
 			STORE_PREFIX_TERMINATED_STATE,
 		);
-		const terminatedStateAccountExists = await terminatedStateSubstore.has(chainIDBuffer);
+		const terminatedStateAccountExists = await terminatedStateSubstore.has(chainID);
 		let terminatedStateAccount: TerminatedStateAccount;
 		if (terminatedStateAccountExists) {
 			terminatedStateAccount = await terminatedStateSubstore.getWithSchema<TerminatedStateAccount>(
-				chainIDBuffer,
+				chainID,
 				terminatedStateSchema,
 			);
 			if (terminatedStateAccount.initialized) {
@@ -110,7 +110,7 @@ export class StateRecoveryInitCommand extends BaseInteroperabilityCommand {
 		const interopAccKey = Buffer.concat([
 			intToBuffer(MODULE_ID_INTEROPERABILITY, 4),
 			intToBuffer(STORE_PREFIX_CHAIN_DATA, 4),
-			chainIDBuffer,
+			chainID,
 		]);
 
 		const query = { key: interopAccKey, value: hash(sidechainChainAccount), bitmap };
@@ -119,7 +119,7 @@ export class StateRecoveryInitCommand extends BaseInteroperabilityCommand {
 
 		if (terminatedStateAccountExists) {
 			terminatedStateAccount = await terminatedStateSubstore.getWithSchema<TerminatedStateAccount>(
-				chainIDBuffer,
+				chainID,
 				terminatedStateSchema,
 			);
 			if (!terminatedStateAccount.mainchainStateRoot) {
@@ -188,7 +188,9 @@ export class StateRecoveryInitCommand extends BaseInteroperabilityCommand {
 		);
 	}
 
-	protected getInteroperabilityStore(getStore: StoreCallback): MainchainInteroperabilityStore {
+	protected getInteroperabilityStore(
+		getStore: StoreCallback | ImmutableStoreCallback,
+	): MainchainInteroperabilityStore {
 		return new MainchainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
 	}
 }

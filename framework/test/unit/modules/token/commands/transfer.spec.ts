@@ -60,7 +60,7 @@ describe('Transfer command', () => {
 			getChannel: jest.fn(),
 		};
 		const api = new TokenAPI(moduleID);
-		api.addDependencies(interopAPI);
+		api.addDependencies(interopAPI as never);
 		api.init({
 			minBalances: [
 				{ tokenID: localTokenID, amount: BigInt(MIN_BALANCE) },

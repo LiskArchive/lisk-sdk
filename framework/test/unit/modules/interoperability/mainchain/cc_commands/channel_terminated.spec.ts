@@ -44,7 +44,6 @@ describe('MainchainCCChannelTerminatedCommand', () => {
 		params: Buffer.alloc(0),
 	};
 	const sampleExecuteContext: CCCommandExecuteContext = createExecuteCCMsgAPIContext({
-		ccm,
 		networkIdentifier,
 	});
 
