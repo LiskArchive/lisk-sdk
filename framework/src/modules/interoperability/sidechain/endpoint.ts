@@ -28,31 +28,41 @@ export class SidechainInteroperabilityEndpoint extends BaseEndpoint {
 
 	public async getChainAccount(context: ModuleEndpointContext, chainID: Buffer) {
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
-		await interoperabilityStore.getChainAccount(chainID);
+		const result = await interoperabilityStore.getChainAccount(chainID);
+
+		return result;
 	}
 
 	public async getChannel(context: ModuleEndpointContext, chainID: Buffer) {
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
 
-		await interoperabilityStore.getChannel(chainID);
+		const result = await interoperabilityStore.getChannel(chainID);
+
+		return result;
 	}
 
 	public async getOwnChainAccount(context: ModuleEndpointContext) {
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
 
-		await interoperabilityStore.getOwnChainAccount();
+		const result = await interoperabilityStore.getOwnChainAccount();
+
+		return result;
 	}
 
 	public async getTerminatedStateAccount(context: ModuleEndpointContext, chainID: Buffer) {
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
 
-		await interoperabilityStore.getTerminatedStateAccount(chainID);
+		const result = await interoperabilityStore.getTerminatedStateAccount(chainID);
+
+		return result;
 	}
 
 	public async getTerminatedOutboxAccount(context: ModuleEndpointContext, chainID: Buffer) {
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
 
-		await interoperabilityStore.getTerminatedOutboxAccount(chainID);
+		const result = await interoperabilityStore.getTerminatedOutboxAccount(chainID);
+
+		return result;
 	}
 
 	protected getInteroperabilityStore(
