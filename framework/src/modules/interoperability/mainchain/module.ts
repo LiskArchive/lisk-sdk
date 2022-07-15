@@ -34,10 +34,6 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 	public crossChainAPI = new MainchainCCAPI(this.id);
 	public api = new MainchainInteroperabilityAPI(this.id, this.interoperableCCAPIs);
 	public endpoint = new MainchainInteroperabilityEndpoint(this.id, this.interoperableCCAPIs);
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public registerInteroperableModule(): void {
-		// TODO
-	}
 
 	public metadata(): ModuleMetadata {
 		return {
