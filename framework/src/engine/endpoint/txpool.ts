@@ -135,7 +135,7 @@ export class TxpoolEndpoint {
 		);
 
 		const response = await this._abi.executeTransaction({
-			contextID: Buffer.alloc(1),
+			contextID: Buffer.alloc(0),
 			transaction: transaction.toObject(),
 			assets: this._chain.lastBlock.assets.getAll(),
 			dryRun: true,
