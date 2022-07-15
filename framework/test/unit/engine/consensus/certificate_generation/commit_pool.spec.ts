@@ -81,6 +81,9 @@ describe('CommitPool', () => {
 		getBlockHeaderByHeight = jest.fn();
 
 		chain = {
+			lastBlock: {
+				header: { height: 1019 },
+			},
 			networkIdentifier,
 			dataAccess: {
 				getBlockHeaderByHeight,
@@ -165,9 +168,9 @@ describe('CommitPool', () => {
 				.mockResolvedValue({ aggregateCommit: { height: maxHeightCertified } } as never);
 
 			commitPool['_bftAPI'].getBFTHeights = jest.fn().mockResolvedValue({ maxHeightPrecommitted });
-			commitPool['_bftAPI'].getCurrentValidators = jest
-				.fn()
-				.mockResolvedValue(Array.from({ length: numActiveValidators }, () => getRandomBytes(32)));
+			commitPool['_bftAPI'].getBFTParameters = jest.fn().mockResolvedValue({
+				validators: Array.from({ length: numActiveValidators }, () => getRandomBytes(32)),
+			});
 		});
 
 		it('should clean all the commits from nonGossipedCommit list with height below removal height', async () => {
