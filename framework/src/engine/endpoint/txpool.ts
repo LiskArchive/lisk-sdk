@@ -12,23 +12,31 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Transaction } from '@liskhq/lisk-chain';
+import { Database } from '@liskhq/lisk-db';
+import { Chain, Transaction, Event, StateStore } from '@liskhq/lisk-chain';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { Broadcaster } from '../generator/broadcaster';
 import { InvalidTransactionError } from '../generator/errors';
 import {
+	DryRunTransactionRequest,
+	dryRunTransactionRequestSchema,
+	DryRunTransactionResponse,
 	PostTransactionRequest,
 	postTransactionRequestSchema,
 	PostTransactionResponse,
 } from '../generator/schemas';
 import { RequestContext } from '../rpc/rpc_server';
-import { ABI, TransactionVerifyResult } from '../../abi';
+import { ABI, TransactionExecutionResult, TransactionVerifyResult } from '../../abi';
+import { Consensus } from '../consensus';
 
 interface EndpointArgs {
 	abi: ABI;
 	pool: TransactionPool;
 	broadcaster: Broadcaster;
+	chain: Chain;
+	consensus: Consensus;
+	blockchainDB: Database;
 }
 
 export class TxpoolEndpoint {
@@ -37,11 +45,17 @@ export class TxpoolEndpoint {
 	private readonly _abi: ABI;
 	private readonly _pool: TransactionPool;
 	private readonly _broadcaster: Broadcaster;
+	private readonly _chain: Chain;
+	private readonly _consensus: Consensus;
+	private readonly _blockchainDB: Database;
 
 	public constructor(args: EndpointArgs) {
 		this._abi = args.abi;
 		this._pool = args.pool;
 		this._broadcaster = args.broadcaster;
+		this._chain = args.chain;
+		this._consensus = args.consensus;
+		this._blockchainDB = args.blockchainDB;
 	}
 
 	public async postTransaction(ctx: RequestContext): Promise<PostTransactionResponse> {
@@ -93,5 +107,45 @@ export class TxpoolEndpoint {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async getTransactionsFromPool(_context: RequestContext): Promise<string[]> {
 		return this._pool.getAll().map(tx => tx.getBytes().toString('hex'));
+	}
+
+	public async dryRunTransaction(ctx: RequestContext): Promise<DryRunTransactionResponse> {
+		const reqErrors = validator.validate(dryRunTransactionRequestSchema, ctx.params);
+		if (reqErrors?.length) {
+			throw new LiskValidationError(reqErrors);
+		}
+		const req = (ctx.params as unknown) as DryRunTransactionRequest;
+		const transaction = Transaction.fromBytes(Buffer.from(req.transaction, 'hex'));
+
+		const { result } = await this._abi.verifyTransaction({
+			contextID: Buffer.alloc(0),
+			transaction: transaction.toObject(),
+		});
+		if (result === TransactionVerifyResult.INVALID) {
+			return {
+				success: false,
+				events: [],
+			};
+		}
+
+		const stateStore = new StateStore(this._blockchainDB);
+		const consensus = await this._consensus.getConsensusParams(
+			stateStore,
+			this._chain.lastBlock.header,
+		);
+
+		const response = await this._abi.executeTransaction({
+			contextID: Buffer.alloc(0),
+			transaction: transaction.toObject(),
+			assets: this._chain.lastBlock.assets.getAll(),
+			dryRun: true,
+			header: this._chain.lastBlock.header.toObject(),
+			consensus,
+		});
+
+		return {
+			success: response.result === TransactionExecutionResult.OK,
+			events: response.events.map(e => new Event(e).toJSON()),
+		};
 	}
 }
