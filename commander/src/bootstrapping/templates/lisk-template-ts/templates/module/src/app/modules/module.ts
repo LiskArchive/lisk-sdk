@@ -34,9 +34,7 @@ export class <%= moduleClass %> extends BaseModule {
 	public async initBlock(_context: BlockGenerateContext): Promise<void> {
 		// initialize block generation, add asset
 	}
-	public async sealBlock(_context: BlockGenerateContext): Promise<void> {
-		// finalize block asset
-	}
+	
 	public async verifyAssets(_context: BlockVerifyContext): Promise<void> {
 		// verify block
 	}

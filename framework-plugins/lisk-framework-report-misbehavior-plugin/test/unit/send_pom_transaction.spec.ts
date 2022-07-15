@@ -100,7 +100,7 @@ describe('Send PoM transaction', () => {
 		previousBlockID: random32Bytes,
 		timestamp: 100,
 		version: 2,
-		assetsRoot: random32Bytes,
+		assetRoot: random32Bytes,
 		eventRoot: random32Bytes,
 		stateRoot: random32Bytes,
 		transactionRoot: random32Bytes,

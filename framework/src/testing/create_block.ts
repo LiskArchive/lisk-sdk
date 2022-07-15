@@ -49,7 +49,7 @@ export const createBlockHeaderWithDefaults = (header?: Partial<BlockHeaderAttrs>
 		},
 		maxHeightGenerated: header?.maxHeightGenerated ?? 0,
 		maxHeightPrevoted: header?.maxHeightPrevoted ?? 0,
-		assetsRoot: header?.assetsRoot ?? hash(getRandomBytes(4)),
+		assetRoot: header?.assetRoot ?? hash(getRandomBytes(4)),
 		validatorsHash: header?.validatorsHash ?? hash(getRandomBytes(4)),
 	});
 

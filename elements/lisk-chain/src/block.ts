@@ -91,7 +91,7 @@ export class Block {
 		}
 
 		if (
-			!this.header.assetsRoot?.equals(
+			!this.header.assetRoot?.equals(
 				regularMerkleTree.calculateMerkleRootWithLeaves(this.assets.getBytes()),
 			)
 		) {
@@ -106,7 +106,7 @@ export class Block {
 		}
 		this.assets.validateGenesis();
 		if (
-			!this.header.assetsRoot?.equals(
+			!this.header.assetRoot?.equals(
 				regularMerkleTree.calculateMerkleRootWithLeaves(this.assets.getBytes()),
 			)
 		) {

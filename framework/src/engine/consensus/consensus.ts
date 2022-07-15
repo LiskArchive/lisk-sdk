@@ -167,9 +167,9 @@ export class Consensus {
 			interval: this._genesisConfig.blockTime,
 		});
 
-		this._network.registerEndpoint(NETWORK_RPC_GET_LAST_BLOCK, ({ peerId }) => {
-			this._endpoint.handleRPCGetLastBlock(peerId);
-		});
+		this._network.registerEndpoint(NETWORK_RPC_GET_LAST_BLOCK, ({ peerId }) =>
+			this._endpoint.handleRPCGetLastBlock(peerId),
+		);
 		this._network.registerEndpoint(NETWORK_RPC_GET_BLOCKS_FROM_ID, async ({ data, peerId }) =>
 			this._endpoint.handleRPCGetBlocksFromId(data, peerId),
 		);
@@ -318,9 +318,12 @@ export class Consensus {
 
 	// execute inter block passed from generator
 	public async execute(block: Block): Promise<void> {
-		await this._mutex.runExclusive(async () => {
-			await this._executeValidated(block);
-		});
+		try {
+			// setting peerID to localhost with non existing port because this function is only called internally.
+			await this._execute(block, '127.0.0.1:0');
+		} catch (error) {
+			this._logger.error({ err: error as Error }, 'Fail to execute block.');
+		}
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -514,7 +517,7 @@ export class Consensus {
 			this._network.applyNodeInfo({
 				height: block.header.height,
 				lastBlockID: block.header.id,
-				maxHeightPrevoted: 0, // TODO: get maxHeightPrevoted from block assets
+				maxHeightPrevoted: block.header.maxHeightPrevoted,
 				blockVersion: block.header.version,
 			});
 		});

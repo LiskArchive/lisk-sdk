@@ -47,7 +47,7 @@ export const createFakeBlockHeader = (header?: Partial<BlockHeaderAttrs>): Block
 		maxHeightPrevoted: header?.maxHeightPrevoted ?? 0,
 		eventRoot: header?.eventRoot ?? hash(getRandomBytes(32)),
 		stateRoot: header?.stateRoot ?? hash(getRandomBytes(32)),
-		assetsRoot: header?.assetsRoot ?? hash(getRandomBytes(32)),
+		assetRoot: header?.assetRoot ?? hash(getRandomBytes(32)),
 		validatorsHash: header?.validatorsHash ?? hash(getRandomBytes(32)),
 		aggregateCommit: header?.aggregateCommit ?? {
 			height: 0,
@@ -74,7 +74,7 @@ export const createValidDefaultBlock = async (
 	const txTree = new MerkleTree();
 	await txTree.init(transactions.map(tx => tx.id));
 	const blockAssets = block?.assets ?? new BlockAssets();
-	const assetsRoot = await blockAssets.getRoot();
+	const assetRoot = await blockAssets.getRoot();
 
 	const blockHeader = new BlockHeader({
 		version: 2,
@@ -84,7 +84,7 @@ export const createValidDefaultBlock = async (
 		transactionRoot: txTree.root,
 		stateRoot: getRandomBytes(32),
 		eventRoot: getRandomBytes(32),
-		assetsRoot,
+		assetRoot,
 		validatorsHash: hash(getRandomBytes(32)),
 		maxHeightGenerated: 0,
 		maxHeightPrevoted: 0,

@@ -232,8 +232,12 @@ describe('Delete block', () => {
 						},
 					],
 				});
-				const initBlock = await processEnv.createBlock([transaction1, transaction2, transaction3]);
-				await processEnv.process(initBlock);
+				const insertAssets = await processEnv.createBlock([
+					transaction1,
+					transaction2,
+					transaction3,
+				]);
+				await processEnv.process(insertAssets);
 				await processEnv.processUntilHeight(308);
 				const validatorsBefore = await processEnv
 					.getConsensus()

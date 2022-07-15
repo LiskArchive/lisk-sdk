@@ -208,7 +208,7 @@ export interface BlockHeader {
 	readonly validatorsHash: Buffer;
 	readonly stateRoot: Buffer;
 	readonly transactionRoot: Buffer;
-	readonly assetsRoot: Buffer;
+	readonly assetRoot: Buffer;
 	readonly eventRoot: Buffer;
 	readonly signature: Buffer;
 	readonly id: Buffer;

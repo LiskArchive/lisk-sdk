@@ -35,7 +35,7 @@ export interface BlockHeaderAttrs {
 	readonly validatorsHash?: Buffer;
 	readonly stateRoot?: Buffer;
 	readonly transactionRoot?: Buffer;
-	readonly assetsRoot?: Buffer;
+	readonly assetRoot?: Buffer;
 	readonly eventRoot?: Buffer;
 	signature?: Buffer;
 	id?: Buffer;
@@ -59,7 +59,7 @@ export class BlockHeader {
 	private _validatorsHash?: Buffer;
 	private _stateRoot?: Buffer;
 	private _transactionRoot?: Buffer;
-	private _assetsRoot?: Buffer;
+	private _assetRoot?: Buffer;
 	private _eventRoot?: Buffer;
 	private _signature?: Buffer;
 	private _id?: Buffer;
@@ -76,7 +76,7 @@ export class BlockHeader {
 		validatorsHash,
 		stateRoot,
 		eventRoot,
-		assetsRoot,
+		assetRoot,
 		transactionRoot,
 		signature,
 		id,
@@ -93,7 +93,7 @@ export class BlockHeader {
 		this._eventRoot = eventRoot;
 		this._stateRoot = stateRoot;
 		this._transactionRoot = transactionRoot;
-		this._assetsRoot = assetsRoot;
+		this._assetRoot = assetRoot;
 
 		this._signature = signature;
 		this._id = id;
@@ -125,12 +125,12 @@ export class BlockHeader {
 		this._resetComputedValues();
 	}
 
-	public get assetsRoot() {
-		return this._assetsRoot;
+	public get assetRoot() {
+		return this._assetRoot;
 	}
 
-	public set assetsRoot(val) {
-		this._assetsRoot = val;
+	public set assetRoot(val) {
+		this._assetRoot = val;
 		this._resetComputedValues();
 	}
 
@@ -345,7 +345,7 @@ export class BlockHeader {
 	}
 
 	private _getSigningProps() {
-		if (!this.assetsRoot) {
+		if (!this.assetRoot) {
 			throw new Error('Asset root is empty.');
 		}
 		if (!this.eventRoot) {
@@ -366,7 +366,7 @@ export class BlockHeader {
 			height: this.height,
 			previousBlockID: this.previousBlockID,
 			stateRoot: this.stateRoot,
-			assetsRoot: this.assetsRoot,
+			assetRoot: this.assetRoot,
 			eventRoot: this.eventRoot,
 			transactionRoot: this.transactionRoot,
 			validatorsHash: this.validatorsHash,

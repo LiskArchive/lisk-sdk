@@ -27,7 +27,7 @@ Object {
       ],
       "type": "object",
     },
-    "assetsRoot": Object {
+    "assetRoot": Object {
       "dataType": "bytes",
       "fieldNumber": 7,
     },
@@ -87,7 +87,7 @@ Object {
     "previousBlockID",
     "generatorAddress",
     "transactionRoot",
-    "assetsRoot",
+    "assetRoot",
     "eventRoot",
     "stateRoot",
     "maxHeightPrevoted",
@@ -127,7 +127,7 @@ Object {
       ],
       "type": "object",
     },
-    "assetsRoot": Object {
+    "assetRoot": Object {
       "dataType": "bytes",
       "fieldNumber": 7,
     },
@@ -191,7 +191,7 @@ Object {
     "previousBlockID",
     "generatorAddress",
     "transactionRoot",
-    "assetsRoot",
+    "assetRoot",
     "eventRoot",
     "stateRoot",
     "maxHeightPrevoted",
@@ -232,7 +232,7 @@ Object {
       ],
       "type": "object",
     },
-    "assetsRoot": Object {
+    "assetRoot": Object {
       "dataType": "bytes",
       "fieldNumber": 7,
     },
@@ -288,7 +288,7 @@ Object {
     "previousBlockID",
     "generatorAddress",
     "transactionRoot",
-    "assetsRoot",
+    "assetRoot",
     "eventRoot",
     "stateRoot",
     "maxHeightPrevoted",
