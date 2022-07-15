@@ -50,6 +50,10 @@ import { generateGenesisBlock, GenesisBlockGenerateInput } from './genesis_block
 import { StateMachine } from './state_machine';
 import { ABIHandler, EVENT_ENGINE_READY } from './abi_handler/abi_handler';
 import { ABIServer } from './abi_handler/abi_server';
+import { SidechainInteroperabilityModule } from './modules/interoperability/sidechain/module';
+import { MainchainInteroperabilityModule } from './modules/interoperability/mainchain/module';
+import { SidechainInteroperabilityAPI } from './modules/interoperability/sidechain/api';
+import { MainchainInteroperabilityAPI } from './modules/interoperability/mainchain/api';
 
 const MINIMUM_EXTERNAL_MODULE_ID = 1000;
 
@@ -111,6 +115,7 @@ interface DefaultApplication {
 		random: RandomAPI;
 		reward: RewardAPI;
 		dpos: DPoSAPI;
+		interoperability: SidechainInteroperabilityAPI | MainchainInteroperabilityAPI;
 	};
 }
 
@@ -159,7 +164,10 @@ export class Application {
 		return this._controller.channel;
 	}
 
-	public static defaultApplication(config: PartialApplicationConfig = {}): DefaultApplication {
+	public static defaultApplication(
+		config: PartialApplicationConfig = {},
+		mainchain = false,
+	): DefaultApplication {
 		const application = new Application(config);
 		// create module instances
 		const authModule = new AuthModule();
@@ -169,11 +177,18 @@ export class Application {
 		const randomModule = new RandomModule();
 		const validatorModule = new ValidatorsModule();
 		const dposModule = new DPoSModule();
+		const interoperabilityModule = mainchain
+			? new MainchainInteroperabilityModule()
+			: new SidechainInteroperabilityModule();
 
 		// resolve dependencies
 		feeModule.addDependencies(tokenModule.api);
 		rewardModule.addDependencies(tokenModule.api, randomModule.api);
 		dposModule.addDependencies(randomModule.api, validatorModule.api, tokenModule.api);
+		tokenModule.addDependencies(interoperabilityModule.api);
+
+		// resolve interoperability dependencies
+		interoperabilityModule.registerInteroperableModule(tokenModule);
 
 		// register modules
 		application._registerModule(authModule);
@@ -194,6 +209,7 @@ export class Application {
 				dpos: dposModule.api,
 				random: randomModule.api,
 				reward: rewardModule.api,
+				interoperability: interoperabilityModule.api,
 			},
 		};
 	}

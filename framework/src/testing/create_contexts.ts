@@ -32,7 +32,7 @@ import {
 import { loggerMock } from './mocks';
 import { WritableBlockAssets } from '../engine/generator/types';
 import { Validator } from '../abi';
-import { EventQueueAdder, SubStore } from '../state_machine/types';
+import { SubStore } from '../state_machine/types';
 import { PrefixedStateReadWriter } from '../state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from './in_memory_prefixed_state';
 import {
@@ -45,6 +45,7 @@ import {
 	RecoverCCMsgAPIContext,
 } from '../modules/interoperability/types';
 import { getIDAsKeyForStore } from './utils';
+import { getCCMSize } from '../modules/interoperability/utils';
 
 export const createGenesisBlockContext = (params: {
 	header?: BlockHeader;
@@ -69,7 +70,7 @@ export const createGenesisBlockContext = (params: {
 			stateRoot: hash(Buffer.alloc(0)),
 			maxHeightGenerated: 0,
 			maxHeightPrevoted: 0,
-			assetsRoot: hash(Buffer.alloc(0)),
+			assetRoot: hash(Buffer.alloc(0)),
 			aggregateCommit: {
 				height: 0,
 				aggregationBits: Buffer.alloc(0),
@@ -112,7 +113,7 @@ export const createBlockContext = (params: {
 			stateRoot: hash(Buffer.alloc(0)),
 			maxHeightGenerated: 0,
 			maxHeightPrevoted: 0,
-			assetsRoot: hash(Buffer.alloc(0)),
+			assetRoot: hash(Buffer.alloc(0)),
 			aggregateCommit: {
 				height: 0,
 				aggregationBits: Buffer.alloc(0),
@@ -163,7 +164,7 @@ export const createBlockGenerateContext = (params: {
 			stateRoot: hash(Buffer.alloc(0)),
 			maxHeightGenerated: 0,
 			maxHeightPrevoted: 0,
-			assetsRoot: hash(Buffer.alloc(0)),
+			assetRoot: hash(Buffer.alloc(0)),
 			aggregateCommit: {
 				height: 0,
 				aggregationBits: Buffer.alloc(0),
@@ -218,7 +219,7 @@ export const createTransactionContext = (params: {
 			stateRoot: hash(Buffer.alloc(0)),
 			maxHeightGenerated: 0,
 			maxHeightPrevoted: 0,
-			assetsRoot: hash(Buffer.alloc(0)),
+			assetRoot: hash(Buffer.alloc(0)),
 			aggregateCommit: {
 				height: 0,
 				aggregationBits: Buffer.alloc(0),
@@ -279,7 +280,7 @@ const createCCAPIContext = (params: {
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
-	eventQueue?: EventQueueAdder;
+	eventQueue?: EventQueue;
 	ccm?: CCMsg;
 	feeAddress?: Buffer;
 }) => {
@@ -317,8 +318,14 @@ export const createExecuteCCMsgAPIContext = (params: {
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
-	eventQueue?: EventQueueAdder;
-}): CCCommandExecuteContext => createCCAPIContext(params);
+	eventQueue?: EventQueue;
+}): CCCommandExecuteContext => {
+	const context = createCCAPIContext(params);
+	return {
+		...context,
+		ccmSize: getCCMSize(context.ccm),
+	};
+};
 
 export const createBeforeSendCCMsgAPIContext = (params: {
 	ccm?: CCMsg;
@@ -326,7 +333,7 @@ export const createBeforeSendCCMsgAPIContext = (params: {
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
-	eventQueue?: EventQueueAdder;
+	eventQueue?: EventQueue;
 }): BeforeSendCCMsgAPIContext => createCCAPIContext(params);
 
 export const createBeforeApplyCCMsgAPIContext = (params: {
@@ -337,11 +344,13 @@ export const createBeforeApplyCCMsgAPIContext = (params: {
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
-	eventQueue?: EventQueueAdder;
+	eventQueue?: EventQueue;
 	feeAddress: Buffer;
+	trsSender: Buffer;
 }): BeforeApplyCCMsgAPIContext => ({
 	...createCCAPIContext(params),
 	ccu: params.ccu,
+	trsSender: params.trsSender,
 });
 
 export const createBeforeRecoverCCMsgAPIContext = (params: {
@@ -363,7 +372,7 @@ export const createRecoverCCMsgAPIContext = (params: {
 	terminatedChainID: Buffer;
 	moduleID: Buffer;
 	storePrefix: number;
-	storeKey: number;
+	storeKey: Buffer;
 	storeValue: Buffer;
 	stateStore?: StateStore;
 	logger?: Logger;

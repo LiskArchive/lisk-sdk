@@ -21,21 +21,27 @@ import {
 	CommandVerifyContext,
 	VerificationResult,
 } from '../../../../state_machine/types';
-import { CCMsg, StoreCallback, MessageRecoveryParams, TerminatedOutboxAccount } from '../../types';
+import {
+	CCMsg,
+	StoreCallback,
+	MessageRecoveryParams,
+	TerminatedOutboxAccount,
+	ImmutableStoreCallback,
+} from '../../types';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { MainchainInteroperabilityStore } from '../store';
-import { verifyMessageRecovery, swapReceivingAndSendingChainIDs } from '../../utils';
+import { verifyMessageRecovery, swapReceivingAndSendingChainIDs, getCCMSize } from '../../utils';
 import {
 	CCM_STATUS_RECOVERED,
 	CHAIN_ACTIVE,
 	COMMAND_ID_MESSAGE_RECOVERY_BUFFER,
 	EMPTY_FEE_ADDRESS,
 } from '../../constants';
-import { ccmSchema, messageRecoveryParamsSchema } from '../../schema';
+import { ccmSchema, messageRecoveryParamsSchema } from '../../schemas';
 import { BaseInteroperableAPI } from '../../base_interoperable_api';
 import { createCCCommandExecuteContext } from '../../context';
 
-export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
+export class MainchainMessageRecoveryCommand extends BaseInteroperabilityCommand {
 	public id = COMMAND_ID_MESSAGE_RECOVERY_BUFFER;
 	public name = 'messageRecovery';
 	public schema = messageRecoveryParamsSchema;
@@ -69,8 +75,6 @@ export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
 
 	public async execute(context: CommandExecuteContext<MessageRecoveryParams>): Promise<void> {
 		const { transaction, params, getAPIContext, logger, networkIdentifier, getStore } = context;
-		const apiContext = getAPIContext();
-		const { eventQueue } = apiContext;
 
 		const chainIdAsBuffer = params.chainID;
 
@@ -86,7 +90,7 @@ export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
 				await api.beforeRecoverCCM({
 					ccm,
 					trsSender: transaction.senderAddress,
-					eventQueue: apiContext.eventQueue,
+					eventQueue: context.eventQueue,
 					getAPIContext,
 					logger,
 					networkIdentifier,
@@ -152,7 +156,8 @@ export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
 
 				const ccCommandExecuteContext = createCCCommandExecuteContext({
 					ccm: newCcm,
-					eventQueue,
+					ccmSize: getCCMSize(ccm),
+					eventQueue: context.eventQueue,
 					feeAddress: EMPTY_FEE_ADDRESS,
 					getAPIContext,
 					getStore,
@@ -182,7 +187,9 @@ export class MessageRecoveryCommand extends BaseInteroperabilityCommand {
 		}
 	}
 
-	protected getInteroperabilityStore(getStore: StoreCallback): MainchainInteroperabilityStore {
+	protected getInteroperabilityStore(
+		getStore: StoreCallback | ImmutableStoreCallback,
+	): MainchainInteroperabilityStore {
 		return new MainchainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
 	}
 }

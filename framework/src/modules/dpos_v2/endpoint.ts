@@ -17,9 +17,22 @@ import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
 import { STORE_PREFIX_DELEGATE, STORE_PREFIX_VOTER } from './constants';
 import { voterStoreSchema, delegateStoreSchema } from './schemas';
-import { DelegateAccount, DelegateAccountJSON, VoterData, VoterDataJSON } from './types';
+import {
+	DelegateAccount,
+	DelegateAccountJSON,
+	ModuleConfig,
+	ModuleConfigJSON,
+	VoterData,
+	VoterDataJSON,
+} from './types';
 
 export class DPoSEndpoint extends BaseEndpoint {
+	private _moduleConfig!: ModuleConfig;
+
+	public init(moduleConfig: ModuleConfig) {
+		this._moduleConfig = moduleConfig;
+	}
+
 	public async getVoter(ctx: ModuleEndpointContext): Promise<VoterDataJSON> {
 		const voterSubStore = ctx.getStore(this.moduleID, STORE_PREFIX_VOTER);
 		const { address } = ctx.params;
@@ -75,5 +88,24 @@ export class DPoSEndpoint extends BaseEndpoint {
 		}
 
 		return { delegates: response };
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
+	public async getConstants(): Promise<ModuleConfigJSON> {
+		return {
+			factorSelfVotes: this._moduleConfig.factorSelfVotes,
+			maxLengthName: this._moduleConfig.maxLengthName,
+			maxNumberSentVotes: this._moduleConfig.maxNumberSentVotes,
+			maxNumberPendingUnlocks: this._moduleConfig.maxNumberPendingUnlocks,
+			failSafeMissedBlocks: this._moduleConfig.failSafeMissedBlocks,
+			failSafeInactiveWindow: this._moduleConfig.failSafeInactiveWindow,
+			punishmentWindow: this._moduleConfig.punishmentWindow,
+			roundLength: this._moduleConfig.roundLength,
+			bftThreshold: this._moduleConfig.bftThreshold,
+			minWeightStandby: this._moduleConfig.minWeightStandby.toString(),
+			numberActiveDelegates: this._moduleConfig.numberActiveDelegates,
+			numberStandbyDelegates: this._moduleConfig.numberStandbyDelegates,
+			tokenIDDPoS: this._moduleConfig.tokenIDDPoS.toString('hex'),
+		};
 	}
 }

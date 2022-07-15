@@ -28,7 +28,7 @@ import { StateRecoveryCommand } from '../../../../../../src/modules/interoperabi
 import {
 	stateRecoveryParamsSchema,
 	terminatedStateSchema,
-} from '../../../../../../src/modules/interoperability/schema';
+} from '../../../../../../src/modules/interoperability/schemas';
 import {
 	StateRecoveryParams,
 	TerminatedStateAccount,

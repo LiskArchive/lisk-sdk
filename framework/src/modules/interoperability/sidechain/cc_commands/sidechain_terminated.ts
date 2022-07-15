@@ -16,7 +16,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
 import { CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED, MAINCHAIN_ID } from '../../constants';
 import { createCCMsgBeforeSendContext } from '../../context';
-import { sidechainTerminatedCCMParamsSchema } from '../../schema';
+import { sidechainTerminatedCCMParamsSchema } from '../../schemas';
 import { CCCommandExecuteContext, StoreCallback } from '../../types';
 import { getIDAsKeyForStore } from '../../utils';
 import { SidechainInteroperabilityStore } from '../store';

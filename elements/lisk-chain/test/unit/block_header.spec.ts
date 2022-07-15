@@ -27,7 +27,7 @@ const getBlockAttrs = () => ({
 	previousBlockID: Buffer.from('4a462ea57a8c9f72d866c09770e5ec70cef18727', 'hex'),
 	stateRoot: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
 	transactionRoot: Buffer.from('b27ca21f40d44113c2090ca8f05fb706c54e87dd', 'hex'),
-	assetsRoot: Buffer.from('b27ca21f40d44113c2090ca8f05fb706c54e87dd', 'hex'),
+	assetRoot: Buffer.from('b27ca21f40d44113c2090ca8f05fb706c54e87dd', 'hex'),
 	eventRoot: Buffer.from('30dda4fbc395828e5a9f2f8824771e434fce4945a1e7820012440d09dd1e2b6d', 'hex'),
 	generatorAddress: Buffer.from('be63fb1c0426573352556f18b21efd5b6183c39c', 'hex'),
 	maxHeightPrevoted: 1000988,
@@ -48,7 +48,7 @@ const getGenesisBlockAttrs = () => ({
 	previousBlockID: getRandomBytes(32),
 	stateRoot: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
 	transactionRoot: EMPTY_HASH,
-	assetsRoot: EMPTY_HASH,
+	assetRoot: EMPTY_HASH,
 	eventRoot: EMPTY_HASH,
 	generatorAddress: EMPTY_BUFFER,
 	maxHeightPrevoted: 1009988,
@@ -79,7 +79,7 @@ const blockHeaderProps = [
 	'previousBlockID',
 	'generatorAddress',
 	'transactionRoot',
-	'assetsRoot',
+	'assetRoot',
 	'stateRoot',
 	'maxHeightPrevoted',
 	'maxHeightGenerated',
@@ -142,7 +142,7 @@ describe('block_header', () => {
 				expect(blockHeader.aggregateCommit).toEqual(data.aggregateCommit);
 				expect(blockHeader.maxHeightPrevoted).toEqual(data.maxHeightPrevoted);
 				expect(blockHeader.maxHeightGenerated).toEqual(data.maxHeightGenerated);
-				expect(blockHeader.assetsRoot).toEqual(data.assetsRoot);
+				expect(blockHeader.assetRoot).toEqual(data.assetRoot);
 				expect(blockHeader.transactionRoot).toEqual(data.transactionRoot);
 				expect(blockHeader.id).toEqual(blockId);
 				expect(blockHeader.signature).toEqual(data.signature);

@@ -44,18 +44,21 @@ import {
 	UserStoreData,
 	userStoreSchema,
 } from './schemas';
-import { InteroperabilityAPI, MinBalance, TokenID } from './types';
+import { MinBalance, TokenID } from './types';
 import { addEscrowAmount, getNativeTokenID, getUserStoreKey, splitTokenID } from './utils';
+import { MainchainInteroperabilityAPI, SidechainInteroperabilityAPI } from '../interoperability';
 
 export class TokenAPI extends BaseAPI {
 	private _minBalances!: MinBalance[];
-	private _interoperabilityAPI!: InteroperabilityAPI;
+	private _interoperabilityAPI!: MainchainInteroperabilityAPI | SidechainInteroperabilityAPI;
 
 	public init(args: { minBalances: MinBalance[] }): void {
 		this._minBalances = args.minBalances;
 	}
 
-	public addDependencies(interoperabilityAPI: InteroperabilityAPI) {
+	public addDependencies(
+		interoperabilityAPI: MainchainInteroperabilityAPI | SidechainInteroperabilityAPI,
+	) {
 		this._interoperabilityAPI = interoperabilityAPI;
 	}
 

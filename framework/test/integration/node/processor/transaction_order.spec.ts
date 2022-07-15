@@ -249,9 +249,10 @@ describe('Transaction order', () => {
 
 				// Execution of transaction will fail in block generation now with the same logic
 				const created = await processEnv.createBlock([fundingTx, spendingTx, refundingTx]);
-				expect(created.transactions).toHaveLength(2);
+				expect(created.transactions).toHaveLength(3);
 				expect(created.transactions[0]).toEqual(fundingTx);
-				expect(created.transactions[1]).toEqual(refundingTx);
+				expect(created.transactions[1]).toEqual(spendingTx);
+				expect(created.transactions[2]).toEqual(refundingTx);
 			});
 		});
 	});

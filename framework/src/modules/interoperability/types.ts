@@ -13,15 +13,11 @@
  */
 
 import { Logger } from '../../logger';
-import { APIContext } from '../../state_machine';
-import {
-	EventQueueAdder,
-	ImmutableAPIContext,
-	ImmutableSubStore,
-	SubStore,
-} from '../../state_machine/types';
+import { APIContext, EventQueue } from '../../state_machine';
+import { ImmutableAPIContext, ImmutableSubStore, SubStore } from '../../state_machine/types';
 
-export type StoreCallback = (moduleID: Buffer, storePrefix: number) => SubStore | ImmutableSubStore;
+export type StoreCallback = (moduleID: Buffer, storePrefix: number) => SubStore;
+export type ImmutableStoreCallback = (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
 export interface CCMsg {
 	readonly nonce: bigint;
 	readonly moduleID: Buffer;
@@ -67,13 +63,14 @@ export interface CCAPIContext {
 	getStore: StoreCallback;
 	logger: Logger;
 	networkIdentifier: Buffer;
-	eventQueue: EventQueueAdder;
-	ccm?: CCMsg;
+	eventQueue: EventQueue;
 	feeAddress: Buffer;
+	ccm: CCMsg;
 }
 
 export interface BeforeApplyCCMsgAPIContext extends CCAPIContext {
 	ccu: CCUpdateParams;
+	trsSender: Buffer;
 }
 
 export interface BeforeSendCCMsgAPIContext extends CCAPIContext {
@@ -88,7 +85,7 @@ export interface RecoverCCMsgAPIContext extends CCAPIContext {
 	terminatedChainID: Buffer;
 	moduleID: Buffer;
 	storePrefix: number;
-	storeKey: number;
+	storeKey: Buffer;
 	storeValue: Buffer;
 }
 
@@ -100,7 +97,20 @@ export interface SendInternalContext {
 	status: number;
 	params: Buffer;
 	timestamp?: number;
-	beforeSendContext: BeforeSendCCMsgAPIContext;
+	getAPIContext: () => APIContext;
+	getStore: StoreCallback;
+	logger: Logger;
+	networkIdentifier: Buffer;
+	eventQueue: EventQueue;
+	feeAddress: Buffer;
+}
+
+export interface TerminateChainContext {
+	getAPIContext: () => APIContext;
+	getStore: StoreCallback;
+	logger: Logger;
+	networkIdentifier: Buffer;
+	eventQueue: EventQueue;
 }
 
 export interface CCMApplyContext {
@@ -108,10 +118,12 @@ export interface CCMApplyContext {
 	getStore: StoreCallback;
 	logger: Logger;
 	networkIdentifier: Buffer;
-	eventQueue: EventQueueAdder;
+	eventQueue: EventQueue;
 	feeAddress: Buffer;
 	ccm: CCMsg;
 	ccu: CCUpdateParams;
+	trsSender: Buffer;
+	ccmSize: bigint;
 }
 
 export interface CCMForwardContext {
@@ -119,7 +131,7 @@ export interface CCMForwardContext {
 	getStore: StoreCallback;
 	logger: Logger;
 	networkIdentifier: Buffer;
-	eventQueue: EventQueueAdder;
+	eventQueue: EventQueue;
 	feeAddress: Buffer;
 	ccm: CCMsg;
 	ccu: CCUpdateParams;
@@ -177,8 +189,9 @@ export interface TerminatedStateAccount {
 export interface CCCommandExecuteContext {
 	logger: Logger;
 	networkIdentifier: Buffer;
-	eventQueue: EventQueueAdder;
-	ccm?: CCMsg;
+	eventQueue: EventQueue;
+	ccm: CCMsg;
+	ccmSize: bigint;
 	getAPIContext: () => APIContext;
 	getStore: StoreCallback;
 	feeAddress: Buffer;
