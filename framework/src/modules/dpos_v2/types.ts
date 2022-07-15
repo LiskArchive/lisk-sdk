@@ -13,6 +13,7 @@
  */
 
 import { APIContext, ImmutableAPIContext } from '../../state_machine/types';
+import { JSONObject } from '../../types';
 
 export type TokenIDDPoS = Buffer;
 
@@ -31,6 +32,8 @@ export interface ModuleConfig {
 	numberStandbyDelegates: number;
 	tokenIDDPoS: TokenIDDPoS;
 }
+
+export type ModuleConfigJSON = JSONObject<ModuleConfig>;
 
 export interface RandomAPI {
 	getRandomBytes(

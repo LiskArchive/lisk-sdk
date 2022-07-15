@@ -167,9 +167,9 @@ export class Consensus {
 			interval: this._genesisConfig.blockTime,
 		});
 
-		this._network.registerEndpoint(NETWORK_RPC_GET_LAST_BLOCK, ({ peerId }) => {
-			this._endpoint.handleRPCGetLastBlock(peerId);
-		});
+		this._network.registerEndpoint(NETWORK_RPC_GET_LAST_BLOCK, ({ peerId }) =>
+			this._endpoint.handleRPCGetLastBlock(peerId),
+		);
 		this._network.registerEndpoint(NETWORK_RPC_GET_BLOCKS_FROM_ID, async ({ data, peerId }) =>
 			this._endpoint.handleRPCGetBlocksFromId(data, peerId),
 		);

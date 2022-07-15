@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as os from 'os';
-import * as path from 'path';
 import { RPCServer } from '../../../../src/engine/rpc/rpc_server';
 import { fakeLogger } from '../../../utils/mocks';
 
@@ -36,37 +35,32 @@ jest.mock('zeromq', () => {
 
 describe('RPC server', () => {
 	let rpcServer: RPCServer;
+	const dataPath = os.tmpdir();
 
 	describe('constructor', () => {
 		it('should create IPC server if ipc is enabled', () => {
-			rpcServer = new RPCServer({
+			rpcServer = new RPCServer(dataPath, {
 				modes: ['ipc'],
-				ipc: {
-					path: path.join(os.tmpdir(), Date.now().toString()),
-				},
+				host: '0.0.0.0',
+				port: 7887,
 			});
 			expect(rpcServer['_ipcServer']).not.toBeUndefined();
 		});
 
 		it('should create WS server if ws is enabled', () => {
-			rpcServer = new RPCServer({
+			rpcServer = new RPCServer(dataPath, {
 				modes: ['ws'],
-				ws: {
-					host: '0.0.0.0',
-					path: '/rpc',
-					port: 12345,
-				},
+				host: '0.0.0.0',
+				port: 7887,
 			});
 			expect(rpcServer['_wsServer']).not.toBeUndefined();
 		});
 
 		it('should create HTTP server if http is enabled', () => {
-			rpcServer = new RPCServer({
+			rpcServer = new RPCServer(dataPath, {
 				modes: ['http'],
-				http: {
-					host: '0.0.0.0',
-					port: 12345,
-				},
+				host: '0.0.0.0',
+				port: 7887,
 			});
 			expect(rpcServer['_httpServer']).not.toBeUndefined();
 		});
@@ -74,20 +68,10 @@ describe('RPC server', () => {
 
 	describe('start', () => {
 		beforeEach(() => {
-			rpcServer = new RPCServer({
-				modes: ['ipc', 'ws', 'http'],
-				ipc: {
-					path: path.join(os.tmpdir(), Date.now().toString()),
-				},
-				ws: {
-					host: '0.0.0.0',
-					path: '/rpc',
-					port: 12349,
-				},
-				http: {
-					host: '0.0.0.0',
-					port: 12346,
-				},
+			rpcServer = new RPCServer(dataPath, {
+				modes: ['ipc', 'http', 'ws'],
+				host: '0.0.0.0',
+				port: 7887,
 			});
 			rpcServer.init({ logger: fakeLogger, networkIdentifier: Buffer.alloc(0) });
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -114,7 +98,11 @@ describe('RPC server', () => {
 			await rpcServer.start();
 
 			expect(rpcServer['_wsServer']?.start).toHaveBeenCalledTimes(1);
-			expect(rpcServer['_wsServer']?.start).toHaveBeenCalledWith(fakeLogger, expect.any(Function));
+			expect(rpcServer['_wsServer']?.start).toHaveBeenCalledWith(
+				fakeLogger,
+				expect.any(Function),
+				expect.any(Object),
+			);
 		});
 
 		it('should call http server start', async () => {
@@ -132,20 +120,10 @@ describe('RPC server', () => {
 
 	describe('stop', () => {
 		beforeEach(async () => {
-			rpcServer = new RPCServer({
-				modes: ['ipc', 'ws', 'http'],
-				ipc: {
-					path: path.join(os.tmpdir(), Date.now().toString()),
-				},
-				ws: {
-					host: '0.0.0.0',
-					path: '/rpc',
-					port: 12349,
-				},
-				http: {
-					host: '0.0.0.0',
-					port: 12346,
-				},
+			rpcServer = new RPCServer(dataPath, {
+				modes: ['ipc', 'http', 'ws'],
+				host: '0.0.0.0',
+				port: 7887,
 			});
 			rpcServer.init({ logger: fakeLogger, networkIdentifier: Buffer.alloc(0) });
 			// eslint-disable-next-line @typescript-eslint/require-await

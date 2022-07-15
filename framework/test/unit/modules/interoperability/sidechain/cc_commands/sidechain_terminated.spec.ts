@@ -17,7 +17,7 @@ import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
 import { MAINCHAIN_ID_BUFFER } from '../../../../../../src/modules/interoperability/constants';
 import { SidechainCCSidechainTerminatedCommand } from '../../../../../../src/modules/interoperability/sidechain/cc_commands/sidechain_terminated';
 import { SidechainInteroperabilityStore } from '../../../../../../src/modules/interoperability/sidechain/store';
-import { sidechainTerminatedCCMParamsSchema } from '../../../../../../src/modules/interoperability/schema';
+import { sidechainTerminatedCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
 import { createExecuteCCMsgAPIContext } from '../../../../../../src/testing';
 

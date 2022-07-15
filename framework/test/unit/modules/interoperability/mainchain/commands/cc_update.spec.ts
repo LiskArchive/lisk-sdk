@@ -40,7 +40,7 @@ import {
 	chainAccountSchema,
 	chainValidatorsSchema,
 	channelSchema,
-} from '../../../../../../src/modules/interoperability/schema';
+} from '../../../../../../src/modules/interoperability/schemas';
 import {
 	CCM_STATUS_OK,
 	CHAIN_ACTIVE,
@@ -79,7 +79,7 @@ describe('CrossChainUpdateCommand', () => {
 
 	const defaultNewCertificateThreshold = BigInt(20);
 	const defaultSendingChainID = 20;
-	const defaultSendingChainIDBuffer = interopUtils.getIDAsKeyForStore(defaultSendingChainID);
+	const defaultSendingChainIDBuffer = cryptography.intToBuffer(defaultSendingChainID, 4);
 	const defaultCCMs: CCMsg[] = [
 		{
 			crossChainCommandID: intToBuffer(1, 4),
@@ -301,7 +301,9 @@ describe('CrossChainUpdateCommand', () => {
 			});
 			expect(status).toEqual(VerifyStatus.FAIL);
 			expect(error?.message).toContain(
-				`Sending partner chain ${defaultSendingChainID} has a registered status so certificate cannot be empty.`,
+				`Sending partner chain ${defaultSendingChainIDBuffer.readInt32BE(
+					0,
+				)} has a registered status so certificate cannot be empty.`,
 			);
 		});
 
@@ -421,7 +423,7 @@ describe('CrossChainUpdateCommand', () => {
 				.mockReturnValueOnce(partnerValidatorStore);
 
 			when(partnerValidatorStore.getWithSchema)
-				.calledWith(defaultSendingChainIDBuffer, chainValidatorsSchema)
+				.calledWith(defaultSendingChainID, chainValidatorsSchema)
 				.mockResolvedValue(partnerValidatorsDataVerify);
 			mainchainCCUUpdateCommand = new MainchainCCUpdateCommand(moduleID, new Map(), new Map());
 		});

@@ -14,6 +14,7 @@
 
 import { BaseInteroperabilityStore } from '../base_interoperability_store';
 import { CHAIN_ACTIVE, MAINCHAIN_ID } from '../constants';
+import { createCCMsgBeforeSendContext } from '../context';
 import { CCMsg, SendInternalContext } from '../types';
 import { getIDAsKeyForStore, validateFormat } from '../utils';
 
@@ -62,10 +63,20 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 			return false;
 		}
 
+		const beforeSendContext = createCCMsgBeforeSendContext({
+			ccm,
+			eventQueue: sendContext.eventQueue,
+			feeAddress: sendContext.feeAddress,
+			getAPIContext: sendContext.getAPIContext,
+			getStore: sendContext.getStore,
+			logger: sendContext.logger,
+			networkIdentifier: sendContext.networkIdentifier,
+		});
+
 		for (const mod of this.interoperableModuleAPIs.values()) {
 			if (mod?.beforeSendCCM) {
 				try {
-					await mod.beforeSendCCM(sendContext.beforeSendContext);
+					await mod.beforeSendCCM(beforeSendContext);
 				} catch (error) {
 					return false;
 				}

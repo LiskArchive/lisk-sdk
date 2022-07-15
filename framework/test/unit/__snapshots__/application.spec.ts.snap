@@ -2212,18 +2212,11 @@ Object {
   },
   "rootPath": "~/.lisk",
   "rpc": Object {
-    "http": Object {
-      "host": "127.0.0.1",
-      "port": 7887,
-    },
+    "host": "127.0.0.1",
     "modes": Array [
       "ipc",
     ],
-    "ws": Object {
-      "host": "127.0.0.1",
-      "path": "/ws",
-      "port": 7887,
-    },
+    "port": 7887,
   },
   "system": Object {
     "keepEventsForHeights": 300,

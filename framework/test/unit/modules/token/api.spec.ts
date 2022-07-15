@@ -79,7 +79,8 @@ describe('token module', () => {
 			error: jest.fn(),
 			terminateChain: jest.fn(),
 			getChannel: jest.fn(),
-		});
+			getChainAccount: jest.fn(),
+		} as never);
 		apiContext = createAPIContext({
 			stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
 			eventQueue: new EventQueue(),
@@ -514,7 +515,7 @@ describe('token module', () => {
 			jest.spyOn(api['_interoperabilityAPI'], 'send').mockResolvedValue(false);
 			jest
 				.spyOn(api['_interoperabilityAPI'], 'getOwnChainAccount')
-				.mockResolvedValue({ id: Buffer.from([0, 0, 0, 2]) });
+				.mockResolvedValue({ id: Buffer.from([0, 0, 0, 2]) } as never);
 			const receivingChainID = Buffer.from([0, 0, 0, 3]);
 			const messageFee = BigInt('10000');
 			const userStore = apiContext.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
@@ -648,7 +649,7 @@ describe('token module', () => {
 				jest.spyOn(codec, 'encode');
 				jest
 					.spyOn(api['_interoperabilityAPI'], 'getOwnChainAccount')
-					.mockResolvedValue({ id: Buffer.from([0, 0, 0, 2]) });
+					.mockResolvedValue({ id: Buffer.from([0, 0, 0, 2]) } as never);
 				const userStore = apiContext.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
 				await userStore.setWithSchema(
 					getUserStoreKey(defaultAddress, defaultTokenID),
