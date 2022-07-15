@@ -760,7 +760,7 @@ export const getChainAccountRequestSchema = {
 };
 
 export const getChainAccountResponseSchema = {
-	$id: '/modules/interoperability/endpoint/getChainAccountRequest',
+	$id: '/modules/interoperability/endpoint/getChainAccountResponse',
 	type: 'object',
 	required: ['chainID'],
 	properties: {
