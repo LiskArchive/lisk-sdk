@@ -257,19 +257,6 @@ export class BFTAPI extends BaseAPI {
 		await keysStore.setWithSchema(nextHeightBytes, { generators }, generatorKeysSchema);
 	}
 
-	public async getCurrentValidators(stateStore: StateStore): Promise<BFTValidator[]> {
-		const votesStore = stateStore.getStore(this.moduleID, STORE_PREFIX_BFT_VOTES);
-		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
-		if (bftVotes.blockBFTInfos.length === 0) {
-			throw new Error('There are no BFT info stored.');
-		}
-		const { height: currentHeight } = bftVotes.blockBFTInfos[0];
-		const paramsStore = stateStore.getStore(this.moduleID, STORE_PREFIX_BFT_PARAMETERS);
-		const { validators } = await getBFTParameters(paramsStore, currentHeight);
-
-		return validators;
-	}
-
 	private _computeValidatorsHash(validators: BFTValidator[], certificateThreshold: bigint) {
 		const activeValidators: ValidatorsHashInfo[] = [];
 		for (const validator of validators) {

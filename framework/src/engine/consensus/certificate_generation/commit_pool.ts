@@ -393,7 +393,9 @@ export class CommitPool {
 			this._gossipedCommits.deleteByHeight(height);
 		}
 		// 2. Select commits to gossip
-		const validators = await this._bftAPI.getCurrentValidators(apiContext);
+		const nextHeight = this._chain.lastBlock.header.height + 1;
+		const { validators } = await this._bftAPI.getBFTParameters(apiContext, nextHeight);
+
 		const maxSelectedCommitsLength = 2 * validators.length;
 		// Get a list of commits sorted by ascending order of height
 		const allCommits = this._getAllCommits();
