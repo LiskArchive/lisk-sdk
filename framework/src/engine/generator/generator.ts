@@ -477,6 +477,7 @@ export class Generator {
 			generatorStore,
 			generatorAddress,
 		);
+		const aggregateCommit = await this._consensus.getAggregateCommit(stateStore);
 
 		const blockHeader = new BlockHeader({
 			generatorAddress,
@@ -485,12 +486,8 @@ export class Generator {
 			version: BLOCK_VERSION,
 			maxHeightPrevoted,
 			maxHeightGenerated,
-			aggregateCommit: {
-				height: 0,
-				aggregationBits: Buffer.alloc(0),
-				certificateSignature: Buffer.alloc(0),
-			},
-			assetsRoot: Buffer.alloc(0),
+			aggregateCommit,
+			assetRoot: Buffer.alloc(0),
 			stateRoot: Buffer.alloc(0),
 			eventRoot: Buffer.alloc(0),
 			transactionRoot: Buffer.alloc(0),
@@ -572,7 +569,7 @@ export class Generator {
 		await txTree.init(transactions.map(tx => tx.id));
 		const transactionRoot = txTree.root;
 		blockHeader.transactionRoot = transactionRoot;
-		blockHeader.assetsRoot = await blockAssets.getRoot();
+		blockHeader.assetRoot = await blockAssets.getRoot();
 
 		// Add event root calculation
 		const keypairs = [];
@@ -597,7 +594,6 @@ export class Generator {
 		// Set validatorsHash
 		const { validatorsHash } = await this._bft.api.getBFTParameters(stateStore, height + 1);
 		blockHeader.validatorsHash = validatorsHash;
-		blockHeader.aggregateCommit = await this._consensus.getAggregateCommit(stateStore);
 		blockHeader.sign(this._chain.networkIdentifier, privateKey);
 
 		const generatedBlock = new Block(blockHeader, transactions, blockAssets);
@@ -708,6 +704,7 @@ export class Generator {
 					dryRun: false,
 				});
 				if (executeResult === TransactionExecutionResult.INVALID) {
+					this._pool.remove(transaction);
 					throw new Error('Transaction is not valid');
 				}
 				executedTransactions.push(transaction);

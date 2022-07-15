@@ -89,7 +89,7 @@ describe('RandomModule', () => {
 		});
 	});
 
-	describe('initBlock', () => {
+	describe('insertAssets', () => {
 		const targetDelegate = genesisDelegates.delegates[0];
 
 		const defaultUsedHashOnion: UsedHashOnionStoreObject = {
@@ -154,7 +154,7 @@ describe('RandomModule', () => {
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
-			await randomModule.initBlock(blockGenerateContext);
+			await randomModule.insertAssets(blockGenerateContext);
 
 			// Assert
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
@@ -194,7 +194,7 @@ describe('RandomModule', () => {
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
-			await randomModule.initBlock(blockGenerateContext);
+			await randomModule.insertAssets(blockGenerateContext);
 
 			// Assert
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
@@ -253,7 +253,7 @@ describe('RandomModule', () => {
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
-			await randomModule.initBlock(blockGenerateContext);
+			await randomModule.insertAssets(blockGenerateContext);
 
 			// Assert
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
@@ -295,7 +295,7 @@ describe('RandomModule', () => {
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
-			await randomModule.initBlock(blockGenerateContext);
+			await randomModule.insertAssets(blockGenerateContext);
 
 			// Assert
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
@@ -372,7 +372,7 @@ describe('RandomModule', () => {
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
-			await randomModule.initBlock(blockGenerateContext);
+			await randomModule.insertAssets(blockGenerateContext);
 
 			// Assert
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
@@ -405,7 +405,7 @@ describe('RandomModule', () => {
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
-			await expect(randomModule.initBlock(blockGenerateContext)).toResolve();
+			await expect(randomModule.insertAssets(blockGenerateContext)).toResolve();
 
 			// Assert
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);

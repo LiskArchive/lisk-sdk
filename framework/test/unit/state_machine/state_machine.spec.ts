@@ -28,13 +28,14 @@ import {
 	EVENT_INDEX_INIT_GENESIS_STATE,
 } from '../../../src/state_machine/constants';
 import { PrefixedStateReadWriter } from '../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../src/testing/in_memory_prefixed_state';
 
 describe('state_machine', () => {
 	const genesisHeader = {} as BlockHeader;
 	const header = {} as BlockHeader;
 	const logger = {} as Logger;
 	const assets = new BlockAssets();
-	const stateStore = {} as PrefixedStateReadWriter;
+	let stateStore: PrefixedStateReadWriter;
 	let eventQueue: EventQueue;
 	const networkIdentifier = Buffer.from('network identifier', 'utf8');
 	const transaction = {
@@ -48,6 +49,7 @@ describe('state_machine', () => {
 	let systemMod: CustomModule1;
 
 	beforeEach(() => {
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		eventQueue = new EventQueue();
 		stateMachine = new StateMachine();
 		mod = new CustomModule0();

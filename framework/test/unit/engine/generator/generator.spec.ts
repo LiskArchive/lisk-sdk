@@ -582,7 +582,7 @@ describe('generator', () => {
 				height: 2,
 			});
 
-			expect(block.header.assetsRoot).toEqual(assetHash);
+			expect(block.header.assetRoot).toEqual(assetHash);
 		});
 
 		it('should assign eventRoot to the block when event is empty', async () => {

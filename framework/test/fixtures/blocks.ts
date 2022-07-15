@@ -38,7 +38,7 @@ export const genesisBlock = (): Block => {
 		eventRoot: hash(Buffer.alloc(0)),
 		maxHeightGenerated: 0,
 		maxHeightPrevoted: 0,
-		assetsRoot: hash(Buffer.alloc(0)),
+		assetRoot: hash(Buffer.alloc(0)),
 		validatorsHash: getRandomBytes(32),
 		aggregateCommit: {
 			height: 0,
@@ -66,7 +66,7 @@ export const createFakeBlockHeader = (header?: Partial<BlockHeaderAttrs>): Block
 		transactionRoot: header?.transactionRoot ?? hash(getRandomBytes(4)),
 		maxHeightGenerated: header?.maxHeightGenerated ?? 0,
 		maxHeightPrevoted: header?.maxHeightPrevoted ?? 0,
-		assetsRoot: header?.assetsRoot ?? hash(getRandomBytes(4)),
+		assetRoot: header?.assetRoot ?? hash(getRandomBytes(4)),
 		aggregateCommit: header?.aggregateCommit ?? {
 			height: 0,
 			aggregationBits: Buffer.alloc(0),
@@ -110,7 +110,7 @@ export const createValidDefaultBlock = async (
 			aggregationBits: Buffer.alloc(0),
 			certificateSignature: Buffer.alloc(0),
 		},
-		assetsRoot: hash(Buffer.alloc(0)),
+		assetRoot: hash(Buffer.alloc(0)),
 		maxHeightPrevoted: 0,
 		maxHeightGenerated: 0,
 		validatorsHash: getRandomBytes(32),

@@ -51,7 +51,7 @@ export interface BlockHeader {
 	previousBlockID: Buffer;
 	generatorAddress: Buffer;
 	transactionRoot: Buffer;
-	assetsRoot: Buffer;
+	assetRoot: Buffer;
 	eventRoot: Buffer;
 	stateRoot: Buffer;
 	maxHeightPrevoted: number;
