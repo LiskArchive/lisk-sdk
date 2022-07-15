@@ -70,7 +70,7 @@ export const createGenesisBlockContext = (params: {
 			stateRoot: hash(Buffer.alloc(0)),
 			maxHeightGenerated: 0,
 			maxHeightPrevoted: 0,
-			assetsRoot: hash(Buffer.alloc(0)),
+			assetRoot: hash(Buffer.alloc(0)),
 			aggregateCommit: {
 				height: 0,
 				aggregationBits: Buffer.alloc(0),
@@ -113,7 +113,7 @@ export const createBlockContext = (params: {
 			stateRoot: hash(Buffer.alloc(0)),
 			maxHeightGenerated: 0,
 			maxHeightPrevoted: 0,
-			assetsRoot: hash(Buffer.alloc(0)),
+			assetRoot: hash(Buffer.alloc(0)),
 			aggregateCommit: {
 				height: 0,
 				aggregationBits: Buffer.alloc(0),
@@ -164,7 +164,7 @@ export const createBlockGenerateContext = (params: {
 			stateRoot: hash(Buffer.alloc(0)),
 			maxHeightGenerated: 0,
 			maxHeightPrevoted: 0,
-			assetsRoot: hash(Buffer.alloc(0)),
+			assetRoot: hash(Buffer.alloc(0)),
 			aggregateCommit: {
 				height: 0,
 				aggregationBits: Buffer.alloc(0),
@@ -219,7 +219,7 @@ export const createTransactionContext = (params: {
 			stateRoot: hash(Buffer.alloc(0)),
 			maxHeightGenerated: 0,
 			maxHeightPrevoted: 0,
-			assetsRoot: hash(Buffer.alloc(0)),
+			assetRoot: hash(Buffer.alloc(0)),
 			aggregateCommit: {
 				height: 0,
 				aggregationBits: Buffer.alloc(0),

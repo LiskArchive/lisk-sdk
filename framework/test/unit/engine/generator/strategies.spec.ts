@@ -118,7 +118,7 @@ describe('strategies', () => {
 				previousBlockID: Buffer.from('id'),
 				maxHeightGenerated: 0,
 				maxHeightPrevoted: 0,
-				assetsRoot: hash(Buffer.alloc(0)),
+				assetRoot: hash(Buffer.alloc(0)),
 				transactionRoot: hash(Buffer.alloc(0)),
 				eventRoot: hash(Buffer.alloc(0)),
 				validatorsHash: hash(Buffer.alloc(0)),
