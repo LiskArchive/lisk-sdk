@@ -14,7 +14,7 @@
 
 import { BaseEndpoint } from '../../base_endpoint';
 import { MainchainInteroperabilityStore } from './store';
-import { StoreCallback } from '../types';
+import { ImmutableStoreCallback, StoreCallback } from '../types';
 import { BaseInteroperableAPI } from '../base_interoperable_api';
 import { ModuleEndpointContext } from '../../../types';
 
@@ -55,7 +55,9 @@ export class MainchainInteroperabilityEndpoint extends BaseEndpoint {
 		await interoperabilityStore.getTerminatedOutboxAccount(chainID);
 	}
 
-	protected getInteroperabilityStore(getStore: StoreCallback): MainchainInteroperabilityStore {
+	protected getInteroperabilityStore(
+		getStore: StoreCallback | ImmutableStoreCallback,
+	): MainchainInteroperabilityStore {
 		return new MainchainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
 	}
 }
