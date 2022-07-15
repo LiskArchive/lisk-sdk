@@ -23,18 +23,13 @@ import { SidechainInteroperabilityEndpoint } from './endpoint';
 
 export class SidechainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainAPI: BaseInteroperableAPI = new SidechainCCAPI(this.id);
-	public api = new SidechainInteroperabilityAPI(this.id);
+	public api = new SidechainInteroperabilityAPI(this.id, this.interoperableCCAPIs);
 	public endpoint = new SidechainInteroperabilityEndpoint(this.id);
 	// private readonly _mainchainRegistrationCommand = new MainchainRegistrationCommand(
 	// 	this.id,
 	// 	new Map(),
 	// 	new Map(),
 	// ); // To be updated with actual implementation
-
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public registerInteroperableModule(): void {
-		// TODO
-	}
 
 	public metadata(): ModuleMetadata {
 		return {

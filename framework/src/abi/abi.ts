@@ -112,25 +112,10 @@ export interface SystemConfig {
 	keepEventsForHeights: number;
 }
 
-export interface IPCRPCConfig {
-	path: string;
-}
-
-export interface WSRPCConfig {
-	host: string;
-	port: number;
-}
-
-export interface HTTPRPCConfig {
-	host: string;
-	port: number;
-}
-
 export interface RPCConfig {
 	modes: string[];
-	ipc: IPCRPCConfig;
-	ws: WSRPCConfig;
-	http: HTTPRPCConfig;
+	host: string;
+	port: number;
 }
 
 export interface LoggerConfig {

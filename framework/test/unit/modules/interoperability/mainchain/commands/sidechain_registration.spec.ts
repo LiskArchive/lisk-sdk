@@ -45,8 +45,11 @@ import {
 	validatorsSchema,
 	outboxRootSchema,
 	registrationCCMParamsSchema,
-} from '../../../../../../src/modules/interoperability/schema';
-import { SidechainRegistrationParams } from '../../../../../../src/modules/interoperability/types';
+} from '../../../../../../src/modules/interoperability/schemas';
+import {
+	SendInternalContext,
+	SidechainRegistrationParams,
+} from '../../../../../../src/modules/interoperability/types';
 import { CommandVerifyContext, VerifyStatus } from '../../../../../../src/state_machine';
 import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
@@ -514,16 +517,6 @@ describe('Sidechain registration command', () => {
 				name: chainAccount.name,
 				messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: intToBuffer(0, 4) },
 			});
-			const ccm = {
-				nonce: BigInt(0),
-				moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
-				crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
-				sendingChainID: MAINCHAIN_ID_BUFFER,
-				receivingChainID,
-				fee: BigInt(0),
-				status: CCM_STATUS_OK,
-				params: encodedParams,
-			};
 
 			// Act
 			await sidechainRegistrationCommand.execute(context);
@@ -537,8 +530,13 @@ describe('Sidechain registration command', () => {
 				status: CCM_STATUS_OK,
 				params: encodedParams,
 				timestamp: expect.any(Number),
-				beforeSendContext: { ...context, ccm, feeAddress: EMPTY_FEE_ADDRESS },
-			});
+				eventQueue: context.eventQueue,
+				feeAddress: EMPTY_FEE_ADDRESS,
+				getAPIContext: context.getAPIContext,
+				getStore: context.getStore,
+				logger: context.logger,
+				networkIdentifier: context.networkIdentifier,
+			} as SendInternalContext);
 		});
 
 		it('should add an entry to chain validators substore', async () => {

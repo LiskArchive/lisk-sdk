@@ -25,7 +25,7 @@ import {
 	LIVENESS_LIMIT,
 	STORE_PREFIX_CHANNEL_DATA,
 } from '../../../../src/modules/interoperability/constants';
-import { ccmSchema, channelSchema } from '../../../../src/modules/interoperability/schema';
+import { ccmSchema, channelSchema } from '../../../../src/modules/interoperability/schemas';
 import {
 	ChainAccount,
 	ChannelData,

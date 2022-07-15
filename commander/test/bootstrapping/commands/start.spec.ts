@@ -125,8 +125,7 @@ describe('start', () => {
 			await StartCommandExtended.run(['--api-ipc'], config);
 			const [usedConfig] = (StartCommandExtended.prototype
 				.getApplication as jest.Mock).mock.calls[0];
-			expect(usedConfig.rpc.enable).toBe(true);
-			expect(usedConfig.rpc.mode).toBe('ipc');
+			expect(usedConfig.rpc.modes).toContain('ipc');
 		});
 	});
 
@@ -135,17 +134,41 @@ describe('start', () => {
 			await StartCommandExtended.run(['--api-ws'], config);
 			const [usedConfig] = (StartCommandExtended.prototype
 				.getApplication as jest.Mock).mock.calls[0];
-			expect(usedConfig.rpc.enable).toBe(true);
-			expect(usedConfig.rpc.mode).toBe('ws');
+			expect(usedConfig.rpc.modes).toContain('ws');
 		});
 	});
 
-	describe('when custom port with --api-ws-port is specified along with --api-ws', () => {
+	describe('when --api-http is specified', () => {
 		it('should update the config value', async () => {
-			await StartCommandExtended.run(['--api-ws', '--api-ws-port', '8888'], config);
+			await StartCommandExtended.run(['--api-http'], config);
+			const [usedConfig] = (StartCommandExtended.prototype
+				.getApplication as jest.Mock).mock.calls[0];
+			expect(usedConfig.rpc.modes).toContain('http');
+		});
+	});
+
+	describe('when custom port with --api-port is specified along with --api-ws', () => {
+		it('should update the config value', async () => {
+			await StartCommandExtended.run(['--api-ws', '--api-port', '8888'], config);
 			const [usedConfig] = (StartCommandExtended.prototype
 				.getApplication as jest.Mock).mock.calls[0];
 			expect(usedConfig.rpc.port).toBe(8888);
+		});
+	});
+
+	describe('when custom port and host with --api-port --api-host is specified along with --api-ws --api-http and --api-ipc', () => {
+		it('should update the config value', async () => {
+			await StartCommandExtended.run(
+				['--api-ipc', '--api-http', '--api-ws', '--api-port', '8888', '--api-host', '0.0.0.0'],
+				config,
+			);
+			const [usedConfig] = (StartCommandExtended.prototype
+				.getApplication as jest.Mock).mock.calls[0];
+			expect(usedConfig.rpc.modes).toContain('http');
+			expect(usedConfig.rpc.modes).toContain('ws');
+			expect(usedConfig.rpc.modes).toContain('ipc');
+			expect(usedConfig.rpc.port).toBe(8888);
+			expect(usedConfig.rpc.host).toBe('0.0.0.0');
 		});
 	});
 

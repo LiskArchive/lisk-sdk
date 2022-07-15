@@ -13,6 +13,8 @@
  *
  */
 
+import { DEFAULT_HOST, DEFAULT_PORT_P2P, DEFAULT_PORT_RPC } from '../constants';
+
 const moduleConfigSchema = {
 	type: 'object',
 	propertyNames: {
@@ -257,39 +259,15 @@ export const applicationConfigSchema = {
 		},
 		rpc: {
 			type: 'object',
+			required: ['modes', 'host', 'port'],
 			properties: {
 				modes: {
 					type: 'array',
 					items: { type: 'string', enum: ['ipc', 'ws', 'http'] },
 					uniqueItems: true,
 				},
-				ipc: {
-					type: 'object',
-					required: ['path'],
-					properties: {
-						path: { type: 'string' },
-					},
-				},
-				ws: {
-					type: 'object',
-					required: ['host', 'port', 'path'],
-					properties: {
-						path: { type: 'string' },
-						port: { type: 'number', minimum: 1024, maximum: 65535 },
-						host: {
-							type: 'string',
-							format: 'ip',
-						},
-					},
-				},
-				http: {
-					type: 'object',
-					required: ['host', 'port'],
-					properties: {
-						host: { type: 'string' },
-						port: { type: 'number', minimum: 1024, maximum: 65535 },
-					},
-				},
+				host: { type: 'string' },
+				port: { type: 'number', minimum: 1024, maximum: 65535 },
 			},
 		},
 		genesis: {
@@ -397,19 +375,12 @@ export const applicationConfigSchema = {
 		},
 		rpc: {
 			modes: ['ipc'],
-			ws: {
-				port: 8080,
-				host: '127.0.0.1',
-				path: '/ws',
-			},
-			http: {
-				port: 8000,
-				host: '127.0.0.1',
-			},
+			port: DEFAULT_PORT_RPC,
+			host: DEFAULT_HOST,
 		},
 		network: {
 			seedPeers: [],
-			port: 5000,
+			port: DEFAULT_PORT_P2P,
 		},
 		transactionPool: {
 			maxTransactions: 4096,

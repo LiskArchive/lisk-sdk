@@ -601,8 +601,26 @@ describe('consensus', () => {
 			});
 		});
 	});
-
 	describe('execute', () => {
+		beforeEach(async () => {
+			await consensus.init({
+				logger: loggerMock,
+				db: dbMock,
+				genesisBlock: genesis,
+				moduleIDs,
+			});
+		});
+
+		it('should not throw error when block execution fail', async () => {
+			const validBlock = await createValidDefaultBlock();
+
+			jest.spyOn(consensus, '_execute' as any).mockRejectedValue(new Error('some error'));
+
+			await expect(consensus.execute(validBlock)).resolves.toBeUndefined();
+		});
+	});
+
+	describe('_execute', () => {
 		let block: Block;
 		let stateStore: StateStore;
 

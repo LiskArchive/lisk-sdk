@@ -30,7 +30,7 @@ import {
 	TOKEN_ID_LENGTH,
 } from './constants';
 import { TransferCommand } from './commands/transfer';
-import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
+import { ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { GenesisBlockExecuteContext } from '../../state_machine';
 import {
 	AvailableLocalIDStoreData,
@@ -53,15 +53,19 @@ import {
 } from './schemas';
 import { TokenAPI } from './api';
 import { TokenEndpoint } from './endpoint';
-import { GenesisTokenStore, InteroperabilityAPI, MinBalance, ModuleConfig } from './types';
+import { GenesisTokenStore, MinBalance, ModuleConfig } from './types';
 import { getUserStoreKey, splitTokenID } from './utils';
 import { CCTransferCommand } from './commands/cc_transfer';
+import { BaseInteroperableModule } from '../interoperability/base_interoperable_module';
+import { TokenInteroperableAPI } from './cc_api';
+import { MainchainInteroperabilityAPI, SidechainInteroperabilityAPI } from '../interoperability';
 
-export class TokenModule extends BaseModule {
+export class TokenModule extends BaseInteroperableModule {
 	public name = 'token';
 	public id = MODULE_ID_TOKEN_BUFFER;
 	public api = new TokenAPI(this.id);
 	public endpoint = new TokenEndpoint(this.id);
+	public crossChainAPI = new TokenInteroperableAPI(this.id, this.api);
 
 	private _minBalances!: MinBalance[];
 	private readonly _transferCommand = new TransferCommand(this.id);
@@ -70,7 +74,9 @@ export class TokenModule extends BaseModule {
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [this._transferCommand, this._ccTransferCommand];
 
-	public addDependencies(interoperabilityAPI: InteroperabilityAPI) {
+	public addDependencies(
+		interoperabilityAPI: MainchainInteroperabilityAPI | SidechainInteroperabilityAPI,
+	) {
 		this.api.addDependencies(interoperabilityAPI);
 	}
 
