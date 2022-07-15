@@ -34,18 +34,11 @@ Object {
     "plugins": Object {},
     "rootPath": "~/.lisk",
     "rpc": Object {
-      "http": Object {
-        "host": "127.0.0.1",
-        "port": 7887,
-      },
+      "host": "127.0.0.1",
       "modes": Array [
         "ipc",
       ],
-      "ws": Object {
-        "host": "127.0.0.1",
-        "path": "/ws",
-        "port": 7887,
-      },
+      "port": 7887,
     },
     "system": Object {
       "keepEventsForHeights": 300,
@@ -381,33 +374,8 @@ Object {
     },
     "rpc": Object {
       "properties": Object {
-        "http": Object {
-          "properties": Object {
-            "host": Object {
-              "type": "string",
-            },
-            "port": Object {
-              "maximum": 65535,
-              "minimum": 1024,
-              "type": "number",
-            },
-          },
-          "required": Array [
-            "host",
-            "port",
-          ],
-          "type": "object",
-        },
-        "ipc": Object {
-          "properties": Object {
-            "path": Object {
-              "type": "string",
-            },
-          },
-          "required": Array [
-            "path",
-          ],
-          "type": "object",
+        "host": Object {
+          "type": "string",
         },
         "modes": Object {
           "items": Object {
@@ -421,29 +389,17 @@ Object {
           "type": "array",
           "uniqueItems": true,
         },
-        "ws": Object {
-          "properties": Object {
-            "host": Object {
-              "format": "ip",
-              "type": "string",
-            },
-            "path": Object {
-              "type": "string",
-            },
-            "port": Object {
-              "maximum": 65535,
-              "minimum": 1024,
-              "type": "number",
-            },
-          },
-          "required": Array [
-            "host",
-            "port",
-            "path",
-          ],
-          "type": "object",
+        "port": Object {
+          "maximum": 65535,
+          "minimum": 1024,
+          "type": "number",
         },
       },
+      "required": Array [
+        "modes",
+        "host",
+        "port",
+      ],
       "type": "object",
     },
     "system": Object {

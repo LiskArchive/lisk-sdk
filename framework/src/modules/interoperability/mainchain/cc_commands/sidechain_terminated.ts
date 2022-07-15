@@ -19,7 +19,7 @@ import {
 	MAINCHAIN_ID_BUFFER,
 } from '../../constants';
 import { createCCMsgBeforeSendContext } from '../../context';
-import { sidechainTerminatedCCMParamsSchema } from '../../schema';
+import { sidechainTerminatedCCMParamsSchema } from '../../schemas';
 import { CCCommandExecuteContext, StoreCallback } from '../../types';
 import { MainchainInteroperabilityStore } from '../store';
 

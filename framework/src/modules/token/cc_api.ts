@@ -13,6 +13,13 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
+import { BaseInteroperableAPI } from '../interoperability/base_interoperable_api';
+import {
+	BeforeApplyCCMsgAPIContext,
+	BeforeRecoverCCMsgAPIContext,
+	BeforeSendCCMsgAPIContext,
+	RecoverCCMsgAPIContext,
+} from '../interoperability/types';
 import { TokenAPI } from './api';
 import {
 	ADDRESS_LENGTH,
@@ -21,12 +28,7 @@ import {
 	STORE_PREFIX_ESCROW,
 	STORE_PREFIX_USER,
 } from './constants';
-import {
-	BeforeApplyCCMsgAPIContext,
-	BeforeRecoverCCMsgAPIContext,
-	BeforeSendCCMsgAPIContext,
-	RecoverCCMsgAPIContext,
-} from './interop_types';
+
 import { EscrowStoreData, escrowStoreSchema, UserStoreData, userStoreSchema } from './schemas';
 import { InteroperabilityAPI } from './types';
 import {
@@ -37,13 +39,14 @@ import {
 	updateAvailableBalanceWithCreate,
 } from './utils';
 
-export class TokenInteroperableAPI {
+export class TokenInteroperableAPI extends BaseInteroperableAPI {
 	private readonly _moduleID: Buffer;
 	private readonly _tokenAPI: TokenAPI;
 
 	private _interopAPI!: InteroperabilityAPI;
 
 	public constructor(moduleID: Buffer, tokenAPI: TokenAPI) {
+		super(moduleID);
 		this._moduleID = moduleID;
 		this._tokenAPI = tokenAPI;
 	}

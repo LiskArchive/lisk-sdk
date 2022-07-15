@@ -16,6 +16,7 @@ import { Schema } from '@liskhq/lisk-codec';
 import { IterateOptions } from '@liskhq/lisk-db';
 import { TransactionVerifyResult } from '../abi';
 import { Logger } from '../logger';
+import { EventQueue } from './event_queue';
 
 export interface EventQueueAdder {
 	add(moduleID: Buffer, typeID: Buffer, data: Buffer, topics?: Buffer[], noRevert?: boolean): void;
@@ -99,7 +100,7 @@ export interface CommandVerifyContext<T = undefined> {
 export interface CommandExecuteContext<T = undefined> {
 	logger: Logger;
 	networkIdentifier: Buffer;
-	eventQueue: EventQueueAdder;
+	eventQueue: EventQueue;
 	header: BlockHeader;
 	assets: BlockAssets;
 	currentValidators: Validator[];

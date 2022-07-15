@@ -134,7 +134,8 @@ export class TransactionContext {
 		return {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
-			eventQueue: wrappedEventQueue,
+			// TODO: Need to pass wrapper of eventQueue with possibility to create/restore snapshot https://github.com/LiskHQ/lisk-sdk/issues/7211
+			eventQueue: this.eventQueue,
 			getAPIContext: () =>
 				createAPIContext({ stateStore: this._stateStore, eventQueue: wrappedEventQueue }),
 			getStore: (moduleID: Buffer, storePrefix: number) =>

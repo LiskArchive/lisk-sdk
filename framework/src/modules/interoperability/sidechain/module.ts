@@ -31,11 +31,6 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 	// 	new Map(),
 	// ); // To be updated with actual implementation
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public registerInteroperableModule(): void {
-		// TODO
-	}
-
 	public metadata(): ModuleMetadata {
 		return {
 			endpoints: [],

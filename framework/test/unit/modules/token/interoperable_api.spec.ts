@@ -28,7 +28,7 @@ import {
 	STORE_PREFIX_USER,
 	TOKEN_ID_LENGTH,
 } from '../../../../src/modules/token/constants';
-import { TokenInteroperableAPI } from '../../../../src/modules/token/interoperable_api';
+import { TokenInteroperableAPI } from '../../../../src/modules/token/cc_api';
 import {
 	availableLocalIDStoreSchema,
 	escrowStoreSchema,
@@ -104,7 +104,7 @@ describe('CrossChain Forward command', () => {
 			{ tokenID: defaultTokenIDAlias, amount: BigInt(MIN_BALANCE) },
 			{ tokenID: defaultForeignTokenID, amount: BigInt(MIN_BALANCE) },
 		];
-		tokenAPI.addDependencies(interopAPI);
+		tokenAPI.addDependencies(interopAPI as never);
 		tokenInteropAPI.addDependencies(interopAPI);
 		tokenAPI.init({
 			minBalances,

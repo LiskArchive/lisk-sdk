@@ -74,7 +74,7 @@ describe('token endpoint', () => {
 			error: jest.fn(),
 			terminateChain: jest.fn(),
 			getChannel: jest.fn(),
-		});
+		} as never);
 		endpoint.init(api, supportedTokenIDs);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		const userStore = stateStore.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
