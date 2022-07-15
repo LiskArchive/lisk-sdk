@@ -14,7 +14,7 @@
 
 import { hash, intToBuffer, verifyData } from '@liskhq/lisk-cryptography';
 import { NotFoundError } from '@liskhq/lisk-chain';
-import { UnlockingObject, VoterData } from './types';
+import { ModuleConfig, ModuleConfigJSON, UnlockingObject, VoterData } from './types';
 import {
 	PUNISHMENT_PERIOD,
 	VOTER_PUNISH_TIME,
@@ -265,3 +265,11 @@ export const getPunishmentPeriod = (
 };
 
 export const getIDAsKeyForStore = (id: number) => intToBuffer(id, 4);
+
+export function getModuleConfig(config: ModuleConfigJSON): ModuleConfig {
+	return {
+		...config,
+		minWeightStandby: BigInt(config.minWeightStandby),
+		tokenIDDPoS: Buffer.from(config.tokenIDDPoS, 'hex'),
+	};
+}

@@ -13,7 +13,7 @@
  */
 
 import { APIContext, ImmutableAPIContext } from '../../state_machine';
-import { CCMsg } from './interop_types';
+import { CCMsg } from '../interoperability/types';
 
 export type TokenID = Buffer;
 

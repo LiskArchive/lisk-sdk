@@ -60,13 +60,14 @@ import {
 	RandomAPI,
 	TokenAPI,
 	ValidatorsAPI,
-	ModuleConfig,
 	DelegateAccount,
 	SnapshotStoreData,
 	PreviousTimestampData,
 	GenesisData,
 	GenesisStore,
 	VoterData,
+	ModuleConfigJSON,
+	ModuleConfig,
 } from './types';
 import { Rounds } from './rounds';
 import {
@@ -77,14 +78,15 @@ import {
 	selectStandbyDelegates,
 	shuffleDelegateList,
 	sortUnlocking,
+	getModuleConfig,
 } from './utils';
 
 export class DPoSModule extends BaseModule {
 	public id = getIDAsKeyForStore(MODULE_ID_DPOS);
 	public name = 'dpos';
 	public api = new DPoSAPI(this.id);
-	public endpoint = new DPoSEndpoint(this.id);
 	public configSchema = configSchema;
+	public endpoint = new DPoSEndpoint(this.id);
 
 	private readonly _delegateRegistrationCommand = new DelegateRegistrationCommand(this.id);
 	private readonly _reportDelegateMisbehaviorCommand = new ReportDelegateMisbehaviorCommand(
@@ -144,6 +146,10 @@ export class DPoSModule extends BaseModule {
 					request: getVoterRequestSchema,
 					response: getVoterResponseSchema,
 				},
+				{
+					name: this.endpoint.getConstants.name,
+					response: configSchema,
+				},
 			],
 			commands: this.commands.map(command => ({
 				id: command.id,
@@ -163,16 +169,15 @@ export class DPoSModule extends BaseModule {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs) {
 		const { moduleConfig } = args;
-		const config = objects.mergeDeep({}, defaultConfig, moduleConfig);
+		const config = objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfigJSON;
 		const errors = validator.validate(configSchema, config);
 		if (errors.length) {
 			throw new LiskValidationError(errors);
 		}
-		this._moduleConfig = {
-			...config,
-			minWeightStandby: BigInt(config.minWeightStandby),
-			tokenIDDPoS: Buffer.from(config.tokenIDDPoS, 'hex'),
-		} as ModuleConfig;
+
+		this._moduleConfig = getModuleConfig(config);
+
+		this.endpoint.init(this._moduleConfig);
 
 		this._reportDelegateMisbehaviorCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });
 		this._unlockCommand.init({ tokenIDDPoS: this._moduleConfig.tokenIDDPoS });

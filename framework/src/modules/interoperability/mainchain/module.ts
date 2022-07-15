@@ -28,7 +28,7 @@ import {
 	ownChainAccountSchema,
 	terminatedStateSchema,
 	terminatedOutboxSchema,
-} from '../schema';
+} from '../schemas';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainAPI = new MainchainCCAPI(this.id);

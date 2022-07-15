@@ -51,10 +51,11 @@ import {
 	registrationCCMParamsSchema,
 	registrationSignatureMessageSchema,
 	validatorsSchema,
-} from '../../../../../../src/modules/interoperability/schema';
+} from '../../../../../../src/modules/interoperability/schemas';
 import {
 	ActiveValidators,
 	MainchainRegistrationParams,
+	SendInternalContext,
 } from '../../../../../../src/modules/interoperability/types';
 import { VerifyStatus, CommandVerifyContext } from '../../../../../../src/state_machine';
 import {
@@ -369,16 +370,6 @@ describe('Mainchain registration command', () => {
 				name: MAINCHAIN_NAME,
 				messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: intToBuffer(0, 4) },
 			});
-			const ccm = {
-				nonce: BigInt(0),
-				moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
-				crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
-				sendingChainID: params.ownChainID,
-				receivingChainID,
-				fee: BigInt(0),
-				status: CCM_STATUS_OK,
-				params: encodedParams,
-			};
 			// Act
 			await mainchainRegistrationCommand.execute(context);
 
@@ -390,8 +381,13 @@ describe('Mainchain registration command', () => {
 				fee: BigInt(0),
 				status: CCM_STATUS_OK,
 				params: encodedParams,
-				beforeSendContext: { ...context, ccm, feeAddress: EMPTY_FEE_ADDRESS },
-			});
+				feeAddress: EMPTY_FEE_ADDRESS,
+				eventQueue: context.eventQueue,
+				getAPIContext: context.getAPIContext,
+				getStore: context.getStore,
+				logger: context.logger,
+				networkIdentifier: context.networkIdentifier,
+			} as SendInternalContext);
 		});
 
 		it('should add an entry to chain validators substore', async () => {
