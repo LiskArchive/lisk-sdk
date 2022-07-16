@@ -13,19 +13,10 @@
  *
  */
 
-import * as constants from './constants';
-
-export * from './buffer';
-export * from './convert';
-export * from './encrypt';
-export * from './hash';
-export * from './keys';
-export * from './legacy_address';
-export * from './sign';
-export * from './hash_onion';
-export * from './message_tag';
-export * from './bls';
-export { blsPopVerify, blsPopProve } from './bls_lib/lib';
-export { getRandomBytes, getPublicKey } from './nacl';
-
-export { constants };
+export * as constants from './constants';
+export * as encrypt from './encrypt';
+export * as address from './address';
+export * as legacyAddress from './legacy_address';
+export * as bls from './bls';
+export * as ed from './ed';
+export * as utils from './utils';

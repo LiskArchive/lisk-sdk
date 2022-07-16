@@ -14,37 +14,40 @@
  */
 
 import * as crypto from 'crypto';
-import { blsKeyGen } from './bls_lib';
-import {
-	HARDENED_OFFSET,
-	ED25519_CURVE,
-	MAX_UINT32,
-	HASH_LENGTH,
-	L,
-	EMPTY_SALT,
-	SHA256,
-} from './constants';
+import { HARDENED_OFFSET, MAX_UINT32 } from './constants';
 
-export const readBit = (buf: Buffer, bit: number): boolean => {
-	const byteIndex = Math.floor(bit / 8);
-	const bitIndex = bit % 8;
+import { getRandomBytes } from './nacl';
 
-	// eslint-disable-next-line no-bitwise
-	return (buf[byteIndex] >> bitIndex) % 2 === 1;
+const cryptoHashSha256 = (data: Buffer): Buffer => {
+	const dataHash = crypto.createHash('sha256');
+	dataHash.update(data);
+
+	return dataHash.digest();
 };
 
-export const writeBit = (buf: Buffer, bit: number, val: boolean): void => {
-	const byteIndex = Math.floor(bit / 8);
-	const bitIndex = bit % 8;
-
-	if (val) {
-		// eslint-disable-next-line no-bitwise, no-param-reassign
-		buf[byteIndex] |= 1 << bitIndex;
-	} else {
-		// eslint-disable-next-line no-bitwise, no-param-reassign
-		buf[byteIndex] &= ~(1 << bitIndex);
+export const hash = (data: Buffer | string, format?: string): Buffer => {
+	if (Buffer.isBuffer(data)) {
+		return cryptoHashSha256(data);
 	}
+
+	if (typeof data === 'string' && typeof format === 'string') {
+		if (!['utf8', 'hex'].includes(format)) {
+			throw new Error('Unsupported string format. Currently only `hex` and `utf8` are supported.');
+		}
+		const encoded = format === 'utf8' ? Buffer.from(data, 'utf8') : Buffer.from(data, 'hex');
+
+		return cryptoHashSha256(encoded);
+	}
+
+	throw new Error(
+		`Unsupported data:${data} and format:${
+			format ?? 'undefined'
+		}. Currently only Buffers or hex and utf8 strings are supported.`,
+	);
 };
+
+export const getNetworkIdentifier = (genesisBlockID: Buffer, communityIdentifier: string): Buffer =>
+	hash(Buffer.concat([genesisBlockID, Buffer.from(communityIdentifier, 'utf8')]));
 
 export const parseKeyDerivationPath = (path: string) => {
 	if (!path.startsWith('m') || !path.includes('/')) {
@@ -78,79 +81,139 @@ export const parseKeyDerivationPath = (path: string) => {
 	);
 };
 
-export const getMasterKeyFromSeed = (seed: Buffer) => {
-	const hmac = crypto.createHmac('sha512', ED25519_CURVE);
-	const digest = hmac.update(seed).digest();
-	const leftBytes = digest.slice(0, 32);
-	const rightBytes = digest.slice(32);
-	return {
-		key: leftBytes,
-		chainCode: rightBytes,
-	};
-};
+const TAG_REGEX = /^([A-Za-z0-9])+$/;
 
-export const getChildKey = (node: { key: Buffer; chainCode: Buffer }, index: number) => {
-	const indexBuffer = Buffer.allocUnsafe(4);
-	indexBuffer.writeUInt32BE(index, 0);
-	const data = Buffer.concat([Buffer.alloc(1, 0), node.key, indexBuffer]);
-	const digest = crypto.createHmac('sha512', node.chainCode).update(data).digest();
-	const leftBytes = digest.slice(0, 32);
-	const rightBytes = digest.slice(32);
-
-	return {
-		key: leftBytes,
-		chainCode: rightBytes,
-	};
-};
-
-// eslint-disable-next-line no-bitwise
-const flipBits = (buf: Buffer) => Buffer.from(buf.map(x => x ^ 0xff));
-
-const sha256 = (x: Buffer) => crypto.createHash(SHA256).update(x).digest();
-
-const hmacSHA256 = (key: Buffer, message: Buffer, hash: string) =>
-	crypto.createHmac(hash, key).update(message).digest();
-
-const hkdfSHA256 = (ikm: Buffer, length: number, salt: Buffer, info: Buffer) => {
-	if (salt.length === 0) {
-		// eslint-disable-next-line no-param-reassign
-		salt = EMPTY_SALT;
+export const createMessageTag = (domain: string, version?: number | string): string => {
+	if (!TAG_REGEX.test(domain)) {
+		throw new Error(
+			`Message tag domain must be alpha numeric without special characters. Got "${domain}".`,
+		);
 	}
-	const PRK = hmacSHA256(salt, ikm, SHA256);
-	let t = Buffer.from([]);
-	let OKM = Buffer.from([]);
 
-	for (let i = 0; i < Math.ceil(length / HASH_LENGTH); i += 1) {
-		t = hmacSHA256(PRK, Buffer.concat([t, info, Buffer.from([1 + i])]), SHA256);
-		OKM = Buffer.concat([OKM, t]);
+	if (version && !TAG_REGEX.test(version.toString())) {
+		throw new Error(
+			`Message tag version must be alpha numeric without special characters. Got "${version}"`,
+		);
 	}
-	return OKM.slice(0, length);
+
+	return `LSK_${version ? `${domain}:${version}` : domain}_`;
 };
 
-const toLamportSK = (IKM: Buffer, salt: Buffer) => {
-	const info = Buffer.from([]);
-	const OKM = hkdfSHA256(IKM, L, salt, info);
+export const tagMessage = (
+	tag: string,
+	networkIdentifier: Buffer,
+	message: string | Buffer,
+): Buffer =>
+	Buffer.concat([
+		Buffer.from(tag, 'utf8'),
+		networkIdentifier,
+		typeof message === 'string' ? Buffer.from(message, 'utf8') : message,
+	]);
 
-	const lamportSK = [];
-	for (let i = 0; i < 255; i += 1) {
-		lamportSK.push(OKM.slice(i * 32, (i + 1) * 32));
+export const BIG_ENDIAN = 'big';
+export const LITTLE_ENDIAN = 'little';
+const MAX_NUMBER_BYTE_LENGTH = 6;
+
+export const intToBuffer = (
+	value: number | string,
+	byteLength: number,
+	endianness = BIG_ENDIAN,
+	signed = false,
+): Buffer => {
+	if (![BIG_ENDIAN, LITTLE_ENDIAN].includes(endianness)) {
+		throw new Error(`Endianness must be either ${BIG_ENDIAN} or ${LITTLE_ENDIAN}`);
 	}
-	return lamportSK;
+	const buffer = Buffer.alloc(byteLength);
+	if (endianness === 'big') {
+		if (byteLength <= MAX_NUMBER_BYTE_LENGTH) {
+			if (signed) {
+				buffer.writeIntBE(Number(value), 0, byteLength);
+			} else {
+				buffer.writeUIntBE(Number(value), 0, byteLength);
+			}
+		} else {
+			// eslint-disable-next-line no-lonely-if
+			if (signed) {
+				buffer.writeBigInt64BE(BigInt(value));
+			} else {
+				buffer.writeBigUInt64BE(BigInt(value));
+			}
+		}
+	} else {
+		// eslint-disable-next-line no-lonely-if
+		if (byteLength <= MAX_NUMBER_BYTE_LENGTH) {
+			if (signed) {
+				buffer.writeIntLE(Number(value), 0, byteLength);
+			} else {
+				buffer.writeUIntLE(Number(value), 0, byteLength);
+			}
+		} else {
+			// eslint-disable-next-line no-lonely-if
+			if (signed) {
+				buffer.writeBigInt64LE(BigInt(value));
+			} else {
+				buffer.writeBigUInt64LE(BigInt(value));
+			}
+		}
+	}
+
+	return buffer;
 };
 
-const parentSKToLamportPK = (parentSK: Buffer, index: number) => {
-	const salt = Buffer.allocUnsafe(4);
-	salt.writeUIntBE(index, 0, 4);
+export const bufferToHex = (buffer: Buffer): string => Buffer.from(buffer).toString('hex');
 
-	const IKM = parentSK;
-	const hashedLamport0 = toLamportSK(IKM, salt).map(x => sha256(x));
-	const hashedLamport1 = toLamportSK(flipBits(IKM), salt).map(x => sha256(x));
+const hexRegex = /^[0-9a-f]+/i;
+export const hexToBuffer = (hex: string, argumentName = 'Argument'): Buffer => {
+	if (typeof hex !== 'string') {
+		throw new TypeError(`${argumentName} must be a string.`);
+	}
+	// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+	const matchedHex = (hex.match(hexRegex) ?? [])[0];
+	if (!matchedHex || matchedHex.length !== hex.length) {
+		throw new TypeError(`${argumentName} must be a valid hex string.`);
+	}
+	if (matchedHex.length % 2 !== 0) {
+		throw new TypeError(`${argumentName} must have a valid length of hex string.`);
+	}
 
-	const lamportPK = Buffer.concat(hashedLamport0.concat(hashedLamport1));
-	return sha256(lamportPK);
+	return Buffer.from(matchedHex, 'hex');
 };
 
-export const deriveChildSK = (parentSK: Buffer, index: number) => {
-	const lamportPK = parentSKToLamportPK(parentSK, index);
-	return blsKeyGen(lamportPK);
+export const stringToBuffer = (str: string): Buffer => Buffer.from(str, 'utf8');
+
+const HASH_SIZE = 16;
+const INPUT_SIZE = 64;
+const defaultCount = 1000000;
+const defaultDistance = 1000;
+
+export const generateHashOnionSeed = (): Buffer =>
+	hash(getRandomBytes(INPUT_SIZE)).slice(0, HASH_SIZE);
+
+export const hashOnion = (
+	seed: Buffer,
+	count: number = defaultCount,
+	distance: number = defaultDistance,
+): ReadonlyArray<Buffer> => {
+	if (count < distance) {
+		throw new Error('Invalid count or distance. Count must be greater than distance');
+	}
+
+	if (count % distance !== 0) {
+		throw new Error('Invalid count. Count must be multiple of distance');
+	}
+
+	let previousHash = seed;
+	const hashes = [seed];
+
+	for (let i = 1; i <= count; i += 1) {
+		const nextHash = hash(previousHash).slice(0, HASH_SIZE);
+		if (i % distance === 0) {
+			hashes.push(nextHash);
+		}
+		previousHash = nextHash;
+	}
+
+	return hashes.reverse();
 };
+
+export { getRandomBytes };
