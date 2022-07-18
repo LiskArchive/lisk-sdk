@@ -535,7 +535,7 @@ export class Consensus {
 		const contextID = await this._verifyAssets(block);
 
 		if (!options.skipBroadcast) {
-			this._network.send({ event: NETWORK_EVENT_POST_BLOCK, data: block });
+			this._network.send({ event: NETWORK_EVENT_POST_BLOCK, data: block.getBytes() });
 			this.events.emit(CONSENSUS_EVENT_BLOCK_BROADCAST, {
 				block,
 			});
@@ -865,7 +865,11 @@ export class Consensus {
 					acceptedModuleIDs: this._moduleIDs,
 				}),
 			verify: async (block: Block) => this._verify(block),
-			getCurrentValidators: async () => this._bft.api.getCurrentValidators(stateStore),
+			getCurrentValidators: async () => {
+				const nextHeight = this._chain.lastBlock.header.height + 1;
+				const bftParams = await this._bft.api.getBFTParameters(stateStore, nextHeight);
+				return bftParams.validators;
+			},
 			getSlotNumber: timestamp => this._blockSlot.getSlotNumber(timestamp),
 			getFinalizedHeight: () => this.finalizedHeight(),
 		};

@@ -184,3 +184,13 @@ type Replaced<T, TReplace, TWith, TKeep = Primitive> = T extends TReplace | TKee
 	  };
 
 export type JSONObject<T> = Replaced<T, bigint | Buffer, string>;
+
+export interface Event {
+	readonly moduleID: Buffer;
+	readonly typeID: Buffer;
+	readonly topics: Buffer[];
+	readonly index: number;
+	readonly data: Buffer;
+}
+
+export type EventJSON = JSONObject<Event>;

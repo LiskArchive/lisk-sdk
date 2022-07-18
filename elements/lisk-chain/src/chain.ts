@@ -174,7 +174,7 @@ export class Chain {
 			throw new Error(`Block version must be ${inputs.version}.`);
 		}
 		for (const asset of block.assets.getAll()) {
-			if (!inputs.acceptedModuleIDs.includes(asset.moduleID)) {
+			if (inputs.acceptedModuleIDs.findIndex(m => m.equals(asset.moduleID)) === -1) {
 				throw new Error(
 					`Block asset with moduleID: ${asset.moduleID.readInt32BE(0)} is not accepted.`,
 				);
