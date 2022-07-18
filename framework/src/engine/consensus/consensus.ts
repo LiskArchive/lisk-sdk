@@ -535,7 +535,7 @@ export class Consensus {
 		const contextID = await this._verifyAssets(block);
 
 		if (!options.skipBroadcast) {
-			this._network.send({ event: NETWORK_EVENT_POST_BLOCK, data: block });
+			this._network.send({ event: NETWORK_EVENT_POST_BLOCK, data: block.getBytes() });
 			this.events.emit(CONSENSUS_EVENT_BLOCK_BROADCAST, {
 				block,
 			});
