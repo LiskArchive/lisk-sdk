@@ -14,7 +14,7 @@
 
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { Broadcaster } from '../../../../src/engine/generator/broadcaster';
 import { postTransactionsAnnouncementSchema } from '../../../../src/engine/generator/schemas';

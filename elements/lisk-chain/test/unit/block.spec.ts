@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { getRandomBytes, hash, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { Block, BlockAsset, BlockAssets, Transaction } from '../../src';
 import { EMPTY_BUFFER, EMPTY_HASH } from '../../src/constants';
 import { createValidDefaultBlock } from '../utils/block';

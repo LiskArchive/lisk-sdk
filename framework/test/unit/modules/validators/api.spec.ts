@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { ValidatorsAPI, ValidatorsModule } from '../../../../src/modules/validators';
 import {
 	MODULE_ID_VALIDATORS,

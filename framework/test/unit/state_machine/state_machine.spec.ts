@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Transaction, BlockAssets } from '@liskhq/lisk-chain';
-import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { Logger } from '../../../src/logger';
 import { BlockContext } from '../../../src/state_machine/block_context';
 import { EventQueue } from '../../../src/state_machine/event_queue';

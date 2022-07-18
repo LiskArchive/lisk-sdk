@@ -13,7 +13,7 @@
  *
  */
 import { when } from 'jest-when';
-import { getAddressFromPublicKey, getRandomBytes } from '@liskhq/lisk-cryptography';
+import { address as cryptoAddress, utils } from '@liskhq/lisk-cryptography';
 import { TransactionList } from '../../src/transaction_list';
 import { TransactionPool } from '../../src/transaction_pool';
 import { Transaction, Status, TransactionStatus } from '../../src/types';
@@ -189,24 +189,24 @@ describe('TransactionPool class', () => {
 				await transactionPool.add(tx);
 			}
 			(transactionPool as any)._transactionList
-				.get(address.getAddressFromPublicKey(senderPublicKeys[0]))
+				.get(cryptoAddress.getAddressFromPublicKey(senderPublicKeys[0]))
 				.promote([txs[0]]);
 			(transactionPool as any)._transactionList
-				.get(address.getAddressFromPublicKey(senderPublicKeys[1]))
+				.get(cryptoAddress.getAddressFromPublicKey(senderPublicKeys[1]))
 				.promote([txs[3]]);
 			// Force to make it unprocessable
 			(transactionPool['_transactionList'].get(
-				address.getAddressFromPublicKey(senderPublicKeys[2]),
+				cryptoAddress.getAddressFromPublicKey(senderPublicKeys[2]),
 			) as TransactionList)['_demoteAfter'](BigInt(0));
 		});
 
 		it('should return copy of processable transactions list', () => {
 			const processableTransactions = transactionPool.getProcessableTransactions();
 			const transactionFromSender0 = processableTransactions.get(
-				address.getAddressFromPublicKey(senderPublicKeys[0]),
+				cryptoAddress.getAddressFromPublicKey(senderPublicKeys[0]),
 			);
 			const transactionFromSender1 = processableTransactions.get(
-				address.getAddressFromPublicKey(senderPublicKeys[1]),
+				cryptoAddress.getAddressFromPublicKey(senderPublicKeys[1]),
 			);
 
 			expect(transactionFromSender0).toHaveLength(1);
@@ -214,27 +214,27 @@ describe('TransactionPool class', () => {
 			expect(transactionFromSender1).toHaveLength(1);
 			expect((transactionFromSender1 as Transaction[])[0].nonce.toString()).toEqual('1');
 			// Check if it is a copy
-			processableTransactions.delete(address.getAddressFromPublicKey(senderPublicKeys[0]));
+			processableTransactions.delete(cryptoAddress.getAddressFromPublicKey(senderPublicKeys[0]));
 			(processableTransactions as any).get(
-				address.getAddressFromPublicKey(senderPublicKeys[1]),
+				cryptoAddress.getAddressFromPublicKey(senderPublicKeys[1]),
 			)[0] = 'random thing';
 
 			expect(
 				(transactionPool as any)._transactionList.get(
-					address.getAddressFromPublicKey(senderPublicKeys[0]),
+					cryptoAddress.getAddressFromPublicKey(senderPublicKeys[0]),
 				),
 			).not.toBeUndefined();
 			expect(
 				transactionPool
 					.getProcessableTransactions()
-					.get(address.getAddressFromPublicKey(senderPublicKeys[1])),
+					.get(cryptoAddress.getAddressFromPublicKey(senderPublicKeys[1])),
 			).toHaveLength(1);
 		});
 
 		it('should not include the sender key if processable transactions are empty', () => {
 			const processableTransactions = transactionPool.getProcessableTransactions();
 			const transactionFromSender2 = processableTransactions.get(
-				address.getAddressFromPublicKey(senderPublicKeys[2]),
+				cryptoAddress.getAddressFromPublicKey(senderPublicKeys[2]),
 			);
 			expect(transactionFromSender2).toBeUndefined();
 		});
@@ -277,12 +277,12 @@ describe('TransactionPool class', () => {
 
 			const originalTrxObj =
 				transactionPool['_transactionList']
-					.get(address.getAddressFromPublicKey(tx.senderPublicKey))
+					.get(cryptoAddress.getAddressFromPublicKey(tx.senderPublicKey))
 					?.get(BigInt(1)) ?? {};
 
 			expect(originalTrxObj).toEqual(tx);
 			const trxSenderAddressList = transactionPool['_transactionList'].get(
-				address.getAddressFromPublicKey(tx.senderPublicKey),
+				cryptoAddress.getAddressFromPublicKey(tx.senderPublicKey),
 			);
 			expect(trxSenderAddressList?.getProcessable()).toContain(originalTrxObj);
 		});
@@ -303,12 +303,12 @@ describe('TransactionPool class', () => {
 
 			const originalTrxObj =
 				transactionPool['_transactionList']
-					.get(address.getAddressFromPublicKey(tx.senderPublicKey))
+					.get(cryptoAddress.getAddressFromPublicKey(tx.senderPublicKey))
 					?.get(BigInt(1)) ?? {};
 
 			expect(originalTrxObj).toEqual(tx);
 			const trxSenderAddressList = transactionPool['_transactionList'].get(
-				address.getAddressFromPublicKey(tx.senderPublicKey),
+				cryptoAddress.getAddressFromPublicKey(tx.senderPublicKey),
 			);
 			expect(trxSenderAddressList?.getUnprocessable()).toContain(originalTrxObj);
 		});
@@ -712,7 +712,7 @@ describe('TransactionPool class', () => {
 		it('should return false when a tx id does not exist', () => {
 			expect(
 				transactionPool['_transactionList']
-					.get(address.getAddressFromPublicKey(tx.senderPublicKey))
+					.get(cryptoAddress.getAddressFromPublicKey(tx.senderPublicKey))
 					?.get(tx.nonce),
 			).toEqual(tx);
 			expect(transactionPool['_feePriorityQueue'].values).toContain(tx.id);
@@ -733,7 +733,7 @@ describe('TransactionPool class', () => {
 		it('should remove the transaction from _allTransactions, _transactionList and _feePriorityQueue', () => {
 			expect(
 				transactionPool['_transactionList']
-					.get(address.getAddressFromPublicKey(tx.senderPublicKey))
+					.get(cryptoAddress.getAddressFromPublicKey(tx.senderPublicKey))
 					?.get(tx.nonce),
 			).toEqual(tx);
 			expect(transactionPool['_feePriorityQueue'].values).toContain(tx.id);
@@ -744,7 +744,7 @@ describe('TransactionPool class', () => {
 			expect(transactionPool.getAll()).toHaveLength(1);
 			expect(
 				transactionPool['_transactionList']
-					.get(address.getAddressFromPublicKey(tx.senderPublicKey))
+					.get(cryptoAddress.getAddressFromPublicKey(tx.senderPublicKey))
 					?.get(tx.nonce),
 			).toBeUndefined();
 			expect(transactionPool['_feePriorityQueue'].values).not.toContain(tx.id);
@@ -755,7 +755,7 @@ describe('TransactionPool class', () => {
 			transactionPool.remove(additionalTx);
 			expect(
 				transactionPool['_transactionList'].get(
-					address.getAddressFromPublicKey(tx.senderPublicKey),
+					cryptoAddress.getAddressFromPublicKey(tx.senderPublicKey),
 				),
 			).toBeUndefined();
 		});

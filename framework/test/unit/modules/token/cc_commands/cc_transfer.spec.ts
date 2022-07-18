@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { TokenAPI } from '../../../../../src/modules/token/api';
 import { CCTransferCommand } from '../../../../../src/modules/token/cc_commands/cc_transfer';
 import {

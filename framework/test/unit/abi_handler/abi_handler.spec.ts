@@ -15,7 +15,7 @@
 import * as os from 'os';
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { BaseModule, TokenModule } from '../../../src';
 import { ABIHandler } from '../../../src/abi_handler/abi_handler';

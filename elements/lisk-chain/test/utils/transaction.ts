@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getRandomBytes, intToBuffer, signData } from '@liskhq/lisk-cryptography';
+import { utils, ed } from '@liskhq/lisk-cryptography';
 import { defaultNetworkIdentifier } from './block';
 import { Transaction } from '../../src/transaction';
 import { TAG_TRANSACTION } from '../../src';
@@ -37,7 +37,7 @@ export const getTransaction = (input?: { nonce?: bigint }): Transaction => {
 		params: utils.getRandomBytes(128),
 		signatures: [],
 	});
-	const signature = signData(
+	const signature = ed.signData(
 		TAG_TRANSACTION,
 		defaultNetworkIdentifier,
 		tx.getSigningBytes(),

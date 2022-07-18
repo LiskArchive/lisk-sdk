@@ -1,6 +1,6 @@
 import { when } from 'jest-when';
 import { Transaction } from '@liskhq/lisk-chain';
-import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { sparseMerkleTree } from '@liskhq/lisk-tree';
 import {

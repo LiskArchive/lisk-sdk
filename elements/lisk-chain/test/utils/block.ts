@@ -13,10 +13,8 @@
  */
 
 import {
-	getRandomBytes,
-	hash,
-	getPrivateAndPublicKeyFromPassphrase,
-	getAddressFromPublicKey,
+	utils,
+	address,
 } from '@liskhq/lisk-cryptography';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { MerkleTree } from '@liskhq/lisk-tree';
@@ -31,7 +29,7 @@ export const defaultNetworkIdentifier = Buffer.from(
 
 const getKeyPair = (): { publicKey: Buffer; privateKey: Buffer } => {
 	const passphrase = Mnemonic.generateMnemonic();
-	return getPrivateAndPublicKeyFromPassphrase(passphrase);
+	return address.getPrivateAndPublicKeyFromPassphrase(passphrase);
 };
 
 export const createFakeBlockHeader = (header?: Partial<BlockHeaderAttrs>): BlockHeader =>

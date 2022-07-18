@@ -14,7 +14,7 @@
 /* eslint-disable no-bitwise */
 
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { eventSchema } from '../../src/schema';
 import { Event } from '../../src/event';
 import { EVENT_TOPIC_HASH_LENGTH_BYTES, EVENT_TOTAL_INDEX_LENGTH_BYTES } from '../../src/constants';

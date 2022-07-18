@@ -14,7 +14,7 @@
 import { Readable } from 'stream';
 import { when } from 'jest-when';
 import { NotFoundError, InMemoryDatabase } from '@liskhq/lisk-db';
-import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { DataAccess } from '../../../src/data_access';
 import { createFakeBlockHeader, createValidDefaultBlock } from '../../utils/block';
 import { Transaction } from '../../../src/transaction';

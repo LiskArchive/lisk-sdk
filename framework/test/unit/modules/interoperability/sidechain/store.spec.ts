@@ -13,7 +13,7 @@
  */
 
 import { when } from 'jest-when';
-import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import {
 	MAINCHAIN_ID,
 	MAX_CCM_SIZE,

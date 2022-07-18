@@ -16,16 +16,18 @@
 import { cryptography } from '../../src';
 
 const {
-	getAddressFromPublicKey,
-	getLisk32AddressFromPublicKey,
-	getPrivateAndPublicKeyFromPassphrase,
-	getKeys,
-	getAddressAndPublicKeyFromPassphrase,
-	getAddressFromPassphrase,
-	getAddressFromPrivateKey,
-	validateLisk32Address,
-	getAddressFromLisk32Address,
-	getLisk32AddressFromAddress,
+	address: {
+		getAddressFromPublicKey,
+		getLisk32AddressFromPublicKey,
+		getPrivateAndPublicKeyFromPassphrase,
+		getKeys,
+		getAddressAndPublicKeyFromPassphrase,
+		getAddressFromPassphrase,
+		getAddressFromPrivateKey,
+		validateLisk32Address,
+		getAddressFromLisk32Address,
+		getLisk32AddressFromAddress,
+	},
 } = cryptography;
 
 describe('keys', () => {
@@ -99,7 +101,7 @@ describe('keys', () => {
 
 	describe('#address.getAddressFromPublicKey', () => {
 		it('should generate address from publicKey', () => {
-			const address = address.getAddressFromPublicKey(defaultPublicKey);
+			const address = getAddressFromPublicKey(defaultPublicKey);
 			expect(address).toEqual(defaultAddress);
 		});
 	});

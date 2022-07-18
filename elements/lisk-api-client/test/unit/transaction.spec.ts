@@ -14,7 +14,7 @@
  */
 
 import { when } from 'jest-when';
-import { getAddressAndPublicKeyFromPassphrase, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils, address } from '@liskhq/lisk-cryptography';
 import { Transaction } from '../../src/transaction';
 import { metadata, nodeInfo, schema, tx } from '../utils/transaction';
 
@@ -26,7 +26,7 @@ describe('transaction', () => {
 		'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb',
 	];
 	const passphrase1 = 'trim elegant oven term access apple obtain error grain excite lawn neck';
-	const { publicKey: publicKey1 } = getAddressAndPublicKeyFromPassphrase(passphrase1);
+	const { publicKey: publicKey1 } = address.getAddressAndPublicKeyFromPassphrase(passphrase1);
 	const publicKey2 = Buffer.from(
 		'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
 		'hex',
