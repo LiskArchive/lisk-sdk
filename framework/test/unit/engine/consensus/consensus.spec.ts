@@ -49,6 +49,10 @@ import { postBlockEventSchema } from '../../../../src/engine/consensus/schema';
 import { fakeLogger } from '../../../utils/mocks';
 import { BFTModule } from '../../../../src/engine/bft';
 import { ABI } from '../../../../src/abi';
+import {
+	CONSENSUS_EVENT_BLOCK_BROADCAST,
+	NETWORK_EVENT_POST_BLOCK,
+} from '../../../../src/engine/consensus/constants';
 
 describe('consensus', () => {
 	const genesis = (genesisBlock() as unknown) as Block;
@@ -86,8 +90,10 @@ describe('consensus', () => {
 		} as unknown) as Network;
 		bft = {
 			initGenesisState: jest.fn(),
+			beforeTransactionsExecute: jest.fn(),
 			api: {
-				getGeneratorKeys: jest.fn(),
+				getGeneratorKeys: jest.fn().mockResolvedValue([]),
+				currentHeaderImpliesMaximalPrevotes: jest.fn().mockResolvedValue(true),
 				getBFTHeights: jest
 					.fn()
 					.mockResolvedValue({ maxHeghgtPrevoted: 0, maxHeightPrecommitted: 0 }),
@@ -108,6 +114,7 @@ describe('consensus', () => {
 			clear: jest.fn(),
 			revert: jest.fn(),
 			commit: jest.fn().mockResolvedValue({ stateRoot: getRandomBytes(32) }),
+			verifyAssets: jest.fn(),
 			verifyTransaction: jest.fn(),
 			executeTransaction: jest.fn().mockResolvedValue({ events: [] }),
 			initStateMachine: jest.fn().mockResolvedValue({ contextID: getRandomBytes(32) }),
@@ -601,10 +608,67 @@ describe('consensus', () => {
 			});
 		});
 	});
-
 	describe('execute', () => {
+		beforeEach(async () => {
+			await consensus.init({
+				logger: loggerMock,
+				db: dbMock,
+				genesisBlock: genesis,
+				moduleIDs,
+			});
+		});
+
+		it('should not throw error when block execution fail', async () => {
+			const validBlock = await createValidDefaultBlock();
+
+			jest.spyOn(consensus, '_execute' as any).mockRejectedValue(new Error('some error'));
+
+			await expect(consensus.execute(validBlock)).resolves.toBeUndefined();
+		});
+	});
+
+	describe('_execute', () => {
 		let block: Block;
 		let stateStore: StateStore;
+
+		describe('when skipBroadcast option is not specified', () => {
+			beforeEach(async () => {
+				block = await createValidDefaultBlock({
+					header: {
+						height: 2,
+						previousBlockID: chain.lastBlock.header.id,
+						timestamp: consensus['_chain'].lastBlock.header.timestamp + 10,
+					},
+				});
+				stateStore = new StateStore(new InMemoryDatabase());
+				jest.spyOn(bft.api, 'getBFTParameters').mockResolvedValue({
+					validatorsHash: block.header.validatorsHash,
+				} as never);
+				consensus['_verifyEventRoot'] = jest.fn().mockReturnValue(undefined);
+				jest.spyOn(consensus, '_verify' as any).mockResolvedValue(undefined);
+			});
+
+			it('should send encoded block to the network', async () => {
+				jest.spyOn(consensus['_network'], 'send');
+
+				await consensus['_executeValidated'](block);
+
+				expect(consensus['_network'].send).toHaveBeenCalledWith({
+					event: NETWORK_EVENT_POST_BLOCK,
+					data: expect.any(Buffer),
+				});
+			});
+
+			it('should emit CONSENSUS_EVENT_BLOCK_BROADCAST event', async () => {
+				jest.spyOn(consensus.events, 'emit');
+
+				await consensus['_executeValidated'](block);
+
+				expect(consensus.events.emit).toHaveBeenCalledWith(CONSENSUS_EVENT_BLOCK_BROADCAST, {
+					block: expect.any(Block),
+				});
+			});
+		});
 
 		describe('block verification', () => {
 			beforeEach(async () => {

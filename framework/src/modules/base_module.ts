@@ -89,7 +89,7 @@ export abstract class BaseModule {
 	public abstract api: BaseAPI;
 
 	public async init?(args: ModuleInitArgs): Promise<void>;
-	public async initBlock?(context: InsertAssetContext): Promise<void>;
+	public async insertAssets?(context: InsertAssetContext): Promise<void>;
 	public async verifyAssets?(context: BlockVerifyContext): Promise<void>;
 	public async verifyTransaction?(context: TransactionVerifyContext): Promise<VerificationResult>;
 	public async beforeCommandExecute?(context: TransactionExecuteContext): Promise<void>;

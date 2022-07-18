@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { EventJSON } from '../../types';
+
 export const transactionIdsSchema = {
 	$id: '/lisk/transactionIds',
 	title: 'Broadcast Transactions',
@@ -188,6 +190,28 @@ export const previouslyGeneratedInfoSchema = {
 		maxHeightGenerated: {
 			dataType: 'uint32',
 			fieldNumber: 3,
+		},
+	},
+};
+
+export interface DryRunTransactionRequest {
+	transaction: string;
+}
+
+export interface DryRunTransactionResponse {
+	success: boolean;
+	events: EventJSON[];
+}
+
+export const dryRunTransactionRequestSchema = {
+	$id: '/lisk/dryRunTransaction',
+	title: 'Transactions',
+	type: 'object',
+	required: ['transaction'],
+	properties: {
+		transaction: {
+			type: 'string',
+			format: 'hex',
 		},
 	},
 };

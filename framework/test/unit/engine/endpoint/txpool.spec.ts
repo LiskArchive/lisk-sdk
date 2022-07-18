@@ -12,16 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { intToBuffer } from '@liskhq/lisk-cryptography';
-import { Transaction } from '@liskhq/lisk-chain';
+import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { Chain, Transaction, Event } from '@liskhq/lisk-chain';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { LiskValidationError } from '@liskhq/lisk-validator';
-import { ABI, TransactionVerifyResult } from '../../../../src/abi';
+import { Database, InMemoryDatabase } from '@liskhq/lisk-db';
+import { ABI, TransactionExecutionResult, TransactionVerifyResult } from '../../../../src/abi';
 import { Logger } from '../../../../src/logger';
 import { Broadcaster } from '../../../../src/engine/generator/broadcaster';
 import { InvalidTransactionError } from '../../../../src/engine/generator/errors';
 import { fakeLogger } from '../../../utils/mocks';
 import { TxpoolEndpoint } from '../../../../src/engine/endpoint/txpool';
+import { Consensus } from '../../../../src/engine/consensus';
 
 describe('generator endpoint', () => {
 	const logger: Logger = fakeLogger;
@@ -35,11 +37,24 @@ describe('generator endpoint', () => {
 		signatures: [Buffer.alloc(64)],
 	});
 	const networkIdentifier = Buffer.alloc(0);
+	const events = [
+		{
+			data: getRandomBytes(32),
+			index: 0,
+			moduleID: Buffer.from([0, 0, 0, 3]),
+			topics: [Buffer.from([0])],
+			typeID: Buffer.from([0, 0, 0, 1]),
+		},
+	];
+	const eventsJson = events.map(e => new Event(e).toJSON());
 
 	let endpoint: TxpoolEndpoint;
 	let broadcaster: Broadcaster;
 	let pool: TransactionPool;
 	let abi: ABI;
+	let chain: Chain;
+	let consensus: Consensus;
+	let blockchainDB: Database;
 
 	beforeEach(() => {
 		broadcaster = {
@@ -51,11 +66,41 @@ describe('generator endpoint', () => {
 		} as never;
 		abi = {
 			verifyTransaction: jest.fn().mockResolvedValue({ result: TransactionVerifyResult.OK }),
+			executeTransaction: jest.fn(),
 		} as never;
+		chain = {
+			lastBlock: {
+				header: {
+					toObject: jest.fn(),
+				},
+				transactions: [],
+				assets: {
+					getAll: jest.fn(),
+				},
+			},
+		} as never;
+		consensus = {
+			execute: jest.fn(),
+			getSlotNumber: jest.fn(),
+			getSlotTime: jest.fn(),
+			getGeneratorAtTimestamp: jest.fn(),
+			getAggregateCommit: jest.fn(),
+			certifySingleCommit: jest.fn(),
+			getMaxRemovalHeight: jest.fn().mockResolvedValue(0),
+			getConsensusParams: jest.fn().mockResolvedValue({
+				currentValidators: [],
+				implyMaxPrevote: true,
+				maxHeightCertified: 0,
+			}),
+		} as never;
+		blockchainDB = new InMemoryDatabase() as never;
 		endpoint = new TxpoolEndpoint({
 			abi,
 			broadcaster,
 			pool,
+			chain,
+			consensus,
+			blockchainDB,
 		});
 	});
 
@@ -151,6 +196,117 @@ describe('generator endpoint', () => {
 					transactionId: tx.id.toString('hex'),
 				});
 				expect(broadcaster.enqueueTransactionId).toHaveBeenCalledWith(tx.id);
+			});
+		});
+	});
+
+	describe('dryRunTransaction', () => {
+		describe('when request data is invalid', () => {
+			it('should reject with validation error', async () => {
+				await expect(
+					endpoint.dryRunTransaction({
+						logger,
+						params: {
+							invalid: 'schema',
+						},
+						networkIdentifier,
+					}),
+				).rejects.toThrow(LiskValidationError);
+			});
+
+			it('should reject with error when transaction bytes is invalid', async () => {
+				await expect(
+					endpoint.dryRunTransaction({
+						logger,
+						params: {
+							transaction: 'xxxx',
+						},
+						networkIdentifier,
+					}),
+				).rejects.toThrow();
+			});
+		});
+
+		describe('when verify transaction fails', () => {
+			it('should return false with empty events array', async () => {
+				(abi.verifyTransaction as jest.Mock).mockResolvedValue({
+					result: TransactionVerifyResult.INVALID,
+				});
+				await expect(
+					endpoint.dryRunTransaction({
+						logger,
+						params: {
+							transaction: tx.getBytes().toString('hex'),
+						},
+						networkIdentifier,
+					}),
+				).resolves.toEqual({
+					success: false,
+					events: [],
+				});
+			});
+		});
+
+		describe('when execute transaction returns INVALID', () => {
+			it('should return false with corresponding events', async () => {
+				(abi.executeTransaction as jest.Mock).mockResolvedValue({
+					result: TransactionExecutionResult.INVALID,
+					events,
+				});
+				await expect(
+					endpoint.dryRunTransaction({
+						logger,
+						params: {
+							transaction: tx.getBytes().toString('hex'),
+						},
+						networkIdentifier,
+					}),
+				).resolves.toEqual({
+					success: false,
+					events: eventsJson,
+				});
+			});
+		});
+
+		describe('when execute transaction returns FAIL', () => {
+			it('should return false with corresponding events', async () => {
+				(abi.executeTransaction as jest.Mock).mockResolvedValue({
+					result: TransactionExecutionResult.FAIL,
+					events,
+				});
+				await expect(
+					endpoint.dryRunTransaction({
+						logger,
+						params: {
+							transaction: tx.getBytes().toString('hex'),
+						},
+						networkIdentifier,
+					}),
+				).resolves.toEqual({
+					success: false,
+					events: eventsJson,
+				});
+			});
+		});
+
+		describe('when both verification is success & execution returns OK', () => {
+			it('should return true with corresponding events', async () => {
+				(abi.executeTransaction as jest.Mock).mockResolvedValue({
+					result: TransactionExecutionResult.OK,
+					events,
+				});
+				await expect(
+					endpoint.dryRunTransaction({
+						logger,
+						params: {
+							transaction: tx.getBytes().toString('hex'),
+						},
+						networkIdentifier,
+					}),
+				).resolves.toEqual({
+					success: true,
+					events: eventsJson,
+				});
 			});
 		});
 	});
