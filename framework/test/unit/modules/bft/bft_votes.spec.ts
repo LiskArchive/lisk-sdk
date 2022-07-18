@@ -13,7 +13,7 @@
  */
 
 import { StateStore } from '@liskhq/lisk-chain';
-import { BIG_ENDIAN, getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
 import { BFTParametersCache } from '../../../../src/engine/bft/bft_params';
@@ -191,7 +191,7 @@ describe('BFT votes', () => {
 			const stateStore = new StateStore(new InMemoryDatabase());
 			const paramsStore = stateStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_BFT_PARAMETERS);
 			await paramsStore.setWithSchema(
-				intToBuffer(101, 4, BIG_ENDIAN),
+				utils.intToBuffer(101, 4),
 				{
 					prevoteThreshold: BigInt(68),
 					precommitThreshold: BigInt(68),
@@ -335,7 +335,7 @@ describe('BFT votes', () => {
 			const stateStore = new StateStore(new InMemoryDatabase());
 			const paramsStore = stateStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_BFT_PARAMETERS);
 			await paramsStore.setWithSchema(
-				intToBuffer(101, 4, BIG_ENDIAN),
+				utils.intToBuffer(101, 4),
 				{
 					prevoteThreshold: BigInt(68),
 					precommitThreshold: BigInt(68),
@@ -367,7 +367,7 @@ describe('BFT votes', () => {
 			const stateStore = new StateStore(new InMemoryDatabase());
 			const paramsStore = stateStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_BFT_PARAMETERS);
 			await paramsStore.setWithSchema(
-				intToBuffer(101, 4, BIG_ENDIAN),
+				utils.intToBuffer(101, 4),
 				{
 					prevoteThreshold: BigInt(103),
 					precommitThreshold: BigInt(68),
@@ -403,7 +403,7 @@ describe('BFT votes', () => {
 			const stateStore = new StateStore(new InMemoryDatabase());
 			const paramsStore = stateStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_BFT_PARAMETERS);
 			await paramsStore.setWithSchema(
-				intToBuffer(101, 4, BIG_ENDIAN),
+				utils.intToBuffer(101, 4),
 				{
 					prevoteThreshold: BigInt(68),
 					precommitThreshold: BigInt(67),
@@ -435,7 +435,7 @@ describe('BFT votes', () => {
 			const stateStore = new StateStore(new InMemoryDatabase());
 			const paramsStore = stateStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_BFT_PARAMETERS);
 			await paramsStore.setWithSchema(
-				intToBuffer(101, 4, BIG_ENDIAN),
+				utils.intToBuffer(101, 4),
 				{
 					prevoteThreshold: BigInt(68),
 					precommitThreshold: BigInt(103),

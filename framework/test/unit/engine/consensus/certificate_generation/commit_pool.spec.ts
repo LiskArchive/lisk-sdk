@@ -15,13 +15,7 @@
 import { InMemoryDatabase, NotFoundError } from '@liskhq/lisk-db';
 import { BlockHeader, StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import {
-	createAggSig,
-	generatePrivateKey,
-	getPublicKeyFromPrivateKey,
-	getRandomBytes,
-	signBLS,
-} from '@liskhq/lisk-cryptography';
+import { bls, utils } from '@liskhq/lisk-cryptography';
 import * as crypto from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
 import { BFTParameterNotFoundError } from '../../../../../src/engine/bft/errors';
@@ -461,8 +455,8 @@ describe('CommitPool', () => {
 
 			certificate = computeCertificateFromBlockHeader(blockHeader);
 
-			privateKey = generatePrivateKey(utils.getRandomBytes(32));
-			publicKey = getPublicKeyFromPrivateKey(privateKey);
+			privateKey = bls.generatePrivateKey(utils.getRandomBytes(32));
+			publicKey = bls.getPublicKeyFromPrivateKey(privateKey);
 			signature = signCertificate(privateKey, networkIdentifier, certificate);
 
 			commit = {
@@ -793,8 +787,10 @@ describe('CommitPool', () => {
 
 			stateStore = new StateStore(new InMemoryDatabase());
 
-			privateKeys = Array.from({ length: 103 }, _ => generatePrivateKey(utils.getRandomBytes(32)));
-			publicKeys = privateKeys.map(priv => getPublicKeyFromPrivateKey(priv));
+			privateKeys = Array.from({ length: 103 }, _ =>
+				bls.generatePrivateKey(utils.getRandomBytes(32)),
+			);
+			publicKeys = privateKeys.map(priv => bls.getPublicKeyFromPrivateKey(priv));
 
 			keysList = [...publicKeys];
 			weights = Array.from({ length: 103 }, _ => 1);
@@ -811,7 +807,7 @@ describe('CommitPool', () => {
 			const encodedCertificate = codec.encode(certificateSchema, certificate);
 
 			signatures = privateKeys.map(privateKey =>
-				signBLS(MESSAGE_TAG_CERTIFICATE, networkIdentifier, encodedCertificate, privateKey),
+				bls.signBLS(MESSAGE_TAG_CERTIFICATE, networkIdentifier, encodedCertificate, privateKey),
 			);
 
 			pubKeySignaturePairs = Array.from({ length: 103 }, (_, i) => ({
@@ -819,7 +815,7 @@ describe('CommitPool', () => {
 				signature: signatures[i],
 			}));
 
-			({ aggregationBits, signature: aggregateSignature } = createAggSig(
+			({ aggregationBits, signature: aggregateSignature } = bls.createAggSig(
 				publicKeys,
 				pubKeySignaturePairs,
 			));
@@ -1067,12 +1063,12 @@ describe('CommitPool', () => {
 		};
 		const pubKeySignaturePairs = [pubKeySignaturePair1, pubKeySignaturePair2, pubKeySignaturePair3];
 
-		const { aggregationBits: aggregationBits1, signature: aggregateSignature1 } = createAggSig(
+		const { aggregationBits: aggregationBits1, signature: aggregateSignature1 } = bls.createAggSig(
 			[validatorInfo1.blsPublicKey],
 			[pubKeySignaturePair1],
 		);
 
-		const { aggregationBits, signature: aggregateSignature } = createAggSig(
+		const { aggregationBits, signature: aggregateSignature } = bls.createAggSig(
 			validatorKeys,
 			pubKeySignaturePairs,
 		);
@@ -1144,7 +1140,7 @@ describe('CommitPool', () => {
 		});
 
 		it('should call validator keys in lexicographical order', async () => {
-			const spy = jest.spyOn(crypto, 'createAggSig');
+			const spy = jest.spyOn(crypto.bls, 'createAggSig');
 			bftAPI.getBFTParameters.mockReturnValue({
 				validators: [
 					{ address: validatorInfo1.address, blsKey: validatorInfo1.blsPublicKey },

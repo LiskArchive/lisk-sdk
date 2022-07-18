@@ -21,7 +21,7 @@ const { Mnemonic } = liskPassphrase;
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const createAccount = () => {
 	const passphrase = Mnemonic.generateMnemonic();
-	const { privateKey, publicKey } = cryptography.utils.getKeys(passphrase);
+	const { privateKey, publicKey } = cryptography.ed.getKeys(passphrase);
 	const address = cryptography.address.getAddressFromPublicKey(publicKey);
 
 	return {

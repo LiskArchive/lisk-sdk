@@ -69,14 +69,14 @@ describe('forging:config command', () => {
 		jest.spyOn(process.stdout, 'write').mockImplementation(val => stdout.push(val as string) > -1);
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
 		jest.spyOn(ConfigCommand.prototype, 'printJSON').mockReturnValue();
-		jest.spyOn(cryptography, 'getKeys').mockReturnValue(defaultKeys as never);
+		jest.spyOn(cryptography.ed, 'getKeys').mockReturnValue(defaultKeys as never);
 		jest.spyOn(fs, 'ensureDirSync').mockReturnValue();
 		jest.spyOn(fs, 'writeJSONSync').mockReturnValue();
 		jest
-			.spyOn(cryptography, 'encryptPassphraseWithPassword')
+			.spyOn(cryptography.encrypt, 'encryptPassphraseWithPassword')
 			.mockReturnValue(encryptedPassphraseObject as any);
 		jest
-			.spyOn(cryptography, 'stringifyEncryptedPassphrase')
+			.spyOn(cryptography.encrypt, 'stringifyEncryptedPassphrase')
 			.mockReturnValue(encryptedPassphraseString);
 		jest.spyOn(readerUtils, 'getPassphraseFromPrompt').mockImplementation(async (name?: string) => {
 			if (name === 'passphrase') {
@@ -96,11 +96,11 @@ describe('forging:config command', () => {
 		describe('generate forging config and print', () => {
 			it('should encrypt passphrase and with default hash-onions', async () => {
 				await ConfigCommand.run(['--count=2', '--distance=1', '--pretty'], config);
-				expect(cryptography.encryptPassphraseWithPassword).toHaveBeenCalledWith(
+				expect(cryptography.encrypt.encryptPassphraseWithPassword).toHaveBeenCalledWith(
 					defaultInputs.passphrase,
 					defaultInputs.password,
 				);
-				expect(cryptography.stringifyEncryptedPassphrase).toHaveBeenCalledWith(
+				expect(cryptography.encrypt.stringifyEncryptedPassphrase).toHaveBeenCalledWith(
 					encryptedPassphraseObject,
 				);
 				expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase', true);
@@ -132,11 +132,11 @@ describe('forging:config command', () => {
 					],
 					config,
 				);
-				expect(cryptography.encryptPassphraseWithPassword).toHaveBeenCalledWith(
+				expect(cryptography.encrypt.encryptPassphraseWithPassword).toHaveBeenCalledWith(
 					defaultInputs.passphrase,
 					defaultInputs.password,
 				);
-				expect(cryptography.stringifyEncryptedPassphrase).toHaveBeenCalledWith(
+				expect(cryptography.encrypt.stringifyEncryptedPassphrase).toHaveBeenCalledWith(
 					encryptedPassphraseObject,
 				);
 				expect(readerUtils.getPassphraseFromPrompt).not.toHaveBeenCalledWith('passphrase', true);

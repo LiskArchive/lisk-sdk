@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { createFakeBlockHeader } from '../../../../src/testing';
 import {
 	areDistinctHeadersContradicting,

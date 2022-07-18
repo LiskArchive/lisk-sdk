@@ -14,7 +14,7 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 
-// import { getRandomBytes } from '@liskhq/lisk-cryptography';
+// import { utils } from '@liskhq/lisk-cryptography';
 
 const oneUnit = BigInt('100000000');
 

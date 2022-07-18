@@ -17,16 +17,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { when } from 'jest-when';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
-import {
-	generatePrivateKey,
-	getAddressFromPassphrase,
-	getAddressFromPublicKey,
-	getPrivateAndPublicKeyFromPassphrase,
-	getPublicKeyFromPrivateKey,
-	getRandomBytes,
-	hash,
-	intToBuffer,
-} from '@liskhq/lisk-cryptography';
+import { utils, address as cryptoAddress, bls, ed } from '@liskhq/lisk-cryptography';
 import { ApplyPenaltyError } from '../../../../src/errors';
 import { Consensus } from '../../../../src/engine/consensus/consensus';
 import { NetworkEndpoint } from '../../../../src/engine/consensus/network_endpoint';
@@ -56,7 +47,7 @@ import {
 
 describe('consensus', () => {
 	const genesis = (genesisBlock() as unknown) as Block;
-	const moduleIDs = [intToBuffer(2, 4)];
+	const moduleIDs = [utils.intToBuffer(2, 4)];
 	let consensus: Consensus;
 	let chain: Chain;
 	let network: Network;
@@ -245,9 +236,9 @@ describe('consensus', () => {
 
 	describe('certifySingleCommit', () => {
 		const passphrase = Mnemonic.generateMnemonic(256);
-		const address = getAddressFromPassphrase(passphrase);
-		const blsSK = generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
-		const blsPK = getPublicKeyFromPrivateKey(blsSK);
+		const address = cryptoAddress.getAddressFromPassphrase(passphrase);
+		const blsSK = bls.generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
+		const blsPK = bls.getPublicKeyFromPrivateKey(blsSK);
 		const blockHeader = createFakeBlockHeader({ height: 303 });
 
 		beforeEach(async () => {
@@ -875,10 +866,10 @@ describe('consensus', () => {
 
 				it('should be success when valid signature', async () => {
 					const passphrase = Mnemonic.generateMnemonic();
-					const keyPair = getPrivateAndPublicKeyFromPassphrase(passphrase);
+					const keyPair = ed.getPrivateAndPublicKeyFromPassphrase(passphrase);
 
 					const blockHeader = createFakeBlockHeader();
-					(blockHeader as any).generatorAddress = address.getAddressFromPublicKey(
+					(blockHeader as any).generatorAddress = cryptoAddress.getAddressFromPublicKey(
 						keyPair.publicKey,
 					);
 					(consensus['_chain'] as any).networkIdentifier = defaultNetworkIdentifier;

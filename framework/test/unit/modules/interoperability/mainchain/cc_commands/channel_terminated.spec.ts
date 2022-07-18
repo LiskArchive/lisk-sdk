@@ -48,7 +48,7 @@ describe('MainchainCCChannelTerminatedCommand', () => {
 	});
 
 	const ccChannelTerminatedCommand = new MainchainCCChannelTerminatedCommand(
-		intToBuffer(1, 4),
+		utils.intToBuffer(1, 4),
 		ccAPIsMap,
 	);
 	const mainchainInteroperabilityStore = new MainchainInteroperabilityStore(

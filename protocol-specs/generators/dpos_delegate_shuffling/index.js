@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { hash } = require('@liskhq/lisk-cryptography');
+const { utils } = require('@liskhq/lisk-cryptography');
 const BaseGenerator = require('../base_generator');
 const previousDelegateList = require('./delegate_address_list.json').delegateList;
 

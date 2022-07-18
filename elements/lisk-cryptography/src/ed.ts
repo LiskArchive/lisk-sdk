@@ -56,6 +56,8 @@ export const getPrivateAndPublicKeyFromPassphrase = (passphrase: string) => {
 	return getKeyPair(hashed);
 };
 
+export const getKeys = getPrivateAndPublicKeyFromPassphrase;
+
 const getMasterKeyFromSeed = (seed: Buffer) => {
 	const hmac = crypto.createHmac('sha512', ED25519_CURVE);
 	const digest = hmac.update(seed).digest();

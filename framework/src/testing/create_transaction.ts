@@ -15,7 +15,7 @@
 
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { address } from '@liskhq/lisk-cryptography';
+import { address, ed } from '@liskhq/lisk-cryptography';
 import { validateTransaction } from '@liskhq/lisk-transactions';
 import { CommandClass } from './types';
 
@@ -73,7 +73,7 @@ export const createTransaction = ({
 		throw new Error('Network identifier is required to sign a transaction');
 	}
 
-	const keys = address.getKeys(passphrase);
+	const keys = ed.getKeys(passphrase);
 	result.sign(networkIdentifier, keys.privateKey);
 
 	return result;

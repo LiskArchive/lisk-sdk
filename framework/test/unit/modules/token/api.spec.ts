@@ -334,7 +334,7 @@ describe('token module', () => {
 				api.lock(
 					apiContext,
 					defaultAddress,
-					intToBuffer(12, 4),
+					utils.intToBuffer(12, 4),
 					defaultTokenID,
 					defaultAccount.availableBalance + BigInt(1),
 				),
@@ -346,7 +346,7 @@ describe('token module', () => {
 				api.lock(
 					apiContext,
 					defaultAddress,
-					intToBuffer(2, 4),
+					utils.intToBuffer(2, 4),
 					defaultTokenID,
 					defaultAccount.availableBalance,
 				),
@@ -361,7 +361,7 @@ describe('token module', () => {
 				api.lock(
 					apiContext,
 					defaultAddress,
-					intToBuffer(2, 4),
+					utils.intToBuffer(2, 4),
 					defaultTokenID,
 					defaultAccount.availableBalance,
 				),
@@ -405,7 +405,7 @@ describe('token module', () => {
 				api.unlock(
 					apiContext,
 					defaultAddress,
-					intToBuffer(12, 4),
+					utils.intToBuffer(12, 4),
 					defaultTokenID,
 					defaultAccount.lockedBalances[0].amount + BigInt(1),
 				),
@@ -417,7 +417,7 @@ describe('token module', () => {
 				api.unlock(
 					apiContext,
 					defaultAddress,
-					intToBuffer(12, 4),
+					utils.intToBuffer(12, 4),
 					defaultTokenID,
 					defaultAccount.lockedBalances[0].amount - BigInt(1),
 				),
@@ -435,7 +435,7 @@ describe('token module', () => {
 				api.unlock(
 					apiContext,
 					defaultAddress,
-					intToBuffer(12, 4),
+					utils.intToBuffer(12, 4),
 					defaultTokenID,
 					defaultAccount.lockedBalances[0].amount,
 				),

@@ -13,8 +13,8 @@
  *
  */
 import { BINARY_ADDRESS_LENGTH, DEFAULT_LISK32_ADDRESS_PREFIX } from './constants';
-import { getKeyPair, getPublicKey } from './nacl';
-import { Keypair } from './types';
+import { getKeys } from './ed';
+import { getPublicKey } from './nacl';
 import { hash } from './utils';
 
 const CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
@@ -49,13 +49,6 @@ const convertUIntArray = (uintArray: number[], fromBits: number, toBits: number)
 
 const convertUInt5ToBase32 = (uint5Array: number[]): string =>
 	uint5Array.map((val: number) => CHARSET[val]).join('');
-
-export const getPrivateAndPublicKeyFromPassphrase = (passphrase: string): Keypair => {
-	const hashed = hash(passphrase, 'utf8');
-	return getKeyPair(hashed);
-};
-
-export const getKeys = getPrivateAndPublicKeyFromPassphrase;
 
 export const getAddressFromPublicKey = (publicKey: Buffer): Buffer => {
 	const buffer = hash(publicKey);

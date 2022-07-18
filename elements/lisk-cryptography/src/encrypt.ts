@@ -18,7 +18,7 @@ import * as crypto from 'crypto';
 import * as ed2curve from 'ed2curve';
 
 // eslint-disable-next-line import/no-cycle
-import { getPrivateAndPublicKeyFromPassphrase } from './address';
+import { getPrivateAndPublicKeyFromPassphrase } from './ed';
 // eslint-disable-next-line import/no-cycle
 import { box, getRandomBytes, openBox } from './nacl';
 import { bufferToHex, hexToBuffer } from './utils';

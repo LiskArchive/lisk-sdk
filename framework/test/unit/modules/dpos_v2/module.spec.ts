@@ -374,7 +374,7 @@ describe('DPoS module', () => {
 
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					intToBuffer(11 + 2, 4),
+					utils.intToBuffer(11 + 2, 4),
 					snapshotStoreSchema,
 				);
 
@@ -417,7 +417,7 @@ describe('DPoS module', () => {
 			it('should create a snapshot which include top 101 delegates as active delegates', async () => {
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					intToBuffer(11 + 2, 4),
+					utils.intToBuffer(11 + 2, 4),
 					snapshotStoreSchema,
 				);
 
@@ -427,7 +427,7 @@ describe('DPoS module', () => {
 			it('should create a snapshot which include all delegates in the snapshot', async () => {
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					intToBuffer(11 + 2, 4),
+					utils.intToBuffer(11 + 2, 4),
 					snapshotStoreSchema,
 				);
 
@@ -469,7 +469,7 @@ describe('DPoS module', () => {
 			it('should create a snapshot which include top 101 delegates as active delegates', async () => {
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					intToBuffer(11 + 2, 4),
+					utils.intToBuffer(11 + 2, 4),
 					snapshotStoreSchema,
 				);
 
@@ -479,7 +479,7 @@ describe('DPoS module', () => {
 			it('should create a snapshot which include all delegates in the snapshot', async () => {
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					intToBuffer(11 + 2, 4),
+					utils.intToBuffer(11 + 2, 4),
 					snapshotStoreSchema,
 				);
 
@@ -549,7 +549,7 @@ describe('DPoS module', () => {
 			it('should create a snapshot which include top 101 delegates as active delegates', async () => {
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					intToBuffer(11 + 2, 4),
+					utils.intToBuffer(11 + 2, 4),
 					snapshotStoreSchema,
 				);
 
@@ -559,7 +559,7 @@ describe('DPoS module', () => {
 			it('should cap the delegate weight', async () => {
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					intToBuffer(11 + 2, 4),
+					utils.intToBuffer(11 + 2, 4),
 					snapshotStoreSchema,
 				);
 
@@ -576,7 +576,7 @@ describe('DPoS module', () => {
 			it('should set the delegate weight to zero when punished', async () => {
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					intToBuffer(11 + 2, 4),
+					utils.intToBuffer(11 + 2, 4),
 					snapshotStoreSchema,
 				);
 
@@ -669,7 +669,7 @@ describe('DPoS module', () => {
 			it('should create a snapshot which include top 101 delegates as active delegates', async () => {
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					intToBuffer(11 + 2, 4),
+					utils.intToBuffer(11 + 2, 4),
 					snapshotStoreSchema,
 				);
 
@@ -679,7 +679,7 @@ describe('DPoS module', () => {
 			it('should create a snapshot which include all delegates above standby threshold in the snapshot', async () => {
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					intToBuffer(11 + 2, 4),
+					utils.intToBuffer(11 + 2, 4),
 					snapshotStoreSchema,
 				);
 
@@ -752,7 +752,7 @@ describe('DPoS module', () => {
 							.slice(0, defaultConfigs.numberActiveDelegates)
 							.map(d => d.delegateAddress);
 						await snapshotStore.setWithSchema(
-							intToBuffer(defaultRound, 4),
+							utils.intToBuffer(defaultRound, 4),
 							{
 								activeDelegates,
 								delegateWeightSnapshot: delegates.slice(defaultConfigs.numberActiveDelegates),
@@ -833,7 +833,7 @@ describe('DPoS module', () => {
 					.slice(0, defaultConfigs.numberActiveDelegates)
 					.map(d => d.delegateAddress);
 				await snapshotStore.setWithSchema(
-					intToBuffer(defaultRound, 4),
+					utils.intToBuffer(defaultRound, 4),
 					{
 						activeDelegates,
 						delegateWeightSnapshot: delegates.slice(defaultConfigs.numberActiveDelegates),

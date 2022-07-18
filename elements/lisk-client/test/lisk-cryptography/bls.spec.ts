@@ -16,9 +16,7 @@
 import { cryptography } from '../../src';
 
 const {
-	bls: {
-		getPrivateKeyFromPhraseAndPath,
-	},
+	bls: { getPrivateKeyFromPhraseAndPath },
 } = cryptography;
 
 describe('bls', () => {

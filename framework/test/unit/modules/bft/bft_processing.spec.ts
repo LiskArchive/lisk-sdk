@@ -13,12 +13,7 @@
  */
 /* eslint-disable no-loop-func */
 import { BlockHeader, StateStore } from '@liskhq/lisk-chain';
-import {
-	BIG_ENDIAN,
-	getAddressFromPublicKey,
-	getRandomBytes,
-	intToBuffer,
-} from '@liskhq/lisk-cryptography';
+import { utils, address } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { BFTModule } from '../../../../src/engine/bft';
 import {
@@ -74,7 +69,7 @@ describe('BFT processing', () => {
 					}
 				}
 				await paramsStore.setWithSchema(
-					intToBuffer(1, 4, BIG_ENDIAN),
+					utils.intToBuffer(1, 4),
 					{
 						prevoteThreshold: BigInt(threshold),
 						precommitThreshold: BigInt(threshold),

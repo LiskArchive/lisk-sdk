@@ -15,15 +15,17 @@
 
 import { cryptography } from '../../src';
 
-const { utils: {
-	generateHashOnionSeed,
-	bufferToHex,
-	hexToBuffer,
-	intToBuffer,
-	getNetworkIdentifier,
-	hashOnion,
-	hash: hashFunction,
-}, } = cryptography;
+const {
+	utils: {
+		generateHashOnionSeed,
+		bufferToHex,
+		hexToBuffer,
+		intToBuffer,
+		getNetworkIdentifier,
+		hashOnion,
+		hash: hashFunction,
+	},
+} = cryptography;
 
 describe('buffer', () => {
 	const defaultBuffer = Buffer.from('\xe5\xe4\xf6');

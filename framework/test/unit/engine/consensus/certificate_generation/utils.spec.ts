@@ -13,13 +13,7 @@
  */
 
 import { BlockHeader } from '@liskhq/lisk-chain';
-import {
-	signBLS,
-	generatePrivateKey,
-	getPublicKeyFromPrivateKey,
-	getRandomBytes,
-	createAggSig,
-} from '@liskhq/lisk-cryptography';
+import { bls, utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { Certificate } from '../../../../../src/engine/consensus/certificate_generation/types';
 import { MESSAGE_TAG_CERTIFICATE } from '../../../../../src/engine/consensus/certificate_generation/constants';
@@ -75,7 +69,7 @@ describe('utils', () => {
 		let signature: Buffer;
 
 		beforeEach(() => {
-			privateKey = generatePrivateKey(utils.getRandomBytes(32));
+			privateKey = bls.generatePrivateKey(utils.getRandomBytes(32));
 			certificate = {
 				blockID: Buffer.alloc(0),
 				height: 1000,
@@ -84,7 +78,7 @@ describe('utils', () => {
 				validatorsHash: Buffer.alloc(0),
 			};
 			const encodedCertificate = codec.encode(certificateSchema, certificate);
-			signature = signBLS(
+			signature = bls.signBLS(
 				MESSAGE_TAG_CERTIFICATE,
 				networkIdentifier,
 				encodedCertificate,
@@ -105,8 +99,8 @@ describe('utils', () => {
 		let signature: Buffer;
 
 		beforeEach(() => {
-			privateKey = generatePrivateKey(utils.getRandomBytes(32));
-			publicKey = getPublicKeyFromPrivateKey(privateKey);
+			privateKey = bls.generatePrivateKey(utils.getRandomBytes(32));
+			publicKey = bls.getPublicKeyFromPrivateKey(privateKey);
 			certificate = {
 				blockID: Buffer.alloc(0),
 				height: 1030,
@@ -117,7 +111,7 @@ describe('utils', () => {
 
 			const encodedCertificate = codec.encode(certificateSchema, certificate);
 
-			signature = signBLS(
+			signature = bls.signBLS(
 				MESSAGE_TAG_CERTIFICATE,
 				networkIdentifier,
 				encodedCertificate,
@@ -178,8 +172,10 @@ describe('utils', () => {
 		let aggregationBits: Buffer;
 
 		beforeEach(() => {
-			privateKeys = Array.from({ length: 103 }, _ => generatePrivateKey(utils.getRandomBytes(32)));
-			publicKeys = privateKeys.map(priv => getPublicKeyFromPrivateKey(priv));
+			privateKeys = Array.from({ length: 103 }, _ =>
+				bls.generatePrivateKey(utils.getRandomBytes(32)),
+			);
+			publicKeys = privateKeys.map(priv => bls.getPublicKeyFromPrivateKey(priv));
 
 			keysList = [...publicKeys];
 			weights = Array.from({ length: 103 }, _ => 1);
@@ -196,7 +192,7 @@ describe('utils', () => {
 			const encodedCertificate = codec.encode(certificateSchema, certificate);
 
 			signatures = privateKeys.map(privateKey =>
-				signBLS(MESSAGE_TAG_CERTIFICATE, networkIdentifier, encodedCertificate, privateKey),
+				bls.signBLS(MESSAGE_TAG_CERTIFICATE, networkIdentifier, encodedCertificate, privateKey),
 			);
 
 			pubKeySignaturePairs = Array.from({ length: 103 }, (_, i) => ({
@@ -204,7 +200,7 @@ describe('utils', () => {
 				signature: signatures[i],
 			}));
 
-			({ aggregationBits, signature: aggregateSignature } = createAggSig(
+			({ aggregationBits, signature: aggregateSignature } = bls.createAggSig(
 				publicKeys,
 				pubKeySignaturePairs,
 			));

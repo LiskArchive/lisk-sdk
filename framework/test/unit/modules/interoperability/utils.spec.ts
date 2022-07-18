@@ -360,7 +360,7 @@ describe('Utils', () => {
 		const partnerChainAccount: any = { networkID: cryptography.utils.getRandomBytes(32) };
 
 		it('should return VerifyStatus.OK if certificate is empty', () => {
-			jest.spyOn(cryptography, 'verifyWeightedAggSig').mockReturnValue(true);
+			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(true);
 			const { status, error } = verifyCertificateSignature(
 				txParamsWithEmptyCertificate,
 				partnerValidators,
@@ -369,11 +369,11 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.OK);
 			expect(error?.message).toBeUndefined();
-			expect(cryptography.verifyWeightedAggSig).not.toHaveBeenCalled();
+			expect(cryptography.bls.verifyWeightedAggSig).not.toHaveBeenCalled();
 		});
 
 		it('should return VerifyStatus.FAIL when certificate signature verification fails', () => {
-			jest.spyOn(cryptography, 'verifyWeightedAggSig').mockReturnValue(false);
+			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(false);
 			const { status, error } = verifyCertificateSignature(
 				txParams,
 				partnerValidators,
@@ -382,11 +382,11 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.FAIL);
 			expect(error?.message).toEqual('Certificate is invalid due to invalid signature.');
-			expect(cryptography.verifyWeightedAggSig).toHaveBeenCalledTimes(1);
+			expect(cryptography.bls.verifyWeightedAggSig).toHaveBeenCalledTimes(1);
 		});
 
 		it('should return VerifyStatus.OK when certificate signature verification passes', () => {
-			jest.spyOn(cryptography, 'verifyWeightedAggSig').mockReturnValue(true);
+			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(true);
 
 			const { status, error } = verifyCertificateSignature(
 				txParams,
@@ -396,7 +396,7 @@ describe('Utils', () => {
 
 			expect(status).toEqual(VerifyStatus.OK);
 			expect(error).toBeUndefined();
-			expect(cryptography.verifyWeightedAggSig).toHaveBeenCalledTimes(1);
+			expect(cryptography.bls.verifyWeightedAggSig).toHaveBeenCalledTimes(1);
 		});
 	});
 

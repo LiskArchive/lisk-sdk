@@ -14,7 +14,7 @@
 
 import { StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { BIG_ENDIAN, getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase, Database, Batch } from '@liskhq/lisk-db';
 import {
 	MODULE_ID_BFT_BUFFER,
@@ -39,7 +39,7 @@ describe('BFT parameters', () => {
 			db = new InMemoryDatabase() as never;
 			const rootStore = new StateStore(db);
 			const paramsStore = rootStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_BFT_PARAMETERS);
-			const height1Bytes = utils.intToBuffer(309, 4, BIG_ENDIAN);
+			const height1Bytes = utils.intToBuffer(309, 4);
 			bftParams1 = {
 				prevoteThreshold: BigInt(20),
 				precommitThreshold: BigInt(30),
@@ -54,7 +54,7 @@ describe('BFT parameters', () => {
 				validatorsHash: utils.getRandomBytes(32),
 			};
 			await paramsStore.set(height1Bytes, codec.encode(bftParametersSchema, bftParams1));
-			const height2Bytes = utils.intToBuffer(515, 4, BIG_ENDIAN);
+			const height2Bytes = utils.intToBuffer(515, 4);
 			bftParams2 = {
 				prevoteThreshold: BigInt(40),
 				precommitThreshold: BigInt(50),
@@ -105,7 +105,7 @@ describe('BFT parameters', () => {
 			db = new InMemoryDatabase() as never;
 			const rootStore = new StateStore(db);
 			const paramsStore = rootStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_BFT_PARAMETERS);
-			const height1Bytes = utils.intToBuffer(309, 4, BIG_ENDIAN);
+			const height1Bytes = utils.intToBuffer(309, 4);
 			bftParams1 = {
 				prevoteThreshold: BigInt(20),
 				precommitThreshold: BigInt(30),
@@ -120,7 +120,7 @@ describe('BFT parameters', () => {
 				validatorsHash: utils.getRandomBytes(32),
 			};
 			await paramsStore.set(height1Bytes, codec.encode(bftParametersSchema, bftParams1));
-			const height2Bytes = utils.intToBuffer(515, 4, BIG_ENDIAN);
+			const height2Bytes = utils.intToBuffer(515, 4);
 			bftParams2 = {
 				prevoteThreshold: BigInt(40),
 				precommitThreshold: BigInt(50),
@@ -156,7 +156,7 @@ describe('BFT parameters', () => {
 			await deleteBFTParameters(paramsStore, 515);
 
 			expect(paramsStore.del).toHaveBeenCalledTimes(1);
-			expect(paramsStore.del).toHaveBeenCalledWith(utils.intToBuffer(309, 4, BIG_ENDIAN));
+			expect(paramsStore.del).toHaveBeenCalledWith(utils.intToBuffer(309, 4));
 		});
 	});
 
@@ -168,7 +168,7 @@ describe('BFT parameters', () => {
 				db = new InMemoryDatabase() as never;
 				const rootStore = new StateStore(db);
 				const paramsStore = rootStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_BFT_PARAMETERS);
-				const height1Bytes = utils.intToBuffer(104, 4, BIG_ENDIAN);
+				const height1Bytes = utils.intToBuffer(104, 4);
 				const bftParams1 = {
 					prevoteThreshold: BigInt(20),
 					precommitThreshold: BigInt(30),
@@ -183,7 +183,7 @@ describe('BFT parameters', () => {
 					validatorsHash: utils.getRandomBytes(32),
 				};
 				await paramsStore.set(height1Bytes, codec.encode(bftParametersSchema, bftParams1));
-				const height2Bytes = utils.intToBuffer(207, 4, BIG_ENDIAN);
+				const height2Bytes = utils.intToBuffer(207, 4);
 				const bftParams2 = {
 					prevoteThreshold: BigInt(40),
 					precommitThreshold: BigInt(50),
@@ -198,7 +198,7 @@ describe('BFT parameters', () => {
 					validatorsHash: utils.getRandomBytes(32),
 				};
 				await paramsStore.set(height2Bytes, codec.encode(bftParametersSchema, bftParams2));
-				const height3Bytes = utils.intToBuffer(310, 4, BIG_ENDIAN);
+				const height3Bytes = utils.intToBuffer(310, 4);
 				const bftParams3 = {
 					prevoteThreshold: BigInt(40),
 					precommitThreshold: BigInt(50),

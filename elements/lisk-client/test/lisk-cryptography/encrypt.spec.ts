@@ -47,12 +47,14 @@ describe('encrypt', () => {
 	let hashStub: any;
 
 	beforeEach(async () => {
-		jest.spyOn(cryptography.address, 'getAddressAndPublicKeyFromPassphrase').mockImplementation(() => {
-			return {
-				address: defaultPrivateKey,
-				publicKey: defaultPublicKey,
-			};
-		});
+		jest
+			.spyOn(cryptography.address, 'getAddressAndPublicKeyFromPassphrase')
+			.mockImplementation(() => {
+				return {
+					address: defaultPrivateKey,
+					publicKey: defaultPublicKey,
+				};
+			});
 
 		hashStub = jest
 			.spyOn(cryptography.utils, 'hash')

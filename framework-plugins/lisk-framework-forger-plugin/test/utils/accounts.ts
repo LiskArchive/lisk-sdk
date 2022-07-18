@@ -15,7 +15,7 @@
 import { cryptography } from 'lisk-sdk';
 
 export const getRandomAccount = () => {
-	const { publicKey, privateKey } = cryptography.utils.getKeys(
+	const { publicKey, privateKey } = cryptography.ed.getKeys(
 		cryptography.utils.getRandomBytes(20).toString('hex'),
 	);
 	const address = cryptography.address.getAddressFromPublicKey(publicKey);

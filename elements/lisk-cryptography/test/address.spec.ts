@@ -15,8 +15,6 @@
 import {
 	getAddressFromPublicKey,
 	getLisk32AddressFromPublicKey,
-	getPrivateAndPublicKeyFromPassphrase,
-	getKeys,
 	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPassphrase,
 	getAddressFromPrivateKey,
@@ -25,7 +23,6 @@ import {
 	getLisk32AddressFromAddress,
 	getLisk32AddressFromPassphrase,
 } from '../src/address';
-import { Keypair } from '../src/types';
 import * as utils from '../src/utils';
 
 describe('address', () => {
@@ -50,38 +47,6 @@ describe('address', () => {
 		jest.spyOn(utils, 'bufferToHex');
 
 		jest.spyOn(utils, 'hash').mockReturnValue(Buffer.from(defaultPassphraseHash, 'hex'));
-	});
-
-	describe('#getPrivateAndPublicKeyFromPassphrase', () => {
-		let keyPair: Keypair;
-
-		beforeEach(() => {
-			keyPair = getPrivateAndPublicKeyFromPassphrase(defaultPassphrase);
-		});
-
-		it('should generate the correct publicKey from a passphrase', () => {
-			expect(keyPair).toHaveProperty('publicKey', defaultPublicKey);
-		});
-
-		it('should generate the correct privateKey from a passphrase', () => {
-			expect(keyPair).toHaveProperty('privateKey', defaultPrivateKey);
-		});
-	});
-
-	describe('#getKeys', () => {
-		let keyPair: Keypair;
-
-		beforeEach(() => {
-			keyPair = getKeys(defaultPassphrase);
-		});
-
-		it('should generate the correct publicKey from a passphrase', () => {
-			expect(keyPair).toHaveProperty('publicKey', defaultPublicKey);
-		});
-
-		it('should generate the correct privateKey from a passphrase', () => {
-			expect(keyPair).toHaveProperty('privateKey', defaultPrivateKey);
-		});
 	});
 
 	describe('#getAddressAndPublicKeyFromPassphrase', () => {

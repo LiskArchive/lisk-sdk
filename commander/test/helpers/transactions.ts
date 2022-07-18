@@ -125,7 +125,7 @@ export const genesisBlockID = Buffer.from(
 );
 export const communityIdentifier = 'Lisk';
 
-export const networkIdentifier = cryptography.getNetworkIdentifier(
+export const networkIdentifier = cryptography.utils.getNetworkIdentifier(
 	genesisBlockID,
 	communityIdentifier,
 );

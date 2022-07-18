@@ -12,12 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	getAddressFromPublicKey,
-	getRandomBytes,
-	hash,
-	hashOnion,
-} from '@liskhq/lisk-cryptography';
+import { utils, address } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { BlockAssets } from '@liskhq/lisk-chain';
 import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
@@ -146,7 +141,11 @@ describe('RandomModule', () => {
 				);
 
 			const seed = targetDelegate.hashOnion.hashes[1];
-			const hashes = hashOnion(Buffer.from(seed, 'hex'), targetDelegate.hashOnion.distance, 1);
+			const hashes = utils.hashOnion(
+				Buffer.from(seed, 'hex'),
+				targetDelegate.hashOnion.distance,
+				1,
+			);
 
 			// Act
 			await randomModule.init({
@@ -186,7 +185,11 @@ describe('RandomModule', () => {
 				);
 
 			const seed = targetDelegate.hashOnion.hashes[1];
-			const hashes = hashOnion(Buffer.from(seed, 'hex'), targetDelegate.hashOnion.distance, 1);
+			const hashes = utils.hashOnion(
+				Buffer.from(seed, 'hex'),
+				targetDelegate.hashOnion.distance,
+				1,
+			);
 
 			// Act
 			await randomModule.init({
@@ -245,7 +248,11 @@ describe('RandomModule', () => {
 				);
 
 			const seed = targetDelegate.hashOnion.hashes[1];
-			const hashes = hashOnion(Buffer.from(seed, 'hex'), targetDelegate.hashOnion.distance, 1);
+			const hashes = utils.hashOnion(
+				Buffer.from(seed, 'hex'),
+				targetDelegate.hashOnion.distance,
+				1,
+			);
 
 			// Act
 			await randomModule.init({
@@ -280,7 +287,11 @@ describe('RandomModule', () => {
 			});
 
 			const seed = targetDelegate.hashOnion.hashes[1];
-			const hashes = hashOnion(Buffer.from(seed, 'hex'), targetDelegate.hashOnion.distance, 1);
+			const hashes = utils.hashOnion(
+				Buffer.from(seed, 'hex'),
+				targetDelegate.hashOnion.distance,
+				1,
+			);
 
 			await blockGenerateContext
 				.getGeneratorStore(randomModule.id)

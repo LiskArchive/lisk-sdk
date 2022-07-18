@@ -13,7 +13,7 @@
  */
 
 import { when } from 'jest-when';
-import { getAddressFromPublicKey, getRandomBytes, hash } from '@liskhq/lisk-cryptography';
+import { utils, address } from '@liskhq/lisk-cryptography';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { BlockAssets, BlockHeader } from '@liskhq/lisk-chain';
 import { HighFeeGenerationStrategy } from '../../../../src/engine/generator/strategies';

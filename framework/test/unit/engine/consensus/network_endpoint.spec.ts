@@ -15,7 +15,7 @@
 import { InMemoryDatabase, Database } from '@liskhq/lisk-db';
 import { Block, Chain } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { NetworkEndpoint } from '../../../../src/engine/consensus/network_endpoint';
 import {
 	getBlocksFromIdRequestSchema,

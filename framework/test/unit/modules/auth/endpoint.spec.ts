@@ -1,12 +1,6 @@
 import { NotFoundError, TAG_TRANSACTION, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import {
-	getAddressAndPublicKeyFromPassphrase,
-	getAddressFromPublicKey,
-	getRandomBytes,
-	intToBuffer,
-	signDataWithPassphrase,
-} from '@liskhq/lisk-cryptography';
+import { ed, address as cryptoAddress, utils } from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
 import { AuthModule } from '../../../../src/modules/auth';
 import { AuthEndpoint } from '../../../../src/modules/auth/endpoint';
@@ -56,7 +50,9 @@ describe('AuthEndpoint', () => {
 	};
 
 	for (const account of Object.values(accounts)) {
-		const { address, publicKey } = getAddressAndPublicKeyFromPassphrase(account.passphrase);
+		const { address, publicKey } = cryptoAddress.getAddressAndPublicKeyFromPassphrase(
+			account.passphrase,
+		);
 		account.address = address;
 		account.publicKey = publicKey;
 	}
@@ -66,7 +62,7 @@ describe('AuthEndpoint', () => {
 	const nonExistingSenderPublicKey = utils.getRandomBytes(32);
 
 	const existingAddress = accounts.targetAccount.address as Buffer;
-	const nonExistingAddress = address.getAddressFromPublicKey(nonExistingSenderPublicKey);
+	const nonExistingAddress = cryptoAddress.getAddressFromPublicKey(nonExistingSenderPublicKey);
 
 	const existingPassphrase = accounts.targetAccount.passphrase;
 
@@ -160,7 +156,7 @@ describe('AuthEndpoint', () => {
 				signatures: [],
 			});
 
-			const signature = signDataWithPassphrase(
+			const signature = ed.signDataWithPassphrase(
 				TAG_TRANSACTION,
 				networkIdentifier,
 				transaction.getBytes(),
@@ -207,7 +203,7 @@ describe('AuthEndpoint', () => {
 			});
 
 			(transaction.signatures as any).push(
-				signDataWithPassphrase(
+				ed.signDataWithPassphrase(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
@@ -216,7 +212,7 @@ describe('AuthEndpoint', () => {
 			);
 
 			(transaction.signatures as any).push(
-				signDataWithPassphrase(
+				ed.signDataWithPassphrase(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
@@ -225,7 +221,7 @@ describe('AuthEndpoint', () => {
 			);
 
 			(transaction.signatures as any).push(
-				signDataWithPassphrase(
+				ed.signDataWithPassphrase(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
@@ -278,7 +274,7 @@ describe('AuthEndpoint', () => {
 			});
 
 			(transaction.signatures as any).push(
-				signDataWithPassphrase(
+				ed.signDataWithPassphrase(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
@@ -287,7 +283,7 @@ describe('AuthEndpoint', () => {
 			);
 
 			(transaction.signatures as any).push(
-				signDataWithPassphrase(
+				ed.signDataWithPassphrase(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
@@ -296,7 +292,7 @@ describe('AuthEndpoint', () => {
 			);
 
 			(transaction.signatures as any).push(
-				signDataWithPassphrase(
+				ed.signDataWithPassphrase(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
@@ -305,7 +301,7 @@ describe('AuthEndpoint', () => {
 			);
 
 			(transaction.signatures as any).push(
-				signDataWithPassphrase(
+				ed.signDataWithPassphrase(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
@@ -314,7 +310,7 @@ describe('AuthEndpoint', () => {
 			);
 
 			(transaction.signatures as any).push(
-				signDataWithPassphrase(
+				ed.signDataWithPassphrase(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),

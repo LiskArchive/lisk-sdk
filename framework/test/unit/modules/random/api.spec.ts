@@ -36,7 +36,7 @@ import { testCases } from './dpos_random_seed_generation/dpos_random_seed_genera
 import * as randomSeedsMultipleRounds from '../../../fixtures/dpos_random_seed_generation/dpos_random_seed_generation_other_rounds.json';
 
 const strippedHashOfIntegerBuffer = (num: number) =>
-	cryptography.hash(utils.intToBuffer(num, 4)).slice(0, SEED_REVEAL_HASH_SIZE);
+	cryptography.utils.hash(utils.intToBuffer(num, 4)).slice(0, SEED_REVEAL_HASH_SIZE);
 
 describe('RandomModuleAPI', () => {
 	let randomAPI: RandomAPI;
@@ -213,7 +213,7 @@ describe('RandomModuleAPI', () => {
 			const numberOfSeeds = 2;
 			// Create a buffer from height + numberOfSeeds
 
-			await expect(randomAPI.utils.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
+			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
 				'Height or number of seeds cannot be negative.',
 			);
 		});
@@ -223,7 +223,7 @@ describe('RandomModuleAPI', () => {
 			const numberOfSeeds = -2;
 			// Create a buffer from height + numberOfSeeds
 
-			await expect(randomAPI.utils.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
+			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
 				'Height or number of seeds cannot be negative.',
 			);
 		});
@@ -244,7 +244,7 @@ describe('RandomModuleAPI', () => {
 				hashesExpected[1],
 			]);
 
-			await expect(randomAPI.utils.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				xorExpected,
 			);
 		});
@@ -266,7 +266,7 @@ describe('RandomModuleAPI', () => {
 				hashesExpected[2],
 			]);
 
-			await expect(randomAPI.utils.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				xorExpected,
 			);
 		});
@@ -288,7 +288,7 @@ describe('RandomModuleAPI', () => {
 				hashesExpected[2],
 			]);
 
-			await expect(randomAPI.utils.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				xorExpected,
 			);
 		});
@@ -305,7 +305,7 @@ describe('RandomModuleAPI', () => {
 			// Do XOR of randomSeed with hashes of seed reveal with height >= randomStoreValidator.height >= height + numberOfSeeds
 			const xorExpected = bitwiseXOR([randomSeed, hashesExpected[0]]);
 
-			await expect(randomAPI.utils.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				xorExpected,
 			);
 		});
@@ -316,7 +316,7 @@ describe('RandomModuleAPI', () => {
 			// Create a buffer from height + numberOfSeeds
 			const randomSeed = strippedHashOfIntegerBuffer(height + numberOfSeeds);
 
-			await expect(randomAPI.utils.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				randomSeed,
 			);
 		});
@@ -327,7 +327,7 @@ describe('RandomModuleAPI', () => {
 			// Create a buffer from height + numberOfSeeds
 			const randomSeed = strippedHashOfIntegerBuffer(height + numberOfSeeds);
 
-			await expect(randomAPI.utils.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				randomSeed,
 			);
 		});
@@ -380,7 +380,7 @@ describe('RandomModuleAPI', () => {
 				const endOfLastRound = startOfRound - 1;
 				const startOfLastRound = endOfLastRound - config.blocksPerRound + 1;
 				// Act
-				const randomSeed1 = await randomAPI.utils.getRandomBytes(
+				const randomSeed1 = await randomAPI.getRandomBytes(
 					context,
 					heightForSeed1,
 					round === 2 ? middleThreshold : middleThreshold * 2,
@@ -389,7 +389,7 @@ describe('RandomModuleAPI', () => {
 				const randomSeed2 =
 					round === 2
 						? strippedHashOfIntegerBuffer(endOfLastRound)
-						: await randomAPI.utils.getRandomBytes(context, startOfLastRound, middleThreshold * 2);
+						: await randomAPI.getRandomBytes(context, startOfLastRound, middleThreshold * 2);
 				// Assert
 				expect(randomSeed1.toString('hex')).toEqual(output.randomSeed1);
 				expect(randomSeed2.toString('hex')).toEqual(output.randomSeed2);

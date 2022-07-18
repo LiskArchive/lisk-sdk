@@ -69,7 +69,6 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 }));
 
 describe('Mainchain registration command', () => {
-	const { getRandomBytes } = crypto;
 	const unsortedMainchainValidators: ActiveValidators[] = [];
 	for (let i = 0; i < NUMBER_MAINCHAIN_VALIDATORS; i += 1) {
 		unsortedMainchainValidators.push({ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(1) });
@@ -313,13 +312,13 @@ describe('Mainchain registration command', () => {
 			const keyList = [validatorAccounts[0].blsKey, validatorAccounts[1].blsKey];
 			const weights = [validatorAccounts[0].bftWeight, validatorAccounts[1].bftWeight];
 
-			jest.spyOn(crypto, 'verifyWeightedAggSig');
+			jest.spyOn(crypto.bls, 'verifyWeightedAggSig');
 
 			// Act
 			await mainchainRegistrationCommand.execute(context);
 
 			// Assert
-			expect(crypto.verifyWeightedAggSig).toHaveBeenCalledWith(
+			expect(crypto.bls.verifyWeightedAggSig).toHaveBeenCalledWith(
 				keyList,
 				params.aggregationBits,
 				params.signature,

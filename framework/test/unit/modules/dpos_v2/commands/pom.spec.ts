@@ -15,12 +15,7 @@
 import { when } from 'jest-when';
 import { BlockHeader, blockHeaderSchema, Transaction } from '@liskhq/lisk-chain';
 import { objects } from '@liskhq/lisk-utils';
-import {
-	getAddressAndPublicKeyFromPassphrase,
-	getAddressFromPublicKey,
-	getRandomBytes,
-	intToBuffer,
-} from '@liskhq/lisk-cryptography';
+import { address, utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { ReportDelegateMisbehaviorCommand } from '../../../../../src/modules/dpos_v2/commands/pom';
 import * as testing from '../../../../../src/testing';
@@ -67,7 +62,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 	const {
 		address: delegate1Address,
 		publicKey: delegate1PublicKey,
-	} = getAddressAndPublicKeyFromPassphrase(utils.getRandomBytes(20).toString('utf8'));
+	} = address.getAddressAndPublicKeyFromPassphrase(utils.getRandomBytes(20).toString('utf8'));
 	const defaultDelegateInfo = {
 		totalVotesReceived: BigInt(100000000),
 		selfVotes: BigInt(0),

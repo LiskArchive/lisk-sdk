@@ -11,22 +11,16 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import {
-	getPublicKeyFromPrivateKey,
-	generatePrivateKey,
-	blsPopProve,
-	getKeys,
-	getAddressFromPublicKey,
-} from '@liskhq/lisk-cryptography';
+import { bls, address as cryptoAddress, ed } from '@liskhq/lisk-cryptography';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 
 export const validators = new Array(120).fill(0).map((_, i) => {
 	const passphrase = Mnemonic.generateMnemonic();
-	const keys = getKeys(passphrase);
-	const address = address.getAddressFromPublicKey(keys.publicKey);
-	const blsPrivateKey = generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
-	const blsPublicKey = getPublicKeyFromPrivateKey(blsPrivateKey);
-	const blsPoP = blsPopProve(blsPrivateKey);
+	const keys = ed.getKeys(passphrase);
+	const address = cryptoAddress.getAddressFromPublicKey(keys.publicKey);
+	const blsPrivateKey = bls.generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
+	const blsPublicKey = bls.getPublicKeyFromPrivateKey(blsPrivateKey);
+	const blsPoP = bls.popProve(blsPrivateKey);
 	return {
 		address,
 		name: `genesis_${i}`,

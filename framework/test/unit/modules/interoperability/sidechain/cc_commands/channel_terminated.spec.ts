@@ -49,7 +49,7 @@ describe('SidechainCCChannelTerminatedCommand', () => {
 	});
 
 	const ccChannelTerminatedCommand = new SidechainCCChannelTerminatedCommand(
-		intToBuffer(1, 4),
+		utils.intToBuffer(1, 4),
 		ccAPIsMap,
 	);
 	const mainchainInteroperabilityStore = new SidechainInteroperabilityStore(

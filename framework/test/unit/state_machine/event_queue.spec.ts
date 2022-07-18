@@ -58,7 +58,7 @@ describe('EventQueue', () => {
 	it('should throw error if data size exceeds maximum allowed', () => {
 		expect(() =>
 			eventQueue.add(
-				intToBuffer(2, 4),
+				utils.intToBuffer(2, 4),
 				Buffer.from([0, 0, 0, 1]),
 				utils.getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES + 1),
 				[utils.getRandomBytes(32)],
@@ -69,7 +69,7 @@ describe('EventQueue', () => {
 	it('should throw error if topics is empty', () => {
 		expect(() =>
 			eventQueue.add(
-				intToBuffer(2, 4),
+				utils.intToBuffer(2, 4),
 				Buffer.from([0, 0, 0, 1]),
 				utils.getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES),
 				[],
@@ -80,7 +80,7 @@ describe('EventQueue', () => {
 	it('should throw error if topics length exceeds maxumum allowed', () => {
 		expect(() =>
 			eventQueue.add(
-				intToBuffer(2, 4),
+				utils.intToBuffer(2, 4),
 				Buffer.from([0, 0, 0, 1]),
 				utils.getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES),
 				new Array(5).fill(0).map(() => utils.getRandomBytes(32)),
@@ -130,21 +130,21 @@ describe('EventQueue', () => {
 
 		eventQueue.createSnapshot();
 		eventQueue.add(
-			intToBuffer(3, 4),
+			utils.intToBuffer(3, 4),
 			Buffer.from([0, 0, 0, 1]),
 			utils.getRandomBytes(100),
 			[utils.getRandomBytes(32)],
 			false,
 		);
 		eventQueue.add(
-			intToBuffer(3, 4),
+			utils.intToBuffer(3, 4),
 			Buffer.from([0, 0, 0, 1]),
 			utils.getRandomBytes(100),
 			[utils.getRandomBytes(32)],
 			true,
 		);
 		eventQueue.add(
-			intToBuffer(3, 4),
+			utils.intToBuffer(3, 4),
 			Buffer.from([0, 0, 0, 1]),
 			utils.getRandomBytes(100),
 			[utils.getRandomBytes(32)],

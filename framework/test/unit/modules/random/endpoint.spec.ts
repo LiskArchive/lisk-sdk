@@ -79,7 +79,7 @@ describe('RandomModuleEndpoint', () => {
 			// Arrange
 			const address = ['address'];
 			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
-			const hashes = cryptography.hashOnion(
+			const hashes = cryptography.utils.hashOnion(
 				Buffer.from(seed, 'hex'),
 				genesisDelegates.delegates[0].hashOnion.distance,
 				1,
@@ -107,7 +107,7 @@ describe('RandomModuleEndpoint', () => {
 			// Arrange
 			const { address } = genesisDelegates.delegates[0];
 			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
-			const hashes = cryptography.hashOnion(
+			const hashes = cryptography.utils.hashOnion(
 				Buffer.from(seed, 'hex'),
 				genesisDelegates.delegates[0].hashOnion.distance,
 				1,
@@ -124,7 +124,7 @@ describe('RandomModuleEndpoint', () => {
 			// Arrange
 			const { address } = genesisDelegates.delegates[4];
 			const seed = genesisDelegates.delegates[4].hashOnion.hashes[0];
-			const hashes = cryptography.hashOnion(
+			const hashes = cryptography.utils.hashOnion(
 				Buffer.from(seed, 'hex'),
 				genesisDelegates.delegates[0].hashOnion.distance,
 				1,
@@ -141,7 +141,7 @@ describe('RandomModuleEndpoint', () => {
 			// Arrange
 			const { address } = genesisDelegates.delegates[1];
 			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
-			const hashes = cryptography.hashOnion(
+			const hashes = cryptography.utils.hashOnion(
 				Buffer.from(seed, 'hex'),
 				genesisDelegates.delegates[0].hashOnion.distance,
 				1,

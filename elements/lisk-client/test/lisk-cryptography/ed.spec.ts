@@ -27,10 +27,10 @@ const {
 		verifyData,
 		getKeyPairFromPhraseAndPath,
 		getPublicKeyFromPrivateKey,
+		getKeys,
+		getPrivateAndPublicKeyFromPassphrase,
 	},
-	utils: {
-		createMessageTag,
-	},
+	utils: { createMessageTag },
 } = cryptography;
 
 const makeInvalid = (buffer: Buffer): Buffer => {
@@ -118,6 +118,38 @@ ${defaultSignature}
 		it('should return true if the signature is valid', () => {
 			const verification = verifyMessageWithPublicKey(defaultSignedMessage);
 			expect(verification).toBe(true);
+		});
+	});
+
+	describe('#getPrivateAndPublicKeyFromPassphrase', () => {
+		let keyPair: any;
+
+		beforeEach(() => {
+			keyPair = getPrivateAndPublicKeyFromPassphrase(defaultPassphrase);
+		});
+
+		it('should generate the correct publicKey from a passphrase', () => {
+			expect(keyPair).toHaveProperty('publicKey', Buffer.from(defaultPublicKey, 'hex'));
+		});
+
+		it('should generate the correct privateKey from a passphrase', () => {
+			expect(keyPair).toHaveProperty('privateKey', Buffer.from(defaultPrivateKey, 'hex'));
+		});
+	});
+
+	describe('#getKeys', () => {
+		let keyPair: any;
+
+		beforeEach(() => {
+			keyPair = getKeys(defaultPassphrase);
+		});
+
+		it('should generate the correct publicKey from a passphrase', () => {
+			expect(keyPair).toHaveProperty('publicKey', Buffer.from(defaultPublicKey, 'hex'));
+		});
+
+		it('should generate the correct privateKey from a passphrase', () => {
+			expect(keyPair).toHaveProperty('privateKey', Buffer.from(defaultPrivateKey, 'hex'));
 		});
 	});
 
@@ -211,10 +243,7 @@ ${defaultSignature}
 		const passphrase =
 			'target cancel solution recipe vague faint bomb convince pink vendor fresh patrol';
 		it('should get keypair from valid phrase and path', async () => {
-			const privateKey = await getKeyPairFromPhraseAndPath(
-				passphrase,
-				`m/44'/134'/0'`,
-			);
+			const privateKey = await getKeyPairFromPhraseAndPath(passphrase, `m/44'/134'/0'`);
 			const publicKey = getPublicKeyFromPrivateKey(privateKey);
 			expect(publicKey.toString('hex')).toBe(
 				'c6bae83af23540096ac58d5121b00f33be6f02f05df785766725acdd5d48be9d',

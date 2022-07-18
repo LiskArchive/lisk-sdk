@@ -12,12 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	getRandomBytes,
-	hash,
-	getPrivateAndPublicKeyFromPassphrase,
-	getAddressFromPublicKey,
-} from '@liskhq/lisk-cryptography';
+import { utils, address, ed } from '@liskhq/lisk-cryptography';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { MerkleTree } from '@liskhq/lisk-tree';
 import { Block, BlockAssets, BlockHeader, BlockHeaderAttrs, Transaction } from '@liskhq/lisk-chain';
@@ -54,7 +49,7 @@ export const genesisBlock = (): Block => {
 
 const getKeyPair = (): { publicKey: Buffer; privateKey: Buffer } => {
 	const passphrase = Mnemonic.generateMnemonic();
-	return getPrivateAndPublicKeyFromPassphrase(passphrase);
+	return ed.getPrivateAndPublicKeyFromPassphrase(passphrase);
 };
 
 export const createFakeBlockHeader = (header?: Partial<BlockHeaderAttrs>): BlockHeader =>

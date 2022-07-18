@@ -13,7 +13,7 @@
  */
 
 import { Event, StateStore } from '@liskhq/lisk-chain';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { ChainEndpoint } from '../../../../src/engine/endpoint/chain';
 import { createContext } from '../../../utils/mocks/endpoint';

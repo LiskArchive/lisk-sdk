@@ -13,7 +13,7 @@
  */
 
 import { Transaction } from '@liskhq/lisk-chain';
-import { getAddressFromPublicKey, getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { address, utils } from '@liskhq/lisk-cryptography';
 import { FeeModule } from '../../../../src/modules/fee';
 import { VerifyStatus } from '../../../../src/state_machine';
 import { createTransactionContext } from '../../../../src/testing';

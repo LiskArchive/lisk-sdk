@@ -89,7 +89,7 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 		mainchainInteroperabilityStore.createTerminatedStateAccount = createTerminatedStateAccountMock;
 
 		ccSidechainTerminatedCommand = new SidechainCCSidechainTerminatedCommand(
-			intToBuffer(1, 4),
+			utils.intToBuffer(1, 4),
 			ccAPIsMap,
 		);
 		(ccSidechainTerminatedCommand as any)['getInteroperabilityStore'] = jest

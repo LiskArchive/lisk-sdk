@@ -25,10 +25,13 @@ import {
 	verifyData,
 	getKeyPairFromPhraseAndPath,
 	getPublicKeyFromPrivateKey,
+	getPrivateAndPublicKeyFromPassphrase,
+	getKeys,
 } from '../src/ed';
 import { createMessageTag } from '../src/utils';
 import { MAX_UINT32 } from '../src/constants';
 import * as address from '../src/address';
+import { Keypair } from '../src/types';
 
 const changeLength = (buffer: Buffer): Buffer => Buffer.concat([Buffer.from('00', 'hex'), buffer]);
 
@@ -82,6 +85,38 @@ ${defaultSignature}
 		it('should create a signed message using a secret passphrase', () => {
 			const signedMessage = signMessageWithPassphrase(defaultMessage, defaultPassphrase);
 			expect(signedMessage).toEqual(defaultSignedMessage);
+		});
+	});
+
+	describe('#getPrivateAndPublicKeyFromPassphrase', () => {
+		let keyPair: Keypair;
+
+		beforeEach(() => {
+			keyPair = getPrivateAndPublicKeyFromPassphrase(defaultPassphrase);
+		});
+
+		it('should generate the correct publicKey from a passphrase', () => {
+			expect(keyPair).toHaveProperty('publicKey', Buffer.from(defaultPublicKey, 'hex'));
+		});
+
+		it('should generate the correct privateKey from a passphrase', () => {
+			expect(keyPair).toHaveProperty('privateKey', Buffer.from(defaultPrivateKey, 'hex'));
+		});
+	});
+
+	describe('#getKeys', () => {
+		let keyPair: Keypair;
+
+		beforeEach(() => {
+			keyPair = getKeys(defaultPassphrase);
+		});
+
+		it('should generate the correct publicKey from a passphrase', () => {
+			expect(keyPair).toHaveProperty('publicKey', Buffer.from(defaultPublicKey, 'hex'));
+		});
+
+		it('should generate the correct privateKey from a passphrase', () => {
+			expect(keyPair).toHaveProperty('privateKey', Buffer.from(defaultPrivateKey, 'hex'));
 		});
 	});
 

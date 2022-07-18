@@ -21,10 +21,12 @@ import { defaultConfig } from '../../../src/testing/fixtures/config';
 import { createFakeBlockHeader } from '../../fixtures';
 
 describe('Create Block', () => {
-	const networkIdentifier = getNetworkIdentifier(
-		Buffer.from(devnetGenesisBlock.header.id, 'hex'),
-		devnetConfig.genesis.communityIdentifier,
-	).toString('hex');
+	const networkIdentifier = utils
+		.getNetworkIdentifier(
+			Buffer.from(devnetGenesisBlock.header.id, 'hex'),
+			devnetConfig.genesis.communityIdentifier,
+		)
+		.toString('hex');
 	const genesis = {
 		passphrase: 'cake cruise harvest senior glare resist acoustic maze stuff lizard autumn educate',
 		privateKey: Buffer.from(

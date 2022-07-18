@@ -14,7 +14,7 @@
 
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { getAddressAndPublicKeyFromPassphrase, getRandomBytes } from '@liskhq/lisk-cryptography';
+import { address, utils } from '@liskhq/lisk-cryptography';
 import { VerifyStatus } from '../../../../../src';
 import { TokenAPI } from '../../../../../src/modules/token/api';
 import { TransferCommand } from '../../../../../src/modules/token/commands/transfer';
@@ -167,8 +167,8 @@ describe('Transfer command', () => {
 
 	describe('execute', () => {
 		let stateStore: PrefixedStateReadWriter;
-		const sender = getAddressAndPublicKeyFromPassphrase('sender');
-		const recipient = getAddressAndPublicKeyFromPassphrase('recipient');
+		const sender = address.getAddressAndPublicKeyFromPassphrase('sender');
+		const recipient = address.getAddressAndPublicKeyFromPassphrase('recipient');
 		const thirdTokenID = Buffer.from([1, 0, 0, 0, 4, 0, 0, 0]);
 		const tokenID = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
 		const senderBalance = BigInt(200000000);

@@ -14,12 +14,7 @@
 
 'use strict';
 
-const {
-	hash,
-	getPrivateAndPublicKeyBytesFromPassphrase,
-	signData,
-	signDataWithPrivateKey,
-} = require('@liskhq/lisk-cryptography');
+const { utils, ed } = require('@liskhq/lisk-cryptography');
 const { Codec } = require('@liskhq/lisk-codec');
 const { baseTransactionSchema } = require('../../utils/schema');
 
@@ -96,7 +91,7 @@ const sign = (header, privateKey) => {
 		asset: assetBytes,
 	});
 	return Buffer.from(
-		signDataWithPrivateKey(
+		ed.signDataWithPrivateKey(
 			Buffer.concat([TAG_BLOCK_HEADER, networkIdentifier, blockBytes]),
 			privateKey,
 		),
@@ -145,7 +140,7 @@ const encode = tx => {
 
 const createSignatureObject = (txBuffer, account) => ({
 	signature: Buffer.from(
-		signData(Buffer.concat([TAG_TRANSACTION, networkIdentifier, txBuffer]), account.passphrase),
+		ed.signData(Buffer.concat([TAG_TRANSACTION, networkIdentifier, txBuffer]), account.passphrase),
 		'hex',
 	),
 });
@@ -183,7 +178,7 @@ const getHexAccount = account => ({
 	balance: account.balance,
 });
 
-const forgerKeyPair = getPrivateAndPublicKeyBytesFromPassphrase(accounts.forger.passphrase);
+const forgerKeyPair = ed.getPrivateAndPublicKeyBytesFromPassphrase(accounts.forger.passphrase);
 
 /*
 	Scenario 1:

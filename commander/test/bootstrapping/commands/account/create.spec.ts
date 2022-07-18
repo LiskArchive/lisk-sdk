@@ -25,8 +25,8 @@ describe('account:create', () => {
 		'lab mirror fetch tuna village sell sphere truly excite manual planet capable';
 	const secondDefaultMnemonic =
 		'alone cabin buffalo blast region upper jealous basket brush put answer twice';
-	const blsPrivateKey = cryptography.generatePrivateKey(Buffer.from(defaultMnemonic, 'utf-8'));
-	const secondBlsPrivateKey = cryptography.generatePrivateKey(
+	const blsPrivateKey = cryptography.bls.generatePrivateKey(Buffer.from(defaultMnemonic, 'utf-8'));
+	const secondBlsPrivateKey = cryptography.bls.generatePrivateKey(
 		Buffer.from(secondDefaultMnemonic, 'utf-8'),
 	);
 	let results: any;
@@ -47,12 +47,12 @@ describe('account:create', () => {
 			await CreateCommand.run([], config);
 			expect(JSON.parse(results[0])).toEqual([
 				{
-					publicKey: cryptography.utils.getKeys(defaultMnemonic).publicKey.toString('hex'),
-					privateKey: cryptography.utils.getKeys(defaultMnemonic).privateKey.toString('hex'),
-					blsPublicKey: cryptography.ed.getPublicKeyFromPrivateKey(blsPrivateKey).toString('hex'),
+					publicKey: cryptography.ed.getKeys(defaultMnemonic).publicKey.toString('hex'),
+					privateKey: cryptography.ed.getKeys(defaultMnemonic).privateKey.toString('hex'),
+					blsPublicKey: cryptography.bls.getPublicKeyFromPrivateKey(blsPrivateKey).toString('hex'),
 					blsPrivateKey: blsPrivateKey.toString('hex'),
 					address: cryptography.address.getLisk32AddressFromPublicKey(
-						cryptography.utils.getKeys(defaultMnemonic).publicKey,
+						cryptography.ed.getKeys(defaultMnemonic).publicKey,
 						'lsk',
 					),
 					binaryAddress: cryptography.address
@@ -70,12 +70,12 @@ describe('account:create', () => {
 			await CreateCommand.run(['--count', defaultNumber.toString()], config);
 			const result = [
 				{
-					publicKey: cryptography.utils.getKeys(defaultMnemonic).publicKey.toString('hex'),
-					privateKey: cryptography.utils.getKeys(defaultMnemonic).privateKey.toString('hex'),
-					blsPublicKey: cryptography.ed.getPublicKeyFromPrivateKey(blsPrivateKey).toString('hex'),
+					publicKey: cryptography.ed.getKeys(defaultMnemonic).publicKey.toString('hex'),
+					privateKey: cryptography.ed.getKeys(defaultMnemonic).privateKey.toString('hex'),
+					blsPublicKey: cryptography.bls.getPublicKeyFromPrivateKey(blsPrivateKey).toString('hex'),
 					blsPrivateKey: blsPrivateKey.toString('hex'),
 					address: cryptography.address.getLisk32AddressFromPublicKey(
-						cryptography.utils.getKeys(defaultMnemonic).publicKey,
+						cryptography.ed.getKeys(defaultMnemonic).publicKey,
 						'lsk',
 					),
 					binaryAddress: cryptography.address
@@ -84,17 +84,17 @@ describe('account:create', () => {
 					passphrase: defaultMnemonic,
 				},
 				{
-					publicKey: cryptography.utils.getKeys(secondDefaultMnemonic).publicKey.toString('hex'),
-					privateKey: cryptography.utils.getKeys(secondDefaultMnemonic).privateKey.toString('hex'),
-					blsPublicKey: cryptography
+					publicKey: cryptography.ed.getKeys(secondDefaultMnemonic).publicKey.toString('hex'),
+					privateKey: cryptography.ed.getKeys(secondDefaultMnemonic).privateKey.toString('hex'),
+					blsPublicKey: cryptography.bls
 						.getPublicKeyFromPrivateKey(secondBlsPrivateKey)
 						.toString('hex'),
 					blsPrivateKey: secondBlsPrivateKey.toString('hex'),
 					address: cryptography.address.getLisk32AddressFromPublicKey(
-						cryptography.utils.getKeys(secondDefaultMnemonic).publicKey,
+						cryptography.ed.getKeys(secondDefaultMnemonic).publicKey,
 						'lsk',
 					),
-					binaryAddress: cryptography
+					binaryAddress: cryptography.address
 						.getAddressFromPassphrase(secondDefaultMnemonic)
 						.toString('hex'),
 					passphrase: secondDefaultMnemonic,

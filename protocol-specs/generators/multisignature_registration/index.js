@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { signData, intToBuffer } = require('@liskhq/lisk-cryptography');
+const { utils, ed } = require('@liskhq/lisk-cryptography');
 const { Codec } = require('@liskhq/lisk-codec');
 const BaseGenerator = require('../base_generator');
 const { baseTransactionSchema } = require('../../utils/schema');
@@ -142,7 +142,7 @@ const sortKeysAscending = publicKeys =>
 
 const createSignatureObject = (txBuffer, account) => ({
 	signature: Buffer.from(
-		signData(TAG_TRANSACTION, networkIdentifier, txBuffer, account.passphrase),
+		ed.signData(TAG_TRANSACTION, networkIdentifier, txBuffer, account.passphrase),
 		'hex',
 	),
 });

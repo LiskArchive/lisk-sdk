@@ -492,7 +492,7 @@ describe('ValidatorsModuleAPI', () => {
 			};
 
 			const validatorsStore = apiContext.getStore(
-				intToBuffer(MODULE_ID_VALIDATORS, 4),
+				utils.intToBuffer(MODULE_ID_VALIDATORS, 4),
 				STORE_PREFIX_VALIDATORS_DATA,
 			);
 			await validatorsStore.setWithSchema(validAddress, validatorAccount, validatorAccountSchema);

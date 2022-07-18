@@ -17,7 +17,7 @@ import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
 import { objects } from '@liskhq/lisk-utils';
 
 import { InMemoryDatabase } from '@liskhq/lisk-db';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import {
 	BlockSynchronizationMechanism,
 	Errors,

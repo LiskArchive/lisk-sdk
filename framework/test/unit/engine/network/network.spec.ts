@@ -14,7 +14,7 @@
 
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { P2P } from '@liskhq/lisk-p2p';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { Network } from '../../../../src/engine/network';
 import { fakeLogger } from '../../../utils/mocks';
 

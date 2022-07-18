@@ -14,7 +14,7 @@
 
 import { NotFoundError, StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { BIG_ENDIAN, getRandomBytes, hash, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { BFTAPI } from '../../../../src/engine/bft/api';
 import {
@@ -178,7 +178,7 @@ describe('BFT API', () => {
 			stateStore = new StateStore(new InMemoryDatabase());
 			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 			await votesStore.setWithSchema(
-				intToBuffer(20, 4, BIG_ENDIAN),
+				utils.intToBuffer(20, 4),
 				{
 					prevoteThreshold: BigInt(68),
 					precommitThreshold: BigInt(68),
@@ -224,16 +224,8 @@ describe('BFT API', () => {
 		beforeEach(async () => {
 			stateStore = new StateStore(new InMemoryDatabase());
 			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
-			await votesStore.setWithSchema(
-				utils.intToBuffer(20, 4, BIG_ENDIAN),
-				params20,
-				bftParametersSchema,
-			);
-			await votesStore.setWithSchema(
-				utils.intToBuffer(30, 4, BIG_ENDIAN),
-				params30,
-				bftParametersSchema,
-			);
+			await votesStore.setWithSchema(utils.intToBuffer(20, 4), params20, bftParametersSchema);
+			await votesStore.setWithSchema(utils.intToBuffer(30, 4), params30, bftParametersSchema);
 		});
 
 		it('should return BFT parameters if it exists for the lower height', async () => {
@@ -494,16 +486,8 @@ describe('BFT API', () => {
 		beforeEach(async () => {
 			stateStore = new StateStore(new InMemoryDatabase());
 			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
-			await votesStore.setWithSchema(
-				utils.intToBuffer(20, 4, BIG_ENDIAN),
-				params20,
-				bftParametersSchema,
-			);
-			await votesStore.setWithSchema(
-				utils.intToBuffer(30, 4, BIG_ENDIAN),
-				params30,
-				bftParametersSchema,
-			);
+			await votesStore.setWithSchema(utils.intToBuffer(20, 4), params20, bftParametersSchema);
+			await votesStore.setWithSchema(utils.intToBuffer(30, 4), params30, bftParametersSchema);
 		});
 
 		it('should return the next height strictly higher than the input where BFT parameter exists', async () => {
@@ -542,16 +526,8 @@ describe('BFT API', () => {
 			validatorsAPI.getValidatorAccount.mockResolvedValue({ blsKey: utils.getRandomBytes(32) });
 			stateStore = new StateStore(new InMemoryDatabase());
 			const paramsStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
-			await paramsStore.setWithSchema(
-				intToBuffer(20, 4, BIG_ENDIAN),
-				params20,
-				bftParametersSchema,
-			);
-			await paramsStore.setWithSchema(
-				intToBuffer(30, 4, BIG_ENDIAN),
-				params30,
-				bftParametersSchema,
-			);
+			await paramsStore.setWithSchema(utils.intToBuffer(20, 4), params20, bftParametersSchema);
+			await paramsStore.setWithSchema(utils.intToBuffer(30, 4), params30, bftParametersSchema);
 			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_VOTES);
 			const addresses = [utils.getRandomBytes(20), utils.getRandomBytes(20)];
 			await votesStore.setWithSchema(
@@ -755,17 +731,14 @@ describe('BFT API', () => {
 				const paramsStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 
 				await expect(
-					paramsStore.getWithSchema<BFTParameters>(
-						intToBuffer(105, 4, BIG_ENDIAN),
-						bftParametersSchema,
-					),
+					paramsStore.getWithSchema<BFTParameters>(utils.intToBuffer(105, 4), bftParametersSchema),
 				).rejects.toThrow(NotFoundError);
 			});
 
 			it('should store validators ordered lexicographically by address', async () => {
 				const paramsStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 				const params = await paramsStore.getWithSchema<BFTParameters>(
-					intToBuffer(104, 4, BIG_ENDIAN),
+					utils.intToBuffer(104, 4),
 					bftParametersSchema,
 				);
 
@@ -777,7 +750,7 @@ describe('BFT API', () => {
 			it('should store validators in order of the input', async () => {
 				const paramsStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 				const params = await paramsStore.getWithSchema<BFTParameters>(
-					intToBuffer(104, 4, BIG_ENDIAN),
+					utils.intToBuffer(104, 4),
 					bftParametersSchema,
 				);
 
@@ -827,27 +800,21 @@ describe('BFT API', () => {
 
 				const paramsStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 				await expect(
-					paramsStore.getWithSchema<BFTParameters>(
-						intToBuffer(11, 4, BIG_ENDIAN),
-						bftParametersSchema,
-					),
+					paramsStore.getWithSchema<BFTParameters>(utils.intToBuffer(11, 4), bftParametersSchema),
 				).toResolve();
 			});
 
 			it('should store BFT parameters with height latest blockBFTInfo + 1', async () => {
 				const paramsStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 				await expect(
-					paramsStore.getWithSchema<BFTParameters>(
-						intToBuffer(104, 4, BIG_ENDIAN),
-						bftParametersSchema,
-					),
+					paramsStore.getWithSchema<BFTParameters>(utils.intToBuffer(104, 4), bftParametersSchema),
 				).toResolve();
 			});
 
 			it('should store new validators hash', async () => {
 				const paramsStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 				const params = await paramsStore.getWithSchema<BFTParameters>(
-					intToBuffer(104, 4, BIG_ENDIAN),
+					utils.intToBuffer(104, 4),
 					bftParametersSchema,
 				);
 				expect(params.validatorsHash).not.toEqual(params30.validatorsHash);
@@ -903,7 +870,7 @@ describe('BFT API', () => {
 				const sortedAccounts = [...accounts];
 				sortedAccounts.sort((a, b) => a.blsKey.compare(b.blsKey));
 				expect(validatorsHash).toEqual(
-					hash(
+					utils.hash(
 						codec.encode(validatorsHashInputSchema, {
 							activeValidators: [
 								{
@@ -941,16 +908,8 @@ describe('BFT API', () => {
 		beforeEach(async () => {
 			stateStore = new StateStore(new InMemoryDatabase());
 			const keysStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_GENERATOR_KEYS);
-			await keysStore.setWithSchema(
-				utils.intToBuffer(20, 4, BIG_ENDIAN),
-				keys20,
-				generatorKeysSchema,
-			);
-			await keysStore.setWithSchema(
-				utils.intToBuffer(30, 4, BIG_ENDIAN),
-				keys30,
-				generatorKeysSchema,
-			);
+			await keysStore.setWithSchema(utils.intToBuffer(20, 4), keys20, generatorKeysSchema);
+			await keysStore.setWithSchema(utils.intToBuffer(30, 4), keys30, generatorKeysSchema);
 		});
 
 		it('should current generators', async () => {
@@ -1054,7 +1013,7 @@ describe('BFT API', () => {
 				bftAPI.setGeneratorKeys(stateStore, createKeys().generators),
 			).resolves.toBeUndefined();
 			const keysStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_GENERATOR_KEYS);
-			await expect(keysStore.has(utils.intToBuffer(36, 4, BIG_ENDIAN))).resolves.toBeTrue();
+			await expect(keysStore.has(utils.intToBuffer(36, 4))).resolves.toBeTrue();
 		});
 	});
 });

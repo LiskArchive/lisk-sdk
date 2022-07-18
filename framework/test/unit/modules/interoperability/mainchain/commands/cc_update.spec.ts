@@ -244,7 +244,7 @@ describe('CrossChainUpdateCommand', () => {
 
 		jest.spyOn(MainchainInteroperabilityStore.prototype, 'isLive').mockResolvedValue(true);
 		jest.spyOn(interopUtils, 'computeValidatorsHash').mockReturnValue(validatorsHash);
-		jest.spyOn(cryptography, 'verifyWeightedAggSig').mockReturnValue(true);
+		jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(true);
 	});
 
 	describe('verify', () => {

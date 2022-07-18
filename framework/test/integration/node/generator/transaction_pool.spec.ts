@@ -30,8 +30,8 @@ describe('Transaction pool', () => {
 		});
 	});
 
-	afterAll(async () => {
-		await processEnv.cleanup({ databasePath });
+	afterAll(() => {
+		processEnv.cleanup({ databasePath });
 	});
 
 	describe('given a valid transaction while generation is disabled', () => {

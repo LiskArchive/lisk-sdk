@@ -14,11 +14,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import {
-	ed,
-	utils,
-	address,
-} from '@liskhq/lisk-cryptography';
+import { ed, utils, address } from '@liskhq/lisk-cryptography';
 import {
 	getSigningBytes,
 	signTransaction,
@@ -526,9 +522,9 @@ describe('sign', () => {
 		});
 
 		it('should add sender and mandatory public key signatures in right order for multisignature registration trx', () => {
-			const account1 = address.getPrivateAndPublicKeyFromPassphrase(passphrase1);
-			const account2 = address.getPrivateAndPublicKeyFromPassphrase(passphrase2);
-			const account3 = address.getPrivateAndPublicKeyFromPassphrase(passphrase3);
+			const account1 = ed.getPrivateAndPublicKeyFromPassphrase(passphrase1);
+			const account2 = ed.getPrivateAndPublicKeyFromPassphrase(passphrase2);
+			const account3 = ed.getPrivateAndPublicKeyFromPassphrase(passphrase3);
 			const mandatoryKeys = [account1.publicKey, account2.publicKey];
 			const optionalKeys = [account3.publicKey];
 
@@ -593,8 +589,8 @@ describe('sign', () => {
 		});
 
 		it('should match the signatures of the mandatory keys in right order for transfer trx', () => {
-			const account1 = address.getPrivateAndPublicKeyFromPassphrase(passphrase1);
-			const account2 = address.getPrivateAndPublicKeyFromPassphrase(passphrase2);
+			const account1 = ed.getPrivateAndPublicKeyFromPassphrase(passphrase1);
+			const account2 = ed.getPrivateAndPublicKeyFromPassphrase(passphrase2);
 			// Sender public key of account1
 			const transaction = {
 				moduleID: utils.intToBuffer(2, 4),

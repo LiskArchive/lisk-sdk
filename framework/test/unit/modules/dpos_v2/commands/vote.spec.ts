@@ -14,7 +14,7 @@
 
 import { NotFoundError, StateStore, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { getAddressFromPublicKey, getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { address, utils } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { validator } from '@liskhq/lisk-validator';
 import { when } from 'jest-when';

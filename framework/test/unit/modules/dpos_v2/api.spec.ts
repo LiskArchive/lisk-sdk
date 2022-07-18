@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { DPoSAPI } from '../../../../src/modules/dpos_v2/api';
 import {
 	MODULE_ID_DPOS_BUFFER,

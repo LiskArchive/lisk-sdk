@@ -19,8 +19,6 @@ const {
 	address: {
 		getAddressFromPublicKey,
 		getLisk32AddressFromPublicKey,
-		getPrivateAndPublicKeyFromPassphrase,
-		getKeys,
 		getAddressAndPublicKeyFromPassphrase,
 		getAddressFromPassphrase,
 		getAddressFromPrivateKey,
@@ -46,38 +44,6 @@ describe('keys', () => {
 		publicKey: defaultPublicKey,
 		address: defaultAddress,
 	};
-
-	describe('#getPrivateAndPublicKeyFromPassphrase', () => {
-		let keyPair: any;
-
-		beforeEach(() => {
-			keyPair = getPrivateAndPublicKeyFromPassphrase(defaultPassphrase);
-		});
-
-		it('should generate the correct publicKey from a passphrase', () => {
-			expect(keyPair).toHaveProperty('publicKey', defaultPublicKey);
-		});
-
-		it('should generate the correct privateKey from a passphrase', () => {
-			expect(keyPair).toHaveProperty('privateKey', defaultPrivateKey);
-		});
-	});
-
-	describe('#getKeys', () => {
-		let keyPair: any;
-
-		beforeEach(() => {
-			keyPair = getKeys(defaultPassphrase);
-		});
-
-		it('should generate the correct publicKey from a passphrase', () => {
-			expect(keyPair).toHaveProperty('publicKey', defaultPublicKey);
-		});
-
-		it('should generate the correct privateKey from a passphrase', () => {
-			expect(keyPair).toHaveProperty('privateKey', defaultPrivateKey);
-		});
-	});
 
 	describe('#getAddressAndPublicKeyFromPassphrase', () => {
 		it('should create correct address and publicKey', () => {
