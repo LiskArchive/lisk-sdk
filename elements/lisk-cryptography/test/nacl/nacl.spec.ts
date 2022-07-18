@@ -68,7 +68,7 @@ describe('nacl', () => {
 				let randomBuffer: Buffer;
 
 				beforeEach(async () => {
-					randomBuffer = getRandomBytes(size);
+					randomBuffer = utils.getRandomBytes(size);
 					return Promise.resolve();
 				});
 

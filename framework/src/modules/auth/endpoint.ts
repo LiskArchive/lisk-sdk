@@ -13,7 +13,7 @@
  */
 
 import { TAG_TRANSACTION, NotFoundError } from '@liskhq/lisk-chain';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { isHexString } from '@liskhq/lisk-validator';
 import { ModuleEndpointContext } from '../../types';
 import { VerifyStatus } from '../../state_machine';
@@ -73,7 +73,7 @@ export class AuthEndpoint extends BaseEndpoint {
 
 		const { senderPublicKey, signatures } = transaction;
 
-		const accountAddress = getAddressFromPublicKey(senderPublicKey);
+		const accountAddress = cryptoAddress.getAddressFromPublicKey(senderPublicKey);
 
 		const store = getStore(MODULE_ID_AUTH_BUFFER, STORE_PREFIX_AUTH);
 		const account = await store.getWithSchema<AuthAccount>(accountAddress, authAccountSchema);
@@ -127,7 +127,7 @@ export class AuthEndpoint extends BaseEndpoint {
 
 		const { senderPublicKey } = transaction;
 
-		const accountAddress = getAddressFromPublicKey(senderPublicKey);
+		const accountAddress = cryptoAddress.getAddressFromPublicKey(senderPublicKey);
 
 		const store = getStore(MODULE_ID_AUTH_BUFFER, STORE_PREFIX_AUTH);
 		const account = await store.getWithSchema<AuthAccount>(accountAddress, authAccountSchema);

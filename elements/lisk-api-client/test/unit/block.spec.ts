@@ -13,7 +13,7 @@
  *
  */
 
-import { hash, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { Channel } from '../../src/types';
 import { Block } from '../../src/block';
 import { metadata, schema } from '../utils/transaction';
@@ -41,7 +41,7 @@ describe('block', () => {
 			generatorAddress: Buffer.from('be63fb1c0426573352556f18b21efd5b6183c39c', 'hex'),
 			maxHeightPrevoted: 1000988,
 			maxHeightGenerated: 1000988,
-			validatorsHash: hash(Buffer.alloc(0)),
+			validatorsHash: utils.hash(Buffer.alloc(0)),
 			aggregateCommit: {
 				height: 0,
 				aggregationBits: Buffer.alloc(0),
@@ -67,7 +67,7 @@ describe('block', () => {
 			generatorAddress: 'be63fb1c0426573352556f18b21efd5b6183c39c',
 			maxHeightPrevoted: 1000988,
 			maxHeightGenerated: 1000988,
-			validatorsHash: hash(Buffer.alloc(0)).toString('hex'),
+			validatorsHash: utils.hash(Buffer.alloc(0)).toString('hex'),
 			aggregateCommit: {
 				height: 0,
 				aggregationBits: '',
@@ -174,8 +174,8 @@ describe('block', () => {
 			it('should return decoded block in JSON', () => {
 				// Arrange
 				const tx = {
-					moduleID: intToBuffer(2, 4),
-					commandID: intToBuffer(0, 4),
+					moduleID: utils.intToBuffer(2, 4),
+					commandID: utils.intToBuffer(0, 4),
 					nonce: BigInt('54'),
 					fee: BigInt('10000000'),
 					senderPublicKey: Buffer.from(
@@ -208,8 +208,8 @@ describe('block', () => {
 			it('should return object from JSON block', () => {
 				// Arrange
 				const tx = {
-					moduleID: intToBuffer(2, 4),
-					commandID: intToBuffer(0, 4),
+					moduleID: utils.intToBuffer(2, 4),
+					commandID: utils.intToBuffer(0, 4),
 					nonce: BigInt('54'),
 					fee: BigInt('10000000'),
 					senderPublicKey: Buffer.from(

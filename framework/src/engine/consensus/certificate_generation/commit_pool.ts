@@ -14,7 +14,7 @@
 
 import { BlockHeader, Chain, StateStore } from '@liskhq/lisk-chain';
 import { dataStructures } from '@liskhq/lisk-utils';
-import { createAggSig } from '@liskhq/lisk-cryptography';
+import { bls } from '@liskhq/lisk-cryptography';
 import { Database } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { EMPTY_BUFFER, NETWORK_EVENT_COMMIT_MESSAGES, COMMIT_RANGE_STORED } from './constants';
@@ -284,7 +284,7 @@ export class CommitPool {
 
 		validatorKeys.sort((blsKeyA, blsKeyB) => blsKeyA.compare(blsKeyB));
 
-		const { aggregationBits, signature: aggregateSignature } = createAggSig(
+		const { aggregationBits, signature: aggregateSignature } = bls.createAggSig(
 			validatorKeys,
 			pubKeySignaturePairs,
 		);

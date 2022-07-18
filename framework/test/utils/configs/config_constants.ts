@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 
 export const constantsConfig = (overriddenConfigProperties = {}) => ({
 	blockTime: 10,
@@ -35,8 +35,8 @@ export const constantsConfig = (overriddenConfigProperties = {}) => ({
 	minFeePerByte: 1000,
 	baseFees: [
 		{
-			moduleID: intToBuffer(5, 4),
-			commandID: intToBuffer(0, 4),
+			moduleID: utils.intToBuffer(5, 4),
+			commandID: utils.intToBuffer(0, 4),
 			baseFee: '1000000000',
 		},
 	],

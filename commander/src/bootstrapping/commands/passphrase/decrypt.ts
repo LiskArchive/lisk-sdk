@@ -25,8 +25,10 @@ const processInputs = async (
 	password: string,
 	encryptedPassphrase: string,
 ): Promise<Record<string, string>> => {
-	const encryptedPassphraseObject = cryptography.parseEncryptedPassphrase(encryptedPassphrase);
-	const passphrase = await cryptography.decryptPassphraseWithPassword(
+	const encryptedPassphraseObject = cryptography.encrypt.parseEncryptedPassphrase(
+		encryptedPassphrase,
+	);
+	const passphrase = await cryptography.encrypt.decryptPassphraseWithPassword(
 		encryptedPassphraseObject as never,
 		password,
 	);

@@ -84,7 +84,7 @@ describe('Public block related P2P endpoints', () => {
 		});
 
 		it('should be rejected if blockId does not exist', async () => {
-			const blockId = encodeBlockId(getRandomBytes(32));
+			const blockId = encodeBlockId(utils.getRandomBytes(32));
 
 			await expect(
 				p2p.requestFromPeer(
@@ -100,7 +100,7 @@ describe('Public block related P2P endpoints', () => {
 
 	describe('getHighestCommonBlock', () => {
 		it('should return decodable block', async () => {
-			const ids = [app['_node']['_chain'].lastBlock.header.id, getRandomBytes(32)];
+			const ids = [app['_node']['_chain'].lastBlock.header.id, utils.getRandomBytes(32)];
 			const blockIds = encodeBlockIds(ids);
 			const { data } = await p2p.requestFromPeer(
 				{
@@ -118,7 +118,7 @@ describe('Public block related P2P endpoints', () => {
 		});
 
 		it('should return undefined', async () => {
-			const ids = [getRandomBytes(32)];
+			const ids = [utils.getRandomBytes(32)];
 			const blockIds = encodeBlockIds(ids);
 			const { data } = await p2p.requestFromPeer(
 				{

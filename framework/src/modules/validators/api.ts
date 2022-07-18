@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { blsPopVerify } from '@liskhq/lisk-cryptography';
+import { bls } from '@liskhq/lisk-cryptography';
 import { BaseAPI } from '../base_api';
 import { APIContext, ImmutableAPIContext } from '../../state_machine';
 import {
@@ -52,7 +52,7 @@ export class ValidatorsAPI extends BaseAPI {
 			return false;
 		}
 
-		if (!blsPopVerify(blsKey, proofOfPossession)) {
+		if (!bls.popVerify(blsKey, proofOfPossession)) {
 			return false;
 		}
 
@@ -119,7 +119,7 @@ export class ValidatorsAPI extends BaseAPI {
 			return false;
 		}
 
-		if (!blsPopVerify(blsKey, proofOfPossession)) {
+		if (!bls.popVerify(blsKey, proofOfPossession)) {
 			return false;
 		}
 

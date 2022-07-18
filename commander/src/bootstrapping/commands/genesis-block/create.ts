@@ -229,22 +229,22 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			width: 20,
 			total: validators - 1,
 		});
-		const onionSeed = cryptography.generateHashOnionSeed();
+		const onionSeed = cryptography.utils.generateHashOnionSeed();
 		const password = createMnemonicPassphrase();
 		const passwordList = { defaultPassword: password };
 		const generatorInfo = validatorList.map(async (val, index) => {
-			const encryptedPassphrase = await cryptography.encryptPassphraseWithPassword(
+			const encryptedPassphrase = await cryptography.encrypt.encryptPassphraseWithPassword(
 				val.passphrase,
 				password,
 				{ kdfparams: { iterations: validatorsPassphraseEncryptionIterations } },
 			);
 			const info = {
 				// TODO: use a better password, user sourced using flag
-				encryptedPassphrase: cryptography.stringifyEncryptedPassphrase(encryptedPassphrase),
+				encryptedPassphrase: cryptography.encrypt.stringifyEncryptedPassphrase(encryptedPassphrase),
 				hashOnion: {
 					count: validatorsHashOnionCount,
 					distance: validatorsHashOnionDistance,
-					hashes: cryptography
+					hashes: cryptography.utils
 						.hashOnion(onionSeed, validatorsHashOnionCount, validatorsHashOnionDistance)
 						.map(buf => buf.toString('hex')),
 				},

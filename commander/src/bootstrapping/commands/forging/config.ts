@@ -74,14 +74,14 @@ export class ConfigCommand extends Command {
 			fs.ensureDirSync(dir);
 		}
 
-		const seed = cryptography.generateHashOnionSeed();
+		const seed = cryptography.utils.generateHashOnionSeed();
 
-		const hashBuffers = cryptography.hashOnion(seed, count, distance);
+		const hashBuffers = cryptography.utils.hashOnion(seed, count, distance);
 		const hashes = hashBuffers.map(buf => buf.toString('hex'));
 		const hashOnion = { count, distance, hashes };
 
 		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
-		const address = cryptography.getAddressFromPassphrase(passphrase).toString('hex');
+		const address = cryptography.address.getAddressFromPassphrase(passphrase).toString('hex');
 		const password = passwordSource ?? (await getPasswordFromPrompt('password', true));
 		const { encryptedPassphrase } = await encryptPassphrase(passphrase, password, false);
 		const message = { address, encryptedPassphrase, hashOnion };

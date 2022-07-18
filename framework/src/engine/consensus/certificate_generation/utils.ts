@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { signBLS, verifyBLS, verifyWeightedAggSig } from '@liskhq/lisk-cryptography';
+import { bls } from '@liskhq/lisk-cryptography';
 import { BlockHeader } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { Certificate } from './types';
@@ -44,7 +44,7 @@ export const signCertificate = (
 ): Buffer => {
 	const { aggregationBits, signature, ...rawCertificate } = certificate;
 
-	return signBLS(
+	return bls.signBLS(
 		MESSAGE_TAG_CERTIFICATE,
 		networkIdentifier,
 		codec.encode(certificateSchema, rawCertificate),
@@ -66,7 +66,7 @@ export const verifySingleCertificateSignature = (
 		validatorsHash: certificate.validatorsHash,
 	});
 
-	return verifyBLS(MESSAGE_TAG_CERTIFICATE, networkIdentifier, message, signature, pk);
+	return bls.verifyBLS(MESSAGE_TAG_CERTIFICATE, networkIdentifier, message, signature, pk);
 };
 
 export const verifyAggregateCertificateSignature = (
@@ -89,7 +89,7 @@ export const verifyAggregateCertificateSignature = (
 		validatorsHash: certificate.validatorsHash,
 	});
 
-	return verifyWeightedAggSig(
+	return bls.verifyWeightedAggSig(
 		keysList,
 		aggregationBits,
 		signature,

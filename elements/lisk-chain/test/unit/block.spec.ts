@@ -27,12 +27,12 @@ describe('block', () => {
 		beforeEach(() => {
 			assetList = [
 				{
-					moduleID: intToBuffer(3, 4),
-					data: getRandomBytes(64),
+					moduleID: utils.intToBuffer(3, 4),
+					data: utils.getRandomBytes(64),
 				},
 				{
-					moduleID: intToBuffer(6, 4),
-					data: getRandomBytes(64),
+					moduleID: utils.intToBuffer(6, 4),
+					data: utils.getRandomBytes(64),
 				},
 			];
 			blockAssets = new BlockAssets(assetList);
@@ -77,7 +77,7 @@ describe('block', () => {
 				// Arrange
 				const txs = new Array(20).fill(0).map(() => tx);
 				block = await createValidDefaultBlock({ transactions: txs });
-				block['header']['_transactionRoot'] = getRandomBytes(32);
+				block['header']['_transactionRoot'] = utils.getRandomBytes(32);
 
 				// Act & assert
 				expect(() => block.validate()).toThrow('Invalid transaction root');
@@ -89,12 +89,12 @@ describe('block', () => {
 				// Arrange
 				const assets = [
 					{
-						moduleID: intToBuffer(2, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(2, 4),
+						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: intToBuffer(3, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(3, 4),
+						data: utils.getRandomBytes(64),
 					},
 				];
 				const txs = new Array(20).fill(0).map(() => tx);
@@ -102,7 +102,7 @@ describe('block', () => {
 					transactions: txs,
 					assets: new BlockAssets(assets),
 				});
-				block['header']['_assetRoot'] = getRandomBytes(32);
+				block['header']['_assetRoot'] = utils.getRandomBytes(32);
 
 				// Act & assert
 				expect(() => block.validate()).toThrow('Invalid assets root');
@@ -115,14 +115,14 @@ describe('block', () => {
 			version: 1,
 			timestamp: 1009988,
 			height: 1009988,
-			previousBlockID: getRandomBytes(32),
+			previousBlockID: utils.getRandomBytes(32),
 			stateRoot: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
 			transactionRoot: EMPTY_HASH,
 			assetRoot: EMPTY_HASH,
 			generatorAddress: EMPTY_BUFFER,
 			maxHeightPrevoted: 1009988,
 			maxHeightGenerated: 0,
-			validatorsHash: hash(Buffer.alloc(0)),
+			validatorsHash: utils.hash(Buffer.alloc(0)),
 			aggregateCommit: {
 				height: 0,
 				aggregationBits: Buffer.alloc(0),
@@ -138,12 +138,12 @@ describe('block', () => {
 		beforeEach(() => {
 			assetList = [
 				{
-					moduleID: intToBuffer(3, 4),
-					data: getRandomBytes(64),
+					moduleID: utils.intToBuffer(3, 4),
+					data: utils.getRandomBytes(64),
 				},
 				{
-					moduleID: intToBuffer(6, 4),
-					data: getRandomBytes(64),
+					moduleID: utils.intToBuffer(6, 4),
+					data: utils.getRandomBytes(64),
 				},
 			];
 			blockAssets = new BlockAssets(assetList);
@@ -180,12 +180,12 @@ describe('block', () => {
 				// Arrange
 				const assets = [
 					{
-						moduleID: intToBuffer(2, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(2, 4),
+						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: intToBuffer(3, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(3, 4),
+						data: utils.getRandomBytes(64),
 					},
 				];
 				block = await createValidDefaultBlock({
@@ -194,7 +194,7 @@ describe('block', () => {
 					assets: new BlockAssets(assets),
 				});
 				block['header']['_signature'] = EMPTY_BUFFER;
-				block['header']['_assetRoot'] = getRandomBytes(32);
+				block['header']['_assetRoot'] = utils.getRandomBytes(32);
 
 				// Act & assert
 				expect(() => block.validateGenesis()).toThrow('Invalid assets root');

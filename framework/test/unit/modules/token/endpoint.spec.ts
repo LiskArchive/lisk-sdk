@@ -37,7 +37,7 @@ import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefi
 import { DEFAULT_TOKEN_ID } from '../../../utils/mocks/transaction';
 
 describe('token endpoint', () => {
-	const defaultAddress = getRandomBytes(20);
+	const defaultAddress = utils.getRandomBytes(20);
 	const defaultTokenIDAlias = Buffer.alloc(TOKEN_ID_LENGTH, 0);
 	const defaultTokenID = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
 	const defaultForeignTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
@@ -45,7 +45,7 @@ describe('token endpoint', () => {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
 			{
-				moduleID: intToBuffer(12, 4),
+				moduleID: utils.intToBuffer(12, 4),
 				amount: BigInt(100000000),
 			},
 		],
@@ -131,7 +131,7 @@ describe('token endpoint', () => {
 		it('should return empty balances if account does not exist', async () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { address: getRandomBytes(20).toString('hex') },
+				params: { address: utils.getRandomBytes(20).toString('hex') },
 			});
 			const resp = await endpoint.getBalances(moduleEndpointContext);
 			expect(resp).toEqual({ balances: [] });
@@ -193,7 +193,7 @@ describe('token endpoint', () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					address: getRandomBytes(20).toString('hex'),
+					address: utils.getRandomBytes(20).toString('hex'),
 					tokenID: defaultTokenID.toString('hex'),
 				},
 			});

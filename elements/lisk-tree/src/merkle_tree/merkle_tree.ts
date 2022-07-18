@@ -14,7 +14,7 @@
 /* eslint-disable no-bitwise */
 /* eslint-disable @typescript-eslint/prefer-for-of */
 
-import { hash } from '../../../lisk-cryptography/dist-node';
+import { utils } from '../../../lisk-cryptography';
 import {
 	LAYER_INDEX_SIZE,
 	NODE_HASH_SIZE,
@@ -180,7 +180,7 @@ export class MerkleTree {
 				[LEAF_PREFIX, data],
 				LEAF_PREFIX.length + data.length,
 			);
-			const leafHash = hash(leafValueWithoutNodeIndex);
+			const leafHash = utils.hash(leafValueWithoutNodeIndex);
 			updateHashes.push(leafHash);
 		}
 		const siblingHashes = await this._getSiblingHashes(idxs);
@@ -278,7 +278,7 @@ export class MerkleTree {
 			[LEAF_PREFIX, value],
 			LEAF_PREFIX.length + value.length,
 		);
-		const leafHash = this._preHashedLeaf ? value : hash(leafValueWithoutNodeIndex);
+		const leafHash = this._preHashedLeaf ? value : utils.hash(leafValueWithoutNodeIndex);
 		// We include nodeIndex into the value to allow for nodeIndex retrieval for leaf nodes
 		const leafValueWithNodeIndex = Buffer.concat(
 			[LEAF_PREFIX, nodeIndexBuffer, value],

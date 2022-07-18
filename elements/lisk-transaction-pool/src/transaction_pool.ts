@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { address } from '@liskhq/lisk-cryptography';
 import * as createDebug from 'debug';
 import { EventEmitter } from 'events';
 import { dataStructures } from '@liskhq/lisk-utils';
@@ -209,7 +209,7 @@ export class TransactionPool {
 			}
 		}
 
-		const incomingTxAddress = getAddressFromPublicKey(incomingTx.senderPublicKey);
+		const incomingTxAddress = address.getAddressFromPublicKey(incomingTx.senderPublicKey);
 
 		// _applyFunction is injected from chain module applyTransaction
 		let txStatus;
@@ -296,7 +296,7 @@ export class TransactionPool {
 
 		this._allTransactions.delete(tx.id);
 		debug('Removing from transaction pool with id', tx.id);
-		const senderId = getAddressFromPublicKey(foundTx.senderPublicKey);
+		const senderId = address.getAddressFromPublicKey(foundTx.senderPublicKey);
 		(this._transactionList.get(senderId) as TransactionList).remove(tx.nonce);
 		if ((this._transactionList.get(senderId) as TransactionList).size === 0) {
 			this._transactionList.delete(senderId);

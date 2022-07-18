@@ -46,10 +46,10 @@ describe('ValidatorsModuleAPI', () => {
 		blockTime: 10,
 	};
 	const generatorConfig: any = {};
-	const blsKey = getRandomBytes(48);
-	const address = getRandomBytes(48);
-	const generatorKey = getRandomBytes(48);
-	const proofOfPossession = getRandomBytes(48);
+	const blsKey = utils.getRandomBytes(48);
+	const address = utils.getRandomBytes(48);
+	const generatorKey = utils.getRandomBytes(48);
+	const proofOfPossession = utils.getRandomBytes(48);
 	const genesisTimestamp = 1610643809;
 
 	beforeAll(async () => {
@@ -58,7 +58,7 @@ describe('ValidatorsModuleAPI', () => {
 	});
 
 	beforeEach(() => {
-		validatorsAPI = new ValidatorsAPI(intToBuffer(MODULE_ID_VALIDATORS, 4));
+		validatorsAPI = new ValidatorsAPI(utils.intToBuffer(MODULE_ID_VALIDATORS, 4));
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		validatorsSubStore = stateStore.getStore(
 			validatorsAPI['moduleID'],
@@ -224,7 +224,7 @@ describe('ValidatorsModuleAPI', () => {
 
 	describe('setValidatorGeneratorKey', () => {
 		it('should be able to correctly set generator key for validator if address exists', async () => {
-			const generatorKey1 = getRandomBytes(48);
+			const generatorKey1 = utils.getRandomBytes(48);
 			const validatorAccount = {
 				generatorKey,
 				blsKey,
@@ -481,14 +481,14 @@ describe('ValidatorsModuleAPI', () => {
 	});
 
 	describe('getValidatorAccount', () => {
-		const validAddress = getRandomBytes(20);
+		const validAddress = utils.getRandomBytes(20);
 		let validatorAccount: ValidatorKeys;
 		beforeEach(async () => {
 			apiContext = createNewAPIContext(new InMemoryPrefixedStateDB());
 
 			validatorAccount = {
-				generatorKey: getRandomBytes(48),
-				blsKey: getRandomBytes(32),
+				generatorKey: utils.getRandomBytes(48),
+				blsKey: utils.getRandomBytes(32),
 			};
 
 			const validatorsStore = apiContext.getStore(
@@ -507,7 +507,7 @@ describe('ValidatorsModuleAPI', () => {
 		});
 
 		it('should throw when address length is not 20', async () => {
-			const invalidAddress = getRandomBytes(19);
+			const invalidAddress = utils.getRandomBytes(19);
 			await expect(validatorsAPI.getValidatorAccount(apiContext, invalidAddress)).rejects.toThrow(
 				'Address is not valid',
 			);

@@ -20,4 +20,4 @@ export const generateRandomPublicKeys = (amount = 1): Array<Buffer> =>
 		return publicKey;
 	});
 
-export const getIDAsKeyForStore = (id: number) => intToBuffer(id, 4);
+export const getIDAsKeyForStore = (id: number) => utils.intToBuffer(id, 4);

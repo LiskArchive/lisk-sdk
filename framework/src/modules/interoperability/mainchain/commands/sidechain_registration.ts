@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { hash, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { MainchainInteroperabilityStore } from '../store';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
@@ -96,7 +96,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			};
 		}
 
-		const networkID = hash(Buffer.concat([genesisBlockID, transaction.senderAddress]));
+		const networkID = utils.hash(Buffer.concat([genesisBlockID, transaction.senderAddress]));
 
 		// 	networkId has to be unique with respect to the set of already registered sidechain network IDs in the blockchain state.
 		const networkIDSubstore = context.getStore(
@@ -174,20 +174,20 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			getStore,
 		} = context;
 
-		const networkID = hash(Buffer.concat([genesisBlockID, transaction.senderAddress]));
+		const networkID = utils.hash(Buffer.concat([genesisBlockID, transaction.senderAddress]));
 
 		// Add an entry in the chain substore
 		const chainSubstore = getStore(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_DATA);
 
 		// Find the latest chainID from db
-		const gte = intToBuffer(0, 4);
-		const lte = intToBuffer(MAX_UINT32, 4);
+		const gte = utils.intToBuffer(0, 4);
+		const lte = utils.intToBuffer(MAX_UINT32, 4);
 		const chainIDs = await chainSubstore.iterate({ gte, lte, limit: 1, reverse: true });
 		if (!chainIDs.length) {
 			throw new Error('No existing entries found in chain store');
 		}
 		const chainID = chainIDs[0].key.readUInt32BE(0) + 1;
-		const chainIDBuffer = intToBuffer(chainID, 4);
+		const chainIDBuffer = utils.intToBuffer(chainID, 4);
 
 		await chainSubstore.setWithSchema(
 			chainIDBuffer,
@@ -213,7 +213,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 				inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				partnerChainOutboxRoot: EMPTY_HASH,
-				messageFeeTokenID: { chainID: intToBuffer(1, 4), localID: intToBuffer(0, 4) },
+				messageFeeTokenID: { chainID: utils.intToBuffer(1, 4), localID: utils.intToBuffer(0, 4) },
 			},
 			channelSchema,
 		);
@@ -224,7 +224,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		const encodedParams = codec.encode(registrationCCMParamsSchema, {
 			networkID,
 			name,
-			messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: intToBuffer(0, 4) },
+			messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: utils.intToBuffer(0, 4) },
 		});
 
 		await interoperabilityStore.sendInternal({

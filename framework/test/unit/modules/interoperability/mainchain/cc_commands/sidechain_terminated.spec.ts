@@ -40,11 +40,11 @@ describe('MainchainCCSidechainTerminatedCommand', () => {
 	ccAPIsMap.set(1, ccAPIMod1);
 	ccAPIsMap.set(2, ccAPIMod2);
 
-	const networkIdentifier = getRandomBytes(32);
+	const networkIdentifier = utils.getRandomBytes(32);
 
 	const ccmSidechainTerminatedParams = {
-		chainID: intToBuffer(5, 4),
-		stateRoot: getRandomBytes(32),
+		chainID: utils.intToBuffer(5, 4),
+		stateRoot: utils.getRandomBytes(32),
 	};
 
 	const encodedSidechainTerminatedParams = codec.encode(
@@ -54,17 +54,17 @@ describe('MainchainCCSidechainTerminatedCommand', () => {
 
 	const ccm = {
 		nonce: BigInt(0),
-		moduleID: intToBuffer(1, 4),
-		crossChainCommandID: intToBuffer(1, 4),
+		moduleID: utils.intToBuffer(1, 4),
+		crossChainCommandID: utils.intToBuffer(1, 4),
 		sendingChainID: MAINCHAIN_ID_BUFFER,
-		receivingChainID: intToBuffer(1, 4),
+		receivingChainID: utils.intToBuffer(1, 4),
 		fee: BigInt(20000),
 		status: 0,
 		params: encodedSidechainTerminatedParams,
 	};
 	const ccmNew = {
 		...ccm,
-		sendingChainID: intToBuffer(2, 4),
+		sendingChainID: utils.intToBuffer(2, 4),
 	};
 	const sampleExecuteContext: CCCommandExecuteContext = createExecuteCCMsgAPIContext({
 		ccm,

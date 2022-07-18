@@ -23,15 +23,7 @@ import {
 	EVENT_KEY_LENGTH,
 } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import {
-	decryptPassphraseWithPassword,
-	EncryptedPassphraseObject,
-	generatePrivateKey,
-	getAddressFromPublicKey,
-	getPrivateAndPublicKeyFromPassphrase,
-	getPublicKeyFromPrivateKey,
-	parseEncryptedPassphrase,
-} from '@liskhq/lisk-cryptography';
+import { encrypt, bls, ed, address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { Database, Batch, SparseMerkleTree } from '@liskhq/lisk-db';
 import { TransactionPool, events } from '@liskhq/lisk-transaction-pool';
 import { MerkleTree } from '@liskhq/lisk-tree';
@@ -336,8 +328,10 @@ export class Generator {
 		for (const encryptedItem of encryptedList) {
 			let passphrase;
 			try {
-				passphrase = await decryptPassphraseWithPassword(
-					parseEncryptedPassphrase(encryptedItem.encryptedPassphrase) as EncryptedPassphraseObject,
+				passphrase = await encrypt.decryptPassphraseWithPassword(
+					encrypt.parseEncryptedPassphrase(
+						encryptedItem.encryptedPassphrase,
+					) as encrypt.EncryptedPassphraseObject,
 					this._config.password,
 				);
 			} catch (error) {
@@ -348,9 +342,9 @@ export class Generator {
 				throw new Error(decryptionError);
 			}
 
-			const keypair = getPrivateAndPublicKeyFromPassphrase(passphrase);
-			const delegateAddress = getAddressFromPublicKey(keypair.publicKey);
-			const blsSK = generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
+			const keypair = ed.getPrivateAndPublicKeyFromPassphrase(passphrase);
+			const delegateAddress = cryptoAddress.getAddressFromPublicKey(keypair.publicKey);
+			const blsSK = bls.generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
 
 			if (!delegateAddress.equals(encryptedItem.address)) {
 				throw new Error(
@@ -360,7 +354,7 @@ export class Generator {
 				);
 			}
 
-			const validatorAddress = getAddressFromPublicKey(keypair.publicKey);
+			const validatorAddress = cryptoAddress.getAddressFromPublicKey(keypair.publicKey);
 
 			this._keypairs.set(validatorAddress, {
 				...keypair,
@@ -671,7 +665,7 @@ export class Generator {
 		const blockHeader = await this._chain.dataAccess.getBlockHeaderByHeight(height);
 		const validatorInfo = {
 			address: generatorAddress,
-			blsPublicKey: getPublicKeyFromPrivateKey(blsSK),
+			blsPublicKey: bls.getPublicKeyFromPrivateKey(blsSK),
 			blsSecretKey: blsSK,
 		};
 		this._consensus.certifySingleCommit(blockHeader, validatorInfo);

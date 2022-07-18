@@ -14,7 +14,7 @@
 
 import { StateStore, BlockHeader } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { hash, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { GeneratorKeysNotFoundError } from './errors';
 import {
 	BFTVotesBlockInfo,
@@ -102,8 +102,8 @@ export const getGeneratorKeys = async (
 	keysStore: StateStore,
 	height: number,
 ): Promise<GeneratorKeys> => {
-	const start = intToBuffer(0, 4);
-	const end = intToBuffer(height, 4);
+	const start = utils.intToBuffer(0, 4);
+	const end = utils.intToBuffer(height, 4);
 	const results = await keysStore.iterate({
 		limit: 1,
 		gte: start,
@@ -119,8 +119,8 @@ export const getGeneratorKeys = async (
 };
 
 export const deleteGeneratorKeys = async (keysStore: StateStore, height: number): Promise<void> => {
-	const start = intToBuffer(0, 4);
-	const end = intToBuffer(height, 4);
+	const start = utils.intToBuffer(0, 4);
+	const end = utils.intToBuffer(height, 4);
 	const results = await keysStore.iterate({
 		gte: start,
 		lte: end,
@@ -148,5 +148,5 @@ export const computeValidatorsHash = (validators: BFTValidator[], certificateThr
 		certificateThreshold,
 	};
 	const encodedValidatorsHashInput = codec.encode(validatorsHashInputSchema, input);
-	return hash(encodedValidatorsHashInput);
+	return utils.hash(encodedValidatorsHashInput);
 };

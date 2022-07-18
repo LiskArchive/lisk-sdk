@@ -53,8 +53,8 @@ export const createTransferTransaction = (input: {
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.passphrase);
 
 	const tx = new Transaction({
-		moduleID: intToBuffer(2, 4),
-		commandID: intToBuffer(0, 4),
+		moduleID: utils.intToBuffer(2, 4),
+		commandID: utils.intToBuffer(0, 4),
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('200000'),
@@ -86,8 +86,8 @@ export const createDelegateRegisterTransaction = (input: {
 	});
 
 	const tx = new Transaction({
-		moduleID: intToBuffer(13, 4),
-		commandID: intToBuffer(0, 4),
+		moduleID: utils.intToBuffer(13, 4),
+		commandID: utils.intToBuffer(0, 4),
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('2500000000'),
@@ -113,8 +113,8 @@ export const createDelegateVoteTransaction = (input: {
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.passphrase);
 
 	const tx = new Transaction({
-		moduleID: intToBuffer(13, 4),
-		commandID: intToBuffer(1, 4),
+		moduleID: utils.intToBuffer(13, 4),
+		commandID: utils.intToBuffer(1, 4),
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('100000000'),
@@ -160,8 +160,8 @@ export const createMultiSignRegisterTransaction = (input: {
 			);
 		},
 		{
-			moduleID: intToBuffer(12, 4),
-			commandID: intToBuffer(0, 4),
+			moduleID: utils.intToBuffer(12, 4),
+			commandID: utils.intToBuffer(0, 4),
 			nonce: input.nonce,
 			senderPublicKey: publicKey,
 			fee: input.fee ?? BigInt('1100000000'),
@@ -207,8 +207,8 @@ export const createMultisignatureTransferTransaction = (input: {
 			);
 		},
 		{
-			moduleID: intToBuffer(2, 4),
-			commandID: intToBuffer(0, 4),
+			moduleID: utils.intToBuffer(2, 4),
+			commandID: utils.intToBuffer(0, 4),
 			nonce: input.nonce,
 			senderPublicKey: input.senderPublicKey,
 			fee: input.fee ?? BigInt('1100000000'),
@@ -236,8 +236,8 @@ export const createReportMisbehaviorTransaction = (input: {
 	const { publicKey } = getAddressAndPublicKeyFromPassphrase(input.passphrase);
 
 	const tx = new Transaction({
-		moduleID: intToBuffer(13, 4),
-		commandID: intToBuffer(3, 4),
+		moduleID: utils.intToBuffer(13, 4),
+		commandID: utils.intToBuffer(3, 4),
 		nonce: input.nonce,
 		senderPublicKey: publicKey,
 		fee: input.fee ?? BigInt('50000000'),

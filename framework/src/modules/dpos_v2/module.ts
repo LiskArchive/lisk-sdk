@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { objects as objectUtils, dataStructures, objects } from '@liskhq/lisk-utils';
 import { isUInt64, LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
@@ -349,7 +349,7 @@ export class DPoSModule extends BaseModule {
 
 		const snapshotStore = context.getStore(this.id, STORE_PREFIX_SNAPSHOT);
 		for (const snapshot of genesisStore.snapshots) {
-			const storeKey = intToBuffer(snapshot.roundNumber, 4);
+			const storeKey = utils.intToBuffer(snapshot.roundNumber, 4);
 			await snapshotStore.setWithSchema(
 				storeKey,
 				{
@@ -448,8 +448,8 @@ export class DPoSModule extends BaseModule {
 		const MAX_UINT32 = 2 ** 32 - 1;
 		const snapshotStore = context.getStore(this.id, STORE_PREFIX_SNAPSHOT);
 		const allSnapshots = await snapshotStore.iterate({
-			gte: intToBuffer(0, 4),
-			lte: intToBuffer(MAX_UINT32, 4),
+			gte: utils.intToBuffer(0, 4),
+			lte: utils.intToBuffer(MAX_UINT32, 4),
 		});
 		if (context.header.height === 0 && allSnapshots.length > 0) {
 			throw new Error('When genensis height is zero, there should not be a snapshot.');
@@ -578,14 +578,14 @@ export class DPoSModule extends BaseModule {
 		}
 
 		const snapshotStore = context.getStore(this.id, STORE_PREFIX_SNAPSHOT);
-		const storeKey = intToBuffer(snapshotRound, 4);
+		const storeKey = utils.intToBuffer(snapshotRound, 4);
 
 		await snapshotStore.setWithSchema(storeKey, snapshotData, snapshotStoreSchema);
 
 		// Remove outdated information
 		const oldData = await snapshotStore.iterate({
-			gte: intToBuffer(0, 4),
-			lte: intToBuffer(Math.max(0, snapshotRound - DELEGATE_LIST_ROUND_OFFSET - 1), 4),
+			gte: utils.intToBuffer(0, 4),
+			lte: utils.intToBuffer(Math.max(0, snapshotRound - DELEGATE_LIST_ROUND_OFFSET - 1), 4),
 		});
 		for (const { key } of oldData) {
 			await snapshotStore.del(key);
@@ -600,7 +600,7 @@ export class DPoSModule extends BaseModule {
 
 		const snapshotStore = context.getStore(this.id, STORE_PREFIX_SNAPSHOT);
 		const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-			intToBuffer(nextRound, 4),
+			utils.intToBuffer(nextRound, 4),
 			snapshotStoreSchema,
 		);
 

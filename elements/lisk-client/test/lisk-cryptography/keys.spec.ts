@@ -97,9 +97,9 @@ describe('keys', () => {
 		});
 	});
 
-	describe('#getAddressFromPublicKey', () => {
+	describe('#address.getAddressFromPublicKey', () => {
 		it('should generate address from publicKey', () => {
-			const address = getAddressFromPublicKey(defaultPublicKey);
+			const address = address.getAddressFromPublicKey(defaultPublicKey);
 			expect(address).toEqual(defaultAddress);
 		});
 	});

@@ -27,9 +27,9 @@ describe('broadcaster', () => {
 	const defaultReleaseLimit = 25;
 	const tx = new Transaction({
 		params: Buffer.alloc(20),
-		commandID: intToBuffer(0, 4),
+		commandID: utils.intToBuffer(0, 4),
 		fee: BigInt(100000),
-		moduleID: intToBuffer(2, 4),
+		moduleID: utils.intToBuffer(2, 4),
 		nonce: BigInt(0),
 		senderPublicKey: Buffer.alloc(32),
 		signatures: [Buffer.alloc(64)],
@@ -120,7 +120,7 @@ describe('broadcaster', () => {
 			// Arrange
 			// Act
 			for (let i = 0; i < 25; i += 1) {
-				broadcaster.enqueueTransactionId(getRandomBytes(32));
+				broadcaster.enqueueTransactionId(utils.getRandomBytes(32));
 			}
 
 			// Assert
@@ -131,7 +131,7 @@ describe('broadcaster', () => {
 			// Arrange
 			const ids = [];
 			for (let i = 0; i < 25; i += 1) {
-				ids.push(getRandomBytes(32));
+				ids.push(utils.getRandomBytes(32));
 			}
 			const transactionIdsBuffer = codec.encode(postTransactionsAnnouncementSchema, {
 				transactionIds: ids,
@@ -157,7 +157,7 @@ describe('broadcaster', () => {
 			// Arrange
 			const ids = [];
 			for (let i = 0; i < 50; i += 1) {
-				ids.push(getRandomBytes(32));
+				ids.push(utils.getRandomBytes(32));
 			}
 
 			// Act
@@ -173,7 +173,7 @@ describe('broadcaster', () => {
 			// Arrange
 			const ids = [];
 			for (let i = 0; i < 50; i += 1) {
-				ids.push(getRandomBytes(32));
+				ids.push(utils.getRandomBytes(32));
 			}
 			const transactionIdsBuffer = codec.encode(postTransactionsAnnouncementSchema, {
 				transactionIds: ids.slice(0, defaultReleaseLimit),

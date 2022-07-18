@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash } from '../../../lisk-cryptography/dist-node';
+import { utils } from '../../../lisk-cryptography';
 import { LEAF_PREFIX } from './constants';
 import { calculatePathNodes, ROOT_INDEX } from './utils';
 
@@ -41,7 +41,7 @@ export const calculateRootFromUpdateData = (
 			[LEAF_PREFIX, data],
 			LEAF_PREFIX.length + data.length,
 		);
-		const leafHash = hash(leafValueWithoutNodeIndex);
+		const leafHash = utils.hash(leafValueWithoutNodeIndex);
 		updateHashes.push(leafHash);
 	}
 

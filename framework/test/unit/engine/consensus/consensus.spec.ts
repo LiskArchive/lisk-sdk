@@ -113,11 +113,11 @@ describe('consensus', () => {
 			}),
 			clear: jest.fn(),
 			revert: jest.fn(),
-			commit: jest.fn().mockResolvedValue({ stateRoot: getRandomBytes(32) }),
+			commit: jest.fn().mockResolvedValue({ stateRoot: utils.getRandomBytes(32) }),
 			verifyAssets: jest.fn(),
 			verifyTransaction: jest.fn(),
 			executeTransaction: jest.fn().mockResolvedValue({ events: [] }),
-			initStateMachine: jest.fn().mockResolvedValue({ contextID: getRandomBytes(32) }),
+			initStateMachine: jest.fn().mockResolvedValue({ contextID: utils.getRandomBytes(32) }),
 			initGenesisState: jest.fn().mockResolvedValue({
 				events: [],
 				nextValidators: [],
@@ -230,7 +230,7 @@ describe('consensus', () => {
 			// Arrange
 			(chain.genesisBlockExist as jest.Mock).mockResolvedValue(false);
 			jest.spyOn(consensus['_bft'].api, 'getBFTParameters').mockResolvedValue({
-				validatorsHash: getRandomBytes(32),
+				validatorsHash: utils.getRandomBytes(32),
 			} as never);
 			await expect(
 				consensus.init({
@@ -756,7 +756,7 @@ describe('consensus', () => {
 			describe('previousBlockID', () => {
 				it('should throw error for invalid previousBlockID', () => {
 					const invalidBlock = { ...block };
-					(invalidBlock.header as any).previousBlockID = getRandomBytes(64);
+					(invalidBlock.header as any).previousBlockID = utils.getRandomBytes(64);
 
 					expect(() => consensus['_verifyPreviousBlockID'](block as any)).toThrow(
 						`Invalid previousBlockID ${invalidBlock.header.previousBlockID.toString(
@@ -775,7 +775,7 @@ describe('consensus', () => {
 			describe('generatorAddress', () => {
 				it('should throw error if [generatorAddress.length !== 20]', async () => {
 					const invalidBlock = { ...block };
-					(invalidBlock.header as any).generatorAddress = getRandomBytes(64);
+					(invalidBlock.header as any).generatorAddress = utils.getRandomBytes(64);
 					await expect(
 						consensus['_verifyGeneratorAddress'](stateStore, invalidBlock as any),
 					).rejects.toThrow(
@@ -789,7 +789,7 @@ describe('consensus', () => {
 					jest.spyOn(consensus, 'getGeneratorAtTimestamp');
 					when(consensus.getGeneratorAtTimestamp as never)
 						.calledWith(stateStore, block.header.height, (block.header as any).timestamp)
-						.mockResolvedValue(getRandomBytes(20) as never);
+						.mockResolvedValue(utils.getRandomBytes(20) as never);
 
 					await expect(
 						consensus['_verifyGeneratorAddress'](stateStore, block as any),
@@ -858,7 +858,7 @@ describe('consensus', () => {
 
 			describe('signature', () => {
 				it('should throw error for invalid signature', async () => {
-					const generatorKey = getRandomBytes(32);
+					const generatorKey = utils.getRandomBytes(32);
 
 					when(consensus['_bft'].api.getGeneratorKeys as never)
 						.calledWith(stateStore, block.header.height)
@@ -878,7 +878,9 @@ describe('consensus', () => {
 					const keyPair = getPrivateAndPublicKeyFromPassphrase(passphrase);
 
 					const blockHeader = createFakeBlockHeader();
-					(blockHeader as any).generatorAddress = getAddressFromPublicKey(keyPair.publicKey);
+					(blockHeader as any).generatorAddress = address.getAddressFromPublicKey(
+						keyPair.publicKey,
+					);
 					(consensus['_chain'] as any).networkIdentifier = defaultNetworkIdentifier;
 
 					blockHeader.sign(consensus['_chain'].networkIdentifier, keyPair.privateKey);
@@ -901,12 +903,12 @@ describe('consensus', () => {
 					when(consensus['_bft'].api.getBFTParameters as never)
 						.calledWith(stateStore, block.header.height + 1)
 						.mockResolvedValue({
-							validatorsHash: hash(getRandomBytes(32)),
+							validatorsHash: utils.hash(utils.getRandomBytes(32)),
 						} as never);
 
 					block.header.validatorsHash = undefined;
-					block.header['_signature'] = getRandomBytes(64);
-					block.header['_id'] = getRandomBytes(64);
+					block.header['_signature'] = utils.getRandomBytes(64);
+					block.header['_id'] = utils.getRandomBytes(64);
 
 					await expect(
 						consensus['_verifyValidatorsHash'](stateStore, block as any),
@@ -921,7 +923,7 @@ describe('consensus', () => {
 					when(consensus['_bft'].api.getBFTParameters as never)
 						.calledWith(stateStore, block.header.height + 1)
 						.mockResolvedValue({
-							validatorsHash: hash(getRandomBytes(32)),
+							validatorsHash: utils.hash(utils.getRandomBytes(32)),
 						} as never);
 
 					await expect(
@@ -987,7 +989,7 @@ describe('consensus', () => {
 				await expect(
 					consensus['_verifyEventRoot'](block as any, [
 						new Event({
-							data: getRandomBytes(20),
+							data: utils.getRandomBytes(20),
 							index: 0,
 							moduleID: Buffer.from([0, 0, 0, 2]),
 							topics: [Buffer.from([0])],
@@ -1000,7 +1002,7 @@ describe('consensus', () => {
 			});
 
 			it('should be success when eventRoot is equal to blocks eventRoot', async () => {
-				block.header.eventRoot = hash(Buffer.alloc(0));
+				block.header.eventRoot = utils.hash(Buffer.alloc(0));
 				await expect(consensus['_verifyEventRoot'](block as any, [])).resolves.toBeUndefined();
 			});
 		});

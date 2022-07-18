@@ -14,7 +14,7 @@
  */
 
 import { codec, Schema } from '@liskhq/lisk-codec';
-import { hash } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import {
 	Block,
 	BlockAsset,
@@ -108,7 +108,7 @@ export const decodeTransaction = <T = Record<string, unknown>>(
 		metadata,
 	);
 	const params = paramsSchema ? codec.decode<T>(paramsSchema, transaction.params) : ({} as T);
-	const id = hash(encodedTransaction);
+	const id = utils.hash(encodedTransaction);
 	return {
 		...transaction,
 		params,
@@ -307,7 +307,7 @@ export const decodeBlock = (
 	);
 
 	const header = codec.decode<BlockHeader>(registeredSchema.header, block.header);
-	const id = hash(block.header);
+	const id = utils.hash(block.header);
 	const transactions = [];
 	for (const tx of block.transactions) {
 		transactions.push(decodeTransaction(tx, registeredSchema, metadata));
@@ -357,7 +357,7 @@ export const fromBlockJSON = (
 	metadata: ModuleMetadata[],
 ): DecodedBlock => {
 	const header = codec.fromJSON<BlockHeader>(registeredSchema.header, block.header);
-	const id = hash(codec.encode(registeredSchema.header, header));
+	const id = utils.hash(codec.encode(registeredSchema.header, header));
 	const transactions = [];
 	for (const transaction of block.transactions) {
 		transactions.push(fromTransactionJSON(transaction, registeredSchema, metadata));

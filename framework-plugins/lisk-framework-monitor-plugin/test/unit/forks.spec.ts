@@ -69,7 +69,7 @@ describe('_handleFork', () => {
 		maxHeightGenerated: 0,
 		maxHeightPrevoted: 0,
 		assetRoot: cryptography.hash(Buffer.alloc(0)),
-		validatorsHash: cryptography.getRandomBytes(32),
+		validatorsHash: cryptography.utils.getRandomBytes(32),
 		aggregateCommit: {
 			height: 0,
 			aggregationBits: Buffer.alloc(0),

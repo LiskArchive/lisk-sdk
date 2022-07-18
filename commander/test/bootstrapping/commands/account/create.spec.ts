@@ -47,15 +47,17 @@ describe('account:create', () => {
 			await CreateCommand.run([], config);
 			expect(JSON.parse(results[0])).toEqual([
 				{
-					publicKey: cryptography.getKeys(defaultMnemonic).publicKey.toString('hex'),
-					privateKey: cryptography.getKeys(defaultMnemonic).privateKey.toString('hex'),
-					blsPublicKey: cryptography.getPublicKeyFromPrivateKey(blsPrivateKey).toString('hex'),
+					publicKey: cryptography.utils.getKeys(defaultMnemonic).publicKey.toString('hex'),
+					privateKey: cryptography.utils.getKeys(defaultMnemonic).privateKey.toString('hex'),
+					blsPublicKey: cryptography.ed.getPublicKeyFromPrivateKey(blsPrivateKey).toString('hex'),
 					blsPrivateKey: blsPrivateKey.toString('hex'),
-					address: cryptography.getLisk32AddressFromPublicKey(
-						cryptography.getKeys(defaultMnemonic).publicKey,
+					address: cryptography.address.getLisk32AddressFromPublicKey(
+						cryptography.utils.getKeys(defaultMnemonic).publicKey,
 						'lsk',
 					),
-					binaryAddress: cryptography.getAddressFromPassphrase(defaultMnemonic).toString('hex'),
+					binaryAddress: cryptography.address
+						.getAddressFromPassphrase(defaultMnemonic)
+						.toString('hex'),
 					passphrase: defaultMnemonic,
 				},
 			]);
@@ -68,26 +70,28 @@ describe('account:create', () => {
 			await CreateCommand.run(['--count', defaultNumber.toString()], config);
 			const result = [
 				{
-					publicKey: cryptography.getKeys(defaultMnemonic).publicKey.toString('hex'),
-					privateKey: cryptography.getKeys(defaultMnemonic).privateKey.toString('hex'),
-					blsPublicKey: cryptography.getPublicKeyFromPrivateKey(blsPrivateKey).toString('hex'),
+					publicKey: cryptography.utils.getKeys(defaultMnemonic).publicKey.toString('hex'),
+					privateKey: cryptography.utils.getKeys(defaultMnemonic).privateKey.toString('hex'),
+					blsPublicKey: cryptography.ed.getPublicKeyFromPrivateKey(blsPrivateKey).toString('hex'),
 					blsPrivateKey: blsPrivateKey.toString('hex'),
-					address: cryptography.getLisk32AddressFromPublicKey(
-						cryptography.getKeys(defaultMnemonic).publicKey,
+					address: cryptography.address.getLisk32AddressFromPublicKey(
+						cryptography.utils.getKeys(defaultMnemonic).publicKey,
 						'lsk',
 					),
-					binaryAddress: cryptography.getAddressFromPassphrase(defaultMnemonic).toString('hex'),
+					binaryAddress: cryptography.address
+						.getAddressFromPassphrase(defaultMnemonic)
+						.toString('hex'),
 					passphrase: defaultMnemonic,
 				},
 				{
-					publicKey: cryptography.getKeys(secondDefaultMnemonic).publicKey.toString('hex'),
-					privateKey: cryptography.getKeys(secondDefaultMnemonic).privateKey.toString('hex'),
+					publicKey: cryptography.utils.getKeys(secondDefaultMnemonic).publicKey.toString('hex'),
+					privateKey: cryptography.utils.getKeys(secondDefaultMnemonic).privateKey.toString('hex'),
 					blsPublicKey: cryptography
 						.getPublicKeyFromPrivateKey(secondBlsPrivateKey)
 						.toString('hex'),
 					blsPrivateKey: secondBlsPrivateKey.toString('hex'),
-					address: cryptography.getLisk32AddressFromPublicKey(
-						cryptography.getKeys(secondDefaultMnemonic).publicKey,
+					address: cryptography.address.getLisk32AddressFromPublicKey(
+						cryptography.utils.getKeys(secondDefaultMnemonic).publicKey,
 						'lsk',
 					),
 					binaryAddress: cryptography

@@ -23,7 +23,7 @@ import { Mnemonic } from '@liskhq/lisk-passphrase';
 export const validators = new Array(120).fill(0).map((_, i) => {
 	const passphrase = Mnemonic.generateMnemonic();
 	const keys = getKeys(passphrase);
-	const address = getAddressFromPublicKey(keys.publicKey);
+	const address = address.getAddressFromPublicKey(keys.publicKey);
 	const blsPrivateKey = generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
 	const blsPublicKey = getPublicKeyFromPrivateKey(blsPrivateKey);
 	const blsPoP = blsPopProve(blsPrivateKey);

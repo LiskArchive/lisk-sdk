@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { EncryptedPassphraseObject, intToBuffer } from '@liskhq/lisk-cryptography';
 import axios from 'axios';
 import {
 	BasePluginEndpoint,
@@ -48,16 +47,16 @@ export class Endpoint extends BasePluginEndpoint {
 		const { enable, password } = context.params;
 
 		try {
-			const parsedEncryptedPassphrase = cryptography.parseEncryptedPassphrase(
+			const parsedEncryptedPassphrase = cryptography.encrypt.parseEncryptedPassphrase(
 				this._config.encryptedPassphrase,
 			);
 
-			const passphrase = await cryptography.decryptPassphraseWithPassword(
-				parsedEncryptedPassphrase as EncryptedPassphraseObject,
+			const passphrase = await cryptography.encrypt.decryptPassphraseWithPassword(
+				parsedEncryptedPassphrase as cryptography.encrypt.EncryptedPassphraseObject,
 				password as string,
 			);
 
-			const { publicKey } = cryptography.getAddressAndPublicKeyFromPassphrase(passphrase);
+			const { publicKey } = cryptography.address.getAddressAndPublicKeyFromPassphrase(passphrase);
 
 			this._state.publicKey = enable ? publicKey : undefined;
 			this._state.passphrase = enable ? passphrase : undefined;
@@ -113,8 +112,8 @@ export class Endpoint extends BasePluginEndpoint {
 
 		const transaction = await this._client.transaction.create(
 			{
-				moduleID: intToBuffer(2, 4).toString('hex'),
-				commandID: intToBuffer(0, 4).toString('hex'),
+				moduleID: cryptography.utils.intToBuffer(2, 4).toString('hex'),
+				commandID: cryptography.utils.intToBuffer(0, 4).toString('hex'),
 				senderPublicKey: this._state.publicKey?.toString('hex'),
 				fee: transactions.convertLSKToBeddows(this._config.fee), // TODO: The static fee should be replaced by fee estimation calculation
 				params: transferTransactionParams,

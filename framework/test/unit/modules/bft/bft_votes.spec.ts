@@ -37,7 +37,7 @@ describe('BFT votes', () => {
 	let bftVotes: BFTVotes;
 
 	beforeEach(() => {
-		accounts = [getRandomBytes(20), getRandomBytes(20), getRandomBytes(20)];
+		accounts = [utils.getRandomBytes(20), utils.getRandomBytes(20), utils.getRandomBytes(20)];
 		bftVotes = {
 			maxHeightPrevoted: 103,
 			maxHeightPrecommitted: 56,
@@ -150,7 +150,7 @@ describe('BFT votes', () => {
 				createFakeBlockHeader({
 					height: 152,
 					maxHeightGenerated: 149,
-					generatorAddress: getRandomBytes(20),
+					generatorAddress: utils.getRandomBytes(20),
 				}),
 				5,
 			);
@@ -210,7 +210,7 @@ describe('BFT votes', () => {
 							bftWeight: BigInt(1),
 						},
 					],
-					validatorsHash: getRandomBytes(32),
+					validatorsHash: utils.getRandomBytes(32),
 				},
 				bftParametersSchema,
 			);
@@ -238,7 +238,7 @@ describe('BFT votes', () => {
 				createFakeBlockHeader({
 					height: 152,
 					maxHeightGenerated: 151,
-					generatorAddress: getRandomBytes(20),
+					generatorAddress: utils.getRandomBytes(20),
 				}),
 				5,
 			);
@@ -354,7 +354,7 @@ describe('BFT votes', () => {
 							bftWeight: BigInt(1),
 						},
 					],
-					validatorsHash: getRandomBytes(32),
+					validatorsHash: utils.getRandomBytes(32),
 				},
 				bftParametersSchema,
 			);
@@ -386,7 +386,7 @@ describe('BFT votes', () => {
 							bftWeight: BigInt(1),
 						},
 					],
-					validatorsHash: getRandomBytes(32),
+					validatorsHash: utils.getRandomBytes(32),
 				},
 				bftParametersSchema,
 			);
@@ -422,7 +422,7 @@ describe('BFT votes', () => {
 							bftWeight: BigInt(1),
 						},
 					],
-					validatorsHash: getRandomBytes(32),
+					validatorsHash: utils.getRandomBytes(32),
 				},
 				bftParametersSchema,
 			);
@@ -454,7 +454,7 @@ describe('BFT votes', () => {
 							bftWeight: BigInt(1),
 						},
 					],
-					validatorsHash: getRandomBytes(32),
+					validatorsHash: utils.getRandomBytes(32),
 				},
 				bftParametersSchema,
 			);
@@ -471,8 +471,8 @@ describe('BFT votes', () => {
 				createFakeBlockHeader({
 					height: 152,
 					aggregateCommit: {
-						aggregationBits: getRandomBytes(3),
-						certificateSignature: getRandomBytes(64),
+						aggregationBits: utils.getRandomBytes(3),
+						certificateSignature: utils.getRandomBytes(64),
 						height: 10,
 					},
 				}),

@@ -21,9 +21,9 @@ import { fakeLogger } from '../../../utils/mocks';
 describe('ValidatorsModuleEndpoint', () => {
 	const logger: Logger = fakeLogger;
 	let validatorsModule: ValidatorsModule;
-	const pk = getRandomBytes(48);
-	const address = getRandomBytes(48);
-	const proof = getRandomBytes(48);
+	const pk = utils.getRandomBytes(48);
+	const address = utils.getRandomBytes(48);
+	const proof = utils.getRandomBytes(48);
 	const getStore1 = jest.fn();
 	const subStore = (new InMemoryDatabase() as unknown) as Database;
 	const networkIdentifier = Buffer.alloc(0);

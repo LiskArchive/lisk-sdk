@@ -120,7 +120,7 @@ describe('block_synchronization_mechanism', () => {
 			getSlotNumber: jest.fn().mockImplementation(t => Math.floor(t / 10)),
 			getCurrentValidators: jest.fn().mockResolvedValue(
 				new Array(numberOfValidators).fill(0).map(() => ({
-					address: getRandomBytes(20),
+					address: utils.getRandomBytes(20),
 					bftWeight: BigInt(1),
 				})),
 			),

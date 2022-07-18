@@ -25,7 +25,7 @@ describe('system endpoint', () => {
 	beforeEach(() => {
 		endpoint = new SystemEndpoint({
 			chain: {
-				networkIdentifier: getRandomBytes(32),
+				networkIdentifier: utils.getRandomBytes(32),
 				lastBlock: new Block(createFakeBlockHeader(), [], new BlockAssets()),
 			},
 			consensus: {

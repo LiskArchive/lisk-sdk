@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
@@ -28,7 +28,7 @@ import {
 } from './schemas';
 
 export class RewardModule extends BaseModule {
-	public id = intToBuffer(MODULE_ID_REWARD, 4);
+	public id = utils.intToBuffer(MODULE_ID_REWARD, 4);
 	public name = 'reward';
 	public api = new RewardAPI(this.id);
 	public configSchema = configSchema;

@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { encryptMessageWithPassphrase } from '@liskhq/lisk-cryptography';
+import { encrypt } from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../base';
@@ -32,7 +32,11 @@ const processInputs = (recipientPublicKey: string, passphrase: string, message?:
 	}
 
 	return {
-		...encryptMessageWithPassphrase(message, passphrase, Buffer.from(recipientPublicKey, 'hex')),
+		...encrypt.encryptMessageWithPassphrase(
+			message,
+			passphrase,
+			Buffer.from(recipientPublicKey, 'hex'),
+		),
 		recipientPublicKey,
 	};
 };

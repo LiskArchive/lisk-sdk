@@ -15,7 +15,7 @@
 
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { getAddressAndPublicKeyFromPassphrase, getKeys } from '@liskhq/lisk-cryptography';
+import { address } from '@liskhq/lisk-cryptography';
 import { validateTransaction } from '@liskhq/lisk-transactions';
 import { CommandClass } from './types';
 
@@ -38,7 +38,7 @@ export const createTransaction = ({
 	passphrase,
 	networkIdentifier,
 }: CreateTransactionInput): Transaction => {
-	const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase ?? '');
+	const { publicKey } = address.getAddressAndPublicKeyFromPassphrase(passphrase ?? '');
 	// eslint-disable-next-line new-cap
 	const commandInstance = new commandClass();
 	const commandID = commandInstance.id;
@@ -73,7 +73,7 @@ export const createTransaction = ({
 		throw new Error('Network identifier is required to sign a transaction');
 	}
 
-	const keys = getKeys(passphrase);
+	const keys = address.getKeys(passphrase);
 	result.sign(networkIdentifier, keys.privateKey);
 
 	return result;

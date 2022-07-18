@@ -15,7 +15,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { Block, BlockAssets, BlockHeader, EVENT_KEY_LENGTH, SMTStore } from '@liskhq/lisk-chain';
 import { codec, Schema } from '@liskhq/lisk-codec';
-import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase, StateDB } from '@liskhq/lisk-db';
 import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import { Logger } from './logger';
@@ -36,7 +36,7 @@ export interface GenesisBlockGenerateInput {
 
 const GENESIS_BLOCK_VERSION = 0;
 const EMPTY_BUFFER = Buffer.alloc(0);
-const EMPTY_HASH = hash(EMPTY_BUFFER);
+const EMPTY_HASH = utils.hash(EMPTY_BUFFER);
 
 export const generateGenesisBlock = async (
 	stateMachine: StateMachine,
@@ -72,7 +72,11 @@ export const generateGenesisBlock = async (
 		},
 	});
 
-	const tempPath = path.join(os.tmpdir(), getRandomBytes(3).toString('hex'), Date.now().toString());
+	const tempPath = path.join(
+		os.tmpdir(),
+		utils.getRandomBytes(3).toString('hex'),
+		Date.now().toString(),
+	);
 	const stateDB = new StateDB(tempPath);
 	const stateStore = new PrefixedStateReadWriter(stateDB.newReadWriter());
 

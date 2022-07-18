@@ -23,7 +23,7 @@ import {
 } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { nodeUtils } from '../../../utils';
 import {
 	createDelegateRegisterTransaction,
@@ -102,7 +102,7 @@ describe('Delete block', () => {
 				await processEnv
 					.getBlockchainDB()
 					.set(
-						concatDBKeys(DB_KEY_DIFF_STATE, intToBuffer(newBlock.header.height, 4)),
+						concatDBKeys(DB_KEY_DIFF_STATE, utils.intToBuffer(newBlock.header.height, 4)),
 						emptyDiffState,
 					);
 				await processEnv.process(newBlock);
@@ -153,7 +153,7 @@ describe('Delete block', () => {
 				await expect(
 					processEnv
 						.getBlockchainDB()
-						.get(concatDBKeys(DB_KEY_DIFF_STATE, intToBuffer(newBlock.header.height, 4))),
+						.get(concatDBKeys(DB_KEY_DIFF_STATE, utils.intToBuffer(newBlock.header.height, 4))),
 				).rejects.toBeInstanceOf(NotFoundError);
 			});
 		});
@@ -185,7 +185,11 @@ describe('Delete block', () => {
 				await processEnv.process(newBlock);
 				await processEnv.getConsensus()['_deleteLastBlock']();
 				// Assert
-				const dbKey = concatDBKeys(DB_KEY_STATE_STORE, new TokenModule().id, intToBuffer(0, 2));
+				const dbKey = concatDBKeys(
+					DB_KEY_STATE_STORE,
+					new TokenModule().id,
+					utils.intToBuffer(0, 2),
+				);
 				await expect(processEnv.getBlockchainDB().get(dbKey)).rejects.toThrow(
 					`Specified key ${dbKey.toString('hex')} does not exist`,
 				);

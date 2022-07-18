@@ -32,13 +32,13 @@ describe('MainchainCCChannelTerminatedCommand', () => {
 	const ccAPIsMap = new Map();
 	ccAPIsMap.set(1, ccAPIMod1);
 	ccAPIsMap.set(2, ccAPIMod2);
-	const networkIdentifier = getRandomBytes(32);
+	const networkIdentifier = utils.getRandomBytes(32);
 	const ccm = {
 		nonce: BigInt(0),
-		moduleID: intToBuffer(1, 4),
-		crossChainCommandID: intToBuffer(1, 4),
-		sendingChainID: intToBuffer(2, 4),
-		receivingChainID: intToBuffer(3, 4),
+		moduleID: utils.intToBuffer(1, 4),
+		crossChainCommandID: utils.intToBuffer(1, 4),
+		sendingChainID: utils.intToBuffer(2, 4),
+		receivingChainID: utils.intToBuffer(3, 4),
 		fee: BigInt(20000),
 		status: 0,
 		params: Buffer.alloc(0),

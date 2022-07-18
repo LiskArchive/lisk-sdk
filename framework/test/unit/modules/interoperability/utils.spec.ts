@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as merkleTree from '@liskhq/lisk-tree';
@@ -55,19 +55,19 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 
 describe('Utils', () => {
 	const defaultActiveValidatorsUpdate = [
-		{ blsKey: cryptography.getRandomBytes(48), bftWeight: BigInt(1) },
-		{ blsKey: cryptography.getRandomBytes(48), bftWeight: BigInt(3) },
-		{ blsKey: cryptography.getRandomBytes(48), bftWeight: BigInt(4) },
-		{ blsKey: cryptography.getRandomBytes(48), bftWeight: BigInt(3) },
+		{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(1) },
+		{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
+		{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(4) },
+		{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
 	];
 
 	describe('updateActiveValidators', () => {
 		const validator1 = {
-			blsKey: cryptography.getRandomBytes(48),
+			blsKey: cryptography.utils.getRandomBytes(48),
 			bftWeight: BigInt(1),
 		};
 		const validator2 = {
-			blsKey: cryptography.getRandomBytes(48),
+			blsKey: cryptography.utils.getRandomBytes(48),
 			bftWeight: BigInt(2),
 		};
 		const activeValidators = [validator1, validator2];
@@ -84,7 +84,7 @@ describe('Utils', () => {
 			const activeValidatorsUpdate = [
 				validator1,
 				validator2,
-				{ blsKey: cryptography.getRandomBytes(48), bftWeight: BigInt(1) },
+				{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(1) },
 			];
 
 			// Should be in lexicographical order
@@ -97,7 +97,7 @@ describe('Utils', () => {
 
 		it('should remove a validator when its bftWeight=0', () => {
 			const activeValidatorsLocal = [...activeValidators];
-			const validator3 = { blsKey: cryptography.getRandomBytes(48), bftWeight: BigInt(3) };
+			const validator3 = { blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) };
 			activeValidatorsLocal.push(validator3);
 			const activeValidatorsUpdate = [
 				validator1,
@@ -121,11 +121,11 @@ describe('Utils', () => {
 
 		const txParamsEmptyCertificate = {
 			certificate: EMPTY_BYTES,
-			sendingChainID: intToBuffer(4, 4),
+			sendingChainID: utils.intToBuffer(4, 4),
 		};
 
 		const txParamsNonEmptyCertificate = {
-			certificate: cryptography.getRandomBytes(32),
+			certificate: cryptography.utils.getRandomBytes(32),
 		};
 
 		it(`should return VerifyStatus.FAIL status when chain status ${CHAIN_REGISTERED} && certificate is empty`, () => {
@@ -159,15 +159,15 @@ describe('Utils', () => {
 		};
 
 		const certificate = {
-			blockID: cryptography.getRandomBytes(20),
+			blockID: cryptography.utils.getRandomBytes(20),
 			height: 23,
 			stateRoot: Buffer.alloc(2),
 			timestamp: Date.now(),
-			validatorsHash: cryptography.getRandomBytes(20),
+			validatorsHash: cryptography.utils.getRandomBytes(20),
 		};
 
 		const certificateWithEmptyValues = {
-			blockID: cryptography.getRandomBytes(20),
+			blockID: cryptography.utils.getRandomBytes(20),
 			height: 23,
 			stateRoot: EMPTY_BYTES,
 			timestamp: Date.now(),
@@ -225,7 +225,7 @@ describe('Utils', () => {
 			activeValidatorsUpdate,
 			newCertificateThreshold: BigInt(10),
 			certificate: Buffer.alloc(2),
-			sendingChainID: intToBuffer(2, 4),
+			sendingChainID: utils.intToBuffer(2, 4),
 			inboxUpdate: {},
 		};
 
@@ -233,7 +233,7 @@ describe('Utils', () => {
 			activeValidatorsUpdate,
 			newCertificateThreshold: BigInt(10),
 			certificate: EMPTY_BYTES,
-			sendingChainID: intToBuffer(2, 4),
+			sendingChainID: utils.intToBuffer(2, 4),
 			inboxUpdate: {},
 		};
 
@@ -241,7 +241,7 @@ describe('Utils', () => {
 			activeValidatorsUpdate: sortedValidatorsList,
 			newCertificateThreshold: BigInt(10),
 			certificate: Buffer.alloc(2),
-			sendingChainID: intToBuffer(2, 4),
+			sendingChainID: utils.intToBuffer(2, 4),
 			inboxUpdate: {},
 		};
 
@@ -338,13 +338,13 @@ describe('Utils', () => {
 	describe('verifyCertificateSignature', () => {
 		const activeValidatorsUpdate = [...defaultActiveValidatorsUpdate];
 		const ceritificate: Certificate = {
-			blockID: cryptography.getRandomBytes(20),
+			blockID: cryptography.utils.getRandomBytes(20),
 			height: 21,
 			timestamp: Math.floor(Date.now() / 1000),
-			stateRoot: cryptography.getRandomBytes(38),
-			validatorsHash: cryptography.getRandomBytes(48),
-			aggregationBits: cryptography.getRandomBytes(38),
-			signature: cryptography.getRandomBytes(32),
+			stateRoot: cryptography.utils.getRandomBytes(38),
+			validatorsHash: cryptography.utils.getRandomBytes(48),
+			aggregationBits: cryptography.utils.getRandomBytes(38),
+			signature: cryptography.utils.getRandomBytes(32),
 		};
 		const encodedCertificate = codec.encode(certificateSchema, ceritificate);
 		const txParams: any = {
@@ -357,7 +357,7 @@ describe('Utils', () => {
 			activeValidators: activeValidatorsUpdate,
 			certificateThreshold: 10,
 		};
-		const partnerChainAccount: any = { networkID: cryptography.getRandomBytes(32) };
+		const partnerChainAccount: any = { networkID: cryptography.utils.getRandomBytes(32) };
 
 		it('should return VerifyStatus.OK if certificate is empty', () => {
 			jest.spyOn(cryptography, 'verifyWeightedAggSig').mockReturnValue(true);
@@ -456,9 +456,9 @@ describe('Utils', () => {
 			aggregationBits: Buffer.alloc(2),
 			signature: Buffer.alloc(2),
 			validatorsHash,
-			blockID: cryptography.getRandomBytes(20),
+			blockID: cryptography.utils.getRandomBytes(20),
 			height: 20,
-			stateRoot: cryptography.getRandomBytes(32),
+			stateRoot: cryptography.utils.getRandomBytes(32),
 			timestamp: Math.floor(Date.now() / 1000),
 		};
 
@@ -500,10 +500,10 @@ describe('Utils', () => {
 			const certificateInvalidValidatorHash: Certificate = {
 				aggregationBits: Buffer.alloc(2),
 				signature: Buffer.alloc(2),
-				validatorsHash: cryptography.getRandomBytes(48),
-				blockID: cryptography.getRandomBytes(20),
+				validatorsHash: cryptography.utils.getRandomBytes(48),
+				blockID: cryptography.utils.getRandomBytes(20),
 				height: 20,
-				stateRoot: cryptography.getRandomBytes(32),
+				stateRoot: cryptography.utils.getRandomBytes(32),
 				timestamp: Math.floor(Date.now() / 1000),
 			};
 			const invalidEncodedCertificate = codec.encode(
@@ -571,7 +571,7 @@ describe('Utils', () => {
 	describe('checkInboxUpdateValidity', () => {
 		const activeValidatorsUpdate = [...defaultActiveValidatorsUpdate];
 
-		const partnerChainOutboxRoot = cryptography.getRandomBytes(32);
+		const partnerChainOutboxRoot = cryptography.utils.getRandomBytes(32);
 		const inboxTree = {
 			root: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
 			appendPath: [
@@ -589,33 +589,33 @@ describe('Utils', () => {
 		const partnerChannelData: ChannelData = {
 			inbox: inboxTree,
 			messageFeeTokenID: {
-				chainID: intToBuffer(1, 4),
-				localID: intToBuffer(0, 4),
+				chainID: utils.intToBuffer(1, 4),
+				localID: utils.intToBuffer(0, 4),
 			},
 			outbox: outboxTree,
 			partnerChainOutboxRoot,
 		};
 
-		const defaultSendingChainID = intToBuffer(20, 4);
+		const defaultSendingChainID = utils.intToBuffer(20, 4);
 
 		const defaultCCMs = [
 			{
-				crossChainCommandID: intToBuffer(1, 4),
+				crossChainCommandID: utils.intToBuffer(1, 4),
 				fee: BigInt(0),
-				moduleID: intToBuffer(1, 4),
+				moduleID: utils.intToBuffer(1, 4),
 				nonce: BigInt(1),
 				params: Buffer.alloc(2),
-				receivingChainID: intToBuffer(2, 4),
+				receivingChainID: utils.intToBuffer(2, 4),
 				sendingChainID: defaultSendingChainID,
 				status: CCM_STATUS_OK,
 			},
 			{
-				crossChainCommandID: intToBuffer(2, 4),
+				crossChainCommandID: utils.intToBuffer(2, 4),
 				fee: BigInt(0),
-				moduleID: intToBuffer(1, 4),
+				moduleID: utils.intToBuffer(1, 4),
 				nonce: BigInt(1),
 				params: Buffer.alloc(2),
-				receivingChainID: intToBuffer(3, 4),
+				receivingChainID: utils.intToBuffer(3, 4),
 				sendingChainID: defaultSendingChainID,
 				status: CCM_STATUS_OK,
 			},
@@ -623,22 +623,22 @@ describe('Utils', () => {
 
 		const inboxUpdateCCMs = [
 			{
-				crossChainCommandID: intToBuffer(1, 4),
+				crossChainCommandID: utils.intToBuffer(1, 4),
 				fee: BigInt(0),
-				moduleID: intToBuffer(1, 4),
+				moduleID: utils.intToBuffer(1, 4),
 				nonce: BigInt(2),
 				params: Buffer.alloc(4),
-				receivingChainID: intToBuffer(90, 4),
+				receivingChainID: utils.intToBuffer(90, 4),
 				sendingChainID: defaultSendingChainID,
 				status: CCM_STATUS_OK,
 			},
 			{
-				crossChainCommandID: intToBuffer(2, 4),
+				crossChainCommandID: utils.intToBuffer(2, 4),
 				fee: BigInt(0),
-				moduleID: intToBuffer(1, 4),
+				moduleID: utils.intToBuffer(1, 4),
 				nonce: BigInt(10),
 				params: Buffer.alloc(4),
-				receivingChainID: intToBuffer(70, 4),
+				receivingChainID: utils.intToBuffer(70, 4),
 				sendingChainID: defaultSendingChainID,
 				status: CCM_STATUS_OK,
 			},
@@ -661,19 +661,19 @@ describe('Utils', () => {
 			crossChainMessages: inboxUpdateCCMsEncoded,
 			messageWitness: {
 				partnerChainOutboxSize: BigInt(1),
-				siblingHashes: [cryptography.getRandomBytes(32)],
+				siblingHashes: [cryptography.utils.getRandomBytes(32)],
 			},
 			outboxRootWitness: {
-				bitmap: cryptography.getRandomBytes(32),
-				siblingHashes: [cryptography.getRandomBytes(32)],
+				bitmap: cryptography.utils.getRandomBytes(32),
+				siblingHashes: [cryptography.utils.getRandomBytes(32)],
 			},
 		};
 		const certificate: Certificate = {
-			blockID: cryptography.getRandomBytes(20),
+			blockID: cryptography.utils.getRandomBytes(20),
 			height: 20,
-			stateRoot: cryptography.getRandomBytes(32),
+			stateRoot: cryptography.utils.getRandomBytes(32),
 			timestamp: Math.floor(Date.now() / 1000),
-			validatorsHash: cryptography.getRandomBytes(48),
+			validatorsHash: cryptography.utils.getRandomBytes(48),
 		};
 
 		const encodedCertificate = codec.encode(certificateSchema, certificate);
@@ -682,7 +682,7 @@ describe('Utils', () => {
 			activeValidatorsUpdate,
 			newCertificateThreshold: BigInt(10),
 			inboxUpdate,
-			sendingChainID: intToBuffer(2, 4),
+			sendingChainID: utils.intToBuffer(2, 4),
 		};
 
 		let newInboxRoot: Buffer;
@@ -740,8 +740,8 @@ describe('Utils', () => {
 						siblingHashes: [],
 					},
 					outboxRootWitness: {
-						bitmap: cryptography.getRandomBytes(32),
-						siblingHashes: [cryptography.getRandomBytes(32)],
+						bitmap: cryptography.utils.getRandomBytes(32),
+						siblingHashes: [cryptography.utils.getRandomBytes(32)],
 					},
 				};
 
@@ -750,7 +750,7 @@ describe('Utils', () => {
 					activeValidatorsUpdate,
 					newCertificateThreshold: BigInt(10),
 					inboxUpdate: inboxUpdateMessageWitnessEmpty,
-					sendingChainID: intToBuffer(2, 4),
+					sendingChainID: utils.intToBuffer(2, 4),
 				};
 				const { status, error } = checkInboxUpdateValidity(
 					txParamsEmptyMessageWitness,
@@ -857,7 +857,7 @@ describe('Utils', () => {
 				);
 				const calculateMerkleRootSpy = jest
 					.spyOn(merkleTree.regularMerkleTree, 'calculateMerkleRoot')
-					.mockReturnValue({ root: cryptography.getRandomBytes(32) } as never);
+					.mockReturnValue({ root: cryptography.utils.getRandomBytes(32) } as never);
 
 				const { status, error } = checkInboxUpdateValidity(
 					txParamsEmptyMessageWitness,
@@ -875,7 +875,7 @@ describe('Utils', () => {
 
 	describe('commonCCUExecutelogic', () => {
 		const chainIDBuffer = getIDAsKeyForStore(1);
-		const defaultCalculatedRootFromRightWitness = cryptography.getRandomBytes(20);
+		const defaultCalculatedRootFromRightWitness = cryptography.utils.getRandomBytes(20);
 		let activeValidatorsUpdate: any;
 		let inboxUpdate: InboxUpdate;
 		let certificate: any;
@@ -891,10 +891,10 @@ describe('Utils', () => {
 
 		beforeEach(async () => {
 			activeValidatorsUpdate = [
-				{ blsKey: cryptography.getRandomBytes(48), bftWeight: BigInt(1) },
-				{ blsKey: cryptography.getRandomBytes(48), bftWeight: BigInt(3) },
-				{ blsKey: cryptography.getRandomBytes(48), bftWeight: BigInt(4) },
-				{ blsKey: cryptography.getRandomBytes(48), bftWeight: BigInt(3) },
+				{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(1) },
+				{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
+				{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(4) },
+				{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
 			];
 			inboxUpdate = {
 				crossChainMessages: [Buffer.alloc(1)],
@@ -943,14 +943,14 @@ describe('Utils', () => {
 				inbox: {
 					size: BigInt(2),
 					appendPath: [Buffer.alloc(1)],
-					root: cryptography.getRandomBytes(20),
+					root: cryptography.utils.getRandomBytes(20),
 				},
 			};
 			context = {
 				getStore: jest.fn(),
 				params,
 				transaction: {
-					moduleID: intToBuffer(1, 4),
+					moduleID: utils.intToBuffer(1, 4),
 				},
 			};
 

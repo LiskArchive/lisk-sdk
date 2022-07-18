@@ -132,10 +132,10 @@ describe('Mainchain interoperability store', () => {
 	describe('bounce', () => {
 		const ccm = {
 			nonce: BigInt(0),
-			moduleID: intToBuffer(1, 4),
-			crossChainCommandID: intToBuffer(1, 4),
-			sendingChainID: intToBuffer(2, 4),
-			receivingChainID: intToBuffer(3, 4),
+			moduleID: utils.intToBuffer(1, 4),
+			crossChainCommandID: utils.intToBuffer(1, 4),
+			sendingChainID: utils.intToBuffer(2, 4),
+			receivingChainID: utils.intToBuffer(3, 4),
 			fee: BigInt(1),
 			status: 1,
 			params: Buffer.alloc(0),
@@ -216,21 +216,21 @@ describe('Mainchain interoperability store', () => {
 
 		const ccm = {
 			nonce: BigInt(0),
-			moduleID: intToBuffer(1, 4),
-			crossChainCommandID: intToBuffer(1, 4),
-			sendingChainID: intToBuffer(2, 4),
-			receivingChainID: intToBuffer(3, 4),
+			moduleID: utils.intToBuffer(1, 4),
+			crossChainCommandID: utils.intToBuffer(1, 4),
+			sendingChainID: utils.intToBuffer(2, 4),
+			receivingChainID: utils.intToBuffer(3, 4),
 			fee: BigInt(1),
 			status: 1,
 			params: Buffer.alloc(0),
 		};
 
-		const randomOutboxRoot = getRandomBytes(32);
+		const randomOutboxRoot = utils.getRandomBytes(32);
 		const channelData = {
 			inbox: {
 				appendPath: [],
 				size: 0,
-				root: getRandomBytes(32),
+				root: utils.getRandomBytes(32),
 			},
 			outbox: {
 				appendPath: [],
@@ -239,8 +239,8 @@ describe('Mainchain interoperability store', () => {
 			},
 			partnerChainOutboxRoot: Buffer.alloc(0),
 			messageFeeTokenID: {
-				chainID: intToBuffer(1, 4),
-				localID: intToBuffer(2, 4),
+				chainID: utils.intToBuffer(1, 4),
+				localID: utils.intToBuffer(2, 4),
 			},
 		};
 
@@ -258,7 +258,7 @@ describe('Mainchain interoperability store', () => {
 
 		const beforeSendCCMContext = testing.createBeforeSendCCMsgAPIContext({
 			ccm,
-			feeAddress: getRandomBytes(32),
+			feeAddress: utils.getRandomBytes(32),
 		});
 
 		const sendInternalContext: SendInternalContext = {
@@ -297,10 +297,10 @@ describe('Mainchain interoperability store', () => {
 		it('should return false if the created ccm is of invalid size', async () => {
 			const invalidCCM = {
 				nonce: BigInt(0),
-				moduleID: intToBuffer(1, 4),
-				crossChainCommandID: intToBuffer(1, 4),
-				sendingChainID: intToBuffer(2, 4),
-				receivingChainID: intToBuffer(3, 4),
+				moduleID: utils.intToBuffer(1, 4),
+				crossChainCommandID: utils.intToBuffer(1, 4),
+				sendingChainID: utils.intToBuffer(2, 4),
+				receivingChainID: utils.intToBuffer(3, 4),
 				fee: BigInt(1),
 				status: 1,
 				params: Buffer.alloc(MAX_CCM_SIZE), // invalid size
@@ -308,7 +308,7 @@ describe('Mainchain interoperability store', () => {
 
 			const beforeSendCCMContextLocal = testing.createBeforeSendCCMsgAPIContext({
 				ccm: invalidCCM,
-				feeAddress: getRandomBytes(32),
+				feeAddress: utils.getRandomBytes(32),
 			});
 
 			const sendInternalContextLocal: SendInternalContext = {
@@ -334,10 +334,10 @@ describe('Mainchain interoperability store', () => {
 		it('should return false if the ccm created is invalid schema', async () => {
 			const invalidCCM = {
 				nonce: BigInt(0),
-				moduleID: intToBuffer(1, 4),
-				crossChainCommandID: intToBuffer(1, 4),
-				sendingChainID: intToBuffer(2, 4),
-				receivingChainID: intToBuffer(3, 4),
+				moduleID: utils.intToBuffer(1, 4),
+				crossChainCommandID: utils.intToBuffer(1, 4),
+				sendingChainID: utils.intToBuffer(2, 4),
+				receivingChainID: utils.intToBuffer(3, 4),
 				fee: BigInt(1),
 				status: 'ccm', // invalid field
 				params: Buffer.alloc(0),
@@ -345,7 +345,7 @@ describe('Mainchain interoperability store', () => {
 
 			const beforeSendCCMContextLocal = testing.createBeforeSendCCMsgAPIContext({
 				ccm: invalidCCM as any,
-				feeAddress: getRandomBytes(32),
+				feeAddress: utils.getRandomBytes(32),
 			});
 
 			const sendInternalContextLocal = {
@@ -420,7 +420,7 @@ describe('Mainchain interoperability store', () => {
 
 			receivingChainAccount = {
 				name: 'receivingAccount1',
-				networkID: getRandomBytes(32),
+				networkID: utils.getRandomBytes(32),
 				lastCertificate: {
 					height: 567467,
 					timestamp: timestamp - 500000,
@@ -432,10 +432,10 @@ describe('Mainchain interoperability store', () => {
 
 			ccm = {
 				nonce: BigInt(0),
-				moduleID: intToBuffer(1, 4),
-				crossChainCommandID: intToBuffer(1, 4),
-				sendingChainID: intToBuffer(2, 4),
-				receivingChainID: intToBuffer(3, 4),
+				moduleID: utils.intToBuffer(1, 4),
+				crossChainCommandID: utils.intToBuffer(1, 4),
+				sendingChainID: utils.intToBuffer(2, 4),
+				receivingChainID: utils.intToBuffer(3, 4),
 				fee: BigInt(1),
 				status: CCM_STATUS_OK,
 				params: Buffer.alloc(0),
@@ -458,7 +458,7 @@ describe('Mainchain interoperability store', () => {
 					},
 				},
 				newCertificateThreshold: BigInt(1),
-				sendingChainID: intToBuffer(2, 4),
+				sendingChainID: utils.intToBuffer(2, 4),
 			};
 
 			context = {

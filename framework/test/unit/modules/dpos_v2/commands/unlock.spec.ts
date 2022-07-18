@@ -54,10 +54,26 @@ describe('UnlockCommand', () => {
 	let nonUnlockableObject: UnlockingObject;
 	let context: CommandExecuteContext;
 	let storedData: VoterData;
-	const delegate1 = { name: 'delegate1', address: getRandomBytes(32), amount: liskToBeddows(100) };
-	const delegate2 = { name: 'delegate2', address: getRandomBytes(32), amount: liskToBeddows(200) };
-	const delegate3 = { name: 'delegate3', address: getRandomBytes(32), amount: liskToBeddows(300) };
-	const delegate4 = { name: 'delegate4', address: getRandomBytes(32), amount: liskToBeddows(400) };
+	const delegate1 = {
+		name: 'delegate1',
+		address: utils.getRandomBytes(32),
+		amount: liskToBeddows(100),
+	};
+	const delegate2 = {
+		name: 'delegate2',
+		address: utils.getRandomBytes(32),
+		amount: liskToBeddows(200),
+	};
+	const delegate3 = {
+		name: 'delegate3',
+		address: utils.getRandomBytes(32),
+		amount: liskToBeddows(300),
+	};
+	const delegate4 = {
+		name: 'delegate4',
+		address: utils.getRandomBytes(32),
+		amount: liskToBeddows(400),
+	};
 	const defaultDelegateInfo = {
 		totalVotesReceived: BigInt(100000000),
 		selfVotes: BigInt(0),
@@ -66,10 +82,10 @@ describe('UnlockCommand', () => {
 		pomHeights: [],
 		consecutiveMissedBlocks: 0,
 	};
-	const publicKey = getRandomBytes(32);
+	const publicKey = utils.getRandomBytes(32);
 	const transaction = new Transaction({
 		moduleID: MODULE_ID_DPOS_BUFFER,
-		commandID: intToBuffer(COMMAND_ID_UNLOCK, 4),
+		commandID: utils.intToBuffer(COMMAND_ID_UNLOCK, 4),
 		senderPublicKey: publicKey,
 		nonce: BigInt(0),
 		fee: BigInt(100000000),

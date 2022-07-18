@@ -30,7 +30,7 @@ describe('passphrase:encrypt', () => {
 	const defaultBlsPrivateKey = cryptography.generatePrivateKey(
 		Buffer.from(defaultPassphrase, 'utf-8'),
 	);
-	const defaultBlsPublicKey = cryptography.getPublicKeyFromPrivateKey(defaultBlsPrivateKey);
+	const defaultBlsPublicKey = cryptography.ed.getPublicKeyFromPrivateKey(defaultBlsPrivateKey);
 	const consoleWarnSpy = jest.spyOn(console, 'warn');
 
 	let stdout: string[];
@@ -60,7 +60,7 @@ describe('passphrase:encrypt', () => {
 			expect(cryptography.generatePrivateKey).toHaveBeenCalledWith(
 				Buffer.from(defaultPassphrase, 'utf-8'),
 			);
-			expect(cryptography.getPublicKeyFromPrivateKey).toHaveBeenCalledWith(defaultBlsPrivateKey);
+			expect(cryptography.ed.getPublicKeyFromPrivateKey).toHaveBeenCalledWith(defaultBlsPrivateKey);
 			expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase', true);
 
 			expect(CreateCommand.prototype.printJSON).toHaveBeenCalledWith(
@@ -83,7 +83,7 @@ describe('passphrase:encrypt', () => {
 			expect(cryptography.generatePrivateKey).toHaveBeenCalledWith(
 				Buffer.from(defaultPassphrase, 'utf-8'),
 			);
-			expect(cryptography.getPublicKeyFromPrivateKey).toHaveBeenCalledWith(defaultBlsPrivateKey);
+			expect(cryptography.ed.getPublicKeyFromPrivateKey).toHaveBeenCalledWith(defaultBlsPrivateKey);
 			expect(readerUtils.getPassphraseFromPrompt).not.toHaveBeenCalledWith('passphrase', true);
 
 			expect(CreateCommand.prototype.printJSON).toHaveBeenCalledWith(

@@ -55,11 +55,11 @@ describe('Public block related P2P endpoints with invalid block property', () =>
 			const block = await app['_node']['_forger']['_create']({
 				keypair,
 				previousBlock: lastBlock,
-				seedReveal: getRandomBytes(16),
+				seedReveal: utils.getRandomBytes(16),
 				timestamp,
 				transactions: [],
 			});
-			(block.header as any).transactionRoot = getRandomBytes(32);
+			(block.header as any).transactionRoot = utils.getRandomBytes(32);
 			const invalidEncodedBlock = app['_node']['_chain'].dataAccess.encode(block);
 			const data = codec.encode(postBlockEventSchema, { block: invalidEncodedBlock });
 

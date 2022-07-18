@@ -62,7 +62,7 @@ describe('abi handler', () => {
 			modules: [mod2, mod],
 			config: applicationConfigSchema.default,
 		});
-		abiHandler['_networkIdentifier'] = getRandomBytes(32);
+		abiHandler['_networkIdentifier'] = utils.getRandomBytes(32);
 	});
 
 	describe('init', () => {
@@ -97,7 +97,7 @@ describe('abi handler', () => {
 				config: applicationConfigSchema.default,
 			});
 
-			const networkIdentifier = getRandomBytes(32);
+			const networkIdentifier = utils.getRandomBytes(32);
 			await abiHandler.ready({ networkIdentifier, lastBlockHeight: 21 });
 
 			expect(abiHandler.networkIdentifier).toEqual(networkIdentifier);
@@ -107,7 +107,7 @@ describe('abi handler', () => {
 	describe('initStateMachine', () => {
 		it('should fail if execution context exists', async () => {
 			abiHandler['_executionContext'] = {
-				id: getRandomBytes(32),
+				id: utils.getRandomBytes(32),
 			} as never;
 			await expect(
 				abiHandler.initStateMachine({
@@ -130,8 +130,8 @@ describe('abi handler', () => {
 		it('should fail if execution context does not exist', async () => {
 			await expect(
 				abiHandler.initGenesisState({
-					contextID: getRandomBytes(32),
-					stateRoot: getRandomBytes(32),
+					contextID: utils.getRandomBytes(32),
+					stateRoot: utils.getRandomBytes(32),
 				}),
 			).rejects.toThrow('Context is not initialized or different');
 		});
@@ -142,8 +142,8 @@ describe('abi handler', () => {
 			});
 			await expect(
 				abiHandler.initGenesisState({
-					contextID: getRandomBytes(32),
-					stateRoot: getRandomBytes(32),
+					contextID: utils.getRandomBytes(32),
+					stateRoot: utils.getRandomBytes(32),
 				}),
 			).rejects.toThrow('Context is not initialized or different');
 		});
@@ -155,7 +155,7 @@ describe('abi handler', () => {
 			});
 			const resp = await abiHandler.initGenesisState({
 				contextID,
-				stateRoot: getRandomBytes(32),
+				stateRoot: utils.getRandomBytes(32),
 			});
 			expect(abiHandler['_stateMachine'].executeGenesisBlock).toHaveBeenCalledTimes(1);
 
@@ -171,7 +171,7 @@ describe('abi handler', () => {
 		it('should fail if execution context does not exist', async () => {
 			await expect(
 				abiHandler.insertAssets({
-					contextID: getRandomBytes(32),
+					contextID: utils.getRandomBytes(32),
 					finalizedHeight: 0,
 				}),
 			).rejects.toThrow('Context is not initialized or different');
@@ -183,7 +183,7 @@ describe('abi handler', () => {
 			});
 			await expect(
 				abiHandler.insertAssets({
-					contextID: getRandomBytes(32),
+					contextID: utils.getRandomBytes(32),
 					finalizedHeight: 0,
 				}),
 			).rejects.toThrow('Context is not initialized or different');
@@ -208,8 +208,8 @@ describe('abi handler', () => {
 		it('should fail if execution context does not exist', async () => {
 			await expect(
 				abiHandler.verifyAssets({
-					contextID: getRandomBytes(32),
-					assets: [{ data: getRandomBytes(30), moduleID: intToBuffer(2, 4) }],
+					contextID: utils.getRandomBytes(32),
+					assets: [{ data: utils.getRandomBytes(30), moduleID: utils.intToBuffer(2, 4) }],
 				}),
 			).rejects.toThrow('Context is not initialized or different');
 		});
@@ -220,8 +220,8 @@ describe('abi handler', () => {
 			});
 			await expect(
 				abiHandler.verifyAssets({
-					contextID: getRandomBytes(32),
-					assets: [{ data: getRandomBytes(30), moduleID: intToBuffer(2, 4) }],
+					contextID: utils.getRandomBytes(32),
+					assets: [{ data: utils.getRandomBytes(30), moduleID: utils.intToBuffer(2, 4) }],
 				}),
 			).rejects.toThrow('Context is not initialized or different');
 		});
@@ -233,7 +233,7 @@ describe('abi handler', () => {
 			});
 			const resp = await abiHandler.verifyAssets({
 				contextID,
-				assets: [{ data: getRandomBytes(30), moduleID: intToBuffer(2, 4) }],
+				assets: [{ data: utils.getRandomBytes(30), moduleID: utils.intToBuffer(2, 4) }],
 			});
 			expect(abiHandler['_stateMachine'].verifyAssets).toHaveBeenCalledTimes(1);
 
@@ -245,15 +245,15 @@ describe('abi handler', () => {
 		it('should fail if execution context does not exist', async () => {
 			await expect(
 				abiHandler.beforeTransactionsExecute({
-					contextID: getRandomBytes(32),
-					assets: [{ data: getRandomBytes(30), moduleID: intToBuffer(2, 4) }],
+					contextID: utils.getRandomBytes(32),
+					assets: [{ data: utils.getRandomBytes(30), moduleID: utils.intToBuffer(2, 4) }],
 					consensus: {
 						currentValidators: [
 							{
-								address: getRandomBytes(20),
+								address: utils.getRandomBytes(20),
 								bftWeight: BigInt(1),
-								blsKey: getRandomBytes(48),
-								generatorKey: getRandomBytes(32),
+								blsKey: utils.getRandomBytes(48),
+								generatorKey: utils.getRandomBytes(32),
 							},
 						],
 						implyMaxPrevote: false,
@@ -270,15 +270,15 @@ describe('abi handler', () => {
 			});
 			await expect(
 				abiHandler.beforeTransactionsExecute({
-					contextID: getRandomBytes(32),
-					assets: [{ data: getRandomBytes(30), moduleID: intToBuffer(2, 4) }],
+					contextID: utils.getRandomBytes(32),
+					assets: [{ data: utils.getRandomBytes(30), moduleID: utils.intToBuffer(2, 4) }],
 					consensus: {
 						currentValidators: [
 							{
-								address: getRandomBytes(20),
+								address: utils.getRandomBytes(20),
 								bftWeight: BigInt(1),
-								blsKey: getRandomBytes(48),
-								generatorKey: getRandomBytes(32),
+								blsKey: utils.getRandomBytes(48),
+								generatorKey: utils.getRandomBytes(32),
 							},
 						],
 						implyMaxPrevote: false,
@@ -296,14 +296,14 @@ describe('abi handler', () => {
 			});
 			const resp = await abiHandler.beforeTransactionsExecute({
 				contextID,
-				assets: [{ data: getRandomBytes(30), moduleID: intToBuffer(2, 4) }],
+				assets: [{ data: utils.getRandomBytes(30), moduleID: utils.intToBuffer(2, 4) }],
 				consensus: {
 					currentValidators: [
 						{
-							address: getRandomBytes(20),
+							address: utils.getRandomBytes(20),
 							bftWeight: BigInt(1),
-							blsKey: getRandomBytes(48),
-							generatorKey: getRandomBytes(32),
+							blsKey: utils.getRandomBytes(48),
+							generatorKey: utils.getRandomBytes(32),
 						},
 					],
 					implyMaxPrevote: false,
@@ -321,15 +321,15 @@ describe('abi handler', () => {
 		it('should fail if execution context does not exist', async () => {
 			await expect(
 				abiHandler.afterTransactionsExecute({
-					contextID: getRandomBytes(32),
-					assets: [{ data: getRandomBytes(30), moduleID: intToBuffer(2, 4) }],
+					contextID: utils.getRandomBytes(32),
+					assets: [{ data: utils.getRandomBytes(30), moduleID: utils.intToBuffer(2, 4) }],
 					consensus: {
 						currentValidators: [
 							{
-								address: getRandomBytes(20),
+								address: utils.getRandomBytes(20),
 								bftWeight: BigInt(1),
-								blsKey: getRandomBytes(48),
-								generatorKey: getRandomBytes(32),
+								blsKey: utils.getRandomBytes(48),
+								generatorKey: utils.getRandomBytes(32),
 							},
 						],
 						implyMaxPrevote: false,
@@ -347,15 +347,15 @@ describe('abi handler', () => {
 			});
 			await expect(
 				abiHandler.afterTransactionsExecute({
-					contextID: getRandomBytes(32),
-					assets: [{ data: getRandomBytes(30), moduleID: intToBuffer(2, 4) }],
+					contextID: utils.getRandomBytes(32),
+					assets: [{ data: utils.getRandomBytes(30), moduleID: utils.intToBuffer(2, 4) }],
 					consensus: {
 						currentValidators: [
 							{
-								address: getRandomBytes(20),
+								address: utils.getRandomBytes(20),
 								bftWeight: BigInt(1),
-								blsKey: getRandomBytes(48),
-								generatorKey: getRandomBytes(32),
+								blsKey: utils.getRandomBytes(48),
+								generatorKey: utils.getRandomBytes(32),
 							},
 						],
 						implyMaxPrevote: false,
@@ -374,14 +374,14 @@ describe('abi handler', () => {
 			});
 			const resp = await abiHandler.afterTransactionsExecute({
 				contextID,
-				assets: [{ data: getRandomBytes(30), moduleID: intToBuffer(2, 4) }],
+				assets: [{ data: utils.getRandomBytes(30), moduleID: utils.intToBuffer(2, 4) }],
 				consensus: {
 					currentValidators: [
 						{
-							address: getRandomBytes(20),
+							address: utils.getRandomBytes(20),
 							bftWeight: BigInt(1),
-							blsKey: getRandomBytes(48),
-							generatorKey: getRandomBytes(32),
+							blsKey: utils.getRandomBytes(48),
+							generatorKey: utils.getRandomBytes(32),
 						},
 					],
 					implyMaxPrevote: false,
@@ -404,17 +404,17 @@ describe('abi handler', () => {
 			});
 			// Add random data to check if new state store is used or not
 			await abiHandler['_executionContext']?.stateStore.set(
-				getRandomBytes(20),
-				getRandomBytes(100),
+				utils.getRandomBytes(20),
+				utils.getRandomBytes(100),
 			);
 			const tx = new Transaction({
-				commandID: intToBuffer(2, 4),
+				commandID: utils.intToBuffer(2, 4),
 				fee: BigInt(30),
-				moduleID: intToBuffer(2, 4),
+				moduleID: utils.intToBuffer(2, 4),
 				nonce: BigInt(2),
-				params: getRandomBytes(100),
-				senderPublicKey: getRandomBytes(32),
-				signatures: [getRandomBytes(64)],
+				params: utils.getRandomBytes(100),
+				senderPublicKey: utils.getRandomBytes(32),
+				signatures: [utils.getRandomBytes(64)],
 			});
 			const resp = await abiHandler.verifyTransaction({
 				contextID,
@@ -436,16 +436,16 @@ describe('abi handler', () => {
 				header: createFakeBlockHeader().toObject(),
 			});
 			// Add random data to check if new state store is used or not
-			const key = getRandomBytes(20);
-			await abiHandler['_executionContext']?.stateStore.set(key, getRandomBytes(100));
+			const key = utils.getRandomBytes(20);
+			await abiHandler['_executionContext']?.stateStore.set(key, utils.getRandomBytes(100));
 			const tx = new Transaction({
-				commandID: intToBuffer(2, 4),
+				commandID: utils.intToBuffer(2, 4),
 				fee: BigInt(30),
-				moduleID: intToBuffer(2, 4),
+				moduleID: utils.intToBuffer(2, 4),
 				nonce: BigInt(2),
-				params: getRandomBytes(100),
-				senderPublicKey: getRandomBytes(32),
-				signatures: [getRandomBytes(64)],
+				params: utils.getRandomBytes(100),
+				senderPublicKey: utils.getRandomBytes(32),
+				signatures: [utils.getRandomBytes(64)],
 			});
 			const resp = await abiHandler.verifyTransaction({
 				contextID: Buffer.alloc(0),
@@ -469,31 +469,31 @@ describe('abi handler', () => {
 			});
 			// Add random data to check if new state store is used or not
 			await abiHandler['_executionContext']?.stateStore.set(
-				getRandomBytes(20),
-				getRandomBytes(100),
+				utils.getRandomBytes(20),
+				utils.getRandomBytes(100),
 			);
 			const tx = new Transaction({
-				commandID: intToBuffer(0, 4),
+				commandID: utils.intToBuffer(0, 4),
 				fee: BigInt(30),
-				moduleID: intToBuffer(2, 4),
+				moduleID: utils.intToBuffer(2, 4),
 				nonce: BigInt(2),
 				params: codec.encode(transferParamsSchema, {}),
-				senderPublicKey: getRandomBytes(32),
-				signatures: [getRandomBytes(64)],
+				senderPublicKey: utils.getRandomBytes(32),
+				signatures: [utils.getRandomBytes(64)],
 			});
 			const resp = await abiHandler.executeTransaction({
 				contextID,
-				assets: [{ data: getRandomBytes(30), moduleID: intToBuffer(2, 4) }],
+				assets: [{ data: utils.getRandomBytes(30), moduleID: utils.intToBuffer(2, 4) }],
 				dryRun: false,
 				header: createFakeBlockHeader().toObject(),
 				transaction: tx.toObject(),
 				consensus: {
 					currentValidators: [
 						{
-							address: getRandomBytes(20),
+							address: utils.getRandomBytes(20),
 							bftWeight: BigInt(1),
-							blsKey: getRandomBytes(48),
-							generatorKey: getRandomBytes(32),
+							blsKey: utils.getRandomBytes(48),
+							generatorKey: utils.getRandomBytes(32),
 						},
 					],
 					implyMaxPrevote: false,
@@ -517,30 +517,30 @@ describe('abi handler', () => {
 				header: createFakeBlockHeader().toObject(),
 			});
 			// Add random data to check if new state store is used or not
-			const key = getRandomBytes(20);
-			await abiHandler['_executionContext']?.stateStore.set(key, getRandomBytes(100));
+			const key = utils.getRandomBytes(20);
+			await abiHandler['_executionContext']?.stateStore.set(key, utils.getRandomBytes(100));
 			const tx = new Transaction({
-				commandID: intToBuffer(0, 4),
+				commandID: utils.intToBuffer(0, 4),
 				fee: BigInt(30),
-				moduleID: intToBuffer(2, 4),
+				moduleID: utils.intToBuffer(2, 4),
 				nonce: BigInt(2),
 				params: codec.encode(transferParamsSchema, {}),
-				senderPublicKey: getRandomBytes(32),
-				signatures: [getRandomBytes(64)],
+				senderPublicKey: utils.getRandomBytes(32),
+				signatures: [utils.getRandomBytes(64)],
 			});
 			const resp = await abiHandler.executeTransaction({
-				contextID: getRandomBytes(0),
-				assets: [{ data: getRandomBytes(30), moduleID: intToBuffer(2, 4) }],
+				contextID: utils.getRandomBytes(0),
+				assets: [{ data: utils.getRandomBytes(30), moduleID: utils.intToBuffer(2, 4) }],
 				dryRun: true,
 				header: createFakeBlockHeader().toObject(),
 				transaction: tx.toObject(),
 				consensus: {
 					currentValidators: [
 						{
-							address: getRandomBytes(20),
+							address: utils.getRandomBytes(20),
 							bftWeight: BigInt(1),
-							blsKey: getRandomBytes(48),
-							generatorKey: getRandomBytes(32),
+							blsKey: utils.getRandomBytes(48),
+							generatorKey: utils.getRandomBytes(32),
 						},
 					],
 					implyMaxPrevote: false,
@@ -562,10 +562,10 @@ describe('abi handler', () => {
 		it('should fail if execution context does not exist', async () => {
 			await expect(
 				abiHandler.commit({
-					contextID: getRandomBytes(32),
+					contextID: utils.getRandomBytes(32),
 					dryRun: true,
-					expectedStateRoot: getRandomBytes(32),
-					stateRoot: getRandomBytes(32),
+					expectedStateRoot: utils.getRandomBytes(32),
+					stateRoot: utils.getRandomBytes(32),
 				}),
 			).rejects.toThrow('Context is not initialized or different');
 		});
@@ -576,10 +576,10 @@ describe('abi handler', () => {
 			});
 			await expect(
 				abiHandler.commit({
-					contextID: getRandomBytes(32),
+					contextID: utils.getRandomBytes(32),
 					dryRun: true,
-					expectedStateRoot: getRandomBytes(32),
-					stateRoot: getRandomBytes(32),
+					expectedStateRoot: utils.getRandomBytes(32),
+					stateRoot: utils.getRandomBytes(32),
 				}),
 			).rejects.toThrow('Context is not initialized or different');
 		});
@@ -597,9 +597,9 @@ describe('abi handler', () => {
 		it('should fail if execution context does not exist', async () => {
 			await expect(
 				abiHandler.revert({
-					contextID: getRandomBytes(32),
-					expectedStateRoot: getRandomBytes(32),
-					stateRoot: getRandomBytes(32),
+					contextID: utils.getRandomBytes(32),
+					expectedStateRoot: utils.getRandomBytes(32),
+					stateRoot: utils.getRandomBytes(32),
 				}),
 			).rejects.toThrow('Context is not initialized or different');
 		});
@@ -610,9 +610,9 @@ describe('abi handler', () => {
 			});
 			await expect(
 				abiHandler.revert({
-					contextID: getRandomBytes(32),
-					expectedStateRoot: getRandomBytes(32),
-					stateRoot: getRandomBytes(32),
+					contextID: utils.getRandomBytes(32),
+					expectedStateRoot: utils.getRandomBytes(32),
+					stateRoot: utils.getRandomBytes(32),
 				}),
 			).rejects.toThrow('Context is not initialized or different');
 		});

@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { signMessageWithPassphrase } from '@liskhq/lisk-cryptography';
+import { ed } from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../base';
@@ -30,7 +30,7 @@ const processInputs = (passphrase: string, message?: string) => {
 		throw new ValidationError('No message was provided.');
 	}
 
-	const signedMessageWithOnePassphrase = signMessageWithPassphrase(message, passphrase);
+	const signedMessageWithOnePassphrase = ed.signMessageWithPassphrase(message, passphrase);
 	return {
 		...signedMessageWithOnePassphrase,
 		publicKey: signedMessageWithOnePassphrase.publicKey.toString('hex'),

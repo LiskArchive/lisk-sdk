@@ -32,7 +32,7 @@ const getBlockAttrs = () => ({
 	generatorAddress: Buffer.from('be63fb1c0426573352556f18b21efd5b6183c39c', 'hex'),
 	maxHeightPrevoted: 1000988,
 	maxHeightGenerated: 1000988,
-	validatorsHash: hash(Buffer.alloc(0)),
+	validatorsHash: utils.hash(Buffer.alloc(0)),
 	aggregateCommit: {
 		height: 0,
 		aggregationBits: Buffer.alloc(0),
@@ -45,7 +45,7 @@ const getGenesisBlockAttrs = () => ({
 	version: 1,
 	timestamp: 1009988,
 	height: 1009988,
-	previousBlockID: getRandomBytes(32),
+	previousBlockID: utils.getRandomBytes(32),
 	stateRoot: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
 	transactionRoot: EMPTY_HASH,
 	assetRoot: EMPTY_HASH,
@@ -53,7 +53,7 @@ const getGenesisBlockAttrs = () => ({
 	generatorAddress: EMPTY_BUFFER,
 	maxHeightPrevoted: 1009988,
 	maxHeightGenerated: 0,
-	validatorsHash: hash(Buffer.alloc(0)),
+	validatorsHash: utils.hash(Buffer.alloc(0)),
 	aggregateCommit: {
 		height: 0,
 		aggregationBits: Buffer.alloc(0),
@@ -212,7 +212,10 @@ describe('block_header', () => {
 		describe('validateGenesis', () => {
 			it('should throw error if previousBlockID is not 32 bytes', () => {
 				const block = getGenesisBlockAttrs();
-				const blockHeader = new BlockHeader({ ...block, previousBlockID: getRandomBytes(31) });
+				const blockHeader = new BlockHeader({
+					...block,
+					previousBlockID: utils.getRandomBytes(31),
+				});
 
 				expect(() => blockHeader.validateGenesis()).toThrow(
 					'Genesis block header previousBlockID must be 32 bytes',
@@ -221,7 +224,10 @@ describe('block_header', () => {
 
 			it('should throw error if transactionRoot is not empty hash', () => {
 				const block = getGenesisBlockAttrs();
-				const blockHeader = new BlockHeader({ ...block, transactionRoot: getRandomBytes(32) });
+				const blockHeader = new BlockHeader({
+					...block,
+					transactionRoot: utils.getRandomBytes(32),
+				});
 
 				expect(() => blockHeader.validateGenesis()).toThrow(
 					'Genesis block header transaction root must be empty hash',
@@ -230,7 +236,10 @@ describe('block_header', () => {
 
 			it('should throw error if generatorAddress is not empty buffer', () => {
 				const block = getGenesisBlockAttrs();
-				const blockHeader = new BlockHeader({ ...block, generatorAddress: getRandomBytes(32) });
+				const blockHeader = new BlockHeader({
+					...block,
+					generatorAddress: utils.getRandomBytes(32),
+				});
 
 				expect(() => blockHeader.validateGenesis()).toThrow(
 					'Genesis block header generatorAddress must be empty bytes',
@@ -262,7 +271,10 @@ describe('block_header', () => {
 				const block = getGenesisBlockAttrs();
 				const blockHeader = new BlockHeader({
 					...block,
-					aggregateCommit: { ...block.aggregateCommit, certificateSignature: getRandomBytes(32) },
+					aggregateCommit: {
+						...block.aggregateCommit,
+						certificateSignature: utils.getRandomBytes(32),
+					},
 				});
 
 				expect(() => blockHeader.validateGenesis()).toThrow(
@@ -274,7 +286,7 @@ describe('block_header', () => {
 				const block = getGenesisBlockAttrs();
 				const blockHeader = new BlockHeader({
 					...block,
-					aggregateCommit: { ...block.aggregateCommit, aggregationBits: getRandomBytes(32) },
+					aggregateCommit: { ...block.aggregateCommit, aggregationBits: utils.getRandomBytes(32) },
 				});
 
 				expect(() => blockHeader.validateGenesis()).toThrow(
@@ -284,7 +296,7 @@ describe('block_header', () => {
 
 			it('should throw error if signature is not empty buffer', () => {
 				const block = getGenesisBlockAttrs();
-				const blockHeader = new BlockHeader({ ...block, signature: getRandomBytes(32) });
+				const blockHeader = new BlockHeader({ ...block, signature: utils.getRandomBytes(32) });
 
 				expect(() => blockHeader.validateGenesis()).toThrow(
 					'Genesis block header signature must be empty bytes',

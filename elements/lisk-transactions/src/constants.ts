@@ -12,6 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { createMessageTag } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 
-export const TAG_TRANSACTION = createMessageTag('TX');
+export const TAG_TRANSACTION = utils.createMessageTag('TX');

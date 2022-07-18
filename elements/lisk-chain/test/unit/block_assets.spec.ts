@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { MerkleTree } from '@liskhq/lisk-tree';
 import { BlockAsset, BlockAssets } from '../../src';
 import { MAX_ASSET_DATA_SIZE_BYTES } from '../../src/constants';
@@ -23,12 +23,12 @@ describe('block assets', () => {
 	beforeEach(() => {
 		assetList = [
 			{
-				moduleID: intToBuffer(6, 4),
-				data: getRandomBytes(64),
+				moduleID: utils.intToBuffer(6, 4),
+				data: utils.getRandomBytes(64),
 			},
 			{
-				moduleID: intToBuffer(3, 4),
-				data: getRandomBytes(64),
+				moduleID: utils.intToBuffer(3, 4),
+				data: utils.getRandomBytes(64),
 			},
 		];
 		assets = new BlockAssets(assetList);
@@ -43,23 +43,23 @@ describe('block assets', () => {
 
 	describe('getAsset', () => {
 		it('it should return undefined if no matching asset exists ', () => {
-			expect(assets.getAsset(intToBuffer(5, 4))).toBeUndefined();
+			expect(assets.getAsset(utils.intToBuffer(5, 4))).toBeUndefined();
 		});
 
 		it('it should return asset data if matching asset exists ', () => {
-			expect(assets.getAsset(intToBuffer(3, 4))).toBeInstanceOf(Buffer);
+			expect(assets.getAsset(utils.intToBuffer(3, 4))).toBeInstanceOf(Buffer);
 		});
 	});
 
 	describe('setAsset', () => {
 		it('it should not overwrite existing asset', () => {
-			const data = getRandomBytes(32);
-			expect(() => assets.setAsset(intToBuffer(3, 4), data)).toThrow();
+			const data = utils.getRandomBytes(32);
+			expect(() => assets.setAsset(utils.intToBuffer(3, 4), data)).toThrow();
 		});
 
 		it('it should add asset data if matching asset does not exist ', () => {
-			const data = getRandomBytes(32);
-			assets.setAsset(intToBuffer(4, 4), data);
+			const data = utils.getRandomBytes(32);
+			assets.setAsset(utils.intToBuffer(4, 4), data);
 			expect(assets['_assets']).toHaveLength(3);
 		});
 	});
@@ -68,12 +68,12 @@ describe('block assets', () => {
 		it('should create BlockAssets from JSON format', () => {
 			assets = BlockAssets.fromJSON([
 				{
-					moduleID: intToBuffer(4, 4).toString('hex'),
-					data: getRandomBytes(30).toString('hex'),
+					moduleID: utils.intToBuffer(4, 4).toString('hex'),
+					data: utils.getRandomBytes(30).toString('hex'),
 				},
 			]);
 			expect(assets['_assets']).toHaveLength(1);
-			expect(assets.getAsset(intToBuffer(4, 4))).toBeInstanceOf(Buffer);
+			expect(assets.getAsset(utils.intToBuffer(4, 4))).toBeInstanceOf(Buffer);
 		});
 	});
 
@@ -97,12 +97,12 @@ describe('block assets', () => {
 			it(`should throw error when data type is incorrect`, () => {
 				assetList = [
 					{
-						moduleID: intToBuffer(3, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(3, 4),
+						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: intToBuffer(4, 4),
-						data: getRandomBytes(128),
+						moduleID: utils.intToBuffer(4, 4),
+						data: utils.getRandomBytes(128),
 					},
 				];
 				assets = new BlockAssets(assetList);
@@ -116,12 +116,12 @@ describe('block assets', () => {
 			it(`should throw error when asset data length is greater than ${MAX_ASSET_DATA_SIZE_BYTES}`, () => {
 				assetList = [
 					{
-						moduleID: intToBuffer(3, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(3, 4),
+						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: intToBuffer(4, 4),
-						data: getRandomBytes(128),
+						moduleID: utils.intToBuffer(4, 4),
+						data: utils.getRandomBytes(128),
 					},
 				];
 				assets = new BlockAssets(assetList);
@@ -135,12 +135,12 @@ describe('block assets', () => {
 			it(`should pass when asset data length is equal or less than ${MAX_ASSET_DATA_SIZE_BYTES}`, () => {
 				assetList = [
 					{
-						moduleID: intToBuffer(3, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(3, 4),
+						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: intToBuffer(4, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(4, 4),
+						data: utils.getRandomBytes(64),
 					},
 				];
 				assets = new BlockAssets(assetList);
@@ -152,12 +152,12 @@ describe('block assets', () => {
 			it('should throw error when assets are not sorted by moduleID', () => {
 				assetList = [
 					{
-						moduleID: intToBuffer(4, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(4, 4),
+						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: intToBuffer(3, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(3, 4),
+						data: utils.getRandomBytes(64),
 					},
 				];
 				assets = new BlockAssets(assetList);
@@ -169,12 +169,12 @@ describe('block assets', () => {
 			it('should pass when assets are sorted by moduleID', () => {
 				assetList = [
 					{
-						moduleID: intToBuffer(2, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(2, 4),
+						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: intToBuffer(3, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(3, 4),
+						data: utils.getRandomBytes(64),
 					},
 				];
 				assets = new BlockAssets(assetList);
@@ -186,16 +186,16 @@ describe('block assets', () => {
 			it('should throw error when there are more than 1 assets for a module', () => {
 				assetList = [
 					{
-						moduleID: intToBuffer(2, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(2, 4),
+						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: intToBuffer(3, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(3, 4),
+						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: intToBuffer(3, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(3, 4),
+						data: utils.getRandomBytes(64),
 					},
 				];
 				assets = new BlockAssets(assetList);
@@ -207,16 +207,16 @@ describe('block assets', () => {
 			it('should pass when there is atmost 1 asset for a module', () => {
 				assetList = [
 					{
-						moduleID: intToBuffer(2, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(2, 4),
+						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: intToBuffer(3, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(3, 4),
+						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: intToBuffer(4, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(4, 4),
+						data: utils.getRandomBytes(64),
 					},
 				];
 				assets = new BlockAssets(assetList);
@@ -230,12 +230,12 @@ describe('block assets', () => {
 			it(`should throw error when data type is incorrect`, () => {
 				assetList = [
 					{
-						moduleID: intToBuffer(3, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(3, 4),
+						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: intToBuffer(4, 4),
-						data: getRandomBytes(128),
+						moduleID: utils.intToBuffer(4, 4),
+						data: utils.getRandomBytes(128),
 					},
 				];
 				assets = new BlockAssets(assetList);
@@ -248,12 +248,12 @@ describe('block assets', () => {
 			it(`should pass when asset data length is greater than ${MAX_ASSET_DATA_SIZE_BYTES}`, () => {
 				assetList = [
 					{
-						moduleID: intToBuffer(3, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(3, 4),
+						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: intToBuffer(4, 4),
-						data: getRandomBytes(128),
+						moduleID: utils.intToBuffer(4, 4),
+						data: utils.getRandomBytes(128),
 					},
 				];
 				assets = new BlockAssets(assetList);
@@ -263,12 +263,12 @@ describe('block assets', () => {
 			it(`should pass when asset data length is equal or less than ${MAX_ASSET_DATA_SIZE_BYTES}`, () => {
 				assetList = [
 					{
-						moduleID: intToBuffer(3, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(3, 4),
+						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: intToBuffer(4, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(4, 4),
+						data: utils.getRandomBytes(64),
 					},
 				];
 				assets = new BlockAssets(assetList);
@@ -280,12 +280,12 @@ describe('block assets', () => {
 			it('should throw error when assets are not sorted by moduleID', () => {
 				assetList = [
 					{
-						moduleID: intToBuffer(4, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(4, 4),
+						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: intToBuffer(3, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(3, 4),
+						data: utils.getRandomBytes(64),
 					},
 				];
 				assets = new BlockAssets(assetList);
@@ -297,12 +297,12 @@ describe('block assets', () => {
 			it('should pass when assets are sorted by moduleID', () => {
 				assetList = [
 					{
-						moduleID: intToBuffer(2, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(2, 4),
+						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: intToBuffer(3, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(3, 4),
+						data: utils.getRandomBytes(64),
 					},
 				];
 				assets = new BlockAssets(assetList);
@@ -314,16 +314,16 @@ describe('block assets', () => {
 			it('should throw error when there are more than 1 assets for a module', () => {
 				assetList = [
 					{
-						moduleID: intToBuffer(2, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(2, 4),
+						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: intToBuffer(3, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(3, 4),
+						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: intToBuffer(3, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(3, 4),
+						data: utils.getRandomBytes(64),
 					},
 				];
 				assets = new BlockAssets(assetList);
@@ -335,16 +335,16 @@ describe('block assets', () => {
 			it('should pass when there is atmost 1 asset for a module', () => {
 				assetList = [
 					{
-						moduleID: intToBuffer(2, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(2, 4),
+						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: intToBuffer(3, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(3, 4),
+						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: intToBuffer(4, 4),
-						data: getRandomBytes(64),
+						moduleID: utils.intToBuffer(4, 4),
+						data: utils.getRandomBytes(64),
 					},
 				];
 				assets = new BlockAssets(assetList);

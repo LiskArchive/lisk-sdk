@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { NotFoundError } from '@liskhq/lisk-chain';
-import { hash, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { SubStore } from '../../state_machine/types';
 import {
@@ -118,7 +118,7 @@ export abstract class BaseInteroperabilityStore {
 		) as SubStore;
 		const channel = await channelSubstore.getWithSchema<ChannelData>(chainID, channelSchema);
 		const updatedInbox = regularMerkleTree.calculateMerkleRoot({
-			value: hash(appendData),
+			value: utils.hash(appendData),
 			appendPath: channel.inbox.appendPath,
 			size: channel.inbox.size,
 		});
@@ -136,7 +136,7 @@ export abstract class BaseInteroperabilityStore {
 		) as SubStore;
 		const channel = await channelSubstore.getWithSchema<ChannelData>(chainID, channelSchema);
 		const updatedOutbox = regularMerkleTree.calculateMerkleRoot({
-			value: hash(appendData),
+			value: utils.hash(appendData),
 			appendPath: channel.outbox.appendPath,
 			size: channel.outbox.size,
 		});
@@ -373,7 +373,7 @@ export abstract class BaseInteroperabilityStore {
 	): Promise<boolean> {
 		const messageSent = await this.sendInternal({
 			moduleID: getIDAsKeyForStore(MODULE_ID_INTEROPERABILITY),
-			crossChainCommandID: intToBuffer(CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED, 4),
+			crossChainCommandID: utils.intToBuffer(CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED, 4),
 			receivingChainID: chainID,
 			fee: BigInt(0),
 			status: CCM_STATUS_OK,

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Block, BlockAssets } from '@liskhq/lisk-chain';
-import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { createBlock } from '../../../src/testing/create_block';
 
 import * as devnetConfig from '../../fixtures/config/devnet/config.json';

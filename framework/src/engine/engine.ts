@@ -13,7 +13,7 @@
  */
 import * as path from 'path';
 import { Chain, Block, BlockHeader, BlockAssets, TransactionJSON } from '@liskhq/lisk-chain';
-import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { Database } from '@liskhq/lisk-db';
 import { createLogger, Logger } from '../logger';
 import { Network } from './network';
@@ -182,7 +182,7 @@ export class Engine {
 		);
 		this._nodeDB = new Database(path.join(this._config.system.dataPath, 'data', 'node.db'));
 
-		this._networkIdentifier = getNetworkIdentifier(
+		this._networkIdentifier = utils.getNetworkIdentifier(
 			genesis.header.id,
 			this._config.genesis.communityIdentifier,
 		);

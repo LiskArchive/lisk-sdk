@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
@@ -33,7 +33,7 @@ import {
 } from './schemas';
 
 export class ValidatorsModule extends BaseModule {
-	public id = intToBuffer(MODULE_ID_VALIDATORS, 4);
+	public id = utils.intToBuffer(MODULE_ID_VALIDATORS, 4);
 	public name = 'validators';
 	public api = new ValidatorsAPI(this.id);
 	public endpoint = new ValidatorsEndpoint(this.id);

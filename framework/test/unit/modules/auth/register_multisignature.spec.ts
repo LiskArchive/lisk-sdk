@@ -66,8 +66,8 @@ describe('Register Multisignature command', () => {
 		it('should return error if params has numberOfSignatures > 64', async () => {
 			const params = codec.encode(registerMultisignatureParamsSchema, {
 				numberOfSignatures: 100,
-				mandatoryKeys: [getRandomBytes(32)],
-				optionalKeys: [getRandomBytes(32)],
+				mandatoryKeys: [utils.getRandomBytes(32)],
+				optionalKeys: [utils.getRandomBytes(32)],
 			});
 			const context = testing
 				.createTransactionContext({
@@ -85,8 +85,8 @@ describe('Register Multisignature command', () => {
 		it('should return error if params has numberOfSignatures < 1', async () => {
 			const params = codec.encode(registerMultisignatureParamsSchema, {
 				numberOfSignatures: 0,
-				mandatoryKeys: [getRandomBytes(32)],
-				optionalKeys: [getRandomBytes(32)],
+				mandatoryKeys: [utils.getRandomBytes(32)],
+				optionalKeys: [utils.getRandomBytes(32)],
 			});
 			const context = testing
 				.createTransactionContext({
@@ -104,7 +104,7 @@ describe('Register Multisignature command', () => {
 		it('should return error if params has more than 64 mandatory keys', async () => {
 			const params = codec.encode(registerMultisignatureParamsSchema, {
 				numberOfSignatures: 2,
-				mandatoryKeys: [...Array(65).keys()].map(() => getRandomBytes(32)),
+				mandatoryKeys: [...Array(65).keys()].map(() => utils.getRandomBytes(32)),
 				optionalKeys: [],
 			});
 			const context = testing
@@ -123,7 +123,7 @@ describe('Register Multisignature command', () => {
 		it('should return error if params mandatory keys contains items with length bigger than 32', async () => {
 			const params = codec.encode(registerMultisignatureParamsSchema, {
 				numberOfSignatures: 3,
-				mandatoryKeys: [getRandomBytes(32), getRandomBytes(64)],
+				mandatoryKeys: [utils.getRandomBytes(32), utils.getRandomBytes(64)],
 				optionalKeys: [],
 			});
 			const context = testing
@@ -142,8 +142,8 @@ describe('Register Multisignature command', () => {
 		it('should return error if params mandatory keys contains items with length smaller than 32', async () => {
 			const params = codec.encode(registerMultisignatureParamsSchema, {
 				numberOfSignatures: 3,
-				mandatoryKeys: [getRandomBytes(10), getRandomBytes(32)],
-				optionalKeys: [getRandomBytes(10), getRandomBytes(32)],
+				mandatoryKeys: [utils.getRandomBytes(10), utils.getRandomBytes(32)],
+				optionalKeys: [utils.getRandomBytes(10), utils.getRandomBytes(32)],
 			});
 			const context = testing
 				.createTransactionContext({
@@ -161,7 +161,7 @@ describe('Register Multisignature command', () => {
 			const params = codec.encode(registerMultisignatureParamsSchema, {
 				numberOfSignatures: 2,
 				mandatoryKeys: [],
-				optionalKeys: [...Array(1).keys()].map(() => getRandomBytes(64)),
+				optionalKeys: [...Array(1).keys()].map(() => utils.getRandomBytes(64)),
 			});
 			const context = testing
 				.createTransactionContext({
@@ -179,7 +179,7 @@ describe('Register Multisignature command', () => {
 			const params = codec.encode(registerMultisignatureParamsSchema, {
 				numberOfSignatures: 2,
 				mandatoryKeys: [],
-				optionalKeys: [...Array(1).keys()].map(() => getRandomBytes(31)),
+				optionalKeys: [...Array(1).keys()].map(() => utils.getRandomBytes(31)),
 			});
 			const context = testing
 				.createTransactionContext({
@@ -197,7 +197,7 @@ describe('Register Multisignature command', () => {
 			const params = codec.encode(registerMultisignatureParamsSchema, {
 				numberOfSignatures: 2,
 				mandatoryKeys: [],
-				optionalKeys: [...Array(65).keys()].map(() => getRandomBytes(32)),
+				optionalKeys: [...Array(65).keys()].map(() => utils.getRandomBytes(32)),
 			});
 			const context = testing
 				.createTransactionContext({
@@ -358,8 +358,8 @@ describe('Register Multisignature command', () => {
 		it('should return error when the number of optional and mandatory keys is more than 64', async () => {
 			const params = codec.encode(registerMultisignatureParamsSchema, {
 				numberOfSignatures: 2,
-				optionalKeys: [...Array(65).keys()].map(() => getRandomBytes(32)),
-				mandatoryKeys: [...Array(65).keys()].map(() => getRandomBytes(32)),
+				optionalKeys: [...Array(65).keys()].map(() => utils.getRandomBytes(32)),
+				mandatoryKeys: [...Array(65).keys()].map(() => utils.getRandomBytes(32)),
 			});
 			const context = testing
 				.createTransactionContext({

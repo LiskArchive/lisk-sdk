@@ -63,10 +63,10 @@ describe('AuthEndpoint', () => {
 
 	// Existing is an abbr. for existing account
 	const existingSenderPublicKey = accounts.targetAccount.publicKey as Buffer;
-	const nonExistingSenderPublicKey = getRandomBytes(32);
+	const nonExistingSenderPublicKey = utils.getRandomBytes(32);
 
 	const existingAddress = accounts.targetAccount.address as Buffer;
-	const nonExistingAddress = getAddressFromPublicKey(nonExistingSenderPublicKey);
+	const nonExistingAddress = address.getAddressFromPublicKey(nonExistingSenderPublicKey);
 
 	const existingPassphrase = accounts.targetAccount.passphrase;
 
@@ -88,8 +88,8 @@ describe('AuthEndpoint', () => {
 			});
 
 			const expectedAuthAccount = {
-				mandatoryKeys: [getRandomBytes(64)],
-				optionalKeys: [getRandomBytes(64)],
+				mandatoryKeys: [utils.getRandomBytes(64)],
+				optionalKeys: [utils.getRandomBytes(64)],
 				nonce: BigInt(2),
 				numberOfSignatures: 1,
 			};
@@ -151,12 +151,12 @@ describe('AuthEndpoint', () => {
 		it('should verify the transaction with single signature', async () => {
 			// Arrange
 			const transaction = new Transaction({
-				moduleID: intToBuffer(2, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(2, 4),
+				commandID: utils.intToBuffer(0, 4),
 				nonce: BigInt('0'),
 				fee: BigInt('100000000'),
 				senderPublicKey: existingSenderPublicKey,
-				params: getRandomBytes(100),
+				params: utils.getRandomBytes(100),
 				signatures: [],
 			});
 
@@ -197,12 +197,12 @@ describe('AuthEndpoint', () => {
 		it('should verify the transaction with multi-signature', async () => {
 			// Arrange
 			const transaction = new Transaction({
-				moduleID: intToBuffer(2, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(2, 4),
+				commandID: utils.intToBuffer(0, 4),
 				nonce: BigInt('0'),
 				fee: BigInt('100000000'),
 				senderPublicKey: existingSenderPublicKey,
-				params: getRandomBytes(100),
+				params: utils.getRandomBytes(100),
 				signatures: [],
 			});
 
@@ -268,8 +268,8 @@ describe('AuthEndpoint', () => {
 			});
 
 			const transaction = new Transaction({
-				moduleID: intToBuffer(12, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(12, 4),
+				commandID: utils.intToBuffer(0, 4),
 				nonce: BigInt('0'),
 				fee: BigInt('100000000'),
 				senderPublicKey: existingSenderPublicKey,
@@ -352,13 +352,13 @@ describe('AuthEndpoint', () => {
 		it('should verify equal transaction nonce and account nonce', async () => {
 			// Arrange
 			const transaction = new Transaction({
-				moduleID: intToBuffer(2, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(2, 4),
+				commandID: utils.intToBuffer(0, 4),
 				nonce: BigInt('2'),
 				fee: BigInt('100000000'),
 				senderPublicKey: existingSenderPublicKey,
-				params: getRandomBytes(100),
-				signatures: [getRandomBytes(64)],
+				params: utils.getRandomBytes(100),
+				signatures: [utils.getRandomBytes(64)],
 			});
 
 			const transactionAsString = transaction.getBytes().toString('hex');
@@ -387,13 +387,13 @@ describe('AuthEndpoint', () => {
 		it('should fail to verify greater transaction nonce than account nonce', async () => {
 			// Arrange
 			const transaction = new Transaction({
-				moduleID: intToBuffer(2, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(2, 4),
+				commandID: utils.intToBuffer(0, 4),
 				nonce: BigInt('3'),
 				fee: BigInt('100000000'),
 				senderPublicKey: existingSenderPublicKey,
-				params: getRandomBytes(100),
-				signatures: [getRandomBytes(64)],
+				params: utils.getRandomBytes(100),
+				signatures: [utils.getRandomBytes(64)],
 			});
 
 			const transactionAsString = transaction.getBytes().toString('hex');
@@ -424,13 +424,13 @@ describe('AuthEndpoint', () => {
 			const accountNonce = BigInt(2);
 
 			const transaction = new Transaction({
-				moduleID: intToBuffer(2, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(2, 4),
+				commandID: utils.intToBuffer(0, 4),
 				nonce: BigInt('1'),
 				fee: BigInt('100000000'),
 				senderPublicKey: existingSenderPublicKey,
-				params: getRandomBytes(100),
-				signatures: [getRandomBytes(64)],
+				params: utils.getRandomBytes(100),
+				signatures: [utils.getRandomBytes(64)],
 			});
 
 			const transactionAsString = transaction.getBytes().toString('hex');

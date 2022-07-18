@@ -86,6 +86,6 @@ describe('getBlockProcessingEnv', () => {
 
 		// Act & Assert
 		const block = await processEnv.createBlock();
-		expect(block.header.generatorAddress).toEqual(getAddressFromPublicKey(publicKey));
+		expect(block.header.generatorAddress).toEqual(address.getAddressFromPublicKey(publicKey));
 	});
 });

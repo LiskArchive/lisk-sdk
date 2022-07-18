@@ -11,8 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { getLisk32AddressFromPublicKey } from '@liskhq/lisk-cryptography';
-import { BasePlugin, PluginInitContext } from 'lisk-sdk';
+import { BasePlugin, PluginInitContext, cryptography } from 'lisk-sdk';
 import * as express from 'express';
 import { join } from 'path';
 import { Server } from 'http';
@@ -48,7 +47,7 @@ export class FaucetPlugin extends BasePlugin<FaucetPluginConfig> {
 				captchaSitekey: this.config.captchaSitekey,
 				logoURL: this.config.logoURL,
 				faucetAddress: this._state.publicKey
-					? getLisk32AddressFromPublicKey(this._state.publicKey)
+					? cryptography.address.getLisk32AddressFromPublicKey(this._state.publicKey)
 					: undefined,
 			};
 			res.json(config);

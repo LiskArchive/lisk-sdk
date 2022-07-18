@@ -56,7 +56,7 @@ describe('nacl index.js', () => {
 			// Act
 			// eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
 			const nacl = require('../../src/nacl');
-			nacl.getRandomBytes(8);
+			nacl.utils.getRandomBytes(8);
 			// Assert
 			expect(sodiumMock).toHaveBeenCalledTimes(1);
 		});
@@ -66,7 +66,7 @@ describe('nacl index.js', () => {
 			process.env.NACL_FAST = 'disable';
 			// eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
 			const nacl = require('../../src/nacl');
-			nacl.getRandomBytes(8);
+			nacl.utils.getRandomBytes(8);
 			// Assert
 			expect(tweetMock).toHaveBeenCalledTimes(1);
 		});
@@ -77,7 +77,7 @@ describe('nacl index.js', () => {
 			// Act
 			// eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
 			const nacl = require('../../src/nacl');
-			nacl.getRandomBytes(8);
+			nacl.utils.getRandomBytes(8);
 			// Assert
 			expect(sodiumMock).toHaveBeenCalledTimes(1);
 		});
@@ -103,7 +103,7 @@ describe('nacl index.js', () => {
 			// Act
 			// eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
 			const nacl = require('../../src/nacl');
-			nacl.getRandomBytes(8);
+			nacl.utils.getRandomBytes(8);
 			// Assert
 			expect(tweetMock).toHaveBeenCalledTimes(1);
 		});

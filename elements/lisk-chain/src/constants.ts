@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { createMessageTag, hash } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 
 export const DEFAULT_KEEP_EVENTS_FOR_HEIGHTS = 300;
 export const DEFAULT_MIN_BLOCK_HEADER_CACHE = 309;
 export const DEFAULT_MAX_BLOCK_HEADER_CACHE = 515;
 
 export const EMPTY_BUFFER = Buffer.alloc(0);
-export const EMPTY_HASH = hash(EMPTY_BUFFER);
+export const EMPTY_HASH = utils.hash(EMPTY_BUFFER);
 export const MAX_UINT32 = 4294967295;
 
 export const GENESIS_BLOCK_VERSION = 0;
@@ -28,8 +28,8 @@ export const GENESIS_BLOCK_REWARD = BigInt(0);
 export const GENESIS_BLOCK_SIGNATURE = EMPTY_BUFFER;
 export const GENESIS_BLOCK_TRANSACTION_ROOT = EMPTY_HASH;
 
-export const TAG_BLOCK_HEADER = createMessageTag('BH');
-export const TAG_TRANSACTION = createMessageTag('TX');
+export const TAG_BLOCK_HEADER = utils.createMessageTag('BH');
+export const TAG_TRANSACTION = utils.createMessageTag('TX');
 
 // TODO: Actual size TBD
 export const MAX_ASSET_DATA_SIZE_BYTES = 64;

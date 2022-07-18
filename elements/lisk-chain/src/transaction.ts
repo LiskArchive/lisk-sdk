@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { hash, getAddressFromPublicKey, signDataWithPrivateKey } from '@liskhq/lisk-cryptography';
+import { utils, address, ed } from '@liskhq/lisk-cryptography';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { TAG_TRANSACTION } from './constants';
 import { JSONObject } from './types';
@@ -117,14 +117,14 @@ export class Transaction {
 
 	public get id(): Buffer {
 		if (!this._id) {
-			this._id = hash(this.getBytes());
+			this._id = utils.hash(this.getBytes());
 		}
 		return this._id;
 	}
 
 	public get senderAddress(): Buffer {
 		if (!this._senderAddress) {
-			this._senderAddress = getAddressFromPublicKey(this.senderPublicKey);
+			this._senderAddress = address.getAddressFromPublicKey(this.senderPublicKey);
 		}
 		return this._senderAddress;
 	}
@@ -145,7 +145,7 @@ export class Transaction {
 	}
 
 	public sign(networkIdentifier: Buffer, privateKey: Buffer): void {
-		const signature = signDataWithPrivateKey(
+		const signature = ed.signDataWithPrivateKey(
 			TAG_TRANSACTION,
 			networkIdentifier,
 			this.getSigningBytes(),

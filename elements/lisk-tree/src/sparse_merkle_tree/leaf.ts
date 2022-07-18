@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { leafData } from './utils';
 
 export class Leaf {
@@ -25,7 +25,7 @@ export class Leaf {
 		this._key = key;
 		this._value = value;
 		this._data = leafData(this._key, this._value);
-		this._hash = hash(this._data);
+		this._hash = utils.hash(this._data);
 	}
 
 	public get hash() {
@@ -44,6 +44,6 @@ export class Leaf {
 	public update(newValue: Buffer) {
 		this._value = newValue;
 		this._data = leafData(this._key, this._value);
-		this._hash = hash(this._data);
+		this._hash = utils.hash(this._data);
 	}
 }

@@ -13,7 +13,7 @@
  */
 
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { SEED_REVEAL_HASH_SIZE } from './constants';
 import { ValidatorSeedReveal } from './types';
 
@@ -35,7 +35,9 @@ export const isSeedValidInput = (
 	if (!lastSeed) {
 		return false;
 	}
-	return lastSeed.seedReveal.equals(cryptography.hash(seedReveal).slice(0, SEED_REVEAL_HASH_SIZE));
+	return lastSeed.seedReveal.equals(
+		cryptography.utils.hash(seedReveal).slice(0, SEED_REVEAL_HASH_SIZE),
+	);
 };
 
 export const getSeedRevealValidity = (
@@ -58,7 +60,7 @@ export const getSeedRevealValidity = (
 
 	if (
 		!lastSeed ||
-		lastSeed.seedReveal.equals(cryptography.hash(seedReveal).slice(0, SEED_REVEAL_HASH_SIZE))
+		lastSeed.seedReveal.equals(cryptography.utils.hash(seedReveal).slice(0, SEED_REVEAL_HASH_SIZE))
 	) {
 		return true;
 	}
@@ -74,8 +76,8 @@ export const getRandomSeed = (
 	if (height < 0 || numberOfSeeds < 0) {
 		throw new Error('Height or number of seeds cannot be negative.');
 	}
-	const initRandomBuffer = intToBuffer(height + numberOfSeeds, 4);
-	let randomSeed = cryptography.hash(initRandomBuffer).slice(0, 16);
+	const initRandomBuffer = utils.intToBuffer(height + numberOfSeeds, 4);
+	let randomSeed = cryptography.utils.hash(initRandomBuffer).slice(0, 16);
 	const currentSeeds = validatorsReveal.filter(
 		v => height <= v.height && v.height <= height + numberOfSeeds,
 	);

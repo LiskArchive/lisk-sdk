@@ -97,12 +97,12 @@ describe('RandomModule', () => {
 				{
 					count: 5,
 					height: 9,
-					address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'hex')),
+					address: address.getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'hex')),
 				},
 				{
 					count: 6,
 					height: 12,
-					address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'hex')),
+					address: address.getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'hex')),
 				},
 			],
 		};
@@ -110,17 +110,17 @@ describe('RandomModule', () => {
 		const defaultUsedHashOnionUpdated: UsedHashOnionStoreObject = {
 			usedHashOnions: [
 				{
-					address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'hex')),
+					address: address.getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'hex')),
 					count: 5,
 					height: 9,
 				},
 				{
-					address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'hex')),
+					address: address.getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'hex')),
 					count: 6,
 					height: 12,
 				},
 				{
-					address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'hex')),
+					address: address.getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'hex')),
 					count: 7,
 					height: 15,
 				},
@@ -214,15 +214,15 @@ describe('RandomModule', () => {
 					{
 						count: 5,
 						height: 9,
-						address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'hex')),
+						address: address.getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'hex')),
 					},
 					{
 						count: 6,
 						height: 12,
-						address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'hex')),
+						address: address.getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'hex')),
 					},
 					{
-						address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'hex')),
+						address: address.getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'hex')),
 						count: 7,
 						height: 15,
 					},
@@ -327,7 +327,7 @@ describe('RandomModule', () => {
 					{
 						count: maxCount,
 						height: 10,
-						address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'hex')),
+						address: address.getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'hex')),
 					},
 				],
 			};
@@ -335,12 +335,12 @@ describe('RandomModule', () => {
 			const usedHashOnionOutput: UsedHashOnionStoreObject = {
 				usedHashOnions: [
 					{
-						address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'hex')),
+						address: address.getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'hex')),
 						count: maxCount,
 						height: 10,
 					},
 					{
-						address: getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'hex')),
+						address: address.getAddressFromPublicKey(Buffer.from(targetDelegate.publicKey, 'hex')),
 						count: 0,
 						height: 15,
 					},
@@ -467,7 +467,7 @@ describe('RandomModule', () => {
 		it('should reject if seed reveal length is not 16 bytes', async () => {
 			const asset = {
 				moduleID: randomModule.id,
-				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: getRandomBytes(10) }),
+				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: utils.getRandomBytes(10) }),
 			};
 			const context = createBlockContext({
 				assets: new BlockAssets([asset]),
@@ -481,7 +481,7 @@ describe('RandomModule', () => {
 		it('should resolve if seed reveal length is 16 bytes', async () => {
 			const asset = {
 				moduleID: randomModule.id,
-				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: getRandomBytes(16) }),
+				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: utils.getRandomBytes(16) }),
 			};
 			const context = createBlockContext({
 				assets: new BlockAssets([asset]),
@@ -493,16 +493,16 @@ describe('RandomModule', () => {
 
 	describe('afterTransactionsExecute', () => {
 		let stateStore: PrefixedStateReadWriter;
-		const generator1 = getRandomBytes(20);
-		const seed1 = getRandomBytes(16);
-		const generator2 = getRandomBytes(20);
-		const seed2 = getRandomBytes(16);
-		const generator3 = getRandomBytes(20);
-		const seed3 = getRandomBytes(16);
+		const generator1 = utils.getRandomBytes(20);
+		const seed1 = utils.getRandomBytes(16);
+		const generator2 = utils.getRandomBytes(20);
+		const seed2 = utils.getRandomBytes(16);
+		const generator3 = utils.getRandomBytes(20);
+		const seed3 = utils.getRandomBytes(16);
 		const seedHash = (seed: Buffer, times: number) => {
 			let res = seed;
 			for (let i = 0; i < times; i += 1) {
-				res = hash(res).slice(0, 16);
+				res = utils.hash(res).slice(0, 16);
 			}
 			return res;
 		};
@@ -676,7 +676,7 @@ describe('RandomModule', () => {
 		});
 
 		it('should set seed reveal validity to be false if validator provides invalid seed reveal', async () => {
-			const seedReveal = seedHash(getRandomBytes(20), 1);
+			const seedReveal = seedHash(utils.getRandomBytes(20), 1);
 			const asset = {
 				moduleID: randomModule.id,
 				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal }),
@@ -704,12 +704,12 @@ describe('RandomModule', () => {
 		});
 
 		it('should set seed reveal validity to be false if there is no data for the past seed reveal', async () => {
-			const seedReveal = seedHash(getRandomBytes(20), 1);
+			const seedReveal = seedHash(utils.getRandomBytes(20), 1);
 			const asset = {
 				moduleID: randomModule.id,
 				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal }),
 			};
-			const generator = getRandomBytes(20);
+			const generator = utils.getRandomBytes(20);
 			const context = createBlockContext({
 				assets: new BlockAssets([asset]),
 				header: createBlockHeaderWithDefaults({ height: 6, generatorAddress: generator }),

@@ -31,16 +31,18 @@ export const encryptPassphrase = async (
 	password: string,
 	outputPublicKey: boolean,
 ): Promise<Record<string, unknown>> => {
-	const encryptedPassphraseObject = await cryptography.encryptPassphraseWithPassword(
+	const encryptedPassphraseObject = await cryptography.encrypt.encryptPassphraseWithPassword(
 		passphrase,
 		password,
 	);
-	const encryptedPassphrase = cryptography.stringifyEncryptedPassphrase(encryptedPassphraseObject);
+	const encryptedPassphrase = cryptography.encrypt.stringifyEncryptedPassphrase(
+		encryptedPassphraseObject,
+	);
 
 	return outputPublicKey
 		? {
 				encryptedPassphrase,
-				publicKey: cryptography.getKeys(passphrase).publicKey.toString('hex'),
+				publicKey: cryptography.address.getKeys(passphrase).publicKey.toString('hex'),
 		  }
 		: { encryptedPassphrase };
 };

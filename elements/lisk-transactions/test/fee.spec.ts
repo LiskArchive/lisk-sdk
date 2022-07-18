@@ -44,8 +44,8 @@ describe('fee', () => {
 	const passphrase1 = 'trim elegant oven term access apple obtain error grain excite lawn neck';
 	const { publicKey: publicKey1 } = getAddressAndPublicKeyFromPassphrase(passphrase1);
 	const validTransaction = {
-		moduleID: intToBuffer(2, 4),
-		commandID: intToBuffer(0, 4),
+		moduleID: utils.intToBuffer(2, 4),
+		commandID: utils.intToBuffer(0, 4),
 		nonce: BigInt('1'),
 		senderPublicKey: publicKey1,
 		params: {
@@ -56,18 +56,18 @@ describe('fee', () => {
 	};
 	const baseFees = [
 		{
-			moduleID: intToBuffer(2, 4),
-			commandID: intToBuffer(0, 4),
+			moduleID: utils.intToBuffer(2, 4),
+			commandID: utils.intToBuffer(0, 4),
 			baseFee: '10000000',
 		},
 		{
-			moduleID: intToBuffer(5, 4),
-			commandID: intToBuffer(0, 4),
+			moduleID: utils.intToBuffer(5, 4),
+			commandID: utils.intToBuffer(0, 4),
 			baseFee: '1',
 		},
 		{
-			moduleID: intToBuffer(3, 4),
-			commandID: intToBuffer(0, 4),
+			moduleID: utils.intToBuffer(3, 4),
+			commandID: utils.intToBuffer(0, 4),
 			baseFee: '1',
 		},
 	];
@@ -131,8 +131,8 @@ describe('fee', () => {
 			// Arrange
 			const delegateRegisterTransaction = {
 				...validTransaction,
-				moduleID: intToBuffer(5, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(5, 4),
+				commandID: utils.intToBuffer(0, 4),
 				params: { username: 'delegate1' },
 			};
 			const options = { minFeePerByte: 1000, baseFees, numberOfSignatures: 1 };

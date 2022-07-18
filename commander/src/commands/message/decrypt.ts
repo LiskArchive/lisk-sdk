@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { decryptMessageWithPassphrase } from '@liskhq/lisk-cryptography';
+import { encrypt } from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../base';
@@ -37,7 +37,7 @@ const processInputs = (
 		throw new ValidationError('No message was provided.');
 	}
 
-	return decryptMessageWithPassphrase(
+	return encrypt.decryptMessageWithPassphrase(
 		message,
 		nonce,
 		passphrase,

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { signDataWithPrivateKey, hash, verifyData } from '@liskhq/lisk-cryptography';
+import { ed, utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { EMPTY_BUFFER, EMPTY_HASH, SIGNATURE_LENGTH_BYTES, TAG_BLOCK_HEADER } from './constants';
@@ -287,7 +287,7 @@ export class BlockHeader {
 
 	public validateSignature(publicKey: Buffer, networkIdentifier: Buffer): void {
 		const signingBytes = this.getSigningBytes();
-		const valid = verifyData(
+		const valid = ed.verifyData(
 			TAG_BLOCK_HEADER,
 			networkIdentifier,
 			signingBytes,
@@ -307,7 +307,7 @@ export class BlockHeader {
 	}
 
 	public sign(networkIdentifier: Buffer, privateKey: Buffer): void {
-		this._signature = signDataWithPrivateKey(
+		this._signature = ed.signDataWithPrivateKey(
 			TAG_BLOCK_HEADER,
 			networkIdentifier,
 			this.getSigningBytes(),
@@ -334,7 +334,7 @@ export class BlockHeader {
 				signature: this._signature,
 			});
 
-			this._id = hash(blockHeaderBytes);
+			this._id = utils.hash(blockHeaderBytes);
 		}
 
 		return this._id;

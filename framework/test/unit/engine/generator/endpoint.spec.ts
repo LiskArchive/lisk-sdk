@@ -89,7 +89,7 @@ describe('generator endpoint', () => {
 				endpoint.updateStatus({
 					logger,
 					params: {
-						address: getRandomBytes(20).toString('hex'),
+						address: utils.getRandomBytes(20).toString('hex'),
 						enable: true,
 						password: defaultPassword,
 						overwrite: true,

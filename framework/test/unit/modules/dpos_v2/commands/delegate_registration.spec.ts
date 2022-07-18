@@ -45,9 +45,9 @@ describe('Delegate registration command', () => {
 
 	const transactionParams = {
 		name: 'gojosatoru',
-		generatorKey: getRandomBytes(32),
-		blsKey: getRandomBytes(48),
-		proofOfPossession: getRandomBytes(96),
+		generatorKey: utils.getRandomBytes(32),
+		blsKey: utils.getRandomBytes(48),
+		proofOfPossession: utils.getRandomBytes(96),
 	};
 	const defaultDelegateInfo = {
 		name: transactionParams.name,
@@ -62,10 +62,10 @@ describe('Delegate registration command', () => {
 		delegateRegistrationCommandParamsSchema,
 		transactionParams,
 	);
-	const publicKey = getRandomBytes(32);
+	const publicKey = utils.getRandomBytes(32);
 	const transaction = new Transaction({
 		moduleID: MODULE_ID_DPOS_BUFFER,
-		commandID: intToBuffer(COMMAND_ID_DELEGATE_REGISTRATION, 4),
+		commandID: utils.intToBuffer(COMMAND_ID_DELEGATE_REGISTRATION, 4),
 		senderPublicKey: publicKey,
 		nonce: BigInt(0),
 		fee: BigInt(100000000),
@@ -113,7 +113,7 @@ describe('Delegate registration command', () => {
 			});
 			const invalidTransaction = new Transaction({
 				moduleID: MODULE_ID_DPOS_BUFFER,
-				commandID: intToBuffer(COMMAND_ID_DELEGATE_REGISTRATION, 4),
+				commandID: utils.intToBuffer(COMMAND_ID_DELEGATE_REGISTRATION, 4),
 				senderPublicKey: publicKey,
 				nonce: BigInt(0),
 				fee: BigInt(100000000),
@@ -137,11 +137,11 @@ describe('Delegate registration command', () => {
 		it('should return error if generatorKey is invalid', async () => {
 			const invalidParams = codec.encode(delegateRegistrationCommandParamsSchema, {
 				...transactionParams,
-				generatorKey: getRandomBytes(64),
+				generatorKey: utils.getRandomBytes(64),
 			});
 			const invalidTransaction = new Transaction({
 				moduleID: MODULE_ID_DPOS_BUFFER,
-				commandID: intToBuffer(COMMAND_ID_DELEGATE_REGISTRATION, 4),
+				commandID: utils.intToBuffer(COMMAND_ID_DELEGATE_REGISTRATION, 4),
 				senderPublicKey: publicKey,
 				nonce: BigInt(0),
 				fee: BigInt(100000000),
@@ -165,11 +165,11 @@ describe('Delegate registration command', () => {
 		it('should return error if blsKey is invalid', async () => {
 			const invalidParams = codec.encode(delegateRegistrationCommandParamsSchema, {
 				...transactionParams,
-				blsKey: getRandomBytes(64),
+				blsKey: utils.getRandomBytes(64),
 			});
 			const invalidTransaction = new Transaction({
 				moduleID: MODULE_ID_DPOS_BUFFER,
-				commandID: intToBuffer(COMMAND_ID_DELEGATE_REGISTRATION, 4),
+				commandID: utils.intToBuffer(COMMAND_ID_DELEGATE_REGISTRATION, 4),
 				senderPublicKey: publicKey,
 				nonce: BigInt(0),
 				fee: BigInt(100000000),
@@ -193,11 +193,11 @@ describe('Delegate registration command', () => {
 		it('should return error if proofOfPossession is invalid', async () => {
 			const invalidParams = codec.encode(delegateRegistrationCommandParamsSchema, {
 				...transactionParams,
-				proofOfPossession: getRandomBytes(64),
+				proofOfPossession: utils.getRandomBytes(64),
 			});
 			const invalidTransaction = new Transaction({
 				moduleID: MODULE_ID_DPOS_BUFFER,
-				commandID: intToBuffer(COMMAND_ID_DELEGATE_REGISTRATION, 4),
+				commandID: utils.intToBuffer(COMMAND_ID_DELEGATE_REGISTRATION, 4),
 				senderPublicKey: publicKey,
 				nonce: BigInt(0),
 				fee: BigInt(100000000),

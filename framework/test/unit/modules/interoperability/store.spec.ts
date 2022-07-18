@@ -56,10 +56,10 @@ describe('Base interoperability store', () => {
 	);
 	const CCM = {
 		nonce: BigInt(0),
-		moduleID: intToBuffer(1, 4),
-		crossChainCommandID: intToBuffer(1, 4),
-		sendingChainID: intToBuffer(2, 4),
-		receivingChainID: intToBuffer(3, 4),
+		moduleID: utils.intToBuffer(1, 4),
+		crossChainCommandID: utils.intToBuffer(1, 4),
+		sendingChainID: utils.intToBuffer(2, 4),
+		receivingChainID: utils.intToBuffer(3, 4),
 		fee: BigInt(1),
 		status: 1,
 		params: Buffer.alloc(0),
@@ -101,8 +101,8 @@ describe('Base interoperability store', () => {
 		outbox: outboxTree,
 		partnerChainOutboxRoot: Buffer.alloc(0),
 		messageFeeTokenID: {
-			chainID: intToBuffer(0, 4),
-			localID: intToBuffer(0, 4),
+			chainID: utils.intToBuffer(0, 4),
+			localID: utils.intToBuffer(0, 4),
 		},
 	};
 	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
@@ -226,7 +226,7 @@ describe('Base interoperability store', () => {
 	});
 
 	describe('createTerminatedStateAccount', () => {
-		const chainId = intToBuffer(5, 4);
+		const chainId = utils.intToBuffer(5, 4);
 		const chainAccount = {
 			name: 'account1',
 			networkID: Buffer.alloc(0),
@@ -247,7 +247,7 @@ describe('Base interoperability store', () => {
 
 		const ownChainAccount2 = {
 			name: 'chain1',
-			id: intToBuffer(7, 4),
+			id: utils.intToBuffer(7, 4),
 			nonce: BigInt('0'),
 		};
 
@@ -278,7 +278,7 @@ describe('Base interoperability store', () => {
 		});
 
 		it('should return false if chain account does not exist for the id and ownchain account id is not the same as mainchain id', async () => {
-			const chainIdNew = intToBuffer(9, 4);
+			const chainIdNew = utils.intToBuffer(9, 4);
 			jest
 				.spyOn(mainchainInteroperabilityStore, 'getOwnChainAccount')
 				.mockResolvedValue(ownChainAccount1 as never);
@@ -289,7 +289,7 @@ describe('Base interoperability store', () => {
 		});
 
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account does not exist for the id but ownchain account id is the same as mainchain id', async () => {
-			const chainIdNew = intToBuffer(10, 4);
+			const chainIdNew = utils.intToBuffer(10, 4);
 			jest
 				.spyOn(mainchainInteroperabilityStore, 'getOwnChainAccount')
 				.mockResolvedValue(ownChainAccount2 as never);
@@ -311,20 +311,20 @@ describe('Base interoperability store', () => {
 	});
 
 	describe('terminateChainInternal', () => {
-		const SIDECHAIN_ID = intToBuffer(2, 4);
+		const SIDECHAIN_ID = utils.intToBuffer(2, 4);
 		const ccm = {
 			nonce: BigInt(0),
-			moduleID: intToBuffer(1, 4),
-			crossChainCommandID: intToBuffer(1, 4),
-			sendingChainID: intToBuffer(2, 4),
-			receivingChainID: intToBuffer(3, 4),
+			moduleID: utils.intToBuffer(1, 4),
+			crossChainCommandID: utils.intToBuffer(1, 4),
+			sendingChainID: utils.intToBuffer(2, 4),
+			receivingChainID: utils.intToBuffer(3, 4),
 			fee: BigInt(1),
 			status: 1,
 			params: Buffer.alloc(0),
 		};
 		const beforeSendCCMContext = testing.createBeforeSendCCMsgAPIContext({
 			ccm,
-			feeAddress: getRandomBytes(32),
+			feeAddress: utils.getRandomBytes(32),
 		});
 
 		beforeEach(() => {
@@ -375,10 +375,10 @@ describe('Base interoperability store', () => {
 
 		const ccm = {
 			nonce: BigInt(0),
-			moduleID: intToBuffer(1, 4),
-			crossChainCommandID: intToBuffer(1, 4),
-			sendingChainID: intToBuffer(2, 4),
-			receivingChainID: intToBuffer(3, 4),
+			moduleID: utils.intToBuffer(1, 4),
+			crossChainCommandID: utils.intToBuffer(1, 4),
+			sendingChainID: utils.intToBuffer(2, 4),
+			receivingChainID: utils.intToBuffer(3, 4),
 			fee: BigInt(34000),
 			status: 0,
 			params: Buffer.alloc(0),
@@ -423,12 +423,12 @@ describe('Base interoperability store', () => {
 			certificate: Buffer.alloc(0),
 			inboxUpdate,
 			newCertificateThreshold: BigInt(0),
-			sendingChainID: intToBuffer(2, 4),
+			sendingChainID: utils.intToBuffer(2, 4),
 		};
 
 		const beforeSendCCMContext = testing.createBeforeSendCCMsgAPIContext({
 			ccm,
-			feeAddress: getRandomBytes(32),
+			feeAddress: utils.getRandomBytes(32),
 		});
 
 		const beforeApplyCCMContext = testing.createBeforeApplyCCMsgAPIContext({
@@ -436,7 +436,7 @@ describe('Base interoperability store', () => {
 			ccm,
 			ccu,
 			payFromAddress: EMPTY_FEE_ADDRESS,
-			trsSender: getRandomBytes(20),
+			trsSender: utils.getRandomBytes(20),
 		});
 
 		const ccmApplyContext: CCMApplyContext = {
@@ -499,7 +499,7 @@ describe('Base interoperability store', () => {
 			// Arrange
 			const localCCCommandsMap = new Map().set(4, [
 				{
-					ID: intToBuffer(4, 4),
+					ID: utils.intToBuffer(4, 4),
 					execute: jest.fn(),
 				},
 			]);
@@ -529,7 +529,7 @@ describe('Base interoperability store', () => {
 			// Arrange
 			const localCCCommandsMap = new Map().set(1, [
 				{
-					ID: intToBuffer(3, 4),
+					ID: utils.intToBuffer(3, 4),
 					execute: jest.fn(),
 				},
 			]);
@@ -605,7 +605,7 @@ describe('Base interoperability store', () => {
 				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_TERMINATED_OUTBOX)
 				.mockReturnValue(terminatedOutboxSubstore);
 
-			terminatedChainID = getRandomBytes(32);
+			terminatedChainID = utils.getRandomBytes(32);
 
 			terminatedOutboxAccount = {
 				outboxRoot: Buffer.alloc(32),
@@ -629,7 +629,7 @@ describe('Base interoperability store', () => {
 
 		it('should throw when terminated outbox account does not exist', async () => {
 			await expect(
-				mainchainInteroperabilityStore.getTerminatedOutboxAccount(getRandomBytes(32)),
+				mainchainInteroperabilityStore.getTerminatedOutboxAccount(utils.getRandomBytes(32)),
 			).rejects.toThrow();
 		});
 	});
@@ -647,7 +647,7 @@ describe('Base interoperability store', () => {
 				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_TERMINATED_OUTBOX)
 				.mockReturnValue(terminatedOutboxSubstore);
 
-			terminatedChainID = getRandomBytes(32);
+			terminatedChainID = utils.getRandomBytes(32);
 
 			terminatedOutboxAccount = {
 				outboxRoot: Buffer.alloc(32),
@@ -665,8 +665,8 @@ describe('Base interoperability store', () => {
 		it('should return false when outbox account does not exist', async () => {
 			// Assign
 			const isValueChanged = await mainchainInteroperabilityStore.setTerminatedOutboxAccount(
-				getRandomBytes(32),
-				{ outboxRoot: getRandomBytes(32) },
+				utils.getRandomBytes(32),
+				{ outboxRoot: utils.getRandomBytes(32) },
 			);
 
 			// Assert
@@ -676,7 +676,7 @@ describe('Base interoperability store', () => {
 		it('should return false when no params provided', async () => {
 			// Assign
 			const isValueChanged = await mainchainInteroperabilityStore.setTerminatedOutboxAccount(
-				getRandomBytes(32),
+				utils.getRandomBytes(32),
 				{},
 			);
 
@@ -689,20 +689,20 @@ describe('Base interoperability store', () => {
 				{
 					title: 'should change outboxRoot',
 					changedValues: {
-						outboxRoot: getRandomBytes(32),
+						outboxRoot: utils.getRandomBytes(32),
 					},
 				},
 				{
 					title: 'should change outboxRoot and outboxSize',
 					changedValues: {
-						outboxRoot: getRandomBytes(32),
+						outboxRoot: utils.getRandomBytes(32),
 						outboxSize: 2,
 					},
 				},
 				{
 					title: 'should change outboxRoot, outboxSize and partnerChainInboxSize',
 					changedValues: {
-						outboxRoot: getRandomBytes(32),
+						outboxRoot: utils.getRandomBytes(32),
 						outboxSize: 3,
 						partnerChainInboxSize: 3,
 					},

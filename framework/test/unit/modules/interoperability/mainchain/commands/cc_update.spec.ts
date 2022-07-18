@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { BlockAssets } from '@liskhq/lisk-chain';
@@ -65,49 +65,49 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 describe('CrossChainUpdateCommand', () => {
 	const getAPIContextMock = jest.fn();
 	const getStoreMock = jest.fn();
-	const moduleID = intToBuffer(1, 4);
-	const networkIdentifier = cryptography.getRandomBytes(32);
+	const moduleID = utils.intToBuffer(1, 4);
+	const networkIdentifier = cryptography.utils.getRandomBytes(32);
 	const defaultCertificateValues: Certificate = {
-		blockID: cryptography.getRandomBytes(20),
+		blockID: cryptography.utils.getRandomBytes(20),
 		height: 21,
 		timestamp: Math.floor(Date.now() / 1000),
-		stateRoot: cryptography.getRandomBytes(38),
-		validatorsHash: cryptography.getRandomBytes(48),
-		aggregationBits: cryptography.getRandomBytes(38),
-		signature: cryptography.getRandomBytes(32),
+		stateRoot: cryptography.utils.getRandomBytes(38),
+		validatorsHash: cryptography.utils.getRandomBytes(48),
+		aggregationBits: cryptography.utils.getRandomBytes(38),
+		signature: cryptography.utils.getRandomBytes(32),
 	};
 
 	const defaultNewCertificateThreshold = BigInt(20);
 	const defaultSendingChainID = 20;
-	const defaultSendingChainIDBuffer = cryptography.intToBuffer(defaultSendingChainID, 4);
+	const defaultSendingChainIDBuffer = cryptography.utils.intToBuffer(defaultSendingChainID, 4);
 	const defaultCCMs: CCMsg[] = [
 		{
-			crossChainCommandID: intToBuffer(1, 4),
+			crossChainCommandID: utils.intToBuffer(1, 4),
 			fee: BigInt(0),
-			moduleID: intToBuffer(1, 4),
+			moduleID: utils.intToBuffer(1, 4),
 			nonce: BigInt(1),
 			params: Buffer.alloc(2),
-			receivingChainID: intToBuffer(2, 4),
+			receivingChainID: utils.intToBuffer(2, 4),
 			sendingChainID: defaultSendingChainIDBuffer,
 			status: CCM_STATUS_OK,
 		},
 		{
-			crossChainCommandID: intToBuffer(2, 4),
+			crossChainCommandID: utils.intToBuffer(2, 4),
 			fee: BigInt(0),
-			moduleID: intToBuffer(1, 4),
+			moduleID: utils.intToBuffer(1, 4),
 			nonce: BigInt(1),
 			params: Buffer.alloc(2),
-			receivingChainID: intToBuffer(3, 4),
+			receivingChainID: utils.intToBuffer(3, 4),
 			sendingChainID: defaultSendingChainIDBuffer,
 			status: CCM_STATUS_OK,
 		},
 		{
-			crossChainCommandID: intToBuffer(3, 4),
+			crossChainCommandID: utils.intToBuffer(3, 4),
 			fee: BigInt(0),
-			moduleID: intToBuffer(1, 4),
+			moduleID: utils.intToBuffer(1, 4),
 			nonce: BigInt(1),
 			params: Buffer.alloc(2),
-			receivingChainID: intToBuffer(4, 4),
+			receivingChainID: utils.intToBuffer(4, 4),
 			sendingChainID: defaultSendingChainIDBuffer,
 			status: CCM_STATUS_OK,
 		},
@@ -124,7 +124,7 @@ describe('CrossChainUpdateCommand', () => {
 			siblingHashes: [Buffer.alloc(1)],
 		},
 	};
-	const defaultTransaction = { moduleID: intToBuffer(1, 4) };
+	const defaultTransaction = { moduleID: utils.intToBuffer(1, 4) };
 
 	const partnerChainStore = {
 		getWithSchema: jest.fn(),
@@ -151,10 +151,10 @@ describe('CrossChainUpdateCommand', () => {
 
 	beforeEach(async () => {
 		activeValidatorsUpdate = [
-			{ blsKey: cryptography.getRandomBytes(48), bftWeight: BigInt(1) },
-			{ blsKey: cryptography.getRandomBytes(48), bftWeight: BigInt(3) },
-			{ blsKey: cryptography.getRandomBytes(48), bftWeight: BigInt(4) },
-			{ blsKey: cryptography.getRandomBytes(48), bftWeight: BigInt(3) },
+			{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(1) },
+			{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
+			{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(4) },
+			{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
 		].sort((v1, v2) => v2.blsKey.compare(v1.blsKey)); // unsorted list
 
 		const partnerValidators: any = {
@@ -183,27 +183,27 @@ describe('CrossChainUpdateCommand', () => {
 		partnerChainAccount = {
 			lastCertificate: {
 				height: 10,
-				stateRoot: cryptography.getRandomBytes(38),
+				stateRoot: cryptography.utils.getRandomBytes(38),
 				timestamp: Math.floor(Date.now() / 1000),
-				validatorsHash: cryptography.getRandomBytes(48),
+				validatorsHash: cryptography.utils.getRandomBytes(48),
 			},
 			name: 'sidechain1',
-			networkID: cryptography.getRandomBytes(32),
+			networkID: cryptography.utils.getRandomBytes(32),
 			status: CHAIN_ACTIVE,
 		};
 		partnerChannelAccount = {
 			inbox: {
 				appendPath: [Buffer.alloc(1), Buffer.alloc(1)],
-				root: cryptography.getRandomBytes(38),
+				root: cryptography.utils.getRandomBytes(38),
 				size: 18,
 			},
-			messageFeeTokenID: { chainID: intToBuffer(1, 4), localID: intToBuffer(0, 4) },
+			messageFeeTokenID: { chainID: utils.intToBuffer(1, 4), localID: utils.intToBuffer(0, 4) },
 			outbox: {
 				appendPath: [Buffer.alloc(1), Buffer.alloc(1)],
-				root: cryptography.getRandomBytes(38),
+				root: cryptography.utils.getRandomBytes(38),
 				size: 18,
 			},
-			partnerChainOutboxRoot: cryptography.getRandomBytes(38),
+			partnerChainOutboxRoot: cryptography.utils.getRandomBytes(38),
 		};
 
 		params = {
@@ -326,7 +326,7 @@ describe('CrossChainUpdateCommand', () => {
 		it('should return VerifyStatus.FAIL when checkValidatorsHashWithCertificate() throws error', async () => {
 			const certificateWithIncorrectValidatorHash = codec.encode(certificateSchema, {
 				...defaultCertificateValues,
-				validatorsHash: cryptography.getRandomBytes(48),
+				validatorsHash: cryptography.utils.getRandomBytes(48),
 			});
 
 			const { status, error } = await mainchainCCUUpdateCommand.verify({
@@ -493,13 +493,13 @@ describe('CrossChainUpdateCommand', () => {
 
 		it('should call terminateChainInternal() for a ccm when txParams.sendingChainID !== ccm.deserilized.sendingChainID', async () => {
 			const invalidCCM = codec.encode(ccmSchema, {
-				crossChainCommandID: intToBuffer(1, 4),
+				crossChainCommandID: utils.intToBuffer(1, 4),
 				fee: BigInt(0),
-				moduleID: intToBuffer(1, 4),
+				moduleID: utils.intToBuffer(1, 4),
 				nonce: BigInt(1),
 				params: Buffer.alloc(2),
-				receivingChainID: intToBuffer(1, 4),
-				sendingChainID: intToBuffer(50, 4),
+				receivingChainID: utils.intToBuffer(1, 4),
+				sendingChainID: utils.intToBuffer(50, 4),
 				status: CCM_STATUS_OK,
 			});
 			jest
@@ -523,12 +523,12 @@ describe('CrossChainUpdateCommand', () => {
 
 		it('should call terminateChainInternal() for a ccm when it fails on validateFormat', async () => {
 			const invalidCCM = {
-				crossChainCommandID: intToBuffer(1, 4),
+				crossChainCommandID: utils.intToBuffer(1, 4),
 				fee: BigInt(0),
-				moduleID: intToBuffer(1, 4),
+				moduleID: utils.intToBuffer(1, 4),
 				nonce: BigInt(1),
 				params: Buffer.alloc(MAX_CCM_SIZE + 10),
-				receivingChainID: intToBuffer(2, 4),
+				receivingChainID: utils.intToBuffer(2, 4),
 				sendingChainID: defaultSendingChainIDBuffer,
 				status: CCM_STATUS_OK,
 			};
@@ -562,12 +562,12 @@ describe('CrossChainUpdateCommand', () => {
 
 		it('should call forward() when ccm.deserilized.receivingChainID !== MAINCHAIN_ID', async () => {
 			const nonMainchainCCM = {
-				crossChainCommandID: intToBuffer(1, 4),
+				crossChainCommandID: utils.intToBuffer(1, 4),
 				fee: BigInt(0),
-				moduleID: intToBuffer(1, 4),
+				moduleID: utils.intToBuffer(1, 4),
 				nonce: BigInt(1),
 				params: Buffer.alloc(10),
-				receivingChainID: intToBuffer(2, 4),
+				receivingChainID: utils.intToBuffer(2, 4),
 				sendingChainID: defaultSendingChainIDBuffer,
 				status: CCM_STATUS_OK,
 			};
@@ -601,9 +601,9 @@ describe('CrossChainUpdateCommand', () => {
 
 		it('should call apply() when ccm.deserilized.receivingChainID === MAINCHAIN_ID', async () => {
 			const mainchainCCM = {
-				crossChainCommandID: intToBuffer(1, 4),
+				crossChainCommandID: utils.intToBuffer(1, 4),
 				fee: BigInt(0),
-				moduleID: intToBuffer(1, 4),
+				moduleID: utils.intToBuffer(1, 4),
 				nonce: BigInt(1),
 				params: Buffer.alloc(10),
 				receivingChainID: MAINCHAIN_ID_BUFFER,

@@ -124,9 +124,10 @@ describe('DPoS module', () => {
 			const validatorAPI = {
 				setValidatorGeneratorKey: jest.fn(),
 				registerValidatorKeys: jest.fn().mockResolvedValue(true),
-				getValidatorAccount: jest
-					.fn()
-					.mockResolvedValue({ blsKey: getRandomBytes(48), generatorKey: getRandomBytes(32) }),
+				getValidatorAccount: jest.fn().mockResolvedValue({
+					blsKey: utils.getRandomBytes(48),
+					generatorKey: utils.getRandomBytes(32),
+				}),
 				getGeneratorsBetweenTimestamps: jest.fn(),
 			};
 			const tokenAPI = {
@@ -655,9 +656,9 @@ describe('DPoS module', () => {
 					);
 				}
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
-				await snapshotStore.set(intToBuffer(10, 4), Buffer.alloc(10));
-				await snapshotStore.set(intToBuffer(11, 4), Buffer.alloc(10));
-				await snapshotStore.set(intToBuffer(12, 4), Buffer.alloc(10));
+				await snapshotStore.set(utils.intToBuffer(10, 4), Buffer.alloc(10));
+				await snapshotStore.set(utils.intToBuffer(11, 4), Buffer.alloc(10));
+				await snapshotStore.set(utils.intToBuffer(12, 4), Buffer.alloc(10));
 				context = createBlockContext({
 					stateStore,
 					header: createFakeBlockHeader({ height: 1030 }),
@@ -695,9 +696,9 @@ describe('DPoS module', () => {
 			it('should create a snapshot which remove the snapshot older than 3 rounds', async () => {
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 
-				await expect(snapshotStore.has(intToBuffer(10, 4))).resolves.toBeFalse();
-				await expect(snapshotStore.has(intToBuffer(11, 4))).resolves.toBeTrue();
-				await expect(snapshotStore.has(intToBuffer(12, 4))).resolves.toBeTrue();
+				await expect(snapshotStore.has(utils.intToBuffer(10, 4))).resolves.toBeFalse();
+				await expect(snapshotStore.has(utils.intToBuffer(11, 4))).resolves.toBeTrue();
+				await expect(snapshotStore.has(utils.intToBuffer(12, 4))).resolves.toBeTrue();
 			});
 		});
 	});
@@ -769,8 +770,8 @@ describe('DPoS module', () => {
 							setValidatorGeneratorKey: jest.fn(),
 							registerValidatorKeys: jest.fn(),
 							getValidatorAccount: jest.fn().mockResolvedValue({
-								blsKey: getRandomBytes(48),
-								generatorKey: getRandomBytes(32),
+								blsKey: utils.getRandomBytes(48),
+								generatorKey: utils.getRandomBytes(32),
 							}),
 							getGeneratorsBetweenTimestamps: jest.fn(),
 						};
@@ -848,9 +849,10 @@ describe('DPoS module', () => {
 				validatorAPI = {
 					setValidatorGeneratorKey: jest.fn(),
 					registerValidatorKeys: jest.fn(),
-					getValidatorAccount: jest
-						.fn()
-						.mockResolvedValue({ blsKey: getRandomBytes(48), generatorKey: getRandomBytes(32) }),
+					getValidatorAccount: jest.fn().mockResolvedValue({
+						blsKey: utils.getRandomBytes(48),
+						generatorKey: utils.getRandomBytes(32),
+					}),
 					getGeneratorsBetweenTimestamps: jest.fn(),
 				};
 				const tokenAPI = {
@@ -938,7 +940,7 @@ describe('DPoS module', () => {
 					pomHeights: [],
 					consecutiveMissedBlocks: 0,
 				}));
-			delegateAddresses = Array.from({ length: 103 }, _ => getRandomBytes(20));
+			delegateAddresses = Array.from({ length: 103 }, _ => utils.getRandomBytes(20));
 
 			previousTimestampStore = stateStore.getStore(
 				MODULE_ID_DPOS_BUFFER,

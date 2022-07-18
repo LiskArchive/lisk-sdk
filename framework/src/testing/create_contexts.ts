@@ -14,7 +14,7 @@
  */
 
 import { BlockAssets, BlockHeader, StateStore, Transaction } from '@liskhq/lisk-chain';
-import { getRandomBytes, hash } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { ModuleEndpointContext } from '../types';
 import { Logger } from '../logger';
@@ -62,21 +62,21 @@ export const createGenesisBlockContext = (params: {
 		params.header ??
 		new BlockHeader({
 			height: 0,
-			generatorAddress: getRandomBytes(20),
+			generatorAddress: utils.getRandomBytes(20),
 			previousBlockID: Buffer.alloc(0),
 			timestamp: Math.floor(Date.now() / 1000),
 			version: 0,
-			transactionRoot: hash(Buffer.alloc(0)),
-			stateRoot: hash(Buffer.alloc(0)),
+			transactionRoot: utils.hash(Buffer.alloc(0)),
+			stateRoot: utils.hash(Buffer.alloc(0)),
 			maxHeightGenerated: 0,
 			maxHeightPrevoted: 0,
-			assetRoot: hash(Buffer.alloc(0)),
+			assetRoot: utils.hash(Buffer.alloc(0)),
 			aggregateCommit: {
 				height: 0,
 				aggregationBits: Buffer.alloc(0),
 				certificateSignature: Buffer.alloc(0),
 			},
-			validatorsHash: hash(Buffer.alloc(0)),
+			validatorsHash: utils.hash(Buffer.alloc(0)),
 		});
 	const ctx = new GenesisBlockContext({
 		eventQueue,
@@ -105,21 +105,21 @@ export const createBlockContext = (params: {
 		params.header ??
 		new BlockHeader({
 			height: 0,
-			generatorAddress: getRandomBytes(20),
+			generatorAddress: utils.getRandomBytes(20),
 			previousBlockID: Buffer.alloc(0),
 			timestamp: Math.floor(Date.now() / 1000),
 			version: 0,
-			transactionRoot: hash(Buffer.alloc(0)),
-			stateRoot: hash(Buffer.alloc(0)),
+			transactionRoot: utils.hash(Buffer.alloc(0)),
+			stateRoot: utils.hash(Buffer.alloc(0)),
 			maxHeightGenerated: 0,
 			maxHeightPrevoted: 0,
-			assetRoot: hash(Buffer.alloc(0)),
+			assetRoot: utils.hash(Buffer.alloc(0)),
 			aggregateCommit: {
 				height: 0,
 				aggregationBits: Buffer.alloc(0),
 				certificateSignature: Buffer.alloc(0),
 			},
-			validatorsHash: hash(Buffer.alloc(0)),
+			validatorsHash: utils.hash(Buffer.alloc(0)),
 		});
 	const ctx = new BlockContext({
 		stateStore,
@@ -128,7 +128,7 @@ export const createBlockContext = (params: {
 		transactions: params.transactions ?? [],
 		header,
 		assets: params.assets ?? new BlockAssets(),
-		networkIdentifier: getRandomBytes(32),
+		networkIdentifier: utils.getRandomBytes(32),
 		currentValidators: params.validators ?? [],
 		impliesMaxPrevote: true,
 		maxHeightCertified: 0,
@@ -156,21 +156,21 @@ export const createBlockGenerateContext = (params: {
 		params.header ??
 		new BlockHeader({
 			height: 0,
-			generatorAddress: getRandomBytes(20),
+			generatorAddress: utils.getRandomBytes(20),
 			previousBlockID: Buffer.alloc(0),
 			timestamp: Math.floor(Date.now() / 1000),
 			version: 0,
-			transactionRoot: hash(Buffer.alloc(0)),
-			stateRoot: hash(Buffer.alloc(0)),
+			transactionRoot: utils.hash(Buffer.alloc(0)),
+			stateRoot: utils.hash(Buffer.alloc(0)),
 			maxHeightGenerated: 0,
 			maxHeightPrevoted: 0,
-			assetRoot: hash(Buffer.alloc(0)),
+			assetRoot: utils.hash(Buffer.alloc(0)),
 			aggregateCommit: {
 				height: 0,
 				aggregationBits: Buffer.alloc(0),
 				certificateSignature: Buffer.alloc(0),
 			},
-			validatorsHash: hash(Buffer.alloc(0)),
+			validatorsHash: utils.hash(Buffer.alloc(0)),
 		});
 	const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	const getStore = (moduleID: Buffer, storePrefix: number) =>
@@ -180,7 +180,7 @@ export const createBlockGenerateContext = (params: {
 		assets: params.assets ?? new BlockAssets([]),
 		getGeneratorStore: params.getGeneratorStore ?? getGeneratorStore,
 		logger: params.logger ?? loggerMock,
-		networkIdentifier: params.networkIdentifier ?? getRandomBytes(32),
+		networkIdentifier: params.networkIdentifier ?? utils.getRandomBytes(32),
 		getAPIContext: params.getAPIContext ?? (() => ({ getStore, eventQueue: new EventQueue() })),
 		getStore: params.getStore ?? getStore,
 		getFinalizedHeight: () => params.finalizedHeight ?? 0,
@@ -211,21 +211,21 @@ export const createTransactionContext = (params: {
 		params.header ??
 		new BlockHeader({
 			height: 0,
-			generatorAddress: getRandomBytes(20),
+			generatorAddress: utils.getRandomBytes(20),
 			previousBlockID: Buffer.alloc(0),
 			timestamp: Math.floor(Date.now() / 1000),
 			version: 0,
-			transactionRoot: hash(Buffer.alloc(0)),
-			stateRoot: hash(Buffer.alloc(0)),
+			transactionRoot: utils.hash(Buffer.alloc(0)),
+			stateRoot: utils.hash(Buffer.alloc(0)),
 			maxHeightGenerated: 0,
 			maxHeightPrevoted: 0,
-			assetRoot: hash(Buffer.alloc(0)),
+			assetRoot: utils.hash(Buffer.alloc(0)),
 			aggregateCommit: {
 				height: 0,
 				aggregationBits: Buffer.alloc(0),
 				certificateSignature: Buffer.alloc(0),
 			},
-			validatorsHash: hash(Buffer.alloc(0)),
+			validatorsHash: utils.hash(Buffer.alloc(0)),
 		});
 	const ctx = new TransactionContext({
 		stateStore,
@@ -233,7 +233,7 @@ export const createTransactionContext = (params: {
 		eventQueue,
 		header,
 		assets: params.assets ?? new BlockAssets(),
-		networkIdentifier: params.networkIdentifier ?? getRandomBytes(32),
+		networkIdentifier: params.networkIdentifier ?? utils.getRandomBytes(32),
 		transaction: params.transaction,
 		currentValidators: params.currentValidators ?? [],
 		impliesMaxPrevote: params.impliesMaxPrevote ?? true,
@@ -308,7 +308,7 @@ const createCCAPIContext = (params: {
 		getAPIContext: params.getAPIContext ?? (() => ({ getStore, eventQueue })),
 		eventQueue,
 		ccm,
-		feeAddress: params.feeAddress ?? getRandomBytes(20),
+		feeAddress: params.feeAddress ?? utils.getRandomBytes(20),
 	};
 };
 

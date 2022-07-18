@@ -12,12 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	decryptPassphraseWithPassword,
-	intToBuffer,
-	EncryptedPassphraseObject,
-	parseEncryptedPassphrase,
-} from '@liskhq/lisk-cryptography';
+import { utils, encrypt } from '@liskhq/lisk-cryptography';
 
 export const defaultPassword =
 	'tiger grit rigid pipe athlete cheese guitar hurdle remind gap peasant pond';
@@ -42,8 +37,8 @@ export const defaultConfig = {
 		minFeePerByte: 1000,
 		baseFees: [
 			{
-				moduleID: intToBuffer(12, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(12, 4),
+				commandID: utils.intToBuffer(0, 4),
 				baseFee: '1000000000',
 			},
 		],
@@ -2627,10 +2622,10 @@ const getDelegateFromDefaultConfig = (address: Buffer) => {
 
 export const getPassphraseFromDefaultConfig = async (address: Buffer): Promise<string> => {
 	const delegateConfig = getDelegateFromDefaultConfig(address);
-	const encryptedPassphraseObject = parseEncryptedPassphrase(
+	const encryptedPassphraseObject = encrypt.parseEncryptedPassphrase(
 		delegateConfig.encryptedPassphrase,
-	) as EncryptedPassphraseObject;
-	const passphrase = await decryptPassphraseWithPassword(
+	) as encrypt.EncryptedPassphraseObject;
+	const passphrase = await encrypt.decryptPassphraseWithPassword(
 		encryptedPassphraseObject,
 		defaultPassword,
 	);

@@ -20,23 +20,23 @@ const BaseGenerator = require('../base_generator');
 const getRandomTransactionIds = count => {
 	const ids = [];
 	for (let index = 0; index < count; index += 1) {
-		ids.push(getRandomBytes(32));
+		ids.push(utils.getRandomBytes(32));
 	}
 	return ids;
 };
 
-const LEAFPREFIX = intToBuffer(0);
-const BRANCHPREFIX = intToBuffer(1);
+const LEAFPREFIX = utils.intToBuffer(0);
+const BRANCHPREFIX = utils.intToBuffer(1);
 
 const concat = (m1, m2) => Buffer.concat([m1, m2]);
 
-const leafHash = m => hash(concat(LEAFPREFIX, m));
+const leafHash = m => utils.hash(concat(LEAFPREFIX, m));
 
-const branchHash = m => hash(concat(BRANCHPREFIX, m));
+const branchHash = m => utils.hash(concat(BRANCHPREFIX, m));
 
 const merkleRoot = transactionIds => {
 	const len = transactionIds.length;
-	if (len === 0) return hash(Buffer.from([]));
+	if (len === 0) return utils.hash(Buffer.from([]));
 	if (len === 1) return leafHash(transactionIds[0]);
 
 	const k = 2 ** Math.floor(Math.log2(len - 1));

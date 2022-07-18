@@ -368,17 +368,17 @@ describe('data_access', () => {
 		it('should get the events related to heights', async () => {
 			const original = [
 				new Event({
-					data: getRandomBytes(20),
+					data: utils.getRandomBytes(20),
 					index: 0,
 					moduleID: Buffer.from([0, 0, 0, 2]),
-					topics: [getRandomBytes(32)],
+					topics: [utils.getRandomBytes(32)],
 					typeID: Buffer.from([0, 0, 0, 0]),
 				}),
 				new Event({
-					data: getRandomBytes(20),
+					data: utils.getRandomBytes(20),
 					index: 1,
 					moduleID: Buffer.from([0, 0, 0, 3]),
-					topics: [getRandomBytes(32)],
+					topics: [utils.getRandomBytes(32)],
 					typeID: Buffer.from([0, 0, 0, 0]),
 				}),
 			];
@@ -461,8 +461,8 @@ describe('data_access', () => {
 	describe('#getTransactionsByIDs', () => {
 		it('should get transaction by id', async () => {
 			const tx = new Transaction({
-				moduleID: intToBuffer(2, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(2, 4),
+				commandID: utils.intToBuffer(0, 4),
 				fee: BigInt('10000000'),
 				nonce: BigInt('0'),
 				senderPublicKey: Buffer.from(

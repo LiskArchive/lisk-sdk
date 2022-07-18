@@ -25,7 +25,7 @@ import {
 import { jobHandlers, objects } from '@liskhq/lisk-utils';
 import { Database, Batch, SparseMerkleTree } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { hash } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { Logger } from '../../logger';
 import {
 	BlockSynchronizationMechanism,
@@ -1014,7 +1014,7 @@ export class Consensus {
 			await this._abi.commit({
 				contextID,
 				dryRun: false,
-				stateRoot: hash(Buffer.alloc(0)),
+				stateRoot: utils.hash(Buffer.alloc(0)),
 				expectedStateRoot: genesisBlock.header.stateRoot,
 			});
 			return result.events.map(e => new Event(e));

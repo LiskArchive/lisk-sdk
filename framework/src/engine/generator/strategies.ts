@@ -14,7 +14,7 @@
 import { TransactionPool, PooledTransaction } from '@liskhq/lisk-transaction-pool';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { Transaction, BlockHeader, BlockAssets, Event } from '@liskhq/lisk-chain';
-import { getAddressFromPublicKey } from '@liskhq/lisk-cryptography';
+import { address } from '@liskhq/lisk-cryptography';
 import { ABI, Consensus, TransactionExecutionResult, TransactionVerifyResult } from '../../abi';
 
 export class HighFeeGenerationStrategy {
@@ -70,7 +70,7 @@ export class HighFeeGenerationStrategy {
 			if (!lowestNonceHighestFeeTrx) {
 				throw new Error('lowest nonce tx must exist');
 			}
-			const senderId = getAddressFromPublicKey(lowestNonceHighestFeeTrx.senderPublicKey);
+			const senderId = address.getAddressFromPublicKey(lowestNonceHighestFeeTrx.senderPublicKey);
 			// Try to process transaction
 			try {
 				const { result: verifyResult } = await this._abi.verifyTransaction({

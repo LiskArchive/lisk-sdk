@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { hash } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { LEAF_PREFIX } from './constants';
 import { Proof } from './types';
 import { calculatePathNodes, ROOT_INDEX } from './utils';
@@ -49,7 +49,7 @@ export const verifyDataBlock = (
 			[LEAF_PREFIX, data],
 			LEAF_PREFIX.length + data.length,
 		);
-		const leafHash = hash(leafValueWithoutNodeIndex);
+		const leafHash = utils.hash(leafValueWithoutNodeIndex);
 		queryHashes.push(leafHash);
 	}
 

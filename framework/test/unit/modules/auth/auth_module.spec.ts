@@ -56,7 +56,7 @@ describe('AuthModule', () => {
 	beforeEach(() => {
 		authModule = new AuthModule();
 		const buffer = Buffer.from(defaultTestCase.output.transaction, 'hex');
-		const id = hash(buffer);
+		const id = utils.hash(buffer);
 		decodedBaseTransaction = codec.decode<Transaction>(transactionSchema, buffer);
 
 		decodedMultiSignature = {
@@ -85,7 +85,7 @@ describe('AuthModule', () => {
 
 		passphrase = Mnemonic.generateMnemonic();
 		passphraseDerivedKeys = getPrivateAndPublicKeyFromPassphrase(passphrase);
-		const address = getAddressFromPublicKey(passphraseDerivedKeys.publicKey);
+		const address = address.getAddressFromPublicKey(passphraseDerivedKeys.publicKey);
 
 		when(subStoreMock)
 			.calledWith(address, authAccountSchema)
@@ -98,8 +98,8 @@ describe('AuthModule', () => {
 	});
 
 	describe('initGenesisState', () => {
-		const address = getRandomBytes(20);
-		const publicKey = getRandomBytes(32);
+		const address = utils.getRandomBytes(20);
+		const publicKey = utils.getRandomBytes(32);
 		const validAsset = {
 			authDataSubstore: [
 				{
@@ -112,11 +112,15 @@ describe('AuthModule', () => {
 					},
 				},
 				{
-					storeKey: getRandomBytes(20),
+					storeKey: utils.getRandomBytes(20),
 					storeValue: {
 						numberOfSignatures: 3,
-						mandatoryKeys: [getRandomBytes(32), getRandomBytes(32)].sort((a, b) => a.compare(b)),
-						optionalKeys: [getRandomBytes(32), getRandomBytes(32)].sort((a, b) => a.compare(b)),
+						mandatoryKeys: [utils.getRandomBytes(32), utils.getRandomBytes(32)].sort((a, b) =>
+							a.compare(b),
+						),
+						optionalKeys: [utils.getRandomBytes(32), utils.getRandomBytes(32)].sort((a, b) =>
+							a.compare(b),
+						),
 						nonce: BigInt(1),
 					},
 				},
@@ -128,7 +132,7 @@ describe('AuthModule', () => {
 				{
 					authDataSubstore: [
 						{
-							storeKey: getRandomBytes(8),
+							storeKey: utils.getRandomBytes(8),
 							storeValue: {
 								numberOfSignatures: 0,
 								mandatoryKeys: [],
@@ -144,10 +148,10 @@ describe('AuthModule', () => {
 				{
 					authDataSubstore: [
 						{
-							storeKey: getRandomBytes(20),
+							storeKey: utils.getRandomBytes(20),
 							storeValue: {
 								numberOfSignatures: 3,
-								mandatoryKeys: [getRandomBytes(32), getRandomBytes(32)].sort((a, b) =>
+								mandatoryKeys: [utils.getRandomBytes(32), utils.getRandomBytes(32)].sort((a, b) =>
 									b.compare(a),
 								),
 								optionalKeys: [],
@@ -162,7 +166,7 @@ describe('AuthModule', () => {
 				{
 					authDataSubstore: [
 						{
-							storeKey: getRandomBytes(20),
+							storeKey: utils.getRandomBytes(20),
 							storeValue: {
 								numberOfSignatures: 2,
 								mandatoryKeys: [publicKey, publicKey],
@@ -178,11 +182,13 @@ describe('AuthModule', () => {
 				{
 					authDataSubstore: [
 						{
-							storeKey: getRandomBytes(20),
+							storeKey: utils.getRandomBytes(20),
 							storeValue: {
 								numberOfSignatures: 3,
 								mandatoryKeys: [],
-								optionalKeys: [getRandomBytes(32), getRandomBytes(32)].sort((a, b) => b.compare(a)),
+								optionalKeys: [utils.getRandomBytes(32), utils.getRandomBytes(32)].sort((a, b) =>
+									b.compare(a),
+								),
 								nonce: BigInt(1),
 							},
 						},
@@ -194,7 +200,7 @@ describe('AuthModule', () => {
 				{
 					authDataSubstore: [
 						{
-							storeKey: getRandomBytes(20),
+							storeKey: utils.getRandomBytes(20),
 							storeValue: {
 								numberOfSignatures: 2,
 								mandatoryKeys: [],
@@ -210,15 +216,15 @@ describe('AuthModule', () => {
 				{
 					authDataSubstore: [
 						{
-							storeKey: getRandomBytes(20),
+							storeKey: utils.getRandomBytes(20),
 							storeValue: {
 								numberOfSignatures: 36,
-								mandatoryKeys: Array.from({ length: 33 }, () => getRandomBytes(32)).sort((a, b) =>
-									b.compare(a),
-								),
-								optionalKeys: Array.from({ length: 33 }, () => getRandomBytes(32)).sort((a, b) =>
-									b.compare(a),
-								),
+								mandatoryKeys: Array.from({ length: 33 }, () =>
+									utils.getRandomBytes(32),
+								).sort((a, b) => b.compare(a)),
+								optionalKeys: Array.from({ length: 33 }, () =>
+									utils.getRandomBytes(32),
+								).sort((a, b) => b.compare(a)),
 								nonce: BigInt(1),
 							},
 						},
@@ -230,11 +236,13 @@ describe('AuthModule', () => {
 				{
 					authDataSubstore: [
 						{
-							storeKey: getRandomBytes(20),
+							storeKey: utils.getRandomBytes(20),
 							storeValue: {
 								numberOfSignatures: 3,
 								mandatoryKeys: [],
-								optionalKeys: [getRandomBytes(32), getRandomBytes(32)].sort((a, b) => b.compare(a)),
+								optionalKeys: [utils.getRandomBytes(32), utils.getRandomBytes(32)].sort((a, b) =>
+									b.compare(a),
+								),
 								nonce: BigInt(1),
 							},
 						},
@@ -246,10 +254,10 @@ describe('AuthModule', () => {
 				{
 					authDataSubstore: [
 						{
-							storeKey: getRandomBytes(20),
+							storeKey: utils.getRandomBytes(20),
 							storeValue: {
 								numberOfSignatures: 1,
-								mandatoryKeys: [getRandomBytes(32), getRandomBytes(32)].sort((a, b) =>
+								mandatoryKeys: [utils.getRandomBytes(32), utils.getRandomBytes(32)].sort((a, b) =>
 									b.compare(a),
 								),
 								optionalKeys: [],
@@ -339,12 +347,12 @@ describe('AuthModule', () => {
 			it('should return PENDING status with no error when trx nonce is higher than account nonce', async () => {
 				// Arrange
 				const transaction = new Transaction({
-					moduleID: intToBuffer(2, 4),
-					commandID: intToBuffer(0, 4),
+					moduleID: utils.intToBuffer(2, 4),
+					commandID: utils.intToBuffer(0, 4),
 					nonce: BigInt('2'),
 					fee: BigInt('100000000'),
 					senderPublicKey: passphraseDerivedKeys.publicKey,
-					params: getRandomBytes(100),
+					params: utils.getRandomBytes(100),
 					signatures: [],
 				});
 
@@ -396,12 +404,12 @@ describe('AuthModule', () => {
 			it('should not throw for valid transaction', async () => {
 				// Arrange
 				const transaction = new Transaction({
-					moduleID: intToBuffer(2, 4),
-					commandID: intToBuffer(0, 4),
+					moduleID: utils.intToBuffer(2, 4),
+					commandID: utils.intToBuffer(0, 4),
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
 					senderPublicKey: passphraseDerivedKeys.publicKey,
-					params: getRandomBytes(100),
+					params: utils.getRandomBytes(100),
 					signatures: [],
 				});
 
@@ -431,12 +439,12 @@ describe('AuthModule', () => {
 			it('should throw if signature is missing', async () => {
 				// Arrange
 				const transaction = new Transaction({
-					moduleID: intToBuffer(2, 4),
-					commandID: intToBuffer(0, 4),
+					moduleID: utils.intToBuffer(2, 4),
+					commandID: utils.intToBuffer(0, 4),
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
 					senderPublicKey: passphraseDerivedKeys.publicKey,
-					params: getRandomBytes(100),
+					params: utils.getRandomBytes(100),
 					signatures: [],
 				});
 
@@ -459,12 +467,12 @@ describe('AuthModule', () => {
 			it('should throw error if account is not multi signature and more than one signature present', async () => {
 				// Arrange
 				const transaction = new Transaction({
-					moduleID: intToBuffer(2, 4),
-					commandID: intToBuffer(0, 4),
+					moduleID: utils.intToBuffer(2, 4),
+					commandID: utils.intToBuffer(0, 4),
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
 					senderPublicKey: passphraseDerivedKeys.publicKey,
-					params: getRandomBytes(100),
+					params: utils.getRandomBytes(100),
 					signatures: [],
 				});
 
@@ -532,7 +540,7 @@ describe('AuthModule', () => {
 
 			for (const aMember of Object.values(members)) {
 				aMember.keys = { ...getPrivateAndPublicKeyFromPassphrase(aMember.passphrase) };
-				aMember.address = getAddressFromPublicKey(aMember.keys.publicKey);
+				aMember.address = address.getAddressFromPublicKey(aMember.keys.publicKey);
 			}
 
 			const multisigAccount = {
@@ -555,12 +563,12 @@ describe('AuthModule', () => {
 					});
 
 				transaction = new Transaction({
-					moduleID: intToBuffer(2, 4),
-					commandID: intToBuffer(0, 4),
+					moduleID: utils.intToBuffer(2, 4),
+					commandID: utils.intToBuffer(0, 4),
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
 					senderPublicKey: (members as any).mainAccount.keys.publicKey,
-					params: getRandomBytes(100),
+					params: utils.getRandomBytes(100),
 					signatures: [],
 				});
 			});
@@ -1127,12 +1135,12 @@ describe('AuthModule', () => {
 		it('should correctly increment the nonce', async () => {
 			const stateStore1 = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			const authStore1 = stateStore1.getStore(authModule.id, STORE_PREFIX_AUTH);
-			const address = getAddressFromPublicKey(validTestTransaction.senderPublicKey);
+			const address = address.getAddressFromPublicKey(validTestTransaction.senderPublicKey);
 			const authAccount1 = {
 				nonce: validTestTransaction.nonce,
 				numberOfSignatures: 5,
-				mandatoryKeys: [getRandomBytes(64), getRandomBytes(64)],
-				optionalKeys: [getRandomBytes(64), getRandomBytes(64)],
+				mandatoryKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
+				optionalKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
 			};
 			await authStore1.setWithSchema(address, authAccount1, authAccountSchema);
 

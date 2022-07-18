@@ -20,14 +20,14 @@ import {
 } from '../../../../src/engine/bft/utils';
 
 describe('bft utils', () => {
-	const generatorAddress = getRandomBytes(20);
+	const generatorAddress = utils.getRandomBytes(20);
 
 	it('should return false when generatorAddress does not match', () => {
 		const header1 = createFakeBlockHeader({
 			generatorAddress,
 		});
 		const header2 = createFakeBlockHeader({
-			generatorAddress: getRandomBytes(20),
+			generatorAddress: utils.getRandomBytes(20),
 		});
 
 		expect(areDistinctHeadersContradicting(header1, header2)).toBeFalse();

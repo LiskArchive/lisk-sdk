@@ -27,7 +27,7 @@ describe('MainchainCCRegistrationCommand', () => {
 
 	const ownChainAccount = {
 		name: 'mainchain',
-		id: intToBuffer(1, 4),
+		id: utils.intToBuffer(1, 4),
 		nonce: BigInt(0),
 	};
 
@@ -45,14 +45,14 @@ describe('MainchainCCRegistrationCommand', () => {
 	ccAPIsMap.set(1, ccAPIMod1);
 	ccAPIsMap.set(2, ccAPIMod2);
 
-	const networkIdentifier = getRandomBytes(32);
+	const networkIdentifier = utils.getRandomBytes(32);
 
 	const ccmRegistrationParams = {
 		networkID: networkIdentifier,
 		name: ownChainAccount.name,
 		messageFeeTokenID: {
-			chainID: intToBuffer(1, 4),
-			localID: intToBuffer(0, 4),
+			chainID: utils.intToBuffer(1, 4),
+			localID: utils.intToBuffer(0, 4),
 		},
 	};
 
@@ -63,10 +63,10 @@ describe('MainchainCCRegistrationCommand', () => {
 
 	const ccm = {
 		nonce: BigInt(0),
-		moduleID: intToBuffer(1, 4),
-		crossChainCommandID: intToBuffer(1, 4),
-		sendingChainID: intToBuffer(2, 4),
-		receivingChainID: intToBuffer(1, 4),
+		moduleID: utils.intToBuffer(1, 4),
+		crossChainCommandID: utils.intToBuffer(1, 4),
+		sendingChainID: utils.intToBuffer(2, 4),
+		receivingChainID: utils.intToBuffer(1, 4),
 		fee: BigInt(20000),
 		status: 0,
 		params: encodedRegistrationParams,
@@ -78,8 +78,8 @@ describe('MainchainCCRegistrationCommand', () => {
 			size: 1,
 		},
 		messageFeeTokenID: {
-			chainID: intToBuffer(1, 4),
-			localID: intToBuffer(0, 4),
+			chainID: utils.intToBuffer(1, 4),
+			localID: utils.intToBuffer(0, 4),
 		},
 		outbox: {
 			appendPath: [],
@@ -106,7 +106,7 @@ describe('MainchainCCRegistrationCommand', () => {
 		mainchainInteroperabilityStore.getChannel = getChannelMock;
 		mainchainInteroperabilityStore.getOwnChainAccount = getOwnChainAccountMock;
 
-		ccRegistrationCommand = new MainchainCCRegistrationCommand(intToBuffer(1, 4), ccAPIsMap);
+		ccRegistrationCommand = new MainchainCCRegistrationCommand(utils.intToBuffer(1, 4), ccAPIsMap);
 		(ccRegistrationCommand as any)['getInteroperabilityStore'] = jest
 			.fn()
 			.mockReturnValue(mainchainInteroperabilityStore);
@@ -121,8 +121,8 @@ describe('MainchainCCRegistrationCommand', () => {
 				size: 2,
 			},
 			messageFeeTokenID: {
-				chainID: intToBuffer(1, 4),
-				localID: intToBuffer(0, 4),
+				chainID: utils.intToBuffer(1, 4),
+				localID: utils.intToBuffer(0, 4),
 			},
 			outbox: {
 				appendPath: [],
@@ -152,10 +152,10 @@ describe('MainchainCCRegistrationCommand', () => {
 		// Arrange
 		const invalidCCM = {
 			nonce: BigInt(0),
-			moduleID: intToBuffer(1, 4),
-			crossChainCommandID: intToBuffer(1, 4),
-			sendingChainID: intToBuffer(2, 4),
-			receivingChainID: intToBuffer(1, 4),
+			moduleID: utils.intToBuffer(1, 4),
+			crossChainCommandID: utils.intToBuffer(1, 4),
+			sendingChainID: utils.intToBuffer(2, 4),
+			receivingChainID: utils.intToBuffer(1, 4),
 			fee: BigInt(20000),
 			status: 1,
 			params: encodedRegistrationParams,
@@ -179,7 +179,7 @@ describe('MainchainCCRegistrationCommand', () => {
 		// Arrange
 		getChannelMock.mockResolvedValue(channelData);
 
-		getOwnChainAccountMock.mockResolvedValue({ ...ownChainAccount, id: intToBuffer(3, 4) });
+		getOwnChainAccountMock.mockResolvedValue({ ...ownChainAccount, id: utils.intToBuffer(3, 4) });
 
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 
@@ -220,8 +220,8 @@ describe('MainchainCCRegistrationCommand', () => {
 				size: 2,
 			},
 			messageFeeTokenID: {
-				chainID: intToBuffer(3, 4),
-				localID: intToBuffer(0, 4),
+				chainID: utils.intToBuffer(3, 4),
+				localID: utils.intToBuffer(0, 4),
 			},
 			outbox: {
 				appendPath: [],
@@ -255,8 +255,8 @@ describe('MainchainCCRegistrationCommand', () => {
 				size: 2,
 			},
 			messageFeeTokenID: {
-				chainID: intToBuffer(1, 4),
-				localID: intToBuffer(5, 4),
+				chainID: utils.intToBuffer(1, 4),
+				localID: utils.intToBuffer(5, 4),
 			},
 			outbox: {
 				appendPath: [],
@@ -287,7 +287,7 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		getOwnChainAccountMock.mockResolvedValue(ownChainAccount);
 
-		const differentNetworkID = getRandomBytes(32);
+		const differentNetworkID = utils.getRandomBytes(32);
 		await ccRegistrationCommand.execute({
 			...sampleExecuteContext,
 			networkIdentifier: differentNetworkID,
@@ -307,10 +307,10 @@ describe('MainchainCCRegistrationCommand', () => {
 		// Arrange
 		const invalidCCM = {
 			nonce: BigInt(1), // nonce not equal to 0
-			moduleID: intToBuffer(1, 4),
-			crossChainCommandID: intToBuffer(1, 4),
-			sendingChainID: intToBuffer(2, 4),
-			receivingChainID: intToBuffer(1, 4),
+			moduleID: utils.intToBuffer(1, 4),
+			crossChainCommandID: utils.intToBuffer(1, 4),
+			sendingChainID: utils.intToBuffer(2, 4),
+			receivingChainID: utils.intToBuffer(1, 4),
 			fee: BigInt(20000),
 			status: 0,
 			params: encodedRegistrationParams,

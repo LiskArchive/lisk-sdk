@@ -14,7 +14,7 @@
 
 import { StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { BIG_ENDIAN, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { BFTParameterNotFoundError } from './errors';
 import { BFTParameters, bftParametersSchema } from './schemas';
 
@@ -22,8 +22,8 @@ export const getBFTParameters = async (
 	paramsStore: StateStore,
 	height: number,
 ): Promise<BFTParameters> => {
-	const start = intToBuffer(0, 4, BIG_ENDIAN);
-	const end = intToBuffer(height, 4, BIG_ENDIAN);
+	const start = utils.intToBuffer(0, 4);
+	const end = utils.intToBuffer(height, 4);
 	const results = await paramsStore.iterate({
 		limit: 1,
 		gte: start,
@@ -41,8 +41,8 @@ export const deleteBFTParameters = async (
 	paramsStore: StateStore,
 	height: number,
 ): Promise<void> => {
-	const start = intToBuffer(0, 4, BIG_ENDIAN);
-	const end = intToBuffer(height, 4, BIG_ENDIAN);
+	const start = utils.intToBuffer(0, 4);
+	const end = utils.intToBuffer(height, 4);
 	const results = await paramsStore.iterate({
 		gte: start,
 		lte: end,
@@ -66,8 +66,8 @@ export class BFTParametersCache {
 	}
 
 	public async cache(from: number, to: number): Promise<void> {
-		const start = intToBuffer(from, 4, BIG_ENDIAN);
-		const end = intToBuffer(to, 4, BIG_ENDIAN);
+		const start = utils.intToBuffer(from, 4);
+		const end = utils.intToBuffer(to, 4);
 		const results = await this._paramsStore.iterateWithSchema<BFTParameters>(
 			{
 				gte: start,
@@ -79,7 +79,7 @@ export class BFTParametersCache {
 		if (from > 0) {
 			const nextLowest = await getBFTParameters(this._paramsStore, from);
 			results.push({
-				key: intToBuffer(from, 4, BIG_ENDIAN),
+				key: utils.intToBuffer(from, 4),
 				value: nextLowest,
 			});
 		}

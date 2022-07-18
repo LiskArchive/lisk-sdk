@@ -28,14 +28,16 @@ describe('FeeModule', () => {
 		genesisConfig = {
 			baseFees: [
 				{
-					commandID: intToBuffer(0, 4),
+					commandID: utils.intToBuffer(0, 4),
 					baseFee: '1',
-					moduleID: intToBuffer(5, 4),
+					moduleID: utils.intToBuffer(5, 4),
 				},
 			],
 			minFeePerByte: 1000,
 		};
-		moduleConfig = { feeTokenID: { chainID: intToBuffer(0, 4), localID: intToBuffer(0, 4) } };
+		moduleConfig = {
+			feeTokenID: { chainID: utils.intToBuffer(0, 4), localID: utils.intToBuffer(0, 4) },
+		};
 		generatorConfig = {};
 		feeModule = new FeeModule();
 		await feeModule.init({ genesisConfig, moduleConfig, generatorConfig });
@@ -66,13 +68,13 @@ describe('FeeModule', () => {
 	describe('verifyTransaction', () => {
 		it('should validate transaction with sufficient min fee', async () => {
 			const transaction = new Transaction({
-				moduleID: intToBuffer(5, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(5, 4),
+				commandID: utils.intToBuffer(0, 4),
 				fee: BigInt(1000000000),
 				nonce: BigInt(0),
-				senderPublicKey: getRandomBytes(32),
-				signatures: [getRandomBytes(20)],
-				params: getRandomBytes(32),
+				senderPublicKey: utils.getRandomBytes(32),
+				signatures: [utils.getRandomBytes(20)],
+				params: utils.getRandomBytes(32),
 			});
 			const context = createTransactionContext({ transaction });
 			const transactionVerifyContext = context.createTransactionVerifyContext();
@@ -84,13 +86,13 @@ describe('FeeModule', () => {
 		it('should validate transaction with exactly the min fee', async () => {
 			const exactMinFee = BigInt(108001);
 			const transaction = new Transaction({
-				moduleID: intToBuffer(5, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(5, 4),
+				commandID: utils.intToBuffer(0, 4),
 				fee: exactMinFee,
 				nonce: BigInt(0),
-				senderPublicKey: getRandomBytes(32),
-				signatures: [getRandomBytes(20)],
-				params: getRandomBytes(32),
+				senderPublicKey: utils.getRandomBytes(32),
+				signatures: [utils.getRandomBytes(20)],
+				params: utils.getRandomBytes(32),
 			});
 			const context = createTransactionContext({ transaction });
 			const transactionVerifyContext = context.createTransactionVerifyContext();
@@ -101,13 +103,13 @@ describe('FeeModule', () => {
 
 		it('should invalidate transaction with insufficient min fee', async () => {
 			const transaction = new Transaction({
-				moduleID: intToBuffer(5, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(5, 4),
+				commandID: utils.intToBuffer(0, 4),
 				fee: BigInt(0),
 				nonce: BigInt(0),
-				senderPublicKey: getRandomBytes(32),
-				signatures: [getRandomBytes(20)],
-				params: getRandomBytes(32),
+				senderPublicKey: utils.getRandomBytes(32),
+				signatures: [utils.getRandomBytes(20)],
+				params: utils.getRandomBytes(32),
 			});
 			const result = await feeModule.verifyTransaction({ transaction } as any);
 			const expectedMinFee =
@@ -126,17 +128,17 @@ describe('FeeModule', () => {
 			jest.spyOn(feeModule['_tokenAPI'], 'isNative').mockResolvedValue(true);
 
 			const transaction = new Transaction({
-				moduleID: intToBuffer(5, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(5, 4),
+				commandID: utils.intToBuffer(0, 4),
 				fee: BigInt(1000000000),
 				nonce: BigInt(0),
-				senderPublicKey: getRandomBytes(32),
-				signatures: [getRandomBytes(20)],
-				params: getRandomBytes(32),
+				senderPublicKey: utils.getRandomBytes(32),
+				signatures: [utils.getRandomBytes(20)],
+				params: utils.getRandomBytes(32),
 			});
 			const context = createTransactionContext({ transaction });
 			const transactionExecuteContext = context.createTransactionExecuteContext();
-			const senderAddress = getAddressFromPublicKey(context.transaction.senderPublicKey);
+			const senderAddress = address.getAddressFromPublicKey(context.transaction.senderPublicKey);
 			const minFee =
 				BigInt(feeModule['_minFeePerByte'] * transaction.getBytes().length) +
 				feeModule['_extraFee'](transaction.moduleID, transaction.commandID);
@@ -160,17 +162,17 @@ describe('FeeModule', () => {
 		it('should transfer transaction fee to generator and not burn min fee when non-native token', async () => {
 			jest.spyOn(feeModule['_tokenAPI'], 'isNative').mockResolvedValue(false);
 			const transaction = new Transaction({
-				moduleID: intToBuffer(5, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(5, 4),
+				commandID: utils.intToBuffer(0, 4),
 				fee: BigInt(1000000000),
 				nonce: BigInt(0),
-				senderPublicKey: getRandomBytes(32),
-				signatures: [getRandomBytes(20)],
-				params: getRandomBytes(32),
+				senderPublicKey: utils.getRandomBytes(32),
+				signatures: [utils.getRandomBytes(20)],
+				params: utils.getRandomBytes(32),
 			});
 			const context = createTransactionContext({ transaction });
 			const transactionExecuteContext = context.createTransactionExecuteContext();
-			const senderAddress = getAddressFromPublicKey(context.transaction.senderPublicKey);
+			const senderAddress = address.getAddressFromPublicKey(context.transaction.senderPublicKey);
 
 			await feeModule.beforeCommandExecute(transactionExecuteContext);
 

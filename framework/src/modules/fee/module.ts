@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getAddressFromPublicKey, intToBuffer } from '@liskhq/lisk-cryptography';
+import { address, utils } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
@@ -29,7 +29,7 @@ import { FeeEndpoint } from './endpoint';
 import { configSchema } from './schemas';
 
 export class FeeModule extends BaseModule {
-	public id = intToBuffer(MODULE_ID_FEE, 4);
+	public id = utils.intToBuffer(MODULE_ID_FEE, 4);
 	public name = 'fee';
 	public api = new FeeAPI(this.id);
 	public configSchema = configSchema;
@@ -86,7 +86,7 @@ export class FeeModule extends BaseModule {
 		const minFee =
 			BigInt(this._minFeePerByte * context.transaction.getBytes().length) +
 			this._extraFee(context.transaction.moduleID, context.transaction.commandID);
-		const senderAddress = getAddressFromPublicKey(context.transaction.senderPublicKey);
+		const senderAddress = address.getAddressFromPublicKey(context.transaction.senderPublicKey);
 		const apiContext = context.getAPIContext();
 
 		const isNative = await this._tokenAPI.isNative(apiContext, this._tokenID);

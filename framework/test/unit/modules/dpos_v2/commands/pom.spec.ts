@@ -59,15 +59,15 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 	let transaction: any;
 	let transactionParams: Buffer;
 	let transactionParamsDecoded: PomTransactionParams;
-	const publicKey = getRandomBytes(32);
-	const senderAddress = getAddressFromPublicKey(publicKey);
+	const publicKey = utils.getRandomBytes(32);
+	const senderAddress = address.getAddressFromPublicKey(publicKey);
 	const header = testing.createFakeBlockHeader({
 		height: blockHeight,
 	});
 	const {
 		address: delegate1Address,
 		publicKey: delegate1PublicKey,
-	} = getAddressAndPublicKeyFromPassphrase(getRandomBytes(20).toString('utf8'));
+	} = getAddressAndPublicKeyFromPassphrase(utils.getRandomBytes(20).toString('utf8'));
 	const defaultDelegateInfo = {
 		totalVotesReceived: BigInt(100000000),
 		selfVotes: BigInt(0),
@@ -128,7 +128,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 		delegateSubstore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
 		transaction = new Transaction({
 			moduleID: MODULE_ID_DPOS_BUFFER,
-			commandID: intToBuffer(COMMAND_ID_POM, 4),
+			commandID: utils.intToBuffer(COMMAND_ID_POM, 4),
 			senderPublicKey: publicKey,
 			nonce: BigInt(0),
 			fee: BigInt(100000000),
@@ -179,7 +179,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				}),
 				header2: codec.encode(blockHeaderSchema, {
 					...header2,
-					generatorAddress: getRandomBytes(20),
+					generatorAddress: utils.getRandomBytes(20),
 				}),
 			};
 			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
@@ -199,7 +199,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 
 		it('should throw error when header1 cannot be decoded', async () => {
 			transactionParamsDecoded = {
-				header1: getRandomBytes(32),
+				header1: utils.getRandomBytes(32),
 				header2: codec.encode(blockHeaderSchema, { ...header2 }),
 			};
 			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
@@ -217,7 +217,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 		it('should throw error when header2 cannot be decoded', async () => {
 			transactionParamsDecoded = {
 				header1: codec.encode(blockHeaderSchema, { ...header1 }),
-				header2: getRandomBytes(32),
+				header2: utils.getRandomBytes(32),
 			};
 			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
 			transaction.params = transactionParams;
@@ -238,7 +238,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				}),
 				header2: codec.encode(blockHeaderSchema, {
 					...header2,
-					generatorAddress: getRandomBytes(20),
+					generatorAddress: utils.getRandomBytes(20),
 				}),
 			};
 			transactionParams = codec.encode(pomCommand.schema, transactionParamsDecoded);
@@ -501,7 +501,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			transactionParamsDecoded = {
 				header1: codec.encode(blockHeaderSchema, {
 					...transactionParamsPreDecoded.header1,
-					generatorAddress: getRandomBytes(32),
+					generatorAddress: utils.getRandomBytes(32),
 				}),
 				header2: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header2),
 			};
@@ -736,7 +736,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 		it('should not return balance if sender and delegate account are same', async () => {
 			transaction = new Transaction({
 				moduleID: MODULE_ID_DPOS_BUFFER,
-				commandID: intToBuffer(COMMAND_ID_POM, 4),
+				commandID: utils.intToBuffer(COMMAND_ID_POM, 4),
 				senderPublicKey: delegate1PublicKey,
 				nonce: BigInt(0),
 				fee: BigInt(100000000),

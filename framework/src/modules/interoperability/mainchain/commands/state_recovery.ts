@@ -13,7 +13,7 @@
  */
 
 import { sparseMerkleTree } from '@liskhq/lisk-tree';
-import { hash } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import { MainchainInteroperabilityStore } from '../store';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
@@ -86,7 +86,7 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 			queryKeys.push(entry.storeKey);
 			storeQueries.push({
 				key: entry.storeKey,
-				value: hash(entry.storeValue),
+				value: utils.hash(entry.storeValue),
 				bitmap: entry.bitmap,
 			});
 		}

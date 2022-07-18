@@ -18,7 +18,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
 import { Block, Chain, DataAccess, BlockHeader, Transaction, StateStore } from '@liskhq/lisk-chain';
-import { getNetworkIdentifier, getKeys } from '@liskhq/lisk-cryptography';
+import { utils, address } from '@liskhq/lisk-cryptography';
 import { Database, StateDB } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
 import { codec } from '@liskhq/lisk-codec';
@@ -116,7 +116,7 @@ const createProcessableBlock = async (
 	for (const tx of transactions) {
 		await engine['_generator']['_pool'].add(tx);
 	}
-	const { privateKey } = getKeys(passphrase);
+	const { privateKey } = address.getKeys(passphrase);
 	const block = await engine.generateBlock({
 		generatorAddress: validator,
 		height: previousBlockHeader.height + 1,
@@ -197,7 +197,7 @@ export const getBlockProcessingEnv = async (
 	const engine = new Engine(abiHandler);
 	await engine['_init']();
 
-	const networkIdentifier = getNetworkIdentifier(
+	const networkIdentifier = utils.getNetworkIdentifier(
 		genesisBlock.header.id,
 		appConfig.genesis.communityIdentifier,
 	);

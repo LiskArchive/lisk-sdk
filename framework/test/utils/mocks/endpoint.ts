@@ -26,6 +26,6 @@ export const createContext = (
 	getImmutableAPIContext: () => createImmutableAPIContext(stateStore),
 	getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
 	logger: fakeLogger,
-	networkIdentifier: getRandomBytes(32),
+	networkIdentifier: utils.getRandomBytes(32),
 	params,
 });

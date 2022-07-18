@@ -15,7 +15,7 @@
 import { BlockAsset, BlockAssets } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { RandomAPI } from '../../../../src/modules/random/api';
 import {
 	MODULE_ID_RANDOM_BUFFER,
@@ -36,7 +36,7 @@ import { testCases } from './dpos_random_seed_generation/dpos_random_seed_genera
 import * as randomSeedsMultipleRounds from '../../../fixtures/dpos_random_seed_generation/dpos_random_seed_generation_other_rounds.json';
 
 const strippedHashOfIntegerBuffer = (num: number) =>
-	cryptography.hash(intToBuffer(num, 4)).slice(0, SEED_REVEAL_HASH_SIZE);
+	cryptography.hash(utils.intToBuffer(num, 4)).slice(0, SEED_REVEAL_HASH_SIZE);
 
 describe('RandomModuleAPI', () => {
 	let randomAPI: RandomAPI;
@@ -50,7 +50,7 @@ describe('RandomModuleAPI', () => {
 		const twoRoundsDelegatesHashes: { [key: string]: Buffer[] } = {};
 
 		for (const generator of testCases[0].input.blocks) {
-			const generatorAddress = cryptography.getAddressFromPublicKey(
+			const generatorAddress = cryptography.address.getAddressFromPublicKey(
 				Buffer.from(generator.generatorPublicKey, 'hex'),
 			);
 			const seedReveal = Buffer.from(generator.asset.seedReveal, 'hex');
@@ -81,7 +81,7 @@ describe('RandomModuleAPI', () => {
 
 		it('should throw error when asset is undefined', async () => {
 			// Arrange
-			const delegateAddress = cryptography.getAddressFromPublicKey(
+			const delegateAddress = cryptography.address.getAddressFromPublicKey(
 				Buffer.from(testCases[0].input.blocks[0].generatorPublicKey, 'hex'),
 			);
 
@@ -213,7 +213,7 @@ describe('RandomModuleAPI', () => {
 			const numberOfSeeds = 2;
 			// Create a buffer from height + numberOfSeeds
 
-			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
+			await expect(randomAPI.utils.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
 				'Height or number of seeds cannot be negative.',
 			);
 		});
@@ -223,7 +223,7 @@ describe('RandomModuleAPI', () => {
 			const numberOfSeeds = -2;
 			// Create a buffer from height + numberOfSeeds
 
-			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
+			await expect(randomAPI.utils.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
 				'Height or number of seeds cannot be negative.',
 			);
 		});
@@ -244,7 +244,7 @@ describe('RandomModuleAPI', () => {
 				hashesExpected[1],
 			]);
 
-			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+			await expect(randomAPI.utils.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				xorExpected,
 			);
 		});
@@ -266,7 +266,7 @@ describe('RandomModuleAPI', () => {
 				hashesExpected[2],
 			]);
 
-			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+			await expect(randomAPI.utils.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				xorExpected,
 			);
 		});
@@ -288,7 +288,7 @@ describe('RandomModuleAPI', () => {
 				hashesExpected[2],
 			]);
 
-			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+			await expect(randomAPI.utils.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				xorExpected,
 			);
 		});
@@ -305,7 +305,7 @@ describe('RandomModuleAPI', () => {
 			// Do XOR of randomSeed with hashes of seed reveal with height >= randomStoreValidator.height >= height + numberOfSeeds
 			const xorExpected = bitwiseXOR([randomSeed, hashesExpected[0]]);
 
-			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+			await expect(randomAPI.utils.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				xorExpected,
 			);
 		});
@@ -316,7 +316,7 @@ describe('RandomModuleAPI', () => {
 			// Create a buffer from height + numberOfSeeds
 			const randomSeed = strippedHashOfIntegerBuffer(height + numberOfSeeds);
 
-			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+			await expect(randomAPI.utils.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				randomSeed,
 			);
 		});
@@ -327,7 +327,7 @@ describe('RandomModuleAPI', () => {
 			// Create a buffer from height + numberOfSeeds
 			const randomSeed = strippedHashOfIntegerBuffer(height + numberOfSeeds);
 
-			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+			await expect(randomAPI.utils.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				randomSeed,
 			);
 		});
@@ -342,7 +342,7 @@ describe('RandomModuleAPI', () => {
 			const validators: ValidatorSeedReveal[] = [];
 
 			for (const generator of input.blocks) {
-				const generatorAddress = cryptography.getAddressFromPublicKey(
+				const generatorAddress = cryptography.address.getAddressFromPublicKey(
 					Buffer.from(generator.generatorPublicKey, 'hex'),
 				);
 				const seedReveal = Buffer.from(generator.asset.seedReveal, 'hex');
@@ -380,7 +380,7 @@ describe('RandomModuleAPI', () => {
 				const endOfLastRound = startOfRound - 1;
 				const startOfLastRound = endOfLastRound - config.blocksPerRound + 1;
 				// Act
-				const randomSeed1 = await randomAPI.getRandomBytes(
+				const randomSeed1 = await randomAPI.utils.getRandomBytes(
 					context,
 					heightForSeed1,
 					round === 2 ? middleThreshold : middleThreshold * 2,
@@ -389,7 +389,7 @@ describe('RandomModuleAPI', () => {
 				const randomSeed2 =
 					round === 2
 						? strippedHashOfIntegerBuffer(endOfLastRound)
-						: await randomAPI.getRandomBytes(context, startOfLastRound, middleThreshold * 2);
+						: await randomAPI.utils.getRandomBytes(context, startOfLastRound, middleThreshold * 2);
 				// Assert
 				expect(randomSeed1.toString('hex')).toEqual(output.randomSeed1);
 				expect(randomSeed2.toString('hex')).toEqual(output.randomSeed2);

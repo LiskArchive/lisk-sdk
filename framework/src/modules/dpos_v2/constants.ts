@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 
 export const MODULE_ID_DPOS = 13; // TBD
 
@@ -46,7 +46,7 @@ export const REPORTING_PUNISHMENT_REWARD = BigInt(100000000);
 export const DELEGATE_LIST_ROUND_OFFSET = 2;
 export const EMPTY_KEY = Buffer.alloc(0);
 export const MAX_SNAPSHOT = 3;
-export const MODULE_ID_DPOS_BUFFER = intToBuffer(MODULE_ID_DPOS, 4);
+export const MODULE_ID_DPOS_BUFFER = utils.intToBuffer(MODULE_ID_DPOS, 4);
 
 export const defaultConfig = {
 	factorSelfVotes: 10,

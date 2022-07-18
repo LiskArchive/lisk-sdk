@@ -14,13 +14,7 @@
  */
 
 import { codec, Schema } from '@liskhq/lisk-codec';
-import {
-	getAddressAndPublicKeyFromPassphrase,
-	signData,
-	signDataWithPrivateKey,
-	hash,
-	getPublicKey,
-} from '@liskhq/lisk-cryptography';
+import { utils, ed, address } from '@liskhq/lisk-cryptography';
 import { validateTransaction } from './validate';
 import { baseTransactionSchema } from './schema';
 import { TAG_TRANSACTION } from './constants';
@@ -97,7 +91,7 @@ export const signTransaction = (
 	if (validationErrors) {
 		throw validationErrors;
 	}
-	const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
+	const { publicKey } = address.getAddressAndPublicKeyFromPassphrase(passphrase);
 
 	if (
 		!Buffer.isBuffer(transactionObject.senderPublicKey) ||
@@ -106,7 +100,7 @@ export const signTransaction = (
 		throw new Error('Transaction senderPublicKey does not match public key from passphrase');
 	}
 
-	const signature = signData(
+	const signature = ed.signData(
 		TAG_TRANSACTION,
 		networkIdentifier,
 		getSigningBytes(transactionObject, paramsSchema),
@@ -114,7 +108,7 @@ export const signTransaction = (
 	);
 	// eslint-disable-next-line no-param-reassign
 	transactionObject.signatures = [signature];
-	return { ...transactionObject, id: hash(getBytes(transactionObject, paramsSchema)) };
+	return { ...transactionObject, id: utils.hash(getBytes(transactionObject, paramsSchema)) };
 };
 
 const sanitizeSignaturesArray = (
@@ -165,8 +159,8 @@ export const signMultiSignatureTransaction = (
 	keys.mandatoryKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
 	keys.optionalKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
 
-	const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
-	const signature = signData(
+	const { publicKey } = address.getAddressAndPublicKeyFromPassphrase(passphrase);
+	const signature = ed.signData(
 		TAG_TRANSACTION,
 		networkIdentifier,
 		getSigningBytes(transactionObject, paramsSchema),
@@ -205,7 +199,7 @@ export const signMultiSignatureTransaction = (
 
 	sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);
 
-	return { ...transactionObject, id: hash(getBytes(transactionObject, paramsSchema)) };
+	return { ...transactionObject, id: utils.hash(getBytes(transactionObject, paramsSchema)) };
 };
 
 export const signTransactionWithPrivateKey = (
@@ -232,7 +226,7 @@ export const signTransactionWithPrivateKey = (
 		getSigningBytes(transactionObject, paramsSchema),
 	]);
 
-	const signature = signDataWithPrivateKey(
+	const signature = ed.signDataWithPrivateKey(
 		TAG_TRANSACTION,
 		networkIdentifier,
 		transactionWithNetworkIdentifierBytes,
@@ -241,7 +235,7 @@ export const signTransactionWithPrivateKey = (
 
 	// eslint-disable-next-line no-param-reassign
 	transactionObject.signatures = [signature];
-	return { ...transactionObject, id: hash(getBytes(transactionObject, paramsSchema)) };
+	return { ...transactionObject, id: utils.hash(getBytes(transactionObject, paramsSchema)) };
 };
 
 export const signMultiSignatureTransactionWithPrivateKey = (
@@ -278,14 +272,14 @@ export const signMultiSignatureTransactionWithPrivateKey = (
 		getSigningBytes(transactionObject, paramsSchema),
 	]);
 
-	const signature = signDataWithPrivateKey(
+	const signature = ed.signDataWithPrivateKey(
 		TAG_TRANSACTION,
 		networkIdentifier,
 		transactionWithNetworkIdentifierBytes,
 		privateKey,
 	);
 
-	const signerPublicKey = getPublicKey(privateKey);
+	const signerPublicKey = ed.getPublicKeyFromPrivateKey(privateKey);
 
 	if (
 		includeSenderSignature &&
@@ -321,5 +315,5 @@ export const signMultiSignatureTransactionWithPrivateKey = (
 
 	sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);
 
-	return { ...transactionObject, id: hash(getBytes(transactionObject, paramsSchema)) };
+	return { ...transactionObject, id: utils.hash(getBytes(transactionObject, paramsSchema)) };
 };

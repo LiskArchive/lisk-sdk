@@ -36,8 +36,8 @@ describe('transaction', () => {
 	const encodedTx = Buffer.from(txHex, 'hex');
 
 	const validTransaction = {
-		moduleID: intToBuffer(2, 4).toString('hex'),
-		commandID: intToBuffer(0, 4).toString('hex'),
+		moduleID: utils.intToBuffer(2, 4).toString('hex'),
+		commandID: utils.intToBuffer(0, 4).toString('hex'),
 		nonce: '1',
 		fee: '10000000',
 		senderPublicKey: publicKey1.toString('hex'),
@@ -50,8 +50,8 @@ describe('transaction', () => {
 	};
 	const validTransactionJSON = {
 		id: tx.id,
-		moduleID: intToBuffer(2, 4).toString('hex'),
-		commandID: intToBuffer(0, 4).toString('hex'),
+		moduleID: utils.intToBuffer(2, 4).toString('hex'),
+		commandID: utils.intToBuffer(0, 4).toString('hex'),
 		nonce: '1',
 		fee: '10000000',
 		senderPublicKey: publicKey1.toString('hex'),

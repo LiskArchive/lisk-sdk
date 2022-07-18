@@ -48,7 +48,7 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 		| 'getChainAccount'
 	>;
 
-	const networkID = getRandomBytes(32);
+	const networkID = utils.getRandomBytes(32);
 
 	let stateRecoveryInitCommand: StateRecoveryInitCommand;
 	let commandExecuteContext: CommandExecuteContext<StateRecoveryInitParams>;
@@ -77,9 +77,9 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 			networkID,
 			lastCertificate: {
 				height: 10,
-				stateRoot: getRandomBytes(32),
+				stateRoot: utils.getRandomBytes(32),
 				timestamp: 100,
-				validatorsHash: getRandomBytes(32),
+				validatorsHash: utils.getRandomBytes(32),
 			},
 			status: CHAIN_TERMINATED,
 		};
@@ -87,7 +87,7 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 		sidechainChainAccountEncoded = codec.encode(chainAccountSchema, sidechainChainAccount);
 
 		transactionParams = {
-			chainID: intToBuffer(3, 4),
+			chainID: utils.intToBuffer(3, 4),
 			bitmap: Buffer.alloc(0),
 			siblingHashes: [],
 			sidechainChainAccount: sidechainChainAccountEncoded,
@@ -101,7 +101,7 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 			fee: BigInt(100000000),
 			nonce: BigInt(0),
 			params: encodedTransactionParams,
-			senderPublicKey: getRandomBytes(32),
+			senderPublicKey: utils.getRandomBytes(32),
 			signatures: [],
 		});
 
@@ -152,9 +152,9 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 				networkID,
 				lastCertificate: {
 					height: 10,
-					stateRoot: getRandomBytes(32),
+					stateRoot: utils.getRandomBytes(32),
 					timestamp: 100 + LIVENESS_LIMIT,
-					validatorsHash: getRandomBytes(32),
+					validatorsHash: utils.getRandomBytes(32),
 				},
 				status: CHAIN_ACTIVE,
 			};
@@ -210,15 +210,15 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 				networkID,
 				lastCertificate: {
 					height: 10,
-					stateRoot: getRandomBytes(32),
+					stateRoot: utils.getRandomBytes(32),
 					timestamp: 100,
-					validatorsHash: getRandomBytes(32),
+					validatorsHash: utils.getRandomBytes(32),
 				},
 				status: CHAIN_ACTIVE,
 			};
 			sidechainChainAccountEncoded = codec.encode(chainAccountSchema, sidechainChainAccount);
 			transactionParams = {
-				chainID: intToBuffer(3, 4),
+				chainID: utils.intToBuffer(3, 4),
 				bitmap: Buffer.alloc(0),
 				siblingHashes: [],
 				sidechainChainAccount: sidechainChainAccountEncoded,
@@ -230,7 +230,7 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 				fee: BigInt(100000000),
 				nonce: BigInt(0),
 				params: encodedTransactionParams,
-				senderPublicKey: getRandomBytes(32),
+				senderPublicKey: utils.getRandomBytes(32),
 				signatures: [],
 			});
 			transactionContext = createTransactionContext({

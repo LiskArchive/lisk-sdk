@@ -64,9 +64,9 @@ export class HashOnionCommand extends Command {
 			fs.ensureDirSync(dir);
 		}
 
-		const seed = cryptography.generateHashOnionSeed();
+		const seed = cryptography.utils.generateHashOnionSeed();
 
-		const hashBuffers = cryptography.hashOnion(seed, count, distance);
+		const hashBuffers = cryptography.utils.hashOnion(seed, count, distance);
 		const hashes = hashBuffers.map(buf => buf.toString('hex'));
 
 		const result = { count, distance, hashes };

@@ -37,11 +37,11 @@ import { DEFAULT_TOKEN_ID } from '../../../../utils/mocks/transaction';
 describe('VoteCommand', () => {
 	const lastBlockHeight = 200;
 	const tokenIDDPoS = DEFAULT_TOKEN_ID;
-	const senderPublicKey = getRandomBytes(32);
-	const senderAddress = getAddressFromPublicKey(senderPublicKey);
-	const delegateAddress1 = getRandomBytes(20);
-	const delegateAddress2 = getRandomBytes(20);
-	const delegateAddress3 = getRandomBytes(20);
+	const senderPublicKey = utils.getRandomBytes(32);
+	const senderAddress = address.getAddressFromPublicKey(senderPublicKey);
+	const delegateAddress1 = utils.getRandomBytes(20);
+	const delegateAddress2 = utils.getRandomBytes(20);
+	const delegateAddress3 = utils.getRandomBytes(20);
 	const delegate1VoteAmount = liskToBeddows(90);
 	const delegate2VoteAmount = liskToBeddows(50);
 	const getWithSchemaMock = jest.fn();
@@ -151,11 +151,11 @@ describe('VoteCommand', () => {
 		beforeEach(() => {
 			transaction = new Transaction({
 				moduleID: MODULE_ID_DPOS_BUFFER,
-				commandID: intToBuffer(COMMAND_ID_VOTE, 4),
+				commandID: utils.intToBuffer(COMMAND_ID_VOTE, 4),
 				fee: BigInt(1500000),
 				nonce: BigInt(0),
 				params: Buffer.alloc(0),
-				senderPublicKey: getRandomBytes(32),
+				senderPublicKey: utils.getRandomBytes(32),
 				signatures: [],
 			});
 		});
@@ -191,7 +191,7 @@ describe('VoteCommand', () => {
 					transactionParamsDecoded = {
 						votes: Array(21)
 							.fill(0)
-							.map(() => ({ delegateAddress: getRandomBytes(20), amount: liskToBeddows(0) })),
+							.map(() => ({ delegateAddress: utils.getRandomBytes(20), amount: liskToBeddows(0) })),
 					};
 
 					transactionParams = codec.encode(command.schema, transactionParamsDecoded);
@@ -218,7 +218,7 @@ describe('VoteCommand', () => {
 					transactionParamsDecoded = {
 						votes: [
 							{
-								delegateAddress: getRandomBytes(20),
+								delegateAddress: utils.getRandomBytes(20),
 								amount: BigInt(-1) * BigInt(2) ** BigInt(63) - BigInt(1),
 							},
 						],
@@ -236,7 +236,7 @@ describe('VoteCommand', () => {
 					transactionParamsDecoded = {
 						votes: [
 							{
-								delegateAddress: getRandomBytes(20),
+								delegateAddress: utils.getRandomBytes(20),
 								amount: BigInt(2) ** BigInt(63) + BigInt(1),
 							},
 						],
@@ -254,7 +254,7 @@ describe('VoteCommand', () => {
 			it('should not throw errors with valid upvote case', async () => {
 				// Arrange
 				transactionParamsDecoded = {
-					votes: [{ delegateAddress: getRandomBytes(20), amount: liskToBeddows(20) }],
+					votes: [{ delegateAddress: utils.getRandomBytes(20), amount: liskToBeddows(20) }],
 				};
 
 				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
@@ -272,7 +272,7 @@ describe('VoteCommand', () => {
 			it('should not throw errors with valid downvote cast', async () => {
 				// Arrange
 				transactionParamsDecoded = {
-					votes: [{ delegateAddress: getRandomBytes(20), amount: liskToBeddows(-20) }],
+					votes: [{ delegateAddress: utils.getRandomBytes(20), amount: liskToBeddows(-20) }],
 				};
 
 				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
@@ -291,8 +291,8 @@ describe('VoteCommand', () => {
 				// Arrange
 				transactionParamsDecoded = {
 					votes: [
-						{ delegateAddress: getRandomBytes(20), amount: liskToBeddows(20) },
-						{ delegateAddress: getRandomBytes(20), amount: liskToBeddows(-20) },
+						{ delegateAddress: utils.getRandomBytes(20), amount: liskToBeddows(20) },
+						{ delegateAddress: utils.getRandomBytes(20), amount: liskToBeddows(-20) },
 					],
 				};
 
@@ -315,7 +315,7 @@ describe('VoteCommand', () => {
 				transactionParamsDecoded = {
 					votes: Array(11)
 						.fill(0)
-						.map(() => ({ delegateAddress: getRandomBytes(20), amount: liskToBeddows(10) })),
+						.map(() => ({ delegateAddress: utils.getRandomBytes(20), amount: liskToBeddows(10) })),
 				};
 
 				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
@@ -340,7 +340,7 @@ describe('VoteCommand', () => {
 				transactionParamsDecoded = {
 					votes: Array(11)
 						.fill(0)
-						.map(() => ({ delegateAddress: getRandomBytes(20), amount: liskToBeddows(-10) })),
+						.map(() => ({ delegateAddress: utils.getRandomBytes(20), amount: liskToBeddows(-10) })),
 				};
 
 				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
@@ -362,7 +362,7 @@ describe('VoteCommand', () => {
 		describe('when transaction.params.votes includes duplicate delegates within positive amount', () => {
 			it('should throw error', async () => {
 				// Arrange
-				const delegateAddress = getRandomBytes(20);
+				const delegateAddress = utils.getRandomBytes(20);
 				transactionParamsDecoded = {
 					votes: Array(2)
 						.fill(0)
@@ -388,7 +388,7 @@ describe('VoteCommand', () => {
 		describe('when transaction.params.votes includes duplicate delegates within positive and negative amount', () => {
 			it('should throw error', async () => {
 				// Arrange
-				const delegateAddress = getRandomBytes(20);
+				const delegateAddress = utils.getRandomBytes(20);
 				transactionParamsDecoded = {
 					votes: [
 						{ delegateAddress, amount: liskToBeddows(10) },
@@ -415,7 +415,7 @@ describe('VoteCommand', () => {
 		describe('when transaction.params.votes includes zero amount', () => {
 			it('should throw error', async () => {
 				// Arrange
-				const delegateAddress = getRandomBytes(20);
+				const delegateAddress = utils.getRandomBytes(20);
 				transactionParamsDecoded = {
 					votes: [{ delegateAddress, amount: liskToBeddows(0) }],
 				};
@@ -439,7 +439,7 @@ describe('VoteCommand', () => {
 		describe('when transaction.params.votes includes positive amount which is not multiple of 10 * 10^8', () => {
 			it('should throw an error', async () => {
 				// Arrange
-				const delegateAddress = getRandomBytes(20);
+				const delegateAddress = utils.getRandomBytes(20);
 				transactionParamsDecoded = {
 					votes: [{ delegateAddress, amount: BigInt(20) }],
 				};
@@ -463,7 +463,7 @@ describe('VoteCommand', () => {
 		describe('when transaction.params.votes includes negative amount which is not multiple of 10 * 10^8', () => {
 			it('should throw error', async () => {
 				// Arrange
-				const delegateAddress = getRandomBytes(20);
+				const delegateAddress = utils.getRandomBytes(20);
 				transactionParamsDecoded = {
 					votes: [{ delegateAddress, amount: BigInt(-20) }],
 				};
@@ -489,7 +489,7 @@ describe('VoteCommand', () => {
 		beforeEach(() => {
 			transaction = new Transaction({
 				moduleID: MODULE_ID_DPOS_BUFFER,
-				commandID: intToBuffer(COMMAND_ID_VOTE, 4),
+				commandID: utils.intToBuffer(COMMAND_ID_VOTE, 4),
 				fee: BigInt(1500000),
 				nonce: BigInt(0),
 				params: transactionParams,
@@ -520,7 +520,7 @@ describe('VoteCommand', () => {
 			it('should throw error if vote amount is more than balance', async () => {
 				// Arrange
 				transactionParamsDecoded = {
-					votes: [{ delegateAddress: getRandomBytes(20), amount: liskToBeddows(100) }],
+					votes: [{ delegateAddress: utils.getRandomBytes(20), amount: liskToBeddows(100) }],
 				};
 
 				transactionParams = codec.encode(command.schema, transactionParamsDecoded);
@@ -1042,7 +1042,7 @@ describe('VoteCommand', () => {
 			describe('when transaction.params.votes contain delegate address which is not registered', () => {
 				it('should throw error', async () => {
 					// Arrange
-					const nonExistingDelegateAddress = getRandomBytes(20);
+					const nonExistingDelegateAddress = utils.getRandomBytes(20);
 
 					transactionParamsDecoded = {
 						...transactionParamsDecoded,
@@ -1072,7 +1072,7 @@ describe('VoteCommand', () => {
 					const votes = [];
 
 					for (let i = 0; i < 12; i += 1) {
-						const delegateAddress = getRandomBytes(20);
+						const delegateAddress = utils.getRandomBytes(20);
 
 						const delegateInfo = {
 							consecutiveMissedBlocks: 0,
@@ -1115,7 +1115,7 @@ describe('VoteCommand', () => {
 
 					// Suppose account already voted for 8 delegates
 					for (let i = 0; i < initialDelegateAmount; i += 1) {
-						const delegateAddress = getRandomBytes(20);
+						const delegateAddress = utils.getRandomBytes(20);
 
 						const delegateInfo = {
 							consecutiveMissedBlocks: 0,
@@ -1152,7 +1152,7 @@ describe('VoteCommand', () => {
 
 					// We have 3 positive votes
 					for (let i = 0; i < 3; i += 1) {
-						const delegateAddress = getRandomBytes(20);
+						const delegateAddress = utils.getRandomBytes(20);
 
 						const delegateInfo = {
 							consecutiveMissedBlocks: 0,
@@ -1199,7 +1199,7 @@ describe('VoteCommand', () => {
 
 					// Suppose account already 19 unlocking
 					for (let i = 0; i < initialDelegateAmountForUnlocks; i += 1) {
-						const delegateAddress = getRandomBytes(20);
+						const delegateAddress = utils.getRandomBytes(20);
 
 						const delegateInfo = {
 							consecutiveMissedBlocks: 0,
@@ -1223,7 +1223,7 @@ describe('VoteCommand', () => {
 
 					// Suppose account have 5 positive votes
 					for (let i = 0; i < 5; i += 1) {
-						const delegateAddress = getRandomBytes(20);
+						const delegateAddress = utils.getRandomBytes(20);
 
 						const delegateInfo = {
 							consecutiveMissedBlocks: 0,
@@ -1433,7 +1433,7 @@ describe('VoteCommand', () => {
 			const senderVoteAmountPositive = liskToBeddows(80);
 			const senderVoteAmountNegative = liskToBeddows(20);
 			const delegateSelfVote = liskToBeddows(2000);
-			const delegateAddress = getRandomBytes(20);
+			const delegateAddress = utils.getRandomBytes(20);
 			let delegateInfo: any;
 			beforeEach(async () => {
 				delegateInfo = {

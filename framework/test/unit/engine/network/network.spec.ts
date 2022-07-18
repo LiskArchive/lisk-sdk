@@ -35,7 +35,7 @@ describe('network', () => {
 		});
 		await network.init({
 			logger: fakeLogger,
-			networkIdentifier: getRandomBytes(32),
+			networkIdentifier: utils.getRandomBytes(32),
 			nodeDB: db as never,
 		});
 	});
@@ -190,7 +190,7 @@ describe('network', () => {
 					const parseSpy = jest.spyOn(JSON, 'parse');
 					await network.init({
 						logger: fakeLogger,
-						networkIdentifier: getRandomBytes(32),
+						networkIdentifier: utils.getRandomBytes(32),
 						nodeDB: db as never,
 					});
 					await network.start();

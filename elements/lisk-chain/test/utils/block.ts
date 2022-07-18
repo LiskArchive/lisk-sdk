@@ -36,25 +36,25 @@ const getKeyPair = (): { publicKey: Buffer; privateKey: Buffer } => {
 
 export const createFakeBlockHeader = (header?: Partial<BlockHeaderAttrs>): BlockHeader =>
 	new BlockHeader({
-		id: hash(getRandomBytes(8)),
+		id: utils.hash(utils.getRandomBytes(8)),
 		version: 2,
 		timestamp: header?.timestamp ?? 0,
 		height: header?.height ?? 0,
-		previousBlockID: header?.previousBlockID ?? hash(getRandomBytes(4)),
-		transactionRoot: header?.transactionRoot ?? hash(getRandomBytes(4)),
-		generatorAddress: header?.generatorAddress ?? getRandomBytes(32),
+		previousBlockID: header?.previousBlockID ?? utils.hash(utils.getRandomBytes(4)),
+		transactionRoot: header?.transactionRoot ?? utils.hash(utils.getRandomBytes(4)),
+		generatorAddress: header?.generatorAddress ?? utils.getRandomBytes(32),
 		maxHeightGenerated: header?.maxHeightGenerated ?? 0,
 		maxHeightPrevoted: header?.maxHeightPrevoted ?? 0,
-		eventRoot: header?.eventRoot ?? hash(getRandomBytes(32)),
-		stateRoot: header?.stateRoot ?? hash(getRandomBytes(32)),
-		assetRoot: header?.assetRoot ?? hash(getRandomBytes(32)),
-		validatorsHash: header?.validatorsHash ?? hash(getRandomBytes(32)),
+		eventRoot: header?.eventRoot ?? utils.hash(utils.getRandomBytes(32)),
+		stateRoot: header?.stateRoot ?? utils.hash(utils.getRandomBytes(32)),
+		assetRoot: header?.assetRoot ?? utils.hash(utils.getRandomBytes(32)),
+		validatorsHash: header?.validatorsHash ?? utils.hash(utils.getRandomBytes(32)),
 		aggregateCommit: header?.aggregateCommit ?? {
 			height: 0,
 			aggregationBits: Buffer.alloc(0),
 			certificateSignature: Buffer.alloc(0),
 		},
-		signature: header?.signature ?? getRandomBytes(64),
+		signature: header?.signature ?? utils.getRandomBytes(64),
 	});
 
 /**
@@ -82,10 +82,10 @@ export const createValidDefaultBlock = async (
 		previousBlockID: Buffer.from(genesis.header.id, 'hex'),
 		timestamp: genesis.header.timestamp + 10,
 		transactionRoot: txTree.root,
-		stateRoot: getRandomBytes(32),
-		eventRoot: getRandomBytes(32),
+		stateRoot: utils.getRandomBytes(32),
+		eventRoot: utils.getRandomBytes(32),
 		assetRoot,
-		validatorsHash: hash(getRandomBytes(32)),
+		validatorsHash: utils.hash(utils.getRandomBytes(32)),
 		maxHeightGenerated: 0,
 		maxHeightPrevoted: 0,
 		aggregateCommit: {
@@ -93,7 +93,7 @@ export const createValidDefaultBlock = async (
 			aggregationBits: Buffer.alloc(0),
 			certificateSignature: Buffer.alloc(0),
 		},
-		generatorAddress: getAddressFromPublicKey(keypair.publicKey),
+		generatorAddress: address.getAddressFromPublicKey(keypair.publicKey),
 		...block?.header,
 	});
 

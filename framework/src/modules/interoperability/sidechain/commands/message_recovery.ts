@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
-import { hash } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { NotFoundError } from '@liskhq/lisk-chain';
 import {
 	CommandExecuteContext,
@@ -129,7 +129,7 @@ export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			siblingHashes: params.siblingHashes,
 		};
 
-		const hashedUpdatedCCMs = updatedCCMs.map(ccm => hash(ccm));
+		const hashedUpdatedCCMs = updatedCCMs.map(ccm => utils.hash(ccm));
 
 		const outboxRoot = regularMerkleTree.calculateRootFromUpdateData(hashedUpdatedCCMs, proof);
 

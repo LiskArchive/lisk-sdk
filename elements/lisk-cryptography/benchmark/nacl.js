@@ -96,10 +96,10 @@ const verifyDetachedBenchmark = new Benchmark.Suite('verifyDetached')
 
 const getRandomBytesBenchmark = new Benchmark.Suite('getRandomBytes')
 	.add('fast.getRandomBytes', () => {
-		fast.getRandomBytes(24);
+		fast.utils.getRandomBytes(24);
 	})
 	.add('slow.getRandomBytes', () => {
-		slow.getRandomBytes(24);
+		slow.utils.getRandomBytes(24);
 	});
 
 const getKeyPairBenchmark = new Benchmark.Suite('getKeyPair')

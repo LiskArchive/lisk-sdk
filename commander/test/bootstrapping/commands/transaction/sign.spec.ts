@@ -14,7 +14,7 @@
  */
 
 import * as fs from 'fs-extra';
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { Application, IPCChannel, transactionSchema } from 'lisk-framework';
 import * as apiClient from '@liskhq/lisk-api-client';
 import { codec } from '@liskhq/lisk-codec';
@@ -34,18 +34,18 @@ import { getConfig } from '../../../helpers/config';
 describe('transaction:sign command', () => {
 	const commands = [
 		{
-			moduleID: intToBuffer(2, 4).toString('hex'),
-			commandID: intToBuffer(0, 4).toString('hex'),
+			moduleID: utils.intToBuffer(2, 4).toString('hex'),
+			commandID: utils.intToBuffer(0, 4).toString('hex'),
 			schema: tokenTransferParamsSchema,
 		},
 		{
-			moduleID: intToBuffer(12, 4).toString('hex'),
-			commandID: intToBuffer(0, 4).toString('hex'),
+			moduleID: utils.intToBuffer(12, 4).toString('hex'),
+			commandID: utils.intToBuffer(0, 4).toString('hex'),
 			schema: keysRegisterParamsSchema,
 		},
 		{
-			moduleID: intToBuffer(13, 4).toString('hex'),
-			commandID: intToBuffer(1, 4).toString('hex'),
+			moduleID: utils.intToBuffer(13, 4).toString('hex'),
+			commandID: utils.intToBuffer(1, 4).toString('hex'),
 			schema: dposVoteParamsSchema,
 		},
 	];
@@ -58,9 +58,9 @@ describe('transaction:sign command', () => {
 			data: 'send token',
 			recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
 		},
-		commandID: intToBuffer(0, 4).toString('hex'),
+		commandID: utils.intToBuffer(0, 4).toString('hex'),
 		fee: '100000000',
-		moduleID: intToBuffer(2, 4).toString('hex'),
+		moduleID: utils.intToBuffer(2, 4).toString('hex'),
 		nonce: '0',
 		senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 		signatures: [
@@ -155,28 +155,28 @@ describe('transaction:sign command', () => {
 			},
 			metadata: [
 				{
-					id: intToBuffer(2, 4).toString('hex'),
+					id: utils.intToBuffer(2, 4).toString('hex'),
 					commands: [
 						{
-							id: intToBuffer(0, 4).toString('hex'),
+							id: utils.intToBuffer(0, 4).toString('hex'),
 							params: tokenTransferParamsSchema,
 						},
 					],
 				},
 				{
-					id: intToBuffer(12, 4).toString('hex'),
+					id: utils.intToBuffer(12, 4).toString('hex'),
 					commands: [
 						{
-							id: intToBuffer(0, 4).toString('hex'),
+							id: utils.intToBuffer(0, 4).toString('hex'),
 							params: keysRegisterParamsSchema,
 						},
 					],
 				},
 				{
-					id: intToBuffer(13, 4).toString('hex'),
+					id: utils.intToBuffer(13, 4).toString('hex'),
 					commands: [
 						{
-							id: intToBuffer(1, 4).toString('hex'),
+							id: utils.intToBuffer(1, 4).toString('hex'),
 							params: dposVoteParamsSchema,
 						},
 					],

@@ -15,15 +15,7 @@
  */
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { Schema } from '@liskhq/lisk-codec';
-import {
-	generatePrivateKey,
-	getAddressFromPublicKey,
-	getKeys,
-	getLisk32AddressFromPublicKey,
-	getPublicKeyFromPrivateKey,
-	blsPopProve,
-	intToBuffer,
-} from '@liskhq/lisk-cryptography';
+import { bls, address, utils } from '@liskhq/lisk-cryptography';
 import {
 	dposGenesisStoreSchema,
 	DPoSModule,
@@ -73,22 +65,22 @@ export const generateGenesisBlockDefaultDPoSAssets = (input: GenesisBlockDefault
 	const accountList = [];
 	for (let i = 0; i < input.numberOfAccounts; i += 1) {
 		const passphrase = Mnemonic.generateMnemonic(256);
-		const keys = getKeys(passphrase);
+		const keys = address.getKeys(passphrase);
 		accountList.push({
 			publicKey: keys.publicKey,
 			privateKey: keys.privateKey,
 			passphrase,
-			address: getAddressFromPublicKey(keys.publicKey),
-			lisk32Address: getLisk32AddressFromPublicKey(keys.publicKey),
+			address: address.getAddressFromPublicKey(keys.publicKey),
+			lisk32Address: address.getLisk32AddressFromPublicKey(keys.publicKey),
 		});
 	}
 	const validatorList = [];
 	for (let i = 0; i < input.numberOfValidators; i += 1) {
 		const passphrase = Mnemonic.generateMnemonic(256);
-		const keys = getKeys(passphrase);
-		const blsPrivateKey = generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
-		const blsPublicKey = getPublicKeyFromPrivateKey(blsPrivateKey);
-		const blsPoP = blsPopProve(blsPrivateKey);
+		const keys = address.getKeys(passphrase);
+		const blsPrivateKey = bls.generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
+		const blsPublicKey = bls.getPublicKeyFromPrivateKey(blsPrivateKey);
+		const blsPoP = bls.popProve(blsPrivateKey);
 		validatorList.push({
 			publicKey: keys.publicKey,
 			name: `genesis_${i}`,
@@ -97,8 +89,8 @@ export const generateGenesisBlockDefaultDPoSAssets = (input: GenesisBlockDefault
 			blsPrivateKey,
 			blsPoP,
 			passphrase,
-			address: getAddressFromPublicKey(keys.publicKey),
-			lisk32Address: getLisk32AddressFromPublicKey(keys.publicKey),
+			address: address.getAddressFromPublicKey(keys.publicKey),
+			lisk32Address: address.getLisk32AddressFromPublicKey(keys.publicKey),
 		});
 	}
 
@@ -109,8 +101,8 @@ export const generateGenesisBlockDefaultDPoSAssets = (input: GenesisBlockDefault
 				userSubstore: accountList.map(a => ({
 					address: a.address,
 					tokenID: {
-						chainID: intToBuffer(0, 4),
-						localID: intToBuffer(0, 4),
+						chainID: utils.intToBuffer(0, 4),
+						localID: utils.intToBuffer(0, 4),
 					},
 					availableBalance: BigInt(input.tokenDistribution),
 					lockedBalances: [],

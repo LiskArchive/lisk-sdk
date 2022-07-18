@@ -50,7 +50,9 @@ describe('Public transaction related P2P endpoints', () => {
 	describe('getTransactions', () => {
 		it('should return empty array if unknown transaction is queried', async () => {
 			// Act
-			const { transactions } = await getTransactionsFromNetwork(app, p2p, [getRandomBytes(32)]);
+			const { transactions } = await getTransactionsFromNetwork(app, p2p, [
+				utils.getRandomBytes(32),
+			]);
 
 			// Assert
 			expect(transactions).toHaveLength(0);

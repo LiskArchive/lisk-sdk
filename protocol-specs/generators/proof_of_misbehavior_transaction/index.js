@@ -200,7 +200,7 @@ const scenario1Header1 = {
 	),
 	height: 900000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)),
+	transactionRoot: utils.hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',
@@ -223,7 +223,7 @@ const scenario1Header2 = {
 	),
 	height: 800000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)),
+	transactionRoot: utils.hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',
@@ -291,7 +291,7 @@ const scenario2Header1 = {
 	),
 	height: 800000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)),
+	transactionRoot: utils.hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',
@@ -314,7 +314,7 @@ const scenario2Header2 = {
 	),
 	height: 800000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)),
+	transactionRoot: utils.hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',
@@ -381,7 +381,7 @@ const scenario3Header1 = {
 	),
 	height: 900000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)),
+	transactionRoot: utils.hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',
@@ -404,7 +404,7 @@ const scenario3Header2 = {
 	),
 	height: 900000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)),
+	transactionRoot: utils.hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',

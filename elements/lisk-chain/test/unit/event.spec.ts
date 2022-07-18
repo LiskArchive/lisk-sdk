@@ -23,9 +23,9 @@ describe('event', () => {
 	const eventObj = {
 		moduleID: Buffer.from([0, 0, 0, 2]),
 		typeID: Buffer.from([0, 0, 0, 1]),
-		topics: [getRandomBytes(32), getRandomBytes(20), getRandomBytes(2)],
+		topics: [utils.getRandomBytes(32), utils.getRandomBytes(20), utils.getRandomBytes(2)],
 		index: 3,
-		data: getRandomBytes(200),
+		data: utils.getRandomBytes(200),
 	};
 	const encodedEvent = codec.encode(eventSchema, eventObj);
 

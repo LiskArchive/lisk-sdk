@@ -44,7 +44,7 @@ export const decodeTransaction = (
 	transactionHexStr: string,
 ) => {
 	const transactionBytes = Buffer.from(transactionHexStr, 'hex');
-	const id = cryptography.hash(transactionBytes);
+	const id = cryptography.utils.hash(transactionBytes);
 	const transaction = codec.decodeJSON<TransactionJSON>(schema.transaction, transactionBytes);
 	const paramsSchema = getParamsSchema(metadata, transaction.moduleID, transaction.commandID);
 	const params = codec.decodeJSON<Record<string, unknown>>(

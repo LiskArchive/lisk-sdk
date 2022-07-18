@@ -30,7 +30,7 @@ import { ReportMisbehaviorPluginConfig, State } from './types';
 import { configSchema } from './schemas';
 import { Endpoint } from './endpoint';
 
-const { getAddressAndPublicKeyFromPassphrase, getAddressFromPassphrase, signData } = cryptography;
+const { address, ed } = cryptography;
 const { BlockHeader, Transaction, TAG_TRANSACTION } = chain;
 
 export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginConfig> {
@@ -145,7 +145,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 		const passphrase = this._state.passphrase as string;
 
 		const authAccount = await this.apiClient.invoke<{ nonce: string }>('auth_getAuthAccount', {
-			address: getAddressFromPassphrase(passphrase).toString('hex'),
+			address: address.getAddressFromPassphrase(passphrase).toString('hex'),
 		});
 
 		const pomTransactionParams = {
@@ -164,14 +164,14 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 			commandID: Buffer.from(pomParamsInfo.id, 'hex'),
 			nonce: BigInt(authAccount.nonce),
 			senderPublicKey:
-				this._state.publicKey ?? getAddressAndPublicKeyFromPassphrase(passphrase).publicKey,
+				this._state.publicKey ?? address.getAddressAndPublicKeyFromPassphrase(passphrase).publicKey,
 			fee: BigInt(this.config.fee), // TODO: The static fee should be replaced by fee estimation calculation
 			params: encodedParams,
 			signatures: [],
 		});
 
 		tx.signatures.push(
-			signData(
+			ed.signData(
 				TAG_TRANSACTION,
 				Buffer.from(networkIdentifier, 'hex'),
 				tx.getSigningBytes(),

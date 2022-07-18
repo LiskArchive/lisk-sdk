@@ -29,12 +29,12 @@ export const genesisAddress = {
 
 export const getTransaction = (input?: { nonce?: bigint }): Transaction => {
 	const tx = new Transaction({
-		moduleID: intToBuffer(2, 4),
-		commandID: intToBuffer(0, 4),
+		moduleID: utils.intToBuffer(2, 4),
+		commandID: utils.intToBuffer(0, 4),
 		fee: BigInt('10000000'),
 		nonce: input?.nonce ?? BigInt(0),
 		senderPublicKey: genesisAddress.publicKey,
-		params: getRandomBytes(128),
+		params: utils.getRandomBytes(128),
 		signatures: [],
 	});
 	const signature = signData(

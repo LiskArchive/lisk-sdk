@@ -14,7 +14,7 @@
 
 import { regularMerkleTree, sparseMerkleTree } from '@liskhq/lisk-tree';
 import { codec } from '@liskhq/lisk-codec';
-import { hash, intToBuffer, verifyWeightedAggSig } from '@liskhq/lisk-cryptography';
+import { utils, bls } from '@liskhq/lisk-cryptography';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { DB_KEY_STATE_STORE } from '@liskhq/lisk-chain';
 import {
@@ -64,7 +64,7 @@ interface CommonExecutionLogicArgs {
 	chainIDBuffer: Buffer;
 }
 // Returns the big endian uint32 serialization of an integer x, with 0 <= x < 2^32 which is 4 bytes long.
-export const getIDAsKeyForStore = (id: number) => intToBuffer(id, 4);
+export const getIDAsKeyForStore = (id: number) => utils.intToBuffer(id, 4);
 
 export const validateFormat = (ccm: CCMsg) => {
 	const errors = validator.validate(ccmSchema, ccm);
@@ -145,7 +145,7 @@ export const computeValidatorsHash = (
 	};
 
 	const encodedValidatorsHashInput = codec.encode(validatorsHashInputSchema, input);
-	return hash(encodedValidatorsHashInput);
+	return utils.hash(encodedValidatorsHashInput);
 };
 
 export const sortValidatorsByBLSKey = (validators: ActiveValidators[]) =>
@@ -189,7 +189,7 @@ export const verifyMessageRecovery = (
 		idxs,
 		siblingHashes,
 	};
-	const hashedCCMs = crossChainMessages.map(ccm => hash(ccm));
+	const hashedCCMs = crossChainMessages.map(ccm => utils.hash(ccm));
 	const isVerified = regularMerkleTree.verifyDataBlock(
 		hashedCCMs,
 		proof,
@@ -335,7 +335,7 @@ export const checkInboxUpdateValidity = (
 	}
 	const decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
 	const { crossChainMessages, messageWitness, outboxRootWitness } = txParams.inboxUpdate;
-	const ccmHashes = crossChainMessages.map(ccm => hash(ccm));
+	const ccmHashes = crossChainMessages.map(ccm => utils.hash(ccm));
 
 	let newInboxRoot;
 	let newInboxAppendPath = partnerChannelData.inbox.appendPath;
@@ -451,7 +451,7 @@ export const verifyCertificateSignature = (
 		};
 	}
 	const { activeValidators, certificateThreshold } = partnerValidators;
-	const verifySignature = verifyWeightedAggSig(
+	const verifySignature = bls.verifyWeightedAggSig(
 		activeValidators.map(v => v.blsKey),
 		decodedCertificate.aggregationBits as Buffer,
 		decodedCertificate.signature as Buffer,

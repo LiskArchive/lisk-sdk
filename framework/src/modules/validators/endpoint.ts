@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { blsPopVerify, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils, bls } from '@liskhq/lisk-cryptography';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { NotFoundError } from '@liskhq/lisk-db';
 import { ModuleEndpointContext } from '../../types';
@@ -31,7 +31,7 @@ export class ValidatorsEndpoint extends BaseEndpoint {
 		const { proofOfPossession, blsKey } = req;
 
 		const blsKeysSubStore = ctx.getStore(
-			intToBuffer(MODULE_ID_VALIDATORS, 4),
+			utils.intToBuffer(MODULE_ID_VALIDATORS, 4),
 			STORE_PREFIX_BLS_KEYS,
 		);
 
@@ -50,7 +50,7 @@ export class ValidatorsEndpoint extends BaseEndpoint {
 		}
 
 		return {
-			valid: blsPopVerify(Buffer.from(blsKey, 'hex'), Buffer.from(proofOfPossession, 'hex')),
+			valid: bls.popVerify(Buffer.from(blsKey, 'hex'), Buffer.from(proofOfPossession, 'hex')),
 		};
 	}
 }

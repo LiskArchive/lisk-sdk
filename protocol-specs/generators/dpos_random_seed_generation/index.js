@@ -35,7 +35,7 @@ const strippedHash = data => {
 		throw new Error('Hash input is not a valid type');
 	}
 
-	return hash(data).slice(0, 16);
+	return utils.hash(data).slice(0, 16);
 };
 
 const bitwiseXOR = bufferArray => {
@@ -60,7 +60,7 @@ const bitwiseXOR = bufferArray => {
 
 const generateSeedOnion = (initialSeed, size) => {
 	const seeds = new Array(size);
-	seeds[0] = hash(initialSeed, 'hex');
+	seeds[0] = utils.hash(initialSeed, 'hex');
 
 	for (let i = 1; i < size; i += 1) {
 		seeds[i] = strippedHash(seeds[i - 1], 'hex');

@@ -69,7 +69,7 @@ describe('Sidechain interoperability store', () => {
 
 		ownChainAccount = {
 			name: 'mainchain',
-			id: intToBuffer(2, 4),
+			id: utils.intToBuffer(2, 4),
 			nonce: BigInt('0'),
 		};
 
@@ -144,10 +144,10 @@ describe('Sidechain interoperability store', () => {
 
 		const ccm = {
 			nonce: BigInt(0),
-			moduleID: intToBuffer(1, 4),
-			crossChainCommandID: intToBuffer(1, 4),
-			sendingChainID: intToBuffer(2, 4),
-			receivingChainID: intToBuffer(3, 4),
+			moduleID: utils.intToBuffer(1, 4),
+			crossChainCommandID: utils.intToBuffer(1, 4),
+			sendingChainID: utils.intToBuffer(2, 4),
+			receivingChainID: utils.intToBuffer(3, 4),
 			fee: BigInt(1),
 			status: 1,
 			params: Buffer.alloc(0),
@@ -165,12 +165,12 @@ describe('Sidechain interoperability store', () => {
 			status: 1,
 		};
 
-		const randomOutboxRoot = getRandomBytes(32);
+		const randomOutboxRoot = utils.getRandomBytes(32);
 		const channelData: ChannelData = {
 			inbox: {
 				appendPath: [],
 				size: 0,
-				root: getRandomBytes(32),
+				root: utils.getRandomBytes(32),
 			},
 			outbox: {
 				appendPath: [],
@@ -179,14 +179,14 @@ describe('Sidechain interoperability store', () => {
 			},
 			partnerChainOutboxRoot: Buffer.alloc(0),
 			messageFeeTokenID: {
-				chainID: intToBuffer(1, 4),
-				localID: intToBuffer(2, 4),
+				chainID: utils.intToBuffer(1, 4),
+				localID: utils.intToBuffer(2, 4),
 			},
 		};
 
 		const beforeSendCCMContext = testing.createBeforeSendCCMsgAPIContext({
 			ccm,
-			feeAddress: getRandomBytes(32),
+			feeAddress: utils.getRandomBytes(32),
 		});
 
 		const sendInternalContext: SendInternalContext = {
@@ -273,10 +273,10 @@ describe('Sidechain interoperability store', () => {
 		it('should return false if the created ccm is of invalid size', async () => {
 			const invalidCCM = {
 				nonce: BigInt(0),
-				moduleID: intToBuffer(1, 4),
-				crossChainCommandID: intToBuffer(1, 4),
-				sendingChainID: intToBuffer(2, 4),
-				receivingChainID: intToBuffer(3, 4),
+				moduleID: utils.intToBuffer(1, 4),
+				crossChainCommandID: utils.intToBuffer(1, 4),
+				sendingChainID: utils.intToBuffer(2, 4),
+				receivingChainID: utils.intToBuffer(3, 4),
 				fee: BigInt(1),
 				status: 1,
 				params: Buffer.alloc(MAX_CCM_SIZE), // invalid size
@@ -284,7 +284,7 @@ describe('Sidechain interoperability store', () => {
 
 			const beforeSendCCMContextLocal = testing.createBeforeSendCCMsgAPIContext({
 				ccm: invalidCCM,
-				feeAddress: getRandomBytes(32),
+				feeAddress: utils.getRandomBytes(32),
 			});
 
 			const sendInternalContextLocal: SendInternalContext = {
@@ -309,10 +309,10 @@ describe('Sidechain interoperability store', () => {
 		it('should return false if the ccm created is invalid schema', async () => {
 			const invalidCCM = {
 				nonce: BigInt(0),
-				moduleID: intToBuffer(1, 4),
-				crossChainCommandID: intToBuffer(1, 4),
-				sendingChainID: intToBuffer(2, 4),
-				receivingChainID: intToBuffer(3, 4),
+				moduleID: utils.intToBuffer(1, 4),
+				crossChainCommandID: utils.intToBuffer(1, 4),
+				sendingChainID: utils.intToBuffer(2, 4),
+				receivingChainID: utils.intToBuffer(3, 4),
 				fee: BigInt(1),
 				status: 'ccm', // invalid field
 				params: Buffer.alloc(0),
@@ -320,7 +320,7 @@ describe('Sidechain interoperability store', () => {
 
 			const beforeSendCCMContextLocal = testing.createBeforeSendCCMsgAPIContext({
 				ccm: invalidCCM as any,
-				feeAddress: getRandomBytes(32),
+				feeAddress: utils.getRandomBytes(32),
 			});
 
 			const sendInternalContextLocal = {

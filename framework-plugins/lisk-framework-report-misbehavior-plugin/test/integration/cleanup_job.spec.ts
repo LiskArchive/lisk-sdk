@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { ApplicationConfigForPlugin, GenesisConfig, testing, chain, codec } from 'lisk-sdk';
 import * as fs from 'fs-extra';
 
@@ -105,9 +105,9 @@ describe('Clean up old blocks', () => {
 			transaction: chain.transactionSchema,
 			commands: [
 				{
-					moduleID: intToBuffer(5, 4),
+					moduleID: utils.intToBuffer(5, 4),
 					moduleName: 'dpos',
-					commandID: intToBuffer(3, 4),
+					commandID: utils.intToBuffer(3, 4),
 					commandName: 'reportDelegateMisbehavior',
 					schema: {
 						$id: '/lisk/dpos/pom',

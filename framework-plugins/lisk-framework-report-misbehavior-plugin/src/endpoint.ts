@@ -21,11 +21,7 @@ import { actionParamsSchema } from './schemas';
 import { ReportMisbehaviorPluginConfig, State } from './types';
 
 const { validator, LiskValidationError } = liskValidator;
-const {
-	parseEncryptedPassphrase,
-	decryptPassphraseWithPassword,
-	getAddressAndPublicKeyFromPassphrase,
-} = cryptography;
+const { encrypt, address } = cryptography;
 
 export class Endpoint extends BasePluginEndpoint {
 	private _state!: State;
@@ -47,14 +43,16 @@ export class Endpoint extends BasePluginEndpoint {
 		const { enable, password } = context.params;
 
 		try {
-			const parsedEncryptedPassphrase = parseEncryptedPassphrase(this._config.encryptedPassphrase);
+			const parsedEncryptedPassphrase = encrypt.parseEncryptedPassphrase(
+				this._config.encryptedPassphrase,
+			);
 
-			const passphrase = await decryptPassphraseWithPassword(
+			const passphrase = await encrypt.decryptPassphraseWithPassword(
 				parsedEncryptedPassphrase as any,
 				password as string,
 			);
 
-			const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
+			const { publicKey } = address.getAddressAndPublicKeyFromPassphrase(passphrase);
 
 			this._state.publicKey = enable ? publicKey : undefined;
 			this._state.passphrase = enable ? passphrase : undefined;
