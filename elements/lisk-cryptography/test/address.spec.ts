@@ -24,15 +24,11 @@ import {
 	getAddressFromLisk32Address,
 	getLisk32AddressFromAddress,
 	getLisk32AddressFromPassphrase,
-} from '../src/keys';
+} from '../src/address';
 import { Keypair } from '../src/types';
-// Require is used for stubbing
-// eslint-disable-next-line
-const buffer = require('../src/buffer');
-// eslint-disable-next-line
-const hashModule = require('../src/hash');
+import * as utils from '../src/utils';
 
-describe('keys', () => {
+describe('address', () => {
 	const defaultPassphrase = 'secret';
 	const defaultPassphraseHash = '2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b';
 	const defaultPrivateKey = Buffer.from(
@@ -51,9 +47,9 @@ describe('keys', () => {
 	};
 
 	beforeEach(() => {
-		jest.spyOn(buffer, 'bufferToHex');
+		jest.spyOn(utils, 'bufferToHex');
 
-		jest.spyOn(hashModule, 'hash').mockReturnValue(Buffer.from(defaultPassphraseHash, 'hex'));
+		jest.spyOn(utils, 'hash').mockReturnValue(Buffer.from(defaultPassphraseHash, 'hex'));
 	});
 
 	describe('#getPrivateAndPublicKeyFromPassphrase', () => {
@@ -123,7 +119,7 @@ describe('keys', () => {
 		const hash = 'c247a42e09e6aafd818821f75b2f5b0de47c8235';
 		const expectedLisk32Address = 'lsk24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu';
 		beforeEach(() => {
-			return jest.spyOn(hashModule, 'hash').mockReturnValue(Buffer.from(hash, 'hex'));
+			return jest.spyOn(utils, 'hash').mockReturnValue(Buffer.from(hash, 'hex'));
 		});
 
 		it('should generate lisk32 address from publicKey', () => {

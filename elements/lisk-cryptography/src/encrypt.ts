@@ -32,10 +32,6 @@ const ARGON2_ITERATIONS = 1;
 const ARGON2_PARALLELISM = 4;
 const ARGON2_MEMORY = 2024;
 
-const convertPublicKeyEd2Curve = ed2curve.convertPublicKey;
-
-const convertPrivateKeyEd2Curve = ed2curve.convertSecretKey;
-
 export interface EncryptedMessageWithNonce {
 	readonly encryptedMessage: string;
 	readonly nonce: string;
@@ -47,11 +43,11 @@ export const encryptMessageWithPassphrase = (
 	recipientPublicKey: Buffer,
 ): EncryptedMessageWithNonce => {
 	const { privateKey: senderPrivateKeyBytes } = getPrivateAndPublicKeyFromPassphrase(passphrase);
-	const convertedPrivateKey = Buffer.from(convertPrivateKeyEd2Curve(senderPrivateKeyBytes));
+	const convertedPrivateKey = Buffer.from(ed2curve.convertSecretKey(senderPrivateKeyBytes));
 	const messageInBytes = Buffer.from(message, 'utf8');
 	const nonceSize = 24;
 	const nonce = getRandomBytes(nonceSize);
-	const publicKeyUint8Array = convertPublicKeyEd2Curve(recipientPublicKey);
+	const publicKeyUint8Array = ed2curve.convertPublicKey(recipientPublicKey);
 
 	// This cannot be reproduced, but external library have type union with null
 	if (publicKeyUint8Array === null) {
@@ -78,11 +74,11 @@ export const decryptMessageWithPassphrase = (
 	senderPublicKey: Buffer,
 ): string => {
 	const { privateKey: recipientPrivateKeyBytes } = getPrivateAndPublicKeyFromPassphrase(passphrase);
-	const convertedPrivateKey = Buffer.from(convertPrivateKeyEd2Curve(recipientPrivateKeyBytes));
+	const convertedPrivateKey = Buffer.from(ed2curve.convertSecretKey(recipientPrivateKeyBytes));
 	const cipherBytes = hexToBuffer(cipherHex);
 	const nonceBytes = hexToBuffer(nonce);
 
-	const publicKeyUint8Array = convertPublicKeyEd2Curve(senderPublicKey);
+	const publicKeyUint8Array = ed2curve.convertPublicKey(senderPublicKey);
 
 	// This cannot be reproduced, but external library have type union with null
 	if (publicKeyUint8Array === null) {

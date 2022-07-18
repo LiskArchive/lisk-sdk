@@ -13,6 +13,7 @@
  *
  */
 import {
+	getFirstEightBytesReversed,
 	getLegacyAddressAndPublicKeyFromPassphrase,
 	getLegacyAddressFromPassphrase,
 	getLegacyAddressFromPrivateKey,
@@ -31,6 +32,8 @@ describe('Legacy address', () => {
 		'hex',
 	);
 	const defaultAddress = '7115442636316065252L';
+	const defaultStringWithMoreThanEightCharacters = '0123456789';
+	const defaultFirstEightCharactersReversed = '76543210';
 
 	describe('#getLegacyAddressAndPublicKeyFromPassphrase', () => {
 		it('should return expected address', () => {
@@ -56,6 +59,19 @@ describe('Legacy address', () => {
 	describe('#getLegacyAddressFromPublicKey', () => {
 		it('should return expected address', () => {
 			expect(getLegacyAddressFromPublicKey(defaultPublicKey)).toEqual(defaultAddress);
+		});
+	});
+
+	describe('#getFirstEightBytesReversed', () => {
+		it('should get the first eight bytes reversed from a Buffer', () => {
+			const bufferEntry = Buffer.from(defaultStringWithMoreThanEightCharacters);
+			const reversedAndCut = getFirstEightBytesReversed(bufferEntry);
+			expect(reversedAndCut).toEqual(Buffer.from(defaultFirstEightCharactersReversed));
+		});
+
+		it('should get the first eight bytes reversed from a string', () => {
+			const reversedAndCut = getFirstEightBytesReversed(defaultStringWithMoreThanEightCharacters);
+			expect(reversedAndCut).toEqual(Buffer.from(defaultFirstEightCharactersReversed));
 		});
 	});
 });
