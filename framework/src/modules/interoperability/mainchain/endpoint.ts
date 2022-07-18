@@ -13,5 +13,61 @@
  */
 
 import { BaseEndpoint } from '../../base_endpoint';
+import { MainchainInteroperabilityStore } from './store';
+import { ImmutableStoreCallback, StoreCallback } from '../types';
+import { BaseInteroperableAPI } from '../base_interoperable_api';
+import { ModuleEndpointContext } from '../../../types';
 
-export class MainchainInteroperabilityEndpoint extends BaseEndpoint {}
+export class MainchainInteroperabilityEndpoint extends BaseEndpoint {
+	protected readonly interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
+
+	public constructor(moduleID: Buffer, interoperableCCAPIs: Map<number, BaseInteroperableAPI>) {
+		super(moduleID);
+		this.interoperableCCAPIs = interoperableCCAPIs;
+	}
+
+	public async getChainAccount(context: ModuleEndpointContext, chainID: Buffer) {
+		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+		const result = await interoperabilityStore.getChainAccount(chainID);
+
+		return result;
+	}
+
+	public async getChannel(context: ModuleEndpointContext, chainID: Buffer) {
+		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+
+		const result = await interoperabilityStore.getChannel(chainID);
+
+		return result;
+	}
+
+	public async getOwnChainAccount(context: ModuleEndpointContext) {
+		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+
+		const result = await interoperabilityStore.getOwnChainAccount();
+
+		return result;
+	}
+
+	public async getTerminatedStateAccount(context: ModuleEndpointContext, chainID: Buffer) {
+		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+
+		const result = await interoperabilityStore.getTerminatedStateAccount(chainID);
+
+		return result;
+	}
+
+	public async getTerminatedOutboxAccount(context: ModuleEndpointContext, chainID: Buffer) {
+		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+
+		const result = await interoperabilityStore.getTerminatedOutboxAccount(chainID);
+
+		return result;
+	}
+
+	protected getInteroperabilityStore(
+		getStore: StoreCallback | ImmutableStoreCallback,
+	): MainchainInteroperabilityStore {
+		return new MainchainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
+	}
+}
