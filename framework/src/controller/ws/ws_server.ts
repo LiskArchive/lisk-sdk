@@ -11,12 +11,14 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { utils } from '@liskhq/lisk-cryptography';
 import * as WebSocket from 'ws';
 import { Logger } from '../../logger';
 import { NotificationRequest, RequestObject } from '../jsonrpc';
 
 interface WebSocketWithTracking extends WebSocket {
 	isAlive?: boolean;
+	id: string;
 }
 
 export type WSMessageHandler = (socket: WebSocketWithTracking, message: string) => void;
@@ -32,16 +34,10 @@ export class WSServer {
 	// subscription holds url: event names array
 	private readonly _subscriptions: Record<string, Set<string>> = {};
 
-	private readonly _registeredEvents: string[] = [];
-
 	public constructor(options: { port: number; host?: string; path: string }) {
 		this._port = options.port;
 		this._host = options.host;
 		this._path = options.path;
-	}
-
-	public registerAllowedEvent(events: string[]) {
-		this._registeredEvents.push(...events);
 	}
 
 	public start(
@@ -74,7 +70,9 @@ export class WSServer {
 			});
 		}
 
-		this.server.on('connection', socket => this._handleConnection(socket, messageHandler));
+		this.server.on('connection', socket =>
+			this._handleConnection(socket as WebSocketWithTracking, messageHandler),
+		);
 		this.server.on('error', error => {
 			this._logger.error(error);
 		});
@@ -104,8 +102,9 @@ export class WSServer {
 
 	public broadcast(message: NotificationRequest): void {
 		for (const client of this.server.clients) {
-			if (client.readyState === WebSocket.OPEN) {
-				const subscription = this._subscriptions[client.url];
+			const wsClient = client as WebSocketWithTracking;
+			if (wsClient.readyState === WebSocket.OPEN && wsClient.id) {
+				const subscription = this._subscriptions[wsClient.id];
 				if (!subscription) {
 					continue;
 				}
@@ -123,6 +122,8 @@ export class WSServer {
 	private _handleConnection(socket: WebSocketWithTracking, messageHandler: WSMessageHandler) {
 		// eslint-disable-next-line no-param-reassign
 		socket.isAlive = true;
+		// eslint-disable-next-line no-param-reassign
+		socket.id = utils.getRandomBytes(20).toString('hex');
 		socket.on('message', (message: string) => {
 			// Read the message, and if it's subscription message, handle here
 			try {
@@ -143,7 +144,7 @@ export class WSServer {
 		});
 		socket.on('pong', () => this._handleHeartbeat(socket));
 		socket.on('close', () => {
-			delete this._subscriptions[socket.url];
+			delete this._subscriptions[socket.id];
 		});
 		this._logger.info('New web socket client connected');
 	}
@@ -174,16 +175,11 @@ export class WSServer {
 		if (!params || !Array.isArray(params.topics) || !params.topics.length) {
 			throw new Error('Invalid subscription message.');
 		}
-		if (!this._subscriptions[socket.url]) {
-			this._subscriptions[socket.url] = new Set<string>();
+		if (!this._subscriptions[socket.id]) {
+			this._subscriptions[socket.id] = new Set<string>();
 		}
 		for (const eventName of params.topics) {
-			// skip not matching event to be added
-			const exist = this._registeredEvents.some(name => name.includes(eventName));
-			if (this.registerAllowedEvent.length > 0 && !exist) {
-				continue;
-			}
-			this._subscriptions[socket.url].add(eventName);
+			this._subscriptions[socket.id].add(eventName);
 		}
 	}
 
@@ -192,11 +188,11 @@ export class WSServer {
 		if (!params || !Array.isArray(params.topics) || !params.topics.length) {
 			throw new Error('Invalid unsubscription message.');
 		}
-		if (!this._subscriptions[socket.url]) {
+		if (!this._subscriptions[socket.id]) {
 			return;
 		}
 		for (const eventName of params.topics) {
-			this._subscriptions[socket.url].delete(eventName);
+			this._subscriptions[socket.id].delete(eventName);
 		}
 	}
 }
