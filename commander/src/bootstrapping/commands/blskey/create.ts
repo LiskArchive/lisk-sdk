@@ -25,8 +25,8 @@ interface BlsKey {
 }
 
 const createBlsKey = (passphrase: string): BlsKey => {
-	const blsPrivateKey = cryptography.generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
-	const blsPublicKey = cryptography.getPublicKeyFromPrivateKey(blsPrivateKey);
+	const blsPrivateKey = cryptography.bls.generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
+	const blsPublicKey = cryptography.bls.getPublicKeyFromPrivateKey(blsPrivateKey);
 
 	return {
 		blsPrivateKey: blsPrivateKey.toString('hex'),

@@ -13,7 +13,7 @@
  */
 import { Batch, Database, NotFoundError } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { hash } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { RawBlock, StateDiff } from '../types';
 import { Event } from '../event';
 import {
@@ -206,7 +206,7 @@ export class Storage {
 
 	public async getBlockByHeight(height: number): Promise<RawBlock> {
 		const header = await this.getBlockHeaderByHeight(height);
-		const blockID = hash(header);
+		const blockID = utils.hash(header);
 		const transactions = await this._getTransactions(blockID);
 		const assets = await this._getBlockAssets(blockID);
 
@@ -221,7 +221,7 @@ export class Storage {
 		const headers = await this.getBlockHeadersByHeightBetween(fromHeight, toHeight);
 		const blocks = [];
 		for (const header of headers) {
-			const blockID = hash(header);
+			const blockID = utils.hash(header);
 			const transactions = await this._getTransactions(blockID);
 			const assets = await this._getBlockAssets(blockID);
 			blocks.push({ header, transactions, assets });
@@ -232,7 +232,7 @@ export class Storage {
 
 	public async getLastBlock(): Promise<RawBlock> {
 		const header = await this.getLastBlockHeader();
-		const blockID = hash(header);
+		const blockID = utils.hash(header);
 		const transactions = await this._getTransactions(blockID);
 		const assets = await this._getBlockAssets(blockID);
 

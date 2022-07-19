@@ -13,12 +13,7 @@
  */
 /* eslint-disable no-loop-func */
 import { BlockHeader, StateStore } from '@liskhq/lisk-chain';
-import {
-	BIG_ENDIAN,
-	getAddressFromPublicKey,
-	getRandomBytes,
-	intToBuffer,
-} from '@liskhq/lisk-cryptography';
+import { utils, address } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { BFTModule } from '../../../../src/engine/bft';
 import {
@@ -60,7 +55,7 @@ describe('BFT processing', () => {
 				const threshold = Math.floor((scenario.config.activeDelegates * 2) / 3) + 1;
 				const validators: (BFTValidator & GeneratorKey & { minHeightActive: number })[] = [];
 				for (const testCase of scenario.testCases) {
-					const generatorAddress = getAddressFromPublicKey(
+					const generatorAddress = address.getAddressFromPublicKey(
 						Buffer.from(testCase.input.blockHeader.generatorPublicKey, 'hex'),
 					);
 					if (validators.find(v => v.address.equals(generatorAddress)) === undefined) {
@@ -69,18 +64,18 @@ describe('BFT processing', () => {
 							minHeightActive: testCase.input.blockHeader.delegateMinHeightActive,
 							bftWeight: BigInt(1),
 							generatorKey: Buffer.from(testCase.input.blockHeader.generatorPublicKey, 'hex'),
-							blsKey: getRandomBytes(42),
+							blsKey: utils.getRandomBytes(42),
 						});
 					}
 				}
 				await paramsStore.setWithSchema(
-					intToBuffer(1, 4, BIG_ENDIAN),
+					utils.intToBuffer(1, 4),
 					{
 						prevoteThreshold: BigInt(threshold),
 						precommitThreshold: BigInt(threshold),
 						certificateThreshold: BigInt(threshold),
 						validators,
-						validatorsHash: getRandomBytes(32),
+						validatorsHash: utils.getRandomBytes(32),
 					},
 					bftParametersSchema,
 				);
@@ -105,7 +100,7 @@ describe('BFT processing', () => {
 			for (const testCase of scenario.testCases) {
 				it(`should have accurate information when ${testCase.input.delegateName} forge block at height = ${testCase.input.blockHeader.height}`, async () => {
 					// Arrange
-					const generatorAddress = getAddressFromPublicKey(
+					const generatorAddress = address.getAddressFromPublicKey(
 						Buffer.from(testCase.input.blockHeader.generatorPublicKey, 'hex'),
 					);
 					const header = new BlockHeader({
@@ -119,7 +114,7 @@ describe('BFT processing', () => {
 						height: testCase.input.blockHeader.height,
 						maxHeightGenerated: testCase.input.blockHeader.maxHeightPreviouslyForged,
 						maxHeightPrevoted: testCase.input.blockHeader.maxHeightPrevoted,
-						previousBlockID: getRandomBytes(32),
+						previousBlockID: utils.getRandomBytes(32),
 						timestamp: 0,
 					});
 

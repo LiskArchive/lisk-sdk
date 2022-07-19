@@ -14,12 +14,7 @@
 
 'use strict';
 
-const {
-	hash,
-	getPrivateAndPublicKeyBytesFromPassphrase,
-	signData,
-	signDataWithPrivateKey,
-} = require('@liskhq/lisk-cryptography');
+const { utils, ed } = require('@liskhq/lisk-cryptography');
 const { Codec } = require('@liskhq/lisk-codec');
 const { baseTransactionSchema } = require('../../utils/schema');
 
@@ -96,7 +91,7 @@ const sign = (header, privateKey) => {
 		asset: assetBytes,
 	});
 	return Buffer.from(
-		signDataWithPrivateKey(
+		ed.signDataWithPrivateKey(
 			Buffer.concat([TAG_BLOCK_HEADER, networkIdentifier, blockBytes]),
 			privateKey,
 		),
@@ -145,7 +140,7 @@ const encode = tx => {
 
 const createSignatureObject = (txBuffer, account) => ({
 	signature: Buffer.from(
-		signData(Buffer.concat([TAG_TRANSACTION, networkIdentifier, txBuffer]), account.passphrase),
+		ed.signData(Buffer.concat([TAG_TRANSACTION, networkIdentifier, txBuffer]), account.passphrase),
 		'hex',
 	),
 });
@@ -183,7 +178,7 @@ const getHexAccount = account => ({
 	balance: account.balance,
 });
 
-const forgerKeyPair = getPrivateAndPublicKeyBytesFromPassphrase(accounts.forger.passphrase);
+const forgerKeyPair = ed.getPrivateAndPublicKeyBytesFromPassphrase(accounts.forger.passphrase);
 
 /*
 	Scenario 1:
@@ -200,7 +195,7 @@ const scenario1Header1 = {
 	),
 	height: 900000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)),
+	transactionRoot: utils.hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',
@@ -223,7 +218,7 @@ const scenario1Header2 = {
 	),
 	height: 800000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)),
+	transactionRoot: utils.hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',
@@ -291,7 +286,7 @@ const scenario2Header1 = {
 	),
 	height: 800000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)),
+	transactionRoot: utils.hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',
@@ -314,7 +309,7 @@ const scenario2Header2 = {
 	),
 	height: 800000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)),
+	transactionRoot: utils.hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',
@@ -381,7 +376,7 @@ const scenario3Header1 = {
 	),
 	height: 900000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)),
+	transactionRoot: utils.hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',
@@ -404,7 +399,7 @@ const scenario3Header2 = {
 	),
 	height: 900000,
 	reward: BigInt('10000000000'),
-	transactionRoot: hash(Buffer.alloc(0)),
+	transactionRoot: utils.hash(Buffer.alloc(0)),
 	generatorPublicKey: Buffer.from(
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 		'hex',

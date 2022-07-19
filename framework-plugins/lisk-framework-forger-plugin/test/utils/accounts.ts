@@ -15,10 +15,10 @@
 import { cryptography } from 'lisk-sdk';
 
 export const getRandomAccount = () => {
-	const { publicKey, privateKey } = cryptography.getKeys(
-		cryptography.getRandomBytes(20).toString('hex'),
+	const { publicKey, privateKey } = cryptography.ed.getKeys(
+		cryptography.utils.getRandomBytes(20).toString('hex'),
 	);
-	const address = cryptography.getAddressFromPublicKey(publicKey);
+	const address = cryptography.address.getAddressFromPublicKey(publicKey);
 
 	return {
 		address: address.toString('hex'),

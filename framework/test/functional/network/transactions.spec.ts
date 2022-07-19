@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { P2P, events, p2pTypes } from '@liskhq/lisk-p2p';
 
 import { Application } from '../../../src';
@@ -50,7 +50,9 @@ describe('Public transaction related P2P endpoints', () => {
 	describe('getTransactions', () => {
 		it('should return empty array if unknown transaction is queried', async () => {
 			// Act
-			const { transactions } = await getTransactionsFromNetwork(app, p2p, [getRandomBytes(32)]);
+			const { transactions } = await getTransactionsFromNetwork(app, p2p, [
+				utils.getRandomBytes(32),
+			]);
 
 			// Assert
 			expect(transactions).toHaveLength(0);

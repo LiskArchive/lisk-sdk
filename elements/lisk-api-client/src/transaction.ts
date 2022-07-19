@@ -17,10 +17,7 @@ import {
 	signMultiSignatureTransaction,
 	computeMinFee,
 } from '@liskhq/lisk-transactions';
-import {
-	getAddressAndPublicKeyFromPassphrase,
-	getAddressFromPublicKey,
-} from '@liskhq/lisk-cryptography';
+import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import {
@@ -101,7 +98,7 @@ export class Transaction {
 	): Promise<DecodedTransactionJSON<T>> {
 		const txInput = input;
 		const networkIdentifier = Buffer.from(this._nodeInfo.networkIdentifier, 'hex');
-		const { publicKey, address } = getAddressAndPublicKeyFromPassphrase(passphrase);
+		const { publicKey, address } = cryptoAddress.getAddressAndPublicKeyFromPassphrase(passphrase);
 		let authAccount: AuthAccount | undefined;
 		try {
 			authAccount = await this._channel.invoke<AuthAccount>('auth_getAuthAccount', {
@@ -232,7 +229,7 @@ export class Transaction {
 		const decodedTx = this.fromJSON(transaction as TransactionJSON);
 		this._validateTransaction(decodedTx);
 		const networkIdentifier = Buffer.from(this._nodeInfo.networkIdentifier, 'hex');
-		const address = getAddressFromPublicKey(decodedTx.senderPublicKey);
+		const address = cryptoAddress.getAddressFromPublicKey(decodedTx.senderPublicKey);
 		const authAccount = await this._channel.invoke<AuthAccount>('auth_getAuthAccount', {
 			address: address.toString('hex'),
 		});

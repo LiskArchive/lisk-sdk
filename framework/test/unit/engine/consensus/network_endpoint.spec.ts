@@ -15,7 +15,7 @@
 import { InMemoryDatabase, Database } from '@liskhq/lisk-db';
 import { Block, Chain } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { NetworkEndpoint } from '../../../../src/engine/consensus/network_endpoint';
 import {
 	getBlocksFromIdRequestSchema,
@@ -107,7 +107,7 @@ describe('p2p endpoint', () => {
 		it('should apply penalty if call exceeds rate limit', () => {
 			// Arrange
 			const blockIds = codec.encode(getBlocksFromIdRequestSchema, {
-				blockId: getRandomBytes(32),
+				blockId: utils.getRandomBytes(32),
 			});
 			// Act
 			[...new Array(DEFAULT_BLOCKS_FROM_IDS_RATE_LIMIT_FREQUENCY + 1)].map(async () =>
@@ -138,7 +138,7 @@ describe('p2p endpoint', () => {
 		it('should apply penalty on the peer if request format is invalid', async () => {
 			// Arrange
 			const blockIds = codec.encode(getBlocksFromIdRequestSchema, {
-				blockId: getRandomBytes(1),
+				blockId: utils.getRandomBytes(1),
 			});
 			// Act
 			await expect(endpoint.handleRPCGetBlocksFromId(blockIds, defaultPeerId)).rejects.toThrow();
@@ -152,7 +152,7 @@ describe('p2p endpoint', () => {
 
 		it('should return blocks from next height', async () => {
 			// Arrange
-			const id = getRandomBytes(32);
+			const id = utils.getRandomBytes(32);
 			const blockIds = codec.encode(getBlocksFromIdRequestSchema, {
 				blockId: id,
 			});
@@ -169,7 +169,7 @@ describe('p2p endpoint', () => {
 
 		it('should apply penalty if call exceeds rate limit', () => {
 			const blockIds = codec.encode(getHighestCommonBlockRequestSchema, {
-				ids: [getRandomBytes(32)],
+				ids: [utils.getRandomBytes(32)],
 			});
 			[...new Array(DEFAULT_COMMON_BLOCK_RATE_LIMIT_FREQUENCY + 1)].map(async () =>
 				endpoint.handleRPCGetHighestCommonBlock(blockIds, defaultPeerId),
@@ -190,7 +190,7 @@ describe('p2p endpoint', () => {
 
 			it('should return null', async () => {
 				// Arrange
-				const ids = [getRandomBytes(32)];
+				const ids = [utils.getRandomBytes(32)];
 				const blockIds = codec.encode(getHighestCommonBlockRequestSchema, { ids });
 
 				// Act
@@ -236,9 +236,9 @@ describe('p2p endpoint', () => {
 		const blockHeader = createFakeBlockHeader();
 		const certificate = computeCertificateFromBlockHeader(blockHeader);
 		const validatorInfo = {
-			address: getRandomBytes(20),
-			blsPublicKey: getRandomBytes(48),
-			blsSecretKey: getRandomBytes(32),
+			address: utils.getRandomBytes(20),
+			blsPublicKey: utils.getRandomBytes(48),
+			blsSecretKey: utils.getRandomBytes(32),
 		};
 		let validCommit: { singleCommit: SingleCommit };
 		let encodedValidCommit: Buffer;
@@ -282,7 +282,7 @@ describe('p2p endpoint', () => {
 
 		it('should apply penalty when invalid data value is received', async () => {
 			const invalidCommit = {
-				singleCommit: { ...validCommit, certificateSignature: getRandomBytes(2) },
+				singleCommit: { ...validCommit, certificateSignature: utils.getRandomBytes(2) },
 			};
 			const encodedInvalidCommit = codec.encode(getSingleCommitEventSchema, invalidCommit);
 			await expect(

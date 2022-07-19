@@ -13,7 +13,7 @@
  */
 
 import { Event, StateStore } from '@liskhq/lisk-chain';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { ChainEndpoint } from '../../../../src/engine/endpoint/chain';
 import { createContext } from '../../../utils/mocks/endpoint';
@@ -39,16 +39,16 @@ describe('Chain endpoint', () => {
 				new Event({
 					index: 0,
 					moduleID: Buffer.from([0, 0, 0, 2]),
-					topics: [getRandomBytes(32)],
+					topics: [utils.getRandomBytes(32)],
 					typeID: Buffer.from([0, 0, 0, 1]),
-					data: getRandomBytes(32),
+					data: utils.getRandomBytes(32),
 				}),
 				new Event({
 					index: 1,
 					moduleID: Buffer.from([0, 0, 0, 2]),
-					topics: [getRandomBytes(32)],
+					topics: [utils.getRandomBytes(32)],
 					typeID: Buffer.from([0, 0, 0, 1]),
-					data: getRandomBytes(32),
+					data: utils.getRandomBytes(32),
 				}),
 			]);
 		});
@@ -84,16 +84,16 @@ describe('Chain endpoint', () => {
 				new Event({
 					index: 0,
 					moduleID: Buffer.from([0, 0, 0, 2]),
-					topics: [getRandomBytes(32)],
+					topics: [utils.getRandomBytes(32)],
 					typeID: Buffer.from([0, 0, 0, 1]),
-					data: getRandomBytes(32),
+					data: utils.getRandomBytes(32),
 				}),
 				new Event({
 					index: 1,
 					moduleID: Buffer.from([0, 0, 0, 2]),
-					topics: [getRandomBytes(32)],
+					topics: [utils.getRandomBytes(32)],
 					typeID: Buffer.from([0, 0, 0, 1]),
-					data: getRandomBytes(32),
+					data: utils.getRandomBytes(32),
 				}),
 			]);
 		});

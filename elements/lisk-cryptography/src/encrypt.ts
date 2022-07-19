@@ -13,18 +13,15 @@
  *
  */
 import { argon2id } from 'hash-wasm';
+import * as querystring from 'querystring';
 import * as crypto from 'crypto';
-import { Mnemonic } from '@liskhq/lisk-passphrase';
+import * as ed2curve from 'ed2curve';
 
-import { bufferToHex, hexToBuffer } from './buffer';
 // eslint-disable-next-line import/no-cycle
-import { convertPrivateKeyEd2Curve, convertPublicKeyEd2Curve } from './convert';
+import { getPrivateAndPublicKeyFromPassphrase } from './ed';
 // eslint-disable-next-line import/no-cycle
-import { getPrivateAndPublicKeyFromPassphrase } from './keys';
-// eslint-disable-next-line import/no-cycle
-import { box, getRandomBytes, openBox, getKeyPair } from './nacl';
-import { getMasterKeyFromSeed, getChildKey, parseKeyDerivationPath, deriveChildSK } from './utils';
-import { blsKeyGen } from './bls_lib';
+import { box, getRandomBytes, openBox } from './nacl';
+import { bufferToHex, hexToBuffer } from './utils';
 
 const PBKDF2_ITERATIONS = 1e6;
 const PBKDF2_KEYLEN = 32;
@@ -46,11 +43,11 @@ export const encryptMessageWithPassphrase = (
 	recipientPublicKey: Buffer,
 ): EncryptedMessageWithNonce => {
 	const { privateKey: senderPrivateKeyBytes } = getPrivateAndPublicKeyFromPassphrase(passphrase);
-	const convertedPrivateKey = Buffer.from(convertPrivateKeyEd2Curve(senderPrivateKeyBytes));
+	const convertedPrivateKey = Buffer.from(ed2curve.convertSecretKey(senderPrivateKeyBytes));
 	const messageInBytes = Buffer.from(message, 'utf8');
 	const nonceSize = 24;
 	const nonce = getRandomBytes(nonceSize);
-	const publicKeyUint8Array = convertPublicKeyEd2Curve(recipientPublicKey);
+	const publicKeyUint8Array = ed2curve.convertPublicKey(recipientPublicKey);
 
 	// This cannot be reproduced, but external library have type union with null
 	if (publicKeyUint8Array === null) {
@@ -77,11 +74,11 @@ export const decryptMessageWithPassphrase = (
 	senderPublicKey: Buffer,
 ): string => {
 	const { privateKey: recipientPrivateKeyBytes } = getPrivateAndPublicKeyFromPassphrase(passphrase);
-	const convertedPrivateKey = Buffer.from(convertPrivateKeyEd2Curve(recipientPrivateKeyBytes));
+	const convertedPrivateKey = Buffer.from(ed2curve.convertSecretKey(recipientPrivateKeyBytes));
 	const cipherBytes = hexToBuffer(cipherHex);
 	const nonceBytes = hexToBuffer(nonce);
 
-	const publicKeyUint8Array = convertPublicKeyEd2Curve(senderPublicKey);
+	const publicKeyUint8Array = ed2curve.convertPublicKey(senderPublicKey);
 
 	// This cannot be reproduced, but external library have type union with null
 	if (publicKeyUint8Array === null) {
@@ -254,24 +251,111 @@ export const encryptPassphraseWithPassword = encryptAES256GCMWithPassword;
 
 export const decryptPassphraseWithPassword = decryptAES256GCMWithPassword;
 
-export const getKeyPairFromPhraseAndPath = async (phrase: string, path: string) => {
-	const masterSeed = await Mnemonic.mnemonicToSeed(phrase);
-	let node = getMasterKeyFromSeed(masterSeed);
+interface ParsedEncryptedPassphrase {
+	readonly version: string;
+	readonly ciphertext: string;
+	readonly mac: string;
+	readonly kdf: string | KDF;
+	readonly kdfparams?: {
+		parallelism?: number;
+		iterations?: number;
+		memorySize?: number;
+		salt: string;
+	};
+	readonly cipher: string | Cipher;
+	readonly cipherparams: {
+		iv: string;
+		tag: string;
+	};
+}
 
-	for (const segment of parseKeyDerivationPath(path)) {
-		node = getChildKey(node, segment);
+const parseOption = (optionString?: string): number | undefined => {
+	const option = !optionString ? undefined : parseInt(optionString, 10);
+
+	if (typeof option !== 'undefined' && Number.isNaN(option)) {
+		throw new Error('Could not parse option.');
 	}
 
-	return getKeyPair(node.key);
+	return option;
 };
 
-export const getBLSPrivateKeyFromPhraseAndPath = async (phrase: string, path: string) => {
-	const masterSeed = await Mnemonic.mnemonicToSeed(phrase);
-	let key = blsKeyGen(masterSeed);
+export const parseEncryptedPassphrase = (
+	encryptedPassphrase: string,
+): ParsedEncryptedPassphrase => {
+	if (typeof encryptedPassphrase !== 'string') {
+		throw new Error('Encrypted passphrase to parse must be a string.');
+	}
+	const keyValuePairs = querystring.parse(encryptedPassphrase);
 
-	for (const segment of parseKeyDerivationPath(path)) {
-		key = deriveChildSK(key, segment);
+	const {
+		kdf,
+		cipher,
+		iterations,
+		salt,
+		ciphertext,
+		iv,
+		tag,
+		version,
+		mac,
+		parallelism,
+		memorySize,
+	} = keyValuePairs;
+
+	// Review, and find a better solution
+	if (
+		typeof kdf !== 'string' ||
+		typeof cipher !== 'string' ||
+		typeof ciphertext !== 'string' ||
+		typeof iv !== 'string' ||
+		typeof tag !== 'string' ||
+		typeof salt !== 'string' ||
+		typeof version !== 'string' ||
+		(typeof mac !== 'string' && typeof mac !== 'undefined') ||
+		(typeof iterations !== 'string' && typeof iterations !== 'undefined') ||
+		(typeof parallelism !== 'string' && typeof parallelism !== 'undefined') ||
+		(typeof memorySize !== 'string' && typeof memorySize !== 'undefined')
+	) {
+		throw new Error('Encrypted passphrase to parse must have only one value per key.');
 	}
 
-	return key;
+	return {
+		version,
+		ciphertext,
+		mac,
+		kdf,
+		kdfparams: {
+			parallelism: parseOption(parallelism),
+			iterations: parseOption(iterations),
+			memorySize: parseOption(memorySize),
+			salt,
+		},
+		cipher,
+		cipherparams: {
+			iv,
+			tag,
+		},
+	};
+};
+
+export const stringifyEncryptedPassphrase = (
+	encryptedPassphrase: EncryptedPassphraseObject,
+): string => {
+	if (typeof encryptedPassphrase !== 'object' || encryptedPassphrase === null) {
+		throw new Error('Encrypted passphrase to stringify must be an object.');
+	}
+	const objectToStringify = {
+		kdf: encryptedPassphrase.kdf,
+		cipher: encryptedPassphrase.cipher,
+		version: encryptedPassphrase.version,
+		ciphertext: encryptedPassphrase.ciphertext,
+		mac: encryptedPassphrase.mac,
+		salt: encryptedPassphrase.kdfparams.salt,
+		iv: encryptedPassphrase.cipherparams.iv,
+		tag: encryptedPassphrase.cipherparams.tag,
+		iterations: encryptedPassphrase.kdfparams.iterations,
+		parallelism: encryptedPassphrase.kdfparams.parallelism,
+		memorySize: encryptedPassphrase.kdfparams.memorySize,
+	};
+
+	return querystring.stringify(objectToStringify);
 };

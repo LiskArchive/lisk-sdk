@@ -12,15 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 
 export const MODULE_ID_INTEROPERABILITY = 64;
-export const MODULE_ID_INTEROPERABILITY_BUFFER = intToBuffer(MODULE_ID_INTEROPERABILITY, 4);
+export const MODULE_ID_INTEROPERABILITY_BUFFER = utils.intToBuffer(MODULE_ID_INTEROPERABILITY, 4);
 export const MODULE_NAME_INTEROPERABILITY = 'interoperability';
 
 // General constants
 export const MAINCHAIN_ID = 1;
-export const MAINCHAIN_ID_BUFFER = intToBuffer(MAINCHAIN_ID, 4);
+export const MAINCHAIN_ID_BUFFER = utils.intToBuffer(MAINCHAIN_ID, 4);
 export const MAINCHAIN_NAME = 'lisk-mainchain';
 export const MAINCHAIN_NETWORK_ID = Buffer.from(
 	'03693f3126b9d0df3096c4ebd59e5c42af4a7f0e313cd7c96a07b6e9f8f54924',
@@ -34,7 +34,7 @@ export const LIVENESS_LIMIT = 2592000; // 30*24*3600
 export const MAX_CCM_SIZE = 10240;
 export const EMPTY_FEE_ADDRESS = Buffer.alloc(0);
 export const EMPTY_BYTES = Buffer.alloc(0);
-export const EMPTY_HASH = hash(EMPTY_BYTES);
+export const EMPTY_HASH = utils.hash(EMPTY_BYTES);
 export const REGISTRATION_FEE = BigInt(1000000000);
 export const MAX_NUM_VALIDATORS = 199;
 export const MAX_LENGTH_NAME = 40;
@@ -61,17 +61,17 @@ export const CHAIN_TERMINATED = 2;
 
 // Cross chain commands
 export const CROSS_CHAIN_COMMAND_ID_REGISTRATION = 0;
-export const CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER = intToBuffer(
+export const CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER = utils.intToBuffer(
 	CROSS_CHAIN_COMMAND_ID_REGISTRATION,
 	4,
 );
 export const CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED = 1;
-export const CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED_BUFFER = intToBuffer(
+export const CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED_BUFFER = utils.intToBuffer(
 	CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED,
 	4,
 );
 export const CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED = 2;
-export const CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED_BUFFER = intToBuffer(
+export const CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED_BUFFER = utils.intToBuffer(
 	CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED,
 	4,
 );
@@ -84,16 +84,19 @@ export const MIN_RETURN_FEE = BigInt(1000);
 
 // Commands
 export const COMMAND_ID_SIDECHAIN_REG = 0;
-export const COMMAND_ID_SIDECHAIN_REG_BUFFER = intToBuffer(COMMAND_ID_SIDECHAIN_REG, 4);
+export const COMMAND_ID_SIDECHAIN_REG_BUFFER = utils.intToBuffer(COMMAND_ID_SIDECHAIN_REG, 4);
 export const COMMAND_ID_MAINCHAIN_REG = 1;
-export const COMMAND_ID_MAINCHAIN_REG_BUFFER = intToBuffer(COMMAND_ID_MAINCHAIN_REG, 4);
+export const COMMAND_ID_MAINCHAIN_REG_BUFFER = utils.intToBuffer(COMMAND_ID_MAINCHAIN_REG, 4);
 export const COMMAND_ID_SIDECHAIN_CCU = 2;
-export const COMMAND_ID_SIDECHAIN_CCU_BUFFER = intToBuffer(COMMAND_ID_SIDECHAIN_CCU, 4);
+export const COMMAND_ID_SIDECHAIN_CCU_BUFFER = utils.intToBuffer(COMMAND_ID_SIDECHAIN_CCU, 4);
 export const COMMAND_ID_MAINCHAIN_CCU = 3;
-export const COMMAND_ID_MAINCHAIN_CCU_BUFFER = intToBuffer(COMMAND_ID_MAINCHAIN_CCU, 4);
+export const COMMAND_ID_MAINCHAIN_CCU_BUFFER = utils.intToBuffer(COMMAND_ID_MAINCHAIN_CCU, 4);
 export const COMMAND_ID_STATE_RECOVERY = 4;
-export const COMMAND_ID_STATE_RECOVERY_BUFFER = intToBuffer(COMMAND_ID_STATE_RECOVERY, 4);
+export const COMMAND_ID_STATE_RECOVERY_BUFFER = utils.intToBuffer(COMMAND_ID_STATE_RECOVERY, 4);
 export const COMMAND_ID_MESSAGE_RECOVERY = 5;
-export const COMMAND_ID_MESSAGE_RECOVERY_BUFFER = intToBuffer(COMMAND_ID_MESSAGE_RECOVERY, 4);
+export const COMMAND_ID_MESSAGE_RECOVERY_BUFFER = utils.intToBuffer(COMMAND_ID_MESSAGE_RECOVERY, 4);
 export const COMMAND_ID_STATE_RECOVERY_INIT = 6;
-export const COMMAND_ID_STATE_RECOVERY_INIT_BUFFER = intToBuffer(COMMAND_ID_MESSAGE_RECOVERY, 4);
+export const COMMAND_ID_STATE_RECOVERY_INIT_BUFFER = utils.intToBuffer(
+	COMMAND_ID_MESSAGE_RECOVERY,
+	4,
+);

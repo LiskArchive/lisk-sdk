@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import {
 	CommitList,
 	COMMIT_SORT,
@@ -22,19 +22,19 @@ import { SingleCommit } from '../../../../../src/engine/consensus/certificate_ge
 describe('CommitList', () => {
 	const sampleHeight = 10;
 	const singleSampleCommit = {
-		blockID: getRandomBytes(32),
-		certificateSignature: getRandomBytes(96),
+		blockID: utils.getRandomBytes(32),
+		certificateSignature: utils.getRandomBytes(96),
 		height: sampleHeight,
-		validatorAddress: getRandomBytes(20),
+		validatorAddress: utils.getRandomBytes(20),
 	};
 	const sampleCommits = Array.from(
 		{ length: 10 },
 		index =>
 			({
-				blockID: getRandomBytes(32),
-				certificateSignature: getRandomBytes(96),
+				blockID: utils.getRandomBytes(32),
+				certificateSignature: utils.getRandomBytes(96),
 				height: sampleHeight * (index as number),
-				validatorAddress: getRandomBytes(20),
+				validatorAddress: utils.getRandomBytes(20),
 			} as SingleCommit),
 	);
 
@@ -46,10 +46,10 @@ describe('CommitList', () => {
 		{ length: 5 },
 		_ =>
 			({
-				blockID: getRandomBytes(32),
-				certificateSignature: getRandomBytes(96),
+				blockID: utils.getRandomBytes(32),
+				certificateSignature: utils.getRandomBytes(96),
 				height: height10,
-				validatorAddress: getRandomBytes(20),
+				validatorAddress: utils.getRandomBytes(20),
 			} as SingleCommit),
 	);
 
@@ -57,10 +57,10 @@ describe('CommitList', () => {
 		{ length: 5 },
 		_ =>
 			({
-				blockID: getRandomBytes(32),
-				certificateSignature: getRandomBytes(96),
+				blockID: utils.getRandomBytes(32),
+				certificateSignature: utils.getRandomBytes(96),
 				height: height20,
-				validatorAddress: getRandomBytes(20),
+				validatorAddress: utils.getRandomBytes(20),
 			} as SingleCommit),
 	);
 
@@ -68,10 +68,10 @@ describe('CommitList', () => {
 		{ length: 5 },
 		_ =>
 			({
-				blockID: getRandomBytes(32),
-				certificateSignature: getRandomBytes(96),
+				blockID: utils.getRandomBytes(32),
+				certificateSignature: utils.getRandomBytes(96),
 				height: height30,
-				validatorAddress: getRandomBytes(20),
+				validatorAddress: utils.getRandomBytes(20),
 			} as SingleCommit),
 	);
 

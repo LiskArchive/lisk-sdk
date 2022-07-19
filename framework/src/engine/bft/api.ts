@@ -13,7 +13,7 @@
  */
 
 import { BlockHeader, StateStore } from '@liskhq/lisk-chain';
-import { BIG_ENDIAN, hash, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { BaseAPI } from '../../modules/base_api';
 import {
@@ -80,7 +80,7 @@ export class BFTAPI extends BaseAPI {
 
 	public async existBFTParameters(stateStore: StateStore, height: number): Promise<boolean> {
 		const paramsStore = stateStore.getStore(this.moduleID, STORE_PREFIX_BFT_PARAMETERS);
-		return paramsStore.has(intToBuffer(height, 4, BIG_ENDIAN));
+		return paramsStore.has(utils.intToBuffer(height, 4));
 	}
 
 	public async getBFTParameters(stateStore: StateStore, height: number): Promise<BFTParameters> {
@@ -126,8 +126,8 @@ export class BFTAPI extends BaseAPI {
 
 	public async getNextHeightBFTParameters(stateStore: StateStore, height: number): Promise<number> {
 		const paramsStore = stateStore.getStore(this.moduleID, STORE_PREFIX_BFT_PARAMETERS);
-		const start = intToBuffer(height + 1, 4, BIG_ENDIAN);
-		const end = intToBuffer(MAX_UINT32, 4, BIG_ENDIAN);
+		const start = utils.intToBuffer(height + 1, 4);
+		const end = utils.intToBuffer(MAX_UINT32, 4);
 		const results = await paramsStore.iterate({
 			limit: 1,
 			gte: start,
@@ -212,7 +212,7 @@ export class BFTAPI extends BaseAPI {
 
 		const paramsStore = stateStore.getStore(this.moduleID, STORE_PREFIX_BFT_PARAMETERS);
 
-		const nextHeightBytes = intToBuffer(nextHeight, 4, BIG_ENDIAN);
+		const nextHeightBytes = utils.intToBuffer(nextHeight, 4);
 		await paramsStore.setWithSchema(nextHeightBytes, bftParams, bftParametersSchema);
 
 		const nextActiveValidators: BFTVotesActiveValidatorsVoteInfo[] = [];
@@ -252,7 +252,7 @@ export class BFTAPI extends BaseAPI {
 				: bftVotes.maxHeightPrevoted + 1;
 
 		const keysStore = stateStore.getStore(this.moduleID, STORE_PREFIX_GENERATOR_KEYS);
-		const nextHeightBytes = intToBuffer(nextHeight, 4, BIG_ENDIAN);
+		const nextHeightBytes = utils.intToBuffer(nextHeight, 4);
 
 		await keysStore.setWithSchema(nextHeightBytes, { generators }, generatorKeysSchema);
 	}
@@ -271,6 +271,6 @@ export class BFTAPI extends BaseAPI {
 			certificateThreshold,
 		};
 		const encodedValidatorsHashInput = codec.encode(validatorsHashInputSchema, input);
-		return hash(encodedValidatorsHashInput);
+		return utils.hash(encodedValidatorsHashInput);
 	}
 }

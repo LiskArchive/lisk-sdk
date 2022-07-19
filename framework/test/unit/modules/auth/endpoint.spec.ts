@@ -1,12 +1,6 @@
 import { NotFoundError, TAG_TRANSACTION, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import {
-	getAddressAndPublicKeyFromPassphrase,
-	getAddressFromPublicKey,
-	getRandomBytes,
-	intToBuffer,
-	signDataWithPassphrase,
-} from '@liskhq/lisk-cryptography';
+import { ed, address as cryptoAddress, utils } from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
 import { AuthModule } from '../../../../src/modules/auth';
 import { AuthEndpoint } from '../../../../src/modules/auth/endpoint';
@@ -56,17 +50,19 @@ describe('AuthEndpoint', () => {
 	};
 
 	for (const account of Object.values(accounts)) {
-		const { address, publicKey } = getAddressAndPublicKeyFromPassphrase(account.passphrase);
+		const { address, publicKey } = cryptoAddress.getAddressAndPublicKeyFromPassphrase(
+			account.passphrase,
+		);
 		account.address = address;
 		account.publicKey = publicKey;
 	}
 
 	// Existing is an abbr. for existing account
 	const existingSenderPublicKey = accounts.targetAccount.publicKey as Buffer;
-	const nonExistingSenderPublicKey = getRandomBytes(32);
+	const nonExistingSenderPublicKey = utils.getRandomBytes(32);
 
 	const existingAddress = accounts.targetAccount.address as Buffer;
-	const nonExistingAddress = getAddressFromPublicKey(nonExistingSenderPublicKey);
+	const nonExistingAddress = cryptoAddress.getAddressFromPublicKey(nonExistingSenderPublicKey);
 
 	const existingPassphrase = accounts.targetAccount.passphrase;
 
@@ -88,8 +84,8 @@ describe('AuthEndpoint', () => {
 			});
 
 			const expectedAuthAccount = {
-				mandatoryKeys: [getRandomBytes(64)],
-				optionalKeys: [getRandomBytes(64)],
+				mandatoryKeys: [utils.getRandomBytes(64)],
+				optionalKeys: [utils.getRandomBytes(64)],
 				nonce: BigInt(2),
 				numberOfSignatures: 1,
 			};
@@ -151,16 +147,16 @@ describe('AuthEndpoint', () => {
 		it('should verify the transaction with single signature', async () => {
 			// Arrange
 			const transaction = new Transaction({
-				moduleID: intToBuffer(2, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(2, 4),
+				commandID: utils.intToBuffer(0, 4),
 				nonce: BigInt('0'),
 				fee: BigInt('100000000'),
 				senderPublicKey: existingSenderPublicKey,
-				params: getRandomBytes(100),
+				params: utils.getRandomBytes(100),
 				signatures: [],
 			});
 
-			const signature = signDataWithPassphrase(
+			const signature = ed.signDataWithPassphrase(
 				TAG_TRANSACTION,
 				networkIdentifier,
 				transaction.getBytes(),
@@ -197,17 +193,17 @@ describe('AuthEndpoint', () => {
 		it('should verify the transaction with multi-signature', async () => {
 			// Arrange
 			const transaction = new Transaction({
-				moduleID: intToBuffer(2, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(2, 4),
+				commandID: utils.intToBuffer(0, 4),
 				nonce: BigInt('0'),
 				fee: BigInt('100000000'),
 				senderPublicKey: existingSenderPublicKey,
-				params: getRandomBytes(100),
+				params: utils.getRandomBytes(100),
 				signatures: [],
 			});
 
 			(transaction.signatures as any).push(
-				signDataWithPassphrase(
+				ed.signDataWithPassphrase(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
@@ -216,7 +212,7 @@ describe('AuthEndpoint', () => {
 			);
 
 			(transaction.signatures as any).push(
-				signDataWithPassphrase(
+				ed.signDataWithPassphrase(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
@@ -225,7 +221,7 @@ describe('AuthEndpoint', () => {
 			);
 
 			(transaction.signatures as any).push(
-				signDataWithPassphrase(
+				ed.signDataWithPassphrase(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
@@ -268,8 +264,8 @@ describe('AuthEndpoint', () => {
 			});
 
 			const transaction = new Transaction({
-				moduleID: intToBuffer(12, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(12, 4),
+				commandID: utils.intToBuffer(0, 4),
 				nonce: BigInt('0'),
 				fee: BigInt('100000000'),
 				senderPublicKey: existingSenderPublicKey,
@@ -278,7 +274,7 @@ describe('AuthEndpoint', () => {
 			});
 
 			(transaction.signatures as any).push(
-				signDataWithPassphrase(
+				ed.signDataWithPassphrase(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
@@ -287,7 +283,7 @@ describe('AuthEndpoint', () => {
 			);
 
 			(transaction.signatures as any).push(
-				signDataWithPassphrase(
+				ed.signDataWithPassphrase(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
@@ -296,7 +292,7 @@ describe('AuthEndpoint', () => {
 			);
 
 			(transaction.signatures as any).push(
-				signDataWithPassphrase(
+				ed.signDataWithPassphrase(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
@@ -305,7 +301,7 @@ describe('AuthEndpoint', () => {
 			);
 
 			(transaction.signatures as any).push(
-				signDataWithPassphrase(
+				ed.signDataWithPassphrase(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
@@ -314,7 +310,7 @@ describe('AuthEndpoint', () => {
 			);
 
 			(transaction.signatures as any).push(
-				signDataWithPassphrase(
+				ed.signDataWithPassphrase(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
@@ -352,13 +348,13 @@ describe('AuthEndpoint', () => {
 		it('should verify equal transaction nonce and account nonce', async () => {
 			// Arrange
 			const transaction = new Transaction({
-				moduleID: intToBuffer(2, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(2, 4),
+				commandID: utils.intToBuffer(0, 4),
 				nonce: BigInt('2'),
 				fee: BigInt('100000000'),
 				senderPublicKey: existingSenderPublicKey,
-				params: getRandomBytes(100),
-				signatures: [getRandomBytes(64)],
+				params: utils.getRandomBytes(100),
+				signatures: [utils.getRandomBytes(64)],
 			});
 
 			const transactionAsString = transaction.getBytes().toString('hex');
@@ -387,13 +383,13 @@ describe('AuthEndpoint', () => {
 		it('should fail to verify greater transaction nonce than account nonce', async () => {
 			// Arrange
 			const transaction = new Transaction({
-				moduleID: intToBuffer(2, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(2, 4),
+				commandID: utils.intToBuffer(0, 4),
 				nonce: BigInt('3'),
 				fee: BigInt('100000000'),
 				senderPublicKey: existingSenderPublicKey,
-				params: getRandomBytes(100),
-				signatures: [getRandomBytes(64)],
+				params: utils.getRandomBytes(100),
+				signatures: [utils.getRandomBytes(64)],
 			});
 
 			const transactionAsString = transaction.getBytes().toString('hex');
@@ -424,13 +420,13 @@ describe('AuthEndpoint', () => {
 			const accountNonce = BigInt(2);
 
 			const transaction = new Transaction({
-				moduleID: intToBuffer(2, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(2, 4),
+				commandID: utils.intToBuffer(0, 4),
 				nonce: BigInt('1'),
 				fee: BigInt('100000000'),
 				senderPublicKey: existingSenderPublicKey,
-				params: getRandomBytes(100),
-				signatures: [getRandomBytes(64)],
+				params: utils.getRandomBytes(100),
+				signatures: [utils.getRandomBytes(64)],
 			});
 
 			const transactionAsString = transaction.getBytes().toString('hex');

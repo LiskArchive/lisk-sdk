@@ -27,10 +27,10 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 describe('passphrase:encrypt', () => {
 	const defaultPassphrase =
 		'enemy pill squeeze gold spoil aisle awake thumb congress false box wagon';
-	const defaultBlsPrivateKey = cryptography.generatePrivateKey(
+	const defaultBlsPrivateKey = cryptography.bls.generatePrivateKey(
 		Buffer.from(defaultPassphrase, 'utf-8'),
 	);
-	const defaultBlsPublicKey = cryptography.getPublicKeyFromPrivateKey(defaultBlsPrivateKey);
+	const defaultBlsPublicKey = cryptography.bls.getPublicKeyFromPrivateKey(defaultBlsPrivateKey);
 	const consoleWarnSpy = jest.spyOn(console, 'warn');
 
 	let stdout: string[];
@@ -44,8 +44,8 @@ describe('passphrase:encrypt', () => {
 		jest.spyOn(process.stdout, 'write').mockImplementation(val => stdout.push(val as string) > -1);
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
 		jest.spyOn(CreateCommand.prototype, 'printJSON').mockReturnValue();
-		jest.spyOn(cryptography, 'generatePrivateKey');
-		jest.spyOn(cryptography, 'getPublicKeyFromPrivateKey');
+		jest.spyOn(cryptography.bls, 'generatePrivateKey');
+		jest.spyOn(cryptography.bls, 'getPublicKeyFromPrivateKey');
 		jest.spyOn(readerUtils, 'getPassphraseFromPrompt').mockImplementation(async (name?: string) => {
 			if (name === 'passphrase') {
 				return defaultPassphrase;
@@ -57,10 +57,12 @@ describe('passphrase:encrypt', () => {
 	describe('blskey:create', () => {
 		it('should create valid bls keys', async () => {
 			await CreateCommand.run([], config);
-			expect(cryptography.generatePrivateKey).toHaveBeenCalledWith(
+			expect(cryptography.bls.generatePrivateKey).toHaveBeenCalledWith(
 				Buffer.from(defaultPassphrase, 'utf-8'),
 			);
-			expect(cryptography.getPublicKeyFromPrivateKey).toHaveBeenCalledWith(defaultBlsPrivateKey);
+			expect(cryptography.bls.getPublicKeyFromPrivateKey).toHaveBeenCalledWith(
+				defaultBlsPrivateKey,
+			);
 			expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase', true);
 
 			expect(CreateCommand.prototype.printJSON).toHaveBeenCalledWith(
@@ -80,10 +82,12 @@ describe('passphrase:encrypt', () => {
 				['--passphrase=enemy pill squeeze gold spoil aisle awake thumb congress false box wagon'],
 				config,
 			);
-			expect(cryptography.generatePrivateKey).toHaveBeenCalledWith(
+			expect(cryptography.bls.generatePrivateKey).toHaveBeenCalledWith(
 				Buffer.from(defaultPassphrase, 'utf-8'),
 			);
-			expect(cryptography.getPublicKeyFromPrivateKey).toHaveBeenCalledWith(defaultBlsPrivateKey);
+			expect(cryptography.bls.getPublicKeyFromPrivateKey).toHaveBeenCalledWith(
+				defaultBlsPrivateKey,
+			);
 			expect(readerUtils.getPassphraseFromPrompt).not.toHaveBeenCalledWith('passphrase', true);
 
 			expect(CreateCommand.prototype.printJSON).toHaveBeenCalledWith(

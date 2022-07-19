@@ -29,7 +29,7 @@ import {
 	DEFAULT_MIN_ENTRANCE_FEE_PRIORITY,
 } from '@liskhq/lisk-transaction-pool';
 import { codec } from '@liskhq/lisk-codec';
-import { hash } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import {
 	ABI,
@@ -237,7 +237,7 @@ export class ABIHandler implements ABI {
 				)}`,
 			);
 		}
-		const id = hash(codec.encode(blockHeaderSchema, req.header));
+		const id = utils.hash(codec.encode(blockHeaderSchema, req.header));
 		this._executionContext = {
 			id,
 			header: new BlockHeader(req.header),

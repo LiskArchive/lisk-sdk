@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import {
 	sortByBitmapAndKey,
 	binaryStringToBuffer,
@@ -58,12 +58,12 @@ describe('utils', () => {
 	describe('sortByBitmapAndKey', () => {
 		it('should sort by longest bitmap', () => {
 			const res1 = {
-				key: getRandomBytes(2),
+				key: utils.getRandomBytes(2),
 				binaryBitmap: '011',
 			};
 
 			const res2 = {
-				key: getRandomBytes(2),
+				key: utils.getRandomBytes(2),
 				binaryBitmap: '0011',
 			};
 
@@ -72,12 +72,12 @@ describe('utils', () => {
 
 		it('should sort by longest bitmap breaking tie with smaller key', () => {
 			const res1 = {
-				key: getRandomBytes(2),
+				key: utils.getRandomBytes(2),
 				binaryBitmap: '111',
 			};
 
 			const res2 = {
-				key: getRandomBytes(1),
+				key: utils.getRandomBytes(1),
 				binaryBitmap: '111',
 			};
 
@@ -503,7 +503,7 @@ describe('utils', () => {
 			}));
 
 		it('should get key value of 38 bytes from leaf data buffer', () => {
-			const key38Bytes = getRandomBytes(38);
+			const key38Bytes = utils.getRandomBytes(38);
 			const leafDataWith38ByteKey = leafData(key38Bytes, sampleValue);
 
 			expect(parseLeafData(leafDataWith38ByteKey, key38Bytes.byteLength)).toEqual({

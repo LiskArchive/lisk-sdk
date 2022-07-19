@@ -15,7 +15,7 @@
 import { when } from 'jest-when';
 import { codec } from '@liskhq/lisk-codec';
 import { Transaction } from '@liskhq/lisk-chain';
-import { getRandomBytes, hash, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { MerkleTree, regularMerkleTree } from '@liskhq/lisk-tree';
 import { CommandExecuteContext } from '../../../../../../src';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
@@ -94,20 +94,20 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			ccms = [
 				{
 					nonce: BigInt(0),
-					moduleID: intToBuffer(1, 4),
-					crossChainCommandID: intToBuffer(1, 4),
-					sendingChainID: intToBuffer(2, 4),
-					receivingChainID: intToBuffer(3, 4),
+					moduleID: utils.intToBuffer(1, 4),
+					crossChainCommandID: utils.intToBuffer(1, 4),
+					sendingChainID: utils.intToBuffer(2, 4),
+					receivingChainID: utils.intToBuffer(3, 4),
 					fee: BigInt(1),
 					status: 0,
 					params: Buffer.alloc(0),
 				},
 				{
 					nonce: BigInt(1),
-					moduleID: intToBuffer(1, 4),
-					crossChainCommandID: intToBuffer(1, 4),
-					sendingChainID: intToBuffer(4, 4),
-					receivingChainID: intToBuffer(5, 4),
+					moduleID: utils.intToBuffer(1, 4),
+					crossChainCommandID: utils.intToBuffer(1, 4),
+					sendingChainID: utils.intToBuffer(4, 4),
+					receivingChainID: utils.intToBuffer(5, 4),
 					fee: BigInt(2),
 					status: 0,
 					params: Buffer.alloc(0),
@@ -122,7 +122,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 					[LEAF_PREFIX, data],
 					LEAF_PREFIX.length + data.length,
 				);
-				const leafHash = hash(leafValueWithoutNodeIndex);
+				const leafHash = utils.hash(leafValueWithoutNodeIndex);
 				queryHashes.push(leafHash);
 			}
 			generatedProof = await merkleTree.generateProof(queryHashes);
@@ -132,10 +132,10 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				indexes: generatedProof.idxs as number[],
 				siblingHashes: generatedProof.siblingHashes as Buffer[],
 			};
-			hashedCCMs = ccmsEncoded.map(ccm => hash(ccm));
+			hashedCCMs = ccmsEncoded.map(ccm => utils.hash(ccm));
 			outboxRoot = regularMerkleTree.calculateRootFromUpdateData(hashedCCMs, proof);
 			transactionParams = {
-				chainID: intToBuffer(3, 4),
+				chainID: utils.intToBuffer(3, 4),
 				crossChainMessages: [...ccmsEncoded],
 				idxs: proof.indexes,
 				siblingHashes: proof.siblingHashes,
@@ -149,7 +149,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				fee: BigInt(100000000),
 				nonce: BigInt(0),
 				params: encodedTransactionParams,
-				senderPublicKey: getRandomBytes(32),
+				senderPublicKey: utils.getRandomBytes(32),
 				signatures: [],
 			});
 			commandVerifyContext = createTransactionContext({
@@ -175,7 +175,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			await terminatedOutboxSubstore.setWithSchema(
 				chainID,
 				{
-					outboxRoot: getRandomBytes(32),
+					outboxRoot: utils.getRandomBytes(32),
 					outboxSize: terminatedChainOutboxSize,
 					partnerChainInboxSize: 1,
 				},
@@ -204,7 +204,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				fee: BigInt(100000000),
 				nonce: BigInt(0),
 				params: encodedTransactionParams,
-				senderPublicKey: getRandomBytes(32),
+				senderPublicKey: utils.getRandomBytes(32),
 				signatures: [],
 			});
 			commandVerifyContext = createTransactionContext({
@@ -221,20 +221,20 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			ccms = [
 				{
 					nonce: BigInt(0),
-					moduleID: intToBuffer(1, 4),
-					crossChainCommandID: intToBuffer(1, 4),
-					sendingChainID: intToBuffer(2, 4),
-					receivingChainID: intToBuffer(3, 4),
+					moduleID: utils.intToBuffer(1, 4),
+					crossChainCommandID: utils.intToBuffer(1, 4),
+					sendingChainID: utils.intToBuffer(2, 4),
+					receivingChainID: utils.intToBuffer(3, 4),
 					fee: BigInt(1),
 					status: 1,
 					params: Buffer.alloc(0),
 				},
 				{
 					nonce: BigInt(1),
-					moduleID: intToBuffer(1, 4),
-					crossChainCommandID: intToBuffer(1, 4),
-					sendingChainID: intToBuffer(4, 4),
-					receivingChainID: intToBuffer(5, 4),
+					moduleID: utils.intToBuffer(1, 4),
+					crossChainCommandID: utils.intToBuffer(1, 4),
+					sendingChainID: utils.intToBuffer(4, 4),
+					receivingChainID: utils.intToBuffer(5, 4),
 					fee: BigInt(2),
 					status: 0,
 					params: Buffer.alloc(0),
@@ -249,7 +249,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 					[LEAF_PREFIX, data],
 					LEAF_PREFIX.length + data.length,
 				);
-				const leafHash = hash(leafValueWithoutNodeIndex);
+				const leafHash = utils.hash(leafValueWithoutNodeIndex);
 				queryHashes.push(leafHash);
 			}
 			generatedProof = await merkleTree.generateProof(queryHashes);
@@ -259,10 +259,10 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				indexes: generatedProof.idxs as number[],
 				siblingHashes: generatedProof.siblingHashes as Buffer[],
 			};
-			hashedCCMs = ccmsEncoded.map(ccm => hash(ccm));
+			hashedCCMs = ccmsEncoded.map(ccm => utils.hash(ccm));
 			outboxRoot = regularMerkleTree.calculateRootFromUpdateData(hashedCCMs, proof);
 			transactionParams = {
-				chainID: intToBuffer(3, 4),
+				chainID: utils.intToBuffer(3, 4),
 				crossChainMessages: [...ccmsEncoded],
 				idxs: proof.indexes,
 				siblingHashes: proof.siblingHashes,
@@ -274,7 +274,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				fee: BigInt(100000000),
 				nonce: BigInt(0),
 				params: encodedTransactionParams,
-				senderPublicKey: getRandomBytes(32),
+				senderPublicKey: utils.getRandomBytes(32),
 				signatures: [],
 			});
 			commandVerifyContext = createTransactionContext({
@@ -310,10 +310,10 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			const ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
 
 			transactionParams = {
-				chainID: intToBuffer(3, 4),
+				chainID: utils.intToBuffer(3, 4),
 				crossChainMessages: [...ccmsEncoded],
 				idxs: [0],
-				siblingHashes: [getRandomBytes(32)],
+				siblingHashes: [utils.getRandomBytes(32)],
 			};
 
 			encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
@@ -324,7 +324,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				fee: BigInt(100000000),
 				nonce: BigInt(0),
 				params: encodedTransactionParams,
-				senderPublicKey: getRandomBytes(32),
+				senderPublicKey: utils.getRandomBytes(32),
 				signatures: [],
 			});
 
@@ -351,8 +351,8 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			| 'getOwnChainAccount'
 		>;
 
-		const moduleID = intToBuffer(1, 4);
-		const networkID = getRandomBytes(32);
+		const moduleID = utils.intToBuffer(1, 4);
+		const networkID = utils.getRandomBytes(32);
 
 		let messageRecoveryCommand: MainchainMessageRecoveryCommand;
 		let commandExecuteContext: CommandExecuteContext<MessageRecoveryParams>;
@@ -379,19 +379,19 @@ describe('Mainchain MessageRecoveryCommand', () => {
 				{
 					nonce: BigInt(0),
 					moduleID,
-					crossChainCommandID: intToBuffer(1, 4),
-					sendingChainID: intToBuffer(2, 4),
-					receivingChainID: intToBuffer(3, 4),
+					crossChainCommandID: utils.intToBuffer(1, 4),
+					sendingChainID: utils.intToBuffer(2, 4),
+					receivingChainID: utils.intToBuffer(3, 4),
 					fee: BigInt(1),
 					status: 1,
 					params: Buffer.alloc(0),
 				},
 				{
 					nonce: BigInt(1),
-					moduleID: intToBuffer(moduleID.readInt32BE(0) + 1, 4),
-					crossChainCommandID: intToBuffer(1, 4),
-					sendingChainID: intToBuffer(2, 4),
-					receivingChainID: intToBuffer(3, 4),
+					moduleID: utils.intToBuffer(moduleID.readInt32BE(0) + 1, 4),
+					crossChainCommandID: utils.intToBuffer(1, 4),
+					sendingChainID: utils.intToBuffer(2, 4),
+					receivingChainID: utils.intToBuffer(3, 4),
 					fee: BigInt(1),
 					status: 1,
 					params: Buffer.alloc(0),
@@ -413,7 +413,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 
 			storeMock.getOwnChainAccount.mockResolvedValue({
 				name: `mainchain`,
-				id: intToBuffer(0, 4),
+				id: utils.intToBuffer(0, 4),
 				nonce: BigInt(0),
 			});
 
@@ -448,7 +448,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			when(storeMock.getTerminatedOutboxAccount)
 				.calledWith(chainID)
 				.mockResolvedValue({
-					outboxRoot: getRandomBytes(32),
+					outboxRoot: utils.getRandomBytes(32),
 					outboxSize: 1,
 					partnerChainInboxSize: 1,
 				});
@@ -573,7 +573,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			commandExecuteContext = createCommandExecuteContext(
 				ccms.map(ccm => ({
 					...ccm,
-					receivingChainID: intToBuffer(0, 4),
+					receivingChainID: utils.intToBuffer(0, 4),
 				})),
 			);
 
@@ -607,14 +607,14 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			commandExecuteContext = createCommandExecuteContext(
 				ccms.map(ccm => ({
 					...ccm,
-					receivingChainID: intToBuffer(0, 4),
+					receivingChainID: utils.intToBuffer(0, 4),
 				})),
 			);
 
 			for (const ccm of ccms) {
 				ccCommands.set(ccm.moduleID.readInt32BE(0), ([
 					{
-						ID: intToBuffer(500, 4),
+						ID: utils.intToBuffer(500, 4),
 						execute: jest.fn(),
 					},
 				] as unknown) as BaseCCCommand[]);
@@ -638,7 +638,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			commandExecuteContext = createCommandExecuteContext(
 				ccms.map(ccm => ({
 					...ccm,
-					receivingChainID: intToBuffer(0, 4),
+					receivingChainID: utils.intToBuffer(0, 4),
 				})),
 			);
 

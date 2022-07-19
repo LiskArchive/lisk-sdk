@@ -11,7 +11,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { MAX_UINT32 } from '../src/constants';
+import * as ed2curve from 'ed2curve';
 import {
 	EncryptedPassphraseObject,
 	EncryptedMessageWithNonce,
@@ -19,18 +19,13 @@ import {
 	decryptMessageWithPassphrase,
 	encryptPassphraseWithPassword,
 	decryptPassphraseWithPassword,
-	getKeyPairFromPhraseAndPath,
 	KDF,
 	Cipher,
-	getBLSPrivateKeyFromPhraseAndPath,
+	parseEncryptedPassphrase,
+	stringifyEncryptedPassphrase,
 } from '../src/encrypt';
-// Require is used for stubbing
-// eslint-disable-next-line
-const convert = require('../src/convert');
-// eslint-disable-next-line
-const keys = require('../src/keys');
-// eslint-disable-next-line
-const hashModule = require('../src/hash');
+import * as utils from '../src/utils';
+import * as address from '../src/address';
 
 describe('encrypt', () => {
 	const regHexadecimal = /[0-9A-Za-z]/g;
@@ -59,25 +54,26 @@ describe('encrypt', () => {
 			nonce: 'df4c8b09e270d2cb3f7b3d53dfa8a6f3441ad3b14a13fb66',
 		};
 		jest
-			.spyOn(convert, 'convertPrivateKeyEd2Curve')
+			.spyOn(ed2curve, 'convertSecretKey')
 			.mockReturnValue(
 				Buffer.from('d8be8cacb03fb02f34e85030f902b635f364d6c23f090c7640e9dc9c568e7d5e', 'hex'),
 			);
 		jest
-			.spyOn(convert, 'convertPublicKeyEd2Curve')
+			.spyOn(ed2curve, 'convertPublicKey')
 			.mockReturnValue(
 				Buffer.from('f245e78c83196d73452e55581ef924a1b792d352c142257aa3af13cded2e7905', 'hex'),
 			);
 
-		jest.spyOn(keys, 'getAddressAndPublicKeyFromPassphrase').mockImplementation(() => {
+		jest.spyOn(address, 'getAddressAndPublicKeyFromPassphrase').mockImplementation(() => {
 			return {
+				address: address.getAddressFromPublicKey(defaultPublicKey),
 				privateKey: defaultPrivateKey,
 				publicKey: defaultPublicKey,
 			};
 		});
 
 		hashStub = jest
-			.spyOn(hashModule, 'hash')
+			.spyOn(utils, 'hash')
 			.mockReturnValue(
 				Buffer.from('d43eed9049dd8f35106c720669a1148b2c6288d9ea517b936c33a1d84117a760', 'hex'),
 			);
@@ -357,80 +353,134 @@ describe('encrypt', () => {
 				expect(decryptedString).toBe(defaultPassphrase);
 			});
 		});
+	});
 
-		describe('getKeyPairFromPhraseAndPath', () => {
-			const passphrase =
-				'target cancel solution recipe vague faint bomb convince pink vendor fresh patrol';
-			it('should get keypair from valid phrase and path', async () => {
-				const { publicKey, privateKey } = await getKeyPairFromPhraseAndPath(
-					passphrase,
-					`m/44'/134'/0'`,
-				);
-				expect(publicKey.toString('hex')).toBe(
-					'c6bae83af23540096ac58d5121b00f33be6f02f05df785766725acdd5d48be9d',
-				);
-				expect(privateKey.toString('hex')).toBe(
-					'c465dfb15018d3aef0d94d411df048e240e87a3ec9cd6d422cea903bfc101f61c6bae83af23540096ac58d5121b00f33be6f02f05df785766725acdd5d48be9d',
-				);
-			});
-
-			it('should fail for empty string path', async () => {
-				await expect(getKeyPairFromPhraseAndPath(passphrase, '')).rejects.toThrow(
-					'Invalid path format',
-				);
-			});
-
-			it('should fail if path does not start with "m"', async () => {
-				await expect(getKeyPairFromPhraseAndPath(passphrase, `/44'/134'/0'`)).rejects.toThrow(
-					'Invalid path format',
-				);
-			});
-
-			it('should fail if path does not include at least one "/"', async () => {
-				await expect(getKeyPairFromPhraseAndPath(passphrase, 'm441340')).rejects.toThrow(
-					'Invalid path format',
-				);
-			});
-
-			it('should fail for path with invalid segment', async () => {
-				await expect(
-					getKeyPairFromPhraseAndPath(
-						passphrase,
-						`m//134'/0'`, // should be number with or without ' between every back slash
-					),
-				).rejects.toThrow('Invalid path format');
-			});
-
-			it('should fail for path with invalid characters', async () => {
-				await expect(getKeyPairFromPhraseAndPath(passphrase, `m/a'/134b'/0'`)).rejects.toThrow(
-					'Invalid path format',
-				);
-			});
-
-			it('should fail for path with non-sanctioned special characters', async () => {
-				await expect(getKeyPairFromPhraseAndPath(passphrase, `m/4a'/#134b'/0'`)).rejects.toThrow(
-					'Invalid path format',
-				);
-			});
-
-			it(`should fail for path with segment greater than ${MAX_UINT32} / 2`, async () => {
-				await expect(
-					getKeyPairFromPhraseAndPath(passphrase, `m/44'/134'/${MAX_UINT32}'`),
-				).rejects.toThrow('Invalid path format');
-			});
+	describe('#stringifyEncryptedPassphrase', () => {
+		it('should throw an error if encrypted passphrase is not an object', () => {
+			const encryptedPassphrase =
+				'salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1';
+			expect(stringifyEncryptedPassphrase.bind(null, encryptedPassphrase as any)).toThrow(
+				'Encrypted passphrase to stringify must be an object.',
+			);
 		});
 
-		describe('getBLSPrivateKeyFromPhraseAndPath', () => {
-			const passphrase =
-				'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
-			it('should get keypair from valid phrase and path', async () => {
-				const privateKey = await getBLSPrivateKeyFromPhraseAndPath(passphrase, `m/12381`);
-				expect(privateKey.toString('hex')).toBe(
-					BigInt(
-						'27531519788986738912817629815232258573173656766051821145387425994698573826996',
-					).toString(16),
-				);
-			});
+		it('should format an encrypted passphrase as a string', () => {
+			const encryptedPassphrase = {
+				version: '1',
+				ciphertext:
+					'c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
+				mac:
+					'ddfgb123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
+				kdf: 'PBKDF2',
+				kdfparams: {
+					salt: 'e8c7dae4c893e458e0ebb8bff9a36d84',
+				},
+				cipher: 'aes-256-gcm',
+				cipherparams: {
+					iv: '1a2206e426c714091b7e48f6',
+					tag: '3a9d9f9f9a92c9a58296b8df64820c15',
+				},
+			};
+			const stringifiedEncryptedPassphrase =
+				'kdf=PBKDF2&cipher=aes-256-gcm&version=1&ciphertext=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&mac=ddfgb123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&salt=e8c7dae4c893e458e0ebb8bff9a36d84&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&iterations=&parallelism=&memorySize=';
+			expect(stringifyEncryptedPassphrase(encryptedPassphrase as EncryptedPassphraseObject)).toBe(
+				stringifiedEncryptedPassphrase,
+			);
+		});
+
+		it('should format an encrypted passphrase with custom iterations as a string', () => {
+			const encryptedPassphrase = {
+				version: '1',
+				ciphertext:
+					'c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
+				mac:
+					'ddfgb123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
+				kdf: 'PBKDF2',
+				kdfparams: {
+					salt: 'e8c7dae4c893e458e0ebb8bff9a36d84',
+					iterations: 12,
+				},
+				cipher: 'aes-256-gcm',
+				cipherparams: {
+					iv: '1a2206e426c714091b7e48f6',
+					tag: '3a9d9f9f9a92c9a58296b8df64820c15',
+				},
+			};
+			const stringifiedEncryptedPassphrase =
+				'kdf=PBKDF2&cipher=aes-256-gcm&version=1&ciphertext=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&mac=ddfgb123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&salt=e8c7dae4c893e458e0ebb8bff9a36d84&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&iterations=12&parallelism=&memorySize=';
+			expect(stringifyEncryptedPassphrase(encryptedPassphrase as EncryptedPassphraseObject)).toBe(
+				stringifiedEncryptedPassphrase,
+			);
+		});
+	});
+
+	describe('#parseEncryptedPassphrase', () => {
+		it('should throw an error if encrypted passphrase is not a string', () => {
+			const stringifiedEncryptedPassphrase = { abc: 'def' };
+			expect(parseEncryptedPassphrase.bind(null, stringifiedEncryptedPassphrase as any)).toThrow(
+				'Encrypted passphrase to parse must be a string.',
+			);
+		});
+
+		it('should throw an error if iterations is present but not a valid number', () => {
+			const stringifiedEncryptedPassphrase =
+				'iterations=null&salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1';
+			expect(parseEncryptedPassphrase.bind(null, stringifiedEncryptedPassphrase)).toThrow(
+				'Encrypted passphrase to parse must have only one value per key.',
+			);
+		});
+
+		it('should throw an error if multiple values are in a key', () => {
+			const stringifiedEncryptedPassphrase =
+				'salt=xxx&salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1';
+			expect(parseEncryptedPassphrase.bind(null, stringifiedEncryptedPassphrase)).toThrow(
+				'Encrypted passphrase to parse must have only one value per key.',
+			);
+		});
+
+		it('should parse an encrypted passphrase string', () => {
+			const stringifiedEncryptedPassphrase =
+				'kdf=PBKDF2&cipher=aes-256-gcm&version=1&ciphertext=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&mac=ddfgb123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&salt=e8c7dae4c893e458e0ebb8bff9a36d84&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15';
+			const encryptedPassphrase = {
+				version: '1',
+				ciphertext:
+					'c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
+				mac:
+					'ddfgb123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
+				kdf: 'PBKDF2',
+				kdfparams: {
+					salt: 'e8c7dae4c893e458e0ebb8bff9a36d84',
+				},
+				cipher: 'aes-256-gcm',
+				cipherparams: {
+					iv: '1a2206e426c714091b7e48f6',
+					tag: '3a9d9f9f9a92c9a58296b8df64820c15',
+				},
+			};
+			expect(parseEncryptedPassphrase(stringifiedEncryptedPassphrase)).toEqual(encryptedPassphrase);
+		});
+
+		it('should parse an encrypted passphrase string with custom iterations', () => {
+			const stringifiedEncryptedPassphrase =
+				'kdf=PBKDF2&cipher=aes-256-gcm&version=1&ciphertext=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&mac=ddfgb123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&salt=e8c7dae4c893e458e0ebb8bff9a36d84&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&iterations=12&parallelism=&memorySize=';
+			const encryptedPassphrase = {
+				version: '1',
+				ciphertext:
+					'c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
+				mac:
+					'ddfgb123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
+				kdf: 'PBKDF2',
+				kdfparams: {
+					salt: 'e8c7dae4c893e458e0ebb8bff9a36d84',
+					iterations: 12,
+				},
+				cipher: 'aes-256-gcm',
+				cipherparams: {
+					iv: '1a2206e426c714091b7e48f6',
+					tag: '3a9d9f9f9a92c9a58296b8df64820c15',
+				},
+			};
+			expect(parseEncryptedPassphrase(stringifiedEncryptedPassphrase)).toEqual(encryptedPassphrase);
 		});
 	});
 });

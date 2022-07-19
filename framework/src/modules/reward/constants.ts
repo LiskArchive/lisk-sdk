@@ -12,16 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 
 export const MODULE_ID_REWARD = 10;
-export const TOKEN_ID_LSK_MAINCHAIN = { chainID: intToBuffer(0, 4), localID: intToBuffer(0, 4) };
+export const TOKEN_ID_LSK_MAINCHAIN = {
+	chainID: utils.intToBuffer(0, 4),
+	localID: utils.intToBuffer(0, 4),
+};
 export const REWARD_REDUCTION_FACTOR_BFT = 4;
 
 export const defaultConfig = {
 	tokenIDReward: {
-		chainID: intToBuffer(0, 4),
-		localID: intToBuffer(0, 4),
+		chainID: utils.intToBuffer(0, 4),
+		localID: utils.intToBuffer(0, 4),
 	},
 	offset: 2160,
 	distance: 3000000,

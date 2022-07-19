@@ -11,9 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { hash } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 
-export const EMPTY_HASH = hash(Buffer.alloc(0));
+export const EMPTY_HASH = utils.hash(Buffer.alloc(0));
 export const LEAF_PREFIX = Buffer.from('00', 'hex');
 export const BRANCH_PREFIX = Buffer.from('01', 'hex');
 export const LAYER_INDEX_SIZE = 1;

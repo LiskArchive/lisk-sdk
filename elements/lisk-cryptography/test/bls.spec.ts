@@ -14,7 +14,14 @@
  *
  */
 
-import { createAggSig, signBLS, verifyAggSig, verifyWeightedAggSig, verifyBLS } from '../src/bls';
+import {
+	createAggSig,
+	signBLS,
+	verifyAggSig,
+	verifyWeightedAggSig,
+	verifyBLS,
+	getPrivateKeyFromPhraseAndPath,
+} from '../src/bls';
 import { getAllFiles, hexToBuffer, loadSpecFile } from './helpers';
 
 describe('bls_lib', () => {
@@ -158,6 +165,19 @@ describe('bls_lib', () => {
 
 				expect(result).toEqual(output);
 			});
+		});
+	});
+
+	describe('getBLSPrivateKeyFromPhraseAndPath', () => {
+		const passphrase =
+			'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+		it('should get keypair from valid phrase and path', async () => {
+			const privateKey = await getPrivateKeyFromPhraseAndPath(passphrase, `m/12381`);
+			expect(privateKey.toString('hex')).toBe(
+				BigInt(
+					'27531519788986738912817629815232258573173656766051821145387425994698573826996',
+				).toString(16),
+			);
 		});
 	});
 });

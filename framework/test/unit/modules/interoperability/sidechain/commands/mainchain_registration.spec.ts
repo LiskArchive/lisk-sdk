@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import * as crypto from '@liskhq/lisk-cryptography';
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
@@ -69,21 +69,20 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 }));
 
 describe('Mainchain registration command', () => {
-	const { getRandomBytes } = crypto;
 	const unsortedMainchainValidators: ActiveValidators[] = [];
 	for (let i = 0; i < NUMBER_MAINCHAIN_VALIDATORS; i += 1) {
-		unsortedMainchainValidators.push({ blsKey: getRandomBytes(48), bftWeight: BigInt(1) });
+		unsortedMainchainValidators.push({ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(1) });
 	}
 	const mainchainValidators = sortValidatorsByBLSKey(unsortedMainchainValidators);
 	const transactionParams: MainchainRegistrationParams = {
-		ownChainID: intToBuffer(11, 4),
+		ownChainID: utils.intToBuffer(11, 4),
 		ownName: 'testchain',
 		mainchainValidators,
 		aggregationBits: Buffer.alloc(0),
 		signature: Buffer.alloc(0),
 	};
 	const encodedTransactionParams = codec.encode(mainchainRegParams, transactionParams);
-	const publicKey = getRandomBytes(32);
+	const publicKey = utils.getRandomBytes(32);
 	const transaction = new Transaction({
 		moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
 		commandID: COMMAND_ID_MAINCHAIN_REG_BUFFER,
@@ -117,16 +116,16 @@ describe('Mainchain registration command', () => {
 					certificateThreshold: BigInt(40),
 					currentValidators: [
 						{
-							address: getRandomBytes(20),
+							address: utils.getRandomBytes(20),
 							bftWeight: BigInt(10),
-							blsKey: getRandomBytes(48),
-							generatorKey: getRandomBytes(32),
+							blsKey: utils.getRandomBytes(48),
+							generatorKey: utils.getRandomBytes(32),
 						},
 						{
-							address: getRandomBytes(20),
+							address: utils.getRandomBytes(20),
 							bftWeight: BigInt(5),
-							generatorKey: getRandomBytes(32),
-							blsKey: getRandomBytes(48),
+							generatorKey: utils.getRandomBytes(32),
+							blsKey: utils.getRandomBytes(48),
 						},
 					],
 				})
@@ -139,7 +138,7 @@ describe('Mainchain registration command', () => {
 		});
 
 		it('should return error if own chain id is greater than maximum uint32 number', async () => {
-			verifyContext.params.ownChainID = intToBuffer(MAX_UINT32 + 1, 5);
+			verifyContext.params.ownChainID = utils.intToBuffer(MAX_UINT32 + 1, 5);
 			const result = await mainchainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
@@ -149,7 +148,7 @@ describe('Mainchain registration command', () => {
 		});
 
 		it('should return error if bls key is not 48 bytes', async () => {
-			verifyContext.params.mainchainValidators[1].blsKey = getRandomBytes(47);
+			verifyContext.params.mainchainValidators[1].blsKey = utils.getRandomBytes(47);
 			const result = await mainchainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
@@ -157,7 +156,7 @@ describe('Mainchain registration command', () => {
 		});
 
 		it('should return error if name is greater than max length of name', async () => {
-			verifyContext.params.ownName = getRandomBytes(21).toString('hex');
+			verifyContext.params.ownName = utils.getRandomBytes(21).toString('hex');
 			const result = await mainchainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
@@ -218,7 +217,7 @@ describe('Mainchain registration command', () => {
 	describe('execute', () => {
 		const mainchainIdAsKey = getIDAsKeyForStore(MAINCHAIN_ID);
 		const params = {
-			ownChainID: intToBuffer(11, 4),
+			ownChainID: utils.intToBuffer(11, 4),
 			ownName: 'testchain',
 			mainchainValidators,
 			aggregationBits: Buffer.alloc(0),
@@ -235,19 +234,19 @@ describe('Mainchain registration command', () => {
 			},
 			status: CHAIN_REGISTERED,
 		};
-		const blsKey1 = getRandomBytes(48);
-		const blsKey2 = getRandomBytes(48);
+		const blsKey1 = utils.getRandomBytes(48);
+		const blsKey2 = utils.getRandomBytes(48);
 		const validatorAccounts = [
 			{
-				address: getRandomBytes(20),
+				address: utils.getRandomBytes(20),
 				bftWeight: BigInt(10),
-				generatorKey: getRandomBytes(32),
+				generatorKey: utils.getRandomBytes(32),
 				blsKey: blsKey1,
 			},
 			{
-				address: getRandomBytes(20),
+				address: utils.getRandomBytes(20),
 				bftWeight: BigInt(5),
-				generatorKey: getRandomBytes(32),
+				generatorKey: utils.getRandomBytes(32),
 				blsKey: blsKey2,
 			},
 		];
@@ -313,13 +312,13 @@ describe('Mainchain registration command', () => {
 			const keyList = [validatorAccounts[0].blsKey, validatorAccounts[1].blsKey];
 			const weights = [validatorAccounts[0].bftWeight, validatorAccounts[1].bftWeight];
 
-			jest.spyOn(crypto, 'verifyWeightedAggSig');
+			jest.spyOn(crypto.bls, 'verifyWeightedAggSig');
 
 			// Act
 			await mainchainRegistrationCommand.execute(context);
 
 			// Assert
-			expect(crypto.verifyWeightedAggSig).toHaveBeenCalledWith(
+			expect(crypto.bls.verifyWeightedAggSig).toHaveBeenCalledWith(
 				keyList,
 				params.aggregationBits,
 				params.signature,
@@ -349,7 +348,7 @@ describe('Mainchain registration command', () => {
 				inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				partnerChainOutboxRoot: EMPTY_HASH,
-				messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: intToBuffer(0, 4) },
+				messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: utils.intToBuffer(0, 4) },
 			};
 
 			// Act
@@ -368,7 +367,7 @@ describe('Mainchain registration command', () => {
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
 				networkID: MAINCHAIN_NETWORK_ID,
 				name: MAINCHAIN_NAME,
-				messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: intToBuffer(0, 4) },
+				messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: utils.intToBuffer(0, 4) },
 			});
 			// Act
 			await mainchainRegistrationCommand.execute(context);

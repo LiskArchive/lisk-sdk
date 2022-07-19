@@ -12,19 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 
 export const MODULE_ID_TOKEN = 2;
-export const MODULE_ID_TOKEN_BUFFER = intToBuffer(MODULE_ID_TOKEN, 4);
+export const MODULE_ID_TOKEN_BUFFER = utils.intToBuffer(MODULE_ID_TOKEN, 4);
 export const COMMAND_ID_TRANSFER = 0;
-export const COMMAND_ID_TRANSFER_BUFFER = intToBuffer(COMMAND_ID_TRANSFER, 4);
+export const COMMAND_ID_TRANSFER_BUFFER = utils.intToBuffer(COMMAND_ID_TRANSFER, 4);
 export const CROSS_CHAIN_COMMAND_ID_TRANSFER = 0;
-export const CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER = intToBuffer(
+export const CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER = utils.intToBuffer(
 	CROSS_CHAIN_COMMAND_ID_TRANSFER,
 	4,
 );
 export const CROSS_CHAIN_COMMAND_ID_FORWARD = 1;
-export const CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER = intToBuffer(CROSS_CHAIN_COMMAND_ID_FORWARD, 4);
+export const CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER = utils.intToBuffer(
+	CROSS_CHAIN_COMMAND_ID_FORWARD,
+	4,
+);
 
 export const ADDRESS_LENGTH = 20;
 export const MAX_DATA_LENGTH = 64;

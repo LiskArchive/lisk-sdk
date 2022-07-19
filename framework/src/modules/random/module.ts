@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hashOnion, generateHashOnionSeed } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { dataStructures, objects } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
@@ -280,7 +280,7 @@ export class RandomModule extends BaseModule {
 		const hashOnionConfig = this._getHashOnionConfig(address);
 		if (!hashOnionConfig) {
 			return {
-				hash: generateHashOnionSeed(),
+				hash: utils.generateHashOnionSeed(),
 				count: 0,
 			};
 		}
@@ -298,7 +298,7 @@ export class RandomModule extends BaseModule {
 				'All of the hash onion has been used already. Please update to the new hash onion.',
 			);
 			return {
-				hash: generateHashOnionSeed(),
+				hash: utils.generateHashOnionSeed(),
 				count: 0,
 			};
 		}
@@ -308,7 +308,7 @@ export class RandomModule extends BaseModule {
 				? Math.ceil(nextCount / hashOnionConfig.distance) + 1
 				: Math.ceil(nextCount / hashOnionConfig.distance);
 		const nextCheckpoint = hashOnionConfig.hashes[nextCheckpointIndex];
-		const hashes = hashOnion(nextCheckpoint, hashOnionConfig.distance, 1);
+		const hashes = utils.hashOnion(nextCheckpoint, hashOnionConfig.distance, 1);
 		const checkpointIndex = nextCount % hashOnionConfig.distance;
 		return {
 			hash: hashes[checkpointIndex],

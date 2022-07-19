@@ -15,7 +15,7 @@
 import { BlockAsset, BlockAssets } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { RandomAPI } from '../../../../src/modules/random/api';
 import {
 	MODULE_ID_RANDOM_BUFFER,
@@ -36,7 +36,7 @@ import { testCases } from './dpos_random_seed_generation/dpos_random_seed_genera
 import * as randomSeedsMultipleRounds from '../../../fixtures/dpos_random_seed_generation/dpos_random_seed_generation_other_rounds.json';
 
 const strippedHashOfIntegerBuffer = (num: number) =>
-	cryptography.hash(intToBuffer(num, 4)).slice(0, SEED_REVEAL_HASH_SIZE);
+	cryptography.utils.hash(utils.intToBuffer(num, 4)).slice(0, SEED_REVEAL_HASH_SIZE);
 
 describe('RandomModuleAPI', () => {
 	let randomAPI: RandomAPI;
@@ -50,7 +50,7 @@ describe('RandomModuleAPI', () => {
 		const twoRoundsDelegatesHashes: { [key: string]: Buffer[] } = {};
 
 		for (const generator of testCases[0].input.blocks) {
-			const generatorAddress = cryptography.getAddressFromPublicKey(
+			const generatorAddress = cryptography.address.getAddressFromPublicKey(
 				Buffer.from(generator.generatorPublicKey, 'hex'),
 			);
 			const seedReveal = Buffer.from(generator.asset.seedReveal, 'hex');
@@ -81,7 +81,7 @@ describe('RandomModuleAPI', () => {
 
 		it('should throw error when asset is undefined', async () => {
 			// Arrange
-			const delegateAddress = cryptography.getAddressFromPublicKey(
+			const delegateAddress = cryptography.address.getAddressFromPublicKey(
 				Buffer.from(testCases[0].input.blocks[0].generatorPublicKey, 'hex'),
 			);
 
@@ -342,7 +342,7 @@ describe('RandomModuleAPI', () => {
 			const validators: ValidatorSeedReveal[] = [];
 
 			for (const generator of input.blocks) {
-				const generatorAddress = cryptography.getAddressFromPublicKey(
+				const generatorAddress = cryptography.address.getAddressFromPublicKey(
 					Buffer.from(generator.generatorPublicKey, 'hex'),
 				);
 				const seedReveal = Buffer.from(generator.asset.seedReveal, 'hex');

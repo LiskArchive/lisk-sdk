@@ -165,7 +165,7 @@ const signTransactionOnline = async (
 	// Sign non multi-sig transaction
 	const transactionObject = decodeTransaction(registeredSchema, metadata, transactionHexStr);
 	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
-	const address = cryptography.getAddressFromPassphrase(passphrase);
+	const address = cryptography.address.getAddressFromPassphrase(passphrase);
 
 	let signedTransaction: Record<string, unknown>;
 

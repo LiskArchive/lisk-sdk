@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2020 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,32 +12,40 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { makeInvalid } from './helpers';
-import {
-	SignedMessageWithOnePassphrase,
-	signMessageWithPassphrase,
-	verifyMessageWithPublicKey,
-	printSignedMessage,
-	signAndPrintMessage,
-	signData,
-	signDataWithPassphrase,
-	signDataWithPrivateKey,
-	verifyData,
-	digestMessage,
-} from '../src/sign';
-import { createMessageTag } from '../src/message_tag';
-// Require is used for stubbing
-// eslint-disable-next-line
-const keys = require('../src/keys');
+
+import { cryptography } from '../../src';
+
+const {
+	ed: {
+		signMessageWithPassphrase,
+		verifyMessageWithPublicKey,
+		printSignedMessage,
+		signAndPrintMessage,
+		signData,
+		signDataWithPassphrase,
+		signDataWithPrivateKey,
+		verifyData,
+		getKeyPairFromPhraseAndPath,
+		getPublicKeyFromPrivateKey,
+		getKeys,
+		getPrivateAndPublicKeyFromPassphrase,
+	},
+	utils: { createMessageTag },
+} = cryptography;
+
+const makeInvalid = (buffer: Buffer): Buffer => {
+	const replace = buffer[0] % 2 === 0 ? 1 : 2;
+	// eslint-disable-next-line no-param-reassign
+	buffer[0] = replace;
+	return buffer;
+};
 
 const changeLength = (buffer: Buffer): Buffer => Buffer.concat([Buffer.from('00', 'hex'), buffer]);
 
 describe('sign', () => {
+	const MAX_UINT32 = 4294967295;
 	const tag = createMessageTag('TST');
-	const networkIdentifier = Buffer.from(
-		'30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb455',
-		'hex',
-	);
+	const networkIdentifier = Buffer.from('a5df2ed79994178c10ac168d6d977ef45cd525e95b7a8624', 'hex');
 	const defaultPassphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';
 	const defaultPrivateKey =
 		'314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
@@ -58,9 +66,9 @@ ${defaultSignature}
 
 	const defaultData = Buffer.from('This is some data');
 	const defaultDataSignature =
-		'be3167eb1bd0b1e37727872a7eaee78a7ec13386d23dc50e7ef589ff0e50d680bc8e039072790b875820b25ea7129a8b6c98850951515fac5cfa56119ce43e00';
+		'554b14094052d3e3874ba0704f216fd7b366450295c44cdbf2bd2a210e27a318a752143121af6fbe5a1ec5961dbef362ba39aa0714c0b9a4e60208e665466002';
 
-	let defaultSignedMessage: SignedMessageWithOnePassphrase;
+	let defaultSignedMessage: any;
 
 	beforeEach(() => {
 		defaultSignedMessage = {
@@ -68,52 +76,6 @@ ${defaultSignature}
 			publicKey: Buffer.from(defaultPublicKey, 'hex'),
 			signature: Buffer.from(defaultSignature, 'hex'),
 		};
-
-		jest.spyOn(keys, 'getAddressAndPublicKeyFromPassphrase').mockImplementation(() => {
-			return {
-				privateKey: Buffer.from(defaultPrivateKey, 'hex'),
-				publicKey: Buffer.from(defaultPublicKey, 'hex'),
-			};
-		});
-	});
-
-	describe('#digestMessage', () => {
-		const strGenerator = (len: number, chr: string): string => chr.repeat(len);
-
-		it('should create message digest for message with length = 0', () => {
-			const msgBytes = digestMessage('');
-			const expectedMessageBytes = Buffer.from(
-				'3fdb82ac2a879b647f4f27f3fbd1c27e0d4e278f830b76295604035330163b79',
-				'hex',
-			);
-			expect(msgBytes).toEqual(expectedMessageBytes);
-		});
-		it('should create message digest for message in length range 1 - 253', () => {
-			const msgBytes = digestMessage(strGenerator(250, 'a'));
-			const expectedMessageBytes = Buffer.from(
-				'12832c687d950513aa5db6198b84809eb8fd7ff1c8963dca48ea57278523ec67',
-				'hex',
-			);
-			expect(msgBytes).toEqual(expectedMessageBytes);
-		});
-		it('should create message digest for message in length range 254 - 65536', () => {
-			const msgBytes = digestMessage(strGenerator(65535, 'a'));
-			const expectedMessageBytes = Buffer.from(
-				'73da94220312e71eb5c55c94fdddca3c06a6c18cb74a4a4a2cee1a82875c2450',
-				'hex',
-			);
-			expect(msgBytes).toEqual(expectedMessageBytes);
-		});
-		it('should create message digest for message in length range 65537 - 4294967296', () => {
-			const msgBytes = digestMessage(strGenerator(6710886, 'a'));
-			const expectedMessageBytes = Buffer.from(
-				'7c51817b5c31c4d04e9ffcf2e78859d6522b124f218c789a8f721b5f3e6b295d',
-				'hex',
-			);
-			expect(msgBytes).toEqual(expectedMessageBytes);
-		});
-		// highest range (length > 4294967296) is not practical to test
-		// but it is covered by `varuint-bitcoin` library
 	});
 
 	describe('#signMessageWithPassphrase', () => {
@@ -156,6 +118,38 @@ ${defaultSignature}
 		it('should return true if the signature is valid', () => {
 			const verification = verifyMessageWithPublicKey(defaultSignedMessage);
 			expect(verification).toBe(true);
+		});
+	});
+
+	describe('#getPrivateAndPublicKeyFromPassphrase', () => {
+		let keyPair: any;
+
+		beforeEach(() => {
+			keyPair = getPrivateAndPublicKeyFromPassphrase(defaultPassphrase);
+		});
+
+		it('should generate the correct publicKey from a passphrase', () => {
+			expect(keyPair).toHaveProperty('publicKey', Buffer.from(defaultPublicKey, 'hex'));
+		});
+
+		it('should generate the correct privateKey from a passphrase', () => {
+			expect(keyPair).toHaveProperty('privateKey', Buffer.from(defaultPrivateKey, 'hex'));
+		});
+	});
+
+	describe('#getKeys', () => {
+		let keyPair: any;
+
+		beforeEach(() => {
+			keyPair = getKeys(defaultPassphrase);
+		});
+
+		it('should generate the correct publicKey from a passphrase', () => {
+			expect(keyPair).toHaveProperty('publicKey', Buffer.from(defaultPublicKey, 'hex'));
+		});
+
+		it('should generate the correct privateKey from a passphrase', () => {
+			expect(keyPair).toHaveProperty('privateKey', Buffer.from(defaultPrivateKey, 'hex'));
 		});
 	});
 
@@ -242,6 +236,66 @@ ${defaultSignature}
 				Buffer.from(defaultPublicKey, 'hex'),
 			);
 			expect(verification).toBe(true);
+		});
+	});
+
+	describe('getKeyPairFromPhraseAndPath', () => {
+		const passphrase =
+			'target cancel solution recipe vague faint bomb convince pink vendor fresh patrol';
+		it('should get keypair from valid phrase and path', async () => {
+			const privateKey = await getKeyPairFromPhraseAndPath(passphrase, `m/44'/134'/0'`);
+			const publicKey = getPublicKeyFromPrivateKey(privateKey);
+			expect(publicKey.toString('hex')).toBe(
+				'c6bae83af23540096ac58d5121b00f33be6f02f05df785766725acdd5d48be9d',
+			);
+			expect(privateKey.toString('hex')).toBe(
+				'c465dfb15018d3aef0d94d411df048e240e87a3ec9cd6d422cea903bfc101f61c6bae83af23540096ac58d5121b00f33be6f02f05df785766725acdd5d48be9d',
+			);
+		});
+
+		it('should fail for empty string path', async () => {
+			await expect(getKeyPairFromPhraseAndPath(passphrase, '')).rejects.toThrow(
+				'Invalid path format',
+			);
+		});
+
+		it('should fail if path does not start with "m"', async () => {
+			await expect(getKeyPairFromPhraseAndPath(passphrase, `/44'/134'/0'`)).rejects.toThrow(
+				'Invalid path format',
+			);
+		});
+
+		it('should fail if path does not include at least one "/"', async () => {
+			await expect(getKeyPairFromPhraseAndPath(passphrase, 'm441340')).rejects.toThrow(
+				'Invalid path format',
+			);
+		});
+
+		it('should fail for path with invalid segment', async () => {
+			await expect(
+				getKeyPairFromPhraseAndPath(
+					passphrase,
+					`m//134'/0'`, // should be number with or without ' between every back slash
+				),
+			).rejects.toThrow('Invalid path format');
+		});
+
+		it('should fail for path with invalid characters', async () => {
+			await expect(getKeyPairFromPhraseAndPath(passphrase, `m/a'/134b'/0'`)).rejects.toThrow(
+				'Invalid path format',
+			);
+		});
+
+		it('should fail for path with non-sanctioned special characters', async () => {
+			await expect(getKeyPairFromPhraseAndPath(passphrase, `m/4a'/#134b'/0'`)).rejects.toThrow(
+				'Invalid path format',
+			);
+		});
+
+		it(`should fail for path with segment greater than ${MAX_UINT32} / 2`, async () => {
+			await expect(
+				getKeyPairFromPhraseAndPath(passphrase, `m/44'/134'/${MAX_UINT32}'`),
+			).rejects.toThrow('Invalid path format');
 		});
 	});
 });

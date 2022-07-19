@@ -12,14 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	decryptPassphraseWithPassword,
-	EncryptedPassphraseObject,
-	generatePrivateKey,
-	getAddressFromPublicKey,
-	getPrivateAndPublicKeyFromPassphrase,
-	parseEncryptedPassphrase,
-} from '@liskhq/lisk-cryptography';
+import { encrypt, ed, bls, address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { Batch, Database } from '@liskhq/lisk-db';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
@@ -100,27 +93,31 @@ export class Endpoint {
 		}
 
 		try {
-			passphrase = await decryptPassphraseWithPassword(
-				parseEncryptedPassphrase(
+			passphrase = await encrypt.decryptPassphraseWithPassword(
+				encrypt.parseEncryptedPassphrase(
 					encryptedGenerator.encryptedPassphrase,
-				) as EncryptedPassphraseObject,
+				) as encrypt.EncryptedPassphraseObject,
 				req.password,
 			);
 		} catch (e) {
 			throw new Error('Invalid password and public key combination.');
 		}
 
-		const blsSK = generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
+		const blsSK = bls.generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
 		const keypair = {
-			...getPrivateAndPublicKeyFromPassphrase(passphrase),
+			...ed.getPrivateAndPublicKeyFromPassphrase(passphrase),
 			blsSecretKey: blsSK,
 		};
 
-		if (!getAddressFromPublicKey(keypair.publicKey).equals(Buffer.from(req.address, 'hex'))) {
+		if (
+			!cryptoAddress
+				.getAddressFromPublicKey(keypair.publicKey)
+				.equals(Buffer.from(req.address, 'hex'))
+		) {
 			throw new Error(
-				`Invalid keypair: ${getAddressFromPublicKey(keypair.publicKey).toString(
-					'hex',
-				)}  and address: ${req.address} combination`,
+				`Invalid keypair: ${cryptoAddress
+					.getAddressFromPublicKey(keypair.publicKey)
+					.toString('hex')}  and address: ${req.address} combination`,
 			);
 		}
 

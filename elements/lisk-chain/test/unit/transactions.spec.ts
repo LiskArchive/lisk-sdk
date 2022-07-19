@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { Transaction } from '../../src/transaction';
 
 describe('blocks/transactions', () => {
@@ -31,25 +31,25 @@ describe('blocks/transactions', () => {
 
 		it('should throw when sender public key is not 32 bytes', () => {
 			transaction = new Transaction({
-				moduleID: intToBuffer(2, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(2, 4),
+				commandID: utils.intToBuffer(0, 4),
 				fee: BigInt(613000),
-				params: getRandomBytes(500),
+				params: utils.getRandomBytes(500),
 				nonce: BigInt(2),
-				senderPublicKey: getRandomBytes(31),
-				signatures: [getRandomBytes(64)],
+				senderPublicKey: utils.getRandomBytes(31),
+				signatures: [utils.getRandomBytes(64)],
 			});
 			expect(() => transaction.validate()).toThrow('Lisk validator found 1 error[s]');
 		});
 
 		it('should throw when signatures is empty', () => {
 			transaction = new Transaction({
-				moduleID: intToBuffer(2, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(2, 4),
+				commandID: utils.intToBuffer(0, 4),
 				fee: BigInt(613000),
-				params: getRandomBytes(500),
+				params: utils.getRandomBytes(500),
 				nonce: BigInt(2),
-				senderPublicKey: getRandomBytes(32),
+				senderPublicKey: utils.getRandomBytes(32),
 				signatures: [],
 			});
 			expect(() => transaction.validate()).toThrow('Signatures must not be empty');
@@ -57,17 +57,17 @@ describe('blocks/transactions', () => {
 
 		it('should throw when any of signatures are not 64 bytes', () => {
 			transaction = new Transaction({
-				moduleID: intToBuffer(2, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(2, 4),
+				commandID: utils.intToBuffer(0, 4),
 				fee: BigInt(613000),
-				params: getRandomBytes(500),
+				params: utils.getRandomBytes(500),
 				nonce: BigInt(2),
-				senderPublicKey: getRandomBytes(32),
+				senderPublicKey: utils.getRandomBytes(32),
 				signatures: [
-					getRandomBytes(64),
-					getRandomBytes(32),
-					getRandomBytes(32),
-					getRandomBytes(64),
+					utils.getRandomBytes(64),
+					utils.getRandomBytes(32),
+					utils.getRandomBytes(32),
+					utils.getRandomBytes(64),
 				],
 			});
 			expect(() => transaction.validate()).toThrow('Signature must be empty or 64 bytes');

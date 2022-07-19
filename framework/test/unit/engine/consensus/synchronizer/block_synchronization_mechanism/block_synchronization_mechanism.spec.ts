@@ -17,7 +17,7 @@ import { Block, Chain, BlockHeader } from '@liskhq/lisk-chain';
 import { objects } from '@liskhq/lisk-utils';
 
 import { InMemoryDatabase } from '@liskhq/lisk-db';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import {
 	BlockSynchronizationMechanism,
 	Errors,
@@ -120,7 +120,7 @@ describe('block_synchronization_mechanism', () => {
 			getSlotNumber: jest.fn().mockImplementation(t => Math.floor(t / 10)),
 			getCurrentValidators: jest.fn().mockResolvedValue(
 				new Array(numberOfValidators).fill(0).map(() => ({
-					address: getRandomBytes(20),
+					address: utils.getRandomBytes(20),
 					bftWeight: BigInt(1),
 				})),
 			),

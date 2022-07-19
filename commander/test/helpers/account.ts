@@ -21,8 +21,8 @@ const { Mnemonic } = liskPassphrase;
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const createAccount = () => {
 	const passphrase = Mnemonic.generateMnemonic();
-	const { privateKey, publicKey } = cryptography.getKeys(passphrase);
-	const address = cryptography.getAddressFromPublicKey(publicKey);
+	const { privateKey, publicKey } = cryptography.ed.getKeys(passphrase);
+	const address = cryptography.address.getAddressFromPublicKey(publicKey);
 
 	return {
 		passphrase,
@@ -40,7 +40,7 @@ export const createAccounts = (numberOfAccounts = 1) => {
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const createFakeDefaultAccount = (account: any) => ({
-	address: account?.address ?? cryptography.getRandomBytes(20),
+	address: account?.address ?? cryptography.utils.getRandomBytes(20),
 	token: {
 		balance: account?.token?.balance ?? BigInt(0),
 	},

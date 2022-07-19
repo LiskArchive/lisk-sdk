@@ -35,7 +35,7 @@ describe('transaction:create command', () => {
 		'{"votes":[{"delegateAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","amount":100},{"delegateAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","amount":-50}]}';
 	const unVoteParams =
 		'{"votes":[{"delegateAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","amount":-50}]}';
-	const { publicKey } = cryptography.getAddressAndPublicKeyFromPassphrase(passphrase);
+	const { publicKey } = cryptography.address.getAddressAndPublicKeyFromPassphrase(passphrase);
 	const senderPublicKey = publicKey.toString('hex');
 	const mockEncodedTransaction = Buffer.from('encoded transaction');
 	const mockJSONTransaction = {
@@ -84,19 +84,19 @@ describe('transaction:create command', () => {
 			},
 			metadata: [
 				{
-					id: cryptography.intToBuffer(2, 4).toString('hex'),
+					id: cryptography.utils.intToBuffer(2, 4).toString('hex'),
 					commands: [
 						{
-							id: cryptography.intToBuffer(0, 4).toString('hex'),
+							id: cryptography.utils.intToBuffer(0, 4).toString('hex'),
 							params: tokenTransferParamsSchema,
 						},
 					],
 				},
 				{
-					id: cryptography.intToBuffer(13, 4).toString('hex'),
+					id: cryptography.utils.intToBuffer(13, 4).toString('hex'),
 					commands: [
 						{
-							id: cryptography.intToBuffer(1, 4).toString('hex'),
+							id: cryptography.utils.intToBuffer(1, 4).toString('hex'),
 							params: dposVoteParamsSchema,
 						},
 					],

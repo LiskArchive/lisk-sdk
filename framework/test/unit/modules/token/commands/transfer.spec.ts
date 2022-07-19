@@ -14,7 +14,7 @@
 
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { getAddressAndPublicKeyFromPassphrase, getRandomBytes } from '@liskhq/lisk-cryptography';
+import { address, utils } from '@liskhq/lisk-cryptography';
 import { VerifyStatus } from '../../../../../src';
 import { TokenAPI } from '../../../../../src/modules/token/api';
 import { TransferCommand } from '../../../../../src/modules/token/commands/transfer';
@@ -80,14 +80,14 @@ describe('Transfer command', () => {
 					commandID: COMMAND_ID_TRANSFER_BUFFER,
 					fee: BigInt(5000000),
 					nonce: BigInt(0),
-					senderPublicKey: getRandomBytes(32),
+					senderPublicKey: utils.getRandomBytes(32),
 					params: codec.encode(transferParamsSchema, {
 						tokenID: Buffer.from('0000000100', 'hex'),
 						amount: BigInt(100000000),
-						recipientAddress: getRandomBytes(20),
+						recipientAddress: utils.getRandomBytes(20),
 						data: '',
 					}),
-					signatures: [getRandomBytes(64)],
+					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
 			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
@@ -103,14 +103,14 @@ describe('Transfer command', () => {
 					commandID: COMMAND_ID_TRANSFER_BUFFER,
 					fee: BigInt(5000000),
 					nonce: BigInt(0),
-					senderPublicKey: getRandomBytes(32),
+					senderPublicKey: utils.getRandomBytes(32),
 					params: codec.encode(transferParamsSchema, {
 						tokenID: Buffer.from('000000010000', 'hex'),
 						amount: BigInt(100000000),
-						recipientAddress: getRandomBytes(30),
+						recipientAddress: utils.getRandomBytes(30),
 						data: '',
 					}),
-					signatures: [getRandomBytes(64)],
+					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
 			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
@@ -126,14 +126,14 @@ describe('Transfer command', () => {
 					commandID: COMMAND_ID_TRANSFER_BUFFER,
 					fee: BigInt(5000000),
 					nonce: BigInt(0),
-					senderPublicKey: getRandomBytes(32),
+					senderPublicKey: utils.getRandomBytes(32),
 					params: codec.encode(transferParamsSchema, {
 						tokenID: Buffer.from('000000010000', 'hex'),
 						amount: BigInt(100000000),
-						recipientAddress: getRandomBytes(20),
+						recipientAddress: utils.getRandomBytes(20),
 						data: '1'.repeat(65),
 					}),
-					signatures: [getRandomBytes(64)],
+					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
 			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
@@ -149,14 +149,14 @@ describe('Transfer command', () => {
 					commandID: COMMAND_ID_TRANSFER_BUFFER,
 					fee: BigInt(5000000),
 					nonce: BigInt(0),
-					senderPublicKey: getRandomBytes(32),
+					senderPublicKey: utils.getRandomBytes(32),
 					params: codec.encode(transferParamsSchema, {
 						tokenID: Buffer.from('0000000100000000', 'hex'),
 						amount: BigInt(100000000),
-						recipientAddress: getRandomBytes(20),
+						recipientAddress: utils.getRandomBytes(20),
 						data: '1'.repeat(64),
 					}),
-					signatures: [getRandomBytes(64)],
+					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
 			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
@@ -167,8 +167,8 @@ describe('Transfer command', () => {
 
 	describe('execute', () => {
 		let stateStore: PrefixedStateReadWriter;
-		const sender = getAddressAndPublicKeyFromPassphrase('sender');
-		const recipient = getAddressAndPublicKeyFromPassphrase('recipient');
+		const sender = address.getAddressAndPublicKeyFromPassphrase('sender');
+		const recipient = address.getAddressAndPublicKeyFromPassphrase('recipient');
 		const thirdTokenID = Buffer.from([1, 0, 0, 0, 4, 0, 0, 0]);
 		const tokenID = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
 		const senderBalance = BigInt(200000000);
@@ -214,10 +214,10 @@ describe('Transfer command', () => {
 					params: codec.encode(transferParamsSchema, {
 						tokenID,
 						amount: senderBalance + BigInt(1),
-						recipientAddress: getRandomBytes(20),
+						recipientAddress: utils.getRandomBytes(20),
 						data: '1'.repeat(64),
 					}),
-					signatures: [getRandomBytes(64)],
+					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
 			await expect(
@@ -240,7 +240,7 @@ describe('Transfer command', () => {
 						recipientAddress: recipient.address,
 						data: '1'.repeat(64),
 					}),
-					signatures: [getRandomBytes(64)],
+					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
 			await expect(
@@ -257,7 +257,7 @@ describe('Transfer command', () => {
 		});
 
 		it('should reject when recipient does not exist and the token does not have min balance set', async () => {
-			const recipientAddress = getRandomBytes(20);
+			const recipientAddress = utils.getRandomBytes(20);
 			const amount = BigInt(100000000);
 			const context = createTransactionContext({
 				stateStore,
@@ -273,7 +273,7 @@ describe('Transfer command', () => {
 						recipientAddress,
 						data: '1'.repeat(64),
 					}),
-					signatures: [getRandomBytes(64)],
+					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
 			await expect(
@@ -282,7 +282,7 @@ describe('Transfer command', () => {
 		});
 
 		it('should reject when recipient does not exist and amount is less than minBalance', async () => {
-			const recipientAddress = getRandomBytes(20);
+			const recipientAddress = utils.getRandomBytes(20);
 			const amount = BigInt(100);
 			const context = createTransactionContext({
 				stateStore,
@@ -298,7 +298,7 @@ describe('Transfer command', () => {
 						recipientAddress,
 						data: '1'.repeat(64),
 					}),
-					signatures: [getRandomBytes(64)],
+					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
 			await expect(
@@ -307,7 +307,7 @@ describe('Transfer command', () => {
 		});
 
 		it('should resolve when recipient does not exist but amount is greater than minBalance', async () => {
-			const recipientAddress = getRandomBytes(20);
+			const recipientAddress = utils.getRandomBytes(20);
 			const amount = BigInt(100000000);
 			const context = createTransactionContext({
 				stateStore,
@@ -323,7 +323,7 @@ describe('Transfer command', () => {
 						recipientAddress,
 						data: '1'.repeat(64),
 					}),
-					signatures: [getRandomBytes(64)],
+					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
 			await expect(
@@ -348,7 +348,7 @@ describe('Transfer command', () => {
 		});
 
 		it('should resolve and not burn supply when tokenID is not native and recipient does not exist', async () => {
-			const recipientAddress = getRandomBytes(20);
+			const recipientAddress = utils.getRandomBytes(20);
 			const amount = BigInt(100000000);
 			const context = createTransactionContext({
 				stateStore,
@@ -364,7 +364,7 @@ describe('Transfer command', () => {
 						recipientAddress,
 						data: '1'.repeat(64),
 					}),
-					signatures: [getRandomBytes(64)],
+					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
 			await expect(
@@ -404,7 +404,7 @@ describe('Transfer command', () => {
 						recipientAddress: recipient.address,
 						data: '1'.repeat(64),
 					}),
-					signatures: [getRandomBytes(64)],
+					signatures: [utils.getRandomBytes(64)],
 				}),
 			});
 			await expect(

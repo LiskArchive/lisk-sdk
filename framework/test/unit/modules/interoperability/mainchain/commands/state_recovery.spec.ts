@@ -14,7 +14,7 @@
 
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { sparseMerkleTree } from '@liskhq/lisk-tree';
 import { CommandExecuteContext, CommandVerifyContext } from '../../../../../../src';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
@@ -58,7 +58,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 	beforeEach(async () => {
 		interoperableCCAPIs = new Map();
 		interoperableAPI = {
-			moduleID: intToBuffer(1, 4),
+			moduleID: utils.intToBuffer(1, 4),
 			recover: jest.fn(),
 		};
 		interoperableCCAPIs.set(1, interoperableAPI);
@@ -69,17 +69,17 @@ describe('Mainchain StateRecoveryCommand', () => {
 			ccCommands,
 		);
 		transactionParams = {
-			chainID: intToBuffer(3, 4),
-			moduleID: intToBuffer(1, 4),
+			chainID: utils.intToBuffer(3, 4),
+			moduleID: utils.intToBuffer(1, 4),
 			storeEntries: [
 				{
 					storePrefix: 1,
-					storeKey: getRandomBytes(32),
-					storeValue: getRandomBytes(32),
-					bitmap: getRandomBytes(32),
+					storeKey: utils.getRandomBytes(32),
+					storeValue: utils.getRandomBytes(32),
+					bitmap: utils.getRandomBytes(32),
 				},
 			],
-			siblingHashes: [getRandomBytes(32)],
+			siblingHashes: [utils.getRandomBytes(32)],
 		};
 		chainIDAsBuffer = transactionParams.chainID;
 		encodedTransactionParams = codec.encode(stateRecoveryParamsSchema, transactionParams);
@@ -89,7 +89,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 			fee: BigInt(100000000),
 			nonce: BigInt(0),
 			params: encodedTransactionParams,
-			senderPublicKey: getRandomBytes(32),
+			senderPublicKey: utils.getRandomBytes(32),
 			signatures: [],
 		});
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
@@ -120,7 +120,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 			stateRecoveryParamsSchema,
 		);
 		jest.spyOn(sparseMerkleTree, 'verify').mockReturnValue(true);
-		jest.spyOn(sparseMerkleTree, 'calculateRoot').mockReturnValue(getRandomBytes(32));
+		jest.spyOn(sparseMerkleTree, 'calculateRoot').mockReturnValue(utils.getRandomBytes(32));
 	});
 
 	describe('verify', () => {
@@ -181,7 +181,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 		});
 
 		it('should set root value for terminated state substore', async () => {
-			const newStateRoot = getRandomBytes(32);
+			const newStateRoot = utils.getRandomBytes(32);
 			jest.spyOn(sparseMerkleTree, 'calculateRoot').mockReturnValue(newStateRoot);
 
 			await stateRecoveryCommand.execute(commandExecuteContext);

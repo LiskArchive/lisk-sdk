@@ -16,7 +16,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { Batch, Database, NotFoundError } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { encodeByteArray, Storage } from '../../../src/data_access/storage';
 import { createValidDefaultBlock } from '../../utils/block';
 import { getTransaction } from '../../utils/transaction';
@@ -75,27 +75,31 @@ describe('dataAccess.blocks', () => {
 		const block302 = await createValidDefaultBlock({
 			header: { height: 302 },
 			transactions: [getTransaction({ nonce: BigInt(1) }), getTransaction({ nonce: BigInt(2) })],
-			assets: new BlockAssets([{ moduleID: intToBuffer(3, 4), data: getRandomBytes(64) }]),
+			assets: new BlockAssets([
+				{ moduleID: utils.intToBuffer(3, 4), data: utils.getRandomBytes(64) },
+			]),
 		});
 
 		const block303 = await createValidDefaultBlock({
 			header: { height: 303 },
-			assets: new BlockAssets([{ moduleID: intToBuffer(3, 4), data: getRandomBytes(64) }]),
+			assets: new BlockAssets([
+				{ moduleID: utils.intToBuffer(3, 4), data: utils.getRandomBytes(64) },
+			]),
 		});
 
 		const events = [
 			new Event({
-				data: getRandomBytes(20),
+				data: utils.getRandomBytes(20),
 				index: 0,
 				moduleID: Buffer.from([0, 0, 0, 2]),
-				topics: [getRandomBytes(32)],
+				topics: [utils.getRandomBytes(32)],
 				typeID: Buffer.from([0, 0, 0, 0]),
 			}),
 			new Event({
-				data: getRandomBytes(20),
+				data: utils.getRandomBytes(20),
 				index: 1,
 				moduleID: Buffer.from([0, 0, 0, 3]),
-				topics: [getRandomBytes(32)],
+				topics: [utils.getRandomBytes(32)],
 				typeID: Buffer.from([0, 0, 0, 0]),
 			}),
 		];
@@ -309,8 +313,8 @@ describe('dataAccess.blocks', () => {
 			expect(block.header.toObject()).toStrictEqual(blocks[0].header.toObject());
 			expect(block.transactions[0]).toBeInstanceOf(Transaction);
 			expect(block.transactions[0].id).toStrictEqual(blocks[0].transactions[0].id);
-			expect(block.assets.getAsset(intToBuffer(3, 4))).toEqual(
-				blocks[0].assets.getAsset(intToBuffer(3, 4)),
+			expect(block.assets.getAsset(utils.intToBuffer(3, 4))).toEqual(
+				blocks[0].assets.getAsset(utils.intToBuffer(3, 4)),
 			);
 		});
 	});
@@ -372,17 +376,17 @@ describe('dataAccess.blocks', () => {
 
 		const events = [
 			new Event({
-				data: getRandomBytes(20),
+				data: utils.getRandomBytes(20),
 				index: 0,
 				moduleID: Buffer.from([0, 0, 0, 2]),
-				topics: [getRandomBytes(32)],
+				topics: [utils.getRandomBytes(32)],
 				typeID: Buffer.from([0, 0, 0, 0]),
 			}),
 			new Event({
-				data: getRandomBytes(20),
+				data: utils.getRandomBytes(20),
 				index: 1,
 				moduleID: Buffer.from([0, 0, 0, 3]),
-				topics: [getRandomBytes(32)],
+				topics: [utils.getRandomBytes(32)],
 				typeID: Buffer.from([0, 0, 0, 0]),
 			}),
 		];

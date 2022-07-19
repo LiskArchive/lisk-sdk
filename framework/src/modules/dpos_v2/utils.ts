@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash, intToBuffer, verifyData } from '@liskhq/lisk-cryptography';
+import { utils, ed } from '@liskhq/lisk-cryptography';
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { ModuleConfig, ModuleConfigJSON, UnlockingObject, VoterData } from './types';
 import {
@@ -71,7 +71,7 @@ export const validateSignature = (
 	publicKey: Buffer,
 	signature: Buffer,
 	bytes: Buffer,
-): boolean => verifyData(tag, networkIdentifier, bytes, signature, publicKey);
+): boolean => ed.verifyData(tag, networkIdentifier, bytes, signature, publicKey);
 
 export const getVoterOrDefault = async (voterStore: SubStore, address: Buffer) => {
 	try {
@@ -127,7 +127,7 @@ export const shuffleDelegateList = (
 
 	for (const delegate of delegateList) {
 		const seedSource = Buffer.concat([previousRoundSeed1, delegate.address]);
-		delegate.roundHash = hash(seedSource);
+		delegate.roundHash = utils.hash(seedSource);
 	}
 
 	delegateList.sort((delegate1, delegate2) => {
@@ -264,7 +264,7 @@ export const getPunishmentPeriod = (
 	return remainingBlocks < 0 ? 0 : remainingBlocks;
 };
 
-export const getIDAsKeyForStore = (id: number) => intToBuffer(id, 4);
+export const getIDAsKeyForStore = (id: number) => utils.intToBuffer(id, 4);
 
 export function getModuleConfig(config: ModuleConfigJSON): ModuleConfig {
 	return {

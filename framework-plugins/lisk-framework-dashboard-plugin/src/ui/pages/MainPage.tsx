@@ -227,10 +227,10 @@ const MainPage: React.FC = () => {
 
 	const generateNewAccount = () => {
 		const accountPassphrase = (passphrase.Mnemonic.generateMnemonic() as unknown) as string;
-		const { address, publicKey } = cryptography.getAddressAndPublicKeyFromPassphrase(
+		const { address, publicKey } = cryptography.address.getAddressAndPublicKeyFromPassphrase(
 			accountPassphrase,
 		);
-		const lisk32Address = cryptography.getLisk32AddressFromAddress(address);
+		const lisk32Address = cryptography.address.getLisk32AddressFromAddress(address);
 		const newAccount: Account = {
 			passphrase: accountPassphrase,
 			publicKey: publicKey.toString('hex'),
@@ -275,7 +275,7 @@ const MainPage: React.FC = () => {
 	// Send Transaction
 	const handleSendTransaction = async (data: SendTransactionOptions) => {
 		try {
-			const { publicKey, address } = cryptography.getAddressAndPublicKeyFromPassphrase(
+			const { publicKey, address } = cryptography.address.getAddressAndPublicKeyFromPassphrase(
 				data.passphrase,
 			);
 			const moduleMeta = getClient().metadata.find(a => a.id === data.moduleID);

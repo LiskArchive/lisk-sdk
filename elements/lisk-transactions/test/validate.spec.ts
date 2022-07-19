@@ -13,14 +13,14 @@
  *
  */
 
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { validateTransaction } from '../src/validate';
 
 describe('validateTransaction', () => {
 	// Arrange
 	const validTransaction = {
-		moduleID: intToBuffer(2, 4),
-		commandID: intToBuffer(0, 4),
+		moduleID: utils.intToBuffer(2, 4),
+		commandID: utils.intToBuffer(0, 4),
 		nonce: BigInt('1'),
 		fee: BigInt('10000000'),
 		senderPublicKey: Buffer.from(

@@ -13,7 +13,7 @@
  */
 
 import { Block, BlockAssets } from '@liskhq/lisk-chain';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { TokenModule } from '../../../../src';
 import { SystemEndpoint } from '../../../../src/engine/endpoint/system';
 import { createFakeBlockHeader } from '../../../../src/testing';
@@ -25,7 +25,7 @@ describe('system endpoint', () => {
 	beforeEach(() => {
 		endpoint = new SystemEndpoint({
 			chain: {
-				networkIdentifier: getRandomBytes(32),
+				networkIdentifier: utils.getRandomBytes(32),
 				lastBlock: new Block(createFakeBlockHeader(), [], new BlockAssets()),
 			},
 			consensus: {

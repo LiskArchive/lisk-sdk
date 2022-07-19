@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { DPoSAPI } from '../../../../src/modules/dpos_v2/api';
 import {
 	MODULE_ID_DPOS_BUFFER,
@@ -37,17 +37,17 @@ describe('DposModuleApi', () => {
 	let voterSubStore: PrefixedStateReadWriter;
 	let delegateSubStore: PrefixedStateReadWriter;
 	let nameSubStore: PrefixedStateReadWriter;
-	const address = getRandomBytes(20);
+	const address = utils.getRandomBytes(20);
 	const voterData = {
 		sentVotes: [
 			{
-				delegateAddress: getRandomBytes(20),
+				delegateAddress: utils.getRandomBytes(20),
 				amount: BigInt(0),
 			},
 		],
 		pendingUnlocks: [
 			{
-				delegateAddress: getRandomBytes(20),
+				delegateAddress: utils.getRandomBytes(20),
 				amount: BigInt(0),
 				unvoteHeight: 0,
 			},

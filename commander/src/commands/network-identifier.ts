@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../base';
@@ -49,7 +49,7 @@ export default class NetworkIdentifierCommand extends BaseCommand {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			args: { genesisBlockID },
 		} = this.parse(NetworkIdentifierCommand);
-		const networkIdentifier = getNetworkIdentifier(
+		const networkIdentifier = utils.getNetworkIdentifier(
 			Buffer.from(genesisBlockID, 'hex'),
 			communityIdentifier,
 		);

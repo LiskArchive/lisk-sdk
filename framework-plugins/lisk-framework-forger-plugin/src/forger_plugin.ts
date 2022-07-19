@@ -33,16 +33,16 @@ import { Forger, TransactionFees, Voters } from './types';
 import { Endpoint } from './endpoint';
 
 const { Block } = chain;
-const { intToBuffer } = cryptography;
+const { utils: cryptoUtils } = cryptography;
 type BlockHeaderJSON = chain.BlockHeaderJSON;
 type BlockJSON = chain.BlockJSON;
 type TransactionJSON = chain.TransactionJSON;
 
 const BLOCKS_BATCH_TO_SYNC = 1000;
 const MODULE_ID_DPOS = 5;
-const MODULE_ID_DPOS_BUFFER = intToBuffer(MODULE_ID_DPOS, 4);
+const MODULE_ID_DPOS_BUFFER = cryptoUtils.intToBuffer(MODULE_ID_DPOS, 4);
 const COMMAND_ID_VOTE = 1;
-const COMMAND_ID_VOTE_BUFFER = intToBuffer(COMMAND_ID_VOTE, 4);
+const COMMAND_ID_VOTE_BUFFER = cryptoUtils.intToBuffer(COMMAND_ID_VOTE, 4);
 
 interface Data {
 	readonly blockHeader: BlockHeaderJSON;
@@ -322,7 +322,7 @@ export class ForgerPlugin extends BasePlugin {
 						acc[curr.delegateAddress].amount += BigInt(curr.amount);
 					} else {
 						acc[curr.delegateAddress] = {
-							address: cryptography.getAddressFromPublicKey(
+							address: cryptography.address.getAddressFromPublicKey(
 								Buffer.from(trx.senderPublicKey, 'hex'),
 							),
 							amount: BigInt(curr.amount),

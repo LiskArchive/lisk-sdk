@@ -21,7 +21,7 @@ const size = 150;
 const testSamples = [];
 
 for (let i = 0; i < size; i += 1) {
-	testSamples.push(getRandomBytes(32));
+	testSamples.push(utils.getRandomBytes(32));
 }
 
 suite

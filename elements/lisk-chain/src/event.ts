@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { hash } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import {
 	EVENT_ID_LENGTH_BYTES,
 	EVENT_TOPIC_HASH_LENGTH_BYTES,
@@ -78,7 +78,7 @@ export class Event {
 			const indexBytes = Buffer.alloc(EVENT_TOTAL_INDEX_LENGTH_BYTES);
 			indexBytes.writeUIntBE(indexBit, 0, EVENT_TOTAL_INDEX_LENGTH_BYTES);
 			const key = Buffer.concat([
-				hash(this._topics[i]).slice(0, EVENT_TOPIC_HASH_LENGTH_BYTES),
+				utils.hash(this._topics[i]).slice(0, EVENT_TOPIC_HASH_LENGTH_BYTES),
 				indexBytes,
 			]);
 			result.push({

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
 import { BRANCH_HASH_PREFIX, EMPTY_HASH, LEAF_HASH_PREFIX, NODE_HASH_SIZE } from './constants';
 import { Query, Proof } from './types';
@@ -167,7 +167,7 @@ export const calculateRoot = (sibHashes: Buffer[], queries: Query[], keyLength: 
 			key: q.key,
 			value: q.value,
 			binaryBitmap: bufferToBinaryString(q.bitmap),
-			hash: q.value.byteLength === 0 ? EMPTY_HASH : hash(leafData(q.key, q.value)),
+			hash: q.value.byteLength === 0 ? EMPTY_HASH : utils.hash(leafData(q.key, q.value)),
 		});
 	}
 
@@ -210,9 +210,9 @@ export const calculateRoot = (sibHashes: Buffer[], queries: Query[], keyLength: 
 
 		const d = binaryKey[h - 1];
 		if (d === '0') {
-			q.hash = hash(branchData(q.hash, siblingHash));
+			q.hash = utils.hash(branchData(q.hash, siblingHash));
 		} else if (d === '1') {
-			q.hash = hash(branchData(siblingHash, q.hash));
+			q.hash = utils.hash(branchData(siblingHash, q.hash));
 		}
 
 		q.binaryBitmap = q.binaryBitmap.substring(1);

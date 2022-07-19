@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { MainchainInteroperabilityAPI } from '../../../../../src/modules/interoperability/mainchain/api';
 import { MainchainInteroperabilityStore } from '../../../../../src/modules/interoperability/mainchain/store';
 
 describe('Mainchain API', () => {
-	const moduleID = intToBuffer(1, 4);
-	const chainID = intToBuffer(1, 4);
+	const moduleID = utils.intToBuffer(1, 4);
+	const chainID = utils.intToBuffer(1, 4);
 	const interoperableCCAPIs = new Map();
 	const getStore = jest.fn().mockReturnValue({ getWithSchema: jest.fn() });
 	const apiContext = {

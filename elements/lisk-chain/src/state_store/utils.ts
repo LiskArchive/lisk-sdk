@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { SMT_PREFIX_SIZE } from '../constants';
 
 export const copyBuffer = (value: Buffer): Buffer => {
@@ -23,4 +23,7 @@ export const copyBuffer = (value: Buffer): Buffer => {
 
 export const toSMTKey = (value: Buffer): Buffer =>
 	// First byte is the DB prefix
-	Buffer.concat([value.slice(1, SMT_PREFIX_SIZE + 1), hash(value.slice(SMT_PREFIX_SIZE + 1))]);
+	Buffer.concat([
+		value.slice(1, SMT_PREFIX_SIZE + 1),
+		utils.hash(value.slice(SMT_PREFIX_SIZE + 1)),
+	]);

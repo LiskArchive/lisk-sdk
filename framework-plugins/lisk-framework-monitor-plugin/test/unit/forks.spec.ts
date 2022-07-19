@@ -64,18 +64,18 @@ describe('_handleFork', () => {
 		version: 0,
 		previousBlockID: Buffer.alloc(0),
 		timestamp: Math.floor(Date.now() / 1000 - 24 * 60 * 60),
-		stateRoot: cryptography.hash(Buffer.alloc(0)),
-		eventRoot: cryptography.hash(Buffer.alloc(0)),
+		stateRoot: cryptography.utils.hash(Buffer.alloc(0)),
+		eventRoot: cryptography.utils.hash(Buffer.alloc(0)),
 		maxHeightGenerated: 0,
 		maxHeightPrevoted: 0,
-		assetRoot: cryptography.hash(Buffer.alloc(0)),
-		validatorsHash: cryptography.getRandomBytes(32),
+		assetRoot: cryptography.utils.hash(Buffer.alloc(0)),
+		validatorsHash: cryptography.utils.getRandomBytes(32),
 		aggregateCommit: {
 			height: 0,
 			aggregationBits: Buffer.alloc(0),
 			certificateSignature: Buffer.alloc(0),
 		},
-		transactionRoot: cryptography.hash(Buffer.alloc(0)),
+		transactionRoot: cryptography.utils.hash(Buffer.alloc(0)),
 		signature: Buffer.alloc(0),
 	});
 

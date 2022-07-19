@@ -30,11 +30,13 @@ interface AccountInfo {
 
 const createAccount = (prefix: string): AccountInfo => {
 	const generatedPassphrase = passphrase.Mnemonic.generateMnemonic();
-	const { privateKey, publicKey } = cryptography.getKeys(generatedPassphrase);
-	const blsPrivateKey = cryptography.generatePrivateKey(Buffer.from(generatedPassphrase, 'utf-8'));
-	const blsPublicKey = cryptography.getPublicKeyFromPrivateKey(blsPrivateKey);
-	const binaryAddress = cryptography.getAddressFromPublicKey(publicKey);
-	const address = cryptography.getLisk32AddressFromPublicKey(publicKey, prefix);
+	const { privateKey, publicKey } = cryptography.ed.getKeys(generatedPassphrase);
+	const blsPrivateKey = cryptography.bls.generatePrivateKey(
+		Buffer.from(generatedPassphrase, 'utf-8'),
+	);
+	const blsPublicKey = cryptography.bls.getPublicKeyFromPrivateKey(blsPrivateKey);
+	const binaryAddress = cryptography.address.getAddressFromPublicKey(publicKey);
+	const address = cryptography.address.getLisk32AddressFromPublicKey(publicKey, prefix);
 
 	return {
 		passphrase: generatedPassphrase,

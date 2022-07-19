@@ -19,7 +19,7 @@ import {
 	eventSchema,
 	transactionSchema,
 } from '@liskhq/lisk-chain';
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { ModuleMetadata, NodeInfo } from '../../src/types';
 
 export const nodeInfo: NodeInfo = {
@@ -40,8 +40,8 @@ export const nodeInfo: NodeInfo = {
 		minFeePerByte: 1000,
 		baseFees: [
 			{
-				moduleID: intToBuffer(5, 4).toString('hex'),
-				commandID: intToBuffer(0, 4).toString('hex'),
+				moduleID: utils.intToBuffer(5, 4).toString('hex'),
+				commandID: utils.intToBuffer(0, 4).toString('hex'),
 				baseFee: '1000000000',
 			},
 		],
@@ -72,14 +72,14 @@ export const schema = {
 
 export const metadata: ModuleMetadata[] = [
 	{
-		id: intToBuffer(2, 4).toString('hex'),
+		id: utils.intToBuffer(2, 4).toString('hex'),
 		name: 'token',
 		events: [],
 		assets: [],
 		endpoints: [],
 		commands: [
 			{
-				id: intToBuffer(0, 4).toString('hex'),
+				id: utils.intToBuffer(0, 4).toString('hex'),
 				name: 'transfer',
 				params: {
 					$id: '/lisk/transferParams',
@@ -95,14 +95,14 @@ export const metadata: ModuleMetadata[] = [
 		],
 	},
 	{
-		id: intToBuffer(4, 4).toString('hex'),
+		id: utils.intToBuffer(4, 4).toString('hex'),
 		name: 'keys',
 		events: [],
 		assets: [],
 		endpoints: [],
 		commands: [
 			{
-				id: intToBuffer(0, 4).toString('hex'),
+				id: utils.intToBuffer(0, 4).toString('hex'),
 				name: 'registerMultisignatureGroup',
 				params: {
 					$id: '/lisk/keys/register',
@@ -130,14 +130,14 @@ export const metadata: ModuleMetadata[] = [
 		],
 	},
 	{
-		id: intToBuffer(5, 4).toString('hex'),
+		id: utils.intToBuffer(5, 4).toString('hex'),
 		name: 'dpos',
 		events: [],
 		assets: [],
 		endpoints: [],
 		commands: [
 			{
-				id: intToBuffer(0, 4).toString('hex'),
+				id: utils.intToBuffer(0, 4).toString('hex'),
 				name: 'transfer',
 				params: {
 					$id: '/lisk/dpos/pom',
@@ -160,8 +160,8 @@ export const metadata: ModuleMetadata[] = [
 ];
 
 export const tx = {
-	moduleID: intToBuffer(2, 4),
-	commandID: intToBuffer(0, 4),
+	moduleID: utils.intToBuffer(2, 4),
+	commandID: utils.intToBuffer(0, 4),
 	nonce: BigInt('54'),
 	fee: BigInt('10000000'),
 	senderPublicKey: Buffer.from(

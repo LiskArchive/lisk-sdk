@@ -12,12 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getAddressAndPublicKeyFromPassphrase, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils, address } from '@liskhq/lisk-cryptography';
 
 export const generateRandomPublicKeys = (amount = 1): Array<Buffer> =>
 	new Array(amount).fill(0).map(_ => {
-		const { publicKey } = getAddressAndPublicKeyFromPassphrase(Math.random().toString(16));
+		const { publicKey } = address.getAddressAndPublicKeyFromPassphrase(Math.random().toString(16));
 		return publicKey;
 	});
 
-export const getIDAsKeyForStore = (id: number) => intToBuffer(id, 4);
+export const getIDAsKeyForStore = (id: number) => utils.intToBuffer(id, 4);

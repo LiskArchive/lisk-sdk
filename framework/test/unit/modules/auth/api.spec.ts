@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { AuthAPI } from '../../../../src/modules/auth/api';
 import { STORE_PREFIX_AUTH, MODULE_ID_AUTH_BUFFER } from '../../../../src/modules/auth/constants';
 import { authAccountSchema } from '../../../../src/modules/auth/schemas';
@@ -28,8 +28,8 @@ describe('AuthAPI', () => {
 	const expectedAuthData = {
 		nonce: 1,
 		numberOfSignatures: 1,
-		mandatoryKeys: [getRandomBytes(64), getRandomBytes(64)],
-		optionalKeys: [getRandomBytes(64), getRandomBytes(64)],
+		mandatoryKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
+		optionalKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
 	};
 
 	beforeEach(async () => {
@@ -50,7 +50,7 @@ describe('AuthAPI', () => {
 		});
 
 		it('should return empty object given address not in db', async () => {
-			const authData = await authAPI.getAuthAccount(context, getRandomBytes(20));
+			const authData = await authAPI.getAuthAccount(context, utils.getRandomBytes(20));
 
 			expect(authData).toHaveProperty('nonce', BigInt(0));
 			expect(authData).toHaveProperty('numberOfSignatures', 0);

@@ -13,16 +13,7 @@
  */
 import { EventEmitter } from 'events';
 import { BlockAssets, Chain, Transaction } from '@liskhq/lisk-chain';
-import {
-	generatePrivateKey,
-	getAddressFromPassphrase,
-	getAddressFromPublicKey,
-	getPrivateAndPublicKeyFromPassphrase,
-	getPublicKeyFromPrivateKey,
-	getRandomBytes,
-	hash,
-	intToBuffer,
-} from '@liskhq/lisk-cryptography';
+import { bls, utils, address as cryptoAddress, ed } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase, Database } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { when } from 'jest-when';
@@ -48,7 +39,7 @@ describe('generator', () => {
 				'c24ec443a9e0f18f67275dea31fa3083292e249db7347ac62958ff3ba9ab9b9b',
 				'hex',
 			),
-			address: getAddressFromPublicKey(
+			address: cryptoAddress.getAddressFromPublicKey(
 				Buffer.from('c24ec443a9e0f18f67275dea31fa3083292e249db7347ac62958ff3ba9ab9b9b', 'hex'),
 			),
 			encryptedPassphrase:
@@ -59,7 +50,7 @@ describe('generator', () => {
 				'e2ab259cabe2b00f4f3760f3cdd989e09c2abb828150ddd2a30f004634c6d825',
 				'hex',
 			),
-			address: getAddressFromPublicKey(
+			address: cryptoAddress.getAddressFromPublicKey(
 				Buffer.from('e2ab259cabe2b00f4f3760f3cdd989e09c2abb828150ddd2a30f004634c6d825', 'hex'),
 			),
 			encryptedPassphrase:
@@ -70,7 +61,7 @@ describe('generator', () => {
 				'fc1fa2e4f57f9e6d142328b12f17fd5739e44c07e4026bfb41dd877912511fa3',
 				'hex',
 			),
-			address: getAddressFromPublicKey(
+			address: cryptoAddress.getAddressFromPublicKey(
 				Buffer.from('fc1fa2e4f57f9e6d142328b12f17fd5739e44c07e4026bfb41dd877912511fa3', 'hex'),
 			),
 			encryptedPassphrase:
@@ -81,9 +72,9 @@ describe('generator', () => {
 		'0805100118012080ade2042a20f7e7627120dab14b80b6e4f361ba89db251ee838708c3a74c6c2cc08ad793f58321d0a1b0a1432fc1c23b73db1c6205327b1cab44318e61678ea1080dac4093a40a0be9e52d9e0a53406c55a74ab0d7d106eb276a47dd88d3dc2284ed62024b2448e0bd5af1623ae7d793606a58c27d742e8855ba339f757d56972c4c6efad750c';
 	const tx = new Transaction({
 		params: Buffer.alloc(20),
-		commandID: intToBuffer(0, 4),
+		commandID: utils.intToBuffer(0, 4),
 		fee: BigInt(100000000),
-		moduleID: intToBuffer(2, 4),
+		moduleID: utils.intToBuffer(2, 4),
 		nonce: BigInt(0),
 		senderPublicKey: Buffer.alloc(32),
 		signatures: [Buffer.alloc(64)],
@@ -103,7 +94,7 @@ describe('generator', () => {
 		blockchainDB = new InMemoryDatabase() as never;
 		generatorDB = new InMemoryDatabase() as never;
 		chain = {
-			networkIdentifier: getRandomBytes(32),
+			networkIdentifier: utils.getRandomBytes(32),
 			lastBlock: {
 				header: {
 					id: Buffer.from('6846255774763267134'),
@@ -157,10 +148,10 @@ describe('generator', () => {
 				certificateThreshold: 0,
 			}),
 			clear: jest.fn(),
-			commit: jest.fn().mockResolvedValue({ stateRoot: getRandomBytes(32) }),
+			commit: jest.fn().mockResolvedValue({ stateRoot: utils.getRandomBytes(32) }),
 			verifyTransaction: jest.fn(),
 			executeTransaction: jest.fn().mockResolvedValue({ events: [] }),
-			initStateMachine: jest.fn().mockResolvedValue({ contextID: getRandomBytes(32) }),
+			initStateMachine: jest.fn().mockResolvedValue({ contextID: utils.getRandomBytes(32) }),
 			insertAssets: jest.fn().mockResolvedValue({ assets: [] }),
 		} as never;
 		bft = {
@@ -205,7 +196,7 @@ describe('generator', () => {
 
 			beforeEach(() => {
 				accountDetails = {
-					address: getAddressFromPublicKey(
+					address: cryptoAddress.getAddressFromPublicKey(
 						Buffer.from('75e99d6f2359ebaba661d0651c04f3d9cb8cd405d452e30af9f5d10e1cf732ed'),
 					),
 					encryptedPassphrase:
@@ -443,7 +434,7 @@ describe('generator', () => {
 			(consensus.getSlotNumber as jest.Mock)
 				.mockReturnValueOnce(currentSlot)
 				.mockReturnValueOnce(lastBlockSlot);
-			(consensus.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(getRandomBytes(20));
+			(consensus.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(utils.getRandomBytes(20));
 			jest.spyOn(generator, '_generateBlock' as never);
 			await generator['_generateLoop']();
 
@@ -499,17 +490,17 @@ describe('generator', () => {
 	});
 
 	describe('generateBlock', () => {
-		const generatorAddress = getRandomBytes(20);
+		const generatorAddress = utils.getRandomBytes(20);
 		const keypair = {
-			publicKey: getRandomBytes(32),
-			privateKey: getRandomBytes(64),
+			publicKey: utils.getRandomBytes(32),
+			privateKey: utils.getRandomBytes(64),
 		};
 		const currentTime = Math.floor(Date.now() / 1000);
-		const validatorsHash = hash(getRandomBytes(32));
-		const assetHash = hash(getRandomBytes(32));
+		const validatorsHash = utils.hash(utils.getRandomBytes(32));
+		const assetHash = utils.hash(utils.getRandomBytes(32));
 		const aggregateCommit = {
 			aggregationBits: Buffer.alloc(0),
-			certificateSignature: getRandomBytes(96),
+			certificateSignature: utils.getRandomBytes(96),
 			height: 3456,
 		};
 
@@ -593,14 +584,14 @@ describe('generator', () => {
 				height: 2,
 			});
 
-			expect(block.header.eventRoot).toEqual(hash(Buffer.alloc(0)));
+			expect(block.header.eventRoot).toEqual(utils.hash(Buffer.alloc(0)));
 		});
 
 		it('should assign non empty eventRoot to the block when event exist', async () => {
 			jest.spyOn(abi, 'beforeTransactionsExecute').mockResolvedValue({
 				events: [
 					{
-						data: getRandomBytes(32),
+						data: utils.getRandomBytes(32),
 						index: 0,
 						moduleID: Buffer.from([0, 0, 0, 3]),
 						topics: [Buffer.from([0])],
@@ -615,7 +606,7 @@ describe('generator', () => {
 				height: 2,
 			});
 
-			expect(block.header.eventRoot).not.toEqual(hash(Buffer.alloc(0)));
+			expect(block.header.eventRoot).not.toEqual(utils.hash(Buffer.alloc(0)));
 		});
 
 		it('should assign aggregateCommit to the block', async () => {
@@ -632,12 +623,12 @@ describe('generator', () => {
 
 	describe('events CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED', () => {
 		const passphrase = Mnemonic.generateMnemonic(256);
-		const address = getAddressFromPassphrase(passphrase);
+		const address = cryptoAddress.getAddressFromPassphrase(passphrase);
 		const keypair = {
-			...getPrivateAndPublicKeyFromPassphrase(passphrase),
-			blsSecretKey: generatePrivateKey(Buffer.from(passphrase, 'utf-8')),
+			...ed.getPrivateAndPublicKeyFromPassphrase(passphrase),
+			blsSecretKey: bls.generatePrivateKey(Buffer.from(passphrase, 'utf-8')),
 		};
-		const blsPK = getPublicKeyFromPrivateKey(keypair.blsSecretKey);
+		const blsPK = bls.getPublicKeyFromPrivateKey(keypair.blsSecretKey);
 		const blockHeader = createFakeBlockHeader();
 
 		beforeEach(async () => {

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { branchData } from './utils';
 import { NodeSide } from './constants';
 
@@ -26,7 +26,7 @@ export class Branch {
 		this._leftHash = leftHash;
 		this._rightHash = rightHash;
 		this._data = branchData(this._leftHash, this._rightHash);
-		this._hash = hash(this._data);
+		this._hash = utils.hash(this._data);
 	}
 
 	public get hash() {
@@ -49,6 +49,6 @@ export class Branch {
 			this._rightHash = newChild;
 		}
 		this._data = branchData(this.leftHash, this.rightHash);
-		this._hash = hash(this.data);
+		this._hash = utils.hash(this.data);
 	}
 }

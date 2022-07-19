@@ -15,7 +15,7 @@
 
 import { NotFoundError, Batch, Database, InMemoryDatabase } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { Chain } from '../../src/chain';
 import { CurrentState, StateStore } from '../../src/state_store';
 import { createValidDefaultBlock, defaultNetworkIdentifier } from '../utils/block';
@@ -202,8 +202,8 @@ describe('chain', () => {
 		beforeEach(async () => {
 			stateStore = new StateStore(db);
 			jest.spyOn(stateStore, 'finalize');
-			const subStore = stateStore.getStore(intToBuffer(2, 4), 0);
-			await subStore.set(getRandomBytes(20), getRandomBytes(100));
+			const subStore = stateStore.getStore(utils.intToBuffer(2, 4), 0);
+			await subStore.set(utils.getRandomBytes(20), utils.getRandomBytes(100));
 			batch = new Batch();
 			jest.spyOn(batch, 'set');
 			jest.spyOn(batch, 'del');
@@ -347,7 +347,7 @@ describe('chain', () => {
 			(chainInstance as any).constants.maxTransactionsSize = 100;
 			const txs = new Array(200).fill(0).map(() => getTransaction());
 			const assets = new BlockAssets([
-				{ moduleID: intToBuffer(1515, 4), data: getRandomBytes(32) },
+				{ moduleID: utils.intToBuffer(1515, 4), data: utils.getRandomBytes(32) },
 			]);
 			block = await createValidDefaultBlock({ transactions: txs, assets });
 			// Act & assert

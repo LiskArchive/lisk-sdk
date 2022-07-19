@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { intToBuffer, verifyWeightedAggSig } from '@liskhq/lisk-cryptography';
+import { utils, bls } from '@liskhq/lisk-cryptography';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
 import {
 	CCM_STATUS_OK,
@@ -136,7 +136,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			ownName,
 			mainchainValidators,
 		});
-		verifyWeightedAggSig(
+		bls.verifyWeightedAggSig(
 			keyList,
 			aggregationBits,
 			signature,
@@ -171,7 +171,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 				inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				partnerChainOutboxRoot: EMPTY_HASH,
-				messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: intToBuffer(0, 4) },
+				messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: utils.intToBuffer(0, 4) },
 			},
 			channelSchema,
 		);
@@ -181,7 +181,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 		const encodedParams = codec.encode(registrationCCMParamsSchema, {
 			networkID: MAINCHAIN_NETWORK_ID,
 			name: MAINCHAIN_NAME,
-			messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: intToBuffer(0, 4) },
+			messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: utils.intToBuffer(0, 4) },
 		});
 
 		await interoperabilityStore.sendInternal({
@@ -229,7 +229,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			STORE_PREFIX_OWN_CHAIN_DATA,
 		);
 		await ownChainAccountSubstore.setWithSchema(
-			intToBuffer(0, 4),
+			utils.intToBuffer(0, 4),
 			{ name: ownName, id: ownChainID, nonce: BigInt(0) },
 			ownChainAccountSchema,
 		);

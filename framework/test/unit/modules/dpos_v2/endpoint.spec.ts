@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { Logger } from '../../../../src/logger';
 import {
@@ -34,21 +34,21 @@ describe('DposModuleEndpoint', () => {
 	let stateStore: PrefixedStateReadWriter;
 	let voterSubStore: PrefixedStateReadWriter;
 	let delegateSubStore: PrefixedStateReadWriter;
-	const address = getRandomBytes(20);
-	const address1 = getRandomBytes(20);
-	const address2 = getRandomBytes(20);
+	const address = utils.getRandomBytes(20);
+	const address1 = utils.getRandomBytes(20);
+	const address2 = utils.getRandomBytes(20);
 	const getStore1 = jest.fn();
 	const networkIdentifier = Buffer.alloc(0);
 	const voterData = {
 		sentVotes: [
 			{
-				delegateAddress: getRandomBytes(20),
+				delegateAddress: utils.getRandomBytes(20),
 				amount: BigInt(0),
 			},
 		],
 		pendingUnlocks: [
 			{
-				delegateAddress: getRandomBytes(20),
+				delegateAddress: utils.getRandomBytes(20),
 				amount: BigInt(0),
 				unvoteHeight: 0,
 			},

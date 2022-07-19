@@ -14,7 +14,7 @@
 
 import { NotFoundError, StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { BIG_ENDIAN, getRandomBytes, hash, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { BFTAPI } from '../../../../src/engine/bft/api';
 import {
@@ -51,13 +51,13 @@ describe('BFT API', () => {
 	describe('areHeadersContradicting', () => {
 		it('should return false when blocks are identical', () => {
 			const header1 = createFakeBlockHeader({
-				generatorAddress: getRandomBytes(20),
+				generatorAddress: utils.getRandomBytes(20),
 			});
 			expect(bftAPI.areHeadersContradicting(header1, header1)).toBeFalse();
 		});
 
 		it('should return true when blocks contradicting', () => {
-			const generatorAddress = getRandomBytes(20);
+			const generatorAddress = utils.getRandomBytes(20);
 			const header1 = createFakeBlockHeader({
 				height: 10999,
 				maxHeightPrevoted: 1099,
@@ -75,19 +75,19 @@ describe('BFT API', () => {
 			const header1 = createFakeBlockHeader({
 				height: 10999,
 				maxHeightPrevoted: 1099,
-				generatorAddress: getRandomBytes(20),
+				generatorAddress: utils.getRandomBytes(20),
 			});
 			const header2 = createFakeBlockHeader({
 				height: 10999,
 				maxHeightPrevoted: 1099,
-				generatorAddress: getRandomBytes(20),
+				generatorAddress: utils.getRandomBytes(20),
 			});
 			expect(bftAPI.areHeadersContradicting(header1, header2)).toBeFalse();
 		});
 	});
 
 	describe('isHeaderContradictingChain', () => {
-		const generatorAddress = getRandomBytes(20);
+		const generatorAddress = utils.getRandomBytes(20);
 
 		beforeEach(async () => {
 			stateStore = new StateStore(new InMemoryDatabase());
@@ -109,7 +109,7 @@ describe('BFT API', () => {
 						},
 						{
 							height: 2,
-							generatorAddress: getRandomBytes(20),
+							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
 							prevoteWeight: 0,
@@ -117,7 +117,7 @@ describe('BFT API', () => {
 						},
 						{
 							height: 1,
-							generatorAddress: getRandomBytes(20),
+							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
 							prevoteWeight: 0,
@@ -164,7 +164,7 @@ describe('BFT API', () => {
 					stateStore,
 					createFakeBlockHeader({
 						height: 4,
-						generatorAddress: getRandomBytes(20),
+						generatorAddress: utils.getRandomBytes(20),
 						maxHeightGenerated: 1,
 						maxHeightPrevoted: 1,
 					}),
@@ -178,13 +178,13 @@ describe('BFT API', () => {
 			stateStore = new StateStore(new InMemoryDatabase());
 			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 			await votesStore.setWithSchema(
-				intToBuffer(20, 4, BIG_ENDIAN),
+				utils.intToBuffer(20, 4),
 				{
 					prevoteThreshold: BigInt(68),
 					precommitThreshold: BigInt(68),
 					certificateThreshold: BigInt(68),
 					validators: [],
-					validatorsHash: getRandomBytes(32),
+					validatorsHash: utils.getRandomBytes(32),
 				},
 				bftParametersSchema,
 			);
@@ -206,17 +206,17 @@ describe('BFT API', () => {
 			certificateThreshold: BigInt(68),
 			validators: [
 				{
-					address: getRandomBytes(20),
+					address: utils.getRandomBytes(20),
 					bftWeight: BigInt(1),
-					blsKey: getRandomBytes(42),
+					blsKey: utils.getRandomBytes(42),
 				},
 				{
-					address: getRandomBytes(20),
+					address: utils.getRandomBytes(20),
 					bftWeight: BigInt(1),
-					blsKey: getRandomBytes(42),
+					blsKey: utils.getRandomBytes(42),
 				},
 			],
-			validatorsHash: getRandomBytes(32),
+			validatorsHash: utils.getRandomBytes(32),
 		});
 		const params20 = createParam();
 		const params30 = createParam();
@@ -224,8 +224,8 @@ describe('BFT API', () => {
 		beforeEach(async () => {
 			stateStore = new StateStore(new InMemoryDatabase());
 			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
-			await votesStore.setWithSchema(intToBuffer(20, 4, BIG_ENDIAN), params20, bftParametersSchema);
-			await votesStore.setWithSchema(intToBuffer(30, 4, BIG_ENDIAN), params30, bftParametersSchema);
+			await votesStore.setWithSchema(utils.intToBuffer(20, 4), params20, bftParametersSchema);
+			await votesStore.setWithSchema(utils.intToBuffer(30, 4), params30, bftParametersSchema);
 		});
 
 		it('should return BFT parameters if it exists for the lower height', async () => {
@@ -244,7 +244,7 @@ describe('BFT API', () => {
 	});
 
 	describe('getBFTHeights', () => {
-		const generatorAddress = getRandomBytes(20);
+		const generatorAddress = utils.getRandomBytes(20);
 
 		beforeEach(async () => {
 			stateStore = new StateStore(new InMemoryDatabase());
@@ -266,7 +266,7 @@ describe('BFT API', () => {
 						},
 						{
 							height: 2,
-							generatorAddress: getRandomBytes(20),
+							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
 							prevoteWeight: 0,
@@ -274,7 +274,7 @@ describe('BFT API', () => {
 						},
 						{
 							height: 1,
-							generatorAddress: getRandomBytes(20),
+							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
 							prevoteWeight: 0,
@@ -297,7 +297,7 @@ describe('BFT API', () => {
 	});
 
 	describe('currentHeaderImpliesMaximalPrevotes', () => {
-		const generatorAddress = getRandomBytes(20);
+		const generatorAddress = utils.getRandomBytes(20);
 
 		beforeEach(() => {
 			stateStore = new StateStore(new InMemoryDatabase());
@@ -314,7 +314,7 @@ describe('BFT API', () => {
 					blockBFTInfos: [
 						{
 							height: 103,
-							generatorAddress: getRandomBytes(20),
+							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 120,
 							maxHeightPrevoted: 0,
 						},
@@ -328,7 +328,7 @@ describe('BFT API', () => {
 						},
 						{
 							height: 101,
-							generatorAddress: getRandomBytes(20),
+							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
 							prevoteWeight: 0,
@@ -354,7 +354,7 @@ describe('BFT API', () => {
 					blockBFTInfos: [
 						{
 							height: 103,
-							generatorAddress: getRandomBytes(20),
+							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 1,
 							maxHeightPrevoted: 0,
 						},
@@ -368,7 +368,7 @@ describe('BFT API', () => {
 						},
 						{
 							height: 101,
-							generatorAddress: getRandomBytes(20),
+							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
 							prevoteWeight: 0,
@@ -394,7 +394,7 @@ describe('BFT API', () => {
 					blockBFTInfos: [
 						{
 							height: 103,
-							generatorAddress: getRandomBytes(20),
+							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 101,
 							maxHeightPrevoted: 0,
 						},
@@ -408,7 +408,7 @@ describe('BFT API', () => {
 						},
 						{
 							height: 101,
-							generatorAddress: getRandomBytes(20),
+							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
 							prevoteWeight: 0,
@@ -448,7 +448,7 @@ describe('BFT API', () => {
 						},
 						{
 							height: 101,
-							generatorAddress: getRandomBytes(20),
+							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
 							prevoteWeight: 0,
@@ -471,23 +471,23 @@ describe('BFT API', () => {
 			certificateThreshold: BigInt(68),
 			validators: [
 				{
-					address: getRandomBytes(20),
+					address: utils.getRandomBytes(20),
 					bftWeight: BigInt(1),
 				},
 				{
-					address: getRandomBytes(20),
+					address: utils.getRandomBytes(20),
 					bftWeight: BigInt(1),
 				},
 			],
-			validatorsHash: getRandomBytes(32),
+			validatorsHash: utils.getRandomBytes(32),
 		});
 		const params20 = createParam();
 		const params30 = createParam();
 		beforeEach(async () => {
 			stateStore = new StateStore(new InMemoryDatabase());
 			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
-			await votesStore.setWithSchema(intToBuffer(20, 4, BIG_ENDIAN), params20, bftParametersSchema);
-			await votesStore.setWithSchema(intToBuffer(30, 4, BIG_ENDIAN), params30, bftParametersSchema);
+			await votesStore.setWithSchema(utils.intToBuffer(20, 4), params20, bftParametersSchema);
+			await votesStore.setWithSchema(utils.intToBuffer(30, 4), params30, bftParametersSchema);
 		});
 
 		it('should return the next height strictly higher than the input where BFT parameter exists', async () => {
@@ -508,36 +508,28 @@ describe('BFT API', () => {
 			certificateThreshold: BigInt(68),
 			validators: [
 				{
-					address: getRandomBytes(20),
+					address: utils.getRandomBytes(20),
 					bftWeight: BigInt(1),
 				},
 				{
-					address: getRandomBytes(20),
+					address: utils.getRandomBytes(20),
 					bftWeight: BigInt(1),
 				},
 			],
-			validatorsHash: getRandomBytes(32),
+			validatorsHash: utils.getRandomBytes(32),
 		});
-		const generatorAddress = getRandomBytes(20);
+		const generatorAddress = utils.getRandomBytes(20);
 		const params20 = createParam();
 		const params30 = createParam();
 
 		beforeEach(async () => {
-			validatorsAPI.getValidatorAccount.mockResolvedValue({ blsKey: getRandomBytes(32) });
+			validatorsAPI.getValidatorAccount.mockResolvedValue({ blsKey: utils.getRandomBytes(32) });
 			stateStore = new StateStore(new InMemoryDatabase());
 			const paramsStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
-			await paramsStore.setWithSchema(
-				intToBuffer(20, 4, BIG_ENDIAN),
-				params20,
-				bftParametersSchema,
-			);
-			await paramsStore.setWithSchema(
-				intToBuffer(30, 4, BIG_ENDIAN),
-				params30,
-				bftParametersSchema,
-			);
+			await paramsStore.setWithSchema(utils.intToBuffer(20, 4), params20, bftParametersSchema);
+			await paramsStore.setWithSchema(utils.intToBuffer(30, 4), params30, bftParametersSchema);
 			const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_VOTES);
-			const addresses = [getRandomBytes(20), getRandomBytes(20)];
+			const addresses = [utils.getRandomBytes(20), utils.getRandomBytes(20)];
 			await votesStore.setWithSchema(
 				EMPTY_KEY,
 				{
@@ -599,9 +591,9 @@ describe('BFT API', () => {
 					BigInt(68),
 					BigInt(68),
 					new Array(bftAPI['_batchSize'] + 1).fill(0).map(() => ({
-						address: getRandomBytes(20),
+						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(1),
-						blsKey: getRandomBytes(42),
+						blsKey: utils.getRandomBytes(42),
 					})),
 				),
 			).rejects.toThrow('Invalid validators size.');
@@ -611,19 +603,19 @@ describe('BFT API', () => {
 			await expect(
 				bftAPI.setBFTParameters(stateStore, BigInt(34), BigInt(68), [
 					{
-						address: getRandomBytes(20),
+						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(50),
-						blsKey: getRandomBytes(42),
+						blsKey: utils.getRandomBytes(42),
 					},
 					{
-						address: getRandomBytes(20),
+						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(50),
-						blsKey: getRandomBytes(42),
+						blsKey: utils.getRandomBytes(42),
 					},
 					{
-						address: getRandomBytes(20),
+						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(3),
-						blsKey: getRandomBytes(42),
+						blsKey: utils.getRandomBytes(42),
 					},
 				]),
 			).rejects.toThrow('Invalid precommitThreshold input.');
@@ -633,19 +625,19 @@ describe('BFT API', () => {
 			await expect(
 				bftAPI.setBFTParameters(stateStore, BigInt(104), BigInt(68), [
 					{
-						address: getRandomBytes(20),
+						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(50),
-						blsKey: getRandomBytes(42),
+						blsKey: utils.getRandomBytes(42),
 					},
 					{
-						address: getRandomBytes(20),
+						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(50),
-						blsKey: getRandomBytes(42),
+						blsKey: utils.getRandomBytes(42),
 					},
 					{
-						address: getRandomBytes(20),
+						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(3),
-						blsKey: getRandomBytes(42),
+						blsKey: utils.getRandomBytes(42),
 					},
 				]),
 			).rejects.toThrow('Invalid precommitThreshold input.');
@@ -655,19 +647,19 @@ describe('BFT API', () => {
 			await expect(
 				bftAPI.setBFTParameters(stateStore, BigInt(68), BigInt(34), [
 					{
-						address: getRandomBytes(20),
+						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(50),
-						blsKey: getRandomBytes(42),
+						blsKey: utils.getRandomBytes(42),
 					},
 					{
-						address: getRandomBytes(20),
+						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(50),
-						blsKey: getRandomBytes(42),
+						blsKey: utils.getRandomBytes(42),
 					},
 					{
-						address: getRandomBytes(20),
+						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(3),
-						blsKey: getRandomBytes(42),
+						blsKey: utils.getRandomBytes(42),
 					},
 				]),
 			).rejects.toThrow('Invalid certificateThreshold input.');
@@ -677,19 +669,19 @@ describe('BFT API', () => {
 			await expect(
 				bftAPI.setBFTParameters(stateStore, BigInt(68), BigInt(104), [
 					{
-						address: getRandomBytes(20),
+						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(50),
-						blsKey: getRandomBytes(42),
+						blsKey: utils.getRandomBytes(42),
 					},
 					{
-						address: getRandomBytes(20),
+						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(50),
-						blsKey: getRandomBytes(42),
+						blsKey: utils.getRandomBytes(42),
 					},
 					{
-						address: getRandomBytes(20),
+						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(3),
-						blsKey: getRandomBytes(42),
+						blsKey: utils.getRandomBytes(42),
 					},
 				]),
 			).rejects.toThrow('Invalid certificateThreshold input.');
@@ -700,17 +692,17 @@ describe('BFT API', () => {
 				{
 					address: generatorAddress,
 					bftWeight: BigInt(50),
-					blsKey: getRandomBytes(42),
+					blsKey: utils.getRandomBytes(42),
 				},
 				{
-					address: getRandomBytes(20),
+					address: utils.getRandomBytes(20),
 					bftWeight: BigInt(50),
-					blsKey: getRandomBytes(42),
+					blsKey: utils.getRandomBytes(42),
 				},
 				{
-					address: getRandomBytes(20),
+					address: utils.getRandomBytes(20),
 					bftWeight: BigInt(3),
-					blsKey: getRandomBytes(42),
+					blsKey: utils.getRandomBytes(42),
 				},
 			];
 			beforeEach(async () => {
@@ -720,7 +712,7 @@ describe('BFT API', () => {
 			it('should not create set BFTParameters when there is no change from previous params', async () => {
 				const votesStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_VOTES);
 				const currentVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
-				const addresses = [getRandomBytes(20), getRandomBytes(20)];
+				const addresses = [utils.getRandomBytes(20), utils.getRandomBytes(20)];
 				currentVotes.blockBFTInfos = [
 					{
 						height: 104,
@@ -739,17 +731,14 @@ describe('BFT API', () => {
 				const paramsStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 
 				await expect(
-					paramsStore.getWithSchema<BFTParameters>(
-						intToBuffer(105, 4, BIG_ENDIAN),
-						bftParametersSchema,
-					),
+					paramsStore.getWithSchema<BFTParameters>(utils.intToBuffer(105, 4), bftParametersSchema),
 				).rejects.toThrow(NotFoundError);
 			});
 
 			it('should store validators ordered lexicographically by address', async () => {
 				const paramsStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 				const params = await paramsStore.getWithSchema<BFTParameters>(
-					intToBuffer(104, 4, BIG_ENDIAN),
+					utils.intToBuffer(104, 4),
 					bftParametersSchema,
 				);
 
@@ -761,7 +750,7 @@ describe('BFT API', () => {
 			it('should store validators in order of the input', async () => {
 				const paramsStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 				const params = await paramsStore.getWithSchema<BFTParameters>(
-					intToBuffer(104, 4, BIG_ENDIAN),
+					utils.intToBuffer(104, 4),
 					bftParametersSchema,
 				);
 
@@ -795,43 +784,37 @@ describe('BFT API', () => {
 					{
 						address: generatorAddress,
 						bftWeight: BigInt(50),
-						blsKey: getRandomBytes(42),
+						blsKey: utils.getRandomBytes(42),
 					},
 					{
-						address: getRandomBytes(20),
+						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(50),
-						blsKey: getRandomBytes(42),
+						blsKey: utils.getRandomBytes(42),
 					},
 					{
-						address: getRandomBytes(20),
+						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(3),
-						blsKey: getRandomBytes(42),
+						blsKey: utils.getRandomBytes(42),
 					},
 				]);
 
 				const paramsStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 				await expect(
-					paramsStore.getWithSchema<BFTParameters>(
-						intToBuffer(11, 4, BIG_ENDIAN),
-						bftParametersSchema,
-					),
+					paramsStore.getWithSchema<BFTParameters>(utils.intToBuffer(11, 4), bftParametersSchema),
 				).toResolve();
 			});
 
 			it('should store BFT parameters with height latest blockBFTInfo + 1', async () => {
 				const paramsStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 				await expect(
-					paramsStore.getWithSchema<BFTParameters>(
-						intToBuffer(104, 4, BIG_ENDIAN),
-						bftParametersSchema,
-					),
+					paramsStore.getWithSchema<BFTParameters>(utils.intToBuffer(104, 4), bftParametersSchema),
 				).toResolve();
 			});
 
 			it('should store new validators hash', async () => {
 				const paramsStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_BFT_PARAMETERS);
 				const params = await paramsStore.getWithSchema<BFTParameters>(
-					intToBuffer(104, 4, BIG_ENDIAN),
+					utils.intToBuffer(104, 4),
 					bftParametersSchema,
 				);
 				expect(params.validatorsHash).not.toEqual(params30.validatorsHash);
@@ -868,13 +851,13 @@ describe('BFT API', () => {
 			it('should sort validators ordered lexicographically by blsKey and include certificateThreshold', () => {
 				const accounts = [
 					{
-						address: getRandomBytes(20),
-						blsKey: getRandomBytes(32),
+						address: utils.getRandomBytes(20),
+						blsKey: utils.getRandomBytes(32),
 						bftWeight: BigInt(20),
 					},
 					{
-						address: getRandomBytes(20),
-						blsKey: getRandomBytes(32),
+						address: utils.getRandomBytes(20),
+						blsKey: utils.getRandomBytes(32),
 						bftWeight: BigInt(20),
 					},
 				];
@@ -887,7 +870,7 @@ describe('BFT API', () => {
 				const sortedAccounts = [...accounts];
 				sortedAccounts.sort((a, b) => a.blsKey.compare(b.blsKey));
 				expect(validatorsHash).toEqual(
-					hash(
+					utils.hash(
 						codec.encode(validatorsHashInputSchema, {
 							activeValidators: [
 								{
@@ -911,12 +894,12 @@ describe('BFT API', () => {
 		const createKeys = () => ({
 			generators: [
 				{
-					address: getRandomBytes(20),
-					generatorKey: getRandomBytes(32),
+					address: utils.getRandomBytes(20),
+					generatorKey: utils.getRandomBytes(32),
 				},
 				{
-					address: getRandomBytes(20),
-					generatorKey: getRandomBytes(32),
+					address: utils.getRandomBytes(20),
+					generatorKey: utils.getRandomBytes(32),
 				},
 			],
 		});
@@ -925,8 +908,8 @@ describe('BFT API', () => {
 		beforeEach(async () => {
 			stateStore = new StateStore(new InMemoryDatabase());
 			const keysStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_GENERATOR_KEYS);
-			await keysStore.setWithSchema(intToBuffer(20, 4, BIG_ENDIAN), keys20, generatorKeysSchema);
-			await keysStore.setWithSchema(intToBuffer(30, 4, BIG_ENDIAN), keys30, generatorKeysSchema);
+			await keysStore.setWithSchema(utils.intToBuffer(20, 4), keys20, generatorKeysSchema);
+			await keysStore.setWithSchema(utils.intToBuffer(30, 4), keys30, generatorKeysSchema);
 		});
 
 		it('should current generators', async () => {
@@ -940,7 +923,7 @@ describe('BFT API', () => {
 					blockBFTInfos: [
 						{
 							height: 35,
-							generatorAddress: getRandomBytes(20),
+							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
 							prevoteWeight: 0,
@@ -948,7 +931,7 @@ describe('BFT API', () => {
 						},
 						{
 							height: 34,
-							generatorAddress: getRandomBytes(20),
+							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
 							prevoteWeight: 0,
@@ -956,7 +939,7 @@ describe('BFT API', () => {
 						},
 						{
 							height: 33,
-							generatorAddress: getRandomBytes(20),
+							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
 							prevoteWeight: 0,
@@ -975,12 +958,12 @@ describe('BFT API', () => {
 		const createKeys = () => ({
 			generators: [
 				{
-					address: getRandomBytes(20),
-					generatorKey: getRandomBytes(32),
+					address: utils.getRandomBytes(20),
+					generatorKey: utils.getRandomBytes(32),
 				},
 				{
-					address: getRandomBytes(20),
-					generatorKey: getRandomBytes(32),
+					address: utils.getRandomBytes(20),
+					generatorKey: utils.getRandomBytes(32),
 				},
 			],
 		});
@@ -999,7 +982,7 @@ describe('BFT API', () => {
 					blockBFTInfos: [
 						{
 							height: 35,
-							generatorAddress: getRandomBytes(20),
+							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
 							prevoteWeight: 0,
@@ -1007,7 +990,7 @@ describe('BFT API', () => {
 						},
 						{
 							height: 34,
-							generatorAddress: getRandomBytes(20),
+							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
 							prevoteWeight: 0,
@@ -1015,7 +998,7 @@ describe('BFT API', () => {
 						},
 						{
 							height: 33,
-							generatorAddress: getRandomBytes(20),
+							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 0,
 							maxHeightPrevoted: 0,
 							prevoteWeight: 0,
@@ -1030,7 +1013,7 @@ describe('BFT API', () => {
 				bftAPI.setGeneratorKeys(stateStore, createKeys().generators),
 			).resolves.toBeUndefined();
 			const keysStore = stateStore.getStore(bftAPI['moduleID'], STORE_PREFIX_GENERATOR_KEYS);
-			await expect(keysStore.has(intToBuffer(36, 4, BIG_ENDIAN))).resolves.toBeTrue();
+			await expect(keysStore.has(utils.intToBuffer(36, 4))).resolves.toBeTrue();
 		});
 	});
 });

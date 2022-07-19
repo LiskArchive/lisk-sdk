@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Block, BlockAssets } from '@liskhq/lisk-chain';
-import { getNetworkIdentifier } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { createBlock } from '../../../src/testing/create_block';
 
 import * as devnetConfig from '../../fixtures/config/devnet/config.json';
@@ -21,10 +21,12 @@ import { defaultConfig } from '../../../src/testing/fixtures/config';
 import { createFakeBlockHeader } from '../../fixtures';
 
 describe('Create Block', () => {
-	const networkIdentifier = getNetworkIdentifier(
-		Buffer.from(devnetGenesisBlock.header.id, 'hex'),
-		devnetConfig.genesis.communityIdentifier,
-	).toString('hex');
+	const networkIdentifier = utils
+		.getNetworkIdentifier(
+			Buffer.from(devnetGenesisBlock.header.id, 'hex'),
+			devnetConfig.genesis.communityIdentifier,
+		)
+		.toString('hex');
 	const genesis = {
 		passphrase: 'cake cruise harvest senior glare resist acoustic maze stuff lizard autumn educate',
 		privateKey: Buffer.from(

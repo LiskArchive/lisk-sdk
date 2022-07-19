@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { TokenAPI } from '../../../../src/modules/token';
 import {
 	CCM_STATUS_OK,
@@ -44,7 +44,7 @@ import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefi
 import { DEFAULT_TOKEN_ID } from '../../../utils/mocks/transaction';
 
 describe('token module', () => {
-	const defaultAddress = getRandomBytes(20);
+	const defaultAddress = utils.getRandomBytes(20);
 	const defaultTokenIDAlias = Buffer.alloc(TOKEN_ID_LENGTH, 0);
 	const defaultTokenID = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
 	const defaultForeignTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
@@ -52,7 +52,7 @@ describe('token module', () => {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
 			{
-				moduleID: intToBuffer(12, 4),
+				moduleID: utils.intToBuffer(12, 4),
 				amount: BigInt(100000000),
 			},
 		],
@@ -128,7 +128,7 @@ describe('token module', () => {
 	describe('getAvailableBalance', () => {
 		it('should return zero if data does not exist', async () => {
 			await expect(
-				api.getAvailableBalance(apiContext, getRandomBytes(20), defaultTokenID),
+				api.getAvailableBalance(apiContext, utils.getRandomBytes(20), defaultTokenID),
 			).resolves.toEqual(BigInt(0));
 		});
 
@@ -142,16 +142,21 @@ describe('token module', () => {
 	describe('getLockedAmount', () => {
 		it('should return zero if data does not exist', async () => {
 			await expect(
-				api.getLockedAmount(apiContext, getRandomBytes(20), defaultTokenID, intToBuffer(3, 4)),
+				api.getLockedAmount(
+					apiContext,
+					utils.getRandomBytes(20),
+					defaultTokenID,
+					utils.intToBuffer(3, 4),
+				),
 			).resolves.toEqual(BigInt(0));
 			await expect(
-				api.getLockedAmount(apiContext, defaultAddress, defaultTokenID, intToBuffer(3, 4)),
+				api.getLockedAmount(apiContext, defaultAddress, defaultTokenID, utils.intToBuffer(3, 4)),
 			).resolves.toEqual(BigInt(0));
 		});
 
 		it('should return balance if data exists', async () => {
 			await expect(
-				api.getLockedAmount(apiContext, defaultAddress, defaultTokenID, intToBuffer(12, 4)),
+				api.getLockedAmount(apiContext, defaultAddress, defaultTokenID, utils.intToBuffer(12, 4)),
 			).resolves.toEqual(defaultAccount.lockedBalances[0].amount);
 		});
 	});
@@ -194,7 +199,7 @@ describe('token module', () => {
 		});
 
 		it('should return false if account does not exist', async () => {
-			await expect(api.accountExists(apiContext, getRandomBytes(20))).resolves.toBeFalse();
+			await expect(api.accountExists(apiContext, utils.getRandomBytes(20))).resolves.toBeFalse();
 		});
 	});
 
@@ -320,7 +325,7 @@ describe('token module', () => {
 	describe('lock', () => {
 		it('should reject amount is less than zero', async () => {
 			await expect(
-				api.lock(apiContext, defaultAddress, intToBuffer(12, 4), defaultTokenID, BigInt(-1)),
+				api.lock(apiContext, defaultAddress, utils.intToBuffer(12, 4), defaultTokenID, BigInt(-1)),
 			).rejects.toThrow('Amount must be a positive integer to lock');
 		});
 
@@ -329,7 +334,7 @@ describe('token module', () => {
 				api.lock(
 					apiContext,
 					defaultAddress,
-					intToBuffer(12, 4),
+					utils.intToBuffer(12, 4),
 					defaultTokenID,
 					defaultAccount.availableBalance + BigInt(1),
 				),
@@ -341,7 +346,7 @@ describe('token module', () => {
 				api.lock(
 					apiContext,
 					defaultAddress,
-					intToBuffer(2, 4),
+					utils.intToBuffer(2, 4),
 					defaultTokenID,
 					defaultAccount.availableBalance,
 				),
@@ -356,7 +361,7 @@ describe('token module', () => {
 				api.lock(
 					apiContext,
 					defaultAddress,
-					intToBuffer(2, 4),
+					utils.intToBuffer(2, 4),
 					defaultTokenID,
 					defaultAccount.availableBalance,
 				),
@@ -373,13 +378,25 @@ describe('token module', () => {
 	describe('unlock', () => {
 		it('should reject amount is less than zero', async () => {
 			await expect(
-				api.unlock(apiContext, defaultAddress, intToBuffer(12, 4), defaultTokenID, BigInt(-1)),
+				api.unlock(
+					apiContext,
+					defaultAddress,
+					utils.intToBuffer(12, 4),
+					defaultTokenID,
+					BigInt(-1),
+				),
 			).rejects.toThrow('Amount must be a positive integer to unlock');
 		});
 
 		it('should reject if address does not have any corresponding locked balance for the specified module', async () => {
 			await expect(
-				api.unlock(apiContext, defaultAddress, intToBuffer(15, 4), defaultTokenID, BigInt(100)),
+				api.unlock(
+					apiContext,
+					defaultAddress,
+					utils.intToBuffer(15, 4),
+					defaultTokenID,
+					BigInt(100),
+				),
 			).rejects.toThrow('No balance is locked for module ID 15');
 		});
 
@@ -388,7 +405,7 @@ describe('token module', () => {
 				api.unlock(
 					apiContext,
 					defaultAddress,
-					intToBuffer(12, 4),
+					utils.intToBuffer(12, 4),
 					defaultTokenID,
 					defaultAccount.lockedBalances[0].amount + BigInt(1),
 				),
@@ -400,7 +417,7 @@ describe('token module', () => {
 				api.unlock(
 					apiContext,
 					defaultAddress,
-					intToBuffer(12, 4),
+					utils.intToBuffer(12, 4),
 					defaultTokenID,
 					defaultAccount.lockedBalances[0].amount - BigInt(1),
 				),
@@ -418,7 +435,7 @@ describe('token module', () => {
 				api.unlock(
 					apiContext,
 					defaultAddress,
-					intToBuffer(12, 4),
+					utils.intToBuffer(12, 4),
 					defaultTokenID,
 					defaultAccount.lockedBalances[0].amount,
 				),
@@ -439,7 +456,7 @@ describe('token module', () => {
 					apiContext,
 					defaultAddress,
 					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
-					getRandomBytes(20),
+					utils.getRandomBytes(20),
 					defaultTokenID,
 					BigInt('-3'),
 					BigInt('10000'),
@@ -454,7 +471,7 @@ describe('token module', () => {
 					apiContext,
 					defaultAddress.slice(1),
 					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
-					getRandomBytes(20),
+					utils.getRandomBytes(20),
 					defaultTokenID,
 					BigInt('100'),
 					BigInt('10000'),
@@ -469,7 +486,7 @@ describe('token module', () => {
 					apiContext,
 					defaultAddress,
 					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
-					getRandomBytes(19),
+					utils.getRandomBytes(19),
 					defaultTokenID,
 					BigInt('100'),
 					BigInt('10000'),
@@ -484,7 +501,7 @@ describe('token module', () => {
 					apiContext,
 					defaultAddress,
 					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
-					getRandomBytes(20),
+					utils.getRandomBytes(20),
 					defaultTokenID,
 					defaultAccount.availableBalance + BigInt(100000),
 					BigInt('10000'),
@@ -499,7 +516,7 @@ describe('token module', () => {
 				apiContext,
 				defaultAddress,
 				defaultTokenID.slice(0, CHAIN_ID_LENGTH),
-				getRandomBytes(20),
+				utils.getRandomBytes(20),
 				defaultTokenID,
 				defaultAccount.availableBalance,
 				BigInt('10000'),
@@ -528,7 +545,7 @@ describe('token module', () => {
 				apiContext,
 				defaultAddress,
 				receivingChainID,
-				getRandomBytes(20),
+				utils.getRandomBytes(20),
 				defaultTokenID,
 				defaultAccount.availableBalance - messageFee,
 				messageFee,
@@ -546,7 +563,7 @@ describe('token module', () => {
 					apiContext,
 					defaultAddress,
 					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
-					getRandomBytes(20),
+					utils.getRandomBytes(20),
 					defaultTokenID,
 					defaultAccount.availableBalance,
 					BigInt('10000'),
@@ -599,7 +616,7 @@ describe('token module', () => {
 					apiContext,
 					defaultAddress,
 					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
-					getRandomBytes(20),
+					utils.getRandomBytes(20),
 					defaultForeignTokenID,
 					defaultAccount.availableBalance,
 					BigInt('10000'),
@@ -660,7 +677,7 @@ describe('token module', () => {
 					apiContext,
 					defaultAddress,
 					receivingChainID,
-					getRandomBytes(20),
+					utils.getRandomBytes(20),
 					defaultTokenID,
 					defaultAccount.availableBalance - messageFee,
 					messageFee,
@@ -674,7 +691,7 @@ describe('token module', () => {
 						apiContext,
 						defaultAddress,
 						receivingChainID,
-						getRandomBytes(20),
+						utils.getRandomBytes(20),
 						defaultTokenID,
 						defaultAccount.availableBalance,
 						BigInt('10000'),

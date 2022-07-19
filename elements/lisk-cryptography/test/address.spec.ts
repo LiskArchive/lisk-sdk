@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Lisk Foundation
+ * Copyright © 2019 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,24 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
-import { cryptography } from '../../src';
-
-const {
+import {
 	getAddressFromPublicKey,
 	getLisk32AddressFromPublicKey,
-	getPrivateAndPublicKeyFromPassphrase,
-	getKeys,
 	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPassphrase,
 	getAddressFromPrivateKey,
 	validateLisk32Address,
 	getAddressFromLisk32Address,
 	getLisk32AddressFromAddress,
-} = cryptography;
+	getLisk32AddressFromPassphrase,
+} from '../src/address';
+import * as utils from '../src/utils';
 
-describe('keys', () => {
+describe('address', () => {
 	const defaultPassphrase = 'secret';
+	const defaultPassphraseHash = '2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b';
 	const defaultPrivateKey = Buffer.from(
 		'2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 		'hex',
@@ -38,43 +36,17 @@ describe('keys', () => {
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 		'hex',
 	);
-	const defaultAddress = Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex');
+	const defaultAddress = Buffer.from('2bb80d537b1da3e38bd30361aa855686bde0eacd', 'hex');
 
 	const defaultAddressAndPublicKey = {
 		publicKey: defaultPublicKey,
 		address: defaultAddress,
 	};
 
-	describe('#getPrivateAndPublicKeyFromPassphrase', () => {
-		let keyPair: any;
+	beforeEach(() => {
+		jest.spyOn(utils, 'bufferToHex');
 
-		beforeEach(() => {
-			keyPair = getPrivateAndPublicKeyFromPassphrase(defaultPassphrase);
-		});
-
-		it('should generate the correct publicKey from a passphrase', () => {
-			expect(keyPair).toHaveProperty('publicKey', defaultPublicKey);
-		});
-
-		it('should generate the correct privateKey from a passphrase', () => {
-			expect(keyPair).toHaveProperty('privateKey', defaultPrivateKey);
-		});
-	});
-
-	describe('#getKeys', () => {
-		let keyPair: any;
-
-		beforeEach(() => {
-			keyPair = getKeys(defaultPassphrase);
-		});
-
-		it('should generate the correct publicKey from a passphrase', () => {
-			expect(keyPair).toHaveProperty('publicKey', defaultPublicKey);
-		});
-
-		it('should generate the correct privateKey from a passphrase', () => {
-			expect(keyPair).toHaveProperty('privateKey', defaultPrivateKey);
-		});
+		jest.spyOn(utils, 'hash').mockReturnValue(Buffer.from(defaultPassphraseHash, 'hex'));
 	});
 
 	describe('#getAddressAndPublicKeyFromPassphrase', () => {
@@ -109,12 +81,26 @@ describe('keys', () => {
 			'0eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243',
 			'hex',
 		);
+		const hash = 'c247a42e09e6aafd818821f75b2f5b0de47c8235';
 		const expectedLisk32Address = 'lsk24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu';
+		beforeEach(() => {
+			return jest.spyOn(utils, 'hash').mockReturnValue(Buffer.from(hash, 'hex'));
+		});
 
-		it('should generate base32 address from publicKey', () => {
+		it('should generate lisk32 address from publicKey', () => {
 			const address = getLisk32AddressFromPublicKey(publicKey, 'lsk');
 
 			expect(address).toBe(expectedLisk32Address);
+		});
+	});
+
+	describe('#getLisk32AddressFromPassphrase', () => {
+		it('should generate valid lisk32 address from passphrase', () => {
+			const passphrase =
+				'garden mass universe joke disorder fish reveal state course lottery near virus';
+			const address = getLisk32AddressFromPassphrase(passphrase);
+
+			expect(validateLisk32Address(address)).toBeTrue();
 		});
 	});
 
@@ -130,7 +116,7 @@ describe('keys', () => {
 
 			it('should return true', () => {
 				return addresses.forEach(address => {
-					return expect(validateLisk32Address(address)).toBeTruthy();
+					return expect(validateLisk32Address(address)).toBeTrue();
 				});
 			});
 		});
@@ -138,7 +124,7 @@ describe('keys', () => {
 		describe('Given an address that is too short', () => {
 			const address = 'lsk1';
 			it('should throw an error', () => {
-				return expect(validateLisk32Address.bind(null, address)).toThrow(
+				return expect(() => validateLisk32Address(address)).toThrow(
 					'Address length does not match requirements. Expected 41 characters.',
 				);
 			});
@@ -147,7 +133,7 @@ describe('keys', () => {
 		describe('Given an address that is too long', () => {
 			const address = 'lskoaknq582o6fw7sp82bm2hnj7pzp47mpmbmux2ga';
 			it('should throw an error', () => {
-				return expect(validateLisk32Address.bind(null, address)).toThrow(
+				return expect(() => validateLisk32Address(address)).toThrow(
 					'Address length does not match requirements. Expected 41 characters.',
 				);
 			});
@@ -156,16 +142,16 @@ describe('keys', () => {
 		describe('Given an address that is not prefixed with `lsk`', () => {
 			const address = 'LSK24cd35u4jdq8szo3pnsqe5dsxwrnazyqqqg5eu';
 			it('should throw an error', () => {
-				return expect(validateLisk32Address.bind(null, address)).toThrow(
+				return expect(() => validateLisk32Address(address)).toThrow(
 					'Invalid address prefix. Actual prefix: LSK, Expected prefix: lsk',
 				);
 			});
 		});
 
-		describe('Given an address containing non-base32 characters', () => {
+		describe('Given an address containing non-lisk32 characters', () => {
 			const address = 'lsk1aknq582o6fw7sp82bm2hnj7pzp47mpmbmux2g';
 			it('should throw an error', () => {
-				return expect(validateLisk32Address.bind(null, address)).toThrow(
+				return expect(() => validateLisk32Address(address)).toThrow(
 					"Invalid character found in address. Only allow characters: 'abcdefghjkmnopqrstuvwxyz23456789'.",
 				);
 			});
@@ -174,7 +160,7 @@ describe('keys', () => {
 		describe('Given an address with invalid checksum', () => {
 			const address = 'lskoaknq582o6fw7sp82bm2hnj7pzp47mpmbmuxgg';
 			it('should throw an error', () => {
-				return expect(validateLisk32Address.bind(null, address)).toThrow(
+				return expect(() => validateLisk32Address(address)).toThrow(
 					'Invalid checksum for address.',
 				);
 			});
@@ -196,10 +182,24 @@ describe('keys', () => {
 			return expect(getAddressFromLisk32Address.bind(null, 'invalid')).toThrow();
 		});
 
-		it('should return an address given a base32 address', () => {
+		it('should throw error for invalid prefix', () => {
+			expect(() =>
+				getAddressFromLisk32Address('abcvtr2zq9v36vyefjdvhxas92nf438z9ap8wnzav').toString('hex'),
+			).toThrow('Invalid address prefix. Actual prefix: abc, Expected prefix: lsk');
+		});
+
+		it('should return an address given a lisk32 address with default prefix', () => {
 			expect(getAddressFromLisk32Address(account.address).toString('hex')).toBe(
 				account.binaryAddress,
 			);
+		});
+
+		it('should return an address given a lisk32 address with custom prefix', () => {
+			expect(
+				getAddressFromLisk32Address('abcvtr2zq9v36vyefjdvhxas92nf438z9ap8wnzav', 'abc').toString(
+					'hex',
+				),
+			).toBe('14e58055a242851b7b9a17439db707f250f03724');
 		});
 	});
 
@@ -214,7 +214,7 @@ describe('keys', () => {
 			address: 'lsk3hyz7vtpcts3thsmduh98pwxrjnbw7ccoxchxu',
 		};
 
-		it('should return base32 address given an address', () => {
+		it('should return lisk32 address given an address', () => {
 			expect(getLisk32AddressFromAddress(Buffer.from(account.binaryAddress, 'hex'))).toBe(
 				account.address,
 			);

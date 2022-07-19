@@ -15,7 +15,7 @@
 import { when } from 'jest-when';
 import { codec } from '@liskhq/lisk-codec';
 import { Block, Chain } from '@liskhq/lisk-chain';
-import { getAddressFromPublicKey, getRandomBytes } from '@liskhq/lisk-cryptography';
+import { utils, address } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import {
 	FastChainSwitchingMechanism,
@@ -94,7 +94,7 @@ describe('fast_chain_switching_mechanism', () => {
 			getSlotNumber: jest.fn(),
 			getCurrentValidators: jest.fn().mockResolvedValue(
 				new Array(numberOfValidators).fill(0).map(() => ({
-					address: getRandomBytes(20),
+					address: utils.getRandomBytes(20),
 					bftWeight: BigInt(1),
 				})),
 			),
@@ -125,18 +125,18 @@ describe('fast_chain_switching_mechanism', () => {
 			it('should return true when the receivedBlock is from consensus participant', async () => {
 				blockExecutor.getCurrentValidators.mockResolvedValue([
 					{
-						address: getAddressFromPublicKey(defaultGenerator.publicKey),
+						address: address.getAddressFromPublicKey(defaultGenerator.publicKey),
 						bftWeight: BigInt(1),
 					},
 					...new Array(102).fill(0).map(() => ({
-						address: getRandomBytes(20),
+						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(1),
 					})),
 				]);
 				const isValid = await fastChainSwitchingMechanism.isValidFor(
 					{
 						header: {
-							generatorAddress: getAddressFromPublicKey(defaultGenerator.publicKey),
+							generatorAddress: address.getAddressFromPublicKey(defaultGenerator.publicKey),
 							height: 515,
 						},
 					} as Block,
@@ -148,14 +148,14 @@ describe('fast_chain_switching_mechanism', () => {
 			it('should return true when the receivedBlock is not from consensus participant', async () => {
 				blockExecutor.getCurrentValidators.mockResolvedValue([
 					{
-						address: getAddressFromPublicKey(defaultGenerator.publicKey),
+						address: address.getAddressFromPublicKey(defaultGenerator.publicKey),
 						voteWeight: BigInt(0),
 					},
 				]);
 				const isValid = await fastChainSwitchingMechanism.isValidFor(
 					{
 						header: {
-							generatorAddress: getAddressFromPublicKey(defaultGenerator.publicKey),
+							generatorAddress: address.getAddressFromPublicKey(defaultGenerator.publicKey),
 							height: 515,
 						},
 					} as Block,
@@ -166,12 +166,12 @@ describe('fast_chain_switching_mechanism', () => {
 
 			it('should return true when the receivedBlock is not current validator', async () => {
 				blockExecutor.getCurrentValidators.mockResolvedValue([
-					{ address: getRandomBytes(20), isConsensusParticipant: false },
+					{ address: utils.getRandomBytes(20), isConsensusParticipant: false },
 				]);
 				const isValid = await fastChainSwitchingMechanism.isValidFor(
 					{
 						header: {
-							generatorAddress: getAddressFromPublicKey(defaultGenerator.publicKey),
+							generatorAddress: address.getAddressFromPublicKey(defaultGenerator.publicKey),
 							height: 515,
 						},
 					} as Block,
@@ -185,14 +185,14 @@ describe('fast_chain_switching_mechanism', () => {
 			it('should return false even when the block is from consensus participant', async () => {
 				blockExecutor.getCurrentValidators.mockResolvedValue([
 					{
-						address: getAddressFromPublicKey(defaultGenerator.publicKey),
+						address: address.getAddressFromPublicKey(defaultGenerator.publicKey),
 						bftWeight: BigInt(1),
 					},
 				]);
 				const isValid = await fastChainSwitchingMechanism.isValidFor(
 					{
 						header: {
-							generatorAddress: getAddressFromPublicKey(defaultGenerator.publicKey),
+							generatorAddress: address.getAddressFromPublicKey(defaultGenerator.publicKey),
 							height: 619,
 						},
 					} as Block,
@@ -227,7 +227,7 @@ describe('fast_chain_switching_mechanism', () => {
 					bftWeight: BigInt(1),
 				},
 				...new Array(numberOfValidators - 1).fill(0).map(() => ({
-					address: getRandomBytes(20),
+					address: utils.getRandomBytes(20),
 					bftWeight: BigInt(1),
 				})),
 			]);

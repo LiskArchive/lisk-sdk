@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { hash } = require('@liskhq/lisk-cryptography');
+const { utils } = require('@liskhq/lisk-cryptography');
 const BaseGenerator = require('../base_generator');
 const previousDelegateList = require('./delegate_address_list.json').delegateList;
 
@@ -25,7 +25,7 @@ const generateShuffledDelegateList = () => {
 	}));
 	for (const delegate of delegateList) {
 		const seedSource = Buffer.concat([Buffer.from(previousRoundSeed1, 'hex'), delegate.address]);
-		delegate.roundHash = hash(seedSource);
+		delegate.roundHash = utils.hash(seedSource);
 	}
 
 	delegateList.sort((delegate1, delegate2) => {

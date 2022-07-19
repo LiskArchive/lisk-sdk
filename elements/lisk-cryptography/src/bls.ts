@@ -12,7 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
+import * as crypto from 'crypto';
+import { Mnemonic } from '@liskhq/lisk-passphrase';
 import {
 	blsSign,
 	blsVerify,
@@ -22,15 +23,39 @@ import {
 	blsFastAggregateVerify,
 	blsSkToPk,
 	BLS_SUPPORTED,
+	blsPopVerify,
+	blsPopProve,
 } from './bls_lib';
-import { tagMessage } from './message_tag';
-import { readBit, writeBit } from './utils';
-import { hash } from './hash';
+import { hash, parseKeyDerivationPath, tagMessage } from './utils';
+import { EMPTY_SALT, HASH_LENGTH, L, SHA256 } from './constants';
 
 export { BLS_SUPPORTED };
 export const generatePrivateKey = blsKeyGen;
 export const getPublicKeyFromPrivateKey = blsSkToPk;
 export const validateKey = blsKeyValidate;
+export const popVerify = blsPopVerify;
+export const popProve = blsPopProve;
+
+const readBit = (buf: Buffer, bit: number): boolean => {
+	const byteIndex = Math.floor(bit / 8);
+	const bitIndex = bit % 8;
+
+	// eslint-disable-next-line no-bitwise
+	return (buf[byteIndex] >> bitIndex) % 2 === 1;
+};
+
+const writeBit = (buf: Buffer, bit: number, val: boolean): void => {
+	const byteIndex = Math.floor(bit / 8);
+	const bitIndex = bit % 8;
+
+	if (val) {
+		// eslint-disable-next-line no-bitwise, no-param-reassign
+		buf[byteIndex] |= 1 << bitIndex;
+	} else {
+		// eslint-disable-next-line no-bitwise, no-param-reassign
+		buf[byteIndex] &= ~(1 << bitIndex);
+	}
+};
 
 export const signBLS = (
 	tag: string,
@@ -114,4 +139,67 @@ export const verifyWeightedAggSig = (
 	}
 
 	return blsFastAggregateVerify(keys, hash(taggedMessage), signature);
+};
+
+// eslint-disable-next-line no-bitwise
+const flipBits = (buf: Buffer) => Buffer.from(buf.map(x => x ^ 0xff));
+
+const sha256 = (x: Buffer) => crypto.createHash(SHA256).update(x).digest();
+
+const hmacSHA256 = (key: Buffer, message: Buffer, hashValue: string) =>
+	crypto.createHmac(hashValue, key).update(message).digest();
+
+const hkdfSHA256 = (ikm: Buffer, length: number, salt: Buffer, info: Buffer) => {
+	if (salt.length === 0) {
+		// eslint-disable-next-line no-param-reassign
+		salt = EMPTY_SALT;
+	}
+	const PRK = hmacSHA256(salt, ikm, SHA256);
+	let t = Buffer.from([]);
+	let OKM = Buffer.from([]);
+
+	for (let i = 0; i < Math.ceil(length / HASH_LENGTH); i += 1) {
+		t = hmacSHA256(PRK, Buffer.concat([t, info, Buffer.from([1 + i])]), SHA256);
+		OKM = Buffer.concat([OKM, t]);
+	}
+	return OKM.slice(0, length);
+};
+
+const toLamportSK = (IKM: Buffer, salt: Buffer) => {
+	const info = Buffer.from([]);
+	const OKM = hkdfSHA256(IKM, L, salt, info);
+
+	const lamportSK = [];
+	for (let i = 0; i < 255; i += 1) {
+		lamportSK.push(OKM.slice(i * 32, (i + 1) * 32));
+	}
+	return lamportSK;
+};
+
+const parentSKToLamportPK = (parentSK: Buffer, index: number) => {
+	const salt = Buffer.allocUnsafe(4);
+	salt.writeUIntBE(index, 0, 4);
+
+	const IKM = parentSK;
+	const hashedLamport0 = toLamportSK(IKM, salt).map(x => sha256(x));
+	const hashedLamport1 = toLamportSK(flipBits(IKM), salt).map(x => sha256(x));
+
+	const lamportPK = Buffer.concat(hashedLamport0.concat(hashedLamport1));
+	return sha256(lamportPK);
+};
+
+const deriveChildSK = (parentSK: Buffer, index: number) => {
+	const lamportPK = parentSKToLamportPK(parentSK, index);
+	return blsKeyGen(lamportPK);
+};
+
+export const getPrivateKeyFromPhraseAndPath = async (phrase: string, path: string) => {
+	const masterSeed = await Mnemonic.mnemonicToSeed(phrase);
+	let key = blsKeyGen(masterSeed);
+
+	for (const segment of parseKeyDerivationPath(path)) {
+		key = deriveChildSK(key, segment);
+	}
+
+	return key;
 };

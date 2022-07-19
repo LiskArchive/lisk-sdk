@@ -14,12 +14,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import {
-	getAddressAndPublicKeyFromPassphrase,
-	getPrivateAndPublicKeyFromPassphrase,
-	intToBuffer,
-	signDataWithPrivateKey,
-} from '@liskhq/lisk-cryptography';
+import { ed, utils, address } from '@liskhq/lisk-cryptography';
 import {
 	getSigningBytes,
 	signTransaction,
@@ -102,18 +97,18 @@ describe('sign', () => {
 		'2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 		'hex',
 	);
-	const { publicKey: publicKey1 } = getAddressAndPublicKeyFromPassphrase(passphrase1);
-	const { publicKey: publicKey2 } = getAddressAndPublicKeyFromPassphrase(passphrase2);
-	const { publicKey: publicKey3 } = getAddressAndPublicKeyFromPassphrase(passphrase3);
-	const { publicKey: publicKey4 } = getAddressAndPublicKeyFromPassphrase(passphrase4);
+	const { publicKey: publicKey1 } = address.getAddressAndPublicKeyFromPassphrase(passphrase1);
+	const { publicKey: publicKey2 } = address.getAddressAndPublicKeyFromPassphrase(passphrase2);
+	const { publicKey: publicKey3 } = address.getAddressAndPublicKeyFromPassphrase(passphrase3);
+	const { publicKey: publicKey4 } = address.getAddressAndPublicKeyFromPassphrase(passphrase4);
 	const keys = {
 		mandatoryKeys: [publicKey1, publicKey2],
 		optionalKeys: [publicKey3, publicKey4],
 	};
 
 	const validTransaction = {
-		moduleID: intToBuffer(2, 4),
-		commandID: intToBuffer(0, 4),
+		moduleID: utils.intToBuffer(2, 4),
+		commandID: utils.intToBuffer(0, 4),
 		nonce: BigInt('1'),
 		fee: BigInt('10000000'),
 		senderPublicKey: publicKey1,
@@ -527,15 +522,15 @@ describe('sign', () => {
 		});
 
 		it('should add sender and mandatory public key signatures in right order for multisignature registration trx', () => {
-			const account1 = getPrivateAndPublicKeyFromPassphrase(passphrase1);
-			const account2 = getPrivateAndPublicKeyFromPassphrase(passphrase2);
-			const account3 = getPrivateAndPublicKeyFromPassphrase(passphrase3);
+			const account1 = ed.getPrivateAndPublicKeyFromPassphrase(passphrase1);
+			const account2 = ed.getPrivateAndPublicKeyFromPassphrase(passphrase2);
+			const account3 = ed.getPrivateAndPublicKeyFromPassphrase(passphrase3);
 			const mandatoryKeys = [account1.publicKey, account2.publicKey];
 			const optionalKeys = [account3.publicKey];
 
 			const multisignatureRegistrationTrx = {
-				moduleID: intToBuffer(4, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(4, 4),
+				commandID: utils.intToBuffer(0, 4),
 				nonce: BigInt('1'),
 				fee: BigInt('10000000'),
 				senderPublicKey: account1.publicKey,
@@ -575,13 +570,13 @@ describe('sign', () => {
 				getSigningBytes(signedTransaction, multisigRegParams),
 			]);
 
-			const signature = signDataWithPrivateKey(
+			const signature = ed.signDataWithPrivateKey(
 				TAG_TRANSACTION,
 				networkIdentifier,
 				transactionWithNetworkIdentifierBytes,
 				account1.privateKey,
 			);
-			const signatureNonSender = signDataWithPrivateKey(
+			const signatureNonSender = ed.signDataWithPrivateKey(
 				TAG_TRANSACTION,
 				networkIdentifier,
 				transactionWithNetworkIdentifierBytesNonSender,
@@ -594,12 +589,12 @@ describe('sign', () => {
 		});
 
 		it('should match the signatures of the mandatory keys in right order for transfer trx', () => {
-			const account1 = getPrivateAndPublicKeyFromPassphrase(passphrase1);
-			const account2 = getPrivateAndPublicKeyFromPassphrase(passphrase2);
+			const account1 = ed.getPrivateAndPublicKeyFromPassphrase(passphrase1);
+			const account2 = ed.getPrivateAndPublicKeyFromPassphrase(passphrase2);
 			// Sender public key of account1
 			const transaction = {
-				moduleID: intToBuffer(2, 4),
-				commandID: intToBuffer(0, 4),
+				moduleID: utils.intToBuffer(2, 4),
+				commandID: utils.intToBuffer(0, 4),
 				nonce: BigInt('1'),
 				fee: BigInt('10000000'),
 				senderPublicKey: account1.publicKey,
@@ -625,7 +620,7 @@ describe('sign', () => {
 				getSigningBytes(transactionObject, validParamsSchema),
 			]);
 
-			const signature = signDataWithPrivateKey(
+			const signature = ed.signDataWithPrivateKey(
 				TAG_TRANSACTION,
 				networkIdentifier,
 				transactionWithNetworkIdentifierBytes,
@@ -646,7 +641,7 @@ describe('sign', () => {
 				getSigningBytes(signedTransaction, validParamsSchema),
 			]);
 
-			const signatureMandatoryAccount = signDataWithPrivateKey(
+			const signatureMandatoryAccount = ed.signDataWithPrivateKey(
 				TAG_TRANSACTION,
 				networkIdentifier,
 				transactionMandatoryKeyWithNetworkIdentifierBytes,

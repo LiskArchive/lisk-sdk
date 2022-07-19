@@ -13,7 +13,7 @@
  */
 
 import { NotFoundError } from '@liskhq/lisk-chain';
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { APIContext } from '../../state_machine';
 import {
 	CHAIN_ID_ALIAS_NATIVE,
@@ -151,4 +151,4 @@ export const deductEscrowAmountWithTerminate = async (
 	await escrowStore.setWithSchema(escrowKey, escrowData, escrowStoreSchema);
 };
 
-export const getIDAsKeyForStore = (id: number) => intToBuffer(id, 4);
+export const getIDAsKeyForStore = (id: number) => utils.intToBuffer(id, 4);

@@ -13,7 +13,7 @@
  */
 
 import { BlockAssets } from '@liskhq/lisk-chain';
-import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
 import { codec } from '@liskhq/lisk-codec';
 import { GenesisConfig } from '../../../../src/types';
@@ -124,9 +124,10 @@ describe('DPoS module', () => {
 			const validatorAPI = {
 				setValidatorGeneratorKey: jest.fn(),
 				registerValidatorKeys: jest.fn().mockResolvedValue(true),
-				getValidatorAccount: jest
-					.fn()
-					.mockResolvedValue({ blsKey: getRandomBytes(48), generatorKey: getRandomBytes(32) }),
+				getValidatorAccount: jest.fn().mockResolvedValue({
+					blsKey: utils.getRandomBytes(48),
+					generatorKey: utils.getRandomBytes(32),
+				}),
 				getGeneratorsBetweenTimestamps: jest.fn(),
 			};
 			const tokenAPI = {
@@ -373,7 +374,7 @@ describe('DPoS module', () => {
 
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					intToBuffer(11 + 2, 4),
+					utils.intToBuffer(11 + 2, 4),
 					snapshotStoreSchema,
 				);
 
@@ -416,7 +417,7 @@ describe('DPoS module', () => {
 			it('should create a snapshot which include top 101 delegates as active delegates', async () => {
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					intToBuffer(11 + 2, 4),
+					utils.intToBuffer(11 + 2, 4),
 					snapshotStoreSchema,
 				);
 
@@ -426,7 +427,7 @@ describe('DPoS module', () => {
 			it('should create a snapshot which include all delegates in the snapshot', async () => {
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					intToBuffer(11 + 2, 4),
+					utils.intToBuffer(11 + 2, 4),
 					snapshotStoreSchema,
 				);
 
@@ -468,7 +469,7 @@ describe('DPoS module', () => {
 			it('should create a snapshot which include top 101 delegates as active delegates', async () => {
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					intToBuffer(11 + 2, 4),
+					utils.intToBuffer(11 + 2, 4),
 					snapshotStoreSchema,
 				);
 
@@ -478,7 +479,7 @@ describe('DPoS module', () => {
 			it('should create a snapshot which include all delegates in the snapshot', async () => {
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					intToBuffer(11 + 2, 4),
+					utils.intToBuffer(11 + 2, 4),
 					snapshotStoreSchema,
 				);
 
@@ -548,7 +549,7 @@ describe('DPoS module', () => {
 			it('should create a snapshot which include top 101 delegates as active delegates', async () => {
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					intToBuffer(11 + 2, 4),
+					utils.intToBuffer(11 + 2, 4),
 					snapshotStoreSchema,
 				);
 
@@ -558,7 +559,7 @@ describe('DPoS module', () => {
 			it('should cap the delegate weight', async () => {
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					intToBuffer(11 + 2, 4),
+					utils.intToBuffer(11 + 2, 4),
 					snapshotStoreSchema,
 				);
 
@@ -575,7 +576,7 @@ describe('DPoS module', () => {
 			it('should set the delegate weight to zero when punished', async () => {
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					intToBuffer(11 + 2, 4),
+					utils.intToBuffer(11 + 2, 4),
 					snapshotStoreSchema,
 				);
 
@@ -655,9 +656,9 @@ describe('DPoS module', () => {
 					);
 				}
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
-				await snapshotStore.set(intToBuffer(10, 4), Buffer.alloc(10));
-				await snapshotStore.set(intToBuffer(11, 4), Buffer.alloc(10));
-				await snapshotStore.set(intToBuffer(12, 4), Buffer.alloc(10));
+				await snapshotStore.set(utils.intToBuffer(10, 4), Buffer.alloc(10));
+				await snapshotStore.set(utils.intToBuffer(11, 4), Buffer.alloc(10));
+				await snapshotStore.set(utils.intToBuffer(12, 4), Buffer.alloc(10));
 				context = createBlockContext({
 					stateStore,
 					header: createFakeBlockHeader({ height: 1030 }),
@@ -668,7 +669,7 @@ describe('DPoS module', () => {
 			it('should create a snapshot which include top 101 delegates as active delegates', async () => {
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					intToBuffer(11 + 2, 4),
+					utils.intToBuffer(11 + 2, 4),
 					snapshotStoreSchema,
 				);
 
@@ -678,7 +679,7 @@ describe('DPoS module', () => {
 			it('should create a snapshot which include all delegates above standby threshold in the snapshot', async () => {
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					intToBuffer(11 + 2, 4),
+					utils.intToBuffer(11 + 2, 4),
 					snapshotStoreSchema,
 				);
 
@@ -695,9 +696,9 @@ describe('DPoS module', () => {
 			it('should create a snapshot which remove the snapshot older than 3 rounds', async () => {
 				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
 
-				await expect(snapshotStore.has(intToBuffer(10, 4))).resolves.toBeFalse();
-				await expect(snapshotStore.has(intToBuffer(11, 4))).resolves.toBeTrue();
-				await expect(snapshotStore.has(intToBuffer(12, 4))).resolves.toBeTrue();
+				await expect(snapshotStore.has(utils.intToBuffer(10, 4))).resolves.toBeFalse();
+				await expect(snapshotStore.has(utils.intToBuffer(11, 4))).resolves.toBeTrue();
+				await expect(snapshotStore.has(utils.intToBuffer(12, 4))).resolves.toBeTrue();
 			});
 		});
 	});
@@ -751,7 +752,7 @@ describe('DPoS module', () => {
 							.slice(0, defaultConfigs.numberActiveDelegates)
 							.map(d => d.delegateAddress);
 						await snapshotStore.setWithSchema(
-							intToBuffer(defaultRound, 4),
+							utils.intToBuffer(defaultRound, 4),
 							{
 								activeDelegates,
 								delegateWeightSnapshot: delegates.slice(defaultConfigs.numberActiveDelegates),
@@ -769,8 +770,8 @@ describe('DPoS module', () => {
 							setValidatorGeneratorKey: jest.fn(),
 							registerValidatorKeys: jest.fn(),
 							getValidatorAccount: jest.fn().mockResolvedValue({
-								blsKey: getRandomBytes(48),
-								generatorKey: getRandomBytes(32),
+								blsKey: utils.getRandomBytes(48),
+								generatorKey: utils.getRandomBytes(32),
 							}),
 							getGeneratorsBetweenTimestamps: jest.fn(),
 						};
@@ -832,7 +833,7 @@ describe('DPoS module', () => {
 					.slice(0, defaultConfigs.numberActiveDelegates)
 					.map(d => d.delegateAddress);
 				await snapshotStore.setWithSchema(
-					intToBuffer(defaultRound, 4),
+					utils.intToBuffer(defaultRound, 4),
 					{
 						activeDelegates,
 						delegateWeightSnapshot: delegates.slice(defaultConfigs.numberActiveDelegates),
@@ -848,9 +849,10 @@ describe('DPoS module', () => {
 				validatorAPI = {
 					setValidatorGeneratorKey: jest.fn(),
 					registerValidatorKeys: jest.fn(),
-					getValidatorAccount: jest
-						.fn()
-						.mockResolvedValue({ blsKey: getRandomBytes(48), generatorKey: getRandomBytes(32) }),
+					getValidatorAccount: jest.fn().mockResolvedValue({
+						blsKey: utils.getRandomBytes(48),
+						generatorKey: utils.getRandomBytes(32),
+					}),
 					getGeneratorsBetweenTimestamps: jest.fn(),
 				};
 				const tokenAPI = {
@@ -938,7 +940,7 @@ describe('DPoS module', () => {
 					pomHeights: [],
 					consecutiveMissedBlocks: 0,
 				}));
-			delegateAddresses = Array.from({ length: 103 }, _ => getRandomBytes(20));
+			delegateAddresses = Array.from({ length: 103 }, _ => utils.getRandomBytes(20));
 
 			previousTimestampStore = stateStore.getStore(
 				MODULE_ID_DPOS_BUFFER,

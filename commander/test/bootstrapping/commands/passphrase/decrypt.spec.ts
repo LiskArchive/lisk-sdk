@@ -48,10 +48,10 @@ describe('passphrase:decrypt', () => {
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
 		jest.spyOn(DecryptCommand.prototype, 'printJSON').mockReturnValue();
 		jest
-			.spyOn(cryptography, 'parseEncryptedPassphrase')
+			.spyOn(cryptography.encrypt, 'parseEncryptedPassphrase')
 			.mockReturnValue(encryptedPassphraseObject as never);
 		jest
-			.spyOn(cryptography, 'decryptPassphraseWithPassword')
+			.spyOn(cryptography.encrypt, 'decryptPassphraseWithPassword')
 			.mockResolvedValue(passphrase as never);
 		jest.spyOn(readerUtils, 'getPasswordFromPrompt').mockResolvedValue(defaultInputs);
 	});
@@ -66,10 +66,10 @@ describe('passphrase:decrypt', () => {
 		it('should decrypt passphrase with arg', async () => {
 			await DecryptCommand.run([defaultEncryptedPassphrase], config);
 			expect(readerUtils.getPasswordFromPrompt).toHaveBeenCalledWith('password', true);
-			expect(cryptography.parseEncryptedPassphrase).toHaveBeenCalledWith(
+			expect(cryptography.encrypt.parseEncryptedPassphrase).toHaveBeenCalledWith(
 				defaultEncryptedPassphrase,
 			);
-			expect(cryptography.decryptPassphraseWithPassword).toHaveBeenCalledWith(
+			expect(cryptography.encrypt.decryptPassphraseWithPassword).toHaveBeenCalledWith(
 				encryptedPassphraseObject,
 				defaultInputs,
 			);
@@ -81,10 +81,10 @@ describe('passphrase:decrypt', () => {
 		it('should decrypt passphrase with passphrase flag and password flag', async () => {
 			await DecryptCommand.run([defaultEncryptedPassphrase, '--password=LbYpLpV9Wpec6ux8'], config);
 			expect(readerUtils.getPasswordFromPrompt).not.toHaveBeenCalled();
-			expect(cryptography.parseEncryptedPassphrase).toHaveBeenCalledWith(
+			expect(cryptography.encrypt.parseEncryptedPassphrase).toHaveBeenCalledWith(
 				defaultEncryptedPassphrase,
 			);
-			expect(cryptography.decryptPassphraseWithPassword).toHaveBeenCalledWith(
+			expect(cryptography.encrypt.decryptPassphraseWithPassword).toHaveBeenCalledWith(
 				encryptedPassphraseObject,
 				defaultInputs,
 			);

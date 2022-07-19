@@ -15,13 +15,7 @@
 import { InMemoryDatabase, NotFoundError } from '@liskhq/lisk-db';
 import { BlockHeader, StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import {
-	createAggSig,
-	generatePrivateKey,
-	getPublicKeyFromPrivateKey,
-	getRandomBytes,
-	signBLS,
-} from '@liskhq/lisk-cryptography';
+import { bls, utils } from '@liskhq/lisk-cryptography';
 import * as crypto from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
 import { BFTParameterNotFoundError } from '../../../../../src/engine/bft/errors';
@@ -110,23 +104,23 @@ describe('CommitPool', () => {
 			put: jest.fn(),
 			batch: jest.fn(),
 		};
-		const blockID = getRandomBytes(32);
+		const blockID = utils.getRandomBytes(32);
 		const height = 1020;
 		const maxHeightCertified = 950;
 		const maxHeightPrecommitted = 1000;
 		const numActiveValidators = 103;
 		const staleGossipedCommit = {
 			blockID,
-			certificateSignature: getRandomBytes(96),
+			certificateSignature: utils.getRandomBytes(96),
 			height: maxHeightCertified - 1,
-			validatorAddress: getRandomBytes(20),
+			validatorAddress: utils.getRandomBytes(20),
 		};
 
 		const staleNonGossipedCommit = {
 			blockID,
-			certificateSignature: getRandomBytes(96),
+			certificateSignature: utils.getRandomBytes(96),
 			height: maxHeightCertified - 1,
-			validatorAddress: getRandomBytes(20),
+			validatorAddress: utils.getRandomBytes(20),
 		};
 
 		let nonGossipedCommits: SingleCommit[];
@@ -135,16 +129,16 @@ describe('CommitPool', () => {
 		beforeEach(() => {
 			nonGossipedCommits = Array.from({ length: 5 }, () => ({
 				blockID,
-				certificateSignature: getRandomBytes(96),
+				certificateSignature: utils.getRandomBytes(96),
 				height,
-				validatorAddress: getRandomBytes(20),
+				validatorAddress: utils.getRandomBytes(20),
 			}));
 
 			gossipedCommits = Array.from({ length: 5 }, () => ({
 				blockID,
-				certificateSignature: getRandomBytes(96),
+				certificateSignature: utils.getRandomBytes(96),
 				height,
-				validatorAddress: getRandomBytes(20),
+				validatorAddress: utils.getRandomBytes(20),
 			}));
 
 			commitPool = new CommitPool({
@@ -169,7 +163,7 @@ describe('CommitPool', () => {
 
 			commitPool['_bftAPI'].getBFTHeights = jest.fn().mockResolvedValue({ maxHeightPrecommitted });
 			commitPool['_bftAPI'].getBFTParameters = jest.fn().mockResolvedValue({
-				validators: Array.from({ length: numActiveValidators }, () => getRandomBytes(32)),
+				validators: Array.from({ length: numActiveValidators }, () => utils.getRandomBytes(32)),
 			});
 		});
 
@@ -203,16 +197,16 @@ describe('CommitPool', () => {
 
 		it('should clean all the commits from nonGossipedCommit that does not have bftParams change', async () => {
 			commitPool['_nonGossipedCommits'].add({
-				blockID: getRandomBytes(32),
-				certificateSignature: getRandomBytes(96),
+				blockID: utils.getRandomBytes(32),
+				certificateSignature: utils.getRandomBytes(96),
 				height: 1070,
-				validatorAddress: getRandomBytes(20),
+				validatorAddress: utils.getRandomBytes(20),
 			});
 			commitPool['_gossipedCommits'].add({
-				blockID: getRandomBytes(32),
-				certificateSignature: getRandomBytes(96),
+				blockID: utils.getRandomBytes(32),
+				certificateSignature: utils.getRandomBytes(96),
 				height: 1070,
-				validatorAddress: getRandomBytes(20),
+				validatorAddress: utils.getRandomBytes(20),
 			});
 			// Assert
 			expect(commitPool['_nonGossipedCommits'].getAll()).toHaveLength(7);
@@ -237,11 +231,11 @@ describe('CommitPool', () => {
 
 		it('should select non gossiped commits that are created by the generator of the engine', async () => {
 			// Arrange
-			const generatorAddress = getRandomBytes(20);
+			const generatorAddress = utils.getRandomBytes(20);
 			commitPool.addCommit(
 				{
-					blockID: getRandomBytes(32),
-					certificateSignature: getRandomBytes(96),
+					blockID: utils.getRandomBytes(32),
+					certificateSignature: utils.getRandomBytes(96),
 					height: 1070,
 					validatorAddress: generatorAddress,
 				},
@@ -250,10 +244,10 @@ describe('CommitPool', () => {
 			// Added to nonGossipedCommitsLocal
 			expect(commitPool['_nonGossipedCommitsLocal'].getAll()).toHaveLength(1);
 			commitPool.addCommit({
-				blockID: getRandomBytes(32),
-				certificateSignature: getRandomBytes(96),
+				blockID: utils.getRandomBytes(32),
+				certificateSignature: utils.getRandomBytes(96),
 				height: 1070,
-				validatorAddress: getRandomBytes(20),
+				validatorAddress: utils.getRandomBytes(20),
 			});
 			// Assert
 			expect(commitPool['_gossipedCommits'].getAll()).toHaveLength(6);
@@ -323,16 +317,16 @@ describe('CommitPool', () => {
 
 			Array.from({ length: 105 }, () => ({
 				blockID,
-				certificateSignature: getRandomBytes(96),
+				certificateSignature: utils.getRandomBytes(96),
 				height: commitHeight,
-				validatorAddress: getRandomBytes(20),
+				validatorAddress: utils.getRandomBytes(20),
 			})).forEach(c => commitPool['_nonGossipedCommits'].add(c));
 
 			Array.from({ length: 105 }, () => ({
 				blockID,
-				certificateSignature: getRandomBytes(96),
+				certificateSignature: utils.getRandomBytes(96),
 				height: commitHeight,
-				validatorAddress: getRandomBytes(20),
+				validatorAddress: utils.getRandomBytes(20),
 			})).forEach(c => commitPool['_gossipedCommits'].add(c));
 
 			expect(commitPool['_nonGossipedCommits'].getAll()).toHaveLength(105);
@@ -370,15 +364,15 @@ describe('CommitPool', () => {
 		let height: number;
 
 		beforeEach(() => {
-			const blockID = getRandomBytes(32);
+			const blockID = utils.getRandomBytes(32);
 
 			height = 1031;
 
 			nonGossipedCommits = Array.from({ length: 1 }, () => ({
 				blockID,
-				certificateSignature: getRandomBytes(96),
+				certificateSignature: utils.getRandomBytes(96),
 				height,
-				validatorAddress: getRandomBytes(20),
+				validatorAddress: utils.getRandomBytes(20),
 			}));
 
 			// We add commits by .add() method because properties are readonly
@@ -388,8 +382,8 @@ describe('CommitPool', () => {
 		it('should add commit successfully', () => {
 			const newCommit: SingleCommit = {
 				...nonGossipedCommits[0],
-				certificateSignature: getRandomBytes(96),
-				validatorAddress: getRandomBytes(20),
+				certificateSignature: utils.getRandomBytes(96),
+				validatorAddress: utils.getRandomBytes(20),
 			};
 
 			commitPool.addCommit(newCommit);
@@ -415,8 +409,8 @@ describe('CommitPool', () => {
 			const newCommit: SingleCommit = {
 				...nonGossipedCommits[0],
 				height,
-				certificateSignature: getRandomBytes(96),
-				validatorAddress: getRandomBytes(20),
+				certificateSignature: utils.getRandomBytes(96),
+				validatorAddress: utils.getRandomBytes(20),
 			};
 
 			commitPool.addCommit(newCommit);
@@ -448,7 +442,7 @@ describe('CommitPool', () => {
 			blockHeader = createFakeBlockHeader({
 				height: 1031,
 				timestamp: 10310,
-				generatorAddress: getRandomBytes(20),
+				generatorAddress: utils.getRandomBytes(20),
 			});
 
 			blockHeaderOfFinalizedHeight = createFakeBlockHeader({
@@ -461,8 +455,8 @@ describe('CommitPool', () => {
 
 			certificate = computeCertificateFromBlockHeader(blockHeader);
 
-			privateKey = generatePrivateKey(getRandomBytes(32));
-			publicKey = getPublicKeyFromPrivateKey(privateKey);
+			privateKey = bls.generatePrivateKey(utils.getRandomBytes(32));
+			publicKey = bls.getPublicKeyFromPrivateKey(privateKey);
 			signature = signCertificate(privateKey, networkIdentifier, certificate);
 
 			commit = {
@@ -476,9 +470,9 @@ describe('CommitPool', () => {
 
 			weights = Array.from({ length: 103 }, _ => 1);
 			validators = weights.map(weight => ({
-				address: getRandomBytes(20),
+				address: utils.getRandomBytes(20),
 				bftWeight: BigInt(weight),
-				blsKey: getRandomBytes(48),
+				blsKey: utils.getRandomBytes(48),
 			}));
 			// Single commit owner must be an active validator
 			validators[0] = {
@@ -521,7 +515,7 @@ describe('CommitPool', () => {
 		it('should return false when single commit block id is not equal to chain block id at same height', async () => {
 			when(chain.dataAccess.getBlockHeaderByHeight)
 				.calledWith(commit.height)
-				.mockReturnValue(createFakeBlockHeader({ id: getRandomBytes(32) }));
+				.mockReturnValue(createFakeBlockHeader({ id: utils.getRandomBytes(32) }));
 
 			const isCommitValid = await commitPool.validateCommit(stateStore, commit);
 
@@ -637,7 +631,7 @@ describe('CommitPool', () => {
 		it('should throw error when generator is not in active validators of the height', async () => {
 			// Change generator to another random validator
 			validators[0] = {
-				address: getRandomBytes(20),
+				address: utils.getRandomBytes(20),
 				bftWeight: BigInt(1),
 			};
 
@@ -650,7 +644,7 @@ describe('CommitPool', () => {
 			when(bftAPI.getBFTParameters)
 				.calledWith(stateStore, commit.height)
 				.mockReturnValue({
-					validators: [{ address: commit.validatorAddress, blsKey: getRandomBytes(48) }],
+					validators: [{ address: commit.validatorAddress, blsKey: utils.getRandomBytes(48) }],
 				});
 
 			await expect(commitPool.validateCommit(stateStore, commit)).rejects.toThrow(
@@ -664,22 +658,22 @@ describe('CommitPool', () => {
 		let height: number;
 
 		beforeEach(() => {
-			const blockID = getRandomBytes(32);
+			const blockID = utils.getRandomBytes(32);
 
 			height = 1031;
 
 			nonGossipedCommits = Array.from({ length: 1 }, () => ({
 				blockID,
-				certificateSignature: getRandomBytes(96),
+				certificateSignature: utils.getRandomBytes(96),
 				height,
-				validatorAddress: getRandomBytes(20),
+				validatorAddress: utils.getRandomBytes(20),
 			}));
 
 			gossipedCommits = Array.from({ length: 1 }, () => ({
 				blockID,
-				certificateSignature: getRandomBytes(96),
+				certificateSignature: utils.getRandomBytes(96),
 				height,
-				validatorAddress: getRandomBytes(20),
+				validatorAddress: utils.getRandomBytes(20),
 			}));
 
 			// We add commits by .set() method because properties are readonly
@@ -702,10 +696,10 @@ describe('CommitPool', () => {
 		it('should return just gossiped commits when just gossiped commits set for that height', () => {
 			height = 1032;
 			gossipedCommits = Array.from({ length: 1 }, () => ({
-				blockID: getRandomBytes(32),
-				certificateSignature: getRandomBytes(96),
+				blockID: utils.getRandomBytes(32),
+				certificateSignature: utils.getRandomBytes(96),
 				height,
-				validatorAddress: getRandomBytes(20),
+				validatorAddress: utils.getRandomBytes(20),
 			}));
 			commitPool['_gossipedCommits'].add(gossipedCommits[0]);
 
@@ -717,10 +711,10 @@ describe('CommitPool', () => {
 		it('should return just non-gossiped commits when just non-gossiped commits set for that height', () => {
 			height = 1032;
 			nonGossipedCommits = Array.from({ length: 1 }, () => ({
-				blockID: getRandomBytes(32),
-				certificateSignature: getRandomBytes(96),
+				blockID: utils.getRandomBytes(32),
+				certificateSignature: utils.getRandomBytes(96),
 				height,
-				validatorAddress: getRandomBytes(20),
+				validatorAddress: utils.getRandomBytes(20),
 			}));
 			commitPool['_nonGossipedCommits'].add(nonGossipedCommits[0]);
 
@@ -733,9 +727,9 @@ describe('CommitPool', () => {
 	describe('createSingleCommit', () => {
 		const blockHeader = createFakeBlockHeader();
 		const validatorInfo = {
-			address: getRandomBytes(20),
-			blsPublicKey: getRandomBytes(48),
-			blsSecretKey: getRandomBytes(32),
+			address: utils.getRandomBytes(20),
+			blsPublicKey: utils.getRandomBytes(48),
+			blsSecretKey: utils.getRandomBytes(32),
 		};
 		const certificate = computeCertificateFromBlockHeader(blockHeader);
 		let expectedCommit: SingleCommit;
@@ -793,8 +787,10 @@ describe('CommitPool', () => {
 
 			stateStore = new StateStore(new InMemoryDatabase());
 
-			privateKeys = Array.from({ length: 103 }, _ => generatePrivateKey(getRandomBytes(32)));
-			publicKeys = privateKeys.map(priv => getPublicKeyFromPrivateKey(priv));
+			privateKeys = Array.from({ length: 103 }, _ =>
+				bls.generatePrivateKey(utils.getRandomBytes(32)),
+			);
+			publicKeys = privateKeys.map(priv => bls.getPublicKeyFromPrivateKey(priv));
 
 			keysList = [...publicKeys];
 			weights = Array.from({ length: 103 }, _ => 1);
@@ -811,7 +807,7 @@ describe('CommitPool', () => {
 			const encodedCertificate = codec.encode(certificateSchema, certificate);
 
 			signatures = privateKeys.map(privateKey =>
-				signBLS(MESSAGE_TAG_CERTIFICATE, networkIdentifier, encodedCertificate, privateKey),
+				bls.signBLS(MESSAGE_TAG_CERTIFICATE, networkIdentifier, encodedCertificate, privateKey),
 			);
 
 			pubKeySignaturePairs = Array.from({ length: 103 }, (_, i) => ({
@@ -819,7 +815,7 @@ describe('CommitPool', () => {
 				signature: signatures[i],
 			}));
 
-			({ aggregationBits, signature: aggregateSignature } = createAggSig(
+			({ aggregationBits, signature: aggregateSignature } = bls.createAggSig(
 				publicKeys,
 				pubKeySignaturePairs,
 			));
@@ -831,7 +827,7 @@ describe('CommitPool', () => {
 			};
 
 			validators = weights.map((weight, i) => ({
-				address: getRandomBytes(20),
+				address: utils.getRandomBytes(20),
 				bftWeight: BigInt(weight),
 				blsKey: keysList[i],
 			}));
@@ -999,19 +995,19 @@ describe('CommitPool', () => {
 		const blockHeader2 = createFakeBlockHeader({ height });
 		const blockHeader3 = createFakeBlockHeader({ height });
 		const validatorInfo1 = {
-			address: getRandomBytes(20),
-			blsPublicKey: getRandomBytes(48),
-			blsSecretKey: getRandomBytes(32),
+			address: utils.getRandomBytes(20),
+			blsPublicKey: utils.getRandomBytes(48),
+			blsSecretKey: utils.getRandomBytes(32),
 		};
 		const validatorInfo2 = {
-			address: getRandomBytes(20),
-			blsPublicKey: getRandomBytes(48),
-			blsSecretKey: getRandomBytes(32),
+			address: utils.getRandomBytes(20),
+			blsPublicKey: utils.getRandomBytes(48),
+			blsSecretKey: utils.getRandomBytes(32),
 		};
 		const validatorInfo3 = {
-			address: getRandomBytes(20),
-			blsPublicKey: getRandomBytes(48),
-			blsSecretKey: getRandomBytes(32),
+			address: utils.getRandomBytes(20),
+			blsPublicKey: utils.getRandomBytes(48),
+			blsSecretKey: utils.getRandomBytes(32),
 		};
 		const certificate1 = computeCertificateFromBlockHeader(blockHeader1);
 		const certificate2 = computeCertificateFromBlockHeader(blockHeader2);
@@ -1067,12 +1063,12 @@ describe('CommitPool', () => {
 		};
 		const pubKeySignaturePairs = [pubKeySignaturePair1, pubKeySignaturePair2, pubKeySignaturePair3];
 
-		const { aggregationBits: aggregationBits1, signature: aggregateSignature1 } = createAggSig(
+		const { aggregationBits: aggregationBits1, signature: aggregateSignature1 } = bls.createAggSig(
 			[validatorInfo1.blsPublicKey],
 			[pubKeySignaturePair1],
 		);
 
-		const { aggregationBits, signature: aggregateSignature } = createAggSig(
+		const { aggregationBits, signature: aggregateSignature } = bls.createAggSig(
 			validatorKeys,
 			pubKeySignaturePairs,
 		);
@@ -1144,7 +1140,7 @@ describe('CommitPool', () => {
 		});
 
 		it('should call validator keys in lexicographical order', async () => {
-			const spy = jest.spyOn(crypto, 'createAggSig');
+			const spy = jest.spyOn(crypto.bls, 'createAggSig');
 			bftAPI.getBFTParameters.mockReturnValue({
 				validators: [
 					{ address: validatorInfo1.address, blsKey: validatorInfo1.blsPublicKey },
@@ -1167,14 +1163,14 @@ describe('CommitPool', () => {
 		const blockHeader1 = createFakeBlockHeader({ height: 1051 });
 		const blockHeader2 = createFakeBlockHeader({ height: 1052 });
 		const validatorInfo1 = {
-			address: getRandomBytes(20),
-			blsPublicKey: getRandomBytes(48),
-			blsSecretKey: getRandomBytes(32),
+			address: utils.getRandomBytes(20),
+			blsPublicKey: utils.getRandomBytes(48),
+			blsSecretKey: utils.getRandomBytes(32),
 		};
 		const validatorInfo2 = {
-			address: getRandomBytes(20),
-			blsPublicKey: getRandomBytes(48),
-			blsSecretKey: getRandomBytes(32),
+			address: utils.getRandomBytes(20),
+			blsPublicKey: utils.getRandomBytes(48),
+			blsSecretKey: utils.getRandomBytes(32),
 		};
 		const certificate1 = computeCertificateFromBlockHeader(blockHeader1);
 		const certificate2 = computeCertificateFromBlockHeader(blockHeader2);

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { hash, intToBuffer, getRandomBytes } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { when } from 'jest-when';
@@ -79,7 +79,7 @@ describe('Sidechain registration command', () => {
 		certificateThreshold: BigInt(10),
 	};
 	const encodedTransactionParams = codec.encode(sidechainRegParams, transactionParams);
-	const publicKey = getRandomBytes(32);
+	const publicKey = utils.getRandomBytes(32);
 	const transaction = new Transaction({
 		moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
 		commandID: COMMAND_ID_SIDECHAIN_REG_BUFFER,
@@ -93,7 +93,7 @@ describe('Sidechain registration command', () => {
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
 		'hex',
 	);
-	const networkID = hash(Buffer.concat([Buffer.alloc(0), transaction.senderAddress]));
+	const networkID = utils.hash(Buffer.concat([Buffer.alloc(0), transaction.senderAddress]));
 	let sidechainRegistrationCommand: SidechainRegistrationCommand;
 	let stateStore: PrefixedStateReadWriter;
 	let nameSubstore: SubStore;
@@ -156,7 +156,7 @@ describe('Sidechain registration command', () => {
 		it('should return error if store key name already exists in name store', async () => {
 			await nameSubstore.setWithSchema(
 				Buffer.from(transactionParams.name, 'utf8'),
-				{ chainID: intToBuffer(0, 4) },
+				{ chainID: utils.intToBuffer(0, 4) },
 				nameSchema,
 			);
 			const result = await sidechainRegistrationCommand.verify(verifyContext);
@@ -170,7 +170,7 @@ describe('Sidechain registration command', () => {
 		it('should return error if store key networkID already exists in networkID store', async () => {
 			await networkIDSubstore.setWithSchema(
 				networkID,
-				{ chainID: intToBuffer(0, 4) },
+				{ chainID: utils.intToBuffer(0, 4) },
 				chainIDSchema,
 			);
 
@@ -184,7 +184,7 @@ describe('Sidechain registration command', () => {
 
 		it(`should return error if initValidators array count exceeds ${MAX_NUM_VALIDATORS}`, async () => {
 			verifyContext.params.initValidators = new Array(MAX_NUM_VALIDATORS + 2).fill({
-				blsKey: getRandomBytes(48),
+				blsKey: utils.getRandomBytes(48),
 				bftWeight: BigInt(1),
 			});
 			const result = await sidechainRegistrationCommand.verify(verifyContext);
@@ -207,7 +207,7 @@ describe('Sidechain registration command', () => {
 		it('should return error if bls key is below minimum length', async () => {
 			verifyContext.params.initValidators = [
 				{
-					blsKey: getRandomBytes(2),
+					blsKey: utils.getRandomBytes(2),
 					bftWeight: BigInt(10),
 				},
 			];
@@ -223,7 +223,7 @@ describe('Sidechain registration command', () => {
 		it('should return error if bls key is above maximum length', async () => {
 			verifyContext.params.initValidators = [
 				{
-					blsKey: getRandomBytes(50),
+					blsKey: utils.getRandomBytes(50),
 					bftWeight: BigInt(10),
 				},
 			];
@@ -357,7 +357,7 @@ describe('Sidechain registration command', () => {
 
 	describe('execute', () => {
 		const genesisBlockID = Buffer.alloc(0);
-		const newChainID = intToBuffer(2, 4);
+		const newChainID = utils.intToBuffer(2, 4);
 		const existingChainID = Buffer.alloc(4);
 		existingChainID.writeUInt32BE(1, 0);
 		const params = {
@@ -495,7 +495,7 @@ describe('Sidechain registration command', () => {
 				inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 				partnerChainOutboxRoot: EMPTY_HASH,
-				messageFeeTokenID: { chainID: intToBuffer(1, 4), localID: intToBuffer(0, 4) },
+				messageFeeTokenID: { chainID: utils.intToBuffer(1, 4), localID: utils.intToBuffer(0, 4) },
 			};
 
 			// Act
@@ -511,11 +511,11 @@ describe('Sidechain registration command', () => {
 
 		it('should call sendInternal with a registration ccm', async () => {
 			// Arrange
-			const receivingChainID = intToBuffer(2, 4);
+			const receivingChainID = utils.intToBuffer(2, 4);
 			const encodedParams = codec.encode(registrationCCMParamsSchema, {
 				networkID,
 				name: chainAccount.name,
-				messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: intToBuffer(0, 4) },
+				messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: utils.intToBuffer(0, 4) },
 			});
 
 			// Act

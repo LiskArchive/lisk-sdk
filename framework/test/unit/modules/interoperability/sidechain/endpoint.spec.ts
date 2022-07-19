@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { SidechainInteroperabilityEndpoint } from '../../../../../src/modules/interoperability/sidechain/endpoint';
 import { SidechainInteroperabilityStore } from '../../../../../src/modules/interoperability/sidechain/store';
 
 describe('Sidechain endpoint', () => {
-	const moduleID = intToBuffer(1, 4);
-	const chainID = intToBuffer(1, 4);
+	const moduleID = utils.intToBuffer(1, 4);
+	const chainID = utils.intToBuffer(1, 4);
 	const interoperableCCAPIs = new Map();
 	const getStore = jest.fn().mockReturnValue({ getWithSchema: jest.fn() });
 

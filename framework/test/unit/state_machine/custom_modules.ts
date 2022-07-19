@@ -13,7 +13,7 @@
  */
 /* eslint-disable max-classes-per-file */
 
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { BaseAPI, BaseCommand, BaseEndpoint, BaseModule } from '../../../src';
 import { TransactionVerifyResult } from '../../../src/abi';
 import { ModuleMetadata } from '../../../src/modules/base_module';
@@ -25,7 +25,7 @@ import {
 } from '../../../src/state_machine';
 
 export class CustomCommand0 extends BaseCommand {
-	public id = intToBuffer(0, 4);
+	public id = utils.intToBuffer(0, 4);
 	public name = 'customCommand0';
 	public schema = {
 		$id: '/lisk/customCommand0',
@@ -43,9 +43,9 @@ export class CustomCommand0 extends BaseCommand {
 }
 
 export class CustomModule0 extends BaseModule {
-	public id = intToBuffer(3, 4);
+	public id = utils.intToBuffer(3, 4);
 	public name = 'customModule0';
-	public commands = [new CustomCommand0(intToBuffer(3, 4))];
+	public commands = [new CustomCommand0(utils.intToBuffer(3, 4))];
 	public api = ({
 		testing: jest.fn(),
 	} as unknown) as BaseAPI;
@@ -64,7 +64,7 @@ export class CustomModule0 extends BaseModule {
 }
 
 export class CustomModule1 extends BaseModule {
-	public id = intToBuffer(4, 4);
+	public id = utils.intToBuffer(4, 4);
 	public name = 'customModule1';
 	public commands = [];
 	public endpoint: BaseEndpoint = {} as BaseEndpoint;
@@ -79,7 +79,7 @@ export class CustomModule1 extends BaseModule {
 }
 
 export class CustomCommand2 extends BaseCommand {
-	public id = intToBuffer(0, 4);
+	public id = utils.intToBuffer(0, 4);
 	public name = 'customCommand2';
 	public schema = {
 		$id: '/lisk/customCommand2',
@@ -96,16 +96,16 @@ export class CustomCommand2 extends BaseCommand {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async execute(ctx: TransactionExecuteContext): Promise<void> {
-		ctx.eventQueue.add(intToBuffer(5, 4), Buffer.from([0, 0, 0, 1]), Buffer.from([0, 0, 2]));
+		ctx.eventQueue.add(utils.intToBuffer(5, 4), Buffer.from([0, 0, 0, 1]), Buffer.from([0, 0, 2]));
 	}
 }
 
 export class CustomModule2 extends BaseModule {
-	public id = intToBuffer(5, 4);
+	public id = utils.intToBuffer(5, 4);
 	public name = 'customModule2';
 	public endpoint: BaseEndpoint = {} as BaseEndpoint;
 	public api: BaseAPI = {} as BaseAPI;
-	public commands = [new CustomCommand2(intToBuffer(5, 4))];
+	public commands = [new CustomCommand2(utils.intToBuffer(5, 4))];
 
 	public verifyTransaction = jest
 		.fn()

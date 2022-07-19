@@ -71,8 +71,8 @@ interface Transaction {
 const getParamsObject = async (metadata: ModuleMetadataJSON[], flags: CreateFlags, args: Args) => {
 	const paramsSchema = getParamsSchema(
 		metadata,
-		cryptography.intToBuffer(args.moduleID, 4).toString('hex'),
-		cryptography.intToBuffer(args.commandID, 4).toString('hex'),
+		cryptography.utils.intToBuffer(args.moduleID, 4).toString('hex'),
+		cryptography.utils.intToBuffer(args.commandID, 4).toString('hex'),
 	) as Schema;
 	const params = flags.params ? JSON.parse(flags.params) : await getParamsFromPrompt(paramsSchema);
 
@@ -86,11 +86,11 @@ const getPassphraseAddressAndPublicKey = async (flags: CreateFlags) => {
 
 	if (flags['no-signature']) {
 		publicKey = Buffer.from(flags['sender-public-key'] as string, 'hex');
-		address = cryptography.getAddressFromPublicKey(publicKey);
+		address = cryptography.address.getAddressFromPublicKey(publicKey);
 		passphrase = '';
 	} else {
 		passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
-		const result = cryptography.getAddressAndPublicKeyFromPassphrase(passphrase);
+		const result = cryptography.address.getAddressAndPublicKeyFromPassphrase(passphrase);
 		publicKey = result.publicKey;
 		address = result.address;
 	}
@@ -271,8 +271,8 @@ export abstract class CreateCommand extends Command {
 		const { args, flags } = this.parse(CreateCommand);
 
 		const incompleteTransaction = {
-			moduleID: cryptography.intToBuffer(args.moduleID, 4).toString('hex'),
-			commandID: cryptography.intToBuffer(args.commandID, 4).toString('hex'),
+			moduleID: cryptography.utils.intToBuffer(args.moduleID, 4).toString('hex'),
+			commandID: cryptography.utils.intToBuffer(args.commandID, 4).toString('hex'),
 			fee: args.fee,
 			nonce: '0',
 			senderPublicKey: '',

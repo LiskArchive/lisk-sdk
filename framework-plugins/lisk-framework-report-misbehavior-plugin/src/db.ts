@@ -18,7 +18,7 @@ import { ensureDir } from 'fs-extra';
 import { cryptography, codec, chain, db as liskDB, BasePlugin } from 'lisk-sdk';
 
 const { BlockHeader } = chain;
-const { hash } = cryptography;
+const { utils } = cryptography;
 
 export const blockHeadersSchema = {
 	$id: '/lisk/reportMisbehavior/blockHeaders',
@@ -77,7 +77,7 @@ export const saveBlockHeaders = async (
 	const dbKey = Buffer.concat([header.generatorAddress, Buffer.from(':', 'utf8'), heightBytes]);
 	const { blockHeaders } = await getBlockHeaders(db, dbKey);
 
-	if (!blockHeaders.find(blockHeader => hash(blockHeader).equals(header.id))) {
+	if (!blockHeaders.find(blockHeader => utils.hash(blockHeader).equals(header.id))) {
 		await db.set(
 			dbKey,
 			codec.encode(blockHeadersSchema, {

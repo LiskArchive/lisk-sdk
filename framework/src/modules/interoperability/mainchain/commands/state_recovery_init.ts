@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { intToBuffer, hash } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { sparseMerkleTree } from '@liskhq/lisk-tree';
 import {
 	CommandExecuteContext,
@@ -108,12 +108,12 @@ export class StateRecoveryInitCommand extends BaseInteroperabilityCommand {
 		}
 
 		const interopAccKey = Buffer.concat([
-			intToBuffer(MODULE_ID_INTEROPERABILITY, 4),
-			intToBuffer(STORE_PREFIX_CHAIN_DATA, 4),
+			utils.intToBuffer(MODULE_ID_INTEROPERABILITY, 4),
+			utils.intToBuffer(STORE_PREFIX_CHAIN_DATA, 4),
 			chainID,
 		]);
 
-		const query = { key: interopAccKey, value: hash(sidechainChainAccount), bitmap };
+		const query = { key: interopAccKey, value: utils.hash(sidechainChainAccount), bitmap };
 
 		const proofOfInclusion = { siblingHashes, queries: [query] };
 

@@ -13,7 +13,7 @@
  */
 
 import { when } from 'jest-when';
-import { getAddressFromPublicKey, getRandomBytes, hash } from '@liskhq/lisk-cryptography';
+import { utils, address } from '@liskhq/lisk-cryptography';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { BlockAssets, BlockHeader } from '@liskhq/lisk-chain';
 import { HighFeeGenerationStrategy } from '../../../../src/engine/generator/strategies';
@@ -73,7 +73,7 @@ const buildProcessableTxMock = (input: any, abi: ABI) => {
 			return getTxMock(tx, abi);
 		})
 		.reduce((res: any, tx: any) => {
-			const senderId = getAddressFromPublicKey(tx.senderPublicKey);
+			const senderId = address.getAddressFromPublicKey(tx.senderPublicKey);
 			let txs = res.get(senderId);
 			if (!txs) {
 				txs = [];
@@ -98,7 +98,7 @@ describe('strategies', () => {
 		const mockTxPool = {
 			getProcessableTransactions: jest.fn().mockReturnValue(new dataStructures.BufferMap()),
 		} as any;
-		const contextID = getRandomBytes(32);
+		const contextID = utils.getRandomBytes(32);
 		const consensus = {
 			currentValidators: [],
 			implyMaxPrevote: true,
@@ -118,12 +118,12 @@ describe('strategies', () => {
 				previousBlockID: Buffer.from('id'),
 				maxHeightGenerated: 0,
 				maxHeightPrevoted: 0,
-				assetRoot: hash(Buffer.alloc(0)),
-				transactionRoot: hash(Buffer.alloc(0)),
-				eventRoot: hash(Buffer.alloc(0)),
-				validatorsHash: hash(Buffer.alloc(0)),
+				assetRoot: utils.hash(Buffer.alloc(0)),
+				transactionRoot: utils.hash(Buffer.alloc(0)),
+				eventRoot: utils.hash(Buffer.alloc(0)),
+				validatorsHash: utils.hash(Buffer.alloc(0)),
 				signature: Buffer.alloc(0),
-				stateRoot: hash(Buffer.alloc(0)),
+				stateRoot: utils.hash(Buffer.alloc(0)),
 				aggregateCommit: {
 					aggregationBits: Buffer.alloc(0),
 					certificateSignature: Buffer.alloc(0),

@@ -14,12 +14,7 @@
  */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 import { Block, BlockHeader, Transaction, BlockHeaderAttrs, BlockAssets } from '@liskhq/lisk-chain';
-import {
-	getAddressFromPublicKey,
-	getPrivateAndPublicKeyFromPassphrase,
-	getRandomBytes,
-	hash,
-} from '@liskhq/lisk-cryptography';
+import { address, utils, ed } from '@liskhq/lisk-cryptography';
 import { MerkleTree } from '@liskhq/lisk-tree';
 
 interface CreateBlock {
@@ -37,11 +32,11 @@ export const createBlockHeaderWithDefaults = (header?: Partial<BlockHeaderAttrs>
 		version: header?.version ?? 2,
 		timestamp: header?.timestamp ?? 0,
 		height: header?.height ?? 1,
-		previousBlockID: header?.previousBlockID ?? hash(getRandomBytes(4)),
-		transactionRoot: header?.transactionRoot ?? hash(getRandomBytes(4)),
-		stateRoot: header?.stateRoot ?? hash(getRandomBytes(4)),
-		eventRoot: header?.eventRoot ?? hash(getRandomBytes(4)),
-		generatorAddress: header?.generatorAddress ?? getRandomBytes(32),
+		previousBlockID: header?.previousBlockID ?? utils.hash(utils.getRandomBytes(4)),
+		transactionRoot: header?.transactionRoot ?? utils.hash(utils.getRandomBytes(4)),
+		stateRoot: header?.stateRoot ?? utils.hash(utils.getRandomBytes(4)),
+		eventRoot: header?.eventRoot ?? utils.hash(utils.getRandomBytes(4)),
+		generatorAddress: header?.generatorAddress ?? utils.getRandomBytes(32),
 		aggregateCommit: header?.aggregateCommit ?? {
 			height: 0,
 			aggregationBits: Buffer.alloc(0),
@@ -49,14 +44,16 @@ export const createBlockHeaderWithDefaults = (header?: Partial<BlockHeaderAttrs>
 		},
 		maxHeightGenerated: header?.maxHeightGenerated ?? 0,
 		maxHeightPrevoted: header?.maxHeightPrevoted ?? 0,
-		assetRoot: header?.assetRoot ?? hash(getRandomBytes(4)),
-		validatorsHash: header?.validatorsHash ?? hash(getRandomBytes(4)),
+		assetRoot: header?.assetRoot ?? utils.hash(utils.getRandomBytes(4)),
+		validatorsHash: header?.validatorsHash ?? utils.hash(utils.getRandomBytes(4)),
 	});
 
 export const createFakeBlockHeader = (header?: Partial<BlockHeaderAttrs>): BlockHeader => {
 	const headerWithDefault = createBlockHeaderWithDefaults(header);
-	const { privateKey } = getPrivateAndPublicKeyFromPassphrase(getRandomBytes(10).toString('hex'));
-	headerWithDefault.sign(getRandomBytes(32), privateKey);
+	const { privateKey } = ed.getPrivateAndPublicKeyFromPassphrase(
+		utils.getRandomBytes(10).toString('hex'),
+	);
+	headerWithDefault.sign(utils.getRandomBytes(32), privateKey);
 	return headerWithDefault;
 };
 
@@ -69,7 +66,7 @@ export const createBlock = async ({
 	assets,
 	header,
 }: CreateBlock): Promise<Block> => {
-	const { publicKey, privateKey } = getPrivateAndPublicKeyFromPassphrase(passphrase);
+	const { publicKey, privateKey } = ed.getPrivateAndPublicKeyFromPassphrase(passphrase);
 	const txTree = new MerkleTree();
 	await txTree.init(transactions?.map(tx => tx.id) ?? []);
 
@@ -79,7 +76,7 @@ export const createBlock = async ({
 		transactionRoot: header?.transactionRoot ?? txTree.root,
 		eventRoot: header?.eventRoot,
 		stateRoot: header?.stateRoot,
-		generatorAddress: getAddressFromPublicKey(publicKey),
+		generatorAddress: address.getAddressFromPublicKey(publicKey),
 		...header,
 	});
 

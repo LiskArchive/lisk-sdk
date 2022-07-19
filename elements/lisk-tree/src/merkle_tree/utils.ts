@@ -13,7 +13,7 @@
  */
 /* eslint-disable no-bitwise */
 
-import { hash } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { binarySearch } from '../utils';
 import { BRANCH_PREFIX, LEAF_PREFIX, EMPTY_HASH } from './constants';
 import { NodeLocation, MerkleRootInfo } from './types';
@@ -21,7 +21,7 @@ import { NodeLocation, MerkleRootInfo } from './types';
 export const isLeaf = (value: Buffer): boolean => value[0] === LEAF_PREFIX[0];
 
 export const generateHash = (prefix: Buffer, leftHash: Buffer, rightHash: Buffer): Buffer =>
-	hash(
+	utils.hash(
 		Buffer.concat(
 			[prefix, leftHash, rightHash],
 			prefix.length + leftHash.length + rightHash.length,
@@ -91,7 +91,7 @@ export const calculateMerkleRoot = ({ value, appendPath, size }: MerkleRootInfo)
 	);
 
 	// Set current hash to hash of value
-	const newLeafHash = hash(leafValueWithPrefix);
+	const newLeafHash = utils.hash(leafValueWithPrefix);
 	let currentHash = newLeafHash;
 
 	// Count the 1's in binaryLength
@@ -147,7 +147,7 @@ export const calculateMerkleRootWithLeaves = (data: Buffer[]): Buffer => {
 			LEAF_PREFIX.length + data[0].length,
 		);
 
-		return hash(leafValueWithPrefix);
+		return utils.hash(leafValueWithPrefix);
 	}
 
 	const k = largestPowerOfTwoSmallerThan(data.length);

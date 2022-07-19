@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { TokenAPI } from '../../../../src/modules/token';
 import {
 	CCM_STATUS_OK,
@@ -42,7 +42,7 @@ import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefi
 import { fakeLogger } from '../../../utils/mocks';
 
 describe('CrossChain Forward command', () => {
-	const defaultAddress = getRandomBytes(20);
+	const defaultAddress = utils.getRandomBytes(20);
 	const defaultTokenIDAlias = Buffer.alloc(TOKEN_ID_LENGTH, 0);
 	const defaultTokenID = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
 	const defaultForeignTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
@@ -50,7 +50,7 @@ describe('CrossChain Forward command', () => {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
 			{
-				moduleID: intToBuffer(12, 4),
+				moduleID: utils.intToBuffer(12, 4),
 				amount: BigInt(100000000),
 			},
 		],
@@ -61,7 +61,7 @@ describe('CrossChain Forward command', () => {
 	const sendingChainID = Buffer.from([3, 0, 0, 0]);
 	const ccu = {
 		activeValidatorsUpdate: [],
-		certificate: getRandomBytes(20),
+		certificate: utils.getRandomBytes(20),
 		inboxUpdate: {
 			crossChainMessages: [],
 			messageWitness: {
@@ -172,14 +172,14 @@ describe('CrossChain Forward command', () => {
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
 						fee: BigInt(-3),
 						status: CCM_STATUS_OK,
-						params: getRandomBytes(30),
+						params: utils.getRandomBytes(30),
 					},
 					feeAddress: defaultAddress,
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: getRandomBytes(32),
+					networkIdentifier: utils.getRandomBytes(32),
 					ccu,
 					trsSender: defaultAddress,
 				}),
@@ -198,14 +198,14 @@ describe('CrossChain Forward command', () => {
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
 						fee,
 						status: CCM_STATUS_OK,
-						params: getRandomBytes(30),
+						params: utils.getRandomBytes(30),
 					},
 					feeAddress: defaultAddress,
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: getRandomBytes(32),
+					networkIdentifier: utils.getRandomBytes(32),
 					ccu,
 					trsSender: defaultAddress,
 				}),
@@ -226,14 +226,14 @@ describe('CrossChain Forward command', () => {
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
 						fee: fee + defaultEscrowAmount,
 						status: CCM_STATUS_OK,
-						params: getRandomBytes(30),
+						params: utils.getRandomBytes(30),
 					},
 					feeAddress: defaultAddress,
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: getRandomBytes(32),
+					networkIdentifier: utils.getRandomBytes(32),
 					ccu,
 					trsSender: defaultAddress,
 				}),
@@ -252,14 +252,14 @@ describe('CrossChain Forward command', () => {
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
 						fee,
 						status: CCM_STATUS_OK,
-						params: getRandomBytes(30),
+						params: utils.getRandomBytes(30),
 					},
 					feeAddress: defaultAddress,
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: getRandomBytes(32),
+					networkIdentifier: utils.getRandomBytes(32),
 					ccu,
 					trsSender: defaultAddress,
 				}),
@@ -285,14 +285,14 @@ describe('CrossChain Forward command', () => {
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
 						fee: BigInt(-3),
 						status: CCM_STATUS_OK,
-						params: getRandomBytes(30),
+						params: utils.getRandomBytes(30),
 					},
 					feeAddress: defaultAddress,
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: getRandomBytes(32),
+					networkIdentifier: utils.getRandomBytes(32),
 					trsSender: defaultAddress,
 				}),
 			).rejects.toThrow('Fee must be greater or equal to zero');
@@ -310,14 +310,14 @@ describe('CrossChain Forward command', () => {
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
 						fee,
 						status: CCM_STATUS_OK,
-						params: getRandomBytes(30),
+						params: utils.getRandomBytes(30),
 					},
 					feeAddress: defaultAddress,
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: getRandomBytes(32),
+					networkIdentifier: utils.getRandomBytes(32),
 					trsSender: defaultAddress,
 				}),
 			).resolves.toBeUndefined();
@@ -337,14 +337,14 @@ describe('CrossChain Forward command', () => {
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
 						fee: fee + defaultEscrowAmount,
 						status: CCM_STATUS_OK,
-						params: getRandomBytes(30),
+						params: utils.getRandomBytes(30),
 					},
 					feeAddress: defaultAddress,
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: getRandomBytes(32),
+					networkIdentifier: utils.getRandomBytes(32),
 					trsSender: defaultAddress,
 				}),
 			).resolves.toBeUndefined();
@@ -362,14 +362,14 @@ describe('CrossChain Forward command', () => {
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
 						fee,
 						status: CCM_STATUS_OK,
-						params: getRandomBytes(30),
+						params: utils.getRandomBytes(30),
 					},
 					feeAddress: defaultAddress,
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: getRandomBytes(32),
+					networkIdentifier: utils.getRandomBytes(32),
 					trsSender: defaultAddress,
 				}),
 			).resolves.toBeUndefined();
@@ -394,14 +394,14 @@ describe('CrossChain Forward command', () => {
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
 						fee: BigInt(-3),
 						status: CCM_STATUS_OK,
-						params: getRandomBytes(30),
+						params: utils.getRandomBytes(30),
 					},
 					feeAddress: defaultAddress,
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: getRandomBytes(32),
+					networkIdentifier: utils.getRandomBytes(32),
 				}),
 			).rejects.toThrow('Fee must be greater or equal to zero');
 		});
@@ -417,14 +417,14 @@ describe('CrossChain Forward command', () => {
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
 						fee,
 						status: CCM_STATUS_OK,
-						params: getRandomBytes(30),
+						params: utils.getRandomBytes(30),
 					},
 					feeAddress: defaultAddress,
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: getRandomBytes(32),
+					networkIdentifier: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			await expect(
@@ -443,14 +443,14 @@ describe('CrossChain Forward command', () => {
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
 						fee: fee + defaultAccount.availableBalance + BigInt(1),
 						status: CCM_STATUS_OK,
-						params: getRandomBytes(30),
+						params: utils.getRandomBytes(30),
 					},
 					feeAddress: defaultAddress,
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: getRandomBytes(32),
+					networkIdentifier: utils.getRandomBytes(32),
 				}),
 			).rejects.toThrow('does not have sufficient balance for fee');
 		});
@@ -466,14 +466,14 @@ describe('CrossChain Forward command', () => {
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
 						fee,
 						status: CCM_STATUS_OK,
-						params: getRandomBytes(30),
+						params: utils.getRandomBytes(30),
 					},
 					feeAddress: defaultAddress,
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: getRandomBytes(32),
+					networkIdentifier: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			await expect(
@@ -494,20 +494,20 @@ describe('CrossChain Forward command', () => {
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
 						fee: BigInt(-3),
 						status: CCM_STATUS_OK,
-						params: getRandomBytes(30),
+						params: utils.getRandomBytes(30),
 					},
 					feeAddress: defaultAddress,
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: getRandomBytes(32),
+					networkIdentifier: utils.getRandomBytes(32),
 					moduleID: MODULE_ID_TOKEN_BUFFER,
 					storeKey: Buffer.concat([defaultAddress, defaultTokenID]),
 					storePrefix: STORE_PREFIX_ESCROW,
 					storeValue: codec.encode(userStoreSchema, {
 						availableBalance: defaultAccount.availableBalance * BigInt(2),
-						lockedBalances: [{ moduleID: intToBuffer(3, 4), amount: BigInt(20) }],
+						lockedBalances: [{ moduleID: utils.intToBuffer(3, 4), amount: BigInt(20) }],
 					}),
 					terminatedChainID: sendingChainID,
 				}),
@@ -525,20 +525,20 @@ describe('CrossChain Forward command', () => {
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
 						fee: BigInt(-3),
 						status: CCM_STATUS_OK,
-						params: getRandomBytes(30),
+						params: utils.getRandomBytes(30),
 					},
 					feeAddress: defaultAddress,
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: getRandomBytes(32),
+					networkIdentifier: utils.getRandomBytes(32),
 					moduleID: MODULE_ID_TOKEN_BUFFER,
 					storeKey: Buffer.concat([defaultAddress, defaultTokenID, Buffer.alloc(20)]),
 					storePrefix: STORE_PREFIX_USER,
 					storeValue: codec.encode(userStoreSchema, {
 						availableBalance: defaultAccount.availableBalance * BigInt(2),
-						lockedBalances: [{ moduleID: intToBuffer(3, 4), amount: BigInt(20) }],
+						lockedBalances: [{ moduleID: utils.intToBuffer(3, 4), amount: BigInt(20) }],
 					}),
 					terminatedChainID: sendingChainID,
 				}),
@@ -556,20 +556,20 @@ describe('CrossChain Forward command', () => {
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
 						fee: BigInt(-3),
 						status: CCM_STATUS_OK,
-						params: getRandomBytes(30),
+						params: utils.getRandomBytes(30),
 					},
 					feeAddress: defaultAddress,
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: getRandomBytes(32),
+					networkIdentifier: utils.getRandomBytes(32),
 					moduleID: MODULE_ID_TOKEN_BUFFER,
 					storeKey: Buffer.concat([defaultAddress, defaultForeignTokenID]),
 					storePrefix: STORE_PREFIX_USER,
 					storeValue: codec.encode(userStoreSchema, {
 						availableBalance: defaultAccount.availableBalance * BigInt(2),
-						lockedBalances: [{ moduleID: intToBuffer(3, 4), amount: BigInt(20) }],
+						lockedBalances: [{ moduleID: utils.intToBuffer(3, 4), amount: BigInt(20) }],
 					}),
 					terminatedChainID: sendingChainID,
 				}),
@@ -577,7 +577,7 @@ describe('CrossChain Forward command', () => {
 		});
 
 		it('should reject if not enough balance is escrowed', async () => {
-			const recipient = getRandomBytes(20);
+			const recipient = utils.getRandomBytes(20);
 			await expect(
 				tokenInteropAPI.recover({
 					ccm: {
@@ -588,20 +588,20 @@ describe('CrossChain Forward command', () => {
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
 						fee: BigInt(-3),
 						status: CCM_STATUS_OK,
-						params: getRandomBytes(30),
+						params: utils.getRandomBytes(30),
 					},
 					feeAddress: defaultAddress,
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: getRandomBytes(32),
+					networkIdentifier: utils.getRandomBytes(32),
 					moduleID: MODULE_ID_TOKEN_BUFFER,
 					storeKey: Buffer.concat([recipient, defaultTokenID]),
 					storePrefix: STORE_PREFIX_USER,
 					storeValue: codec.encode(userStoreSchema, {
 						availableBalance: defaultEscrowAmount,
-						lockedBalances: [{ moduleID: intToBuffer(3, 4), amount: BigInt(20) }],
+						lockedBalances: [{ moduleID: utils.intToBuffer(3, 4), amount: BigInt(20) }],
 					}),
 					terminatedChainID: sendingChainID,
 				}),
@@ -609,7 +609,7 @@ describe('CrossChain Forward command', () => {
 		});
 
 		it('should deduct escrowed amount for the total recovered amount', async () => {
-			const recipient = getRandomBytes(20);
+			const recipient = utils.getRandomBytes(20);
 			await expect(
 				tokenInteropAPI.recover({
 					ccm: {
@@ -620,14 +620,14 @@ describe('CrossChain Forward command', () => {
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
 						fee: BigInt(-3),
 						status: CCM_STATUS_OK,
-						params: getRandomBytes(30),
+						params: utils.getRandomBytes(30),
 					},
 					feeAddress: defaultAddress,
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: getRandomBytes(32),
+					networkIdentifier: utils.getRandomBytes(32),
 					moduleID: MODULE_ID_TOKEN_BUFFER,
 					storeKey: Buffer.concat([recipient, defaultTokenID]),
 					storePrefix: STORE_PREFIX_USER,
@@ -645,7 +645,7 @@ describe('CrossChain Forward command', () => {
 		});
 
 		it('should credit the address for the total recovered amount', async () => {
-			const recipient = getRandomBytes(20);
+			const recipient = utils.getRandomBytes(20);
 			await expect(
 				tokenInteropAPI.recover({
 					ccm: {
@@ -656,14 +656,14 @@ describe('CrossChain Forward command', () => {
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
 						fee: BigInt(-3),
 						status: CCM_STATUS_OK,
-						params: getRandomBytes(30),
+						params: utils.getRandomBytes(30),
 					},
 					feeAddress: defaultAddress,
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: getRandomBytes(32),
+					networkIdentifier: utils.getRandomBytes(32),
 					moduleID: MODULE_ID_TOKEN_BUFFER,
 					storeKey: Buffer.concat([recipient, defaultTokenID]),
 					storePrefix: STORE_PREFIX_USER,

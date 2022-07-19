@@ -13,35 +13,40 @@
  */
 
 import { EVENT_MAX_EVENT_SIZE_BYTES } from '@liskhq/lisk-chain';
-import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { EventQueue } from '../../../src/state_machine/event_queue';
 
 describe('EventQueue', () => {
 	// Arrange
 	const events = [
 		{
-			moduleID: intToBuffer(3, 4),
+			moduleID: utils.intToBuffer(3, 4),
 			typeID: Buffer.from([0, 0, 0, 0]),
-			data: getRandomBytes(20),
-			topics: [getRandomBytes(32), getRandomBytes(20)],
+			data: utils.getRandomBytes(20),
+			topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],
 		},
 		{
-			moduleID: intToBuffer(4, 4),
+			moduleID: utils.intToBuffer(4, 4),
 			typeID: Buffer.from([0, 0, 0, 0]),
-			data: getRandomBytes(20),
-			topics: [getRandomBytes(32), getRandomBytes(20)],
+			data: utils.getRandomBytes(20),
+			topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],
 		},
 		{
-			moduleID: intToBuffer(2, 4),
+			moduleID: utils.intToBuffer(2, 4),
 			typeID: Buffer.from([0, 0, 0, 0]),
-			data: getRandomBytes(20),
-			topics: [getRandomBytes(32)],
+			data: utils.getRandomBytes(20),
+			topics: [utils.getRandomBytes(32)],
 		},
 		{
-			moduleID: intToBuffer(1, 4),
+			moduleID: utils.intToBuffer(1, 4),
 			typeID: Buffer.from([0, 0, 0, 0]),
-			data: getRandomBytes(20),
-			topics: [getRandomBytes(32), getRandomBytes(20), getRandomBytes(20), getRandomBytes(20)],
+			data: utils.getRandomBytes(20),
+			topics: [
+				utils.getRandomBytes(32),
+				utils.getRandomBytes(20),
+				utils.getRandomBytes(20),
+				utils.getRandomBytes(20),
+			],
 		},
 	];
 	let eventQueue: EventQueue;
@@ -53,10 +58,10 @@ describe('EventQueue', () => {
 	it('should throw error if data size exceeds maximum allowed', () => {
 		expect(() =>
 			eventQueue.add(
-				intToBuffer(2, 4),
+				utils.intToBuffer(2, 4),
 				Buffer.from([0, 0, 0, 1]),
-				getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES + 1),
-				[getRandomBytes(32)],
+				utils.getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES + 1),
+				[utils.getRandomBytes(32)],
 			),
 		).toThrow('Max size of event data is');
 	});
@@ -64,9 +69,9 @@ describe('EventQueue', () => {
 	it('should throw error if topics is empty', () => {
 		expect(() =>
 			eventQueue.add(
-				intToBuffer(2, 4),
+				utils.intToBuffer(2, 4),
 				Buffer.from([0, 0, 0, 1]),
-				getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES),
+				utils.getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES),
 				[],
 			),
 		).toThrow('Topics must have at least one element');
@@ -75,10 +80,10 @@ describe('EventQueue', () => {
 	it('should throw error if topics length exceeds maxumum allowed', () => {
 		expect(() =>
 			eventQueue.add(
-				intToBuffer(2, 4),
+				utils.intToBuffer(2, 4),
 				Buffer.from([0, 0, 0, 1]),
-				getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES),
-				new Array(5).fill(0).map(() => getRandomBytes(32)),
+				utils.getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES),
+				new Array(5).fill(0).map(() => utils.getRandomBytes(32)),
 			),
 		).toThrow('Max topics per event is');
 	});
@@ -104,8 +109,8 @@ describe('EventQueue', () => {
 		expect(eventQueue.getEvents()).toHaveLength(events.length);
 
 		eventQueue.createSnapshot();
-		eventQueue.add(intToBuffer(3, 4), Buffer.from([0, 0, 0, 1]), getRandomBytes(100), [
-			getRandomBytes(32),
+		eventQueue.add(utils.intToBuffer(3, 4), Buffer.from([0, 0, 0, 1]), utils.getRandomBytes(100), [
+			utils.getRandomBytes(32),
 		]);
 		eventQueue.restoreSnapshot();
 
@@ -125,24 +130,24 @@ describe('EventQueue', () => {
 
 		eventQueue.createSnapshot();
 		eventQueue.add(
-			intToBuffer(3, 4),
+			utils.intToBuffer(3, 4),
 			Buffer.from([0, 0, 0, 1]),
-			getRandomBytes(100),
-			[getRandomBytes(32)],
+			utils.getRandomBytes(100),
+			[utils.getRandomBytes(32)],
 			false,
 		);
 		eventQueue.add(
-			intToBuffer(3, 4),
+			utils.intToBuffer(3, 4),
 			Buffer.from([0, 0, 0, 1]),
-			getRandomBytes(100),
-			[getRandomBytes(32)],
+			utils.getRandomBytes(100),
+			[utils.getRandomBytes(32)],
 			true,
 		);
 		eventQueue.add(
-			intToBuffer(3, 4),
+			utils.intToBuffer(3, 4),
 			Buffer.from([0, 0, 0, 1]),
-			getRandomBytes(100),
-			[getRandomBytes(32)],
+			utils.getRandomBytes(100),
+			[utils.getRandomBytes(32)],
 			false,
 		);
 		eventQueue.restoreSnapshot();

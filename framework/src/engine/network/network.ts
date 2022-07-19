@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { Database, NotFoundError } from '@liskhq/lisk-db';
 import { EventEmitter } from 'events';
 import * as liskP2P from '@liskhq/lisk-p2p';
@@ -150,7 +150,7 @@ export class Network {
 		}
 
 		if (!secret) {
-			secret = getRandomBytes(4);
+			secret = utils.getRandomBytes(4);
 			await this._nodeDB.set(DB_KEY_NETWORK_NODE_SECRET, secret);
 		}
 

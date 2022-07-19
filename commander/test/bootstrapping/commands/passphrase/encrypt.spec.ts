@@ -56,12 +56,12 @@ describe('passphrase:encrypt', () => {
 		jest.spyOn(process.stdout, 'write').mockImplementation(val => stdout.push(val as string) > -1);
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
 		jest.spyOn(EncryptCommand.prototype, 'printJSON').mockReturnValue();
-		jest.spyOn(cryptography, 'getKeys').mockReturnValue(defaultKeys as never);
+		jest.spyOn(cryptography.ed, 'getKeys').mockReturnValue(defaultKeys as never);
 		jest
-			.spyOn(cryptography, 'encryptPassphraseWithPassword')
+			.spyOn(cryptography.encrypt, 'encryptPassphraseWithPassword')
 			.mockResolvedValue(encryptedPassphraseObject as never);
 		jest
-			.spyOn(cryptography, 'stringifyEncryptedPassphrase')
+			.spyOn(cryptography.encrypt, 'stringifyEncryptedPassphrase')
 			.mockReturnValue(encryptedPassphraseString);
 		jest.spyOn(readerUtils, 'getPassphraseFromPrompt').mockImplementation(async (name?: string) => {
 			if (name === 'passphrase') {
@@ -80,11 +80,11 @@ describe('passphrase:encrypt', () => {
 	describe('passphrase:encrypt', () => {
 		it('should encrypt passphrase', async () => {
 			await EncryptCommand.run([], config);
-			expect(cryptography.encryptPassphraseWithPassword).toHaveBeenCalledWith(
+			expect(cryptography.encrypt.encryptPassphraseWithPassword).toHaveBeenCalledWith(
 				defaultInputs.passphrase,
 				defaultInputs.password,
 			);
-			expect(cryptography.stringifyEncryptedPassphrase).toHaveBeenCalledWith(
+			expect(cryptography.encrypt.stringifyEncryptedPassphrase).toHaveBeenCalledWith(
 				encryptedPassphraseObject,
 			);
 			expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase', true);
@@ -103,11 +103,11 @@ describe('passphrase:encrypt', () => {
 	describe('passphrase:encrypt --output-public-key', () => {
 		it('should encrypt passphrase and output public key', async () => {
 			await EncryptCommand.run(['--output-public-key'], config);
-			expect(cryptography.encryptPassphraseWithPassword).toHaveBeenCalledWith(
+			expect(cryptography.encrypt.encryptPassphraseWithPassword).toHaveBeenCalledWith(
 				defaultInputs.passphrase,
 				defaultInputs.password,
 			);
-			expect(cryptography.stringifyEncryptedPassphrase).toHaveBeenCalledWith(
+			expect(cryptography.encrypt.stringifyEncryptedPassphrase).toHaveBeenCalledWith(
 				encryptedPassphraseObject,
 			);
 			expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase', true);
@@ -128,11 +128,11 @@ describe('passphrase:encrypt', () => {
 				['--passphrase=enemy pill squeeze gold spoil aisle awake thumb congress false box wagon'],
 				config,
 			);
-			expect(cryptography.encryptPassphraseWithPassword).toHaveBeenCalledWith(
+			expect(cryptography.encrypt.encryptPassphraseWithPassword).toHaveBeenCalledWith(
 				defaultInputs.passphrase,
 				defaultInputs.password,
 			);
-			expect(cryptography.stringifyEncryptedPassphrase).toHaveBeenCalledWith(
+			expect(cryptography.encrypt.stringifyEncryptedPassphrase).toHaveBeenCalledWith(
 				encryptedPassphraseObject,
 			);
 			expect(readerUtils.getPassphraseFromPrompt).not.toHaveBeenCalledWith('passphrase', true);
@@ -155,11 +155,11 @@ describe('passphrase:encrypt', () => {
 				],
 				config,
 			);
-			expect(cryptography.encryptPassphraseWithPassword).toHaveBeenCalledWith(
+			expect(cryptography.encrypt.encryptPassphraseWithPassword).toHaveBeenCalledWith(
 				defaultInputs.passphrase,
 				defaultInputs.password,
 			);
-			expect(cryptography.stringifyEncryptedPassphrase).toHaveBeenCalledWith(
+			expect(cryptography.encrypt.stringifyEncryptedPassphrase).toHaveBeenCalledWith(
 				encryptedPassphraseObject,
 			);
 			expect(readerUtils.getPassphraseFromPrompt).not.toHaveBeenCalledWith('passphrase', true);

@@ -13,7 +13,7 @@
  */
 
 import { Transaction } from '@liskhq/lisk-chain';
-import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { when } from 'jest-when';
@@ -41,10 +41,10 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		const ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
 
 		transactionParams = {
-			chainID: intToBuffer(3, 4),
+			chainID: utils.intToBuffer(3, 4),
 			crossChainMessages: [...ccmsEncoded],
 			idxs: [0],
-			siblingHashes: [getRandomBytes(32)],
+			siblingHashes: [utils.getRandomBytes(32)],
 		};
 
 		encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
@@ -55,7 +55,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 			fee: BigInt(100000000),
 			nonce: BigInt(0),
 			params: encodedTransactionParams,
-			senderPublicKey: getRandomBytes(32),
+			senderPublicKey: utils.getRandomBytes(32),
 			signatures: [],
 		});
 
@@ -78,7 +78,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		| 'terminatedOutboxAccountExist'
 	>;
 
-	const moduleID = intToBuffer(1, 4);
+	const moduleID = utils.intToBuffer(1, 4);
 
 	let messageRecoveryCommand: SidechainMessageRecoveryCommand;
 	let commandExecuteContext: CommandExecuteContext<MessageRecoveryParams>;
@@ -105,19 +105,19 @@ describe('Sidechain MessageRecoveryCommand', () => {
 			{
 				nonce: BigInt(0),
 				moduleID,
-				crossChainCommandID: intToBuffer(1, 4),
-				sendingChainID: intToBuffer(2, 4),
-				receivingChainID: intToBuffer(3, 4),
+				crossChainCommandID: utils.intToBuffer(1, 4),
+				sendingChainID: utils.intToBuffer(2, 4),
+				receivingChainID: utils.intToBuffer(3, 4),
 				fee: BigInt(1),
 				status: 1,
 				params: Buffer.alloc(0),
 			},
 			{
 				nonce: BigInt(1),
-				moduleID: intToBuffer(moduleID.readInt32BE(0) + 1, 4),
-				crossChainCommandID: intToBuffer(1, 4),
-				sendingChainID: intToBuffer(2, 4),
-				receivingChainID: intToBuffer(3, 4),
+				moduleID: utils.intToBuffer(moduleID.readInt32BE(0) + 1, 4),
+				crossChainCommandID: utils.intToBuffer(1, 4),
+				sendingChainID: utils.intToBuffer(2, 4),
+				receivingChainID: utils.intToBuffer(3, 4),
 				fee: BigInt(1),
 				status: 1,
 				params: Buffer.alloc(0),
@@ -174,7 +174,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		when(storeMock.getTerminatedOutboxAccount)
 			.calledWith(chainID)
 			.mockResolvedValue({
-				outboxRoot: getRandomBytes(32),
+				outboxRoot: utils.getRandomBytes(32),
 				outboxSize: 1,
 				partnerChainInboxSize: 1,
 			});
@@ -207,10 +207,10 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		// Arrange & Assign
 		const newCcm = {
 			nonce: BigInt(2),
-			moduleID: intToBuffer(moduleID.readInt32BE(0) + 1, 4),
-			crossChainCommandID: intToBuffer(2, 4),
-			sendingChainID: intToBuffer(3, 4),
-			receivingChainID: intToBuffer(2, 4),
+			moduleID: utils.intToBuffer(moduleID.readInt32BE(0) + 1, 4),
+			crossChainCommandID: utils.intToBuffer(2, 4),
+			sendingChainID: utils.intToBuffer(3, 4),
+			receivingChainID: utils.intToBuffer(2, 4),
 			fee: BigInt(1),
 			status: 1,
 			params: Buffer.alloc(0),
@@ -296,7 +296,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 				.calledWith()
 				.mockResolvedValue({
 					name: `chain${chainID.toString('hex')}`,
-					id: intToBuffer(0, 4),
+					id: utils.intToBuffer(0, 4),
 					nonce: BigInt(0),
 				});
 		}
@@ -335,7 +335,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		ccCommands.set(moduleID.readInt32BE(0), ([
 			{
 				moduleID,
-				ID: intToBuffer(3000, 4),
+				ID: utils.intToBuffer(3000, 4),
 				name: 'ccCommand',
 				execute: jest.fn(),
 				schema: {

@@ -14,7 +14,7 @@
 
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec, Schema } from '@liskhq/lisk-codec';
-import { intToBuffer, verifyData } from '@liskhq/lisk-cryptography';
+import { utils, ed } from '@liskhq/lisk-cryptography';
 import { isHexString } from '@liskhq/lisk-validator';
 import { VerificationResult, VerifyStatus } from '../../state_machine';
 import { InvalidNonceError } from './errors';
@@ -31,7 +31,7 @@ export const validateSignature = (
 	transactionBytes: Buffer,
 	id: Buffer,
 ): void => {
-	const valid = verifyData(tag, networkIdentifier, transactionBytes, signature, publicKey);
+	const valid = ed.verifyData(tag, networkIdentifier, transactionBytes, signature, publicKey);
 
 	if (!valid) {
 		throw new Error(
@@ -205,4 +205,4 @@ export const getTransactionFromParameter = (transactionParameter: unknown) => {
 	return transaction;
 };
 
-export const getIDAsKeyForStore = (id: number) => intToBuffer(id, 4);
+export const getIDAsKeyForStore = (id: number) => utils.intToBuffer(id, 4);

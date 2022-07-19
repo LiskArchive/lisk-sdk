@@ -16,7 +16,7 @@ import {} from 'lisk-framework';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as transactions from '@liskhq/lisk-transactions';
 import { codec, Schema } from '@liskhq/lisk-codec';
-import { intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 
 const account = {
 	passphrase: 'endless focus guilt bronze hold economy bulk parent soon tower cement venue',
@@ -125,7 +125,7 @@ export const genesisBlockID = Buffer.from(
 );
 export const communityIdentifier = 'Lisk';
 
-export const networkIdentifier = cryptography.getNetworkIdentifier(
+export const networkIdentifier = cryptography.utils.getNetworkIdentifier(
 	genesisBlockID,
 	communityIdentifier,
 );
@@ -145,8 +145,8 @@ export const createTransferTransaction = ({
 }): Record<string, unknown> => {
 	const transaction = transactions.signTransaction(
 		{
-			moduleID: intToBuffer(2, 4),
-			commandID: intToBuffer(0, 4),
+			moduleID: utils.intToBuffer(2, 4),
+			commandID: utils.intToBuffer(0, 4),
 			nonce: BigInt(nonce),
 			fee: BigInt(transactions.convertLSKToBeddows(fee)),
 			senderPublicKey: Buffer.from(account.publicKey, 'hex'),

@@ -13,18 +13,42 @@
  *
  */
 import { BINARY_ADDRESS_LENGTH, DEFAULT_LISK32_ADDRESS_PREFIX } from './constants';
-// eslint-disable-next-line import/no-cycle
-import { convertUInt5ToBase32, convertUIntArray } from './convert';
-import { hash } from './hash';
-import { getKeyPair, getPublicKey } from './nacl';
-import { Keypair } from './types';
+import { getKeys } from './ed';
+import { getPublicKey } from './nacl';
+import { hash } from './utils';
 
-export const getPrivateAndPublicKeyFromPassphrase = (passphrase: string): Keypair => {
-	const hashed = hash(passphrase, 'utf8');
-	return getKeyPair(hashed);
+const CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';
+
+const convertUIntArray = (uintArray: number[], fromBits: number, toBits: number): number[] => {
+	// eslint-disable-next-line no-bitwise
+	const maxValue = (1 << toBits) - 1;
+	let accumulator = 0;
+	let bits = 0;
+	const result = [];
+	// eslint-disable-next-line
+	for (let p = 0; p < uintArray.length; p += 1) {
+		const byte = uintArray[p];
+		// check that the entry is a value between 0 and 2^frombits-1
+		// eslint-disable-next-line no-bitwise
+		if (byte < 0 || byte >> fromBits !== 0) {
+			return [];
+		}
+
+		// eslint-disable-next-line no-bitwise
+		accumulator = (accumulator << fromBits) | byte;
+		bits += fromBits;
+		while (bits >= toBits) {
+			bits -= toBits;
+			// eslint-disable-next-line no-bitwise
+			result.push((accumulator >> bits) & maxValue);
+		}
+	}
+
+	return result;
 };
 
-export const getKeys = getPrivateAndPublicKeyFromPassphrase;
+const convertUInt5ToBase32 = (uint5Array: number[]): string =>
+	uint5Array.map((val: number) => CHARSET[val]).join('');
 
 export const getAddressFromPublicKey = (publicKey: Buffer): Buffer => {
 	const buffer = hash(publicKey);
@@ -83,7 +107,7 @@ const polymod = (uint5Array: number[]): number => {
 	return chk;
 };
 
-export const createChecksum = (uint5Array: number[]): number[] => {
+const createChecksum = (uint5Array: number[]): number[] => {
 	const values = uint5Array.concat([0, 0, 0, 0, 0, 0]);
 	// eslint-disable-next-line no-bitwise
 	const mod = polymod(values) ^ 1;
@@ -95,8 +119,7 @@ export const createChecksum = (uint5Array: number[]): number[] => {
 	return result;
 };
 
-export const verifyChecksum = (integerSequence: number[]): boolean =>
-	polymod(integerSequence) === 1;
+const verifyChecksum = (integerSequence: number[]): boolean => polymod(integerSequence) === 1;
 
 const addressToLisk32 = (address: Buffer): string => {
 	const byteSequence = [];

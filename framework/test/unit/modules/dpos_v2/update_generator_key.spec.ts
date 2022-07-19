@@ -14,7 +14,7 @@
 
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../../src/testing';
 import { UpdateGeneratorKeyCommand } from '../../../../src/modules/dpos_v2/commands/update_generator_key';
 import {
@@ -37,12 +37,12 @@ describe('Update generator key command', () => {
 	let delegateSubstore: PrefixedStateReadWriter;
 
 	const transactionParams = codec.encode(updateGeneratorKeyCommandParamsSchema, {
-		generatorKey: getRandomBytes(32),
+		generatorKey: utils.getRandomBytes(32),
 	});
-	const publicKey = getRandomBytes(32);
+	const publicKey = utils.getRandomBytes(32);
 	const transaction = new Transaction({
 		moduleID: MODULE_ID_DPOS_BUFFER,
-		commandID: intToBuffer(COMMAND_ID_UPDATE_GENERATOR_KEY, 4),
+		commandID: utils.intToBuffer(COMMAND_ID_UPDATE_GENERATOR_KEY, 4),
 		senderPublicKey: publicKey,
 		nonce: BigInt(0),
 		fee: BigInt(100000000),
@@ -93,11 +93,11 @@ describe('Update generator key command', () => {
 
 		it('should return error if generatorKey is invalid', async () => {
 			const invalidParams = codec.encode(updateGeneratorKeyCommandParamsSchema, {
-				generatorKey: getRandomBytes(64),
+				generatorKey: utils.getRandomBytes(64),
 			});
 			const invalidTransaction = new Transaction({
 				moduleID: MODULE_ID_DPOS_BUFFER,
-				commandID: intToBuffer(COMMAND_ID_UPDATE_GENERATOR_KEY, 4),
+				commandID: utils.intToBuffer(COMMAND_ID_UPDATE_GENERATOR_KEY, 4),
 				senderPublicKey: publicKey,
 				nonce: BigInt(0),
 				fee: BigInt(100000000),

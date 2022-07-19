@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Lisk Foundation
+ * Copyright © 2022 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,14 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as crypto from 'crypto';
+import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { encode as encodeVarInt } from 'varuint-bitcoin';
-import { SIGNED_MESSAGE_PREFIX } from './constants';
-import { hash } from './hash';
-import { getPrivateAndPublicKeyFromPassphrase } from './keys';
-import { tagMessage } from './message_tag';
+import { parseKeyDerivationPath, hash, tagMessage } from './utils';
+import { ED25519_CURVE, SIGNED_MESSAGE_PREFIX } from './constants';
 import {
 	NACL_SIGN_PUBLICKEY_LENGTH,
 	NACL_SIGN_SIGNATURE_LENGTH,
+	getKeyPair,
+	getPublicKey,
 	signDetached,
 	verifyDetached,
 } from './nacl';
@@ -34,12 +36,7 @@ const signatureFooter = createHeader('END LISK SIGNED MESSAGE');
 const SIGNED_MESSAGE_PREFIX_BYTES = Buffer.from(SIGNED_MESSAGE_PREFIX, 'utf8');
 const SIGNED_MESSAGE_PREFIX_LENGTH = encodeVarInt(SIGNED_MESSAGE_PREFIX.length);
 
-export interface SignedMessageWithOnePassphrase {
-	readonly message: string;
-	readonly publicKey: Buffer;
-	readonly signature: Buffer;
-}
-export const digestMessage = (message: string): Buffer => {
+const digestMessage = (message: string): Buffer => {
 	const msgBytes = Buffer.from(message, 'utf8');
 	const msgLenBytes = encodeVarInt(message.length);
 	const dataBytes = Buffer.concat([
@@ -51,6 +48,60 @@ export const digestMessage = (message: string): Buffer => {
 
 	return hash(hash(dataBytes));
 };
+
+export const getPublicKeyFromPrivateKey = (pk: Buffer): Buffer => getPublicKey(pk);
+
+export const getPrivateAndPublicKeyFromPassphrase = (passphrase: string) => {
+	const hashed = hash(passphrase, 'utf8');
+	return getKeyPair(hashed);
+};
+
+export const getKeys = getPrivateAndPublicKeyFromPassphrase;
+
+const getMasterKeyFromSeed = (seed: Buffer) => {
+	const hmac = crypto.createHmac('sha512', ED25519_CURVE);
+	const digest = hmac.update(seed).digest();
+	const leftBytes = digest.slice(0, 32);
+	const rightBytes = digest.slice(32);
+	return {
+		key: leftBytes,
+		chainCode: rightBytes,
+	};
+};
+
+const getChildKey = (node: { key: Buffer; chainCode: Buffer }, index: number) => {
+	const indexBuffer = Buffer.allocUnsafe(4);
+	indexBuffer.writeUInt32BE(index, 0);
+	const data = Buffer.concat([Buffer.alloc(1, 0), node.key, indexBuffer]);
+	const digest = crypto.createHmac('sha512', node.chainCode).update(data).digest();
+	const leftBytes = digest.slice(0, 32);
+	const rightBytes = digest.slice(32);
+
+	return {
+		key: leftBytes,
+		chainCode: rightBytes,
+	};
+};
+
+export const getKeyPairFromPhraseAndPath = async (
+	phrase: string,
+	path: string,
+): Promise<Buffer> => {
+	const masterSeed = await Mnemonic.mnemonicToSeed(phrase);
+	let node = getMasterKeyFromSeed(masterSeed);
+
+	for (const segment of parseKeyDerivationPath(path)) {
+		node = getChildKey(node, segment);
+	}
+
+	return getKeyPair(node.key).privateKey;
+};
+
+export interface SignedMessageWithOnePassphrase {
+	readonly message: string;
+	readonly publicKey: Buffer;
+	readonly signature: Buffer;
+}
 
 export const signMessageWithPassphrase = (
 	message: string,

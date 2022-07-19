@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { verifyMessageWithPublicKey } from '@liskhq/lisk-cryptography';
+import { ed } from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../base';
@@ -33,7 +33,7 @@ const processInputs = (publicKey: string, signature: string, message?: string) =
 	}
 
 	return {
-		verified: verifyMessageWithPublicKey({
+		verified: ed.verifyMessageWithPublicKey({
 			publicKey: Buffer.from(publicKey, 'hex'),
 			signature: Buffer.from(signature, 'hex'),
 			message,

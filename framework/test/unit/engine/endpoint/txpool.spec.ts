@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { getRandomBytes, intToBuffer } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { Chain, Transaction, Event } from '@liskhq/lisk-chain';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { LiskValidationError } from '@liskhq/lisk-validator';
@@ -29,9 +29,9 @@ describe('generator endpoint', () => {
 	const logger: Logger = fakeLogger;
 	const tx = new Transaction({
 		params: Buffer.alloc(20),
-		commandID: intToBuffer(0, 4),
+		commandID: utils.intToBuffer(0, 4),
 		fee: BigInt(100000),
-		moduleID: intToBuffer(2, 4),
+		moduleID: utils.intToBuffer(2, 4),
 		nonce: BigInt(0),
 		senderPublicKey: Buffer.alloc(32),
 		signatures: [Buffer.alloc(64)],
@@ -39,7 +39,7 @@ describe('generator endpoint', () => {
 	const networkIdentifier = Buffer.alloc(0);
 	const events = [
 		{
-			data: getRandomBytes(32),
+			data: utils.getRandomBytes(32),
 			index: 0,
 			moduleID: Buffer.from([0, 0, 0, 3]),
 			topics: [Buffer.from([0])],
