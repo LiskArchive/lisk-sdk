@@ -1,0 +1,6 @@
+{
+	"name": "@liskhq/lisk-framework-chain-connector-plugin",
+	"dependencies": {
+		"lisk-sdk": "^6.0.0-alpha.0"
+	}
+}
