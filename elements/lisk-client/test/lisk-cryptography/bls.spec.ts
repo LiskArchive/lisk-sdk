@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 /*
  * Copyright © 2022 Lisk Foundation
  *
