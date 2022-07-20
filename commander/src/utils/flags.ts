@@ -55,7 +55,7 @@ const outputDescription = 'The output directory. Default will set to current wor
 
 const transactionParametersInputFile = `Transaction parameters input file.
 	Example:
-	- ./transaction-parameters.json
+		--file=./transaction-parameters.json
 `;
 
 export type AlphabetLowercase =

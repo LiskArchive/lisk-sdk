@@ -156,6 +156,7 @@ const getDataFromFile = (filePath: string) => fs.readFileSync(filePath, 'utf8');
 const ERROR_DATA_MISSING = 'No data was provided.';
 const ERROR_DATA_SOURCE = 'Unknown data source type.';
 const INVALID_JSON_FILE = 'Not a JSON file.';
+const FILE_NOT_FOUND = 'no such file or directory.';
 
 export const isFileSource = (source?: string): boolean => {
 	if (!source) {
@@ -360,7 +361,7 @@ export const getParamsFromPrompt = async (
 export const getFileExtension = (filePath: string): string => {
 	const ext = path.extname(filePath);
 
-	if (!ext) {
+	if (!ext || ext !== '.json') {
 		throw new ValidationError(INVALID_JSON_FILE);
 	}
 
@@ -372,7 +373,7 @@ export const readParamsFile = (filePath: string): string => {
 		const params = fs.readFileSync(filePath, 'utf8');
 		return params;
 	} catch (err) {
-		throw new ValidationError(INVALID_JSON_FILE);
+		throw new ValidationError(FILE_NOT_FOUND);
 	}
 };
 
@@ -383,7 +384,7 @@ export const getFileParams = (filePath: string): string => {
 	if (ext === '.json') {
 		data = readParamsFile(filePath);
 	} else {
-		throw new Error('Not a JSON file');
+		throw new ValidationError(INVALID_JSON_FILE);
 	}
 
 	return data;

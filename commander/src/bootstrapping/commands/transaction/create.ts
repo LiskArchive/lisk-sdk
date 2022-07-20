@@ -79,9 +79,7 @@ const getParamsObject = async (metadata: ModuleMetadataJSON[], flags: CreateFlag
 	) as Schema;
 
 	if (flags.file) {
-		params = flags.file
-			? JSON.parse(getFileParams(flags.file))
-			: await getParamsFromPrompt(paramsSchema);
+		params = JSON.parse(getFileParams(flags.file));
 	} else {
 		params = flags.params ? JSON.parse(flags.params) : await getParamsFromPrompt(paramsSchema);
 	}
@@ -239,6 +237,8 @@ export abstract class CreateCommand extends Command {
 		'transaction:create 2 0 100000000 --params=\'{"amount":100000000,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}\'',
 		'transaction:create 2 0 100000000 --params=\'{"amount":100000000,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}\' --json',
 		'transaction:create 2 0 100000000 --offline --network mainnet --network-identifier 873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3 --nonce 1 --params=\'{"amount":100000000,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}\'',
+		'transaction:create 2 0 100000000 --file=/txn_params.json',
+		'transaction:create 2 0 100000000 --file=/txn_params.json --json',
 	];
 
 	static flags = {
