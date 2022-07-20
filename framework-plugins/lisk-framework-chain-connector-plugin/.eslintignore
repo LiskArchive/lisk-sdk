@@ -1,0 +1,5 @@
+dist-node
+**/*.d.ts
+jest.config.js
+.eslintrc.js
+.eslintrc.test.js
