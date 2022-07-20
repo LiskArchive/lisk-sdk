@@ -53,6 +53,11 @@ const prettyDescription = 'Prints JSON in pretty format rather than condensed.';
 
 const outputDescription = 'The output directory. Default will set to current working directory.';
 
+const transactionParametersInputFile = `Transaction parameters input file.
+	Example:
+	- ./transaction-parameters.json
+`;
+
 export type AlphabetLowercase =
 	| 'a'
 	| 'b'
@@ -138,6 +143,10 @@ export const flags: FlagMap = {
 		description:
 			'Sign the transaction with provided sender public key, when passphrase is not provided',
 	},
+	file: {
+		char: 'f',
+		description: transactionParametersInputFile,
+	},
 };
 
 export const flagsWithParser = {
@@ -164,4 +173,5 @@ export const flagsWithParser = {
 	json: flagParser.boolean(flags.json),
 	senderPublicKey: flagParser.string(flags.senderPublicKey),
 	networkIdentifier: flagParser.string(flags.networkIdentifier),
+	file: flagParser.string(flags.file),
 };
