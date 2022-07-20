@@ -12,26 +12,21 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BasePlugin, PluginInitContext, Transaction, apiClient } from 'lisk-sdk';
+import { BasePlugin, PluginInitContext, apiClient } from 'lisk-sdk';
 import { CCM_BASED_CCU_FREQUENCY, LIVENESS_BASED_CCU_FREQUENCY } from './constants';
 import { configSchema } from './schemas';
-import { ChainConnectorPluginConfig } from './types';
+import { ChainConnectorPluginConfig, SentCCUs } from './types';
 
 interface CCUFrequencyConfig {
 	ccm: number;
 	liveness: number;
 }
 
-type SentCCUs = Transaction[];
-
 export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig> {
 	public name = 'chainConnector';
 	public configSchema = configSchema;
 	private _lastCertifiedHeight!: number;
-	private _ccuFrequency: CCUFrequencyConfig = {
-		ccm: CCM_BASED_CCU_FREQUENCY,
-		liveness: LIVENESS_BASED_CCU_FREQUENCY,
-	};
+	private _ccuFrequency!: CCUFrequencyConfig;
 	private _mainchainAPIClient!: apiClient.APIClient;
 	private _sidechainAPIClient?: apiClient.APIClient;
 	private readonly _sentCCUs: SentCCUs = [];
