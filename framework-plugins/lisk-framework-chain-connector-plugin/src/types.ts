@@ -11,3 +11,10 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+export interface ChainConnectorPluginConfig {
+	mainchainIPCPath: string;
+	sidechainIPCPath: string;
+	ccmBasedFrequency: number;
+	livenessBasedFrequency: number;
+}

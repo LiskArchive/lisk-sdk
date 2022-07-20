@@ -11,3 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+export const CCM_BASED_CCU_FREQUENCY = 10;
+export const LIVENESS_BASED_CCU_FREQUENCY = 86400; // Approximately 10 days which is 33% of 1 month liveness condition
