@@ -46,7 +46,6 @@ describe('WSServer', () => {
 
 			jest.spyOn(WebSocket.Server.prototype, 'on');
 
-			wsServerInstance.registerAllowedEvent(['app_newBlock']);
 			wsServerInstance.start(logger, wsMessageHandler);
 		});
 
@@ -73,11 +72,33 @@ describe('WSServer', () => {
 	describe('stop()', () => {
 		it('should call stop on the WS server', () => {
 			wsServerInstance = new WSServer(config);
-			wsServerInstance.registerAllowedEvent(['app_newBlock']);
 			wsServerInstance.start(logger, wsMessageHandler);
 			const stopSpy = jest.spyOn(wsServerInstance.server, 'close');
 			wsServerInstance.stop();
 			expect(stopSpy).toHaveBeenCalled();
+		});
+	});
+
+	describe('_handleConnection', () => {
+		it('should add tracking properties', () => {
+			const socket = {
+				on: jest.fn(),
+			} as any;
+			wsServerInstance['_handleConnection'](socket, jest.fn);
+
+			expect(socket.id).not.toBeEmpty();
+			expect(socket.isAlive).toBeTrue();
+		});
+
+		it('should register handlers', () => {
+			const socket = {
+				on: jest.fn(),
+			};
+			wsServerInstance['_handleConnection'](socket as never, jest.fn);
+
+			expect(socket.on).toHaveBeenCalledWith('message', expect.any(Function));
+			expect(socket.on).toHaveBeenCalledWith('pong', expect.any(Function));
+			expect(socket.on).toHaveBeenCalledWith('close', expect.any(Function));
 		});
 	});
 });
