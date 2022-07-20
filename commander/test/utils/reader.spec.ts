@@ -22,6 +22,8 @@ import {
 	getPassphraseFromPrompt,
 	isFileSource,
 	readFileSource,
+	getFileExtension,
+	readParamsFile,
 } from '../../src/utils/reader';
 
 describe('reader', () => {
@@ -160,6 +162,51 @@ describe('reader', () => {
 					.mockReturnValue(createFakeInterface(multilineStdContents) as any);
 				const result = await readStdIn();
 				return expect(result).toEqual(['passphrase', 'password', 'data']);
+			});
+		});
+
+		describe('getFileExtension', () => {
+			it('should return a json file extension', () => {
+				const filePath = './some/path.json';
+				const fileExtension = getFileExtension(filePath);
+
+				return expect(fileExtension).toEqual('.json');
+			});
+
+			it('should throw an error if no file extension is passed', () => {
+				const filePath = './some/path';
+				expect(() => getFileExtension(filePath)).toThrow('Not a JSON file.');
+			});
+		});
+
+		describe('readParamsFile', () => {
+			const filePath = './some/path.json';
+			const fileData = {
+				tokenID: '0000000000000000',
+				amount: 100000000,
+				recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
+				data: 'send token',
+			};
+
+			beforeEach(() => {
+				jest.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify(fileData));
+			});
+
+			it('should read a json file', () => {
+				const result = readParamsFile(filePath);
+				return expect(JSON.parse(result)).toEqual(fileData);
+			});
+
+			it('should have an amount', () => {
+				const result = readParamsFile(filePath);
+				return expect(JSON.parse(result).amount).toEqual(100000000);
+			});
+
+			it('should have a recipient address', () => {
+				const result = readParamsFile(filePath);
+				return expect(JSON.parse(result).recipientAddress).toEqual(
+					'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
+				);
 			});
 		});
 	});
