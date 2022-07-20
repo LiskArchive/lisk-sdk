@@ -12,9 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { Transaction } from 'lisk-sdk';
+
 export interface ChainConnectorPluginConfig {
 	mainchainIPCPath: string;
 	sidechainIPCPath: string;
 	ccmBasedFrequency: number;
 	livenessBasedFrequency: number;
 }
+
+export type SentCCUs = Transaction[];
