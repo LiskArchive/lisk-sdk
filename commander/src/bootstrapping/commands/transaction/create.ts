@@ -32,7 +32,7 @@ import {
 import { PromiseResolvedType } from '../../../types';
 import { flagsWithParser } from '../../../utils/flags';
 import { getDefaultPath } from '../../../utils/path';
-import { getParamsFromPrompt, getPassphraseFromPrompt } from '../../../utils/reader';
+import { getParamsFromPrompt, getPassphraseFromPrompt, getFileParams } from '../../../utils/reader';
 import {
 	encodeTransaction,
 	getApiClient,
@@ -56,6 +56,7 @@ interface CreateFlags {
 	'no-signature': boolean;
 	'sender-public-key'?: string;
 	nonce?: string;
+	file?: string;
 }
 
 interface Transaction {
@@ -69,14 +70,23 @@ interface Transaction {
 }
 
 const getParamsObject = async (metadata: ModuleMetadataJSON[], flags: CreateFlags, args: Args) => {
+	let params: Record<string, unknown>;
+
 	const paramsSchema = getParamsSchema(
 		metadata,
 		cryptography.utils.intToBuffer(args.moduleID, 4).toString('hex'),
 		cryptography.utils.intToBuffer(args.commandID, 4).toString('hex'),
 	) as Schema;
-	const params = flags.params ? JSON.parse(flags.params) : await getParamsFromPrompt(paramsSchema);
 
-	return params as Record<string, unknown>;
+	if (flags.file) {
+		params = flags.file
+			? JSON.parse(getFileParams(flags.file))
+			: await getParamsFromPrompt(paramsSchema);
+	} else {
+		params = flags.params ? JSON.parse(flags.params) : await getParamsFromPrompt(paramsSchema);
+	}
+
+	return params;
 };
 
 const getPassphraseAddressAndPublicKey = async (flags: CreateFlags) => {
@@ -260,6 +270,7 @@ export abstract class CreateCommand extends Command {
 		}),
 		'data-path': flagsWithParser.dataPath,
 		pretty: flagsWithParser.pretty,
+		file: flagsWithParser.file,
 	};
 
 	protected _client!: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
