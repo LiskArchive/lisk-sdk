@@ -16,6 +16,7 @@
 import { Schema } from '@liskhq/lisk-codec';
 import * as liskPassphrase from '@liskhq/lisk-passphrase';
 
+import * as path from 'path';
 import * as fs from 'fs';
 import * as inquirer from 'inquirer';
 import * as readline from 'readline';
@@ -145,13 +146,16 @@ export const getPasswordFromPrompt = async (
 	return password;
 };
 
-const getFileDoesNotExistError = (path: string): string => `File at ${path} does not exist.`;
-const getFileUnreadableError = (path: string): string => `File at ${path} could not be read.`;
+const getFileDoesNotExistError = (filePath: string): string =>
+	`File at ${filePath} does not exist.`;
+const getFileUnreadableError = (filePath: string): string =>
+	`File at ${filePath} could not be read.`;
 
-const getDataFromFile = (path: string) => fs.readFileSync(path, 'utf8');
+const getDataFromFile = (filePath: string) => fs.readFileSync(filePath, 'utf8');
 
 const ERROR_DATA_MISSING = 'No data was provided.';
 const ERROR_DATA_SOURCE = 'Unknown data source type.';
+const INVALID_JSON_FILE = 'Not a JSON file.';
 
 export const isFileSource = (source?: string): boolean => {
 	if (!source) {
@@ -171,23 +175,23 @@ export const readFileSource = async (source?: string): Promise<string> => {
 		throw new ValidationError(ERROR_DATA_MISSING);
 	}
 
-	const { sourceType, sourceIdentifier: path } = splitSource(source);
+	const { sourceType, sourceIdentifier: filePath } = splitSource(source);
 
 	if (sourceType !== 'file') {
 		throw new ValidationError(ERROR_DATA_SOURCE);
 	}
 	try {
-		return getDataFromFile(path);
+		return getDataFromFile(filePath);
 	} catch (error) {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const { message } = error;
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
 		if (message.match(/ENOENT/)) {
-			throw new FileSystemError(getFileDoesNotExistError(path));
+			throw new FileSystemError(getFileDoesNotExistError(filePath));
 		}
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
 		if (message.match(/EACCES/)) {
-			throw new FileSystemError(getFileUnreadableError(path));
+			throw new FileSystemError(getFileUnreadableError(filePath));
 		}
 		throw error;
 	}
@@ -351,4 +355,36 @@ export const getParamsFromPrompt = async (
 	return isTypeConfirm
 		? transformNestedAsset(assetSchema, filteredResult)
 		: transformAsset(assetSchema, result as Record<string, string>);
+};
+
+export const getFileExtension = (filePath: string): string => {
+	const ext = path.extname(filePath);
+
+	if (!ext) {
+		throw new ValidationError(INVALID_JSON_FILE);
+	}
+
+	return ext;
+};
+
+export const readParamsFile = (filePath: string): string => {
+	try {
+		const params = fs.readFileSync(filePath, 'utf8');
+		return params;
+	} catch (err) {
+		throw new ValidationError(INVALID_JSON_FILE);
+	}
+};
+
+export const getFileParams = (filePath: string): string => {
+	let data = '';
+	const ext = getFileExtension(filePath);
+
+	if (ext === '.json') {
+		data = readParamsFile(filePath);
+	} else {
+		throw new Error('Not a JSON file');
+	}
+
+	return data;
 };
