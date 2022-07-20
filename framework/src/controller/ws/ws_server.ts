@@ -31,7 +31,7 @@ export class WSServer {
 	private readonly _port: number;
 	private readonly _host?: string;
 	private readonly _path: string;
-	// subscription holds url: event names array
+	// subscription holds id: event names array
 	private readonly _subscriptions: Record<string, Set<string>> = {};
 
 	public constructor(options: { port: number; host?: string; path: string }) {
