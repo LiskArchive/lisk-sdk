@@ -38,9 +38,10 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(context: PluginInitContext): Promise<void> {
 		await super.init(context);
-		this._ccuFrequency.ccm = this.config.ccmBasedFrequency || CCM_BASED_CCU_FREQUENCY;
-		this._ccuFrequency.liveness =
-			this.config.livenessBasedFrequency || LIVENESS_BASED_CCU_FREQUENCY;
+		this._ccuFrequency = {
+			ccm: this.config.ccmBasedFrequency || CCM_BASED_CCU_FREQUENCY,
+			liveness: this.config.livenessBasedFrequency || LIVENESS_BASED_CCU_FREQUENCY,
+		};
 	}
 
 	public async load(): Promise<void> {
@@ -50,7 +51,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 		// TODO: After DB issue we need to fetch the last sent CCUs and assign it to _sentCCUs
 		// eslint-disable-next-line no-console
-		console.log(this._lastCertifiedHeight, this._sentCCUs);
+		console.log(this._lastCertifiedHeight, this._sentCCUs, this._ccuFrequency);
 		// TODO: Fetch the certificate height from last sent CCU and update the height
 		this._lastCertifiedHeight = 0;
 	}
