@@ -22,7 +22,7 @@ import {
 	getPassphraseFromPrompt,
 	isFileSource,
 	readFileSource,
-	getFileExtension,
+	checkFileExtension,
 	readParamsFile,
 } from '../../src/utils/reader';
 
@@ -165,17 +165,15 @@ describe('reader', () => {
 			});
 		});
 
-		describe('getFileExtension', () => {
-			it('should return a json file extension', () => {
-				const filePath = './some/path.json';
-				const fileExtension = getFileExtension(filePath);
-
-				return expect(fileExtension).toEqual('.json');
-			});
-
+		describe('checkFileExtension', () => {
 			it('should throw an error if no file extension is passed', () => {
 				const filePath = './some/path';
-				expect(() => getFileExtension(filePath)).toThrow('Not a JSON file.');
+				expect(() => checkFileExtension(filePath)).toThrow('Not a JSON file.');
+			});
+
+			it('should throw an error if file extension is not .json', () => {
+				const filePath = './some/path.txt';
+				expect(() => checkFileExtension(filePath)).toThrow('Not a JSON file.');
 			});
 		});
 
