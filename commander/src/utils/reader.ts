@@ -358,14 +358,12 @@ export const getParamsFromPrompt = async (
 		: transformAsset(assetSchema, result as Record<string, string>);
 };
 
-export const getFileExtension = (filePath: string): string => {
+export const checkFileExtension = (filePath: string): void => {
 	const ext = path.extname(filePath);
 
 	if (!ext || ext !== '.json') {
 		throw new ValidationError(INVALID_JSON_FILE);
 	}
-
-	return ext;
 };
 
 export const readParamsFile = (filePath: string): string => {
@@ -378,6 +376,6 @@ export const readParamsFile = (filePath: string): string => {
 };
 
 export const getFileParams = (filePath: string): string => {
-	getFileExtension(filePath);
+	checkFileExtension(filePath);
 	return readParamsFile(filePath);
 };
