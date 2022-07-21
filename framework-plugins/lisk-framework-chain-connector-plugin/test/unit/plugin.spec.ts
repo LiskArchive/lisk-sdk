@@ -69,7 +69,6 @@ describe('ChainConnectorPlugin', () => {
 			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue({} as never);
 			await chainConnectorPlugin.load();
 			expect(chainConnectorPlugin['_mainchainAPIClient']).not.toBeUndefined();
-			expect(chainConnectorPlugin['_sidechainAPIClient']).toBeUndefined();
 		});
 
 		it('should initialize api clients with sidechain', async () => {
