@@ -156,7 +156,7 @@ const getDataFromFile = (filePath: string) => fs.readFileSync(filePath, 'utf8');
 const ERROR_DATA_MISSING = 'No data was provided.';
 const ERROR_DATA_SOURCE = 'Unknown data source type.';
 const INVALID_JSON_FILE = 'Not a JSON file.';
-const FILE_NOT_FOUND = 'no such file or directory.';
+const FILE_NOT_FOUND = 'No such file or directory.';
 
 export const isFileSource = (source?: string): boolean => {
 	if (!source) {
@@ -378,14 +378,6 @@ export const readParamsFile = (filePath: string): string => {
 };
 
 export const getFileParams = (filePath: string): string => {
-	let data = '';
-	const ext = getFileExtension(filePath);
-
-	if (ext === '.json') {
-		data = readParamsFile(filePath);
-	} else {
-		throw new ValidationError(INVALID_JSON_FILE);
-	}
-
-	return data;
+	getFileExtension(filePath);
+	return readParamsFile(filePath);
 };
