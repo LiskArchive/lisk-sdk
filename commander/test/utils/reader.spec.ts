@@ -192,21 +192,22 @@ describe('reader', () => {
 				jest.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify(fileData));
 			});
 
-			it('should read a json file', () => {
+			it('should read a json file and check that an amount value and a recipient address are contained in the file', () => {
 				const result = readParamsFile(filePath);
-				return expect(JSON.parse(result)).toEqual(fileData);
-			});
 
-			it('should have an amount', () => {
-				const result = readParamsFile(filePath);
-				return expect(JSON.parse(result).amount).toEqual(100000000);
-			});
-
-			it('should have a recipient address', () => {
-				const result = readParamsFile(filePath);
-				return expect(JSON.parse(result).recipientAddress).toEqual(
+				expect(JSON.parse(result)).toEqual(fileData);
+				expect(JSON.parse(result).amount).toEqual(100000000);
+				expect(JSON.parse(result).recipientAddress).toEqual(
 					'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
 				);
+			});
+
+			it('should throw an error if the file is not found', () => {
+				jest.spyOn(fs, 'readFileSync').mockImplementation(() => {
+					throw new Error('ENOENT');
+				});
+
+				expect(() => readParamsFile(filePath)).toThrow(`No such file or directory.`);
 			});
 		});
 	});
