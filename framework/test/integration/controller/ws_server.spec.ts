@@ -27,7 +27,6 @@ describe('WSServer', () => {
 			port,
 			host: '0.0.0.0',
 		});
-		server.registerAllowedEvent(['app_block', 'random']);
 		server.start(fakeLogger, (socket, message) => {
 			handler(socket, message);
 		});
