@@ -53,9 +53,9 @@ const prettyDescription = 'Prints JSON in pretty format rather than condensed.';
 
 const outputDescription = 'The output directory. Default will set to current working directory.';
 
-const transactionParametersInputFile = `Transaction parameters input file.
+const fileDescription = `The file to upload.
 	Example:
-		--file=./transaction-parameters.json
+		--file=./myfile.json
 `;
 
 export type AlphabetLowercase =
@@ -145,7 +145,7 @@ export const flags: FlagMap = {
 	},
 	file: {
 		char: 'f',
-		description: transactionParametersInputFile,
+		description: fileDescription,
 	},
 };
 
