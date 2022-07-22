@@ -32,7 +32,7 @@ import {
 import { PromiseResolvedType } from '../../../types';
 import { flagsWithParser } from '../../../utils/flags';
 import { getDefaultPath } from '../../../utils/path';
-import { getParamsFromPrompt, getPassphraseFromPrompt } from '../../../utils/reader';
+import { getParamsFromPrompt, getPassphraseFromPrompt, getFileParams } from '../../../utils/reader';
 import {
 	encodeTransaction,
 	getApiClient,
@@ -56,6 +56,7 @@ interface CreateFlags {
 	'no-signature': boolean;
 	'sender-public-key'?: string;
 	nonce?: string;
+	file?: string;
 }
 
 interface Transaction {
@@ -69,14 +70,21 @@ interface Transaction {
 }
 
 const getParamsObject = async (metadata: ModuleMetadataJSON[], flags: CreateFlags, args: Args) => {
+	let params: Record<string, unknown>;
+
 	const paramsSchema = getParamsSchema(
 		metadata,
 		cryptography.utils.intToBuffer(args.moduleID, 4).toString('hex'),
 		cryptography.utils.intToBuffer(args.commandID, 4).toString('hex'),
 	) as Schema;
-	const params = flags.params ? JSON.parse(flags.params) : await getParamsFromPrompt(paramsSchema);
 
-	return params as Record<string, unknown>;
+	if (flags.file) {
+		params = JSON.parse(getFileParams(flags.file));
+	} else {
+		params = flags.params ? JSON.parse(flags.params) : await getParamsFromPrompt(paramsSchema);
+	}
+
+	return params;
 };
 
 const getPassphraseAddressAndPublicKey = async (flags: CreateFlags) => {
@@ -229,6 +237,8 @@ export abstract class CreateCommand extends Command {
 		'transaction:create 2 0 100000000 --params=\'{"amount":100000000,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}\'',
 		'transaction:create 2 0 100000000 --params=\'{"amount":100000000,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}\' --json',
 		'transaction:create 2 0 100000000 --offline --network mainnet --network-identifier 873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3 --nonce 1 --params=\'{"amount":100000000,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}\'',
+		'transaction:create 2 0 100000000 --file=/txn_params.json',
+		'transaction:create 2 0 100000000 --file=/txn_params.json --json',
 	];
 
 	static flags = {
@@ -260,6 +270,7 @@ export abstract class CreateCommand extends Command {
 		}),
 		'data-path': flagsWithParser.dataPath,
 		pretty: flagsWithParser.pretty,
+		file: flagsWithParser.file,
 	};
 
 	protected _client!: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
