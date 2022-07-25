@@ -14,6 +14,7 @@
 
 import { codec } from '../src/codec';
 import { buildTestCases, getAccountFromJSON } from './utils';
+import { writeSInt64 } from '../src/varint';
 
 import { testCases as accountTestCases } from '../fixtures/account_decodings.json';
 import { testCases as arrayTestCases } from '../fixtures/arrays_decodings.json';
@@ -129,6 +130,27 @@ describe('decode', () => {
 
 			expect(result).toEqual(object);
 		});
+
+		// TODO: #7210
+		it.skip('should fail when decoding a binary message that does not respect the fieldNumber order', () => {});
+
+		// TODO: #7210
+		it.skip('should fail when decoding where one fieldNumber is used twice', () => {});
+
+		// TODO: #7210
+		it.skip('should decode a binary message where the fieldNumbers in the schema are not sequential', () => {});
+
+		// TODO: #7210
+		it.skip('should not decode a binary message where one required property (not of type array) is not contained in the binary message ', () => {});
+
+		// TODO: #7210
+		it.skip('should not decode a binary message that contains a field number not present in the schema', () => {});
+
+		// TODO: #7210
+		it.skip('should not decode a binary message that contains some bytes at the end that cannot be decoded to some key-value pairs. E.g., a binary message contatenated with the byte 0x00', () => {});
+
+		// TODO: #7210
+		it.skip('should not decode a binary message which contains a key-value pair for a property of type array for which packed encoding is used (for example boolean), and the value exist as empty bytes', () => {});
 	});
 
 	describe('cart_sample', () => {
@@ -174,6 +196,24 @@ describe('decode', () => {
 			const result = codec.decode(input.schema, Buffer.from(input.value, 'hex'));
 
 			expect(result).toEqual(object);
+		});
+
+		it('should fail when decoding out of range sint', () => {
+			const schema = {
+				$id: 'number-schema-sint32',
+				type: 'object',
+				properties: {
+					number: {
+						dataType: 'sint32',
+						fieldNumber: 1,
+					},
+				},
+			};
+			const MAX_SINT64 = BigInt('9223372036854775807'); // BigInt(2 ** (64 - 1) - 1) -1
+
+			expect(() => codec.decode(schema, writeSInt64(MAX_SINT64))).toThrow(
+				'Value out of range of uint32',
+			);
 		});
 	});
 
@@ -222,6 +262,26 @@ describe('decode', () => {
 			const result = codec.decode(input.schema, Buffer.from(input.value, 'hex'));
 
 			expect(result).toEqual(output.object);
+		});
+
+		it('should decode a string that contains some non-ASCII characters', () => {
+			const schema = {
+				$id: 'string-schema',
+				type: 'object',
+				properties: {
+					data: {
+						dataType: 'string',
+						fieldNumber: 1,
+					},
+				},
+			};
+
+			const result = codec.decode(
+				schema,
+				Buffer.from('0a18436865636b6f7574204c69736b2053444b21c2a2c2a3c2a1', 'hex'),
+			);
+
+			expect(result).toEqual({ data: 'Checkout Lisk SDK!¢£¡' });
 		});
 	});
 
