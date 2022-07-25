@@ -63,6 +63,26 @@ describe('encode', () => {
 
 			expect(result.toString('hex')).toEqual(output.value);
 		});
+
+		it('should encode empty array where the datatype of the items implies non-packed encoding e.g. string', () => {
+			const schema = {
+				type: 'object',
+				$id: 'array-schema-string',
+				properties: {
+					list: {
+						type: 'array',
+						items: {
+							dataType: 'string',
+						},
+						fieldNumber: 1,
+					},
+				},
+			};
+
+			const result = codec.encode(schema, { list: [] });
+
+			expect(result.toString('hex')).toEqual('');
+		});
 	});
 
 	describe('block_asset', () => {
@@ -205,6 +225,50 @@ describe('encode', () => {
 
 			expect(result.toString('hex')).toEqual(testCase.output.value);
 		});
+
+		// TODO: #7210
+		it.skip('should encode when object has fieldNumbers which are not sequential', () => {
+			const schema = {
+				$id: 'objectTest',
+				type: 'object',
+				properties: {
+					address: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					balance: {
+						dataType: 'uint32',
+						fieldNumber: 3,
+					},
+				},
+			};
+
+			expect(() => codec.encode(schema, { address: Buffer.alloc(1), balance: 1 })).not.toThrow();
+		});
+
+		// TODO: #7210
+		it.skip('should fail to encode when object has a property that is not contained in the schema', () => {
+			const schema = {
+				$id: 'objectTest',
+				type: 'object',
+				properties: {
+					address: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					balance: {
+						dataType: 'uint32',
+						fieldNumber: 2,
+					},
+				},
+			};
+
+			expect(() =>
+				codec.encode(schema, {
+					invalidProperty: 'invalid',
+				}),
+			).toThrow('should fail');
+		});
 	});
 
 	describe('peer info', () => {
@@ -220,6 +284,25 @@ describe('encode', () => {
 			const result = codec.encode(input.schema, input.object);
 
 			expect(result.toString('hex')).toEqual(output.value);
+		});
+
+		it('should encode a string that contains some non-ASCII characters', () => {
+			const schema = {
+				$id: 'string-schema',
+				type: 'object',
+				properties: {
+					data: {
+						dataType: 'string',
+						fieldNumber: 1,
+					},
+				},
+			};
+
+			const result = codec.encode(schema, {
+				data: 'Checkout Lisk SDK!¢£¡',
+			});
+
+			expect(result.toString('hex')).not.toThrow();
 		});
 	});
 
