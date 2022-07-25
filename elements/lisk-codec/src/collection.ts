@@ -139,8 +139,12 @@ export const readObject = (
 				result[typeSchema[0].propertyName] = arr;
 				index = nextOffset;
 			} else if (typeSchema[0].schemaProp.type === 'object') {
-				// It should be wire type 2 as it's object
-				const [, keySize] = readUInt32(message, index);
+				const [key, keySize] = readUInt32(message, index);
+				const [fieldNumber] = readKey(key);
+				if (fieldNumber !== typeSchema[0].schemaProp.fieldNumber) {
+					throw new Error('Invalid field number while decoding');
+				}
+
 				index += keySize;
 				// Takeout the length
 				const [objectSize, objectSizeLength] = readUInt32(message, index);
@@ -166,9 +170,7 @@ export const readObject = (
 		const [key, keySize] = readUInt32(message, index);
 		const [fieldNumber] = readKey(key);
 		if (fieldNumber !== typeSchema.schemaProp.fieldNumber) {
-			// assign default value
-			result[typeSchema.propertyName] = getDefaultValue(typeSchema.schemaProp.dataType as string);
-			continue;
+			throw new Error('Invalid field number while decoding');
 		}
 		// Index is only incremented when the key is actually used
 		index += keySize;
@@ -181,6 +183,11 @@ export const readObject = (
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		result[typeSchema.propertyName] = scalarValue;
 	}
+
+	if (!(index === terminateIndex)) {
+		throw new Error('Failed to readObject');
+	}
+
 	return [result, index];
 };
 
@@ -194,6 +201,10 @@ export const readArray = (
 	// Takeout the root wireType and field number
 	let index = offset;
 	if (index >= message.length) {
+		if (!(index === terminateIndex)) {
+			throw new Error('Failed to readObject');
+		}
+
 		return [[], index];
 	}
 	const startingByte = message[index];
@@ -230,6 +241,11 @@ export const readArray = (
 				result.push(res);
 				index = nextOffset;
 			}
+
+			if (!(index === terminateIndex)) {
+				throw new Error('Failed to readObject');
+			}
+
 			return [result, index];
 		}
 		throw new Error('Invalid container type');
@@ -258,6 +274,11 @@ export const readArray = (
 			result.push(res);
 			index += wire2Size;
 		}
+
+		if (!(index === terminateIndex)) {
+			throw new Error('Failed to readObject');
+		}
+
 		return [result, index];
 	}
 	const [, keySize] = readUInt32(message, index);
