@@ -13,16 +13,16 @@
  */
 import * as ed2curve from 'ed2curve';
 import {
-	EncryptedPassphraseObject,
+	EncryptedMessageObject,
 	EncryptedMessageWithNonce,
 	encryptMessageWithPassphrase,
 	decryptMessageWithPassphrase,
-	encryptPassphraseWithPassword,
-	decryptPassphraseWithPassword,
+	encryptMessageWithPassword,
+	decryptMessageWithPassword,
 	KDF,
 	Cipher,
-	parseEncryptedPassphrase,
-	stringifyEncryptedPassphrase,
+	parseEncryptedMessage,
+	stringifyEncryptedMessage,
 } from '../src/encrypt';
 import * as utils from '../src/utils';
 import * as address from '../src/address';
@@ -148,67 +148,75 @@ describe('encrypt', () => {
 			);
 		});
 
-		describe('#encryptPassphraseWithPassword', () => {
-			let encryptedPassphrase: EncryptedPassphraseObject;
+		describe('#encryptMessageWithPassword', () => {
+			let encryptedMessage: EncryptedMessageObject;
 			const passphrase =
 				'target cancel solution recipe vague faint bomb convince pink vendor fresh patrol';
 			const password = 'testpassword';
 
 			beforeEach(async () => {
-				encryptedPassphrase = await encryptPassphraseWithPassword(passphrase, password, {
+				encryptedMessage = await encryptMessageWithPassword(passphrase, password, {
 					kdf: KDF.ARGON2,
 				});
 				return Promise.resolve();
 			});
 
 			it('should encrypt a passphrase', () => {
-				expect(encryptedPassphrase).toHaveProperty('ciphertext');
-				expect(regHexadecimal.test(encryptedPassphrase.cipherparams.iv)).toBe(true);
-				expect(encryptedPassphrase.cipherparams.iv).toHaveLength(24);
+				expect(encryptedMessage).toHaveProperty('ciphertext');
+				expect(regHexadecimal.test(encryptedMessage.cipherparams.iv)).toBe(true);
+				expect(encryptedMessage.cipherparams.iv).toHaveLength(24);
+			});
+
+			it('should encrypt bytes', async () => {
+				encryptedMessage = await encryptMessageWithPassword(utils.getRandomBytes(32), password, {
+					kdf: KDF.ARGON2,
+				});
+				expect(encryptedMessage).toHaveProperty('ciphertext');
+				expect(regHexadecimal.test(encryptedMessage.cipherparams.iv)).toBe(true);
+				expect(encryptedMessage.cipherparams.iv).toHaveLength(24);
 			});
 
 			it('should output the IV', () => {
-				expect(encryptedPassphrase.cipherparams).toHaveProperty('iv');
-				expect(encryptedPassphrase.cipherparams.iv).toHaveLength(24);
+				expect(encryptedMessage.cipherparams).toHaveProperty('iv');
+				expect(encryptedMessage.cipherparams.iv).toHaveLength(24);
 			});
 
 			it('should output the salt', () => {
-				expect(encryptedPassphrase.kdfparams).toHaveProperty('salt');
-				expect(encryptedPassphrase.kdfparams.salt).toHaveLength(32);
+				expect(encryptedMessage.kdfparams).toHaveProperty('salt');
+				expect(encryptedMessage.kdfparams.salt).toHaveLength(32);
 			});
 
 			it('should output the tag', () => {
-				expect(encryptedPassphrase.cipherparams).toHaveProperty('tag');
-				expect(encryptedPassphrase.cipherparams.tag).toHaveLength(32);
+				expect(encryptedMessage.cipherparams).toHaveProperty('tag');
+				expect(encryptedMessage.cipherparams.tag).toHaveLength(32);
 			});
 
 			it('should output the current version of Lisk Elements', () => {
-				expect(encryptedPassphrase).toHaveProperty('version', ENCRYPTION_VERSION);
+				expect(encryptedMessage).toHaveProperty('version', ENCRYPTION_VERSION);
 			});
 
 			it('should output the default number of iterations', () => {
-				expect(encryptedPassphrase.kdfparams).toHaveProperty('iterations', ARGON2_ITERATIONS);
+				expect(encryptedMessage.kdfparams).toHaveProperty('iterations', ARGON2_ITERATIONS);
 			});
 
 			it('should accept and output a custom number of iterations', async () => {
-				encryptedPassphrase = await encryptPassphraseWithPassword(
-					defaultPassphrase,
-					defaultPassword,
-					{ kdf: KDF.PBKDF2, kdfparams: { iterations: customIterations } },
-				);
+				encryptedMessage = await encryptMessageWithPassword(defaultPassphrase, defaultPassword, {
+					kdf: KDF.PBKDF2,
+					kdfparams: { iterations: customIterations },
+				});
 
-				expect(encryptedPassphrase.kdfparams.iterations).toBe(customIterations);
+				expect(encryptedMessage.kdfparams.iterations).toBe(customIterations);
 			});
 		});
 
-		describe('#decryptPassphraseWithPassword', () => {
-			let encryptedPassphrase: EncryptedPassphraseObject;
+		describe('#decryptMessageWithPassword', () => {
+			let encryptedMessage: EncryptedMessageObject;
 			const passphrase =
 				'target cancel solution recipe vague faint bomb convince pink vendor fresh patrol';
 			const password = 'testpassword';
 
 			beforeEach(() => {
-				encryptedPassphrase = {
+				encryptedMessage = {
 					version: '1',
 					ciphertext:
 						'866c6f1cab3ef67514bdc54cf0143b8b824ebe7c045efb97707c158c81d313cd1a6399b7aa3002248984d39ea2604b0263fe7bdbd8cb04286a9cbd2d353fc79908daab9af04b2528bf4f06a82d79483c',
@@ -228,144 +236,159 @@ describe('encrypt', () => {
 				};
 			});
 
+			it('should reject if decrypt a passphrase with a invalid password', async () => {
+				await expect(
+					decryptMessageWithPassword(encryptedMessage, 'invalid', 'utf-8'),
+				).rejects.toThrow('Unsupported state or unable to authenticate data');
+			});
+
 			it('should decrypt a passphrase with a password', async () => {
-				const decrypted = await decryptPassphraseWithPassword(encryptedPassphrase, password);
+				const decrypted = await decryptMessageWithPassword(encryptedMessage, password, 'utf-8');
 				expect(decrypted).toBe(passphrase);
 			});
 
+			it('should decrypt bytes with a password', async () => {
+				const message = utils.getRandomBytes(32);
+				encryptedMessage = await encryptMessageWithPassword(message, password);
+				const decrypted = await decryptMessageWithPassword(encryptedMessage, password);
+				expect(decrypted).toEqual(message);
+			});
+
 			it('should inform the user if cipherText is missing', async () => {
-				const { ciphertext, ...encryptedPassphraseWithoutCipherText } = encryptedPassphrase;
+				const { ciphertext, ...encryptedMessageWithoutCipherText } = encryptedMessage;
 
 				await expect(
-					decryptPassphraseWithPassword(
-						encryptedPassphraseWithoutCipherText as any,
+					decryptMessageWithPassword(
+						encryptedMessageWithoutCipherText as any,
 						defaultPassword,
+						'utf-8',
 					),
 				).rejects.toThrow('Cipher text must be a string.');
 			});
 
 			it('should inform the user if iv is missing', async () => {
-				encryptedPassphrase.cipherparams.iv = undefined as any;
+				encryptedMessage.cipherparams.iv = undefined as any;
 
 				await expect(
-					decryptPassphraseWithPassword(encryptedPassphrase, defaultPassword),
+					decryptMessageWithPassword(encryptedMessage, defaultPassword, 'utf-8'),
 				).rejects.toThrow('IV must be a string.');
 			});
 
 			it('should inform the user if salt is missing', async () => {
-				encryptedPassphrase.kdfparams.salt = undefined as any;
+				encryptedMessage.kdfparams.salt = undefined as any;
 				await expect(
-					decryptPassphraseWithPassword(encryptedPassphrase, defaultPassword),
+					decryptMessageWithPassword(encryptedMessage, defaultPassword, 'utf-8'),
 				).rejects.toThrow('Salt must be a string.');
 			});
 
 			it('should inform the user if tag is missing', async () => {
-				encryptedPassphrase.cipherparams.tag = undefined as any;
+				encryptedMessage.cipherparams.tag = undefined as any;
 				await expect(
-					decryptPassphraseWithPassword(encryptedPassphrase, defaultPassword),
+					decryptMessageWithPassword(encryptedMessage, defaultPassword, 'utf-8'),
 				).rejects.toThrow('Tag must be a string.');
 			});
 
 			it('should inform the user if the salt has been altered', async () => {
-				encryptedPassphrase.kdfparams.salt = `00${encryptedPassphrase.kdfparams.salt.slice(2)}`;
+				encryptedMessage.kdfparams.salt = `00${encryptedMessage.kdfparams.salt.slice(2)}`;
 				await expect(
-					decryptPassphraseWithPassword(encryptedPassphrase, defaultPassword),
+					decryptMessageWithPassword(encryptedMessage, defaultPassword, 'utf-8'),
 				).rejects.toThrow('Unsupported state or unable to authenticate data');
 			});
 
 			it('should inform the user if the tag has been shortened', async () => {
-				encryptedPassphrase.cipherparams.tag = encryptedPassphrase.cipherparams.tag.slice(0, 30);
+				encryptedMessage.cipherparams.tag = encryptedMessage.cipherparams.tag.slice(0, 30);
 				await expect(
-					decryptPassphraseWithPassword(encryptedPassphrase, defaultPassword),
+					decryptMessageWithPassword(encryptedMessage, defaultPassword, 'utf-8'),
 				).rejects.toThrow('Tag must be 16 bytes.');
 			});
 
 			it('should inform the user if the tag is not a hex string', async () => {
-				encryptedPassphrase.cipherparams.tag = `${encryptedPassphrase.cipherparams.tag.slice(
-					0,
-					30,
-				)}gg`;
+				encryptedMessage.cipherparams.tag = `${encryptedMessage.cipherparams.tag.slice(0, 30)}gg`;
 				await expect(
-					decryptPassphraseWithPassword(encryptedPassphrase, defaultPassword),
+					decryptMessageWithPassword(encryptedMessage, defaultPassword, 'utf-8'),
 				).rejects.toThrow('Tag must be a valid hex string.');
 			});
 
 			it('should inform the user if the tag has been altered', async () => {
-				encryptedPassphrase.cipherparams.tag = `00${encryptedPassphrase.cipherparams.tag.slice(2)}`;
+				encryptedMessage.cipherparams.tag = `00${encryptedMessage.cipherparams.tag.slice(2)}`;
 				await expect(
-					decryptPassphraseWithPassword(encryptedPassphrase, defaultPassword),
+					decryptMessageWithPassword(encryptedMessage, defaultPassword, 'utf-8'),
 				).rejects.toThrow('Unsupported state or unable to authenticate data');
 			});
 		});
 
 		describe('integration test', () => {
 			it('should encrypt a given passphrase with a password and decrypt it back to the original passphrase with PBKDF2 @node-only', async () => {
-				const encryptedPassphrase = await encryptPassphraseWithPassword(
+				const encryptedMessage = await encryptMessageWithPassword(
 					defaultPassphrase,
 					defaultPassword,
 					{ kdf: KDF.PBKDF2 },
 				);
 
-				const decryptedString = await decryptPassphraseWithPassword(
-					encryptedPassphrase,
+				const decryptedString = await decryptMessageWithPassword(
+					encryptedMessage,
 					defaultPassword,
+					'utf-8',
 				);
 				expect(decryptedString).toBe(defaultPassphrase);
 			});
 
 			it('should encrypt a given passphrase with a password and custom number of iterations and decrypt it back to the original passphrase with PBKDF2 @node-only', async () => {
-				const encryptedPassphrase = await encryptPassphraseWithPassword(
+				const encryptedMessage = await encryptMessageWithPassword(
 					defaultPassphrase,
 					defaultPassword,
 					{ kdf: KDF.PBKDF2, kdfparams: { iterations: customIterations } },
 				);
-				const decryptedString = await decryptPassphraseWithPassword(
-					encryptedPassphrase,
+				const decryptedString = await decryptMessageWithPassword(
+					encryptedMessage,
 					defaultPassword,
+					'utf-8',
 				);
 				expect(decryptedString).toBe(defaultPassphrase);
 			});
 
 			it('should encrypt a given passphrase with a password and decrypt it back to the original passphrase with ARGON2 @node-only', async () => {
-				const encryptedPassphrase = await encryptPassphraseWithPassword(
+				const encryptedMessage = await encryptMessageWithPassword(
 					defaultPassphrase,
 					defaultPassword,
 					{ kdf: KDF.ARGON2 },
 				);
 
-				const decryptedString = await decryptPassphraseWithPassword(
-					encryptedPassphrase,
+				const decryptedString = await decryptMessageWithPassword(
+					encryptedMessage,
 					defaultPassword,
+					'utf-8',
 				);
 				expect(decryptedString).toBe(defaultPassphrase);
 			});
 
 			it('should encrypt a given passphrase with a password and custom number of iterations and decrypt it back to the original passphrase with ARGON2 @node-only', async () => {
-				const encryptedPassphrase = await encryptPassphraseWithPassword(
+				const encryptedMessage = await encryptMessageWithPassword(
 					defaultPassphrase,
 					defaultPassword,
 					{ kdf: KDF.ARGON2, kdfparams: { iterations: customIterations } },
 				);
-				const decryptedString = await decryptPassphraseWithPassword(
-					encryptedPassphrase,
+				const decryptedString = await decryptMessageWithPassword(
+					encryptedMessage,
 					defaultPassword,
+					'utf-8',
 				);
 				expect(decryptedString).toBe(defaultPassphrase);
 			});
 		});
 	});
 
-	describe('#stringifyEncryptedPassphrase', () => {
+	describe('#stringifyEncryptedMessage', () => {
 		it('should throw an error if encrypted passphrase is not an object', () => {
-			const encryptedPassphrase =
+			const encryptedMessage =
 				'salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1';
-			expect(stringifyEncryptedPassphrase.bind(null, encryptedPassphrase as any)).toThrow(
-				'Encrypted passphrase to stringify must be an object.',
+			expect(stringifyEncryptedMessage.bind(null, encryptedMessage as any)).toThrow(
+				'Encrypted message to stringify must be an object.',
 			);
 		});
 
 		it('should format an encrypted passphrase as a string', () => {
-			const encryptedPassphrase = {
+			const encryptedMessage = {
 				version: '1',
 				ciphertext:
 					'c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
@@ -383,13 +406,13 @@ describe('encrypt', () => {
 			};
 			const stringifiedEncryptedPassphrase =
 				'kdf=PBKDF2&cipher=aes-256-gcm&version=1&ciphertext=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&mac=ddfgb123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&salt=e8c7dae4c893e458e0ebb8bff9a36d84&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&iterations=&parallelism=&memorySize=';
-			expect(stringifyEncryptedPassphrase(encryptedPassphrase as EncryptedPassphraseObject)).toBe(
+			expect(stringifyEncryptedMessage(encryptedMessage as EncryptedMessageObject)).toBe(
 				stringifiedEncryptedPassphrase,
 			);
 		});
 
 		it('should format an encrypted passphrase with custom iterations as a string', () => {
-			const encryptedPassphrase = {
+			const encryptedMessage = {
 				version: '1',
 				ciphertext:
 					'c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
@@ -408,40 +431,40 @@ describe('encrypt', () => {
 			};
 			const stringifiedEncryptedPassphrase =
 				'kdf=PBKDF2&cipher=aes-256-gcm&version=1&ciphertext=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&mac=ddfgb123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&salt=e8c7dae4c893e458e0ebb8bff9a36d84&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&iterations=12&parallelism=&memorySize=';
-			expect(stringifyEncryptedPassphrase(encryptedPassphrase as EncryptedPassphraseObject)).toBe(
+			expect(stringifyEncryptedMessage(encryptedMessage as EncryptedMessageObject)).toBe(
 				stringifiedEncryptedPassphrase,
 			);
 		});
 	});
 
-	describe('#parseEncryptedPassphrase', () => {
+	describe('#parseEncryptedMessage', () => {
 		it('should throw an error if encrypted passphrase is not a string', () => {
 			const stringifiedEncryptedPassphrase = { abc: 'def' };
-			expect(parseEncryptedPassphrase.bind(null, stringifiedEncryptedPassphrase as any)).toThrow(
-				'Encrypted passphrase to parse must be a string.',
+			expect(parseEncryptedMessage.bind(null, stringifiedEncryptedPassphrase as any)).toThrow(
+				'Encrypted message to parse must be a string.',
 			);
 		});
 
 		it('should throw an error if iterations is present but not a valid number', () => {
 			const stringifiedEncryptedPassphrase =
 				'iterations=null&salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1';
-			expect(parseEncryptedPassphrase.bind(null, stringifiedEncryptedPassphrase)).toThrow(
-				'Encrypted passphrase to parse must have only one value per key.',
+			expect(parseEncryptedMessage.bind(null, stringifiedEncryptedPassphrase)).toThrow(
+				'Encrypted message to parse must have only one value per key.',
 			);
 		});
 
 		it('should throw an error if multiple values are in a key', () => {
 			const stringifiedEncryptedPassphrase =
 				'salt=xxx&salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1';
-			expect(parseEncryptedPassphrase.bind(null, stringifiedEncryptedPassphrase)).toThrow(
-				'Encrypted passphrase to parse must have only one value per key.',
+			expect(parseEncryptedMessage.bind(null, stringifiedEncryptedPassphrase)).toThrow(
+				'Encrypted message to parse must have only one value per key.',
 			);
 		});
 
 		it('should parse an encrypted passphrase string', () => {
 			const stringifiedEncryptedPassphrase =
 				'kdf=PBKDF2&cipher=aes-256-gcm&version=1&ciphertext=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&mac=ddfgb123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&salt=e8c7dae4c893e458e0ebb8bff9a36d84&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15';
-			const encryptedPassphrase = {
+			const encryptedMessage = {
 				version: '1',
 				ciphertext:
 					'c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
@@ -450,6 +473,9 @@ describe('encrypt', () => {
 				kdf: 'PBKDF2',
 				kdfparams: {
 					salt: 'e8c7dae4c893e458e0ebb8bff9a36d84',
+					iterations: 1,
+					memorySize: 2024,
+					parallelism: 4,
 				},
 				cipher: 'aes-256-gcm',
 				cipherparams: {
@@ -457,13 +483,13 @@ describe('encrypt', () => {
 					tag: '3a9d9f9f9a92c9a58296b8df64820c15',
 				},
 			};
-			expect(parseEncryptedPassphrase(stringifiedEncryptedPassphrase)).toEqual(encryptedPassphrase);
+			expect(parseEncryptedMessage(stringifiedEncryptedPassphrase)).toEqual(encryptedMessage);
 		});
 
 		it('should parse an encrypted passphrase string with custom iterations', () => {
 			const stringifiedEncryptedPassphrase =
 				'kdf=PBKDF2&cipher=aes-256-gcm&version=1&ciphertext=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&mac=ddfgb123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&salt=e8c7dae4c893e458e0ebb8bff9a36d84&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&iterations=12&parallelism=&memorySize=';
-			const encryptedPassphrase = {
+			const encryptedMessage = {
 				version: '1',
 				ciphertext:
 					'c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
@@ -473,6 +499,8 @@ describe('encrypt', () => {
 				kdfparams: {
 					salt: 'e8c7dae4c893e458e0ebb8bff9a36d84',
 					iterations: 12,
+					memorySize: 2024,
+					parallelism: 4,
 				},
 				cipher: 'aes-256-gcm',
 				cipherparams: {
@@ -480,7 +508,7 @@ describe('encrypt', () => {
 					tag: '3a9d9f9f9a92c9a58296b8df64820c15',
 				},
 			};
-			expect(parseEncryptedPassphrase(stringifiedEncryptedPassphrase)).toEqual(encryptedPassphrase);
+			expect(parseEncryptedMessage(stringifiedEncryptedPassphrase)).toEqual(encryptedMessage);
 		});
 	});
 });
