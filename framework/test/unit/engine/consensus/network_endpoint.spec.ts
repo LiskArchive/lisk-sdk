@@ -282,7 +282,10 @@ describe('p2p endpoint', () => {
 
 		it('should apply penalty when invalid data value is received', async () => {
 			const invalidCommit = {
-				singleCommit: { ...validCommit, certificateSignature: utils.getRandomBytes(2) },
+				singleCommit: {
+					...validCommit.singleCommit,
+					certificateSignature: utils.getRandomBytes(2),
+				},
 			};
 			const encodedInvalidCommit = codec.encode(getSingleCommitEventSchema, invalidCommit);
 			await expect(

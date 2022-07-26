@@ -162,16 +162,20 @@ describe('Utils', () => {
 			blockID: cryptography.utils.getRandomBytes(20),
 			height: 23,
 			stateRoot: Buffer.alloc(2),
-			timestamp: Date.now(),
+			timestamp: Math.floor(Date.now() / 1000),
 			validatorsHash: cryptography.utils.getRandomBytes(20),
+			aggregationBits: cryptography.utils.getRandomBytes(1),
+			signature: cryptography.utils.getRandomBytes(32),
 		};
 
 		const certificateWithEmptyValues = {
 			blockID: cryptography.utils.getRandomBytes(20),
 			height: 23,
 			stateRoot: EMPTY_BYTES,
-			timestamp: Date.now(),
+			timestamp: Math.floor(Date.now() / 1000),
 			validatorsHash: EMPTY_BYTES,
+			aggregationBits: EMPTY_BYTES,
+			signature: EMPTY_BYTES,
 		};
 
 		const encodedCertificate = codec.encode(certificateSchema, certificate);
@@ -674,6 +678,8 @@ describe('Utils', () => {
 			stateRoot: cryptography.utils.getRandomBytes(32),
 			timestamp: Math.floor(Date.now() / 1000),
 			validatorsHash: cryptography.utils.getRandomBytes(48),
+			aggregationBits: cryptography.utils.getRandomBytes(1),
+			signature: cryptography.utils.getRandomBytes(32),
 		};
 
 		const encodedCertificate = codec.encode(certificateSchema, certificate);
@@ -798,7 +804,15 @@ describe('Utils', () => {
 		describe('Empty certificate and non-empty inboxUpdate', () => {
 			const txParamsWithEmptyCertificate = {
 				...txParams,
-				certificate: Buffer.alloc(0),
+				certificate: codec.encode(certificateSchema, {
+					blockID: Buffer.alloc(0),
+					height: 0,
+					timestamp: 0,
+					stateRoot: Buffer.alloc(0),
+					validatorsHash: Buffer.alloc(0),
+					aggregationBits: Buffer.alloc(0),
+					signature: Buffer.alloc(0),
+				}),
 			};
 
 			it('should update newInboxRoot when messageWitness is non-empty', () => {
@@ -818,7 +832,15 @@ describe('Utils', () => {
 			it('should should not call calculateRootFromRightWitness when messageWitness is empty', () => {
 				const txParamsEmptyMessageWitness = {
 					...txParams,
-					certificate: Buffer.alloc(0),
+					certificate: codec.encode(certificateSchema, {
+						blockID: Buffer.alloc(0),
+						height: 0,
+						timestamp: 0,
+						stateRoot: Buffer.alloc(0),
+						validatorsHash: Buffer.alloc(0),
+						aggregationBits: Buffer.alloc(0),
+						signature: Buffer.alloc(0),
+					}),
 					inboxUpdate: {
 						...txParams.inboxUpdate,
 						messageWitness: { partnerChainOutboxSize: BigInt(0), siblingHashes: [] },
@@ -845,7 +867,15 @@ describe('Utils', () => {
 			it('should return VerifyStatus.FAIL when calculated newInboxRoot is not equal to partnerChainOutboxRoot', () => {
 				const txParamsEmptyMessageWitness = {
 					...txParams,
-					certificate: Buffer.alloc(0),
+					certificate: codec.encode(certificateSchema, {
+						blockID: Buffer.alloc(0),
+						height: 0,
+						timestamp: 0,
+						stateRoot: Buffer.alloc(0),
+						validatorsHash: Buffer.alloc(0),
+						aggregationBits: Buffer.alloc(0),
+						signature: Buffer.alloc(0),
+					}),
 					inboxUpdate: {
 						...txParams.inboxUpdate,
 						messageWitness: { partnerChainOutboxSize: BigInt(0), siblingHashes: [] },
