@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { isUInt64, LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { isUInt64, validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { objects, dataStructures } from '@liskhq/lisk-utils';
 import {
@@ -125,10 +125,8 @@ export class TokenModule extends BaseInteroperableModule {
 	public async init(args: ModuleInitArgs) {
 		const { moduleConfig } = args;
 		const config = objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfig;
-		const errors = validator.validate(configSchema, config);
-		if (errors.length) {
-			throw new LiskValidationError(errors);
-		}
+		validator.validate(configSchema, config);
+
 		this._minBalances = config.minBalances.map(mb => ({
 			tokenID: Buffer.from(mb.tokenID, 'hex'),
 			amount: BigInt(mb.amount),
@@ -147,10 +145,7 @@ export class TokenModule extends BaseInteroperableModule {
 			return;
 		}
 		const genesisStore = codec.decode<GenesisTokenStore>(genesisTokenStoreSchema, assetBytes);
-		const errors = validator.validate(genesisTokenStoreSchema, genesisStore);
-		if (errors.length) {
-			throw new LiskValidationError(errors);
-		}
+		validator.validate(genesisTokenStoreSchema, genesisStore);
 
 		const userStore = context.getStore(this.id, STORE_PREFIX_USER);
 		const copiedUserStore = [...genesisStore.userSubstore];

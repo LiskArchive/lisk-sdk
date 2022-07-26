@@ -78,8 +78,10 @@ export abstract class BaseSynchronizer {
 			getHighestCommonBlockResponseSchema,
 			data,
 		);
-		const errors = validator.validate(getHighestCommonBlockResponseSchema, decodedResp);
-		if (errors.length) {
+
+		try {
+			validator.validate(getHighestCommonBlockResponseSchema, decodedResp);
+		} catch {
 			throw new ApplyPenaltyAndAbortError(peerId, 'Invalid common block response format');
 		}
 		return this._chain.dataAccess.getBlockHeaderByID(decodedResp.id);

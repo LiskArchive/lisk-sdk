@@ -13,7 +13,7 @@
  */
 
 import { objects as objectUtils } from '@liskhq/lisk-utils';
-import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { validator} from '@liskhq/lisk-validator';
 import { BaseCommand } from '../..';
 import {
 	CommandExecuteContext,
@@ -43,12 +43,12 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 		const { transaction } = context;
 		const { mandatoryKeys, optionalKeys, numberOfSignatures } = context.params;
 
-		const errors = validator.validate(registerMultisignatureParamsSchema, context.params);
-
-		if (errors.length > 0) {
+		try {
+			validator.validate(registerMultisignatureParamsSchema, context.params);
+		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new LiskValidationError(errors),
+				error: err,
 			};
 		}
 

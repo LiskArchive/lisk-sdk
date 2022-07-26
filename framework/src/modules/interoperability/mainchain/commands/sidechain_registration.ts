@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { validator} from '@liskhq/lisk-validator';
 import { MainchainInteroperabilityStore } from '../store';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import {
@@ -51,7 +51,7 @@ import {
 	VerificationResult,
 	VerifyStatus,
 	CommandExecuteContext,
-} from '../../../../state_machine/types';
+} from '../../../../state_machine';
 
 export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 	public id = COMMAND_ID_SIDECHAIN_REG_BUFFER;
@@ -65,12 +65,13 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			transaction,
 			params: { certificateThreshold, initValidators, genesisBlockID, name },
 		} = context;
-		const errors = validator.validate(sidechainRegParams, context.params);
 
-		if (errors.length > 0) {
+		try {
+			validator.validate(sidechainRegParams, context.params);
+		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new LiskValidationError(errors),
+				error: err,
 			};
 		}
 

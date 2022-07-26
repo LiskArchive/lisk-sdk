@@ -14,7 +14,7 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { defaultConfig, MODULE_ID_REWARD } from './constants';
 import { ModuleConfig, RandomAPI, TokenAPI, TokenIDReward } from './types';
@@ -63,10 +63,8 @@ export class RewardModule extends BaseModule {
 	public async init(args: ModuleInitArgs): Promise<void> {
 		const { moduleConfig } = args;
 		const config = objects.mergeDeep({}, defaultConfig, moduleConfig);
-		const errors = validator.validate(configSchema, config);
-		if (errors.length) {
-			throw new LiskValidationError(errors);
-		}
+		validator.validate(configSchema, config);
+
 		this._moduleConfig = (config as unknown) as ModuleConfig;
 		this._tokenIDReward = this._moduleConfig.tokenIDReward;
 

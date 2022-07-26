@@ -24,7 +24,7 @@ import {
 import { authorizeParamsSchema, fundParamsSchema } from './schemas';
 import { FaucetPluginConfig, State } from './types';
 
-const { validator, LiskValidationError } = liskValidator;
+const { validator} = liskValidator;
 
 export class Endpoint extends BasePluginEndpoint {
 	private _state: State = { publicKey: undefined, passphrase: undefined };
@@ -38,11 +38,7 @@ export class Endpoint extends BasePluginEndpoint {
 	}
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async authorize(context: PluginEndpointContext): Promise<{ result: string }> {
-		const errors = validator.validate(authorizeParamsSchema, context.params);
-
-		if (errors.length) {
-			throw new LiskValidationError(errors);
-		}
+		validator.validate(authorizeParamsSchema, context.params);
 
 		const { enable, password } = context.params;
 
@@ -71,12 +67,8 @@ export class Endpoint extends BasePluginEndpoint {
 	}
 
 	public async fundTokens(context: PluginEndpointContext): Promise<{ result: string }> {
-		const errors = validator.validate(fundParamsSchema, context.params);
+		validator.validate(fundParamsSchema, context.params);
 		const { address, token } = context.params;
-
-		if (errors.length) {
-			throw new LiskValidationError(errors);
-		}
 
 		if (!this._state.publicKey || !this._state.passphrase) {
 			throw new Error('Faucet is not enabled.');

@@ -13,8 +13,6 @@
  */
 
 import {
-	ErrorObject,
-	LiskValidationError,
 	validator,
 	liskSchemaIdentifier,
 } from '@liskhq/lisk-validator';
@@ -60,12 +58,7 @@ export const validateSchema = (schema: {
 		$schema: schema.$schema ?? liskSchemaIdentifier,
 	};
 
-	const errors: ReadonlyArray<ErrorObject> = validator.validateSchema(schemaToValidate);
-
-	if (errors.length) {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-		throw new LiskValidationError([...errors]);
-	}
+	validator.validateSchema(schemaToValidate);
 
 	try {
 		// To validate keyword schema we have to compile it

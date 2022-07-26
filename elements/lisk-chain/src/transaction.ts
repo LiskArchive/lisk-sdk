@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils, address, ed } from '@liskhq/lisk-cryptography';
-import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { validator} from '@liskhq/lisk-validator';
 import { TAG_TRANSACTION } from './constants';
 import { JSONObject } from './types';
 
@@ -155,10 +155,8 @@ export class Transaction {
 	}
 
 	public validate(): void {
-		const schemaErrors = validator.validate(transactionSchema, this);
-		if (schemaErrors.length > 0) {
-			throw new LiskValidationError(schemaErrors);
-		}
+		validator.validate(transactionSchema, this);
+
 		if (this.signatures.length === 0) {
 			throw new Error('Signatures must not be empty');
 		}

@@ -12,12 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ed, utils } from '@liskhq/lisk-cryptography';
-import { codec } from '@liskhq/lisk-codec';
-import { validator, LiskValidationError } from '@liskhq/lisk-validator';
-import { EMPTY_BUFFER, EMPTY_HASH, SIGNATURE_LENGTH_BYTES, TAG_BLOCK_HEADER } from './constants';
-import { blockHeaderSchema, blockHeaderSchemaWithId, signingBlockHeaderSchema } from './schema';
-import { JSONObject } from './types';
+import {ed, utils} from '@liskhq/lisk-cryptography';
+import {codec} from '@liskhq/lisk-codec';
+import {LiskValidationError, validator} from '@liskhq/lisk-validator';
+import {LiskErrorObject} from "@liskhq/lisk-validator/dist-node/types";
+import {JSONObject} from './types';
+import {EMPTY_BUFFER, EMPTY_HASH, SIGNATURE_LENGTH_BYTES, TAG_BLOCK_HEADER} from './constants';
+import {blockHeaderSchema, blockHeaderSchemaWithId, signingBlockHeaderSchema} from './schema';
+
+
 
 export interface BlockHeaderAttrs {
 	readonly version: number;
@@ -174,10 +177,8 @@ export class BlockHeader {
 	}
 
 	public validate(): void {
-		const errors = validator.validate(blockHeaderSchema, this._getBlockHeaderProps());
-		if (errors.length) {
-			throw new LiskValidationError(errors);
-		}
+		validator.validate(blockHeaderSchema, this._getBlockHeaderProps());
+
 		if (this.previousBlockID.length === 0) {
 			throw new Error('Previous block id must not be empty.');
 		}
@@ -188,7 +189,10 @@ export class BlockHeader {
 
 	public validateGenesis(): void {
 		const header = this._getBlockHeaderProps();
-		const errors = validator.validate(blockHeaderSchema, header);
+
+		validator.validate(blockHeaderSchema, header);
+
+		const errors: LiskErrorObject[] = []
 
 		if (header.previousBlockID.length !== 32) {
 			errors.push({
@@ -301,9 +305,7 @@ export class BlockHeader {
 	}
 
 	public getSigningBytes(): Buffer {
-		const blockHeaderBytes = codec.encode(signingBlockHeaderSchema, this._getSigningProps());
-
-		return blockHeaderBytes;
+		return codec.encode(signingBlockHeaderSchema, this._getSigningProps());
 	}
 
 	public sign(networkIdentifier: Buffer, privateKey: Buffer): void {

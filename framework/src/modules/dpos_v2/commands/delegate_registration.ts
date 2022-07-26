@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { validator} from '@liskhq/lisk-validator';
 import {
 	CommandVerifyContext,
 	VerificationResult,
 	VerifyStatus,
 	CommandExecuteContext,
-} from '../../../state_machine/types';
+} from '../../../state_machine';
 import { BaseCommand } from '../../base_command';
 import {
 	COMMAND_ID_DELEGATE_REGISTRATION,
@@ -49,12 +49,12 @@ export class DelegateRegistrationCommand extends BaseCommand {
 	): Promise<VerificationResult> {
 		const { transaction } = context;
 
-		const errors = validator.validate(delegateRegistrationCommandParamsSchema, context.params);
-
-		if (errors.length > 0) {
+		try {
+			validator.validate(delegateRegistrationCommandParamsSchema, context.params);
+		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new LiskValidationError(errors),
+				error: err,
 			};
 		}
 

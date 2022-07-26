@@ -24,13 +24,11 @@ export const validateTransaction = (
 		...transactionObject,
 		params: Buffer.alloc(0),
 	};
-	const schemaErrors = validator.validate(
+	validator.validate(
 		baseTransactionSchema,
 		transactionObjectWithEmptyParameters,
 	);
-	if (schemaErrors.length) {
-		return new LiskValidationError([...schemaErrors]);
-	}
+
 	if (!paramsSchema) {
 		return undefined;
 	}
@@ -38,9 +36,7 @@ export const validateTransaction = (
 	if (typeof transactionObject.params !== 'object' || transactionObject.params === null) {
 		return new Error('Transaction object params must be of type object and not null');
 	}
-	const paramsSchemaErrors = validator.validate(paramsSchema, transactionObject.params);
-	if (paramsSchemaErrors.length) {
-		return new LiskValidationError([...paramsSchemaErrors]);
-	}
+	validator.validate(paramsSchema, transactionObject.params);
+
 	return undefined;
 };

@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { validator} from '@liskhq/lisk-validator';
 import { BlockHeader } from '@liskhq/lisk-chain';
 import {
 	CommandVerifyContext,
 	VerificationResult,
 	VerifyStatus,
 	CommandExecuteContext,
-} from '../../../state_machine/types';
+} from '../../../state_machine';
 import { BaseCommand } from '../../base_command';
 import {
 	COMMAND_ID_POM,
@@ -62,12 +62,13 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 	public async verify(
 		context: CommandVerifyContext<PomTransactionParams>,
 	): Promise<VerificationResult> {
-		const errors = validator.validate(this.schema, context.params);
 
-		if (errors.length > 0) {
+		try {
+			validator.validate(this.schema, context.params);
+		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new LiskValidationError(errors),
+				error: err,
 			};
 		}
 

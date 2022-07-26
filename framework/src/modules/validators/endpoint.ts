@@ -13,7 +13,7 @@
  */
 
 import { utils, bls } from '@liskhq/lisk-cryptography';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { NotFoundError } from '@liskhq/lisk-db';
 import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
@@ -22,10 +22,7 @@ import { MODULE_ID_VALIDATORS, STORE_PREFIX_BLS_KEYS } from './constants';
 
 export class ValidatorsEndpoint extends BaseEndpoint {
 	public async validateBLSKey(ctx: ModuleEndpointContext): Promise<{ valid: boolean }> {
-		const reqErrors = validator.validate(validateBLSKeyRequestSchema, ctx.params);
-		if (reqErrors?.length) {
-			throw new LiskValidationError(reqErrors);
-		}
+		validator.validate(validateBLSKeyRequestSchema, ctx.params);
 
 		const req = (ctx.params as unknown) as ValidateBLSKeyRequest;
 		const { proofOfPossession, blsKey } = req;

@@ -19,7 +19,7 @@ import * as assert from 'assert';
 import * as childProcess from 'child_process';
 import { Block } from '@liskhq/lisk-chain';
 import { Database, StateDB } from '@liskhq/lisk-db';
-import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { validator} from '@liskhq/lisk-validator';
 import { objects, jobHandlers } from '@liskhq/lisk-utils';
 import { APP_EVENT_SHUTDOWN, APP_EVENT_READY } from './constants';
 import {
@@ -143,10 +143,8 @@ export class Application {
 			config.label ?? `lisk-${config.genesis?.communityIdentifier}`;
 
 		const mergedConfig = objects.mergeDeep({}, appConfig, config) as ApplicationConfig;
-		const applicationConfigErrors = validator.validate(applicationConfigSchema, mergedConfig);
-		if (applicationConfigErrors.length) {
-			throw new LiskValidationError(applicationConfigErrors);
-		}
+		validator.validate(applicationConfigSchema, mergedConfig);
+
 		this.config = mergedConfig;
 
 		const { plugins, ...rootConfigs } = this.config;
