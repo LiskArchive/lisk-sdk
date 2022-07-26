@@ -27,7 +27,6 @@ import { writeString, readString } from './string';
 import { writeBytes, readBytes } from './bytes';
 import { writeBoolean, readBoolean } from './boolean';
 import { readKey } from './keys';
-import { getDefaultValue } from './utils/default_value';
 
 const _readers: {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -141,8 +140,9 @@ export const readObject = (
 			} else if (typeSchema[0].schemaProp.type === 'object') {
 				const [key, keySize] = readUInt32(message, index);
 				const [fieldNumber] = readKey(key);
+				// case where field number reading is not as expected from schema
 				if (fieldNumber !== typeSchema[0].schemaProp.fieldNumber) {
-					throw new Error('Invalid field number while decoding');
+					throw new Error('Invalid field number while decoding.');
 				}
 
 				index += keySize;
@@ -153,7 +153,7 @@ export const readObject = (
 				result[typeSchema[0].propertyName] = obj;
 				index = nextOffset;
 			} else {
-				throw new Error('Invalid container type');
+				throw new Error('Invalid container type.');
 			}
 			continue;
 		}
@@ -161,16 +161,17 @@ export const readObject = (
 			// typeSchema is header, and we ignore this
 			continue;
 		}
+		// case where message length is shorter than what the schema expects
 		if (message.length <= index) {
-			// assign default value
-			result[typeSchema.propertyName] = getDefaultValue(typeSchema.schemaProp.dataType as string);
-			continue;
+			throw new Error(
+				`Message does not contain a property for fieldNumber: ${typeSchema.schemaProp.fieldNumber}.`,
+			);
 		}
 		// Takeout the root wireType and field number
 		const [key, keySize] = readUInt32(message, index);
 		const [fieldNumber] = readKey(key);
 		if (fieldNumber !== typeSchema.schemaProp.fieldNumber) {
-			throw new Error('Invalid field number while decoding');
+			throw new Error('Invalid field number while decoding.');
 		}
 		// Index is only incremented when the key is actually used
 		index += keySize;
@@ -184,8 +185,11 @@ export const readObject = (
 		result[typeSchema.propertyName] = scalarValue;
 	}
 
-	if (!(index === terminateIndex)) {
-		throw new Error('Failed to readObject');
+	// case where message length is longer than what the schema expects
+	if (index !== terminateIndex) {
+		throw new Error(
+			`Invalid terminate index. Index is ${index} but terminateIndex is ${terminateIndex}`,
+		);
 	}
 
 	return [result, index];
@@ -201,10 +205,6 @@ export const readArray = (
 	// Takeout the root wireType and field number
 	let index = offset;
 	if (index >= message.length) {
-		if (!(index === terminateIndex)) {
-			throw new Error('Failed to readObject');
-		}
-
 		return [[], index];
 	}
 	const startingByte = message[index];
@@ -242,10 +242,6 @@ export const readArray = (
 				index = nextOffset;
 			}
 
-			if (!(index === terminateIndex)) {
-				throw new Error('Failed to readObject');
-			}
-
 			return [result, index];
 		}
 		throw new Error('Invalid container type');
@@ -273,10 +269,6 @@ export const readArray = (
 			const [res, wire2Size] = _readers[typeSchema.schemaProp.dataType as string](message, index);
 			result.push(res);
 			index += wire2Size;
-		}
-
-		if (!(index === terminateIndex)) {
-			throw new Error('Failed to readObject');
 		}
 
 		return [result, index];

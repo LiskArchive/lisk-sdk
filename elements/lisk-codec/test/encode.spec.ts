@@ -226,10 +226,9 @@ describe('encode', () => {
 			expect(result.toString('hex')).toEqual(testCase.output.value);
 		});
 
-		// TODO: #7210
-		it.skip('should encode when object has fieldNumbers which are not sequential', () => {
+		it('should encode when object has fieldNumbers which are not sequential', () => {
 			const schema = {
-				$id: 'objectTest',
+				$id: 'test/fieldNumberNotSeq',
 				type: 'object',
 				properties: {
 					address: {
@@ -243,31 +242,7 @@ describe('encode', () => {
 				},
 			};
 
-			expect(() => codec.encode(schema, { address: Buffer.alloc(1), balance: 1 })).not.toThrow();
-		});
-
-		// TODO: #7210
-		it.skip('should fail to encode when object has a property that is not contained in the schema', () => {
-			const schema = {
-				$id: 'objectTest',
-				type: 'object',
-				properties: {
-					address: {
-						dataType: 'bytes',
-						fieldNumber: 1,
-					},
-					balance: {
-						dataType: 'uint32',
-						fieldNumber: 2,
-					},
-				},
-			};
-
-			expect(() =>
-				codec.encode(schema, {
-					invalidProperty: 'invalid',
-				}),
-			).toThrow('should fail');
+			expect(codec.encode(schema, { address: Buffer.alloc(1), balance: 1 })).toBeInstanceOf(Buffer);
 		});
 	});
 
@@ -302,7 +277,7 @@ describe('encode', () => {
 				data: 'Checkout Lisk SDK!¢£¡',
 			});
 
-			expect(result.toString('hex')).not.toThrow();
+			expect(result).toBeInstanceOf(Buffer);
 		});
 	});
 
