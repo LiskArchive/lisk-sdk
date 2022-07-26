@@ -28,7 +28,7 @@ import { Database, Batch, SparseMerkleTree } from '@liskhq/lisk-db';
 import { TransactionPool, events } from '@liskhq/lisk-transaction-pool';
 import { MerkleTree } from '@liskhq/lisk-tree';
 import { dataStructures, jobHandlers } from '@liskhq/lisk-utils';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { EVENT_NETWORK_READY } from '../events';
 import { Logger } from '../../logger';
 import { GenesisConfig } from '../../types';
@@ -378,10 +378,7 @@ export class Generator {
 		};
 		const encodedData = codec.decode<GetTransactionResponse>(getTransactionsResponseSchema, data);
 
-		const validatorErrors = validator.validate(getTransactionsResponseSchema, encodedData);
-		if (validatorErrors.length) {
-			throw new LiskValidationError(validatorErrors);
-		}
+		validator.validate(getTransactionsResponseSchema, encodedData);
 
 		const transactions = encodedData.transactions.map(transaction =>
 			Transaction.fromBytes(transaction),

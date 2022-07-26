@@ -15,7 +15,7 @@
 import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { dataStructures, objects } from '@liskhq/lisk-utils';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import {
 	BlockAfterExecuteContext,
 	BlockVerifyContext,
@@ -88,15 +88,11 @@ export class RandomModule extends BaseModule {
 	public async init(args: ModuleInitArgs): Promise<void> {
 		const { moduleConfig, generatorConfig } = args;
 		const config = objects.mergeDeep({}, defaultConfig, moduleConfig);
-		const errors = validator.validate(randomModuleConfig, config);
-		if (errors.length) {
-			throw new LiskValidationError(errors);
-		}
+		validator.validate(randomModuleConfig, config);
+
 		if (generatorConfig && Object.entries(generatorConfig).length > 0) {
-			const generatorErrors = validator.validate(randomModuleGeneratorConfig, generatorConfig);
-			if (generatorErrors.length) {
-				throw new LiskValidationError(generatorErrors);
-			}
+			validator.validate(randomModuleGeneratorConfig, generatorConfig);
+
 			this._generatorConfig = (generatorConfig.hashOnions as JSONObject<HashOnion>[]).map(ho => ({
 				...ho,
 				address: Buffer.from(ho.address, 'hex'),

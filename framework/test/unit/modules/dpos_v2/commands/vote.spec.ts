@@ -226,8 +226,9 @@ describe('VoteCommand', () => {
 				});
 
 				it('should return errors', () => {
-					const errors = validator.validate(command.schema, transactionParamsDecoded);
-					expect(errors[0].message).toInclude('should pass "dataType" keyword validation');
+					expect(
+						() => validator.validate(command.schema, transactionParamsDecoded)
+					).toThrow('should pass "dataType" keyword validation')
 				});
 			});
 
@@ -244,8 +245,9 @@ describe('VoteCommand', () => {
 				});
 
 				it('should return errors', () => {
-					const errors = validator.validate(command.schema, transactionParamsDecoded);
-					expect(errors[0].message).toInclude('should pass "dataType" keyword validation');
+					expect(
+						() => validator.validate(command.schema, transactionParamsDecoded)
+					).toThrow('should pass "dataType" keyword validation')
 				});
 			});
 		});

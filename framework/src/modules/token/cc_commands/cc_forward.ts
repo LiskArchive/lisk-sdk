@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { codec } from '@liskhq/lisk-codec';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { BaseCCCommand } from '../../interoperability/base_cc_command';
 import { CCCommandExecuteContext } from '../../interoperability/types';
 import { TokenAPI } from '../api';
@@ -60,10 +60,8 @@ export class CCForwardCommand extends BaseCCCommand {
 		let params: CCForwardMessageParams;
 		try {
 			params = codec.decode<CCForwardMessageParams>(crossChainForwardMessageParams, ccm.params);
-			const errors = validator.validate(crossChainTransferMessageParams, params);
-			if (errors.length) {
-				throw new LiskValidationError(errors);
-			}
+			validator.validate(crossChainTransferMessageParams, params);
+
 		} catch (error) {
 			ctx.logger.debug({ err: error as Error }, 'Error verifying the params.');
 			if (ccm.status === CCM_STATUS_OK) {

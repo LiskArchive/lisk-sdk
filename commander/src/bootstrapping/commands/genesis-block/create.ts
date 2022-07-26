@@ -22,7 +22,7 @@ import * as fs from 'fs-extra';
 import { join, resolve } from 'path';
 import * as inquirer from 'inquirer';
 import * as ProgressBar from 'progress';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { BlockJSON } from '@liskhq/lisk-chain';
 import { createMnemonicPassphrase } from '../../../utils/mnemonic';
 import {
@@ -193,10 +193,8 @@ export abstract class BaseGenesisBlockCommand extends Command {
 		// If assetsFile exist, create from assetsFile and default config/accounts are not needed
 		if (assetsFile) {
 			const assetsJSON = (await fs.readJSON(resolve(assetsFile))) as GenesisAssetsInput;
-			const assetSchemaError = validator.validate(genesisAssetsSchema, assetsJSON);
-			if (assetSchemaError.length) {
-				throw new LiskValidationError(assetSchemaError);
-			}
+			validator.validate(genesisAssetsSchema, assetsJSON);
+
 			const genesisBlock = await app.generateGenesisBlock({
 				assets: assetsJSON.assets.map(a => ({
 					moduleID: a.moduleID,

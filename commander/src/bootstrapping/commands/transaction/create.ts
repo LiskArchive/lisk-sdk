@@ -122,11 +122,7 @@ const validateAndSignTransaction = (
 	) as Schema;
 
 	const txObject = codec.fromJSON(schema.transaction, { ...transactionWithoutParams, params: '' });
-	const transactionErrors = validator.validator.validate(schema.transaction, txObject);
-
-	if (transactionErrors.length) {
-		throw new validator.LiskValidationError([...transactionErrors]);
-	}
+	validator.validator.validate(schema.transaction, txObject);
 
 	const paramsObject = paramsSchema ? codec.fromJSON(paramsSchema, params) : {};
 

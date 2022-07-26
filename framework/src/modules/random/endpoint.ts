@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { validator} from '@liskhq/lisk-validator';
 import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
 import { STORE_PREFIX_RANDOM, EMPTY_KEY } from './constants';
@@ -22,10 +22,8 @@ import { getSeedRevealValidity } from './utils';
 
 export class RandomEndpoint extends BaseEndpoint {
 	public async isSeedRevealValid(context: ModuleEndpointContext): Promise<{ valid: boolean }> {
-		const errors = validator.validate(isSeedRevealValidRequestSchema, context.params);
-		if (errors.length > 0) {
-			throw new LiskValidationError([...errors]);
-		}
+		validator.validate(isSeedRevealValidRequestSchema, context.params);
+
 		const { generatorAddress, seedReveal } = context.params;
 		const randomDataStore = context.getStore(this.moduleID, STORE_PREFIX_RANDOM);
 		const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(

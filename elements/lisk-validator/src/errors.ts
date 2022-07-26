@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { LiskErrorObject } from './types';
+import {LiskErrorObject} from './types';
 
 // Ajv.ErrorObject makes `schemaPath` and `dataPath` required
 // While these are not if we want to infer default values from validation
@@ -86,7 +86,6 @@ export class LiskValidationError extends Error {
 	}
 
 	private _compileErrors(): string[] {
-		const errorMsgs = this.errors.map(errorFormatter);
-		return errorMsgs;
+		return this.errors.map(errorFormatter);
 	}
 }

@@ -20,7 +20,7 @@ import {
 	VerificationResult,
 	VerifyStatus,
 	CommandExecuteContext,
-} from '../../../state_machine/types';
+} from '../../../state_machine';
 import { BaseCommand } from '../../base_command';
 import {
 	COMMAND_ID_VOTE,
@@ -64,12 +64,12 @@ export class VoteCommand extends BaseCommand {
 			params: { votes },
 		} = context;
 
-		const validationErrors = validator.validate(this.schema, context.params);
-
-		if (validationErrors.length > 0) {
+		try {
+			validator.validate(this.schema, context.params);
+		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new AggregateValidationError('Parameter is not valid.', validationErrors),
+				error: new AggregateValidationError('Parameter is not valid.', err.toString()),
 			};
 		}
 
