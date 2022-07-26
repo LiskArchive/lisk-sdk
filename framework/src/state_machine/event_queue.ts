@@ -59,18 +59,19 @@ export class EventQueue {
 		});
 	}
 
-	public createSnapshot(): void {
+	public createSnapshot(): number {
 		this._snapshotIndex = this._events.length;
+		return this._snapshotIndex;
 	}
 
-	public restoreSnapshot(): void {
-		const newEvents = this._events.splice(this._snapshotIndex);
+	public restoreSnapshot(snapshotID: number): void {
+		const newEvents = this._events.splice(snapshotID);
 		const nonRevertableEvents = newEvents
 			.filter(eventData => eventData.noRevert)
 			.map((eventData, i) => ({
 				event: new Event({
 					...eventData.event.toObject(),
-					index: this._snapshotIndex + i,
+					index: snapshotID + i,
 				}),
 				noRevert: false,
 			}));
