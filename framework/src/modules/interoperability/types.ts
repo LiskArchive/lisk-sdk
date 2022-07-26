@@ -292,3 +292,50 @@ export interface ChainValidators {
 	activeValidators: ActiveValidator[];
 	certificateThreshold: bigint;
 }
+
+export interface OutboxRoot {
+	root: Buffer;
+}
+
+export interface ChainID {
+	id: Buffer;
+}
+
+export interface GenesisInteroperabilityStore {
+	outboxRootSubstore: {
+		storeKey: Buffer;
+		storeValue: OutboxRoot;
+	}[];
+	chainDataSubstore: {
+		storeKey: Buffer;
+		storeValue: ChainAccount;
+	}[];
+	channelDataSubstore: {
+		storeKey: Buffer;
+		storeValue: ChannelData;
+	}[];
+	chainValidatorsSubstore: {
+		storeKey: Buffer;
+		storeValue: ValidatorsHashInput;
+	}[];
+	ownChainDataSubstore: {
+		storeKey: Buffer;
+		storeValue: OwnChainAccount;
+	}[];
+	terminatedStateSubstore: {
+		storeKey: Buffer;
+		storeValue: TerminatedStateAccount;
+	}[];
+	terminatedOutboxSubstore: {
+		storeKey: Buffer;
+		storeValue: TerminatedOutboxAccount;
+	}[];
+	registeredNamesSubstore: {
+		storeKey: Buffer;
+		storeValue: ChainID;
+	}[];
+	registeredNetworkIDsSubstore: {
+		storeKey: Buffer;
+		storeValue: ChainID;
+	}[];
+}
