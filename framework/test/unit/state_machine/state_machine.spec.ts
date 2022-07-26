@@ -205,6 +205,49 @@ describe('state_machine', () => {
 			expect(events).toHaveLength(1);
 			expect(events[0].toObject().topics[0]).toEqual(transaction.id);
 		});
+
+		it('should rollback state if afterCommandExecute fails', () => {
+			const events = [
+				{
+					moduleID: utils.intToBuffer(3, 4),
+					typeID: Buffer.from([0, 0, 0, 0]),
+					data: utils.getRandomBytes(20),
+					topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],
+				},
+				{
+					moduleID: utils.intToBuffer(4, 4),
+					typeID: Buffer.from([0, 0, 0, 0]),
+					data: utils.getRandomBytes(20),
+					topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],
+				},
+				{
+					moduleID: utils.intToBuffer(2, 4),
+					typeID: Buffer.from([0, 0, 0, 0]),
+					data: utils.getRandomBytes(20),
+					topics: [utils.getRandomBytes(32)],
+				},
+			];
+
+			events.map(e => eventQueue.add(e.moduleID, e.typeID, e.data, e.topics));
+
+			const snapshotID = eventQueue.createSnapshot();
+
+			eventQueue.add(
+				utils.intToBuffer(3, 4),
+				Buffer.from([0, 0, 0, 1]),
+				utils.getRandomBytes(100),
+				[utils.getRandomBytes(32)],
+			);
+
+			mod.afterCommandExecute.mockImplementation(() => {
+				throw new Error('error');
+			});
+
+			eventQueue.restoreSnapshot(snapshotID);
+
+			expect(snapshotID).toBe(events.length);
+			expect(eventQueue.getEvents()).toHaveLength(events.length);
+		});
 	});
 
 	describe('verifyAssets', () => {
