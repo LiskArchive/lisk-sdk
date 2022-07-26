@@ -21,7 +21,6 @@ interface RevertibleEvent {
 
 export class EventQueue {
 	private readonly _events: RevertibleEvent[];
-	private _snapshotIndex = -1;
 
 	public constructor() {
 		this._events = [];
@@ -60,8 +59,7 @@ export class EventQueue {
 	}
 
 	public createSnapshot(): number {
-		this._snapshotIndex = this._events.length;
-		return this._snapshotIndex;
+		return this._events.length;
 	}
 
 	public restoreSnapshot(snapshotID: number): void {
@@ -76,7 +74,6 @@ export class EventQueue {
 				noRevert: false,
 			}));
 		this._events.push(...nonRevertableEvents);
-		this._snapshotIndex = -1;
 	}
 
 	public getEvents(): Event[] {
