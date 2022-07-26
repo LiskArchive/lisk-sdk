@@ -15,7 +15,7 @@
 import { regularMerkleTree, sparseMerkleTree } from '@liskhq/lisk-tree';
 import { codec } from '@liskhq/lisk-codec';
 import { utils, bls } from '@liskhq/lisk-cryptography';
-import { LiskValidationError, MAX_UINT64, validator } from '@liskhq/lisk-validator';
+import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { DB_KEY_STATE_STORE } from '@liskhq/lisk-chain';
 import { dataStructures } from '@liskhq/lisk-utils';
 import {
@@ -40,6 +40,7 @@ import {
 	MAINCHAIN_ID_BUFFER,
 	MAX_CCM_SIZE,
 	MAX_NUM_VALIDATORS,
+	MAX_UINT64,
 	MESSAGE_TAG_CERTIFICATE,
 	MODULE_ID_INTEROPERABILITY,
 	SMT_KEY_LENGTH,
