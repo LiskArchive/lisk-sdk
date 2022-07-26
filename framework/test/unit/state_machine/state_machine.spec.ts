@@ -206,7 +206,7 @@ describe('state_machine', () => {
 			expect(events[0].toObject().topics[0]).toEqual(transaction.id);
 		});
 
-		it('should rollback state if afterCommandExecute fails', () => {
+		it('should rollback state if afterCommandExecute fails', async () => {
 			const events = [
 				{
 					moduleID: utils.intToBuffer(3, 4),
@@ -227,26 +227,33 @@ describe('state_machine', () => {
 					topics: [utils.getRandomBytes(32)],
 				},
 			];
-
-			events.map(e => eventQueue.add(e.moduleID, e.typeID, e.data, e.topics));
+			for (const e of events) {
+				eventQueue.add(e.moduleID, e.typeID, e.data, e.topics);
+			}
 
 			const snapshotID = eventQueue.createSnapshot();
 
-			eventQueue.add(
-				utils.intToBuffer(3, 4),
-				Buffer.from([0, 0, 0, 1]),
-				utils.getRandomBytes(100),
-				[utils.getRandomBytes(32)],
-			);
-
-			mod.afterCommandExecute.mockImplementation(() => {
-				throw new Error('error');
+			const ctx = new TransactionContext({
+				eventQueue,
+				logger,
+				stateStore,
+				header,
+				assets,
+				networkIdentifier,
+				transaction,
+				currentValidators: [],
+				impliesMaxPrevote: true,
+				maxHeightCertified: 0,
+				certificateThreshold: BigInt(0),
 			});
+			await stateMachine.executeTransaction(ctx);
+			expect(systemMod.afterCommandExecute).toHaveBeenCalled();
+			expect(mod.afterCommandExecute).toHaveBeenCalled();
 
-			eventQueue.restoreSnapshot(snapshotID);
+			ctx.eventQueue.restoreSnapshot(snapshotID);
 
 			expect(snapshotID).toBe(events.length);
-			expect(eventQueue.getEvents()).toHaveLength(events.length);
+			expect(ctx.eventQueue.getEvents()).toHaveLength(events.length);
 		});
 	});
 
