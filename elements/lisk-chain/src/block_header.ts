@@ -12,15 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {ed, utils} from '@liskhq/lisk-cryptography';
-import {codec} from '@liskhq/lisk-codec';
-import {LiskValidationError, validator} from '@liskhq/lisk-validator';
+import { ed, utils } from '@liskhq/lisk-cryptography';
+import { codec } from '@liskhq/lisk-codec';
+import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { EMPTY_BUFFER, EMPTY_HASH, SIGNATURE_LENGTH_BYTES, TAG_BLOCK_HEADER } from './constants';
+import { blockHeaderSchema, blockHeaderSchemaWithId, signingBlockHeaderSchema } from './schema';
+import { JSONObject } from './types';
 import {LiskErrorObject} from "@liskhq/lisk-validator/dist-node/types";
-import {JSONObject} from './types';
-import {EMPTY_BUFFER, EMPTY_HASH, SIGNATURE_LENGTH_BYTES, TAG_BLOCK_HEADER} from './constants';
-import {blockHeaderSchema, blockHeaderSchemaWithId, signingBlockHeaderSchema} from './schema';
-
-
 
 export interface BlockHeaderAttrs {
 	readonly version: number;
@@ -189,7 +187,6 @@ export class BlockHeader {
 
 	public validateGenesis(): void {
 		const header = this._getBlockHeaderProps();
-
 		validator.validate(blockHeaderSchema, header);
 
 		const errors: LiskErrorObject[] = []
