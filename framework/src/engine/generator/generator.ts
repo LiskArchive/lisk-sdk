@@ -376,11 +376,11 @@ export class Generator {
 		})) as unknown) as {
 			data: Buffer;
 		};
-		const encodedData = codec.decode<GetTransactionResponse>(getTransactionsResponseSchema, data);
+		const transactionResponse = codec.decode<GetTransactionResponse>(getTransactionsResponseSchema, data);
 
-		validator.validate(getTransactionsResponseSchema, encodedData);
+		validator.validate(getTransactionsResponseSchema, transactionResponse);
 
-		const transactions = encodedData.transactions.map(transaction =>
+		const transactions = transactionResponse.transactions.map(transaction =>
 			Transaction.fromBytes(transaction),
 		);
 

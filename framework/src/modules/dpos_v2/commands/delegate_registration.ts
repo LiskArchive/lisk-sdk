@@ -47,7 +47,7 @@ export class DelegateRegistrationCommand extends BaseCommand {
 	public async verify(
 		context: CommandVerifyContext<DelegateRegistrationParams>,
 	): Promise<VerificationResult> {
-		const { transaction } = context;
+		const { transaction, params } = context;
 
 		try {
 			validator.validate(delegateRegistrationCommandParamsSchema, context.params);
@@ -58,15 +58,15 @@ export class DelegateRegistrationCommand extends BaseCommand {
 			};
 		}
 
-		if (!isUsername(context.params.name)) {
+		if (!isUsername(params.name)) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error(`'name' is in an unsupported format: ${context.params.name}`),
+				error: new Error(`'name' is in an unsupported format: ${params.name}`),
 			};
 		}
 
 		const nameSubstore = context.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_NAME);
-		const nameExists = await nameSubstore.has(Buffer.from(context.params.name, 'utf8'));
+		const nameExists = await nameSubstore.has(Buffer.from(params.name, 'utf8'));
 
 		if (nameExists) {
 			return {

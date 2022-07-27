@@ -59,9 +59,9 @@ export class TxpoolEndpoint {
 	}
 
 	public async postTransaction(ctx: RequestContext): Promise<PostTransactionResponse> {
-		validator.validate(postTransactionRequestSchema, ctx.params);
+		validator.validate<PostTransactionRequest>(postTransactionRequestSchema, ctx.params);
 
-		const req = (ctx.params as unknown) as PostTransactionRequest;
+		const req = ctx.params;
 		const transaction = Transaction.fromBytes(Buffer.from(req.transaction, 'hex'));
 
 		const { result } = await this._abi.verifyTransaction({
@@ -108,9 +108,9 @@ export class TxpoolEndpoint {
 	}
 
 	public async dryRunTransaction(ctx: RequestContext): Promise<DryRunTransactionResponse> {
-		validator.validate(dryRunTransactionRequestSchema, ctx.params);
+		validator.validate<DryRunTransactionRequest>(dryRunTransactionRequestSchema, ctx.params);
 
-		const req = (ctx.params as unknown) as DryRunTransactionRequest;
+		const req = ctx.params;
 		const transaction = Transaction.fromBytes(Buffer.from(req.transaction, 'hex'));
 
 		const { result } = await this._abi.verifyTransaction({

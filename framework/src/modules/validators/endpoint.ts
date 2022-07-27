@@ -22,9 +22,9 @@ import { MODULE_ID_VALIDATORS, STORE_PREFIX_BLS_KEYS } from './constants';
 
 export class ValidatorsEndpoint extends BaseEndpoint {
 	public async validateBLSKey(ctx: ModuleEndpointContext): Promise<{ valid: boolean }> {
-		validator.validate(validateBLSKeyRequestSchema, ctx.params);
+		validator.validate<ValidateBLSKeyRequest>(validateBLSKeyRequestSchema, ctx.params);
 
-		const req = (ctx.params as unknown) as ValidateBLSKeyRequest;
+		const req = ctx.params;
 		const { proofOfPossession, blsKey } = req;
 
 		const blsKeysSubStore = ctx.getStore(
