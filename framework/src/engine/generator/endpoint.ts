@@ -78,9 +78,9 @@ export class Endpoint {
 	}
 
 	public async updateStatus(ctx: RequestContext): Promise<UpdateStatusResponse> {
-		validator.validate(updateStatusRequestSchema, ctx.params);
+		validator.validate<UpdateStatusRequest>(updateStatusRequestSchema, ctx.params);
 
-		const req = (ctx.params as unknown) as UpdateStatusRequest;
+		const req = ctx.params;
 		const address = Buffer.from(req.address, 'hex');
 		const encryptedGenerator = this._generators.find(item => item.address.equals(address));
 
