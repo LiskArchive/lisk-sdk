@@ -14,7 +14,19 @@
 
 import { BaseEndpoint } from '../../base_endpoint';
 import { MainchainInteroperabilityStore } from './store';
-import { ImmutableStoreCallback, StoreCallback } from '../types';
+import {
+	ChainAccountJSON,
+	ChannelDataJSON,
+	ImmutableStoreCallback,
+	InboxJSON,
+	LastCertificateJSON,
+	MessageFeeTokenIDJSON,
+	OutboxJSON,
+	OwnChainAccountJSON,
+	StoreCallback,
+	TerminatedOutboxAccountJSON,
+	TerminatedStateAccountJSON,
+} from '../types';
 import { BaseInteroperableAPI } from '../base_interoperable_api';
 import { ModuleEndpointContext } from '../../../types';
 
@@ -26,43 +38,119 @@ export class MainchainInteroperabilityEndpoint extends BaseEndpoint {
 		this.interoperableCCAPIs = interoperableCCAPIs;
 	}
 
-	public async getChainAccount(context: ModuleEndpointContext, chainID: Buffer) {
+	public async getChainAccount(
+		context: ModuleEndpointContext,
+		chainID: Buffer,
+	): Promise<ChainAccountJSON> {
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
-		const result = await interoperabilityStore.getChainAccount(chainID);
+		const {
+			lastCertificate,
+			name,
+			networkID,
+			status,
+		} = await interoperabilityStore.getChainAccount(chainID);
 
-		return result;
+		const lastCertificateJSON: LastCertificateJSON = {
+			height: lastCertificate.height,
+			timestamp: lastCertificate.timestamp,
+			stateRoot: lastCertificate.stateRoot.toString('hex'),
+			validatorsHash: lastCertificate.validatorsHash.toString('hex'),
+		};
+
+		return {
+			lastCertificate: lastCertificateJSON,
+			name,
+			status,
+			networkID: networkID.toString('hex'),
+		};
 	}
 
-	public async getChannel(context: ModuleEndpointContext, chainID: Buffer) {
+	public async getChannel(
+		context: ModuleEndpointContext,
+		chainID: Buffer,
+	): Promise<ChannelDataJSON> {
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
 
-		const result = await interoperabilityStore.getChannel(chainID);
+		const {
+			inbox,
+			messageFeeTokenID,
+			outbox,
+			partnerChainOutboxRoot,
+		} = await interoperabilityStore.getChannel(chainID);
 
-		return result;
+		const inboxJSON: InboxJSON = {
+			appendPath: inbox.appendPath.map(ap => ap.toString('hex')),
+			root: inbox.root.toString('hex'),
+			size: inbox.size,
+		};
+
+		const outboxJSON: OutboxJSON = {
+			appendPath: outbox.appendPath.map(ap => ap.toString('hex')),
+			root: outbox.root.toString('hex'),
+			size: outbox.size,
+		};
+
+		const messageFeeTokenIDJSON: MessageFeeTokenIDJSON = {
+			chainID: messageFeeTokenID.chainID.toString('hex'),
+			localID: messageFeeTokenID.localID.toString('hex'),
+		};
+
+		return {
+			messageFeeTokenID: messageFeeTokenIDJSON,
+			outbox: outboxJSON,
+			inbox: inboxJSON,
+			partnerChainOutboxRoot: partnerChainOutboxRoot.toString('hex'),
+		};
 	}
 
-	public async getOwnChainAccount(context: ModuleEndpointContext) {
+	public async getOwnChainAccount(context: ModuleEndpointContext): Promise<OwnChainAccountJSON> {
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
 
-		const result = await interoperabilityStore.getOwnChainAccount();
+		const { id, name, nonce } = await interoperabilityStore.getOwnChainAccount();
 
-		return result;
+		return {
+			id: id.toString('hex'),
+			name,
+			nonce: nonce.toString(),
+		};
 	}
 
-	public async getTerminatedStateAccount(context: ModuleEndpointContext, chainID: Buffer) {
+	public async getTerminatedStateAccount(
+		context: ModuleEndpointContext,
+		chainID: Buffer,
+	): Promise<TerminatedStateAccountJSON> {
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
 
-		const result = await interoperabilityStore.getTerminatedStateAccount(chainID);
+		const {
+			stateRoot,
+			initialized,
+			mainchainStateRoot,
+		} = await interoperabilityStore.getTerminatedStateAccount(chainID);
 
-		return result;
+		return {
+			stateRoot: stateRoot.toString('hex'),
+			initialized,
+			mainchainStateRoot: mainchainStateRoot?.toString('hex'),
+		};
 	}
 
-	public async getTerminatedOutboxAccount(context: ModuleEndpointContext, chainID: Buffer) {
+	public async getTerminatedOutboxAccount(
+		context: ModuleEndpointContext,
+		chainID: Buffer,
+	): Promise<TerminatedOutboxAccountJSON> {
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
 
-		const result = await interoperabilityStore.getTerminatedOutboxAccount(chainID);
+		const {
+			outboxRoot,
+			outboxSize,
+			partnerChainInboxSize,
+		} = await interoperabilityStore.getTerminatedOutboxAccount(chainID);
 
-		return result;
+		return {
+			outboxRoot: outboxRoot.toString('hex'),
+			outboxSize,
+			partnerChainInboxSize,
+		};
 	}
 
 	protected getInteroperabilityStore(
