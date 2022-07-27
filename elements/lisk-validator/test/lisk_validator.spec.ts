@@ -33,8 +33,7 @@ describe('validator', () => {
 		};
 
 		it('should pass on for "object" type', () => {
-			// Assert
-			expect(validator.validateSchema(validSchema)).toEqual([]);
+			expect(() => validator.validateSchema(validSchema)).not.toThrow();
 		});
 
 		it('should return error on schema with type other than "object"', () => {
@@ -45,24 +44,27 @@ describe('validator', () => {
 				properties: {},
 			};
 
-			const msg = "Lisk validator found 2 error[s]:\nmust be equal to constant\nmust NOT have fewer than 1 items"
-			expect(() => validator.validateSchema(invalidSchema)).toThrow(msg)
+			const msg =
+				'Lisk validator found 2 error[s]:\nmust be equal to constant\nmust NOT have fewer than 1 items';
+			expect(() => validator.validateSchema(invalidSchema)).toThrow(msg);
 		});
 
 		it('should return error when "type" is not defined', () => {
 			const invalidSchema = { ...validSchema };
 			delete (invalidSchema as any).type;
 
-			const msg = "Lisk validator found 1 error[s]:\nMissing property, must have required property 'type'"
-			expect(() => validator.validateSchema(invalidSchema)).toThrow(msg)
+			const msg =
+				"Lisk validator found 1 error[s]:\nMissing property, must have required property 'type'";
+			expect(() => validator.validateSchema(invalidSchema)).toThrow(msg);
 		});
 
 		it('should return error when "$id" is not defined', () => {
 			const invalidSchema = { ...validSchema };
 			delete (invalidSchema as any).$id;
 
-			const msg = "Lisk validator found 1 error[s]:\nMissing property, must have required property '$id'"
-			expect(() => validator.validateSchema(invalidSchema)).toThrow(msg)
+			const msg =
+				"Lisk validator found 1 error[s]:\nMissing property, must have required property '$id'";
+			expect(() => validator.validateSchema(invalidSchema)).toThrow(msg);
 		});
 
 		// As the schema is always overridden
@@ -70,7 +72,7 @@ describe('validator', () => {
 			const invalidSchema = cloneDeep(validSchema);
 			delete invalidSchema.$schema;
 
-			expect(() => validator.validateSchema(invalidSchema)).not.toThrow()
+			expect(() => validator.validateSchema(invalidSchema)).not.toThrow();
 		});
 
 		it('should throw error when "$schema" value is defined other than lisk-schema uri', () => {
@@ -88,8 +90,9 @@ describe('validator', () => {
 			const invalidSchema = cloneDeep(validSchema);
 			delete invalidSchema.properties;
 
-			const msg = "Lisk validator found 1 error[s]:\nMissing property, must have required property 'properties'"
-			expect(() => validator.validateSchema(invalidSchema)).toThrow(msg)
+			const msg =
+				"Lisk validator found 1 error[s]:\nMissing property, must have required property 'properties'";
+			expect(() => validator.validateSchema(invalidSchema)).toThrow(msg);
 		});
 
 		it('should return error when "properties" are not camelcase', () => {
@@ -101,16 +104,17 @@ describe('validator', () => {
 				},
 			};
 
-			const msg = "Lisk validator found 2 error[s]:\nProperty '.properties' must match format \"camelCase\"";
-			expect(() => validator.validateSchema(invalidSchema)).toThrow(msg)
+			const msg =
+				'Lisk validator found 2 error[s]:\nProperty \'.properties\' must match format "camelCase"';
+			expect(() => validator.validateSchema(invalidSchema)).toThrow(msg);
 		});
 
 		it('should return error when "properties" are empty object', () => {
 			const invalidSchema = cloneDeep(validSchema);
 			delete invalidSchema.properties.myProp;
 
-			const msg = "Lisk validator found 1 error[s]:\nmust NOT have fewer than 1 items";
-			expect(() => validator.validateSchema(invalidSchema)).toThrow(msg)
+			const msg = 'Lisk validator found 1 error[s]:\nmust NOT have fewer than 1 items';
+			expect(() => validator.validateSchema(invalidSchema)).toThrow(msg);
 		});
 	});
 });
