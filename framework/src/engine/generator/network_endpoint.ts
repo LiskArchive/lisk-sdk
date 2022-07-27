@@ -82,26 +82,23 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 		if (Buffer.isBuffer(data)) {
 			decodedData = codec.decode<GetTransactionRequest>(getTransactionRequestSchema, data);
 
-			const logDataAndApplyPenalty = (data? : unknown) => {
-				this._logger.warn(
-					data,
-					'Received invalid getTransactions body',
-				);
+			try {
+				validator.validate(getTransactionRequestSchema, decodedData);
+			} catch (err) {
+				this._logger.warn({ err, peerId }, 'Received invalid getTransactions body');
 				this.network.applyPenaltyOnPeer({
 					peerId,
 					penalty: 100,
 				});
-			}
-
-			try {
-				validator.validate(getTransactionRequestSchema, decodedData);
-			} catch (err) {
-				logDataAndApplyPenalty({ err, peerId })
 				throw err;
 			}
 
 			if (!objectUtils.bufferArrayUniqueItems(decodedData.transactionIds)) {
-				logDataAndApplyPenalty({ peerId })
+				this._logger.warn({ peerId }, 'Received invalid getTransactions body');
+				this.network.applyPenaltyOnPeer({
+					peerId,
+					penalty: 100,
+				});
 			}
 		}
 
