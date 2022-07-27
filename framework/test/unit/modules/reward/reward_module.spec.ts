@@ -65,6 +65,22 @@ describe('RewardModule', () => {
 
 			expect(rewardModule['_moduleConfig'].offset).toEqual(1000);
 		});
+
+		it('should not initialize config with invalid value for tokenIDReward', async () => {
+			rewardModule = new RewardModule();
+			try {
+				await rewardModule.init({
+					genesisConfig: {} as any,
+					moduleConfig: {
+						tokenIDReward: { chainID: utils.intToBuffer(0, 8), localID: utils.intToBuffer(0, 4) },
+					},
+					generatorConfig: {},
+				});
+			} catch (error: any) {
+				// eslint-disable-next-line jest/no-try-expect
+				expect(error.message).toInclude("Property '.tokenIDReward.chainID' maxLength exceeded");
+			}
+		});
 	});
 
 	describe('afterTransactionsExecute', () => {
