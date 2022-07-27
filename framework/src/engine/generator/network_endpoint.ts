@@ -96,7 +96,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			try {
 				validator.validate(getTransactionRequestSchema, decodedData);
 			} catch (err) {
-				logDataAndApplyPenalty({ err: err, peerId })
+				logDataAndApplyPenalty({ err, peerId })
 				throw err;
 			}
 

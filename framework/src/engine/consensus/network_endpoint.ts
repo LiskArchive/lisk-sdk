@@ -163,9 +163,9 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 
 		try {
 			 validator.validate(getHighestCommonBlockRequestSchema, blockIds);
-		} catch (error) {
-			logDataAndApplyPenalty({ err: error, req: data})
-			throw error;
+		} catch (err) {
+			logDataAndApplyPenalty({ err, req: data})
+			throw err;
 		}
 
 		if (!objects.bufferArrayUniqueItems(blockIds.ids)) {
