@@ -197,7 +197,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 		try {
 			validator.validate(postTransactionsAnnouncementSchema, decodedData);
 		} catch (err) {
-			this._logger.warn({ err: err, peerId }, 'Received invalid transactions body');
+			this._logger.warn({ err, peerId }, 'Received invalid transactions body');
 			this.network.applyPenaltyOnPeer({
 				peerId,
 				penalty: 100,
