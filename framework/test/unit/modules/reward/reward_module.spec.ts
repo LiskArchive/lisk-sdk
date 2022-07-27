@@ -11,7 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { utils } from '@liskhq/lisk-cryptography';
 import { RewardModule } from '../../../../src/modules/reward';
 import { createBlockContext, createBlockHeaderWithDefaults } from '../../../../src/testing';
 
@@ -27,7 +26,7 @@ describe('RewardModule', () => {
 			'200000000', // Milestone 3
 			'100000000', // Milestone 4
 		],
-		tokenIDReward: { chainID: utils.intToBuffer(0, 4), localID: utils.intToBuffer(0, 4) },
+		tokenID: '0000000000000000',
 	};
 	const generatorConfig: any = {};
 
@@ -66,19 +65,19 @@ describe('RewardModule', () => {
 			expect(rewardModule['_moduleConfig'].offset).toEqual(1000);
 		});
 
-		it('should not initialize config with invalid value for tokenIDReward', async () => {
+		it('should not initialize config with invalid value for tokenID', async () => {
 			rewardModule = new RewardModule();
 			try {
 				await rewardModule.init({
 					genesisConfig: {} as any,
 					moduleConfig: {
-						tokenIDReward: { chainID: utils.intToBuffer(0, 8), localID: utils.intToBuffer(0, 4) },
+						tokenID: '00000000000000000',
 					},
 					generatorConfig: {},
 				});
 			} catch (error: any) {
 				// eslint-disable-next-line jest/no-try-expect
-				expect(error.message).toInclude("Property '.tokenIDReward.chainID' maxLength exceeded");
+				expect(error.message).toInclude("Property '.tokenID' must NOT have more than 16 character");
 			}
 		});
 	});
