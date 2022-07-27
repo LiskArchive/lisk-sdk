@@ -21,9 +21,13 @@ export const configSchema = {
 			properties: {
 				chainID: {
 					dataType: 'bytes',
+					minLength: 4,
+					maxLength: 4,
 				},
 				localID: {
 					dataType: 'bytes',
+					minLength: 4,
+					maxLength: 4,
 				},
 			},
 			required: ['chainID', 'localID'],
