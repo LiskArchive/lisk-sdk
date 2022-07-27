@@ -16,21 +16,11 @@ export const configSchema = {
 	$id: '/reward/config',
 	type: 'object',
 	properties: {
-		tokenIDReward: {
-			type: 'object',
-			properties: {
-				chainID: {
-					dataType: 'bytes',
-					minLength: 4,
-					maxLength: 4,
-				},
-				localID: {
-					dataType: 'bytes',
-					minLength: 4,
-					maxLength: 4,
-				},
-			},
-			required: ['chainID', 'localID'],
+		tokenID: {
+			type: 'string',
+			format: 'hex',
+			minLength: 16,
+			maxLength: 16,
 		},
 		offset: {
 			type: 'integer',
@@ -48,7 +38,7 @@ export const configSchema = {
 			},
 		},
 	},
-	required: ['tokenIDReward', 'offset', 'distance', 'brackets'],
+	required: ['tokenID', 'offset', 'distance', 'brackets'],
 };
 
 export const getDefaultRewardAtHeightRequestSchema = {
