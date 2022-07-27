@@ -15,10 +15,8 @@
 import { BlockAssets } from '../../state_machine';
 import { APIContext, ImmutableAPIContext } from '../../state_machine/types';
 
-export type TokenIDReward = Buffer;
-
 export interface ModuleConfig {
-	tokenIDReward: TokenIDReward;
+	tokenID: string;
 	brackets: ReadonlyArray<string>;
 	offset: number;
 	distance: number;
