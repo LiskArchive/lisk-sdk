@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { MainchainCCRegistrationCommand } from '../../../../../../src/modules/interoperability/mainchain/cc_commands/registration';
+import { MainchainCCRegistrationCommand } from '../../../../../../src/modules/interoperability/mainchain/cc_commands';
 import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
 import { registrationCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
@@ -138,7 +138,7 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 
-		expect(terminateChainInternalMock).toBeCalledTimes(1);
+		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
@@ -165,7 +165,7 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		await ccRegistrationCommand.execute({ ...sampleExecuteContext, ccm: invalidCCM });
 
-		expect(terminateChainInternalMock).toBeCalledTimes(1);
+		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
@@ -183,7 +183,7 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 
-		expect(terminateChainInternalMock).toBeCalledTimes(1);
+		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
@@ -201,7 +201,7 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 
-		expect(terminateChainInternalMock).toBeCalledTimes(1);
+		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
@@ -236,7 +236,7 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 
-		expect(terminateChainInternalMock).toBeCalledTimes(1);
+		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
@@ -271,7 +271,7 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 
-		expect(terminateChainInternalMock).toBeCalledTimes(1);
+		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
@@ -293,7 +293,7 @@ describe('MainchainCCRegistrationCommand', () => {
 			networkIdentifier: differentNetworkID,
 		});
 
-		expect(terminateChainInternalMock).toBeCalledTimes(1);
+		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
@@ -321,7 +321,7 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		await ccRegistrationCommand.execute({ ...sampleExecuteContext, ccm: invalidCCM });
 
-		expect(terminateChainInternalMock).toBeCalledTimes(1);
+		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
@@ -339,6 +339,6 @@ describe('MainchainCCRegistrationCommand', () => {
 
 		await ccRegistrationCommand.execute(sampleExecuteContext);
 
-		expect(terminateChainInternalMock).toBeCalledTimes(0);
+		expect(terminateChainInternalMock).toHaveBeenCalledTimes(0);
 	});
 });

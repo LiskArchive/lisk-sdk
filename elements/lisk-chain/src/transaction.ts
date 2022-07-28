@@ -13,8 +13,8 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { utils, address, ed } from '@liskhq/lisk-cryptography';
-import { validator} from '@liskhq/lisk-validator';
+import { address, ed, utils } from '@liskhq/lisk-cryptography';
+import { validator } from '@liskhq/lisk-validator';
 import { TAG_TRANSACTION } from './constants';
 import { JSONObject } from './types';
 
@@ -130,18 +130,14 @@ export class Transaction {
 	}
 
 	public getBytes(): Buffer {
-		const transactionBytes = codec.encode(transactionSchema, this as Record<string, unknown>);
-
-		return transactionBytes;
+		return codec.encode(transactionSchema, this as Record<string, unknown>);
 	}
 
 	public getSigningBytes(): Buffer {
-		const transactionBytes = codec.encode(transactionSchema, ({
+		return codec.encode(transactionSchema, ({
 			...this,
 			signatures: [],
 		} as unknown) as Record<string, unknown>);
-
-		return transactionBytes;
 	}
 
 	public sign(networkIdentifier: Buffer, privateKey: Buffer): void {

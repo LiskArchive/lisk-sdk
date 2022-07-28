@@ -689,7 +689,7 @@ describe('Utils', () => {
 		let newInboxAppendPath: Buffer[] = [];
 		let newInboxSize = 0;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			for (const ccm of defaultCCMsEncoded) {
 				const { appendPath, size, root } = merkleTree.regularMerkleTree.calculateMerkleRoot({
 					value: ccm,
@@ -889,7 +889,7 @@ describe('Utils', () => {
 		let context: any;
 		let calculateRootFromRightWitness: any;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			activeValidatorsUpdate = [
 				{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(1) },
 				{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },

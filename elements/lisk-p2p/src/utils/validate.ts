@@ -148,7 +148,7 @@ export const validatePeerInfoList = (
 export const validateRPCRequest = (request: unknown): void => {
 	try {
 		validator.validate(rpcRequestSchema, request as Record<string, unknown>);
-	} catch  {
+	} catch {
 		throw new Error('RPC request format is invalid.');
 	}
 };
@@ -159,7 +159,6 @@ export const validateProtocolMessage = (message: unknown): void => {
 	} catch {
 		throw new Error('Protocol message format is invalid.');
 	}
-
 };
 
 export const validatePacket = (packet: unknown): void => {

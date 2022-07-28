@@ -24,10 +24,7 @@ export const validateTransaction = (
 		...transactionObject,
 		params: Buffer.alloc(0),
 	};
-	validator.validate(
-		baseTransactionSchema,
-		transactionObjectWithEmptyParameters,
-	);
+	validator.validate(baseTransactionSchema, transactionObjectWithEmptyParameters);
 
 	if (!paramsSchema) {
 		return undefined;
