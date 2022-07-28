@@ -101,3 +101,5 @@ export {
 	BlockExecuteContext,
 	BlockAfterExecuteContext,
 } from './state_machine/types';
+export { AggregateCommit } from './engine/consensus/types';
+export { BFTValidator } from './engine/bft/types';
