@@ -377,7 +377,10 @@ export class Generator {
 		})) as unknown) as {
 			data: Buffer;
 		};
-		const transactionResponse = codec.decode<GetTransactionResponse>(getTransactionsResponseSchema, data);
+		const transactionResponse = codec.decode<GetTransactionResponse>(
+			getTransactionsResponseSchema,
+			data,
+		);
 
 		validator.validate(getTransactionsResponseSchema, transactionResponse);
 
