@@ -14,7 +14,7 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { validateTransaction } from '../src/validate';
+import { validateTransaction } from '../src';
 
 describe('validateTransaction', () => {
 	// Arrange
@@ -68,7 +68,7 @@ describe('validateTransaction', () => {
 			{ ...validTransaction, senderPublicKey: 1 },
 		];
 		return invalidTransactionObjects.forEach(transactionObject =>
-			expect(validateTransaction(validParamsSchema, transactionObject)).toBeInstanceOf(Error),
+			expect(() => validateTransaction(validParamsSchema, transactionObject)).toThrow(),
 		);
 	});
 
@@ -87,7 +87,7 @@ describe('validateTransaction', () => {
 			},
 		];
 		return invalidParams.forEach(transactionObject =>
-			expect(validateTransaction(transactionObject, validParamsSchema)).toBeInstanceOf(Error),
+			expect(() => validateTransaction(transactionObject, validParamsSchema)).toThrow(),
 		);
 	});
 
