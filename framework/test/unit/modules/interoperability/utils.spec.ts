@@ -1256,7 +1256,6 @@ describe('Utils', () => {
 
 		let mockGetStore: any;
 
-		// eslint-disable-next-line @typescript-eslint/require-await
 		beforeEach(async () => {
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			ownChainDataSubstore = stateStore.getStore(
