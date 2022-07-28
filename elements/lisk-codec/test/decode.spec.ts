@@ -277,7 +277,7 @@ describe('decode', () => {
 			);
 		});
 
-		it('should not decode a binary message that contains some bytes at the end that cannot be decoded to some key-value pairs. E.g., a binary message contatenated with the byte 0x00', () => {
+		it('should not decode a binary message that contains some bytes at the end that cannot be decoded to some key-value pairs. E.g., a binary message concatenated with the byte 0x00', () => {
 			const schema = {
 				$id: 'duplicate/extraBytes',
 				type: 'object',
@@ -299,29 +299,32 @@ describe('decode', () => {
 
 		it('should not decode a binary message which contains a key-value pair for a property of type array for which packed encoding is used (for example boolean), and the value exist as empty bytes', () => {
 			const schema = {
-				$id: 'duplicate/emptyBytes',
+				$id: 'duplicate/arrayEmptyBytes',
 				type: 'object',
 				properties: {
 					data: {
 						dataType: 'uint32',
 						fieldNumber: 1,
 					},
-					later: {
-						dataType: 'boolean',
-						fieldNumber: 3,
+					arr: {
+						type: 'array',
+						fieldNumber: 2,
+						items: {
+							dataType: 'boolean',
+						},
 					},
 				},
 			};
 			const key = generateKey(schema.properties.data);
 			const intVal1 = writeUInt32(20);
 
-			const key2 = generateKey(schema.properties.later);
+			const key2 = generateKey(schema.properties.arr);
 
 			const keypair1 = Buffer.concat([key, intVal1]);
 			const keypair2 = Buffer.concat([key2]);
 			const encodedValue = Buffer.concat([keypair1, keypair2]);
 
-			expect(() => codec.decode(schema, encodedValue)).toThrow('Invalid boolean bytes.');
+			expect(() => codec.decode(schema, encodedValue)).toThrow('Invalid buffer length');
 		});
 	});
 
