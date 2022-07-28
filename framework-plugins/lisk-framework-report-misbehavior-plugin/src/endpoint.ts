@@ -20,7 +20,10 @@ import {
 import { actionParamsSchema } from './schemas';
 import { ReportMisbehaviorPluginConfig, State } from './types';
 
-const { validator} = liskValidator;
+// disabled for type annotation
+// eslint-disable-next-line prefer-destructuring
+const validator: liskValidator.LiskValidator = liskValidator.validator;
+
 const { encrypt, address } = cryptography;
 
 export class Endpoint extends BasePluginEndpoint {

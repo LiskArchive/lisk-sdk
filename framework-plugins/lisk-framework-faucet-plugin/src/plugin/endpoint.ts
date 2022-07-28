@@ -24,7 +24,9 @@ import {
 import { authorizeParamsSchema, fundParamsSchema } from './schemas';
 import { FaucetPluginConfig, State } from './types';
 
-const { validator} = liskValidator;
+// disabled for type annotation
+// eslint-disable-next-line prefer-destructuring
+const validator: liskValidator.LiskValidator = liskValidator.validator;
 
 export class Endpoint extends BasePluginEndpoint {
 	private _state: State = { publicKey: undefined, passphrase: undefined };
