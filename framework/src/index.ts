@@ -76,3 +76,5 @@ export {
 	VerificationResult,
 	VerifyStatus,
 } from './state_machine/types';
+export { AggregateCommit } from './engine/consensus/types';
+export { BFTValidator } from './engine/bft/types';
