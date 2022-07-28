@@ -179,8 +179,7 @@ describe('VoteCommand', () => {
 
 				it('should return errors', async () => {
 					const verificationResult = await command.verify(context);
-					expect((verificationResult.error as any).value).toHaveLength(1);
-					expect((verificationResult.error as any).value[0].message).toInclude(
+					expect((verificationResult.error as any).value.message).toInclude(
 						'must NOT have fewer than 1 items',
 					);
 				});
@@ -206,8 +205,7 @@ describe('VoteCommand', () => {
 
 				it('should return errors', async () => {
 					const verificationResult = await command.verify(context);
-					expect((verificationResult.error as any).value).toHaveLength(1);
-					expect((verificationResult.error as any).value[0].message).toInclude(
+					expect((verificationResult.error as any).value.message).toInclude(
 						'must NOT have more than 20 items',
 					);
 				});
