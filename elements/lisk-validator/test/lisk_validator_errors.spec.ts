@@ -44,7 +44,7 @@ describe('LiskValidationError formatter', () => {
 
 		const expectedError =
 			"Lisk validator found 1 error[s]:\nProperty '.myProp' should be of type 'string'";
-		expect(() => validator.validate(schema, obj)).toThrow(expectedError)
+		expect(() => validator.validate(schema, obj)).toThrow(expectedError);
 	});
 
 	it('should format minLength errors', () => {
@@ -56,7 +56,7 @@ describe('LiskValidationError formatter', () => {
 
 		const expectedError =
 			"Lisk validator found 1 error[s]:\nProperty '.myProp' must NOT have fewer than 2 characters";
-		expect(() => validator.validate(schema, obj)).toThrow(expectedError)
+		expect(() => validator.validate(schema, obj)).toThrow(expectedError);
 	});
 
 	it('should format maxLength errors', () => {
@@ -68,7 +68,7 @@ describe('LiskValidationError formatter', () => {
 
 		const expectedError =
 			"Lisk validator found 1 error[s]:\nProperty '.myProp' must NOT have more than 5 characters";
-		expect(() => validator.validate(schema, obj)).toThrow(expectedError)
+		expect(() => validator.validate(schema, obj)).toThrow(expectedError);
 	});
 
 	it('should format custom format errors', () => {
@@ -80,7 +80,7 @@ describe('LiskValidationError formatter', () => {
 
 		const expectedError =
 			'Lisk validator found 1 error[s]:\nProperty \'.myProp\' must match format "hex"';
-		expect(() => validator.validate(schema, obj)).toThrow(expectedError)
+		expect(() => validator.validate(schema, obj)).toThrow(expectedError);
 	});
 
 	it('should format missing required property errors', () => {
@@ -89,7 +89,7 @@ describe('LiskValidationError formatter', () => {
 
 		const expectedError =
 			"Lisk validator found 1 error[s]:\nMissing property, must have required property 'myProp'";
-		expect(() => validator.validate(schema, obj)).toThrow(expectedError)
+		expect(() => validator.validate(schema, obj)).toThrow(expectedError);
 	});
 
 	it('should format additional property errors', () => {
@@ -120,6 +120,6 @@ describe('LiskValidationError formatter', () => {
 
 		const expectedError =
 			"Lisk validator found 1 error[s]:\nProperty '.myProp' has extraneous property 'bar'";
-		expect(() => validator.validate(schema, obj)).toThrow(expectedError)
+		expect(() => validator.validate(schema, obj)).toThrow(expectedError);
 	});
 });

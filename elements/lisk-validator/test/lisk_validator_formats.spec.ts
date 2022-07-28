@@ -44,17 +44,20 @@ describe('validator formats', () => {
 		});
 
 		it('should validate to true when valid hex string is provided', () => {
-			expect(
-				() => validator.validate(schema, { target: '23b9ed818526a928bce91b96fb4508babb121ee2' })
-			).not.toThrow()
+			expect(() =>
+				validator.validate(schema, { target: '23b9ed818526a928bce91b96fb4508babb121ee2' }),
+			).not.toThrow();
 		});
 
 		it('should validate to false when not hex is provided', () => {
-			const expectedError = "Lisk validator found 1 error[s]:\nProperty '.target' must match format \"hex\"";
+			const expectedError =
+				'Lisk validator found 1 error[s]:\nProperty \'.target\' must match format "hex"';
 
-			expect(() => validator.validate(schema, {
-				target: 'notValid?!hex-!!@',
-			})).toThrow(expectedError)
+			expect(() =>
+				validator.validate(schema, {
+					target: 'notValid?!hex-!!@',
+				}),
+			).toThrow(expectedError);
 		});
 	});
 
@@ -69,7 +72,9 @@ describe('validator formats', () => {
 		};
 
 		it('should validate to false for invalid path', () => {
-			expect(() => validator.validate(pathSchema, { rootPath: 'lisk' })).toThrow("Property '.rootPath' must match format \"path\"")
+			expect(() => validator.validate(pathSchema, { rootPath: 'lisk' })).toThrow(
+				'Property \'.rootPath\' must match format "path"',
+			);
 		});
 
 		it('should validate to true for valid path with tilde', () => {
@@ -93,15 +98,15 @@ describe('validator formats', () => {
 
 		it('should validate to false for invalid path', () => {
 			const expectedError =
-				"Lisk validator found 1 error[s]:\nProperty '.encryptedPassphrase' must match format \"encryptedPassphrase\"";
+				'Lisk validator found 1 error[s]:\nProperty \'.encryptedPassphrase\' must match format "encryptedPassphrase"';
 
 			[
 				'cipherText',
 				'cipherText=',
 				'cipherText=abcd1234&iterations=10000&iv=ef012345cipherText=abcd1234&iterations=10000&iv=ef012345',
 			].forEach(text => {
-				expect(
-					() => validator.validate(encryptedPassphraseSchema, {
+				expect(() =>
+					validator.validate(encryptedPassphraseSchema, {
 						encryptedPassphrase: text,
 					}),
 				).toThrow(expectedError);
@@ -110,8 +115,8 @@ describe('validator formats', () => {
 
 		it('should validate to true for valid encrypted passphrase', () => {
 			['cipherText=abcd1234', 'cipherText=abcd1234&iterations=10000&iv=ef012345'].forEach(text => {
-				expect(
-					() => validator.validate(encryptedPassphraseSchema, {
+				expect(() =>
+					validator.validate(encryptedPassphraseSchema, {
 						encryptedPassphrase: text,
 					}),
 				).not.toThrow();
@@ -130,19 +135,20 @@ describe('validator formats', () => {
 		};
 
 		it('should validate to false for invalid camel case text', () => {
-			const expectedError = "Lisk validator found 1 error[s]:\nProperty '.camelCaseRegex' must match format \"camelCase\"";
+			const expectedError =
+				'Lisk validator found 1 error[s]:\nProperty \'.camelCaseRegex\' must match format "camelCase"';
 
 			['NotCamelCase', '123Case', '_camelCase'].forEach(text => {
-				expect(
-					() => validator.validate(camelCaseRegexSchema, { camelCaseRegex: text })
-				).toThrow(expectedError);
+				expect(() => validator.validate(camelCaseRegexSchema, { camelCaseRegex: text })).toThrow(
+					expectedError,
+				);
 			});
 		});
 
 		it('should validate to true for valid camel case text', () => {
 			['camelCase'].forEach(text => {
-				expect(
-					() => validator.validate(camelCaseRegexSchema, { camelCaseRegex: text })
+				expect(() =>
+					validator.validate(camelCaseRegexSchema, { camelCaseRegex: text }),
 				).not.toThrow();
 			});
 		});
@@ -159,20 +165,17 @@ describe('validator formats', () => {
 		};
 
 		it('should validate to false for invalid semantic versions', () => {
-			const expectedError = "Lisk validator found 1 error[s]:\nProperty '.version' must match format \"version\"";
+			const expectedError =
+				'Lisk validator found 1 error[s]:\nProperty \'.version\' must match format "version"';
 
 			['9999999999999999.4.7.4', 'alpha one', '1.2.12.102', '4.6.3.9.2-alpha2'].forEach(text => {
-				expect(
-					() =>validator.validate(versionSchema, { version: text })
-				).toThrow(expectedError);
+				expect(() => validator.validate(versionSchema, { version: text })).toThrow(expectedError);
 			});
 		});
 
 		it('should validate to true for valid semantic versions', () => {
 			['1.2.0', '1.0.0-alpha.0', 'v1.2.3', '1.0.0-beta+exp.sha.5114f85'].forEach(text => {
-				expect(
-					() =>validator.validate(versionSchema, { version: text })
-				).not.toThrow()
+				expect(() => validator.validate(versionSchema, { version: text })).not.toThrow();
 			});
 		});
 	});

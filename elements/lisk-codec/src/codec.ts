@@ -12,10 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	validator,
-	liskSchemaIdentifier,
-} from '@liskhq/lisk-validator';
+import { validator, liskSchemaIdentifier } from '@liskhq/lisk-validator';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { generateKey } from './utils';
 import { readObject, writeObject } from './collection';
