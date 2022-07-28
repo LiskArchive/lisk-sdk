@@ -68,7 +68,7 @@ export class RewardModule extends BaseModule {
 			throw new LiskValidationError(errors);
 		}
 		this._moduleConfig = (config as unknown) as ModuleConfig;
-		this._tokenID = Buffer.from(this._moduleConfig.tokenID, 'utf8');
+		this._tokenID = Buffer.from(this._moduleConfig.tokenID, 'hex');
 
 		this.api.init({
 			config: {
