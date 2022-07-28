@@ -58,7 +58,7 @@ export class FeeModule extends BaseModule {
 		const config = objects.mergeDeep({}, defaultConfig, moduleConfig);
 		validator.validate(configSchema, config);
 
-		this._tokenID = Buffer.from(config.feeTokenID, 'hex');
+		this._tokenID = Buffer.from(config.feeTokenID as string, 'hex');
 		this._minFeePerByte = genesisConfig.minFeePerByte;
 		this._baseFees = genesisConfig.baseFees.map(fee => ({ ...fee, baseFee: BigInt(fee.baseFee) }));
 	}
