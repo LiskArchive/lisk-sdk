@@ -35,6 +35,7 @@ import {
 import {
 	CCM_STATUS_OK,
 	CHAIN_REGISTERED,
+	CHAIN_TERMINATED,
 	EMPTY_BYTES,
 	LIVENESS_LIMIT,
 	MAINCHAIN_ID_BUFFER,
@@ -680,7 +681,7 @@ export const initGenesisStateUtil = async (id: Buffer, ctx: GenesisBlockExecuteC
 				)} is not valid.`,
 			);
 		}
-		if (tokenID.chainID.readInt32BE(0) === 1 && tokenID.localID.readInt32BE(0) !== 0) {
+		if (tokenID.chainID.equals(MAINCHAIN_ID_BUFFER) && tokenID.localID.readInt32BE(0) !== 0) {
 			throw new Error(
 				`Local id corresponding to the channel data store key ${channelData.storeKey.toString(
 					'hex',
@@ -708,7 +709,7 @@ export const initGenesisStateUtil = async (id: Buffer, ctx: GenesisBlockExecuteC
 		const { activeValidators, certificateThreshold } = chainValidators.storeValue;
 		if (activeValidators.length < 1 || activeValidators.length > MAX_NUM_VALIDATORS) {
 			throw new Error(
-				' Active validators must have at least 1 element and at most MAX_NUM_VALIDATORS elements.',
+				`Active validators must have at least 1 element and at most ${MAX_NUM_VALIDATORS} elements.`,
 			);
 		}
 
@@ -756,7 +757,7 @@ export const initGenesisStateUtil = async (id: Buffer, ctx: GenesisBlockExecuteC
 		chainDataStoreKeySet.add(chainDataStoreKey);
 
 		const chainAccountStatus = chainData.storeValue.status;
-		if (chainAccountStatus === 2) {
+		if (chainAccountStatus === CHAIN_TERMINATED) {
 			if (outboxRootStoreKeySet.has(chainDataStoreKey)) {
 				throw new Error('Outbox root store cannot have entry for a terminated chain account.');
 			}
@@ -804,7 +805,7 @@ export const initGenesisStateUtil = async (id: Buffer, ctx: GenesisBlockExecuteC
 		!(chainDataStoreKeySet.has(MAINCHAIN_ID_BUFFER) && chainDataStoreKeySet.has(ownChainAccount.id))
 	) {
 		throw new Error(
-			'If a chain account for another sidechain is present, than a chain account for the mainchain must be present, as well as the own chain account.',
+			'If a chain account for another sidechain is present, then a chain account for the mainchain must be present, as well as the own chain account.',
 		);
 	}
 
