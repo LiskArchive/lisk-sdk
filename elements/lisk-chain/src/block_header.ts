@@ -15,10 +15,10 @@
 import { ed, utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { LiskErrorObject } from '@liskhq/lisk-validator/dist-node/types';
 import { EMPTY_BUFFER, EMPTY_HASH, SIGNATURE_LENGTH_BYTES, TAG_BLOCK_HEADER } from './constants';
 import { blockHeaderSchema, blockHeaderSchemaWithId, signingBlockHeaderSchema } from './schema';
 import { JSONObject } from './types';
-import {LiskErrorObject} from "@liskhq/lisk-validator/dist-node/types";
 
 export interface BlockHeaderAttrs {
 	readonly version: number;
@@ -189,7 +189,7 @@ export class BlockHeader {
 		const header = this._getBlockHeaderProps();
 		validator.validate(blockHeaderSchema, header);
 
-		const errors: LiskErrorObject[] = []
+		const errors: LiskErrorObject[] = [];
 
 		if (header.previousBlockID.length !== 32) {
 			errors.push({
