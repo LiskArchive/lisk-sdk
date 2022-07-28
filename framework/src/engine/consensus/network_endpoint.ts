@@ -103,7 +103,7 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 		} catch (error) {
 			this._logger.warn(
 				{
-					err: error,
+					err: error as Error,
 					req: data,
 					peerID: peerId,
 				},
@@ -150,26 +150,23 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			data as never,
 		);
 
-		const logDataAndApplyPenalty = (data? : unknown) => {
-			this._logger.warn(
-				data,
-				'getHighestCommonBlock request validation failed',
-			);
+		const logDataAndApplyPenalty = (errData?: unknown) => {
+			this._logger.warn(errData, 'getHighestCommonBlock request validation failed');
 			this._network.applyPenaltyOnPeer({
 				peerId,
 				penalty: 100,
 			});
-		}
+		};
 
 		try {
-			 validator.validate(getHighestCommonBlockRequestSchema, blockIds);
-		} catch (err) {
-			logDataAndApplyPenalty({ err, req: data})
-			throw err;
+			validator.validate(getHighestCommonBlockRequestSchema, blockIds);
+		} catch (error) {
+			logDataAndApplyPenalty({ err: error as Error, req: data });
+			throw error;
 		}
 
 		if (!objects.bufferArrayUniqueItems(blockIds.ids)) {
-			logDataAndApplyPenalty({ req: data});
+			logDataAndApplyPenalty({ req: data });
 		}
 
 		const commonBlockHeaderID = await this._chain.dataAccess.getHighestCommonBlockID(blockIds.ids);
