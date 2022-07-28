@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { chain } from 'lisk-sdk';
+
 export const configSchema = {
 	$id: '#/plugins/chainConnector/config',
 	type: 'object',
@@ -38,4 +40,27 @@ export const configSchema = {
 		ccmFrequency: 10,
 		livenessFrequency: 86400,
 	},
+};
+
+export const chainConnectorInfoSchema = {
+	$id: '#/plugins/chainConnector/info',
+	type: 'object',
+	properties: {
+		blockHeaders: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				...chain.blockHeaderSchema,
+			},
+		},
+		aggregateCommits: {
+			type: 'object',
+			fieldNumber: 2,
+		},
+		validatorsHashPreimage: {
+			type: 'object',
+			fieldNumber: 3,
+		},
+	},
+	required: ['blockHeaders', 'aggregateCommits', 'validatorsHashPreimage'],
 };

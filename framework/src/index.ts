@@ -103,3 +103,4 @@ export {
 	BlockAfterExecuteContext,
 } from './state_machine/types';
 export { TransactionExecutionResult, TransactionVerifyResult } from './abi/constants';
+export { AggregateCommit } from './engine/consensus/types';
