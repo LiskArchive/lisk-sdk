@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { validator} from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { MainchainInteroperabilityStore } from '../store';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import {
@@ -71,7 +71,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: err,
+				error: err as Error,
 			};
 		}
 

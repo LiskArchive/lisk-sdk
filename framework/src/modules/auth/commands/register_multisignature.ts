@@ -13,7 +13,7 @@
  */
 
 import { objects as objectUtils } from '@liskhq/lisk-utils';
-import { validator} from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { BaseCommand } from '../..';
 import {
 	CommandExecuteContext,
@@ -48,7 +48,7 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: err,
+				error: err as Error,
 			};
 		}
 

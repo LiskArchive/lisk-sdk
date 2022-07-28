@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { validator} from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import {
 	CommandVerifyContext,
 	VerificationResult,
@@ -50,7 +50,7 @@ export class UpdateGeneratorKeyCommand extends BaseCommand {
 		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: err,
+				error: err as Error,
 			};
 		}
 

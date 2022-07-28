@@ -84,13 +84,13 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 
 			try {
 				validator.validate(getTransactionRequestSchema, decodedData);
-			} catch (err) {
-				this._logger.warn({ err, peerId }, 'Received invalid getTransactions body');
+			} catch (error) {
+				this._logger.warn({ err: error as Error, peerId }, 'Received invalid getTransactions body');
 				this.network.applyPenaltyOnPeer({
 					peerId,
 					penalty: 100,
 				});
-				throw err;
+				throw error;
 			}
 
 			if (!objectUtils.bufferArrayUniqueItems(decodedData.transactionIds)) {
@@ -193,13 +193,13 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 
 		try {
 			validator.validate(postTransactionsAnnouncementSchema, decodedData);
-		} catch (err) {
-			this._logger.warn({ err, peerId }, 'Received invalid transactions body');
+		} catch (error) {
+			this._logger.warn({ err: error as Error, peerId }, 'Received invalid transactions body');
 			this.network.applyPenaltyOnPeer({
 				peerId,
 				penalty: 100,
 			});
-			throw err;
+			throw error;
 		}
 
 		this.event.emit(GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT, decodedData);

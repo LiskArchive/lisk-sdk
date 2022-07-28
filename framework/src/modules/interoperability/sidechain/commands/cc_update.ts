@@ -80,7 +80,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: err,
+				error: err as Error,
 			};
 		}
 
