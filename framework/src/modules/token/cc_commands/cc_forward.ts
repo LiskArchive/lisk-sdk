@@ -61,7 +61,6 @@ export class CCForwardCommand extends BaseCCCommand {
 		try {
 			params = codec.decode<CCForwardMessageParams>(crossChainForwardMessageParams, ccm.params);
 			validator.validate(crossChainTransferMessageParams, params);
-
 		} catch (error) {
 			ctx.logger.debug({ err: error as Error }, 'Error verifying the params.');
 			if (ccm.status === CCM_STATUS_OK) {

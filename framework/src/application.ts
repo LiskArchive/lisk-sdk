@@ -19,7 +19,7 @@ import * as assert from 'assert';
 import * as childProcess from 'child_process';
 import { Block } from '@liskhq/lisk-chain';
 import { Database, StateDB } from '@liskhq/lisk-db';
-import { validator} from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { objects, jobHandlers } from '@liskhq/lisk-utils';
 import { APP_EVENT_SHUTDOWN, APP_EVENT_READY } from './constants';
 import {

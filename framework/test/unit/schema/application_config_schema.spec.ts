@@ -22,35 +22,31 @@ describe('schema/application_config_schema.js', () => {
 	});
 
 	it('should validate the defined schema', () => {
-		expect(
-			() => validator.validateSchema(applicationConfigSchema)
-		).not.toThrow()
+		expect(() => validator.validateSchema(applicationConfigSchema)).not.toThrow();
 	});
 
 	it('should validate if module properties are objects', () => {
 		const config = objects.cloneDeep(applicationConfigSchema.default);
 		config.genesis.modules = { myModule: { myProp: 1 } };
 
-		expect(
-			() => validator.validate(applicationConfigSchema, config)
-		).not.toThrow()
+		expect(() => validator.validate(applicationConfigSchema, config)).not.toThrow();
 	});
 
 	it('should not validate if module properties are not objects', () => {
 		const config = objects.cloneDeep(applicationConfigSchema.default);
 		config.genesis.modules = { myModule: 10 };
 
-		expect(
-			() => validator.validate(applicationConfigSchema, config)
-		).toThrow("Property '.genesis.modules.myModule' should be of type 'object'")
+		expect(() => validator.validate(applicationConfigSchema, config)).toThrow(
+			"Property '.genesis.modules.myModule' should be of type 'object'",
+		);
 	});
 
 	it('should not validate if module properties are not valid format', () => {
 		const config = objects.cloneDeep(applicationConfigSchema.default);
 		config.genesis.modules = { 'my-custom-module': { myProp: 1 } };
 
-		expect(
-			() => validator.validate(applicationConfigSchema, config)
-		).toThrow("must match pattern \"^[a-zA-Z][a-zA-Z0-9_]*$\"\nproperty name must be valid")
+		expect(() => validator.validate(applicationConfigSchema, config)).toThrow(
+			'must match pattern "^[a-zA-Z][a-zA-Z0-9_]*$"\nproperty name must be valid',
+		);
 	});
 });
