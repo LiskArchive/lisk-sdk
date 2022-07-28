@@ -82,7 +82,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: err,
+				error: err as Error,
 			};
 		}
 

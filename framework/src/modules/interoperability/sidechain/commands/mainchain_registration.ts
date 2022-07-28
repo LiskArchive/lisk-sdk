@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils, bls } from '@liskhq/lisk-cryptography';
-import { validator} from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import {
 	CCM_STATUS_OK,
 	CHAIN_REGISTERED,
@@ -79,7 +79,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: err,
+				error: err as Error,
 			};
 		}
 

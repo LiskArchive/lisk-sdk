@@ -69,7 +69,7 @@ export class VoteCommand extends BaseCommand {
 		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new AggregateValidationError('Parameter is not valid.', err.toString()),
+				error: new AggregateValidationError('Parameter is not valid.', err),
 			};
 		}
 

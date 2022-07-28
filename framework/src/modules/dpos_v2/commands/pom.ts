@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { validator} from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { BlockHeader } from '@liskhq/lisk-chain';
 import {
 	CommandVerifyContext,
@@ -62,13 +62,12 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 	public async verify(
 		context: CommandVerifyContext<PomTransactionParams>,
 	): Promise<VerificationResult> {
-
 		try {
 			validator.validate(this.schema, context.params);
 		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: err,
+				error: err as Error,
 			};
 		}
 

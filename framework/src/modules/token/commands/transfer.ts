@@ -50,7 +50,7 @@ export class TransferCommand extends BaseCommand {
 		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: err,
+				error: err as Error,
 			};
 		}
 		return {
