@@ -73,10 +73,10 @@ describe('forging:config command', () => {
 		jest.spyOn(fs, 'ensureDirSync').mockReturnValue();
 		jest.spyOn(fs, 'writeJSONSync').mockReturnValue();
 		jest
-			.spyOn(cryptography.encrypt, 'encryptPassphraseWithPassword')
+			.spyOn(cryptography.encrypt, 'encryptMessageWithPassword')
 			.mockReturnValue(encryptedPassphraseObject as any);
 		jest
-			.spyOn(cryptography.encrypt, 'stringifyEncryptedPassphrase')
+			.spyOn(cryptography.encrypt, 'stringifyEncryptedMessage')
 			.mockReturnValue(encryptedPassphraseString);
 		jest.spyOn(readerUtils, 'getPassphraseFromPrompt').mockImplementation(async (name?: string) => {
 			if (name === 'passphrase') {
@@ -96,11 +96,11 @@ describe('forging:config command', () => {
 		describe('generate forging config and print', () => {
 			it('should encrypt passphrase and with default hash-onions', async () => {
 				await ConfigCommand.run(['--count=2', '--distance=1', '--pretty'], config);
-				expect(cryptography.encrypt.encryptPassphraseWithPassword).toHaveBeenCalledWith(
+				expect(cryptography.encrypt.encryptMessageWithPassword).toHaveBeenCalledWith(
 					defaultInputs.passphrase,
 					defaultInputs.password,
 				);
-				expect(cryptography.encrypt.stringifyEncryptedPassphrase).toHaveBeenCalledWith(
+				expect(cryptography.encrypt.stringifyEncryptedMessage).toHaveBeenCalledWith(
 					encryptedPassphraseObject,
 				);
 				expect(readerUtils.getPassphraseFromPrompt).toHaveBeenCalledWith('passphrase', true);
@@ -132,11 +132,11 @@ describe('forging:config command', () => {
 					],
 					config,
 				);
-				expect(cryptography.encrypt.encryptPassphraseWithPassword).toHaveBeenCalledWith(
+				expect(cryptography.encrypt.encryptMessageWithPassword).toHaveBeenCalledWith(
 					defaultInputs.passphrase,
 					defaultInputs.password,
 				);
-				expect(cryptography.encrypt.stringifyEncryptedPassphrase).toHaveBeenCalledWith(
+				expect(cryptography.encrypt.stringifyEncryptedMessage).toHaveBeenCalledWith(
 					encryptedPassphraseObject,
 				);
 				expect(readerUtils.getPassphraseFromPrompt).not.toHaveBeenCalledWith('passphrase', true);
