@@ -477,7 +477,12 @@ describe('abi handler', () => {
 				fee: BigInt(30),
 				moduleID: utils.intToBuffer(2, 4),
 				nonce: BigInt(2),
-				params: codec.encode(transferParamsSchema, {}),
+				params: codec.encode(transferParamsSchema, {
+					tokenID: Buffer.alloc(8, 0),
+					amount: BigInt(0),
+					recipientAddress: Buffer.alloc(20, 2),
+					data: '',
+				}),
 				senderPublicKey: utils.getRandomBytes(32),
 				signatures: [utils.getRandomBytes(64)],
 			});
@@ -524,7 +529,12 @@ describe('abi handler', () => {
 				fee: BigInt(30),
 				moduleID: utils.intToBuffer(2, 4),
 				nonce: BigInt(2),
-				params: codec.encode(transferParamsSchema, {}),
+				params: codec.encode(transferParamsSchema, {
+					tokenID: Buffer.alloc(8, 0),
+					amount: BigInt(0),
+					recipientAddress: Buffer.alloc(20, 2),
+					data: '',
+				}),
 				senderPublicKey: utils.getRandomBytes(32),
 				signatures: [utils.getRandomBytes(64)],
 			});

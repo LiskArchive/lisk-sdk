@@ -505,9 +505,13 @@ export const checkValidatorsHashWithCertificate = (
 				),
 			};
 		}
-		const decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
-
-		if (isCertificateEmpty(decodedCertificate)) {
+		let decodedCertificate: Certificate;
+		try {
+			decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
+			if (isCertificateEmpty(decodedCertificate)) {
+				throw new Error('Invalid empty certificate.');
+			}
+		} catch (error) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error(
