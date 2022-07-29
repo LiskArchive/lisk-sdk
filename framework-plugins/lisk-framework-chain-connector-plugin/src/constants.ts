@@ -15,3 +15,4 @@
 export const CCM_BASED_CCU_FREQUENCY = 10;
 export const LIVENESS_BASED_CCU_FREQUENCY = 864000; // Approximately 10 days which is 33% of 1 month liveness condition
 export const DB_KEY_CHAIN_CONNECTOR_INFO = Buffer.from('chain-connector:info', 'utf8');
+export const EMPTY_BYTES = Buffer.alloc(0);

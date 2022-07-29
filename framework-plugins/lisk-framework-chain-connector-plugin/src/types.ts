@@ -30,6 +30,6 @@ export interface ValidatorsData {
 
 export interface ChainConnectorInfo {
 	blockHeaders: chain.BlockHeader[];
-	aggregateCommits: Record<number, AggregateCommit>;
-	validatorsHashPreimage: Record<string, ValidatorsData>;
+	aggregateCommits: AggregateCommit[];
+	validatorsHashPreimage: ValidatorsData[];
 }

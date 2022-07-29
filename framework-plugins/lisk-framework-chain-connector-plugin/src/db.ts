@@ -17,7 +17,7 @@ import { codec, db as liskDB } from 'lisk-sdk';
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
-import { DB_KEY_CHAIN_CONNECTOR_INFO } from './constants';
+import { DB_KEY_CHAIN_CONNECTOR_INFO, EMPTY_BYTES } from './constants';
 import { chainConnectorInfoSchema } from './schemas';
 import { ChainConnectorInfo } from './types';
 
@@ -44,8 +44,16 @@ export const getChainConnectorInfo = async (db: KVStore): Promise<ChainConnector
 		debug('Chain connector info does not exist.');
 		return {
 			blockHeaders: [],
-			aggregateCommits: {},
-			validatorsHashPreimage: {},
+			aggregateCommits: [],
+			validatorsHashPreimage: [],
 		};
 	}
+};
+
+export const setChainConnectorInfo = async (
+	db: KVStore,
+	chainConnectorInfo: ChainConnectorInfo,
+): Promise<void> => {
+	const encodedInfo = codec.encode(chainConnectorInfoSchema, chainConnectorInfo);
+	await db.set(EMPTY_BYTES, encodedInfo);
 };
