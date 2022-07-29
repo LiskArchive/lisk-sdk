@@ -58,58 +58,6 @@
 					"height": 123
 				}
 			}
-		},
-		{
-			"description": "Decoding of peer info sample with optional property",
-			"input": {
-				"value": "0a07312e312e312e3110d708320664617277696e",
-				"schema": {
-					"$id": "peerInfo",
-					"type": "object",
-					"properties": {
-						"ipAddress": {
-							"dataType": "string",
-							"fieldNumber": 1
-						},
-						"wsPort": {
-							"dataType": "uint32",
-							"fieldNumber": 2
-						},
-						"networkIdentifier": {
-							"dataType": "string",
-							"fieldNumber": 3
-						},
-						"networkVersion": {
-							"dataType": "string",
-							"fieldNumber": 4
-						},
-						"nonce": {
-							"dataType": "string",
-							"fieldNumber": 5
-						},
-						"os": {
-							"dataType": "string",
-							"fieldNumber": 6
-						},
-						"height": {
-							"dataType": "uint32",
-							"fieldNumber": 7
-						}
-					},
-					"required": ["ipAddress", "wsPort"]
-				}
-			},
-			"output": {
-				"object": {
-					"ipAddress": "1.1.1.1",
-					"wsPort": 1111,
-					"os": "darwin",
-					"networkIdentifier": "",
-					"networkVersion": "",
-					"nonce": "",
-					"height": 0
-				}
-			}
 		}
 	]
 }

@@ -22,10 +22,7 @@ export const TOKEN_ID_LSK_MAINCHAIN = {
 export const REWARD_REDUCTION_FACTOR_BFT = 4;
 
 export const defaultConfig = {
-	tokenIDReward: {
-		chainID: utils.intToBuffer(0, 4),
-		localID: utils.intToBuffer(0, 4),
-	},
+	tokenID: '0000000000000000',
 	offset: 2160,
 	distance: 3000000,
 	brackets: ['500000000', '400000000', '300000000', '200000000', '100000000'],

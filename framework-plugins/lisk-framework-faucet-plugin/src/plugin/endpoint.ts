@@ -45,13 +45,14 @@ export class Endpoint extends BasePluginEndpoint {
 		const { enable, password } = context.params;
 
 		try {
-			const parsedEncryptedPassphrase = cryptography.encrypt.parseEncryptedPassphrase(
+			const parsedEncryptedPassphrase = cryptography.encrypt.parseEncryptedMessage(
 				this._config.encryptedPassphrase,
 			);
 
-			const passphrase = await cryptography.encrypt.decryptPassphraseWithPassword(
-				parsedEncryptedPassphrase as cryptography.encrypt.EncryptedPassphraseObject,
+			const passphrase = await cryptography.encrypt.decryptMessageWithPassword(
+				parsedEncryptedPassphrase,
 				password as string,
+				'utf-8',
 			);
 
 			const { publicKey } = cryptography.address.getAddressAndPublicKeyFromPassphrase(passphrase);

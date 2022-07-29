@@ -27,7 +27,6 @@ import { writeString, readString } from './string';
 import { writeBytes, readBytes } from './bytes';
 import { writeBoolean, readBoolean } from './boolean';
 import { readKey } from './keys';
-import { getDefaultValue } from './utils/default_value';
 
 const _readers: {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -139,8 +138,13 @@ export const readObject = (
 				result[typeSchema[0].propertyName] = arr;
 				index = nextOffset;
 			} else if (typeSchema[0].schemaProp.type === 'object') {
-				// It should be wire type 2 as it's object
-				const [, keySize] = readUInt32(message, index);
+				const [key, keySize] = readUInt32(message, index);
+				const [fieldNumber] = readKey(key);
+				// case where field number reading is not as expected from schema
+				if (fieldNumber !== typeSchema[0].schemaProp.fieldNumber) {
+					throw new Error('Invalid field number while decoding.');
+				}
+
 				index += keySize;
 				// Takeout the length
 				const [objectSize, objectSizeLength] = readUInt32(message, index);
@@ -149,7 +153,7 @@ export const readObject = (
 				result[typeSchema[0].propertyName] = obj;
 				index = nextOffset;
 			} else {
-				throw new Error('Invalid container type');
+				throw new Error('Invalid container type.');
 			}
 			continue;
 		}
@@ -157,18 +161,17 @@ export const readObject = (
 			// typeSchema is header, and we ignore this
 			continue;
 		}
+		// case where message length is shorter than what the schema expects
 		if (message.length <= index) {
-			// assign default value
-			result[typeSchema.propertyName] = getDefaultValue(typeSchema.schemaProp.dataType as string);
-			continue;
+			throw new Error(
+				`Message does not contain a property for fieldNumber: ${typeSchema.schemaProp.fieldNumber}.`,
+			);
 		}
 		// Takeout the root wireType and field number
 		const [key, keySize] = readUInt32(message, index);
 		const [fieldNumber] = readKey(key);
 		if (fieldNumber !== typeSchema.schemaProp.fieldNumber) {
-			// assign default value
-			result[typeSchema.propertyName] = getDefaultValue(typeSchema.schemaProp.dataType as string);
-			continue;
+			throw new Error('Invalid field number while decoding.');
 		}
 		// Index is only incremented when the key is actually used
 		index += keySize;
@@ -181,6 +184,14 @@ export const readObject = (
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		result[typeSchema.propertyName] = scalarValue;
 	}
+
+	// case where message length is longer than what the schema expects
+	if (index !== terminateIndex) {
+		throw new Error(
+			`Invalid terminate index. Index is ${index} but terminateIndex is ${terminateIndex}`,
+		);
+	}
+
 	return [result, index];
 };
 
@@ -230,6 +241,7 @@ export const readArray = (
 				result.push(res);
 				index = nextOffset;
 			}
+
 			return [result, index];
 		}
 		throw new Error('Invalid container type');
@@ -258,6 +270,7 @@ export const readArray = (
 			result.push(res);
 			index += wire2Size;
 		}
+
 		return [result, index];
 	}
 	const [, keySize] = readUInt32(message, index);

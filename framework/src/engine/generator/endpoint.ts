@@ -91,11 +91,10 @@ export class Endpoint {
 		}
 
 		try {
-			passphrase = await encrypt.decryptPassphraseWithPassword(
-				encrypt.parseEncryptedPassphrase(
-					encryptedGenerator.encryptedPassphrase,
-				) as encrypt.EncryptedPassphraseObject,
+			passphrase = await encrypt.decryptMessageWithPassword(
+				encrypt.parseEncryptedMessage(encryptedGenerator.encryptedPassphrase),
 				req.password,
+				'utf-8',
 			);
 		} catch (e) {
 			throw new Error('Invalid password and public key combination.');

@@ -208,12 +208,12 @@ describe('BFT API', () => {
 				{
 					address: utils.getRandomBytes(20),
 					bftWeight: BigInt(1),
-					blsKey: utils.getRandomBytes(42),
+					blsKey: utils.getRandomBytes(48),
 				},
 				{
 					address: utils.getRandomBytes(20),
 					bftWeight: BigInt(1),
-					blsKey: utils.getRandomBytes(42),
+					blsKey: utils.getRandomBytes(48),
 				},
 			],
 			validatorsHash: utils.getRandomBytes(32),
@@ -317,6 +317,8 @@ describe('BFT API', () => {
 							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 120,
 							maxHeightPrevoted: 0,
+							prevoteWeight: 0,
+							precommitWeight: 0,
 						},
 						{
 							height: 102,
@@ -357,6 +359,8 @@ describe('BFT API', () => {
 							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 1,
 							maxHeightPrevoted: 0,
+							prevoteWeight: 0,
+							precommitWeight: 0,
 						},
 						{
 							height: 102,
@@ -397,6 +401,8 @@ describe('BFT API', () => {
 							generatorAddress: utils.getRandomBytes(20),
 							maxHeightGenerated: 101,
 							maxHeightPrevoted: 0,
+							prevoteWeight: 0,
+							precommitWeight: 0,
 						},
 						{
 							height: 102,
@@ -437,6 +443,8 @@ describe('BFT API', () => {
 							generatorAddress,
 							maxHeightGenerated: 102,
 							maxHeightPrevoted: 0,
+							prevoteWeight: 0,
+							precommitWeight: 0,
 						},
 						{
 							height: 102,
@@ -473,10 +481,12 @@ describe('BFT API', () => {
 				{
 					address: utils.getRandomBytes(20),
 					bftWeight: BigInt(1),
+					blsKey: utils.getRandomBytes(48),
 				},
 				{
 					address: utils.getRandomBytes(20),
 					bftWeight: BigInt(1),
+					blsKey: utils.getRandomBytes(48),
 				},
 			],
 			validatorsHash: utils.getRandomBytes(32),
@@ -510,10 +520,12 @@ describe('BFT API', () => {
 				{
 					address: utils.getRandomBytes(20),
 					bftWeight: BigInt(1),
+					blsKey: utils.getRandomBytes(48),
 				},
 				{
 					address: utils.getRandomBytes(20),
 					bftWeight: BigInt(1),
+					blsKey: utils.getRandomBytes(48),
 				},
 			],
 			validatorsHash: utils.getRandomBytes(32),
@@ -593,7 +605,7 @@ describe('BFT API', () => {
 					new Array(bftAPI['_batchSize'] + 1).fill(0).map(() => ({
 						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(1),
-						blsKey: utils.getRandomBytes(42),
+						blsKey: utils.getRandomBytes(48),
 					})),
 				),
 			).rejects.toThrow('Invalid validators size.');
@@ -605,17 +617,17 @@ describe('BFT API', () => {
 					{
 						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(50),
-						blsKey: utils.getRandomBytes(42),
+						blsKey: utils.getRandomBytes(48),
 					},
 					{
 						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(50),
-						blsKey: utils.getRandomBytes(42),
+						blsKey: utils.getRandomBytes(48),
 					},
 					{
 						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(3),
-						blsKey: utils.getRandomBytes(42),
+						blsKey: utils.getRandomBytes(48),
 					},
 				]),
 			).rejects.toThrow('Invalid precommitThreshold input.');
@@ -627,17 +639,17 @@ describe('BFT API', () => {
 					{
 						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(50),
-						blsKey: utils.getRandomBytes(42),
+						blsKey: utils.getRandomBytes(48),
 					},
 					{
 						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(50),
-						blsKey: utils.getRandomBytes(42),
+						blsKey: utils.getRandomBytes(48),
 					},
 					{
 						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(3),
-						blsKey: utils.getRandomBytes(42),
+						blsKey: utils.getRandomBytes(48),
 					},
 				]),
 			).rejects.toThrow('Invalid precommitThreshold input.');
@@ -649,17 +661,17 @@ describe('BFT API', () => {
 					{
 						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(50),
-						blsKey: utils.getRandomBytes(42),
+						blsKey: utils.getRandomBytes(48),
 					},
 					{
 						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(50),
-						blsKey: utils.getRandomBytes(42),
+						blsKey: utils.getRandomBytes(48),
 					},
 					{
 						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(3),
-						blsKey: utils.getRandomBytes(42),
+						blsKey: utils.getRandomBytes(48),
 					},
 				]),
 			).rejects.toThrow('Invalid certificateThreshold input.');
@@ -671,17 +683,17 @@ describe('BFT API', () => {
 					{
 						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(50),
-						blsKey: utils.getRandomBytes(42),
+						blsKey: utils.getRandomBytes(48),
 					},
 					{
 						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(50),
-						blsKey: utils.getRandomBytes(42),
+						blsKey: utils.getRandomBytes(48),
 					},
 					{
 						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(3),
-						blsKey: utils.getRandomBytes(42),
+						blsKey: utils.getRandomBytes(48),
 					},
 				]),
 			).rejects.toThrow('Invalid certificateThreshold input.');
@@ -692,17 +704,17 @@ describe('BFT API', () => {
 				{
 					address: generatorAddress,
 					bftWeight: BigInt(50),
-					blsKey: utils.getRandomBytes(42),
+					blsKey: utils.getRandomBytes(48),
 				},
 				{
 					address: utils.getRandomBytes(20),
 					bftWeight: BigInt(50),
-					blsKey: utils.getRandomBytes(42),
+					blsKey: utils.getRandomBytes(48),
 				},
 				{
 					address: utils.getRandomBytes(20),
 					bftWeight: BigInt(3),
-					blsKey: utils.getRandomBytes(42),
+					blsKey: utils.getRandomBytes(48),
 				},
 			];
 			beforeEach(async () => {
@@ -784,17 +796,17 @@ describe('BFT API', () => {
 					{
 						address: generatorAddress,
 						bftWeight: BigInt(50),
-						blsKey: utils.getRandomBytes(42),
+						blsKey: utils.getRandomBytes(48),
 					},
 					{
 						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(50),
-						blsKey: utils.getRandomBytes(42),
+						blsKey: utils.getRandomBytes(48),
 					},
 					{
 						address: utils.getRandomBytes(20),
 						bftWeight: BigInt(3),
-						blsKey: utils.getRandomBytes(42),
+						blsKey: utils.getRandomBytes(48),
 					},
 				]);
 
@@ -852,12 +864,12 @@ describe('BFT API', () => {
 				const accounts = [
 					{
 						address: utils.getRandomBytes(20),
-						blsKey: utils.getRandomBytes(32),
+						blsKey: utils.getRandomBytes(48),
 						bftWeight: BigInt(20),
 					},
 					{
 						address: utils.getRandomBytes(20),
-						blsKey: utils.getRandomBytes(32),
+						blsKey: utils.getRandomBytes(48),
 						bftWeight: BigInt(20),
 					},
 				];

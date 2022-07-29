@@ -36,7 +36,7 @@ const signatureFooter = createHeader('END LISK SIGNED MESSAGE');
 const SIGNED_MESSAGE_PREFIX_BYTES = Buffer.from(SIGNED_MESSAGE_PREFIX, 'utf8');
 const SIGNED_MESSAGE_PREFIX_LENGTH = encodeVarInt(SIGNED_MESSAGE_PREFIX.length);
 
-const digestMessage = (message: string): Buffer => {
+export const digestMessage = (message: string): Buffer => {
 	const msgBytes = Buffer.from(message, 'utf8');
 	const msgLenBytes = encodeVarInt(message.length);
 	const dataBytes = Buffer.concat([

@@ -200,14 +200,17 @@ describe('BFT votes', () => {
 						{
 							address: accounts[0],
 							bftWeight: BigInt(1),
+							blsKey: utils.getRandomBytes(48),
 						},
 						{
 							address: accounts[1],
 							bftWeight: BigInt(0),
+							blsKey: utils.getRandomBytes(48),
 						},
 						{
 							address: accounts[2],
 							bftWeight: BigInt(1),
+							blsKey: utils.getRandomBytes(48),
 						},
 					],
 					validatorsHash: utils.getRandomBytes(32),
@@ -344,14 +347,17 @@ describe('BFT votes', () => {
 						{
 							address: accounts[0],
 							bftWeight: BigInt(1),
+							blsKey: utils.getRandomBytes(48),
 						},
 						{
 							address: accounts[1],
 							bftWeight: BigInt(0),
+							blsKey: utils.getRandomBytes(48),
 						},
 						{
 							address: accounts[2],
 							bftWeight: BigInt(1),
+							blsKey: utils.getRandomBytes(48),
 						},
 					],
 					validatorsHash: utils.getRandomBytes(32),
@@ -376,14 +382,17 @@ describe('BFT votes', () => {
 						{
 							address: accounts[0],
 							bftWeight: BigInt(1),
+							blsKey: utils.getRandomBytes(48),
 						},
 						{
 							address: accounts[1],
 							bftWeight: BigInt(0),
+							blsKey: utils.getRandomBytes(48),
 						},
 						{
 							address: accounts[2],
 							bftWeight: BigInt(1),
+							blsKey: utils.getRandomBytes(48),
 						},
 					],
 					validatorsHash: utils.getRandomBytes(32),
@@ -412,14 +421,17 @@ describe('BFT votes', () => {
 						{
 							address: accounts[0],
 							bftWeight: BigInt(1),
+							blsKey: utils.getRandomBytes(48),
 						},
 						{
 							address: accounts[1],
 							bftWeight: BigInt(0),
+							blsKey: utils.getRandomBytes(48),
 						},
 						{
 							address: accounts[2],
 							bftWeight: BigInt(1),
+							blsKey: utils.getRandomBytes(48),
 						},
 					],
 					validatorsHash: utils.getRandomBytes(32),
@@ -444,14 +456,17 @@ describe('BFT votes', () => {
 						{
 							address: accounts[0],
 							bftWeight: BigInt(1),
+							blsKey: utils.getRandomBytes(48),
 						},
 						{
 							address: accounts[1],
 							bftWeight: BigInt(0),
+							blsKey: utils.getRandomBytes(48),
 						},
 						{
 							address: accounts[2],
 							bftWeight: BigInt(1),
+							blsKey: utils.getRandomBytes(48),
 						},
 					],
 					validatorsHash: utils.getRandomBytes(32),

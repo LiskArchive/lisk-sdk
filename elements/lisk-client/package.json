@@ -84,7 +84,7 @@
 		"prettier": "2.2.1",
 		"source-map-support": "0.5.19",
 		"start-server-and-test": "1.11.6",
-		"terser": "4.7.0",
+		"terser": "4.8.1",
 		"ts-jest": "26.5.4",
 		"ts-node": "9.1.1",
 		"tsconfig-paths": "3.9.0",

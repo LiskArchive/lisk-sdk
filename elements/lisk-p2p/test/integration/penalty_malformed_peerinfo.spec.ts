@@ -39,6 +39,9 @@ describe('penalty sending malformed peerInfo', () => {
 			networkSize: 2,
 			customConfig: (index: number): Partial<P2PConfig> =>
 				index === 0 ? { maxPeerInfoSize: 30248, customNodeInfoSchema } : { customNodeInfoSchema },
+			initNodeInfo: {
+				invalid: '',
+			},
 		});
 
 		p2pNodeList[1].on(EVENT_BAN_PEER, peerId => {

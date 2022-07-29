@@ -328,11 +328,10 @@ export class Generator {
 		for (const encryptedItem of encryptedList) {
 			let passphrase;
 			try {
-				passphrase = await encrypt.decryptPassphraseWithPassword(
-					encrypt.parseEncryptedPassphrase(
-						encryptedItem.encryptedPassphrase,
-					) as encrypt.EncryptedPassphraseObject,
+				passphrase = await encrypt.decryptMessageWithPassword(
+					encrypt.parseEncryptedMessage(encryptedItem.encryptedPassphrase),
 					this._config.password,
+					'utf-8',
 				);
 			} catch (error) {
 				const decryptionError = `Invalid encryptedPassphrase for address: ${encryptedItem.address.toString(

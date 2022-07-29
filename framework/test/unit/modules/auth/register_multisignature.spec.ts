@@ -409,7 +409,7 @@ describe('Register Multisignature command', () => {
 					numberOfSignatures: 0,
 					nonce: BigInt(0),
 				},
-				registerMultisignatureParamsSchema,
+				authAccountSchema,
 			);
 			const context = testing
 				.createTransactionContext({
@@ -421,7 +421,7 @@ describe('Register Multisignature command', () => {
 					registerMultisignatureParamsSchema,
 				);
 
-			await expect(registerMultisignatureCommand.execute(context)).toResolve();
+			await expect(registerMultisignatureCommand.execute(context)).resolves.toBeUndefined();
 			const updatedStore = stateStore.getStore(MODULE_ID_AUTH_BUFFER, STORE_PREFIX_AUTH);
 			const updatedData = await updatedStore.getWithSchema<AuthAccount>(
 				transaction.senderAddress,
@@ -434,7 +434,7 @@ describe('Register Multisignature command', () => {
 			await authStore.setWithSchema(
 				transaction.senderAddress,
 				{ ...decodedParams, nonce: BigInt(0) },
-				registerMultisignatureParamsSchema,
+				authAccountSchema,
 			);
 			const context = testing
 				.createTransactionContext({

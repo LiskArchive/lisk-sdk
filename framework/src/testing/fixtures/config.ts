@@ -2622,12 +2622,13 @@ const getDelegateFromDefaultConfig = (address: Buffer) => {
 
 export const getPassphraseFromDefaultConfig = async (address: Buffer): Promise<string> => {
 	const delegateConfig = getDelegateFromDefaultConfig(address);
-	const encryptedPassphraseObject = encrypt.parseEncryptedPassphrase(
+	const encryptedPassphraseObject = encrypt.parseEncryptedMessage(
 		delegateConfig.encryptedPassphrase,
-	) as encrypt.EncryptedPassphraseObject;
-	const passphrase = await encrypt.decryptPassphraseWithPassword(
+	);
+	const passphrase = await encrypt.decryptMessageWithPassword(
 		encryptedPassphraseObject,
 		defaultPassword,
+		'utf-8',
 	);
 
 	return passphrase;
