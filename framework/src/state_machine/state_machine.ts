@@ -192,6 +192,7 @@ export class StateMachine {
 				[ctx.transaction.id],
 			);
 			status = TransactionExecutionResult.FAIL;
+			return status;
 		}
 
 		// Execute after transaction hooks
@@ -215,6 +216,7 @@ export class StateMachine {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
 					status = TransactionExecutionResult.INVALID;
+					return status;
 				}
 			}
 		}
