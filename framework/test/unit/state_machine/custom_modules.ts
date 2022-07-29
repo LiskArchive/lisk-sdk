@@ -72,6 +72,7 @@ export class CustomModule1 extends BaseModule {
 
 	public verifyAssets = jest.fn();
 	public beforeTransactionsExecute = jest.fn();
+	public beforeCommandExecute = jest.fn();
 	public afterCommandExecute = jest.fn();
 	public metadata(): ModuleMetadata {
 		throw new Error('Method not implemented.');

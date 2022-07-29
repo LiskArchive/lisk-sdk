@@ -144,6 +144,27 @@ describe('state_machine', () => {
 	});
 
 	describe('executeTransaction', () => {
+		const testEvents = [
+			{
+				moduleID: utils.intToBuffer(3, 4),
+				typeID: Buffer.from([0, 0, 0, 0]),
+				data: utils.getRandomBytes(20),
+				topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],
+			},
+			{
+				moduleID: utils.intToBuffer(4, 4),
+				typeID: Buffer.from([0, 0, 0, 0]),
+				data: utils.getRandomBytes(20),
+				topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],
+			},
+			{
+				moduleID: utils.intToBuffer(2, 4),
+				typeID: Buffer.from([0, 0, 0, 0]),
+				data: utils.getRandomBytes(20),
+				topics: [utils.getRandomBytes(32)],
+			},
+		];
+
 		it('should call all registered transaction execute hooks', async () => {
 			const ctx = new TransactionContext({
 				eventQueue,
@@ -206,28 +227,8 @@ describe('state_machine', () => {
 			expect(events[0].toObject().topics[0]).toEqual(transaction.id);
 		});
 
-		it('should rollback state if afterCommandExecute fails', async () => {
-			const events = [
-				{
-					moduleID: utils.intToBuffer(3, 4),
-					typeID: Buffer.from([0, 0, 0, 0]),
-					data: utils.getRandomBytes(20),
-					topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],
-				},
-				{
-					moduleID: utils.intToBuffer(4, 4),
-					typeID: Buffer.from([0, 0, 0, 0]),
-					data: utils.getRandomBytes(20),
-					topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],
-				},
-				{
-					moduleID: utils.intToBuffer(2, 4),
-					typeID: Buffer.from([0, 0, 0, 0]),
-					data: utils.getRandomBytes(20),
-					topics: [utils.getRandomBytes(32)],
-				},
-			];
-			for (const e of events) {
+		it('should rollback state if beforeCommandExecute fails', async () => {
+			for (const e of testEvents) {
 				eventQueue.add(e.moduleID, e.typeID, e.data, e.topics);
 			}
 
@@ -247,13 +248,71 @@ describe('state_machine', () => {
 				certificateThreshold: BigInt(0),
 			});
 			await stateMachine.executeTransaction(ctx);
+
+			eventQueue.add(
+				utils.intToBuffer(3, 4),
+				Buffer.from([0, 0, 0, 1]),
+				utils.getRandomBytes(100),
+				[utils.getRandomBytes(32)],
+			);
+
+			systemMod.beforeCommandExecute.mockImplementation(() => {
+				throw new Error('beforeCommandExecute failed');
+			});
+			mod.beforeCommandExecute.mockImplementation(() => {
+				throw new Error('beforeCommandExecute failed');
+			});
+			expect(systemMod.beforeCommandExecute).toHaveBeenCalled();
+			expect(mod.beforeCommandExecute).toHaveBeenCalled();
+
+			ctx.eventQueue.restoreSnapshot(snapshotID);
+
+			expect(snapshotID).toBe(testEvents.length);
+			expect(ctx.eventQueue.getEvents()).toHaveLength(testEvents.length);
+		});
+
+		it('should rollback state if afterCommandExecute fails', async () => {
+			for (const e of testEvents) {
+				eventQueue.add(e.moduleID, e.typeID, e.data, e.topics);
+			}
+
+			const snapshotID = eventQueue.createSnapshot();
+
+			const ctx = new TransactionContext({
+				eventQueue,
+				logger,
+				stateStore,
+				header,
+				assets,
+				networkIdentifier,
+				transaction,
+				currentValidators: [],
+				impliesMaxPrevote: true,
+				maxHeightCertified: 0,
+				certificateThreshold: BigInt(0),
+			});
+			await stateMachine.executeTransaction(ctx);
+
+			eventQueue.add(
+				utils.intToBuffer(3, 4),
+				Buffer.from([0, 0, 0, 1]),
+				utils.getRandomBytes(100),
+				[utils.getRandomBytes(32)],
+			);
+
+			systemMod.afterCommandExecute.mockImplementation(() => {
+				throw new Error('afterCommandExecute failed');
+			});
+			mod.afterCommandExecute.mockImplementation(() => {
+				throw new Error('afterCommandExecute failed');
+			});
 			expect(systemMod.afterCommandExecute).toHaveBeenCalled();
 			expect(mod.afterCommandExecute).toHaveBeenCalled();
 
 			ctx.eventQueue.restoreSnapshot(snapshotID);
 
-			expect(snapshotID).toBe(events.length);
-			expect(ctx.eventQueue.getEvents()).toHaveLength(events.length);
+			expect(snapshotID).toBe(testEvents.length);
+			expect(ctx.eventQueue.getEvents()).toHaveLength(testEvents.length);
 		});
 	});
 
