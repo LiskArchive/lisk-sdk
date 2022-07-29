@@ -302,7 +302,9 @@ export class BlockHeader {
 	}
 
 	public getSigningBytes(): Buffer {
-		return codec.encode(signingBlockHeaderSchema, this._getSigningProps());
+		const blockHeaderBytes = codec.encode(signingBlockHeaderSchema, this._getSigningProps());
+
+		return blockHeaderBytes;
 	}
 
 	public sign(networkIdentifier: Buffer, privateKey: Buffer): void {

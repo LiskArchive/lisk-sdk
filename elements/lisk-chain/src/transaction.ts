@@ -134,10 +134,12 @@ export class Transaction {
 	}
 
 	public getSigningBytes(): Buffer {
-		return codec.encode(transactionSchema, ({
+		const transactionBytes = codec.encode(transactionSchema, ({
 			...this,
 			signatures: [],
 		} as unknown) as Record<string, unknown>);
+
+		return transactionBytes;
 	}
 
 	public sign(networkIdentifier: Buffer, privateKey: Buffer): void {
