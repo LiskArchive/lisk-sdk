@@ -104,3 +104,4 @@ export {
 } from './state_machine/types';
 export { TransactionExecutionResult, TransactionVerifyResult } from './abi/constants';
 export { AggregateCommit } from './engine/consensus/types';
+export { aggregateCommitSchema } from './engine/consensus/certificate_generation/schema';

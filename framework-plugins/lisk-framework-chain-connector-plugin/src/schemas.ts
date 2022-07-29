@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { chain } from 'lisk-sdk';
+import { chain, aggregateCommitSchema } from 'lisk-sdk';
 
 export const configSchema = {
 	$id: '#/plugins/chainConnector/config',
@@ -42,6 +42,28 @@ export const configSchema = {
 	},
 };
 
+export const validatorsDataSchema = {
+	$id: '/modules/bft/validatorsHashInput',
+	type: 'object',
+	required: ['activeValidators', 'certificateThreshold'],
+	properties: {
+		activeValidators: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['blsKey', 'bftWeight'],
+				properties: {
+					address: { dataType: 'bytes', fieldNumber: 1 },
+					blsKey: { dataType: 'bytes', fieldNumber: 2 },
+					bftWeight: { dataType: 'uint64', fieldNumber: 3 },
+				},
+			},
+		},
+		certificateThreshold: { dataType: 'uint64', fieldNumber: 2 },
+	},
+};
+
 export const chainConnectorInfoSchema = {
 	$id: '#/plugins/chainConnector/info',
 	type: 'object',
@@ -54,12 +76,18 @@ export const chainConnectorInfoSchema = {
 			},
 		},
 		aggregateCommits: {
-			type: 'object',
+			type: 'array',
 			fieldNumber: 2,
+			items: {
+				...aggregateCommitSchema,
+			},
 		},
 		validatorsHashPreimage: {
-			type: 'object',
+			type: 'array',
 			fieldNumber: 3,
+			items: {
+				...validatorsDataSchema,
+			},
 		},
 	},
 	required: ['blockHeaders', 'aggregateCommits', 'validatorsHashPreimage'],
