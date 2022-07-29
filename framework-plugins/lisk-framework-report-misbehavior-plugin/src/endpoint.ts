@@ -43,13 +43,14 @@ export class Endpoint extends BasePluginEndpoint {
 		const { enable, password } = context.params;
 
 		try {
-			const parsedEncryptedPassphrase = encrypt.parseEncryptedPassphrase(
+			const parsedEncryptedPassphrase = encrypt.parseEncryptedMessage(
 				this._config.encryptedPassphrase,
 			);
 
-			const passphrase = await encrypt.decryptPassphraseWithPassword(
+			const passphrase = await encrypt.decryptMessageWithPassword(
 				parsedEncryptedPassphrase as any,
 				password as string,
+				'utf-8',
 			);
 
 			const { publicKey } = address.getAddressAndPublicKeyFromPassphrase(passphrase);
