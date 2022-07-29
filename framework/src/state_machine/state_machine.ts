@@ -141,7 +141,6 @@ export class StateMachine {
 	}
 
 	public async executeTransaction(ctx: TransactionContext): Promise<TransactionExecutionResult> {
-		let status = TransactionExecutionResult.OK;
 		const transactionContext = ctx.createTransactionExecuteContext();
 		const eventQueueSnapshotID = ctx.eventQueue.createSnapshot();
 		const stateStoreSnapshotID = ctx.stateStore.createSnapshot();
@@ -152,8 +151,7 @@ export class StateMachine {
 				} catch (error) {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
-					status = TransactionExecutionResult.INVALID;
-					return status;
+					return TransactionExecutionResult.INVALID;
 				}
 			}
 		}
@@ -162,10 +160,9 @@ export class StateMachine {
 				try {
 					await mod.beforeCommandExecute(transactionContext);
 				} catch (error) {
-					status = TransactionExecutionResult.INVALID;
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
-					return status;
+					return TransactionExecutionResult.INVALID;
 				}
 			}
 		}
@@ -191,8 +188,7 @@ export class StateMachine {
 				codec.encode(standardEventDataSchema, { success: false }),
 				[ctx.transaction.id],
 			);
-			status = TransactionExecutionResult.FAIL;
-			return status;
+			return TransactionExecutionResult.FAIL;
 		}
 
 		// Execute after transaction hooks
@@ -203,8 +199,7 @@ export class StateMachine {
 				} catch (error) {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
-					status = TransactionExecutionResult.INVALID;
-					return status;
+					return TransactionExecutionResult.INVALID;
 				}
 			}
 		}
@@ -215,13 +210,12 @@ export class StateMachine {
 				} catch (error) {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
-					status = TransactionExecutionResult.INVALID;
-					return status;
+					return TransactionExecutionResult.INVALID;
 				}
 			}
 		}
 
-		return status;
+		return TransactionExecutionResult.OK;
 	}
 
 	public async verifyAssets(ctx: BlockContext): Promise<void> {
