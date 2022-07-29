@@ -231,7 +231,21 @@ describe('state_machine', () => {
 				eventQueue.add(e.moduleID, e.typeID, e.data, e.topics);
 			}
 
-			const snapshotID = eventQueue.createSnapshot();
+			mod.beforeCommandExecute.mockImplementation(() => {
+				eventQueue.add(
+					utils.intToBuffer(3, 4),
+					Buffer.from([0, 0, 0, 1]),
+					utils.getRandomBytes(100),
+					[utils.getRandomBytes(32)],
+				);
+			});
+
+			systemMod.afterCommandExecute.mockImplementation(() => {
+				throw new Error('afterCommandExecute failed');
+			});
+			mod.afterCommandExecute.mockImplementation(() => {
+				throw new Error('afterCommandExecute failed');
+			});
 
 			const ctx = new TransactionContext({
 				eventQueue,
@@ -247,26 +261,6 @@ describe('state_machine', () => {
 				certificateThreshold: BigInt(0),
 			});
 			await stateMachine.executeTransaction(ctx);
-
-			eventQueue.add(
-				utils.intToBuffer(3, 4),
-				Buffer.from([0, 0, 0, 1]),
-				utils.getRandomBytes(100),
-				[utils.getRandomBytes(32)],
-			);
-
-			systemMod.afterCommandExecute.mockImplementation(() => {
-				throw new Error('afterCommandExecute failed');
-			});
-			mod.afterCommandExecute.mockImplementation(() => {
-				throw new Error('afterCommandExecute failed');
-			});
-			expect(systemMod.afterCommandExecute).toHaveBeenCalled();
-			expect(mod.afterCommandExecute).toHaveBeenCalled();
-
-			ctx.eventQueue.restoreSnapshot(snapshotID);
-
-			expect(snapshotID).toBe(events.length);
 			expect(ctx.eventQueue.getEvents()).toHaveLength(events.length);
 		});
 	});
