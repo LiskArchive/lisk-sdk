@@ -99,6 +99,8 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 					peerId,
 					penalty: 100,
 				});
+
+				throw new Error('Received invalid getTransactions body');
 			}
 		}
 
