@@ -31,6 +31,8 @@ import {
 	terminatedStateSchema,
 	terminatedOutboxSchema,
 } from '../schemas';
+import { GenesisBlockExecuteContext } from '../../../state_machine';
+import { initGenesisStateUtil } from '../utils';
 
 export class SidechainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainAPI: BaseInteroperableAPI = new SidechainCCAPI(this.id);
@@ -83,5 +85,9 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 				},
 			],
 		};
+	}
+
+	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
+		await initGenesisStateUtil(this.id, context);
 	}
 }
