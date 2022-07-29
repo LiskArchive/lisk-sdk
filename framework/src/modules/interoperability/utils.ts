@@ -631,10 +631,7 @@ export const initGenesisStateUtil = async (id: Buffer, ctx: GenesisBlockExecuteC
 		genesisInteroperabilityStoreSchema,
 		assetBytes,
 	);
-	const errors = validator.validate(genesisInteroperabilityStoreSchema, genesisStore);
-	if (errors.length) {
-		throw new LiskValidationError(errors);
-	}
+	validator.validate(genesisInteroperabilityStoreSchema, genesisStore);
 
 	const outboxRootStoreKeySet = new dataStructures.BufferSet();
 	const outboxRootStore = getStore(id, STORE_PREFIX_OUTBOX_ROOT);
