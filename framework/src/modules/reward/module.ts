@@ -17,7 +17,7 @@ import { objects } from '@liskhq/lisk-utils';
 import { LiskValidationError, validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { defaultConfig, MODULE_ID_REWARD } from './constants';
-import { ModuleConfig, RandomAPI, TokenAPI, TokenIDReward } from './types';
+import { ModuleConfig, RandomAPI, TokenAPI } from './types';
 import { BlockAfterExecuteContext } from '../../state_machine';
 import { RewardAPI } from './api';
 import { RewardEndpoint } from './endpoint';
@@ -35,7 +35,7 @@ export class RewardModule extends BaseModule {
 	public endpoint = new RewardEndpoint(this.id);
 	private _tokenAPI!: TokenAPI;
 	private _randomAPI!: RandomAPI;
-	private _tokenIDReward!: TokenIDReward;
+	private _tokenID!: Buffer;
 	private _moduleConfig!: ModuleConfig;
 
 	public addDependencies(tokenAPI: TokenAPI, randomAPI: RandomAPI) {
@@ -68,7 +68,7 @@ export class RewardModule extends BaseModule {
 			throw new LiskValidationError(errors);
 		}
 		this._moduleConfig = (config as unknown) as ModuleConfig;
-		this._tokenIDReward = this._moduleConfig.tokenIDReward;
+		this._tokenID = Buffer.from(this._moduleConfig.tokenID, 'hex');
 
 		this.api.init({
 			config: {
@@ -102,7 +102,7 @@ export class RewardModule extends BaseModule {
 		await this._tokenAPI.mint(
 			context.getAPIContext(),
 			context.header.generatorAddress,
-			this._tokenIDReward,
+			this._tokenID,
 			blockReward,
 		);
 	}

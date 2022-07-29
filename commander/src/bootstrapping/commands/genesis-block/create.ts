@@ -233,14 +233,14 @@ export abstract class BaseGenesisBlockCommand extends Command {
 		const password = createMnemonicPassphrase();
 		const passwordList = { defaultPassword: password };
 		const generatorInfo = validatorList.map(async (val, index) => {
-			const encryptedPassphrase = await cryptography.encrypt.encryptPassphraseWithPassword(
+			const encryptedPassphrase = await cryptography.encrypt.encryptMessageWithPassword(
 				val.passphrase,
 				password,
 				{ kdfparams: { iterations: validatorsPassphraseEncryptionIterations } },
 			);
 			const info = {
 				// TODO: use a better password, user sourced using flag
-				encryptedPassphrase: cryptography.encrypt.stringifyEncryptedPassphrase(encryptedPassphrase),
+				encryptedPassphrase: cryptography.encrypt.stringifyEncryptedMessage(encryptedPassphrase),
 				hashOnion: {
 					count: validatorsHashOnionCount,
 					distance: validatorsHashOnionDistance,

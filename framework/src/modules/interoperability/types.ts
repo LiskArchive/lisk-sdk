@@ -144,10 +144,24 @@ export interface LastCertificate {
 	validatorsHash: Buffer;
 }
 
+export interface LastCertificateJSON {
+	height: number;
+	timestamp: number;
+	stateRoot: string;
+	validatorsHash: string;
+}
+
 export interface ChainAccount {
 	name: string;
 	networkID: Buffer;
 	lastCertificate: LastCertificate;
+	status: number;
+}
+
+export interface ChainAccountJSON {
+	name: string;
+	networkID: string;
+	lastCertificate: LastCertificateJSON;
 	status: number;
 }
 
@@ -157,10 +171,22 @@ export interface OwnChainAccount {
 	nonce: bigint;
 }
 
+export interface OwnChainAccountJSON {
+	name: string;
+	id: string;
+	nonce: string;
+}
+
 export interface Inbox {
 	appendPath: Buffer[];
 	size: number;
 	root: Buffer;
+}
+
+export interface InboxJSON {
+	appendPath: string[];
+	size: number;
+	root: string;
 }
 
 export interface Outbox {
@@ -169,10 +195,22 @@ export interface Outbox {
 	root: Buffer;
 }
 
+export interface OutboxJSON {
+	appendPath: string[];
+	size: number;
+	root: string;
+}
+
 export interface MessageFeeTokenID {
 	chainID: Buffer;
 	localID: Buffer;
 }
+
+export interface MessageFeeTokenIDJSON {
+	chainID: string;
+	localID: string;
+}
+
 export interface ChannelData {
 	inbox: Inbox;
 	outbox: Outbox;
@@ -180,9 +218,22 @@ export interface ChannelData {
 	messageFeeTokenID: MessageFeeTokenID;
 }
 
+export interface ChannelDataJSON {
+	inbox: InboxJSON;
+	outbox: OutboxJSON;
+	partnerChainOutboxRoot: string;
+	messageFeeTokenID: MessageFeeTokenIDJSON;
+}
+
 export interface TerminatedStateAccount {
 	stateRoot: Buffer;
 	mainchainStateRoot?: Buffer;
+	initialized?: boolean;
+}
+
+export interface TerminatedStateAccountJSON {
+	stateRoot: string;
+	mainchainStateRoot?: string;
 	initialized?: boolean;
 }
 
@@ -242,6 +293,12 @@ export interface ValidatorsHashInput {
 
 export interface TerminatedOutboxAccount {
 	outboxRoot: Buffer;
+	outboxSize: number;
+	partnerChainInboxSize: number;
+}
+
+export interface TerminatedOutboxAccountJSON {
+	outboxRoot: string;
 	outboxSize: number;
 	partnerChainInboxSize: number;
 }
