@@ -141,6 +141,7 @@ export class StateMachine {
 	}
 
 	public async executeTransaction(ctx: TransactionContext): Promise<TransactionExecutionResult> {
+		let status = TransactionExecutionResult.OK;
 		const transactionContext = ctx.createTransactionExecuteContext();
 		const eventQueueSnapshotID = ctx.eventQueue.createSnapshot();
 		const stateStoreSnapshotID = ctx.stateStore.createSnapshot();
@@ -188,7 +189,7 @@ export class StateMachine {
 				codec.encode(standardEventDataSchema, { success: false }),
 				[ctx.transaction.id],
 			);
-			return TransactionExecutionResult.FAIL;
+			status = TransactionExecutionResult.FAIL;
 		}
 
 		// Execute after transaction hooks
@@ -215,7 +216,7 @@ export class StateMachine {
 			}
 		}
 
-		return TransactionExecutionResult.OK;
+		return status;
 	}
 
 	public async verifyAssets(ctx: BlockContext): Promise<void> {
