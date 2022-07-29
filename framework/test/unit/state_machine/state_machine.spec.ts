@@ -255,6 +255,12 @@ describe('state_machine', () => {
 				[utils.getRandomBytes(32)],
 			);
 
+			systemMod.afterCommandExecute.mockImplementation(() => {
+				throw new Error('afterCommandExecute failed');
+			});
+			mod.afterCommandExecute.mockImplementation(() => {
+				throw new Error('afterCommandExecute failed');
+			});
 			expect(systemMod.afterCommandExecute).toHaveBeenCalled();
 			expect(mod.afterCommandExecute).toHaveBeenCalled();
 
