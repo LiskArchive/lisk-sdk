@@ -315,10 +315,7 @@ describe('peer/base', () => {
 	describe('#fetchPeers', () => {
 		it('should call request', async () => {
 			const peerRequest = jest.spyOn(defaultPeer as any, 'request').mockResolvedValue({
-				data: {
-					success: true,
-					peers: [],
-				},
+				data: Buffer.alloc(0),
 			});
 
 			await defaultPeer.fetchPeers();
@@ -597,8 +594,8 @@ describe('peer/base', () => {
 
 			describe('when _updateFromProtocolPeerInfo() fails', () => {
 				const nodeInfo = {
-					ipAddress: '1.1.1.1',
-					port: 1111,
+					advertiseAddress: true,
+					nonce: '1111',
 					networkVersion: '9.2',
 					networkIdentifier: 'networkId',
 				};
@@ -630,8 +627,8 @@ describe('peer/base', () => {
 
 			describe('when _updateFromProtocolPeerInfo() succeeds', () => {
 				const peerSharedState = {
-					ipAddress: '1.1.1.1',
-					port: 1111,
+					advertiseAddress: false,
+					nonce: '',
 					networkVersion: '1.2',
 					networkIdentifier: 'networkId',
 				};

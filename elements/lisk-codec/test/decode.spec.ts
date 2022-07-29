@@ -14,6 +14,7 @@
 
 import { codec } from '../src/codec';
 import { buildTestCases, getAccountFromJSON } from './utils';
+import { writeSInt64, writeUInt32, writeUInt64 } from '../src/varint';
 
 import { testCases as accountTestCases } from '../fixtures/account_decodings.json';
 import { testCases as arrayTestCases } from '../fixtures/arrays_decodings.json';
@@ -30,6 +31,7 @@ import { testCases as objectsTestCases } from '../fixtures/objects_decodings.jso
 import { testCases as peerInfoTestCases } from '../fixtures/peer_info_sample_decodings.json';
 import { testCases as stringTestCases } from '../fixtures/string_decodings.json';
 import { testCases as transactionTestCases } from '../fixtures/transaction_decodings.json';
+import { generateKey } from '../src/utils';
 
 describe('decode', () => {
 	describe('account', () => {
@@ -116,6 +118,24 @@ describe('decode', () => {
 
 			expect(result).toEqual(output.object);
 		});
+
+		it('should fail when decoding a boolean value where the value is a byte unequal to 0x00 and 0x01', () => {
+			const schema = {
+				$id: 'boolean/invalidBytes',
+				type: 'object',
+				properties: {
+					data: {
+						dataType: 'boolean',
+						fieldNumber: 1,
+					},
+				},
+			};
+			const key = generateKey(schema.properties.data);
+
+			const keypair1 = Buffer.concat([key, Buffer.from([4])]);
+
+			expect(() => codec.decode(schema, keypair1)).toThrow('Invalid boolean bytes.');
+		});
 	});
 
 	describe('bytes', () => {
@@ -128,6 +148,183 @@ describe('decode', () => {
 			const result = codec.decode(input.schema, Buffer.from(input.value, 'hex'));
 
 			expect(result).toEqual(object);
+		});
+
+		it('should fail when decoding a binary message that does not respect the fieldNumber order', () => {
+			const schema = {
+				$id: 'duplicate/wrongOrder',
+				type: 'object',
+				properties: {
+					data: {
+						dataType: 'uint32',
+						fieldNumber: 1,
+					},
+					later: {
+						dataType: 'uint32',
+						fieldNumber: 3,
+					},
+				},
+			};
+			const key = generateKey(schema.properties.data);
+			const intVal1 = writeUInt32(20);
+			const key2 = generateKey(schema.properties.later);
+			const intVal2 = writeUInt32(9999);
+
+			const keypair1 = Buffer.concat([key, intVal1]);
+			const keypair2 = Buffer.concat([key2, intVal2]);
+			const encodedValue = Buffer.concat([keypair2, keypair1]);
+
+			expect(() => codec.decode(schema, encodedValue)).toThrow(
+				'Invalid field number while decoding',
+			);
+		});
+
+		it('should fail when decoding where one fieldNumber is used twice', () => {
+			const schema = {
+				$id: 'duplicate/fieldNumber',
+				type: 'object',
+				properties: {
+					data: {
+						dataType: 'uint32',
+						fieldNumber: 1,
+					},
+				},
+			};
+			const key = generateKey(schema.properties.data);
+			const intVal1 = writeUInt32(20);
+			const intVal2 = writeUInt32(9999);
+
+			const keypair1 = Buffer.concat([key, intVal1]);
+			const keypair2 = Buffer.concat([key, intVal2]);
+			const encodedValue = Buffer.concat([keypair1, keypair2]);
+
+			expect(() => codec.decode(schema, encodedValue)).toThrow('Invalid terminate index.');
+		});
+
+		it('should decode a binary message where the fieldNumbers in the schema are not sequential', () => {
+			const schema = {
+				$id: 'duplicate/nonSequential',
+				type: 'object',
+				properties: {
+					later: {
+						dataType: 'uint32',
+						fieldNumber: 3,
+					},
+					data: {
+						dataType: 'uint32',
+						fieldNumber: 1,
+					},
+				},
+			};
+			const value = { later: 99, data: 255 };
+			const encoded = codec.encode(schema, value);
+
+			expect(codec.decode(schema, encoded)).toEqual(value);
+		});
+
+		it('should not decode a binary message where one required property (not of type array) is not contained in the binary message ', () => {
+			const schema = {
+				$id: 'duplicate/skipped',
+				type: 'object',
+				properties: {
+					data: {
+						dataType: 'uint32',
+						fieldNumber: 1,
+					},
+					later: {
+						dataType: 'uint32',
+						fieldNumber: 3,
+					},
+				},
+			};
+			const key = generateKey(schema.properties.data);
+			const intVal1 = writeUInt32(20);
+
+			const keypair1 = Buffer.concat([key, intVal1]);
+			const encodedValue = Buffer.concat([keypair1]);
+
+			expect(() => codec.decode(schema, encodedValue)).toThrow(
+				'Message does not contain a property for fieldNumber: 3.',
+			);
+		});
+
+		it('should not decode a binary message that contains a field number not present in the schema', () => {
+			const schema = {
+				$id: 'duplicate/fieldNumberNotExist',
+				type: 'object',
+				properties: {
+					data: {
+						dataType: 'uint32',
+						fieldNumber: 1,
+					},
+				},
+			};
+			const key = generateKey(schema.properties.data);
+			const intVal1 = writeUInt32(20);
+
+			const key2 = generateKey({
+				fieldNumber: 99,
+				dataType: 'uint64',
+			});
+			const intVal2 = writeUInt64(BigInt(9999));
+
+			const keypair1 = Buffer.concat([key, intVal1]);
+			const keypair2 = Buffer.concat([key2, intVal2]);
+			const encodedValue = Buffer.concat([keypair2, keypair1]);
+
+			expect(() => codec.decode(schema, encodedValue)).toThrow(
+				'Invalid field number while decoding',
+			);
+		});
+
+		it('should not decode a binary message that contains some bytes at the end that cannot be decoded to some key-value pairs. E.g., a binary message concatenated with the byte 0x00', () => {
+			const schema = {
+				$id: 'duplicate/extraBytes',
+				type: 'object',
+				properties: {
+					data: {
+						dataType: 'uint32',
+						fieldNumber: 1,
+					},
+				},
+			};
+			const key = generateKey(schema.properties.data);
+			const intVal1 = writeUInt32(20);
+
+			const keypair1 = Buffer.concat([key, intVal1]);
+			const encodedValue = Buffer.concat([keypair1, Buffer.alloc(20, 255)]);
+
+			expect(() => codec.decode(schema, encodedValue)).toThrow('Invalid terminate index.');
+		});
+
+		it('should not decode a binary message which contains a key-value pair for a property of type array for which packed encoding is used (for example boolean), and the value exist as empty bytes', () => {
+			const schema = {
+				$id: 'duplicate/arrayEmptyBytes',
+				type: 'object',
+				properties: {
+					data: {
+						dataType: 'uint32',
+						fieldNumber: 1,
+					},
+					arr: {
+						type: 'array',
+						fieldNumber: 2,
+						items: {
+							dataType: 'boolean',
+						},
+					},
+				},
+			};
+			const key = generateKey(schema.properties.data);
+			const intVal1 = writeUInt32(20);
+
+			const key2 = generateKey(schema.properties.arr);
+
+			const keypair1 = Buffer.concat([key, intVal1]);
+			const keypair2 = Buffer.concat([key2]);
+			const encodedValue = Buffer.concat([keypair1, keypair2]);
+
+			expect(() => codec.decode(schema, encodedValue)).toThrow('Invalid buffer length');
 		});
 	});
 
@@ -175,6 +372,24 @@ describe('decode', () => {
 
 			expect(result).toEqual(object);
 		});
+
+		it('should fail when decoding out of range sint', () => {
+			const schema = {
+				$id: 'number-schema-sint32',
+				type: 'object',
+				properties: {
+					number: {
+						dataType: 'sint32',
+						fieldNumber: 1,
+					},
+				},
+			};
+			const MAX_SINT64 = BigInt('9223372036854775807'); // BigInt(2 ** (64 - 1) - 1) -1
+
+			expect(() => codec.decode(schema, writeSInt64(MAX_SINT64))).toThrow(
+				'Value out of range of uint32',
+			);
+		});
 	});
 
 	describe('objects', () => {
@@ -195,17 +410,10 @@ describe('decode', () => {
 
 		it(objectsTestCases[1].description, () => {
 			const testCase = objectsTestCases[1];
-			const output = testCase.output as any;
 
-			const object = {
-				...output.object,
-				value: BigInt(output.object.value),
-				data: Buffer.from(output.object.data, 'hex'),
-			};
-
-			const result = codec.decode(testCase.input.schema, Buffer.from(testCase.input.value, 'hex'));
-
-			expect(result).toEqual(object);
+			expect(() =>
+				codec.decode(testCase.input.schema, Buffer.from(testCase.input.value, 'hex')),
+			).toThrow('Invalid field number');
 		});
 	});
 
@@ -222,6 +430,26 @@ describe('decode', () => {
 			const result = codec.decode(input.schema, Buffer.from(input.value, 'hex'));
 
 			expect(result).toEqual(output.object);
+		});
+
+		it('should decode a string that contains some non-ASCII characters', () => {
+			const schema = {
+				$id: 'string-schema',
+				type: 'object',
+				properties: {
+					data: {
+						dataType: 'string',
+						fieldNumber: 1,
+					},
+				},
+			};
+
+			const result = codec.decode(
+				schema,
+				Buffer.from('0a18436865636b6f7574204c69736b2053444b21c2a2c2a3c2a1', 'hex'),
+			);
+
+			expect(result).toEqual({ data: 'Checkout Lisk SDK!¢£¡' });
 		});
 	});
 

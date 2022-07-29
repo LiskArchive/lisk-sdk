@@ -44,6 +44,7 @@ interface TestNetworkConfig {
 	startNodePort?: number;
 	networkDiscoveryWaitTime?: number;
 	customConfig?: (index: number, startPort: number, networkSize: number) => object;
+	initNodeInfo?: object;
 }
 
 export const createNetwork = async ({
@@ -51,6 +52,7 @@ export const createNetwork = async ({
 	startNodePort,
 	networkDiscoveryWaitTime,
 	customConfig,
+	initNodeInfo,
 }: TestNetworkConfig = {}): Promise<P2P[]> => {
 	const numberOfPeers = networkSize ?? NETWORK_PEER_COUNT;
 	const startPort = startNodePort ?? NETWORK_START_PORT;
@@ -88,7 +90,7 @@ export const createNetwork = async ({
 				networkIdentifier: nodeInfoConstants.networkIdentifier,
 				networkVersion: nodeInfoConstants.networkVersion,
 				nonce: `${nodeInfoConstants.nonce}${nodePort}`,
-				options: {},
+				options: initNodeInfo ?? {},
 				...customNodeInfo,
 			},
 			...customConfigObject,

@@ -133,7 +133,7 @@ export enum KDF {
 	PBKDF2 = 'PBKDF2',
 }
 
-export interface EncryptedPassphraseObject {
+export interface EncryptedMessageObject {
 	readonly version: string;
 	readonly ciphertext: string;
 	readonly mac: string;
@@ -151,8 +151,8 @@ export interface EncryptedPassphraseObject {
 	};
 }
 
-const encryptAES256GCMWithPassword = async (
-	plainText: string,
+export const encryptAES256GCMWithPassword = async (
+	plainText: string | Buffer,
 	password: string,
 	options?: {
 		kdf?: KDF;
@@ -162,7 +162,7 @@ const encryptAES256GCMWithPassword = async (
 			memorySize?: number;
 		};
 	},
-): Promise<EncryptedPassphraseObject> => {
+): Promise<EncryptedMessageObject> => {
 	const kdf = options?.kdf ?? KDF.ARGON2;
 	const IV_BUFFER_SIZE = 12;
 	const SALT_BUFFER_SIZE = 16;
@@ -183,7 +183,9 @@ const encryptAES256GCMWithPassword = async (
 			  })
 			: getKeyFromPassword(password, salt, iterations);
 	const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
-	const firstBlock = cipher.update(plainText, 'utf8');
+	const firstBlock = Buffer.isBuffer(plainText)
+		? cipher.update(plainText)
+		: cipher.update(plainText, 'utf8');
 	const encrypted = Buffer.concat([firstBlock, cipher.final()]);
 	const tag = cipher.getAuthTag();
 
@@ -216,16 +218,27 @@ const getTagBuffer = (tag: string): Buffer => {
 	return tagBuffer;
 };
 
-const decryptAES256GCMWithPassword = async (
-	encryptedPassphrase: EncryptedPassphraseObject,
+// Using `function` for overloading typescript
+export async function decryptAES256GCMWithPassword(
+	encryptedMessage: EncryptedMessageObject,
 	password: string,
-): Promise<string> => {
+): Promise<Buffer>;
+export async function decryptAES256GCMWithPassword(
+	encryptedMessage: EncryptedMessageObject,
+	password: string,
+	encoding: 'utf8' | 'utf-8',
+): Promise<string>;
+export async function decryptAES256GCMWithPassword(
+	encryptedMessage: EncryptedMessageObject,
+	password: string,
+	encoding?: 'utf8' | 'utf-8',
+): Promise<string | Buffer> {
 	const {
 		kdf,
 		ciphertext,
 		cipherparams: { iv, tag },
 		kdfparams: { parallelism, salt, iterations, memorySize },
-	} = encryptedPassphrase;
+	} = encryptedMessage;
 
 	const tagBuffer = getTagBuffer(tag);
 	const key =
@@ -244,30 +257,16 @@ const decryptAES256GCMWithPassword = async (
 	const firstBlock = decipher.update(hexToBuffer(ciphertext, 'Cipher text'));
 	const decrypted = Buffer.concat([firstBlock, decipher.final()]);
 
-	return decrypted.toString();
-};
+	if (encoding === 'utf-8' || encoding === 'utf8') {
+		return decrypted.toString();
+	}
 
-export const encryptPassphraseWithPassword = encryptAES256GCMWithPassword;
-
-export const decryptPassphraseWithPassword = decryptAES256GCMWithPassword;
-
-interface ParsedEncryptedPassphrase {
-	readonly version: string;
-	readonly ciphertext: string;
-	readonly mac: string;
-	readonly kdf: string | KDF;
-	readonly kdfparams?: {
-		parallelism?: number;
-		iterations?: number;
-		memorySize?: number;
-		salt: string;
-	};
-	readonly cipher: string | Cipher;
-	readonly cipherparams: {
-		iv: string;
-		tag: string;
-	};
+	return decrypted;
 }
+
+export const encryptMessageWithPassword = encryptAES256GCMWithPassword;
+
+export const decryptMessageWithPassword = decryptAES256GCMWithPassword;
 
 const parseOption = (optionString?: string): number | undefined => {
 	const option = !optionString ? undefined : parseInt(optionString, 10);
@@ -279,13 +278,11 @@ const parseOption = (optionString?: string): number | undefined => {
 	return option;
 };
 
-export const parseEncryptedPassphrase = (
-	encryptedPassphrase: string,
-): ParsedEncryptedPassphrase => {
-	if (typeof encryptedPassphrase !== 'string') {
-		throw new Error('Encrypted passphrase to parse must be a string.');
+export const parseEncryptedMessage = (encryptedMessage: string): EncryptedMessageObject => {
+	if (typeof encryptedMessage !== 'string') {
+		throw new Error('Encrypted message to parse must be a string.');
 	}
-	const keyValuePairs = querystring.parse(encryptedPassphrase);
+	const keyValuePairs = querystring.parse(encryptedMessage);
 
 	const {
 		kdf,
@@ -315,21 +312,31 @@ export const parseEncryptedPassphrase = (
 		(typeof parallelism !== 'string' && typeof parallelism !== 'undefined') ||
 		(typeof memorySize !== 'string' && typeof memorySize !== 'undefined')
 	) {
-		throw new Error('Encrypted passphrase to parse must have only one value per key.');
+		throw new Error('Encrypted message to parse must have only one value per key.');
+	}
+
+	const kdfTypes: string[] = [KDF.ARGON2, KDF.PBKDF2];
+	if (!kdfTypes.includes(kdf)) {
+		throw new Error(`KDF must be one of ${kdfTypes.toString()}`);
+	}
+
+	const cipherTypes: string[] = [Cipher.AES256GCM];
+	if (!cipherTypes.includes(cipher)) {
+		throw new Error(`Cipher must be one of ${cipherTypes.toString()}`);
 	}
 
 	return {
 		version,
 		ciphertext,
 		mac,
-		kdf,
+		kdf: kdf as KDF,
 		kdfparams: {
-			parallelism: parseOption(parallelism),
-			iterations: parseOption(iterations),
-			memorySize: parseOption(memorySize),
+			parallelism: parseOption(parallelism) ?? ARGON2_PARALLELISM,
+			iterations: parseOption(iterations) ?? ARGON2_ITERATIONS,
+			memorySize: parseOption(memorySize) ?? ARGON2_MEMORY,
 			salt,
 		},
-		cipher,
+		cipher: cipher as Cipher,
 		cipherparams: {
 			iv,
 			tag,
@@ -337,24 +344,22 @@ export const parseEncryptedPassphrase = (
 	};
 };
 
-export const stringifyEncryptedPassphrase = (
-	encryptedPassphrase: EncryptedPassphraseObject,
-): string => {
-	if (typeof encryptedPassphrase !== 'object' || encryptedPassphrase === null) {
-		throw new Error('Encrypted passphrase to stringify must be an object.');
+export const stringifyEncryptedMessage = (encryptedMessage: EncryptedMessageObject): string => {
+	if (typeof encryptedMessage !== 'object' || encryptedMessage === null) {
+		throw new Error('Encrypted message to stringify must be an object.');
 	}
 	const objectToStringify = {
-		kdf: encryptedPassphrase.kdf,
-		cipher: encryptedPassphrase.cipher,
-		version: encryptedPassphrase.version,
-		ciphertext: encryptedPassphrase.ciphertext,
-		mac: encryptedPassphrase.mac,
-		salt: encryptedPassphrase.kdfparams.salt,
-		iv: encryptedPassphrase.cipherparams.iv,
-		tag: encryptedPassphrase.cipherparams.tag,
-		iterations: encryptedPassphrase.kdfparams.iterations,
-		parallelism: encryptedPassphrase.kdfparams.parallelism,
-		memorySize: encryptedPassphrase.kdfparams.memorySize,
+		kdf: encryptedMessage.kdf,
+		cipher: encryptedMessage.cipher,
+		version: encryptedMessage.version,
+		ciphertext: encryptedMessage.ciphertext,
+		mac: encryptedMessage.mac,
+		salt: encryptedMessage.kdfparams.salt,
+		iv: encryptedMessage.cipherparams.iv,
+		tag: encryptedMessage.cipherparams.tag,
+		iterations: encryptedMessage.kdfparams.iterations,
+		parallelism: encryptedMessage.kdfparams.parallelism,
+		memorySize: encryptedMessage.kdfparams.memorySize,
 	};
 
 	return querystring.stringify(objectToStringify);
