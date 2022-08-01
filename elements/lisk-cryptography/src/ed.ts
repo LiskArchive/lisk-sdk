@@ -51,12 +51,6 @@ export const digestMessage = (message: string): Buffer => {
 
 export const getPublicKeyFromPrivateKey = (pk: Buffer): Buffer => getPublicKey(pk);
 
-export const getPrivateAndPublicKeyFromPassphrase = (passphrase: string) => {
-	const hashed = hash(passphrase, 'utf8');
-	return getKeyPair(hashed);
-};
-
-export const getKeys = getPrivateAndPublicKeyFromPassphrase;
 
 const getMasterKeyFromSeed = (seed: Buffer) => {
 	const hmac = crypto.createHmac('sha512', ED25519_CURVE);
@@ -97,18 +91,18 @@ export const getKeyPairFromPhraseAndPath = async (
 	return getKeyPair(node.key).privateKey;
 };
 
-export interface SignedMessageWithOnePassphrase {
+export interface SignedMessageWithPrivateKey {
 	readonly message: string;
 	readonly publicKey: Buffer;
 	readonly signature: Buffer;
 }
 
-export const signMessageWithPassphrase = (
+export const signMessageWithPrivateKey = (
 	message: string,
-	passphrase: string,
-): SignedMessageWithOnePassphrase => {
+	privateKey: Buffer,
+): SignedMessageWithPrivateKey => {
 	const msgBytes = digestMessage(message);
-	const { privateKey, publicKey } = getPrivateAndPublicKeyFromPassphrase(passphrase);
+	const publicKey = getPublicKey(privateKey);
 	const signature = signDetached(msgBytes, privateKey);
 
 	return {
@@ -122,7 +116,7 @@ export const verifyMessageWithPublicKey = ({
 	message,
 	publicKey,
 	signature,
-}: SignedMessageWithOnePassphrase): boolean => {
+}: SignedMessageWithPrivateKey): boolean => {
 	const msgBytes = digestMessage(message);
 
 	if (publicKey.length !== NACL_SIGN_PUBLICKEY_LENGTH) {
@@ -160,8 +154,8 @@ export const printSignedMessage = ({ message, signature, publicKey }: SignedMess
 		.filter(Boolean)
 		.join('\n');
 
-export const signAndPrintMessage = (message: string, passphrase: string): string => {
-	const signedMessage = signMessageWithPassphrase(message, passphrase);
+export const signAndPrintMessage = (message: string, privateKey: Buffer): string => {
+	const signedMessage = signMessageWithPrivateKey(message, privateKey);
 
 	return printSignedMessage(signedMessage);
 };
@@ -173,18 +167,7 @@ export const signDataWithPrivateKey = (
 	privateKey: Buffer,
 ): Buffer => signDetached(hash(tagMessage(tag, networkIdentifier, data)), privateKey);
 
-export const signDataWithPassphrase = (
-	tag: string,
-	networkIdentifier: Buffer,
-	data: Buffer,
-	passphrase: string,
-): Buffer => {
-	const { privateKey } = getPrivateAndPublicKeyFromPassphrase(passphrase);
-
-	return signDataWithPrivateKey(tag, networkIdentifier, data, privateKey);
-};
-
-export const signData = signDataWithPassphrase;
+export const signData = signDataWithPrivateKey;
 
 export const verifyData = (
 	tag: string,

@@ -14,7 +14,7 @@
  */
 
 import { codec, Schema } from '@liskhq/lisk-codec';
-import { utils, ed, address } from '@liskhq/lisk-cryptography';
+import { utils, ed } from '@liskhq/lisk-cryptography';
 import { validateTransaction } from './validate';
 import { baseTransactionSchema } from './schema';
 import { TAG_TRANSACTION } from './constants';
@@ -73,44 +73,6 @@ export const getBytes = (
 	return transactionBytes;
 };
 
-// Validates transaction against schema and returns transaction including signature
-export const signTransaction = (
-	transactionObject: Record<string, unknown>,
-	networkIdentifier: Buffer,
-	passphrase: string,
-	paramsSchema?: object,
-): Record<string, unknown> => {
-	if (!networkIdentifier.length) {
-		throw new Error('Network identifier is required to sign a transaction');
-	}
-
-	if (!passphrase) {
-		throw new Error('Passphrase is required to sign a transaction');
-	}
-	const validationErrors = validateTransaction(transactionObject, paramsSchema);
-	if (validationErrors) {
-		throw validationErrors;
-	}
-	const { publicKey } = address.getAddressAndPublicKeyFromPassphrase(passphrase);
-
-	if (
-		!Buffer.isBuffer(transactionObject.senderPublicKey) ||
-		!transactionObject.senderPublicKey.equals(publicKey)
-	) {
-		throw new Error('Transaction senderPublicKey does not match public key from passphrase');
-	}
-
-	const signature = ed.signData(
-		TAG_TRANSACTION,
-		networkIdentifier,
-		getSigningBytes(transactionObject, paramsSchema),
-		passphrase,
-	);
-	// eslint-disable-next-line no-param-reassign
-	transactionObject.signatures = [signature];
-	return { ...transactionObject, id: utils.hash(getBytes(transactionObject, paramsSchema)) };
-};
-
 const sanitizeSignaturesArray = (
 	transactionObject: Record<string, unknown>,
 	keys: MultiSignatureKeys,
@@ -128,78 +90,6 @@ const sanitizeSignaturesArray = (
 			transactionObject.signatures[i] = Buffer.alloc(0);
 		}
 	}
-};
-
-// Validates transaction against schema and sign a multi-signature transaction
-export const signMultiSignatureTransaction = (
-	transactionObject: Record<string, unknown>,
-	networkIdentifier: Buffer,
-	passphrase: string,
-	keys: MultiSignatureKeys,
-	paramsSchema?: object,
-	includeSenderSignature = false,
-): Record<string, unknown> => {
-	if (!networkIdentifier.length) {
-		throw new Error('Network identifier is required to sign a transaction');
-	}
-
-	if (!passphrase) {
-		throw new Error('Passphrase is required to sign a transaction');
-	}
-
-	if (!Array.isArray(transactionObject.signatures)) {
-		throw new Error('Signatures must be of type array');
-	}
-
-	const validationErrors = validateTransaction(transactionObject, paramsSchema);
-	if (validationErrors) {
-		throw validationErrors;
-	}
-	// Sort keys
-	keys.mandatoryKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
-	keys.optionalKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
-
-	const { publicKey } = address.getAddressAndPublicKeyFromPassphrase(passphrase);
-	const signature = ed.signData(
-		TAG_TRANSACTION,
-		networkIdentifier,
-		getSigningBytes(transactionObject, paramsSchema),
-		passphrase,
-	);
-
-	if (
-		includeSenderSignature &&
-		Buffer.isBuffer(transactionObject.senderPublicKey) &&
-		publicKey.equals(transactionObject.senderPublicKey)
-	) {
-		// eslint-disable-next-line no-param-reassign
-		transactionObject.signatures[0] = signature;
-	}
-
-	// Locate where this public key should go in the signatures array
-	const mandatoryKeyIndex = keys.mandatoryKeys.findIndex(aPublicKey =>
-		aPublicKey.equals(publicKey),
-	);
-	const optionalKeyIndex = keys.optionalKeys.findIndex(aPublicKey => aPublicKey.equals(publicKey));
-
-	// If it's a mandatory Public Key find where to add the signature
-	if (mandatoryKeyIndex !== -1) {
-		const signatureOffset = includeSenderSignature ? 1 : 0;
-		// eslint-disable-next-line no-param-reassign
-		transactionObject.signatures[mandatoryKeyIndex + signatureOffset] = signature;
-	}
-
-	if (optionalKeyIndex !== -1) {
-		const signatureOffset = includeSenderSignature ? 1 : 0;
-		// eslint-disable-next-line no-param-reassign
-		transactionObject.signatures[
-			keys.mandatoryKeys.length + optionalKeyIndex + signatureOffset
-		] = signature;
-	}
-
-	sanitizeSignaturesArray(transactionObject, keys, includeSenderSignature);
-
-	return { ...transactionObject, id: utils.hash(getBytes(transactionObject, paramsSchema)) };
 };
 
 export const signTransactionWithPrivateKey = (

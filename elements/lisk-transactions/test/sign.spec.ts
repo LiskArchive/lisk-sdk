@@ -17,9 +17,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { ed, utils, address } from '@liskhq/lisk-cryptography';
 import {
 	getSigningBytes,
-	signTransaction,
 	signTransactionWithPrivateKey,
-	signMultiSignatureTransaction,
 	signMultiSignatureTransactionWithPrivateKey,
 } from '../src/sign';
 import * as multisigScenario from '../fixtures/transaction_multisignature_registration/multisignature_registration_transaction.json';
@@ -166,83 +164,6 @@ describe('sign', () => {
 		});
 	});
 
-	describe('signTransaction', () => {
-		it('should throw error for invalid network identifier', () => {
-			expect(() =>
-				signTransaction(validTransaction, Buffer.alloc(0), passphrase1, validParamsSchema),
-			).toThrow('Network identifier is required to sign a transaction');
-		});
-
-		it('should throw error for invalid passphrase', () => {
-			expect(() =>
-				signTransaction(validTransaction, networkIdentifier, '', validParamsSchema),
-			).toThrow('Passphrase is required to sign a transaction');
-		});
-
-		it('should throw error for invalid transaction object', () => {
-			const invalidTransactionObjects = [
-				{ ...validTransaction, moduleID: BigInt(8) },
-				{ ...validTransaction, nonce: 1 },
-				{ ...validTransaction, fee: 1000000 },
-				{ ...validTransaction, senderPublicKey: 1 },
-			];
-			return invalidTransactionObjects.forEach(transactionObject =>
-				expect(() =>
-					signTransaction(transactionObject, networkIdentifier, passphrase1, validParamsSchema),
-				).toThrow(),
-			);
-		});
-
-		it('should throw error when params is null', () => {
-			return expect(() =>
-				signTransaction(
-					{ ...validTransaction, params: null },
-					networkIdentifier,
-					passphrase1,
-					validParamsSchema,
-				),
-			).toThrow(new Error('Transaction object params must be of type object and not null'));
-		});
-
-		it('should throw error for invalid params object', () => {
-			const invalidParams = [
-				{ ...validTransaction, params: { ...validTransaction.params, amount: 1000 } },
-				{
-					...validTransaction,
-					params: { ...validTransaction.params, recipientAddress: 'dummyAddress' },
-				},
-			];
-			return invalidParams.forEach(transactionObject =>
-				expect(() =>
-					signTransaction(transactionObject, networkIdentifier, passphrase1, validParamsSchema),
-				).toThrow(),
-			);
-		});
-
-		it('should throw error when transaction senderPublicKey does not match public key from passphrase', () => {
-			return expect(() =>
-				signTransaction(
-					validTransaction,
-					networkIdentifier,
-					'this is incorrect passphrase',
-					validParamsSchema,
-				),
-			).toThrow('Transaction senderPublicKey does not match public key from passphrase');
-		});
-
-		it('should return signed transaction for given params schema', () => {
-			const signedTransaction = signTransaction(
-				{ ...validTransaction },
-				networkIdentifier,
-				passphrase1,
-				validParamsSchema,
-			);
-			expect((signedTransaction.signatures as Array<Buffer>)[0].length).toBeGreaterThan(0);
-			expect(signedTransaction.signatures).toHaveLength(1);
-			return expect(signedTransaction).toMatchSnapshot();
-		});
-	});
-
 	describe('signTransactionWithPrivateKey', () => {
 		it('should throw error for invalid network identifier', () => {
 			expect(() =>
@@ -337,85 +258,6 @@ describe('sign', () => {
 			expect((signedTransaction.signatures as Array<Buffer>)[0].length).toBeGreaterThan(0);
 			expect(signedTransaction.signatures).toHaveLength(1);
 			return expect(signedTransaction).toMatchSnapshot();
-		});
-	});
-
-	describe('signMultiSignatureTransaction', () => {
-		it('should throw error for invalid network identifier', () => {
-			expect(() =>
-				signMultiSignatureTransaction(
-					{ ...validTransaction },
-					Buffer.alloc(0),
-					passphrase1,
-					keys,
-					validParamsSchema,
-				),
-			).toThrow('Network identifier is required to sign a transaction');
-		});
-
-		it('should throw error for invalid passphrase', () => {
-			expect(() =>
-				signMultiSignatureTransaction(
-					{ ...validTransaction },
-					networkIdentifier,
-					'',
-					keys,
-					validParamsSchema,
-				),
-			).toThrow('Passphrase is required to sign a transaction');
-		});
-
-		it('should throw error when signatures property is not an array', () => {
-			expect(() =>
-				signMultiSignatureTransaction(
-					{ ...validTransaction },
-					networkIdentifier,
-					passphrase1,
-					keys,
-					validParamsSchema,
-				),
-			).toThrow('Signatures must be of type array');
-		});
-
-		it('should throw error for invalid transaction object', () => {
-			const invalidTransactionObjects = [
-				{ ...validTransaction, type: BigInt(8) },
-				{ ...validTransaction, nonce: 1 },
-				{ ...validTransaction, fee: 1000000 },
-				{ ...validTransaction, senderPublicKey: 1 },
-			];
-			return invalidTransactionObjects.forEach(transactionObject =>
-				expect(() =>
-					signMultiSignatureTransaction(
-						transactionObject,
-						networkIdentifier,
-						passphrase1,
-						keys,
-						validParamsSchema,
-					),
-				).toThrow(),
-			);
-		});
-
-		it('should throw error for invalid params object', () => {
-			const invalidParams = [
-				{ ...validTransaction, params: { ...validTransaction.params, amount: 1000 } },
-				{
-					...validTransaction,
-					params: { ...validTransaction.params, recipientAddress: 'dummyAddress' },
-				},
-			];
-			return invalidParams.forEach(transactionObject =>
-				expect(() =>
-					signMultiSignatureTransaction(
-						transactionObject,
-						networkIdentifier,
-						passphrase1,
-						keys,
-						validParamsSchema,
-					),
-				).toThrow(),
-			);
 		});
 	});
 
@@ -683,7 +525,7 @@ describe('sign', () => {
 					};
 
 					Object.values({ senderAccount, ...testCase.input.members }).forEach((member: any) =>
-						signMultiSignatureTransaction(
+						signMultiSignatureTransactionWithPrivateKey(
 							signedMultiSigTransaction,
 							_networkIdentifier,
 							member.passphrase,
@@ -694,7 +536,7 @@ describe('sign', () => {
 					);
 
 					expect(signedMultiSigTransaction.signatures).toStrictEqual(signatures);
-					expect(signMultiSignatureTransaction).toMatchSnapshot();
+					expect(signedMultiSigTransaction).toMatchSnapshot();
 				});
 			});
 		});
@@ -727,7 +569,7 @@ describe('sign', () => {
 			const _networkIdentifier = Buffer.from(testCase.input.networkIdentifier, 'hex');
 
 			Object.values({ senderAccount, ...testCase.input.members }).forEach((member: any) =>
-				signMultiSignatureTransaction(
+				signMultiSignatureTransactionWithPrivateKey(
 					signedMultiSigTransaction,
 					_networkIdentifier,
 					member.passphrase,

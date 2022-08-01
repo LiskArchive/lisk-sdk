@@ -16,12 +16,8 @@ import { argon2id } from 'hash-wasm';
 import * as querystring from 'querystring';
 import * as crypto from 'crypto';
 import * as ed2curve from 'ed2curve';
-
-// eslint-disable-next-line import/no-cycle
-import { getPrivateAndPublicKeyFromPassphrase } from './ed';
-// eslint-disable-next-line import/no-cycle
 import { box, getRandomBytes, openBox } from './nacl';
-import { bufferToHex, hexToBuffer } from './utils';
+import { hexToBuffer } from './utils';
 
 const PBKDF2_ITERATIONS = 1e6;
 const PBKDF2_KEYLEN = 32;
@@ -37,13 +33,12 @@ export interface EncryptedMessageWithNonce {
 	readonly nonce: string;
 }
 
-export const encryptMessageWithPassphrase = (
+export const encryptMessageWithPrivateKey = (
 	message: string,
-	passphrase: string,
+	senderPrivateKey: Buffer,
 	recipientPublicKey: Buffer,
 ): EncryptedMessageWithNonce => {
-	const { privateKey: senderPrivateKeyBytes } = getPrivateAndPublicKeyFromPassphrase(passphrase);
-	const convertedPrivateKey = Buffer.from(ed2curve.convertSecretKey(senderPrivateKeyBytes));
+	const convertedPrivateKey = Buffer.from(ed2curve.convertSecretKey(senderPrivateKey));
 	const messageInBytes = Buffer.from(message, 'utf8');
 	const nonceSize = 24;
 	const nonce = getRandomBytes(nonceSize);
@@ -58,8 +53,8 @@ export const encryptMessageWithPassphrase = (
 
 	const cipherBytes = box(messageInBytes, nonce, convertedPublicKey, convertedPrivateKey);
 
-	const nonceHex = bufferToHex(nonce);
-	const encryptedMessage = bufferToHex(cipherBytes);
+	const nonceHex = nonce.toString('hex');
+	const encryptedMessage = cipherBytes.toString('hex');
 
 	return {
 		nonce: nonceHex,
@@ -67,14 +62,13 @@ export const encryptMessageWithPassphrase = (
 	};
 };
 
-export const decryptMessageWithPassphrase = (
+export const decryptMessageWithPrivateKey = (
 	cipherHex: string,
 	nonce: string,
-	passphrase: string,
+	recipientPrivateKey: Buffer,
 	senderPublicKey: Buffer,
 ): string => {
-	const { privateKey: recipientPrivateKeyBytes } = getPrivateAndPublicKeyFromPassphrase(passphrase);
-	const convertedPrivateKey = Buffer.from(ed2curve.convertSecretKey(recipientPrivateKeyBytes));
+	const convertedPrivateKey = Buffer.from(ed2curve.convertSecretKey(recipientPrivateKey));
 	const cipherBytes = hexToBuffer(cipherHex);
 	const nonceBytes = hexToBuffer(nonce);
 

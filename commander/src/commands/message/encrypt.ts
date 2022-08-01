@@ -32,7 +32,7 @@ const processInputs = (recipientPublicKey: string, passphrase: string, message?:
 	}
 
 	return {
-		...encrypt.encryptMessageWithPassphrase(
+		...encrypt.encryptMessageWithPrivateKey(
 			message,
 			passphrase,
 			Buffer.from(recipientPublicKey, 'hex'),

@@ -37,7 +37,7 @@ const processInputs = (
 		throw new ValidationError('No message was provided.');
 	}
 
-	return encrypt.decryptMessageWithPassphrase(
+	return encrypt.decryptMessageWithPrivateKey(
 		message,
 		nonce,
 		passphrase,
