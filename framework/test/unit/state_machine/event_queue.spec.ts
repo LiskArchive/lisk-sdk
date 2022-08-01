@@ -108,11 +108,11 @@ describe('EventQueue', () => {
 		events.map(e => eventQueue.add(e.moduleID, e.typeID, e.data, e.topics));
 		expect(eventQueue.getEvents()).toHaveLength(events.length);
 
-		eventQueue.createSnapshot();
+		const snapshotID = eventQueue.createSnapshot();
 		eventQueue.add(utils.intToBuffer(3, 4), Buffer.from([0, 0, 0, 1]), utils.getRandomBytes(100), [
 			utils.getRandomBytes(32),
 		]);
-		eventQueue.restoreSnapshot();
+		eventQueue.restoreSnapshot(snapshotID);
 
 		expect(eventQueue.getEvents()).toHaveLength(events.length);
 		eventQueue.getEvents().forEach((e, i) => {
@@ -128,7 +128,7 @@ describe('EventQueue', () => {
 		events.map(e => eventQueue.add(e.moduleID, e.typeID, e.data, e.topics));
 		expect(eventQueue.getEvents()).toHaveLength(events.length);
 
-		eventQueue.createSnapshot();
+		const snapshotID = eventQueue.createSnapshot();
 		eventQueue.add(
 			utils.intToBuffer(3, 4),
 			Buffer.from([0, 0, 0, 1]),
@@ -150,7 +150,7 @@ describe('EventQueue', () => {
 			[utils.getRandomBytes(32)],
 			false,
 		);
-		eventQueue.restoreSnapshot();
+		eventQueue.restoreSnapshot(snapshotID);
 
 		expect(eventQueue.getEvents()).toHaveLength(events.length + 1);
 		const queuedEvents = eventQueue.getEvents();

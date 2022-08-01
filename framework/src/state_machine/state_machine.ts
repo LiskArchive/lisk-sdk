@@ -143,13 +143,16 @@ export class StateMachine {
 	public async executeTransaction(ctx: TransactionContext): Promise<TransactionExecutionResult> {
 		let status = TransactionExecutionResult.OK;
 		const transactionContext = ctx.createTransactionExecuteContext();
+		const eventQueueSnapshotID = ctx.eventQueue.createSnapshot();
+		const stateStoreSnapshotID = ctx.stateStore.createSnapshot();
 		for (const mod of this._systemModules) {
 			if (mod.beforeCommandExecute) {
 				try {
 					await mod.beforeCommandExecute(transactionContext);
 				} catch (error) {
-					status = TransactionExecutionResult.INVALID;
-					return status;
+					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
+					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
+					return TransactionExecutionResult.INVALID;
 				}
 			}
 		}
@@ -158,15 +161,16 @@ export class StateMachine {
 				try {
 					await mod.beforeCommandExecute(transactionContext);
 				} catch (error) {
-					status = TransactionExecutionResult.INVALID;
-					return status;
+					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
+					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
+					return TransactionExecutionResult.INVALID;
 				}
 			}
 		}
 		const command = this._getCommand(ctx.transaction.moduleID, ctx.transaction.commandID);
 		// Execute command
-		ctx.eventQueue.createSnapshot();
-		ctx.stateStore.createSnapshot();
+		const commandEventQueueSnapshotID = ctx.eventQueue.createSnapshot();
+		const commandStateStoreSnapshotID = ctx.stateStore.createSnapshot();
 		const commandContext = ctx.createCommandExecuteContext(command.schema);
 		try {
 			await command.execute(commandContext);
@@ -177,8 +181,8 @@ export class StateMachine {
 				[ctx.transaction.id],
 			);
 		} catch (error) {
-			ctx.eventQueue.restoreSnapshot();
-			ctx.stateStore.restoreSnapshot();
+			ctx.eventQueue.restoreSnapshot(commandEventQueueSnapshotID);
+			ctx.stateStore.restoreSnapshot(commandStateStoreSnapshotID);
 			ctx.eventQueue.add(
 				ctx.transaction.moduleID,
 				EVENT_STANDARD_TYPE_ID,
@@ -194,8 +198,9 @@ export class StateMachine {
 				try {
 					await mod.afterCommandExecute(transactionContext);
 				} catch (error) {
-					status = TransactionExecutionResult.INVALID;
-					return status;
+					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
+					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
+					return TransactionExecutionResult.INVALID;
 				}
 			}
 		}
@@ -204,7 +209,9 @@ export class StateMachine {
 				try {
 					await mod.afterCommandExecute(transactionContext);
 				} catch (error) {
-					status = TransactionExecutionResult.INVALID;
+					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
+					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
+					return TransactionExecutionResult.INVALID;
 				}
 			}
 		}

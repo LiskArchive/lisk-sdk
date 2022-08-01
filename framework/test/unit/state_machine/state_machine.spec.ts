@@ -206,6 +206,64 @@ describe('state_machine', () => {
 			expect(events).toHaveLength(1);
 			expect(events[0].toObject().topics[0]).toEqual(transaction.id);
 		});
+
+		it('should rollback state if afterCommandExecute fails', async () => {
+			const events = [
+				{
+					moduleID: utils.intToBuffer(3, 4),
+					typeID: Buffer.from([0, 0, 0, 0]),
+					data: utils.getRandomBytes(20),
+					topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],
+				},
+				{
+					moduleID: utils.intToBuffer(4, 4),
+					typeID: Buffer.from([0, 0, 0, 0]),
+					data: utils.getRandomBytes(20),
+					topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],
+				},
+				{
+					moduleID: utils.intToBuffer(2, 4),
+					typeID: Buffer.from([0, 0, 0, 0]),
+					data: utils.getRandomBytes(20),
+					topics: [utils.getRandomBytes(32)],
+				},
+			];
+			for (const e of events) {
+				eventQueue.add(e.moduleID, e.typeID, e.data, e.topics);
+			}
+
+			mod.beforeCommandExecute.mockImplementation(() => {
+				eventQueue.add(
+					utils.intToBuffer(3, 4),
+					Buffer.from([0, 0, 0, 1]),
+					utils.getRandomBytes(100),
+					[utils.getRandomBytes(32)],
+				);
+			});
+
+			systemMod.afterCommandExecute.mockImplementation(() => {
+				throw new Error('afterCommandExecute failed');
+			});
+			mod.afterCommandExecute.mockImplementation(() => {
+				throw new Error('afterCommandExecute failed');
+			});
+
+			const ctx = new TransactionContext({
+				eventQueue,
+				logger,
+				stateStore,
+				header,
+				assets,
+				networkIdentifier,
+				transaction,
+				currentValidators: [],
+				impliesMaxPrevote: true,
+				maxHeightCertified: 0,
+				certificateThreshold: BigInt(0),
+			});
+			await stateMachine.executeTransaction(ctx);
+			expect(ctx.eventQueue.getEvents()).toHaveLength(events.length);
+		});
 	});
 
 	describe('verifyAssets', () => {
