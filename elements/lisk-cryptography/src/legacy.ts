@@ -13,8 +13,8 @@
  *
  */
 
-import { getKeyPair } from "./nacl";
-import { hash } from "./utils";
+import { getKeyPair } from './nacl';
+import { hash } from './utils';
 
 export const getPrivateAndPublicKeyFromPassphrase = (passphrase: string) => {
 	const hashed = hash(passphrase, 'utf8');

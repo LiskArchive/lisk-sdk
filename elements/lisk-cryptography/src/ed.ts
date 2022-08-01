@@ -51,7 +51,6 @@ export const digestMessage = (message: string): Buffer => {
 
 export const getPublicKeyFromPrivateKey = (pk: Buffer): Buffer => getPublicKey(pk);
 
-
 const getMasterKeyFromSeed = (seed: Buffer) => {
 	const hmac = crypto.createHmac('sha512', ED25519_CURVE);
 	const digest = hmac.update(seed).digest();

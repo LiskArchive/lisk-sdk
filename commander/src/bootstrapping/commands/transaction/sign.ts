@@ -40,6 +40,8 @@ import {
 import { getDefaultPath } from '../../../utils/path';
 import { isApplicationRunning } from '../../../utils/application';
 import { PromiseResolvedType } from '../../../types';
+import { DEFAULT_KEY_DERIVATION_PATH } from '../../../utils/config';
+import { deriveKeypair } from '../../../utils/commons';
 
 interface AuthAccount {
 	nonce: string;
@@ -61,6 +63,7 @@ interface SignFlags {
 	'sender-public-key': string | undefined;
 	'mandatory-keys': string[];
 	'optional-keys': string[];
+	'key-derivation-path': string;
 }
 
 const signTransaction = async (
@@ -167,7 +170,7 @@ const signTransactionOnline = async (
 	// Sign non multi-sig transaction
 	const transactionObject = decodeTransaction(registeredSchema, metadata, transactionHexStr);
 	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
-	const edKeys = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+	const edKeys = await deriveKeypair(passphrase, flags['key-derivation-path']);
 	const address = cryptography.address.getAddressFromPublicKey(edKeys.publicKey);
 
 	let signedTransaction: Record<string, unknown>;
@@ -234,6 +237,11 @@ export abstract class SignCommand extends Command {
 		'network-identifier': flagsWithParser.networkIdentifier,
 		'sender-public-key': flagsWithParser.senderPublicKey,
 		'data-path': flagsWithParser.dataPath,
+		'key-derivation-path': flagParser.string({
+			default: DEFAULT_KEY_DERIVATION_PATH,
+			description: 'Key derivation path to use to derive keypair from passphrase',
+			char: 'k',
+		}),
 		pretty: flagsWithParser.pretty,
 	};
 

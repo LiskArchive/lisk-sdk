@@ -17,7 +17,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { when } from 'jest-when';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
-import { utils, address as cryptoAddress, bls, ed } from '@liskhq/lisk-cryptography';
+import { utils, address as cryptoAddress, bls, legacy } from '@liskhq/lisk-cryptography';
 import { ApplyPenaltyError } from '../../../../src/errors';
 import { Consensus } from '../../../../src/engine/consensus/consensus';
 import { NetworkEndpoint } from '../../../../src/engine/consensus/network_endpoint';
@@ -236,7 +236,8 @@ describe('consensus', () => {
 
 	describe('certifySingleCommit', () => {
 		const passphrase = Mnemonic.generateMnemonic(256);
-		const address = cryptoAddress.getAddressFromPassphrase(passphrase);
+		const { publicKey } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+		const address = cryptoAddress.getAddressFromPublicKey(publicKey);
 		const blsSK = bls.generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
 		const blsPK = bls.getPublicKeyFromPrivateKey(blsSK);
 		const blockHeader = createFakeBlockHeader({ height: 303 });
@@ -866,7 +867,7 @@ describe('consensus', () => {
 
 				it('should be success when valid signature', async () => {
 					const passphrase = Mnemonic.generateMnemonic();
-					const keyPair = ed.getPrivateAndPublicKeyFromPassphrase(passphrase);
+					const keyPair = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
 
 					const blockHeader = createFakeBlockHeader();
 					(blockHeader as any).generatorAddress = cryptoAddress.getAddressFromPublicKey(

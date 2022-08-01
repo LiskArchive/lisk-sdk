@@ -69,7 +69,10 @@ ${defaultSignature}
 
 	describe('#signMessageWithPrivateKey', () => {
 		it('should create a signed message using a secret private key', () => {
-			const signedMessage = signMessageWithPrivateKey(defaultMessage, Buffer.from(defaultPrivateKey, 'hex'));
+			const signedMessage = signMessageWithPrivateKey(
+				defaultMessage,
+				Buffer.from(defaultPrivateKey, 'hex'),
+			);
 			expect(signedMessage).toEqual(defaultSignedMessage);
 		});
 	});
@@ -123,7 +126,10 @@ ${defaultSignature}
 
 	describe('#signAndPrintMessage', () => {
 		it('should sign the message once and wrap it into a printed Lisk template', () => {
-			const signedAndPrintedMessage = signAndPrintMessage(defaultMessage, Buffer.from(defaultPrivateKey, 'hex'));
+			const signedAndPrintedMessage = signAndPrintMessage(
+				defaultMessage,
+				Buffer.from(defaultPrivateKey, 'hex'),
+			);
 			expect(signedAndPrintedMessage).toBe(defaultPrintedMessage);
 		});
 	});
@@ -132,7 +138,12 @@ ${defaultSignature}
 		let signature: Buffer;
 
 		beforeEach(async () => {
-			signature = signData(tag, networkIdentifier, defaultData, Buffer.from(defaultPrivateKey, 'hex'));
+			signature = signData(
+				tag,
+				networkIdentifier,
+				defaultData,
+				Buffer.from(defaultPrivateKey, 'hex'),
+			);
 			return Promise.resolve();
 		});
 

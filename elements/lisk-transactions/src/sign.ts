@@ -111,15 +111,10 @@ export const signTransactionWithPrivateKey = (
 		throw validationErrors;
 	}
 
-	const transactionWithNetworkIdentifierBytes = Buffer.concat([
-		networkIdentifier,
-		getSigningBytes(transactionObject, paramsSchema),
-	]);
-
 	const signature = ed.signDataWithPrivateKey(
 		TAG_TRANSACTION,
 		networkIdentifier,
-		transactionWithNetworkIdentifierBytes,
+		getSigningBytes(transactionObject, paramsSchema),
 		privateKey,
 	);
 
@@ -142,7 +137,7 @@ export const signMultiSignatureTransactionWithPrivateKey = (
 		throw new Error('Network identifier is required to sign a transaction');
 	}
 
-	if (!privateKey.length || privateKey.length !== 64) {
+	if (!privateKey || privateKey.length !== 64) {
 		throw new Error('Private key must be 64 bytes');
 	}
 
@@ -154,29 +149,22 @@ export const signMultiSignatureTransactionWithPrivateKey = (
 	if (validationErrors) {
 		throw validationErrors;
 	}
-
 	// Sort keys
 	keys.mandatoryKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
 	keys.optionalKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
 
-	const transactionWithNetworkIdentifierBytes = Buffer.concat([
-		networkIdentifier,
-		getSigningBytes(transactionObject, paramsSchema),
-	]);
-
+	const publicKey = ed.getPublicKeyFromPrivateKey(privateKey);
 	const signature = ed.signDataWithPrivateKey(
 		TAG_TRANSACTION,
 		networkIdentifier,
-		transactionWithNetworkIdentifierBytes,
+		getSigningBytes(transactionObject, paramsSchema),
 		privateKey,
 	);
-
-	const signerPublicKey = ed.getPublicKeyFromPrivateKey(privateKey);
 
 	if (
 		includeSenderSignature &&
 		Buffer.isBuffer(transactionObject.senderPublicKey) &&
-		signerPublicKey.equals(transactionObject.senderPublicKey)
+		publicKey.equals(transactionObject.senderPublicKey)
 	) {
 		// eslint-disable-next-line no-param-reassign
 		transactionObject.signatures[0] = signature;
@@ -184,11 +172,9 @@ export const signMultiSignatureTransactionWithPrivateKey = (
 
 	// Locate where this public key should go in the signatures array
 	const mandatoryKeyIndex = keys.mandatoryKeys.findIndex(aPublicKey =>
-		aPublicKey.equals(signerPublicKey),
+		aPublicKey.equals(publicKey),
 	);
-	const optionalKeyIndex = keys.optionalKeys.findIndex(aPublicKey =>
-		aPublicKey.equals(signerPublicKey),
-	);
+	const optionalKeyIndex = keys.optionalKeys.findIndex(aPublicKey => aPublicKey.equals(publicKey));
 
 	// If it's a mandatory Public Key find where to add the signature
 	if (mandatoryKeyIndex !== -1) {

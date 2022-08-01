@@ -274,7 +274,9 @@ const MainPage: React.FC = () => {
 	// Send Transaction
 	const handleSendTransaction = async (data: SendTransactionOptions) => {
 		try {
-			const { publicKey } = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(data.passphrase);
+			const { publicKey } = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(
+				data.passphrase,
+			);
 			const address = cryptography.address.getAddressFromPublicKey(publicKey);
 			const moduleMeta = getClient().metadata.find(a => a.id === data.moduleID);
 			if (!moduleMeta) {

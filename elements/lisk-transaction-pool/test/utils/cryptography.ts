@@ -12,11 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { utils, address } from '@liskhq/lisk-cryptography';
+import { utils, legacy } from '@liskhq/lisk-cryptography';
 
 export const generateRandomPublicKeys = (amount = 1): Array<Buffer> =>
 	new Array(amount).fill(0).map(_ => {
-		const { publicKey } = address.getAddressAndPublicKeyFromPassphrase(Math.random().toString(16));
+		const { publicKey } = legacy.getPrivateAndPublicKeyFromPassphrase(Math.random().toString(16));
 		return publicKey;
 	});
 

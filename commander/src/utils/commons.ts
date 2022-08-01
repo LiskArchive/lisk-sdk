@@ -46,3 +46,18 @@ export const encryptPassphrase = async (
 		  }
 		: { encryptedPassphrase };
 };
+
+export const deriveKeypair = async (passphrase: string, keyDerivationPath: string) => {
+	if (keyDerivationPath === 'legacy') {
+		return cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+	}
+	const privateKey = await cryptography.ed.getKeyPairFromPhraseAndPath(
+		passphrase,
+		keyDerivationPath,
+	);
+	const publicKey = cryptography.ed.getPublicKeyFromPrivateKey(privateKey);
+	return {
+		publicKey,
+		privateKey,
+	};
+};

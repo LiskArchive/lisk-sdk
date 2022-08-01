@@ -12,18 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { address, bls, ed } from '@liskhq/lisk-cryptography';
+import { address, bls, legacy } from '@liskhq/lisk-cryptography';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 
 export const createAccount = () => {
 	const passphrase = Mnemonic.generateMnemonic(256);
-	const keys = ed.getKeys(passphrase);
+	const keys = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
 	const blsPrivateKey = bls.generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
 	const blsPublicKey = bls.getPublicKeyFromPrivateKey(blsPrivateKey);
 	const blsPoP = bls.popProve(blsPrivateKey);
 	return {
 		passphrase,
-		address: address.getAddressFromPassphrase(passphrase),
+		address: address.getAddressFromPublicKey(keys.publicKey),
 		publicKey: keys.publicKey,
 		privateKey: keys.privateKey,
 		blsPrivateKey,

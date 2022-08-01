@@ -19,8 +19,6 @@ const {
 	address: {
 		getAddressFromPublicKey,
 		getLisk32AddressFromPublicKey,
-		getAddressAndPublicKeyFromPassphrase,
-		getAddressFromPassphrase,
 		getAddressFromPrivateKey,
 		validateLisk32Address,
 		getAddressFromLisk32Address,
@@ -29,7 +27,6 @@ const {
 } = cryptography;
 
 describe('keys', () => {
-	const defaultPassphrase = 'secret';
 	const defaultPrivateKey = Buffer.from(
 		'2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 		'hex',
@@ -39,25 +36,6 @@ describe('keys', () => {
 		'hex',
 	);
 	const defaultAddress = Buffer.from('3a971fd02b4a07fc20aad1936d3cb1d263b96e0f', 'hex');
-
-	const defaultAddressAndPublicKey = {
-		publicKey: defaultPublicKey,
-		address: defaultAddress,
-	};
-
-	describe('#getAddressAndPublicKeyFromPassphrase', () => {
-		it('should create correct address and publicKey', () => {
-			expect(getAddressAndPublicKeyFromPassphrase(defaultPassphrase)).toEqual(
-				defaultAddressAndPublicKey,
-			);
-		});
-	});
-
-	describe('#getAddressFromPassphrase', () => {
-		it('should create correct address', () => {
-			expect(getAddressFromPassphrase(defaultPassphrase)).toEqual(defaultAddress);
-		});
-	});
 
 	describe('#getAddressFromPrivateKey', () => {
 		it('should create correct address', () => {

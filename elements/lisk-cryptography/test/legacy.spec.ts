@@ -20,8 +20,7 @@ describe('Legacy', () => {
 		'purity retire hamster gold unfold stadium hunt truth movie walnut gun bean';
 	const defaultPrivateKey =
 		'bf338d9da23ccbc140e440f7da96718eb3f8b84ba4fe57e0a7a91f8c602e8015b56b53b205287d52ae63c688bf62e86ad81e8e1e5dd9aaef2e68711152b7a58a';
-	const defaultPublicKey =
-		'b56b53b205287d52ae63c688bf62e86ad81e8e1e5dd9aaef2e68711152b7a58a';
+	const defaultPublicKey = 'b56b53b205287d52ae63c688bf62e86ad81e8e1e5dd9aaef2e68711152b7a58a';
 
 	describe('#getPrivateAndPublicKeyFromPassphrase', () => {
 		let keyPair: Keypair;
