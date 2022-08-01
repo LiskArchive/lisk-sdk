@@ -196,6 +196,7 @@ export class Application {
 		application._registerModule(rewardModule);
 		application._registerModule(randomModule);
 		application._registerModule(dposModule);
+		application._registerModule(interoperabilityModule);
 
 		return {
 			app: application,
