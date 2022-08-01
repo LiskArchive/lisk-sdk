@@ -870,13 +870,8 @@ export const finalizeResponseSchema = {
 export const clearRequestSchema = {
 	$id: '/abi/clearRequest',
 	type: 'object',
-	required: ['finalizedHeight'],
-	properties: {
-		finalizedHeight: {
-			fieldNumber: 1,
-			dataType: 'uint32',
-		},
-	},
+	required: [],
+	properties: {},
 };
 
 export const clearResponseSchema = {
