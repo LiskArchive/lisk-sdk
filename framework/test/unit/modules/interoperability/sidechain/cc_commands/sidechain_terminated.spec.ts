@@ -15,7 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { MAINCHAIN_ID_BUFFER } from '../../../../../../src/modules/interoperability/constants';
-import { SidechainCCSidechainTerminatedCommand } from '../../../../../../src/modules/interoperability/sidechain/cc_commands/sidechain_terminated';
+import { SidechainCCSidechainTerminatedCommand } from '../../../../../../src/modules/interoperability/sidechain/cc_commands';
 import { SidechainInteroperabilityStore } from '../../../../../../src/modules/interoperability/sidechain/store';
 import { sidechainTerminatedCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
@@ -100,7 +100,7 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 	it('should call terminateChainInternal when sendingChainID !== MAINCHAIN_ID', async () => {
 		await ccSidechainTerminatedCommand.execute(sampleExecuteContextNew);
 
-		expect(terminateChainInternalMock).toBeCalledTimes(1);
+		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccmNew.sendingChainID,
 			expect.objectContaining({
@@ -114,15 +114,15 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 		hasTerminatedStateAccountMock.mockResolvedValueOnce(true);
 		await ccSidechainTerminatedCommand.execute(sampleExecuteContext);
 
-		expect(terminateChainInternalMock).toBeCalledTimes(0);
-		expect(createTerminatedStateAccountMock).toBeCalledTimes(0);
+		expect(terminateChainInternalMock).toHaveBeenCalledTimes(0);
+		expect(createTerminatedStateAccountMock).toHaveBeenCalledTimes(0);
 	});
 
 	it('should create an entry for the chainID in the terminated account substore when an entry does not exist and sendingChainID === MAINCHAIN_ID', async () => {
 		hasTerminatedStateAccountMock.mockResolvedValueOnce(false);
 		await ccSidechainTerminatedCommand.execute(sampleExecuteContext);
 
-		expect(createTerminatedStateAccountMock).toBeCalledTimes(1);
+		expect(createTerminatedStateAccountMock).toHaveBeenCalledTimes(1);
 		expect(createTerminatedStateAccountMock).toHaveBeenCalledWith(
 			ccmSidechainTerminatedParams.chainID,
 			ccmSidechainTerminatedParams.stateRoot,

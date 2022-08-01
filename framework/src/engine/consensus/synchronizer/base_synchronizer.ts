@@ -78,8 +78,10 @@ export abstract class BaseSynchronizer {
 			getHighestCommonBlockResponseSchema,
 			data,
 		);
-		const errors = validator.validate(getHighestCommonBlockResponseSchema, decodedResp);
-		if (errors.length) {
+
+		try {
+			validator.validate(getHighestCommonBlockResponseSchema, decodedResp);
+		} catch {
 			throw new ApplyPenaltyAndAbortError(peerId, 'Invalid common block response format');
 		}
 		return this._chain.dataAccess.getBlockHeaderByID(decodedResp.id);
@@ -98,8 +100,8 @@ export abstract class BaseSynchronizer {
 		if (!data || !data.length) {
 			throw new Error(`Peer ${peerId} did not respond with block`);
 		}
-		const encodedData = codec.decode<{ blocks: Buffer[] }>(getBlocksFromIdResponseSchema, data);
-		return encodedData.blocks.map(block => Block.fromBytes(block));
+		const decodedData = codec.decode<{ blocks: Buffer[] }>(getBlocksFromIdResponseSchema, data);
+		return decodedData.blocks.map(block => Block.fromBytes(block));
 	}
 
 	public abstract run(receivedBlock: Block, peerId: string): Promise<void>;

@@ -15,7 +15,7 @@
 import { NotFoundError, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { codec } from '@liskhq/lisk-codec';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleMetadata } from '../base_module';
 import {
 	GenesisBlockExecuteContext,
@@ -89,11 +89,8 @@ export class AuthModule extends BaseModule {
 			}
 			keys.push(storeKey);
 
-			const errors = validator.validate(authAccountSchema, storeValue);
+			validator.validate(authAccountSchema, storeValue);
 
-			if (errors.length > 0) {
-				throw new LiskValidationError(errors);
-			}
 			const { mandatoryKeys, optionalKeys, numberOfSignatures } = storeValue;
 			if (mandatoryKeys.length > 0) {
 				if (!objectUtils.bufferArrayOrderByLex(mandatoryKeys)) {

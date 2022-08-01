@@ -15,7 +15,7 @@
 import { regularMerkleTree, sparseMerkleTree } from '@liskhq/lisk-tree';
 import { codec } from '@liskhq/lisk-codec';
 import { utils, bls } from '@liskhq/lisk-cryptography';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { DB_KEY_STATE_STORE } from '@liskhq/lisk-chain';
 import { dataStructures } from '@liskhq/lisk-utils';
 import {
@@ -92,12 +92,8 @@ interface CommonExecutionLogicArgs {
 export const getIDAsKeyForStore = (id: number) => utils.intToBuffer(id, 4);
 
 export const validateFormat = (ccm: CCMsg) => {
-	const errors = validator.validate(ccmSchema, ccm);
-	if (errors.length) {
-		const error = new LiskValidationError(errors);
+	validator.validate(ccmSchema, ccm);
 
-		throw error;
-	}
 	const serializedCCM = codec.encode(ccmSchema, ccm);
 	if (serializedCCM.byteLength > MAX_CCM_SIZE) {
 		throw new Error(`Cross chain message is over the the max ccm size limit of ${MAX_CCM_SIZE}`);
@@ -635,10 +631,7 @@ export const initGenesisStateUtil = async (id: Buffer, ctx: GenesisBlockExecuteC
 		genesisInteroperabilityStoreSchema,
 		assetBytes,
 	);
-	const errors = validator.validate(genesisInteroperabilityStoreSchema, genesisStore);
-	if (errors.length) {
-		throw new LiskValidationError(errors);
-	}
+	validator.validate(genesisInteroperabilityStoreSchema, genesisStore);
 
 	const outboxRootStoreKeySet = new dataStructures.BufferSet();
 	const outboxRootStore = getStore(id, STORE_PREFIX_OUTBOX_ROOT);

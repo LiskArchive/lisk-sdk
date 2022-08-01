@@ -14,7 +14,7 @@
 
 import { sparseMerkleTree } from '@liskhq/lisk-tree';
 import { utils } from '@liskhq/lisk-cryptography';
-import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { MainchainInteroperabilityStore } from '../store';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import {
@@ -30,7 +30,7 @@ import {
 	CommandVerifyContext,
 	VerificationResult,
 	VerifyStatus,
-} from '../../../../state_machine/types';
+} from '../../../../state_machine';
 import { createRecoverCCMsgAPIContext } from '../../../../testing';
 
 export class StateRecoveryCommand extends BaseInteroperabilityCommand {
@@ -44,12 +44,13 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 		const {
 			params: { chainID, storeEntries, siblingHashes },
 		} = context;
-		const errors = validator.validate(this.schema, context.params);
 
-		if (errors.length > 0) {
+		try {
+			validator.validate(this.schema, context.params);
+		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new LiskValidationError(errors),
+				error: err as Error,
 			};
 		}
 

@@ -15,6 +15,7 @@
 import { ed, utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { LiskErrorObject } from '@liskhq/lisk-validator/dist-node/types';
 import { EMPTY_BUFFER, EMPTY_HASH, SIGNATURE_LENGTH_BYTES, TAG_BLOCK_HEADER } from './constants';
 import { blockHeaderSchema, blockHeaderSchemaWithId, signingBlockHeaderSchema } from './schema';
 import { JSONObject } from './types';
@@ -174,10 +175,8 @@ export class BlockHeader {
 	}
 
 	public validate(): void {
-		const errors = validator.validate(blockHeaderSchema, this._getBlockHeaderProps());
-		if (errors.length) {
-			throw new LiskValidationError(errors);
-		}
+		validator.validate(blockHeaderSchema, this._getBlockHeaderProps());
+
 		if (this.previousBlockID.length === 0) {
 			throw new Error('Previous block id must not be empty.');
 		}
@@ -188,7 +187,9 @@ export class BlockHeader {
 
 	public validateGenesis(): void {
 		const header = this._getBlockHeaderProps();
-		const errors = validator.validate(blockHeaderSchema, header);
+		validator.validate(blockHeaderSchema, header);
+
+		const errors: LiskErrorObject[] = [];
 
 		if (header.previousBlockID.length !== 32) {
 			errors.push({

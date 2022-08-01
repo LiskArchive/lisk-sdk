@@ -21,7 +21,6 @@ interface RevertibleEvent {
 
 export class EventQueue {
 	private readonly _events: RevertibleEvent[];
-	private _snapshotIndex = -1;
 
 	public constructor() {
 		this._events = [];
@@ -59,23 +58,22 @@ export class EventQueue {
 		});
 	}
 
-	public createSnapshot(): void {
-		this._snapshotIndex = this._events.length;
+	public createSnapshot(): number {
+		return this._events.length;
 	}
 
-	public restoreSnapshot(): void {
-		const newEvents = this._events.splice(this._snapshotIndex);
+	public restoreSnapshot(snapshotID: number): void {
+		const newEvents = this._events.splice(snapshotID);
 		const nonRevertableEvents = newEvents
 			.filter(eventData => eventData.noRevert)
 			.map((eventData, i) => ({
 				event: new Event({
 					...eventData.event.toObject(),
-					index: this._snapshotIndex + i,
+					index: snapshotID + i,
 				}),
 				noRevert: false,
 			}));
 		this._events.push(...nonRevertableEvents);
-		this._snapshotIndex = -1;
 	}
 
 	public getEvents(): Event[] {

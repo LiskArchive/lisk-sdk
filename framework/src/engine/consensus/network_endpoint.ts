@@ -16,7 +16,7 @@ import { InMemoryDatabase, Database } from '@liskhq/lisk-db';
 import { Chain, StateStore } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { objects } from '@liskhq/lisk-utils';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { Logger } from '../../logger';
 import { Network } from '../network';
 import {
@@ -97,13 +97,13 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			});
 			throw error;
 		}
-		const errors = validator.validate(getBlocksFromIdRequestSchema, decodedData);
 
-		if (errors.length) {
-			const error = new LiskValidationError(errors);
+		try {
+			validator.validate(getBlocksFromIdRequestSchema, decodedData);
+		} catch (error) {
 			this._logger.warn(
 				{
-					err: error,
+					err: error as Error,
 					req: data,
 					peerID: peerId,
 				},
@@ -149,23 +149,24 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			getHighestCommonBlockRequestSchema,
 			data as never,
 		);
-		const errors = validator.validate(getHighestCommonBlockRequestSchema, blockIds);
 
-		if (errors.length || !objects.bufferArrayUniqueItems(blockIds.ids)) {
-			const error = new LiskValidationError(errors);
-			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			this._logger.warn(
-				{
-					err: error,
-					req: data,
-				},
-				'getHighestCommonBlock request validation failed',
-			);
+		const logDataAndApplyPenalty = (errData?: unknown) => {
+			this._logger.warn(errData, 'getHighestCommonBlock request validation failed');
 			this._network.applyPenaltyOnPeer({
 				peerId,
 				penalty: 100,
 			});
+		};
+
+		try {
+			validator.validate(getHighestCommonBlockRequestSchema, blockIds);
+		} catch (error) {
+			logDataAndApplyPenalty({ err: error as Error, req: data });
 			throw error;
+		}
+
+		if (!objects.bufferArrayUniqueItems(blockIds.ids)) {
+			logDataAndApplyPenalty({ req: data });
 		}
 
 		const commonBlockHeaderID = await this._chain.dataAccess.getHighestCommonBlockID(blockIds.ids);
@@ -202,10 +203,9 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			throw error;
 		}
 
-		const errors = validator.validate(singleCommitSchema, decodedData.singleCommit);
-
-		if (errors.length) {
-			const error = new LiskValidationError(errors);
+		try {
+			validator.validate(singleCommitSchema, decodedData.singleCommit);
+		} catch (error) {
 			this._logger.debug(
 				{ peerId, penalty: 100 },
 				'Adding penalty on peer for invalid single commit',

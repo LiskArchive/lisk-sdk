@@ -21,8 +21,8 @@ export interface StateDBReadWriter {
 	set(key: Buffer, value: Buffer): Promise<void>;
 	del(key: Buffer): Promise<void>;
 	range(options?: IterateOptions): Promise<{ key: Buffer; value: Buffer }[]>;
-	snapshot(): void;
-	restoreSnapshot(): void;
+	snapshot(): number;
+	restoreSnapshot(snapshotID: number): void;
 }
 
 interface KeyValue {
@@ -117,12 +117,12 @@ export class PrefixedStateReadWriter {
 		}));
 	}
 
-	public createSnapshot(): void {
-		this._readWriter.snapshot();
+	public createSnapshot(): number {
+		return this._readWriter.snapshot();
 	}
 
-	public restoreSnapshot(): void {
-		this._readWriter.restoreSnapshot();
+	public restoreSnapshot(snapshotID: number): void {
+		this._readWriter.restoreSnapshot(snapshotID);
 	}
 
 	private _getKey(key: Buffer): Buffer {

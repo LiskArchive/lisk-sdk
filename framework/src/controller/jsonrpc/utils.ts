@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import {
 	JSONRPCErrorObject,
 	ID,
@@ -69,17 +69,11 @@ export function validateJSONRPCRequest(data: unknown): asserts data is RequestOb
 	if (typeof data !== 'object' || data === null) {
 		throw new Error('Data must be type of object.');
 	}
-	const errors = validator.validate(requestSchema, data);
-	if (errors.length) {
-		throw new LiskValidationError(errors);
-	}
+	validator.validate(requestSchema, data);
 }
 
 export const validateJSONRPCNotification = (data: Record<string, unknown>): void => {
-	const errors = validator.validate(notificationSchema, data);
-	if (errors.length) {
-		throw new LiskValidationError(errors);
-	}
+	validator.validate(notificationSchema, data);
 };
 
 export const notificationRequest = (

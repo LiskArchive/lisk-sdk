@@ -220,7 +220,7 @@ describe('Sidechain interoperability store', () => {
 			await expect(sidechainInteropStoreLocal.sendInternal(sendInternalContext)).resolves.toEqual(
 				true,
 			);
-			expect(sidechainInteropStoreLocal.getChainAccount).toBeCalledWith(
+			expect(sidechainInteropStoreLocal.getChainAccount).toHaveBeenCalledWith(
 				getIDAsKeyForStore(MAINCHAIN_ID),
 			);
 		});
@@ -247,7 +247,7 @@ describe('Sidechain interoperability store', () => {
 			await expect(sidechainInteropStoreLocal.sendInternal(sendInternalContext)).resolves.toEqual(
 				true,
 			);
-			expect(sidechainInteropStoreLocal.getChainAccount).toBeCalledWith(ccm.receivingChainID);
+			expect(sidechainInteropStoreLocal.getChainAccount).toHaveBeenCalledWith(ccm.receivingChainID);
 		});
 
 		it('should return false if the receiving chain is not live', async () => {

@@ -18,7 +18,7 @@ import { blockAssetSchema, eventSchema } from '@liskhq/lisk-chain';
 import { codec, Schema } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as transactions from '@liskhq/lisk-transactions';
-import * as validator from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import Command, { flags as flagParser } from '@oclif/command';
 import {
 	Application,
@@ -122,11 +122,7 @@ const validateAndSignTransaction = (
 	) as Schema;
 
 	const txObject = codec.fromJSON(schema.transaction, { ...transactionWithoutParams, params: '' });
-	const transactionErrors = validator.validator.validate(schema.transaction, txObject);
-
-	if (transactionErrors.length) {
-		throw new validator.LiskValidationError([...transactionErrors]);
-	}
+	validator.validate(schema.transaction, txObject);
 
 	const paramsObject = paramsSchema ? codec.fromJSON(paramsSchema, params) : {};
 

@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
 import { Chain, Transaction } from '@liskhq/lisk-chain';
@@ -81,14 +81,26 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 
 		if (Buffer.isBuffer(data)) {
 			decodedData = codec.decode<GetTransactionRequest>(getTransactionRequestSchema, data);
-			const errors = validator.validate(getTransactionRequestSchema, decodedData);
-			if (errors.length || !objectUtils.bufferArrayUniqueItems(decodedData.transactionIds)) {
-				this._logger.warn({ err: errors, peerId }, 'Received invalid getTransactions body');
+
+			try {
+				validator.validate(getTransactionRequestSchema, decodedData);
+			} catch (error) {
+				this._logger.warn({ err: error as Error, peerId }, 'Received invalid getTransactions body');
 				this.network.applyPenaltyOnPeer({
 					peerId,
 					penalty: 100,
 				});
-				throw new LiskValidationError(errors);
+				throw error;
+			}
+
+			if (!objectUtils.bufferArrayUniqueItems(decodedData.transactionIds)) {
+				this._logger.warn({ peerId }, 'Received invalid getTransactions body');
+				this.network.applyPenaltyOnPeer({
+					peerId,
+					penalty: 100,
+				});
+
+				throw new Error('Received invalid getTransactions body');
 			}
 		}
 
@@ -180,15 +192,16 @@ export class NetworkEndpoint extends BaseNetworkEndpoint {
 			postTransactionsAnnouncementSchema,
 			data,
 		);
-		const errors = validator.validate(postTransactionsAnnouncementSchema, decodedData);
 
-		if (errors.length) {
-			this._logger.warn({ err: errors, peerId }, 'Received invalid transactions body');
+		try {
+			validator.validate(postTransactionsAnnouncementSchema, decodedData);
+		} catch (error) {
+			this._logger.warn({ err: error as Error, peerId }, 'Received invalid transactions body');
 			this.network.applyPenaltyOnPeer({
 				peerId,
 				penalty: 100,
 			});
-			throw new LiskValidationError(errors);
+			throw error;
 		}
 
 		this.event.emit(GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT, decodedData);

@@ -15,7 +15,7 @@
 import { Database } from '@liskhq/lisk-db';
 import { Chain, Transaction, Event, StateStore } from '@liskhq/lisk-chain';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { Broadcaster } from '../generator/broadcaster';
 import { InvalidTransactionError } from '../generator/errors';
 import {
@@ -59,11 +59,9 @@ export class TxpoolEndpoint {
 	}
 
 	public async postTransaction(ctx: RequestContext): Promise<PostTransactionResponse> {
-		const reqErrors = validator.validate(postTransactionRequestSchema, ctx.params);
-		if (reqErrors?.length) {
-			throw new LiskValidationError(reqErrors);
-		}
-		const req = (ctx.params as unknown) as PostTransactionRequest;
+		validator.validate<PostTransactionRequest>(postTransactionRequestSchema, ctx.params);
+
+		const req = ctx.params;
 		const transaction = Transaction.fromBytes(Buffer.from(req.transaction, 'hex'));
 
 		const { result } = await this._abi.verifyTransaction({
@@ -110,11 +108,9 @@ export class TxpoolEndpoint {
 	}
 
 	public async dryRunTransaction(ctx: RequestContext): Promise<DryRunTransactionResponse> {
-		const reqErrors = validator.validate(dryRunTransactionRequestSchema, ctx.params);
-		if (reqErrors?.length) {
-			throw new LiskValidationError(reqErrors);
-		}
-		const req = (ctx.params as unknown) as DryRunTransactionRequest;
+		validator.validate<DryRunTransactionRequest>(dryRunTransactionRequestSchema, ctx.params);
+
+		const req = ctx.params;
 		const transaction = Transaction.fromBytes(Buffer.from(req.transaction, 'hex'));
 
 		const { result } = await this._abi.verifyTransaction({
