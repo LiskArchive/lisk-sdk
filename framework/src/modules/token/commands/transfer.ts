@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { BaseCommand } from '../../base_command';
 import {
 	CommandExecuteContext,
@@ -44,11 +44,13 @@ export class TransferCommand extends BaseCommand {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(context: CommandVerifyContext<Params>): Promise<VerificationResult> {
 		const { params } = context;
-		const errors = validator.validate(transferParamsSchema, params);
-		if (errors.length) {
+
+		try {
+			validator.validate(transferParamsSchema, params);
+		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new LiskValidationError(errors),
+				error: err as Error,
 			};
 		}
 		return {

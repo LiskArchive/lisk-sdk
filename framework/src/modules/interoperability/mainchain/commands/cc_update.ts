@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { certificateSchema } from '../../../../engine/consensus/certificate_generation/schema';
 import { Certificate } from '../../../../engine/consensus/certificate_generation/types';
 import {
@@ -76,12 +76,13 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
 	): Promise<VerificationResult> {
 		const { params: txParams, transaction, getStore } = context;
-		const errors = validator.validate(crossChainUpdateTransactionParams, context.params);
 
-		if (errors.length > 0) {
+		try {
+			validator.validate(crossChainUpdateTransactionParams, context.params);
+		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new LiskValidationError(errors),
+				error: err as Error,
 			};
 		}
 

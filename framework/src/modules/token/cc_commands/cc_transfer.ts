@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { codec } from '@liskhq/lisk-codec';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { BaseCCCommand } from '../../interoperability/base_cc_command';
 import { CCCommandExecuteContext } from '../../interoperability/types';
 import { TokenAPI } from '../api';
@@ -73,10 +73,8 @@ export class CCTransferCommand extends BaseCCCommand {
 		let tokenLocalID;
 		try {
 			params = codec.decode<CCTransferMessageParams>(crossChainTransferMessageParams, ccm.params);
-			const errors = validator.validate(crossChainTransferMessageParams, params);
-			if (errors.length) {
-				throw new LiskValidationError(errors);
-			}
+			validator.validate(crossChainTransferMessageParams, params);
+
 			[tokenChainID, tokenLocalID] = splitTokenID(params.tokenID);
 			if (tokenChainID.equals(ownChainID)) {
 				const escrowedAmount = await this._tokenAPI.getEscrowedAmount(

@@ -14,7 +14,7 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { objects as objectUtils, dataStructures, objects } from '@liskhq/lisk-utils';
-import { isUInt64, LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { isUInt64, validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { GenesisBlockExecuteContext, BlockAfterExecuteContext } from '../../state_machine';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
@@ -170,10 +170,7 @@ export class DPoSModule extends BaseModule {
 	public async init(args: ModuleInitArgs) {
 		const { moduleConfig } = args;
 		const config = objects.mergeDeep({}, defaultConfig, moduleConfig) as ModuleConfigJSON;
-		const errors = validator.validate(configSchema, config);
-		if (errors.length) {
-			throw new LiskValidationError(errors);
-		}
+		validator.validate(configSchema, config);
 
 		this._moduleConfig = getModuleConfig(config);
 
@@ -191,11 +188,7 @@ export class DPoSModule extends BaseModule {
 			return;
 		}
 		const genesisStore = codec.decode<GenesisStore>(genesisStoreSchema, assetBytes);
-		const errors = validator.validate(genesisStoreSchema, genesisStore);
-
-		if (errors.length > 0) {
-			throw new LiskValidationError(errors);
-		}
+		validator.validate(genesisStoreSchema, genesisStore);
 
 		// validators property check
 		const dposValidatorAddresses = [];

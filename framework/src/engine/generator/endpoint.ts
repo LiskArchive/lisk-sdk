@@ -15,7 +15,7 @@
 import { encrypt, ed, bls, address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { Batch, Database } from '@liskhq/lisk-db';
 import { dataStructures } from '@liskhq/lisk-utils';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { GeneratorStore } from './generator_store';
 import {
 	getLastGeneratedInfo,
@@ -78,11 +78,9 @@ export class Endpoint {
 	}
 
 	public async updateStatus(ctx: RequestContext): Promise<UpdateStatusResponse> {
-		const reqErrors = validator.validate(updateStatusRequestSchema, ctx.params);
-		if (reqErrors?.length) {
-			throw new LiskValidationError(reqErrors);
-		}
-		const req = (ctx.params as unknown) as UpdateStatusRequest;
+		validator.validate<UpdateStatusRequest>(updateStatusRequestSchema, ctx.params);
+
+		const req = ctx.params;
 		const address = Buffer.from(req.address, 'hex');
 		const encryptedGenerator = this._generators.find(item => item.address.equals(address));
 

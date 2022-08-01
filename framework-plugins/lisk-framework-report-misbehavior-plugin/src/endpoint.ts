@@ -20,7 +20,10 @@ import {
 import { actionParamsSchema } from './schemas';
 import { ReportMisbehaviorPluginConfig, State } from './types';
 
-const { validator, LiskValidationError } = liskValidator;
+// disabled for type annotation
+// eslint-disable-next-line prefer-destructuring
+const validator: liskValidator.LiskValidator = liskValidator.validator;
+
 const { encrypt, address } = cryptography;
 
 export class Endpoint extends BasePluginEndpoint {
@@ -34,11 +37,7 @@ export class Endpoint extends BasePluginEndpoint {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async authorize(context: PluginEndpointContext): Promise<{ result: string }> {
-		const errors = validator.validate(actionParamsSchema, context.params);
-
-		if (errors.length) {
-			throw new LiskValidationError([...errors]);
-		}
+		validator.validate(actionParamsSchema, context.params);
 
 		const { enable, password } = context.params;
 

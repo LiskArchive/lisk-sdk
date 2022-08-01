@@ -14,7 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils, bls } from '@liskhq/lisk-cryptography';
-import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import {
 	CCM_STATUS_OK,
 	CHAIN_REGISTERED,
@@ -74,11 +74,12 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			};
 		}
 
-		const registrationParamsErrors = validator.validate(mainchainRegParams, context.params);
-		if (registrationParamsErrors.length > 0) {
+		try {
+			validator.validate(mainchainRegParams, context.params);
+		} catch (err) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new LiskValidationError(registrationParamsErrors),
+				error: err as Error,
 			};
 		}
 

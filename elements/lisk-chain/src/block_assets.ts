@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { validator, LiskValidationError } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { MerkleTree } from '@liskhq/lisk-tree';
 import { blockAssetSchema } from './schema';
@@ -87,10 +87,8 @@ export class BlockAssets {
 		let last = this._assets[0];
 		let i = 0;
 		for (const asset of this._assets) {
-			const errors = validator.validate(blockAssetSchema, asset);
-			if (errors.length) {
-				throw new LiskValidationError(errors);
-			}
+			validator.validate(blockAssetSchema, asset);
+
 			// Data size of each module should not be greater than max asset data size
 			if (asset.data.byteLength > MAX_ASSET_DATA_SIZE_BYTES) {
 				throw new Error(
@@ -117,10 +115,8 @@ export class BlockAssets {
 		let last = this._assets[0];
 		let i = 0;
 		for (const asset of this._assets) {
-			const errors = validator.validate(blockAssetSchema, asset);
-			if (errors.length) {
-				throw new LiskValidationError(errors);
-			}
+			validator.validate(blockAssetSchema, asset);
+
 			if (last.moduleID > asset.moduleID) {
 				throw new Error('Assets are not sorted in the increasing values of moduleID.');
 			}

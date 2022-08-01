@@ -23,7 +23,7 @@ import {
 	TransactionJSON,
 } from '@liskhq/lisk-chain';
 import { InMemoryDatabase, Database, NotFoundError } from '@liskhq/lisk-db';
-import { isHexString, LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { isHexString, validator } from '@liskhq/lisk-validator';
 import { SparseMerkleTree, SMTProof } from '@liskhq/lisk-tree';
 import { JSONObject } from '../../types';
 import { RequestContext } from '../rpc/rpc_server';
@@ -187,10 +187,8 @@ export class ChainEndpoint {
 	}
 
 	public async proveEvents(context: RequestContext): Promise<JSONObject<SMTProof>> {
-		const errors = validator.validate(proveEventsRequestSchema, context.params);
-		if (errors.length) {
-			throw new LiskValidationError(errors);
-		}
+		validator.validate(proveEventsRequestSchema, context.params);
+
 		const { height, queries } = context.params as { height: number; queries: string[] };
 		const queryBytes = queries.map(q => Buffer.from(q, 'hex'));
 		const events = await this._chain.dataAccess.getEvents(height);
@@ -232,10 +230,7 @@ export class ChainEndpoint {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async areHeadersContradicting(context: RequestContext): Promise<{ valid: boolean }> {
-		const errors = validator.validate(areHeadersContradictingRequestSchema, context.params);
-		if (errors.length > 0) {
-			throw new LiskValidationError(errors);
-		}
+		validator.validate(areHeadersContradictingRequestSchema, context.params);
 
 		const bftHeader1 = BlockHeader.fromBytes(Buffer.from(context.params.header1 as string, 'hex'));
 		const bftHeader2 = BlockHeader.fromBytes(Buffer.from(context.params.header2 as string, 'hex'));

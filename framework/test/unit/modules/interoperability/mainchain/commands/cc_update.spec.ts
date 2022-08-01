@@ -22,6 +22,7 @@ import {
 	CommandVerifyContext,
 	testing,
 	VerifyStatus,
+	MainchainCCUpdateCommand,
 } from '../../../../../../src';
 import {
 	ActiveValidator,
@@ -31,7 +32,7 @@ import {
 	ChannelData,
 	CrossChainUpdateTransactionParams,
 } from '../../../../../../src/modules/interoperability/types';
-import { MainchainCCUpdateCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/cc_update';
+
 import { Certificate } from '../../../../../../src/engine/consensus/certificate_generation/types';
 import { certificateSchema } from '../../../../../../src/engine/consensus/certificate_generation/schema';
 import * as interopUtils from '../../../../../../src/modules/interoperability/utils';
@@ -149,7 +150,7 @@ describe('CrossChainUpdateCommand', () => {
 	let activeValidatorsUpdate: ActiveValidator[];
 	let sortedActiveValidatorsUpdate: ActiveValidator[];
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		activeValidatorsUpdate = [
 			{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(1) },
 			{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
@@ -390,7 +391,7 @@ describe('CrossChainUpdateCommand', () => {
 		let partnerValidatorsDataVerify: ChainValidators;
 		let activeValidatorsVerify: ActiveValidator[];
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			activeValidatorsVerify = [...activeValidatorsUpdate];
 			blockHeader = {
 				height: 25,

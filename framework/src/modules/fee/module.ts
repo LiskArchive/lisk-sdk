@@ -14,10 +14,10 @@
 
 import { address, utils } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { defaultConfig, MODULE_ID_FEE } from './constants';
-import { BaseFee, TokenAPI } from './types';
+import { BaseFee, ModuleConfig, TokenAPI } from './types';
 import {
 	TransactionExecuteContext,
 	TransactionVerifyContext,
@@ -56,10 +56,8 @@ export class FeeModule extends BaseModule {
 	public async init(args: ModuleInitArgs): Promise<void> {
 		const { genesisConfig, moduleConfig } = args;
 		const config = objects.mergeDeep({}, defaultConfig, moduleConfig);
-		const errors = validator.validate(configSchema, config);
-		if (errors.length) {
-			throw new LiskValidationError(errors);
-		}
+		validator.validate<ModuleConfig>(configSchema, config);
+
 		this._tokenID = Buffer.from(config.feeTokenID, 'hex');
 		this._minFeePerByte = genesisConfig.minFeePerByte;
 		this._baseFees = genesisConfig.baseFees.map(fee => ({ ...fee, baseFee: BigInt(fee.baseFee) }));
