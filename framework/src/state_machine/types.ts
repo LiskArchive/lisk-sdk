@@ -20,6 +20,8 @@ import { EventQueue } from './event_queue';
 
 export interface EventQueueAdder {
 	add(moduleID: Buffer, typeID: Buffer, data: Buffer, topics?: Buffer[], noRevert?: boolean): void;
+	createSnapshot(): number;
+	restoreSnapshot(snapshotID: number): void;
 }
 
 export interface ImmutableSubStore {

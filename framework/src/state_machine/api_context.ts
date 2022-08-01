@@ -52,6 +52,10 @@ export const wrapEventQueue = (eventQueue: EventQueue, topic: Buffer): EventQueu
 		const topicsWithDefault = [topic, ...(topics ?? [])];
 		eventQueue.add(moduleID, typeID, data, topicsWithDefault, noRevert);
 	},
+	createSnapshot: (): number => eventQueue.createSnapshot(),
+	restoreSnapshot(snapshotID) {
+		eventQueue.restoreSnapshot(snapshotID);
+	},
 });
 
 export class APIContext {
