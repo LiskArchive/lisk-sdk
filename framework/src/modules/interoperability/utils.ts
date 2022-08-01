@@ -15,8 +15,9 @@
 import { regularMerkleTree, sparseMerkleTree } from '@liskhq/lisk-tree';
 import { codec } from '@liskhq/lisk-codec';
 import { utils, bls } from '@liskhq/lisk-cryptography';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { DB_KEY_STATE_STORE } from '@liskhq/lisk-chain';
+import { dataStructures } from '@liskhq/lisk-utils';
 import {
 	ActiveValidators,
 	CCMsg,
@@ -28,28 +29,52 @@ import {
 	ChainValidators,
 	InboxUpdate,
 	MsgWitness,
+	GenesisInteroperabilityStore,
+	OwnChainAccount,
 } from './types';
 import {
 	CCM_STATUS_OK,
 	CHAIN_REGISTERED,
+	CHAIN_TERMINATED,
 	EMPTY_BYTES,
 	LIVENESS_LIMIT,
+	MAINCHAIN_ID_BUFFER,
 	MAX_CCM_SIZE,
+	MAX_NUM_VALIDATORS,
+	MAX_UINT64,
 	MESSAGE_TAG_CERTIFICATE,
 	MODULE_ID_INTEROPERABILITY,
 	SMT_KEY_LENGTH,
+	STORE_PREFIX_CHAIN_DATA,
+	STORE_PREFIX_CHAIN_VALIDATORS,
 	STORE_PREFIX_CHANNEL_DATA,
 	STORE_PREFIX_OUTBOX_ROOT,
+	STORE_PREFIX_OWN_CHAIN_DATA,
+	STORE_PREFIX_REGISTERED_NAMES,
+	STORE_PREFIX_REGISTERED_NETWORK_IDS,
+	STORE_PREFIX_TERMINATED_OUTBOX,
+	STORE_PREFIX_TERMINATED_STATE,
 } from './constants';
 import {
 	ccmSchema,
 	chainAccountSchema,
+	chainIDSchema,
 	chainValidatorsSchema,
 	channelSchema,
+	genesisInteroperabilityStoreSchema,
+	outboxRootSchema,
+	ownChainAccountSchema,
 	sidechainTerminatedCCMParamsSchema,
+	terminatedOutboxSchema,
+	terminatedStateSchema,
 	validatorsHashInputSchema,
 } from './schemas';
-import { BlockHeader, VerificationResult, VerifyStatus } from '../../state_machine';
+import {
+	BlockHeader,
+	GenesisBlockExecuteContext,
+	VerificationResult,
+	VerifyStatus,
+} from '../../state_machine';
 import { Certificate } from '../../engine/consensus/certificate_generation/types';
 import { certificateSchema } from '../../engine/consensus/certificate_generation/schema';
 import { CommandExecuteContext, SubStore } from '../../state_machine/types';
@@ -67,12 +92,8 @@ interface CommonExecutionLogicArgs {
 export const getIDAsKeyForStore = (id: number) => utils.intToBuffer(id, 4);
 
 export const validateFormat = (ccm: CCMsg) => {
-	const errors = validator.validate(ccmSchema, ccm);
-	if (errors.length) {
-		const error = new LiskValidationError(errors);
+	validator.validate(ccmSchema, ccm);
 
-		throw error;
-	}
 	const serializedCCM = codec.encode(ccmSchema, ccm);
 	if (serializedCCM.byteLength > MAX_CCM_SIZE) {
 		throw new Error(`Cross chain message is over the the max ccm size limit of ${MAX_CCM_SIZE}`);
@@ -505,9 +526,13 @@ export const checkValidatorsHashWithCertificate = (
 				),
 			};
 		}
-		const decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
-
-		if (isCertificateEmpty(decodedCertificate)) {
+		let decodedCertificate: Certificate;
+		try {
+			decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
+			if (isCertificateEmpty(decodedCertificate)) {
+				throw new Error('Invalid empty certificate.');
+			}
+		} catch (error) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error(
@@ -592,4 +617,345 @@ export const commonCCUExecutelogic = async (args: CommonExecutionLogicArgs) => {
 		);
 	}
 	await partnerChannelStore.setWithSchema(chainIDBuffer, partnerChannelData, channelSchema);
+};
+
+export const initGenesisStateUtil = async (id: Buffer, ctx: GenesisBlockExecuteContext) => {
+	const assetBytes = ctx.assets.getAsset(id);
+	if (!assetBytes) {
+		return;
+	}
+
+	const { getStore } = ctx;
+
+	const genesisStore = codec.decode<GenesisInteroperabilityStore>(
+		genesisInteroperabilityStoreSchema,
+		assetBytes,
+	);
+	validator.validate(genesisInteroperabilityStoreSchema, genesisStore);
+
+	const outboxRootStoreKeySet = new dataStructures.BufferSet();
+	const outboxRootStore = getStore(id, STORE_PREFIX_OUTBOX_ROOT);
+	for (const outboxRootData of genesisStore.outboxRootSubstore) {
+		if (outboxRootStoreKeySet.has(outboxRootData.storeKey)) {
+			throw new Error(
+				`Outbox root store key ${outboxRootData.storeKey.toString('hex')} is duplicated.`,
+			);
+		}
+		outboxRootStoreKeySet.add(outboxRootData.storeKey);
+		await outboxRootStore.setWithSchema(
+			outboxRootData.storeKey,
+			outboxRootData.storeValue,
+			outboxRootSchema,
+		);
+	}
+
+	const ownChainAccountStore = getStore(id, STORE_PREFIX_OWN_CHAIN_DATA);
+	const ownChainAccount = await ownChainAccountStore.getWithSchema<OwnChainAccount>(
+		MAINCHAIN_ID_BUFFER,
+		ownChainAccountSchema,
+	);
+	const channelDataStoreKeySet = new dataStructures.BufferSet();
+	const channelDataStore = getStore(id, STORE_PREFIX_CHANNEL_DATA);
+	for (const channelData of genesisStore.channelDataSubstore) {
+		if (channelDataStoreKeySet.has(channelData.storeKey)) {
+			throw new Error(
+				`Channel data store key ${channelData.storeKey.toString('hex')} is duplicated.`,
+			);
+		}
+		channelDataStoreKeySet.add(channelData.storeKey);
+
+		const tokenID = channelData.storeValue.messageFeeTokenID;
+		if (
+			!(
+				tokenID.chainID.readInt32BE(0) === 1 ||
+				tokenID.chainID.equals(channelData.storeKey) ||
+				tokenID.chainID.equals(ownChainAccount.id)
+			)
+		) {
+			throw new Error(
+				`Chain id corresponding to the channel data store key ${channelData.storeKey.toString(
+					'hex',
+				)} is not valid.`,
+			);
+		}
+		if (tokenID.chainID.equals(MAINCHAIN_ID_BUFFER) && tokenID.localID.readInt32BE(0) !== 0) {
+			throw new Error(
+				`Local id corresponding to the channel data store key ${channelData.storeKey.toString(
+					'hex',
+				)} is not valid.`,
+			);
+		}
+
+		await channelDataStore.setWithSchema(
+			channelData.storeKey,
+			channelData.storeValue,
+			channelSchema,
+		);
+	}
+
+	const chainValidatorsStoreKeySet = new dataStructures.BufferSet();
+	const chainValidatorsStore = getStore(id, STORE_PREFIX_CHAIN_VALIDATORS);
+	for (const chainValidators of genesisStore.chainValidatorsSubstore) {
+		if (chainValidatorsStoreKeySet.has(chainValidators.storeKey)) {
+			throw new Error(
+				`Chain validators store key ${chainValidators.storeKey.toString('hex')} is duplicated.`,
+			);
+		}
+		chainValidatorsStoreKeySet.add(chainValidators.storeKey);
+
+		const { activeValidators, certificateThreshold } = chainValidators.storeValue;
+		if (activeValidators.length < 1 || activeValidators.length > MAX_NUM_VALIDATORS) {
+			throw new Error(
+				`Active validators must have at least 1 element and at most ${MAX_NUM_VALIDATORS} elements.`,
+			);
+		}
+
+		let totalWeight = BigInt(0);
+		for (let j = 0; j < activeValidators.length; j += 1) {
+			const activeValidator = activeValidators[j];
+
+			const { blsKey } = activeValidator;
+			if (j < activeValidators.length - 1 && blsKey.compare(activeValidators[j + 1].blsKey) >= 0) {
+				throw new Error(
+					'Active validators must be ordered lexicographically by blsKey property and pairwise distinct.',
+				);
+			}
+
+			const { bftWeight } = activeValidator;
+			totalWeight += bftWeight;
+		}
+
+		if (totalWeight > MAX_UINT64) {
+			throw new Error(
+				'The total BFT weight of all active validators has to be less than or equal to MAX_UINT64.',
+			);
+		}
+
+		const checkBftWeightValue = totalWeight / BigInt(3) + BigInt(1);
+		if (checkBftWeightValue > totalWeight || checkBftWeightValue > certificateThreshold) {
+			throw new Error('The total BFT weight of all active validators is not valid.');
+		}
+
+		await chainValidatorsStore.setWithSchema(
+			chainValidators.storeKey,
+			chainValidators.storeValue,
+			chainValidatorsSchema,
+		);
+	}
+
+	const chainDataStoreKeySet = new dataStructures.BufferSet();
+	const chainDataStore = getStore(id, STORE_PREFIX_CHAIN_DATA);
+	let isAnotherSidechainAccount = 0;
+	for (const chainData of genesisStore.chainDataSubstore) {
+		const chainDataStoreKey = chainData.storeKey;
+		if (chainDataStoreKeySet.has(chainDataStoreKey)) {
+			throw new Error(`Chain data store key ${chainDataStoreKey.toString('hex')} is duplicated.`);
+		}
+		chainDataStoreKeySet.add(chainDataStoreKey);
+
+		const chainAccountStatus = chainData.storeValue.status;
+		if (chainAccountStatus === CHAIN_TERMINATED) {
+			if (outboxRootStoreKeySet.has(chainDataStoreKey)) {
+				throw new Error('Outbox root store cannot have entry for a terminated chain account.');
+			}
+			if (
+				!channelDataStoreKeySet.has(chainDataStoreKey) ||
+				!chainValidatorsStoreKeySet.has(chainDataStoreKey)
+			) {
+				throw new Error(
+					`Chain data store key ${chainDataStoreKey.toString(
+						'hex',
+					)} missing in some or all of channel data and chain validators stores.`,
+				);
+			}
+		}
+		if (
+			!outboxRootStoreKeySet.has(chainDataStoreKey) ||
+			!channelDataStoreKeySet.has(chainDataStoreKey) ||
+			!chainValidatorsStoreKeySet.has(chainDataStoreKey)
+		) {
+			throw new Error(
+				`Chain data store key ${chainDataStoreKey.toString(
+					'hex',
+				)} missing in some or all of outbox root, channel data and chain validators stores.`,
+			);
+		}
+
+		if (
+			!(
+				chainDataStoreKey.equals(ownChainAccount.id) ||
+				chainDataStoreKey.equals(MAINCHAIN_ID_BUFFER)
+			)
+		) {
+			isAnotherSidechainAccount = 1;
+		}
+
+		await chainDataStore.setWithSchema(
+			chainData.storeKey,
+			chainData.storeValue,
+			chainAccountSchema,
+		);
+	}
+
+	if (
+		isAnotherSidechainAccount &&
+		!(chainDataStoreKeySet.has(MAINCHAIN_ID_BUFFER) && chainDataStoreKeySet.has(ownChainAccount.id))
+	) {
+		throw new Error(
+			'If a chain account for another sidechain is present, then a chain account for the mainchain must be present, as well as the own chain account.',
+		);
+	}
+
+	for (const storeKey of outboxRootStoreKeySet) {
+		if (!chainDataStoreKeySet.has(storeKey)) {
+			throw new Error(
+				`Outbox root store key ${storeKey.toString('hex')} is missing in chain data store.`,
+			);
+		}
+	}
+
+	for (const storeKey of channelDataStoreKeySet) {
+		if (!chainDataStoreKeySet.has(storeKey)) {
+			throw new Error(
+				`Channel data store key ${storeKey.toString('hex')} is missing in chain data store.`,
+			);
+		}
+	}
+
+	for (const storeKey of chainValidatorsStoreKeySet) {
+		if (!chainDataStoreKeySet.has(storeKey)) {
+			throw new Error(
+				`Chain validators store key ${storeKey.toString('hex')} is missing in chain data store.`,
+			);
+		}
+	}
+
+	const ownChainDataStoreKeySet = new dataStructures.BufferSet();
+	for (const ownChainData of genesisStore.ownChainDataSubstore) {
+		if (ownChainDataStoreKeySet.has(ownChainData.storeKey)) {
+			throw new Error(
+				`Own chain data store key ${ownChainData.storeKey.toString('hex')} is duplicated.`,
+			);
+		}
+		ownChainDataStoreKeySet.add(ownChainData.storeKey);
+
+		await ownChainAccountStore.setWithSchema(
+			ownChainData.storeKey,
+			ownChainData.storeValue,
+			ownChainAccountSchema,
+		);
+	}
+
+	const terminatedOutboxStoreKeySet = new dataStructures.BufferSet();
+	const terminatedOutboxStore = getStore(id, STORE_PREFIX_TERMINATED_OUTBOX);
+	for (const terminatedOutbox of genesisStore.terminatedOutboxSubstore) {
+		if (terminatedOutboxStoreKeySet.has(terminatedOutbox.storeKey)) {
+			throw new Error(
+				`Terminated outbox store key ${terminatedOutbox.storeKey.toString('hex')} is duplicated.`,
+			);
+		}
+		terminatedOutboxStoreKeySet.add(terminatedOutbox.storeKey);
+
+		await terminatedOutboxStore.setWithSchema(
+			terminatedOutbox.storeKey,
+			terminatedOutbox.storeValue,
+			terminatedOutboxSchema,
+		);
+	}
+
+	const terminatedStateStoreKeySet = new dataStructures.BufferSet();
+	const terminatedStateStore = getStore(id, STORE_PREFIX_TERMINATED_STATE);
+	for (const terminatedState of genesisStore.terminatedStateSubstore) {
+		const terminatedStateStoreKey = terminatedState.storeKey;
+		if (terminatedStateStoreKeySet.has(terminatedStateStoreKey)) {
+			throw new Error(
+				`Terminated state store key ${terminatedStateStoreKey.toString('hex')} is duplicated.`,
+			);
+		}
+		terminatedStateStoreKeySet.add(terminatedStateStoreKey);
+
+		const terminatedStateStoreValue = terminatedState.storeValue;
+		if (terminatedStateStoreValue.initialized === false) {
+			if (terminatedOutboxStoreKeySet.has(terminatedStateStoreKey)) {
+				throw new Error(
+					`Uninitialized account associated with terminated state store key ${terminatedStateStoreKey.toString(
+						'hex',
+					)} cannot be present in terminated outbox store.`,
+				);
+			}
+			if (
+				!terminatedStateStoreValue.stateRoot.equals(EMPTY_BYTES) ||
+				terminatedStateStoreValue.mainchainStateRoot?.length !== 32
+			) {
+				throw new Error(
+					`For the uninitialized account associated with terminated state store key ${terminatedStateStoreKey.toString(
+						'hex',
+					)} the stateRoot must be set to empty bytes and mainchainStateRoot to a 32-bytes value.`,
+				);
+			}
+		} else if (terminatedStateStoreValue.initialized === true) {
+			if (
+				terminatedStateStoreValue.stateRoot.length !== 32 ||
+				!terminatedStateStoreValue.mainchainStateRoot?.equals(EMPTY_BYTES)
+			) {
+				throw new Error(
+					`For the initialized account associated with terminated state store key ${terminatedStateStoreKey.toString(
+						'hex',
+					)} the mainchainStateRoot must be set to empty bytes and stateRoot to a 32-bytes value.`,
+				);
+			}
+		}
+
+		await terminatedStateStore.setWithSchema(
+			terminatedState.storeKey,
+			terminatedState.storeValue,
+			terminatedStateSchema,
+		);
+	}
+
+	for (const storeKey of terminatedOutboxStoreKeySet) {
+		if (!terminatedStateStoreKeySet.has(storeKey)) {
+			throw new Error(
+				`Terminated outbox store key ${storeKey.toString(
+					'hex',
+				)} missing in terminated state store.`,
+			);
+		}
+	}
+
+	const registeredNamesStoreKeySet = new dataStructures.BufferSet();
+	const registeredNamesStore = getStore(id, STORE_PREFIX_REGISTERED_NAMES);
+	for (const registeredNames of genesisStore.registeredNamesSubstore) {
+		if (registeredNamesStoreKeySet.has(registeredNames.storeKey)) {
+			throw new Error(
+				`Registered names store key ${registeredNames.storeKey.toString('hex')} is duplicated.`,
+			);
+		}
+		registeredNamesStoreKeySet.add(registeredNames.storeKey);
+
+		await registeredNamesStore.setWithSchema(
+			registeredNames.storeKey,
+			registeredNames.storeValue,
+			chainIDSchema,
+		);
+	}
+
+	const registeredNetworkIDsStoreKeySet = new dataStructures.BufferSet();
+	const registeredNetworkIDsStore = getStore(id, STORE_PREFIX_REGISTERED_NETWORK_IDS);
+	for (const registeredNetworkIDs of genesisStore.registeredNetworkIDsSubstore) {
+		if (registeredNetworkIDsStoreKeySet.has(registeredNetworkIDs.storeKey)) {
+			throw new Error(
+				`Registered network id's store key ${registeredNetworkIDs.storeKey.toString(
+					'hex',
+				)} is duplicated.`,
+			);
+		}
+		registeredNetworkIDsStoreKeySet.add(registeredNetworkIDs.storeKey);
+
+		await registeredNetworkIDsStore.setWithSchema(
+			registeredNetworkIDs.storeKey,
+			registeredNetworkIDs.storeValue,
+			chainIDSchema,
+		);
+	}
 };

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { NotFoundError } from '../../state_machine';
 import { JSONObject, ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
@@ -49,10 +49,8 @@ export class TokenEndpoint extends BaseEndpoint {
 	public async getBalances(
 		context: ModuleEndpointContext,
 	): Promise<{ balances: JSONObject<UserStoreData & { tokenID: Buffer }>[] }> {
-		const errors = validator.validate(getBalancesRequestSchema, context.params);
-		if (errors.length) {
-			throw new LiskValidationError(errors);
-		}
+		validator.validate(getBalancesRequestSchema, context.params);
+
 		const address = Buffer.from(context.params.address as string, 'hex');
 		const userStore = context.getStore(this.moduleID, STORE_PREFIX_USER);
 		const userData = await userStore.iterateWithSchema<UserStoreData>(
@@ -76,10 +74,8 @@ export class TokenEndpoint extends BaseEndpoint {
 	}
 
 	public async getBalance(context: ModuleEndpointContext): Promise<JSONObject<UserStoreData>> {
-		const errors = validator.validate(getBalanceRequestSchema, context.params);
-		if (errors.length) {
-			throw new LiskValidationError(errors);
-		}
+		validator.validate(getBalanceRequestSchema, context.params);
+
 		const address = Buffer.from(context.params.address as string, 'hex');
 		const tokenID = Buffer.from(context.params.tokenID as string, 'hex');
 		const canonicalTokenID = await this._tokenAPI.getCanonicalTokenID(

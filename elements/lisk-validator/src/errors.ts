@@ -86,7 +86,6 @@ export class LiskValidationError extends Error {
 	}
 
 	private _compileErrors(): string[] {
-		const errorMsgs = this.errors.map(errorFormatter);
-		return errorMsgs;
+		return this.errors.map(errorFormatter);
 	}
 }

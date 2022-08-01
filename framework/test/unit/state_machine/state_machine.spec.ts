@@ -13,6 +13,7 @@
  */
 import { Transaction, BlockAssets } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
+import { codec } from '@liskhq/lisk-codec';
 import { Logger } from '../../../src/logger';
 import { BlockContext } from '../../../src/state_machine/block_context';
 import { EventQueue } from '../../../src/state_machine/event_queue';
@@ -20,7 +21,7 @@ import { GenesisBlockContext } from '../../../src/state_machine/genesis_block_co
 import { StateMachine } from '../../../src/state_machine/state_machine';
 import { TransactionContext } from '../../../src/state_machine/transaction_context';
 import { BlockHeader, VerifyStatus } from '../../../src/state_machine';
-import { CustomModule0, CustomModule1, CustomModule2 } from './custom_modules';
+import { CustomCommand0, CustomModule0, CustomModule1, CustomModule2 } from './custom_modules';
 import {
 	EVENT_INDEX_AFTER_TRANSACTIONS,
 	EVENT_INDEX_BEFORE_TRANSACTIONS,
@@ -41,7 +42,7 @@ describe('state_machine', () => {
 	const transaction = {
 		moduleID: utils.intToBuffer(3, 4),
 		commandID: utils.intToBuffer(0, 4),
-		params: {},
+		params: codec.encode(new CustomCommand0(utils.intToBuffer(3, 4)).schema, { data: 'some info' }),
 	} as Transaction;
 
 	let stateMachine: StateMachine;

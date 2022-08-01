@@ -28,7 +28,7 @@ import { Database, Batch, SparseMerkleTree } from '@liskhq/lisk-db';
 import { TransactionPool, events } from '@liskhq/lisk-transaction-pool';
 import { MerkleTree } from '@liskhq/lisk-tree';
 import { dataStructures, jobHandlers } from '@liskhq/lisk-utils';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { EVENT_NETWORK_READY } from '../events';
 import { Logger } from '../../logger';
 import { GenesisConfig } from '../../types';
@@ -328,11 +328,10 @@ export class Generator {
 		for (const encryptedItem of encryptedList) {
 			let passphrase;
 			try {
-				passphrase = await encrypt.decryptPassphraseWithPassword(
-					encrypt.parseEncryptedPassphrase(
-						encryptedItem.encryptedPassphrase,
-					) as encrypt.EncryptedPassphraseObject,
+				passphrase = await encrypt.decryptMessageWithPassword(
+					encrypt.parseEncryptedMessage(encryptedItem.encryptedPassphrase),
 					this._config.password,
+					'utf-8',
 				);
 			} catch (error) {
 				const decryptionError = `Invalid encryptedPassphrase for address: ${encryptedItem.address.toString(
@@ -377,14 +376,14 @@ export class Generator {
 		})) as unknown) as {
 			data: Buffer;
 		};
-		const encodedData = codec.decode<GetTransactionResponse>(getTransactionsResponseSchema, data);
+		const transactionResponse = codec.decode<GetTransactionResponse>(
+			getTransactionsResponseSchema,
+			data,
+		);
 
-		const validatorErrors = validator.validate(getTransactionsResponseSchema, encodedData);
-		if (validatorErrors.length) {
-			throw new LiskValidationError(validatorErrors);
-		}
+		validator.validate(getTransactionsResponseSchema, transactionResponse);
 
-		const transactions = encodedData.transactions.map(transaction =>
+		const transactions = transactionResponse.transactions.map(transaction =>
 			Transaction.fromBytes(transaction),
 		);
 

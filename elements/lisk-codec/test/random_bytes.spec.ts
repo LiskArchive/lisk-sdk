@@ -88,14 +88,11 @@ describe('random bytes', () => {
 	describe('decode and encode', () => {
 		const testCases = [Buffer.from('80000000008000e348328000000000804800', 'hex')];
 
-		it('should successfully encode and decode back without error', () => {
+		it('should fail to decode random bytes', () => {
 			expect.assertions(testCases.length);
 			for (const testCase of testCases) {
-				const decoded = codec.decode<Record<string, unknown>>(schema, testCase);
-				const encoded = codec.encode(schema, decoded);
-				const decodedSecondTime = codec.decode<Record<string, unknown>>(schema, encoded);
-				const encodedSecondTime = codec.encode(schema, decodedSecondTime);
-				expect(encodedSecondTime).toEqual(encoded);
+				// eslint-disable-next-line no-loop-func
+				expect(() => codec.decode(schema, testCase)).toThrow('Invalid field number');
 			}
 		});
 	});

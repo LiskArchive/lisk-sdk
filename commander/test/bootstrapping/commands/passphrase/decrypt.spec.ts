@@ -48,10 +48,10 @@ describe('passphrase:decrypt', () => {
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
 		jest.spyOn(DecryptCommand.prototype, 'printJSON').mockReturnValue();
 		jest
-			.spyOn(cryptography.encrypt, 'parseEncryptedPassphrase')
+			.spyOn(cryptography.encrypt, 'parseEncryptedMessage')
 			.mockReturnValue(encryptedPassphraseObject as never);
 		jest
-			.spyOn(cryptography.encrypt, 'decryptPassphraseWithPassword')
+			.spyOn(cryptography.encrypt, 'decryptMessageWithPassword')
 			.mockResolvedValue(passphrase as never);
 		jest.spyOn(readerUtils, 'getPasswordFromPrompt').mockResolvedValue(defaultInputs);
 	});
@@ -66,12 +66,13 @@ describe('passphrase:decrypt', () => {
 		it('should decrypt passphrase with arg', async () => {
 			await DecryptCommand.run([defaultEncryptedPassphrase], config);
 			expect(readerUtils.getPasswordFromPrompt).toHaveBeenCalledWith('password', true);
-			expect(cryptography.encrypt.parseEncryptedPassphrase).toHaveBeenCalledWith(
+			expect(cryptography.encrypt.parseEncryptedMessage).toHaveBeenCalledWith(
 				defaultEncryptedPassphrase,
 			);
-			expect(cryptography.encrypt.decryptPassphraseWithPassword).toHaveBeenCalledWith(
+			expect(cryptography.encrypt.decryptMessageWithPassword).toHaveBeenCalledWith(
 				encryptedPassphraseObject,
 				defaultInputs,
+				'utf-8',
 			);
 			expect(DecryptCommand.prototype.printJSON).toHaveBeenCalledWith({ passphrase }, undefined);
 		});
@@ -81,12 +82,13 @@ describe('passphrase:decrypt', () => {
 		it('should decrypt passphrase with passphrase flag and password flag', async () => {
 			await DecryptCommand.run([defaultEncryptedPassphrase, '--password=LbYpLpV9Wpec6ux8'], config);
 			expect(readerUtils.getPasswordFromPrompt).not.toHaveBeenCalled();
-			expect(cryptography.encrypt.parseEncryptedPassphrase).toHaveBeenCalledWith(
+			expect(cryptography.encrypt.parseEncryptedMessage).toHaveBeenCalledWith(
 				defaultEncryptedPassphrase,
 			);
-			expect(cryptography.encrypt.decryptPassphraseWithPassword).toHaveBeenCalledWith(
+			expect(cryptography.encrypt.decryptMessageWithPassword).toHaveBeenCalledWith(
 				encryptedPassphraseObject,
 				defaultInputs,
+				'utf-8',
 			);
 			expect(DecryptCommand.prototype.printJSON).toHaveBeenCalledWith(
 				{

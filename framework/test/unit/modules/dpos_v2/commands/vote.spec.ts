@@ -18,7 +18,7 @@ import { address, utils } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { validator } from '@liskhq/lisk-validator';
 import { when } from 'jest-when';
-import { VoteCommand } from '../../../../../src/modules/dpos_v2/commands/vote';
+import { VoteCommand, VerifyStatus } from '../../../../../src';
 import {
 	COMMAND_ID_VOTE,
 	MAX_UNLOCKING,
@@ -29,7 +29,7 @@ import {
 import { delegateStoreSchema, voterStoreSchema } from '../../../../../src/modules/dpos_v2/schemas';
 import { DelegateAccount, VoteTransactionParams } from '../../../../../src/modules/dpos_v2/types';
 import { getVoterOrDefault } from '../../../../../src/modules/dpos_v2/utils';
-import { VerifyStatus } from '../../../../../src/state_machine/types';
+
 import { createTransactionContext } from '../../../../../src/testing';
 import { liskToBeddows } from '../../../../utils/assets';
 import { DEFAULT_TOKEN_ID } from '../../../../utils/mocks/transaction';
@@ -179,8 +179,7 @@ describe('VoteCommand', () => {
 
 				it('should return errors', async () => {
 					const verificationResult = await command.verify(context);
-					expect((verificationResult.error as any).value).toHaveLength(1);
-					expect((verificationResult.error as any).value[0].message).toInclude(
+					expect((verificationResult.error as any).value.message).toInclude(
 						'must NOT have fewer than 1 items',
 					);
 				});
@@ -206,8 +205,7 @@ describe('VoteCommand', () => {
 
 				it('should return errors', async () => {
 					const verificationResult = await command.verify(context);
-					expect((verificationResult.error as any).value).toHaveLength(1);
-					expect((verificationResult.error as any).value[0].message).toInclude(
+					expect((verificationResult.error as any).value.message).toInclude(
 						'must NOT have more than 20 items',
 					);
 				});
@@ -226,8 +224,9 @@ describe('VoteCommand', () => {
 				});
 
 				it('should return errors', () => {
-					const errors = validator.validate(command.schema, transactionParamsDecoded);
-					expect(errors[0].message).toInclude('should pass "dataType" keyword validation');
+					expect(() => validator.validate(command.schema, transactionParamsDecoded)).toThrow(
+						'should pass "dataType" keyword validation',
+					);
 				});
 			});
 
@@ -244,8 +243,9 @@ describe('VoteCommand', () => {
 				});
 
 				it('should return errors', () => {
-					const errors = validator.validate(command.schema, transactionParamsDecoded);
-					expect(errors[0].message).toInclude('should pass "dataType" keyword validation');
+					expect(() => validator.validate(command.schema, transactionParamsDecoded)).toThrow(
+						'should pass "dataType" keyword validation',
+					);
 				});
 			});
 		});

@@ -12,12 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	ErrorObject,
-	LiskValidationError,
-	validator,
-	liskSchemaIdentifier,
-} from '@liskhq/lisk-validator';
+import { validator, liskSchemaIdentifier } from '@liskhq/lisk-validator';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { generateKey } from './utils';
 import { readObject, writeObject } from './collection';
@@ -60,12 +55,7 @@ export const validateSchema = (schema: {
 		$schema: schema.$schema ?? liskSchemaIdentifier,
 	};
 
-	const errors: ReadonlyArray<ErrorObject> = validator.validateSchema(schemaToValidate);
-
-	if (errors.length) {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-		throw new LiskValidationError([...errors]);
-	}
+	validator.validateSchema(schemaToValidate);
 
 	try {
 		// To validate keyword schema we have to compile it

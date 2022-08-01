@@ -452,7 +452,7 @@ describe('Base interoperability store', () => {
 			trsSender: beforeApplyCCMContext.trsSender,
 		};
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			mainchainStoreLocal = new MainchainInteroperabilityStore(
 				MODULE_ID_INTEROPERABILITY_BUFFER,
 				mockGetStore,
@@ -468,7 +468,7 @@ describe('Base interoperability store', () => {
 			await expect(
 				mainchainStoreLocal.apply(ccmApplyContext, ccCommandsMap),
 			).resolves.toBeUndefined();
-			expect(ccAPIMod1.beforeApplyCCM).toBeCalledTimes(0);
+			expect(ccAPIMod1.beforeApplyCCM).toHaveBeenCalledTimes(0);
 		});
 
 		it('should call all the interoperable beforeApplyCCM hooks', async () => {
@@ -489,7 +489,7 @@ describe('Base interoperability store', () => {
 			await expect(
 				mainchainStoreLocal.apply(ccmApplyContext, ccCommandsMap),
 			).resolves.toBeUndefined();
-			expect(ccAPISampleMod.beforeApplyCCM).toBeCalledTimes(1);
+			expect(ccAPISampleMod.beforeApplyCCM).toHaveBeenCalledTimes(1);
 			expect(ccAPISampleMod.beforeApplyCCM).toHaveBeenCalledWith(
 				expect.toContainAllKeys(Object.keys(beforeApplyCCMContext)),
 			);
@@ -515,11 +515,11 @@ describe('Base interoperability store', () => {
 			await expect(
 				mainchainStoreLocal.apply(ccmApplyContext, localCCCommandsMap),
 			).resolves.toBeUndefined();
-			expect(ccAPIMod1.beforeApplyCCM).toBeCalledTimes(1);
+			expect(ccAPIMod1.beforeApplyCCM).toHaveBeenCalledTimes(1);
 			expect(ccAPIMod1.beforeApplyCCM).toHaveBeenCalledWith(
 				expect.toContainAllKeys(Object.keys(beforeApplyCCMContext)),
 			);
-			expect(mainchainStoreLocal.sendInternal).toBeCalledTimes(1);
+			expect(mainchainStoreLocal.sendInternal).toHaveBeenCalledTimes(1);
 			expect(mainchainStoreLocal.sendInternal).toHaveBeenCalledWith(
 				expect.objectContaining({ status: CCM_STATUS_MODULE_NOT_SUPPORTED }),
 			);
@@ -549,11 +549,11 @@ describe('Base interoperability store', () => {
 			await expect(
 				mainchainStoreLocal.apply(ccmApplyContext, localCCCommandsMap),
 			).resolves.toBeUndefined();
-			expect(ccAPISampleMod.beforeApplyCCM).toBeCalledTimes(1);
+			expect(ccAPISampleMod.beforeApplyCCM).toHaveBeenCalledTimes(1);
 			expect(ccAPISampleMod.beforeApplyCCM).toHaveBeenCalledWith(
 				expect.toContainAllKeys(Object.keys(beforeApplyCCMContext)),
 			);
-			expect(mainchainStoreLocal.sendInternal).toBeCalledTimes(1);
+			expect(mainchainStoreLocal.sendInternal).toHaveBeenCalledTimes(1);
 			expect(mainchainStoreLocal.sendInternal).toHaveBeenCalledWith(
 				expect.objectContaining({ status: CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED }),
 			);
@@ -580,12 +580,12 @@ describe('Base interoperability store', () => {
 			await expect(
 				mainchainStoreLocal.apply(ccmApplyContext, ccCommandsMap),
 			).resolves.toBeUndefined();
-			expect(ccAPISampleMod.beforeApplyCCM).toBeCalledTimes(1);
+			expect(ccAPISampleMod.beforeApplyCCM).toHaveBeenCalledTimes(1);
 			expect(ccAPISampleMod.beforeApplyCCM).toHaveBeenCalledWith(
 				expect.objectContaining({ ccu: beforeApplyCCMContext.ccu }),
 			);
-			expect(mainchainStoreLocal.sendInternal).toBeCalledTimes(0);
-			expect(ccCommands[0].execute).toBeCalledTimes(1);
+			expect(mainchainStoreLocal.sendInternal).toHaveBeenCalledTimes(0);
+			expect(ccCommands[0].execute).toHaveBeenCalledTimes(1);
 			expect(ccCommands[0].execute).toHaveBeenCalledWith(
 				expect.objectContaining({ ccm: executeCCMContext.ccm }),
 			);

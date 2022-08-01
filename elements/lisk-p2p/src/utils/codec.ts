@@ -44,4 +44,7 @@ export const encodePeerInfo = (peerInfoSchema: Schema, data: ProtocolPeerInfo): 
 	codec.encode(peerInfoSchema, data);
 
 export const encodeNodeInfo = (nodeInfoSchema: Schema, data: P2PNodeInfo): Buffer =>
-	codec.encode(nodeInfoSchema, data);
+	codec.encode(nodeInfoSchema, {
+		...data,
+		advertiseAddress: data.advertiseAddress ?? false,
+	});

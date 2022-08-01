@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { join } from 'path';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { APIClient, createIPCClient } from '@liskhq/lisk-api-client';
 import { objects } from '@liskhq/lisk-utils';
 import { Logger } from '../logger';
@@ -71,10 +71,7 @@ export const validatePluginSpec = (pluginInstance: BasePlugin): void => {
 	}
 
 	if (pluginInstance.configSchema) {
-		const errors = validator.validateSchema(pluginInstance.configSchema);
-		if (errors.length) {
-			throw new LiskValidationError([...errors]);
-		}
+		validator.validateSchema(pluginInstance.configSchema);
 	}
 };
 
@@ -120,11 +117,7 @@ export abstract class BasePlugin<T = Record<string, unknown>> {
 		if (this.configSchema) {
 			this._config = objects.mergeDeep({}, this.configSchema.default ?? {}, context.config) as T;
 
-			const errors = validator.validate(this.configSchema, this.config as Record<string, unknown>);
-
-			if (errors.length) {
-				throw new LiskValidationError([...errors]);
-			}
+			validator.validate(this.configSchema, this.config as Record<string, unknown>);
 		} else {
 			this._config = {} as T;
 		}

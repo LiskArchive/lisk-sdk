@@ -103,6 +103,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 				'3f91f1b7bc96933102dcce6a6c9200c68146a8327c16b91f8e4b37f40e2e2fb4',
 				'hex',
 			),
+			mainchainStateRoot: utils.getRandomBytes(32),
 		};
 		await terminatedStateSubstore.setWithSchema(
 			chainIDAsBuffer,

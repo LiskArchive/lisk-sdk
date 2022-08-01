@@ -45,6 +45,7 @@ describe('P2P.applyNodeInfo', () => {
 			nodeInfo: {
 				options: {
 					height: 1,
+					junk: 'some junk',
 				},
 			} as any,
 		});
@@ -72,6 +73,7 @@ describe('P2P.applyNodeInfo', () => {
 			advertiseAddress: true,
 			options: {
 				height: 10,
+				junk: '',
 			},
 		});
 
@@ -91,6 +93,7 @@ describe('P2P.applyNodeInfo', () => {
 				networkVersion: '1.1',
 				advertiseAddress: true,
 				options: {
+					height: 0,
 					junk: '1.'.repeat(130000),
 				},
 			}),
@@ -137,7 +140,10 @@ describe('P2P.applyNodeInfo', () => {
 				.getConnectedPeers()
 				.find(peerInfo => peerInfo.port === firstP2PNode.config.port);
 			expect(firstP2PNodePeerInfo).toMatchObject({
-				options: {},
+				options: {
+					height: 10,
+					junk: '',
+				},
 				ipAddress: '127.0.0.1',
 				networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 				peerId: '127.0.0.1:5000',

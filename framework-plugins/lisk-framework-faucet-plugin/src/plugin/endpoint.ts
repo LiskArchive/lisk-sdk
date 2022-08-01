@@ -24,7 +24,9 @@ import {
 import { authorizeParamsSchema, fundParamsSchema } from './schemas';
 import { FaucetPluginConfig, State } from './types';
 
-const { validator, LiskValidationError } = liskValidator;
+// disabled for type annotation
+// eslint-disable-next-line prefer-destructuring
+const validator: liskValidator.LiskValidator = liskValidator.validator;
 
 export class Endpoint extends BasePluginEndpoint {
 	private _state: State = { publicKey: undefined, passphrase: undefined };
@@ -38,22 +40,19 @@ export class Endpoint extends BasePluginEndpoint {
 	}
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async authorize(context: PluginEndpointContext): Promise<{ result: string }> {
-		const errors = validator.validate(authorizeParamsSchema, context.params);
-
-		if (errors.length) {
-			throw new LiskValidationError(errors);
-		}
+		validator.validate(authorizeParamsSchema, context.params);
 
 		const { enable, password } = context.params;
 
 		try {
-			const parsedEncryptedPassphrase = cryptography.encrypt.parseEncryptedPassphrase(
+			const parsedEncryptedPassphrase = cryptography.encrypt.parseEncryptedMessage(
 				this._config.encryptedPassphrase,
 			);
 
-			const passphrase = await cryptography.encrypt.decryptPassphraseWithPassword(
-				parsedEncryptedPassphrase as cryptography.encrypt.EncryptedPassphraseObject,
+			const passphrase = await cryptography.encrypt.decryptMessageWithPassword(
+				parsedEncryptedPassphrase,
 				password as string,
+				'utf-8',
 			);
 
 			const { publicKey } = cryptography.address.getAddressAndPublicKeyFromPassphrase(passphrase);
@@ -71,12 +70,8 @@ export class Endpoint extends BasePluginEndpoint {
 	}
 
 	public async fundTokens(context: PluginEndpointContext): Promise<{ result: string }> {
-		const errors = validator.validate(fundParamsSchema, context.params);
+		validator.validate(fundParamsSchema, context.params);
 		const { address, token } = context.params;
-
-		if (errors.length) {
-			throw new LiskValidationError(errors);
-		}
 
 		if (!this._state.publicKey || !this._state.passphrase) {
 			throw new Error('Faucet is not enabled.');

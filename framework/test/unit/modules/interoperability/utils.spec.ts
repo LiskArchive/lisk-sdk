@@ -16,16 +16,35 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as merkleTree from '@liskhq/lisk-tree';
+import { BlockAssets } from '@liskhq/lisk-chain';
 import { when } from 'jest-when';
 import { VerifyStatus } from '../../../../src';
 import {
 	CCM_STATUS_OK,
 	CHAIN_REGISTERED,
+	CHAIN_TERMINATED,
 	EMPTY_BYTES,
 	LIVENESS_LIMIT,
+	MAINCHAIN_ID_BUFFER,
+	MAX_NUM_VALIDATORS,
+	MAX_UINT64,
+	MODULE_ID_INTEROPERABILITY_BUFFER,
+	STORE_PREFIX_CHAIN_DATA,
+	STORE_PREFIX_CHAIN_VALIDATORS,
 	STORE_PREFIX_CHANNEL_DATA,
+	STORE_PREFIX_OUTBOX_ROOT,
+	STORE_PREFIX_OWN_CHAIN_DATA,
+	STORE_PREFIX_REGISTERED_NAMES,
+	STORE_PREFIX_REGISTERED_NETWORK_IDS,
+	STORE_PREFIX_TERMINATED_OUTBOX,
+	STORE_PREFIX_TERMINATED_STATE,
 } from '../../../../src/modules/interoperability/constants';
-import { ccmSchema, channelSchema } from '../../../../src/modules/interoperability/schemas';
+import {
+	ccmSchema,
+	channelSchema,
+	genesisInteroperabilityStoreSchema,
+	ownChainAccountSchema,
+} from '../../../../src/modules/interoperability/schemas';
 import {
 	ChainAccount,
 	ChannelData,
@@ -43,11 +62,15 @@ import {
 	commonCCUExecutelogic,
 	computeValidatorsHash,
 	getIDAsKeyForStore,
+	initGenesisStateUtil,
 	updateActiveValidators,
 	verifyCertificateSignature,
 } from '../../../../src/modules/interoperability/utils';
 import { certificateSchema } from '../../../../src/engine/consensus/certificate_generation/schema';
 import { Certificate } from '../../../../src/engine/consensus/certificate_generation/types';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
+import { createGenesisBlockContext } from '../../../../src/testing';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
@@ -162,16 +185,20 @@ describe('Utils', () => {
 			blockID: cryptography.utils.getRandomBytes(20),
 			height: 23,
 			stateRoot: Buffer.alloc(2),
-			timestamp: Date.now(),
+			timestamp: Math.floor(Date.now() / 1000),
 			validatorsHash: cryptography.utils.getRandomBytes(20),
+			aggregationBits: cryptography.utils.getRandomBytes(1),
+			signature: cryptography.utils.getRandomBytes(32),
 		};
 
 		const certificateWithEmptyValues = {
 			blockID: cryptography.utils.getRandomBytes(20),
 			height: 23,
 			stateRoot: EMPTY_BYTES,
-			timestamp: Date.now(),
+			timestamp: Math.floor(Date.now() / 1000),
 			validatorsHash: EMPTY_BYTES,
+			aggregationBits: EMPTY_BYTES,
+			signature: EMPTY_BYTES,
 		};
 
 		const encodedCertificate = codec.encode(certificateSchema, certificate);
@@ -674,6 +701,8 @@ describe('Utils', () => {
 			stateRoot: cryptography.utils.getRandomBytes(32),
 			timestamp: Math.floor(Date.now() / 1000),
 			validatorsHash: cryptography.utils.getRandomBytes(48),
+			aggregationBits: cryptography.utils.getRandomBytes(1),
+			signature: cryptography.utils.getRandomBytes(32),
 		};
 
 		const encodedCertificate = codec.encode(certificateSchema, certificate);
@@ -689,7 +718,7 @@ describe('Utils', () => {
 		let newInboxAppendPath: Buffer[] = [];
 		let newInboxSize = 0;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			for (const ccm of defaultCCMsEncoded) {
 				const { appendPath, size, root } = merkleTree.regularMerkleTree.calculateMerkleRoot({
 					value: ccm,
@@ -798,7 +827,15 @@ describe('Utils', () => {
 		describe('Empty certificate and non-empty inboxUpdate', () => {
 			const txParamsWithEmptyCertificate = {
 				...txParams,
-				certificate: Buffer.alloc(0),
+				certificate: codec.encode(certificateSchema, {
+					blockID: Buffer.alloc(0),
+					height: 0,
+					timestamp: 0,
+					stateRoot: Buffer.alloc(0),
+					validatorsHash: Buffer.alloc(0),
+					aggregationBits: Buffer.alloc(0),
+					signature: Buffer.alloc(0),
+				}),
 			};
 
 			it('should update newInboxRoot when messageWitness is non-empty', () => {
@@ -818,7 +855,15 @@ describe('Utils', () => {
 			it('should should not call calculateRootFromRightWitness when messageWitness is empty', () => {
 				const txParamsEmptyMessageWitness = {
 					...txParams,
-					certificate: Buffer.alloc(0),
+					certificate: codec.encode(certificateSchema, {
+						blockID: Buffer.alloc(0),
+						height: 0,
+						timestamp: 0,
+						stateRoot: Buffer.alloc(0),
+						validatorsHash: Buffer.alloc(0),
+						aggregationBits: Buffer.alloc(0),
+						signature: Buffer.alloc(0),
+					}),
 					inboxUpdate: {
 						...txParams.inboxUpdate,
 						messageWitness: { partnerChainOutboxSize: BigInt(0), siblingHashes: [] },
@@ -845,7 +890,15 @@ describe('Utils', () => {
 			it('should return VerifyStatus.FAIL when calculated newInboxRoot is not equal to partnerChainOutboxRoot', () => {
 				const txParamsEmptyMessageWitness = {
 					...txParams,
-					certificate: Buffer.alloc(0),
+					certificate: codec.encode(certificateSchema, {
+						blockID: Buffer.alloc(0),
+						height: 0,
+						timestamp: 0,
+						stateRoot: Buffer.alloc(0),
+						validatorsHash: Buffer.alloc(0),
+						aggregationBits: Buffer.alloc(0),
+						signature: Buffer.alloc(0),
+					}),
 					inboxUpdate: {
 						...txParams.inboxUpdate,
 						messageWitness: { partnerChainOutboxSize: BigInt(0), siblingHashes: [] },
@@ -889,7 +942,7 @@ describe('Utils', () => {
 		let context: any;
 		let calculateRootFromRightWitness: any;
 
-		beforeEach(async () => {
+		beforeEach(() => {
 			activeValidatorsUpdate = [
 				{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(1) },
 				{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
@@ -1093,6 +1146,1118 @@ describe('Utils', () => {
 			expect(partnerChainAccount.lastCertificate.height).toEqual(certificate.height);
 			expect(partnerChannelData.partnerChainOutboxRoot).toEqual(partnerChannelData.inbox.root);
 			expect(calculateRootFromRightWitness).not.toHaveBeenCalled();
+		});
+	});
+
+	describe('initGenesisStateUtil', () => {
+		const { getRandomBytes } = cryptography.utils;
+		const chainID = MODULE_ID_INTEROPERABILITY_BUFFER;
+		const timestamp = 2592000 * 100;
+		const chainAccount = {
+			name: 'account1',
+			networkID: Buffer.alloc(0),
+			lastCertificate: {
+				height: 567467,
+				timestamp: timestamp - 500000,
+				stateRoot: Buffer.alloc(0),
+				validatorsHash: Buffer.alloc(0),
+			},
+			status: 2739,
+		};
+		const sidechainChainAccount = {
+			name: 'sidechain1',
+			networkID: getRandomBytes(32),
+			lastCertificate: {
+				height: 10,
+				stateRoot: utils.getRandomBytes(32),
+				timestamp: 100,
+				validatorsHash: utils.getRandomBytes(32),
+			},
+			status: CHAIN_TERMINATED,
+		};
+		const ownChainAccount = {
+			name: 'mainchain',
+			id: MAINCHAIN_ID_BUFFER,
+			nonce: BigInt('0'),
+		};
+		const channelData = {
+			inbox: {
+				appendPath: [Buffer.alloc(1), Buffer.alloc(1)],
+				root: cryptography.utils.getRandomBytes(38),
+				size: 18,
+			},
+			messageFeeTokenID: { chainID: utils.intToBuffer(1, 4), localID: utils.intToBuffer(0, 4) },
+			outbox: {
+				appendPath: [Buffer.alloc(1), Buffer.alloc(1)],
+				root: cryptography.utils.getRandomBytes(38),
+				size: 18,
+			},
+			partnerChainOutboxRoot: cryptography.utils.getRandomBytes(38),
+		};
+		const outboxRoot = { root: getRandomBytes(32) };
+		const validatorsHashInput = {
+			activeValidators: [
+				{
+					blsKey: Buffer.from(
+						'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
+						'hex',
+					),
+					bftWeight: BigInt(10),
+				},
+				{
+					blsKey: Buffer.from(
+						'4c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
+						'hex',
+					),
+					bftWeight: BigInt(10),
+				},
+			],
+			certificateThreshold: BigInt(10),
+		};
+		const terminatedStateAccount = {
+			stateRoot: sidechainChainAccount.lastCertificate.stateRoot,
+			mainchainStateRoot: EMPTY_BYTES,
+			initialized: true,
+		};
+		const terminatedOutboxAccount = {
+			outboxRoot: getRandomBytes(32),
+			outboxSize: 1,
+			partnerChainInboxSize: 1,
+		};
+		const registeredNameId = { id: Buffer.from('77', 'hex') };
+		const registeredNetworkId = { id: Buffer.from('88', 'hex') };
+		const validData = {
+			outboxRootSubstore: [
+				{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: outboxRoot },
+				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: outboxRoot },
+			],
+			chainDataSubstore: [
+				{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: chainAccount },
+				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: chainAccount },
+			],
+			channelDataSubstore: [
+				{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: channelData },
+				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: channelData },
+			],
+			chainValidatorsSubstore: [
+				{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: validatorsHashInput },
+				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
+			],
+			ownChainDataSubstore: [
+				{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: ownChainAccount },
+				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: ownChainAccount },
+			],
+			terminatedStateSubstore: [
+				{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: terminatedStateAccount },
+				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedStateAccount },
+			],
+			terminatedOutboxSubstore: [
+				{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: terminatedOutboxAccount },
+				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedOutboxAccount },
+			],
+			registeredNamesSubstore: [
+				{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: registeredNameId },
+				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: registeredNameId },
+			],
+			registeredNetworkIDsSubstore: [
+				{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: registeredNetworkId },
+				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: registeredNetworkId },
+			],
+		};
+
+		const invalidData = {
+			...validData,
+			outboxRootSubstore: [
+				{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: { root: getRandomBytes(37) } },
+				{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: { root: getRandomBytes(5) } },
+			],
+		};
+
+		let channelDataSubstore: any;
+		let outboxRootSubstore: any;
+		let terminatedOutboxSubstore: any;
+		let stateStore: PrefixedStateReadWriter;
+		let chainDataSubstore: any;
+		let terminatedStateSubstore: any;
+		let chainValidatorsSubstore: any;
+		let ownChainDataSubstore: any;
+		let registeredNamesSubstore: any;
+		let registeredNetworkIDsSubstore: any;
+
+		let mockGetStore: any;
+
+		beforeEach(async () => {
+			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+			ownChainDataSubstore = stateStore.getStore(
+				MODULE_ID_INTEROPERABILITY_BUFFER,
+				STORE_PREFIX_OWN_CHAIN_DATA,
+			);
+			await ownChainDataSubstore.setWithSchema(
+				MAINCHAIN_ID_BUFFER,
+				ownChainAccount,
+				ownChainAccountSchema,
+			);
+			channelDataSubstore = stateStore.getStore(
+				MODULE_ID_INTEROPERABILITY_BUFFER,
+				STORE_PREFIX_CHANNEL_DATA,
+			);
+			chainValidatorsSubstore = stateStore.getStore(
+				MODULE_ID_INTEROPERABILITY_BUFFER,
+				STORE_PREFIX_CHAIN_VALIDATORS,
+			);
+			outboxRootSubstore = stateStore.getStore(
+				MODULE_ID_INTEROPERABILITY_BUFFER,
+				STORE_PREFIX_OUTBOX_ROOT,
+			);
+			terminatedOutboxSubstore = stateStore.getStore(
+				MODULE_ID_INTEROPERABILITY_BUFFER,
+				STORE_PREFIX_TERMINATED_OUTBOX,
+			);
+			chainDataSubstore = stateStore.getStore(
+				MODULE_ID_INTEROPERABILITY_BUFFER,
+				STORE_PREFIX_CHAIN_DATA,
+			);
+			terminatedStateSubstore = stateStore.getStore(
+				MODULE_ID_INTEROPERABILITY_BUFFER,
+				STORE_PREFIX_TERMINATED_STATE,
+			);
+			registeredNamesSubstore = stateStore.getStore(
+				MODULE_ID_INTEROPERABILITY_BUFFER,
+				STORE_PREFIX_REGISTERED_NAMES,
+			);
+			registeredNetworkIDsSubstore = stateStore.getStore(
+				MODULE_ID_INTEROPERABILITY_BUFFER,
+				STORE_PREFIX_REGISTERED_NETWORK_IDS,
+			);
+
+			mockGetStore = jest.fn();
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHANNEL_DATA)
+				.mockReturnValue(channelDataSubstore);
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_OUTBOX_ROOT)
+				.mockReturnValue(outboxRootSubstore);
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_TERMINATED_OUTBOX)
+				.mockReturnValue(terminatedOutboxSubstore);
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_DATA)
+				.mockReturnValue(chainDataSubstore);
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_TERMINATED_STATE)
+				.mockReturnValue(terminatedStateSubstore);
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_VALIDATORS)
+				.mockReturnValue(chainValidatorsSubstore);
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_OWN_CHAIN_DATA)
+				.mockReturnValue(ownChainDataSubstore);
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_REGISTERED_NAMES)
+				.mockReturnValue(registeredNamesSubstore);
+			when(mockGetStore)
+				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_REGISTERED_NETWORK_IDS)
+				.mockReturnValue(registeredNetworkIDsSubstore);
+		});
+
+		it('should not throw error if asset does not exist', async () => {
+			const context = createGenesisBlockContext({ stateStore }).createInitGenesisStateContext();
+			jest.spyOn(context, 'getStore');
+
+			await expect(initGenesisStateUtil(chainID, context)).toResolve();
+			expect(context.getStore).not.toHaveBeenCalled();
+		});
+
+		it('should throw if the asset object is invalid', async () => {
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, invalidData);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if outbox root store key is duplicated', async () => {
+			const validData1 = {
+				...validData,
+				outboxRootSubstore: [
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: outboxRoot },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: outboxRoot },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if chain data store key is duplicated', async () => {
+			const validData1 = {
+				...validData,
+				chainDataSubstore: [
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: chainAccount },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: chainAccount },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if channel data store key is duplicated', async () => {
+			const validData1 = {
+				...validData,
+				channelDataSubstore: [
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: channelData },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: channelData },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if chain validators store key is duplicated', async () => {
+			const validData1 = {
+				...validData,
+				chainValidatorsSubstore: [
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if own chain store key is duplicated', async () => {
+			const validData1 = {
+				...validData,
+				ownChainDataSubstore: [
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: ownChainAccount },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: ownChainAccount },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if terminated state store key is duplicated', async () => {
+			const validData1 = {
+				...validData,
+				terminatedStateSubstore: [
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedStateAccount },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedStateAccount },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if terminated outbox store key is duplicated', async () => {
+			const validData1 = {
+				...validData,
+				terminatedOutboxSubstore: [
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedOutboxAccount },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedOutboxAccount },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if registered names store key is duplicated', async () => {
+			const validData1 = {
+				...validData,
+				registeredNamesSubstore: [
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: registeredNameId },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: registeredNameId },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if registered network ids store key is duplicated', async () => {
+			const validData1 = {
+				...validData,
+				registeredNetworkIDsSubstore: [
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: registeredNetworkId },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: registeredNetworkId },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if some store key in chain data substore is missing in outbox root substore and the corresponding chain account is not inactive', async () => {
+			const validData1 = {
+				...validData,
+				outboxRootSubstore: [
+					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: outboxRoot },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: outboxRoot },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if some store key in chain data substore is present in outbox root substore but the corresponding chain account is inactive', async () => {
+			const validData1 = {
+				...validData,
+				chainDataSubstore: [
+					{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: { ...chainAccount, status: 2 } },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: chainAccount },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if some store key in chain data substore is missing in channel data substore', async () => {
+			const validData1 = {
+				...validData,
+				channelDataSubstore: [
+					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: channelData },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: channelData },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if some store key in chain data substore is missing in chain validators substore', async () => {
+			const validData1 = {
+				...validData,
+				chainValidatorsSubstore: [
+					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: validatorsHashInput },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if some store key in outbox data substore is missing in chain data substore', async () => {
+			const validData1 = {
+				...validData,
+				chainDataSubstore: [
+					{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: chainAccount },
+					{ storeKey: Buffer.from([0, 0, 1, 1]), storeValue: chainAccount },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if some store key in channel data substore is missing in chain data substore', async () => {
+			const validData1 = {
+				...validData,
+				chainDataSubstore: [
+					{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: chainAccount },
+					{ storeKey: Buffer.from([0, 0, 1, 1]), storeValue: chainAccount },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if some store key in chain validators substore is missing in chain data substore', async () => {
+			const validData1 = {
+				...validData,
+				chainDataSubstore: [
+					{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: chainAccount },
+					{ storeKey: Buffer.from([0, 0, 1, 1]), storeValue: chainAccount },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if some store key in terminated outbox substore is missing in the terminated state substore', async () => {
+			const validData1 = {
+				...validData,
+				terminatedStateSubstore: [
+					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: terminatedStateAccount },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedStateAccount },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if some store key in terminated state substore is present in the terminated outbox substore but the property initialized is set to false', async () => {
+			const validData1 = {
+				...validData,
+				terminatedStateSubstore: [
+					{
+						storeKey: Buffer.from([0, 0, 0, 1]),
+						storeValue: { ...terminatedStateAccount, initialized: false },
+					},
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedStateAccount },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if some store key in terminated state substore has the property initialized set to false but stateRoot is not set to empty bytes and mainchainStateRoot not set to a 32-bytes value', async () => {
+			const validData1 = {
+				...validData,
+				terminatedStateSubstore: [
+					{
+						storeKey: Buffer.from([0, 0, 0, 0]),
+						storeValue: { ...terminatedStateAccount, initialized: false },
+					},
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedStateAccount },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if some store key in terminated state substore has the property initialized set to true but mainchainStateRoot is not set to empty bytes and stateRoot not set to a 32-bytes value', async () => {
+			const validData1 = {
+				...validData,
+				terminatedStateSubstore: [
+					{
+						storeKey: Buffer.from([0, 0, 0, 1]),
+						storeValue: {
+							...terminatedStateAccount,
+							initialized: true,
+							mainchainStateRoot: getRandomBytes(32),
+							stateRoot: EMPTY_BYTES,
+						},
+					},
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: terminatedStateAccount },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if active validators have less than 1 element', async () => {
+			const validData1 = {
+				...validData,
+				chainValidatorsSubstore: [
+					{
+						storeKey: Buffer.from([0, 0, 0, 1]),
+						storeValue: { ...validatorsHashInput, activeValidators: [] },
+					},
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if active validators have more than MAX_NUM_VALIDATORS elements', async () => {
+			const validData1 = {
+				...validData,
+				chainValidatorsSubstore: [
+					{
+						storeKey: Buffer.from([0, 0, 0, 1]),
+						storeValue: {
+							...validatorsHashInput,
+							activeValidators: new Array(MAX_NUM_VALIDATORS + 1).fill(0),
+						},
+					},
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if active validators are not ordered lexicographically by blsKey', async () => {
+			const validData1 = {
+				...validData,
+				chainValidatorsSubstore: [
+					{
+						storeKey: Buffer.from([0, 0, 0, 1]),
+						storeValue: {
+							...validatorsHashInput,
+							activeValidators: [
+								{
+									blsKey: Buffer.from(
+										'4c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
+										'hex',
+									),
+									bftWeight: BigInt(10),
+								},
+								{
+									blsKey: Buffer.from(
+										'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
+										'hex',
+									),
+									bftWeight: BigInt(10),
+								},
+							],
+						},
+					},
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if some active validators have blsKey which is not 48 bytes', async () => {
+			const validData1 = {
+				...validData,
+				chainValidatorsSubstore: [
+					{
+						storeKey: Buffer.from([0, 0, 0, 1]),
+						storeValue: {
+							...validatorsHashInput,
+							activeValidators: [
+								{
+									blsKey: getRandomBytes(21),
+									bftWeight: BigInt(10),
+								},
+								{
+									blsKey: Buffer.from(
+										'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
+										'hex',
+									),
+									bftWeight: BigInt(10),
+								},
+							],
+						},
+					},
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if some active validators have blsKey which is not pairwise distinct', async () => {
+			const validData1 = {
+				...validData,
+				chainValidatorsSubstore: [
+					{
+						storeKey: Buffer.from([0, 0, 0, 1]),
+						storeValue: {
+							...validatorsHashInput,
+							activeValidators: [
+								{
+									blsKey: Buffer.from(
+										'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
+										'hex',
+									),
+									bftWeight: BigInt(10),
+								},
+								{
+									blsKey: Buffer.from(
+										'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
+										'hex',
+									),
+									bftWeight: BigInt(10),
+								},
+							],
+						},
+					},
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if some active validators have bftWeight which is not a positive integer', async () => {
+			const validData1 = {
+				...validData,
+				chainValidatorsSubstore: [
+					{
+						storeKey: Buffer.from([0, 0, 0, 1]),
+						storeValue: {
+							...validatorsHashInput,
+							activeValidators: [
+								{
+									blsKey: Buffer.from(
+										'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
+										'hex',
+									),
+									bftWeight: BigInt(-1),
+								},
+								{
+									blsKey: Buffer.from(
+										'4c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
+										'hex',
+									),
+									bftWeight: BigInt(10),
+								},
+							],
+						},
+					},
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if total bft weight of active validators is greater than MAX_UINT64', async () => {
+			const validData1 = {
+				...validData,
+				chainValidatorsSubstore: [
+					{
+						storeKey: Buffer.from([0, 0, 0, 1]),
+						storeValue: {
+							...validatorsHashInput,
+							activeValidators: [
+								{
+									blsKey: Buffer.from(
+										'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
+										'hex',
+									),
+									bftWeight: BigInt(MAX_UINT64),
+								},
+								{
+									blsKey: Buffer.from(
+										'4c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
+										'hex',
+									),
+									bftWeight: BigInt(10),
+								},
+							],
+						},
+					},
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if total bft weight of active validators is less than the value check', async () => {
+			const validatorsHashInput1 = {
+				...validatorsHashInput,
+				activeValidators: [
+					{
+						blsKey: Buffer.from(
+							'3c1e6f29e3434f816cd6697e56cc54bc8d80927bf65a1361b383aa338cd3f63cbf82ce801b752cb32f8ecb3f8cc16835',
+							'hex',
+						),
+						bftWeight: BigInt(0),
+					},
+				],
+			};
+			const validData1 = {
+				...validData,
+				chainValidatorsSubstore: [
+					{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: validatorsHashInput1 },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput1 },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if certificateThreshold is less than the value check', async () => {
+			const validData1 = {
+				...validData,
+				chainValidatorsSubstore: [
+					{
+						storeKey: Buffer.from([0, 0, 0, 1]),
+						storeValue: { ...validatorsHashInput, certificateThreshold: BigInt(1) },
+					},
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if a chain account for another sidechain is present but chain account for mainchain is not present', async () => {
+			const validData1 = {
+				...validData,
+				chainDataSubstore: [
+					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: chainAccount },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: chainAccount },
+				],
+				outboxRootSubstore: [
+					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: outboxRoot },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: outboxRoot },
+				],
+				channelDataSubstore: [
+					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: channelData },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: channelData },
+				],
+				chainValidatorsSubstore: [
+					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: validatorsHashInput },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if a chain account for another sidechain is present but chain account for ownchain is not present', async () => {
+			const validData1 = {
+				...validData,
+				chainDataSubstore: [
+					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: chainAccount },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: chainAccount },
+				],
+				outboxRootSubstore: [
+					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: outboxRoot },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: outboxRoot },
+				],
+				channelDataSubstore: [
+					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: channelData },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: channelData },
+				],
+				chainValidatorsSubstore: [
+					{ storeKey: Buffer.from([0, 0, 0, 0]), storeValue: validatorsHashInput },
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: validatorsHashInput },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should not throw if some chain id corresponding to message fee token id of a channel is not 1 but is corresponding native token id of either chains', async () => {
+			const validData1 = {
+				...validData,
+				channelDataSubstore: [
+					{ storeKey: Buffer.from([0, 0, 0, 1]), storeValue: channelData },
+					{
+						storeKey: Buffer.from([0, 0, 1, 0]),
+						storeValue: {
+							...channelData,
+							messageFeeTokenID: {
+								chainID: Buffer.from([0, 0, 1, 0]),
+								localID: utils.intToBuffer(0, 4),
+							},
+						},
+					},
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).toResolve();
+		});
+
+		it('should throw if some chain id corresponding to message fee token id of a channel is neither 1 nor corresponding native token id of either chains', async () => {
+			const validData1 = {
+				...validData,
+				channelDataSubstore: [
+					{
+						storeKey: Buffer.from([0, 0, 0, 1]),
+						storeValue: {
+							...channelData,
+							messageFeeTokenID: {
+								chainID: Buffer.from([0, 0, 2, 0]),
+								localID: utils.intToBuffer(0, 4),
+							},
+						},
+					},
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: channelData },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should throw if some chain id corresponding to message fee token id of a channel is 1 but corresponding local id is not 0', async () => {
+			const validData1 = {
+				...validData,
+				channelDataSubstore: [
+					{
+						storeKey: Buffer.from([0, 0, 0, 1]),
+						storeValue: {
+							...channelData,
+							messageFeeTokenID: {
+								chainID: utils.intToBuffer(1, 4),
+								localID: utils.intToBuffer(2, 4),
+							},
+						},
+					},
+					{ storeKey: Buffer.from([0, 0, 1, 0]), storeValue: channelData },
+				],
+			};
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+		});
+
+		it('should create all the corresponding entries in the interoperability module state for every substore for valid input', async () => {
+			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData);
+			const context = createGenesisBlockContext({
+				stateStore,
+				assets: new BlockAssets([
+					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
+				]),
+			}).createInitGenesisStateContext();
+
+			await expect(initGenesisStateUtil(chainID, context)).toResolve();
+
+			channelDataSubstore = stateStore.getStore(
+				MODULE_ID_INTEROPERABILITY_BUFFER,
+				STORE_PREFIX_CHANNEL_DATA,
+			);
+			chainValidatorsSubstore = stateStore.getStore(
+				MODULE_ID_INTEROPERABILITY_BUFFER,
+				STORE_PREFIX_CHAIN_VALIDATORS,
+			);
+			outboxRootSubstore = stateStore.getStore(
+				MODULE_ID_INTEROPERABILITY_BUFFER,
+				STORE_PREFIX_OUTBOX_ROOT,
+			);
+			terminatedOutboxSubstore = stateStore.getStore(
+				MODULE_ID_INTEROPERABILITY_BUFFER,
+				STORE_PREFIX_TERMINATED_OUTBOX,
+			);
+			chainDataSubstore = stateStore.getStore(
+				MODULE_ID_INTEROPERABILITY_BUFFER,
+				STORE_PREFIX_CHAIN_DATA,
+			);
+			terminatedStateSubstore = stateStore.getStore(
+				MODULE_ID_INTEROPERABILITY_BUFFER,
+				STORE_PREFIX_TERMINATED_STATE,
+			);
+			registeredNamesSubstore = stateStore.getStore(
+				MODULE_ID_INTEROPERABILITY_BUFFER,
+				STORE_PREFIX_REGISTERED_NAMES,
+			);
+			registeredNetworkIDsSubstore = stateStore.getStore(
+				MODULE_ID_INTEROPERABILITY_BUFFER,
+				STORE_PREFIX_REGISTERED_NETWORK_IDS,
+			);
+			ownChainDataSubstore = stateStore.getStore(
+				MODULE_ID_INTEROPERABILITY_BUFFER,
+				STORE_PREFIX_OWN_CHAIN_DATA,
+			);
+
+			for (const data of validData.chainDataSubstore) {
+				await expect(chainDataSubstore.has(data.storeKey)).resolves.toBeTrue();
+			}
+			for (const data of validData.chainValidatorsSubstore) {
+				await expect(chainValidatorsSubstore.has(data.storeKey)).resolves.toBeTrue();
+			}
+			for (const data of validData.outboxRootSubstore) {
+				await expect(outboxRootSubstore.has(data.storeKey)).resolves.toBeTrue();
+			}
+			for (const data of validData.terminatedOutboxSubstore) {
+				await expect(terminatedOutboxSubstore.has(data.storeKey)).resolves.toBeTrue();
+			}
+			for (const data of validData.channelDataSubstore) {
+				await expect(channelDataSubstore.has(data.storeKey)).resolves.toBeTrue();
+			}
+			for (const data of validData.terminatedStateSubstore) {
+				await expect(terminatedStateSubstore.has(data.storeKey)).resolves.toBeTrue();
+			}
+			for (const data of validData.registeredNamesSubstore) {
+				await expect(registeredNamesSubstore.has(data.storeKey)).resolves.toBeTrue();
+			}
+			for (const data of validData.registeredNetworkIDsSubstore) {
+				await expect(registeredNetworkIDsSubstore.has(data.storeKey)).resolves.toBeTrue();
+			}
+			for (const data of validData.ownChainDataSubstore) {
+				await expect(ownChainDataSubstore.has(data.storeKey)).resolves.toBeTrue();
+			}
 		});
 	});
 });

@@ -93,18 +93,5 @@ module.exports = {
 			input: { value: objectEncoded, schema: peerInfoSchema },
 			output: { object: peerInfo },
 		},
-		{
-			description: 'Decoding of peer info sample with optional property',
-			input: { value: objectOptionalPropEncoded, schema: peerInfoSchema },
-			output: {
-				object: {
-					...peerInfoWithOptionalProps,
-					networkIdentifier: '',
-					networkVersion: '',
-					nonce: '',
-					height: 0,
-				},
-			},
-		},
 	],
 };

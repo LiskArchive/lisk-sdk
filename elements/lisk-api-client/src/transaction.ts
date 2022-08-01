@@ -18,7 +18,7 @@ import {
 	computeMinFee,
 } from '@liskhq/lisk-transactions';
 import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
-import { LiskValidationError, validator } from '@liskhq/lisk-validator';
+import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import {
 	decodeTransaction,
@@ -337,13 +337,11 @@ export class Transaction {
 			throw new Error('Transaction must be an object.');
 		}
 		const { params, ...rest } = transaction as Record<string, unknown>;
-		const errors = validator.validate(this._schema.transaction, {
+		validator.validate(this._schema.transaction, {
 			...rest,
 			params: Buffer.alloc(0),
 		});
-		if (errors.length) {
-			throw new LiskValidationError(errors);
-		}
+
 		if (Buffer.isBuffer(params)) {
 			throw new Error('Transaction parameter is not decoded.');
 		}

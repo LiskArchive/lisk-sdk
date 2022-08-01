@@ -578,6 +578,18 @@ export const chainIDSchema = {
 	},
 };
 
+export const chainIDSchemaDuplicate = {
+	$id: '/modules/interoperability/chainIdDuplicate',
+	type: 'object',
+	required: ['id'],
+	properties: {
+		id: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+		},
+	},
+};
+
 export const validatorsSchema = {
 	$id: '/modules/interoperability/validators',
 	type: 'object',
@@ -776,3 +788,183 @@ export const getChannelRequestSchema = getChainAccountRequestSchema;
 export const getTerminatedStateAccountRequestSchema = getChainAccountRequestSchema;
 
 export const getTerminatedOutboxAccountRequestSchema = getChainAccountRequestSchema;
+
+export const genesisInteroperabilityStoreSchema = {
+	$id: '/interoperability/module/genesis',
+	type: 'object',
+	required: [
+		'outboxRootSubstore',
+		'chainDataSubstore',
+		'channelDataSubstore',
+		'chainValidatorsSubstore',
+		'ownChainDataSubstore',
+		'terminatedStateSubstore',
+		'terminatedOutboxSubstore',
+		'registeredNamesSubstore',
+		'registeredNetworkIDsSubstore',
+	],
+	properties: {
+		outboxRootSubstore: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['storeKey', 'storeValue'],
+				properties: {
+					storeKey: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					storeValue: {
+						...outboxRootSchema,
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+		chainDataSubstore: {
+			type: 'array',
+			fieldNumber: 2,
+			items: {
+				type: 'object',
+				required: ['storeKey', 'storeValue'],
+				properties: {
+					storeKey: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					storeValue: {
+						...chainAccountSchema,
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+		channelDataSubstore: {
+			type: 'array',
+			fieldNumber: 3,
+			items: {
+				type: 'object',
+				required: ['storeKey', 'storeValue'],
+				properties: {
+					storeKey: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					storeValue: {
+						...channelSchema,
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+		chainValidatorsSubstore: {
+			type: 'array',
+			fieldNumber: 4,
+			items: {
+				type: 'object',
+				required: ['storeKey', 'storeValue'],
+				properties: {
+					storeKey: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					storeValue: {
+						...validatorsSchema,
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+		ownChainDataSubstore: {
+			type: 'array',
+			fieldNumber: 5,
+			items: {
+				type: 'object',
+				required: ['storeKey', 'storeValue'],
+				properties: {
+					storeKey: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					storeValue: {
+						...ownChainAccountSchema,
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+		terminatedStateSubstore: {
+			type: 'array',
+			fieldNumber: 6,
+			items: {
+				type: 'object',
+				required: ['storeKey', 'storeValue'],
+				properties: {
+					storeKey: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					storeValue: {
+						...terminatedStateSchema,
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+		terminatedOutboxSubstore: {
+			type: 'array',
+			fieldNumber: 7,
+			items: {
+				type: 'object',
+				required: ['storeKey', 'storeValue'],
+				properties: {
+					storeKey: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					storeValue: {
+						...terminatedOutboxSchema,
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+		registeredNamesSubstore: {
+			type: 'array',
+			fieldNumber: 8,
+			items: {
+				type: 'object',
+				required: ['storeKey', 'storeValue'],
+				properties: {
+					storeKey: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					storeValue: {
+						...chainIDSchema,
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+		registeredNetworkIDsSubstore: {
+			type: 'array',
+			fieldNumber: 9,
+			items: {
+				type: 'object',
+				required: ['storeKey', 'storeValue'],
+				properties: {
+					storeKey: {
+						dataType: 'bytes',
+						fieldNumber: 1,
+					},
+					storeValue: {
+						...chainIDSchemaDuplicate,
+						fieldNumber: 2,
+					},
+				},
+			},
+		},
+	},
+};
