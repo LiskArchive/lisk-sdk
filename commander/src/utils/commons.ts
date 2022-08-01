@@ -42,7 +42,7 @@ export const encryptPassphrase = async (
 	return outputPublicKey
 		? {
 				encryptedPassphrase,
-				publicKey: cryptography.ed.getKeys(passphrase).publicKey.toString('hex'),
+				publicKey: cryptography.legacy.getKeys(passphrase).publicKey.toString('hex'),
 		  }
 		: { encryptedPassphrase };
 };

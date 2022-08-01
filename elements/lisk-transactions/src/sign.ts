@@ -128,6 +128,8 @@ export const signTransactionWithPrivateKey = (
 	return { ...transactionObject, id: utils.hash(getBytes(transactionObject, paramsSchema)) };
 };
 
+export const signTransaction = signTransactionWithPrivateKey;
+
 export const signMultiSignatureTransactionWithPrivateKey = (
 	transactionObject: Record<string, unknown>,
 	networkIdentifier: Buffer,
@@ -207,3 +209,5 @@ export const signMultiSignatureTransactionWithPrivateKey = (
 
 	return { ...transactionObject, id: utils.hash(getBytes(transactionObject, paramsSchema)) };
 };
+
+export const signMultiSignatureTransaction = signMultiSignatureTransactionWithPrivateKey;

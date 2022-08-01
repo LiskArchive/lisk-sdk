@@ -92,12 +92,14 @@ const signTransaction = async (
 		params: paramsObject,
 	};
 
+	const edKeys = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+
 	// sign from multi sig account offline using input keys
 	if (!flags['include-sender'] && !flags['sender-public-key']) {
 		return transactions.signTransaction(
 			decodedTx,
 			networkIdentifierBuffer,
-			passphrase,
+			edKeys.privateKey,
 			paramsSchema,
 		);
 	}
@@ -105,7 +107,7 @@ const signTransaction = async (
 	return transactions.signMultiSignatureTransaction(
 		decodedTx,
 		networkIdentifierBuffer,
-		passphrase,
+		edKeys.privateKey,
 		keys,
 		paramsSchema,
 		flags['include-sender'],
@@ -165,7 +167,8 @@ const signTransactionOnline = async (
 	// Sign non multi-sig transaction
 	const transactionObject = decodeTransaction(registeredSchema, metadata, transactionHexStr);
 	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
-	const address = cryptography.address.getAddressFromPassphrase(passphrase);
+	const edKeys = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+	const address = cryptography.address.getAddressFromPublicKey(edKeys.publicKey);
 
 	let signedTransaction: Record<string, unknown>;
 

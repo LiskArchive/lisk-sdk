@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { encrypt, ed, bls, address as cryptoAddress } from '@liskhq/lisk-cryptography';
+import { encrypt, bls, address as cryptoAddress, legacy } from '@liskhq/lisk-cryptography';
 import { Batch, Database } from '@liskhq/lisk-db';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
@@ -102,7 +102,7 @@ export class Endpoint {
 
 		const blsSK = bls.generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
 		const keypair = {
-			...ed.getPrivateAndPublicKeyFromPassphrase(passphrase),
+			...legacy.getPrivateAndPublicKeyFromPassphrase(passphrase),
 			blsSecretKey: blsSK,
 		};
 

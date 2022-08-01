@@ -98,9 +98,9 @@ const getPassphraseAddressAndPublicKey = async (flags: CreateFlags) => {
 		passphrase = '';
 	} else {
 		passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
-		const result = cryptography.address.getAddressAndPublicKeyFromPassphrase(passphrase);
-		publicKey = result.publicKey;
-		address = result.address;
+		const keys = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+		publicKey = keys.publicKey;
+		address = cryptography.address.getAddressFromPublicKey(publicKey);
 	}
 
 	return { address, passphrase, publicKey };
@@ -132,10 +132,11 @@ const validateAndSignTransaction = (
 	};
 
 	if (!noSignature) {
+		const keys = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
 		return transactions.signTransaction(
 			decodedTx,
 			Buffer.from(networkIdentifier, 'hex'),
-			passphrase,
+			keys.privateKey,
 			paramsSchema,
 		);
 	}
