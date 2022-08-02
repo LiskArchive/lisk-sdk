@@ -90,7 +90,7 @@ describe('EventQueue', () => {
 
 	it('should be able to add events to queue', () => {
 		// Act
-		events.map(e => eventQueue.add(e.moduleID, e.typeID, e.data, e.topics));
+		events.map(e => eventQueue.unsafeAdd(e.moduleID, e.typeID, e.data, e.topics));
 		const addedEvents = eventQueue.getEvents();
 
 		// Asset
@@ -104,8 +104,17 @@ describe('EventQueue', () => {
 		});
 	});
 
+	it('should be able to get events from child queue', () => {
+		for (const e of events) {
+			eventQueue.unsafeAdd(e.moduleID, e.typeID, e.data, e.topics);
+		}
+		const childQueue = eventQueue.getChildQueue(events[0].topics[0]);
+
+		expect(childQueue.getEvents()).toHaveLength(events.length);
+	});
+
 	it('should return original set of events when create and restore snapshot', () => {
-		events.map(e => eventQueue.add(e.moduleID, e.typeID, e.data, e.topics));
+		events.map(e => eventQueue.unsafeAdd(e.moduleID, e.typeID, e.data, e.topics));
 		expect(eventQueue.getEvents()).toHaveLength(events.length);
 
 		const snapshotID = eventQueue.createSnapshot();
@@ -125,7 +134,7 @@ describe('EventQueue', () => {
 	});
 
 	it('should maintain new nonRevertible events when restoring the snapshot', () => {
-		events.map(e => eventQueue.add(e.moduleID, e.typeID, e.data, e.topics));
+		events.map(e => eventQueue.unsafeAdd(e.moduleID, e.typeID, e.data, e.topics));
 		expect(eventQueue.getEvents()).toHaveLength(events.length);
 
 		const snapshotID = eventQueue.createSnapshot();
