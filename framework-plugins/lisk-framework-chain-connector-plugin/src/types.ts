@@ -26,6 +26,7 @@ export type SentCCUs = Transaction[];
 export interface ValidatorsData {
 	certificateThreshold: BigInt;
 	validators: BFTValidator[];
+	validatorsHash: Buffer;
 }
 
 export interface ChainConnectorInfo {
