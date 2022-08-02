@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { EVENT_STANDARD_TYPE_ID } from '@liskhq/lisk-chain';
 import { EventQueue } from './event_queue';
 import { PrefixedStateReadWriter, StateDBReadWriter } from './prefixed_state_read_writer';
 import { SubStore, ImmutableSubStore, ImmutableAPIContext, EventQueueAdder } from './types';
@@ -36,26 +35,6 @@ export const createImmutableAPIContext = (
 ): ImmutableAPIContext => ({
 	getStore: (moduleID: Buffer, storePrefix: number) =>
 		immutableSubstoreGetter.getStore(moduleID, storePrefix),
-});
-
-export const wrapEventQueue = (eventQueue: EventQueue, topic: Buffer): EventQueueAdder => ({
-	add: (
-		moduleID: Buffer,
-		typeID: Buffer,
-		data: Buffer,
-		topics?: Buffer[],
-		noRevert?: boolean,
-	): void => {
-		if (typeID.equals(EVENT_STANDARD_TYPE_ID)) {
-			throw new Error('Event type ID 0 is reserved for standard event.');
-		}
-		const topicsWithDefault = [topic, ...(topics ?? [])];
-		eventQueue.add(moduleID, typeID, data, topicsWithDefault, noRevert);
-	},
-	createSnapshot: (): number => eventQueue.createSnapshot(),
-	restoreSnapshot(snapshotID) {
-		eventQueue.restoreSnapshot(snapshotID);
-	},
 });
 
 export class APIContext {

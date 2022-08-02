@@ -12,7 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Event, EVENT_MAX_EVENT_SIZE_BYTES, EVENT_MAX_TOPICS_PER_EVENT } from '@liskhq/lisk-chain';
+import {
+	Event,
+	EVENT_MAX_EVENT_SIZE_BYTES,
+	EVENT_MAX_TOPICS_PER_EVENT,
+	EVENT_STANDARD_TYPE_ID,
+} from '@liskhq/lisk-chain';
 
 interface RevertibleEvent {
 	event: Event;
@@ -21,41 +26,63 @@ interface RevertibleEvent {
 
 export class EventQueue {
 	private readonly _events: RevertibleEvent[];
+	private readonly _defaultTopics: Buffer[];
 
-	public constructor() {
-		this._events = [];
+	public constructor(events?: RevertibleEvent[], defaultTopics?: Buffer[]) {
+		this._events = events ?? [];
+		this._defaultTopics = defaultTopics ?? [];
 	}
 
 	public add(
 		moduleID: Buffer,
 		typeID: Buffer,
 		data: Buffer,
-		topics: Buffer[],
+		topics?: Buffer[],
 		noRevert?: boolean,
 	): void {
+		const allTopics = [...this._defaultTopics, ...(topics ?? [])];
 		if (data.length > EVENT_MAX_EVENT_SIZE_BYTES) {
 			throw new Error(
 				`Max size of event data is ${EVENT_MAX_EVENT_SIZE_BYTES} but received ${data.length}`,
 			);
 		}
-		if (!topics.length) {
+		if (!allTopics.length) {
 			throw new Error('Topics must have at least one element.');
 		}
-		if (topics.length > EVENT_MAX_TOPICS_PER_EVENT) {
+		if (allTopics.length > EVENT_MAX_TOPICS_PER_EVENT) {
 			throw new Error(
-				`Max topics per event is ${EVENT_MAX_TOPICS_PER_EVENT} but received ${topics.length}`,
+				`Max topics per event is ${EVENT_MAX_TOPICS_PER_EVENT} but received ${allTopics.length}`,
 			);
 		}
+		if (typeID.equals(EVENT_STANDARD_TYPE_ID)) {
+			throw new Error('Event type ID 0 is reserved for standard event.');
+		}
+		this.unsafeAdd(moduleID, typeID, data, topics, noRevert);
+	}
+
+	public unsafeAdd(
+		moduleID: Buffer,
+		typeID: Buffer,
+		data: Buffer,
+		topics?: Buffer[],
+		noRevert?: boolean,
+	): void {
+		const allTopics = [...this._defaultTopics, ...(topics ?? [])];
 		this._events.push({
 			event: new Event({
 				moduleID,
 				typeID,
 				index: this._events.length,
 				data,
-				topics,
+				topics: allTopics,
 			}),
 			noRevert: noRevert ?? false,
 		});
+	}
+
+	public getChildQueue(topicID: Buffer): EventQueue {
+		const allTopics = [...this._defaultTopics, topicID];
+		return new EventQueue(this._events, allTopics);
 	}
 
 	public createSnapshot(): number {

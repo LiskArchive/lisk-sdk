@@ -13,7 +13,7 @@
  */
 
 import { Logger } from '../logger';
-import { APIContext, wrapEventQueue } from './api_context';
+import { APIContext } from './api_context';
 import { EVENT_INDEX_FINALIZE_GENESIS_STATE, EVENT_INDEX_INIT_GENESIS_STATE } from './constants';
 import { EventQueue } from './event_queue';
 import { PrefixedStateReadWriter } from './prefixed_state_read_writer';
@@ -48,11 +48,10 @@ export class GenesisBlockContext {
 	}
 
 	public createInitGenesisStateContext(): GenesisBlockExecuteContext {
-		const wrappedEventQueue = wrapEventQueue(this._eventQueue, EVENT_INDEX_INIT_GENESIS_STATE);
+		const childQueue = this._eventQueue.getChildQueue(EVENT_INDEX_INIT_GENESIS_STATE);
 		return {
-			eventQueue: wrappedEventQueue,
-			getAPIContext: () =>
-				new APIContext({ stateStore: this._stateStore, eventQueue: wrappedEventQueue }),
+			eventQueue: childQueue,
+			getAPIContext: () => new APIContext({ stateStore: this._stateStore, eventQueue: childQueue }),
 			getStore: (moduleID: Buffer, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
@@ -76,11 +75,10 @@ export class GenesisBlockContext {
 	}
 
 	public createFinalizeGenesisStateContext(): GenesisBlockExecuteContext {
-		const wrappedEventQueue = wrapEventQueue(this._eventQueue, EVENT_INDEX_FINALIZE_GENESIS_STATE);
+		const childQueue = this._eventQueue.getChildQueue(EVENT_INDEX_FINALIZE_GENESIS_STATE);
 		return {
-			eventQueue: wrappedEventQueue,
-			getAPIContext: () =>
-				new APIContext({ stateStore: this._stateStore, eventQueue: wrappedEventQueue }),
+			eventQueue: childQueue,
+			getAPIContext: () => new APIContext({ stateStore: this._stateStore, eventQueue: childQueue }),
 			getStore: (moduleID: Buffer, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,

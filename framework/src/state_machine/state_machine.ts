@@ -174,7 +174,7 @@ export class StateMachine {
 		const commandContext = ctx.createCommandExecuteContext(command.schema);
 		try {
 			await command.execute(commandContext);
-			ctx.eventQueue.add(
+			ctx.eventQueue.unsafeAdd(
 				ctx.transaction.moduleID,
 				EVENT_STANDARD_TYPE_ID,
 				codec.encode(standardEventDataSchema, { success: true }),
@@ -183,7 +183,7 @@ export class StateMachine {
 		} catch (error) {
 			ctx.eventQueue.restoreSnapshot(commandEventQueueSnapshotID);
 			ctx.stateStore.restoreSnapshot(commandStateStoreSnapshotID);
-			ctx.eventQueue.add(
+			ctx.eventQueue.unsafeAdd(
 				ctx.transaction.moduleID,
 				EVENT_STANDARD_TYPE_ID,
 				codec.encode(standardEventDataSchema, { success: false }),
