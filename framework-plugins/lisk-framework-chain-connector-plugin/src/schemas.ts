@@ -61,6 +61,7 @@ export const validatorsDataSchema = {
 			},
 		},
 		certificateThreshold: { dataType: 'uint64', fieldNumber: 2 },
+		validatorsHash: { dataType: 'bytes', fieldNumber: 3 },
 	},
 };
 
