@@ -34,7 +34,12 @@ describe('FeeModule', () => {
 		generatorConfig = {};
 		feeModule = new FeeModule();
 		await feeModule.init({ genesisConfig, moduleConfig, generatorConfig });
-		feeModule.addDependencies({ burn: jest.fn(), transfer: jest.fn(), isNative: jest.fn() } as any);
+		feeModule.addDependencies({
+			burn: jest.fn(),
+			transfer: jest.fn(),
+			isNative: jest.fn(),
+			getAvailableBalance: jest.fn(),
+		} as any);
 	});
 
 	describe('init', () => {
