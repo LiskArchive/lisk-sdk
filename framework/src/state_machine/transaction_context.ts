@@ -15,7 +15,7 @@
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { Logger } from '../logger';
-import { createAPIContext, createImmutableAPIContext, wrapEventQueue } from './api_context';
+import { createAPIContext, createImmutableAPIContext } from './api_context';
 import { EventQueue } from './event_queue';
 import { PrefixedStateReadWriter } from './prefixed_state_read_writer';
 import {
@@ -87,13 +87,13 @@ export class TransactionContext {
 		if (!this._assets) {
 			throw new Error('Transaction Execution requires block assets in the context.');
 		}
-		const wrappedEventQueue = wrapEventQueue(this._eventQueue, this._transaction.id);
+		const childQueue = this._eventQueue.getChildQueue(this._transaction.id);
 		return {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
-			eventQueue: wrappedEventQueue,
+			eventQueue: childQueue,
 			getAPIContext: () =>
-				createAPIContext({ stateStore: this._stateStore, eventQueue: wrappedEventQueue }),
+				createAPIContext({ stateStore: this._stateStore, eventQueue: childQueue }),
 			getStore: (moduleID: Buffer, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
@@ -130,14 +130,14 @@ export class TransactionContext {
 		if (!this._assets) {
 			throw new Error('Transaction Execution requires block assets in the context.');
 		}
-		const wrappedEventQueue = wrapEventQueue(this._eventQueue, this._transaction.id);
+		const childQueue = this._eventQueue.getChildQueue(this._transaction.id);
 		return {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
 			// TODO: Need to pass wrapper of eventQueue with possibility to create/restore snapshot https://github.com/LiskHQ/lisk-sdk/issues/7211
 			eventQueue: this.eventQueue,
 			getAPIContext: () =>
-				createAPIContext({ stateStore: this._stateStore, eventQueue: wrappedEventQueue }),
+				createAPIContext({ stateStore: this._stateStore, eventQueue: childQueue }),
 			getStore: (moduleID: Buffer, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
