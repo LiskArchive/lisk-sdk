@@ -76,7 +76,7 @@ export class FeeModule extends BaseModule {
 		const balance = await this._tokenAPI.getAvailableBalance(
 			getAPIContext(),
 			transaction.senderAddress,
-			TOKEN_ID_FEE,
+			this._tokenID,
 		);
 		if (transaction.fee > balance) {
 			return {
