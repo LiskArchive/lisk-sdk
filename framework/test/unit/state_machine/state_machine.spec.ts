@@ -229,7 +229,7 @@ describe('state_machine', () => {
 				},
 			];
 			for (const e of events) {
-				eventQueue.add(e.moduleID, e.typeID, e.data, e.topics);
+				eventQueue.unsafeAdd(e.moduleID, e.typeID, e.data, e.topics);
 			}
 
 			mod.beforeCommandExecute.mockImplementation(() => {

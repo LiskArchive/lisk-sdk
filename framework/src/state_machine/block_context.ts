@@ -14,7 +14,7 @@
 
 import { Transaction } from '@liskhq/lisk-chain';
 import { Logger } from '../logger';
-import { createAPIContext, createImmutableAPIContext, wrapEventQueue } from './api_context';
+import { createAPIContext, createImmutableAPIContext } from './api_context';
 import { EVENT_INDEX_AFTER_TRANSACTIONS, EVENT_INDEX_BEFORE_TRANSACTIONS } from './constants';
 import { EventQueue } from './event_queue';
 import { PrefixedStateReadWriter } from './prefixed_state_read_writer';
@@ -98,13 +98,13 @@ export class BlockContext {
 	}
 
 	public getBlockExecuteContext(): BlockExecuteContext {
-		const wrappedEventQueue = wrapEventQueue(this._eventQueue, EVENT_INDEX_BEFORE_TRANSACTIONS);
+		const childQueue = this._eventQueue.getChildQueue(EVENT_INDEX_BEFORE_TRANSACTIONS);
 		return {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
-			eventQueue: wrappedEventQueue,
+			eventQueue: childQueue,
 			getAPIContext: () =>
-				createAPIContext({ stateStore: this._stateStore, eventQueue: wrappedEventQueue }),
+				createAPIContext({ stateStore: this._stateStore, eventQueue: childQueue }),
 			getStore: (moduleID: Buffer, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
@@ -120,13 +120,13 @@ export class BlockContext {
 		if (!this._transactions) {
 			throw new Error('Cannot create block after execute context without transactions');
 		}
-		const wrappedEventQueue = wrapEventQueue(this._eventQueue, EVENT_INDEX_AFTER_TRANSACTIONS);
+		const childQueue = this._eventQueue.getChildQueue(EVENT_INDEX_AFTER_TRANSACTIONS);
 		return {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
-			eventQueue: wrappedEventQueue,
+			eventQueue: childQueue,
 			getAPIContext: () =>
-				createAPIContext({ stateStore: this._stateStore, eventQueue: wrappedEventQueue }),
+				createAPIContext({ stateStore: this._stateStore, eventQueue: childQueue }),
 			getStore: (moduleID: Buffer, storePrefix: number) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
