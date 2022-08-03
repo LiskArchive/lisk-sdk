@@ -16,7 +16,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
-import { defaultConfig, MODULE_ID_FEE, TOKEN_ID_FEE } from './constants';
+import { defaultConfig, MODULE_ID_FEE } from './constants';
 import { ModuleConfig, TokenAPI } from './types';
 import {
 	TransactionExecuteContext,
