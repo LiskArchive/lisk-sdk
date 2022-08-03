@@ -81,7 +81,7 @@ export class FeeModule extends BaseModule {
 		if (transaction.fee > balance) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('Insufficient balance'),
+				error: new Error('Insufficient balance.'),
 			};
 		}
 
