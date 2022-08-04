@@ -111,15 +111,12 @@ export class RewardModule extends BaseModule {
 			reduction,
 		};
 
-		const topics: Buffer[] = [];
-		topics.push(context.header.generatorAddress);
-
 		const data = codec.encode(rewardMintedDataSchema, rewardMintedData);
 		context.eventQueue.add(
 			this.id,
 			TYPE_ID_REWARD_MINTED,
 			codec.encode(rewardMintedDataSchema, data),
-			topics,
+			[context.header.generatorAddress],
 		);
 	}
 }
