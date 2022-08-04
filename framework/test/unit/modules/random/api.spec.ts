@@ -19,7 +19,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { RandomAPI } from '../../../../src/modules/random/api';
 import {
 	MODULE_ID_RANDOM_BUFFER,
-	SEED_REVEAL_HASH_SIZE,
+	SEED_LENGTH,
 	STORE_PREFIX_RANDOM,
 } from '../../../../src/modules/random/constants';
 import {
@@ -36,7 +36,7 @@ import { testCases } from './dpos_random_seed_generation/dpos_random_seed_genera
 import * as randomSeedsMultipleRounds from '../../../fixtures/dpos_random_seed_generation/dpos_random_seed_generation_other_rounds.json';
 
 const strippedHashOfIntegerBuffer = (num: number) =>
-	cryptography.utils.hash(utils.intToBuffer(num, 4)).slice(0, SEED_REVEAL_HASH_SIZE);
+	cryptography.utils.hash(utils.intToBuffer(num, 4)).slice(0, SEED_LENGTH);
 
 describe('RandomModuleAPI', () => {
 	let randomAPI: RandomAPI;
