@@ -57,15 +57,15 @@ describe('getSentCCUs', () => {
 
 	const validators = [
 		{
-			address: cryptography.getRandomBytes(20),
+			address: cryptography.utils.getRandomBytes(20),
 			bftWeight: BigInt(2),
-			blsKey: cryptography.getRandomBytes(20),
+			blsKey: cryptography.utils.getRandomBytes(20),
 		},
 	];
 	const validatorsData = {
 		certificateThreshold: BigInt(70),
 		validators,
-		validatorsHash: cryptography.getRandomBytes(20),
+		validatorsHash: cryptography.utils.getRandomBytes(20),
 	};
 	const aggregateCommit = {
 		height: 0,
