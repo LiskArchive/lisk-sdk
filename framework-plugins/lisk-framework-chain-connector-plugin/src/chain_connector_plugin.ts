@@ -12,8 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BasePlugin, PluginInitContext, apiClient } from 'lisk-sdk';
+import { BasePlugin, PluginInitContext, apiClient, db as liskDB } from 'lisk-sdk';
 import { CCM_BASED_CCU_FREQUENCY, LIVENESS_BASED_CCU_FREQUENCY } from './constants';
+import { getDBInstance } from './db';
+import { Endpoint } from './endpoint';
 import { configSchema } from './schemas';
 import { ChainConnectorPluginConfig, SentCCUs } from './types';
 
@@ -24,7 +26,9 @@ interface CCUFrequencyConfig {
 
 export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig> {
 	public name = 'chainConnector';
+	public endpoint = new Endpoint();
 	public configSchema = configSchema;
+	private _chainConnectorPluginDB!: liskDB.Database;
 	private _lastCertifiedHeight!: number;
 	private _ccuFrequency!: CCUFrequencyConfig;
 	private _mainchainAPIClient!: apiClient.APIClient;
@@ -38,6 +42,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(context: PluginInitContext): Promise<void> {
 		await super.init(context);
+		this.endpoint.init(this._chainConnectorPluginDB, this._sentCCUs);
 		this._ccuFrequency = {
 			ccm: this.config.ccmBasedFrequency || CCM_BASED_CCU_FREQUENCY,
 			liveness: this.config.livenessBasedFrequency || LIVENESS_BASED_CCU_FREQUENCY,
@@ -45,6 +50,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	}
 
 	public async load(): Promise<void> {
+		this._chainConnectorPluginDB = await getDBInstance(this.dataPath);
 		this._mainchainAPIClient = await apiClient.createIPCClient(this.config.mainchainIPCPath);
 		if (this.config.sidechainIPCPath) {
 			this._sidechainAPIClient = await apiClient.createIPCClient(this.config.sidechainIPCPath);
