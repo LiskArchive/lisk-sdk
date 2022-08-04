@@ -17,13 +17,56 @@ import {
 	Certificate,
 	computeCertificateFromBlockHeader,
 	BFTHeights,
+	cryptography,
+	passphrase,
 	chain,
 	testing,
 	apiClient,
+	ApplicationConfigForPlugin,
+	GenesisConfig,
 } from 'lisk-sdk';
 import { CCM_BASED_CCU_FREQUENCY, LIVENESS_BASED_CCU_FREQUENCY } from '../../src/constants';
 import * as plugins from '../../src/chain_connector_plugin';
 import * as dbApi from '../../src/db';
+import { when } from 'jest-when';
+
+const appConfigForPlugin: ApplicationConfigForPlugin = {
+	rootPath: '~/.lisk',
+	label: 'my-app',
+	logger: {
+		consoleLogLevel: 'info',
+		fileLogLevel: 'none',
+		logFileName: 'plugin-ChainConnector.log',
+	},
+	system: {
+		keepEventsForHeights: -1,
+	},
+	rpc: {
+		modes: [],
+		port: 8080,
+		host: '127.0.0.1',
+	},
+	generation: {
+		force: false,
+		waitThreshold: 2,
+		generators: [],
+		modules: {},
+	},
+	network: {
+		seedPeers: [],
+		port: 5000,
+	},
+	transactionPool: {
+		maxTransactions: 4096,
+		maxTransactionsPerAccount: 64,
+		transactionExpiryTime: 3 * 60 * 60 * 1000,
+		minEntranceFeePriority: '0',
+		minReplacementFeeDifference: '10',
+	},
+	version: '',
+	networkVersion: '',
+	genesis: {} as GenesisConfig,
+};
 
 describe('ChainConnectorPlugin', () => {
 	let chainConnectorPlugin: plugins.ChainConnectorPlugin;
@@ -42,11 +85,8 @@ describe('ChainConnectorPlugin', () => {
 		it('should assign ccuFrequency properties to default values', async () => {
 			await chainConnectorPlugin.init({
 				logger: testing.mocks.loggerMock,
-				config: {
-					mainchainIPCPath: '~/.lisk/mainchain',
-					sidechainIPCPath: '~/.list/sidechain',
-				},
-				appConfig: testing.fixtures.defaultConfig as never,
+				config: { mainchainIPCPath: '~/.lisk/mainchain' },
+				appConfig: appConfigForPlugin,
 			});
 			expect(chainConnectorPlugin['_ccuFrequency'].ccm).toEqual(CCM_BASED_CCU_FREQUENCY);
 			expect(chainConnectorPlugin['_ccuFrequency'].liveness).toEqual(LIVENESS_BASED_CCU_FREQUENCY);
@@ -61,7 +101,7 @@ describe('ChainConnectorPlugin', () => {
 					ccmBasedFrequency: 100,
 					livenessBasedFrequency: 300000,
 				},
-				appConfig: testing.fixtures.defaultConfig as never,
+				appConfig: appConfigForPlugin,
 			});
 			expect(chainConnectorPlugin['_ccuFrequency'].ccm).toEqual(100);
 			expect(chainConnectorPlugin['_ccuFrequency'].liveness).toEqual(300000);
@@ -69,26 +109,38 @@ describe('ChainConnectorPlugin', () => {
 	});
 
 	describe('load', () => {
-		afterEach(async () => {
+		beforeEach(() => {
 			(chainConnectorPlugin as any)['_mainchainAPIClient'] = {
 				disconnect: jest.fn().mockResolvedValue({} as never),
+				invoke: jest.fn(),
+				subscribe: jest.fn().mockResolvedValue({} as never),
 			};
 			(chainConnectorPlugin as any)['_sidechainAPIClient'] = {
 				disconnect: jest.fn().mockResolvedValue({} as never),
+				invoke: jest.fn(),
+				subscribe: jest.fn().mockResolvedValue({} as never),
 			};
+		});
 
+		afterEach(async () => {
+			(chainConnectorPlugin as any)['_mainchainAPIClient'] = {
+				disconnect: jest.fn().mockResolvedValue({} as never),
+				invoke: jest.fn(),
+				subscribe: jest.fn().mockResolvedValue({} as never),
+			};
+			(chainConnectorPlugin as any)['_sidechainAPIClient'] = {
+				disconnect: jest.fn().mockResolvedValue({} as never),
+				invoke: jest.fn(),
+				subscribe: jest.fn().mockResolvedValue({} as never),
+			};
 			await chainConnectorPlugin.unload();
 		});
 
-		it('should initialize api clients and set sidechainAPIClient to apiClient if no sidechain is configured', async () => {
-			const appConfig = { ...testing.fixtures.defaultConfig, rpc: { modes: ['ipc'] } };
-
-			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue({} as never);
-
+		it('should initialize api clients without sidechain', async () => {
 			await chainConnectorPlugin.init({
 				logger: testing.mocks.loggerMock,
 				config: { mainchainIPCPath: '~/.lisk/mainchain' },
-				appConfig: appConfig as never,
+				appConfig: appConfigForPlugin,
 			});
 
 			await chainConnectorPlugin.load();
@@ -100,14 +152,14 @@ describe('ChainConnectorPlugin', () => {
 		it('should initialize api clients with sidechain', async () => {
 			await chainConnectorPlugin.init({
 				logger: testing.mocks.loggerMock,
-				config: {
-					mainchainIPCPath: '~/.lisk/mainchain',
-					sidechainIPCPath: '~/.lisk/sidechain',
-				},
-				appConfig: testing.fixtures.defaultConfig as never,
+				config: { mainchainIPCPath: '~/.lisk/mainchain', sidechainIPCPath: '~/.lisk/sidechain' },
+				appConfig: appConfigForPlugin,
 			});
-			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue({} as never);
-
+			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue({
+				disconnect: jest.fn().mockResolvedValue({} as never),
+				invoke: jest.fn(),
+				subscribe: jest.fn().mockResolvedValue({} as never),
+			} as never);
 			await chainConnectorPlugin.load();
 
 			expect(chainConnectorPlugin['_mainchainAPIClient']).not.toBeUndefined();
@@ -132,9 +184,65 @@ describe('ChainConnectorPlugin', () => {
 			expect(chainConnectorPlugin['_chainConnectorDB']).toEqual(dbMock);
 		});
 	});
+	describe('_newBlockhandler', () => {
+		const sidechainAPIClientMock = {
+			disconnect: jest.fn().mockResolvedValue({} as never),
+			invoke: jest.fn(),
+			subscribe: jest.fn(),
+		};
 
-	describe('alias', () => {
-		it.todo('should have valid alias');
+		beforeEach(async () => {
+			(chainConnectorPlugin as any)['_sidechainAPIClient'] = sidechainAPIClientMock;
+			(chainConnectorPlugin as any)['_createCCU'] = jest.fn();
+			(chainConnectorPlugin as any)['_cleanup'] = jest.fn();
+		});
+
+		afterEach(async () => {
+			(chainConnectorPlugin as any)['_mainchainAPIClient'] = {
+				disconnect: jest.fn().mockResolvedValue({} as never),
+				invoke: jest.fn(),
+				subscribe: jest.fn().mockResolvedValue({} as never),
+			};
+			(chainConnectorPlugin as any)['_sidechainAPIClient'] = {
+				disconnect: jest.fn().mockResolvedValue({} as never),
+				invoke: jest.fn(),
+				subscribe: jest.fn().mockResolvedValue({} as never),
+			};
+			await chainConnectorPlugin.unload();
+		});
+
+		it('should invoke "consensus_getBFTParameters" on _sidechainAPIClient', async () => {
+			const block = await testing.createBlock({
+				networkIdentifier: cryptography.utils.getRandomBytes(32),
+				passphrase: passphrase.Mnemonic.generateMnemonic(),
+				previousBlockID: cryptography.utils.getRandomBytes(20),
+				timestamp: Math.floor(Date.now() / 1000),
+			});
+			await chainConnectorPlugin.init({
+				logger: testing.mocks.loggerMock,
+				config: { mainchainIPCPath: '~/.lisk/mainchain' },
+				appConfig: appConfigForPlugin,
+			});
+			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue({} as never);
+			when(sidechainAPIClientMock.invoke)
+				.calledWith('consensus_getBFTParameters', { height: block.header.height })
+				.mockResolvedValue({
+					certificateThreshold: BigInt(70),
+					validators: [],
+					validatorsHash: cryptography.utils.getRandomBytes(20),
+				});
+			await chainConnectorPlugin.load();
+			await (chainConnectorPlugin as any)['_newBlockhandler']({
+				blockHeader: block.header.toJSON(),
+			});
+
+			expect(sidechainAPIClientMock.subscribe).toHaveBeenCalledTimes(2);
+			expect(sidechainAPIClientMock.invoke).toHaveBeenCalledWith('consensus_getBFTParameters', {
+				height: block.header.height,
+			});
+			expect((chainConnectorPlugin as any)['_createCCU']).toHaveBeenCalled();
+			expect((chainConnectorPlugin as any)['_cleanup']).toHaveBeenCalled();
+		});
 	});
 
 	describe('unload', () => {
@@ -282,7 +390,7 @@ describe('ChainConnectorPlugin', () => {
 				const blockHeader: chain.BlockHeader = new chain.BlockHeader(block.header);
 				expectedCertificate = computeCertificateFromBlockHeader(blockHeader);
 
-				chainConnectorPlugin['_sidechainAPIClient'].invoke = jest
+				(chainConnectorPlugin['_sidechainAPIClient'] as any).invoke = jest
 					.fn()
 					.mockResolvedValue(bftHeights);
 
@@ -304,7 +412,7 @@ describe('ChainConnectorPlugin', () => {
 			it('should invoke consensus_getBFTHeights on _sidechainAPIClient', async () => {
 				await chainConnectorPlugin.getNextCertificateFromAggregateCommits(2, aggregateCommits);
 
-				expect(chainConnectorPlugin['_sidechainAPIClient'].invoke).toHaveBeenCalledWith(
+				expect((chainConnectorPlugin['_sidechainAPIClient'] as any).invoke).toHaveBeenCalledWith(
 					'consensus_getBFTHeights',
 				);
 			});
