@@ -15,7 +15,12 @@
 import { ImmutableAPIContext, BlockHeader, BlockAssets } from '../../state_machine';
 import { BaseAPI } from '../base_api';
 import { calculateDefaultReward } from './calculate_reward';
-import { REWARD_REDUCTION_FACTOR_BFT } from './constants';
+import {
+	REWARD_NO_REDUCTION,
+	REWARD_REDUCTION_FACTOR_BFT,
+	REWARD_REDUCTION_MAX_PREVOTES,
+	REWARD_REDUCTION_SEED_REVEAL,
+} from './constants';
 import { APIInitArgs, RandomAPI } from './types';
 
 export class RewardAPI extends BaseAPI {
@@ -39,7 +44,7 @@ export class RewardAPI extends BaseAPI {
 		header: BlockHeader,
 		assets: BlockAssets,
 		impliesMaximalPrevotes: boolean,
-	): Promise<bigint> {
+	): Promise<[bigint, number]> {
 		const defaultReward = calculateDefaultReward({
 			height: header.height,
 			brackets: this._brackets,
@@ -47,7 +52,7 @@ export class RewardAPI extends BaseAPI {
 			offset: this._offset,
 		});
 		if (defaultReward === BigInt(0)) {
-			return defaultReward;
+			return [defaultReward, REWARD_NO_REDUCTION];
 		}
 
 		const isValidSeedReveal = await this._randomAPI.isSeedRevealValid(
@@ -56,13 +61,13 @@ export class RewardAPI extends BaseAPI {
 			assets,
 		);
 		if (!isValidSeedReveal) {
-			return BigInt(0);
+			return [BigInt(0), REWARD_REDUCTION_SEED_REVEAL];
 		}
 
 		if (!impliesMaximalPrevotes) {
-			return defaultReward / BigInt(REWARD_REDUCTION_FACTOR_BFT);
+			return [defaultReward / BigInt(REWARD_REDUCTION_FACTOR_BFT), REWARD_REDUCTION_MAX_PREVOTES];
 		}
 
-		return defaultReward;
+		return [defaultReward, REWARD_NO_REDUCTION];
 	}
 }

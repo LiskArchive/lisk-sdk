@@ -154,7 +154,7 @@ export interface BlockVerifyContext {
 export interface BlockExecuteContext {
 	logger: Logger;
 	networkIdentifier: Buffer;
-	eventQueue: EventQueueAdder;
+	eventQueue: EventQueue;
 	getAPIContext: () => APIContext;
 	getStore: (moduleID: Buffer, storePrefix: number) => SubStore;
 	header: BlockHeader;
