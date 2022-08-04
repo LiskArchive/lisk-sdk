@@ -29,7 +29,6 @@ import {
 	defaultConfig,
 	EMPTY_KEY,
 	MODULE_ID_RANDOM_BUFFER,
-	SEED_REVEAL_HASH_SIZE,
 	STORE_PREFIX_RANDOM,
 	STORE_PREFIX_USED_HASH_ONION,
 } from './constants';
@@ -172,11 +171,7 @@ export class RandomModule extends BaseModule {
 			blockHeaderAssetRandomModule,
 			encodedAsset,
 		);
-		if (asset.seedReveal.length !== SEED_REVEAL_HASH_SIZE) {
-			throw new Error(
-				`Size of the seed reveal must be ${SEED_REVEAL_HASH_SIZE}, but received ${asset.seedReveal.length}.`,
-			);
-		}
+		validator.validate(blockHeaderAssetRandomModule, asset);
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
