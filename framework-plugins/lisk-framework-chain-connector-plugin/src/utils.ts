@@ -13,7 +13,7 @@
  */
 
 import { AggregateCommit } from 'lisk-sdk';
-import { ValidatorsData } from './types';
+import { ChannelData, ChannelDataJSON, Inbox, InboxJSON, MessageFeeTokenID, MessageFeeTokenIDJSON, Outbox, OutboxJSON, ValidatorsData } from './types';
 
 export const aggregateCommitToJSON = (aggregateCommit: AggregateCommit) => ({
 	height: aggregateCommit.height,
@@ -36,4 +36,59 @@ export const validatorsHashPreimagetoJSON = (validatorsHashPreimage: ValidatorsD
 		});
 	}
 	return validatorsHashPreimageJSON;
+}
+
+export const channelDataToJSON = (channelData: ChannelData) => {
+	const { inbox, messageFeeTokenID, outbox, partnerChainOutboxRoot } = channelData;
+	const inboxJSON: InboxJSON = {
+		appendPath: inbox.appendPath.map(ap => ap.toString('hex')),
+		root: inbox.root.toString('hex'),
+		size: inbox.size,
+	};
+
+	const outboxJSON: OutboxJSON = {
+		appendPath: outbox.appendPath.map(ap => ap.toString('hex')),
+		root: outbox.root.toString('hex'),
+		size: outbox.size,
+	};
+
+	const messageFeeTokenIDJSON: MessageFeeTokenIDJSON = {
+		chainID: messageFeeTokenID.chainID.toString('hex'),
+		localID: messageFeeTokenID.localID.toString('hex'),
+	};
+
+	return {
+		messageFeeTokenID: messageFeeTokenIDJSON,
+		outbox: outboxJSON,
+		inbox: inboxJSON,
+		partnerChainOutboxRoot: partnerChainOutboxRoot.toString('hex'),
+	};
+};
+
+export const channelDataJSONToObj = (channelData: ChannelDataJSON): ChannelData => {
+	const { inbox, messageFeeTokenID, outbox, partnerChainOutboxRoot } = channelData;
+
+	const inboxJSON: Inbox = {
+		appendPath: inbox.appendPath.map(ap => Buffer.from(ap, 'hex')),
+		root: Buffer.from(inbox.root, 'hex'),
+		size: inbox.size,
+	};
+
+	const outboxJSON: Outbox = {
+		appendPath: outbox.appendPath.map(ap => Buffer.from(ap, 'hex')),
+		root: Buffer.from(outbox.root, 'hex'),
+		size: outbox.size,
+	};
+
+	const messageFeeTokenIDJSON: MessageFeeTokenID = {
+		chainID: Buffer.from(messageFeeTokenID.chainID, 'hex'),
+		localID: Buffer.from(messageFeeTokenID.localID, 'hex'),
+	};
+
+	return {
+		messageFeeTokenID: messageFeeTokenIDJSON,
+		outbox: outboxJSON,
+		inbox: inboxJSON,
+		partnerChainOutboxRoot: Buffer.from(partnerChainOutboxRoot, 'hex'),
+	};
 };
