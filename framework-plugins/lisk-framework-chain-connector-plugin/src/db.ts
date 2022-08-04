@@ -17,7 +17,7 @@ import { codec, db as liskDB } from 'lisk-sdk';
 import * as os from 'os';
 import { join } from 'path';
 import { ensureDir } from 'fs-extra';
-import { DB_KEY_CHAIN_CONNECTOR_INFO, EMPTY_BYTES } from './constants';
+import { EMPTY_BYTES } from './constants';
 import { chainConnectorInfoSchema } from './schemas';
 import { ChainConnectorInfo } from './types';
 
@@ -38,7 +38,7 @@ export const getDBInstance = async (
 
 export const getChainConnectorInfo = async (db: KVStore): Promise<ChainConnectorInfo> => {
 	try {
-		const encodedInfo = await db.get(DB_KEY_CHAIN_CONNECTOR_INFO);
+		const encodedInfo = await db.get(EMPTY_BYTES);
 		return codec.decode<ChainConnectorInfo>(chainConnectorInfoSchema, encodedInfo);
 	} catch (error) {
 		debug('Chain connector info does not exist.');
