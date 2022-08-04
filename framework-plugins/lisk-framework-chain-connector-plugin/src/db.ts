@@ -46,6 +46,7 @@ export const getChainConnectorInfo = async (db: KVStore): Promise<ChainConnector
 			blockHeaders: [],
 			aggregateCommits: [],
 			validatorsHashPreimage: [],
+			crossChainMessages: [],
 		};
 	}
 };
