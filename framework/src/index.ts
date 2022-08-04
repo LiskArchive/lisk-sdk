@@ -104,5 +104,7 @@ export {
 } from './state_machine/types';
 export { TransactionExecutionResult, TransactionVerifyResult } from './abi/constants';
 export { AggregateCommit } from './engine/consensus/types';
+export { BFTHeights } from './engine/bft/types';
 export { aggregateCommitSchema } from './engine/consensus/certificate_generation/schema';
-export { BFTValidatorJSON } from './engine/endpoint/consensus';
+export { computeCertificateFromBlockHeader } from './engine/consensus/certificate_generation/utils';
+export { Certificate } from './engine/consensus/certificate_generation/types';
