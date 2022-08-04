@@ -14,6 +14,7 @@
 
 import { EventEmitter } from 'events';
 import { Block, Transaction, BlockHeader, StateStore } from '@liskhq/lisk-chain';
+import { encrypt } from '@liskhq/lisk-cryptography';
 import { IterateOptions } from '@liskhq/lisk-db';
 import { AggregateCommit } from '../consensus/types';
 import { ValidatorInfo } from '../consensus/certificate_generation/types';
@@ -45,6 +46,7 @@ export interface GeneratorStore {
 export interface Consensus {
 	execute: (block: Block) => Promise<void>;
 	isSynced: (height: number, maxHeightPrevoted: number) => boolean;
+	finalizedHeight: () => number;
 	getAggregateCommit: (stateStore: StateStore) => Promise<AggregateCommit>;
 	certifySingleCommit: (blockHeader: BlockHeader, validatorInfo: ValidatorInfo) => void;
 	getMaxRemovalHeight: () => Promise<number>;
@@ -71,6 +73,7 @@ export interface GeneratorDB {
 	close: () => void;
 	get: (key: Buffer) => Promise<Buffer>;
 	has(key: Buffer): Promise<boolean>;
+	iterate(options?: IterateOptions): NodeJS.ReadableStream;
 }
 
 export interface BlockGenerateInput {
@@ -81,3 +84,29 @@ export interface BlockGenerateInput {
 	transactions?: Transaction[];
 	db?: GeneratorDB;
 }
+
+export interface EncodedGeneratorKeys {
+	type: 'encrypted' | 'plain';
+	data: Buffer;
+}
+
+interface EncryptedGeneratorKeys {
+	type: 'encrypted';
+	address: Buffer;
+	data: encrypt.EncryptedMessageObject;
+}
+
+export interface PlainGeneratorKeyData {
+	generatorKey: Buffer;
+	generatorPrivateKey: Buffer;
+	blsKey: Buffer;
+	blsPrivateKey: Buffer;
+}
+
+interface PlainGeneratorKeys {
+	type: 'plain';
+	address: Buffer;
+	data: PlainGeneratorKeyData;
+}
+
+export type GeneratorKeys = EncryptedGeneratorKeys | PlainGeneratorKeys;
