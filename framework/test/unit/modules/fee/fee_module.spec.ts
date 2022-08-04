@@ -26,13 +26,6 @@ describe('FeeModule', () => {
 
 	beforeEach(async () => {
 		genesisConfig = {
-			baseFees: [
-				{
-					commandID: utils.intToBuffer(0, 4),
-					baseFee: '1',
-					moduleID: utils.intToBuffer(5, 4),
-				},
-			],
 			minFeePerByte: 1000,
 		};
 		moduleConfig = {
@@ -41,7 +34,12 @@ describe('FeeModule', () => {
 		generatorConfig = {};
 		feeModule = new FeeModule();
 		await feeModule.init({ genesisConfig, moduleConfig, generatorConfig });
-		feeModule.addDependencies({ burn: jest.fn(), transfer: jest.fn(), isNative: jest.fn() } as any);
+		feeModule.addDependencies({
+			burn: jest.fn(),
+			transfer: jest.fn(),
+			isNative: jest.fn(),
+			getAvailableBalance: jest.fn(),
+		} as any);
 	});
 
 	describe('init', () => {
@@ -56,12 +54,6 @@ describe('FeeModule', () => {
 
 		it('should set the minFeePerByte property', () => {
 			expect(feeModule['_minFeePerByte']).toEqual(1000);
-		});
-
-		it('should set the baseFees property', () => {
-			expect(feeModule['_baseFees']).toEqual(
-				genesisConfig.baseFees.map((fee: any) => ({ ...fee, baseFee: BigInt(fee.baseFee) })),
-			);
 		});
 	});
 
@@ -112,9 +104,7 @@ describe('FeeModule', () => {
 				params: utils.getRandomBytes(32),
 			});
 			const result = await feeModule.verifyTransaction({ transaction } as any);
-			const expectedMinFee =
-				BigInt(feeModule['_minFeePerByte'] * transaction.getBytes().length) +
-				BigInt(feeModule['_extraFee'](transaction.moduleID, transaction.commandID));
+			const expectedMinFee = BigInt(feeModule['_minFeePerByte'] * transaction.getBytes().length);
 
 			expect(result.status).toEqual(VerifyStatus.FAIL);
 			expect(result.error).toEqual(
@@ -139,9 +129,7 @@ describe('FeeModule', () => {
 			const context = createTransactionContext({ transaction });
 			const transactionExecuteContext = context.createTransactionExecuteContext();
 			const senderAddress = address.getAddressFromPublicKey(context.transaction.senderPublicKey);
-			const minFee =
-				BigInt(feeModule['_minFeePerByte'] * transaction.getBytes().length) +
-				feeModule['_extraFee'](transaction.moduleID, transaction.commandID);
+			const minFee = BigInt(feeModule['_minFeePerByte'] * transaction.getBytes().length);
 			await feeModule.beforeCommandExecute(transactionExecuteContext);
 
 			expect(feeModule['_tokenAPI'].burn).toHaveBeenCalledWith(
