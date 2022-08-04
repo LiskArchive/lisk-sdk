@@ -21,13 +21,20 @@ import {
 	Certificate,
 	BFTHeights,
 	db as liskDB,
+	codec,
+	BFTValidator,
+	chain,
 } from 'lisk-sdk';
-import { ChainConnectorPluginConfig, SentCCUs } from './types';
-import { configSchema } from './schemas';
-import { CCM_BASED_CCU_FREQUENCY, LIVENESS_BASED_CCU_FREQUENCY } from './constants';
-import { Endpoint } from './endpoint';
+import { CCM_BASED_CCU_FREQUENCY, LIVENESS_BASED_CCU_FREQUENCY, DB_KEY_CHAIN_CONNECTOR_INFO } from './constants';
 import { getChainConnectorInfo, getDBInstance } from './db';
+import { Endpoint } from './endpoint';
+import { chainConnectorInfoSchema, configSchema } from './schemas';
+import { BFTParameters, ChainConnectorInfo, ChainConnectorPluginConfig, SentCCUs } from './types';
 
+type KVStore = liskDB.Database;
+interface Data {
+	readonly blockHeader: chain.BlockHeaderJSON;
+}
 interface CCUFrequencyConfig {
 	ccm: number;
 	liveness: number;
@@ -41,10 +48,10 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private _lastCertifiedHeight!: number;
 	private _ccuFrequency!: CCUFrequencyConfig;
 	private _mainchainAPIClient!: apiClient.APIClient;
-	private _sidechainAPIClient!: apiClient.APIClient;
-	private readonly _sentCCUs: SentCCUs = [];
-
+	private _sidechainAPIClient?: apiClient.APIClient;
 	private _chainConnectorDB!: liskDB.Database;
+	private _chainConnectorState!: ChainConnectorInfo;
+	private readonly _sentCCUs: SentCCUs = [];
 
 	public get nodeModulePath(): string {
 		return __filename;
@@ -61,7 +68,15 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	}
 
 	public async load(): Promise<void> {
-		this._chainConnectorPluginDB = await getDBInstance(this.dataPath);
+		this._chainConnectorDB = await getDBInstance(this.dataPath);
+		const chainConnectorInfo = await getChainConnectorInfo(this._chainConnectorDB);
+		this._chainConnectorState = {
+			crossChainMessages: chainConnectorInfo.crossChainMessages,
+			aggregateCommits: chainConnectorInfo.aggregateCommits,
+			blockHeaders: chainConnectorInfo.blockHeaders,
+			validatorsHashPreimage: chainConnectorInfo.validatorsHashPreimage,
+		};
+
 		this._mainchainAPIClient = await apiClient.createIPCClient(this.config.mainchainIPCPath);
 		if (this.config.sidechainIPCPath) {
 			this._sidechainAPIClient = await apiClient.createIPCClient(this.config.sidechainIPCPath);
@@ -70,11 +85,20 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 		// TODO: After DB issue we need to fetch the last sent CCUs and assign it to _sentCCUs
 		// eslint-disable-next-line no-console
-		console.log(this._lastCertifiedHeight, this._sentCCUs, this._ccuFrequency);
-		this._chainConnectorDB = await getDBInstance(this.dataPath);
-
+		console.log(this._sentCCUs);
 		// TODO: Fetch the certificate height from last sent CCU and update the height
 		this._lastCertifiedHeight = 0;
+
+		// TODO: CCM should be collected and stored via events
+		if (this._sidechainAPIClient) {
+			this._sidechainAPIClient.subscribe('chain_newBlock', async (data?: Record<string, unknown>) =>
+				this._newBlockhandler(data),
+			);
+			this._sidechainAPIClient.subscribe(
+				'network_newBlock',
+				async (data?: Record<string, unknown>) => this._newBlockhandler(data),
+			);
+		}
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -82,6 +106,78 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		await this._mainchainAPIClient.disconnect();
 		if (this._sidechainAPIClient) {
 			await this._sidechainAPIClient.disconnect();
+		}
+		// Save all the state to the DB
+		if (this._chainConnectorState) {
+			await this._chainConnectorDB.set(
+				DB_KEY_CHAIN_CONNECTOR_INFO,
+				codec.encode(chainConnectorInfoSchema, this._chainConnectorState),
+			);
+		}
+		this._chainConnectorDB.close();
+	}
+
+	private async _newBlockhandler(data?: Record<string, unknown>) {
+		const { blockHeader: receivedBlock } = (data as unknown) as Data;
+		const newBlockHeader = chain.BlockHeader.fromJSON(receivedBlock);
+		const {
+			blockHeaders: savedBlockHeaders,
+			aggregateCommits: savedAggregateCommits,
+			validatorsHashPreimage: savedValidatorsHashPreimage,
+			crossChainMessages: savedCrossChainMessages,
+		} = this._chainConnectorState;
+
+		const indexBlockHeader = savedBlockHeaders.findIndex(
+			header => header.height === newBlockHeader.height,
+		);
+		if (indexBlockHeader > -1) {
+			savedBlockHeaders[indexBlockHeader] = newBlockHeader;
+		} else {
+			savedBlockHeaders.push(newBlockHeader);
+		}
+		const bftParameters = await this._sidechainAPIClient?.invoke<BFTParameters>(
+			'consensus_getBFTParameters',
+			{ height: newBlockHeader.height },
+		);
+
+		const indexValidatorsData = savedValidatorsHashPreimage.findIndex(v =>
+			v.validatorsHash.equals(bftParameters?.validatorsHash as Buffer),
+		);
+		if (indexValidatorsData > -1) {
+			savedValidatorsHashPreimage[indexValidatorsData] = {
+				certificateThreshold: bftParameters?.certificateThreshold as bigint,
+				validators: bftParameters?.validators as BFTValidator[],
+				validatorsHash: bftParameters?.validatorsHash as Buffer,
+			};
+		} else {
+			savedValidatorsHashPreimage.push({
+				certificateThreshold: bftParameters?.certificateThreshold as bigint,
+				validators: bftParameters?.validators as BFTValidator[],
+				validatorsHash: bftParameters?.validatorsHash as Buffer,
+			});
+		}
+
+		if (newBlockHeader.aggregateCommit) {
+			const indexAggregateCommit = savedAggregateCommits.findIndex(
+				commit => commit.height === newBlockHeader.aggregateCommit.height,
+			);
+			if (indexAggregateCommit > -1) {
+				savedAggregateCommits[indexAggregateCommit] = newBlockHeader.aggregateCommit;
+			} else {
+				savedAggregateCommits.push(newBlockHeader.aggregateCommit);
+			}
+		}
+
+		// When # of CCMs are there on the outbox to be sent or # of blocks passed from last certified height
+		if (
+			this._ccuFrequency.ccm >= savedCrossChainMessages.length ||
+			this._ccuFrequency.liveness >= newBlockHeader.height - this._lastCertifiedHeight
+		) {
+			// TODO: _createCCU needs to be implemented which will create and send the CCU transaction
+			await this._createCCU();
+			// if the transaction is successfully submitted then update the last certfied height and do the cleanup
+			// TODO: also check if the state is growing, delete everything from the inMemory state if it goes beyond last 3 rounds
+			await this._cleanup();
 		}
 	}
 
@@ -121,7 +217,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			blsKeyToBFTWeight[validator.blsKey.toString('hex')] = validator.bftWeight;
 		}
 
-		const bftHeights = await this._sidechainAPIClient.invoke<BFTHeights>('consensus_getBFTHeights');
+		const bftHeights = await this._sidechainAPIClient?.invoke<BFTHeights>('consensus_getBFTHeights');
 
 		let height = bftHeights.maxHeightCertified;
 
@@ -185,4 +281,8 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 		return false;
 	}
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	private async _createCCU() {}
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	private async _cleanup() {}
 }
