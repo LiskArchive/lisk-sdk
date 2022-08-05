@@ -53,8 +53,6 @@ export const getSeedRevealValidity = (
 			maxheight = validatorReveal.height;
 
 			lastSeed = validatorReveal;
-
-			break;
 		}
 	}
 
