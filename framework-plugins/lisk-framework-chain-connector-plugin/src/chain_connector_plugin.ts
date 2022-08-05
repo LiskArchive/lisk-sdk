@@ -116,7 +116,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			blsKeyToBFTWeight[validator.blsKey.toString('hex')] = validator.bftWeight;
 		}
 
-		const bftHeights = await this._mainchainAPIClient.invoke<BFTHeights>('consensus_getBFTHeights');
+		const bftHeights = await this._sidechainAPIClient.invoke<BFTHeights>('consensus_getBFTHeights');
 
 		let height = bftHeights.maxHeightCertified;
 
@@ -137,7 +137,8 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 			height -= 1;
 		}
 
-		return undefined;
+		// eslint-disable-next-line no-useless-return, consistent-return
+		return;
 	}
 
 	public async checkChainOfTrust(
