@@ -14,7 +14,7 @@
 import { p2pTypes } from '@liskhq/lisk-p2p';
 import { Schema } from '@liskhq/lisk-codec';
 import { Logger } from './logger';
-import { ImmutableAPIContext, ImmutableSubStore } from './state_machine/types';
+import { ImmutableAPIContext, ImmutableSubStore, SubStore } from './state_machine/types';
 import { RPC_MODES } from './constants';
 
 export interface SocketPaths {
@@ -164,6 +164,7 @@ export interface PluginEndpointContext {
 
 export interface ModuleEndpointContext extends PluginEndpointContext {
 	getStore: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
+	getOffchainStore: (moduleID: Buffer, storePrefix?: number) => SubStore;
 	getImmutableAPIContext: () => ImmutableAPIContext;
 	networkIdentifier: Buffer;
 }
