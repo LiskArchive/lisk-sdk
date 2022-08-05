@@ -107,7 +107,7 @@ export class RandomModule extends BaseModule {
 	}
 
 	public async insertAssets(context: InsertAssetContext): Promise<void> {
-		const generatorSubStore = context.getGeneratorStore(this.id);
+		const generatorSubStore = context.getOffchainStore(this.id);
 		// Get used hash onions
 		let usedHashOnions: UsedHashOnion[] = [];
 		try {
