@@ -63,6 +63,7 @@ describe('RewardModuleEndpoint', () => {
 					height: currentHeight,
 				},
 				networkIdentifier,
+				getOffchainStore: jest.fn(),
 			});
 			expect(rewardFromEndpoint).toEqual({ reward: rewardFromConfig.toString() });
 		});
@@ -77,6 +78,7 @@ describe('RewardModuleEndpoint', () => {
 				height: offset - 1,
 			},
 			networkIdentifier,
+			getOffchainStore: jest.fn(),
 		});
 		expect(rewardFromEndpoint).toEqual({ reward: '0' });
 	});
@@ -91,6 +93,7 @@ describe('RewardModuleEndpoint', () => {
 					height: 'Not a number',
 				},
 				networkIdentifier,
+				getOffchainStore: jest.fn(),
 			}),
 		).toThrow('Parameter height must be a number.');
 	});
@@ -105,6 +108,7 @@ describe('RewardModuleEndpoint', () => {
 					height: -1,
 				},
 				networkIdentifier,
+				getOffchainStore: jest.fn(),
 			}),
 		).toThrow('Parameter height cannot be smaller than 0.');
 	});

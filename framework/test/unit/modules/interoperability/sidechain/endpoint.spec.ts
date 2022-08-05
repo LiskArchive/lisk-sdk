@@ -41,6 +41,7 @@ describe('Sidechain endpoint', () => {
 		networkIdentifier: Buffer.alloc(0),
 		params: {},
 		logger: {} as any,
+		getOffchainStore: jest.fn(),
 	};
 
 	const chainAccount: ChainAccount = {
