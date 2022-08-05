@@ -282,7 +282,7 @@ describe('ChainConnectorPlugin', () => {
 				const blockHeader: chain.BlockHeader = new chain.BlockHeader(block.header);
 				expectedCertificate = computeCertificateFromBlockHeader(blockHeader);
 
-				chainConnectorPlugin['_mainchainAPIClient'].invoke = jest
+				chainConnectorPlugin['_sidechainAPIClient'].invoke = jest
 					.fn()
 					.mockResolvedValue(bftHeights);
 
@@ -301,10 +301,10 @@ describe('ChainConnectorPlugin', () => {
 				expect(dbApi.getChainConnectorInfo).toHaveBeenCalledTimes(1);
 			});
 
-			it('should invoke consensus_getBFTHeights on _mainchainAPIClient', async () => {
+			it('should invoke consensus_getBFTHeights on _sidechainAPIClient', async () => {
 				await chainConnectorPlugin.getNextCertificateFromAggregateCommits(2, aggregateCommits);
 
-				expect(chainConnectorPlugin['_mainchainAPIClient'].invoke).toHaveBeenCalledWith(
+				expect(chainConnectorPlugin['_sidechainAPIClient'].invoke).toHaveBeenCalledWith(
 					'consensus_getBFTHeights',
 				);
 			});
