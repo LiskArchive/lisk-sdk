@@ -53,17 +53,15 @@ export const getSeedRevealValidity = (
 			maxheight = validatorReveal.height;
 
 			lastSeed = validatorReveal;
+
+			break;
 		}
 	}
 
-	if (
+	return (
 		!lastSeed ||
 		lastSeed.seedReveal.equals(cryptography.utils.hash(seedReveal).slice(0, SEED_LENGTH))
-	) {
-		return true;
-	}
-
-	return false;
+	);
 };
 
 export const getRandomSeed = (
