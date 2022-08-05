@@ -81,7 +81,8 @@ export class ConfigCommand extends Command {
 		const hashOnion = { count, distance, hashes };
 
 		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
-		const address = cryptography.address.getAddressFromPassphrase(passphrase).toString('hex');
+		const { publicKey } = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+		const address = cryptography.address.getAddressFromPublicKey(publicKey).toString('hex');
 		const password = passwordSource ?? (await getPasswordFromPrompt('password', true));
 		const { encryptedPassphrase } = await encryptPassphrase(passphrase, password, false);
 		const message = { address, encryptedPassphrase, hashOnion };

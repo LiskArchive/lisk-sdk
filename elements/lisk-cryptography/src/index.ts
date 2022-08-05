@@ -17,6 +17,7 @@ export * as constants from './constants';
 export * as encrypt from './encrypt';
 export * as address from './address';
 export * as legacyAddress from './legacy_address';
+export * as legacy from './legacy';
 export * as bls from './bls';
 export * as ed from './ed';
 export * as utils from './utils';

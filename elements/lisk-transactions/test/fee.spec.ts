@@ -13,7 +13,7 @@
  *
  */
 
-import { utils, address } from '@liskhq/lisk-cryptography';
+import { utils, legacy } from '@liskhq/lisk-cryptography';
 import { computeMinFee, getBytes } from '../src';
 
 describe('fee', () => {
@@ -42,7 +42,7 @@ describe('fee', () => {
 		},
 	};
 	const passphrase1 = 'trim elegant oven term access apple obtain error grain excite lawn neck';
-	const { publicKey: publicKey1 } = address.getAddressAndPublicKeyFromPassphrase(passphrase1);
+	const { publicKey: publicKey1 } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase1);
 	const validTransaction = {
 		moduleID: utils.intToBuffer(2, 4),
 		commandID: utils.intToBuffer(0, 4),

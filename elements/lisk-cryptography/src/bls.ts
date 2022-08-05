@@ -57,14 +57,14 @@ const writeBit = (buf: Buffer, bit: number, val: boolean): void => {
 	}
 };
 
-export const signBLS = (
+export const signData = (
 	tag: string,
 	networkIdentifier: Buffer,
 	data: Buffer,
 	privateKey: Buffer,
 ): Buffer => blsSign(privateKey, hash(tagMessage(tag, networkIdentifier, data)));
 
-export const verifyBLS = (
+export const verifyData = (
 	tag: string,
 	networkIdentifier: Buffer,
 	data: Buffer,

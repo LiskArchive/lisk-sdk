@@ -18,7 +18,6 @@ import { cryptography } from '../../src';
 const {
 	utils: {
 		generateHashOnionSeed,
-		bufferToHex,
 		hexToBuffer,
 		intToBuffer,
 		getNetworkIdentifier,
@@ -30,13 +29,6 @@ const {
 describe('buffer', () => {
 	const defaultBuffer = Buffer.from('\xe5\xe4\xf6');
 	const defaultHex = 'c3a5c3a4c3b6';
-
-	describe('#bufferToHex', () => {
-		it('should create a hex string from a Buffer', () => {
-			const hex = bufferToHex(defaultBuffer);
-			expect(hex).toBe(defaultHex);
-		});
-	});
 
 	describe('#hexToBuffer', () => {
 		it('should create a Buffer from a hex string', () => {

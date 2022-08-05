@@ -30,7 +30,7 @@ import { ReportMisbehaviorPluginConfig, State } from './types';
 import { configSchema } from './schemas';
 import { Endpoint } from './endpoint';
 
-const { address, ed } = cryptography;
+const { address, ed, legacy } = cryptography;
 const { BlockHeader, Transaction, TAG_TRANSACTION } = chain;
 
 export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginConfig> {
@@ -144,8 +144,10 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 		// Assume passphrase is checked before calling this function
 		const passphrase = this._state.passphrase as string;
 
+		const keys = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+
 		const authAccount = await this.apiClient.invoke<{ nonce: string }>('auth_getAuthAccount', {
-			address: address.getAddressFromPassphrase(passphrase).toString('hex'),
+			address: address.getAddressFromPublicKey(keys.publicKey).toString('hex'),
 		});
 
 		const pomTransactionParams = {
@@ -164,7 +166,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 			commandID: Buffer.from(pomParamsInfo.id, 'hex'),
 			nonce: BigInt(authAccount.nonce),
 			senderPublicKey:
-				this._state.publicKey ?? address.getAddressAndPublicKeyFromPassphrase(passphrase).publicKey,
+				this._state.publicKey ?? legacy.getPrivateAndPublicKeyFromPassphrase(passphrase).publicKey,
 			fee: BigInt(this.config.fee), // TODO: The static fee should be replaced by fee estimation calculation
 			params: encodedParams,
 			signatures: [],
@@ -175,7 +177,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 				TAG_TRANSACTION,
 				Buffer.from(networkIdentifier, 'hex'),
 				tx.getSigningBytes(),
-				passphrase,
+				legacy.getPrivateAndPublicKeyFromPassphrase(passphrase).privateKey,
 			),
 		);
 

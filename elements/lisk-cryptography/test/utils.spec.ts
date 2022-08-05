@@ -14,7 +14,6 @@
  */
 
 import {
-	bufferToHex,
 	generateHashOnionSeed,
 	hashOnion,
 	hexToBuffer,
@@ -29,13 +28,6 @@ describe('utils', () => {
 	describe('buffer', () => {
 		const defaultBuffer = Buffer.from('\xe5\xe4\xf6');
 		const defaultHex = 'c3a5c3a4c3b6';
-
-		describe('#bufferToHex', () => {
-			it('should create a hex string from a Buffer', () => {
-				const hex = bufferToHex(defaultBuffer);
-				expect(hex).toBe(defaultHex);
-			});
-		});
 
 		describe('#hexToBuffer', () => {
 			it('should create a Buffer from a hex string', () => {
@@ -354,50 +346,4 @@ describe('utils', () => {
 			});
 		});
 	});
-
-	// describe('readBit', () => {
-	// 	it('should read bits of one byte buffer', () => {
-	// 		const binary = '10000101';
-	// 		const buffer = Buffer.alloc(1);
-	// 		buffer.writeUIntLE(parseInt(binary, 2), 0, 1);
-
-	// 		for (const [index, bit] of binary.split('').entries()) {
-	// 			expect(readBit(buffer, 7 - index)).toEqual(bit === '1');
-	// 		}
-	// 	});
-
-	// 	it('should read bits of two byte buffer', () => {
-	// 		const binary = '1010001010000101';
-	// 		const buffer = Buffer.alloc(2);
-	// 		buffer.writeUIntLE(parseInt(binary, 2), 0, 2);
-
-	// 		for (const [index, bit] of binary.split('').entries()) {
-	// 			expect(readBit(buffer, 15 - index)).toEqual(bit === '1');
-	// 		}
-	// 	});
-	// });
-
-	// describe('writeBit', () => {
-	// 	it('should write bit of one byte buffer', () => {
-	// 		const binary = '10000101';
-	// 		const buffer = Buffer.alloc(1);
-	// 		for (const [index, bit] of binary.split('').entries()) {
-	// 			writeBit(buffer, 7 - index, bit === '1');
-	// 		}
-	// 		const result = buffer.readUIntLE(0, 1).toString(2).padStart(8, '0');
-
-	// 		expect(result).toEqual(binary);
-	// 	});
-
-	// 	it('should write bits of two byte buffer', () => {
-	// 		const binary = '1010001010000101';
-	// 		const buffer = Buffer.alloc(2);
-	// 		for (const [index, bit] of binary.split('').entries()) {
-	// 			writeBit(buffer, 15 - index, bit === '1');
-	// 		}
-	// 		const result = buffer.readUIntLE(0, 2).toString(2).padStart(16, '0');
-
-	// 		expect(result).toEqual(binary);
-	// 	});
-	// });
 });

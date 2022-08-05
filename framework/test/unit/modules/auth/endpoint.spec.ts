@@ -1,6 +1,6 @@
 import { NotFoundError, TAG_TRANSACTION, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { ed, address as cryptoAddress, utils } from '@liskhq/lisk-cryptography';
+import { ed, address as cryptoAddress, utils, legacy } from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
 import { AuthModule } from '../../../../src/modules/auth';
 import { AuthEndpoint } from '../../../../src/modules/auth/endpoint';
@@ -26,6 +26,7 @@ describe('AuthEndpoint', () => {
 		[key: string]: {
 			passphrase: string;
 			publicKey?: Buffer;
+			privateKey?: Buffer;
 			address?: Buffer;
 		};
 	}
@@ -50,11 +51,12 @@ describe('AuthEndpoint', () => {
 	};
 
 	for (const account of Object.values(accounts)) {
-		const { address, publicKey } = cryptoAddress.getAddressAndPublicKeyFromPassphrase(
+		const { publicKey, privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(
 			account.passphrase,
 		);
-		account.address = address;
+		account.address = cryptoAddress.getAddressFromPublicKey(publicKey);
 		account.publicKey = publicKey;
+		account.privateKey = privateKey;
 	}
 
 	// Existing is an abbr. for existing account
@@ -64,7 +66,9 @@ describe('AuthEndpoint', () => {
 	const existingAddress = accounts.targetAccount.address as Buffer;
 	const nonExistingAddress = cryptoAddress.getAddressFromPublicKey(nonExistingSenderPublicKey);
 
-	const existingPassphrase = accounts.targetAccount.passphrase;
+	const existingPrivateKey = legacy.getPrivateAndPublicKeyFromPassphrase(
+		accounts.targetAccount.passphrase,
+	).privateKey;
 
 	let authModule: AuthModule;
 	let authEndpoint: AuthEndpoint;
@@ -156,11 +160,11 @@ describe('AuthEndpoint', () => {
 				signatures: [],
 			});
 
-			const signature = ed.signDataWithPassphrase(
+			const signature = ed.signDataWithPrivateKey(
 				TAG_TRANSACTION,
 				networkIdentifier,
 				transaction.getBytes(),
-				existingPassphrase,
+				existingPrivateKey,
 			);
 
 			(transaction.signatures as any).push(signature);
@@ -203,29 +207,29 @@ describe('AuthEndpoint', () => {
 			});
 
 			(transaction.signatures as any).push(
-				ed.signDataWithPassphrase(
+				ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
-					accounts.mandatoryOne.passphrase,
+					accounts.mandatoryOne.privateKey as Buffer,
 				),
 			);
 
 			(transaction.signatures as any).push(
-				ed.signDataWithPassphrase(
+				ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
-					accounts.mandatoryTwo.passphrase,
+					accounts.mandatoryTwo.privateKey as Buffer,
 				),
 			);
 
 			(transaction.signatures as any).push(
-				ed.signDataWithPassphrase(
+				ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
-					accounts.optionalOne.passphrase,
+					accounts.optionalOne.privateKey as Buffer,
 				),
 			);
 
@@ -274,47 +278,47 @@ describe('AuthEndpoint', () => {
 			});
 
 			(transaction.signatures as any).push(
-				ed.signDataWithPassphrase(
+				ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
-					existingPassphrase,
+					existingPrivateKey,
 				),
 			);
 
 			(transaction.signatures as any).push(
-				ed.signDataWithPassphrase(
+				ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
-					accounts.mandatoryOne.passphrase,
+					accounts.mandatoryOne.privateKey as Buffer,
 				),
 			);
 
 			(transaction.signatures as any).push(
-				ed.signDataWithPassphrase(
+				ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
-					accounts.mandatoryTwo.passphrase,
+					accounts.mandatoryTwo.privateKey as Buffer,
 				),
 			);
 
 			(transaction.signatures as any).push(
-				ed.signDataWithPassphrase(
+				ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
-					accounts.optionalOne.passphrase,
+					accounts.optionalOne.privateKey as Buffer,
 				),
 			);
 
 			(transaction.signatures as any).push(
-				ed.signDataWithPassphrase(
+				ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getSigningBytes(),
-					accounts.optionalTwo.passphrase,
+					accounts.optionalTwo.privateKey as Buffer,
 				),
 			);
 

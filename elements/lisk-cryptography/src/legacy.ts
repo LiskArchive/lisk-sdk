@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Lisk Foundation
+ * Copyright © 2022 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,12 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { utils, legacy } from '@liskhq/lisk-cryptography';
 
-export const generateRandomPublicKeys = (amount = 1): Array<Buffer> =>
-	new Array(amount).fill(0).map(_ => {
-		const { publicKey } = legacy.getPrivateAndPublicKeyFromPassphrase(Math.random().toString(16));
-		return publicKey;
-	});
+import { getKeyPair } from './nacl';
+import { hash } from './utils';
 
-export const getIDAsKeyForStore = (id: number) => utils.intToBuffer(id, 4);
+export const getPrivateAndPublicKeyFromPassphrase = (passphrase: string) => {
+	const hashed = hash(passphrase, 'utf8');
+	return getKeyPair(hashed);
+};
+
+export const getKeys = getPrivateAndPublicKeyFromPassphrase;
