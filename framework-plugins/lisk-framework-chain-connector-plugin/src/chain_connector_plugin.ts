@@ -44,7 +44,6 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private _sidechainAPIClient!: apiClient.APIClient;
 	private readonly _sentCCUs: SentCCUs = [];
 
-	// eslint-disable-next-line @typescript-eslint/prefer-readonly
 	private _chainConnectorDB!: liskDB.Database;
 
 	public get nodeModulePath(): string {
