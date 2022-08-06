@@ -88,7 +88,7 @@ export class Endpoint {
 		this._generatorDB = args.generatorDB;
 	}
 
-	public async getStatus(_context: RequestContext): Promise<GetStatusResponse> {
+	public async getStatus(_ctx: RequestContext): Promise<GetStatusResponse> {
 		const generatorStore = new GeneratorStore(this._generatorDB);
 		const list = await getGeneratedInfo(generatorStore);
 		const status = [];
