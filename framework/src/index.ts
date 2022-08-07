@@ -102,3 +102,4 @@ export {
 export { AggregateCommit } from './engine/consensus/types';
 export { BFTValidator } from './engine/bft/types';
 export { aggregateCommitSchema } from './engine/consensus/certificate_generation/schema';
+export { BFTValidatorJSON } from './engine/endpoint/consensus';
