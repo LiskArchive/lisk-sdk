@@ -62,15 +62,32 @@ describe('getSentCCUs', () => {
 			blsKey: cryptography.utils.getRandomBytes(20),
 		},
 	];
+	const validatorsJSON = [
+		{
+			address: validators[0].address.toString('hex'),
+			bftWeight: BigInt(2).toString(),
+			blsKey: validators[0].blsKey.toString('hex'),
+		},
+	];
 	const validatorsData = {
 		certificateThreshold: BigInt(70),
 		validators,
 		validatorsHash: cryptography.utils.getRandomBytes(20),
 	};
+	const validatorsDataJSON = {
+		certificateThreshold: validatorsData.certificateThreshold.toString(),
+		validators: validatorsJSON,
+		validatorsHash: validatorsData.validatorsHash.toString('hex'),
+	};
 	const aggregateCommit = {
 		height: 0,
 		aggregationBits: Buffer.alloc(0),
 		certificateSignature: Buffer.alloc(0),
+	};
+	const aggregateCommitJSON = {
+		height: 0,
+		aggregationBits: Buffer.alloc(0).toString('hex'),
+		certificateSignature: Buffer.alloc(0).toString('hex'),
 	};
 	const chainConnectorInfo = {
 		blockHeaders: [testing.createFakeBlockHeader()],
@@ -91,8 +108,8 @@ describe('getSentCCUs', () => {
 	});
 
 	describe('getSentCCUs', () => {
-		it('should return sent ccus', () => {
-			const response = chainConnectorPlugin.endpoint.getSentCCUs({} as any);
+		it('should return sent ccus', async () => {
+			const response = await chainConnectorPlugin.endpoint.getSentCCUs({} as any);
 
 			expect(response).toStrictEqual([]);
 		});
@@ -102,7 +119,7 @@ describe('getSentCCUs', () => {
 		it('should return aggregate commits', async () => {
 			const response = await chainConnectorPlugin.endpoint.getAggregateCommits({} as any);
 
-			expect(response).toStrictEqual([aggregateCommit]);
+			expect(response).toStrictEqual([aggregateCommitJSON]);
 		});
 	});
 
@@ -110,7 +127,7 @@ describe('getSentCCUs', () => {
 		it('should return list of validators info', async () => {
 			const response = await chainConnectorPlugin.endpoint.getValidatorsInfoFromPreimage({} as any);
 
-			expect(response).toStrictEqual([validatorsData]);
+			expect(response).toStrictEqual([validatorsDataJSON]);
 		});
 	});
 });
