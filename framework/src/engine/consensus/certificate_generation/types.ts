@@ -24,8 +24,8 @@ export interface Certificate {
 	readonly timestamp: number;
 	readonly stateRoot: Buffer;
 	readonly validatorsHash: Buffer;
-	readonly aggregationBits?: Buffer;
-	readonly signature?: Buffer;
+	aggregationBits?: Buffer;
+	signature?: Buffer;
 }
 
 export interface SingleCommit {
