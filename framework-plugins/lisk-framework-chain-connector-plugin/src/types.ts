@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Transaction, chain, BFTValidator, AggregateCommit } from 'lisk-sdk';
+import { Transaction, chain, BFTValidator, AggregateCommit, BFTValidatorJSON } from 'lisk-sdk';
 
 export interface ChainConnectorPluginConfig {
 	mainchainIPCPath: string;
@@ -22,6 +22,7 @@ export interface ChainConnectorPluginConfig {
 }
 
 export type SentCCUs = Transaction[];
+export type SentCCUsJSON = chain.TransactionJSON[];
 
 export interface ValidatorsData {
 	certificateThreshold: BigInt;
@@ -33,4 +34,16 @@ export interface ChainConnectorInfo {
 	blockHeaders: chain.BlockHeader[];
 	aggregateCommits: AggregateCommit[];
 	validatorsHashPreimage: ValidatorsData[];
+}
+
+export interface AggregateCommitJSON {
+	readonly height: number;
+	readonly aggregationBits: string;
+	readonly certificateSignature: string;
+}
+
+export interface ValidatorsDataJSON {
+	certificateThreshold: string;
+	validators: BFTValidatorJSON[];
+	validatorsHash: string;
 }
