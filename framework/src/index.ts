@@ -105,3 +105,4 @@ export {
 export { TransactionExecutionResult, TransactionVerifyResult } from './abi/constants';
 export { AggregateCommit } from './engine/consensus/types';
 export { aggregateCommitSchema } from './engine/consensus/certificate_generation/schema';
+export { BFTValidatorJSON } from './engine/endpoint/consensus';
