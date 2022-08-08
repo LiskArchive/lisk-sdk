@@ -105,6 +105,7 @@ export {
 export { TransactionExecutionResult, TransactionVerifyResult } from './abi/constants';
 export { AggregateCommit } from './engine/consensus/types';
 export { BFTHeights } from './engine/bft/types';
+export { BFTParameters } from './engine/bft/schemas';
 export { aggregateCommitSchema } from './engine/consensus/certificate_generation/schema';
 export { computeCertificateFromBlockHeader } from './engine/consensus/certificate_generation/utils';
 export { Certificate } from './engine/consensus/certificate_generation/types';
