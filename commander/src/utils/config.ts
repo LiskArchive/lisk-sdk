@@ -43,3 +43,5 @@ export const defaultConfig = {
 	},
 	plugins: {},
 };
+
+export const DEFAULT_KEY_DERIVATION_PATH = "m/25519'/134'/0'/0'";

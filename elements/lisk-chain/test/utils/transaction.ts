@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils, ed } from '@liskhq/lisk-cryptography';
+import { utils, ed, legacy } from '@liskhq/lisk-cryptography';
 import { defaultNetworkIdentifier } from './block';
 import { Transaction } from '../../src/transaction';
 import { TAG_TRANSACTION } from '../../src';
@@ -41,7 +41,7 @@ export const getTransaction = (input?: { nonce?: bigint }): Transaction => {
 		TAG_TRANSACTION,
 		defaultNetworkIdentifier,
 		tx.getSigningBytes(),
-		genesisAddress.passphrase,
+		legacy.getPrivateAndPublicKeyFromPassphrase(genesisAddress.passphrase).privateKey,
 	);
 	tx.signatures.push(signature);
 

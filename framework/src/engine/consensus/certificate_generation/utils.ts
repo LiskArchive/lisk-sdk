@@ -44,7 +44,7 @@ export const signCertificate = (
 ): Buffer => {
 	const { aggregationBits, signature, ...rawCertificate } = certificate;
 
-	return bls.signBLS(
+	return bls.signData(
 		MESSAGE_TAG_CERTIFICATE,
 		networkIdentifier,
 		codec.encode(certificateSchema, rawCertificate),
@@ -66,7 +66,7 @@ export const verifySingleCertificateSignature = (
 		validatorsHash: certificate.validatorsHash,
 	});
 
-	return bls.verifyBLS(MESSAGE_TAG_CERTIFICATE, networkIdentifier, message, signature, pk);
+	return bls.verifyData(MESSAGE_TAG_CERTIFICATE, networkIdentifier, message, signature, pk);
 };
 
 export const verifyAggregateCertificateSignature = (

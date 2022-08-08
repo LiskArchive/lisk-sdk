@@ -158,7 +158,7 @@ export const createTransferTransaction = ({
 			},
 		},
 		networkIdentifier,
-		account.passphrase,
+		Buffer.from(account.privateKey, 'hex'),
 		tokenTransferParamsSchema,
 	) as any;
 

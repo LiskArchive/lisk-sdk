@@ -13,7 +13,7 @@
  */
 import { EventEmitter } from 'events';
 import { BlockAssets, Chain, Transaction } from '@liskhq/lisk-chain';
-import { bls, utils, address as cryptoAddress, ed } from '@liskhq/lisk-cryptography';
+import { bls, utils, address as cryptoAddress, legacy } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase, Database } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { when } from 'jest-when';
@@ -623,9 +623,10 @@ describe('generator', () => {
 
 	describe('events CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED', () => {
 		const passphrase = Mnemonic.generateMnemonic(256);
-		const address = cryptoAddress.getAddressFromPassphrase(passphrase);
+		const keys = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+		const address = cryptoAddress.getAddressFromPublicKey(keys.publicKey);
 		const keypair = {
-			...ed.getPrivateAndPublicKeyFromPassphrase(passphrase),
+			...keys,
 			blsSecretKey: bls.generatePrivateKey(Buffer.from(passphrase, 'utf-8')),
 		};
 		const blsPK = bls.getPublicKeyFromPrivateKey(keypair.blsSecretKey);

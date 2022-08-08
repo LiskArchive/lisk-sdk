@@ -227,13 +227,12 @@ const MainPage: React.FC = () => {
 
 	const generateNewAccount = () => {
 		const accountPassphrase = (passphrase.Mnemonic.generateMnemonic() as unknown) as string;
-		const { address, publicKey } = cryptography.address.getAddressAndPublicKeyFromPassphrase(
-			accountPassphrase,
-		);
+		const keys = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(accountPassphrase);
+		const address = cryptography.address.getAddressFromPublicKey(keys.publicKey);
 		const lisk32Address = cryptography.address.getLisk32AddressFromAddress(address);
 		const newAccount: Account = {
 			passphrase: accountPassphrase,
-			publicKey: publicKey.toString('hex'),
+			publicKey: keys.publicKey.toString('hex'),
 			binaryAddress: address.toString('hex'),
 			base32Address: lisk32Address,
 		};
@@ -275,9 +274,10 @@ const MainPage: React.FC = () => {
 	// Send Transaction
 	const handleSendTransaction = async (data: SendTransactionOptions) => {
 		try {
-			const { publicKey, address } = cryptography.address.getAddressAndPublicKeyFromPassphrase(
+			const { publicKey } = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(
 				data.passphrase,
 			);
+			const address = cryptography.address.getAddressFromPublicKey(publicKey);
 			const moduleMeta = getClient().metadata.find(a => a.id === data.moduleID);
 			if (!moduleMeta) {
 				throw new Error(

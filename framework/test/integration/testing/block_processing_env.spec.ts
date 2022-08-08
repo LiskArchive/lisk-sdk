@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { address } from '@liskhq/lisk-cryptography';
+import { address, legacy } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../src/testing';
 import { defaultConfig } from '../../../src/testing/fixtures/config';
 
@@ -79,7 +79,7 @@ describe('getBlockProcessingEnv', () => {
 		// Arrange
 		const lastBlockHeader = processEnv.getLastBlock().header;
 		const passphrase = await processEnv.getNextValidatorPassphrase(lastBlockHeader);
-		const { publicKey } = address.getAddressAndPublicKeyFromPassphrase(passphrase);
+		const { publicKey } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
 
 		// Act & Assert
 		const block = await processEnv.createBlock();

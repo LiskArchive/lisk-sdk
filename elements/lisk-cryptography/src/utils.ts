@@ -160,8 +160,6 @@ export const intToBuffer = (
 	return buffer;
 };
 
-export const bufferToHex = (buffer: Buffer): string => Buffer.from(buffer).toString('hex');
-
 const hexRegex = /^[0-9a-f]+/i;
 export const hexToBuffer = (hex: string, argumentName = 'Argument'): Buffer => {
 	if (typeof hex !== 'string') {
@@ -178,8 +176,6 @@ export const hexToBuffer = (hex: string, argumentName = 'Argument'): Buffer => {
 
 	return Buffer.from(matchedHex, 'hex');
 };
-
-export const stringToBuffer = (str: string): Buffer => Buffer.from(str, 'utf8');
 
 const HASH_SIZE = 16;
 const INPUT_SIZE = 64;

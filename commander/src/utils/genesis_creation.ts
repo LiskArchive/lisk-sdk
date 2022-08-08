@@ -15,7 +15,7 @@
  */
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { Schema } from '@liskhq/lisk-codec';
-import { bls, address, utils, ed } from '@liskhq/lisk-cryptography';
+import { bls, address, utils, legacy } from '@liskhq/lisk-cryptography';
 import {
 	dposGenesisStoreSchema,
 	DPoSModule,
@@ -65,7 +65,7 @@ export const generateGenesisBlockDefaultDPoSAssets = (input: GenesisBlockDefault
 	const accountList = [];
 	for (let i = 0; i < input.numberOfAccounts; i += 1) {
 		const passphrase = Mnemonic.generateMnemonic(256);
-		const keys = ed.getKeys(passphrase);
+		const keys = legacy.getKeys(passphrase);
 		accountList.push({
 			publicKey: keys.publicKey,
 			privateKey: keys.privateKey,
@@ -77,7 +77,7 @@ export const generateGenesisBlockDefaultDPoSAssets = (input: GenesisBlockDefault
 	const validatorList = [];
 	for (let i = 0; i < input.numberOfValidators; i += 1) {
 		const passphrase = Mnemonic.generateMnemonic(256);
-		const keys = ed.getKeys(passphrase);
+		const keys = legacy.getKeys(passphrase);
 		const blsPrivateKey = bls.generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
 		const blsPublicKey = bls.getPublicKeyFromPrivateKey(blsPrivateKey);
 		const blsPoP = bls.popProve(blsPrivateKey);

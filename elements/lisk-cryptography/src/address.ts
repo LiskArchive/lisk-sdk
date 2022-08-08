@@ -13,7 +13,6 @@
  *
  */
 import { BINARY_ADDRESS_LENGTH, DEFAULT_LISK32_ADDRESS_PREFIX } from './constants';
-import { getKeys } from './ed';
 import { getPublicKey } from './nacl';
 import { hash } from './utils';
 
@@ -59,24 +58,6 @@ export const getAddressFromPublicKey = (publicKey: Buffer): Buffer => {
 	}
 
 	return truncatedBuffer;
-};
-
-export const getAddressAndPublicKeyFromPassphrase = (
-	passphrase: string,
-): { readonly address: Buffer; readonly publicKey: Buffer } => {
-	const { publicKey } = getKeys(passphrase);
-	const address = getAddressFromPublicKey(publicKey);
-
-	return {
-		address,
-		publicKey,
-	};
-};
-
-export const getAddressFromPassphrase = (passphrase: string): Buffer => {
-	const { publicKey } = getKeys(passphrase);
-
-	return getAddressFromPublicKey(publicKey);
 };
 
 export const getAddressFromPrivateKey = (privateKey: Buffer): Buffer => {
@@ -135,14 +116,6 @@ export const getLisk32AddressFromPublicKey = (
 	publicKey: Buffer,
 	prefix = DEFAULT_LISK32_ADDRESS_PREFIX,
 ): string => `${prefix}${addressToLisk32(getAddressFromPublicKey(publicKey))}`;
-
-export const getLisk32AddressFromPassphrase = (
-	passphrase: string,
-	prefix = DEFAULT_LISK32_ADDRESS_PREFIX,
-): string => {
-	const { publicKey } = getAddressAndPublicKeyFromPassphrase(passphrase);
-	return getLisk32AddressFromPublicKey(publicKey, prefix);
-};
 
 const LISK32_ADDRESS_LENGTH = 41;
 const LISK32_CHARSET = 'zxvcpmbn3465o978uyrtkqew2adsjhfg';

@@ -69,7 +69,7 @@ describe('forging:config command', () => {
 		jest.spyOn(process.stdout, 'write').mockImplementation(val => stdout.push(val as string) > -1);
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
 		jest.spyOn(ConfigCommand.prototype, 'printJSON').mockReturnValue();
-		jest.spyOn(cryptography.ed, 'getKeys').mockReturnValue(defaultKeys as never);
+		jest.spyOn(cryptography.legacy, 'getKeys').mockReturnValue(defaultKeys as never);
 		jest.spyOn(fs, 'ensureDirSync').mockReturnValue();
 		jest.spyOn(fs, 'writeJSONSync').mockReturnValue();
 		jest

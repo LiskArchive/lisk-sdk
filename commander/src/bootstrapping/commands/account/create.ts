@@ -30,7 +30,7 @@ interface AccountInfo {
 
 const createAccount = (prefix: string): AccountInfo => {
 	const generatedPassphrase = passphrase.Mnemonic.generateMnemonic();
-	const { privateKey, publicKey } = cryptography.ed.getKeys(generatedPassphrase);
+	const { privateKey, publicKey } = cryptography.legacy.getKeys(generatedPassphrase);
 	const blsPrivateKey = cryptography.bls.generatePrivateKey(
 		Buffer.from(generatedPassphrase, 'utf-8'),
 	);

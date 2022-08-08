@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { encrypt } from '@liskhq/lisk-cryptography';
+import { encrypt, legacy } from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
 
 import BaseCommand from '../../base';
@@ -37,10 +37,12 @@ const processInputs = (
 		throw new ValidationError('No message was provided.');
 	}
 
-	return encrypt.decryptMessageWithPassphrase(
+	const keys = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+
+	return encrypt.decryptMessageWithPrivateKey(
 		message,
 		nonce,
-		passphrase,
+		keys.privateKey,
 		Buffer.from(senderPublicKey, 'hex'),
 	);
 };

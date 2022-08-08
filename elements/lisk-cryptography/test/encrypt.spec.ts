@@ -15,8 +15,8 @@ import * as ed2curve from 'ed2curve';
 import {
 	EncryptedMessageObject,
 	EncryptedMessageWithNonce,
-	encryptMessageWithPassphrase,
-	decryptMessageWithPassphrase,
+	encryptMessageWithPrivateKey,
+	decryptMessageWithPrivateKey,
 	encryptMessageWithPassword,
 	decryptMessageWithPassword,
 	KDF,
@@ -25,7 +25,6 @@ import {
 	stringifyEncryptedMessage,
 } from '../src/encrypt';
 import * as utils from '../src/utils';
-import * as address from '../src/address';
 
 describe('encrypt', () => {
 	const regHexadecimal = /[0-9A-Za-z]/g;
@@ -64,14 +63,6 @@ describe('encrypt', () => {
 				Buffer.from('f245e78c83196d73452e55581ef924a1b792d352c142257aa3af13cded2e7905', 'hex'),
 			);
 
-		jest.spyOn(address, 'getAddressAndPublicKeyFromPassphrase').mockImplementation(() => {
-			return {
-				address: address.getAddressFromPublicKey(defaultPublicKey),
-				privateKey: defaultPrivateKey,
-				publicKey: defaultPublicKey,
-			};
-		});
-
 		hashStub = jest
 			.spyOn(utils, 'hash')
 			.mockReturnValue(
@@ -80,13 +71,13 @@ describe('encrypt', () => {
 		return Promise.resolve();
 	});
 
-	describe('#encryptMessageWithPassphrase', () => {
+	describe('#encryptMessageWithPrivateKey', () => {
 		let encryptedMessage: EncryptedMessageWithNonce;
 
 		beforeEach(async () => {
-			encryptedMessage = encryptMessageWithPassphrase(
+			encryptedMessage = encryptMessageWithPrivateKey(
 				defaultMessage,
-				defaultPassphrase,
+				defaultPrivateKey,
 				defaultPublicKey,
 			);
 			return Promise.resolve();
@@ -104,12 +95,12 @@ describe('encrypt', () => {
 		});
 	});
 
-	describe('#decryptMessageWithPassphrase', () => {
+	describe('#decryptMessageWithPrivateKey', () => {
 		it('should be able to decrypt the message correctly using the receiver’s secret passphrase', () => {
-			const decryptedMessage = decryptMessageWithPassphrase(
+			const decryptedMessage = decryptMessageWithPrivateKey(
 				defaultEncryptedMessageWithNonce.encryptedMessage,
 				defaultEncryptedMessageWithNonce.nonce,
-				defaultPassphrase,
+				defaultPrivateKey,
 				defaultPublicKey,
 			);
 
@@ -118,11 +109,11 @@ describe('encrypt', () => {
 
 		it('should inform the user if the nonce is the wrong length', () => {
 			expect(
-				decryptMessageWithPassphrase.bind(
+				decryptMessageWithPrivateKey.bind(
 					null,
 					defaultEncryptedMessageWithNonce.encryptedMessage,
 					defaultEncryptedMessageWithNonce.encryptedMessage.slice(0, 2),
-					defaultPassphrase,
+					defaultPrivateKey,
 					defaultPublicKey,
 				),
 			).toThrow('Expected nonce to be 24 bytes.');
@@ -130,11 +121,11 @@ describe('encrypt', () => {
 
 		it('should inform the user if something goes wrong during decryption', () => {
 			expect(
-				decryptMessageWithPassphrase.bind(
+				decryptMessageWithPrivateKey.bind(
 					null,
 					defaultEncryptedMessageWithNonce.encryptedMessage.slice(0, 2),
 					defaultEncryptedMessageWithNonce.nonce,
-					defaultPassphrase,
+					defaultPrivateKey,
 					defaultPublicKey,
 				),
 			).toThrow('Something went wrong during decryption. Is this the full encrypted message?');
