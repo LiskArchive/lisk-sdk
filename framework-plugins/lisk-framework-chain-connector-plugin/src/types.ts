@@ -37,14 +37,6 @@ export interface ChainConnectorInfo {
 	crossChainMessages: CCMsg[];
 }
 
-export interface BFTParameters {
-	prevoteThreshold: bigint;
-	precommitThreshold: bigint;
-	certificateThreshold: bigint;
-	validators: BFTValidator[];
-	validatorsHash: Buffer;
-}
-
 export interface Inbox {
 	appendPath: Buffer[];
 	size: number;
