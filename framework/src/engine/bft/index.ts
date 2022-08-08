@@ -15,3 +15,4 @@
 export { BFTModule } from './module';
 export type { BFTMethod } from './method';
 export { computeValidatorsHash } from './utils';
+export { BFTParameters } from './schemas';
