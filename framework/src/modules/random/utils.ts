@@ -14,7 +14,7 @@
 
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { utils } from '@liskhq/lisk-cryptography';
-import { SEED_REVEAL_HASH_SIZE } from './constants';
+import { SEED_LENGTH } from './constants';
 import { ValidatorSeedReveal } from './types';
 
 export const isSeedValidInput = (
@@ -35,9 +35,7 @@ export const isSeedValidInput = (
 	if (!lastSeed) {
 		return false;
 	}
-	return lastSeed.seedReveal.equals(
-		cryptography.utils.hash(seedReveal).slice(0, SEED_REVEAL_HASH_SIZE),
-	);
+	return lastSeed.seedReveal.equals(cryptography.utils.hash(seedReveal).slice(0, SEED_LENGTH));
 };
 
 export const getSeedRevealValidity = (
@@ -58,14 +56,10 @@ export const getSeedRevealValidity = (
 		}
 	}
 
-	if (
+	return (
 		!lastSeed ||
-		lastSeed.seedReveal.equals(cryptography.utils.hash(seedReveal).slice(0, SEED_REVEAL_HASH_SIZE))
-	) {
-		return true;
-	}
-
-	return false;
+		lastSeed.seedReveal.equals(cryptography.utils.hash(seedReveal).slice(0, SEED_LENGTH))
+	);
 };
 
 export const getRandomSeed = (

@@ -484,9 +484,12 @@ describe('RandomModule', () => {
 				assets: new BlockAssets([asset]),
 			});
 
-			await expect(
-				randomModule.verifyAssets(context.getBlockVerifyExecuteContext()),
-			).rejects.toThrow('Size of the seed reveal must be 16, but received 10.');
+			try {
+				await randomModule.verifyAssets(context.getBlockVerifyExecuteContext());
+			} catch (error: any) {
+				// eslint-disable-next-line jest/no-try-expect
+				expect(error?.message).toInclude(`Property '.seedReveal' minLength not satisfied`);
+			}
 		});
 
 		it('should resolve if seed reveal length is 16 bytes', async () => {
