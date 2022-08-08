@@ -22,16 +22,15 @@ import {
 	BFTHeights,
 	db as liskDB,
 	codec,
-	BFTValidator,
 	chain,
+	BFTParameters,
 } from 'lisk-sdk';
-import { CCM_BASED_CCU_FREQUENCY, LIVENESS_BASED_CCU_FREQUENCY, DB_KEY_CHAIN_CONNECTOR_INFO } from './constants';
+import { CCM_BASED_CCU_FREQUENCY, EMPTY_BYTES, LIVENESS_BASED_CCU_FREQUENCY } from './constants';
 import { getChainConnectorInfo, getDBInstance } from './db';
 import { Endpoint } from './endpoint';
 import { chainConnectorInfoSchema, configSchema } from './schemas';
-import { BFTParameters, ChainConnectorInfo, ChainConnectorPluginConfig, SentCCUs } from './types';
+import { ChainConnectorInfo, ChainConnectorPluginConfig, SentCCUs } from './types';
 
-type KVStore = liskDB.Database;
 interface Data {
 	readonly blockHeader: chain.BlockHeaderJSON;
 }
@@ -48,8 +47,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private _lastCertifiedHeight!: number;
 	private _ccuFrequency!: CCUFrequencyConfig;
 	private _mainchainAPIClient!: apiClient.APIClient;
-	private _sidechainAPIClient?: apiClient.APIClient;
-	private _chainConnectorDB!: liskDB.Database;
+	private _sidechainAPIClient!: apiClient.APIClient;
 	private _chainConnectorState!: ChainConnectorInfo;
 	private readonly _sentCCUs: SentCCUs = [];
 
@@ -68,8 +66,8 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	}
 
 	public async load(): Promise<void> {
-		this._chainConnectorDB = await getDBInstance(this.dataPath);
-		const chainConnectorInfo = await getChainConnectorInfo(this._chainConnectorDB);
+		this._chainConnectorPluginDB = await getDBInstance(this.dataPath);
+		const chainConnectorInfo = await getChainConnectorInfo(this._chainConnectorPluginDB);
 		this._chainConnectorState = {
 			crossChainMessages: chainConnectorInfo.crossChainMessages,
 			aggregateCommits: chainConnectorInfo.aggregateCommits,
@@ -101,6 +99,51 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 	}
 
+	public async getNextCertificateFromAggregateCommits(
+		lastCertifiedHeight: number,
+		aggregateCommits: AggregateCommit[],
+	): Promise<Certificate | undefined> {
+		const chainConnectorInfo = await getChainConnectorInfo(this._chainConnectorPluginDB);
+
+		const blockHeader = chainConnectorInfo.blockHeaders.find(
+			header => header.height === lastCertifiedHeight,
+		)!;
+
+		const validatorData = chainConnectorInfo.validatorsHashPreimage.find(
+			data => data.validatorsHash === blockHeader.validatorsHash!,
+		)!;
+
+		const blsKeyToBFTWeight: Record<string, bigint> = {};
+
+		for (const validator of validatorData.validators) {
+			blsKeyToBFTWeight[validator.blsKey.toString('hex')] = validator.bftWeight;
+		}
+
+		const bftHeights = await this._sidechainAPIClient.invoke<BFTHeights>('consensus_getBFTHeights');
+
+		let height = bftHeights.maxHeightCertified;
+
+		while (height > lastCertifiedHeight) {
+			if (aggregateCommits[height] !== undefined) {
+				const valid = await this._checkChainOfTrust(
+					blockHeader.validatorsHash!,
+					blsKeyToBFTWeight,
+					validatorData.certificateThreshold,
+					aggregateCommits[height],
+				);
+
+				if (valid) {
+					return this._getCertificateFromAggregateCommit(aggregateCommits[height]);
+				}
+			}
+
+			height -= 1;
+		}
+
+		// eslint-disable-next-line no-useless-return, consistent-return
+		return;
+	}
+
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async unload(): Promise<void> {
 		await this._mainchainAPIClient.disconnect();
@@ -109,12 +152,12 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 		// Save all the state to the DB
 		if (this._chainConnectorState) {
-			await this._chainConnectorDB.set(
-				DB_KEY_CHAIN_CONNECTOR_INFO,
+			await this._chainConnectorPluginDB.set(
+				EMPTY_BYTES,
 				codec.encode(chainConnectorInfoSchema, this._chainConnectorState),
 			);
 		}
-		this._chainConnectorDB.close();
+		this._chainConnectorPluginDB.close();
 	}
 
 	private async _newBlockhandler(data?: Record<string, unknown>) {
@@ -135,25 +178,25 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		} else {
 			savedBlockHeaders.push(newBlockHeader);
 		}
-		const bftParameters = await this._sidechainAPIClient?.invoke<BFTParameters>(
+		const bftParameters = await this._sidechainAPIClient.invoke<BFTParameters>(
 			'consensus_getBFTParameters',
 			{ height: newBlockHeader.height },
 		);
 
 		const indexValidatorsData = savedValidatorsHashPreimage.findIndex(v =>
-			v.validatorsHash.equals(bftParameters?.validatorsHash as Buffer),
+			v.validatorsHash.equals(bftParameters?.validatorsHash),
 		);
 		if (indexValidatorsData > -1) {
 			savedValidatorsHashPreimage[indexValidatorsData] = {
-				certificateThreshold: bftParameters?.certificateThreshold as bigint,
-				validators: bftParameters?.validators as BFTValidator[],
-				validatorsHash: bftParameters?.validatorsHash as Buffer,
+				certificateThreshold: bftParameters?.certificateThreshold,
+				validators: bftParameters?.validators,
+				validatorsHash: bftParameters?.validatorsHash,
 			};
 		} else {
 			savedValidatorsHashPreimage.push({
-				certificateThreshold: bftParameters?.certificateThreshold as bigint,
-				validators: bftParameters?.validators as BFTValidator[],
-				validatorsHash: bftParameters?.validatorsHash as Buffer,
+				certificateThreshold: bftParameters?.certificateThreshold,
+				validators: bftParameters?.validators,
+				validatorsHash: bftParameters?.validatorsHash,
 			});
 		}
 
@@ -181,10 +224,10 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 	}
 
-	public async getCertificateFromAggregateCommit(
+	private async _getCertificateFromAggregateCommit(
 		aggregateCommit: AggregateCommit,
 	): Promise<Certificate> {
-		const chainConnectorInfo = await getChainConnectorInfo(this._chainConnectorDB);
+		const chainConnectorInfo = await getChainConnectorInfo(this._chainConnectorPluginDB);
 
 		const blockHeader = chainConnectorInfo.blockHeaders.find(
 			header => header.height === aggregateCommit.height,
@@ -197,58 +240,13 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		return certificate;
 	}
 
-	public async getNextCertificateFromAggregateCommits(
-		lastCertifiedHeight: number,
-		aggregateCommits: AggregateCommit[],
-	): Promise<Certificate | undefined> {
-		const chainConnectorInfo = await getChainConnectorInfo(this._chainConnectorDB);
-
-		const blockHeader = chainConnectorInfo.blockHeaders.find(
-			header => header.height === lastCertifiedHeight,
-		)!;
-
-		const validatorData = chainConnectorInfo.validatorsHashPreimage.find(
-			data => data.validatorsHash === blockHeader.validatorsHash!,
-		)!;
-
-		const blsKeyToBFTWeight: Record<string, bigint> = {};
-
-		for (const validator of validatorData.validators) {
-			blsKeyToBFTWeight[validator.blsKey.toString('hex')] = validator.bftWeight;
-		}
-
-		const bftHeights = await this._sidechainAPIClient?.invoke<BFTHeights>('consensus_getBFTHeights');
-
-		let height = bftHeights.maxHeightCertified;
-
-		while (height > lastCertifiedHeight) {
-			if (aggregateCommits[height] !== undefined) {
-				const valid = await this.checkChainOfTrust(
-					blockHeader.validatorsHash!,
-					blsKeyToBFTWeight,
-					validatorData.certificateThreshold,
-					aggregateCommits[height],
-				);
-
-				if (valid) {
-					return this.getCertificateFromAggregateCommit(aggregateCommits[height]);
-				}
-			}
-
-			height -= 1;
-		}
-
-		// eslint-disable-next-line no-useless-return, consistent-return
-		return;
-	}
-
-	public async checkChainOfTrust(
+	private async _checkChainOfTrust(
 		lastValidatorsHash: Buffer,
 		blsKeyToBFTWeight: Record<string, bigint>,
 		lastCertificateThreshold: BigInt,
 		aggregateCommit: AggregateCommit,
 	): Promise<boolean> {
-		const chainConnectorInfo = await getChainConnectorInfo(this._chainConnectorDB);
+		const chainConnectorInfo = await getChainConnectorInfo(this._chainConnectorPluginDB);
 
 		const blockHeader = chainConnectorInfo.blockHeaders.find(
 			header => BigInt(header.height) === lastCertificateThreshold,
