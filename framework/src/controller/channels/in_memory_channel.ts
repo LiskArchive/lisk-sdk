@@ -13,20 +13,34 @@
  */
 
 import { ListenerFn } from 'eventemitter2';
-import { StateDB } from '@liskhq/lisk-db';
+import { Database, StateDB } from '@liskhq/lisk-db';
+import { objects } from '@liskhq/lisk-utils';
+import { validator } from '@liskhq/lisk-validator';
+import * as path from 'path';
 import { Event, EventCallback } from '../event';
 import { Request } from '../request';
 import { BaseChannel } from './base_channel';
 import { Bus } from '../bus';
 import * as JSONRPC from '../jsonrpc/types';
-import { ChannelType, EndpointHandlers } from '../../types';
+import {
+	ApplicationConfig,
+	ChannelType,
+	EndpointHandlers,
+	PartialApplicationConfig,
+} from '../../types';
 import { Logger } from '../../logger';
 import { createImmutableAPIContext } from '../../state_machine';
 import { PrefixedStateReadWriter } from '../../state_machine/prefixed_state_read_writer';
+import { systemDirs } from '../../system_dirs';
+import { applicationConfigSchema } from '../../schema';
+import { StateStore } from '../../../../elements/lisk-chain/dist-node';
 
 export class InMemoryChannel extends BaseChannel {
+	public config: ApplicationConfig;
 	private bus!: Bus;
+
 	private readonly _db: StateDB;
+	private _moduleDB!: Database;
 
 	public constructor(
 		logger: Logger,
@@ -34,9 +48,20 @@ export class InMemoryChannel extends BaseChannel {
 		namespace: string,
 		events: ReadonlyArray<string>,
 		endpoints: EndpointHandlers,
+		config: PartialApplicationConfig = {},
 	) {
 		super(logger, namespace, events, endpoints);
 		this._db = db;
+
+		const appConfig = objects.cloneDeep(applicationConfigSchema.default);
+		appConfig.label =
+			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+			config.label ?? `lisk-${config.genesis?.communityIdentifier}`;
+
+		const mergedConfig = objects.mergeDeep({}, appConfig, config) as ApplicationConfig;
+		validator.validate(applicationConfigSchema, mergedConfig);
+
+		this.config = mergedConfig;
 	}
 
 	public async registerToBus(bus: Bus): Promise<void> {
@@ -109,7 +134,7 @@ export class InMemoryChannel extends BaseChannel {
 					return stateStore.getStore(moduleID, storePrefix);
 				},
 				getOffchainStore: (moduleID: Buffer, storePrefix?: number) => {
-					const stateStore = new PrefixedStateReadWriter(this._db.newReadWriter());
+					const stateStore = new StateStore(this._getModuleDB());
 					return stateStore.getStore(moduleID, storePrefix ?? 0);
 				},
 				getImmutableAPIContext: () =>
@@ -119,5 +144,15 @@ export class InMemoryChannel extends BaseChannel {
 
 		const resp = await this.bus.invoke<T>(request.toJSONRPCRequest());
 		return resp.result;
+	}
+
+	private _getModuleDB(): Database {
+		if (this._moduleDB) {
+			return this._moduleDB;
+		}
+
+		const { data: dbFolder } = systemDirs(this.config.label, this.config.rootPath);
+		this._moduleDB = new Database(path.join(dbFolder, 'module.db'));
+		return this._moduleDB;
 	}
 }
