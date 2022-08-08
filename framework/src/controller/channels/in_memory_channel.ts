@@ -126,7 +126,7 @@ export class InMemoryChannel extends BaseChannel {
 				throw new Error('Handler does not exist.');
 			}
 
-			return handler({
+			return (await handler({
 				logger: this._logger,
 				params: request.params ?? {},
 				getStore: (moduleID: Buffer, storePrefix: number) => {
@@ -139,7 +139,7 @@ export class InMemoryChannel extends BaseChannel {
 				},
 				getImmutableAPIContext: () =>
 					createImmutableAPIContext(new PrefixedStateReadWriter(this._db.newReadWriter())),
-			}) as Promise<T>;
+			})) as Promise<T>;
 		}
 
 		const resp = await this.bus.invoke<T>(request.toJSONRPCRequest());
