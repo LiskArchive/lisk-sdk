@@ -64,7 +64,7 @@ describe('RewardModuleAPI', () => {
 				true,
 			);
 
-			expect(rewardFromAPI).toBe(rewardFromConfig);
+			expect(rewardFromAPI[0]).toBe(rewardFromConfig);
 		});
 
 		it(`should getBlockReward return quarter reward for bracket ${nthBracket} due to bft violation`, async () => {
@@ -80,7 +80,7 @@ describe('RewardModuleAPI', () => {
 				false,
 			);
 
-			expect(rewardFromAPI).toBe(rewardFromConfig / BigInt(4));
+			expect(rewardFromAPI[0]).toBe(BigInt(rewardFromConfig) / BigInt(4));
 		});
 
 		it(`should getBlockReward return no reward for bracket ${nthBracket} due to seedReveal violation`, async () => {
@@ -96,7 +96,7 @@ describe('RewardModuleAPI', () => {
 				true,
 			);
 
-			expect(rewardFromAPI).toBe(BigInt(0));
+			expect(rewardFromAPI[0]).toBe(BigInt(0));
 		});
 	});
 
@@ -113,6 +113,6 @@ describe('RewardModuleAPI', () => {
 			true,
 		);
 
-		expect(rewardFromAPI).toBe(BigInt(0));
+		expect(rewardFromAPI[0]).toBe(BigInt(0));
 	});
 });
