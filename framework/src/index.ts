@@ -78,6 +78,7 @@ export {
 } from './state_machine/types';
 export { AggregateCommit } from './engine/consensus/types';
 export { BFTHeights, BFTValidator } from './engine/bft/types';
+export { BFTParameters } from './engine/bft/schemas';
 export { aggregateCommitSchema } from './engine/consensus/certificate_generation/schema';
 export { BFTValidatorJSON } from './engine/endpoint/consensus';
 export { computeCertificateFromBlockHeader } from './engine/consensus/certificate_generation/utils';
