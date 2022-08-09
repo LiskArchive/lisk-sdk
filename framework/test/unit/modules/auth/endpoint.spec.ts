@@ -189,7 +189,7 @@ describe('AuthEndpoint', () => {
 				});
 
 			// Assert
-			const receivedSignatureVerificationResult = (await authEndpoint.verifySignatures(context))
+			const receivedSignatureVerificationResult = (await authEndpoint.isValidSignature(context))
 				.verified;
 			expect(receivedSignatureVerificationResult).toBeTrue();
 		});
@@ -255,7 +255,7 @@ describe('AuthEndpoint', () => {
 				});
 
 			// Assert
-			const receivedSignatureVerificationResult = (await authEndpoint.verifySignatures(context))
+			const receivedSignatureVerificationResult = (await authEndpoint.isValidSignature(context))
 				.verified;
 			expect(receivedSignatureVerificationResult).toBeTrue();
 		});
@@ -342,13 +342,13 @@ describe('AuthEndpoint', () => {
 			});
 
 			// Assert
-			const receivedSignatureVerificationResult = (await authEndpoint.verifySignatures(context))
+			const receivedSignatureVerificationResult = (await authEndpoint.isValidSignature(context))
 				.verified;
 			expect(receivedSignatureVerificationResult).toBeTrue();
 		});
 	});
 
-	describe('verifyNonce', () => {
+	describe('isValidNonce', () => {
 		it('should verify equal transaction nonce and account nonce', async () => {
 			// Arrange
 			const transaction = new Transaction({
@@ -380,7 +380,7 @@ describe('AuthEndpoint', () => {
 				});
 
 			// Assert
-			const receivedNonceVerificationResult = (await authEndpoint.verifyNonce(context)).verified;
+			const receivedNonceVerificationResult = (await authEndpoint.isValidNonce(context)).verified;
 			expect(receivedNonceVerificationResult).toBeTrue();
 		});
 
@@ -415,7 +415,7 @@ describe('AuthEndpoint', () => {
 				});
 
 			// Assert
-			const receivedNonceVerificationResult = (await authEndpoint.verifyNonce(context)).verified;
+			const receivedNonceVerificationResult = (await authEndpoint.isValidNonce(context)).verified;
 			expect(receivedNonceVerificationResult).toBeFalse();
 		});
 
@@ -450,7 +450,7 @@ describe('AuthEndpoint', () => {
 			});
 
 			// Assert
-			return expect(authEndpoint.verifyNonce(context)).rejects.toThrow(
+			return expect(authEndpoint.isValidNonce(context)).rejects.toThrow(
 				new InvalidNonceError(
 					`Transaction with id:${transaction.id.toString('hex')} nonce is lower than account nonce`,
 					transaction.nonce,

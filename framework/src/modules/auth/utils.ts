@@ -12,13 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Transaction } from '@liskhq/lisk-chain';
+import { Transaction, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { utils, ed } from '@liskhq/lisk-cryptography';
 import { isHexString } from '@liskhq/lisk-validator';
 import { VerificationResult, VerifyStatus } from '../../state_machine';
 import { InvalidNonceError } from './errors';
 import { AuthAccount, Keys } from './types';
+import { COMMAND_ID_DELEGATE_REGISTRATION } from '../dpos_v2/constants';
+import { registerMultisignatureParamsSchema } from './schemas';
 
 export const isMultisignatureAccount = (keys: Keys): boolean =>
 	!!((keys.mandatoryKeys.length > 0 || keys.optionalKeys.length > 0) && keys.numberOfSignatures);
@@ -173,6 +175,49 @@ export const verifySingleSignatureTransaction = (
 		transactionBytes,
 		transaction.id,
 	);
+};
+
+export const verifySignatures = (
+	authModuleId: Buffer,
+	transaction: Transaction,
+	transactionBytes: Buffer,
+	networkIdentifier: Buffer,
+	account: AuthAccount,
+) => {
+	if (
+		transaction.moduleID.equals(authModuleId) &&
+		transaction.commandID.readInt32BE(0) === COMMAND_ID_DELEGATE_REGISTRATION
+	) {
+		verifyRegisterMultiSignatureTransaction(
+			TAG_TRANSACTION,
+			registerMultisignatureParamsSchema,
+			transaction,
+			transactionBytes,
+			networkIdentifier,
+		);
+		return { verified: true };
+	}
+
+	// Verify multi signature registration transaction
+	if (!isMultisignatureAccount(account)) {
+		verifySingleSignatureTransaction(
+			TAG_TRANSACTION,
+			transaction,
+			transactionBytes,
+			networkIdentifier,
+		);
+		return { verified: true };
+	}
+
+	verifyMultiSignatureTransaction(
+		TAG_TRANSACTION,
+		networkIdentifier,
+		transaction.id,
+		account,
+		transaction.signatures,
+		transactionBytes,
+	);
+	return { verified: true };
 };
 
 export const verifyNonce = (
