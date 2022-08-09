@@ -23,8 +23,7 @@ import { BasePlugin, getPluginExportPath, validatePluginSpec } from '../plugins/
 import { systemDirs } from '../system_dirs';
 import { ApplicationConfigForPlugin, EndpointHandlers, PluginConfig } from '../types';
 import { Bus } from './bus';
-import { BaseChannel } from './channels';
-import { InMemoryChannel } from './channels/in_memory_channel';
+import { BaseChannel, InMemoryChannel } from './channels';
 import { IPCServer } from './ipc/ipc_server';
 
 export interface ControllerOptions {
