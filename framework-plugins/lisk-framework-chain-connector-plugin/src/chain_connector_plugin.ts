@@ -26,7 +26,7 @@ import {
 	BFTParameters,
 } from 'lisk-sdk';
 import { CCM_BASED_CCU_FREQUENCY, EMPTY_BYTES, LIVENESS_BASED_CCU_FREQUENCY } from './constants';
-import { getChainConnectorInfo, getDBInstance } from './db';
+import { getChainConnectorInfo, getDBInstance, setChainConnectorInfo } from './db';
 import { Endpoint } from './endpoint';
 import { chainConnectorInfoSchema, configSchema } from './schemas';
 import { ChainConnectorInfo, ChainConnectorPluginConfig, SentCCUs } from './types';
@@ -160,6 +160,37 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		this._chainConnectorPluginDB.close();
 	}
 
+	public async deleteBlockHeaders() {
+		const chainConnectorInfo = await getChainConnectorInfo(this._chainConnectorPluginDB);
+
+		chainConnectorInfo.blockHeaders = chainConnectorInfo.blockHeaders.filter(
+			blockHeader => blockHeader.height >= this._lastCertifiedHeight,
+		);
+
+		await setChainConnectorInfo(this._chainConnectorPluginDB, chainConnectorInfo);
+	}
+
+	public async deleteAggregateCommits() {
+		const chainConnectorInfo = await getChainConnectorInfo(this._chainConnectorPluginDB);
+
+		chainConnectorInfo.aggregateCommits = chainConnectorInfo.aggregateCommits.filter(
+			aggregateCommit => aggregateCommit.height >= this._lastCertifiedHeight,
+		);
+
+		await setChainConnectorInfo(this._chainConnectorPluginDB, chainConnectorInfo);
+	}
+
+	public async deleteValidatorsHashPreimage() {
+		const chainConnectorInfo = await getChainConnectorInfo(this._chainConnectorPluginDB);
+
+		chainConnectorInfo.validatorsHashPreimage = chainConnectorInfo.validatorsHashPreimage.filter(
+			validatorsHashPreimage =>
+				validatorsHashPreimage.certificateThreshold >= BigInt(this._lastCertifiedHeight),
+		);
+
+		await setChainConnectorInfo(this._chainConnectorPluginDB, chainConnectorInfo);
+	}
+
 	private async _newBlockhandler(data?: Record<string, unknown>) {
 		const { blockHeader: receivedBlock } = (data as unknown) as Data;
 		const newBlockHeader = chain.BlockHeader.fromJSON(receivedBlock);
@@ -279,6 +310,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 		return false;
 	}
+
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	private async _createCCU() {}
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
