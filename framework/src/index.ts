@@ -79,6 +79,17 @@ export {
 	SidechainInteroperabilityMethod,
 	SidechainInteroperabilityModule,
 	SidechainRegistrationCommand,
+	CCMsg,
+	ChainAccount,
+	ChainAccountJSON,
+	ChannelData,
+	ChannelDataJSON,
+	Inbox,
+	InboxJSON,
+	MessageFeeTokenID,
+	MessageFeeTokenIDJSON,
+	Outbox,
+	OutboxJSON,
 } from './modules/interoperability';
 export { RewardMethod, RewardModule } from './modules/reward';
 export { FeeMethod, FeeModule } from './modules/fee';
