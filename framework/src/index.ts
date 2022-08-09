@@ -82,6 +82,17 @@ export {
 	InitializeStateRecoveryCommand,
 	RecoverStateCommand,
 	TerminateSidechainForLivenessCommand,
+	CCMsg,
+	ChainAccount,
+	ChainAccountJSON,
+	ChannelData,
+	ChannelDataJSON,
+	Inbox,
+	InboxJSON,
+	MessageFeeTokenID,
+	MessageFeeTokenIDJSON,
+	Outbox,
+	OutboxJSON,
 } from './modules/interoperability';
 export { RewardMethod, RewardModule } from './modules/reward';
 export { FeeMethod, FeeModule } from './modules/fee';
@@ -102,7 +113,7 @@ export {
 	BlockAfterExecuteContext,
 } from './state_machine/types';
 export { AggregateCommit } from './engine/consensus/types';
-export { BFTHeights, BFTValidator } from './engine/bft/types';
+export { BFTHeights } from './engine/bft/types';
 export { BFTParameters } from './engine/bft/schemas';
 export { aggregateCommitSchema } from './engine/consensus/certificate_generation/schema';
 export { computeCertificateFromBlockHeader } from './engine/consensus/certificate_generation/utils';
