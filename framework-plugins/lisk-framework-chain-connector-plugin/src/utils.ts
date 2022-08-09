@@ -13,7 +13,17 @@
  */
 
 import { AggregateCommit } from 'lisk-sdk';
-import { ChannelData, ChannelDataJSON, Inbox, InboxJSON, MessageFeeTokenID, MessageFeeTokenIDJSON, Outbox, OutboxJSON, ValidatorsData } from './types';
+import {
+	ChannelData,
+	ChannelDataJSON,
+	Inbox,
+	InboxJSON,
+	MessageFeeTokenID,
+	MessageFeeTokenIDJSON,
+	Outbox,
+	OutboxJSON,
+	ValidatorsData,
+} from './types';
 
 export const aggregateCommitToJSON = (aggregateCommit: AggregateCommit) => ({
 	height: aggregateCommit.height,
@@ -36,7 +46,7 @@ export const validatorsHashPreimagetoJSON = (validatorsHashPreimage: ValidatorsD
 		});
 	}
 	return validatorsHashPreimageJSON;
-}
+};
 
 export const channelDataToJSON = (channelData: ChannelData) => {
 	const { inbox, messageFeeTokenID, outbox, partnerChainOutboxRoot } = channelData;
