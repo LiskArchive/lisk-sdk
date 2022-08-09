@@ -21,13 +21,19 @@ import {
 	Certificate,
 	BFTHeights,
 	db as liskDB,
+	codec,
+	chain,
+	BFTParameters,
 } from 'lisk-sdk';
-import { ChainConnectorPluginConfig, SentCCUs } from './types';
-import { configSchema } from './schemas';
-import { CCM_BASED_CCU_FREQUENCY, LIVENESS_BASED_CCU_FREQUENCY } from './constants';
+import { CCM_BASED_CCU_FREQUENCY, EMPTY_BYTES, LIVENESS_BASED_CCU_FREQUENCY } from './constants';
 import { getChainConnectorInfo, getDBInstance } from './db';
 import { Endpoint } from './endpoint';
+import { chainConnectorInfoSchema, configSchema } from './schemas';
+import { ChainConnectorInfo, ChainConnectorPluginConfig, SentCCUs } from './types';
 
+interface Data {
+	readonly blockHeader: chain.BlockHeaderJSON;
+}
 interface CCUFrequencyConfig {
 	ccm: number;
 	liveness: number;
@@ -42,9 +48,8 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 	private _ccuFrequency!: CCUFrequencyConfig;
 	private _mainchainAPIClient!: apiClient.APIClient;
 	private _sidechainAPIClient!: apiClient.APIClient;
+	private _chainConnectorState!: ChainConnectorInfo;
 	private readonly _sentCCUs: SentCCUs = [];
-
-	private _chainConnectorDB!: liskDB.Database;
 
 	public get nodeModulePath(): string {
 		return __filename;
@@ -62,6 +67,14 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 	public async load(): Promise<void> {
 		this._chainConnectorPluginDB = await getDBInstance(this.dataPath);
+		const chainConnectorInfo = await getChainConnectorInfo(this._chainConnectorPluginDB);
+		this._chainConnectorState = {
+			crossChainMessages: chainConnectorInfo.crossChainMessages,
+			aggregateCommits: chainConnectorInfo.aggregateCommits,
+			blockHeaders: chainConnectorInfo.blockHeaders,
+			validatorsHashPreimage: chainConnectorInfo.validatorsHashPreimage,
+		};
+
 		this._mainchainAPIClient = await apiClient.createIPCClient(this.config.mainchainIPCPath);
 		if (this.config.sidechainIPCPath) {
 			this._sidechainAPIClient = await apiClient.createIPCClient(this.config.sidechainIPCPath);
@@ -70,42 +83,27 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		}
 		// TODO: After DB issue we need to fetch the last sent CCUs and assign it to _sentCCUs
 		// eslint-disable-next-line no-console
-		console.log(this._lastCertifiedHeight, this._sentCCUs, this._ccuFrequency);
-		this._chainConnectorDB = await getDBInstance(this.dataPath);
-
+		console.log(this._sentCCUs);
 		// TODO: Fetch the certificate height from last sent CCU and update the height
 		this._lastCertifiedHeight = 0;
-	}
 
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
-	public async unload(): Promise<void> {
-		await this._mainchainAPIClient.disconnect();
+		// TODO: CCM should be collected and stored via events
 		if (this._sidechainAPIClient) {
-			await this._sidechainAPIClient.disconnect();
+			this._sidechainAPIClient.subscribe('chain_newBlock', async (data?: Record<string, unknown>) =>
+				this._newBlockhandler(data),
+			);
+			this._sidechainAPIClient.subscribe(
+				'network_newBlock',
+				async (data?: Record<string, unknown>) => this._newBlockhandler(data),
+			);
 		}
-	}
-
-	public async getCertificateFromAggregateCommit(
-		aggregateCommit: AggregateCommit,
-	): Promise<Certificate> {
-		const chainConnectorInfo = await getChainConnectorInfo(this._chainConnectorDB);
-
-		const blockHeader = chainConnectorInfo.blockHeaders.find(
-			header => header.height === aggregateCommit.height,
-		)!;
-
-		const certificate = computeCertificateFromBlockHeader(blockHeader);
-		certificate.aggregationBits = blockHeader.aggregateCommit.aggregationBits;
-		certificate.signature = aggregateCommit.certificateSignature;
-
-		return certificate;
 	}
 
 	public async getNextCertificateFromAggregateCommits(
 		lastCertifiedHeight: number,
 		aggregateCommits: AggregateCommit[],
 	): Promise<Certificate | undefined> {
-		const chainConnectorInfo = await getChainConnectorInfo(this._chainConnectorDB);
+		const chainConnectorInfo = await getChainConnectorInfo(this._chainConnectorPluginDB);
 
 		const blockHeader = chainConnectorInfo.blockHeaders.find(
 			header => header.height === lastCertifiedHeight,
@@ -127,7 +125,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 		while (height > lastCertifiedHeight) {
 			if (aggregateCommits[height] !== undefined) {
-				const valid = await this.checkChainOfTrust(
+				const valid = await this._checkChainOfTrust(
 					blockHeader.validatorsHash!,
 					blsKeyToBFTWeight,
 					validatorData.certificateThreshold,
@@ -135,7 +133,7 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 				);
 
 				if (valid) {
-					return this.getCertificateFromAggregateCommit(aggregateCommits[height]);
+					return this._getCertificateFromAggregateCommit(aggregateCommits[height]);
 				}
 			}
 
@@ -146,13 +144,109 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 		return;
 	}
 
-	public async checkChainOfTrust(
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	public async unload(): Promise<void> {
+		await this._mainchainAPIClient.disconnect();
+		if (this._sidechainAPIClient) {
+			await this._sidechainAPIClient.disconnect();
+		}
+		// Save all the state to the DB
+		if (this._chainConnectorState) {
+			await this._chainConnectorPluginDB.set(
+				EMPTY_BYTES,
+				codec.encode(chainConnectorInfoSchema, this._chainConnectorState),
+			);
+		}
+		this._chainConnectorPluginDB.close();
+	}
+
+	private async _newBlockhandler(data?: Record<string, unknown>) {
+		const { blockHeader: receivedBlock } = (data as unknown) as Data;
+		const newBlockHeader = chain.BlockHeader.fromJSON(receivedBlock);
+		const {
+			blockHeaders: savedBlockHeaders,
+			aggregateCommits: savedAggregateCommits,
+			validatorsHashPreimage: savedValidatorsHashPreimage,
+			crossChainMessages: savedCrossChainMessages,
+		} = this._chainConnectorState;
+
+		const indexBlockHeader = savedBlockHeaders.findIndex(
+			header => header.height === newBlockHeader.height,
+		);
+		if (indexBlockHeader > -1) {
+			savedBlockHeaders[indexBlockHeader] = newBlockHeader;
+		} else {
+			savedBlockHeaders.push(newBlockHeader);
+		}
+		const bftParameters = await this._sidechainAPIClient.invoke<BFTParameters>(
+			'consensus_getBFTParameters',
+			{ height: newBlockHeader.height },
+		);
+
+		const indexValidatorsData = savedValidatorsHashPreimage.findIndex(v =>
+			v.validatorsHash.equals(bftParameters?.validatorsHash),
+		);
+		if (indexValidatorsData > -1) {
+			savedValidatorsHashPreimage[indexValidatorsData] = {
+				certificateThreshold: bftParameters?.certificateThreshold,
+				validators: bftParameters?.validators,
+				validatorsHash: bftParameters?.validatorsHash,
+			};
+		} else {
+			savedValidatorsHashPreimage.push({
+				certificateThreshold: bftParameters?.certificateThreshold,
+				validators: bftParameters?.validators,
+				validatorsHash: bftParameters?.validatorsHash,
+			});
+		}
+
+		if (newBlockHeader.aggregateCommit) {
+			const indexAggregateCommit = savedAggregateCommits.findIndex(
+				commit => commit.height === newBlockHeader.aggregateCommit.height,
+			);
+			if (indexAggregateCommit > -1) {
+				savedAggregateCommits[indexAggregateCommit] = newBlockHeader.aggregateCommit;
+			} else {
+				savedAggregateCommits.push(newBlockHeader.aggregateCommit);
+			}
+		}
+
+		// When # of CCMs are there on the outbox to be sent or # of blocks passed from last certified height
+		if (
+			this._ccuFrequency.ccm >= savedCrossChainMessages.length ||
+			this._ccuFrequency.liveness >= newBlockHeader.height - this._lastCertifiedHeight
+		) {
+			// TODO: _createCCU needs to be implemented which will create and send the CCU transaction
+			await this._createCCU();
+			// if the transaction is successfully submitted then update the last certfied height and do the cleanup
+			// TODO: also check if the state is growing, delete everything from the inMemory state if it goes beyond last 3 rounds
+			await this._cleanup();
+		}
+	}
+
+	private async _getCertificateFromAggregateCommit(
+		aggregateCommit: AggregateCommit,
+	): Promise<Certificate> {
+		const chainConnectorInfo = await getChainConnectorInfo(this._chainConnectorPluginDB);
+
+		const blockHeader = chainConnectorInfo.blockHeaders.find(
+			header => header.height === aggregateCommit.height,
+		)!;
+
+		const certificate = computeCertificateFromBlockHeader(blockHeader);
+		certificate.aggregationBits = blockHeader.aggregateCommit.aggregationBits;
+		certificate.signature = aggregateCommit.certificateSignature;
+
+		return certificate;
+	}
+
+	private async _checkChainOfTrust(
 		lastValidatorsHash: Buffer,
 		blsKeyToBFTWeight: Record<string, bigint>,
 		lastCertificateThreshold: BigInt,
 		aggregateCommit: AggregateCommit,
 	): Promise<boolean> {
-		const chainConnectorInfo = await getChainConnectorInfo(this._chainConnectorDB);
+		const chainConnectorInfo = await getChainConnectorInfo(this._chainConnectorPluginDB);
 
 		const blockHeader = chainConnectorInfo.blockHeaders.find(
 			header => BigInt(header.height) === lastCertificateThreshold,
@@ -185,4 +279,8 @@ export class ChainConnectorPlugin extends BasePlugin<ChainConnectorPluginConfig>
 
 		return false;
 	}
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	private async _createCCU() {}
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	private async _cleanup() {}
 }

@@ -17,19 +17,68 @@ import {
 	Certificate,
 	computeCertificateFromBlockHeader,
 	BFTHeights,
+	cryptography,
+	passphrase,
 	chain,
 	testing,
 	apiClient,
+	ApplicationConfigForPlugin,
+	GenesisConfig,
 } from 'lisk-sdk';
+import { when } from 'jest-when';
 import { CCM_BASED_CCU_FREQUENCY, LIVENESS_BASED_CCU_FREQUENCY } from '../../src/constants';
 import * as plugins from '../../src/chain_connector_plugin';
 import * as dbApi from '../../src/db';
+
+const appConfigForPlugin: ApplicationConfigForPlugin = {
+	rootPath: '~/.lisk',
+	label: 'my-app',
+	logger: {
+		consoleLogLevel: 'info',
+		fileLogLevel: 'none',
+		logFileName: 'plugin-ChainConnector.log',
+	},
+	system: {
+		keepEventsForHeights: -1,
+	},
+	rpc: {
+		modes: ['ipc'],
+		port: 8080,
+		host: '127.0.0.1',
+	},
+	generation: {
+		force: false,
+		waitThreshold: 2,
+		generators: [],
+		modules: {},
+	},
+	network: {
+		seedPeers: [],
+		port: 5000,
+	},
+	transactionPool: {
+		maxTransactions: 4096,
+		maxTransactionsPerAccount: 64,
+		transactionExpiryTime: 3 * 60 * 60 * 1000,
+		minEntranceFeePriority: '0',
+		minReplacementFeeDifference: '10',
+	},
+	version: '',
+	networkVersion: '',
+	genesis: {} as GenesisConfig,
+};
 
 describe('ChainConnectorPlugin', () => {
 	let chainConnectorPlugin: plugins.ChainConnectorPlugin;
 	const dbMock = {
 		get: jest.fn(),
 		set: jest.fn(),
+		close: jest.fn(),
+	};
+	const sidechainAPIClientMock = {
+		disconnect: jest.fn().mockResolvedValue({} as never),
+		invoke: jest.fn(),
+		subscribe: jest.fn(),
 	};
 
 	beforeEach(() => {
@@ -39,14 +88,15 @@ describe('ChainConnectorPlugin', () => {
 	});
 
 	describe('init', () => {
+		beforeEach(() => {
+			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(sidechainAPIClientMock as never);
+		});
+
 		it('should assign ccuFrequency properties to default values', async () => {
 			await chainConnectorPlugin.init({
 				logger: testing.mocks.loggerMock,
-				config: {
-					mainchainIPCPath: '~/.lisk/mainchain',
-					sidechainIPCPath: '~/.list/sidechain',
-				},
-				appConfig: testing.fixtures.defaultConfig as never,
+				config: { mainchainIPCPath: '~/.lisk/mainchain' },
+				appConfig: appConfigForPlugin,
 			});
 			expect(chainConnectorPlugin['_ccuFrequency'].ccm).toEqual(CCM_BASED_CCU_FREQUENCY);
 			expect(chainConnectorPlugin['_ccuFrequency'].liveness).toEqual(LIVENESS_BASED_CCU_FREQUENCY);
@@ -61,7 +111,7 @@ describe('ChainConnectorPlugin', () => {
 					ccmBasedFrequency: 100,
 					livenessBasedFrequency: 300000,
 				},
-				appConfig: testing.fixtures.defaultConfig as never,
+				appConfig: appConfigForPlugin,
 			});
 			expect(chainConnectorPlugin['_ccuFrequency'].ccm).toEqual(100);
 			expect(chainConnectorPlugin['_ccuFrequency'].liveness).toEqual(300000);
@@ -69,26 +119,43 @@ describe('ChainConnectorPlugin', () => {
 	});
 
 	describe('load', () => {
-		afterEach(async () => {
+		beforeEach(() => {
 			(chainConnectorPlugin as any)['_mainchainAPIClient'] = {
 				disconnect: jest.fn().mockResolvedValue({} as never),
+				invoke: jest.fn(),
+				subscribe: jest.fn().mockResolvedValue({} as never),
 			};
 			(chainConnectorPlugin as any)['_sidechainAPIClient'] = {
 				disconnect: jest.fn().mockResolvedValue({} as never),
+				invoke: jest.fn(),
+				subscribe: jest.fn().mockResolvedValue({} as never),
 			};
+		});
 
+		afterEach(async () => {
+			(chainConnectorPlugin as any)['_mainchainAPIClient'] = {
+				disconnect: jest.fn().mockResolvedValue({} as never),
+				invoke: jest.fn(),
+				subscribe: jest.fn().mockResolvedValue({} as never),
+			};
+			(chainConnectorPlugin as any)['_sidechainAPIClient'] = {
+				disconnect: jest.fn().mockResolvedValue({} as never),
+				invoke: jest.fn(),
+				subscribe: jest.fn().mockResolvedValue({} as never),
+			};
 			await chainConnectorPlugin.unload();
 		});
 
-		it('should initialize api clients and set sidechainAPIClient to apiClient if no sidechain is configured', async () => {
-			const appConfig = { ...testing.fixtures.defaultConfig, rpc: { modes: ['ipc'] } };
-
-			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue({} as never);
-
+		it('should initialize api clients without sidechain', async () => {
+			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue({
+				disconnect: jest.fn().mockResolvedValue({} as never),
+				invoke: jest.fn(),
+				subscribe: jest.fn().mockResolvedValue({} as never),
+			} as never);
 			await chainConnectorPlugin.init({
 				logger: testing.mocks.loggerMock,
 				config: { mainchainIPCPath: '~/.lisk/mainchain' },
-				appConfig: appConfig as never,
+				appConfig: appConfigForPlugin,
 			});
 
 			await chainConnectorPlugin.load();
@@ -98,16 +165,16 @@ describe('ChainConnectorPlugin', () => {
 		});
 
 		it('should initialize api clients with sidechain', async () => {
+			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue({
+				disconnect: jest.fn().mockResolvedValue({} as never),
+				invoke: jest.fn(),
+				subscribe: jest.fn().mockResolvedValue({} as never),
+			} as never);
 			await chainConnectorPlugin.init({
 				logger: testing.mocks.loggerMock,
-				config: {
-					mainchainIPCPath: '~/.lisk/mainchain',
-					sidechainIPCPath: '~/.lisk/sidechain',
-				},
-				appConfig: testing.fixtures.defaultConfig as never,
+				config: { mainchainIPCPath: '~/.lisk/mainchain', sidechainIPCPath: '~/.lisk/sidechain' },
+				appConfig: appConfigForPlugin,
 			});
-			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue({} as never);
-
 			await chainConnectorPlugin.load();
 
 			expect(chainConnectorPlugin['_mainchainAPIClient']).not.toBeUndefined();
@@ -115,26 +182,81 @@ describe('ChainConnectorPlugin', () => {
 		});
 
 		it('should initialize _chainConnectorDB', async () => {
+			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue({
+				disconnect: jest.fn().mockResolvedValue({} as never),
+				invoke: jest.fn(),
+				subscribe: jest.fn().mockResolvedValue({} as never),
+			} as never);
 			await chainConnectorPlugin.init({
 				logger: testing.mocks.loggerMock,
 				config: {
 					mainchainIPCPath: '~/.lisk/mainchain',
 					sidechainIPCPath: '~/.lisk/sidechain',
 				},
-				appConfig: testing.fixtures.defaultConfig as never,
+				appConfig: appConfigForPlugin,
 			});
-
-			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue({} as never);
 
 			await chainConnectorPlugin.load();
 
 			expect(dbApi.getDBInstance).toHaveBeenCalledTimes(1);
-			expect(chainConnectorPlugin['_chainConnectorDB']).toEqual(dbMock);
+			expect(chainConnectorPlugin['_chainConnectorPluginDB']).toEqual(dbMock);
 		});
 	});
 
-	describe('alias', () => {
-		it.todo('should have valid alias');
+	describe('_newBlockhandler', () => {
+		beforeEach(async () => {
+			(chainConnectorPlugin as any)['_sidechainAPIClient'] = sidechainAPIClientMock;
+			(chainConnectorPlugin as any)['_createCCU'] = jest.fn();
+			(chainConnectorPlugin as any)['_cleanup'] = jest.fn();
+		});
+
+		afterEach(async () => {
+			(chainConnectorPlugin as any)['_mainchainAPIClient'] = {
+				disconnect: jest.fn().mockResolvedValue({} as never),
+				invoke: jest.fn(),
+				subscribe: jest.fn().mockResolvedValue({} as never),
+			};
+			(chainConnectorPlugin as any)['_sidechainAPIClient'] = {
+				disconnect: jest.fn().mockResolvedValue({} as never),
+				invoke: jest.fn(),
+				subscribe: jest.fn().mockResolvedValue({} as never),
+			};
+			await chainConnectorPlugin.unload();
+		});
+
+		it('should invoke "consensus_getBFTParameters" on _sidechainAPIClient', async () => {
+			const block = await testing.createBlock({
+				networkIdentifier: cryptography.utils.getRandomBytes(32),
+				passphrase: passphrase.Mnemonic.generateMnemonic(),
+				previousBlockID: cryptography.utils.getRandomBytes(20),
+				timestamp: Math.floor(Date.now() / 1000),
+			});
+			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(sidechainAPIClientMock as never);
+			when(sidechainAPIClientMock.invoke)
+				.calledWith('consensus_getBFTParameters', { height: block.header.height })
+				.mockResolvedValue({
+					certificateThreshold: BigInt(70),
+					validators: [],
+					validatorsHash: cryptography.utils.getRandomBytes(20),
+				});
+			await chainConnectorPlugin.init({
+				logger: testing.mocks.loggerMock,
+				config: { mainchainIPCPath: '~/.lisk/mainchain' },
+				appConfig: appConfigForPlugin,
+			});
+
+			await chainConnectorPlugin.load();
+			await (chainConnectorPlugin as any)['_newBlockhandler']({
+				blockHeader: block.header.toJSON(),
+			});
+
+			expect(sidechainAPIClientMock.subscribe).toHaveBeenCalledTimes(2);
+			expect(sidechainAPIClientMock.invoke).toHaveBeenCalledWith('consensus_getBFTParameters', {
+				height: block.header.height,
+			});
+			expect((chainConnectorPlugin as any)['_createCCU']).toHaveBeenCalled();
+			expect((chainConnectorPlugin as any)['_cleanup']).toHaveBeenCalled();
+		});
 	});
 
 	describe('unload', () => {
@@ -218,16 +340,16 @@ describe('ChainConnectorPlugin', () => {
 		};
 
 		beforeEach(async () => {
+			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(sidechainAPIClientMock as never);
 			await chainConnectorPlugin.init({
 				logger: testing.mocks.loggerMock,
 				config: {
 					mainchainIPCPath: '~/.lisk/mainchain',
 					sidechainIPCPath: '~/.list/sidechain',
 				},
-				appConfig: testing.fixtures.defaultConfig as never,
+				appConfig: appConfigForPlugin,
 			});
 
-			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue({} as never);
 			await chainConnectorPlugin.load();
 
 			jest.spyOn(dbApi, 'getChainConnectorInfo').mockResolvedValue({
@@ -256,7 +378,7 @@ describe('ChainConnectorPlugin', () => {
 
 		describe('getCertificateFromAggregateCommit', () => {
 			it('should call getChainConnectorInfo', async () => {
-				await chainConnectorPlugin.getCertificateFromAggregateCommit(aggregateCommit);
+				await chainConnectorPlugin['_getCertificateFromAggregateCommit'](aggregateCommit);
 
 				expect(dbApi.getChainConnectorInfo).toHaveBeenCalledTimes(1);
 			});
@@ -267,7 +389,7 @@ describe('ChainConnectorPlugin', () => {
 				expectedCertificate.aggregationBits = Buffer.alloc(0);
 				expectedCertificate.signature = Buffer.alloc(0);
 
-				const certificate = await chainConnectorPlugin.getCertificateFromAggregateCommit(
+				const certificate = await chainConnectorPlugin['_getCertificateFromAggregateCommit'](
 					aggregateCommit,
 				);
 
@@ -282,15 +404,15 @@ describe('ChainConnectorPlugin', () => {
 				const blockHeader: chain.BlockHeader = new chain.BlockHeader(block.header);
 				expectedCertificate = computeCertificateFromBlockHeader(blockHeader);
 
-				chainConnectorPlugin['_sidechainAPIClient'].invoke = jest
+				(chainConnectorPlugin['_sidechainAPIClient'] as any).invoke = jest
 					.fn()
 					.mockResolvedValue(bftHeights);
 
-				chainConnectorPlugin.checkChainOfTrust = jest
+				chainConnectorPlugin['_checkChainOfTrust'] = jest
 					.fn()
 					.mockResolvedValueOnce(false)
 					.mockResolvedValueOnce(true);
-				chainConnectorPlugin.getCertificateFromAggregateCommit = jest
+				chainConnectorPlugin['_getCertificateFromAggregateCommit'] = jest
 					.fn()
 					.mockResolvedValue(expectedCertificate);
 			});
@@ -304,7 +426,7 @@ describe('ChainConnectorPlugin', () => {
 			it('should invoke consensus_getBFTHeights on _sidechainAPIClient', async () => {
 				await chainConnectorPlugin.getNextCertificateFromAggregateCommits(2, aggregateCommits);
 
-				expect(chainConnectorPlugin['_sidechainAPIClient'].invoke).toHaveBeenCalledWith(
+				expect((chainConnectorPlugin['_sidechainAPIClient'] as any).invoke).toHaveBeenCalledWith(
 					'consensus_getBFTHeights',
 				);
 			});
@@ -324,8 +446,8 @@ describe('ChainConnectorPlugin', () => {
 					aggregateCommits,
 				);
 
-				expect(chainConnectorPlugin.checkChainOfTrust).toHaveBeenCalledTimes(2);
-				expect(chainConnectorPlugin.getCertificateFromAggregateCommit).toHaveBeenCalledTimes(1);
+				expect(chainConnectorPlugin['_checkChainOfTrust']).toHaveBeenCalledTimes(2);
+				expect(chainConnectorPlugin['_getCertificateFromAggregateCommit']).toHaveBeenCalledTimes(1);
 
 				expect(certificate).toEqual(expectedCertificate);
 			});
@@ -333,7 +455,7 @@ describe('ChainConnectorPlugin', () => {
 
 		describe('checkChainOfTrust', () => {
 			it('should call getChainConnectorInfo', async () => {
-				await chainConnectorPlugin.checkChainOfTrust(
+				await chainConnectorPlugin['_checkChainOfTrust'](
 					block.header.validatorsHash,
 					blsKeyToBFTWeight,
 					BigInt(1),
@@ -344,7 +466,7 @@ describe('ChainConnectorPlugin', () => {
 			});
 
 			it('validates for valid lastValidatorsHash', async () => {
-				const valid = await chainConnectorPlugin.checkChainOfTrust(
+				const valid = await chainConnectorPlugin['_checkChainOfTrust'](
 					block.header.validatorsHash,
 					blsKeyToBFTWeight,
 					BigInt(2),
@@ -391,7 +513,7 @@ describe('ChainConnectorPlugin', () => {
 					],
 				} as never);
 
-				let valid = await chainConnectorPlugin.checkChainOfTrust(
+				let valid = await chainConnectorPlugin['_checkChainOfTrust'](
 					Buffer.from('0', 'hex'),
 					blsKeyToBFTWeight,
 					BigInt(2),
@@ -400,7 +522,7 @@ describe('ChainConnectorPlugin', () => {
 
 				expect(valid).toBe(true);
 
-				valid = await chainConnectorPlugin.checkChainOfTrust(
+				valid = await chainConnectorPlugin['_checkChainOfTrust'](
 					Buffer.from('0', 'hex'),
 					blsKeyToBFTWeight,
 					BigInt(-1),
@@ -411,7 +533,7 @@ describe('ChainConnectorPlugin', () => {
 			});
 
 			it('invalidates if aggregateBFTWeight is less than provided lastCertificateThreshold', async () => {
-				const valid = await chainConnectorPlugin.checkChainOfTrust(
+				const valid = await chainConnectorPlugin['_checkChainOfTrust'](
 					Buffer.from('0', 'hex'),
 					blsKeyToBFTWeight,
 					BigInt(2),
