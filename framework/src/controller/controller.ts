@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { StateDB } from '@liskhq/lisk-db';
+import { Database, StateDB } from '@liskhq/lisk-db';
 import * as childProcess from 'child_process';
 import { ChildProcess } from 'child_process';
 import * as path from 'path';
@@ -34,6 +34,7 @@ export interface ControllerOptions {
 
 interface ControllerInitArg {
 	readonly stateDB: StateDB;
+	readonly moduleDB: Database;
 	readonly logger: Logger;
 	readonly endpoints: EndpointHandlers;
 	readonly events: string[];
@@ -66,6 +67,7 @@ export class Controller {
 	// Injected at init
 	private _logger!: Logger;
 	private _stateDB!: StateDB;
+	private _moduleDB!: Database;
 
 	// Assigned at init
 	private _channel?: InMemoryChannel;
@@ -111,11 +113,13 @@ export class Controller {
 
 	public init(arg: ControllerInitArg): void {
 		this._stateDB = arg.stateDB;
+		this._moduleDB = arg.moduleDB;
 		this._logger = arg.logger;
 		// Create root channel
 		this._channel = new InMemoryChannel(
 			this._logger,
 			this._stateDB,
+			this._moduleDB,
 			APP_IDENTIFIER,
 			arg.events,
 			arg.endpoints,
@@ -155,7 +159,14 @@ export class Controller {
 		this._logger.info('Starting controller');
 		await this.channel.registerToBus(this._bus);
 		for (const [namespace, handlers] of Object.entries(this._endpointHandlers)) {
-			const channel = new InMemoryChannel(this._logger, this._stateDB, namespace, [], handlers);
+			const channel = new InMemoryChannel(
+				this._logger,
+				this._stateDB,
+				this._moduleDB,
+				namespace,
+				[],
+				handlers,
+			);
 			await channel.registerToBus(this._bus);
 		}
 		await this._bus.start(this._logger);
@@ -235,6 +246,7 @@ export class Controller {
 		const channel = new InMemoryChannel(
 			this._logger,
 			this._stateDB,
+			this._moduleDB,
 			name,
 			plugin.events,
 			plugin.endpoint ? getEndpointHandlers(plugin.endpoint) : {},

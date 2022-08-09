@@ -281,6 +281,7 @@ export class Application {
 			this._controller.init({
 				logger: this.logger,
 				stateDB: this._stateDB,
+				moduleDB: this._moduleDB,
 				endpoints: this._rootEndpoints(),
 				events: [APP_EVENT_READY.replace('app_', ''), APP_EVENT_SHUTDOWN.replace('app_', '')],
 			});
