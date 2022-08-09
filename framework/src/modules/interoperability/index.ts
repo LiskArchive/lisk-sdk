@@ -20,3 +20,16 @@ export * from './mainchain/commands';
 export { SidechainInteroperabilityModule } from './sidechain/module';
 export { SidechainInteroperabilityMethod } from './sidechain/method';
 export * from './sidechain/commands';
+export {
+	CCMsg,
+	ChainAccount,
+	ChainAccountJSON,
+	ChannelData,
+	ChannelDataJSON,
+	Inbox,
+	InboxJSON,
+	Outbox,
+	OutboxJSON,
+	MessageFeeTokenID,
+	MessageFeeTokenIDJSON,
+} from './types';

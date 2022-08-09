@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { AggregateCommit } from 'lisk-sdk';
 import {
+	AggregateCommit,
 	ChannelData,
 	ChannelDataJSON,
 	Inbox,
@@ -22,8 +22,8 @@ import {
 	MessageFeeTokenIDJSON,
 	Outbox,
 	OutboxJSON,
-	ValidatorsData,
-} from './types';
+} from 'lisk-sdk';
+import { ValidatorsData } from './types';
 
 export const aggregateCommitToJSON = (aggregateCommit: AggregateCommit) => ({
 	height: aggregateCommit.height,
