@@ -137,6 +137,7 @@ describe('InMemoryChannel', () => {
 				const inMemoryChannelOmega = new InMemoryChannel(
 					logger,
 					new InMemoryDatabase() as any,
+					new InMemoryDatabase() as any,
 					omegaName,
 					[omegaEventName],
 					{},
