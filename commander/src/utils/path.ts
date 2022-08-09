@@ -63,6 +63,11 @@ export const ensureConfigDir = (dataPath: string, network: string): void =>
 export const getBlockchainDBPath = (dataPath: string): string =>
 	path.join(dataPath, 'data', 'blockchain.db');
 
+export const getStateDBPath = (dataPath: string): string => path.join(dataPath, 'data', 'state.db');
+
+export const getModuleDBPath = (dataPath: string): string =>
+	path.join(dataPath, 'data', 'module.db');
+
 export const getForgerDBPath = (dataPath: string): string =>
 	path.join(dataPath, 'data', 'forger.db');
 
