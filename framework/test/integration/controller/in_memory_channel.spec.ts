@@ -70,6 +70,7 @@ describe('InMemoryChannel', () => {
 			inMemoryChannelAlpha = new InMemoryChannel(
 				logger,
 				new InMemoryDatabase() as any,
+				new InMemoryDatabase() as any,
 				alpha.moduleName,
 				alpha.events,
 				alpha.endpoints,
@@ -79,6 +80,7 @@ describe('InMemoryChannel', () => {
 
 			inMemoryChannelBeta = new InMemoryChannel(
 				logger,
+				new InMemoryDatabase() as any,
 				new InMemoryDatabase() as any,
 				beta.moduleName,
 				beta.events,
