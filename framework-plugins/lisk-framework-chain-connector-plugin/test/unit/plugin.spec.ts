@@ -85,6 +85,7 @@ describe('ChainConnectorPlugin', () => {
 		chainConnectorPlugin = new plugins.ChainConnectorPlugin();
 
 		jest.spyOn(dbApi, 'getDBInstance').mockResolvedValue(dbMock as never);
+		jest.spyOn(dbApi, 'setChainConnectorInfo').mockResolvedValue();
 	});
 
 	describe('init', () => {
@@ -541,6 +542,91 @@ describe('ChainConnectorPlugin', () => {
 				);
 
 				expect(valid).toBe(false);
+			});
+		});
+	});
+
+	describe('Cleanup Functions', () => {
+		beforeEach(async () => {
+			jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue(sidechainAPIClientMock as never);
+			await chainConnectorPlugin.init({
+				logger: testing.mocks.loggerMock,
+				config: {
+					mainchainIPCPath: '~/.lisk/mainchain',
+					sidechainIPCPath: '~/.list/sidechain',
+				},
+				appConfig: appConfigForPlugin,
+			});
+
+			await chainConnectorPlugin.load();
+
+			chainConnectorPlugin['_lastCertifiedHeight'] = 6;
+		});
+
+		describe('deleteBlockHeaders', () => {
+			beforeEach(async () => {
+				jest.spyOn(dbApi, 'getChainConnectorInfo').mockResolvedValue({
+					blockHeaders: [
+						{
+							height: 5,
+						},
+						{
+							height: 6,
+						},
+					],
+				} as never);
+			});
+
+			it('deletes block headers with height less than _lastCertifiedHeight', async () => {
+				await chainConnectorPlugin.deleteBlockHeaders();
+
+				expect(dbApi.getChainConnectorInfo).toBeCalledTimes(1);
+
+				expect(dbApi.setChainConnectorInfo).toHaveBeenCalledWith(dbMock, {
+					blockHeaders: [{ height: 6 }],
+				});
+			});
+		});
+
+		describe('deleteAggregateCommits', () => {
+			beforeEach(async () => {
+				jest.spyOn(dbApi, 'getChainConnectorInfo').mockResolvedValue({
+					aggregateCommits: [
+						{
+							height: 5,
+						},
+					],
+				} as never);
+			});
+
+			it('deletes aggregate commits with height less than _lastCertifiedHeight', async () => {
+				await chainConnectorPlugin.deleteAggregateCommits();
+
+				expect(dbApi.getChainConnectorInfo).toBeCalledTimes(1);
+
+				expect(dbApi.setChainConnectorInfo).toHaveBeenCalledWith(dbMock, { aggregateCommits: [] });
+			});
+		});
+
+		describe('deleteValidatorsHashPreimage', () => {
+			beforeEach(async () => {
+				jest.spyOn(dbApi, 'getChainConnectorInfo').mockResolvedValue({
+					validatorsHashPreimage: [
+						{
+							certificateThreshold: 5,
+						},
+					],
+				} as never);
+			});
+
+			it('deletes validatorsHashPreimage with certificate threshold less than _lastCertifiedHeight', async () => {
+				await chainConnectorPlugin.deleteValidatorsHashPreimage();
+
+				expect(dbApi.getChainConnectorInfo).toBeCalledTimes(1);
+
+				expect(dbApi.setChainConnectorInfo).toHaveBeenCalledWith(dbMock, {
+					validatorsHashPreimage: [],
+				});
 			});
 		});
 	});
