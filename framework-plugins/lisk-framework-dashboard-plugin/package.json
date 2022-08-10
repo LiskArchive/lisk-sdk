@@ -35,7 +35,7 @@
 		"build": "npm run build:node && npm run build:web",
 		"build:node": "tsc",
 		"build:web": "parcel build --dist-dir build public/index.html",
-		"start:web": "parcel public/index.html",
+		"start:web": "parcel --dist-dir build public/index.html",
 		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
@@ -99,9 +99,5 @@
 	],
 	"targets": {
 		"main": false
-	},
-	"alias": {
-		"zeromq": "./_empty.js",
-		"@chainsafe/blst": "./_empty.js"
 	}
 }
