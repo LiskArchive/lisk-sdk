@@ -164,6 +164,7 @@ describe.skip('IPCChannel', () => {
 				const inMemoryChannelOmega = new InMemoryChannel(
 					logger,
 					{} as any,
+					{} as any,
 					omegaName,
 					[omegaEventName],
 					{},
