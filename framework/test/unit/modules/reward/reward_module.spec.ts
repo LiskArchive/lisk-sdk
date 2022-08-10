@@ -101,8 +101,9 @@ describe('RewardModule', () => {
 		});
 
 		it('should emit rewardMinted event for event type REWARD_NO_REDUCTION', async () => {
-			rewardModule.api.getBlockReward = jest.fn().mockReturnValue([BigInt(0), REWARD_NO_REDUCTION]);
+			rewardModule.api.getBlockReward = jest.fn().mockReturnValue([BigInt(1), REWARD_NO_REDUCTION]);
 			await rewardModule.afterTransactionsExecute(blockAfterExecuteContext);
+			expect(mint).toHaveBeenCalledTimes(1);
 			expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().typeID).toBe(
 				TYPE_ID_REWARD_MINTED,
 			);
@@ -113,6 +114,7 @@ describe('RewardModule', () => {
 				.fn()
 				.mockReturnValue([BigInt(0), REWARD_REDUCTION_SEED_REVEAL]);
 			await rewardModule.afterTransactionsExecute(blockAfterExecuteContext);
+			expect(mint).toHaveBeenCalledTimes(0);
 			expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().typeID).toBe(
 				TYPE_ID_REWARD_MINTED,
 			);
@@ -125,6 +127,7 @@ describe('RewardModule', () => {
 					BigInt(1) / BigInt(REWARD_REDUCTION_FACTOR_BFT),
 					REWARD_REDUCTION_MAX_PREVOTES,
 				]);
+			expect(mint).toHaveBeenCalledTimes(0);
 			await rewardModule.afterTransactionsExecute(blockAfterExecuteContext);
 			expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().typeID).toBe(
 				TYPE_ID_REWARD_MINTED,
