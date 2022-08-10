@@ -187,7 +187,7 @@ export class RPCServer {
 			this._logger.error('Empty invoke request.');
 			throw new JSONRPC.JSONRPCError(
 				'Invalid invoke request.',
-				JSONRPC.errorResponse(null, JSONRPC.invalidRequest()),
+				JSONRPC.errorResponse(null, JSONRPC.invalidRequest('Invalid invoke request.')),
 			);
 		}
 		let requestObj: unknown;
@@ -196,7 +196,10 @@ export class RPCServer {
 		} catch (error) {
 			throw new JSONRPC.JSONRPCError(
 				'Invalid RPC request. Failed to parse request params.',
-				JSONRPC.errorResponse(null, JSONRPC.invalidRequest()),
+				JSONRPC.errorResponse(
+					null,
+					JSONRPC.invalidRequest('Invalid RPC request. Failed to parse request params.'),
+				),
 			);
 		}
 
@@ -206,7 +209,10 @@ export class RPCServer {
 			this._logger.error({ err: error as Error }, 'Invalid RPC request.');
 			throw new JSONRPC.JSONRPCError(
 				'Invalid RPC request. Invalid request format.',
-				JSONRPC.errorResponse(null, JSONRPC.invalidRequest()),
+				JSONRPC.errorResponse(
+					null,
+					JSONRPC.invalidRequest('Invalid RPC request. Invalid request format.'),
+				),
 			);
 		}
 
@@ -230,14 +236,17 @@ export class RPCServer {
 				);
 			}
 			const result = await handler(context);
-			return request.buildJSONRPCResponse({ result }) as JSONRPC.ResponseObjectWithResult;
+			return request.buildJSONRPCResponse({
+				result: result ?? {},
+			}) as JSONRPC.ResponseObjectWithResult;
 		} catch (error) {
 			if (error instanceof JSONRPC.JSONRPCError) {
 				throw error;
 			}
+
 			throw new JSONRPC.JSONRPCError(
 				(error as Error).message,
-				JSONRPC.errorResponse(requestObj.id, JSONRPC.invalidRequest()),
+				JSONRPC.errorResponse(requestObj.id, JSONRPC.invalidRequest((error as Error).message)),
 			);
 		}
 	}

@@ -97,8 +97,8 @@ export const errorResponse = (id: ID, error: JSONRPCErrorObject): ResponseObject
 	error,
 });
 
-export const invalidRequest = (): JSONRPCErrorObject => ({
-	message: 'Invalid request',
+export const invalidRequest = (msg?: string): JSONRPCErrorObject => ({
+	message: msg ?? 'Invalid request',
 	code: -32600,
 });
 

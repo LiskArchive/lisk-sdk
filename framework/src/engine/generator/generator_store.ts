@@ -12,11 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Batch, NotFoundError as DBNotFoundError } from '@liskhq/lisk-db';
+import { Batch, IterateOptions, NotFoundError as DBNotFoundError } from '@liskhq/lisk-db';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { NotFoundError } from './errors';
 import { GeneratorDB } from './types';
 
+interface KeyValue {
+	key: Buffer;
+	value: Buffer;
+}
 export class GeneratorStore {
 	private readonly _db: GeneratorDB;
 	private readonly _data: dataStructures.BufferMap<Buffer>;
@@ -54,6 +58,29 @@ export class GeneratorStore {
 	public async set(key: Buffer, value: Buffer): Promise<void> {
 		const prefixedKey = this._getKey(key);
 		this._data.set(prefixedKey, value);
+	}
+
+	public async iterate(options: IterateOptions): Promise<KeyValue[]> {
+		const optionsWithKey = {
+			...options,
+			gte: options.gte ? this._getKey(options.gte) : undefined,
+			lte: options.lte ? this._getKey(options.lte) : undefined,
+		};
+		const stream = this._db.iterate(optionsWithKey);
+		const result = await new Promise<KeyValue[]>((resolve, reject) => {
+			const pairs: KeyValue[] = [];
+			stream
+				.on('data', ({ key, value }: { key: Buffer; value: Buffer }) => {
+					pairs.push({ key, value });
+				})
+				.on('error', error => {
+					reject(error);
+				})
+				.on('end', () => {
+					resolve(pairs);
+				});
+		});
+		return result;
 	}
 
 	public finalize(batch: Batch): void {

@@ -50,7 +50,13 @@ import { GeneratorStore } from './generator_store';
 import { NetworkEndpoint } from './network_endpoint';
 import { GetTransactionResponse, getTransactionsResponseSchema } from './schemas';
 import { HighFeeGenerationStrategy } from './strategies';
-import { Consensus, BlockGenerateInput, Keypair, GenerationConfig } from './types';
+import {
+	Consensus,
+	BlockGenerateInput,
+	Keypair,
+	GenerationConfig,
+	PlainGeneratorKeyData,
+} from './types';
 import { getOrDefaultLastGeneratedInfo, setLastGeneratedInfo } from './generated_info';
 import { CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED } from '../consensus/constants';
 import {
@@ -96,6 +102,7 @@ export class Generator {
 	private readonly _keypairs: dataStructures.BufferMap<Keypair>;
 	private readonly _broadcaster: Broadcaster;
 	private readonly _forgingStrategy: HighFeeGenerationStrategy;
+	private readonly _blockTime: number;
 
 	private _logger!: Logger;
 	private _generatorDB!: Database;
@@ -120,6 +127,7 @@ export class Generator {
 				`generation.waitThreshold=${this._config.waitThreshold} is greater or equal to genesisConfig.blockTime=${args.genesisConfig.blockTime}. It impacts the block generation and propagation. Please use a smaller value for generation.waitThreshold`,
 			);
 		}
+		this._blockTime = args.genesisConfig.blockTime;
 		this._chain = args.chain;
 		this._bft = args.bft;
 		this._consensus = args.consensus;
@@ -133,9 +141,10 @@ export class Generator {
 
 		this._endpoint = new Endpoint({
 			abi: this._abi,
-			generators: this._config.generators,
-			keypair: this._keypairs,
+			keypair: new dataStructures.BufferMap<PlainGeneratorKeyData>(),
 			consensus: this._consensus,
+			blockTime: this._blockTime,
+			chain: this._chain,
 		});
 		this._networkEndpoint = new NetworkEndpoint({
 			abi: this._abi,
