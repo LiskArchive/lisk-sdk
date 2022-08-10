@@ -99,12 +99,14 @@ export class RewardModule extends BaseModule {
 			throw new Error("Block reward can't be negative.");
 		}
 
-		await this._tokenAPI.mint(
-			context.getAPIContext(),
-			context.header.generatorAddress,
-			this._tokenID,
-			blockReward,
-		);
+		if (blockReward !== BigInt(0)) {
+			await this._tokenAPI.mint(
+				context.getAPIContext(),
+				context.header.generatorAddress,
+				this._tokenID,
+				blockReward,
+			);
+		}
 
 		const rewardMintedData: RewardMintedData = {
 			amount: blockReward,
