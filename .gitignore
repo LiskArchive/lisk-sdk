@@ -71,6 +71,7 @@ browsertest/browsertest.min.js
 browsertest/src
 browsertest/test
 tsconfig.tsbuildinfo
+.parcel-cache
 
 # Unsupported lock files
 package-lock.json
