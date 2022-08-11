@@ -35,13 +35,6 @@ export const defaultConfig = {
 		communityIdentifier: 'sdk',
 		maxTransactionsSize: 15 * 1024, // Kilo Bytes
 		minFeePerByte: 1000,
-		baseFees: [
-			{
-				moduleID: utils.intToBuffer(12, 4),
-				commandID: utils.intToBuffer(0, 4),
-				baseFee: '1000000000',
-			},
-		],
 		modules: {},
 	},
 	generation: {
