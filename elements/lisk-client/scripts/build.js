@@ -77,7 +77,6 @@ const bundle = () => {
 			zeromq: require.resolve('./_empty.js'),
 		},
 		standalone: 'lisk',
-		browserField: false,
 	});
 
 	b.bundle()
