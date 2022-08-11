@@ -137,7 +137,6 @@ export class ForgerPlugin extends BasePlugin {
 		const { genesisConfig } = await this.apiClient.invoke<NodeInfo>('system_getNodeInfo');
 		this._transactionFees = {
 			minFeePerByte: genesisConfig.minFeePerByte,
-			baseFees: genesisConfig.baseFees,
 		};
 	}
 
@@ -389,12 +388,7 @@ export class ForgerPlugin extends BasePlugin {
 
 		for (const txJSON of transactions) {
 			const trx = chain.Transaction.fromJSON(txJSON);
-			const baseFee =
-				this._transactionFees.baseFees.find(
-					bf => bf.moduleID.equals(trx.moduleID) && bf.commandID.equals(trx.commandID),
-				)?.baseFee ?? '0';
 			const minFeeRequired =
-				BigInt(baseFee) +
 				BigInt(this._transactionFees.minFeePerByte) * BigInt(trx.getBytes().length);
 			fee += BigInt(trx.fee) - minFeeRequired;
 		}
