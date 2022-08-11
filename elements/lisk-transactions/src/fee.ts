@@ -15,22 +15,14 @@
 
 import { getBytes } from './sign';
 
-interface BaseFee {
-	readonly moduleID: Buffer;
-	readonly commandID: Buffer;
-	readonly baseFee: string;
-}
-
 interface Options {
 	readonly minFeePerByte?: number;
-	readonly baseFees?: BaseFee[];
 	readonly numberOfSignatures?: number;
 	readonly numberOfEmptySignatures?: number;
 }
 
 const DEFAULT_MIN_FEE_PER_BYTE = 1000;
 const DEFAULT_NUMBER_OF_SIGNATURES = 1;
-const DEFAULT_BASE_FEE = '0';
 const DEFAULT_SIGNATURE_BYTE_SIZE = 64;
 
 const computeTransactionMinFee = (
@@ -51,12 +43,8 @@ const computeTransactionMinFee = (
 		},
 		assetSchema,
 	).length;
-	const baseFee =
-		options?.baseFees?.find(
-			bf =>
-				bf.moduleID.equals(trx.moduleID as Buffer) && bf.commandID.equals(trx.commandID as Buffer),
-		)?.baseFee ?? DEFAULT_BASE_FEE;
-	return BigInt(size * (options?.minFeePerByte ?? DEFAULT_MIN_FEE_PER_BYTE)) + BigInt(baseFee);
+
+	return BigInt(size * (options?.minFeePerByte ?? DEFAULT_MIN_FEE_PER_BYTE));
 };
 
 export const computeMinFee = (
