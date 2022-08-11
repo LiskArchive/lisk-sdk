@@ -108,10 +108,6 @@ export class Generator {
 		this._pool = new TransactionPool({
 			maxPayloadLength: args.genesisConfig.maxTransactionsSize,
 			minFeePerByte: args.genesisConfig.minFeePerByte,
-			baseFees: args.genesisConfig.baseFees.map(fees => ({
-				...fees,
-				baseFee: BigInt(fees.baseFee),
-			})),
 			applyTransactions: async (transactions: Transaction[]) =>
 				this._verifyTransaction(transactions),
 		});
