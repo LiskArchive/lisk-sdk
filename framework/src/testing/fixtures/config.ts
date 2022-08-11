@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { utils, encrypt } from '@liskhq/lisk-cryptography';
+import { encrypt } from '@liskhq/lisk-cryptography';
 
 export const defaultPassword =
 	'tiger grit rigid pipe athlete cheese guitar hurdle remind gap peasant pond';
