@@ -50,6 +50,7 @@ describe('ValidatorsModuleEndpoint', () => {
 							blsKey: pk.toString('hex'),
 						},
 						networkIdentifier,
+						getOffchainStore: jest.fn(),
 					}),
 				).resolves.toStrictEqual({ valid: false });
 			});
@@ -66,6 +67,7 @@ describe('ValidatorsModuleEndpoint', () => {
 							blsKey: pk.toString('hex'),
 						},
 						networkIdentifier,
+						getOffchainStore: jest.fn(),
 					}),
 				).resolves.toStrictEqual({ valid: false });
 			});
@@ -83,6 +85,7 @@ describe('ValidatorsModuleEndpoint', () => {
 								'b301803f8b5ac4a1133581fc676dfedc60d891dd5fa99028805e5ea5b08d3491af75d0707adab3b70c6a6a580217bf81',
 						},
 						networkIdentifier,
+						getOffchainStore: jest.fn(),
 					}),
 				).resolves.toStrictEqual({ valid: true });
 			});
@@ -99,6 +102,7 @@ describe('ValidatorsModuleEndpoint', () => {
 							invalid: 'schema',
 						},
 						networkIdentifier,
+						getOffchainStore: jest.fn(),
 					}),
 				).rejects.toThrow();
 			});
@@ -114,6 +118,7 @@ describe('ValidatorsModuleEndpoint', () => {
 							blsKey: 'xxxx',
 						},
 						networkIdentifier,
+						getOffchainStore: jest.fn(),
 					}),
 				).rejects.toThrow();
 			});

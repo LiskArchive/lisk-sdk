@@ -164,6 +164,7 @@ export interface PluginEndpointContext {
 
 export interface ModuleEndpointContext extends PluginEndpointContext {
 	getStore: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
+	getOffchainStore: (moduleID: Buffer, storePrefix?: number) => ImmutableSubStore;
 	getImmutableAPIContext: () => ImmutableAPIContext;
 	networkIdentifier: Buffer;
 }

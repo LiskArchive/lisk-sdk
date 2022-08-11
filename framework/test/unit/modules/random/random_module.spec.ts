@@ -130,11 +130,12 @@ describe('RandomModule', () => {
 				networkIdentifier: defaultNetworkIdentifier,
 				getAPIContext: jest.fn() as any,
 				getStore: jest.fn() as any,
+				// getOffchainStore: jest.fn() as any,
 				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
 			});
 
 			await blockGenerateContext
-				.getGeneratorStore(randomModule.id)
+				.getOffchainStore(randomModule.id)
 				.set(
 					STORE_PREFIX_USED_HASH_ONION,
 					codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnion),
@@ -162,7 +163,7 @@ describe('RandomModule', () => {
 				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[7] }),
 			);
 			await expect(
-				blockGenerateContext.getGeneratorStore(randomModule.id).get(STORE_PREFIX_USED_HASH_ONION),
+				blockGenerateContext.getOffchainStore(randomModule.id).get(STORE_PREFIX_USED_HASH_ONION),
 			).resolves.toEqual(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated));
 		});
 
@@ -178,7 +179,7 @@ describe('RandomModule', () => {
 				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
 			});
 			await blockGenerateContext
-				.getGeneratorStore(randomModule.id)
+				.getOffchainStore(randomModule.id)
 				.set(
 					STORE_PREFIX_USED_HASH_ONION,
 					codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnion),
@@ -206,7 +207,7 @@ describe('RandomModule', () => {
 				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[7] }),
 			);
 			await expect(
-				blockGenerateContext.getGeneratorStore(randomModule.id).get(STORE_PREFIX_USED_HASH_ONION),
+				blockGenerateContext.getOffchainStore(randomModule.id).get(STORE_PREFIX_USED_HASH_ONION),
 			).resolves.toEqual(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated));
 		});
 
@@ -241,7 +242,7 @@ describe('RandomModule', () => {
 				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
 			});
 			await blockGenerateContext
-				.getGeneratorStore(randomModule.id)
+				.getOffchainStore(randomModule.id)
 				.set(
 					STORE_PREFIX_USED_HASH_ONION,
 					codec.encode(usedHashOnionsStoreSchema, usedHashOnionInput),
@@ -269,7 +270,7 @@ describe('RandomModule', () => {
 				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[7] }),
 			);
 			await expect(
-				blockGenerateContext.getGeneratorStore(randomModule.id).get(STORE_PREFIX_USED_HASH_ONION),
+				blockGenerateContext.getOffchainStore(randomModule.id).get(STORE_PREFIX_USED_HASH_ONION),
 			).resolves.toEqual(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated));
 		});
 
@@ -294,7 +295,7 @@ describe('RandomModule', () => {
 			);
 
 			await blockGenerateContext
-				.getGeneratorStore(randomModule.id)
+				.getOffchainStore(randomModule.id)
 				.set(
 					STORE_PREFIX_USED_HASH_ONION,
 					codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnion),
@@ -316,7 +317,7 @@ describe('RandomModule', () => {
 			);
 
 			await expect(
-				blockGenerateContext.getGeneratorStore(randomModule.id).get(STORE_PREFIX_USED_HASH_ONION),
+				blockGenerateContext.getOffchainStore(randomModule.id).get(STORE_PREFIX_USED_HASH_ONION),
 			).resolves.toEqual(
 				codec.encode(usedHashOnionsStoreSchema, {
 					usedHashOnions: defaultUsedHashOnionUpdated.usedHashOnions.filter(
@@ -371,7 +372,7 @@ describe('RandomModule', () => {
 				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
 			});
 			await blockGenerateContext
-				.getGeneratorStore(randomModule.id)
+				.getOffchainStore(randomModule.id)
 				.set(
 					STORE_PREFIX_USED_HASH_ONION,
 					codec.encode(usedHashOnionsStoreSchema, usedHashOnionInput),
@@ -388,7 +389,7 @@ describe('RandomModule', () => {
 			// Assert
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
 			await expect(
-				blockGenerateContext.getGeneratorStore(randomModule.id).get(STORE_PREFIX_USED_HASH_ONION),
+				blockGenerateContext.getOffchainStore(randomModule.id).get(STORE_PREFIX_USED_HASH_ONION),
 			).resolves.toEqual(codec.encode(usedHashOnionsStoreSchema, usedHashOnionOutput));
 			expect(blockGenerateContext.logger.warn).toHaveBeenCalledWith(
 				'All of the hash onion has been used already. Please update to the new hash onion.',

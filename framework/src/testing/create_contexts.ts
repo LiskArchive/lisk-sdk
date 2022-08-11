@@ -141,7 +141,7 @@ export const createBlockContext = (params: {
 
 export const createBlockGenerateContext = (params: {
 	assets?: WritableBlockAssets;
-	getGeneratorStore?: (moduleID: Buffer) => SubStore;
+	getOffchainStore?: (moduleID: Buffer) => SubStore;
 	logger?: Logger;
 	getAPIContext?: () => APIContext;
 	getStore?: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
@@ -151,7 +151,7 @@ export const createBlockGenerateContext = (params: {
 }): InsertAssetContext => {
 	const db = new InMemoryDatabase();
 	const generatorStore = new StateStore(db);
-	const getGeneratorStore = (moduleID: Buffer) => generatorStore.getStore(moduleID, 0);
+	const getOffchainStore = (moduleID: Buffer) => generatorStore.getStore(moduleID, 0);
 	const header =
 		params.header ??
 		new BlockHeader({
@@ -178,7 +178,7 @@ export const createBlockGenerateContext = (params: {
 
 	const ctx: InsertAssetContext = {
 		assets: params.assets ?? new BlockAssets([]),
-		getGeneratorStore: params.getGeneratorStore ?? getGeneratorStore,
+		getOffchainStore: params.getOffchainStore ?? getOffchainStore,
 		logger: params.logger ?? loggerMock,
 		networkIdentifier: params.networkIdentifier ?? utils.getRandomBytes(32),
 		getAPIContext: params.getAPIContext ?? (() => ({ getStore, eventQueue: new EventQueue() })),
@@ -267,6 +267,7 @@ export const createTransientModuleEndpointContext = (params: {
 	const networkIdentifier = params.networkIdentifier ?? Buffer.alloc(0);
 	const ctx = {
 		getStore: (moduleID: Buffer, storePrefix: number) => stateStore.getStore(moduleID, storePrefix),
+		getOffchainStore: (moduleID: Buffer) => stateStore.getStore(moduleID, 0),
 		getImmutableAPIContext: () => createImmutableAPIContext(stateStore),
 		params: parameters,
 		logger,

@@ -15,7 +15,7 @@
 import * as childProcess from 'child_process';
 import * as os from 'os';
 import * as fs from 'fs-extra';
-import { InMemoryDatabase, StateDB } from '@liskhq/lisk-db';
+import { Database, InMemoryDatabase, StateDB } from '@liskhq/lisk-db';
 import { BasePlugin } from '../../../src/plugins/base_plugin';
 import * as controllerModule from '../../../src/controller/controller';
 import { Controller } from '../../../src/controller/controller';
@@ -96,6 +96,7 @@ describe('Controller Class', () => {
 
 	const initParams = {
 		stateDB: (new InMemoryDatabase() as unknown) as StateDB,
+		moduleDB: (new InMemoryDatabase() as unknown) as Database,
 		logger: loggerMock,
 		events: ['app_start', 'app_blockNew'],
 		endpoints: {
