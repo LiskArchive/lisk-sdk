@@ -99,9 +99,7 @@ describe('FeeModule', () => {
 				params: utils.getRandomBytes(32),
 			});
 			const result = await feeModule.verifyTransaction({ transaction } as any);
-			const expectedMinFee =
-				BigInt(feeModule['_minFeePerByte'] * transaction.getBytes().length) +
-				BigInt(feeModule['_extraFee'](transaction.moduleID, transaction.commandID));
+			const expectedMinFee = BigInt(feeModule['_minFeePerByte'] * transaction.getBytes().length);
 
 			expect(result.status).toEqual(VerifyStatus.FAIL);
 			expect(result.error).toEqual(
