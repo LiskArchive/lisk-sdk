@@ -12,6 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import {
+	ED25519_PUBLIC_KEY_LENGTH,
+	ED25519_SIGNATURE_LENGTH,
+	MAX_NUMBER_OF_SIGNATURES,
+} from './constants';
+
 export const authAccountSchema = {
 	$id: '/auth/account',
 	type: 'object',
@@ -24,28 +30,28 @@ export const authAccountSchema = {
 			dataType: 'uint32',
 			fieldNumber: 2,
 			minimum: 0,
-			maximum: 64,
+			maximum: MAX_NUMBER_OF_SIGNATURES,
 		},
 		mandatoryKeys: {
 			type: 'array',
 			items: {
 				dataType: 'bytes',
-				minLength: 32,
-				maxLength: 32,
+				minLength: ED25519_PUBLIC_KEY_LENGTH,
+				maxLength: ED25519_PUBLIC_KEY_LENGTH,
 			},
 			minItems: 0,
-			maxItems: 64,
+			maxItems: MAX_NUMBER_OF_SIGNATURES,
 			fieldNumber: 3,
 		},
 		optionalKeys: {
 			type: 'array',
 			items: {
 				dataType: 'bytes',
-				minLength: 32,
-				maxLength: 32,
+				minLength: ED25519_PUBLIC_KEY_LENGTH,
+				maxLength: ED25519_PUBLIC_KEY_LENGTH,
 			},
 			minItems: 0,
-			maxItems: 64,
+			maxItems: MAX_NUMBER_OF_SIGNATURES,
 			fieldNumber: 4,
 		},
 	},
@@ -141,6 +147,85 @@ export const genesisAuthStoreSchema = {
 					},
 				},
 			},
+		},
+	},
+};
+
+// Events schema
+export const multisigRegDataSchema = {
+	$id: '/auth/events/multisigRegData',
+	type: 'object',
+	required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
+	properties: {
+		numberOfSignatures: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		mandatoryKeys: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+				minLength: ED25519_PUBLIC_KEY_LENGTH,
+				maxLength: ED25519_PUBLIC_KEY_LENGTH,
+			},
+			fieldNumber: 2,
+		},
+		optionalKeys: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+				minLength: ED25519_PUBLIC_KEY_LENGTH,
+				maxLength: ED25519_PUBLIC_KEY_LENGTH,
+			},
+			fieldNumber: 3,
+		},
+	},
+};
+
+export const invalidSigDataSchema = {
+	$id: '/auth/events/invalidSigData',
+	type: 'object',
+	required: [
+		'numberOfSignatures',
+		'mandatoryKeys',
+		'optionalKeys',
+		'failingPublicKey',
+		'failingSignature',
+	],
+	properties: {
+		numberOfSignatures: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		mandatoryKeys: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+				minLength: ED25519_PUBLIC_KEY_LENGTH,
+				maxLength: ED25519_PUBLIC_KEY_LENGTH,
+			},
+			fieldNumber: 2,
+		},
+		optionalKeys: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+				minLength: ED25519_PUBLIC_KEY_LENGTH,
+				maxLength: ED25519_PUBLIC_KEY_LENGTH,
+			},
+			fieldNumber: 3,
+		},
+		failingPublicKey: {
+			dataType: 'bytes',
+			minLength: ED25519_PUBLIC_KEY_LENGTH,
+			maxLength: ED25519_PUBLIC_KEY_LENGTH,
+			fieldNumber: 4,
+		},
+		failingSignature: {
+			dataType: 'bytes',
+			minLength: ED25519_SIGNATURE_LENGTH,
+			maxLength: ED25519_SIGNATURE_LENGTH,
+			fieldNumber: 5,
 		},
 	},
 };

@@ -22,8 +22,8 @@ import {
 	VerifyStatus,
 } from '../../../state_machine';
 import {
-	COMMAND_ID_MULTISIGNATURE_REGISTRATION,
-	MAX_KEYS_COUNT,
+	COMMAND_ID_REGISTER_MULTISIGNATURE_GROUP,
+	MAX_NUMBER_OF_SIGNATURES,
 	MODULE_ID_AUTH,
 	STORE_PREFIX_AUTH,
 } from '../constants';
@@ -32,7 +32,7 @@ import { AuthAccount, RegisterMultisignatureParams } from '../types';
 import { getIDAsKeyForStore } from '../utils';
 
 export class RegisterMultisignatureCommand extends BaseCommand {
-	public id = getIDAsKeyForStore(COMMAND_ID_MULTISIGNATURE_REGISTRATION);
+	public id = getIDAsKeyForStore(COMMAND_ID_REGISTER_MULTISIGNATURE_GROUP);
 	public name = 'registerMultisignatureGroup';
 	public schema = registerMultisignatureParamsSchema;
 
@@ -78,7 +78,7 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 
 		// Check if key count is out of bounds
 		if (
-			mandatoryKeys.length + optionalKeys.length > MAX_KEYS_COUNT ||
+			mandatoryKeys.length + optionalKeys.length > MAX_NUMBER_OF_SIGNATURES ||
 			mandatoryKeys.length + optionalKeys.length <= 0
 		) {
 			return {

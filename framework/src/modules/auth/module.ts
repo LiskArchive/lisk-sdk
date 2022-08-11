@@ -26,8 +26,8 @@ import {
 import { AuthAPI } from './api';
 import { RegisterMultisignatureCommand } from './commands/register_multisignature';
 import {
-	COMMAND_ID_MULTISIGNATURE_REGISTRATION,
-	MAX_KEYS_COUNT,
+	COMMAND_ID_REGISTER_MULTISIGNATURE_GROUP,
+	MAX_NUMBER_OF_SIGNATURES,
 	MODULE_ID_AUTH,
 	STORE_PREFIX_AUTH,
 } from './constants';
@@ -113,9 +113,9 @@ export class AuthModule extends BaseModule {
 					throw new Error('Invalid store value for auth module. OptionalKeys are not unique.');
 				}
 			}
-			if (mandatoryKeys.length + optionalKeys.length > MAX_KEYS_COUNT) {
+			if (mandatoryKeys.length + optionalKeys.length > MAX_NUMBER_OF_SIGNATURES) {
 				throw new Error(
-					`The count of Mandatory and Optional keys should be maximum ${MAX_KEYS_COUNT}.`,
+					`The count of Mandatory and Optional keys should be maximum ${MAX_NUMBER_OF_SIGNATURES}.`,
 				);
 			}
 
@@ -179,7 +179,7 @@ export class AuthModule extends BaseModule {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			transaction.moduleID.equals(this.id) &&
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-			transaction.commandID.equals(getIDAsKeyForStore(COMMAND_ID_MULTISIGNATURE_REGISTRATION))
+			transaction.commandID.equals(getIDAsKeyForStore(COMMAND_ID_REGISTER_MULTISIGNATURE_GROUP))
 		) {
 			verifyRegisterMultiSignatureTransaction(
 				TAG_TRANSACTION,
