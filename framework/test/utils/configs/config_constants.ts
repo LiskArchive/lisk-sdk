@@ -33,13 +33,6 @@ export const constantsConfig = (overriddenConfigProperties = {}) => ({
 	bftBatchSize: 103,
 	minRemainingBalance: '5000000',
 	minFeePerByte: 1000,
-	baseFees: [
-		{
-			moduleID: utils.intToBuffer(5, 4),
-			commandID: utils.intToBuffer(0, 4),
-			baseFee: '1000000000',
-		},
-	],
 	activeDelegates: 101,
 	standbyDelegates: 2,
 	maxTransactionsSize: 15 * 1024,
