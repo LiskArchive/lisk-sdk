@@ -34,6 +34,12 @@ export {
 	ForgingEnableCommand,
 	ForgingStatusCommand,
 } from './bootstrapping/commands/forging';
+export {
+	KeysCreateCommand,
+	KeysExportCommand,
+	KeysImportCommand,
+	KeysEncryptCommand,
+} from './bootstrapping/commands/keys';
 export { NodeInfoCommand, NodeMetadataCommand } from './bootstrapping/commands/node';
 export {
 	PassphraseDecryptCommand,
