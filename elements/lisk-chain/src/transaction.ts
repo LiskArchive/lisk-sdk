@@ -72,16 +72,9 @@ export const transactionSchema = {
 	},
 };
 
-export const calculateMinFee = (
-	tx: Transaction,
-	minFeePerByte: number,
-	baseFees: { moduleID: Buffer; commandID: Buffer; baseFee: string }[],
-): bigint => {
+export const calculateMinFee = (tx: Transaction, minFeePerByte: number): bigint => {
 	const size = tx.getBytes().length;
-	const baseFee =
-		baseFees.find(bf => bf.moduleID.equals(tx.moduleID) && bf.commandID.equals(tx.commandID))
-			?.baseFee ?? '0';
-	return BigInt(minFeePerByte * size) + BigInt(baseFee);
+	return BigInt(minFeePerByte * size);
 };
 
 export class Transaction {
