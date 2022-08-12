@@ -52,10 +52,10 @@ export class CreateCommand extends Command {
 		'keys:create --passphrase your-passphrase',
 		'keys:create --passphrase your-passphrase --no-encrypt true',
 		'keys:create --passphrase your-passphrase --password your-password',
-		'keys:create --passphrase your-passphrase --no-encrypt false --password your-password --count 2',
-		'keys:create --passphrase your-passphrase --no-encrypt true --count 2 --offset 1',
-		'keys:create --passphrase your-passphrase --no-encrypt true --count 2 --offset 1 --chainid 1',
-		'keys:create --passphrase your-passphrase --no-encrypt false --password your-password --count 2 --offset 1 --chainid 1 --output /mypath/keys.json',
+		'keys:create --passphrase your-passphrase --password your-password --count 2',
+		'keys:create --passphrase your-passphrase --no-encrypt --count 2 --offset 1',
+		'keys:create --passphrase your-passphrase --no-encrypt --count 2 --offset 1 --chainid 1',
+		'keys:create --passphrase your-passphrase --password your-password --count 2 --offset 1 --chainid 1 --output /mypath/keys.json',
 	];
 
 	static flags = {
