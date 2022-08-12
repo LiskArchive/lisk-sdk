@@ -13,6 +13,7 @@
  *
  */
 
+import { encrypt } from '@liskhq/lisk-cryptography';
 import * as apiClient from '@liskhq/lisk-api-client';
 import { Command, flags as flagParser } from '@oclif/command';
 import * as fs from 'fs-extra';
@@ -23,17 +24,31 @@ import { flagsWithParser } from '../../../utils/flags';
 import { PromiseResolvedType } from '../../../types';
 import { getApiClient } from '../../../utils/transaction';
 
+interface EncryptedMessageObject {
+	readonly version: string;
+	readonly ciphertext: string;
+	readonly mac: string;
+	readonly kdf: encrypt.KDF;
+	readonly kdfparams: {
+		parallelism: number;
+		iterations: number;
+		memorySize: number;
+		salt: string;
+	};
+	readonly cipher: encrypt.Cipher;
+	readonly cipherparams: {
+		iv: string;
+		tag: string;
+	};
+}
+
 interface GetKeysResponse {
 	keys: [
 		{
 			address: string;
 			type: 'encrypted' | 'plain';
 			data:
-				| {
-						kdf: string;
-						cipherText: string;
-						iterations: number;
-				  }
+				| EncryptedMessageObject
 				| {
 						generatorKey: string;
 						generatorPrivateKey: string;

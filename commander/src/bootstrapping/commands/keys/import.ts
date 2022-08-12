@@ -80,11 +80,7 @@ export abstract class ImportCommand extends BaseIPCClientCommand {
 			let returnData;
 			if (k.encrypted) {
 				type = 'encrypted';
-				returnData = {
-					kdf: k.encrypted.kdf,
-					ciphertext: k.encrypted.ciphertext,
-					iterations: k.encrypted.kdfparams.iterations,
-				};
+				returnData = k.encrypted;
 			} else {
 				type = 'plain';
 				returnData = {
