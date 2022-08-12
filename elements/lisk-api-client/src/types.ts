@@ -97,11 +97,6 @@ export interface GenesisConfig {
 		readonly distance: number;
 	};
 	readonly minFeePerByte: number;
-	readonly baseFees: {
-		readonly moduleID: string;
-		readonly commandID: string;
-		readonly baseFee: string;
-	}[];
 }
 
 export interface NodeInfo {

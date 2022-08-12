@@ -68,11 +68,6 @@ export interface GenesisConfig {
 	minFeePerByte: number;
 	blockTime: number;
 	bftBatchSize: number;
-	baseFees: {
-		moduleID: Buffer;
-		commandID: Buffer;
-		baseFee: string;
-	}[];
 	modules: Record<string, Record<string, unknown>>;
 }
 

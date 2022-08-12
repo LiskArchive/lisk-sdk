@@ -59,7 +59,6 @@ const nodeInfoDefaultValue: NodeInfo = {
 		bftThreshold: 0,
 		rewards: { milestones: [], offset: 0, distance: 0 },
 		minFeePerByte: 0,
-		baseFees: [],
 	},
 };
 const MAX_RECENT_EVENT = 100;
