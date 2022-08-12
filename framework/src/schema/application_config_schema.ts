@@ -278,7 +278,6 @@ export const applicationConfigSchema = {
 				'communityIdentifier',
 				'maxTransactionsSize',
 				'minFeePerByte',
-				'baseFees',
 				'modules',
 			],
 			properties: {
@@ -301,27 +300,6 @@ export const applicationConfigSchema = {
 					type: 'integer',
 					minimum: 0,
 					description: 'Minimum fee per bytes required for a transaction to be valid',
-				},
-				baseFees: {
-					type: 'array',
-					description: 'Base fee for a transaction to be valid',
-					items: {
-						type: 'object',
-						properties: {
-							moduleID: {
-								type: 'number',
-								minimum: 2,
-							},
-							assetID: {
-								type: 'integer',
-								minimum: 0,
-							},
-							baseFee: {
-								type: 'string',
-								format: 'uint64',
-							},
-						},
-					},
 				},
 				maxTransactionsSize: {
 					type: 'integer',
@@ -397,7 +375,6 @@ export const applicationConfigSchema = {
 			// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 			maxTransactionsSize: 15 * 1024, // Kilo Bytes
 			minFeePerByte: 1000,
-			baseFees: [],
 			modules: {},
 		},
 		generation: {

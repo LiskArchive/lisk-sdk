@@ -31,11 +31,6 @@ export interface Voters {
 
 export interface TransactionFees {
 	readonly minFeePerByte: number;
-	readonly baseFees: {
-		readonly moduleID: Buffer;
-		readonly commandID: Buffer;
-		readonly baseFee: string;
-	}[];
 }
 
 export interface ForgetSyncInfo {

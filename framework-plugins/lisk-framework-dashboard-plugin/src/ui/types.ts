@@ -31,11 +31,6 @@ export interface GenesisConfig {
 		readonly distance: number;
 	};
 	readonly minFeePerByte: number;
-	readonly baseFees: {
-		readonly moduleID: string;
-		readonly commandID: string;
-		readonly baseFee: string;
-	}[];
 }
 
 export interface NodeInfo {
@@ -49,13 +44,6 @@ export interface NodeInfo {
 	readonly unconfirmedTransactions: number;
 	readonly genesisConfig: GenesisConfig;
 }
-
-export interface Fee {
-	moduleId: string;
-	commandId: string;
-	baseFee: number;
-}
-
 export interface BlockHeader {
 	id: string;
 	generatorPublicKey: string;

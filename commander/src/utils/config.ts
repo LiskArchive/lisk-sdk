@@ -17,7 +17,6 @@ export const defaultConfig = {
 		// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 		maxTransactionsSize: 15 * 1024, // Kilo Bytes
 		minFeePerByte: 1000,
-		baseFees: [],
 		modules: {},
 	},
 	generation: {

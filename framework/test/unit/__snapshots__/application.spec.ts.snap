@@ -2175,13 +2175,6 @@ Object {
     "waitThreshold": 2,
   },
   "genesis": Object {
-    "baseFees": Array [
-      Object {
-        "assetID": 0,
-        "baseFee": "1000000000",
-        "moduleID": 5,
-      },
-    ],
     "bftBatchSize": 103,
     "blockTime": 10,
     "communityIdentifier": "Lisk",

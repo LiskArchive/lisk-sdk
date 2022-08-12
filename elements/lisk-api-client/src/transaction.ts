@@ -38,15 +38,8 @@ import {
 	DecodedTransactionJSON,
 } from './types';
 
-interface BaseFee {
-	readonly moduleID: Buffer;
-	readonly commandID: Buffer;
-	readonly baseFee: string;
-}
-
 interface Options {
 	readonly minFeePerByte: number;
-	readonly baseFees: BaseFee[];
 	readonly numberOfSignatures: number;
 }
 
@@ -310,11 +303,6 @@ export class Transaction {
 		const numberOfSignatures = decodedTx.signatures ? decodedTx.signatures.length : 1;
 		const options: Options = {
 			minFeePerByte: this._nodeInfo.genesisConfig.minFeePerByte,
-			baseFees: this._nodeInfo.genesisConfig.baseFees.map(fee => ({
-				baseFee: fee.baseFee,
-				commandID: Buffer.from(fee.commandID, 'hex'),
-				moduleID: Buffer.from(fee.moduleID, 'hex'),
-			})),
 			numberOfSignatures,
 		};
 

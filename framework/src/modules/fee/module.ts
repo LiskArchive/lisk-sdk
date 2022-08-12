@@ -17,7 +17,7 @@ import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { defaultConfig, MODULE_ID_FEE } from './constants';
-import { BaseFee, ModuleConfig, TokenAPI } from './types';
+import { ModuleConfig, TokenAPI } from './types';
 import {
 	TransactionExecuteContext,
 	TransactionVerifyContext,
@@ -36,7 +36,6 @@ export class FeeModule extends BaseModule {
 	public endpoint = new FeeEndpoint(this.id);
 	private _tokenAPI!: TokenAPI;
 	private _minFeePerByte!: number;
-	private _baseFees!: Array<BaseFee>;
 	private _tokenID!: Buffer;
 
 	public addDependencies(tokenAPI: TokenAPI) {
@@ -60,15 +59,12 @@ export class FeeModule extends BaseModule {
 
 		this._tokenID = Buffer.from(config.feeTokenID, 'hex');
 		this._minFeePerByte = genesisConfig.minFeePerByte;
-		this._baseFees = genesisConfig.baseFees.map(fee => ({ ...fee, baseFee: BigInt(fee.baseFee) }));
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verifyTransaction(context: TransactionVerifyContext): Promise<VerificationResult> {
 		const { transaction } = context;
-		const minFee =
-			BigInt(this._minFeePerByte * transaction.getBytes().length) +
-			this._extraFee(transaction.moduleID, transaction.commandID);
+		const minFee = BigInt(this._minFeePerByte * transaction.getBytes().length);
 
 		if (transaction.fee < minFee) {
 			return {
@@ -81,9 +77,7 @@ export class FeeModule extends BaseModule {
 	}
 
 	public async beforeCommandExecute(context: TransactionExecuteContext): Promise<void> {
-		const minFee =
-			BigInt(this._minFeePerByte * context.transaction.getBytes().length) +
-			this._extraFee(context.transaction.moduleID, context.transaction.commandID);
+		const minFee = BigInt(this._minFeePerByte * context.transaction.getBytes().length);
 		const senderAddress = address.getAddressFromPublicKey(context.transaction.senderPublicKey);
 		const apiContext = context.getAPIContext();
 
@@ -108,13 +102,5 @@ export class FeeModule extends BaseModule {
 			this._tokenID,
 			context.transaction.fee,
 		);
-	}
-
-	private _extraFee(moduleID: Buffer, commandID: Buffer): bigint {
-		const foundFee = this._baseFees.find(
-			fee => fee.moduleID.equals(moduleID) && fee.commandID.equals(commandID),
-		);
-
-		return foundFee?.baseFee ?? BigInt(0);
 	}
 }
