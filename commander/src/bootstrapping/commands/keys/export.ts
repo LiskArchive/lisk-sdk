@@ -88,7 +88,7 @@ export abstract class ExportCommand extends Command {
 			? flags['data-path']
 			: getDefaultPath(this.config.pjson.name);
 		this._client = await getApiClient(dataPath, this.config.pjson.name);
-		const response = await this._client.invoke<GetKeysResponse>('generator_getKey');
+		const response = await this._client.invoke<GetKeysResponse>('generator_getAllKeys');
 
 		const keys = response.keys.map(k => {
 			if (k.type === 'encrypted') {

@@ -100,6 +100,6 @@ export abstract class ImportCommand extends BaseIPCClientCommand {
 		if (!this._client) {
 			this.error('APIClient is not initialized.');
 		}
-		await this._client.invoke('generator_setKey', { keys });
+		await this._client.invoke('generator_setKeys', { keys });
 	}
 }
