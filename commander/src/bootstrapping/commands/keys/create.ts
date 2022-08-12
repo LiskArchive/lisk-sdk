@@ -17,12 +17,11 @@ import { codec } from '@liskhq/lisk-codec';
 import { bls, address as addressUtil, ed, encrypt } from '@liskhq/lisk-cryptography';
 import { Command, flags as flagParser } from '@oclif/command';
 import * as fs from 'fs-extra';
-import * as inquirer from 'inquirer';
-import { resolve } from 'path';
+import * as path from 'path';
 import { flagsWithParser } from '../../../utils/flags';
 import { getPassphraseFromPrompt, getPasswordFromPrompt } from '../../../utils/reader';
 
-const plainGeneratorKeysSchema = {
+export const plainGeneratorKeysSchema = {
 	$id: '/commander/plainGeneratorKeys',
 	type: 'object',
 	properties: {
@@ -52,11 +51,11 @@ export class CreateCommand extends Command {
 		'keys:create',
 		'keys:create --passphrase your-passphrase',
 		'keys:create --passphrase your-passphrase --no-encrypt true',
-		'keys:create --passphrase your-passphrase --no-encrypt true --password your-password',
-		'keys:create --passphrase your-passphrase --no-encrypt true --password your-password --count 2',
-		'keys:create --passphrase your-passphrase --no-encrypt true --password your-password --count 2 --offset 1',
-		'keys:create --passphrase your-passphrase --no-encrypt true --password your-password --count 2 --offset 1 --chainid 1 ',
-		'keys:create --passphrase your-passphrase --no-encrypt true --password your-password --count 2 --offset 1 --chainid 1 --output /mypath ',
+		'keys:create --passphrase your-passphrase --password your-password',
+		'keys:create --passphrase your-passphrase --no-encrypt false --password your-password --count 2',
+		'keys:create --passphrase your-passphrase --no-encrypt true --count 2 --offset 1',
+		'keys:create --passphrase your-passphrase --no-encrypt true --count 2 --offset 1 --chainid 1',
+		'keys:create --passphrase your-passphrase --no-encrypt false --password your-password --count 2 --offset 1 --chainid 1 --output /mypath/keys.json',
 	];
 
 	static flags = {
@@ -97,6 +96,11 @@ export class CreateCommand extends Command {
 				chainid,
 			},
 		} = this.parse(CreateCommand);
+
+		if (output) {
+			const { dir } = path.parse(output);
+			fs.ensureDirSync(dir);
+		}
 		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 
 		const keys = [];
@@ -150,24 +154,9 @@ export class CreateCommand extends Command {
 				encrypted: encryptedMessageObject,
 			});
 		}
-		if (output) {
-			const filePath = resolve(output);
 
-			if (fs.existsSync(filePath)) {
-				const userResponse = await inquirer.prompt({
-					type: 'confirm',
-					name: 'confirm',
-					message: 'A keys file already exists at the given location. Do you want to overwrite it?',
-				});
-				if (!userResponse.confirm) {
-					this.error('Operation cancelled, keys file already present at the desired location');
-				} else {
-					fs.writeJSONSync(resolve(filePath, 'keys.json'), { keys }, { spaces: '\t' });
-				}
-			} else {
-				fs.mkdirSync(filePath, { recursive: true });
-				fs.writeJSONSync(resolve(filePath, 'keys.json'), { keys }, { spaces: '\t' });
-			}
+		if (output) {
+			fs.writeJSONSync(output, { keys }, { spaces: ' ' });
 		} else {
 			this.log(JSON.stringify({ keys }, undefined, '  '));
 		}

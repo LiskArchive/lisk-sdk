@@ -17,8 +17,7 @@ import { encrypt } from '@liskhq/lisk-cryptography';
 import * as apiClient from '@liskhq/lisk-api-client';
 import { Command, flags as flagParser } from '@oclif/command';
 import * as fs from 'fs-extra';
-import { resolve } from 'path';
-import * as inquirer from 'inquirer';
+import * as path from 'path';
 import { getDefaultPath } from '../../../utils/path';
 import { flagsWithParser } from '../../../utils/flags';
 import { PromiseResolvedType } from '../../../types';
@@ -63,8 +62,8 @@ export abstract class ExportCommand extends Command {
 	static description = 'Export to <FILE>.';
 
 	static examples = [
-		'keys:export --output ./my/path/',
-		'keys:export --output ./my/path/ --data-path ./data ',
+		'keys:export --output /mypath/keys.json',
+		'keys:export --output /mypath/keys.json --data-path ./data ',
 	];
 
 	static flags = {
@@ -81,6 +80,9 @@ export abstract class ExportCommand extends Command {
 
 	async run(): Promise<void> {
 		const { flags } = this.parse(ExportCommand);
+
+		const { dir } = path.parse(flags.output);
+		fs.ensureDirSync(dir);
 
 		const dataPath = flags['data-path']
 			? flags['data-path']
@@ -101,22 +103,6 @@ export abstract class ExportCommand extends Command {
 			};
 		});
 
-		const filePath = resolve(flags.output);
-
-		if (fs.existsSync(filePath)) {
-			const userResponse = await inquirer.prompt({
-				type: 'confirm',
-				name: 'confirm',
-				message: 'A keys file already exists at the given location. Do you want to overwrite it?',
-			});
-			if (!userResponse.confirm) {
-				this.error('Operation cancelled, keys file already present at the desired location');
-			} else {
-				fs.writeJSONSync(resolve(filePath, 'keys.json'), keys, { spaces: '\t' });
-			}
-		} else {
-			fs.mkdirSync(filePath, { recursive: true });
-			fs.writeJSONSync(resolve(filePath, 'keys.json'), keys, { spaces: '\t' });
-		}
+		fs.writeJSONSync(flags.output, { keys }, { spaces: ' ' });
 	}
 }
