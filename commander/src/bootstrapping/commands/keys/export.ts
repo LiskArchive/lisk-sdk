@@ -23,17 +23,23 @@ import { flagsWithParser } from '../../../utils/flags';
 import { PromiseResolvedType } from '../../../types';
 import { getApiClient } from '../../../utils/transaction';
 
-interface Keys {
+interface GetKeysResponse {
 	keys: [
 		{
 			address: string;
-			plain?: {
-				generatorKey: string;
-				generatorPrivateKey: string;
-				blsKey: string;
-				blsPrivateKey: string;
-			};
-			encrypted?: Record<string, unknown>;
+			type: 'encrypted' | 'plain';
+			data:
+				| {
+						kdf: string;
+						cipherText: string;
+						iterations: number;
+				  }
+				| {
+						generatorKey: string;
+						generatorPrivateKey: string;
+						blsKey: string;
+						blsPrivateKey: string;
+				  };
 		},
 	];
 }
@@ -65,7 +71,20 @@ export abstract class ExportCommand extends Command {
 			? flags['data-path']
 			: getDefaultPath(this.config.pjson.name);
 		this._client = await getApiClient(dataPath, this.config.pjson.name);
-		const keys = await this._client.invoke<Keys>('generator_getKey');
+		const response = await this._client.invoke<GetKeysResponse>('generator_getKey');
+
+		const keys = response.keys.map(k => {
+			if (k.type === 'encrypted') {
+				return {
+					address: k.address,
+					encrypted: k.data,
+				};
+			}
+			return {
+				address: k.address,
+				plain: k.data,
+			};
+		});
 
 		const filePath = resolve(flags.output);
 

@@ -127,11 +127,14 @@ export class CreateCommand extends Command {
 					blsPrivateKey,
 				};
 				const encodedGeneratorKeys = codec.encode(plainGeneratorKeysSchema, plainGeneratorKeyData);
-				encryptedMessageObject = encrypt.encryptMessageWithPassword(encodedGeneratorKeys, password);
+				encryptedMessageObject = await encrypt.encryptMessageWithPassword(
+					encodedGeneratorKeys,
+					password,
+				);
 			}
 
 			keys.push({
-				address,
+				address: address.toString('hex'),
 				keyPath: accountKeyPath,
 				publicKey: accountPublicKey.toString('hex'),
 				privateKey: accountPrivateKey.toString('hex'),
