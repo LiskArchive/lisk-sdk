@@ -20,9 +20,10 @@
 		"node": ">=16.14.1 <=16",
 		"npm": ">=8.1.0"
 	},
-	"main": "dist-browser/index.js",
+	"main": "dist-node/index.js",
+	"browser": "dist-browser/index.js",
 	"exports": {
-		".": "./dist-browser/index.js",
+		".": "./dist-node/index.js",
 		"./node": "./dist-node/index.js",
 		"./browser": "./dist-browser/index.js"
 	},
