@@ -34,6 +34,7 @@ import { verifyMessageRecovery, swapReceivingAndSendingChainIDs, getCCMSize } fr
 import {
 	CCM_STATUS_RECOVERED,
 	COMMAND_ID_MESSAGE_RECOVERY_BUFFER,
+	COMMAND_NAME_MESSAGE_RECOVERY,
 	EMPTY_FEE_ADDRESS,
 } from '../../constants';
 import { ccmSchema, messageRecoveryParamsSchema } from '../../schemas';
@@ -42,7 +43,7 @@ import { createCCCommandExecuteContext } from '../../context';
 
 export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand {
 	public id = COMMAND_ID_MESSAGE_RECOVERY_BUFFER;
-	public name = 'messageRecovery';
+	public name = COMMAND_NAME_MESSAGE_RECOVERY;
 	public schema = messageRecoveryParamsSchema;
 
 	public async verify(

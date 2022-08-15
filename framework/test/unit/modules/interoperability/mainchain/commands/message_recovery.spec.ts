@@ -22,8 +22,9 @@ import { BaseCCCommand } from '../../../../../../src/modules/interoperability/ba
 import { BaseInteroperableAPI } from '../../../../../../src/modules/interoperability/base_interoperable_api';
 import {
 	CHAIN_ACTIVE,
-	COMMAND_ID_MESSAGE_RECOVERY_BUFFER,
+	COMMAND_NAME_MESSAGE_RECOVERY,
 	MODULE_ID_INTEROPERABILITY_BUFFER,
+	MODULE_NAME_INTEROPERABILITY,
 	STORE_PREFIX_TERMINATED_OUTBOX,
 } from '../../../../../../src/modules/interoperability/constants';
 import { MainchainMessageRecoveryCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/message_recovery';
@@ -144,8 +145,8 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
 
 			transaction = new Transaction({
-				moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
-				commandID: COMMAND_ID_MESSAGE_RECOVERY_BUFFER,
+				module: MODULE_NAME_INTEROPERABILITY,
+				command: COMMAND_NAME_MESSAGE_RECOVERY,
 				fee: BigInt(100000000),
 				nonce: BigInt(0),
 				params: encodedTransactionParams,
@@ -199,8 +200,8 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			transactionParams.idxs = [0];
 			encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
 			transaction = new Transaction({
-				moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
-				commandID: COMMAND_ID_MESSAGE_RECOVERY_BUFFER,
+				module: MODULE_NAME_INTEROPERABILITY,
+				command: COMMAND_NAME_MESSAGE_RECOVERY,
 				fee: BigInt(100000000),
 				nonce: BigInt(0),
 				params: encodedTransactionParams,
@@ -269,8 +270,8 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			};
 			encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
 			transaction = new Transaction({
-				moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
-				commandID: COMMAND_ID_MESSAGE_RECOVERY_BUFFER,
+				module: MODULE_NAME_INTEROPERABILITY,
+				command: COMMAND_NAME_MESSAGE_RECOVERY,
 				fee: BigInt(100000000),
 				nonce: BigInt(0),
 				params: encodedTransactionParams,
@@ -319,8 +320,8 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
 
 			transaction = new Transaction({
-				moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
-				commandID: COMMAND_ID_MESSAGE_RECOVERY_BUFFER,
+				module: MODULE_NAME_INTEROPERABILITY,
+				command: COMMAND_NAME_MESSAGE_RECOVERY,
 				fee: BigInt(100000000),
 				nonce: BigInt(0),
 				params: encodedTransactionParams,

@@ -12,10 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { utils } from '@liskhq/lisk-cryptography';
+
 export abstract class BaseEndpoint {
 	[key: string]: unknown;
 	protected moduleID: Buffer;
-	public constructor(moduleID: Buffer) {
-		this.moduleID = moduleID;
+	protected moduleName: string;
+	public constructor(moduleName: string) {
+		this.moduleID = utils.hash(Buffer.from(moduleName, 'utf-8')).slice(0, 4);
+		this.moduleName = moduleName;
 	}
 }

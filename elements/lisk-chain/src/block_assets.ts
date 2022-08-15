@@ -16,7 +16,7 @@ import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { MerkleTree } from '@liskhq/lisk-tree';
 import { blockAssetSchema } from './schema';
-import { MAX_ASSET_DATA_SIZE_BYTES } from './constants';
+import { MAX_ASSET_DATA_SIZE_BYTES, NAME_REGEX } from './constants';
 import { JSONObject } from './types';
 
 export interface BlockAsset {
@@ -80,7 +80,7 @@ export class BlockAssets {
 	}
 
 	public sort(): void {
-		this._assets.sort((a1, a2) => a1.module.localeCompare(a2.module, 'us'));
+		this._assets.sort((a1, a2) => a1.module.localeCompare(a2.module, 'en'));
 	}
 
 	public validate(): void {
@@ -88,6 +88,10 @@ export class BlockAssets {
 		let i = 0;
 		for (const asset of this._assets) {
 			validator.validate(blockAssetSchema, asset);
+
+			if (!NAME_REGEX.test(asset.module)) {
+				throw new Error(`Invalid module name ${asset.module}`);
+			}
 
 			// Data size of each module should not be greater than max asset data size
 			if (asset.data.byteLength > MAX_ASSET_DATA_SIZE_BYTES) {

@@ -21,7 +21,7 @@ import {
 	STORE_PREFIX_DELEGATE,
 	STORE_PREFIX_GENESIS_DATA,
 	STORE_PREFIX_VOTER,
-	MODULE_ID_DPOS_BUFFER,
+	MODULE_NAME_DPOS,
 } from '../constants';
 import { delegateStoreSchema, genesisDataStoreSchema, voterStoreSchema } from '../schemas';
 import {
@@ -61,7 +61,7 @@ export class UnlockCommand extends BaseCommand {
 		const voterSubstore = getStore(this.moduleID, STORE_PREFIX_VOTER);
 		const voterData = await voterSubstore.getWithSchema<VoterData>(senderAddress, voterStoreSchema);
 		const ineligibleUnlocks = [];
-		const genesisDataStore = context.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_GENESIS_DATA);
+		const genesisDataStore = context.getStore(this.moduleID, STORE_PREFIX_GENESIS_DATA);
 		const genesisData = await genesisDataStore.getWithSchema<GenesisData>(
 			EMPTY_KEY,
 			genesisDataStoreSchema,
@@ -87,7 +87,7 @@ export class UnlockCommand extends BaseCommand {
 				await this._tokenAPI.unlock(
 					getAPIContext(),
 					senderAddress,
-					MODULE_ID_DPOS_BUFFER,
+					MODULE_NAME_DPOS,
 					this._tokenIDDPoS,
 					unlockObject.amount,
 				);

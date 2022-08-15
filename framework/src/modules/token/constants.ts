@@ -18,6 +18,7 @@ export const MODULE_ID_TOKEN = 2;
 export const MODULE_ID_TOKEN_BUFFER = utils.intToBuffer(MODULE_ID_TOKEN, 4);
 export const COMMAND_ID_TRANSFER = 0;
 export const COMMAND_ID_TRANSFER_BUFFER = utils.intToBuffer(COMMAND_ID_TRANSFER, 4);
+export const CROSS_CHAIN_COMMAND_NAME_TRANSFER = 'crossChainTransfer';
 export const CROSS_CHAIN_COMMAND_ID_TRANSFER = 0;
 export const CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER = utils.intToBuffer(
 	CROSS_CHAIN_COMMAND_ID_TRANSFER,

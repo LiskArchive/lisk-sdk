@@ -23,8 +23,8 @@ import {
 	CCM_STATUS_TOKEN_NOT_SUPPORTED,
 	CHAIN_ID_ALIAS_NATIVE,
 	CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
+	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 	MIN_RETURN_FEE,
-	MODULE_ID_TOKEN_BUFFER,
 	STORE_PREFIX_ESCROW,
 	STORE_PREFIX_SUPPLY,
 } from '../constants';
@@ -41,9 +41,8 @@ import { splitTokenID, tokenSupported, updateAvailableBalanceWithCreate } from '
 
 export class CCTransferCommand extends BaseCCCommand {
 	public ID = CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER;
-	public name = 'crossChainTransfer';
+	public name = CROSS_CHAIN_COMMAND_NAME_TRANSFER;
 	public schema = crossChainTransferMessageParams;
-	protected moduleID = MODULE_ID_TOKEN_BUFFER;
 
 	private readonly _tokenAPI: TokenAPI;
 	private _interopAPI!: InteroperabilityAPI;

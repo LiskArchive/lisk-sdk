@@ -64,8 +64,8 @@ const SendTransactionWidget: React.FC<WidgetProps> = props => {
 
 		if (moduleID !== undefined && commandID !== undefined) {
 			props.onSubmit({
-				moduleID,
-				commandID,
+				module: moduleID,
+				command: commandID,
 				passphrase,
 				params: JSON.parse(params) as Record<string, unknown>,
 			});

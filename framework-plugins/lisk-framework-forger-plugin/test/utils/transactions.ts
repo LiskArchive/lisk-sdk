@@ -34,8 +34,8 @@ export const createTransferTransaction = ({
 		data: '',
 	});
 	const tx = new Transaction({
-		moduleID: utils.intToBuffer(2, 4),
-		commandID: utils.intToBuffer(0, 4),
+		module: 'token',
+		command: 'transfer',
 		nonce: BigInt(nonce),
 		senderPublicKey: genesisAccount.publicKey,
 		fee: BigInt(transactions.convertLSKToBeddows(fee)),

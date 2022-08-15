@@ -145,8 +145,8 @@ export const createTransferTransaction = ({
 }): Record<string, unknown> => {
 	const transaction = transactions.signTransaction(
 		{
-			moduleID: utils.intToBuffer(2, 4),
-			commandID: utils.intToBuffer(0, 4),
+			module: 'token',
+			command: 'transfer',
 			nonce: BigInt(nonce),
 			fee: BigInt(transactions.convertLSKToBeddows(fee)),
 			senderPublicKey: Buffer.from(account.publicKey, 'hex'),

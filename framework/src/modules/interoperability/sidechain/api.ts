@@ -21,8 +21,8 @@ import { BaseInteroperableAPI } from '../base_interoperable_api';
 export class SidechainInteroperabilityAPI extends BaseAPI {
 	protected readonly interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
 
-	public constructor(moduleID: Buffer, interoperableCCAPIs: Map<number, BaseInteroperableAPI>) {
-		super(moduleID);
+	public constructor(module: string, interoperableCCAPIs: Map<number, BaseInteroperableAPI>) {
+		super(module);
 		this.interoperableCCAPIs = interoperableCCAPIs;
 	}
 
@@ -60,8 +60,8 @@ export class SidechainInteroperabilityAPI extends BaseAPI {
 	public async send(
 		_apiContext: APIContext,
 		_feeAddress: Buffer,
-		_moduleID: Buffer,
-		_crossChainCommandID: Buffer,
+		_module: string,
+		_crossChainCommand: string,
 		_receivingChainID: Buffer,
 		_fee: bigint,
 		_status: number,

@@ -17,11 +17,7 @@ import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { utils } from '@liskhq/lisk-cryptography';
 import { RandomAPI } from '../../../../src/modules/random/api';
-import {
-	MODULE_ID_RANDOM_BUFFER,
-	SEED_LENGTH,
-	STORE_PREFIX_RANDOM,
-} from '../../../../src/modules/random/constants';
+import { SEED_LENGTH, STORE_PREFIX_RANDOM } from '../../../../src/modules/random/constants';
 import {
 	blockHeaderAssetRandomModule,
 	seedRevealSchema,
@@ -69,7 +65,7 @@ describe('RandomModuleAPI', () => {
 		}
 
 		beforeEach(async () => {
-			randomAPI = new RandomAPI(MODULE_ID_RANDOM_BUFFER);
+			randomAPI = new RandomAPI('random');
 			context = createTransientAPIContext({});
 			randomStore = context.getStore(randomAPI['moduleID'], STORE_PREFIX_RANDOM);
 			await randomStore.setWithSchema(
@@ -86,7 +82,7 @@ describe('RandomModuleAPI', () => {
 			);
 
 			const blockAsset: BlockAsset = {
-				moduleID: randomAPI['moduleID'],
+				module: randomAPI['moduleName'],
 				data: undefined as any,
 			};
 
@@ -100,7 +96,7 @@ describe('RandomModuleAPI', () => {
 			for (const [address, hashes] of Object.entries(twoRoundsDelegatesHashes)) {
 				// Arrange
 				const blockAsset: BlockAsset = {
-					moduleID: randomAPI['moduleID'],
+					module: randomAPI['moduleName'],
 					data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[1] }),
 				};
 				// Act
@@ -119,7 +115,7 @@ describe('RandomModuleAPI', () => {
 			await randomStore.setWithSchema(emptyBytes, { validatorReveals: [] }, seedRevealSchema);
 			for (const [address, hashes] of Object.entries(twoRoundsDelegatesHashes)) {
 				const blockAsset: BlockAsset = {
-					moduleID: randomAPI['moduleID'],
+					module: randomAPI['moduleName'],
 					data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[1] }),
 				};
 				// Act
@@ -142,7 +138,7 @@ describe('RandomModuleAPI', () => {
 			for (const [address, hashes] of Object.entries(twoRoundsDelegatesHashes)) {
 				// Arrange
 				const blockAsset: BlockAsset = {
-					moduleID: randomAPI['moduleID'],
+					module: randomAPI['moduleName'],
 					data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[1] }),
 				};
 				// Act
@@ -198,7 +194,7 @@ describe('RandomModuleAPI', () => {
 		];
 
 		beforeEach(async () => {
-			randomAPI = new RandomAPI(MODULE_ID_RANDOM_BUFFER);
+			randomAPI = new RandomAPI('random');
 			context = createTransientAPIContext({});
 			randomStore = context.getStore(randomAPI['moduleID'], STORE_PREFIX_RANDOM);
 			await randomStore.setWithSchema(
@@ -356,7 +352,7 @@ describe('RandomModuleAPI', () => {
 			}
 
 			beforeEach(async () => {
-				randomAPI = new RandomAPI(MODULE_ID_RANDOM_BUFFER);
+				randomAPI = new RandomAPI('random');
 				context = createTransientAPIContext({});
 				randomStore = context.getStore(randomAPI['moduleID'], STORE_PREFIX_RANDOM);
 				await randomStore.setWithSchema(

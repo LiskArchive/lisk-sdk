@@ -209,7 +209,7 @@ describe('abi handler', () => {
 			await expect(
 				abiHandler.verifyAssets({
 					contextID: utils.getRandomBytes(32),
-					assets: [{ data: utils.getRandomBytes(30), moduleID: utils.intToBuffer(2, 4) }],
+					assets: [{ data: utils.getRandomBytes(30), module: 'token' }],
 				}),
 			).rejects.toThrow('Context is not initialized or different');
 		});
@@ -221,7 +221,7 @@ describe('abi handler', () => {
 			await expect(
 				abiHandler.verifyAssets({
 					contextID: utils.getRandomBytes(32),
-					assets: [{ data: utils.getRandomBytes(30), moduleID: utils.intToBuffer(2, 4) }],
+					assets: [{ data: utils.getRandomBytes(30), module: 'token' }],
 				}),
 			).rejects.toThrow('Context is not initialized or different');
 		});
@@ -233,7 +233,7 @@ describe('abi handler', () => {
 			});
 			const resp = await abiHandler.verifyAssets({
 				contextID,
-				assets: [{ data: utils.getRandomBytes(30), moduleID: utils.intToBuffer(2, 4) }],
+				assets: [{ data: utils.getRandomBytes(30), module: 'token' }],
 			});
 			expect(abiHandler['_stateMachine'].verifyAssets).toHaveBeenCalledTimes(1);
 
@@ -246,7 +246,7 @@ describe('abi handler', () => {
 			await expect(
 				abiHandler.beforeTransactionsExecute({
 					contextID: utils.getRandomBytes(32),
-					assets: [{ data: utils.getRandomBytes(30), moduleID: utils.intToBuffer(2, 4) }],
+					assets: [{ data: utils.getRandomBytes(30), module: 'token' }],
 					consensus: {
 						currentValidators: [
 							{
@@ -271,7 +271,7 @@ describe('abi handler', () => {
 			await expect(
 				abiHandler.beforeTransactionsExecute({
 					contextID: utils.getRandomBytes(32),
-					assets: [{ data: utils.getRandomBytes(30), moduleID: utils.intToBuffer(2, 4) }],
+					assets: [{ data: utils.getRandomBytes(30), module: 'token' }],
 					consensus: {
 						currentValidators: [
 							{
@@ -296,7 +296,7 @@ describe('abi handler', () => {
 			});
 			const resp = await abiHandler.beforeTransactionsExecute({
 				contextID,
-				assets: [{ data: utils.getRandomBytes(30), moduleID: utils.intToBuffer(2, 4) }],
+				assets: [{ data: utils.getRandomBytes(30), module: 'token' }],
 				consensus: {
 					currentValidators: [
 						{
@@ -322,7 +322,7 @@ describe('abi handler', () => {
 			await expect(
 				abiHandler.afterTransactionsExecute({
 					contextID: utils.getRandomBytes(32),
-					assets: [{ data: utils.getRandomBytes(30), moduleID: utils.intToBuffer(2, 4) }],
+					assets: [{ data: utils.getRandomBytes(30), module: 'token' }],
 					consensus: {
 						currentValidators: [
 							{
@@ -348,7 +348,7 @@ describe('abi handler', () => {
 			await expect(
 				abiHandler.afterTransactionsExecute({
 					contextID: utils.getRandomBytes(32),
-					assets: [{ data: utils.getRandomBytes(30), moduleID: utils.intToBuffer(2, 4) }],
+					assets: [{ data: utils.getRandomBytes(30), module: 'token' }],
 					consensus: {
 						currentValidators: [
 							{
@@ -374,7 +374,7 @@ describe('abi handler', () => {
 			});
 			const resp = await abiHandler.afterTransactionsExecute({
 				contextID,
-				assets: [{ data: utils.getRandomBytes(30), moduleID: utils.intToBuffer(2, 4) }],
+				assets: [{ data: utils.getRandomBytes(30), module: 'token' }],
 				consensus: {
 					currentValidators: [
 						{
@@ -408,9 +408,9 @@ describe('abi handler', () => {
 				utils.getRandomBytes(100),
 			);
 			const tx = new Transaction({
-				commandID: utils.intToBuffer(2, 4),
+				command: 'transfer',
 				fee: BigInt(30),
-				moduleID: utils.intToBuffer(2, 4),
+				module: 'token',
 				nonce: BigInt(2),
 				params: utils.getRandomBytes(100),
 				senderPublicKey: utils.getRandomBytes(32),
@@ -439,9 +439,9 @@ describe('abi handler', () => {
 			const key = utils.getRandomBytes(20);
 			await abiHandler['_executionContext']?.stateStore.set(key, utils.getRandomBytes(100));
 			const tx = new Transaction({
-				commandID: utils.intToBuffer(2, 4),
+				command: 'transfer',
 				fee: BigInt(30),
-				moduleID: utils.intToBuffer(2, 4),
+				module: 'token',
 				nonce: BigInt(2),
 				params: utils.getRandomBytes(100),
 				senderPublicKey: utils.getRandomBytes(32),
@@ -473,9 +473,9 @@ describe('abi handler', () => {
 				utils.getRandomBytes(100),
 			);
 			const tx = new Transaction({
-				commandID: utils.intToBuffer(0, 4),
+				command: 'transfer',
 				fee: BigInt(30),
-				moduleID: utils.intToBuffer(2, 4),
+				module: 'token',
 				nonce: BigInt(2),
 				params: codec.encode(transferParamsSchema, {
 					tokenID: Buffer.alloc(8, 0),
@@ -488,7 +488,7 @@ describe('abi handler', () => {
 			});
 			const resp = await abiHandler.executeTransaction({
 				contextID,
-				assets: [{ data: utils.getRandomBytes(30), moduleID: utils.intToBuffer(2, 4) }],
+				assets: [{ data: utils.getRandomBytes(30), module: 'token' }],
 				dryRun: false,
 				header: createFakeBlockHeader().toObject(),
 				transaction: tx.toObject(),
@@ -525,9 +525,9 @@ describe('abi handler', () => {
 			const key = utils.getRandomBytes(20);
 			await abiHandler['_executionContext']?.stateStore.set(key, utils.getRandomBytes(100));
 			const tx = new Transaction({
-				commandID: utils.intToBuffer(0, 4),
+				command: 'transfer',
 				fee: BigInt(30),
-				moduleID: utils.intToBuffer(2, 4),
+				module: 'token',
 				nonce: BigInt(2),
 				params: codec.encode(transferParamsSchema, {
 					tokenID: Buffer.alloc(8, 0),
@@ -540,7 +540,7 @@ describe('abi handler', () => {
 			});
 			const resp = await abiHandler.executeTransaction({
 				contextID: utils.getRandomBytes(0),
-				assets: [{ data: utils.getRandomBytes(30), moduleID: utils.intToBuffer(2, 4) }],
+				assets: [{ data: utils.getRandomBytes(30), module: 'token' }],
 				dryRun: true,
 				header: createFakeBlockHeader().toObject(),
 				transaction: tx.toObject(),
@@ -661,9 +661,9 @@ describe('abi handler', () => {
 			expect(resp.data).toBeInstanceOf(Buffer);
 			const body = JSON.parse(resp.data.toString('utf-8'));
 			expect(body.modules).toHaveLength(2);
-			expect(Buffer.from(body.modules[0].id, 'hex').readInt32BE(0)).toBeLessThan(
-				Buffer.from(body.modules[1].id, 'hex').readInt32BE(0),
-			);
+			expect(body.modules[0].name).toEqual('auth');
+			expect(body.modules[1].name).toEqual('token');
+			expect(body.modules[0].name.localeCompare(body.modules[1].name, 'en')).toBeLessThan(0);
 		});
 	});
 

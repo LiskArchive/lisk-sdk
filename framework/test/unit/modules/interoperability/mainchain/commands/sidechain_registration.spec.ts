@@ -32,9 +32,10 @@ import {
 	STORE_PREFIX_REGISTERED_NAMES,
 	STORE_PREFIX_REGISTERED_NETWORK_IDS,
 	MAX_NUM_VALIDATORS,
-	COMMAND_ID_SIDECHAIN_REG_BUFFER,
 	MAINCHAIN_ID_BUFFER,
 	CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
+	MODULE_NAME_INTEROPERABILITY,
+	COMMAND_NAME_SIDECHAIN_REG,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
 	nameSchema,
@@ -81,8 +82,8 @@ describe('Sidechain registration command', () => {
 	const encodedTransactionParams = codec.encode(sidechainRegParams, transactionParams);
 	const publicKey = utils.getRandomBytes(32);
 	const transaction = new Transaction({
-		moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
-		commandID: COMMAND_ID_SIDECHAIN_REG_BUFFER,
+		module: MODULE_NAME_INTEROPERABILITY,
+		command: COMMAND_NAME_SIDECHAIN_REG,
 		senderPublicKey: publicKey,
 		nonce: BigInt(0),
 		fee: BigInt(100000000),

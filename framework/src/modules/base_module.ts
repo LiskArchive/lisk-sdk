@@ -14,6 +14,7 @@
 /* eslint-disable class-methods-use-this */
 
 import { Schema } from '@liskhq/lisk-codec';
+import { utils } from '@liskhq/lisk-cryptography';
 import { GenesisConfig } from '../types';
 import {
 	BlockAfterExecuteContext,
@@ -84,7 +85,6 @@ export abstract class BaseModule {
 	public commands: BaseCommand[] = [];
 	public events: string[] = [];
 	public abstract name: string;
-	public abstract id: Buffer;
 	public abstract endpoint: BaseEndpoint;
 	public abstract api: BaseAPI;
 
@@ -100,4 +100,8 @@ export abstract class BaseModule {
 	public async afterTransactionsExecute?(context: BlockAfterExecuteContext): Promise<void>;
 
 	public abstract metadata(): ModuleMetadata;
+
+	public get id(): Buffer {
+		return utils.hash(Buffer.from(this.name, 'utf-8')).slice(0, 4);
+	}
 }

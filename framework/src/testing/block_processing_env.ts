@@ -172,7 +172,6 @@ export const getBlockProcessingEnv = async (
 	stateMachine.registerModule(dposModule);
 	const blockAssets = blockAssetsJSON.map(asset => ({
 		...asset,
-		moduleID: asset.moduleID,
 		data: codec.fromJSON<Record<string, unknown>>(asset.schema, asset.data),
 	}));
 	await stateMachine.init(

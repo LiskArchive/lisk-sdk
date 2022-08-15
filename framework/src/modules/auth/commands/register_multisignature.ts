@@ -23,8 +23,8 @@ import {
 } from '../../../state_machine';
 import {
 	COMMAND_ID_REGISTER_MULTISIGNATURE_GROUP,
+	COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP,
 	MAX_NUMBER_OF_SIGNATURES,
-	MODULE_ID_AUTH,
 	STORE_PREFIX_AUTH,
 } from '../constants';
 import { authAccountSchema, registerMultisignatureParamsSchema } from '../schemas';
@@ -33,7 +33,7 @@ import { getIDAsKeyForStore } from '../utils';
 
 export class RegisterMultisignatureCommand extends BaseCommand {
 	public id = getIDAsKeyForStore(COMMAND_ID_REGISTER_MULTISIGNATURE_GROUP);
-	public name = 'registerMultisignatureGroup';
+	public name = COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP;
 	public schema = registerMultisignatureParamsSchema;
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -150,7 +150,7 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 		context: CommandExecuteContext<RegisterMultisignatureParams>,
 	): Promise<void> {
 		const { transaction } = context;
-		const authSubstore = context.getStore(getIDAsKeyForStore(MODULE_ID_AUTH), STORE_PREFIX_AUTH);
+		const authSubstore = context.getStore(this.moduleID, STORE_PREFIX_AUTH);
 		const senderAccount = await authSubstore.getWithSchema<AuthAccount>(
 			transaction.senderAddress,
 			authAccountSchema,

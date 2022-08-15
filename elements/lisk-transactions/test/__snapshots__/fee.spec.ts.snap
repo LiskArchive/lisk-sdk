@@ -1,9 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`fee computeMinFee should calculate minimum fee for delegate registration transaction 1`] = `131000n`;
+exports[`fee computeMinFee should calculate minimum fee for delegate registration transaction 1`] = `131001n`;
 
-exports[`fee computeMinFee should calculate minimum fee for given minFeePerByte 1`] = `306000n`;
+exports[`fee computeMinFee should calculate minimum fee for given minFeePerByte 1`] = `10284000n`;
 
-exports[`fee computeMinFee should calculate minimum fee for transaction from multisignature account 1`] = `8624000n`;
+exports[`fee computeMinFee should calculate minimum fee for transaction from multisignature account 1`] = `18624000n`;
 
-exports[`fee computeMinFee should return minimum fee required to send to network 1`] = `153000n`;
+exports[`fee computeMinFee should return minimum fee required to send to network 1`] = `141000n`;

@@ -38,14 +38,14 @@ describe('Chain endpoint', () => {
 			jest.spyOn(endpoint['_chain'].dataAccess, 'getEvents').mockResolvedValue([
 				new Event({
 					index: 0,
-					moduleID: Buffer.from([0, 0, 0, 2]),
+					module: 'token',
 					topics: [utils.getRandomBytes(32)],
 					typeID: Buffer.from([0, 0, 0, 1]),
 					data: utils.getRandomBytes(32),
 				}),
 				new Event({
 					index: 1,
-					moduleID: Buffer.from([0, 0, 0, 2]),
+					module: 'token',
 					topics: [utils.getRandomBytes(32)],
 					typeID: Buffer.from([0, 0, 0, 1]),
 					data: utils.getRandomBytes(32),
@@ -70,7 +70,7 @@ describe('Chain endpoint', () => {
 			expect(events).toHaveLength(2);
 			expect(events[0]).toEqual({
 				index: 0,
-				moduleID: '00000002',
+				module: 'token',
 				topics: [expect.any(String)],
 				typeID: '00000001',
 				data: expect.any(String),
@@ -83,14 +83,14 @@ describe('Chain endpoint', () => {
 			jest.spyOn(endpoint['_chain'].dataAccess, 'getEvents').mockResolvedValue([
 				new Event({
 					index: 0,
-					moduleID: Buffer.from([0, 0, 0, 2]),
+					module: 'transfer',
 					topics: [utils.getRandomBytes(32)],
 					typeID: Buffer.from([0, 0, 0, 1]),
 					data: utils.getRandomBytes(32),
 				}),
 				new Event({
 					index: 1,
-					moduleID: Buffer.from([0, 0, 0, 2]),
+					module: 'transfer',
 					topics: [utils.getRandomBytes(32)],
 					typeID: Buffer.from([0, 0, 0, 1]),
 					data: utils.getRandomBytes(32),

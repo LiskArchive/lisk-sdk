@@ -24,16 +24,16 @@ import { isApplicationRunning } from './application';
 
 export const getParamsSchema = (
 	metadata: ModuleMetadataJSON[],
-	moduleID: string,
-	commandID: string,
+	module: string,
+	command: string,
 ): Schema | undefined => {
-	const moduleMeta = metadata.find(meta => meta.id === moduleID);
+	const moduleMeta = metadata.find(meta => meta.id === module);
 	if (!moduleMeta) {
-		throw new Error(`ModuleID: ${moduleID} is not registered.`);
+		throw new Error(`ModuleID: ${module} is not registered.`);
 	}
-	const commandMeta = moduleMeta.commands.find(meta => meta.id === commandID);
+	const commandMeta = moduleMeta.commands.find(meta => meta.id === command);
 	if (!commandMeta) {
-		throw new Error(`ModuleID: ${moduleID} CommandID: ${commandID} is not registered.`);
+		throw new Error(`ModuleID: ${module} CommandID: ${command} is not registered.`);
 	}
 	return commandMeta.params;
 };
@@ -46,7 +46,7 @@ export const decodeTransaction = (
 	const transactionBytes = Buffer.from(transactionHexStr, 'hex');
 	const id = cryptography.utils.hash(transactionBytes);
 	const transaction = codec.decodeJSON<TransactionJSON>(schema.transaction, transactionBytes);
-	const paramsSchema = getParamsSchema(metadata, transaction.moduleID, transaction.commandID);
+	const paramsSchema = getParamsSchema(metadata, transaction.module, transaction.command);
 	const params = codec.decodeJSON<Record<string, unknown>>(
 		paramsSchema as Schema,
 		Buffer.from(transaction.params, 'hex'),

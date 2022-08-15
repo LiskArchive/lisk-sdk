@@ -110,6 +110,18 @@ describe('block assets', () => {
 
 				expect(() => assets.validate()).toThrow();
 			});
+
+			it(`should throw error when module name is invalid`, () => {
+				assetList = [
+					{
+						module: 'auth-',
+						data: utils.getRandomBytes(64),
+					},
+				];
+				assets = new BlockAssets(assetList);
+
+				expect(() => assets.validate()).toThrow('Invalid module name');
+			});
 		});
 
 		describe('when an asset data has size more than the limit', () => {

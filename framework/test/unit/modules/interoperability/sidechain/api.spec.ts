@@ -13,6 +13,7 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
+import { MODULE_NAME_INTEROPERABILITY } from '../../../../../src/modules/interoperability/constants';
 import { SidechainInteroperabilityAPI } from '../../../../../src/modules/interoperability/sidechain/api';
 import { SidechainInteroperabilityStore } from '../../../../../src/modules/interoperability/sidechain/store';
 
@@ -35,7 +36,10 @@ describe('Sidechain API', () => {
 	);
 
 	beforeEach(() => {
-		sidechainInteroperabilityAPI = new SidechainInteroperabilityAPI(moduleID, interoperableCCAPIs);
+		sidechainInteroperabilityAPI = new SidechainInteroperabilityAPI(
+			MODULE_NAME_INTEROPERABILITY,
+			interoperableCCAPIs,
+		);
 		sidechainInteroperabilityStore = new SidechainInteroperabilityStore(
 			moduleID,
 			getStore,

@@ -19,7 +19,6 @@ import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { BFTAPI } from '../../../../src/engine/bft/api';
 import {
 	EMPTY_KEY,
-	MODULE_ID_BFT_BUFFER,
 	STORE_PREFIX_BFT_PARAMETERS,
 	STORE_PREFIX_BFT_VOTES,
 	STORE_PREFIX_GENERATOR_KEYS,
@@ -36,14 +35,12 @@ import {
 import { createFakeBlockHeader } from '../../../../src/testing';
 
 describe('BFT API', () => {
-	const bftModuleID = MODULE_ID_BFT_BUFFER;
-
 	let bftAPI: BFTAPI;
 	let validatorsAPI: { getValidatorAccount: jest.Mock };
 	let stateStore: StateStore;
 
 	beforeEach(() => {
-		bftAPI = new BFTAPI(bftModuleID);
+		bftAPI = new BFTAPI('bft');
 		validatorsAPI = { getValidatorAccount: jest.fn() };
 		bftAPI.init(103);
 	});

@@ -34,13 +34,13 @@ import { getConfig } from '../../../helpers/config';
 describe('transaction:sign command', () => {
 	const commands = [
 		{
-			moduleID: utils.intToBuffer(2, 4).toString('hex'),
-			commandID: utils.intToBuffer(0, 4).toString('hex'),
+			module: 'token'.toString('hex'),
+			command: 'transfer'.toString('hex'),
 			schema: tokenTransferParamsSchema,
 		},
 		{
 			moduleID: utils.intToBuffer(12, 4).toString('hex'),
-			commandID: utils.intToBuffer(0, 4).toString('hex'),
+			command: 'transfer'.toString('hex'),
 			schema: keysRegisterParamsSchema,
 		},
 		{
@@ -58,9 +58,9 @@ describe('transaction:sign command', () => {
 			data: 'send token',
 			recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
 		},
-		commandID: utils.intToBuffer(0, 4).toString('hex'),
+		command: 'transfer'.toString('hex'),
 		fee: '100000000',
-		moduleID: utils.intToBuffer(2, 4).toString('hex'),
+		module: 'token'.toString('hex'),
 		nonce: '0',
 		senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 		signatures: [

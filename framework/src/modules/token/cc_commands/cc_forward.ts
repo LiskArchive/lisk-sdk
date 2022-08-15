@@ -14,6 +14,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseCCCommand } from '../../interoperability/base_cc_command';
+import { MODULE_NAME_INTEROPERABILITY } from '../../interoperability/constants';
 import { CCCommandExecuteContext } from '../../interoperability/types';
 import { TokenAPI } from '../api';
 import {
@@ -21,9 +22,8 @@ import {
 	CCM_STATUS_PROTOCOL_VIOLATION,
 	CHAIN_ID_ALIAS_NATIVE,
 	STORE_PREFIX_ESCROW,
-	MODULE_ID_TOKEN_BUFFER,
 	CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
-	CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
+	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 } from '../constants';
 import {
 	CCForwardMessageParams,
@@ -39,7 +39,6 @@ export class CCForwardCommand extends BaseCCCommand {
 	public ID = CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER;
 	public name = 'crossChainForward';
 	public schema = crossChainForwardMessageParams;
-	protected moduleID = MODULE_ID_TOKEN_BUFFER;
 
 	private readonly _tokenAPI: TokenAPI;
 	private _interopAPI!: InteroperabilityAPI;
@@ -139,8 +138,8 @@ export class CCForwardCommand extends BaseCCCommand {
 		const sendResult = await this._interopAPI.send(
 			apiContext,
 			params.senderAddress,
-			this.moduleID,
-			CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
+			MODULE_NAME_INTEROPERABILITY,
+			CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 			params.forwardToChainID,
 			params.forwardedMessageFee,
 			CCM_STATUS_OK,

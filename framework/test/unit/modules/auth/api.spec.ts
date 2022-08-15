@@ -14,7 +14,7 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { AuthAPI } from '../../../../src/modules/auth/api';
-import { STORE_PREFIX_AUTH, MODULE_ID_AUTH_BUFFER } from '../../../../src/modules/auth/constants';
+import { STORE_PREFIX_AUTH } from '../../../../src/modules/auth/constants';
 import { authAccountSchema } from '../../../../src/modules/auth/schemas';
 import { APIContext } from '../../../../src/state_machine';
 import { SubStore } from '../../../../src/state_machine/types';
@@ -33,7 +33,7 @@ describe('AuthAPI', () => {
 	};
 
 	beforeEach(async () => {
-		authAPI = new AuthAPI(MODULE_ID_AUTH_BUFFER);
+		authAPI = new AuthAPI('auth');
 		context = createTransientAPIContext({});
 		authStore = context.getStore(authAPI['moduleID'], STORE_PREFIX_AUTH);
 		await authStore.setWithSchema(address, expectedAuthData, authAccountSchema);

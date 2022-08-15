@@ -20,7 +20,7 @@ import { validateTransaction } from '@liskhq/lisk-transactions';
 import { CommandClass } from './types';
 
 interface CreateTransactionInput {
-	moduleID: Buffer;
+	module: string;
 	commandClass: CommandClass;
 	params: Record<string, unknown> | undefined;
 	nonce?: bigint;
@@ -30,7 +30,7 @@ interface CreateTransactionInput {
 }
 
 export const createTransaction = ({
-	moduleID,
+	module,
 	commandClass,
 	params,
 	nonce,
@@ -41,15 +41,15 @@ export const createTransaction = ({
 	const { publicKey, privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase ?? '');
 	// eslint-disable-next-line new-cap
 	const commandInstance = new commandClass();
-	const commandID = commandInstance.id;
+	const command = commandInstance.name;
 	const paramsBytes =
 		commandInstance.schema && params
 			? codec.encode(commandInstance.schema, params)
 			: Buffer.alloc(0);
 
 	const transaction = {
-		moduleID,
-		commandID,
+		module,
+		command,
 		nonce: nonce ?? BigInt(0),
 		fee: fee ?? BigInt(0),
 		senderPublicKey: publicKey,

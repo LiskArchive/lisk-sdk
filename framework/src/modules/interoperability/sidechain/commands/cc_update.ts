@@ -73,7 +73,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 	public async verify(
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
 	): Promise<VerificationResult> {
-		const { params: txParams, transaction, getStore } = context;
+		const { params: txParams, getStore } = context;
 
 		try {
 			validator.validate(crossChainUpdateTransactionParams, context.params);
@@ -85,7 +85,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		}
 
 		const partnerChainIDBuffer = txParams.sendingChainID;
-		const partnerChainStore = getStore(transaction.moduleID, STORE_PREFIX_CHAIN_DATA);
+		const partnerChainStore = getStore(this.moduleID, STORE_PREFIX_CHAIN_DATA);
 		const partnerChainAccount = await partnerChainStore.getWithSchema<ChainAccount>(
 			partnerChainIDBuffer,
 			chainAccountSchema,
@@ -154,7 +154,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 			return verifyCertificateSignatureResult;
 		}
 
-		const partnerChannelStore = context.getStore(transaction.moduleID, STORE_PREFIX_CHANNEL_DATA);
+		const partnerChannelStore = context.getStore(this.moduleID, STORE_PREFIX_CHANNEL_DATA);
 		const partnerChannelData = await partnerChannelStore.getWithSchema<ChannelData>(
 			partnerChainIDBuffer,
 			channelSchema,
@@ -284,6 +284,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 		}
 		// Common ccm execution logic
 		await commonCCUExecutelogic({
+			moduleID: this.moduleID,
 			certificate: decodedCertificate,
 			chainIDBuffer,
 			context,

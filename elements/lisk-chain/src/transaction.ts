@@ -15,7 +15,7 @@
 import { codec } from '@liskhq/lisk-codec';
 import { address, ed, utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
-import { TAG_TRANSACTION, TRANSACTION_MAX_PARAMS_SIZE } from './constants';
+import { NAME_REGEX, TAG_TRANSACTION, TRANSACTION_MAX_PARAMS_SIZE } from './constants';
 import { JSONObject } from './types';
 
 export interface TransactionAttrs {
@@ -29,8 +29,6 @@ export interface TransactionAttrs {
 	readonly id?: Buffer;
 }
 export type TransactionJSON = JSONObject<TransactionAttrs>;
-
-const nameRegex = /^[a-zA-Z0-9]*$/;
 
 export const transactionSchema = {
 	$id: '/lisk/transaction',
@@ -152,10 +150,10 @@ export class Transaction {
 
 	public validate(): void {
 		validator.validate(transactionSchema, this);
-		if (!nameRegex.test(this.module)) {
+		if (!NAME_REGEX.test(this.module)) {
 			throw new Error(`Invalid module name ${this.module}`);
 		}
-		if (!nameRegex.test(this.command)) {
+		if (!NAME_REGEX.test(this.command)) {
 			throw new Error(`Invalid command name ${this.command}`);
 		}
 

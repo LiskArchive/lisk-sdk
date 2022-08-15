@@ -161,8 +161,8 @@ export class ABIHandler implements ABI {
 				transactions: [],
 			},
 			registeredModules: this._modules.map(mod => ({
-				moduleID: mod.id,
-				commandIDs: mod.commands.map(command => command.id),
+				module: mod.name,
+				commands: mod.commands.map(command => command.name),
 			})),
 			config: {
 				logger: this._config.logger,
@@ -530,7 +530,7 @@ export class ABIHandler implements ABI {
 				})),
 			};
 		});
-		modules.sort((a, b) => a.id.localeCompare(b.id, 'en'));
+		modules.sort((a, b) => a.name.localeCompare(b.name, 'en'));
 		const data = Buffer.from(JSON.stringify({ modules }), 'utf-8');
 		return {
 			data,

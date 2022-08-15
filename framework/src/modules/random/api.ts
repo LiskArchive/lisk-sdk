@@ -32,7 +32,7 @@ export class RandomAPI extends BaseAPI {
 			EMPTY_KEY,
 			seedRevealSchema,
 		);
-		const asset = blockAssets.getAsset(this.moduleID);
+		const asset = blockAssets.getAsset(this.moduleName);
 		if (!asset) {
 			throw new Error('Block asset is missing.');
 		}

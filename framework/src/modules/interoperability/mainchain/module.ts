@@ -33,9 +33,9 @@ import { GenesisBlockExecuteContext } from '../../../state_machine';
 import { initGenesisStateUtil } from '../utils';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
-	public crossChainAPI = new MainchainCCAPI(this.id);
-	public api = new MainchainInteroperabilityAPI(this.id, this.interoperableCCAPIs);
-	public endpoint = new MainchainInteroperabilityEndpoint(this.id, this.interoperableCCAPIs);
+	public crossChainAPI = new MainchainCCAPI(this.name);
+	public api = new MainchainInteroperabilityAPI(this.name, this.interoperableCCAPIs);
+	public endpoint = new MainchainInteroperabilityEndpoint(this.name, this.interoperableCCAPIs);
 
 	public metadata(): ModuleMetadata {
 		return {
@@ -81,6 +81,6 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
-		await initGenesisStateUtil(this.id, context);
+		await initGenesisStateUtil(this.id, this.name, context);
 	}
 }

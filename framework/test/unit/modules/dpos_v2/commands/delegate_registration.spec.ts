@@ -18,7 +18,6 @@ import { utils } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../../../src/testing';
 import { DelegateRegistrationCommand } from '../../../../../src/modules/dpos_v2/commands/delegate_registration';
 import {
-	COMMAND_ID_DELEGATE_REGISTRATION,
 	MODULE_ID_DPOS_BUFFER,
 	STORE_PREFIX_DELEGATE,
 	STORE_PREFIX_NAME,
@@ -64,8 +63,8 @@ describe('Delegate registration command', () => {
 	);
 	const publicKey = utils.getRandomBytes(32);
 	const transaction = new Transaction({
-		moduleID: MODULE_ID_DPOS_BUFFER,
-		commandID: utils.intToBuffer(COMMAND_ID_DELEGATE_REGISTRATION, 4),
+		module: 'dpos',
+		command: 'registerDelegate',
 		senderPublicKey: publicKey,
 		nonce: BigInt(0),
 		fee: BigInt(100000000),
@@ -112,8 +111,8 @@ describe('Delegate registration command', () => {
 				name: '*@#&$_2',
 			});
 			const invalidTransaction = new Transaction({
-				moduleID: MODULE_ID_DPOS_BUFFER,
-				commandID: utils.intToBuffer(COMMAND_ID_DELEGATE_REGISTRATION, 4),
+				module: 'dpos',
+				command: 'registerDelegate',
 				senderPublicKey: publicKey,
 				nonce: BigInt(0),
 				fee: BigInt(100000000),
@@ -140,8 +139,8 @@ describe('Delegate registration command', () => {
 				generatorKey: utils.getRandomBytes(64),
 			});
 			const invalidTransaction = new Transaction({
-				moduleID: MODULE_ID_DPOS_BUFFER,
-				commandID: utils.intToBuffer(COMMAND_ID_DELEGATE_REGISTRATION, 4),
+				module: 'dpos',
+				command: 'registerDelegate',
 				senderPublicKey: publicKey,
 				nonce: BigInt(0),
 				fee: BigInt(100000000),
@@ -168,8 +167,8 @@ describe('Delegate registration command', () => {
 				blsKey: utils.getRandomBytes(64),
 			});
 			const invalidTransaction = new Transaction({
-				moduleID: MODULE_ID_DPOS_BUFFER,
-				commandID: utils.intToBuffer(COMMAND_ID_DELEGATE_REGISTRATION, 4),
+				module: 'dpos',
+				command: 'registerDelegate',
 				senderPublicKey: publicKey,
 				nonce: BigInt(0),
 				fee: BigInt(100000000),
@@ -196,8 +195,8 @@ describe('Delegate registration command', () => {
 				proofOfPossession: utils.getRandomBytes(64),
 			});
 			const invalidTransaction = new Transaction({
-				moduleID: MODULE_ID_DPOS_BUFFER,
-				commandID: utils.intToBuffer(COMMAND_ID_DELEGATE_REGISTRATION, 4),
+				module: 'dpos',
+				command: 'registerDelegate',
 				senderPublicKey: publicKey,
 				nonce: BigInt(0),
 				fee: BigInt(100000000),

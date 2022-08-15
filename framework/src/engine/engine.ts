@@ -200,7 +200,7 @@ export class Engine {
 			db: this._blockchainDB,
 			genesisBlock: genesis,
 			logger: this._logger,
-			moduleIDs: registeredModules.map(mod => mod.moduleID),
+			modules: registeredModules.map(mod => mod.module),
 		});
 
 		await this._generator.init({

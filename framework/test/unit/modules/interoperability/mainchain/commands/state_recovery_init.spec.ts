@@ -6,12 +6,13 @@ import { sparseMerkleTree } from '@liskhq/lisk-tree';
 import {
 	CHAIN_ACTIVE,
 	CHAIN_TERMINATED,
-	COMMAND_ID_STATE_RECOVERY_INIT_BUFFER,
+	COMMAND_NAME_STATE_RECOVERY_INIT,
 	EMPTY_BYTES,
 	LIVENESS_LIMIT,
 	MAINCHAIN_ID,
 	MAINCHAIN_ID_BUFFER,
 	MODULE_ID_INTEROPERABILITY_BUFFER,
+	MODULE_NAME_INTEROPERABILITY,
 	STORE_PREFIX_TERMINATED_STATE,
 } from '../../../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
@@ -96,8 +97,8 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 		encodedTransactionParams = codec.encode(stateRecoveryInitParams, transactionParams);
 
 		transaction = new Transaction({
-			moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
-			commandID: COMMAND_ID_STATE_RECOVERY_INIT_BUFFER,
+			module: MODULE_NAME_INTEROPERABILITY,
+			command: COMMAND_NAME_STATE_RECOVERY_INIT,
 			fee: BigInt(100000000),
 			nonce: BigInt(0),
 			params: encodedTransactionParams,
@@ -114,7 +115,7 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
 		terminatedStateSubstore = stateStore.getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
+			stateRecoveryInitCommand['moduleID'],
 			STORE_PREFIX_TERMINATED_STATE,
 		);
 
@@ -225,8 +226,8 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 			};
 			encodedTransactionParams = codec.encode(stateRecoveryInitParams, transactionParams);
 			transaction = new Transaction({
-				moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
-				commandID: COMMAND_ID_STATE_RECOVERY_INIT_BUFFER,
+				module: MODULE_NAME_INTEROPERABILITY,
+				command: COMMAND_NAME_STATE_RECOVERY_INIT,
 				fee: BigInt(100000000),
 				nonce: BigInt(0),
 				params: encodedTransactionParams,

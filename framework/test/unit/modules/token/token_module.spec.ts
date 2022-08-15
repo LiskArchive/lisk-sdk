@@ -18,7 +18,6 @@ import {
 	CHAIN_ID_LENGTH,
 	EMPTY_BYTES,
 	LOCAL_ID_LENGTH,
-	MODULE_ID_TOKEN_BUFFER,
 	STORE_PREFIX_AVAILABLE_LOCAL_ID,
 	STORE_PREFIX_ESCROW,
 	STORE_PREFIX_SUPPLY,
@@ -83,26 +82,26 @@ describe('token module', () => {
 			}
 			const encodedAsset = codec.encode(genesisTokenStoreSchema, input);
 			const context = createGenesisBlockContext({
-				assets: new BlockAssets([{ moduleID: MODULE_ID_TOKEN_BUFFER, data: encodedAsset }]),
+				assets: new BlockAssets([{ module: 'token', data: encodedAsset }]),
 			}).createInitGenesisStateContext();
 
 			await expect(tokenModule.initGenesisState(context)).resolves.toBeUndefined();
 			// Expect stored
-			const userStore = context.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
+			const userStore = context.getStore(tokenModule.id, STORE_PREFIX_USER);
 			const allUsers = await userStore.iterate({
 				gte: Buffer.alloc(26, 0),
 				lte: Buffer.alloc(26, 255),
 			});
 			expect(allUsers).toHaveLength(input.userSubstore.length);
 
-			const supplyStore = context.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_SUPPLY);
+			const supplyStore = context.getStore(tokenModule.id, STORE_PREFIX_SUPPLY);
 			const allSupplies = await supplyStore.iterate({
 				gte: Buffer.alloc(LOCAL_ID_LENGTH, 0),
 				lte: Buffer.alloc(LOCAL_ID_LENGTH, 255),
 			});
 			expect(allSupplies).toHaveLength(input.supplySubstore.length);
 
-			const escrowStore = context.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_ESCROW);
+			const escrowStore = context.getStore(tokenModule.id, STORE_PREFIX_ESCROW);
 			const allEscrows = await escrowStore.iterate({
 				gte: Buffer.alloc(TOKEN_ID_LENGTH, 0),
 				lte: Buffer.alloc(TOKEN_ID_LENGTH, 255),
@@ -110,7 +109,7 @@ describe('token module', () => {
 			expect(allEscrows).toHaveLength(input.escrowSubstore.length);
 
 			const nextAvailableLocalIDStore = context.getStore(
-				MODULE_ID_TOKEN_BUFFER,
+				tokenModule.id,
 				STORE_PREFIX_AVAILABLE_LOCAL_ID,
 			);
 			const {
@@ -122,7 +121,7 @@ describe('token module', () => {
 			expect(nextAvailableLocalID).toEqual(input.availableLocalIDSubstore.nextAvailableLocalID);
 
 			const terminatedEscrowStore = context.getStore(
-				MODULE_ID_TOKEN_BUFFER,
+				tokenModule.id,
 				STORE_PREFIX_TERMINATED_ESCROW,
 			);
 			const allTerminatedEscrows = await terminatedEscrowStore.iterate({
@@ -138,7 +137,7 @@ describe('token module', () => {
 			}
 			const encodedAsset = codec.encode(genesisTokenStoreSchema, input);
 			const context = createGenesisBlockContext({
-				assets: new BlockAssets([{ moduleID: MODULE_ID_TOKEN_BUFFER, data: encodedAsset }]),
+				assets: new BlockAssets([{ module: 'token', data: encodedAsset }]),
 			}).createInitGenesisStateContext();
 
 			await expect(tokenModule.initGenesisState(context)).rejects.toThrow(err as string);

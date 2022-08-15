@@ -25,12 +25,7 @@ import {
 } from '../../state_machine';
 import { AuthAPI } from './api';
 import { RegisterMultisignatureCommand } from './commands/register_multisignature';
-import {
-	COMMAND_ID_REGISTER_MULTISIGNATURE_GROUP,
-	MAX_NUMBER_OF_SIGNATURES,
-	MODULE_ID_AUTH,
-	STORE_PREFIX_AUTH,
-} from './constants';
+import { MAX_NUMBER_OF_SIGNATURES, STORE_PREFIX_AUTH } from './constants';
 import { AuthEndpoint } from './endpoint';
 import {
 	authAccountSchema,
@@ -40,7 +35,6 @@ import {
 } from './schemas';
 import { AuthAccount, GenesisAuthStore } from './types';
 import {
-	getIDAsKeyForStore,
 	isMultisignatureAccount,
 	verifyMultiSignatureTransaction,
 	verifyNonce,
@@ -49,10 +43,9 @@ import {
 } from './utils';
 
 export class AuthModule extends BaseModule {
-	public id = getIDAsKeyForStore(MODULE_ID_AUTH);
 	public name = 'auth';
-	public api = new AuthAPI(this.id);
-	public endpoint = new AuthEndpoint(this.id);
+	public api = new AuthAPI(this.name);
+	public endpoint = new AuthEndpoint(this.name);
 	public configSchema = configSchema;
 	public commands = [new RegisterMultisignatureCommand(this.id)];
 
@@ -75,7 +68,7 @@ export class AuthModule extends BaseModule {
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
-		const assetBytes = context.assets.getAsset(this.id);
+		const assetBytes = context.assets.getAsset(this.name);
 		// if there is no asset, do not initialize
 		if (!assetBytes) {
 			return;
@@ -177,9 +170,9 @@ export class AuthModule extends BaseModule {
 		// Verify multisignature registration transaction
 		if (
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-			transaction.moduleID.equals(this.id) &&
+			transaction.module === this.name &&
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-			transaction.commandID.equals(getIDAsKeyForStore(COMMAND_ID_REGISTER_MULTISIGNATURE_GROUP))
+			transaction.command === this.commands[0].name
 		) {
 			verifyRegisterMultiSignatureTransaction(
 				TAG_TRANSACTION,

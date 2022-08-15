@@ -34,7 +34,6 @@ import {
 	createGenesisBlockContext,
 } from '../../../../src/testing';
 import {
-	MODULE_ID_DPOS_BUFFER,
 	STORE_PREFIX_DELEGATE,
 	STORE_PREFIX_GENESIS_DATA,
 	STORE_PREFIX_NAME,
@@ -154,7 +153,7 @@ describe('DPoS module', () => {
 				const context = createGenesisBlockContext({
 					stateStore,
 					header: createFakeBlockHeader({ height: 12345 }),
-					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
+					assets: new BlockAssets([{ module: dpos.name, data: assetBytes }]),
 				}).createInitGenesisStateContext();
 				jest.spyOn(dpos, 'finalizeGenesisState');
 
@@ -181,7 +180,7 @@ describe('DPoS module', () => {
 				const assetBytes = codec.encode(genesisStoreSchema, modified);
 				const context = createGenesisBlockContext({
 					stateStore,
-					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
+					assets: new BlockAssets([{ module: dpos.name, data: assetBytes }]),
 				}).createInitGenesisStateContext();
 				await dpos.initGenesisState(context);
 				await expect(dpos.finalizeGenesisState(context)).rejects.toThrow(
@@ -196,7 +195,7 @@ describe('DPoS module', () => {
 				const context = createGenesisBlockContext({
 					stateStore,
 					header: createFakeBlockHeader({ height: 12345 }),
-					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
+					assets: new BlockAssets([{ module: dpos.name, data: assetBytes }]),
 				}).createInitGenesisStateContext();
 				await dpos.initGenesisState(context);
 				await expect(dpos.finalizeGenesisState(context)).rejects.toThrow(
@@ -213,7 +212,7 @@ describe('DPoS module', () => {
 				const assetBytes = codec.encode(genesisStoreSchema, validAsset);
 				genesisContext = createGenesisBlockContext({
 					stateStore,
-					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
+					assets: new BlockAssets([{ module: dpos.name, data: assetBytes }]),
 				});
 				context = genesisContext.createInitGenesisStateContext();
 			});
@@ -942,11 +941,8 @@ describe('DPoS module', () => {
 				}));
 			delegateAddresses = Array.from({ length: 103 }, _ => utils.getRandomBytes(20));
 
-			previousTimestampStore = stateStore.getStore(
-				MODULE_ID_DPOS_BUFFER,
-				STORE_PREFIX_PREVIOUS_TIMESTAMP,
-			);
-			delegateStore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
+			previousTimestampStore = stateStore.getStore(dpos.id, STORE_PREFIX_PREVIOUS_TIMESTAMP);
+			delegateStore = stateStore.getStore(dpos.id, STORE_PREFIX_DELEGATE);
 
 			for (let i = 0; i < 103; i += 1) {
 				await delegateStore.setWithSchema(

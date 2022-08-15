@@ -40,8 +40,8 @@ describe('state_machine', () => {
 	let eventQueue: EventQueue;
 	const networkIdentifier = Buffer.from('network identifier', 'utf8');
 	const transaction = {
-		moduleID: utils.intToBuffer(3, 4),
-		commandID: utils.intToBuffer(0, 4),
+		module: 'customModule0',
+		command: 'customCommand0',
 		params: codec.encode(new CustomCommand0(utils.intToBuffer(3, 4)).schema, { data: 'some info' }),
 	} as Transaction;
 
@@ -210,35 +210,32 @@ describe('state_machine', () => {
 		it('should rollback state if afterCommandExecute fails', async () => {
 			const events = [
 				{
-					moduleID: utils.intToBuffer(3, 4),
+					module: 'customModule0',
 					typeID: Buffer.from([0, 0, 0, 0]),
 					data: utils.getRandomBytes(20),
 					topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],
 				},
 				{
-					moduleID: utils.intToBuffer(4, 4),
+					module: 'auth',
 					typeID: Buffer.from([0, 0, 0, 0]),
 					data: utils.getRandomBytes(20),
 					topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],
 				},
 				{
-					moduleID: utils.intToBuffer(2, 4),
+					module: 'customModule0',
 					typeID: Buffer.from([0, 0, 0, 0]),
 					data: utils.getRandomBytes(20),
 					topics: [utils.getRandomBytes(32)],
 				},
 			];
 			for (const e of events) {
-				eventQueue.unsafeAdd(e.moduleID, e.typeID, e.data, e.topics);
+				eventQueue.unsafeAdd(e.module, e.typeID, e.data, e.topics);
 			}
 
 			mod.beforeCommandExecute.mockImplementation(() => {
-				eventQueue.add(
-					utils.intToBuffer(3, 4),
-					Buffer.from([0, 0, 0, 1]),
-					utils.getRandomBytes(100),
-					[utils.getRandomBytes(32)],
-				);
+				eventQueue.add('auth', Buffer.from([0, 0, 0, 1]), utils.getRandomBytes(100), [
+					utils.getRandomBytes(32),
+				]);
 			});
 
 			systemMod.afterCommandExecute.mockImplementation(() => {

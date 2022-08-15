@@ -278,7 +278,7 @@ describe('AuthModule', () => {
 			const assetBytes = codec.encode(genesisAuthStoreSchema, validAsset);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([{ moduleID: authModule.id, data: assetBytes }]),
+				assets: new BlockAssets([{ module: authModule.name, data: assetBytes }]),
 			}).createInitGenesisStateContext();
 			jest.spyOn(context, 'getStore');
 
@@ -295,7 +295,7 @@ describe('AuthModule', () => {
 				const assetBytes = codec.encode(genesisAuthStoreSchema, data as object);
 				const context = createGenesisBlockContext({
 					stateStore,
-					assets: new BlockAssets([{ moduleID: authModule.id, data: assetBytes }]),
+					assets: new BlockAssets([{ module: authModule.name, data: assetBytes }]),
 				}).createInitGenesisStateContext();
 
 				await expect(authModule.initGenesisState(context)).toReject();
@@ -340,8 +340,8 @@ describe('AuthModule', () => {
 			it('should return PENDING status with no error when trx nonce is higher than account nonce', async () => {
 				// Arrange
 				const transaction = new Transaction({
-					moduleID: utils.intToBuffer(2, 4),
-					commandID: utils.intToBuffer(0, 4),
+					module: 'token',
+					command: 'transfer',
 					nonce: BigInt('2'),
 					fee: BigInt('100000000'),
 					senderPublicKey: passphraseDerivedKeys.publicKey,
@@ -397,8 +397,8 @@ describe('AuthModule', () => {
 			it('should not throw for valid transaction', async () => {
 				// Arrange
 				const transaction = new Transaction({
-					moduleID: utils.intToBuffer(2, 4),
-					commandID: utils.intToBuffer(0, 4),
+					module: 'token',
+					command: 'transfer',
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
 					senderPublicKey: passphraseDerivedKeys.publicKey,
@@ -432,8 +432,8 @@ describe('AuthModule', () => {
 			it('should throw if signature is missing', async () => {
 				// Arrange
 				const transaction = new Transaction({
-					moduleID: utils.intToBuffer(2, 4),
-					commandID: utils.intToBuffer(0, 4),
+					module: 'token',
+					command: 'transfer',
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
 					senderPublicKey: passphraseDerivedKeys.publicKey,
@@ -460,8 +460,8 @@ describe('AuthModule', () => {
 			it('should throw error if account is not multi signature and more than one signature present', async () => {
 				// Arrange
 				const transaction = new Transaction({
-					moduleID: utils.intToBuffer(2, 4),
-					commandID: utils.intToBuffer(0, 4),
+					module: 'token',
+					command: 'transfer',
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
 					senderPublicKey: passphraseDerivedKeys.publicKey,
@@ -558,8 +558,8 @@ describe('AuthModule', () => {
 					});
 
 				transaction = new Transaction({
-					moduleID: utils.intToBuffer(2, 4),
-					commandID: utils.intToBuffer(0, 4),
+					module: 'token',
+					command: 'transfer',
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
 					senderPublicKey: (members as any).mainAccount.keys.publicKey,

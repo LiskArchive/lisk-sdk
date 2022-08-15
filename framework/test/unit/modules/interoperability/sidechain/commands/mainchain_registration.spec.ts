@@ -23,7 +23,7 @@ import { MainchainRegistrationCommand } from '../../../../../../src/modules/inte
 import {
 	CCM_STATUS_OK,
 	CHAIN_REGISTERED,
-	COMMAND_ID_MAINCHAIN_REG_BUFFER,
+	COMMAND_NAME_MAINCHAIN_REG,
 	CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
 	EMPTY_FEE_ADDRESS,
 	EMPTY_HASH,
@@ -33,6 +33,7 @@ import {
 	MAINCHAIN_NETWORK_ID,
 	MAX_UINT32,
 	MODULE_ID_INTEROPERABILITY_BUFFER,
+	MODULE_NAME_INTEROPERABILITY,
 	NUMBER_MAINCHAIN_VALIDATORS,
 	STORE_PREFIX_CHAIN_DATA,
 	STORE_PREFIX_CHAIN_VALIDATORS,
@@ -84,8 +85,8 @@ describe('Mainchain registration command', () => {
 	const encodedTransactionParams = codec.encode(mainchainRegParams, transactionParams);
 	const publicKey = utils.getRandomBytes(32);
 	const transaction = new Transaction({
-		moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
-		commandID: COMMAND_ID_MAINCHAIN_REG_BUFFER,
+		module: MODULE_NAME_INTEROPERABILITY,
+		command: COMMAND_NAME_MAINCHAIN_REG,
 		senderPublicKey: publicKey,
 		nonce: BigInt(0),
 		fee: BigInt(100000000),

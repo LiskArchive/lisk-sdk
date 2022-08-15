@@ -12,11 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
-import { defaultConfig, MODULE_ID_FEE } from './constants';
+import { defaultConfig } from './constants';
 import { ModuleConfig, TokenAPI } from './types';
 import {
 	TransactionExecuteContext,
@@ -29,11 +28,10 @@ import { FeeEndpoint } from './endpoint';
 import { configSchema } from './schemas';
 
 export class FeeModule extends BaseModule {
-	public id = utils.intToBuffer(MODULE_ID_FEE, 4);
 	public name = 'fee';
-	public api = new FeeAPI(this.id);
+	public api = new FeeAPI(this.name);
 	public configSchema = configSchema;
-	public endpoint = new FeeEndpoint(this.id);
+	public endpoint = new FeeEndpoint(this.name);
 	private _tokenAPI!: TokenAPI;
 	private _minFeePerByte!: number;
 	private _tokenID!: Buffer;

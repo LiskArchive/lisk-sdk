@@ -148,6 +148,7 @@ describe('CrossChainUpdateCommand', () => {
 	let sortedActiveValidatorsUpdate: ActiveValidator[];
 
 	beforeEach(async () => {
+		sidechainCCUUpdateCommand = new SidechainCCUpdateCommand(moduleID, new Map(), new Map());
 		activeValidatorsUpdate = [
 			{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(1) },
 			{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
@@ -220,15 +221,15 @@ describe('CrossChainUpdateCommand', () => {
 			.mockResolvedValue(partnerChannelAccount);
 
 		when(getStoreMock)
-			.calledWith(defaultTransaction.moduleID, STORE_PREFIX_CHAIN_DATA)
+			.calledWith(sidechainCCUUpdateCommand['moduleID'], STORE_PREFIX_CHAIN_DATA)
 			.mockReturnValueOnce(partnerChainStore);
 
 		when(getStoreMock)
-			.calledWith(defaultTransaction.moduleID, STORE_PREFIX_CHANNEL_DATA)
+			.calledWith(sidechainCCUUpdateCommand['moduleID'], STORE_PREFIX_CHANNEL_DATA)
 			.mockReturnValueOnce(partnerChannelStore);
 
 		when(getStoreMock)
-			.calledWith(moduleID, STORE_PREFIX_CHAIN_VALIDATORS)
+			.calledWith(sidechainCCUUpdateCommand['moduleID'], STORE_PREFIX_CHAIN_VALIDATORS)
 			.mockReturnValueOnce(partnerValidatorStore);
 
 		when(partnerValidatorStore.getWithSchema)

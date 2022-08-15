@@ -25,7 +25,6 @@ import {
 	STORE_PREFIX_DELEGATE,
 	STORE_PREFIX_GENESIS_DATA,
 	STORE_PREFIX_VOTER,
-	COMMAND_ID_UNLOCK,
 	MODULE_ID_DPOS_BUFFER,
 } from '../../../../../src/modules/dpos_v2/constants';
 import {
@@ -84,8 +83,8 @@ describe('UnlockCommand', () => {
 	};
 	const publicKey = utils.getRandomBytes(32);
 	const transaction = new Transaction({
-		moduleID: MODULE_ID_DPOS_BUFFER,
-		commandID: utils.intToBuffer(COMMAND_ID_UNLOCK, 4),
+		module: 'dpos',
+		command: 'unlock',
 		senderPublicKey: publicKey,
 		nonce: BigInt(0),
 		fee: BigInt(100000000),

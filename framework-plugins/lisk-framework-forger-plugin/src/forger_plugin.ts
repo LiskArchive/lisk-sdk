@@ -33,16 +33,13 @@ import { Forger, TransactionFees, Voters } from './types';
 import { Endpoint } from './endpoint';
 
 const { Block } = chain;
-const { utils: cryptoUtils } = cryptography;
 type BlockHeaderJSON = chain.BlockHeaderJSON;
 type BlockJSON = chain.BlockJSON;
 type TransactionJSON = chain.TransactionJSON;
 
 const BLOCKS_BATCH_TO_SYNC = 1000;
-const MODULE_ID_DPOS = 5;
-const MODULE_ID_DPOS_BUFFER = cryptoUtils.intToBuffer(MODULE_ID_DPOS, 4);
-const COMMAND_ID_VOTE = 1;
-const COMMAND_ID_VOTE_BUFFER = cryptoUtils.intToBuffer(COMMAND_ID_VOTE, 4);
+const MODULE_DPOS = 'dpos';
+const COMMAND_VOTE = 'vote';
 
 interface Data {
 	readonly blockHeader: BlockHeaderJSON;
@@ -291,24 +288,17 @@ export class ForgerPlugin extends BasePlugin {
 	): ForgerReceivedVotes {
 		const forgerReceivedVotes: ForgerReceivedVotes = {};
 
-		const dposModuleMeta = this.apiClient.metadata.find(
-			c => c.id === MODULE_ID_DPOS_BUFFER.toString('hex'),
-		);
+		const dposModuleMeta = this.apiClient.metadata.find(c => c.name === MODULE_DPOS);
 		if (!dposModuleMeta) {
 			throw new Error('DPoS votes command is not registered.');
 		}
-		const voteCommandMeta = dposModuleMeta.commands.find(
-			c => c.id === COMMAND_ID_VOTE_BUFFER.toString('hex'),
-		);
+		const voteCommandMeta = dposModuleMeta.commands.find(c => c.name === COMMAND_VOTE);
 		if (!voteCommandMeta || !voteCommandMeta.params) {
 			throw new Error('DPoS votes command is not registered.');
 		}
 
 		for (const trx of transactions) {
-			if (
-				trx.moduleID === MODULE_ID_DPOS_BUFFER.toString('hex') &&
-				trx.commandID === COMMAND_ID_VOTE_BUFFER.toString('hex')
-			) {
+			if (trx.module === MODULE_DPOS && trx.command === COMMAND_VOTE) {
 				const params = codec.decode<VotesParams>(
 					voteCommandMeta.params,
 					Buffer.from(trx.params, 'hex'),

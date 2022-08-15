@@ -54,7 +54,7 @@ describe('CrossChain Transfer command', () => {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
 			{
-				moduleID: utils.intToBuffer(12, 4),
+				module: 'dpos',
 				amount: BigInt(100000000),
 			},
 		],
@@ -76,9 +76,8 @@ describe('CrossChain Transfer command', () => {
 	let apiContext: APIContext;
 
 	beforeEach(async () => {
-		const moduleID = MODULE_ID_TOKEN_BUFFER;
-		api = new TokenAPI(moduleID);
-		command = new CCTransferCommand(moduleID, api);
+		api = new TokenAPI('token');
+		command = new CCTransferCommand(api['moduleID'], api);
 		interopAPI = {
 			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
 			send: jest.fn(),
@@ -106,7 +105,7 @@ describe('CrossChain Transfer command', () => {
 			stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
 			eventQueue: new EventQueue(),
 		});
-		const userStore = apiContext.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
+		const userStore = apiContext.getStore(api['moduleID'], STORE_PREFIX_USER);
 		await userStore.setWithSchema(
 			getUserStoreKey(defaultAddress, defaultTokenIDAlias),
 			defaultAccount,
@@ -118,7 +117,7 @@ describe('CrossChain Transfer command', () => {
 			userStoreSchema,
 		);
 
-		const supplyStore = apiContext.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_SUPPLY);
+		const supplyStore = apiContext.getStore(api['moduleID'], STORE_PREFIX_SUPPLY);
 		await supplyStore.setWithSchema(
 			defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
 			{ totalSupply: defaultTotalSupply },
@@ -126,7 +125,7 @@ describe('CrossChain Transfer command', () => {
 		);
 
 		const nextAvailableLocalIDStore = apiContext.getStore(
-			MODULE_ID_TOKEN_BUFFER,
+			api['moduleID'],
 			STORE_PREFIX_AVAILABLE_LOCAL_ID,
 		);
 		await nextAvailableLocalIDStore.setWithSchema(
@@ -135,7 +134,7 @@ describe('CrossChain Transfer command', () => {
 			availableLocalIDStoreSchema,
 		);
 
-		const escrowStore = apiContext.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_ESCROW);
+		const escrowStore = apiContext.getStore(api['moduleID'], STORE_PREFIX_ESCROW);
 		await escrowStore.setWithSchema(
 			Buffer.concat([
 				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),

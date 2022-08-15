@@ -2,93 +2,77 @@
 
 exports[`transaction Transaction create when called with a valid transaction should return created tx 1`] = `
 Array [
-  "decd8de376ac1991b54fb6d0d9bb280ac3b65b9d237aafe0902e52f4996b2064beb3dee247ce8cf8a6d08dcc6a85e67d7e8cbd70b28a12c54eaa24df61af080f",
+  "925b36e897e551df887c7ca6953766f56c0054552810753b838dfe05a833f149200e95ee97b82ade6e143fba52fa643ddd38fb4be3186b77b1035971d011d70a",
 ]
 `;
 
 exports[`transaction Transaction create when called with multi-signature account in input should return created tx 1`] = `
 Array [
-  "decd8de376ac1991b54fb6d0d9bb280ac3b65b9d237aafe0902e52f4996b2064beb3dee247ce8cf8a6d08dcc6a85e67d7e8cbd70b28a12c54eaa24df61af080f",
+  "925b36e897e551df887c7ca6953766f56c0054552810753b838dfe05a833f149200e95ee97b82ade6e143fba52fa643ddd38fb4be3186b77b1035971d011d70a",
   "",
 ]
 `;
 
 exports[`transaction Transaction create when called with nonce equal to zero in input should return created tx 1`] = `
 Array [
-  "a8268456170f0b3f1480ad01e72b209b7696bbeccd1917a78d38cc5424c2fbf5dc6db1104addc9ae036715a83f66dab1c207afceda07bd5812d7fd8f6a015208",
+  "48a20c01fdc3ce6f9178d3275a101e2fde62eea20c497530abb8f88d0d2862a66c27c319323cad6ded7647d0934d1bc36d940285f8aaaddb5dfd6fe324977f0d",
 ]
 `;
 
 exports[`transaction Transaction create when called with optional keys in input should return created tx 1`] = `
 Array [
-  "decd8de376ac1991b54fb6d0d9bb280ac3b65b9d237aafe0902e52f4996b2064beb3dee247ce8cf8a6d08dcc6a85e67d7e8cbd70b28a12c54eaa24df61af080f",
+  "925b36e897e551df887c7ca6953766f56c0054552810753b838dfe05a833f149200e95ee97b82ade6e143fba52fa643ddd38fb4be3186b77b1035971d011d70a",
 ]
 `;
 
 exports[`transaction Transaction create when called without sender public key in input should return created tx 1`] = `
 Array [
-  "decd8de376ac1991b54fb6d0d9bb280ac3b65b9d237aafe0902e52f4996b2064beb3dee247ce8cf8a6d08dcc6a85e67d7e8cbd70b28a12c54eaa24df61af080f",
+  "925b36e897e551df887c7ca6953766f56c0054552810753b838dfe05a833f149200e95ee97b82ade6e143fba52fa643ddd38fb4be3186b77b1035971d011d70a",
 ]
 `;
 
 exports[`transaction Transaction decode transaction from input as buffer should return decoded transaction 1`] = `
 Object {
-  "commandID": Object {
-    "data": Array [
-      0,
-      0,
-      0,
-      0,
-    ],
-    "type": "Buffer",
-  },
+  "command": "transfer",
   "fee": 10000000n,
   "id": Object {
     "data": Array [
-      18,
-      121,
-      19,
-      82,
-      241,
+      116,
+      198,
+      128,
+      147,
+      238,
+      181,
+      55,
+      166,
+      114,
+      181,
+      57,
+      160,
+      183,
+      70,
+      212,
+      192,
+      169,
       102,
-      164,
-      224,
-      66,
-      52,
-      193,
-      84,
-      54,
+      248,
+      94,
+      221,
+      18,
+      148,
+      116,
+      213,
+      248,
+      112,
       41,
-      162,
-      29,
-      51,
-      176,
-      117,
-      154,
-      123,
-      124,
-      124,
-      123,
-      214,
-      88,
-      219,
-      103,
-      163,
-      62,
-      76,
-      25,
+      174,
+      250,
+      16,
+      185,
     ],
     "type": "Buffer",
   },
-  "moduleID": Object {
-    "data": Array [
-      0,
-      0,
-      0,
-      2,
-    ],
-    "type": "Buffer",
-  },
+  "module": "token",
   "nonce": 54n,
   "params": Object {
     "amount": 10000000n,
@@ -232,62 +216,46 @@ Object {
 
 exports[`transaction Transaction decode transaction from input as hex should return decoded transaction 1`] = `
 Object {
-  "commandID": Object {
-    "data": Array [
-      0,
-      0,
-      0,
-      0,
-    ],
-    "type": "Buffer",
-  },
+  "command": "transfer",
   "fee": 10000000n,
   "id": Object {
     "data": Array [
-      18,
-      121,
-      19,
-      82,
-      241,
+      116,
+      198,
+      128,
+      147,
+      238,
+      181,
+      55,
+      166,
+      114,
+      181,
+      57,
+      160,
+      183,
+      70,
+      212,
+      192,
+      169,
       102,
-      164,
-      224,
-      66,
-      52,
-      193,
-      84,
-      54,
+      248,
+      94,
+      221,
+      18,
+      148,
+      116,
+      213,
+      248,
+      112,
       41,
-      162,
-      29,
-      51,
-      176,
-      117,
-      154,
-      123,
-      124,
-      124,
-      123,
-      214,
-      88,
-      219,
-      103,
-      163,
-      62,
-      76,
-      25,
+      174,
+      250,
+      16,
+      185,
     ],
     "type": "Buffer",
   },
-  "moduleID": Object {
-    "data": Array [
-      0,
-      0,
-      0,
-      2,
-    ],
-    "type": "Buffer",
-  },
+  "module": "token",
   "nonce": 54n,
   "params": Object {
     "amount": 10000000n,
@@ -431,14 +399,14 @@ Object {
 
 exports[`transaction Transaction sign when called with multi-signature account in input should return created tx 1`] = `
 Array [
-  "decd8de376ac1991b54fb6d0d9bb280ac3b65b9d237aafe0902e52f4996b2064beb3dee247ce8cf8a6d08dcc6a85e67d7e8cbd70b28a12c54eaa24df61af080f",
-  "e2d5c2eaffd5cacde7f9382b5f0e3c6d7c68bf0cde8677371c98cf3919e6c5a2cb731f8b3567d231db8bafa40fd3064102699809f27f018bc4f7728641eb9b01",
+  "925b36e897e551df887c7ca6953766f56c0054552810753b838dfe05a833f149200e95ee97b82ade6e143fba52fa643ddd38fb4be3186b77b1035971d011d70a",
+  "49d372534c1bb5243105953f3146b796a939b7e72b9fc8a9d834f47c393e958395de009063a5b250b94dc1853e5a2f4d039034656baebaa682d26aba48d61308",
 ]
 `;
 
 exports[`transaction Transaction sign when called with optional keys in input should return created tx 1`] = `
 Array [
-  "decd8de376ac1991b54fb6d0d9bb280ac3b65b9d237aafe0902e52f4996b2064beb3dee247ce8cf8a6d08dcc6a85e67d7e8cbd70b28a12c54eaa24df61af080f",
-  "e2d5c2eaffd5cacde7f9382b5f0e3c6d7c68bf0cde8677371c98cf3919e6c5a2cb731f8b3567d231db8bafa40fd3064102699809f27f018bc4f7728641eb9b01",
+  "925b36e897e551df887c7ca6953766f56c0054552810753b838dfe05a833f149200e95ee97b82ade6e143fba52fa643ddd38fb4be3186b77b1035971d011d70a",
+  "49d372534c1bb5243105953f3146b796a939b7e72b9fc8a9d834f47c393e958395de009063a5b250b94dc1853e5a2f4d039034656baebaa682d26aba48d61308",
 ]
 `;

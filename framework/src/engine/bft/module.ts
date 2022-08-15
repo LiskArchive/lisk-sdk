@@ -16,6 +16,7 @@ import { BFTAPI } from './api';
 import {
 	EMPTY_KEY,
 	MODULE_ID_BFT_BUFFER,
+	MODULE_NAME_BFT,
 	STORE_PREFIX_BFT_PARAMETERS,
 	STORE_PREFIX_BFT_VOTES,
 	STORE_PREFIX_GENERATOR_KEYS,
@@ -32,9 +33,9 @@ import { BFTParametersCache, deleteBFTParameters } from './bft_params';
 import { deleteGeneratorKeys } from './utils';
 
 export class BFTModule {
+	public name = MODULE_NAME_BFT;
 	public id = MODULE_ID_BFT_BUFFER;
-	public name = 'bft';
-	public api = new BFTAPI(this.id);
+	public api = new BFTAPI(this.name);
 
 	private _batchSize!: number;
 	private _maxLengthBlockBFTInfos!: number;
