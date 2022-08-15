@@ -17,7 +17,6 @@ export const defaultConfig = {
 		// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 		maxTransactionsSize: 15 * 1024, // Kilo Bytes
 		minFeePerByte: 1000,
-		baseFees: [],
 		modules: {},
 	},
 	generation: {
@@ -43,3 +42,5 @@ export const defaultConfig = {
 	},
 	plugins: {},
 };
+
+export const DEFAULT_KEY_DERIVATION_PATH = "m/25519'/134'/0'/0'";

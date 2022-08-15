@@ -16,16 +16,16 @@
 
 import {
 	createAggSig,
-	signBLS,
+	signData,
 	verifyAggSig,
 	verifyWeightedAggSig,
-	verifyBLS,
+	verifyData,
 	getPrivateKeyFromPhraseAndPath,
 } from '../src/bls';
 import { getAllFiles, hexToBuffer, loadSpecFile } from './helpers';
 
 describe('bls_lib', () => {
-	describe('signBLS', () => {
+	describe('signData', () => {
 		describe.each(getAllFiles(['bls_specs/sign_bls']))('%s', ({ path }) => {
 			it('should generate valid signature', () => {
 				const {
@@ -36,14 +36,14 @@ describe('bls_lib', () => {
 					output: string;
 				}>(path);
 
-				const signature = signBLS(tag, hexToBuffer(netId), hexToBuffer(message), hexToBuffer(sk));
+				const signature = signData(tag, hexToBuffer(netId), hexToBuffer(message), hexToBuffer(sk));
 
 				expect(signature.toString('hex')).toEqual(hexToBuffer(output).toString('hex'));
 			});
 		});
 	});
 
-	describe('verifyBLS', () => {
+	describe('verifyData', () => {
 		describe.each(getAllFiles(['bls_specs/verify_bls']))('%s', ({ path }) => {
 			it('should verify signatures', () => {
 				const {
@@ -54,7 +54,7 @@ describe('bls_lib', () => {
 					output: string;
 				}>(path);
 
-				const result = verifyBLS(
+				const result = verifyData(
 					tag,
 					hexToBuffer(netId),
 					hexToBuffer(message),

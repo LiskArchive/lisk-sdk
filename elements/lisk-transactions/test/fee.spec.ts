@@ -13,7 +13,7 @@
  *
  */
 
-import { utils, address } from '@liskhq/lisk-cryptography';
+import { utils, legacy } from '@liskhq/lisk-cryptography';
 import { computeMinFee, getBytes } from '../src';
 
 describe('fee', () => {
@@ -42,7 +42,7 @@ describe('fee', () => {
 		},
 	};
 	const passphrase1 = 'trim elegant oven term access apple obtain error grain excite lawn neck';
-	const { publicKey: publicKey1 } = address.getAddressAndPublicKeyFromPassphrase(passphrase1);
+	const { publicKey: publicKey1 } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase1);
 	const validTransaction = {
 		moduleID: utils.intToBuffer(2, 4),
 		commandID: utils.intToBuffer(0, 4),
@@ -54,23 +54,6 @@ describe('fee', () => {
 			data: '',
 		},
 	};
-	const baseFees = [
-		{
-			moduleID: utils.intToBuffer(2, 4),
-			commandID: utils.intToBuffer(0, 4),
-			baseFee: '10000000',
-		},
-		{
-			moduleID: utils.intToBuffer(5, 4),
-			commandID: utils.intToBuffer(0, 4),
-			baseFee: '1',
-		},
-		{
-			moduleID: utils.intToBuffer(3, 4),
-			commandID: utils.intToBuffer(0, 4),
-			baseFee: '1',
-		},
-	];
 
 	describe('computeMinFee', () => {
 		it('should return minimum fee required to send to network', () => {
@@ -84,7 +67,7 @@ describe('fee', () => {
 
 		it('should calculate minimum fee for given minFeePerByte', () => {
 			// Arrange
-			const options = { minFeePerByte: 2000, baseFees, numberOfSignatures: 1 };
+			const options = { minFeePerByte: 2000, numberOfSignatures: 1 };
 			const minFee = computeMinFee(validTransaction, validParamsSchema, options);
 
 			// Assert
@@ -94,7 +77,7 @@ describe('fee', () => {
 
 		it('should calculate minimum fee for transaction from multisignature account', () => {
 			// Arrange
-			const options = { minFeePerByte: 2000, baseFees, numberOfSignatures: 64 };
+			const options = { minFeePerByte: 2000, numberOfSignatures: 64 };
 			const minFee = computeMinFee(validTransaction, validParamsSchema, options);
 
 			// Assert
@@ -106,7 +89,6 @@ describe('fee', () => {
 			// Arrange
 			const options = {
 				minFeePerByte: 1000,
-				baseFees: [],
 				numberOfSignatures: 2,
 				numberOfEmptySignatures: 3,
 			};
@@ -135,7 +117,7 @@ describe('fee', () => {
 				commandID: utils.intToBuffer(0, 4),
 				params: { username: 'delegate1' },
 			};
-			const options = { minFeePerByte: 1000, baseFees, numberOfSignatures: 1 };
+			const options = { minFeePerByte: 1000, numberOfSignatures: 1 };
 			const delegateRegisterParamsSchema = {
 				$id: '/lisk/dpos/register',
 				type: 'object',

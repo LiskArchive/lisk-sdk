@@ -13,7 +13,7 @@
  */
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { codec } from '@liskhq/lisk-codec';
-import { utils, ed, address as cryptoAddress } from '@liskhq/lisk-cryptography';
+import { utils, ed, address as cryptoAddress, legacy } from '@liskhq/lisk-cryptography';
 import { Transaction, transactionSchema, TAG_TRANSACTION, BlockAssets } from '@liskhq/lisk-chain';
 import { objects as ObjectUtils } from '@liskhq/lisk-utils';
 import { when } from 'jest-when';
@@ -77,7 +77,7 @@ describe('AuthModule', () => {
 			});
 
 		passphrase = Mnemonic.generateMnemonic();
-		passphraseDerivedKeys = ed.getPrivateAndPublicKeyFromPassphrase(passphrase);
+		passphraseDerivedKeys = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
 		const address = cryptoAddress.getAddressFromPublicKey(passphraseDerivedKeys.publicKey);
 
 		when(subStoreMock)
@@ -351,11 +351,11 @@ describe('AuthModule', () => {
 
 				validTestTransaction = new Transaction(decodedMultiSignature);
 
-				const signature = ed.signDataWithPassphrase(
+				const signature = ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getBytes(),
-					passphrase,
+					passphraseDerivedKeys.privateKey,
 				);
 
 				(transaction.signatures as any).push(signature);
@@ -406,11 +406,11 @@ describe('AuthModule', () => {
 					signatures: [],
 				});
 
-				const signature = ed.signDataWithPassphrase(
+				const signature = ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getBytes(),
-					passphrase,
+					passphraseDerivedKeys.privateKey,
 				);
 
 				(transaction.signatures as any).push(signature);
@@ -469,11 +469,11 @@ describe('AuthModule', () => {
 					signatures: [],
 				});
 
-				const signature = ed.signDataWithPassphrase(
+				const signature = ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
 					networkIdentifier,
 					transaction.getBytes(),
-					passphrase,
+					passphraseDerivedKeys.privateKey,
 				);
 
 				(transaction.signatures as any).push(signature);
@@ -533,7 +533,7 @@ describe('AuthModule', () => {
 
 			for (const aMember of Object.values(members)) {
 				aMember.keys = {
-					...ed.getPrivateAndPublicKeyFromPassphrase(aMember.passphrase),
+					...legacy.getPrivateAndPublicKeyFromPassphrase(aMember.passphrase),
 				};
 				aMember.address = cryptoAddress.getAddressFromPublicKey(aMember.keys.publicKey);
 			}
@@ -571,29 +571,29 @@ describe('AuthModule', () => {
 			it('should not throw for valid transaction', async () => {
 				// Arrange
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).mandatoryA.passphrase,
+						(members as any).mandatoryA.keys.privateKey,
 					),
 				);
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).mandatoryB.passphrase,
+						(members as any).mandatoryB.keys.privateKey,
 					),
 				);
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).optionalA.passphrase,
+						(members as any).optionalA.keys.privateKey,
 					),
 				);
 
@@ -629,11 +629,11 @@ describe('AuthModule', () => {
 					});
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).optionalA.passphrase,
+						(members as any).optionalA.keys.privateKey,
 					),
 				);
 
@@ -656,29 +656,29 @@ describe('AuthModule', () => {
 			it('should not throw for valid transaction when first optional is present', async () => {
 				// Arrange
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).mandatoryA.passphrase,
+						(members as any).mandatoryA.keys.privateKey,
 					),
 				);
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).mandatoryB.passphrase,
+						(members as any).mandatoryB.keys.privateKey,
 					),
 				);
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).optionalA.passphrase,
+						(members as any).optionalA.keys.privateKey,
 					),
 				);
 
@@ -700,31 +700,31 @@ describe('AuthModule', () => {
 			it('should not throw for valid transaction when second optional is present', async () => {
 				// Arrange
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).mandatoryA.passphrase,
+						(members as any).mandatoryA.keys.privateKey,
 					),
 				);
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).mandatoryB.passphrase,
+						(members as any).mandatoryB.keys.privateKey,
 					),
 				);
 
 				(transaction.signatures as any).push(Buffer.from(''));
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).optionalB.passphrase,
+						(members as any).optionalB.keys.privateKey,
 					),
 				);
 
@@ -745,29 +745,29 @@ describe('AuthModule', () => {
 			it('should throw for transaction where non optional absent signature is not empty buffer', async () => {
 				// Arrange
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).mandatoryA.passphrase,
+						(members as any).mandatoryA.keys.privateKey,
 					),
 				);
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).mandatoryB.passphrase,
+						(members as any).mandatoryB.keys.privateKey,
 					),
 				);
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).optionalB.passphrase,
+						(members as any).optionalB.keys.privateKey,
 					),
 				);
 				const context = testing
@@ -791,38 +791,38 @@ describe('AuthModule', () => {
 			it('should throw error if number of provided signatures is bigger than numberOfSignatures in account asset', async () => {
 				// Arrange
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).mandatoryA.passphrase,
+						(members as any).mandatoryA.keys.privateKey,
 					),
 				);
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).mandatoryB.passphrase,
+						(members as any).mandatoryB.keys.privateKey,
 					),
 				);
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).optionalA.passphrase,
+						(members as any).optionalA.keys.privateKey,
 					),
 				);
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).optionalB.passphrase,
+						(members as any).optionalB.keys.privateKey,
 					),
 				);
 
@@ -847,20 +847,20 @@ describe('AuthModule', () => {
 			it('should throw error if number of provided signatures is smaller than numberOfSignatures in account asset', async () => {
 				// Arrange
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).mandatoryA.passphrase,
+						(members as any).mandatoryA.keys.privateKey,
 					),
 				);
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).mandatoryB.passphrase,
+						(members as any).mandatoryB.keys.privateKey,
 					),
 				);
 
@@ -887,31 +887,31 @@ describe('AuthModule', () => {
 			it('should throw for transaction with valid numberOfSignatures but missing mandatory key signature', async () => {
 				// Arrange
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).mandatoryA.passphrase,
+						(members as any).mandatoryA.keys.privateKey,
 					),
 				);
 
 				(transaction.signatures as any).push(Buffer.from(''));
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).optionalA.passphrase,
+						(members as any).optionalA.keys.privateKey,
 					),
 				);
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).optionalB.passphrase,
+						(members as any).optionalB.keys.privateKey,
 					),
 				);
 
@@ -932,29 +932,29 @@ describe('AuthModule', () => {
 			it('should throw error if any of the mandatory signatures is not valid', async () => {
 				// Arrange
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).mandatoryA.passphrase,
+						(members as any).mandatoryA.keys.privateKey,
 					),
 				);
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).mandatoryB.passphrase,
+						(members as any).mandatoryB.keys.privateKey,
 					),
 				);
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).optionalA.passphrase,
+						(members as any).optionalA.keys.privateKey,
 					),
 				);
 
@@ -977,31 +977,31 @@ describe('AuthModule', () => {
 			it('should throw error if any of the optional signatures is not valid', async () => {
 				// Arrange
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).mandatoryA.passphrase,
+						(members as any).mandatoryA.keys.privateKey,
 					),
 				);
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).mandatoryB.passphrase,
+						(members as any).mandatoryB.keys.privateKey,
 					),
 				);
 
 				(transaction.signatures as any).push(Buffer.from(''));
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).optionalB.passphrase,
+						(members as any).optionalB.keys.privateKey,
 					),
 				);
 
@@ -1029,29 +1029,29 @@ describe('AuthModule', () => {
 			it('should throw error if mandatory signatures are not in order', async () => {
 				// Arrange
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).mandatoryB.passphrase,
+						(members as any).mandatoryB.keys.privateKey,
 					),
 				);
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).mandatoryA.passphrase,
+						(members as any).mandatoryA.keys.privateKey,
 					),
 				);
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).optionalA.passphrase,
+						(members as any).optionalA.keys.privateKey,
 					),
 				);
 
@@ -1078,31 +1078,31 @@ describe('AuthModule', () => {
 			it('should throw error if optional signatures are not in order', async () => {
 				// Arrange
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).mandatoryA.passphrase,
+						(members as any).mandatoryA.keys.privateKey,
 					),
 				);
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).mandatoryB.passphrase,
+						(members as any).mandatoryB.keys.privateKey,
 					),
 				);
 
 				(transaction.signatures as any).push(Buffer.from(''));
 
 				(transaction.signatures as any).push(
-					ed.signDataWithPassphrase(
+					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
 						networkIdentifier,
 						transaction.getSigningBytes(),
-						(members as any).optionalA.passphrase,
+						(members as any).optionalA.keys.privateKey,
 					),
 				);
 

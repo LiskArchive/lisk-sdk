@@ -14,12 +14,6 @@
 
 import { APIContext } from '../../state_machine/types';
 
-export interface BaseFee {
-	moduleID: Buffer;
-	commandID: Buffer;
-	baseFee: bigint;
-}
-
 export type FeeTokenID = Buffer;
 
 export interface ModuleConfig {

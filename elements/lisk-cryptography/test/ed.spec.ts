@@ -14,24 +14,19 @@
  */
 import { makeInvalid } from './helpers';
 import {
-	SignedMessageWithOnePassphrase,
-	signMessageWithPassphrase,
+	SignedMessageWithPrivateKey,
+	signMessageWithPrivateKey,
 	verifyMessageWithPublicKey,
 	printSignedMessage,
 	signAndPrintMessage,
 	signData,
-	signDataWithPassphrase,
 	signDataWithPrivateKey,
 	verifyData,
 	getKeyPairFromPhraseAndPath,
 	getPublicKeyFromPrivateKey,
-	getPrivateAndPublicKeyFromPassphrase,
-	getKeys,
 } from '../src/ed';
 import { createMessageTag } from '../src/utils';
 import { MAX_UINT32 } from '../src/constants';
-import * as address from '../src/address';
-import { Keypair } from '../src/types';
 
 const changeLength = (buffer: Buffer): Buffer => Buffer.concat([Buffer.from('00', 'hex'), buffer]);
 
@@ -41,7 +36,6 @@ describe('sign', () => {
 		'30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb455',
 		'hex',
 	);
-	const defaultPassphrase = 'minute omit local rare sword knee banner pair rib museum shadow juice';
 	const defaultPrivateKey =
 		'314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
 	const defaultPublicKey = '7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
@@ -63,7 +57,7 @@ ${defaultSignature}
 	const defaultDataSignature =
 		'be3167eb1bd0b1e37727872a7eaee78a7ec13386d23dc50e7ef589ff0e50d680bc8e039072790b875820b25ea7129a8b6c98850951515fac5cfa56119ce43e00';
 
-	let defaultSignedMessage: SignedMessageWithOnePassphrase;
+	let defaultSignedMessage: SignedMessageWithPrivateKey;
 
 	beforeEach(() => {
 		defaultSignedMessage = {
@@ -71,52 +65,15 @@ ${defaultSignature}
 			publicKey: Buffer.from(defaultPublicKey, 'hex'),
 			signature: Buffer.from(defaultSignature, 'hex'),
 		};
-
-		jest.spyOn(address, 'getAddressAndPublicKeyFromPassphrase').mockImplementation(() => {
-			return {
-				address: address.getAddressFromPublicKey(Buffer.from(defaultPublicKey, 'hex')),
-				privateKey: Buffer.from(defaultPrivateKey, 'hex'),
-				publicKey: Buffer.from(defaultPublicKey, 'hex'),
-			};
-		});
 	});
 
-	describe('#signMessageWithPassphrase', () => {
-		it('should create a signed message using a secret passphrase', () => {
-			const signedMessage = signMessageWithPassphrase(defaultMessage, defaultPassphrase);
+	describe('#signMessageWithPrivateKey', () => {
+		it('should create a signed message using a secret private key', () => {
+			const signedMessage = signMessageWithPrivateKey(
+				defaultMessage,
+				Buffer.from(defaultPrivateKey, 'hex'),
+			);
 			expect(signedMessage).toEqual(defaultSignedMessage);
-		});
-	});
-
-	describe('#getPrivateAndPublicKeyFromPassphrase', () => {
-		let keyPair: Keypair;
-
-		beforeEach(() => {
-			keyPair = getPrivateAndPublicKeyFromPassphrase(defaultPassphrase);
-		});
-
-		it('should generate the correct publicKey from a passphrase', () => {
-			expect(keyPair).toHaveProperty('publicKey', Buffer.from(defaultPublicKey, 'hex'));
-		});
-
-		it('should generate the correct privateKey from a passphrase', () => {
-			expect(keyPair).toHaveProperty('privateKey', Buffer.from(defaultPrivateKey, 'hex'));
-		});
-	});
-
-	describe('#getKeys', () => {
-		let keyPair: Keypair;
-
-		beforeEach(() => {
-			keyPair = getKeys(defaultPassphrase);
-		});
-
-		it('should generate the correct publicKey from a passphrase', () => {
-			expect(keyPair).toHaveProperty('publicKey', Buffer.from(defaultPublicKey, 'hex'));
-		});
-
-		it('should generate the correct privateKey from a passphrase', () => {
-			expect(keyPair).toHaveProperty('privateKey', Buffer.from(defaultPrivateKey, 'hex'));
 		});
 	});
 
@@ -169,7 +126,10 @@ ${defaultSignature}
 
 	describe('#signAndPrintMessage', () => {
 		it('should sign the message once and wrap it into a printed Lisk template', () => {
-			const signedAndPrintedMessage = signAndPrintMessage(defaultMessage, defaultPassphrase);
+			const signedAndPrintedMessage = signAndPrintMessage(
+				defaultMessage,
+				Buffer.from(defaultPrivateKey, 'hex'),
+			);
 			expect(signedAndPrintedMessage).toBe(defaultPrintedMessage);
 		});
 	});
@@ -178,20 +138,12 @@ ${defaultSignature}
 		let signature: Buffer;
 
 		beforeEach(async () => {
-			signature = signData(tag, networkIdentifier, defaultData, defaultPassphrase);
-			return Promise.resolve();
-		});
-
-		it('should sign a transaction', () => {
-			expect(signature).toEqual(Buffer.from(defaultDataSignature, 'hex'));
-		});
-	});
-
-	describe('#signDataWithPassphrase', () => {
-		let signature: Buffer;
-
-		beforeEach(async () => {
-			signature = signDataWithPassphrase(tag, networkIdentifier, defaultData, defaultPassphrase);
+			signature = signData(
+				tag,
+				networkIdentifier,
+				defaultData,
+				Buffer.from(defaultPrivateKey, 'hex'),
+			);
 			return Promise.resolve();
 		});
 

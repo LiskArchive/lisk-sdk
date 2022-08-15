@@ -15,9 +15,10 @@
 import { utils } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
+import { codec } from '@liskhq/lisk-codec';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
-import { defaultConfig, MODULE_ID_REWARD } from './constants';
-import { ModuleConfig, RandomAPI, TokenAPI } from './types';
+import { defaultConfig, MODULE_ID_REWARD, TYPE_ID_REWARD_MINTED } from './constants';
+import { ModuleConfig, RandomAPI, TokenAPI, RewardMintedData } from './types';
 import { BlockAfterExecuteContext } from '../../state_machine';
 import { RewardAPI } from './api';
 import { RewardEndpoint } from './endpoint';
@@ -25,6 +26,7 @@ import {
 	configSchema,
 	getDefaultRewardAtHeightRequestSchema,
 	getDefaultRewardAtHeightResponseSchema,
+	rewardMintedDataSchema,
 } from './schemas';
 
 export class RewardModule extends BaseModule {
@@ -86,22 +88,37 @@ export class RewardModule extends BaseModule {
 	}
 
 	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
-		const blockReward = await this.api.getBlockReward(
+		const [blockReward, reduction] = await this.api.getBlockReward(
 			context.getAPIContext(),
 			context.header,
 			context.assets,
 			context.impliesMaxPrevote,
 		);
 
-		if (blockReward <= BigInt(0)) {
-			return;
+		if (blockReward < BigInt(0)) {
+			throw new Error("Block reward can't be negative.");
 		}
 
-		await this._tokenAPI.mint(
-			context.getAPIContext(),
-			context.header.generatorAddress,
-			this._tokenID,
-			blockReward,
+		if (blockReward !== BigInt(0)) {
+			await this._tokenAPI.mint(
+				context.getAPIContext(),
+				context.header.generatorAddress,
+				this._tokenID,
+				blockReward,
+			);
+		}
+
+		const rewardMintedData: RewardMintedData = {
+			amount: blockReward,
+			reduction,
+		};
+
+		const data = codec.encode(rewardMintedDataSchema, rewardMintedData);
+		context.eventQueue.add(
+			this.id,
+			TYPE_ID_REWARD_MINTED,
+			codec.encode(rewardMintedDataSchema, data),
+			[context.header.generatorAddress],
 		);
 	}
 }

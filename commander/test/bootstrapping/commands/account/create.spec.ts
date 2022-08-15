@@ -47,16 +47,16 @@ describe('account:create', () => {
 			await CreateCommand.run([], config);
 			expect(JSON.parse(results[0])).toEqual([
 				{
-					publicKey: cryptography.ed.getKeys(defaultMnemonic).publicKey.toString('hex'),
-					privateKey: cryptography.ed.getKeys(defaultMnemonic).privateKey.toString('hex'),
+					publicKey: cryptography.legacy.getKeys(defaultMnemonic).publicKey.toString('hex'),
+					privateKey: cryptography.legacy.getKeys(defaultMnemonic).privateKey.toString('hex'),
 					blsPublicKey: cryptography.bls.getPublicKeyFromPrivateKey(blsPrivateKey).toString('hex'),
 					blsPrivateKey: blsPrivateKey.toString('hex'),
 					address: cryptography.address.getLisk32AddressFromPublicKey(
-						cryptography.ed.getKeys(defaultMnemonic).publicKey,
+						cryptography.legacy.getKeys(defaultMnemonic).publicKey,
 						'lsk',
 					),
 					binaryAddress: cryptography.address
-						.getAddressFromPassphrase(defaultMnemonic)
+						.getAddressFromPublicKey(cryptography.legacy.getKeys(defaultMnemonic).publicKey)
 						.toString('hex'),
 					passphrase: defaultMnemonic,
 				},
@@ -70,32 +70,32 @@ describe('account:create', () => {
 			await CreateCommand.run(['--count', defaultNumber.toString()], config);
 			const result = [
 				{
-					publicKey: cryptography.ed.getKeys(defaultMnemonic).publicKey.toString('hex'),
-					privateKey: cryptography.ed.getKeys(defaultMnemonic).privateKey.toString('hex'),
+					publicKey: cryptography.legacy.getKeys(defaultMnemonic).publicKey.toString('hex'),
+					privateKey: cryptography.legacy.getKeys(defaultMnemonic).privateKey.toString('hex'),
 					blsPublicKey: cryptography.bls.getPublicKeyFromPrivateKey(blsPrivateKey).toString('hex'),
 					blsPrivateKey: blsPrivateKey.toString('hex'),
 					address: cryptography.address.getLisk32AddressFromPublicKey(
-						cryptography.ed.getKeys(defaultMnemonic).publicKey,
+						cryptography.legacy.getKeys(defaultMnemonic).publicKey,
 						'lsk',
 					),
 					binaryAddress: cryptography.address
-						.getAddressFromPassphrase(defaultMnemonic)
+						.getAddressFromPublicKey(cryptography.legacy.getKeys(defaultMnemonic).publicKey)
 						.toString('hex'),
 					passphrase: defaultMnemonic,
 				},
 				{
-					publicKey: cryptography.ed.getKeys(secondDefaultMnemonic).publicKey.toString('hex'),
-					privateKey: cryptography.ed.getKeys(secondDefaultMnemonic).privateKey.toString('hex'),
+					publicKey: cryptography.legacy.getKeys(secondDefaultMnemonic).publicKey.toString('hex'),
+					privateKey: cryptography.legacy.getKeys(secondDefaultMnemonic).privateKey.toString('hex'),
 					blsPublicKey: cryptography.bls
 						.getPublicKeyFromPrivateKey(secondBlsPrivateKey)
 						.toString('hex'),
 					blsPrivateKey: secondBlsPrivateKey.toString('hex'),
 					address: cryptography.address.getLisk32AddressFromPublicKey(
-						cryptography.ed.getKeys(secondDefaultMnemonic).publicKey,
+						cryptography.legacy.getKeys(secondDefaultMnemonic).publicKey,
 						'lsk',
 					),
 					binaryAddress: cryptography.address
-						.getAddressFromPassphrase(secondDefaultMnemonic)
+						.getAddressFromPublicKey(cryptography.legacy.getKeys(secondDefaultMnemonic).publicKey)
 						.toString('hex'),
 					passphrase: secondDefaultMnemonic,
 				},

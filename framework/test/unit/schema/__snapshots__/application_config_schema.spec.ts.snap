@@ -12,7 +12,6 @@ Object {
       "waitThreshold": 2,
     },
     "genesis": Object {
-      "baseFees": Array [],
       "bftBatchSize": 103,
       "blockTime": 10,
       "communityIdentifier": "sdk",
@@ -133,27 +132,6 @@ Object {
     "genesis": Object {
       "additionalProperties": false,
       "properties": Object {
-        "baseFees": Object {
-          "description": "Base fee for a transaction to be valid",
-          "items": Object {
-            "properties": Object {
-              "assetID": Object {
-                "minimum": 0,
-                "type": "integer",
-              },
-              "baseFee": Object {
-                "format": "uint64",
-                "type": "string",
-              },
-              "moduleID": Object {
-                "minimum": 2,
-                "type": "number",
-              },
-            },
-            "type": "object",
-          },
-          "type": "array",
-        },
         "bftBatchSize": Object {
           "description": "The length of a round",
           "minimum": 1,
@@ -195,7 +173,6 @@ Object {
         "communityIdentifier",
         "maxTransactionsSize",
         "minFeePerByte",
-        "baseFees",
         "modules",
       ],
       "type": "object",

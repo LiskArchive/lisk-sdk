@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { utils, encrypt } from '@liskhq/lisk-cryptography';
+import { encrypt } from '@liskhq/lisk-cryptography';
 
 export const defaultPassword =
 	'tiger grit rigid pipe athlete cheese guitar hurdle remind gap peasant pond';
@@ -35,13 +35,6 @@ export const defaultConfig = {
 		communityIdentifier: 'sdk',
 		maxTransactionsSize: 15 * 1024, // Kilo Bytes
 		minFeePerByte: 1000,
-		baseFees: [
-			{
-				moduleID: utils.intToBuffer(12, 4),
-				commandID: utils.intToBuffer(0, 4),
-				baseFee: '1000000000',
-			},
-		],
 		modules: {},
 	},
 	generation: {

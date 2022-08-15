@@ -12,13 +12,6 @@
 		"maxTransactionsSize": 15360,
 		"bftThreshold": 68,
 		"minFeePerByte": 1000,
-		"baseFees": [
-			{
-				"moduleID": 5,
-				"assetID": 0,
-				"baseFee": "1000000000"
-			}
-		],
 		"rewards": {
 			"milestones": [
 				"500000000",

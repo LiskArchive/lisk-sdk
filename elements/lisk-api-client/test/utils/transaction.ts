@@ -38,13 +38,6 @@ export const nodeInfo: NodeInfo = {
 		maxTransactionsSize: 15360,
 		bftThreshold: 68,
 		minFeePerByte: 1000,
-		baseFees: [
-			{
-				moduleID: utils.intToBuffer(5, 4).toString('hex'),
-				commandID: utils.intToBuffer(0, 4).toString('hex'),
-				baseFee: '1000000000',
-			},
-		],
 		rewards: {
 			milestones: ['500000000', '400000000', '300000000', '200000000', '100000000'],
 			offset: 2160,

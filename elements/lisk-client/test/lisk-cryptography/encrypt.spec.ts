@@ -48,10 +48,10 @@ describe('encrypt', () => {
 
 	beforeEach(async () => {
 		jest
-			.spyOn(cryptography.address, 'getAddressAndPublicKeyFromPassphrase')
+			.spyOn(cryptography.legacy, 'getPrivateAndPublicKeyFromPassphrase')
 			.mockImplementation(() => {
 				return {
-					address: defaultPrivateKey,
+					privateKey: defaultPrivateKey,
 					publicKey: defaultPublicKey,
 				};
 			});

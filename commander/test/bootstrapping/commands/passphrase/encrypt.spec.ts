@@ -56,7 +56,7 @@ describe('passphrase:encrypt', () => {
 		jest.spyOn(process.stdout, 'write').mockImplementation(val => stdout.push(val as string) > -1);
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
 		jest.spyOn(EncryptCommand.prototype, 'printJSON').mockReturnValue();
-		jest.spyOn(cryptography.ed, 'getKeys').mockReturnValue(defaultKeys as never);
+		jest.spyOn(cryptography.legacy, 'getKeys').mockReturnValue(defaultKeys as never);
 		jest
 			.spyOn(cryptography.encrypt, 'encryptMessageWithPassword')
 			.mockResolvedValue(encryptedPassphraseObject as never);

@@ -30,6 +30,8 @@ import {
 	ModuleMetadataJSON,
 } from 'lisk-framework';
 import { PromiseResolvedType } from '../../../types';
+import { deriveKeypair } from '../../../utils/commons';
+import { DEFAULT_KEY_DERIVATION_PATH } from '../../../utils/config';
 import { flagsWithParser } from '../../../utils/flags';
 import { getDefaultPath } from '../../../utils/path';
 import { getParamsFromPrompt, getPassphraseFromPrompt, getFileParams } from '../../../utils/reader';
@@ -57,6 +59,7 @@ interface CreateFlags {
 	'sender-public-key'?: string;
 	nonce?: string;
 	file?: string;
+	'key-derivation-path': string;
 }
 
 interface Transaction {
@@ -98,20 +101,21 @@ const getPassphraseAddressAndPublicKey = async (flags: CreateFlags) => {
 		passphrase = '';
 	} else {
 		passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
-		const result = cryptography.address.getAddressAndPublicKeyFromPassphrase(passphrase);
-		publicKey = result.publicKey;
-		address = result.address;
+		const keys = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+		publicKey = keys.publicKey;
+		address = cryptography.address.getAddressFromPublicKey(publicKey);
 	}
 
 	return { address, passphrase, publicKey };
 };
 
-const validateAndSignTransaction = (
+const validateAndSignTransaction = async (
 	transaction: Transaction,
 	schema: RegisteredSchema,
 	metadata: ModuleMetadataJSON[],
 	networkIdentifier: string,
 	passphrase: string,
+	keyDerivationPath: string,
 	noSignature: boolean,
 ) => {
 	const { params, ...transactionWithoutParams } = transaction;
@@ -132,10 +136,11 @@ const validateAndSignTransaction = (
 	};
 
 	if (!noSignature) {
+		const { privateKey } = await deriveKeypair(passphrase, keyDerivationPath);
 		return transactions.signTransaction(
 			decodedTx,
 			Buffer.from(networkIdentifier, 'hex'),
-			passphrase,
+			privateKey,
 			paramsSchema,
 		);
 	}
@@ -161,6 +166,7 @@ const createTransactionOffline = async (
 		metadata,
 		flags['network-identifier'] as string,
 		passphrase,
+		flags['key-derivation-path'],
 		flags['no-signature'],
 	);
 };
@@ -202,6 +208,7 @@ const createTransactionOnline = async (
 		metadata,
 		nodeInfo.networkIdentifier,
 		passphrase,
+		flags['key-derivation-path'],
 		flags['no-signature'],
 	);
 };
@@ -265,6 +272,11 @@ export abstract class CreateCommand extends Command {
 				'Creates the transaction with provided sender publickey, when passphrase is not provided',
 		}),
 		'data-path': flagsWithParser.dataPath,
+		'key-derivation-path': flagParser.string({
+			default: DEFAULT_KEY_DERIVATION_PATH,
+			description: 'Key derivation path to use to derive keypair from passphrase',
+			char: 'k',
+		}),
 		pretty: flagsWithParser.pretty,
 		file: flagsWithParser.file,
 	};

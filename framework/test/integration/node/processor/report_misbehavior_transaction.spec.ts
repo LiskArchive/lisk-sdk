@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Block, BlockHeader } from '@liskhq/lisk-chain';
-import { address, ed } from '@liskhq/lisk-cryptography';
+import { address, legacy } from '@liskhq/lisk-cryptography';
 
 import { nodeUtils } from '../../../utils';
 import {
@@ -70,12 +70,12 @@ describe('Transaction order', () => {
 				...header.toObject(),
 				height: 100,
 			});
-			const { privateKey } = ed.getKeys(blockGenerator);
+			const { privateKey, publicKey } = legacy.getPrivateAndPublicKeyFromPassphrase(blockGenerator);
 			conflictingHeader.sign(networkIdentifier, privateKey);
 			const originalBalance = await processEnv.invoke<{ availableBalance: string }>(
 				'token_getBalance',
 				{
-					address: address.getAddressFromPassphrase(blockGenerator).toString('hex'),
+					address: address.getAddressFromPublicKey(publicKey).toString('hex'),
 					tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 				},
 			);
@@ -94,12 +94,12 @@ describe('Transaction order', () => {
 			const updatedDelegate = await processEnv.invoke<{ pomHeights: number[] }>(
 				'dpos_getDelegate',
 				{
-					address: address.getAddressFromPassphrase(blockGenerator).toString('hex'),
+					address: address.getAddressFromPublicKey(publicKey).toString('hex'),
 				},
 			);
 			expect(updatedDelegate.pomHeights).toHaveLength(1);
 			const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
-				address: address.getAddressFromPassphrase(blockGenerator).toString('hex'),
+				address: address.getAddressFromPublicKey(publicKey).toString('hex'),
 				tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 			});
 			expect(balance.availableBalance).toEqual(

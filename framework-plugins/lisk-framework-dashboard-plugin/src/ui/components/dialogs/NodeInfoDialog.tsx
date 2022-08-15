@@ -98,20 +98,6 @@ const NodeInfoDialog: React.FC<NodeInfoDialogProps> = props => {
 							<Text type={'h3'}>Base Fee</Text>
 						</Grid>
 					</Grid>
-
-					{nodeInfo.genesisConfig.baseFees.map((fee, index) => (
-						<Grid row rowBorder={index !== nodeInfo.genesisConfig.baseFees.length - 1} key={index}>
-							<Grid xs={4}>
-								<Text>{fee.moduleID}</Text>
-							</Grid>
-							<Grid xs={4}>
-								<Text>{fee.commandID}</Text>
-							</Grid>
-							<Grid xs={4}>
-								<Text>{fee.baseFee}</Text>
-							</Grid>
-						</Grid>
-					))}
 				</Grid>
 			</DialogBody>
 		</Dialog>
