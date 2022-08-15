@@ -85,26 +85,23 @@ export class EncryptCommand extends Command {
 		const keys = [];
 		for (const keyWithoutEncryption of keysWithoutEncryption.keys) {
 			const plainGeneratorKeyData = {
-				generatorKey: keyWithoutEncryption.plain.generatorKey,
-				generatorPrivateKey: keyWithoutEncryption.plain.generatorPrivateKey,
-				blsKey: keyWithoutEncryption.plain.blsKey,
-				blsPrivateKey: keyWithoutEncryption.plain.blsPrivateKey,
+				generatorKey: Buffer.from(keyWithoutEncryption.plain.generatorKey, 'hex'),
+				generatorPrivateKey: Buffer.from(keyWithoutEncryption.plain.generatorPrivateKey, 'hex'),
+				blsKey: Buffer.from(keyWithoutEncryption.plain.blsKey, 'hex'),
+				blsPrivateKey: Buffer.from(keyWithoutEncryption.plain.blsPrivateKey, 'hex'),
 			};
 			const encodedGeneratorKeys = codec.encode(plainGeneratorKeysSchema, plainGeneratorKeyData);
-			const encryptedMessageObject = encrypt.encryptMessageWithPassword(
+			const encryptedMessageObject = await encrypt.encryptMessageWithPassword(
 				encodedGeneratorKeys,
 				password,
 			);
 
 			keys.push({
-				address: keyWithoutEncryption.address,
-				plain: {
-					...plainGeneratorKeyData,
-				},
+				...keyWithoutEncryption,
 				encrypted: encryptedMessageObject,
 			});
 		}
 
-		fs.writeJSONSync(flags['file-path'], { keys }, { spaces: '\t' });
+		fs.writeJSONSync(flags['file-path'], JSON.stringify({ keys }), { spaces: ' ' });
 	}
 }

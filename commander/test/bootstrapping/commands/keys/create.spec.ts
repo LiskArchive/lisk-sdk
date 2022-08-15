@@ -210,67 +210,31 @@ describe('keys:create command', () => {
 				accountKeyPath1,
 			);
 			const accountPublicKey1 = cryptography.ed.getPublicKeyFromPrivateKey(accountPrivateKey1);
-			const address1 = cryptography.address.getAddressFromPublicKey(accountPublicKey1);
 			const generatorPrivateKey1 = await cryptography.ed.getKeyPairFromPhraseAndPath(
 				defaultPassphrase,
 				generatorKeyPath1,
 			);
-			const generatorPublicKey1 = cryptography.ed.getPublicKeyFromPrivateKey(generatorPrivateKey1);
+
 			const blsPrivateKey1 = await cryptography.bls.getPrivateKeyFromPhraseAndPath(
 				defaultPassphrase,
 				blsKeyPath1,
 			);
-			const blsPublicKey1 = cryptography.bls.getPublicKeyFromPrivateKey(blsPrivateKey1);
-			const keys1 = {
-				address: address1.toString('hex'),
-				keyPath: accountKeyPath1,
-				publicKey: accountPublicKey1.toString('hex'),
-				privateKey: accountPrivateKey1.toString('hex'),
-				plain: {
-					generatorKeyPath: generatorKeyPath1,
-					generatorKey: generatorPublicKey1.toString('hex'),
-					generatorPrivateKey: generatorPrivateKey1.toString('hex'),
-					blsKeyPath: blsKeyPath1,
-					blsKey: blsPublicKey1.toString('hex'),
-					blsProofOfPosession: cryptography.bls.popProve(blsPrivateKey1).toString('hex'),
-					blsPrivateKey: blsPrivateKey1.toString('hex'),
-				},
-				encrypted: expect.anything(),
-			};
 
 			const accountPrivateKey2 = await cryptography.ed.getKeyPairFromPhraseAndPath(
 				defaultPassphrase,
 				accountKeyPath2,
 			);
 			const accountPublicKey2 = cryptography.ed.getPublicKeyFromPrivateKey(accountPrivateKey2);
-			const address2 = cryptography.address.getAddressFromPublicKey(accountPublicKey2);
+
 			const generatorPrivateKey2 = await cryptography.ed.getKeyPairFromPhraseAndPath(
 				defaultPassphrase,
 				generatorKeyPath2,
 			);
-			const generatorPublicKey2 = cryptography.ed.getPublicKeyFromPrivateKey(generatorPrivateKey2);
+
 			const blsPrivateKey2 = await cryptography.bls.getPrivateKeyFromPhraseAndPath(
 				defaultPassphrase,
 				blsKeyPath2,
 			);
-			const blsPublicKey2 = cryptography.bls.getPublicKeyFromPrivateKey(blsPrivateKey2);
-			const keys2 = {
-				address: address2.toString('hex'),
-				keyPath: accountKeyPath2,
-				publicKey: accountPublicKey2.toString('hex'),
-				privateKey: accountPrivateKey2.toString('hex'),
-				plain: {
-					generatorKeyPath: generatorKeyPath2,
-					generatorKey: generatorPublicKey2.toString('hex'),
-					generatorPrivateKey: generatorPrivateKey2.toString('hex'),
-					blsKeyPath: blsKeyPath2,
-					blsKey: blsPublicKey2.toString('hex'),
-					blsProofOfPosession: cryptography.bls.popProve(blsPrivateKey2).toString('hex'),
-					blsPrivateKey: blsPrivateKey2.toString('hex'),
-				},
-				encrypted: expect.anything(),
-			};
-			const keysObject = { keys: [keys1, keys2] };
 
 			await CreateCommand.run(
 				[
@@ -319,11 +283,9 @@ describe('keys:create command', () => {
 			expect(cryptography.bls.getPublicKeyFromPrivateKey).toHaveBeenCalledWith(blsPrivateKey2);
 
 			expect(fs.ensureDirSync).toHaveBeenCalledWith('/tmp');
-			expect(fs.writeJSONSync).toHaveBeenCalledWith(
-				'/tmp/keys.json',
-				expect.objectContaining(keysObject),
-				{ spaces: ' ' },
-			);
+			expect(fs.writeJSONSync).toHaveBeenCalledWith('/tmp/keys.json', expect.anything(), {
+				spaces: ' ',
+			});
 		});
 	});
 });

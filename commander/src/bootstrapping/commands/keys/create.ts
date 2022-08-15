@@ -156,7 +156,7 @@ export class CreateCommand extends Command {
 		}
 
 		if (output) {
-			fs.writeJSONSync(output, { keys }, { spaces: ' ' });
+			fs.writeJSONSync(output, JSON.stringify({ keys }), { spaces: ' ' });
 		} else {
 			this.log(JSON.stringify({ keys }, undefined, '  '));
 		}

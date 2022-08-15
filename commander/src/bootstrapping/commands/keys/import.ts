@@ -83,12 +83,7 @@ export abstract class ImportCommand extends BaseIPCClientCommand {
 				returnData = k.encrypted;
 			} else {
 				type = 'plain';
-				returnData = {
-					generatorKey: k.plain?.generatorKey,
-					generatorPrivateKey: k.plain?.generatorPrivateKey,
-					blsKey: k.plain?.blsKey,
-					blsPrivateKey: k.plain?.blsPrivateKey,
-				};
+				returnData = k.plain;
 			}
 			return {
 				address: k.address,

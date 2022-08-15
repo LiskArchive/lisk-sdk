@@ -103,6 +103,6 @@ export abstract class ExportCommand extends Command {
 			};
 		});
 
-		fs.writeJSONSync(flags.output, { keys }, { spaces: ' ' });
+		fs.writeJSONSync(flags.output, JSON.stringify({ keys }), { spaces: ' ' });
 	}
 }
