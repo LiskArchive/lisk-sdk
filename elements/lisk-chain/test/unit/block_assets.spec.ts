@@ -23,11 +23,11 @@ describe('block assets', () => {
 	beforeEach(() => {
 		assetList = [
 			{
-				moduleID: utils.intToBuffer(6, 4),
+				module: 'auth',
 				data: utils.getRandomBytes(64),
 			},
 			{
-				moduleID: utils.intToBuffer(3, 4),
+				module: 'random',
 				data: utils.getRandomBytes(64),
 			},
 		];
@@ -35,31 +35,31 @@ describe('block assets', () => {
 	});
 
 	describe('sort', () => {
-		it('should sort the assets in ascending order by module ID', () => {
+		it('should sort the assets in ascending order by module', () => {
 			assets.sort();
-			expect(assets['_assets'][0].moduleID.readInt32BE(0)).toEqual(3);
+			expect(assets['_assets'][0].module).toEqual('auth');
 		});
 	});
 
 	describe('getAsset', () => {
 		it('it should return undefined if no matching asset exists ', () => {
-			expect(assets.getAsset(utils.intToBuffer(5, 4))).toBeUndefined();
+			expect(assets.getAsset('transfer')).toBeUndefined();
 		});
 
 		it('it should return asset data if matching asset exists ', () => {
-			expect(assets.getAsset(utils.intToBuffer(3, 4))).toBeInstanceOf(Buffer);
+			expect(assets.getAsset('auth')).toBeInstanceOf(Buffer);
 		});
 	});
 
 	describe('setAsset', () => {
 		it('it should not overwrite existing asset', () => {
 			const data = utils.getRandomBytes(32);
-			expect(() => assets.setAsset(utils.intToBuffer(3, 4), data)).toThrow();
+			expect(() => assets.setAsset('random', data)).toThrow();
 		});
 
 		it('it should add asset data if matching asset does not exist ', () => {
 			const data = utils.getRandomBytes(32);
-			assets.setAsset(utils.intToBuffer(4, 4), data);
+			assets.setAsset('token', data);
 			expect(assets['_assets']).toHaveLength(3);
 		});
 	});
@@ -68,12 +68,12 @@ describe('block assets', () => {
 		it('should create BlockAssets from JSON format', () => {
 			assets = BlockAssets.fromJSON([
 				{
-					moduleID: utils.intToBuffer(4, 4).toString('hex'),
+					module: 'random',
 					data: utils.getRandomBytes(30).toString('hex'),
 				},
 			]);
 			expect(assets['_assets']).toHaveLength(1);
-			expect(assets.getAsset(utils.intToBuffer(4, 4))).toBeInstanceOf(Buffer);
+			expect(assets.getAsset('random')).toBeInstanceOf(Buffer);
 		});
 	});
 
@@ -97,11 +97,11 @@ describe('block assets', () => {
 			it(`should throw error when data type is incorrect`, () => {
 				assetList = [
 					{
-						moduleID: utils.intToBuffer(3, 4),
+						module: 'auth',
 						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: utils.intToBuffer(4, 4),
+						module: 'random',
 						data: utils.getRandomBytes(128),
 					},
 				];
@@ -116,30 +116,28 @@ describe('block assets', () => {
 			it(`should throw error when asset data length is greater than ${MAX_ASSET_DATA_SIZE_BYTES}`, () => {
 				assetList = [
 					{
-						moduleID: utils.intToBuffer(3, 4),
+						module: 'auth',
 						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: utils.intToBuffer(4, 4),
+						module: 'random',
 						data: utils.getRandomBytes(128),
 					},
 				];
 				assets = new BlockAssets(assetList);
 				expect(() => assets.validate()).toThrow(
-					`Module with ID ${assetList[1].moduleID.readInt32BE(
-						0,
-					)} has data size more than ${MAX_ASSET_DATA_SIZE_BYTES} bytes.`,
+					`Module with ID ${assetList[1].module} has data size more than ${MAX_ASSET_DATA_SIZE_BYTES} bytes.`,
 				);
 			});
 
 			it(`should pass when asset data length is equal or less than ${MAX_ASSET_DATA_SIZE_BYTES}`, () => {
 				assetList = [
 					{
-						moduleID: utils.intToBuffer(3, 4),
+						module: 'auth',
 						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: utils.intToBuffer(4, 4),
+						module: 'random',
 						data: utils.getRandomBytes(64),
 					},
 				];
@@ -152,11 +150,11 @@ describe('block assets', () => {
 			it('should throw error when assets are not sorted by moduleID', () => {
 				assetList = [
 					{
-						moduleID: utils.intToBuffer(4, 4),
+						module: 'random',
 						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: utils.intToBuffer(3, 4),
+						module: 'auth',
 						data: utils.getRandomBytes(64),
 					},
 				];
@@ -166,14 +164,14 @@ describe('block assets', () => {
 				);
 			});
 
-			it('should pass when assets are sorted by moduleID', () => {
+			it('should pass when assets are sorted by module', () => {
 				assetList = [
 					{
-						moduleID: utils.intToBuffer(2, 4),
+						module: 'auth',
 						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: utils.intToBuffer(3, 4),
+						module: 'random',
 						data: utils.getRandomBytes(64),
 					},
 				];
@@ -186,36 +184,36 @@ describe('block assets', () => {
 			it('should throw error when there are more than 1 assets for a module', () => {
 				assetList = [
 					{
-						moduleID: utils.intToBuffer(2, 4),
+						module: 'auth',
 						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: utils.intToBuffer(3, 4),
+						module: 'random',
 						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: utils.intToBuffer(3, 4),
+						module: 'random',
 						data: utils.getRandomBytes(64),
 					},
 				];
 				assets = new BlockAssets(assetList);
 				expect(() => assets.validate()).toThrow(
-					`Module with ID ${assetList[1].moduleID.readInt32BE(0)} has duplicate entries.`,
+					`Module with ID ${assetList[1].module} has duplicate entries.`,
 				);
 			});
 
 			it('should pass when there is atmost 1 asset for a module', () => {
 				assetList = [
 					{
-						moduleID: utils.intToBuffer(2, 4),
+						module: 'amd',
 						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: utils.intToBuffer(3, 4),
+						module: 'auth',
 						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: utils.intToBuffer(4, 4),
+						module: 'random',
 						data: utils.getRandomBytes(64),
 					},
 				];
@@ -230,11 +228,11 @@ describe('block assets', () => {
 			it(`should throw error when data type is incorrect`, () => {
 				assetList = [
 					{
-						moduleID: utils.intToBuffer(3, 4),
+						module: 'auth',
 						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: utils.intToBuffer(4, 4),
+						module: 'random',
 						data: utils.getRandomBytes(128),
 					},
 				];
@@ -248,11 +246,11 @@ describe('block assets', () => {
 			it(`should pass when asset data length is greater than ${MAX_ASSET_DATA_SIZE_BYTES}`, () => {
 				assetList = [
 					{
-						moduleID: utils.intToBuffer(3, 4),
+						module: 'auth',
 						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: utils.intToBuffer(4, 4),
+						module: 'random',
 						data: utils.getRandomBytes(128),
 					},
 				];
@@ -263,11 +261,11 @@ describe('block assets', () => {
 			it(`should pass when asset data length is equal or less than ${MAX_ASSET_DATA_SIZE_BYTES}`, () => {
 				assetList = [
 					{
-						moduleID: utils.intToBuffer(3, 4),
+						module: 'auth',
 						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: utils.intToBuffer(4, 4),
+						module: 'random',
 						data: utils.getRandomBytes(64),
 					},
 				];
@@ -280,11 +278,11 @@ describe('block assets', () => {
 			it('should throw error when assets are not sorted by moduleID', () => {
 				assetList = [
 					{
-						moduleID: utils.intToBuffer(4, 4),
+						module: 'random',
 						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: utils.intToBuffer(3, 4),
+						module: 'auth',
 						data: utils.getRandomBytes(64),
 					},
 				];
@@ -297,11 +295,11 @@ describe('block assets', () => {
 			it('should pass when assets are sorted by moduleID', () => {
 				assetList = [
 					{
-						moduleID: utils.intToBuffer(2, 4),
+						module: 'auth',
 						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: utils.intToBuffer(3, 4),
+						module: 'random',
 						data: utils.getRandomBytes(64),
 					},
 				];
@@ -314,36 +312,36 @@ describe('block assets', () => {
 			it('should throw error when there are more than 1 assets for a module', () => {
 				assetList = [
 					{
-						moduleID: utils.intToBuffer(2, 4),
+						module: 'auth',
 						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: utils.intToBuffer(3, 4),
+						module: 'auth',
 						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: utils.intToBuffer(3, 4),
+						module: 'random',
 						data: utils.getRandomBytes(64),
 					},
 				];
 				assets = new BlockAssets(assetList);
 				expect(() => assets.validateGenesis()).toThrow(
-					`Module with ID ${assetList[1].moduleID.readInt32BE(0)} has duplicate entries.`,
+					`Module with ID ${assetList[1].module} has duplicate entries.`,
 				);
 			});
 
 			it('should pass when there is atmost 1 asset for a module', () => {
 				assetList = [
 					{
-						moduleID: utils.intToBuffer(2, 4),
+						module: 'amd',
 						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: utils.intToBuffer(3, 4),
+						module: 'auth',
 						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: utils.intToBuffer(4, 4),
+						module: 'random',
 						data: utils.getRandomBytes(64),
 					},
 				];

@@ -31,8 +31,8 @@ describe('blocks/transactions', () => {
 
 		it('should throw when sender public key is not 32 bytes', () => {
 			transaction = new Transaction({
-				moduleID: utils.intToBuffer(2, 4),
-				commandID: utils.intToBuffer(0, 4),
+				module: 'token',
+				command: 'transfer',
 				fee: BigInt(613000),
 				params: utils.getRandomBytes(500),
 				nonce: BigInt(2),
@@ -44,8 +44,8 @@ describe('blocks/transactions', () => {
 
 		it('should throw when signatures is empty', () => {
 			transaction = new Transaction({
-				moduleID: utils.intToBuffer(2, 4),
-				commandID: utils.intToBuffer(0, 4),
+				module: 'token',
+				command: 'transfer',
 				fee: BigInt(613000),
 				params: utils.getRandomBytes(500),
 				nonce: BigInt(2),
@@ -57,8 +57,8 @@ describe('blocks/transactions', () => {
 
 		it('should throw when any of signatures are not 64 bytes', () => {
 			transaction = new Transaction({
-				moduleID: utils.intToBuffer(2, 4),
-				commandID: utils.intToBuffer(0, 4),
+				module: 'token',
+				command: 'transfer',
 				fee: BigInt(613000),
 				params: utils.getRandomBytes(500),
 				nonce: BigInt(2),

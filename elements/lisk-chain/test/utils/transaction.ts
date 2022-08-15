@@ -29,8 +29,8 @@ export const genesisAddress = {
 
 export const getTransaction = (input?: { nonce?: bigint }): Transaction => {
 	const tx = new Transaction({
-		moduleID: utils.intToBuffer(2, 4),
-		commandID: utils.intToBuffer(0, 4),
+		module: 'token',
+		command: 'transfer',
 		fee: BigInt('10000000'),
 		nonce: input?.nonce ?? BigInt(0),
 		senderPublicKey: genesisAddress.publicKey,
