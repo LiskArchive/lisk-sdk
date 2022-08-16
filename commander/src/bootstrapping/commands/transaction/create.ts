@@ -43,8 +43,8 @@ import {
 } from '../../../utils/transaction';
 
 interface Args {
-	readonly moduleID: number;
-	readonly commandID: number;
+	readonly module: string;
+	readonly command: string;
 	readonly fee: string;
 }
 
@@ -75,11 +75,7 @@ interface Transaction {
 const getParamsObject = async (metadata: ModuleMetadataJSON[], flags: CreateFlags, args: Args) => {
 	let params: Record<string, unknown>;
 
-	const paramsSchema = getParamsSchema(
-		metadata,
-		cryptography.utils.intToBuffer(args.moduleID, 4).toString('hex'),
-		cryptography.utils.intToBuffer(args.commandID, 4).toString('hex'),
-	) as Schema;
+	const paramsSchema = getParamsSchema(metadata, args.module, args.command) as Schema;
 
 	if (flags.file) {
 		params = JSON.parse(getFileParams(flags.file));
@@ -221,7 +217,7 @@ export abstract class CreateCommand extends Command {
 			description: 'Registered transaction module.',
 		},
 		{
-			name: 'commandID',
+			name: 'command',
 			required: true,
 			description: 'Registered transaction command.',
 		},

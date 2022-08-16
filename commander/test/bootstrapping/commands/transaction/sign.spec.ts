@@ -34,18 +34,18 @@ import { getConfig } from '../../../helpers/config';
 describe('transaction:sign command', () => {
 	const commands = [
 		{
-			module: 'token'.toString('hex'),
-			command: 'transfer'.toString('hex'),
+			module: 'token',
+			command: 'transfer',
 			schema: tokenTransferParamsSchema,
 		},
 		{
-			moduleID: utils.intToBuffer(12, 4).toString('hex'),
-			command: 'transfer'.toString('hex'),
+			module: 'auth',
+			command: 'registerMultisignatureGroup',
 			schema: keysRegisterParamsSchema,
 		},
 		{
-			moduleID: utils.intToBuffer(13, 4).toString('hex'),
-			commandID: utils.intToBuffer(1, 4).toString('hex'),
+			module: 'dpos',
+			command: 'voteDelegate',
 			schema: dposVoteParamsSchema,
 		},
 	];
@@ -58,9 +58,9 @@ describe('transaction:sign command', () => {
 			data: 'send token',
 			recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
 		},
-		command: 'transfer'.toString('hex'),
+		command: 'transfer',
 		fee: '100000000',
-		module: 'token'.toString('hex'),
+		module: 'token',
 		nonce: '0',
 		senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 		signatures: [
@@ -156,27 +156,33 @@ describe('transaction:sign command', () => {
 			metadata: [
 				{
 					id: utils.intToBuffer(2, 4).toString('hex'),
+					name: 'token',
 					commands: [
 						{
 							id: utils.intToBuffer(0, 4).toString('hex'),
+							name: 'transfer',
 							params: tokenTransferParamsSchema,
 						},
 					],
 				},
 				{
 					id: utils.intToBuffer(12, 4).toString('hex'),
+					name: 'auth',
 					commands: [
 						{
 							id: utils.intToBuffer(0, 4).toString('hex'),
+							name: 'registerMultisignatureGroup',
 							params: keysRegisterParamsSchema,
 						},
 					],
 				},
 				{
 					id: utils.intToBuffer(13, 4).toString('hex'),
+					name: 'dpos',
 					commands: [
 						{
 							id: utils.intToBuffer(1, 4).toString('hex'),
+							name: 'voteDelegate',
 							params: dposVoteParamsSchema,
 						},
 					],
@@ -213,8 +219,14 @@ describe('transaction:sign command', () => {
 	});
 
 	describe('offline', () => {
-		const unsignedTransaction =
-			'0a040000000212040000000018022080c2d72f2a200b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe322e0a08000000000000000010641a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815220a73656e6420746f6b656e';
+		const tx = {
+			...mockJSONTransaction,
+			params: codec
+				.encodeJSON(tokenTransferParamsSchema, mockJSONTransaction.params)
+				.toString('hex'),
+			signatures: [],
+		};
+		const unsignedTransaction = codec.encodeJSON(transactionSchema, tx).toString('hex');
 
 		describe('data path flag', () => {
 			it('should throw an error when data path flag specified.', async () => {
@@ -279,17 +291,17 @@ describe('transaction:sign command', () => {
 				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 					transaction: {
 						id: expect.any(String),
-						moduleID: '00000002',
-						commandID: '00000000',
-						nonce: '2',
-						fee: '100000000',
-						senderPublicKey: '0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 						params: {
 							tokenID: '0000000000000000',
 							amount: '100',
-							recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
 							data: 'send token',
+							recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
 						},
+						command: 'transfer',
+						fee: '100000000',
+						module: 'token',
+						nonce: '0',
+						senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 						signatures: [expect.any(String)],
 					},
 				});
@@ -297,19 +309,80 @@ describe('transaction:sign command', () => {
 		});
 
 		describe('sign multi signature registration transaction', () => {
-			const unsignedMultiSigTransaction =
-				'0a040000000c120400000000180220904e2a200b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe328a01080412204a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd391220f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba31a2057df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca41a20fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6';
+			const baseTX = {
+				module: 'auth',
+				command: 'registerMultisignatureGroup',
+				nonce: '2',
+				fee: '10000',
+				senderPublicKey: '0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+				params:
+					'080412204a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd391220f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba31a2057df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca41a20fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+				signatures: [],
+			};
+			const unsignedMultiSigTransaction = codec
+				.encodeJSON(transactionSchema, baseTX)
+				.toString('hex');
 
-			const sign1 =
-				'0a040000000c120400000000180220904e2a200b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe328a01080412204a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd391220f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba31a2057df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca41a20fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b63a40dd6fad30a70e5bb2586f67db58200305b837380c95a4ac9b31faa8b9695a83a2e7693a8dd4645d69d06e1994bcf13d286a6346f0693459c8319c508e795b15023a003a003a003a00';
-			const sign2 =
-				'0a040000000c120400000000180220904e2a200b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe328a01080412204a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd391220f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba31a2057df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca41a20fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b63a40dd6fad30a70e5bb2586f67db58200305b837380c95a4ac9b31faa8b9695a83a2e7693a8dd4645d69d06e1994bcf13d286a6346f0693459c8319c508e795b15023a003a40c38e4a2ef86be8e7f1e729fc07531c732239211a3eb7b640214872c6bf11172dc1f58ff06caf06b2866f6a29f89856c82face639e4c14f323bcc9b25d3b89d0f3a003a00';
-			const sign3 =
-				'0a040000000c120400000000180220904e2a200b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe328a01080412204a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd391220f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba31a2057df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca41a20fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b63a40dd6fad30a70e5bb2586f67db58200305b837380c95a4ac9b31faa8b9695a83a2e7693a8dd4645d69d06e1994bcf13d286a6346f0693459c8319c508e795b15023a40695b3003a58b21065e948c4d1bbedb85ad2e3c1299a6d79a0341433e48f8788db2e6ca5d81ca8313ce6e066d49054569b6b4c472b3c7cbfe4aafec73a4fa41073a40c38e4a2ef86be8e7f1e729fc07531c732239211a3eb7b640214872c6bf11172dc1f58ff06caf06b2866f6a29f89856c82face639e4c14f323bcc9b25d3b89d0f3a003a00';
-			const sign4 =
-				'0a040000000c120400000000180220904e2a200b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe328a01080412204a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd391220f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba31a2057df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca41a20fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b63a40dd6fad30a70e5bb2586f67db58200305b837380c95a4ac9b31faa8b9695a83a2e7693a8dd4645d69d06e1994bcf13d286a6346f0693459c8319c508e795b15023a40695b3003a58b21065e948c4d1bbedb85ad2e3c1299a6d79a0341433e48f8788db2e6ca5d81ca8313ce6e066d49054569b6b4c472b3c7cbfe4aafec73a4fa41073a40c38e4a2ef86be8e7f1e729fc07531c732239211a3eb7b640214872c6bf11172dc1f58ff06caf06b2866f6a29f89856c82face639e4c14f323bcc9b25d3b89d0f3a407a3ae0dccc847cf37ab899439df5b97218ae2b5c10131a87ab0328029200b4db95042fb8e8ca736bb07a577c7ce09645bcee2cf521e6b059ba44addec212fb0e3a00';
-			const signedTransaction =
-				'0a040000000c120400000000180220904e2a200b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe328a01080412204a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd391220f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba31a2057df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca41a20fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b63a40dd6fad30a70e5bb2586f67db58200305b837380c95a4ac9b31faa8b9695a83a2e7693a8dd4645d69d06e1994bcf13d286a6346f0693459c8319c508e795b15023a40695b3003a58b21065e948c4d1bbedb85ad2e3c1299a6d79a0341433e48f8788db2e6ca5d81ca8313ce6e066d49054569b6b4c472b3c7cbfe4aafec73a4fa41073a40c38e4a2ef86be8e7f1e729fc07531c732239211a3eb7b640214872c6bf11172dc1f58ff06caf06b2866f6a29f89856c82face639e4c14f323bcc9b25d3b89d0f3a407a3ae0dccc847cf37ab899439df5b97218ae2b5c10131a87ab0328029200b4db95042fb8e8ca736bb07a577c7ce09645bcee2cf521e6b059ba44addec212fb0e3a40aa82672d011ee34694653d4efe4e325facb0bbf67290d666f00f5dfd95fe964f0f787c7077ae4cad414f899a98a85912e3fb8a01d46d90b78ed44c7d3df9d803';
+			const sign1 = codec
+				.encodeJSON(transactionSchema, {
+					...baseTX,
+					signatures: [
+						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
+						'',
+						'',
+						'',
+						'',
+					],
+				})
+				.toString('hex');
+			const sign2 = codec
+				.encodeJSON(transactionSchema, {
+					...baseTX,
+					signatures: [
+						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
+						'',
+						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
+						'',
+						'',
+					],
+				})
+				.toString('hex');
+			const sign3 = codec
+				.encodeJSON(transactionSchema, {
+					...baseTX,
+					signatures: [
+						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
+						'62f341f7dbc9aa0458b47e4caed28e233099f4cc11eb85152c0faa809c525f1f2c99fe8eaf27d15d133f897d1ae58cab9e98cf759a13f636ef732af05a3f1c0d',
+						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
+						'',
+						'',
+					],
+				})
+				.toString('hex');
+			const sign4 = codec
+				.encodeJSON(transactionSchema, {
+					...baseTX,
+					signatures: [
+						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
+						'62f341f7dbc9aa0458b47e4caed28e233099f4cc11eb85152c0faa809c525f1f2c99fe8eaf27d15d133f897d1ae58cab9e98cf759a13f636ef732af05a3f1c0d',
+						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
+						'e498ac930e7c031f8e023b1e197e77ee2b995af7fccd149c929fce124c6ce087d63356f73a92a5bedccf83c0c88c84dc3d4b1f856b5f28ee6c5452e2fdda0f07',
+						'',
+					],
+				})
+				.toString('hex');
+			const signedTransaction = codec
+				.encodeJSON(transactionSchema, {
+					...baseTX,
+					signatures: [
+						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
+						'62f341f7dbc9aa0458b47e4caed28e233099f4cc11eb85152c0faa809c525f1f2c99fe8eaf27d15d133f897d1ae58cab9e98cf759a13f636ef732af05a3f1c0d',
+						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
+						'e498ac930e7c031f8e023b1e197e77ee2b995af7fccd149c929fce124c6ce087d63356f73a92a5bedccf83c0c88c84dc3d4b1f856b5f28ee6c5452e2fdda0f07',
+						'f67ae20bde21957dd37ca8052104339d7943a2bc2627558ca582b4e1b72ab4ca862879690887fe894f97492d55752c8871fdec22a3fbe4d42eba4cb7e9172405',
+					],
+				})
+				.toString('hex');
 
 			it('should return signed transaction for sender account', async () => {
 				await SignCommandExtended.run(
@@ -378,9 +451,9 @@ describe('transaction:sign command', () => {
 				});
 				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 					transaction: {
-						id: '28b9fde6071feb9325a6c93db736788f19f17e583eae2c1bcc8b470998045c88',
-						moduleID: '0000000c',
-						commandID: '00000000',
+						id: expect.any(String),
+						module: 'auth',
+						command: 'registerMultisignatureGroup',
 						nonce: '2',
 						fee: '10000',
 						senderPublicKey: '0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
@@ -396,11 +469,11 @@ describe('transaction:sign command', () => {
 							],
 						},
 						signatures: [
-							'dd6fad30a70e5bb2586f67db58200305b837380c95a4ac9b31faa8b9695a83a2e7693a8dd4645d69d06e1994bcf13d286a6346f0693459c8319c508e795b1502',
-							'695b3003a58b21065e948c4d1bbedb85ad2e3c1299a6d79a0341433e48f8788db2e6ca5d81ca8313ce6e066d49054569b6b4c472b3c7cbfe4aafec73a4fa4107',
-							'c38e4a2ef86be8e7f1e729fc07531c732239211a3eb7b640214872c6bf11172dc1f58ff06caf06b2866f6a29f89856c82face639e4c14f323bcc9b25d3b89d0f',
-							'7a3ae0dccc847cf37ab899439df5b97218ae2b5c10131a87ab0328029200b4db95042fb8e8ca736bb07a577c7ce09645bcee2cf521e6b059ba44addec212fb0e',
-							'aa82672d011ee34694653d4efe4e325facb0bbf67290d666f00f5dfd95fe964f0f787c7077ae4cad414f899a98a85912e3fb8a01d46d90b78ed44c7d3df9d803',
+							'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
+							'62f341f7dbc9aa0458b47e4caed28e233099f4cc11eb85152c0faa809c525f1f2c99fe8eaf27d15d133f897d1ae58cab9e98cf759a13f636ef732af05a3f1c0d',
+							'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
+							'e498ac930e7c031f8e023b1e197e77ee2b995af7fccd149c929fce124c6ce087d63356f73a92a5bedccf83c0c88c84dc3d4b1f856b5f28ee6c5452e2fdda0f07',
+							'f67ae20bde21957dd37ca8052104339d7943a2bc2627558ca582b4e1b72ab4ca862879690887fe894f97492d55752c8871fdec22a3fbe4d42eba4cb7e9172405',
 						],
 					},
 				});
@@ -408,14 +481,52 @@ describe('transaction:sign command', () => {
 		});
 
 		describe('sign transaction from multi-signature accounts', () => {
-			const unsignedMultiSigTransaction =
-				'0a040000000212040000000018022080c2d72f2a20f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3322e0a08000000000000000010641a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815220a73656e6420746f6b656e';
-			const sign1 =
-				'0a040000000212040000000018022080c2d72f2a20f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3322e0a08000000000000000010641a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815220a73656e6420746f6b656e3a003a40296301a8e1b4580edb8c8bde549e1838c42a5ca56931be29eb7a6596925429c42a6fc1fbbe29095dcd3be9e7f1063abc326eb6067f7a6c5fcf60f5bd986e070c3a003a00';
-			const sign2 =
-				'0a040000000212040000000018022080c2d72f2a20f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3322e0a08000000000000000010641a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815220a73656e6420746f6b656e3a402a81972b36a03e9d64f64f2c6c1c947baa15180c6fb2242302ee26c702322140de728d406b674e2478a74aae7010533ab33fbb0add63a08aa94b0b54434fab053a40296301a8e1b4580edb8c8bde549e1838c42a5ca56931be29eb7a6596925429c42a6fc1fbbe29095dcd3be9e7f1063abc326eb6067f7a6c5fcf60f5bd986e070c3a003a00';
-			const sign3 =
-				'0a040000000212040000000018022080c2d72f2a20f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3322e0a08000000000000000010641a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815220a73656e6420746f6b656e3a402a81972b36a03e9d64f64f2c6c1c947baa15180c6fb2242302ee26c702322140de728d406b674e2478a74aae7010533ab33fbb0add63a08aa94b0b54434fab053a40296301a8e1b4580edb8c8bde549e1838c42a5ca56931be29eb7a6596925429c42a6fc1fbbe29095dcd3be9e7f1063abc326eb6067f7a6c5fcf60f5bd986e070c3a40716f529ff0041385d1fc68429e5a565935a85dc8a152b9597aab231cae8f1b579d4063fc4c2392e0c4faad0ee8d00bbe75c18f9b9a3e07788ee37728ffa1fb0f3a00';
+			const baseTX = {
+				module: 'token',
+				command: 'transfer',
+				nonce: '2',
+				fee: '100000000',
+				senderPublicKey: 'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
+				params:
+					'0a08000000000000000010641a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815220a73656e6420746f6b656e',
+				signatures: [],
+			};
+			const unsignedMultiSigTransaction = codec
+				.encodeJSON(transactionSchema, baseTX)
+				.toString('hex');
+			const sign1 = codec
+				.encodeJSON(transactionSchema, {
+					...baseTX,
+					signatures: [
+						'',
+						'85614cfbacfb82aceb46d58455ae51a150cd0287bef33f6cc3396ed0d281062e9a5641a797285b187bb99ee1f435eea55bf3c4a8d946ace3945e0c9ae0570308',
+						'',
+						'',
+					],
+				})
+				.toString('hex');
+			const sign2 = codec
+				.encodeJSON(transactionSchema, {
+					...baseTX,
+					signatures: [
+						'ec074318664ab7c968e2c28d0690b1abe121f155acc191f654d7053122afe9e55d2fafa454d509506d242b1af7f7f09b95fb8e96b465227c3107ca27a575f400',
+						'',
+						'',
+					],
+				})
+				.toString('hex');
+			const sign3 = codec
+				.encodeJSON(transactionSchema, {
+					...baseTX,
+					signatures: [
+						'',
+						'',
+						'',
+						'2f4aaee66509de2ca0da707a0278ff1c6ac31a919f14d3f7bedef86503220931969d0f7f4cd48e0abd86aab07779ac729ee538a9411b4b4e586d75c3f15a2a09',
+					],
+				})
+				.toString('hex');
+
 			describe('mandatory keys are specified', () => {
 				it('should return signed transaction for mandatory account 1', async () => {
 					await SignCommandExtended.run(
@@ -475,9 +586,9 @@ describe('transaction:sign command', () => {
 								data: 'send token',
 								recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
 							},
-							commandID: '00000000',
+							command: 'transfer',
 							fee: '100000000',
-							moduleID: '00000002',
+							module: 'token',
 							nonce: '2',
 							senderPublicKey: 'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
 							signatures: [
@@ -495,8 +606,14 @@ describe('transaction:sign command', () => {
 
 	describe('online', () => {
 		describe('sign transaction from single account', () => {
-			const unsignedTransaction =
-				'0a040000000c120400000000180220904e2a200b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe328a01080412204a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd391220f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba31a2057df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca41a20fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6';
+			const tx = {
+				...mockJSONTransaction,
+				params: codec
+					.encodeJSON(tokenTransferParamsSchema, mockJSONTransaction.params)
+					.toString('hex'),
+				signatures: [],
+			};
+			const unsignedTransaction = codec.encodeJSON(transactionSchema, tx).toString('hex');
 			it('should return signed transaction string in hex format', async () => {
 				await SignCommandExtended.run(
 					[unsignedTransaction, `--passphrase=${senderPassphrase}`],
@@ -524,18 +641,78 @@ describe('transaction:sign command', () => {
 		});
 
 		describe('sign multi signature registration transaction', () => {
-			const unsignedTransaction =
-				'0a040000000c120400000000180220904e2a200b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe328a01080412204a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd391220f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba31a2057df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca41a20fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6';
-			const sign1 =
-				'0a040000000c120400000000180220904e2a200b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe328a01080412204a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd391220f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba31a2057df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca41a20fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b63a40dd6fad30a70e5bb2586f67db58200305b837380c95a4ac9b31faa8b9695a83a2e7693a8dd4645d69d06e1994bcf13d286a6346f0693459c8319c508e795b15023a003a003a003a00';
-			const sign2 =
-				'0a040000000c120400000000180220904e2a200b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe328a01080412204a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd391220f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba31a2057df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca41a20fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b63a40dd6fad30a70e5bb2586f67db58200305b837380c95a4ac9b31faa8b9695a83a2e7693a8dd4645d69d06e1994bcf13d286a6346f0693459c8319c508e795b15023a003a40c38e4a2ef86be8e7f1e729fc07531c732239211a3eb7b640214872c6bf11172dc1f58ff06caf06b2866f6a29f89856c82face639e4c14f323bcc9b25d3b89d0f3a003a00';
-			const sign3 =
-				'0a040000000c120400000000180220904e2a200b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe328a01080412204a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd391220f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba31a2057df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca41a20fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b63a40dd6fad30a70e5bb2586f67db58200305b837380c95a4ac9b31faa8b9695a83a2e7693a8dd4645d69d06e1994bcf13d286a6346f0693459c8319c508e795b15023a40695b3003a58b21065e948c4d1bbedb85ad2e3c1299a6d79a0341433e48f8788db2e6ca5d81ca8313ce6e066d49054569b6b4c472b3c7cbfe4aafec73a4fa41073a40c38e4a2ef86be8e7f1e729fc07531c732239211a3eb7b640214872c6bf11172dc1f58ff06caf06b2866f6a29f89856c82face639e4c14f323bcc9b25d3b89d0f3a003a00';
-			const sign4 =
-				'0a040000000c120400000000180220904e2a200b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe328a01080412204a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd391220f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba31a2057df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca41a20fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b63a40dd6fad30a70e5bb2586f67db58200305b837380c95a4ac9b31faa8b9695a83a2e7693a8dd4645d69d06e1994bcf13d286a6346f0693459c8319c508e795b15023a40695b3003a58b21065e948c4d1bbedb85ad2e3c1299a6d79a0341433e48f8788db2e6ca5d81ca8313ce6e066d49054569b6b4c472b3c7cbfe4aafec73a4fa41073a40c38e4a2ef86be8e7f1e729fc07531c732239211a3eb7b640214872c6bf11172dc1f58ff06caf06b2866f6a29f89856c82face639e4c14f323bcc9b25d3b89d0f3a407a3ae0dccc847cf37ab899439df5b97218ae2b5c10131a87ab0328029200b4db95042fb8e8ca736bb07a577c7ce09645bcee2cf521e6b059ba44addec212fb0e3a00';
-			const signedTransaction =
-				'0a040000000c120400000000180220904e2a200b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe328a01080412204a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd391220f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba31a2057df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca41a20fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b63a40dd6fad30a70e5bb2586f67db58200305b837380c95a4ac9b31faa8b9695a83a2e7693a8dd4645d69d06e1994bcf13d286a6346f0693459c8319c508e795b15023a40695b3003a58b21065e948c4d1bbedb85ad2e3c1299a6d79a0341433e48f8788db2e6ca5d81ca8313ce6e066d49054569b6b4c472b3c7cbfe4aafec73a4fa41073a40c38e4a2ef86be8e7f1e729fc07531c732239211a3eb7b640214872c6bf11172dc1f58ff06caf06b2866f6a29f89856c82face639e4c14f323bcc9b25d3b89d0f3a407a3ae0dccc847cf37ab899439df5b97218ae2b5c10131a87ab0328029200b4db95042fb8e8ca736bb07a577c7ce09645bcee2cf521e6b059ba44addec212fb0e3a40aa82672d011ee34694653d4efe4e325facb0bbf67290d666f00f5dfd95fe964f0f787c7077ae4cad414f899a98a85912e3fb8a01d46d90b78ed44c7d3df9d803';
+			const baseTX = {
+				module: 'auth',
+				command: 'registerMultisignatureGroup',
+				nonce: '2',
+				fee: '10000',
+				senderPublicKey: '0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
+				params:
+					'080412204a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd391220f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba31a2057df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca41a20fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+				signatures: [],
+			};
+			const unsignedTransaction = codec.encodeJSON(transactionSchema, baseTX).toString('hex');
+
+			const sign1 = codec
+				.encodeJSON(transactionSchema, {
+					...baseTX,
+					signatures: [
+						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
+						'',
+						'',
+						'',
+						'',
+					],
+				})
+				.toString('hex');
+			const sign2 = codec
+				.encodeJSON(transactionSchema, {
+					...baseTX,
+					signatures: [
+						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
+						'',
+						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
+						'',
+						'',
+					],
+				})
+				.toString('hex');
+			const sign3 = codec
+				.encodeJSON(transactionSchema, {
+					...baseTX,
+					signatures: [
+						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
+						'62f341f7dbc9aa0458b47e4caed28e233099f4cc11eb85152c0faa809c525f1f2c99fe8eaf27d15d133f897d1ae58cab9e98cf759a13f636ef732af05a3f1c0d',
+						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
+						'',
+						'',
+					],
+				})
+				.toString('hex');
+			const sign4 = codec
+				.encodeJSON(transactionSchema, {
+					...baseTX,
+					signatures: [
+						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
+						'62f341f7dbc9aa0458b47e4caed28e233099f4cc11eb85152c0faa809c525f1f2c99fe8eaf27d15d133f897d1ae58cab9e98cf759a13f636ef732af05a3f1c0d',
+						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
+						'e498ac930e7c031f8e023b1e197e77ee2b995af7fccd149c929fce124c6ce087d63356f73a92a5bedccf83c0c88c84dc3d4b1f856b5f28ee6c5452e2fdda0f07',
+						'',
+					],
+				})
+				.toString('hex');
+			const signedTransaction = codec
+				.encodeJSON(transactionSchema, {
+					...baseTX,
+					signatures: [
+						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
+						'62f341f7dbc9aa0458b47e4caed28e233099f4cc11eb85152c0faa809c525f1f2c99fe8eaf27d15d133f897d1ae58cab9e98cf759a13f636ef732af05a3f1c0d',
+						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
+						'e498ac930e7c031f8e023b1e197e77ee2b995af7fccd149c929fce124c6ce087d63356f73a92a5bedccf83c0c88c84dc3d4b1f856b5f28ee6c5452e2fdda0f07',
+						'f67ae20bde21957dd37ca8052104339d7943a2bc2627558ca582b4e1b72ab4ca862879690887fe894f97492d55752c8871fdec22a3fbe4d42eba4cb7e9172405',
+					],
+				})
+				.toString('hex');
 
 			it('should return signed transaction for sender account', async () => {
 				await SignCommandExtended.run(
@@ -603,9 +780,9 @@ describe('transaction:sign command', () => {
 				});
 				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 					transaction: {
-						id: '28b9fde6071feb9325a6c93db736788f19f17e583eae2c1bcc8b470998045c88',
-						moduleID: '0000000c',
-						commandID: '00000000',
+						id: expect.any(String),
+						module: 'auth',
+						command: 'registerMultisignatureGroup',
 						nonce: '2',
 						fee: '10000',
 						senderPublicKey: '0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
@@ -621,11 +798,11 @@ describe('transaction:sign command', () => {
 							],
 						},
 						signatures: [
-							'dd6fad30a70e5bb2586f67db58200305b837380c95a4ac9b31faa8b9695a83a2e7693a8dd4645d69d06e1994bcf13d286a6346f0693459c8319c508e795b1502',
-							'695b3003a58b21065e948c4d1bbedb85ad2e3c1299a6d79a0341433e48f8788db2e6ca5d81ca8313ce6e066d49054569b6b4c472b3c7cbfe4aafec73a4fa4107',
-							'c38e4a2ef86be8e7f1e729fc07531c732239211a3eb7b640214872c6bf11172dc1f58ff06caf06b2866f6a29f89856c82face639e4c14f323bcc9b25d3b89d0f',
-							'7a3ae0dccc847cf37ab899439df5b97218ae2b5c10131a87ab0328029200b4db95042fb8e8ca736bb07a577c7ce09645bcee2cf521e6b059ba44addec212fb0e',
-							'aa82672d011ee34694653d4efe4e325facb0bbf67290d666f00f5dfd95fe964f0f787c7077ae4cad414f899a98a85912e3fb8a01d46d90b78ed44c7d3df9d803',
+							expect.any(String),
+							expect.any(String),
+							expect.any(String),
+							expect.any(String),
+							expect.any(String),
 						],
 					},
 				});
@@ -633,15 +810,49 @@ describe('transaction:sign command', () => {
 		});
 
 		describe('sign transaction from multi-signature accounts', () => {
-			const unsignedTransaction =
-				'0a040000000212040000000018022080c2d72f2a20f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3322e0a08000000000000000010641a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815220a73656e6420746f6b656e';
-			const sign1 =
-				'0a040000000212040000000018022080c2d72f2a20f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3322e0a08000000000000000010641a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815220a73656e6420746f6b656e3a003a40296301a8e1b4580edb8c8bde549e1838c42a5ca56931be29eb7a6596925429c42a6fc1fbbe29095dcd3be9e7f1063abc326eb6067f7a6c5fcf60f5bd986e070c3a003a00';
-			('0802100018022080c2d72f2a20f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3322e0a08000000000000000010641a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815220a73656e6420746f6b656e3a402a81972b36a03e9d64f64f2c6c1c947baa15180c6fb2242302ee26c702322140de728d406b674e2478a74aae7010533ab33fbb0add63a08aa94b0b54434fab053a40296301a8e1b4580edb8c8bde549e1838c42a5ca56931be29eb7a6596925429c42a6fc1fbbe29095dcd3be9e7f1063abc326eb6067f7a6c5fcf60f5bd986e070c3a003a00');
-			const sign2 =
-				'0a040000000212040000000018022080c2d72f2a20f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3322e0a08000000000000000010641a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815220a73656e6420746f6b656e3a402a81972b36a03e9d64f64f2c6c1c947baa15180c6fb2242302ee26c702322140de728d406b674e2478a74aae7010533ab33fbb0add63a08aa94b0b54434fab053a40296301a8e1b4580edb8c8bde549e1838c42a5ca56931be29eb7a6596925429c42a6fc1fbbe29095dcd3be9e7f1063abc326eb6067f7a6c5fcf60f5bd986e070c3a003a00';
-			const sign3 =
-				'0a040000000212040000000018022080c2d72f2a20f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3322e0a08000000000000000010641a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815220a73656e6420746f6b656e3a402a81972b36a03e9d64f64f2c6c1c947baa15180c6fb2242302ee26c702322140de728d406b674e2478a74aae7010533ab33fbb0add63a08aa94b0b54434fab053a40296301a8e1b4580edb8c8bde549e1838c42a5ca56931be29eb7a6596925429c42a6fc1fbbe29095dcd3be9e7f1063abc326eb6067f7a6c5fcf60f5bd986e070c3a40716f529ff0041385d1fc68429e5a565935a85dc8a152b9597aab231cae8f1b579d4063fc4c2392e0c4faad0ee8d00bbe75c18f9b9a3e07788ee37728ffa1fb0f3a00';
+			const baseTX = {
+				module: 'token',
+				command: 'transfer',
+				nonce: '2',
+				fee: '100000000',
+				senderPublicKey: 'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
+				params:
+					'0a08000000000000000010641a14ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815220a73656e6420746f6b656e',
+				signatures: [],
+			};
+			const unsignedTransaction = codec.encodeJSON(transactionSchema, baseTX).toString('hex');
+			const sign1 = codec
+				.encodeJSON(transactionSchema, {
+					...baseTX,
+					signatures: [
+						'',
+						'85614cfbacfb82aceb46d58455ae51a150cd0287bef33f6cc3396ed0d281062e9a5641a797285b187bb99ee1f435eea55bf3c4a8d946ace3945e0c9ae0570308',
+						'',
+						'',
+					],
+				})
+				.toString('hex');
+			const sign2 = codec
+				.encodeJSON(transactionSchema, {
+					...baseTX,
+					signatures: [
+						'ec074318664ab7c968e2c28d0690b1abe121f155acc191f654d7053122afe9e55d2fafa454d509506d242b1af7f7f09b95fb8e96b465227c3107ca27a575f400',
+						'',
+						'',
+					],
+				})
+				.toString('hex');
+			const sign3 = codec
+				.encodeJSON(transactionSchema, {
+					...baseTX,
+					signatures: [
+						'',
+						'',
+						'',
+						'2f4aaee66509de2ca0da707a0278ff1c6ac31a919f14d3f7bedef86503220931969d0f7f4cd48e0abd86aab07779ac729ee538a9411b4b4e586d75c3f15a2a09',
+					],
+				})
+				.toString('hex');
 			describe('mandatory keys are specified', () => {
 				it('should return signed transaction for mandatory account 1', async () => {
 					await SignCommandExtended.run(
@@ -701,9 +912,9 @@ describe('transaction:sign command', () => {
 								data: 'send token',
 								recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
 							},
-							commandID: '00000000',
+							command: 'transfer',
 							fee: '100000000',
-							moduleID: '00000002',
+							module: 'token',
 							nonce: '2',
 							senderPublicKey: 'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
 							signatures: [

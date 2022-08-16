@@ -26,7 +26,6 @@ export const createTransferTransaction = ({
 	nonce: number;
 	networkIdentifier: Buffer;
 }): Transaction => {
-	const { utils } = cryptography;
 	const genesisAccount = testing.fixtures.defaultFaucetAccount;
 	const encodedAsset = codec.encode(new TokenTransferAsset(BigInt(5000000)).schema, {
 		recipientAddress: Buffer.from(recipientAddress, 'hex'),

@@ -101,9 +101,6 @@ export class Transaction {
 			throw new Error('Auth module is not registered or does not have "getAuthAccount" endpoint.');
 		}
 
-		if (!txInput.module) {
-			throw new Error('Missing moduleID and moduleName');
-		}
 		const registeredModule = this._metadata.find(m => m.name === txInput.module);
 		if (!registeredModule) {
 			throw new Error(`Module corresponding to name ${txInput.module} not registered.`);

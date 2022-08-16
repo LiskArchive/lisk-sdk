@@ -279,15 +279,11 @@ const MainPage: React.FC = () => {
 			const address = cryptography.address.getAddressFromPublicKey(publicKey);
 			const moduleMeta = getClient().metadata.find(a => a.name === data.module);
 			if (!moduleMeta) {
-				throw new Error(
-					`ModuleID: ${data.module} CommandID: ${data.command} is not registered`,
-				);
+				throw new Error(`ModuleID: ${data.module} CommandID: ${data.command} is not registered`);
 			}
 			const commandMeta = moduleMeta.commands.find(cmd => cmd.id === data.command);
 			if (!commandMeta) {
-				throw new Error(
-					`ModuleID: ${data.module} CommandID: ${data.command} is not registered`,
-				);
+				throw new Error(`ModuleID: ${data.module} CommandID: ${data.command} is not registered`);
 			}
 			const paramsObject = commandMeta.params
 				? codec.codec.fromJSON<Record<string, unknown>>(commandMeta.params, data.params)

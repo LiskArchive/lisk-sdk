@@ -158,7 +158,7 @@ describe('transaction', () => {
 			describe('when called with module name which does not exist', () => {
 				it('should throw error', async () => {
 					await expect(
-						transaction.create({ ...validTransaction, module: 'newModule' }, passphrase1),
+						transaction.create({ ...validTransaction, module: 'newModule' }, privateKey1),
 					).rejects.toThrow('Module corresponding to name newModule not registered.');
 				});
 			});
@@ -166,7 +166,7 @@ describe('transaction', () => {
 			describe('when called with asset name which does not exist', () => {
 				it('should throw error', async () => {
 					await expect(
-						transaction.create({ ...validTransaction, command: 'newAsset' }, passphrase1),
+						transaction.create({ ...validTransaction, command: 'newAsset' }, privateKey1),
 					).rejects.toThrow('Command corresponding to name newAsset not registered.');
 				});
 			});

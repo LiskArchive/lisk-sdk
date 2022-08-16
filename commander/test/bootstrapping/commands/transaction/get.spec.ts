@@ -13,7 +13,6 @@
  *
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
 import * as fs from 'fs-extra';
 import { transactionSchema } from 'lisk-framework';
 import * as apiClient from '@liskhq/lisk-api-client';

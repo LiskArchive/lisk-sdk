@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
-import { utils } from '@liskhq/lisk-cryptography';
 import * as fs from 'fs-extra';
 import { join } from 'path';
 import { transactionSchema } from 'lisk-framework';

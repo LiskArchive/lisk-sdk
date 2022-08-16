@@ -17,8 +17,8 @@ import { TokenAPI } from '../../../../src/modules/token';
 import {
 	CCM_STATUS_OK,
 	CHAIN_ID_LENGTH,
-	CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
-	CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
+	CROSS_CHAIN_COMMAND_NAME_FORWARD,
+	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 	EMPTY_BYTES,
 	STORE_PREFIX_AVAILABLE_LOCAL_ID,
 	STORE_PREFIX_ESCROW,
@@ -564,8 +564,8 @@ describe('token module', () => {
 				expect(api['_interoperabilityAPI'].send).toHaveBeenCalledWith(
 					apiContext,
 					defaultAddress,
-					api['moduleID'],
-					CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
+					api['moduleName'],
+					CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
 					BigInt('10000'),
 					CCM_STATUS_OK,
@@ -617,8 +617,8 @@ describe('token module', () => {
 				expect(api['_interoperabilityAPI'].send).toHaveBeenCalledWith(
 					apiContext,
 					defaultAddress,
-					api['moduleID'],
-					CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
+					api['moduleName'],
+					CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 					BigInt('10000'),
 					CCM_STATUS_OK,
@@ -692,8 +692,8 @@ describe('token module', () => {
 				expect(api['_interoperabilityAPI'].send).toHaveBeenCalledWith(
 					apiContext,
 					defaultAddress,
-					api['moduleID'],
-					CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
+					api['moduleName'],
+					CROSS_CHAIN_COMMAND_NAME_FORWARD,
 					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
 					BigInt('0'),
 					CCM_STATUS_OK,

@@ -12,11 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {} from 'lisk-framework';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as transactions from '@liskhq/lisk-transactions';
 import { codec, Schema } from '@liskhq/lisk-codec';
-import { utils } from '@liskhq/lisk-cryptography';
 
 const account = {
 	passphrase: 'endless focus guilt bronze hold economy bulk parent soon tower cement venue',
@@ -181,12 +179,10 @@ export const createTransferTransaction = ({
 export const encodeTransactionFromJSON = (
 	transaction: Record<string, unknown>,
 	baseSchema: Schema,
-	commandsSchemas: { moduleID: Buffer; commandID: Buffer; schema: Schema }[],
+	commandsSchemas: { module: string; command: string; schema: Schema }[],
 ): string => {
 	const transactionTypeAssetSchema = commandsSchemas.find(
-		as =>
-			as.moduleID.equals(transaction.moduleID as Buffer) &&
-			as.commandID.equals(transaction.commandID as Buffer),
+		as => as.module === transaction.module && as.command === transaction.command,
 	);
 
 	if (!transactionTypeAssetSchema) {

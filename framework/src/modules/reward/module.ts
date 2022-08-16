@@ -113,7 +113,7 @@ export class RewardModule extends BaseModule {
 
 		const data = codec.encode(rewardMintedDataSchema, rewardMintedData);
 		context.eventQueue.add(
-			this.id,
+			this.name,
 			TYPE_ID_REWARD_MINTED,
 			codec.encode(rewardMintedDataSchema, data),
 			[context.header.generatorAddress],

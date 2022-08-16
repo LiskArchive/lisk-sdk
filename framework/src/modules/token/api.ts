@@ -29,8 +29,8 @@ import {
 	STORE_PREFIX_USER,
 	TOKEN_ID_LENGTH,
 	TOKEN_ID_LSK,
-	CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
-	CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
+	CROSS_CHAIN_COMMAND_NAME_FORWARD,
+	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 } from './constants';
 import {
 	AvailableLocalIDStoreData,
@@ -522,8 +522,8 @@ export class TokenAPI extends BaseAPI {
 			const sendResult = await this._interoperabilityAPI.send(
 				apiContext,
 				senderAddress,
-				this.moduleID,
-				CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
+				this.moduleName,
+				CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 				receivingChainID,
 				messageFee,
 				CCM_STATUS_OK,
@@ -564,8 +564,8 @@ export class TokenAPI extends BaseAPI {
 		const sendResult = await this._interoperabilityAPI.send(
 			apiContext,
 			senderAddress,
-			this.moduleID,
-			CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
+			this.moduleName,
+			CROSS_CHAIN_COMMAND_NAME_FORWARD,
 			chainID,
 			BigInt(0),
 			CCM_STATUS_OK,

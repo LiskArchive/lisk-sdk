@@ -24,6 +24,7 @@ import {
 	STORE_PREFIX_ESCROW,
 	CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
+	CROSS_CHAIN_COMMAND_NAME_FORWARD,
 } from '../constants';
 import {
 	CCForwardMessageParams,
@@ -37,7 +38,7 @@ import { splitTokenID, updateAvailableBalance } from '../utils';
 
 export class CCForwardCommand extends BaseCCCommand {
 	public ID = CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER;
-	public name = 'crossChainForward';
+	public name = CROSS_CHAIN_COMMAND_NAME_FORWARD;
 	public schema = crossChainForwardMessageParams;
 
 	private readonly _tokenAPI: TokenAPI;
