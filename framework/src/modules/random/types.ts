@@ -34,11 +34,7 @@ export interface UsedHashOnionStoreObject {
 
 export interface HashOnion {
 	readonly address: Buffer;
-	readonly hashOnion: {
-		readonly count: number;
-		readonly distance: number;
-		readonly hashes: Buffer[];
-	};
+	readonly hashOnion: HashOnionConfig;
 }
 
 export interface ValidatorSeedReveal {

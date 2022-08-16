@@ -12,8 +12,131 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { SEED_LENGTH } from './constants';
-import { ADDRESS_LENGTH } from '../token/constants';
+export interface Address {
+	address: string;
+}
+
+export interface SetSeedRequest extends Address {
+	seed?: string | undefined;
+	count?: number | undefined;
+	distance?: number | undefined;
+}
+
+export const setSeedRequestSchema = {
+	$id: 'lisk/random/setSeedRequestSchema',
+	type: 'object',
+	title: 'Random setSeed request',
+	required: ['address'],
+	properties: {
+		address: {
+			type: 'string',
+			format: 'hex',
+		},
+		seed: {
+			type: 'string',
+			format: 'hex',
+		},
+		count: {
+			type: 'integer',
+			minimum: 1,
+		},
+		distance: {
+			type: 'integer',
+			minimum: 1,
+		},
+	},
+};
+
+export const setSeedSchema = {
+	$id: 'lisk/random/setSeedSchema',
+	type: 'object',
+	required: [],
+	properties: {
+		count: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		distance: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+		hashes: {
+			type: 'array',
+			fieldNumber: 3,
+			items: {
+				dataType: 'bytes',
+			},
+		},
+	},
+};
+
+interface Seeds extends Address {
+	seed: string;
+	count: number;
+	distance: number;
+}
+
+export interface GetSeedsResponse {
+	seeds: Seeds[];
+}
+
+export interface HasSeedResponse {
+	hasSeed: boolean;
+	remaining: number;
+}
+
+export const hasSeedSchema = {
+	$id: 'lisk/random/hasSeedSchema',
+	type: 'object',
+	required: [],
+	properties: {
+		hasSeed: {
+			dataType: 'boolean',
+			fieldNumber: 1,
+		},
+		remaining: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+	},
+};
+
+export interface GetSeedUsageResponse {
+	height: number;
+	count: number;
+	lastUsedHash: string;
+	seed: string;
+}
+
+export const getSeedUsageSchema = {
+	$id: 'lisk/random/getSeedUsageSchema',
+	type: 'object',
+	required: [],
+	properties: {
+		height: {
+			type: 'integer',
+			// dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		count: {
+			type: 'integer',
+			// dataType: 'uint32',
+			fieldNumber: 2,
+		},
+		lastUsedHash: {
+			type: 'string',
+			format: 'hex',
+			// dataType: 'bytes',
+			fieldNumber: 3,
+		},
+		seed: {
+			type: 'string',
+			format: 'hex',
+			// dataType: 'bytes',
+			fieldNumber: 4,
+		},
+	},
+};
 
 export const randomModuleConfig = {
 	$id: '/modules/random/config',
