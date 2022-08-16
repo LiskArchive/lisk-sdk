@@ -17,9 +17,20 @@ import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import * as fixtures from './fixtures.json';
 import * as testing from '../../../../src/testing';
-import { RegisterMultisignatureGroupCommand } from '../../../../src/modules/auth/commands/register_multisignature';
-import { registerMultisignatureParamsSchema } from '../../../../src/modules/auth/schemas';
-import { RegisterMultisignatureParams } from '../../../../src/modules/auth/types';
+import { RegisterMultisignatureCommand } from '../../../../src/modules/auth/commands/register_multisignature';
+import {
+	MODULE_ID_AUTH_BUFFER,
+	STORE_PREFIX_AUTH,
+	TYPE_ID_INVALID_SIGNATURE_ERROR,
+	TYPE_ID_MULTISIGNATURE_GROUP_REGISTERED,
+} from '../../../../src/modules/auth/constants';
+import {
+	authAccountSchema,
+	invalidSigDataSchema,
+	multisigRegDataSchema,
+	registerMultisignatureParamsSchema,
+} from '../../../../src/modules/auth/schemas';
+import { AuthAccount, RegisterMultisignatureParams } from '../../../../src/modules/auth/types';
 import { VerifyStatus } from '../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
@@ -70,6 +81,7 @@ describe('Register Multisignature command', () => {
 				numberOfSignatures: 100,
 				mandatoryKeys: [utils.getRandomBytes(32)],
 				optionalKeys: [utils.getRandomBytes(32)],
+				signatures: [utils.getRandomBytes(64)],
 			});
 			const context = testing
 				.createTransactionContext({
@@ -89,6 +101,7 @@ describe('Register Multisignature command', () => {
 				numberOfSignatures: 0,
 				mandatoryKeys: [utils.getRandomBytes(32)],
 				optionalKeys: [utils.getRandomBytes(32)],
+				signatures: [utils.getRandomBytes(64)],
 			});
 			const context = testing
 				.createTransactionContext({
@@ -108,6 +121,7 @@ describe('Register Multisignature command', () => {
 				numberOfSignatures: 2,
 				mandatoryKeys: [...Array(65).keys()].map(() => utils.getRandomBytes(32)),
 				optionalKeys: [],
+				signatures: [utils.getRandomBytes(64)],
 			});
 			const context = testing
 				.createTransactionContext({
@@ -127,6 +141,7 @@ describe('Register Multisignature command', () => {
 				numberOfSignatures: 3,
 				mandatoryKeys: [utils.getRandomBytes(32), utils.getRandomBytes(64)],
 				optionalKeys: [],
+				signatures: [utils.getRandomBytes(64)],
 			});
 			const context = testing
 				.createTransactionContext({
@@ -146,6 +161,7 @@ describe('Register Multisignature command', () => {
 				numberOfSignatures: 3,
 				mandatoryKeys: [utils.getRandomBytes(10), utils.getRandomBytes(32)],
 				optionalKeys: [utils.getRandomBytes(10), utils.getRandomBytes(32)],
+				signatures: [utils.getRandomBytes(64)],
 			});
 			const context = testing
 				.createTransactionContext({
@@ -164,6 +180,7 @@ describe('Register Multisignature command', () => {
 				numberOfSignatures: 2,
 				mandatoryKeys: [],
 				optionalKeys: [...Array(1).keys()].map(() => utils.getRandomBytes(64)),
+				signatures: [utils.getRandomBytes(64)],
 			});
 			const context = testing
 				.createTransactionContext({
@@ -182,6 +199,7 @@ describe('Register Multisignature command', () => {
 				numberOfSignatures: 2,
 				mandatoryKeys: [],
 				optionalKeys: [...Array(1).keys()].map(() => utils.getRandomBytes(31)),
+				signatures: [utils.getRandomBytes(64)],
 			});
 			const context = testing
 				.createTransactionContext({
@@ -200,6 +218,7 @@ describe('Register Multisignature command', () => {
 				numberOfSignatures: 2,
 				mandatoryKeys: [],
 				optionalKeys: [...Array(65).keys()].map(() => utils.getRandomBytes(32)),
+				signatures: [utils.getRandomBytes(64)],
 			});
 			const context = testing
 				.createTransactionContext({
@@ -217,6 +236,7 @@ describe('Register Multisignature command', () => {
 			const params = codec.encode(registerMultisignatureParamsSchema, {
 				...decodedParams,
 				mandatoryKeys: [decodedParams.mandatoryKeys[0], decodedParams.mandatoryKeys[0]],
+				signatures: [utils.getRandomBytes(64)],
 			});
 			const context = testing
 				.createTransactionContext({
@@ -235,6 +255,7 @@ describe('Register Multisignature command', () => {
 			const params = codec.encode(registerMultisignatureParamsSchema, {
 				...decodedParams,
 				optionalKeys: [decodedParams.optionalKeys[0], decodedParams.optionalKeys[0]],
+				signatures: [utils.getRandomBytes(64)],
 			});
 			const context = testing
 				.createTransactionContext({
@@ -253,6 +274,7 @@ describe('Register Multisignature command', () => {
 			const params = codec.encode(registerMultisignatureParamsSchema, {
 				...decodedParams,
 				numberOfSignatures: 5,
+				signatures: [utils.getRandomBytes(64)],
 			});
 			const context = testing
 				.createTransactionContext({
@@ -272,6 +294,7 @@ describe('Register Multisignature command', () => {
 			const params = codec.encode(registerMultisignatureParamsSchema, {
 				...decodedParams,
 				numberOfSignatures: 1,
+				signatures: [utils.getRandomBytes(64)],
 			});
 			const context = testing
 				.createTransactionContext({
@@ -297,6 +320,7 @@ describe('Register Multisignature command', () => {
 				optionalKeys: [
 					Buffer.from('483077a8b23208f2fd85dacec0fbb0b590befea0a1fcd76a5b43f33063aaa180', 'hex'),
 				],
+				signatures: [utils.getRandomBytes(64)],
 			});
 			const context = testing
 				.createTransactionContext({
@@ -317,10 +341,7 @@ describe('Register Multisignature command', () => {
 			const params = codec.encode(registerMultisignatureParamsSchema, {
 				...decodedParams,
 				numberOfSignatures: 2,
-				mandatoryKeys: [
-					Buffer.from('48e041ae61a32777c899c1f1b0a9588bdfe939030613277a39556518cc66d371', 'hex'),
-					Buffer.from('483077a8b23208f2fd85dacec0fbb0b590befea0a1fcd76a5b43f33063aaa180', 'hex'),
-				],
+				mandatoryKeys: [decodedParams.mandatoryKeys[1], decodedParams.mandatoryKeys[0]],
 			});
 			const context = testing
 				.createTransactionContext({
@@ -339,10 +360,7 @@ describe('Register Multisignature command', () => {
 			const params = codec.encode(registerMultisignatureParamsSchema, {
 				...decodedParams,
 				numberOfSignatures: 2,
-				optionalKeys: [
-					Buffer.from('48e041ae61a32777c899c1f1b0a9588bdfe939030613277a39556518cc66d371', 'hex'),
-					Buffer.from('483077a8b23208f2fd85dacec0fbb0b590befea0a1fcd76a5b43f33063aaa180', 'hex'),
-				],
+				optionalKeys: [decodedParams.optionalKeys[1], decodedParams.optionalKeys[0]],
 			});
 			const context = testing
 				.createTransactionContext({
@@ -362,6 +380,7 @@ describe('Register Multisignature command', () => {
 				numberOfSignatures: 2,
 				optionalKeys: [...Array(65).keys()].map(() => utils.getRandomBytes(32)),
 				mandatoryKeys: [...Array(65).keys()].map(() => utils.getRandomBytes(32)),
+				signatures: [utils.getRandomBytes(64)],
 			});
 			const context = testing
 				.createTransactionContext({
@@ -381,6 +400,7 @@ describe('Register Multisignature command', () => {
 				optionalKeys: [],
 				mandatoryKeys: [],
 				numberOfSignatures: 0,
+				signatures: [utils.getRandomBytes(64)],
 			});
 			const context = testing
 				.createTransactionContext({
@@ -397,6 +417,8 @@ describe('Register Multisignature command', () => {
 	});
 
 	describe('execute', () => {
+		const eventQueueMock: any = { add: jest.fn() };
+
 		beforeEach(() => {
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			authStore = authModule.stores.get(AuthAccountStore);
@@ -426,10 +448,81 @@ describe('Register Multisignature command', () => {
 					registerMultisignatureParamsSchema,
 				);
 
+			context.eventQueue = eventQueueMock;
+
+			const registerMultiSigEventData = codec.encode(multisigRegDataSchema, {
+				numberOfSignatures: context.params.numberOfSignatures,
+				mandatoryKeys: context.params.mandatoryKeys,
+				optionalKeys: context.params.optionalKeys,
+			});
+
 			await expect(registerMultisignatureCommand.execute(context)).resolves.toBeUndefined();
 			const updatedStore = authModule.stores.get(AuthAccountStore);
 			const updatedData = await updatedStore.get(context, transaction.senderAddress);
 			expect(updatedData.mandatoryKeys).toEqual(decodedParams.mandatoryKeys);
+			expect(eventQueueMock.add).toBeCalledWith(
+				MODULE_ID_AUTH_BUFFER,
+				TYPE_ID_MULTISIGNATURE_GROUP_REGISTERED,
+				registerMultiSigEventData,
+				[transaction.senderAddress],
+			);
+		});
+
+		it('should throw when incorrect signature', async () => {
+			const buffer = Buffer.from(defaultTestCase.output.transaction, 'hex');
+			const sampleTransaction = Transaction.fromBytes(buffer);
+			const sampleDecodedParams = codec.decode<RegisterMultisignatureParams>(
+				registerMultisignatureParamsSchema,
+				sampleTransaction.params,
+			);
+			const invalidSignature = utils.getRandomBytes(64);
+			sampleDecodedParams.signatures[0] = invalidSignature;
+
+			const paramsBytes = codec.encode(registerMultisignatureParamsSchema, sampleDecodedParams);
+			const invalidTransaction = new Transaction({
+				...sampleTransaction.toObject(),
+				params: paramsBytes,
+			});
+			await authStore.setWithSchema(
+				transaction.senderAddress,
+				{
+					optionalKeys: [],
+					mandatoryKeys: [],
+					numberOfSignatures: 0,
+					nonce: BigInt(0),
+				},
+				authAccountSchema,
+			);
+
+			const context = testing
+				.createTransactionContext({
+					stateStore,
+					transaction: invalidTransaction,
+					networkIdentifier,
+				})
+				.createCommandExecuteContext<RegisterMultisignatureParams>(
+					registerMultisignatureParamsSchema,
+				);
+
+			context.eventQueue = eventQueueMock;
+
+			const invalidSignatureEventData = codec.encode(invalidSigDataSchema, {
+				numberOfSignatures: context.params.numberOfSignatures,
+				mandatoryKeys: context.params.mandatoryKeys,
+				optionalKeys: context.params.optionalKeys,
+				failingPublicKey: context.params.mandatoryKeys[0],
+				failingSignature: invalidSignature,
+			});
+			await expect(registerMultisignatureCommand.execute(context)).rejects.toThrow(
+				`Invalid signature for public key ${context.params.mandatoryKeys[0].toString('hex')}.`,
+			);
+
+			expect(eventQueueMock.add).toBeCalledWith(
+				MODULE_ID_AUTH_BUFFER,
+				TYPE_ID_INVALID_SIGNATURE_ERROR,
+				invalidSignatureEventData,
+				[invalidTransaction.senderAddress],
+			);
 		});
 
 		it('should throw error when account is already multisignature', async () => {

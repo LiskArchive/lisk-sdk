@@ -259,6 +259,7 @@ describe('AuthEndpoint', () => {
 				numberOfSignatures: 3,
 				mandatoryKeys: [accounts.mandatoryOne.publicKey, accounts.mandatoryTwo.publicKey],
 				optionalKeys: [accounts.optionalOne.publicKey, accounts.optionalTwo.publicKey],
+				signatures: [],
 			});
 
 			const transaction = new Transaction({
