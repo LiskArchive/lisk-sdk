@@ -124,13 +124,9 @@ describe('keys:import', () => {
 				(fs.readJSONSync as jest.Mock).mockReturnValue(fileData);
 				await ImportCommand.run(['--file-path=/my/path/keys.json'], config);
 				expect(invokeMock).toHaveBeenCalledWith('generator_setKeys', {
-					keys: [
-						{
-							address,
-							type: 'plain',
-							data: defaultKeysJSON,
-						},
-					],
+					address,
+					type: 'plain',
+					data: defaultKeysJSON,
 				});
 			});
 		});
@@ -149,13 +145,9 @@ describe('keys:import', () => {
 				(fs.readJSONSync as jest.Mock).mockReturnValue(fileData);
 				await ImportCommand.run(['--file-path=/my/path/keys.json', '--data-path=/my/app/'], config);
 				expect(invokeMock).toHaveBeenCalledWith('generator_setKeys', {
-					keys: [
-						{
-							address,
-							type: 'encrypted',
-							data: defaultEncryptedKeys.data,
-						},
-					],
+					address,
+					type: 'encrypted',
+					data: defaultEncryptedKeys.data,
 				});
 			});
 		});
@@ -173,13 +165,9 @@ describe('keys:import', () => {
 				(fs.readJSONSync as jest.Mock).mockReturnValue(fileData);
 				await ImportCommand.run(['--file-path=/my/path/keys.json', '--data-path=/my/app/'], config);
 				expect(invokeMock).toHaveBeenCalledWith('generator_setKeys', {
-					keys: [
-						{
-							address,
-							type: 'encrypted',
-							data: defaultEncryptedKeys.data,
-						},
-					],
+					address,
+					type: 'encrypted',
+					data: defaultEncryptedKeys.data,
 				});
 			});
 		});

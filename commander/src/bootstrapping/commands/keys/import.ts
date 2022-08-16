@@ -74,6 +74,10 @@ export abstract class ImportCommand extends BaseIPCClientCommand {
 
 	async run(): Promise<void> {
 		const { flags } = this.parse(ImportCommand);
+		if (!this._client) {
+			this.error('APIClient is not initialized.');
+		}
+
 		const fileData = (fs.readJSONSync(flags['file-path']) as unknown) as Keys;
 		const keys = fileData.keys.map(k => {
 			let type: 'encrypted' | 'plain';
@@ -92,9 +96,8 @@ export abstract class ImportCommand extends BaseIPCClientCommand {
 			};
 		});
 
-		if (!this._client) {
-			this.error('APIClient is not initialized.');
+		for (const key of keys) {
+			await this._client.invoke('generator_setKeys', key);
 		}
-		await this._client.invoke('generator_setKeys', { keys });
 	}
 }
