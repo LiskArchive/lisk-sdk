@@ -12,8 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import { BaseCommand } from '../..';
 import {
 	CommandExecuteContext,
@@ -21,21 +23,35 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../state_machine';
-import { MAX_NUMBER_OF_SIGNATURES } from '../constants';
-import { registerMultisignatureParamsSchema } from '../schemas';
 import { AuthAccountStore } from '../stores/auth_account';
-import { RegisterMultisignatureParams } from '../types';
+import {
+	COMMAND_ID_REGISTER_MULTISIGNATURE_GROUP,
+	COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP,
+	MAX_NUMBER_OF_SIGNATURES,
+	MESSAGE_TAG_MULTISIG_REG,
+	TYPE_ID_INVALID_SIGNATURE_ERROR,
+	TYPE_ID_MULTISIGNATURE_GROUP_REGISTERED,
+} from '../constants';
+import {
+	authAccountSchema,
+	invalidSigDataSchema,
+	multisigRegDataSchema,
+	multisigRegMsgSchema,
+	registerMultisignatureParamsSchema,
+} from '../schemas';
+import { AuthAccount, RegisterMultisignatureParams } from '../types';
+import { getIDAsKeyForStore } from '../utils';
 
-export class RegisterMultisignatureGroupCommand extends BaseCommand {
+export class RegisterMultisignatureCommand extends BaseCommand {
+	public id = getIDAsKeyForStore(COMMAND_ID_REGISTER_MULTISIGNATURE_GROUP);
+	public name = COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP;
 	public schema = registerMultisignatureParamsSchema;
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(
 		context: CommandVerifyContext<RegisterMultisignatureParams>,
 	): Promise<VerificationResult> {
-		const { transaction } = context;
-		const { mandatoryKeys, optionalKeys, numberOfSignatures } = context.params;
-
+		const { mandatoryKeys, optionalKeys, numberOfSignatures, signatures } = context.params;
 		try {
 			validator.validate(registerMultisignatureParamsSchema, context.params);
 		} catch (err) {
@@ -104,7 +120,7 @@ export class RegisterMultisignatureGroupCommand extends BaseCommand {
 		}
 
 		// Check if the length of mandatory, optional and sender keys matches the length of signatures
-		if (mandatoryKeys.length + optionalKeys.length + 1 !== transaction.signatures.length) {
+		if (mandatoryKeys.length + optionalKeys.length !== signatures.length) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error(
@@ -143,6 +159,46 @@ export class RegisterMultisignatureGroupCommand extends BaseCommand {
 		context: CommandExecuteContext<RegisterMultisignatureParams>,
 	): Promise<void> {
 		const { transaction } = context;
+		const message = codec.encode(multisigRegMsgSchema, {
+			address: transaction.senderAddress,
+			nonce: transaction.nonce,
+			numberOfSignatures: context.params.numberOfSignatures,
+			mandatoryKeys: context.params.mandatoryKeys,
+			optionalKeys: context.params.optionalKeys,
+		});
+
+		const allKeys = [
+			...context.params.mandatoryKeys,
+			...context.params.optionalKeys,
+		].map((key, index) => ({ key, signature: context.params.signatures[index] }));
+
+		for (const { key, signature } of allKeys) {
+			const isValid = cryptography.ed.verifyData(
+				MESSAGE_TAG_MULTISIG_REG,
+				context.networkIdentifier,
+				message,
+				signature,
+				key,
+			);
+			if (!isValid) {
+				const invalidSignatureEventData = codec.encode(invalidSigDataSchema, {
+					numberOfSignatures: context.params.numberOfSignatures,
+					mandatoryKeys: context.params.mandatoryKeys,
+					optionalKeys: context.params.optionalKeys,
+					failingPublicKey: key,
+					failingSignature: signature,
+				});
+
+				context.eventQueue.add(
+					MODULE_ID_AUTH_BUFFER,
+					TYPE_ID_INVALID_SIGNATURE_ERROR,
+					invalidSignatureEventData,
+					[transaction.senderAddress],
+				);
+				throw new Error(`Invalid signature for public key ${key.toString('hex')}.`);
+			}
+		}
+
 		const authSubstore = this.stores.get(AuthAccountStore);
 		const senderAccount = await authSubstore.get(context, transaction.senderAddress);
 
@@ -155,6 +211,19 @@ export class RegisterMultisignatureGroupCommand extends BaseCommand {
 		senderAccount.optionalKeys = context.params.optionalKeys;
 		senderAccount.numberOfSignatures = context.params.numberOfSignatures;
 
-		await authSubstore.set(context, transaction.senderAddress, senderAccount);
+		await authSubstore.setWithSchema(transaction.senderAddress, senderAccount, authAccountSchema);
+
+		const registerMultiSigEventData = codec.encode(multisigRegDataSchema, {
+			numberOfSignatures: context.params.numberOfSignatures,
+			mandatoryKeys: context.params.mandatoryKeys,
+			optionalKeys: context.params.optionalKeys,
+		});
+
+		context.eventQueue.add(
+			MODULE_ID_AUTH_BUFFER,
+			TYPE_ID_MULTISIGNATURE_GROUP_REGISTERED,
+			registerMultiSigEventData,
+			[transaction.senderAddress],
+		);
 	}
 }
