@@ -104,6 +104,6 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 			};
 		});
 
-		fs.writeJSONSync(flags.output, JSON.stringify({ keys }), { spaces: ' ' });
+		fs.writeJSONSync(flags.output, { keys }, { spaces: ' ' });
 	}
 }

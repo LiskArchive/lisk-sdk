@@ -51,7 +51,7 @@ describe('keys:export', () => {
 		jest.spyOn(appUtils, 'isApplicationRunning').mockReturnValue(true);
 		jest.spyOn(fs, 'ensureDirSync').mockReturnValue();
 		jest.spyOn(fs, 'writeJSONSync').mockReturnValue();
-		jest.spyOn(fs, 'readFileSync');
+		jest.spyOn(fs, 'readJSONSync');
 		jest.spyOn(readerUtils, 'getPasswordFromPrompt').mockImplementation(async (name?: string) => {
 			if (name === 'password') {
 				return defaultPassword;
@@ -92,15 +92,15 @@ describe('keys:export', () => {
 
 		describe('when input file exists', () => {
 			it('should encrypt the data and overwrite the file', async () => {
-				fileData = JSON.stringify({
+				fileData = {
 					keys: [
 						{
 							address,
 							plain: defaultKeysJSON,
 						},
 					],
-				});
-				(fs.readFileSync as jest.Mock).mockReturnValue(fileData);
+				};
+				(fs.readJSONSync as jest.Mock).mockReturnValue(fileData);
 				await EncryptCommand.run(['--file-path=/my/path/keys.json'], config);
 				expect(fs.writeJSONSync).toHaveBeenCalledTimes(1);
 				expect(fs.writeJSONSync).toHaveBeenCalledWith('/my/path/keys.json', expect.anything(), {

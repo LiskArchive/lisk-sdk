@@ -78,9 +78,9 @@ export class EncryptCommand extends Command {
 		const { flags } = this.parse(EncryptCommand);
 		const password = flags.password ?? (await getPasswordFromPrompt('password', true));
 
-		const keysWithoutEncryption = JSON.parse(
-			fs.readFileSync(flags['file-path'], 'utf8'),
-		) as KeysWithoutEncryption;
+		const keysWithoutEncryption = (fs.readJSONSync(
+			flags['file-path'],
+		) as unknown) as KeysWithoutEncryption;
 
 		const keys = [];
 		for (const keyWithoutEncryption of keysWithoutEncryption.keys) {
@@ -102,6 +102,6 @@ export class EncryptCommand extends Command {
 			});
 		}
 
-		fs.writeJSONSync(flags['file-path'], JSON.stringify({ keys }), { spaces: ' ' });
+		fs.writeJSONSync(flags['file-path'], { keys }, { spaces: ' ' });
 	}
 }

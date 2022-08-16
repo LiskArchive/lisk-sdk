@@ -57,7 +57,7 @@ describe('keys:import', () => {
 		jest.spyOn(process.stdout, 'write').mockImplementation(val => stdout.push(val as string) > -1);
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
 		jest.spyOn(appUtils, 'isApplicationRunning').mockReturnValue(true);
-		jest.spyOn(fs, 'readFileSync');
+		jest.spyOn(fs, 'readJSONSync');
 		invokeMock = jest.fn();
 		jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue({
 			disconnect: jest.fn(),
@@ -113,15 +113,15 @@ describe('keys:import', () => {
 
 		describe('when input file has only plain data', () => {
 			it('should import plain data', async () => {
-				fileData = JSON.stringify({
+				fileData = {
 					keys: [
 						{
 							address,
 							plain: defaultKeysJSON,
 						},
 					],
-				});
-				(fs.readFileSync as jest.Mock).mockReturnValue(fileData);
+				};
+				(fs.readJSONSync as jest.Mock).mockReturnValue(fileData);
 				await ImportCommand.run(['--file-path=/my/path/keys.json'], config);
 				expect(invokeMock).toHaveBeenCalledWith('generator_setKeys', {
 					keys: [
@@ -137,7 +137,7 @@ describe('keys:import', () => {
 
 		describe('when input file has both plain & encrypted data', () => {
 			it('should import encrypted data', async () => {
-				fileData = JSON.stringify({
+				fileData = {
 					keys: [
 						{
 							address,
@@ -145,8 +145,8 @@ describe('keys:import', () => {
 							encrypted: defaultEncryptedKeys.data,
 						},
 					],
-				});
-				(fs.readFileSync as jest.Mock).mockReturnValue(fileData);
+				};
+				(fs.readJSONSync as jest.Mock).mockReturnValue(fileData);
 				await ImportCommand.run(['--file-path=/my/path/keys.json', '--data-path=/my/app/'], config);
 				expect(invokeMock).toHaveBeenCalledWith('generator_setKeys', {
 					keys: [
@@ -162,15 +162,15 @@ describe('keys:import', () => {
 
 		describe('when input file has only encrypted data', () => {
 			it('should import encrypted data', async () => {
-				fileData = JSON.stringify({
+				fileData = {
 					keys: [
 						{
 							address,
 							encrypted: defaultEncryptedKeys.data,
 						},
 					],
-				});
-				(fs.readFileSync as jest.Mock).mockReturnValue(fileData);
+				};
+				(fs.readJSONSync as jest.Mock).mockReturnValue(fileData);
 				await ImportCommand.run(['--file-path=/my/path/keys.json', '--data-path=/my/app/'], config);
 				expect(invokeMock).toHaveBeenCalledWith('generator_setKeys', {
 					keys: [

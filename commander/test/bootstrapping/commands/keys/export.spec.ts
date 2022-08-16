@@ -118,14 +118,14 @@ describe('keys:export', () => {
 							},
 						],
 					});
-				fileData = JSON.stringify({
+				fileData = {
 					keys: [
 						{
 							address,
 							plain: defaultKeysJSON,
 						},
 					],
-				});
+				};
 				await ExportCommand.run(['--output=/my/path/keys.json'], config);
 				expect(fs.ensureDirSync).toHaveBeenCalledTimes(1);
 				expect(fs.ensureDirSync).toHaveBeenCalledWith('/my/path');
@@ -149,14 +149,14 @@ describe('keys:export', () => {
 							},
 						],
 					});
-				fileData = JSON.stringify({
+				fileData = {
 					keys: [
 						{
 							address,
 							encrypted: defaultEncryptedKeys.data,
 						},
 					],
-				});
+				};
 				await ExportCommand.run(['--output=/my/path/keys.json', '--data-path=/my/app/'], config);
 				expect(fs.ensureDirSync).toHaveBeenCalledTimes(1);
 				expect(fs.ensureDirSync).toHaveBeenCalledWith('/my/path');
