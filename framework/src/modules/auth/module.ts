@@ -28,7 +28,7 @@ import { RegisterMultisignatureGroupCommand } from './commands/register_multisig
 import { MAX_NUMBER_OF_SIGNATURES } from './constants';
 import { AuthEndpoint } from './endpoint';
 import { configSchema, genesisAuthStoreSchema } from './schemas';
-import { GenesisAuthStore } from './types';
+import { GenesisAuthStore, ImmutableStoreCallback } from './types';
 import { verifyNonce, verifySignatures } from './utils';
 import { AuthAccount, authAccountSchema, AuthAccountStore } from './stores/auth_account';
 
