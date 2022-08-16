@@ -33,7 +33,7 @@ describe('Mainchain endpoint', () => {
 	const moduleID = utils.intToBuffer(1, 4);
 	const chainID = utils.intToBuffer(1, 4);
 	const interoperableCCAPIs = new Map();
-	const getStore = jest.fn().mockReturnValue({ getWithSchema: jest.fn() });
+	const getStore = jest.fn().mockReturnValue({ getWithSchema: jest.fn(), iterate: jest.fn() });
 
 	const moduleContext = {
 		getStore,
@@ -160,6 +160,9 @@ describe('Mainchain endpoint', () => {
 			.spyOn(mainchainInteroperabilityEndpoint as any, 'getInteroperabilityStore')
 			.mockReturnValue(mainchainInteroperabilityStore);
 		jest.spyOn(mainchainInteroperabilityStore, 'getChainAccount').mockResolvedValue(chainAccount);
+		jest
+			.spyOn(mainchainInteroperabilityStore, 'getAllChainAccounts')
+			.mockResolvedValue([chainAccount]);
 		jest.spyOn(mainchainInteroperabilityStore, 'getChannel').mockResolvedValue(channelData);
 		jest
 			.spyOn(mainchainInteroperabilityStore, 'getOwnChainAccount')
@@ -193,6 +196,30 @@ describe('Mainchain endpoint', () => {
 
 		it('should return JSON format result', () => {
 			expect(chainAccountResult).toEqual(chainAccountJSON);
+		});
+	});
+
+	describe('getAllChainAccounts', () => {
+		let chainAccountResults: ChainAccountJSON[];
+
+		beforeEach(async () => {
+			chainAccountResults = await mainchainInteroperabilityEndpoint.getAllChainAccounts(
+				moduleContext,
+				chainID,
+			);
+		});
+		it('should call getInteroperabilityStore', async () => {
+			expect(mainchainInteroperabilityEndpoint['getInteroperabilityStore']).toHaveBeenCalledWith(
+				moduleContext.getStore,
+			);
+		});
+
+		it('should call getAllChainAccounts', async () => {
+			expect(mainchainInteroperabilityStore.getAllChainAccounts).toHaveBeenCalledWith(chainID);
+		});
+
+		it('should return JSON format result', () => {
+			expect(chainAccountResults).toEqual([chainAccountJSON]);
 		});
 	});
 

@@ -85,8 +85,7 @@ export const channelSchema = {
 	},
 };
 
-export const chainAccountSchema = {
-	$id: '/modules/interoperability/chainAccount',
+const chainAccountJSONSchema = {
 	type: 'object',
 	required: ['name', 'networkID', 'lastCertificate', 'status'],
 	properties: {
@@ -124,6 +123,22 @@ export const chainAccountSchema = {
 		status: {
 			dataType: 'uint32',
 			fieldNumber: 4,
+		},
+	},
+};
+export const chainAccountSchema = {
+	$id: '/modules/interoperability/chainAccount',
+	...chainAccountJSONSchema,
+};
+
+export const getAllChainAccountsResponseSchema = {
+	$id: 'modules/dpos/endpoint/getAllDelegatesResponse',
+	type: 'object',
+	required: ['delegates'],
+	properties: {
+		chains: {
+			type: 'array',
+			items: chainAccountJSONSchema,
 		},
 	},
 };

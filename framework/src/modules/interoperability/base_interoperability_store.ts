@@ -180,6 +180,22 @@ export abstract class BaseInteroperabilityStore {
 		return chainSubstore.getWithSchema<ChainAccount>(chainID, chainAccountSchema);
 	}
 
+	public async getAllChainAccounts(startChainID: Buffer): Promise<ChainAccount[]> {
+		const chainSubstore = this.getStore(
+			getIDAsKeyForStore(MODULE_ID_INTEROPERABILITY),
+			STORE_PREFIX_CHAIN_DATA,
+		);
+		const endBuf = Buffer.alloc(4, 255);
+		const storeData = await chainSubstore.iterate({ gte: startChainID, lte: endBuf });
+
+		const response = [];
+		for (const data of storeData) {
+			response.push(await chainSubstore.getWithSchema<ChainAccount>(data.key, chainAccountSchema));
+		}
+
+		return response;
+	}
+
 	public async chainAccountExist(chainID: Buffer): Promise<boolean> {
 		const chainSubstore = this.getStore(
 			getIDAsKeyForStore(MODULE_ID_INTEROPERABILITY),

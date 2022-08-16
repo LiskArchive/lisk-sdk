@@ -65,6 +65,33 @@ export class MainchainInteroperabilityEndpoint extends BaseEndpoint {
 		};
 	}
 
+	public async getAllChainAccounts(
+		context: ModuleEndpointContext,
+		startChainID: Buffer,
+	): Promise<ChainAccountJSON[]> {
+		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+
+		const chainAccounts = (await interoperabilityStore.getAllChainAccounts(startChainID)).map(
+			chainAccount => {
+				const { lastCertificate, name, networkID, status } = chainAccount;
+				const lastCertificateJSON: LastCertificateJSON = {
+					height: lastCertificate.height,
+					timestamp: lastCertificate.timestamp,
+					stateRoot: lastCertificate.stateRoot.toString('hex'),
+					validatorsHash: lastCertificate.validatorsHash.toString('hex'),
+				};
+				return {
+					lastCertificate: lastCertificateJSON,
+					name,
+					status,
+					networkID: networkID.toString('hex'),
+				};
+			},
+		);
+
+		return chainAccounts;
+	}
+
 	public async getChannel(
 		context: ModuleEndpointContext,
 		chainID: Buffer,
