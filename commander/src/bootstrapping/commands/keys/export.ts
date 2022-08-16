@@ -15,13 +15,14 @@
 
 import { encrypt } from '@liskhq/lisk-cryptography';
 import * as apiClient from '@liskhq/lisk-api-client';
-import { Command, flags as flagParser } from '@oclif/command';
+import { flags as flagParser } from '@oclif/command';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { getDefaultPath } from '../../../utils/path';
 import { flagsWithParser } from '../../../utils/flags';
 import { PromiseResolvedType } from '../../../types';
 import { getApiClient } from '../../../utils/transaction';
+import { BaseIPCClientCommand } from '../base_ipc_client';
 
 interface EncryptedMessageObject {
 	readonly version: string;
@@ -58,7 +59,7 @@ interface GetKeysResponse {
 	];
 }
 
-export abstract class ExportCommand extends Command {
+export abstract class ExportCommand extends BaseIPCClientCommand {
 	static description = 'Export to <FILE>.';
 
 	static examples = [
@@ -67,7 +68,7 @@ export abstract class ExportCommand extends Command {
 	];
 
 	static flags = {
-		'data-path': flagsWithParser.dataPath,
+		...BaseIPCClientCommand.flags,
 		output: {
 			...flagsWithParser.output,
 			...flagParser.string({
