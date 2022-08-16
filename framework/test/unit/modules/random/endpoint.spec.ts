@@ -17,7 +17,7 @@ import { when } from 'jest-when';
 import { ModuleEndpointContext } from '../../../../src';
 import { MODULE_ID_RANDOM_BUFFER } from '../../../../src/modules/random/constants';
 import { RandomEndpoint } from '../../../../src/modules/random/endpoint';
-import { seedRevealSchema } from '../../../../src/modules/random/schemas';
+import { seedRevealSchema, setSeedSchema } from '../../../../src/modules/random/schemas';
 import { createTransientModuleEndpointContext } from '../../../../src/testing';
 import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
 
@@ -28,6 +28,9 @@ describe('RandomModuleEndpoint', () => {
 	const storeMock = jest.fn().mockReturnValue({ getWithSchema: subStoreMock });
 	const stateStore: any = {
 		getStore: storeMock,
+	};
+	const getOffchainStore: any = {
+		getOffchainStore: storeMock,
 	};
 
 	const emptyBytes = Buffer.alloc(0);
@@ -152,6 +155,35 @@ describe('RandomModuleEndpoint', () => {
 			const isValid = await randomEndpoint.isSeedRevealValid(context);
 			// Assert
 			expect(isValid).toEqual({ valid: false });
+		});
+	});
+
+	describe('setSeed', () => {
+		beforeEach(() => {
+			randomEndpoint = new RandomEndpoint(MODULE_ID_RANDOM_BUFFER);
+			context = createTransientModuleEndpointContext({
+				getOffchainStore,
+			});
+		});
+
+		// should create a new seed and store it in the offchain store
+		it('should create a new seed and store it in the offchain store', async () => {
+			// Arrange
+			const address = Buffer.from(genesisDelegates.delegates[0].address, 'hex');
+			const seed = Buffer.from(genesisDelegates.delegates[1].hashOnion.hashes[1], 'hex');
+			const count = Buffer.from('1000', 'hex');
+			const distance = 1;
+
+			context.params = { address, seed, count, distance };
+
+			// console.log({ address, seed, count, distance });
+
+			// Act
+			await randomEndpoint.setSeed(context);
+
+			// Assert
+			const { seed: storedSeed } = await getOffchainStore().getWithSchema(address, setSeedSchema);
+			expect(storedSeed).toEqual(seed);
 		});
 	});
 });

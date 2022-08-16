@@ -256,6 +256,7 @@ export const createTransientAPIContext = (params: {
 
 export const createTransientModuleEndpointContext = (params: {
 	stateStore?: PrefixedStateReadWriter;
+	getOffchainStore?: (moduleID: Buffer) => SubStore;
 	params?: Record<string, unknown>;
 	logger?: Logger;
 	networkIdentifier?: Buffer;

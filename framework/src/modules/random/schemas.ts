@@ -12,6 +12,98 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+export interface setSeedRequest {
+	address: string;
+	seed?: string | undefined;
+	count?: string | undefined;
+	distance?: number | undefined;
+}
+
+export const setSeedRequestSchema = {
+	$id: 'lisk/random/setSeedRequestSchema',
+	type: 'object',
+	title: 'Random setSeed request',
+	required: ['address'],
+	properties: {
+		address: {
+			dataType: 'bytes',
+		},
+		seed: {
+			dataType: 'bytes',
+		},
+		count: {
+			dataType: 'bytes',
+		},
+		distance: {
+			dataType: 'uint32',
+		},
+	},
+};
+
+export const setSeedSchema = {
+	$id: 'lisk/random/setSeedSchema',
+	type: 'object',
+	required: [],
+	properties: {
+		count: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+		},
+		distance: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+		hashes: {
+			type: 'array',
+			fieldNumber: 3,
+			items: {
+				dataType: 'bytes',
+			},
+		},
+	},
+};
+
+interface Seeds {
+	address: string;
+	seed: string;
+	count: number;
+	distance: number;
+}
+
+export interface getSeedsResponse {
+	seeds: Seeds[];
+}
+
+export const getSeedsSchema = {
+	$id: 'lisk/random/getSeedsSchema',
+	type: 'object',
+	required: [],
+	properties: {
+		seeds: {
+			type: 'array',
+			fieldNumber: 1,
+			items: {
+				type: 'object',
+				required: ['address', 'seed', 'count', 'distance'],
+				properties: {
+					address: {
+						dataType: 'bytes',
+					},
+					seed: {
+						dataType: 'bytes',
+					},
+					count: {
+						dataType: 'uint32',
+					},
+					distance: {
+						dataType: 'uint32',
+					},
+				},
+			},
+		},
+	},
+};
+
 export const randomModuleConfig = {
 	$id: '/modules/random/config',
 	type: 'object',
