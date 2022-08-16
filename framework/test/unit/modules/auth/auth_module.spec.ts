@@ -377,7 +377,9 @@ describe('AuthModule', () => {
 			});
 		});
 
-		describe('Multi-signature registration transaction', () => {
+		// TODO: Unskip once https://github.com/LiskHQ/lisk-sdk/issues/7346 is fixed
+		// eslint-disable-next-line jest/no-disabled-tests
+		describe.skip('Multi-signature registration transaction', () => {
 			it('should not throw for valid transaction', async () => {
 				// Arrange
 				const context = testing
