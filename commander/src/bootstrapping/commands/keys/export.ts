@@ -81,6 +81,9 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 
 	async run(): Promise<void> {
 		const { flags } = this.parse(ExportCommand);
+		if (!this._client) {
+			this.error('APIClient is not initialized.');
+		}
 
 		const { dir } = path.parse(flags.output);
 		fs.ensureDirSync(dir);

@@ -131,6 +131,27 @@ describe('keys:import', () => {
 			});
 		});
 
+		describe('when input file has plain data and empty encrypted object', () => {
+			it('should import plain data', async () => {
+				fileData = {
+					keys: [
+						{
+							address,
+							plain: defaultKeysJSON,
+							encrypted: {},
+						},
+					],
+				};
+				(fs.readJSONSync as jest.Mock).mockReturnValue(fileData);
+				await ImportCommand.run(['--file-path=/my/path/keys.json'], config);
+				expect(invokeMock).toHaveBeenCalledWith('generator_setKeys', {
+					address,
+					type: 'plain',
+					data: defaultKeysJSON,
+				});
+			});
+		});
+
 		describe('when input file has both plain & encrypted data', () => {
 			it('should import encrypted data', async () => {
 				fileData = {
