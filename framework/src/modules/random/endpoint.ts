@@ -52,24 +52,17 @@ export class RandomEndpoint extends BaseEndpoint {
 		validator.validate<setSeedRequest>(setSeedRequestSchema, ctx.params);
 
 		const address = Buffer.from(ctx.params.address, 'hex');
-		const seed =
-			Buffer.from(ctx.params.seed as string, 'hex') ?? cryptography.utils.generateHashOnionSeed();
-		// const count = (ctx.params.count as number) ?? 1000000;
-		const countBuf =
-			Buffer.from(ctx.params.count as string, 'hex') ?? Buffer.from('1000000', 'hex');
-		// console.log({countBuf});
-		const count = Number(countBuf.toString('hex'));
-		const distance = (ctx.params.distance as number) ?? 1000;
+		const seed = ctx.params.seed
+			? Buffer.from(ctx.params.seed, 'hex')
+			: cryptography.utils.generateHashOnionSeed();
+		const count = ctx.params.count ?? 1000000;
+		const distance = ctx.params.distance ?? 1000;
 
-		// console.log({ address, seed, count, distance });
-
-		const hashBuffers = cryptography.utils.hashOnion(seed, count, distance);
-		const hashes = hashBuffers.map(buf => buf.toString('hex'));
+		const hashes = cryptography.utils.hashOnion(seed, count, distance);
 		const hashOnion = { count, distance, hashes };
+		const message = codec.encode(setSeedSchema, hashOnion);
 
-		const encodedSeed = codec.encode(setSeedSchema, { hashOnion });
-
-		const randomDataStore = ctx.getOffchainStore(this.moduleID);
-		await randomDataStore.setWithSchema(address, { encodedSeed }, setSeedSchema);
+		const randomDataStore = ctx.getOffchainStore(this.moduleID, STORE_PREFIX_RANDOM);
+		await randomDataStore.setWithSchema(address, message, setSeedSchema);
 	}
 }

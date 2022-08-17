@@ -15,7 +15,7 @@
 export interface setSeedRequest {
 	address: string;
 	seed?: string | undefined;
-	count?: string | undefined;
+	count?: number | undefined;
 	distance?: number | undefined;
 }
 
@@ -32,7 +32,7 @@ export const setSeedRequestSchema = {
 			dataType: 'bytes',
 		},
 		count: {
-			dataType: 'bytes',
+			dataType: 'uint32',
 		},
 		distance: {
 			dataType: 'uint32',

@@ -171,18 +171,16 @@ describe('RandomModuleEndpoint', () => {
 			// Arrange
 			const address = Buffer.from(genesisDelegates.delegates[0].address, 'hex');
 			const seed = Buffer.from(genesisDelegates.delegates[1].hashOnion.hashes[1], 'hex');
-			const count = Buffer.from('1000', 'hex');
-			const distance = 1;
+			const count = 1000000;
+			const distance = 1000;
 
 			context.params = { address, seed, count, distance };
-
-			// console.log({ address, seed, count, distance });
 
 			// Act
 			await randomEndpoint.setSeed(context);
 
 			// Assert
-			const { seed: storedSeed } = await getOffchainStore().getWithSchema(address, setSeedSchema);
+			const storedSeed = await getOffchainStore().getWithSchema(address, setSeedSchema);
 			expect(storedSeed).toEqual(seed);
 		});
 	});
