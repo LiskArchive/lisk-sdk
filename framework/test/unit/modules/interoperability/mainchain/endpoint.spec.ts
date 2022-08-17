@@ -43,6 +43,18 @@ describe('Mainchain endpoint', () => {
 		logger: {} as any,
 	};
 
+	const chainAccountToJSON = (chainAccount: ChainAccount): ChainAccountJSON => ({
+		lastCertificate: {
+			height: chainAccount.lastCertificate.height,
+			stateRoot: chainAccount.lastCertificate.stateRoot.toString('hex'),
+			timestamp: chainAccount.lastCertificate.timestamp,
+			validatorsHash: chainAccount.lastCertificate.validatorsHash.toString('hex'),
+		},
+		name: chainAccount.name,
+		networkID: chainAccount.networkID.toString('hex'),
+		status: chainAccount.status,
+	});
+
 	const chainAccount: ChainAccount = {
 		lastCertificate: {
 			height: 100,
@@ -55,17 +67,20 @@ describe('Mainchain endpoint', () => {
 		status: 1,
 	};
 
-	const chainAccountJSON: ChainAccountJSON = {
+	const chainAccount2: ChainAccount = {
 		lastCertificate: {
-			height: chainAccount.lastCertificate.height,
-			stateRoot: chainAccount.lastCertificate.stateRoot.toString('hex'),
-			timestamp: chainAccount.lastCertificate.timestamp,
-			validatorsHash: chainAccount.lastCertificate.validatorsHash.toString('hex'),
+			height: 200,
+			stateRoot: utils.getRandomBytes(32),
+			timestamp: Date.now(),
+			validatorsHash: utils.getRandomBytes(32),
 		},
-		name: chainAccount.name,
-		networkID: chainAccount.networkID.toString('hex'),
-		status: chainAccount.status,
+		name: 'chain2',
+		networkID: utils.getRandomBytes(32),
+		status: 1,
 	};
+
+	const chainAccountJSON: ChainAccountJSON = chainAccountToJSON(chainAccount);
+	const chainAccount2JSON: ChainAccountJSON = chainAccountToJSON(chainAccount2);
 
 	const channelData: ChannelData = {
 		inbox: {
@@ -162,7 +177,7 @@ describe('Mainchain endpoint', () => {
 		jest.spyOn(mainchainInteroperabilityStore, 'getChainAccount').mockResolvedValue(chainAccount);
 		jest
 			.spyOn(mainchainInteroperabilityStore, 'getAllChainAccounts')
-			.mockResolvedValue([chainAccount]);
+			.mockResolvedValue([chainAccount, chainAccount2]);
 		jest.spyOn(mainchainInteroperabilityStore, 'getChannel').mockResolvedValue(channelData);
 		jest
 			.spyOn(mainchainInteroperabilityStore, 'getOwnChainAccount')
@@ -219,7 +234,7 @@ describe('Mainchain endpoint', () => {
 		});
 
 		it('should return JSON format result', () => {
-			expect(chainAccountResults).toEqual([chainAccountJSON]);
+			expect(chainAccountResults).toEqual([chainAccountJSON, chainAccount2JSON]);
 		});
 	});
 

@@ -34,6 +34,7 @@ import {
 	EMPTY_FEE_ADDRESS,
 	CCM_STATUS_MODULE_NOT_SUPPORTED,
 	CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
+	MAX_UINT32,
 } from './constants';
 import {
 	chainAccountSchema,
@@ -185,12 +186,15 @@ export abstract class BaseInteroperabilityStore {
 			getIDAsKeyForStore(MODULE_ID_INTEROPERABILITY),
 			STORE_PREFIX_CHAIN_DATA,
 		);
-		const endBuf = Buffer.alloc(4, 255);
-		const storeData = await chainSubstore.iterate({ gte: startChainID, lte: endBuf });
+		const endBuf = utils.intToBuffer(MAX_UINT32, 4);
+		const chainIDs = await chainSubstore.iterate({ gte: startChainID, lte: endBuf });
 
 		const response = [];
-		for (const data of storeData) {
-			response.push(await chainSubstore.getWithSchema<ChainAccount>(data.key, chainAccountSchema));
+		for (const chainID of chainIDs) {
+			const chainIDBuffer = utils.intToBuffer(chainID.key.readUInt32BE(0) + 1, 4);
+			response.push(
+				await chainSubstore.getWithSchema<ChainAccount>(chainIDBuffer, chainAccountSchema),
+			);
 		}
 
 		return response;
