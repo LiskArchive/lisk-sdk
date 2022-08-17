@@ -29,9 +29,6 @@ describe('RandomModuleEndpoint', () => {
 	const stateStore: any = {
 		getStore: storeMock,
 	};
-	const getOffchainStore: any = {
-		getOffchainStore: storeMock,
-	};
 
 	const emptyBytes = Buffer.alloc(0);
 
@@ -161,16 +158,13 @@ describe('RandomModuleEndpoint', () => {
 	describe('setSeed', () => {
 		beforeEach(() => {
 			randomEndpoint = new RandomEndpoint(MODULE_ID_RANDOM_BUFFER);
-			context = createTransientModuleEndpointContext({
-				getOffchainStore,
-			});
+			context = createTransientModuleEndpointContext({});
 		});
 
-		// should create a new seed and store it in the offchain store
 		it('should create a new seed and store it in the offchain store', async () => {
 			// Arrange
-			const address = Buffer.from(genesisDelegates.delegates[0].address, 'hex');
-			const seed = Buffer.from(genesisDelegates.delegates[1].hashOnion.hashes[1], 'hex');
+			const { address } = genesisDelegates.delegates[0];
+			const seed = genesisDelegates.delegates[1].hashOnion.hashes[1];
 			const count = 1000000;
 			const distance = 1000;
 
@@ -180,8 +174,92 @@ describe('RandomModuleEndpoint', () => {
 			await randomEndpoint.setSeed(context);
 
 			// Assert
-			const storedSeed = await getOffchainStore().getWithSchema(address, setSeedSchema);
-			expect(storedSeed).toEqual(seed);
+			const storedSeed = await context
+				.getOffchainStore(randomEndpoint['moduleID'])
+				.getWithSchema(Buffer.from(address, 'hex'), setSeedSchema);
+			expect(storedSeed).toEqual({
+				count,
+				distance,
+				hashes: expect.any(Array),
+			});
+		});
+
+		it('should throw error when address provided in params is invalid', async () => {
+			// Arrange
+			const address = ['address'];
+			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
+			const count = 1000000;
+			const distance = 1000;
+			context.params = { address, seed, count, distance };
+			// Act - Assert
+			await expect(randomEndpoint.setSeed(context)).rejects.toThrow(
+				"Lisk validator found 1 error[s]:\nProperty '.address' should be of type 'string'",
+			);
+		});
+
+		it('should throw error when seed provided in params is invalid', async () => {
+			// Arrange
+			const { address } = genesisDelegates.delegates[0];
+			const seed = ['seed'];
+			const count = 1000000;
+			const distance = 1000;
+			context.params = { address, seed, count, distance };
+			// Act - Assert
+			await expect(randomEndpoint.setSeed(context)).rejects.toThrow(
+				"Lisk validator found 1 error[s]:\nProperty '.seed' should be of type 'string'",
+			);
+		});
+
+		it('should throw error when count provided in params is invalid', async () => {
+			// Arrange
+			const { address } = genesisDelegates.delegates[0];
+			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
+			const count = 'count';
+			const distance = 1000;
+			context.params = { address, seed, count, distance };
+			// Act - Assert
+			await expect(randomEndpoint.setSeed(context)).rejects.toThrow(
+				"Lisk validator found 1 error[s]:\nProperty '.count' should be of type 'integer'",
+			);
+		});
+
+		it('should throw error when distance provided in params is invalid', async () => {
+			// Arrange
+			const { address } = genesisDelegates.delegates[0];
+			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
+			const count = 1000000;
+			const distance = 'distance';
+			context.params = { address, seed, count, distance };
+			// Act - Assert
+			await expect(randomEndpoint.setSeed(context)).rejects.toThrow(
+				"Lisk validator found 1 error[s]:\nProperty '.distance' should be of type 'integer'",
+			);
+		});
+
+		it('should throw error when count is less than 1', async () => {
+			// Arrange
+			const { address } = genesisDelegates.delegates[0];
+			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
+			const count = 0;
+			const distance = 1000;
+			context.params = { address, seed, count, distance };
+			// Act - Assert
+			await expect(randomEndpoint.setSeed(context)).rejects.toThrow(
+				'Lisk validator found 1 error[s]:\nmust be >= 1',
+			);
+		});
+
+		it('should throw error when distance is less than 1', async () => {
+			// Arrange
+			const { address } = genesisDelegates.delegates[0];
+			const seed = genesisDelegates.delegates[0].hashOnion.hashes[1];
+			const count = 1000000;
+			const distance = 0;
+			context.params = { address, seed, count, distance };
+			// Act - Assert
+			await expect(randomEndpoint.setSeed(context)).rejects.toThrow(
+				'Lisk validator found 1 error[s]:\nmust be >= 1',
+			);
 		});
 	});
 });
