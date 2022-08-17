@@ -146,7 +146,6 @@ export class Engine {
 			genesisConfig: {
 				...this._config.genesis,
 				modules: {},
-				baseFees: [],
 			},
 			bft: this._bftModule,
 		});
@@ -163,7 +162,6 @@ export class Engine {
 			network: this._network,
 			genesisConfig: {
 				...this._config.genesis,
-				baseFees: [],
 				modules: {},
 			},
 		});

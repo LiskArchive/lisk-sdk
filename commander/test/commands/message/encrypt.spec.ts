@@ -49,7 +49,7 @@ describe('message:encrypt', () => {
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
 		jest.spyOn(inquirer, 'prompt').mockResolvedValue({ passphrase: defaultInputs });
 		jest.spyOn(readerUtils, 'readFileSource').mockResolvedValue(message);
-		jest.spyOn(cryptography.encrypt, 'encryptMessageWithPassphrase').mockReturnValue({
+		jest.spyOn(cryptography.encrypt, 'encryptMessageWithPrivateKey').mockReturnValue({
 			encryptedMessage: defaultEncryptedMessage.message,
 			nonce: defaultEncryptedMessage.nonce,
 		});

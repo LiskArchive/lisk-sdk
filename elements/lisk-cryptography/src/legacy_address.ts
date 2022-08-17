@@ -13,7 +13,7 @@
  *
  */
 
-import { getKeys } from './ed';
+import { getKeys } from './legacy';
 import { getPublicKey } from './nacl';
 import { hash } from './utils';
 

@@ -14,7 +14,7 @@
 
 import { Block, Chain, DataAccess, Transaction } from '@liskhq/lisk-chain';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
-import { ed } from '@liskhq/lisk-cryptography';
+import { legacy } from '@liskhq/lisk-cryptography';
 import { nodeUtils } from '../../../../utils';
 import * as testing from '../../../../../src/testing';
 import {
@@ -148,7 +148,7 @@ describe('Process block', () => {
 				const passphrase = await getPassphraseFromDefaultConfig(
 					invalidBlock.header.generatorAddress,
 				);
-				const { privateKey } = ed.getKeys(passphrase);
+				const { privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
 				invalidBlock.header.sign(processEnv.getNetworkId(), privateKey);
 				await expect(processEnv.process(invalidBlock)).rejects.toThrow(
 					'Failed to verify transaction',
@@ -199,7 +199,7 @@ describe('Process block', () => {
 				newBlock = await processEnv.createBlock();
 				(newBlock.header as any).height = 99;
 				const passphrase = await getPassphraseFromDefaultConfig(newBlock.header.generatorAddress);
-				const { privateKey } = ed.getKeys(passphrase);
+				const { privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
 				newBlock.header.sign(processEnv.getNetworkId(), privateKey);
 			});
 
@@ -295,7 +295,7 @@ describe('Process block', () => {
 				const passphrase = await getPassphraseFromDefaultConfig(
 					invalidBlock.header.generatorAddress,
 				);
-				const { privateKey } = ed.getKeys(passphrase);
+				const { privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
 				invalidBlock.header.sign(processEnv.getNetworkId(), privateKey);
 				try {
 					await processEnv.process(invalidBlock);

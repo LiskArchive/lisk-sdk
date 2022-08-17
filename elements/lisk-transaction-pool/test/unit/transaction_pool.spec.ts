@@ -27,13 +27,6 @@ describe('TransactionPool class', () => {
 		transactionPool = new TransactionPool({
 			applyTransactions: jest.fn(),
 			transactionReorganizationInterval: 1,
-			baseFees: [
-				{
-					commandID: getIDAsKeyForStore(0),
-					baseFee: BigInt(1),
-					moduleID: getIDAsKeyForStore(3),
-				},
-			],
 			minFeePerByte: 1000,
 			maxPayloadLength: 15360,
 		});
@@ -60,13 +53,6 @@ describe('TransactionPool class', () => {
 					minReplacementFeeDifference: BigInt(100),
 					minEntranceFeePriority: BigInt(10),
 					transactionExpiryTime: 60 * 60 * 1000, // 1 hours in ms
-					baseFees: [
-						{
-							commandID: getIDAsKeyForStore(0),
-							baseFee: BigInt(1),
-							moduleID: getIDAsKeyForStore(3),
-						},
-					],
 					minFeePerByte: 1000,
 					maxPayloadLength: 15360,
 				});
@@ -365,13 +351,6 @@ describe('TransactionPool class', () => {
 			transactionPool = new TransactionPool({
 				applyTransactions: jest.fn(),
 				minEntranceFeePriority: BigInt(10),
-				baseFees: [
-					{
-						commandID: getIDAsKeyForStore(0),
-						baseFee: BigInt(1),
-						moduleID: getIDAsKeyForStore(3),
-					},
-				],
 				minFeePerByte: 1000,
 				maxPayloadLength: 15360,
 			});
@@ -401,13 +380,6 @@ describe('TransactionPool class', () => {
 				applyTransactions: jest.fn(),
 				minEntranceFeePriority: BigInt(10),
 				maxTransactions: MAX_TRANSACTIONS,
-				baseFees: [
-					{
-						commandID: getIDAsKeyForStore(0),
-						baseFee: BigInt(1),
-						moduleID: getIDAsKeyForStore(3),
-					},
-				],
 				minFeePerByte: 1000,
 				maxPayloadLength: 15360,
 			});
@@ -466,13 +438,6 @@ describe('TransactionPool class', () => {
 				applyTransactions: jest.fn(),
 				minEntranceFeePriority: BigInt(10),
 				maxTransactions: MAX_TRANSACTIONS,
-				baseFees: [
-					{
-						commandID: getIDAsKeyForStore(0),
-						baseFee: BigInt(1),
-						moduleID: getIDAsKeyForStore(3),
-					},
-				],
 				minFeePerByte: 1000,
 				maxPayloadLength: 15360,
 			});
@@ -546,13 +511,6 @@ describe('TransactionPool class', () => {
 				applyTransactions: jest.fn(),
 				minEntranceFeePriority: BigInt(10),
 				maxTransactions: MAX_TRANSACTIONS,
-				baseFees: [
-					{
-						commandID: getIDAsKeyForStore(0),
-						baseFee: BigInt(1),
-						moduleID: getIDAsKeyForStore(3),
-					},
-				],
 				minFeePerByte: 1000,
 				maxPayloadLength: 15360,
 			});
@@ -605,13 +563,6 @@ describe('TransactionPool class', () => {
 				applyTransactions: jest.fn(),
 				minEntranceFeePriority: BigInt(10),
 				maxTransactions: MAX_TRANSACTIONS,
-				baseFees: [
-					{
-						commandID: getIDAsKeyForStore(0),
-						baseFee: BigInt(1),
-						moduleID: getIDAsKeyForStore(3),
-					},
-				],
 				minFeePerByte: 1000,
 				maxPayloadLength: 15360,
 			});
@@ -792,13 +743,6 @@ describe('TransactionPool class', () => {
 				applyTransactions: jest.fn().mockResolvedValue([{ status: Status.OK, errors: [] }]),
 				transactionReorganizationInterval: 1,
 				maxTransactions: 2,
-				baseFees: [
-					{
-						commandID: getIDAsKeyForStore(0),
-						baseFee: BigInt(1),
-						moduleID: getIDAsKeyForStore(3),
-					},
-				],
 				minFeePerByte: 1000,
 				maxPayloadLength: 15360,
 			});
@@ -883,13 +827,6 @@ describe('TransactionPool class', () => {
 				applyTransactions: jest.fn().mockResolvedValue([{ status: Status.OK, errors: [] }]),
 				transactionReorganizationInterval: 1,
 				maxTransactions: 2,
-				baseFees: [
-					{
-						commandID: getIDAsKeyForStore(0),
-						baseFee: BigInt(1),
-						moduleID: getIDAsKeyForStore(3),
-					},
-				],
 				minFeePerByte: 1000,
 				maxPayloadLength: 15360,
 			});
@@ -981,13 +918,6 @@ describe('TransactionPool class', () => {
 			transactionPool = new TransactionPool({
 				applyTransactions: jest.fn(),
 				transactionReorganizationInterval: 1,
-				baseFees: [
-					{
-						commandID: getIDAsKeyForStore(0),
-						baseFee: BigInt(1),
-						moduleID: getIDAsKeyForStore(3),
-					},
-				],
 				minFeePerByte: 1000,
 				maxPayloadLength: 15360,
 			});

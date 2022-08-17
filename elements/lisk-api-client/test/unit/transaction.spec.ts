@@ -14,7 +14,7 @@
  */
 
 import { when } from 'jest-when';
-import { utils, address } from '@liskhq/lisk-cryptography';
+import { utils, legacy } from '@liskhq/lisk-cryptography';
 import { Transaction } from '../../src/transaction';
 import { metadata, nodeInfo, schema, tx } from '../utils/transaction';
 
@@ -25,8 +25,14 @@ describe('transaction', () => {
 		'trim elegant oven term access apple obtain error grain excite lawn neck',
 		'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb',
 	];
+	const privateKeys = passphrases.map(p =>
+		legacy.getPrivateAndPublicKeyFromPassphrase(p).privateKey.toString('hex'),
+	);
 	const passphrase1 = 'trim elegant oven term access apple obtain error grain excite lawn neck';
-	const { publicKey: publicKey1 } = address.getAddressAndPublicKeyFromPassphrase(passphrase1);
+	const privateKey1 = legacy
+		.getPrivateAndPublicKeyFromPassphrase(passphrase1)
+		.privateKey.toString('hex');
+	const { publicKey: publicKey1 } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase1);
 	const publicKey2 = Buffer.from(
 		'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
 		'hex',
@@ -143,7 +149,7 @@ describe('transaction', () => {
 		describe('create', () => {
 			describe('when called with a valid transaction', () => {
 				it('should return created tx', async () => {
-					const returnedTx = await transaction.create(validTransaction, passphrase1);
+					const returnedTx = await transaction.create(validTransaction, privateKey1);
 					expect(returnedTx.signatures).toHaveLength(1);
 					expect(returnedTx.signatures).toMatchSnapshot();
 				});
@@ -152,7 +158,7 @@ describe('transaction', () => {
 			describe('when called without module id and module name in input', () => {
 				it('should throw error', async () => {
 					await expect(
-						transaction.create({ ...validTransaction, moduleID: undefined }, passphrase1),
+						transaction.create({ ...validTransaction, moduleID: undefined }, privateKey1),
 					).rejects.toThrow('Missing moduleID and moduleName');
 				});
 			});
@@ -160,7 +166,7 @@ describe('transaction', () => {
 			describe('when called without asset id and asset name in input', () => {
 				it('should throw error', async () => {
 					await expect(
-						transaction.create({ ...validTransaction, commandID: undefined }, passphrase1),
+						transaction.create({ ...validTransaction, commandID: undefined }, privateKey1),
 					).rejects.toThrow('Missing commandID and commandName');
 				});
 			});
@@ -170,7 +176,7 @@ describe('transaction', () => {
 					await expect(
 						transaction.create(
 							{ ...validTransaction, moduleID: undefined, moduleName: 'newModule' },
-							passphrase1,
+							privateKey1,
 						),
 					).rejects.toThrow('Module corresponding to name newModule not registered.');
 				});
@@ -181,7 +187,7 @@ describe('transaction', () => {
 					await expect(
 						transaction.create(
 							{ ...validTransaction, commandID: undefined, commandName: 'newAsset' },
-							passphrase1,
+							privateKey1,
 						),
 					).rejects.toThrow('Command corresponding to name newAsset not registered.');
 				});
@@ -193,7 +199,7 @@ describe('transaction', () => {
 						.calledWith('auth_getAuthAccount', expect.anything())
 						.mockRejectedValue(new Error('endpoint does not exist') as never);
 					await expect(
-						transaction.create({ ...validTransaction, nonce: undefined }, passphrase1),
+						transaction.create({ ...validTransaction, nonce: undefined }, privateKey1),
 					).rejects.toThrow('Auth module is not registered or does not have "getAuthAccount"');
 				});
 			});
@@ -201,7 +207,7 @@ describe('transaction', () => {
 			describe('when called with negative nonce in input', () => {
 				it('should throw error', async () => {
 					await expect(
-						transaction.create({ ...validTransaction, nonce: BigInt(-2452) }, passphrase1),
+						transaction.create({ ...validTransaction, nonce: BigInt(-2452) }, privateKey1),
 					).rejects.toThrow('Nonce must be greater or equal to zero');
 				});
 			});
@@ -210,7 +216,7 @@ describe('transaction', () => {
 				it('should return created tx', async () => {
 					const returnedTx = await transaction.create(
 						{ ...validTransaction, nonce: BigInt(0) },
-						passphrase1,
+						privateKey1,
 					);
 					expect(returnedTx.signatures).toHaveLength(1);
 					expect(returnedTx.signatures).toMatchSnapshot();
@@ -221,7 +227,7 @@ describe('transaction', () => {
 				it('should return created tx', async () => {
 					const returnedTx = await transaction.create(
 						{ ...validTransaction, senderPublicKey: undefined },
-						passphrase1,
+						privateKey1,
 					);
 					expect(returnedTx.signatures).toHaveLength(1);
 					expect(returnedTx.signatures).toMatchSnapshot();
@@ -239,7 +245,7 @@ describe('transaction', () => {
 					when(channelMock.invoke)
 						.calledWith('auth_getAuthAccount', expect.anything())
 						.mockResolvedValue(multisigAccount as never);
-					const returnedTx = await transaction.create(validTransaction, passphrase1);
+					const returnedTx = await transaction.create(validTransaction, privateKey1);
 					expect(returnedTx.signatures).toHaveLength(2);
 					expect(returnedTx.signatures).toMatchSnapshot();
 				});
@@ -254,7 +260,7 @@ describe('transaction', () => {
 							optionalKeys: [publicKey2].map(k => k.toString('hex')),
 						},
 					};
-					const returnedTx = await transaction.create(validTransaction, passphrase1, options);
+					const returnedTx = await transaction.create(validTransaction, privateKey1, options);
 					expect(returnedTx.signatures).toHaveLength(1);
 					expect(returnedTx.signatures).toMatchSnapshot();
 				});
@@ -264,7 +270,7 @@ describe('transaction', () => {
 		describe('sign', () => {
 			describe('when called with a valid transation', () => {
 				it('should return some signed transaction', () => {
-					const returnedTx = transaction.sign(validTransaction, passphrases);
+					const returnedTx = transaction.sign(validTransaction, privateKeys);
 					expect(returnedTx).toBeDefined();
 				});
 			});
@@ -280,7 +286,7 @@ describe('transaction', () => {
 					when(channelMock.invoke)
 						.calledWith('auth_getAuthAccount', expect.anything())
 						.mockResolvedValue(multisigAccount as never);
-					const returnedTx = await transaction.sign(validTransaction, passphrases);
+					const returnedTx = await transaction.sign(validTransaction, privateKeys);
 					expect(returnedTx.signatures).toHaveLength(2);
 					expect(returnedTx.signatures).toMatchSnapshot();
 				});
@@ -295,7 +301,7 @@ describe('transaction', () => {
 							optionalKeys: [publicKey2].map(k => k.toString('hex')),
 						},
 					};
-					const returnedTx = await transaction.sign(validTransaction, passphrases, options);
+					const returnedTx = await transaction.sign(validTransaction, privateKeys, options);
 					expect(returnedTx.signatures).toHaveLength(2);
 					expect(returnedTx.signatures).toMatchSnapshot();
 				});

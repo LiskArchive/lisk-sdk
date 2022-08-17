@@ -23,7 +23,7 @@ import {
 	EVENT_KEY_LENGTH,
 } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { encrypt, bls, ed, address as cryptoAddress } from '@liskhq/lisk-cryptography';
+import { encrypt, bls, legacy, address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { Database, Batch, SparseMerkleTree } from '@liskhq/lisk-db';
 import { TransactionPool, events } from '@liskhq/lisk-transaction-pool';
 import { MerkleTree } from '@liskhq/lisk-tree';
@@ -115,10 +115,6 @@ export class Generator {
 		this._pool = new TransactionPool({
 			maxPayloadLength: args.genesisConfig.maxTransactionsSize,
 			minFeePerByte: args.genesisConfig.minFeePerByte,
-			baseFees: args.genesisConfig.baseFees.map(fees => ({
-				...fees,
-				baseFee: BigInt(fees.baseFee),
-			})),
 			applyTransactions: async (transactions: Transaction[]) =>
 				this._verifyTransaction(transactions),
 		});
@@ -350,7 +346,7 @@ export class Generator {
 				throw new Error(decryptionError);
 			}
 
-			const keypair = ed.getPrivateAndPublicKeyFromPassphrase(passphrase);
+			const keypair = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
 			const delegateAddress = cryptoAddress.getAddressFromPublicKey(keypair.publicKey);
 			const blsSK = bls.generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
 

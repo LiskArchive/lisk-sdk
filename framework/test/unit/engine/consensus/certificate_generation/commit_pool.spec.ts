@@ -807,7 +807,7 @@ describe('CommitPool', () => {
 			const encodedCertificate = codec.encode(certificateSchema, certificate);
 
 			signatures = privateKeys.map(privateKey =>
-				bls.signBLS(MESSAGE_TAG_CERTIFICATE, networkIdentifier, encodedCertificate, privateKey),
+				bls.signData(MESSAGE_TAG_CERTIFICATE, networkIdentifier, encodedCertificate, privateKey),
 			);
 
 			pubKeySignaturePairs = Array.from({ length: 103 }, (_, i) => ({

@@ -18,7 +18,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
 import { Block, Chain, DataAccess, BlockHeader, Transaction, StateStore } from '@liskhq/lisk-chain';
-import { utils, ed } from '@liskhq/lisk-cryptography';
+import { utils, legacy } from '@liskhq/lisk-cryptography';
 import { Database, StateDB } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
 import { codec } from '@liskhq/lisk-codec';
@@ -116,7 +116,7 @@ const createProcessableBlock = async (
 	for (const tx of transactions) {
 		await engine['_generator']['_pool'].add(tx);
 	}
-	const { privateKey } = ed.getKeys(passphrase);
+	const { privateKey } = legacy.getKeys(passphrase);
 	const block = await engine.generateBlock({
 		generatorAddress: validator,
 		height: previousBlockHeader.height + 1,

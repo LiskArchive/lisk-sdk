@@ -15,18 +15,14 @@
 import {
 	getAddressFromPublicKey,
 	getLisk32AddressFromPublicKey,
-	getAddressAndPublicKeyFromPassphrase,
-	getAddressFromPassphrase,
 	getAddressFromPrivateKey,
 	validateLisk32Address,
 	getAddressFromLisk32Address,
 	getLisk32AddressFromAddress,
-	getLisk32AddressFromPassphrase,
 } from '../src/address';
 import * as utils from '../src/utils';
 
 describe('address', () => {
-	const defaultPassphrase = 'secret';
 	const defaultPassphraseHash = '2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b';
 	const defaultPrivateKey = Buffer.from(
 		'2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
@@ -38,29 +34,8 @@ describe('address', () => {
 	);
 	const defaultAddress = Buffer.from('2bb80d537b1da3e38bd30361aa855686bde0eacd', 'hex');
 
-	const defaultAddressAndPublicKey = {
-		publicKey: defaultPublicKey,
-		address: defaultAddress,
-	};
-
 	beforeEach(() => {
-		jest.spyOn(utils, 'bufferToHex');
-
 		jest.spyOn(utils, 'hash').mockReturnValue(Buffer.from(defaultPassphraseHash, 'hex'));
-	});
-
-	describe('#getAddressAndPublicKeyFromPassphrase', () => {
-		it('should create correct address and publicKey', () => {
-			expect(getAddressAndPublicKeyFromPassphrase(defaultPassphrase)).toEqual(
-				defaultAddressAndPublicKey,
-			);
-		});
-	});
-
-	describe('#getAddressFromPassphrase', () => {
-		it('should create correct address', () => {
-			expect(getAddressFromPassphrase(defaultPassphrase)).toEqual(defaultAddress);
-		});
 	});
 
 	describe('#getAddressFromPrivateKey', () => {
@@ -91,16 +66,6 @@ describe('address', () => {
 			const address = getLisk32AddressFromPublicKey(publicKey, 'lsk');
 
 			expect(address).toBe(expectedLisk32Address);
-		});
-	});
-
-	describe('#getLisk32AddressFromPassphrase', () => {
-		it('should generate valid lisk32 address from passphrase', () => {
-			const passphrase =
-				'garden mass universe joke disorder fish reveal state course lottery near virus';
-			const address = getLisk32AddressFromPassphrase(passphrase);
-
-			expect(validateLisk32Address(address)).toBeTrue();
 		});
 	});
 

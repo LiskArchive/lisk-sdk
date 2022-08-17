@@ -26,11 +26,6 @@ const debug = createDebug('lisk:transaction_pool');
 
 type ApplyFunction = (transactions: ReadonlyArray<Transaction>) => Promise<void>;
 
-interface BaseFee {
-	readonly moduleID: Buffer;
-	readonly commandID: Buffer;
-	readonly baseFee: bigint;
-}
 export interface TransactionPoolConfig {
 	readonly maxTransactions?: number;
 	readonly maxTransactionsPerAccount?: number;
@@ -40,7 +35,6 @@ export interface TransactionPoolConfig {
 	readonly minReplacementFeeDifference?: bigint;
 	readonly minFeePerByte: number;
 	readonly maxPayloadLength: number;
-	readonly baseFees: BaseFee[];
 	applyTransactions(transactions: ReadonlyArray<Transaction>): Promise<void>;
 }
 
@@ -82,7 +76,6 @@ export class TransactionPool {
 	private readonly _minReplacementFeeDifference: bigint;
 	private readonly _minFeePerByte: number;
 	private readonly _maxPayloadLength: number;
-	private readonly _baseFees: BaseFee[];
 	private readonly _reorganizeJob: Job<void>;
 	private readonly _feePriorityQueue: dataStructures.MinHeap<Buffer, bigint>;
 	private readonly _expireJob: Job<void>;
@@ -104,7 +97,6 @@ export class TransactionPool {
 			config.transactionReorganizationInterval ?? DEFAULT_REORGANIZE_TIME;
 		this._minReplacementFeeDifference =
 			config.minReplacementFeeDifference ?? DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE;
-		this._baseFees = config.baseFees;
 		this._minFeePerByte = config.minFeePerByte;
 		this._maxPayloadLength = config.maxPayloadLength;
 		this._reorganizeJob = new Job(
@@ -331,14 +323,7 @@ export class TransactionPool {
 	}
 
 	private _calculateMinFee(trx: Transaction): bigint {
-		const foundBaseFee = this._baseFees.find(
-			f => f.moduleID.equals(trx.moduleID) && f.commandID.equals(trx.commandID),
-		);
-
-		return (
-			BigInt(foundBaseFee?.baseFee ?? BigInt(0)) +
-			BigInt(this._minFeePerByte * trx.getBytes().length)
-		);
+		return BigInt(this._minFeePerByte * trx.getBytes().length);
 	}
 
 	private _getStatus(errorResponse: TransactionFailedResponse): TransactionStatus {

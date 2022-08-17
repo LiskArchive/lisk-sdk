@@ -55,7 +55,7 @@ export class Endpoint extends BasePluginEndpoint {
 				'utf-8',
 			);
 
-			const { publicKey } = cryptography.address.getAddressAndPublicKeyFromPassphrase(passphrase);
+			const { publicKey } = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
 
 			this._state.publicKey = enable ? publicKey : undefined;
 			this._state.passphrase = enable ? passphrase : undefined;

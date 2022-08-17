@@ -24,7 +24,7 @@ import { ReportMisbehaviorPluginConfig, State } from './types';
 // eslint-disable-next-line prefer-destructuring
 const validator: liskValidator.LiskValidator = liskValidator.validator;
 
-const { encrypt, address } = cryptography;
+const { encrypt, legacy } = cryptography;
 
 export class Endpoint extends BasePluginEndpoint {
 	private _state!: State;
@@ -52,7 +52,7 @@ export class Endpoint extends BasePluginEndpoint {
 				'utf-8',
 			);
 
-			const { publicKey } = address.getAddressAndPublicKeyFromPassphrase(passphrase);
+			const { publicKey } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
 
 			this._state.publicKey = enable ? publicKey : undefined;
 			this._state.passphrase = enable ? passphrase : undefined;

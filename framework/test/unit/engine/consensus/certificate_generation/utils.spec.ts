@@ -78,7 +78,7 @@ describe('utils', () => {
 				validatorsHash: Buffer.alloc(0),
 			};
 			const encodedCertificate = codec.encode(certificateSchema, certificate);
-			signature = bls.signBLS(
+			signature = bls.signData(
 				MESSAGE_TAG_CERTIFICATE,
 				networkIdentifier,
 				encodedCertificate,
@@ -111,7 +111,7 @@ describe('utils', () => {
 
 			const encodedCertificate = codec.encode(certificateSchema, certificate);
 
-			signature = bls.signBLS(
+			signature = bls.signData(
 				MESSAGE_TAG_CERTIFICATE,
 				networkIdentifier,
 				encodedCertificate,
@@ -192,7 +192,7 @@ describe('utils', () => {
 			const encodedCertificate = codec.encode(certificateSchema, certificate);
 
 			signatures = privateKeys.map(privateKey =>
-				bls.signBLS(MESSAGE_TAG_CERTIFICATE, networkIdentifier, encodedCertificate, privateKey),
+				bls.signData(MESSAGE_TAG_CERTIFICATE, networkIdentifier, encodedCertificate, privateKey),
 			);
 
 			pubKeySignaturePairs = Array.from({ length: 103 }, (_, i) => ({

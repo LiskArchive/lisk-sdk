@@ -17,7 +17,6 @@
 		"communityIdentifier": "sdk",
 		"maxTransactionsSize": 15360,
 		"minFeePerByte": 1000,
-		"baseFees": [],
 		"modules": {}
 	},
 	"generation": {

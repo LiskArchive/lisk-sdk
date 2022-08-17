@@ -12,8 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BlockAssets } from '../../state_machine';
-import { APIContext, ImmutableAPIContext } from '../../state_machine/types';
+import { BlockAssets, APIContext, ImmutableAPIContext } from '../../state_machine';
 
 export interface ModuleConfig {
 	tokenID: string;
@@ -36,6 +35,11 @@ export interface RandomAPI {
 
 export interface BFTAPI {
 	currentHeaderImpliesMaximalPrevotes(apiContext: ImmutableAPIContext): Promise<boolean>;
+}
+
+export interface RewardMintedData {
+	amount: bigint;
+	reduction: number;
 }
 
 export interface DefaultReward {

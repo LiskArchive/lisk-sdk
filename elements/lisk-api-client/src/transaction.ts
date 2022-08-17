@@ -17,7 +17,7 @@ import {
 	signMultiSignatureTransaction,
 	computeMinFee,
 } from '@liskhq/lisk-transactions';
-import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
+import { address as cryptoAddress, ed } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import {
@@ -38,15 +38,8 @@ import {
 	DecodedTransactionJSON,
 } from './types';
 
-interface BaseFee {
-	readonly moduleID: Buffer;
-	readonly commandID: Buffer;
-	readonly baseFee: string;
-}
-
 interface Options {
 	readonly minFeePerByte: number;
-	readonly baseFees: BaseFee[];
 	readonly numberOfSignatures: number;
 }
 
@@ -87,7 +80,7 @@ export class Transaction {
 			params: T;
 			signatures?: string[];
 		},
-		passphrase: string,
+		privateKeyHex: string,
 		options?: {
 			includeSenderSignature?: boolean;
 			multisignatureKeys?: {
@@ -98,7 +91,9 @@ export class Transaction {
 	): Promise<DecodedTransactionJSON<T>> {
 		const txInput = input;
 		const networkIdentifier = Buffer.from(this._nodeInfo.networkIdentifier, 'hex');
-		const { publicKey, address } = cryptoAddress.getAddressAndPublicKeyFromPassphrase(passphrase);
+		const privateKey = Buffer.from(privateKeyHex, 'hex');
+		const publicKey = ed.getPublicKeyFromPrivateKey(privateKey);
+		const address = cryptoAddress.getAddressFromPublicKey(publicKey);
 		let authAccount: AuthAccount | undefined;
 		try {
 			authAccount = await this._channel.invoke<AuthAccount>('auth_getAuthAccount', {
@@ -165,7 +160,7 @@ export class Transaction {
 			const signedTx = signMultiSignatureTransaction(
 				rawTx,
 				networkIdentifier,
-				passphrase,
+				privateKey,
 				{
 					mandatoryKeys: authAccount.mandatoryKeys.map(k => Buffer.from(k, 'hex')),
 					optionalKeys: authAccount.optionalKeys.map(k => Buffer.from(k, 'hex')),
@@ -179,7 +174,7 @@ export class Transaction {
 			const signedTx = signMultiSignatureTransaction(
 				rawTx,
 				networkIdentifier,
-				passphrase,
+				privateKey,
 				{
 					mandatoryKeys: authAccount.mandatoryKeys.map(k => Buffer.from(k, 'hex')),
 					optionalKeys: authAccount.optionalKeys.map(k => Buffer.from(k, 'hex')),
@@ -189,7 +184,7 @@ export class Transaction {
 			);
 			return this.toJSON(signedTx) as DecodedTransactionJSON<T>;
 		}
-		const signedTx = signTransaction(rawTx, networkIdentifier, passphrase, commandSchema);
+		const signedTx = signTransaction(rawTx, networkIdentifier, privateKey, commandSchema);
 		return this.toJSON(signedTx) as DecodedTransactionJSON<T>;
 	}
 
@@ -213,7 +208,7 @@ export class Transaction {
 
 	public async sign(
 		transaction: Record<string, unknown>,
-		passphrases: string[],
+		privateKeyHexes: string[],
 		options?: {
 			includeSenderSignature?: boolean;
 			multisignatureKeys?: {
@@ -234,11 +229,12 @@ export class Transaction {
 			address: address.toString('hex'),
 		});
 		if (authAccount.numberOfSignatures > 0) {
-			for (const passphrase of passphrases) {
+			for (const privateKeyHex of privateKeyHexes) {
+				const privateKey = Buffer.from(privateKeyHex, 'hex');
 				signMultiSignatureTransaction(
 					decodedTx,
 					networkIdentifier,
-					passphrase,
+					privateKey,
 					{
 						mandatoryKeys: authAccount.mandatoryKeys.map(k => Buffer.from(k, 'hex')),
 						optionalKeys: authAccount.optionalKeys.map(k => Buffer.from(k, 'hex')),
@@ -250,11 +246,12 @@ export class Transaction {
 			return this.toJSON(decodedTx);
 		}
 		if (options?.multisignatureKeys && options?.includeSenderSignature) {
-			for (const passphrase of passphrases) {
+			for (const privateKeyHex of privateKeyHexes) {
+				const privateKey = Buffer.from(privateKeyHex, 'hex');
 				signMultiSignatureTransaction(
 					decodedTx,
 					networkIdentifier,
-					passphrase,
+					privateKey,
 					{
 						mandatoryKeys: options.multisignatureKeys.mandatoryKeys.map(k => Buffer.from(k, 'hex')),
 						optionalKeys: options.multisignatureKeys.optionalKeys.map(k => Buffer.from(k, 'hex')),
@@ -268,7 +265,7 @@ export class Transaction {
 		const signedTx = signTransaction(
 			decodedTx,
 			networkIdentifier,
-			passphrases[0],
+			Buffer.from(privateKeyHexes[0], 'hex'),
 			commandSchema,
 		) as DecodedTransaction;
 		return this.toJSON(signedTx);
@@ -306,11 +303,6 @@ export class Transaction {
 		const numberOfSignatures = decodedTx.signatures ? decodedTx.signatures.length : 1;
 		const options: Options = {
 			minFeePerByte: this._nodeInfo.genesisConfig.minFeePerByte,
-			baseFees: this._nodeInfo.genesisConfig.baseFees.map(fee => ({
-				baseFee: fee.baseFee,
-				commandID: Buffer.from(fee.commandID, 'hex'),
-				moduleID: Buffer.from(fee.moduleID, 'hex'),
-			})),
 			numberOfSignatures,
 		};
 

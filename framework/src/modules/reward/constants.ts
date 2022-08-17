@@ -19,7 +19,13 @@ export const TOKEN_ID_LSK_MAINCHAIN = {
 	chainID: utils.intToBuffer(0, 4),
 	localID: utils.intToBuffer(0, 4),
 };
+
+export const REWARD_NO_REDUCTION = 0;
+export const REWARD_REDUCTION_SEED_REVEAL = 1;
+export const REWARD_REDUCTION_MAX_PREVOTES = 2;
 export const REWARD_REDUCTION_FACTOR_BFT = 4;
+
+export const TYPE_ID_REWARD_MINTED = Buffer.from([0, 0, 0, 1]);
 
 export const defaultConfig = {
 	tokenID: '0000000000000000',

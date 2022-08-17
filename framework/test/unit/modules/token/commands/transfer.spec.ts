@@ -14,7 +14,7 @@
 
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { address, utils } from '@liskhq/lisk-cryptography';
+import { address, legacy, utils } from '@liskhq/lisk-cryptography';
 import { VerifyStatus } from '../../../../../src';
 import { TokenAPI } from '../../../../../src/modules/token/api';
 import { TransferCommand } from '../../../../../src/modules/token/commands/transfer';
@@ -167,8 +167,8 @@ describe('Transfer command', () => {
 
 	describe('execute', () => {
 		let stateStore: PrefixedStateReadWriter;
-		const sender = address.getAddressAndPublicKeyFromPassphrase('sender');
-		const recipient = address.getAddressAndPublicKeyFromPassphrase('recipient');
+		const sender = legacy.getPrivateAndPublicKeyFromPassphrase('sender');
+		const recipient = legacy.getPrivateAndPublicKeyFromPassphrase('recipient');
 		const thirdTokenID = Buffer.from([1, 0, 0, 0, 4, 0, 0, 0]);
 		const tokenID = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
 		const senderBalance = BigInt(200000000);
@@ -179,22 +179,22 @@ describe('Transfer command', () => {
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			const userStore = stateStore.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
 			await userStore.setWithSchema(
-				getUserStoreKey(sender.address, localTokenID),
+				getUserStoreKey(address.getAddressFromPublicKey(sender.publicKey), localTokenID),
 				{ availableBalance: senderBalance, lockedBalances: [] },
 				userStoreSchema,
 			);
 			await userStore.setWithSchema(
-				getUserStoreKey(sender.address, secondTokenID),
+				getUserStoreKey(address.getAddressFromPublicKey(sender.publicKey), secondTokenID),
 				{ availableBalance: senderBalance, lockedBalances: [] },
 				userStoreSchema,
 			);
 			await userStore.setWithSchema(
-				getUserStoreKey(sender.address, thirdTokenID),
+				getUserStoreKey(address.getAddressFromPublicKey(sender.publicKey), thirdTokenID),
 				{ availableBalance: senderBalance, lockedBalances: [] },
 				userStoreSchema,
 			);
 			await userStore.setWithSchema(
-				getUserStoreKey(recipient.address, localTokenID),
+				getUserStoreKey(address.getAddressFromPublicKey(recipient.publicKey), localTokenID),
 				{ availableBalance: recipientBalance, lockedBalances: [] },
 				userStoreSchema,
 			);
@@ -237,7 +237,7 @@ describe('Transfer command', () => {
 					params: codec.encode(transferParamsSchema, {
 						tokenID: thirdTokenID,
 						amount: recipientBalance + BigInt(1),
-						recipientAddress: recipient.address,
+						recipientAddress: address.getAddressFromPublicKey(recipient.publicKey),
 						data: '1'.repeat(64),
 					}),
 					signatures: [utils.getRandomBytes(64)],
@@ -250,7 +250,7 @@ describe('Transfer command', () => {
 			// Recipient should receive full amount
 			const userStore = stateStore.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
 			const result = await userStore.getWithSchema<UserStoreData>(
-				getUserStoreKey(recipient.address, thirdTokenID),
+				getUserStoreKey(address.getAddressFromPublicKey(recipient.publicKey), thirdTokenID),
 				userStoreSchema,
 			);
 			expect(result.availableBalance).toEqual(recipientBalance + BigInt(1));
@@ -401,7 +401,7 @@ describe('Transfer command', () => {
 					params: codec.encode(transferParamsSchema, {
 						tokenID,
 						amount,
-						recipientAddress: recipient.address,
+						recipientAddress: address.getAddressFromPublicKey(recipient.publicKey),
 						data: '1'.repeat(64),
 					}),
 					signatures: [utils.getRandomBytes(64)],
@@ -414,7 +414,7 @@ describe('Transfer command', () => {
 			// Recipient should get full amount
 			const userStore = stateStore.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
 			const result = await userStore.getWithSchema<UserStoreData>(
-				getUserStoreKey(recipient.address, localTokenID),
+				getUserStoreKey(address.getAddressFromPublicKey(recipient.publicKey), localTokenID),
 				userStoreSchema,
 			);
 			expect(result.availableBalance).toEqual(amount + recipientBalance);
