@@ -20,32 +20,28 @@ import {
 	BeforeSendCCMsgAPIContext,
 	RecoverCCMsgAPIContext,
 } from '../interoperability/types';
+import { NamedRegistry } from '../named_registry';
 import { TokenAPI } from './api';
 import {
 	ADDRESS_LENGTH,
 	CHAIN_ID_ALIAS_NATIVE,
 	CHAIN_ID_LENGTH,
-	STORE_PREFIX_ESCROW,
 	STORE_PREFIX_USER,
 } from './constants';
 
-import { EscrowStoreData, escrowStoreSchema, UserStoreData, userStoreSchema } from './schemas';
+import { UserStoreData, userStoreSchema } from './schemas';
+import { EscrowStore } from './stores/escrow';
+import { UserStore } from './stores/user';
 import { InteroperabilityAPI } from './types';
-import {
-	addEscrowAmount,
-	deductEscrowAmountWithTerminate,
-	getUserStoreKey,
-	splitTokenID,
-	updateAvailableBalanceWithCreate,
-} from './utils';
+import { splitTokenID } from './utils';
 
 export class TokenInteroperableAPI extends BaseInteroperableAPI {
 	private readonly _tokenAPI: TokenAPI;
 
 	private _interopAPI!: InteroperabilityAPI;
 
-	public constructor(module: string, tokenAPI: TokenAPI) {
-		super(module);
+	public constructor(stores: NamedRegistry, events: NamedRegistry, tokenAPI: TokenAPI) {
+		super(stores, events);
 		this._tokenAPI = tokenAPI;
 	}
 
@@ -62,20 +58,20 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 		const { id: ownChainID } = await this._interopAPI.getOwnChainAccount(apiContext);
 		const { messageFeeTokenID } = await this._interopAPI.getChannel(apiContext, ccm.sendingChainID);
 		const [feeTokenChainID, feeTokenLocalID] = splitTokenID(messageFeeTokenID);
+		const userStore = this.stores.get(UserStore);
 		if (!feeTokenChainID.equals(ownChainID)) {
-			await updateAvailableBalanceWithCreate(
+			await userStore.updateAvailableBalanceWithCreate(
 				apiContext,
-				this.moduleID,
 				ctx.trsSender,
 				messageFeeTokenID,
 				ccm.fee,
 			);
 			return;
 		}
-		await deductEscrowAmountWithTerminate(
+		const escrowStore = this.stores.get(EscrowStore);
+		await escrowStore.deductEscrowAmountWithTerminate(
 			apiContext,
 			this._interopAPI,
-			this.moduleID,
 			ccm.sendingChainID,
 			feeTokenLocalID,
 			ccm.fee,
@@ -85,9 +81,8 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 			apiContext,
 			messageFeeTokenID,
 		);
-		await updateAvailableBalanceWithCreate(
+		await userStore.updateAvailableBalanceWithCreate(
 			apiContext,
-			this.moduleID,
 			ctx.trsSender,
 			canonicalTokenID,
 			ccm.fee,
@@ -103,10 +98,10 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 		const { id: ownChainID } = await this._interopAPI.getOwnChainAccount(apiContext);
 		const { messageFeeTokenID } = await this._interopAPI.getChannel(apiContext, ccm.sendingChainID);
 		const [feeTokenChainID, feeTokenLocalID] = splitTokenID(messageFeeTokenID);
+		const userStore = this.stores.get(UserStore);
 		if (!feeTokenChainID.equals(ownChainID)) {
-			await updateAvailableBalanceWithCreate(
+			await userStore.updateAvailableBalanceWithCreate(
 				apiContext,
-				this.moduleID,
 				ctx.trsSender,
 				messageFeeTokenID,
 				ccm.fee,
@@ -114,10 +109,10 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 			return;
 		}
 
-		await deductEscrowAmountWithTerminate(
+		const escrowStore = this.stores.get(EscrowStore);
+		await escrowStore.deductEscrowAmountWithTerminate(
 			apiContext,
 			this._interopAPI,
-			this.moduleID,
 			ccm.sendingChainID,
 			feeTokenLocalID,
 			ccm.fee,
@@ -126,9 +121,8 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 			apiContext,
 			messageFeeTokenID,
 		);
-		await updateAvailableBalanceWithCreate(
+		await userStore.updateAvailableBalanceWithCreate(
 			apiContext,
-			this.moduleID,
 			ctx.trsSender,
 			canonicalTokenID,
 			ccm.fee,
@@ -144,22 +138,14 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 		const { id: ownChainID } = await this._interopAPI.getOwnChainAccount(apiContext);
 		const { messageFeeTokenID } = await this._interopAPI.getChannel(apiContext, ccm.sendingChainID);
 		const [feeTokenChainID, feeTokenLocalID] = splitTokenID(messageFeeTokenID);
-		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
+		const userStore = this.stores.get(UserStore);
 		let tokenID = messageFeeTokenID;
 		if (feeTokenChainID.equals(ownChainID)) {
 			tokenID = await this._tokenAPI.getCanonicalTokenID(apiContext, messageFeeTokenID);
-			await addEscrowAmount(
-				apiContext,
-				this.moduleID,
-				ccm.receivingChainID,
-				feeTokenLocalID,
-				ccm.fee,
-			);
+			const escrowStore = this.stores.get(EscrowStore);
+			await escrowStore.addAmount(apiContext, ccm.receivingChainID, feeTokenLocalID, ccm.fee);
 		}
-		const payer = await userStore.getWithSchema<UserStoreData>(
-			getUserStoreKey(ctx.feeAddress, tokenID),
-			userStoreSchema,
-		);
+		const payer = await userStore.get(ctx, userStore.getKey(ctx.feeAddress, tokenID));
 		if (payer.availableBalance < ccm.fee) {
 			throw new Error(
 				`Payer ${ctx.feeAddress.toString(
@@ -168,7 +154,7 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 			);
 		}
 		payer.availableBalance -= ccm.fee;
-		await userStore.setWithSchema(getUserStoreKey(ctx.feeAddress, tokenID), payer, userStoreSchema);
+		await userStore.set(ctx, userStore.getKey(ctx.feeAddress, tokenID), payer);
 	}
 
 	public async recover(ctx: RecoverCCMsgAPIContext): Promise<void> {
@@ -196,24 +182,21 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 				)}`,
 			);
 		}
-		const escrowStore = apiContext.getStore(this.moduleID, STORE_PREFIX_ESCROW);
+		const escrowStore = this.stores.get(EscrowStore);
 		const escrowKey = Buffer.concat([ctx.terminatedChainID, localID]);
-		const escrowData = await escrowStore.getWithSchema<EscrowStoreData>(
-			escrowKey,
-			escrowStoreSchema,
-		);
+		const escrowData = await escrowStore.get(ctx, escrowKey);
 		if (escrowData.amount < totalAmount) {
 			throw new Error(
 				`Escrow amount ${escrowData.amount.toString()} is not sufficient for ${totalAmount.toString()}`,
 			);
 		}
 		escrowData.amount -= totalAmount;
-		await escrowStore.setWithSchema(escrowKey, escrowData, escrowStoreSchema);
+		await escrowStore.set(ctx, escrowKey, escrowData);
 
 		const localTokenID = Buffer.concat([CHAIN_ID_ALIAS_NATIVE, localID]);
-		await updateAvailableBalanceWithCreate(
+		const userStore = this.stores.get(UserStore);
+		await userStore.updateAvailableBalanceWithCreate(
 			apiContext,
-			this.moduleID,
 			address,
 			localTokenID,
 			totalAmount,

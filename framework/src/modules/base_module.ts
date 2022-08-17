@@ -14,7 +14,6 @@
 /* eslint-disable class-methods-use-this */
 
 import { Schema } from '@liskhq/lisk-codec';
-import { utils } from '@liskhq/lisk-cryptography';
 import { GenesisConfig } from '../types';
 import {
 	BlockAfterExecuteContext,
@@ -29,6 +28,7 @@ import { BaseCommand } from './base_command';
 import { BaseEndpoint } from './base_endpoint';
 import { BaseAPI } from './base_api';
 import { InsertAssetContext } from '../state_machine/types';
+import { NamedRegistry } from './named_registry';
 
 export interface ModuleInitArgs {
 	genesisConfig: Omit<GenesisConfig, 'modules'>;
@@ -44,10 +44,9 @@ export interface ModuleMetadata {
 	}[];
 	events: {
 		typeID: string;
-		data: Schema;
+		data?: Schema;
 	}[];
 	commands: {
-		id: Buffer;
 		name: string;
 		params?: Schema;
 	}[];
@@ -83,8 +82,14 @@ export interface ModuleMetadataJSON {
 
 export abstract class BaseModule {
 	public commands: BaseCommand[] = [];
-	public events: string[] = [];
-	public abstract name: string;
+	public events: NamedRegistry = new NamedRegistry();
+	public stores: NamedRegistry = new NamedRegistry();
+
+	public get name(): string {
+		const name = this.constructor.name.replace('Module', '');
+		return name.charAt(0).toLowerCase() + name.substr(1);
+	}
+
 	public abstract endpoint: BaseEndpoint;
 	public abstract api: BaseAPI;
 
@@ -100,8 +105,4 @@ export abstract class BaseModule {
 	public async afterTransactionsExecute?(context: BlockAfterExecuteContext): Promise<void>;
 
 	public abstract metadata(): ModuleMetadata;
-
-	public get id(): Buffer {
-		return utils.hash(Buffer.from(this.name, 'utf-8')).slice(0, 4);
-	}
 }

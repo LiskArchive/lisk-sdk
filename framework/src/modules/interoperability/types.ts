@@ -16,8 +16,8 @@ import { Logger } from '../../logger';
 import { APIContext, EventQueue } from '../../state_machine';
 import { ImmutableAPIContext, ImmutableSubStore, SubStore } from '../../state_machine/types';
 
-export type StoreCallback = (moduleID: Buffer, storePrefix: number) => SubStore;
-export type ImmutableStoreCallback = (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
+export type StoreCallback = (moduleID: Buffer, storePrefix: Buffer) => SubStore;
+export type ImmutableStoreCallback = (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 export interface CCMsg {
 	readonly nonce: bigint;
 	readonly moduleID: Buffer;

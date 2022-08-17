@@ -15,17 +15,18 @@
 
 import { Schema } from '@liskhq/lisk-codec';
 import { CommandVerifyContext, CommandExecuteContext, VerificationResult } from '../state_machine';
+import { NamedRegistry } from './named_registry';
 
 export abstract class BaseCommand<T = unknown> {
 	public schema?: Schema;
 
-	protected moduleID: Buffer;
-	public abstract name: string;
-	public abstract id: Buffer;
-
-	public constructor(moduleID: Buffer) {
-		this.moduleID = moduleID;
+	public get name(): string {
+		const name = this.constructor.name.replace('Command', '');
+		return name.charAt(0).toLowerCase() + name.substr(1);
 	}
+
+	// eslint-disable-next-line no-useless-constructor
+	public constructor(protected stores: NamedRegistry) {}
 
 	public verify?(context: CommandVerifyContext<T>): Promise<VerificationResult>;
 

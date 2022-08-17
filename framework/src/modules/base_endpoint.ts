@@ -11,15 +11,11 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { utils } from '@liskhq/lisk-cryptography';
+import { NamedRegistry } from './named_registry';
 
 export abstract class BaseEndpoint {
 	[key: string]: unknown;
-	protected moduleID: Buffer;
-	protected moduleName: string;
-	public constructor(moduleName: string) {
-		this.moduleID = utils.hash(Buffer.from(moduleName, 'utf-8')).slice(0, 4);
-		this.moduleName = moduleName;
-	}
+
+	// eslint-disable-next-line no-useless-constructor
+	public constructor(protected stores: NamedRegistry) {}
 }

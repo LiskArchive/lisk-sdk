@@ -38,12 +38,12 @@ export interface SubStore extends ImmutableSubStore {
 }
 
 export interface ImmutableAPIContext {
-	getStore: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 }
 
 export interface APIContext {
-	getStore: (moduleID: Buffer, storePrefix: number) => SubStore;
-	eventQueue: EventQueueAdder;
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
+	eventQueue: EventQueue;
 }
 
 export enum VerifyStatus {
@@ -85,7 +85,7 @@ export interface TransactionVerifyContext {
 	logger: Logger;
 	transaction: Transaction;
 	getAPIContext: () => ImmutableAPIContext;
-	getStore: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 }
 
 export interface CommandVerifyContext<T = undefined> {
@@ -94,7 +94,7 @@ export interface CommandVerifyContext<T = undefined> {
 	transaction: Transaction; // without decoding params
 	params: T;
 	getAPIContext: () => ImmutableAPIContext;
-	getStore: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 }
 
 export interface CommandExecuteContext<T = undefined> {
@@ -110,14 +110,14 @@ export interface CommandExecuteContext<T = undefined> {
 	transaction: Transaction; // without decoding params
 	params: T;
 	getAPIContext: () => APIContext;
-	getStore: (moduleID: Buffer, storePrefix: number) => SubStore;
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 }
 
 export interface GenesisBlockExecuteContext {
 	logger: Logger;
 	eventQueue: EventQueueAdder;
 	getAPIContext: () => APIContext;
-	getStore: (moduleID: Buffer, storePrefix: number) => SubStore;
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	header: BlockHeader;
 	assets: BlockAssets;
 	setNextValidators: (
@@ -132,7 +132,7 @@ export interface TransactionExecuteContext {
 	networkIdentifier: Buffer;
 	eventQueue: EventQueueAdder;
 	getAPIContext: () => APIContext;
-	getStore: (moduleID: Buffer, storePrefix: number) => SubStore;
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	header: BlockHeader;
 	assets: BlockAssets;
 	transaction: Transaction;
@@ -146,7 +146,7 @@ export interface BlockVerifyContext {
 	logger: Logger;
 	networkIdentifier: Buffer;
 	getAPIContext: () => ImmutableAPIContext;
-	getStore: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 	header: BlockHeader;
 	assets: BlockAssets;
 }
@@ -156,7 +156,7 @@ export interface BlockExecuteContext {
 	networkIdentifier: Buffer;
 	eventQueue: EventQueue;
 	getAPIContext: () => APIContext;
-	getStore: (moduleID: Buffer, storePrefix: number) => SubStore;
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	header: BlockHeader;
 	assets: BlockAssets;
 	currentValidators: Validator[];
@@ -185,7 +185,7 @@ export interface InsertAssetContext {
 	logger: Logger;
 	networkIdentifier: Buffer;
 	getAPIContext: () => APIContext;
-	getStore: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 	header: BlockHeader;
 	assets: WritableBlockAssets;
 	getGeneratorStore: (moduleID: Buffer) => SubStore;
