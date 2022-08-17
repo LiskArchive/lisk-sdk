@@ -13,7 +13,6 @@
  *
  */
 
-import { flags as flagParser } from '@oclif/command';
 import * as inquirer from 'inquirer';
 import { flagsWithParser } from '../../utils/flags';
 import { BaseIPCClientCommand } from './base_ipc_client';
@@ -40,10 +39,6 @@ export abstract class BaseForgingCommand extends BaseIPCClientCommand {
 	static flags = {
 		...BaseIPCClientCommand.flags,
 		password: flagsWithParser.password,
-		overwrite: flagParser.boolean({
-			description: 'Overwrites the forger info',
-			default: false,
-		}),
 	};
 
 	protected forging!: boolean;
@@ -81,20 +76,15 @@ export abstract class BaseForgingCommand extends BaseIPCClientCommand {
 			this.error('APIClient is not initialized.');
 		}
 		try {
-			const result = await this._client.invoke<{ address: string; forging: boolean }>(
-				'app:updateForgingStatus',
-				{
-					address,
-					password,
-					forging: this.forging,
-					height: Number(height ?? 0),
-					maxHeightPreviouslyForged: Number(maxHeightPreviouslyForged ?? 0),
-					maxHeightPrevoted: Number(maxHeightPrevoted ?? 0),
-					overwrite: flags.overwrite,
-				},
-			);
-			this.log('Forging status:');
-			this.printJSON(result);
+			await this._client.invoke('generator_setStatus', {
+				address,
+				password,
+				enabled: this.forging,
+				height: Number(height ?? 0),
+				maxHeightPreviouslyForged: Number(maxHeightPreviouslyForged ?? 0),
+				maxHeightPrevoted: Number(maxHeightPrevoted ?? 0),
+			});
+			this.log('Status updated.');
 		} catch (error) {
 			this.error(error as Error);
 		}

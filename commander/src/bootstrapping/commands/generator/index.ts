@@ -12,7 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { ConfigCommand as ForgingConfigCommand } from './config';
-export { DisableCommand as ForgingDisableCommand } from './disable';
-export { EnableCommand as ForgingEnableCommand } from './enable';
-export { StatusCommand as ForgingStatusCommand } from './status';
+export { DisableCommand as GeneratorDisableCommand } from './disable';
+export { EnableCommand as GeneratorEnableCommand } from './enable';
+export { StatusCommand as GeneratorStatusCommand } from './status';
+export { ImportCommand as GeneratorImportCommand } from './import';
+export { ExportCommand as GeneratorExportCommand } from './export';
