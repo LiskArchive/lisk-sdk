@@ -218,10 +218,9 @@ describe('Sidechain endpoint', () => {
 		let chainAccountResults: ChainAccountJSON[];
 
 		beforeEach(async () => {
-			chainAccountResults = await sidechainInteroperabilityEndpoint.getAllChainAccounts(
-				moduleContext,
-				chainID,
-			);
+			({
+				chains: chainAccountResults,
+			} = await sidechainInteroperabilityEndpoint.getAllChainAccounts(moduleContext, chainID));
 		});
 		it('should call getInteroperabilityStore', async () => {
 			expect(sidechainInteroperabilityEndpoint['getInteroperabilityStore']).toHaveBeenCalledWith(
