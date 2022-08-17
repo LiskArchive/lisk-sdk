@@ -24,7 +24,7 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
 }));
 
-describe('passphrase:encrypt', () => {
+describe('blskey:create command', () => {
 	const defaultPassphrase =
 		'enemy pill squeeze gold spoil aisle awake thumb congress false box wagon';
 	const defaultBlsPrivateKey = cryptography.bls.generatePrivateKey(
