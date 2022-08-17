@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export interface setSeedRequest {
+export interface SetSeedRequest {
 	address: string;
 	seed?: string | undefined;
 	count?: number | undefined;
@@ -26,16 +26,20 @@ export const setSeedRequestSchema = {
 	required: ['address'],
 	properties: {
 		address: {
-			dataType: 'bytes',
+			type: 'string',
+			format: 'hex',
 		},
 		seed: {
-			dataType: 'bytes',
+			type: 'string',
+			format: 'hex',
 		},
 		count: {
-			dataType: 'uint32',
+			type: 'integer',
+			minimum: 1,
 		},
 		distance: {
-			dataType: 'uint32',
+			type: 'integer',
+			minimum: 1,
 		},
 	},
 };

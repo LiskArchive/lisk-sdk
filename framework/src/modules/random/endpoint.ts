@@ -14,14 +14,13 @@
 
 import { validator } from '@liskhq/lisk-validator';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { codec } from '@liskhq/lisk-codec';
 import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
 import { STORE_PREFIX_RANDOM, EMPTY_KEY } from './constants';
 import {
 	isSeedRevealValidRequestSchema,
 	seedRevealSchema,
-	setSeedRequest,
+	SetSeedRequest,
 	setSeedRequestSchema,
 	setSeedSchema,
 } from './schemas';
@@ -49,7 +48,7 @@ export class RandomEndpoint extends BaseEndpoint {
 	}
 
 	public async setSeed(ctx: ModuleEndpointContext): Promise<void> {
-		validator.validate<setSeedRequest>(setSeedRequestSchema, ctx.params);
+		validator.validate<SetSeedRequest>(setSeedRequestSchema, ctx.params);
 
 		const address = Buffer.from(ctx.params.address, 'hex');
 		const seed = ctx.params.seed
@@ -60,9 +59,7 @@ export class RandomEndpoint extends BaseEndpoint {
 
 		const hashes = cryptography.utils.hashOnion(seed, count, distance);
 		const hashOnion = { count, distance, hashes };
-		const message = codec.encode(setSeedSchema, hashOnion);
-
 		const randomDataStore = ctx.getOffchainStore(this.moduleID, STORE_PREFIX_RANDOM);
-		await randomDataStore.setWithSchema(address, message, setSeedSchema);
+		await randomDataStore.setWithSchema(address, hashOnion, setSeedSchema);
 	}
 }

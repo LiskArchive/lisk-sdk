@@ -256,19 +256,22 @@ export const createTransientAPIContext = (params: {
 
 export const createTransientModuleEndpointContext = (params: {
 	stateStore?: PrefixedStateReadWriter;
-	getOffchainStore?: (moduleID: Buffer) => SubStore;
+	moduleStore?: PrefixedStateReadWriter;
 	params?: Record<string, unknown>;
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 }): ModuleEndpointContext => {
 	const stateStore =
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+	const moduleStore =
+		params.moduleStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	const parameters = params.params ?? {};
 	const logger = params.logger ?? loggerMock;
 	const networkIdentifier = params.networkIdentifier ?? Buffer.alloc(0);
 	const ctx = {
 		getStore: (moduleID: Buffer, storePrefix: number) => stateStore.getStore(moduleID, storePrefix),
-		getOffchainStore: (moduleID: Buffer) => stateStore.getStore(moduleID, 0),
+		getOffchainStore: (moduleID: Buffer, storePrefix?: number) =>
+			moduleStore.getStore(moduleID, storePrefix ?? 0),
 		getImmutableAPIContext: () => createImmutableAPIContext(stateStore),
 		params: parameters,
 		logger,
