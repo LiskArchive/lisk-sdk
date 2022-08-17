@@ -131,10 +131,10 @@ export const chainAccountSchema = {
 	...chainAccountJSONSchema,
 };
 
-export const getAllChainAccountsResponseSchema = {
-	$id: 'modules/dpos/endpoint/getAllDelegatesResponse',
+export const allChainAccountsSchema = {
+	$id: '/modules/interoperability/allChainAccounts',
 	type: 'object',
-	required: ['delegates'],
+	required: ['chains'],
 	properties: {
 		chains: {
 			type: 'array',

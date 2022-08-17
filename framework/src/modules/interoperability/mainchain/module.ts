@@ -28,7 +28,7 @@ import {
 	ownChainAccountSchema,
 	terminatedStateSchema,
 	terminatedOutboxSchema,
-	getAllChainAccountsResponseSchema,
+	allChainAccountsSchema,
 } from '../schemas';
 import { GenesisBlockExecuteContext } from '../../../state_machine';
 import { initGenesisStateUtil } from '../utils';
@@ -49,7 +49,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				{
 					name: this.endpoint.getAllChainAccounts.name,
 					request: getChainAccountRequestSchema,
-					response: getAllChainAccountsResponseSchema,
+					response: allChainAccountsSchema,
 				},
 				{
 					name: this.endpoint.getChannel.name,

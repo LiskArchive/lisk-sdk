@@ -68,7 +68,7 @@ export class MainchainInteroperabilityEndpoint extends BaseEndpoint {
 	public async getAllChainAccounts(
 		context: ModuleEndpointContext,
 		startChainID: Buffer,
-	): Promise<ChainAccountJSON[]> {
+	): Promise<{ chains: ChainAccountJSON[] }> {
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
 
 		const chainAccounts = (await interoperabilityStore.getAllChainAccounts(startChainID)).map(
@@ -89,7 +89,7 @@ export class MainchainInteroperabilityEndpoint extends BaseEndpoint {
 			},
 		);
 
-		return chainAccounts;
+		return { chains: chainAccounts };
 	}
 
 	public async getChannel(
