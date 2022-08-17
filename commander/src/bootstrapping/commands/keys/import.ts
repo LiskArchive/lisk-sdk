@@ -82,7 +82,7 @@ export abstract class ImportCommand extends BaseIPCClientCommand {
 		const keys = fileData.keys.map(k => {
 			let type: 'encrypted' | 'plain';
 			let returnData;
-			if (k.encrypted) {
+			if (k.encrypted && Object.keys(k.encrypted).length !== 0) {
 				type = 'encrypted';
 				returnData = k.encrypted;
 			} else {

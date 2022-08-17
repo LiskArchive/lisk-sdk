@@ -102,6 +102,10 @@ export class CreateCommand extends Command {
 			fs.ensureDirSync(dir);
 		}
 		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
+		let password = '';
+		if (!noEncrypt) {
+			password = passwordSource ?? (await getPasswordFromPrompt('password', true));
+		}
 
 		const keys = [];
 		for (let i = 0; i < count; i += 1) {
@@ -120,10 +124,8 @@ export class CreateCommand extends Command {
 			const blsPrivateKey = await bls.getPrivateKeyFromPhraseAndPath(passphrase, blsKeyPath);
 			const blsPublicKey = bls.getPublicKeyFromPrivateKey(blsPrivateKey);
 
-			let password: string;
 			let encryptedMessageObject = {};
 			if (!noEncrypt) {
-				password = passwordSource ?? (await getPasswordFromPrompt('password', true));
 				const plainGeneratorKeyData = {
 					generatorKey: generatorPublicKey,
 					generatorPrivateKey,
