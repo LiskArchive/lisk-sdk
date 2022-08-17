@@ -138,6 +138,7 @@ describe('DposModuleEndpoint', () => {
 					...delegateData,
 					totalVotesReceived: delegateData.totalVotesReceived.toString(),
 					selfVotes: delegateData.selfVotes.toString(),
+					address: address.toString('hex'),
 				};
 
 				expect(delegateDataReturned).toStrictEqual(delegateDataJSON);
