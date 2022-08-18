@@ -21,7 +21,7 @@ import { BaseEndpoint } from '../base_endpoint';
 import { MODULE_ID_AUTH_BUFFER, STORE_PREFIX_AUTH } from './constants';
 import { authAccountSchema } from './schemas';
 import { AuthAccount, AuthAccountJSON, VerifyEndpointResultJSON } from './types';
-import { getTransactionFromParameter, verifyNonce, verifySignatures } from './utils';
+import { getTransactionFromParameter, verifyNonceStrict, verifySignatures } from './utils';
 
 export class AuthEndpoint extends BaseEndpoint {
 	public async getAuthAccount(context: ModuleEndpointContext): Promise<AuthAccountJSON> {
@@ -91,7 +91,7 @@ export class AuthEndpoint extends BaseEndpoint {
 		const store = getStore(MODULE_ID_AUTH_BUFFER, STORE_PREFIX_AUTH);
 		const account = await store.getWithSchema<AuthAccount>(accountAddress, authAccountSchema);
 
-		const verificationResult = verifyNonce(transaction, account).status;
+		const verificationResult = verifyNonceStrict(transaction, account).status;
 		return { verified: verificationResult === VerifyStatus.OK };
 	}
 }

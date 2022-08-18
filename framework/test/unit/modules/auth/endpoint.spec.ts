@@ -386,6 +386,8 @@ describe('AuthEndpoint', () => {
 
 		it('should fail to verify greater transaction nonce than account nonce', async () => {
 			// Arrange
+			const accountNonce = BigInt(2);
+
 			const transaction = new Transaction({
 				moduleID: utils.intToBuffer(2, 4),
 				commandID: utils.intToBuffer(0, 4),
@@ -415,8 +417,15 @@ describe('AuthEndpoint', () => {
 				});
 
 			// Assert
-			const receivedNonceVerificationResult = (await authEndpoint.isValidNonce(context)).verified;
-			expect(receivedNonceVerificationResult).toBeFalse();
+			return expect(authEndpoint.isValidNonce(context)).rejects.toThrow(
+				new InvalidNonceError(
+					`Transaction with id:${transaction.id.toString(
+						'hex',
+					)} nonce is not equal to account nonce.`,
+					transaction.nonce,
+					accountNonce,
+				),
+			);
 		});
 
 		it('should fail to verify lower transaction nonce than account nonce', async () => {
@@ -452,7 +461,9 @@ describe('AuthEndpoint', () => {
 			// Assert
 			return expect(authEndpoint.isValidNonce(context)).rejects.toThrow(
 				new InvalidNonceError(
-					`Transaction with id:${transaction.id.toString('hex')} nonce is lower than account nonce`,
+					`Transaction with id:${transaction.id.toString(
+						'hex',
+					)} nonce is not equal to account nonce.`,
 					transaction.nonce,
 					accountNonce,
 				),
