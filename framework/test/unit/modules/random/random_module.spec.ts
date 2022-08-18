@@ -158,7 +158,7 @@ describe('RandomModule', () => {
 			// Assert
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
 			expect(assetStub.setAsset).toHaveBeenCalledWith(
-				randomModule.id,
+				randomModule.name,
 				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[7] }),
 			);
 			await expect(
@@ -202,7 +202,7 @@ describe('RandomModule', () => {
 			// Assert
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
 			expect(assetStub.setAsset).toHaveBeenCalledWith(
-				randomModule.id,
+				randomModule.name,
 				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[7] }),
 			);
 			await expect(
@@ -265,7 +265,7 @@ describe('RandomModule', () => {
 			// Assert
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
 			expect(assetStub.setAsset).toHaveBeenCalledWith(
-				randomModule.id,
+				randomModule.name,
 				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[7] }),
 			);
 			await expect(
@@ -311,7 +311,7 @@ describe('RandomModule', () => {
 			// Assert
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
 			expect(assetStub.setAsset).toHaveBeenCalledWith(
-				randomModule.id,
+				randomModule.name,
 				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[7] }),
 			);
 
@@ -477,7 +477,7 @@ describe('RandomModule', () => {
 
 		it('should reject if seed reveal length is not 16 bytes', async () => {
 			const asset = {
-				moduleID: randomModule.id,
+				module: randomModule.name,
 				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: utils.getRandomBytes(10) }),
 			};
 			const context = createBlockContext({
@@ -494,7 +494,7 @@ describe('RandomModule', () => {
 
 		it('should resolve if seed reveal length is 16 bytes', async () => {
 			const asset = {
-				moduleID: randomModule.id,
+				module: randomModule.name,
 				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: utils.getRandomBytes(16) }),
 			};
 			const context = createBlockContext({
@@ -578,7 +578,7 @@ describe('RandomModule', () => {
 
 		it('should append the new seed reveal value', async () => {
 			const asset = {
-				moduleID: randomModule.id,
+				module: randomModule.name,
 				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: seedHash(seed3, 1) }),
 			};
 			const context = createBlockContext({
@@ -599,7 +599,7 @@ describe('RandomModule', () => {
 
 		it('should not exceed max length of seed reveal set in the config', async () => {
 			const asset = {
-				moduleID: randomModule.id,
+				module: randomModule.name,
 				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: seedHash(seed3, 1) }),
 			};
 			const context = createBlockContext({
@@ -636,7 +636,7 @@ describe('RandomModule', () => {
 		it('should set seed reveal validity to be true if validator provides valid seed reveal', async () => {
 			const seedReveal = seedHash(seed3, 1);
 			const asset = {
-				moduleID: randomModule.id,
+				module: randomModule.name,
 				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal }),
 			};
 			const context = createBlockContext({
@@ -664,7 +664,7 @@ describe('RandomModule', () => {
 		it('should set seed reveal validity to be true when previous seed will be deleted at this execution', async () => {
 			const seedReveal = seedHash(seed1, 1);
 			const asset = {
-				moduleID: randomModule.id,
+				module: randomModule.name,
 				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal }),
 			};
 			const context = createBlockContext({
@@ -692,7 +692,7 @@ describe('RandomModule', () => {
 		it('should set seed reveal validity to be false if validator provides invalid seed reveal', async () => {
 			const seedReveal = seedHash(utils.getRandomBytes(20), 1);
 			const asset = {
-				moduleID: randomModule.id,
+				module: randomModule.name,
 				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal }),
 			};
 			const context = createBlockContext({
@@ -720,7 +720,7 @@ describe('RandomModule', () => {
 		it('should set seed reveal validity to be false if there is no data for the past seed reveal', async () => {
 			const seedReveal = seedHash(utils.getRandomBytes(20), 1);
 			const asset = {
-				moduleID: randomModule.id,
+				module: randomModule.name,
 				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal }),
 			};
 			const generator = utils.getRandomBytes(20);

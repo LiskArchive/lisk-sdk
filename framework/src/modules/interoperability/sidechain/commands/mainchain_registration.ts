@@ -148,7 +148,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			certificateThreshold,
 		);
 
-		const chainSubstore = getStore(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_DATA);
+		const chainSubstore = getStore(this.moduleID, STORE_PREFIX_CHAIN_DATA);
 		await chainSubstore.setWithSchema(
 			MAINCHAIN_ID_BUFFER,
 			{
@@ -165,7 +165,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			chainAccountSchema,
 		);
 
-		const channelSubstore = getStore(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHANNEL_DATA);
+		const channelSubstore = getStore(this.moduleID, STORE_PREFIX_CHANNEL_DATA);
 		await channelSubstore.setWithSchema(
 			MAINCHAIN_ID_BUFFER,
 			{
@@ -200,10 +200,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			networkIdentifier: context.networkIdentifier,
 		});
 
-		const chainValidatorsSubstore = getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_CHAIN_VALIDATORS,
-		);
+		const chainValidatorsSubstore = getStore(this.moduleID, STORE_PREFIX_CHAIN_VALIDATORS);
 		await chainValidatorsSubstore.setWithSchema(
 			MAINCHAIN_ID_BUFFER,
 			{
@@ -215,20 +212,14 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			validatorsSchema,
 		);
 
-		const outboxRootSubstore = getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_OUTBOX_ROOT,
-		);
+		const outboxRootSubstore = getStore(this.moduleID, STORE_PREFIX_OUTBOX_ROOT);
 		await outboxRootSubstore.setWithSchema(
 			MAINCHAIN_ID_BUFFER,
 			{ root: EMPTY_HASH },
 			outboxRootSchema,
 		);
 
-		const ownChainAccountSubstore = getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_OWN_CHAIN_DATA,
-		);
+		const ownChainAccountSubstore = getStore(this.moduleID, STORE_PREFIX_OWN_CHAIN_DATA);
 		await ownChainAccountSubstore.setWithSchema(
 			utils.intToBuffer(0, 4),
 			{ name: ownName, id: ownChainID, nonce: BigInt(0) },

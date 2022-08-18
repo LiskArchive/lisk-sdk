@@ -18,7 +18,7 @@ import { isHexString } from '@liskhq/lisk-validator';
 import { ModuleEndpointContext } from '../../types';
 import { VerifyStatus } from '../../state_machine';
 import { BaseEndpoint } from '../base_endpoint';
-import { MODULE_ID_AUTH_BUFFER, STORE_PREFIX_AUTH } from './constants';
+import { STORE_PREFIX_AUTH } from './constants';
 import { authAccountSchema } from './schemas';
 import { AuthAccount, AuthAccountJSON, VerifyEndpointResultJSON } from './types';
 import { getTransactionFromParameter, verifyNonce, verifySignatures } from './utils';
@@ -35,7 +35,7 @@ export class AuthEndpoint extends BaseEndpoint {
 		}
 
 		const accountAddress = Buffer.from(address as string, 'hex');
-		const store = getStore(MODULE_ID_AUTH_BUFFER, STORE_PREFIX_AUTH);
+		const store = getStore(this.moduleID, STORE_PREFIX_AUTH);
 
 		try {
 			const authAccount = await store.getWithSchema<AuthAccount>(accountAddress, authAccountSchema);
@@ -67,11 +67,11 @@ export class AuthEndpoint extends BaseEndpoint {
 
 		const accountAddress = cryptoAddress.getAddressFromPublicKey(transaction.senderPublicKey);
 
-		const store = getStore(MODULE_ID_AUTH_BUFFER, STORE_PREFIX_AUTH);
+		const store = getStore(this.moduleID, STORE_PREFIX_AUTH);
 		const account = await store.getWithSchema<AuthAccount>(accountAddress, authAccountSchema);
 
 		return verifySignatures(
-			this.moduleID,
+			this.moduleName,
 			transaction,
 			transactionBytes,
 			networkIdentifier,
@@ -88,7 +88,7 @@ export class AuthEndpoint extends BaseEndpoint {
 		const transaction = getTransactionFromParameter(transactionParameter);
 		const accountAddress = cryptoAddress.getAddressFromPublicKey(transaction.senderPublicKey);
 
-		const store = getStore(MODULE_ID_AUTH_BUFFER, STORE_PREFIX_AUTH);
+		const store = getStore(this.moduleID, STORE_PREFIX_AUTH);
 		const account = await store.getWithSchema<AuthAccount>(accountAddress, authAccountSchema);
 
 		const verificationResult = verifyNonce(transaction, account).status;

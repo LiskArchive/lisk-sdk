@@ -14,7 +14,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { ed, utils, legacy } from '@liskhq/lisk-cryptography';
+import { ed, legacy } from '@liskhq/lisk-cryptography';
 import {
 	getSigningBytes,
 	signTransactionWithPrivateKey,
@@ -105,8 +105,8 @@ describe('sign', () => {
 	};
 
 	const validTransaction = {
-		moduleID: utils.intToBuffer(2, 4),
-		commandID: utils.intToBuffer(0, 4),
+		module: 'token',
+		command: 'transfer',
 		nonce: BigInt('1'),
 		fee: BigInt('10000000'),
 		senderPublicKey: publicKey1,
@@ -120,7 +120,7 @@ describe('sign', () => {
 	describe('getSigningBytes', () => {
 		it('should throw error for invalid transaction object', () => {
 			const invalidTransactionObjects = [
-				{ ...validTransaction, moduleID: BigInt(8) },
+				{ ...validTransaction, module: BigInt(2) },
 				{ ...validTransaction, nonce: 1 },
 				{ ...validTransaction, fee: 1000000 },
 				{ ...validTransaction, senderPublicKey: 1 },
@@ -200,7 +200,7 @@ describe('sign', () => {
 
 		it('should throw error for invalid transaction object', () => {
 			const invalidTransactionObjects = [
-				{ ...validTransaction, moduleID: BigInt(8) },
+				{ ...validTransaction, module: BigInt(8) },
 				{ ...validTransaction, nonce: 1 },
 				{ ...validTransaction, fee: 1000000 },
 				{ ...validTransaction, senderPublicKey: 1 },
@@ -371,8 +371,8 @@ describe('sign', () => {
 			const optionalKeys = [account3.publicKey];
 
 			const multisignatureRegistrationTrx = {
-				moduleID: utils.intToBuffer(4, 4),
-				commandID: utils.intToBuffer(0, 4),
+				module: 'token',
+				command: 'transfer',
 				nonce: BigInt('1'),
 				fee: BigInt('10000000'),
 				senderPublicKey: account1.publicKey,
@@ -427,8 +427,8 @@ describe('sign', () => {
 			const account2 = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase2);
 			// Sender public key of account1
 			const transaction = {
-				moduleID: utils.intToBuffer(2, 4),
-				commandID: utils.intToBuffer(0, 4),
+				module: 'token',
+				command: 'transfer',
 				nonce: BigInt('1'),
 				fee: BigInt('10000000'),
 				senderPublicKey: account1.publicKey,

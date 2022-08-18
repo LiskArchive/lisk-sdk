@@ -13,12 +13,11 @@
  *
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
 import { genesisTokenStoreSchema } from '../../modules/token';
 
 export const blockAssetsJSON = [
 	{
-		moduleID: utils.intToBuffer(2, 4),
+		module: 'token',
 		data: {
 			userSubstore: [
 				{
@@ -709,7 +708,7 @@ export const blockAssetsJSON = [
 		schema: genesisTokenStoreSchema,
 	},
 	{
-		moduleID: utils.intToBuffer(13, 4),
+		module: 'dpos',
 		data: {
 			validators: [
 				{

@@ -25,6 +25,7 @@ import { BaseInteroperabilityCommand } from '../../base_interoperability_command
 import {
 	CHAIN_TERMINATED,
 	COMMAND_ID_STATE_RECOVERY_INIT_BUFFER,
+	COMMAND_NAME_STATE_RECOVERY_INIT,
 	EMPTY_BYTES,
 	LIVENESS_LIMIT,
 	MAINCHAIN_ID,
@@ -46,7 +47,7 @@ import { getIDAsKeyForStore } from '../../utils';
 import { MainchainInteroperabilityStore } from '../store';
 
 export class StateRecoveryInitCommand extends BaseInteroperabilityCommand {
-	public name = 'stateRecoveryInitialization';
+	public name = COMMAND_NAME_STATE_RECOVERY_INIT;
 	public id = COMMAND_ID_STATE_RECOVERY_INIT_BUFFER;
 	public schema = stateRecoveryInitParams;
 

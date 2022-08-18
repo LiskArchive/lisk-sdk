@@ -72,9 +72,9 @@ describe('generator', () => {
 		'0805100118012080ade2042a20f7e7627120dab14b80b6e4f361ba89db251ee838708c3a74c6c2cc08ad793f58321d0a1b0a1432fc1c23b73db1c6205327b1cab44318e61678ea1080dac4093a40a0be9e52d9e0a53406c55a74ab0d7d106eb276a47dd88d3dc2284ed62024b2448e0bd5af1623ae7d793606a58c27d742e8855ba339f757d56972c4c6efad750c';
 	const tx = new Transaction({
 		params: Buffer.alloc(20),
-		commandID: utils.intToBuffer(0, 4),
+		command: 'transfer',
 		fee: BigInt(100000000),
-		moduleID: utils.intToBuffer(2, 4),
+		module: 'token',
 		nonce: BigInt(0),
 		senderPublicKey: Buffer.alloc(32),
 		signatures: [Buffer.alloc(64)],
@@ -593,7 +593,7 @@ describe('generator', () => {
 					{
 						data: utils.getRandomBytes(32),
 						index: 0,
-						moduleID: Buffer.from([0, 0, 0, 3]),
+						module: 'token',
 						topics: [Buffer.from([0])],
 						typeID: Buffer.from([0, 0, 0, 1]),
 					},

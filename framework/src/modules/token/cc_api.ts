@@ -40,14 +40,12 @@ import {
 } from './utils';
 
 export class TokenInteroperableAPI extends BaseInteroperableAPI {
-	private readonly _moduleID: Buffer;
 	private readonly _tokenAPI: TokenAPI;
 
 	private _interopAPI!: InteroperabilityAPI;
 
-	public constructor(moduleID: Buffer, tokenAPI: TokenAPI) {
-		super(moduleID);
-		this._moduleID = moduleID;
+	public constructor(module: string, tokenAPI: TokenAPI) {
+		super(module);
 		this._tokenAPI = tokenAPI;
 	}
 
@@ -67,7 +65,7 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 		if (!feeTokenChainID.equals(ownChainID)) {
 			await updateAvailableBalanceWithCreate(
 				apiContext,
-				this._moduleID,
+				this.moduleID,
 				ctx.trsSender,
 				messageFeeTokenID,
 				ccm.fee,
@@ -77,7 +75,7 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 		await deductEscrowAmountWithTerminate(
 			apiContext,
 			this._interopAPI,
-			this._moduleID,
+			this.moduleID,
 			ccm.sendingChainID,
 			feeTokenLocalID,
 			ccm.fee,
@@ -89,7 +87,7 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 		);
 		await updateAvailableBalanceWithCreate(
 			apiContext,
-			this._moduleID,
+			this.moduleID,
 			ctx.trsSender,
 			canonicalTokenID,
 			ccm.fee,
@@ -108,7 +106,7 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 		if (!feeTokenChainID.equals(ownChainID)) {
 			await updateAvailableBalanceWithCreate(
 				apiContext,
-				this._moduleID,
+				this.moduleID,
 				ctx.trsSender,
 				messageFeeTokenID,
 				ccm.fee,
@@ -119,7 +117,7 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 		await deductEscrowAmountWithTerminate(
 			apiContext,
 			this._interopAPI,
-			this._moduleID,
+			this.moduleID,
 			ccm.sendingChainID,
 			feeTokenLocalID,
 			ccm.fee,
@@ -130,7 +128,7 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 		);
 		await updateAvailableBalanceWithCreate(
 			apiContext,
-			this._moduleID,
+			this.moduleID,
 			ctx.trsSender,
 			canonicalTokenID,
 			ccm.fee,
@@ -146,13 +144,13 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 		const { id: ownChainID } = await this._interopAPI.getOwnChainAccount(apiContext);
 		const { messageFeeTokenID } = await this._interopAPI.getChannel(apiContext, ccm.sendingChainID);
 		const [feeTokenChainID, feeTokenLocalID] = splitTokenID(messageFeeTokenID);
-		const userStore = apiContext.getStore(this._moduleID, STORE_PREFIX_USER);
+		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
 		let tokenID = messageFeeTokenID;
 		if (feeTokenChainID.equals(ownChainID)) {
 			tokenID = await this._tokenAPI.getCanonicalTokenID(apiContext, messageFeeTokenID);
 			await addEscrowAmount(
 				apiContext,
-				this._moduleID,
+				this.moduleID,
 				ccm.receivingChainID,
 				feeTokenLocalID,
 				ccm.fee,
@@ -198,7 +196,7 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 				)}`,
 			);
 		}
-		const escrowStore = apiContext.getStore(this._moduleID, STORE_PREFIX_ESCROW);
+		const escrowStore = apiContext.getStore(this.moduleID, STORE_PREFIX_ESCROW);
 		const escrowKey = Buffer.concat([ctx.terminatedChainID, localID]);
 		const escrowData = await escrowStore.getWithSchema<EscrowStoreData>(
 			escrowKey,
@@ -215,7 +213,7 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 		const localTokenID = Buffer.concat([CHAIN_ID_ALIAS_NATIVE, localID]);
 		await updateAvailableBalanceWithCreate(
 			apiContext,
-			this._moduleID,
+			this.moduleID,
 			address,
 			localTokenID,
 			totalAmount,

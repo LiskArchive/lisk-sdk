@@ -85,16 +85,21 @@ export const MIN_RETURN_FEE = BigInt(1000);
 // Commands
 export const COMMAND_ID_SIDECHAIN_REG = 0;
 export const COMMAND_ID_SIDECHAIN_REG_BUFFER = utils.intToBuffer(COMMAND_ID_SIDECHAIN_REG, 4);
+export const COMMAND_NAME_SIDECHAIN_REG = 'sidechainRegistration';
 export const COMMAND_ID_MAINCHAIN_REG = 1;
 export const COMMAND_ID_MAINCHAIN_REG_BUFFER = utils.intToBuffer(COMMAND_ID_MAINCHAIN_REG, 4);
+export const COMMAND_NAME_MAINCHAIN_REG = 'mainchainRegistration';
 export const COMMAND_ID_SIDECHAIN_CCU = 2;
 export const COMMAND_ID_SIDECHAIN_CCU_BUFFER = utils.intToBuffer(COMMAND_ID_SIDECHAIN_CCU, 4);
 export const COMMAND_ID_MAINCHAIN_CCU = 3;
 export const COMMAND_ID_MAINCHAIN_CCU_BUFFER = utils.intToBuffer(COMMAND_ID_MAINCHAIN_CCU, 4);
 export const COMMAND_ID_STATE_RECOVERY = 4;
 export const COMMAND_ID_STATE_RECOVERY_BUFFER = utils.intToBuffer(COMMAND_ID_STATE_RECOVERY, 4);
+export const COMMAND_NAME_STATE_RECOVERY = 'stateRecovery';
 export const COMMAND_ID_MESSAGE_RECOVERY = 5;
 export const COMMAND_ID_MESSAGE_RECOVERY_BUFFER = utils.intToBuffer(COMMAND_ID_MESSAGE_RECOVERY, 4);
+export const COMMAND_NAME_MESSAGE_RECOVERY = 'messageRecovery';
+export const COMMAND_NAME_STATE_RECOVERY_INIT = 'stateRecoveryInitialization';
 export const COMMAND_ID_STATE_RECOVERY_INIT = 6;
 export const COMMAND_ID_STATE_RECOVERY_INIT_BUFFER = utils.intToBuffer(
 	COMMAND_ID_MESSAGE_RECOVERY,

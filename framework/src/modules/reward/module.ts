@@ -12,12 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
-import { defaultConfig, MODULE_ID_REWARD, TYPE_ID_REWARD_MINTED } from './constants';
+import { defaultConfig, TYPE_ID_REWARD_MINTED } from './constants';
 import { ModuleConfig, RandomAPI, TokenAPI, RewardMintedData } from './types';
 import { BlockAfterExecuteContext } from '../../state_machine';
 import { RewardAPI } from './api';
@@ -30,11 +29,10 @@ import {
 } from './schemas';
 
 export class RewardModule extends BaseModule {
-	public id = utils.intToBuffer(MODULE_ID_REWARD, 4);
 	public name = 'reward';
-	public api = new RewardAPI(this.id);
+	public api = new RewardAPI(this.name);
 	public configSchema = configSchema;
-	public endpoint = new RewardEndpoint(this.id);
+	public endpoint = new RewardEndpoint(this.name);
 	private _tokenAPI!: TokenAPI;
 	private _randomAPI!: RandomAPI;
 	private _tokenID!: Buffer;
@@ -115,7 +113,7 @@ export class RewardModule extends BaseModule {
 
 		const data = codec.encode(rewardMintedDataSchema, rewardMintedData);
 		context.eventQueue.add(
-			this.id,
+			this.name,
 			TYPE_ID_REWARD_MINTED,
 			codec.encode(rewardMintedDataSchema, data),
 			[context.header.generatorAddress],

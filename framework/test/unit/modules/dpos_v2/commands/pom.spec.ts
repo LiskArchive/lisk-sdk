@@ -122,8 +122,8 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		delegateSubstore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
 		transaction = new Transaction({
-			moduleID: MODULE_ID_DPOS_BUFFER,
-			commandID: utils.intToBuffer(COMMAND_ID_POM, 4),
+			module: 'dpos',
+			command: 'reportDelegateMisbehavior',
 			senderPublicKey: publicKey,
 			nonce: BigInt(0),
 			fee: BigInt(100000000),
@@ -730,8 +730,8 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 
 		it('should not return balance if sender and delegate account are same', async () => {
 			transaction = new Transaction({
-				moduleID: MODULE_ID_DPOS_BUFFER,
-				commandID: utils.intToBuffer(COMMAND_ID_POM, 4),
+				module: 'dpos',
+				command: 'reportDelegateMisbehavior',
 				senderPublicKey: delegate1PublicKey,
 				nonce: BigInt(0),
 				fee: BigInt(100000000),

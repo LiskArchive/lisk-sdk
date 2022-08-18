@@ -15,7 +15,6 @@
 import { utils } from '@liskhq/lisk-cryptography';
 import { ValidatorsAPI, ValidatorsModule } from '../../../../src/modules/validators';
 import {
-	MODULE_ID_VALIDATORS,
 	EMPTY_KEY,
 	INVALID_BLS_KEY,
 	STORE_PREFIX_BLS_KEYS,
@@ -58,7 +57,7 @@ describe('ValidatorsModuleAPI', () => {
 	});
 
 	beforeEach(() => {
-		validatorsAPI = new ValidatorsAPI(utils.intToBuffer(MODULE_ID_VALIDATORS, 4));
+		validatorsAPI = new ValidatorsAPI('validators');
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		validatorsSubStore = stateStore.getStore(
 			validatorsAPI['moduleID'],
@@ -492,7 +491,7 @@ describe('ValidatorsModuleAPI', () => {
 			};
 
 			const validatorsStore = apiContext.getStore(
-				utils.intToBuffer(MODULE_ID_VALIDATORS, 4),
+				validatorsAPI['moduleID'],
 				STORE_PREFIX_VALIDATORS_DATA,
 			);
 			await validatorsStore.setWithSchema(validAddress, validatorAccount, validatorAccountSchema);

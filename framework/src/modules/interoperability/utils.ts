@@ -80,6 +80,7 @@ import { certificateSchema } from '../../engine/consensus/certificate_generation
 import { CommandExecuteContext, SubStore } from '../../state_machine/types';
 
 interface CommonExecutionLogicArgs {
+	moduleID: Buffer;
 	context: CommandExecuteContext<CrossChainUpdateTransactionParams>;
 	certificate: Certificate;
 	partnerValidators: ChainValidators;
@@ -595,10 +596,7 @@ export const commonCCUExecutelogic = async (args: CommonExecutionLogicArgs) => {
 		await partnerChainStore.setWithSchema(chainIDBuffer, partnerChainAccount, chainAccountSchema);
 	}
 
-	const partnerChannelStore = context.getStore(
-		context.transaction.moduleID,
-		STORE_PREFIX_CHANNEL_DATA,
-	);
+	const partnerChannelStore = context.getStore(args.moduleID, STORE_PREFIX_CHANNEL_DATA);
 	const partnerChannelData = await partnerChannelStore.getWithSchema<ChannelData>(
 		chainIDBuffer,
 		channelSchema,
@@ -619,8 +617,12 @@ export const commonCCUExecutelogic = async (args: CommonExecutionLogicArgs) => {
 	await partnerChannelStore.setWithSchema(chainIDBuffer, partnerChannelData, channelSchema);
 };
 
-export const initGenesisStateUtil = async (id: Buffer, ctx: GenesisBlockExecuteContext) => {
-	const assetBytes = ctx.assets.getAsset(id);
+export const initGenesisStateUtil = async (
+	id: Buffer,
+	name: string,
+	ctx: GenesisBlockExecuteContext,
+) => {
+	const assetBytes = ctx.assets.getAsset(name);
 	if (!assetBytes) {
 		return;
 	}

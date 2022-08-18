@@ -28,7 +28,6 @@ import { RandomAPI } from './api';
 import {
 	defaultConfig,
 	EMPTY_KEY,
-	MODULE_ID_RANDOM_BUFFER,
 	STORE_PREFIX_RANDOM,
 	STORE_PREFIX_USED_HASH_ONION,
 } from './constants';
@@ -55,10 +54,9 @@ import { isSeedValidInput } from './utils';
 import { JSONObject } from '../../types';
 
 export class RandomModule extends BaseModule {
-	public id = MODULE_ID_RANDOM_BUFFER;
 	public name = 'random';
-	public api = new RandomAPI(this.id);
-	public endpoint = new RandomEndpoint(this.id);
+	public api = new RandomAPI(this.name);
+	public endpoint = new RandomEndpoint(this.name);
 
 	private _generatorConfig: HashOnion[] = [];
 	private _maxLengthReveals!: number;
@@ -151,7 +149,7 @@ export class RandomModule extends BaseModule {
 		);
 		// Set value in Block Asset
 		context.assets.setAsset(
-			this.id,
+			this.name,
 			codec.encode(blockHeaderAssetRandomModule, { seedReveal: nextHashOnion.hash }),
 		);
 		// Update used seed reveal
@@ -163,7 +161,7 @@ export class RandomModule extends BaseModule {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verifyAssets(context: BlockVerifyContext): Promise<void> {
-		const encodedAsset = context.assets.getAsset(this.id);
+		const encodedAsset = context.assets.getAsset(this.name);
 		if (!encodedAsset) {
 			throw new Error('Random module asset must exist.');
 		}
@@ -180,7 +178,7 @@ export class RandomModule extends BaseModule {
 	}
 
 	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
-		const encodedAsset = context.assets.getAsset(this.id);
+		const encodedAsset = context.assets.getAsset(this.name);
 		if (!encodedAsset) {
 			throw new Error('Random module asset must exist.');
 		}

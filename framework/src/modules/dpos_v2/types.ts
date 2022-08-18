@@ -69,7 +69,7 @@ export interface TokenAPI {
 	lock(
 		apiContext: APIContext,
 		address: Buffer,
-		moduleID: Buffer,
+		module: string,
 		tokenID: TokenIDDPoS,
 		amount: bigint,
 	): Promise<void>;
@@ -88,7 +88,7 @@ export interface TokenAPI {
 	unlock(
 		apiContext: APIContext,
 		address: Buffer,
-		moduleID: Buffer,
+		module: string,
 		tokenID: TokenIDDPoS,
 		amount: bigint,
 	): Promise<void>;
@@ -96,7 +96,7 @@ export interface TokenAPI {
 		apiContext: ImmutableAPIContext,
 		address: Buffer,
 		tokenID: TokenIDDPoS,
-		moduleID: Buffer,
+		module: string,
 	): Promise<bigint>;
 }
 

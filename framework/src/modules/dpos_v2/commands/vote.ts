@@ -26,6 +26,7 @@ import {
 	COMMAND_ID_VOTE,
 	MAX_UNLOCKING,
 	MAX_VOTE,
+	MODULE_NAME_DPOS,
 	STORE_PREFIX_DELEGATE,
 	STORE_PREFIX_VOTER,
 	TEN_UNIT,
@@ -218,7 +219,7 @@ export class VoteCommand extends BaseCommand {
 				await this._tokenAPI.lock(
 					getAPIContext(),
 					senderAddress,
-					this.moduleID,
+					MODULE_NAME_DPOS,
 					this._tokenIDDPoS,
 					vote.amount,
 				);

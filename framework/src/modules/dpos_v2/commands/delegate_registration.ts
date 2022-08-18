@@ -22,7 +22,6 @@ import {
 import { BaseCommand } from '../../base_command';
 import {
 	COMMAND_ID_DELEGATE_REGISTRATION,
-	MODULE_ID_DPOS_BUFFER,
 	STORE_PREFIX_DELEGATE,
 	STORE_PREFIX_NAME,
 } from '../constants';
@@ -65,7 +64,7 @@ export class DelegateRegistrationCommand extends BaseCommand {
 			};
 		}
 
-		const nameSubstore = context.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_NAME);
+		const nameSubstore = context.getStore(this.moduleID, STORE_PREFIX_NAME);
 		const nameExists = await nameSubstore.has(Buffer.from(params.name, 'utf8'));
 
 		if (nameExists) {
@@ -75,7 +74,7 @@ export class DelegateRegistrationCommand extends BaseCommand {
 			};
 		}
 
-		const delegateSubstore = context.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
+		const delegateSubstore = context.getStore(this.moduleID, STORE_PREFIX_DELEGATE);
 		const delegateExists = await delegateSubstore.has(transaction.senderAddress);
 
 		if (delegateExists) {
@@ -110,7 +109,7 @@ export class DelegateRegistrationCommand extends BaseCommand {
 			throw new Error('Failed to register validator keys');
 		}
 
-		const delegateSubstore = context.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
+		const delegateSubstore = context.getStore(this.moduleID, STORE_PREFIX_DELEGATE);
 		await delegateSubstore.setWithSchema(
 			transaction.senderAddress,
 			{
@@ -125,7 +124,7 @@ export class DelegateRegistrationCommand extends BaseCommand {
 			delegateStoreSchema,
 		);
 
-		const nameSubstore = context.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_NAME);
+		const nameSubstore = context.getStore(this.moduleID, STORE_PREFIX_NAME);
 		await nameSubstore.setWithSchema(
 			Buffer.from(name, 'utf8'),
 			{ delegateAddress: transaction.senderAddress },

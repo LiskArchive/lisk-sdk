@@ -27,11 +27,11 @@ describe('block', () => {
 		beforeEach(() => {
 			assetList = [
 				{
-					moduleID: utils.intToBuffer(3, 4),
+					module: 'auth',
 					data: utils.getRandomBytes(64),
 				},
 				{
-					moduleID: utils.intToBuffer(6, 4),
+					module: 'random',
 					data: utils.getRandomBytes(64),
 				},
 			];
@@ -89,11 +89,11 @@ describe('block', () => {
 				// Arrange
 				const assets = [
 					{
-						moduleID: utils.intToBuffer(2, 4),
+						module: 'auth',
 						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: utils.intToBuffer(3, 4),
+						module: 'random',
 						data: utils.getRandomBytes(64),
 					},
 				];
@@ -138,11 +138,11 @@ describe('block', () => {
 		beforeEach(() => {
 			assetList = [
 				{
-					moduleID: utils.intToBuffer(3, 4),
+					module: 'auth',
 					data: utils.getRandomBytes(64),
 				},
 				{
-					moduleID: utils.intToBuffer(6, 4),
+					module: 'random',
 					data: utils.getRandomBytes(64),
 				},
 			];
@@ -180,11 +180,11 @@ describe('block', () => {
 				// Arrange
 				const assets = [
 					{
-						moduleID: utils.intToBuffer(2, 4),
+						module: 'auth',
 						data: utils.getRandomBytes(64),
 					},
 					{
-						moduleID: utils.intToBuffer(3, 4),
+						module: 'random',
 						data: utils.getRandomBytes(64),
 					},
 				];

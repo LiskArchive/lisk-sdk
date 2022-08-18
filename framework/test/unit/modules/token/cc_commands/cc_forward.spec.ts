@@ -14,6 +14,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
+import { MODULE_NAME_INTEROPERABILITY } from '../../../../../src/modules/interoperability/constants';
 import { TokenAPI } from '../../../../../src/modules/token/api';
 import { CCForwardCommand } from '../../../../../src/modules/token/cc_commands/cc_forward';
 import {
@@ -22,7 +23,7 @@ import {
 	CCM_STATUS_TOKEN_NOT_SUPPORTED,
 	CHAIN_ID_LENGTH,
 	CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
-	CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
+	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 	EMPTY_BYTES,
 	MIN_BALANCE,
 	MODULE_ID_TOKEN_BUFFER,
@@ -55,7 +56,7 @@ describe('CrossChain Forward command', () => {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
 			{
-				moduleID: utils.intToBuffer(12, 4),
+				module: 'dpos',
 				amount: BigInt(100000000),
 			},
 		],
@@ -77,9 +78,8 @@ describe('CrossChain Forward command', () => {
 	let apiContext: APIContext;
 
 	beforeEach(async () => {
-		const moduleID = MODULE_ID_TOKEN_BUFFER;
-		api = new TokenAPI(moduleID);
-		command = new CCForwardCommand(moduleID, api);
+		api = new TokenAPI('token');
+		command = new CCForwardCommand(api['moduleID'], api);
 		interopAPI = {
 			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
 			send: jest.fn(),
@@ -102,7 +102,7 @@ describe('CrossChain Forward command', () => {
 			stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
 			eventQueue: new EventQueue(),
 		});
-		const userStore = apiContext.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
+		const userStore = apiContext.getStore(api['moduleID'], STORE_PREFIX_USER);
 		await userStore.setWithSchema(
 			getUserStoreKey(defaultAddress, defaultTokenIDAlias),
 			defaultAccount,
@@ -114,7 +114,7 @@ describe('CrossChain Forward command', () => {
 			userStoreSchema,
 		);
 
-		const supplyStore = apiContext.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_SUPPLY);
+		const supplyStore = apiContext.getStore(api['moduleID'], STORE_PREFIX_SUPPLY);
 		await supplyStore.setWithSchema(
 			defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
 			{ totalSupply: defaultTotalSupply },
@@ -122,7 +122,7 @@ describe('CrossChain Forward command', () => {
 		);
 
 		const nextAvailableLocalIDStore = apiContext.getStore(
-			MODULE_ID_TOKEN_BUFFER,
+			api['moduleID'],
 			STORE_PREFIX_AVAILABLE_LOCAL_ID,
 		);
 		await nextAvailableLocalIDStore.setWithSchema(
@@ -131,7 +131,7 @@ describe('CrossChain Forward command', () => {
 			availableLocalIDStoreSchema,
 		);
 
-		const escrowStore = apiContext.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_ESCROW);
+		const escrowStore = apiContext.getStore(api['moduleID'], STORE_PREFIX_ESCROW);
 		await escrowStore.setWithSchema(
 			Buffer.concat([
 				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
@@ -568,8 +568,8 @@ describe('CrossChain Forward command', () => {
 			expect(command['_interopAPI'].send).toHaveBeenCalledWith(
 				apiContext,
 				defaultAddress,
-				MODULE_ID_TOKEN_BUFFER,
-				CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
+				MODULE_NAME_INTEROPERABILITY,
+				CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 				Buffer.from([4, 0, 0, 0]),
 				BigInt(2000),
 				CCM_STATUS_OK,

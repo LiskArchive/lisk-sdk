@@ -20,8 +20,8 @@ import { BaseInteroperabilityCommand } from '../../base_interoperability_command
 import {
 	EMPTY_HASH,
 	STORE_PREFIX_TERMINATED_STATE,
+	COMMAND_NAME_STATE_RECOVERY,
 	COMMAND_ID_STATE_RECOVERY_BUFFER,
-	MODULE_ID_INTEROPERABILITY_BUFFER,
 } from '../../constants';
 import { stateRecoveryParamsSchema, terminatedStateSchema } from '../../schemas';
 import { StateRecoveryParams, TerminatedStateAccount, StoreCallback } from '../../types';
@@ -35,7 +35,7 @@ import { createRecoverCCMsgAPIContext } from '../../../../testing';
 
 export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 	public id = COMMAND_ID_STATE_RECOVERY_BUFFER;
-	public name = 'stateRecovery';
+	public name = COMMAND_NAME_STATE_RECOVERY;
 	public schema = stateRecoveryParamsSchema;
 
 	public async verify(
@@ -54,10 +54,7 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 			};
 		}
 
-		const terminatedStateSubstore = context.getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_TERMINATED_STATE,
-		);
+		const terminatedStateSubstore = context.getStore(this.moduleID, STORE_PREFIX_TERMINATED_STATE);
 		const terminatedStateAccountExists = await terminatedStateSubstore.has(chainID);
 
 		if (!terminatedStateAccountExists) {
@@ -148,10 +145,7 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 
 		const root = sparseMerkleTree.calculateRoot(siblingHashes, storeQueries, storeEntries.length);
 
-		const terminatedStateSubstore = context.getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_TERMINATED_STATE,
-		);
+		const terminatedStateSubstore = context.getStore(this.moduleID, STORE_PREFIX_TERMINATED_STATE);
 
 		const terminatedStateAccount = await terminatedStateSubstore.getWithSchema<TerminatedStateAccount>(
 			chainID,

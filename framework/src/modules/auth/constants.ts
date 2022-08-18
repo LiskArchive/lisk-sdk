@@ -16,6 +16,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 
 export const MODULE_ID_AUTH = 12; // TBD
 export const MODULE_ID_AUTH_BUFFER = utils.intToBuffer(MODULE_ID_AUTH, 4);
+export const COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP = 'registerMultisignatureGroup';
 export const STORE_PREFIX_AUTH = 0x0000;
 export const MAX_NUMBER_OF_SIGNATURES = 64;
 

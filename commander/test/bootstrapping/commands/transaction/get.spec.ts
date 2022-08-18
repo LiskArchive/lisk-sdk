@@ -13,7 +13,6 @@
  *
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
 import * as fs from 'fs-extra';
 import { transactionSchema } from 'lisk-framework';
 import * as apiClient from '@liskhq/lisk-api-client';
@@ -32,8 +31,8 @@ import { getConfig } from '../../../helpers/config';
 describe('transaction:get command', () => {
 	const commands = [
 		{
-			moduleID: utils.intToBuffer(2, 4),
-			commandID: utils.intToBuffer(0, 4),
+			module: 'token',
+			command: 'transfer',
 			schema: tokenTransferParamsSchema,
 		},
 	];

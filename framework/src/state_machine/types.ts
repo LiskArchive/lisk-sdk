@@ -19,7 +19,7 @@ import { Logger } from '../logger';
 import { EventQueue } from './event_queue';
 
 export interface EventQueueAdder {
-	add(moduleID: Buffer, typeID: Buffer, data: Buffer, topics?: Buffer[], noRevert?: boolean): void;
+	add(module: string, typeID: Buffer, data: Buffer, topics?: Buffer[], noRevert?: boolean): void;
 }
 
 export interface ImmutableSubStore {
@@ -68,11 +68,11 @@ export interface BlockHeader {
 }
 
 export interface BlockAssets {
-	getAsset: (moduleID: Buffer) => Buffer | undefined;
+	getAsset: (module: string) => Buffer | undefined;
 }
 
 export interface WritableBlockAssets extends BlockAssets {
-	setAsset: (moduleID: Buffer, value: Buffer) => void;
+	setAsset: (module: string, value: Buffer) => void;
 }
 
 export interface VerificationResult {

@@ -21,7 +21,6 @@ import {
 	defaultConfig,
 	EMPTY_BYTES,
 	LOCAL_ID_LENGTH,
-	MODULE_ID_TOKEN_BUFFER,
 	STORE_PREFIX_AVAILABLE_LOCAL_ID,
 	STORE_PREFIX_ESCROW,
 	STORE_PREFIX_SUPPLY,
@@ -62,10 +61,9 @@ import { MainchainInteroperabilityAPI, SidechainInteroperabilityAPI } from '../i
 
 export class TokenModule extends BaseInteroperableModule {
 	public name = 'token';
-	public id = MODULE_ID_TOKEN_BUFFER;
-	public api = new TokenAPI(this.id);
-	public endpoint = new TokenEndpoint(this.id);
-	public crossChainAPI = new TokenInteroperableAPI(this.id, this.api);
+	public api = new TokenAPI(this.name);
+	public endpoint = new TokenEndpoint(this.name);
+	public crossChainAPI = new TokenInteroperableAPI(this.name, this.api);
 
 	private _minBalances!: MinBalance[];
 	private readonly _transferCommand = new TransferCommand(this.id);
@@ -139,7 +137,7 @@ export class TokenModule extends BaseInteroperableModule {
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
-		const assetBytes = context.assets.getAsset(this.id);
+		const assetBytes = context.assets.getAsset(this.name);
 		// if there is no asset, do not initialize
 		if (!assetBytes) {
 			return;
@@ -179,9 +177,9 @@ export class TokenModule extends BaseInteroperableModule {
 			}
 
 			const lockedBalanceModuleIDSet = new Set();
-			let lastModuleID = -1;
+			let lastModuleID = '';
 			for (const lockedBalance of userData.lockedBalances) {
-				lockedBalanceModuleIDSet.add(lockedBalance.moduleID.readInt32BE(0));
+				lockedBalanceModuleIDSet.add(lockedBalance.module);
 				// Validate locked balances must not be zero
 				if (lockedBalance.amount === BigInt(0)) {
 					throw new Error(
@@ -189,15 +187,15 @@ export class TokenModule extends BaseInteroperableModule {
 					);
 				}
 				// Validate locked balances must be sorted
-				if (lockedBalance.moduleID.readInt32BE(0) < lastModuleID) {
+				if (lockedBalance.module.localeCompare(lastModuleID, 'en') < 0) {
 					throw new Error('Locked balances must be sorted by moduleID.');
 				}
-				lastModuleID = lockedBalance.moduleID.readInt32BE(0);
+				lastModuleID = lockedBalance.module;
 			}
 			// Validate locked balance module ID uniqueness
 			if (lockedBalanceModuleIDSet.size !== userData.lockedBalances.length) {
 				throw new Error(
-					`Address ${userData.address.toString('hex')} has duplicate moduleID in locked balances.`,
+					`Address ${userData.address.toString('hex')} has duplicate module in locked balances.`,
 				);
 			}
 			// Validate userSubstore not to be empty

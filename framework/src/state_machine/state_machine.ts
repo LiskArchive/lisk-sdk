@@ -126,7 +126,7 @@ export class StateMachine {
 					}
 				}
 			}
-			const command = this._getCommand(ctx.transaction.moduleID, ctx.transaction.commandID);
+			const command = this._getCommand(ctx.transaction.module, ctx.transaction.command);
 			const commandContext = ctx.createCommandVerifyContext(command.schema);
 			if (command.verify) {
 				const result = await command.verify(commandContext);
@@ -167,7 +167,7 @@ export class StateMachine {
 				}
 			}
 		}
-		const command = this._getCommand(ctx.transaction.moduleID, ctx.transaction.commandID);
+		const command = this._getCommand(ctx.transaction.module, ctx.transaction.command);
 		// Execute command
 		const commandEventQueueSnapshotID = ctx.eventQueue.createSnapshot();
 		const commandStateStoreSnapshotID = ctx.stateStore.createSnapshot();
@@ -175,7 +175,7 @@ export class StateMachine {
 		try {
 			await command.execute(commandContext);
 			ctx.eventQueue.unsafeAdd(
-				ctx.transaction.moduleID,
+				ctx.transaction.module,
 				EVENT_STANDARD_TYPE_ID,
 				codec.encode(standardEventDataSchema, { success: true }),
 				[ctx.transaction.id],
@@ -184,7 +184,7 @@ export class StateMachine {
 			ctx.eventQueue.restoreSnapshot(commandEventQueueSnapshotID);
 			ctx.stateStore.restoreSnapshot(commandStateStoreSnapshotID);
 			ctx.eventQueue.unsafeAdd(
-				ctx.transaction.moduleID,
+				ctx.transaction.module,
 				EVENT_STANDARD_TYPE_ID,
 				codec.encode(standardEventDataSchema, { success: false }),
 				[ctx.transaction.id],
@@ -277,39 +277,34 @@ export class StateMachine {
 		await this.afterExecuteBlock(ctx);
 	}
 
-	private _findModule(id: Buffer): BaseModule | undefined {
-		const existingModule = this._modules.find(m => m.id.equals(id));
+	private _findModule(name: string): BaseModule | undefined {
+		const existingModule = this._modules.find(m => m.name === name);
 		if (existingModule) {
 			return existingModule;
 		}
-		const existingSystemModule = this._systemModules.find(m => m.id.equals(id));
+		const existingSystemModule = this._systemModules.find(m => m.name === name);
 		if (existingSystemModule) {
 			return existingSystemModule;
 		}
 		return undefined;
 	}
 
-	private _getCommand(moduleID: Buffer, commandID: Buffer): BaseCommand {
-		const targetModule = this._findModule(moduleID);
+	private _getCommand(module: string, command: string): BaseCommand {
+		const targetModule = this._findModule(module);
 		if (!targetModule) {
-			throw new Error(`Module with ID ${moduleID.readInt32BE(0)} is not registered.`);
+			throw new Error(`Module ${module} is not registered.`);
 		}
-		// FIXME: Update assetID to commandID with https://github.com/LiskHQ/lisk-sdk/issues/6565
-		const command = targetModule.commands.find(c => c.id.equals(commandID));
-		if (!command) {
-			throw new Error(
-				`Module with ID ${moduleID.readInt32BE(
-					0,
-				)} does not have command with ID ${commandID.readInt32BE(0)} registered.`,
-			);
+		const targetCommand = targetModule.commands.find(c => c.name === command);
+		if (!targetCommand) {
+			throw new Error(`Module ${module} does not have command ${command} registered.`);
 		}
-		return command;
+		return targetCommand;
 	}
 
 	private _validateExistingModuleID(id: Buffer): void {
 		const existingModule = this._modules.find(m => m.id.equals(id));
 		if (existingModule) {
-			throw new Error(`Module with ID ${id.readInt32BE(0)} is registered.`);
+			throw new Error(`Modul ${id.readInt32BE(0)} is registered.`);
 		}
 		const existingSystemModule = this._systemModules.find(m => m.id.equals(id));
 		if (existingSystemModule) {

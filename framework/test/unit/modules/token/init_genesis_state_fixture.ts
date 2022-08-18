@@ -11,11 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { utils } from '@liskhq/lisk-cryptography';
-
-// import { utils } from '@liskhq/lisk-cryptography';
-
 const oneUnit = BigInt('100000000');
 
 const validData = {
@@ -24,21 +19,21 @@ const validData = {
 			address: Buffer.alloc(20, 0),
 			tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
 			availableBalance: oneUnit,
-			lockedBalances: [{ moduleID: utils.intToBuffer(3, 4), amount: oneUnit }],
+			lockedBalances: [{ module: 'dpos', amount: oneUnit }],
 		},
 		{
 			address: Buffer.alloc(20, 0),
 			tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 1, 0]),
 			availableBalance: oneUnit,
-			lockedBalances: [{ moduleID: utils.intToBuffer(3, 4), amount: oneUnit }],
+			lockedBalances: [{ module: 'dpos', amount: oneUnit }],
 		},
 		{
 			address: Buffer.alloc(20, 1),
 			tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
 			availableBalance: oneUnit,
 			lockedBalances: [
-				{ moduleID: utils.intToBuffer(3, 4), amount: oneUnit },
-				{ moduleID: utils.intToBuffer(4, 4), amount: oneUnit },
+				{ module: 'dpos', amount: oneUnit },
+				{ module: 'fee', amount: oneUnit },
 			],
 		},
 	],
@@ -71,7 +66,7 @@ export const invalidGenesisAssets = [
 					address: Buffer.alloc(10, 0),
 					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
 					availableBalance: oneUnit,
-					lockedBalances: [{ moduleID: utils.intToBuffer(3, 4), amount: oneUnit }],
+					lockedBalances: [{ module: 'dpos', amount: oneUnit }],
 				},
 				...validData.userSubstore.slice(1),
 			],
@@ -87,7 +82,7 @@ export const invalidGenesisAssets = [
 					address: Buffer.alloc(20, 0),
 					tokenID: Buffer.from([9, 0, 0, 0, 0, 0, 0, 0, 0]),
 					availableBalance: oneUnit,
-					lockedBalances: [{ moduleID: utils.intToBuffer(3, 4), amount: oneUnit }],
+					lockedBalances: [{ module: 'dpos', amount: oneUnit }],
 				},
 				...validData.userSubstore.slice(1),
 			],
@@ -103,7 +98,7 @@ export const invalidGenesisAssets = [
 					address: Buffer.alloc(20, 0),
 					tokenID: Buffer.from([9, 0, 0, 0, 0, 0, 0, 0, 0]),
 					availableBalance: BigInt('1000000000000000000000000000'),
-					lockedBalances: [{ moduleID: utils.intToBuffer(3, 4), amount: oneUnit }],
+					lockedBalances: [{ module: 'dpos', amount: oneUnit }],
 				},
 				...validData.userSubstore.slice(1),
 			],
@@ -119,7 +114,7 @@ export const invalidGenesisAssets = [
 					address: Buffer.alloc(20, 9),
 					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
 					availableBalance: BigInt('1000'),
-					lockedBalances: [{ moduleID: utils.intToBuffer(3, 4), amount: oneUnit }],
+					lockedBalances: [{ module: 'dpos', amount: oneUnit }],
 				},
 				...validData.userSubstore.slice(1),
 			],
@@ -137,13 +132,13 @@ export const invalidGenesisAssets = [
 					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
 					availableBalance: BigInt('1000'),
 					lockedBalances: [
-						{ moduleID: utils.intToBuffer(3, 4), amount: oneUnit },
-						{ moduleID: utils.intToBuffer(2, 4), amount: oneUnit },
+						{ module: 'token', amount: oneUnit },
+						{ module: 'dpos', amount: oneUnit },
 					],
 				},
 			],
 		},
-		'Locked balances must be sorted by moduleID',
+		'Locked balances must be sorted by module',
 	],
 	[
 		'duplicate locked balances',
@@ -156,13 +151,13 @@ export const invalidGenesisAssets = [
 					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
 					availableBalance: BigInt('1000'),
 					lockedBalances: [
-						{ moduleID: utils.intToBuffer(2, 4), amount: oneUnit },
-						{ moduleID: utils.intToBuffer(2, 4), amount: oneUnit },
+						{ module: 'token', amount: oneUnit },
+						{ module: 'token', amount: oneUnit },
 					],
 				},
 			],
 		},
-		'duplicate moduleID in locked balances',
+		'duplicate module in locked balances',
 	],
 	[
 		'Zero locked balances',
@@ -174,7 +169,7 @@ export const invalidGenesisAssets = [
 					address: Buffer.alloc(20, 2),
 					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
 					availableBalance: BigInt('1000'),
-					lockedBalances: [{ moduleID: utils.intToBuffer(2, 4), amount: BigInt(0) }],
+					lockedBalances: [{ module: 'token', amount: BigInt(0) }],
 				},
 			],
 		},
@@ -273,21 +268,21 @@ export const invalidGenesisAssets = [
 					address: Buffer.alloc(20, 0),
 					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
 					availableBalance: BigInt(2) ** BigInt(64) - BigInt(10),
-					lockedBalances: [{ moduleID: utils.intToBuffer(3, 4), amount: oneUnit }],
+					lockedBalances: [{ module: 'dpos', amount: oneUnit }],
 				},
 				{
 					address: Buffer.alloc(20, 0),
 					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 1, 0]),
 					availableBalance: oneUnit,
-					lockedBalances: [{ moduleID: utils.intToBuffer(3, 4), amount: oneUnit }],
+					lockedBalances: [{ module: 'dpos', amount: oneUnit }],
 				},
 				{
 					address: Buffer.alloc(20, 1),
 					tokenID: Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]),
 					availableBalance: BigInt(2) ** BigInt(64) - BigInt(10),
 					lockedBalances: [
-						{ moduleID: utils.intToBuffer(3, 4), amount: oneUnit },
-						{ moduleID: utils.intToBuffer(4, 4), amount: oneUnit },
+						{ module: 'dpos', amount: oneUnit },
+						{ module: 'fee', amount: oneUnit },
 					],
 				},
 			],

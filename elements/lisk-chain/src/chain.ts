@@ -50,7 +50,7 @@ interface ChainInitArgs {
 
 interface BlockValidationInput {
 	readonly version: number;
-	readonly acceptedModuleIDs: Buffer[];
+	readonly acceptedModules: string[];
 }
 
 const debug = createDebug('lisk:chain');
@@ -174,10 +174,8 @@ export class Chain {
 			throw new Error(`Block version must be ${inputs.version}.`);
 		}
 		for (const asset of block.assets.getAll()) {
-			if (inputs.acceptedModuleIDs.findIndex(m => m.equals(asset.moduleID)) === -1) {
-				throw new Error(
-					`Block asset with moduleID: ${asset.moduleID.readInt32BE(0)} is not accepted.`,
-				);
+			if (inputs.acceptedModules.findIndex(m => m === asset.module) === -1) {
+				throw new Error(`Block asset with module: ${asset.module} is not accepted.`);
 			}
 		}
 		const transactionIDs = [];

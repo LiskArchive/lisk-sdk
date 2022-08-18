@@ -43,8 +43,8 @@ import {
 } from '../../../utils/transaction';
 
 interface Args {
-	readonly moduleID: number;
-	readonly commandID: number;
+	readonly module: string;
+	readonly command: string;
 	readonly fee: string;
 }
 
@@ -63,8 +63,8 @@ interface CreateFlags {
 }
 
 interface Transaction {
-	moduleID: string;
-	commandID: string;
+	module: string;
+	command: string;
 	nonce: string;
 	fee: string;
 	senderPublicKey: string;
@@ -75,11 +75,7 @@ interface Transaction {
 const getParamsObject = async (metadata: ModuleMetadataJSON[], flags: CreateFlags, args: Args) => {
 	let params: Record<string, unknown>;
 
-	const paramsSchema = getParamsSchema(
-		metadata,
-		cryptography.utils.intToBuffer(args.moduleID, 4).toString('hex'),
-		cryptography.utils.intToBuffer(args.commandID, 4).toString('hex'),
-	) as Schema;
+	const paramsSchema = getParamsSchema(metadata, args.module, args.command) as Schema;
 
 	if (flags.file) {
 		params = JSON.parse(getFileParams(flags.file));
@@ -119,11 +115,7 @@ const validateAndSignTransaction = async (
 	noSignature: boolean,
 ) => {
 	const { params, ...transactionWithoutParams } = transaction;
-	const paramsSchema = getParamsSchema(
-		metadata,
-		transaction.moduleID,
-		transaction.commandID,
-	) as Schema;
+	const paramsSchema = getParamsSchema(metadata, transaction.module, transaction.command) as Schema;
 
 	const txObject = codec.fromJSON(schema.transaction, { ...transactionWithoutParams, params: '' });
 	validator.validate(schema.transaction, txObject);
@@ -220,14 +212,14 @@ export abstract class CreateCommand extends Command {
 
 	static args = [
 		{
-			name: 'moduleID',
+			name: 'module',
 			required: true,
-			description: 'Registered transaction module id.',
+			description: 'Registered transaction module.',
 		},
 		{
-			name: 'commandID',
+			name: 'command',
 			required: true,
-			description: 'Registered transaction command id.',
+			description: 'Registered transaction command.',
 		},
 		{
 			name: 'fee',
@@ -237,11 +229,11 @@ export abstract class CreateCommand extends Command {
 	];
 
 	static examples = [
-		'transaction:create 2 0 100000000 --params=\'{"amount":100000000,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}\'',
-		'transaction:create 2 0 100000000 --params=\'{"amount":100000000,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}\' --json',
-		'transaction:create 2 0 100000000 --offline --network mainnet --network-identifier 873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3 --nonce 1 --params=\'{"amount":100000000,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}\'',
-		'transaction:create 2 0 100000000 --file=/txn_params.json',
-		'transaction:create 2 0 100000000 --file=/txn_params.json --json',
+		'transaction:create token transfer 100000000 --params=\'{"amount":100000000,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}\'',
+		'transaction:create token transfer 100000000 --params=\'{"amount":100000000,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}\' --json',
+		'transaction:create token transfer 100000000 --offline --network mainnet --network-identifier 873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3 --nonce 1 --params=\'{"amount":100000000,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}\'',
+		'transaction:create token transfer 100000000 --file=/txn_params.json',
+		'transaction:create token transfer 100000000 --file=/txn_params.json --json',
 	];
 
 	static flags = {
@@ -290,8 +282,8 @@ export abstract class CreateCommand extends Command {
 		const { args, flags } = this.parse(CreateCommand);
 
 		const incompleteTransaction = {
-			moduleID: cryptography.utils.intToBuffer(args.moduleID, 4).toString('hex'),
-			commandID: cryptography.utils.intToBuffer(args.commandID, 4).toString('hex'),
+			module: args.module,
+			command: args.command,
 			fee: args.fee,
 			nonce: '0',
 			senderPublicKey: '',

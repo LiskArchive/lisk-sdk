@@ -70,10 +70,8 @@ export class Transaction {
 
 	public async create<T = Record<string, unknown>>(
 		input: {
-			moduleID?: string; // id takes priority
-			moduleName?: string;
-			commandID?: string; // id takes priority
-			commandName?: string;
+			module: string;
+			command: string;
 			fee: bigint | string;
 			nonce?: bigint | string;
 			senderPublicKey?: string;
@@ -103,31 +101,15 @@ export class Transaction {
 			throw new Error('Auth module is not registered or does not have "getAuthAccount" endpoint.');
 		}
 
-		if (!txInput.moduleID) {
-			if (!txInput.moduleName) {
-				throw new Error('Missing moduleID and moduleName');
-			}
-			const registeredModule = this._metadata.find(module => module.name === input.moduleName);
-			if (!registeredModule) {
-				throw new Error(`Module corresponding to name ${txInput.moduleName} not registered.`);
-			}
-			txInput.moduleID = registeredModule.id;
+		const registeredModule = this._metadata.find(m => m.name === txInput.module);
+		if (!registeredModule) {
+			throw new Error(`Module corresponding to name ${txInput.module} not registered.`);
 		}
-		if (!txInput.commandID) {
-			if (!txInput.commandName) {
-				throw new Error('Missing commandID and commandName');
-			}
-			const registeredModule = this._metadata.find(m => m.id === txInput.moduleID);
-			if (!registeredModule) {
-				throw new Error(`Module corresponding to id ${txInput.moduleID} not registered.`);
-			}
-			const registeredCommand = registeredModule.commands.find(
-				command => command.name === txInput.commandName,
-			);
-			if (!registeredCommand) {
-				throw new Error(`Command corresponding to name ${txInput.commandName} not registered.`);
-			}
-			txInput.commandID = registeredCommand.id;
+		const registeredCommand = registeredModule.commands.find(
+			command => command.name === txInput.command,
+		);
+		if (!registeredCommand) {
+			throw new Error(`Command corresponding to name ${txInput.command} not registered.`);
 		}
 		if (typeof txInput.nonce !== 'bigint' && txInput.nonce !== 'string') {
 			txInput.nonce = BigInt(authAccount.nonce);
@@ -141,13 +123,13 @@ export class Transaction {
 		// If signature is not set, assign empty array
 		txInput.signatures = txInput.signatures ?? [];
 		const commandSchema = getTransactionParamsSchema(
-			txInput as { moduleID: string; commandID: string },
+			txInput as { module: string; command: string },
 			this._metadata,
 		);
 		const rawTx = {
 			...txInput,
-			moduleID: Buffer.from(txInput.moduleID, 'hex'),
-			commandID: Buffer.from(txInput.commandID, 'hex'),
+			module: txInput.module,
+			command: txInput.command,
 			nonce: BigInt(txInput.nonce),
 			fee: BigInt(txInput.fee),
 			signatures: txInput.signatures.map(s => Buffer.from(s, 'hex')),

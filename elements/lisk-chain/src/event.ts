@@ -24,7 +24,7 @@ import { eventSchema } from './schema';
 import { JSONObject } from './types';
 
 export interface EventAttr {
-	moduleID: Buffer;
+	module: string;
 	typeID: Buffer;
 	topics: Buffer[];
 	index: number;
@@ -35,14 +35,14 @@ type EventJSON = JSONObject<EventAttr>;
 
 export class Event {
 	private readonly _index: number;
-	private readonly _moduleID: Buffer;
+	private readonly _module: string;
 	private readonly _topics: Buffer[];
 	private readonly _typeID: Buffer;
 	private readonly _data: Buffer;
 
-	public constructor({ index, moduleID, topics, typeID, data }: EventAttr) {
+	public constructor({ index, module, topics, typeID, data }: EventAttr) {
 		this._index = index;
-		this._moduleID = moduleID;
+		this._module = module;
 		this._topics = topics;
 		this._typeID = typeID;
 		this._data = data;
@@ -101,7 +101,7 @@ export class Event {
 		return {
 			data: this._data,
 			index: this._index,
-			moduleID: this._moduleID,
+			module: this._module,
 			topics: this._topics,
 			typeID: this._typeID,
 		};

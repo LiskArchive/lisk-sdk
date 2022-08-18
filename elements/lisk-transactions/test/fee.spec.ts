@@ -44,8 +44,8 @@ describe('fee', () => {
 	const passphrase1 = 'trim elegant oven term access apple obtain error grain excite lawn neck';
 	const { publicKey: publicKey1 } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase1);
 	const validTransaction = {
-		moduleID: utils.intToBuffer(2, 4),
-		commandID: utils.intToBuffer(0, 4),
+		module: 'token',
+		command: 'transfer',
 		nonce: BigInt('1'),
 		senderPublicKey: publicKey1,
 		params: {
@@ -114,7 +114,7 @@ describe('fee', () => {
 			const delegateRegisterTransaction = {
 				...validTransaction,
 				moduleID: utils.intToBuffer(5, 4),
-				commandID: utils.intToBuffer(0, 4),
+				command: 'transfer',
 				params: { username: 'delegate1' },
 			};
 			const options = { minFeePerByte: 1000, numberOfSignatures: 1 };

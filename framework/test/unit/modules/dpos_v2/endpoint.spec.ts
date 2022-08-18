@@ -16,7 +16,6 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { Logger } from '../../../../src/logger';
 import {
-	MODULE_ID_DPOS_BUFFER,
 	STORE_PREFIX_DELEGATE,
 	STORE_PREFIX_VOTER,
 	defaultConfig,
@@ -72,7 +71,7 @@ describe('DposModuleEndpoint', () => {
 	};
 
 	beforeEach(() => {
-		dposEndpoint = new DPoSEndpoint(MODULE_ID_DPOS_BUFFER);
+		dposEndpoint = new DPoSEndpoint('dpos');
 		dposEndpoint.init(config);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		voterSubStore = stateStore.getStore(dposEndpoint['moduleID'], STORE_PREFIX_VOTER);

@@ -15,12 +15,12 @@
 import { codec } from '@liskhq/lisk-codec';
 import { address, ed, utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
-import { TAG_TRANSACTION } from './constants';
+import { NAME_REGEX, TAG_TRANSACTION, TRANSACTION_MAX_PARAMS_SIZE } from './constants';
 import { JSONObject } from './types';
 
 export interface TransactionAttrs {
-	readonly moduleID: Buffer;
-	readonly commandID: Buffer;
+	readonly module: string;
+	readonly command: string;
 	readonly senderPublicKey: Buffer;
 	readonly nonce: bigint;
 	readonly fee: bigint;
@@ -33,16 +33,19 @@ export type TransactionJSON = JSONObject<TransactionAttrs>;
 export const transactionSchema = {
 	$id: '/lisk/transaction',
 	type: 'object',
-	required: ['moduleID', 'commandID', 'nonce', 'fee', 'senderPublicKey', 'params'],
+	required: ['module', 'command', 'nonce', 'fee', 'senderPublicKey', 'params'],
 	properties: {
-		moduleID: {
-			dataType: 'bytes',
+		module: {
+			dataType: 'string',
 			fieldNumber: 1,
-			minimum: 2,
+			minLength: 1,
+			maxLength: 32,
 		},
-		commandID: {
-			dataType: 'bytes',
+		command: {
+			dataType: 'string',
 			fieldNumber: 2,
+			minLength: 1,
+			maxLength: 32,
 		},
 		nonce: {
 			dataType: 'uint64',
@@ -78,8 +81,8 @@ export const calculateMinFee = (tx: Transaction, minFeePerByte: number): bigint 
 };
 
 export class Transaction {
-	public readonly moduleID: Buffer;
-	public readonly commandID: Buffer;
+	public readonly module: string;
+	public readonly command: string;
 	public readonly params: Buffer;
 	public readonly nonce: bigint;
 	public readonly fee: bigint;
@@ -89,8 +92,8 @@ export class Transaction {
 	private _senderAddress?: Buffer;
 
 	public constructor(transaction: TransactionAttrs) {
-		this.moduleID = transaction.moduleID;
-		this.commandID = transaction.commandID;
+		this.module = transaction.module;
+		this.command = transaction.command;
 		this.params = transaction.params;
 		this.nonce = transaction.nonce;
 		this.fee = transaction.fee;
@@ -147,6 +150,16 @@ export class Transaction {
 
 	public validate(): void {
 		validator.validate(transactionSchema, this);
+		if (!NAME_REGEX.test(this.module)) {
+			throw new Error(`Invalid module name ${this.module}`);
+		}
+		if (!NAME_REGEX.test(this.command)) {
+			throw new Error(`Invalid command name ${this.command}`);
+		}
+
+		if (this.params.length > TRANSACTION_MAX_PARAMS_SIZE) {
+			throw new Error(`Params exceeds max size allowed ${TRANSACTION_MAX_PARAMS_SIZE}.`);
+		}
 
 		if (this.signatures.length === 0) {
 			throw new Error('Signatures must not be empty');
@@ -168,8 +181,8 @@ export class Transaction {
 
 	private _getProps() {
 		return {
-			moduleID: this.moduleID,
-			commandID: this.commandID,
+			module: this.module,
+			command: this.command,
 			params: this.params,
 			nonce: this.nonce,
 			fee: this.fee,

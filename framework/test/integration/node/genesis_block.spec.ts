@@ -37,8 +37,8 @@ describe('genesis block', () => {
 		networkIdentifier = processEnv.getNetworkId();
 	});
 
-	afterAll(async () => {
-		await processEnv.cleanup({ databasePath });
+	afterAll(() => {
+		processEnv.cleanup({ databasePath });
 	});
 
 	describe('given the application has not been initialized', () => {
@@ -52,7 +52,7 @@ describe('genesis block', () => {
 
 			it('should save accounts from genesis block assets', async () => {
 				// Get genesis accounts
-				const tokenAsset = processEnv.getGenesisBlock().assets.getAsset(new TokenModule().id);
+				const tokenAsset = processEnv.getGenesisBlock().assets.getAsset(new TokenModule().name);
 				const decoded = codec.decode<GenesisTokenStore>(
 					genesisTokenStoreSchema,
 					tokenAsset as Buffer,
@@ -88,7 +88,7 @@ describe('genesis block', () => {
 		let recipientAddress: Buffer;
 
 		beforeEach(async () => {
-			const tokenAsset = processEnv.getGenesisBlock().assets.getAsset(new TokenModule().id);
+			const tokenAsset = processEnv.getGenesisBlock().assets.getAsset(new TokenModule().name);
 			const decoded = codec.decode<GenesisTokenStore>(
 				genesisTokenStoreSchema,
 				tokenAsset as Buffer,
@@ -143,7 +143,7 @@ describe('genesis block', () => {
 					db: consensus['_db'],
 					genesisBlock: processEnv.getGenesisBlock(),
 					logger: consensus['_logger'],
-					moduleIDs: consensus['_moduleIDs'],
+					modules: consensus['_modules'],
 				});
 
 				const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {

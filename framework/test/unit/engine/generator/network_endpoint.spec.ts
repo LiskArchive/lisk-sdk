@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
 import { Chain, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { TransactionPool } from '@liskhq/lisk-transaction-pool';
@@ -34,18 +33,18 @@ describe('generator network endpoint', () => {
 	const logger: Logger = fakeLogger;
 	const tx = new Transaction({
 		params: Buffer.alloc(20),
-		commandID: utils.intToBuffer(0, 4),
+		command: 'transfer',
 		fee: BigInt(100000),
-		moduleID: utils.intToBuffer(2, 4),
+		module: 'token',
 		nonce: BigInt(0),
 		senderPublicKey: Buffer.alloc(32),
 		signatures: [Buffer.alloc(64)],
 	});
 	const tx2 = new Transaction({
 		params: Buffer.alloc(20),
-		commandID: utils.intToBuffer(1, 4),
+		command: 'crossChainTransfer',
 		fee: BigInt(200000),
-		moduleID: utils.intToBuffer(2, 4),
+		module: 'token',
 		nonce: BigInt(0),
 		senderPublicKey: Buffer.alloc(32),
 		signatures: [Buffer.alloc(64)],

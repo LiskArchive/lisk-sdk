@@ -25,7 +25,6 @@ import { UnlockCommand } from './commands/unlock';
 import { UpdateGeneratorKeyCommand } from './commands/update_generator_key';
 import { VoteCommand } from './commands/vote';
 import {
-	MODULE_ID_DPOS,
 	DELEGATE_LIST_ROUND_OFFSET,
 	STORE_PREFIX_DELEGATE,
 	STORE_PREFIX_SNAPSHOT,
@@ -38,7 +37,7 @@ import {
 	STORE_PREFIX_NAME,
 	STORE_PREFIX_VOTER,
 	defaultConfig,
-	MODULE_ID_DPOS_BUFFER,
+	MODULE_NAME_DPOS,
 } from './constants';
 import { DPoSEndpoint } from './endpoint';
 import {
@@ -72,7 +71,6 @@ import {
 import { Rounds } from './rounds';
 import {
 	equalUnlocking,
-	getIDAsKeyForStore,
 	isCurrentlyPunished,
 	isUsername,
 	selectStandbyDelegates,
@@ -82,11 +80,10 @@ import {
 } from './utils';
 
 export class DPoSModule extends BaseModule {
-	public id = getIDAsKeyForStore(MODULE_ID_DPOS);
-	public name = 'dpos';
-	public api = new DPoSAPI(this.id);
+	public name = MODULE_NAME_DPOS;
+	public api = new DPoSAPI(this.name);
 	public configSchema = configSchema;
-	public endpoint = new DPoSEndpoint(this.id);
+	public endpoint = new DPoSEndpoint(this.name);
 
 	private readonly _delegateRegistrationCommand = new DelegateRegistrationCommand(this.id);
 	private readonly _reportDelegateMisbehaviorCommand = new ReportDelegateMisbehaviorCommand(
@@ -182,7 +179,7 @@ export class DPoSModule extends BaseModule {
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
-		const assetBytes = context.assets.getAsset(this.id);
+		const assetBytes = context.assets.getAsset(this.name);
 		// if there is no asset, do not initialize
 		if (!assetBytes) {
 			return;
@@ -374,7 +371,7 @@ export class DPoSModule extends BaseModule {
 	}
 
 	public async finalizeGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
-		const assetBytes = context.assets.getAsset(this.id);
+		const assetBytes = context.assets.getAsset(this.name);
 		// if there is no asset, do not initialize
 		if (!assetBytes) {
 			return;
@@ -413,7 +410,7 @@ export class DPoSModule extends BaseModule {
 				apiContext,
 				voterData.key,
 				this._moduleConfig.tokenIDDPoS,
-				this.id,
+				this.name,
 			);
 			if (lockedAmount !== votedAmount) {
 				throw new Error('Voted amount is not locked');
@@ -663,7 +660,7 @@ export class DPoSModule extends BaseModule {
 			generators,
 		);
 
-		const delegateStore = getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
+		const delegateStore = getStore(this.id, STORE_PREFIX_DELEGATE);
 		for (const addressString of Object.keys(missedBlocks)) {
 			const address = Buffer.from(addressString, 'binary');
 			const delegate = await delegateStore.getWithSchema<DelegateAccount>(

@@ -12,16 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
 import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
-import {
-	defaultConfig,
-	EMPTY_KEY,
-	MODULE_ID_VALIDATORS,
-	STORE_PREFIX_GENESIS_DATA,
-} from './constants';
+import { defaultConfig, EMPTY_KEY, STORE_PREFIX_GENESIS_DATA } from './constants';
 import { GenesisBlockExecuteContext } from '../../state_machine';
 import { ValidatorsAPI } from './api';
 import { ValidatorsEndpoint } from './endpoint';
@@ -33,10 +27,9 @@ import {
 } from './schemas';
 
 export class ValidatorsModule extends BaseModule {
-	public id = utils.intToBuffer(MODULE_ID_VALIDATORS, 4);
 	public name = 'validators';
-	public api = new ValidatorsAPI(this.id);
-	public endpoint = new ValidatorsEndpoint(this.id);
+	public api = new ValidatorsAPI(this.name);
+	public endpoint = new ValidatorsEndpoint(this.name);
 	private _blockTime!: number;
 
 	public metadata(): ModuleMetadata {

@@ -14,6 +14,7 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { intToBuffer } from '@liskhq/lisk-cryptography/dist-node/utils';
+import { MODULE_NAME_INTEROPERABILITY } from '../../../../../src/modules/interoperability/constants';
 import { SidechainInteroperabilityEndpoint } from '../../../../../src/modules/interoperability/sidechain/endpoint';
 import { SidechainInteroperabilityStore } from '../../../../../src/modules/interoperability/sidechain/store';
 import {
@@ -148,7 +149,7 @@ describe('Sidechain endpoint', () => {
 
 	beforeEach(() => {
 		sidechainInteroperabilityEndpoint = new SidechainInteroperabilityEndpoint(
-			moduleID,
+			MODULE_NAME_INTEROPERABILITY,
 			interoperableCCAPIs,
 		);
 		sidechainInteroperabilityStore = new SidechainInteroperabilityStore(

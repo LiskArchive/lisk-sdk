@@ -15,6 +15,7 @@
 import { utils } from '@liskhq/lisk-cryptography';
 
 export const MODULE_ID_DPOS = 13; // TBD
+export const MODULE_NAME_DPOS = 'dpos';
 
 export const STORE_PREFIX_VOTER = 0x0000;
 export const STORE_PREFIX_DELEGATE = 0x4000;
@@ -24,6 +25,7 @@ export const STORE_PREFIX_GENESIS_DATA = 0xc000;
 export const STORE_PREFIX_PREVIOUS_TIMESTAMP = 0xe000;
 
 export const COMMAND_ID_DELEGATE_REGISTRATION = 0;
+export const COMMAND_NAME_DELEGATE_REGISTRATION = 'registerDelegate';
 export const COMMAND_ID_VOTE = 1;
 export const COMMAND_ID_UNLOCK = 2;
 export const COMMAND_ID_POM = 3;

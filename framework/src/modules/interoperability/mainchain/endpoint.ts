@@ -33,8 +33,8 @@ import { ModuleEndpointContext } from '../../../types';
 export class MainchainInteroperabilityEndpoint extends BaseEndpoint {
 	protected readonly interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
 
-	public constructor(moduleID: Buffer, interoperableCCAPIs: Map<number, BaseInteroperableAPI>) {
-		super(moduleID);
+	public constructor(module: string, interoperableCCAPIs: Map<number, BaseInteroperableAPI>) {
+		super(module);
 		this.interoperableCCAPIs = interoperableCCAPIs;
 	}
 

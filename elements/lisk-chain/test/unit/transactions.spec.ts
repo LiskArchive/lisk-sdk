@@ -18,9 +18,8 @@ describe('blocks/transactions', () => {
 	describe('transaction', () => {
 		it.todo('should have id');
 		it.todo('should have senderAddress');
-		it.todo('should throw when moduleID is below 2');
-		it.todo('should throw when moduleID is invalid');
-		it.todo('should throw when commandID is invalid');
+		it.todo('should throw when module is invalid');
+		it.todo('should throw when command is invalid');
 		it.todo('should throw when sender public key is invalid');
 		it.todo('should throw when nonce is invalid');
 		it.todo('should throw when fee is invalid');
@@ -29,10 +28,36 @@ describe('blocks/transactions', () => {
 	describe('#validateTransaction', () => {
 		let transaction: Transaction;
 
+		it('should throw when module name is invalid', () => {
+			transaction = new Transaction({
+				module: 'token_mod',
+				command: 'transfer',
+				fee: BigInt(613000),
+				params: utils.getRandomBytes(500),
+				nonce: BigInt(2),
+				senderPublicKey: utils.getRandomBytes(32),
+				signatures: [utils.getRandomBytes(64)],
+			});
+			expect(() => transaction.validate()).toThrow('Invalid module name token_mod');
+		});
+
+		it('should throw when command name is invalid', () => {
+			transaction = new Transaction({
+				module: 'token',
+				command: 'transfer_cross\nasd',
+				fee: BigInt(613000),
+				params: utils.getRandomBytes(500),
+				nonce: BigInt(2),
+				senderPublicKey: utils.getRandomBytes(32),
+				signatures: [utils.getRandomBytes(64)],
+			});
+			expect(() => transaction.validate()).toThrow('Invalid command name');
+		});
+
 		it('should throw when sender public key is not 32 bytes', () => {
 			transaction = new Transaction({
-				moduleID: utils.intToBuffer(2, 4),
-				commandID: utils.intToBuffer(0, 4),
+				module: 'token',
+				command: 'transfer',
 				fee: BigInt(613000),
 				params: utils.getRandomBytes(500),
 				nonce: BigInt(2),
@@ -44,8 +69,8 @@ describe('blocks/transactions', () => {
 
 		it('should throw when signatures is empty', () => {
 			transaction = new Transaction({
-				moduleID: utils.intToBuffer(2, 4),
-				commandID: utils.intToBuffer(0, 4),
+				module: 'token',
+				command: 'transfer',
 				fee: BigInt(613000),
 				params: utils.getRandomBytes(500),
 				nonce: BigInt(2),
@@ -57,8 +82,8 @@ describe('blocks/transactions', () => {
 
 		it('should throw when any of signatures are not 64 bytes', () => {
 			transaction = new Transaction({
-				moduleID: utils.intToBuffer(2, 4),
-				commandID: utils.intToBuffer(0, 4),
+				module: 'token',
+				command: 'transfer',
 				fee: BigInt(613000),
 				params: utils.getRandomBytes(500),
 				nonce: BigInt(2),

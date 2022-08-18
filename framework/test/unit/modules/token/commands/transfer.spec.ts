@@ -19,9 +19,7 @@ import { VerifyStatus } from '../../../../../src';
 import { TokenAPI } from '../../../../../src/modules/token/api';
 import { TransferCommand } from '../../../../../src/modules/token/commands/transfer';
 import {
-	COMMAND_ID_TRANSFER_BUFFER,
 	MIN_BALANCE,
-	MODULE_ID_TOKEN_BUFFER,
 	STORE_PREFIX_SUPPLY,
 	STORE_PREFIX_USER,
 } from '../../../../../src/modules/token/constants';
@@ -40,6 +38,7 @@ import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_pr
 describe('Transfer command', () => {
 	const localTokenID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
 	const secondTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
+	const api = new TokenAPI('token');
 	let command: TransferCommand;
 	let interopAPI: {
 		getOwnChainAccount: jest.Mock;
@@ -50,8 +49,7 @@ describe('Transfer command', () => {
 	};
 
 	beforeEach(() => {
-		const moduleID = MODULE_ID_TOKEN_BUFFER;
-		command = new TransferCommand(moduleID);
+		command = new TransferCommand(api['moduleID']);
 		interopAPI = {
 			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
 			send: jest.fn(),
@@ -59,7 +57,6 @@ describe('Transfer command', () => {
 			terminateChain: jest.fn(),
 			getChannel: jest.fn(),
 		};
-		const api = new TokenAPI(moduleID);
 		api.addDependencies(interopAPI as never);
 		api.init({
 			minBalances: [
@@ -76,8 +73,8 @@ describe('Transfer command', () => {
 		it('should fail when tokenID does not have valid length', async () => {
 			const context = createTransactionContext({
 				transaction: new Transaction({
-					moduleID: MODULE_ID_TOKEN_BUFFER,
-					commandID: COMMAND_ID_TRANSFER_BUFFER,
+					module: 'token',
+					command: 'transfer',
 					fee: BigInt(5000000),
 					nonce: BigInt(0),
 					senderPublicKey: utils.getRandomBytes(32),
@@ -99,8 +96,8 @@ describe('Transfer command', () => {
 		it('should fail when recipientAddress is not 20 btyes', async () => {
 			const context = createTransactionContext({
 				transaction: new Transaction({
-					moduleID: MODULE_ID_TOKEN_BUFFER,
-					commandID: COMMAND_ID_TRANSFER_BUFFER,
+					module: 'token',
+					command: 'transfer',
 					fee: BigInt(5000000),
 					nonce: BigInt(0),
 					senderPublicKey: utils.getRandomBytes(32),
@@ -122,8 +119,8 @@ describe('Transfer command', () => {
 		it('should fail when data is more than 64 characters', async () => {
 			const context = createTransactionContext({
 				transaction: new Transaction({
-					moduleID: MODULE_ID_TOKEN_BUFFER,
-					commandID: COMMAND_ID_TRANSFER_BUFFER,
+					module: 'token',
+					command: 'transfer',
 					fee: BigInt(5000000),
 					nonce: BigInt(0),
 					senderPublicKey: utils.getRandomBytes(32),
@@ -145,8 +142,8 @@ describe('Transfer command', () => {
 		it('should success when all parameters are valid', async () => {
 			const context = createTransactionContext({
 				transaction: new Transaction({
-					moduleID: MODULE_ID_TOKEN_BUFFER,
-					commandID: COMMAND_ID_TRANSFER_BUFFER,
+					module: 'token',
+					command: 'transfer',
 					fee: BigInt(5000000),
 					nonce: BigInt(0),
 					senderPublicKey: utils.getRandomBytes(32),
@@ -177,7 +174,7 @@ describe('Transfer command', () => {
 
 		beforeEach(async () => {
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-			const userStore = stateStore.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
+			const userStore = stateStore.getStore(api['moduleID'], STORE_PREFIX_USER);
 			await userStore.setWithSchema(
 				getUserStoreKey(address.getAddressFromPublicKey(sender.publicKey), localTokenID),
 				{ availableBalance: senderBalance, lockedBalances: [] },
@@ -198,7 +195,7 @@ describe('Transfer command', () => {
 				{ availableBalance: recipientBalance, lockedBalances: [] },
 				userStoreSchema,
 			);
-			const supplyStore = stateStore.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_SUPPLY);
+			const supplyStore = stateStore.getStore(api['moduleID'], STORE_PREFIX_SUPPLY);
 			await supplyStore.setWithSchema(localTokenID.slice(4), { totalSupply }, supplyStoreSchema);
 		});
 
@@ -206,8 +203,8 @@ describe('Transfer command', () => {
 			const context = createTransactionContext({
 				stateStore,
 				transaction: new Transaction({
-					moduleID: MODULE_ID_TOKEN_BUFFER,
-					commandID: COMMAND_ID_TRANSFER_BUFFER,
+					module: 'token',
+					command: 'transfer',
 					fee: BigInt(0),
 					nonce: BigInt(0),
 					senderPublicKey: sender.publicKey,
@@ -229,8 +226,8 @@ describe('Transfer command', () => {
 			const context = createTransactionContext({
 				stateStore,
 				transaction: new Transaction({
-					moduleID: MODULE_ID_TOKEN_BUFFER,
-					commandID: COMMAND_ID_TRANSFER_BUFFER,
+					module: 'token',
+					command: 'transfer',
 					fee: BigInt(5000000),
 					nonce: BigInt(0),
 					senderPublicKey: sender.publicKey,
@@ -248,7 +245,7 @@ describe('Transfer command', () => {
 			).resolves.toBeUndefined();
 
 			// Recipient should receive full amount
-			const userStore = stateStore.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
+			const userStore = stateStore.getStore(api['moduleID'], STORE_PREFIX_USER);
 			const result = await userStore.getWithSchema<UserStoreData>(
 				getUserStoreKey(address.getAddressFromPublicKey(recipient.publicKey), thirdTokenID),
 				userStoreSchema,
@@ -262,8 +259,8 @@ describe('Transfer command', () => {
 			const context = createTransactionContext({
 				stateStore,
 				transaction: new Transaction({
-					moduleID: MODULE_ID_TOKEN_BUFFER,
-					commandID: COMMAND_ID_TRANSFER_BUFFER,
+					module: 'token',
+					command: 'transfer',
 					fee: BigInt(0),
 					nonce: BigInt(0),
 					senderPublicKey: sender.publicKey,
@@ -287,8 +284,8 @@ describe('Transfer command', () => {
 			const context = createTransactionContext({
 				stateStore,
 				transaction: new Transaction({
-					moduleID: MODULE_ID_TOKEN_BUFFER,
-					commandID: COMMAND_ID_TRANSFER_BUFFER,
+					module: 'token',
+					command: 'transfer',
 					fee: BigInt(0),
 					nonce: BigInt(0),
 					senderPublicKey: sender.publicKey,
@@ -312,8 +309,8 @@ describe('Transfer command', () => {
 			const context = createTransactionContext({
 				stateStore,
 				transaction: new Transaction({
-					moduleID: MODULE_ID_TOKEN_BUFFER,
-					commandID: COMMAND_ID_TRANSFER_BUFFER,
+					module: 'token',
+					command: 'transfer',
 					fee: BigInt(0),
 					nonce: BigInt(0),
 					senderPublicKey: sender.publicKey,
@@ -331,7 +328,7 @@ describe('Transfer command', () => {
 			).resolves.toBeUndefined();
 
 			// Recipient should receive amount - min balance if not exist
-			const userStore = stateStore.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
+			const userStore = stateStore.getStore(api['moduleID'], STORE_PREFIX_USER);
 			const result = await userStore.getWithSchema<UserStoreData>(
 				getUserStoreKey(recipientAddress, localTokenID),
 				userStoreSchema,
@@ -339,7 +336,7 @@ describe('Transfer command', () => {
 			expect(result.availableBalance).toEqual(amount - MIN_BALANCE);
 
 			// Min balance is burnt
-			const supplyStore = stateStore.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_SUPPLY);
+			const supplyStore = stateStore.getStore(api['moduleID'], STORE_PREFIX_SUPPLY);
 			const supply = await supplyStore.getWithSchema<SupplyStoreData>(
 				localTokenID.slice(4),
 				supplyStoreSchema,
@@ -353,8 +350,8 @@ describe('Transfer command', () => {
 			const context = createTransactionContext({
 				stateStore,
 				transaction: new Transaction({
-					moduleID: MODULE_ID_TOKEN_BUFFER,
-					commandID: COMMAND_ID_TRANSFER_BUFFER,
+					module: 'token',
+					command: 'transfer',
 					fee: BigInt(0),
 					nonce: BigInt(0),
 					senderPublicKey: sender.publicKey,
@@ -372,7 +369,7 @@ describe('Transfer command', () => {
 			).resolves.toBeUndefined();
 
 			// Recipient should receive amount - min balance if not exist
-			const userStore = stateStore.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
+			const userStore = stateStore.getStore(api['moduleID'], STORE_PREFIX_USER);
 			const result = await userStore.getWithSchema<UserStoreData>(
 				getUserStoreKey(recipientAddress, secondTokenID),
 				userStoreSchema,
@@ -393,8 +390,8 @@ describe('Transfer command', () => {
 			const context = createTransactionContext({
 				stateStore,
 				transaction: new Transaction({
-					moduleID: MODULE_ID_TOKEN_BUFFER,
-					commandID: COMMAND_ID_TRANSFER_BUFFER,
+					module: 'token',
+					command: 'transfer',
 					fee: BigInt(0),
 					nonce: BigInt(0),
 					senderPublicKey: sender.publicKey,
@@ -412,7 +409,7 @@ describe('Transfer command', () => {
 			).toResolve();
 
 			// Recipient should get full amount
-			const userStore = stateStore.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
+			const userStore = stateStore.getStore(api['moduleID'], STORE_PREFIX_USER);
 			const result = await userStore.getWithSchema<UserStoreData>(
 				getUserStoreKey(address.getAddressFromPublicKey(recipient.publicKey), localTokenID),
 				userStoreSchema,
@@ -420,7 +417,7 @@ describe('Transfer command', () => {
 			expect(result.availableBalance).toEqual(amount + recipientBalance);
 
 			// total supply should not change
-			const supplyStore = stateStore.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_SUPPLY);
+			const supplyStore = stateStore.getStore(api['moduleID'], STORE_PREFIX_SUPPLY);
 			const supply = await supplyStore.getWithSchema<SupplyStoreData>(
 				localTokenID.slice(4),
 				supplyStoreSchema,

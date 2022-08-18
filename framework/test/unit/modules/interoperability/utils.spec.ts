@@ -29,6 +29,7 @@ import {
 	MAX_NUM_VALIDATORS,
 	MAX_UINT64,
 	MODULE_ID_INTEROPERABILITY_BUFFER,
+	MODULE_NAME_INTEROPERABILITY,
 	STORE_PREFIX_CHAIN_DATA,
 	STORE_PREFIX_CHAIN_VALIDATORS,
 	STORE_PREFIX_CHANNEL_DATA,
@@ -83,6 +84,7 @@ describe('Utils', () => {
 		{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(4) },
 		{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
 	];
+	const moduleID = MODULE_ID_INTEROPERABILITY_BUFFER;
 
 	describe('updateActiveValidators', () => {
 		const validator1 = {
@@ -1008,7 +1010,7 @@ describe('Utils', () => {
 			};
 
 			when(context.getStore)
-				.calledWith(context.transaction.moduleID, STORE_PREFIX_CHANNEL_DATA)
+				.calledWith(moduleID, STORE_PREFIX_CHANNEL_DATA)
 				.mockReturnValueOnce(partnerChannelStoreMock);
 
 			when(partnerChannelStoreMock.getWithSchema)
@@ -1026,6 +1028,7 @@ describe('Utils', () => {
 		it('should run successfully and return undefined when newCertificateThreshold is non-zero', async () => {
 			await expect(
 				commonCCUExecutelogic({
+					moduleID,
 					certificate,
 					partnerChainAccount,
 					partnerValidatorStore,
@@ -1057,6 +1060,7 @@ describe('Utils', () => {
 
 			await expect(
 				commonCCUExecutelogic({
+					moduleID,
 					certificate,
 					partnerChainAccount,
 					partnerValidatorStore,
@@ -1088,6 +1092,7 @@ describe('Utils', () => {
 
 			await expect(
 				commonCCUExecutelogic({
+					moduleID,
 					certificate: {} as any,
 					partnerChainAccount,
 					partnerValidatorStore,
@@ -1129,6 +1134,7 @@ describe('Utils', () => {
 
 			await expect(
 				commonCCUExecutelogic({
+					moduleID,
 					certificate,
 					partnerChainAccount,
 					partnerValidatorStore,
@@ -1364,7 +1370,9 @@ describe('Utils', () => {
 			const context = createGenesisBlockContext({ stateStore }).createInitGenesisStateContext();
 			jest.spyOn(context, 'getStore');
 
-			await expect(initGenesisStateUtil(chainID, context)).toResolve();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).toResolve();
 			expect(context.getStore).not.toHaveBeenCalled();
 		});
 
@@ -1372,12 +1380,12 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, invalidData);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
 
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if outbox root store key is duplicated', async () => {
@@ -1391,11 +1399,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if chain data store key is duplicated', async () => {
@@ -1409,11 +1417,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if channel data store key is duplicated', async () => {
@@ -1427,11 +1435,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if chain validators store key is duplicated', async () => {
@@ -1445,11 +1453,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if own chain store key is duplicated', async () => {
@@ -1463,11 +1471,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if terminated state store key is duplicated', async () => {
@@ -1481,11 +1489,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if terminated outbox store key is duplicated', async () => {
@@ -1499,11 +1507,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if registered names store key is duplicated', async () => {
@@ -1517,11 +1525,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if registered network ids store key is duplicated', async () => {
@@ -1535,11 +1543,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if some store key in chain data substore is missing in outbox root substore and the corresponding chain account is not inactive', async () => {
@@ -1553,11 +1561,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if some store key in chain data substore is present in outbox root substore but the corresponding chain account is inactive', async () => {
@@ -1571,11 +1579,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if some store key in chain data substore is missing in channel data substore', async () => {
@@ -1589,11 +1597,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if some store key in chain data substore is missing in chain validators substore', async () => {
@@ -1607,11 +1615,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if some store key in outbox data substore is missing in chain data substore', async () => {
@@ -1625,11 +1633,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if some store key in channel data substore is missing in chain data substore', async () => {
@@ -1643,11 +1651,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if some store key in chain validators substore is missing in chain data substore', async () => {
@@ -1661,11 +1669,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if some store key in terminated outbox substore is missing in the terminated state substore', async () => {
@@ -1679,11 +1687,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if some store key in terminated state substore is present in the terminated outbox substore but the property initialized is set to false', async () => {
@@ -1700,11 +1708,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if some store key in terminated state substore has the property initialized set to false but stateRoot is not set to empty bytes and mainchainStateRoot not set to a 32-bytes value', async () => {
@@ -1721,11 +1729,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if some store key in terminated state substore has the property initialized set to true but mainchainStateRoot is not set to empty bytes and stateRoot not set to a 32-bytes value', async () => {
@@ -1747,11 +1755,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if active validators have less than 1 element', async () => {
@@ -1768,11 +1776,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if active validators have more than MAX_NUM_VALIDATORS elements', async () => {
@@ -1792,11 +1800,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if active validators are not ordered lexicographically by blsKey', async () => {
@@ -1831,11 +1839,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if some active validators have blsKey which is not 48 bytes', async () => {
@@ -1867,11 +1875,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if some active validators have blsKey which is not pairwise distinct', async () => {
@@ -1906,11 +1914,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if some active validators have bftWeight which is not a positive integer', async () => {
@@ -1945,11 +1953,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if total bft weight of active validators is greater than MAX_UINT64', async () => {
@@ -1984,11 +1992,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if total bft weight of active validators is less than the value check', async () => {
@@ -2014,11 +2022,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if certificateThreshold is less than the value check', async () => {
@@ -2035,11 +2043,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if a chain account for another sidechain is present but chain account for mainchain is not present', async () => {
@@ -2065,11 +2073,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if a chain account for another sidechain is present but chain account for ownchain is not present', async () => {
@@ -2095,11 +2103,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should not throw if some chain id corresponding to message fee token id of a channel is not 1 but is corresponding native token id of either chains', async () => {
@@ -2122,11 +2130,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).toResolve();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).toResolve();
 		});
 
 		it('should throw if some chain id corresponding to message fee token id of a channel is neither 1 nor corresponding native token id of either chains', async () => {
@@ -2149,11 +2157,11 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should throw if some chain id corresponding to message fee token id of a channel is 1 but corresponding local id is not 0', async () => {
@@ -2176,23 +2184,23 @@ describe('Utils', () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData1);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(initGenesisStateUtil(chainID, context)).rejects.toThrow();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).rejects.toThrow();
 		});
 
 		it('should create all the corresponding entries in the interoperability module state for every substore for valid input', async () => {
 			const encodedAsset = codec.encode(genesisInteroperabilityStoreSchema, validData);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([
-					{ moduleID: MODULE_ID_INTEROPERABILITY_BUFFER, data: encodedAsset },
-				]),
+				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
 
-			await expect(initGenesisStateUtil(chainID, context)).toResolve();
+			await expect(
+				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
+			).toResolve();
 
 			channelDataSubstore = stateStore.getStore(
 				MODULE_ID_INTEROPERABILITY_BUFFER,

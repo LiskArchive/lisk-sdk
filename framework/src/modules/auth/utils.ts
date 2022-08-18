@@ -19,8 +19,8 @@ import { isHexString } from '@liskhq/lisk-validator';
 import { VerificationResult, VerifyStatus } from '../../state_machine';
 import { InvalidNonceError } from './errors';
 import { AuthAccount, Keys } from './types';
-import { COMMAND_ID_DELEGATE_REGISTRATION } from '../dpos_v2/constants';
 import { registerMultisignatureParamsSchema } from './schemas';
+import { COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP } from './constants';
 
 export const isMultisignatureAccount = (keys: Keys): boolean =>
 	!!((keys.mandatoryKeys.length > 0 || keys.optionalKeys.length > 0) && keys.numberOfSignatures);
@@ -178,15 +178,15 @@ export const verifySingleSignatureTransaction = (
 };
 
 export const verifySignatures = (
-	authModuleId: Buffer,
+	authModuleName: string,
 	transaction: Transaction,
 	transactionBytes: Buffer,
 	networkIdentifier: Buffer,
 	account: AuthAccount,
 ) => {
 	if (
-		transaction.moduleID.equals(authModuleId) &&
-		transaction.commandID.readInt32BE(0) === COMMAND_ID_DELEGATE_REGISTRATION
+		transaction.module === authModuleName &&
+		transaction.command === COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP
 	) {
 		verifyRegisterMultiSignatureTransaction(
 			TAG_TRANSACTION,

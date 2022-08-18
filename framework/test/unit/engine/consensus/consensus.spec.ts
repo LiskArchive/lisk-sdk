@@ -47,7 +47,7 @@ import {
 
 describe('consensus', () => {
 	const genesis = (genesisBlock() as unknown) as Block;
-	const moduleIDs = [utils.intToBuffer(2, 4)];
+	const modules = ['token'];
 	let consensus: Consensus;
 	let chain: Chain;
 	let network: Network;
@@ -140,7 +140,7 @@ describe('consensus', () => {
 				logger: loggerMock,
 				db: dbMock,
 				genesisBlock: genesis,
-				moduleIDs,
+				modules,
 			});
 			expect(consensus['_synchronizer']).toBeInstanceOf(Synchronizer);
 		});
@@ -151,7 +151,7 @@ describe('consensus', () => {
 				logger: loggerMock,
 				db: dbMock,
 				genesisBlock: genesis,
-				moduleIDs,
+				modules,
 			});
 			expect(consensus['_endpoint']).toBeInstanceOf(NetworkEndpoint);
 		});
@@ -162,7 +162,7 @@ describe('consensus', () => {
 				logger: loggerMock,
 				db: dbMock,
 				genesisBlock: genesis,
-				moduleIDs,
+				modules,
 			});
 			expect(network.registerEndpoint).toHaveBeenCalledTimes(3);
 		});
@@ -177,7 +177,7 @@ describe('consensus', () => {
 				logger: loggerMock,
 				db: dbMock,
 				genesisBlock: genesis,
-				moduleIDs,
+				modules,
 			});
 
 			expect(genesis.validateGenesis).toHaveBeenCalledTimes(1);
@@ -191,7 +191,7 @@ describe('consensus', () => {
 				logger: loggerMock,
 				db: dbMock,
 				genesisBlock: genesis,
-				moduleIDs,
+				modules,
 			});
 			expect(chain.saveBlock).not.toHaveBeenCalled();
 			expect(chain.loadLastBlocks).toHaveBeenCalledTimes(1);
@@ -212,7 +212,7 @@ describe('consensus', () => {
 					logger: loggerMock,
 					db: dbMock,
 					genesisBlock: genesis,
-					moduleIDs,
+					modules,
 				}),
 			).rejects.toThrow('Event root is not valid for the block');
 		});
@@ -228,7 +228,7 @@ describe('consensus', () => {
 					logger: loggerMock,
 					db: dbMock,
 					genesisBlock: genesis,
-					moduleIDs,
+					modules,
 				}),
 			).rejects.toThrow('Genesis block validators hash is invalid');
 		});
@@ -247,7 +247,7 @@ describe('consensus', () => {
 				logger: loggerMock,
 				db: dbMock,
 				genesisBlock: genesis,
-				moduleIDs,
+				modules,
 			});
 
 			jest.spyOn(consensus['_commitPool'], 'addCommit');
@@ -279,7 +279,7 @@ describe('consensus', () => {
 				logger: loggerMock,
 				db: dbMock,
 				genesisBlock: genesis,
-				moduleIDs,
+				modules,
 			});
 		});
 
@@ -606,7 +606,7 @@ describe('consensus', () => {
 				logger: loggerMock,
 				db: dbMock,
 				genesisBlock: genesis,
-				moduleIDs,
+				modules,
 			});
 		});
 
@@ -680,7 +680,7 @@ describe('consensus', () => {
 				await consensus.init({
 					db: dbMock,
 					genesisBlock: genesis,
-					moduleIDs,
+					modules,
 					logger: fakeLogger,
 				});
 				jest.spyOn(consensus['_commitPool'], 'verifyAggregateCommit');
@@ -983,7 +983,7 @@ describe('consensus', () => {
 						new Event({
 							data: utils.getRandomBytes(20),
 							index: 0,
-							moduleID: Buffer.from([0, 0, 0, 2]),
+							module: 'token',
 							topics: [Buffer.from([0])],
 							typeID: Buffer.from([0, 0, 0, 1]),
 						}),

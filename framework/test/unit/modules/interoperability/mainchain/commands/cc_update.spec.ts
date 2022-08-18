@@ -51,6 +51,7 @@ import {
 	LIVENESS_LIMIT,
 	MAINCHAIN_ID_BUFFER,
 	MAX_CCM_SIZE,
+	MODULE_ID_INTEROPERABILITY_BUFFER,
 	STORE_PREFIX_CHAIN_DATA,
 	STORE_PREFIX_CHAIN_VALIDATORS,
 	STORE_PREFIX_CHANNEL_DATA,
@@ -66,7 +67,7 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 describe('CrossChainUpdateCommand', () => {
 	const getAPIContextMock = jest.fn();
 	const getStoreMock = jest.fn();
-	const moduleID = utils.intToBuffer(1, 4);
+	const moduleID = MODULE_ID_INTEROPERABILITY_BUFFER;
 	const networkIdentifier = cryptography.utils.getRandomBytes(32);
 	const defaultCertificateValues: Certificate = {
 		blockID: cryptography.utils.getRandomBytes(20),
@@ -151,6 +152,7 @@ describe('CrossChainUpdateCommand', () => {
 	let sortedActiveValidatorsUpdate: ActiveValidator[];
 
 	beforeEach(() => {
+		mainchainCCUUpdateCommand = new MainchainCCUpdateCommand(moduleID, new Map(), new Map());
 		activeValidatorsUpdate = [
 			{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(1) },
 			{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
@@ -224,15 +226,15 @@ describe('CrossChainUpdateCommand', () => {
 			.mockResolvedValue(partnerChannelAccount);
 
 		when(getStoreMock)
-			.calledWith(defaultTransaction.moduleID, STORE_PREFIX_CHAIN_DATA)
+			.calledWith(mainchainCCUUpdateCommand['moduleID'], STORE_PREFIX_CHAIN_DATA)
 			.mockReturnValueOnce(partnerChainStore);
 
 		when(getStoreMock)
-			.calledWith(defaultTransaction.moduleID, STORE_PREFIX_CHANNEL_DATA)
+			.calledWith(mainchainCCUUpdateCommand['moduleID'], STORE_PREFIX_CHANNEL_DATA)
 			.mockReturnValueOnce(partnerChannelStore);
 
 		when(getStoreMock)
-			.calledWith(moduleID, STORE_PREFIX_CHAIN_VALIDATORS)
+			.calledWith(mainchainCCUUpdateCommand['moduleID'], STORE_PREFIX_CHAIN_VALIDATORS)
 			.mockReturnValueOnce(partnerValidatorStore);
 
 		when(partnerValidatorStore.getWithSchema)
@@ -420,7 +422,7 @@ describe('CrossChainUpdateCommand', () => {
 			};
 
 			when(getStoreMock)
-				.calledWith(defaultTransaction.moduleID, STORE_PREFIX_CHAIN_VALIDATORS)
+				.calledWith(mainchainCCUUpdateCommand['moduleID'], STORE_PREFIX_CHAIN_VALIDATORS)
 				.mockReturnValueOnce(partnerValidatorStore);
 
 			when(partnerValidatorStore.getWithSchema)

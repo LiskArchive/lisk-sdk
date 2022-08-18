@@ -20,8 +20,8 @@ import { CommandExecuteContext, CommandVerifyContext } from '../../../../../../s
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
 import { BaseInteroperableAPI } from '../../../../../../src/modules/interoperability/base_interoperable_api';
 import {
-	COMMAND_ID_STATE_RECOVERY_BUFFER,
-	MODULE_ID_INTEROPERABILITY_BUFFER,
+	COMMAND_NAME_STATE_RECOVERY,
+	MODULE_NAME_INTEROPERABILITY,
 	STORE_PREFIX_TERMINATED_STATE,
 } from '../../../../../../src/modules/interoperability/constants';
 import { StateRecoveryCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/state_recovery';
@@ -64,7 +64,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 		interoperableCCAPIs.set(1, interoperableAPI);
 		ccCommands = new Map();
 		stateRecoveryCommand = new StateRecoveryCommand(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
+			interoperableAPI['moduleID'],
 			interoperableCCAPIs,
 			ccCommands,
 		);
@@ -84,8 +84,8 @@ describe('Mainchain StateRecoveryCommand', () => {
 		chainIDAsBuffer = transactionParams.chainID;
 		encodedTransactionParams = codec.encode(stateRecoveryParamsSchema, transactionParams);
 		transaction = new Transaction({
-			moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
-			commandID: COMMAND_ID_STATE_RECOVERY_BUFFER,
+			module: MODULE_NAME_INTEROPERABILITY,
+			command: COMMAND_NAME_STATE_RECOVERY,
 			fee: BigInt(100000000),
 			nonce: BigInt(0),
 			params: encodedTransactionParams,
@@ -94,7 +94,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 		});
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		terminatedStateSubstore = stateStore.getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
+			interoperableAPI['moduleID'],
 			STORE_PREFIX_TERMINATED_STATE,
 		);
 		terminatedStateAccount = {

@@ -3,6 +3,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { ed, address as cryptoAddress, utils, legacy } from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
 import { AuthModule } from '../../../../src/modules/auth';
+import { COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP } from '../../../../src/modules/auth/constants';
 import { AuthEndpoint } from '../../../../src/modules/auth/endpoint';
 import { InvalidNonceError } from '../../../../src/modules/auth/errors';
 import {
@@ -151,8 +152,8 @@ describe('AuthEndpoint', () => {
 		it('should verify the transaction with single signature', async () => {
 			// Arrange
 			const transaction = new Transaction({
-				moduleID: utils.intToBuffer(2, 4),
-				commandID: utils.intToBuffer(0, 4),
+				module: 'token',
+				command: 'transfer',
 				nonce: BigInt('0'),
 				fee: BigInt('100000000'),
 				senderPublicKey: existingSenderPublicKey,
@@ -197,8 +198,8 @@ describe('AuthEndpoint', () => {
 		it('should verify the transaction with multi-signature', async () => {
 			// Arrange
 			const transaction = new Transaction({
-				moduleID: utils.intToBuffer(2, 4),
-				commandID: utils.intToBuffer(0, 4),
+				module: 'token',
+				command: 'transfer',
 				nonce: BigInt('0'),
 				fee: BigInt('100000000'),
 				senderPublicKey: existingSenderPublicKey,
@@ -268,8 +269,8 @@ describe('AuthEndpoint', () => {
 			});
 
 			const transaction = new Transaction({
-				moduleID: utils.intToBuffer(12, 4),
-				commandID: utils.intToBuffer(0, 4),
+				module: 'auth',
+				command: COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP,
 				nonce: BigInt('0'),
 				fee: BigInt('100000000'),
 				senderPublicKey: existingSenderPublicKey,
@@ -352,8 +353,8 @@ describe('AuthEndpoint', () => {
 		it('should verify equal transaction nonce and account nonce', async () => {
 			// Arrange
 			const transaction = new Transaction({
-				moduleID: utils.intToBuffer(2, 4),
-				commandID: utils.intToBuffer(0, 4),
+				module: 'token',
+				command: 'transfer',
 				nonce: BigInt('2'),
 				fee: BigInt('100000000'),
 				senderPublicKey: existingSenderPublicKey,
@@ -387,8 +388,8 @@ describe('AuthEndpoint', () => {
 		it('should fail to verify greater transaction nonce than account nonce', async () => {
 			// Arrange
 			const transaction = new Transaction({
-				moduleID: utils.intToBuffer(2, 4),
-				commandID: utils.intToBuffer(0, 4),
+				module: 'token',
+				command: 'transfer',
 				nonce: BigInt('3'),
 				fee: BigInt('100000000'),
 				senderPublicKey: existingSenderPublicKey,
@@ -424,8 +425,8 @@ describe('AuthEndpoint', () => {
 			const accountNonce = BigInt(2);
 
 			const transaction = new Transaction({
-				moduleID: utils.intToBuffer(2, 4),
-				commandID: utils.intToBuffer(0, 4),
+				module: 'token',
+				command: 'transfer',
 				nonce: BigInt('1'),
 				fee: BigInt('100000000'),
 				senderPublicKey: existingSenderPublicKey,

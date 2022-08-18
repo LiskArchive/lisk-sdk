@@ -34,6 +34,7 @@ import {
 	COMMAND_ID_SIDECHAIN_REG_BUFFER,
 	CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
 	MAINCHAIN_ID_BUFFER,
+	COMMAND_NAME_SIDECHAIN_REG,
 } from '../../constants';
 import {
 	chainAccountSchema,
@@ -55,7 +56,7 @@ import {
 
 export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 	public id = COMMAND_ID_SIDECHAIN_REG_BUFFER;
-	public name = 'sidechainRegistration';
+	public name = COMMAND_NAME_SIDECHAIN_REG;
 	public schema = sidechainRegParams;
 
 	public async verify(
@@ -84,10 +85,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		}
 
 		// 	The sidechain name has to be unique with respect to the set of already registered sidechain names in the blockchain state
-		const nameSubstore = context.getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_REGISTERED_NAMES,
-		);
+		const nameSubstore = context.getStore(this.moduleID, STORE_PREFIX_REGISTERED_NAMES);
 		const nameExists = await nameSubstore.has(Buffer.from(name, 'utf8'));
 
 		if (nameExists) {
@@ -100,10 +98,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		const networkID = utils.hash(Buffer.concat([genesisBlockID, transaction.senderAddress]));
 
 		// 	networkId has to be unique with respect to the set of already registered sidechain network IDs in the blockchain state.
-		const networkIDSubstore = context.getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_REGISTERED_NETWORK_IDS,
-		);
+		const networkIDSubstore = context.getStore(this.moduleID, STORE_PREFIX_REGISTERED_NETWORK_IDS);
 		const networkIDExists = await networkIDSubstore.has(networkID);
 
 		if (networkIDExists) {
@@ -178,7 +173,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		const networkID = utils.hash(Buffer.concat([genesisBlockID, transaction.senderAddress]));
 
 		// Add an entry in the chain substore
-		const chainSubstore = getStore(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_DATA);
+		const chainSubstore = getStore(this.moduleID, STORE_PREFIX_CHAIN_DATA);
 
 		// Find the latest chainID from db
 		const gte = utils.intToBuffer(0, 4);
@@ -207,7 +202,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		);
 
 		// Add an entry in the channel substore
-		const channelSubstore = getStore(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHANNEL_DATA);
+		const channelSubstore = getStore(this.moduleID, STORE_PREFIX_CHANNEL_DATA);
 		await channelSubstore.setWithSchema(
 			chainIDBuffer,
 			{
@@ -245,10 +240,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		});
 
 		// Add an entry in the chain validators substore
-		const chainValidatorsSubstore = getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_CHAIN_VALIDATORS,
-		);
+		const chainValidatorsSubstore = getStore(this.moduleID, STORE_PREFIX_CHAIN_VALIDATORS);
 		await chainValidatorsSubstore.setWithSchema(
 			chainIDBuffer,
 			{ sidechainValidators: { activeValidators: initValidators, certificateThreshold } },
@@ -256,17 +248,11 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		);
 
 		// Add an entry in the outbox root substore
-		const outboxRootSubstore = getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_OUTBOX_ROOT,
-		);
+		const outboxRootSubstore = getStore(this.moduleID, STORE_PREFIX_OUTBOX_ROOT);
 		await outboxRootSubstore.setWithSchema(chainIDBuffer, { root: EMPTY_HASH }, outboxRootSchema);
 
 		// Add an entry in the registered names substore
-		const registeredNamesSubstore = getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_REGISTERED_NAMES,
-		);
+		const registeredNamesSubstore = getStore(this.moduleID, STORE_PREFIX_REGISTERED_NAMES);
 		await registeredNamesSubstore.setWithSchema(
 			Buffer.from(name, 'utf-8'),
 			{ id: chainIDBuffer },
@@ -276,7 +262,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 
 		// Add an entry in the registered network IDs substore
 		const registeredNetworkIDsSubstore = getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
+			this.moduleID,
 			STORE_PREFIX_REGISTERED_NETWORK_IDS,
 		);
 		await registeredNetworkIDsSubstore.setWithSchema(
