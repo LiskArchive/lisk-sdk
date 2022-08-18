@@ -234,10 +234,8 @@ export class AuthModule extends BaseModule {
 
 	public async afterCommandExecute(context: TransactionExecuteContext): Promise<void> {
 		const address = context.transaction.senderAddress;
-
 		const authStore = context.getStore(this.id, STORE_PREFIX_AUTH);
 		const senderAccount = await authStore.getWithSchema<AuthAccount>(address, authAccountSchema);
-		senderAccount.nonce += BigInt(1);
 		await authStore.setWithSchema(
 			address,
 			{
