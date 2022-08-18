@@ -238,20 +238,4 @@ export class AuthModule extends BaseModule {
 		senderAccount.nonce += BigInt(1);
 		await store.setWithSchema(senderAddress, senderAccount, authAccountSchema);
 	}
-
-	public async afterCommandExecute(context: TransactionExecuteContext): Promise<void> {
-		const address = context.transaction.senderAddress;
-		const authStore = context.getStore(this.id, STORE_PREFIX_AUTH);
-		const senderAccount = await authStore.getWithSchema<AuthAccount>(address, authAccountSchema);
-		await authStore.setWithSchema(
-			address,
-			{
-				nonce: senderAccount.nonce,
-				numberOfSignatures: senderAccount.numberOfSignatures,
-				mandatoryKeys: senderAccount.mandatoryKeys,
-				optionalKeys: senderAccount.optionalKeys,
-			},
-			authAccountSchema,
-		);
-	}
 }

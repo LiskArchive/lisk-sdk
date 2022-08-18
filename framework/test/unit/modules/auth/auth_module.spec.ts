@@ -1148,35 +1148,4 @@ describe('AuthModule', () => {
 			expect(authAccount.nonce).toBe(BigInt(1));
 		});
 	});
-
-	describe('afterCommandExecute', () => {
-		it('should not increment the nonce, since functionality moved to `beforeCommandExecute` ', async () => {
-			const stateStore1 = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-			const authStore1 = stateStore1.getStore(authModule.id, STORE_PREFIX_AUTH);
-			const address = cryptoAddress.getAddressFromPublicKey(validTestTransaction.senderPublicKey);
-			const authAccount1 = {
-				nonce: validTestTransaction.nonce,
-				numberOfSignatures: 5,
-				mandatoryKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
-				optionalKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
-			};
-			await authStore1.setWithSchema(address, authAccount1, authAccountSchema);
-
-			const context = testing
-				.createTransactionContext({
-					stateStore: stateStore1,
-					transaction: validTestTransaction,
-					networkIdentifier,
-				})
-				.createTransactionExecuteContext();
-
-			await authModule.afterCommandExecute(context);
-			const authStore = context.getStore(authModule.id, STORE_PREFIX_AUTH);
-			const authAccount = await authStore.getWithSchema<AuthAccount>(
-				context.transaction.senderAddress,
-				authAccountSchema,
-			);
-			expect(authAccount.nonce - validTestTransaction.nonce).toBe(BigInt(0));
-		});
-	});
 });
