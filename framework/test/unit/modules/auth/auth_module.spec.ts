@@ -330,7 +330,7 @@ describe('AuthModule', () => {
 						// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 						`Transaction with id:${validTestTransaction.id.toString(
 							'hex',
-						)} nonce is lower than account nonce`,
+						)} nonce is lower than account nonce.`,
 						validTestTransaction.nonce,
 						accountNonce,
 					),
@@ -1123,6 +1123,29 @@ describe('AuthModule', () => {
 					),
 				);
 			});
+		});
+	});
+
+	describe('beforeCommandExecute', () => {
+		it('should initialize senderAccount with default values when there is no sender account in AUTH store', async () => {
+			const stateStore1 = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+			const context = testing
+				.createTransactionContext({
+					stateStore: stateStore1,
+					transaction: validTestTransaction,
+					networkIdentifier,
+				})
+				.createTransactionExecuteContext();
+
+			await authModule.beforeCommandExecute(context);
+
+			const authStore = context.getStore(authModule.id, STORE_PREFIX_AUTH);
+			const authAccount = await authStore.getWithSchema<AuthAccount>(
+				context.transaction.senderAddress,
+				authAccountSchema,
+			);
+
+			expect(authAccount.nonce).toBe(BigInt(1));
 		});
 	});
 

@@ -211,12 +211,12 @@ export class AuthModule extends BaseModule {
 	}
 
 	public async beforeCommandExecute(context: TransactionExecuteContext): Promise<void> {
-		const { transaction } = context;
+		const { senderAddress } = context.transaction;
 		const store = context.getStore(this.id, STORE_PREFIX_AUTH);
-		const senderExist = await store.has(transaction.senderAddress);
+		const senderExist = await store.has(senderAddress);
 		if (!senderExist) {
 			await store.setWithSchema(
-				context.transaction.senderAddress,
+				senderAddress,
 				{
 					nonce: BigInt(0),
 					numberOfSignatures: 0,
@@ -226,6 +226,10 @@ export class AuthModule extends BaseModule {
 				authAccountSchema,
 			);
 		}
+
+		const senderAccount = await store.getWithSchema<AuthAccount>(senderAddress, authAccountSchema);
+		senderAccount.nonce += BigInt(1);
+		await store.setWithSchema(senderAddress, senderAccount, authAccountSchema);
 	}
 
 	public async afterCommandExecute(context: TransactionExecuteContext): Promise<void> {

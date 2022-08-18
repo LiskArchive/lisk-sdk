@@ -61,6 +61,7 @@ export const validateKeysSignatures = (
 	}
 };
 
+// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0041.md#transaction-verification
 export const verifyMultiSignatureTransaction = (
 	tag: string,
 	networkIdentifier: Buffer,
@@ -220,13 +221,30 @@ export const verifySignatures = (
 	return { verified: true };
 };
 
+export const verifyNonceStrict = (
+	transaction: Transaction,
+	senderAccount: AuthAccount,
+): VerificationResult => {
+	if (transaction.nonce !== senderAccount.nonce) {
+		throw new InvalidNonceError(
+			`Transaction with id:${transaction.id.toString('hex')} nonce is not equal to account nonce.`,
+			transaction.nonce,
+			senderAccount.nonce,
+		);
+	}
+
+	return {
+		status: VerifyStatus.OK,
+	};
+};
+
 export const verifyNonce = (
 	transaction: Transaction,
 	senderAccount: AuthAccount,
 ): VerificationResult => {
 	if (transaction.nonce < senderAccount.nonce) {
 		throw new InvalidNonceError(
-			`Transaction with id:${transaction.id.toString('hex')} nonce is lower than account nonce`,
+			`Transaction with id:${transaction.id.toString('hex')} nonce is lower than account nonce.`,
 			transaction.nonce,
 			senderAccount.nonce,
 		);
