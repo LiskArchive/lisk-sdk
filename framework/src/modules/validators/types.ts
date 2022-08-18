@@ -26,3 +26,7 @@ export interface APIInitArgs {
 		blockTime: number;
 	};
 }
+
+export interface ValidatorAddress {
+	address: Buffer;
+}

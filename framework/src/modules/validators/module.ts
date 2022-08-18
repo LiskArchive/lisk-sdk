@@ -15,7 +15,7 @@
 import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
-import { defaultConfig, EMPTY_KEY, STORE_PREFIX_GENESIS_DATA } from './constants';
+import { defaultConfig, EMPTY_KEY, SUBSTORE_PREFIX_GENESIS_DATA } from './constants';
 import { GenesisBlockExecuteContext } from '../../state_machine';
 import { ValidatorsAPI } from './api';
 import { ValidatorsEndpoint } from './endpoint';
@@ -64,7 +64,7 @@ export class ValidatorsModule extends BaseModule {
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
-		const genesisDataSubStore = context.getStore(this.id, STORE_PREFIX_GENESIS_DATA);
+		const genesisDataSubStore = context.getStore(this.id, SUBSTORE_PREFIX_GENESIS_DATA);
 		await genesisDataSubStore.setWithSchema(
 			EMPTY_KEY,
 			{ timestamp: context.header.timestamp },

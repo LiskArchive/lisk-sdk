@@ -12,7 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { ValidatorsModule } from '../../../../src/modules/validators';
-import { EMPTY_KEY, STORE_PREFIX_GENESIS_DATA } from '../../../../src/modules/validators/constants';
+import {
+	EMPTY_KEY,
+	SUBSTORE_PREFIX_GENESIS_DATA,
+} from '../../../../src/modules/validators/constants';
 import { genesisDataSchema } from '../../../../src/modules/validators/schemas';
 import { GenesisData } from '../../../../src/modules/validators/types';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
@@ -61,7 +64,7 @@ describe('ValidatorsModule', () => {
 			}).getBlockAfterExecuteContext();
 			await validatorsModule.initGenesisState(blockAfterExecuteContext);
 
-			genesisDataSubStore = stateStore.getStore(validatorsModule.id, STORE_PREFIX_GENESIS_DATA);
+			genesisDataSubStore = stateStore.getStore(validatorsModule.id, SUBSTORE_PREFIX_GENESIS_DATA);
 			const genesisData = await genesisDataSubStore.getWithSchema<GenesisData>(
 				EMPTY_KEY,
 				genesisDataSchema,

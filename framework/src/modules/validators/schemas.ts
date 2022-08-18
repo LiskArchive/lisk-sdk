@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { BLS_POP_LENGTH, BLS_PUBLIC_KEY_LENGTH, ED25519_PUBLIC_KEY_LENGTH } from './constants';
+
 export const configSchema = {
 	$id: '/validators/config',
 	type: 'object',
@@ -100,4 +102,46 @@ export const validateBLSKeyResponseSchema = {
 		},
 	},
 	required: ['valid'],
+};
+
+export const generatorKeyRegDataSchema = {
+	$id: '/validators/event/generatorKeyRegData',
+	type: 'object',
+	required: ['generatorKey', 'result'],
+	properties: {
+		generatorKey: {
+			dataType: 'bytes',
+			minLength: ED25519_PUBLIC_KEY_LENGTH,
+			maxLength: ED25519_PUBLIC_KEY_LENGTH,
+			fieldNumber: 1,
+		},
+		result: {
+			dataType: 'uint32',
+			fieldNumber: 2,
+		},
+	},
+};
+
+export const blsKeyRegDataSchema = {
+	$id: '/validators/event/blsKeyRegData',
+	type: 'object',
+	required: ['blsKey', 'result'],
+	properties: {
+		blsKey: {
+			dataType: 'bytes',
+			minLength: BLS_PUBLIC_KEY_LENGTH,
+			maxLength: BLS_PUBLIC_KEY_LENGTH,
+			fieldNumber: 1,
+		},
+		proofOfPossession: {
+			dataType: 'bytes',
+			minLength: BLS_POP_LENGTH,
+			maxLength: BLS_POP_LENGTH,
+			fieldNumber: 2,
+		},
+		result: {
+			dataType: 'uint32',
+			fieldNumber: 3,
+		},
+	},
 };
