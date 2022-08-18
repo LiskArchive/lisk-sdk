@@ -1150,7 +1150,7 @@ describe('AuthModule', () => {
 	});
 
 	describe('afterCommandExecute', () => {
-		it('should correctly increment the nonce', async () => {
+		it('should not increment the nonce, since functionality moved to `beforeCommandExecute` ', async () => {
 			const stateStore1 = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			const authStore1 = stateStore1.getStore(authModule.id, STORE_PREFIX_AUTH);
 			const address = cryptoAddress.getAddressFromPublicKey(validTestTransaction.senderPublicKey);
@@ -1176,7 +1176,7 @@ describe('AuthModule', () => {
 				context.transaction.senderAddress,
 				authAccountSchema,
 			);
-			expect(authAccount.nonce - validTestTransaction.nonce).toBe(BigInt(1));
+			expect(authAccount.nonce - validTestTransaction.nonce).toBe(BigInt(0));
 		});
 	});
 });
