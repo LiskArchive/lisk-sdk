@@ -3,11 +3,14 @@ import { flags as flagParser } from '@oclif/command';
 import { BaseIPCClientCommand } from '../base_ipc_client';
 
 export class InvokeCommand extends BaseIPCClientCommand {
-	static description = 'Invokes the provided end-point';
+	static description = 'Invokes the provided endpoint.';
 
 	static examples = [
 		'endpoint:invoke {endpoint} {parameters}',
 		'endpoint:invoke --data-path --file',
+		`endpoint:invoke generator_getAllKeys`,
+		`endpoint:invoke consensus_getBFTParameters '{"height": 2}' -d ~/.lisk/dpos-mainchain --pretty`,
+		`endpoint:invoke consensus_getBFTParameters -f ./input.json`,
 	];
 
 	static flags = {
