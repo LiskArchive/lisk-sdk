@@ -61,7 +61,10 @@ export const validateKeysSignatures = (
 	}
 };
 
-// https://github.com/LiskHQ/lips/blob/main/proposals/lip-0041.md#transaction-verification
+/**
+ * https://github.com/LiskHQ/lips/blob/main/proposals/lip-0041.md#transaction-verification
+ * Current code is already in sync with LIP. No change needed.
+ */
 export const verifyMultiSignatureTransaction = (
 	tag: string,
 	networkIdentifier: Buffer,
