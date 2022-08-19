@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { NotFoundError, TAG_TRANSACTION } from '@liskhq/lisk-chain';
+import { NotFoundError } from '@liskhq/lisk-chain';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { codec } from '@liskhq/lisk-codec';
 import { validator } from '@liskhq/lisk-validator';
@@ -25,28 +25,11 @@ import {
 } from '../../state_machine';
 import { AuthAPI } from './api';
 import { RegisterMultisignatureCommand } from './commands/register_multisignature';
-import {
-	COMMAND_ID_REGISTER_MULTISIGNATURE_GROUP,
-	MAX_NUMBER_OF_SIGNATURES,
-	MODULE_ID_AUTH,
-	STORE_PREFIX_AUTH,
-} from './constants';
+import { MAX_NUMBER_OF_SIGNATURES, MODULE_ID_AUTH, STORE_PREFIX_AUTH } from './constants';
 import { AuthEndpoint } from './endpoint';
-import {
-	authAccountSchema,
-	configSchema,
-	genesisAuthStoreSchema,
-	registerMultisignatureParamsSchema,
-} from './schemas';
+import { authAccountSchema, configSchema, genesisAuthStoreSchema } from './schemas';
 import { AuthAccount, GenesisAuthStore } from './types';
-import {
-	getIDAsKeyForStore,
-	isMultisignatureAccount,
-	verifyMultiSignatureTransaction,
-	verifyNonce,
-	verifyRegisterMultiSignatureTransaction,
-	verifySingleSignatureTransaction,
-} from './utils';
+import { getIDAsKeyForStore, verifyNonce, verifySignatures } from './utils';
 
 export class AuthModule extends BaseModule {
 	public id = getIDAsKeyForStore(MODULE_ID_AUTH);
@@ -172,46 +155,12 @@ export class AuthModule extends BaseModule {
 		// Verify nonce of the transaction, it can be FAILED, PENDING or OK
 		const nonceStatus = verifyNonce(transaction, senderAccount);
 
-		const transactionBytes = transaction.getSigningBytes();
-
-		// Verify multisignature registration transaction
-		if (
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-			transaction.moduleID.equals(this.id) &&
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-			transaction.commandID.equals(getIDAsKeyForStore(COMMAND_ID_REGISTER_MULTISIGNATURE_GROUP))
-		) {
-			verifyRegisterMultiSignatureTransaction(
-				TAG_TRANSACTION,
-				registerMultisignatureParamsSchema,
-				transaction,
-				transactionBytes,
-				networkIdentifier,
-			);
-
-			return nonceStatus;
-		}
-
-		// Verify single signature transaction
-		if (!isMultisignatureAccount(senderAccount)) {
-			verifySingleSignatureTransaction(
-				TAG_TRANSACTION,
-				transaction,
-				transactionBytes,
-				networkIdentifier,
-			);
-
-			return nonceStatus;
-		}
-
-		// Verify transaction sent from multisignature account
-		verifyMultiSignatureTransaction(
-			TAG_TRANSACTION,
+		verifySignatures(
+			this.id,
+			transaction,
+			transaction.getSigningBytes(),
 			networkIdentifier,
-			transaction.id,
 			senderAccount,
-			transaction.signatures,
-			transactionBytes,
 		);
 
 		return nonceStatus;
