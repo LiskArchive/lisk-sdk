@@ -21,7 +21,7 @@ import * as appUtils from '../../../../src/utils/application';
 import { EncryptCommand } from '../../../../src/bootstrapping/commands/keys/encrypt';
 import { getConfig } from '../../../helpers/config';
 
-describe('keys:export', () => {
+describe('keys:encrypt', () => {
 	const defaultPassword = 'elephant tree paris dragon chair galaxy';
 	const address = utils.getRandomBytes(20).toString('hex');
 
