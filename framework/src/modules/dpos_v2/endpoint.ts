@@ -62,6 +62,7 @@ export class DPoSEndpoint extends BaseEndpoint {
 			...delegate,
 			totalVotesReceived: delegate.totalVotesReceived.toString(),
 			selfVotes: delegate.selfVotes.toString(),
+			address,
 		};
 	}
 
@@ -83,6 +84,7 @@ export class DPoSEndpoint extends BaseEndpoint {
 				...delegate,
 				totalVotesReceived: delegate.totalVotesReceived.toString(),
 				selfVotes: delegate.selfVotes.toString(),
+				address: data.key.toString('hex'),
 			};
 			response.push(delegateJSON);
 		}
