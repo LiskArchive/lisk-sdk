@@ -28,10 +28,9 @@ import { FeeEndpoint } from './endpoint';
 import { configSchema } from './schemas';
 
 export class FeeModule extends BaseModule {
-	public name = 'fee';
-	public api = new FeeAPI(this.name);
+	public api = new FeeAPI(this.stores, this.events);
 	public configSchema = configSchema;
-	public endpoint = new FeeEndpoint(this.name);
+	public endpoint = new FeeEndpoint(this.stores, this.offchainStores);
 	private _tokenAPI!: TokenAPI;
 	private _minFeePerByte!: number;
 	private _tokenID!: Buffer;

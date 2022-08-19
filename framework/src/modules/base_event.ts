@@ -18,9 +18,10 @@ export interface EventQueuer {
 	eventQueue: EventQueue;
 }
 
-export class BaseEvent<T> {
-	public schema?: Schema;
+export abstract class BaseEvent<T> {
 	private readonly _moduleName: string;
+
+	public abstract schema: Schema;
 
 	public get key(): Buffer {
 		return Buffer.from(this._moduleName + this.name, 'utf-8');

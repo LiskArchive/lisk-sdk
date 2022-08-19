@@ -17,14 +17,9 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
 import { MainchainInteroperabilityStore } from '../store';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
-import {
-	EMPTY_HASH,
-	STORE_PREFIX_TERMINATED_STATE,
-	COMMAND_NAME_STATE_RECOVERY,
-	COMMAND_ID_STATE_RECOVERY_BUFFER,
-} from '../../constants';
-import { stateRecoveryParamsSchema, terminatedStateSchema } from '../../schemas';
-import { StateRecoveryParams, TerminatedStateAccount, StoreCallback } from '../../types';
+import { EMPTY_HASH } from '../../constants';
+import { stateRecoveryParamsSchema } from '../../schemas';
+import { StateRecoveryParams } from '../../types';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -32,10 +27,10 @@ import {
 	VerifyStatus,
 } from '../../../../state_machine';
 import { createRecoverCCMsgAPIContext } from '../../../../testing';
+import { TerminatedStateStore } from '../../stores/terminated_state';
+import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 
 export class StateRecoveryCommand extends BaseInteroperabilityCommand {
-	public id = COMMAND_ID_STATE_RECOVERY_BUFFER;
-	public name = COMMAND_NAME_STATE_RECOVERY;
 	public schema = stateRecoveryParamsSchema;
 
 	public async verify(
@@ -54,8 +49,8 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 			};
 		}
 
-		const terminatedStateSubstore = context.getStore(this.moduleID, STORE_PREFIX_TERMINATED_STATE);
-		const terminatedStateAccountExists = await terminatedStateSubstore.has(chainID);
+		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
+		const terminatedStateAccountExists = await terminatedStateSubstore.has(context, chainID);
 
 		if (!terminatedStateAccountExists) {
 			return {
@@ -64,10 +59,7 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 			};
 		}
 
-		const terminatedStateAccount = await terminatedStateSubstore.getWithSchema<TerminatedStateAccount>(
-			chainID,
-			terminatedStateSchema,
-		);
+		const terminatedStateAccount = await terminatedStateSubstore.get(context, chainID);
 
 		if (!terminatedStateAccount.initialized) {
 			return {
@@ -112,12 +104,12 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 	public async execute(context: CommandExecuteContext<StateRecoveryParams>): Promise<void> {
 		const {
 			transaction,
-			params: { chainID, storeEntries, moduleID, siblingHashes },
+			params: { chainID, storeEntries, module, siblingHashes },
 		} = context;
 		const storeQueries = [];
 
-		// The recover function corresponding to the module ID applies the recovery logic
-		const moduleAPI = this.interoperableCCAPIs.get(moduleID.readInt32BE(0));
+		// The recover function corresponding to the module applies the recovery logic
+		const moduleAPI = this.interoperableCCAPIs.get(module);
 		if (!moduleAPI || !moduleAPI.recover) {
 			throw new Error('Recovery not available for module');
 		}
@@ -125,7 +117,7 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 		for (const entry of storeEntries) {
 			const recoverContext = createRecoverCCMsgAPIContext({
 				terminatedChainID: chainID,
-				moduleID,
+				module,
 				storePrefix: entry.storePrefix,
 				storeKey: entry.storeKey,
 				storeValue: entry.storeValue,
@@ -145,21 +137,19 @@ export class StateRecoveryCommand extends BaseInteroperabilityCommand {
 
 		const root = sparseMerkleTree.calculateRoot(siblingHashes, storeQueries, storeEntries.length);
 
-		const terminatedStateSubstore = context.getStore(this.moduleID, STORE_PREFIX_TERMINATED_STATE);
+		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
 
-		const terminatedStateAccount = await terminatedStateSubstore.getWithSchema<TerminatedStateAccount>(
-			chainID,
-			terminatedStateSchema,
-		);
+		const terminatedStateAccount = await terminatedStateSubstore.get(context, chainID);
 
-		await terminatedStateSubstore.setWithSchema(
-			chainID,
-			{ ...terminatedStateAccount, stateRoot: root },
-			terminatedStateSchema,
-		);
+		await terminatedStateSubstore.set(context, chainID, {
+			...terminatedStateAccount,
+			stateRoot: root,
+		});
 	}
 
-	protected getInteroperabilityStore(getStore: StoreCallback): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
+	protected getInteroperabilityStore(
+		context: StoreGetter | ImmutableStoreGetter,
+	): MainchainInteroperabilityStore {
+		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
 	}
 }

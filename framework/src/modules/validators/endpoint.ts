@@ -18,7 +18,7 @@ import { NotFoundError } from '@liskhq/lisk-db';
 import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
 import { ValidateBLSKeyRequest, validateBLSKeyRequestSchema } from './schemas';
-import { SUBSTORE_PREFIX_BLS_KEYS } from './constants';
+import { BLSKeyStore } from './stores/bls_keys';
 
 export class ValidatorsEndpoint extends BaseEndpoint {
 	public async validateBLSKey(ctx: ModuleEndpointContext): Promise<{ valid: boolean }> {
@@ -27,12 +27,12 @@ export class ValidatorsEndpoint extends BaseEndpoint {
 		const req = ctx.params;
 		const { proofOfPossession, blsKey } = req;
 
-		const blsKeysSubStore = ctx.getStore(this.moduleID, SUBSTORE_PREFIX_BLS_KEYS);
+		const blsKeysSubStore = this.stores.get(BLSKeyStore);
 
 		let persistedValue;
 
 		try {
-			persistedValue = await blsKeysSubStore.get(Buffer.from(blsKey, 'hex'));
+			persistedValue = await blsKeysSubStore.get(ctx, Buffer.from(blsKey, 'hex'));
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;

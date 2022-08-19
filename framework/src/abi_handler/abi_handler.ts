@@ -522,12 +522,7 @@ export class ABIHandler implements ABI {
 			const meta = mod.metadata();
 			return {
 				...meta,
-				id: mod.id.toString('hex'),
 				name: mod.name,
-				commands: meta.commands.map(command => ({
-					...command,
-					id: command.id.toString('hex'),
-				})),
 			};
 		});
 		modules.sort((a, b) => a.name.localeCompare(b.name, 'en'));

@@ -22,28 +22,14 @@ import {
 	CommandExecuteContext,
 } from '../../../state_machine';
 import { BaseCommand } from '../../base_command';
-import {
-	COMMAND_ID_VOTE,
-	MAX_UNLOCKING,
-	MAX_VOTE,
-	MODULE_NAME_DPOS,
-	STORE_PREFIX_DELEGATE,
-	STORE_PREFIX_VOTER,
-	TEN_UNIT,
-} from '../constants';
-import { delegateStoreSchema, voteCommandParamsSchema, voterStoreSchema } from '../schemas';
-import {
-	DelegateAccount,
-	TokenAPI,
-	TokenIDDPoS,
-	VoteCommandDependencies,
-	VoteTransactionParams,
-} from '../types';
-import { getIDAsKeyForStore, getVoterOrDefault, sortUnlocking } from '../utils';
+import { MAX_UNLOCKING, MAX_VOTE, MODULE_NAME_DPOS, TEN_UNIT } from '../constants';
+import { voteCommandParamsSchema } from '../schemas';
+import { DelegateStore } from '../stores/delegate';
+import { VoterStore } from '../stores/voter';
+import { TokenAPI, TokenIDDPoS, VoteCommandDependencies, VoteTransactionParams } from '../types';
+import { sortUnlocking } from '../utils';
 
-export class VoteCommand extends BaseCommand {
-	public id = getIDAsKeyForStore(COMMAND_ID_VOTE);
-	public name = 'voteDelegate';
+export class VoteDelegateCommand extends BaseCommand {
 	public schema = voteCommandParamsSchema;
 
 	private _tokenAPI!: TokenAPI;
@@ -140,7 +126,6 @@ export class VoteCommand extends BaseCommand {
 		const {
 			transaction: { senderAddress },
 			params: { votes },
-			getStore,
 			getAPIContext,
 			header: { height },
 		} = context;
@@ -157,15 +142,12 @@ export class VoteCommand extends BaseCommand {
 			return 0;
 		});
 
-		const voterStore = getStore(this.moduleID, STORE_PREFIX_VOTER);
-		const delegateStore = getStore(this.moduleID, STORE_PREFIX_DELEGATE);
+		const voterStore = this.stores.get(VoterStore);
+		const delegateStore = this.stores.get(DelegateStore);
 		for (const vote of votes) {
-			const voterData = await getVoterOrDefault(voterStore, senderAddress);
+			const voterData = await voterStore.getOrDefault(context, senderAddress);
 
-			const delegateData = await delegateStore.getWithSchema<DelegateAccount>(
-				vote.delegateAddress,
-				delegateStoreSchema,
-			);
+			const delegateData = await delegateStore.get(context, vote.delegateAddress);
 
 			const originalUpvoteIndex = voterData.sentVotes.findIndex(senderVote =>
 				senderVote.delegateAddress.equals(vote.delegateAddress),
@@ -237,9 +219,9 @@ export class VoteCommand extends BaseCommand {
 				delegateData.selfVotes = voterData.sentVotes[index].amount;
 			}
 
-			await voterStore.setWithSchema(senderAddress, voterData, voterStoreSchema);
+			await voterStore.set(context, senderAddress, voterData);
 			delegateData.totalVotesReceived += vote.amount;
-			await delegateStore.setWithSchema(vote.delegateAddress, delegateData, delegateStoreSchema);
+			await delegateStore.set(context, vote.delegateAddress, delegateData);
 		}
 	}
 }

@@ -23,7 +23,6 @@ import {
 	CCM_STATUS_PROTOCOL_VIOLATION,
 	CCM_STATUS_TOKEN_NOT_SUPPORTED,
 	CHAIN_ID_ALIAS_NATIVE,
-	CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 	MIN_RETURN_FEE,
 } from '../constants';
@@ -35,8 +34,6 @@ import { InteroperabilityAPI, MinBalance } from '../types';
 import { splitTokenID, tokenSupported } from '../utils';
 
 export class CCTransferCommand extends BaseCCCommand {
-	public ID = CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER;
-	public name = CROSS_CHAIN_COMMAND_NAME_TRANSFER;
 	public schema = crossChainTransferMessageParams;
 
 	private readonly _tokenAPI: TokenAPI;
@@ -47,6 +44,10 @@ export class CCTransferCommand extends BaseCCCommand {
 	public constructor(stores: NamedRegistry, events: NamedRegistry, tokenAPI: TokenAPI) {
 		super(stores, events);
 		this._tokenAPI = tokenAPI;
+	}
+
+	public get name(): string {
+		return CROSS_CHAIN_COMMAND_NAME_TRANSFER;
 	}
 
 	public addDependencies(interoperabilityAPI: InteroperabilityAPI) {

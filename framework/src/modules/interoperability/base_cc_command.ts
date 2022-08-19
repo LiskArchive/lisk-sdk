@@ -17,8 +17,12 @@ import { NamedRegistry } from '../named_registry';
 import { CCCommandExecuteContext } from './types';
 
 export abstract class BaseCCCommand {
-	public abstract name: string;
 	public abstract schema: Schema;
+
+	public get name(): string {
+		const name = this.constructor.name.replace('CCCommand', '');
+		return name.charAt(0).toLowerCase() + name.substr(1);
+	}
 
 	// eslint-disable-next-line no-useless-constructor
 	public constructor(protected stores: NamedRegistry, protected events: NamedRegistry) {}

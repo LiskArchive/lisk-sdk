@@ -46,10 +46,7 @@ export const userStoreSchema = {
 };
 
 export class UserStore extends BaseStore<UserStoreData> {
-	public constructor(moduleName: string, version = 0) {
-		super(moduleName, version);
-		this.schema = userStoreSchema;
-	}
+	public schema = userStoreSchema;
 
 	public async accountExist(context: ImmutableStoreGetter, address: Buffer): Promise<boolean> {
 		const allUserData = await this.iterate(context, {

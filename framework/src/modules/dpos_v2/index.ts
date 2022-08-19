@@ -14,7 +14,7 @@
 
 export { DPoSModule } from './module';
 export { DelegateRegistrationCommand } from './commands/delegate_registration';
-export { VoteCommand } from './commands/vote';
+export { VoteDelegateCommand } from './commands/vote_delegate';
 export { UpdateGeneratorKeyCommand } from './commands/update_generator_key';
 export { ReportDelegateMisbehaviorCommand } from './commands/pom';
 export { UnlockCommand } from './commands/unlock';

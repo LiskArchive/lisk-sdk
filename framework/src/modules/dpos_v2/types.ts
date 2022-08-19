@@ -158,7 +158,7 @@ export interface VoterData {
 	pendingUnlocks: UnlockingObject[];
 }
 
-export interface NameStore {
+export interface NameStoreData {
 	delegateAddress: Buffer;
 }
 
@@ -221,7 +221,7 @@ export interface GenesisStore {
 		proofOfPossession: Buffer;
 		generatorKey: Buffer;
 		lastGeneratedHeight: number;
-		isBanned: Buffer;
+		isBanned: boolean;
 		pomHeights: number[];
 		consecutiveMissedBlocks: number;
 	}[];

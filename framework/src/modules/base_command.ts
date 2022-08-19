@@ -26,7 +26,7 @@ export abstract class BaseCommand<T = unknown> {
 	}
 
 	// eslint-disable-next-line no-useless-constructor
-	public constructor(protected stores: NamedRegistry) {}
+	public constructor(protected stores: NamedRegistry, protected events: NamedRegistry) {}
 
 	public verify?(context: CommandVerifyContext<T>): Promise<VerificationResult>;
 

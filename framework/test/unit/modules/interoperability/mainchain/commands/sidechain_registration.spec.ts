@@ -15,7 +15,6 @@
 import { utils } from '@liskhq/lisk-cryptography';
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { when } from 'jest-when';
 import * as testing from '../../../../../../src/testing';
 import { SidechainRegistrationCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/sidechain_registration';
 import {
@@ -24,40 +23,43 @@ import {
 	EMPTY_HASH,
 	MAX_UINT64,
 	MAX_LENGTH_NAME,
-	MODULE_ID_INTEROPERABILITY_BUFFER,
-	STORE_PREFIX_CHAIN_DATA,
-	STORE_PREFIX_CHAIN_VALIDATORS,
-	STORE_PREFIX_CHANNEL_DATA,
-	STORE_PREFIX_OUTBOX_ROOT,
-	STORE_PREFIX_REGISTERED_NAMES,
-	STORE_PREFIX_REGISTERED_NETWORK_IDS,
 	MAX_NUM_VALIDATORS,
 	MAINCHAIN_ID_BUFFER,
-	CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
 	COMMAND_NAME_SIDECHAIN_REG,
+	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
-	nameSchema,
-	chainIDSchema,
 	sidechainRegParams,
-	chainAccountSchema,
-	channelSchema,
-	validatorsSchema,
-	outboxRootSchema,
 	registrationCCMParamsSchema,
 } from '../../../../../../src/modules/interoperability/schemas';
 import {
 	SendInternalContext,
 	SidechainRegistrationParams,
 } from '../../../../../../src/modules/interoperability/types';
-import { CommandVerifyContext, VerifyStatus } from '../../../../../../src/state_machine';
+import {
+	CommandExecuteContext,
+	CommandVerifyContext,
+	VerifyStatus,
+} from '../../../../../../src/state_machine';
 import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
-import { SubStore } from '../../../../../../src/state_machine/types';
+import { MainchainInteroperabilityModule } from '../../../../../../src';
+import { RegisteredNamesStore } from '../../../../../../src/modules/interoperability/stores/registered_names';
+import { RegisteredNetworkStore } from '../../../../../../src/modules/interoperability/stores/registered_network_ids';
+import { createStoreGetter } from '../../../../../../src/testing/utils';
+import { ChannelDataStore } from '../../../../../../src/modules/interoperability/stores/channel_data';
+import { OutboxRootStore } from '../../../../../../src/modules/interoperability/stores/outbox_root';
+import {
+	ChainAccount,
+	ChainAccountStore,
+} from '../../../../../../src/modules/interoperability/stores/chain_account';
+import { ChainValidatorsStore } from '../../../../../../src/modules/interoperability/stores/chain_validators';
+import { createTransactionContext } from '../../../../../../src/testing';
 
 describe('Sidechain registration command', () => {
+	const interopMod = new MainchainInteroperabilityModule();
 	const transactionParams = {
 		name: 'sidechain',
 		genesisBlockID: Buffer.alloc(0),
@@ -97,25 +99,20 @@ describe('Sidechain registration command', () => {
 	const networkID = utils.hash(Buffer.concat([Buffer.alloc(0), transaction.senderAddress]));
 	let sidechainRegistrationCommand: SidechainRegistrationCommand;
 	let stateStore: PrefixedStateReadWriter;
-	let nameSubstore: SubStore;
-	let networkIDSubstore: SubStore;
+	let nameSubstore: RegisteredNamesStore;
+	let networkIDSubstore: RegisteredNetworkStore;
 	let verifyContext: CommandVerifyContext<SidechainRegistrationParams>;
 
 	beforeEach(() => {
 		sidechainRegistrationCommand = new SidechainRegistrationCommand(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
+			interopMod.stores,
+			interopMod.events,
 			new Map(),
 			new Map(),
 		);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		nameSubstore = stateStore.getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_REGISTERED_NAMES,
-		);
-		networkIDSubstore = stateStore.getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_REGISTERED_NETWORK_IDS,
-		);
+		nameSubstore = interopMod.stores.get(RegisteredNamesStore);
+		networkIDSubstore = interopMod.stores.get(RegisteredNetworkStore);
 	});
 
 	describe('verify', () => {
@@ -155,10 +152,10 @@ describe('Sidechain registration command', () => {
 		});
 
 		it('should return error if store key name already exists in name store', async () => {
-			await nameSubstore.setWithSchema(
+			await nameSubstore.set(
+				createStoreGetter(stateStore),
 				Buffer.from(transactionParams.name, 'utf8'),
-				{ chainID: utils.intToBuffer(0, 4) },
-				nameSchema,
+				{ id: utils.intToBuffer(0, 4) },
 			);
 			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
@@ -169,11 +166,9 @@ describe('Sidechain registration command', () => {
 		});
 
 		it('should return error if store key networkID already exists in networkID store', async () => {
-			await networkIDSubstore.setWithSchema(
-				networkID,
-				{ chainID: utils.intToBuffer(0, 4) },
-				chainIDSchema,
-			);
+			await networkIDSubstore.set(createStoreGetter(stateStore), networkID, {
+				id: utils.intToBuffer(0, 4),
+			});
 
 			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
@@ -382,7 +377,7 @@ describe('Sidechain registration command', () => {
 			],
 			certificateThreshold: BigInt(10),
 		};
-		const chainAccount = {
+		const chainAccount: ChainAccount = {
 			name: 'sidechain',
 			networkID,
 			lastCertificate: {
@@ -391,61 +386,41 @@ describe('Sidechain registration command', () => {
 				stateRoot: EMPTY_HASH,
 				validatorsHash: computeValidatorsHash(params.initValidators, params.certificateThreshold),
 			},
+			status: 0,
 		};
-		const mockGetStore = jest.fn();
-		const context = {
-			logger: jest.fn(),
-			eventQueue: jest.fn(),
-			networkIdentifier: Buffer.alloc(0),
-			header: { timestamp: Date.now() },
-			assets: {},
-			transaction,
-			params,
-			getAPIContext: jest.fn(),
-			getStore: mockGetStore,
-		} as any;
-		const chainSubstore = {
-			getWithSchema: jest.fn().mockResolvedValue(chainAccount),
-			setWithSchema: jest.fn(),
-			iterate: jest.fn().mockResolvedValue([{ key: existingChainID, value: {} }]),
-		};
-		const channelSubstore = {
-			setWithSchema: jest.fn(),
-		};
-		const validatorsSubstore = {
-			setWithSchema: jest.fn(),
-		};
-		const outboxRootSubstore = { setWithSchema: jest.fn() };
-		const registeredNamesSubstore = {
-			setWithSchema: jest.fn(),
-		};
-		const registeredNetworkIDsSubstore = {
-			setWithSchema: jest.fn(),
-		};
+		let context: CommandExecuteContext<SidechainRegistrationParams>;
+
+		let channelDataSubstore: ChannelDataStore;
+		let outboxRootSubstore: OutboxRootStore;
+		let chainDataSubstore: ChainAccountStore;
+		let chainValidatorsSubstore: ChainValidatorsStore;
+		let registeredNamesSubstore: RegisteredNamesStore;
+		let registeredNetworkIDsSubstore: RegisteredNetworkStore;
+
 		const sendInternal = jest.fn();
 
-		beforeEach(() => {
+		beforeEach(async () => {
 			sidechainRegistrationCommand['getInteroperabilityStore'] = jest
 				.fn()
 				.mockReturnValue({ sendInternal });
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_DATA)
-				.mockReturnValue(chainSubstore);
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHANNEL_DATA)
-				.mockReturnValue(channelSubstore);
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_VALIDATORS)
-				.mockReturnValue(validatorsSubstore);
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_OUTBOX_ROOT)
-				.mockReturnValue(outboxRootSubstore);
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_REGISTERED_NAMES)
-				.mockReturnValue(registeredNamesSubstore);
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_REGISTERED_NETWORK_IDS)
-				.mockReturnValue(registeredNetworkIDsSubstore);
+			channelDataSubstore = interopMod.stores.get(ChannelDataStore);
+			chainValidatorsSubstore = interopMod.stores.get(ChainValidatorsStore);
+			outboxRootSubstore = interopMod.stores.get(OutboxRootStore);
+			chainDataSubstore = interopMod.stores.get(ChainAccountStore);
+			registeredNamesSubstore = interopMod.stores.get(RegisteredNamesStore);
+			registeredNetworkIDsSubstore = interopMod.stores.get(RegisteredNetworkStore);
+
+			context = createTransactionContext({
+				transaction,
+			}).createCommandExecuteContext(sidechainRegParams);
+			await chainDataSubstore.set(context, existingChainID, chainAccount);
+
+			jest.spyOn(chainDataSubstore, 'set');
+			jest.spyOn(channelDataSubstore, 'set');
+			jest.spyOn(chainValidatorsSubstore, 'set');
+			jest.spyOn(outboxRootSubstore, 'set');
+			jest.spyOn(registeredNetworkIDsSubstore, 'set');
+			jest.spyOn(registeredNamesSubstore, 'set');
 		});
 
 		it('should add an entry to chain account substore', async () => {
@@ -466,22 +441,16 @@ describe('Sidechain registration command', () => {
 			await sidechainRegistrationCommand.execute(context);
 
 			// Assert
-			expect(chainSubstore.setWithSchema).toHaveBeenCalledWith(
+			expect(chainDataSubstore.set).toHaveBeenCalledWith(
+				expect.anything(),
 				newChainID,
 				expectedValue,
-				chainAccountSchema,
 			);
 		});
 
 		it('should throw error if no entries found in chain account substore', async () => {
 			// Arrange
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_DATA)
-				.mockReturnValue({
-					getWithSchema: jest.fn().mockResolvedValue(chainAccount),
-					setWithSchema: jest.fn(),
-					iterate: jest.fn().mockResolvedValue([]),
-				});
+			await chainDataSubstore.del(context, existingChainID);
 
 			// Act
 			// Assert
@@ -503,10 +472,10 @@ describe('Sidechain registration command', () => {
 			await sidechainRegistrationCommand.execute(context);
 
 			// Assert
-			expect(channelSubstore.setWithSchema).toHaveBeenCalledWith(
+			expect(channelDataSubstore.set).toHaveBeenCalledWith(
+				expect.anything(),
 				newChainID,
 				expectedValue,
-				channelSchema,
 			);
 		});
 
@@ -524,8 +493,8 @@ describe('Sidechain registration command', () => {
 
 			// Assert
 			expect(sendInternal).toHaveBeenCalledWith({
-				moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
-				crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
+				module: MODULE_NAME_INTEROPERABILITY,
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 				receivingChainID,
 				fee: BigInt(0),
 				status: CCM_STATUS_OK,
@@ -543,18 +512,16 @@ describe('Sidechain registration command', () => {
 		it('should add an entry to chain validators substore', async () => {
 			// Arrange
 			const expectedValue = {
-				sidechainValidators: {
-					activeValidators: params.initValidators,
-					certificateThreshold: params.certificateThreshold,
-				},
+				activeValidators: params.initValidators,
+				certificateThreshold: params.certificateThreshold,
 			};
 
 			// Act
 			await sidechainRegistrationCommand.execute(context);
-			expect(validatorsSubstore.setWithSchema).toHaveBeenCalledWith(
+			expect(chainValidatorsSubstore.set).toHaveBeenCalledWith(
+				expect.anything(),
 				newChainID,
 				expectedValue,
-				validatorsSchema,
 			);
 		});
 
@@ -566,10 +533,10 @@ describe('Sidechain registration command', () => {
 			await sidechainRegistrationCommand.execute(context);
 
 			// Assert
-			expect(outboxRootSubstore.setWithSchema).toHaveBeenCalledWith(
+			expect(outboxRootSubstore.set).toHaveBeenCalledWith(
+				expect.anything(),
 				newChainID,
 				expectedValue,
-				outboxRootSchema,
 			);
 		});
 
@@ -581,10 +548,10 @@ describe('Sidechain registration command', () => {
 			await sidechainRegistrationCommand.execute(context);
 
 			// Assert
-			expect(registeredNamesSubstore.setWithSchema).toHaveBeenCalledWith(
+			expect(registeredNamesSubstore.set).toHaveBeenCalledWith(
+				expect.anything(),
 				Buffer.from(params.name, 'utf-8'),
 				expectedValue,
-				chainIDSchema,
 			);
 		});
 
@@ -596,10 +563,10 @@ describe('Sidechain registration command', () => {
 			await sidechainRegistrationCommand.execute(context);
 
 			// Assert
-			expect(registeredNetworkIDsSubstore.setWithSchema).toHaveBeenCalledWith(
+			expect(registeredNetworkIDsSubstore.set).toHaveBeenCalledWith(
+				expect.anything(),
 				networkID,
 				expectedValue,
-				chainIDSchema,
 			);
 		});
 	});

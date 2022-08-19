@@ -15,7 +15,11 @@
 import { StateStore } from '@liskhq/lisk-chain';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { BFTModule } from '../../../../src/engine/bft';
-import { EMPTY_KEY, STORE_PREFIX_BFT_VOTES } from '../../../../src/engine/bft/constants';
+import {
+	EMPTY_KEY,
+	MODULE_STORE_PREFIX_BFT,
+	STORE_PREFIX_BFT_VOTES,
+} from '../../../../src/engine/bft/constants';
 import { bftVotesSchema } from '../../../../src/engine/bft/schemas';
 import { createFakeBlockHeader } from '../../../../src/testing';
 
@@ -44,7 +48,7 @@ describe('bft module', () => {
 				createFakeBlockHeader({ height: genesisHeight }),
 			);
 
-			const votesStore = stateStore.getStore(bftModule.id, STORE_PREFIX_BFT_VOTES);
+			const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
 
 			await expect(votesStore.has(EMPTY_KEY)).resolves.toBeTrue();
 			await expect(votesStore.getWithSchema(EMPTY_KEY, bftVotesSchema)).resolves.toEqual({

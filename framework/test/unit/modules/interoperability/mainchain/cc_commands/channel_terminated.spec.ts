@@ -13,12 +13,18 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
+import { MainchainInteroperabilityModule } from '../../../../../../src';
+import {
+	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+	MODULE_NAME_INTEROPERABILITY,
+} from '../../../../../../src/modules/interoperability/constants';
 import { MainchainCCChannelTerminatedCommand } from '../../../../../../src/modules/interoperability/mainchain/cc_commands/channel_terminated';
 import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
 import { createExecuteCCMsgAPIContext } from '../../../../../../src/testing';
 
 describe('MainchainCCChannelTerminatedCommand', () => {
+	const interopMod = new MainchainInteroperabilityModule();
 	const createTerminatedStateAccountMock = jest.fn();
 
 	const ccAPIMod1 = {
@@ -35,8 +41,8 @@ describe('MainchainCCChannelTerminatedCommand', () => {
 	const networkIdentifier = utils.getRandomBytes(32);
 	const ccm = {
 		nonce: BigInt(0),
-		moduleID: utils.intToBuffer(1, 4),
-		crossChainCommandID: utils.intToBuffer(1, 4),
+		module: MODULE_NAME_INTEROPERABILITY,
+		crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 		sendingChainID: utils.intToBuffer(2, 4),
 		receivingChainID: utils.intToBuffer(3, 4),
 		fee: BigInt(20000),
@@ -48,12 +54,13 @@ describe('MainchainCCChannelTerminatedCommand', () => {
 	});
 
 	const ccChannelTerminatedCommand = new MainchainCCChannelTerminatedCommand(
-		utils.intToBuffer(1, 4),
+		interopMod.stores,
+		interopMod.events,
 		ccAPIsMap,
 	);
 	const mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
-		ccm.moduleID,
-		sampleExecuteContext.getStore,
+		interopMod.stores,
+		sampleExecuteContext,
 		ccAPIsMap,
 	);
 	mainchainInteroperabilityStore.createTerminatedStateAccount = createTerminatedStateAccountMock;

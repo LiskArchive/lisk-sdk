@@ -17,6 +17,7 @@ import { Transaction, BlockHeader, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { bls, ed, legacy } from '@liskhq/lisk-cryptography';
 import { signMultiSignatureTransaction } from '@liskhq/lisk-transactions';
+import { TokenModule } from '../../../src';
 import { registerMultisignatureParamsSchema } from '../../../src/modules/auth/schemas';
 import {
 	delegateRegistrationCommandParamsSchema,
@@ -24,7 +25,6 @@ import {
 	voteCommandParamsSchema,
 } from '../../../src/modules/dpos_v2/schemas';
 import { TransferCommand } from '../../../src/modules/token/commands/transfer';
-import { MODULE_ID_TOKEN_BUFFER } from '../../../src/modules/token/constants';
 import { transferParamsSchema } from '../../../src/modules/token/schemas';
 
 export const DEFAULT_TOKEN_ID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
@@ -179,7 +179,8 @@ export const createMultisignatureTransferTransaction = (input: {
 	senderPublicKey: Buffer;
 	passphrases: string[];
 }): Transaction => {
-	const command = new TransferCommand(MODULE_ID_TOKEN_BUFFER);
+	const mod = new TokenModule();
+	const command = new TransferCommand(mod.stores, mod.events);
 	const params = {
 		tokenID: DEFAULT_TOKEN_ID,
 		recipientAddress: input.recipientAddress,

@@ -30,8 +30,5 @@ export const supplyStoreSchema = {
 };
 
 export class SupplyStore extends BaseStore<SupplyStoreData> {
-	public constructor(moduleName: string, version = 0) {
-		super(moduleName, version);
-		this.schema = supplyStoreSchema;
-	}
+	public schema = supplyStoreSchema;
 }

@@ -11,36 +11,32 @@ import {
 	LIVENESS_LIMIT,
 	MAINCHAIN_ID,
 	MAINCHAIN_ID_BUFFER,
-	MODULE_ID_INTEROPERABILITY_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
-	STORE_PREFIX_TERMINATED_STATE,
 } from '../../../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
 import { Mocked } from '../../../../../utils/types';
-import { StateRecoveryInitCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/state_recovery_init';
+import { StateRecoveryInitializationCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/state_recovery_init';
 import {
 	ChainAccount,
 	StateRecoveryInitParams,
-	TerminatedStateAccount,
 } from '../../../../../../src/modules/interoperability/types';
-import { CommandExecuteContext } from '../../../../../../src';
+import { CommandExecuteContext, MainchainInteroperabilityModule } from '../../../../../../src';
 import { TransactionContext } from '../../../../../../src/state_machine';
-import {
-	chainAccountSchema,
-	stateRecoveryInitParams,
-	terminatedStateSchema,
-} from '../../../../../../src/modules/interoperability/schemas';
+import { stateRecoveryInitParams } from '../../../../../../src/modules/interoperability/schemas';
 import { createTransactionContext } from '../../../../../../src/testing';
 import { getIDAsKeyForStore } from '../../../../../../src/modules/interoperability/utils';
-import {
-	CommandVerifyContext,
-	SubStore,
-	VerifyStatus,
-} from '../../../../../../src/state_machine/types';
+import { CommandVerifyContext, VerifyStatus } from '../../../../../../src/state_machine/types';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
+import {
+	TerminatedStateAccount,
+	TerminatedStateStore,
+} from '../../../../../../src/modules/interoperability/stores/terminated_state';
+import { chainAccountSchema } from '../../../../../../src/modules/interoperability/stores/chain_account';
+import { createStoreGetter } from '../../../../../../src/testing/utils';
 
-describe('Mainchain StateRecoveryInitCommand', () => {
+describe('Mainchain StateRecoveryInitializationCommand', () => {
+	const interopMod = new MainchainInteroperabilityModule();
 	type StoreMock = Mocked<
 		MainchainInteroperabilityStore,
 		| 'hasTerminatedStateAccount'
@@ -51,7 +47,7 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 
 	const networkID = utils.getRandomBytes(32);
 
-	let stateRecoveryInitCommand: StateRecoveryInitCommand;
+	let stateRecoveryInitCommand: StateRecoveryInitializationCommand;
 	let commandExecuteContext: CommandExecuteContext<StateRecoveryInitParams>;
 	let transaction: Transaction;
 	let transactionParams: StateRecoveryInitParams;
@@ -60,15 +56,16 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 	let interopStoreMock: StoreMock;
 	let sidechainChainAccount: ChainAccount;
 	let sidechainChainAccountEncoded: Buffer;
-	let terminatedStateSubstore: SubStore;
+	let terminatedStateSubstore: TerminatedStateStore;
 	let terminatedStateAccount: TerminatedStateAccount;
 	let commandVerifyContext: CommandVerifyContext<StateRecoveryInitParams>;
 	let stateStore: PrefixedStateReadWriter;
 	let mainchainAccount: ChainAccount;
 
 	beforeEach(async () => {
-		stateRecoveryInitCommand = new StateRecoveryInitCommand(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
+		stateRecoveryInitCommand = new StateRecoveryInitializationCommand(
+			interopMod.stores,
+			interopMod.events,
 			new Map(),
 			new Map(),
 		);
@@ -114,15 +111,12 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
-		terminatedStateSubstore = stateStore.getStore(
-			stateRecoveryInitCommand['moduleID'],
-			STORE_PREFIX_TERMINATED_STATE,
-		);
+		terminatedStateSubstore = interopMod.stores.get(TerminatedStateStore);
 
-		await terminatedStateSubstore.setWithSchema(
+		await terminatedStateSubstore.set(
+			createStoreGetter(stateStore),
 			transactionParams.chainID,
 			terminatedStateAccount,
-			terminatedStateSchema,
 		);
 
 		transactionContext = createTransactionContext({
@@ -191,11 +185,10 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 		});
 
 		it('should return error if terminated state account exists and is initialized', async () => {
-			await terminatedStateSubstore.setWithSchema(
-				transactionParams.chainID,
-				{ ...terminatedStateAccount, initialized: true },
-				terminatedStateSchema,
-			);
+			await terminatedStateSubstore.set(createStoreGetter(stateStore), transactionParams.chainID, {
+				...terminatedStateAccount,
+				initialized: true,
+			});
 			const result = await stateRecoveryInitCommand.verify(commandVerifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
@@ -264,7 +257,7 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 				.calledWith(getIDAsKeyForStore(MAINCHAIN_ID))
 				.mockResolvedValue(mainchainAccount);
 			jest.spyOn(sparseMerkleTree, 'verify').mockReturnValue(false);
-			await terminatedStateSubstore.del(transactionParams.chainID);
+			await terminatedStateSubstore.del(createStoreGetter(stateStore), transactionParams.chainID);
 
 			const result = await stateRecoveryInitCommand.verify(commandVerifyContext);
 
@@ -278,9 +271,9 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 			// Arrange & Assign & Act
 			await stateRecoveryInitCommand.execute(commandExecuteContext);
 
-			const accountFromStore = await terminatedStateSubstore.getWithSchema(
+			const accountFromStore = await terminatedStateSubstore.get(
+				commandExecuteContext,
 				transactionParams.chainID,
-				terminatedStateSchema,
 			);
 
 			// Assert
@@ -296,9 +289,9 @@ describe('Mainchain StateRecoveryInitCommand', () => {
 
 			await stateRecoveryInitCommand.execute(commandExecuteContext);
 
-			const accountFromStore = await terminatedStateSubstore.getWithSchema(
+			const accountFromStore = await terminatedStateSubstore.get(
+				commandExecuteContext,
 				transactionParams.chainID,
-				terminatedStateSchema,
 			);
 
 			// Assert

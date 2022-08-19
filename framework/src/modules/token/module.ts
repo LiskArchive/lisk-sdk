@@ -52,13 +52,13 @@ import { AvailableLocalIDStore } from './stores/available_local_id';
 import { TransferEvent } from './events/transfer';
 
 export class TokenModule extends BaseInteroperableModule {
-	public api = new TokenAPI(this.name, this.stores, this.events);
-	public endpoint = new TokenEndpoint(this.stores);
+	public api = new TokenAPI(this.stores, this.events, this.name);
+	public endpoint = new TokenEndpoint(this.stores, this.offchainStores);
 	public crossChainAPI = new TokenInteroperableAPI(this.stores, this.events, this.api);
 
 	private _minBalances!: MinBalance[];
-	private readonly _transferCommand = new TransferCommand(this.stores);
-	private readonly _ccTransferCommand = new CCTransferCommand(this.stores);
+	private readonly _transferCommand = new TransferCommand(this.stores, this.events);
+	private readonly _ccTransferCommand = new CCTransferCommand(this.stores, this.events);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [this._transferCommand, this._ccTransferCommand];

@@ -15,22 +15,34 @@
 import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
-import { defaultConfig, EMPTY_KEY, SUBSTORE_PREFIX_GENESIS_DATA } from './constants';
+import { defaultConfig, EMPTY_KEY } from './constants';
 import { GenesisBlockExecuteContext } from '../../state_machine';
 import { ValidatorsAPI } from './api';
 import { ValidatorsEndpoint } from './endpoint';
-import {
-	configSchema,
-	genesisDataSchema,
-	validateBLSKeyRequestSchema,
-	validateBLSKeyResponseSchema,
-} from './schemas';
+import { configSchema, validateBLSKeyRequestSchema, validateBLSKeyResponseSchema } from './schemas';
+import { GenesisStore } from './stores/genesis';
+import { ValidatorKeysStore } from './stores/validator_keys';
+import { BLSKeyStore } from './stores/bls_keys';
+import { GeneratorKeyRegistrationEvent } from './events/generator_key_registration';
+import { BLSKeyRegistrationEvent } from './events/bls_key_registration';
 
 export class ValidatorsModule extends BaseModule {
-	public name = 'validators';
-	public api = new ValidatorsAPI(this.name);
-	public endpoint = new ValidatorsEndpoint(this.name);
+	public api = new ValidatorsAPI(this.stores, this.events);
+	public endpoint = new ValidatorsEndpoint(this.stores, this.offchainStores);
 	private _blockTime!: number;
+
+	public constructor() {
+		super();
+		this.stores.register(GenesisStore, new GenesisStore(this.name));
+		this.stores.register(ValidatorKeysStore, new ValidatorKeysStore(this.name));
+		this.stores.register(BLSKeyStore, new BLSKeyStore(this.name));
+
+		this.events.register(
+			GeneratorKeyRegistrationEvent,
+			new GeneratorKeyRegistrationEvent(this.name),
+		);
+		this.events.register(BLSKeyRegistrationEvent, new BLSKeyRegistrationEvent(this.name));
+	}
 
 	public metadata(): ModuleMetadata {
 		return {
@@ -64,11 +76,7 @@ export class ValidatorsModule extends BaseModule {
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
-		const genesisDataSubStore = context.getStore(this.id, SUBSTORE_PREFIX_GENESIS_DATA);
-		await genesisDataSubStore.setWithSchema(
-			EMPTY_KEY,
-			{ timestamp: context.header.timestamp },
-			genesisDataSchema,
-		);
+		const genesisDataSubStore = this.stores.get(GenesisStore);
+		await genesisDataSubStore.set(context, EMPTY_KEY, { timestamp: context.header.timestamp });
 	}
 }

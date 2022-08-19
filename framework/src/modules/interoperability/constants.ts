@@ -14,8 +14,6 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 
-export const MODULE_ID_INTEROPERABILITY = 64;
-export const MODULE_ID_INTEROPERABILITY_BUFFER = utils.intToBuffer(MODULE_ID_INTEROPERABILITY, 4);
 export const MODULE_NAME_INTEROPERABILITY = 'interoperability';
 
 // General constants
@@ -43,38 +41,15 @@ export const MAX_UINT64 = BigInt('18446744073709551615'); // BigInt((2 ** 64) - 
 export const THRESHOLD_MAINCHAIN = 68;
 export const MESSAGE_TAG_CERTIFICATE = 'LSK_CE_';
 
-// Store prefixes
-export const STORE_PREFIX_OUTBOX_ROOT = 0x0000;
-export const STORE_PREFIX_CHAIN_DATA = 0x8000;
-export const STORE_PREFIX_OWN_CHAIN_DATA = 0xb000;
-export const STORE_PREFIX_CHANNEL_DATA = 0xa000;
-export const STORE_PREFIX_CHAIN_VALIDATORS = 0x9000;
-export const STORE_PREFIX_TERMINATED_STATE = 0xc000;
-export const STORE_PREFIX_TERMINATED_OUTBOX = 0xd000;
-export const STORE_PREFIX_REGISTERED_NAMES = 0xe000;
-export const STORE_PREFIX_REGISTERED_NETWORK_IDS = 0xf000;
-
 // Chain status
 export const CHAIN_REGISTERED = 0;
 export const CHAIN_ACTIVE = 1;
 export const CHAIN_TERMINATED = 2;
 
 // Cross chain commands
-export const CROSS_CHAIN_COMMAND_ID_REGISTRATION = 0;
-export const CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER = utils.intToBuffer(
-	CROSS_CHAIN_COMMAND_ID_REGISTRATION,
-	4,
-);
-export const CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED = 1;
-export const CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED_BUFFER = utils.intToBuffer(
-	CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED,
-	4,
-);
-export const CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED = 2;
-export const CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED_BUFFER = utils.intToBuffer(
-	CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED,
-	4,
-);
+export const CROSS_CHAIN_COMMAND_NAME_REGISTRATION = 'registration';
+export const CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED = 'channelTerminated';
+export const CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED = 'sidechainTerminated';
 export const CCM_STATUS_OK = 0;
 export const CCM_STATUS_MODULE_NOT_SUPPORTED = 1;
 export const CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED = 2;
@@ -83,25 +58,8 @@ export const CCM_STATUS_RECOVERED = 4;
 export const MIN_RETURN_FEE = BigInt(1000);
 
 // Commands
-export const COMMAND_ID_SIDECHAIN_REG = 0;
-export const COMMAND_ID_SIDECHAIN_REG_BUFFER = utils.intToBuffer(COMMAND_ID_SIDECHAIN_REG, 4);
 export const COMMAND_NAME_SIDECHAIN_REG = 'sidechainRegistration';
-export const COMMAND_ID_MAINCHAIN_REG = 1;
-export const COMMAND_ID_MAINCHAIN_REG_BUFFER = utils.intToBuffer(COMMAND_ID_MAINCHAIN_REG, 4);
 export const COMMAND_NAME_MAINCHAIN_REG = 'mainchainRegistration';
-export const COMMAND_ID_SIDECHAIN_CCU = 2;
-export const COMMAND_ID_SIDECHAIN_CCU_BUFFER = utils.intToBuffer(COMMAND_ID_SIDECHAIN_CCU, 4);
-export const COMMAND_ID_MAINCHAIN_CCU = 3;
-export const COMMAND_ID_MAINCHAIN_CCU_BUFFER = utils.intToBuffer(COMMAND_ID_MAINCHAIN_CCU, 4);
-export const COMMAND_ID_STATE_RECOVERY = 4;
-export const COMMAND_ID_STATE_RECOVERY_BUFFER = utils.intToBuffer(COMMAND_ID_STATE_RECOVERY, 4);
 export const COMMAND_NAME_STATE_RECOVERY = 'stateRecovery';
-export const COMMAND_ID_MESSAGE_RECOVERY = 5;
-export const COMMAND_ID_MESSAGE_RECOVERY_BUFFER = utils.intToBuffer(COMMAND_ID_MESSAGE_RECOVERY, 4);
 export const COMMAND_NAME_MESSAGE_RECOVERY = 'messageRecovery';
 export const COMMAND_NAME_STATE_RECOVERY_INIT = 'stateRecoveryInitialization';
-export const COMMAND_ID_STATE_RECOVERY_INIT = 6;
-export const COMMAND_ID_STATE_RECOVERY_INIT_BUFFER = utils.intToBuffer(
-	COMMAND_ID_MESSAGE_RECOVERY,
-	4,
-);

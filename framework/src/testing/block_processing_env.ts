@@ -259,7 +259,7 @@ export const getBlockProcessingEnv = async (
 			const stateStore = new PrefixedStateReadWriter(stateDB.newReadWriter());
 
 			const result = await bindedHandler({
-				getStore: (moduleID: Buffer, storePrefix: number) =>
+				getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 					stateStore.getStore(moduleID, storePrefix),
 				getImmutableAPIContext: () => createImmutableAPIContext(stateStore),
 				logger: engine['_logger'],

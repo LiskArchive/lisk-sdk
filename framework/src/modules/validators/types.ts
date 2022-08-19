@@ -12,15 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export interface ValidatorKeys {
-	generatorKey: Buffer;
-	blsKey: Buffer;
-}
-
-export interface GenesisData {
-	timestamp: number;
-}
-
 export interface APIInitArgs {
 	config: {
 		blockTime: number;

@@ -47,7 +47,7 @@ export class TokenAPI extends BaseAPI {
 	private _minBalances!: MinBalance[];
 	private _interoperabilityAPI!: MainchainInteroperabilityAPI | SidechainInteroperabilityAPI;
 
-	public constructor(moduleName: string, stores: NamedRegistry, events: NamedRegistry) {
+	public constructor(stores: NamedRegistry, events: NamedRegistry, moduleName: string) {
 		super(stores, events);
 		this._moduleName = moduleName;
 	}

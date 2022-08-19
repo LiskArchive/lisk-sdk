@@ -18,15 +18,21 @@ import { isHexString } from '@liskhq/lisk-validator';
 import { ModuleEndpointContext } from '../../types';
 import { VerifyStatus } from '../../state_machine';
 import { BaseEndpoint } from '../base_endpoint';
-import { STORE_PREFIX_AUTH } from './constants';
-import { authAccountSchema } from './schemas';
-import { AuthAccount, AuthAccountJSON, VerifyEndpointResultJSON } from './types';
+import { AuthAccountJSON, VerifyEndpointResultJSON } from './types';
 import { getTransactionFromParameter, verifyNonceStrict, verifySignatures } from './utils';
+import { AuthAccountStore } from './stores/auth_account';
+import { NamedRegistry } from '../named_registry';
 
 export class AuthEndpoint extends BaseEndpoint {
+	private readonly _moduleName: string;
+
+	public constructor(moduleName: string, stores: NamedRegistry, offchainStores: NamedRegistry) {
+		super(stores, offchainStores);
+		this._moduleName = moduleName;
+	}
+
 	public async getAuthAccount(context: ModuleEndpointContext): Promise<AuthAccountJSON> {
 		const {
-			getStore,
 			params: { address },
 		} = context;
 
@@ -35,10 +41,10 @@ export class AuthEndpoint extends BaseEndpoint {
 		}
 
 		const accountAddress = Buffer.from(address as string, 'hex');
-		const store = getStore(this.moduleID, STORE_PREFIX_AUTH);
+		const store = this.stores.get(AuthAccountStore);
 
 		try {
-			const authAccount = await store.getWithSchema<AuthAccount>(accountAddress, authAccountSchema);
+			const authAccount = await store.get(context, accountAddress);
 
 			return {
 				nonce: authAccount.nonce.toString(),
@@ -57,7 +63,6 @@ export class AuthEndpoint extends BaseEndpoint {
 
 	public async isValidSignature(context: ModuleEndpointContext): Promise<VerifyEndpointResultJSON> {
 		const {
-			getStore,
 			params: { transaction: transactionParameter },
 			networkIdentifier,
 		} = context;
@@ -67,11 +72,11 @@ export class AuthEndpoint extends BaseEndpoint {
 
 		const accountAddress = cryptoAddress.getAddressFromPublicKey(transaction.senderPublicKey);
 
-		const store = getStore(this.moduleID, STORE_PREFIX_AUTH);
-		const account = await store.getWithSchema<AuthAccount>(accountAddress, authAccountSchema);
+		const store = this.stores.get(AuthAccountStore);
+		const account = await store.get(context, accountAddress);
 
 		return verifySignatures(
-			this.moduleName,
+			this._moduleName,
 			transaction,
 			transactionBytes,
 			networkIdentifier,
@@ -81,15 +86,14 @@ export class AuthEndpoint extends BaseEndpoint {
 
 	public async isValidNonce(context: ModuleEndpointContext): Promise<VerifyEndpointResultJSON> {
 		const {
-			getStore,
 			params: { transaction: transactionParameter },
 		} = context;
 
 		const transaction = getTransactionFromParameter(transactionParameter);
 		const accountAddress = cryptoAddress.getAddressFromPublicKey(transaction.senderPublicKey);
 
-		const store = getStore(this.moduleID, STORE_PREFIX_AUTH);
-		const account = await store.getWithSchema<AuthAccount>(accountAddress, authAccountSchema);
+		const store = this.stores.get(AuthAccountStore);
+		const account = await store.get(context, accountAddress);
 
 		const verificationResult = verifyNonceStrict(transaction, account).status;
 		return { verified: verificationResult === VerifyStatus.OK };

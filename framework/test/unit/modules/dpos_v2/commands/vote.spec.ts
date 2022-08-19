@@ -12,30 +12,26 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { NotFoundError, StateStore, Transaction } from '@liskhq/lisk-chain';
+import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { address, utils } from '@liskhq/lisk-cryptography';
-import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { validator } from '@liskhq/lisk-validator';
-import { when } from 'jest-when';
-import { VoteCommand, VerifyStatus } from '../../../../../src';
-import {
-	COMMAND_ID_VOTE,
-	MAX_UNLOCKING,
-	MODULE_ID_DPOS_BUFFER,
-	MODULE_NAME_DPOS,
-	STORE_PREFIX_DELEGATE,
-	STORE_PREFIX_VOTER,
-} from '../../../../../src/modules/dpos_v2/constants';
-import { delegateStoreSchema, voterStoreSchema } from '../../../../../src/modules/dpos_v2/schemas';
+import { VoteDelegateCommand, VerifyStatus, DPoSModule } from '../../../../../src';
+import { MAX_UNLOCKING, MODULE_NAME_DPOS } from '../../../../../src/modules/dpos_v2/constants';
+import { DelegateStore } from '../../../../../src/modules/dpos_v2/stores/delegate';
+import { VoterStore } from '../../../../../src/modules/dpos_v2/stores/voter';
 import { DelegateAccount, VoteTransactionParams } from '../../../../../src/modules/dpos_v2/types';
-import { getVoterOrDefault } from '../../../../../src/modules/dpos_v2/utils';
+import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 
 import { createTransactionContext } from '../../../../../src/testing';
+import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
+import { createStoreGetter } from '../../../../../src/testing/utils';
 import { liskToBeddows } from '../../../../utils/assets';
 import { DEFAULT_TOKEN_ID } from '../../../../utils/mocks/transaction';
 
 describe('VoteCommand', () => {
+	const dpos = new DPoSModule();
+
 	const lastBlockHeight = 200;
 	const tokenIDDPoS = DEFAULT_TOKEN_ID;
 	const senderPublicKey = utils.getRandomBytes(32);
@@ -45,27 +41,23 @@ describe('VoteCommand', () => {
 	const delegateAddress3 = utils.getRandomBytes(20);
 	const delegate1VoteAmount = liskToBeddows(90);
 	const delegate2VoteAmount = liskToBeddows(50);
-	const getWithSchemaMock = jest.fn();
-	const storeMock = jest.fn().mockReturnValue({
-		getWithSchema: getWithSchemaMock,
-	});
 
 	let delegateInfo1: DelegateAccount;
 	let delegateInfo2: DelegateAccount;
 	let delegateInfo3: DelegateAccount;
-	let voterStore: any;
-	let delegateStore: any;
+	let voterStore: VoterStore;
+	let delegateStore: DelegateStore;
 	let context: any;
 	let transaction: any;
-	let command: VoteCommand;
+	let command: VoteDelegateCommand;
 	let transactionParams: Buffer;
 	let transactionParamsDecoded: any;
-	let stateStore: any;
+	let stateStore: PrefixedStateReadWriter;
 	let lockFn: any;
 
 	beforeEach(async () => {
 		lockFn = jest.fn();
-		command = new VoteCommand(MODULE_ID_DPOS_BUFFER);
+		command = new VoteDelegateCommand(dpos.stores, dpos.events);
 		command.addDependencies({
 			tokenAPI: {
 				lock: lockFn,
@@ -79,9 +71,7 @@ describe('VoteCommand', () => {
 			tokenIDDPoS: DEFAULT_TOKEN_ID,
 		});
 
-		stateStore = {
-			getStore: storeMock,
-		};
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
 		delegateInfo1 = {
 			consecutiveMissedBlocks: 0,
@@ -113,32 +103,20 @@ describe('VoteCommand', () => {
 			totalVotesReceived: BigInt(0),
 		};
 
-		when(getWithSchemaMock)
-			.calledWith(delegateAddress1, delegateStoreSchema)
-			.mockReturnValue(delegateInfo1);
+		delegateStore = dpos.stores.get(DelegateStore);
 
-		when(getWithSchemaMock)
-			.calledWith(delegateAddress2, delegateStoreSchema)
-			.mockReturnValue(delegateInfo2);
+		await delegateStore.set(createStoreGetter(stateStore), delegateAddress1, delegateInfo1);
+		await delegateStore.set(createStoreGetter(stateStore), delegateAddress2, delegateInfo2);
 
-		when(getWithSchemaMock)
-			.calledWith(senderAddress, voterStoreSchema)
-			.mockRejectedValue(new NotFoundError());
+		voterStore = dpos.stores.get(VoterStore);
+		delegateStore = dpos.stores.get(DelegateStore);
 
-		stateStore = new StateStore(new InMemoryDatabase());
-		voterStore = stateStore.getStore(command['moduleID'], STORE_PREFIX_VOTER);
-		delegateStore = stateStore.getStore(command['moduleID'], STORE_PREFIX_DELEGATE);
-
-		await delegateStore.setWithSchema(delegateAddress1, delegateInfo1, delegateStoreSchema);
-		await delegateStore.setWithSchema(delegateAddress2, delegateInfo2, delegateStoreSchema);
-		await delegateStore.setWithSchema(delegateAddress3, delegateInfo3, delegateStoreSchema);
+		await delegateStore.set(createStoreGetter(stateStore), delegateAddress1, delegateInfo1);
+		await delegateStore.set(createStoreGetter(stateStore), delegateAddress2, delegateInfo2);
+		await delegateStore.set(createStoreGetter(stateStore), delegateAddress3, delegateInfo3);
 	});
 
 	describe('constructor', () => {
-		it('should have valid id', () => {
-			expect(command.id.readInt32BE(0)).toEqual(COMMAND_ID_VOTE);
-		});
-
 		it('should have valid name', () => {
 			expect(command.name).toEqual('voteDelegate');
 		});
@@ -579,11 +557,10 @@ describe('VoteCommand', () => {
 
 			it('should not change pendingUnlocks', async () => {
 				// Arrange
-				stateStore = new StateStore(new InMemoryDatabase());
-				voterStore = stateStore.getStore(command['moduleID'], STORE_PREFIX_VOTER);
-				delegateStore = stateStore.getStore(command['moduleID'], STORE_PREFIX_DELEGATE);
+				voterStore = dpos.stores.get(VoterStore);
+				delegateStore = dpos.stores.get(DelegateStore);
 
-				await delegateStore.setWithSchema(delegateAddress1, delegateInfo1, delegateStoreSchema);
+				await delegateStore.set(createStoreGetter(stateStore), delegateAddress1, delegateInfo1);
 
 				transactionParamsDecoded = {
 					votes: [{ delegateAddress: delegateAddress1, amount: delegate1VoteAmount }],
@@ -600,7 +577,10 @@ describe('VoteCommand', () => {
 
 				await command.execute(context);
 
-				const { pendingUnlocks } = await voterStore.getWithSchema(senderAddress, voterStoreSchema);
+				const { pendingUnlocks } = await voterStore.get(
+					createStoreGetter(stateStore),
+					senderAddress,
+				);
 
 				// Assert
 				expect(pendingUnlocks).toHaveLength(0);
@@ -608,12 +588,11 @@ describe('VoteCommand', () => {
 
 			it('should order voterData.sentVotes', async () => {
 				// Arrange
-				stateStore = new StateStore(new InMemoryDatabase());
-				voterStore = stateStore.getStore(command['moduleID'], STORE_PREFIX_VOTER);
-				delegateStore = stateStore.getStore(command['moduleID'], STORE_PREFIX_DELEGATE);
+				voterStore = dpos.stores.get(VoterStore);
+				delegateStore = dpos.stores.get(DelegateStore);
 
-				await delegateStore.setWithSchema(delegateAddress1, delegateInfo1, delegateStoreSchema);
-				await delegateStore.setWithSchema(delegateAddress2, delegateInfo2, delegateStoreSchema);
+				await delegateStore.set(createStoreGetter(stateStore), delegateAddress1, delegateInfo1);
+				await delegateStore.set(createStoreGetter(stateStore), delegateAddress2, delegateInfo2);
 
 				transactionParamsDecoded = {
 					votes: [
@@ -633,7 +612,7 @@ describe('VoteCommand', () => {
 
 				await command.execute(context);
 
-				const { sentVotes } = await voterStore.getWithSchema(senderAddress, voterStoreSchema);
+				const { sentVotes } = await voterStore.get(createStoreGetter(stateStore), senderAddress);
 
 				const sentVotesCopy = sentVotes.slice(0);
 				sentVotesCopy.sort((a: any, b: any) => a.delegateAddress.compare(b.delegateAddress));
@@ -644,11 +623,10 @@ describe('VoteCommand', () => {
 
 			it('should make upvoted delegate account to have correct totalVotesReceived', async () => {
 				// Arrange
-				stateStore = new StateStore(new InMemoryDatabase());
-				delegateStore = stateStore.getStore(command['moduleID'], STORE_PREFIX_DELEGATE);
+				delegateStore = dpos.stores.get(DelegateStore);
 
-				await delegateStore.setWithSchema(delegateAddress1, delegateInfo1, delegateStoreSchema);
-				await delegateStore.setWithSchema(delegateAddress2, delegateInfo2, delegateStoreSchema);
+				await delegateStore.set(createStoreGetter(stateStore), delegateAddress1, delegateInfo1);
+				await delegateStore.set(createStoreGetter(stateStore), delegateAddress2, delegateInfo2);
 
 				transactionParamsDecoded = {
 					votes: [
@@ -668,13 +646,13 @@ describe('VoteCommand', () => {
 
 				await command.execute(context);
 
-				const { totalVotesReceived: totalVotesReceived1 } = await delegateStore.getWithSchema(
+				const { totalVotesReceived: totalVotesReceived1 } = await delegateStore.get(
+					createStoreGetter(stateStore),
 					delegateAddress1,
-					delegateStoreSchema,
 				);
-				const { totalVotesReceived: totalVotesReceived2 } = await delegateStore.getWithSchema(
+				const { totalVotesReceived: totalVotesReceived2 } = await delegateStore.get(
+					createStoreGetter(stateStore),
 					delegateAddress2,
-					delegateStoreSchema,
 				);
 
 				// Assert
@@ -684,11 +662,10 @@ describe('VoteCommand', () => {
 
 			it('should update vote object when it exists before and create if it does not exist', async () => {
 				// Arrange
-				stateStore = new StateStore(new InMemoryDatabase());
-				voterStore = stateStore.getStore(command['moduleID'], STORE_PREFIX_VOTER);
-				delegateStore = stateStore.getStore(command['moduleID'], STORE_PREFIX_DELEGATE);
+				voterStore = dpos.stores.get(VoterStore);
+				delegateStore = dpos.stores.get(DelegateStore);
 
-				await delegateStore.setWithSchema(delegateAddress1, delegateInfo1, delegateStoreSchema);
+				await delegateStore.set(createStoreGetter(stateStore), delegateAddress1, delegateInfo1);
 				transactionParamsDecoded = {
 					votes: [{ delegateAddress: delegateAddress1, amount: delegate1VoteAmount }],
 				};
@@ -703,10 +680,12 @@ describe('VoteCommand', () => {
 				}).createCommandExecuteContext<VoteTransactionParams>(command.schema);
 
 				// Assert
-				await expect(voterStore.getWithSchema(senderAddress, voterStoreSchema)).rejects.toThrow();
+				await expect(
+					voterStore.get(createStoreGetter(stateStore), senderAddress),
+				).rejects.toThrow();
 
 				await command.execute(context);
-				const { sentVotes } = await voterStore.getWithSchema(senderAddress, voterStoreSchema);
+				const { sentVotes } = await voterStore.get(createStoreGetter(stateStore), senderAddress);
 				expect(sentVotes[0]).toEqual({
 					delegateAddress: delegateAddress1,
 					amount: delegate1VoteAmount,
@@ -788,7 +767,7 @@ describe('VoteCommand', () => {
 
 				await command.execute(context);
 
-				const voterData = await voterStore.getWithSchema(senderAddress, voterStoreSchema);
+				const voterData = await voterStore.get(createStoreGetter(stateStore), senderAddress);
 
 				// Assert
 				expect(voterData.sentVotes).toHaveLength(1);
@@ -814,7 +793,7 @@ describe('VoteCommand', () => {
 
 				await command.execute(context);
 
-				const voterData = await voterStore.getWithSchema(senderAddress, voterStoreSchema);
+				const voterData = await voterStore.get(createStoreGetter(stateStore), senderAddress);
 
 				// Assert
 				expect(
@@ -829,7 +808,7 @@ describe('VoteCommand', () => {
 				// Arrange
 				await command.execute(context);
 
-				const voterData = await voterStore.getWithSchema(senderAddress, voterStoreSchema);
+				const voterData = await voterStore.get(createStoreGetter(stateStore), senderAddress);
 
 				// Assert
 				expect(voterData.pendingUnlocks).toHaveLength(2);
@@ -853,7 +832,7 @@ describe('VoteCommand', () => {
 				// Arrange
 				await command.execute(context);
 
-				const voterData = await voterStore.getWithSchema(senderAddress, voterStoreSchema);
+				const voterData = await voterStore.get(createStoreGetter(stateStore), senderAddress);
 
 				// Assert
 				expect(voterData.pendingUnlocks).toHaveLength(2);
@@ -866,13 +845,13 @@ describe('VoteCommand', () => {
 				// Arrange
 				await command.execute(context);
 
-				const delegateData1 = await delegateStore.getWithSchema(
+				const delegateData1 = await delegateStore.get(
+					createStoreGetter(stateStore),
 					delegateAddress1,
-					delegateStoreSchema,
 				);
-				const delegateData2 = await delegateStore.getWithSchema(
+				const delegateData2 = await delegateStore.get(
+					createStoreGetter(stateStore),
 					delegateAddress2,
-					delegateStoreSchema,
 				);
 
 				// Assert
@@ -973,7 +952,7 @@ describe('VoteCommand', () => {
 				// Arrange
 				await command.execute(context);
 
-				const voterData = await voterStore.getWithSchema(senderAddress, voterStoreSchema);
+				const voterData = await voterStore.get(createStoreGetter(stateStore), senderAddress);
 				// Assert
 				expect(voterData.pendingUnlocks).toHaveLength(1);
 				expect(voterData.pendingUnlocks).toEqual([
@@ -989,9 +968,9 @@ describe('VoteCommand', () => {
 				// Arrange
 				await command.execute(context);
 
-				const delegateData1 = await delegateStore.getWithSchema(
+				const delegateData1 = await delegateStore.get(
+					createStoreGetter(stateStore),
 					delegateAddress1,
-					delegateStoreSchema,
 				);
 
 				// Assert
@@ -1004,9 +983,9 @@ describe('VoteCommand', () => {
 				// Arrange
 				await command.execute(context);
 
-				const delegateData2 = await delegateStore.getWithSchema(
+				const delegateData2 = await delegateStore.get(
+					createStoreGetter(stateStore),
 					delegateAddress2,
-					delegateStoreSchema,
 				);
 
 				// Assert
@@ -1085,7 +1064,7 @@ describe('VoteCommand', () => {
 							totalVotesReceived: BigInt(0),
 						};
 
-						await delegateStore.setWithSchema(delegateAddress, delegateInfo, delegateStoreSchema);
+						await delegateStore.set(createStoreGetter(stateStore), delegateAddress, delegateInfo);
 						votes.push({
 							delegateAddress,
 							amount: liskToBeddows(10),
@@ -1112,7 +1091,10 @@ describe('VoteCommand', () => {
 				it('should throw error', async () => {
 					// Arrange
 					const initialDelegateAmount = 8;
-					const voterData = await getVoterOrDefault(voterStore, senderAddress);
+					const voterData = await voterStore.getOrDefault(
+						createStoreGetter(stateStore),
+						senderAddress,
+					);
 
 					// Suppose account already voted for 8 delegates
 					for (let i = 0; i < initialDelegateAmount; i += 1) {
@@ -1128,7 +1110,7 @@ describe('VoteCommand', () => {
 							totalVotesReceived: BigInt(0),
 						};
 
-						await delegateStore.setWithSchema(delegateAddress, delegateInfo, delegateStoreSchema);
+						await delegateStore.set(createStoreGetter(stateStore), delegateAddress, delegateInfo);
 
 						const vote = {
 							delegateAddress,
@@ -1137,7 +1119,7 @@ describe('VoteCommand', () => {
 						voterData.sentVotes.push(vote);
 					}
 
-					await voterStore.setWithSchema(senderAddress, voterData, voterStoreSchema);
+					await voterStore.set(createStoreGetter(stateStore), senderAddress, voterData);
 
 					// We have 2 negative votes
 					const votes = [
@@ -1165,7 +1147,7 @@ describe('VoteCommand', () => {
 							totalVotesReceived: BigInt(0),
 						};
 
-						await delegateStore.setWithSchema(delegateAddress, delegateInfo, delegateStoreSchema);
+						await delegateStore.set(createStoreGetter(stateStore), delegateAddress, delegateInfo);
 
 						votes.push({
 							delegateAddress,
@@ -1196,7 +1178,10 @@ describe('VoteCommand', () => {
 				it('should throw error', async () => {
 					// Arrange
 					const initialDelegateAmountForUnlocks = 19;
-					const voterData = await getVoterOrDefault(voterStore, senderAddress);
+					const voterData = await voterStore.getOrDefault(
+						createStoreGetter(stateStore),
+						senderAddress,
+					);
 
 					// Suppose account already 19 unlocking
 					for (let i = 0; i < initialDelegateAmountForUnlocks; i += 1) {
@@ -1212,7 +1197,7 @@ describe('VoteCommand', () => {
 							totalVotesReceived: BigInt(0),
 						};
 
-						await delegateStore.setWithSchema(delegateAddress, delegateInfo, delegateStoreSchema);
+						await delegateStore.set(createStoreGetter(stateStore), delegateAddress, delegateInfo);
 
 						const pendingUnlock = {
 							delegateAddress,
@@ -1236,7 +1221,7 @@ describe('VoteCommand', () => {
 							totalVotesReceived: BigInt(0),
 						};
 
-						await delegateStore.setWithSchema(delegateAddress, delegateInfo, delegateStoreSchema);
+						await delegateStore.set(createStoreGetter(stateStore), delegateAddress, delegateInfo);
 
 						const vote = {
 							delegateAddress,
@@ -1245,7 +1230,7 @@ describe('VoteCommand', () => {
 						voterData.sentVotes.push(vote);
 					}
 
-					await voterStore.setWithSchema(senderAddress, voterData, voterStoreSchema);
+					await voterStore.set(createStoreGetter(stateStore), senderAddress, voterData);
 
 					// We have 2 negative votes
 					const votes = [
@@ -1283,12 +1268,15 @@ describe('VoteCommand', () => {
 			describe('when transaction.params.votes negative amount exceeds the previously voted amount', () => {
 				it('should throw error', async () => {
 					// Arrange
-					const voterData = await getVoterOrDefault(voterStore, senderAddress);
+					const voterData = await voterStore.getOrDefault(
+						createStoreGetter(stateStore),
+						senderAddress,
+					);
 					voterData.sentVotes.push({
 						delegateAddress: delegateAddress1,
 						amount: liskToBeddows(70),
 					});
-					await voterStore.setWithSchema(senderAddress, voterData, voterStoreSchema);
+					await voterStore.set(createStoreGetter(stateStore), senderAddress, voterData);
 
 					transactionParamsDecoded = {
 						votes: [
@@ -1331,7 +1319,7 @@ describe('VoteCommand', () => {
 					totalVotesReceived: BigInt(0),
 				};
 
-				await delegateStore.setWithSchema(senderAddress, delegateInfo, delegateStoreSchema);
+				await delegateStore.set(createStoreGetter(stateStore), senderAddress, delegateInfo);
 
 				transactionParamsDecoded = {
 					votes: [{ delegateAddress: senderAddress, amount: senderVoteAmountPositive }],
@@ -1356,8 +1344,11 @@ describe('VoteCommand', () => {
 				// Act & Assign
 				await command.execute(context);
 
-				const delegateData = await delegateStore.getWithSchema(senderAddress, delegateStoreSchema);
-				const voterData = await getVoterOrDefault(voterStore, senderAddress);
+				const delegateData = await delegateStore.get(createStoreGetter(stateStore), senderAddress);
+				const voterData = await voterStore.getOrDefault(
+					createStoreGetter(stateStore),
+					senderAddress,
+				);
 				// Assert
 				expect(delegateData.totalVotesReceived).toEqual(senderVoteAmountPositive);
 				expect(voterData.sentVotes).toHaveLength(1);
@@ -1374,7 +1365,7 @@ describe('VoteCommand', () => {
 				// Act & Assign
 				await command.execute(context);
 
-				const delegateData = await delegateStore.getWithSchema(senderAddress, delegateStoreSchema);
+				const delegateData = await delegateStore.get(createStoreGetter(stateStore), senderAddress);
 				// Assert
 				expect(delegateData.totalVotesReceived).toEqual(senderVoteAmountPositive);
 				expect(delegateData.selfVotes).toEqual(senderVoteAmountPositive);
@@ -1404,8 +1395,11 @@ describe('VoteCommand', () => {
 
 				await command.execute(context);
 
-				const delegateData = await delegateStore.getWithSchema(senderAddress, delegateStoreSchema);
-				const voterData = await getVoterOrDefault(voterStore, senderAddress);
+				const delegateData = await delegateStore.get(createStoreGetter(stateStore), senderAddress);
+				const voterData = await voterStore.getOrDefault(
+					createStoreGetter(stateStore),
+					senderAddress,
+				);
 
 				// Assert
 				expect(delegateData.totalVotesReceived).toEqual(
@@ -1447,7 +1441,7 @@ describe('VoteCommand', () => {
 					totalVotesReceived: delegateSelfVote,
 				};
 
-				await delegateStore.setWithSchema(delegateAddress, delegateInfo, delegateStoreSchema);
+				await delegateStore.set(createStoreGetter(stateStore), delegateAddress, delegateInfo);
 
 				transactionParamsDecoded = {
 					votes: [{ delegateAddress, amount: senderVoteAmountPositive }],
@@ -1472,9 +1466,9 @@ describe('VoteCommand', () => {
 				// Act & Assign
 				await command.execute(context);
 
-				const delegateData = await delegateStore.getWithSchema(
+				const delegateData = await delegateStore.get(
+					createStoreGetter(stateStore),
 					delegateAddress,
-					delegateStoreSchema,
 				);
 				// Assert
 				expect(delegateData.totalVotesReceived).toEqual(
@@ -1505,11 +1499,14 @@ describe('VoteCommand', () => {
 
 				await command.execute(context);
 
-				const delegateData = await delegateStore.getWithSchema(
+				const delegateData = await delegateStore.get(
+					createStoreGetter(stateStore),
 					delegateAddress,
-					delegateStoreSchema,
 				);
-				const voterData = await getVoterOrDefault(voterStore, senderAddress);
+				const voterData = await voterStore.getOrDefault(
+					createStoreGetter(stateStore),
+					senderAddress,
+				);
 
 				// Assert
 				expect(delegateData.totalVotesReceived).toEqual(

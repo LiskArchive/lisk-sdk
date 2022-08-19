@@ -33,10 +33,7 @@ export const escrowStoreSchema = {
 };
 
 export class EscrowStore extends BaseStore<EscrowStoreData> {
-	public constructor(moduleName: string, version = 0) {
-		super(moduleName, version);
-		this.schema = escrowStoreSchema;
-	}
+	public schema = escrowStoreSchema;
 
 	public async addAmount(
 		context: StoreGetter,

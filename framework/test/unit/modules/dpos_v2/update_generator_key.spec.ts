@@ -17,23 +17,21 @@ import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../../src/testing';
 import { UpdateGeneratorKeyCommand } from '../../../../src/modules/dpos_v2/commands/update_generator_key';
-import {
-	MODULE_ID_DPOS_BUFFER,
-	STORE_PREFIX_DELEGATE,
-} from '../../../../src/modules/dpos_v2/constants';
-import {
-	delegateStoreSchema,
-	updateGeneratorKeyCommandParamsSchema,
-} from '../../../../src/modules/dpos_v2/schemas';
+import { updateGeneratorKeyCommandParamsSchema } from '../../../../src/modules/dpos_v2/schemas';
 import { UpdateGeneratorKeyParams, ValidatorsAPI } from '../../../../src/modules/dpos_v2/types';
 import { VerifyStatus } from '../../../../src/state_machine';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
+import { DPoSModule } from '../../../../src/modules/dpos_v2/module';
+import { DelegateStore } from '../../../../src/modules/dpos_v2/stores/delegate';
+import { createStoreGetter } from '../../../../src/testing/utils';
 
 describe('Update generator key command', () => {
+	const dpos = new DPoSModule();
+
 	let updateGeneratorCommand: UpdateGeneratorKeyCommand;
 	let stateStore: PrefixedStateReadWriter;
-	let delegateSubstore: PrefixedStateReadWriter;
+	let delegateSubstore: DelegateStore;
 
 	const transactionParams = codec.encode(updateGeneratorKeyCommandParamsSchema, {
 		generatorKey: utils.getRandomBytes(32),
@@ -55,23 +53,19 @@ describe('Update generator key command', () => {
 	const mockValidatorsAPI = { setValidatorGeneratorKey: jest.fn() };
 
 	beforeEach(async () => {
-		updateGeneratorCommand = new UpdateGeneratorKeyCommand(MODULE_ID_DPOS_BUFFER);
+		updateGeneratorCommand = new UpdateGeneratorKeyCommand(dpos.stores, dpos.events);
 		updateGeneratorCommand.addDependencies((mockValidatorsAPI as unknown) as ValidatorsAPI);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		delegateSubstore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
-		await delegateSubstore.setWithSchema(
-			transaction.senderAddress,
-			{
-				name: 'mrrobot',
-				totalVotesReceived: BigInt(10000000000),
-				selfVotes: BigInt(1000000000),
-				lastGeneratedHeight: 100,
-				isBanned: false,
-				pomHeights: [],
-				consecutiveMissedBlocks: 0,
-			},
-			delegateStoreSchema,
-		);
+		delegateSubstore = dpos.stores.get(DelegateStore);
+		await delegateSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
+			name: 'mrrobot',
+			totalVotesReceived: BigInt(10000000000),
+			selfVotes: BigInt(1000000000),
+			lastGeneratedHeight: 100,
+			isBanned: false,
+			pomHeights: [],
+			consecutiveMissedBlocks: 0,
+		});
 	});
 
 	describe('verify', () => {

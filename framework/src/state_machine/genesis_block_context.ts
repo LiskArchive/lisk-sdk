@@ -52,7 +52,7 @@ export class GenesisBlockContext {
 		return {
 			eventQueue: childQueue,
 			getAPIContext: () => new APIContext({ stateStore: this._stateStore, eventQueue: childQueue }),
-			getStore: (moduleID: Buffer, storePrefix: number) =>
+			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
 			logger: this._logger,
@@ -79,7 +79,7 @@ export class GenesisBlockContext {
 		return {
 			eventQueue: childQueue,
 			getAPIContext: () => new APIContext({ stateStore: this._stateStore, eventQueue: childQueue }),
-			getStore: (moduleID: Buffer, storePrefix: number) =>
+			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
 			logger: this._logger,

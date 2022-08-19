@@ -92,7 +92,7 @@ describe('Process block', () => {
 
 			it('should save the events to the database', async () => {
 				const events = await dataAccess.getEvents(newBlock.header.height);
-				expect(events).toHaveLength(1);
+				expect(events.length).toBeGreaterThanOrEqual(1);
 			});
 		});
 	});

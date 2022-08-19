@@ -17,24 +17,28 @@ import { SidechainInteroperabilityStore } from './store';
 import {
 	ChainAccountJSON,
 	ChannelDataJSON,
-	ImmutableStoreCallback,
 	InboxJSON,
 	LastCertificateJSON,
 	MessageFeeTokenIDJSON,
 	OutboxJSON,
 	OwnChainAccountJSON,
-	StoreCallback,
-	TerminatedOutboxAccountJSON,
-	TerminatedStateAccountJSON,
 } from '../types';
 import { BaseInteroperableAPI } from '../base_interoperable_api';
 import { ModuleEndpointContext } from '../../../types';
+import { NamedRegistry } from '../../named_registry';
+import { ImmutableStoreGetter, StoreGetter } from '../../base_store';
+import { TerminatedOutboxAccountJSON } from '../stores/terminated_outbox';
+import { TerminatedStateAccountJSON } from '../stores/terminated_state';
 
 export class SidechainInteroperabilityEndpoint extends BaseEndpoint {
-	protected readonly interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
+	protected readonly interoperableCCAPIs = new Map<string, BaseInteroperableAPI>();
 
-	public constructor(module: string, interoperableCCAPIs: Map<number, BaseInteroperableAPI>) {
-		super(module);
+	public constructor(
+		stores: NamedRegistry,
+		offchainStores: NamedRegistry,
+		interoperableCCAPIs: Map<string, BaseInteroperableAPI>,
+	) {
+		super(stores, offchainStores);
 		this.interoperableCCAPIs = interoperableCCAPIs;
 	}
 
@@ -42,7 +46,7 @@ export class SidechainInteroperabilityEndpoint extends BaseEndpoint {
 		context: ModuleEndpointContext,
 		chainID: Buffer,
 	): Promise<ChainAccountJSON> {
-		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+		const interoperabilityStore = this.getInteroperabilityStore(context);
 		const {
 			lastCertificate,
 			name,
@@ -69,7 +73,7 @@ export class SidechainInteroperabilityEndpoint extends BaseEndpoint {
 		context: ModuleEndpointContext,
 		chainID: Buffer,
 	): Promise<ChannelDataJSON> {
-		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+		const interoperabilityStore = this.getInteroperabilityStore(context);
 
 		const {
 			inbox,
@@ -104,7 +108,7 @@ export class SidechainInteroperabilityEndpoint extends BaseEndpoint {
 	}
 
 	public async getOwnChainAccount(context: ModuleEndpointContext): Promise<OwnChainAccountJSON> {
-		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+		const interoperabilityStore = this.getInteroperabilityStore(context);
 
 		const { id, name, nonce } = await interoperabilityStore.getOwnChainAccount();
 
@@ -119,7 +123,7 @@ export class SidechainInteroperabilityEndpoint extends BaseEndpoint {
 		context: ModuleEndpointContext,
 		chainID: Buffer,
 	): Promise<TerminatedStateAccountJSON> {
-		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+		const interoperabilityStore = this.getInteroperabilityStore(context);
 
 		const {
 			stateRoot,
@@ -138,7 +142,7 @@ export class SidechainInteroperabilityEndpoint extends BaseEndpoint {
 		context: ModuleEndpointContext,
 		chainID: Buffer,
 	): Promise<TerminatedOutboxAccountJSON> {
-		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+		const interoperabilityStore = this.getInteroperabilityStore(context);
 
 		const {
 			outboxRoot,
@@ -154,8 +158,8 @@ export class SidechainInteroperabilityEndpoint extends BaseEndpoint {
 	}
 
 	protected getInteroperabilityStore(
-		getStore: StoreCallback | ImmutableStoreCallback,
+		context: StoreGetter | ImmutableStoreGetter,
 	): SidechainInteroperabilityStore {
-		return new SidechainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
+		return new SidechainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
 	}
 }

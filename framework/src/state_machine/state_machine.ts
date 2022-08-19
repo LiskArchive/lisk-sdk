@@ -26,26 +26,17 @@ import { VerifyStatus, VerificationResult } from './types';
 export class StateMachine {
 	private readonly _modules: BaseModule[] = [];
 	private readonly _systemModules: BaseModule[] = [];
-	private readonly _moduleIDs: Buffer[] = [];
 
 	private _initialized = false;
 
 	public registerModule(mod: BaseModule): void {
-		this._validateExistingModuleID(mod.id);
+		this._validateExisting(mod);
 		this._modules.push(mod);
-		this._moduleIDs.push(mod.id);
-		this._moduleIDs.sort((a, b) => a.readInt32BE(0) - b.readInt32BE(0));
 	}
 
 	public registerSystemModule(mod: BaseModule): void {
-		this._validateExistingModuleID(mod.id);
+		this._validateExisting(mod);
 		this._systemModules.push(mod);
-		this._moduleIDs.push(mod.id);
-		this._moduleIDs.sort((a, b) => a.readInt32BE(0) - b.readInt32BE(0));
-	}
-
-	public getAllModuleIDs() {
-		return this._moduleIDs;
 	}
 
 	public async init(
@@ -301,14 +292,36 @@ export class StateMachine {
 		return targetCommand;
 	}
 
-	private _validateExistingModuleID(id: Buffer): void {
-		const existingModule = this._modules.find(m => m.id.equals(id));
+	private _validateExisting(mod: BaseModule): void {
+		const existingModule = this._modules.find(m => m.name === mod.name);
 		if (existingModule) {
-			throw new Error(`Modul ${id.readInt32BE(0)} is registered.`);
+			throw new Error(`Modul ${mod.name} is registered.`);
 		}
-		const existingSystemModule = this._systemModules.find(m => m.id.equals(id));
-		if (existingSystemModule) {
-			throw new Error(`Module with ID ${id.readInt32BE(0)} is registered as a system module.`);
+		const allExistingEvents = this._modules.reduce<Buffer[]>((prev, curr) => {
+			prev.push(...curr.events.keys());
+			return prev;
+		}, []);
+		for (const event of mod.events.values()) {
+			const duplicate = allExistingEvents.find(k => k.equals(event.key));
+			if (duplicate) {
+				throw new Error(
+					`Module ${mod.name} has conflicting event ${event.name}. Please update the event name.`,
+				);
+			}
+			allExistingEvents.push(event.key);
+		}
+		const allExistingStores = this._modules.reduce<Buffer[]>((prev, curr) => {
+			prev.push(...curr.stores.keys());
+			return prev;
+		}, []);
+		for (const store of mod.stores.values()) {
+			const duplicate = allExistingStores.find(k => k.equals(store.key));
+			if (duplicate) {
+				throw new Error(
+					`Module ${mod.name} has conflicting store ${store.name}. Please update the store name.`,
+				);
+			}
+			allExistingStores.push(store.key);
 		}
 	}
 }

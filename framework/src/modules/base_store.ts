@@ -24,13 +24,20 @@ export interface StoreGetter {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 }
 
-export class BaseStore<T> {
-	public schema?: Schema;
-
+export abstract class BaseStore<T> {
 	private readonly _version: number;
-
 	private readonly _storePrefix: Buffer;
 	private readonly _subStorePrefix: Buffer;
+
+	public abstract schema: Schema;
+
+	public get storePrefix(): Buffer {
+		return this._storePrefix;
+	}
+
+	public get subStorePrefix(): Buffer {
+		return this._subStorePrefix;
+	}
 
 	public get key(): Buffer {
 		return Buffer.concat([this._storePrefix, this._subStorePrefix]);

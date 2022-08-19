@@ -22,7 +22,6 @@ import {
 	CCM_STATUS_OK,
 	CCM_STATUS_PROTOCOL_VIOLATION,
 	CHAIN_ID_ALIAS_NATIVE,
-	CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 	CROSS_CHAIN_COMMAND_NAME_FORWARD,
 } from '../constants';
@@ -37,8 +36,6 @@ import { InteroperabilityAPI } from '../types';
 import { splitTokenID } from '../utils';
 
 export class CCForwardCommand extends BaseCCCommand {
-	public ID = CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER;
-	public name = CROSS_CHAIN_COMMAND_NAME_FORWARD;
 	public schema = crossChainForwardMessageParams;
 
 	private readonly _tokenAPI: TokenAPI;
@@ -47,6 +44,10 @@ export class CCForwardCommand extends BaseCCCommand {
 	public constructor(stores: NamedRegistry, events: NamedRegistry, tokenAPI: TokenAPI) {
 		super(stores, events);
 		this._tokenAPI = tokenAPI;
+	}
+
+	public get name(): string {
+		return CROSS_CHAIN_COMMAND_NAME_FORWARD;
 	}
 
 	public addDependencies(interoperabilityAPI: InteroperabilityAPI) {

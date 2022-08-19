@@ -44,7 +44,7 @@ export interface ModuleMetadata {
 	}[];
 	events: {
 		typeID: string;
-		data?: Schema;
+		data: Schema;
 	}[];
 	commands: {
 		name: string;
@@ -58,7 +58,6 @@ export interface ModuleMetadata {
 
 export type RootModuleMetadata = ModuleMetadata & { id: Buffer; name: string };
 export interface ModuleMetadataJSON {
-	id: string;
 	name: string;
 	endpoints: {
 		name: string;
@@ -70,7 +69,6 @@ export interface ModuleMetadataJSON {
 		data: Schema;
 	}[];
 	commands: {
-		id: string;
 		name: string;
 		params?: Schema;
 	}[];
@@ -84,6 +82,7 @@ export abstract class BaseModule {
 	public commands: BaseCommand[] = [];
 	public events: NamedRegistry = new NamedRegistry();
 	public stores: NamedRegistry = new NamedRegistry();
+	public offchainStores: NamedRegistry = new NamedRegistry();
 
 	public get name(): string {
 		const name = this.constructor.name.replace('Module', '');

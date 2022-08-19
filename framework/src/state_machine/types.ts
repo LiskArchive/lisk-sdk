@@ -189,5 +189,6 @@ export interface InsertAssetContext {
 	header: BlockHeader;
 	assets: WritableBlockAssets;
 	getGeneratorStore: (moduleID: Buffer) => SubStore;
+	getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	getFinalizedHeight(): number;
 }

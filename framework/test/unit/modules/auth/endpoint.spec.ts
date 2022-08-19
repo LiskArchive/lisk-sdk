@@ -6,18 +6,11 @@ import { AuthModule } from '../../../../src/modules/auth';
 import { COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP } from '../../../../src/modules/auth/constants';
 import { AuthEndpoint } from '../../../../src/modules/auth/endpoint';
 import { InvalidNonceError } from '../../../../src/modules/auth/errors';
-import {
-	authAccountSchema,
-	registerMultisignatureParamsSchema,
-} from '../../../../src/modules/auth/schemas';
+import { registerMultisignatureParamsSchema } from '../../../../src/modules/auth/schemas';
+import { AuthAccountStore } from '../../../../src/modules/auth/stores/auth_account';
 import { createTransientModuleEndpointContext } from '../../../../src/testing';
 
 describe('AuthEndpoint', () => {
-	const subStoreMock = jest.fn();
-	const storeMock = jest.fn().mockReturnValue({ getWithSchema: subStoreMock });
-	const stateStore: any = {
-		getStore: storeMock,
-	};
 	const networkIdentifier = Buffer.from(
 		'ce6b20ee7f7797e102f68d15099e7d5b0e8d4c50f98a7865ea168717539ec3aa',
 		'hex',
@@ -71,18 +64,21 @@ describe('AuthEndpoint', () => {
 		accounts.targetAccount.passphrase,
 	).privateKey;
 
-	let authModule: AuthModule;
 	let authEndpoint: AuthEndpoint;
+	let authAccountStore: AuthAccountStore;
+
 	beforeEach(() => {
-		authModule = new AuthModule();
+		const authModule = new AuthModule();
+		authAccountStore = authModule.stores.get(AuthAccountStore);
 		authEndpoint = authModule.endpoint;
+
+		jest.spyOn(authAccountStore, 'get').mockRejectedValue(new NotFoundError());
 	});
 
 	describe('getAuthAccount', () => {
 		it('should get an auth account successfuly', async () => {
 			// Arrange
 			const context = createTransientModuleEndpointContext({
-				stateStore,
 				params: {
 					address: existingAddress.toString('hex'),
 				},
@@ -95,8 +91,8 @@ describe('AuthEndpoint', () => {
 				numberOfSignatures: 1,
 			};
 
-			when(subStoreMock)
-				.calledWith(existingAddress, authAccountSchema)
+			when(authAccountStore.get as jest.Mock)
+				.calledWith(expect.anything(), existingAddress)
 				.mockReturnValue({ ...expectedAuthAccount });
 
 			const authAccount = await authEndpoint.getAuthAccount(context);
@@ -118,7 +114,6 @@ describe('AuthEndpoint', () => {
 		it('should get a zero-value for non-existent auth account', async () => {
 			// Arrange
 			const context = createTransientModuleEndpointContext({
-				stateStore,
 				params: {
 					address: nonExistingAddress.toString('hex'),
 				},
@@ -131,8 +126,8 @@ describe('AuthEndpoint', () => {
 				numberOfSignatures: 0,
 			};
 
-			when(subStoreMock)
-				.calledWith(nonExistingAddress, authAccountSchema)
+			when(authAccountStore.get as jest.Mock)
+				.calledWith(expect.anything(), nonExistingAddress)
 				.mockRejectedValue(new NotFoundError());
 
 			const authAccount = await authEndpoint.getAuthAccount(context);
@@ -173,15 +168,14 @@ describe('AuthEndpoint', () => {
 			const transactionAsString = transaction.getBytes().toString('hex');
 
 			const context = createTransientModuleEndpointContext({
-				stateStore,
 				params: {
 					transaction: transactionAsString,
 				},
 				networkIdentifier,
 			});
 
-			when(subStoreMock)
-				.calledWith(existingAddress, authAccountSchema)
+			when(authAccountStore.get as jest.Mock)
+				.calledWith(expect.anything(), existingAddress)
 				.mockReturnValue({
 					mandatoryKeys: [],
 					optionalKeys: [],
@@ -239,15 +233,14 @@ describe('AuthEndpoint', () => {
 			const transactionAsString = transaction.getBytes().toString('hex');
 
 			const context = createTransientModuleEndpointContext({
-				stateStore,
 				params: {
 					transaction: transactionAsString,
 				},
 				networkIdentifier,
 			});
 
-			when(subStoreMock)
-				.calledWith(existingAddress, authAccountSchema)
+			when(authAccountStore.get as jest.Mock)
+				.calledWith(expect.anything(), existingAddress)
 				.mockReturnValue({
 					mandatoryKeys: [accounts.mandatoryOne.publicKey, accounts.mandatoryTwo.publicKey],
 					optionalKeys: [accounts.optionalOne.publicKey, accounts.optionalTwo.publicKey],
@@ -323,8 +316,8 @@ describe('AuthEndpoint', () => {
 				),
 			);
 
-			when(subStoreMock)
-				.calledWith(existingAddress, authAccountSchema)
+			when(authAccountStore.get as jest.Mock)
+				.calledWith(expect.anything(), existingAddress)
 				.mockReturnValue({
 					mandatoryKeys: [accounts.mandatoryOne.publicKey, accounts.mandatoryTwo.publicKey],
 					optionalKeys: [accounts.optionalOne.publicKey, accounts.optionalTwo.publicKey],
@@ -335,7 +328,6 @@ describe('AuthEndpoint', () => {
 			const transactionAsString = transaction.getBytes().toString('hex');
 
 			const context = createTransientModuleEndpointContext({
-				stateStore,
 				params: {
 					transaction: transactionAsString,
 				},
@@ -365,14 +357,13 @@ describe('AuthEndpoint', () => {
 			const transactionAsString = transaction.getBytes().toString('hex');
 
 			const context = createTransientModuleEndpointContext({
-				stateStore,
 				params: {
 					transaction: transactionAsString,
 				},
 			});
 
-			when(subStoreMock)
-				.calledWith(existingAddress, authAccountSchema)
+			when(authAccountStore.get as jest.Mock)
+				.calledWith(expect.anything(), existingAddress)
 				.mockReturnValue({
 					mandatoryKeys: [],
 					optionalKeys: [],
@@ -402,14 +393,13 @@ describe('AuthEndpoint', () => {
 			const transactionAsString = transaction.getBytes().toString('hex');
 
 			const context = createTransientModuleEndpointContext({
-				stateStore,
 				params: {
 					transaction: transactionAsString,
 				},
 			});
 
-			when(subStoreMock)
-				.calledWith(existingAddress, authAccountSchema)
+			when(authAccountStore.get as jest.Mock)
+				.calledWith(expect.anything(), existingAddress)
 				.mockReturnValue({
 					mandatoryKeys: [],
 					optionalKeys: [],
@@ -446,18 +436,19 @@ describe('AuthEndpoint', () => {
 			const transactionAsString = transaction.getBytes().toString('hex');
 
 			const context = createTransientModuleEndpointContext({
-				stateStore,
 				params: {
 					transaction: transactionAsString,
 				},
 			});
 
-			when(subStoreMock).calledWith(existingAddress, authAccountSchema).mockReturnValue({
-				mandatoryKeys: [],
-				optionalKeys: [],
-				nonce: accountNonce,
-				numberOfSignatures: 0,
-			});
+			when(authAccountStore.get as jest.Mock)
+				.calledWith(expect.anything(), existingAddress)
+				.mockReturnValue({
+					mandatoryKeys: [],
+					optionalKeys: [],
+					nonce: accountNonce,
+					numberOfSignatures: 0,
+				});
 
 			// Assert
 			return expect(authEndpoint.isValidNonce(context)).rejects.toThrow(

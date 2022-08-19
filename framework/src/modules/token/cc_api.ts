@@ -22,12 +22,7 @@ import {
 } from '../interoperability/types';
 import { NamedRegistry } from '../named_registry';
 import { TokenAPI } from './api';
-import {
-	ADDRESS_LENGTH,
-	CHAIN_ID_ALIAS_NATIVE,
-	CHAIN_ID_LENGTH,
-	STORE_PREFIX_USER,
-} from './constants';
+import { ADDRESS_LENGTH, CHAIN_ID_ALIAS_NATIVE, CHAIN_ID_LENGTH } from './constants';
 
 import { UserStoreData, userStoreSchema } from './schemas';
 import { EscrowStore } from './stores/escrow';
@@ -159,8 +154,9 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 
 	public async recover(ctx: RecoverCCMsgAPIContext): Promise<void> {
 		const apiContext = ctx.getAPIContext();
-		if (STORE_PREFIX_USER !== ctx.storePrefix) {
-			throw new Error(`Invalid store prefix ${ctx.storePrefix} to recover.`);
+		const userStore = this.stores.get(UserStore);
+		if (!ctx.storePrefix.equals(userStore.subStorePrefix)) {
+			throw new Error(`Invalid store prefix ${ctx.storePrefix.toString('hex')} to recover.`);
 		}
 		if (ctx.storeKey.length !== 28) {
 			throw new Error(`Invalid store key ${ctx.storeKey.toString('hex')} to recover.`);
@@ -194,7 +190,6 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 		await escrowStore.set(ctx, escrowKey, escrowData);
 
 		const localTokenID = Buffer.concat([CHAIN_ID_ALIAS_NATIVE, localID]);
-		const userStore = this.stores.get(UserStore);
 		await userStore.updateAvailableBalanceWithCreate(
 			apiContext,
 			address,

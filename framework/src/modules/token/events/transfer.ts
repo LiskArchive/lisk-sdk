@@ -56,9 +56,11 @@ export const transferEventSchema = {
 };
 
 export class TransferEvent extends BaseEvent<TransferEventData> {
+	public schema = transferEventSchema;
+
 	public log(ctx: EventQueuer, data: TransferEventData): void {
 		const amountBuffer = Buffer.alloc(8);
 		amountBuffer.writeBigUInt64BE(data.amount);
-		this.add(ctx, data, [data.senderAddress, data.tokenID, amountBuffer, data.recipientAddress]);
+		this.add(ctx, data, [data.senderAddress, data.tokenID, data.recipientAddress]);
 	}
 }

@@ -17,29 +17,31 @@ import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import * as fixtures from './fixtures.json';
 import * as testing from '../../../../src/testing';
-import { RegisterMultisignatureCommand } from '../../../../src/modules/auth/commands/register_multisignature';
-import { MODULE_ID_AUTH_BUFFER, STORE_PREFIX_AUTH } from '../../../../src/modules/auth/constants';
-import {
-	authAccountSchema,
-	registerMultisignatureParamsSchema,
-} from '../../../../src/modules/auth/schemas';
-import { AuthAccount, RegisterMultisignatureParams } from '../../../../src/modules/auth/types';
+import { RegisterMultisignatureGroupCommand } from '../../../../src/modules/auth/commands/register_multisignature';
+import { registerMultisignatureParamsSchema } from '../../../../src/modules/auth/schemas';
+import { RegisterMultisignatureParams } from '../../../../src/modules/auth/types';
 import { VerifyStatus } from '../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
+import { AuthModule } from '../../../../src/modules/auth';
+import { AuthAccountStore } from '../../../../src/modules/auth/stores/auth_account';
 
 describe('Register Multisignature command', () => {
-	let registerMultisignatureCommand: RegisterMultisignatureCommand;
+	let registerMultisignatureCommand: RegisterMultisignatureGroupCommand;
 	let stateStore: PrefixedStateReadWriter;
-	let authStore: PrefixedStateReadWriter;
+	let authStore: AuthAccountStore;
 	let transaction: Transaction;
 	let decodedParams: RegisterMultisignatureParams;
 
+	const authModule = new AuthModule();
 	const defaultTestCase = fixtures.testCases[0];
 	const networkIdentifier = Buffer.from(defaultTestCase.input.networkIdentifier, 'hex');
 
 	beforeEach(() => {
-		registerMultisignatureCommand = new RegisterMultisignatureCommand(MODULE_ID_AUTH_BUFFER);
+		registerMultisignatureCommand = new RegisterMultisignatureGroupCommand(
+			authModule.stores,
+			authModule.events,
+		);
 		const buffer = Buffer.from(defaultTestCase.output.transaction, 'hex');
 		transaction = Transaction.fromBytes(buffer);
 		decodedParams = codec.decode<RegisterMultisignatureParams>(
@@ -397,11 +399,15 @@ describe('Register Multisignature command', () => {
 	describe('execute', () => {
 		beforeEach(() => {
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-			authStore = stateStore.getStore(MODULE_ID_AUTH_BUFFER, STORE_PREFIX_AUTH);
+			authStore = authModule.stores.get(AuthAccountStore);
 		});
 
 		it('should not throw when registering for first time', async () => {
-			await authStore.setWithSchema(
+			await authStore.set(
+				{
+					getStore: (storePrefix: Buffer, substorePrefix: Buffer) =>
+						stateStore.getStore(storePrefix, substorePrefix),
+				},
 				transaction.senderAddress,
 				{
 					optionalKeys: [],
@@ -409,7 +415,6 @@ describe('Register Multisignature command', () => {
 					numberOfSignatures: 0,
 					nonce: BigInt(0),
 				},
-				authAccountSchema,
 			);
 			const context = testing
 				.createTransactionContext({
@@ -422,19 +427,19 @@ describe('Register Multisignature command', () => {
 				);
 
 			await expect(registerMultisignatureCommand.execute(context)).resolves.toBeUndefined();
-			const updatedStore = stateStore.getStore(MODULE_ID_AUTH_BUFFER, STORE_PREFIX_AUTH);
-			const updatedData = await updatedStore.getWithSchema<AuthAccount>(
-				transaction.senderAddress,
-				authAccountSchema,
-			);
+			const updatedStore = authModule.stores.get(AuthAccountStore);
+			const updatedData = await updatedStore.get(context, transaction.senderAddress);
 			expect(updatedData.mandatoryKeys).toEqual(decodedParams.mandatoryKeys);
 		});
 
 		it('should throw error when account is already multisignature', async () => {
-			await authStore.setWithSchema(
+			await authStore.set(
+				{
+					getStore: (storePrefix: Buffer, substorePrefix: Buffer) =>
+						stateStore.getStore(storePrefix, substorePrefix),
+				},
 				transaction.senderAddress,
 				{ ...decodedParams, nonce: BigInt(0) },
-				authAccountSchema,
 			);
 			const context = testing
 				.createTransactionContext({

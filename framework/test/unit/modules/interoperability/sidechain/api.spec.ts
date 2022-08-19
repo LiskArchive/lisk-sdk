@@ -13,46 +13,44 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { MODULE_NAME_INTEROPERABILITY } from '../../../../../src/modules/interoperability/constants';
+import { SidechainInteroperabilityModule } from '../../../../../src';
 import { SidechainInteroperabilityAPI } from '../../../../../src/modules/interoperability/sidechain/api';
 import { SidechainInteroperabilityStore } from '../../../../../src/modules/interoperability/sidechain/store';
+import { APIContext } from '../../../../../src/state_machine';
 
 describe('Sidechain API', () => {
-	const moduleID = utils.intToBuffer(1, 4);
+	const interopMod = new SidechainInteroperabilityModule();
+
 	const chainID = utils.intToBuffer(1, 4);
 	const interoperableCCAPIs = new Map();
-	const getStore = jest.fn().mockReturnValue({ getWithSchema: jest.fn() });
-	const apiContext = {
-		getStore,
-		eventQueue: {
-			add: jest.fn(),
-		},
-	};
+
+	let apiContext: APIContext;
 	let sidechainInteroperabilityAPI: SidechainInteroperabilityAPI;
-	let sidechainInteroperabilityStore = new SidechainInteroperabilityStore(
-		moduleID,
-		getStore,
-		interoperableCCAPIs,
-	);
+	let sidechainInteroperabilityStore: SidechainInteroperabilityStore;
 
 	beforeEach(() => {
 		sidechainInteroperabilityAPI = new SidechainInteroperabilityAPI(
-			MODULE_NAME_INTEROPERABILITY,
+			interopMod.stores,
+			interopMod.events,
 			interoperableCCAPIs,
 		);
 		sidechainInteroperabilityStore = new SidechainInteroperabilityStore(
-			moduleID,
-			getStore,
+			interopMod.stores,
+			apiContext,
 			interoperableCCAPIs,
 		);
 		jest
 			.spyOn(sidechainInteroperabilityAPI as any, 'getInteroperabilityStore')
 			.mockReturnValue(sidechainInteroperabilityStore);
-		jest.spyOn(sidechainInteroperabilityStore, 'getChainAccount');
-		jest.spyOn(sidechainInteroperabilityStore, 'getChannel');
-		jest.spyOn(sidechainInteroperabilityStore, 'getOwnChainAccount');
-		jest.spyOn(sidechainInteroperabilityStore, 'getTerminatedStateAccount');
-		jest.spyOn(sidechainInteroperabilityStore, 'getTerminatedOutboxAccount');
+		jest.spyOn(sidechainInteroperabilityStore, 'getChainAccount').mockResolvedValue({} as never);
+		jest.spyOn(sidechainInteroperabilityStore, 'getChannel').mockResolvedValue({} as never);
+		jest.spyOn(sidechainInteroperabilityStore, 'getOwnChainAccount').mockResolvedValue({} as never);
+		jest
+			.spyOn(sidechainInteroperabilityStore, 'getTerminatedStateAccount')
+			.mockResolvedValue({} as never);
+		jest
+			.spyOn(sidechainInteroperabilityStore, 'getTerminatedOutboxAccount')
+			.mockResolvedValue({} as never);
 	});
 
 	describe('getChainAccount', () => {
@@ -60,7 +58,7 @@ describe('Sidechain API', () => {
 			await sidechainInteroperabilityAPI.getChainAccount(apiContext, chainID);
 
 			expect(sidechainInteroperabilityAPI['getInteroperabilityStore']).toHaveBeenCalledWith(
-				apiContext.getStore,
+				apiContext,
 			);
 		});
 
@@ -76,7 +74,7 @@ describe('Sidechain API', () => {
 			await sidechainInteroperabilityAPI.getChannel(apiContext, chainID);
 
 			expect(sidechainInteroperabilityAPI['getInteroperabilityStore']).toHaveBeenCalledWith(
-				apiContext.getStore,
+				apiContext,
 			);
 		});
 
@@ -92,7 +90,7 @@ describe('Sidechain API', () => {
 			await sidechainInteroperabilityAPI.getOwnChainAccount(apiContext);
 
 			expect(sidechainInteroperabilityAPI['getInteroperabilityStore']).toHaveBeenCalledWith(
-				apiContext.getStore,
+				apiContext,
 			);
 		});
 
@@ -108,7 +106,7 @@ describe('Sidechain API', () => {
 			await sidechainInteroperabilityAPI.getTerminatedStateAccount(apiContext, chainID);
 
 			expect(sidechainInteroperabilityAPI['getInteroperabilityStore']).toHaveBeenCalledWith(
-				apiContext.getStore,
+				apiContext,
 			);
 		});
 
@@ -124,7 +122,7 @@ describe('Sidechain API', () => {
 			await sidechainInteroperabilityAPI.getTerminatedOutboxAccount(apiContext, chainID);
 
 			expect(sidechainInteroperabilityAPI['getInteroperabilityStore']).toHaveBeenCalledWith(
-				apiContext.getStore,
+				apiContext,
 			);
 		});
 

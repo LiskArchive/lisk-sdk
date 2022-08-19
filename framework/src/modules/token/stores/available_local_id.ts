@@ -30,8 +30,5 @@ export const availableLocalIDStoreSchema = {
 };
 
 export class AvailableLocalIDStore extends BaseStore<AvailableLocalIDStoreData> {
-	public constructor(moduleName: string, version = 0) {
-		super(moduleName, version);
-		this.schema = availableLocalIDStoreSchema;
-	}
+	public schema = availableLocalIDStoreSchema;
 }
