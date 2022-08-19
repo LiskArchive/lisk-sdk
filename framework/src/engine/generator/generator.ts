@@ -50,13 +50,7 @@ import { GeneratorStore } from './generator_store';
 import { NetworkEndpoint } from './network_endpoint';
 import { GetTransactionResponse, getTransactionsResponseSchema } from './schemas';
 import { HighFeeGenerationStrategy } from './strategies';
-import {
-	Consensus,
-	BlockGenerateInput,
-	Keypair,
-	GenerationConfig,
-	PlainGeneratorKeyData,
-} from './types';
+import { Consensus, BlockGenerateInput, Keypair, PlainGeneratorKeyData } from './types';
 import { getOrDefaultLastGeneratedInfo, setLastGeneratedInfo } from './generated_info';
 import { CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED } from '../consensus/constants';
 import {
@@ -70,7 +64,6 @@ import { isEmptyConsensusUpdate } from '../consensus';
 
 interface GeneratorArgs {
 	genesisConfig: GenesisConfig;
-	generationConfig: GenerationConfig;
 	chain: Chain;
 	consensus: Consensus;
 	bft: BFTModule;
@@ -90,7 +83,6 @@ export class Generator {
 	public readonly events = new EventEmitter();
 
 	private readonly _pool: TransactionPool;
-	private readonly _config: GenerationConfig;
 	private readonly _chain: Chain;
 	private readonly _consensus: Consensus;
 	private readonly _bft: BFTModule;
@@ -109,7 +101,6 @@ export class Generator {
 	private _blockchainDB!: Database;
 
 	public constructor(args: GeneratorArgs) {
-		this._config = args.generationConfig;
 		this._abi = args.abi;
 		this._keypairs = new dataStructures.BufferMap();
 		this._pool = new TransactionPool({
@@ -118,11 +109,6 @@ export class Generator {
 			applyTransactions: async (transactions: Transaction[]) =>
 				this._verifyTransaction(transactions),
 		});
-		if (this._config.waitThreshold >= args.genesisConfig.blockTime) {
-			throw Error(
-				`generation.waitThreshold=${this._config.waitThreshold} is greater or equal to genesisConfig.blockTime=${args.genesisConfig.blockTime}. It impacts the block generation and propagation. Please use a smaller value for generation.waitThreshold`,
-			);
-		}
 		this._blockTime = args.genesisConfig.blockTime;
 		this._chain = args.chain;
 		this._bft = args.bft;
@@ -174,7 +160,7 @@ export class Generator {
 		this._networkEndpoint.init({
 			logger: this._logger,
 		});
-		await this._loadGenerators();
+		// await this._loadGenerators();
 		this._network.registerHandler(
 			NETWORK_EVENT_POST_TRANSACTIONS_ANNOUNCEMENT,
 			({ data, peerId }) => {
@@ -314,7 +300,7 @@ export class Generator {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
+	/*
 	private async _loadGenerators(): Promise<void> {
 		const encryptedList = this._config.generators;
 
@@ -367,6 +353,7 @@ export class Generator {
 			this._logger.info(`Forging enabled on account: ${validatorAddress.toString('hex')}`);
 		}
 	}
+	*/
 
 	/**
 	 * Loads transactions from the network:
@@ -411,7 +398,7 @@ export class Generator {
 
 		const currentSlotTime = this._consensus.getSlotTime(currentSlot);
 
-		const { waitThreshold } = this._config;
+		const waitThreshold = this._blockTime / 5;
 		const lastBlockSlot = this._consensus.getSlotNumber(this._chain.lastBlock.header.timestamp);
 
 		if (currentSlot === lastBlockSlot) {

@@ -293,27 +293,6 @@ export const applicationConfigSchema = {
 			},
 			additionalProperties: false,
 		},
-		generation: {
-			type: 'object',
-			required: ['force', 'waitThreshold', 'generators', 'modules'],
-			properties: {
-				password: {
-					type: 'string',
-					description: 'The password to decrypt passphrases',
-				},
-				force: {
-					type: 'boolean',
-				},
-				waitThreshold: {
-					description: 'Number of seconds to wait for previous block before forging',
-					type: 'integer',
-				},
-				generators: { ...delegatesConfigSchema },
-				modules: {
-					...moduleConfigSchema,
-				},
-			},
-		},
 	},
 	additionalProperties: false,
 	default: {
@@ -353,12 +332,6 @@ export const applicationConfigSchema = {
 			// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 			maxTransactionsSize: 15 * 1024, // Kilo Bytes
 			minFeePerByte: 1000,
-			modules: {},
-		},
-		generation: {
-			force: false,
-			waitThreshold: 2,
-			generators: [],
 			modules: {},
 		},
 	},

@@ -154,11 +154,6 @@ export class Engine {
 			chain: this._chain,
 			consensus: this._consensus,
 			bft: this._bftModule,
-			generationConfig: {
-				...this._config.generator,
-				waitThreshold: this._config.genesis.blockTime / 5,
-				generators: this._config.generator.keys,
-			},
 			network: this._network,
 			genesisConfig: {
 				...this._config.genesis,
