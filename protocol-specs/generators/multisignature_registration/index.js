@@ -193,9 +193,11 @@ const createSignatureObject = (txBuffer, account) => ({
 });
 
 const createSignatureForMultisignature = (messageBytes, account) => ({
-	signature: Buffer.from(
-		ed.signData(MESSAGE_TAG_MULTISIG_REG, networkIdentifier, messageBytes, account.passphrase),
-		'hex',
+	signature: ed.signData(
+		MESSAGE_TAG_MULTISIG_REG,
+		networkIdentifier,
+		messageBytes,
+		account.privateKey,
 	),
 });
 
@@ -233,10 +235,6 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 	sortKeysAscending(tx.params.mandatoryKeys);
 	sortKeysAscending(tx.params.optionalKeys);
 
-	const txBuffer = getSignBytes(tx);
-
-	// Sender signs
-	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
 	// Members sign in order
 	const messageBytes = codec.encode(multisigRegMsgSchema, {
 		address: address.getAddressFromPublicKey(tx.senderPublicKey),
@@ -257,6 +255,10 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 	tx.params.signatures.push(
 		createSignatureForMultisignature(messageBytes, accounts.optionalTwo).signature,
 	);
+
+	// Sender signs
+	const txBuffer = getSignBytes(tx);
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
 
 	const encodedTx = encode(tx);
 
@@ -314,8 +316,6 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 	sortKeysAscending(tx.params.mandatoryKeys);
 	sortKeysAscending(tx.params.optionalKeys);
 
-	const txBuffer = getSignBytes(tx);
-
 	const messageBytes = codec.encode(multisigRegMsgSchema, {
 		address: address.getAddressFromPublicKey(tx.senderPublicKey),
 		nonce: tx.nonce,
@@ -343,6 +343,7 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 	);
 
 	// Sender signs
+	const txBuffer = getSignBytes(tx);
 	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
 	const encodedTx = encode(tx);
 
@@ -397,10 +398,6 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 	sortKeysAscending(tx.params.mandatoryKeys);
 	sortKeysAscending(tx.params.optionalKeys);
 
-	const txBuffer = getSignBytes(tx);
-
-	// Sender signs
-	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
 	const messageBytes = codec.encode(multisigRegMsgSchema, {
 		address: address.getAddressFromPublicKey(tx.senderPublicKey),
 		nonce: tx.nonce,
@@ -416,6 +413,9 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 		createSignatureForMultisignature(messageBytes, accounts.optionalTwo).signature,
 	);
 
+	// Sender signs
+	const txBuffer = getSignBytes(tx);
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
 	const encodedTx = encode(tx);
 
 	return {
@@ -466,10 +466,6 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 	sortKeysAscending(tx.params.mandatoryKeys);
 	sortKeysAscending(tx.params.optionalKeys);
 
-	const txBuffer = getSignBytes(tx);
-
-	// Sender signs
-	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
 	const messageBytes = codec.encode(multisigRegMsgSchema, {
 		address: address.getAddressFromPublicKey(tx.senderPublicKey),
 		nonce: tx.nonce,
@@ -484,6 +480,11 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 	tx.params.signatures.push(
 		createSignatureForMultisignature(messageBytes, accounts.mandatoryOne).signature,
 	);
+
+	const txBuffer = getSignBytes(tx);
+
+	// Sender signs
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
 
 	const encodedTx = encode(tx);
 
@@ -549,10 +550,6 @@ const generateFormerSecondSignatureTransactioon = () => {
 	sortKeysAscending(tx.params.mandatoryKeys);
 	sortKeysAscending(tx.params.optionalKeys);
 
-	const txBuffer = getSignBytes(tx);
-
-	// Sender signs
-	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
 	const messageBytes = codec.encode(multisigRegMsgSchema, {
 		address: address.getAddressFromPublicKey(tx.senderPublicKey),
 		nonce: tx.nonce,
@@ -567,6 +564,11 @@ const generateFormerSecondSignatureTransactioon = () => {
 	tx.params.signatures.push(
 		createSignatureForMultisignature(messageBytes, secondSignature).signature,
 	);
+
+	const txBuffer = getSignBytes(tx);
+
+	// Sender signs
+	tx.signatures.push(createSignatureObject(txBuffer, accounts.targetAccount).signature);
 
 	const encodedTx = encode(tx);
 
