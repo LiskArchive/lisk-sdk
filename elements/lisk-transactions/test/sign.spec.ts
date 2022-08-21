@@ -77,8 +77,13 @@ describe('sign', () => {
 				items: { dataType: 'bytes' },
 				fieldNumber: 3,
 			},
+			signatures: {
+				type: 'array',
+				items: { dataType: 'bytes' },
+				fieldNumber: 4,
+			},
 		},
-		required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
+		required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys', 'signatures'],
 	};
 
 	const chainID = Buffer.from('00000000', 'hex');
@@ -368,6 +373,7 @@ describe('sign', () => {
 					mandatoryKeys,
 					optionalKeys,
 					numberOfSignatures: 2,
+					signatures: [],
 				},
 			};
 			const transactionObject = { ...multisignatureRegistrationTrx, signatures: [] };
@@ -506,7 +512,7 @@ describe('sign', () => {
 						),
 					);
 
-					expect(signedMultiSigTransaction.signatures).toStrictEqual(signatures);
+					expect(signedMSRegistrationTx.signatures).toStrictEqual(signatures);
 					expect(signedMultiSigTransaction).toMatchSnapshot();
 				});
 			});
@@ -528,7 +534,7 @@ describe('sign', () => {
 			const signedMultiSigTransaction = {
 				...transactionObject,
 				params: { ...decodedParams },
-				signatures: signatures.slice(0, 1),
+				signatures: [],
 			};
 			const senderAccount = {
 				passphrase: 'inherit moon normal relief spring bargain hobby join baby flash fog blood',
@@ -550,8 +556,7 @@ describe('sign', () => {
 				),
 			);
 
-			expect(signedMultiSigTransaction.signatures).toStrictEqual(signatures);
-			expect(signedMultiSigTransaction.signatures.every(s => s.length > 0)).toBeTrue();
+			expect(signedMSRegistrationTx.signatures).toStrictEqual(signatures);
 		});
 	});
 });
