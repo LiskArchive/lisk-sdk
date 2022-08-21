@@ -176,7 +176,9 @@ describe('Transaction order', () => {
 		});
 
 		describe('when account register as multisignature and send transfer with old signature', () => {
-			it('should not accept the block', async () => {
+			// TODO: Fix this test after https://github.com/LiskHQ/lisk-sdk/issues/7346
+			// eslint-disable-next-line jest/no-disabled-tests
+			it.skip('should not accept the block', async () => {
 				const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
 					address: genesis.address,
 				});
