@@ -190,7 +190,7 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 				});
 
 				context.eventQueue.add(
-					MODULE_ID_AUTH_BUFFER,
+					this.name,
 					TYPE_ID_INVALID_SIGNATURE_ERROR,
 					invalidSignatureEventData,
 					[transaction.senderAddress],
@@ -220,7 +220,7 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 		});
 
 		context.eventQueue.add(
-			MODULE_ID_AUTH_BUFFER,
+			this.name,
 			TYPE_ID_MULTISIGNATURE_GROUP_REGISTERED,
 			registerMultiSigEventData,
 			[transaction.senderAddress],
