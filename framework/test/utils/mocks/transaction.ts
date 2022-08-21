@@ -15,7 +15,7 @@
 
 import { Transaction, BlockHeader, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { utils, bls, ed, legacy, address } from '@liskhq/lisk-cryptography';
+import { bls, ed, legacy, address } from '@liskhq/lisk-cryptography';
 import { signMultiSignatureTransaction } from '@liskhq/lisk-transactions';
 import { TokenModule } from '../../../src';
 import { MESSAGE_TAG_MULTISIG_REG } from '../../../src/modules/auth/constants';

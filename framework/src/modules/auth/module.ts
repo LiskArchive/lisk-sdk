@@ -178,6 +178,36 @@ export class AuthModule extends BaseModule {
 
 		const senderAccount = await store.get(context, transaction.senderAddress);
 		senderAccount.nonce += BigInt(1);
+		await authStore.setWithSchema(
+			address,
+			{
+				nonce: senderAccount.nonce,
+				numberOfSignatures: senderAccount.numberOfSignatures,
+				mandatoryKeys: senderAccount.mandatoryKeys,
+				optionalKeys: senderAccount.optionalKeys,
+			},
+			authAccountSchema,
+		);
+	}
+
+	// TODO: Changed it to private once implemented
+	protected async _isMultisignatureAccount(
+		getStore: ImmutableStoreCallback,
+		address: Buffer,
+	): Promise<boolean> {
+		const authSubstore = getStore(this.id, STORE_PREFIX_AUTH);
+		try {
+			const authAccount = await authSubstore.getWithSchema<AuthAccount>(address, authAccountSchema);
+
+			if (authAccount.numberOfSignatures === 0) {
+				return false;
+			}
+
+			return true;
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
 
 		await store.set(context, transaction.senderAddress, senderAccount);
 	}
