@@ -25,7 +25,7 @@ import { COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP } from './constants';
 export const isMultisignatureAccount = (keys: Keys): boolean =>
 	!!((keys.mandatoryKeys.length > 0 || keys.optionalKeys.length > 0) && keys.numberOfSignatures);
 
-export const validateSignature = (
+export const verifyMessageSig = (
 	tag: string,
 	networkIdentifier: Buffer,
 	publicKey: Buffer,
@@ -57,7 +57,7 @@ export const validateKeysSignatures = (
 			throw new Error('Invalid signature. Empty buffer is not a valid signature.');
 		}
 
-		validateSignature(tag, networkIdentifier, keys[i], signatures[i], transactionBytes, id);
+		verifyMessageSig(tag, networkIdentifier, keys[i], signatures[i], transactionBytes, id);
 	}
 };
 
@@ -95,7 +95,7 @@ export const verifyMultiSignatureTransaction = (
 		// Get corresponding optional key signature starting from offset(end of mandatory keys)
 		const signature = signatures[numMandatoryKeys + k];
 		if (signature.length !== 0) {
-			validateSignature(tag, networkIdentifier, optionalKeys[k], signature, transactionBytes, id);
+			verifyMessageSig(tag, networkIdentifier, optionalKeys[k], signature, transactionBytes, id);
 		}
 	}
 };
@@ -126,7 +126,7 @@ export const verifyRegisterMultiSignatureTransaction = (
 	}
 
 	// Verify first signature is from senderPublicKey
-	validateSignature(
+	verifyMessageSig(
 		tag,
 		networkIdentifier,
 		transaction.senderPublicKey,
@@ -168,7 +168,7 @@ export const verifySingleSignatureTransaction = (
 		);
 	}
 
-	validateSignature(
+	verifyMessageSig(
 		tag,
 		networkIdentifier,
 		transaction.senderPublicKey,
@@ -200,24 +200,23 @@ export const verifySignatures = (
 	}
 
 	// Verify multi signature registration transaction
-	if (!isMultisignatureAccount(account)) {
+	if (isMultisignatureAccount(account)) {
+		verifyMultiSignatureTransaction(
+			TAG_TRANSACTION,
+			networkIdentifier,
+			transaction.id,
+			account,
+			transaction.signatures,
+			transactionBytes,
+		);
+	} else {
 		verifySingleSignatureTransaction(
 			TAG_TRANSACTION,
 			transaction,
 			transactionBytes,
 			networkIdentifier,
 		);
-		return { verified: true };
 	}
-
-	verifyMultiSignatureTransaction(
-		TAG_TRANSACTION,
-		networkIdentifier,
-		transaction.id,
-		account,
-		transaction.signatures,
-		transactionBytes,
-	);
 	return { verified: true };
 };
 
