@@ -15,10 +15,9 @@
 import * as fs from 'fs-extra';
 import * as apiClient from '@liskhq/lisk-api-client';
 import * as Config from '@oclif/config';
-import { BaseIPCClientCommand } from '../../../../src/bootstrapping/commands/base_ipc_client';
 import * as appUtils from '../../../../src/utils/application';
-import { InvokeCommand } from '../../../../src/bootstrapping/commands/endpoint/invoke';
 import { getConfig } from '../../../helpers/config';
+import { BaseIPCClientCommand, InvokeCommand } from '../../../../src';
 
 describe('endpoint:invoke command', () => {
 	let stdout: string[];
