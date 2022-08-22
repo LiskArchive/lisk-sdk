@@ -330,7 +330,7 @@ describe('AuthModule', () => {
 						// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 						`Transaction with id:${validTestTransaction.id.toString(
 							'hex',
-						)} nonce is lower than account nonce`,
+						)} nonce is lower than account nonce.`,
 						validTestTransaction.nonce,
 						accountNonce,
 					),
@@ -1126,19 +1126,9 @@ describe('AuthModule', () => {
 		});
 	});
 
-	describe('afterCommandExecute', () => {
-		it('should correctly increment the nonce', async () => {
+	describe('beforeCommandExecute', () => {
+		it('should initialize senderAccount with default values when there is no sender account in AUTH store', async () => {
 			const stateStore1 = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-			const authStore1 = stateStore1.getStore(authModule.id, STORE_PREFIX_AUTH);
-			const address = cryptoAddress.getAddressFromPublicKey(validTestTransaction.senderPublicKey);
-			const authAccount1 = {
-				nonce: validTestTransaction.nonce,
-				numberOfSignatures: 5,
-				mandatoryKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
-				optionalKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
-			};
-			await authStore1.setWithSchema(address, authAccount1, authAccountSchema);
-
 			const context = testing
 				.createTransactionContext({
 					stateStore: stateStore1,
@@ -1147,13 +1137,15 @@ describe('AuthModule', () => {
 				})
 				.createTransactionExecuteContext();
 
-			await authModule.afterCommandExecute(context);
+			await authModule.beforeCommandExecute(context);
+
 			const authStore = context.getStore(authModule.id, STORE_PREFIX_AUTH);
 			const authAccount = await authStore.getWithSchema<AuthAccount>(
 				context.transaction.senderAddress,
 				authAccountSchema,
 			);
-			expect(authAccount.nonce - validTestTransaction.nonce).toBe(BigInt(1));
+
+			expect(authAccount.nonce).toBe(BigInt(1));
 		});
 	});
 });
