@@ -135,6 +135,7 @@ export interface DelegateAccountJSON {
 	isBanned: boolean;
 	pomHeights: number[];
 	consecutiveMissedBlocks: number;
+	address: string;
 }
 
 export interface VoterDataJSON {
