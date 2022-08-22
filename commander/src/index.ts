@@ -25,21 +25,18 @@ export {
 } from './bootstrapping/commands/blockchain';
 export { ConfigShowCommand, ConfigCreateCommand } from './bootstrapping/commands/config';
 export {
-	ForgerInfoExportCommand,
-	ForgerInfoImportCommand,
-} from './bootstrapping/commands/forger-info';
-export {
-	ForgingConfigCommand,
-	ForgingDisableCommand,
-	ForgingEnableCommand,
-	ForgingStatusCommand,
-} from './bootstrapping/commands/forging';
-export {
 	KeysCreateCommand,
 	KeysExportCommand,
 	KeysImportCommand,
 	KeysEncryptCommand,
 } from './bootstrapping/commands/keys';
+export {
+	GeneratorDisableCommand,
+	GeneratorEnableCommand,
+	GeneratorStatusCommand,
+	GeneratorImportCommand,
+	GeneratorExportCommand,
+} from './bootstrapping/commands/generator';
 export { NodeInfoCommand, NodeMetadataCommand } from './bootstrapping/commands/node';
 export {
 	PassphraseDecryptCommand,

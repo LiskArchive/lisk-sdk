@@ -14,10 +14,20 @@
  */
 import { BaseIPCClientCommand } from '../base_ipc_client';
 
+export interface GetStatusResponse {
+	status: {
+		address: string;
+		height: number;
+		maxHeightPrevoted: number;
+		maxHeightGenerated: number;
+		enabled: boolean;
+	}[];
+}
+
 export abstract class StatusCommand extends BaseIPCClientCommand {
 	static description = 'Get forging information for the locally running node.';
 
-	static examples = ['forging:status', 'forging:status --data-path ./sample --pretty'];
+	static examples = ['generator:status', 'generator:status --data-path ./sample --pretty'];
 
 	static flags = {
 		...BaseIPCClientCommand.flags,
@@ -27,7 +37,7 @@ export abstract class StatusCommand extends BaseIPCClientCommand {
 		if (!this._client) {
 			this.error('APIClient is not initialized.');
 		}
-		const info = await this._client.invoke('app:getForgingStatus');
-		this.printJSON(info);
+		const info = await this._client.invoke<GetStatusResponse>('generator_getStatus');
+		this.printJSON({ info });
 	}
 }
