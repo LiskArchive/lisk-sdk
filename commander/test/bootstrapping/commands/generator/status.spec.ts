@@ -18,11 +18,21 @@ import * as Config from '@oclif/config';
 
 import { BaseIPCClientCommand } from '../../../../src/bootstrapping/commands/base_ipc_client';
 import * as appUtils from '../../../../src/utils/application';
-import { StatusCommand } from '../../../../src/bootstrapping/commands/forging/status';
+import { StatusCommand } from '../../../../src/bootstrapping/commands/generator/status';
 import { getConfig } from '../../../helpers/config';
 
 describe('forging:status command', () => {
-	const forgingInfoMock = [{ address: 'fake-address', forging: true }];
+	const forgingInfoMock = {
+		status: [
+			{
+				address: 'fake-address',
+				enabled: true,
+				height: 655,
+				maxHeightPrevoted: 65,
+				maxHeightGenerated: 456,
+			},
+		],
+	};
 	let stdout: string[];
 	let stderr: string[];
 	let config: Config.IConfig;
@@ -48,9 +58,11 @@ describe('forging:status command', () => {
 		it('should throw an error when no arguments are provided.', async () => {
 			await StatusCommand.run([], config);
 			expect(invokeMock).toHaveBeenCalledTimes(1);
-			expect(invokeMock).toHaveBeenCalledWith('app:getForgingStatus');
+			expect(invokeMock).toHaveBeenCalledWith('generator_getStatus');
 			expect(BaseIPCClientCommand.prototype.printJSON).toHaveBeenCalledTimes(1);
-			expect(BaseIPCClientCommand.prototype.printJSON).toHaveBeenCalledWith(forgingInfoMock);
+			expect(BaseIPCClientCommand.prototype.printJSON).toHaveBeenCalledWith({
+				info: forgingInfoMock,
+			});
 		});
 	});
 });
