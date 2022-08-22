@@ -184,6 +184,7 @@ export class AuthModule extends BaseModule {
 
 		const senderAccount = await store.getWithSchema<AuthAccount>(senderAddress, authAccountSchema);
 		senderAccount.nonce += BigInt(1);
+
 		await store.setWithSchema(senderAddress, senderAccount, authAccountSchema);
 	}
 }
