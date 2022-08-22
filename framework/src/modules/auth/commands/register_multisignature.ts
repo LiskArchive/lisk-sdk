@@ -158,19 +158,19 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 	public async execute(
 		context: CommandExecuteContext<RegisterMultisignatureParams>,
 	): Promise<void> {
-		const { transaction } = context;
+		const { transaction, params } = context;
 		const message = codec.encode(multisigRegMsgSchema, {
 			address: transaction.senderAddress,
 			nonce: transaction.nonce,
-			numberOfSignatures: context.params.numberOfSignatures,
-			mandatoryKeys: context.params.mandatoryKeys,
-			optionalKeys: context.params.optionalKeys,
+			numberOfSignatures: params.numberOfSignatures,
+			mandatoryKeys: params.mandatoryKeys,
+			optionalKeys: params.optionalKeys,
 		});
 
-		const allKeys = [
-			...context.params.mandatoryKeys,
-			...context.params.optionalKeys,
-		].map((key, index) => ({ key, signature: context.params.signatures[index] }));
+		const allKeys = [...params.mandatoryKeys, ...params.optionalKeys].map((key, index) => ({
+			key,
+			signature: params.signatures[index],
+		}));
 
 		for (const { key, signature } of allKeys) {
 			const isValid = cryptography.ed.verifyData(
@@ -182,9 +182,9 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 			);
 			if (!isValid) {
 				const invalidSignatureEventData = codec.encode(invalidSigDataSchema, {
-					numberOfSignatures: context.params.numberOfSignatures,
-					mandatoryKeys: context.params.mandatoryKeys,
-					optionalKeys: context.params.optionalKeys,
+					numberOfSignatures: params.numberOfSignatures,
+					mandatoryKeys: params.mandatoryKeys,
+					optionalKeys: params.optionalKeys,
 					failingPublicKey: key,
 					failingSignature: signature,
 				});
@@ -207,16 +207,16 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 			throw new Error('Register multisignature only allowed once per account.');
 		}
 
-		senderAccount.mandatoryKeys = context.params.mandatoryKeys;
-		senderAccount.optionalKeys = context.params.optionalKeys;
-		senderAccount.numberOfSignatures = context.params.numberOfSignatures;
+		senderAccount.mandatoryKeys = params.mandatoryKeys;
+		senderAccount.optionalKeys = params.optionalKeys;
+		senderAccount.numberOfSignatures = params.numberOfSignatures;
 
 		await authSubstore.setWithSchema(transaction.senderAddress, senderAccount, authAccountSchema);
 
 		const registerMultiSigEventData = codec.encode(multisigRegDataSchema, {
-			numberOfSignatures: context.params.numberOfSignatures,
-			mandatoryKeys: context.params.mandatoryKeys,
-			optionalKeys: context.params.optionalKeys,
+			numberOfSignatures: params.numberOfSignatures,
+			mandatoryKeys: params.mandatoryKeys,
+			optionalKeys: params.optionalKeys,
 		});
 
 		context.eventQueue.add(
