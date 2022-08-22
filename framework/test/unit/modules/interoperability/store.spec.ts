@@ -105,6 +105,28 @@ describe('Base interoperability store', () => {
 			localID: utils.intToBuffer(0, 4),
 		},
 	};
+	const chainAccount = {
+		name: 'account1',
+		networkID: Buffer.alloc(0),
+		lastCertificate: {
+			height: 567467,
+			timestamp: 2592000,
+			stateRoot: Buffer.alloc(0),
+			validatorsHash: Buffer.alloc(0),
+		},
+		status: 2739,
+	};
+	const chainAccount2 = {
+		name: 'account2',
+		networkID: Buffer.alloc(0),
+		lastCertificate: {
+			height: 567467,
+			timestamp: 2592000,
+			stateRoot: Buffer.alloc(0),
+			validatorsHash: Buffer.alloc(0),
+		},
+		status: 2739,
+	};
 	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
 	let channelSubstore: any;
 	let outboxRootSubstore: any;
@@ -227,17 +249,6 @@ describe('Base interoperability store', () => {
 
 	describe('createTerminatedStateAccount', () => {
 		const chainId = utils.intToBuffer(5, 4);
-		const chainAccount = {
-			name: 'account1',
-			networkID: Buffer.alloc(0),
-			lastCertificate: {
-				height: 567467,
-				timestamp: 2592000,
-				stateRoot: Buffer.alloc(0),
-				validatorsHash: Buffer.alloc(0),
-			},
-			status: 2739,
-		};
 		const stateRoot = Buffer.from('888d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex');
 		const ownChainAccount1 = {
 			name: 'mainchain',
@@ -726,6 +737,30 @@ describe('Base interoperability store', () => {
 				expect(isValueChanged).toBeTrue();
 				expect(changedAccount).toEqual({ ...terminatedOutboxAccount, ...changedValues });
 			});
+		});
+	});
+
+	describe('getAllChainAccounts', () => {
+		const chainId = utils.intToBuffer(1, 4);
+		const chainId2 = utils.intToBuffer(100, 4);
+		beforeEach(async () => {
+			chainSubstore = stateStore.getStore(
+				MODULE_ID_INTEROPERABILITY_BUFFER,
+				STORE_PREFIX_CHAIN_DATA,
+			);
+			await chainSubstore.setWithSchema(chainId, chainAccount, chainAccountSchema);
+			await chainSubstore.setWithSchema(chainId2, chainAccount2, chainAccountSchema);
+		});
+
+		it('should return all stored chains', async () => {
+			await expect(
+				mainchainInteroperabilityStore.getAllChainAccounts(chainId),
+			).resolves.toStrictEqual([chainAccount, chainAccount2]);
+		});
+		it('should return all stored chains with chainID larger than startChainID', async () => {
+			await expect(
+				mainchainInteroperabilityStore.getAllChainAccounts(chainId2),
+			).resolves.toStrictEqual([chainAccount2]);
 		});
 	});
 });

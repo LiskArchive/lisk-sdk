@@ -20,7 +20,6 @@ import {
 	ChannelDataJSON,
 	ImmutableStoreCallback,
 	InboxJSON,
-	LastCertificateJSON,
 	MessageFeeTokenIDJSON,
 	OutboxJSON,
 	OwnChainAccountJSON,
@@ -29,6 +28,7 @@ import {
 	TerminatedStateAccountJSON,
 } from './types';
 import { BaseInteroperabilityStore } from './base_interoperability_store';
+import { certificateToJSON } from './utils';
 
 export abstract class BaseInteroperabilityEndpoint<
 	T extends BaseInteroperabilityStore
@@ -52,15 +52,8 @@ export abstract class BaseInteroperabilityEndpoint<
 			status,
 		} = await interoperabilityStore.getChainAccount(chainID);
 
-		const lastCertificateJSON: LastCertificateJSON = {
-			height: lastCertificate.height,
-			timestamp: lastCertificate.timestamp,
-			stateRoot: lastCertificate.stateRoot.toString('hex'),
-			validatorsHash: lastCertificate.validatorsHash.toString('hex'),
-		};
-
 		return {
-			lastCertificate: lastCertificateJSON,
+			lastCertificate: certificateToJSON(lastCertificate),
 			name,
 			status,
 			networkID: networkID.toString('hex'),
@@ -76,14 +69,8 @@ export abstract class BaseInteroperabilityEndpoint<
 		const chainAccounts = (await interoperabilityStore.getAllChainAccounts(startChainID)).map(
 			chainAccount => {
 				const { lastCertificate, name, networkID, status } = chainAccount;
-				const lastCertificateJSON: LastCertificateJSON = {
-					height: lastCertificate.height,
-					timestamp: lastCertificate.timestamp,
-					stateRoot: lastCertificate.stateRoot.toString('hex'),
-					validatorsHash: lastCertificate.validatorsHash.toString('hex'),
-				};
 				return {
-					lastCertificate: lastCertificateJSON,
+					lastCertificate: certificateToJSON(lastCertificate),
 					name,
 					status,
 					networkID: networkID.toString('hex'),

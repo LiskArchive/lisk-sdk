@@ -189,15 +189,15 @@ export abstract class BaseInteroperabilityStore {
 		const endBuf = utils.intToBuffer(MAX_UINT32, 4);
 		const chainIDs = await chainSubstore.iterate({ gte: startChainID, lte: endBuf });
 
-		const response = [];
+		const chainAccounts = [];
 		for (const chainID of chainIDs) {
-			const chainIDBuffer = utils.intToBuffer(chainID.key.readUInt32BE(0) + 1, 4);
-			response.push(
+			const chainIDBuffer = utils.intToBuffer(chainID.key.readUInt32BE(0), 4);
+			chainAccounts.push(
 				await chainSubstore.getWithSchema<ChainAccount>(chainIDBuffer, chainAccountSchema),
 			);
 		}
 
-		return response;
+		return chainAccounts;
 	}
 
 	public async chainAccountExist(chainID: Buffer): Promise<boolean> {
