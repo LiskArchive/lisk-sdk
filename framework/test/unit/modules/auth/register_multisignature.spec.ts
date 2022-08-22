@@ -460,8 +460,8 @@ describe('Register Multisignature command', () => {
 			const updatedStore = authModule.stores.get(AuthAccountStore);
 			const updatedData = await updatedStore.get(context, transaction.senderAddress);
 			expect(updatedData.mandatoryKeys).toEqual(decodedParams.mandatoryKeys);
-			expect(eventQueueMock.add).toBeCalledWith(
-				MODULE_ID_AUTH_BUFFER,
+			expect(eventQueueMock.add).toHaveBeenCalledWith(
+				'registerMultisignatureGroup',
 				TYPE_ID_MULTISIGNATURE_GROUP_REGISTERED,
 				registerMultiSigEventData,
 				[transaction.senderAddress],
@@ -470,17 +470,20 @@ describe('Register Multisignature command', () => {
 
 		it('should throw when incorrect signature', async () => {
 			const buffer = Buffer.from(defaultTestCase.output.transaction, 'hex');
-			const sampleTransaction = Transaction.fromBytes(buffer);
-			const sampleDecodedParams = codec.decode<RegisterMultisignatureParams>(
+			const multiSignatureTx = Transaction.fromBytes(buffer);
+			const multiSignatureTxDecodedParams = codec.decode<RegisterMultisignatureParams>(
 				registerMultisignatureParamsSchema,
-				sampleTransaction.params,
+				multiSignatureTx.params,
 			);
 			const invalidSignature = utils.getRandomBytes(64);
-			sampleDecodedParams.signatures[0] = invalidSignature;
+			multiSignatureTxDecodedParams.signatures[0] = invalidSignature;
 
-			const paramsBytes = codec.encode(registerMultisignatureParamsSchema, sampleDecodedParams);
+			const paramsBytes = codec.encode(
+				registerMultisignatureParamsSchema,
+				multiSignatureTxDecodedParams,
+			);
 			const invalidTransaction = new Transaction({
-				...sampleTransaction.toObject(),
+				...multiSignatureTx.toObject(),
 				params: paramsBytes,
 			});
 			await authStore.setWithSchema(
@@ -518,7 +521,7 @@ describe('Register Multisignature command', () => {
 			);
 
 			expect(eventQueueMock.add).toBeCalledWith(
-				MODULE_ID_AUTH_BUFFER,
+				'registerMultisignatureGroup',
 				TYPE_ID_INVALID_SIGNATURE_ERROR,
 				invalidSignatureEventData,
 				[invalidTransaction.senderAddress],

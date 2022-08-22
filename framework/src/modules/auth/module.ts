@@ -196,7 +196,7 @@ export class AuthModule extends BaseModule {
 		);
 	}
 
-	// TODO: Changed it to private once implemented
+	// TODO: Change it to private once implemented
 	protected async _isMultisignatureAccount(
 		getStore: ImmutableStoreCallback,
 		address: Buffer,
@@ -205,11 +205,7 @@ export class AuthModule extends BaseModule {
 		try {
 			const authAccount = await authSubstore.getWithSchema<AuthAccount>(address, authAccountSchema);
 
-			if (authAccount.numberOfSignatures === 0) {
-				return false;
-			}
-
-			return true;
+			return authAccount.numberOfSignatures !== 0;
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
