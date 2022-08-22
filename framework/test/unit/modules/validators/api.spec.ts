@@ -12,19 +12,31 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { ValidatorsAPI, ValidatorsModule } from '../../../../src/modules/validators';
 import {
+	MODULE_NAME_VALIDATORS,
 	EMPTY_KEY,
+	SUBSTORE_PREFIX_BLS_KEYS,
+	SUBSTORE_PREFIX_GENESIS_DATA,
+	SUBSTORE_PREFIX_VALIDATORS_DATA,
+	KEY_REG_RESULT_SUCCESS,
+	EVENT_NAME_BLS_KEY_REGISTRATION,
+	EVENT_NAME_GENERATOR_KEY_REGISTRATION,
+	KEY_REG_RESULT_ALREADY_VALIDATOR,
+	KEY_REG_RESULT_DUPLICATE_BLS_KEY,
+	KEY_REG_RESULT_INVALID_POP,
 	INVALID_BLS_KEY,
-	STORE_PREFIX_BLS_KEYS,
-	STORE_PREFIX_GENESIS_DATA,
-	STORE_PREFIX_VALIDATORS_DATA,
+	KEY_REG_RESULT_NO_VALIDATOR,
 } from '../../../../src/modules/validators/constants';
 import * as generatorList from '../../../fixtures/config/devnet/delegates_for_first_round.json';
 import {
+	blsKeyRegDataSchema,
+	generatorKeyRegDataSchema,
 	genesisDataSchema,
 	validatorAccountSchema,
+	validatorAddressSchema,
 } from '../../../../src/modules/validators/schemas';
 import { APIContext, createNewAPIContext } from '../../../../src/state_machine/api_context';
 import { EventQueue } from '../../../../src/state_machine';
@@ -45,12 +57,17 @@ describe('ValidatorsModuleAPI', () => {
 		blockTime: 10,
 	};
 	const generatorConfig: any = {};
-	const blsKey = utils.getRandomBytes(48);
 	const address = utils.getRandomBytes(48);
 	const generatorKey = utils.getRandomBytes(48);
-	const proofOfPossession = utils.getRandomBytes(48);
 	const genesisTimestamp = 1610643809;
-
+	const proofOfPossession = Buffer.from(
+		'88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d26',
+		'hex',
+	);
+	const blsKey = Buffer.from(
+		'b301803f8b5ac4a1133581fc676dfedc60d891dd5fa99028805e5ea5b08d3491af75d0707adab3b70c6a6a580217bf81',
+		'hex',
+	);
 	beforeAll(async () => {
 		validatorsModule = new ValidatorsModule();
 		await validatorsModule.init({ genesisConfig, moduleConfig, generatorConfig });
@@ -61,77 +78,32 @@ describe('ValidatorsModuleAPI', () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		validatorsSubStore = stateStore.getStore(
 			validatorsAPI['moduleID'],
-			STORE_PREFIX_VALIDATORS_DATA,
+			SUBSTORE_PREFIX_VALIDATORS_DATA,
 		);
-		blsKeysSubStore = stateStore.getStore(validatorsAPI['moduleID'], STORE_PREFIX_BLS_KEYS);
-		genesisDataSubStore = stateStore.getStore(validatorsAPI['moduleID'], STORE_PREFIX_GENESIS_DATA);
+		blsKeysSubStore = stateStore.getStore(validatorsAPI['moduleID'], SUBSTORE_PREFIX_BLS_KEYS);
+		genesisDataSubStore = stateStore.getStore(
+			validatorsAPI['moduleID'],
+			SUBSTORE_PREFIX_GENESIS_DATA,
+		);
 	});
 
 	describe('registerValidatorKeys', () => {
+		beforeEach(() => {
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			jest.spyOn(apiContext.eventQueue, 'add');
+		});
+
 		it('should be able to create new validator account if validator address does not exist, bls key is not registered and proof of possession is valid', async () => {
-			const proofOfPossession1 =
-				'88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d26';
-			const blsKey1 =
-				'b301803f8b5ac4a1133581fc676dfedc60d891dd5fa99028805e5ea5b08d3491af75d0707adab3b70c6a6a580217bf81';
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
-
-			await expect(
-				validatorsModule.api.registerValidatorKeys(
-					apiContext,
-					address,
-					Buffer.from(blsKey1, 'hex'),
-					generatorKey,
-					Buffer.from(proofOfPossession1, 'hex'),
-				),
-			).resolves.toBe(true);
-		});
-
-		it('should not be able to create new validator account if validator address already exists, bls key is not registered and proof of possession is valid', async () => {
-			const proofOfPossession1 =
-				'88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d26';
-			const blsKey1 =
-				'b301803f8b5ac4a1133581fc676dfedc60d891dd5fa99028805e5ea5b08d3491af75d0707adab3b70c6a6a580217bf81';
-			const blsKeyBuffer = Buffer.from(blsKey1, 'hex');
-			const validatorAccount = {
+			const generatorEventData = codec.encode(generatorKeyRegDataSchema, {
 				generatorKey,
-				blsKeyBuffer,
-			};
-			await validatorsSubStore.setWithSchema(address, validatorAccount, validatorAccountSchema);
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+				result: KEY_REG_RESULT_SUCCESS,
+			});
+			const blsEventData = codec.encode(blsKeyRegDataSchema, {
+				blsKey,
+				proofOfPossession,
+				result: KEY_REG_RESULT_SUCCESS,
+			});
 
-			await expect(
-				validatorsModule.api.registerValidatorKeys(
-					apiContext,
-					address,
-					Buffer.from(blsKey1, 'hex'),
-					generatorKey,
-					Buffer.from(proofOfPossession1, 'hex'),
-				),
-			).resolves.toBe(false);
-		});
-
-		it('should not be able to create new validator account if validator address does not exist, bls key is already registered and proof of possession is valid', async () => {
-			const proofOfPossession1 =
-				'88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d26';
-			const blsKey1 =
-				'b301803f8b5ac4a1133581fc676dfedc60d891dd5fa99028805e5ea5b08d3491af75d0707adab3b70c6a6a580217bf81';
-			const blsKeyBuffer = Buffer.from(blsKey1, 'hex');
-			await blsKeysSubStore.set(blsKeyBuffer, address);
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
-
-			await expect(
-				validatorsModule.api.registerValidatorKeys(
-					apiContext,
-					address,
-					Buffer.from(blsKey1, 'hex'),
-					generatorKey,
-					Buffer.from(proofOfPossession1, 'hex'),
-				),
-			).resolves.toBe(false);
-		});
-
-		it('should not be able to create new validator account if validator address does not exist, bls key is not registered and proof of possession is invalid', async () => {
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 			await expect(
 				validatorsModule.api.registerValidatorKeys(
 					apiContext,
@@ -140,28 +112,129 @@ describe('ValidatorsModuleAPI', () => {
 					generatorKey,
 					proofOfPossession,
 				),
-			).resolves.toBe(false);
+			).resolves.toBe(true);
+			expect(apiContext.eventQueue.add).toHaveBeenNthCalledWith(
+				1,
+				MODULE_NAME_VALIDATORS,
+				EVENT_NAME_GENERATOR_KEY_REGISTRATION,
+				generatorEventData,
+				[address],
+			);
+			expect(apiContext.eventQueue.add).toHaveBeenNthCalledWith(
+				2,
+				MODULE_NAME_VALIDATORS,
+				EVENT_NAME_BLS_KEY_REGISTRATION,
+				blsEventData,
+				[address],
+			);
+		});
+
+		it('should not be able to create new validator account if validator address already exists, bls key is not registered and proof of possession is valid', async () => {
+			const validatorAccount = {
+				generatorKey,
+				blsKey,
+			};
+			await validatorsSubStore.setWithSchema(address, validatorAccount, validatorAccountSchema);
+			const generatorEventData = codec.encode(generatorKeyRegDataSchema, {
+				generatorKey,
+				result: KEY_REG_RESULT_ALREADY_VALIDATOR,
+			});
+
+			await expect(
+				validatorsModule.api.registerValidatorKeys(
+					apiContext,
+					address,
+					blsKey,
+					generatorKey,
+					proofOfPossession,
+				),
+			).rejects.toThrow('This address is already registered as validator.');
+			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
+				MODULE_NAME_VALIDATORS,
+				EVENT_NAME_GENERATOR_KEY_REGISTRATION,
+				generatorEventData,
+				[address],
+				true,
+			);
+		});
+
+		it('should not be able to create new validator account if validator address does not exist, bls key is already registered and proof of possession is valid', async () => {
+			await blsKeysSubStore.setWithSchema(blsKey, address, blsKeyRegDataSchema);
+			const blsEventData = codec.encode(blsKeyRegDataSchema, {
+				blsKey,
+				proofOfPossession,
+				result: KEY_REG_RESULT_DUPLICATE_BLS_KEY,
+			});
+
+			await expect(
+				validatorsModule.api.registerValidatorKeys(
+					apiContext,
+					address,
+					blsKey,
+					generatorKey,
+					proofOfPossession,
+				),
+			).rejects.toThrow(
+				`The BLS key ${blsKey.toString('hex')} has already been registered in the chain.`,
+			);
+			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
+				MODULE_NAME_VALIDATORS,
+				EVENT_NAME_BLS_KEY_REGISTRATION,
+				blsEventData,
+				[address],
+				true,
+			);
+		});
+
+		it('should not be able to create new validator account if validator address does not exist, bls key is not registered and proof of possession is invalid', async () => {
+			const invalidProofOfPossession = utils.getRandomBytes(48);
+			const blsEventData = codec.encode(blsKeyRegDataSchema, {
+				blsKey,
+				proofOfPossession: invalidProofOfPossession,
+				result: KEY_REG_RESULT_INVALID_POP,
+			});
+
+			await expect(
+				validatorsModule.api.registerValidatorKeys(
+					apiContext,
+					address,
+					blsKey,
+					generatorKey,
+					invalidProofOfPossession,
+				),
+			).rejects.toThrow('Invalid proof of possession for the given BLS key.');
+			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
+				MODULE_NAME_VALIDATORS,
+				EVENT_NAME_BLS_KEY_REGISTRATION,
+				blsEventData,
+				[address],
+				true,
+			);
 		});
 	});
 
 	describe('setValidatorBLSKey', () => {
+		beforeEach(() => {
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			jest.spyOn(apiContext.eventQueue, 'add');
+		});
+
 		it('should be able to correctly set bls key for validator if address exists, key is not registered and proof of possession is valid', async () => {
-			const proofOfPossession1 =
-				'88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d26';
-			const blsKey1 =
-				'b301803f8b5ac4a1133581fc676dfedc60d891dd5fa99028805e5ea5b08d3491af75d0707adab3b70c6a6a580217bf81';
+			const blsEventData = codec.encode(blsKeyRegDataSchema, {
+				blsKey,
+				proofOfPossession,
+				result: KEY_REG_RESULT_SUCCESS,
+			});
 			const validatorAccount = {
 				generatorKey,
 				blsKey: INVALID_BLS_KEY,
 			};
 			await validatorsSubStore.setWithSchema(address, validatorAccount, validatorAccountSchema);
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
-
 			const isSet = await validatorsModule.api.setValidatorBLSKey(
 				apiContext,
 				address,
-				Buffer.from(blsKey1, 'hex'),
-				Buffer.from(proofOfPossession1, 'hex'),
+				blsKey,
+				proofOfPossession,
 			);
 
 			const setValidatorAccount = await validatorsSubStore.getWithSchema<ValidatorKeys>(
@@ -169,67 +242,114 @@ describe('ValidatorsModuleAPI', () => {
 				validatorAccountSchema,
 			);
 
-			const hasKey = await blsKeysSubStore.has(Buffer.from(blsKey1, 'hex'));
+			const hasKey = await blsKeysSubStore.has(blsKey);
 
 			expect(isSet).toBe(true);
-			expect(setValidatorAccount.blsKey.toString('hex')).toBe(blsKey1);
+			expect(setValidatorAccount.blsKey.toString('hex')).toBe(blsKey.toString('hex'));
 			expect(hasKey).toBe(true);
+			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
+				MODULE_NAME_VALIDATORS,
+				EVENT_NAME_BLS_KEY_REGISTRATION,
+				blsEventData,
+				[address],
+			);
 		});
 
 		it('should not be able to set bls key for validator if address does not exist', async () => {
-			const proofOfPossession1 =
-				'88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d26';
-			const blsKey1 =
-				'b301803f8b5ac4a1133581fc676dfedc60d891dd5fa99028805e5ea5b08d3491af75d0707adab3b70c6a6a580217bf81';
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
-
+			const blsEventData = codec.encode(blsKeyRegDataSchema, {
+				blsKey,
+				proofOfPossession,
+				result: KEY_REG_RESULT_NO_VALIDATOR,
+			});
 			await expect(
-				validatorsModule.api.setValidatorBLSKey(
-					apiContext,
-					address,
-					Buffer.from(blsKey1, 'hex'),
-					Buffer.from(proofOfPossession1, 'hex'),
-				),
-			).resolves.toBe(false);
+				validatorsModule.api.setValidatorBLSKey(apiContext, address, blsKey, proofOfPossession),
+			).rejects.toThrow(
+				'This address is not registered as validator. Only validators can register a BLS key.',
+			);
+			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
+				MODULE_NAME_VALIDATORS,
+				EVENT_NAME_BLS_KEY_REGISTRATION,
+				blsEventData,
+				[address],
+				true,
+			);
 		});
 
 		it('should not be able to set bls key for validator if address exists but bls key is already registered', async () => {
+			const blsEventData = codec.encode(blsKeyRegDataSchema, {
+				blsKey,
+				proofOfPossession,
+				result: KEY_REG_RESULT_DUPLICATE_BLS_KEY,
+			});
 			const validatorAccount = {
 				generatorKey,
 				blsKey,
 			};
 			await validatorsSubStore.setWithSchema(address, validatorAccount, validatorAccountSchema);
 			await blsKeysSubStore.set(blsKey, address);
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 
 			await expect(
 				validatorsModule.api.setValidatorBLSKey(apiContext, address, blsKey, proofOfPossession),
-			).resolves.toBe(false);
+			).rejects.toThrow(
+				`The BLS key ${blsKey.toString('hex')} has already been registered in the chain.`,
+			);
+			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
+				MODULE_NAME_VALIDATORS,
+				EVENT_NAME_BLS_KEY_REGISTRATION,
+				blsEventData,
+				[address],
+				true,
+			);
 		});
 
 		it('should not be able to set bls key for validator if address exists, key is not registered but proof of possession is invalid', async () => {
+			const invalidProofOfPossession = utils.getRandomBytes(48);
+			const blsEventData = codec.encode(blsKeyRegDataSchema, {
+				blsKey,
+				proofOfPossession: invalidProofOfPossession,
+				result: KEY_REG_RESULT_INVALID_POP,
+			});
 			const validatorAccount = {
 				generatorKey,
-				blsKey,
+				blsKey: INVALID_BLS_KEY,
 			};
 			await validatorsSubStore.setWithSchema(address, validatorAccount, validatorAccountSchema);
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 
 			await expect(
-				validatorsModule.api.setValidatorBLSKey(apiContext, address, blsKey, proofOfPossession),
-			).resolves.toBe(false);
+				validatorsModule.api.setValidatorBLSKey(
+					apiContext,
+					address,
+					blsKey,
+					invalidProofOfPossession,
+				),
+			).rejects.toThrow('Invalid proof of possession for the given BLS key.');
+			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
+				MODULE_NAME_VALIDATORS,
+				EVENT_NAME_BLS_KEY_REGISTRATION,
+				blsEventData,
+				[address],
+				true,
+			);
 		});
 	});
 
 	describe('setValidatorGeneratorKey', () => {
+		beforeEach(() => {
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			jest.spyOn(apiContext.eventQueue, 'add');
+		});
+
 		it('should be able to correctly set generator key for validator if address exists', async () => {
 			const generatorKey1 = utils.getRandomBytes(48);
+			const generatorEventData = codec.encode(generatorKeyRegDataSchema, {
+				generatorKey: generatorKey1,
+				result: KEY_REG_RESULT_SUCCESS,
+			});
 			const validatorAccount = {
 				generatorKey,
 				blsKey,
 			};
 			await validatorsSubStore.setWithSchema(address, validatorAccount, validatorAccountSchema);
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 
 			const isSet = await validatorsModule.api.setValidatorGeneratorKey(
 				apiContext,
@@ -243,14 +363,32 @@ describe('ValidatorsModuleAPI', () => {
 
 			expect(isSet).toBe(true);
 			expect(setValidatorAccount.generatorKey.equals(generatorKey1)).toBe(true);
+			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
+				MODULE_NAME_VALIDATORS,
+				EVENT_NAME_GENERATOR_KEY_REGISTRATION,
+				generatorEventData,
+				[address],
+			);
 		});
 
 		it('should not be able to set generator key for validator if address does not exist', async () => {
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			const generatorEventData = codec.encode(generatorKeyRegDataSchema, {
+				generatorKey,
+				result: KEY_REG_RESULT_NO_VALIDATOR,
+			});
 
 			await expect(
 				validatorsModule.api.setValidatorGeneratorKey(apiContext, address, generatorKey),
-			).resolves.toBe(false);
+			).rejects.toThrow(
+				'This address is not registered as validator. Only validators can register a generator key.',
+			);
+			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
+				MODULE_NAME_VALIDATORS,
+				EVENT_NAME_GENERATOR_KEY_REGISTRATION,
+				generatorEventData,
+				[address],
+				true,
+			);
 		});
 	});
 
@@ -492,7 +630,7 @@ describe('ValidatorsModuleAPI', () => {
 
 			const validatorsStore = apiContext.getStore(
 				validatorsAPI['moduleID'],
-				STORE_PREFIX_VALIDATORS_DATA,
+				SUBSTORE_PREFIX_VALIDATORS_DATA,
 			);
 			await validatorsStore.setWithSchema(validAddress, validatorAccount, validatorAccountSchema);
 		});
@@ -509,6 +647,86 @@ describe('ValidatorsModuleAPI', () => {
 			const invalidAddress = utils.getRandomBytes(19);
 			await expect(validatorsAPI.getValidatorAccount(apiContext, invalidAddress)).rejects.toThrow(
 				'Address is not valid',
+			);
+		});
+
+		it('should throw if address does not exist', async () => {
+			const nonExistingAddress = utils.getRandomBytes(20);
+			await expect(
+				validatorsAPI.getValidatorAccount(apiContext, nonExistingAddress),
+			).rejects.toThrow('No validator account found for the input address.');
+		});
+	});
+
+	describe('getAddressFromBLSKey', () => {
+		beforeEach(() => {
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+		});
+
+		it('should get address if it exists in store', async () => {
+			await blsKeysSubStore.setWithSchema(blsKey, { address }, validatorAddressSchema);
+			await expect(validatorsAPI.getAddressFromBLSKey(apiContext, blsKey)).resolves.toEqual({
+				address,
+			});
+		});
+
+		it('should throw if address does not exist in store', async () => {
+			await expect(validatorsAPI.getAddressFromBLSKey(apiContext, blsKey)).rejects.toThrow(
+				`The BLS key ${blsKey.toString('hex')} has not been registered in the chain.`,
+			);
+		});
+	});
+
+	describe('registerValidatorWithoutBLSKey', () => {
+		beforeEach(() => {
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			jest.spyOn(apiContext.eventQueue, 'add');
+		});
+
+		it('should be able to register validator key for validator if address does not exist', async () => {
+			const generatorEventData = codec.encode(generatorKeyRegDataSchema, {
+				generatorKey,
+				result: KEY_REG_RESULT_SUCCESS,
+			});
+			const isSet = await validatorsModule.api.registerValidatorWithoutBLSKey(
+				apiContext,
+				address,
+				generatorKey,
+			);
+			const setValidatorAccount = await validatorsSubStore.getWithSchema<ValidatorKeys>(
+				address,
+				validatorAccountSchema,
+			);
+
+			expect(isSet).toBe(true);
+			expect(setValidatorAccount.generatorKey.equals(generatorKey)).toBe(true);
+			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
+				MODULE_NAME_VALIDATORS,
+				EVENT_NAME_GENERATOR_KEY_REGISTRATION,
+				generatorEventData,
+				[address],
+			);
+		});
+
+		it('should throw error if address already registered as validator', async () => {
+			const generatorEventData = codec.encode(generatorKeyRegDataSchema, {
+				generatorKey,
+				result: KEY_REG_RESULT_ALREADY_VALIDATOR,
+			});
+			const validatorAccount = {
+				generatorKey,
+				blsKey,
+			};
+			await validatorsSubStore.setWithSchema(address, validatorAccount, validatorAccountSchema);
+			await expect(
+				validatorsModule.api.registerValidatorWithoutBLSKey(apiContext, address, generatorKey),
+			).rejects.toThrow('This address is already registered as validator.');
+			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
+				MODULE_NAME_VALIDATORS,
+				EVENT_NAME_GENERATOR_KEY_REGISTRATION,
+				generatorEventData,
+				[address],
+				true,
 			);
 		});
 	});

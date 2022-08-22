@@ -18,7 +18,7 @@ import { NotFoundError } from '@liskhq/lisk-db';
 import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
 import { ValidateBLSKeyRequest, validateBLSKeyRequestSchema } from './schemas';
-import { STORE_PREFIX_BLS_KEYS } from './constants';
+import { SUBSTORE_PREFIX_BLS_KEYS } from './constants';
 
 export class ValidatorsEndpoint extends BaseEndpoint {
 	public async validateBLSKey(ctx: ModuleEndpointContext): Promise<{ valid: boolean }> {
@@ -27,7 +27,7 @@ export class ValidatorsEndpoint extends BaseEndpoint {
 		const req = ctx.params;
 		const { proofOfPossession, blsKey } = req;
 
-		const blsKeysSubStore = ctx.getStore(this.moduleID, STORE_PREFIX_BLS_KEYS);
+		const blsKeysSubStore = ctx.getStore(this.moduleID, SUBSTORE_PREFIX_BLS_KEYS);
 
 		let persistedValue;
 
