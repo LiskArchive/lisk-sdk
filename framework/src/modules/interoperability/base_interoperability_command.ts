@@ -13,24 +13,28 @@
  */
 
 import { BaseCommand } from '../base_command';
+import { ImmutableStoreGetter, StoreGetter } from '../base_store';
+import { NamedRegistry } from '../named_registry';
 import { BaseCCCommand } from './base_cc_command';
 import { BaseInteroperabilityStore } from './base_interoperability_store';
 import { BaseInteroperableAPI } from './base_interoperable_api';
-import { StoreCallback } from './types';
 
 export abstract class BaseInteroperabilityCommand extends BaseCommand {
-	protected readonly interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
-	protected readonly ccCommands = new Map<number, BaseCCCommand[]>();
+	protected readonly interoperableCCAPIs = new Map<string, BaseInteroperableAPI>();
+	protected readonly ccCommands = new Map<string, BaseCCCommand[]>();
 
 	public constructor(
-		moduleID: Buffer,
-		interoperableCCAPIs: Map<number, BaseInteroperableAPI>,
-		ccCommands: Map<number, BaseCCCommand[]>,
+		stores: NamedRegistry,
+		events: NamedRegistry,
+		interoperableCCAPIs: Map<string, BaseInteroperableAPI>,
+		ccCommands: Map<string, BaseCCCommand[]>,
 	) {
-		super(moduleID);
+		super(stores, events);
 		this.interoperableCCAPIs = interoperableCCAPIs;
 		this.ccCommands = ccCommands;
 	}
 
-	protected abstract getInteroperabilityStore(getStore: StoreCallback): BaseInteroperabilityStore;
+	protected abstract getInteroperabilityStore(
+		context: StoreGetter | ImmutableStoreGetter,
+	): BaseInteroperabilityStore;
 }

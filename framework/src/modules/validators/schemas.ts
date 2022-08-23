@@ -11,9 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { BLS_POP_LENGTH, BLS_PUBLIC_KEY_LENGTH, ED25519_PUBLIC_KEY_LENGTH } from './constants';
-
 export const configSchema = {
 	$id: '/validators/config',
 	type: 'object',
@@ -25,49 +22,6 @@ export const configSchema = {
 		},
 	},
 	required: ['blockTime'],
-};
-
-export const validatorAccountSchema = {
-	$id: '/validators/validatorAccountSubStore',
-	title: 'Validators Account Keys',
-	type: 'object',
-	properties: {
-		generatorKey: {
-			dataType: 'bytes',
-			fieldNumber: 1,
-		},
-		blsKey: {
-			dataType: 'bytes',
-			fieldNumber: 2,
-		},
-	},
-	required: ['generatorKey', 'blsKey'],
-};
-
-export const validatorAddressSchema = {
-	$id: '/validators/registeredBlsKeysSubStore',
-	title: 'Validators Addresses',
-	type: 'object',
-	properties: {
-		address: {
-			dataType: 'bytes',
-			fieldNumber: 1,
-		},
-	},
-	required: ['address'],
-};
-
-export const genesisDataSchema = {
-	$id: '/validators/genesisDataSubStore',
-	title: 'Timestamp',
-	type: 'object',
-	properties: {
-		timestamp: {
-			dataType: 'uint32',
-			fieldNumber: 1,
-		},
-	},
-	required: ['timestamp'],
 };
 
 export interface ValidateBLSKeyRequest {
@@ -102,46 +56,4 @@ export const validateBLSKeyResponseSchema = {
 		},
 	},
 	required: ['valid'],
-};
-
-export const generatorKeyRegDataSchema = {
-	$id: '/validators/event/generatorKeyRegData',
-	type: 'object',
-	required: ['generatorKey', 'result'],
-	properties: {
-		generatorKey: {
-			dataType: 'bytes',
-			minLength: ED25519_PUBLIC_KEY_LENGTH,
-			maxLength: ED25519_PUBLIC_KEY_LENGTH,
-			fieldNumber: 1,
-		},
-		result: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-		},
-	},
-};
-
-export const blsKeyRegDataSchema = {
-	$id: '/validators/event/blsKeyRegData',
-	type: 'object',
-	required: ['blsKey', 'result'],
-	properties: {
-		blsKey: {
-			dataType: 'bytes',
-			minLength: BLS_PUBLIC_KEY_LENGTH,
-			maxLength: BLS_PUBLIC_KEY_LENGTH,
-			fieldNumber: 1,
-		},
-		proofOfPossession: {
-			dataType: 'bytes',
-			minLength: BLS_POP_LENGTH,
-			maxLength: BLS_POP_LENGTH,
-			fieldNumber: 2,
-		},
-		result: {
-			dataType: 'uint32',
-			fieldNumber: 3,
-		},
-	},
 };

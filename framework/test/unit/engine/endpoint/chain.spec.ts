@@ -12,18 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Event, StateStore } from '@liskhq/lisk-chain';
+import { Event } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
-import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { ChainEndpoint } from '../../../../src/engine/endpoint/chain';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { createContext } from '../../../utils/mocks/endpoint';
 
 describe('Chain endpoint', () => {
-	let stateStore: StateStore;
+	let stateStore: PrefixedStateReadWriter;
 	let endpoint: ChainEndpoint;
 
 	beforeEach(() => {
-		stateStore = new StateStore(new InMemoryDatabase());
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		endpoint = new ChainEndpoint({
 			chain: {
 				dataAccess: {

@@ -18,17 +18,12 @@ import {
 	CHAIN_ID_LENGTH,
 	EMPTY_BYTES,
 	LOCAL_ID_LENGTH,
-	STORE_PREFIX_AVAILABLE_LOCAL_ID,
-	STORE_PREFIX_ESCROW,
-	STORE_PREFIX_SUPPLY,
-	STORE_PREFIX_TERMINATED_ESCROW,
-	STORE_PREFIX_USER,
 	TOKEN_ID_LENGTH,
 } from '../../../../src/modules/token/constants';
-import {
-	AvailableLocalIDStoreData,
-	availableLocalIDStoreSchema,
-} from '../../../../src/modules/token/schemas';
+import { AvailableLocalIDStore } from '../../../../src/modules/token/stores/available_local_id';
+import { EscrowStore } from '../../../../src/modules/token/stores/escrow';
+import { SupplyStore } from '../../../../src/modules/token/stores/supply';
+import { UserStore } from '../../../../src/modules/token/stores/user';
 import { createGenesisBlockContext } from '../../../../src/testing';
 import { invalidGenesisAssets, validGenesisAssets } from './init_genesis_state_fixture';
 
@@ -87,44 +82,33 @@ describe('token module', () => {
 
 			await expect(tokenModule.initGenesisState(context)).resolves.toBeUndefined();
 			// Expect stored
-			const userStore = context.getStore(tokenModule.id, STORE_PREFIX_USER);
-			const allUsers = await userStore.iterate({
+			const userStore = tokenModule.stores.get(UserStore);
+			const allUsers = await userStore.iterate(context, {
 				gte: Buffer.alloc(26, 0),
 				lte: Buffer.alloc(26, 255),
 			});
 			expect(allUsers).toHaveLength(input.userSubstore.length);
 
-			const supplyStore = context.getStore(tokenModule.id, STORE_PREFIX_SUPPLY);
-			const allSupplies = await supplyStore.iterate({
+			const supplyStore = tokenModule.stores.get(SupplyStore);
+			const allSupplies = await supplyStore.iterate(context, {
 				gte: Buffer.alloc(LOCAL_ID_LENGTH, 0),
 				lte: Buffer.alloc(LOCAL_ID_LENGTH, 255),
 			});
 			expect(allSupplies).toHaveLength(input.supplySubstore.length);
 
-			const escrowStore = context.getStore(tokenModule.id, STORE_PREFIX_ESCROW);
-			const allEscrows = await escrowStore.iterate({
+			const escrowStore = tokenModule.stores.get(EscrowStore);
+			const allEscrows = await escrowStore.iterate(context, {
 				gte: Buffer.alloc(TOKEN_ID_LENGTH, 0),
 				lte: Buffer.alloc(TOKEN_ID_LENGTH, 255),
 			});
 			expect(allEscrows).toHaveLength(input.escrowSubstore.length);
 
-			const nextAvailableLocalIDStore = context.getStore(
-				tokenModule.id,
-				STORE_PREFIX_AVAILABLE_LOCAL_ID,
-			);
-			const {
-				nextAvailableLocalID,
-			} = await nextAvailableLocalIDStore.getWithSchema<AvailableLocalIDStoreData>(
-				EMPTY_BYTES,
-				availableLocalIDStoreSchema,
-			);
+			const nextAvailableLocalIDStore = tokenModule.stores.get(AvailableLocalIDStore);
+			const { nextAvailableLocalID } = await nextAvailableLocalIDStore.get(context, EMPTY_BYTES);
 			expect(nextAvailableLocalID).toEqual(input.availableLocalIDSubstore.nextAvailableLocalID);
 
-			const terminatedEscrowStore = context.getStore(
-				tokenModule.id,
-				STORE_PREFIX_TERMINATED_ESCROW,
-			);
-			const allTerminatedEscrows = await terminatedEscrowStore.iterate({
+			const terminatedEscrowStore = tokenModule.stores.get(EscrowStore);
+			const allTerminatedEscrows = await terminatedEscrowStore.iterate(context, {
 				gte: Buffer.alloc(CHAIN_ID_LENGTH, 0),
 				lte: Buffer.alloc(CHAIN_ID_LENGTH, 255),
 			});

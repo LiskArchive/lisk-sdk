@@ -18,9 +18,10 @@ import { utils, ed } from '@liskhq/lisk-cryptography';
 import { isHexString } from '@liskhq/lisk-validator';
 import { VerificationResult, VerifyStatus } from '../../state_machine';
 import { InvalidNonceError } from './errors';
-import { AuthAccount, Keys } from './types';
+import { Keys } from './types';
 import { registerMultisignatureParamsSchema } from './schemas';
 import { COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP } from './constants';
+import { AuthAccount } from './stores/auth_account';
 
 export const isMultisignatureAccount = (keys: Keys): boolean =>
 	!!((keys.mandatoryKeys.length > 0 || keys.optionalKeys.length > 0) && keys.numberOfSignatures);

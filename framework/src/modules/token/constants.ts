@@ -12,36 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
-
-export const MODULE_ID_TOKEN = 2;
-export const MODULE_ID_TOKEN_BUFFER = utils.intToBuffer(MODULE_ID_TOKEN, 4);
-export const COMMAND_ID_TRANSFER = 0;
-export const COMMAND_ID_TRANSFER_BUFFER = utils.intToBuffer(COMMAND_ID_TRANSFER, 4);
 export const CROSS_CHAIN_COMMAND_NAME_TRANSFER = 'crossChainTransfer';
-export const CROSS_CHAIN_COMMAND_ID_TRANSFER = 0;
-export const CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER = utils.intToBuffer(
-	CROSS_CHAIN_COMMAND_ID_TRANSFER,
-	4,
-);
 export const CROSS_CHAIN_COMMAND_NAME_FORWARD = 'crossChainForward';
-export const CROSS_CHAIN_COMMAND_ID_FORWARD = 1;
-export const CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER = utils.intToBuffer(
-	CROSS_CHAIN_COMMAND_ID_FORWARD,
-	4,
-);
 
 export const ADDRESS_LENGTH = 20;
 export const MAX_DATA_LENGTH = 64;
 
 export const MAX_TRANSACTION_AMOUNT = '9223372036854775807';
 export const DEFAULT_MIN_REMAINING_BALANCE = '5000000';
-
-export const STORE_PREFIX_USER = 0x0000;
-export const STORE_PREFIX_SUPPLY = 0x8000;
-export const STORE_PREFIX_ESCROW = 0xc000;
-export const STORE_PREFIX_AVAILABLE_LOCAL_ID = 0xd000;
-export const STORE_PREFIX_TERMINATED_ESCROW = 0xe000;
 
 export const CCM_STATUS_OK = 0;
 export const CCM_STATUS_TOKEN_NOT_SUPPORTED = 64;

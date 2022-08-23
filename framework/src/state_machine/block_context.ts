@@ -90,7 +90,7 @@ export class BlockContext {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
 			getAPIContext: () => createImmutableAPIContext(this._stateStore),
-			getStore: (moduleID: Buffer, storePrefix: number) =>
+			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
 			assets: this._assets,
@@ -105,7 +105,7 @@ export class BlockContext {
 			eventQueue: childQueue,
 			getAPIContext: () =>
 				createAPIContext({ stateStore: this._stateStore, eventQueue: childQueue }),
-			getStore: (moduleID: Buffer, storePrefix: number) =>
+			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
 			assets: this._assets,
@@ -127,7 +127,7 @@ export class BlockContext {
 			eventQueue: childQueue,
 			getAPIContext: () =>
 				createAPIContext({ stateStore: this._stateStore, eventQueue: childQueue }),
-			getStore: (moduleID: Buffer, storePrefix: number) =>
+			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
 			assets: this._assets,

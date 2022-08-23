@@ -13,17 +13,16 @@
  */
 
 import { NotFoundError } from '@liskhq/lisk-chain';
-import { MODULE_ID_TOKEN } from '../../token/constants';
 import { BaseInteroperabilityStore } from '../base_interoperability_store';
 import {
 	CCM_STATUS_CHANNEL_UNAVAILABLE,
 	CCM_STATUS_OK,
 	CHAIN_ACTIVE,
 	CHAIN_REGISTERED,
-	CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED_BUFFER,
+	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	EMPTY_FEE_ADDRESS,
 	LIVENESS_LIMIT,
-	MODULE_ID_INTEROPERABILITY_BUFFER,
+	MODULE_NAME_INTEROPERABILITY,
 } from '../constants';
 import { createCCMsgBeforeSendContext } from '../context';
 import { CCMForwardContext, CCMsg, SendInternalContext } from '../types';
@@ -32,7 +31,7 @@ import {
 	handlePromiseErrorWithNull,
 	validateFormat,
 } from '../utils';
-import { TokenCCAPI } from '../cc_apis';
+import { MODULE_NAME_TOKEN, TokenCCAPI } from '../cc_apis';
 import { ForwardCCMsgResult } from './types';
 
 export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
@@ -60,7 +59,9 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 			getStore,
 		} = ccmForwardContext;
 		const apiContext = getAPIContext();
-		const tokenCCAPI = this.interoperableModuleAPIs.get(MODULE_ID_TOKEN) as TokenCCAPI | undefined;
+		const tokenCCAPI = this.interoperableModuleAPIs.get(MODULE_NAME_TOKEN) as
+			| TokenCCAPI
+			| undefined;
 		const beforeCCMSendContext = createCCMsgBeforeSendContext({
 			ccm,
 			eventQueue,
@@ -115,8 +116,8 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 			getStore: ccmForwardContext.getStore,
 			logger: ccmForwardContext.logger,
 			networkIdentifier: ccmForwardContext.networkIdentifier,
-			crossChainCommandID: CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED_BUFFER,
-			moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
+			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
+			module: MODULE_NAME_INTEROPERABILITY,
 			fee: BigInt(0),
 			params: getEncodedSidechainTerminatedCCMParam(ccm, receivingChainAccount),
 			receivingChainID: ccm.sendingChainID,
@@ -177,9 +178,9 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 		const ownChainAccount = await this.getOwnChainAccount();
 		// Create cross-chain message
 		const ccm: CCMsg = {
-			crossChainCommandID: sendContext.crossChainCommandID,
+			crossChainCommand: sendContext.crossChainCommand,
 			fee: sendContext.fee,
-			moduleID: sendContext.moduleID,
+			module: sendContext.module,
 			nonce: ownChainAccount.nonce,
 			params: sendContext.params,
 			receivingChainID: sendContext.receivingChainID,

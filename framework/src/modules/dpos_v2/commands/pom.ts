@@ -22,28 +22,24 @@ import {
 } from '../../../state_machine';
 import { BaseCommand } from '../../base_command';
 import {
-	COMMAND_ID_POM,
 	REPORTING_PUNISHMENT_REWARD,
 	MAX_POM_HEIGHTS,
 	MAX_PUNISHABLE_BLOCK_HEIGHT_DIFFERENCE,
-	STORE_PREFIX_DELEGATE,
 } from '../constants';
-import { delegateStoreSchema, pomCommandParamsSchema } from '../schemas';
+import { pomCommandParamsSchema } from '../schemas';
 import {
-	DelegateAccount,
 	PomCommandDependencies,
 	PomTransactionParams,
 	TokenAPI,
 	TokenIDDPoS,
 	ValidatorsAPI,
 } from '../types';
-import { getIDAsKeyForStore, getPunishmentPeriod } from '../utils';
+import { getPunishmentPeriod } from '../utils';
 import { ValidationError } from '../../../errors';
 import { areDistinctHeadersContradicting } from '../../../engine/bft/utils';
+import { DelegateStore } from '../stores/delegate';
 
 export class ReportDelegateMisbehaviorCommand extends BaseCommand {
-	public id = getIDAsKeyForStore(COMMAND_ID_POM);
-	public name = 'reportDelegateMisbehavior';
 	public schema = pomCommandParamsSchema;
 	private _tokenAPI!: TokenAPI;
 	private _validatorsAPI!: ValidatorsAPI;
@@ -95,7 +91,7 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async execute(context: CommandExecuteContext<PomTransactionParams>): Promise<void> {
-		const { networkIdentifier, getAPIContext, getStore, params, transaction, header } = context;
+		const { networkIdentifier, getAPIContext, params, transaction, header } = context;
 		const currentHeight = header.height;
 		const header1 = BlockHeader.fromBytes(params.header1);
 		const header2 = BlockHeader.fromBytes(params.header2);
@@ -120,11 +116,8 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 			Check if delegate is eligible to be punished
 		*/
 		const delegateAddress = header1.generatorAddress;
-		const delegateSubStore = getStore(this.moduleID, STORE_PREFIX_DELEGATE);
-		const delegateAccount = await delegateSubStore.getWithSchema<DelegateAccount>(
-			delegateAddress,
-			delegateStoreSchema,
-		);
+		const delegateSubStore = this.stores.get(DelegateStore);
+		const delegateAccount = await delegateSubStore.get(context, delegateAddress);
 
 		if (delegateAccount.isBanned) {
 			throw new Error('Cannot apply proof-of-misbehavior. Delegate is already banned.');
@@ -174,7 +167,7 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 		if (delegateAccount.pomHeights.length >= MAX_POM_HEIGHTS) {
 			delegateAccount.isBanned = true;
 		}
-		await delegateSubStore.setWithSchema(delegateAddress, delegateAccount, delegateStoreSchema);
+		await delegateSubStore.set(context, delegateAddress, delegateAccount);
 
 		if (reward > BigInt(0)) {
 			await this._tokenAPI.transfer(

@@ -12,25 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { when } from 'jest-when';
 import { utils } from '@liskhq/lisk-cryptography';
 import {
+	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	MAINCHAIN_ID,
 	MAX_CCM_SIZE,
-	MODULE_ID_INTEROPERABILITY_BUFFER,
-	STORE_PREFIX_CHAIN_DATA,
-	STORE_PREFIX_CHANNEL_DATA,
-	STORE_PREFIX_OUTBOX_ROOT,
-	STORE_PREFIX_OWN_CHAIN_DATA,
-	STORE_PREFIX_TERMINATED_STATE,
+	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../src/modules/interoperability/constants';
 import { SidechainInteroperabilityStore } from '../../../../../src/modules/interoperability/sidechain/store';
-import {
-	chainAccountSchema,
-	channelSchema,
-	terminatedStateSchema,
-} from '../../../../../src/modules/interoperability/schemas';
-import { testing } from '../../../../../src';
+import { SidechainInteroperabilityModule, testing } from '../../../../../src';
 import {
 	ChainAccount,
 	ChannelData,
@@ -39,20 +29,25 @@ import {
 import { getIDAsKeyForStore } from '../../../../../src/modules/interoperability/utils';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
-import { SubStore } from '../../../../../src/state_machine/types';
+import { ChannelDataStore } from '../../../../../src/modules/interoperability/stores/channel_data';
+import { ChainAccountStore } from '../../../../../src/modules/interoperability/stores/chain_account';
+import { TerminatedStateStore } from '../../../../../src/modules/interoperability/stores/terminated_state';
+import { StoreGetter } from '../../../../../src/modules/base_store';
+import { createStoreGetter } from '../../../../../src/testing/utils';
 
 describe('Sidechain interoperability store', () => {
+	const sidechainInterops = new SidechainInteroperabilityModule();
+
 	const chainID = Buffer.from('54', 'hex');
 	let ownChainAccount: any;
 	let chainAccount: any;
 	let stateStore: PrefixedStateReadWriter;
 	let sidechainInteroperabilityStore: SidechainInteroperabilityStore;
-	let terminatedStateSubstore: SubStore;
-	let chainSubstore: SubStore;
-	let ownChainSubstore: SubStore;
-	let channelSubstore: SubStore;
-	let outboxRootSubstore: SubStore;
-	let mockGetStore: any;
+	let terminatedStateSubstore: TerminatedStateStore;
+	let chainDataSubstore: ChainAccountStore;
+	let channelDataSubstore: ChannelDataStore;
+
+	let context: StoreGetter;
 
 	beforeEach(() => {
 		chainAccount = {
@@ -74,50 +69,22 @@ describe('Sidechain interoperability store', () => {
 		};
 
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		chainSubstore = stateStore.getStore(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_DATA);
-		ownChainSubstore = stateStore.getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_OWN_CHAIN_DATA,
-		);
-		channelSubstore = stateStore.getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_CHANNEL_DATA,
-		);
-		outboxRootSubstore = stateStore.getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_OUTBOX_ROOT,
-		);
-		terminatedStateSubstore = stateStore.getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_TERMINATED_STATE,
-		);
-		mockGetStore = jest.fn();
-		when(mockGetStore)
-			.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_DATA)
-			.mockReturnValue(chainSubstore);
-		when(mockGetStore)
-			.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_TERMINATED_STATE)
-			.mockReturnValue(terminatedStateSubstore);
-		when(mockGetStore)
-			.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_OWN_CHAIN_DATA)
-			.mockReturnValue(ownChainSubstore);
-		when(mockGetStore)
-			.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHANNEL_DATA)
-			.mockReturnValue(channelSubstore);
-		when(mockGetStore)
-			.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_OUTBOX_ROOT)
-			.mockReturnValue(outboxRootSubstore);
+		context = createStoreGetter(stateStore);
+
+		channelDataSubstore = sidechainInterops.stores.get(ChannelDataStore);
+		chainDataSubstore = sidechainInterops.stores.get(ChainAccountStore);
+		terminatedStateSubstore = sidechainInterops.stores.get(TerminatedStateStore);
 
 		sidechainInteroperabilityStore = new SidechainInteroperabilityStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			mockGetStore,
+			sidechainInterops.stores,
+			context,
 			new Map(),
 		);
 	});
 
 	describe('isLive', () => {
 		it('should return false if chain is already terminated', async () => {
-			await terminatedStateSubstore.setWithSchema(chainID, chainAccount, terminatedStateSchema);
+			await terminatedStateSubstore.set(context, chainID, chainAccount);
 			const isLive = await sidechainInteroperabilityStore.isLive(chainID);
 
 			expect(isLive).toBe(false);
@@ -144,8 +111,8 @@ describe('Sidechain interoperability store', () => {
 
 		const ccm = {
 			nonce: BigInt(0),
-			moduleID: utils.intToBuffer(1, 4),
-			crossChainCommandID: utils.intToBuffer(1, 4),
+			module: MODULE_NAME_INTEROPERABILITY,
+			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 			sendingChainID: utils.intToBuffer(2, 4),
 			receivingChainID: utils.intToBuffer(3, 4),
 			fee: BigInt(1),
@@ -197,25 +164,17 @@ describe('Sidechain interoperability store', () => {
 		// Sidechain case
 		it('should return mainchain account if the receiving chain does not exist', async () => {
 			const sidechainInteropStoreLocal = new SidechainInteroperabilityStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				mockGetStore,
+				sidechainInterops.stores,
+				context,
 				modsMap,
 			);
 
 			jest.spyOn(sidechainInteropStoreLocal, 'isLive').mockResolvedValue(true);
 			jest.spyOn(sidechainInteropStoreLocal, 'getChainAccount');
 			jest.spyOn(sidechainInteropStoreLocal, 'appendToOutboxTree').mockResolvedValue();
-			await chainSubstore.setWithSchema(
-				getIDAsKeyForStore(MAINCHAIN_ID),
-				activeChainAccount,
-				chainAccountSchema,
-			);
+			await chainDataSubstore.set(context, getIDAsKeyForStore(MAINCHAIN_ID), activeChainAccount);
 			await sidechainInteropStoreLocal.setOwnChainAccount(ownChainAccount);
-			await channelSubstore.setWithSchema(
-				getIDAsKeyForStore(MAINCHAIN_ID),
-				channelData,
-				channelSchema,
-			);
+			await channelDataSubstore.set(context, getIDAsKeyForStore(MAINCHAIN_ID), channelData);
 
 			await expect(sidechainInteropStoreLocal.sendInternal(sendInternalContext)).resolves.toEqual(
 				true,
@@ -228,21 +187,17 @@ describe('Sidechain interoperability store', () => {
 		// Sidechain case
 		it('should return receiving chain account if the receiving chain exists', async () => {
 			const sidechainInteropStoreLocal = new SidechainInteroperabilityStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				mockGetStore,
+				sidechainInterops.stores,
+				context,
 				modsMap,
 			);
 
 			jest.spyOn(sidechainInteropStoreLocal, 'isLive').mockResolvedValue(true);
 			jest.spyOn(sidechainInteropStoreLocal, 'getChainAccount');
 			jest.spyOn(sidechainInteropStoreLocal, 'appendToOutboxTree').mockResolvedValue();
-			await chainSubstore.setWithSchema(
-				ccm.receivingChainID,
-				activeChainAccount,
-				chainAccountSchema,
-			);
+			await chainDataSubstore.set(context, ccm.receivingChainID, activeChainAccount);
 			await sidechainInteropStoreLocal.setOwnChainAccount(ownChainAccount);
-			await channelSubstore.setWithSchema(ccm.receivingChainID, channelData, channelSchema);
+			await channelDataSubstore.set(context, ccm.receivingChainID, channelData);
 
 			await expect(sidechainInteropStoreLocal.sendInternal(sendInternalContext)).resolves.toEqual(
 				true,
@@ -252,7 +207,7 @@ describe('Sidechain interoperability store', () => {
 
 		it('should return false if the receiving chain is not live', async () => {
 			jest.spyOn(sidechainInteroperabilityStore, 'isLive');
-			await chainSubstore.setWithSchema(ccm.receivingChainID, chainAccount, chainAccountSchema);
+			await chainDataSubstore.set(context, ccm.receivingChainID, chainAccount);
 
 			await expect(
 				sidechainInteroperabilityStore.sendInternal(sendInternalContext),
@@ -262,7 +217,7 @@ describe('Sidechain interoperability store', () => {
 
 		it('should return false if the receiving chain is not active', async () => {
 			jest.spyOn(sidechainInteroperabilityStore, 'isLive');
-			await chainSubstore.setWithSchema(ccm.receivingChainID, chainAccount, chainAccountSchema);
+			await chainDataSubstore.set(context, ccm.receivingChainID, chainAccount);
 
 			await expect(
 				sidechainInteroperabilityStore.sendInternal(sendInternalContext),
@@ -273,8 +228,8 @@ describe('Sidechain interoperability store', () => {
 		it('should return false if the created ccm is of invalid size', async () => {
 			const invalidCCM = {
 				nonce: BigInt(0),
-				moduleID: utils.intToBuffer(1, 4),
-				crossChainCommandID: utils.intToBuffer(1, 4),
+				module: MODULE_NAME_INTEROPERABILITY,
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 				sendingChainID: utils.intToBuffer(2, 4),
 				receivingChainID: utils.intToBuffer(3, 4),
 				fee: BigInt(1),
@@ -293,11 +248,7 @@ describe('Sidechain interoperability store', () => {
 			};
 
 			jest.spyOn(sidechainInteroperabilityStore, 'isLive');
-			await chainSubstore.setWithSchema(
-				ccm.receivingChainID,
-				activeChainAccount,
-				chainAccountSchema,
-			);
+			await chainDataSubstore.set(context, ccm.receivingChainID, activeChainAccount);
 			await sidechainInteroperabilityStore.setOwnChainAccount(ownChainAccount);
 
 			await expect(
@@ -309,8 +260,8 @@ describe('Sidechain interoperability store', () => {
 		it('should return false if the ccm created is invalid schema', async () => {
 			const invalidCCM = {
 				nonce: BigInt(0),
-				moduleID: utils.intToBuffer(1, 4),
-				crossChainCommandID: utils.intToBuffer(1, 4),
+				module: MODULE_NAME_INTEROPERABILITY,
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 				sendingChainID: utils.intToBuffer(2, 4),
 				receivingChainID: utils.intToBuffer(3, 4),
 				fee: BigInt(1),
@@ -329,11 +280,7 @@ describe('Sidechain interoperability store', () => {
 			};
 
 			jest.spyOn(sidechainInteroperabilityStore, 'isLive');
-			await chainSubstore.setWithSchema(
-				ccm.receivingChainID,
-				activeChainAccount,
-				chainAccountSchema,
-			);
+			await chainDataSubstore.set(context, ccm.receivingChainID, activeChainAccount);
 			await sidechainInteroperabilityStore.setOwnChainAccount(ownChainAccount);
 
 			await expect(
@@ -344,19 +291,15 @@ describe('Sidechain interoperability store', () => {
 
 		it('should return true and call each module beforeSendCCM crossChainAPI', async () => {
 			const sidechainInteropStoreLocal = new SidechainInteroperabilityStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				mockGetStore,
+				sidechainInterops.stores,
+				context,
 				modsMap,
 			);
 
 			jest.spyOn(sidechainInteropStoreLocal, 'isLive');
-			await chainSubstore.setWithSchema(
-				ccm.receivingChainID,
-				activeChainAccount,
-				chainAccountSchema,
-			);
+			await chainDataSubstore.set(context, ccm.receivingChainID, activeChainAccount);
 			await sidechainInteropStoreLocal.setOwnChainAccount(ownChainAccount);
-			await channelSubstore.setWithSchema(ccm.receivingChainID, channelData, channelSchema);
+			await channelDataSubstore.set(context, ccm.receivingChainID, channelData);
 			jest.spyOn(sidechainInteropStoreLocal, 'appendToOutboxTree').mockResolvedValue({} as never);
 
 			await expect(

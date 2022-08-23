@@ -13,7 +13,6 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { when } from 'jest-when';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { BlockAssets } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
@@ -23,6 +22,7 @@ import {
 	testing,
 	VerifyStatus,
 	MainchainCCUpdateCommand,
+	MainchainInteroperabilityModule,
 } from '../../../../../../src';
 import {
 	ActiveValidator,
@@ -36,38 +36,39 @@ import {
 import { Certificate } from '../../../../../../src/engine/consensus/certificate_generation/types';
 import { certificateSchema } from '../../../../../../src/engine/consensus/certificate_generation/schema';
 import * as interopUtils from '../../../../../../src/modules/interoperability/utils';
-import {
-	ccmSchema,
-	chainAccountSchema,
-	chainValidatorsSchema,
-	channelSchema,
-} from '../../../../../../src/modules/interoperability/schemas';
+import { ccmSchema } from '../../../../../../src/modules/interoperability/schemas';
 import {
 	CCM_STATUS_OK,
 	CHAIN_ACTIVE,
 	CHAIN_REGISTERED,
 	CHAIN_TERMINATED,
+	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+	CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 	EMPTY_BYTES,
 	LIVENESS_LIMIT,
 	MAINCHAIN_ID_BUFFER,
 	MAX_CCM_SIZE,
-	MODULE_ID_INTEROPERABILITY_BUFFER,
-	STORE_PREFIX_CHAIN_DATA,
-	STORE_PREFIX_CHAIN_VALIDATORS,
-	STORE_PREFIX_CHANNEL_DATA,
+	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
 import { BlockHeader, EventQueue } from '../../../../../../src/state_machine';
 import { computeValidatorsHash } from '../../../../../../src/modules/interoperability/utils';
+import { CROSS_CHAIN_COMMAND_NAME_FORWARD } from '../../../../../../src/modules/token/constants';
+import { ChainAccountStore } from '../../../../../../src/modules/interoperability/stores/chain_account';
+import { ChannelDataStore } from '../../../../../../src/modules/interoperability/stores/channel_data';
+import { ChainValidatorsStore } from '../../../../../../src/modules/interoperability/stores/chain_validators';
+import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
+import { createStoreGetter } from '../../../../../../src/testing/utils';
+import { createTransientAPIContext } from '../../../../../../src/testing';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
 }));
 
 describe('CrossChainUpdateCommand', () => {
-	const getAPIContextMock = jest.fn();
-	const getStoreMock = jest.fn();
-	const moduleID = MODULE_ID_INTEROPERABILITY_BUFFER;
+	const interopMod = new MainchainInteroperabilityModule();
+
 	const networkIdentifier = cryptography.utils.getRandomBytes(32);
 	const defaultCertificateValues: Certificate = {
 		blockID: cryptography.utils.getRandomBytes(20),
@@ -84,9 +85,9 @@ describe('CrossChainUpdateCommand', () => {
 	const defaultSendingChainIDBuffer = cryptography.utils.intToBuffer(defaultSendingChainID, 4);
 	const defaultCCMs: CCMsg[] = [
 		{
-			crossChainCommandID: utils.intToBuffer(1, 4),
+			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 			fee: BigInt(0),
-			moduleID: utils.intToBuffer(1, 4),
+			module: MODULE_NAME_INTEROPERABILITY,
 			nonce: BigInt(1),
 			params: Buffer.alloc(2),
 			receivingChainID: utils.intToBuffer(2, 4),
@@ -94,9 +95,9 @@ describe('CrossChainUpdateCommand', () => {
 			status: CCM_STATUS_OK,
 		},
 		{
-			crossChainCommandID: utils.intToBuffer(2, 4),
+			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 			fee: BigInt(0),
-			moduleID: utils.intToBuffer(1, 4),
+			module: MODULE_NAME_INTEROPERABILITY,
 			nonce: BigInt(1),
 			params: Buffer.alloc(2),
 			receivingChainID: utils.intToBuffer(3, 4),
@@ -104,9 +105,9 @@ describe('CrossChainUpdateCommand', () => {
 			status: CCM_STATUS_OK,
 		},
 		{
-			crossChainCommandID: utils.intToBuffer(3, 4),
+			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
 			fee: BigInt(0),
-			moduleID: utils.intToBuffer(1, 4),
+			module: MODULE_NAME_INTEROPERABILITY,
 			nonce: BigInt(1),
 			params: Buffer.alloc(2),
 			receivingChainID: utils.intToBuffer(4, 4),
@@ -126,21 +127,9 @@ describe('CrossChainUpdateCommand', () => {
 			siblingHashes: [Buffer.alloc(1)],
 		},
 	};
-	const defaultTransaction = { moduleID: utils.intToBuffer(1, 4) };
+	const defaultTransaction = { module: MODULE_NAME_INTEROPERABILITY };
 
-	const partnerChainStore = {
-		getWithSchema: jest.fn(),
-	};
-
-	const partnerChannelStore = {
-		getWithSchema: jest.fn(),
-	};
-
-	const partnerValidatorStore = {
-		getWithSchema: jest.fn(),
-		setWithSchema: jest.fn(),
-	};
-
+	let stateStore: PrefixedStateReadWriter;
 	let encodedDefaultCertificate: Buffer;
 	let partnerChainAccount: ChainAccount;
 	let partnerChannelAccount: ChannelData;
@@ -150,9 +139,18 @@ describe('CrossChainUpdateCommand', () => {
 	let params: CrossChainUpdateTransactionParams;
 	let activeValidatorsUpdate: ActiveValidator[];
 	let sortedActiveValidatorsUpdate: ActiveValidator[];
+	let partnerChainStore: ChainAccountStore;
+	let partnerChannelStore: ChannelDataStore;
+	let partnerValidatorStore: ChainValidatorsStore;
 
-	beforeEach(() => {
-		mainchainCCUUpdateCommand = new MainchainCCUpdateCommand(moduleID, new Map(), new Map());
+	beforeEach(async () => {
+		mainchainCCUUpdateCommand = new MainchainCCUpdateCommand(
+			interopMod.stores,
+			interopMod.events,
+			new Map(),
+			new Map(),
+		);
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		activeValidatorsUpdate = [
 			{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(1) },
 			{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
@@ -217,29 +215,26 @@ describe('CrossChainUpdateCommand', () => {
 			sendingChainID: defaultSendingChainIDBuffer,
 		};
 
-		when(partnerChainStore.getWithSchema)
-			.calledWith(defaultSendingChainIDBuffer, chainAccountSchema)
-			.mockResolvedValue(partnerChainAccount);
+		partnerChainStore = interopMod.stores.get(ChainAccountStore);
+		await partnerChainStore.set(
+			createStoreGetter(stateStore),
+			defaultSendingChainIDBuffer,
+			partnerChainAccount,
+		);
 
-		when(partnerChannelStore.getWithSchema)
-			.calledWith(defaultSendingChainIDBuffer, channelSchema)
-			.mockResolvedValue(partnerChannelAccount);
+		partnerChannelStore = interopMod.stores.get(ChannelDataStore);
+		await partnerChannelStore.set(
+			createStoreGetter(stateStore),
+			defaultSendingChainIDBuffer,
+			partnerChannelAccount,
+		);
 
-		when(getStoreMock)
-			.calledWith(mainchainCCUUpdateCommand['moduleID'], STORE_PREFIX_CHAIN_DATA)
-			.mockReturnValueOnce(partnerChainStore);
-
-		when(getStoreMock)
-			.calledWith(mainchainCCUUpdateCommand['moduleID'], STORE_PREFIX_CHANNEL_DATA)
-			.mockReturnValueOnce(partnerChannelStore);
-
-		when(getStoreMock)
-			.calledWith(mainchainCCUUpdateCommand['moduleID'], STORE_PREFIX_CHAIN_VALIDATORS)
-			.mockReturnValueOnce(partnerValidatorStore);
-
-		when(partnerValidatorStore.getWithSchema)
-			.calledWith(defaultSendingChainIDBuffer, chainValidatorsSchema)
-			.mockResolvedValue(partnerValidatorsData);
+		partnerValidatorStore = interopMod.stores.get(ChainValidatorsStore);
+		await partnerValidatorStore.set(
+			createStoreGetter(stateStore),
+			defaultSendingChainIDBuffer,
+			partnerValidatorsData,
+		);
 
 		jest
 			.spyOn(interopUtils, 'checkInboxUpdateValidity')
@@ -253,15 +248,20 @@ describe('CrossChainUpdateCommand', () => {
 	describe('verify', () => {
 		beforeEach(() => {
 			verifyContext = {
-				getAPIContext: getAPIContextMock,
-				getStore: getStoreMock,
+				getAPIContext: () => createTransientAPIContext({ stateStore }),
+				getStore: createStoreGetter(stateStore).getStore,
 				logger: testing.mocks.loggerMock,
 				networkIdentifier,
 				params,
 				transaction: defaultTransaction as any,
 			};
 			jest.spyOn(MainchainInteroperabilityStore.prototype, 'isLive').mockResolvedValue(true);
-			mainchainCCUUpdateCommand = new MainchainCCUpdateCommand(moduleID, new Map(), new Map());
+			mainchainCCUUpdateCommand = new MainchainCCUpdateCommand(
+				interopMod.stores,
+				interopMod.events,
+				new Map(),
+				new Map(),
+			);
 		});
 
 		it('should return error when ccu params validation fails', async () => {
@@ -275,9 +275,10 @@ describe('CrossChainUpdateCommand', () => {
 		});
 
 		it('should return error when chain has terminated status', async () => {
-			when(partnerChainStore.getWithSchema)
-				.calledWith(defaultSendingChainIDBuffer, chainAccountSchema)
-				.mockResolvedValue({ ...partnerChainAccount, status: CHAIN_TERMINATED });
+			await partnerChainStore.set(createStoreGetter(stateStore), defaultSendingChainIDBuffer, {
+				...partnerChainAccount,
+				status: CHAIN_TERMINATED,
+			});
 
 			const { status, error } = await mainchainCCUUpdateCommand.verify(verifyContext);
 
@@ -294,9 +295,10 @@ describe('CrossChainUpdateCommand', () => {
 		});
 
 		it('should return error checkLivenessRequirementFirstCCU fails', async () => {
-			when(partnerChainStore.getWithSchema)
-				.calledWith(defaultSendingChainIDBuffer, chainAccountSchema)
-				.mockResolvedValue({ ...partnerChainAccount, status: CHAIN_REGISTERED });
+			await partnerChainStore.set(createStoreGetter(stateStore), defaultSendingChainIDBuffer, {
+				...partnerChainAccount,
+				status: CHAIN_REGISTERED,
+			});
 
 			const { status, error } = await mainchainCCUUpdateCommand.verify({
 				...verifyContext,
@@ -393,7 +395,7 @@ describe('CrossChainUpdateCommand', () => {
 		let partnerValidatorsDataVerify: ChainValidators;
 		let activeValidatorsVerify: ActiveValidator[];
 
-		beforeEach(() => {
+		beforeEach(async () => {
 			activeValidatorsVerify = [...activeValidatorsUpdate];
 			blockHeader = {
 				height: 25,
@@ -406,8 +408,8 @@ describe('CrossChainUpdateCommand', () => {
 			};
 
 			executeContext = {
-				getAPIContext: getAPIContextMock,
-				getStore: getStoreMock,
+				getAPIContext: () => createTransientAPIContext({ stateStore }),
+				getStore: createStoreGetter(stateStore).getStore,
 				logger: testing.mocks.loggerMock,
 				networkIdentifier,
 				params,
@@ -421,14 +423,18 @@ describe('CrossChainUpdateCommand', () => {
 				maxHeightCertified: 0,
 			};
 
-			when(getStoreMock)
-				.calledWith(mainchainCCUUpdateCommand['moduleID'], STORE_PREFIX_CHAIN_VALIDATORS)
-				.mockReturnValueOnce(partnerValidatorStore);
+			await partnerValidatorStore.set(
+				createStoreGetter(stateStore),
+				defaultSendingChainIDBuffer,
+				partnerValidatorsDataVerify,
+			);
 
-			when(partnerValidatorStore.getWithSchema)
-				.calledWith(defaultSendingChainID, chainValidatorsSchema)
-				.mockResolvedValue(partnerValidatorsDataVerify);
-			mainchainCCUUpdateCommand = new MainchainCCUpdateCommand(moduleID, new Map(), new Map());
+			mainchainCCUUpdateCommand = new MainchainCCUpdateCommand(
+				interopMod.stores,
+				interopMod.events,
+				new Map(),
+				new Map(),
+			);
 		});
 
 		it('should throw error when checkValidCertificateLiveness() throws error', async () => {
@@ -479,9 +485,10 @@ describe('CrossChainUpdateCommand', () => {
 		});
 
 		it('should throw error when chain.status === CHAIN_REGISTERED and inboxUpdate is non-empty and the first CCM is not a registration CCM', async () => {
-			when(partnerChainStore.getWithSchema)
-				.calledWith(defaultSendingChainIDBuffer, chainAccountSchema)
-				.mockResolvedValue({ ...partnerChainAccount, status: CHAIN_REGISTERED });
+			await partnerChainStore.set(createStoreGetter(stateStore), defaultSendingChainIDBuffer, {
+				...partnerChainAccount,
+				status: CHAIN_REGISTERED,
+			});
 
 			jest
 				.spyOn(interopUtils, 'computeValidatorsHash')
@@ -496,9 +503,9 @@ describe('CrossChainUpdateCommand', () => {
 
 		it('should call terminateChainInternal() for a ccm when txParams.sendingChainID !== ccm.deserilized.sendingChainID', async () => {
 			const invalidCCM = codec.encode(ccmSchema, {
-				crossChainCommandID: utils.intToBuffer(1, 4),
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 				fee: BigInt(0),
-				moduleID: utils.intToBuffer(1, 4),
+				module: MODULE_NAME_INTEROPERABILITY,
 				nonce: BigInt(1),
 				params: Buffer.alloc(2),
 				receivingChainID: utils.intToBuffer(1, 4),
@@ -526,9 +533,9 @@ describe('CrossChainUpdateCommand', () => {
 
 		it('should call terminateChainInternal() for a ccm when it fails on validateFormat', async () => {
 			const invalidCCM = {
-				crossChainCommandID: utils.intToBuffer(1, 4),
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 				fee: BigInt(0),
-				moduleID: utils.intToBuffer(1, 4),
+				module: MODULE_NAME_INTEROPERABILITY,
 				nonce: BigInt(1),
 				params: Buffer.alloc(MAX_CCM_SIZE + 10),
 				receivingChainID: utils.intToBuffer(2, 4),
@@ -565,9 +572,9 @@ describe('CrossChainUpdateCommand', () => {
 
 		it('should call forward() when ccm.deserilized.receivingChainID !== MAINCHAIN_ID', async () => {
 			const nonMainchainCCM = {
-				crossChainCommandID: utils.intToBuffer(1, 4),
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 				fee: BigInt(0),
-				moduleID: utils.intToBuffer(1, 4),
+				module: MODULE_NAME_INTEROPERABILITY,
 				nonce: BigInt(1),
 				params: Buffer.alloc(10),
 				receivingChainID: utils.intToBuffer(2, 4),
@@ -604,9 +611,9 @@ describe('CrossChainUpdateCommand', () => {
 
 		it('should call apply() when ccm.deserilized.receivingChainID === MAINCHAIN_ID', async () => {
 			const mainchainCCM = {
-				crossChainCommandID: utils.intToBuffer(1, 4),
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 				fee: BigInt(0),
-				moduleID: utils.intToBuffer(1, 4),
+				module: MODULE_NAME_INTEROPERABILITY,
 				nonce: BigInt(1),
 				params: Buffer.alloc(10),
 				receivingChainID: MAINCHAIN_ID_BUFFER,

@@ -15,30 +15,23 @@
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { address, legacy, utils } from '@liskhq/lisk-cryptography';
-import { VerifyStatus } from '../../../../../src';
+import { TokenModule, VerifyStatus } from '../../../../../src';
 import { TokenAPI } from '../../../../../src/modules/token/api';
 import { TransferCommand } from '../../../../../src/modules/token/commands/transfer';
-import {
-	MIN_BALANCE,
-	STORE_PREFIX_SUPPLY,
-	STORE_PREFIX_USER,
-} from '../../../../../src/modules/token/constants';
-import {
-	SupplyStoreData,
-	supplyStoreSchema,
-	transferParamsSchema,
-	UserStoreData,
-	userStoreSchema,
-} from '../../../../../src/modules/token/schemas';
-import { getUserStoreKey } from '../../../../../src/modules/token/utils';
+import { MIN_BALANCE } from '../../../../../src/modules/token/constants';
+import { transferParamsSchema } from '../../../../../src/modules/token/schemas';
+import { SupplyStore } from '../../../../../src/modules/token/stores/supply';
+import { UserStore } from '../../../../../src/modules/token/stores/user';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
-import { createTransactionContext } from '../../../../../src/testing';
+import { createTransactionContext, createTransientAPIContext } from '../../../../../src/testing';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 
 describe('Transfer command', () => {
+	const tokenModule = new TokenModule();
+
 	const localTokenID = Buffer.from([0, 0, 0, 0, 0, 0, 0, 0]);
 	const secondTokenID = Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]);
-	const api = new TokenAPI('token');
+	const api = new TokenAPI(tokenModule.stores, tokenModule.events, tokenModule.name);
 	let command: TransferCommand;
 	let interopAPI: {
 		getOwnChainAccount: jest.Mock;
@@ -49,7 +42,7 @@ describe('Transfer command', () => {
 	};
 
 	beforeEach(() => {
-		command = new TransferCommand(api['moduleID']);
+		command = new TransferCommand(tokenModule.stores, tokenModule.events);
 		interopAPI = {
 			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
 			send: jest.fn(),
@@ -174,29 +167,30 @@ describe('Transfer command', () => {
 
 		beforeEach(async () => {
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-			const userStore = stateStore.getStore(api['moduleID'], STORE_PREFIX_USER);
-			await userStore.setWithSchema(
-				getUserStoreKey(address.getAddressFromPublicKey(sender.publicKey), localTokenID),
+			const userStore = tokenModule.stores.get(UserStore);
+			const context = createTransientAPIContext({ stateStore });
+			await userStore.set(
+				context,
+				userStore.getKey(address.getAddressFromPublicKey(sender.publicKey), localTokenID),
 				{ availableBalance: senderBalance, lockedBalances: [] },
-				userStoreSchema,
 			);
-			await userStore.setWithSchema(
-				getUserStoreKey(address.getAddressFromPublicKey(sender.publicKey), secondTokenID),
+			await userStore.set(
+				context,
+				userStore.getKey(address.getAddressFromPublicKey(sender.publicKey), secondTokenID),
 				{ availableBalance: senderBalance, lockedBalances: [] },
-				userStoreSchema,
 			);
-			await userStore.setWithSchema(
-				getUserStoreKey(address.getAddressFromPublicKey(sender.publicKey), thirdTokenID),
+			await userStore.set(
+				context,
+				userStore.getKey(address.getAddressFromPublicKey(sender.publicKey), thirdTokenID),
 				{ availableBalance: senderBalance, lockedBalances: [] },
-				userStoreSchema,
 			);
-			await userStore.setWithSchema(
-				getUserStoreKey(address.getAddressFromPublicKey(recipient.publicKey), localTokenID),
+			await userStore.set(
+				context,
+				userStore.getKey(address.getAddressFromPublicKey(recipient.publicKey), localTokenID),
 				{ availableBalance: recipientBalance, lockedBalances: [] },
-				userStoreSchema,
 			);
-			const supplyStore = stateStore.getStore(api['moduleID'], STORE_PREFIX_SUPPLY);
-			await supplyStore.setWithSchema(localTokenID.slice(4), { totalSupply }, supplyStoreSchema);
+			const supplyStore = tokenModule.stores.get(SupplyStore);
+			await supplyStore.set(context, localTokenID.slice(4), { totalSupply });
 		});
 
 		it('should reject when sender does not have enough balance for amount', async () => {
@@ -245,10 +239,10 @@ describe('Transfer command', () => {
 			).resolves.toBeUndefined();
 
 			// Recipient should receive full amount
-			const userStore = stateStore.getStore(api['moduleID'], STORE_PREFIX_USER);
-			const result = await userStore.getWithSchema<UserStoreData>(
-				getUserStoreKey(address.getAddressFromPublicKey(recipient.publicKey), thirdTokenID),
-				userStoreSchema,
+			const userStore = tokenModule.stores.get(UserStore);
+			const result = await userStore.get(
+				context.createCommandExecuteContext(transferParamsSchema),
+				userStore.getKey(address.getAddressFromPublicKey(recipient.publicKey), thirdTokenID),
 			);
 			expect(result.availableBalance).toEqual(recipientBalance + BigInt(1));
 		});
@@ -328,18 +322,18 @@ describe('Transfer command', () => {
 			).resolves.toBeUndefined();
 
 			// Recipient should receive amount - min balance if not exist
-			const userStore = stateStore.getStore(api['moduleID'], STORE_PREFIX_USER);
-			const result = await userStore.getWithSchema<UserStoreData>(
-				getUserStoreKey(recipientAddress, localTokenID),
-				userStoreSchema,
+			const userStore = tokenModule.stores.get(UserStore);
+			const result = await userStore.get(
+				context.createCommandExecuteContext(transferParamsSchema),
+				userStore.getKey(recipientAddress, localTokenID),
 			);
 			expect(result.availableBalance).toEqual(amount - MIN_BALANCE);
 
 			// Min balance is burnt
-			const supplyStore = stateStore.getStore(api['moduleID'], STORE_PREFIX_SUPPLY);
-			const supply = await supplyStore.getWithSchema<SupplyStoreData>(
+			const supplyStore = tokenModule.stores.get(SupplyStore);
+			const supply = await supplyStore.get(
+				context.createCommandExecuteContext(transferParamsSchema),
 				localTokenID.slice(4),
-				supplyStoreSchema,
 			);
 			expect(supply.totalSupply).toEqual(totalSupply - MIN_BALANCE);
 		});
@@ -369,10 +363,10 @@ describe('Transfer command', () => {
 			).resolves.toBeUndefined();
 
 			// Recipient should receive amount - min balance if not exist
-			const userStore = stateStore.getStore(api['moduleID'], STORE_PREFIX_USER);
-			const result = await userStore.getWithSchema<UserStoreData>(
-				getUserStoreKey(recipientAddress, secondTokenID),
-				userStoreSchema,
+			const userStore = tokenModule.stores.get(UserStore);
+			const result = await userStore.get(
+				context.createCommandExecuteContext(transferParamsSchema),
+				userStore.getKey(recipientAddress, secondTokenID),
 			);
 			expect(result.availableBalance).toEqual(amount - MIN_BALANCE);
 
@@ -409,18 +403,18 @@ describe('Transfer command', () => {
 			).toResolve();
 
 			// Recipient should get full amount
-			const userStore = stateStore.getStore(api['moduleID'], STORE_PREFIX_USER);
-			const result = await userStore.getWithSchema<UserStoreData>(
-				getUserStoreKey(address.getAddressFromPublicKey(recipient.publicKey), localTokenID),
-				userStoreSchema,
+			const userStore = tokenModule.stores.get(UserStore);
+			const result = await userStore.get(
+				context.createCommandExecuteContext(transferParamsSchema),
+				userStore.getKey(address.getAddressFromPublicKey(recipient.publicKey), localTokenID),
 			);
 			expect(result.availableBalance).toEqual(amount + recipientBalance);
 
 			// total supply should not change
-			const supplyStore = stateStore.getStore(api['moduleID'], STORE_PREFIX_SUPPLY);
-			const supply = await supplyStore.getWithSchema<SupplyStoreData>(
+			const supplyStore = tokenModule.stores.get(SupplyStore);
+			const supply = await supplyStore.get(
+				context.createCommandExecuteContext(transferParamsSchema),
 				localTokenID.slice(4),
-				supplyStoreSchema,
 			);
 			expect(supply.totalSupply).toEqual(totalSupply);
 		});

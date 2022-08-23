@@ -20,14 +20,16 @@ import { when } from 'jest-when';
 import { AuthModule } from '../../../../src/modules/auth';
 import * as fixtures from './fixtures.json';
 import * as testing from '../../../../src/testing';
-import { authAccountSchema, genesisAuthStoreSchema } from '../../../../src/modules/auth/schemas';
-import { AuthAccount } from '../../../../src/modules/auth/types';
+import { genesisAuthStoreSchema } from '../../../../src/modules/auth/schemas';
 import { VerifyStatus } from '../../../../src/state_machine';
 import { InvalidNonceError } from '../../../../src/modules/auth/errors';
-import { STORE_PREFIX_AUTH } from '../../../../src/modules/auth/constants';
 import { createGenesisBlockContext } from '../../../../src/testing';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
+import {
+	authAccountSchema,
+	AuthAccountStore,
+} from '../../../../src/modules/auth/stores/auth_account';
 
 describe('AuthModule', () => {
 	let decodedMultiSignature: any;
@@ -283,9 +285,9 @@ describe('AuthModule', () => {
 			jest.spyOn(context, 'getStore');
 
 			await expect(authModule.initGenesisState(context)).toResolve();
-			const authStore = stateStore.getStore(authModule.id, STORE_PREFIX_AUTH);
+			const authStore = authModule.stores.get(AuthAccountStore);
 			for (const data of validAsset.authDataSubstore) {
-				await expect(authStore.has(data.storeKey)).resolves.toBeTrue();
+				await expect(authStore.has(context, data.storeKey)).resolves.toBeTrue();
 			}
 		});
 
@@ -1136,16 +1138,22 @@ describe('AuthModule', () => {
 					networkIdentifier,
 				})
 				.createTransactionExecuteContext();
+			const authStore1 = authModule.stores.get(AuthAccountStore);
+			const address = cryptoAddress.getAddressFromPublicKey(validTestTransaction.senderPublicKey);
+			const authAccount1 = {
+				nonce: validTestTransaction.nonce,
+				numberOfSignatures: 5,
+				mandatoryKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
+				optionalKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
+			};
+			await authStore1.set(context, address, authAccount1);
 
 			await authModule.beforeCommandExecute(context);
 
-			const authStore = context.getStore(authModule.id, STORE_PREFIX_AUTH);
-			const authAccount = await authStore.getWithSchema<AuthAccount>(
-				context.transaction.senderAddress,
-				authAccountSchema,
-			);
+			const authStore = authModule.stores.get(AuthAccountStore);
+			const authAccount = await authStore.get(context, context.transaction.senderAddress);
 
-			expect(authAccount.nonce).toBe(BigInt(1));
+			expect(authAccount.nonce).toBe(BigInt(2));
 		});
 	});
 });

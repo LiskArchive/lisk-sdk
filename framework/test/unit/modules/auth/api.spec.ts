@@ -13,30 +13,30 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
+import { AuthModule } from '../../../../src/modules/auth';
 import { AuthAPI } from '../../../../src/modules/auth/api';
-import { STORE_PREFIX_AUTH } from '../../../../src/modules/auth/constants';
-import { authAccountSchema } from '../../../../src/modules/auth/schemas';
+import { AuthAccountStore } from '../../../../src/modules/auth/stores/auth_account';
 import { APIContext } from '../../../../src/state_machine';
-import { SubStore } from '../../../../src/state_machine/types';
 import { createTransientAPIContext } from '../../../../src/testing';
 
 describe('AuthAPI', () => {
 	let authAPI: AuthAPI;
 	let context: APIContext;
-	let authStore: SubStore;
+	let authStore: AuthAccountStore;
 	const address = Buffer.from('fa1c00809ff1b10cd269a711eef40a465ba4a9cb', 'hex');
 	const expectedAuthData = {
-		nonce: 1,
+		nonce: BigInt(1),
 		numberOfSignatures: 1,
 		mandatoryKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
 		optionalKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
 	};
 
 	beforeEach(async () => {
-		authAPI = new AuthAPI('auth');
+		const module = new AuthModule();
+		authAPI = new AuthAPI(module.stores, module.events);
 		context = createTransientAPIContext({});
-		authStore = context.getStore(authAPI['moduleID'], STORE_PREFIX_AUTH);
-		await authStore.setWithSchema(address, expectedAuthData, authAccountSchema);
+		authStore = module.stores.get(AuthAccountStore);
+		await authStore.set(context, address, expectedAuthData);
 	});
 
 	describe('getAuthAccount', () => {

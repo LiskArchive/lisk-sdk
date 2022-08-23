@@ -13,7 +13,6 @@
  */
 /* eslint-disable max-classes-per-file */
 
-import { utils } from '@liskhq/lisk-cryptography';
 import { BaseAPI, BaseCommand, BaseEndpoint, BaseModule } from '../../../src';
 import { TransactionVerifyResult } from '../../../src/abi';
 import { ModuleMetadata } from '../../../src/modules/base_module';
@@ -25,8 +24,6 @@ import {
 } from '../../../src/state_machine';
 
 export class CustomCommand0 extends BaseCommand {
-	public id = utils.intToBuffer(0, 4);
-	public name = 'customCommand0';
 	public schema = {
 		$id: '/lisk/customCommand0',
 		type: 'object',
@@ -38,17 +35,24 @@ export class CustomCommand0 extends BaseCommand {
 		},
 	};
 
+	public get name() {
+		return 'customCommand0';
+	}
+
 	public verify = jest.fn().mockResolvedValue({ status: 1 });
 	public execute = jest.fn();
 }
 
 export class CustomModule0 extends BaseModule {
-	public name = 'customModule0';
-	public commands = [new CustomCommand0(utils.intToBuffer(3, 4))];
+	public commands = [new CustomCommand0(this.stores, this.events)];
 	public api = ({
 		testing: jest.fn(),
 	} as unknown) as BaseAPI;
 	public endpoint: BaseEndpoint = {} as BaseEndpoint;
+
+	public get name() {
+		return 'customModule0';
+	}
 
 	public verifyAssets = jest.fn();
 	public initGenesisState = jest.fn();
@@ -63,7 +67,6 @@ export class CustomModule0 extends BaseModule {
 }
 
 export class CustomModule1 extends BaseModule {
-	public name = 'customModule1';
 	public commands = [];
 	public endpoint: BaseEndpoint = {} as BaseEndpoint;
 	public api: BaseAPI = {} as BaseAPI;
@@ -71,14 +74,16 @@ export class CustomModule1 extends BaseModule {
 	public verifyAssets = jest.fn();
 	public beforeTransactionsExecute = jest.fn();
 	public afterCommandExecute = jest.fn();
+
+	public get name() {
+		return 'customModule1';
+	}
 	public metadata(): ModuleMetadata {
 		throw new Error('Method not implemented.');
 	}
 }
 
 export class CustomCommand2 extends BaseCommand {
-	public id = utils.intToBuffer(0, 4);
-	public name = 'customCommand2';
 	public schema = {
 		$id: '/lisk/customCommand2',
 		type: 'object',
@@ -90,6 +95,10 @@ export class CustomCommand2 extends BaseCommand {
 		},
 	};
 
+	public get name() {
+		return 'customCommand2';
+	}
+
 	public verify = jest.fn().mockResolvedValue({ status: TransactionVerifyResult.INVALID });
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -99,10 +108,13 @@ export class CustomCommand2 extends BaseCommand {
 }
 
 export class CustomModule2 extends BaseModule {
-	public name = 'customModule2';
 	public endpoint: BaseEndpoint = {} as BaseEndpoint;
 	public api: BaseAPI = {} as BaseAPI;
-	public commands = [new CustomCommand2(utils.intToBuffer(5, 4))];
+	public commands = [new CustomCommand2(this.stores, this.events)];
+
+	public get name() {
+		return 'customModule2';
+	}
 
 	public verifyTransaction = jest
 		.fn()

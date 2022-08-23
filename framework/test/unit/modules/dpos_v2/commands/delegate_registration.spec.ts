@@ -17,16 +17,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../../../src/testing';
 import { DelegateRegistrationCommand } from '../../../../../src/modules/dpos_v2/commands/delegate_registration';
-import {
-	MODULE_ID_DPOS_BUFFER,
-	STORE_PREFIX_DELEGATE,
-	STORE_PREFIX_NAME,
-} from '../../../../../src/modules/dpos_v2/constants';
-import {
-	delegateStoreSchema,
-	delegateRegistrationCommandParamsSchema,
-	nameStoreSchema,
-} from '../../../../../src/modules/dpos_v2/schemas';
+import { delegateRegistrationCommandParamsSchema } from '../../../../../src/modules/dpos_v2/schemas';
 import {
 	DelegateRegistrationParams,
 	ValidatorsAPI,
@@ -34,12 +25,17 @@ import {
 import { VerifyStatus } from '../../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
+import { DelegateStore } from '../../../../../src/modules/dpos_v2/stores/delegate';
+import { NameStore } from '../../../../../src/modules/dpos_v2/stores/name';
+import { DPoSModule } from '../../../../../src';
+import { createStoreGetter } from '../../../../../src/testing/utils';
 
 describe('Delegate registration command', () => {
+	const dpos = new DPoSModule();
 	let delegateRegistrationCommand: DelegateRegistrationCommand;
 	let stateStore: PrefixedStateReadWriter;
-	let delegateSubstore: PrefixedStateReadWriter;
-	let nameSubstore: PrefixedStateReadWriter;
+	let delegateSubstore: DelegateStore;
+	let nameSubstore: NameStore;
 	let mockValidatorsAPI: ValidatorsAPI;
 
 	const transactionParams = {
@@ -77,7 +73,7 @@ describe('Delegate registration command', () => {
 	);
 
 	beforeEach(() => {
-		delegateRegistrationCommand = new DelegateRegistrationCommand(MODULE_ID_DPOS_BUFFER);
+		delegateRegistrationCommand = new DelegateRegistrationCommand(dpos.stores, dpos.events);
 		mockValidatorsAPI = {
 			setValidatorGeneratorKey: jest.fn(),
 			registerValidatorKeys: jest.fn().mockResolvedValue(true),
@@ -86,8 +82,8 @@ describe('Delegate registration command', () => {
 		};
 		delegateRegistrationCommand.addDependencies(mockValidatorsAPI);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		delegateSubstore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
-		nameSubstore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_NAME);
+		delegateSubstore = dpos.stores.get(DelegateStore);
+		nameSubstore = dpos.stores.get(NameStore);
 	});
 
 	describe('verify', () => {
@@ -218,10 +214,10 @@ describe('Delegate registration command', () => {
 		});
 
 		it('should return error if store key name already exists in name store', async () => {
-			await nameSubstore.setWithSchema(
+			await nameSubstore.set(
+				createStoreGetter(stateStore),
 				Buffer.from(transactionParams.name, 'utf8'),
 				{ delegateAddress: transaction.senderAddress },
-				nameStoreSchema,
 			);
 			const context = testing
 				.createTransactionContext({
@@ -241,10 +237,10 @@ describe('Delegate registration command', () => {
 		});
 
 		it('should return error if store key address already exists in delegate store', async () => {
-			await delegateSubstore.setWithSchema(
+			await delegateSubstore.set(
+				createStoreGetter(stateStore),
 				transaction.senderAddress,
 				defaultDelegateInfo,
-				delegateStoreSchema,
 			);
 			const context = testing
 				.createTransactionContext({
@@ -314,9 +310,9 @@ describe('Delegate registration command', () => {
 					delegateRegistrationCommandParamsSchema,
 				);
 			await delegateRegistrationCommand.execute(context);
-			const storedData = codec.decode(
-				delegateStoreSchema,
-				await delegateSubstore.get(transaction.senderAddress),
+			const storedData = await delegateSubstore.get(
+				createStoreGetter(stateStore),
+				transaction.senderAddress,
 			);
 
 			expect(storedData).toEqual(defaultDelegateInfo);
@@ -333,9 +329,9 @@ describe('Delegate registration command', () => {
 					delegateRegistrationCommandParamsSchema,
 				);
 			await delegateRegistrationCommand.execute(context);
-			const storedData = codec.decode<{ delegateAddress: string }>(
-				nameStoreSchema,
-				await nameSubstore.get(Buffer.from(transactionParams.name, 'utf8')),
+			const storedData = await nameSubstore.get(
+				context,
+				Buffer.from(transactionParams.name, 'utf8'),
 			);
 
 			expect(storedData.delegateAddress).toEqual(transaction.senderAddress);

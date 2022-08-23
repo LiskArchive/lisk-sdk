@@ -55,8 +55,6 @@ import { MainchainInteroperabilityModule } from './modules/interoperability/main
 import { SidechainInteroperabilityAPI } from './modules/interoperability/sidechain/api';
 import { MainchainInteroperabilityAPI } from './modules/interoperability/mainchain/api';
 
-const MINIMUM_EXTERNAL_MODULE_ID = 1000;
-
 const isPidRunning = async (pid: number): Promise<boolean> =>
 	psList().then(list => list.some(x => x.pid === pid));
 
@@ -222,7 +220,7 @@ export class Application {
 	}
 
 	public registerModule(Module: BaseModule): void {
-		this._registerModule(Module, true);
+		this._registerModule(Module);
 	}
 
 	public getRegisteredModules(): BaseModule[] {
@@ -234,15 +232,10 @@ export class Application {
 			const meta = mod.metadata();
 			return {
 				...meta,
-				id: mod.id.toString('hex'),
 				name: mod.name,
-				commands: meta.commands.map(command => ({
-					...command,
-					id: command.id.toString('hex'),
-				})),
 			};
 		});
-		modules.sort((a, b) => a.id.localeCompare(b.id, 'en'));
+		modules.sort((a, b) => a.name.localeCompare(b.name, 'en'));
 
 		return modules;
 	}
@@ -377,13 +370,8 @@ export class Application {
 	// Private
 	// --------------------------------------
 
-	private _registerModule(mod: BaseModule, validateModuleID = false): void {
+	private _registerModule(mod: BaseModule): void {
 		assert(mod, 'Module implementation is required');
-		if (validateModuleID && mod.id.readInt32BE(0) < MINIMUM_EXTERNAL_MODULE_ID) {
-			throw new Error(
-				`Custom module must have id greater than or equal to ${MINIMUM_EXTERNAL_MODULE_ID}`,
-			);
-		}
 		this._registeredModules.push(mod);
 		this._stateMachine.registerModule(mod);
 		this._controller.registerEndpoint(mod.name, getEndpointHandlers(mod.endpoint));

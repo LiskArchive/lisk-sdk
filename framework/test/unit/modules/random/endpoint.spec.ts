@@ -14,7 +14,7 @@
 
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
-import { ModuleEndpointContext } from '../../../../src';
+import { ModuleEndpointContext, RandomModule } from '../../../../src';
 import { RandomEndpoint } from '../../../../src/modules/random/endpoint';
 import { seedRevealSchema } from '../../../../src/modules/random/schemas';
 import { createTransientModuleEndpointContext } from '../../../../src/testing';
@@ -54,7 +54,8 @@ describe('RandomModuleEndpoint', () => {
 		];
 
 		beforeEach(() => {
-			randomEndpoint = new RandomEndpoint('random');
+			const randomModule = new RandomModule();
+			randomEndpoint = new RandomEndpoint(randomModule.stores, randomModule.offchainStores);
 			context = createTransientModuleEndpointContext({
 				stateStore,
 			});

@@ -14,28 +14,25 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { DPoSAPI } from '../../../../src/modules/dpos_v2/api';
-import {
-	STORE_PREFIX_DELEGATE,
-	STORE_PREFIX_NAME,
-	STORE_PREFIX_VOTER,
-} from '../../../../src/modules/dpos_v2/constants';
-import {
-	delegateStoreSchema,
-	nameStoreSchema,
-	voterStoreSchema,
-} from '../../../../src/modules/dpos_v2/schemas';
 import { APIContext } from '../../../../src/state_machine/api_context';
 import { EventQueue } from '../../../../src/state_machine';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
+import { DPoSModule } from '../../../../src/modules/dpos_v2/module';
+import { VoterStore } from '../../../../src/modules/dpos_v2/stores/voter';
+import { DelegateStore } from '../../../../src/modules/dpos_v2/stores/delegate';
+import { NameStore } from '../../../../src/modules/dpos_v2/stores/name';
+import { createStoreGetter } from '../../../../src/testing/utils';
 
 describe('DposModuleApi', () => {
+	const dpos = new DPoSModule();
+
 	let dposAPI: DPoSAPI;
 	let apiContext: APIContext;
 	let stateStore: PrefixedStateReadWriter;
-	let voterSubStore: PrefixedStateReadWriter;
-	let delegateSubStore: PrefixedStateReadWriter;
-	let nameSubStore: PrefixedStateReadWriter;
+	let voterSubStore: VoterStore;
+	let delegateSubStore: DelegateStore;
+	let nameSubStore: NameStore;
 	const address = utils.getRandomBytes(20);
 	const voterData = {
 		sentVotes: [
@@ -64,17 +61,19 @@ describe('DposModuleApi', () => {
 	};
 
 	beforeEach(() => {
-		dposAPI = new DPoSAPI('dpos');
+		dposAPI = new DPoSAPI(dpos.stores, dpos.events);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		voterSubStore = stateStore.getStore(dposAPI['moduleID'], STORE_PREFIX_VOTER);
-		delegateSubStore = stateStore.getStore(dposAPI['moduleID'], STORE_PREFIX_DELEGATE);
-		nameSubStore = stateStore.getStore(dposAPI['moduleID'], STORE_PREFIX_NAME);
+		voterSubStore = dpos.stores.get(VoterStore);
+		delegateSubStore = dpos.stores.get(DelegateStore);
+		nameSubStore = dpos.stores.get(NameStore);
 	});
 
 	describe('isNameAvailable', () => {
 		describe('when name already exists', () => {
 			it('should return false', async () => {
-				await nameSubStore.setWithSchema(Buffer.from(delegateData.name), {}, nameStoreSchema);
+				await nameSubStore.set(createStoreGetter(stateStore), Buffer.from(delegateData.name), {
+					delegateAddress: Buffer.alloc(0),
+				});
 				apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 				await expect(dposAPI.isNameAvailable(apiContext, delegateData.name)).resolves.toBeFalse();
 			});
@@ -121,7 +120,7 @@ describe('DposModuleApi', () => {
 	describe('getVoter', () => {
 		describe('when input address is valid', () => {
 			it('should return correct voter data corresponding to the input address', async () => {
-				await voterSubStore.setWithSchema(address, voterData, voterStoreSchema);
+				await voterSubStore.set(createStoreGetter(stateStore), address, voterData);
 				apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 				const voterDataReturned = await dposAPI.getVoter(apiContext, address);
 
@@ -133,7 +132,7 @@ describe('DposModuleApi', () => {
 	describe('getDelegate', () => {
 		describe('when input address is valid', () => {
 			it('should return correct delegate data corresponding to the input address', async () => {
-				await delegateSubStore.setWithSchema(address, delegateData, delegateStoreSchema);
+				await delegateSubStore.set(createStoreGetter(stateStore), address, delegateData);
 				apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
 				const delegateDataReturned = await dposAPI.getDelegate(apiContext, address);
 

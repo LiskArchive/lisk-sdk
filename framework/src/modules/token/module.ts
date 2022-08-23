@@ -21,22 +21,13 @@ import {
 	defaultConfig,
 	EMPTY_BYTES,
 	LOCAL_ID_LENGTH,
-	STORE_PREFIX_AVAILABLE_LOCAL_ID,
-	STORE_PREFIX_ESCROW,
-	STORE_PREFIX_SUPPLY,
-	STORE_PREFIX_TERMINATED_ESCROW,
-	STORE_PREFIX_USER,
 	TOKEN_ID_LENGTH,
 } from './constants';
 import { TransferCommand } from './commands/transfer';
 import { ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { GenesisBlockExecuteContext } from '../../state_machine';
 import {
-	AvailableLocalIDStoreData,
-	availableLocalIDStoreSchema,
 	configSchema,
-	EscrowStoreData,
-	escrowStoreSchema,
 	genesisTokenStoreSchema,
 	getBalanceRequestSchema,
 	getBalanceResponseSchema,
@@ -44,33 +35,43 @@ import {
 	getEscrowedAmountsResponseSchema,
 	getSupportedTokensResponseSchema,
 	getTotalSupplyResponseSchema,
-	SupplyStoreData,
-	supplyStoreSchema,
-	terminatedEscrowStoreSchema,
-	UserStoreData,
-	userStoreSchema,
 } from './schemas';
 import { TokenAPI } from './api';
 import { TokenEndpoint } from './endpoint';
 import { GenesisTokenStore, MinBalance, ModuleConfig } from './types';
-import { getUserStoreKey, splitTokenID } from './utils';
+import { splitTokenID } from './utils';
 import { CCTransferCommand } from './commands/cc_transfer';
 import { BaseInteroperableModule } from '../interoperability/base_interoperable_module';
 import { TokenInteroperableAPI } from './cc_api';
 import { MainchainInteroperabilityAPI, SidechainInteroperabilityAPI } from '../interoperability';
+import { UserStore } from './stores/user';
+import { EscrowStore } from './stores/escrow';
+import { SupplyStore } from './stores/supply';
+import { TerminatedEscrowStore } from './stores/terminated_escrow';
+import { AvailableLocalIDStore } from './stores/available_local_id';
+import { TransferEvent } from './events/transfer';
 
 export class TokenModule extends BaseInteroperableModule {
-	public name = 'token';
-	public api = new TokenAPI(this.name);
-	public endpoint = new TokenEndpoint(this.name);
-	public crossChainAPI = new TokenInteroperableAPI(this.name, this.api);
+	public api = new TokenAPI(this.stores, this.events, this.name);
+	public endpoint = new TokenEndpoint(this.stores, this.offchainStores);
+	public crossChainAPI = new TokenInteroperableAPI(this.stores, this.events, this.api);
 
 	private _minBalances!: MinBalance[];
-	private readonly _transferCommand = new TransferCommand(this.id);
-	private readonly _ccTransferCommand = new CCTransferCommand(this.id);
+	private readonly _transferCommand = new TransferCommand(this.stores, this.events);
+	private readonly _ccTransferCommand = new CCTransferCommand(this.stores, this.events);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [this._transferCommand, this._ccTransferCommand];
+
+	public constructor() {
+		super();
+		this.stores.register(UserStore, new UserStore(this.name));
+		this.stores.register(EscrowStore, new EscrowStore(this.name));
+		this.stores.register(SupplyStore, new SupplyStore(this.name));
+		this.stores.register(TerminatedEscrowStore, new TerminatedEscrowStore(this.name));
+		this.stores.register(AvailableLocalIDStore, new AvailableLocalIDStore(this.name));
+		this.events.register(TransferEvent, new TransferEvent(this.name));
+	}
 
 	public addDependencies(
 		interoperabilityAPI: MainchainInteroperabilityAPI | SidechainInteroperabilityAPI,
@@ -105,11 +106,13 @@ export class TokenModule extends BaseInteroperableModule {
 				},
 			],
 			commands: this.commands.map(command => ({
-				id: command.id,
 				name: command.name,
 				params: command.schema,
 			})),
-			events: [],
+			events: this.events.values().map(v => ({
+				typeID: v.name,
+				data: v.schema,
+			})),
 			assets: [
 				{
 					version: 0,
@@ -145,7 +148,7 @@ export class TokenModule extends BaseInteroperableModule {
 		const genesisStore = codec.decode<GenesisTokenStore>(genesisTokenStoreSchema, assetBytes);
 		validator.validate(genesisTokenStoreSchema, genesisStore);
 
-		const userStore = context.getStore(this.id, STORE_PREFIX_USER);
+		const userStore = this.stores.get(UserStore);
 		const copiedUserStore = [...genesisStore.userSubstore];
 		copiedUserStore.sort((a, b) => {
 			if (!a.address.equals(b.address)) {
@@ -157,7 +160,7 @@ export class TokenModule extends BaseInteroperableModule {
 		// eslint-disable-next-line @typescript-eslint/prefer-for-of
 		for (let i = 0; i < genesisStore.userSubstore.length; i += 1) {
 			const userData = genesisStore.userSubstore[i];
-			const key = getUserStoreKey(userData.address, userData.tokenID);
+			const key = userStore.getKey(userData.address, userData.tokenID);
 			// Validate uniqueness of address/tokenID pair
 			if (userKeySet.has(key)) {
 				throw new Error(
@@ -203,14 +206,14 @@ export class TokenModule extends BaseInteroperableModule {
 				throw new Error(`Address ${userData.address.toString('hex')} has empty data.`);
 			}
 
-			await userStore.setWithSchema(key, userData, userStoreSchema);
+			await userStore.set(context, key, userData);
 		}
 
 		const copiedSupplyStore = [...genesisStore.supplySubstore];
 		copiedSupplyStore.sort((a, b) => a.localID.compare(b.localID));
 
 		const supplyStoreKeySet = new dataStructures.BufferSet();
-		const supplyStore = context.getStore(this.id, STORE_PREFIX_SUPPLY);
+		const supplyStore = this.stores.get(SupplyStore);
 		// eslint-disable-next-line @typescript-eslint/prefer-for-of
 		for (let i = 0; i < genesisStore.supplySubstore.length; i += 1) {
 			const supplyData = genesisStore.supplySubstore[i];
@@ -225,11 +228,7 @@ export class TokenModule extends BaseInteroperableModule {
 				throw new Error('SupplySubstore must be sorted by localID.');
 			}
 
-			await supplyStore.setWithSchema(
-				supplyData.localID,
-				{ totalSupply: supplyData.totalSupply },
-				supplyStoreSchema,
-			);
+			await supplyStore.set(context, supplyData.localID, { totalSupply: supplyData.totalSupply });
 		}
 
 		const copiedEscrowStore = [...genesisStore.escrowSubstore];
@@ -240,7 +239,7 @@ export class TokenModule extends BaseInteroperableModule {
 			return a.localID.compare(b.localID);
 		});
 
-		const escrowStore = context.getStore(this.id, STORE_PREFIX_ESCROW);
+		const escrowStore = this.stores.get(EscrowStore);
 		const escrowKeySet = new dataStructures.BufferSet();
 		// eslint-disable-next-line @typescript-eslint/prefer-for-of
 		for (let i = 0; i < genesisStore.escrowSubstore.length; i += 1) {
@@ -262,17 +261,15 @@ export class TokenModule extends BaseInteroperableModule {
 			) {
 				throw new Error('EscrowSubstore must be sorted by escrowChainID and localID.');
 			}
-			await escrowStore.setWithSchema(key, { amount: escrowData.amount }, escrowStoreSchema);
+			await escrowStore.set(context, key, { amount: escrowData.amount });
 		}
 
-		const nextAvailableLocalIDStore = context.getStore(this.id, STORE_PREFIX_AVAILABLE_LOCAL_ID);
-		await nextAvailableLocalIDStore.setWithSchema(
-			EMPTY_BYTES,
-			{ nextAvailableLocalID: genesisStore.availableLocalIDSubstore.nextAvailableLocalID },
-			availableLocalIDStoreSchema,
-		);
+		const nextAvailableLocalIDStore = this.stores.get(AvailableLocalIDStore);
+		await nextAvailableLocalIDStore.set(context, EMPTY_BYTES, {
+			nextAvailableLocalID: genesisStore.availableLocalIDSubstore.nextAvailableLocalID,
+		});
 
-		const terminatedEscrowStore = context.getStore(this.id, STORE_PREFIX_TERMINATED_ESCROW);
+		const terminatedEscrowStore = this.stores.get(TerminatedEscrowStore);
 		const terminatedEscrowKeySet = new dataStructures.BufferSet(
 			genesisStore.terminatedEscrowSubstore,
 		);
@@ -285,23 +282,16 @@ export class TokenModule extends BaseInteroperableModule {
 			throw new Error(`Terminated escrow store must be sorted by chainID.`);
 		}
 		for (const terminatedChainID of genesisStore.terminatedEscrowSubstore) {
-			await terminatedEscrowStore.setWithSchema(
-				terminatedChainID,
-				{ escrowTerminated: true },
-				terminatedEscrowStoreSchema,
-			);
+			await terminatedEscrowStore.set(context, terminatedChainID, { escrowTerminated: true });
 		}
 
 		// verify result
 		// validateSupplyStoreEntries
 		const computedSupply = new dataStructures.BufferMap<bigint>();
-		const allUsers = await userStore.iterateWithSchema<UserStoreData>(
-			{
-				gte: Buffer.alloc(ADDRESS_LENGTH + TOKEN_ID_LENGTH, 0),
-				lte: Buffer.alloc(ADDRESS_LENGTH + TOKEN_ID_LENGTH, 255),
-			},
-			userStoreSchema,
-		);
+		const allUsers = await userStore.iterate(context, {
+			gte: Buffer.alloc(ADDRESS_LENGTH + TOKEN_ID_LENGTH, 0),
+			lte: Buffer.alloc(ADDRESS_LENGTH + TOKEN_ID_LENGTH, 255),
+		});
 		for (const { key, value: user } of allUsers) {
 			const tokenID = key.slice(ADDRESS_LENGTH);
 			const [chainID, localID] = splitTokenID(tokenID);
@@ -315,13 +305,10 @@ export class TokenModule extends BaseInteroperableModule {
 				);
 			}
 		}
-		const allEscrows = await escrowStore.iterateWithSchema<EscrowStoreData>(
-			{
-				gte: Buffer.alloc(CHAIN_ID_LENGTH + LOCAL_ID_LENGTH, 0),
-				lte: Buffer.alloc(CHAIN_ID_LENGTH + LOCAL_ID_LENGTH, 255),
-			},
-			escrowStoreSchema,
-		);
+		const allEscrows = await escrowStore.iterate(context, {
+			gte: Buffer.alloc(CHAIN_ID_LENGTH + LOCAL_ID_LENGTH, 0),
+			lte: Buffer.alloc(CHAIN_ID_LENGTH + LOCAL_ID_LENGTH, 255),
+		});
 		for (const { key, value } of allEscrows) {
 			const [, localID] = splitTokenID(key);
 			const existingSupply = computedSupply.get(localID) ?? BigInt(0);
@@ -335,13 +322,10 @@ export class TokenModule extends BaseInteroperableModule {
 			}
 		}
 		const storedSupply = new dataStructures.BufferMap<bigint>();
-		const allSupplies = await supplyStore.iterateWithSchema<SupplyStoreData>(
-			{
-				gte: Buffer.alloc(LOCAL_ID_LENGTH, 0),
-				lte: Buffer.alloc(LOCAL_ID_LENGTH, 255),
-			},
-			supplyStoreSchema,
-		);
+		const allSupplies = await supplyStore.iterate(context, {
+			gte: Buffer.alloc(LOCAL_ID_LENGTH, 0),
+			lte: Buffer.alloc(LOCAL_ID_LENGTH, 255),
+		});
 		const maxLocalID = allSupplies[allSupplies.length - 1].key;
 		for (const { key, value } of allSupplies) {
 			storedSupply.set(key, value.totalSupply);
@@ -360,12 +344,7 @@ export class TokenModule extends BaseInteroperableModule {
 		}
 
 		// validate next available ID
-		const {
-			nextAvailableLocalID,
-		} = await nextAvailableLocalIDStore.getWithSchema<AvailableLocalIDStoreData>(
-			EMPTY_BYTES,
-			availableLocalIDStoreSchema,
-		);
+		const { nextAvailableLocalID } = await nextAvailableLocalIDStore.get(context, EMPTY_BYTES);
 		// If maxLocalID is larger than nextAvailableLocalID, it is invalid
 		if (maxLocalID.compare(nextAvailableLocalID) > 0) {
 			throw new Error('Max local ID is higher than next availableLocalID');

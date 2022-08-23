@@ -24,29 +24,36 @@ import {
 	VerificationResult,
 } from '../../state_machine';
 import { AuthAPI } from './api';
-import { RegisterMultisignatureCommand } from './commands/register_multisignature';
-import { MAX_NUMBER_OF_SIGNATURES, STORE_PREFIX_AUTH } from './constants';
+import { RegisterMultisignatureGroupCommand } from './commands/register_multisignature';
+import { MAX_NUMBER_OF_SIGNATURES } from './constants';
 import { AuthEndpoint } from './endpoint';
-import { authAccountSchema, configSchema, genesisAuthStoreSchema } from './schemas';
-import { AuthAccount, GenesisAuthStore } from './types';
+import { configSchema, genesisAuthStoreSchema } from './schemas';
+import { GenesisAuthStore } from './types';
 import { verifyNonce, verifySignatures } from './utils';
+import { AuthAccount, authAccountSchema, AuthAccountStore } from './stores/auth_account';
 
 export class AuthModule extends BaseModule {
-	public name = 'auth';
-	public api = new AuthAPI(this.name);
-	public endpoint = new AuthEndpoint(this.name);
+	public api = new AuthAPI(this.stores, this.events);
+	public endpoint = new AuthEndpoint(this.name, this.stores, this.offchainStores);
 	public configSchema = configSchema;
-	public commands = [new RegisterMultisignatureCommand(this.id)];
+	public commands = [new RegisterMultisignatureGroupCommand(this.stores, this.events)];
+
+	public constructor() {
+		super();
+		this.stores.register(AuthAccountStore, new AuthAccountStore(this.name));
+	}
 
 	public metadata(): ModuleMetadata {
 		return {
 			endpoints: [],
 			commands: this.commands.map(command => ({
-				id: command.id,
 				name: command.name,
 				params: command.schema,
 			})),
-			events: [],
+			events: this.events.values().map(v => ({
+				typeID: v.name,
+				data: v.schema,
+			})),
 			assets: [
 				{
 					version: 0,
@@ -63,7 +70,7 @@ export class AuthModule extends BaseModule {
 			return;
 		}
 		const genesisStore = codec.decode<GenesisAuthStore>(genesisAuthStoreSchema, assetBytes);
-		const store = context.getStore(this.id, STORE_PREFIX_AUTH);
+		const store = this.stores.get(AuthAccountStore);
 		const keys = [];
 		for (const { storeKey, storeValue } of genesisStore.authDataSubstore) {
 			if (storeKey.length !== 20) {
@@ -120,7 +127,7 @@ export class AuthModule extends BaseModule {
 				throw new Error('The numberOfSignatures is smaller than the count of Mandatory keys.');
 			}
 
-			await store.setWithSchema(storeKey, storeValue, authAccountSchema);
+			await store.set(context, storeKey, storeValue);
 		}
 		if (!objectUtils.bufferArrayUniqueItems(keys)) {
 			throw new Error('Duplicate store key for auth module.');
@@ -129,16 +136,13 @@ export class AuthModule extends BaseModule {
 
 	public async verifyTransaction(context: TransactionVerifyContext): Promise<VerificationResult> {
 		const { transaction, networkIdentifier } = context;
-		const store = context.getStore(this.id, STORE_PREFIX_AUTH);
+		const store = this.stores.get(AuthAccountStore);
 
 		let senderAccount: AuthAccount;
 
 		// First transaction will not have nonce
 		try {
-			senderAccount = await store.getWithSchema<AuthAccount>(
-				transaction.senderAddress,
-				authAccountSchema,
-			);
+			senderAccount = await store.get(context, transaction.senderAddress);
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
@@ -166,25 +170,21 @@ export class AuthModule extends BaseModule {
 	}
 
 	public async beforeCommandExecute(context: TransactionExecuteContext): Promise<void> {
-		const { senderAddress } = context.transaction;
-		const store = context.getStore(this.id, STORE_PREFIX_AUTH);
-		const senderExist = await store.has(senderAddress);
+		const { transaction } = context;
+		const store = this.stores.get(AuthAccountStore);
+		const senderExist = await store.has(context, transaction.senderAddress);
 		if (!senderExist) {
-			await store.setWithSchema(
-				senderAddress,
-				{
-					nonce: BigInt(0),
-					numberOfSignatures: 0,
-					mandatoryKeys: [],
-					optionalKeys: [],
-				},
-				authAccountSchema,
-			);
+			await store.set(context, context.transaction.senderAddress, {
+				nonce: BigInt(0),
+				numberOfSignatures: 0,
+				mandatoryKeys: [],
+				optionalKeys: [],
+			});
 		}
 
-		const senderAccount = await store.getWithSchema<AuthAccount>(senderAddress, authAccountSchema);
+		const senderAccount = await store.get(context, transaction.senderAddress);
 		senderAccount.nonce += BigInt(1);
 
-		await store.setWithSchema(senderAddress, senderAccount, authAccountSchema);
+		await store.set(context, transaction.senderAddress, senderAccount);
 	}
 }

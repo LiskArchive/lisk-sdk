@@ -15,6 +15,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { validator } from '@liskhq/lisk-validator';
 import { BaseCCCommand } from '../../interoperability/base_cc_command';
 import { CCCommandExecuteContext } from '../../interoperability/types';
+import { NamedRegistry } from '../../named_registry';
 import { TokenAPI } from '../api';
 import {
 	CCM_STATUS_MIN_BALANCE_NOT_REACHED,
@@ -22,26 +23,17 @@ import {
 	CCM_STATUS_PROTOCOL_VIOLATION,
 	CCM_STATUS_TOKEN_NOT_SUPPORTED,
 	CHAIN_ID_ALIAS_NATIVE,
-	CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 	MIN_RETURN_FEE,
-	STORE_PREFIX_ESCROW,
-	STORE_PREFIX_SUPPLY,
 } from '../constants';
-import {
-	CCTransferMessageParams,
-	crossChainTransferMessageParams,
-	EscrowStoreData,
-	escrowStoreSchema,
-	SupplyStoreData,
-	supplyStoreSchema,
-} from '../schemas';
+import { CCTransferMessageParams, crossChainTransferMessageParams } from '../schemas';
+import { EscrowStore } from '../stores/escrow';
+import { SupplyStore } from '../stores/supply';
+import { UserStore } from '../stores/user';
 import { InteroperabilityAPI, MinBalance } from '../types';
-import { splitTokenID, tokenSupported, updateAvailableBalanceWithCreate } from '../utils';
+import { splitTokenID, tokenSupported } from '../utils';
 
 export class CCTransferCommand extends BaseCCCommand {
-	public ID = CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER;
-	public name = CROSS_CHAIN_COMMAND_NAME_TRANSFER;
 	public schema = crossChainTransferMessageParams;
 
 	private readonly _tokenAPI: TokenAPI;
@@ -49,9 +41,13 @@ export class CCTransferCommand extends BaseCCCommand {
 	private _supportedTokenIDs!: Buffer[];
 	private _minBalances!: MinBalance[];
 
-	public constructor(moduleID: Buffer, tokenAPI: TokenAPI) {
-		super(moduleID);
+	public constructor(stores: NamedRegistry, events: NamedRegistry, tokenAPI: TokenAPI) {
+		super(stores, events);
 		this._tokenAPI = tokenAPI;
+	}
+
+	public get name(): string {
+		return CROSS_CHAIN_COMMAND_NAME_TRANSFER;
 	}
 
 	public addDependencies(interoperabilityAPI: InteroperabilityAPI) {
@@ -125,31 +121,25 @@ export class CCTransferCommand extends BaseCCCommand {
 			receivedAmount -= minBalance;
 			const [canonicalChainID, canonicalLocalID] = splitTokenID(canonicalTokenID);
 			if (canonicalChainID.equals(CHAIN_ID_ALIAS_NATIVE)) {
-				const supplyStore = apiContext.getStore(this.moduleID, STORE_PREFIX_SUPPLY);
-				const supply = await supplyStore.getWithSchema<SupplyStoreData>(
-					canonicalLocalID,
-					supplyStoreSchema,
-				);
+				const supplyStore = this.stores.get(SupplyStore);
+				const supply = await supplyStore.get(apiContext, canonicalLocalID);
 				supply.totalSupply -= minBalance;
-				await supplyStore.setWithSchema(canonicalLocalID, supply, supplyStoreSchema);
+				await supplyStore.set(apiContext, canonicalLocalID, supply);
 			}
 		}
 
 		if (tokenChainID.equals(ownChainID)) {
-			const escrowStore = apiContext.getStore(this.moduleID, STORE_PREFIX_ESCROW);
+			const escrowStore = this.stores.get(EscrowStore);
 			const escrowKey = Buffer.concat([ccm.sendingChainID, tokenLocalID]);
-			const escrowData = await escrowStore.getWithSchema<EscrowStoreData>(
-				escrowKey,
-				escrowStoreSchema,
-			);
+			const escrowData = await escrowStore.get(apiContext, escrowKey);
 
 			escrowData.amount -= params.amount;
-			await escrowStore.setWithSchema(escrowKey, escrowData, escrowStoreSchema);
+			await escrowStore.set(apiContext, escrowKey, escrowData);
 		}
 
-		await updateAvailableBalanceWithCreate(
+		const userStore = this.stores.get(UserStore);
+		await userStore.updateAvailableBalanceWithCreate(
 			apiContext,
-			this.moduleID,
 			recipientAddress,
 			canonicalTokenID,
 			receivedAmount,

@@ -16,21 +16,18 @@ import { regularMerkleTree, sparseMerkleTree } from '@liskhq/lisk-tree';
 import { codec } from '@liskhq/lisk-codec';
 import { utils, bls } from '@liskhq/lisk-cryptography';
 import { validator } from '@liskhq/lisk-validator';
-import { DB_KEY_STATE_STORE } from '@liskhq/lisk-chain';
 import { dataStructures } from '@liskhq/lisk-utils';
 import {
 	ActiveValidators,
 	CCMsg,
 	ChainAccount,
 	MessageRecoveryVerificationParams,
-	TerminatedOutboxAccount,
 	ChannelData,
 	CrossChainUpdateTransactionParams,
 	ChainValidators,
 	InboxUpdate,
 	MsgWitness,
 	GenesisInteroperabilityStore,
-	OwnChainAccount,
 } from './types';
 import {
 	CCM_STATUS_OK,
@@ -43,30 +40,13 @@ import {
 	MAX_NUM_VALIDATORS,
 	MAX_UINT64,
 	MESSAGE_TAG_CERTIFICATE,
-	MODULE_ID_INTEROPERABILITY,
+	MODULE_NAME_INTEROPERABILITY,
 	SMT_KEY_LENGTH,
-	STORE_PREFIX_CHAIN_DATA,
-	STORE_PREFIX_CHAIN_VALIDATORS,
-	STORE_PREFIX_CHANNEL_DATA,
-	STORE_PREFIX_OUTBOX_ROOT,
-	STORE_PREFIX_OWN_CHAIN_DATA,
-	STORE_PREFIX_REGISTERED_NAMES,
-	STORE_PREFIX_REGISTERED_NETWORK_IDS,
-	STORE_PREFIX_TERMINATED_OUTBOX,
-	STORE_PREFIX_TERMINATED_STATE,
 } from './constants';
 import {
 	ccmSchema,
-	chainAccountSchema,
-	chainIDSchema,
-	chainValidatorsSchema,
-	channelSchema,
 	genesisInteroperabilityStoreSchema,
-	outboxRootSchema,
-	ownChainAccountSchema,
 	sidechainTerminatedCCMParamsSchema,
-	terminatedOutboxSchema,
-	terminatedStateSchema,
 	validatorsHashInputSchema,
 } from './schemas';
 import {
@@ -77,16 +57,26 @@ import {
 } from '../../state_machine';
 import { Certificate } from '../../engine/consensus/certificate_generation/types';
 import { certificateSchema } from '../../engine/consensus/certificate_generation/schema';
-import { CommandExecuteContext, SubStore } from '../../state_machine/types';
+import { CommandExecuteContext } from '../../state_machine/types';
+import { NamedRegistry } from '../named_registry';
+import { OutboxRootStore } from './stores/outbox_root';
+import { OwnChainAccountStore } from './stores/own_chain_account';
+import { ChannelDataStore } from './stores/channel_data';
+import { ChainValidatorsStore } from './stores/chain_validators';
+import { ChainAccountStore } from './stores/chain_account';
+import { TerminatedOutboxAccount, TerminatedOutboxStore } from './stores/terminated_outbox';
+import { TerminatedStateStore } from './stores/terminated_state';
+import { RegisteredNamesStore } from './stores/registered_names';
+import { RegisteredNetworkStore } from './stores/registered_network_ids';
 
 interface CommonExecutionLogicArgs {
-	moduleID: Buffer;
+	stores: NamedRegistry;
 	context: CommandExecuteContext<CrossChainUpdateTransactionParams>;
 	certificate: Certificate;
 	partnerValidators: ChainValidators;
 	partnerChainAccount: ChainAccount;
-	partnerValidatorStore: SubStore;
-	partnerChainStore: SubStore;
+	partnerValidatorStore: ChainValidatorsStore;
+	partnerChainStore: ChainAccountStore;
 	chainIDBuffer: Buffer;
 }
 // Returns the big endian uint32 serialization of an integer x, with 0 <= x < 2^32 which is 4 bytes long.
@@ -233,14 +223,6 @@ export const swapReceivingAndSendingChainIDs = (ccm: CCMsg) => ({
 	receivingChainID: ccm.sendingChainID,
 	sendingChainID: ccm.receivingChainID,
 });
-export const rawStateStoreKey = (storePrefix: number) => {
-	const moduleIDBuffer = Buffer.alloc(4);
-	moduleIDBuffer.writeInt32BE(MODULE_ID_INTEROPERABILITY, 0);
-	const storePrefixBuffer = Buffer.alloc(2);
-	storePrefixBuffer.writeUInt16BE(storePrefix, 0);
-
-	return Buffer.concat([DB_KEY_STATE_STORE, moduleIDBuffer, storePrefixBuffer]);
-};
 
 export const isInboxUpdateEmpty = (inboxUpdate: InboxUpdate) =>
 	inboxUpdate.crossChainMessages.length === 0 &&
@@ -346,6 +328,7 @@ export const checkActiveValidatorsUpdate = (
 };
 
 export const checkInboxUpdateValidity = (
+	stores: NamedRegistry,
 	txParams: CrossChainUpdateTransactionParams,
 	partnerChannelData: ChannelData,
 ): VerificationResult => {
@@ -382,7 +365,8 @@ export const checkInboxUpdateValidity = (
 				messageWitness.siblingHashes,
 			);
 		}
-		const outboxKey = rawStateStoreKey(STORE_PREFIX_OUTBOX_ROOT);
+		const outboxStore = stores.get(OutboxRootStore);
+		const outboxKey = outboxStore.key;
 		const proof = {
 			siblingHashes: outboxRootWitness.siblingHashes,
 			queries: [
@@ -567,6 +551,7 @@ export const checkValidatorsHashWithCertificate = (
 
 export const commonCCUExecutelogic = async (args: CommonExecutionLogicArgs) => {
 	const {
+		stores,
 		certificate,
 		partnerChainAccount,
 		partnerValidatorStore,
@@ -583,24 +568,17 @@ export const commonCCUExecutelogic = async (args: CommonExecutionLogicArgs) => {
 	if (context.params.newCertificateThreshold !== BigInt(0)) {
 		partnerValidators.certificateThreshold = context.params.newCertificateThreshold;
 	}
-	await partnerValidatorStore.setWithSchema(
-		chainIDBuffer,
-		partnerValidators,
-		chainValidatorsSchema,
-	);
+	await partnerValidatorStore.set(context, chainIDBuffer, partnerValidators);
 	if (!context.params.certificate.equals(EMPTY_BYTES)) {
 		partnerChainAccount.lastCertificate.stateRoot = certificate.stateRoot;
 		partnerChainAccount.lastCertificate.timestamp = certificate.timestamp;
 		partnerChainAccount.lastCertificate.height = certificate.height;
 		partnerChainAccount.lastCertificate.validatorsHash = certificate.validatorsHash;
-		await partnerChainStore.setWithSchema(chainIDBuffer, partnerChainAccount, chainAccountSchema);
+		await partnerChainStore.set(context, chainIDBuffer, partnerChainAccount);
 	}
 
-	const partnerChannelStore = context.getStore(args.moduleID, STORE_PREFIX_CHANNEL_DATA);
-	const partnerChannelData = await partnerChannelStore.getWithSchema<ChannelData>(
-		chainIDBuffer,
-		channelSchema,
-	);
+	const partnerChannelStore = stores.get(ChannelDataStore);
+	const partnerChannelData = await partnerChannelStore.get(context, chainIDBuffer);
 	const { inboxUpdate } = context.params;
 	if (
 		inboxUpdate.messageWitness.partnerChainOutboxSize === BigInt(0) ||
@@ -614,20 +592,17 @@ export const commonCCUExecutelogic = async (args: CommonExecutionLogicArgs) => {
 			inboxUpdate.messageWitness.siblingHashes,
 		);
 	}
-	await partnerChannelStore.setWithSchema(chainIDBuffer, partnerChannelData, channelSchema);
+	await partnerChannelStore.set(context, chainIDBuffer, partnerChannelData);
 };
 
 export const initGenesisStateUtil = async (
-	id: Buffer,
-	name: string,
 	ctx: GenesisBlockExecuteContext,
+	stores: NamedRegistry,
 ) => {
-	const assetBytes = ctx.assets.getAsset(name);
+	const assetBytes = ctx.assets.getAsset(MODULE_NAME_INTEROPERABILITY);
 	if (!assetBytes) {
 		return;
 	}
-
-	const { getStore } = ctx;
 
 	const genesisStore = codec.decode<GenesisInteroperabilityStore>(
 		genesisInteroperabilityStoreSchema,
@@ -636,7 +611,7 @@ export const initGenesisStateUtil = async (
 	validator.validate(genesisInteroperabilityStoreSchema, genesisStore);
 
 	const outboxRootStoreKeySet = new dataStructures.BufferSet();
-	const outboxRootStore = getStore(id, STORE_PREFIX_OUTBOX_ROOT);
+	const outboxRootStore = stores.get(OutboxRootStore);
 	for (const outboxRootData of genesisStore.outboxRootSubstore) {
 		if (outboxRootStoreKeySet.has(outboxRootData.storeKey)) {
 			throw new Error(
@@ -644,20 +619,13 @@ export const initGenesisStateUtil = async (
 			);
 		}
 		outboxRootStoreKeySet.add(outboxRootData.storeKey);
-		await outboxRootStore.setWithSchema(
-			outboxRootData.storeKey,
-			outboxRootData.storeValue,
-			outboxRootSchema,
-		);
+		await outboxRootStore.set(ctx, outboxRootData.storeKey, outboxRootData.storeValue);
 	}
 
-	const ownChainAccountStore = getStore(id, STORE_PREFIX_OWN_CHAIN_DATA);
-	const ownChainAccount = await ownChainAccountStore.getWithSchema<OwnChainAccount>(
-		MAINCHAIN_ID_BUFFER,
-		ownChainAccountSchema,
-	);
+	const ownChainAccountStore = stores.get(OwnChainAccountStore);
+	const ownChainAccount = await ownChainAccountStore.get(ctx, MAINCHAIN_ID_BUFFER);
 	const channelDataStoreKeySet = new dataStructures.BufferSet();
-	const channelDataStore = getStore(id, STORE_PREFIX_CHANNEL_DATA);
+	const channelDataStore = stores.get(ChannelDataStore);
 	for (const channelData of genesisStore.channelDataSubstore) {
 		if (channelDataStoreKeySet.has(channelData.storeKey)) {
 			throw new Error(
@@ -688,15 +656,11 @@ export const initGenesisStateUtil = async (
 			);
 		}
 
-		await channelDataStore.setWithSchema(
-			channelData.storeKey,
-			channelData.storeValue,
-			channelSchema,
-		);
+		await channelDataStore.set(ctx, channelData.storeKey, channelData.storeValue);
 	}
 
 	const chainValidatorsStoreKeySet = new dataStructures.BufferSet();
-	const chainValidatorsStore = getStore(id, STORE_PREFIX_CHAIN_VALIDATORS);
+	const chainValidatorsStore = stores.get(ChainValidatorsStore);
 	for (const chainValidators of genesisStore.chainValidatorsSubstore) {
 		if (chainValidatorsStoreKeySet.has(chainValidators.storeKey)) {
 			throw new Error(
@@ -738,15 +702,11 @@ export const initGenesisStateUtil = async (
 			throw new Error('The total BFT weight of all active validators is not valid.');
 		}
 
-		await chainValidatorsStore.setWithSchema(
-			chainValidators.storeKey,
-			chainValidators.storeValue,
-			chainValidatorsSchema,
-		);
+		await chainValidatorsStore.set(ctx, chainValidators.storeKey, chainValidators.storeValue);
 	}
 
 	const chainDataStoreKeySet = new dataStructures.BufferSet();
-	const chainDataStore = getStore(id, STORE_PREFIX_CHAIN_DATA);
+	const chainDataStore = stores.get(ChainAccountStore);
 	let isAnotherSidechainAccount = 0;
 	for (const chainData of genesisStore.chainDataSubstore) {
 		const chainDataStoreKey = chainData.storeKey;
@@ -792,11 +752,7 @@ export const initGenesisStateUtil = async (
 			isAnotherSidechainAccount = 1;
 		}
 
-		await chainDataStore.setWithSchema(
-			chainData.storeKey,
-			chainData.storeValue,
-			chainAccountSchema,
-		);
+		await chainDataStore.set(ctx, chainData.storeKey, chainData.storeValue);
 	}
 
 	if (
@@ -841,15 +797,11 @@ export const initGenesisStateUtil = async (
 		}
 		ownChainDataStoreKeySet.add(ownChainData.storeKey);
 
-		await ownChainAccountStore.setWithSchema(
-			ownChainData.storeKey,
-			ownChainData.storeValue,
-			ownChainAccountSchema,
-		);
+		await ownChainAccountStore.set(ctx, ownChainData.storeKey, ownChainData.storeValue);
 	}
 
 	const terminatedOutboxStoreKeySet = new dataStructures.BufferSet();
-	const terminatedOutboxStore = getStore(id, STORE_PREFIX_TERMINATED_OUTBOX);
+	const terminatedOutboxStore = stores.get(TerminatedOutboxStore);
 	for (const terminatedOutbox of genesisStore.terminatedOutboxSubstore) {
 		if (terminatedOutboxStoreKeySet.has(terminatedOutbox.storeKey)) {
 			throw new Error(
@@ -858,15 +810,11 @@ export const initGenesisStateUtil = async (
 		}
 		terminatedOutboxStoreKeySet.add(terminatedOutbox.storeKey);
 
-		await terminatedOutboxStore.setWithSchema(
-			terminatedOutbox.storeKey,
-			terminatedOutbox.storeValue,
-			terminatedOutboxSchema,
-		);
+		await terminatedOutboxStore.set(ctx, terminatedOutbox.storeKey, terminatedOutbox.storeValue);
 	}
 
 	const terminatedStateStoreKeySet = new dataStructures.BufferSet();
-	const terminatedStateStore = getStore(id, STORE_PREFIX_TERMINATED_STATE);
+	const terminatedStateStore = stores.get(TerminatedStateStore);
 	for (const terminatedState of genesisStore.terminatedStateSubstore) {
 		const terminatedStateStoreKey = terminatedState.storeKey;
 		if (terminatedStateStoreKeySet.has(terminatedStateStoreKey)) {
@@ -908,11 +856,7 @@ export const initGenesisStateUtil = async (
 			}
 		}
 
-		await terminatedStateStore.setWithSchema(
-			terminatedState.storeKey,
-			terminatedState.storeValue,
-			terminatedStateSchema,
-		);
+		await terminatedStateStore.set(ctx, terminatedState.storeKey, terminatedState.storeValue);
 	}
 
 	for (const storeKey of terminatedOutboxStoreKeySet) {
@@ -926,7 +870,7 @@ export const initGenesisStateUtil = async (
 	}
 
 	const registeredNamesStoreKeySet = new dataStructures.BufferSet();
-	const registeredNamesStore = getStore(id, STORE_PREFIX_REGISTERED_NAMES);
+	const registeredNamesStore = stores.get(RegisteredNamesStore);
 	for (const registeredNames of genesisStore.registeredNamesSubstore) {
 		if (registeredNamesStoreKeySet.has(registeredNames.storeKey)) {
 			throw new Error(
@@ -935,15 +879,11 @@ export const initGenesisStateUtil = async (
 		}
 		registeredNamesStoreKeySet.add(registeredNames.storeKey);
 
-		await registeredNamesStore.setWithSchema(
-			registeredNames.storeKey,
-			registeredNames.storeValue,
-			chainIDSchema,
-		);
+		await registeredNamesStore.set(ctx, registeredNames.storeKey, registeredNames.storeValue);
 	}
 
 	const registeredNetworkIDsStoreKeySet = new dataStructures.BufferSet();
-	const registeredNetworkIDsStore = getStore(id, STORE_PREFIX_REGISTERED_NETWORK_IDS);
+	const registeredNetworkIDsStore = stores.get(RegisteredNetworkStore);
 	for (const registeredNetworkIDs of genesisStore.registeredNetworkIDsSubstore) {
 		if (registeredNetworkIDsStoreKeySet.has(registeredNetworkIDs.storeKey)) {
 			throw new Error(
@@ -954,10 +894,10 @@ export const initGenesisStateUtil = async (
 		}
 		registeredNetworkIDsStoreKeySet.add(registeredNetworkIDs.storeKey);
 
-		await registeredNetworkIDsStore.setWithSchema(
+		await registeredNetworkIDsStore.set(
+			ctx,
 			registeredNetworkIDs.storeKey,
 			registeredNetworkIDs.storeValue,
-			chainIDSchema,
 		);
 	}
 };

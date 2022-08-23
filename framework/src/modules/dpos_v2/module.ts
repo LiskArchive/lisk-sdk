@@ -23,48 +23,31 @@ import { DelegateRegistrationCommand } from './commands/delegate_registration';
 import { ReportDelegateMisbehaviorCommand } from './commands/pom';
 import { UnlockCommand } from './commands/unlock';
 import { UpdateGeneratorKeyCommand } from './commands/update_generator_key';
-import { VoteCommand } from './commands/vote';
+import { VoteDelegateCommand } from './commands/vote_delegate';
 import {
 	DELEGATE_LIST_ROUND_OFFSET,
-	STORE_PREFIX_DELEGATE,
-	STORE_PREFIX_SNAPSHOT,
-	STORE_PREFIX_PREVIOUS_TIMESTAMP,
 	EMPTY_KEY,
-	STORE_PREFIX_GENESIS_DATA,
 	MAX_VOTE,
 	MAX_UNLOCKING,
 	MAX_SNAPSHOT,
-	STORE_PREFIX_NAME,
-	STORE_PREFIX_VOTER,
 	defaultConfig,
-	MODULE_NAME_DPOS,
 } from './constants';
 import { DPoSEndpoint } from './endpoint';
 import {
 	configSchema,
-	delegateStoreSchema,
-	genesisDataStoreSchema,
 	genesisStoreSchema,
 	getAllDelegatesResponseSchema,
 	getDelegateRequestSchema,
 	getDelegateResponseSchema,
 	getVoterRequestSchema,
 	getVoterResponseSchema,
-	nameStoreSchema,
-	previousTimestampStoreSchema,
-	snapshotStoreSchema,
-	voterStoreSchema,
 } from './schemas';
 import {
 	RandomAPI,
 	TokenAPI,
 	ValidatorsAPI,
-	DelegateAccount,
 	SnapshotStoreData,
-	PreviousTimestampData,
-	GenesisData,
 	GenesisStore,
-	VoterData,
 	ModuleConfigJSON,
 	ModuleConfig,
 } from './types';
@@ -78,20 +61,32 @@ import {
 	sortUnlocking,
 	getModuleConfig,
 } from './utils';
+import { DelegateStore } from './stores/delegate';
+import { GenesisDataStore } from './stores/genesis';
+import { NameStore } from './stores/name';
+import { PreviousTimestampStore } from './stores/previous_timestamp';
+import { SnapshotStore } from './stores/snapshot';
+import { VoterStore } from './stores/voter';
 
 export class DPoSModule extends BaseModule {
-	public name = MODULE_NAME_DPOS;
-	public api = new DPoSAPI(this.name);
+	public api = new DPoSAPI(this.stores, this.events);
 	public configSchema = configSchema;
-	public endpoint = new DPoSEndpoint(this.name);
+	public endpoint = new DPoSEndpoint(this.stores, this.offchainStores);
 
-	private readonly _delegateRegistrationCommand = new DelegateRegistrationCommand(this.id);
-	private readonly _reportDelegateMisbehaviorCommand = new ReportDelegateMisbehaviorCommand(
-		this.id,
+	private readonly _delegateRegistrationCommand = new DelegateRegistrationCommand(
+		this.stores,
+		this.events,
 	);
-	private readonly _unlockCommand = new UnlockCommand(this.id);
-	private readonly _updateGeneratorKeyCommand = new UpdateGeneratorKeyCommand(this.id);
-	private readonly _voteCommand = new VoteCommand(this.id);
+	private readonly _reportDelegateMisbehaviorCommand = new ReportDelegateMisbehaviorCommand(
+		this.stores,
+		this.events,
+	);
+	private readonly _unlockCommand = new UnlockCommand(this.stores, this.events);
+	private readonly _updateGeneratorKeyCommand = new UpdateGeneratorKeyCommand(
+		this.stores,
+		this.events,
+	);
+	private readonly _voteCommand = new VoteDelegateCommand(this.stores, this.events);
 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [
@@ -106,6 +101,20 @@ export class DPoSModule extends BaseModule {
 	private _validatorsAPI!: ValidatorsAPI;
 	private _tokenAPI!: TokenAPI;
 	private _moduleConfig!: ModuleConfig;
+
+	public constructor() {
+		super();
+		this.stores.register(DelegateStore, new DelegateStore(this.name));
+		this.stores.register(GenesisDataStore, new GenesisDataStore(this.name));
+		this.stores.register(NameStore, new NameStore(this.name));
+		this.stores.register(PreviousTimestampStore, new PreviousTimestampStore(this.name));
+		this.stores.register(SnapshotStore, new SnapshotStore(this.name));
+		this.stores.register(VoterStore, new VoterStore(this.name));
+	}
+
+	public get name() {
+		return 'dpos';
+	}
 
 	public addDependencies(randomAPI: RandomAPI, validatorsAPI: ValidatorsAPI, tokenAPI: TokenAPI) {
 		this._randomAPI = randomAPI;
@@ -149,7 +158,6 @@ export class DPoSModule extends BaseModule {
 				},
 			],
 			commands: this.commands.map(command => ({
-				id: command.id,
 				name: command.name,
 				params: command.schema,
 			})),
@@ -280,7 +288,7 @@ export class DPoSModule extends BaseModule {
 			);
 		}
 
-		const voterStore = context.getStore(this.id, STORE_PREFIX_VOTER);
+		const voterStore = this.stores.get(VoterStore);
 		const voteMap = new dataStructures.BufferMap<{ selfVotes: bigint; voteReceived: bigint }>();
 		for (const voter of genesisStore.voters) {
 			for (const sentVote of voter.sentVotes) {
@@ -300,74 +308,52 @@ export class DPoSModule extends BaseModule {
 				}
 				voteMap.set(sentVote.delegateAddress, delegate);
 			}
-			await voterStore.setWithSchema(
-				voter.address,
-				{
-					sentVotes: voter.sentVotes,
-					pendingUnlocks: voter.pendingUnlocks,
-				},
-				voterStoreSchema,
-			);
+			await voterStore.set(context, voter.address, {
+				sentVotes: voter.sentVotes,
+				pendingUnlocks: voter.pendingUnlocks,
+			});
 		}
 
-		const delegateStore = context.getStore(this.id, STORE_PREFIX_DELEGATE);
-		const nameSubstore = context.getStore(this.id, STORE_PREFIX_NAME);
+		const delegateStore = this.stores.get(DelegateStore);
+		const nameSubstore = this.stores.get(NameStore);
 		for (const dposValidator of genesisStore.validators) {
 			const voteInfo = voteMap.get(dposValidator.address) ?? {
 				selfVotes: BigInt(0),
 				voteReceived: BigInt(0),
 			};
-			await delegateStore.setWithSchema(
-				dposValidator.address,
-				{
-					name: dposValidator.name,
-					totalVotesReceived: voteInfo.voteReceived,
-					selfVotes: voteInfo.selfVotes,
-					lastGeneratedHeight: dposValidator.lastGeneratedHeight,
-					isBanned: dposValidator.isBanned,
-					pomHeights: dposValidator.pomHeights,
-					consecutiveMissedBlocks: dposValidator.consecutiveMissedBlocks,
-				},
-				delegateStoreSchema,
-			);
-			await nameSubstore.setWithSchema(
-				Buffer.from(dposValidator.name, 'utf-8'),
-				{ delegateAddress: dposValidator.address },
-				nameStoreSchema,
-			);
+			await delegateStore.set(context, dposValidator.address, {
+				name: dposValidator.name,
+				totalVotesReceived: voteInfo.voteReceived,
+				selfVotes: voteInfo.selfVotes,
+				lastGeneratedHeight: dposValidator.lastGeneratedHeight,
+				isBanned: dposValidator.isBanned,
+				pomHeights: dposValidator.pomHeights,
+				consecutiveMissedBlocks: dposValidator.consecutiveMissedBlocks,
+			});
+			await nameSubstore.set(context, Buffer.from(dposValidator.name, 'utf-8'), {
+				delegateAddress: dposValidator.address,
+			});
 		}
 
-		const snapshotStore = context.getStore(this.id, STORE_PREFIX_SNAPSHOT);
+		const snapshotStore = this.stores.get(SnapshotStore);
 		for (const snapshot of genesisStore.snapshots) {
 			const storeKey = utils.intToBuffer(snapshot.roundNumber, 4);
-			await snapshotStore.setWithSchema(
-				storeKey,
-				{
-					activeDelegates: snapshot.activeDelegates,
-					delegateWeightSnapshot: snapshot.delegateWeightSnapshot,
-				},
-				snapshotStoreSchema,
-			);
+			await snapshotStore.set(context, storeKey, {
+				activeDelegates: snapshot.activeDelegates,
+				delegateWeightSnapshot: snapshot.delegateWeightSnapshot,
+			});
 		}
-		const previousTimestampStore = context.getStore(this.id, STORE_PREFIX_PREVIOUS_TIMESTAMP);
-		await previousTimestampStore.setWithSchema(
-			EMPTY_KEY,
-			{
-				timestamp: context.header.timestamp,
-			},
-			previousTimestampStoreSchema,
-		);
+		const previousTimestampStore = this.stores.get(PreviousTimestampStore);
+		await previousTimestampStore.set(context, EMPTY_KEY, {
+			timestamp: context.header.timestamp,
+		});
 
-		const genesisDataStore = context.getStore(this.id, STORE_PREFIX_GENESIS_DATA);
-		await genesisDataStore.setWithSchema(
-			EMPTY_KEY,
-			{
-				height: context.header.height,
-				initRounds: genesisStore.genesisData.initRounds,
-				initDelegates: genesisStore.genesisData.initDelegates,
-			},
-			genesisDataStoreSchema,
-		);
+		const genesisDataStore = this.stores.get(GenesisDataStore);
+		await genesisDataStore.set(context, EMPTY_KEY, {
+			height: context.header.height,
+			initRounds: genesisStore.genesisData.initRounds,
+			initDelegates: genesisStore.genesisData.initDelegates,
+		});
 	}
 
 	public async finalizeGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
@@ -390,14 +376,11 @@ export class DPoSModule extends BaseModule {
 				throw new Error('Invalid validator key.');
 			}
 		}
-		const voterStore = context.getStore(this.id, STORE_PREFIX_VOTER);
-		const allVoters = await voterStore.iterateWithSchema<VoterData>(
-			{
-				gte: Buffer.alloc(20),
-				lte: Buffer.alloc(20, 255),
-			},
-			voterStoreSchema,
-		);
+		const voterStore = this.stores.get(VoterStore);
+		const allVoters = await voterStore.iterate(context, {
+			gte: Buffer.alloc(20),
+			lte: Buffer.alloc(20, 255),
+		});
 		for (const voterData of allVoters) {
 			let votedAmount = BigInt(0);
 			for (const sentVotes of voterData.value.sentVotes) {
@@ -436,8 +419,8 @@ export class DPoSModule extends BaseModule {
 		context.setNextValidators(initBFTThreshold, initBFTThreshold, validators);
 
 		const MAX_UINT32 = 2 ** 32 - 1;
-		const snapshotStore = context.getStore(this.id, STORE_PREFIX_SNAPSHOT);
-		const allSnapshots = await snapshotStore.iterate({
+		const snapshotStore = this.stores.get(SnapshotStore);
+		const allSnapshots = await snapshotStore.iterate(context, {
 			gte: utils.intToBuffer(0, 4),
 			lte: utils.intToBuffer(MAX_UINT32, 4),
 		});
@@ -459,13 +442,10 @@ export class DPoSModule extends BaseModule {
 	}
 
 	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
-		const { getStore, header } = context;
+		const { header } = context;
 		const isLastBlockOfRound = this._isLastBlockOfTheRound(header.height);
-		const previousTimestampStore = getStore(this.id, STORE_PREFIX_PREVIOUS_TIMESTAMP);
-		const previousTimestampData = await previousTimestampStore.getWithSchema<PreviousTimestampData>(
-			EMPTY_KEY,
-			previousTimestampStoreSchema,
-		);
+		const previousTimestampStore = this.stores.get(PreviousTimestampStore);
+		const previousTimestampData = await previousTimestampStore.get(context, EMPTY_KEY);
 		const { timestamp: previousTimestamp } = previousTimestampData;
 
 		await this._updateProductivity(context, previousTimestamp);
@@ -479,11 +459,7 @@ export class DPoSModule extends BaseModule {
 			await this._updateValidators(context);
 		}
 
-		await previousTimestampStore.setWithSchema(
-			EMPTY_KEY,
-			{ timestamp: header.timestamp },
-			previousTimestampStoreSchema,
-		);
+		await previousTimestampStore.set(context, EMPTY_KEY, { timestamp: header.timestamp });
 	}
 
 	private async _createVoteWeightSnapshot(context: BlockAfterExecuteContext): Promise<void> {
@@ -492,14 +468,11 @@ export class DPoSModule extends BaseModule {
 		const snapshotRound = round.calcRound(snapshotHeight) + DELEGATE_LIST_ROUND_OFFSET;
 		context.logger.debug(`Creating vote weight snapshot for round: ${snapshotRound.toString()}`);
 
-		const delegateStore = context.getStore(this.id, STORE_PREFIX_DELEGATE);
-		const delegates = await delegateStore.iterateWithSchema<DelegateAccount>(
-			{
-				gte: Buffer.alloc(20),
-				lte: Buffer.alloc(20, 255),
-			},
-			delegateStoreSchema,
-		);
+		const delegateStore = this.stores.get(DelegateStore);
+		const delegates = await delegateStore.iterate(context, {
+			gte: Buffer.alloc(20),
+			lte: Buffer.alloc(20, 255),
+		});
 		const voteWeightCapRate = this._moduleConfig.factorSelfVotes;
 
 		// Update totalVotesReceived to voteWeight equivalent before sorting
@@ -567,18 +540,18 @@ export class DPoSModule extends BaseModule {
 			break;
 		}
 
-		const snapshotStore = context.getStore(this.id, STORE_PREFIX_SNAPSHOT);
+		const snapshotStore = this.stores.get(SnapshotStore);
 		const storeKey = utils.intToBuffer(snapshotRound, 4);
 
-		await snapshotStore.setWithSchema(storeKey, snapshotData, snapshotStoreSchema);
+		await snapshotStore.set(context, storeKey, snapshotData);
 
 		// Remove outdated information
-		const oldData = await snapshotStore.iterate({
+		const oldData = await snapshotStore.iterate(context, {
 			gte: utils.intToBuffer(0, 4),
 			lte: utils.intToBuffer(Math.max(0, snapshotRound - DELEGATE_LIST_ROUND_OFFSET - 1), 4),
 		});
 		for (const { key } of oldData) {
-			await snapshotStore.del(key);
+			await snapshotStore.del(context, key);
 		}
 	}
 
@@ -588,11 +561,8 @@ export class DPoSModule extends BaseModule {
 		const nextRound = round.calcRound(height) + 1;
 		context.logger.debug(nextRound, 'Updating delegate list for');
 
-		const snapshotStore = context.getStore(this.id, STORE_PREFIX_SNAPSHOT);
-		const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-			utils.intToBuffer(nextRound, 4),
-			snapshotStoreSchema,
-		);
+		const snapshotStore = this.stores.get(SnapshotStore);
+		const snapshot = await snapshotStore.get(context, utils.intToBuffer(nextRound, 4));
 
 		const apiContext = context.getAPIContext();
 
@@ -645,7 +615,7 @@ export class DPoSModule extends BaseModule {
 	}
 
 	private async _updateProductivity(context: BlockAfterExecuteContext, previousTimestamp: number) {
-		const { logger, header, getAPIContext, getStore } = context;
+		const { logger, header, getAPIContext } = context;
 
 		const round = new Rounds({ blocksPerRound: this._moduleConfig.roundLength });
 		logger.debug(round, 'Updating delegates productivity for round');
@@ -660,13 +630,10 @@ export class DPoSModule extends BaseModule {
 			generators,
 		);
 
-		const delegateStore = getStore(this.id, STORE_PREFIX_DELEGATE);
+		const delegateStore = this.stores.get(DelegateStore);
 		for (const addressString of Object.keys(missedBlocks)) {
 			const address = Buffer.from(addressString, 'binary');
-			const delegate = await delegateStore.getWithSchema<DelegateAccount>(
-				address,
-				delegateStoreSchema,
-			);
+			const delegate = await delegateStore.get(context, address);
 			delegate.consecutiveMissedBlocks += missedBlocks[addressString];
 			if (
 				delegate.consecutiveMissedBlocks > this._moduleConfig.failSafeMissedBlocks &&
@@ -675,16 +642,13 @@ export class DPoSModule extends BaseModule {
 				delegate.isBanned = true;
 			}
 
-			await delegateStore.setWithSchema(address, delegate, delegateStoreSchema);
+			await delegateStore.set(context, address, delegate);
 		}
 
-		const generator = await delegateStore.getWithSchema<DelegateAccount>(
-			header.generatorAddress,
-			delegateStoreSchema,
-		);
+		const generator = await delegateStore.get(context, header.generatorAddress);
 		generator.consecutiveMissedBlocks = 0;
 		generator.lastGeneratedHeight = newHeight;
-		await delegateStore.setWithSchema(header.generatorAddress, generator, delegateStoreSchema);
+		await delegateStore.set(context, header.generatorAddress, generator);
 	}
 
 	private _isLastBlockOfTheRound(height: number): boolean {
@@ -696,13 +660,10 @@ export class DPoSModule extends BaseModule {
 	}
 
 	private async _didBootstrapRoundsEnd(context: BlockAfterExecuteContext) {
-		const { header, getStore } = context;
+		const { header } = context;
 		const rounds = new Rounds({ blocksPerRound: this._moduleConfig.roundLength });
-		const genesisDataStore = getStore(this.id, STORE_PREFIX_GENESIS_DATA);
-		const genesisData = await genesisDataStore.getWithSchema<GenesisData>(
-			EMPTY_KEY,
-			genesisDataStoreSchema,
-		);
+		const genesisDataStore = this.stores.get(GenesisDataStore);
+		const genesisData = await genesisDataStore.get(context, EMPTY_KEY);
 		const { initRounds } = genesisData;
 		const nextHeightRound = rounds.calcRound(header.height + 1);
 

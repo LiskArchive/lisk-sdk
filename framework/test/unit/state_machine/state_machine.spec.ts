@@ -30,6 +30,7 @@ import {
 } from '../../../src/state_machine/constants';
 import { PrefixedStateReadWriter } from '../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../src/testing/in_memory_prefixed_state';
+import { NamedRegistry } from '../../../src/modules/named_registry';
 
 describe('state_machine', () => {
 	const genesisHeader = {} as BlockHeader;
@@ -42,7 +43,9 @@ describe('state_machine', () => {
 	const transaction = {
 		module: 'customModule0',
 		command: 'customCommand0',
-		params: codec.encode(new CustomCommand0(utils.intToBuffer(3, 4)).schema, { data: 'some info' }),
+		params: codec.encode(new CustomCommand0(new NamedRegistry(), new NamedRegistry()).schema, {
+			data: 'some info',
+		}),
 	} as Transaction;
 
 	let stateMachine: StateMachine;

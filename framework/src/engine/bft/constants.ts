@@ -12,11 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
-
 export const MODULE_NAME_BFT = 'bft';
-export const MODULE_ID_BFT = 9;
-export const MODULE_ID_BFT_BUFFER = utils.hash(Buffer.from(MODULE_NAME_BFT, 'utf-8')).slice(0, 4);
+
+export const MODULE_STORE_PREFIX_BFT = Buffer.from([0, 0, 0, 0]);
 
 export const STORE_PREFIX_BFT_PARAMETERS = 0x0000;
 export const STORE_PREFIX_GENERATOR_KEYS = 0x4000;

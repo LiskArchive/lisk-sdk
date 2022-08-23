@@ -29,10 +29,9 @@ import {
 } from './schemas';
 
 export class RewardModule extends BaseModule {
-	public name = 'reward';
-	public api = new RewardAPI(this.name);
+	public api = new RewardAPI(this.stores, this.events);
 	public configSchema = configSchema;
-	public endpoint = new RewardEndpoint(this.name);
+	public endpoint = new RewardEndpoint(this.stores, this.offchainStores);
 	private _tokenAPI!: TokenAPI;
 	private _randomAPI!: RandomAPI;
 	private _tokenID!: Buffer;

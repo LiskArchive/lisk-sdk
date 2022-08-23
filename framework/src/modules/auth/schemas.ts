@@ -12,51 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	ED25519_PUBLIC_KEY_LENGTH,
-	ED25519_SIGNATURE_LENGTH,
-	MAX_NUMBER_OF_SIGNATURES,
-} from './constants';
-
-export const authAccountSchema = {
-	$id: '/auth/account',
-	type: 'object',
-	properties: {
-		nonce: {
-			dataType: 'uint64',
-			fieldNumber: 1,
-		},
-		numberOfSignatures: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-			minimum: 0,
-			maximum: MAX_NUMBER_OF_SIGNATURES,
-		},
-		mandatoryKeys: {
-			type: 'array',
-			items: {
-				dataType: 'bytes',
-				minLength: ED25519_PUBLIC_KEY_LENGTH,
-				maxLength: ED25519_PUBLIC_KEY_LENGTH,
-			},
-			minItems: 0,
-			maxItems: MAX_NUMBER_OF_SIGNATURES,
-			fieldNumber: 3,
-		},
-		optionalKeys: {
-			type: 'array',
-			items: {
-				dataType: 'bytes',
-				minLength: ED25519_PUBLIC_KEY_LENGTH,
-				maxLength: ED25519_PUBLIC_KEY_LENGTH,
-			},
-			minItems: 0,
-			maxItems: MAX_NUMBER_OF_SIGNATURES,
-			fieldNumber: 4,
-		},
-	},
-	required: ['nonce', 'numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
-};
+import { ED25519_PUBLIC_KEY_LENGTH, ED25519_SIGNATURE_LENGTH } from './constants';
 
 export const registerMultisignatureParamsSchema = {
 	$id: '/auth/command/regMultisig',

@@ -18,40 +18,37 @@ import { ValidatorsAPI, ValidatorsModule } from '../../../../src/modules/validat
 import {
 	MODULE_NAME_VALIDATORS,
 	EMPTY_KEY,
-	SUBSTORE_PREFIX_BLS_KEYS,
-	SUBSTORE_PREFIX_GENESIS_DATA,
-	SUBSTORE_PREFIX_VALIDATORS_DATA,
-	KEY_REG_RESULT_SUCCESS,
-	EVENT_NAME_BLS_KEY_REGISTRATION,
-	EVENT_NAME_GENERATOR_KEY_REGISTRATION,
-	KEY_REG_RESULT_ALREADY_VALIDATOR,
-	KEY_REG_RESULT_DUPLICATE_BLS_KEY,
-	KEY_REG_RESULT_INVALID_POP,
 	INVALID_BLS_KEY,
-	KEY_REG_RESULT_NO_VALIDATOR,
+	KeyRegResult,
 } from '../../../../src/modules/validators/constants';
 import * as generatorList from '../../../fixtures/config/devnet/delegates_for_first_round.json';
-import {
-	blsKeyRegDataSchema,
-	generatorKeyRegDataSchema,
-	genesisDataSchema,
-	validatorAccountSchema,
-	validatorAddressSchema,
-} from '../../../../src/modules/validators/schemas';
 import { APIContext, createNewAPIContext } from '../../../../src/state_machine/api_context';
 import { EventQueue } from '../../../../src/state_machine';
-import { ValidatorKeys } from '../../../../src/modules/validators/types';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
+import {
+	ValidatorKeys,
+	ValidatorKeysStore,
+} from '../../../../src/modules/validators/stores/validator_keys';
+import { BLSKeyStore } from '../../../../src/modules/validators/stores/bls_keys';
+import { GenesisStore } from '../../../../src/modules/validators/stores/genesis';
+import {
+	generatorKeyRegDataSchema,
+	GeneratorKeyRegistrationEvent,
+} from '../../../../src/modules/validators/events/generator_key_registration';
+import {
+	blsKeyRegDataSchema,
+	BLSKeyRegistrationEvent,
+} from '../../../../src/modules/validators/events/bls_key_registration';
 
 describe('ValidatorsModuleAPI', () => {
 	let validatorsAPI: ValidatorsAPI;
 	let validatorsModule: ValidatorsModule;
 	let apiContext: APIContext;
 	let stateStore: PrefixedStateReadWriter;
-	let validatorsSubStore: PrefixedStateReadWriter;
-	let blsKeysSubStore: PrefixedStateReadWriter;
-	let genesisDataSubStore: PrefixedStateReadWriter;
+	let validatorsSubStore: ValidatorKeysStore;
+	let blsKeysSubStore: BLSKeyStore;
+	let genesisDataSubStore: GenesisStore;
 	const genesisConfig: any = {};
 	const moduleConfig: any = {
 		blockTime: 10,
@@ -74,17 +71,11 @@ describe('ValidatorsModuleAPI', () => {
 	});
 
 	beforeEach(() => {
-		validatorsAPI = new ValidatorsAPI('validators');
+		validatorsAPI = new ValidatorsAPI(validatorsModule.stores, validatorsModule.events);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		validatorsSubStore = stateStore.getStore(
-			validatorsAPI['moduleID'],
-			SUBSTORE_PREFIX_VALIDATORS_DATA,
-		);
-		blsKeysSubStore = stateStore.getStore(validatorsAPI['moduleID'], SUBSTORE_PREFIX_BLS_KEYS);
-		genesisDataSubStore = stateStore.getStore(
-			validatorsAPI['moduleID'],
-			SUBSTORE_PREFIX_GENESIS_DATA,
-		);
+		validatorsSubStore = validatorsModule.stores.get(ValidatorKeysStore);
+		blsKeysSubStore = validatorsModule.stores.get(BLSKeyStore);
+		genesisDataSubStore = validatorsModule.stores.get(GenesisStore);
 	});
 
 	describe('registerValidatorKeys', () => {
@@ -96,12 +87,12 @@ describe('ValidatorsModuleAPI', () => {
 		it('should be able to create new validator account if validator address does not exist, bls key is not registered and proof of possession is valid', async () => {
 			const generatorEventData = codec.encode(generatorKeyRegDataSchema, {
 				generatorKey,
-				result: KEY_REG_RESULT_SUCCESS,
+				result: KeyRegResult.SUCCESS,
 			});
 			const blsEventData = codec.encode(blsKeyRegDataSchema, {
 				blsKey,
 				proofOfPossession,
-				result: KEY_REG_RESULT_SUCCESS,
+				result: KeyRegResult.SUCCESS,
 			});
 
 			await expect(
@@ -116,16 +107,18 @@ describe('ValidatorsModuleAPI', () => {
 			expect(apiContext.eventQueue.add).toHaveBeenNthCalledWith(
 				1,
 				MODULE_NAME_VALIDATORS,
-				EVENT_NAME_GENERATOR_KEY_REGISTRATION,
+				Buffer.from(validatorsModule.events.get(GeneratorKeyRegistrationEvent).name, 'utf8'),
 				generatorEventData,
 				[address],
+				false,
 			);
 			expect(apiContext.eventQueue.add).toHaveBeenNthCalledWith(
 				2,
 				MODULE_NAME_VALIDATORS,
-				EVENT_NAME_BLS_KEY_REGISTRATION,
+				Buffer.from(validatorsModule.events.get(BLSKeyRegistrationEvent).name, 'utf8'),
 				blsEventData,
 				[address],
+				false,
 			);
 		});
 
@@ -134,10 +127,10 @@ describe('ValidatorsModuleAPI', () => {
 				generatorKey,
 				blsKey,
 			};
-			await validatorsSubStore.setWithSchema(address, validatorAccount, validatorAccountSchema);
+			await validatorsSubStore.set(apiContext, address, validatorAccount);
 			const generatorEventData = codec.encode(generatorKeyRegDataSchema, {
 				generatorKey,
-				result: KEY_REG_RESULT_ALREADY_VALIDATOR,
+				result: KeyRegResult.ALREADY_VALIDATOR,
 			});
 
 			await expect(
@@ -151,7 +144,7 @@ describe('ValidatorsModuleAPI', () => {
 			).rejects.toThrow('This address is already registered as validator.');
 			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				EVENT_NAME_GENERATOR_KEY_REGISTRATION,
+				Buffer.from(validatorsModule.events.get(GeneratorKeyRegistrationEvent).name, 'utf8'),
 				generatorEventData,
 				[address],
 				true,
@@ -159,11 +152,11 @@ describe('ValidatorsModuleAPI', () => {
 		});
 
 		it('should not be able to create new validator account if validator address does not exist, bls key is already registered and proof of possession is valid', async () => {
-			await blsKeysSubStore.setWithSchema(blsKey, address, blsKeyRegDataSchema);
+			await blsKeysSubStore.set(apiContext, blsKey, { address });
 			const blsEventData = codec.encode(blsKeyRegDataSchema, {
 				blsKey,
 				proofOfPossession,
-				result: KEY_REG_RESULT_DUPLICATE_BLS_KEY,
+				result: KeyRegResult.DUPLICATE_BLS_KEY,
 			});
 
 			await expect(
@@ -179,7 +172,7 @@ describe('ValidatorsModuleAPI', () => {
 			);
 			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				EVENT_NAME_BLS_KEY_REGISTRATION,
+				Buffer.from(validatorsModule.events.get(BLSKeyRegistrationEvent).name, 'utf8'),
 				blsEventData,
 				[address],
 				true,
@@ -191,7 +184,7 @@ describe('ValidatorsModuleAPI', () => {
 			const blsEventData = codec.encode(blsKeyRegDataSchema, {
 				blsKey,
 				proofOfPossession: invalidProofOfPossession,
-				result: KEY_REG_RESULT_INVALID_POP,
+				result: KeyRegResult.INVALID_POP,
 			});
 
 			await expect(
@@ -205,7 +198,7 @@ describe('ValidatorsModuleAPI', () => {
 			).rejects.toThrow('Invalid proof of possession for the given BLS key.');
 			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				EVENT_NAME_BLS_KEY_REGISTRATION,
+				Buffer.from(validatorsModule.events.get(BLSKeyRegistrationEvent).name, 'utf8'),
 				blsEventData,
 				[address],
 				true,
@@ -223,13 +216,13 @@ describe('ValidatorsModuleAPI', () => {
 			const blsEventData = codec.encode(blsKeyRegDataSchema, {
 				blsKey,
 				proofOfPossession,
-				result: KEY_REG_RESULT_SUCCESS,
+				result: KeyRegResult.SUCCESS,
 			});
 			const validatorAccount = {
 				generatorKey,
 				blsKey: INVALID_BLS_KEY,
 			};
-			await validatorsSubStore.setWithSchema(address, validatorAccount, validatorAccountSchema);
+			await validatorsSubStore.set(apiContext, address, validatorAccount);
 			const isSet = await validatorsModule.api.setValidatorBLSKey(
 				apiContext,
 				address,
@@ -237,21 +230,19 @@ describe('ValidatorsModuleAPI', () => {
 				proofOfPossession,
 			);
 
-			const setValidatorAccount = await validatorsSubStore.getWithSchema<ValidatorKeys>(
-				address,
-				validatorAccountSchema,
-			);
+			const setValidatorAccount = await validatorsSubStore.get(apiContext, address);
 
-			const hasKey = await blsKeysSubStore.has(blsKey);
+			const hasKey = await blsKeysSubStore.has(apiContext, blsKey);
 
 			expect(isSet).toBe(true);
 			expect(setValidatorAccount.blsKey.toString('hex')).toBe(blsKey.toString('hex'));
 			expect(hasKey).toBe(true);
 			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				EVENT_NAME_BLS_KEY_REGISTRATION,
+				Buffer.from(validatorsModule.events.get(BLSKeyRegistrationEvent).name, 'utf8'),
 				blsEventData,
 				[address],
+				false,
 			);
 		});
 
@@ -259,7 +250,7 @@ describe('ValidatorsModuleAPI', () => {
 			const blsEventData = codec.encode(blsKeyRegDataSchema, {
 				blsKey,
 				proofOfPossession,
-				result: KEY_REG_RESULT_NO_VALIDATOR,
+				result: KeyRegResult.NO_VALIDATOR,
 			});
 			await expect(
 				validatorsModule.api.setValidatorBLSKey(apiContext, address, blsKey, proofOfPossession),
@@ -268,7 +259,7 @@ describe('ValidatorsModuleAPI', () => {
 			);
 			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				EVENT_NAME_BLS_KEY_REGISTRATION,
+				Buffer.from(validatorsModule.events.get(BLSKeyRegistrationEvent).name, 'utf8'),
 				blsEventData,
 				[address],
 				true,
@@ -279,14 +270,14 @@ describe('ValidatorsModuleAPI', () => {
 			const blsEventData = codec.encode(blsKeyRegDataSchema, {
 				blsKey,
 				proofOfPossession,
-				result: KEY_REG_RESULT_DUPLICATE_BLS_KEY,
+				result: KeyRegResult.DUPLICATE_BLS_KEY,
 			});
 			const validatorAccount = {
 				generatorKey,
 				blsKey,
 			};
-			await validatorsSubStore.setWithSchema(address, validatorAccount, validatorAccountSchema);
-			await blsKeysSubStore.set(blsKey, address);
+			await validatorsSubStore.set(apiContext, address, validatorAccount);
+			await blsKeysSubStore.set(apiContext, blsKey, { address });
 
 			await expect(
 				validatorsModule.api.setValidatorBLSKey(apiContext, address, blsKey, proofOfPossession),
@@ -295,7 +286,7 @@ describe('ValidatorsModuleAPI', () => {
 			);
 			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				EVENT_NAME_BLS_KEY_REGISTRATION,
+				Buffer.from(validatorsModule.events.get(BLSKeyRegistrationEvent).name, 'utf8'),
 				blsEventData,
 				[address],
 				true,
@@ -307,13 +298,13 @@ describe('ValidatorsModuleAPI', () => {
 			const blsEventData = codec.encode(blsKeyRegDataSchema, {
 				blsKey,
 				proofOfPossession: invalidProofOfPossession,
-				result: KEY_REG_RESULT_INVALID_POP,
+				result: KeyRegResult.INVALID_POP,
 			});
 			const validatorAccount = {
 				generatorKey,
 				blsKey: INVALID_BLS_KEY,
 			};
-			await validatorsSubStore.setWithSchema(address, validatorAccount, validatorAccountSchema);
+			await validatorsSubStore.set(apiContext, address, validatorAccount);
 
 			await expect(
 				validatorsModule.api.setValidatorBLSKey(
@@ -325,7 +316,7 @@ describe('ValidatorsModuleAPI', () => {
 			).rejects.toThrow('Invalid proof of possession for the given BLS key.');
 			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				EVENT_NAME_BLS_KEY_REGISTRATION,
+				Buffer.from(validatorsModule.events.get(BLSKeyRegistrationEvent).name, 'utf8'),
 				blsEventData,
 				[address],
 				true,
@@ -343,38 +334,36 @@ describe('ValidatorsModuleAPI', () => {
 			const generatorKey1 = utils.getRandomBytes(48);
 			const generatorEventData = codec.encode(generatorKeyRegDataSchema, {
 				generatorKey: generatorKey1,
-				result: KEY_REG_RESULT_SUCCESS,
+				result: KeyRegResult.SUCCESS,
 			});
 			const validatorAccount = {
 				generatorKey,
 				blsKey,
 			};
-			await validatorsSubStore.setWithSchema(address, validatorAccount, validatorAccountSchema);
+			await validatorsSubStore.set(apiContext, address, validatorAccount);
 
 			const isSet = await validatorsModule.api.setValidatorGeneratorKey(
 				apiContext,
 				address,
 				generatorKey1,
 			);
-			const setValidatorAccount = await validatorsSubStore.getWithSchema<ValidatorKeys>(
-				address,
-				validatorAccountSchema,
-			);
+			const setValidatorAccount = await validatorsSubStore.get(apiContext, address);
 
 			expect(isSet).toBe(true);
 			expect(setValidatorAccount.generatorKey.equals(generatorKey1)).toBe(true);
 			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				EVENT_NAME_GENERATOR_KEY_REGISTRATION,
+				Buffer.from(validatorsModule.events.get(GeneratorKeyRegistrationEvent).name, 'utf8'),
 				generatorEventData,
 				[address],
+				false,
 			);
 		});
 
 		it('should not be able to set generator key for validator if address does not exist', async () => {
 			const generatorEventData = codec.encode(generatorKeyRegDataSchema, {
 				generatorKey,
-				result: KEY_REG_RESULT_NO_VALIDATOR,
+				result: KeyRegResult.NO_VALIDATOR,
 			});
 
 			await expect(
@@ -384,7 +373,7 @@ describe('ValidatorsModuleAPI', () => {
 			);
 			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				EVENT_NAME_GENERATOR_KEY_REGISTRATION,
+				Buffer.from(validatorsModule.events.get(GeneratorKeyRegistrationEvent).name, 'utf8'),
 				generatorEventData,
 				[address],
 				true,
@@ -394,8 +383,8 @@ describe('ValidatorsModuleAPI', () => {
 
 	describe('isKeyRegistered', () => {
 		it('should return true if bls key is already registered', async () => {
-			await blsKeysSubStore.set(blsKey, address);
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			await blsKeysSubStore.set(apiContext, blsKey, { address });
 
 			await expect(validatorsModule.api.isKeyRegistered(apiContext, blsKey)).resolves.toBe(true);
 		});
@@ -409,12 +398,8 @@ describe('ValidatorsModuleAPI', () => {
 
 	describe('getGeneratorsBetweenTimestamps', () => {
 		it('should be able to return if input timestamps are valid', async () => {
-			await genesisDataSubStore.setWithSchema(
-				EMPTY_KEY,
-				{ timestamp: genesisTimestamp },
-				genesisDataSchema,
-			);
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			await genesisDataSubStore.set(apiContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			await expect(
 				validatorsModule.api.getGeneratorsBetweenTimestamps(
@@ -431,12 +416,8 @@ describe('ValidatorsModuleAPI', () => {
 			const validatorsPerRound = 101;
 			const timePerRound = validatorsPerRound * blockTime;
 
-			await genesisDataSubStore.setWithSchema(
-				EMPTY_KEY,
-				{ timestamp: genesisTimestamp },
-				genesisDataSchema,
-			);
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			await genesisDataSubStore.set(apiContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			const result = await validatorsModule.api.getGeneratorsBetweenTimestamps(
 				apiContext,
@@ -459,12 +440,8 @@ describe('ValidatorsModuleAPI', () => {
 			const validatorsPerRound = 101;
 			const timePerRound = validatorsPerRound * blockTime;
 
-			await genesisDataSubStore.setWithSchema(
-				EMPTY_KEY,
-				{ timestamp: genesisTimestamp },
-				genesisDataSchema,
-			);
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			await genesisDataSubStore.set(apiContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			const result = await validatorsModule.api.getGeneratorsBetweenTimestamps(
 				apiContext,
@@ -492,12 +469,8 @@ describe('ValidatorsModuleAPI', () => {
 		});
 
 		it('should be able to return no generator if input timestamps are valid and difference between input timestamps is zero', async () => {
-			await genesisDataSubStore.setWithSchema(
-				EMPTY_KEY,
-				{ timestamp: genesisTimestamp },
-				genesisDataSchema,
-			);
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			await genesisDataSubStore.set(apiContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			const result = await validatorsModule.api.getGeneratorsBetweenTimestamps(
 				apiContext,
@@ -512,12 +485,8 @@ describe('ValidatorsModuleAPI', () => {
 		it('should be able to return no generator if input timestamps are valid and difference between input timestamps is less than block time ', async () => {
 			const blockTime = 10;
 
-			await genesisDataSubStore.setWithSchema(
-				EMPTY_KEY,
-				{ timestamp: genesisTimestamp },
-				genesisDataSchema,
-			);
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			await genesisDataSubStore.set(apiContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			const result = await validatorsModule.api.getGeneratorsBetweenTimestamps(
 				apiContext,
@@ -532,12 +501,8 @@ describe('ValidatorsModuleAPI', () => {
 		it('should be able to return no generator if input timestamps are valid and difference between input timestamps is equal to block time ', async () => {
 			const blockTime = 10;
 
-			await genesisDataSubStore.setWithSchema(
-				EMPTY_KEY,
-				{ timestamp: genesisTimestamp },
-				genesisDataSchema,
-			);
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			await genesisDataSubStore.set(apiContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			const result = await validatorsModule.api.getGeneratorsBetweenTimestamps(
 				apiContext,
@@ -563,12 +528,8 @@ describe('ValidatorsModuleAPI', () => {
 		});
 
 		it('should throw if input timestamp is less than genesis timestamp', async () => {
-			await genesisDataSubStore.setWithSchema(
-				EMPTY_KEY,
-				{ timestamp: genesisTimestamp },
-				genesisDataSchema,
-			);
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			await genesisDataSubStore.set(apiContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			await expect(
 				validatorsModule.api.getGeneratorsBetweenTimestamps(
@@ -581,12 +542,8 @@ describe('ValidatorsModuleAPI', () => {
 		});
 
 		it('should return empty result when startSlotNumber is lower than endSlotNumber but in the same block slot', async () => {
-			await genesisDataSubStore.setWithSchema(
-				EMPTY_KEY,
-				{ timestamp: genesisTimestamp },
-				genesisDataSchema,
-			);
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			await genesisDataSubStore.set(apiContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			await expect(
 				validatorsModule.api.getGeneratorsBetweenTimestamps(
@@ -599,12 +556,8 @@ describe('ValidatorsModuleAPI', () => {
 		});
 
 		it('should return empty result when startSlotNumber equals endSlotNumber but in the same block slot', async () => {
-			await genesisDataSubStore.setWithSchema(
-				EMPTY_KEY,
-				{ timestamp: genesisTimestamp },
-				genesisDataSchema,
-			);
 			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			await genesisDataSubStore.set(apiContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			await expect(
 				validatorsModule.api.getGeneratorsBetweenTimestamps(
@@ -628,11 +581,8 @@ describe('ValidatorsModuleAPI', () => {
 				blsKey: utils.getRandomBytes(32),
 			};
 
-			const validatorsStore = apiContext.getStore(
-				validatorsAPI['moduleID'],
-				SUBSTORE_PREFIX_VALIDATORS_DATA,
-			);
-			await validatorsStore.setWithSchema(validAddress, validatorAccount, validatorAccountSchema);
+			const validatorsStore = validatorsModule.stores.get(ValidatorKeysStore);
+			await validatorsStore.set(apiContext, validAddress, validatorAccount);
 		});
 
 		it('should get validator from store', async () => {
@@ -664,7 +614,7 @@ describe('ValidatorsModuleAPI', () => {
 		});
 
 		it('should get address if it exists in store', async () => {
-			await blsKeysSubStore.setWithSchema(blsKey, { address }, validatorAddressSchema);
+			await blsKeysSubStore.set(apiContext, blsKey, { address });
 			await expect(validatorsAPI.getAddressFromBLSKey(apiContext, blsKey)).resolves.toEqual({
 				address,
 			});
@@ -686,44 +636,42 @@ describe('ValidatorsModuleAPI', () => {
 		it('should be able to register validator key for validator if address does not exist', async () => {
 			const generatorEventData = codec.encode(generatorKeyRegDataSchema, {
 				generatorKey,
-				result: KEY_REG_RESULT_SUCCESS,
+				result: KeyRegResult.SUCCESS,
 			});
 			const isSet = await validatorsModule.api.registerValidatorWithoutBLSKey(
 				apiContext,
 				address,
 				generatorKey,
 			);
-			const setValidatorAccount = await validatorsSubStore.getWithSchema<ValidatorKeys>(
-				address,
-				validatorAccountSchema,
-			);
+			const setValidatorAccount = await validatorsSubStore.get(apiContext, address);
 
 			expect(isSet).toBe(true);
 			expect(setValidatorAccount.generatorKey.equals(generatorKey)).toBe(true);
 			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				EVENT_NAME_GENERATOR_KEY_REGISTRATION,
+				Buffer.from(validatorsModule.events.get(GeneratorKeyRegistrationEvent).name, 'utf8'),
 				generatorEventData,
 				[address],
+				false,
 			);
 		});
 
 		it('should throw error if address already registered as validator', async () => {
 			const generatorEventData = codec.encode(generatorKeyRegDataSchema, {
 				generatorKey,
-				result: KEY_REG_RESULT_ALREADY_VALIDATOR,
+				result: KeyRegResult.ALREADY_VALIDATOR,
 			});
 			const validatorAccount = {
 				generatorKey,
 				blsKey,
 			};
-			await validatorsSubStore.setWithSchema(address, validatorAccount, validatorAccountSchema);
+			await validatorsSubStore.set(apiContext, address, validatorAccount);
 			await expect(
 				validatorsModule.api.registerValidatorWithoutBLSKey(apiContext, address, generatorKey),
 			).rejects.toThrow('This address is already registered as validator.');
 			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				EVENT_NAME_GENERATOR_KEY_REGISTRATION,
+				Buffer.from(validatorsModule.events.get(GeneratorKeyRegistrationEvent).name, 'utf8'),
 				generatorEventData,
 				[address],
 				true,

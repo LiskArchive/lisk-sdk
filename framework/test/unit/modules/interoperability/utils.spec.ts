@@ -17,34 +17,22 @@ import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as merkleTree from '@liskhq/lisk-tree';
 import { BlockAssets } from '@liskhq/lisk-chain';
-import { when } from 'jest-when';
-import { VerifyStatus } from '../../../../src';
+import { MainchainInteroperabilityModule, VerifyStatus } from '../../../../src';
 import {
 	CCM_STATUS_OK,
 	CHAIN_REGISTERED,
 	CHAIN_TERMINATED,
+	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	EMPTY_BYTES,
 	LIVENESS_LIMIT,
 	MAINCHAIN_ID_BUFFER,
 	MAX_NUM_VALIDATORS,
 	MAX_UINT64,
-	MODULE_ID_INTEROPERABILITY_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
-	STORE_PREFIX_CHAIN_DATA,
-	STORE_PREFIX_CHAIN_VALIDATORS,
-	STORE_PREFIX_CHANNEL_DATA,
-	STORE_PREFIX_OUTBOX_ROOT,
-	STORE_PREFIX_OWN_CHAIN_DATA,
-	STORE_PREFIX_REGISTERED_NAMES,
-	STORE_PREFIX_REGISTERED_NETWORK_IDS,
-	STORE_PREFIX_TERMINATED_OUTBOX,
-	STORE_PREFIX_TERMINATED_STATE,
 } from '../../../../src/modules/interoperability/constants';
 import {
 	ccmSchema,
-	channelSchema,
 	genesisInteroperabilityStoreSchema,
-	ownChainAccountSchema,
 } from '../../../../src/modules/interoperability/schemas';
 import {
 	ChainAccount,
@@ -72,19 +60,29 @@ import { Certificate } from '../../../../src/engine/consensus/certificate_genera
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { createGenesisBlockContext } from '../../../../src/testing';
+import { ChainAccountStore } from '../../../../src/modules/interoperability/stores/chain_account';
+import { RegisteredNamesStore } from '../../../../src/modules/interoperability/stores/registered_names';
+import { RegisteredNetworkStore } from '../../../../src/modules/interoperability/stores/registered_network_ids';
+import { ChainValidatorsStore } from '../../../../src/modules/interoperability/stores/chain_validators';
+import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
+import { TerminatedOutboxStore } from '../../../../src/modules/interoperability/stores/terminated_outbox';
+import { OutboxRootStore } from '../../../../src/modules/interoperability/stores/outbox_root';
+import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
+import { OwnChainAccountStore } from '../../../../src/modules/interoperability/stores/own_chain_account';
+import { createStoreGetter } from '../../../../src/testing/utils';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
 }));
 
 describe('Utils', () => {
+	const interopMod = new MainchainInteroperabilityModule();
 	const defaultActiveValidatorsUpdate = [
 		{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(1) },
 		{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
 		{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(4) },
 		{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
 	];
-	const moduleID = MODULE_ID_INTEROPERABILITY_BUFFER;
 
 	describe('updateActiveValidators', () => {
 		const validator1 = {
@@ -629,9 +627,9 @@ describe('Utils', () => {
 
 		const defaultCCMs = [
 			{
-				crossChainCommandID: utils.intToBuffer(1, 4),
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 				fee: BigInt(0),
-				moduleID: utils.intToBuffer(1, 4),
+				module: MODULE_NAME_INTEROPERABILITY,
 				nonce: BigInt(1),
 				params: Buffer.alloc(2),
 				receivingChainID: utils.intToBuffer(2, 4),
@@ -641,7 +639,7 @@ describe('Utils', () => {
 			{
 				crossChainCommandID: utils.intToBuffer(2, 4),
 				fee: BigInt(0),
-				moduleID: utils.intToBuffer(1, 4),
+				module: MODULE_NAME_INTEROPERABILITY,
 				nonce: BigInt(1),
 				params: Buffer.alloc(2),
 				receivingChainID: utils.intToBuffer(3, 4),
@@ -652,9 +650,9 @@ describe('Utils', () => {
 
 		const inboxUpdateCCMs = [
 			{
-				crossChainCommandID: utils.intToBuffer(1, 4),
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 				fee: BigInt(0),
-				moduleID: utils.intToBuffer(1, 4),
+				module: MODULE_NAME_INTEROPERABILITY,
 				nonce: BigInt(2),
 				params: Buffer.alloc(4),
 				receivingChainID: utils.intToBuffer(90, 4),
@@ -664,7 +662,7 @@ describe('Utils', () => {
 			{
 				crossChainCommandID: utils.intToBuffer(2, 4),
 				fee: BigInt(0),
-				moduleID: utils.intToBuffer(1, 4),
+				module: MODULE_NAME_INTEROPERABILITY,
 				nonce: BigInt(10),
 				params: Buffer.alloc(4),
 				receivingChainID: utils.intToBuffer(70, 4),
@@ -737,6 +735,7 @@ describe('Utils', () => {
 		it('should return VerifyStatus.OK when inboxUpdate is empty', () => {
 			const txParamsEmptyInboxUpdate = { ...txParams, inboxUpdate: inboxUpdateEmpty };
 			const { status, error } = checkInboxUpdateValidity(
+				interopMod.stores,
 				txParamsEmptyInboxUpdate,
 				partnerChannelData,
 			);
@@ -749,7 +748,11 @@ describe('Utils', () => {
 				const smtVerifySpy = jest
 					.spyOn(merkleTree.sparseMerkleTree, 'verify')
 					.mockReturnValue({} as never);
-				const { status, error } = checkInboxUpdateValidity(txParams, partnerChannelData);
+				const { status, error } = checkInboxUpdateValidity(
+					interopMod.stores,
+					txParams,
+					partnerChannelData,
+				);
 				expect(status).toEqual(VerifyStatus.OK);
 				expect(error).toBeUndefined();
 				expect(smtVerifySpy).toHaveBeenCalled();
@@ -784,6 +787,7 @@ describe('Utils', () => {
 					sendingChainID: utils.intToBuffer(2, 4),
 				};
 				const { status, error } = checkInboxUpdateValidity(
+					interopMod.stores,
 					txParamsEmptyMessageWitness,
 					partnerChannelData,
 				);
@@ -801,7 +805,11 @@ describe('Utils', () => {
 					.spyOn(merkleTree.sparseMerkleTree, 'verify')
 					.mockReturnValue(false);
 
-				const { status, error } = checkInboxUpdateValidity(txParams, partnerChannelData);
+				const { status, error } = checkInboxUpdateValidity(
+					interopMod.stores,
+					txParams,
+					partnerChannelData,
+				);
 				expect(status).toEqual(VerifyStatus.FAIL);
 				expect(error?.message).toEqual(
 					'Failed at verifying state root when messageWitness and certificate are non-empty.',
@@ -818,7 +826,11 @@ describe('Utils', () => {
 					.spyOn(merkleTree.sparseMerkleTree, 'verify')
 					.mockReturnValue(true);
 
-				const { status, error } = checkInboxUpdateValidity(txParams, partnerChannelData);
+				const { status, error } = checkInboxUpdateValidity(
+					interopMod.stores,
+					txParams,
+					partnerChannelData,
+				);
 				expect(status).toEqual(VerifyStatus.OK);
 				expect(error).toBeUndefined();
 				expect(calculateRootFromRightWitnessSpy).toHaveBeenCalled();
@@ -846,6 +858,7 @@ describe('Utils', () => {
 					.mockReturnValue(partnerChannelData.partnerChainOutboxRoot);
 
 				const { status, error } = checkInboxUpdateValidity(
+					interopMod.stores,
 					txParamsWithEmptyCertificate,
 					partnerChannelData,
 				);
@@ -880,6 +893,7 @@ describe('Utils', () => {
 					.mockReturnValue({ root: partnerChannelData.partnerChainOutboxRoot } as never);
 
 				const { status, error } = checkInboxUpdateValidity(
+					interopMod.stores,
 					txParamsEmptyMessageWitness,
 					partnerChannelData,
 				);
@@ -915,6 +929,7 @@ describe('Utils', () => {
 					.mockReturnValue({ root: cryptography.utils.getRandomBytes(32) } as never);
 
 				const { status, error } = checkInboxUpdateValidity(
+					interopMod.stores,
 					txParamsEmptyMessageWitness,
 					partnerChannelData,
 				);
@@ -935,16 +950,16 @@ describe('Utils', () => {
 		let inboxUpdate: InboxUpdate;
 		let certificate: any;
 		let partnerChainAccount: any;
-		let partnerValidatorStore: any;
-		let partnerChainStore: any;
+		let partnerValidatorStore: ChainValidatorsStore;
+		let partnerChainStore: ChainAccountStore;
 		let partnerValidators: any;
 		let params: any;
-		let partnerChannelStoreMock: any;
+		let partnerChannelStoreMock: ChannelDataStore;
 		let partnerChannelData: any;
 		let context: any;
 		let calculateRootFromRightWitness: any;
 
-		beforeEach(() => {
+		beforeEach(async () => {
 			activeValidatorsUpdate = [
 				{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(1) },
 				{ blsKey: cryptography.utils.getRandomBytes(48), bftWeight: BigInt(3) },
@@ -973,12 +988,8 @@ describe('Utils', () => {
 				lastCertificate: { ...certificate, height: 5 },
 				height: 8,
 			};
-			partnerValidatorStore = {
-				setWithSchema: jest.fn(),
-			};
-			partnerChainStore = {
-				setWithSchema: jest.fn(),
-			};
+			partnerValidatorStore = interopMod.stores.get(ChainValidatorsStore);
+			partnerChainStore = interopMod.stores.get(ChainAccountStore);
 			partnerValidators = {
 				activeValidators: activeValidatorsUpdate,
 				certificateThreshold: BigInt(12),
@@ -989,46 +1000,50 @@ describe('Utils', () => {
 				certificate: Buffer.alloc(2),
 				inboxUpdate,
 			};
-			partnerChannelStoreMock = {
-				getWithSchema: jest.fn(),
-				setWithSchema: jest.fn(),
-			};
+			partnerChannelStoreMock = interopMod.stores.get(ChannelDataStore);
+
 			partnerChannelData = {
 				partnerChainOutboxRoot: Buffer.alloc(1),
 				inbox: {
-					size: BigInt(2),
+					size: 2,
 					appendPath: [Buffer.alloc(1)],
 					root: cryptography.utils.getRandomBytes(20),
 				},
+				outbox: {
+					size: 0,
+					appendPath: [],
+					root: Buffer.alloc(0),
+				},
+				messageFeeTokenID: {
+					chainID: Buffer.from([0, 0, 0, 0]),
+					localID: Buffer.from([0, 0, 0, 0]),
+				},
 			};
+			const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 			context = {
-				getStore: jest.fn(),
+				getStore: (modulePrefix: Buffer, storePrefix: Buffer) =>
+					stateStore.getStore(modulePrefix, storePrefix),
 				params,
 				transaction: {
-					moduleID: utils.intToBuffer(1, 4),
+					module: MODULE_NAME_INTEROPERABILITY,
 				},
 			};
 
-			when(context.getStore)
-				.calledWith(moduleID, STORE_PREFIX_CHANNEL_DATA)
-				.mockReturnValueOnce(partnerChannelStoreMock);
-
-			when(partnerChannelStoreMock.getWithSchema)
-				.calledWith(chainIDBuffer, channelSchema)
-				.mockResolvedValueOnce(partnerChannelData as never);
-
-			when(partnerChannelStoreMock.setWithSchema)
-				.calledWith(chainIDBuffer, partnerChannelData, channelSchema)
-				.mockResolvedValueOnce({} as never);
+			await partnerChannelStoreMock.set(context, chainIDBuffer, partnerChannelData);
 			calculateRootFromRightWitness = jest
 				.spyOn(merkleTree.regularMerkleTree, 'calculateRootFromRightWitness')
 				.mockReturnValue(defaultCalculatedRootFromRightWitness);
+
+			jest.spyOn(partnerChainStore, 'set');
+			jest.spyOn(partnerValidatorStore, 'set');
+			jest.spyOn(partnerChannelStoreMock, 'get');
+			jest.spyOn(partnerChannelStoreMock, 'set');
 		});
 
 		it('should run successfully and return undefined when newCertificateThreshold is non-zero', async () => {
 			await expect(
 				commonCCUExecutelogic({
-					moduleID,
+					stores: interopMod.stores,
 					certificate,
 					partnerChainAccount,
 					partnerValidatorStore,
@@ -1038,13 +1053,15 @@ describe('Utils', () => {
 					context,
 				}),
 			).resolves.toBeUndefined();
-			expect(partnerValidatorStore.setWithSchema).toHaveBeenCalledTimes(1);
-			expect(partnerChainStore.setWithSchema).toHaveBeenCalledTimes(1);
-			expect(partnerChannelStoreMock.getWithSchema).toHaveBeenCalledTimes(1);
-			expect(partnerChannelStoreMock.setWithSchema).toHaveBeenCalledTimes(1);
-			expect(context.getStore).toHaveBeenCalledTimes(1);
+			expect(partnerValidatorStore.set).toHaveBeenCalledTimes(1);
+			expect(partnerChainStore.set).toHaveBeenCalledTimes(1);
+			expect(partnerChannelStoreMock.get).toHaveBeenCalledTimes(1);
+			expect(partnerChannelStoreMock.set).toHaveBeenCalledTimes(1);
 			expect(partnerValidators.certificateThreshold).toEqual(params.newCertificateThreshold);
-			expect(partnerChannelData.partnerChainOutboxRoot).toEqual(
+
+			const updatedPartnerChannelData = await partnerChannelStoreMock.get(context, chainIDBuffer);
+
+			expect(updatedPartnerChannelData.partnerChainOutboxRoot).toEqual(
 				defaultCalculatedRootFromRightWitness,
 			);
 		});
@@ -1060,7 +1077,7 @@ describe('Utils', () => {
 
 			await expect(
 				commonCCUExecutelogic({
-					moduleID,
+					stores: interopMod.stores,
 					certificate,
 					partnerChainAccount,
 					partnerValidatorStore,
@@ -1070,13 +1087,15 @@ describe('Utils', () => {
 					context: contextWithThresholdZero,
 				}),
 			).resolves.toBeUndefined();
-			expect(partnerValidatorStore.setWithSchema).toHaveBeenCalledTimes(1);
-			expect(partnerChainStore.setWithSchema).toHaveBeenCalledTimes(1);
-			expect(partnerChannelStoreMock.getWithSchema).toHaveBeenCalledTimes(1);
-			expect(partnerChannelStoreMock.setWithSchema).toHaveBeenCalledTimes(1);
-			expect(context.getStore).toHaveBeenCalledTimes(1);
+			expect(partnerValidatorStore.set).toHaveBeenCalledTimes(1);
+			expect(partnerChainStore.set).toHaveBeenCalledTimes(1);
+			expect(partnerChannelStoreMock.get).toHaveBeenCalledTimes(1);
+			expect(partnerChannelStoreMock.set).toHaveBeenCalledTimes(1);
 			expect(partnerValidators.certificateThreshold).toEqual(BigInt(12)); // original partnerValidator value unchanged
-			expect(partnerChannelData.partnerChainOutboxRoot).toEqual(
+
+			const updatedPartnerChannelData = await partnerChannelStoreMock.get(context, chainIDBuffer);
+
+			expect(updatedPartnerChannelData.partnerChainOutboxRoot).toEqual(
 				defaultCalculatedRootFromRightWitness,
 			);
 		});
@@ -1092,7 +1111,7 @@ describe('Utils', () => {
 
 			await expect(
 				commonCCUExecutelogic({
-					moduleID,
+					stores: interopMod.stores,
 					certificate: {} as any,
 					partnerChainAccount,
 					partnerValidatorStore,
@@ -1102,13 +1121,15 @@ describe('Utils', () => {
 					context: contextWithEmptyCertificate,
 				}),
 			).resolves.toBeUndefined();
-			expect(partnerValidatorStore.setWithSchema).toHaveBeenCalledTimes(1);
-			expect(partnerChainStore.setWithSchema).not.toHaveBeenCalled();
-			expect(partnerChannelStoreMock.getWithSchema).toHaveBeenCalledTimes(1);
-			expect(partnerChannelStoreMock.setWithSchema).toHaveBeenCalledTimes(1);
-			expect(context.getStore).toHaveBeenCalledTimes(1);
+			expect(partnerValidatorStore.set).toHaveBeenCalledTimes(1);
+			expect(partnerChainStore.set).not.toHaveBeenCalled();
+			expect(partnerChannelStoreMock.get).toHaveBeenCalledTimes(1);
+			expect(partnerChannelStoreMock.set).toHaveBeenCalledTimes(1);
 			expect(partnerChainAccount.lastCertificate.height).toEqual(5); // original partnerValidator value unchange
-			expect(partnerChannelData.partnerChainOutboxRoot).toEqual(
+
+			const updatedPartnerChannelData = await partnerChannelStoreMock.get(context, chainIDBuffer);
+
+			expect(updatedPartnerChannelData.partnerChainOutboxRoot).toEqual(
 				defaultCalculatedRootFromRightWitness,
 			);
 			expect(calculateRootFromRightWitness).toHaveBeenCalled();
@@ -1134,7 +1155,7 @@ describe('Utils', () => {
 
 			await expect(
 				commonCCUExecutelogic({
-					moduleID,
+					stores: interopMod.stores,
 					certificate,
 					partnerChainAccount,
 					partnerValidatorStore,
@@ -1144,20 +1165,23 @@ describe('Utils', () => {
 					context: contextWithEmptyMessageWitness,
 				}),
 			).resolves.toBeUndefined();
-			expect(partnerValidatorStore.setWithSchema).toHaveBeenCalledTimes(1);
-			expect(partnerChainStore.setWithSchema).toHaveBeenCalledTimes(1);
-			expect(partnerChannelStoreMock.getWithSchema).toHaveBeenCalledTimes(1);
-			expect(partnerChannelStoreMock.setWithSchema).toHaveBeenCalledTimes(1);
-			expect(context.getStore).toHaveBeenCalledTimes(1);
+			expect(partnerValidatorStore.set).toHaveBeenCalledTimes(1);
+			expect(partnerChainStore.set).toHaveBeenCalledTimes(1);
+			expect(partnerChannelStoreMock.get).toHaveBeenCalledTimes(1);
+			expect(partnerChannelStoreMock.set).toHaveBeenCalledTimes(1);
 			expect(partnerChainAccount.lastCertificate.height).toEqual(certificate.height);
-			expect(partnerChannelData.partnerChainOutboxRoot).toEqual(partnerChannelData.inbox.root);
+
+			const updatedPartnerChannelData = await partnerChannelStoreMock.get(context, chainIDBuffer);
+
+			expect(updatedPartnerChannelData.partnerChainOutboxRoot).toEqual(
+				partnerChannelData.inbox.root,
+			);
 			expect(calculateRootFromRightWitness).not.toHaveBeenCalled();
 		});
 	});
 
 	describe('initGenesisStateUtil', () => {
 		const { getRandomBytes } = cryptography.utils;
-		const chainID = MODULE_ID_INTEROPERABILITY_BUFFER;
 		const timestamp = 2592000 * 100;
 		const chainAccount = {
 			name: 'account1',
@@ -1279,100 +1303,40 @@ describe('Utils', () => {
 			],
 		};
 
-		let channelDataSubstore: any;
-		let outboxRootSubstore: any;
-		let terminatedOutboxSubstore: any;
+		let channelDataSubstore: ChannelDataStore;
+		let outboxRootSubstore: OutboxRootStore;
+		let terminatedOutboxSubstore: TerminatedOutboxStore;
 		let stateStore: PrefixedStateReadWriter;
-		let chainDataSubstore: any;
-		let terminatedStateSubstore: any;
-		let chainValidatorsSubstore: any;
-		let ownChainDataSubstore: any;
-		let registeredNamesSubstore: any;
-		let registeredNetworkIDsSubstore: any;
-
-		let mockGetStore: any;
+		let chainDataSubstore: ChainAccountStore;
+		let terminatedStateSubstore: TerminatedStateStore;
+		let chainValidatorsSubstore: ChainValidatorsStore;
+		let ownChainDataSubstore: OwnChainAccountStore;
+		let registeredNamesSubstore: RegisteredNamesStore;
+		let registeredNetworkIDsSubstore: RegisteredNetworkStore;
 
 		beforeEach(async () => {
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-			ownChainDataSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				STORE_PREFIX_OWN_CHAIN_DATA,
-			);
-			await ownChainDataSubstore.setWithSchema(
+			ownChainDataSubstore = interopMod.stores.get(OwnChainAccountStore);
+			await ownChainDataSubstore.set(
+				createStoreGetter(stateStore),
 				MAINCHAIN_ID_BUFFER,
 				ownChainAccount,
-				ownChainAccountSchema,
 			);
-			channelDataSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				STORE_PREFIX_CHANNEL_DATA,
-			);
-			chainValidatorsSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				STORE_PREFIX_CHAIN_VALIDATORS,
-			);
-			outboxRootSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				STORE_PREFIX_OUTBOX_ROOT,
-			);
-			terminatedOutboxSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				STORE_PREFIX_TERMINATED_OUTBOX,
-			);
-			chainDataSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				STORE_PREFIX_CHAIN_DATA,
-			);
-			terminatedStateSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				STORE_PREFIX_TERMINATED_STATE,
-			);
-			registeredNamesSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				STORE_PREFIX_REGISTERED_NAMES,
-			);
-			registeredNetworkIDsSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				STORE_PREFIX_REGISTERED_NETWORK_IDS,
-			);
-
-			mockGetStore = jest.fn();
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHANNEL_DATA)
-				.mockReturnValue(channelDataSubstore);
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_OUTBOX_ROOT)
-				.mockReturnValue(outboxRootSubstore);
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_TERMINATED_OUTBOX)
-				.mockReturnValue(terminatedOutboxSubstore);
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_DATA)
-				.mockReturnValue(chainDataSubstore);
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_TERMINATED_STATE)
-				.mockReturnValue(terminatedStateSubstore);
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_VALIDATORS)
-				.mockReturnValue(chainValidatorsSubstore);
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_OWN_CHAIN_DATA)
-				.mockReturnValue(ownChainDataSubstore);
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_REGISTERED_NAMES)
-				.mockReturnValue(registeredNamesSubstore);
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_REGISTERED_NETWORK_IDS)
-				.mockReturnValue(registeredNetworkIDsSubstore);
+			channelDataSubstore = interopMod.stores.get(ChannelDataStore);
+			chainValidatorsSubstore = interopMod.stores.get(ChainValidatorsStore);
+			outboxRootSubstore = interopMod.stores.get(OutboxRootStore);
+			terminatedOutboxSubstore = interopMod.stores.get(TerminatedOutboxStore);
+			chainDataSubstore = interopMod.stores.get(ChainAccountStore);
+			terminatedStateSubstore = interopMod.stores.get(TerminatedStateStore);
+			registeredNamesSubstore = interopMod.stores.get(RegisteredNamesStore);
+			registeredNetworkIDsSubstore = interopMod.stores.get(RegisteredNetworkStore);
 		});
 
 		it('should not throw error if asset does not exist', async () => {
 			const context = createGenesisBlockContext({ stateStore }).createInitGenesisStateContext();
 			jest.spyOn(context, 'getStore');
 
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).toResolve();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).toResolve();
 			expect(context.getStore).not.toHaveBeenCalled();
 		});
 
@@ -1383,9 +1347,7 @@ describe('Utils', () => {
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
 
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if outbox root store key is duplicated', async () => {
@@ -1401,9 +1363,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if chain data store key is duplicated', async () => {
@@ -1419,9 +1379,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if channel data store key is duplicated', async () => {
@@ -1437,9 +1395,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if chain validators store key is duplicated', async () => {
@@ -1455,9 +1411,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if own chain store key is duplicated', async () => {
@@ -1473,9 +1427,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if terminated state store key is duplicated', async () => {
@@ -1491,9 +1443,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if terminated outbox store key is duplicated', async () => {
@@ -1509,9 +1459,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if registered names store key is duplicated', async () => {
@@ -1527,9 +1475,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if registered network ids store key is duplicated', async () => {
@@ -1545,9 +1491,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if some store key in chain data substore is missing in outbox root substore and the corresponding chain account is not inactive', async () => {
@@ -1563,9 +1507,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if some store key in chain data substore is present in outbox root substore but the corresponding chain account is inactive', async () => {
@@ -1581,9 +1523,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if some store key in chain data substore is missing in channel data substore', async () => {
@@ -1599,9 +1539,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if some store key in chain data substore is missing in chain validators substore', async () => {
@@ -1617,9 +1555,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if some store key in outbox data substore is missing in chain data substore', async () => {
@@ -1635,9 +1571,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if some store key in channel data substore is missing in chain data substore', async () => {
@@ -1653,9 +1587,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if some store key in chain validators substore is missing in chain data substore', async () => {
@@ -1671,9 +1603,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if some store key in terminated outbox substore is missing in the terminated state substore', async () => {
@@ -1689,9 +1619,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if some store key in terminated state substore is present in the terminated outbox substore but the property initialized is set to false', async () => {
@@ -1710,9 +1638,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if some store key in terminated state substore has the property initialized set to false but stateRoot is not set to empty bytes and mainchainStateRoot not set to a 32-bytes value', async () => {
@@ -1731,9 +1657,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if some store key in terminated state substore has the property initialized set to true but mainchainStateRoot is not set to empty bytes and stateRoot not set to a 32-bytes value', async () => {
@@ -1757,9 +1681,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if active validators have less than 1 element', async () => {
@@ -1778,9 +1700,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if active validators have more than MAX_NUM_VALIDATORS elements', async () => {
@@ -1802,9 +1722,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if active validators are not ordered lexicographically by blsKey', async () => {
@@ -1841,9 +1759,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if some active validators have blsKey which is not 48 bytes', async () => {
@@ -1877,9 +1793,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if some active validators have blsKey which is not pairwise distinct', async () => {
@@ -1916,9 +1830,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if some active validators have bftWeight which is not a positive integer', async () => {
@@ -1955,9 +1867,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if total bft weight of active validators is greater than MAX_UINT64', async () => {
@@ -1994,9 +1904,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if total bft weight of active validators is less than the value check', async () => {
@@ -2024,9 +1932,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if certificateThreshold is less than the value check', async () => {
@@ -2045,9 +1951,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if a chain account for another sidechain is present but chain account for mainchain is not present', async () => {
@@ -2075,9 +1979,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if a chain account for another sidechain is present but chain account for ownchain is not present', async () => {
@@ -2105,9 +2007,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should not throw if some chain id corresponding to message fee token id of a channel is not 1 but is corresponding native token id of either chains', async () => {
@@ -2132,9 +2032,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).toResolve();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).toResolve();
 		});
 
 		it('should throw if some chain id corresponding to message fee token id of a channel is neither 1 nor corresponding native token id of either chains', async () => {
@@ -2159,9 +2057,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should throw if some chain id corresponding to message fee token id of a channel is 1 but corresponding local id is not 0', async () => {
@@ -2186,9 +2082,7 @@ describe('Utils', () => {
 				stateStore,
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).rejects.toThrow();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).rejects.toThrow();
 		});
 
 		it('should create all the corresponding entries in the interoperability module state for every substore for valid input', async () => {
@@ -2198,73 +2092,62 @@ describe('Utils', () => {
 				assets: new BlockAssets([{ module: MODULE_NAME_INTEROPERABILITY, data: encodedAsset }]),
 			}).createInitGenesisStateContext();
 
-			await expect(
-				initGenesisStateUtil(chainID, MODULE_NAME_INTEROPERABILITY, context),
-			).toResolve();
+			await expect(initGenesisStateUtil(context, interopMod.stores)).toResolve();
 
-			channelDataSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				STORE_PREFIX_CHANNEL_DATA,
-			);
-			chainValidatorsSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				STORE_PREFIX_CHAIN_VALIDATORS,
-			);
-			outboxRootSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				STORE_PREFIX_OUTBOX_ROOT,
-			);
-			terminatedOutboxSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				STORE_PREFIX_TERMINATED_OUTBOX,
-			);
-			chainDataSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				STORE_PREFIX_CHAIN_DATA,
-			);
-			terminatedStateSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				STORE_PREFIX_TERMINATED_STATE,
-			);
-			registeredNamesSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				STORE_PREFIX_REGISTERED_NAMES,
-			);
-			registeredNetworkIDsSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				STORE_PREFIX_REGISTERED_NETWORK_IDS,
-			);
-			ownChainDataSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				STORE_PREFIX_OWN_CHAIN_DATA,
-			);
+			channelDataSubstore = interopMod.stores.get(ChannelDataStore);
+			chainValidatorsSubstore = interopMod.stores.get(ChainValidatorsStore);
+			outboxRootSubstore = interopMod.stores.get(OutboxRootStore);
+			terminatedOutboxSubstore = interopMod.stores.get(TerminatedOutboxStore);
+			chainDataSubstore = interopMod.stores.get(ChainAccountStore);
+			terminatedStateSubstore = interopMod.stores.get(TerminatedStateStore);
+			registeredNamesSubstore = interopMod.stores.get(RegisteredNamesStore);
+			registeredNetworkIDsSubstore = interopMod.stores.get(RegisteredNetworkStore);
+			ownChainDataSubstore = interopMod.stores.get(OwnChainAccountStore);
 
 			for (const data of validData.chainDataSubstore) {
-				await expect(chainDataSubstore.has(data.storeKey)).resolves.toBeTrue();
+				await expect(
+					chainDataSubstore.has(createStoreGetter(stateStore), data.storeKey),
+				).resolves.toBeTrue();
 			}
 			for (const data of validData.chainValidatorsSubstore) {
-				await expect(chainValidatorsSubstore.has(data.storeKey)).resolves.toBeTrue();
+				await expect(
+					chainValidatorsSubstore.has(createStoreGetter(stateStore), data.storeKey),
+				).resolves.toBeTrue();
 			}
 			for (const data of validData.outboxRootSubstore) {
-				await expect(outboxRootSubstore.has(data.storeKey)).resolves.toBeTrue();
+				await expect(
+					outboxRootSubstore.has(createStoreGetter(stateStore), data.storeKey),
+				).resolves.toBeTrue();
 			}
 			for (const data of validData.terminatedOutboxSubstore) {
-				await expect(terminatedOutboxSubstore.has(data.storeKey)).resolves.toBeTrue();
+				await expect(
+					terminatedOutboxSubstore.has(createStoreGetter(stateStore), data.storeKey),
+				).resolves.toBeTrue();
 			}
 			for (const data of validData.channelDataSubstore) {
-				await expect(channelDataSubstore.has(data.storeKey)).resolves.toBeTrue();
+				await expect(
+					channelDataSubstore.has(createStoreGetter(stateStore), data.storeKey),
+				).resolves.toBeTrue();
 			}
 			for (const data of validData.terminatedStateSubstore) {
-				await expect(terminatedStateSubstore.has(data.storeKey)).resolves.toBeTrue();
+				await expect(
+					terminatedStateSubstore.has(createStoreGetter(stateStore), data.storeKey),
+				).resolves.toBeTrue();
 			}
 			for (const data of validData.registeredNamesSubstore) {
-				await expect(registeredNamesSubstore.has(data.storeKey)).resolves.toBeTrue();
+				await expect(
+					registeredNamesSubstore.has(createStoreGetter(stateStore), data.storeKey),
+				).resolves.toBeTrue();
 			}
 			for (const data of validData.registeredNetworkIDsSubstore) {
-				await expect(registeredNetworkIDsSubstore.has(data.storeKey)).resolves.toBeTrue();
+				await expect(
+					registeredNetworkIDsSubstore.has(createStoreGetter(stateStore), data.storeKey),
+				).resolves.toBeTrue();
 			}
 			for (const data of validData.ownChainDataSubstore) {
-				await expect(ownChainDataSubstore.has(data.storeKey)).resolves.toBeTrue();
+				await expect(
+					ownChainDataSubstore.has(createStoreGetter(stateStore), data.storeKey),
+				).resolves.toBeTrue();
 			}
 		});
 	});

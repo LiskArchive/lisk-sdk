@@ -13,12 +13,13 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER } from '../../constants';
+import { CCM_STATUS_OK, CROSS_CHAIN_COMMAND_NAME_REGISTRATION } from '../../constants';
 import { registrationCCMParamsSchema } from '../../schemas';
-import { CCCommandExecuteContext, StoreCallback, MessageFeeTokenID } from '../../types';
+import { CCCommandExecuteContext, MessageFeeTokenID } from '../../types';
 import { createCCMsgBeforeSendContext } from '../../context';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
 import { MainchainInteroperabilityStore } from '../store';
+import { StoreGetter } from '../../../base_store';
 
 interface CCMRegistrationParams {
 	networkID: Buffer;
@@ -27,9 +28,11 @@ interface CCMRegistrationParams {
 }
 
 export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCCommand {
-	public ID = CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER;
-	public name = 'registration';
 	public schema = registrationCCMParamsSchema;
+
+	public get name(): string {
+		return CROSS_CHAIN_COMMAND_NAME_REGISTRATION;
+	}
 
 	public async execute(ctx: CCCommandExecuteContext): Promise<void> {
 		const { ccm } = ctx;
@@ -40,7 +43,7 @@ export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCComman
 			registrationCCMParamsSchema,
 			ccm.params,
 		);
-		const interoperabilityStore = this.getInteroperabilityStore(ctx.getStore);
+		const interoperabilityStore = this.getInteroperabilityStore(ctx);
 		const sendingChainChannelAccount = await interoperabilityStore.getChannel(ccm.sendingChainID);
 		const ownChainAccount = await interoperabilityStore.getOwnChainAccount();
 
@@ -71,7 +74,7 @@ export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCComman
 		}
 	}
 
-	protected getInteroperabilityStore(getStore: StoreCallback): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
+	protected getInteroperabilityStore(context: StoreGetter): MainchainInteroperabilityStore {
+		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
 	}
 }

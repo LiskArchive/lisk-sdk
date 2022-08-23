@@ -16,13 +16,12 @@ import { validator } from '@liskhq/lisk-validator';
 import { BaseCCCommand } from '../../interoperability/base_cc_command';
 import { MODULE_NAME_INTEROPERABILITY } from '../../interoperability/constants';
 import { CCCommandExecuteContext } from '../../interoperability/types';
+import { NamedRegistry } from '../../named_registry';
 import { TokenAPI } from '../api';
 import {
 	CCM_STATUS_OK,
 	CCM_STATUS_PROTOCOL_VIOLATION,
 	CHAIN_ID_ALIAS_NATIVE,
-	STORE_PREFIX_ESCROW,
-	CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 	CROSS_CHAIN_COMMAND_NAME_FORWARD,
 } from '../constants';
@@ -30,23 +29,25 @@ import {
 	CCForwardMessageParams,
 	crossChainForwardMessageParams,
 	crossChainTransferMessageParams,
-	EscrowStoreData,
-	escrowStoreSchema,
 } from '../schemas';
+import { EscrowStore } from '../stores/escrow';
+import { UserStore } from '../stores/user';
 import { InteroperabilityAPI } from '../types';
-import { splitTokenID, updateAvailableBalance } from '../utils';
+import { splitTokenID } from '../utils';
 
 export class CCForwardCommand extends BaseCCCommand {
-	public ID = CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER;
-	public name = CROSS_CHAIN_COMMAND_NAME_FORWARD;
 	public schema = crossChainForwardMessageParams;
 
 	private readonly _tokenAPI: TokenAPI;
 	private _interopAPI!: InteroperabilityAPI;
 
-	public constructor(moduleID: Buffer, tokenAPI: TokenAPI) {
-		super(moduleID);
+	public constructor(stores: NamedRegistry, events: NamedRegistry, tokenAPI: TokenAPI) {
+		super(stores, events);
 		this._tokenAPI = tokenAPI;
+	}
+
+	public get name(): string {
+		return CROSS_CHAIN_COMMAND_NAME_FORWARD;
 	}
 
 	public addDependencies(interoperabilityAPI: InteroperabilityAPI) {
@@ -71,15 +72,15 @@ export class CCForwardCommand extends BaseCCCommand {
 		}
 
 		const [chainID, localID] = splitTokenID(params.tokenID);
+		const userStore = this.stores.get(UserStore);
 
 		if (ccm.status !== CCM_STATUS_OK) {
 			if (!ccm.sendingChainID.equals(chainID)) {
 				await this._interopAPI.terminateChain(apiContext, ccm.sendingChainID);
 				return;
 			}
-			await updateAvailableBalance(
+			await userStore.updateAvailableBalance(
 				apiContext,
-				this.moduleID,
 				params.senderAddress,
 				params.tokenID,
 				params.amount + params.forwardedMessageFee,
@@ -109,20 +110,16 @@ export class CCForwardCommand extends BaseCCCommand {
 			return;
 		}
 
-		const escrowStore = apiContext.getStore(this.moduleID, STORE_PREFIX_ESCROW);
+		const escrowStore = this.stores.get(EscrowStore);
 		const escrowKey = Buffer.concat([ccm.sendingChainID, localID]);
-		const escrowData = await escrowStore.getWithSchema<EscrowStoreData>(
-			escrowKey,
-			escrowStoreSchema,
-		);
+		const escrowData = await escrowStore.get(apiContext, escrowKey);
 
 		escrowData.amount -= params.amount + params.forwardedMessageFee;
-		await escrowStore.setWithSchema(escrowKey, escrowData, escrowStoreSchema);
+		await escrowStore.set(apiContext, escrowKey, escrowData);
 		const localTokenID = Buffer.concat([CHAIN_ID_ALIAS_NATIVE, localID]);
 
-		await updateAvailableBalance(
+		await userStore.updateAvailableBalance(
 			apiContext,
-			this.moduleID,
 			params.senderAddress,
 			localTokenID,
 			params.amount + params.forwardedMessageFee,
@@ -150,9 +147,8 @@ export class CCForwardCommand extends BaseCCCommand {
 			return;
 		}
 
-		await updateAvailableBalance(
+		await userStore.updateAvailableBalance(
 			apiContext,
-			this.moduleID,
 			params.senderAddress,
 			localTokenID,
 			-params.amount,

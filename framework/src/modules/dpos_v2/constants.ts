@@ -11,25 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { utils } from '@liskhq/lisk-cryptography';
-
-export const MODULE_ID_DPOS = 13; // TBD
 export const MODULE_NAME_DPOS = 'dpos';
 
-export const STORE_PREFIX_VOTER = 0x0000;
-export const STORE_PREFIX_DELEGATE = 0x4000;
-export const STORE_PREFIX_NAME = 0x8000;
-export const STORE_PREFIX_SNAPSHOT = 0xd000;
-export const STORE_PREFIX_GENESIS_DATA = 0xc000;
-export const STORE_PREFIX_PREVIOUS_TIMESTAMP = 0xe000;
-
-export const COMMAND_ID_DELEGATE_REGISTRATION = 0;
 export const COMMAND_NAME_DELEGATE_REGISTRATION = 'registerDelegate';
-export const COMMAND_ID_VOTE = 1;
-export const COMMAND_ID_UNLOCK = 2;
-export const COMMAND_ID_POM = 3;
-export const COMMAND_ID_UPDATE_GENERATOR_KEY = 4;
 
 export const WAIT_TIME_VOTE = 2000;
 export const WAIT_TIME_SELF_VOTE = 260000;
@@ -48,7 +32,6 @@ export const REPORTING_PUNISHMENT_REWARD = BigInt(100000000);
 export const DELEGATE_LIST_ROUND_OFFSET = 2;
 export const EMPTY_KEY = Buffer.alloc(0);
 export const MAX_SNAPSHOT = 3;
-export const MODULE_ID_DPOS_BUFFER = utils.intToBuffer(MODULE_ID_DPOS, 4);
 
 export const defaultConfig = {
 	factorSelfVotes: 10,

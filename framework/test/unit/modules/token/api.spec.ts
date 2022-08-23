@@ -13,36 +13,30 @@
  */
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { TokenAPI } from '../../../../src/modules/token';
+import { TokenAPI, TokenModule } from '../../../../src/modules/token';
 import {
 	CCM_STATUS_OK,
 	CHAIN_ID_LENGTH,
 	CROSS_CHAIN_COMMAND_NAME_FORWARD,
 	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 	EMPTY_BYTES,
-	STORE_PREFIX_AVAILABLE_LOCAL_ID,
-	STORE_PREFIX_ESCROW,
-	STORE_PREFIX_SUPPLY,
-	STORE_PREFIX_USER,
 	TOKEN_ID_LENGTH,
 } from '../../../../src/modules/token/constants';
 import {
-	availableLocalIDStoreSchema,
 	crossChainForwardMessageParams,
 	crossChainTransferMessageParams,
-	escrowStoreSchema,
-	SupplyStoreData,
-	supplyStoreSchema,
-	UserStoreData,
-	userStoreSchema,
 } from '../../../../src/modules/token/schemas';
-import { getUserStoreKey } from '../../../../src/modules/token/utils';
+import { AvailableLocalIDStore } from '../../../../src/modules/token/stores/available_local_id';
+import { EscrowStore } from '../../../../src/modules/token/stores/escrow';
+import { SupplyStore } from '../../../../src/modules/token/stores/supply';
+import { UserStore } from '../../../../src/modules/token/stores/user';
 import { APIContext, createAPIContext, EventQueue } from '../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { DEFAULT_TOKEN_ID } from '../../../utils/mocks/transaction';
 
 describe('token module', () => {
+	const tokenModule = new TokenModule();
 	const defaultAddress = utils.getRandomBytes(20);
 	const defaultTokenIDAlias = Buffer.alloc(TOKEN_ID_LENGTH, 0);
 	const defaultTokenID = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
@@ -63,7 +57,7 @@ describe('token module', () => {
 	let apiContext: APIContext;
 
 	beforeEach(async () => {
-		api = new TokenAPI('token');
+		api = new TokenAPI(tokenModule.stores, tokenModule.events, tokenModule.name);
 		api.init({
 			minBalances: [
 				{
@@ -84,43 +78,36 @@ describe('token module', () => {
 			stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
 			eventQueue: new EventQueue(),
 		});
-		const userStore = apiContext.getStore(api['moduleID'], STORE_PREFIX_USER);
-		await userStore.setWithSchema(
-			getUserStoreKey(defaultAddress, defaultTokenIDAlias),
+		const userStore = tokenModule.stores.get(UserStore);
+		await userStore.set(
+			apiContext,
+			userStore.getKey(defaultAddress, defaultTokenIDAlias),
 			defaultAccount,
-			userStoreSchema,
 		);
-		await userStore.setWithSchema(
-			getUserStoreKey(defaultAddress, defaultForeignTokenID),
+		await userStore.set(
+			apiContext,
+			userStore.getKey(defaultAddress, defaultForeignTokenID),
 			defaultAccount,
-			userStoreSchema,
 		);
 
-		const supplyStore = apiContext.getStore(api['moduleID'], STORE_PREFIX_SUPPLY);
-		await supplyStore.setWithSchema(
-			defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
-			{ totalSupply: defaultTotalSupply },
-			supplyStoreSchema,
-		);
+		const supplyStore = tokenModule.stores.get(SupplyStore);
+		await supplyStore.set(apiContext, defaultTokenIDAlias.slice(CHAIN_ID_LENGTH), {
+			totalSupply: defaultTotalSupply,
+		});
 
-		const nextAvailableLocalIDStore = apiContext.getStore(
-			api['moduleID'],
-			STORE_PREFIX_AVAILABLE_LOCAL_ID,
-		);
-		await nextAvailableLocalIDStore.setWithSchema(
-			EMPTY_BYTES,
-			{ nextAvailableLocalID: Buffer.from([0, 0, 0, 5]) },
-			availableLocalIDStoreSchema,
-		);
+		const nextAvailableLocalIDStore = tokenModule.stores.get(AvailableLocalIDStore);
+		await nextAvailableLocalIDStore.set(apiContext, EMPTY_BYTES, {
+			nextAvailableLocalID: Buffer.from([0, 0, 0, 5]),
+		});
 
-		const escrowStore = apiContext.getStore(api['moduleID'], STORE_PREFIX_ESCROW);
-		await escrowStore.setWithSchema(
+		const escrowStore = tokenModule.stores.get(EscrowStore);
+		await escrowStore.set(
+			apiContext,
 			Buffer.concat([
 				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 				defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
 			]),
 			{ amount: defaultEscrowAmount },
-			escrowStoreSchema,
 		);
 	});
 
@@ -266,10 +253,10 @@ describe('token module', () => {
 			await expect(
 				api.getAvailableBalance(apiContext, defaultAddress, defaultTokenID),
 			).resolves.toEqual(defaultAccount.availableBalance + BigInt(10000));
-			const supplyStore = apiContext.getStore(api['moduleID'], STORE_PREFIX_SUPPLY);
-			const { totalSupply } = await supplyStore.getWithSchema<SupplyStoreData>(
+			const supplyStore = tokenModule.stores.get(SupplyStore);
+			const { totalSupply } = await supplyStore.get(
+				apiContext,
 				defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
-				supplyStoreSchema,
 			);
 			expect(totalSupply).toEqual(defaultTotalSupply + BigInt(10000));
 		});
@@ -307,10 +294,10 @@ describe('token module', () => {
 				api.getAvailableBalance(apiContext, defaultAddress, defaultTokenID),
 			).resolves.toEqual(BigInt(0));
 
-			const supplyStore = apiContext.getStore(api['moduleID'], STORE_PREFIX_SUPPLY);
-			const { totalSupply } = await supplyStore.getWithSchema<SupplyStoreData>(
+			const supplyStore = tokenModule.stores.get(SupplyStore);
+			const { totalSupply } = await supplyStore.get(
+				apiContext,
 				defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
-				supplyStoreSchema,
 			);
 			expect(totalSupply).toEqual(defaultTotalSupply - defaultAccount.availableBalance);
 		});
@@ -360,10 +347,10 @@ describe('token module', () => {
 					defaultAccount.availableBalance,
 				),
 			).resolves.toBeUndefined();
-			const userStore = apiContext.getStore(api['moduleID'], STORE_PREFIX_USER);
-			const { lockedBalances } = await userStore.getWithSchema<UserStoreData>(
-				getUserStoreKey(defaultAddress, defaultTokenIDAlias),
-				userStoreSchema,
+			const userStore = tokenModule.stores.get(UserStore);
+			const { lockedBalances } = await userStore.get(
+				apiContext,
+				userStore.getKey(defaultAddress, defaultTokenIDAlias),
 			);
 			expect(lockedBalances[0].module).toEqual('dpos');
 		});
@@ -404,10 +391,10 @@ describe('token module', () => {
 					defaultAccount.lockedBalances[0].amount - BigInt(1),
 				),
 			).resolves.toBeUndefined();
-			const userStore = apiContext.getStore(api['moduleID'], STORE_PREFIX_USER);
-			const { lockedBalances } = await userStore.getWithSchema<UserStoreData>(
-				getUserStoreKey(defaultAddress, defaultTokenIDAlias),
-				userStoreSchema,
+			const userStore = tokenModule.stores.get(UserStore);
+			const { lockedBalances } = await userStore.get(
+				apiContext,
+				userStore.getKey(defaultAddress, defaultTokenIDAlias),
 			);
 			expect(lockedBalances[0].amount).toEqual(BigInt(1));
 		});
@@ -422,10 +409,10 @@ describe('token module', () => {
 					defaultAccount.lockedBalances[0].amount,
 				),
 			).resolves.toBeUndefined();
-			const userStore = apiContext.getStore(api['moduleID'], STORE_PREFIX_USER);
-			const { lockedBalances } = await userStore.getWithSchema<UserStoreData>(
-				getUserStoreKey(defaultAddress, defaultTokenIDAlias),
-				userStoreSchema,
+			const userStore = tokenModule.stores.get(UserStore);
+			const { lockedBalances } = await userStore.get(
+				apiContext,
+				userStore.getKey(defaultAddress, defaultTokenIDAlias),
 			);
 			expect(lockedBalances).toHaveLength(0);
 		});
@@ -517,11 +504,11 @@ describe('token module', () => {
 				.mockResolvedValue({ id: Buffer.from([0, 0, 0, 2]) } as never);
 			const receivingChainID = Buffer.from([0, 0, 0, 3]);
 			const messageFee = BigInt('10000');
-			const userStore = apiContext.getStore(api['moduleID'], STORE_PREFIX_USER);
-			await userStore.setWithSchema(
-				getUserStoreKey(defaultAddress, defaultTokenID),
+			const userStore = tokenModule.stores.get(UserStore);
+			await userStore.set(
+				apiContext,
+				userStore.getKey(defaultAddress, defaultTokenID),
 				defaultAccount,
-				userStoreSchema,
 			);
 			await api.transferCrossChain(
 				apiContext,
@@ -564,7 +551,7 @@ describe('token module', () => {
 				expect(api['_interoperabilityAPI'].send).toHaveBeenCalledWith(
 					apiContext,
 					defaultAddress,
-					api['moduleName'],
+					api['_moduleName'],
 					CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
 					BigInt('10000'),
@@ -593,7 +580,7 @@ describe('token module', () => {
 		describe('when chainID is receiving chain id', () => {
 			beforeEach(async () => {
 				jest.spyOn(codec, 'encode');
-				jest.spyOn(apiContext, 'getStore');
+				jest.spyOn(tokenModule.stores, 'get');
 				await api.transferCrossChain(
 					apiContext,
 					defaultAddress,
@@ -617,7 +604,7 @@ describe('token module', () => {
 				expect(api['_interoperabilityAPI'].send).toHaveBeenCalledWith(
 					apiContext,
 					defaultAddress,
-					api['moduleName'],
+					api['_moduleName'],
 					CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 					BigInt('10000'),
@@ -633,7 +620,7 @@ describe('token module', () => {
 			});
 
 			it('should not add amount to escrow', () => {
-				expect(apiContext.getStore).not.toHaveBeenCalledWith(api['moduleID'], STORE_PREFIX_ESCROW);
+				expect(tokenModule.stores.get).not.toHaveBeenCalledWith(EscrowStore);
 			});
 		});
 
@@ -646,11 +633,11 @@ describe('token module', () => {
 				jest
 					.spyOn(api['_interoperabilityAPI'], 'getOwnChainAccount')
 					.mockResolvedValue({ id: Buffer.from([0, 0, 0, 2]) } as never);
-				const userStore = apiContext.getStore(api['moduleID'], STORE_PREFIX_USER);
-				await userStore.setWithSchema(
-					getUserStoreKey(defaultAddress, defaultTokenID),
+				const userStore = tokenModule.stores.get(UserStore);
+				await userStore.set(
+					apiContext,
+					userStore.getKey(defaultAddress, defaultTokenID),
 					defaultAccount,
-					userStoreSchema,
 				);
 				await api.transferCrossChain(
 					apiContext,
@@ -692,7 +679,7 @@ describe('token module', () => {
 				expect(api['_interoperabilityAPI'].send).toHaveBeenCalledWith(
 					apiContext,
 					defaultAddress,
-					api['moduleName'],
+					api['_moduleName'],
 					CROSS_CHAIN_COMMAND_NAME_FORWARD,
 					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
 					BigInt('0'),

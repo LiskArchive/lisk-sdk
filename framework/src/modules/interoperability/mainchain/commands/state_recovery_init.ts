@@ -21,44 +21,32 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../../state_machine';
+import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import {
 	CHAIN_TERMINATED,
-	COMMAND_ID_STATE_RECOVERY_INIT_BUFFER,
-	COMMAND_NAME_STATE_RECOVERY_INIT,
 	EMPTY_BYTES,
 	LIVENESS_LIMIT,
 	MAINCHAIN_ID,
 	MAINCHAIN_ID_BUFFER,
-	MODULE_ID_INTEROPERABILITY,
-	MODULE_ID_INTEROPERABILITY_BUFFER,
-	STORE_PREFIX_CHAIN_DATA,
-	STORE_PREFIX_TERMINATED_STATE,
 } from '../../constants';
-import { chainAccountSchema, stateRecoveryInitParams, terminatedStateSchema } from '../../schemas';
-import {
-	ChainAccount,
-	ImmutableStoreCallback,
-	StateRecoveryInitParams,
-	StoreCallback,
-	TerminatedStateAccount,
-} from '../../types';
+import { stateRecoveryInitParams } from '../../schemas';
+import { chainAccountSchema, ChainAccountStore } from '../../stores/chain_account';
+import { TerminatedStateAccount, TerminatedStateStore } from '../../stores/terminated_state';
+import { ChainAccount, StateRecoveryInitParams } from '../../types';
 import { getIDAsKeyForStore } from '../../utils';
 import { MainchainInteroperabilityStore } from '../store';
 
-export class StateRecoveryInitCommand extends BaseInteroperabilityCommand {
-	public name = COMMAND_NAME_STATE_RECOVERY_INIT;
-	public id = COMMAND_ID_STATE_RECOVERY_INIT_BUFFER;
+export class StateRecoveryInitializationCommand extends BaseInteroperabilityCommand {
 	public schema = stateRecoveryInitParams;
 
 	public async verify(
 		context: CommandVerifyContext<StateRecoveryInitParams>,
 	): Promise<VerificationResult> {
 		const {
-			getStore,
 			params: { chainID, sidechainChainAccount, bitmap, siblingHashes },
 		} = context;
-		const interoperabilityStore = this.getInteroperabilityStore(getStore);
+		const interoperabilityStore = this.getInteroperabilityStore(context);
 		const ownChainAccount = await interoperabilityStore.getOwnChainAccount();
 
 		if (chainID.equals(MAINCHAIN_ID_BUFFER) || chainID.equals(ownChainAccount.id)) {
@@ -68,17 +56,11 @@ export class StateRecoveryInitCommand extends BaseInteroperabilityCommand {
 			};
 		}
 
-		const terminatedStateSubstore = context.getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_TERMINATED_STATE,
-		);
-		const terminatedStateAccountExists = await terminatedStateSubstore.has(chainID);
+		const terminatedStateSubstore = this.stores.get(TerminatedStateStore);
+		const terminatedStateAccountExists = await terminatedStateSubstore.has(context, chainID);
 		let terminatedStateAccount: TerminatedStateAccount;
 		if (terminatedStateAccountExists) {
-			terminatedStateAccount = await terminatedStateSubstore.getWithSchema<TerminatedStateAccount>(
-				chainID,
-				terminatedStateSchema,
-			);
+			terminatedStateAccount = await terminatedStateSubstore.get(context, chainID);
 			if (terminatedStateAccount.initialized) {
 				return {
 					status: VerifyStatus.FAIL,
@@ -108,21 +90,15 @@ export class StateRecoveryInitCommand extends BaseInteroperabilityCommand {
 			};
 		}
 
-		const interopAccKey = Buffer.concat([
-			utils.intToBuffer(MODULE_ID_INTEROPERABILITY, 4),
-			utils.intToBuffer(STORE_PREFIX_CHAIN_DATA, 4),
-			chainID,
-		]);
+		const chainStore = this.stores.get(ChainAccountStore);
+		const interopAccKey = Buffer.concat([chainStore.key, chainID]);
 
 		const query = { key: interopAccKey, value: utils.hash(sidechainChainAccount), bitmap };
 
 		const proofOfInclusion = { siblingHashes, queries: [query] };
 
 		if (terminatedStateAccountExists) {
-			terminatedStateAccount = await terminatedStateSubstore.getWithSchema<TerminatedStateAccount>(
-				chainID,
-				terminatedStateSchema,
-			);
+			terminatedStateAccount = await terminatedStateSubstore.get(context, chainID);
 			if (!terminatedStateAccount.mainchainStateRoot) {
 				throw new Error('Sidechain account has missing property: mainchain state root');
 			}
@@ -159,13 +135,13 @@ export class StateRecoveryInitCommand extends BaseInteroperabilityCommand {
 	}
 
 	public async execute(context: CommandExecuteContext<StateRecoveryInitParams>): Promise<void> {
-		const { params, getStore } = context;
+		const { params } = context;
 		const sidechainChainAccount = codec.decode<ChainAccount>(
 			chainAccountSchema,
 			params.sidechainChainAccount,
 		);
 
-		const interoperabilityStore = this.getInteroperabilityStore(getStore);
+		const interoperabilityStore = this.getInteroperabilityStore(context);
 
 		const doesTerminatedStateAccountExist = await interoperabilityStore.hasTerminatedStateAccount(
 			params.chainID,
@@ -177,9 +153,9 @@ export class StateRecoveryInitCommand extends BaseInteroperabilityCommand {
 				initialized: true,
 			};
 
-			const store = getStore(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_TERMINATED_STATE);
+			const store = this.stores.get(TerminatedStateStore);
 
-			await store.setWithSchema(params.chainID, newTerminatedStateAccount, terminatedStateSchema);
+			await store.set(context, params.chainID, newTerminatedStateAccount);
 			return;
 		}
 
@@ -190,8 +166,8 @@ export class StateRecoveryInitCommand extends BaseInteroperabilityCommand {
 	}
 
 	protected getInteroperabilityStore(
-		getStore: StoreCallback | ImmutableStoreCallback,
+		context: StoreGetter | ImmutableStoreGetter,
 	): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
+		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
 	}
 }
