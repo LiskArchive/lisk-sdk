@@ -12,14 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	Transaction,
-	chain,
-	BFTValidator,
-	AggregateCommit,
-	BFTValidatorJSON,
-	CCMsg,
-} from 'lisk-sdk';
+import { Transaction, chain, BFTValidator, AggregateCommit, CCMsg } from 'lisk-sdk';
 
 export interface ChainConnectorPluginConfig {
 	mainchainIPCPath: string;
@@ -48,6 +41,12 @@ export interface AggregateCommitJSON {
 	readonly height: number;
 	readonly aggregationBits: string;
 	readonly certificateSignature: string;
+}
+
+export interface BFTValidatorJSON {
+	address: string;
+	bftWeight: string;
+	blsKey: string;
 }
 
 export interface ValidatorsDataJSON {
