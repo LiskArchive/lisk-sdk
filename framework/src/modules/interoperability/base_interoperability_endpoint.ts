@@ -16,11 +16,14 @@ import { BaseEndpoint } from '../base_endpoint';
 import { BaseInteroperableAPI } from './base_interoperable_api';
 import { ModuleEndpointContext } from '../../types';
 import {
+	ChainAccount,
 	ChainAccountJSON,
 	ChannelDataJSON,
 	ImmutableStoreCallback,
+	Inbox,
 	InboxJSON,
 	MessageFeeTokenIDJSON,
+	Outbox,
 	OutboxJSON,
 	OwnChainAccountJSON,
 	StoreCallback,
@@ -28,7 +31,7 @@ import {
 	TerminatedStateAccountJSON,
 } from './types';
 import { BaseInteroperabilityStore } from './base_interoperability_store';
-import { certificateToJSON } from './utils';
+import { certificateToJSON } from './certificates';
 
 export abstract class BaseInteroperabilityEndpoint<
 	T extends BaseInteroperabilityStore
@@ -45,19 +48,7 @@ export abstract class BaseInteroperabilityEndpoint<
 		chainID: Buffer,
 	): Promise<ChainAccountJSON> {
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
-		const {
-			lastCertificate,
-			name,
-			networkID,
-			status,
-		} = await interoperabilityStore.getChainAccount(chainID);
-
-		return {
-			lastCertificate: certificateToJSON(lastCertificate),
-			name,
-			status,
-			networkID: networkID.toString('hex'),
-		};
+		return this._getDesiredChainAccount(await interoperabilityStore.getChainAccount(chainID));
 	}
 
 	public async getAllChainAccounts(
@@ -66,17 +57,9 @@ export abstract class BaseInteroperabilityEndpoint<
 	): Promise<{ chains: ChainAccountJSON[] }> {
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
 
-		const chainAccounts = (await interoperabilityStore.getAllChainAccounts(startChainID)).map(
-			chainAccount => {
-				const { lastCertificate, name, networkID, status } = chainAccount;
-				return {
-					lastCertificate: certificateToJSON(lastCertificate),
-					name,
-					status,
-					networkID: networkID.toString('hex'),
-				};
-			},
-		);
+		const chainAccounts = (
+			await interoperabilityStore.getAllChainAccounts(startChainID)
+		).map(chainAccount => this._getDesiredChainAccount(chainAccount));
 
 		return { chains: chainAccounts };
 	}
@@ -94,17 +77,8 @@ export abstract class BaseInteroperabilityEndpoint<
 			partnerChainOutboxRoot,
 		} = await interoperabilityStore.getChannel(chainID);
 
-		const inboxJSON: InboxJSON = {
-			appendPath: inbox.appendPath.map(ap => ap.toString('hex')),
-			root: inbox.root.toString('hex'),
-			size: inbox.size,
-		};
-
-		const outboxJSON: OutboxJSON = {
-			appendPath: outbox.appendPath.map(ap => ap.toString('hex')),
-			root: outbox.root.toString('hex'),
-			size: outbox.size,
-		};
+		const inboxJSON = this._toBoxJSON(inbox) as InboxJSON;
+		const outboxJSON = this._toBoxJSON(outbox) as OutboxJSON;
 
 		const messageFeeTokenIDJSON: MessageFeeTokenIDJSON = {
 			chainID: messageFeeTokenID.chainID.toString('hex'),
@@ -166,6 +140,25 @@ export abstract class BaseInteroperabilityEndpoint<
 			outboxRoot: outboxRoot.toString('hex'),
 			outboxSize,
 			partnerChainInboxSize,
+		};
+	}
+
+	private _getDesiredChainAccount(chainAccount: ChainAccount) {
+		const { lastCertificate, name, networkID, status } = chainAccount;
+
+		return {
+			lastCertificate: certificateToJSON(lastCertificate),
+			name,
+			status,
+			networkID: networkID.toString('hex'),
+		};
+	}
+
+	private _toBoxJSON(box: Inbox | Outbox) {
+		return {
+			appendPath: box.appendPath.map(ap => ap.toString('hex')),
+			root: box.root.toString('hex'),
+			size: box.size,
 		};
 	}
 

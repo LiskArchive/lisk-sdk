@@ -31,8 +31,6 @@ import {
 	MsgWitness,
 	GenesisInteroperabilityStore,
 	OwnChainAccount,
-	LastCertificateJSON,
-	LastCertificate,
 } from './types';
 import {
 	CCM_STATUS_OK,
@@ -961,10 +959,3 @@ export const initGenesisStateUtil = async (id: Buffer, ctx: GenesisBlockExecuteC
 		);
 	}
 };
-
-export const certificateToJSON = (certificate: LastCertificate): LastCertificateJSON => ({
-	height: certificate.height,
-	timestamp: certificate.timestamp,
-	stateRoot: certificate.stateRoot.toString('hex'),
-	validatorsHash: certificate.validatorsHash.toString('hex'),
-});

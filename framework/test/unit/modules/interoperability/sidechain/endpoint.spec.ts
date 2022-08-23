@@ -28,7 +28,7 @@ import {
 	TerminatedStateAccount,
 	TerminatedStateAccountJSON,
 } from '../../../../../src/modules/interoperability/types';
-import { certificateToJSON } from '../../../../../src/modules/interoperability/utils';
+import { certificateToJSON } from '../../../../../src/modules/interoperability/certificates';
 
 describe('Sidechain endpoint', () => {
 	const moduleID = utils.intToBuffer(1, 4);

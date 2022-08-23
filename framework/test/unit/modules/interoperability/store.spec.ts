@@ -757,7 +757,7 @@ describe('Base interoperability store', () => {
 				mainchainInteroperabilityStore.getAllChainAccounts(chainId),
 			).resolves.toStrictEqual([chainAccount, chainAccount2]);
 		});
-		it('should return all stored chains with chainID larger than startChainID', async () => {
+		it('should return all stored chains with chainID gte startChainID', async () => {
 			await expect(
 				mainchainInteroperabilityStore.getAllChainAccounts(chainId2),
 			).resolves.toStrictEqual([chainAccount2]);
