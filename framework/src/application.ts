@@ -304,6 +304,7 @@ export class Application {
 					.then(() => {
 						this.logger.debug(this._controller.getEvents(), 'Application listening to events');
 						this.logger.debug(this._controller.getEndpoints(), 'Application ready for actions');
+						this.logger.info(this._controller.getEndpoints(), 'Application ready for actions');
 						this.channel.publish(APP_EVENT_READY);
 					})
 					.catch(err => {
@@ -374,6 +375,10 @@ export class Application {
 		assert(mod, 'Module implementation is required');
 		this._registeredModules.push(mod);
 		this._stateMachine.registerModule(mod);
+		this.logger.info(`Registered ${mod.name} module`);
+		for (const command of mod.commands) {
+			this.logger.info(`Registered ${mod.name} module has command ${command.name}`);
+		}
 		this._controller.registerEndpoint(mod.name, getEndpointHandlers(mod.endpoint));
 	}
 

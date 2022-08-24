@@ -432,6 +432,16 @@ export class Consensus {
 					{ id: block.header.id, height: block.header.height },
 					'Discarding block',
 				);
+				this._logger.info(
+					{
+						id: block.header.id,
+						height: block.header.height,
+						generator: block.header.generatorAddress.toString('hex'),
+						maxHeightPrevoted: block.header.maxHeightPrevoted,
+						maxHeightGenerated: block.header.maxHeightGenerated,
+					},
+					'Detected a fork',
+				);
 				this.events.emit(CONSENSUS_EVENT_FORK_DETECTED, {
 					block,
 				});
@@ -452,6 +462,16 @@ export class Consensus {
 					},
 					'Discarding block due to double forging',
 				);
+				this._logger.info(
+					{
+						id: block.header.id,
+						height: block.header.height,
+						generator: block.header.generatorAddress.toString('hex'),
+						maxHeightPrevoted: block.header.maxHeightPrevoted,
+						maxHeightGenerated: block.header.maxHeightGenerated,
+					},
+					'Detected a fork',
+				);
 				this.events.emit(CONSENSUS_EVENT_FORK_DETECTED, {
 					block,
 				});
@@ -462,6 +482,16 @@ export class Consensus {
 				this._logger.debug(
 					{ id: block.header.id, height: block.header.height },
 					'Detected different chain to sync',
+				);
+				this._logger.info(
+					{
+						id: block.header.id,
+						height: block.header.height,
+						generator: block.header.generatorAddress.toString('hex'),
+						maxHeightPrevoted: block.header.maxHeightPrevoted,
+						maxHeightGenerated: block.header.maxHeightGenerated,
+					},
+					'Detected a fork',
 				);
 				this.events.emit(CONSENSUS_EVENT_FORK_DETECTED, {
 					block,
@@ -475,6 +505,16 @@ export class Consensus {
 				this._logger.info(
 					{ id: lastBlock.header.id, height: lastBlock.header.height },
 					'Received tie breaking block',
+				);
+				this._logger.info(
+					{
+						id: block.header.id,
+						height: block.header.height,
+						generator: block.header.generatorAddress.toString('hex'),
+						maxHeightPrevoted: block.header.maxHeightPrevoted,
+						maxHeightGenerated: block.header.maxHeightGenerated,
+					},
+					'Detected a fork',
 				);
 				this.events.emit(CONSENSUS_EVENT_FORK_DETECTED, {
 					block,
@@ -536,11 +576,32 @@ export class Consensus {
 
 		if (!options.skipBroadcast) {
 			this._network.send({ event: NETWORK_EVENT_POST_BLOCK, data: block.getBytes() });
+			this._logger.debug(
+				{
+					id: block.header.id,
+					height: block.header.height,
+					generator: block.header.generatorAddress.toString('hex'),
+					number_of_transactions: block.transactions.length,
+					number_of_assets: block.assets.getAll().length,
+				},
+				'Block broadcasted',
+			);
 			this.events.emit(CONSENSUS_EVENT_BLOCK_BROADCAST, {
 				block,
 			});
 		}
 		const events = await this._executeBlock(contextID, stateStore, block);
+		this._logger.info(
+			{
+				id: block.header.id,
+				height: block.header.height,
+				generator: block.header.generatorAddress.toString('hex'),
+				number_of_transactions: block.transactions.length,
+				number_of_assets: block.assets.getAll().length,
+				number_of_events: events.length,
+			},
+			'Block executed',
+		);
 
 		const bftVotes = await this._bft.api.getBFTHeights(stateStore);
 
@@ -913,6 +974,7 @@ export class Consensus {
 					transaction: transaction.toObject(),
 				});
 				if (verifyResult !== TransactionVerifyResult.OK) {
+					this._logger.debug(`Failed to verify transaction ${transaction.id.toString('hex')}`);
 					throw new Error(`Failed to verify transaction ${transaction.id.toString('hex')}.`);
 				}
 				const txExecResult = await this._abi.executeTransaction({
@@ -924,6 +986,7 @@ export class Consensus {
 					consensus,
 				});
 				if (txExecResult.result === TransactionExecutionResult.INVALID) {
+					this._logger.debug(`Failed to execute transaction ${transaction.id.toString('hex')}`);
 					throw new Error(`Failed to execute transaction ${transaction.id.toString('hex')}.`);
 				}
 				events.push(...txExecResult.events.map(e => new Event(e)));
