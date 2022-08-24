@@ -184,7 +184,6 @@ export const createBlockGenerateContext = (params: {
 		networkIdentifier: params.networkIdentifier ?? utils.getRandomBytes(32),
 		getAPIContext: params.getAPIContext ?? (() => ({ getStore, eventQueue: new EventQueue() })),
 		getStore: params.getStore ?? getStore,
-		getOffchainStore: params.getOffchainStore ?? getOffchainStore,
 		getFinalizedHeight: () => params.finalizedHeight ?? 0,
 		header,
 	};

@@ -28,6 +28,6 @@ export const createContext = (
 	logger: fakeLogger,
 	networkIdentifier: utils.getRandomBytes(32),
 	params,
-	getOffchainStore: (moduleID: Buffer, storePrefix?: number) =>
-		stateStore.getStore(moduleID, storePrefix ?? 0),
+	getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) =>
+		stateStore.getStore(moduleID, storePrefix),
 });

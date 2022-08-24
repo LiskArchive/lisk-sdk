@@ -112,9 +112,9 @@ export class InMemoryChannel extends BaseChannel {
 					const stateStore = new PrefixedStateReadWriter(this._db.newReadWriter());
 					return stateStore.getStore(moduleID, storePrefix);
 				},
-				getOffchainStore: (moduleID: Buffer, storePrefix?: number) => {
+				getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) => {
 					const stateStore = new StateStore(this._moduleDB);
-					return stateStore.getStore(moduleID, storePrefix ?? 0);
+					return stateStore.getStore(moduleID, storePrefix);
 				},
 				getImmutableAPIContext: () =>
 					createImmutableAPIContext(new PrefixedStateReadWriter(this._db.newReadWriter())),
