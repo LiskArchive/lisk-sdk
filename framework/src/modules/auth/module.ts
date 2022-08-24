@@ -24,19 +24,19 @@ import {
 	VerificationResult,
 } from '../../state_machine';
 import { AuthAPI } from './api';
-import { RegisterMultisignatureGroupCommand } from './commands/register_multisignature';
 import { MAX_NUMBER_OF_SIGNATURES } from './constants';
 import { AuthEndpoint } from './endpoint';
 import { configSchema, genesisAuthStoreSchema } from './schemas';
 import { GenesisAuthStore, ImmutableStoreCallback } from './types';
 import { verifyNonce, verifySignatures } from './utils';
 import { AuthAccount, authAccountSchema, AuthAccountStore } from './stores/auth_account';
+import { RegisterMultisignatureCommand } from './commands/register_multisignature';
 
 export class AuthModule extends BaseModule {
 	public api = new AuthAPI(this.stores, this.events);
 	public endpoint = new AuthEndpoint(this.name, this.stores, this.offchainStores);
 	public configSchema = configSchema;
-	public commands = [new RegisterMultisignatureGroupCommand(this.stores, this.events)];
+	public commands = [new RegisterMultisignatureCommand(this.stores, this.events)];
 
 	public constructor() {
 		super();
@@ -184,16 +184,12 @@ export class AuthModule extends BaseModule {
 
 		const senderAccount = await store.get(context, transaction.senderAddress);
 		senderAccount.nonce += BigInt(1);
-		await authStore.setWithSchema(
-			address,
-			{
-				nonce: senderAccount.nonce,
-				numberOfSignatures: senderAccount.numberOfSignatures,
-				mandatoryKeys: senderAccount.mandatoryKeys,
-				optionalKeys: senderAccount.optionalKeys,
-			},
-			authAccountSchema,
-		);
+		await store.set(context, transaction.senderAddress, {
+			nonce: senderAccount.nonce,
+			numberOfSignatures: senderAccount.numberOfSignatures,
+			mandatoryKeys: senderAccount.mandatoryKeys,
+			optionalKeys: senderAccount.optionalKeys,
+		});
 	}
 
 	// TODO: Change it to private once implemented
@@ -201,16 +197,16 @@ export class AuthModule extends BaseModule {
 		getStore: ImmutableStoreCallback,
 		address: Buffer,
 	): Promise<boolean> {
-		const authSubstore = getStore(this.id, STORE_PREFIX_AUTH);
+		const authSubstore = this.stores.get(AuthAccountStore);
 		try {
-			const authAccount = await authSubstore.getWithSchema<AuthAccount>(address, authAccountSchema);
+			const authAccount = await authSubstore.get({ getStore }, address);
 
 			return authAccount.numberOfSignatures !== 0;
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
 			}
-
-		await store.set(context, transaction.senderAddress, senderAccount);
+			return false;
+		}
 	}
 }

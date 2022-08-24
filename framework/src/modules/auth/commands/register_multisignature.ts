@@ -26,25 +26,22 @@ import {
 import { AuthAccountStore } from '../stores/auth_account';
 import {
 	COMMAND_ID_REGISTER_MULTISIGNATURE_GROUP,
-	COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP,
 	MAX_NUMBER_OF_SIGNATURES,
 	MESSAGE_TAG_MULTISIG_REG,
 	TYPE_ID_INVALID_SIGNATURE_ERROR,
 	TYPE_ID_MULTISIGNATURE_GROUP_REGISTERED,
 } from '../constants';
 import {
-	authAccountSchema,
 	invalidSigDataSchema,
 	multisigRegDataSchema,
 	multisigRegMsgSchema,
 	registerMultisignatureParamsSchema,
 } from '../schemas';
-import { AuthAccount, RegisterMultisignatureParams } from '../types';
+import { RegisterMultisignatureParams } from '../types';
 import { getIDAsKeyForStore } from '../utils';
 
 export class RegisterMultisignatureCommand extends BaseCommand {
 	public id = getIDAsKeyForStore(COMMAND_ID_REGISTER_MULTISIGNATURE_GROUP);
-	public name = COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP;
 	public schema = registerMultisignatureParamsSchema;
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -119,12 +116,12 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 			};
 		}
 
-		// Check if the length of mandatory, optional and sender keys matches the length of signatures
+		// Check if the length of mandatory, optional keys is equal to length of signatures
 		if (mandatoryKeys.length + optionalKeys.length !== signatures.length) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error(
-					'The number of mandatory, optional and sender keys should match the number of signatures',
+					'The number of mandatory and optional keys should match the number of signatures',
 				),
 			};
 		}
@@ -211,7 +208,7 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 		senderAccount.optionalKeys = params.optionalKeys;
 		senderAccount.numberOfSignatures = params.numberOfSignatures;
 
-		await authSubstore.setWithSchema(transaction.senderAddress, senderAccount, authAccountSchema);
+		await authSubstore.set(context, transaction.senderAddress, senderAccount);
 
 		const registerMultiSigEventData = codec.encode(multisigRegDataSchema, {
 			numberOfSignatures: params.numberOfSignatures,

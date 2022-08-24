@@ -13,8 +13,9 @@
  */
 
 import { ImmutableSubStore } from '../../state_machine';
+import { AuthAccount } from './stores/auth_account';
 
-export type ImmutableStoreCallback = (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
+export type ImmutableStoreCallback = (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 export interface Keys {
 	numberOfSignatures: number;
 	mandatoryKeys: Buffer[];
