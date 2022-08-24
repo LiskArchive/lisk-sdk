@@ -12,12 +12,28 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export const MODULE_ID_VALIDATORS = 11; // TBD
-export const STORE_PREFIX_VALIDATORS_DATA = 0x0000;
-export const STORE_PREFIX_BLS_KEYS = 0x8000;
-export const STORE_PREFIX_GENESIS_DATA = 0xc000;
+export const MODULE_NAME_VALIDATORS = 'validators';
 export const INVALID_BLS_KEY = Buffer.alloc(48);
 export const EMPTY_KEY = Buffer.alloc(0);
+
+// Event names
+export const EVENT_NAME_GENERATOR_KEY_REGISTRATION = Buffer.from([0, 0, 0, 1]);
+export const EVENT_NAME_BLS_KEY_REGISTRATION = Buffer.from([0, 0, 0, 2]);
+
+// Event results
+export const enum KeyRegResult {
+	SUCCESS = 0,
+	NO_VALIDATOR = 1,
+	ALREADY_VALIDATOR = 2,
+	DUPLICATE_BLS_KEY = 3,
+	INVALID_POP = 4,
+}
+
+// Key length
+export const ADDRESS_LENGTH = 20;
+export const ED25519_PUBLIC_KEY_LENGTH = 32;
+export const BLS_PUBLIC_KEY_LENGTH = 48;
+export const BLS_POP_LENGTH = 96;
 
 export const defaultConfig = {
 	blockTime: 10,

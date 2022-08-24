@@ -12,18 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Event, StateStore } from '@liskhq/lisk-chain';
+import { Event } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
-import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { ChainEndpoint } from '../../../../src/engine/endpoint/chain';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { createContext } from '../../../utils/mocks/endpoint';
 
 describe('Chain endpoint', () => {
-	let stateStore: StateStore;
+	let stateStore: PrefixedStateReadWriter;
 	let endpoint: ChainEndpoint;
 
 	beforeEach(() => {
-		stateStore = new StateStore(new InMemoryDatabase());
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		endpoint = new ChainEndpoint({
 			chain: {
 				dataAccess: {
@@ -38,14 +39,14 @@ describe('Chain endpoint', () => {
 			jest.spyOn(endpoint['_chain'].dataAccess, 'getEvents').mockResolvedValue([
 				new Event({
 					index: 0,
-					moduleID: Buffer.from([0, 0, 0, 2]),
+					module: 'token',
 					topics: [utils.getRandomBytes(32)],
 					typeID: Buffer.from([0, 0, 0, 1]),
 					data: utils.getRandomBytes(32),
 				}),
 				new Event({
 					index: 1,
-					moduleID: Buffer.from([0, 0, 0, 2]),
+					module: 'token',
 					topics: [utils.getRandomBytes(32)],
 					typeID: Buffer.from([0, 0, 0, 1]),
 					data: utils.getRandomBytes(32),
@@ -70,7 +71,7 @@ describe('Chain endpoint', () => {
 			expect(events).toHaveLength(2);
 			expect(events[0]).toEqual({
 				index: 0,
-				moduleID: '00000002',
+				module: 'token',
 				topics: [expect.any(String)],
 				typeID: '00000001',
 				data: expect.any(String),
@@ -83,14 +84,14 @@ describe('Chain endpoint', () => {
 			jest.spyOn(endpoint['_chain'].dataAccess, 'getEvents').mockResolvedValue([
 				new Event({
 					index: 0,
-					moduleID: Buffer.from([0, 0, 0, 2]),
+					module: 'transfer',
 					topics: [utils.getRandomBytes(32)],
 					typeID: Buffer.from([0, 0, 0, 1]),
 					data: utils.getRandomBytes(32),
 				}),
 				new Event({
 					index: 1,
-					moduleID: Buffer.from([0, 0, 0, 2]),
+					module: 'transfer',
 					topics: [utils.getRandomBytes(32)],
 					typeID: Buffer.from([0, 0, 0, 1]),
 					data: utils.getRandomBytes(32),

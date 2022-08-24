@@ -13,11 +13,12 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
+import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
-import { CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED, MAINCHAIN_ID } from '../../constants';
+import { CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED, MAINCHAIN_ID } from '../../constants';
 import { createCCMsgBeforeSendContext } from '../../context';
 import { sidechainTerminatedCCMParamsSchema } from '../../schemas';
-import { CCCommandExecuteContext, StoreCallback } from '../../types';
+import { CCCommandExecuteContext } from '../../types';
 import { getIDAsKeyForStore } from '../../utils';
 import { SidechainInteroperabilityStore } from '../store';
 
@@ -27,9 +28,11 @@ interface CCMSidechainTerminatedParams {
 }
 
 export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityCCCommand {
-	public ID = getIDAsKeyForStore(CROSS_CHAIN_COMMAND_ID_SIDECHAIN_TERMINATED);
-	public name = 'sidechainTerminated';
 	public schema = sidechainTerminatedCCMParamsSchema;
+
+	public get name(): string {
+		return CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED;
+	}
 
 	public async execute(context: CCCommandExecuteContext): Promise<void> {
 		const { ccm } = context;
@@ -40,7 +43,7 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 			sidechainTerminatedCCMParamsSchema,
 			ccm.params,
 		);
-		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+		const interoperabilityStore = this.getInteroperabilityStore(context);
 
 		if (ccm.sendingChainID.equals(getIDAsKeyForStore(MAINCHAIN_ID))) {
 			const isTerminated = await interoperabilityStore.hasTerminatedStateAccount(
@@ -67,7 +70,9 @@ export class SidechainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 		}
 	}
 
-	protected getInteroperabilityStore(getStore: StoreCallback): SidechainInteroperabilityStore {
-		return new SidechainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
+	protected getInteroperabilityStore(
+		context: StoreGetter | ImmutableStoreGetter,
+	): SidechainInteroperabilityStore {
+		return new SidechainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
 	}
 }

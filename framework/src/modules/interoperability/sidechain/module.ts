@@ -25,19 +25,23 @@ import {
 	getChannelRequestSchema,
 	getTerminatedStateAccountRequestSchema,
 	getTerminatedOutboxAccountRequestSchema,
-	chainAccountSchema,
-	channelSchema,
-	ownChainAccountSchema,
-	terminatedStateSchema,
-	terminatedOutboxSchema,
 } from '../schemas';
 import { GenesisBlockExecuteContext } from '../../../state_machine';
 import { initGenesisStateUtil } from '../utils';
+import { chainAccountSchema } from '../stores/chain_account';
+import { channelSchema } from '../stores/channel_data';
+import { ownChainAccountSchema } from '../stores/own_chain_account';
+import { terminatedStateSchema } from '../stores/terminated_state';
+import { terminatedOutboxSchema } from '../stores/terminated_outbox';
 
 export class SidechainInteroperabilityModule extends BaseInteroperabilityModule {
-	public crossChainAPI: BaseInteroperableAPI = new SidechainCCAPI(this.id);
-	public api = new SidechainInteroperabilityAPI(this.id, this.interoperableCCAPIs);
-	public endpoint = new SidechainInteroperabilityEndpoint(this.id, this.interoperableCCAPIs);
+	public crossChainAPI: BaseInteroperableAPI = new SidechainCCAPI(this.stores, this.events);
+	public api = new SidechainInteroperabilityAPI(this.stores, this.events, this.interoperableCCAPIs);
+	public endpoint = new SidechainInteroperabilityEndpoint(
+		this.stores,
+		this.offchainStores,
+		this.interoperableCCAPIs,
+	);
 	// private readonly _mainchainRegistrationCommand = new MainchainRegistrationCommand(
 	// 	this.id,
 	// 	new Map(),
@@ -73,7 +77,6 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 				},
 			],
 			commands: this.commands.map(command => ({
-				id: command.id,
 				name: command.name,
 				params: command.schema,
 			})),
@@ -88,6 +91,6 @@ export class SidechainInteroperabilityModule extends BaseInteroperabilityModule 
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
-		await initGenesisStateUtil(this.id, context);
+		await initGenesisStateUtil(context, this.stores);
 	}
 }

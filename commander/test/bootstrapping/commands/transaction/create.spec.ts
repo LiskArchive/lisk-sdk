@@ -45,10 +45,10 @@ describe('transaction:create command', () => {
 			data: 'send token',
 			recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
 		},
-		commandID: 0,
+		command: 'transfer',
 		fee: '100000000',
-		moduleID: 2,
-		nonce: '0',
+		module: 'token',
+		nonce: 'transfer',
 		senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 		signatures: [
 			'3cc8c8c81097fe59d9df356b3c3f1dd10f619bfabb54f5d187866092c67e0102c64dbe24f357df493cc7ebacdd2e55995db8912245b718d88ebf7f4f4ac01f04',
@@ -84,19 +84,19 @@ describe('transaction:create command', () => {
 			},
 			metadata: [
 				{
-					id: cryptography.utils.intToBuffer(2, 4).toString('hex'),
+					name: 'token',
 					commands: [
 						{
-							id: cryptography.utils.intToBuffer(0, 4).toString('hex'),
+							name: 'transfer',
 							params: tokenTransferParamsSchema,
 						},
 					],
 				},
 				{
-					id: cryptography.utils.intToBuffer(13, 4).toString('hex'),
+					name: 'dpos',
 					commands: [
 						{
-							id: cryptography.utils.intToBuffer(1, 4).toString('hex'),
+							name: 'voteDelegate',
 							params: dposVoteParamsSchema,
 						},
 					],
@@ -139,37 +139,37 @@ describe('transaction:create command', () => {
 
 	describe('transaction:create 2', () => {
 		it('should throw an error when fee, nonce and transaction type are provided.', async () => {
-			await expect(CreateCommandExtended.run(['2'], config)).rejects.toThrow(
+			await expect(CreateCommandExtended.run(['token'], config)).rejects.toThrow(
 				'Missing 2 required args:',
 			);
 		});
 	});
 
-	describe('transaction:create 2 0', () => {
+	describe('transaction:create token transfer', () => {
 		it('should throw an error when nonce and transaction type are provided.', async () => {
-			await expect(CreateCommandExtended.run(['2', '0'], config)).rejects.toThrow(
+			await expect(CreateCommandExtended.run(['token', 'transfer'], config)).rejects.toThrow(
 				'Missing 1 required arg:',
 			);
 		});
 	});
 
 	describe('transaction:create 9999 0000 100000000', () => {
-		it('should throw an error when moduleID is not registered.', async () => {
+		it('should throw an error when module is not registered.', async () => {
 			await expect(
-				CreateCommandExtended.run(['9999', '00000000', '100000000'], config),
-			).rejects.toThrow('ModuleID: 0000270f is not registered');
+				CreateCommandExtended.run(['newMod', 'transfer', '100000000'], config),
+			).rejects.toThrow('Module: newMod is not registered');
 		});
 	});
 
 	describe('offline', () => {
 		describe('with flags', () => {
-			describe(`transaction:create 2 0 100000000 --params='{"amount": "abc"}' --passphrase=${passphrase} --offline`, () => {
+			describe(`transaction:create token transfer 100000000 --params='{"amount": "abc"}' --passphrase=${passphrase} --offline`, () => {
 				it('should throw error for data path flag.', async () => {
 					await expect(
 						CreateCommandExtended.run(
 							[
-								'2',
-								'0',
+								'token',
+								'transfer',
 								'100000000',
 								'--params={"amount": "abc"}',
 								`--passphrase=${passphrase}`,
@@ -184,13 +184,13 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --params='{"amount": "abc"}' --passphrase=${passphrase} --offline`, () => {
+			describe(`transaction:create token transfer 100000000 --params='{"amount": "abc"}' --passphrase=${passphrase} --offline`, () => {
 				it('should throw error for missing network identifier flag.', async () => {
 					await expect(
 						CreateCommandExtended.run(
 							[
-								'2',
-								'0',
+								'token',
+								'transfer',
 								'100000000',
 								'--params={"amount": "abc"}',
 								`--passphrase=${passphrase}`,
@@ -202,13 +202,13 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --params='{"amount": "abc"}' --passphrase=${passphrase} --offline`, () => {
+			describe(`transaction:create token transfer 100000000 --params='{"amount": "abc"}' --passphrase=${passphrase} --offline`, () => {
 				it('should throw error for missing nonce flag.', async () => {
 					await expect(
 						CreateCommandExtended.run(
 							[
-								'2',
-								'0',
+								'token',
+								'transfer',
 								'100000000',
 								'--params={"amount": "abc"}',
 								`--passphrase=${passphrase}`,
@@ -221,13 +221,13 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --params=${transferParams} --no-signature`, () => {
+			describe(`transaction:create token transfer 100000000 --params=${transferParams} --no-signature`, () => {
 				it('should throw error when sender public key not specified when no-signature flag is used.', async () => {
 					await expect(
 						CreateCommandExtended.run(
 							[
-								'2',
-								'0',
+								'token',
+								'transfer',
 								'100000000',
 								`--params=${transferParams}`,
 								'--no-signature',
@@ -243,13 +243,13 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --params=${transferParams} --passphrase=${passphrase}`, () => {
+			describe(`transaction:create token transfer 100000000 --params=${transferParams} --passphrase=${passphrase}`, () => {
 				it('should throw error when transfer params data is empty.', async () => {
 					await expect(
 						CreateCommandExtended.run(
 							[
-								'2',
-								'0',
+								'token',
+								'transfer',
 								'100000000',
 								'--params={"tokenID":"0000000000000000","amount":100,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815"}',
 								`--passphrase=${passphrase}`,
@@ -266,12 +266,12 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --params=${transferParams} --passphrase=${passphrase}`, () => {
+			describe(`transaction:create token transfer 100000000 --params=${transferParams} --passphrase=${passphrase}`, () => {
 				it('should return encoded transaction string in hex format with signature', async () => {
 					await CreateCommandExtended.run(
 						[
-							'2',
-							'0',
+							'token',
+							'transfer',
 							'100000000',
 							'--offline',
 							`--params=${transferParams}`,
@@ -288,12 +288,12 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --params=${transferParams} --no-signature --sender-public-key=${senderPublicKey}`, () => {
+			describe(`transaction:create token transfer 100000000 --params=${transferParams} --no-signature --sender-public-key=${senderPublicKey}`, () => {
 				it('should return encoded transaction string in hex format without signature', async () => {
 					await CreateCommandExtended.run(
 						[
-							'2',
-							'0',
+							'token',
+							'transfer',
 							'100000000',
 							'--offline',
 							`--params=${transferParams}`,
@@ -311,12 +311,12 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create 13 1 100000000 --params=${voteParams} --passphrase=${passphrase}`, () => {
+			describe(`transaction:create dpos voteDelegate 100000000 --params=${voteParams} --passphrase=${passphrase}`, () => {
 				it('should return encoded transaction string in hex format with signature', async () => {
 					await CreateCommandExtended.run(
 						[
-							'13',
-							'1',
+							'dpos',
+							'voteDelegate',
 							'100000000',
 							'--offline',
 							`--params=${voteParams}`,
@@ -333,12 +333,12 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create 13 1 100000000 --params=${unVoteParams} --passphrase=${passphrase}`, () => {
+			describe(`transaction:create dpos voteDelegate 100000000 --params=${unVoteParams} --passphrase=${passphrase}`, () => {
 				it('should return encoded transaction string in hex format with signature', async () => {
 					await CreateCommandExtended.run(
 						[
-							'13',
-							'1',
+							'dpos',
+							'voteDelegate',
 							'100000000',
 							'--offline',
 							`--params=${unVoteParams}`,
@@ -357,12 +357,12 @@ describe('transaction:create command', () => {
 		});
 
 		describe('with prompts and flags', () => {
-			describe(`transaction:create 2 0 100000000 --passphrase=${passphrase}`, () => {
+			describe(`transaction:create token transfer 100000000 --passphrase=${passphrase}`, () => {
 				it('should prompt user for params.', async () => {
 					await CreateCommandExtended.run(
 						[
-							'2',
-							'0',
+							'token',
+							'transfer',
 							'100000000',
 							`--passphrase=${passphrase}`,
 							'--offline',
@@ -389,12 +389,12 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe('transaction:create 2 0 100000000', () => {
+			describe('transaction:create token transfer 100000000', () => {
 				it('should prompt user for params and passphrase.', async () => {
 					await CreateCommandExtended.run(
 						[
-							'2',
-							'0',
+							'token',
+							'transfer',
 							'100000000',
 							'--offline',
 							'--network-identifier=873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3.',
@@ -421,12 +421,12 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --params=${transferParams} --no-signature --json`, () => {
+			describe(`transaction:create token transfer 100000000 --params=${transferParams} --no-signature --json`, () => {
 				it('should return unsigned transaction in json format when no passphrase specified', async () => {
 					await CreateCommandExtended.run(
 						[
-							'2',
-							'0',
+							'token',
+							'transfer',
 							'100000000',
 							`--params=${transferParams}`,
 							'--no-signature',
@@ -444,8 +444,8 @@ describe('transaction:create command', () => {
 					});
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction: {
-							moduleID: '00000002',
-							commandID: '00000000',
+							module: 'token',
+							command: 'transfer',
 							nonce: '1',
 							fee: '100000000',
 							senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
@@ -461,12 +461,12 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --params=${transferParams} --passphrase=${passphrase} --json`, () => {
+			describe(`transaction:create token transfer 100000000 --params=${transferParams} --passphrase=${passphrase} --json`, () => {
 				it('should return signed transaction in json format when passphrase specified', async () => {
 					await CreateCommandExtended.run(
 						[
-							'2',
-							'0',
+							'token',
+							'transfer',
 							'100000000',
 							`--params=${transferParams}`,
 							`--passphrase=${passphrase}`,
@@ -483,8 +483,8 @@ describe('transaction:create command', () => {
 					});
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction: {
-							moduleID: '00000002',
-							commandID: '00000000',
+							module: 'token',
+							command: 'transfer',
 							nonce: '1',
 							fee: '100000000',
 							id: expect.any(String),
@@ -505,21 +505,33 @@ describe('transaction:create command', () => {
 
 	describe('online', () => {
 		describe('with flags', () => {
-			describe(`transaction:create 2 0 100000000 --params='{"amount": "abc"}' --passphrase=${passphrase}`, () => {
+			describe(`transaction:create token transfer 100000000 --params='{"amount": "abc"}' --passphrase=${passphrase}`, () => {
 				it('should throw error for invalid params.', async () => {
 					await expect(
 						CreateCommandExtended.run(
-							['2', '0', '100000000', '--params={"amount": "abc"}', `--passphrase=${passphrase}`],
+							[
+								'token',
+								'transfer',
+								'100000000',
+								'--params={"amount": "abc"}',
+								`--passphrase=${passphrase}`,
+							],
 							config,
 						),
 					).rejects.toThrow('Cannot convert abc to a BigInt');
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --params=${transferParams} --passphrase=${passphrase}`, () => {
+			describe(`transaction:create token transfer 100000000 --params=${transferParams} --passphrase=${passphrase}`, () => {
 				it('should return encoded transaction string in hex format with signature', async () => {
 					await CreateCommandExtended.run(
-						['2', '0', '100000000', `--params=${transferParams}`, `--passphrase=${passphrase}`],
+						[
+							'token',
+							'transfer',
+							'100000000',
+							`--params=${transferParams}`,
+							`--passphrase=${passphrase}`,
+						],
 						config,
 					);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
@@ -529,12 +541,12 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --params=${transferParams} --no-signature --sender-public-key=${senderPublicKey}`, () => {
+			describe(`transaction:create token transfer 100000000 --params=${transferParams} --no-signature --sender-public-key=${senderPublicKey}`, () => {
 				it('should return encoded transaction string in hex format without signature', async () => {
 					await CreateCommandExtended.run(
 						[
-							'2',
-							'0',
+							'token',
+							'transfer',
 							'100000000',
 							`--params=${transferParams}`,
 							'--no-signature',
@@ -549,10 +561,16 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create 13 1 100000000 --params=${voteParams} --passphrase=${passphrase}`, () => {
+			describe(`transaction:create dpos voteDelegate 100000000 --params=${voteParams} --passphrase=${passphrase}`, () => {
 				it('should return encoded transaction string in hex format with signature', async () => {
 					await CreateCommandExtended.run(
-						['13', '1', '100000000', `--params=${voteParams}`, `--passphrase=${passphrase}`],
+						[
+							'dpos',
+							'voteDelegate',
+							'100000000',
+							`--params=${voteParams}`,
+							`--passphrase=${passphrase}`,
+						],
 						config,
 					);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
@@ -562,10 +580,16 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create 13 1 100000000 --params=${unVoteParams} --passphrase=${passphrase}`, () => {
+			describe(`transaction:create dpos voteDelegate 100000000 --params=${unVoteParams} --passphrase=${passphrase}`, () => {
 				it('should return encoded transaction string in hex format with signature', async () => {
 					await CreateCommandExtended.run(
-						['13', '1', '100000000', `--params=${unVoteParams}`, `--passphrase=${passphrase}`],
+						[
+							'dpos',
+							'voteDelegate',
+							'100000000',
+							`--params=${unVoteParams}`,
+							`--passphrase=${passphrase}`,
+						],
 						config,
 					);
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
@@ -577,10 +601,10 @@ describe('transaction:create command', () => {
 		});
 
 		describe('with prompts and flags', () => {
-			describe(`transaction:create 2 0 100000000 --passphrase=${passphrase}`, () => {
+			describe(`transaction:create token transfer 100000000 --passphrase=${passphrase}`, () => {
 				it('should prompt user for params.', async () => {
 					await CreateCommandExtended.run(
-						['2', '0', '100000000', `--passphrase=${passphrase}`],
+						['token', 'transfer', '100000000', `--passphrase=${passphrase}`],
 						config,
 					);
 					expect(inquirer.prompt).toHaveBeenCalledTimes(1);
@@ -601,9 +625,12 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe('transaction:create 2 0 100000000 --nonce=999', () => {
+			describe('transaction:create token transfer 100000000 --nonce=999', () => {
 				it('should prompt user for params and passphrase.', async () => {
-					await CreateCommandExtended.run(['2', '0', '100000000', '--nonce=999'], config);
+					await CreateCommandExtended.run(
+						['token', 'transfer', '100000000', '--nonce=999'],
+						config,
+					);
 					expect(inquirer.prompt).toHaveBeenCalledTimes(1);
 					expect(inquirer.prompt).toHaveBeenCalledWith([
 						{ message: 'Please enter: tokenID: ', name: 'tokenID', type: 'input' },
@@ -623,9 +650,9 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe('transaction:create 2 0 100000000', () => {
+			describe('transaction:create token transfer 100000000', () => {
 				it('should prompt user for params and passphrase.', async () => {
-					await CreateCommandExtended.run(['2', '0', '100000000'], config);
+					await CreateCommandExtended.run(['token', 'transfer', '100000000'], config);
 					expect(inquirer.prompt).toHaveBeenCalledTimes(1);
 					expect(inquirer.prompt).toHaveBeenCalledWith([
 						{ message: 'Please enter: tokenID: ', name: 'tokenID', type: 'input' },
@@ -645,13 +672,13 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --params=${transferParams} --no-signature --json`, () => {
+			describe(`transaction:create token transfer 100000000 --params=${transferParams} --no-signature --json`, () => {
 				it('should return unsigned transaction in json format when no passphrase specified', async () => {
 					jest.spyOn(transactions, 'signTransaction');
 					await CreateCommandExtended.run(
 						[
-							'2',
-							'0',
+							'token',
+							'transfer',
 							'100000000',
 							`--params=${transferParams}`,
 							'--no-signature',
@@ -665,12 +692,12 @@ describe('transaction:create command', () => {
 				});
 			});
 
-			describe(`transaction:create 2 0 100000000 --params=${transferParams} --passphrase=${passphrase} --json`, () => {
+			describe(`transaction:create token transfer 100000000 --params=${transferParams} --passphrase=${passphrase} --json`, () => {
 				it('should return signed transaction in json format when passphrase specified', async () => {
 					await CreateCommandExtended.run(
 						[
-							'2',
-							'0',
+							'token',
+							'transfer',
 							'100000000',
 							`--params=${transferParams}`,
 							`--passphrase=${passphrase}`,
@@ -684,9 +711,9 @@ describe('transaction:create command', () => {
 					});
 					expect(CreateCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 						transaction: {
-							moduleID: 2,
-							commandID: 0,
-							nonce: '0',
+							module: 'token',
+							command: 'transfer',
+							nonce: 'transfer',
 							fee: '100000000',
 							senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
 							params: {

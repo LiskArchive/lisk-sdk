@@ -19,13 +19,14 @@ import { regularMerkleTree } from '@liskhq/lisk-tree';
 import { when } from 'jest-when';
 import { CCMsg, MessageRecoveryParams } from '../../../../../../src/modules/interoperability/types';
 import { SidechainMessageRecoveryCommand } from '../../../../../../src/modules/interoperability/sidechain/commands/message_recovery';
-import { CommandExecuteContext } from '../../../../../../src';
+import { CommandExecuteContext, SidechainInteroperabilityModule } from '../../../../../../src';
 import { BaseInteroperableAPI } from '../../../../../../src/modules/interoperability/base_interoperable_api';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
 import { TransactionContext } from '../../../../../../src/state_machine';
 import {
-	COMMAND_ID_MESSAGE_RECOVERY_BUFFER,
-	MODULE_ID_INTEROPERABILITY_BUFFER,
+	COMMAND_NAME_MESSAGE_RECOVERY,
+	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
 	ccmSchema,
@@ -37,6 +38,8 @@ import { SidechainInteroperabilityStore } from '../../../../../../src/modules/in
 import { Mocked } from '../../../../../utils/types';
 
 describe('Sidechain MessageRecoveryCommand', () => {
+	const interopMod = new SidechainInteroperabilityModule();
+
 	const createCommandExecuteContext = (ccms: CCMsg[]) => {
 		const ccmsEncoded = ccms.map(ccm => codec.encode(ccmSchema, ccm));
 
@@ -50,8 +53,8 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		encodedTransactionParams = codec.encode(messageRecoveryParamsSchema, transactionParams);
 
 		transaction = new Transaction({
-			moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
-			commandID: COMMAND_ID_MESSAGE_RECOVERY_BUFFER,
+			module: MODULE_NAME_INTEROPERABILITY,
+			command: COMMAND_NAME_MESSAGE_RECOVERY,
 			fee: BigInt(100000000),
 			nonce: BigInt(0),
 			params: encodedTransactionParams,
@@ -78,12 +81,10 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		| 'terminatedOutboxAccountExist'
 	>;
 
-	const moduleID = utils.intToBuffer(1, 4);
-
 	let messageRecoveryCommand: SidechainMessageRecoveryCommand;
 	let commandExecuteContext: CommandExecuteContext<MessageRecoveryParams>;
-	let interoperableCCAPIs: Map<number, BaseInteroperableAPI>;
-	let ccCommands: Map<number, BaseCCCommand[]>;
+	let interoperableCCAPIs: Map<string, BaseInteroperableAPI>;
+	let ccCommands: Map<string, BaseCCCommand[]>;
 	let transaction: Transaction;
 	let transactionParams: MessageRecoveryParams;
 	let encodedTransactionParams: Buffer;
@@ -96,7 +97,8 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		ccCommands = new Map();
 
 		messageRecoveryCommand = new SidechainMessageRecoveryCommand(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
+			interopMod.stores,
+			interopMod.events,
 			interoperableCCAPIs,
 			ccCommands,
 		);
@@ -104,8 +106,8 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		ccms = [
 			{
 				nonce: BigInt(0),
-				moduleID,
-				crossChainCommandID: utils.intToBuffer(1, 4),
+				module: MODULE_NAME_INTEROPERABILITY,
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 				sendingChainID: utils.intToBuffer(2, 4),
 				receivingChainID: utils.intToBuffer(3, 4),
 				fee: BigInt(1),
@@ -114,8 +116,8 @@ describe('Sidechain MessageRecoveryCommand', () => {
 			},
 			{
 				nonce: BigInt(1),
-				moduleID: utils.intToBuffer(moduleID.readInt32BE(0) + 1, 4),
-				crossChainCommandID: utils.intToBuffer(1, 4),
+				module: MODULE_NAME_INTEROPERABILITY,
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 				sendingChainID: utils.intToBuffer(2, 4),
 				receivingChainID: utils.intToBuffer(3, 4),
 				fee: BigInt(1),
@@ -152,13 +154,12 @@ describe('Sidechain MessageRecoveryCommand', () => {
 
 		// Set an example ccCommand for the message recovery command
 		for (const ccm of ccms) {
-			const previousCCCommands = ccCommands.get(ccm.moduleID.readInt32BE(0)) ?? [];
-			ccCommands.set(ccm.moduleID.readInt32BE(0), ([
+			const previousCCCommands = ccCommands.get(ccm.module) ?? [];
+			ccCommands.set(ccm.module, ([
 				...previousCCCommands,
 				{
-					moduleID: ccm.moduleID,
-					ID: ccm.crossChainCommandID,
-					name: 'ccCommand',
+					module: ccm.module,
+					name: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 					execute: jest.fn(),
 					schema: {
 						$id: '/id',
@@ -193,8 +194,8 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		expect.assertions(ccmsWithSwappedChainIds.length);
 
 		for (const ccm of ccmsWithSwappedChainIds) {
-			const commands = ccCommands.get(ccm.moduleID.readInt32BE(0)) as BaseCCCommand[];
-			const command = commands.find(cmd => cmd.ID.equals(ccm.crossChainCommandID)) as BaseCCCommand;
+			const commands = ccCommands.get(ccm.module) as BaseCCCommand[];
+			const command = commands.find(cmd => cmd.name === ccm.crossChainCommand) as BaseCCCommand;
 			expect(command.execute).toHaveBeenCalledWith(
 				expect.objectContaining({
 					ccm,
@@ -207,8 +208,8 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		// Arrange & Assign
 		const newCcm = {
 			nonce: BigInt(2),
-			moduleID: utils.intToBuffer(moduleID.readInt32BE(0) + 1, 4),
-			crossChainCommandID: utils.intToBuffer(2, 4),
+			module: 'token',
+			crossChainCommand: 'crosschainTransfer',
 			sendingChainID: utils.intToBuffer(3, 4),
 			receivingChainID: utils.intToBuffer(2, 4),
 			fee: BigInt(1),
@@ -218,13 +219,12 @@ describe('Sidechain MessageRecoveryCommand', () => {
 
 		ccms.push(newCcm);
 
-		const previousCCCommands = ccCommands.get(newCcm.moduleID.readInt32BE(0)) ?? [];
-		ccCommands.set(newCcm.moduleID.readInt32BE(0), ([
+		const previousCCCommands = ccCommands.get(newCcm.module) ?? [];
+		ccCommands.set(newCcm.module, ([
 			...previousCCCommands,
 			{
-				moduleID: newCcm.moduleID,
-				ID: newCcm.crossChainCommandID,
-				name: 'ccCommand',
+				module: newCcm.module,
+				name: 'crosschainTransfer',
 				execute: jest.fn(),
 				schema: {
 					$id: '/id',
@@ -244,8 +244,8 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		// Assert
 		expect.assertions(ccmsWithSwappedChainIds.length);
 		for (const ccm of ccmsWithSwappedChainIds) {
-			const commands = ccCommands.get(ccm.moduleID.readInt32BE(0)) as BaseCCCommand[];
-			const command = commands.find(cmd => cmd.ID.equals(ccm.crossChainCommandID)) as BaseCCCommand;
+			const commands = ccCommands.get(ccm.module) as BaseCCCommand[];
+			const command = commands.find(cmd => cmd.name === ccm.crossChainCommand) as BaseCCCommand;
 			if (ccm.sendingChainID.equals(transactionParams.chainID)) {
 				expect(command.execute).toHaveBeenCalledWith(
 					expect.objectContaining({
@@ -264,10 +264,10 @@ describe('Sidechain MessageRecoveryCommand', () => {
 			beforeRecoverCCM: jest.fn(() => {
 				throw new Error('beforeRecoverCCM Error');
 			}),
-			moduleID,
+			name: MODULE_NAME_INTEROPERABILITY,
 		} as unknown) as BaseInteroperableAPI;
 
-		interoperableCCAPIs.set(moduleID.readInt32BE(0), api);
+		interoperableCCAPIs.set(MODULE_NAME_INTEROPERABILITY, api);
 
 		// Assert
 		await expect(messageRecoveryCommand.execute(commandExecuteContext)).rejects.toThrow(
@@ -332,11 +332,9 @@ describe('Sidechain MessageRecoveryCommand', () => {
 
 	it("should skip CCM's proccessing when there is no crossChainCommand associated with a module to execute", async () => {
 		// Arrange & Assign
-		ccCommands.set(moduleID.readInt32BE(0), ([
+		ccCommands.set(MODULE_NAME_INTEROPERABILITY, ([
 			{
-				moduleID,
-				ID: utils.intToBuffer(3000, 4),
-				name: 'ccCommand',
+				name: 'ccCommand2',
 				execute: jest.fn(),
 				schema: {
 					$id: '/id',

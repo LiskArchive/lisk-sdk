@@ -17,14 +17,13 @@ import * as crypto from '@liskhq/lisk-cryptography';
 import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { LiskValidationError } from '@liskhq/lisk-validator';
-import { when } from 'jest-when';
 import * as testing from '../../../../../../src/testing';
 import { MainchainRegistrationCommand } from '../../../../../../src/modules/interoperability/sidechain/commands/mainchain_registration';
 import {
 	CCM_STATUS_OK,
 	CHAIN_REGISTERED,
-	COMMAND_ID_MAINCHAIN_REG_BUFFER,
-	CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
+	COMMAND_NAME_MAINCHAIN_REG,
+	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	EMPTY_FEE_ADDRESS,
 	EMPTY_HASH,
 	MAINCHAIN_ID,
@@ -32,43 +31,46 @@ import {
 	MAINCHAIN_NAME,
 	MAINCHAIN_NETWORK_ID,
 	MAX_UINT32,
-	MODULE_ID_INTEROPERABILITY_BUFFER,
+	MODULE_NAME_INTEROPERABILITY,
 	NUMBER_MAINCHAIN_VALIDATORS,
-	STORE_PREFIX_CHAIN_DATA,
-	STORE_PREFIX_CHAIN_VALIDATORS,
-	STORE_PREFIX_CHANNEL_DATA,
-	STORE_PREFIX_OUTBOX_ROOT,
-	STORE_PREFIX_OWN_CHAIN_DATA,
 	TAG_CHAIN_REG_MESSAGE,
 	THRESHOLD_MAINCHAIN,
 } from '../../../../../../src/modules/interoperability/constants';
 import {
-	chainAccountSchema,
-	channelSchema,
 	mainchainRegParams,
-	outboxRootSchema,
-	ownChainAccountSchema,
 	registrationCCMParamsSchema,
 	registrationSignatureMessageSchema,
-	validatorsSchema,
 } from '../../../../../../src/modules/interoperability/schemas';
 import {
 	ActiveValidators,
 	MainchainRegistrationParams,
 	SendInternalContext,
 } from '../../../../../../src/modules/interoperability/types';
-import { VerifyStatus, CommandVerifyContext } from '../../../../../../src/state_machine';
+import {
+	VerifyStatus,
+	CommandVerifyContext,
+	CommandExecuteContext,
+} from '../../../../../../src/state_machine';
 import {
 	computeValidatorsHash,
 	getIDAsKeyForStore,
 	sortValidatorsByBLSKey,
 } from '../../../../../../src/modules/interoperability/utils';
+import { SidechainInteroperabilityModule } from '../../../../../../src';
+import { OwnChainAccountStore } from '../../../../../../src/modules/interoperability/stores/own_chain_account';
+import { ChannelDataStore } from '../../../../../../src/modules/interoperability/stores/channel_data';
+import { OutboxRootStore } from '../../../../../../src/modules/interoperability/stores/outbox_root';
+import { ChainAccountStore } from '../../../../../../src/modules/interoperability/stores/chain_account';
+import { ChainValidatorsStore } from '../../../../../../src/modules/interoperability/stores/chain_validators';
+import { createTransactionContext } from '../../../../../../src/testing';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
 }));
 
 describe('Mainchain registration command', () => {
+	const interopMod = new SidechainInteroperabilityModule();
+
 	const unsortedMainchainValidators: ActiveValidators[] = [];
 	for (let i = 0; i < NUMBER_MAINCHAIN_VALIDATORS; i += 1) {
 		unsortedMainchainValidators.push({ blsKey: utils.getRandomBytes(48), bftWeight: BigInt(1) });
@@ -84,8 +86,8 @@ describe('Mainchain registration command', () => {
 	const encodedTransactionParams = codec.encode(mainchainRegParams, transactionParams);
 	const publicKey = utils.getRandomBytes(32);
 	const transaction = new Transaction({
-		moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
-		commandID: COMMAND_ID_MAINCHAIN_REG_BUFFER,
+		module: MODULE_NAME_INTEROPERABILITY,
+		command: COMMAND_NAME_MAINCHAIN_REG,
 		senderPublicKey: publicKey,
 		nonce: BigInt(0),
 		fee: BigInt(100000000),
@@ -101,7 +103,8 @@ describe('Mainchain registration command', () => {
 
 	beforeEach(() => {
 		mainchainRegistrationCommand = new MainchainRegistrationCommand(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
+			interopMod.stores,
+			interopMod.events,
 			new Map(),
 			new Map(),
 		);
@@ -251,54 +254,36 @@ describe('Mainchain registration command', () => {
 			},
 		];
 		validatorAccounts.sort((a, b) => a.blsKey.compare(b.blsKey));
-		const mockGetStore = jest.fn();
-		const context = {
-			logger: jest.fn(),
-			eventQueue: jest.fn(),
-			networkIdentifier: Buffer.alloc(0),
-			header: { timestamp: Date.now() },
-			assets: {},
-			transaction,
-			params,
-			getAPIContext: jest.fn(),
-			getStore: mockGetStore,
-			certificateThreshold: BigInt(40),
-			currentValidators: validatorAccounts,
-		} as any;
-		const chainSubstore = {
-			setWithSchema: jest.fn(),
-		};
-		const channelSubstore = {
-			setWithSchema: jest.fn(),
-		};
-		const validatorsSubstore = {
-			setWithSchema: jest.fn(),
-		};
-		const outboxRootSubstore = { setWithSchema: jest.fn() };
-		const ownChainAccountSubstore = {
-			setWithSchema: jest.fn(),
-		};
+		let context: CommandExecuteContext<MainchainRegistrationParams>;
+
+		let channelDataSubstore: ChannelDataStore;
+		let outboxRootSubstore: OutboxRootStore;
+		let chainDataSubstore: ChainAccountStore;
+		let chainValidatorsSubstore: ChainValidatorsStore;
+		let ownChainAccountSubstore: OwnChainAccountStore;
 		const sendInternal = jest.fn();
 
 		beforeEach(() => {
 			mainchainRegistrationCommand['getInteroperabilityStore'] = jest
 				.fn()
 				.mockReturnValue({ sendInternal });
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_DATA)
-				.mockReturnValue(chainSubstore);
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHANNEL_DATA)
-				.mockReturnValue(channelSubstore);
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_VALIDATORS)
-				.mockReturnValue(validatorsSubstore);
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_OUTBOX_ROOT)
-				.mockReturnValue(outboxRootSubstore);
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_OWN_CHAIN_DATA)
-				.mockReturnValue(ownChainAccountSubstore);
+			channelDataSubstore = interopMod.stores.get(ChannelDataStore);
+			chainValidatorsSubstore = interopMod.stores.get(ChainValidatorsStore);
+			outboxRootSubstore = interopMod.stores.get(OutboxRootStore);
+			chainDataSubstore = interopMod.stores.get(ChainAccountStore);
+			ownChainAccountSubstore = interopMod.stores.get(OwnChainAccountStore);
+
+			context = createTransactionContext({
+				certificateThreshold: BigInt(40),
+				currentValidators: validatorAccounts,
+				transaction,
+			}).createCommandExecuteContext(mainchainRegParams);
+
+			jest.spyOn(chainDataSubstore, 'set');
+			jest.spyOn(channelDataSubstore, 'set');
+			jest.spyOn(chainValidatorsSubstore, 'set');
+			jest.spyOn(outboxRootSubstore, 'set');
+			jest.spyOn(ownChainAccountSubstore, 'set');
 		});
 
 		it('should call verifyWeightedAggSig with appropriate parameters', async () => {
@@ -335,10 +320,10 @@ describe('Mainchain registration command', () => {
 			await mainchainRegistrationCommand.execute(context);
 
 			// Assert
-			expect(chainSubstore.setWithSchema).toHaveBeenCalledWith(
+			expect(chainDataSubstore.set).toHaveBeenCalledWith(
+				expect.anything(),
 				mainchainIdAsKey,
 				chainAccount,
-				chainAccountSchema,
 			);
 		});
 
@@ -355,10 +340,10 @@ describe('Mainchain registration command', () => {
 			await mainchainRegistrationCommand.execute(context);
 
 			// Assert
-			expect(channelSubstore.setWithSchema).toHaveBeenCalledWith(
+			expect(channelDataSubstore.set).toHaveBeenCalledWith(
+				expect.anything(),
 				mainchainIdAsKey,
 				expectedValue,
-				channelSchema,
 			);
 		});
 
@@ -374,8 +359,8 @@ describe('Mainchain registration command', () => {
 
 			// Assert
 			expect(sendInternal).toHaveBeenCalledWith({
-				moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
-				crossChainCommandID: CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
+				module: MODULE_NAME_INTEROPERABILITY,
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 				receivingChainID,
 				fee: BigInt(0),
 				status: CCM_STATUS_OK,
@@ -392,18 +377,16 @@ describe('Mainchain registration command', () => {
 		it('should add an entry to chain validators substore', async () => {
 			// Arrange
 			const expectedValue = {
-				mainchainValidators: {
-					activeValidators: mainchainValidators,
-					certificateThreshold: BigInt(THRESHOLD_MAINCHAIN),
-				},
+				activeValidators: mainchainValidators,
+				certificateThreshold: BigInt(THRESHOLD_MAINCHAIN),
 			};
 
 			// Act
 			await mainchainRegistrationCommand.execute(context);
-			expect(validatorsSubstore.setWithSchema).toHaveBeenCalledWith(
+			expect(chainValidatorsSubstore.set).toHaveBeenCalledWith(
+				expect.anything(),
 				mainchainIdAsKey,
 				expectedValue,
-				validatorsSchema,
 			);
 		});
 
@@ -415,10 +398,10 @@ describe('Mainchain registration command', () => {
 			await mainchainRegistrationCommand.execute(context);
 
 			// Assert
-			expect(outboxRootSubstore.setWithSchema).toHaveBeenCalledWith(
+			expect(outboxRootSubstore.set).toHaveBeenCalledWith(
+				expect.anything(),
 				mainchainIdAsKey,
 				expectedValue,
-				outboxRootSchema,
 			);
 		});
 
@@ -430,10 +413,10 @@ describe('Mainchain registration command', () => {
 			await mainchainRegistrationCommand.execute(context);
 
 			// Assert
-			expect(ownChainAccountSubstore.setWithSchema).toHaveBeenCalledWith(
+			expect(ownChainAccountSubstore.set).toHaveBeenCalledWith(
+				expect.anything(),
 				getIDAsKeyForStore(0),
 				expectedValue,
-				ownChainAccountSchema,
 			);
 		});
 	});

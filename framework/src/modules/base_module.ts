@@ -28,6 +28,7 @@ import { BaseCommand } from './base_command';
 import { BaseEndpoint } from './base_endpoint';
 import { BaseAPI } from './base_api';
 import { InsertAssetContext } from '../state_machine/types';
+import { NamedRegistry } from './named_registry';
 
 export interface ModuleInitArgs {
 	genesisConfig: Omit<GenesisConfig, 'modules'>;
@@ -46,7 +47,6 @@ export interface ModuleMetadata {
 		data: Schema;
 	}[];
 	commands: {
-		id: Buffer;
 		name: string;
 		params?: Schema;
 	}[];
@@ -58,7 +58,6 @@ export interface ModuleMetadata {
 
 export type RootModuleMetadata = ModuleMetadata & { id: Buffer; name: string };
 export interface ModuleMetadataJSON {
-	id: string;
 	name: string;
 	endpoints: {
 		name: string;
@@ -70,7 +69,6 @@ export interface ModuleMetadataJSON {
 		data: Schema;
 	}[];
 	commands: {
-		id: string;
 		name: string;
 		params?: Schema;
 	}[];
@@ -82,9 +80,15 @@ export interface ModuleMetadataJSON {
 
 export abstract class BaseModule {
 	public commands: BaseCommand[] = [];
-	public events: string[] = [];
-	public abstract name: string;
-	public abstract id: Buffer;
+	public events: NamedRegistry = new NamedRegistry();
+	public stores: NamedRegistry = new NamedRegistry();
+	public offchainStores: NamedRegistry = new NamedRegistry();
+
+	public get name(): string {
+		const name = this.constructor.name.replace('Module', '');
+		return name.charAt(0).toLowerCase() + name.substr(1);
+	}
+
 	public abstract endpoint: BaseEndpoint;
 	public abstract api: BaseAPI;
 

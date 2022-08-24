@@ -13,78 +13,80 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { InMemoryDatabase, Database, Batch } from '@liskhq/lisk-db';
 import { Logger } from '../../../../src/logger';
 import { ValidatorsModule } from '../../../../src/modules/validators';
+import { BLSKeyStore } from '../../../../src/modules/validators/stores/bls_keys';
+import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { fakeLogger } from '../../../utils/mocks';
 
 describe('ValidatorsModuleEndpoint', () => {
 	const logger: Logger = fakeLogger;
 	let validatorsModule: ValidatorsModule;
+	let stateStore: PrefixedStateReadWriter;
 	const pk = utils.getRandomBytes(48);
 	const address = utils.getRandomBytes(48);
 	const proof = utils.getRandomBytes(48);
-	const getStore1 = jest.fn();
-	const subStore = (new InMemoryDatabase() as unknown) as Database;
 	const networkIdentifier = Buffer.alloc(0);
 
 	beforeAll(() => {
 		validatorsModule = new ValidatorsModule();
+		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	});
 
 	describe('validateBLSKey', () => {
 		describe('when request data is valid', () => {
 			it('should resolve with false when key already exists', async () => {
-				await subStore.set(pk, address);
-				const batch = new Batch();
-				batch.set(pk, address);
-				await subStore.write(batch);
-				getStore1.mockReturnValue(subStore);
-				await expect(
-					validatorsModule.endpoint.validateBLSKey({
-						getImmutableAPIContext: jest.fn(),
-						getStore: getStore1,
-						logger,
-						params: {
-							proofOfPossession: proof.toString('hex'),
-							blsKey: pk.toString('hex'),
-						},
-						networkIdentifier,
-					}),
-				).resolves.toStrictEqual({ valid: false });
+				const context = {
+					getImmutableAPIContext: jest.fn(),
+					getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
+					logger,
+					params: {
+						proofOfPossession: proof.toString('hex'),
+						blsKey: pk.toString('hex'),
+					},
+					networkIdentifier,
+				};
+
+				await validatorsModule.stores.get(BLSKeyStore).set(context, pk, { address });
+
+				await expect(validatorsModule.endpoint.validateBLSKey(context)).resolves.toStrictEqual({
+					valid: false,
+				});
 			});
 
 			it('should resolve with false when key does not exist but invalid proof of possession', async () => {
-				getStore1.mockReturnValue(subStore);
-				await expect(
-					validatorsModule.endpoint.validateBLSKey({
-						getStore: getStore1,
-						getImmutableAPIContext: jest.fn(),
-						logger,
-						params: {
-							proofOfPossession: proof.toString('hex'),
-							blsKey: pk.toString('hex'),
-						},
-						networkIdentifier,
-					}),
-				).resolves.toStrictEqual({ valid: false });
+				const context = {
+					getImmutableAPIContext: jest.fn(),
+					getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
+					logger,
+					params: {
+						proofOfPossession: proof.toString('hex'),
+						blsKey: pk.toString('hex'),
+					},
+					networkIdentifier,
+				};
+				await expect(validatorsModule.endpoint.validateBLSKey(context)).resolves.toStrictEqual({
+					valid: false,
+				});
 			});
 
 			it('should resolve with true when key does not exist and valid proof of possession', async () => {
-				await expect(
-					validatorsModule.endpoint.validateBLSKey({
-						getStore: getStore1,
-						getImmutableAPIContext: jest.fn(),
-						logger,
-						params: {
-							proofOfPossession:
-								'88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d26',
-							blsKey:
-								'b301803f8b5ac4a1133581fc676dfedc60d891dd5fa99028805e5ea5b08d3491af75d0707adab3b70c6a6a580217bf81',
-						},
-						networkIdentifier,
-					}),
-				).resolves.toStrictEqual({ valid: true });
+				const context = {
+					getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
+					getImmutableAPIContext: jest.fn(),
+					logger,
+					params: {
+						proofOfPossession:
+							'88bb31b27eae23038e14f9d9d1b628a39f5881b5278c3c6f0249f81ba0deb1f68aa5f8847854d6554051aa810fdf1cdb02df4af7a5647b1aa4afb60ec6d446ee17af24a8a50876ffdaf9bf475038ec5f8ebeda1c1c6a3220293e23b13a9a5d26',
+						blsKey:
+							'b301803f8b5ac4a1133581fc676dfedc60d891dd5fa99028805e5ea5b08d3491af75d0707adab3b70c6a6a580217bf81',
+					},
+					networkIdentifier,
+				};
+				await expect(validatorsModule.endpoint.validateBLSKey(context)).resolves.toStrictEqual({
+					valid: true,
+				});
 			});
 		});
 

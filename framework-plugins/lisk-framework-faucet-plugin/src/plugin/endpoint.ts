@@ -107,8 +107,8 @@ export class Endpoint extends BasePluginEndpoint {
 
 		const transaction = await this._client.transaction.create(
 			{
-				moduleID: cryptography.utils.intToBuffer(2, 4).toString('hex'),
-				commandID: cryptography.utils.intToBuffer(0, 4).toString('hex'),
+				module: 'token',
+				command: 'transfer',
 				senderPublicKey: this._state.publicKey?.toString('hex'),
 				fee: transactions.convertLSKToBeddows(this._config.fee), // TODO: The static fee should be replaced by fee estimation calculation
 				params: transferTransactionParams,

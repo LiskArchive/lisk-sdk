@@ -11,7 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
 export const configSchema = {
 	$id: '/validators/config',
 	type: 'object',
@@ -23,49 +22,6 @@ export const configSchema = {
 		},
 	},
 	required: ['blockTime'],
-};
-
-export const validatorAccountSchema = {
-	$id: '/validators/validatorAccountSubStore',
-	title: 'Validators Account Keys',
-	type: 'object',
-	properties: {
-		generatorKey: {
-			dataType: 'bytes',
-			fieldNumber: 1,
-		},
-		blsKey: {
-			dataType: 'bytes',
-			fieldNumber: 2,
-		},
-	},
-	required: ['generatorKey', 'blsKey'],
-};
-
-export const validatorAddressSchema = {
-	$id: '/validators/registeredBlsKeysSubStore',
-	title: 'Validators Addresses',
-	type: 'object',
-	properties: {
-		address: {
-			dataType: 'bytes',
-			fieldNumber: 1,
-		},
-	},
-	required: ['address'],
-};
-
-export const genesisDataSchema = {
-	$id: '/validators/genesisDataSubStore',
-	title: 'Timestamp',
-	type: 'object',
-	properties: {
-		timestamp: {
-			dataType: 'uint32',
-			fieldNumber: 1,
-		},
-	},
-	required: ['timestamp'],
 };
 
 export interface ValidateBLSKeyRequest {

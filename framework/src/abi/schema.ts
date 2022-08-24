@@ -24,10 +24,10 @@ export { blockHeaderSchema, blockSchema };
 export const eventSchema = {
 	$id: '/block/event',
 	type: 'object',
-	required: ['moduleID', 'typeID', 'data', 'topics', 'index'],
+	required: ['module', 'typeID', 'data', 'topics', 'index'],
 	properties: {
-		moduleID: {
-			dataType: 'bytes',
+		module: {
+			dataType: 'string',
 			fieldNumber: 1,
 		},
 		typeID: {
@@ -364,15 +364,15 @@ export const initResponseSchema = {
 			items: {
 				type: 'object',
 				properties: {
-					moduleID: {
+					module: {
 						fieldNumber: 1,
-						dataType: 'bytes',
+						dataType: 'string',
 					},
-					commandIDs: {
+					commands: {
 						fieldNumber: 2,
 						type: 'array',
 						items: {
-							dataType: 'bytes',
+							dataType: 'string',
 						},
 					},
 				},
@@ -397,10 +397,10 @@ export const initResponseSchema = {
 					type: 'array',
 					items: {
 						type: 'object',
-						required: ['moduleID', 'data'],
+						required: ['module', 'data'],
 						properties: {
-							moduleID: {
-								dataType: 'bytes',
+							module: {
+								dataType: 'string',
 								fieldNumber: 1,
 							},
 							data: {

@@ -13,42 +13,45 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
+import { MainchainInteroperabilityModule } from '../../../../../src';
 import { MainchainInteroperabilityAPI } from '../../../../../src/modules/interoperability/mainchain/api';
 import { MainchainInteroperabilityStore } from '../../../../../src/modules/interoperability/mainchain/store';
+import { APIContext } from '../../../../../src/state_machine';
+import { createTransientAPIContext } from '../../../../../src/testing';
 
 describe('Mainchain API', () => {
-	const moduleID = utils.intToBuffer(1, 4);
+	const interopMod = new MainchainInteroperabilityModule();
+
 	const chainID = utils.intToBuffer(1, 4);
 	const interoperableCCAPIs = new Map();
-	const getStore = jest.fn().mockReturnValue({ getWithSchema: jest.fn() });
-	const apiContext = {
-		getStore,
-		eventQueue: {
-			add: jest.fn(),
-		},
-	};
 	let mainchainInteroperabilityAPI: MainchainInteroperabilityAPI;
-	let mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
-		moduleID,
-		getStore,
-		interoperableCCAPIs,
-	);
+	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
+	let apiContext: APIContext;
 
 	beforeEach(() => {
-		mainchainInteroperabilityAPI = new MainchainInteroperabilityAPI(moduleID, interoperableCCAPIs);
+		apiContext = createTransientAPIContext({});
+		mainchainInteroperabilityAPI = new MainchainInteroperabilityAPI(
+			interopMod.stores,
+			interopMod.events,
+			interoperableCCAPIs,
+		);
 		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
-			moduleID,
-			getStore,
+			interopMod.stores,
+			apiContext,
 			interoperableCCAPIs,
 		);
 		jest
 			.spyOn(mainchainInteroperabilityAPI as any, 'getInteroperabilityStore')
 			.mockReturnValue(mainchainInteroperabilityStore);
-		jest.spyOn(mainchainInteroperabilityStore, 'getChainAccount');
-		jest.spyOn(mainchainInteroperabilityStore, 'getChannel');
-		jest.spyOn(mainchainInteroperabilityStore, 'getOwnChainAccount');
-		jest.spyOn(mainchainInteroperabilityStore, 'getTerminatedStateAccount');
-		jest.spyOn(mainchainInteroperabilityStore, 'getTerminatedOutboxAccount');
+		jest.spyOn(mainchainInteroperabilityStore, 'getChainAccount').mockResolvedValue({} as never);
+		jest.spyOn(mainchainInteroperabilityStore, 'getChannel').mockResolvedValue({} as never);
+		jest.spyOn(mainchainInteroperabilityStore, 'getOwnChainAccount').mockResolvedValue({} as never);
+		jest
+			.spyOn(mainchainInteroperabilityStore, 'getTerminatedStateAccount')
+			.mockResolvedValue({} as never);
+		jest
+			.spyOn(mainchainInteroperabilityStore, 'getTerminatedOutboxAccount')
+			.mockResolvedValue({} as never);
 	});
 
 	describe('getChainAccount', () => {
@@ -56,7 +59,7 @@ describe('Mainchain API', () => {
 			await mainchainInteroperabilityAPI.getChainAccount(apiContext, chainID);
 
 			expect(mainchainInteroperabilityAPI['getInteroperabilityStore']).toHaveBeenCalledWith(
-				apiContext.getStore,
+				apiContext,
 			);
 		});
 
@@ -72,7 +75,7 @@ describe('Mainchain API', () => {
 			await mainchainInteroperabilityAPI.getChannel(apiContext, chainID);
 
 			expect(mainchainInteroperabilityAPI['getInteroperabilityStore']).toHaveBeenCalledWith(
-				apiContext.getStore,
+				apiContext,
 			);
 		});
 
@@ -88,7 +91,7 @@ describe('Mainchain API', () => {
 			await mainchainInteroperabilityAPI.getOwnChainAccount(apiContext);
 
 			expect(mainchainInteroperabilityAPI['getInteroperabilityStore']).toHaveBeenCalledWith(
-				apiContext.getStore,
+				apiContext,
 			);
 		});
 
@@ -104,7 +107,7 @@ describe('Mainchain API', () => {
 			await mainchainInteroperabilityAPI.getTerminatedStateAccount(apiContext, chainID);
 
 			expect(mainchainInteroperabilityAPI['getInteroperabilityStore']).toHaveBeenCalledWith(
-				apiContext.getStore,
+				apiContext,
 			);
 		});
 
@@ -120,7 +123,7 @@ describe('Mainchain API', () => {
 			await mainchainInteroperabilityAPI.getTerminatedOutboxAccount(apiContext, chainID);
 
 			expect(mainchainInteroperabilityAPI['getInteroperabilityStore']).toHaveBeenCalledWith(
-				apiContext.getStore,
+				apiContext,
 			);
 		});
 

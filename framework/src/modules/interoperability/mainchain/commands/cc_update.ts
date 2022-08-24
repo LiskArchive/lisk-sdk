@@ -22,35 +22,20 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../../state_machine';
+import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import {
 	CHAIN_ACTIVE,
 	CHAIN_REGISTERED,
 	CHAIN_TERMINATED,
-	COMMAND_ID_MAINCHAIN_CCU_BUFFER,
-	CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
+	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	MAINCHAIN_ID_BUFFER,
-	STORE_PREFIX_CHAIN_DATA,
-	STORE_PREFIX_CHAIN_VALIDATORS,
-	STORE_PREFIX_CHANNEL_DATA,
 } from '../../constants';
-import {
-	ccmSchema,
-	chainAccountSchema,
-	chainValidatorsSchema,
-	channelSchema,
-	crossChainUpdateTransactionParams,
-} from '../../schemas';
-import {
-	CCMsg,
-	ChainAccount,
-	ChainValidators,
-	ChannelData,
-	CrossChainUpdateTransactionParams,
-	ImmutableStoreCallback,
-	StoreCallback,
-	TerminateChainContext,
-} from '../../types';
+import { ccmSchema, crossChainUpdateTransactionParams } from '../../schemas';
+import { ChainAccountStore } from '../../stores/chain_account';
+import { ChainValidatorsStore } from '../../stores/chain_validators';
+import { ChannelDataStore } from '../../stores/channel_data';
+import { CCMsg, CrossChainUpdateTransactionParams, TerminateChainContext } from '../../types';
 import {
 	checkActiveValidatorsUpdate,
 	checkCertificateTimestamp,
@@ -68,14 +53,12 @@ import {
 import { MainchainInteroperabilityStore } from '../store';
 
 export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
-	public name = 'mainchainCCUpdate';
-	public id = COMMAND_ID_MAINCHAIN_CCU_BUFFER;
 	public schema = crossChainUpdateTransactionParams;
 
 	public async verify(
 		context: CommandVerifyContext<CrossChainUpdateTransactionParams>,
 	): Promise<VerificationResult> {
-		const { params: txParams, transaction, getStore } = context;
+		const { params: txParams } = context;
 
 		try {
 			validator.validate(crossChainUpdateTransactionParams, context.params);
@@ -86,11 +69,8 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 			};
 		}
 
-		const partnerChainStore = getStore(transaction.moduleID, STORE_PREFIX_CHAIN_DATA);
-		const partnerChainAccount = await partnerChainStore.getWithSchema<ChainAccount>(
-			txParams.sendingChainID,
-			chainAccountSchema,
-		);
+		const partnerChainStore = this.stores.get(ChainAccountStore);
+		const partnerChainAccount = await partnerChainStore.get(context, txParams.sendingChainID);
 
 		// Section: Liveness of Partner Chain
 		if (partnerChainAccount.status === CHAIN_TERMINATED) {
@@ -101,7 +81,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 				),
 			};
 		}
-		const interoperabilityStore = this.getInteroperabilityStore(getStore);
+		const interoperabilityStore = this.getInteroperabilityStore(context);
 		if (partnerChainAccount.status === CHAIN_ACTIVE) {
 			const isChainLive = await interoperabilityStore.isLive(txParams.sendingChainID, Date.now());
 			if (!isChainLive) {
@@ -129,11 +109,8 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 			return certificateValidity;
 		}
 
-		const partnerValidatorStore = context.getStore(this.moduleID, STORE_PREFIX_CHAIN_VALIDATORS);
-		const partnerValidators = await partnerValidatorStore.getWithSchema<ChainValidators>(
-			txParams.sendingChainID,
-			chainValidatorsSchema,
-		);
+		const partnerValidatorStore = this.stores.get(ChainValidatorsStore);
+		const partnerValidators = await partnerValidatorStore.get(context, txParams.sendingChainID);
 		// If params contains a non-empty activeValidatorsUpdate and non-empty certificate
 		const validatorsHashValidity = checkValidatorsHashWithCertificate(txParams, partnerValidators);
 		if (validatorsHashValidity.error) {
@@ -156,13 +133,10 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 			return verifyCertificateSignatureResult;
 		}
 
-		const partnerChannelStore = context.getStore(transaction.moduleID, STORE_PREFIX_CHANNEL_DATA);
-		const partnerChannelData = await partnerChannelStore.getWithSchema<ChannelData>(
-			txParams.sendingChainID,
-			channelSchema,
-		);
+		const partnerChannelStore = this.stores.get(ChannelDataStore);
+		const partnerChannelData = await partnerChannelStore.get(context, txParams.sendingChainID);
 		// Section: InboxUpdate Validity
-		const inboxUpdateValidity = checkInboxUpdateValidity(txParams, partnerChannelData);
+		const inboxUpdateValidity = checkInboxUpdateValidity(this.stores, txParams, partnerChannelData);
 		if (inboxUpdateValidity.error) {
 			return inboxUpdateValidity;
 		}
@@ -177,22 +151,16 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 	): Promise<void> {
 		const { header, params: txParams } = context;
 		const chainIDBuffer = txParams.sendingChainID;
-		const partnerChainStore = context.getStore(this.moduleID, STORE_PREFIX_CHAIN_DATA);
-		const partnerChainAccount = await partnerChainStore.getWithSchema<ChainAccount>(
-			chainIDBuffer,
-			chainAccountSchema,
-		);
+		const partnerChainStore = this.stores.get(ChainAccountStore);
+		const partnerChainAccount = await partnerChainStore.get(context, chainIDBuffer);
 
 		const decodedCertificate = codec.decode<Certificate>(certificateSchema, txParams.certificate);
 
 		// if the CCU also contains a non-empty inboxUpdate, check the validity of certificate with liveness check
 		checkValidCertificateLiveness(txParams, header, decodedCertificate);
 
-		const partnerValidatorStore = context.getStore(this.moduleID, STORE_PREFIX_CHAIN_VALIDATORS);
-		const partnerValidators = await partnerValidatorStore.getWithSchema<ChainValidators>(
-			chainIDBuffer,
-			chainValidatorsSchema,
-		);
+		const partnerValidatorStore = this.stores.get(ChainValidatorsStore);
+		const partnerValidators = await partnerValidatorStore.get(context, chainIDBuffer);
 
 		// Certificate timestamp Validity
 		checkCertificateTimestamp(txParams, decodedCertificate, header);
@@ -205,7 +173,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 			logger: context.logger,
 			networkIdentifier: context.networkIdentifier,
 		};
-		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+		const interoperabilityStore = this.getInteroperabilityStore(context);
 		let decodedCCMs;
 		try {
 			decodedCCMs = txParams.inboxUpdate.crossChainMessages.map(ccm => ({
@@ -226,9 +194,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 		) {
 			// If the first CCM in inboxUpdate is a registration CCM
 			if (
-				decodedCCMs[0].deserialized.crossChainCommandID.equals(
-					CROSS_CHAIN_COMMAND_ID_REGISTRATION_BUFFER,
-				) &&
+				decodedCCMs[0].deserialized.crossChainCommand === CROSS_CHAIN_COMMAND_NAME_REGISTRATION &&
 				decodedCCMs[0].deserialized.receivingChainID.equals(MAINCHAIN_ID_BUFFER)
 			) {
 				partnerChainAccount.status = CHAIN_ACTIVE;
@@ -293,6 +259,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 		}
 		// Common ccu execution logic
 		await commonCCUExecutelogic({
+			stores: this.stores,
 			certificate: decodedCertificate,
 			chainIDBuffer,
 			context,
@@ -304,8 +271,8 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 	}
 
 	protected getInteroperabilityStore(
-		getStore: StoreCallback | ImmutableStoreCallback,
+		context: StoreGetter | ImmutableStoreGetter,
 	): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
+		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
 	}
 }

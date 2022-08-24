@@ -17,32 +17,27 @@ import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { utils } from '@liskhq/lisk-cryptography';
 import { RandomAPI } from '../../../../src/modules/random/api';
-import {
-	MODULE_ID_RANDOM_BUFFER,
-	SEED_REVEAL_HASH_SIZE,
-	STORE_PREFIX_RANDOM,
-} from '../../../../src/modules/random/constants';
-import {
-	blockHeaderAssetRandomModule,
-	seedRevealSchema,
-} from '../../../../src/modules/random/schemas';
+import { SEED_LENGTH } from '../../../../src/modules/random/constants';
+import { blockHeaderAssetRandomModule } from '../../../../src/modules/random/schemas';
 import { ValidatorSeedReveal } from '../../../../src/modules/random/types';
 import { bitwiseXOR } from '../../../../src/modules/random/utils';
 import { APIContext } from '../../../../src/state_machine';
-import { SubStore } from '../../../../src/state_machine/types';
 import { createTransientAPIContext } from '../../../../src/testing';
 import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
 import { testCases } from './dpos_random_seed_generation/dpos_random_seed_generation_other_rounds.json';
 import * as randomSeedsMultipleRounds from '../../../fixtures/dpos_random_seed_generation/dpos_random_seed_generation_other_rounds.json';
+import { RandomModule } from '../../../../src/modules/random';
+import { ValidatorRevealsStore } from '../../../../src/modules/random/stores/validator_reveals';
 
 const strippedHashOfIntegerBuffer = (num: number) =>
-	cryptography.utils.hash(utils.intToBuffer(num, 4)).slice(0, SEED_REVEAL_HASH_SIZE);
+	cryptography.utils.hash(utils.intToBuffer(num, 4)).slice(0, SEED_LENGTH);
 
 describe('RandomModuleAPI', () => {
 	let randomAPI: RandomAPI;
 	let context: APIContext;
-	let randomStore: SubStore;
+	let randomStore: ValidatorRevealsStore;
 
+	const randomModule = new RandomModule();
 	const emptyBytes = Buffer.alloc(0);
 
 	describe('isSeedRevealValid', () => {
@@ -69,14 +64,12 @@ describe('RandomModuleAPI', () => {
 		}
 
 		beforeEach(async () => {
-			randomAPI = new RandomAPI(MODULE_ID_RANDOM_BUFFER);
+			randomAPI = new RandomAPI(randomModule.stores, randomModule.events, randomModule.name);
 			context = createTransientAPIContext({});
-			randomStore = context.getStore(randomAPI['moduleID'], STORE_PREFIX_RANDOM);
-			await randomStore.setWithSchema(
-				emptyBytes,
-				{ validatorReveals: twoRoundsDelegates.slice(0, 103) },
-				seedRevealSchema,
-			);
+			randomStore = randomModule.stores.get(ValidatorRevealsStore);
+			await randomStore.set(context, emptyBytes, {
+				validatorReveals: twoRoundsDelegates.slice(0, 103),
+			});
 		});
 
 		it('should throw error when asset is undefined', async () => {
@@ -86,7 +79,7 @@ describe('RandomModuleAPI', () => {
 			);
 
 			const blockAsset: BlockAsset = {
-				moduleID: randomAPI['moduleID'],
+				module: randomModule.name,
 				data: undefined as any,
 			};
 
@@ -100,7 +93,7 @@ describe('RandomModuleAPI', () => {
 			for (const [address, hashes] of Object.entries(twoRoundsDelegatesHashes)) {
 				// Arrange
 				const blockAsset: BlockAsset = {
-					moduleID: randomAPI['moduleID'],
+					module: randomModule.name,
 					data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[1] }),
 				};
 				// Act
@@ -116,10 +109,10 @@ describe('RandomModuleAPI', () => {
 
 		it('should return true if no last seed reveal found', async () => {
 			// Arrange
-			await randomStore.setWithSchema(emptyBytes, { validatorReveals: [] }, seedRevealSchema);
+			await randomStore.set(context, emptyBytes, { validatorReveals: [] });
 			for (const [address, hashes] of Object.entries(twoRoundsDelegatesHashes)) {
 				const blockAsset: BlockAsset = {
-					moduleID: randomAPI['moduleID'],
+					module: randomModule.name,
 					data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[1] }),
 				};
 				// Act
@@ -134,15 +127,11 @@ describe('RandomModuleAPI', () => {
 		});
 
 		it('should return false for an invalid seed reveal when last seed is not hash of the given reveal', async () => {
-			await randomStore.setWithSchema(
-				emptyBytes,
-				{ validatorReveals: twoRoundsDelegates },
-				seedRevealSchema,
-			);
+			await randomStore.set(context, emptyBytes, { validatorReveals: twoRoundsDelegates });
 			for (const [address, hashes] of Object.entries(twoRoundsDelegatesHashes)) {
 				// Arrange
 				const blockAsset: BlockAsset = {
-					moduleID: randomAPI['moduleID'],
+					module: randomModule.name,
 					data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[1] }),
 				};
 				// Act
@@ -198,14 +187,10 @@ describe('RandomModuleAPI', () => {
 		];
 
 		beforeEach(async () => {
-			randomAPI = new RandomAPI(MODULE_ID_RANDOM_BUFFER);
+			randomAPI = new RandomAPI(randomModule.stores, randomModule.events, randomModule.name);
 			context = createTransientAPIContext({});
-			randomStore = context.getStore(randomAPI['moduleID'], STORE_PREFIX_RANDOM);
-			await randomStore.setWithSchema(
-				emptyBytes,
-				{ validatorReveals: validatorsData },
-				seedRevealSchema,
-			);
+			randomStore = randomModule.stores.get(ValidatorRevealsStore);
+			await randomStore.set(context, emptyBytes, { validatorReveals: validatorsData });
 		});
 
 		it('should throw error when height is negative', async () => {
@@ -356,14 +341,10 @@ describe('RandomModuleAPI', () => {
 			}
 
 			beforeEach(async () => {
-				randomAPI = new RandomAPI(MODULE_ID_RANDOM_BUFFER);
+				randomAPI = new RandomAPI(randomModule.stores, randomModule.events, randomModule.name);
 				context = createTransientAPIContext({});
-				randomStore = context.getStore(randomAPI['moduleID'], STORE_PREFIX_RANDOM);
-				await randomStore.setWithSchema(
-					emptyBytes,
-					{ validatorReveals: validators },
-					seedRevealSchema,
-				);
+				randomStore = randomModule.stores.get(ValidatorRevealsStore);
+				await randomStore.set(context, emptyBytes, { validatorReveals: validators });
 			});
 
 			it('should generate correct random seeds', async () => {

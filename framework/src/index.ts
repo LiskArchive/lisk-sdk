@@ -51,7 +51,7 @@ export {
 	ReportDelegateMisbehaviorCommand,
 	UnlockCommand,
 	UpdateGeneratorKeyCommand,
-	VoteCommand,
+	VoteDelegateCommand,
 	genesisStoreSchema as dposGenesisStoreSchema,
 } from './modules/dpos_v2';
 export {

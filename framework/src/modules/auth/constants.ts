@@ -11,13 +11,17 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import { utils } from '@liskhq/lisk-cryptography';
-
-export const MODULE_ID_AUTH = 12; // TBD
-export const MODULE_ID_AUTH_BUFFER = utils.intToBuffer(MODULE_ID_AUTH, 4);
-export const STORE_PREFIX_AUTH = 0x0000;
-export const MAX_KEYS_COUNT = 64;
+export const COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP = 'registerMultisignatureGroup';
+export const MAX_NUMBER_OF_SIGNATURES = 64;
 
 // Commands
-export const COMMAND_ID_MULTISIGNATURE_REGISTRATION = 0;
+export const COMMAND_ID_REGISTER_MULTISIGNATURE_GROUP = 0x0000;
+// Events
+export const TYPE_ID_MULTISIGNATURE_GROUP_REGISTERED = 0x0001;
+export const TYPE_ID_INVALID_SIGNATURE_ERROR = 0x0002;
+export const MESSAGE_TAG_MULTISIG_REG = Buffer.from('LSK_RMSG_', 'utf8');
+export const MESSAGE_TAG_TRANSACTION = Buffer.from('LSK_TX_', 'utf8');
+// Constants
+export const ADDRESS_LENGTH = 20;
+export const ED25519_PUBLIC_KEY_LENGTH = 32;
+export const ED25519_SIGNATURE_LENGTH = 64;

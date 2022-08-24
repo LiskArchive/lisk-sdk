@@ -174,8 +174,8 @@ describe('block', () => {
 			it('should return decoded block in JSON', () => {
 				// Arrange
 				const tx = {
-					moduleID: utils.intToBuffer(2, 4),
-					commandID: utils.intToBuffer(0, 4),
+					module: 'token',
+					command: 'transfer',
 					nonce: BigInt('54'),
 					fee: BigInt('10000000'),
 					senderPublicKey: Buffer.from(
@@ -208,8 +208,8 @@ describe('block', () => {
 			it('should return object from JSON block', () => {
 				// Arrange
 				const tx = {
-					moduleID: utils.intToBuffer(2, 4),
-					commandID: utils.intToBuffer(0, 4),
+					module: 'token',
+					command: 'transfer',
 					nonce: BigInt('54'),
 					fee: BigInt('10000000'),
 					senderPublicKey: Buffer.from(

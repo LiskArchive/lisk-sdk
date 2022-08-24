@@ -25,14 +25,7 @@ import {
 } from '../../state_machine';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { RandomAPI } from './api';
-import {
-	defaultConfig,
-	EMPTY_KEY,
-	MODULE_ID_RANDOM_BUFFER,
-	SEED_REVEAL_HASH_SIZE,
-	STORE_PREFIX_RANDOM,
-	STORE_PREFIX_USED_HASH_ONION,
-} from './constants';
+import { defaultConfig, EMPTY_KEY, STORE_PREFIX_USED_HASH_ONION } from './constants';
 import { RandomEndpoint } from './endpoint';
 import {
 	blockHeaderAssetRandomModule,
@@ -40,29 +33,26 @@ import {
 	isSeedRevealValidResponseSchema,
 	randomModuleConfig,
 	randomModuleGeneratorConfig,
-	seedRevealSchema,
-	usedHashOnionsStoreSchema,
 } from './schemas';
-import {
-	BlockHeaderAssetRandomModule,
-	HashOnionConfig,
-	HashOnion,
-	UsedHashOnion,
-	UsedHashOnionStoreObject,
-	ValidatorReveals,
-} from './types';
+import { BlockHeaderAssetRandomModule, HashOnionConfig, HashOnion, UsedHashOnion } from './types';
 import { Logger } from '../../logger';
 import { isSeedValidInput } from './utils';
 import { JSONObject } from '../../types';
+import { ValidatorRevealsStore } from './stores/validator_reveals';
+import { UsedHashOnionsStore } from './stores/used_hash_onions';
 
 export class RandomModule extends BaseModule {
-	public id = MODULE_ID_RANDOM_BUFFER;
-	public name = 'random';
-	public api = new RandomAPI(this.id);
-	public endpoint = new RandomEndpoint(this.id);
+	public api = new RandomAPI(this.stores, this.events, this.name);
+	public endpoint = new RandomEndpoint(this.stores, this.offchainStores);
 
 	private _generatorConfig: HashOnion[] = [];
 	private _maxLengthReveals!: number;
+
+	public constructor() {
+		super();
+		this.stores.register(ValidatorRevealsStore, new ValidatorRevealsStore(this.name));
+		this.offchainStores.register(UsedHashOnionsStore, new UsedHashOnionsStore(this.name));
+	}
 
 	public metadata(): ModuleMetadata {
 		return {
@@ -74,7 +64,10 @@ export class RandomModule extends BaseModule {
 				},
 			],
 			commands: [],
-			events: [],
+			events: this.events.values().map(v => ({
+				typeID: v.name,
+				data: v.schema,
+			})),
 			assets: [
 				{
 					version: 2,
@@ -107,16 +100,12 @@ export class RandomModule extends BaseModule {
 	}
 
 	public async insertAssets(context: InsertAssetContext): Promise<void> {
-		const generatorSubStore = context.getGeneratorStore(this.id);
+		const generatorSubStore = this.offchainStores.get(UsedHashOnionsStore);
 		// Get used hash onions
 		let usedHashOnions: UsedHashOnion[] = [];
 		try {
-			const usedHashOnionsData = await generatorSubStore.get(STORE_PREFIX_USED_HASH_ONION);
-
-			({ usedHashOnions } = codec.decode<UsedHashOnionStoreObject>(
-				usedHashOnionsStoreSchema,
-				usedHashOnionsData,
-			));
+			const usedHashOnionsData = await generatorSubStore.get(context, STORE_PREFIX_USED_HASH_ONION);
+			usedHashOnions = usedHashOnionsData.usedHashOnions;
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
@@ -152,19 +141,18 @@ export class RandomModule extends BaseModule {
 		);
 		// Set value in Block Asset
 		context.assets.setAsset(
-			this.id,
+			this.name,
 			codec.encode(blockHeaderAssetRandomModule, { seedReveal: nextHashOnion.hash }),
 		);
 		// Update used seed reveal
-		await generatorSubStore.set(
-			STORE_PREFIX_USED_HASH_ONION,
-			codec.encode(usedHashOnionsStoreSchema, { usedHashOnions: updatedUsedHashOnion }),
-		);
+		await generatorSubStore.set(context, STORE_PREFIX_USED_HASH_ONION, {
+			usedHashOnions: updatedUsedHashOnion,
+		});
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verifyAssets(context: BlockVerifyContext): Promise<void> {
-		const encodedAsset = context.assets.getAsset(this.id);
+		const encodedAsset = context.assets.getAsset(this.name);
 		if (!encodedAsset) {
 			throw new Error('Random module asset must exist.');
 		}
@@ -172,20 +160,16 @@ export class RandomModule extends BaseModule {
 			blockHeaderAssetRandomModule,
 			encodedAsset,
 		);
-		if (asset.seedReveal.length !== SEED_REVEAL_HASH_SIZE) {
-			throw new Error(
-				`Size of the seed reveal must be ${SEED_REVEAL_HASH_SIZE}, but received ${asset.seedReveal.length}.`,
-			);
-		}
+		validator.validate(blockHeaderAssetRandomModule, asset);
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
-		const randomDataStore = context.getStore(this.id, STORE_PREFIX_RANDOM);
-		await randomDataStore.setWithSchema(EMPTY_KEY, { validatorReveals: [] }, seedRevealSchema);
+		const randomDataStore = this.stores.get(ValidatorRevealsStore);
+		await randomDataStore.set(context, EMPTY_KEY, { validatorReveals: [] });
 	}
 
 	public async afterTransactionsExecute(context: BlockAfterExecuteContext): Promise<void> {
-		const encodedAsset = context.assets.getAsset(this.id);
+		const encodedAsset = context.assets.getAsset(this.name);
 		if (!encodedAsset) {
 			throw new Error('Random module asset must exist.');
 		}
@@ -193,11 +177,8 @@ export class RandomModule extends BaseModule {
 			blockHeaderAssetRandomModule,
 			encodedAsset,
 		);
-		const randomDataStore = context.getStore(this.id, STORE_PREFIX_RANDOM);
-		const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
-			EMPTY_KEY,
-			seedRevealSchema,
-		);
+		const randomDataStore = this.stores.get(ValidatorRevealsStore);
+		const { validatorReveals } = await randomDataStore.get(context, EMPTY_KEY);
 		const valid = isSeedValidInput(
 			context.header.generatorAddress,
 			asset.seedReveal,
@@ -214,11 +195,7 @@ export class RandomModule extends BaseModule {
 			height: context.header.height,
 			valid,
 		});
-		await randomDataStore.setWithSchema(
-			EMPTY_KEY,
-			{ validatorReveals: nextReveals },
-			seedRevealSchema,
-		);
+		await randomDataStore.set(context, EMPTY_KEY, { validatorReveals: nextReveals });
 	}
 
 	private _filterUsedHashOnions(

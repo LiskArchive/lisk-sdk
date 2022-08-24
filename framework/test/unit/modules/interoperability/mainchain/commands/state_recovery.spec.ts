@@ -16,64 +16,68 @@ import { Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { sparseMerkleTree } from '@liskhq/lisk-tree';
-import { CommandExecuteContext, CommandVerifyContext } from '../../../../../../src';
+import {
+	CommandExecuteContext,
+	CommandVerifyContext,
+	MainchainInteroperabilityModule,
+} from '../../../../../../src';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
 import { BaseInteroperableAPI } from '../../../../../../src/modules/interoperability/base_interoperable_api';
 import {
-	COMMAND_ID_STATE_RECOVERY_BUFFER,
-	MODULE_ID_INTEROPERABILITY_BUFFER,
-	STORE_PREFIX_TERMINATED_STATE,
+	COMMAND_NAME_STATE_RECOVERY,
+	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../../../src/modules/interoperability/constants';
 import { StateRecoveryCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/state_recovery';
+import { stateRecoveryParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import {
-	stateRecoveryParamsSchema,
-	terminatedStateSchema,
-} from '../../../../../../src/modules/interoperability/schemas';
-import {
-	StateRecoveryParams,
 	TerminatedStateAccount,
-} from '../../../../../../src/modules/interoperability/types';
+	TerminatedStateStore,
+} from '../../../../../../src/modules/interoperability/stores/terminated_state';
+import { StateRecoveryParams } from '../../../../../../src/modules/interoperability/types';
 import { TransactionContext, VerifyStatus } from '../../../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
-import { SubStore } from '../../../../../../src/state_machine/types';
 import { createTransactionContext } from '../../../../../../src/testing';
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
+import { createStoreGetter } from '../../../../../../src/testing/utils';
 
 describe('Mainchain StateRecoveryCommand', () => {
+	const interopMod = new MainchainInteroperabilityModule();
+
 	let chainIDAsBuffer: Buffer;
 	let stateRecoveryCommand: StateRecoveryCommand;
 	let commandVerifyContext: CommandVerifyContext<StateRecoveryParams>;
 	let commandExecuteContext: CommandExecuteContext<StateRecoveryParams>;
-	let interoperableCCAPIs: Map<number, BaseInteroperableAPI>;
+	let interoperableCCAPIs: Map<string, BaseInteroperableAPI>;
 	let interoperableAPI: any;
-	let ccCommands: Map<number, BaseCCCommand[]>;
+	let ccCommands: Map<string, BaseCCCommand[]>;
 	let transaction: Transaction;
 	let transactionParams: StateRecoveryParams;
 	let encodedTransactionParams: Buffer;
 	let transactionContext: TransactionContext;
 	let stateStore: PrefixedStateReadWriter;
-	let terminatedStateSubstore: SubStore;
+	let terminatedStateSubstore: TerminatedStateStore;
 	let terminatedStateAccount: TerminatedStateAccount;
 
 	beforeEach(async () => {
 		interoperableCCAPIs = new Map();
 		interoperableAPI = {
-			moduleID: utils.intToBuffer(1, 4),
+			module: MODULE_NAME_INTEROPERABILITY,
 			recover: jest.fn(),
 		};
-		interoperableCCAPIs.set(1, interoperableAPI);
+		interoperableCCAPIs.set(MODULE_NAME_INTEROPERABILITY, interoperableAPI);
 		ccCommands = new Map();
 		stateRecoveryCommand = new StateRecoveryCommand(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
+			interopMod.stores,
+			interopMod.events,
 			interoperableCCAPIs,
 			ccCommands,
 		);
 		transactionParams = {
 			chainID: utils.intToBuffer(3, 4),
-			moduleID: utils.intToBuffer(1, 4),
+			module: MODULE_NAME_INTEROPERABILITY,
 			storeEntries: [
 				{
-					storePrefix: 1,
+					storePrefix: Buffer.from([1]),
 					storeKey: utils.getRandomBytes(32),
 					storeValue: utils.getRandomBytes(32),
 					bitmap: utils.getRandomBytes(32),
@@ -84,8 +88,8 @@ describe('Mainchain StateRecoveryCommand', () => {
 		chainIDAsBuffer = transactionParams.chainID;
 		encodedTransactionParams = codec.encode(stateRecoveryParamsSchema, transactionParams);
 		transaction = new Transaction({
-			moduleID: MODULE_ID_INTEROPERABILITY_BUFFER,
-			commandID: COMMAND_ID_STATE_RECOVERY_BUFFER,
+			module: MODULE_NAME_INTEROPERABILITY,
+			command: COMMAND_NAME_STATE_RECOVERY,
 			fee: BigInt(100000000),
 			nonce: BigInt(0),
 			params: encodedTransactionParams,
@@ -93,10 +97,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 			signatures: [],
 		});
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		terminatedStateSubstore = stateStore.getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_TERMINATED_STATE,
-		);
+		terminatedStateSubstore = interopMod.stores.get(TerminatedStateStore);
 		terminatedStateAccount = {
 			initialized: true,
 			stateRoot: Buffer.from(
@@ -105,10 +106,10 @@ describe('Mainchain StateRecoveryCommand', () => {
 			),
 			mainchainStateRoot: utils.getRandomBytes(32),
 		};
-		await terminatedStateSubstore.setWithSchema(
+		await terminatedStateSubstore.set(
+			createStoreGetter(stateStore),
 			chainIDAsBuffer,
 			terminatedStateAccount as any,
-			terminatedStateSchema,
 		);
 		transactionContext = createTransactionContext({
 			transaction,
@@ -131,7 +132,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 		});
 
 		it('should return error if terminated state account does not exist', async () => {
-			await terminatedStateSubstore.del(chainIDAsBuffer);
+			await terminatedStateSubstore.del(createStoreGetter(stateStore), chainIDAsBuffer);
 			const result = await stateRecoveryCommand.verify(commandVerifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
@@ -139,11 +140,10 @@ describe('Mainchain StateRecoveryCommand', () => {
 		});
 
 		it('should return error if terminated state account is not initialized', async () => {
-			await terminatedStateSubstore.setWithSchema(
-				chainIDAsBuffer,
-				{ ...terminatedStateAccount, initialized: false },
-				terminatedStateSchema,
-			);
+			await terminatedStateSubstore.set(createStoreGetter(stateStore), chainIDAsBuffer, {
+				...terminatedStateAccount,
+				initialized: false,
+			});
 			const result = await stateRecoveryCommand.verify(commandVerifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
@@ -166,7 +166,7 @@ describe('Mainchain StateRecoveryCommand', () => {
 		});
 
 		it('should throw error if recovery not available for module', async () => {
-			interoperableCCAPIs.delete(1);
+			interoperableCCAPIs.delete(MODULE_NAME_INTEROPERABILITY);
 
 			await expect(stateRecoveryCommand.execute(commandExecuteContext)).rejects.toThrow(
 				'Recovery not available for module',
@@ -187,9 +187,9 @@ describe('Mainchain StateRecoveryCommand', () => {
 
 			await stateRecoveryCommand.execute(commandExecuteContext);
 
-			const newTerminatedStateAccount = await terminatedStateSubstore.getWithSchema<TerminatedStateAccount>(
+			const newTerminatedStateAccount = await terminatedStateSubstore.get(
+				createStoreGetter(stateStore),
 				chainIDAsBuffer,
-				terminatedStateSchema,
 			);
 
 			expect(newTerminatedStateAccount.stateRoot.toString('hex')).toBe(

@@ -14,6 +14,11 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
+import { MainchainInteroperabilityModule } from '../../../../../../src';
+import {
+	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+	MODULE_NAME_INTEROPERABILITY,
+} from '../../../../../../src/modules/interoperability/constants';
 import { MainchainCCRegistrationCommand } from '../../../../../../src/modules/interoperability/mainchain/cc_commands';
 import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
 import { registrationCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
@@ -21,6 +26,8 @@ import { CCCommandExecuteContext } from '../../../../../../src/modules/interoper
 import { createExecuteCCMsgAPIContext } from '../../../../../../src/testing';
 
 describe('MainchainCCRegistrationCommand', () => {
+	const interopMod = new MainchainInteroperabilityModule();
+
 	const terminateChainInternalMock = jest.fn();
 	const getChannelMock = jest.fn();
 	const getOwnChainAccountMock = jest.fn();
@@ -63,8 +70,8 @@ describe('MainchainCCRegistrationCommand', () => {
 
 	const ccm = {
 		nonce: BigInt(0),
-		moduleID: utils.intToBuffer(1, 4),
-		crossChainCommandID: utils.intToBuffer(1, 4),
+		module: MODULE_NAME_INTEROPERABILITY,
+		crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 		sendingChainID: utils.intToBuffer(2, 4),
 		receivingChainID: utils.intToBuffer(1, 4),
 		fee: BigInt(20000),
@@ -98,15 +105,19 @@ describe('MainchainCCRegistrationCommand', () => {
 
 	beforeEach(() => {
 		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
-			ccm.moduleID,
-			sampleExecuteContext.getStore,
+			interopMod.stores,
+			sampleExecuteContext,
 			ccAPIsMap,
 		);
 		mainchainInteroperabilityStore.terminateChainInternal = terminateChainInternalMock;
 		mainchainInteroperabilityStore.getChannel = getChannelMock;
 		mainchainInteroperabilityStore.getOwnChainAccount = getOwnChainAccountMock;
 
-		ccRegistrationCommand = new MainchainCCRegistrationCommand(utils.intToBuffer(1, 4), ccAPIsMap);
+		ccRegistrationCommand = new MainchainCCRegistrationCommand(
+			interopMod.stores,
+			interopMod.events,
+			ccAPIsMap,
+		);
 		(ccRegistrationCommand as any)['getInteroperabilityStore'] = jest
 			.fn()
 			.mockReturnValue(mainchainInteroperabilityStore);
@@ -152,8 +163,8 @@ describe('MainchainCCRegistrationCommand', () => {
 		// Arrange
 		const invalidCCM = {
 			nonce: BigInt(0),
-			moduleID: utils.intToBuffer(1, 4),
-			crossChainCommandID: utils.intToBuffer(1, 4),
+			module: MODULE_NAME_INTEROPERABILITY,
+			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 			sendingChainID: utils.intToBuffer(2, 4),
 			receivingChainID: utils.intToBuffer(1, 4),
 			fee: BigInt(20000),
@@ -307,8 +318,8 @@ describe('MainchainCCRegistrationCommand', () => {
 		// Arrange
 		const invalidCCM = {
 			nonce: BigInt(1), // nonce not equal to 0
-			moduleID: utils.intToBuffer(1, 4),
-			crossChainCommandID: utils.intToBuffer(1, 4),
+			module: MODULE_NAME_INTEROPERABILITY,
+			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 			sendingChainID: utils.intToBuffer(2, 4),
 			receivingChainID: utils.intToBuffer(1, 4),
 			fee: BigInt(20000),

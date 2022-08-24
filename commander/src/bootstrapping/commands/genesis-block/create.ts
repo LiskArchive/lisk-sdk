@@ -197,7 +197,7 @@ export abstract class BaseGenesisBlockCommand extends Command {
 
 			const genesisBlock = await app.generateGenesisBlock({
 				assets: assetsJSON.assets.map(a => ({
-					moduleID: a.moduleID,
+					module: a.module,
 					data: a.data,
 					schema: a.schema,
 				})),

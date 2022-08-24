@@ -19,8 +19,15 @@ import { registrationCCMParamsSchema } from '../../../../../../src/modules/inter
 import { SidechainInteroperabilityStore } from '../../../../../../src/modules/interoperability/sidechain/store';
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
 import { createExecuteCCMsgAPIContext } from '../../../../../../src/testing';
+import { SidechainInteroperabilityModule } from '../../../../../../src';
+import {
+	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+	MODULE_NAME_INTEROPERABILITY,
+} from '../../../../../../src/modules/interoperability/constants';
 
 describe('SidechainCCRegistrationCommand', () => {
+	const interopMod = new SidechainInteroperabilityModule();
+
 	const terminateChainInternalMock = jest.fn();
 	const getChannelMock = jest.fn();
 	const getOwnChainAccountMock = jest.fn();
@@ -63,8 +70,8 @@ describe('SidechainCCRegistrationCommand', () => {
 
 	const ccm = {
 		nonce: BigInt(0),
-		moduleID: utils.intToBuffer(1, 4),
-		crossChainCommandID: utils.intToBuffer(1, 4),
+		module: MODULE_NAME_INTEROPERABILITY,
+		crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 		sendingChainID: utils.intToBuffer(2, 4),
 		receivingChainID: utils.intToBuffer(1, 4),
 		fee: BigInt(20000),
@@ -98,15 +105,19 @@ describe('SidechainCCRegistrationCommand', () => {
 
 	beforeEach(() => {
 		sidechainInteroperabilityStore = new SidechainInteroperabilityStore(
-			ccm.moduleID,
-			sampleExecuteContext.getStore,
+			interopMod.stores,
+			sampleExecuteContext,
 			ccAPIsMap,
 		);
 		sidechainInteroperabilityStore.terminateChainInternal = terminateChainInternalMock;
 		sidechainInteroperabilityStore.getChannel = getChannelMock;
 		sidechainInteroperabilityStore.getOwnChainAccount = getOwnChainAccountMock;
 
-		ccRegistrationCommand = new SidechainCCRegistrationCommand(utils.intToBuffer(1, 4), ccAPIsMap);
+		ccRegistrationCommand = new SidechainCCRegistrationCommand(
+			interopMod.stores,
+			interopMod.events,
+			ccAPIsMap,
+		);
 		(ccRegistrationCommand as any)['getInteroperabilityStore'] = jest
 			.fn()
 			.mockReturnValue(sidechainInteroperabilityStore);
@@ -152,8 +163,8 @@ describe('SidechainCCRegistrationCommand', () => {
 		// Arrange
 		const invalidCCM = {
 			nonce: BigInt(0),
-			moduleID: utils.intToBuffer(1, 4),
-			crossChainCommandID: utils.intToBuffer(1, 4),
+			module: MODULE_NAME_INTEROPERABILITY,
+			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 			sendingChainID: utils.intToBuffer(2, 4),
 			receivingChainID: utils.intToBuffer(1, 4),
 			fee: BigInt(20000),

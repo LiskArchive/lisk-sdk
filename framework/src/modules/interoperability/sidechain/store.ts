@@ -47,9 +47,9 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 		const ownChainAccount = await this.getOwnChainAccount();
 		// Create cross-chain message
 		const ccm: CCMsg = {
-			crossChainCommandID: sendContext.crossChainCommandID,
+			crossChainCommand: sendContext.crossChainCommand,
 			fee: sendContext.fee,
-			moduleID: sendContext.moduleID,
+			module: sendContext.module,
 			nonce: ownChainAccount.nonce,
 			params: sendContext.params,
 			receivingChainID: sendContext.receivingChainID,

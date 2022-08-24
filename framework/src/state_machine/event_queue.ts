@@ -34,7 +34,7 @@ export class EventQueue {
 	}
 
 	public add(
-		moduleID: Buffer,
+		module: string,
 		typeID: Buffer,
 		data: Buffer,
 		topics?: Buffer[],
@@ -57,11 +57,11 @@ export class EventQueue {
 		if (typeID.equals(EVENT_STANDARD_TYPE_ID)) {
 			throw new Error('Event type ID 0 is reserved for standard event.');
 		}
-		this.unsafeAdd(moduleID, typeID, data, topics, noRevert);
+		this.unsafeAdd(module, typeID, data, topics, noRevert);
 	}
 
 	public unsafeAdd(
-		moduleID: Buffer,
+		module: string,
 		typeID: Buffer,
 		data: Buffer,
 		topics?: Buffer[],
@@ -70,7 +70,7 @@ export class EventQueue {
 		const allTopics = [...this._defaultTopics, ...(topics ?? [])];
 		this._events.push({
 			event: new Event({
-				moduleID,
+				module,
 				typeID,
 				index: this._events.length,
 				data,

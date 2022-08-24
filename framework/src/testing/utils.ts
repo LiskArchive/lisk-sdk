@@ -20,6 +20,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 
 import { EVENT_CHAIN_BLOCK_NEW } from '../engine/events';
 import { Data, WaitUntilBlockHeightOptions } from './types';
+import { PrefixedStateReadWriter } from '../state_machine/prefixed_state_read_writer';
 
 export const waitUntilBlockHeight = async ({
 	apiClient,
@@ -66,3 +67,7 @@ export const removeDB = (dbPath = defaultDatabasePath): void =>
 	);
 
 export const getIDAsKeyForStore = (id: number) => utils.intToBuffer(id, 4);
+
+export const createStoreGetter = (stateStore: PrefixedStateReadWriter) => ({
+	getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
+});

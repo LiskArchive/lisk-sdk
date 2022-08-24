@@ -17,25 +17,17 @@ import { NotFoundError } from '../../state_machine';
 import { JSONObject, ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
 import { TokenAPI } from './api';
+import { CHAIN_ID_ALIAS_NATIVE, LOCAL_ID_LENGTH, TOKEN_ID_LENGTH } from './constants';
 import {
-	CHAIN_ID_ALIAS_NATIVE,
-	LOCAL_ID_LENGTH,
-	STORE_PREFIX_ESCROW,
-	STORE_PREFIX_SUPPLY,
-	STORE_PREFIX_USER,
-	TOKEN_ID_LENGTH,
-} from './constants';
-import {
-	EscrowStoreData,
-	escrowStoreSchema,
 	getBalanceRequestSchema,
 	getBalancesRequestSchema,
 	SupplyStoreData,
-	supplyStoreSchema,
 	UserStoreData,
-	userStoreSchema,
 } from './schemas';
-import { getUserStoreKey, splitTokenID } from './utils';
+import { EscrowStore, EscrowStoreData } from './stores/escrow';
+import { SupplyStore } from './stores/supply';
+import { UserStore } from './stores/user';
+import { splitTokenID } from './utils';
 
 export class TokenEndpoint extends BaseEndpoint {
 	private _tokenAPI!: TokenAPI;
@@ -52,14 +44,11 @@ export class TokenEndpoint extends BaseEndpoint {
 		validator.validate(getBalancesRequestSchema, context.params);
 
 		const address = Buffer.from(context.params.address as string, 'hex');
-		const userStore = context.getStore(this.moduleID, STORE_PREFIX_USER);
-		const userData = await userStore.iterateWithSchema<UserStoreData>(
-			{
-				gte: Buffer.concat([address, Buffer.alloc(TOKEN_ID_LENGTH, 0)]),
-				lte: Buffer.concat([address, Buffer.alloc(TOKEN_ID_LENGTH, 255)]),
-			},
-			userStoreSchema,
-		);
+		const userStore = this.stores.get(UserStore);
+		const userData = await userStore.iterate(context, {
+			gte: Buffer.concat([address, Buffer.alloc(TOKEN_ID_LENGTH, 0)]),
+			lte: Buffer.concat([address, Buffer.alloc(TOKEN_ID_LENGTH, 255)]),
+		});
 
 		return {
 			balances: userData.map(({ key, value: user }) => ({
@@ -67,7 +56,7 @@ export class TokenEndpoint extends BaseEndpoint {
 				availableBalance: user.availableBalance.toString(),
 				lockedBalances: user.lockedBalances.map(b => ({
 					amount: b.amount.toString(),
-					moduleID: b.moduleID.readInt32BE(0).toString(),
+					module: b.module,
 				})),
 			})),
 		};
@@ -82,17 +71,14 @@ export class TokenEndpoint extends BaseEndpoint {
 			context.getImmutableAPIContext(),
 			tokenID,
 		);
-		const userStore = context.getStore(this.moduleID, STORE_PREFIX_USER);
+		const userStore = this.stores.get(UserStore);
 		try {
-			const user = await userStore.getWithSchema<UserStoreData>(
-				getUserStoreKey(address, canonicalTokenID),
-				userStoreSchema,
-			);
+			const user = await userStore.get(context, userStore.getKey(address, canonicalTokenID));
 			return {
 				availableBalance: user.availableBalance.toString(),
 				lockedBalances: user.lockedBalances.map(b => ({
 					amount: b.amount.toString(),
-					moduleID: b.moduleID.readInt32BE(0).toString(),
+					module: b.module,
 				})),
 			};
 		} catch (error) {
@@ -109,14 +95,11 @@ export class TokenEndpoint extends BaseEndpoint {
 	public async getTotalSupply(
 		context: ModuleEndpointContext,
 	): Promise<{ totalSupply: JSONObject<SupplyStoreData & { tokenID: string }>[] }> {
-		const supplyStore = context.getStore(this.moduleID, STORE_PREFIX_SUPPLY);
-		const supplyData = await supplyStore.iterateWithSchema<SupplyStoreData>(
-			{
-				gte: Buffer.concat([Buffer.alloc(LOCAL_ID_LENGTH, 0)]),
-				lte: Buffer.concat([Buffer.alloc(LOCAL_ID_LENGTH, 255)]),
-			},
-			supplyStoreSchema,
-		);
+		const supplyStore = this.stores.get(SupplyStore);
+		const supplyData = await supplyStore.iterate(context, {
+			gte: Buffer.concat([Buffer.alloc(LOCAL_ID_LENGTH, 0)]),
+			lte: Buffer.concat([Buffer.alloc(LOCAL_ID_LENGTH, 255)]),
+		});
 
 		return {
 			totalSupply: supplyData.map(({ key: localID, value: supply }) => ({
@@ -141,14 +124,11 @@ export class TokenEndpoint extends BaseEndpoint {
 	): Promise<{
 		escrowedAmounts: JSONObject<EscrowStoreData & { escrowChainID: Buffer; tokenID: Buffer }>[];
 	}> {
-		const escrowStore = context.getStore(this.moduleID, STORE_PREFIX_ESCROW);
-		const escrowData = await escrowStore.iterateWithSchema<EscrowStoreData>(
-			{
-				gte: Buffer.concat([Buffer.alloc(TOKEN_ID_LENGTH, 0)]),
-				lte: Buffer.concat([Buffer.alloc(TOKEN_ID_LENGTH, 255)]),
-			},
-			escrowStoreSchema,
-		);
+		const escrowStore = this.stores.get(EscrowStore);
+		const escrowData = await escrowStore.iterate(context, {
+			gte: Buffer.concat([Buffer.alloc(TOKEN_ID_LENGTH, 0)]),
+			lte: Buffer.concat([Buffer.alloc(TOKEN_ID_LENGTH, 255)]),
+		});
 		return {
 			escrowedAmounts: escrowData.map(({ key, value: escrow }) => {
 				const [escrowChainID, localID] = splitTokenID(key);

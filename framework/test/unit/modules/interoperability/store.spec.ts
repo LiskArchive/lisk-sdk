@@ -14,41 +14,36 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
-import { when } from 'jest-when';
 import {
 	CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
 	CCM_STATUS_MODULE_NOT_SUPPORTED,
+	CCM_STATUS_OK,
+	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 	EMPTY_BYTES,
 	EMPTY_FEE_ADDRESS,
 	MAINCHAIN_ID,
 	MAINCHAIN_ID_BUFFER,
-	MODULE_ID_INTEROPERABILITY_BUFFER,
-	STORE_PREFIX_CHAIN_DATA,
-	STORE_PREFIX_CHANNEL_DATA,
-	STORE_PREFIX_OUTBOX_ROOT,
-	STORE_PREFIX_TERMINATED_OUTBOX,
-	STORE_PREFIX_TERMINATED_STATE,
+	MODULE_NAME_INTEROPERABILITY,
 } from '../../../../src/modules/interoperability/constants';
 import { MainchainInteroperabilityStore } from '../../../../src/modules/interoperability/mainchain/store';
-import {
-	chainAccountSchema,
-	channelSchema,
-	outboxRootSchema,
-	terminatedOutboxSchema,
-	terminatedStateSchema,
-} from '../../../../src/modules/interoperability/schemas';
 import { getCCMSize, getIDAsKeyForStore } from '../../../../src/modules/interoperability/utils';
-import { testing } from '../../../../src';
-import {
-	CCMApplyContext,
-	CCUpdateParams,
-	TerminatedOutboxAccount,
-} from '../../../../src/modules/interoperability/types';
+import { MainchainInteroperabilityModule, testing } from '../../../../src';
+import { CCMApplyContext, CCUpdateParams } from '../../../../src/modules/interoperability/types';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
-import { SubStore } from '../../../../src/state_machine/types';
+import { ChannelDataStore } from '../../../../src/modules/interoperability/stores/channel_data';
+import { OutboxRootStore } from '../../../../src/modules/interoperability/stores/outbox_root';
+import {
+	TerminatedOutboxAccount,
+	TerminatedOutboxStore,
+} from '../../../../src/modules/interoperability/stores/terminated_outbox';
+import { ChainAccountStore } from '../../../../src/modules/interoperability/stores/chain_account';
+import { TerminatedStateStore } from '../../../../src/modules/interoperability/stores/terminated_state';
+import { createStoreGetter } from '../../../../src/testing/utils';
+import { StoreGetter } from '../../../../src/modules/base_store';
 
 describe('Base interoperability store', () => {
+	const interopMod = new MainchainInteroperabilityModule();
 	const chainID = Buffer.from('01', 'hex');
 	const appendData = Buffer.from(
 		'0c4c839c0fd8155fd0d52efc7dd29d2a71919dee517d50967cd26f4db2e0d1c5b',
@@ -56,8 +51,8 @@ describe('Base interoperability store', () => {
 	);
 	const CCM = {
 		nonce: BigInt(0),
-		moduleID: utils.intToBuffer(1, 4),
-		crossChainCommandID: utils.intToBuffer(1, 4),
+		module: 'token',
+		crossChainCommand: 'crossChainTransfer',
 		sendingChainID: utils.intToBuffer(2, 4),
 		receivingChainID: utils.intToBuffer(3, 4),
 		fee: BigInt(1),
@@ -66,34 +61,30 @@ describe('Base interoperability store', () => {
 	};
 	const inboxTree = {
 		root: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
-		appendPath: Buffer.from(
-			'6d391e95b7cb484862aa577320dbb4999971569e0b7c21fc02e9fda4d1d8485c',
-			'hex',
-		),
+		appendPath: [
+			Buffer.from('6d391e95b7cb484862aa577320dbb4999971569e0b7c21fc02e9fda4d1d8485c', 'hex'),
+		],
 		size: 1,
 	};
 	const updatedInboxTree = {
 		root: Buffer.from('888d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
-		appendPath: Buffer.from(
-			'aaaa1e95b7cb484862aa577320dbb4999971569e0b7c21fc02e9fda4d1d8485c',
-			'hex',
-		),
+		appendPath: [
+			Buffer.from('aaaa1e95b7cb484862aa577320dbb4999971569e0b7c21fc02e9fda4d1d8485c', 'hex'),
+		],
 		size: 2,
 	};
 	const outboxTree = {
 		root: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
-		appendPath: Buffer.from(
-			'6d391e95b7cb484862aa577320dbb4999971569e0b7c21fc02e9fda4d1d8485c',
-			'hex',
-		),
+		appendPath: [
+			Buffer.from('6d391e95b7cb484862aa577320dbb4999971569e0b7c21fc02e9fda4d1d8485c', 'hex'),
+		],
 		size: 1,
 	};
 	const updatedOutboxTree = {
 		root: Buffer.from('888d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
-		appendPath: Buffer.from(
-			'aaaa1e95b7cb484862aa577320dbb4999971569e0b7c21fc02e9fda4d1d8485c',
-			'hex',
-		),
+		appendPath: [
+			Buffer.from('aaaa1e95b7cb484862aa577320dbb4999971569e0b7c21fc02e9fda4d1d8485c', 'hex'),
+		],
 		size: 2,
 	};
 	const channelData = {
@@ -106,48 +97,31 @@ describe('Base interoperability store', () => {
 		},
 	};
 	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
-	let channelSubstore: any;
-	let outboxRootSubstore: any;
-	let terminatedOutboxSubstore: any;
+	let channelDataSubstore: ChannelDataStore;
+	let outboxRootSubstore: OutboxRootStore;
+	let terminatedOutboxSubstore: TerminatedOutboxStore;
 	let stateStore: PrefixedStateReadWriter;
-	let chainSubstore: SubStore;
-	let terminatedStateSubstore: SubStore;
+	let chainDataSubstore: ChainAccountStore;
+	let terminatedStateSubstore: TerminatedStateStore;
 
-	let mockGetStore: any;
+	let context: StoreGetter;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+		context = createStoreGetter(stateStore);
 		regularMerkleTree.calculateMerkleRoot = jest.fn().mockReturnValue(updatedOutboxTree);
-		channelSubstore = {
-			getWithSchema: jest.fn().mockResolvedValue(channelData),
-			setWithSchema: jest.fn(),
-		};
-		outboxRootSubstore = { getWithSchema: jest.fn(), setWithSchema: jest.fn(), del: jest.fn() };
-		terminatedOutboxSubstore = { getWithSchema: jest.fn(), setWithSchema: jest.fn() };
-		chainSubstore = stateStore.getStore(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_DATA);
-		terminatedStateSubstore = stateStore.getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_TERMINATED_STATE,
-		);
-		mockGetStore = jest.fn();
-		when(mockGetStore)
-			.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHANNEL_DATA)
-			.mockReturnValue(channelSubstore);
-		when(mockGetStore)
-			.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_OUTBOX_ROOT)
-			.mockReturnValue(outboxRootSubstore);
-		when(mockGetStore)
-			.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_TERMINATED_OUTBOX)
-			.mockReturnValue(terminatedOutboxSubstore);
-		when(mockGetStore)
-			.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_DATA)
-			.mockReturnValue(chainSubstore);
-		when(mockGetStore)
-			.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_TERMINATED_STATE)
-			.mockReturnValue(terminatedStateSubstore);
+		channelDataSubstore = interopMod.stores.get(ChannelDataStore);
+		await channelDataSubstore.set(context, chainID, channelData);
+		jest.spyOn(channelDataSubstore, 'set');
+		outboxRootSubstore = interopMod.stores.get(OutboxRootStore);
+		jest.spyOn(outboxRootSubstore, 'set');
+		terminatedOutboxSubstore = interopMod.stores.get(TerminatedOutboxStore);
+		jest.spyOn(terminatedOutboxSubstore, 'set');
+		chainDataSubstore = interopMod.stores.get(ChainAccountStore);
+		terminatedStateSubstore = interopMod.stores.get(TerminatedStateStore);
 		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			mockGetStore,
+			interopMod.stores,
+			context,
 			new Map(),
 		);
 	});
@@ -158,14 +132,10 @@ describe('Base interoperability store', () => {
 			await mainchainInteroperabilityStore.appendToInboxTree(chainID, appendData);
 
 			// Assert
-			expect(channelSubstore.setWithSchema).toHaveBeenCalledWith(
-				chainID,
-				{
-					...channelData,
-					inbox: updatedInboxTree,
-				},
-				channelSchema,
-			);
+			expect(channelDataSubstore.set).toHaveBeenCalledWith(expect.anything(), chainID, {
+				...channelData,
+				inbox: updatedInboxTree,
+			});
 		});
 	});
 
@@ -175,14 +145,10 @@ describe('Base interoperability store', () => {
 			await mainchainInteroperabilityStore.appendToOutboxTree(chainID, appendData);
 
 			// Assert
-			expect(channelSubstore.setWithSchema).toHaveBeenCalledWith(
-				chainID,
-				{
-					...channelData,
-					outbox: updatedOutboxTree,
-				},
-				channelSchema,
-			);
+			expect(channelDataSubstore.set).toHaveBeenCalledWith(expect.anything(), chainID, {
+				...channelData,
+				outbox: updatedOutboxTree,
+			});
 		});
 	});
 
@@ -192,10 +158,10 @@ describe('Base interoperability store', () => {
 			await mainchainInteroperabilityStore.addToOutbox(chainID, CCM);
 
 			// Assert
-			expect(outboxRootSubstore.setWithSchema).toHaveBeenCalledWith(
+			expect(outboxRootSubstore.set).toHaveBeenCalledWith(
+				expect.anything(),
 				chainID,
-				outboxTree.root,
-				outboxRootSchema,
+				updatedOutboxTree,
 			);
 		});
 	});
@@ -213,15 +179,11 @@ describe('Base interoperability store', () => {
 			);
 
 			// Assert
-			expect(terminatedOutboxSubstore.setWithSchema).toHaveBeenCalledWith(
-				chainID,
-				{
-					outboxRoot: outboxTree.root,
-					outboxSize: outboxTree.size,
-					partnerChainInboxSize,
-				},
-				terminatedOutboxSchema,
-			);
+			expect(terminatedOutboxSubstore.set).toHaveBeenCalledWith(expect.anything(), chainID, {
+				outboxRoot: outboxTree.root,
+				outboxSize: outboxTree.size,
+				partnerChainInboxSize,
+			});
 		});
 	});
 
@@ -252,12 +214,10 @@ describe('Base interoperability store', () => {
 		};
 
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account exists for the id and state root is provided', async () => {
-			await chainSubstore.setWithSchema(chainId, chainAccount, chainAccountSchema);
+			await chainDataSubstore.set(context, chainId, chainAccount);
 			await mainchainInteroperabilityStore.createTerminatedStateAccount(chainId, stateRoot);
 
-			await expect(
-				terminatedStateSubstore.getWithSchema(chainId, terminatedStateSchema),
-			).resolves.toStrictEqual({
+			await expect(terminatedStateSubstore.get(context, chainId)).resolves.toStrictEqual({
 				stateRoot,
 				mainchainStateRoot: EMPTY_BYTES,
 				initialized: true,
@@ -265,12 +225,10 @@ describe('Base interoperability store', () => {
 		});
 
 		it('should set appropriate terminated state for chain id in the terminatedState sub store if chain account exists for the id but state root is not provided', async () => {
-			await chainSubstore.setWithSchema(chainId, chainAccount, chainAccountSchema);
+			await chainDataSubstore.set(context, chainId, chainAccount);
 			await mainchainInteroperabilityStore.createTerminatedStateAccount(chainId);
 
-			await expect(
-				terminatedStateSubstore.getWithSchema(chainId, terminatedStateSchema),
-			).resolves.toStrictEqual({
+			await expect(terminatedStateSubstore.get(context, chainId)).resolves.toStrictEqual({
 				stateRoot: chainAccount.lastCertificate.stateRoot,
 				mainchainStateRoot: EMPTY_BYTES,
 				initialized: true,
@@ -293,16 +251,10 @@ describe('Base interoperability store', () => {
 			jest
 				.spyOn(mainchainInteroperabilityStore, 'getOwnChainAccount')
 				.mockResolvedValue(ownChainAccount2 as never);
-			await chainSubstore.setWithSchema(
-				getIDAsKeyForStore(MAINCHAIN_ID),
-				chainAccount,
-				chainAccountSchema,
-			);
+			await chainDataSubstore.set(context, getIDAsKeyForStore(MAINCHAIN_ID), chainAccount);
 			await mainchainInteroperabilityStore.createTerminatedStateAccount(chainIdNew);
 
-			await expect(
-				terminatedStateSubstore.getWithSchema(chainIdNew, terminatedStateSchema),
-			).resolves.toStrictEqual({
+			await expect(terminatedStateSubstore.get(context, chainIdNew)).resolves.toStrictEqual({
 				stateRoot: EMPTY_BYTES,
 				mainchainStateRoot: chainAccount.lastCertificate.stateRoot,
 				initialized: false,
@@ -314,8 +266,8 @@ describe('Base interoperability store', () => {
 		const SIDECHAIN_ID = utils.intToBuffer(2, 4);
 		const ccm = {
 			nonce: BigInt(0),
-			moduleID: utils.intToBuffer(1, 4),
-			crossChainCommandID: utils.intToBuffer(1, 4),
+			module: 'token',
+			crossChainCommand: 'crossChainTransfer',
 			sendingChainID: utils.intToBuffer(2, 4),
 			receivingChainID: utils.intToBuffer(3, 4),
 			fee: BigInt(1),
@@ -375,12 +327,12 @@ describe('Base interoperability store', () => {
 
 		const ccm = {
 			nonce: BigInt(0),
-			moduleID: utils.intToBuffer(1, 4),
-			crossChainCommandID: utils.intToBuffer(1, 4),
+			module: MODULE_NAME_INTEROPERABILITY,
+			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 			sendingChainID: utils.intToBuffer(2, 4),
 			receivingChainID: utils.intToBuffer(3, 4),
-			fee: BigInt(34000),
-			status: 0,
+			fee: BigInt(54000),
+			status: CCM_STATUS_OK,
 			params: Buffer.alloc(0),
 		};
 
@@ -398,12 +350,12 @@ describe('Base interoperability store', () => {
 
 		const ccCommands = [
 			{
-				ID: ccm.crossChainCommandID,
+				name: ccm.crossChainCommand,
 				execute: jest.fn(),
 			},
 		];
 		const ccCommandsMap = new Map();
-		ccCommandsMap.set(1, ccCommands);
+		ccCommandsMap.set(MODULE_NAME_INTEROPERABILITY, ccCommands);
 
 		const ccAPIMod1 = {
 			beforeSendCCM: jest.fn(),
@@ -415,8 +367,8 @@ describe('Base interoperability store', () => {
 		};
 
 		const ccAPIModsMap = new Map();
-		ccAPIModsMap.set(1, ccAPIMod1);
-		ccAPIModsMap.set(2, ccAPIMod2);
+		ccAPIModsMap.set('cc1', ccAPIMod1);
+		ccAPIModsMap.set('cc2', ccAPIMod2);
 
 		const ccu: CCUpdateParams = {
 			activeValidatorsUpdate: [],
@@ -454,8 +406,8 @@ describe('Base interoperability store', () => {
 
 		beforeEach(() => {
 			mainchainStoreLocal = new MainchainInteroperabilityStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				mockGetStore,
+				interopMod.stores,
+				context,
 				ccAPIModsMap,
 			);
 		});
@@ -478,9 +430,9 @@ describe('Base interoperability store', () => {
 				beforeApplyCCM: jest.fn(),
 			};
 			mainchainStoreLocal = new MainchainInteroperabilityStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				mockGetStore,
-				new Map().set(1, ccAPISampleMod),
+				interopMod.stores,
+				context,
+				new Map().set('mod1', ccAPISampleMod),
 			);
 			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
 			jest.spyOn(mainchainStoreLocal, 'sendInternal');
@@ -495,18 +447,18 @@ describe('Base interoperability store', () => {
 			);
 		});
 
-		it('should not execute CCMs and return when moduleID is not supported', async () => {
+		it('should not execute CCMs and return when module is not supported', async () => {
 			// Arrange
-			const localCCCommandsMap = new Map().set(4, [
+			const localCCCommandsMap = new Map().set('mod1', [
 				{
-					ID: utils.intToBuffer(4, 4),
+					name: 'newMod',
 					execute: jest.fn(),
 				},
 			]);
-			mainchainStoreLocal = new MainchainInteroperabilityStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				mockGetStore,
-				new Map().set(4, ccAPIMod1),
+			mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
+				interopMod.stores,
+				context,
+				new Map().set('newMod', ccAPIMod1),
 			);
 			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
 			jest.spyOn(mainchainStoreLocal, 'sendInternal');
@@ -525,11 +477,11 @@ describe('Base interoperability store', () => {
 			);
 		});
 
-		it('should not execute CCMs and return when commandID is not supported', async () => {
+		it('should not execute CCMs and return when command is not supported', async () => {
 			// Arrange
-			const localCCCommandsMap = new Map().set(1, [
+			const localCCCommandsMap = new Map().set(MODULE_NAME_INTEROPERABILITY, [
 				{
-					ID: utils.intToBuffer(3, 4),
+					name: 'cc1',
 					execute: jest.fn(),
 				},
 			]);
@@ -538,10 +490,11 @@ describe('Base interoperability store', () => {
 				beforeApplyCCM: jest.fn(),
 			};
 			mainchainStoreLocal = new MainchainInteroperabilityStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				mockGetStore,
-				new Map().set(1, ccAPISampleMod),
+				interopMod.stores,
+				context,
+				new Map().set('mod1', ccAPISampleMod),
 			);
+
 			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
 			jest.spyOn(mainchainStoreLocal, 'sendInternal');
 
@@ -559,16 +512,16 @@ describe('Base interoperability store', () => {
 			);
 		});
 
-		it('should execute the cross chain command of interoperable module with ID=1', async () => {
+		it('should execute the cross chain command of interoperable module with name interoperability', async () => {
 			// Arrange
 			const ccAPISampleMod = {
 				beforeSendCCM: jest.fn(),
 				beforeApplyCCM: jest.fn(),
 			};
 			mainchainStoreLocal = new MainchainInteroperabilityStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				mockGetStore,
-				new Map().set(1, ccAPISampleMod),
+				interopMod.stores,
+				context,
+				new Map().set(MODULE_NAME_INTEROPERABILITY, ccAPISampleMod),
 			);
 			mainchainStoreLocal.hasTerminatedStateAccount = jest.fn().mockResolvedValue(false);
 			jest.spyOn(mainchainStoreLocal, 'sendInternal');
@@ -597,14 +550,6 @@ describe('Base interoperability store', () => {
 		let terminatedOutboxAccount: TerminatedOutboxAccount;
 
 		beforeEach(async () => {
-			terminatedOutboxSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				STORE_PREFIX_TERMINATED_OUTBOX,
-			);
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_TERMINATED_OUTBOX)
-				.mockReturnValue(terminatedOutboxSubstore);
-
 			terminatedChainID = utils.getRandomBytes(32);
 
 			terminatedOutboxAccount = {
@@ -613,11 +558,7 @@ describe('Base interoperability store', () => {
 				partnerChainInboxSize: 1,
 			};
 
-			await terminatedOutboxSubstore.setWithSchema(
-				terminatedChainID,
-				terminatedOutboxAccount,
-				terminatedOutboxSchema,
-			);
+			await terminatedOutboxSubstore.set(context, terminatedChainID, terminatedOutboxAccount);
 		});
 
 		it('should successfully retrieve the account', async () => {
@@ -639,14 +580,6 @@ describe('Base interoperability store', () => {
 		let terminatedOutboxAccount: TerminatedOutboxAccount;
 
 		beforeEach(async () => {
-			terminatedOutboxSubstore = stateStore.getStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				STORE_PREFIX_TERMINATED_OUTBOX,
-			);
-			when(mockGetStore)
-				.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_TERMINATED_OUTBOX)
-				.mockReturnValue(terminatedOutboxSubstore);
-
 			terminatedChainID = utils.getRandomBytes(32);
 
 			terminatedOutboxAccount = {
@@ -655,11 +588,7 @@ describe('Base interoperability store', () => {
 				partnerChainInboxSize: 1,
 			};
 
-			await terminatedOutboxSubstore.setWithSchema(
-				terminatedChainID,
-				terminatedOutboxAccount,
-				terminatedOutboxSchema,
-			);
+			await terminatedOutboxSubstore.set(context, terminatedChainID, terminatedOutboxAccount);
 		});
 
 		it('should return false when outbox account does not exist', async () => {
@@ -717,10 +646,7 @@ describe('Base interoperability store', () => {
 					changedValues,
 				);
 
-				const changedAccount = await (terminatedOutboxSubstore as SubStore).getWithSchema<TerminatedOutboxAccount>(
-					terminatedChainID,
-					terminatedOutboxSchema,
-				);
+				const changedAccount = await terminatedOutboxSubstore.get(context, terminatedChainID);
 
 				// Assert
 				expect(isValueChanged).toBeTrue();
