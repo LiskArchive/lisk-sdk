@@ -19,18 +19,15 @@ import * as fixtures from './fixtures.json';
 import * as testing from '../../../../src/testing';
 import { RegisterMultisignatureCommand } from '../../../../src/modules/auth/commands/register_multisignature';
 import {
-	MODULE_ID_AUTH_BUFFER,
-	STORE_PREFIX_AUTH,
 	TYPE_ID_INVALID_SIGNATURE_ERROR,
 	TYPE_ID_MULTISIGNATURE_GROUP_REGISTERED,
 } from '../../../../src/modules/auth/constants';
 import {
-	authAccountSchema,
 	invalidSigDataSchema,
 	multisigRegDataSchema,
 	registerMultisignatureParamsSchema,
 } from '../../../../src/modules/auth/schemas';
-import { AuthAccount, RegisterMultisignatureParams } from '../../../../src/modules/auth/types';
+import { RegisterMultisignatureParams } from '../../../../src/modules/auth/types';
 import { VerifyStatus } from '../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
@@ -38,7 +35,7 @@ import { AuthModule } from '../../../../src/modules/auth';
 import { AuthAccountStore } from '../../../../src/modules/auth/stores/auth_account';
 
 describe('Register Multisignature command', () => {
-	let registerMultisignatureCommand: RegisterMultisignatureGroupCommand;
+	let registerMultisignatureCommand: RegisterMultisignatureCommand;
 	let stateStore: PrefixedStateReadWriter;
 	let authStore: AuthAccountStore;
 	let transaction: Transaction;
@@ -49,7 +46,7 @@ describe('Register Multisignature command', () => {
 	const chainID = Buffer.from(defaultTestCase.input.chainID, 'hex');
 
 	beforeEach(() => {
-		registerMultisignatureCommand = new RegisterMultisignatureGroupCommand(
+		registerMultisignatureCommand = new RegisterMultisignatureCommand(
 			authModule.stores,
 			authModule.events,
 		);
@@ -461,7 +458,7 @@ describe('Register Multisignature command', () => {
 			const updatedData = await updatedStore.get(context, transaction.senderAddress);
 			expect(updatedData.mandatoryKeys).toEqual(decodedParams.mandatoryKeys);
 			expect(eventQueueMock.add).toHaveBeenCalledWith(
-				'registerMultisignatureGroup',
+				'registerMultisignature',
 				TYPE_ID_MULTISIGNATURE_GROUP_REGISTERED,
 				registerMultiSigEventData,
 				[transaction.senderAddress],
@@ -486,16 +483,6 @@ describe('Register Multisignature command', () => {
 				...multiSignatureTx.toObject(),
 				params: paramsBytes,
 			});
-			await authStore.setWithSchema(
-				transaction.senderAddress,
-				{
-					optionalKeys: [],
-					mandatoryKeys: [],
-					numberOfSignatures: 0,
-					nonce: BigInt(0),
-				},
-				authAccountSchema,
-			);
 
 			const context = testing
 				.createTransactionContext({
@@ -506,6 +493,13 @@ describe('Register Multisignature command', () => {
 				.createCommandExecuteContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
 				);
+
+			await authStore.set(context, transaction.senderAddress, {
+				optionalKeys: [],
+				mandatoryKeys: [],
+				numberOfSignatures: 0,
+				nonce: BigInt(0),
+			});
 
 			context.eventQueue = eventQueueMock;
 
@@ -521,7 +515,7 @@ describe('Register Multisignature command', () => {
 			);
 
 			expect(eventQueueMock.add).toBeCalledWith(
-				'registerMultisignatureGroup',
+				'registerMultisignature',
 				TYPE_ID_INVALID_SIGNATURE_ERROR,
 				invalidSignatureEventData,
 				[invalidTransaction.senderAddress],
