@@ -15,7 +15,7 @@
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { MAX_UINT64 } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
-import { ImmutableAPIContext, APIContext, ImmutableSubStore } from '../../state_machine';
+import { ImmutableAPIContext, APIContext } from '../../state_machine';
 import { BaseAPI } from '../base_api';
 import {
 	ADDRESS_LENGTH,
@@ -23,34 +23,34 @@ import {
 	CHAIN_ID_ALIAS_NATIVE,
 	EMPTY_BYTES,
 	LOCAL_ID_LENGTH,
-	STORE_PREFIX_AVAILABLE_LOCAL_ID,
-	STORE_PREFIX_ESCROW,
-	STORE_PREFIX_SUPPLY,
-	STORE_PREFIX_USER,
-	TOKEN_ID_LENGTH,
 	TOKEN_ID_LSK,
-	CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
-	CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
+	CROSS_CHAIN_COMMAND_NAME_FORWARD,
+	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 } from './constants';
 import {
-	AvailableLocalIDStoreData,
-	availableLocalIDStoreSchema,
 	crossChainForwardMessageParams,
 	crossChainTransferMessageParams,
-	EscrowStoreData,
-	escrowStoreSchema,
-	SupplyStoreData,
-	supplyStoreSchema,
 	UserStoreData,
-	userStoreSchema,
 } from './schemas';
 import { MinBalance, TokenID } from './types';
-import { addEscrowAmount, getNativeTokenID, getUserStoreKey, splitTokenID } from './utils';
+import { getNativeTokenID, splitTokenID } from './utils';
 import { MainchainInteroperabilityAPI, SidechainInteroperabilityAPI } from '../interoperability';
+import { UserStore } from './stores/user';
+import { EscrowStore } from './stores/escrow';
+import { AvailableLocalIDStore } from './stores/available_local_id';
+import { SupplyStore } from './stores/supply';
+import { NamedRegistry } from '../named_registry';
+import { TransferEvent, TransferEventResult } from './events/transfer';
 
 export class TokenAPI extends BaseAPI {
+	private readonly _moduleName: string;
 	private _minBalances!: MinBalance[];
 	private _interoperabilityAPI!: MainchainInteroperabilityAPI | SidechainInteroperabilityAPI;
+
+	public constructor(stores: NamedRegistry, events: NamedRegistry, moduleName: string) {
+		super(stores, events);
+		this._moduleName = moduleName;
+	}
 
 	public init(args: { minBalances: MinBalance[] }): void {
 		this._minBalances = args.minBalances;
@@ -68,12 +68,9 @@ export class TokenAPI extends BaseAPI {
 		tokenID: TokenID,
 	): Promise<bigint> {
 		const canonicalTokenID = await this.getCanonicalTokenID(apiContext, tokenID);
-		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
+		const userStore = this.stores.get(UserStore);
 		try {
-			const user = await userStore.getWithSchema<UserStoreData>(
-				getUserStoreKey(address, canonicalTokenID),
-				userStoreSchema,
-			);
+			const user = await userStore.get(apiContext, userStore.getKey(address, canonicalTokenID));
 			return user.availableBalance;
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
@@ -87,16 +84,13 @@ export class TokenAPI extends BaseAPI {
 		apiContext: ImmutableAPIContext,
 		address: Buffer,
 		tokenID: TokenID,
-		moduleID: Buffer,
+		module: string,
 	): Promise<bigint> {
 		const canonicalTokenID = await this.getCanonicalTokenID(apiContext, tokenID);
-		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
+		const userStore = this.stores.get(UserStore);
 		try {
-			const user = await userStore.getWithSchema<UserStoreData>(
-				getUserStoreKey(address, canonicalTokenID),
-				userStoreSchema,
-			);
-			return user.lockedBalances.find(lb => lb.moduleID.equals(moduleID))?.amount ?? BigInt(0);
+			const user = await userStore.get(apiContext, userStore.getKey(address, canonicalTokenID));
+			return user.lockedBalances.find(lb => lb.module === module)?.amount ?? BigInt(0);
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
@@ -116,12 +110,9 @@ export class TokenAPI extends BaseAPI {
 			throw new Error('Only native token can have escrow amount.');
 		}
 		const [, localID] = splitTokenID(tokenID);
-		const escrowStore = apiContext.getStore(this.moduleID, STORE_PREFIX_ESCROW);
+		const escrowStore = this.stores.get(EscrowStore);
 		try {
-			const { amount } = await escrowStore.getWithSchema<EscrowStoreData>(
-				Buffer.concat([escrowChainID, localID]),
-				escrowStoreSchema,
-			);
+			const { amount } = await escrowStore.get(apiContext, Buffer.concat([escrowChainID, localID]));
 			return amount;
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
@@ -132,51 +123,33 @@ export class TokenAPI extends BaseAPI {
 	}
 
 	public async accountExists(apiContext: ImmutableAPIContext, address: Buffer): Promise<boolean> {
-		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
-		return this._accountExist(userStore, address);
+		const userStore = this.stores.get(UserStore);
+		return userStore.accountExist(apiContext, address);
 	}
 
 	public async getNextAvailableLocalID(apiContext: ImmutableAPIContext): Promise<Buffer> {
-		const nextAvailableLocalIDStore = apiContext.getStore(
-			this.moduleID,
-			STORE_PREFIX_AVAILABLE_LOCAL_ID,
-		);
-		const {
-			nextAvailableLocalID,
-		} = await nextAvailableLocalIDStore.getWithSchema<AvailableLocalIDStoreData>(
-			EMPTY_BYTES,
-			availableLocalIDStoreSchema,
-		);
+		const nextAvailableLocalIDStore = this.stores.get(AvailableLocalIDStore);
+		const { nextAvailableLocalID } = await nextAvailableLocalIDStore.get(apiContext, EMPTY_BYTES);
 
 		return nextAvailableLocalID;
 	}
 
 	public async initializeToken(apiContext: APIContext, localID: Buffer): Promise<void> {
-		const supplyStore = apiContext.getStore(this.moduleID, STORE_PREFIX_SUPPLY);
-		const supplyExist = await supplyStore.has(localID);
+		const supplyStore = this.stores.get(SupplyStore);
+		const supplyExist = await supplyStore.has(apiContext, localID);
 		if (supplyExist) {
 			throw new Error('Token is already initialized.');
 		}
-		await supplyStore.setWithSchema(localID, { totalSupply: BigInt(0) }, supplyStoreSchema);
+		await supplyStore.set(apiContext, localID, { totalSupply: BigInt(0) });
 
-		const nextAvailableLocalIDStore = apiContext.getStore(
-			this.moduleID,
-			STORE_PREFIX_AVAILABLE_LOCAL_ID,
-		);
-		const {
-			nextAvailableLocalID,
-		} = await nextAvailableLocalIDStore.getWithSchema<AvailableLocalIDStoreData>(
-			EMPTY_BYTES,
-			availableLocalIDStoreSchema,
-		);
+		const nextAvailableLocalIDStore = this.stores.get(AvailableLocalIDStore);
+		const { nextAvailableLocalID } = await nextAvailableLocalIDStore.get(apiContext, EMPTY_BYTES);
 		if (localID.compare(nextAvailableLocalID) >= 0) {
 			const newAvailableLocalID = Buffer.alloc(LOCAL_ID_LENGTH);
 			newAvailableLocalID.writeUInt32BE(localID.readUInt32BE(0) + 1, 0);
-			await nextAvailableLocalIDStore.setWithSchema(
-				EMPTY_BYTES,
-				{ nextAvailableLocalID: newAvailableLocalID },
-				availableLocalIDStoreSchema,
-			);
+			await nextAvailableLocalIDStore.set(apiContext, EMPTY_BYTES, {
+				nextAvailableLocalID: newAvailableLocalID,
+			});
 		}
 	}
 
@@ -195,18 +168,18 @@ export class TokenAPI extends BaseAPI {
 			throw new Error('Amount must be a positive integer to mint.');
 		}
 		const [, localID] = splitTokenID(canonicalTokenID);
-		const supplyStore = apiContext.getStore(this.moduleID, STORE_PREFIX_SUPPLY);
-		const supplyExist = await supplyStore.has(localID);
+		const supplyStore = this.stores.get(SupplyStore);
+		const supplyExist = await supplyStore.has(apiContext, localID);
 		if (!supplyExist) {
 			throw new Error(`LocalID ${localID.toString('hex')} is not initialized to mint.`);
 		}
-		const supply = await supplyStore.getWithSchema<SupplyStoreData>(localID, supplyStoreSchema);
+		const supply = await supplyStore.get(apiContext, localID);
 		if (supply.totalSupply > MAX_UINT64 - amount) {
 			throw new Error(`Supply cannot exceed MAX_UINT64 ${MAX_UINT64.toString()}.`);
 		}
 
-		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
-		const recipientExist = await this._accountExist(userStore, address);
+		const userStore = this.stores.get(UserStore);
+		const recipientExist = await userStore.accountExist(apiContext, address);
 
 		const minBalance = this._getMinBalance(canonicalTokenID);
 		let receivedAmount = amount;
@@ -228,10 +201,7 @@ export class TokenAPI extends BaseAPI {
 
 		let recipient: UserStoreData;
 		try {
-			recipient = await userStore.getWithSchema<UserStoreData>(
-				getUserStoreKey(address, canonicalTokenID),
-				userStoreSchema,
-			);
+			recipient = await userStore.get(apiContext, userStore.getKey(address, canonicalTokenID));
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
@@ -242,13 +212,9 @@ export class TokenAPI extends BaseAPI {
 			};
 		}
 		recipient.availableBalance += receivedAmount;
-		await userStore.setWithSchema(
-			getUserStoreKey(address, canonicalTokenID),
-			recipient,
-			userStoreSchema,
-		);
+		await userStore.set(apiContext, userStore.getKey(address, canonicalTokenID), recipient);
 		supply.totalSupply += receivedAmount;
-		await supplyStore.setWithSchema(localID, supply, supplyStoreSchema);
+		await supplyStore.set(apiContext, localID, supply);
 	}
 
 	public async burn(
@@ -265,11 +231,8 @@ export class TokenAPI extends BaseAPI {
 		if (amount < BigInt(0)) {
 			throw new Error('Amount must be a positive integer to burn.');
 		}
-		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
-		const sender = await userStore.getWithSchema<UserStoreData>(
-			getUserStoreKey(address, canonicalTokenID),
-			userStoreSchema,
-		);
+		const userStore = this.stores.get(UserStore);
+		const sender = await userStore.get(apiContext, userStore.getKey(address, canonicalTokenID));
 		if (sender.availableBalance < amount) {
 			throw new Error(
 				`Sender ${address.toString(
@@ -278,17 +241,13 @@ export class TokenAPI extends BaseAPI {
 			);
 		}
 		sender.availableBalance -= amount;
-		await userStore.setWithSchema(
-			getUserStoreKey(address, canonicalTokenID),
-			sender,
-			userStoreSchema,
-		);
+		await userStore.set(apiContext, userStore.getKey(address, canonicalTokenID), sender);
 
-		const supplyStore = apiContext.getStore(this.moduleID, STORE_PREFIX_SUPPLY);
+		const supplyStore = this.stores.get(SupplyStore);
 		const [, localID] = splitTokenID(canonicalTokenID);
-		const supply = await supplyStore.getWithSchema<SupplyStoreData>(localID, supplyStoreSchema);
+		const supply = await supplyStore.get(apiContext, localID);
 		supply.totalSupply -= amount;
-		await supplyStore.setWithSchema(localID, supply, supplyStoreSchema);
+		await supplyStore.set(apiContext, localID, supply);
 	}
 
 	public async transfer(
@@ -299,10 +258,10 @@ export class TokenAPI extends BaseAPI {
 		amount: bigint,
 	): Promise<void> {
 		const canonicalTokenID = await this.getCanonicalTokenID(apiContext, tokenID);
-		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
-		const sender = await userStore.getWithSchema<UserStoreData>(
-			getUserStoreKey(senderAddress, canonicalTokenID),
-			userStoreSchema,
+		const userStore = this.stores.get(UserStore);
+		const sender = await userStore.get(
+			apiContext,
+			userStore.getKey(senderAddress, canonicalTokenID),
 		);
 		if (sender.availableBalance < amount) {
 			throw new Error(
@@ -312,13 +271,9 @@ export class TokenAPI extends BaseAPI {
 			);
 		}
 		sender.availableBalance -= amount;
-		await userStore.setWithSchema(
-			getUserStoreKey(senderAddress, canonicalTokenID),
-			sender,
-			userStoreSchema,
-		);
+		await userStore.set(apiContext, userStore.getKey(senderAddress, canonicalTokenID), sender);
 
-		const recipientExist = await this._accountExist(userStore, recipientAddress);
+		const recipientExist = await userStore.accountExist(apiContext, recipientAddress);
 
 		const minBalance = this._getMinBalance(canonicalTokenID);
 		let receivedAmount = amount;
@@ -338,19 +293,19 @@ export class TokenAPI extends BaseAPI {
 			receivedAmount -= minBalance;
 			const [chainID] = splitTokenID(canonicalTokenID);
 			if (chainID.equals(CHAIN_ID_ALIAS_NATIVE)) {
-				const supplyStore = apiContext.getStore(this.moduleID, STORE_PREFIX_SUPPLY);
+				const supplyStore = this.stores.get(SupplyStore);
 				const [, localID] = splitTokenID(canonicalTokenID);
-				const supply = await supplyStore.getWithSchema<SupplyStoreData>(localID, supplyStoreSchema);
+				const supply = await supplyStore.get(apiContext, localID);
 				supply.totalSupply -= minBalance;
-				await supplyStore.setWithSchema(localID, supply, supplyStoreSchema);
+				await supplyStore.set(apiContext, localID, supply);
 			}
 		}
 
 		let recipient: UserStoreData;
 		try {
-			recipient = await userStore.getWithSchema<UserStoreData>(
-				getUserStoreKey(recipientAddress, canonicalTokenID),
-				userStoreSchema,
+			recipient = await userStore.get(
+				apiContext,
+				userStore.getKey(recipientAddress, canonicalTokenID),
 			);
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
@@ -362,17 +317,25 @@ export class TokenAPI extends BaseAPI {
 			};
 		}
 		recipient.availableBalance += receivedAmount;
-		await userStore.setWithSchema(
-			getUserStoreKey(recipientAddress, canonicalTokenID),
+		await userStore.set(
+			apiContext,
+			userStore.getKey(recipientAddress, canonicalTokenID),
 			recipient,
-			userStoreSchema,
 		);
+		const transferEvent = this.events.get(TransferEvent);
+		transferEvent.log(apiContext, {
+			amount,
+			recipientAddress,
+			result: TransferEventResult.SUCCESSFUL,
+			senderAddress,
+			tokenID,
+		});
 	}
 
 	public async lock(
 		apiContext: APIContext,
 		address: Buffer,
-		moduleID: Buffer,
+		module: string,
 		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void> {
@@ -380,11 +343,8 @@ export class TokenAPI extends BaseAPI {
 		if (amount < BigInt(0)) {
 			throw new Error('Amount must be a positive integer to lock.');
 		}
-		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
-		const user = await userStore.getWithSchema<UserStoreData>(
-			getUserStoreKey(address, canonicalTokenID),
-			userStoreSchema,
-		);
+		const userStore = this.stores.get(UserStore);
+		const user = await userStore.get(apiContext, userStore.getKey(address, canonicalTokenID));
 		if (user.availableBalance < amount) {
 			throw new Error(
 				`User ${address.toString(
@@ -393,31 +353,27 @@ export class TokenAPI extends BaseAPI {
 			);
 		}
 		user.availableBalance -= amount;
-		const existingIndex = user.lockedBalances.findIndex(b => b.moduleID.equals(moduleID));
+		const existingIndex = user.lockedBalances.findIndex(b => b.module === module);
 		if (existingIndex > -1) {
 			const locked = user.lockedBalances[existingIndex].amount + amount;
 			user.lockedBalances[existingIndex] = {
-				moduleID,
+				module,
 				amount: locked,
 			};
 		} else {
 			user.lockedBalances.push({
-				moduleID,
+				module,
 				amount,
 			});
 		}
-		user.lockedBalances.sort((a, b) => a.moduleID.readInt32BE(0) - b.moduleID.readInt32BE(0));
-		await userStore.setWithSchema(
-			getUserStoreKey(address, canonicalTokenID),
-			user,
-			userStoreSchema,
-		);
+		user.lockedBalances.sort((a, b) => a.module.localeCompare(b.module, 'en'));
+		await userStore.set(apiContext, userStore.getKey(address, canonicalTokenID), user);
 	}
 
 	public async unlock(
 		apiContext: APIContext,
 		address: Buffer,
-		moduleID: Buffer,
+		module: string,
 		tokenID: TokenID,
 		amount: bigint,
 	): Promise<void> {
@@ -426,21 +382,16 @@ export class TokenAPI extends BaseAPI {
 			throw new Error('Amount must be a positive integer to unlock.');
 		}
 
-		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
-		const user = await userStore.getWithSchema<UserStoreData>(
-			getUserStoreKey(address, canonicalTokenID),
-			userStoreSchema,
-		);
-		const lockedIndex = user.lockedBalances.findIndex(b => b.moduleID.equals(moduleID));
+		const userStore = this.stores.get(UserStore);
+		const user = await userStore.get(apiContext, userStore.getKey(address, canonicalTokenID));
+		const lockedIndex = user.lockedBalances.findIndex(b => b.module === module);
 		if (lockedIndex < 0) {
-			throw new Error(`No balance is locked for module ID ${moduleID.readInt32BE(0)}`);
+			throw new Error(`No balance is locked for module ${module}`);
 		}
 		const lockedObj = user.lockedBalances[lockedIndex];
 		if (lockedObj.amount < amount) {
 			throw new Error(
-				`Not enough amount is locked for module ${moduleID.readInt32BE(
-					0,
-				)} to unlock ${amount.toString()}`,
+				`Not enough amount is locked for module ${module} to unlock ${amount.toString()}`,
 			);
 		}
 		lockedObj.amount -= amount;
@@ -450,11 +401,7 @@ export class TokenAPI extends BaseAPI {
 		} else {
 			user.lockedBalances.splice(lockedIndex, 1);
 		}
-		await userStore.setWithSchema(
-			getUserStoreKey(address, canonicalTokenID),
-			user,
-			userStoreSchema,
-		);
+		await userStore.set(apiContext, userStore.getKey(address, canonicalTokenID), user);
 	}
 
 	public async isNative(apiContext: ImmutableAPIContext, tokenID: TokenID): Promise<boolean> {
@@ -484,10 +431,10 @@ export class TokenAPI extends BaseAPI {
 		}
 
 		const canonicalTokenID = await this.getCanonicalTokenID(apiContext, tokenID);
-		const userStore = apiContext.getStore(this.moduleID, STORE_PREFIX_USER);
-		const sender = await userStore.getWithSchema<UserStoreData>(
-			getUserStoreKey(senderAddress, canonicalTokenID),
-			userStoreSchema,
+		const userStore = this.stores.get(UserStore);
+		const sender = await userStore.get(
+			apiContext,
+			userStore.getKey(senderAddress, canonicalTokenID),
 		);
 
 		if (sender.availableBalance < amount) {
@@ -524,8 +471,8 @@ export class TokenAPI extends BaseAPI {
 			const sendResult = await this._interoperabilityAPI.send(
 				apiContext,
 				senderAddress,
-				this.moduleID,
-				CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
+				this._moduleName,
+				CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 				receivingChainID,
 				messageFee,
 				CCM_STATUS_OK,
@@ -535,13 +482,10 @@ export class TokenAPI extends BaseAPI {
 				return;
 			}
 			sender.availableBalance -= amount;
-			await userStore.setWithSchema(
-				getUserStoreKey(senderAddress, canonicalTokenID),
-				sender,
-				userStoreSchema,
-			);
+			await userStore.set(apiContext, userStore.getKey(senderAddress, canonicalTokenID), sender);
 			if (chainID.equals(CHAIN_ID_ALIAS_NATIVE)) {
-				await addEscrowAmount(apiContext, this.moduleID, receivingChainID, localID, amount);
+				const escrowStore = this.stores.get(EscrowStore);
+				await escrowStore.addAmount(apiContext, receivingChainID, localID, amount);
 			}
 			return;
 		}
@@ -566,8 +510,8 @@ export class TokenAPI extends BaseAPI {
 		const sendResult = await this._interoperabilityAPI.send(
 			apiContext,
 			senderAddress,
-			this.moduleID,
-			CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
+			this._moduleName,
+			CROSS_CHAIN_COMMAND_NAME_FORWARD,
 			chainID,
 			BigInt(0),
 			CCM_STATUS_OK,
@@ -577,11 +521,7 @@ export class TokenAPI extends BaseAPI {
 			return;
 		}
 		sender.availableBalance -= amount + messageFee;
-		await userStore.setWithSchema(
-			getUserStoreKey(senderAddress, canonicalTokenID),
-			sender,
-			userStoreSchema,
-		);
+		await userStore.set(apiContext, userStore.getKey(senderAddress, canonicalTokenID), sender);
 	}
 
 	public async getCanonicalTokenID(
@@ -603,13 +543,5 @@ export class TokenAPI extends BaseAPI {
 	private _getMinBalance(tokenID: TokenID): bigint | undefined {
 		const minBalance = this._minBalances.find(mb => mb.tokenID.equals(tokenID));
 		return minBalance?.amount;
-	}
-
-	private async _accountExist(userStore: ImmutableSubStore, address: Buffer): Promise<boolean> {
-		const allUserData = await userStore.iterate({
-			gte: Buffer.concat([address, Buffer.alloc(TOKEN_ID_LENGTH, 0)]),
-			lte: Buffer.concat([address, Buffer.alloc(TOKEN_ID_LENGTH, 255)]),
-		});
-		return allUserData.length !== 0;
 	}
 }

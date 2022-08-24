@@ -17,17 +17,9 @@ import { codec } from '@liskhq/lisk-codec';
 import { BlockAssets } from '@liskhq/lisk-chain';
 import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
 import { RandomModule } from '../../../../src/modules/random';
-import { UsedHashOnionStoreObject, ValidatorReveals } from '../../../../src/modules/random/types';
-import {
-	EMPTY_KEY,
-	STORE_PREFIX_RANDOM,
-	STORE_PREFIX_USED_HASH_ONION,
-} from '../../../../src/modules/random/constants';
-import {
-	blockHeaderAssetRandomModule,
-	seedRevealSchema,
-	usedHashOnionsStoreSchema,
-} from '../../../../src/modules/random/schemas';
+import { UsedHashOnionStoreObject } from '../../../../src/modules/random/types';
+import { EMPTY_KEY, STORE_PREFIX_USED_HASH_ONION } from '../../../../src/modules/random/constants';
+import { blockHeaderAssetRandomModule } from '../../../../src/modules/random/schemas';
 import { defaultNetworkIdentifier } from '../../../fixtures';
 import { GenesisConfig, testing } from '../../../../src';
 import {
@@ -38,6 +30,8 @@ import {
 import { InsertAssetContext } from '../../../../src/state_machine';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
+import { UsedHashOnionsStore } from '../../../../src/modules/random/stores/used_hash_onions';
+import { ValidatorRevealsStore } from '../../../../src/modules/random/stores/validator_reveals';
 
 const convertDelegateFixture = (delegates: typeof genesisDelegates.delegates) =>
 	delegates.map(delegate => ({
@@ -134,12 +128,9 @@ describe('RandomModule', () => {
 				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
 			});
 
-			await blockGenerateContext
-				.getOffchainStore(randomModule.id)
-				.set(
-					STORE_PREFIX_USED_HASH_ONION,
-					codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnion),
-				);
+			await randomModule.offchainStores
+				.get(UsedHashOnionsStore)
+				.set(blockGenerateContext, STORE_PREFIX_USED_HASH_ONION, defaultUsedHashOnion);
 
 			const seed = targetDelegate.hashOnion.hashes[1];
 			const hashes = utils.hashOnion(
@@ -159,12 +150,14 @@ describe('RandomModule', () => {
 			// Assert
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
 			expect(assetStub.setAsset).toHaveBeenCalledWith(
-				randomModule.id,
+				randomModule.name,
 				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[7] }),
 			);
 			await expect(
-				blockGenerateContext.getOffchainStore(randomModule.id).get(STORE_PREFIX_USED_HASH_ONION),
-			).resolves.toEqual(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated));
+				randomModule.offchainStores
+					.get(UsedHashOnionsStore)
+					.get(blockGenerateContext, STORE_PREFIX_USED_HASH_ONION),
+			).resolves.toEqual(defaultUsedHashOnionUpdated);
 		});
 
 		it('should update the used hash onion', async () => {
@@ -178,12 +171,10 @@ describe('RandomModule', () => {
 				getStore: jest.fn() as any,
 				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
 			});
-			await blockGenerateContext
-				.getOffchainStore(randomModule.id)
-				.set(
-					STORE_PREFIX_USED_HASH_ONION,
-					codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnion),
-				);
+
+			await randomModule.offchainStores
+				.get(UsedHashOnionsStore)
+				.set(blockGenerateContext, STORE_PREFIX_USED_HASH_ONION, defaultUsedHashOnion);
 
 			const seed = targetDelegate.hashOnion.hashes[1];
 			const hashes = utils.hashOnion(
@@ -203,12 +194,14 @@ describe('RandomModule', () => {
 			// Assert
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
 			expect(assetStub.setAsset).toHaveBeenCalledWith(
-				randomModule.id,
+				randomModule.name,
 				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[7] }),
 			);
 			await expect(
-				blockGenerateContext.getOffchainStore(randomModule.id).get(STORE_PREFIX_USED_HASH_ONION),
-			).resolves.toEqual(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated));
+				randomModule.offchainStores
+					.get(UsedHashOnionsStore)
+					.get(blockGenerateContext, STORE_PREFIX_USED_HASH_ONION),
+			).resolves.toEqual(defaultUsedHashOnionUpdated);
 		});
 
 		it('should overwrite the used hash onion when forging the same height', async () => {
@@ -241,12 +234,9 @@ describe('RandomModule', () => {
 				getStore: jest.fn() as any,
 				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
 			});
-			await blockGenerateContext
-				.getOffchainStore(randomModule.id)
-				.set(
-					STORE_PREFIX_USED_HASH_ONION,
-					codec.encode(usedHashOnionsStoreSchema, usedHashOnionInput),
-				);
+			await randomModule.offchainStores
+				.get(UsedHashOnionsStore)
+				.set(blockGenerateContext, STORE_PREFIX_USED_HASH_ONION, usedHashOnionInput);
 
 			const seed = targetDelegate.hashOnion.hashes[1];
 			const hashes = utils.hashOnion(
@@ -266,12 +256,14 @@ describe('RandomModule', () => {
 			// Assert
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
 			expect(assetStub.setAsset).toHaveBeenCalledWith(
-				randomModule.id,
+				randomModule.name,
 				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[7] }),
 			);
 			await expect(
-				blockGenerateContext.getOffchainStore(randomModule.id).get(STORE_PREFIX_USED_HASH_ONION),
-			).resolves.toEqual(codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnionUpdated));
+				randomModule.offchainStores
+					.get(UsedHashOnionsStore)
+					.get(blockGenerateContext, STORE_PREFIX_USED_HASH_ONION),
+			).resolves.toEqual(defaultUsedHashOnionUpdated);
 		});
 
 		it('should remove all used hash onions before finality height', async () => {
@@ -294,12 +286,9 @@ describe('RandomModule', () => {
 				1,
 			);
 
-			await blockGenerateContext
-				.getOffchainStore(randomModule.id)
-				.set(
-					STORE_PREFIX_USED_HASH_ONION,
-					codec.encode(usedHashOnionsStoreSchema, defaultUsedHashOnion),
-				);
+			await randomModule.offchainStores
+				.get(UsedHashOnionsStore)
+				.set(blockGenerateContext, STORE_PREFIX_USED_HASH_ONION, defaultUsedHashOnion);
 
 			// Act
 			await randomModule.init({
@@ -312,19 +301,19 @@ describe('RandomModule', () => {
 			// Assert
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
 			expect(assetStub.setAsset).toHaveBeenCalledWith(
-				randomModule.id,
+				randomModule.name,
 				codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[7] }),
 			);
 
 			await expect(
-				blockGenerateContext.getOffchainStore(randomModule.id).get(STORE_PREFIX_USED_HASH_ONION),
-			).resolves.toEqual(
-				codec.encode(usedHashOnionsStoreSchema, {
-					usedHashOnions: defaultUsedHashOnionUpdated.usedHashOnions.filter(
-						u => u.height > finalizedHeight,
-					),
-				}),
-			);
+				randomModule.offchainStores
+					.get(UsedHashOnionsStore)
+					.get(blockGenerateContext, STORE_PREFIX_USED_HASH_ONION),
+			).resolves.toEqual({
+				usedHashOnions: defaultUsedHashOnionUpdated.usedHashOnions.filter(
+					u => u.height > finalizedHeight,
+				),
+			});
 		});
 
 		it('should use random seedReveal when all seedReveal are used', async () => {
@@ -371,12 +360,9 @@ describe('RandomModule', () => {
 				getStore: jest.fn() as any,
 				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
 			});
-			await blockGenerateContext
-				.getOffchainStore(randomModule.id)
-				.set(
-					STORE_PREFIX_USED_HASH_ONION,
-					codec.encode(usedHashOnionsStoreSchema, usedHashOnionInput),
-				);
+			await randomModule.offchainStores
+				.get(UsedHashOnionsStore)
+				.set(blockGenerateContext, STORE_PREFIX_USED_HASH_ONION, usedHashOnionInput);
 
 			// Act
 			await randomModule.init({
@@ -389,8 +375,10 @@ describe('RandomModule', () => {
 			// Assert
 			expect(assetStub.setAsset).toHaveBeenCalledTimes(1);
 			await expect(
-				blockGenerateContext.getOffchainStore(randomModule.id).get(STORE_PREFIX_USED_HASH_ONION),
-			).resolves.toEqual(codec.encode(usedHashOnionsStoreSchema, usedHashOnionOutput));
+				randomModule.offchainStores
+					.get(UsedHashOnionsStore)
+					.get(blockGenerateContext, STORE_PREFIX_USED_HASH_ONION),
+			).resolves.toEqual(usedHashOnionOutput);
 			expect(blockGenerateContext.logger.warn).toHaveBeenCalledWith(
 				'All of the hash onion has been used already. Please update to the new hash onion.',
 			);
@@ -440,17 +428,14 @@ describe('RandomModule', () => {
 		it('should store empty array to the random data store', async () => {
 			const context = createGenesisBlockContext({
 				stateStore,
-			});
+			}).createInitGenesisStateContext();
 
-			await randomModule.initGenesisState(context.createInitGenesisStateContext());
+			await randomModule.initGenesisState(context);
 
-			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
+			const randomDataStore = randomModule.stores.get(ValidatorRevealsStore);
 
-			await expect(randomDataStore.has(EMPTY_KEY)).resolves.toBeTrue();
-			const res = await randomDataStore.getWithSchema<ValidatorReveals>(
-				EMPTY_KEY,
-				seedRevealSchema,
-			);
+			await expect(randomDataStore.has(context, EMPTY_KEY)).resolves.toBeTrue();
+			const res = await randomDataStore.get(context, EMPTY_KEY);
 			expect(res.validatorReveals).toHaveLength(0);
 		});
 	});
@@ -478,21 +463,24 @@ describe('RandomModule', () => {
 
 		it('should reject if seed reveal length is not 16 bytes', async () => {
 			const asset = {
-				moduleID: randomModule.id,
+				module: randomModule.name,
 				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: utils.getRandomBytes(10) }),
 			};
 			const context = createBlockContext({
 				assets: new BlockAssets([asset]),
 			});
 
-			await expect(
-				randomModule.verifyAssets(context.getBlockVerifyExecuteContext()),
-			).rejects.toThrow('Size of the seed reveal must be 16, but received 10.');
+			try {
+				await randomModule.verifyAssets(context.getBlockVerifyExecuteContext());
+			} catch (error: any) {
+				// eslint-disable-next-line jest/no-try-expect
+				expect(error?.message).toInclude(`Property '.seedReveal' minLength not satisfied`);
+			}
 		});
 
 		it('should resolve if seed reveal length is 16 bytes', async () => {
 			const asset = {
-				moduleID: randomModule.id,
+				module: randomModule.name,
 				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: utils.getRandomBytes(16) }),
 			};
 			const context = createBlockContext({
@@ -528,7 +516,7 @@ describe('RandomModule', () => {
 				},
 			});
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
+			const randomDataStore = randomModule.stores.get(ValidatorRevealsStore);
 			const validatorReveals = [
 				{
 					seedReveal: seedHash(seed1, 2),
@@ -561,7 +549,9 @@ describe('RandomModule', () => {
 					valid: true,
 				},
 			];
-			await randomDataStore.setWithSchema(EMPTY_KEY, { validatorReveals }, seedRevealSchema);
+			await randomDataStore.set({ getStore: (p1, p2) => stateStore.getStore(p1, p2) }, EMPTY_KEY, {
+				validatorReveals,
+			});
 		});
 
 		it('should reject if asset does not exist', async () => {
@@ -576,43 +566,37 @@ describe('RandomModule', () => {
 
 		it('should append the new seed reveal value', async () => {
 			const asset = {
-				moduleID: randomModule.id,
+				module: randomModule.name,
 				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: seedHash(seed3, 1) }),
 			};
 			const context = createBlockContext({
 				assets: new BlockAssets([asset]),
 				header: createBlockHeaderWithDefaults({ height: 6 }),
 				stateStore,
-			});
+			}).getBlockAfterExecuteContext();
 
-			await randomModule.afterTransactionsExecute(context.getBlockAfterExecuteContext());
+			await randomModule.afterTransactionsExecute(context);
 
-			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
-			const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
-				EMPTY_KEY,
-				seedRevealSchema,
-			);
+			const randomDataStore = randomModule.stores.get(ValidatorRevealsStore);
+			const { validatorReveals } = await randomDataStore.get(context, EMPTY_KEY);
 			expect(validatorReveals).toHaveLength(6);
 		});
 
 		it('should not exceed max length of seed reveal set in the config', async () => {
 			const asset = {
-				moduleID: randomModule.id,
+				module: randomModule.name,
 				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: seedHash(seed3, 1) }),
 			};
 			const context = createBlockContext({
 				assets: new BlockAssets([asset]),
 				header: createBlockHeaderWithDefaults({ height: 6 }),
 				stateStore,
-			});
+			}).getBlockAfterExecuteContext();
 
-			await randomModule.afterTransactionsExecute(context.getBlockAfterExecuteContext());
+			await randomModule.afterTransactionsExecute(context);
 
-			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
-			const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
-				EMPTY_KEY,
-				seedRevealSchema,
-			);
+			const randomDataStore = randomModule.stores.get(ValidatorRevealsStore);
+			const { validatorReveals } = await randomDataStore.get(context, EMPTY_KEY);
 			expect(validatorReveals).toHaveLength(6);
 
 			const nextContext = createBlockContext({
@@ -623,10 +607,11 @@ describe('RandomModule', () => {
 
 			await randomModule.afterTransactionsExecute(nextContext.getBlockAfterExecuteContext());
 
-			const updatedRandomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
-			const {
-				validatorReveals: updatedValidatorReveals,
-			} = await updatedRandomDataStore.getWithSchema<ValidatorReveals>(EMPTY_KEY, seedRevealSchema);
+			const updatedRandomDataStore = randomModule.stores.get(ValidatorRevealsStore);
+			const { validatorReveals: updatedValidatorReveals } = await updatedRandomDataStore.get(
+				context,
+				EMPTY_KEY,
+			);
 			expect(updatedValidatorReveals).toHaveLength(6);
 			expect(updatedValidatorReveals[5].height).toEqual(7);
 		});
@@ -634,22 +619,19 @@ describe('RandomModule', () => {
 		it('should set seed reveal validity to be true if validator provides valid seed reveal', async () => {
 			const seedReveal = seedHash(seed3, 1);
 			const asset = {
-				moduleID: randomModule.id,
+				module: randomModule.name,
 				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal }),
 			};
 			const context = createBlockContext({
 				assets: new BlockAssets([asset]),
 				header: createBlockHeaderWithDefaults({ height: 6, generatorAddress: generator3 }),
 				stateStore,
-			});
+			}).getBlockAfterExecuteContext();
 
-			await randomModule.afterTransactionsExecute(context.getBlockAfterExecuteContext());
+			await randomModule.afterTransactionsExecute(context);
 
-			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
-			const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
-				EMPTY_KEY,
-				seedRevealSchema,
-			);
+			const randomDataStore = randomModule.stores.get(ValidatorRevealsStore);
+			const { validatorReveals } = await randomDataStore.get(context, EMPTY_KEY);
 			expect(validatorReveals).toHaveLength(6);
 			expect(validatorReveals[5]).toEqual({
 				height: 6,
@@ -662,22 +644,19 @@ describe('RandomModule', () => {
 		it('should set seed reveal validity to be true when previous seed will be deleted at this execution', async () => {
 			const seedReveal = seedHash(seed1, 1);
 			const asset = {
-				moduleID: randomModule.id,
+				module: randomModule.name,
 				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal }),
 			};
 			const context = createBlockContext({
 				assets: new BlockAssets([asset]),
 				header: createBlockHeaderWithDefaults({ height: 6, generatorAddress: generator1 }),
 				stateStore,
-			});
+			}).getBlockAfterExecuteContext();
 
-			await randomModule.afterTransactionsExecute(context.getBlockAfterExecuteContext());
+			await randomModule.afterTransactionsExecute(context);
 
-			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
-			const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
-				EMPTY_KEY,
-				seedRevealSchema,
-			);
+			const randomDataStore = randomModule.stores.get(ValidatorRevealsStore);
+			const { validatorReveals } = await randomDataStore.get(context, EMPTY_KEY);
 			expect(validatorReveals).toHaveLength(6);
 			expect(validatorReveals[5]).toEqual({
 				height: 6,
@@ -690,22 +669,19 @@ describe('RandomModule', () => {
 		it('should set seed reveal validity to be false if validator provides invalid seed reveal', async () => {
 			const seedReveal = seedHash(utils.getRandomBytes(20), 1);
 			const asset = {
-				moduleID: randomModule.id,
+				module: randomModule.name,
 				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal }),
 			};
 			const context = createBlockContext({
 				assets: new BlockAssets([asset]),
 				header: createBlockHeaderWithDefaults({ height: 6, generatorAddress: generator3 }),
 				stateStore,
-			});
+			}).getBlockAfterExecuteContext();
 
-			await randomModule.afterTransactionsExecute(context.getBlockAfterExecuteContext());
+			await randomModule.afterTransactionsExecute(context);
 
-			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
-			const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
-				EMPTY_KEY,
-				seedRevealSchema,
-			);
+			const randomDataStore = randomModule.stores.get(ValidatorRevealsStore);
+			const { validatorReveals } = await randomDataStore.get(context, EMPTY_KEY);
 			expect(validatorReveals).toHaveLength(6);
 			expect(validatorReveals[5]).toEqual({
 				height: 6,
@@ -718,7 +694,7 @@ describe('RandomModule', () => {
 		it('should set seed reveal validity to be false if there is no data for the past seed reveal', async () => {
 			const seedReveal = seedHash(utils.getRandomBytes(20), 1);
 			const asset = {
-				moduleID: randomModule.id,
+				module: randomModule.name,
 				data: codec.encode(blockHeaderAssetRandomModule, { seedReveal }),
 			};
 			const generator = utils.getRandomBytes(20);
@@ -726,15 +702,12 @@ describe('RandomModule', () => {
 				assets: new BlockAssets([asset]),
 				header: createBlockHeaderWithDefaults({ height: 6, generatorAddress: generator }),
 				stateStore,
-			});
+			}).getBlockAfterExecuteContext();
 
-			await randomModule.afterTransactionsExecute(context.getBlockAfterExecuteContext());
+			await randomModule.afterTransactionsExecute(context);
 
-			const randomDataStore = stateStore.getStore(randomModule.id, STORE_PREFIX_RANDOM);
-			const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
-				EMPTY_KEY,
-				seedRevealSchema,
-			);
+			const randomDataStore = randomModule.stores.get(ValidatorRevealsStore);
+			const { validatorReveals } = await randomDataStore.get(context, EMPTY_KEY);
 			expect(validatorReveals).toHaveLength(6);
 			expect(validatorReveals[5]).toEqual({
 				height: 6,

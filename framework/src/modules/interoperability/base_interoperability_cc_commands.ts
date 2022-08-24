@@ -12,18 +12,23 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { StoreGetter } from '../base_store';
+import { NamedRegistry } from '../named_registry';
 import { BaseCCCommand } from './base_cc_command';
 import { BaseInteroperabilityStore } from './base_interoperability_store';
 import { BaseInteroperableAPI } from './base_interoperable_api';
-import { StoreCallback } from './types';
 
 export abstract class BaseInteroperabilityCCCommand extends BaseCCCommand {
-	protected readonly interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
+	protected readonly interoperableCCAPIs = new Map<string, BaseInteroperableAPI>();
 
-	public constructor(moduleID: Buffer, interoperableCCAPIs: Map<number, BaseInteroperableAPI>) {
-		super(moduleID);
+	public constructor(
+		protected stores: NamedRegistry,
+		protected events: NamedRegistry,
+		interoperableCCAPIs: Map<string, BaseInteroperableAPI>,
+	) {
+		super(stores, events);
 		this.interoperableCCAPIs = interoperableCCAPIs;
 	}
 
-	protected abstract getInteroperabilityStore(getStore: StoreCallback): BaseInteroperabilityStore;
+	protected abstract getInteroperabilityStore(context: StoreGetter): BaseInteroperabilityStore;
 }

@@ -14,11 +14,11 @@
 
 import { EventQueue } from './event_queue';
 import { PrefixedStateReadWriter, StateDBReadWriter } from './prefixed_state_read_writer';
-import { SubStore, ImmutableSubStore, ImmutableAPIContext, EventQueueAdder } from './types';
+import { SubStore, ImmutableSubStore, ImmutableAPIContext } from './types';
 
 interface Params {
 	stateStore: PrefixedStateReadWriter;
-	eventQueue: EventQueueAdder;
+	eventQueue: EventQueue;
 }
 
 export const createAPIContext = (params: Params) => new APIContext(params);
@@ -27,30 +27,30 @@ export const createNewAPIContext = (db: StateDBReadWriter) =>
 	new APIContext({ stateStore: new PrefixedStateReadWriter(db), eventQueue: new EventQueue() });
 
 interface ImmutableSubStoreGetter {
-	getStore: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 }
 
 export const createImmutableAPIContext = (
 	immutableSubstoreGetter: ImmutableSubStoreGetter,
 ): ImmutableAPIContext => ({
-	getStore: (moduleID: Buffer, storePrefix: number) =>
+	getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 		immutableSubstoreGetter.getStore(moduleID, storePrefix),
 });
 
 export class APIContext {
 	private readonly _stateStore: PrefixedStateReadWriter;
-	private readonly _eventQueue: EventQueueAdder;
+	private readonly _eventQueue: EventQueue;
 
 	public constructor(params: Params) {
 		this._eventQueue = params.eventQueue;
 		this._stateStore = params.stateStore;
 	}
 
-	public getStore(moduleID: Buffer, storePrefix: number): SubStore {
+	public getStore(moduleID: Buffer, storePrefix: Buffer): SubStore {
 		return this._stateStore.getStore(moduleID, storePrefix);
 	}
 
-	public get eventQueue(): EventQueueAdder {
+	public get eventQueue(): EventQueue {
 		return this._eventQueue;
 	}
 }

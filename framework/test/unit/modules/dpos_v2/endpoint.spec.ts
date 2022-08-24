@@ -15,29 +15,29 @@
 import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { Logger } from '../../../../src/logger';
-import {
-	MODULE_ID_DPOS_BUFFER,
-	STORE_PREFIX_DELEGATE,
-	STORE_PREFIX_VOTER,
-	defaultConfig,
-} from '../../../../src/modules/dpos_v2/constants';
+import { defaultConfig } from '../../../../src/modules/dpos_v2/constants';
 import { DPoSEndpoint } from '../../../../src/modules/dpos_v2/endpoint';
-import { delegateStoreSchema, voterStoreSchema } from '../../../../src/modules/dpos_v2/schemas';
 import { fakeLogger } from '../../../utils/mocks';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { ModuleConfig } from '../../../../src/modules/dpos_v2/types';
+import { DPoSModule } from '../../../../src';
+import { VoterStore, voterStoreSchema } from '../../../../src/modules/dpos_v2/stores/voter';
+import { DelegateStore } from '../../../../src/modules/dpos_v2/stores/delegate';
+import { createStoreGetter } from '../../../../src/testing/utils';
 
 describe('DposModuleEndpoint', () => {
+	const dpos = new DPoSModule();
+
 	const logger: Logger = fakeLogger;
 	let dposEndpoint: DPoSEndpoint;
 	let stateStore: PrefixedStateReadWriter;
-	let voterSubStore: PrefixedStateReadWriter;
-	let delegateSubStore: PrefixedStateReadWriter;
+	let voterSubStore: VoterStore;
+	let delegateSubStore: DelegateStore;
+
 	const address = utils.getRandomBytes(20);
 	const address1 = utils.getRandomBytes(20);
 	const address2 = utils.getRandomBytes(20);
-	const getStore1 = jest.fn();
 	const networkIdentifier = Buffer.alloc(0);
 	const voterData = {
 		sentVotes: [
@@ -63,6 +63,7 @@ describe('DposModuleEndpoint', () => {
 		isBanned: false,
 		pomHeights: [0],
 		consecutiveMissedBlocks: 0,
+		address: address.toString('hex'),
 	};
 
 	const config: ModuleConfig = {
@@ -72,20 +73,19 @@ describe('DposModuleEndpoint', () => {
 	};
 
 	beforeEach(() => {
-		dposEndpoint = new DPoSEndpoint(MODULE_ID_DPOS_BUFFER);
+		dposEndpoint = new DPoSEndpoint(dpos.stores, dpos.offchainStores);
 		dposEndpoint.init(config);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		voterSubStore = stateStore.getStore(dposEndpoint['moduleID'], STORE_PREFIX_VOTER);
-		delegateSubStore = stateStore.getStore(dposEndpoint['moduleID'], STORE_PREFIX_DELEGATE);
+		voterSubStore = dpos.stores.get(VoterStore);
+		delegateSubStore = dpos.stores.get(DelegateStore);
 	});
 
 	describe('getVoter', () => {
 		describe('when input address is valid', () => {
 			it('should return correct voter data corresponding to the input address', async () => {
-				await voterSubStore.setWithSchema(address, voterData, voterStoreSchema);
-				getStore1.mockReturnValue(voterSubStore);
+				await voterSubStore.set(createStoreGetter(stateStore), address, voterData);
 				const voterDataReturned = await dposEndpoint.getVoter({
-					getStore: getStore1,
+					getStore: (p1, p2) => stateStore.getStore(p1, p2),
 					getImmutableAPIContext: jest.fn(),
 					logger,
 					params: {
@@ -99,10 +99,9 @@ describe('DposModuleEndpoint', () => {
 			});
 
 			it('should return valid JSON output', async () => {
-				await voterSubStore.setWithSchema(address, voterData, voterStoreSchema);
-				getStore1.mockReturnValue(voterSubStore);
+				await voterSubStore.set(createStoreGetter(stateStore), address, voterData);
 				const voterDataReturned = await dposEndpoint.getVoter({
-					getStore: getStore1,
+					getStore: (p1, p2) => stateStore.getStore(p1, p2),
 					getImmutableAPIContext: jest.fn(),
 					logger,
 					params: {
@@ -123,10 +122,9 @@ describe('DposModuleEndpoint', () => {
 	describe('getDelegate', () => {
 		describe('when input address is valid', () => {
 			it('should return correct delegate data corresponding to the input address', async () => {
-				await delegateSubStore.setWithSchema(address, delegateData, delegateStoreSchema);
-				getStore1.mockReturnValue(delegateSubStore);
+				await delegateSubStore.set(createStoreGetter(stateStore), address, delegateData);
 				const delegateDataReturned = await dposEndpoint.getDelegate({
-					getStore: getStore1,
+					getStore: (p1, p2) => stateStore.getStore(p1, p2),
 					getImmutableAPIContext: jest.fn(),
 					logger,
 					params: {
@@ -140,16 +138,16 @@ describe('DposModuleEndpoint', () => {
 					...delegateData,
 					totalVotesReceived: delegateData.totalVotesReceived.toString(),
 					selfVotes: delegateData.selfVotes.toString(),
+					address: address.toString('hex'),
 				};
 
 				expect(delegateDataReturned).toStrictEqual(delegateDataJSON);
 			});
 
 			it('should return valid JSON output', async () => {
-				await delegateSubStore.setWithSchema(address, delegateData, delegateStoreSchema);
-				getStore1.mockReturnValue(delegateSubStore);
+				await delegateSubStore.set(createStoreGetter(stateStore), address, delegateData);
 				const delegateDataReturned = await dposEndpoint.getDelegate({
-					getStore: getStore1,
+					getStore: (p1, p2) => stateStore.getStore(p1, p2),
 					getImmutableAPIContext: jest.fn(),
 					logger,
 					params: {
@@ -167,12 +165,21 @@ describe('DposModuleEndpoint', () => {
 
 	describe('getAllDelegates', () => {
 		describe('when input address is valid', () => {
+			const address1Str = address1.toString('hex');
+			const address2Str = address2.toString('hex');
+
+			const addresses = [address1Str, address2Str];
+
+			const delegateData1 = Object.assign(delegateData, { address: address1Str });
+			const delegateData2 = Object.assign(delegateData, { address: address2Str });
+
+			// CAUTION!
+			// getAllDelegates() returns data in random order
 			it('should return correct data for all delegates', async () => {
-				await delegateSubStore.setWithSchema(address1, delegateData, delegateStoreSchema);
-				await delegateSubStore.setWithSchema(address2, delegateData, delegateStoreSchema);
-				getStore1.mockReturnValue(delegateSubStore);
+				await delegateSubStore.set(createStoreGetter(stateStore), address1, delegateData1);
+				await delegateSubStore.set(createStoreGetter(stateStore), address2, delegateData2);
 				const { delegates: delegatesDataReturned } = await dposEndpoint.getAllDelegates({
-					getStore: getStore1,
+					getStore: (p1, p2) => stateStore.getStore(p1, p2),
 					getImmutableAPIContext: jest.fn(),
 					logger,
 					params: {},
@@ -180,20 +187,15 @@ describe('DposModuleEndpoint', () => {
 					getOffchainStore: jest.fn(),
 				});
 
-				expect(delegatesDataReturned[0]).toStrictEqual(
-					codec.toJSON(delegateStoreSchema, delegateData),
-				);
-				expect(delegatesDataReturned[1]).toStrictEqual(
-					codec.toJSON(delegateStoreSchema, delegateData),
-				);
+				expect(addresses).toContain(delegatesDataReturned[0].address);
+				expect(addresses).toContain(delegatesDataReturned[1].address);
 			});
 
 			it('should return valid JSON output', async () => {
-				await delegateSubStore.setWithSchema(address, delegateData, delegateStoreSchema);
-				await delegateSubStore.setWithSchema(address1, delegateData, delegateStoreSchema);
-				getStore1.mockReturnValue(delegateSubStore);
+				await delegateSubStore.set(createStoreGetter(stateStore), address, delegateData1);
+				await delegateSubStore.set(createStoreGetter(stateStore), address1, delegateData2);
 				const { delegates: delegatesDataReturned } = await dposEndpoint.getAllDelegates({
-					getStore: getStore1,
+					getStore: (p1, p2) => stateStore.getStore(p1, p2),
 					getImmutableAPIContext: jest.fn(),
 					logger,
 					params: {},

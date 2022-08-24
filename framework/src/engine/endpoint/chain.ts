@@ -29,7 +29,7 @@ import { JSONObject } from '../../types';
 import { RequestContext } from '../rpc/rpc_server';
 import {
 	EMPTY_KEY,
-	MODULE_ID_BFT_BUFFER,
+	MODULE_STORE_PREFIX_BFT,
 	STORE_PREFIX_BFT_VOTES,
 	STORE_PREFIX_GENERATOR_KEYS,
 } from '../bft/constants';
@@ -217,11 +217,11 @@ export class ChainEndpoint {
 
 	public async getGeneratorList(_: RequestContext): Promise<{ list: string[] }> {
 		const stateStore = new StateStore(this._db);
-		const votesStore = stateStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_BFT_VOTES);
+		const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
 		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
 		const { height: currentHeight } =
 			bftVotes.blockBFTInfos.length > 0 ? bftVotes.blockBFTInfos[0] : { height: 0 };
-		const keysStore = stateStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_GENERATOR_KEYS);
+		const keysStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_GENERATOR_KEYS);
 		const keys = await getGeneratorKeys(keysStore, currentHeight + 1);
 		return {
 			list: keys.generators.map(v => v.address.toString('hex')),

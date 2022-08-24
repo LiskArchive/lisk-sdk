@@ -172,7 +172,6 @@ export const getBlockProcessingEnv = async (
 	stateMachine.registerModule(dposModule);
 	const blockAssets = blockAssetsJSON.map(asset => ({
 		...asset,
-		moduleID: asset.moduleID,
 		data: codec.fromJSON<Record<string, unknown>>(asset.schema, asset.data),
 	}));
 	await stateMachine.init(
@@ -260,7 +259,7 @@ export const getBlockProcessingEnv = async (
 			const stateStore = new PrefixedStateReadWriter(stateDB.newReadWriter());
 
 			const result = await bindedHandler({
-				getStore: (moduleID: Buffer, storePrefix: number) =>
+				getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 					stateStore.getStore(moduleID, storePrefix),
 				getImmutableAPIContext: () => createImmutableAPIContext(stateStore),
 				logger: engine['_logger'],

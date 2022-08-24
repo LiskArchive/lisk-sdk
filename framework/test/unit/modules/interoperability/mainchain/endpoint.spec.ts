@@ -14,8 +14,17 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { intToBuffer } from '@liskhq/lisk-cryptography/dist-node/utils';
+import { MainchainInteroperabilityModule, ModuleEndpointContext } from '../../../../../src';
 import { MainchainInteroperabilityEndpoint } from '../../../../../src/modules/interoperability/mainchain/endpoint';
 import { MainchainInteroperabilityStore } from '../../../../../src/modules/interoperability/mainchain/store';
+import {
+	TerminatedStateAccount,
+	TerminatedStateAccountJSON,
+} from '../../../../../src/modules/interoperability/stores/terminated_state';
+import {
+	TerminatedOutboxAccount,
+	TerminatedOutboxAccountJSON,
+} from '../../../../../src/modules/interoperability/stores/terminated_outbox';
 import {
 	ChainAccount,
 	ChainAccountJSON,
@@ -23,26 +32,17 @@ import {
 	ChannelDataJSON,
 	OwnChainAccount,
 	OwnChainAccountJSON,
-	TerminatedOutboxAccount,
-	TerminatedOutboxAccountJSON,
-	TerminatedStateAccount,
-	TerminatedStateAccountJSON,
 } from '../../../../../src/modules/interoperability/types';
+import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 
 describe('Mainchain endpoint', () => {
-	const moduleID = utils.intToBuffer(1, 4);
+	const interopMod = new MainchainInteroperabilityModule();
+
 	const chainID = utils.intToBuffer(1, 4);
 	const interoperableCCAPIs = new Map();
-	const getStore = jest.fn().mockReturnValue({ getWithSchema: jest.fn() });
 
-	const moduleContext = {
-		getStore,
-		getImmutableAPIContext: jest.fn(),
-		networkIdentifier: Buffer.alloc(0),
-		params: {},
-		logger: {} as any,
-		getOffchainStore: jest.fn(),
-	};
+	let moduleContext: ModuleEndpointContext;
 
 	const chainAccount: ChainAccount = {
 		lastCertificate: {
@@ -141,22 +141,29 @@ describe('Mainchain endpoint', () => {
 	};
 
 	let mainchainInteroperabilityEndpoint: MainchainInteroperabilityEndpoint;
-	let mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
-		moduleID,
-		getStore,
-		interoperableCCAPIs,
-	);
+	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
 
 	beforeEach(() => {
-		mainchainInteroperabilityEndpoint = new MainchainInteroperabilityEndpoint(
-			moduleID,
-			interoperableCCAPIs,
-		);
+		const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+		moduleContext = {
+			getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
+			getImmutableAPIContext: jest.fn(),
+			networkIdentifier: Buffer.alloc(0),
+			params: {},
+			logger: {} as any,
+		};
+
 		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
-			moduleID,
-			getStore,
+			interopMod.stores,
+			moduleContext,
 			interoperableCCAPIs,
 		);
+		mainchainInteroperabilityEndpoint = new MainchainInteroperabilityEndpoint(
+			interopMod.stores,
+			interopMod.offchainStores,
+			interoperableCCAPIs,
+		);
+
 		jest
 			.spyOn(mainchainInteroperabilityEndpoint as any, 'getInteroperabilityStore')
 			.mockReturnValue(mainchainInteroperabilityStore);
@@ -184,7 +191,7 @@ describe('Mainchain endpoint', () => {
 		});
 		it('should call getInteroperabilityStore', async () => {
 			expect(mainchainInteroperabilityEndpoint['getInteroperabilityStore']).toHaveBeenCalledWith(
-				moduleContext.getStore,
+				moduleContext,
 			);
 		});
 
@@ -209,7 +216,7 @@ describe('Mainchain endpoint', () => {
 
 		it('should call getInteroperabilityStore', async () => {
 			expect(mainchainInteroperabilityEndpoint['getInteroperabilityStore']).toHaveBeenCalledWith(
-				moduleContext.getStore,
+				moduleContext,
 			);
 		});
 
@@ -233,7 +240,7 @@ describe('Mainchain endpoint', () => {
 
 		it('should call getInteroperabilityStore', async () => {
 			expect(mainchainInteroperabilityEndpoint['getInteroperabilityStore']).toHaveBeenCalledWith(
-				moduleContext.getStore,
+				moduleContext,
 			);
 		});
 
@@ -258,7 +265,7 @@ describe('Mainchain endpoint', () => {
 
 		it('should call getInteroperabilityStore', async () => {
 			expect(mainchainInteroperabilityEndpoint['getInteroperabilityStore']).toHaveBeenCalledWith(
-				moduleContext.getStore,
+				moduleContext,
 			);
 		});
 
@@ -283,7 +290,7 @@ describe('Mainchain endpoint', () => {
 
 		it('should call getInteroperabilityStore', async () => {
 			expect(mainchainInteroperabilityEndpoint['getInteroperabilityStore']).toHaveBeenCalledWith(
-				moduleContext.getStore,
+				moduleContext,
 			);
 		});
 

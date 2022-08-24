@@ -15,7 +15,6 @@
 import { BlockHeader, StateStore } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
-import { BaseAPI } from '../../modules/base_api';
 import {
 	areDistinctHeadersContradicting,
 	getGeneratorKeys,
@@ -27,6 +26,7 @@ import { getBFTParameters } from './bft_params';
 import {
 	EMPTY_KEY,
 	MAX_UINT32,
+	MODULE_STORE_PREFIX_BFT,
 	STORE_PREFIX_BFT_PARAMETERS,
 	STORE_PREFIX_BFT_VOTES,
 	STORE_PREFIX_GENERATOR_KEYS,
@@ -50,7 +50,7 @@ export interface BlockHeaderAsset {
 	maxHeightPreviouslyForged: number;
 }
 
-export class BFTAPI extends BaseAPI {
+export class BFTAPI {
 	private _batchSize!: number;
 
 	public init(batchSize: number) {
@@ -68,7 +68,7 @@ export class BFTAPI extends BaseAPI {
 		stateStore: StateStore,
 		header: BlockHeader,
 	): Promise<boolean> {
-		const votesStore = stateStore.getStore(this.moduleID, STORE_PREFIX_BFT_VOTES);
+		const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
 		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
 		for (const bftBlock of bftVotes.blockBFTInfos) {
 			if (bftBlock.generatorAddress.equals(header.generatorAddress)) {
@@ -79,17 +79,17 @@ export class BFTAPI extends BaseAPI {
 	}
 
 	public async existBFTParameters(stateStore: StateStore, height: number): Promise<boolean> {
-		const paramsStore = stateStore.getStore(this.moduleID, STORE_PREFIX_BFT_PARAMETERS);
+		const paramsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
 		return paramsStore.has(utils.intToBuffer(height, 4));
 	}
 
 	public async getBFTParameters(stateStore: StateStore, height: number): Promise<BFTParameters> {
-		const paramsStore = stateStore.getStore(this.moduleID, STORE_PREFIX_BFT_PARAMETERS);
+		const paramsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
 		return getBFTParameters(paramsStore, height);
 	}
 
 	public async getBFTHeights(stateStore: StateStore): Promise<BFTHeights> {
-		const votesStore = stateStore.getStore(this.moduleID, STORE_PREFIX_BFT_VOTES);
+		const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
 		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
 		return {
 			maxHeightPrevoted: bftVotes.maxHeightPrevoted,
@@ -101,7 +101,7 @@ export class BFTAPI extends BaseAPI {
 	// This function expects to be called after blockBFTInfos has been inserted for the executiong block.
 	// blockBFTInfos must be inserted first because for the block genesis block + 1, bftVotes.blockBFTInfos will be empty
 	public async currentHeaderImpliesMaximalPrevotes(stateStore: StateStore): Promise<boolean> {
-		const votesStore = stateStore.getStore(this.moduleID, STORE_PREFIX_BFT_VOTES);
+		const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
 		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
 		const [currentHeader] = bftVotes.blockBFTInfos;
 		const previousHeight = currentHeader.maxHeightGenerated;
@@ -125,7 +125,7 @@ export class BFTAPI extends BaseAPI {
 	}
 
 	public async getNextHeightBFTParameters(stateStore: StateStore, height: number): Promise<number> {
-		const paramsStore = stateStore.getStore(this.moduleID, STORE_PREFIX_BFT_PARAMETERS);
+		const paramsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
 		const start = utils.intToBuffer(height + 1, 4);
 		const end = utils.intToBuffer(MAX_UINT32, 4);
 		const results = await paramsStore.iterate({
@@ -172,7 +172,7 @@ export class BFTAPI extends BaseAPI {
 		}
 		sortValidatorsByAddress(validators);
 
-		const votesStore = stateStore.getStore(this.moduleID, STORE_PREFIX_BFT_VOTES);
+		const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
 		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
 		// This assumes bftVotes.blockBFTInfos will contain currently executing block
 		const currentHeight =
@@ -210,7 +210,7 @@ export class BFTAPI extends BaseAPI {
 			validatorsHash,
 		};
 
-		const paramsStore = stateStore.getStore(this.moduleID, STORE_PREFIX_BFT_PARAMETERS);
+		const paramsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
 
 		const nextHeightBytes = utils.intToBuffer(nextHeight, 4);
 		await paramsStore.setWithSchema(nextHeightBytes, bftParams, bftParametersSchema);
@@ -236,14 +236,14 @@ export class BFTAPI extends BaseAPI {
 	}
 
 	public async getGeneratorKeys(stateStore: StateStore, height: number): Promise<GeneratorKey[]> {
-		const keysStore = stateStore.getStore(this.moduleID, STORE_PREFIX_GENERATOR_KEYS);
+		const keysStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_GENERATOR_KEYS);
 		const { generators: validators } = await getGeneratorKeys(keysStore, height);
 
 		return validators;
 	}
 
 	public async setGeneratorKeys(stateStore: StateStore, generators: GeneratorKey[]): Promise<void> {
-		const votesStore = stateStore.getStore(this.moduleID, STORE_PREFIX_BFT_VOTES);
+		const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
 		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
 		// This assumes bftVotes.blockBFTInfos will contain currently executing block
 		const nextHeight =
@@ -251,7 +251,7 @@ export class BFTAPI extends BaseAPI {
 				? bftVotes.blockBFTInfos[0].height + 1
 				: bftVotes.maxHeightPrevoted + 1;
 
-		const keysStore = stateStore.getStore(this.moduleID, STORE_PREFIX_GENERATOR_KEYS);
+		const keysStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_GENERATOR_KEYS);
 		const nextHeightBytes = utils.intToBuffer(nextHeight, 4);
 
 		await keysStore.setWithSchema(nextHeightBytes, { generators }, generatorKeysSchema);

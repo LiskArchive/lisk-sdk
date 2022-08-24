@@ -21,8 +21,6 @@ import {
 } from '../../../state_machine';
 import { TokenAPI } from '../api';
 import { crossChainTransferParams } from '../schemas';
-import { CROSS_CHAIN_COMMAND_ID_TRANSFER } from '../constants';
-import { getIDAsKeyForStore } from '../utils';
 
 interface Params {
 	tokenID: Buffer;
@@ -34,13 +32,15 @@ interface Params {
 }
 
 export class CCTransferCommand extends BaseCommand {
-	public name = 'crossChaintransfer';
-	public id = getIDAsKeyForStore(CROSS_CHAIN_COMMAND_ID_TRANSFER);
 	public schema = crossChainTransferParams;
 	private _api!: TokenAPI;
 
 	public init(args: { api: TokenAPI }) {
 		this._api = args.api;
+	}
+
+	public get name() {
+		return 'crossChaintransfer';
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

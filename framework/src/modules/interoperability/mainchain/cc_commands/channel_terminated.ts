@@ -12,26 +12,29 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { StoreGetter } from '../../../base_store';
 import { BaseInteroperabilityCCCommand } from '../../base_interoperability_cc_commands';
-import { CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED_BUFFER } from '../../constants';
+import { CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED } from '../../constants';
 import { channelTerminatedCCMParamsSchema } from '../../schemas';
-import { CCCommandExecuteContext, StoreCallback } from '../../types';
+import { CCCommandExecuteContext } from '../../types';
 import { MainchainInteroperabilityStore } from '../store';
 
 export class MainchainCCChannelTerminatedCommand extends BaseInteroperabilityCCCommand {
-	public ID = CROSS_CHAIN_COMMAND_ID_CHANNEL_TERMINATED_BUFFER;
-	public name = 'channelTerminated';
 	public schema = channelTerminatedCCMParamsSchema;
 
+	public get name(): string {
+		return CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED;
+	}
+
 	public async execute(context: CCCommandExecuteContext): Promise<void> {
-		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+		const interoperabilityStore = this.getInteroperabilityStore(context);
 		if (!context.ccm) {
 			throw new Error('CCM to execute channel terminated cross chain command is missing.');
 		}
 		await interoperabilityStore.createTerminatedStateAccount(context.ccm.sendingChainID);
 	}
 
-	protected getInteroperabilityStore(getStore: StoreCallback): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
+	protected getInteroperabilityStore(context: StoreGetter): MainchainInteroperabilityStore {
+		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
 	}
 }

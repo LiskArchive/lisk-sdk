@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
-import { utils } from '@liskhq/lisk-cryptography';
 import * as fs from 'fs-extra';
 import { join } from 'path';
 import { transactionSchema } from 'lisk-framework';
@@ -33,8 +31,8 @@ import { getConfig } from '../../../helpers/config';
 describe('transaction:send command', () => {
 	const transactionsAssetSchemas = [
 		{
-			moduleID: utils.intToBuffer(2, 4),
-			commandID: utils.intToBuffer(0, 4),
+			module: 'token',
+			command: 'transfer',
 			schema: tokenTransferParamsSchema,
 		},
 	];

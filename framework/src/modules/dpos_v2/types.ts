@@ -69,7 +69,7 @@ export interface TokenAPI {
 	lock(
 		apiContext: APIContext,
 		address: Buffer,
-		moduleID: Buffer,
+		module: string,
 		tokenID: TokenIDDPoS,
 		amount: bigint,
 	): Promise<void>;
@@ -88,7 +88,7 @@ export interface TokenAPI {
 	unlock(
 		apiContext: APIContext,
 		address: Buffer,
-		moduleID: Buffer,
+		module: string,
 		tokenID: TokenIDDPoS,
 		amount: bigint,
 	): Promise<void>;
@@ -96,7 +96,7 @@ export interface TokenAPI {
 		apiContext: ImmutableAPIContext,
 		address: Buffer,
 		tokenID: TokenIDDPoS,
-		moduleID: Buffer,
+		module: string,
 	): Promise<bigint>;
 }
 
@@ -135,6 +135,7 @@ export interface DelegateAccountJSON {
 	isBanned: boolean;
 	pomHeights: number[];
 	consecutiveMissedBlocks: number;
+	address: string;
 }
 
 export interface VoterDataJSON {
@@ -158,7 +159,7 @@ export interface VoterData {
 	pendingUnlocks: UnlockingObject[];
 }
 
-export interface NameStore {
+export interface NameStoreData {
 	delegateAddress: Buffer;
 }
 
@@ -221,7 +222,7 @@ export interface GenesisStore {
 		proofOfPossession: Buffer;
 		generatorKey: Buffer;
 		lastGeneratedHeight: number;
-		isBanned: Buffer;
+		isBanned: boolean;
 		pomHeights: number[];
 		consecutiveMissedBlocks: number;
 	}[];

@@ -158,8 +158,8 @@ export interface PluginEndpointContext {
 }
 
 export interface ModuleEndpointContext extends PluginEndpointContext {
-	getStore: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
-	getOffchainStore: (moduleID: Buffer, storePrefix?: number) => ImmutableSubStore;
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
+	getOffchainStore: (moduleID: Buffer, storePrefix?: Buffer) => ImmutableSubStore;
 	getImmutableAPIContext: () => ImmutableAPIContext;
 	networkIdentifier: Buffer;
 }
@@ -182,7 +182,7 @@ type Replaced<T, TReplace, TWith, TKeep = Primitive> = T extends TReplace | TKee
 export type JSONObject<T> = Replaced<T, bigint | Buffer, string>;
 
 export interface Event {
-	readonly moduleID: Buffer;
+	readonly module: string;
 	readonly typeID: Buffer;
 	readonly topics: Buffer[];
 	readonly index: number;

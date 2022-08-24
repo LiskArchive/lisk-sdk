@@ -26,26 +26,17 @@ import { VerifyStatus, VerificationResult } from './types';
 export class StateMachine {
 	private readonly _modules: BaseModule[] = [];
 	private readonly _systemModules: BaseModule[] = [];
-	private readonly _moduleIDs: Buffer[] = [];
 
 	private _initialized = false;
 
 	public registerModule(mod: BaseModule): void {
-		this._validateExistingModuleID(mod.id);
+		this._validateExisting(mod);
 		this._modules.push(mod);
-		this._moduleIDs.push(mod.id);
-		this._moduleIDs.sort((a, b) => a.readInt32BE(0) - b.readInt32BE(0));
 	}
 
 	public registerSystemModule(mod: BaseModule): void {
-		this._validateExistingModuleID(mod.id);
+		this._validateExisting(mod);
 		this._systemModules.push(mod);
-		this._moduleIDs.push(mod.id);
-		this._moduleIDs.sort((a, b) => a.readInt32BE(0) - b.readInt32BE(0));
-	}
-
-	public getAllModuleIDs() {
-		return this._moduleIDs;
 	}
 
 	public async init(
@@ -126,7 +117,7 @@ export class StateMachine {
 					}
 				}
 			}
-			const command = this._getCommand(ctx.transaction.moduleID, ctx.transaction.commandID);
+			const command = this._getCommand(ctx.transaction.module, ctx.transaction.command);
 			const commandContext = ctx.createCommandVerifyContext(command.schema);
 			if (command.verify) {
 				const result = await command.verify(commandContext);
@@ -167,7 +158,7 @@ export class StateMachine {
 				}
 			}
 		}
-		const command = this._getCommand(ctx.transaction.moduleID, ctx.transaction.commandID);
+		const command = this._getCommand(ctx.transaction.module, ctx.transaction.command);
 		// Execute command
 		const commandEventQueueSnapshotID = ctx.eventQueue.createSnapshot();
 		const commandStateStoreSnapshotID = ctx.stateStore.createSnapshot();
@@ -175,7 +166,7 @@ export class StateMachine {
 		try {
 			await command.execute(commandContext);
 			ctx.eventQueue.unsafeAdd(
-				ctx.transaction.moduleID,
+				ctx.transaction.module,
 				EVENT_STANDARD_TYPE_ID,
 				codec.encode(standardEventDataSchema, { success: true }),
 				[ctx.transaction.id],
@@ -184,7 +175,7 @@ export class StateMachine {
 			ctx.eventQueue.restoreSnapshot(commandEventQueueSnapshotID);
 			ctx.stateStore.restoreSnapshot(commandStateStoreSnapshotID);
 			ctx.eventQueue.unsafeAdd(
-				ctx.transaction.moduleID,
+				ctx.transaction.module,
 				EVENT_STANDARD_TYPE_ID,
 				codec.encode(standardEventDataSchema, { success: false }),
 				[ctx.transaction.id],
@@ -277,43 +268,60 @@ export class StateMachine {
 		await this.afterExecuteBlock(ctx);
 	}
 
-	private _findModule(id: Buffer): BaseModule | undefined {
-		const existingModule = this._modules.find(m => m.id.equals(id));
+	private _findModule(name: string): BaseModule | undefined {
+		const existingModule = this._modules.find(m => m.name === name);
 		if (existingModule) {
 			return existingModule;
 		}
-		const existingSystemModule = this._systemModules.find(m => m.id.equals(id));
+		const existingSystemModule = this._systemModules.find(m => m.name === name);
 		if (existingSystemModule) {
 			return existingSystemModule;
 		}
 		return undefined;
 	}
 
-	private _getCommand(moduleID: Buffer, commandID: Buffer): BaseCommand {
-		const targetModule = this._findModule(moduleID);
+	private _getCommand(module: string, command: string): BaseCommand {
+		const targetModule = this._findModule(module);
 		if (!targetModule) {
-			throw new Error(`Module with ID ${moduleID.readInt32BE(0)} is not registered.`);
+			throw new Error(`Module ${module} is not registered.`);
 		}
-		// FIXME: Update assetID to commandID with https://github.com/LiskHQ/lisk-sdk/issues/6565
-		const command = targetModule.commands.find(c => c.id.equals(commandID));
-		if (!command) {
-			throw new Error(
-				`Module with ID ${moduleID.readInt32BE(
-					0,
-				)} does not have command with ID ${commandID.readInt32BE(0)} registered.`,
-			);
+		const targetCommand = targetModule.commands.find(c => c.name === command);
+		if (!targetCommand) {
+			throw new Error(`Module ${module} does not have command ${command} registered.`);
 		}
-		return command;
+		return targetCommand;
 	}
 
-	private _validateExistingModuleID(id: Buffer): void {
-		const existingModule = this._modules.find(m => m.id.equals(id));
+	private _validateExisting(mod: BaseModule): void {
+		const existingModule = this._modules.find(m => m.name === mod.name);
 		if (existingModule) {
-			throw new Error(`Module with ID ${id.readInt32BE(0)} is registered.`);
+			throw new Error(`Modul ${mod.name} is registered.`);
 		}
-		const existingSystemModule = this._systemModules.find(m => m.id.equals(id));
-		if (existingSystemModule) {
-			throw new Error(`Module with ID ${id.readInt32BE(0)} is registered as a system module.`);
+		const allExistingEvents = this._modules.reduce<Buffer[]>((prev, curr) => {
+			prev.push(...curr.events.keys());
+			return prev;
+		}, []);
+		for (const event of mod.events.values()) {
+			const duplicate = allExistingEvents.find(k => k.equals(event.key));
+			if (duplicate) {
+				throw new Error(
+					`Module ${mod.name} has conflicting event ${event.name}. Please update the event name.`,
+				);
+			}
+			allExistingEvents.push(event.key);
+		}
+		const allExistingStores = this._modules.reduce<Buffer[]>((prev, curr) => {
+			prev.push(...curr.stores.keys());
+			return prev;
+		}, []);
+		for (const store of mod.stores.values()) {
+			const duplicate = allExistingStores.find(k => k.equals(store.key));
+			if (duplicate) {
+				throw new Error(
+					`Module ${mod.name} has conflicting store ${store.name}. Please update the store name.`,
+				);
+			}
+			allExistingStores.push(store.key);
 		}
 	}
 }

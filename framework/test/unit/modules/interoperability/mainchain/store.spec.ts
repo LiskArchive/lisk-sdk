@@ -13,33 +13,27 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { when } from 'jest-when';
-import { testing } from '../../../../../src';
+import { MainchainInteroperabilityModule, testing } from '../../../../../src';
+import { StoreGetter } from '../../../../../src/modules/base_store';
 import {
 	CCM_STATUS_CHANNEL_UNAVAILABLE,
-	MODULE_ID_INTEROPERABILITY_BUFFER,
 	MAINCHAIN_ID,
-	STORE_PREFIX_TERMINATED_STATE,
-	STORE_PREFIX_CHAIN_DATA,
 	LIVENESS_LIMIT,
 	MAX_CCM_SIZE,
-	STORE_PREFIX_OWN_CHAIN_DATA,
-	STORE_PREFIX_CHANNEL_DATA,
-	STORE_PREFIX_OUTBOX_ROOT,
 	CCM_STATUS_OK,
 	CHAIN_ACTIVE,
 	CHAIN_REGISTERED,
 	EMPTY_FEE_ADDRESS,
 	MAINCHAIN_ID_BUFFER,
+	MODULE_NAME_INTEROPERABILITY,
+	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 } from '../../../../../src/modules/interoperability/constants';
 import { createCCMsgBeforeSendContext } from '../../../../../src/modules/interoperability/context';
 import { MainchainInteroperabilityStore } from '../../../../../src/modules/interoperability/mainchain/store';
 import { ForwardCCMsgResult } from '../../../../../src/modules/interoperability/mainchain/types';
-import {
-	chainAccountSchema,
-	channelSchema,
-	terminatedStateSchema,
-} from '../../../../../src/modules/interoperability/schemas';
+import { ChainAccountStore } from '../../../../../src/modules/interoperability/stores/chain_account';
+import { ChannelDataStore } from '../../../../../src/modules/interoperability/stores/channel_data';
+import { TerminatedStateStore } from '../../../../../src/modules/interoperability/stores/terminated_state';
 import {
 	BeforeSendCCMsgAPIContext,
 	CCMForwardContext,
@@ -47,26 +41,27 @@ import {
 	CCUpdateParams,
 	SendInternalContext,
 } from '../../../../../src/modules/interoperability/types';
-import { MODULE_ID_TOKEN } from '../../../../../src/modules/token/constants';
 import { EventQueue } from '../../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
-import { APIContext, SubStore } from '../../../../../src/state_machine/types';
+import { APIContext } from '../../../../../src/state_machine/types';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 import { loggerMock } from '../../../../../src/testing/mocks';
+import { createStoreGetter } from '../../../../../src/testing/utils';
 
 describe('Mainchain interoperability store', () => {
+	const interopMod = new MainchainInteroperabilityModule();
+
 	const chainID = Buffer.from(MAINCHAIN_ID.toString(16), 'hex');
 	const timestamp = 2592000 * 100;
 	let chainAccount: any;
 	let ownChainAccount: any;
 	let stateStore: PrefixedStateReadWriter;
 	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
-	let terminatedStateSubstore: SubStore;
-	let chainSubstore: SubStore;
-	let ownChainSubstore: SubStore;
-	let channelSubstore: SubStore;
-	let outboxRootSubstore: SubStore;
-	let mockGetStore: any;
+	let terminatedStateSubstore: TerminatedStateStore;
+	let chainDataSubstore: ChainAccountStore;
+	let channelDataSubstore: ChannelDataStore;
+
+	let context: StoreGetter;
 
 	beforeEach(() => {
 		chainAccount = {
@@ -88,43 +83,14 @@ describe('Mainchain interoperability store', () => {
 		};
 
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		chainSubstore = stateStore.getStore(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_DATA);
-		ownChainSubstore = stateStore.getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_OWN_CHAIN_DATA,
-		);
-		channelSubstore = stateStore.getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_CHANNEL_DATA,
-		);
-		outboxRootSubstore = stateStore.getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_OUTBOX_ROOT,
-		);
-		terminatedStateSubstore = stateStore.getStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			STORE_PREFIX_TERMINATED_STATE,
-		);
-		mockGetStore = jest.fn();
-		when(mockGetStore)
-			.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHAIN_DATA)
-			.mockReturnValue(chainSubstore);
-		when(mockGetStore)
-			.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_TERMINATED_STATE)
-			.mockReturnValue(terminatedStateSubstore);
-		when(mockGetStore)
-			.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_OWN_CHAIN_DATA)
-			.mockReturnValue(ownChainSubstore);
-		when(mockGetStore)
-			.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_CHANNEL_DATA)
-			.mockReturnValue(channelSubstore);
-		when(mockGetStore)
-			.calledWith(MODULE_ID_INTEROPERABILITY_BUFFER, STORE_PREFIX_OUTBOX_ROOT)
-			.mockReturnValue(outboxRootSubstore);
+		context = createStoreGetter(stateStore);
 
+		channelDataSubstore = interopMod.stores.get(ChannelDataStore);
+		chainDataSubstore = interopMod.stores.get(ChainAccountStore);
+		terminatedStateSubstore = interopMod.stores.get(TerminatedStateStore);
 		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
-			MODULE_ID_INTEROPERABILITY_BUFFER,
-			mockGetStore,
+			interopMod.stores,
+			context,
 			new Map(),
 		);
 	});
@@ -132,8 +98,8 @@ describe('Mainchain interoperability store', () => {
 	describe('bounce', () => {
 		const ccm = {
 			nonce: BigInt(0),
-			moduleID: utils.intToBuffer(1, 4),
-			crossChainCommandID: utils.intToBuffer(1, 4),
+			module: MODULE_NAME_INTEROPERABILITY,
+			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 			sendingChainID: utils.intToBuffer(2, 4),
 			receivingChainID: utils.intToBuffer(3, 4),
 			fee: BigInt(1),
@@ -154,7 +120,7 @@ describe('Mainchain interoperability store', () => {
 
 		it('should not call addToOutbox if terminatedStateAccount exists', async () => {
 			// Arrange
-			terminatedStateSubstore.has = jest.fn().mockResolvedValue(true);
+			await terminatedStateSubstore.set(context, ccm.sendingChainID, chainAccount);
 
 			// Act
 			await mainchainInteroperabilityStore.bounce(ccm);
@@ -163,9 +129,6 @@ describe('Mainchain interoperability store', () => {
 		});
 
 		it('should call addToOutbox with new CCM if terminatedStateAccount does exist', async () => {
-			// Arrange
-			terminatedStateSubstore.has = jest.fn().mockResolvedValue(false);
-
 			// Act
 			await mainchainInteroperabilityStore.bounce(ccm);
 
@@ -178,7 +141,7 @@ describe('Mainchain interoperability store', () => {
 
 	describe('isLive', () => {
 		it('should return false if chain is already terminated', async () => {
-			await terminatedStateSubstore.setWithSchema(chainID, chainAccount, terminatedStateSchema);
+			await terminatedStateSubstore.set(context, chainID, chainAccount);
 			const isLive = await mainchainInteroperabilityStore.isLive(chainID, timestamp);
 
 			expect(isLive).toBe(false);
@@ -186,7 +149,7 @@ describe('Mainchain interoperability store', () => {
 
 		it('should return false if chain is not terminated & liveness requirement is not satisfied', async () => {
 			chainAccount.lastCertificate.timestamp = timestamp - LIVENESS_LIMIT - 1;
-			await chainSubstore.setWithSchema(chainID, chainAccount, chainAccountSchema);
+			await chainDataSubstore.set(context, chainID, chainAccount);
 
 			const isLive = await mainchainInteroperabilityStore.isLive(chainID, timestamp);
 
@@ -195,7 +158,7 @@ describe('Mainchain interoperability store', () => {
 
 		it('should return true if chain is not terminated & liveness requirement is satisfied', async () => {
 			chainAccount.lastCertificate.timestamp = timestamp - LIVENESS_LIMIT + 1;
-			await chainSubstore.setWithSchema(chainID, chainAccount, chainAccountSchema);
+			await chainDataSubstore.set(context, chainID, chainAccount);
 			const isLive = await mainchainInteroperabilityStore.isLive(chainID, timestamp);
 
 			expect(isLive).toBe(true);
@@ -211,13 +174,13 @@ describe('Mainchain interoperability store', () => {
 		};
 
 		const modsMap = new Map();
-		modsMap.set('1', ccAPIMod1);
-		modsMap.set('2', ccAPIMod2);
+		modsMap.set('cc1', ccAPIMod1);
+		modsMap.set('cc2', ccAPIMod2);
 
 		const ccm = {
 			nonce: BigInt(0),
-			moduleID: utils.intToBuffer(1, 4),
-			crossChainCommandID: utils.intToBuffer(1, 4),
+			module: MODULE_NAME_INTEROPERABILITY,
+			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 			sendingChainID: utils.intToBuffer(2, 4),
 			receivingChainID: utils.intToBuffer(3, 4),
 			fee: BigInt(1),
@@ -276,7 +239,7 @@ describe('Mainchain interoperability store', () => {
 		it('should return false if the receiving chain is not live', async () => {
 			jest.spyOn(mainchainInteroperabilityStore, 'isLive');
 			chainAccount.lastCertificate.timestamp = timestamp - LIVENESS_LIMIT - 1;
-			await chainSubstore.setWithSchema(ccm.receivingChainID, chainAccount, chainAccountSchema);
+			await chainDataSubstore.set(context, ccm.receivingChainID, chainAccount);
 
 			await expect(
 				mainchainInteroperabilityStore.sendInternal(sendInternalContext),
@@ -286,7 +249,7 @@ describe('Mainchain interoperability store', () => {
 
 		it('should return false if the receiving chain is not active', async () => {
 			jest.spyOn(mainchainInteroperabilityStore, 'isLive');
-			await chainSubstore.setWithSchema(ccm.receivingChainID, chainAccount, chainAccountSchema);
+			await chainDataSubstore.set(context, ccm.receivingChainID, chainAccount);
 
 			await expect(
 				mainchainInteroperabilityStore.sendInternal(sendInternalContext),
@@ -297,8 +260,8 @@ describe('Mainchain interoperability store', () => {
 		it('should return false if the created ccm is of invalid size', async () => {
 			const invalidCCM = {
 				nonce: BigInt(0),
-				moduleID: utils.intToBuffer(1, 4),
-				crossChainCommandID: utils.intToBuffer(1, 4),
+				module: MODULE_NAME_INTEROPERABILITY,
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 				sendingChainID: utils.intToBuffer(2, 4),
 				receivingChainID: utils.intToBuffer(3, 4),
 				fee: BigInt(1),
@@ -318,11 +281,7 @@ describe('Mainchain interoperability store', () => {
 			};
 
 			jest.spyOn(mainchainInteroperabilityStore, 'isLive');
-			await chainSubstore.setWithSchema(
-				ccm.receivingChainID,
-				activeChainAccount,
-				chainAccountSchema,
-			);
+			await chainDataSubstore.set(context, ccm.receivingChainID, activeChainAccount);
 			await mainchainInteroperabilityStore.setOwnChainAccount(ownChainAccount);
 
 			await expect(
@@ -334,8 +293,8 @@ describe('Mainchain interoperability store', () => {
 		it('should return false if the ccm created is invalid schema', async () => {
 			const invalidCCM = {
 				nonce: BigInt(0),
-				moduleID: utils.intToBuffer(1, 4),
-				crossChainCommandID: utils.intToBuffer(1, 4),
+				module: MODULE_NAME_INTEROPERABILITY,
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 				sendingChainID: utils.intToBuffer(2, 4),
 				receivingChainID: utils.intToBuffer(3, 4),
 				fee: BigInt(1),
@@ -355,11 +314,7 @@ describe('Mainchain interoperability store', () => {
 			};
 
 			jest.spyOn(mainchainInteroperabilityStore, 'isLive');
-			await chainSubstore.setWithSchema(
-				ccm.receivingChainID,
-				activeChainAccount,
-				chainAccountSchema,
-			);
+			await chainDataSubstore.set(context, ccm.receivingChainID, activeChainAccount);
 			await mainchainInteroperabilityStore.setOwnChainAccount(ownChainAccount);
 
 			await expect(
@@ -370,24 +325,20 @@ describe('Mainchain interoperability store', () => {
 
 		it('should return true and call each module beforeSendCCM crossChainAPI', async () => {
 			const mainchainInteropStoreLocal = new MainchainInteroperabilityStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				mockGetStore,
+				interopMod.stores,
+				context,
 				modsMap,
 			);
 
 			jest.spyOn(mainchainInteropStoreLocal, 'isLive');
-			await chainSubstore.setWithSchema(
-				ccm.receivingChainID,
-				activeChainAccount,
-				chainAccountSchema,
-			);
+			await chainDataSubstore.set(context, ccm.receivingChainID, activeChainAccount);
 			await mainchainInteropStoreLocal.setOwnChainAccount(ownChainAccount);
-			await channelSubstore.setWithSchema(ccm.receivingChainID, channelData, channelSchema);
+			await channelDataSubstore.set(context, ccm.receivingChainID, channelData);
 			jest.spyOn(mainchainInteropStoreLocal, 'appendToOutboxTree').mockResolvedValue({} as never);
 
-			await expect(
-				mainchainInteropStoreLocal.sendInternal(sendInternalContext as any),
-			).resolves.toEqual(true);
+			await expect(mainchainInteropStoreLocal.sendInternal(sendInternalContext)).resolves.toEqual(
+				true,
+			);
 			expect(mainchainInteropStoreLocal.isLive).toHaveBeenCalledTimes(1);
 			expect(mainchainInteropStoreLocal.appendToOutboxTree).toHaveBeenCalledTimes(1);
 			expect(ccAPIMod1.beforeSendCCM).toHaveBeenCalledTimes(1);
@@ -397,7 +348,7 @@ describe('Mainchain interoperability store', () => {
 
 	describe('forward', () => {
 		let tokenCCAPI: any;
-		let context: CCMForwardContext;
+		let forwardContext: CCMForwardContext;
 		let receivingChainAccount: any;
 		let ccm: CCMsg;
 		let apiContext: APIContext;
@@ -410,11 +361,11 @@ describe('Mainchain interoperability store', () => {
 			};
 
 			const interoperableModuleAPIs = new Map();
-			interoperableModuleAPIs.set(MODULE_ID_TOKEN, tokenCCAPI);
+			interoperableModuleAPIs.set('token', tokenCCAPI);
 
 			mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
-				MODULE_ID_INTEROPERABILITY_BUFFER,
-				mockGetStore,
+				interopMod.stores,
+				context,
 				interoperableModuleAPIs,
 			);
 
@@ -432,8 +383,8 @@ describe('Mainchain interoperability store', () => {
 
 			ccm = {
 				nonce: BigInt(0),
-				moduleID: utils.intToBuffer(1, 4),
-				crossChainCommandID: utils.intToBuffer(1, 4),
+				module: MODULE_NAME_INTEROPERABILITY,
+				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 				sendingChainID: utils.intToBuffer(2, 4),
 				receivingChainID: utils.intToBuffer(3, 4),
 				fee: BigInt(1),
@@ -461,7 +412,7 @@ describe('Mainchain interoperability store', () => {
 				sendingChainID: utils.intToBuffer(2, 4),
 			};
 
-			context = {
+			forwardContext = {
 				ccm,
 				ccu,
 				eventQueue: new EventQueue(),
@@ -474,11 +425,11 @@ describe('Mainchain interoperability store', () => {
 
 			beforeCCMSendContext = createCCMsgBeforeSendContext({
 				ccm,
-				eventQueue: context.eventQueue,
-				getAPIContext: context.getAPIContext,
-				logger: context.logger,
-				networkIdentifier: context.networkIdentifier,
-				getStore: context.getStore,
+				eventQueue: forwardContext.eventQueue,
+				getAPIContext: forwardContext.getAPIContext,
+				logger: forwardContext.logger,
+				networkIdentifier: forwardContext.networkIdentifier,
+				getStore: forwardContext.getStore,
 				feeAddress: EMPTY_FEE_ADDRESS,
 			});
 
@@ -497,7 +448,7 @@ describe('Mainchain interoperability store', () => {
 			jest.spyOn(mainchainInteroperabilityStore, 'isLive').mockResolvedValue(true);
 			jest.spyOn(tokenCCAPI, 'forwardMessageFee').mockResolvedValue(true);
 
-			const result = await mainchainInteroperabilityStore.forward(context);
+			const result = await mainchainInteroperabilityStore.forward(forwardContext);
 			expect(tokenCCAPI.forwardMessageFee).toHaveBeenCalledWith(apiContext, ccm);
 			expect(mainchainInteroperabilityStore.addToOutbox).toHaveBeenCalledWith(
 				receivingChainIDAsStoreKey,
@@ -507,43 +458,43 @@ describe('Mainchain interoperability store', () => {
 		});
 
 		it('should bounce and inform terminated sidechain when sidechain is not active', async () => {
-			const result = await mainchainInteroperabilityStore.forward(context);
+			const result = await mainchainInteroperabilityStore.forward(forwardContext);
 			expect(mainchainInteroperabilityStore.bounce).toHaveBeenCalledWith(ccm);
 			expect(mainchainInteroperabilityStore.sendInternal).toHaveBeenCalled();
 			expect(result).toBe(ForwardCCMsgResult.INFORM_SIDECHAIN_TERMINATION);
 		});
 
 		it('should throw when tokenCCAPI is not present', async () => {
-			mainchainInteroperabilityStore['interoperableModuleAPIs'].delete(MODULE_ID_TOKEN);
-			await expect(mainchainInteroperabilityStore.forward(context)).rejects.toThrow(
+			mainchainInteroperabilityStore['interoperableModuleAPIs'].delete('token');
+			await expect(mainchainInteroperabilityStore.forward(forwardContext)).rejects.toThrow(
 				'TokenCCAPI does not exist',
 			);
 		});
 
 		it('should return early when ccm status is not OK', async () => {
 			(ccm as any).status = -1;
-			await expect(mainchainInteroperabilityStore.forward(context)).resolves.toBe(
+			await expect(mainchainInteroperabilityStore.forward(forwardContext)).resolves.toBe(
 				ForwardCCMsgResult.INVALID_CCM,
 			);
 		});
 
 		it('should return early when receiving chain does not exist after bounce', async () => {
 			receivingChainAccount.status = CHAIN_REGISTERED;
-			const result = await mainchainInteroperabilityStore.forward(context);
+			const result = await mainchainInteroperabilityStore.forward(forwardContext);
 			expect(mainchainInteroperabilityStore.bounce).toHaveBeenCalledWith(ccm);
 			expect(result).toBe(ForwardCCMsgResult.INACTIVE_RECEIVING_CHAIN);
 		});
 
 		it('should return early when receiving chain is not yet active after bounce', async () => {
 			receivingChainAccount.status = CHAIN_REGISTERED;
-			const result = await mainchainInteroperabilityStore.forward(context);
+			const result = await mainchainInteroperabilityStore.forward(forwardContext);
 			expect(mainchainInteroperabilityStore.bounce).toHaveBeenCalledWith(ccm);
 			expect(result).toBe(ForwardCCMsgResult.INACTIVE_RECEIVING_CHAIN);
 		});
 
 		it('should terminate receiving chain when it is active and ccm is bounced', async () => {
 			receivingChainAccount.status = CHAIN_ACTIVE;
-			await mainchainInteroperabilityStore.forward(context);
+			await mainchainInteroperabilityStore.forward(forwardContext);
 			expect(mainchainInteroperabilityStore.bounce).toHaveBeenCalledWith(ccm);
 			expect(mainchainInteroperabilityStore.terminateChainInternal).toHaveBeenCalledWith(
 				ccm.receivingChainID,

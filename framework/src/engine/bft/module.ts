@@ -15,7 +15,8 @@ import { BlockHeader, StateStore } from '@liskhq/lisk-chain';
 import { BFTAPI } from './api';
 import {
 	EMPTY_KEY,
-	MODULE_ID_BFT_BUFFER,
+	MODULE_NAME_BFT,
+	MODULE_STORE_PREFIX_BFT,
 	STORE_PREFIX_BFT_PARAMETERS,
 	STORE_PREFIX_BFT_VOTES,
 	STORE_PREFIX_GENERATOR_KEYS,
@@ -32,9 +33,8 @@ import { BFTParametersCache, deleteBFTParameters } from './bft_params';
 import { deleteGeneratorKeys } from './utils';
 
 export class BFTModule {
-	public id = MODULE_ID_BFT_BUFFER;
-	public name = 'bft';
-	public api = new BFTAPI(this.id);
+	public name = MODULE_NAME_BFT;
+	public api = new BFTAPI();
 
 	private _batchSize!: number;
 	private _maxLengthBlockBFTInfos!: number;
@@ -47,7 +47,7 @@ export class BFTModule {
 	}
 
 	public async initGenesisState(stateStore: StateStore, header: BlockHeader): Promise<void> {
-		const votesStore = stateStore.getStore(this.id, STORE_PREFIX_BFT_VOTES);
+		const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
 		await votesStore.setWithSchema(
 			EMPTY_KEY,
 			{
@@ -65,8 +65,8 @@ export class BFTModule {
 		stateStore: StateStore,
 		header: BlockHeader,
 	): Promise<void> {
-		const votesStore = stateStore.getStore(this.id, STORE_PREFIX_BFT_VOTES);
-		const paramsStore = stateStore.getStore(this.id, STORE_PREFIX_BFT_PARAMETERS);
+		const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
+		const paramsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
 		const paramsCache = new BFTParametersCache(paramsStore);
 		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
 
@@ -86,7 +86,7 @@ export class BFTModule {
 		);
 		await deleteBFTParameters(paramsStore, minHeightBFTParametersRequired);
 
-		const keysStore = stateStore.getStore(this.id, STORE_PREFIX_GENERATOR_KEYS);
+		const keysStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_GENERATOR_KEYS);
 		await deleteGeneratorKeys(keysStore, minHeightBFTParametersRequired);
 	}
 }

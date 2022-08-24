@@ -56,10 +56,12 @@ export class GenerationContext {
 			logger: this._logger,
 			getAPIContext: () =>
 				createAPIContext({ stateStore: this._stateStore, eventQueue: new EventQueue() }),
-			getStore: (moduleID: Buffer, storePrefix: number) =>
+			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
-			getOffchainStore: (moduleID: Buffer, storePrefix?: number) =>
-				this._generatorStore.getStore(moduleID, storePrefix ?? 0),
+			getGeneratorStore: (moduleID: Buffer, subStorePrefix?: Buffer) =>
+				this._generatorStore.getStore(moduleID, subStorePrefix?.readUInt16BE(0) ?? 0),
+			getOffchainStore: (moduleID: Buffer, subStorePrefix: Buffer) =>
+				this._generatorStore.getStore(moduleID, subStorePrefix.readUInt16BE(0)),
 			header: this._header,
 			assets: this._assets,
 			networkIdentifier: this._networkIdentifier,

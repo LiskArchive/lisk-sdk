@@ -75,30 +75,26 @@ describe('dataAccess.blocks', () => {
 		const block302 = await createValidDefaultBlock({
 			header: { height: 302 },
 			transactions: [getTransaction({ nonce: BigInt(1) }), getTransaction({ nonce: BigInt(2) })],
-			assets: new BlockAssets([
-				{ moduleID: utils.intToBuffer(3, 4), data: utils.getRandomBytes(64) },
-			]),
+			assets: new BlockAssets([{ module: 'random', data: utils.getRandomBytes(64) }]),
 		});
 
 		const block303 = await createValidDefaultBlock({
 			header: { height: 303 },
-			assets: new BlockAssets([
-				{ moduleID: utils.intToBuffer(3, 4), data: utils.getRandomBytes(64) },
-			]),
+			assets: new BlockAssets([{ module: 'random', data: utils.getRandomBytes(64) }]),
 		});
 
 		const events = [
 			new Event({
 				data: utils.getRandomBytes(20),
 				index: 0,
-				moduleID: Buffer.from([0, 0, 0, 2]),
+				module: 'token',
 				topics: [utils.getRandomBytes(32)],
 				typeID: Buffer.from([0, 0, 0, 0]),
 			}),
 			new Event({
 				data: utils.getRandomBytes(20),
 				index: 1,
-				moduleID: Buffer.from([0, 0, 0, 3]),
+				module: 'auth',
 				topics: [utils.getRandomBytes(32)],
 				typeID: Buffer.from([0, 0, 0, 0]),
 			}),
@@ -313,9 +309,7 @@ describe('dataAccess.blocks', () => {
 			expect(block.header.toObject()).toStrictEqual(blocks[0].header.toObject());
 			expect(block.transactions[0]).toBeInstanceOf(Transaction);
 			expect(block.transactions[0].id).toStrictEqual(blocks[0].transactions[0].id);
-			expect(block.assets.getAsset(utils.intToBuffer(3, 4))).toEqual(
-				blocks[0].assets.getAsset(utils.intToBuffer(3, 4)),
-			);
+			expect(block.assets.getAsset('token')).toEqual(blocks[0].assets.getAsset('token'));
 		});
 	});
 
@@ -378,14 +372,14 @@ describe('dataAccess.blocks', () => {
 			new Event({
 				data: utils.getRandomBytes(20),
 				index: 0,
-				moduleID: Buffer.from([0, 0, 0, 2]),
+				module: 'token',
 				topics: [utils.getRandomBytes(32)],
 				typeID: Buffer.from([0, 0, 0, 0]),
 			}),
 			new Event({
 				data: utils.getRandomBytes(20),
 				index: 1,
-				moduleID: Buffer.from([0, 0, 0, 3]),
+				module: 'auth',
 				topics: [utils.getRandomBytes(32)],
 				typeID: Buffer.from([0, 0, 0, 0]),
 			}),

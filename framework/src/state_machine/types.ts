@@ -19,7 +19,7 @@ import { Logger } from '../logger';
 import { EventQueue } from './event_queue';
 
 export interface EventQueueAdder {
-	add(moduleID: Buffer, typeID: Buffer, data: Buffer, topics?: Buffer[], noRevert?: boolean): void;
+	add(module: string, typeID: Buffer, data: Buffer, topics?: Buffer[], noRevert?: boolean): void;
 }
 
 export interface ImmutableSubStore {
@@ -38,12 +38,12 @@ export interface SubStore extends ImmutableSubStore {
 }
 
 export interface ImmutableAPIContext {
-	getStore: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 }
 
 export interface APIContext {
-	getStore: (moduleID: Buffer, storePrefix: number) => SubStore;
-	eventQueue: EventQueueAdder;
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
+	eventQueue: EventQueue;
 }
 
 export enum VerifyStatus {
@@ -68,11 +68,11 @@ export interface BlockHeader {
 }
 
 export interface BlockAssets {
-	getAsset: (moduleID: Buffer) => Buffer | undefined;
+	getAsset: (module: string) => Buffer | undefined;
 }
 
 export interface WritableBlockAssets extends BlockAssets {
-	setAsset: (moduleID: Buffer, value: Buffer) => void;
+	setAsset: (module: string, value: Buffer) => void;
 }
 
 export interface VerificationResult {
@@ -85,7 +85,7 @@ export interface TransactionVerifyContext {
 	logger: Logger;
 	transaction: Transaction;
 	getAPIContext: () => ImmutableAPIContext;
-	getStore: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 }
 
 export interface CommandVerifyContext<T = undefined> {
@@ -94,7 +94,7 @@ export interface CommandVerifyContext<T = undefined> {
 	transaction: Transaction; // without decoding params
 	params: T;
 	getAPIContext: () => ImmutableAPIContext;
-	getStore: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 }
 
 export interface CommandExecuteContext<T = undefined> {
@@ -110,14 +110,14 @@ export interface CommandExecuteContext<T = undefined> {
 	transaction: Transaction; // without decoding params
 	params: T;
 	getAPIContext: () => APIContext;
-	getStore: (moduleID: Buffer, storePrefix: number) => SubStore;
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 }
 
 export interface GenesisBlockExecuteContext {
 	logger: Logger;
 	eventQueue: EventQueueAdder;
 	getAPIContext: () => APIContext;
-	getStore: (moduleID: Buffer, storePrefix: number) => SubStore;
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	header: BlockHeader;
 	assets: BlockAssets;
 	setNextValidators: (
@@ -132,7 +132,7 @@ export interface TransactionExecuteContext {
 	networkIdentifier: Buffer;
 	eventQueue: EventQueueAdder;
 	getAPIContext: () => APIContext;
-	getStore: (moduleID: Buffer, storePrefix: number) => SubStore;
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	header: BlockHeader;
 	assets: BlockAssets;
 	transaction: Transaction;
@@ -146,7 +146,7 @@ export interface BlockVerifyContext {
 	logger: Logger;
 	networkIdentifier: Buffer;
 	getAPIContext: () => ImmutableAPIContext;
-	getStore: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 	header: BlockHeader;
 	assets: BlockAssets;
 }
@@ -156,7 +156,7 @@ export interface BlockExecuteContext {
 	networkIdentifier: Buffer;
 	eventQueue: EventQueue;
 	getAPIContext: () => APIContext;
-	getStore: (moduleID: Buffer, storePrefix: number) => SubStore;
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	header: BlockHeader;
 	assets: BlockAssets;
 	currentValidators: Validator[];
@@ -185,9 +185,9 @@ export interface InsertAssetContext {
 	logger: Logger;
 	networkIdentifier: Buffer;
 	getAPIContext: () => APIContext;
-	getStore: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
+	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 	header: BlockHeader;
 	assets: WritableBlockAssets;
-	getOffchainStore: (moduleID: Buffer, storePrefix?: number) => SubStore;
+	getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	getFinalizedHeight(): number;
 }

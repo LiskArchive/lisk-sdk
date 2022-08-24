@@ -141,17 +141,18 @@ export const createBlockContext = (params: {
 
 export const createBlockGenerateContext = (params: {
 	assets?: WritableBlockAssets;
-	getOffchainStore?: (moduleID: Buffer) => SubStore;
+	getOffchainStore?: (moduleID: Buffer, subStorePrefix?: Buffer) => SubStore;
 	logger?: Logger;
 	getAPIContext?: () => APIContext;
-	getStore?: (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
+	getStore?: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 	header: BlockHeader;
 	finalizedHeight?: number;
 	networkIdentifier?: Buffer;
 }): InsertAssetContext => {
 	const db = new InMemoryDatabase();
 	const generatorStore = new StateStore(db);
-	const getOffchainStore = (moduleID: Buffer) => generatorStore.getStore(moduleID, 0);
+	const getOffchainStore = (moduleID: Buffer, subStorePrefix: Buffer) =>
+		generatorStore.getStore(moduleID, subStorePrefix);
 	const header =
 		params.header ??
 		new BlockHeader({
@@ -173,7 +174,7 @@ export const createBlockGenerateContext = (params: {
 			validatorsHash: utils.hash(Buffer.alloc(0)),
 		});
 	const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-	const getStore = (moduleID: Buffer, storePrefix: number) =>
+	const getStore = (moduleID: Buffer, storePrefix: Buffer) =>
 		stateStore.getStore(moduleID, storePrefix);
 
 	const ctx: InsertAssetContext = {
@@ -183,6 +184,7 @@ export const createBlockGenerateContext = (params: {
 		networkIdentifier: params.networkIdentifier ?? utils.getRandomBytes(32),
 		getAPIContext: params.getAPIContext ?? (() => ({ getStore, eventQueue: new EventQueue() })),
 		getStore: params.getStore ?? getStore,
+		getOffchainStore: params.getOffchainStore ?? getOffchainStore,
 		getFinalizedHeight: () => params.finalizedHeight ?? 0,
 		header,
 	};
@@ -266,8 +268,9 @@ export const createTransientModuleEndpointContext = (params: {
 	const logger = params.logger ?? loggerMock;
 	const networkIdentifier = params.networkIdentifier ?? Buffer.alloc(0);
 	const ctx = {
-		getStore: (moduleID: Buffer, storePrefix: number) => stateStore.getStore(moduleID, storePrefix),
-		getOffchainStore: (moduleID: Buffer) => stateStore.getStore(moduleID, 0),
+		getStore: (moduleID: Buffer, storePrefix: Buffer) => stateStore.getStore(moduleID, storePrefix),
+		getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) =>
+			stateStore.getStore(moduleID, storePrefix),
 		getImmutableAPIContext: () => createImmutableAPIContext(stateStore),
 		params: parameters,
 		logger,
@@ -277,7 +280,7 @@ export const createTransientModuleEndpointContext = (params: {
 };
 
 const createCCAPIContext = (params: {
-	stateStore?: StateStore;
+	stateStore?: PrefixedStateReadWriter;
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
@@ -290,12 +293,12 @@ const createCCAPIContext = (params: {
 	const logger = params.logger ?? loggerMock;
 	const networkIdentifier = params.networkIdentifier ?? Buffer.alloc(0);
 	const eventQueue = params.eventQueue ?? new EventQueue();
-	const getStore = (moduleID: Buffer, storePrefix: number) =>
+	const getStore = (moduleID: Buffer, storePrefix: Buffer) =>
 		stateStore.getStore(moduleID, storePrefix);
 	const ccm = params.ccm ?? {
 		nonce: BigInt(0),
-		moduleID: getIDAsKeyForStore(1),
-		crossChainCommandID: getIDAsKeyForStore(1),
+		module: 'token',
+		crossChainCommand: 'crossChainTransfer',
 		sendingChainID: getIDAsKeyForStore(2),
 		receivingChainID: getIDAsKeyForStore(3),
 		fee: BigInt(20000),
@@ -303,7 +306,7 @@ const createCCAPIContext = (params: {
 		params: Buffer.alloc(0),
 	};
 	return {
-		getStore: (moduleID: Buffer, storePrefix: number) => stateStore.getStore(moduleID, storePrefix),
+		getStore: (moduleID: Buffer, storePrefix: Buffer) => stateStore.getStore(moduleID, storePrefix),
 		logger,
 		networkIdentifier,
 		getAPIContext: params.getAPIContext ?? (() => ({ getStore, eventQueue })),
@@ -341,7 +344,7 @@ export const createBeforeApplyCCMsgAPIContext = (params: {
 	ccm: CCMsg;
 	ccu: CCUpdateParams;
 	payFromAddress: Buffer;
-	stateStore?: StateStore;
+	stateStore?: PrefixedStateReadWriter;
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
@@ -357,7 +360,7 @@ export const createBeforeApplyCCMsgAPIContext = (params: {
 export const createBeforeRecoverCCMsgAPIContext = (params: {
 	ccm: CCMsg;
 	trsSender: Buffer;
-	stateStore?: StateStore;
+	stateStore?: PrefixedStateReadWriter;
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
@@ -371,11 +374,11 @@ export const createBeforeRecoverCCMsgAPIContext = (params: {
 export const createRecoverCCMsgAPIContext = (params: {
 	ccm?: CCMsg;
 	terminatedChainID: Buffer;
-	moduleID: Buffer;
-	storePrefix: number;
+	module: string;
+	storePrefix: Buffer;
 	storeKey: Buffer;
 	storeValue: Buffer;
-	stateStore?: StateStore;
+	stateStore?: PrefixedStateReadWriter;
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 	getAPIContext?: () => APIContext;
@@ -384,7 +387,7 @@ export const createRecoverCCMsgAPIContext = (params: {
 }): RecoverCCMsgAPIContext => ({
 	...createCCAPIContext(params),
 	terminatedChainID: params.terminatedChainID,
-	moduleID: params.moduleID,
+	module: params.module,
 	storePrefix: params.storePrefix,
 	storeKey: params.storeKey,
 	storeValue: params.storeValue,

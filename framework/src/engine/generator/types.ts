@@ -62,8 +62,8 @@ export interface Consensus {
 }
 
 export interface WritableBlockAssets {
-	getAsset: (moduleID: Buffer) => Buffer | undefined;
-	setAsset: (moduleID: Buffer, value: Buffer) => void;
+	getAsset: (module: string) => Buffer | undefined;
+	setAsset: (module: string, value: Buffer) => void;
 }
 
 export interface GeneratorDB {

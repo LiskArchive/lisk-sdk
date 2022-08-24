@@ -15,9 +15,9 @@
 import { validator } from '@liskhq/lisk-validator';
 import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
-import { STORE_PREFIX_RANDOM, EMPTY_KEY } from './constants';
-import { isSeedRevealValidRequestSchema, seedRevealSchema } from './schemas';
-import { ValidatorReveals } from './types';
+import { EMPTY_KEY } from './constants';
+import { isSeedRevealValidRequestSchema } from './schemas';
+import { ValidatorRevealsStore } from './stores/validator_reveals';
 import { getSeedRevealValidity } from './utils';
 
 export class RandomEndpoint extends BaseEndpoint {
@@ -25,11 +25,8 @@ export class RandomEndpoint extends BaseEndpoint {
 		validator.validate(isSeedRevealValidRequestSchema, context.params);
 
 		const { generatorAddress, seedReveal } = context.params;
-		const randomDataStore = context.getStore(this.moduleID, STORE_PREFIX_RANDOM);
-		const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
-			EMPTY_KEY,
-			seedRevealSchema,
-		);
+		const randomDataStore = this.stores.get(ValidatorRevealsStore);
+		const { validatorReveals } = await randomDataStore.get(context, EMPTY_KEY);
 
 		return {
 			valid: getSeedRevealValidity(

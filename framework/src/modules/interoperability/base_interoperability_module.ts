@@ -15,16 +15,41 @@
 import { BaseCCCommand } from './base_cc_command';
 import { BaseInteroperableAPI } from './base_interoperable_api';
 import { BaseInteroperableModule } from './base_interoperable_module';
-import { MODULE_ID_INTEROPERABILITY_BUFFER, MODULE_NAME_INTEROPERABILITY } from './constants';
+import { MODULE_NAME_INTEROPERABILITY } from './constants';
+import { ChainAccountStore } from './stores/chain_account';
+import { ChainValidatorsStore } from './stores/chain_validators';
+import { ChannelDataStore } from './stores/channel_data';
+import { OutboxRootStore } from './stores/outbox_root';
+import { OwnChainAccountStore } from './stores/own_chain_account';
+import { RegisteredNamesStore } from './stores/registered_names';
+import { RegisteredNetworkStore } from './stores/registered_network_ids';
+import { TerminatedOutboxStore } from './stores/terminated_outbox';
+import { TerminatedStateStore } from './stores/terminated_state';
 
 export abstract class BaseInteroperabilityModule extends BaseInteroperableModule {
-	public id = MODULE_ID_INTEROPERABILITY_BUFFER; // Common id for mainchain/sidechain interoperability module
-	public name = MODULE_NAME_INTEROPERABILITY; // Common name for mainchain/sidechain interoperability module
-	protected interoperableCCCommands = new Map<number, BaseCCCommand[]>();
-	protected interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
+	protected interoperableCCCommands = new Map<string, BaseCCCommand[]>();
+	protected interoperableCCAPIs = new Map<string, BaseInteroperableAPI>();
+
+	public constructor() {
+		super();
+		this.stores.register(ChainAccountStore, new ChainAccountStore(this.name));
+		this.stores.register(ChainValidatorsStore, new ChainValidatorsStore(this.name));
+		this.stores.register(ChannelDataStore, new ChannelDataStore(this.name));
+		this.stores.register(OutboxRootStore, new OutboxRootStore(this.name));
+		this.stores.register(OwnChainAccountStore, new OwnChainAccountStore(this.name));
+		this.stores.register(RegisteredNamesStore, new RegisteredNamesStore(this.name));
+		this.stores.register(RegisteredNetworkStore, new RegisteredNetworkStore(this.name));
+		this.stores.register(TerminatedOutboxStore, new TerminatedOutboxStore(this.name));
+		this.stores.register(TerminatedStateStore, new TerminatedStateStore(this.name));
+	}
+
+	// Common name for mainchain/sidechain interoperability module
+	public get name(): string {
+		return MODULE_NAME_INTEROPERABILITY;
+	}
 
 	public registerInteroperableModule(module: BaseInteroperableModule): void {
-		this.interoperableCCAPIs.set(module.id.readInt32BE(0), module.crossChainAPI);
-		this.interoperableCCCommands.set(module.id.readInt32BE(0), module.crossChainCommand);
+		this.interoperableCCAPIs.set(module.name, module.crossChainAPI);
+		this.interoperableCCCommands.set(module.name, module.crossChainCommand);
 	}
 }

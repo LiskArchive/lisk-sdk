@@ -21,7 +21,7 @@ import { EVENT_TOPIC_HASH_LENGTH_BYTES, EVENT_TOTAL_INDEX_LENGTH_BYTES } from '.
 
 describe('event', () => {
 	const eventObj = {
-		moduleID: Buffer.from([0, 0, 0, 2]),
+		module: 'token',
 		typeID: Buffer.from([0, 0, 0, 1]),
 		topics: [utils.getRandomBytes(32), utils.getRandomBytes(20), utils.getRandomBytes(2)],
 		index: 3,
@@ -91,7 +91,7 @@ describe('event', () => {
 		it('should return all values in JSON compatible format', () => {
 			const event = Event.fromBytes(encodedEvent).toJSON();
 			expect(event).toEqual({
-				moduleID: eventObj.moduleID.toString('hex'),
+				module: 'token',
 				typeID: eventObj.typeID.toString('hex'),
 				index: 3,
 				topics: eventObj.topics.map(t => t.toString('hex')),

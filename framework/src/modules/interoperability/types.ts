@@ -15,13 +15,16 @@
 import { Logger } from '../../logger';
 import { APIContext, EventQueue } from '../../state_machine';
 import { ImmutableAPIContext, ImmutableSubStore, SubStore } from '../../state_machine/types';
+import { OutboxRoot } from './stores/outbox_root';
+import { TerminatedOutboxAccount } from './stores/terminated_outbox';
+import { TerminatedStateAccount } from './stores/terminated_state';
 
-export type StoreCallback = (moduleID: Buffer, storePrefix: number) => SubStore;
-export type ImmutableStoreCallback = (moduleID: Buffer, storePrefix: number) => ImmutableSubStore;
+export type StoreCallback = (moduleID: Buffer, storePrefix: Buffer) => SubStore;
+export type ImmutableStoreCallback = (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 export interface CCMsg {
 	readonly nonce: bigint;
-	readonly moduleID: Buffer;
-	readonly crossChainCommandID: Buffer;
+	readonly module: string;
+	readonly crossChainCommand: string;
 	readonly sendingChainID: Buffer;
 	readonly receivingChainID: Buffer;
 	readonly fee: bigint;
@@ -83,15 +86,15 @@ export interface BeforeRecoverCCMsgAPIContext extends CCAPIContext {
 
 export interface RecoverCCMsgAPIContext extends CCAPIContext {
 	terminatedChainID: Buffer;
-	moduleID: Buffer;
-	storePrefix: number;
+	module: string;
+	storePrefix: Buffer;
 	storeKey: Buffer;
 	storeValue: Buffer;
 }
 
 export interface SendInternalContext {
-	moduleID: Buffer;
-	crossChainCommandID: Buffer;
+	module: string;
+	crossChainCommand: string;
 	receivingChainID: Buffer;
 	fee: bigint;
 	status: number;
@@ -225,18 +228,6 @@ export interface ChannelDataJSON {
 	messageFeeTokenID: MessageFeeTokenIDJSON;
 }
 
-export interface TerminatedStateAccount {
-	stateRoot: Buffer;
-	mainchainStateRoot?: Buffer;
-	initialized?: boolean;
-}
-
-export interface TerminatedStateAccountJSON {
-	stateRoot: string;
-	mainchainStateRoot?: string;
-	initialized?: boolean;
-}
-
 export interface CCCommandExecuteContext {
 	logger: Logger;
 	networkIdentifier: Buffer;
@@ -291,18 +282,6 @@ export interface ValidatorsHashInput {
 	certificateThreshold: bigint;
 }
 
-export interface TerminatedOutboxAccount {
-	outboxRoot: Buffer;
-	outboxSize: number;
-	partnerChainInboxSize: number;
-}
-
-export interface TerminatedOutboxAccountJSON {
-	outboxRoot: string;
-	outboxSize: number;
-	partnerChainInboxSize: number;
-}
-
 export interface MessageRecoveryParams {
 	chainID: Buffer;
 	crossChainMessages: Buffer[];
@@ -317,7 +296,7 @@ export interface MessageRecoveryVerificationParams {
 }
 
 export interface StoreEntry {
-	storePrefix: number;
+	storePrefix: Buffer;
 	storeKey: Buffer;
 	storeValue: Buffer;
 	bitmap: Buffer;
@@ -325,7 +304,7 @@ export interface StoreEntry {
 
 export interface StateRecoveryParams {
 	chainID: Buffer;
-	moduleID: Buffer;
+	module: string;
 	storeEntries: StoreEntry[];
 	siblingHashes: Buffer[];
 }
@@ -348,10 +327,6 @@ export interface CrossChainUpdateTransactionParams {
 export interface ChainValidators {
 	activeValidators: ActiveValidator[];
 	certificateThreshold: bigint;
-}
-
-export interface OutboxRoot {
-	root: Buffer;
 }
 
 export interface ChainID {

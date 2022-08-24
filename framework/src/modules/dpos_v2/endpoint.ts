@@ -15,16 +15,9 @@
 import { codec } from '@liskhq/lisk-codec';
 import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
-import { STORE_PREFIX_DELEGATE, STORE_PREFIX_VOTER } from './constants';
-import { voterStoreSchema, delegateStoreSchema } from './schemas';
-import {
-	DelegateAccount,
-	DelegateAccountJSON,
-	ModuleConfig,
-	ModuleConfigJSON,
-	VoterData,
-	VoterDataJSON,
-} from './types';
+import { DelegateStore } from './stores/delegate';
+import { VoterStore, voterStoreSchema } from './stores/voter';
+import { DelegateAccountJSON, ModuleConfig, ModuleConfigJSON, VoterDataJSON } from './types';
 
 export class DPoSEndpoint extends BaseEndpoint {
 	private _moduleConfig!: ModuleConfig;
@@ -34,55 +27,48 @@ export class DPoSEndpoint extends BaseEndpoint {
 	}
 
 	public async getVoter(ctx: ModuleEndpointContext): Promise<VoterDataJSON> {
-		const voterSubStore = ctx.getStore(this.moduleID, STORE_PREFIX_VOTER);
+		const voterSubStore = this.stores.get(VoterStore);
 		const { address } = ctx.params;
 		if (typeof address !== 'string') {
 			throw new Error('Parameter address must be a string.');
 		}
-		const voterData = await voterSubStore.getWithSchema<VoterData>(
-			Buffer.from(address, 'hex'),
-			voterStoreSchema,
-		);
+		const voterData = await voterSubStore.get(ctx, Buffer.from(address, 'hex'));
 
 		return codec.toJSON(voterStoreSchema, voterData);
 	}
 
 	public async getDelegate(ctx: ModuleEndpointContext): Promise<DelegateAccountJSON> {
-		const delegateSubStore = ctx.getStore(this.moduleID, STORE_PREFIX_DELEGATE);
+		const delegateSubStore = this.stores.get(DelegateStore);
 		const { address } = ctx.params;
 		if (typeof address !== 'string') {
 			throw new Error('Parameter address must be a string.');
 		}
-		const delegate = await delegateSubStore.getWithSchema<DelegateAccount>(
-			Buffer.from(address, 'hex'),
-			delegateStoreSchema,
-		);
+		const delegate = await delegateSubStore.get(ctx, Buffer.from(address, 'hex'));
 
 		return {
 			...delegate,
 			totalVotesReceived: delegate.totalVotesReceived.toString(),
 			selfVotes: delegate.selfVotes.toString(),
+			address,
 		};
 	}
 
 	public async getAllDelegates(
 		ctx: ModuleEndpointContext,
 	): Promise<{ delegates: DelegateAccountJSON[] }> {
-		const delegateSubStore = ctx.getStore(this.moduleID, STORE_PREFIX_DELEGATE);
+		const delegateSubStore = this.stores.get(DelegateStore);
 		const startBuf = Buffer.alloc(20);
 		const endBuf = Buffer.alloc(20, 255);
-		const storeData = await delegateSubStore.iterate({ gte: startBuf, lte: endBuf });
+		const storeData = await delegateSubStore.iterate(ctx, { gte: startBuf, lte: endBuf });
 
 		const response = [];
 		for (const data of storeData) {
-			const delegate = await delegateSubStore.getWithSchema<DelegateAccount>(
-				data.key,
-				delegateStoreSchema,
-			);
+			const delegate = await delegateSubStore.get(ctx, data.key);
 			const delegateJSON = {
 				...delegate,
 				totalVotesReceived: delegate.totalVotesReceived.toString(),
 				selfVotes: delegate.selfVotes.toString(),
+				address: data.key.toString('hex'),
 			};
 			response.push(delegateJSON);
 		}

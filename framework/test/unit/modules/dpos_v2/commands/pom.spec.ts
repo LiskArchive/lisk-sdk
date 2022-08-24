@@ -19,29 +19,27 @@ import { address, utils, legacy } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { ReportDelegateMisbehaviorCommand } from '../../../../../src/modules/dpos_v2/commands/pom';
 import * as testing from '../../../../../src/testing';
-import {
-	COMMAND_ID_POM,
-	REPORTING_PUNISHMENT_REWARD,
-	MODULE_ID_DPOS_BUFFER,
-	STORE_PREFIX_DELEGATE,
-} from '../../../../../src/modules/dpos_v2/constants';
+import { REPORTING_PUNISHMENT_REWARD } from '../../../../../src/modules/dpos_v2/constants';
 import {
 	DelegateAccount,
 	TokenAPI,
 	ValidatorsAPI,
 	PomTransactionParams,
 } from '../../../../../src/modules/dpos_v2/types';
-import { delegateStoreSchema } from '../../../../../src/modules/dpos_v2/schemas';
 import { VerifyStatus } from '../../../../../src/state_machine/types';
 import { DEFAULT_TOKEN_ID } from '../../../../utils/mocks/transaction';
 import * as bftUtil from '../../../../../src/engine/bft/utils';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
+import { DPoSModule } from '../../../../../src';
+import { DelegateStore } from '../../../../../src/modules/dpos_v2/stores/delegate';
+import { createStoreGetter } from '../../../../../src/testing/utils';
 
 describe('ReportDelegateMisbehaviorCommand', () => {
+	const dpos = new DPoSModule();
 	let pomCommand: ReportDelegateMisbehaviorCommand;
 	let stateStore: PrefixedStateReadWriter;
-	let delegateSubstore: any;
+	let delegateSubstore: DelegateStore;
 	let mockTokenAPI: TokenAPI;
 	let mockValidatorsAPI: ValidatorsAPI;
 	const blockHeight = 8760000;
@@ -73,7 +71,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 	};
 
 	beforeEach(async () => {
-		pomCommand = new ReportDelegateMisbehaviorCommand(MODULE_ID_DPOS_BUFFER);
+		pomCommand = new ReportDelegateMisbehaviorCommand(dpos.stores, dpos.events);
 		mockTokenAPI = {
 			lock: jest.fn(),
 			unlock: jest.fn(),
@@ -92,7 +90,7 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			validatorsAPI: mockValidatorsAPI,
 		});
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		delegateSubstore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
+		delegateSubstore = dpos.stores.get(DelegateStore);
 
 		misBehavingDelegate = { name: 'misBehavingDelegate', ...defaultDelegateInfo };
 		normalDelegate = { name: 'normalDelegate', ...defaultDelegateInfo };
@@ -111,19 +109,13 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 		header1 = fakeBlockHeader1 as BlockHeader;
 		header2 = fakeBlockHeader2 as BlockHeader;
 
-		pomCommand = new ReportDelegateMisbehaviorCommand(MODULE_ID_DPOS_BUFFER);
-		pomCommand.addDependencies({
-			tokenAPI: mockTokenAPI,
-			validatorsAPI: mockValidatorsAPI,
-		});
 		pomCommand.init({
 			tokenIDDPoS: DEFAULT_TOKEN_ID,
 		});
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		delegateSubstore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
 		transaction = new Transaction({
-			moduleID: MODULE_ID_DPOS_BUFFER,
-			commandID: utils.intToBuffer(COMMAND_ID_POM, 4),
+			module: 'dpos',
+			command: 'reportDelegateMisbehavior',
 			senderPublicKey: publicKey,
 			nonce: BigInt(0),
 			fee: BigInt(100000000),
@@ -131,32 +123,24 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			signatures: [publicKey],
 		});
 
-		await delegateSubstore.setWithSchema(
-			senderAddress,
-			{
-				name: 'mrrobot',
-				totalVotesReceived: BigInt(10000000000),
-				selfVotes: BigInt(1000000000),
-				lastGeneratedHeight: 100,
-				isBanned: false,
-				pomHeights: [],
-				consecutiveMissedBlocks: 0,
-			},
-			delegateStoreSchema,
-		);
-		await delegateSubstore.setWithSchema(delegate1Address, normalDelegate, delegateStoreSchema);
-		await delegateSubstore.setWithSchema(
+		await delegateSubstore.set(createStoreGetter(stateStore), senderAddress, {
+			name: 'mrrobot',
+			totalVotesReceived: BigInt(10000000000),
+			selfVotes: BigInt(1000000000),
+			lastGeneratedHeight: 100,
+			isBanned: false,
+			pomHeights: [],
+			consecutiveMissedBlocks: 0,
+		});
+		await delegateSubstore.set(createStoreGetter(stateStore), delegate1Address, normalDelegate);
+		await delegateSubstore.set(
+			createStoreGetter(stateStore),
 			delegate1Address,
 			misBehavingDelegate,
-			delegateStoreSchema,
 		);
 	});
 
 	describe('constructor', () => {
-		it('should have valid id', () => {
-			expect(pomCommand.id.readInt32BE(0)).toEqual(COMMAND_ID_POM);
-		});
-
 		it('should have valid name', () => {
 			expect(pomCommand.name).toEqual('reportDelegateMisbehavior');
 		});
@@ -516,10 +500,10 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 		it('should throw error if misbehaving account is already banned', async () => {
 			const updatedDelegateAccount = objects.cloneDeep(misBehavingDelegate);
 			updatedDelegateAccount.isBanned = true;
-			await delegateSubstore.setWithSchema(
+			await delegateSubstore.set(
+				createStoreGetter(stateStore),
 				delegate1Address,
 				updatedDelegateAccount,
-				delegateStoreSchema,
 			);
 			transactionParamsDecoded = {
 				header1: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header1),
@@ -545,10 +529,10 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			updatedDelegateAccount.pomHeights = [
 				(transactionParamsPreDecoded.header1.height as number) + 10,
 			];
-			await delegateSubstore.setWithSchema(
+			await delegateSubstore.set(
+				createStoreGetter(stateStore),
 				delegate1Address,
 				updatedDelegateAccount,
-				delegateStoreSchema,
 			);
 			transactionParamsDecoded = {
 				header1: codec.encode(blockHeaderSchema, transactionParamsPreDecoded.header1),
@@ -683,9 +667,9 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 
 			await pomCommand.execute(context);
 
-			const updatedDelegate = await delegateSubstore.getWithSchema(
+			const updatedDelegate = await delegateSubstore.get(
+				createStoreGetter(stateStore),
 				delegate1Address,
-				delegateStoreSchema,
 			);
 
 			expect(updatedDelegate.pomHeights).toEqual([blockHeight]);
@@ -696,10 +680,10 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 			const updatedDelegateAccount = objects.cloneDeep(misBehavingDelegate);
 			updatedDelegateAccount.pomHeights = objects.cloneDeep(pomHeights);
 			updatedDelegateAccount.isBanned = false;
-			await delegateSubstore.setWithSchema(
+			await delegateSubstore.set(
+				createStoreGetter(stateStore),
 				delegate1Address,
 				updatedDelegateAccount,
-				delegateStoreSchema,
 			);
 
 			transactionParamsDecoded = {
@@ -718,9 +702,9 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 
 			await pomCommand.execute(context);
 
-			const updatedDelegate = await delegateSubstore.getWithSchema(
+			const updatedDelegate = await delegateSubstore.get(
+				createStoreGetter(stateStore),
 				delegate1Address,
-				delegateStoreSchema,
 			);
 
 			expect(updatedDelegate.pomHeights).toEqual([...pomHeights, blockHeight]);
@@ -730,8 +714,8 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 
 		it('should not return balance if sender and delegate account are same', async () => {
 			transaction = new Transaction({
-				moduleID: MODULE_ID_DPOS_BUFFER,
-				commandID: utils.intToBuffer(COMMAND_ID_POM, 4),
+				module: 'dpos',
+				command: 'reportDelegateMisbehavior',
 				senderPublicKey: delegate1PublicKey,
 				nonce: BigInt(0),
 				fee: BigInt(100000000),

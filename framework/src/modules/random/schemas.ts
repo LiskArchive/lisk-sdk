@@ -12,6 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { SEED_LENGTH } from './constants';
+import { ADDRESS_LENGTH } from '../token/constants';
+
 export const randomModuleConfig = {
 	$id: '/modules/random/config',
 	type: 'object',
@@ -62,19 +65,25 @@ export const randomModuleGeneratorConfig = {
 export const seedRevealSchema = {
 	$id: '/modules/random/seedReveal',
 	type: 'object',
+	required: ['validatorReveals'],
 	properties: {
 		validatorReveals: {
 			type: 'array',
 			fieldNumber: 1,
 			items: {
 				type: 'object',
+				required: ['generatorAddress', 'seedReveal', 'height', 'valid'],
 				properties: {
 					generatorAddress: {
 						dataType: 'bytes',
+						minLength: ADDRESS_LENGTH,
+						maxLength: ADDRESS_LENGTH,
 						fieldNumber: 1,
 					},
 					seedReveal: {
 						dataType: 'bytes',
+						minLength: SEED_LENGTH,
+						maxLength: SEED_LENGTH,
 						fieldNumber: 2,
 					},
 					height: {
@@ -86,11 +95,9 @@ export const seedRevealSchema = {
 						fieldNumber: 4,
 					},
 				},
-				required: ['generatorAddress', 'seedReveal', 'height', 'valid'],
 			},
 		},
 	},
-	required: ['validatorReveals'],
 };
 
 export const blockHeaderAssetRandomModule = {
@@ -100,6 +107,8 @@ export const blockHeaderAssetRandomModule = {
 		seedReveal: {
 			dataType: 'bytes',
 			fieldNumber: 1,
+			minLength: SEED_LENGTH,
+			maxLength: SEED_LENGTH,
 		},
 	},
 	required: ['seedReveal'],

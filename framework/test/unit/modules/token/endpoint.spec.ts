@@ -12,31 +12,28 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { utils } from '@liskhq/lisk-cryptography';
-import { TokenAPI } from '../../../../src/modules/token';
+import { TokenAPI, TokenModule } from '../../../../src/modules/token';
 import {
 	CHAIN_ID_LENGTH,
 	EMPTY_BYTES,
-	MODULE_ID_TOKEN_BUFFER,
-	STORE_PREFIX_AVAILABLE_LOCAL_ID,
-	STORE_PREFIX_ESCROW,
-	STORE_PREFIX_SUPPLY,
-	STORE_PREFIX_USER,
 	TOKEN_ID_LENGTH,
 } from '../../../../src/modules/token/constants';
 import { TokenEndpoint } from '../../../../src/modules/token/endpoint';
-import {
-	availableLocalIDStoreSchema,
-	escrowStoreSchema,
-	supplyStoreSchema,
-	userStoreSchema,
-} from '../../../../src/modules/token/schemas';
-import { getUserStoreKey } from '../../../../src/modules/token/utils';
+import { AvailableLocalIDStore } from '../../../../src/modules/token/stores/available_local_id';
+import { EscrowStore } from '../../../../src/modules/token/stores/escrow';
+import { SupplyStore } from '../../../../src/modules/token/stores/supply';
+import { UserStore } from '../../../../src/modules/token/stores/user';
+import { APIContext } from '../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
-import { createTransientModuleEndpointContext } from '../../../../src/testing';
+import {
+	createTransientAPIContext,
+	createTransientModuleEndpointContext,
+} from '../../../../src/testing';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { DEFAULT_TOKEN_ID } from '../../../utils/mocks/transaction';
 
 describe('token endpoint', () => {
+	const tokenModule = new TokenModule();
 	const defaultAddress = utils.getRandomBytes(20);
 	const defaultTokenIDAlias = Buffer.alloc(TOKEN_ID_LENGTH, 0);
 	const defaultTokenID = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
@@ -45,7 +42,7 @@ describe('token endpoint', () => {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
 			{
-				moduleID: utils.intToBuffer(12, 4),
+				module: 'dpos',
 				amount: BigInt(100000000),
 			},
 		],
@@ -56,10 +53,11 @@ describe('token endpoint', () => {
 
 	let endpoint: TokenEndpoint;
 	let stateStore: PrefixedStateReadWriter;
+	let apiContext: APIContext;
 
 	beforeEach(async () => {
-		const api = new TokenAPI(MODULE_ID_TOKEN_BUFFER);
-		endpoint = new TokenEndpoint(MODULE_ID_TOKEN_BUFFER);
+		const api = new TokenAPI(tokenModule.stores, tokenModule.events, tokenModule.name);
+		endpoint = new TokenEndpoint(tokenModule.stores, tokenModule.offchainStores);
 		api.init({
 			minBalances: [
 				{
@@ -77,43 +75,37 @@ describe('token endpoint', () => {
 		} as never);
 		endpoint.init(api, supportedTokenIDs);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		const userStore = stateStore.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
-		await userStore.setWithSchema(
-			getUserStoreKey(defaultAddress, defaultTokenIDAlias),
+		apiContext = createTransientAPIContext({ stateStore });
+		const userStore = tokenModule.stores.get(UserStore);
+		await userStore.set(
+			apiContext,
+			userStore.getKey(defaultAddress, defaultTokenIDAlias),
 			defaultAccount,
-			userStoreSchema,
 		);
-		await userStore.setWithSchema(
-			getUserStoreKey(defaultAddress, defaultForeignTokenID),
+		await userStore.set(
+			apiContext,
+			userStore.getKey(defaultAddress, defaultForeignTokenID),
 			defaultAccount,
-			userStoreSchema,
 		);
 
-		const supplyStore = stateStore.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_SUPPLY);
-		await supplyStore.setWithSchema(
-			defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
-			{ totalSupply: defaultTotalSupply },
-			supplyStoreSchema,
-		);
+		const supplyStore = tokenModule.stores.get(SupplyStore);
+		await supplyStore.set(apiContext, defaultTokenIDAlias.slice(CHAIN_ID_LENGTH), {
+			totalSupply: defaultTotalSupply,
+		});
 
-		const nextAvailableLocalIDStore = stateStore.getStore(
-			MODULE_ID_TOKEN_BUFFER,
-			STORE_PREFIX_AVAILABLE_LOCAL_ID,
-		);
-		await nextAvailableLocalIDStore.setWithSchema(
-			EMPTY_BYTES,
-			{ nextAvailableLocalID: Buffer.from([0, 0, 0, 5]) },
-			availableLocalIDStoreSchema,
-		);
+		const nextAvailableLocalIDStore = tokenModule.stores.get(AvailableLocalIDStore);
+		await nextAvailableLocalIDStore.set(apiContext, EMPTY_BYTES, {
+			nextAvailableLocalID: Buffer.from([0, 0, 0, 5]),
+		});
 
-		const escrowStore = stateStore.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_ESCROW);
-		await escrowStore.setWithSchema(
+		const escrowStore = tokenModule.stores.get(EscrowStore);
+		await escrowStore.set(
+			apiContext,
 			Buffer.concat([
 				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 				defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
 			]),
 			{ amount: defaultEscrowAmount },
-			escrowStoreSchema,
 		);
 	});
 
@@ -150,7 +142,7 @@ describe('token endpoint', () => {
 						availableBalance: defaultAccount.availableBalance.toString(),
 						lockedBalances: defaultAccount.lockedBalances.map(lb => ({
 							...lb,
-							moduleID: lb.moduleID.readInt32BE(0).toString(),
+							module: lb.module,
 							amount: lb.amount.toString(),
 						})),
 					},
@@ -159,7 +151,7 @@ describe('token endpoint', () => {
 						availableBalance: defaultAccount.availableBalance.toString(),
 						lockedBalances: defaultAccount.lockedBalances.map(lb => ({
 							...lb,
-							moduleID: lb.moduleID.readInt32BE(0).toString(),
+							module: lb.module,
 							amount: lb.amount.toString(),
 						})),
 					},
@@ -217,7 +209,7 @@ describe('token endpoint', () => {
 				availableBalance: defaultAccount.availableBalance.toString(),
 				lockedBalances: defaultAccount.lockedBalances.map(lb => ({
 					...lb,
-					moduleID: lb.moduleID.readInt32BE(0).toString(),
+					module: lb.module,
 					amount: lb.amount.toString(),
 				})),
 			});
@@ -236,7 +228,7 @@ describe('token endpoint', () => {
 				availableBalance: defaultAccount.availableBalance.toString(),
 				lockedBalances: defaultAccount.lockedBalances.map(lb => ({
 					...lb,
-					moduleID: lb.moduleID.readInt32BE(0).toString(),
+					module: lb.module,
 					amount: lb.amount.toString(),
 				})),
 			});

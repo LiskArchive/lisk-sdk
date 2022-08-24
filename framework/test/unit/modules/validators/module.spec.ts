@@ -12,16 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { ValidatorsModule } from '../../../../src/modules/validators';
-import { EMPTY_KEY, STORE_PREFIX_GENESIS_DATA } from '../../../../src/modules/validators/constants';
-import { genesisDataSchema } from '../../../../src/modules/validators/schemas';
-import { GenesisData } from '../../../../src/modules/validators/types';
+import { EMPTY_KEY } from '../../../../src/modules/validators/constants';
+import { GenesisStore } from '../../../../src/modules/validators/stores/genesis';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { createBlockContext, createBlockHeaderWithDefaults } from '../../../../src/testing';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 
 describe('ValidatorsModule', () => {
 	let stateStore: PrefixedStateReadWriter;
-	let genesisDataSubStore: PrefixedStateReadWriter;
+	let genesisDataSubStore: GenesisStore;
 	let validatorsModule: ValidatorsModule;
 	const genesisTimestamp = 45672;
 
@@ -61,11 +60,8 @@ describe('ValidatorsModule', () => {
 			}).getBlockAfterExecuteContext();
 			await validatorsModule.initGenesisState(blockAfterExecuteContext);
 
-			genesisDataSubStore = stateStore.getStore(validatorsModule.id, STORE_PREFIX_GENESIS_DATA);
-			const genesisData = await genesisDataSubStore.getWithSchema<GenesisData>(
-				EMPTY_KEY,
-				genesisDataSchema,
-			);
+			genesisDataSubStore = validatorsModule.stores.get(GenesisStore);
+			const genesisData = await genesisDataSubStore.get(blockAfterExecuteContext, EMPTY_KEY);
 			expect(genesisData.timestamp).toBe(genesisTimestamp);
 		});
 	});
