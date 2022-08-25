@@ -16,7 +16,6 @@ import { BaseEndpoint } from '../base_endpoint';
 import { BaseInteroperableAPI } from './base_interoperable_api';
 import { ModuleEndpointContext } from '../../types';
 import {
-	ChainAccount,
 	ChainAccountJSON,
 	ChannelDataJSON,
 	ImmutableStoreCallback,
@@ -31,7 +30,7 @@ import {
 	TerminatedStateAccountJSON,
 } from './types';
 import { BaseInteroperabilityStore } from './base_interoperability_store';
-import { certificateToJSON } from './certificates';
+import { chainAccountToJSON } from './utils';
 
 export abstract class BaseInteroperabilityEndpoint<
 	T extends BaseInteroperabilityStore
@@ -48,7 +47,7 @@ export abstract class BaseInteroperabilityEndpoint<
 		chainID: Buffer,
 	): Promise<ChainAccountJSON> {
 		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
-		return this._getDesiredChainAccount(await interoperabilityStore.getChainAccount(chainID));
+		return chainAccountToJSON(await interoperabilityStore.getChainAccount(chainID));
 	}
 
 	public async getAllChainAccounts(
@@ -59,7 +58,7 @@ export abstract class BaseInteroperabilityEndpoint<
 
 		const chainAccounts = (
 			await interoperabilityStore.getAllChainAccounts(startChainID)
-		).map(chainAccount => this._getDesiredChainAccount(chainAccount));
+		).map(chainAccount => chainAccountToJSON(chainAccount));
 
 		return { chains: chainAccounts };
 	}
@@ -140,17 +139,6 @@ export abstract class BaseInteroperabilityEndpoint<
 			outboxRoot: outboxRoot.toString('hex'),
 			outboxSize,
 			partnerChainInboxSize,
-		};
-	}
-
-	private _getDesiredChainAccount(chainAccount: ChainAccount) {
-		const { lastCertificate, name, networkID, status } = chainAccount;
-
-		return {
-			lastCertificate: certificateToJSON(lastCertificate),
-			name,
-			status,
-			networkID: networkID.toString('hex'),
 		};
 	}
 

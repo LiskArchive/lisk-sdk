@@ -78,6 +78,7 @@ import {
 import { Certificate } from '../../engine/consensus/certificate_generation/types';
 import { certificateSchema } from '../../engine/consensus/certificate_generation/schema';
 import { CommandExecuteContext, SubStore } from '../../state_machine/types';
+import { certificateToJSON } from './certificates';
 
 interface CommonExecutionLogicArgs {
 	context: CommandExecuteContext<CrossChainUpdateTransactionParams>;
@@ -958,4 +959,15 @@ export const initGenesisStateUtil = async (id: Buffer, ctx: GenesisBlockExecuteC
 			chainIDSchema,
 		);
 	}
+};
+
+export const chainAccountToJSON = (chainAccount: ChainAccount) => {
+	const { lastCertificate, name, networkID, status } = chainAccount;
+
+	return {
+		lastCertificate: certificateToJSON(lastCertificate),
+		name,
+		status,
+		networkID: networkID.toString('hex'),
+	};
 };

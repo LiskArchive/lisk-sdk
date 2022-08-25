@@ -28,7 +28,7 @@ import {
 	TerminatedStateAccount,
 	TerminatedStateAccountJSON,
 } from '../../../../../src/modules/interoperability/types';
-import { certificateToJSON } from '../../../../../src/modules/interoperability/certificates';
+import { chainAccountToJSON } from '../../../../../src/modules/interoperability/utils';
 
 describe('Mainchain endpoint', () => {
 	const moduleID = utils.intToBuffer(1, 4);
@@ -43,13 +43,6 @@ describe('Mainchain endpoint', () => {
 		params: {},
 		logger: {} as any,
 	};
-
-	const chainAccountToJSON = (chainAccount: ChainAccount): ChainAccountJSON => ({
-		lastCertificate: certificateToJSON(chainAccount.lastCertificate),
-		name: chainAccount.name,
-		networkID: chainAccount.networkID.toString('hex'),
-		status: chainAccount.status,
-	});
 
 	const chainAccount: ChainAccount = {
 		lastCertificate: {
