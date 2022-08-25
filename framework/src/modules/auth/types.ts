@@ -12,8 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { ImmutableSubStore } from '../../state_machine';
 import { AuthAccount } from './stores/auth_account';
 
+export type ImmutableStoreCallback = (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 export interface Keys {
 	numberOfSignatures: number;
 	mandatoryKeys: Buffer[];
@@ -24,6 +26,7 @@ export interface RegisterMultisignatureParams {
 	numberOfSignatures: number;
 	mandatoryKeys: Buffer[];
 	optionalKeys: Buffer[];
+	signatures: Buffer[];
 }
 
 export interface AuthAccountJSON {

@@ -15,10 +15,14 @@
 
 import { Transaction, BlockHeader, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { bls, ed, legacy } from '@liskhq/lisk-cryptography';
+import { bls, ed, legacy, address } from '@liskhq/lisk-cryptography';
 import { signMultiSignatureTransaction } from '@liskhq/lisk-transactions';
 import { TokenModule } from '../../../src';
-import { registerMultisignatureParamsSchema } from '../../../src/modules/auth/schemas';
+import { MESSAGE_TAG_MULTISIG_REG } from '../../../src/modules/auth/constants';
+import {
+	multisigRegMsgSchema,
+	registerMultisignatureParamsSchema,
+} from '../../../src/modules/auth/schemas';
 import {
 	delegateRegistrationCommandParamsSchema,
 	pomCommandParamsSchema,
@@ -128,41 +132,68 @@ export const createMultiSignRegisterTransaction = (input: {
 	optionalKeys: Buffer[];
 	numberOfSignatures: number;
 	senderPassphrase: string;
+	signatures?: Buffer[];
 	passphrases: string[];
 }): Transaction => {
-	const encodedAsset = codec.encode(registerMultisignatureParamsSchema, {
-		mandatoryKeys: input.mandatoryKeys,
-		optionalKeys: input.optionalKeys,
-		numberOfSignatures: input.numberOfSignatures,
-	});
+	let memberSignatures = input.signatures;
+	if (!memberSignatures) {
+		const { publicKey } = legacy.getKeys(input.senderPassphrase);
+		const senderAddress = address.getAddressFromPublicKey(publicKey);
+		const encodedMessage = codec.encode(multisigRegMsgSchema, {
+			mandatoryKeys: input.mandatoryKeys,
+			optionalKeys: input.optionalKeys,
+			numberOfSignatures: input.numberOfSignatures,
+			nonce: input.nonce,
+			address: senderAddress,
+		});
+
+		memberSignatures = [...input.passphrases].map(passphrase => {
+			const { privateKey } = legacy.getKeys(passphrase);
+			return ed.signData(
+				MESSAGE_TAG_MULTISIG_REG,
+				input.networkIdentifier,
+				encodedMessage,
+				privateKey,
+			);
+		});
+	}
+
 	const params = {
 		mandatoryKeys: input.mandatoryKeys,
 		optionalKeys: input.optionalKeys,
 		numberOfSignatures: input.numberOfSignatures,
+		signatures: memberSignatures,
 	};
-	const { publicKey } = legacy.getPrivateAndPublicKeyFromPassphrase(input.senderPassphrase);
-	const transaction = [...input.passphrases].reduce<Record<string, unknown>>(
-		(prev, current) => {
-			const { privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(current);
-			return signMultiSignatureTransaction(
-				prev,
-				input.networkIdentifier,
-				privateKey,
-				params,
-				registerMultisignatureParamsSchema,
-				true,
-			);
-		},
-		{
-			module: 'auth',
-			command: 'registerMultisignatureGroup',
-			nonce: input.nonce,
-			senderPublicKey: publicKey,
-			fee: input.fee ?? BigInt('1100000000'),
-			params,
-			signatures: [],
-		},
+	const encodedAsset = codec.encode(registerMultisignatureParamsSchema, params);
+	const { publicKey, privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(
+		input.senderPassphrase,
 	);
+	const unsignedTx = {
+		module: 'auth',
+		command: 'registerMultisignature',
+		nonce: input.nonce,
+		senderPublicKey: publicKey,
+		fee: input.fee ?? BigInt('1100000000'),
+		signatures: [],
+		params: encodedAsset,
+	};
+	const unsignedTxObj = new Transaction({ ...unsignedTx });
+
+	const senderSignature = ed.signData(
+		TAG_TRANSACTION,
+		input.networkIdentifier,
+		unsignedTxObj.getSigningBytes(),
+		privateKey,
+	);
+	const transaction = {
+		module: 'auth',
+		command: 'registerMultisignature',
+		nonce: input.nonce,
+		senderPublicKey: publicKey,
+		fee: input.fee ?? BigInt('1100000000'),
+		signatures: [senderSignature],
+		params: encodedAsset,
+	};
 
 	const tx = new Transaction({ ...transaction, params: encodedAsset } as any);
 	return tx;

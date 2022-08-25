@@ -39,7 +39,7 @@ describe('Transaction order', () => {
 	});
 
 	afterAll(async () => {
-		await processEnv.cleanup({ databasePath });
+		processEnv.cleanup({ databasePath });
 	});
 
 	describe('given transactions in specific order', () => {
@@ -197,7 +197,12 @@ describe('Transaction order', () => {
 					numberOfSignatures: 2,
 					networkIdentifier,
 					senderPassphrase: newAccount.passphrase,
-					passphrases: [newAccount.passphrase, ...multiSignatureMembers.map(acc => acc.passphrase)],
+					passphrases: [
+						newAccount.passphrase,
+						...multiSignatureMembers
+							.sort((a, b) => a.publicKey.compare(b.publicKey))
+							.map(acc => acc.passphrase),
+					],
 				});
 				const transferTx = createTransferTransaction({
 					nonce: BigInt('1'),
