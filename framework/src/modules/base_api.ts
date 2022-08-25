@@ -11,10 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { NamedRegistry } from './named_registry';
 
 export abstract class BaseAPI {
-	protected moduleID: Buffer;
-	public constructor(moduleID: Buffer) {
-		this.moduleID = moduleID;
-	}
+	// eslint-disable-next-line no-useless-constructor
+	public constructor(protected stores: NamedRegistry, protected events: NamedRegistry) {}
 }

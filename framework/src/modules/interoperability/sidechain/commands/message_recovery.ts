@@ -21,39 +21,36 @@ import {
 	CommandVerifyContext,
 	VerificationResult,
 } from '../../../../state_machine/types';
-import {
-	CCMsg,
-	StoreCallback,
-	MessageRecoveryParams,
-	TerminatedOutboxAccount,
-	ImmutableStoreCallback,
-} from '../../types';
+import { CCMsg, MessageRecoveryParams } from '../../types';
 import { BaseInteroperabilityCommand } from '../../base_interoperability_command';
 import { SidechainInteroperabilityStore } from '../store';
 import { verifyMessageRecovery, swapReceivingAndSendingChainIDs, getCCMSize } from '../../utils';
 import {
 	CCM_STATUS_RECOVERED,
-	COMMAND_ID_MESSAGE_RECOVERY_BUFFER,
+	COMMAND_NAME_MESSAGE_RECOVERY,
 	EMPTY_FEE_ADDRESS,
 } from '../../constants';
 import { ccmSchema, messageRecoveryParamsSchema } from '../../schemas';
 import { BaseInteroperableAPI } from '../../base_interoperable_api';
 import { createCCCommandExecuteContext } from '../../context';
+import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
+import { TerminatedOutboxAccount } from '../../stores/terminated_outbox';
 
 export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand {
-	public id = COMMAND_ID_MESSAGE_RECOVERY_BUFFER;
-	public name = 'messageRecovery';
 	public schema = messageRecoveryParamsSchema;
+
+	public get name(): string {
+		return COMMAND_NAME_MESSAGE_RECOVERY;
+	}
 
 	public async verify(
 		context: CommandVerifyContext<MessageRecoveryParams>,
 	): Promise<VerificationResult> {
 		const {
 			params: { chainID, idxs, crossChainMessages, siblingHashes },
-			getStore,
 		} = context;
 		const chainIdAsBuffer = chainID;
-		const interoperabilityStore = this.getInteroperabilityStore(getStore);
+		const interoperabilityStore = this.getInteroperabilityStore(context);
 		let terminatedChainOutboxAccount: TerminatedOutboxAccount;
 
 		try {
@@ -108,7 +105,7 @@ export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand
 			updatedCCMs.push(encodedUpdatedCCM);
 		}
 
-		const interoperabilityStore = this.getInteroperabilityStore(getStore);
+		const interoperabilityStore = this.getInteroperabilityStore(context);
 
 		const doesTerminatedOutboxAccountExist = await interoperabilityStore.terminatedOutboxAccountExist(
 			chainIdAsBuffer,
@@ -145,13 +142,13 @@ export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand
 				continue;
 			}
 
-			const ccCommands = this.ccCommands.get(newCcm.moduleID.readInt32BE(0));
+			const ccCommands = this.ccCommands.get(newCcm.module);
 
 			if (!ccCommands) {
 				continue;
 			}
 
-			const ccCommand = ccCommands.find(command => command.ID.equals(newCcm.crossChainCommandID));
+			const ccCommand = ccCommands.find(command => command.name === newCcm.crossChainCommand);
 
 			if (!ccCommand) {
 				continue;
@@ -173,8 +170,8 @@ export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand
 	}
 
 	protected getInteroperabilityStore(
-		getStore: StoreCallback | ImmutableStoreCallback,
+		context: StoreGetter | ImmutableStoreGetter,
 	): SidechainInteroperabilityStore {
-		return new SidechainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
+		return new SidechainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
 	}
 }

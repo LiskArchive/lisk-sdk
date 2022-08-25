@@ -34,7 +34,12 @@ describe('FeeModule', () => {
 		generatorConfig = {};
 		feeModule = new FeeModule();
 		await feeModule.init({ genesisConfig, moduleConfig, generatorConfig });
-		feeModule.addDependencies({ burn: jest.fn(), transfer: jest.fn(), isNative: jest.fn() } as any);
+		feeModule.addDependencies({
+			burn: jest.fn(),
+			transfer: jest.fn(),
+			isNative: jest.fn(),
+			getAvailableBalance: jest.fn(),
+		} as any);
 	});
 
 	describe('init', () => {
@@ -55,8 +60,8 @@ describe('FeeModule', () => {
 	describe('verifyTransaction', () => {
 		it('should validate transaction with sufficient min fee', async () => {
 			const transaction = new Transaction({
-				moduleID: utils.intToBuffer(5, 4),
-				commandID: utils.intToBuffer(0, 4),
+				module: 'token',
+				command: 'transfer',
 				fee: BigInt(1000000000),
 				nonce: BigInt(0),
 				senderPublicKey: utils.getRandomBytes(32),
@@ -71,10 +76,10 @@ describe('FeeModule', () => {
 		});
 
 		it('should validate transaction with exactly the min fee', async () => {
-			const exactMinFee = BigInt(108001);
+			const exactMinFee = BigInt(113000);
 			const transaction = new Transaction({
-				moduleID: utils.intToBuffer(5, 4),
-				commandID: utils.intToBuffer(0, 4),
+				module: 'token',
+				command: 'transfer',
 				fee: exactMinFee,
 				nonce: BigInt(0),
 				senderPublicKey: utils.getRandomBytes(32),
@@ -90,8 +95,8 @@ describe('FeeModule', () => {
 
 		it('should invalidate transaction with insufficient min fee', async () => {
 			const transaction = new Transaction({
-				moduleID: utils.intToBuffer(5, 4),
-				commandID: utils.intToBuffer(0, 4),
+				module: 'token',
+				command: 'transfer',
 				fee: BigInt(0),
 				nonce: BigInt(0),
 				senderPublicKey: utils.getRandomBytes(32),
@@ -113,8 +118,8 @@ describe('FeeModule', () => {
 			jest.spyOn(feeModule['_tokenAPI'], 'isNative').mockResolvedValue(true);
 
 			const transaction = new Transaction({
-				moduleID: utils.intToBuffer(5, 4),
-				commandID: utils.intToBuffer(0, 4),
+				module: 'token',
+				command: 'transfer',
 				fee: BigInt(1000000000),
 				nonce: BigInt(0),
 				senderPublicKey: utils.getRandomBytes(32),
@@ -145,8 +150,8 @@ describe('FeeModule', () => {
 		it('should transfer transaction fee to generator and not burn min fee when non-native token', async () => {
 			jest.spyOn(feeModule['_tokenAPI'], 'isNative').mockResolvedValue(false);
 			const transaction = new Transaction({
-				moduleID: utils.intToBuffer(5, 4),
-				commandID: utils.intToBuffer(0, 4),
+				module: 'token',
+				command: 'transfer',
 				fee: BigInt(1000000000),
 				nonce: BigInt(0),
 				senderPublicKey: utils.getRandomBytes(32),

@@ -23,20 +23,23 @@ import {
 	getChannelRequestSchema,
 	getTerminatedStateAccountRequestSchema,
 	getTerminatedOutboxAccountRequestSchema,
-	chainAccountSchema,
-	channelSchema,
-	ownChainAccountSchema,
-	terminatedStateSchema,
-	terminatedOutboxSchema,
-	allChainAccountsSchema,
 } from '../schemas';
 import { GenesisBlockExecuteContext } from '../../../state_machine';
 import { initGenesisStateUtil } from '../utils';
+import { chainAccountSchema, allChainAccountsSchema } from '../stores/chain_account';
+import { channelSchema } from '../stores/channel_data';
+import { ownChainAccountSchema } from '../stores/own_chain_account';
+import { terminatedStateSchema } from '../stores/terminated_state';
+import { terminatedOutboxSchema } from '../stores/terminated_outbox';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
-	public crossChainAPI = new MainchainCCAPI(this.id);
-	public api = new MainchainInteroperabilityAPI(this.id, this.interoperableCCAPIs);
-	public endpoint = new MainchainInteroperabilityEndpoint(this.id, this.interoperableCCAPIs);
+	public crossChainAPI = new MainchainCCAPI(this.stores, this.events);
+	public api = new MainchainInteroperabilityAPI(this.stores, this.events, this.interoperableCCAPIs);
+	public endpoint = new MainchainInteroperabilityEndpoint(
+		this.stores,
+		this.offchainStores,
+		this.interoperableCCAPIs,
+	);
 
 	public metadata(): ModuleMetadata {
 		return {
@@ -72,7 +75,6 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 				},
 			],
 			commands: this.commands.map(command => ({
-				id: command.id,
 				name: command.name,
 				params: command.schema,
 			})),
@@ -87,6 +89,6 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
-		await initGenesisStateUtil(this.id, context);
+		await initGenesisStateUtil(context, this.stores);
 	}
 }

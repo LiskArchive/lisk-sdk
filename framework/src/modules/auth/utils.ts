@@ -12,18 +12,21 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Transaction } from '@liskhq/lisk-chain';
+import { Transaction, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import { codec, Schema } from '@liskhq/lisk-codec';
 import { utils, ed } from '@liskhq/lisk-cryptography';
 import { isHexString } from '@liskhq/lisk-validator';
 import { VerificationResult, VerifyStatus } from '../../state_machine';
 import { InvalidNonceError } from './errors';
-import { AuthAccount, Keys } from './types';
+import { Keys } from './types';
+import { registerMultisignatureParamsSchema } from './schemas';
+import { COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP } from './constants';
+import { AuthAccount } from './stores/auth_account';
 
 export const isMultisignatureAccount = (keys: Keys): boolean =>
 	!!((keys.mandatoryKeys.length > 0 || keys.optionalKeys.length > 0) && keys.numberOfSignatures);
 
-export const validateSignature = (
+export const verifyMessageSig = (
 	tag: string,
 	networkIdentifier: Buffer,
 	publicKey: Buffer,
@@ -55,10 +58,14 @@ export const validateKeysSignatures = (
 			throw new Error('Invalid signature. Empty buffer is not a valid signature.');
 		}
 
-		validateSignature(tag, networkIdentifier, keys[i], signatures[i], transactionBytes, id);
+		verifyMessageSig(tag, networkIdentifier, keys[i], signatures[i], transactionBytes, id);
 	}
 };
 
+/**
+ * https://github.com/LiskHQ/lips/blob/main/proposals/lip-0041.md#transaction-verification
+ * Current code is already in sync with LIP. No change needed.
+ */
 export const verifyMultiSignatureTransaction = (
 	tag: string,
 	networkIdentifier: Buffer,
@@ -92,7 +99,7 @@ export const verifyMultiSignatureTransaction = (
 		// Get corresponding optional key signature starting from offset(end of mandatory keys)
 		const signature = signatures[numMandatoryKeys + k];
 		if (signature.length !== 0) {
-			validateSignature(tag, networkIdentifier, optionalKeys[k], signature, transactionBytes, id);
+			verifyMessageSig(tag, networkIdentifier, optionalKeys[k], signature, transactionBytes, id);
 		}
 	}
 };
@@ -123,7 +130,7 @@ export const verifyRegisterMultiSignatureTransaction = (
 	}
 
 	// Verify first signature is from senderPublicKey
-	validateSignature(
+	verifyMessageSig(
 		tag,
 		networkIdentifier,
 		transaction.senderPublicKey,
@@ -165,7 +172,7 @@ export const verifySingleSignatureTransaction = (
 		);
 	}
 
-	validateSignature(
+	verifyMessageSig(
 		tag,
 		networkIdentifier,
 		transaction.senderPublicKey,
@@ -175,13 +182,72 @@ export const verifySingleSignatureTransaction = (
 	);
 };
 
+export const verifySignatures = (
+	authModuleName: string,
+	transaction: Transaction,
+	transactionBytes: Buffer,
+	networkIdentifier: Buffer,
+	account: AuthAccount,
+) => {
+	if (
+		transaction.module === authModuleName &&
+		transaction.command === COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP
+	) {
+		verifyRegisterMultiSignatureTransaction(
+			TAG_TRANSACTION,
+			registerMultisignatureParamsSchema,
+			transaction,
+			transactionBytes,
+			networkIdentifier,
+		);
+		return { verified: true };
+	}
+
+	// Verify multi signature registration transaction
+	if (isMultisignatureAccount(account)) {
+		verifyMultiSignatureTransaction(
+			TAG_TRANSACTION,
+			networkIdentifier,
+			transaction.id,
+			account,
+			transaction.signatures,
+			transactionBytes,
+		);
+	} else {
+		verifySingleSignatureTransaction(
+			TAG_TRANSACTION,
+			transaction,
+			transactionBytes,
+			networkIdentifier,
+		);
+	}
+	return { verified: true };
+};
+
+export const verifyNonceStrict = (
+	transaction: Transaction,
+	senderAccount: AuthAccount,
+): VerificationResult => {
+	if (transaction.nonce !== senderAccount.nonce) {
+		throw new InvalidNonceError(
+			`Transaction with id:${transaction.id.toString('hex')} nonce is not equal to account nonce.`,
+			transaction.nonce,
+			senderAccount.nonce,
+		);
+	}
+
+	return {
+		status: VerifyStatus.OK,
+	};
+};
+
 export const verifyNonce = (
 	transaction: Transaction,
 	senderAccount: AuthAccount,
 ): VerificationResult => {
 	if (transaction.nonce < senderAccount.nonce) {
 		throw new InvalidNonceError(
-			`Transaction with id:${transaction.id.toString('hex')} nonce is lower than account nonce`,
+			`Transaction with id:${transaction.id.toString('hex')} nonce is lower than account nonce.`,
 			transaction.nonce,
 			senderAccount.nonce,
 		);

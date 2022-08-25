@@ -69,8 +69,8 @@ export interface EventData {
 }
 
 export interface SendTransactionOptions {
-	moduleID: string;
-	commandID: string;
+	module: string;
+	command: string;
 	params: Record<string, unknown>;
 	passphrase: string;
 }

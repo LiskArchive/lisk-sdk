@@ -27,9 +27,9 @@ describe('broadcaster', () => {
 	const defaultReleaseLimit = 25;
 	const tx = new Transaction({
 		params: Buffer.alloc(20),
-		commandID: utils.intToBuffer(0, 4),
+		command: 'transfer',
 		fee: BigInt(100000),
-		moduleID: utils.intToBuffer(2, 4),
+		module: 'token',
 		nonce: BigInt(0),
 		senderPublicKey: Buffer.alloc(32),
 		signatures: [Buffer.alloc(64)],

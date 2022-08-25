@@ -20,14 +20,16 @@ import { when } from 'jest-when';
 import { AuthModule } from '../../../../src/modules/auth';
 import * as fixtures from './fixtures.json';
 import * as testing from '../../../../src/testing';
-import { authAccountSchema, genesisAuthStoreSchema } from '../../../../src/modules/auth/schemas';
-import { AuthAccount } from '../../../../src/modules/auth/types';
+import { genesisAuthStoreSchema } from '../../../../src/modules/auth/schemas';
 import { VerifyStatus } from '../../../../src/state_machine';
 import { InvalidNonceError } from '../../../../src/modules/auth/errors';
-import { STORE_PREFIX_AUTH } from '../../../../src/modules/auth/constants';
 import { createGenesisBlockContext } from '../../../../src/testing';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
+import {
+	authAccountSchema,
+	AuthAccountStore,
+} from '../../../../src/modules/auth/stores/auth_account';
 
 describe('AuthModule', () => {
 	let decodedMultiSignature: any;
@@ -278,14 +280,14 @@ describe('AuthModule', () => {
 			const assetBytes = codec.encode(genesisAuthStoreSchema, validAsset);
 			const context = createGenesisBlockContext({
 				stateStore,
-				assets: new BlockAssets([{ moduleID: authModule.id, data: assetBytes }]),
+				assets: new BlockAssets([{ module: authModule.name, data: assetBytes }]),
 			}).createInitGenesisStateContext();
 			jest.spyOn(context, 'getStore');
 
 			await expect(authModule.initGenesisState(context)).toResolve();
-			const authStore = stateStore.getStore(authModule.id, STORE_PREFIX_AUTH);
+			const authStore = authModule.stores.get(AuthAccountStore);
 			for (const data of validAsset.authDataSubstore) {
-				await expect(authStore.has(data.storeKey)).resolves.toBeTrue();
+				await expect(authStore.has(context, data.storeKey)).resolves.toBeTrue();
 			}
 		});
 
@@ -295,7 +297,7 @@ describe('AuthModule', () => {
 				const assetBytes = codec.encode(genesisAuthStoreSchema, data as object);
 				const context = createGenesisBlockContext({
 					stateStore,
-					assets: new BlockAssets([{ moduleID: authModule.id, data: assetBytes }]),
+					assets: new BlockAssets([{ module: authModule.name, data: assetBytes }]),
 				}).createInitGenesisStateContext();
 
 				await expect(authModule.initGenesisState(context)).toReject();
@@ -330,7 +332,7 @@ describe('AuthModule', () => {
 						// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 						`Transaction with id:${validTestTransaction.id.toString(
 							'hex',
-						)} nonce is lower than account nonce`,
+						)} nonce is lower than account nonce.`,
 						validTestTransaction.nonce,
 						accountNonce,
 					),
@@ -340,8 +342,8 @@ describe('AuthModule', () => {
 			it('should return PENDING status with no error when trx nonce is higher than account nonce', async () => {
 				// Arrange
 				const transaction = new Transaction({
-					moduleID: utils.intToBuffer(2, 4),
-					commandID: utils.intToBuffer(0, 4),
+					module: 'token',
+					command: 'transfer',
 					nonce: BigInt('2'),
 					fee: BigInt('100000000'),
 					senderPublicKey: passphraseDerivedKeys.publicKey,
@@ -397,8 +399,8 @@ describe('AuthModule', () => {
 			it('should not throw for valid transaction', async () => {
 				// Arrange
 				const transaction = new Transaction({
-					moduleID: utils.intToBuffer(2, 4),
-					commandID: utils.intToBuffer(0, 4),
+					module: 'token',
+					command: 'transfer',
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
 					senderPublicKey: passphraseDerivedKeys.publicKey,
@@ -432,8 +434,8 @@ describe('AuthModule', () => {
 			it('should throw if signature is missing', async () => {
 				// Arrange
 				const transaction = new Transaction({
-					moduleID: utils.intToBuffer(2, 4),
-					commandID: utils.intToBuffer(0, 4),
+					module: 'token',
+					command: 'transfer',
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
 					senderPublicKey: passphraseDerivedKeys.publicKey,
@@ -460,8 +462,8 @@ describe('AuthModule', () => {
 			it('should throw error if account is not multi signature and more than one signature present', async () => {
 				// Arrange
 				const transaction = new Transaction({
-					moduleID: utils.intToBuffer(2, 4),
-					commandID: utils.intToBuffer(0, 4),
+					module: 'token',
+					command: 'transfer',
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
 					senderPublicKey: passphraseDerivedKeys.publicKey,
@@ -558,8 +560,8 @@ describe('AuthModule', () => {
 					});
 
 				transaction = new Transaction({
-					moduleID: utils.intToBuffer(2, 4),
-					commandID: utils.intToBuffer(0, 4),
+					module: 'token',
+					command: 'transfer',
 					nonce: BigInt('0'),
 					fee: BigInt('100000000'),
 					senderPublicKey: (members as any).mainAccount.keys.publicKey,
@@ -1126,19 +1128,9 @@ describe('AuthModule', () => {
 		});
 	});
 
-	describe('afterCommandExecute', () => {
-		it('should correctly increment the nonce', async () => {
+	describe('beforeCommandExecute', () => {
+		it('should initialize senderAccount with default values when there is no sender account in AUTH store', async () => {
 			const stateStore1 = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-			const authStore1 = stateStore1.getStore(authModule.id, STORE_PREFIX_AUTH);
-			const address = cryptoAddress.getAddressFromPublicKey(validTestTransaction.senderPublicKey);
-			const authAccount1 = {
-				nonce: validTestTransaction.nonce,
-				numberOfSignatures: 5,
-				mandatoryKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
-				optionalKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
-			};
-			await authStore1.setWithSchema(address, authAccount1, authAccountSchema);
-
 			const context = testing
 				.createTransactionContext({
 					stateStore: stateStore1,
@@ -1146,14 +1138,22 @@ describe('AuthModule', () => {
 					networkIdentifier,
 				})
 				.createTransactionExecuteContext();
+			const authStore1 = authModule.stores.get(AuthAccountStore);
+			const address = cryptoAddress.getAddressFromPublicKey(validTestTransaction.senderPublicKey);
+			const authAccount1 = {
+				nonce: validTestTransaction.nonce,
+				numberOfSignatures: 5,
+				mandatoryKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
+				optionalKeys: [utils.getRandomBytes(64), utils.getRandomBytes(64)],
+			};
+			await authStore1.set(context, address, authAccount1);
 
-			await authModule.afterCommandExecute(context);
-			const authStore = context.getStore(authModule.id, STORE_PREFIX_AUTH);
-			const authAccount = await authStore.getWithSchema<AuthAccount>(
-				context.transaction.senderAddress,
-				authAccountSchema,
-			);
-			expect(authAccount.nonce - validTestTransaction.nonce).toBe(BigInt(1));
+			await authModule.beforeCommandExecute(context);
+
+			const authStore = authModule.stores.get(AuthAccountStore);
+			const authAccount = await authStore.get(context, context.transaction.senderAddress);
+
+			expect(authAccount.nonce).toBe(BigInt(2));
 		});
 	});
 });

@@ -18,6 +18,7 @@ import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { BFTModule } from '../../../../src/engine/bft';
 import {
 	EMPTY_KEY,
+	MODULE_STORE_PREFIX_BFT,
 	STORE_PREFIX_BFT_PARAMETERS,
 	STORE_PREFIX_BFT_VOTES,
 } from '../../../../src/engine/bft/constants';
@@ -51,7 +52,10 @@ describe('BFT processing', () => {
 				db = new InMemoryDatabase();
 				stateStore = new StateStore(db);
 
-				const paramsStore = stateStore.getStore(bftModule.id, STORE_PREFIX_BFT_PARAMETERS);
+				const paramsStore = stateStore.getStore(
+					MODULE_STORE_PREFIX_BFT,
+					STORE_PREFIX_BFT_PARAMETERS,
+				);
 				const threshold = Math.floor((scenario.config.activeDelegates * 2) / 3) + 1;
 				const validators: (BFTValidator & GeneratorKey & { minHeightActive: number })[] = [];
 				for (const testCase of scenario.testCases) {
@@ -79,7 +83,7 @@ describe('BFT processing', () => {
 					},
 					bftParametersSchema,
 				);
-				const votesStore = stateStore.getStore(bftModule.id, STORE_PREFIX_BFT_VOTES);
+				const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
 				await votesStore.setWithSchema(
 					EMPTY_KEY,
 					{
@@ -119,7 +123,10 @@ describe('BFT processing', () => {
 					});
 
 					// Update minActiveHeight which is written in input block header
-					const beforeVotesStore = stateStore.getStore(bftModule.id, STORE_PREFIX_BFT_VOTES);
+					const beforeVotesStore = stateStore.getStore(
+						MODULE_STORE_PREFIX_BFT,
+						STORE_PREFIX_BFT_VOTES,
+					);
 					const beforeVotes = await beforeVotesStore.getWithSchema<BFTVotes>(
 						EMPTY_KEY,
 						bftVotesSchema,
@@ -146,7 +153,7 @@ describe('BFT processing', () => {
 
 					await bftModule.beforeTransactionsExecute(stateStore, header);
 
-					const votesStore = stateStore.getStore(bftModule.id, STORE_PREFIX_BFT_VOTES);
+					const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
 					const result = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
 
 					// Assert

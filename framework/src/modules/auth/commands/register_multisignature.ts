@@ -21,19 +21,12 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../state_machine';
-import {
-	COMMAND_ID_MULTISIGNATURE_REGISTRATION,
-	MAX_KEYS_COUNT,
-	MODULE_ID_AUTH,
-	STORE_PREFIX_AUTH,
-} from '../constants';
-import { authAccountSchema, registerMultisignatureParamsSchema } from '../schemas';
-import { AuthAccount, RegisterMultisignatureParams } from '../types';
-import { getIDAsKeyForStore } from '../utils';
+import { MAX_NUMBER_OF_SIGNATURES } from '../constants';
+import { registerMultisignatureParamsSchema } from '../schemas';
+import { AuthAccountStore } from '../stores/auth_account';
+import { RegisterMultisignatureParams } from '../types';
 
-export class RegisterMultisignatureCommand extends BaseCommand {
-	public id = getIDAsKeyForStore(COMMAND_ID_MULTISIGNATURE_REGISTRATION);
-	public name = 'registerMultisignatureGroup';
+export class RegisterMultisignatureGroupCommand extends BaseCommand {
 	public schema = registerMultisignatureParamsSchema;
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -78,7 +71,7 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 
 		// Check if key count is out of bounds
 		if (
-			mandatoryKeys.length + optionalKeys.length > MAX_KEYS_COUNT ||
+			mandatoryKeys.length + optionalKeys.length > MAX_NUMBER_OF_SIGNATURES ||
 			mandatoryKeys.length + optionalKeys.length <= 0
 		) {
 			return {
@@ -150,11 +143,8 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 		context: CommandExecuteContext<RegisterMultisignatureParams>,
 	): Promise<void> {
 		const { transaction } = context;
-		const authSubstore = context.getStore(getIDAsKeyForStore(MODULE_ID_AUTH), STORE_PREFIX_AUTH);
-		const senderAccount = await authSubstore.getWithSchema<AuthAccount>(
-			transaction.senderAddress,
-			authAccountSchema,
-		);
+		const authSubstore = this.stores.get(AuthAccountStore);
+		const senderAccount = await authSubstore.get(context, transaction.senderAddress);
 
 		// Check if multisignatures already exists on account
 		if (senderAccount.numberOfSignatures > 0) {
@@ -165,6 +155,6 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 		senderAccount.optionalKeys = context.params.optionalKeys;
 		senderAccount.numberOfSignatures = context.params.numberOfSignatures;
 
-		await authSubstore.setWithSchema(transaction.senderAddress, senderAccount, authAccountSchema);
+		await authSubstore.set(context, transaction.senderAddress, senderAccount);
 	}
 }

@@ -21,8 +21,6 @@ import {
 } from '../../../state_machine';
 import { TokenAPI } from '../api';
 import { transferParamsSchema } from '../schemas';
-import { COMMAND_ID_TRANSFER } from '../constants';
-import { getIDAsKeyForStore } from '../utils';
 
 interface Params {
 	tokenID: Buffer;
@@ -32,8 +30,6 @@ interface Params {
 }
 
 export class TransferCommand extends BaseCommand {
-	public name = 'transfer';
-	public id = getIDAsKeyForStore(COMMAND_ID_TRANSFER);
 	public schema = transferParamsSchema;
 	private _api!: TokenAPI;
 

@@ -192,12 +192,15 @@ describe('InMemoryChannel Channel', () => {
 
 			// Assert
 			expect(
-				params.endpoints.action1.mock.calls[0][0].getStore(Buffer.from([0, 0, 0, 0]), 0),
+				params.endpoints.action1.mock.calls[0][0].getStore(
+					Buffer.from([0, 0, 0, 0]),
+					Buffer.from([0, 0, 0, 0]),
+				),
 			).toBeInstanceOf(PrefixedStateReadWriter);
 			expect(
 				params.endpoints.action1.mock.calls[0][0]
 					.getImmutableAPIContext()
-					.getStore(Buffer.from([0, 0, 0, 0]), 0),
+					.getStore(Buffer.from([0, 0, 0, 0]), Buffer.from([0, 0, 0, 0])),
 			).toBeInstanceOf(PrefixedStateReadWriter);
 		});
 

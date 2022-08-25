@@ -26,7 +26,7 @@ import {
 	updatePrevotesPrecommits,
 } from '../../../../src/engine/bft/bft_votes';
 import {
-	MODULE_ID_BFT_BUFFER,
+	MODULE_STORE_PREFIX_BFT,
 	STORE_PREFIX_BFT_PARAMETERS,
 } from '../../../../src/engine/bft/constants';
 import { bftParametersSchema, BFTVotes } from '../../../../src/engine/bft/schemas';
@@ -189,7 +189,7 @@ describe('BFT votes', () => {
 
 		beforeEach(async () => {
 			const stateStore = new StateStore(new InMemoryDatabase());
-			const paramsStore = stateStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_BFT_PARAMETERS);
+			const paramsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
 			await paramsStore.setWithSchema(
 				utils.intToBuffer(101, 4),
 				{
@@ -336,7 +336,7 @@ describe('BFT votes', () => {
 
 		it('should store maximum height where prevote exceeds threshold', async () => {
 			const stateStore = new StateStore(new InMemoryDatabase());
-			const paramsStore = stateStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_BFT_PARAMETERS);
+			const paramsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
 			await paramsStore.setWithSchema(
 				utils.intToBuffer(101, 4),
 				{
@@ -371,7 +371,7 @@ describe('BFT votes', () => {
 
 		it('should not update maxHeightPrevoted if no block info exceeds threshold', async () => {
 			const stateStore = new StateStore(new InMemoryDatabase());
-			const paramsStore = stateStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_BFT_PARAMETERS);
+			const paramsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
 			await paramsStore.setWithSchema(
 				utils.intToBuffer(101, 4),
 				{
@@ -410,7 +410,7 @@ describe('BFT votes', () => {
 
 		it('should store maximum height where prevote exceeds threshold', async () => {
 			const stateStore = new StateStore(new InMemoryDatabase());
-			const paramsStore = stateStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_BFT_PARAMETERS);
+			const paramsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
 			await paramsStore.setWithSchema(
 				utils.intToBuffer(101, 4),
 				{
@@ -445,7 +445,7 @@ describe('BFT votes', () => {
 
 		it('should not update maxHeightPrevoted if no block info exceeds threshold', async () => {
 			const stateStore = new StateStore(new InMemoryDatabase());
-			const paramsStore = stateStore.getStore(MODULE_ID_BFT_BUFFER, STORE_PREFIX_BFT_PARAMETERS);
+			const paramsStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_PARAMETERS);
 			await paramsStore.setWithSchema(
 				utils.intToBuffer(101, 4),
 				{

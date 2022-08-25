@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { NotFoundError, TAG_TRANSACTION } from '@liskhq/lisk-chain';
+import { NotFoundError } from '@liskhq/lisk-chain';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { codec } from '@liskhq/lisk-codec';
 import { validator } from '@liskhq/lisk-validator';
@@ -24,47 +24,36 @@ import {
 	VerificationResult,
 } from '../../state_machine';
 import { AuthAPI } from './api';
-import { RegisterMultisignatureCommand } from './commands/register_multisignature';
-import {
-	COMMAND_ID_MULTISIGNATURE_REGISTRATION,
-	MAX_KEYS_COUNT,
-	MODULE_ID_AUTH,
-	STORE_PREFIX_AUTH,
-} from './constants';
+import { RegisterMultisignatureGroupCommand } from './commands/register_multisignature';
+import { MAX_NUMBER_OF_SIGNATURES } from './constants';
 import { AuthEndpoint } from './endpoint';
-import {
-	authAccountSchema,
-	configSchema,
-	genesisAuthStoreSchema,
-	registerMultisignatureParamsSchema,
-} from './schemas';
-import { AuthAccount, GenesisAuthStore } from './types';
-import {
-	getIDAsKeyForStore,
-	isMultisignatureAccount,
-	verifyMultiSignatureTransaction,
-	verifyNonce,
-	verifyRegisterMultiSignatureTransaction,
-	verifySingleSignatureTransaction,
-} from './utils';
+import { configSchema, genesisAuthStoreSchema } from './schemas';
+import { GenesisAuthStore } from './types';
+import { verifyNonce, verifySignatures } from './utils';
+import { AuthAccount, authAccountSchema, AuthAccountStore } from './stores/auth_account';
 
 export class AuthModule extends BaseModule {
-	public id = getIDAsKeyForStore(MODULE_ID_AUTH);
-	public name = 'auth';
-	public api = new AuthAPI(this.id);
-	public endpoint = new AuthEndpoint(this.id);
+	public api = new AuthAPI(this.stores, this.events);
+	public endpoint = new AuthEndpoint(this.name, this.stores, this.offchainStores);
 	public configSchema = configSchema;
-	public commands = [new RegisterMultisignatureCommand(this.id)];
+	public commands = [new RegisterMultisignatureGroupCommand(this.stores, this.events)];
+
+	public constructor() {
+		super();
+		this.stores.register(AuthAccountStore, new AuthAccountStore(this.name));
+	}
 
 	public metadata(): ModuleMetadata {
 		return {
 			endpoints: [],
 			commands: this.commands.map(command => ({
-				id: command.id,
 				name: command.name,
 				params: command.schema,
 			})),
-			events: [],
+			events: this.events.values().map(v => ({
+				typeID: v.name,
+				data: v.schema,
+			})),
 			assets: [
 				{
 					version: 0,
@@ -75,13 +64,13 @@ export class AuthModule extends BaseModule {
 	}
 
 	public async initGenesisState(context: GenesisBlockExecuteContext): Promise<void> {
-		const assetBytes = context.assets.getAsset(this.id);
+		const assetBytes = context.assets.getAsset(this.name);
 		// if there is no asset, do not initialize
 		if (!assetBytes) {
 			return;
 		}
 		const genesisStore = codec.decode<GenesisAuthStore>(genesisAuthStoreSchema, assetBytes);
-		const store = context.getStore(this.id, STORE_PREFIX_AUTH);
+		const store = this.stores.get(AuthAccountStore);
 		const keys = [];
 		for (const { storeKey, storeValue } of genesisStore.authDataSubstore) {
 			if (storeKey.length !== 20) {
@@ -113,9 +102,9 @@ export class AuthModule extends BaseModule {
 					throw new Error('Invalid store value for auth module. OptionalKeys are not unique.');
 				}
 			}
-			if (mandatoryKeys.length + optionalKeys.length > MAX_KEYS_COUNT) {
+			if (mandatoryKeys.length + optionalKeys.length > MAX_NUMBER_OF_SIGNATURES) {
 				throw new Error(
-					`The count of Mandatory and Optional keys should be maximum ${MAX_KEYS_COUNT}.`,
+					`The count of Mandatory and Optional keys should be maximum ${MAX_NUMBER_OF_SIGNATURES}.`,
 				);
 			}
 
@@ -138,7 +127,7 @@ export class AuthModule extends BaseModule {
 				throw new Error('The numberOfSignatures is smaller than the count of Mandatory keys.');
 			}
 
-			await store.setWithSchema(storeKey, storeValue, authAccountSchema);
+			await store.set(context, storeKey, storeValue);
 		}
 		if (!objectUtils.bufferArrayUniqueItems(keys)) {
 			throw new Error('Duplicate store key for auth module.');
@@ -147,16 +136,13 @@ export class AuthModule extends BaseModule {
 
 	public async verifyTransaction(context: TransactionVerifyContext): Promise<VerificationResult> {
 		const { transaction, networkIdentifier } = context;
-		const store = context.getStore(this.id, STORE_PREFIX_AUTH);
+		const store = this.stores.get(AuthAccountStore);
 
 		let senderAccount: AuthAccount;
 
 		// First transaction will not have nonce
 		try {
-			senderAccount = await store.getWithSchema<AuthAccount>(
-				transaction.senderAddress,
-				authAccountSchema,
-			);
+			senderAccount = await store.get(context, transaction.senderAddress);
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
@@ -172,46 +158,12 @@ export class AuthModule extends BaseModule {
 		// Verify nonce of the transaction, it can be FAILED, PENDING or OK
 		const nonceStatus = verifyNonce(transaction, senderAccount);
 
-		const transactionBytes = transaction.getSigningBytes();
-
-		// Verify multisignature registration transaction
-		if (
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-			transaction.moduleID.equals(this.id) &&
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-			transaction.commandID.equals(getIDAsKeyForStore(COMMAND_ID_MULTISIGNATURE_REGISTRATION))
-		) {
-			verifyRegisterMultiSignatureTransaction(
-				TAG_TRANSACTION,
-				registerMultisignatureParamsSchema,
-				transaction,
-				transactionBytes,
-				networkIdentifier,
-			);
-
-			return nonceStatus;
-		}
-
-		// Verify single signature transaction
-		if (!isMultisignatureAccount(senderAccount)) {
-			verifySingleSignatureTransaction(
-				TAG_TRANSACTION,
-				transaction,
-				transactionBytes,
-				networkIdentifier,
-			);
-
-			return nonceStatus;
-		}
-
-		// Verify transaction sent from multisignature account
-		verifyMultiSignatureTransaction(
-			TAG_TRANSACTION,
+		verifySignatures(
+			this.name,
+			transaction,
+			transaction.getSigningBytes(),
 			networkIdentifier,
-			transaction.id,
 			senderAccount,
-			transaction.signatures,
-			transactionBytes,
 		);
 
 		return nonceStatus;
@@ -219,37 +171,20 @@ export class AuthModule extends BaseModule {
 
 	public async beforeCommandExecute(context: TransactionExecuteContext): Promise<void> {
 		const { transaction } = context;
-		const store = context.getStore(this.id, STORE_PREFIX_AUTH);
-		const senderExist = await store.has(transaction.senderAddress);
+		const store = this.stores.get(AuthAccountStore);
+		const senderExist = await store.has(context, transaction.senderAddress);
 		if (!senderExist) {
-			await store.setWithSchema(
-				context.transaction.senderAddress,
-				{
-					nonce: BigInt(0),
-					numberOfSignatures: 0,
-					mandatoryKeys: [],
-					optionalKeys: [],
-				},
-				authAccountSchema,
-			);
+			await store.set(context, context.transaction.senderAddress, {
+				nonce: BigInt(0),
+				numberOfSignatures: 0,
+				mandatoryKeys: [],
+				optionalKeys: [],
+			});
 		}
-	}
 
-	public async afterCommandExecute(context: TransactionExecuteContext): Promise<void> {
-		const address = context.transaction.senderAddress;
-
-		const authStore = context.getStore(this.id, STORE_PREFIX_AUTH);
-		const senderAccount = await authStore.getWithSchema<AuthAccount>(address, authAccountSchema);
+		const senderAccount = await store.get(context, transaction.senderAddress);
 		senderAccount.nonce += BigInt(1);
-		await authStore.setWithSchema(
-			address,
-			{
-				nonce: senderAccount.nonce,
-				numberOfSignatures: senderAccount.numberOfSignatures,
-				mandatoryKeys: senderAccount.mandatoryKeys,
-				optionalKeys: senderAccount.optionalKeys,
-			},
-			authAccountSchema,
-		);
+
+		await store.set(context, transaction.senderAddress, senderAccount);
 	}
 }

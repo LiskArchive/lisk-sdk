@@ -12,15 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
-import { utils } from '@liskhq/lisk-cryptography';
 import { validateTransaction } from '../src';
 
 describe('validateTransaction', () => {
 	// Arrange
 	const validTransaction = {
-		moduleID: utils.intToBuffer(2, 4),
-		commandID: utils.intToBuffer(0, 4),
+		module: 'token',
+		command: 'transfer',
 		nonce: BigInt('1'),
 		fee: BigInt('10000000'),
 		senderPublicKey: Buffer.from(
@@ -61,8 +59,8 @@ describe('validateTransaction', () => {
 
 	it('should return error for invalid transaction header', () => {
 		const invalidTransactionObjects = [
-			{ ...validTransaction, moduleID: BigInt(8) },
-			{ ...validTransaction, commandID: BigInt(8) },
+			{ ...validTransaction, module: BigInt(8) },
+			{ ...validTransaction, command: BigInt(8) },
 			{ ...validTransaction, nonce: 1 },
 			{ ...validTransaction, fee: 1000000 },
 			{ ...validTransaction, senderPublicKey: 1 },

@@ -52,7 +52,7 @@ export const configSchema = {
 export interface UserStoreData {
 	availableBalance: bigint;
 	lockedBalances: {
-		moduleID: Buffer;
+		module: string;
 		amount: bigint;
 	}[];
 }
@@ -68,9 +68,9 @@ export const userStoreSchema = {
 			fieldNumber: 2,
 			items: {
 				type: 'object',
-				required: ['moduleID', 'amount'],
+				required: ['module', 'amount'],
 				properties: {
-					moduleID: { dataType: 'bytes', fieldNumber: 1 },
+					module: { dataType: 'string', fieldNumber: 1 },
 					amount: { dataType: 'uint64', fieldNumber: 2 },
 				},
 			},
@@ -360,10 +360,10 @@ export const genesisTokenStoreSchema = {
 						fieldNumber: 4,
 						items: {
 							type: 'object',
-							required: ['moduleID', 'amount'],
+							required: ['module', 'amount'],
 							properties: {
-								moduleID: {
-									dataType: 'bytes',
+								module: {
+									dataType: 'string',
 									fieldNumber: 1,
 								},
 								amount: {
@@ -480,11 +480,10 @@ export const getBalanceResponseSchema = {
 			type: 'array',
 			items: {
 				type: 'object',
-				required: ['moduleID', 'amount'],
+				required: ['module', 'amount'],
 				properties: {
-					moduleID: {
+					module: {
 						type: 'string',
-						format: 'uint32',
 					},
 					amount: {
 						type: 'string',
@@ -533,11 +532,10 @@ export const getBalancesResponseSchema = {
 						type: 'array',
 						items: {
 							type: 'object',
-							required: ['moduleID', 'amount'],
+							required: ['module', 'amount'],
 							properties: {
-								moduleID: {
+								module: {
 									type: 'string',
-									format: 'uint32',
 								},
 								amount: {
 									type: 'string',

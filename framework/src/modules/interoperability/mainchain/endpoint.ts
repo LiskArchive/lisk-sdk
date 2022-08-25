@@ -13,13 +13,13 @@
  */
 
 import { MainchainInteroperabilityStore } from './store';
-import { ImmutableStoreCallback, StoreCallback } from '../types';
 import { BaseInteroperabilityEndpoint } from '../base_interoperability_endpoint';
+import { ImmutableStoreGetter, StoreGetter } from '../../base_store';
 
 export class MainchainInteroperabilityEndpoint extends BaseInteroperabilityEndpoint<MainchainInteroperabilityStore> {
 	protected getInteroperabilityStore(
-		getStore: StoreCallback | ImmutableStoreCallback,
+		context: StoreGetter | ImmutableStoreGetter,
 	): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
+		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
 	}
 }

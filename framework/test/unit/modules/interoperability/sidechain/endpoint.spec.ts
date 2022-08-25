@@ -14,8 +14,17 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { intToBuffer } from '@liskhq/lisk-cryptography/dist-node/utils';
+import { ModuleEndpointContext, SidechainInteroperabilityModule } from '../../../../../src';
 import { SidechainInteroperabilityEndpoint } from '../../../../../src/modules/interoperability/sidechain/endpoint';
 import { SidechainInteroperabilityStore } from '../../../../../src/modules/interoperability/sidechain/store';
+import {
+	TerminatedOutboxAccount,
+	TerminatedOutboxAccountJSON,
+} from '../../../../../src/modules/interoperability/stores/terminated_outbox';
+import {
+	TerminatedStateAccount,
+	TerminatedStateAccountJSON,
+} from '../../../../../src/modules/interoperability/stores/terminated_state';
 import {
 	ChainAccount,
 	ChainAccountJSON,
@@ -23,26 +32,17 @@ import {
 	ChannelDataJSON,
 	OwnChainAccount,
 	OwnChainAccountJSON,
-	TerminatedOutboxAccount,
-	TerminatedOutboxAccountJSON,
-	TerminatedStateAccount,
-	TerminatedStateAccountJSON,
 } from '../../../../../src/modules/interoperability/types';
 import { chainAccountToJSON } from '../../../../../src/modules/interoperability/utils';
+import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
+import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 
 describe('Sidechain endpoint', () => {
-	const moduleID = utils.intToBuffer(1, 4);
+	const interopMod = new SidechainInteroperabilityModule();
 	const chainID = utils.intToBuffer(1, 4);
 	const interoperableCCAPIs = new Map();
-	const getStore = jest.fn().mockReturnValue({ getWithSchema: jest.fn(), iterate: jest.fn() });
 
-	const moduleContext = {
-		getStore,
-		getImmutableAPIContext: jest.fn(),
-		networkIdentifier: Buffer.alloc(0),
-		params: {},
-		logger: {} as any,
-	};
+	let moduleContext: ModuleEndpointContext;
 
 	const chainAccount: ChainAccount = {
 		lastCertificate: {
@@ -144,20 +144,25 @@ describe('Sidechain endpoint', () => {
 	};
 
 	let sidechainInteroperabilityEndpoint: SidechainInteroperabilityEndpoint;
-	let sidechainInteroperabilityStore = new SidechainInteroperabilityStore(
-		moduleID,
-		getStore,
-		interoperableCCAPIs,
-	);
+	let sidechainInteroperabilityStore: SidechainInteroperabilityStore;
 
 	beforeEach(() => {
+		const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+		moduleContext = {
+			getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
+			getImmutableAPIContext: jest.fn(),
+			networkIdentifier: Buffer.alloc(0),
+			params: {},
+			logger: {} as any,
+		};
 		sidechainInteroperabilityEndpoint = new SidechainInteroperabilityEndpoint(
-			moduleID,
+			interopMod.stores,
+			interopMod.offchainStores,
 			interoperableCCAPIs,
 		);
 		sidechainInteroperabilityStore = new SidechainInteroperabilityStore(
-			moduleID,
-			getStore,
+			interopMod.stores,
+			moduleContext,
 			interoperableCCAPIs,
 		);
 		jest
@@ -190,7 +195,7 @@ describe('Sidechain endpoint', () => {
 		});
 		it('should call getInteroperabilityStore', async () => {
 			expect(sidechainInteroperabilityEndpoint['getInteroperabilityStore']).toHaveBeenCalledWith(
-				moduleContext.getStore,
+				moduleContext,
 			);
 		});
 
@@ -213,7 +218,7 @@ describe('Sidechain endpoint', () => {
 		});
 		it('should call getInteroperabilityStore', async () => {
 			expect(sidechainInteroperabilityEndpoint['getInteroperabilityStore']).toHaveBeenCalledWith(
-				moduleContext.getStore,
+				moduleContext,
 			);
 		});
 
@@ -238,7 +243,7 @@ describe('Sidechain endpoint', () => {
 
 		it('should call getInteroperabilityStore', async () => {
 			expect(sidechainInteroperabilityEndpoint['getInteroperabilityStore']).toHaveBeenCalledWith(
-				moduleContext.getStore,
+				moduleContext,
 			);
 		});
 
@@ -262,7 +267,7 @@ describe('Sidechain endpoint', () => {
 
 		it('should call getInteroperabilityStore', async () => {
 			expect(sidechainInteroperabilityEndpoint['getInteroperabilityStore']).toHaveBeenCalledWith(
-				moduleContext.getStore,
+				moduleContext,
 			);
 		});
 
@@ -287,7 +292,7 @@ describe('Sidechain endpoint', () => {
 
 		it('should call getInteroperabilityStore', async () => {
 			expect(sidechainInteroperabilityEndpoint['getInteroperabilityStore']).toHaveBeenCalledWith(
-				moduleContext.getStore,
+				moduleContext,
 			);
 		});
 
@@ -312,7 +317,7 @@ describe('Sidechain endpoint', () => {
 
 		it('should call getInteroperabilityStore', async () => {
 			expect(sidechainInteroperabilityEndpoint['getInteroperabilityStore']).toHaveBeenCalledWith(
-				moduleContext.getStore,
+				moduleContext,
 			);
 		});
 

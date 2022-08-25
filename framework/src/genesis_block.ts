@@ -29,7 +29,7 @@ export interface GenesisBlockGenerateInput {
 	previousBlockID?: Buffer;
 	assets: {
 		schema: Schema;
-		moduleID: Buffer;
+		module: string;
 		data: Record<string, unknown>;
 	}[];
 }
@@ -45,7 +45,7 @@ export const generateGenesisBlock = async (
 ): Promise<Block> => {
 	const assets = new BlockAssets(
 		input.assets.map(asset => ({
-			moduleID: asset.moduleID,
+			module: asset.module,
 			data: codec.encode(asset.schema, asset.data),
 		})),
 	);

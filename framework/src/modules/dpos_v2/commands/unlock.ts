@@ -14,30 +14,14 @@
 
 import { CommandExecuteContext } from '../../../state_machine/types';
 import { BaseCommand } from '../../base_command';
-import {
-	COMMAND_ID_UNLOCK,
-	defaultConfig,
-	EMPTY_KEY,
-	STORE_PREFIX_DELEGATE,
-	STORE_PREFIX_GENESIS_DATA,
-	STORE_PREFIX_VOTER,
-	MODULE_ID_DPOS_BUFFER,
-} from '../constants';
-import { delegateStoreSchema, genesisDataStoreSchema, voterStoreSchema } from '../schemas';
-import {
-	DelegateAccount,
-	GenesisData,
-	TokenAPI,
-	TokenIDDPoS,
-	UnlockCommandDependencies,
-	VoterData,
-} from '../types';
-import { hasWaited, isPunished, isCertificateGenerated, getIDAsKeyForStore } from '../utils';
+import { defaultConfig, EMPTY_KEY, MODULE_NAME_DPOS } from '../constants';
+import { DelegateStore } from '../stores/delegate';
+import { GenesisDataStore } from '../stores/genesis';
+import { VoterStore } from '../stores/voter';
+import { TokenAPI, TokenIDDPoS, UnlockCommandDependencies } from '../types';
+import { hasWaited, isPunished, isCertificateGenerated } from '../utils';
 
 export class UnlockCommand extends BaseCommand {
-	public id = getIDAsKeyForStore(COMMAND_ID_UNLOCK);
-	public name = 'unlockToken';
-
 	private _tokenAPI!: TokenAPI;
 	private _tokenIDDPoS!: TokenIDDPoS;
 
@@ -52,27 +36,20 @@ export class UnlockCommand extends BaseCommand {
 	public async execute(context: CommandExecuteContext): Promise<void> {
 		const {
 			transaction: { senderAddress },
-			getStore,
 			getAPIContext,
 			maxHeightCertified,
 			header: { height },
 		} = context;
-		const delegateSubstore = getStore(this.moduleID, STORE_PREFIX_DELEGATE);
-		const voterSubstore = getStore(this.moduleID, STORE_PREFIX_VOTER);
-		const voterData = await voterSubstore.getWithSchema<VoterData>(senderAddress, voterStoreSchema);
+		const delegateSubstore = this.stores.get(DelegateStore);
+		const voterSubstore = this.stores.get(VoterStore);
+		const voterData = await voterSubstore.get(context, senderAddress);
 		const ineligibleUnlocks = [];
-		const genesisDataStore = context.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_GENESIS_DATA);
-		const genesisData = await genesisDataStore.getWithSchema<GenesisData>(
-			EMPTY_KEY,
-			genesisDataStoreSchema,
-		);
+		const genesisDataStore = this.stores.get(GenesisDataStore);
+		const genesisData = await genesisDataStore.get(context, EMPTY_KEY);
 		const { height: genesisHeight } = genesisData;
 
 		for (const unlockObject of voterData.pendingUnlocks) {
-			const { pomHeights } = await delegateSubstore.getWithSchema<DelegateAccount>(
-				unlockObject.delegateAddress,
-				delegateStoreSchema,
-			);
+			const { pomHeights } = await delegateSubstore.get(context, unlockObject.delegateAddress);
 
 			if (
 				hasWaited(unlockObject, senderAddress, height) &&
@@ -87,7 +64,7 @@ export class UnlockCommand extends BaseCommand {
 				await this._tokenAPI.unlock(
 					getAPIContext(),
 					senderAddress,
-					MODULE_ID_DPOS_BUFFER,
+					MODULE_NAME_DPOS,
 					this._tokenIDDPoS,
 					unlockObject.amount,
 				);
@@ -99,6 +76,6 @@ export class UnlockCommand extends BaseCommand {
 			throw new Error('No eligible voter data was found for unlocking');
 		}
 		voterData.pendingUnlocks = ineligibleUnlocks;
-		await voterSubstore.setWithSchema(senderAddress, voterData, voterStoreSchema);
+		await voterSubstore.set(context, senderAddress, voterData);
 	}
 }

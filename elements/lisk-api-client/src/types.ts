@@ -223,8 +223,8 @@ export type DecodedBlockAssetJSON<T = Record<string, unknown>> = Omit<BlockAsset
 };
 
 export interface Transaction {
-	readonly moduleID: Buffer;
-	readonly commandID: Buffer;
+	readonly module: string;
+	readonly command: string;
 	readonly senderPublicKey: Buffer;
 	readonly nonce: bigint;
 	readonly fee: bigint;

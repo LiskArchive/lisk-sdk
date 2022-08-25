@@ -19,7 +19,6 @@ import {
 	Transaction,
 	DB_KEY_DIFF_STATE,
 	concatDBKeys,
-	DB_KEY_STATE_STORE,
 } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 
@@ -32,7 +31,6 @@ import {
 	DEFAULT_TOKEN_ID,
 } from '../../../utils/mocks/transaction';
 import * as testing from '../../../../src/testing';
-import { TokenModule } from '../../../../src';
 
 describe('Delete block', () => {
 	let processEnv: testing.BlockProcessingEnv;
@@ -185,14 +183,6 @@ describe('Delete block', () => {
 				await processEnv.process(newBlock);
 				await processEnv.getConsensus()['_deleteLastBlock']();
 				// Assert
-				const dbKey = concatDBKeys(
-					DB_KEY_STATE_STORE,
-					new TokenModule().id,
-					utils.intToBuffer(0, 2),
-				);
-				await expect(processEnv.getBlockchainDB().get(dbKey)).rejects.toThrow(
-					`Specified key ${dbKey.toString('hex')} does not exist`,
-				);
 				const revertedBalance = await processEnv.invoke<{ availableBalance: string }>(
 					'token_getBalance',
 					{

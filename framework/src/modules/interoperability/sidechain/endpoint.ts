@@ -13,13 +13,13 @@
  */
 
 import { SidechainInteroperabilityStore } from './store';
-import { ImmutableStoreCallback, StoreCallback } from '../types';
 import { BaseInteroperabilityEndpoint } from '../base_interoperability_endpoint';
+import { ImmutableStoreGetter, StoreGetter } from '../../base_store';
 
 export class SidechainInteroperabilityEndpoint extends BaseInteroperabilityEndpoint<SidechainInteroperabilityStore> {
 	protected getInteroperabilityStore(
-		getStore: StoreCallback | ImmutableStoreCallback,
+		context: StoreGetter | ImmutableStoreGetter,
 	): SidechainInteroperabilityStore {
-		return new SidechainInteroperabilityStore(this.moduleID, getStore, this.interoperableCCAPIs);
+		return new SidechainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
 	}
 }

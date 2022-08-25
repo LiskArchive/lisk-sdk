@@ -49,7 +49,7 @@ export const genesisAssetsSchema = {
 
 export interface GenesisAssetsInput {
 	assets: {
-		moduleID: Buffer;
+		module: string;
 		data: Record<string, unknown>;
 		schema: Schema;
 	}[];
@@ -96,7 +96,7 @@ export const generateGenesisBlockDefaultDPoSAssets = (input: GenesisBlockDefault
 
 	const genesisAssets = [
 		{
-			moduleID: new TokenModule().id,
+			module: new TokenModule().name,
 			data: {
 				userSubstore: accountList.map(a => ({
 					address: a.address,
@@ -111,7 +111,7 @@ export const generateGenesisBlockDefaultDPoSAssets = (input: GenesisBlockDefault
 			schema: tokenGenesisStoreSchema,
 		},
 		{
-			moduleID: new DPoSModule().id,
+			module: new DPoSModule().name,
 			data: {
 				validators: validatorList.map(v => ({
 					address: v.address,

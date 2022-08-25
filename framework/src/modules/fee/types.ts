@@ -12,14 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { APIContext } from '../../state_machine/types';
+import { APIContext, ImmutableAPIContext } from '../../state_machine/types';
 
 export type FeeTokenID = Buffer;
 
 export interface ModuleConfig {
 	feeTokenID: string;
 }
-
 export interface TokenAPI {
 	transfer: (
 		apiContext: APIContext,
@@ -35,4 +34,9 @@ export interface TokenAPI {
 		id: FeeTokenID,
 		amount: bigint,
 	) => Promise<void>;
+	getAvailableBalance(
+		apiContext: ImmutableAPIContext,
+		address: Buffer,
+		tokenID: Buffer,
+	): Promise<bigint>;
 }

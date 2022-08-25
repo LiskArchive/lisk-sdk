@@ -14,7 +14,7 @@
  */
 
 import { when } from 'jest-when';
-import { utils, legacy } from '@liskhq/lisk-cryptography';
+import { legacy } from '@liskhq/lisk-cryptography';
 import { Transaction } from '../../src/transaction';
 import { metadata, nodeInfo, schema, tx } from '../utils/transaction';
 
@@ -38,12 +38,12 @@ describe('transaction', () => {
 		'hex',
 	);
 	const txHex =
-		'0a040000000212040000000018362080ade2042a20dd4ff255fe04dd0159a468e9e9c8872c4f4466220f7e326377a0ceb9df2fa21a321d0880ade2041214654087c2df870402ab0b1996616fd3355d61f62c1a003a4079cb29dca7bb9fce73a1e8ca28264f779074d259c341b536bae9a54c0a2e4713580fcb192f9f15f43730650d69bb1f3dcfb4cb6da7d69ca990a763ed78569700';
+		'0a05746f6b656e12087472616e7366657218362080ade2042a20dd4ff255fe04dd0159a468e9e9c8872c4f4466220f7e326377a0ceb9df2fa21a321d0880ade2041214654087c2df870402ab0b1996616fd3355d61f62c1a003a4079cb29dca7bb9fce73a1e8ca28264f779074d259c341b536bae9a54c0a2e4713580fcb192f9f15f43730650d69bb1f3dcfb4cb6da7d69ca990a763ed78569700';
 	const encodedTx = Buffer.from(txHex, 'hex');
 
 	const validTransaction = {
-		moduleID: utils.intToBuffer(2, 4).toString('hex'),
-		commandID: utils.intToBuffer(0, 4).toString('hex'),
+		module: 'token',
+		command: 'transfer',
 		nonce: '1',
 		fee: '10000000',
 		senderPublicKey: publicKey1.toString('hex'),
@@ -56,8 +56,8 @@ describe('transaction', () => {
 	};
 	const validTransactionJSON = {
 		id: tx.id,
-		moduleID: utils.intToBuffer(2, 4).toString('hex'),
-		commandID: utils.intToBuffer(0, 4).toString('hex'),
+		module: 'token',
+		command: 'transfer',
 		nonce: '1',
 		fee: '10000000',
 		senderPublicKey: publicKey1.toString('hex'),
@@ -70,8 +70,8 @@ describe('transaction', () => {
 	const txId = Buffer.from(tx.id, 'hex');
 	const txJSON = {
 		...tx,
-		moduleID: tx.moduleID.toString('hex'),
-		commandID: tx.commandID.toString('hex'),
+		module: tx.module,
+		command: tx.command,
 		nonce: tx.nonce.toString(),
 		fee: tx.fee.toString(),
 		senderPublicKey: tx.senderPublicKey.toString('hex'),
@@ -155,29 +155,10 @@ describe('transaction', () => {
 				});
 			});
 
-			describe('when called without module id and module name in input', () => {
-				it('should throw error', async () => {
-					await expect(
-						transaction.create({ ...validTransaction, moduleID: undefined }, privateKey1),
-					).rejects.toThrow('Missing moduleID and moduleName');
-				});
-			});
-
-			describe('when called without asset id and asset name in input', () => {
-				it('should throw error', async () => {
-					await expect(
-						transaction.create({ ...validTransaction, commandID: undefined }, privateKey1),
-					).rejects.toThrow('Missing commandID and commandName');
-				});
-			});
-
 			describe('when called with module name which does not exist', () => {
 				it('should throw error', async () => {
 					await expect(
-						transaction.create(
-							{ ...validTransaction, moduleID: undefined, moduleName: 'newModule' },
-							privateKey1,
-						),
+						transaction.create({ ...validTransaction, module: 'newModule' }, privateKey1),
 					).rejects.toThrow('Module corresponding to name newModule not registered.');
 				});
 			});
@@ -185,10 +166,7 @@ describe('transaction', () => {
 			describe('when called with asset name which does not exist', () => {
 				it('should throw error', async () => {
 					await expect(
-						transaction.create(
-							{ ...validTransaction, commandID: undefined, commandName: 'newAsset' },
-							privateKey1,
-						),
+						transaction.create({ ...validTransaction, command: 'newAsset' }, privateKey1),
 					).rejects.toThrow('Command corresponding to name newAsset not registered.');
 				});
 			});

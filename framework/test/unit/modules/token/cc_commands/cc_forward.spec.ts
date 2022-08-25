@@ -14,6 +14,8 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
+import { TokenModule } from '../../../../../src';
+import { MODULE_NAME_INTEROPERABILITY } from '../../../../../src/modules/interoperability/constants';
 import { TokenAPI } from '../../../../../src/modules/token/api';
 import { CCForwardCommand } from '../../../../../src/modules/token/cc_commands/cc_forward';
 import {
@@ -21,25 +23,17 @@ import {
 	CCM_STATUS_PROTOCOL_VIOLATION,
 	CCM_STATUS_TOKEN_NOT_SUPPORTED,
 	CHAIN_ID_LENGTH,
-	CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
-	CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
+	CROSS_CHAIN_COMMAND_NAME_FORWARD,
+	CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 	EMPTY_BYTES,
 	MIN_BALANCE,
-	MODULE_ID_TOKEN_BUFFER,
-	STORE_PREFIX_AVAILABLE_LOCAL_ID,
-	STORE_PREFIX_ESCROW,
-	STORE_PREFIX_SUPPLY,
-	STORE_PREFIX_USER,
 	TOKEN_ID_LENGTH,
 } from '../../../../../src/modules/token/constants';
-import {
-	availableLocalIDStoreSchema,
-	crossChainForwardMessageParams,
-	escrowStoreSchema,
-	supplyStoreSchema,
-	userStoreSchema,
-} from '../../../../../src/modules/token/schemas';
-import { getUserStoreKey } from '../../../../../src/modules/token/utils';
+import { crossChainForwardMessageParams } from '../../../../../src/modules/token/schemas';
+import { AvailableLocalIDStore } from '../../../../../src/modules/token/stores/available_local_id';
+import { EscrowStore } from '../../../../../src/modules/token/stores/escrow';
+import { SupplyStore } from '../../../../../src/modules/token/stores/supply';
+import { UserStore } from '../../../../../src/modules/token/stores/user';
 import { EventQueue } from '../../../../../src/state_machine';
 import { APIContext, createAPIContext } from '../../../../../src/state_machine/api_context';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
@@ -47,6 +41,7 @@ import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_pr
 import { fakeLogger } from '../../../../utils/mocks';
 
 describe('CrossChain Forward command', () => {
+	const tokenModule = new TokenModule();
 	const defaultAddress = utils.getRandomBytes(20);
 	const defaultTokenIDAlias = Buffer.alloc(TOKEN_ID_LENGTH, 0);
 	const defaultTokenID = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
@@ -55,7 +50,7 @@ describe('CrossChain Forward command', () => {
 		availableBalance: BigInt(10000000000),
 		lockedBalances: [
 			{
-				moduleID: utils.intToBuffer(12, 4),
+				module: 'dpos',
 				amount: BigInt(100000000),
 			},
 		],
@@ -77,9 +72,8 @@ describe('CrossChain Forward command', () => {
 	let apiContext: APIContext;
 
 	beforeEach(async () => {
-		const moduleID = MODULE_ID_TOKEN_BUFFER;
-		api = new TokenAPI(moduleID);
-		command = new CCForwardCommand(moduleID, api);
+		api = new TokenAPI(tokenModule.stores, tokenModule.events, tokenModule.name);
+		command = new CCForwardCommand(tokenModule.stores, tokenModule.events, api);
 		interopAPI = {
 			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
 			send: jest.fn(),
@@ -99,51 +93,44 @@ describe('CrossChain Forward command', () => {
 
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		apiContext = createAPIContext({
-			stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
+			stateStore,
 			eventQueue: new EventQueue(),
 		});
-		const userStore = apiContext.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_USER);
-		await userStore.setWithSchema(
-			getUserStoreKey(defaultAddress, defaultTokenIDAlias),
+		const userStore = tokenModule.stores.get(UserStore);
+		await userStore.set(
+			apiContext,
+			userStore.getKey(defaultAddress, defaultTokenIDAlias),
 			defaultAccount,
-			userStoreSchema,
 		);
-		await userStore.setWithSchema(
-			getUserStoreKey(defaultAddress, defaultForeignTokenID),
+		await userStore.set(
+			apiContext,
+			userStore.getKey(defaultAddress, defaultForeignTokenID),
 			defaultAccount,
-			userStoreSchema,
 		);
 
-		const supplyStore = apiContext.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_SUPPLY);
-		await supplyStore.setWithSchema(
-			defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
-			{ totalSupply: defaultTotalSupply },
-			supplyStoreSchema,
-		);
+		const supplyStore = tokenModule.stores.get(SupplyStore);
+		await supplyStore.set(apiContext, defaultTokenIDAlias.slice(CHAIN_ID_LENGTH), {
+			totalSupply: defaultTotalSupply,
+		});
 
-		const nextAvailableLocalIDStore = apiContext.getStore(
-			MODULE_ID_TOKEN_BUFFER,
-			STORE_PREFIX_AVAILABLE_LOCAL_ID,
-		);
-		await nextAvailableLocalIDStore.setWithSchema(
-			EMPTY_BYTES,
-			{ nextAvailableLocalID: Buffer.from([0, 0, 0, 5]) },
-			availableLocalIDStoreSchema,
-		);
+		const nextAvailableLocalIDStore = tokenModule.stores.get(AvailableLocalIDStore);
+		await nextAvailableLocalIDStore.set(apiContext, EMPTY_BYTES, {
+			nextAvailableLocalID: Buffer.from([0, 0, 0, 5]),
+		});
 
-		const escrowStore = apiContext.getStore(MODULE_ID_TOKEN_BUFFER, STORE_PREFIX_ESCROW);
-		await escrowStore.setWithSchema(
+		const escrowStore = tokenModule.stores.get(EscrowStore);
+		await escrowStore.set(
+			apiContext,
 			Buffer.concat([
 				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 				defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
 			]),
 			{ amount: defaultEscrowAmount },
-			escrowStoreSchema,
 		);
-		await escrowStore.setWithSchema(
+		await escrowStore.set(
+			apiContext,
 			Buffer.concat([Buffer.from([3, 0, 0, 0]), defaultTokenIDAlias.slice(CHAIN_ID_LENGTH)]),
 			{ amount: defaultEscrowAmount },
-			escrowStoreSchema,
 		);
 		jest.spyOn(fakeLogger, 'debug');
 	});
@@ -153,8 +140,8 @@ describe('CrossChain Forward command', () => {
 			await expect(
 				command.execute({
 					ccm: {
-						crossChainCommandID: CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
-						moduleID: MODULE_ID_TOKEN_BUFFER,
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID: Buffer.from([3, 0, 0, 0]),
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
@@ -174,7 +161,7 @@ describe('CrossChain Forward command', () => {
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					ccmSize: BigInt(30),
-					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
 					networkIdentifier: utils.getRandomBytes(32),
 				}),
@@ -192,8 +179,8 @@ describe('CrossChain Forward command', () => {
 			await expect(
 				command.execute({
 					ccm: {
-						crossChainCommandID: CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
-						moduleID: MODULE_ID_TOKEN_BUFFER,
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
@@ -213,7 +200,7 @@ describe('CrossChain Forward command', () => {
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					ccmSize: BigInt(30),
-					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
 					networkIdentifier: utils.getRandomBytes(32),
 				}),
@@ -231,8 +218,8 @@ describe('CrossChain Forward command', () => {
 			await expect(
 				command.execute({
 					ccm: {
-						crossChainCommandID: CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
-						moduleID: MODULE_ID_TOKEN_BUFFER,
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
@@ -252,7 +239,7 @@ describe('CrossChain Forward command', () => {
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					ccmSize: BigInt(30),
-					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
 					networkIdentifier: utils.getRandomBytes(32),
 				}),
@@ -270,8 +257,8 @@ describe('CrossChain Forward command', () => {
 			await expect(
 				command.execute({
 					ccm: {
-						crossChainCommandID: CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
-						moduleID: MODULE_ID_TOKEN_BUFFER,
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
@@ -291,7 +278,7 @@ describe('CrossChain Forward command', () => {
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					ccmSize: BigInt(30),
-					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
 					networkIdentifier: utils.getRandomBytes(32),
 				}),
@@ -309,8 +296,8 @@ describe('CrossChain Forward command', () => {
 			await expect(
 				command.execute({
 					ccm: {
-						crossChainCommandID: CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
-						moduleID: MODULE_ID_TOKEN_BUFFER,
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
@@ -330,7 +317,7 @@ describe('CrossChain Forward command', () => {
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					ccmSize: BigInt(30),
-					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
 					networkIdentifier: utils.getRandomBytes(32),
 				}),
@@ -350,8 +337,8 @@ describe('CrossChain Forward command', () => {
 			await expect(
 				command.execute({
 					ccm: {
-						crossChainCommandID: CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
-						moduleID: MODULE_ID_TOKEN_BUFFER,
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
@@ -371,7 +358,7 @@ describe('CrossChain Forward command', () => {
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					ccmSize: BigInt(30),
-					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
 					networkIdentifier: utils.getRandomBytes(32),
 				}),
@@ -386,8 +373,8 @@ describe('CrossChain Forward command', () => {
 			await expect(
 				command.execute({
 					ccm: {
-						crossChainCommandID: CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
-						moduleID: MODULE_ID_TOKEN_BUFFER,
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID: defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
@@ -407,7 +394,7 @@ describe('CrossChain Forward command', () => {
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					ccmSize: BigInt(30),
-					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
 					networkIdentifier: utils.getRandomBytes(32),
 				}),
@@ -421,8 +408,8 @@ describe('CrossChain Forward command', () => {
 			await expect(
 				command.execute({
 					ccm: {
-						crossChainCommandID: CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
-						moduleID: MODULE_ID_TOKEN_BUFFER,
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
@@ -442,7 +429,7 @@ describe('CrossChain Forward command', () => {
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					ccmSize: BigInt(30),
-					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
 					networkIdentifier: utils.getRandomBytes(32),
 				}),
@@ -462,8 +449,8 @@ describe('CrossChain Forward command', () => {
 			await expect(
 				command.execute({
 					ccm: {
-						crossChainCommandID: CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
-						moduleID: MODULE_ID_TOKEN_BUFFER,
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
@@ -483,7 +470,7 @@ describe('CrossChain Forward command', () => {
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					ccmSize: BigInt(30),
-					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
 					networkIdentifier: utils.getRandomBytes(32),
 				}),
@@ -504,8 +491,8 @@ describe('CrossChain Forward command', () => {
 			await expect(
 				command.execute({
 					ccm: {
-						crossChainCommandID: CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
-						moduleID: MODULE_ID_TOKEN_BUFFER,
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
@@ -525,7 +512,7 @@ describe('CrossChain Forward command', () => {
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					ccmSize: BigInt(30),
-					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
 					networkIdentifier: utils.getRandomBytes(32),
 				}),
@@ -539,8 +526,8 @@ describe('CrossChain Forward command', () => {
 			await expect(
 				command.execute({
 					ccm: {
-						crossChainCommandID: CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
-						moduleID: MODULE_ID_TOKEN_BUFFER,
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
@@ -560,7 +547,7 @@ describe('CrossChain Forward command', () => {
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					ccmSize: BigInt(30),
-					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
 					networkIdentifier: utils.getRandomBytes(32),
 				}),
@@ -568,8 +555,8 @@ describe('CrossChain Forward command', () => {
 			expect(command['_interopAPI'].send).toHaveBeenCalledWith(
 				apiContext,
 				defaultAddress,
-				MODULE_ID_TOKEN_BUFFER,
-				CROSS_CHAIN_COMMAND_ID_TRANSFER_BUFFER,
+				MODULE_NAME_INTEROPERABILITY,
+				CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 				Buffer.from([4, 0, 0, 0]),
 				BigInt(2000),
 				CCM_STATUS_OK,
@@ -582,8 +569,8 @@ describe('CrossChain Forward command', () => {
 			await expect(
 				command.execute({
 					ccm: {
-						crossChainCommandID: CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
-						moduleID: MODULE_ID_TOKEN_BUFFER,
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
@@ -603,7 +590,7 @@ describe('CrossChain Forward command', () => {
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					ccmSize: BigInt(30),
-					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
 					networkIdentifier: utils.getRandomBytes(32),
 				}),
@@ -618,8 +605,8 @@ describe('CrossChain Forward command', () => {
 			await expect(
 				command.execute({
 					ccm: {
-						crossChainCommandID: CROSS_CHAIN_COMMAND_ID_FORWARD_BUFFER,
-						moduleID: MODULE_ID_TOKEN_BUFFER,
+						crossChainCommand: CROSS_CHAIN_COMMAND_NAME_FORWARD,
+						module: tokenModule.name,
 						nonce: BigInt(1),
 						sendingChainID,
 						receivingChainID: Buffer.from([0, 0, 0, 1]),
@@ -639,7 +626,7 @@ describe('CrossChain Forward command', () => {
 					getAPIContext: () => apiContext,
 					eventQueue: new EventQueue(),
 					ccmSize: BigInt(30),
-					getStore: (moduleID: Buffer, prefix: number) => stateStore.getStore(moduleID, prefix),
+					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
 					networkIdentifier: utils.getRandomBytes(32),
 				}),

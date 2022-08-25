@@ -13,8 +13,7 @@
  */
 
 import { utils, ed } from '@liskhq/lisk-cryptography';
-import { NotFoundError } from '@liskhq/lisk-chain';
-import { ModuleConfig, ModuleConfigJSON, UnlockingObject, VoterData } from './types';
+import { ModuleConfig, ModuleConfigJSON, UnlockingObject } from './types';
 import {
 	PUNISHMENT_PERIOD,
 	VOTER_PUNISH_TIME,
@@ -22,8 +21,6 @@ import {
 	WAIT_TIME_SELF_VOTE,
 	WAIT_TIME_VOTE,
 } from './constants';
-import { SubStore } from '../../state_machine/types';
-import { voterStoreSchema } from './schemas';
 
 export const sortUnlocking = (unlocks: UnlockingObject[]): void => {
 	unlocks.sort((a, b) => {
@@ -72,23 +69,6 @@ export const validateSignature = (
 	signature: Buffer,
 	bytes: Buffer,
 ): boolean => ed.verifyData(tag, networkIdentifier, bytes, signature, publicKey);
-
-export const getVoterOrDefault = async (voterStore: SubStore, address: Buffer) => {
-	try {
-		const voterData = await voterStore.getWithSchema<VoterData>(address, voterStoreSchema);
-		return voterData;
-	} catch (error) {
-		if (!(error instanceof NotFoundError)) {
-			throw error;
-		}
-
-		const voterData = {
-			sentVotes: [],
-			pendingUnlocks: [],
-		};
-		return voterData;
-	}
-};
 
 export interface DelegateWeight {
 	readonly delegateAddress: Buffer;

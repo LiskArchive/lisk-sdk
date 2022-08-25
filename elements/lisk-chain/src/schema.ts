@@ -113,10 +113,10 @@ export const blockHeaderSchemaWithId = {
 export const blockAssetSchema = {
 	$id: '/block/asset/3',
 	type: 'object',
-	required: ['moduleID', 'data'],
+	required: ['module', 'data'],
 	properties: {
-		moduleID: {
-			dataType: 'bytes',
+		module: {
+			dataType: 'string',
 			fieldNumber: 1,
 		},
 		data: {
@@ -178,10 +178,10 @@ export const stateDiffSchema = {
 export const eventSchema = {
 	$id: '/block/event',
 	type: 'object',
-	required: ['moduleID', 'typeID', 'data', 'topics', 'index'],
+	required: ['module', 'typeID', 'data', 'topics', 'index'],
 	properties: {
-		moduleID: {
-			dataType: 'bytes',
+		module: {
+			dataType: 'string',
 			fieldNumber: 1,
 		},
 		typeID: {

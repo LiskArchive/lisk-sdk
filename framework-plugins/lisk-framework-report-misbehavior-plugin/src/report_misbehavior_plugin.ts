@@ -162,8 +162,8 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 		const encodedParams = codec.encode(pomParamsInfo.params, pomTransactionParams);
 
 		const tx = new Transaction({
-			moduleID: Buffer.from(dposMeta.id, 'hex'),
-			commandID: Buffer.from(pomParamsInfo.id, 'hex'),
+			module: dposMeta.name,
+			command: pomParamsInfo.name,
 			nonce: BigInt(authAccount.nonce),
 			senderPublicKey:
 				this._state.publicKey ?? legacy.getPrivateAndPublicKeyFromPassphrase(passphrase).publicKey,

@@ -14,31 +14,35 @@
 
 import { BaseEndpoint } from '../base_endpoint';
 import { BaseInteroperableAPI } from './base_interoperable_api';
-import { ModuleEndpointContext } from '../../types';
 import {
 	ChainAccountJSON,
 	ChannelDataJSON,
-	ImmutableStoreCallback,
 	Inbox,
 	InboxJSON,
 	MessageFeeTokenIDJSON,
 	Outbox,
 	OutboxJSON,
 	OwnChainAccountJSON,
-	StoreCallback,
-	TerminatedOutboxAccountJSON,
-	TerminatedStateAccountJSON,
 } from './types';
+import { ModuleEndpointContext } from '../../types';
+import { NamedRegistry } from '../named_registry';
+import { TerminatedStateAccountJSON } from './stores/terminated_state';
+import { TerminatedOutboxAccountJSON } from './stores/terminated_outbox';
 import { BaseInteroperabilityStore } from './base_interoperability_store';
 import { chainAccountToJSON } from './utils';
+import { ImmutableStoreGetter, StoreGetter } from '../base_store';
 
 export abstract class BaseInteroperabilityEndpoint<
 	T extends BaseInteroperabilityStore
 > extends BaseEndpoint {
-	protected readonly interoperableCCAPIs = new Map<number, BaseInteroperableAPI>();
+	protected readonly interoperableCCAPIs = new Map<string, BaseInteroperableAPI>();
 
-	public constructor(moduleID: Buffer, interoperableCCAPIs: Map<number, BaseInteroperableAPI>) {
-		super(moduleID);
+	public constructor(
+		protected stores: NamedRegistry,
+		protected offchainStores: NamedRegistry,
+		interoperableCCAPIs: Map<string, BaseInteroperableAPI>,
+	) {
+		super(stores, offchainStores);
 		this.interoperableCCAPIs = interoperableCCAPIs;
 	}
 
@@ -46,7 +50,7 @@ export abstract class BaseInteroperabilityEndpoint<
 		context: ModuleEndpointContext,
 		chainID: Buffer,
 	): Promise<ChainAccountJSON> {
-		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+		const interoperabilityStore = this.getInteroperabilityStore(context);
 		return chainAccountToJSON(await interoperabilityStore.getChainAccount(chainID));
 	}
 
@@ -54,7 +58,7 @@ export abstract class BaseInteroperabilityEndpoint<
 		context: ModuleEndpointContext,
 		startChainID: Buffer,
 	): Promise<{ chains: ChainAccountJSON[] }> {
-		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+		const interoperabilityStore = this.getInteroperabilityStore(context);
 
 		const chainAccounts = (
 			await interoperabilityStore.getAllChainAccounts(startChainID)
@@ -67,7 +71,7 @@ export abstract class BaseInteroperabilityEndpoint<
 		context: ModuleEndpointContext,
 		chainID: Buffer,
 	): Promise<ChannelDataJSON> {
-		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+		const interoperabilityStore = this.getInteroperabilityStore(context);
 
 		const {
 			inbox,
@@ -93,7 +97,7 @@ export abstract class BaseInteroperabilityEndpoint<
 	}
 
 	public async getOwnChainAccount(context: ModuleEndpointContext): Promise<OwnChainAccountJSON> {
-		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+		const interoperabilityStore = this.getInteroperabilityStore(context);
 
 		const { id, name, nonce } = await interoperabilityStore.getOwnChainAccount();
 
@@ -108,7 +112,7 @@ export abstract class BaseInteroperabilityEndpoint<
 		context: ModuleEndpointContext,
 		chainID: Buffer,
 	): Promise<TerminatedStateAccountJSON> {
-		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+		const interoperabilityStore = this.getInteroperabilityStore(context);
 
 		const {
 			stateRoot,
@@ -127,7 +131,7 @@ export abstract class BaseInteroperabilityEndpoint<
 		context: ModuleEndpointContext,
 		chainID: Buffer,
 	): Promise<TerminatedOutboxAccountJSON> {
-		const interoperabilityStore = this.getInteroperabilityStore(context.getStore);
+		const interoperabilityStore = this.getInteroperabilityStore(context);
 
 		const {
 			outboxRoot,
@@ -150,5 +154,5 @@ export abstract class BaseInteroperabilityEndpoint<
 		};
 	}
 
-	protected abstract getInteroperabilityStore(getStore: StoreCallback | ImmutableStoreCallback): T;
+	protected abstract getInteroperabilityStore(context: StoreGetter | ImmutableStoreGetter): T;
 }

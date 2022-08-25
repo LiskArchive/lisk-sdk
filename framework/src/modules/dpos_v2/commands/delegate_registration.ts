@@ -20,28 +20,22 @@ import {
 	CommandExecuteContext,
 } from '../../../state_machine';
 import { BaseCommand } from '../../base_command';
-import {
-	COMMAND_ID_DELEGATE_REGISTRATION,
-	MODULE_ID_DPOS_BUFFER,
-	STORE_PREFIX_DELEGATE,
-	STORE_PREFIX_NAME,
-} from '../constants';
-import {
-	delegateRegistrationCommandParamsSchema,
-	delegateStoreSchema,
-	nameStoreSchema,
-} from '../schemas';
+import { delegateRegistrationCommandParamsSchema } from '../schemas';
+import { DelegateStore } from '../stores/delegate';
+import { NameStore } from '../stores/name';
 import { DelegateRegistrationParams, ValidatorsAPI } from '../types';
-import { getIDAsKeyForStore, isUsername } from '../utils';
+import { isUsername } from '../utils';
 
 export class DelegateRegistrationCommand extends BaseCommand {
-	public id = getIDAsKeyForStore(COMMAND_ID_DELEGATE_REGISTRATION);
-	public name = 'registerDelegate';
 	public schema = delegateRegistrationCommandParamsSchema;
 	private _validatorsAPI!: ValidatorsAPI;
 
 	public addDependencies(validatorsAPI: ValidatorsAPI) {
 		this._validatorsAPI = validatorsAPI;
+	}
+
+	public get name() {
+		return 'registerDelegate';
 	}
 
 	public async verify(
@@ -65,8 +59,8 @@ export class DelegateRegistrationCommand extends BaseCommand {
 			};
 		}
 
-		const nameSubstore = context.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_NAME);
-		const nameExists = await nameSubstore.has(Buffer.from(params.name, 'utf8'));
+		const nameSubstore = this.stores.get(NameStore);
+		const nameExists = await nameSubstore.has(context, Buffer.from(params.name, 'utf8'));
 
 		if (nameExists) {
 			return {
@@ -75,8 +69,8 @@ export class DelegateRegistrationCommand extends BaseCommand {
 			};
 		}
 
-		const delegateSubstore = context.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
-		const delegateExists = await delegateSubstore.has(transaction.senderAddress);
+		const delegateSubstore = this.stores.get(DelegateStore);
+		const delegateExists = await delegateSubstore.has(context, transaction.senderAddress);
 
 		if (delegateExists) {
 			return {
@@ -110,26 +104,20 @@ export class DelegateRegistrationCommand extends BaseCommand {
 			throw new Error('Failed to register validator keys');
 		}
 
-		const delegateSubstore = context.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
-		await delegateSubstore.setWithSchema(
-			transaction.senderAddress,
-			{
-				name,
-				totalVotesReceived: BigInt(0),
-				selfVotes: BigInt(0),
-				lastGeneratedHeight: height,
-				isBanned: false,
-				pomHeights: [],
-				consecutiveMissedBlocks: 0,
-			},
-			delegateStoreSchema,
-		);
+		const delegateSubstore = this.stores.get(DelegateStore);
+		await delegateSubstore.set(context, transaction.senderAddress, {
+			name,
+			totalVotesReceived: BigInt(0),
+			selfVotes: BigInt(0),
+			lastGeneratedHeight: height,
+			isBanned: false,
+			pomHeights: [],
+			consecutiveMissedBlocks: 0,
+		});
 
-		const nameSubstore = context.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_NAME);
-		await nameSubstore.setWithSchema(
-			Buffer.from(name, 'utf8'),
-			{ delegateAddress: transaction.senderAddress },
-			nameStoreSchema,
-		);
+		const nameSubstore = this.stores.get(NameStore);
+		await nameSubstore.set(context, Buffer.from(name, 'utf8'), {
+			delegateAddress: transaction.senderAddress,
+		});
 	}
 }

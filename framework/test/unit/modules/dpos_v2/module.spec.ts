@@ -32,35 +32,21 @@ import {
 	createBlockContext,
 	createFakeBlockHeader,
 	createGenesisBlockContext,
+	createTransientAPIContext,
 } from '../../../../src/testing';
-import {
-	MODULE_ID_DPOS_BUFFER,
-	STORE_PREFIX_DELEGATE,
-	STORE_PREFIX_GENESIS_DATA,
-	STORE_PREFIX_NAME,
-	STORE_PREFIX_PREVIOUS_TIMESTAMP,
-	STORE_PREFIX_SNAPSHOT,
-	STORE_PREFIX_VOTER,
-} from '../../../../src/modules/dpos_v2/constants';
-import {
-	delegateStoreSchema,
-	genesisDataStoreSchema,
-	genesisStoreSchema,
-	previousTimestampStoreSchema,
-	snapshotStoreSchema,
-	voterStoreSchema,
-} from '../../../../src/modules/dpos_v2/schemas';
-import {
-	DelegateAccount,
-	GenesisData,
-	PreviousTimestampData,
-	SnapshotStoreData,
-	ValidatorsAPI,
-} from '../../../../src/modules/dpos_v2/types';
-import { GenesisBlockExecuteContext, SubStore } from '../../../../src/state_machine/types';
+import { genesisStoreSchema } from '../../../../src/modules/dpos_v2/schemas';
+import { DelegateAccount, GenesisData, ValidatorsAPI } from '../../../../src/modules/dpos_v2/types';
+import { GenesisBlockExecuteContext } from '../../../../src/state_machine/types';
 import { invalidAssets, validAsset, validators } from './genesis_block_test_data';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
+import { DelegateStore } from '../../../../src/modules/dpos_v2/stores/delegate';
+import { VoterStore } from '../../../../src/modules/dpos_v2/stores/voter';
+import { NameStore } from '../../../../src/modules/dpos_v2/stores/name';
+import { PreviousTimestampStore } from '../../../../src/modules/dpos_v2/stores/previous_timestamp';
+import { GenesisDataStore } from '../../../../src/modules/dpos_v2/stores/genesis';
+import { SnapshotStore } from '../../../../src/modules/dpos_v2/stores/snapshot';
+import { createStoreGetter } from '../../../../src/testing/utils';
 
 describe('DPoS module', () => {
 	const EMPTY_KEY = Buffer.alloc(0);
@@ -154,7 +140,7 @@ describe('DPoS module', () => {
 				const context = createGenesisBlockContext({
 					stateStore,
 					header: createFakeBlockHeader({ height: 12345 }),
-					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
+					assets: new BlockAssets([{ module: dpos.name, data: assetBytes }]),
 				}).createInitGenesisStateContext();
 				jest.spyOn(dpos, 'finalizeGenesisState');
 
@@ -181,7 +167,7 @@ describe('DPoS module', () => {
 				const assetBytes = codec.encode(genesisStoreSchema, modified);
 				const context = createGenesisBlockContext({
 					stateStore,
-					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
+					assets: new BlockAssets([{ module: dpos.name, data: assetBytes }]),
 				}).createInitGenesisStateContext();
 				await dpos.initGenesisState(context);
 				await expect(dpos.finalizeGenesisState(context)).rejects.toThrow(
@@ -196,7 +182,7 @@ describe('DPoS module', () => {
 				const context = createGenesisBlockContext({
 					stateStore,
 					header: createFakeBlockHeader({ height: 12345 }),
-					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
+					assets: new BlockAssets([{ module: dpos.name, data: assetBytes }]),
 				}).createInitGenesisStateContext();
 				await dpos.initGenesisState(context);
 				await expect(dpos.finalizeGenesisState(context)).rejects.toThrow(
@@ -213,7 +199,7 @@ describe('DPoS module', () => {
 				const assetBytes = codec.encode(genesisStoreSchema, validAsset);
 				genesisContext = createGenesisBlockContext({
 					stateStore,
-					assets: new BlockAssets([{ moduleID: dpos.id, data: assetBytes }]),
+					assets: new BlockAssets([{ module: dpos.name, data: assetBytes }]),
 				});
 				context = genesisContext.createInitGenesisStateContext();
 			});
@@ -222,10 +208,8 @@ describe('DPoS module', () => {
 				await expect(dpos.initGenesisState(context)).toResolve();
 				await expect(dpos.finalizeGenesisState(context)).toResolve();
 
-				const delegateStore = stateStore.getStore(dpos.id, STORE_PREFIX_DELEGATE);
-				await expect(
-					delegateStore.getWithSchema(validAsset.voters[0].address, delegateStoreSchema),
-				).resolves.toEqual({
+				const delegateStore = dpos.stores.get(DelegateStore);
+				await expect(delegateStore.get(context, validAsset.voters[0].address)).resolves.toEqual({
 					name: expect.any(String),
 					consecutiveMissedBlocks: 0,
 					isBanned: false,
@@ -238,10 +222,10 @@ describe('DPoS module', () => {
 
 			it('should store all the votes', async () => {
 				await expect(dpos.initGenesisState(context)).toResolve();
-				const voterStore = stateStore.getStore(dpos.id, STORE_PREFIX_VOTER);
+				const voterStore = dpos.stores.get(VoterStore);
 				expect.assertions(validAsset.voters.length + 1);
 				for (const voter of validAsset.voters) {
-					await expect(voterStore.getWithSchema(voter.address, voterStoreSchema)).resolves.toEqual({
+					await expect(voterStore.get(context, voter.address)).resolves.toEqual({
 						sentVotes: voter.sentVotes,
 						pendingUnlocks: voter.pendingUnlocks,
 					});
@@ -250,15 +234,15 @@ describe('DPoS module', () => {
 
 			it('should store all the delegates', async () => {
 				await expect(dpos.initGenesisState(context)).toResolve();
-				const usernameStore = stateStore.getStore(dpos.id, STORE_PREFIX_NAME);
-				const allNames = await usernameStore.iterate({
+				const usernameStore = dpos.stores.get(NameStore);
+				const allNames = await usernameStore.iterate(context, {
 					gte: Buffer.from([0]),
 					lte: Buffer.from([255]),
 				});
 				expect(allNames).toHaveLength(validAsset.validators.length);
 
-				const delegateStore = context.getStore(dpos.id, STORE_PREFIX_DELEGATE);
-				const allDelegates = await delegateStore.iterate({
+				const delegateStore = dpos.stores.get(DelegateStore);
+				const allDelegates = await delegateStore.iterate(context, {
 					gte: Buffer.alloc(20, 0),
 					lte: Buffer.alloc(20, 255),
 				});
@@ -268,10 +252,8 @@ describe('DPoS module', () => {
 			it('should store previous timestamp', async () => {
 				await expect(dpos.initGenesisState(context)).toResolve();
 
-				const previousTimestampStore = context.getStore(dpos.id, STORE_PREFIX_PREVIOUS_TIMESTAMP);
-				await expect(
-					previousTimestampStore.getWithSchema(EMPTY_KEY, previousTimestampStoreSchema),
-				).resolves.toEqual({
+				const previousTimestampStore = dpos.stores.get(PreviousTimestampStore);
+				await expect(previousTimestampStore.get(context, EMPTY_KEY)).resolves.toEqual({
 					timestamp: context.header.timestamp,
 				});
 			});
@@ -279,10 +261,8 @@ describe('DPoS module', () => {
 			it('should store genesis data', async () => {
 				await expect(dpos.initGenesisState(context)).toResolve();
 
-				const genesisDataStore = context.getStore(dpos.id, STORE_PREFIX_GENESIS_DATA);
-				await expect(
-					genesisDataStore.getWithSchema(EMPTY_KEY, genesisDataStoreSchema),
-				).resolves.toEqual({
+				const genesisDataStore = dpos.stores.get(GenesisDataStore);
+				await expect(genesisDataStore.get(context, EMPTY_KEY)).resolves.toEqual({
 					height: context.header.height,
 					initRounds: validAsset.genesisData.initRounds,
 					initDelegates: validAsset.genesisData.initDelegates,
@@ -347,9 +327,10 @@ describe('DPoS module', () => {
 
 			beforeEach(async () => {
 				stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-				const delegateStore = stateStore.getStore(dpos.id, STORE_PREFIX_DELEGATE);
+				const delegateStore = dpos.stores.get(DelegateStore);
 				for (const data of fixtures) {
-					await delegateStore.setWithSchema(
+					await delegateStore.set(
+						createTransientAPIContext({ stateStore }),
 						Buffer.from(data.address, 'hex'),
 						{
 							name: data.address,
@@ -360,7 +341,6 @@ describe('DPoS module', () => {
 							pomHeights: [],
 							consecutiveMissedBlocks: 0,
 						},
-						delegateStoreSchema,
 					);
 				}
 				context = createBlockContext({
@@ -372,11 +352,8 @@ describe('DPoS module', () => {
 			it('should create a snapshot which include all delegates', async () => {
 				await dpos['_createVoteWeightSnapshot'](context);
 
-				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
-				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					utils.intToBuffer(11 + 2, 4),
-					snapshotStoreSchema,
-				);
+				const snapshotStore = dpos.stores.get(SnapshotStore);
+				const snapshot = await snapshotStore.get(context, utils.intToBuffer(11 + 2, 4));
 
 				expect(snapshot.activeDelegates).toHaveLength(fixtures.length);
 				expect(snapshot.delegateWeightSnapshot).toHaveLength(0);
@@ -391,45 +368,35 @@ describe('DPoS module', () => {
 
 			beforeEach(async () => {
 				stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-				const delegateStore = stateStore.getStore(dpos.id, STORE_PREFIX_DELEGATE);
-				for (const data of fixtures) {
-					await delegateStore.setWithSchema(
-						Buffer.from(data.address, 'hex'),
-						{
-							name: data.address,
-							totalVotesReceived: BigInt(data.voteWeight),
-							selfVotes: BigInt(data.voteWeight),
-							lastGeneratedHeight: 0,
-							isBanned: false,
-							pomHeights: [],
-							consecutiveMissedBlocks: 0,
-						},
-						delegateStoreSchema,
-					);
-				}
 				context = createBlockContext({
 					stateStore,
 					header: createFakeBlockHeader({ height: 1030 }),
 				}).getBlockAfterExecuteContext();
+				const delegateStore = dpos.stores.get(DelegateStore);
+				for (const data of fixtures) {
+					await delegateStore.set(context, Buffer.from(data.address, 'hex'), {
+						name: data.address,
+						totalVotesReceived: BigInt(data.voteWeight),
+						selfVotes: BigInt(data.voteWeight),
+						lastGeneratedHeight: 0,
+						isBanned: false,
+						pomHeights: [],
+						consecutiveMissedBlocks: 0,
+					});
+				}
 				await dpos['_createVoteWeightSnapshot'](context);
 			});
 
 			it('should create a snapshot which include top 101 delegates as active delegates', async () => {
-				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
-				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					utils.intToBuffer(11 + 2, 4),
-					snapshotStoreSchema,
-				);
+				const snapshotStore = dpos.stores.get(SnapshotStore);
+				const snapshot = await snapshotStore.get(context, utils.intToBuffer(11 + 2, 4));
 
 				expect(snapshot.activeDelegates).toHaveLength(defaultConfigs.numberActiveDelegates);
 			});
 
 			it('should create a snapshot which include all delegates in the snapshot', async () => {
-				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
-				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					utils.intToBuffer(11 + 2, 4),
-					snapshotStoreSchema,
-				);
+				const snapshotStore = dpos.stores.get(SnapshotStore);
+				const snapshot = await snapshotStore.get(context, utils.intToBuffer(11 + 2, 4));
 
 				expect(snapshot.delegateWeightSnapshot).toHaveLength(2);
 			});
@@ -443,45 +410,36 @@ describe('DPoS module', () => {
 
 			beforeEach(async () => {
 				stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-				const delegateStore = stateStore.getStore(dpos.id, STORE_PREFIX_DELEGATE);
-				for (const data of fixtures) {
-					await delegateStore.setWithSchema(
-						Buffer.from(data.address, 'hex'),
-						{
-							name: data.address,
-							totalVotesReceived: BigInt(data.voteWeight),
-							selfVotes: BigInt(data.voteWeight),
-							lastGeneratedHeight: 0,
-							isBanned: false,
-							pomHeights: [],
-							consecutiveMissedBlocks: 0,
-						},
-						delegateStoreSchema,
-					);
-				}
 				context = createBlockContext({
 					stateStore,
 					header: createFakeBlockHeader({ height: 1030 }),
 				}).getBlockAfterExecuteContext();
+				const delegateStore = dpos.stores.get(DelegateStore);
+				for (const data of fixtures) {
+					await delegateStore.set(context, Buffer.from(data.address, 'hex'), {
+						name: data.address,
+						totalVotesReceived: BigInt(data.voteWeight),
+						selfVotes: BigInt(data.voteWeight),
+						lastGeneratedHeight: 0,
+						isBanned: false,
+						pomHeights: [],
+						consecutiveMissedBlocks: 0,
+					});
+				}
+
 				await dpos['_createVoteWeightSnapshot'](context);
 			});
 
 			it('should create a snapshot which include top 101 delegates as active delegates', async () => {
-				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
-				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					utils.intToBuffer(11 + 2, 4),
-					snapshotStoreSchema,
-				);
+				const snapshotStore = dpos.stores.get(SnapshotStore);
+				const snapshot = await snapshotStore.get(context, utils.intToBuffer(11 + 2, 4));
 
 				expect(snapshot.activeDelegates).toHaveLength(defaultConfigs.numberActiveDelegates);
 			});
 
 			it('should create a snapshot which include all delegates in the snapshot', async () => {
-				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
-				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					utils.intToBuffer(11 + 2, 4),
-					snapshotStoreSchema,
-				);
+				const snapshotStore = dpos.stores.get(SnapshotStore);
+				const snapshot = await snapshotStore.get(context, utils.intToBuffer(11 + 2, 4));
 
 				expect(snapshot.delegateWeightSnapshot).toHaveLength(2);
 			});
@@ -495,73 +453,56 @@ describe('DPoS module', () => {
 
 			beforeEach(async () => {
 				stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-				const delegateStore = stateStore.getStore(dpos.id, STORE_PREFIX_DELEGATE);
-				// set first delegate to cap the delegate weight
-				await delegateStore.setWithSchema(
-					Buffer.from(fixtures[0].address, 'hex'),
-					{
-						name: 'noselfvote',
-						totalVotesReceived: BigInt(fixtures[0].voteWeight),
-						selfVotes: BigInt(fixtures[0].voteWeight) / BigInt(1000),
-						lastGeneratedHeight: 0,
-						isBanned: false,
-						pomHeights: [],
-						consecutiveMissedBlocks: 0,
-					},
-					delegateStoreSchema,
-				);
-				// set second delegate punished
-				await delegateStore.setWithSchema(
-					Buffer.from(fixtures[1].address, 'hex'),
-					{
-						name: 'punished',
-						totalVotesReceived: BigInt(fixtures[1].voteWeight),
-						selfVotes: BigInt(fixtures[1].voteWeight),
-						lastGeneratedHeight: 0,
-						isBanned: false,
-						pomHeights: [1000],
-						consecutiveMissedBlocks: 0,
-					},
-					delegateStoreSchema,
-				);
-				for (const data of fixtures.slice(2)) {
-					await delegateStore.setWithSchema(
-						Buffer.from(data.address, 'hex'),
-						{
-							name: data.address,
-							totalVotesReceived: BigInt(data.voteWeight),
-							selfVotes: BigInt(data.voteWeight),
-							lastGeneratedHeight: 0,
-							isBanned: false,
-							pomHeights: [],
-							consecutiveMissedBlocks: 0,
-						},
-						delegateStoreSchema,
-					);
-				}
 				context = createBlockContext({
 					stateStore,
 					header: createFakeBlockHeader({ height: 1030 }),
 				}).getBlockAfterExecuteContext();
+				const delegateStore = dpos.stores.get(DelegateStore);
+				// set first delegate to cap the delegate weight
+				await delegateStore.set(context, Buffer.from(fixtures[0].address, 'hex'), {
+					name: 'noselfvote',
+					totalVotesReceived: BigInt(fixtures[0].voteWeight),
+					selfVotes: BigInt(fixtures[0].voteWeight) / BigInt(1000),
+					lastGeneratedHeight: 0,
+					isBanned: false,
+					pomHeights: [],
+					consecutiveMissedBlocks: 0,
+				});
+				// set second delegate punished
+				await delegateStore.set(context, Buffer.from(fixtures[1].address, 'hex'), {
+					name: 'punished',
+					totalVotesReceived: BigInt(fixtures[1].voteWeight),
+					selfVotes: BigInt(fixtures[1].voteWeight),
+					lastGeneratedHeight: 0,
+					isBanned: false,
+					pomHeights: [1000],
+					consecutiveMissedBlocks: 0,
+				});
+				for (const data of fixtures.slice(2)) {
+					await delegateStore.set(context, Buffer.from(data.address, 'hex'), {
+						name: data.address,
+						totalVotesReceived: BigInt(data.voteWeight),
+						selfVotes: BigInt(data.voteWeight),
+						lastGeneratedHeight: 0,
+						isBanned: false,
+						pomHeights: [],
+						consecutiveMissedBlocks: 0,
+					});
+				}
+
 				await dpos['_createVoteWeightSnapshot'](context);
 			});
 
 			it('should create a snapshot which include top 101 delegates as active delegates', async () => {
-				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
-				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					utils.intToBuffer(11 + 2, 4),
-					snapshotStoreSchema,
-				);
+				const snapshotStore = dpos.stores.get(SnapshotStore);
+				const snapshot = await snapshotStore.get(context, utils.intToBuffer(11 + 2, 4));
 
 				expect(snapshot.activeDelegates).toHaveLength(defaultConfigs.numberActiveDelegates);
 			});
 
 			it('should cap the delegate weight', async () => {
-				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
-				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					utils.intToBuffer(11 + 2, 4),
-					snapshotStoreSchema,
-				);
+				const snapshotStore = dpos.stores.get(SnapshotStore);
+				const snapshot = await snapshotStore.get(context, utils.intToBuffer(11 + 2, 4));
 
 				const capped = snapshot.delegateWeightSnapshot.find(s =>
 					s.delegateAddress.equals(Buffer.from(fixtures[0].address, 'hex')),
@@ -574,11 +515,8 @@ describe('DPoS module', () => {
 			});
 
 			it('should set the delegate weight to zero when punished', async () => {
-				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
-				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					utils.intToBuffer(11 + 2, 4),
-					snapshotStoreSchema,
-				);
+				const snapshotStore = dpos.stores.get(SnapshotStore);
+				const snapshot = await snapshotStore.get(context, utils.intToBuffer(11 + 2, 4));
 
 				const punished = snapshot.delegateWeightSnapshot.find(s =>
 					s.delegateAddress.equals(Buffer.from(fixtures[1].address, 'hex')),
@@ -597,91 +535,79 @@ describe('DPoS module', () => {
 
 			beforeEach(async () => {
 				stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-				const delegateStore = stateStore.getStore(dpos.id, STORE_PREFIX_DELEGATE);
-				// set first delegate banned
-				await delegateStore.setWithSchema(
-					Buffer.from(fixtures[0].address, 'hex'),
-					{
-						name: 'banned',
-						totalVotesReceived: BigInt(fixtures[0].voteWeight),
-						selfVotes: BigInt(fixtures[0].voteWeight),
-						lastGeneratedHeight: 0,
-						isBanned: true,
-						pomHeights: [],
-						consecutiveMissedBlocks: 0,
-					},
-					delegateStoreSchema,
-				);
-				// set second delegate no self-vote
-				await delegateStore.setWithSchema(
-					Buffer.from(fixtures[1].address, 'hex'),
-					{
-						name: 'noselfvote',
-						totalVotesReceived: BigInt(fixtures[1].voteWeight),
-						selfVotes: BigInt(0),
-						lastGeneratedHeight: 0,
-						isBanned: false,
-						pomHeights: [],
-						consecutiveMissedBlocks: 0,
-					},
-					delegateStoreSchema,
-				);
-				// set third delegate punished
-				await delegateStore.setWithSchema(
-					Buffer.from(fixtures[2].address, 'hex'),
-					{
-						name: 'noselfvote',
-						totalVotesReceived: BigInt(fixtures[2].voteWeight),
-						selfVotes: BigInt(fixtures[2].voteWeight),
-						lastGeneratedHeight: 0,
-						isBanned: false,
-						pomHeights: [1000],
-						consecutiveMissedBlocks: 0,
-					},
-					delegateStoreSchema,
-				);
-				for (const data of fixtures.slice(3)) {
-					await delegateStore.setWithSchema(
-						Buffer.from(data.address, 'hex'),
-						{
-							name: data.address,
-							totalVotesReceived: BigInt(data.voteWeight),
-							selfVotes: BigInt(data.voteWeight),
-							lastGeneratedHeight: 0,
-							isBanned: false,
-							pomHeights: [],
-							consecutiveMissedBlocks: 0,
-						},
-						delegateStoreSchema,
-					);
-				}
-				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
-				await snapshotStore.set(utils.intToBuffer(10, 4), Buffer.alloc(10));
-				await snapshotStore.set(utils.intToBuffer(11, 4), Buffer.alloc(10));
-				await snapshotStore.set(utils.intToBuffer(12, 4), Buffer.alloc(10));
 				context = createBlockContext({
 					stateStore,
 					header: createFakeBlockHeader({ height: 1030 }),
 				}).getBlockAfterExecuteContext();
+				const delegateStore = dpos.stores.get(DelegateStore);
+				// set first delegate banned
+				await delegateStore.set(context, Buffer.from(fixtures[0].address, 'hex'), {
+					name: 'banned',
+					totalVotesReceived: BigInt(fixtures[0].voteWeight),
+					selfVotes: BigInt(fixtures[0].voteWeight),
+					lastGeneratedHeight: 0,
+					isBanned: true,
+					pomHeights: [],
+					consecutiveMissedBlocks: 0,
+				});
+				// set second delegate no self-vote
+				await delegateStore.set(context, Buffer.from(fixtures[1].address, 'hex'), {
+					name: 'noselfvote',
+					totalVotesReceived: BigInt(fixtures[1].voteWeight),
+					selfVotes: BigInt(0),
+					lastGeneratedHeight: 0,
+					isBanned: false,
+					pomHeights: [],
+					consecutiveMissedBlocks: 0,
+				});
+				// set third delegate punished
+				await delegateStore.set(context, Buffer.from(fixtures[2].address, 'hex'), {
+					name: 'noselfvote',
+					totalVotesReceived: BigInt(fixtures[2].voteWeight),
+					selfVotes: BigInt(fixtures[2].voteWeight),
+					lastGeneratedHeight: 0,
+					isBanned: false,
+					pomHeights: [1000],
+					consecutiveMissedBlocks: 0,
+				});
+				for (const data of fixtures.slice(3)) {
+					await delegateStore.set(context, Buffer.from(data.address, 'hex'), {
+						name: data.address,
+						totalVotesReceived: BigInt(data.voteWeight),
+						selfVotes: BigInt(data.voteWeight),
+						lastGeneratedHeight: 0,
+						isBanned: false,
+						pomHeights: [],
+						consecutiveMissedBlocks: 0,
+					});
+				}
+				const snapshotStore = dpos.stores.get(SnapshotStore);
+				await snapshotStore.set(context, utils.intToBuffer(10, 4), {
+					activeDelegates: [],
+					delegateWeightSnapshot: [],
+				});
+				await snapshotStore.set(context, utils.intToBuffer(11, 4), {
+					activeDelegates: [],
+					delegateWeightSnapshot: [],
+				});
+				await snapshotStore.set(context, utils.intToBuffer(12, 4), {
+					activeDelegates: [],
+					delegateWeightSnapshot: [],
+				});
+
 				await dpos['_createVoteWeightSnapshot'](context);
 			});
 
 			it('should create a snapshot which include top 101 delegates as active delegates', async () => {
-				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
-				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					utils.intToBuffer(11 + 2, 4),
-					snapshotStoreSchema,
-				);
+				const snapshotStore = dpos.stores.get(SnapshotStore);
+				const snapshot = await snapshotStore.get(context, utils.intToBuffer(11 + 2, 4));
 
 				expect(snapshot.activeDelegates).toHaveLength(defaultConfigs.numberActiveDelegates);
 			});
 
 			it('should create a snapshot which include all delegates above standby threshold in the snapshot', async () => {
-				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
-				const snapshot = await snapshotStore.getWithSchema<SnapshotStoreData>(
-					utils.intToBuffer(11 + 2, 4),
-					snapshotStoreSchema,
-				);
+				const snapshotStore = dpos.stores.get(SnapshotStore);
+				const snapshot = await snapshotStore.get(context, utils.intToBuffer(11 + 2, 4));
 
 				const fixtureAboveThreshold = fixtures.filter(
 					data => BigInt(data.voteWeight) >= BigInt(defaultConfigs.minWeightStandby),
@@ -694,11 +620,11 @@ describe('DPoS module', () => {
 			});
 
 			it('should create a snapshot which remove the snapshot older than 3 rounds', async () => {
-				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
+				const snapshotStore = dpos.stores.get(SnapshotStore);
 
-				await expect(snapshotStore.has(utils.intToBuffer(10, 4))).resolves.toBeFalse();
-				await expect(snapshotStore.has(utils.intToBuffer(11, 4))).resolves.toBeTrue();
-				await expect(snapshotStore.has(utils.intToBuffer(12, 4))).resolves.toBeTrue();
+				await expect(snapshotStore.has(context, utils.intToBuffer(10, 4))).resolves.toBeFalse();
+				await expect(snapshotStore.has(context, utils.intToBuffer(11, 4))).resolves.toBeTrue();
+				await expect(snapshotStore.has(context, utils.intToBuffer(12, 4))).resolves.toBeTrue();
 			});
 		});
 	});
@@ -747,18 +673,21 @@ describe('DPoS module', () => {
 							return a.delegateAddress.compare(b.delegateAddress);
 						});
 						const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-						const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
+						const blockContext = createBlockContext({
+							header: createFakeBlockHeader({
+								height: (defaultRound - 1) * defaultConfigs.roundLength,
+							}),
+							stateStore,
+						});
+						const context = blockContext.getBlockAfterExecuteContext();
+						const snapshotStore = dpos.stores.get(SnapshotStore);
 						const activeDelegates = delegates
 							.slice(0, defaultConfigs.numberActiveDelegates)
 							.map(d => d.delegateAddress);
-						await snapshotStore.setWithSchema(
-							utils.intToBuffer(defaultRound, 4),
-							{
-								activeDelegates,
-								delegateWeightSnapshot: delegates.slice(defaultConfigs.numberActiveDelegates),
-							},
-							snapshotStoreSchema,
-						);
+						await snapshotStore.set(context, utils.intToBuffer(defaultRound, 4), {
+							activeDelegates,
+							delegateWeightSnapshot: delegates.slice(defaultConfigs.numberActiveDelegates),
+						});
 						const randomAPI = {
 							getRandomBytes: jest
 								.fn()
@@ -785,13 +714,6 @@ describe('DPoS module', () => {
 						};
 
 						dpos.addDependencies(randomAPI, validatorAPI, tokenAPI);
-						const blockContext = createBlockContext({
-							header: createFakeBlockHeader({
-								height: (defaultRound - 1) * defaultConfigs.roundLength,
-							}),
-							stateStore,
-						});
-						const context = blockContext.getBlockAfterExecuteContext();
 
 						await dpos['_updateValidators'](context);
 
@@ -828,17 +750,23 @@ describe('DPoS module', () => {
 				});
 
 				const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-				const snapshotStore = stateStore.getStore(dpos.id, STORE_PREFIX_SNAPSHOT);
+				blockContext = createBlockContext({
+					header: createFakeBlockHeader({
+						height: (defaultRound - 1) * defaultConfigs.roundLength,
+					}),
+					stateStore,
+				});
+				const snapshotStore = dpos.stores.get(SnapshotStore);
 				const activeDelegates = delegates
 					.slice(0, defaultConfigs.numberActiveDelegates)
 					.map(d => d.delegateAddress);
-				await snapshotStore.setWithSchema(
+				await snapshotStore.set(
+					blockContext.getBlockExecuteContext(),
 					utils.intToBuffer(defaultRound, 4),
 					{
 						activeDelegates,
 						delegateWeightSnapshot: delegates.slice(defaultConfigs.numberActiveDelegates),
 					},
-					snapshotStoreSchema,
 				);
 				const randomAPI = {
 					getRandomBytes: jest
@@ -865,12 +793,6 @@ describe('DPoS module', () => {
 				};
 
 				dpos.addDependencies(randomAPI, validatorAPI, tokenAPI);
-				blockContext = createBlockContext({
-					header: createFakeBlockHeader({
-						height: (defaultRound - 1) * defaultConfigs.roundLength,
-					}),
-					stateStore,
-				});
 
 				await dpos['_updateValidators'](blockContext.getBlockAfterExecuteContext());
 			});
@@ -909,8 +831,8 @@ describe('DPoS module', () => {
 		let stateStore: PrefixedStateReadWriter;
 		let delegateData: DelegateAccount[];
 		let delegateAddresses: Buffer[];
-		let previousTimestampStore: SubStore;
-		let delegateStore: SubStore;
+		let previousTimestampStore: PreviousTimestampStore;
+		let delegateStore: DelegateStore;
 		let dpos: DPoSModule;
 
 		beforeEach(async () => {
@@ -942,17 +864,14 @@ describe('DPoS module', () => {
 				}));
 			delegateAddresses = Array.from({ length: 103 }, _ => utils.getRandomBytes(20));
 
-			previousTimestampStore = stateStore.getStore(
-				MODULE_ID_DPOS_BUFFER,
-				STORE_PREFIX_PREVIOUS_TIMESTAMP,
-			);
-			delegateStore = stateStore.getStore(MODULE_ID_DPOS_BUFFER, STORE_PREFIX_DELEGATE);
+			previousTimestampStore = dpos.stores.get(PreviousTimestampStore);
+			delegateStore = dpos.stores.get(DelegateStore);
 
 			for (let i = 0; i < 103; i += 1) {
-				await delegateStore.setWithSchema(
+				await delegateStore.set(
+					createStoreGetter(stateStore),
 					delegateAddresses[i],
 					delegateData[i],
-					delegateStoreSchema,
 				);
 			}
 		});
@@ -973,11 +892,9 @@ describe('DPoS module', () => {
 					stateStore,
 				}).getBlockAfterExecuteContext();
 
-				await previousTimestampStore.setWithSchema(
-					EMPTY_KEY,
-					{ timestamp: previousTimestamp },
-					previousTimestampStoreSchema,
-				);
+				await previousTimestampStore.set(createStoreGetter(stateStore), EMPTY_KEY, {
+					timestamp: previousTimestamp,
+				});
 
 				const missedBlocks: Record<string, number> = {};
 				// Make every delegate miss its block-slot except gte and end slots
@@ -998,9 +915,9 @@ describe('DPoS module', () => {
 
 				expect.assertions(delegateAddresses.length + 1);
 				for (const delegateAddress of delegateAddresses) {
-					const currentDelegate = await delegateStore.getWithSchema<DelegateAccount>(
+					const currentDelegate = await delegateStore.get(
+						createStoreGetter(stateStore),
 						delegateAddress,
-						delegateStoreSchema,
 					);
 					if (delegateAddress.equals(generatorAddress)) {
 						expect(currentDelegate.consecutiveMissedBlocks).toBe(0);
@@ -1033,11 +950,9 @@ describe('DPoS module', () => {
 					stateStore,
 				}).getBlockAfterExecuteContext();
 
-				await previousTimestampStore.setWithSchema(
-					EMPTY_KEY,
-					{ timestamp: previousTimestamp },
-					previousTimestampStoreSchema,
-				);
+				await previousTimestampStore.set(createStoreGetter(stateStore), EMPTY_KEY, {
+					timestamp: previousTimestamp,
+				});
 
 				const missedBlocks: Record<string, number> = {};
 				for (let i = 1; i < missedForgers.length + 1; i += 1) {
@@ -1057,9 +972,9 @@ describe('DPoS module', () => {
 
 				expect.assertions(delegateAddresses.length);
 				for (const delegateAddress of delegateAddresses) {
-					const currentDelegate = await delegateStore.getWithSchema<DelegateAccount>(
+					const currentDelegate = await delegateStore.get(
+						createStoreGetter(stateStore),
 						delegateAddress,
-						delegateStoreSchema,
 					);
 					if (missedForgers.some(missedForger => missedForger.equals(delegateAddress))) {
 						expect(currentDelegate.consecutiveMissedBlocks).toBe(1);
@@ -1089,11 +1004,9 @@ describe('DPoS module', () => {
 					stateStore,
 				}).getBlockAfterExecuteContext();
 
-				await previousTimestampStore.setWithSchema(
-					EMPTY_KEY,
-					{ timestamp: previousTimestamp },
-					previousTimestampStoreSchema,
-				);
+				await previousTimestampStore.set(createStoreGetter(stateStore), EMPTY_KEY, {
+					timestamp: previousTimestamp,
+				});
 
 				const missedBlocks: Record<string, number> = {};
 				for (const delegateAddress of delegateAddresses) {
@@ -1116,9 +1029,9 @@ describe('DPoS module', () => {
 
 				expect.assertions(delegateAddresses.length);
 				for (const delegateAddress of delegateAddresses) {
-					const currentDelegate = await delegateStore.getWithSchema<DelegateAccount>(
+					const currentDelegate = await delegateStore.get(
+						createStoreGetter(stateStore),
 						delegateAddress,
-						delegateStoreSchema,
 					);
 					if (missedMoreThan1Block.some(missedForger => missedForger.equals(delegateAddress))) {
 						expect(currentDelegate.consecutiveMissedBlocks).toBe(2);
@@ -1149,11 +1062,9 @@ describe('DPoS module', () => {
 					stateStore,
 				}).getBlockAfterExecuteContext();
 
-				await previousTimestampStore.setWithSchema(
-					EMPTY_KEY,
-					{ timestamp: previousTimestamp },
-					previousTimestampStoreSchema,
-				);
+				await previousTimestampStore.set(createStoreGetter(stateStore), EMPTY_KEY, {
+					timestamp: previousTimestamp,
+				});
 
 				const missedBlocks: Record<string, number> = {};
 
@@ -1170,9 +1081,9 @@ describe('DPoS module', () => {
 
 				expect.assertions(delegateAddresses.length + 1);
 				for (const delegateAddress of delegateAddresses) {
-					const currentDelegate = await delegateStore.getWithSchema<DelegateAccount>(
+					const currentDelegate = await delegateStore.get(
+						createStoreGetter(stateStore),
 						delegateAddress,
-						delegateStoreSchema,
 					);
 					expect(currentDelegate.consecutiveMissedBlocks).toBe(0);
 					if (delegateAddress.equals(generatorAddress)) {
@@ -1202,11 +1113,9 @@ describe('DPoS module', () => {
 					stateStore,
 				}).getBlockAfterExecuteContext();
 
-				await previousTimestampStore.setWithSchema(
-					EMPTY_KEY,
-					{ timestamp: previousTimestamp },
-					previousTimestampStoreSchema,
-				);
+				await previousTimestampStore.set(createStoreGetter(stateStore), EMPTY_KEY, {
+					timestamp: previousTimestamp,
+				});
 
 				const missedBlocks: Record<string, number> = {};
 				missedBlocks[missedDelegate.toString('binary')] = 1;
@@ -1223,17 +1132,17 @@ describe('DPoS module', () => {
 				delegateData[missedDelegateIndex].consecutiveMissedBlocks = 50;
 				delegateData[missedDelegateIndex].lastGeneratedHeight = nextForgedHeight - 260000 + 5000;
 
-				await delegateStore.setWithSchema(
+				await delegateStore.set(
+					createStoreGetter(stateStore),
 					missedDelegate,
 					delegateData[missedDelegateIndex],
-					delegateStoreSchema,
 				);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
 
-				const currentDelegate = await delegateStore.getWithSchema<DelegateAccount>(
+				const currentDelegate = await delegateStore.get(
+					createStoreGetter(stateStore),
 					missedDelegate,
-					delegateStoreSchema,
 				);
 				expect(currentDelegate.isBanned).toBeFalse();
 				expect(currentDelegate.consecutiveMissedBlocks).toBe(51);
@@ -1260,11 +1169,9 @@ describe('DPoS module', () => {
 					stateStore,
 				}).getBlockAfterExecuteContext();
 
-				await previousTimestampStore.setWithSchema(
-					EMPTY_KEY,
-					{ timestamp: previousTimestamp },
-					previousTimestampStoreSchema,
-				);
+				await previousTimestampStore.set(createStoreGetter(stateStore), EMPTY_KEY, {
+					timestamp: previousTimestamp,
+				});
 
 				const missedBlocks: Record<string, number> = {};
 				missedBlocks[missedDelegate.toString('binary')] = 1;
@@ -1281,17 +1188,17 @@ describe('DPoS module', () => {
 				delegateData[missedDelegateIndex].consecutiveMissedBlocks = 40;
 				delegateData[missedDelegateIndex].lastGeneratedHeight = nextForgedHeight - 260000 - 1;
 
-				await delegateStore.setWithSchema(
+				await delegateStore.set(
+					createStoreGetter(stateStore),
 					missedDelegate,
 					delegateData[missedDelegateIndex],
-					delegateStoreSchema,
 				);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
 
-				const currentDelegate = await delegateStore.getWithSchema<DelegateAccount>(
+				const currentDelegate = await delegateStore.get(
+					createStoreGetter(stateStore),
 					missedDelegate,
-					delegateStoreSchema,
 				);
 				expect(currentDelegate.isBanned).toBeFalse();
 				expect(currentDelegate.consecutiveMissedBlocks).toBe(41);
@@ -1318,11 +1225,9 @@ describe('DPoS module', () => {
 					stateStore,
 				}).getBlockAfterExecuteContext();
 
-				await previousTimestampStore.setWithSchema(
-					EMPTY_KEY,
-					{ timestamp: previousTimestamp },
-					previousTimestampStoreSchema,
-				);
+				await previousTimestampStore.set(createStoreGetter(stateStore), EMPTY_KEY, {
+					timestamp: previousTimestamp,
+				});
 
 				const missedBlocks: Record<string, number> = {};
 				missedBlocks[missedDelegate.toString('binary')] = 1;
@@ -1339,17 +1244,17 @@ describe('DPoS module', () => {
 				delegateData[missedDelegateIndex].consecutiveMissedBlocks = 50;
 				delegateData[missedDelegateIndex].lastGeneratedHeight = nextForgedHeight - 260000 - 1;
 
-				await delegateStore.setWithSchema(
+				await delegateStore.set(
+					createStoreGetter(stateStore),
 					missedDelegate,
 					delegateData[missedDelegateIndex],
-					delegateStoreSchema,
 				);
 
 				await dpos['_updateProductivity'](context, previousTimestamp);
 
-				const currentDelegate = await delegateStore.getWithSchema<DelegateAccount>(
+				const currentDelegate = await delegateStore.get(
+					createStoreGetter(stateStore),
 					missedDelegate,
-					delegateStoreSchema,
 				);
 				expect(currentDelegate.isBanned).toBeTrue();
 				expect(currentDelegate.consecutiveMissedBlocks).toBe(51);
@@ -1373,10 +1278,10 @@ describe('DPoS module', () => {
 		let height: number;
 		let context: BlockAfterExecuteContext;
 		let dpos: DPoSModule;
-		let previousTimestampStore: SubStore;
+		let previousTimestampStore: PreviousTimestampStore;
 		let currentTimestamp: number;
 		let previousTimestamp: number;
-		let genesisDataStore: SubStore;
+		let genesisDataStore: GenesisDataStore;
 
 		beforeEach(async () => {
 			dpos = new DPoSModule();
@@ -1389,10 +1294,10 @@ describe('DPoS module', () => {
 
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
-			previousTimestampStore = stateStore.getStore(dpos.id, STORE_PREFIX_PREVIOUS_TIMESTAMP);
-			genesisDataStore = stateStore.getStore(dpos.id, STORE_PREFIX_GENESIS_DATA);
+			previousTimestampStore = dpos.stores.get(PreviousTimestampStore);
+			genesisDataStore = dpos.stores.get(GenesisDataStore);
 
-			await genesisDataStore.setWithSchema(EMPTY_KEY, genesisData, genesisDataStoreSchema);
+			await genesisDataStore.set(createTransientAPIContext({ stateStore }), EMPTY_KEY, genesisData);
 
 			jest.spyOn(dpos as any, '_createVoteWeightSnapshot').mockImplementation();
 			jest.spyOn(dpos as any, '_updateProductivity').mockImplementation();
@@ -1413,11 +1318,9 @@ describe('DPoS module', () => {
 					}),
 				}).getBlockAfterExecuteContext();
 
-				await previousTimestampStore.setWithSchema(
-					EMPTY_KEY,
-					{ timestamp: previousTimestamp },
-					previousTimestampStoreSchema,
-				);
+				await previousTimestampStore.set(createStoreGetter(stateStore), EMPTY_KEY, {
+					timestamp: previousTimestamp,
+				});
 
 				await dpos.afterTransactionsExecute(context);
 			});
@@ -1447,11 +1350,9 @@ describe('DPoS module', () => {
 					}),
 				}).getBlockAfterExecuteContext();
 
-				await previousTimestampStore.setWithSchema(
-					EMPTY_KEY,
-					{ timestamp: previousTimestamp },
-					previousTimestampStoreSchema,
-				);
+				await previousTimestampStore.set(createStoreGetter(stateStore), EMPTY_KEY, {
+					timestamp: previousTimestamp,
+				});
 
 				await dpos.afterTransactionsExecute(context);
 			});
@@ -1479,11 +1380,9 @@ describe('DPoS module', () => {
 					}),
 				}).getBlockAfterExecuteContext();
 
-				await previousTimestampStore.setWithSchema(
-					EMPTY_KEY,
-					{ timestamp: previousTimestamp },
-					previousTimestampStoreSchema,
-				);
+				await previousTimestampStore.set(createStoreGetter(stateStore), EMPTY_KEY, {
+					timestamp: previousTimestamp,
+				});
 
 				await dpos.afterTransactionsExecute(context);
 			});
@@ -1513,11 +1412,9 @@ describe('DPoS module', () => {
 					}),
 				}).getBlockAfterExecuteContext();
 
-				await previousTimestampStore.setWithSchema(
-					EMPTY_KEY,
-					{ timestamp: previousTimestamp },
-					previousTimestampStoreSchema,
-				);
+				await previousTimestampStore.set(createStoreGetter(stateStore), EMPTY_KEY, {
+					timestamp: previousTimestamp,
+				});
 
 				await dpos.afterTransactionsExecute(context);
 			});
@@ -1546,19 +1443,17 @@ describe('DPoS module', () => {
 					}),
 				}).getBlockAfterExecuteContext();
 
-				await previousTimestampStore.setWithSchema(
-					EMPTY_KEY,
-					{ timestamp: previousTimestamp },
-					previousTimestampStoreSchema,
-				);
+				await previousTimestampStore.set(createStoreGetter(stateStore), EMPTY_KEY, {
+					timestamp: previousTimestamp,
+				});
 
 				await dpos.afterTransactionsExecute(context);
 			});
 
 			it('should set previousTimestamp to current timestamp', async () => {
-				const nextPreviousTimestampData = await previousTimestampStore.getWithSchema<PreviousTimestampData>(
+				const nextPreviousTimestampData = await previousTimestampStore.get(
+					createStoreGetter(stateStore),
 					EMPTY_KEY,
-					previousTimestampStoreSchema,
 				);
 				const nextPreviousTimestamp = nextPreviousTimestampData.timestamp;
 				expect(nextPreviousTimestamp).toBe(currentTimestamp);

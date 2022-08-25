@@ -15,24 +15,29 @@
 import { codec } from '@liskhq/lisk-codec';
 import { BlockAssets, ImmutableAPIContext } from '../../state_machine';
 import { BaseAPI } from '../base_api';
+import { NamedRegistry } from '../named_registry';
 import { EMPTY_KEY } from '../validators/constants';
-import { STORE_PREFIX_RANDOM } from './constants';
-import { seedRevealSchema, blockHeaderAssetRandomModule } from './schemas';
-import { BlockHeaderAssetRandomModule, ValidatorReveals } from './types';
+import { blockHeaderAssetRandomModule } from './schemas';
+import { ValidatorRevealsStore } from './stores/validator_reveals';
+import { BlockHeaderAssetRandomModule } from './types';
 import { getSeedRevealValidity, getRandomSeed } from './utils';
 
 export class RandomAPI extends BaseAPI {
+	private readonly _moduleName: string;
+
+	public constructor(stores: NamedRegistry, events: NamedRegistry, moduleName: string) {
+		super(stores, events);
+		this._moduleName = moduleName;
+	}
+
 	public async isSeedRevealValid(
 		apiContext: ImmutableAPIContext,
 		generatorAddress: Buffer,
 		blockAssets: BlockAssets,
 	): Promise<boolean> {
-		const randomDataStore = apiContext.getStore(this.moduleID, STORE_PREFIX_RANDOM);
-		const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
-			EMPTY_KEY,
-			seedRevealSchema,
-		);
-		const asset = blockAssets.getAsset(this.moduleID);
+		const randomDataStore = this.stores.get(ValidatorRevealsStore);
+		const { validatorReveals } = await randomDataStore.get(apiContext, EMPTY_KEY);
+		const asset = blockAssets.getAsset(this._moduleName);
 		if (!asset) {
 			throw new Error('Block asset is missing.');
 		}
@@ -50,11 +55,8 @@ export class RandomAPI extends BaseAPI {
 		height: number,
 		numberOfSeeds: number,
 	): Promise<Buffer> {
-		const randomDataStore = apiContext.getStore(this.moduleID, STORE_PREFIX_RANDOM);
-		const { validatorReveals } = await randomDataStore.getWithSchema<ValidatorReveals>(
-			EMPTY_KEY,
-			seedRevealSchema,
-		);
+		const randomDataStore = this.stores.get(ValidatorRevealsStore);
+		const { validatorReveals } = await randomDataStore.get(apiContext, EMPTY_KEY);
 
 		return getRandomSeed(height, numberOfSeeds, validatorReveals);
 	}

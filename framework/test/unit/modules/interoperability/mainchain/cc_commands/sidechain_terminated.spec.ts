@@ -14,7 +14,12 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { MAINCHAIN_ID_BUFFER } from '../../../../../../src/modules/interoperability/constants';
+import { MainchainInteroperabilityModule } from '../../../../../../src';
+import {
+	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+	MAINCHAIN_ID_BUFFER,
+	MODULE_NAME_INTEROPERABILITY,
+} from '../../../../../../src/modules/interoperability/constants';
 import { MainchainCCSidechainTerminatedCommand } from '../../../../../../src/modules/interoperability/mainchain/cc_commands';
 import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
 import { sidechainTerminatedCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
@@ -22,6 +27,8 @@ import { CCCommandExecuteContext } from '../../../../../../src/modules/interoper
 import { createExecuteCCMsgAPIContext } from '../../../../../../src/testing';
 
 describe('MainchainCCSidechainTerminatedCommand', () => {
+	const interopMod = new MainchainInteroperabilityModule();
+
 	const terminateChainInternalMock = jest.fn();
 	const hasTerminatedStateAccountMock = jest.fn();
 	const createTerminatedStateAccountMock = jest.fn();
@@ -54,8 +61,8 @@ describe('MainchainCCSidechainTerminatedCommand', () => {
 
 	const ccm = {
 		nonce: BigInt(0),
-		moduleID: utils.intToBuffer(1, 4),
-		crossChainCommandID: utils.intToBuffer(1, 4),
+		module: MODULE_NAME_INTEROPERABILITY,
+		crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 		sendingChainID: MAINCHAIN_ID_BUFFER,
 		receivingChainID: utils.intToBuffer(1, 4),
 		fee: BigInt(20000),
@@ -80,8 +87,8 @@ describe('MainchainCCSidechainTerminatedCommand', () => {
 
 	beforeEach(() => {
 		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
-			ccm.moduleID,
-			sampleExecuteContext.getStore,
+			interopMod.stores,
+			sampleExecuteContext,
 			ccAPIsMap,
 		);
 		mainchainInteroperabilityStore.terminateChainInternal = terminateChainInternalMock;
@@ -89,7 +96,8 @@ describe('MainchainCCSidechainTerminatedCommand', () => {
 		mainchainInteroperabilityStore.createTerminatedStateAccount = createTerminatedStateAccountMock;
 
 		ccSidechainTerminatedCommand = new MainchainCCSidechainTerminatedCommand(
-			utils.intToBuffer(1, 4),
+			interopMod.stores,
+			interopMod.events,
 			ccAPIsMap,
 		);
 		(ccSidechainTerminatedCommand as any)['getInteroperabilityStore'] = jest

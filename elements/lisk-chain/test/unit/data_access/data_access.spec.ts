@@ -370,14 +370,14 @@ describe('data_access', () => {
 				new Event({
 					data: utils.getRandomBytes(20),
 					index: 0,
-					moduleID: Buffer.from([0, 0, 0, 2]),
+					module: 'token',
 					topics: [utils.getRandomBytes(32)],
 					typeID: Buffer.from([0, 0, 0, 0]),
 				}),
 				new Event({
 					data: utils.getRandomBytes(20),
 					index: 1,
-					moduleID: Buffer.from([0, 0, 0, 3]),
+					module: 'auth',
 					topics: [utils.getRandomBytes(32)],
 					typeID: Buffer.from([0, 0, 0, 0]),
 				}),
@@ -461,8 +461,8 @@ describe('data_access', () => {
 	describe('#getTransactionsByIDs', () => {
 		it('should get transaction by id', async () => {
 			const tx = new Transaction({
-				moduleID: utils.intToBuffer(2, 4),
-				commandID: utils.intToBuffer(0, 4),
+				module: 'token',
+				command: 'transfer',
 				fee: BigInt('10000000'),
 				nonce: BigInt('0'),
 				senderPublicKey: Buffer.from(

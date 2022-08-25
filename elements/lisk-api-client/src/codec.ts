@@ -35,21 +35,21 @@ import {
 } from './types';
 
 export const getTransactionParamsSchema = (
-	transaction: { moduleID: string; commandID: string },
+	transaction: { module: string; command: string },
 	metadata: ModuleMetadata[],
 ): Schema | undefined => {
-	const moduleMeta = metadata.find(meta => meta.id === transaction.moduleID);
+	const moduleMeta = metadata.find(meta => meta.name === transaction.module);
 	if (!moduleMeta) {
 		throw new Error(
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			`ModuleID: ${transaction.moduleID} is not registered.`,
+			`ModuleID: ${transaction.module} is not registered.`,
 		);
 	}
-	const commandMeta = moduleMeta.commands.find(meta => meta.id === transaction.commandID);
+	const commandMeta = moduleMeta.commands.find(meta => meta.name === transaction.command);
 	if (!commandMeta) {
 		throw new Error(
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			`ModuleID: ${transaction.moduleID} CommandID: ${transaction.commandID} is not registered.`,
+			`ModuleID: ${transaction.module} CommandID: ${transaction.command} is not registered.`,
 		);
 	}
 	return commandMeta.params;
@@ -81,13 +81,7 @@ export const decodeTransactionParams = <T>(
 		return transaction as DecodedTransaction<T>;
 	}
 
-	const paramsSchema = getTransactionParamsSchema(
-		{
-			moduleID: transaction.moduleID.toString('hex'),
-			commandID: transaction.commandID.toString('hex'),
-		},
-		metadata,
-	);
+	const paramsSchema = getTransactionParamsSchema(transaction, metadata);
 	return {
 		...transaction,
 		params: paramsSchema ? codec.decode<T>(paramsSchema, transaction.params) : ({} as T),
@@ -100,13 +94,7 @@ export const decodeTransaction = <T = Record<string, unknown>>(
 	metadata: ModuleMetadata[],
 ): DecodedTransaction<T> => {
 	const transaction = codec.decode<Transaction>(registeredSchema.transaction, encodedTransaction);
-	const paramsSchema = getTransactionParamsSchema(
-		{
-			moduleID: transaction.moduleID.toString('hex'),
-			commandID: transaction.commandID.toString('hex'),
-		},
-		metadata,
-	);
+	const paramsSchema = getTransactionParamsSchema(transaction, metadata);
 	const params = paramsSchema ? codec.decode<T>(paramsSchema, transaction.params) : ({} as T);
 	const id = utils.hash(encodedTransaction);
 	return {
@@ -123,13 +111,7 @@ export const encodeTransaction = (
 ): Buffer => {
 	let encodedParams;
 	if (!Buffer.isBuffer(transaction.params)) {
-		const paramsSchema = getTransactionParamsSchema(
-			{
-				moduleID: transaction.moduleID.toString('hex'),
-				commandID: transaction.commandID.toString('hex'),
-			},
-			metadata,
-		);
+		const paramsSchema = getTransactionParamsSchema(transaction, metadata);
 		encodedParams = paramsSchema ? codec.encode(paramsSchema, transaction.params) : Buffer.alloc(0);
 	} else {
 		encodedParams = transaction.params;
@@ -174,13 +156,7 @@ export const toTransactionJSON = <T = Record<string, unknown>>(
 	registeredSchema: RegisteredSchemas,
 	metadata: ModuleMetadata[],
 ): DecodedTransactionJSON<T> => {
-	const paramsSchema = getTransactionParamsSchema(
-		{
-			moduleID: transaction.moduleID.toString('hex'),
-			commandID: transaction.commandID.toString('hex'),
-		},
-		metadata,
-	);
+	const paramsSchema = getTransactionParamsSchema(transaction, metadata);
 	if (Buffer.isBuffer(transaction.params)) {
 		return {
 			...codec.toJSON(registeredSchema.transaction, transaction),

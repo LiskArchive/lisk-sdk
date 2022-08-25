@@ -104,7 +104,7 @@ export class InMemoryChannel extends BaseChannel {
 			return handler({
 				logger: this._logger,
 				params: request.params ?? {},
-				getStore: (moduleID: Buffer, storePrefix: number) => {
+				getStore: (moduleID: Buffer, storePrefix: Buffer) => {
 					const stateStore = new PrefixedStateReadWriter(this._db.newReadWriter());
 					return stateStore.getStore(moduleID, storePrefix);
 				},
