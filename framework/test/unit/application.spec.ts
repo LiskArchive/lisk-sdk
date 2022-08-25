@@ -180,14 +180,6 @@ describe('Application', () => {
 			expect(app['_controller']).not.toBeUndefined();
 		});
 
-		it('should not initialize logger', () => {
-			// Act
-			const { app } = Application.defaultApplication(config);
-
-			// Assert
-			expect(app.logger).toBeUndefined();
-		});
-
 		it('should throw if invalid generation is provided', () => {
 			// Arrange
 			const invalidConfig = objects.mergeDeep({}, config, {

@@ -623,6 +623,15 @@ describe('consensus', () => {
 		let block: Block;
 		let stateStore: StateStore;
 
+		beforeEach(async () => {
+			await consensus.init({
+				logger: loggerMock,
+				db: dbMock,
+				genesisBlock: genesis,
+				modules,
+			});
+		});
+
 		describe('when skipBroadcast option is not specified', () => {
 			beforeEach(async () => {
 				block = await createValidDefaultBlock({

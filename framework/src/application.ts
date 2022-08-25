@@ -373,6 +373,9 @@ export class Application {
 
 	private _registerModule(mod: BaseModule): void {
 		assert(mod, 'Module implementation is required');
+		if (!this.logger) {
+			this.logger = this._initLogger();
+		}
 		this._registeredModules.push(mod);
 		this._stateMachine.registerModule(mod);
 		this.logger.info(`Registered ${mod.name} module`);
