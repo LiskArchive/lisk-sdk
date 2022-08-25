@@ -1,3 +1,8 @@
+/**
+ * TODO: Now that we have `certificates.ts`, these methods could be moved there
+ * (checkCertificateTimestamp, checkCertificateValidity, checkValidatorsHashWithCertificate, checkValidCertificateLiveness,
+ * isCertificateEmpty, verifyCertificateSignature)
+ */
 import { LastCertificate, LastCertificateJSON } from './types';
 
 export const certificateToJSON = (certificate: LastCertificate): LastCertificateJSON => ({
