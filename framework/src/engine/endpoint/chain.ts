@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import {
+	Slots,
 	BlockAssetJSON,
 	BlockHeader,
 	BlockJSON,
@@ -38,6 +39,8 @@ import { areDistinctHeadersContradicting, getGeneratorKeys } from '../bft/utils'
 
 interface EndpointArgs {
 	chain: Chain;
+	genesisBlockTimestamp: number;
+	interval: number;
 }
 
 const proveEventsRequestSchema = {
@@ -61,10 +64,15 @@ const proveEventsRequestSchema = {
 export class ChainEndpoint {
 	[key: string]: unknown;
 	private readonly _chain: Chain;
+	private readonly _blockSlot: Slots;
 	private _db!: Database;
 
 	public constructor(args: EndpointArgs) {
 		this._chain = args.chain;
+		this._blockSlot = new Slots({
+			genesisBlockTimestamp: args.genesisBlockTimestamp,
+			interval: args.interval,
+		});
 	}
 
 	public init(db: Database) {
@@ -215,7 +223,9 @@ export class ChainEndpoint {
 		};
 	}
 
-	public async getGeneratorList(_: RequestContext): Promise<{ list: string[] }> {
+	public async getGeneratorList(
+		_: RequestContext,
+	): Promise<{ list: { address: string; nextAllocatedTime: number }[] }> {
 		const stateStore = new StateStore(this._db);
 		const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
 		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
@@ -223,8 +233,21 @@ export class ChainEndpoint {
 			bftVotes.blockBFTInfos.length > 0 ? bftVotes.blockBFTInfos[0] : { height: 0 };
 		const keysStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_GENERATOR_KEYS);
 		const keys = await getGeneratorKeys(keysStore, currentHeight + 1);
+		const slot = this._blockSlot.getSlotNumber();
+		const startTime = this._blockSlot.getSlotTime(slot);
+		let nextAllocatedTime = startTime;
+		const slotInRound = slot % keys.generators.length;
+		const generatorsInfo = [];
+		for (let i = slotInRound; i < slotInRound + keys.generators.length; i += 1) {
+			generatorsInfo.push({
+				address: keys.generators[i % keys.generators.length].address.toString('hex'),
+				nextAllocatedTime,
+			});
+			nextAllocatedTime += this._blockSlot.blockTime();
+		}
+
 		return {
-			list: keys.generators.map(v => v.address.toString('hex')),
+			list: generatorsInfo,
 		};
 	}
 

@@ -15,6 +15,7 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { ModuleEndpointContext } from '../../../src';
+import { RequestContext } from '../../../src/engine/rpc/rpc_server';
 import { createImmutableAPIContext } from '../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../src/state_machine/prefixed_state_read_writer';
 import { fakeLogger } from './logger';
@@ -25,6 +26,12 @@ export const createContext = (
 ): ModuleEndpointContext => ({
 	getImmutableAPIContext: () => createImmutableAPIContext(stateStore),
 	getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
+	logger: fakeLogger,
+	networkIdentifier: utils.getRandomBytes(32),
+	params,
+});
+
+export const createRequestContext = (params: Record<string, unknown>): RequestContext => ({
 	logger: fakeLogger,
 	networkIdentifier: utils.getRandomBytes(32),
 	params,
