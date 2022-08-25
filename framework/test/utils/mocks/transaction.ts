@@ -157,22 +157,31 @@ export const createMultiSignRegisterTransaction = (input: {
 		});
 	}
 
-	const encodedAsset = codec.encode(registerMultisignatureParamsSchema, {
-		mandatoryKeys: input.mandatoryKeys,
-		optionalKeys: input.optionalKeys,
-		numberOfSignatures: input.numberOfSignatures,
-		signatures: memberSignatures,
-	});
 	const params = {
 		mandatoryKeys: input.mandatoryKeys,
 		optionalKeys: input.optionalKeys,
 		numberOfSignatures: input.numberOfSignatures,
 		signatures: memberSignatures,
 	};
+	const encodedAsset = codec.encode(registerMultisignatureParamsSchema, params);
+	const { publicKey, privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(
+		input.senderPassphrase,
+	);
+	const unsignedTx = {
+		module: 'auth',
+		command: 'registerMultisignature',
+		nonce: input.nonce,
+		senderPublicKey: publicKey,
+		fee: input.fee ?? BigInt('1100000000'),
+		signatures: [],
+		params: encodedAsset,
+	};
+	const unsignedTxObj = new Transaction({ ...unsignedTx });
+
 	const senderSignature = ed.signData(
 		TAG_TRANSACTION,
 		input.chainID,
-		encodedAsset,
+		unsignedTxObj.getSigningBytes(),
 		input.privateKeys[0],
 	);
 	const transaction = {
@@ -181,8 +190,8 @@ export const createMultiSignRegisterTransaction = (input: {
 		nonce: input.nonce,
 		senderPublicKey: input.senderPublicKey,
 		fee: input.fee ?? BigInt('1100000000'),
-		params,
 		signatures: [senderSignature],
+		params: encodedAsset,
 	};
 
 	const tx = new Transaction({ ...transaction, params: encodedAsset } as any);

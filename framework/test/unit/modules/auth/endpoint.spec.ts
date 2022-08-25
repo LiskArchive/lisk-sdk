@@ -3,7 +3,10 @@ import { codec } from '@liskhq/lisk-codec';
 import { ed, address as cryptoAddress, utils, legacy, address } from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
 import { AuthModule } from '../../../../src/modules/auth';
-import { COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP } from '../../../../src/modules/auth/constants';
+import {
+	COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP,
+	MESSAGE_TAG_MULTISIG_REG,
+} from '../../../../src/modules/auth/constants';
 import { AuthEndpoint } from '../../../../src/modules/auth/endpoint';
 import { InvalidNonceError } from '../../../../src/modules/auth/errors';
 import {
@@ -288,7 +291,7 @@ describe('AuthEndpoint', () => {
 
 			(decodedTxParams.signatures as any).push(
 				ed.signDataWithPrivateKey(
-					TAG_TRANSACTION,
+					MESSAGE_TAG_MULTISIG_REG,
 					chainID,
 					message,
 					accounts.mandatoryOne.privateKey as Buffer,
@@ -297,7 +300,7 @@ describe('AuthEndpoint', () => {
 
 			(decodedTxParams.signatures as any).push(
 				ed.signDataWithPrivateKey(
-					TAG_TRANSACTION,
+					MESSAGE_TAG_MULTISIG_REG,
 					chainID,
 					message,
 					accounts.mandatoryTwo.privateKey as Buffer,
@@ -306,7 +309,7 @@ describe('AuthEndpoint', () => {
 
 			(decodedTxParams.signatures as any).push(
 				ed.signDataWithPrivateKey(
-					TAG_TRANSACTION,
+					MESSAGE_TAG_MULTISIG_REG,
 					chainID,
 					message,
 					accounts.optionalOne.privateKey as Buffer,
@@ -315,7 +318,7 @@ describe('AuthEndpoint', () => {
 
 			(decodedTxParams.signatures as any).push(
 				ed.signDataWithPrivateKey(
-					TAG_TRANSACTION,
+					MESSAGE_TAG_MULTISIG_REG,
 					chainID,
 					message,
 					accounts.optionalTwo.privateKey as Buffer,
