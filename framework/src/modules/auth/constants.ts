@@ -13,7 +13,7 @@
  */
 import { utils } from '@liskhq/lisk-cryptography';
 
-export const COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP = 'registerMultisignatureGroup';
+export const COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP = 'registerMultisignature';
 export const MAX_NUMBER_OF_SIGNATURES = 64;
 
 // Commands

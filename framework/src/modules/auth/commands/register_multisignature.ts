@@ -116,7 +116,7 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 			};
 		}
 
-		// Check if the length of mandatory, optional keys is equal to length of signatures
+		// Check if the length of mandatory and optional keys is equal to the length of signatures
 		if (mandatoryKeys.length + optionalKeys.length !== signatures.length) {
 			return {
 				status: VerifyStatus.FAIL,

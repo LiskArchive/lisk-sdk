@@ -18,17 +18,14 @@ import { isHexString } from '@liskhq/lisk-validator';
 import { ModuleEndpointContext } from '../../types';
 import { VerifyStatus } from '../../state_machine';
 import { BaseEndpoint } from '../base_endpoint';
-import { AuthAccountJSON, VerifyEndpointResultJSON } from './types';
+import { AuthAccountJSON, ImmutableStoreCallback, VerifyEndpointResultJSON } from './types';
 import { getTransactionFromParameter, verifyNonceStrict, verifySignatures } from './utils';
 import { AuthAccountStore } from './stores/auth_account';
 import { NamedRegistry } from '../named_registry';
 
 export class AuthEndpoint extends BaseEndpoint {
-	private readonly _moduleName: string;
-
-	public constructor(moduleName: string, stores: NamedRegistry, offchainStores: NamedRegistry) {
+	public constructor(_moduleName: string, stores: NamedRegistry, offchainStores: NamedRegistry) {
 		super(stores, offchainStores);
-		this._moduleName = moduleName;
 	}
 
 	public async getAuthAccount(context: ModuleEndpointContext): Promise<AuthAccountJSON> {
@@ -75,12 +72,17 @@ export class AuthEndpoint extends BaseEndpoint {
 		const store = this.stores.get(AuthAccountStore);
 		const account = await store.get(context, accountAddress);
 
+		const isMultisignatureAccount = await this._isMultisignatureAccount(
+			context.getStore,
+			accountAddress,
+		);
+
 		return verifySignatures(
-			this._moduleName,
 			transaction,
 			transactionBytes,
 			networkIdentifier,
 			account,
+			isMultisignatureAccount,
 		);
 	}
 
@@ -97,5 +99,22 @@ export class AuthEndpoint extends BaseEndpoint {
 
 		const verificationResult = verifyNonceStrict(transaction, account).status;
 		return { verified: verificationResult === VerifyStatus.OK };
+	}
+
+	private async _isMultisignatureAccount(
+		getStore: ImmutableStoreCallback,
+		address: Buffer,
+	): Promise<boolean> {
+		const authSubstore = this.stores.get(AuthAccountStore);
+		try {
+			const authAccount = await authSubstore.get({ getStore }, address);
+
+			return authAccount.numberOfSignatures !== 0;
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+			return false;
+		}
 	}
 }

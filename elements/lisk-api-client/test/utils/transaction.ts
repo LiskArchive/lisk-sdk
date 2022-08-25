@@ -96,7 +96,7 @@ export const metadata: ModuleMetadata[] = [
 		commands: [
 			{
 				id: utils.intToBuffer(0, 4).toString('hex'),
-				name: 'registerMultisignatureGroup',
+				name: 'registerMultisignature',
 				params: {
 					$id: '/lisk/keys/register',
 					type: 'object',

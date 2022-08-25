@@ -158,12 +158,16 @@ export class AuthModule extends BaseModule {
 		// Verify nonce of the transaction, it can be FAILED, PENDING or OK
 		const nonceStatus = verifyNonce(transaction, senderAccount);
 
+		const isMultisignatureAccount = await this._isMultisignatureAccount(
+			context.getStore,
+			transaction.senderAddress,
+		);
 		verifySignatures(
-			this.name,
 			transaction,
 			transaction.getSigningBytes(),
 			networkIdentifier,
 			senderAccount,
+			isMultisignatureAccount,
 		);
 
 		return nonceStatus;
@@ -192,8 +196,7 @@ export class AuthModule extends BaseModule {
 		});
 	}
 
-	// TODO: Change it to private once implemented
-	protected async _isMultisignatureAccount(
+	private async _isMultisignatureAccount(
 		getStore: ImmutableStoreCallback,
 		address: Buffer,
 	): Promise<boolean> {
