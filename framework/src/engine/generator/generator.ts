@@ -664,6 +664,13 @@ export class Generator {
 			blsSecretKey: blsSK,
 		};
 		this._consensus.certifySingleCommit(blockHeader, validatorInfo);
+		this._logger.info(
+			{
+				height,
+				generator: generatorAddress.toString('hex'),
+			},
+			'Certified single commit',
+		);
 	}
 
 	private async _executeTransactions(
