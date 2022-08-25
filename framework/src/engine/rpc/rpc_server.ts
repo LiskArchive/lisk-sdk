@@ -91,21 +91,21 @@ export class RPCServer {
 			await this._ipcServer.start();
 			this._handleIPCRequest(this._ipcServer.rpcServer).catch(err => {
 				this._logger.debug(err, 'Error occured while listening to RPCs on RPC router.');
-				this._logger.info({ status: 'error' }, 'IPCServer.start');
+				this._logger.info({ status: 'error', err: err as Error }, 'Handle IPC request');
 			});
 			this._logger.info(`RPC IPC Server starting at ${this._ipcServer.socketPaths.rpcServer}`);
-			this._logger.info({ status: 'success' }, 'IPCServer.start');
+			this._logger.info({ status: 'success' }, 'Handle IPC request');
 		}
 
 		if (this._httpServer) {
 			this._httpServer.start(this._logger, (_req, res, message) => {
 				this._handleRequest(message)
 					.then(data => {
-						this._logger.info({ status: 'success' }, 'HTTPServer.start');
+						this._logger.info({ status: 'success' }, 'Handle HTTP request');
 						res.end(JSON.stringify(data));
 					})
 					.catch((error: JSONRPC.JSONRPCError) => {
-						this._logger.info({ status: 'error' }, 'HTTPServer.start');
+						this._logger.info({ status: 'error', err: error as Error }, 'Handle HTTP request');
 						res.end(JSON.stringify(error.response));
 					});
 			});
@@ -117,11 +117,11 @@ export class RPCServer {
 				(socket, message) => {
 					this._handleRequest(message)
 						.then(data => {
-							this._logger.info({ status: 'success' }, 'WSServer.start');
+							this._logger.info({ status: 'success' }, 'Handle WS request');
 							socket.send(JSON.stringify(data));
 						})
 						.catch((error: JSONRPC.JSONRPCError) => {
-							this._logger.info({ status: 'error' }, 'WSServer.start');
+							this._logger.info({ status: 'error', err: error as Error }, 'Handle WS request');
 							socket.send(JSON.stringify(error.response));
 						});
 				},

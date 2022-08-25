@@ -581,8 +581,8 @@ export class Consensus {
 					id: block.header.id,
 					height: block.header.height,
 					generator: block.header.generatorAddress.toString('hex'),
-					number_of_transactions: block.transactions.length,
-					number_of_assets: block.assets.getAll().length,
+					numberOfTransactions: block.transactions.length,
+					numberOfAssets: block.assets.getAll().length,
 				},
 				'Block broadcasted',
 			);
@@ -591,17 +591,6 @@ export class Consensus {
 			});
 		}
 		const events = await this._executeBlock(contextID, stateStore, block);
-		this._logger.info(
-			{
-				id: block.header.id,
-				height: block.header.height,
-				generator: block.header.generatorAddress.toString('hex'),
-				number_of_transactions: block.transactions.length,
-				number_of_assets: block.assets.getAll().length,
-				number_of_events: events.length,
-			},
-			'Block executed',
-		);
 
 		const bftVotes = await this._bft.api.getBFTHeights(stateStore);
 
@@ -635,6 +624,17 @@ export class Consensus {
 		}
 
 		this.events.emit(CONSENSUS_EVENT_BLOCK_NEW, { block });
+		this._logger.info(
+			{
+				id: block.header.id,
+				height: block.header.height,
+				generator: block.header.generatorAddress.toString('hex'),
+				numberOfTransactions: block.transactions.length,
+				numberOfAssets: block.assets.getAll().length,
+				numberOfEvents: events.length,
+			},
+			'Block executed',
+		);
 		return block;
 	}
 

@@ -304,8 +304,7 @@ export class Application {
 					.start()
 					.then(() => {
 						this.logger.debug(this._controller.getEvents(), 'Application listening to events');
-						this.logger.debug(this._controller.getEndpoints(), 'Application ready for actions');
-						this.logger.info(this._controller.getEndpoints(), 'Application ready for actions');
+						this.logger.info(this._controller.getEndpoints(), 'Application ready for endpoints');
 						this.channel.publish(APP_EVENT_READY);
 					})
 					.catch(err => {

@@ -135,6 +135,7 @@ export class StateMachine {
 			}
 			return { status: VerifyStatus.OK };
 		} catch (error) {
+			this._logger.info({ err: error as Error }, 'Transaction verification failed');
 			return { status: VerifyStatus.FAIL, error: error as Error };
 		}
 	}
@@ -151,6 +152,7 @@ export class StateMachine {
 				} catch (error) {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
+					this._logger.info({ err: error as Error }, 'Transaction execution failed');
 					return TransactionExecutionResult.INVALID;
 				}
 			}
@@ -162,6 +164,7 @@ export class StateMachine {
 				} catch (error) {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
+					this._logger.info({ err: error as Error }, 'Transaction execution failed');
 					return TransactionExecutionResult.INVALID;
 				}
 			}
@@ -189,6 +192,7 @@ export class StateMachine {
 				[ctx.transaction.id],
 			);
 			status = TransactionExecutionResult.FAIL;
+			this._logger.info({ err: error as Error }, 'Transaction execution failed');
 		}
 
 		// Execute after transaction hooks
@@ -199,6 +203,7 @@ export class StateMachine {
 				} catch (error) {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
+					this._logger.info({ err: error as Error }, 'Transaction execution failed');
 					return TransactionExecutionResult.INVALID;
 				}
 			}
@@ -210,6 +215,7 @@ export class StateMachine {
 				} catch (error) {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
+					this._logger.info({ err: error as Error }, 'Transaction execution failed');
 					return TransactionExecutionResult.INVALID;
 				}
 			}
@@ -267,8 +273,10 @@ export class StateMachine {
 			const verifyResult = await this.verifyTransaction(txContext);
 			if (verifyResult.status !== VerifyStatus.OK) {
 				if (verifyResult.error) {
+					this._logger.info({ err: verifyResult.error }, 'Transaction verification failed');
 					throw verifyResult.error;
 				}
+				this._logger.info(`Transaction verification failed. ID ${tx.id.toString('hex')}.`);
 				throw new Error(`Transaction verification failed. ID ${tx.id.toString('hex')}.`);
 			}
 			await this.executeTransaction(txContext);
