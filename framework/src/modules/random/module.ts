@@ -38,6 +38,7 @@ import { Logger } from '../../logger';
 import { isSeedValidInput } from './utils';
 import { ValidatorRevealsStore } from './stores/validator_reveals';
 import { UsedHashOnionsStore } from './stores/used_hash_onions';
+import { HashOnionStore } from './stores/hash_onion';
 
 export class RandomModule extends BaseModule {
 	public api = new RandomAPI(this.stores, this.events, this.name);
@@ -48,6 +49,7 @@ export class RandomModule extends BaseModule {
 	public constructor() {
 		super();
 		this.stores.register(ValidatorRevealsStore, new ValidatorRevealsStore(this.name));
+		this.offchainStores.register(HashOnionStore, new HashOnionStore(this.name));
 		this.offchainStores.register(UsedHashOnionsStore, new UsedHashOnionsStore(this.name));
 	}
 
@@ -78,9 +80,9 @@ export class RandomModule extends BaseModule {
 	public async init(args: ModuleInitArgs): Promise<void> {
 		const { moduleConfig } = args;
 		const config = objects.mergeDeep({}, defaultConfig, moduleConfig);
-		validator.validate(randomModuleConfig, config);
+		validator.validate<{ maxLengthReveals: number }>(randomModuleConfig, config);
 
-		this._maxLengthReveals = config.maxLengthReveals as number;
+		this._maxLengthReveals = config.maxLengthReveals;
 	}
 
 	public async insertAssets(context: InsertAssetContext): Promise<void> {
@@ -97,7 +99,7 @@ export class RandomModule extends BaseModule {
 		}
 
 		// Get next hash onion
-		const nextHashOnion = this._getNextHashOnion(
+		const nextHashOnion = await this._getNextHashOnion(
 			usedHashOnions,
 			context.header.generatorAddress,
 			context.header.height,
@@ -105,12 +107,10 @@ export class RandomModule extends BaseModule {
 			context,
 		);
 		const index = usedHashOnions.findIndex(
-			async ho =>
-				ho.address.equals(context.header.generatorAddress) &&
-				ho.count === (await nextHashOnion).count,
+			ho => ho.address.equals(context.header.generatorAddress) && ho.count === nextHashOnion.count,
 		);
 		const nextUsedHashOnion = {
-			count: (await nextHashOnion).count,
+			count: nextHashOnion.count,
 			address: context.header.generatorAddress,
 			height: context.header.height, // Height of block being forged
 		} as UsedHashOnion;
@@ -239,7 +239,7 @@ export class RandomModule extends BaseModule {
 			return prev;
 		}, undefined);
 
-		const hashOnion = await this._getHashOnion(address, context);
+		const hashOnion = await this._getHashOnion(context, address);
 		if (!hashOnion) {
 			return {
 				hash: utils.generateHashOnionSeed(),
@@ -281,19 +281,18 @@ export class RandomModule extends BaseModule {
 
 	// return hashonion from DB
 	private async _getHashOnion(
-		address: Buffer,
 		context: InsertAssetContext,
+		address: Buffer,
 	): Promise<HashOnionConfig | undefined> {
-		const generatorSubStore = context.getOffchainStore(this.id);
-		const hashOnion = await generatorSubStore.getWithSchema<HashOnionConfig>(
-			address,
-			setSeedSchema,
-		);
-
-		if (!hashOnion) {
-			return undefined;
+		const hashOnionStore = this.offchainStores.get(HashOnionStore);
+		try {
+			// await is required to catch the error below
+			return await hashOnionStore.get(context, address);
+		} catch (error) {
+			if (error instanceof NotFoundError) {
+				return undefined;
+			}
+			throw error;
 		}
-
-		return hashOnion;
 	}
 }

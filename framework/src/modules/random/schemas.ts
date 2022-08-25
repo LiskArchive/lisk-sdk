@@ -12,11 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export interface Address {
+import { ADDRESS_LENGTH, SEED_LENGTH } from './constants';
+
+interface AddressRequest {
 	address: string;
 }
 
-export interface SetSeedRequest extends Address {
+export interface SetSeedRequest extends AddressRequest {
 	seed?: string | undefined;
 	count?: number | undefined;
 	distance?: number | undefined;
@@ -47,30 +49,7 @@ export const setSeedRequestSchema = {
 	},
 };
 
-export const setSeedSchema = {
-	$id: 'lisk/random/setSeedSchema',
-	type: 'object',
-	required: [],
-	properties: {
-		count: {
-			dataType: 'uint32',
-			fieldNumber: 1,
-		},
-		distance: {
-			dataType: 'uint32',
-			fieldNumber: 2,
-		},
-		hashes: {
-			type: 'array',
-			fieldNumber: 3,
-			items: {
-				dataType: 'bytes',
-			},
-		},
-	},
-};
-
-interface Seeds extends Address {
+interface Seeds extends AddressRequest {
 	seed: string;
 	count: number;
 	distance: number;
@@ -79,6 +58,8 @@ interface Seeds extends Address {
 export interface GetSeedsResponse {
 	seeds: Seeds[];
 }
+
+export type HasSeedRequest = AddressRequest;
 
 export interface HasSeedResponse {
 	hasSeed: boolean;
@@ -104,36 +85,19 @@ export const hasSeedSchema = {
 export interface GetSeedUsageResponse {
 	height: number;
 	count: number;
-	lastUsedHash: string;
 	seed: string;
 }
 
-export const getSeedUsageSchema = {
-	$id: 'lisk/random/getSeedUsageSchema',
+export type GetSeedUsageRequest = AddressRequest;
+
+export const getSeedUsageRequestSchema = {
+	$id: 'lisk/random/getSeedUsageRequest',
 	type: 'object',
-	required: [],
+	required: ['address'],
 	properties: {
-		height: {
-			type: 'integer',
-			// dataType: 'uint32',
-			fieldNumber: 1,
-		},
-		count: {
-			type: 'integer',
-			// dataType: 'uint32',
-			fieldNumber: 2,
-		},
-		lastUsedHash: {
+		address: {
 			type: 'string',
 			format: 'hex',
-			// dataType: 'bytes',
-			fieldNumber: 3,
-		},
-		seed: {
-			type: 'string',
-			format: 'hex',
-			// dataType: 'bytes',
-			fieldNumber: 4,
 		},
 	},
 };

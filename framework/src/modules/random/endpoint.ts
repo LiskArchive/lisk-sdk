@@ -14,14 +14,25 @@
 
 import { validator } from '@liskhq/lisk-validator';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { codec } from '@liskhq/lisk-codec';
 import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
-import { EMPTY_KEY } from './constants';
-import { isSeedRevealValidRequestSchema } from './schemas';
+import { ADDRESS_LENGTH, EMPTY_KEY } from './constants';
+import {
+	GetSeedsResponse,
+	GetSeedUsageRequest,
+	getSeedUsageRequestSchema,
+	GetSeedUsageResponse,
+	HasSeedRequest,
+	HasSeedResponse,
+	hasSeedSchema,
+	isSeedRevealValidRequestSchema,
+	SetSeedRequest,
+	setSeedRequestSchema,
+} from './schemas';
 import { ValidatorRevealsStore } from './stores/validator_reveals';
 import { getSeedRevealValidity } from './utils';
-import { NotFoundError } from '../../state_machine';
+import { HashOnionStore } from './stores/hash_onion';
+import { UsedHashOnionsStore } from './stores/used_hash_onions';
 
 export class RandomEndpoint extends BaseEndpoint {
 	public async isSeedRevealValid(ctx: ModuleEndpointContext): Promise<{ valid: boolean }> {
@@ -50,80 +61,74 @@ export class RandomEndpoint extends BaseEndpoint {
 		const count = ctx.params.count ?? 1000000;
 		const distance = ctx.params.distance ?? 1000;
 
-		const hashes = cryptography.utils.hashOnion(seed, count, distance);
+		const hashes = cryptography.utils.hashOnion(seed, count, distance) as Buffer[];
 		const hashOnion = { count, distance, hashes };
-		const randomDataStore = ctx.getOffchainStore(this.moduleID, STORE_PREFIX_RANDOM);
-		await randomDataStore.setWithSchema(address, hashOnion, setSeedSchema);
+		const hashOnionStore = this.offchainStores.get(HashOnionStore);
+		await hashOnionStore.set(ctx, address, hashOnion);
 	}
 
 	public async getSeeds(ctx: ModuleEndpointContext): Promise<GetSeedsResponse> {
-		validator.validate<SetSeedRequest>(setSeedRequestSchema, ctx.params);
+		const hashOnionStore = this.offchainStores.get(HashOnionStore);
+		const hashOnions = await hashOnionStore.iterate(ctx, {
+			gte: Buffer.alloc(ADDRESS_LENGTH, 0),
+			lte: Buffer.alloc(ADDRESS_LENGTH, 255),
+		});
 
-		const address = Buffer.from(ctx.params.address, 'hex');
-		const randomDataStore = ctx.getOffchainStore(this.moduleID, STORE_PREFIX_RANDOM);
-		const { hashes, count, distance } = await randomDataStore.getWithSchema<{
-			count: number;
-			distance: number;
-			hashes: Buffer[];
-		}>(address, setSeedSchema);
-
-		const seeds = hashes.map(hash => ({
-			address: address.toString('hex'),
-			seed: hash.toString('hex'),
-			count,
-			distance,
+		const seeds = hashOnions.map(({ key, value }) => ({
+			address: key.toString('hex'),
+			seed: value.hashes[value.hashes.length - 1].toString('hex'),
+			count: value.count,
+			distance: value.distance,
 		}));
 
 		return { seeds };
 	}
 
 	public async hasSeed(ctx: ModuleEndpointContext): Promise<HasSeedResponse> {
-		validator.validate<Address>(hasSeedSchema, ctx.params);
+		validator.validate<HasSeedRequest>(hasSeedSchema, ctx.params);
 
 		const address = Buffer.from(ctx.params.address, 'hex');
-		const randomDataStore = ctx.getOffchainStore(this.moduleID, STORE_PREFIX_RANDOM);
-		const hasSeed = await randomDataStore.has(address);
-		const { count } = await randomDataStore.getWithSchema<{
-			count: number;
-		}>(address, setSeedSchema);
-		let usedHashOnions: UsedHashOnion[] = [];
-
-		try {
-			const usedHashOnionsData = await randomDataStore.get(STORE_PREFIX_USED_HASH_ONION);
-			({ usedHashOnions } = codec.decode<UsedHashOnionStoreObject>(
-				usedHashOnionsStoreSchema,
-				usedHashOnionsData,
-			));
-		} catch (error) {
-			if (!(error instanceof NotFoundError)) {
-				throw error;
-			}
+		const hashOnionStore = this.offchainStores.get(HashOnionStore);
+		const hasSeed = await hashOnionStore.has(ctx, address);
+		if (!hasSeed) {
+			return {
+				hasSeed,
+				remaining: 0,
+			};
+		}
+		const hashOnion = await hashOnionStore.get(ctx, address);
+		const usedHashOnionStore = this.offchainStores.get(UsedHashOnionsStore);
+		const usedHashOnion = await usedHashOnionStore.getLatest(ctx, address);
+		if (!usedHashOnion) {
+			return {
+				hasSeed,
+				remaining: hashOnion.count,
+			};
 		}
 
-		const remaining = count - usedHashOnions.length;
+		const remaining = hashOnion.count - usedHashOnion.count;
 
 		return { hasSeed, remaining };
 	}
 
 	public async getSeedUsage(ctx: ModuleEndpointContext): Promise<GetSeedUsageResponse> {
-		validator.validate<Address>(getSeedUsageSchema, ctx.params);
+		validator.validate<GetSeedUsageRequest>(getSeedUsageRequestSchema, ctx.params);
 
 		const address = Buffer.from(ctx.params.address, 'hex');
-		const randomDataStore = ctx.getOffchainStore(this.moduleID, STORE_PREFIX_RANDOM);
-		// TODO: get hashes from DB
-		const { hashes } = await randomDataStore.getWithSchema<{
-			hashes: Buffer[];
-		}>(address, setSeedSchema);
-		// eslint-disable-next-line no-console
-		console.log({ hashes });
+		const hashOnionStore = this.offchainStores.get(HashOnionStore);
+		const hashOnion = await hashOnionStore.get(ctx, address);
+		const seed = hashOnion.hashes[hashOnion.hashes.length - 1].toString('hex');
 
-		// TODO: seed = 1st or last element of hashes is the seed itself
+		const usedHashOnionStore = this.offchainStores.get(UsedHashOnionsStore);
+		const usedHashOnion = await usedHashOnionStore.getLatest(ctx, address);
+		if (!usedHashOnion) {
+			return {
+				count: 0,
+				height: 0,
+				seed,
+			};
+		}
 
-		// TODO: get count and height from RandomModule class
-
-		// TODO: get lastUsedHash
-
-		// FIXME: return correct data
-		return { height: 1, count: 1, lastUsedHash: '', seed: '' };
+		return { height: usedHashOnion.height, count: usedHashOnion.count, seed };
 	}
 }
