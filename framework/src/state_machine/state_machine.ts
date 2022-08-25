@@ -15,6 +15,7 @@
 import { EVENT_STANDARD_TYPE_ID, standardEventDataSchema } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { TransactionExecutionResult } from '../abi/constants';
+import { Logger } from '../logger';
 import { BaseCommand, BaseModule } from '../modules';
 import { GenesisConfig } from '../types';
 import { BlockContext } from './block_context';
@@ -27,6 +28,7 @@ export class StateMachine {
 	private readonly _modules: BaseModule[] = [];
 	private readonly _systemModules: BaseModule[] = [];
 
+	private _logger!: Logger;
 	private _initialized = false;
 
 	public registerModule(mod: BaseModule): void {
@@ -40,10 +42,12 @@ export class StateMachine {
 	}
 
 	public async init(
+		logger: Logger,
 		genesisConfig: GenesisConfig,
 		generatorConfig: Record<string, Record<string, unknown>> = {},
 		moduleConfig: Record<string, Record<string, unknown>> = {},
 	): Promise<void> {
+		this._logger = logger;
 		if (this._initialized) {
 			return;
 		}
@@ -54,6 +58,10 @@ export class StateMachine {
 					generatorConfig: generatorConfig[mod.name] ?? {},
 					genesisConfig,
 				});
+			}
+			this._logger.info(`Registered and initialized ${mod.name} module`);
+			for (const command of mod.commands) {
+				this._logger.info(`Registered ${mod.name} module has command ${command.name}`);
 			}
 		}
 		this._initialized = true;

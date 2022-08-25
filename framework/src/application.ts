@@ -278,6 +278,7 @@ export class Application {
 				events: [APP_EVENT_READY.replace('app_', ''), APP_EVENT_SHUTDOWN.replace('app_', '')],
 			});
 			await this._stateMachine.init(
+				this.logger,
 				this.config.genesis,
 				this.config.generation.modules,
 				this.config.genesis.modules,
@@ -360,6 +361,7 @@ export class Application {
 			this.logger = this._initLogger();
 		}
 		await this._stateMachine.init(
+			this.logger,
 			this.config.genesis,
 			this.config.generation.modules,
 			this.config.genesis.modules,
@@ -373,15 +375,8 @@ export class Application {
 
 	private _registerModule(mod: BaseModule): void {
 		assert(mod, 'Module implementation is required');
-		if (!this.logger) {
-			this.logger = this._initLogger();
-		}
 		this._registeredModules.push(mod);
 		this._stateMachine.registerModule(mod);
-		this.logger.info(`Registered ${mod.name} module`);
-		for (const command of mod.commands) {
-			this.logger.info(`Registered ${mod.name} module has command ${command.name}`);
-		}
 		this._controller.registerEndpoint(mod.name, getEndpointHandlers(mod.endpoint));
 	}
 

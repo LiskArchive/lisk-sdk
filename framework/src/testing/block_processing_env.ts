@@ -175,6 +175,7 @@ export const getBlockProcessingEnv = async (
 		data: codec.fromJSON<Record<string, unknown>>(asset.schema, asset.data),
 	}));
 	await stateMachine.init(
+		loggerMock,
 		appConfig.genesis,
 		appConfig.generation.modules,
 		appConfig.genesis.modules,
