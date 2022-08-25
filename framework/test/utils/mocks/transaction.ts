@@ -177,7 +177,7 @@ export const createMultiSignRegisterTransaction = (input: {
 	);
 	const transaction = {
 		module: 'auth',
-		command: 'registerMultisignatureGroup',
+		command: 'registerMultisignature',
 		nonce: input.nonce,
 		senderPublicKey: input.senderPublicKey,
 		fee: input.fee ?? BigInt('1100000000'),
