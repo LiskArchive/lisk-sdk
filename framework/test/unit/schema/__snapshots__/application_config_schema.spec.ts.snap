@@ -68,37 +68,10 @@ Object {
                 "format": "encryptedPassphrase",
                 "type": "string",
               },
-              "hashOnion": Object {
-                "properties": Object {
-                  "count": Object {
-                    "minimum": 1,
-                    "type": "integer",
-                  },
-                  "distance": Object {
-                    "minimum": 1,
-                    "type": "integer",
-                  },
-                  "hashes": Object {
-                    "items": Object {
-                      "format": "hex",
-                      "type": "string",
-                    },
-                    "minItems": 2,
-                    "type": "array",
-                  },
-                },
-                "required": Array [
-                  "count",
-                  "distance",
-                  "hashes",
-                ],
-                "type": "object",
-              },
             },
             "required": Array [
               "encryptedPassphrase",
               "address",
-              "hashOnion",
             ],
           },
           "type": "array",
