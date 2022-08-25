@@ -43,6 +43,11 @@ interface EndpointArgs {
 	interval: number;
 }
 
+interface GeneratorInfo {
+	address: string;
+	nextAllocatedTime: number;
+}
+
 const proveEventsRequestSchema = {
 	$id: '/node/endpoint/proveEventsRequestSchema',
 	type: 'object',
@@ -223,9 +228,7 @@ export class ChainEndpoint {
 		};
 	}
 
-	public async getGeneratorList(
-		_: RequestContext,
-	): Promise<{ list: { address: string; nextAllocatedTime: number }[] }> {
+	public async getGeneratorList(_: RequestContext): Promise<{ list: GeneratorInfo[] }> {
 		const stateStore = new StateStore(this._db);
 		const votesStore = stateStore.getStore(MODULE_STORE_PREFIX_BFT, STORE_PREFIX_BFT_VOTES);
 		const bftVotes = await votesStore.getWithSchema<BFTVotes>(EMPTY_KEY, bftVotesSchema);
