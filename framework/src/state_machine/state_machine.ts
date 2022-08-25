@@ -113,6 +113,7 @@ export class StateMachine {
 				if (mod.verifyTransaction) {
 					const result = await mod.verifyTransaction(transactionContext);
 					if (result.status !== VerifyStatus.OK) {
+						this._logger.debug('Transaction verification failed');
 						return result;
 					}
 				}
@@ -121,6 +122,7 @@ export class StateMachine {
 				if (mod.verifyTransaction) {
 					const result = await mod.verifyTransaction(transactionContext);
 					if (result.status !== VerifyStatus.OK) {
+						this._logger.debug('Transaction verification failed');
 						return result;
 					}
 				}
@@ -130,12 +132,13 @@ export class StateMachine {
 			if (command.verify) {
 				const result = await command.verify(commandContext);
 				if (result.status !== VerifyStatus.OK) {
+					this._logger.debug('Transaction verification failed');
 					return result;
 				}
 			}
 			return { status: VerifyStatus.OK };
 		} catch (error) {
-			this._logger.info({ err: error as Error }, 'Transaction verification failed');
+			this._logger.debug({ err: error as Error }, 'Transaction verification failed');
 			return { status: VerifyStatus.FAIL, error: error as Error };
 		}
 	}
@@ -152,7 +155,7 @@ export class StateMachine {
 				} catch (error) {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
-					this._logger.info({ err: error as Error }, 'Transaction execution failed');
+					this._logger.debug({ err: error as Error }, 'Transaction execution failed');
 					return TransactionExecutionResult.INVALID;
 				}
 			}
@@ -164,7 +167,7 @@ export class StateMachine {
 				} catch (error) {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
-					this._logger.info({ err: error as Error }, 'Transaction execution failed');
+					this._logger.debug({ err: error as Error }, 'Transaction execution failed');
 					return TransactionExecutionResult.INVALID;
 				}
 			}
@@ -192,7 +195,7 @@ export class StateMachine {
 				[ctx.transaction.id],
 			);
 			status = TransactionExecutionResult.FAIL;
-			this._logger.info({ err: error as Error }, 'Transaction execution failed');
+			this._logger.debug({ err: error as Error }, 'Transaction execution failed');
 		}
 
 		// Execute after transaction hooks
@@ -203,7 +206,7 @@ export class StateMachine {
 				} catch (error) {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
-					this._logger.info({ err: error as Error }, 'Transaction execution failed');
+					this._logger.debug({ err: error as Error }, 'Transaction execution failed');
 					return TransactionExecutionResult.INVALID;
 				}
 			}
@@ -215,7 +218,7 @@ export class StateMachine {
 				} catch (error) {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
-					this._logger.info({ err: error as Error }, 'Transaction execution failed');
+					this._logger.debug({ err: error as Error }, 'Transaction execution failed');
 					return TransactionExecutionResult.INVALID;
 				}
 			}
@@ -273,10 +276,10 @@ export class StateMachine {
 			const verifyResult = await this.verifyTransaction(txContext);
 			if (verifyResult.status !== VerifyStatus.OK) {
 				if (verifyResult.error) {
-					this._logger.info({ err: verifyResult.error }, 'Transaction verification failed');
+					this._logger.debug({ err: verifyResult.error }, 'Transaction verification failed');
 					throw verifyResult.error;
 				}
-				this._logger.info(`Transaction verification failed. ID ${tx.id.toString('hex')}.`);
+				this._logger.debug(`Transaction verification failed. ID ${tx.id.toString('hex')}.`);
 				throw new Error(`Transaction verification failed. ID ${tx.id.toString('hex')}.`);
 			}
 			await this.executeTransaction(txContext);
@@ -299,10 +302,12 @@ export class StateMachine {
 	private _getCommand(module: string, command: string): BaseCommand {
 		const targetModule = this._findModule(module);
 		if (!targetModule) {
+			this._logger.debug(`Module ${module} is not registered`);
 			throw new Error(`Module ${module} is not registered.`);
 		}
 		const targetCommand = targetModule.commands.find(c => c.name === command);
 		if (!targetCommand) {
+			this._logger.debug(`Module ${module} does not have command ${command} registered`);
 			throw new Error(`Module ${module} does not have command ${command} registered.`);
 		}
 		return targetCommand;
@@ -311,6 +316,7 @@ export class StateMachine {
 	private _validateExisting(mod: BaseModule): void {
 		const existingModule = this._modules.find(m => m.name === mod.name);
 		if (existingModule) {
+			this._logger.debug(`Modul ${mod.name} is registered`);
 			throw new Error(`Modul ${mod.name} is registered.`);
 		}
 		const allExistingEvents = this._modules.reduce<Buffer[]>((prev, curr) => {
@@ -320,6 +326,7 @@ export class StateMachine {
 		for (const event of mod.events.values()) {
 			const duplicate = allExistingEvents.find(k => k.equals(event.key));
 			if (duplicate) {
+				this._logger.debug(`Module ${mod.name} has conflicting event ${event.name}`);
 				throw new Error(
 					`Module ${mod.name} has conflicting event ${event.name}. Please update the event name.`,
 				);
@@ -333,6 +340,7 @@ export class StateMachine {
 		for (const store of mod.stores.values()) {
 			const duplicate = allExistingStores.find(k => k.equals(store.key));
 			if (duplicate) {
+				this._logger.debug(`Module ${mod.name} has conflicting store ${store.name}`);
 				throw new Error(
 					`Module ${mod.name} has conflicting store ${store.name}. Please update the store name.`,
 				);
