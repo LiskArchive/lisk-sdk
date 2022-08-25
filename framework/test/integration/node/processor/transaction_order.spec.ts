@@ -173,9 +173,7 @@ describe('Transaction order', () => {
 		});
 
 		describe('when account register as multisignature and send transfer with old signature', () => {
-			// TODO: Fix this test after https://github.com/LiskHQ/lisk-sdk/issues/7346
-			// eslint-disable-next-line jest/no-disabled-tests
-			it.skip('should not accept the block', async () => {
+			it('should not accept the block', async () => {
 				const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
 					address: genesis.address.toString('hex'),
 				});
@@ -199,7 +197,12 @@ describe('Transaction order', () => {
 					numberOfSignatures: 2,
 					networkIdentifier,
 					senderPassphrase: newAccount.passphrase,
-					passphrases: [newAccount.passphrase, ...multiSignatureMembers.map(acc => acc.passphrase)],
+					passphrases: [
+						newAccount.passphrase,
+						...multiSignatureMembers
+							.sort((a, b) => a.publicKey.compare(b.publicKey))
+							.map(acc => acc.passphrase),
+					],
 				});
 				const transferTx = createTransferTransaction({
 					nonce: BigInt('1'),
