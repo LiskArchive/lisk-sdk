@@ -31,6 +31,7 @@ import {
 import { PrefixedStateReadWriter } from '../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../src/testing/in_memory_prefixed_state';
 import { NamedRegistry } from '../../../src/modules/named_registry';
+import { loggerMock } from '../../../src/testing/mocks';
 
 describe('state_machine', () => {
 	const genesisHeader = {} as BlockHeader;
@@ -52,7 +53,7 @@ describe('state_machine', () => {
 	let mod: CustomModule0;
 	let systemMod: CustomModule1;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		eventQueue = new EventQueue();
 		stateMachine = new StateMachine();
@@ -60,6 +61,7 @@ describe('state_machine', () => {
 		systemMod = new CustomModule1();
 		stateMachine.registerModule(mod);
 		stateMachine.registerSystemModule(systemMod);
+		await stateMachine.init(loggerMock, {} as any);
 	});
 
 	describe('executeGenesisBlock', () => {
