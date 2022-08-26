@@ -217,6 +217,8 @@ export class Engine {
 		});
 		const chainEndpoint = new ChainEndpoint({
 			chain: this._chain,
+			genesisBlockTimestamp: genesis.header.timestamp,
+			interval: this._config.genesis.blockTime,
 		});
 		chainEndpoint.init(this._blockchainDB);
 		const consensusEndpoint = new ConsensusEndpoint({

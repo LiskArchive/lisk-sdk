@@ -27,6 +27,7 @@ import {
 	CCM_STATUS_CROSS_CHAIN_COMMAND_NOT_SUPPORTED,
 	CROSS_CHAIN_COMMAND_NAME_CHANNEL_TERMINATED,
 	MODULE_NAME_INTEROPERABILITY,
+	MAX_UINT32,
 } from './constants';
 import { ccmSchema } from './schemas';
 import {
@@ -141,6 +142,19 @@ export abstract class BaseInteroperabilityStore {
 	public async getChainAccount(chainID: Buffer): Promise<ChainAccount> {
 		const chainSubstore = this.stores.get(ChainAccountStore);
 		return chainSubstore.get(this.context, chainID);
+	}
+
+	public async getAllChainAccounts(startChainID: Buffer): Promise<ChainAccount[]> {
+		const chainSubstore = this.stores.get(ChainAccountStore);
+		const endBuf = utils.intToBuffer(MAX_UINT32, 4);
+		const chainIDs = await chainSubstore.iterate(this.context, { gte: startChainID, lte: endBuf });
+
+		return Promise.all(
+			chainIDs.map(async chainID => {
+				const chainIDBuffer = utils.intToBuffer(chainID.key.readUInt32BE(0), 4);
+				return chainSubstore.get(this.context, chainIDBuffer);
+			}),
+		);
 	}
 
 	public async chainAccountExist(chainID: Buffer): Promise<boolean> {
