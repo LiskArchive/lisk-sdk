@@ -167,7 +167,7 @@ describe('RandomModuleEndpoint', () => {
 		});
 	});
 
-	describe('setSeed', () => {
+	describe('setHashOnion', () => {
 		it('should create a new seed and store it in the offchain store', async () => {
 			// Arrange
 			const { address } = genesisDelegates.delegates[0];
@@ -178,7 +178,7 @@ describe('RandomModuleEndpoint', () => {
 			context.params = { address, seed, count, distance };
 
 			// Act
-			await randomEndpoint.setSeed(context);
+			await randomEndpoint.setHashOnion(context);
 
 			const hashOnionStore = randomEndpoint['offchainStores'].get(HashOnionStore);
 			const storedSeed = await hashOnionStore.get(context, Buffer.from(address, 'hex'));
@@ -200,7 +200,7 @@ describe('RandomModuleEndpoint', () => {
 			context.params = { address, seed, count, distance };
 
 			// Act & Assert
-			await expect(randomEndpoint.setSeed(context)).rejects.toThrow(
+			await expect(randomEndpoint.setHashOnion(context)).rejects.toThrow(
 				"Lisk validator found 1 error[s]:\nProperty '.address' should be of type 'string'",
 			);
 		});
@@ -214,7 +214,7 @@ describe('RandomModuleEndpoint', () => {
 			context.params = { address, seed, count, distance };
 
 			// Act & Assert
-			await expect(randomEndpoint.setSeed(context)).rejects.toThrow(
+			await expect(randomEndpoint.setHashOnion(context)).rejects.toThrow(
 				"Lisk validator found 1 error[s]:\nProperty '.seed' should be of type 'string'",
 			);
 		});
@@ -228,7 +228,7 @@ describe('RandomModuleEndpoint', () => {
 			context.params = { address, seed, count, distance };
 
 			// Act & Assert
-			await expect(randomEndpoint.setSeed(context)).rejects.toThrow(
+			await expect(randomEndpoint.setHashOnion(context)).rejects.toThrow(
 				"Lisk validator found 1 error[s]:\nProperty '.count' should be of type 'integer'",
 			);
 		});
@@ -242,7 +242,7 @@ describe('RandomModuleEndpoint', () => {
 			context.params = { address, seed, count, distance };
 
 			// Act & Assert
-			await expect(randomEndpoint.setSeed(context)).rejects.toThrow(
+			await expect(randomEndpoint.setHashOnion(context)).rejects.toThrow(
 				"Lisk validator found 1 error[s]:\nProperty '.distance' should be of type 'integer'",
 			);
 		});
@@ -256,7 +256,7 @@ describe('RandomModuleEndpoint', () => {
 			context.params = { address, seed, count, distance };
 
 			// Act & Assert
-			await expect(randomEndpoint.setSeed(context)).rejects.toThrow(
+			await expect(randomEndpoint.setHashOnion(context)).rejects.toThrow(
 				'Lisk validator found 1 error[s]:\nmust be >= 1',
 			);
 		});
@@ -270,13 +270,13 @@ describe('RandomModuleEndpoint', () => {
 			context.params = { address, seed, count, distance };
 
 			// Act & Assert
-			await expect(randomEndpoint.setSeed(context)).rejects.toThrow(
+			await expect(randomEndpoint.setHashOnion(context)).rejects.toThrow(
 				'Lisk validator found 1 error[s]:\nmust be >= 1',
 			);
 		});
 	});
 
-	describe('getSeeds', () => {
+	describe('getHashOnionSeeds', () => {
 		let address: string;
 
 		beforeEach(async () => {
@@ -286,12 +286,12 @@ describe('RandomModuleEndpoint', () => {
 			const count = 1000;
 			const distance = 10;
 
-			await randomEndpoint.setSeed({ ...context, params: { address, seed, count, distance } });
+			await randomEndpoint.setHashOnion({ ...context, params: { address, seed, count, distance } });
 		});
 
 		it('should return an array of seed objects', async () => {
 			// Act
-			const storedSeed = await randomEndpoint.getSeeds(context);
+			const storedSeed = await randomEndpoint.getHashOnionSeeds(context);
 
 			// Assert
 			expect(storedSeed.seeds).toHaveLength(1);
@@ -304,7 +304,7 @@ describe('RandomModuleEndpoint', () => {
 		});
 	});
 
-	describe('hasSeed', () => {
+	describe('hasHashOnion', () => {
 		let address: string;
 		let address2: string;
 
@@ -315,8 +315,11 @@ describe('RandomModuleEndpoint', () => {
 			const distance = 10;
 			address2 = genesisDelegates.delegates[1].address;
 
-			await randomEndpoint.setSeed({ ...context, params: { address, seed, count, distance } });
-			await randomEndpoint.setSeed({ ...context, params: { address: address2, count, distance } });
+			await randomEndpoint.setHashOnion({ ...context, params: { address, seed, count, distance } });
+			await randomEndpoint.setHashOnion({
+				...context,
+				params: { address: address2, count, distance },
+			});
 
 			const usedHashOnionStore = randomEndpoint['offchainStores'].get(UsedHashOnionsStore);
 			await usedHashOnionStore.set(context, STORE_PREFIX_USED_HASH_ONION, {
@@ -324,35 +327,47 @@ describe('RandomModuleEndpoint', () => {
 			});
 		});
 
-		it('should return hasSeed false with remaing 0 if hashOnion does not exist', async () => {
-			const hasSeed = await randomEndpoint.hasSeed({
+		it('should return error if param is empty', async () => {
+			await expect(
+				randomEndpoint.hasHashOnion({
+					...context,
+					params: {},
+				}),
+			).rejects.toThrow('must have required property');
+		});
+
+		it('should return hasHashOnion false with remaing 0 if hashOnion does not exist', async () => {
+			const hasHashOnion = await randomEndpoint.hasHashOnion({
 				...context,
 				params: { address: '0000000000000000000000000000000000000000' },
 			});
 
 			// Assert
-			expect(hasSeed.hasSeed).toEqual(false);
-			expect(hasSeed.remaining).toEqual(0);
+			expect(hasHashOnion.hasSeed).toEqual(false);
+			expect(hasHashOnion.remaining).toEqual(0);
 		});
 
-		it('should return hasSeed true with valid remaining', async () => {
-			const hasSeed = await randomEndpoint.hasSeed({ ...context, params: { address } });
+		it('should return hasHashOnion true with valid remaining', async () => {
+			const hasHashOnion = await randomEndpoint.hasHashOnion({ ...context, params: { address } });
 
 			// Assert
-			expect(hasSeed.hasSeed).toEqual(true);
-			expect(hasSeed.remaining).toEqual(1000 - 20);
+			expect(hasHashOnion.hasSeed).toEqual(true);
+			expect(hasHashOnion.remaining).toEqual(1000 - 20);
 		});
 
-		it('should return hasSeed true with remaining the same as original when usedHashOnions does not exist', async () => {
-			const hasSeed = await randomEndpoint.hasSeed({ ...context, params: { address: address2 } });
+		it('should return hasHashOnion true with remaining the same as original when usedHashOnions does not exist', async () => {
+			const hasHashOnion = await randomEndpoint.hasHashOnion({
+				...context,
+				params: { address: address2 },
+			});
 
 			// Assert
-			expect(hasSeed.hasSeed).toEqual(true);
-			expect(hasSeed.remaining).toEqual(1000);
+			expect(hasHashOnion.hasSeed).toEqual(true);
+			expect(hasHashOnion.remaining).toEqual(1000);
 		});
 	});
 
-	describe('getSeedUsage', () => {
+	describe('getHashOnionUsage', () => {
 		let address: string;
 		let address2: string;
 
@@ -364,8 +379,11 @@ describe('RandomModuleEndpoint', () => {
 			const distance = 10;
 			address2 = genesisDelegates.delegates[1].address;
 
-			await randomEndpoint.setSeed({ ...context, params: { address, seed, count, distance } });
-			await randomEndpoint.setSeed({ ...context, params: { address: address2, count, distance } });
+			await randomEndpoint.setHashOnion({ ...context, params: { address, seed, count, distance } });
+			await randomEndpoint.setHashOnion({
+				...context,
+				params: { address: address2, count, distance },
+			});
 
 			const usedHashOnionStore = randomEndpoint['offchainStores'].get(UsedHashOnionsStore);
 			await usedHashOnionStore.set(context, STORE_PREFIX_USED_HASH_ONION, {
@@ -376,7 +394,7 @@ describe('RandomModuleEndpoint', () => {
 		it('should reject if the seed does not exist', async () => {
 			// Act
 			await expect(
-				randomEndpoint.getSeedUsage({
+				randomEndpoint.getHashOnionUsage({
 					...context,
 					params: { address: '0000000000000000000000000000000000000000' },
 				}),
@@ -385,7 +403,7 @@ describe('RandomModuleEndpoint', () => {
 
 		it('should return the seed usage of a given address', async () => {
 			// Act
-			const seedUsage = await randomEndpoint.getSeedUsage({ ...context, params: { address } });
+			const seedUsage = await randomEndpoint.getHashOnionUsage({ ...context, params: { address } });
 
 			// Assert
 			expect(seedUsage).toEqual({
@@ -397,7 +415,7 @@ describe('RandomModuleEndpoint', () => {
 
 		it('should return the seed usage when usedHashOnion does not exist', async () => {
 			// Act
-			const seedUsage = await randomEndpoint.getSeedUsage({
+			const seedUsage = await randomEndpoint.getHashOnionUsage({
 				...context,
 				params: { address: address2 },
 			});

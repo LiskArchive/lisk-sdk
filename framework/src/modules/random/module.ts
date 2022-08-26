@@ -33,12 +33,12 @@ import {
 	isSeedRevealValidResponseSchema,
 	randomModuleConfig,
 } from './schemas';
-import { BlockHeaderAssetRandomModule, HashOnionConfig, UsedHashOnion } from './types';
+import { BlockHeaderAssetRandomModule, UsedHashOnion } from './types';
 import { Logger } from '../../logger';
 import { isSeedValidInput } from './utils';
 import { ValidatorRevealsStore } from './stores/validator_reveals';
 import { UsedHashOnionsStore } from './stores/used_hash_onions';
-import { HashOnionStore } from './stores/hash_onion';
+import { HashOnion, HashOnionStore } from './stores/hash_onion';
 
 export class RandomModule extends BaseModule {
 	public api = new RandomAPI(this.stores, this.events, this.name);
@@ -283,7 +283,7 @@ export class RandomModule extends BaseModule {
 	private async _getHashOnion(
 		context: InsertAssetContext,
 		address: Buffer,
-	): Promise<HashOnionConfig | undefined> {
+	): Promise<HashOnion | undefined> {
 		const hashOnionStore = this.offchainStores.get(HashOnionStore);
 		try {
 			// await is required to catch the error below

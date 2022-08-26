@@ -18,13 +18,13 @@ interface AddressRequest {
 	address: string;
 }
 
-export interface SetSeedRequest extends AddressRequest {
+export interface SetHashOnionRequest extends AddressRequest {
 	seed?: string | undefined;
 	count?: number | undefined;
 	distance?: number | undefined;
 }
 
-export const setSeedRequestSchema = {
+export const setHashOnionRequestSchema = {
 	$id: 'lisk/random/setSeedRequestSchema',
 	type: 'object',
 	title: 'Random setSeed request',
@@ -59,39 +59,35 @@ export interface GetSeedsResponse {
 	seeds: Seeds[];
 }
 
-export type HasSeedRequest = AddressRequest;
+export type HasHashOnionRequest = AddressRequest;
 
-export interface HasSeedResponse {
+export interface HasHashOnionResponse {
 	hasSeed: boolean;
 	remaining: number;
 }
 
-export const hasSeedSchema = {
-	$id: 'lisk/random/hasSeedSchema',
+export const hasHashOnionRequestSchema = {
+	$id: 'lisk/random/hasHashOnionRequestSchema',
 	type: 'object',
-	required: [],
+	required: ['address'],
 	properties: {
-		hasSeed: {
-			dataType: 'boolean',
-			fieldNumber: 1,
-		},
-		remaining: {
-			dataType: 'uint32',
-			fieldNumber: 2,
+		address: {
+			type: 'string',
+			format: 'hex',
 		},
 	},
 };
 
-export interface GetSeedUsageResponse {
+export interface GetHashOnionUsageResponse {
 	height: number;
 	count: number;
 	seed: string;
 }
 
-export type GetSeedUsageRequest = AddressRequest;
+export type GetHashOnionUsageRequest = AddressRequest;
 
-export const getSeedUsageRequestSchema = {
-	$id: 'lisk/random/getSeedUsageRequest',
+export const getHashOnionUsageRequestSchema = {
+	$id: 'lisk/random/getHashOnionUsageRequest',
 	type: 'object',
 	required: ['address'],
 	properties: {
