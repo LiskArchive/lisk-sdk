@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseOffchainStore, ImmutableStoreGetter } from '../../base_offchain_store';
+import { BaseOffchainStore, ImmutableOffchainStoreGetter } from '../../base_offchain_store';
 import { NotFoundError } from '../../../state_machine';
 import { STORE_PREFIX_USED_HASH_ONION } from '../constants';
 
@@ -60,7 +60,7 @@ export class UsedHashOnionsStore extends BaseOffchainStore<UsedHashOnionStoreObj
 	public schema = usedHashOnionsStoreSchema;
 
 	public async getLatest(
-		ctx: ImmutableStoreGetter,
+		ctx: ImmutableOffchainStoreGetter,
 		address: Buffer,
 		height?: number,
 	): Promise<UsedHashOnion | undefined> {

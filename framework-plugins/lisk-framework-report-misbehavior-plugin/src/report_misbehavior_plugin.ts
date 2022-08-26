@@ -34,7 +34,6 @@ const { address, ed, legacy } = cryptography;
 const { BlockHeader, Transaction, TAG_TRANSACTION } = chain;
 
 export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginConfig> {
-	public name = 'reportMisbehavior';
 	public configSchema = configSchema;
 	public endpoint = new Endpoint();
 

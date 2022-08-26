@@ -16,11 +16,11 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { IterateOptions } from '@liskhq/lisk-db';
 import { ImmutableSubStore, SubStore } from '../state_machine/types';
 
-export interface ImmutableStoreGetter {
+export interface ImmutableOffchainStoreGetter {
 	getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 }
 
-export interface StoreGetter {
+export interface OffchainStoreGetter {
 	getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 }
 
@@ -52,7 +52,7 @@ export abstract class BaseOffchainStore<T> {
 			.slice(0, 2);
 	}
 
-	public async get(ctx: ImmutableStoreGetter, key: Buffer): Promise<T> {
+	public async get(ctx: ImmutableOffchainStoreGetter, key: Buffer): Promise<T> {
 		if (!this.schema) {
 			throw new Error('Schema is not set');
 		}
@@ -60,7 +60,7 @@ export abstract class BaseOffchainStore<T> {
 		return subStore.getWithSchema<T>(key, this.schema);
 	}
 
-	public async has(ctx: ImmutableStoreGetter, key: Buffer): Promise<boolean> {
+	public async has(ctx: ImmutableOffchainStoreGetter, key: Buffer): Promise<boolean> {
 		if (!this.schema) {
 			throw new Error('Schema is not set');
 		}
@@ -69,7 +69,7 @@ export abstract class BaseOffchainStore<T> {
 	}
 
 	public async iterate(
-		ctx: ImmutableStoreGetter,
+		ctx: ImmutableOffchainStoreGetter,
 		options: IterateOptions,
 	): Promise<{ key: Buffer; value: T }[]> {
 		if (!this.schema) {
@@ -79,7 +79,7 @@ export abstract class BaseOffchainStore<T> {
 		return subStore.iterateWithSchema<T>(options, this.schema);
 	}
 
-	public async set(ctx: StoreGetter, key: Buffer, value: T): Promise<void> {
+	public async set(ctx: OffchainStoreGetter, key: Buffer, value: T): Promise<void> {
 		if (!this.schema) {
 			throw new Error('Schema is not set');
 		}
@@ -87,7 +87,7 @@ export abstract class BaseOffchainStore<T> {
 		return subStore.setWithSchema(key, value as Record<string, unknown>, this.schema);
 	}
 
-	public async del(ctx: StoreGetter, key: Buffer): Promise<void> {
+	public async del(ctx: OffchainStoreGetter, key: Buffer): Promise<void> {
 		if (!this.schema) {
 			throw new Error('Schema is not set');
 		}

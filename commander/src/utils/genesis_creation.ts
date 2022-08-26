@@ -13,9 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { Schema } from '@liskhq/lisk-codec';
-import { bls, address, utils, legacy } from '@liskhq/lisk-cryptography';
 import {
 	dposGenesisStoreSchema,
 	DPoSModule,
@@ -28,19 +26,21 @@ export const genesisAssetsSchema = {
 	type: 'object',
 	required: ['assets'],
 	properties: {
-		type: 'array',
-		items: {
-			required: ['moduleID', 'data', 'object'],
-			properties: {
-				moduleID: {
-					type: 'string',
-					format: 'uint32',
-				},
-				data: {
-					type: 'object',
-				},
-				schema: {
-					type: 'object',
+		assets: {
+			type: 'array',
+			items: {
+				type: 'object',
+				required: ['module', 'data', 'schema'],
+				properties: {
+					module: {
+						type: 'string',
+					},
+					data: {
+						type: 'object',
+					},
+					schema: {
+						type: 'object',
+					},
 				},
 			},
 		},
@@ -55,70 +55,69 @@ export interface GenesisAssetsInput {
 	}[];
 }
 
+interface Keys {
+	address: string;
+	keyPath: string;
+	publicKey: string;
+	privateKey: string;
+	plain: {
+		generatorKeyPath: string;
+		generatorKey: string;
+		generatorPrivateKey: string;
+		blsKeyPath: string;
+		blsKey: string;
+		blsProofOfPosession: string;
+		blsPrivateKey: string;
+	};
+}
+
 interface GenesisBlockDefaultAccountInput {
-	tokenDistribution: number;
+	keysList: Keys[];
+	chainID: string;
+	tokenDistribution: bigint;
 	numberOfValidators: number;
-	numberOfAccounts: number;
 }
 
 export const generateGenesisBlockDefaultDPoSAssets = (input: GenesisBlockDefaultAccountInput) => {
-	const accountList = [];
-	for (let i = 0; i < input.numberOfAccounts; i += 1) {
-		const passphrase = Mnemonic.generateMnemonic(256);
-		const keys = legacy.getKeys(passphrase);
-		accountList.push({
-			publicKey: keys.publicKey,
-			privateKey: keys.privateKey,
-			passphrase,
-			address: address.getAddressFromPublicKey(keys.publicKey),
-			lisk32Address: address.getLisk32AddressFromPublicKey(keys.publicKey),
-		});
-	}
-	const validatorList = [];
-	for (let i = 0; i < input.numberOfValidators; i += 1) {
-		const passphrase = Mnemonic.generateMnemonic(256);
-		const keys = legacy.getKeys(passphrase);
-		const blsPrivateKey = bls.generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
-		const blsPublicKey = bls.getPublicKeyFromPrivateKey(blsPrivateKey);
-		const blsPoP = bls.popProve(blsPrivateKey);
-		validatorList.push({
-			publicKey: keys.publicKey,
-			name: `genesis_${i}`,
-			privateKey: keys.privateKey,
-			blsPublicKey,
-			blsPrivateKey,
-			blsPoP,
-			passphrase,
-			address: address.getAddressFromPublicKey(keys.publicKey),
-			lisk32Address: address.getLisk32AddressFromPublicKey(keys.publicKey),
-		});
-	}
-
+	const localID = Buffer.from([0, 0, 0, 0]).toString('hex');
+	const nextLocalID = Buffer.from([0, 0, 0, 1]).toString('hex');
+	const tokenID = `${input.chainID}${localID}`;
+	input.keysList.sort((a, b) =>
+		Buffer.from(a.address, 'hex').compare(Buffer.from(b.address, 'hex')),
+	);
 	const genesisAssets = [
 		{
 			module: new TokenModule().name,
 			data: {
-				userSubstore: accountList.map(a => ({
+				userSubstore: input.keysList.map(a => ({
 					address: a.address,
-					tokenID: {
-						chainID: utils.intToBuffer(0, 4),
-						localID: utils.intToBuffer(0, 4),
-					},
-					availableBalance: BigInt(input.tokenDistribution),
+					tokenID,
+					availableBalance: input.tokenDistribution.toString(),
 					lockedBalances: [],
 				})),
+				supplySubstore: [
+					{
+						localID,
+						totalSupply: (input.tokenDistribution * BigInt(input.keysList.length)).toString(),
+					},
+				],
+				escrowSubstore: [],
+				availableLocalIDSubstore: {
+					nextAvailableLocalID: nextLocalID,
+				},
+				terminatedEscrowSubstore: [],
 			} as Record<string, unknown>,
 			schema: tokenGenesisStoreSchema,
 		},
 		{
 			module: new DPoSModule().name,
 			data: {
-				validators: validatorList.map(v => ({
+				validators: input.keysList.map((v, i) => ({
 					address: v.address,
-					name: v.name,
-					blsKey: v.blsPublicKey,
-					proofOfPossession: v.blsPoP,
-					generatorKey: v.publicKey,
+					name: `genesis_${i}`,
+					blsKey: v.plain.blsKey,
+					proofOfPossession: v.plain.blsProofOfPosession,
+					generatorKey: v.plain.generatorKey,
 					lastGeneratedHeight: 0,
 					isBanned: false,
 					pomHeights: [],
@@ -128,7 +127,7 @@ export const generateGenesisBlockDefaultDPoSAssets = (input: GenesisBlockDefault
 				snapshots: [],
 				genesisData: {
 					initRounds: 3,
-					initDelegates: validatorList.slice(0, input.numberOfValidators).map(v => v.address),
+					initDelegates: input.keysList.slice(0, input.numberOfValidators).map(v => v.address),
 				},
 			} as Record<string, unknown>,
 			schema: dposGenesisStoreSchema,
@@ -136,8 +135,6 @@ export const generateGenesisBlockDefaultDPoSAssets = (input: GenesisBlockDefault
 	];
 
 	return {
-		accountList,
-		validatorList,
 		genesisAssets,
 	};
 };

@@ -85,7 +85,10 @@ export abstract class BasePlugin<T = Record<string, unknown>> {
 	private _config!: T;
 	private _appConfig!: ApplicationConfigForPlugin;
 
-	public abstract readonly name: string;
+	public get name(): string {
+		const name = this.constructor.name.replace('Plugin', '');
+		return name.charAt(0).toLowerCase() + name.substr(1);
+	}
 
 	public get config(): T {
 		return this._config;

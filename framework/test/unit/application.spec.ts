@@ -49,10 +49,12 @@ jest.mock('@liskhq/lisk-db');
 jest.mock('../../src/logger');
 
 class TestPlugin extends BasePlugin {
-	public name = 'test-plugin';
-
 	public get nodeModulePath(): string {
 		return __filename;
+	}
+
+	public get name() {
+		return 'test-plugin';
 	}
 
 	public async load(): Promise<void> {}
@@ -197,11 +199,6 @@ describe('Application', () => {
 							encryptedPassphrase:
 								'0dbd21ac5c154dbb72ce90a4e252a64b692203a4f8e25f8bfa1b1993e2ba7a9bd9e1ef1896d8d584a62daf17a8ccf12b99f29521b92cc98b74434ff501374f7e1c6d8371a6ce4e2d083489',
 							address: '9cabee3d27426676b852ce6b804cb2fdff7cd0b5',
-							hashOnion: {
-								count: 0,
-								distance: 0,
-								hashes: [],
-							},
 						},
 					],
 				},
@@ -220,22 +217,13 @@ describe('Application', () => {
 	});
 
 	describe('#registerPlugin', () => {
-		it('should throw error when plugin name is missing', () => {
-			// Arrange
-			const { app } = Application.defaultApplication(config);
-			class MyPlugin extends TestPlugin {
-				public name = '';
-			}
-
-			// Act && Assert
-			expect(() => app.registerPlugin(new MyPlugin())).toThrow('Plugin "name" is required.');
-		});
-
 		it('should throw error when plugin with same name is already registered', () => {
 			// Arrange
 			const { app } = Application.defaultApplication(config);
 			class MyPlugin extends TestPlugin {
-				public name = 'my-plugin';
+				public get name() {
+					return 'my-plugin';
+				}
 			}
 			app.registerPlugin(new MyPlugin());
 
