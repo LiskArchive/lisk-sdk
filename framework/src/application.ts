@@ -278,6 +278,7 @@ export class Application {
 				events: [APP_EVENT_READY.replace('app_', ''), APP_EVENT_SHUTDOWN.replace('app_', '')],
 			});
 			await this._stateMachine.init(
+				this.logger,
 				this.config.genesis,
 				this.config.generation.modules,
 				this.config.genesis.modules,
@@ -303,7 +304,7 @@ export class Application {
 					.start()
 					.then(() => {
 						this.logger.debug(this._controller.getEvents(), 'Application listening to events');
-						this.logger.debug(this._controller.getEndpoints(), 'Application ready for actions');
+						this.logger.info(this._controller.getEndpoints(), 'Application ready for endpoints');
 						this.channel.publish(APP_EVENT_READY);
 					})
 					.catch(err => {
@@ -359,6 +360,7 @@ export class Application {
 			this.logger = this._initLogger();
 		}
 		await this._stateMachine.init(
+			this.logger,
 			this.config.genesis,
 			this.config.generation.modules,
 			this.config.genesis.modules,
