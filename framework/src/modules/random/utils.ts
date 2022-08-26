@@ -15,7 +15,7 @@
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { utils } from '@liskhq/lisk-cryptography';
 import { SEED_LENGTH } from './constants';
-import { ValidatorSeedReveal } from './types';
+import { ValidatorSeedReveal } from './stores/validator_reveals';
 
 export const isSeedValidInput = (
 	generatorAddress: Buffer,

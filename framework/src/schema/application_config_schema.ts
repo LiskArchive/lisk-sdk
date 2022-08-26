@@ -26,7 +26,7 @@ const moduleConfigSchema = {
 const delegatesConfigSchema = {
 	type: 'array',
 	items: {
-		required: ['encryptedPassphrase', 'address', 'hashOnion'],
+		required: ['encryptedPassphrase', 'address'],
 		properties: {
 			encryptedPassphrase: {
 				type: 'string',
@@ -35,28 +35,6 @@ const delegatesConfigSchema = {
 			address: {
 				type: 'string',
 				format: 'hex',
-			},
-			hashOnion: {
-				type: 'object',
-				required: ['count', 'distance', 'hashes'],
-				properties: {
-					count: {
-						minimum: 1,
-						type: 'integer',
-					},
-					distance: {
-						minimum: 1,
-						type: 'integer',
-					},
-					hashes: {
-						type: 'array',
-						minItems: 2,
-						items: {
-							type: 'string',
-							format: 'hex',
-						},
-					},
-				},
 			},
 		},
 	},

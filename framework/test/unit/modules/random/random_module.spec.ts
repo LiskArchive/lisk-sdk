@@ -14,7 +14,8 @@
 
 import { utils, address } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
-import { BlockAssets } from '@liskhq/lisk-chain';
+import { BlockAssets, StateStore } from '@liskhq/lisk-chain';
+import { InMemoryDatabase } from '@liskhq/lisk-db';
 import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
 import { RandomModule } from '../../../../src/modules/random';
 import { UsedHashOnionStoreObject } from '../../../../src/modules/random/types';
@@ -32,6 +33,7 @@ import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefi
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { UsedHashOnionsStore } from '../../../../src/modules/random/stores/used_hash_onions';
 import { ValidatorRevealsStore } from '../../../../src/modules/random/stores/validator_reveals';
+import { HashOnionStore } from '../../../../src/modules/random/stores/hash_onion';
 
 const convertDelegateFixture = (delegates: typeof genesisDelegates.delegates) =>
 	delegates.map(delegate => ({
@@ -41,14 +43,30 @@ const convertDelegateFixture = (delegates: typeof genesisDelegates.delegates) =>
 
 describe('RandomModule', () => {
 	let randomModule: RandomModule;
+	let offchainStore: StateStore;
 
 	const assetStub = {
 		getAsset: jest.fn(),
 		setAsset: jest.fn(),
 	};
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		randomModule = new RandomModule();
+		const db = new InMemoryDatabase();
+		const hashOnionStore = randomModule.offchainStores.get(HashOnionStore);
+		offchainStore = new StateStore(db);
+		for (const delegate of genesisDelegates.delegates) {
+			await hashOnionStore.set(
+				// eslint-disable-next-line no-loop-func
+				{ getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2) },
+				Buffer.from(delegate.address, 'hex'),
+				{
+					count: delegate.hashOnion.count,
+					distance: delegate.hashOnion.distance,
+					hashes: delegate.hashOnion.hashes.map(h => Buffer.from(h, 'hex')),
+				},
+			);
+		}
 	});
 
 	describe('init', () => {
@@ -65,15 +83,12 @@ describe('RandomModule', () => {
 		});
 
 		it('should assign config values', async () => {
-			const generatorConfig = { hashOnions: convertDelegateFixture(genesisDelegates.delegates) };
-
 			await randomModule.init({
-				generatorConfig,
+				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: { maxLengthReveals: 20 },
 			});
 
-			expect(randomModule['_generatorConfig']).toHaveLength(generatorConfig.hashOnions.length);
 			expect(randomModule['_maxLengthReveals']).toEqual(20);
 		});
 	});
@@ -122,6 +137,7 @@ describe('RandomModule', () => {
 				assets: assetStub,
 				logger: testing.mocks.loggerMock,
 				networkIdentifier: defaultNetworkIdentifier,
+				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
 				getAPIContext: jest.fn() as any,
 				getStore: jest.fn() as any,
 				// getOffchainStore: jest.fn() as any,
@@ -141,7 +157,7 @@ describe('RandomModule', () => {
 
 			// Act
 			await randomModule.init({
-				generatorConfig: { hashOnions: convertDelegateFixture(genesisDelegates.delegates) },
+				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
@@ -167,6 +183,7 @@ describe('RandomModule', () => {
 				assets: assetStub,
 				logger: testing.mocks.loggerMock,
 				networkIdentifier: defaultNetworkIdentifier,
+				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
 				getAPIContext: jest.fn() as any,
 				getStore: jest.fn() as any,
 				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
@@ -230,6 +247,7 @@ describe('RandomModule', () => {
 				assets: assetStub,
 				logger: testing.mocks.loggerMock,
 				networkIdentifier: defaultNetworkIdentifier,
+				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
 				getAPIContext: jest.fn() as any,
 				getStore: jest.fn() as any,
 				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
@@ -247,7 +265,7 @@ describe('RandomModule', () => {
 
 			// Act
 			await randomModule.init({
-				generatorConfig: { hashOnions: convertDelegateFixture(genesisDelegates.delegates) },
+				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
@@ -272,6 +290,7 @@ describe('RandomModule', () => {
 			const blockGenerateContext: InsertAssetContext = testing.createBlockGenerateContext({
 				assets: assetStub,
 				logger: testing.mocks.loggerMock,
+				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
 				networkIdentifier: defaultNetworkIdentifier,
 				getAPIContext: jest.fn() as any,
 				getStore: jest.fn() as any,
@@ -355,6 +374,7 @@ describe('RandomModule', () => {
 			const blockGenerateContext: InsertAssetContext = testing.createBlockGenerateContext({
 				assets: assetStub,
 				logger: loggerMock as any,
+				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
 				networkIdentifier: defaultNetworkIdentifier,
 				getAPIContext: jest.fn() as any,
 				getStore: jest.fn() as any,
@@ -366,7 +386,7 @@ describe('RandomModule', () => {
 
 			// Act
 			await randomModule.init({
-				generatorConfig: { hashOnions: convertDelegateFixture(genesisDelegates.delegates) },
+				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
@@ -393,6 +413,7 @@ describe('RandomModule', () => {
 			const blockGenerateContext: InsertAssetContext = testing.createBlockGenerateContext({
 				assets: assetStub,
 				logger: loggerMock as any,
+				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
 				networkIdentifier: defaultNetworkIdentifier,
 				getAPIContext: jest.fn() as any,
 				getStore: jest.fn() as any,
@@ -401,7 +422,7 @@ describe('RandomModule', () => {
 
 			// Act
 			await randomModule.init({
-				generatorConfig: { hashOnions: [] },
+				generatorConfig: {},
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: {},
 			});
@@ -416,7 +437,7 @@ describe('RandomModule', () => {
 		let stateStore: PrefixedStateReadWriter;
 		beforeEach(async () => {
 			await randomModule.init({
-				generatorConfig: undefined as never,
+				generatorConfig: {},
 				genesisConfig: {} as never,
 				moduleConfig: {
 					maxLengthReveals: 206,

@@ -207,16 +207,13 @@ describe('Application', () => {
 				},
 			});
 			// Act & Assert
-			expect.assertions(5);
+			expect.assertions(2);
 			try {
 				Application.defaultApplication(invalidConfig);
 			} catch (error: any) {
 				/* eslint-disable jest/no-try-expect */
-				expect(error.errors).toHaveLength(4);
+				expect(error.errors).toHaveLength(1);
 				expect(error.errors[0].message).toContain('must match format "encryptedPassphrase"');
-				expect(error.errors[1].message).toContain('must be >= 1');
-				expect(error.errors[2].message).toContain('must be >= 1');
-				expect(error.errors[3].message).toContain('must NOT have fewer than 2 items');
 				/* eslint-enable jest/no-try-expect */
 			}
 		});

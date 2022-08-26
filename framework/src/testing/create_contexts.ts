@@ -141,7 +141,7 @@ export const createBlockContext = (params: {
 
 export const createBlockGenerateContext = (params: {
 	assets?: WritableBlockAssets;
-	getOffchainStore?: (moduleID: Buffer, subStorePrefix?: Buffer) => SubStore;
+	getOffchainStore?: (moduleID: Buffer, subStorePrefix: Buffer) => SubStore;
 	logger?: Logger;
 	getAPIContext?: () => APIContext;
 	getStore?: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
@@ -257,19 +257,21 @@ export const createTransientAPIContext = (params: {
 
 export const createTransientModuleEndpointContext = (params: {
 	stateStore?: PrefixedStateReadWriter;
+	moduleStore?: StateStore;
 	params?: Record<string, unknown>;
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 }): ModuleEndpointContext => {
 	const stateStore =
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+	const moduleStore = params.moduleStore ?? new StateStore(new InMemoryDatabase());
 	const parameters = params.params ?? {};
 	const logger = params.logger ?? loggerMock;
 	const networkIdentifier = params.networkIdentifier ?? Buffer.alloc(0);
 	const ctx = {
 		getStore: (moduleID: Buffer, storePrefix: Buffer) => stateStore.getStore(moduleID, storePrefix),
 		getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) =>
-			stateStore.getStore(moduleID, storePrefix),
+			moduleStore.getStore(moduleID, storePrefix),
 		getImmutableAPIContext: () => createImmutableAPIContext(stateStore),
 		params: parameters,
 		logger,
