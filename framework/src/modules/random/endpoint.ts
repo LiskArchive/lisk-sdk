@@ -19,15 +19,15 @@ import { BaseEndpoint } from '../base_endpoint';
 import { ADDRESS_LENGTH, EMPTY_KEY } from './constants';
 import {
 	GetSeedsResponse,
-	GetSeedUsageRequest,
-	getSeedUsageRequestSchema,
-	GetSeedUsageResponse,
-	HasSeedRequest,
-	HasSeedResponse,
-	hasSeedSchema,
+	GetHashOnionUsageRequest,
+	getHashOnionUsageRequestSchema,
+	GetHashOnionUsageResponse,
+	HasHashOnionRequest,
+	HasHashOnionResponse,
+	hasHashOnionRequestSchema,
 	isSeedRevealValidRequestSchema,
-	SetSeedRequest,
-	setSeedRequestSchema,
+	SetHashOnionRequest,
+	setHashOnionRequestSchema,
 } from './schemas';
 import { ValidatorRevealsStore } from './stores/validator_reveals';
 import { getSeedRevealValidity } from './utils';
@@ -51,8 +51,8 @@ export class RandomEndpoint extends BaseEndpoint {
 		};
 	}
 
-	public async setSeed(ctx: ModuleEndpointContext): Promise<void> {
-		validator.validate<SetSeedRequest>(setSeedRequestSchema, ctx.params);
+	public async setHashOnion(ctx: ModuleEndpointContext): Promise<void> {
+		validator.validate<SetHashOnionRequest>(setHashOnionRequestSchema, ctx.params);
 
 		const address = Buffer.from(ctx.params.address, 'hex');
 		const seed = ctx.params.seed
@@ -67,7 +67,7 @@ export class RandomEndpoint extends BaseEndpoint {
 		await hashOnionStore.set(ctx, address, hashOnion);
 	}
 
-	public async getSeeds(ctx: ModuleEndpointContext): Promise<GetSeedsResponse> {
+	public async getHashOnionSeeds(ctx: ModuleEndpointContext): Promise<GetSeedsResponse> {
 		const hashOnionStore = this.offchainStores.get(HashOnionStore);
 		const hashOnions = await hashOnionStore.iterate(ctx, {
 			gte: Buffer.alloc(ADDRESS_LENGTH, 0),
@@ -84,8 +84,8 @@ export class RandomEndpoint extends BaseEndpoint {
 		return { seeds };
 	}
 
-	public async hasSeed(ctx: ModuleEndpointContext): Promise<HasSeedResponse> {
-		validator.validate<HasSeedRequest>(hasSeedSchema, ctx.params);
+	public async hasHashOnion(ctx: ModuleEndpointContext): Promise<HasHashOnionResponse> {
+		validator.validate<HasHashOnionRequest>(hasHashOnionRequestSchema, ctx.params);
 
 		const address = Buffer.from(ctx.params.address, 'hex');
 		const hashOnionStore = this.offchainStores.get(HashOnionStore);
@@ -111,8 +111,8 @@ export class RandomEndpoint extends BaseEndpoint {
 		return { hasSeed, remaining };
 	}
 
-	public async getSeedUsage(ctx: ModuleEndpointContext): Promise<GetSeedUsageResponse> {
-		validator.validate<GetSeedUsageRequest>(getSeedUsageRequestSchema, ctx.params);
+	public async getHashOnionUsage(ctx: ModuleEndpointContext): Promise<GetHashOnionUsageResponse> {
+		validator.validate<GetHashOnionUsageRequest>(getHashOnionUsageRequestSchema, ctx.params);
 
 		const address = Buffer.from(ctx.params.address, 'hex');
 		const hashOnionStore = this.offchainStores.get(HashOnionStore);

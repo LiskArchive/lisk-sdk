@@ -53,10 +53,10 @@ describe('RandomModule', () => {
 	beforeEach(async () => {
 		randomModule = new RandomModule();
 		const db = new InMemoryDatabase();
-		const hashOionStore = randomModule.offchainStores.get(HashOnionStore);
+		const hashOnionStore = randomModule.offchainStores.get(HashOnionStore);
 		offchainStore = new StateStore(db);
 		for (const delegate of genesisDelegates.delegates) {
-			await hashOionStore.set(
+			await hashOnionStore.set(
 				// eslint-disable-next-line no-loop-func
 				{ getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2) },
 				Buffer.from(delegate.address, 'hex'),
