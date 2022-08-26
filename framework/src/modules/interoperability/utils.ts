@@ -58,6 +58,7 @@ import {
 import { Certificate } from '../../engine/consensus/certificate_generation/types';
 import { certificateSchema } from '../../engine/consensus/certificate_generation/schema';
 import { CommandExecuteContext } from '../../state_machine/types';
+import { certificateToJSON } from './certificates';
 import { NamedRegistry } from '../named_registry';
 import { OutboxRootStore } from './stores/outbox_root';
 import { OwnChainAccountStore } from './stores/own_chain_account';
@@ -900,4 +901,15 @@ export const initGenesisStateUtil = async (
 			registeredNetworkIDs.storeValue,
 		);
 	}
+};
+
+export const chainAccountToJSON = (chainAccount: ChainAccount) => {
+	const { lastCertificate, name, networkID, status } = chainAccount;
+
+	return {
+		lastCertificate: certificateToJSON(lastCertificate),
+		name,
+		status,
+		networkID: networkID.toString('hex'),
+	};
 };

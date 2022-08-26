@@ -33,6 +33,7 @@ import {
 	OwnChainAccount,
 	OwnChainAccountJSON,
 } from '../../../../../src/modules/interoperability/types';
+import { chainAccountToJSON } from '../../../../../src/modules/interoperability/utils';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 
@@ -56,17 +57,20 @@ describe('Mainchain endpoint', () => {
 		status: 1,
 	};
 
-	const chainAccountJSON: ChainAccountJSON = {
+	const chainAccount2: ChainAccount = {
 		lastCertificate: {
-			height: chainAccount.lastCertificate.height,
-			stateRoot: chainAccount.lastCertificate.stateRoot.toString('hex'),
-			timestamp: chainAccount.lastCertificate.timestamp,
-			validatorsHash: chainAccount.lastCertificate.validatorsHash.toString('hex'),
+			height: 200,
+			stateRoot: utils.getRandomBytes(32),
+			timestamp: Date.now(),
+			validatorsHash: utils.getRandomBytes(32),
 		},
-		name: chainAccount.name,
-		networkID: chainAccount.networkID.toString('hex'),
-		status: chainAccount.status,
+		name: 'chain2',
+		networkID: utils.getRandomBytes(32),
+		status: 1,
 	};
+
+	const chainAccountJSON: ChainAccountJSON = chainAccountToJSON(chainAccount);
+	const chainAccount2JSON: ChainAccountJSON = chainAccountToJSON(chainAccount2);
 
 	const channelData: ChannelData = {
 		inbox: {
@@ -168,6 +172,9 @@ describe('Mainchain endpoint', () => {
 			.spyOn(mainchainInteroperabilityEndpoint as any, 'getInteroperabilityStore')
 			.mockReturnValue(mainchainInteroperabilityStore);
 		jest.spyOn(mainchainInteroperabilityStore, 'getChainAccount').mockResolvedValue(chainAccount);
+		jest
+			.spyOn(mainchainInteroperabilityStore, 'getAllChainAccounts')
+			.mockResolvedValue([chainAccount, chainAccount2]);
 		jest.spyOn(mainchainInteroperabilityStore, 'getChannel').mockResolvedValue(channelData);
 		jest
 			.spyOn(mainchainInteroperabilityStore, 'getOwnChainAccount')
@@ -201,6 +208,29 @@ describe('Mainchain endpoint', () => {
 
 		it('should return JSON format result', () => {
 			expect(chainAccountResult).toEqual(chainAccountJSON);
+		});
+	});
+
+	describe('getAllChainAccounts', () => {
+		let chainAccountResults: ChainAccountJSON[];
+
+		beforeEach(async () => {
+			({
+				chains: chainAccountResults,
+			} = await mainchainInteroperabilityEndpoint.getAllChainAccounts(moduleContext, chainID));
+		});
+		it('should call getInteroperabilityStore', async () => {
+			expect(mainchainInteroperabilityEndpoint['getInteroperabilityStore']).toHaveBeenCalledWith(
+				moduleContext,
+			);
+		});
+
+		it('should call getAllChainAccounts', async () => {
+			expect(mainchainInteroperabilityStore.getAllChainAccounts).toHaveBeenCalledWith(chainID);
+		});
+
+		it('should return JSON format result', () => {
+			expect(chainAccountResults).toEqual([chainAccountJSON, chainAccount2JSON]);
 		});
 	});
 

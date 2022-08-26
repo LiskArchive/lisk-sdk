@@ -34,8 +34,7 @@ export interface ChainAccount {
 	status: number;
 }
 
-export const chainAccountSchema = {
-	$id: '/modules/interoperability/chainAccount',
+const chainAccountJSONSchema = {
 	type: 'object',
 	required: ['name', 'networkID', 'lastCertificate', 'status'],
 	properties: {
@@ -73,6 +72,22 @@ export const chainAccountSchema = {
 		status: {
 			dataType: 'uint32',
 			fieldNumber: 4,
+		},
+	},
+};
+export const chainAccountSchema = {
+	$id: '/modules/interoperability/chainAccount',
+	...chainAccountJSONSchema,
+};
+
+export const allChainAccountsSchema = {
+	$id: '/modules/interoperability/allChainAccounts',
+	type: 'object',
+	required: ['chains'],
+	properties: {
+		chains: {
+			type: 'array',
+			items: chainAccountJSONSchema,
 		},
 	},
 };
