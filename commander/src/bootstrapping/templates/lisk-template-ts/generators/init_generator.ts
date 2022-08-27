@@ -17,15 +17,18 @@
 import { userInfo } from 'os';
 import { basename, join } from 'path';
 import * as fs from 'fs-extra';
-import { ApplicationConfig } from 'lisk-framework';
 
 import * as Generator from 'yeoman-generator';
+import { isHexString } from '@liskhq/lisk-validator';
+import { Mnemonic } from '@liskhq/lisk-passphrase';
+import { generateGenesisBlockDefaultDPoSAssets } from '../../../../utils/genesis_creation';
 
 interface InitPrompts {
 	name: string;
 	description: string;
 	author: string;
 	license: string;
+	chainID: string;
 }
 
 export default class InitGenerator extends Generator {
@@ -38,6 +41,12 @@ export default class InitGenerator extends Generator {
 				name: 'name',
 				message: 'Application name',
 				default: basename(this.destinationRoot()),
+			},
+			{
+				type: 'input',
+				name: 'chainID',
+				message: 'Chain ID in hex representation',
+				validate: (input: string) => isHexString(input) && input?.length === 8,
 			},
 			{
 				type: 'input',
@@ -83,52 +92,60 @@ export default class InitGenerator extends Generator {
 	}
 
 	public end(): void {
-		this.log('Generating genesis block and config.');
+		this.log('Generating genesis block and config.', this.destinationRoot());
+		// create default config file
 		this.spawnCommandSync(`${this.destinationPath('bin/run')}`, [
 			'config:create',
 			'--output',
 			'config/default',
 		]);
+		// create passphrase to generate all the keys
+		const passphrase = Mnemonic.generateMnemonic(256);
+		fs.writeJsonSync(
+			this.destinationPath('config/default/passphrase.json'),
+			{ passphrase },
+			{
+				spaces: '\t',
+			},
+		);
+		// create keys for initial data using the passphrase
+		this.spawnCommandSync(`${this.destinationPath('bin/run')}`, [
+			'keys:create',
+			'--output',
+			'config/default/dev-validators.json',
+			'--no-encrypt',
+			'--count',
+			'100',
+			'--passphrase',
+			passphrase,
+		]);
+		// create asset file for test. Here, we can assume it's default application
+		const { keys } = JSON.parse(
+			fs.readFileSync(`${this.destinationPath('config/default/dev-validators.json')}`, 'utf8'),
+		) as Record<string, unknown>;
+		const { genesisAssets } = generateGenesisBlockDefaultDPoSAssets({
+			chainID: this.answers.chainID,
+			keysList: keys as never,
+			numberOfValidators: 101,
+			tokenDistribution: BigInt('100000000000000'),
+		});
+		fs.writeJsonSync(
+			this.destinationPath('config/default/genesis_assets.json'),
+			{ assets: genesisAssets },
+			{
+				spaces: '\t',
+			},
+		);
+
+		// create genesis block using the asset file
+
 		this.spawnCommandSync(`${this.destinationPath('bin/run')}`, [
 			'genesis-block:create',
 			'--output',
 			'config/default',
-			'--validators-passphrase-encryption-iterations',
-			'1',
-			'--validators-hash-onion-count',
-			'10000',
-			'--validators-hash-onion-distance',
-			'1000',
+			'--assets-file',
+			'config/default/genesis_assets.json',
 		]);
-
-		const password = JSON.parse(
-			fs.readFileSync(`${this.destinationPath('config/default/password.json')}`, 'utf8'),
-		) as Record<string, unknown>;
-		const forgingInfo = JSON.parse(
-			fs.readFileSync(`${this.destinationPath('config/default/forging_info.json')}`, 'utf8'),
-		) as [];
-		const config = JSON.parse(
-			fs.readFileSync(`${this.destinationPath('config/default/config.json')}`, 'utf8'),
-		) as ApplicationConfig;
-		config.generation.force = true;
-		config.generation.generators = forgingInfo;
-		config.generation.defaultPassword = password.defaultPassword as string;
-
-		fs.writeJSONSync(`${this.destinationPath('config/default/config.json')}`, config, {
-			spaces: '\t',
-		});
-
-		fs.unlinkSync(`${this.destinationPath('config/default/password.json')}`);
-		fs.unlinkSync(`${this.destinationPath('config/default/forging_info.json')}`);
-
-		fs.mkdirSync(`${this.destinationPath('.secrets/default')}`, { recursive: true });
-
-		fs.renameSync(
-			`${this.destinationPath('config/default/accounts.json')}`,
-			`${this.destinationPath('.secrets/default/accounts.json')}`,
-		);
-
-		this.log('"accounts.json" file saved at "./.secrets/default"');
 
 		this.log('\nRun below command to start your blockchain app.\n');
 		this.log(`cd ${this.destinationRoot()}; ./bin/run start`);

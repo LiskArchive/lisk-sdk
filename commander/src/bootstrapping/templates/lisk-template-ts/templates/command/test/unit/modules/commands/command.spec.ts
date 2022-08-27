@@ -8,10 +8,6 @@ describe('<%= commandClass %>', () => {
 	});
 
 	describe('constructor', () => {
-		it('should have valid id', () => {
-			expect(command.id).toEqual(<%= commandID %>);
-		});
-
 		it('should have valid name', () => {
 			expect(command.name).toEqual('<%= commandName %>');
 		});

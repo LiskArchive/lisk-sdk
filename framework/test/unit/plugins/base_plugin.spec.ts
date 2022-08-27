@@ -51,8 +51,6 @@ const appConfigForPlugin = {
 };
 
 class MyPlugin extends BasePlugin {
-	public name = 'my_plugin';
-
 	public configSchema = {
 		$id: '/myPlugin/schema',
 		type: 'object',
@@ -185,8 +183,6 @@ describe('base_plugin', () => {
 
 		it('should return undefined if exported class is not the same from export path', () => {
 			class MyPlugin2 extends MyPlugin {
-				public name = 'my-unknown-package';
-
 				public get nodeModulePath(): string {
 					return 'custom-export-path-2';
 				}

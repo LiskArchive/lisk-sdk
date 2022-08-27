@@ -20,7 +20,6 @@ import { FaucetPluginConfig, State } from './types';
 import { Endpoint } from './endpoint';
 
 export class FaucetPlugin extends BasePlugin<FaucetPluginConfig> {
-	public name = 'faucet';
 	public configSchema = configSchema;
 	public endpoint = new Endpoint();
 
