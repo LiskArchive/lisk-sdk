@@ -17,8 +17,14 @@ import { validator } from '@liskhq/lisk-validator';
 import { NotFoundError } from '@liskhq/lisk-db';
 import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
-import { ValidateBLSKeyRequest, validateBLSKeyRequestSchema } from './schemas';
+import {
+	ValidateBLSKeyRequest,
+	validateBLSKeyRequestSchema,
+	GetValidatorRequest,
+	getValidatorRequestSchema,
+} from './schemas';
 import { BLSKeyStore } from './stores/bls_keys';
+import { ValidatorKeysStore } from './stores/validator_keys';
 
 export class ValidatorsEndpoint extends BaseEndpoint {
 	public async validateBLSKey(ctx: ModuleEndpointContext): Promise<{ valid: boolean }> {
@@ -45,6 +51,36 @@ export class ValidatorsEndpoint extends BaseEndpoint {
 
 		return {
 			valid: bls.popVerify(Buffer.from(blsKey, 'hex'), Buffer.from(proofOfPossession, 'hex')),
+		};
+	}
+
+	public async getValidator(
+		ctx: ModuleEndpointContext,
+	): Promise<{ generatorKey: string | undefined; blsKey: string | undefined }> {
+		validator.validate<GetValidatorRequest>(getValidatorRequestSchema, ctx.params);
+		const req = ctx.params;
+		const { address } = req;
+
+		const validatorsKeysSubStore = this.stores.get(ValidatorKeysStore);
+
+		let persistedValue;
+
+		try {
+			persistedValue = await validatorsKeysSubStore.get(ctx, Buffer.from(address, 'hex'));
+		} catch (error) {
+			if (!(error instanceof NotFoundError)) {
+				throw error;
+			}
+
+			return {
+				generatorKey: undefined,
+				blsKey: undefined,
+			};
+		}
+
+		return {
+			generatorKey: persistedValue?.generatorKey.toString('hex'),
+			blsKey: persistedValue?.blsKey.toString('hex'),
 		};
 	}
 }
