@@ -56,7 +56,7 @@ export class ValidatorsEndpoint extends BaseEndpoint {
 
 	public async getValidator(
 		ctx: ModuleEndpointContext,
-	): Promise<{ generatorKey: string | undefined; blsKey: string | undefined }> {
+	): Promise<{ generatorKey: string; blsKey: string }> {
 		validator.validate<GetValidatorRequest>(getValidatorRequestSchema, ctx.params);
 		const req = ctx.params;
 		const { address } = req;
@@ -73,8 +73,8 @@ export class ValidatorsEndpoint extends BaseEndpoint {
 			}
 
 			return {
-				generatorKey: undefined,
-				blsKey: undefined,
+				generatorKey: '',
+				blsKey: '',
 			};
 		}
 

@@ -139,8 +139,8 @@ describe('ValidatorsModuleEndpoint', () => {
 			};
 
 			await expect(validatorsModule.endpoint.getValidator(context)).resolves.toStrictEqual({
-				generatorKey: undefined,
-				blsKey: undefined,
+				generatorKey: '',
+				blsKey: '',
 			});
 		});
 
