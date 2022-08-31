@@ -127,17 +127,17 @@ describe('ValidatorsModuleEndpoint', () => {
 	});
 
 	describe('getValidator', () => {
-		it('should resolve with undefined when validator does not exist', async () => {
-			const context = {
-				getImmutableAPIContext: jest.fn(),
-				getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
-				logger,
-				params: {
-					address: validatorAddress.toString('hex'),
-				},
-				networkIdentifier,
-			};
+		const context = {
+			getImmutableAPIContext: jest.fn(),
+			getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
+			logger,
+			params: {
+				address: validatorAddress.toString('hex'),
+			},
+			networkIdentifier,
+		};
 
+		it('should resolve with undefined when validator does not exist', async () => {
 			await expect(validatorsModule.endpoint.getValidator(context)).resolves.toStrictEqual({
 				generatorKey: '',
 				blsKey: '',
@@ -145,16 +145,6 @@ describe('ValidatorsModuleEndpoint', () => {
 		});
 
 		it('should resolve with validator keys when validator exists', async () => {
-			const context = {
-				getImmutableAPIContext: jest.fn(),
-				getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
-				logger,
-				params: {
-					address: validatorAddress.toString('hex'),
-				},
-				networkIdentifier,
-			};
-
 			await validatorsModule.stores
 				.get(ValidatorKeysStore)
 				.set(context, validatorAddress, { blsKey, generatorKey });
