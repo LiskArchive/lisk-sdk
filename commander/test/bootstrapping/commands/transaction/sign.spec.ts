@@ -14,81 +14,52 @@
  */
 
 import * as fs from 'fs-extra';
-import { utils } from '@liskhq/lisk-cryptography';
+import { ed } from '@liskhq/lisk-cryptography';
 import { Application, IPCChannel, transactionSchema } from 'lisk-framework';
 import * as apiClient from '@liskhq/lisk-api-client';
 import { codec } from '@liskhq/lisk-codec';
 import * as Config from '@oclif/config';
+import { TransactionAttrs } from '@liskhq/lisk-chain';
 
 import {
 	tokenTransferParamsSchema,
-	keysRegisterParamsSchema,
-	dposVoteParamsSchema,
 	networkIdentifierStr,
+	multisigRegMsgSchema,
+	registerMultisignatureParamsSchema,
 } from '../../../helpers/transactions';
 import * as appUtils from '../../../../src/utils/application';
 import * as readerUtils from '../../../../src/utils/reader';
 import { SignCommand } from '../../../../src/bootstrapping/commands/transaction/sign';
 import { getConfig } from '../../../helpers/config';
+import { accountsForMultisignature } from '../../../helpers/account';
+import {
+	createIPCClientMock,
+	mockCommands,
+	mockEncodedTransaction,
+	mockJSONTransaction,
+} from '../../../helpers/mocks';
 
 describe('transaction:sign command', () => {
-	const commands = [
-		{
-			module: 'token',
-			command: 'transfer',
-			schema: tokenTransferParamsSchema,
-		},
-		{
-			module: 'auth',
-			command: 'registerMultisignature',
-			schema: keysRegisterParamsSchema,
-		},
-		{
-			module: 'dpos',
-			command: 'voteDelegate',
-			schema: dposVoteParamsSchema,
-		},
-	];
-
-	const mockEncodedTransaction = Buffer.from('encoded transaction');
-	const mockJSONTransaction = {
-		params: {
-			tokenID: '0000000000000000',
-			amount: '100',
-			data: 'send token',
-			recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
-		},
-		command: 'transfer',
-		fee: '100000000',
-		module: 'token',
-		nonce: '0',
-		senderPublicKey: '0fe9a3f1a21b5530f27f87a414b549e79a940bf24fdf2b2f05e7f22aeeecc86a',
-		signatures: [
-			'3cc8c8c81097fe59d9df356b3c3f1dd10f619bfabb54f5d187866092c67e0102c64dbe24f357df493cc7ebacdd2e55995db8912245b718d88ebf7f4f4ac01f04',
-		],
-	};
-
-	const senderPassphrase =
-		'inherit moon normal relief spring bargain hobby join baby flash fog blood';
+	const senderPassphrase = accountsForMultisignature.targetAccount.passphrase;
 
 	const mandatoryPassphrases = [
-		'trim elegant oven term access apple obtain error grain excite lawn neck',
-		'desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic',
+		accountsForMultisignature.mandatoryOne.passphrase,
+		accountsForMultisignature.mandatoryTwo.passphrase,
 	];
 
 	const optionalPassphrases = [
-		'sugar object slender confirm clock peanut auto spice carbon knife increase estate',
-		'faculty inspire crouch quit sorry vague hard ski scrap jaguar garment limb',
+		accountsForMultisignature.optionalOne.passphrase,
+		accountsForMultisignature.optionalTwo.passphrase,
 	];
 
 	const mandatoryKeys = [
-		'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
-		'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
+		accountsForMultisignature.mandatoryOne.publicKey.toString('hex'),
+		accountsForMultisignature.mandatoryTwo.publicKey.toString('hex'),
 	];
 
 	const optionalKeys = [
-		'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
-		'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+		accountsForMultisignature.optionalOne.publicKey.toString('hex'),
+		accountsForMultisignature.optionalTwo.publicKey.toString('hex'),
 	];
 
 	const signMultiSigCmdArgs = (unsignedTransaction: string, passphraseToSign: string): string[] => {
@@ -104,20 +75,6 @@ describe('transaction:sign command', () => {
 			'--sender-public-key=f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
 		];
 	};
-
-	const signMultiSigCmdArgsIncludingSender = (
-		unsignedTransaction: string,
-		passphrase: string,
-	): string[] => [...signMultiSigCmdArgs(unsignedTransaction, passphrase), '--include-sender'];
-
-	const signMultiSigCmdArgsIncludingSenderJSON = (
-		unsignedTransaction: string,
-		passphrase: string,
-	): string[] => [
-		...signMultiSigCmdArgs(unsignedTransaction, passphrase),
-		'--include-sender',
-		'--json',
-	];
 
 	const signMultiSigCmdArgsJSON = (unsignedTransaction: string, passphrase: string): string[] => [
 		...signMultiSigCmdArgs(unsignedTransaction, passphrase),
@@ -148,68 +105,11 @@ describe('transaction:sign command', () => {
 		jest.spyOn(IPCChannel.prototype, 'startAndListen').mockResolvedValue();
 		jest.spyOn(IPCChannel.prototype, 'invoke');
 		jest.spyOn(readerUtils, 'getPassphraseFromPrompt').mockResolvedValue(senderPassphrase);
-		jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue({
-			disconnect: jest.fn(),
-			schema: {
-				transaction: transactionSchema,
-			},
-			metadata: [
-				{
-					id: utils.intToBuffer(2, 4).toString('hex'),
-					name: 'token',
-					commands: [
-						{
-							id: utils.intToBuffer(0, 4).toString('hex'),
-							name: 'transfer',
-							params: tokenTransferParamsSchema,
-						},
-					],
-				},
-				{
-					id: utils.intToBuffer(12, 4).toString('hex'),
-					name: 'auth',
-					commands: [
-						{
-							id: utils.intToBuffer(0, 4).toString('hex'),
-							name: 'registerMultisignature',
-							params: keysRegisterParamsSchema,
-						},
-					],
-				},
-				{
-					id: utils.intToBuffer(13, 4).toString('hex'),
-					name: 'dpos',
-					commands: [
-						{
-							id: utils.intToBuffer(1, 4).toString('hex'),
-							name: 'voteDelegate',
-							params: dposVoteParamsSchema,
-						},
-					],
-				},
-			],
-			transaction: {
-				sign: jest.fn().mockReturnValue(mockJSONTransaction),
-				encode: jest.fn().mockReturnValue(mockEncodedTransaction),
-				toJSON: jest.fn().mockReturnValue(mockJSONTransaction),
-				decode: jest.fn().mockImplementation(val => {
-					const root = codec.decode<Record<string, unknown>>(transactionSchema, val);
-					const params = codec.decode(commands[0].schema, root.asset as Buffer);
-					return { ...root, params };
-				}),
-			},
-			node: {
-				getNodeInfo: jest.fn().mockResolvedValue({
-					networkIdentifier: '873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3',
-				}),
-			},
-			invoke: jest.fn().mockResolvedValue({
-				nonce: BigInt(0),
-				numberOfSignatures: 0,
-				mandatoryKeys: [],
-				optionalKeys: [],
-			}),
-		} as never);
+		jest
+			.spyOn(apiClient, 'createIPCClient')
+			.mockResolvedValue(
+				createIPCClientMock(mockJSONTransaction, mockEncodedTransaction, mockCommands) as never,
+			);
 	});
 
 	describe('Missing arguments', () => {
@@ -222,7 +122,7 @@ describe('transaction:sign command', () => {
 		const tx = {
 			...mockJSONTransaction,
 			params: codec
-				.encodeJSON(tokenTransferParamsSchema, mockJSONTransaction.params)
+				.encodeJSON(tokenTransferParamsSchema, (mockJSONTransaction as any).params)
 				.toString('hex'),
 			signatures: [],
 		};
@@ -308,150 +208,122 @@ describe('transaction:sign command', () => {
 			});
 		});
 
-		// TODO: To be fixed after https://github.com/LiskHQ/lisk-sdk/issues/7436
-		// eslint-disable-next-line jest/no-disabled-tests
-		describe.skip('sign multi signature registration transaction', () => {
-			const baseTX = {
+		describe('sign multi signature registration transaction', () => {
+			const messageForRegistration = {
+				address: accountsForMultisignature.targetAccount.publicKey,
+				nonce: BigInt(2),
+				numberOfSignatures: 4,
+				mandatoryKeys: [
+					accountsForMultisignature.mandatoryOne.publicKey,
+					accountsForMultisignature.mandatoryTwo.publicKey,
+				].sort((k1, k2) => k1.compare(k2)),
+				optionalKeys: [
+					accountsForMultisignature.optionalOne.publicKey,
+					accountsForMultisignature.optionalTwo.publicKey,
+				].sort((k1, k2) => k1.compare(k2)),
+			};
+
+			const messageBytes = codec.encode(multisigRegMsgSchema, messageForRegistration);
+
+			const MESSAGE_TAG_MULTISIG_REG = 'LSK_RMSG_';
+			const networkIdentifier = Buffer.from(networkIdentifierStr, 'hex');
+
+			const decodedParams = {
+				numberOfSignatures: messageForRegistration.numberOfSignatures,
+				mandatoryKeys: messageForRegistration.mandatoryKeys,
+				optionalKeys: messageForRegistration.optionalKeys,
+				signatures: [] as Buffer[],
+			};
+
+			const sign1 = ed.signData(
+				MESSAGE_TAG_MULTISIG_REG,
+				networkIdentifier,
+				messageBytes,
+				accountsForMultisignature.mandatoryTwo.privateKey,
+			);
+			decodedParams.signatures.push(sign1);
+
+			const sign2 = ed.signData(
+				MESSAGE_TAG_MULTISIG_REG,
+				networkIdentifier,
+				messageBytes,
+				accountsForMultisignature.mandatoryOne.privateKey,
+			);
+			decodedParams.signatures.push(sign2);
+
+			const sign3 = ed.signData(
+				MESSAGE_TAG_MULTISIG_REG,
+				networkIdentifier,
+				messageBytes,
+				accountsForMultisignature.optionalOne.privateKey,
+			);
+			decodedParams.signatures.push(sign3);
+
+			const sign4 = ed.signData(
+				MESSAGE_TAG_MULTISIG_REG,
+				networkIdentifier,
+				messageBytes,
+				accountsForMultisignature.optionalTwo.privateKey,
+			);
+			decodedParams.signatures.push(sign4);
+
+			const msTx = {
 				module: 'auth',
 				command: 'registerMultisignature',
-				nonce: '2',
-				fee: '10000',
-				senderPublicKey: '0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-				params:
-					'080412204a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd391220f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba31a2057df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca41a20fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+				nonce: BigInt('2'),
+				fee: BigInt('1500000000'),
+				senderPublicKey: accountsForMultisignature.targetAccount.publicKey,
+				params: codec.encode(registerMultisignatureParamsSchema, decodedParams),
 				signatures: [],
 			};
-			const unsignedMultiSigTransaction = codec
-				.encodeJSON(transactionSchema, baseTX)
-				.toString('hex');
 
-			const sign1 = codec
-				.encodeJSON(transactionSchema, {
-					...baseTX,
-					signatures: [
-						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
-						'',
-						'',
-						'',
-						'',
-					],
-				})
-				.toString('hex');
-			const sign2 = codec
-				.encodeJSON(transactionSchema, {
-					...baseTX,
-					signatures: [
-						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
-						'',
-						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
-						'',
-						'',
-					],
-				})
-				.toString('hex');
-			const sign3 = codec
-				.encodeJSON(transactionSchema, {
-					...baseTX,
-					signatures: [
-						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
-						'62f341f7dbc9aa0458b47e4caed28e233099f4cc11eb85152c0faa809c525f1f2c99fe8eaf27d15d133f897d1ae58cab9e98cf759a13f636ef732af05a3f1c0d',
-						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
-						'',
-						'',
-					],
-				})
-				.toString('hex');
-			const sign4 = codec
-				.encodeJSON(transactionSchema, {
-					...baseTX,
-					signatures: [
-						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
-						'62f341f7dbc9aa0458b47e4caed28e233099f4cc11eb85152c0faa809c525f1f2c99fe8eaf27d15d133f897d1ae58cab9e98cf759a13f636ef732af05a3f1c0d',
-						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
-						'e498ac930e7c031f8e023b1e197e77ee2b995af7fccd149c929fce124c6ce087d63356f73a92a5bedccf83c0c88c84dc3d4b1f856b5f28ee6c5452e2fdda0f07',
-						'',
-					],
-				})
-				.toString('hex');
-			const signedTransaction = codec
-				.encodeJSON(transactionSchema, {
-					...baseTX,
-					signatures: [
-						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
-						'62f341f7dbc9aa0458b47e4caed28e233099f4cc11eb85152c0faa809c525f1f2c99fe8eaf27d15d133f897d1ae58cab9e98cf759a13f636ef732af05a3f1c0d',
-						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
-						'e498ac930e7c031f8e023b1e197e77ee2b995af7fccd149c929fce124c6ce087d63356f73a92a5bedccf83c0c88c84dc3d4b1f856b5f28ee6c5452e2fdda0f07',
-						'f67ae20bde21957dd37ca8052104339d7943a2bc2627558ca582b4e1b72ab4ca862879690887fe894f97492d55752c8871fdec22a3fbe4d42eba4cb7e9172405',
-					],
-				})
-				.toString('hex');
+			const unsignedMultiSigTransaction = codec.encode(transactionSchema, msTx);
+			const TAG_TRANSACTION = 'LSK_TX_';
+			const decodedBaseTransaction: any = codec.decode(
+				transactionSchema,
+				unsignedMultiSigTransaction,
+			);
+			const signatureSender = ed.signDataWithPrivateKey(
+				TAG_TRANSACTION,
+				networkIdentifier,
+				unsignedMultiSigTransaction,
+				accountsForMultisignature.targetAccount.privateKey,
+			);
+			const signedTransaction = codec.encode(transactionSchema, {
+				...decodedBaseTransaction,
+				signatures: [signatureSender],
+			});
 
 			it('should return signed transaction for sender account', async () => {
 				await SignCommandExtended.run(
-					signMultiSigCmdArgsIncludingSender(unsignedMultiSigTransaction, senderPassphrase),
+					[
+						unsignedMultiSigTransaction.toString('hex'),
+						`--passphrase=${accountsForMultisignature.targetAccount.passphrase}`,
+						`--network-identifier=${networkIdentifier.toString('hex')}`,
+						'--offline',
+					],
 					config,
 				);
 				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-					transaction: sign1,
+					transaction: signedTransaction.toString('hex'),
 				});
 			});
 
-			it('should return signed transaction for mandatory account 1', async () => {
+			it('should return fully signed transaction string in hex format', async () => {
 				await SignCommandExtended.run(
-					signMultiSigCmdArgsIncludingSender(sign1, mandatoryPassphrases[0]),
-					config,
-				);
-				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
-				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-					transaction: sign2,
-				});
-			});
-
-			it('should return signed transaction for mandatory account 2', async () => {
-				await SignCommandExtended.run(
-					signMultiSigCmdArgsIncludingSender(sign2, mandatoryPassphrases[1]),
-					config,
-				);
-				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
-				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-					transaction: sign3,
-				});
-			});
-
-			it('should return signed transaction for optional account 1', async () => {
-				await SignCommandExtended.run(
-					signMultiSigCmdArgsIncludingSender(sign3, optionalPassphrases[0]),
-					config,
-				);
-				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
-				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-					transaction: sign4,
-				});
-			});
-
-			it('should return signed transaction for optional account 2', async () => {
-				await SignCommandExtended.run(
-					signMultiSigCmdArgsIncludingSender(sign4, optionalPassphrases[1]),
-					config,
-				);
-
-				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
-				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-					transaction: signedTransaction,
-				});
-			});
-
-			// TODO: To be fixed after https://github.com/LiskHQ/lisk-sdk/issues/7436
-			// eslint-disable-next-line jest/no-disabled-tests
-			it.skip('should return fully signed transaction string in hex format', async () => {
-				await SignCommandExtended.run(
-					signMultiSigCmdArgsIncludingSenderJSON(sign4, optionalPassphrases[1]),
+					[
+						unsignedMultiSigTransaction.toString('hex'),
+						`--passphrase=${accountsForMultisignature.targetAccount.passphrase}`,
+						`--network-identifier=${networkIdentifier.toString('hex')}`,
+						'--offline',
+						'--json',
+					],
 					config,
 				);
 				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(2);
 				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-					transaction: signedTransaction,
+					transaction: signedTransaction.toString('hex'),
 				});
 				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 					transaction: {
@@ -459,25 +331,27 @@ describe('transaction:sign command', () => {
 						module: 'auth',
 						command: 'registerMultisignature',
 						nonce: '2',
-						fee: '10000',
+						fee: '1500000000',
 						senderPublicKey: '0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 						params: {
 							numberOfSignatures: 4,
 							mandatoryKeys: [
-								'4a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd39',
-								'f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
+								accountsForMultisignature.mandatoryTwo.publicKey.toString('hex'),
+								accountsForMultisignature.mandatoryOne.publicKey.toString('hex'),
 							],
 							optionalKeys: [
-								'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
-								'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+								accountsForMultisignature.optionalOne.publicKey.toString('hex'),
+								accountsForMultisignature.optionalTwo.publicKey.toString('hex'),
+							],
+							signatures: [
+								'612ba38cbbac69cabb7b3d30d5b8be76271237396feb8da2e39bc7cce6b432e7eb47b7f9ab5aef8fa366d91b9366851c965b7e526bad50b63ffcb4537e710f03',
+								'f2477c43ae712cdffa46eaedc4de386849b610a72696db434ff08dc35c0285ee338034961f5a141e48c4473e75269f0983f7ebdc541beb6a371be6b2f7ee4f0d',
+								'61ee0ce77735a56761795871eba360ebaf265d6ba7b37f90a46112af1c5a8441acb89628f6c3b66448f60a1c31227275149d71bdbacdefb014bf22f35fb2be0d',
+								'b1efe277a0b8bff4e2a8c9f3fcd71fa1e3d3a3f2d0b4718d83cacaf0033c0d797cbf25b99232144be7bca6bd3b849c89987feb299ef31ffa3bf4d6f67c58b30f',
 							],
 						},
 						signatures: [
-							'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
-							'62f341f7dbc9aa0458b47e4caed28e233099f4cc11eb85152c0faa809c525f1f2c99fe8eaf27d15d133f897d1ae58cab9e98cf759a13f636ef732af05a3f1c0d',
-							'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
-							'e498ac930e7c031f8e023b1e197e77ee2b995af7fccd149c929fce124c6ce087d63356f73a92a5bedccf83c0c88c84dc3d4b1f856b5f28ee6c5452e2fdda0f07',
-							'f67ae20bde21957dd37ca8052104339d7943a2bc2627558ca582b4e1b72ab4ca862879690887fe894f97492d55752c8871fdec22a3fbe4d42eba4cb7e9172405',
+							'34de1b31c416a79431f36848dcffe0f39ec1ec0ad84a1146c085faaa00e9810d730cd3bca828671cfc67a2958275ab1277c3e54b5ff1bf5d020b70202297290b',
 						],
 					},
 				});
@@ -613,7 +487,7 @@ describe('transaction:sign command', () => {
 			const tx = {
 				...mockJSONTransaction,
 				params: codec
-					.encodeJSON(tokenTransferParamsSchema, mockJSONTransaction.params)
+					.encodeJSON(tokenTransferParamsSchema, (mockJSONTransaction as any).params)
 					.toString('hex'),
 				signatures: [],
 			};
@@ -646,153 +520,158 @@ describe('transaction:sign command', () => {
 
 		// TODO: To be fixed after https://github.com/LiskHQ/lisk-sdk/issues/7436
 		// eslint-disable-next-line jest/no-disabled-tests
-		describe.skip('sign multi signature registration transaction', () => {
-			const baseTX = {
+		describe('sign multi signature registration transaction', () => {
+			const messageForRegistration = {
+				address: accountsForMultisignature.targetAccount.publicKey,
+				nonce: BigInt(2),
+				numberOfSignatures: 4,
+				mandatoryKeys: [
+					accountsForMultisignature.mandatoryOne.publicKey,
+					accountsForMultisignature.mandatoryTwo.publicKey,
+				].sort((k1, k2) => k1.compare(k2)),
+				optionalKeys: [
+					accountsForMultisignature.optionalOne.publicKey,
+					accountsForMultisignature.optionalTwo.publicKey,
+				].sort((k1, k2) => k1.compare(k2)),
+			};
+
+			const messageBytes = codec.encode(multisigRegMsgSchema, messageForRegistration);
+
+			const MESSAGE_TAG_MULTISIG_REG = 'LSK_RMSG_';
+			const networkIdentifier = Buffer.from(networkIdentifierStr, 'hex');
+
+			const decodedParams = {
+				numberOfSignatures: messageForRegistration.numberOfSignatures,
+				mandatoryKeys: messageForRegistration.mandatoryKeys,
+				optionalKeys: messageForRegistration.optionalKeys,
+				signatures: [] as Buffer[],
+			};
+
+			const sign1 = ed.signData(
+				MESSAGE_TAG_MULTISIG_REG,
+				networkIdentifier,
+				messageBytes,
+				accountsForMultisignature.mandatoryTwo.privateKey,
+			);
+			decodedParams.signatures.push(sign1);
+
+			const sign2 = ed.signData(
+				MESSAGE_TAG_MULTISIG_REG,
+				networkIdentifier,
+				messageBytes,
+				accountsForMultisignature.mandatoryOne.privateKey,
+			);
+			decodedParams.signatures.push(sign2);
+
+			const sign3 = ed.signData(
+				MESSAGE_TAG_MULTISIG_REG,
+				networkIdentifier,
+				messageBytes,
+				accountsForMultisignature.optionalOne.privateKey,
+			);
+			decodedParams.signatures.push(sign3);
+
+			const sign4 = ed.signData(
+				MESSAGE_TAG_MULTISIG_REG,
+				networkIdentifier,
+				messageBytes,
+				accountsForMultisignature.optionalTwo.privateKey,
+			);
+			decodedParams.signatures.push(sign4);
+
+			const msTx: TransactionAttrs = {
+				module: 'auth',
+				command: 'registerMultisignature',
+				nonce: BigInt('2'),
+				fee: BigInt('1500000000'),
+				senderPublicKey: accountsForMultisignature.targetAccount.publicKey,
+				params: codec.encode(registerMultisignatureParamsSchema, decodedParams),
+				signatures: [],
+			};
+			const decodedParamsJSON = {
+				numberOfSignatures: decodedParams.numberOfSignatures,
+				mandatoryKeys: decodedParams.mandatoryKeys.map(k => k.toString('hex')),
+				optionalKeys: decodedParams.optionalKeys.map(k => k.toString('hex')),
+				signatures: decodedParams.signatures.map(s => s.toString('hex')),
+			};
+			const msTxJSON = {
 				module: 'auth',
 				command: 'registerMultisignature',
 				nonce: '2',
-				fee: '10000',
-				senderPublicKey: '0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
-				params:
-					'080412204a67646a446313db964c39370359845c52fce9225a3929770ef41448c258fd391220f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba31a2057df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca41a20fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
+				fee: '1500000000',
+				senderPublicKey: accountsForMultisignature.targetAccount.publicKey.toString('hex'),
+				params: { ...decodedParamsJSON },
 				signatures: [],
 			};
-			const unsignedTransaction = codec.encodeJSON(transactionSchema, baseTX).toString('hex');
 
-			const sign1 = codec
-				.encodeJSON(transactionSchema, {
-					...baseTX,
-					signatures: [
-						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
-						'',
-						'',
-						'',
-						'',
-					],
-				})
-				.toString('hex');
-			const sign2 = codec
-				.encodeJSON(transactionSchema, {
-					...baseTX,
-					signatures: [
-						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
-						'',
-						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
-						'',
-						'',
-					],
-				})
-				.toString('hex');
-			const sign3 = codec
-				.encodeJSON(transactionSchema, {
-					...baseTX,
-					signatures: [
-						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
-						'62f341f7dbc9aa0458b47e4caed28e233099f4cc11eb85152c0faa809c525f1f2c99fe8eaf27d15d133f897d1ae58cab9e98cf759a13f636ef732af05a3f1c0d',
-						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
-						'',
-						'',
-					],
-				})
-				.toString('hex');
-			const sign4 = codec
-				.encodeJSON(transactionSchema, {
-					...baseTX,
-					signatures: [
-						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
-						'62f341f7dbc9aa0458b47e4caed28e233099f4cc11eb85152c0faa809c525f1f2c99fe8eaf27d15d133f897d1ae58cab9e98cf759a13f636ef732af05a3f1c0d',
-						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
-						'e498ac930e7c031f8e023b1e197e77ee2b995af7fccd149c929fce124c6ce087d63356f73a92a5bedccf83c0c88c84dc3d4b1f856b5f28ee6c5452e2fdda0f07',
-						'',
-					],
-				})
-				.toString('hex');
-			const signedTransaction = codec
-				.encodeJSON(transactionSchema, {
-					...baseTX,
-					signatures: [
-						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
-						'62f341f7dbc9aa0458b47e4caed28e233099f4cc11eb85152c0faa809c525f1f2c99fe8eaf27d15d133f897d1ae58cab9e98cf759a13f636ef732af05a3f1c0d',
-						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
-						'e498ac930e7c031f8e023b1e197e77ee2b995af7fccd149c929fce124c6ce087d63356f73a92a5bedccf83c0c88c84dc3d4b1f856b5f28ee6c5452e2fdda0f07',
-						'f67ae20bde21957dd37ca8052104339d7943a2bc2627558ca582b4e1b72ab4ca862879690887fe894f97492d55752c8871fdec22a3fbe4d42eba4cb7e9172405',
-					],
-				})
-				.toString('hex');
+			const unsignedMultiSigTransaction = codec.encode(transactionSchema, msTx);
+			const TAG_TRANSACTION = 'LSK_TX_';
+			const decodedBaseTransaction: any = codec.decode(
+				transactionSchema,
+				unsignedMultiSigTransaction,
+			);
+			const signatureSender = ed.signDataWithPrivateKey(
+				TAG_TRANSACTION,
+				networkIdentifier,
+				unsignedMultiSigTransaction,
+				accountsForMultisignature.targetAccount.privateKey,
+			);
+			const signedTransaction = codec.encode(transactionSchema, {
+				...decodedBaseTransaction,
+				signatures: [signatureSender],
+			});
 
 			it('should return signed transaction for sender account', async () => {
+				// Mock IPCClient to return the correct signed transaction
+				jest
+					.spyOn(apiClient, 'createIPCClient')
+					.mockResolvedValue(
+						createIPCClientMock(msTxJSON, signedTransaction, mockCommands) as never,
+					);
+
 				await SignCommandExtended.run(
-					signMultiSigCmdArgsIncludingSender(unsignedTransaction, senderPassphrase),
+					[
+						unsignedMultiSigTransaction.toString('hex'),
+						`--passphrase=${accountsForMultisignature.targetAccount.passphrase}`,
+					],
 					config,
 				);
 				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
 				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-					transaction: sign1,
+					transaction: signedTransaction.toString('hex'),
 				});
 			});
 
-			it('should return signed transaction for mandatory account 1', async () => {
-				await SignCommandExtended.run(
-					signMultiSigCmdArgsIncludingSender(sign1, mandatoryPassphrases[0]),
-					config,
-				);
-				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
-				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-					transaction: sign2,
-				});
-			});
+			it('should return fully signed transaction string in hex format', async () => {
+				// Mock IPCClient to return the correct signed transaction
+				jest
+					.spyOn(apiClient, 'createIPCClient')
+					.mockResolvedValue(
+						createIPCClientMock(
+							{ ...msTxJSON, signatures: [signatureSender.toString('hex')] },
+							signedTransaction,
+							mockCommands,
+						) as never,
+					);
 
-			it('should return signed transaction for mandatory account 2', async () => {
 				await SignCommandExtended.run(
-					signMultiSigCmdArgsIncludingSender(sign2, mandatoryPassphrases[1]),
-					config,
-				);
-				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
-				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-					transaction: sign3,
-				});
-			});
-
-			it('should return signed transaction for optional account 1', async () => {
-				await SignCommandExtended.run(
-					signMultiSigCmdArgsIncludingSender(sign3, optionalPassphrases[0]),
-					config,
-				);
-				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
-				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-					transaction: sign4,
-				});
-			});
-
-			it('should return signed transaction for optional account 2', async () => {
-				await SignCommandExtended.run(
-					signMultiSigCmdArgsIncludingSender(sign4, optionalPassphrases[1]),
-					config,
-				);
-				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(1);
-				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-					transaction: signedTransaction,
-				});
-			});
-
-			// TODO: To be fixed after https://github.com/LiskHQ/lisk-sdk/issues/7436
-			// eslint-disable-next-line jest/no-disabled-tests
-			it.skip('should return fully signed transaction string in hex format', async () => {
-				await SignCommandExtended.run(
-					signMultiSigCmdArgsIncludingSenderJSON(sign4, optionalPassphrases[1]),
+					[
+						unsignedMultiSigTransaction.toString('hex'),
+						`--passphrase=${accountsForMultisignature.targetAccount.passphrase}`,
+						'--json',
+					],
 					config,
 				);
 				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledTimes(2);
 				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
-					transaction: signedTransaction,
+					transaction: signedTransaction.toString('hex'),
 				});
 				expect(SignCommandExtended.prototype.printJSON).toHaveBeenCalledWith(undefined, {
 					transaction: {
-						id: expect.any(String),
 						module: 'auth',
 						command: 'registerMultisignature',
 						nonce: '2',
-						fee: '10000',
+						fee: '1500000000',
 						senderPublicKey: '0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 						params: {
 							numberOfSignatures: 4,
@@ -804,13 +683,15 @@ describe('transaction:sign command', () => {
 								'57df5c3811961939f8dcfa858c6eaefebfaa4de942f7e703bf88127e0ee9cca4',
 								'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
 							],
+							signatures: [
+								'612ba38cbbac69cabb7b3d30d5b8be76271237396feb8da2e39bc7cce6b432e7eb47b7f9ab5aef8fa366d91b9366851c965b7e526bad50b63ffcb4537e710f03',
+								'f2477c43ae712cdffa46eaedc4de386849b610a72696db434ff08dc35c0285ee338034961f5a141e48c4473e75269f0983f7ebdc541beb6a371be6b2f7ee4f0d',
+								'61ee0ce77735a56761795871eba360ebaf265d6ba7b37f90a46112af1c5a8441acb89628f6c3b66448f60a1c31227275149d71bdbacdefb014bf22f35fb2be0d',
+								'b1efe277a0b8bff4e2a8c9f3fcd71fa1e3d3a3f2d0b4718d83cacaf0033c0d797cbf25b99232144be7bca6bd3b849c89987feb299ef31ffa3bf4d6f67c58b30f',
+							],
 						},
 						signatures: [
-							expect.any(String),
-							expect.any(String),
-							expect.any(String),
-							expect.any(String),
-							expect.any(String),
+							'34de1b31c416a79431f36848dcffe0f39ec1ec0ad84a1146c085faaa00e9810d730cd3bca828671cfc67a2958275ab1277c3e54b5ff1bf5d020b70202297290b',
 						],
 					},
 				});
