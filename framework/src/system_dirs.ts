@@ -15,27 +15,16 @@
 import { homedir } from 'os';
 import { join, resolve } from 'path';
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const systemDirs = (appLabel: string, rootPath: string) => {
-	const rootPathWithoutTilde = rootPath.replace('~', homedir());
+export const systemDirs = (dataPath: string) => {
+	const dataPathWithoutTilde = dataPath.replace('~', homedir());
 	return {
-		dataPath: resolve(join(rootPathWithoutTilde, appLabel)),
-		data: resolve(join(rootPathWithoutTilde, appLabel, 'data')),
-		tmp: resolve(join(rootPathWithoutTilde, appLabel, 'tmp')),
-		logs: resolve(join(rootPathWithoutTilde, appLabel, 'logs')),
-		sockets: resolve(join(rootPathWithoutTilde, appLabel, 'tmp', 'sockets')),
-		pids: resolve(join(rootPathWithoutTilde, appLabel, 'tmp', 'pids')),
-		plugins: resolve(join(rootPathWithoutTilde, appLabel, 'plugins')),
+		dataPath: dataPathWithoutTilde,
+		data: resolve(join(dataPathWithoutTilde, 'data')),
+		config: resolve(join(dataPathWithoutTilde, 'config')),
+		tmp: resolve(join(dataPathWithoutTilde, 'tmp')),
+		logs: resolve(join(dataPathWithoutTilde, 'logs')),
+		sockets: resolve(join(dataPathWithoutTilde, 'tmp', 'sockets')),
+		pids: resolve(join(dataPathWithoutTilde, 'tmp', 'pids')),
+		plugins: resolve(join(dataPathWithoutTilde, 'plugins')),
 	};
 };
-
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const systemDirsFromDataPath = (dataPath: string) => ({
-	dataPath,
-	data: resolve(join(dataPath, 'data')),
-	tmp: resolve(join(dataPath, 'tmp')),
-	logs: resolve(join(dataPath, 'logs')),
-	sockets: resolve(join(dataPath, 'tmp', 'sockets')),
-	pids: resolve(join(dataPath, 'tmp', 'pids')),
-	plugins: resolve(join(dataPath, 'plugins')),
-});

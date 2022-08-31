@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { Transaction } from '@liskhq/lisk-chain';
+import { BlockAssets, Transaction } from '@liskhq/lisk-chain';
 import { Logger } from '../logger';
 import { createAPIContext, createImmutableAPIContext } from './api_context';
 import { EVENT_INDEX_AFTER_TRANSACTIONS, EVENT_INDEX_BEFORE_TRANSACTIONS } from './constants';
@@ -24,7 +24,6 @@ import {
 	BlockExecuteContext,
 	BlockVerifyContext,
 	BlockHeader,
-	BlockAssets,
 	Validator,
 } from './types';
 
@@ -181,5 +180,9 @@ export class BlockContext {
 				validators: [],
 			}
 		);
+	}
+
+	public get assets(): BlockAssets {
+		return this._assets;
 	}
 }

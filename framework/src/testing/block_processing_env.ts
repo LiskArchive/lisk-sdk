@@ -133,7 +133,7 @@ export const getBlockProcessingEnv = async (
 ): Promise<BlockProcessingEnv> => {
 	const appConfig = getAppConfig(params.options?.genesis);
 
-	const systemDir = systemDirs(appConfig.label, appConfig.rootPath);
+	const systemDir = systemDirs(appConfig.system.dataPath);
 
 	removeDB(systemDir.data);
 	const moduleDB = new Database(path.join(systemDir.data, 'module.db'));
@@ -174,11 +174,7 @@ export const getBlockProcessingEnv = async (
 		...asset,
 		data: codec.fromJSON<Record<string, unknown>>(asset.schema, asset.data),
 	}));
-	await stateMachine.init(
-		appConfig.genesis,
-		appConfig.generation.modules,
-		appConfig.genesis.modules,
-	);
+	await stateMachine.init(appConfig.genesis, {}, appConfig.modules);
 	const genesisBlock = await generateGenesisBlock(stateMachine, loggerMock, {
 		timestamp: Math.floor(Date.now() / 1000) - 60 * 60,
 		assets: blockAssets,
@@ -186,14 +182,13 @@ export const getBlockProcessingEnv = async (
 	const abiHandler = new ABIHandler({
 		channel: channelMock,
 		config: appConfig,
-		genesisBlock,
 		logger: loggerMock,
 		stateDB,
 		moduleDB,
 		modules,
 		stateMachine,
 	});
-	const engine = new Engine(abiHandler);
+	const engine = new Engine(abiHandler, appConfig);
 	await engine['_init']();
 
 	const networkIdentifier = utils.getNetworkIdentifier(

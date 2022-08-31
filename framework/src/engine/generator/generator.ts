@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import * as fs from 'fs';
 import { EventEmitter } from 'events';
 import {
 	Chain,
@@ -31,7 +32,7 @@ import { dataStructures, jobHandlers } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { EVENT_NETWORK_READY } from '../events';
 import { Logger } from '../../logger';
-import { GenesisConfig } from '../../types';
+import { EngineConfig, GenesisConfig } from '../../types';
 import { Network } from '../network';
 import { Broadcaster } from './broadcaster';
 import {
@@ -44,11 +45,19 @@ import {
 	GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT,
 	GENERATOR_EVENT_NEW_TRANSACTION,
 	EMPTY_HASH,
+	GENERATOR_STORE_KEY_PREFIX,
 } from './constants';
 import { Endpoint } from './endpoint';
 import { GeneratorStore } from './generator_store';
 import { NetworkEndpoint } from './network_endpoint';
-import { GetTransactionResponse, getTransactionsResponseSchema } from './schemas';
+import {
+	encryptedMessageSchema,
+	generatorKeysSchema,
+	GetTransactionResponse,
+	getTransactionsResponseSchema,
+	keysFileSchema,
+	plainGeneratorKeysSchema,
+} from './schemas';
 import { HighFeeGenerationStrategy } from './strategies';
 import {
 	Consensus,
@@ -56,6 +65,7 @@ import {
 	Keypair,
 	GenerationConfig,
 	PlainGeneratorKeyData,
+	KeysFile,
 } from './types';
 import { getOrDefaultLastGeneratedInfo, setLastGeneratedInfo } from './generated_info';
 import { CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED } from '../consensus/constants';
@@ -67,10 +77,12 @@ import {
 } from '../../abi';
 import { BFTModule } from '../bft';
 import { isEmptyConsensusUpdate } from '../consensus';
+import { getPathFromDataPath } from '../../utils/path';
 
 interface GeneratorArgs {
 	genesisConfig: GenesisConfig;
 	generationConfig: GenerationConfig;
+	generatorConfig: EngineConfig;
 	chain: Chain;
 	consensus: Consensus;
 	bft: BFTModule;
@@ -91,6 +103,7 @@ export class Generator {
 
 	private readonly _pool: TransactionPool;
 	private readonly _config: GenerationConfig;
+	private readonly _engineConfig: EngineConfig;
 	private readonly _chain: Chain;
 	private readonly _consensus: Consensus;
 	private readonly _bft: BFTModule;
@@ -118,6 +131,7 @@ export class Generator {
 			applyTransactions: async (transactions: Transaction[]) =>
 				this._verifyTransaction(transactions),
 		});
+		this._engineConfig = args.generatorConfig;
 		if (this._config.waitThreshold >= args.genesisConfig.blockTime) {
 			throw Error(
 				`generation.waitThreshold=${this._config.waitThreshold} is greater or equal to genesisConfig.blockTime=${args.genesisConfig.blockTime}. It impacts the block generation and propagation. Please use a smaller value for generation.waitThreshold`,
@@ -174,6 +188,7 @@ export class Generator {
 		this._networkEndpoint.init({
 			logger: this._logger,
 		});
+		await this._saveKeysFromFile();
 		await this._loadGenerators();
 		this._network.registerHandler(
 			NETWORK_EVENT_POST_TRANSACTIONS_ANNOUNCEMENT,
@@ -312,6 +327,50 @@ export class Generator {
 				throw new Error('Transaction is not valid');
 			}
 		}
+	}
+
+	private async _saveKeysFromFile(): Promise<void> {
+		if (!this._engineConfig.generator.keys.fromFile) {
+			return;
+		}
+		const filePath = getPathFromDataPath(
+			this._engineConfig.generator.keys.fromFile,
+			this._engineConfig.system.dataPath,
+		);
+		this._logger.debug({ filePath }, 'Reading validator keys from a file');
+		const keysFile = JSON.parse(fs.readFileSync(filePath, 'utf-8')) as unknown;
+		validator.validate<KeysFile>(keysFileSchema, keysFile);
+
+		const generatorStore = new GeneratorStore(this._generatorDB);
+		const batch = new Batch();
+		const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_KEY_PREFIX);
+		for (const key of keysFile.keys) {
+			this._logger.info({ address: key.address }, 'saving generator from file');
+			if (key.encrypted && Object.keys(key.encrypted).length) {
+				await subStore.set(
+					Buffer.from(key.address, 'hex'),
+					codec.encode(generatorKeysSchema, {
+						type: 'encrypted',
+						data: codec.encode(encryptedMessageSchema, key.encrypted),
+					}),
+				);
+			} else if (key.plain) {
+				await subStore.set(
+					Buffer.from(key.address, 'hex'),
+					codec.encode(generatorKeysSchema, {
+						type: 'plain',
+						data: codec.encode(plainGeneratorKeysSchema, {
+							blsKey: Buffer.from(key.plain?.blsKey, 'hex'),
+							blsPrivateKey: Buffer.from(key.plain?.blsPrivateKey, 'hex'),
+							generatorKey: Buffer.from(key.plain?.generatorKey, 'hex'),
+							generatorPrivateKey: Buffer.from(key.plain?.generatorPrivateKey, 'hex'),
+						}),
+					}),
+				);
+			}
+		}
+		generatorStore.finalize(batch);
+		await this._generatorDB.write(batch);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await

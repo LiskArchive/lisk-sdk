@@ -26,12 +26,12 @@ import { Bus } from '../../src/controller/bus';
 import { WSServer } from '../../src/controller/ws/ws_server';
 import { createLogger } from '../../src/logger';
 import { Engine } from '../../src/engine';
-import { systemDirs } from '../../src/system_dirs';
 import * as basePluginModule from '../../src/plugins/base_plugin';
 import * as networkConfig from '../fixtures/config/devnet/config.json';
 import { createFakeBlockHeader } from '../fixtures';
 import { ABIServer } from '../../src/abi_handler/abi_server';
 import { EVENT_ENGINE_READY } from '../../src/abi_handler/abi_handler';
+import { systemDirs } from '../../src/system_dirs';
 
 jest.mock('fs-extra');
 jest.mock('zeromq', () => {
@@ -322,7 +322,7 @@ describe('Application', () => {
 
 			await app.run(new Block(createFakeBlockHeader(), [], new BlockAssets()));
 
-			dirs = systemDirs(app.config.label, app.config.rootPath);
+			dirs = systemDirs(app.config.system.dataPath);
 		});
 
 		afterEach(async () => {
@@ -370,7 +370,7 @@ describe('Application', () => {
 		});
 
 		it('should delete all files in ~/.lisk/tmp/sockets', () => {
-			const { sockets: socketsPath } = systemDirs(app.config.label, app.config.rootPath);
+			const { sockets: socketsPath } = systemDirs(app.config.system.dataPath);
 
 			// Assert
 			for (const aSocketFile of fakeSocketFiles) {

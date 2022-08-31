@@ -99,7 +99,7 @@ export abstract class BasePlugin<T = Record<string, unknown>> {
 	}
 
 	public get dataPath(): string {
-		const dirs = systemDirs(this.appConfig.label, this.appConfig.rootPath);
+		const dirs = systemDirs(this.appConfig.system.dataPath);
 
 		return join(dirs.plugins, this.name, 'data');
 	}
@@ -127,7 +127,7 @@ export abstract class BasePlugin<T = Record<string, unknown>> {
 		this._appConfig = context.appConfig;
 
 		if (this._appConfig.rpc.modes.includes('ipc')) {
-			const dirs = systemDirs(this.appConfig.label, this.appConfig.rootPath);
+			const dirs = systemDirs(this.appConfig.system.dataPath);
 			this._apiClient = await createIPCClient(dirs.sockets);
 		}
 	}

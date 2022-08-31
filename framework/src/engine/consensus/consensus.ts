@@ -74,7 +74,6 @@ interface InitArgs {
 	logger: Logger;
 	genesisBlock: Block;
 	db: Database;
-	modules: string[];
 }
 
 interface ExecuteOptions {
@@ -112,7 +111,6 @@ export class Consensus {
 	private _endpoint!: NetworkEndpoint;
 	private _synchronizer!: Synchronizer;
 	private _blockSlot!: Slots;
-	private _modules!: string[];
 
 	private _stop = false;
 
@@ -129,7 +127,6 @@ export class Consensus {
 	public async init(args: InitArgs): Promise<void> {
 		this._logger = args.logger;
 		this._db = args.db;
-		this._modules = args.modules;
 		this._commitPool = new CommitPool({
 			db: this._db,
 			blockTime: this._genesisConfig.blockTime,
@@ -482,7 +479,6 @@ export class Consensus {
 
 				this._chain.validateBlock(block, {
 					version: BLOCK_VERSION,
-					acceptedModules: this._modules,
 				});
 				const previousLastBlock = objects.cloneDeep(lastBlock);
 				await this._deleteBlock(lastBlock);
@@ -510,7 +506,6 @@ export class Consensus {
 			);
 			this._chain.validateBlock(block, {
 				version: BLOCK_VERSION,
-				acceptedModules: this._modules,
 			});
 			await this._executeValidated(block);
 
@@ -862,7 +857,6 @@ export class Consensus {
 			validate: (block: Block) =>
 				this._chain.validateBlock(block, {
 					version: BLOCK_VERSION,
-					acceptedModules: this._modules,
 				}),
 			verify: async (block: Block) => this._verify(block),
 			getCurrentValidators: async () => {

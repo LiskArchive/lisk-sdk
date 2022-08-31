@@ -17,19 +17,18 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Command, flags as flagParser } from '@oclif/command';
 import * as fs from 'fs-extra';
+import { utils as cryptoUtils } from '@liskhq/lisk-cryptography';
 import { ApplicationConfig, Application, PartialApplicationConfig } from 'lisk-framework';
 import * as utils from '@liskhq/lisk-utils';
-import { Block } from '@liskhq/lisk-chain';
 import { flagsWithParser } from '../../utils/flags';
 
 import {
 	getDefaultPath,
-	splitPath,
 	getFullPath,
 	getConfigDirs,
-	removeConfigDir,
 	ensureConfigDir,
 	getNetworkConfigFilesPath,
+	getConfigFilesPath,
 } from '../../utils/path';
 
 const LOG_OPTIONS = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'];
@@ -114,7 +113,6 @@ export abstract class StartCommand extends Command {
 			? flags['data-path']
 			: getDefaultPath(this.config.pjson.name);
 		this.log(`Starting Lisk ${this.config.pjson.name} at ${getFullPath(dataPath)}.`);
-		const pathConfig = splitPath(dataPath);
 
 		const defaultNetworkConfigDir = getConfigDirs(this.getApplicationConfigDir(), true);
 		if (!defaultNetworkConfigDir.includes(flags.network)) {
@@ -125,62 +123,45 @@ export abstract class StartCommand extends Command {
 			);
 		}
 
-		// Validate dataPath/config if config for other network exists, throw error and exit unless overwrite-config is specified
-		const configDir = getConfigDirs(dataPath);
-		// If config file exist, do not copy unless overwrite-config is specified
-		if (configDir.length > 1 || (configDir.length === 1 && configDir[0] !== flags.network)) {
-			if (!flags['overwrite-config']) {
-				this.error(
-					`Datapath ${dataPath} already contains configs for ${configDir.join(
-						',',
-					)}. Please use --overwrite-config to overwrite the config.`,
-				);
-			}
-			// Remove other network configs
-			for (const configFolder of configDir) {
-				if (configFolder !== flags.network) {
-					removeConfigDir(dataPath, configFolder);
-				}
-			}
-		}
-		// If genesis block file exist, do not copy unless overwrite-config is specified
-		ensureConfigDir(dataPath, flags.network);
-
 		// Read network genesis block and config from the folder
-		const { genesisBlockFilePath, configFilePath } = getNetworkConfigFilesPath(
+		const { basePath: destBasePath, configFilePath, genesisBlockFilePath } = getConfigFilesPath(
 			dataPath,
-			flags.network,
 		);
 		const {
-			genesisBlockFilePath: defaultGenesisBlockFilePath,
-			configFilePath: defaultConfigFilepath,
+			basePath: srcBasePath,
+			genesisBlockFilePath: srcGenesisBlockPath,
 		} = getNetworkConfigFilesPath(this.getApplicationConfigDir(), flags.network, true);
 
-		if (
-			!fs.existsSync(genesisBlockFilePath) ||
-			(fs.existsSync(genesisBlockFilePath) && flags['overwrite-config'])
-		) {
-			fs.copyFileSync(defaultGenesisBlockFilePath, genesisBlockFilePath);
+		// If genesis block file exist, do not copy unless overwrite-config is specified
+		if (fs.existsSync(genesisBlockFilePath)) {
+			if (
+				!cryptoUtils
+					.hash(fs.readFileSync(srcGenesisBlockPath))
+					.equals(cryptoUtils.hash(fs.readFileSync(genesisBlockFilePath))) &&
+				!flags['overwrite-config']
+			) {
+				this.error(
+					`Datapath ${dataPath} already contains configs for ${flags.network}. Please use --overwrite-config to overwrite the config.`,
+				);
+			}
 		}
+
 		if (
-			!fs.existsSync(configFilePath) ||
-			(fs.existsSync(configFilePath) && flags['overwrite-config'])
+			!fs.existsSync(destBasePath) ||
+			(fs.existsSync(destBasePath) && flags['overwrite-config'])
 		) {
-			fs.copyFileSync(defaultConfigFilepath, configFilePath);
+			ensureConfigDir(dataPath);
+			fs.copySync(srcBasePath, destBasePath, { overwrite: true });
 		}
 
 		// Get config from network config or config specified
-		const genesisBlock = await fs.readJSON(genesisBlockFilePath);
 		let config = await fs.readJSON(configFilePath);
 
 		if (flags.config) {
 			const customConfig: ApplicationConfig = await fs.readJSON(flags.config);
 			config = utils.objects.mergeDeep({}, config, customConfig) as ApplicationConfig;
 		}
-
-		config.rootPath = pathConfig.rootPath;
-		config.label = pathConfig.label;
-		config.version = this.config.pjson.version;
+		config.system.dataPath = dataPath;
 		// Inject other properties specified
 		const modes = [];
 		if (flags['api-ipc']) {
@@ -240,9 +221,8 @@ export abstract class StartCommand extends Command {
 
 		// Get application and start
 		try {
-			const genesis = Block.fromJSON(genesisBlock);
 			const app = this.getApplication(config);
-			await app.run(genesis);
+			await app.run();
 		} catch (errors) {
 			this.error(
 				Array.isArray(errors)

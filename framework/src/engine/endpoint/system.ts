@@ -19,7 +19,8 @@ import {
 	eventSchema,
 	transactionSchema,
 } from '@liskhq/lisk-chain';
-import { ABI, InitResponse } from '../../abi';
+import { ABI } from '../../abi';
+import { EngineConfig } from '../../types';
 import { Consensus } from '../consensus';
 import { Generator } from '../generator';
 import { RequestContext } from '../rpc/rpc_server';
@@ -29,7 +30,7 @@ interface EndpointArgs {
 	chain: Chain;
 	consensus: Consensus;
 	generator: Generator;
-	config: InitResponse['config'];
+	config: EngineConfig;
 }
 
 export class SystemEndpoint {
@@ -38,7 +39,7 @@ export class SystemEndpoint {
 	private readonly _chain: Chain;
 	private readonly _consensus: Consensus;
 	private readonly _generator: Generator;
-	private readonly _config: InitResponse['config'];
+	private readonly _config: EngineConfig;
 
 	public constructor(args: EndpointArgs) {
 		this._abi = args.abi;
@@ -51,8 +52,6 @@ export class SystemEndpoint {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async getNodeInfo(_context: RequestContext) {
 		return {
-			version: this._config.system.version,
-			networkVersion: this._config.system.networkVersion,
 			networkIdentifier: this._chain.networkIdentifier.toString('hex'),
 			lastBlockID: this._chain.lastBlock.header.id.toString('hex'),
 			height: this._chain.lastBlock.header.height,
@@ -63,8 +62,9 @@ export class SystemEndpoint {
 				...this._config.genesis,
 			},
 			network: {
+				version: this._config.network.version,
 				port: this._config.network.port,
-				hostIp: this._config.network.hostIP,
+				host: this._config.network.host,
 				seedPeers: this._config.network.seedPeers,
 				blacklistedIPs: this._config.network.blacklistedIPs,
 				fixedPeers: this._config.network.fixedPeers,
