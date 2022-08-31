@@ -38,7 +38,7 @@ const _loadPlugin = async (
 	plugin = new Klass();
 	const pluginName = plugin.name;
 
-	const dirs = systemDirs(appConfig.label, appConfig.rootPath);
+	const dirs = systemDirs(appConfig.system.dataPath);
 	logger = createLogger({
 		consoleLogLevel: appConfig.logger.consoleLogLevel,
 		fileLogLevel: appConfig.logger.fileLogLevel,

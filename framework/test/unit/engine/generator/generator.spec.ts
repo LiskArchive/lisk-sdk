@@ -11,20 +11,19 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import * as fs from 'fs';
 import { EventEmitter } from 'events';
 import { BlockAssets, Chain, Transaction } from '@liskhq/lisk-chain';
-import { bls, utils, address as cryptoAddress, legacy, encrypt } from '@liskhq/lisk-cryptography';
-import { InMemoryDatabase, Database, Batch } from '@liskhq/lisk-db';
+import { bls, utils, address as cryptoAddress, legacy } from '@liskhq/lisk-cryptography';
+import { InMemoryDatabase, Database } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { when } from 'jest-when';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { Generator } from '../../../../src/engine/generator';
 import { Consensus } from '../../../../src/engine/generator/types';
 import { Network } from '../../../../src/engine/network';
-import { configUtils } from '../../../utils';
 import { fakeLogger } from '../../../utils/mocks';
 
-import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
 import {
 	GENERATOR_STORE_KEY_PREFIX,
 	NETWORK_RPC_GET_TRANSACTIONS,
@@ -37,6 +36,8 @@ import {
 import { BFTModule } from '../../../../src/engine/bft';
 import { createFakeBlockHeader } from '../../../../src/testing';
 import { ABI } from '../../../../src/abi';
+import { defaultConfig } from '../../../../src/testing/fixtures';
+import { testing } from '../../../../src';
 import { GeneratorStore } from '../../../../src/engine/generator/generator_store';
 
 describe('generator', () => {
@@ -148,29 +149,30 @@ describe('generator', () => {
 			chain,
 			consensus,
 			network,
-			genesisConfig: configUtils.constantsConfig(),
+			config: {
+				...defaultConfig,
+				generator: {
+					keys: {
+						fromFile: '~/.lisk/default/keys.json',
+					},
+				},
+			},
 		});
+		jest.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify(testing.fixtures.keysList));
 	});
 
 	describe('init', () => {
 		describe('loadGenerator', () => {
 			beforeEach(async () => {
-				for (const d of genesisDelegates.delegates) {
-					const passphrase = await encrypt.decryptMessageWithPassword(
-						encrypt.parseEncryptedMessage(d.encryptedPassphrase),
-						d.password,
-						'utf-8',
-					);
-					const keypair = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
-					const blsSK = bls.generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
+				for (const d of testing.fixtures.keysList.keys) {
 					const generatorKeys = {
 						address: Buffer.from(d.address, 'hex'),
 						type: 'plain',
 						data: {
-							generatorKey: keypair.publicKey,
-							generatorPrivateKey: keypair.privateKey,
-							blsPrivateKey: blsSK,
-							blsKey: bls.getPublicKeyFromPrivateKey(blsSK),
+							generatorKey: Buffer.from(d.plain.generatorKey, 'hex'),
+							generatorPrivateKey: Buffer.from(d.plain.generatorPrivateKey, 'hex'),
+							blsPrivateKey: Buffer.from(d.plain.blsPrivateKey, 'hex'),
+							blsKey: Buffer.from(d.plain.blsKey, 'hex'),
 						},
 					};
 					const encodedData = codec.encode(plainGeneratorKeysSchema, generatorKeys.data);
@@ -184,6 +186,7 @@ describe('generator', () => {
 					);
 				}
 			});
+
 			it('should load all 101 delegates', async () => {
 				await generator.init({
 					blockchainDB,
@@ -206,6 +209,47 @@ describe('generator', () => {
 					logger,
 				});
 				expect(generator['_handleFinalizedHeightChanged']).toHaveBeenCalledWith(313, 515);
+			});
+		});
+		describe('saveKeysFromFile', () => {
+			it('should not store any data when generator.keys.fromFile is not defined', async () => {
+				generator['_config'].generator = { keys: {} };
+				await generator.init({
+					blockchainDB,
+					generatorDB,
+					logger,
+				});
+
+				const store = new GeneratorStore(generator['_generatorDB']);
+				const subStore = store.getGeneratorStore(GENERATOR_STORE_KEY_PREFIX);
+
+				await expect(subStore.iterate({})).resolves.toEqual([]);
+			});
+
+			it('should reject if file does not follow exepcted format', async () => {
+				jest.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify({ invalid: 'file' }));
+				await expect(
+					generator.init({
+						blockchainDB,
+						generatorDB,
+						logger,
+					}),
+				).rejects.toThrow('Lisk validator found 1 error');
+			});
+
+			it('should store all keys from the file defined', async () => {
+				await generator.init({
+					blockchainDB,
+					generatorDB,
+					logger,
+				});
+
+				const store = new GeneratorStore(generator['_generatorDB']);
+				const subStore = store.getGeneratorStore(GENERATOR_STORE_KEY_PREFIX);
+
+				await expect(subStore.iterate({})).resolves.toHaveLength(
+					testing.fixtures.keysList.keys.length,
+				);
 			});
 		});
 	});
@@ -317,40 +361,6 @@ describe('generator', () => {
 			},
 		};
 		beforeEach(async () => {
-			const generatorStore = new GeneratorStore(generatorDB);
-			const batch = new Batch();
-			const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_KEY_PREFIX);
-			for (const d of genesisDelegates.delegates) {
-				const passphrase = await encrypt.decryptMessageWithPassword(
-					encrypt.parseEncryptedMessage(d.encryptedPassphrase),
-					d.password,
-					'utf-8',
-				);
-				const keypair = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
-				const blsSK = bls.generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
-				const generatorKeys = {
-					address: Buffer.from(d.address, 'hex'),
-					type: 'plain',
-					data: {
-						generatorKey: keypair.publicKey,
-						generatorPrivateKey: keypair.privateKey,
-						blsPrivateKey: blsSK,
-						blsKey: bls.getPublicKeyFromPrivateKey(blsSK),
-					},
-				};
-				const encodedData = codec.encode(plainGeneratorKeysSchema, generatorKeys.data);
-				await subStore.set(
-					generatorKeys.address,
-					codec.encode(generatorKeysSchema, {
-						type: generatorKeys.type,
-						data: encodedData,
-					}),
-				);
-			}
-
-			generatorStore.finalize(batch);
-			await generatorDB.write(batch);
-
 			await generator.init({
 				blockchainDB,
 				generatorDB,
@@ -383,7 +393,7 @@ describe('generator', () => {
 				.mockReturnValueOnce(lastBlockSlot - 1);
 			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000));
 			(consensus.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
-				Buffer.from(genesisDelegates.delegates[0].address, 'hex'),
+				Buffer.from(testing.fixtures.keysList.keys[0].address, 'hex'),
 			);
 			jest.spyOn(generator, '_generateBlock' as never);
 
@@ -398,7 +408,7 @@ describe('generator', () => {
 				.mockReturnValueOnce(lastBlockSlot - 1);
 			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000) - 5);
 			(consensus.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
-				Buffer.from(genesisDelegates.delegates[0].address, 'hex'),
+				Buffer.from(testing.fixtures.keysList.keys[0].address, 'hex'),
 			);
 
 			jest.spyOn(generator, '_generateBlock' as never).mockResolvedValue(forgedBlock as never);
@@ -414,7 +424,7 @@ describe('generator', () => {
 				.mockReturnValueOnce(lastBlockSlot);
 			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000) + 5);
 			(consensus.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
-				Buffer.from(genesisDelegates.delegates[0].address, 'hex'),
+				Buffer.from(testing.fixtures.keysList.keys[0].address, 'hex'),
 			);
 
 			jest.spyOn(generator, '_generateBlock' as never).mockResolvedValue(forgedBlock as never);
@@ -446,7 +456,7 @@ describe('generator', () => {
 				.mockResolvedValue({ transactions: [tx], events: [] });
 			jest
 				.spyOn(generator['_bft'].api, 'getBFTParameters')
-				.mockResolvedValue({ validatorsHash } as never);
+				.mockResolvedValue({ validatorsHash, validators: [] } as never);
 			jest
 				.spyOn(generator['_consensus'], 'getAggregateCommit')
 				.mockResolvedValue(aggregateCommit as never);

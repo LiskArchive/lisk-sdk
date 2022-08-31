@@ -15,8 +15,6 @@
 
 import { APIClient, createIPCClient } from '@liskhq/lisk-api-client';
 import { codec } from '@liskhq/lisk-codec';
-import { join } from 'path';
-import { Block } from '@liskhq/lisk-chain';
 import { objects } from '@liskhq/lisk-utils';
 import { homedir } from 'os';
 import { existsSync, rmdirSync } from 'fs-extra';
@@ -39,7 +37,6 @@ export class ApplicationEnv {
 	private _application!: Application;
 	private _dataPath!: string;
 	private _ipcClient!: APIClient;
-	private _genesisBlock!: Block;
 
 	public constructor(appConfig: ApplicationEnvConfig) {
 		this._initApplication(appConfig);
@@ -58,11 +55,13 @@ export class ApplicationEnv {
 	}
 
 	public async startApplication(): Promise<void> {
-		this._genesisBlock = await this._application.generateGenesisBlock({
+		const genesisBlock = await this._application.generateGenesisBlock({
 			assets: [],
 		});
+		this._application.config.genesis.block.blob = genesisBlock.getBytes().toString('hex');
+
 		await Promise.race([
-			this._application.run(this._genesisBlock),
+			this._application.run(),
 			new Promise(resolve => setTimeout(resolve, 3000)),
 		]);
 		// Only start client when ipc is enabled
@@ -87,12 +86,11 @@ export class ApplicationEnv {
 		codec.clearCache();
 		// In order for application to start forging, update force to true
 		const config = objects.mergeDeep({}, defaultConfig, appConfig.config ?? {});
-		const { label } = config;
 
 		const application = new Application(config as PartialApplicationConfig);
 		appConfig.modules.map(module => application.registerModule(module));
 		appConfig.plugins?.map(plugin => application.registerPlugin(plugin));
-		this._dataPath = join(application.config.rootPath, label);
+		this._dataPath = application.config.system.dataPath;
 		this._application = application;
 		return application;
 	}
@@ -101,11 +99,12 @@ export class ApplicationEnv {
 export const createDefaultApplicationEnv = (
 	appEnvConfig: Partial<ApplicationEnvConfig>,
 ): ApplicationEnv => {
-	const rootPath = appEnvConfig.config?.rootPath ?? defaultConfig.rootPath;
-	const label = appEnvConfig.config?.label ?? defaultConfig.label;
+	const dataPath = (appEnvConfig.config?.system?.dataPath ?? defaultConfig.system.dataPath).replace(
+		'~',
+		homedir(),
+	);
 
 	// Ensure directory is cleaned for each application env
-	const dataPath = join(rootPath.replace('~', homedir()), label);
 	if (existsSync(dataPath)) {
 		rmdirSync(dataPath, { recursive: true });
 	}

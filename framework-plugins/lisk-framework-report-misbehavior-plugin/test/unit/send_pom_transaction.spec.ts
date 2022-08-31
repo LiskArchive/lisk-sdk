@@ -13,42 +13,14 @@
  */
 
 import { utils } from '@liskhq/lisk-cryptography';
-import { GenesisConfig, testing, chain, ApplicationConfigForPlugin } from 'lisk-sdk';
+import { testing, chain, ApplicationConfigForPlugin } from 'lisk-sdk';
 import { when } from 'jest-when';
 
 import { ReportMisbehaviorPlugin } from '../../src';
 import { configSchema } from '../../src/schemas';
 
 const appConfigForPlugin: ApplicationConfigForPlugin = {
-	rootPath: '~/.lisk',
-	label: 'my-app',
-	logger: {
-		consoleLogLevel: 'info',
-		fileLogLevel: 'none',
-		logFileName: 'plugin-MisbehaviourPlugin.log',
-	},
-	system: {
-		keepEventsForHeights: -1,
-	},
-	rpc: {
-		modes: [],
-		port: 8080,
-		host: '127.0.0.1',
-	},
-	network: {
-		seedPeers: [],
-		port: 5000,
-	},
-	transactionPool: {
-		maxTransactions: 4096,
-		maxTransactionsPerAccount: 64,
-		transactionExpiryTime: 3 * 60 * 60 * 1000,
-		minEntranceFeePriority: '0',
-		minReplacementFeeDifference: '10',
-	},
-	version: '',
-	networkVersion: '',
-	genesis: {} as GenesisConfig,
+	...testing.fixtures.defaultConfig,
 };
 
 const validPluginOptions = {
@@ -158,8 +130,8 @@ describe('Send PoM transaction', () => {
 			error: jest.fn(),
 		} as any;
 		(reportMisbehaviorPlugin as any)._state = {
-			passphrase: testing.fixtures.defaultFaucetAccount.passphrase,
-			publicKey: testing.fixtures.defaultFaucetAccount.publicKey,
+			privateKey: Buffer.from(testing.fixtures.defaultFaucetAccount.privateKey, 'hex'),
+			publicKey: Buffer.from(testing.fixtures.defaultFaucetAccount.publicKey, 'hex'),
 		};
 
 		when(jest.spyOn(reportMisbehaviorPlugin['apiClient'], 'invoke'))

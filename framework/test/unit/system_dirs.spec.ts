@@ -20,16 +20,16 @@ beforeEach(() => {
 });
 
 describe('systemDirs', () => {
-	it('Should return directories configuration with given app label.', () => {
+	it('Should return directories configuration with dataPath.', () => {
 		// Arrange
 		const appLabel = 'LABEL';
-		const rootPath = '~/.lisk';
 
 		// Act
-		const dirsObj = systemDirs(appLabel, rootPath);
+		const dirsObj = systemDirs(`~/.lisk/${appLabel}`);
 
 		// Assert
 		expect(dirsObj).toEqual({
+			config: `/user/.lisk/${appLabel}/config`,
 			dataPath: `/user/.lisk/${appLabel}`,
 			data: `/user/.lisk/${appLabel}/data`,
 			tmp: `/user/.lisk/${appLabel}/tmp`,
@@ -46,10 +46,11 @@ describe('systemDirs', () => {
 		const rootPath = '/user/../.lisk';
 
 		// Act
-		const dirsObj = systemDirs(appLabel, rootPath);
+		const dirsObj = systemDirs(`${rootPath}/${appLabel}`);
 
 		// Assert
 		expect(dirsObj).toEqual({
+			config: `/.lisk/${appLabel}/config`,
 			dataPath: `/.lisk/${appLabel}`,
 			data: `/.lisk/${appLabel}/data`,
 			tmp: `/.lisk/${appLabel}/tmp`,
@@ -66,10 +67,11 @@ describe('systemDirs', () => {
 		const rootPath = '/customPath/.lisk';
 
 		// Act
-		const dirsObj = systemDirs(appLabel, rootPath);
+		const dirsObj = systemDirs(`${rootPath}/${appLabel}`);
 
 		// Assert
 		expect(dirsObj).toEqual({
+			config: `/customPath/.lisk/${appLabel}/config`,
 			dataPath: `/customPath/.lisk/${appLabel}`,
 			data: `/customPath/.lisk/${appLabel}/data`,
 			tmp: `/customPath/.lisk/${appLabel}/tmp`,
@@ -86,10 +88,11 @@ describe('systemDirs', () => {
 		const rootPath = '~/.lisk';
 
 		// Act
-		const dirsObj = systemDirs(appLabel, rootPath);
+		const dirsObj = systemDirs(`${rootPath}/${appLabel}`);
 
 		// Assert
 		expect(dirsObj).toEqual({
+			config: `/user/.lisk/${appLabel}/config`,
 			dataPath: `/user/.lisk/${appLabel}`,
 			data: `/user/.lisk/${appLabel}/data`,
 			tmp: `/user/.lisk/${appLabel}/tmp`,

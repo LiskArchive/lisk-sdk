@@ -85,9 +85,7 @@ export abstract class BaseGenesisBlockCommand extends Command {
 			})),
 		});
 		fs.mkdirSync(configPath, { recursive: true });
-		fs.writeJSONSync(resolve(configPath, 'genesis_block.json'), genesisBlock, {
-			spaces: ' ',
-		});
+		fs.writeFileSync(resolve(configPath, 'genesis_block.blob'), genesisBlock.getBytes());
 		this.log(`Genesis block files saved at: ${configPath}`);
 	}
 

@@ -17,8 +17,6 @@ import { Dealer } from 'zeromq';
 import {
 	ABI,
 	IPCResponse,
-	InitRequest,
-	InitResponse,
 	readyRequestSchema,
 	readyResponseSchema,
 	ReadyRequest,
@@ -67,8 +65,6 @@ import {
 	finalizeResponseSchema,
 	initGenesisStateRequestSchema,
 	initGenesisStateResponseSchema,
-	initRequestSchema,
-	initResponseSchema,
 	initStateMachineRequestSchema,
 	initStateMachineResponseSchema,
 	insertAssetsRequestSchema,
@@ -158,10 +154,6 @@ export class ABIClient implements ABI {
 		this._dealer.disconnect(this._socketPath);
 		this._pendingRequests = {};
 		this._globalID = BigInt(0);
-	}
-
-	public async init(req: InitRequest): Promise<InitResponse> {
-		return this._call<InitResponse>('init', req, initRequestSchema, initResponseSchema);
 	}
 
 	public async ready(req: ReadyRequest): Promise<ReadyResponse> {

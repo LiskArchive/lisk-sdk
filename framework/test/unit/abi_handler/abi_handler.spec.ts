@@ -11,9 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
-import * as os from 'os';
-import { Transaction } from '@liskhq/lisk-chain';
+import * as fs from 'fs';
+import { Block, BlockAssets, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase } from '@liskhq/lisk-db';
@@ -24,7 +23,6 @@ import { StateMachine } from '../../../src/state_machine';
 import { applicationConfigSchema } from '../../../src/schema';
 import { createFakeBlockHeader } from '../../../src/testing';
 import { channelMock, loggerMock } from '../../../src/testing/mocks';
-import { genesisBlock } from '../../fixtures';
 import { fakeLogger } from '../../utils/mocks';
 import { TransactionExecutionResult, TransactionVerifyResult } from '../../../src/abi';
 import { AuthModule } from '../../../src/modules/auth';
@@ -35,9 +33,10 @@ describe('abi handler', () => {
 	let abiHandler: ABIHandler;
 	let stateDBMock = {};
 
-	const genesis = genesisBlock();
-
 	beforeEach(async () => {
+		jest
+			.spyOn(fs, 'readFileSync')
+			.mockReturnValue(new Block(createFakeBlockHeader(), [], new BlockAssets()).getBytes());
 		stateDBMock = {
 			get: jest.fn(),
 			set: jest.fn(),
@@ -57,28 +56,12 @@ describe('abi handler', () => {
 			channel: channelMock,
 			stateDB: stateDBMock as never,
 			moduleDB: new InMemoryDatabase() as never,
-			genesisBlock: genesis,
 			stateMachine,
 			modules: [mod2, mod],
 			config: applicationConfigSchema.default,
 		});
 		abiHandler['_networkIdentifier'] = utils.getRandomBytes(32);
 		await stateMachine.init(loggerMock, {} as any);
-	});
-
-	describe('init', () => {
-		it('should return valid response', async () => {
-			jest.spyOn(os, 'homedir').mockReturnValue('/User/lisk');
-			const resp = await abiHandler.init({});
-
-			expect(resp.genesisBlock).toEqual({
-				header: genesis.header.toObject(),
-				assets: genesis.assets.getAll(),
-				transactions: [],
-			});
-			expect(resp.registeredModules).toHaveLength(2);
-			expect(resp.config).toMatchSnapshot();
-		});
 	});
 
 	describe('ready', () => {
@@ -92,7 +75,6 @@ describe('abi handler', () => {
 				channel: channelMock,
 				stateDB: stateDBMock as never,
 				moduleDB: new InMemoryDatabase() as never,
-				genesisBlock: genesis,
 				stateMachine,
 				modules: [mod],
 				config: applicationConfigSchema.default,
@@ -161,7 +143,6 @@ describe('abi handler', () => {
 			expect(abiHandler['_stateMachine'].executeGenesisBlock).toHaveBeenCalledTimes(1);
 
 			expect(resp.events).toBeArray();
-			expect(resp.assets).toEqual(genesis.assets.getAll());
 			expect(resp.nextValidators).toBeArray();
 			expect(resp.certificateThreshold).toEqual(BigInt(0));
 			expect(resp.preCommitThreshold).toEqual(BigInt(0));

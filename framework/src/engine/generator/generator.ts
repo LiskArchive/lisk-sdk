@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import * as fs from 'fs';
 import { EventEmitter } from 'events';
 import {
 	Chain,
@@ -31,7 +32,7 @@ import { dataStructures, jobHandlers } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { EVENT_NETWORK_READY } from '../events';
 import { Logger } from '../../logger';
-import { GenesisConfig } from '../../types';
+import { EngineConfig } from '../../types';
 import { Network } from '../network';
 import { Broadcaster } from './broadcaster';
 import {
@@ -50,9 +51,11 @@ import { Endpoint } from './endpoint';
 import { GeneratorStore } from './generator_store';
 import { NetworkEndpoint } from './network_endpoint';
 import {
+	encryptedMessageSchema,
 	generatorKeysSchema,
 	GetTransactionResponse,
 	getTransactionsResponseSchema,
+	keysFileSchema,
 	plainGeneratorKeysSchema,
 } from './schemas';
 import { HighFeeGenerationStrategy } from './strategies';
@@ -62,6 +65,7 @@ import {
 	Keypair,
 	PlainGeneratorKeyData,
 	EncodedGeneratorKeys,
+	KeysFile,
 } from './types';
 import { getOrDefaultLastGeneratedInfo, setLastGeneratedInfo } from './generated_info';
 import { CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED } from '../consensus/constants';
@@ -73,9 +77,10 @@ import {
 } from '../../abi';
 import { BFTModule } from '../bft';
 import { isEmptyConsensusUpdate } from '../consensus';
+import { getPathFromDataPath } from '../../utils/path';
 
 interface GeneratorArgs {
-	genesisConfig: GenesisConfig;
+	config: EngineConfig;
 	chain: Chain;
 	consensus: Consensus;
 	bft: BFTModule;
@@ -95,6 +100,7 @@ export class Generator {
 	public readonly events = new EventEmitter();
 
 	private readonly _pool: TransactionPool;
+	private readonly _config: EngineConfig;
 	private readonly _chain: Chain;
 	private readonly _consensus: Consensus;
 	private readonly _bft: BFTModule;
@@ -116,12 +122,13 @@ export class Generator {
 		this._abi = args.abi;
 		this._keypairs = new dataStructures.BufferMap();
 		this._pool = new TransactionPool({
-			maxPayloadLength: args.genesisConfig.maxTransactionsSize,
-			minFeePerByte: args.genesisConfig.minFeePerByte,
+			maxPayloadLength: args.config.genesis.maxTransactionsSize,
+			minFeePerByte: args.config.genesis.minFeePerByte,
 			applyTransactions: async (transactions: Transaction[]) =>
 				this._verifyTransaction(transactions),
 		});
-		this._blockTime = args.genesisConfig.blockTime;
+		this._config = args.config;
+		this._blockTime = args.config.genesis.blockTime;
 		this._chain = args.chain;
 		this._bft = args.bft;
 		this._consensus = args.consensus;
@@ -172,6 +179,7 @@ export class Generator {
 		this._networkEndpoint.init({
 			logger: this._logger,
 		});
+		await this._saveKeysFromFile();
 		await this._loadGenerators();
 		this._network.registerHandler(
 			NETWORK_EVENT_POST_TRANSACTIONS_ANNOUNCEMENT,
@@ -312,6 +320,51 @@ export class Generator {
 		}
 	}
 
+	private async _saveKeysFromFile(): Promise<void> {
+		if (!this._config.generator.keys.fromFile) {
+			return;
+		}
+		const filePath = getPathFromDataPath(
+			this._config.generator.keys.fromFile,
+			this._config.system.dataPath,
+		);
+		this._logger.debug({ filePath }, 'Reading validator keys from a file');
+		const keysFile = JSON.parse(fs.readFileSync(filePath, 'utf-8')) as unknown;
+		validator.validate<KeysFile>(keysFileSchema, keysFile);
+
+		const generatorStore = new GeneratorStore(this._generatorDB);
+		const batch = new Batch();
+		const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_KEY_PREFIX);
+		for (const key of keysFile.keys) {
+			this._logger.info({ address: key.address }, 'saving generator from file');
+			if (key.encrypted && Object.keys(key.encrypted).length) {
+				await subStore.set(
+					Buffer.from(key.address, 'hex'),
+					codec.encode(generatorKeysSchema, {
+						type: 'encrypted',
+						data: codec.encode(encryptedMessageSchema, key.encrypted),
+					}),
+				);
+			} else if (key.plain) {
+				await subStore.set(
+					Buffer.from(key.address, 'hex'),
+					codec.encode(generatorKeysSchema, {
+						type: 'plain',
+						data: codec.encode(plainGeneratorKeysSchema, {
+							blsKey: Buffer.from(key.plain.blsKey, 'hex'),
+							blsPrivateKey: Buffer.from(key.plain.blsPrivateKey, 'hex'),
+							generatorKey: Buffer.from(key.plain.generatorKey, 'hex'),
+							generatorPrivateKey: Buffer.from(key.plain.generatorPrivateKey, 'hex'),
+						}),
+					}),
+				);
+			}
+		}
+		generatorStore.finalize(batch);
+		await this._generatorDB.write(batch);
+	}
+
+	// eslint-disable-next-line @typescript-eslint/require-await
 	private async _loadGenerators(): Promise<void> {
 		const generatorStore = new GeneratorStore(this._generatorDB);
 		const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_KEY_PREFIX);

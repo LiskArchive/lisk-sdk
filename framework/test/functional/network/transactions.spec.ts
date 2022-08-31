@@ -82,7 +82,7 @@ describe('Public transaction related P2P endpoints', () => {
 				recipientAddress: accountWithoutBalance.address,
 				amount: BigInt('10000000000'),
 				networkIdentifier: app['_node']['_networkIdentifier'],
-				passphrase: genesis.passphrase,
+				privateKey: Buffer.from(genesis.privateKey, 'hex'),
 			});
 			const transactionIdsBuffer = codec.encode(transactionIdsSchema, {
 				transactionIds: [tx.id],

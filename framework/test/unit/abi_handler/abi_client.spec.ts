@@ -20,7 +20,6 @@ import { TokenModule } from '../../../src/modules/token';
 import { BaseModule } from '../../../src/modules';
 import { fakeLogger } from '../../utils/mocks';
 import { channelMock } from '../../../src/testing/mocks';
-import { genesisBlock } from '../../fixtures';
 import { applicationConfigSchema } from '../../../src/schema';
 
 jest.mock('zeromq', () => {
@@ -30,8 +29,6 @@ jest.mock('zeromq', () => {
 });
 
 describe('ABI client', () => {
-	const genesis = genesisBlock();
-
 	let client: ABIClient;
 	let abiHandler: ABIHandler;
 
@@ -44,7 +41,6 @@ describe('ABI client', () => {
 			channel: channelMock,
 			stateDB: (new InMemoryDatabase() as unknown) as StateDB,
 			moduleDB: (new InMemoryDatabase() as unknown) as Database,
-			genesisBlock: genesis,
 			stateMachine,
 			modules: [mod],
 			config: applicationConfigSchema.default,
