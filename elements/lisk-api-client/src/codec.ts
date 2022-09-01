@@ -42,14 +42,14 @@ export const getTransactionParamsSchema = (
 	if (!moduleMeta) {
 		throw new Error(
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			`ModuleID: ${transaction.module} is not registered.`,
+			`Module: ${transaction.module} is not registered.`,
 		);
 	}
 	const commandMeta = moduleMeta.commands.find(meta => meta.name === transaction.command);
 	if (!commandMeta) {
 		throw new Error(
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			`ModuleID: ${transaction.module} CommandID: ${transaction.command} is not registered.`,
+			`Module: ${transaction.module} CommandID: ${transaction.command} is not registered.`,
 		);
 	}
 	return commandMeta.params;
