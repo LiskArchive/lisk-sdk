@@ -278,11 +278,7 @@ export class Application {
 				endpoints: this._rootEndpoints(),
 				events: [APP_EVENT_READY.replace('app_', ''), APP_EVENT_SHUTDOWN.replace('app_', '')],
 			});
-			await this._stateMachine.init(
-				this.config.genesis,
-				this.config.generation.modules,
-				this.config.genesis.modules,
-			);
+			await this._stateMachine.init(this.config.genesis, this.config.genesis.modules);
 			this._abiHandler = new ABIHandler({
 				channel: this._controller.channel,
 				config: this.config,
@@ -359,11 +355,7 @@ export class Application {
 		if (!this.logger) {
 			this.logger = this._initLogger();
 		}
-		await this._stateMachine.init(
-			this.config.genesis,
-			this.config.generation.modules,
-			this.config.genesis.modules,
-		);
+		await this._stateMachine.init(this.config.genesis, this.config.genesis.modules);
 		return generateGenesisBlock(this._stateMachine, this.logger, input);
 	}
 

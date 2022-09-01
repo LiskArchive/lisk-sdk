@@ -23,23 +23,6 @@ const moduleConfigSchema = {
 	additionalProperties: { type: 'object' },
 };
 
-const delegatesConfigSchema = {
-	type: 'array',
-	items: {
-		required: ['encryptedPassphrase', 'address'],
-		properties: {
-			encryptedPassphrase: {
-				type: 'string',
-				format: 'encryptedPassphrase',
-			},
-			address: {
-				type: 'string',
-				format: 'hex',
-			},
-		},
-	},
-};
-
 export const applicationConfigSchema = {
 	$id: '#/config',
 	type: 'object',
