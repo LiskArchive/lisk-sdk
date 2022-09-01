@@ -212,7 +212,7 @@ export interface BlockHeader {
 export type BlockHeaderJSON = JSONObject<BlockHeader>;
 
 export interface BlockAsset {
-	moduleID: Buffer;
+	module: Buffer;
 	data: Buffer;
 }
 

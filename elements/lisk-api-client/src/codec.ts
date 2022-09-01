@@ -57,17 +57,17 @@ export const getTransactionParamsSchema = (
 
 export const getAssetDataSchema = (
 	blockVersion: number,
-	asset: { moduleID: string },
+	asset: { module: string },
 	metadata: ModuleMetadata[],
 ): Schema => {
-	const moduleMeta = metadata.find(meta => meta.id === asset.moduleID);
+	const moduleMeta = metadata.find(meta => meta.name === asset.module);
 	if (!moduleMeta) {
-		throw new Error(`Asset schema ModuleID: ${asset.moduleID} is not registered.`);
+		throw new Error(`Asset schema Module: ${asset.module} is not registered.`);
 	}
 	const assetMeta = moduleMeta.assets.find(meta => meta.version === blockVersion);
 	if (!assetMeta) {
 		throw new Error(
-			`Asset schema for ModuleID: ${asset.moduleID} Version: ${blockVersion} is not registered.`,
+			`Asset schema for Module: ${asset.module} Version: ${blockVersion} is not registered.`,
 		);
 	}
 	return assetMeta.data;
@@ -189,7 +189,7 @@ export const decodeAssets = (
 	for (const asset of assets) {
 		const assetSchema = getAssetDataSchema(
 			blockVersion,
-			{ moduleID: asset.moduleID.toString('hex') },
+			{ module: asset.module.toString('hex') },
 			metadata,
 		);
 		const decodedData = codec.decode<Record<string, unknown>>(assetSchema, asset.data);
@@ -213,7 +213,7 @@ export const encodeAssets = (
 		if (!Buffer.isBuffer(asset.data)) {
 			const dataSchema = getAssetDataSchema(
 				blockVersion,
-				{ moduleID: asset.moduleID.toString('hex') },
+				{ module: asset.module.toString('hex') },
 				metadata,
 			);
 			encodedData = codec.encode(dataSchema, asset.data);
@@ -257,7 +257,7 @@ export const toBlockAssetJSON = <T = Record<string, unknown>>(
 ): DecodedBlockAssetJSON<T> => {
 	const dataSchema = getAssetDataSchema(
 		blockVersion,
-		{ moduleID: asset.moduleID.toString('hex') },
+		{ module: asset.module.toString('hex') },
 		metadata,
 	);
 	if (Buffer.isBuffer(asset.data)) {
