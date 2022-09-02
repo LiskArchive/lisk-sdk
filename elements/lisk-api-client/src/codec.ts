@@ -187,11 +187,7 @@ export const decodeAssets = (
 	);
 	const decodedAssets: DecodedBlockAsset[] = [];
 	for (const asset of assets) {
-		const assetSchema = getAssetDataSchema(
-			blockVersion,
-			{ module: asset.module.toString('hex') },
-			metadata,
-		);
+		const assetSchema = getAssetDataSchema(blockVersion, { module: asset.module }, metadata);
 		const decodedData = codec.decode<Record<string, unknown>>(assetSchema, asset.data);
 		decodedAssets.push({
 			...asset,
@@ -211,11 +207,7 @@ export const encodeAssets = (
 	for (const asset of assets) {
 		let encodedData;
 		if (!Buffer.isBuffer(asset.data)) {
-			const dataSchema = getAssetDataSchema(
-				blockVersion,
-				{ module: asset.module.toString('hex') },
-				metadata,
-			);
+			const dataSchema = getAssetDataSchema(blockVersion, { module: asset.module }, metadata);
 			encodedData = codec.encode(dataSchema, asset.data);
 		} else {
 			encodedData = asset.data;
@@ -255,11 +247,7 @@ export const toBlockAssetJSON = <T = Record<string, unknown>>(
 	registeredSchema: RegisteredSchemas,
 	metadata: ModuleMetadata[],
 ): DecodedBlockAssetJSON<T> => {
-	const dataSchema = getAssetDataSchema(
-		blockVersion,
-		{ module: asset.module.toString('hex') },
-		metadata,
-	);
+	const dataSchema = getAssetDataSchema(blockVersion, { module: asset.module }, metadata);
 	if (Buffer.isBuffer(asset.data)) {
 		return {
 			...codec.toJSON(registeredSchema.asset, asset),
