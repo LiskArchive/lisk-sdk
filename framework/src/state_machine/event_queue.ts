@@ -52,9 +52,6 @@ export class EventQueue {
 				`Max topics per event is ${EVENT_MAX_TOPICS_PER_EVENT} but received ${allTopics.length}`,
 			);
 		}
-		// if (typeID.equals(EVENT_STANDARD_TYPE_ID)) {
-		// 	throw new Error('Event type ID 0 is reserved for standard event.');
-		// }
 		this.unsafeAdd(module, name, data, topics, noRevert);
 	}
 

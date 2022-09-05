@@ -91,7 +91,6 @@ export class RewardModule extends BaseModule {
 			context.assets,
 			context.impliesMaxPrevote,
 		);
-
 		if (blockReward < BigInt(0)) {
 			throw new Error("Block reward can't be negative.");
 		}
@@ -111,7 +110,7 @@ export class RewardModule extends BaseModule {
 		};
 
 		const data = codec.encode(rewardMintedDataSchema, rewardMintedData);
-		context.eventQueue.add(this.name, 'name', codec.encode(rewardMintedDataSchema, data), [
+		context.eventQueue.add(this.name, this.name, codec.encode(rewardMintedDataSchema, data), [
 			context.header.generatorAddress,
 		]);
 	}

@@ -57,7 +57,7 @@ describe('state_machine', () => {
 
 	beforeEach(async () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		eventQueue = new EventQueue();
+		eventQueue = new EventQueue(0);
 		stateMachine = new StateMachine();
 		mod = new CustomModule0();
 		stateMachine.registerModule(mod);

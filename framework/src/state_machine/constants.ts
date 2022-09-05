@@ -17,3 +17,5 @@ export const EVENT_INDEX_FINALIZE_GENESIS_STATE = Buffer.from([1]);
 
 export const EVENT_INDEX_BEFORE_TRANSACTIONS = Buffer.from([2]);
 export const EVENT_INDEX_AFTER_TRANSACTIONS = Buffer.from([3]);
+
+export const EVENT_TRANSACTION_NAME = 'TRANSACTION';
