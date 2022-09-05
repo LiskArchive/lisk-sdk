@@ -76,7 +76,7 @@ describe('token module', () => {
 		} as never);
 		apiContext = createAPIContext({
 			stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
-			eventQueue: new EventQueue(),
+			eventQueue: new EventQueue(0),
 		});
 		const userStore = tokenModule.stores.get(UserStore);
 		await userStore.set(

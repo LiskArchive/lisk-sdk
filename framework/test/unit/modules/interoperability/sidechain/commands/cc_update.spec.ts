@@ -411,7 +411,7 @@ describe('CrossChainUpdateCommand', () => {
 				params,
 				transaction: defaultTransaction as any,
 				assets: new BlockAssets(),
-				eventQueue: new EventQueue(),
+				eventQueue: new EventQueue(0),
 				header: blockHeader as BlockHeader,
 				certificateThreshold: BigInt(0),
 				currentValidators: [],

@@ -80,7 +80,7 @@ describe('ValidatorsModuleAPI', () => {
 
 	describe('registerValidatorKeys', () => {
 		beforeEach(() => {
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 			jest.spyOn(apiContext.eventQueue, 'add');
 		});
 
@@ -208,7 +208,7 @@ describe('ValidatorsModuleAPI', () => {
 
 	describe('setValidatorBLSKey', () => {
 		beforeEach(() => {
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 			jest.spyOn(apiContext.eventQueue, 'add');
 		});
 
@@ -326,7 +326,7 @@ describe('ValidatorsModuleAPI', () => {
 
 	describe('setValidatorGeneratorKey', () => {
 		beforeEach(() => {
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 			jest.spyOn(apiContext.eventQueue, 'add');
 		});
 
@@ -383,14 +383,14 @@ describe('ValidatorsModuleAPI', () => {
 
 	describe('isKeyRegistered', () => {
 		it('should return true if bls key is already registered', async () => {
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 			await blsKeysSubStore.set(apiContext, blsKey, { address });
 
 			await expect(validatorsModule.api.isKeyRegistered(apiContext, blsKey)).resolves.toBe(true);
 		});
 
 		it('should return false if bls key is not registered', async () => {
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 
 			await expect(validatorsModule.api.isKeyRegistered(apiContext, blsKey)).resolves.toBe(false);
 		});
@@ -398,7 +398,7 @@ describe('ValidatorsModuleAPI', () => {
 
 	describe('getGeneratorsBetweenTimestamps', () => {
 		it('should be able to return if input timestamps are valid', async () => {
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 			await genesisDataSubStore.set(apiContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			await expect(
@@ -416,7 +416,7 @@ describe('ValidatorsModuleAPI', () => {
 			const validatorsPerRound = 101;
 			const timePerRound = validatorsPerRound * blockTime;
 
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 			await genesisDataSubStore.set(apiContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			const result = await validatorsModule.api.getGeneratorsBetweenTimestamps(
@@ -440,7 +440,7 @@ describe('ValidatorsModuleAPI', () => {
 			const validatorsPerRound = 101;
 			const timePerRound = validatorsPerRound * blockTime;
 
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 			await genesisDataSubStore.set(apiContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			const result = await validatorsModule.api.getGeneratorsBetweenTimestamps(
@@ -469,7 +469,7 @@ describe('ValidatorsModuleAPI', () => {
 		});
 
 		it('should be able to return no generator if input timestamps are valid and difference between input timestamps is zero', async () => {
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 			await genesisDataSubStore.set(apiContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			const result = await validatorsModule.api.getGeneratorsBetweenTimestamps(
@@ -485,7 +485,7 @@ describe('ValidatorsModuleAPI', () => {
 		it('should be able to return no generator if input timestamps are valid and difference between input timestamps is less than block time ', async () => {
 			const blockTime = 10;
 
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 			await genesisDataSubStore.set(apiContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			const result = await validatorsModule.api.getGeneratorsBetweenTimestamps(
@@ -501,7 +501,7 @@ describe('ValidatorsModuleAPI', () => {
 		it('should be able to return no generator if input timestamps are valid and difference between input timestamps is equal to block time ', async () => {
 			const blockTime = 10;
 
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 			await genesisDataSubStore.set(apiContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			const result = await validatorsModule.api.getGeneratorsBetweenTimestamps(
@@ -515,7 +515,7 @@ describe('ValidatorsModuleAPI', () => {
 		});
 
 		it('should throw if input timestamps are invalid', async () => {
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 
 			await expect(
 				validatorsModule.api.getGeneratorsBetweenTimestamps(
@@ -528,7 +528,7 @@ describe('ValidatorsModuleAPI', () => {
 		});
 
 		it('should throw if input timestamp is less than genesis timestamp', async () => {
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 			await genesisDataSubStore.set(apiContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			await expect(
@@ -542,7 +542,7 @@ describe('ValidatorsModuleAPI', () => {
 		});
 
 		it('should return empty result when startSlotNumber is lower than endSlotNumber but in the same block slot', async () => {
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 			await genesisDataSubStore.set(apiContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			await expect(
@@ -556,7 +556,7 @@ describe('ValidatorsModuleAPI', () => {
 		});
 
 		it('should return empty result when startSlotNumber equals endSlotNumber but in the same block slot', async () => {
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 			await genesisDataSubStore.set(apiContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			await expect(
@@ -610,7 +610,7 @@ describe('ValidatorsModuleAPI', () => {
 
 	describe('getAddressFromBLSKey', () => {
 		beforeEach(() => {
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 		});
 
 		it('should get address if it exists in store', async () => {
@@ -629,7 +629,7 @@ describe('ValidatorsModuleAPI', () => {
 
 	describe('registerValidatorWithoutBLSKey', () => {
 		beforeEach(() => {
-			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue() });
+			apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 			jest.spyOn(apiContext.eventQueue, 'add');
 		});
 
