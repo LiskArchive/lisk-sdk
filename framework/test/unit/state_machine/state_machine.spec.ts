@@ -15,13 +15,16 @@ import { Transaction, BlockAssets } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { Logger } from '../../../src/logger';
-import { BlockContext } from '../../../src/state_machine/block_context';
-import { EventQueue } from '../../../src/state_machine/event_queue';
-import { GenesisBlockContext } from '../../../src/state_machine/genesis_block_context';
-import { StateMachine } from '../../../src/state_machine/state_machine';
-import { TransactionContext } from '../../../src/state_machine/transaction_context';
-import { BlockHeader, VerifyStatus } from '../../../src/state_machine';
-import { CustomCommand0, CustomModule0, CustomModule1, CustomModule2 } from './custom_modules';
+import {
+	BlockHeader,
+	BlockContext,
+	EventQueue,
+	GenesisBlockContext,
+	StateMachine,
+	TransactionContext,
+	VerifyStatus,
+} from '../../../src/state_machine';
+import { CustomCommand0, CustomModule0, CustomModule2 } from './custom_modules';
 import {
 	EVENT_INDEX_AFTER_TRANSACTIONS,
 	EVENT_INDEX_BEFORE_TRANSACTIONS,
@@ -51,16 +54,13 @@ describe('state_machine', () => {
 
 	let stateMachine: StateMachine;
 	let mod: CustomModule0;
-	let systemMod: CustomModule1;
 
 	beforeEach(async () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		eventQueue = new EventQueue();
 		stateMachine = new StateMachine();
 		mod = new CustomModule0();
-		systemMod = new CustomModule1();
 		stateMachine.registerModule(mod);
-		stateMachine.registerSystemModule(systemMod);
 		await stateMachine.init(loggerMock, {} as any);
 	});
 
@@ -186,7 +186,6 @@ describe('state_machine', () => {
 				maxHeightCertified: 22,
 				certificateThreshold: BigInt(3),
 			});
-			expect(systemMod.afterCommandExecute).toHaveBeenCalledTimes(1);
 			expect(mod.afterCommandExecute).toHaveBeenCalledTimes(1);
 		});
 
@@ -244,9 +243,6 @@ describe('state_machine', () => {
 				eventQueue.add('auth', 'Auth Name', utils.getRandomBytes(100), [utils.getRandomBytes(32)]);
 			});
 
-			systemMod.afterCommandExecute.mockImplementation(() => {
-				throw new Error('afterCommandExecute failed');
-			});
 			mod.afterCommandExecute.mockImplementation(() => {
 				throw new Error('afterCommandExecute failed');
 			});
@@ -293,7 +289,7 @@ describe('state_machine', () => {
 				getAPIContext: expect.any(Function),
 				getStore: expect.any(Function),
 			});
-			expect(systemMod.verifyAssets).toHaveBeenCalledTimes(1);
+			// expect(systemMod.verifyAssets).toHaveBeenCalledTimes(1);
 			expect(mod.verifyAssets).toHaveBeenCalledTimes(1);
 		});
 	});
@@ -327,7 +323,6 @@ describe('state_machine', () => {
 				maxHeightCertified: expect.any(Number),
 				certificateThreshold: expect.any(BigInt),
 			});
-			expect(systemMod.beforeTransactionsExecute).toHaveBeenCalledTimes(1);
 			expect(mod.beforeTransactionsExecute).toHaveBeenCalledTimes(1);
 		});
 
@@ -440,7 +435,6 @@ describe('state_machine', () => {
 				maxHeightCertified: expect.any(Number),
 				certificateThreshold: expect.any(BigInt),
 			});
-			expect(systemMod.beforeTransactionsExecute).toHaveBeenCalledTimes(1);
 			expect(mod.beforeTransactionsExecute).toHaveBeenCalledTimes(1);
 			expect(mod.afterTransactionsExecute).toHaveBeenCalledWith({
 				networkIdentifier,

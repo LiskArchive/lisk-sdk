@@ -14,7 +14,7 @@
 
 import { standardEventDataSchema } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { TransactionExecutionResult } from '../abi/constants';
+import { TransactionExecutionResult } from '../abi';
 import { Logger } from '../logger';
 import { BaseCommand, BaseModule } from '../modules';
 import { GenesisConfig } from '../types';
@@ -26,7 +26,6 @@ import { VerifyStatus, VerificationResult } from './types';
 
 export class StateMachine {
 	private readonly _modules: BaseModule[] = [];
-	private readonly _systemModules: BaseModule[] = [];
 
 	private _logger!: Logger;
 	private _initialized = false;
@@ -34,11 +33,6 @@ export class StateMachine {
 	public registerModule(mod: BaseModule): void {
 		this._validateExisting(mod);
 		this._modules.push(mod);
-	}
-
-	public registerSystemModule(mod: BaseModule): void {
-		this._validateExisting(mod);
-		this._systemModules.push(mod);
 	}
 
 	public async init(
@@ -69,11 +63,6 @@ export class StateMachine {
 
 	public async executeGenesisBlock(ctx: GenesisBlockContext): Promise<void> {
 		const initContext = ctx.createInitGenesisStateContext();
-		for (const mod of this._systemModules) {
-			if (mod.initGenesisState) {
-				await mod.initGenesisState(initContext);
-			}
-		}
 		for (const mod of this._modules) {
 			if (mod.initGenesisState) {
 				await mod.initGenesisState(initContext);
@@ -85,20 +74,10 @@ export class StateMachine {
 				await mod.finalizeGenesisState(finalizeContext);
 			}
 		}
-		for (const mod of this._systemModules) {
-			if (mod.finalizeGenesisState) {
-				await mod.finalizeGenesisState(finalizeContext);
-			}
-		}
 	}
 
 	public async insertAssets(ctx: GenerationContext): Promise<void> {
 		const initContext = ctx.getInsertAssetContext();
-		for (const mod of this._systemModules) {
-			if (mod.insertAssets) {
-				await mod.insertAssets(initContext);
-			}
-		}
 		for (const mod of this._modules) {
 			if (mod.insertAssets) {
 				await mod.insertAssets(initContext);
@@ -109,15 +88,6 @@ export class StateMachine {
 	public async verifyTransaction(ctx: TransactionContext): Promise<VerificationResult> {
 		const transactionContext = ctx.createTransactionVerifyContext();
 		try {
-			for (const mod of this._systemModules) {
-				if (mod.verifyTransaction) {
-					const result = await mod.verifyTransaction(transactionContext);
-					if (result.status !== VerifyStatus.OK) {
-						this._logger.debug('Transaction verification failed');
-						return result;
-					}
-				}
-			}
 			for (const mod of this._modules) {
 				if (mod.verifyTransaction) {
 					const result = await mod.verifyTransaction(transactionContext);
@@ -148,18 +118,6 @@ export class StateMachine {
 		const transactionContext = ctx.createTransactionExecuteContext();
 		const eventQueueSnapshotID = ctx.eventQueue.createSnapshot();
 		const stateStoreSnapshotID = ctx.stateStore.createSnapshot();
-		for (const mod of this._systemModules) {
-			if (mod.beforeCommandExecute) {
-				try {
-					await mod.beforeCommandExecute(transactionContext);
-				} catch (error) {
-					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
-					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
-					this._logger.debug({ err: error as Error }, 'Transaction execution failed');
-					return TransactionExecutionResult.INVALID;
-				}
-			}
-		}
 		for (const mod of this._modules) {
 			if (mod.beforeCommandExecute) {
 				try {
@@ -211,29 +169,12 @@ export class StateMachine {
 				}
 			}
 		}
-		for (const mod of this._systemModules) {
-			if (mod.afterCommandExecute) {
-				try {
-					await mod.afterCommandExecute(transactionContext);
-				} catch (error) {
-					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
-					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
-					this._logger.debug({ err: error as Error }, 'Transaction execution failed');
-					return TransactionExecutionResult.INVALID;
-				}
-			}
-		}
 
 		return status;
 	}
 
 	public async verifyAssets(ctx: BlockContext): Promise<void> {
 		const blockVerifyContext = ctx.getBlockVerifyExecuteContext();
-		for (const mod of this._systemModules) {
-			if (mod.verifyAssets) {
-				await mod.verifyAssets(blockVerifyContext);
-			}
-		}
 		for (const mod of this._modules) {
 			if (mod.verifyAssets) {
 				await mod.verifyAssets(blockVerifyContext);
@@ -243,11 +184,6 @@ export class StateMachine {
 
 	public async beforeExecuteBlock(ctx: BlockContext): Promise<void> {
 		const blockExecuteContext = ctx.getBlockExecuteContext();
-		for (const mod of this._systemModules) {
-			if (mod.beforeTransactionsExecute) {
-				await mod.beforeTransactionsExecute(blockExecuteContext);
-			}
-		}
 		for (const mod of this._modules) {
 			if (mod.beforeTransactionsExecute) {
 				await mod.beforeTransactionsExecute(blockExecuteContext);
@@ -258,11 +194,6 @@ export class StateMachine {
 	public async afterExecuteBlock(ctx: BlockContext): Promise<void> {
 		const blockExecuteContext = ctx.getBlockAfterExecuteContext();
 		for (const mod of this._modules) {
-			if (mod.afterTransactionsExecute) {
-				await mod.afterTransactionsExecute(blockExecuteContext);
-			}
-		}
-		for (const mod of this._systemModules) {
 			if (mod.afterTransactionsExecute) {
 				await mod.afterTransactionsExecute(blockExecuteContext);
 			}
@@ -292,10 +223,6 @@ export class StateMachine {
 		if (existingModule) {
 			return existingModule;
 		}
-		const existingSystemModule = this._systemModules.find(m => m.name === name);
-		if (existingSystemModule) {
-			return existingSystemModule;
-		}
 		return undefined;
 	}
 
@@ -316,8 +243,8 @@ export class StateMachine {
 	private _validateExisting(mod: BaseModule): void {
 		const existingModule = this._modules.find(m => m.name === mod.name);
 		if (existingModule) {
-			this._logger.debug(`Modul ${mod.name} is registered`);
-			throw new Error(`Modul ${mod.name} is registered.`);
+			this._logger.debug(`Module ${mod.name} is registered`);
+			throw new Error(`Module ${mod.name} is registered.`);
 		}
 		const allExistingEvents = this._modules.reduce<Buffer[]>((prev, curr) => {
 			prev.push(...curr.events.keys());
