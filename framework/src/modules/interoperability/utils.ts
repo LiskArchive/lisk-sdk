@@ -161,13 +161,6 @@ export const computeValidatorsHash = (
 	return utils.hash(encodedValidatorsHashInput);
 };
 
-// export const computeEventHash = (
-// 	event: Event
-// ) => {
-// 	const eventHashInput = codec.encode(eventSchema, event);
-// 	return utils.hash(eventHashInput);
-// };
-
 export const sortValidatorsByBLSKey = (validators: ActiveValidators[]) =>
 	validators.sort((a, b) => a.blsKey.compare(b.blsKey));
 

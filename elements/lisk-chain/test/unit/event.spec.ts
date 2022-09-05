@@ -37,7 +37,7 @@ describe('event', () => {
 	});
 
 	describe('id', () => {
-		it('should return event id', () => {
+		it('should return event id and equals to SHA-256(encode(eventSchema, event))', () => {
 			const event = Event.fromBytes(encodedEvent);
 			const id = event.id();
 

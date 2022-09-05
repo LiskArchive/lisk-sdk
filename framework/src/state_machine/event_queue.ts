@@ -34,7 +34,6 @@ export class EventQueue {
 		module: string,
 		name: string,
 		data: Buffer,
-		// height: number,
 		topics?: Buffer[],
 		noRevert?: boolean,
 	): void {
@@ -59,7 +58,6 @@ export class EventQueue {
 		module: string,
 		name: string,
 		data: Buffer,
-		// height: number,
 		topics?: Buffer[],
 		noRevert?: boolean,
 	): void {
