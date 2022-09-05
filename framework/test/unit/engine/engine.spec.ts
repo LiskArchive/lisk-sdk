@@ -36,9 +36,11 @@ import {
 	CONSENSUS_EVENT_VALIDATORS_CHANGED,
 } from '../../../src/engine/consensus/constants';
 import * as genesisDelegates from '../../fixtures/genesis_delegates.json';
-import { generatorKeysSchema } from '../../../src/engine/bft/schemas';
 import { GENERATOR_STORE_KEY_PREFIX } from '../../../src/engine/generator/constants';
-import { plainGeneratorKeysSchema } from '../../../src/engine/generator/schemas';
+import {
+	plainGeneratorKeysSchema,
+	generatorKeysSchema,
+} from '../../../src/engine/generator/schemas';
 
 jest.mock('fs-extra');
 jest.mock('@liskhq/lisk-db');
@@ -78,6 +80,7 @@ describe('engine', () => {
 				}),
 			);
 		}
+
 		abi = {
 			init: jest.fn().mockResolvedValue({
 				config: {
@@ -115,7 +118,6 @@ describe('engine', () => {
 			}),
 			ready: jest.fn(),
 		} as never;
-		jest.spyOn(engine, '_generatorDB' as any).mockReturnValue(generatorDB);
 		jest.spyOn(logger, 'createLogger').mockReturnValue(fakeLogger);
 		jest.spyOn(Chain.prototype, 'genesisBlockExist').mockResolvedValue(true);
 		jest.spyOn(Chain.prototype, 'loadLastBlocks').mockResolvedValue(undefined);
@@ -142,6 +144,7 @@ describe('engine', () => {
 		jest.spyOn(RPCServer.prototype, 'registerNotFoundEndpoint');
 
 		engine = new Engine(abi);
+		engine['_generatorDB'] = generatorDB;
 	});
 
 	describe('start', () => {
