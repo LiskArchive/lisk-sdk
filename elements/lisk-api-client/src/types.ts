@@ -71,7 +71,7 @@ export interface ModuleMetadata {
 		response: Schema;
 	}[];
 	events: {
-		typeID: string; // TO-DO(7385): To have name instead of typeID
+		name: string;
 		data: Schema;
 	}[];
 	commands: {

@@ -110,7 +110,7 @@ export class TokenModule extends BaseInteroperableModule {
 				params: command.schema,
 			})),
 			events: this.events.values().map(v => ({
-				typeID: v.name,
+				name: v.name,
 				data: v.schema,
 			})),
 			assets: [

@@ -43,7 +43,7 @@ export interface ModuleMetadata {
 		response: Schema;
 	}[];
 	events: {
-		typeID: string;
+		name: string;
 		data: Schema;
 	}[];
 	commands: {
@@ -65,7 +65,7 @@ export interface ModuleMetadataJSON {
 		response: Schema;
 	}[];
 	events: {
-		typeID: string;
+		name: string;
 		data: Schema;
 	}[];
 	commands: {
