@@ -14,7 +14,7 @@
 import { EventEmitter } from 'events';
 import { BlockAssets, Chain, Transaction } from '@liskhq/lisk-chain';
 import { bls, utils, address as cryptoAddress, legacy, encrypt } from '@liskhq/lisk-cryptography';
-import { InMemoryDatabase, Database } from '@liskhq/lisk-db';
+import { InMemoryDatabase, Database, Batch } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
 import { when } from 'jest-when';
 import { Mnemonic } from '@liskhq/lisk-passphrase';
@@ -37,6 +37,7 @@ import {
 import { BFTModule } from '../../../../src/engine/bft';
 import { createFakeBlockHeader } from '../../../../src/testing';
 import { ABI } from '../../../../src/abi';
+import { GeneratorStore } from '../../../../src/engine/generator/generator_store';
 
 describe('generator', () => {
 	const logger = fakeLogger;
@@ -316,6 +317,9 @@ describe('generator', () => {
 			},
 		};
 		beforeEach(async () => {
+			const generatorStore = new GeneratorStore(generatorDB);
+			const batch = new Batch();
+			const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_KEY_PREFIX);
 			for (const d of genesisDelegates.delegates) {
 				const passphrase = await encrypt.decryptMessageWithPassword(
 					encrypt.parseEncryptedMessage(d.encryptedPassphrase),
@@ -336,14 +340,18 @@ describe('generator', () => {
 				};
 				const encodedData = codec.encode(plainGeneratorKeysSchema, generatorKeys.data);
 
-				await generatorDB.set(
-					Buffer.concat([GENERATOR_STORE_KEY_PREFIX, generatorKeys.address]),
+				await subStore.set(
+					generatorKeys.address,
 					codec.encode(generatorKeysSchema, {
 						type: generatorKeys.type,
 						data: encodedData,
 					}),
 				);
 			}
+
+			generatorStore.finalize(batch);
+			await generatorDB.write(batch);
+
 			await generator.init({
 				blockchainDB,
 				generatorDB,
