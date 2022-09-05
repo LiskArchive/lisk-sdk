@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { EVENT_STANDARD_TYPE_ID, standardEventDataSchema } from '@liskhq/lisk-chain';
+import { standardEventDataSchema } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import { TransactionExecutionResult } from '../abi/constants';
 import { Logger } from '../logger';
@@ -181,7 +181,7 @@ export class StateMachine {
 			await command.execute(commandContext);
 			ctx.eventQueue.unsafeAdd(
 				ctx.transaction.module,
-				EVENT_STANDARD_TYPE_ID,
+				'name',
 				codec.encode(standardEventDataSchema, { success: true }),
 				[ctx.transaction.id],
 			);
@@ -190,7 +190,7 @@ export class StateMachine {
 			ctx.stateStore.restoreSnapshot(commandStateStoreSnapshotID);
 			ctx.eventQueue.unsafeAdd(
 				ctx.transaction.module,
-				EVENT_STANDARD_TYPE_ID,
+				'name',
 				codec.encode(standardEventDataSchema, { success: false }),
 				[ctx.transaction.id],
 			);

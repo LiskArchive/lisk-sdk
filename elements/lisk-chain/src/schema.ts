@@ -11,6 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { MAX_NAME_LENGTH, MIN_NAME_LENGTH } from './constants';
+
 export const blockSchema = {
 	$id: '/block',
 	type: 'object',
@@ -178,14 +180,18 @@ export const stateDiffSchema = {
 export const eventSchema = {
 	$id: '/block/event',
 	type: 'object',
-	required: ['module', 'typeID', 'data', 'topics', 'index'],
+	required: ['module', 'name', 'data', 'topics', 'height', 'index'],
 	properties: {
 		module: {
 			dataType: 'string',
+			minLength: MIN_NAME_LENGTH,
+			maxLength: MAX_NAME_LENGTH,
 			fieldNumber: 1,
 		},
-		typeID: {
-			dataType: 'bytes',
+		name: {
+			dataType: 'string',
+			minLength: MIN_NAME_LENGTH,
+			maxLength: MAX_NAME_LENGTH,
 			fieldNumber: 2,
 		},
 		data: {
@@ -196,13 +202,16 @@ export const eventSchema = {
 			type: 'array',
 			fieldNumber: 4,
 			items: {
-				maxItems: 4,
 				dataType: 'bytes',
 			},
 		},
-		index: {
+		height: {
 			dataType: 'uint32',
 			fieldNumber: 5,
+		},
+		index: {
+			dataType: 'uint32',
+			fieldNumber: 6,
 		},
 	},
 };

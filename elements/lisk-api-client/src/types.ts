@@ -71,7 +71,7 @@ export interface ModuleMetadata {
 		response: Schema;
 	}[];
 	events: {
-		typeID: string;
+		typeID: string; // TO-DO(7385): To have name instead of typeID
 		data: Schema;
 	}[];
 	commands: {
@@ -268,7 +268,7 @@ export interface DecodedBlockJSON {
 
 export interface Event {
 	readonly moduleID: Buffer;
-	readonly typeID: Buffer;
+	readonly name: string;
 	readonly topics: Buffer[];
 	readonly index: number;
 	readonly data: Buffer;

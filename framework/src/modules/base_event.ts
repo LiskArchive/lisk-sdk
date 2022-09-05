@@ -43,7 +43,7 @@ export abstract class BaseEvent<T> {
 		// TODO: Update name to be directly as an input with https://github.com/LiskHQ/lisk-sdk/issues/7385
 		ctx.eventQueue.add(
 			this._moduleName,
-			Buffer.from(this.name, 'utf-8'),
+			this.name,
 			codec.encode(this.schema, data as Record<string, unknown>),
 			topics,
 			noRevert,

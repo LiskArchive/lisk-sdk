@@ -107,7 +107,7 @@ describe('ValidatorsModuleAPI', () => {
 			expect(apiContext.eventQueue.add).toHaveBeenNthCalledWith(
 				1,
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(GeneratorKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(GeneratorKeyRegistrationEvent).name,
 				generatorEventData,
 				[address],
 				false,
@@ -115,7 +115,7 @@ describe('ValidatorsModuleAPI', () => {
 			expect(apiContext.eventQueue.add).toHaveBeenNthCalledWith(
 				2,
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(BLSKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(BLSKeyRegistrationEvent).name,
 				blsEventData,
 				[address],
 				false,
@@ -144,7 +144,7 @@ describe('ValidatorsModuleAPI', () => {
 			).rejects.toThrow('This address is already registered as validator.');
 			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(GeneratorKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(GeneratorKeyRegistrationEvent).name,
 				generatorEventData,
 				[address],
 				true,
@@ -172,7 +172,7 @@ describe('ValidatorsModuleAPI', () => {
 			);
 			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(BLSKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(BLSKeyRegistrationEvent).name,
 				blsEventData,
 				[address],
 				true,
@@ -198,7 +198,7 @@ describe('ValidatorsModuleAPI', () => {
 			).rejects.toThrow('Invalid proof of possession for the given BLS key.');
 			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(BLSKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(BLSKeyRegistrationEvent).name,
 				blsEventData,
 				[address],
 				true,
@@ -239,7 +239,7 @@ describe('ValidatorsModuleAPI', () => {
 			expect(hasKey).toBe(true);
 			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(BLSKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(BLSKeyRegistrationEvent).name,
 				blsEventData,
 				[address],
 				false,
@@ -259,7 +259,7 @@ describe('ValidatorsModuleAPI', () => {
 			);
 			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(BLSKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(BLSKeyRegistrationEvent).name,
 				blsEventData,
 				[address],
 				true,
@@ -286,7 +286,7 @@ describe('ValidatorsModuleAPI', () => {
 			);
 			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(BLSKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(BLSKeyRegistrationEvent).name,
 				blsEventData,
 				[address],
 				true,
@@ -316,7 +316,7 @@ describe('ValidatorsModuleAPI', () => {
 			).rejects.toThrow('Invalid proof of possession for the given BLS key.');
 			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(BLSKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(BLSKeyRegistrationEvent).name,
 				blsEventData,
 				[address],
 				true,
@@ -353,7 +353,7 @@ describe('ValidatorsModuleAPI', () => {
 			expect(setValidatorAccount.generatorKey.equals(generatorKey1)).toBe(true);
 			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(GeneratorKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(GeneratorKeyRegistrationEvent).name,
 				generatorEventData,
 				[address],
 				false,
@@ -373,7 +373,7 @@ describe('ValidatorsModuleAPI', () => {
 			);
 			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(GeneratorKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(GeneratorKeyRegistrationEvent).name,
 				generatorEventData,
 				[address],
 				true,
@@ -649,7 +649,7 @@ describe('ValidatorsModuleAPI', () => {
 			expect(setValidatorAccount.generatorKey.equals(generatorKey)).toBe(true);
 			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(GeneratorKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(GeneratorKeyRegistrationEvent).name,
 				generatorEventData,
 				[address],
 				false,
@@ -671,7 +671,7 @@ describe('ValidatorsModuleAPI', () => {
 			).rejects.toThrow('This address is already registered as validator.');
 			expect(apiContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(GeneratorKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(GeneratorKeyRegistrationEvent).name,
 				generatorEventData,
 				[address],
 				true,

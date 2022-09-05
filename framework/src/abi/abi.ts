@@ -84,10 +84,11 @@ export interface Block {
 
 export interface Event {
 	module: string;
-	typeID: Buffer;
+	name: string;
 	data: Buffer;
 	topics: Buffer[];
 	index: number;
+	height: number;
 }
 
 export interface Validator {

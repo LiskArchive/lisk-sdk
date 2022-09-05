@@ -21,25 +21,29 @@ describe('EventQueue', () => {
 	const events = [
 		{
 			module: 'auth',
-			typeID: Buffer.from([0, 0, 0, 0]),
+			name: 'Auth Name',
+			height: 12,
 			data: utils.getRandomBytes(20),
 			topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],
 		},
 		{
 			module: 'dpos',
-			typeID: Buffer.from([0, 0, 0, 0]),
+			name: 'DPOS Name',
+			height: 12,
 			data: utils.getRandomBytes(20),
 			topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],
 		},
 		{
 			module: 'token',
-			typeID: Buffer.from([0, 0, 0, 0]),
+			name: 'Token Name',
+			height: 12,
 			data: utils.getRandomBytes(20),
 			topics: [utils.getRandomBytes(32)],
 		},
 		{
 			module: 'random',
-			typeID: Buffer.from([0, 0, 0, 0]),
+			name: 'Random Name',
+			height: 12,
 			data: utils.getRandomBytes(20),
 			topics: [
 				utils.getRandomBytes(32),
@@ -52,28 +56,20 @@ describe('EventQueue', () => {
 	let eventQueue: EventQueue;
 
 	beforeEach(() => {
-		eventQueue = new EventQueue();
+		eventQueue = new EventQueue(12);
 	});
 
 	it('should throw error if data size exceeds maximum allowed', () => {
 		expect(() =>
-			eventQueue.add(
-				'token',
-				Buffer.from([0, 0, 0, 1]),
-				utils.getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES + 1),
-				[utils.getRandomBytes(32)],
-			),
+			eventQueue.add('token', 'Token Name', utils.getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES + 1), [
+				utils.getRandomBytes(32),
+			]),
 		).toThrow('Max size of event data is');
 	});
 
 	it('should throw error if topics is empty', () => {
 		expect(() =>
-			eventQueue.add(
-				'token',
-				Buffer.from([0, 0, 0, 1]),
-				utils.getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES),
-				[],
-			),
+			eventQueue.add('token', 'Token Name', utils.getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES), []),
 		).toThrow('Topics must have at least one element');
 	});
 
@@ -81,7 +77,7 @@ describe('EventQueue', () => {
 		expect(() =>
 			eventQueue.add(
 				'token',
-				Buffer.from([0, 0, 0, 1]),
+				'Token Name',
 				utils.getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES),
 				new Array(5).fill(0).map(() => utils.getRandomBytes(32)),
 			),
@@ -90,7 +86,7 @@ describe('EventQueue', () => {
 
 	it('should be able to add events to queue', () => {
 		// Act
-		events.map(e => eventQueue.unsafeAdd(e.module, e.typeID, e.data, e.topics));
+		events.map(e => eventQueue.unsafeAdd(e.module, e.name, e.data, e.topics));
 		const addedEvents = eventQueue.getEvents();
 
 		// Asset
@@ -106,7 +102,7 @@ describe('EventQueue', () => {
 
 	it('should be able to get events from child queue', () => {
 		for (const e of events) {
-			eventQueue.unsafeAdd(e.module, e.typeID, e.data, e.topics);
+			eventQueue.unsafeAdd(e.module, e.name, e.data, e.topics);
 		}
 		const childQueue = eventQueue.getChildQueue(events[0].topics[0]);
 
@@ -114,13 +110,11 @@ describe('EventQueue', () => {
 	});
 
 	it('should return original set of events when create and restore snapshot', () => {
-		events.map(e => eventQueue.unsafeAdd(e.module, e.typeID, e.data, e.topics));
+		events.map(e => eventQueue.unsafeAdd(e.module, e.name, e.data, e.topics));
 		expect(eventQueue.getEvents()).toHaveLength(events.length);
 
 		const snapshotID = eventQueue.createSnapshot();
-		eventQueue.add('auth', Buffer.from([0, 0, 0, 1]), utils.getRandomBytes(100), [
-			utils.getRandomBytes(32),
-		]);
+		eventQueue.add('auth', 'Auth Name', utils.getRandomBytes(100), [utils.getRandomBytes(32)]);
 		eventQueue.restoreSnapshot(snapshotID);
 
 		expect(eventQueue.getEvents()).toHaveLength(events.length);
@@ -134,27 +128,27 @@ describe('EventQueue', () => {
 	});
 
 	it('should maintain new nonRevertible events when restoring the snapshot', () => {
-		events.map(e => eventQueue.unsafeAdd(e.module, e.typeID, e.data, e.topics));
+		events.map(e => eventQueue.unsafeAdd(e.module, e.name, e.data, e.topics));
 		expect(eventQueue.getEvents()).toHaveLength(events.length);
 
 		const snapshotID = eventQueue.createSnapshot();
 		eventQueue.add(
 			'auth',
-			Buffer.from([0, 0, 0, 1]),
+			'Auth Name',
 			utils.getRandomBytes(100),
 			[utils.getRandomBytes(32)],
 			false,
 		);
 		eventQueue.add(
 			'auth',
-			Buffer.from([0, 0, 0, 1]),
+			'Auth Name',
 			utils.getRandomBytes(100),
 			[utils.getRandomBytes(32)],
 			true,
 		);
 		eventQueue.add(
 			'auth',
-			Buffer.from([0, 0, 0, 1]),
+			'Auth Name',
 			utils.getRandomBytes(100),
 			[utils.getRandomBytes(32)],
 			false,

@@ -35,9 +35,12 @@ export const TAG_TRANSACTION = utils.createMessageTag('TX');
 export const MAX_ASSET_DATA_SIZE_BYTES = 64;
 export const SIGNATURE_LENGTH_BYTES = 64;
 
+// TODO: #7385 Actual size TBD
+export const MIN_NAME_LENGTH = 1;
+export const MAX_NAME_LENGTH = 32;
+
 export const SMT_PREFIX_SIZE = 6;
 
-export const EVENT_STANDARD_TYPE_ID = Buffer.alloc(4, 0);
 export const EVENT_TOPIC_HASH_LENGTH_BYTES = 8;
 export const EVENT_INDEX_LENGTH_BITS = 30;
 export const EVENT_TOPIC_INDEX_LENGTH_BITS = 2;

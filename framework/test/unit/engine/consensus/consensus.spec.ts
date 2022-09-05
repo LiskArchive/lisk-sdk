@@ -994,7 +994,8 @@ describe('consensus', () => {
 							index: 0,
 							module: 'token',
 							topics: [Buffer.from([0])],
-							typeID: Buffer.from([0, 0, 0, 1]),
+							name: 'Token Name',
+							height: 12,
 						}),
 					]),
 				).rejects.toThrow(

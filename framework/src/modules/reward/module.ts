@@ -16,7 +16,7 @@ import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
-import { defaultConfig, TYPE_ID_REWARD_MINTED } from './constants';
+import { defaultConfig } from './constants';
 import { ModuleConfig, RandomAPI, TokenAPI, RewardMintedData } from './types';
 import { BlockAfterExecuteContext } from '../../state_machine';
 import { RewardAPI } from './api';
@@ -111,11 +111,8 @@ export class RewardModule extends BaseModule {
 		};
 
 		const data = codec.encode(rewardMintedDataSchema, rewardMintedData);
-		context.eventQueue.add(
-			this.name,
-			TYPE_ID_REWARD_MINTED,
-			codec.encode(rewardMintedDataSchema, data),
-			[context.header.generatorAddress],
-		);
+		context.eventQueue.add(this.name, 'name', codec.encode(rewardMintedDataSchema, data), [
+			context.header.generatorAddress,
+		]);
 	}
 }

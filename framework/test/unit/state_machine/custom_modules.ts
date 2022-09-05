@@ -103,7 +103,7 @@ export class CustomCommand2 extends BaseCommand {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async execute(ctx: TransactionExecuteContext): Promise<void> {
-		ctx.eventQueue.add('customModule1', Buffer.from([0, 0, 0, 1]), Buffer.from([0, 0, 2]));
+		ctx.eventQueue.add('customModule1', 'customModule1 Name', Buffer.from([0, 0, 2]));
 	}
 }
 
@@ -122,22 +122,22 @@ export class CustomModule2 extends BaseModule {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async initGenesisState(ctx: GenesisBlockExecuteContext): Promise<void> {
-		ctx.eventQueue.add(this.name, Buffer.from([0, 0, 0, 1]), Buffer.from([0, 0, 2]));
+		ctx.eventQueue.add(this.name, this.name, Buffer.from([0, 0, 2]));
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async finalizeGenesisState(ctx: GenesisBlockExecuteContext): Promise<void> {
-		ctx.eventQueue.add(this.name, Buffer.from([0, 0, 0, 1]), Buffer.from([0, 0, 2]));
+		ctx.eventQueue.add(this.name, this.name, Buffer.from([0, 0, 2]));
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async beforeTransactionsExecute(ctx: BlockExecuteContext): Promise<void> {
-		ctx.eventQueue.add(this.name, Buffer.from([0, 0, 0, 1]), Buffer.from([0, 0, 2]));
+		ctx.eventQueue.add(this.name, this.name, Buffer.from([0, 0, 2]));
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async afterTransactionsExecute(ctx: BlockAfterExecuteContext): Promise<void> {
-		ctx.eventQueue.add(this.name, Buffer.from([0, 0, 0, 1]), Buffer.from([0, 0, 2]));
+		ctx.eventQueue.add(this.name, this.name, Buffer.from([0, 0, 2]));
 	}
 
 	public metadata(): ModuleMetadata {
