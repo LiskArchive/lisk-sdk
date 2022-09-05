@@ -24,7 +24,7 @@ interface Params {
 export const createAPIContext = (params: Params) => new APIContext(params);
 
 export const createNewAPIContext = (db: StateDBReadWriter) =>
-	new APIContext({ stateStore: new PrefixedStateReadWriter(db), eventQueue: new EventQueue() });
+	new APIContext({ stateStore: new PrefixedStateReadWriter(db), eventQueue: new EventQueue(0) });
 
 interface ImmutableSubStoreGetter {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;

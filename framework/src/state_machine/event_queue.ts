@@ -24,9 +24,8 @@ export class EventQueue {
 	private readonly _events: RevertibleEvent[];
 	private readonly _defaultTopics: Buffer[];
 
-	// TO-DO: height should not be optional
-	public constructor(height?: number, events?: RevertibleEvent[], defaultTopics?: Buffer[]) {
-		this._height = height ?? 0;
+	public constructor(height: number, events?: RevertibleEvent[], defaultTopics?: Buffer[]) {
+		this._height = height;
 		this._events = events ?? [];
 		this._defaultTopics = defaultTopics ?? [];
 	}

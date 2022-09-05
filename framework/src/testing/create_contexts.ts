@@ -57,7 +57,7 @@ export const createGenesisBlockContext = (params: {
 	const logger = params.logger ?? loggerMock;
 	const stateStore =
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-	const eventQueue = params.eventQueue ?? new EventQueue();
+	const eventQueue = params.eventQueue ?? new EventQueue(params.header ? params.header.height : 0);
 	const header =
 		params.header ??
 		new BlockHeader({
@@ -100,7 +100,7 @@ export const createBlockContext = (params: {
 	const logger = params.logger ?? loggerMock;
 	const stateStore =
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-	const eventQueue = params.eventQueue ?? new EventQueue();
+	const eventQueue = params.eventQueue ?? new EventQueue(params.header ? params.header.height : 0);
 	const header =
 		params.header ??
 		new BlockHeader({
@@ -182,7 +182,9 @@ export const createBlockGenerateContext = (params: {
 		getGeneratorStore: params.getGeneratorStore ?? getGeneratorStore,
 		logger: params.logger ?? loggerMock,
 		networkIdentifier: params.networkIdentifier ?? utils.getRandomBytes(32),
-		getAPIContext: params.getAPIContext ?? (() => ({ getStore, eventQueue: new EventQueue() })),
+		getAPIContext:
+			params.getAPIContext ??
+			(() => ({ getStore, eventQueue: new EventQueue(params.header ? params.header.height : 0) })),
 		getStore: params.getStore ?? getStore,
 		getOffchainStore: params.getGeneratorStore ?? getGeneratorStore,
 		getFinalizedHeight: () => params.finalizedHeight ?? 0,
@@ -208,7 +210,7 @@ export const createTransactionContext = (params: {
 	const logger = params.logger ?? loggerMock;
 	const stateStore =
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-	const eventQueue = params.eventQueue ?? new EventQueue();
+	const eventQueue = params.eventQueue ?? new EventQueue(params.header ? params.header.height : 0);
 	const header =
 		params.header ??
 		new BlockHeader({
@@ -251,7 +253,7 @@ export const createTransientAPIContext = (params: {
 }): APIContext => {
 	const stateStore =
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-	const eventQueue = params.eventQueue ?? new EventQueue();
+	const eventQueue = params.eventQueue ?? new EventQueue(0);
 	const ctx = createAPIContext({ stateStore, eventQueue });
 	return ctx;
 };
@@ -290,7 +292,7 @@ const createCCAPIContext = (params: {
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	const logger = params.logger ?? loggerMock;
 	const networkIdentifier = params.networkIdentifier ?? Buffer.alloc(0);
-	const eventQueue = params.eventQueue ?? new EventQueue();
+	const eventQueue = params.eventQueue ?? new EventQueue(0);
 	const getStore = (moduleID: Buffer, storePrefix: Buffer) =>
 		stateStore.getStore(moduleID, storePrefix);
 	const ccm = params.ccm ?? {
