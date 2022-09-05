@@ -32,12 +32,6 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 		port: 8080,
 		host: '127.0.0.1',
 	},
-	generation: {
-		force: false,
-		waitThreshold: 2,
-		generators: [],
-		modules: {},
-	},
 	genesis: {} as GenesisConfig,
 	network: {
 		seedPeers: [],
