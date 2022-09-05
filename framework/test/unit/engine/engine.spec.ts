@@ -89,13 +89,6 @@ describe('engine', () => {
 		generatorStore.finalize(batch);
 		await generatorDB.write(batch);
 
-		const encodedGeneratedInfoList1 = await subStore.get(
-			Buffer.from('58d907d26508603e838423daa2061c29c7a84950', 'hex'),
-		);
-
-		// eslint-disable-next-line no-console
-		console.log(encodedGeneratedInfoList1);
-
 		abi = {
 			init: jest.fn().mockResolvedValue({
 				config: {
@@ -230,8 +223,7 @@ describe('engine', () => {
 		});
 	});
 
-	// eslint-disable-next-line jest/no-disabled-tests
-	describe.skip('stop', () => {
+	describe('stop', () => {
 		beforeEach(async () => {
 			// Arrange
 			await engine.start();
