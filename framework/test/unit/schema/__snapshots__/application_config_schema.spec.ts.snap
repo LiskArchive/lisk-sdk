@@ -5,12 +5,6 @@ Object {
   "$id": "#/config",
   "additionalProperties": false,
   "default": Object {
-    "generation": Object {
-      "force": false,
-      "generators": Array [],
-      "modules": Object {},
-      "waitThreshold": 2,
-    },
     "genesis": Object {
       "bftBatchSize": 103,
       "blockTime": 10,
@@ -52,56 +46,6 @@ Object {
     "version": "0.0.0",
   },
   "properties": Object {
-    "generation": Object {
-      "properties": Object {
-        "force": Object {
-          "type": "boolean",
-        },
-        "generators": Object {
-          "items": Object {
-            "properties": Object {
-              "address": Object {
-                "format": "hex",
-                "type": "string",
-              },
-              "encryptedPassphrase": Object {
-                "format": "encryptedPassphrase",
-                "type": "string",
-              },
-            },
-            "required": Array [
-              "encryptedPassphrase",
-              "address",
-            ],
-          },
-          "type": "array",
-        },
-        "modules": Object {
-          "additionalProperties": Object {
-            "type": "object",
-          },
-          "propertyNames": Object {
-            "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$",
-          },
-          "type": "object",
-        },
-        "password": Object {
-          "description": "The password to decrypt passphrases",
-          "type": "string",
-        },
-        "waitThreshold": Object {
-          "description": "Number of seconds to wait for previous block before forging",
-          "type": "integer",
-        },
-      },
-      "required": Array [
-        "force",
-        "waitThreshold",
-        "generators",
-        "modules",
-      ],
-      "type": "object",
-    },
     "genesis": Object {
       "additionalProperties": false,
       "properties": Object {
@@ -400,7 +344,6 @@ Object {
     "network",
     "plugins",
     "genesis",
-    "generation",
   ],
   "type": "object",
 }

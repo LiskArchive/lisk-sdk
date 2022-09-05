@@ -44,6 +44,7 @@ import {
 	GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT,
 	GENERATOR_EVENT_NEW_TRANSACTION,
 	EMPTY_HASH,
+	GENERATOR_STORE_KEY_PREFIX,
 } from './constants';
 import { Endpoint } from './endpoint';
 import { GeneratorStore } from './generator_store';
@@ -313,7 +314,8 @@ export class Generator {
 
 	private async _loadGenerators(): Promise<void> {
 		const generatorStore = new GeneratorStore(this._generatorDB);
-		const encodedGeneratorKeysList = await generatorStore.iterate({
+		const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_KEY_PREFIX);
+		const encodedGeneratorKeysList = await subStore.iterate({
 			gte: Buffer.alloc(20, 0),
 			lte: Buffer.alloc(20, 255),
 		});

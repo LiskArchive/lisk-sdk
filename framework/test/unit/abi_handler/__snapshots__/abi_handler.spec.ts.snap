@@ -2,11 +2,6 @@
 
 exports[`abi handler init should return valid response 1`] = `
 Object {
-  "generator": Object {
-    "force": false,
-    "keys": Array [],
-    "password": "",
-  },
   "genesis": Object {
     "bftBatchSize": 103,
     "blockTime": 10,

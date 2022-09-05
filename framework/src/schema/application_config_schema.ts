@@ -26,7 +26,7 @@ const moduleConfigSchema = {
 export const applicationConfigSchema = {
 	$id: '#/config',
 	type: 'object',
-	required: ['version', 'networkVersion', 'rpc', 'network', 'plugins', 'genesis', 'generation'],
+	required: ['version', 'networkVersion', 'rpc', 'network', 'plugins', 'genesis'],
 	properties: {
 		label: {
 			type: 'string',

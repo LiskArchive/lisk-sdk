@@ -13,6 +13,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Chain } from '@liskhq/lisk-chain';
+import { bls, legacy, encrypt } from '@liskhq/lisk-cryptography';
+import { InMemoryDatabase, Database } from '@liskhq/lisk-db';
+import { codec } from '@liskhq/lisk-codec';
 import { Engine } from '../../../src/engine/engine';
 import {
 	Consensus,
@@ -32,6 +35,10 @@ import {
 	CONSENSUS_EVENT_NETWORK_BLOCK_NEW,
 	CONSENSUS_EVENT_VALIDATORS_CHANGED,
 } from '../../../src/engine/consensus/constants';
+import * as genesisDelegates from '../../fixtures/genesis_delegates.json';
+import { generatorKeysSchema } from '../../../src/engine/bft/schemas';
+import { GENERATOR_STORE_KEY_PREFIX } from '../../../src/engine/generator/constants';
+import { plainGeneratorKeysSchema } from '../../../src/engine/generator/schemas';
 
 jest.mock('fs-extra');
 jest.mock('@liskhq/lisk-db');
@@ -39,8 +46,38 @@ jest.mock('@liskhq/lisk-db');
 describe('engine', () => {
 	let engine: Engine;
 	let abi: ABI;
+	let generatorDB: Database;
 
-	beforeEach(() => {
+	beforeEach(async () => {
+		generatorDB = new InMemoryDatabase() as never;
+		for (const d of genesisDelegates.delegates) {
+			const passphrase = await encrypt.decryptMessageWithPassword(
+				encrypt.parseEncryptedMessage(d.encryptedPassphrase),
+				d.password,
+				'utf-8',
+			);
+			const keypair = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+			const blsSK = bls.generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
+			const generatorKeys = {
+				address: Buffer.from(d.address, 'hex'),
+				type: 'plain',
+				data: {
+					generatorKey: keypair.publicKey,
+					generatorPrivateKey: keypair.privateKey,
+					blsPrivateKey: blsSK,
+					blsKey: bls.getPublicKeyFromPrivateKey(blsSK),
+				},
+			};
+			const encodedData = codec.encode(plainGeneratorKeysSchema, generatorKeys.data);
+
+			await generatorDB.set(
+				Buffer.concat([GENERATOR_STORE_KEY_PREFIX, generatorKeys.address]),
+				codec.encode(generatorKeysSchema, {
+					type: generatorKeys.type,
+					data: encodedData,
+				}),
+			);
+		}
 		abi = {
 			init: jest.fn().mockResolvedValue({
 				config: {
@@ -68,7 +105,6 @@ describe('engine', () => {
 						advertiseAddress: false,
 					},
 					txpool: {},
-					generator: {},
 				},
 				genesisBlock: {
 					header: genesisBlock().header,
@@ -79,6 +115,7 @@ describe('engine', () => {
 			}),
 			ready: jest.fn(),
 		} as never;
+		jest.spyOn(engine, '_generatorDB' as any).mockReturnValue(generatorDB);
 		jest.spyOn(logger, 'createLogger').mockReturnValue(fakeLogger);
 		jest.spyOn(Chain.prototype, 'genesisBlockExist').mockResolvedValue(true);
 		jest.spyOn(Chain.prototype, 'loadLastBlocks').mockResolvedValue(undefined);

@@ -189,31 +189,6 @@ describe('Application', () => {
 			// Assert
 			expect(app.logger).toBeUndefined();
 		});
-
-		it('should throw if invalid generation is provided', () => {
-			// Arrange
-			const invalidConfig = objects.mergeDeep({}, config, {
-				generation: {
-					generators: [
-						{
-							encryptedPassphrase:
-								'0dbd21ac5c154dbb72ce90a4e252a64b692203a4f8e25f8bfa1b1993e2ba7a9bd9e1ef1896d8d584a62daf17a8ccf12b99f29521b92cc98b74434ff501374f7e1c6d8371a6ce4e2d083489',
-							address: '9cabee3d27426676b852ce6b804cb2fdff7cd0b5',
-						},
-					],
-				},
-			});
-			// Act & Assert
-			expect.assertions(2);
-			try {
-				Application.defaultApplication(invalidConfig);
-			} catch (error: any) {
-				/* eslint-disable jest/no-try-expect */
-				expect(error.errors).toHaveLength(1);
-				expect(error.errors[0].message).toContain('must match format "encryptedPassphrase"');
-				/* eslint-enable jest/no-try-expect */
-			}
-		});
 	});
 
 	describe('#registerPlugin', () => {
