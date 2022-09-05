@@ -197,7 +197,6 @@ export class Engine {
 			logger: this._logger,
 			modules: registeredModules.map(mod => mod.module),
 		});
-
 		await this._generator.init({
 			blockchainDB: this._blockchainDB,
 			generatorDB: this._generatorDB,

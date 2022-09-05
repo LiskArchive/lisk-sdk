@@ -339,7 +339,6 @@ describe('generator', () => {
 					},
 				};
 				const encodedData = codec.encode(plainGeneratorKeysSchema, generatorKeys.data);
-
 				await subStore.set(
 					generatorKeys.address,
 					codec.encode(generatorKeysSchema, {

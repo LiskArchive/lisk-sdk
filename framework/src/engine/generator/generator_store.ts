@@ -72,7 +72,6 @@ export class GeneratorStore {
 			stream
 				.on('data', ({ key, value }: { key: Buffer; value: Buffer }) => {
 					pairs.push({ key: key.slice(this._prefix.length), value });
-					// pairs.push({ key, value });
 				})
 				.on('error', error => {
 					reject(error);

@@ -13,9 +13,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Chain } from '@liskhq/lisk-chain';
-import { bls, legacy, encrypt } from '@liskhq/lisk-cryptography';
-import { InMemoryDatabase, Database, Batch } from '@liskhq/lisk-db';
-import { codec } from '@liskhq/lisk-codec';
 import { Engine } from '../../../src/engine/engine';
 import {
 	Consensus,
@@ -35,13 +32,6 @@ import {
 	CONSENSUS_EVENT_NETWORK_BLOCK_NEW,
 	CONSENSUS_EVENT_VALIDATORS_CHANGED,
 } from '../../../src/engine/consensus/constants';
-import * as genesisDelegates from '../../fixtures/genesis_delegates.json';
-import { GENERATOR_STORE_KEY_PREFIX } from '../../../src/engine/generator/constants';
-import {
-	plainGeneratorKeysSchema,
-	generatorKeysSchema,
-} from '../../../src/engine/generator/schemas';
-import { GeneratorStore } from '../../../src/engine/generator/generator_store';
 
 jest.mock('fs-extra');
 jest.mock('@liskhq/lisk-db');
@@ -49,46 +39,8 @@ jest.mock('@liskhq/lisk-db');
 describe('engine', () => {
 	let engine: Engine;
 	let abi: ABI;
-	let generatorDB: Database;
 
-	beforeEach(async () => {
-		generatorDB = new InMemoryDatabase() as never;
-		const generatorStore = new GeneratorStore(generatorDB);
-		const batch = new Batch();
-
-		const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_KEY_PREFIX);
-		for (const d of genesisDelegates.delegates) {
-			const passphrase = await encrypt.decryptMessageWithPassword(
-				encrypt.parseEncryptedMessage(d.encryptedPassphrase),
-				d.password,
-				'utf-8',
-			);
-			const keypair = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
-			const blsSK = bls.generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
-			const generatorKeys = {
-				address: Buffer.from(d.address, 'hex'),
-				type: 'plain',
-				data: {
-					generatorKey: keypair.publicKey,
-					generatorPrivateKey: keypair.privateKey,
-					blsPrivateKey: blsSK,
-					blsKey: bls.getPublicKeyFromPrivateKey(blsSK),
-				},
-			};
-			const encodedData = codec.encode(plainGeneratorKeysSchema, generatorKeys.data);
-
-			await subStore.set(
-				generatorKeys.address,
-				codec.encode(generatorKeysSchema, {
-					type: generatorKeys.type,
-					data: encodedData,
-				}),
-			);
-		}
-
-		generatorStore.finalize(batch);
-		await generatorDB.write(batch);
-
+	beforeEach(() => {
 		abi = {
 			init: jest.fn().mockResolvedValue({
 				config: {
@@ -150,9 +102,9 @@ describe('engine', () => {
 		jest.spyOn(RPCServer.prototype, 'stop');
 		jest.spyOn(RPCServer.prototype, 'registerEndpoint');
 		jest.spyOn(RPCServer.prototype, 'registerNotFoundEndpoint');
+		jest.spyOn(Generator.prototype, 'init').mockResolvedValue(); // init tested via generator.spec
 
 		engine = new Engine(abi);
-		engine['_generatorDB'] = generatorDB;
 	});
 
 	describe('start', () => {
