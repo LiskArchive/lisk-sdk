@@ -23,7 +23,7 @@ import {
 	EVENT_KEY_LENGTH,
 } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { encrypt, bls, legacy, address as cryptoAddress } from '@liskhq/lisk-cryptography';
+import { bls } from '@liskhq/lisk-cryptography';
 import { Database, Batch, SparseMerkleTree } from '@liskhq/lisk-db';
 import { TransactionPool, events } from '@liskhq/lisk-transaction-pool';
 import { MerkleTree } from '@liskhq/lisk-tree';
@@ -44,18 +44,24 @@ import {
 	GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT,
 	GENERATOR_EVENT_NEW_TRANSACTION,
 	EMPTY_HASH,
+	GENERATOR_STORE_KEY_PREFIX,
 } from './constants';
 import { Endpoint } from './endpoint';
 import { GeneratorStore } from './generator_store';
 import { NetworkEndpoint } from './network_endpoint';
-import { GetTransactionResponse, getTransactionsResponseSchema } from './schemas';
+import {
+	generatorKeysSchema,
+	GetTransactionResponse,
+	getTransactionsResponseSchema,
+	plainGeneratorKeysSchema,
+} from './schemas';
 import { HighFeeGenerationStrategy } from './strategies';
 import {
 	Consensus,
 	BlockGenerateInput,
 	Keypair,
-	GenerationConfig,
 	PlainGeneratorKeyData,
+	EncodedGeneratorKeys,
 } from './types';
 import { getOrDefaultLastGeneratedInfo, setLastGeneratedInfo } from './generated_info';
 import { CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED } from '../consensus/constants';
@@ -70,7 +76,6 @@ import { isEmptyConsensusUpdate } from '../consensus';
 
 interface GeneratorArgs {
 	genesisConfig: GenesisConfig;
-	generationConfig: GenerationConfig;
 	chain: Chain;
 	consensus: Consensus;
 	bft: BFTModule;
@@ -90,7 +95,6 @@ export class Generator {
 	public readonly events = new EventEmitter();
 
 	private readonly _pool: TransactionPool;
-	private readonly _config: GenerationConfig;
 	private readonly _chain: Chain;
 	private readonly _consensus: Consensus;
 	private readonly _bft: BFTModule;
@@ -109,7 +113,6 @@ export class Generator {
 	private _blockchainDB!: Database;
 
 	public constructor(args: GeneratorArgs) {
-		this._config = args.generationConfig;
 		this._abi = args.abi;
 		this._keypairs = new dataStructures.BufferMap();
 		this._pool = new TransactionPool({
@@ -118,11 +121,6 @@ export class Generator {
 			applyTransactions: async (transactions: Transaction[]) =>
 				this._verifyTransaction(transactions),
 		});
-		if (this._config.waitThreshold >= args.genesisConfig.blockTime) {
-			throw Error(
-				`generation.waitThreshold=${this._config.waitThreshold} is greater or equal to genesisConfig.blockTime=${args.genesisConfig.blockTime}. It impacts the block generation and propagation. Please use a smaller value for generation.waitThreshold`,
-			);
-		}
 		this._blockTime = args.genesisConfig.blockTime;
 		this._chain = args.chain;
 		this._bft = args.bft;
@@ -314,57 +312,27 @@ export class Generator {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	private async _loadGenerators(): Promise<void> {
-		const encryptedList = this._config.generators;
-
-		if (
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-			!encryptedList?.length ||
-			!this._config.force ||
-			!this._config.password
-		) {
-			return;
-		}
-		this._logger.info(
-			`Loading ${encryptedList.length} delegates using encrypted passphrases from config`,
-		);
-
-		for (const encryptedItem of encryptedList) {
-			let passphrase;
-			try {
-				passphrase = await encrypt.decryptMessageWithPassword(
-					encrypt.parseEncryptedMessage(encryptedItem.encryptedPassphrase),
-					this._config.password,
-					'utf-8',
+		const generatorStore = new GeneratorStore(this._generatorDB);
+		const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_KEY_PREFIX);
+		const encodedGeneratorKeysList = await subStore.iterate({
+			gte: Buffer.alloc(20, 0),
+			lte: Buffer.alloc(20, 255),
+		});
+		for (const { key, value } of encodedGeneratorKeysList) {
+			const encodedGeneratorKeys = codec.decode<EncodedGeneratorKeys>(generatorKeysSchema, value);
+			if (encodedGeneratorKeys.type === 'plain') {
+				const keys = codec.decode<PlainGeneratorKeyData>(
+					plainGeneratorKeysSchema,
+					encodedGeneratorKeys.data,
 				);
-			} catch (error) {
-				const decryptionError = `Invalid encryptedPassphrase for address: ${encryptedItem.address.toString(
-					'hex',
-				)}. ${(error as Error).message}`;
-				this._logger.error(decryptionError);
-				throw new Error(decryptionError);
+				this._keypairs.set(key, {
+					publicKey: keys.generatorKey,
+					privateKey: keys.generatorPrivateKey,
+					blsSecretKey: keys.blsPrivateKey,
+				});
+				this._logger.info(`Forging enabled on account: ${key.toString('hex')}`);
 			}
-
-			const keypair = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
-			const delegateAddress = cryptoAddress.getAddressFromPublicKey(keypair.publicKey);
-			const blsSK = bls.generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
-
-			if (!delegateAddress.equals(encryptedItem.address)) {
-				throw new Error(
-					`Invalid encryptedPassphrase for address: ${encryptedItem.address.toString(
-						'hex',
-					)}. Address do not match`,
-				);
-			}
-
-			const validatorAddress = cryptoAddress.getAddressFromPublicKey(keypair.publicKey);
-
-			this._keypairs.set(validatorAddress, {
-				...keypair,
-				blsSecretKey: blsSK,
-			});
-			this._logger.info(`Forging enabled on account: ${validatorAddress.toString('hex')}`);
 		}
 	}
 
@@ -411,7 +379,7 @@ export class Generator {
 
 		const currentSlotTime = this._consensus.getSlotTime(currentSlot);
 
-		const { waitThreshold } = this._config;
+		const waitThreshold = this._blockTime / 5;
 		const lastBlockSlot = this._consensus.getSlotNumber(this._chain.lastBlock.header.timestamp);
 
 		if (currentSlot === lastBlockSlot) {

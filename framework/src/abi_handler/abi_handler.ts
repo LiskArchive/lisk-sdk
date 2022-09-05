@@ -180,14 +180,6 @@ export class ABIHandler implements ABI {
 					minFeePerByte: this._config.genesis.minFeePerByte,
 					maxTransactionsSize: this._config.genesis.maxTransactionsSize,
 				},
-				generator: {
-					force: this._config.generation.force ?? false,
-					password: this._config.generation.defaultPassword ?? '',
-					keys: this._config.generation.generators.map(gen => ({
-						address: Buffer.from(gen.address, 'hex'),
-						encryptedPassphrase: gen.encryptedPassphrase,
-					})),
-				},
 				txpool: {
 					maxTransactions: this._config.transactionPool.maxTransactions ?? DEFAULT_MAX_TRANSACTIONS,
 					maxTransactionsPerAccount:

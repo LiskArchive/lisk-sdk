@@ -320,39 +320,6 @@ const txpoolConfigSchema = {
 	},
 };
 
-const generatorConfigSchema = {
-	type: 'object',
-	required: ['password', 'force', 'keys'],
-	properties: {
-		password: {
-			fieldNumber: 1,
-			dataType: 'string',
-		},
-		force: {
-			fieldNumber: 2,
-			dataType: 'boolean',
-		},
-		keys: {
-			fieldNumber: 3,
-			type: 'array',
-			items: {
-				type: 'object',
-				required: ['address', 'encryptedPassphrase'],
-				properties: {
-					address: {
-						fieldNumber: 1,
-						dataType: 'bytes',
-					},
-					encryptedPassphrase: {
-						fieldNumber: 2,
-						dataType: 'string',
-					},
-				},
-			},
-		},
-	},
-};
-
 export const initResponseSchema = {
 	$id: '/abi/initResponse',
 	type: 'object',
@@ -440,10 +407,6 @@ export const initResponseSchema = {
 				txpool: {
 					fieldNumber: 6,
 					...txpoolConfigSchema,
-				},
-				generator: {
-					fieldNumber: 7,
-					...generatorConfigSchema,
 				},
 			},
 		},

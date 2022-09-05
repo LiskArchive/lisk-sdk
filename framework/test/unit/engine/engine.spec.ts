@@ -68,7 +68,6 @@ describe('engine', () => {
 						advertiseAddress: false,
 					},
 					txpool: {},
-					generator: {},
 				},
 				genesisBlock: {
 					header: genesisBlock().header,
@@ -103,6 +102,7 @@ describe('engine', () => {
 		jest.spyOn(RPCServer.prototype, 'stop');
 		jest.spyOn(RPCServer.prototype, 'registerEndpoint');
 		jest.spyOn(RPCServer.prototype, 'registerNotFoundEndpoint');
+		jest.spyOn(Generator.prototype, 'init').mockResolvedValue(); // init tested via generator.spec
 
 		engine = new Engine(abi);
 	});

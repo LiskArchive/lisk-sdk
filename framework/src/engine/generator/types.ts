@@ -31,13 +31,6 @@ export interface Generator {
 	readonly encryptedPassphrase: string;
 }
 
-export interface GenerationConfig {
-	waitThreshold: number;
-	generators: Generator[];
-	force?: boolean;
-	password?: string;
-}
-
 export interface GeneratorStore {
 	get: (key: Buffer) => Promise<Buffer>;
 	set: (key: Buffer, value: Buffer) => Promise<void>;

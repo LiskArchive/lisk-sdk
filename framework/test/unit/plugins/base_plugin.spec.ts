@@ -14,7 +14,7 @@
  */
 
 import * as apiClient from '@liskhq/lisk-api-client';
-import { BasePlugin, GenerationConfig, GenesisConfig, systemDirs } from '../../../src';
+import { BasePlugin, GenesisConfig, systemDirs } from '../../../src';
 import * as loggerModule from '../../../src/logger';
 import { getPluginExportPath } from '../../../src/plugins/base_plugin';
 import { fakeLogger } from '../../utils/mocks';
@@ -102,7 +102,6 @@ describe('base_plugin', () => {
 						version: '',
 						networkVersion: '',
 						genesis: ({} as unknown) as GenesisConfig,
-						generation: ({} as unknown) as GenerationConfig,
 					},
 					logger: fakeLogger,
 					config: {
@@ -124,7 +123,6 @@ describe('base_plugin', () => {
 							version: '',
 							networkVersion: '',
 							genesis: ({} as unknown) as GenesisConfig,
-							generation: ({} as unknown) as GenerationConfig,
 						},
 						logger: fakeLogger,
 						config: {

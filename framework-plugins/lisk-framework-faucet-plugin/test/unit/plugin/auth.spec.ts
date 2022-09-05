@@ -33,12 +33,6 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 		host: '127.0.0.1',
 	},
 	genesis: {} as GenesisConfig,
-	generation: {
-		force: false,
-		waitThreshold: 2,
-		generators: [],
-		modules: {},
-	},
 	network: {
 		seedPeers: [],
 		port: 5000,

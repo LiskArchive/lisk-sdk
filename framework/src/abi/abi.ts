@@ -161,12 +161,6 @@ export interface Key {
 	encryptedPassphrase: string;
 }
 
-export interface GeneratorConfig {
-	password: string;
-	force: boolean;
-	keys: Key[];
-}
-
 export interface Config {
 	system: SystemConfig;
 	rpc: RPCConfig;
@@ -174,7 +168,6 @@ export interface Config {
 	genesis: GenesisConfig;
 	network: NetworkConfig;
 	txpool: TxpoolConfig;
-	generator: GeneratorConfig;
 }
 
 export interface InitResponse {

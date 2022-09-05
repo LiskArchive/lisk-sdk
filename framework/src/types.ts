@@ -93,19 +93,6 @@ export interface RPCConfig {
 	host: string;
 }
 
-export interface Generator {
-	readonly address: string;
-	readonly encryptedPassphrase: string;
-}
-
-export interface GenerationConfig {
-	waitThreshold: number;
-	generators: Generator[];
-	force?: boolean;
-	defaultPassword?: string;
-	modules: Record<string, Record<string, unknown>>;
-}
-
 export interface PluginConfig extends Record<string, unknown> {
 	readonly loadAsChildProcess?: boolean;
 }
@@ -116,7 +103,6 @@ export interface ApplicationConfig {
 	networkVersion: string;
 	rootPath: string;
 	genesis: GenesisConfig;
-	generation: GenerationConfig;
 	network: NetworkConfig;
 	system: SystemConfig;
 	logger: {
