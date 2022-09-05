@@ -73,11 +73,10 @@ describe('genesis block', () => {
 			});
 
 			it('should have correct delegate list', async () => {
-				const validators = await processEnv.invoke<{ list: string[] }>(
-					'chain_getGeneratorList',
-					{},
-				);
-				expect(validators.list).toMatchSnapshot();
+				const validators = await processEnv.invoke<{
+					list: { address: string; nextAllocatedTime: number }[];
+				}>('chain_getGeneratorList', {});
+				expect(validators.list.map(v => v.address)).toMatchSnapshot();
 			});
 		});
 	});

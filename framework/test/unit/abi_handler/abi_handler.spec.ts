@@ -23,7 +23,7 @@ import { transferParamsSchema } from '../../../src/modules/token/schemas';
 import { StateMachine } from '../../../src/state_machine';
 import { applicationConfigSchema } from '../../../src/schema';
 import { createFakeBlockHeader } from '../../../src/testing';
-import { channelMock } from '../../../src/testing/mocks';
+import { channelMock, loggerMock } from '../../../src/testing/mocks';
 import { genesisBlock } from '../../fixtures';
 import { fakeLogger } from '../../utils/mocks';
 import { TransactionExecutionResult, TransactionVerifyResult } from '../../../src/abi';
@@ -37,7 +37,7 @@ describe('abi handler', () => {
 
 	const genesis = genesisBlock();
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		stateDBMock = {
 			get: jest.fn(),
 			set: jest.fn(),
@@ -63,6 +63,7 @@ describe('abi handler', () => {
 			config: applicationConfigSchema.default,
 		});
 		abiHandler['_networkIdentifier'] = utils.getRandomBytes(32);
+		await stateMachine.init(loggerMock, {} as any);
 	});
 
 	describe('init', () => {

@@ -174,7 +174,7 @@ export const getBlockProcessingEnv = async (
 		...asset,
 		data: codec.fromJSON<Record<string, unknown>>(asset.schema, asset.data),
 	}));
-	await stateMachine.init(appConfig.genesis, appConfig.genesis.modules);
+	await stateMachine.init(loggerMock, appConfig.genesis, appConfig.genesis.modules);
 	const genesisBlock = await generateGenesisBlock(stateMachine, loggerMock, {
 		timestamp: Math.floor(Date.now() / 1000) - 60 * 60,
 		assets: blockAssets,

@@ -57,3 +57,22 @@ export const validateBLSKeyResponseSchema = {
 	},
 	required: ['valid'],
 };
+
+export interface GetValidatorRequest {
+	address: string;
+}
+
+export const getValidatorRequestSchema = {
+	$id: '/validators/endpoint/getValidator',
+	title: 'Validator properties',
+	type: 'object',
+	properties: {
+		address: {
+			dataType: 'string',
+			format: 'hex',
+			minLength: 40,
+			maxLength: 40,
+		},
+	},
+	required: ['address'],
+};

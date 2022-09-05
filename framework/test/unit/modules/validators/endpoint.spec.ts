@@ -16,6 +16,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { Logger } from '../../../../src/logger';
 import { ValidatorsModule } from '../../../../src/modules/validators';
 import { BLSKeyStore } from '../../../../src/modules/validators/stores/bls_keys';
+import { ValidatorKeysStore } from '../../../../src/modules/validators/stores/validator_keys';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { fakeLogger } from '../../../utils/mocks';
@@ -28,6 +29,9 @@ describe('ValidatorsModuleEndpoint', () => {
 	const address = utils.getRandomBytes(48);
 	const proof = utils.getRandomBytes(48);
 	const networkIdentifier = Buffer.alloc(0);
+	const validatorAddress = utils.getRandomBytes(20);
+	const blsKey = utils.getRandomBytes(48);
+	const generatorKey = utils.getRandomBytes(32);
 
 	beforeAll(() => {
 		validatorsModule = new ValidatorsModule();
@@ -123,6 +127,35 @@ describe('ValidatorsModuleEndpoint', () => {
 						getOffchainStore: jest.fn(),
 					}),
 				).rejects.toThrow();
+			});
+		});
+	});
+
+	describe('getValidator', () => {
+		const context = {
+			getImmutableAPIContext: jest.fn(),
+			getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
+			logger,
+			params: {
+				address: validatorAddress.toString('hex'),
+			},
+			networkIdentifier,
+		};
+
+		it('should resolve with undefined when validator does not exist', async () => {
+			await expect(validatorsModule.endpoint.getValidator(context)).resolves.toStrictEqual({
+				generatorKey: '',
+				blsKey: '',
+			});
+		});
+
+		it('should resolve with validator keys when validator exists', async () => {
+			await validatorsModule.stores
+				.get(ValidatorKeysStore)
+				.set(context, validatorAddress, { blsKey, generatorKey });
+			await expect(validatorsModule.endpoint.getValidator(context)).resolves.toStrictEqual({
+				generatorKey: generatorKey.toString('hex'),
+				blsKey: blsKey.toString('hex'),
 			});
 		});
 	});

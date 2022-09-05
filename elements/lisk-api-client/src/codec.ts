@@ -42,14 +42,14 @@ export const getTransactionParamsSchema = (
 	if (!moduleMeta) {
 		throw new Error(
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			`ModuleID: ${transaction.module} is not registered.`,
+			`Module: ${transaction.module} is not registered.`,
 		);
 	}
 	const commandMeta = moduleMeta.commands.find(meta => meta.name === transaction.command);
 	if (!commandMeta) {
 		throw new Error(
 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			`ModuleID: ${transaction.module} CommandID: ${transaction.command} is not registered.`,
+			`Module: ${transaction.module} CommandID: ${transaction.command} is not registered.`,
 		);
 	}
 	return commandMeta.params;
@@ -57,17 +57,17 @@ export const getTransactionParamsSchema = (
 
 export const getAssetDataSchema = (
 	blockVersion: number,
-	asset: { moduleID: string },
+	asset: { module: string },
 	metadata: ModuleMetadata[],
 ): Schema => {
-	const moduleMeta = metadata.find(meta => meta.id === asset.moduleID);
+	const moduleMeta = metadata.find(meta => meta.name === asset.module);
 	if (!moduleMeta) {
-		throw new Error(`Asset schema ModuleID: ${asset.moduleID} is not registered.`);
+		throw new Error(`Asset schema Module: ${asset.module} is not registered.`);
 	}
 	const assetMeta = moduleMeta.assets.find(meta => meta.version === blockVersion);
 	if (!assetMeta) {
 		throw new Error(
-			`Asset schema for ModuleID: ${asset.moduleID} Version: ${blockVersion} is not registered.`,
+			`Asset schema for Module: ${asset.module} Version: ${blockVersion} is not registered.`,
 		);
 	}
 	return assetMeta.data;
@@ -187,11 +187,7 @@ export const decodeAssets = (
 	);
 	const decodedAssets: DecodedBlockAsset[] = [];
 	for (const asset of assets) {
-		const assetSchema = getAssetDataSchema(
-			blockVersion,
-			{ moduleID: asset.moduleID.toString('hex') },
-			metadata,
-		);
+		const assetSchema = getAssetDataSchema(blockVersion, { module: asset.module }, metadata);
 		const decodedData = codec.decode<Record<string, unknown>>(assetSchema, asset.data);
 		decodedAssets.push({
 			...asset,
@@ -211,11 +207,7 @@ export const encodeAssets = (
 	for (const asset of assets) {
 		let encodedData;
 		if (!Buffer.isBuffer(asset.data)) {
-			const dataSchema = getAssetDataSchema(
-				blockVersion,
-				{ moduleID: asset.moduleID.toString('hex') },
-				metadata,
-			);
+			const dataSchema = getAssetDataSchema(blockVersion, { module: asset.module }, metadata);
 			encodedData = codec.encode(dataSchema, asset.data);
 		} else {
 			encodedData = asset.data;
@@ -255,11 +247,7 @@ export const toBlockAssetJSON = <T = Record<string, unknown>>(
 	registeredSchema: RegisteredSchemas,
 	metadata: ModuleMetadata[],
 ): DecodedBlockAssetJSON<T> => {
-	const dataSchema = getAssetDataSchema(
-		blockVersion,
-		{ moduleID: asset.moduleID.toString('hex') },
-		metadata,
-	);
+	const dataSchema = getAssetDataSchema(blockVersion, { module: asset.module }, metadata);
 	if (Buffer.isBuffer(asset.data)) {
 		return {
 			...codec.toJSON(registeredSchema.asset, asset),

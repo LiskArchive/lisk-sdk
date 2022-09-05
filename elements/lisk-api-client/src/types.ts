@@ -212,7 +212,7 @@ export interface BlockHeader {
 export type BlockHeaderJSON = JSONObject<BlockHeader>;
 
 export interface BlockAsset {
-	moduleID: Buffer;
+	module: string;
 	data: Buffer;
 }
 
@@ -267,7 +267,7 @@ export interface DecodedBlockJSON {
 }
 
 export interface Event {
-	readonly moduleID: Buffer;
+	readonly module: string;
 	readonly typeID: Buffer;
 	readonly topics: Buffer[];
 	readonly index: number;

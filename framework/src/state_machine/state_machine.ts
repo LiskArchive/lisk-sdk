@@ -14,7 +14,8 @@
 
 import { EVENT_STANDARD_TYPE_ID, standardEventDataSchema } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { TransactionExecutionResult } from '../abi/constants';
+import { TransactionExecutionResult } from '../abi';
+import { Logger } from '../logger';
 import { BaseCommand, BaseModule } from '../modules';
 import { GenesisConfig } from '../types';
 import { BlockContext } from './block_context';
@@ -25,8 +26,8 @@ import { VerifyStatus, VerificationResult } from './types';
 
 export class StateMachine {
 	private readonly _modules: BaseModule[] = [];
-	private readonly _systemModules: BaseModule[] = [];
 
+	private _logger!: Logger;
 	private _initialized = false;
 
 	public registerModule(mod: BaseModule): void {
@@ -34,16 +35,13 @@ export class StateMachine {
 		this._modules.push(mod);
 	}
 
-	public registerSystemModule(mod: BaseModule): void {
-		this._validateExisting(mod);
-		this._systemModules.push(mod);
-	}
-
 	public async init(
+		logger: Logger,
 		genesisConfig: GenesisConfig,
 		generatorConfig: Record<string, Record<string, unknown>> = {},
 		moduleConfig: Record<string, Record<string, unknown>> = {},
 	): Promise<void> {
+		this._logger = logger;
 		if (this._initialized) {
 			return;
 		}
@@ -55,17 +53,16 @@ export class StateMachine {
 					genesisConfig,
 				});
 			}
+			this._logger.info(`Registered and initialized ${mod.name} module`);
+			for (const command of mod.commands) {
+				this._logger.info(`Registered ${mod.name} module has command ${command.name}`);
+			}
 		}
 		this._initialized = true;
 	}
 
 	public async executeGenesisBlock(ctx: GenesisBlockContext): Promise<void> {
 		const initContext = ctx.createInitGenesisStateContext();
-		for (const mod of this._systemModules) {
-			if (mod.initGenesisState) {
-				await mod.initGenesisState(initContext);
-			}
-		}
 		for (const mod of this._modules) {
 			if (mod.initGenesisState) {
 				await mod.initGenesisState(initContext);
@@ -77,20 +74,10 @@ export class StateMachine {
 				await mod.finalizeGenesisState(finalizeContext);
 			}
 		}
-		for (const mod of this._systemModules) {
-			if (mod.finalizeGenesisState) {
-				await mod.finalizeGenesisState(finalizeContext);
-			}
-		}
 	}
 
 	public async insertAssets(ctx: GenerationContext): Promise<void> {
 		const initContext = ctx.getInsertAssetContext();
-		for (const mod of this._systemModules) {
-			if (mod.insertAssets) {
-				await mod.insertAssets(initContext);
-			}
-		}
 		for (const mod of this._modules) {
 			if (mod.insertAssets) {
 				await mod.insertAssets(initContext);
@@ -101,18 +88,11 @@ export class StateMachine {
 	public async verifyTransaction(ctx: TransactionContext): Promise<VerificationResult> {
 		const transactionContext = ctx.createTransactionVerifyContext();
 		try {
-			for (const mod of this._systemModules) {
-				if (mod.verifyTransaction) {
-					const result = await mod.verifyTransaction(transactionContext);
-					if (result.status !== VerifyStatus.OK) {
-						return result;
-					}
-				}
-			}
 			for (const mod of this._modules) {
 				if (mod.verifyTransaction) {
 					const result = await mod.verifyTransaction(transactionContext);
 					if (result.status !== VerifyStatus.OK) {
+						this._logger.debug('Transaction verification failed');
 						return result;
 					}
 				}
@@ -122,11 +102,13 @@ export class StateMachine {
 			if (command.verify) {
 				const result = await command.verify(commandContext);
 				if (result.status !== VerifyStatus.OK) {
+					this._logger.debug('Transaction verification failed');
 					return result;
 				}
 			}
 			return { status: VerifyStatus.OK };
 		} catch (error) {
+			this._logger.debug({ err: error as Error }, 'Transaction verification failed');
 			return { status: VerifyStatus.FAIL, error: error as Error };
 		}
 	}
@@ -136,17 +118,6 @@ export class StateMachine {
 		const transactionContext = ctx.createTransactionExecuteContext();
 		const eventQueueSnapshotID = ctx.eventQueue.createSnapshot();
 		const stateStoreSnapshotID = ctx.stateStore.createSnapshot();
-		for (const mod of this._systemModules) {
-			if (mod.beforeCommandExecute) {
-				try {
-					await mod.beforeCommandExecute(transactionContext);
-				} catch (error) {
-					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
-					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
-					return TransactionExecutionResult.INVALID;
-				}
-			}
-		}
 		for (const mod of this._modules) {
 			if (mod.beforeCommandExecute) {
 				try {
@@ -154,6 +125,7 @@ export class StateMachine {
 				} catch (error) {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
+					this._logger.debug({ err: error as Error }, 'Transaction execution failed');
 					return TransactionExecutionResult.INVALID;
 				}
 			}
@@ -181,6 +153,7 @@ export class StateMachine {
 				[ctx.transaction.id],
 			);
 			status = TransactionExecutionResult.FAIL;
+			this._logger.debug({ err: error as Error }, 'Transaction execution failed');
 		}
 
 		// Execute after transaction hooks
@@ -191,17 +164,7 @@ export class StateMachine {
 				} catch (error) {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
-					return TransactionExecutionResult.INVALID;
-				}
-			}
-		}
-		for (const mod of this._systemModules) {
-			if (mod.afterCommandExecute) {
-				try {
-					await mod.afterCommandExecute(transactionContext);
-				} catch (error) {
-					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
-					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
+					this._logger.debug({ err: error as Error }, 'Transaction execution failed');
 					return TransactionExecutionResult.INVALID;
 				}
 			}
@@ -212,11 +175,6 @@ export class StateMachine {
 
 	public async verifyAssets(ctx: BlockContext): Promise<void> {
 		const blockVerifyContext = ctx.getBlockVerifyExecuteContext();
-		for (const mod of this._systemModules) {
-			if (mod.verifyAssets) {
-				await mod.verifyAssets(blockVerifyContext);
-			}
-		}
 		for (const mod of this._modules) {
 			if (mod.verifyAssets) {
 				await mod.verifyAssets(blockVerifyContext);
@@ -226,11 +184,6 @@ export class StateMachine {
 
 	public async beforeExecuteBlock(ctx: BlockContext): Promise<void> {
 		const blockExecuteContext = ctx.getBlockExecuteContext();
-		for (const mod of this._systemModules) {
-			if (mod.beforeTransactionsExecute) {
-				await mod.beforeTransactionsExecute(blockExecuteContext);
-			}
-		}
 		for (const mod of this._modules) {
 			if (mod.beforeTransactionsExecute) {
 				await mod.beforeTransactionsExecute(blockExecuteContext);
@@ -245,11 +198,6 @@ export class StateMachine {
 				await mod.afterTransactionsExecute(blockExecuteContext);
 			}
 		}
-		for (const mod of this._systemModules) {
-			if (mod.afterTransactionsExecute) {
-				await mod.afterTransactionsExecute(blockExecuteContext);
-			}
-		}
 	}
 
 	public async executeBlock(ctx: BlockContext): Promise<void> {
@@ -259,8 +207,10 @@ export class StateMachine {
 			const verifyResult = await this.verifyTransaction(txContext);
 			if (verifyResult.status !== VerifyStatus.OK) {
 				if (verifyResult.error) {
+					this._logger.debug({ err: verifyResult.error }, 'Transaction verification failed');
 					throw verifyResult.error;
 				}
+				this._logger.debug(`Transaction verification failed. ID ${tx.id.toString('hex')}.`);
 				throw new Error(`Transaction verification failed. ID ${tx.id.toString('hex')}.`);
 			}
 			await this.executeTransaction(txContext);
@@ -273,20 +223,18 @@ export class StateMachine {
 		if (existingModule) {
 			return existingModule;
 		}
-		const existingSystemModule = this._systemModules.find(m => m.name === name);
-		if (existingSystemModule) {
-			return existingSystemModule;
-		}
 		return undefined;
 	}
 
 	private _getCommand(module: string, command: string): BaseCommand {
 		const targetModule = this._findModule(module);
 		if (!targetModule) {
+			this._logger.debug(`Module ${module} is not registered`);
 			throw new Error(`Module ${module} is not registered.`);
 		}
 		const targetCommand = targetModule.commands.find(c => c.name === command);
 		if (!targetCommand) {
+			this._logger.debug(`Module ${module} does not have command ${command} registered`);
 			throw new Error(`Module ${module} does not have command ${command} registered.`);
 		}
 		return targetCommand;
@@ -295,7 +243,8 @@ export class StateMachine {
 	private _validateExisting(mod: BaseModule): void {
 		const existingModule = this._modules.find(m => m.name === mod.name);
 		if (existingModule) {
-			throw new Error(`Modul ${mod.name} is registered.`);
+			this._logger.debug(`Module ${mod.name} is registered`);
+			throw new Error(`Module ${mod.name} is registered.`);
 		}
 		const allExistingEvents = this._modules.reduce<Buffer[]>((prev, curr) => {
 			prev.push(...curr.events.keys());
@@ -304,6 +253,7 @@ export class StateMachine {
 		for (const event of mod.events.values()) {
 			const duplicate = allExistingEvents.find(k => k.equals(event.key));
 			if (duplicate) {
+				this._logger.debug(`Module ${mod.name} has conflicting event ${event.name}`);
 				throw new Error(
 					`Module ${mod.name} has conflicting event ${event.name}. Please update the event name.`,
 				);
@@ -317,6 +267,7 @@ export class StateMachine {
 		for (const store of mod.stores.values()) {
 			const duplicate = allExistingStores.find(k => k.equals(store.key));
 			if (duplicate) {
+				this._logger.debug(`Module ${mod.name} has conflicting store ${store.name}`);
 				throw new Error(
 					`Module ${mod.name} has conflicting store ${store.name}. Please update the store name.`,
 				);

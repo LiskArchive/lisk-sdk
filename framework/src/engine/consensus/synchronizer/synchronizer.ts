@@ -70,6 +70,7 @@ export class Synchronizer {
 				{
 					blockId: receivedBlock.header.id,
 					height: receivedBlock.header.height,
+					generator: receivedBlock.header.generatorAddress.toString('hex'),
 				},
 				'Starting synchronizer',
 			);

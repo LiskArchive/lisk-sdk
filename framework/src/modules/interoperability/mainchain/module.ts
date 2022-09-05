@@ -26,7 +26,7 @@ import {
 } from '../schemas';
 import { GenesisBlockExecuteContext } from '../../../state_machine';
 import { initGenesisStateUtil } from '../utils';
-import { chainAccountSchema } from '../stores/chain_account';
+import { chainAccountSchema, allChainAccountsSchema } from '../stores/chain_account';
 import { channelSchema } from '../stores/channel_data';
 import { ownChainAccountSchema } from '../stores/own_chain_account';
 import { terminatedStateSchema } from '../stores/terminated_state';
@@ -48,6 +48,11 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 					name: this.endpoint.getChainAccount.name,
 					request: getChainAccountRequestSchema,
 					response: chainAccountSchema,
+				},
+				{
+					name: this.endpoint.getAllChainAccounts.name,
+					request: getChainAccountRequestSchema,
+					response: allChainAccountsSchema,
 				},
 				{
 					name: this.endpoint.getChannel.name,
