@@ -35,7 +35,6 @@ export const TAG_TRANSACTION = utils.createMessageTag('TX');
 export const MAX_ASSET_DATA_SIZE_BYTES = 64;
 export const SIGNATURE_LENGTH_BYTES = 64;
 
-// TODO: #7385 Actual size TBD
 export const MIN_NAME_LENGTH = 1;
 export const MAX_NAME_LENGTH = 32;
 

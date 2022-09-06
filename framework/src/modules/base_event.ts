@@ -40,7 +40,7 @@ export abstract class BaseEvent<T> {
 		if (!this.schema) {
 			throw new Error('Schema is not set');
 		}
-		// TODO: Update name to be directly as an input with https://github.com/LiskHQ/lisk-sdk/issues/7385
+
 		ctx.eventQueue.add(
 			this._moduleName,
 			this.name,
