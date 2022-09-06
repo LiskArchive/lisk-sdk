@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-
+import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { MAX_UINT64 } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
@@ -424,10 +424,14 @@ export class TokenAPI extends BaseAPI {
 			throw new Error('Amount must be greater or equal to zero.');
 		}
 		if (senderAddress.length !== ADDRESS_LENGTH) {
-			throw new Error(`Invalid sender address ${senderAddress.toString('hex')}.`);
+			throw new Error(
+				`Invalid sender address ${cryptoAddress.getLisk32AddressFromAddress(senderAddress)}.`,
+			);
 		}
 		if (recipientAddress.length !== ADDRESS_LENGTH) {
-			throw new Error(`Invalid recipient address ${recipientAddress.toString('hex')}.`);
+			throw new Error(
+				`Invalid recipient address ${cryptoAddress.getLisk32AddressFromAddress(recipientAddress)}.`,
+			);
 		}
 
 		const canonicalTokenID = await this.getCanonicalTokenID(apiContext, tokenID);

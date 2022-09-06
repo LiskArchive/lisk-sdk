@@ -91,11 +91,11 @@ export class Transaction {
 		const networkIdentifier = Buffer.from(this._nodeInfo.networkIdentifier, 'hex');
 		const privateKey = Buffer.from(privateKeyHex, 'hex');
 		const publicKey = ed.getPublicKeyFromPrivateKey(privateKey);
-		const address = cryptoAddress.getAddressFromPublicKey(publicKey);
+		const address = cryptoAddress.getLisk32AddressFromPublicKey(publicKey);
 		let authAccount: AuthAccount | undefined;
 		try {
 			authAccount = await this._channel.invoke<AuthAccount>('auth_getAuthAccount', {
-				address: address.toString('hex'),
+				address,
 			});
 		} catch (error) {
 			throw new Error('Auth module is not registered or does not have "getAuthAccount" endpoint.');
@@ -206,9 +206,9 @@ export class Transaction {
 		const decodedTx = this.fromJSON(transaction as TransactionJSON);
 		this._validateTransaction(decodedTx);
 		const networkIdentifier = Buffer.from(this._nodeInfo.networkIdentifier, 'hex');
-		const address = cryptoAddress.getAddressFromPublicKey(decodedTx.senderPublicKey);
+		const address = cryptoAddress.getLisk32AddressFromPublicKey(decodedTx.senderPublicKey);
 		const authAccount = await this._channel.invoke<AuthAccount>('auth_getAuthAccount', {
-			address: address.toString('hex'),
+			address,
 		});
 		if (authAccount.numberOfSignatures > 0) {
 			for (const privateKeyHex of privateKeyHexes) {

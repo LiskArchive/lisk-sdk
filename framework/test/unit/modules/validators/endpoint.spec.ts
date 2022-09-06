@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
+import { utils, address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { Logger } from '../../../../src/logger';
 import { ValidatorsModule } from '../../../../src/modules/validators';
 import { BLSKeyStore } from '../../../../src/modules/validators/stores/bls_keys';
@@ -138,7 +138,7 @@ describe('ValidatorsModuleEndpoint', () => {
 			getOffchainStore: jest.fn(),
 			logger,
 			params: {
-				address: validatorAddress.toString('hex'),
+				address: cryptoAddress.getLisk32AddressFromAddress(validatorAddress),
 			},
 			networkIdentifier,
 		};

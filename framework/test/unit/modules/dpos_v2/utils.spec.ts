@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { defaultConfig } from '../../../../src/modules/dpos_v2/constants';
 import { ModuleConfig } from '../../../../src/modules/dpos_v2/types';
 import { getModuleConfig, shuffleDelegateList } from '../../../../src/modules/dpos_v2/utils';
@@ -30,7 +31,9 @@ describe('utils', () => {
 
 			expect(shuffledDelegateList).toHaveLength(addressList.length);
 			shuffledDelegateList.forEach(address =>
-				expect(addressList.map(a => a.toString('hex'))).toContain(address.toString('hex')),
+				expect(addressList.map(a => cryptoAddress.getLisk32AddressFromAddress(a))).toContain(
+					cryptoAddress.getLisk32AddressFromAddress(address),
+				),
 			);
 
 			expect(shuffledDelegateList.map(b => b.toString('hex'))).toEqual(

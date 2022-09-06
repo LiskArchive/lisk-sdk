@@ -45,7 +45,7 @@ export const signingBlockHeaderSchema = {
 		timestamp: { dataType: 'uint32', fieldNumber: 2 },
 		height: { dataType: 'uint32', fieldNumber: 3 },
 		previousBlockID: { dataType: 'bytes', fieldNumber: 4 },
-		generatorAddress: { dataType: 'bytes', fieldNumber: 5 },
+		generatorAddress: { dataType: 'bytes', fieldNumber: 5, format: 'lisk32' },
 		transactionRoot: { dataType: 'bytes', fieldNumber: 6 },
 		assetRoot: { dataType: 'bytes', fieldNumber: 7 },
 		eventRoot: { dataType: 'bytes', fieldNumber: 8 },

@@ -25,7 +25,7 @@ import {
 import { jobHandlers, objects } from '@liskhq/lisk-utils';
 import { Database, Batch, SparseMerkleTree } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { utils } from '@liskhq/lisk-cryptography';
+import { address, utils } from '@liskhq/lisk-cryptography';
 import { Logger } from '../../logger';
 import {
 	BlockSynchronizationMechanism,
@@ -433,7 +433,7 @@ export class Consensus {
 					{
 						id: block.header.id,
 						height: block.header.height,
-						generator: block.header.generatorAddress.toString('hex'),
+						generator: address.getLisk32AddressFromAddress(block.header.generatorAddress),
 						maxHeightPrevoted: block.header.maxHeightPrevoted,
 						maxHeightGenerated: block.header.maxHeightGenerated,
 					},
@@ -455,7 +455,7 @@ export class Consensus {
 				this._logger.warn(
 					{
 						id: block.header.id,
-						generatorAddress: block.header.generatorAddress.toString('hex'),
+						generatorAddress: address.getLisk32AddressFromAddress(block.header.generatorAddress),
 					},
 					'Discarding block due to double forging',
 				);
@@ -463,7 +463,7 @@ export class Consensus {
 					{
 						id: block.header.id,
 						height: block.header.height,
-						generator: block.header.generatorAddress.toString('hex'),
+						generator: address.getLisk32AddressFromAddress(block.header.generatorAddress),
 						maxHeightPrevoted: block.header.maxHeightPrevoted,
 						maxHeightGenerated: block.header.maxHeightGenerated,
 					},
@@ -484,7 +484,7 @@ export class Consensus {
 					{
 						id: block.header.id,
 						height: block.header.height,
-						generator: block.header.generatorAddress.toString('hex'),
+						generator: address.getLisk32AddressFromAddress(block.header.generatorAddress),
 						maxHeightPrevoted: block.header.maxHeightPrevoted,
 						maxHeightGenerated: block.header.maxHeightGenerated,
 					},
@@ -507,7 +507,7 @@ export class Consensus {
 					{
 						id: block.header.id,
 						height: block.header.height,
-						generator: block.header.generatorAddress.toString('hex'),
+						generator: address.getLisk32AddressFromAddress(block.header.generatorAddress),
 						maxHeightPrevoted: block.header.maxHeightPrevoted,
 						maxHeightGenerated: block.header.maxHeightGenerated,
 					},
@@ -575,7 +575,7 @@ export class Consensus {
 				{
 					id: block.header.id,
 					height: block.header.height,
-					generator: block.header.generatorAddress.toString('hex'),
+					generator: address.getLisk32AddressFromAddress(block.header.generatorAddress),
 					numberOfTransactions: block.transactions.length,
 					numberOfAssets: block.assets.getAll().length,
 				},
@@ -623,7 +623,7 @@ export class Consensus {
 			{
 				id: block.header.id,
 				height: block.header.height,
-				generator: block.header.generatorAddress.toString('hex'),
+				generator: address.getLisk32AddressFromAddress(block.header.generatorAddress),
 				numberOfTransactions: block.transactions.length,
 				numberOfAssets: block.assets.getAll().length,
 				numberOfEvents: events.length,

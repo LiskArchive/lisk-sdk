@@ -13,7 +13,7 @@
  */
 import * as path from 'path';
 import { Chain, Block, TransactionJSON } from '@liskhq/lisk-chain';
-import { utils } from '@liskhq/lisk-cryptography';
+import { address, utils } from '@liskhq/lisk-cryptography';
 import { Database } from '@liskhq/lisk-db';
 import { createLogger, Logger } from '../logger';
 import { Network } from './network';
@@ -284,7 +284,7 @@ export class Engine {
 			this._rpcServer
 				.publish(EVENT_CHAIN_VALIDATORS_CHANGE, {
 					nextValidators: update.nextValidators.map(v => ({
-						address: v.address.toString('hex'),
+						address: address.getLisk32AddressFromAddress(v.address),
 						blsKey: v.blsKey.toString('hex'),
 						generatorKey: v.generatorKey.toString('hex'),
 						bftWeight: v.bftWeight.toString(),

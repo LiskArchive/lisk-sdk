@@ -30,19 +30,25 @@ describe('RandomModuleEndpoint', () => {
 
 	const validatorsData = [
 		{
-			generatorAddress: Buffer.from(genesisDelegates.delegates[0].address, 'hex'),
+			generatorAddress: cryptography.address.getAddressFromLisk32Address(
+				genesisDelegates.delegates[0].address,
+			),
 			seedReveal: Buffer.from(genesisDelegates.delegates[0].hashOnion.hashes[0], 'hex'),
 			height: 1,
 			valid: true,
 		},
 		{
-			generatorAddress: Buffer.from(genesisDelegates.delegates[1].address, 'hex'),
+			generatorAddress: cryptography.address.getAddressFromLisk32Address(
+				genesisDelegates.delegates[1].address,
+			),
 			seedReveal: Buffer.from(genesisDelegates.delegates[1].hashOnion.hashes[1], 'hex'),
 			height: 3,
 			valid: true,
 		},
 		{
-			generatorAddress: Buffer.from(genesisDelegates.delegates[2].address, 'hex'),
+			generatorAddress: cryptography.address.getAddressFromLisk32Address(
+				genesisDelegates.delegates[2].address,
+			),
 			seedReveal: Buffer.from(genesisDelegates.delegates[2].hashOnion.hashes[1], 'hex'),
 			height: 5,
 			valid: true,
@@ -105,7 +111,7 @@ describe('RandomModuleEndpoint', () => {
 
 			// Act & Assert
 			await expect(randomEndpoint.isSeedRevealValid(context)).rejects.toThrow(
-				'Lisk validator found 2 error[s]:\nProperty \'.generatorAddress\' must match format "hex"\nProperty \'.seedReveal\' must match format "hex"',
+				'Lisk validator found 2 error[s]:\nProperty \'.generatorAddress\' must match format "lisk32"\nProperty \'.seedReveal\' must match format "hex"',
 			);
 		});
 
@@ -181,7 +187,10 @@ describe('RandomModuleEndpoint', () => {
 			await randomEndpoint.setHashOnion(context);
 
 			const hashOnionStore = randomEndpoint['offchainStores'].get(HashOnionStore);
-			const storedSeed = await hashOnionStore.get(context, Buffer.from(address, 'hex'));
+			const storedSeed = await hashOnionStore.get(
+				context,
+				cryptography.address.getAddressFromLisk32Address(address),
+			);
 
 			// Assert
 			expect(storedSeed).toEqual({
@@ -323,7 +332,13 @@ describe('RandomModuleEndpoint', () => {
 
 			const usedHashOnionStore = randomEndpoint['offchainStores'].get(UsedHashOnionsStore);
 			await usedHashOnionStore.set(context, STORE_PREFIX_USED_HASH_ONION, {
-				usedHashOnions: [{ address: Buffer.from(address, 'hex'), count: 20, height: 2121 }],
+				usedHashOnions: [
+					{
+						address: cryptography.address.getAddressFromLisk32Address(address),
+						count: 20,
+						height: 2121,
+					},
+				],
 			});
 		});
 
@@ -339,7 +354,7 @@ describe('RandomModuleEndpoint', () => {
 		it('should return hasHashOnion false with remaing 0 if hashOnion does not exist', async () => {
 			const hasHashOnion = await randomEndpoint.hasHashOnion({
 				...context,
-				params: { address: '0000000000000000000000000000000000000000' },
+				params: { address: 'lsk7tyskeefnd6p6bfksd7ytp5jyaw8f2r9foa6ch' },
 			});
 
 			// Assert
@@ -387,7 +402,13 @@ describe('RandomModuleEndpoint', () => {
 
 			const usedHashOnionStore = randomEndpoint['offchainStores'].get(UsedHashOnionsStore);
 			await usedHashOnionStore.set(context, STORE_PREFIX_USED_HASH_ONION, {
-				usedHashOnions: [{ address: Buffer.from(address, 'hex'), count: 20, height: 2121 }],
+				usedHashOnions: [
+					{
+						address: cryptography.address.getAddressFromLisk32Address(address),
+						count: 20,
+						height: 2121,
+					},
+				],
 			});
 		});
 
@@ -396,7 +417,7 @@ describe('RandomModuleEndpoint', () => {
 			await expect(
 				randomEndpoint.getHashOnionUsage({
 					...context,
-					params: { address: '0000000000000000000000000000000000000000' },
+					params: { address: 'lsk7tyskeefnd6p6bfksd7ytp5jyaw8f2r9foa6ch' },
 				}),
 			).rejects.toThrow('does not exist');
 		});

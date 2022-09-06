@@ -55,9 +55,6 @@ describe('account:create', () => {
 						cryptography.legacy.getKeys(defaultMnemonic).publicKey,
 						'lsk',
 					),
-					binaryAddress: cryptography.address
-						.getAddressFromPublicKey(cryptography.legacy.getKeys(defaultMnemonic).publicKey)
-						.toString('hex'),
 					passphrase: defaultMnemonic,
 				},
 			]);
@@ -78,9 +75,6 @@ describe('account:create', () => {
 						cryptography.legacy.getKeys(defaultMnemonic).publicKey,
 						'lsk',
 					),
-					binaryAddress: cryptography.address
-						.getAddressFromPublicKey(cryptography.legacy.getKeys(defaultMnemonic).publicKey)
-						.toString('hex'),
 					passphrase: defaultMnemonic,
 				},
 				{
@@ -94,9 +88,6 @@ describe('account:create', () => {
 						cryptography.legacy.getKeys(secondDefaultMnemonic).publicKey,
 						'lsk',
 					),
-					binaryAddress: cryptography.address
-						.getAddressFromPublicKey(cryptography.legacy.getKeys(secondDefaultMnemonic).publicKey)
-						.toString('hex'),
 					passphrase: secondDefaultMnemonic,
 				},
 			];

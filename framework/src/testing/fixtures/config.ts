@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { ApplicationConfig } from '../../types';
 import * as accountFixture from './keys_fixture.json';
 
@@ -64,10 +65,14 @@ export const defaultConfig: ApplicationConfig = {
 };
 
 export const getKeysFromDefaultConfig = (address: Buffer) => {
-	const account = accountFixture.keys.find(key => Buffer.from(key.address, 'hex').equals(address));
+	const account = accountFixture.keys.find(key =>
+		cryptoAddress.getAddressFromLisk32Address(key.address).equals(address),
+	);
 	if (!account) {
 		throw new Error(
-			`Delegate with address: ${address.toString('hex')} does not exists in default config`,
+			`Delegate with address: ${cryptoAddress.getLisk32AddressFromAddress(
+				address,
+			)} does not exists in default config`,
 		);
 	}
 	return account;

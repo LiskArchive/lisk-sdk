@@ -211,16 +211,6 @@ export class BlockHeader {
 			});
 		}
 
-		if (!header.generatorAddress.equals(EMPTY_BUFFER)) {
-			errors.push({
-				message: 'Genesis block header generatorAddress must be empty bytes',
-				keyword: 'const',
-				dataPath: 'header.generatorAddress',
-				schemaPath: 'properties.generatorAddress',
-				params: { allowedValue: EMPTY_BUFFER },
-			});
-		}
-
 		if (header.maxHeightPrevoted !== header.height) {
 			errors.push({
 				message: 'Genesis block header maxHeightPrevoted must equal height',

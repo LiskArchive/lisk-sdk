@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
+import { address, utils } from '@liskhq/lisk-cryptography';
 import { Database, InMemoryDatabase } from '@liskhq/lisk-db';
 import { ConsensusEndpoint } from '../../../../src/engine/endpoint/consensus';
 
@@ -25,7 +25,7 @@ describe('system endpoint', () => {
 		},
 	];
 	const validatorsJSON = validators.map(v => ({
-		address: v.address.toString('hex'),
+		address: address.getLisk32AddressFromAddress(v.address),
 		bftWeight: v.bftWeight.toString(),
 		blsKey: v.blsKey.toString('hex'),
 	}));

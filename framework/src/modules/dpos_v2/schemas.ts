@@ -204,9 +204,8 @@ export const genesisStoreSchema = {
 				properties: {
 					address: {
 						dataType: 'bytes',
+						format: 'lisk32',
 						fieldNumber: 1,
-						minLength: 20,
-						maxLength: 20,
 					},
 					name: {
 						dataType: 'string',
@@ -261,9 +260,8 @@ export const genesisStoreSchema = {
 				properties: {
 					address: {
 						dataType: 'bytes',
+						format: 'lisk32',
 						fieldNumber: 1,
-						minLength: 20,
-						maxLength: 20,
 					},
 					sentVotes: {
 						type: 'array',
@@ -274,6 +272,7 @@ export const genesisStoreSchema = {
 							properties: {
 								delegateAddress: {
 									dataType: 'bytes',
+									format: 'lisk32',
 									fieldNumber: 1,
 								},
 								amount: {
@@ -293,8 +292,7 @@ export const genesisStoreSchema = {
 								delegateAddress: {
 									dataType: 'bytes',
 									fieldNumber: 1,
-									minLength: 20,
-									maxLength: 20,
+									format: 'lisk32',
 								},
 								amount: {
 									dataType: 'uint64',
@@ -325,7 +323,7 @@ export const genesisStoreSchema = {
 					activeDelegates: {
 						type: 'array',
 						fieldNumber: 2,
-						items: { dataType: 'bytes' },
+						items: { dataType: 'bytes', format: 'lisk32' },
 					},
 					delegateWeightSnapshot: {
 						type: 'array',
@@ -337,6 +335,7 @@ export const genesisStoreSchema = {
 								delegateAddress: {
 									dataType: 'bytes',
 									fieldNumber: 1,
+									format: 'lisk32',
 								},
 								delegateWeight: {
 									dataType: 'uint64',
@@ -360,7 +359,7 @@ export const genesisStoreSchema = {
 				initDelegates: {
 					type: 'array',
 					fieldNumber: 2,
-					items: { dataType: 'bytes' },
+					items: { dataType: 'bytes', format: 'lisk32' },
 				},
 			},
 		},
@@ -415,7 +414,7 @@ export const getDelegateRequestSchema = {
 	properties: {
 		address: {
 			type: 'string',
-			format: 'hex',
+			format: 'lisk32',
 		},
 	},
 };
