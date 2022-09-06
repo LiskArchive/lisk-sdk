@@ -134,7 +134,9 @@ export class ChainEndpoint {
 		return blocks.map(b => b.toJSON());
 	}
 
-	public async getTransactionByID(context: RequestContext): Promise<TransactionJSON> {
+	public async getTransactionByID(
+		context: RequestContext,
+	): Promise<TransactionJSON & { id: string }> {
 		const { id } = context.params;
 		if (!isHexString(id)) {
 			throw new Error('Invalid parameters. id must be a valid hex string.');
@@ -142,7 +144,7 @@ export class ChainEndpoint {
 		const transaction = await this._chain.dataAccess.getTransactionByID(
 			Buffer.from(id as string, 'hex'),
 		);
-		return transaction.toJSON();
+		return { ...transaction.toJSON(), id: transaction.id.toString('hex') };
 	}
 
 	public async getTransactionsByIDs(context: RequestContext): Promise<TransactionJSON[]> {
