@@ -92,6 +92,7 @@ describe('DposModuleEndpoint', () => {
 						address: address.toString('hex'),
 					},
 					networkIdentifier,
+					getOffchainStore: jest.fn(),
 				});
 
 				expect(voterDataReturned).toStrictEqual(codec.toJSON(voterStoreSchema, voterData));
@@ -107,6 +108,7 @@ describe('DposModuleEndpoint', () => {
 						address: address.toString('hex'),
 					},
 					networkIdentifier,
+					getOffchainStore: jest.fn(),
 				});
 
 				expect(voterDataReturned.sentVotes[0].delegateAddress).toBeString();
@@ -129,6 +131,7 @@ describe('DposModuleEndpoint', () => {
 						address: address.toString('hex'),
 					},
 					networkIdentifier,
+					getOffchainStore: jest.fn(),
 				});
 
 				const delegateDataJSON = {
@@ -151,6 +154,7 @@ describe('DposModuleEndpoint', () => {
 						address: address.toString('hex'),
 					},
 					networkIdentifier,
+					getOffchainStore: jest.fn(),
 				});
 
 				expect(delegateDataReturned.totalVotesReceived).toBeString();
@@ -180,6 +184,7 @@ describe('DposModuleEndpoint', () => {
 					logger,
 					params: {},
 					networkIdentifier,
+					getOffchainStore: jest.fn(),
 				});
 
 				expect(addresses).toContain(delegatesDataReturned[0].address);
@@ -195,6 +200,7 @@ describe('DposModuleEndpoint', () => {
 					logger,
 					params: {},
 					networkIdentifier,
+					getOffchainStore: jest.fn(),
 				});
 
 				expect(delegatesDataReturned[0].totalVotesReceived).toBeString();

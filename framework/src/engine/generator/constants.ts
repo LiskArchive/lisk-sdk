@@ -23,11 +23,8 @@ export const LOAD_TRANSACTION_RETRIES = 5;
 export const NETWORK_RPC_GET_TRANSACTIONS = 'getTransactions';
 export const NETWORK_EVENT_POST_TRANSACTIONS_ANNOUNCEMENT = 'postTransactionsAnnouncement';
 
-export const GENERATOR_STORE_RESERVED_PREFIX = 0;
-export const GENERATOR_STORE_RESERVED_PREFIX_BUFFER = utils.intToBuffer(
-	GENERATOR_STORE_RESERVED_PREFIX,
-	4,
-);
+export const GENERATOR_STORE_INFO_PREFIX = utils.intToBuffer(0, 4);
+export const GENERATOR_STORE_KEY_PREFIX = utils.intToBuffer(1, 4);
 
 export const EMPTY_BUFFER = Buffer.alloc(0);
 export const EMPTY_HASH = utils.hash(Buffer.alloc(0));

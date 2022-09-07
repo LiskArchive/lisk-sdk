@@ -28,7 +28,7 @@ export interface LiskTemplate {
 		init: GeneratorConstructor;
 		initPlugin: GeneratorConstructor;
 		module: GeneratorConstructor;
-		asset: GeneratorConstructor;
+		command: GeneratorConstructor;
 		plugin: GeneratorConstructor;
 	};
 }

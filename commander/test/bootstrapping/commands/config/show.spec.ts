@@ -31,6 +31,7 @@ describe('config:show command', () => {
 		jest.spyOn(process.stdout, 'write').mockImplementation(val => stdout.push(val as string) > -1);
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
 		jest.spyOn(fs, 'readJSON').mockResolvedValue({
+			system: {},
 			network: { port: 3000 },
 			logger: {
 				consoleLogLevel: 'error',
@@ -38,6 +39,7 @@ describe('config:show command', () => {
 		} as never);
 		jest.spyOn(fs, 'statSync').mockReturnValue({ isDirectory: () => true } as never);
 		jest.spyOn(fs, 'ensureDirSync').mockReturnValue();
+		jest.spyOn(fs, 'existsSync').mockReturnValue(true);
 		jest.spyOn(fs, 'removeSync').mockReturnValue(null as never);
 		jest.spyOn(fs, 'readdirSync').mockReturnValue(['mainnet'] as never);
 		jest.spyOn(os, 'homedir').mockReturnValue('~');
@@ -52,9 +54,9 @@ describe('config:show command', () => {
 
 	describe('config:show -d ./new-folder', () => {
 		it('should throw an error if the data path does not contain config', async () => {
-			when(fs.readdirSync as jest.Mock)
-				.calledWith('new-folder/config')
-				.mockReturnValue([]);
+			when(fs.existsSync as jest.Mock)
+				.calledWith('new-folder/config/config.json')
+				.mockReturnValue(false);
 			await expect(ShowCommand.run(['-d', './new-folder'], config)).rejects.toThrow(
 				'does not contain valid config',
 			);
@@ -64,14 +66,13 @@ describe('config:show command', () => {
 	describe('config:show -d ./config', () => {
 		it('should get the config from default path', async () => {
 			await ShowCommand.run(['-d', './existing'], config);
-			expect(fs.readdirSync).toHaveBeenCalledWith('existing/config');
-			expect(fs.readJSON).toHaveBeenCalledWith('existing/config/mainnet/config.json');
+			expect(fs.readJSON).toHaveBeenCalledWith('existing/config/config.json');
 		});
 	});
 
 	describe('config:show -c ./custom-config.json', () => {
 		const configPath = './custom-config.json';
-		const customConfig = { network: { port: 9999 } };
+		const customConfig = { network: { port: 9999 }, system: {} };
 
 		it('should overwrite the config with provided custom config', async () => {
 			when(fs.readJSON as jest.Mock)

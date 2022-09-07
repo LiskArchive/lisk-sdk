@@ -5,33 +5,30 @@ Object {
   "$id": "#/config",
   "additionalProperties": false,
   "default": Object {
-    "generation": Object {
-      "force": false,
-      "generators": Array [],
-      "modules": Object {},
-      "waitThreshold": 2,
+    "generator": Object {
+      "keys": Object {},
     },
     "genesis": Object {
       "bftBatchSize": 103,
+      "block": Object {
+        "fromFile": "./config/genesis_block.blob",
+      },
       "blockTime": 10,
       "communityIdentifier": "sdk",
       "maxTransactionsSize": 15360,
       "minFeePerByte": 1000,
-      "modules": Object {},
     },
-    "label": "beta-sdk-app",
     "logger": Object {
-      "consoleLogLevel": "none",
+      "consoleLogLevel": "info",
       "fileLogLevel": "info",
-      "logFileName": "lisk.log",
     },
+    "modules": Object {},
     "network": Object {
       "port": 7667,
       "seedPeers": Array [],
+      "version": "1.0",
     },
-    "networkVersion": "1.1",
     "plugins": Object {},
-    "rootPath": "~/.lisk",
     "rpc": Object {
       "host": "127.0.0.1",
       "modes": Array [
@@ -40,7 +37,9 @@ Object {
       "port": 7887,
     },
     "system": Object {
+      "dataPath": "~/.lisk/beta-sdk-app",
       "keepEventsForHeights": 300,
+      "version": "0.1.0",
     },
     "transactionPool": Object {
       "maxTransactions": 4096,
@@ -49,83 +48,22 @@ Object {
       "minReplacementFeeDifference": "10",
       "transactionExpiryTime": 10800000,
     },
-    "version": "0.0.0",
   },
   "properties": Object {
-    "generation": Object {
+    "generator": Object {
       "properties": Object {
-        "force": Object {
-          "type": "boolean",
-        },
-        "generators": Object {
-          "items": Object {
-            "properties": Object {
-              "address": Object {
-                "format": "hex",
-                "type": "string",
-              },
-              "encryptedPassphrase": Object {
-                "format": "encryptedPassphrase",
-                "type": "string",
-              },
-              "hashOnion": Object {
-                "properties": Object {
-                  "count": Object {
-                    "minimum": 1,
-                    "type": "integer",
-                  },
-                  "distance": Object {
-                    "minimum": 1,
-                    "type": "integer",
-                  },
-                  "hashes": Object {
-                    "items": Object {
-                      "format": "hex",
-                      "type": "string",
-                    },
-                    "minItems": 2,
-                    "type": "array",
-                  },
-                },
-                "required": Array [
-                  "count",
-                  "distance",
-                  "hashes",
-                ],
-                "type": "object",
-              },
+        "keys": Object {
+          "properties": Object {
+            "fromFile": Object {
+              "description": "Path to a file which stores keys",
+              "type": "string",
             },
-            "required": Array [
-              "encryptedPassphrase",
-              "address",
-              "hashOnion",
-            ],
-          },
-          "type": "array",
-        },
-        "modules": Object {
-          "additionalProperties": Object {
-            "type": "object",
-          },
-          "propertyNames": Object {
-            "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$",
           },
           "type": "object",
         },
-        "password": Object {
-          "description": "The password to decrypt passphrases",
-          "type": "string",
-        },
-        "waitThreshold": Object {
-          "description": "Number of seconds to wait for previous block before forging",
-          "type": "integer",
-        },
       },
       "required": Array [
-        "force",
-        "waitThreshold",
-        "generators",
-        "modules",
+        "keys",
       ],
       "type": "object",
     },
@@ -136,6 +74,39 @@ Object {
           "description": "The length of a round",
           "minimum": 1,
           "type": "number",
+        },
+        "block": Object {
+          "oneOf": Array [
+            Object {
+              "properties": Object {
+                "blob": Object {
+                  "format": "hex",
+                  "type": "string",
+                },
+                "fromFile": Object {
+                  "type": "string",
+                },
+              },
+              "required": Array [
+                "fromFile",
+              ],
+            },
+            Object {
+              "properties": Object {
+                "blob": Object {
+                  "format": "hex",
+                  "type": "string",
+                },
+                "fromFile": Object {
+                  "type": "string",
+                },
+              },
+              "required": Array [
+                "blob",
+              ],
+            },
+          ],
+          "type": "object",
         },
         "blockTime": Object {
           "description": "Slot time interval in seconds",
@@ -157,32 +128,16 @@ Object {
           "minimum": 0,
           "type": "integer",
         },
-        "modules": Object {
-          "additionalProperties": Object {
-            "type": "object",
-          },
-          "propertyNames": Object {
-            "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$",
-          },
-          "type": "object",
-        },
       },
       "required": Array [
+        "block",
         "blockTime",
         "bftBatchSize",
         "communityIdentifier",
         "maxTransactionsSize",
         "minFeePerByte",
-        "modules",
       ],
       "type": "object",
-    },
-    "label": Object {
-      "description": "Restricted length due to unix domain socket path length limitations.",
-      "maxLength": 30,
-      "minLength": 1,
-      "pattern": "^[a-zA-Z][0-9a-zA-Z_-]*$",
-      "type": "string",
     },
     "logger": Object {
       "properties": Object {
@@ -210,22 +165,24 @@ Object {
           ],
           "type": "string",
         },
-        "logFileName": Object {
-          "type": "string",
-        },
       },
       "required": Array [
         "fileLogLevel",
-        "logFileName",
         "consoleLogLevel",
       ],
       "type": "object",
     },
+    "modules": Object {
+      "additionalProperties": Object {
+        "type": "object",
+      },
+      "propertyNames": Object {
+        "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$",
+      },
+      "type": "object",
+    },
     "network": Object {
       "properties": Object {
-        "ackTimeout": Object {
-          "type": "integer",
-        },
         "advertiseAddress": Object {
           "type": "boolean",
         },
@@ -235,9 +192,6 @@ Object {
             "type": "string",
           },
           "type": "array",
-        },
-        "connectTimeout": Object {
-          "type": "integer",
         },
         "fixedPeers": Object {
           "items": Object {
@@ -257,7 +211,7 @@ Object {
           "maximum": 4,
           "type": "array",
         },
-        "hostIp": Object {
+        "host": Object {
           "format": "ip",
           "type": "string",
         },
@@ -265,17 +219,6 @@ Object {
           "type": "integer",
         },
         "maxOutboundConnections": Object {
-          "type": "integer",
-        },
-        "maxPeerDiscoveryResponseLength": Object {
-          "maximum": 1000,
-          "type": "integer",
-        },
-        "maxPeerInfoSize": Object {
-          "maximum": 20480,
-          "type": "integer",
-        },
-        "peerBanTime": Object {
           "type": "integer",
         },
         "port": Object {
@@ -300,10 +243,9 @@ Object {
           },
           "type": "array",
         },
-        "sendPeerLimit": Object {
-          "maximum": 100,
-          "minimum": 1,
-          "type": "integer",
+        "version": Object {
+          "format": "networkVersion",
+          "type": "string",
         },
         "whitelistedPeers": Object {
           "items": Object {
@@ -332,22 +274,8 @@ Object {
       ],
       "type": "object",
     },
-    "networkVersion": Object {
-      "format": "networkVersion",
-      "type": "string",
-    },
     "plugins": Object {
       "type": "object",
-    },
-    "rootPath": Object {
-      "description": "The root path for storing temporary pid and socket file and data. Restricted length due to unix domain socket path length limitations.",
-      "examples": Array [
-        "~/.lisk",
-      ],
-      "format": "path",
-      "maxLength": 50,
-      "minLength": 1,
-      "type": "string",
     },
     "rpc": Object {
       "properties": Object {
@@ -381,11 +309,20 @@ Object {
     },
     "system": Object {
       "properties": Object {
+        "dataPath": Object {
+          "type": "string",
+        },
         "keepEventsForHeights": Object {
           "type": "integer",
         },
+        "version": Object {
+          "format": "version",
+          "type": "string",
+        },
       },
       "required": Array [
+        "version",
+        "dataPath",
         "keepEventsForHeights",
       ],
       "type": "object",
@@ -415,19 +352,15 @@ Object {
       },
       "type": "object",
     },
-    "version": Object {
-      "format": "version",
-      "type": "string",
-    },
   },
   "required": Array [
-    "version",
-    "networkVersion",
+    "system",
+    "logger",
     "rpc",
     "network",
+    "modules",
     "plugins",
     "genesis",
-    "generation",
   ],
   "type": "object",
 }

@@ -45,12 +45,19 @@ export class StateStore {
 		this._cache = cache ?? new CacheDB();
 	}
 
-	public getStore(moduleID: Buffer, storePrefix: number): StateStore {
-		const storePrefixBuffer = Buffer.alloc(2);
-		storePrefixBuffer.writeUInt16BE(storePrefix, 0);
+	// TODO: Remove accepting number for subStorePrefix
+	public getStore(storePrefix: Buffer, subStorePrefix: Buffer | number): StateStore {
+		let storePrefixBuffer: Buffer;
+		if (typeof subStorePrefix === 'number') {
+			storePrefixBuffer = Buffer.alloc(2);
+			storePrefixBuffer.writeUInt16BE(subStorePrefix, 0);
+		} else {
+			storePrefixBuffer = subStorePrefix;
+		}
+
 		const subStore = new StateStore(
 			this._db,
-			Buffer.concat([DB_KEY_STATE_STORE, moduleID, storePrefixBuffer]),
+			Buffer.concat([DB_KEY_STATE_STORE, storePrefix, storePrefixBuffer]),
 			this._cache,
 		);
 

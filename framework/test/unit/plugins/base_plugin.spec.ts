@@ -14,45 +14,12 @@
  */
 
 import * as apiClient from '@liskhq/lisk-api-client';
-import { BasePlugin, GenerationConfig, GenesisConfig, systemDirs } from '../../../src';
+import { BasePlugin, GenesisConfig, systemDirs, testing } from '../../../src';
 import * as loggerModule from '../../../src/logger';
 import { getPluginExportPath } from '../../../src/plugins/base_plugin';
 import { fakeLogger } from '../../utils/mocks';
 
-const appConfigForPlugin = {
-	rootPath: '/my/path',
-	label: 'my-app',
-	logger: { consoleLogLevel: 'debug', fileLogLevel: '123', logFileName: 'plugin1.log' },
-	system: {
-		keepEventsForHeights: -1,
-	},
-	rpc: {
-		modes: ['ipc'],
-		port: 7887,
-		host: '127.0.0.1',
-	},
-	forging: {
-		force: false,
-		waitThreshold: 2,
-		delegates: [],
-	},
-	network: {
-		seedPeers: [],
-		port: 5000,
-	},
-	transactionPool: {
-		maxTransactions: 4096,
-		maxTransactionsPerAccount: 64,
-		transactionExpiryTime: 3 * 60 * 60 * 1000,
-		minEntranceFeePriority: '0',
-		minReplacementFeeDifference: '10',
-	},
-	// plugins: {},
-};
-
 class MyPlugin extends BasePlugin {
-	public name = 'my_plugin';
-
 	public configSchema = {
 		$id: '/myPlugin/schema',
 		type: 'object',
@@ -100,11 +67,11 @@ describe('base_plugin', () => {
 				// Act
 				await plugin.init({
 					appConfig: {
-						...appConfigForPlugin,
-						version: '',
-						networkVersion: '',
-						genesis: ({} as unknown) as GenesisConfig,
-						generation: ({} as unknown) as GenerationConfig,
+						...testing.fixtures.defaultConfig,
+						rpc: {
+							...testing.fixtures.defaultConfig.rpc,
+							modes: ['ipc'],
+						},
 					},
 					logger: fakeLogger,
 					config: {
@@ -114,7 +81,7 @@ describe('base_plugin', () => {
 
 				// Assert
 				expect(apiClient.createIPCClient).toHaveBeenCalledWith(
-					systemDirs(appConfigForPlugin.label, appConfigForPlugin.rootPath).sockets,
+					systemDirs(testing.fixtures.defaultConfig.system.dataPath).sockets,
 				);
 			});
 
@@ -122,11 +89,8 @@ describe('base_plugin', () => {
 				await expect(
 					plugin.init({
 						appConfig: {
-							...appConfigForPlugin,
-							version: '',
-							networkVersion: '',
+							...testing.fixtures.defaultConfig,
 							genesis: ({} as unknown) as GenesisConfig,
-							generation: ({} as unknown) as GenerationConfig,
 						},
 						logger: fakeLogger,
 						config: {
@@ -185,8 +149,6 @@ describe('base_plugin', () => {
 
 		it('should return undefined if exported class is not the same from export path', () => {
 			class MyPlugin2 extends MyPlugin {
-				public name = 'my-unknown-package';
-
 				public get nodeModulePath(): string {
 					return 'custom-export-path-2';
 				}

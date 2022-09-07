@@ -50,7 +50,7 @@ describe('Temp block', () => {
 				const targetHeight = processEnv.getLastBlock().header.height + numberOfValidators * 3;
 				while (chain.lastBlock.header.height < targetHeight) {
 					const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-						address: genesis.address.toString('hex'),
+						address: genesis.address,
 					});
 					const accountWithoutBalance = nodeUtils.createAccount();
 					const tx = createTransferTransaction({
@@ -58,7 +58,7 @@ describe('Temp block', () => {
 						recipientAddress: accountWithoutBalance.address,
 						amount: BigInt('1000000000'),
 						networkIdentifier,
-						passphrase: genesis.passphrase,
+						privateKey: Buffer.from(genesis.privateKey, 'hex'),
 					});
 					const nextBlock = await processEnv.createBlock([tx]);
 					await processEnv.process(nextBlock);
@@ -85,7 +85,7 @@ describe('Temp block', () => {
 				const targetHeight = numberOfValidators * 3;
 				while (chain.lastBlock.header.height < targetHeight) {
 					const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-						address: genesis.address.toString('hex'),
+						address: genesis.address,
 					});
 					const accountWithoutBalance = nodeUtils.createAccount();
 					const tx = createTransferTransaction({
@@ -93,7 +93,7 @@ describe('Temp block', () => {
 						recipientAddress: accountWithoutBalance.address,
 						amount: BigInt('1000000000'),
 						networkIdentifier,
-						passphrase: genesis.passphrase,
+						privateKey: Buffer.from(genesis.privateKey, 'hex'),
 					});
 					const nextBlock = await processEnv.createBlock([tx]);
 					await processEnv.process(nextBlock);
@@ -111,7 +111,7 @@ describe('Temp block', () => {
 				// Act
 				while (chain.lastBlock.header.height < targetHeight) {
 					const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-						address: genesis.address.toString('hex'),
+						address: genesis.address,
 					});
 					const accountWithoutBalance = nodeUtils.createAccount();
 					const tx = createTransferTransaction({
@@ -119,7 +119,7 @@ describe('Temp block', () => {
 						recipientAddress: accountWithoutBalance.address,
 						amount: BigInt('1000000000'),
 						networkIdentifier,
-						passphrase: genesis.passphrase,
+						privateKey: Buffer.from(genesis.privateKey, 'hex'),
 					});
 					// every validators update the maxHeightGenerated to avoid contradicting block
 					await processEnv.createBlock();

@@ -15,7 +15,7 @@
 
 import { Transaction, BlockHeader, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { bls, ed, legacy } from '@liskhq/lisk-cryptography';
+import { ed } from '@liskhq/lisk-cryptography';
 import { signMultiSignatureTransaction } from '@liskhq/lisk-transactions';
 import { TokenModule } from '../../../src';
 import { registerMultisignatureParamsSchema } from '../../../src/modules/auth/schemas';
@@ -34,7 +34,7 @@ export const createTransferTransaction = (input: {
 	amount?: bigint;
 	nonce: bigint;
 	networkIdentifier: Buffer;
-	passphrase: string;
+	privateKey: Buffer;
 	fee?: bigint;
 }): Transaction => {
 	const encodedParams = codec.encode(transferParamsSchema, {
@@ -43,7 +43,8 @@ export const createTransferTransaction = (input: {
 		amount: input.amount ?? BigInt('10000000000'),
 		data: '',
 	});
-	const { publicKey, privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(input.passphrase);
+
+	const publicKey = ed.getPublicKeyFromPrivateKey(input.privateKey);
 
 	const tx = new Transaction({
 		module: 'token',
@@ -55,7 +56,7 @@ export const createTransferTransaction = (input: {
 		signatures: [],
 	});
 	tx.signatures.push(
-		ed.signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), privateKey),
+		ed.signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.privateKey),
 	);
 	return tx;
 };
@@ -63,19 +64,19 @@ export const createTransferTransaction = (input: {
 export const createDelegateRegisterTransaction = (input: {
 	nonce: bigint;
 	networkIdentifier: Buffer;
-	passphrase: string;
+	privateKey: Buffer;
+	generatorKey: Buffer;
+	blsKey: Buffer;
+	blsProofOfPossession: Buffer;
 	username: string;
 	fee?: bigint;
 }): Transaction => {
-	const { publicKey, privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(input.passphrase);
-	const blsSK = bls.generatePrivateKey(Buffer.from(input.passphrase, 'utf-8'));
-	const blsPK = bls.getPublicKeyFromPrivateKey(blsSK);
-	const blsPop = bls.popProve(blsSK);
+	const publicKey = ed.getPublicKeyFromPrivateKey(input.privateKey);
 	const encodedAsset = codec.encode(delegateRegistrationCommandParamsSchema, {
 		name: input.username,
-		generatorKey: publicKey,
-		blsKey: blsPK,
-		proofOfPossession: blsPop,
+		generatorKey: input.generatorKey,
+		blsKey: input.blsKey,
+		proofOfPossession: input.blsProofOfPossession,
 	});
 
 	const tx = new Transaction({
@@ -88,7 +89,7 @@ export const createDelegateRegisterTransaction = (input: {
 		signatures: [],
 	});
 	tx.signatures.push(
-		ed.signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), privateKey),
+		ed.signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.privateKey),
 	);
 	return tx;
 };
@@ -96,14 +97,14 @@ export const createDelegateRegisterTransaction = (input: {
 export const createDelegateVoteTransaction = (input: {
 	nonce: bigint;
 	networkIdentifier: Buffer;
-	passphrase: string;
+	privateKey: Buffer;
 	fee?: bigint;
 	votes: { delegateAddress: Buffer; amount: bigint }[];
 }): Transaction => {
 	const encodedAsset = codec.encode(voteCommandParamsSchema, {
 		votes: input.votes,
 	});
-	const { publicKey, privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(input.passphrase);
+	const publicKey = ed.getPublicKeyFromPrivateKey(input.privateKey);
 
 	const tx = new Transaction({
 		module: 'dpos',
@@ -115,7 +116,7 @@ export const createDelegateVoteTransaction = (input: {
 		signatures: [],
 	});
 	tx.signatures.push(
-		ed.signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), privateKey),
+		ed.signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.privateKey),
 	);
 	return tx;
 };
@@ -127,8 +128,8 @@ export const createMultiSignRegisterTransaction = (input: {
 	mandatoryKeys: Buffer[];
 	optionalKeys: Buffer[];
 	numberOfSignatures: number;
-	senderPassphrase: string;
-	passphrases: string[];
+	senderPublicKey: Buffer;
+	privateKeys: Buffer[];
 }): Transaction => {
 	const encodedAsset = codec.encode(registerMultisignatureParamsSchema, {
 		mandatoryKeys: input.mandatoryKeys,
@@ -140,14 +141,12 @@ export const createMultiSignRegisterTransaction = (input: {
 		optionalKeys: input.optionalKeys,
 		numberOfSignatures: input.numberOfSignatures,
 	};
-	const { publicKey } = legacy.getPrivateAndPublicKeyFromPassphrase(input.senderPassphrase);
-	const transaction = [...input.passphrases].reduce<Record<string, unknown>>(
+	const transaction = [...input.privateKeys].reduce<Record<string, unknown>>(
 		(prev, current) => {
-			const { privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(current);
 			return signMultiSignatureTransaction(
 				prev,
 				input.networkIdentifier,
-				privateKey,
+				current,
 				params,
 				registerMultisignatureParamsSchema,
 				true,
@@ -157,7 +156,7 @@ export const createMultiSignRegisterTransaction = (input: {
 			module: 'auth',
 			command: 'registerMultisignatureGroup',
 			nonce: input.nonce,
-			senderPublicKey: publicKey,
+			senderPublicKey: input.senderPublicKey,
 			fee: input.fee ?? BigInt('1100000000'),
 			params,
 			signatures: [],
@@ -177,7 +176,7 @@ export const createMultisignatureTransferTransaction = (input: {
 	mandatoryKeys: Buffer[];
 	optionalKeys: Buffer[];
 	senderPublicKey: Buffer;
-	passphrases: string[];
+	privateKeys: Buffer[];
 }): Transaction => {
 	const mod = new TokenModule();
 	const command = new TransferCommand(mod.stores, mod.events);
@@ -188,13 +187,12 @@ export const createMultisignatureTransferTransaction = (input: {
 		data: '',
 	};
 	const encodedAsset = codec.encode(command.schema, params);
-	const transaction = input.passphrases.reduce<Record<string, unknown>>(
+	const transaction = input.privateKeys.reduce<Record<string, unknown>>(
 		(prev, current) => {
-			const { privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(current);
 			return signMultiSignatureTransaction(
 				prev,
 				input.networkIdentifier,
-				privateKey,
+				current,
 				{
 					mandatoryKeys: input.mandatoryKeys,
 					optionalKeys: input.optionalKeys,
@@ -220,7 +218,7 @@ export const createMultisignatureTransferTransaction = (input: {
 export const createReportMisbehaviorTransaction = (input: {
 	nonce: bigint;
 	networkIdentifier: Buffer;
-	passphrase: string;
+	privateKey: Buffer;
 	header1: BlockHeader;
 	header2: BlockHeader;
 	fee?: bigint;
@@ -229,7 +227,7 @@ export const createReportMisbehaviorTransaction = (input: {
 		header1: input.header1.getBytes(),
 		header2: input.header2.getBytes(),
 	});
-	const { publicKey, privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(input.passphrase);
+	const publicKey = ed.getPublicKeyFromPrivateKey(input.privateKey);
 
 	const tx = new Transaction({
 		module: 'dpos',
@@ -241,7 +239,7 @@ export const createReportMisbehaviorTransaction = (input: {
 		signatures: [],
 	});
 	tx.signatures.push(
-		ed.signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), privateKey),
+		ed.signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.privateKey),
 	);
 	return tx;
 };

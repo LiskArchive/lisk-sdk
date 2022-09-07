@@ -20,14 +20,12 @@ import BaseGenerator from './base_generator';
 interface CommandGeneratorOptions extends BaseGeneratorOptions {
 	moduleName: string;
 	commandName: string;
-	commandID: number;
 }
 
 export default class CommandGenerator extends BaseGenerator {
 	protected _liskAssetArgs: {
 		moduleName: string;
 		commandName: string;
-		commandID: number;
 	};
 
 	public constructor(args: string | string[], opts: CommandGeneratorOptions) {
@@ -36,7 +34,6 @@ export default class CommandGenerator extends BaseGenerator {
 		this._liskAssetArgs = {
 			moduleName: opts.moduleName,
 			commandName: opts.commandName,
-			commandID: opts.commandID,
 		};
 	}
 
@@ -48,7 +45,7 @@ export default class CommandGenerator extends BaseGenerator {
 		this.log('Generating asset skeleton.');
 		this.composeWith(
 			{
-				Generator: this._liskTemplate.generators.asset,
+				Generator: this._liskTemplate.generators.command,
 				path: this._liskTemplatePath,
 			},
 			this._liskAssetArgs,

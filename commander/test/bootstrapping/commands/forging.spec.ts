@@ -17,17 +17,13 @@ import * as inquirer from 'inquirer';
 import * as apiClient from '@liskhq/lisk-api-client';
 import { when } from 'jest-when';
 import * as Config from '@oclif/config';
-import { BaseForgingCommand } from '../../../src/bootstrapping/commands/base_forging';
 import * as appUtils from '../../../src/utils/application';
-import { EnableCommand } from '../../../src/bootstrapping/commands/forging/enable';
-import { DisableCommand } from '../../../src/bootstrapping/commands/forging/disable';
+import { EnableCommand } from '../../../src/bootstrapping/commands/generator/enable';
+import { DisableCommand } from '../../../src/bootstrapping/commands/generator/disable';
 import { getConfig } from '../../helpers/config';
 
 describe('forging', () => {
-	const actionResult = {
-		address: 'actionAddress',
-		forging: true,
-	};
+	const actionResult = 'Status updated.';
 	let stdout: string[];
 	let stderr: string[];
 	let config: Config.IConfig;
@@ -40,7 +36,6 @@ describe('forging', () => {
 		jest.spyOn(process.stdout, 'write').mockImplementation(val => stdout.push(val as string) > -1);
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
 		jest.spyOn(appUtils, 'isApplicationRunning').mockReturnValue(true);
-		jest.spyOn(BaseForgingCommand.prototype, 'printJSON').mockReturnValue();
 		invokeMock = jest.fn().mockResolvedValue({ address: 'actionAddress', forging: true });
 		jest.spyOn(apiClient, 'createIPCClient').mockResolvedValue({
 			disconnect: jest.fn(),
@@ -75,14 +70,13 @@ describe('forging', () => {
 		describe('when invoked with password', () => {
 			it('should invoke action with given address and password', async () => {
 				await EnableCommand.run(['myAddress', '10', '10', '1', '--password=my-password'], config);
-				expect(invokeMock).toHaveBeenCalledWith('app:updateForgingStatus', {
+				expect(invokeMock).toHaveBeenCalledWith('generator_setStatus', {
 					address: 'myAddress',
-					forging: true,
+					enabled: true,
 					password: 'my-password',
 					height: 10,
 					maxHeightPreviouslyForged: 10,
 					maxHeightPrevoted: 1,
-					overwrite: false,
 				});
 			});
 		});
@@ -103,14 +97,13 @@ describe('forging', () => {
 
 			it('should invoke action with given address and password', async () => {
 				await EnableCommand.run(['myAddress', '10', '10', '1'], config);
-				expect(invokeMock).toHaveBeenCalledWith('app:updateForgingStatus', {
+				expect(invokeMock).toHaveBeenCalledWith('generator_setStatus', {
 					address: 'myAddress',
-					forging: true,
+					enabled: true,
 					password: 'promptPassword',
 					height: 10,
 					maxHeightPreviouslyForged: 10,
 					maxHeightPrevoted: 1,
-					overwrite: false,
 				});
 			});
 		});
@@ -118,22 +111,20 @@ describe('forging', () => {
 		describe('when action is successful', () => {
 			it('should invoke action with given address and user provided password', async () => {
 				await EnableCommand.run(['myAddress', '10', '10', '1', '--password=my-password'], config);
-				expect(BaseForgingCommand.prototype.printJSON).toHaveBeenCalledTimes(1);
-				expect(BaseForgingCommand.prototype.printJSON).toHaveBeenCalledWith(actionResult);
+				expect(stdout[0]).toMatch(actionResult);
 			});
 		});
 
 		describe('when action fail', () => {
 			it('should log the error returned', async () => {
 				when(invokeMock)
-					.calledWith('app:updateForgingStatus', {
+					.calledWith('generator_setStatus', {
 						address: 'myFailedEnabledAddress',
-						forging: true,
+						enabled: true,
 						password: 'my-password',
 						height: 10,
 						maxHeightPreviouslyForged: 10,
 						maxHeightPrevoted: 1,
-						overwrite: false,
 					})
 					.mockRejectedValue(new Error('Custom Error'));
 				await expect(
@@ -142,24 +133,6 @@ describe('forging', () => {
 						config,
 					),
 				).rejects.toThrow('Custom Error');
-			});
-		});
-
-		describe('when invoked with overwrite', () => {
-			it('should invoke action with given args and overwrite and password flags', async () => {
-				await EnableCommand.run(
-					['myAddress', '10', '10', '1', '--overwrite', '--password=my-password'],
-					config,
-				);
-				expect(invokeMock).toHaveBeenCalledWith('app:updateForgingStatus', {
-					address: 'myAddress',
-					forging: true,
-					password: 'my-password',
-					height: 10,
-					maxHeightPreviouslyForged: 10,
-					maxHeightPrevoted: 1,
-					overwrite: true,
-				});
 			});
 		});
 	});
@@ -172,14 +145,13 @@ describe('forging', () => {
 		describe('when invoked with password', () => {
 			it('should invoke action with given address and password', async () => {
 				await DisableCommand.run(['myAddress', '--password=my-password'], config);
-				expect(invokeMock).toHaveBeenCalledWith('app:updateForgingStatus', {
+				expect(invokeMock).toHaveBeenCalledWith('generator_setStatus', {
 					address: 'myAddress',
-					forging: false,
+					enabled: false,
 					password: 'my-password',
 					height: 0,
 					maxHeightPreviouslyForged: 0,
 					maxHeightPrevoted: 0,
-					overwrite: false,
 				});
 			});
 		});
@@ -200,14 +172,13 @@ describe('forging', () => {
 
 			it('should invoke action with given address and password', async () => {
 				await DisableCommand.run(['myAddress'], config);
-				expect(invokeMock).toHaveBeenCalledWith('app:updateForgingStatus', {
+				expect(invokeMock).toHaveBeenCalledWith('generator_setStatus', {
 					address: 'myAddress',
-					forging: false,
+					enabled: false,
 					password: 'promptPassword',
 					height: 0,
 					maxHeightPreviouslyForged: 0,
 					maxHeightPrevoted: 0,
-					overwrite: false,
 				});
 			});
 		});
@@ -215,22 +186,20 @@ describe('forging', () => {
 		describe('when action is successful', () => {
 			it('should invoke action with given address and user provided password', async () => {
 				await DisableCommand.run(['myAddress', '--password=my-password'], config);
-				expect(BaseForgingCommand.prototype.printJSON).toHaveBeenCalledTimes(1);
-				expect(BaseForgingCommand.prototype.printJSON).toHaveBeenCalledWith(actionResult);
+				expect(stdout[0]).toMatch(actionResult);
 			});
 		});
 
 		describe('when action fail', () => {
 			it('should log the error returned', async () => {
 				when(invokeMock)
-					.calledWith('app:updateForgingStatus', {
+					.calledWith('generator_setStatus', {
 						address: 'myFailedDisabledAddress',
-						forging: false,
+						enabled: false,
 						password: 'my-password',
 						height: 0,
 						maxHeightPreviouslyForged: 0,
 						maxHeightPrevoted: 0,
-						overwrite: false,
 					})
 					.mockRejectedValue(new Error('Custom Error'));
 				await expect(

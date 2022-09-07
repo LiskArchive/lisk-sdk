@@ -141,7 +141,7 @@ export const createBlockContext = (params: {
 
 export const createBlockGenerateContext = (params: {
 	assets?: WritableBlockAssets;
-	getGeneratorStore?: (moduleID: Buffer, subStorePrefix?: Buffer) => SubStore;
+	getOffchainStore?: (moduleID: Buffer, subStorePrefix: Buffer) => SubStore;
 	logger?: Logger;
 	getAPIContext?: () => APIContext;
 	getStore?: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
@@ -151,8 +151,8 @@ export const createBlockGenerateContext = (params: {
 }): InsertAssetContext => {
 	const db = new InMemoryDatabase();
 	const generatorStore = new StateStore(db);
-	const getGeneratorStore = (moduleID: Buffer, subStorePrefix: Buffer = Buffer.alloc(0)) =>
-		generatorStore.getStore(moduleID, subStorePrefix.readUInt16BE(0));
+	const getOffchainStore = (moduleID: Buffer, subStorePrefix: Buffer) =>
+		generatorStore.getStore(moduleID, subStorePrefix);
 	const header =
 		params.header ??
 		new BlockHeader({
@@ -179,12 +179,11 @@ export const createBlockGenerateContext = (params: {
 
 	const ctx: InsertAssetContext = {
 		assets: params.assets ?? new BlockAssets([]),
-		getGeneratorStore: params.getGeneratorStore ?? getGeneratorStore,
+		getOffchainStore: params.getOffchainStore ?? getOffchainStore,
 		logger: params.logger ?? loggerMock,
 		networkIdentifier: params.networkIdentifier ?? utils.getRandomBytes(32),
 		getAPIContext: params.getAPIContext ?? (() => ({ getStore, eventQueue: new EventQueue() })),
 		getStore: params.getStore ?? getStore,
-		getOffchainStore: params.getGeneratorStore ?? getGeneratorStore,
 		getFinalizedHeight: () => params.finalizedHeight ?? 0,
 		header,
 	};
@@ -258,17 +257,21 @@ export const createTransientAPIContext = (params: {
 
 export const createTransientModuleEndpointContext = (params: {
 	stateStore?: PrefixedStateReadWriter;
+	moduleStore?: StateStore;
 	params?: Record<string, unknown>;
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 }): ModuleEndpointContext => {
 	const stateStore =
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+	const moduleStore = params.moduleStore ?? new StateStore(new InMemoryDatabase());
 	const parameters = params.params ?? {};
 	const logger = params.logger ?? loggerMock;
 	const networkIdentifier = params.networkIdentifier ?? Buffer.alloc(0);
 	const ctx = {
 		getStore: (moduleID: Buffer, storePrefix: Buffer) => stateStore.getStore(moduleID, storePrefix),
+		getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) =>
+			moduleStore.getStore(moduleID, storePrefix),
 		getImmutableAPIContext: () => createImmutableAPIContext(stateStore),
 		params: parameters,
 		logger,

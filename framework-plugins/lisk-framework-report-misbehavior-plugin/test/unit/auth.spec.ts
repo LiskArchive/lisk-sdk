@@ -12,46 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ApplicationConfigForPlugin, GenesisConfig, testing } from 'lisk-sdk';
+import { ApplicationConfigForPlugin, testing } from 'lisk-sdk';
 import { ReportMisbehaviorPlugin } from '../../src';
 import { configSchema } from '../../src/schemas';
 
 const appConfigForPlugin: ApplicationConfigForPlugin = {
-	rootPath: '~/.lisk',
-	label: 'my-app',
-	logger: {
-		consoleLogLevel: 'info',
-		fileLogLevel: 'none',
-		logFileName: 'plugin-MisbehaviourPlugin.log',
-	},
-	system: {
-		keepEventsForHeights: -1,
-	},
-	rpc: {
-		modes: [],
-		port: 8080,
-		host: '127.0.0.1',
-	},
-	generation: {
-		force: false,
-		waitThreshold: 2,
-		generators: [],
-		modules: {},
-	},
-	network: {
-		seedPeers: [],
-		port: 5000,
-	},
-	transactionPool: {
-		maxTransactions: 4096,
-		maxTransactionsPerAccount: 64,
-		transactionExpiryTime: 3 * 60 * 60 * 1000,
-		minEntranceFeePriority: '0',
-		minReplacementFeeDifference: '10',
-	},
-	version: '',
-	networkVersion: '',
-	genesis: {} as GenesisConfig,
+	...testing.fixtures.defaultConfig,
 };
 
 const validPluginOptions = {

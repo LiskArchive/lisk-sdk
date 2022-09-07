@@ -12,8 +12,91 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { SEED_LENGTH } from './constants';
-import { ADDRESS_LENGTH } from '../token/constants';
+import { ADDRESS_LENGTH, SEED_LENGTH } from './constants';
+
+interface AddressRequest {
+	address: string;
+}
+
+export interface SetHashOnionRequest extends AddressRequest {
+	seed?: string | undefined;
+	count?: number | undefined;
+	distance?: number | undefined;
+}
+
+export const setHashOnionRequestSchema = {
+	$id: 'lisk/random/setSeedRequestSchema',
+	type: 'object',
+	title: 'Random setSeed request',
+	required: ['address'],
+	properties: {
+		address: {
+			type: 'string',
+			format: 'hex',
+		},
+		seed: {
+			type: 'string',
+			format: 'hex',
+		},
+		count: {
+			type: 'integer',
+			minimum: 1,
+		},
+		distance: {
+			type: 'integer',
+			minimum: 1,
+		},
+	},
+};
+
+interface Seeds extends AddressRequest {
+	seed: string;
+	count: number;
+	distance: number;
+}
+
+export interface GetSeedsResponse {
+	seeds: Seeds[];
+}
+
+export type HasHashOnionRequest = AddressRequest;
+
+export interface HasHashOnionResponse {
+	hasSeed: boolean;
+	remaining: number;
+}
+
+export const hasHashOnionRequestSchema = {
+	$id: 'lisk/random/hasHashOnionRequestSchema',
+	type: 'object',
+	required: ['address'],
+	properties: {
+		address: {
+			type: 'string',
+			format: 'hex',
+		},
+	},
+};
+
+export interface GetHashOnionUsageResponse {
+	height: number;
+	count: number;
+	seed: string;
+}
+
+export type GetHashOnionUsageRequest = AddressRequest;
+
+export const getHashOnionUsageRequestSchema = {
+	$id: 'lisk/random/getHashOnionUsageRequest',
+	type: 'object',
+	required: ['address'],
+	properties: {
+		address: {
+			type: 'string',
+			format: 'hex',
+		},
+	},
+};
 
 export const randomModuleConfig = {
 	$id: '/modules/random/config',

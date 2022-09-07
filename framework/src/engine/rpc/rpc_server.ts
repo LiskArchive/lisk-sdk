@@ -23,7 +23,7 @@ import { RPCConfig } from '../../types';
 import { Request } from '../../controller/request';
 import * as JSONRPC from '../../controller/jsonrpc';
 import { notificationRequest } from '../../controller/jsonrpc';
-import { systemDirsFromDataPath } from '../../system_dirs';
+import { systemDirs } from '../../system_dirs';
 
 export interface RequestContext {
 	params: Record<string, unknown>;
@@ -55,9 +55,9 @@ export class RPCServer {
 	public constructor(dataPath: string, config: RPCConfig) {
 		this._config = config;
 		if (this._config.modes.includes(RPC_MODES.IPC)) {
-			const systemDirs = systemDirsFromDataPath(dataPath);
+			const dirs = systemDirs(dataPath);
 			this._ipcServer = new IPCServer({
-				socketsDir: systemDirs.sockets,
+				socketsDir: dirs.sockets,
 				name: 'engine',
 				externalSocket: true,
 			});
@@ -202,7 +202,7 @@ export class RPCServer {
 			this._logger.error('Empty invoke request.');
 			throw new JSONRPC.JSONRPCError(
 				'Invalid invoke request.',
-				JSONRPC.errorResponse(null, JSONRPC.invalidRequest()),
+				JSONRPC.errorResponse(null, JSONRPC.invalidRequest('Invalid invoke request.')),
 			);
 		}
 		let requestObj: unknown;
@@ -211,7 +211,10 @@ export class RPCServer {
 		} catch (error) {
 			throw new JSONRPC.JSONRPCError(
 				'Invalid RPC request. Failed to parse request params.',
-				JSONRPC.errorResponse(null, JSONRPC.invalidRequest()),
+				JSONRPC.errorResponse(
+					null,
+					JSONRPC.invalidRequest('Invalid RPC request. Failed to parse request params.'),
+				),
 			);
 		}
 
@@ -221,7 +224,10 @@ export class RPCServer {
 			this._logger.error({ err: error as Error }, 'Invalid RPC request.');
 			throw new JSONRPC.JSONRPCError(
 				'Invalid RPC request. Invalid request format.',
-				JSONRPC.errorResponse(null, JSONRPC.invalidRequest()),
+				JSONRPC.errorResponse(
+					null,
+					JSONRPC.invalidRequest('Invalid RPC request. Invalid request format.'),
+				),
 			);
 		}
 
@@ -245,14 +251,17 @@ export class RPCServer {
 				);
 			}
 			const result = await handler(context);
-			return request.buildJSONRPCResponse({ result }) as JSONRPC.ResponseObjectWithResult;
+			return request.buildJSONRPCResponse({
+				result: result ?? {},
+			}) as JSONRPC.ResponseObjectWithResult;
 		} catch (error) {
 			if (error instanceof JSONRPC.JSONRPCError) {
 				throw error;
 			}
+
 			throw new JSONRPC.JSONRPCError(
 				(error as Error).message,
-				JSONRPC.errorResponse(requestObj.id, JSONRPC.invalidRequest()),
+				JSONRPC.errorResponse(requestObj.id, JSONRPC.invalidRequest((error as Error).message)),
 			);
 		}
 	}

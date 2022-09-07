@@ -22,34 +22,8 @@ export interface UsedHashOnion {
 	readonly height: number;
 }
 
-export interface HashOnionConfig {
-	readonly count: number;
-	readonly distance: number;
-	readonly hashes: Buffer[];
-}
-
 export interface UsedHashOnionStoreObject {
 	readonly usedHashOnions: UsedHashOnion[];
-}
-
-export interface HashOnion {
-	readonly address: Buffer;
-	readonly hashOnion: {
-		readonly count: number;
-		readonly distance: number;
-		readonly hashes: Buffer[];
-	};
-}
-
-export interface ValidatorSeedReveal {
-	generatorAddress: Buffer;
-	seedReveal: Buffer;
-	height: number;
-	valid: boolean;
-}
-
-export interface ValidatorReveals {
-	validatorReveals: ValidatorSeedReveal[];
 }
 
 export interface BlockHeaderAssetRandomModule {

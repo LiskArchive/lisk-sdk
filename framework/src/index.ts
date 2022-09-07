@@ -24,8 +24,17 @@ export {
 	BaseAPI,
 	BaseCommand,
 	BaseEndpoint,
+	BaseEvent,
+	BaseOffchainStore,
+	BaseStore,
+	EventQueuer,
+	ImmutableOffchainStoreGetter,
+	ImmutableStoreGetter,
+	OffchainStoreGetter,
+	StoreGetter,
 	ModuleMetadata,
 	ModuleMetadataJSON,
+	ModuleInitArgs,
 } from './modules';
 export { Application } from './application';
 export { systemDirs } from './system_dirs';
@@ -37,7 +46,6 @@ export type { EventsDefinition, EventCallback } from './controller/event';
 export * as testing from './testing';
 export * from './types';
 export { ValidatorsAPI, ValidatorsModule } from './modules/validators';
-export { BFTAPI, BFTModule } from './engine/bft';
 export {
 	TokenAPI,
 	TokenModule,
@@ -71,8 +79,15 @@ export { FeeAPI, FeeModule } from './modules/fee';
 export { RandomAPI, RandomModule } from './modules/random';
 export {
 	GenesisBlockExecuteContext,
+	InsertAssetContext,
+	APIContext,
 	CommandExecuteContext,
 	CommandVerifyContext,
 	VerificationResult,
 	VerifyStatus,
+	TransactionVerifyContext,
+	TransactionExecuteContext,
+	BlockVerifyContext,
+	BlockExecuteContext,
+	BlockAfterExecuteContext,
 } from './state_machine/types';

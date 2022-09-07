@@ -34,23 +34,7 @@ describe('generate:module command', () => {
 
 	describe('generate:module', () => {
 		it('should throw an error when all arg is not provided', async () => {
-			await expect(ModuleCommand.run([], config)).rejects.toThrow('Missing 2 required arg');
-		});
-
-		it('should throw an error when a arg is not provided', async () => {
-			await expect(ModuleCommand.run(['nft'], config)).rejects.toThrow('Missing 1 required arg');
-		});
-	});
-
-	describe('generate:module invalidModuleName invalidModuleID', () => {
-		it('should throw an error when module name is invalid', async () => {
-			await expect(ModuleCommand.run(['nft$5', '1001'], config)).rejects.toThrow(
-				'Invalid module name',
-			);
-		});
-
-		it('should throw an error when module ID is invalid', async () => {
-			await expect(ModuleCommand.run(['nft', '5r'], config)).rejects.toThrow('Invalid module ID');
+			await expect(ModuleCommand.run([], config)).rejects.toThrow('Missing 1 required arg');
 		});
 	});
 
@@ -59,7 +43,7 @@ describe('generate:module command', () => {
 			jest.spyOn<any, any>(BaseBootstrapCommand.prototype, '_isLiskAppDir').mockReturnValue(false);
 			jest.spyOn(process, 'cwd').mockReturnValue('/my/dir');
 
-			await expect(ModuleCommand.run(['nft', '1001'], config)).rejects.toThrow(
+			await expect(ModuleCommand.run(['nft'], config)).rejects.toThrow(
 				'You can run this command only in lisk app directory. Run "lisk init --help" command for more details.',
 			);
 			expect(BaseBootstrapCommand.prototype['_isLiskAppDir']).toHaveBeenCalledWith('/my/dir');
@@ -72,11 +56,11 @@ describe('generate:module command', () => {
 				.mockResolvedValue(null as never);
 			jest.spyOn(process, 'cwd').mockReturnValue('/my/dir');
 
-			await expect(ModuleCommand.run(['nft', '1001'], config)).resolves.toBeNull();
+			await expect(ModuleCommand.run(['nft'], config)).resolves.toBeNull();
 			expect(BaseBootstrapCommand.prototype['_isLiskAppDir']).toHaveBeenCalledWith('/my/dir');
 			expect(
 				BaseBootstrapCommand.prototype['_runBootstrapCommand'],
-			).toHaveBeenCalledWith('lisk:generate:module', { moduleID: '1001', moduleName: 'nft' });
+			).toHaveBeenCalledWith('lisk:generate:module', { moduleName: 'nft' });
 		});
 	});
 });

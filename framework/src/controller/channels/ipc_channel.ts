@@ -214,6 +214,9 @@ export class IPCChannel extends BaseChannel {
 					throw new Error('getImmutableAPIContext cannot be called on IPC channel');
 				},
 				params: request.params ?? {},
+				getOffchainStore: () => {
+					throw new Error('getOffchainStore cannot be called on IPC channel');
+				},
 				logger: this._logger,
 			}) as Promise<T>;
 		}

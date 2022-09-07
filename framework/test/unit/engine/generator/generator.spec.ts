@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import * as fs from 'fs';
 import { EventEmitter } from 'events';
 import { BlockAssets, Chain, Transaction } from '@liskhq/lisk-chain';
 import { bls, utils, address as cryptoAddress, legacy } from '@liskhq/lisk-cryptography';
@@ -21,53 +22,26 @@ import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { Generator } from '../../../../src/engine/generator';
 import { Consensus } from '../../../../src/engine/generator/types';
 import { Network } from '../../../../src/engine/network';
-import { configUtils } from '../../../utils';
 import { fakeLogger } from '../../../utils/mocks';
 
-import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
-import { NETWORK_RPC_GET_TRANSACTIONS } from '../../../../src/engine/generator/constants';
-import { getTransactionsResponseSchema } from '../../../../src/engine/generator/schemas';
+import {
+	GENERATOR_STORE_KEY_PREFIX,
+	NETWORK_RPC_GET_TRANSACTIONS,
+} from '../../../../src/engine/generator/constants';
+import {
+	generatorKeysSchema,
+	getTransactionsResponseSchema,
+	plainGeneratorKeysSchema,
+} from '../../../../src/engine/generator/schemas';
 import { BFTModule } from '../../../../src/engine/bft';
 import { createFakeBlockHeader } from '../../../../src/testing';
 import { ABI } from '../../../../src/abi';
+import { defaultConfig } from '../../../../src/testing/fixtures';
+import { testing } from '../../../../src';
+import { GeneratorStore } from '../../../../src/engine/generator/generator_store';
 
 describe('generator', () => {
 	const logger = fakeLogger;
-	const generators = [
-		{
-			publicKey: Buffer.from(
-				'c24ec443a9e0f18f67275dea31fa3083292e249db7347ac62958ff3ba9ab9b9b',
-				'hex',
-			),
-			address: cryptoAddress.getAddressFromPublicKey(
-				Buffer.from('c24ec443a9e0f18f67275dea31fa3083292e249db7347ac62958ff3ba9ab9b9b', 'hex'),
-			),
-			encryptedPassphrase:
-				'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=8540bb771c785b4e89f1502b1c7daeab6ccb55d3199993bf0065866bf23eb1ddc85522f44b9b960eae0aff83d7e0029bf9b6b12dbf1108d050835677c264387a6733365f9e542b95c83a886e58fc381e97495ccb34d628e266b2e3b39d0948106afcbad20f4656287d26b4871e280da00c29b33a08458be8ab373bc775947c7aa420a34a8767c25b96f44be3c1a853d6a70bd9a61f01b89d9b&mac=f6a7b85215dd8573554aa47281fb0f72721febacd1e73d4db106d17a0868ced5&salt=4966e4b6a7a4a67dc8f6a0934074fd65&iv=d285514c0687e4636605c3a8&tag=36dccdbda3a036e1957b6b9479cc7a65&iterations=1&parallelism=4&memorySize=2024',
-		},
-		{
-			publicKey: Buffer.from(
-				'e2ab259cabe2b00f4f3760f3cdd989e09c2abb828150ddd2a30f004634c6d825',
-				'hex',
-			),
-			address: cryptoAddress.getAddressFromPublicKey(
-				Buffer.from('e2ab259cabe2b00f4f3760f3cdd989e09c2abb828150ddd2a30f004634c6d825', 'hex'),
-			),
-			encryptedPassphrase:
-				'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=181e2810b8b95b399bfafae012cc0bf1d326e4954d27c103ebb8b88e8fd2ec12591bced770061f2c5032bd9a404562be09df5cbb130b03a3014d984e9041ac1164a70b6065a0b1c1bdab94b60015ede6b11b213003b86bf7ebb47c7cdcde6864e6dc67846d034c11afd33a614f289116f683c9c2b7420b421e7cd850ff4be14732122f8b02a850972b1b0357980559463af3a5317d66eb255b9979d5114e3c8847ef0c&mac=e605cc7e3ab01784b9bdee078fa6fb623d8c551f459f72e586b2f89e4bfc3af4&salt=ea719460870cb801900ed673476d8e1f&iv=e71c89f5466d4e0f076e2272&tag=025a827cf135c5eeb89b950b44ad4b42&iterations=1&parallelism=4&memorySize=2024',
-		},
-		{
-			publicKey: Buffer.from(
-				'fc1fa2e4f57f9e6d142328b12f17fd5739e44c07e4026bfb41dd877912511fa3',
-				'hex',
-			),
-			address: cryptoAddress.getAddressFromPublicKey(
-				Buffer.from('fc1fa2e4f57f9e6d142328b12f17fd5739e44c07e4026bfb41dd877912511fa3', 'hex'),
-			),
-			encryptedPassphrase:
-				'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=ca989fe2ea9f41fd8b637e38757735024cfc438744021c94e10e93d3f264111219b536a297fae975341d87ceadcec044411c7233412a33dec78ce339dc66725ae641ebd1f291fde6e8908495022f983ac8c06dbff37d7b191902b4468c3351a2e8177760b38354afba1bb2092a4d8bcc14dd5af69c34a6e53970d55063aa4044fa2c93b71ba8290642&mac=22af4dfd03c47781697b0bc0e5dba1dff23e573c8eb61928acdbc30620817923&salt=175636a6761b48eef2fbd540ac1baca0&iv=84f431d4065d853ea97a607f&tag=84df212423f2a7a98ed8e9d6b3e30df4&iterations=1&parallelism=4&memorySize=2024',
-		},
-	];
 	const txBytes =
 		'0805100118012080ade2042a20f7e7627120dab14b80b6e4f361ba89db251ee838708c3a74c6c2cc08ad793f58321d0a1b0a1432fc1c23b73db1c6205327b1cab44318e61678ea1080dac4093a40a0be9e52d9e0a53406c55a74ab0d7d106eb276a47dd88d3dc2284ed62024b2448e0bd5af1623ae7d793606a58c27d742e8855ba339f757d56972c4c6efad750c';
 	const tx = new Transaction({
@@ -175,113 +149,45 @@ describe('generator', () => {
 			chain,
 			consensus,
 			network,
-			generationConfig: {
-				generators: genesisDelegates.delegates.map(d => ({
-					address: Buffer.from(d.address, 'hex'),
-					encryptedPassphrase: d.encryptedPassphrase,
-				})),
-				password: genesisDelegates.delegates[0].password,
-				waitThreshold: 2,
+			config: {
+				...defaultConfig,
+				generator: {
+					keys: {
+						fromFile: '~/.lisk/default/keys.json',
+					},
+				},
 			},
-			genesisConfig: configUtils.constantsConfig(),
 		});
+		jest.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify(testing.fixtures.keysList));
 	});
 
 	describe('init', () => {
 		describe('loadGenerator', () => {
-			let accountDetails: {
-				readonly address: Buffer;
-				readonly encryptedPassphrase: string;
-			};
+			beforeEach(async () => {
+				for (const d of testing.fixtures.keysList.keys) {
+					const generatorKeys = {
+						address: Buffer.from(d.address, 'hex'),
+						type: 'plain',
+						data: {
+							generatorKey: Buffer.from(d.plain.generatorKey, 'hex'),
+							generatorPrivateKey: Buffer.from(d.plain.generatorPrivateKey, 'hex'),
+							blsPrivateKey: Buffer.from(d.plain.blsPrivateKey, 'hex'),
+							blsKey: Buffer.from(d.plain.blsKey, 'hex'),
+						},
+					};
+					const encodedData = codec.encode(plainGeneratorKeysSchema, generatorKeys.data);
 
-			beforeEach(() => {
-				accountDetails = {
-					address: cryptoAddress.getAddressFromPublicKey(
-						Buffer.from('75e99d6f2359ebaba661d0651c04f3d9cb8cd405d452e30af9f5d10e1cf732ed'),
-					),
-					encryptedPassphrase:
-						'kdf=argon2id&cipher=aes-256-gcm&version=1&ciphertext=8aa7c85bdad53ef1bce5877f9d6160b2e4e77e40bc3e7e64781ad0ea19fe4fa8f6239d00138b03a2fb8724f3f206268b7c5825724b436e0c08f1a489122a35640c20511d9d32423a3c55115f8833f9e4f9863179837674e28fd109b2a49bf158038669386f7e0f385fd8460ad6a86b8119876bd2040c3ad6c27492d139bc76e225a7796c00380769cb62feaaf502d9a4106d3952680ede743fd895f5&mac=6b6f362b3dd09507632d191acaaa26390f572a08dd9bceca57f2c3025df518e1&salt=673748497daee381fd2a4b656a8cd91b&iv=87a4d0885de25939396ffa32&tag=ac0d3f2dbaf99c9afafbef49f86f2bf5&iterations=1&parallelism=4&memorySize=2024',
-				};
-				generator['_config'].force = true;
-				generator['_config'].generators = [];
-			});
-
-			it('should not load any delegates when forging.force is false', async () => {
-				generator['_config'].force = false;
-				generator['_config'].generators = generators;
-
-				await generator.init({
-					blockchainDB,
-					generatorDB,
-					logger,
-				});
-				return expect(generator['_keypairs'].values()).toHaveLength(0);
-			});
-
-			it('should not load any delegates when forging.delegates array is empty', async () => {
-				generator['_config'].force = true;
-				generator['_config'].generators = [];
-
-				await generator.init({
-					blockchainDB,
-					generatorDB,
-					logger,
-				});
-				return expect(generator['_keypairs'].values()).toHaveLength(0);
-			});
-
-			it('should not load any delegates when forging.delegates list is undefined', async () => {
-				generator['_config'].force = true;
-				generator['_config'].generators = undefined as never;
-
-				await generator.init({
-					blockchainDB,
-					generatorDB,
-					logger,
-				});
-
-				return expect(generator['_keypairs'].values()).toHaveLength(0);
-			});
-
-			it('should return error if number of iterations is omitted', async () => {
-				generator['_config'].force = true;
-				generator['_config'].generators = [accountDetails];
-
-				await expect(
-					generator.init({
-						blockchainDB,
-						generatorDB,
-						logger,
-					}),
-				).rejects.toThrow(
-					`Invalid encryptedPassphrase for address: ${accountDetails.address.toString(
-						'hex',
-					)}. Unsupported state or unable to authenticate data`,
-				);
-			});
-
-			it('should return error if encrypted passphrase is invalid', async () => {
-				generator['_config'].generators = [accountDetails];
-
-				await expect(
-					generator.init({
-						blockchainDB,
-						generatorDB,
-						logger,
-					}),
-				).rejects.toThrow(
-					`Invalid encryptedPassphrase for address: ${accountDetails.address.toString(
-						'hex',
-					)}. Unsupported state or unable to authenticate data`,
-				);
+					await generatorDB.set(
+						Buffer.concat([GENERATOR_STORE_KEY_PREFIX, generatorKeys.address]),
+						codec.encode(generatorKeysSchema, {
+							type: generatorKeys.type,
+							data: encodedData,
+						}),
+					);
+				}
 			});
 
 			it('should load all 101 delegates', async () => {
-				generator['_config'].generators = genesisDelegates.delegates.map(d => ({
-					address: Buffer.from(d.address, 'hex'),
-					encryptedPassphrase: d.encryptedPassphrase,
-				}));
-
 				await generator.init({
 					blockchainDB,
 					generatorDB,
@@ -303,6 +209,47 @@ describe('generator', () => {
 					logger,
 				});
 				expect(generator['_handleFinalizedHeightChanged']).toHaveBeenCalledWith(313, 515);
+			});
+		});
+		describe('saveKeysFromFile', () => {
+			it('should not store any data when generator.keys.fromFile is not defined', async () => {
+				generator['_config'].generator = { keys: {} };
+				await generator.init({
+					blockchainDB,
+					generatorDB,
+					logger,
+				});
+
+				const store = new GeneratorStore(generator['_generatorDB']);
+				const subStore = store.getGeneratorStore(GENERATOR_STORE_KEY_PREFIX);
+
+				await expect(subStore.iterate({})).resolves.toEqual([]);
+			});
+
+			it('should reject if file does not follow exepcted format', async () => {
+				jest.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify({ invalid: 'file' }));
+				await expect(
+					generator.init({
+						blockchainDB,
+						generatorDB,
+						logger,
+					}),
+				).rejects.toThrow('Lisk validator found 1 error');
+			});
+
+			it('should store all keys from the file defined', async () => {
+				await generator.init({
+					blockchainDB,
+					generatorDB,
+					logger,
+				});
+
+				const store = new GeneratorStore(generator['_generatorDB']);
+				const subStore = store.getGeneratorStore(GENERATOR_STORE_KEY_PREFIX);
+
+				await expect(subStore.iterate({})).resolves.toHaveLength(
+					testing.fixtures.keysList.keys.length,
+				);
 			});
 		});
 	});
@@ -414,7 +361,6 @@ describe('generator', () => {
 			},
 		};
 		beforeEach(async () => {
-			generator['_config'].force = true;
 			await generator.init({
 				blockchainDB,
 				generatorDB,
@@ -447,7 +393,7 @@ describe('generator', () => {
 				.mockReturnValueOnce(lastBlockSlot - 1);
 			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000));
 			(consensus.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
-				Buffer.from(genesisDelegates.delegates[0].address, 'hex'),
+				Buffer.from(testing.fixtures.keysList.keys[0].address, 'hex'),
 			);
 			jest.spyOn(generator, '_generateBlock' as never);
 
@@ -462,7 +408,7 @@ describe('generator', () => {
 				.mockReturnValueOnce(lastBlockSlot - 1);
 			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000) - 5);
 			(consensus.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
-				Buffer.from(genesisDelegates.delegates[0].address, 'hex'),
+				Buffer.from(testing.fixtures.keysList.keys[0].address, 'hex'),
 			);
 
 			jest.spyOn(generator, '_generateBlock' as never).mockResolvedValue(forgedBlock as never);
@@ -478,7 +424,7 @@ describe('generator', () => {
 				.mockReturnValueOnce(lastBlockSlot);
 			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000) + 5);
 			(consensus.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
-				Buffer.from(genesisDelegates.delegates[0].address, 'hex'),
+				Buffer.from(testing.fixtures.keysList.keys[0].address, 'hex'),
 			);
 
 			jest.spyOn(generator, '_generateBlock' as never).mockResolvedValue(forgedBlock as never);
@@ -510,7 +456,7 @@ describe('generator', () => {
 				.mockResolvedValue({ transactions: [tx], events: [] });
 			jest
 				.spyOn(generator['_bft'].api, 'getBFTParameters')
-				.mockResolvedValue({ validatorsHash } as never);
+				.mockResolvedValue({ validatorsHash, validators: [] } as never);
 			jest
 				.spyOn(generator['_consensus'], 'getAggregateCommit')
 				.mockResolvedValue(aggregateCommit as never);

@@ -80,12 +80,12 @@ describe('Delete block', () => {
 		describe('when deleteLastBlock is called', () => {
 			beforeEach(async () => {
 				const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-					address: genesis.address.toString('hex'),
+					address: genesis.address,
 				});
 				originalBalance = await processEnv.invoke<{ availableBalance: string }>(
 					'token_getBalance',
 					{
-						address: genesis.address.toString('hex'),
+						address: genesis.address,
 						tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 					},
 				);
@@ -94,7 +94,7 @@ describe('Delete block', () => {
 					recipientAddress: recipientAccount.address,
 					amount: BigInt('1000000000'),
 					networkIdentifier,
-					passphrase: genesis.passphrase,
+					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				newBlock = await processEnv.createBlock([transaction]);
 				await processEnv
@@ -129,7 +129,7 @@ describe('Delete block', () => {
 				const afterBalance = await processEnv.invoke<{ availableBalance: string }>(
 					'token_getBalance',
 					{
-						address: genesis.address.toString('hex'),
+						address: genesis.address,
 						tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 					},
 				);
@@ -162,12 +162,12 @@ describe('Delete block', () => {
 			it('should rollback all the accounts to the previous state', async () => {
 				// Arrange
 				const genesisAuth = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-					address: genesis.address.toString('hex'),
+					address: genesis.address,
 				});
 				const genesisBalance = await processEnv.invoke<{ availableBalance: string }>(
 					'token_getBalance',
 					{
-						address: genesis.address.toString('hex'),
+						address: genesis.address,
 						tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 					},
 				);
@@ -177,7 +177,7 @@ describe('Delete block', () => {
 					recipientAddress: recipientAccount.address,
 					amount: BigInt('100000000000'),
 					networkIdentifier,
-					passphrase: genesis.passphrase,
+					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				const newBlock = await processEnv.createBlock([transaction1]);
 				await processEnv.process(newBlock);
@@ -186,7 +186,7 @@ describe('Delete block', () => {
 				const revertedBalance = await processEnv.invoke<{ availableBalance: string }>(
 					'token_getBalance',
 					{
-						address: genesis.address.toString('hex'),
+						address: genesis.address,
 						tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 					},
 				);
@@ -199,7 +199,7 @@ describe('Delete block', () => {
 		describe('when the deleteLastBlock is called', () => {
 			it('should rollback validators to the previous state', async () => {
 				const genesisAuth = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-					address: genesis.address.toString('hex'),
+					address: genesis.address,
 				});
 				const recipientAccount = nodeUtils.createAccount();
 				const transaction1 = createTransferTransaction({
@@ -207,18 +207,21 @@ describe('Delete block', () => {
 					recipientAddress: recipientAccount.address,
 					amount: BigInt('1000000000000'),
 					networkIdentifier,
-					passphrase: genesis.passphrase,
+					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				const transaction2 = createDelegateRegisterTransaction({
 					nonce: BigInt(0),
 					username: 'rand',
 					networkIdentifier,
-					passphrase: recipientAccount.passphrase,
+					blsKey: recipientAccount.blsPublicKey,
+					blsProofOfPossession: recipientAccount.blsPoP,
+					generatorKey: recipientAccount.publicKey,
+					privateKey: recipientAccount.privateKey,
 				});
 				const transaction3 = createDelegateVoteTransaction({
 					nonce: BigInt(1),
 					networkIdentifier,
-					passphrase: recipientAccount.passphrase,
+					privateKey: recipientAccount.privateKey,
 					votes: [
 						{
 							delegateAddress: recipientAccount.address,

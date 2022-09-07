@@ -63,8 +63,6 @@ const registerProcessHooks = (app: Application): void => {
 		await app.shutdown(code, message);
 	};
 
-	process.title = `${app.config.label}(${app.config.version})`;
-
 	process.on('uncaughtException', err => {
 		// Handle error safely
 		app.logger.error(
@@ -136,12 +134,8 @@ export class Application {
 	public constructor(config: PartialApplicationConfig = {}) {
 		const appConfig = objects.cloneDeep(applicationConfigSchema.default);
 
-		appConfig.label =
-			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			config.label ?? `lisk-${config.genesis?.communityIdentifier}`;
-
-		const mergedConfig = objects.mergeDeep({}, appConfig, config) as ApplicationConfig;
-		validator.validate(applicationConfigSchema, mergedConfig);
+		const mergedConfig = objects.mergeDeep({}, appConfig, config);
+		validator.validate<ApplicationConfig>(applicationConfigSchema, mergedConfig);
 
 		this.config = mergedConfig;
 
@@ -240,7 +234,7 @@ export class Application {
 		return modules;
 	}
 
-	public async run(genesisBlock: Block): Promise<void> {
+	public async run(): Promise<void> {
 		Object.freeze(this.config);
 
 		registerProcessHooks(this);
@@ -250,20 +244,22 @@ export class Application {
 
 		// Initialize logger
 		this.logger = this._initLogger();
-		this.logger.info(`Starting the app - ${this.config.label}`);
+		this.logger.info(`Starting the app at ${this.config.system.dataPath}`);
 		this.logger.info(
 			'If you experience any type of error, please open an issue on Lisk GitHub: https://github.com/LiskHQ/lisk-sdk/issues',
 		);
 		this.logger.info(
 			'Contribution guidelines can be found at Lisk-sdk: https://github.com/LiskHQ/lisk-sdk/blob/development/docs/CONTRIBUTING.md',
 		);
-		this.logger.info(`Booting the application with Lisk Framework(${this.config.version})`);
+		this.logger.info('Booting the application with Lisk Framework');
 
 		// Validate the instance
 		await this._validatePidFile();
 
 		// Initialize database instances
-		const { data: dbFolder } = systemDirs(this.config.label, this.config.rootPath);
+		const { data: dbFolder, config, sockets: socketsPath } = systemDirs(
+			this.config.system.dataPath,
+		);
 		this.logger.debug({ dbFolder }, 'Create module.db database instance.');
 		this._moduleDB = new Database(path.join(dbFolder, 'module.db'));
 		this.logger.debug({ dbFolder }, 'Create state.db database instance.');
@@ -274,29 +270,21 @@ export class Application {
 			this._controller.init({
 				logger: this.logger,
 				stateDB: this._stateDB,
+				moduleDB: this._moduleDB,
 				endpoints: this._rootEndpoints(),
 				events: [APP_EVENT_READY.replace('app_', ''), APP_EVENT_SHUTDOWN.replace('app_', '')],
 			});
-			await this._stateMachine.init(
-				this.logger,
-				this.config.genesis,
-				this.config.generation.modules,
-				this.config.genesis.modules,
-			);
+			await this._stateMachine.init(this.logger, this.config.genesis, this.config.modules);
 			this._abiHandler = new ABIHandler({
 				channel: this._controller.channel,
 				config: this.config,
-				genesisBlock,
 				logger: this.logger,
 				moduleDB: this._moduleDB,
 				modules: this._registeredModules,
 				stateDB: this._stateDB,
 				stateMachine: this._stateMachine,
 			});
-			const abiSocketPath = `ipc://${path.join(
-				systemDirs(this.config.label, this.config.rootPath).sockets,
-				'abi.ipc',
-			)}`;
+			const abiSocketPath = `ipc://${path.join(socketsPath, 'abi.ipc')}`;
 
 			this._abiServer = new ABIServer(this.logger, abiSocketPath, this._abiHandler);
 			this._abiHandler.event.on(EVENT_ENGINE_READY, () => {
@@ -313,7 +301,9 @@ export class Application {
 			});
 			await this._abiServer.start();
 			const program = path.resolve(__dirname, 'engine_igniter');
-			const parameters = [abiSocketPath, 'false'];
+			const engineConfigPath = path.join(config, 'engine_config.json');
+			fs.writeFileSync(engineConfigPath, JSON.stringify(this.config, undefined, '  '));
+			const parameters = [abiSocketPath, '--config', engineConfigPath];
 			this._engineProcess = childProcess.fork(program, parameters);
 			this._engineProcess.on('exit', (code, signal) => {
 				// If child process exited with error
@@ -359,12 +349,7 @@ export class Application {
 		if (!this.logger) {
 			this.logger = this._initLogger();
 		}
-		await this._stateMachine.init(
-			this.logger,
-			this.config.genesis,
-			this.config.generation.modules,
-			this.config.genesis.modules,
-		);
+		await this._stateMachine.init(this.logger, this.config.genesis, this.config.modules);
 		return generateGenesisBlock(this._stateMachine, this.logger, input);
 	}
 
@@ -380,10 +365,10 @@ export class Application {
 	}
 
 	private _initLogger(): Logger {
-		const dirs = systemDirs(this.config.label, this.config.rootPath);
+		const dirs = systemDirs(this.config.system.dataPath);
 		return createLogger({
 			...this.config.logger,
-			logFilePath: path.join(dirs.logs, this.config.logger.logFileName),
+			logFilePath: path.join(dirs.logs, 'lisk.log'),
 			module: 'lisk:app',
 		});
 	}
@@ -399,12 +384,12 @@ export class Application {
 	}
 
 	private async _setupDirectories(): Promise<void> {
-		const dirs = systemDirs(this.config.label, this.config.rootPath);
+		const dirs = systemDirs(this.config.system.dataPath);
 		await Promise.all(Array.from(Object.values(dirs)).map(async dirPath => fs.ensureDir(dirPath)));
 	}
 
 	private async _emptySocketsDirectory(): Promise<void> {
-		const { sockets } = systemDirs(this.config.label, this.config.rootPath);
+		const { sockets } = systemDirs(this.config.system.dataPath);
 		const socketFiles = fs.readdirSync(sockets);
 
 		await Promise.all(
@@ -413,7 +398,7 @@ export class Application {
 	}
 
 	private async _validatePidFile(): Promise<void> {
-		const dirs = systemDirs(this.config.label, this.config.rootPath);
+		const dirs = systemDirs(this.config.system.dataPath);
 		const pidPath = path.join(dirs.pids, 'controller.pid');
 		const pidExists = await fs.pathExists(pidPath);
 		if (pidExists) {
@@ -425,17 +410,17 @@ export class Application {
 
 			if (pidRunning && pid !== process.pid) {
 				this.logger.error(
-					{ appLabel: this.config.label },
+					{ dataPath: this.config.system.dataPath },
 					'An instance of application is already running, please change the application label to run another instance',
 				);
-				throw new DuplicateAppInstanceError(this.config.label, pidPath);
+				throw new DuplicateAppInstanceError(this.config.system.dataPath, pidPath);
 			}
 		}
 		await fs.writeFile(pidPath, process.pid.toString());
 	}
 
 	private _clearControllerPidFile() {
-		const dirs = systemDirs(this.config.label, this.config.rootPath);
+		const dirs = systemDirs(this.config.system.dataPath);
 		fs.unlinkSync(path.join(dirs.pids, 'controller.pid'));
 	}
 }

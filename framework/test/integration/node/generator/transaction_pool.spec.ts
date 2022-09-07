@@ -39,7 +39,7 @@ describe('Transaction pool', () => {
 
 		beforeAll(async () => {
 			const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-				address: genesis.address.toString('hex'),
+				address: genesis.address,
 			});
 			const account = nodeUtils.createAccount();
 			transaction = createTransferTransaction({
@@ -47,7 +47,7 @@ describe('Transaction pool', () => {
 				recipientAddress: account.address,
 				amount: BigInt('100000000000'),
 				networkIdentifier: processEnv.getNetworkId(),
-				passphrase: genesis.passphrase,
+				privateKey: Buffer.from(genesis.privateKey, 'hex'),
 			});
 			await processEnv.getGenerator()['_pool'].add(transaction);
 		});

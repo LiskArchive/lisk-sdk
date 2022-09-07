@@ -18,13 +18,18 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
 import { Block, Chain, DataAccess, BlockHeader, Transaction, StateStore } from '@liskhq/lisk-chain';
-import { utils, legacy } from '@liskhq/lisk-cryptography';
+import { utils } from '@liskhq/lisk-cryptography';
 import { Database, StateDB } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
 import { codec } from '@liskhq/lisk-codec';
 import { BaseModule } from '../modules';
 import { loggerMock, channelMock } from './mocks';
-import { defaultConfig, getPassphraseFromDefaultConfig } from './fixtures';
+import {
+	defaultConfig,
+	getGeneratorPrivateKeyFromDefaultConfig,
+	getKeysFromDefaultConfig,
+	Keys,
+} from './fixtures';
 import { removeDB } from './utils';
 import { ApplicationConfig, EndpointHandler, GenesisConfig } from '../types';
 import { Consensus } from '../engine/consensus';
@@ -69,7 +74,7 @@ export interface BlockProcessingEnv {
 	process: (block: Block) => Promise<void>;
 	processUntilHeight: (height: number) => Promise<void>;
 	getLastBlock: () => Block;
-	getNextValidatorPassphrase: (blockHeader: BlockHeader) => Promise<string>;
+	getNextValidatorKeys: (blockHeader: BlockHeader) => Promise<Keys>;
 	getDataAccess: () => DataAccess;
 	getNetworkId: () => Buffer;
 	invoke: <T = void>(path: string, params?: Record<string, unknown>) => Promise<T>;
@@ -81,8 +86,10 @@ const getAppConfig = (genesisConfig?: GenesisConfig): ApplicationConfig => {
 		{},
 		{
 			...defaultConfig,
-			rootPath: os.tmpdir(),
-			label: `lisk-framework-test-${Date.now().toString()}`,
+			system: {
+				...defaultConfig.system,
+				dataPath: path.join(os.tmpdir(), `lisk-framework-test-${Date.now().toString()}`),
+			},
 			genesis: {
 				...defaultConfig.genesis,
 				...(genesisConfig ?? {}),
@@ -112,15 +119,14 @@ const createProcessableBlock = async (
 		previousBlockHeader.height + 1,
 		nextTimestamp,
 	);
-	const passphrase = await getPassphraseFromDefaultConfig(validator);
+	const generatorPrivateKey = getGeneratorPrivateKeyFromDefaultConfig(validator);
 	for (const tx of transactions) {
 		await engine['_generator']['_pool'].add(tx);
 	}
-	const { privateKey } = legacy.getKeys(passphrase);
 	const block = await engine.generateBlock({
 		generatorAddress: validator,
 		height: previousBlockHeader.height + 1,
-		privateKey,
+		privateKey: generatorPrivateKey,
 		timestamp: nextTimestamp,
 		transactions,
 	});
@@ -133,7 +139,7 @@ export const getBlockProcessingEnv = async (
 ): Promise<BlockProcessingEnv> => {
 	const appConfig = getAppConfig(params.options?.genesis);
 
-	const systemDir = systemDirs(appConfig.label, appConfig.rootPath);
+	const systemDir = systemDirs(appConfig.system.dataPath);
 
 	removeDB(systemDir.data);
 	const moduleDB = new Database(path.join(systemDir.data, 'module.db'));
@@ -174,12 +180,7 @@ export const getBlockProcessingEnv = async (
 		...asset,
 		data: codec.fromJSON<Record<string, unknown>>(asset.schema, asset.data),
 	}));
-	await stateMachine.init(
-		loggerMock,
-		appConfig.genesis,
-		appConfig.generation.modules,
-		appConfig.genesis.modules,
-	);
+	await stateMachine.init(loggerMock, appConfig.genesis, appConfig.modules);
 	const genesisBlock = await generateGenesisBlock(stateMachine, loggerMock, {
 		timestamp: Math.floor(Date.now() / 1000) - 60 * 60,
 		assets: blockAssets,
@@ -187,14 +188,15 @@ export const getBlockProcessingEnv = async (
 	const abiHandler = new ABIHandler({
 		channel: channelMock,
 		config: appConfig,
-		genesisBlock,
 		logger: loggerMock,
 		stateDB,
 		moduleDB,
 		modules,
 		stateMachine,
 	});
-	const engine = new Engine(abiHandler);
+	appConfig.genesis.block.blob = genesisBlock.getBytes().toString('hex');
+	appConfig.generator.keys.fromFile = path.join(__dirname, './fixtures/keys_fixture.json');
+	const engine = new Engine(abiHandler, appConfig);
 	await engine['_init']();
 
 	const networkIdentifier = utils.getNetworkIdentifier(
@@ -224,7 +226,7 @@ export const getBlockProcessingEnv = async (
 			}
 		},
 		getLastBlock: () => engine['_chain'].lastBlock,
-		getNextValidatorPassphrase: async (previousBlockHeader: BlockHeader): Promise<string> => {
+		getNextValidatorKeys: async (previousBlockHeader: BlockHeader): Promise<Keys> => {
 			const stateStore = new StateStore(engine['_blockchainDB']);
 			const nextTimestamp = getNextTimestamp(engine, previousBlockHeader);
 			const validator = await engine['_consensus'].getGeneratorAtTimestamp(
@@ -232,9 +234,9 @@ export const getBlockProcessingEnv = async (
 				previousBlockHeader.height + 1,
 				nextTimestamp,
 			);
-			const passphrase = getPassphraseFromDefaultConfig(validator);
+			const keys = getKeysFromDefaultConfig(validator);
 
-			return passphrase;
+			return keys;
 		},
 		async invoke<T = void>(func: string, input: Record<string, unknown> = {}): Promise<T> {
 			const [namespace, method] = func.split('_');

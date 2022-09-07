@@ -18,20 +18,17 @@ import * as childProcess from 'child_process';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import { join } from 'path';
-import { Block, BlockAssets } from '@liskhq/lisk-chain';
 import { BasePlugin } from '../../src';
 import { Application } from '../../src/application';
 import { Bus } from '../../src/controller/bus';
-// import { IPCServer } from '../../src/controller/ipc/ipc_server';
 import { WSServer } from '../../src/controller/ws/ws_server';
 import { createLogger } from '../../src/logger';
 import { Engine } from '../../src/engine';
-import { systemDirs } from '../../src/system_dirs';
 import * as basePluginModule from '../../src/plugins/base_plugin';
-import * as networkConfig from '../fixtures/config/devnet/config.json';
-import { createFakeBlockHeader } from '../fixtures';
+import * as defaultConfig from '../fixtures/config/devnet/config.json';
 import { ABIServer } from '../../src/abi_handler/abi_server';
 import { EVENT_ENGINE_READY } from '../../src/abi_handler/abi_handler';
+import { systemDirs } from '../../src/system_dirs';
 
 jest.mock('fs-extra');
 jest.mock('zeromq', () => {
@@ -49,10 +46,12 @@ jest.mock('@liskhq/lisk-db');
 jest.mock('../../src/logger');
 
 class TestPlugin extends BasePlugin {
-	public name = 'test-plugin';
-
 	public get nodeModulePath(): string {
 		return __filename;
+	}
+
+	public get name() {
+		return 'test-plugin';
 	}
 
 	public async load(): Promise<void> {}
@@ -62,8 +61,8 @@ class TestPlugin extends BasePlugin {
 
 describe('Application', () => {
 	// Arrange
-	const config: any = {
-		...networkConfig,
+	const config = {
+		...defaultConfig,
 	};
 	const loggerMock = {
 		info: jest.fn(),
@@ -100,61 +99,6 @@ describe('Application', () => {
 			expect(app.config).toBeDefined();
 		});
 
-		it('should set app label with the genesis block transaction root prefixed with `lisk-` if label not provided', () => {
-			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			const label = `lisk-${config.genesis.communityIdentifier}`;
-			const configWithoutLabel = objects.cloneDeep(config);
-			delete configWithoutLabel.label;
-
-			const { app } = Application.defaultApplication(configWithoutLabel);
-
-			expect(app.config.label).toBe(label);
-		});
-
-		it('should use the same app label if provided', () => {
-			const { app } = Application.defaultApplication(config);
-
-			expect(app.config.label).toBe(config.label);
-		});
-
-		it('should set default rootPath if not provided', () => {
-			// Arrange
-			const rootPath = '~/.lisk';
-			const configWithoutRootPath = objects.cloneDeep(config);
-			delete configWithoutRootPath.rootPath;
-
-			// Act
-			const { app } = Application.defaultApplication(configWithoutRootPath);
-
-			// Assert
-			expect(app.config.rootPath).toBe(rootPath);
-		});
-
-		it('should set rootPath if provided', () => {
-			// Arrange
-			const customRootPath = '/my-lisk-folder';
-			const configWithCustomRootPath = objects.cloneDeep(config);
-			configWithCustomRootPath.rootPath = customRootPath;
-
-			// Act
-			const { app } = Application.defaultApplication(configWithCustomRootPath);
-
-			// Assert
-			expect(app.config.rootPath).toBe(customRootPath);
-		});
-
-		it('should set filename for logger if logger config was not provided', () => {
-			// Arrange
-			const configWithoutLogger = objects.cloneDeep(config);
-			configWithoutLogger.logger = {};
-
-			// Act
-			const { app } = Application.defaultApplication(configWithoutLogger);
-
-			// Assert
-			expect(app.config.logger.logFileName).toBe('lisk.log');
-		});
-
 		it('should merge the constants with genesis and assign it to app constants', () => {
 			const customConfig = objects.cloneDeep(config);
 
@@ -187,58 +131,16 @@ describe('Application', () => {
 			// Assert
 			expect(app.logger).toBeUndefined();
 		});
-
-		it('should throw if invalid generation is provided', () => {
-			// Arrange
-			const invalidConfig = objects.mergeDeep({}, config, {
-				generation: {
-					generators: [
-						{
-							encryptedPassphrase:
-								'0dbd21ac5c154dbb72ce90a4e252a64b692203a4f8e25f8bfa1b1993e2ba7a9bd9e1ef1896d8d584a62daf17a8ccf12b99f29521b92cc98b74434ff501374f7e1c6d8371a6ce4e2d083489',
-							address: '9cabee3d27426676b852ce6b804cb2fdff7cd0b5',
-							hashOnion: {
-								count: 0,
-								distance: 0,
-								hashes: [],
-							},
-						},
-					],
-				},
-			});
-			// Act & Assert
-			expect.assertions(5);
-			try {
-				Application.defaultApplication(invalidConfig);
-			} catch (error: any) {
-				/* eslint-disable jest/no-try-expect */
-				expect(error.errors).toHaveLength(4);
-				expect(error.errors[0].message).toContain('must match format "encryptedPassphrase"');
-				expect(error.errors[1].message).toContain('must be >= 1');
-				expect(error.errors[2].message).toContain('must be >= 1');
-				expect(error.errors[3].message).toContain('must NOT have fewer than 2 items');
-				/* eslint-enable jest/no-try-expect */
-			}
-		});
 	});
 
 	describe('#registerPlugin', () => {
-		it('should throw error when plugin name is missing', () => {
-			// Arrange
-			const { app } = Application.defaultApplication(config);
-			class MyPlugin extends TestPlugin {
-				public name = '';
-			}
-
-			// Act && Assert
-			expect(() => app.registerPlugin(new MyPlugin())).toThrow('Plugin "name" is required.');
-		});
-
 		it('should throw error when plugin with same name is already registered', () => {
 			// Arrange
 			const { app } = Application.defaultApplication(config);
 			class MyPlugin extends TestPlugin {
-				public name = 'my-plugin';
+				public get name() {
+					return 'my-plugin';
+				}
 			}
 			app.registerPlugin(new MyPlugin());
 
@@ -299,7 +201,7 @@ describe('Application', () => {
 			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
 
 			jest.spyOn(ABIServer.prototype, 'start');
-			await app.run(new Block(createFakeBlockHeader(), [], new BlockAssets()));
+			await app.run();
 		});
 
 		afterEach(async () => {
@@ -314,7 +216,8 @@ describe('Application', () => {
 			expect(childProcess.fork).toHaveBeenCalledTimes(1);
 			expect(childProcess.fork).toHaveBeenCalledWith(expect.stringContaining('engine_igniter'), [
 				expect.stringContaining('.ipc'),
-				'false',
+				'--config',
+				expect.stringContaining('engine_config.json'),
 			]);
 		});
 
@@ -335,9 +238,9 @@ describe('Application', () => {
 			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
 
-			await app.run(new Block(createFakeBlockHeader(), [], new BlockAssets()));
+			await app.run();
 
-			dirs = systemDirs(app.config.label, app.config.rootPath);
+			dirs = systemDirs(app.config.system.dataPath);
 		});
 
 		afterEach(async () => {
@@ -379,13 +282,13 @@ describe('Application', () => {
 			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 			jest.spyOn(fs, 'unlink').mockResolvedValue();
 
-			await app.run(new Block(createFakeBlockHeader(), [], new BlockAssets()));
+			await app.run();
 			app['_abiHandler'].event.emit(EVENT_ENGINE_READY);
 			await app.shutdown();
 		});
 
 		it('should delete all files in ~/.lisk/tmp/sockets', () => {
-			const { sockets: socketsPath } = systemDirs(app.config.label, app.config.rootPath);
+			const { sockets: socketsPath } = systemDirs(app.config.system.dataPath);
 
 			// Assert
 			for (const aSocketFile of fakeSocketFiles) {
@@ -407,7 +310,7 @@ describe('Application', () => {
 			({ app } = Application.defaultApplication(config));
 			jest.spyOn(Engine.prototype, 'start').mockResolvedValue();
 
-			await app.run(new Block(createFakeBlockHeader(), [], new BlockAssets()));
+			await app.run();
 			app['_abiHandler'].event.emit(EVENT_ENGINE_READY);
 
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
@@ -437,7 +340,9 @@ describe('Application', () => {
 		it('should call clearControllerPidFileSpy method with correct pid file location', async () => {
 			const unlinkSyncSpy = jest.spyOn(fs, 'unlinkSync').mockReturnValue();
 			await app.shutdown();
-			expect(unlinkSyncSpy).toHaveBeenCalledWith('/user/.lisk/devnet/tmp/pids/controller.pid');
+			expect(unlinkSyncSpy).toHaveBeenCalledWith(
+				'/user/.lisk/beta-sdk-app/tmp/pids/controller.pid',
+			);
 		});
 	});
 });

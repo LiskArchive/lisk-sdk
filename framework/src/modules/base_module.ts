@@ -56,7 +56,7 @@ export interface ModuleMetadata {
 	}[];
 }
 
-export type RootModuleMetadata = ModuleMetadata & { id: Buffer; name: string };
+export type RootModuleMetadata = ModuleMetadata & { name: string };
 export interface ModuleMetadataJSON {
 	name: string;
 	endpoints: {

@@ -31,5 +31,6 @@ tmp/
 
 *.pid
 *.gz
+*.blob
 
 docker/*

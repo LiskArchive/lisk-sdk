@@ -22,28 +22,22 @@ import { configSchema } from '../../src/schemas';
 import { waitTill } from '../utils/application';
 
 const appConfigForPlugin: ApplicationConfigForPlugin = {
-	rootPath: '~/.lisk',
-	label: 'my-app',
-	logger: {
-		consoleLogLevel: 'info',
-		fileLogLevel: 'none',
-		logFileName: 'plugin-reportMisbehavior.log',
-	},
 	system: {
+		dataPath: '~/.lisk/my-app',
 		keepEventsForHeights: -1,
+	},
+	logger: {
+		consoleLogLevel: 'debug',
+		fileLogLevel: 'none',
 	},
 	rpc: {
 		modes: [],
-		port: 8080,
+		port: 7887,
 		host: '127.0.0.1',
 	},
-	generation: {
-		force: false,
-		waitThreshold: 2,
-		generators: [],
-		modules: {},
-	},
+	genesis: {} as GenesisConfig,
 	network: {
+		version: '1.0',
 		seedPeers: [],
 		port: 5000,
 	},
@@ -54,9 +48,10 @@ const appConfigForPlugin: ApplicationConfigForPlugin = {
 		minEntranceFeePriority: '0',
 		minReplacementFeeDifference: '10',
 	},
-	version: '',
-	networkVersion: '',
-	genesis: {} as GenesisConfig,
+	generator: {
+		keys: {},
+	},
+	modules: {},
 };
 
 const validPluginOptions = {

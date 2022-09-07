@@ -19,7 +19,6 @@ import BaseBootstrapCommand from '../../base_bootstrap_command';
 interface CommandCommandArgs {
 	moduleName: string;
 	commandName: string;
-	commandID: number;
 }
 
 export default class CommandCommand extends BaseBootstrapCommand {
@@ -39,16 +38,11 @@ export default class CommandCommand extends BaseBootstrapCommand {
 			description: 'Asset name.',
 			required: true,
 		},
-		{
-			name: 'commandID',
-			description: 'Asset Id.',
-			required: true,
-		},
 	];
 
 	async run(): Promise<void> {
 		const { args } = this.parse(CommandCommand);
-		const { moduleName, commandName, commandID } = args as CommandCommandArgs;
+		const { moduleName, commandName } = args as CommandCommandArgs;
 
 		// validate folder name to not include camelcase or whitespace
 		const regexWhitespace = /\s/g;
@@ -71,10 +65,6 @@ export default class CommandCommand extends BaseBootstrapCommand {
 			this.error('Invalid command name');
 		}
 
-		if (Number.isNaN(Number(commandID)) || Number(commandID) < 0) {
-			this.error('Invalid command ID, only positive integers are allowed');
-		}
-
 		if (!this._isLiskAppDir(process.cwd())) {
 			this.error(
 				'You can run this command only in lisk app directory. Run "lisk init --help" command for more details.',
@@ -82,13 +72,12 @@ export default class CommandCommand extends BaseBootstrapCommand {
 		}
 
 		this.log(
-			`Creating command skeleton with command name "${commandName}" and command ID "${commandID}" for module "${moduleName}"`,
+			`Creating command skeleton with command name "${commandName}" for module "${moduleName}"`,
 		);
 
 		return this._runBootstrapCommand('lisk:generate:command', {
 			moduleName,
 			commandName,
-			commandID,
 		});
 	}
 }

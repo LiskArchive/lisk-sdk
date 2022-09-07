@@ -19,7 +19,6 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { RandomAPI } from '../../../../src/modules/random/api';
 import { SEED_LENGTH } from '../../../../src/modules/random/constants';
 import { blockHeaderAssetRandomModule } from '../../../../src/modules/random/schemas';
-import { ValidatorSeedReveal } from '../../../../src/modules/random/types';
 import { bitwiseXOR } from '../../../../src/modules/random/utils';
 import { APIContext } from '../../../../src/state_machine';
 import { createTransientAPIContext } from '../../../../src/testing';
@@ -27,7 +26,10 @@ import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
 import { testCases } from './dpos_random_seed_generation/dpos_random_seed_generation_other_rounds.json';
 import * as randomSeedsMultipleRounds from '../../../fixtures/dpos_random_seed_generation/dpos_random_seed_generation_other_rounds.json';
 import { RandomModule } from '../../../../src/modules/random';
-import { ValidatorRevealsStore } from '../../../../src/modules/random/stores/validator_reveals';
+import {
+	ValidatorRevealsStore,
+	ValidatorSeedReveal,
+} from '../../../../src/modules/random/stores/validator_reveals';
 
 const strippedHashOfIntegerBuffer = (num: number) =>
 	cryptography.utils.hash(utils.intToBuffer(num, 4)).slice(0, SEED_LENGTH);

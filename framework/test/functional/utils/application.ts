@@ -148,7 +148,7 @@ export const sendTransaction = async (app: Application): Promise<Transaction> =>
 		amount: BigInt('10000000000'),
 		networkIdentifier: app['_node']['_networkIdentifier'],
 		nonce: genesisAccount.sequence.nonce,
-		passphrase: genesis.passphrase,
+		privateKey: Buffer.from(genesis.privateKey, 'hex'),
 	});
 
 	await app['_channel'].invoke('txpool_postTransaction', {
