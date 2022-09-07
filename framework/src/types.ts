@@ -11,10 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { p2pTypes } from '@liskhq/lisk-p2p';
 import { Schema } from '@liskhq/lisk-codec';
 import { Logger } from './logger';
-import { ImmutableAPIContext, ImmutableSubStore } from './state_machine/types';
+import { ImmutableAPIContext, ImmutableSubStore, SubStore } from './state_machine/types';
 import { RPC_MODES } from './constants';
 
 export interface SocketPaths {
@@ -43,32 +42,29 @@ export interface DelegateConfig {
 }
 
 export interface NetworkConfig {
+	version: string;
 	port: number;
 	seedPeers: { ip: string; port: number }[];
-	hostIp?: string;
+	host?: string;
 	blacklistedIPs?: string[];
 	fixedPeers?: { ip: string; port: number }[];
 	whitelistedPeers?: { ip: string; port: number }[];
-	peerBanTime?: number;
-	connectTimeout?: number;
-	ackTimeout?: number;
 	maxOutboundConnections?: number;
 	maxInboundConnections?: number;
-	sendPeerLimit?: number;
-	maxPeerDiscoveryResponseLength?: number;
-	maxPeerInfoSize?: number;
 	wsMaxPayload?: number;
 	advertiseAddress?: boolean;
-	customSchema?: p2pTypes.RPCSchemas;
 }
 
 export interface GenesisConfig {
+	block: {
+		fromFile?: string;
+		blob?: string;
+	};
 	communityIdentifier: string;
 	maxTransactionsSize: number;
 	minFeePerByte: number;
 	blockTime: number;
 	bftBatchSize: number;
-	modules: Record<string, Record<string, unknown>>;
 }
 
 export interface TransactionPoolConfig {
@@ -80,6 +76,8 @@ export interface TransactionPoolConfig {
 }
 
 export interface SystemConfig {
+	version: string;
+	dataPath: string;
 	keepEventsForHeights: number;
 }
 
@@ -93,17 +91,10 @@ export interface RPCConfig {
 	host: string;
 }
 
-export interface Generator {
-	readonly address: string;
-	readonly encryptedPassphrase: string;
-}
-
-export interface GenerationConfig {
-	waitThreshold: number;
-	generators: Generator[];
-	force?: boolean;
-	defaultPassword?: string;
-	modules: Record<string, Record<string, unknown>>;
+export interface GeneratorConfig {
+	keys: {
+		fromFile?: string;
+	};
 }
 
 export interface PluginConfig extends Record<string, unknown> {
@@ -111,25 +102,25 @@ export interface PluginConfig extends Record<string, unknown> {
 }
 
 export interface ApplicationConfig {
-	label: string;
-	version: string;
-	networkVersion: string;
-	rootPath: string;
-	genesis: GenesisConfig;
-	generation: GenerationConfig;
-	network: NetworkConfig;
 	system: SystemConfig;
 	logger: {
-		logFileName: string;
 		fileLogLevel: string;
 		consoleLogLevel: string;
+	};
+	rpc: RPCConfig;
+	genesis: GenesisConfig;
+	network: NetworkConfig;
+	transactionPool: TransactionPoolConfig;
+	generator: GeneratorConfig;
+	modules: {
+		[key: string]: Record<string, unknown>;
 	};
 	plugins: {
 		[key: string]: PluginConfig;
 	};
-	transactionPool: TransactionPoolConfig;
-	rpc: RPCConfig;
 }
+
+export type EngineConfig = Omit<ApplicationConfig, 'modules' | 'plugins'>;
 
 export type ApplicationConfigForPlugin = Omit<ApplicationConfig, 'plugins'>;
 
@@ -159,6 +150,7 @@ export interface PluginEndpointContext {
 
 export interface ModuleEndpointContext extends PluginEndpointContext {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
+	getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	getImmutableAPIContext: () => ImmutableAPIContext;
 	networkIdentifier: Buffer;
 }

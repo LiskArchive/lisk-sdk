@@ -5,7 +5,7 @@ Object {
   "clearMocks": true,
   "collectCoverage": false,
   "collectCoverageFrom": Array [
-    "src/**",
+    "src/**/*.(js|ts)",
   ],
   "coverageDirectory": ".coverage/unit",
   "coverageReporters": Array [

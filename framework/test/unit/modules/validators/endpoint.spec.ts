@@ -44,6 +44,7 @@ describe('ValidatorsModuleEndpoint', () => {
 				const context = {
 					getImmutableAPIContext: jest.fn(),
 					getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
+					getOffchainStore: jest.fn(),
 					logger,
 					params: {
 						proofOfPossession: proof.toString('hex'),
@@ -63,6 +64,7 @@ describe('ValidatorsModuleEndpoint', () => {
 				const context = {
 					getImmutableAPIContext: jest.fn(),
 					getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
+					getOffchainStore: jest.fn(),
 					logger,
 					params: {
 						proofOfPossession: proof.toString('hex'),
@@ -79,6 +81,7 @@ describe('ValidatorsModuleEndpoint', () => {
 				const context = {
 					getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
 					getImmutableAPIContext: jest.fn(),
+					getOffchainStore: jest.fn(),
 					logger,
 					params: {
 						proofOfPossession:
@@ -105,6 +108,7 @@ describe('ValidatorsModuleEndpoint', () => {
 							invalid: 'schema',
 						},
 						networkIdentifier,
+						getOffchainStore: jest.fn(),
 					}),
 				).rejects.toThrow();
 			});
@@ -120,6 +124,7 @@ describe('ValidatorsModuleEndpoint', () => {
 							blsKey: 'xxxx',
 						},
 						networkIdentifier,
+						getOffchainStore: jest.fn(),
 					}),
 				).rejects.toThrow();
 			});
@@ -130,6 +135,7 @@ describe('ValidatorsModuleEndpoint', () => {
 		const context = {
 			getImmutableAPIContext: jest.fn(),
 			getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
+			getOffchainStore: jest.fn(),
 			logger,
 			params: {
 				address: validatorAddress.toString('hex'),

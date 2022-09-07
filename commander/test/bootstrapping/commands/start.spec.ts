@@ -18,13 +18,11 @@ import * as fs from 'fs-extra';
 import * as os from 'os';
 import * as path from 'path';
 import { Application } from 'lisk-framework';
+import { utils } from '@liskhq/lisk-cryptography';
 
 import { StartCommand } from '../../../src/bootstrapping/commands/start';
 import { getConfig } from '../../helpers/config';
 import * as application from '../../helpers/application';
-import * as devnetGenesisBlock from '../../fixtures/devnet/genesis_block.json';
-
-import pJSON = require('../../../package.json');
 
 // In order to test the command we need to extended the base crete command and provide application implementation
 class StartCommandExtended extends StartCommand {
@@ -48,6 +46,7 @@ describe('start', () => {
 	let config: Config.IConfig;
 
 	beforeEach(async () => {
+		const genesis = utils.getRandomBytes(100);
 		stdout = [];
 		stderr = [];
 		config = await getConfig();
@@ -65,31 +64,34 @@ describe('start', () => {
 		when(fs.readJSON as jest.Mock)
 			.calledWith('~/.lisk/lisk-core/config/default/config.json')
 			.mockResolvedValue({
+				system: {},
 				logger: {
 					consoleLogLevel: 'error',
 				},
 				plugins: {},
 			})
-			.calledWith('~/.lisk/lisk-core/config/devnet/config.json')
+			.calledWith('~/.lisk/lisk-core/config/config.json')
 			.mockResolvedValue({
+				system: {},
 				logger: {
 					consoleLogLevel: 'error',
 				},
 				plugins: {},
 			})
-			.calledWith('~/.lisk/lisk-core/config/default/genesis_block.json')
-			.mockResolvedValue(devnetGenesisBlock)
+			.calledWith('~/.lisk/lisk-core/config/default/genesis_block.blob')
+			.mockResolvedValue(genesis)
 			.calledWith('~/.lisk/lisk-core/config/devnet/genesis_block.json')
-			.mockResolvedValue(devnetGenesisBlock);
+			.mockResolvedValue(genesis);
 		jest.spyOn(fs, 'readdirSync');
 		when(fs.readdirSync as jest.Mock)
 			.mockReturnValue(['default'])
 			.calledWith(path.join(__dirname, '../../config'))
 			.mockReturnValue(['default', 'devnet']);
 
+		jest.spyOn(fs, 'existsSync').mockReturnValue(false);
 		jest.spyOn(fs, 'ensureDirSync').mockReturnValue();
 		jest.spyOn(fs, 'removeSync').mockReturnValue();
-		jest.spyOn(fs, 'copyFileSync').mockReturnValue();
+		jest.spyOn(fs, 'copySync').mockReturnValue();
 		jest.spyOn(fs, 'statSync').mockReturnValue({ isDirectory: () => true } as never);
 		jest.spyOn(os, 'homedir').mockReturnValue('~');
 	});
@@ -99,8 +101,7 @@ describe('start', () => {
 			await StartCommandExtended.run([], config);
 			const [usedConfig] = (StartCommandExtended.prototype
 				.getApplication as jest.Mock).mock.calls[0];
-			expect(usedConfig.version).toBe(pJSON.version);
-			expect(usedConfig.label).toBe('lisk-core');
+			expect(usedConfig.system.dataPath).toContain('lisk-core');
 		});
 	});
 
@@ -108,7 +109,7 @@ describe('start', () => {
 		it('should delete the default config and save the devnet config', async () => {
 			await StartCommandExtended.run(['-n', 'default', '--overwrite-config'], config);
 			expect(fs.ensureDirSync).toHaveBeenCalledWith('~/.lisk/lisk-core/config');
-			expect(fs.copyFileSync).toHaveBeenCalledTimes(2);
+			expect(fs.copySync).toHaveBeenCalledTimes(1);
 		});
 	});
 

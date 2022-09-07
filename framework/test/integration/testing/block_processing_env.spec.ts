@@ -12,9 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { address, legacy } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../src/testing';
-import { defaultConfig } from '../../../src/testing/fixtures/config';
 
 describe('getBlockProcessingEnv', () => {
 	const databasePath = '/tmp/lisk/processing_env/test';
@@ -42,7 +40,7 @@ describe('getBlockProcessingEnv', () => {
 	it('should return all registered validators', async () => {
 		// Act & Assert
 		const validators = await processEnv.invoke<{ list: string[] }>('chain_getGeneratorList');
-		expect(validators.list).toHaveLength(defaultConfig.generation.generators.length);
+		expect(validators.list).toHaveLength(101);
 	});
 
 	it('should return a valid passphrase for next validator', async () => {
@@ -50,9 +48,9 @@ describe('getBlockProcessingEnv', () => {
 		const { header } = processEnv.getLastBlock();
 
 		// Act & Assert
-		const passphrase = await processEnv.getNextValidatorPassphrase(header);
-		expect(passphrase).toBeString();
-		expect(passphrase.split(' ')).toHaveLength(24);
+		const keys = await processEnv.getNextValidatorKeys(header);
+		expect(keys.address).toBeString();
+		expect(keys.address).toHaveLength(40);
 	});
 
 	it('should be able to process a valid block', async () => {
@@ -78,11 +76,10 @@ describe('getBlockProcessingEnv', () => {
 	it('should process block with correct validator', async () => {
 		// Arrange
 		const lastBlockHeader = processEnv.getLastBlock().header;
-		const passphrase = await processEnv.getNextValidatorPassphrase(lastBlockHeader);
-		const { publicKey } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+		const keys = await processEnv.getNextValidatorKeys(lastBlockHeader);
 
 		// Act & Assert
 		const block = await processEnv.createBlock();
-		expect(block.header.generatorAddress).toEqual(address.getAddressFromPublicKey(publicKey));
+		expect(block.header.generatorAddress).toEqual(Buffer.from(keys.address, 'hex'));
 	});
 });

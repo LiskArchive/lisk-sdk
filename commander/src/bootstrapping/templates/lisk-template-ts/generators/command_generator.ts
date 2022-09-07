@@ -22,15 +22,13 @@ import { camelToPascal, camelToSnake } from '../../../../utils/convert';
 interface AssetGeneratorOptions extends Generator.GeneratorOptions {
 	moduleName: string;
 	commandName: string;
-	commandID: Buffer;
 }
 
-export default class AssetGenerator extends Generator {
+export default class CommandGenerator extends Generator {
 	protected _moduleClass: string;
 	protected _moduleName: string;
 	protected _moduleFileName: string;
 	protected _commandName: string;
-	protected _commandID: Buffer;
 	protected _commandFileName: string;
 	protected _templatePath: string;
 	protected _commandClass: string;
@@ -40,18 +38,17 @@ export default class AssetGenerator extends Generator {
 
 		this._moduleName = opts.moduleName;
 		this._commandName = opts.commandName;
-		this._commandID = opts.commandID;
 		this._moduleFileName = camelToSnake(this._moduleName);
-		this._templatePath = join(__dirname, '..', 'templates', 'asset');
-		this._commandClass = `${camelToPascal(this._commandName)}Asset`;
-		this._commandFileName = `${camelToSnake(this._commandName)}_asset`;
+		this._templatePath = join(__dirname, '..', 'templates', 'command');
+		this._commandClass = `${camelToPascal(this._commandName)}Command`;
+		this._commandFileName = `${camelToSnake(this._commandName)}_command`;
 		this._moduleClass = `${camelToPascal(this._moduleName)}Module`;
 	}
 
 	public writing(): void {
 		// Writing asset file
 		this.fs.copyTpl(
-			`${this._templatePath}/src/app/modules/commands/asset.ts`,
+			`${this._templatePath}/src/app/modules/commands/command.ts`,
 			this.destinationPath(
 				`src/app/modules/${this._moduleFileName}/commands/${this._commandFileName}.ts`,
 			),
@@ -59,7 +56,6 @@ export default class AssetGenerator extends Generator {
 				moduleName: this._moduleName,
 				commandName: this._commandName,
 				commandClass: this._commandClass,
-				commandID: this._commandID,
 			},
 			{},
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
@@ -67,7 +63,7 @@ export default class AssetGenerator extends Generator {
 
 		// Writing test file for the generated asset
 		this.fs.copyTpl(
-			`${this._templatePath}/test/unit/modules/commands/asset.spec.ts`,
+			`${this._templatePath}/test/unit/modules/commands/command.spec.ts`,
 			this.destinationPath(
 				`test/unit/modules/${this._moduleFileName}/commands/${this._commandFileName}.spec.ts`,
 			),
@@ -76,7 +72,6 @@ export default class AssetGenerator extends Generator {
 				commandName: this._commandName,
 				commandFileName: this._commandFileName,
 				commandClass: this._commandClass,
-				commandID: this._commandID,
 			},
 			{},
 			{ globOptions: { dot: true, ignore: ['.DS_Store'] } },
@@ -84,13 +79,13 @@ export default class AssetGenerator extends Generator {
 	}
 
 	public async registerAsset() {
-		this.log('Registering asset...');
+		this.log('Registering command...');
 
 		const project = new Project();
 		project.addSourceFilesAtPaths('src/app/**/*.ts');
 
 		const moduleFile = project.getSourceFileOrThrow(
-			`src/app/modules/${this._moduleFileName}/${this._moduleFileName}_module.ts`,
+			`src/app/modules/${this._moduleFileName}/module.ts`,
 		);
 
 		moduleFile.addImportDeclaration({
@@ -99,7 +94,7 @@ export default class AssetGenerator extends Generator {
 		});
 
 		const moduleClass = moduleFile.getClassOrThrow(this._moduleClass);
-		const property = moduleClass.getInstancePropertyOrThrow('transactionAssets');
+		const property = moduleClass.getInstancePropertyOrThrow('commands');
 		const value = (property.getStructure() as { initializer: string }).initializer;
 
 		if (value === '[]' || value === '') {

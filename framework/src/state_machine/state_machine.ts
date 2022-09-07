@@ -175,6 +175,11 @@ export class StateMachine {
 	}
 
 	public async verifyAssets(ctx: BlockContext): Promise<void> {
+		for (const asset of ctx.assets.getAll()) {
+			if (this._findModule(asset.module) === undefined) {
+				throw new Error(`Module ${asset.module} is not registered.`);
+			}
+		}
 		const blockVerifyContext = ctx.getBlockVerifyExecuteContext();
 		for (const mod of this._modules) {
 			if (mod.verifyAssets) {

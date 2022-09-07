@@ -14,7 +14,6 @@
  */
 
 export interface ABI {
-	init(req: InitRequest): Promise<InitResponse>;
 	ready(req: ReadyRequest): Promise<ReadyResponse>;
 	initStateMachine(req: InitStateMachineRequest): Promise<InitStateMachineResponse>;
 	initGenesisState(req: InitGenesisStateRequest): Promise<InitGenesisStateResponse>;
@@ -98,92 +97,6 @@ export interface Validator {
 	blsKey: Buffer;
 }
 
-export interface ModuleMeta {
-	module: string;
-	commands: string[];
-}
-
-export interface InitRequest {}
-
-export interface SystemConfig {
-	version: string;
-	networkVersion: string;
-	dataPath: string;
-	maxBlockCache: number;
-	keepEventsForHeights: number;
-}
-
-export interface RPCConfig {
-	modes: string[];
-	host: string;
-	port: number;
-}
-
-export interface LoggerConfig {
-	consoleLogLevel: string;
-	fileLogLevel: string;
-}
-
-export interface GenesisConfig {
-	communityIdentifier: string;
-	maxTransactionsSize: number;
-	minFeePerByte: number;
-	blockTime: number;
-	bftBatchSize: number;
-}
-
-export interface NetworkPeer {
-	ip: string;
-	port: number;
-}
-
-export interface NetworkConfig {
-	port: number;
-	hostIP: string;
-	seedPeers: NetworkPeer[];
-	fixedPeers: NetworkPeer[];
-	whitelistedPeers: NetworkPeer[];
-	blacklistedIPs: string[];
-	maxOutboundConnections: number;
-	maxInboundConnections: number;
-	advertiseAddress: boolean;
-}
-
-export interface TxpoolConfig {
-	maxTransactions: number;
-	maxTransactionsPerAccount: number;
-	transactionExpiryTime: number;
-	minEntranceFeePriority: bigint;
-	minReplacementFeeDifference: bigint;
-}
-
-export interface Key {
-	address: Buffer;
-	encryptedPassphrase: string;
-}
-
-export interface GeneratorConfig {
-	password: string;
-	force: boolean;
-	keys: Key[];
-}
-
-export interface Config {
-	system: SystemConfig;
-	rpc: RPCConfig;
-	logger: LoggerConfig;
-	genesis: GenesisConfig;
-	network: NetworkConfig;
-	txpool: TxpoolConfig;
-	generator: GeneratorConfig;
-}
-
-export interface InitResponse {
-	registeredModules: ModuleMeta[];
-	genesisBlock: Block;
-	config: Config;
-}
-
 export interface ReadyRequest {
 	networkIdentifier: Buffer;
 	lastBlockHeight: number;
@@ -205,7 +118,6 @@ export interface InitGenesisStateRequest {
 }
 
 export interface InitGenesisStateResponse {
-	assets: BlockAsset[];
 	events: Event[];
 	preCommitThreshold: bigint;
 	certificateThreshold: bigint;

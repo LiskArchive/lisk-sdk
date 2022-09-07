@@ -52,10 +52,10 @@ export class Endpoint extends BasePluginEndpoint {
 				'utf-8',
 			);
 
-			const { publicKey } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+			const { publicKey, privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
 
 			this._state.publicKey = enable ? publicKey : undefined;
-			this._state.passphrase = enable ? passphrase : undefined;
+			this._state.privateKey = enable ? privateKey : undefined;
 			const changedState = enable ? 'enabled' : 'disabled';
 
 			return {

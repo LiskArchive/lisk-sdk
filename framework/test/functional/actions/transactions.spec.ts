@@ -55,7 +55,7 @@ describe('Transaction related actions', () => {
 				recipientAddress: accountWithoutBalance.address,
 				amount: BigInt('10000000000'),
 				networkIdentifier: app['_node']['_networkIdentifier'],
-				passphrase: genesis.passphrase,
+				privateKey: Buffer.from(genesis.privateKey, 'hex'),
 			});
 
 			await expect(

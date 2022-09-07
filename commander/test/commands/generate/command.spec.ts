@@ -34,25 +34,11 @@ describe('generate:command command', () => {
 
 	describe('generate:command', () => {
 		it('should throw an error when all arg is not provided', async () => {
-			await expect(CommandCommand.run([], config)).rejects.toThrow('Missing 3 required arg');
+			await expect(CommandCommand.run([], config)).rejects.toThrow('Missing 2 required arg');
 		});
 
 		it('should throw an error when a arg is not provided', async () => {
-			await expect(CommandCommand.run(['nft'], config)).rejects.toThrow('Missing 2 required arg');
-		});
-	});
-
-	describe('generate:command invalidCommandName invalidCommandID', () => {
-		it('should throw an error when command name is invalid', async () => {
-			await expect(CommandCommand.run(['nft', 'register$5', '1001'], config)).rejects.toThrow(
-				'Invalid command name',
-			);
-		});
-
-		it('should throw an error when command ID is invalid', async () => {
-			await expect(CommandCommand.run(['nft', 'register', '5r'], config)).rejects.toThrow(
-				'Invalid command ID, only positive integers are allowed',
-			);
+			await expect(CommandCommand.run(['nft'], config)).rejects.toThrow('Missing 1 required arg');
 		});
 	});
 
@@ -61,7 +47,7 @@ describe('generate:command command', () => {
 			jest.spyOn<any, any>(BaseBootstrapCommand.prototype, '_isLiskAppDir').mockReturnValue(false);
 			jest.spyOn(process, 'cwd').mockReturnValue('/my/dir');
 
-			await expect(CommandCommand.run(['nft', 'register', '1001'], config)).rejects.toThrow(
+			await expect(CommandCommand.run(['nft', 'register'], config)).rejects.toThrow(
 				'You can run this command only in lisk app directory. Run "lisk init --help" command for more details.',
 			);
 			expect(BaseBootstrapCommand.prototype['_isLiskAppDir']).toHaveBeenCalledWith('/my/dir');
@@ -74,13 +60,12 @@ describe('generate:command command', () => {
 				.spyOn<any, any>(BaseBootstrapCommand.prototype, '_runBootstrapCommand')
 				.mockResolvedValue(null as never);
 
-			await expect(CommandCommand.run(['nft', 'register', '1001'], config)).resolves.toBeNull();
+			await expect(CommandCommand.run(['nft', 'register'], config)).resolves.toBeNull();
 			expect(BaseBootstrapCommand.prototype['_isLiskAppDir']).toHaveBeenCalledWith('/my/dir');
 			expect(BaseBootstrapCommand.prototype['_runBootstrapCommand']).toHaveBeenCalledWith(
 				'lisk:generate:command',
 				{
 					moduleName: 'nft',
-					commandID: '1001',
 					commandName: 'register',
 				},
 			);

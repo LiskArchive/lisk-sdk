@@ -16,8 +16,6 @@
 
 import BaseBootstrapCommand from '../../base_bootstrap_command';
 
-const MINIMUM_EXTERNAL_MODULE_ID = 1000;
-
 export default class ModuleCommand extends BaseBootstrapCommand {
 	static description = 'Creates a module skeleton for the given name and id.';
 	static examples = ['generate:module nft 5000'];
@@ -27,17 +25,12 @@ export default class ModuleCommand extends BaseBootstrapCommand {
 			description: 'Module name.',
 			required: true,
 		},
-		{
-			name: 'moduleID',
-			description: 'Module Id, should be atleast 1000 or more',
-			required: true,
-		},
 	];
 
 	async run(): Promise<void> {
 		const {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			args: { moduleName, moduleID },
+			args: { moduleName },
 		} = this.parse(ModuleCommand);
 
 		// validate folder name to not include camelcase or whitespace
@@ -53,26 +46,15 @@ export default class ModuleCommand extends BaseBootstrapCommand {
 			this.error('Invalid module name');
 		}
 
-		if (Number.isNaN(Number(moduleID)) || +moduleID < MINIMUM_EXTERNAL_MODULE_ID) {
-			this.error(
-				`Invalid module ID, only integers are allowed and it should be greater than and equal to ${MINIMUM_EXTERNAL_MODULE_ID}`,
-			);
-		}
-
 		if (!this._isLiskAppDir(process.cwd())) {
 			this.error(
 				'You can run this command only in lisk app directory. Run "lisk init --help" command for more details.',
 			);
 		}
 
-		this.log(
-			`Creating module skeleton with module name "${moduleName as string}" and module ID "${
-				moduleID as string
-			}"`,
-		);
+		this.log(`Creating module skeleton with module name "${moduleName as string}"`);
 		return this._runBootstrapCommand('lisk:generate:module', {
 			moduleName: moduleName as string,
-			moduleID: moduleID as string,
 		});
 	}
 }

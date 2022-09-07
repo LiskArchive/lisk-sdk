@@ -54,10 +54,7 @@ describe('system endpoint', () => {
 				}),
 			},
 			config: {
-				system: {
-					version: nodeOptions.version,
-					networkVersion: nodeOptions.networkVersion,
-				},
+				system: {},
 				network: {
 					...nodeOptions.network,
 				},
@@ -72,7 +69,6 @@ describe('system endpoint', () => {
 	describe('getNodeInfo', () => {
 		it('should return current engine info', async () => {
 			await expect(endpoint.getNodeInfo({} as never)).resolves.toEqual({
-				version: expect.any(String),
 				networkVersion: expect.any(String),
 				networkIdentifier: expect.any(String),
 				lastBlockID: expect.any(String),

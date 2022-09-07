@@ -3,9 +3,6 @@ import { BaseCommand, CommandVerifyContext, VerificationResult, CommandExecuteCo
 interface Params { }
 
 export class <%= commandClass %> extends BaseCommand {
-	public name = '<%= commandName%>';
-	public id = <%= commandID %>;
-
   // Define schema for asset
 	public schema = {
 		$id: '<%= moduleName %>/<%= commandName %>-asset',

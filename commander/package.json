@@ -79,6 +79,9 @@
 			},
 			"passphrase": {
 				"description": "Commands relating to Lisk passphrases."
+			},
+			"endpoint": {
+				"description": "Invokes the provided endpoint."
 			}
 		}
 	},

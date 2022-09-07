@@ -30,6 +30,7 @@ describe('InMemoryChannel Channel', () => {
 		db: {
 			newReadWriter: jest.fn(),
 		} as never,
+		moduleDB: jest.fn() as never,
 		events: ['event1', 'event2'],
 		endpoints: {
 			action1: jest.fn(),
@@ -47,6 +48,7 @@ describe('InMemoryChannel Channel', () => {
 		inMemoryChannel = new InMemoryChannel(
 			params.logger,
 			params.db,
+			params.moduleDB,
 			params.namespace,
 			params.events,
 			params.endpoints,

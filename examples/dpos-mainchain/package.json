@@ -62,11 +62,11 @@
 			"config": {
 				"description": "Commands relating to dpos-mainchain node configuration."
 			},
-			"forger-info": {
-				"description": "Commands relating to dpos-mainchain forger-info data."
+			"keys": {
+				"description": "Commands relating to account, generator and bls keys."
 			},
-			"forging": {
-				"description": "Commands relating to dpos-mainchain forging."
+			"generator": {
+				"description": "Commands relating to dpos-mainchain forging and generator-info data."
 			},
 			"hash-onion": {
 				"description": "Create hash onions to be used by the forger."

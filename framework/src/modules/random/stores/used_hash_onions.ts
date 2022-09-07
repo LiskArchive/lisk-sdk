@@ -11,7 +11,9 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BaseOffchainStore } from '../../base_offchain_store';
+import { BaseOffchainStore, ImmutableOffchainStoreGetter } from '../../base_offchain_store';
+import { NotFoundError } from '../../../state_machine';
+import { STORE_PREFIX_USED_HASH_ONION } from '../constants';
 
 export interface UsedHashOnion {
 	readonly count: number;
@@ -56,4 +58,36 @@ export const usedHashOnionsStoreSchema = {
 
 export class UsedHashOnionsStore extends BaseOffchainStore<UsedHashOnionStoreObject> {
 	public schema = usedHashOnionsStoreSchema;
+
+	public async getLatest(
+		ctx: ImmutableOffchainStoreGetter,
+		address: Buffer,
+		height?: number,
+	): Promise<UsedHashOnion | undefined> {
+		try {
+			const { usedHashOnions } = await this.get(ctx, STORE_PREFIX_USED_HASH_ONION);
+			return usedHashOnions.reduce<UsedHashOnion | undefined>((prev, curr) => {
+				if (!curr.address.equals(address)) {
+					return prev;
+				}
+				// if the height is not specified, return the highest
+				if (height === undefined) {
+					if (!prev || prev.height < curr.height) {
+						return curr;
+					}
+					return prev;
+				}
+				// if the height is specified, return the highest below the specified height
+				if (curr.height < height && (!prev || prev.height < curr.height)) {
+					return curr;
+				}
+				return prev;
+			}, undefined);
+		} catch (error) {
+			if (error instanceof NotFoundError) {
+				return undefined;
+			}
+			throw error;
+		}
+	}
 }
