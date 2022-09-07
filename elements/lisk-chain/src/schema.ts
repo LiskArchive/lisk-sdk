@@ -11,7 +11,12 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { MAX_NAME_LENGTH, MIN_NAME_LENGTH } from './constants';
+import {
+	MAX_EVENT_MODULE_LENGTH,
+	MAX_EVENT_NAME_LENGTH,
+	MIN_EVENT_MODULE_LENGTH,
+	MIN_EVENT_NAME_LENGTH,
+} from './constants';
 
 export const blockSchema = {
 	$id: '/block',
@@ -184,14 +189,14 @@ export const eventSchema = {
 	properties: {
 		module: {
 			dataType: 'string',
-			minLength: MIN_NAME_LENGTH,
-			maxLength: MAX_NAME_LENGTH,
+			minLength: MIN_EVENT_MODULE_LENGTH,
+			maxLength: MAX_EVENT_MODULE_LENGTH,
 			fieldNumber: 1,
 		},
 		name: {
 			dataType: 'string',
-			minLength: MIN_NAME_LENGTH,
-			maxLength: MAX_NAME_LENGTH,
+			minLength: MIN_EVENT_NAME_LENGTH,
+			maxLength: MAX_EVENT_NAME_LENGTH,
 			fieldNumber: 2,
 		},
 		data: {

@@ -18,7 +18,12 @@ import {
 	blockAssetSchema,
 	transactionSchema,
 } from '@liskhq/lisk-chain';
-import { MAX_NAME_LENGTH, MIN_NAME_LENGTH } from '@liskhq/lisk-chain/dist-node/constants';
+import {
+	MIN_EVENT_MODULE_LENGTH,
+	MAX_EVENT_MODULE_LENGTH,
+	MIN_EVENT_NAME_LENGTH,
+	MAX_EVENT_NAME_LENGTH,
+} from '@liskhq/lisk-chain/dist-node/constants';
 
 export { blockHeaderSchema, blockSchema };
 
@@ -29,14 +34,14 @@ export const eventSchema = {
 	properties: {
 		module: {
 			dataType: 'string',
-			minLength: MIN_NAME_LENGTH,
-			maxLength: MAX_NAME_LENGTH,
+			minLength: MIN_EVENT_MODULE_LENGTH,
+			maxLength: MAX_EVENT_MODULE_LENGTH,
 			fieldNumber: 1,
 		},
 		name: {
 			dataType: 'string',
-			minLength: MIN_NAME_LENGTH,
-			maxLength: MAX_NAME_LENGTH,
+			minLength: MIN_EVENT_NAME_LENGTH,
+			maxLength: MAX_EVENT_NAME_LENGTH,
 			fieldNumber: 2,
 		},
 		data: {

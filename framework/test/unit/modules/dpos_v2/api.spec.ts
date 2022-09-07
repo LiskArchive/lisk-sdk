@@ -66,6 +66,7 @@ describe('DposModuleApi', () => {
 		voterSubStore = dpos.stores.get(VoterStore);
 		delegateSubStore = dpos.stores.get(DelegateStore);
 		nameSubStore = dpos.stores.get(NameStore);
+		apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 	});
 
 	describe('isNameAvailable', () => {
@@ -74,14 +75,12 @@ describe('DposModuleApi', () => {
 				await nameSubStore.set(createStoreGetter(stateStore), Buffer.from(delegateData.name), {
 					delegateAddress: Buffer.alloc(0),
 				});
-				apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 				await expect(dposAPI.isNameAvailable(apiContext, delegateData.name)).resolves.toBeFalse();
 			});
 		});
 
 		describe('when name does not exist and exceeds the maximum length', () => {
 			it('should return false', async () => {
-				apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 				await expect(
 					dposAPI.isNameAvailable(
 						apiContext,
@@ -93,14 +92,12 @@ describe('DposModuleApi', () => {
 
 		describe('when name does not exist and has length less than 1', () => {
 			it('should return false', async () => {
-				apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 				await expect(dposAPI.isNameAvailable(apiContext, '')).resolves.toBeFalse();
 			});
 		});
 
 		describe('when name does not exist and contains invalid symbol', () => {
 			it('should return false', async () => {
-				apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 				await expect(
 					dposAPI.isNameAvailable(apiContext, 'Ajldnfdf-_.dv$%&^#'),
 				).resolves.toBeFalse();
@@ -109,7 +106,6 @@ describe('DposModuleApi', () => {
 
 		describe('when name does not exist and is a valid name', () => {
 			it('should return true', async () => {
-				apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 				await expect(
 					dposAPI.isNameAvailable(apiContext, 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.'),
 				).resolves.toBeFalse();
@@ -121,7 +117,6 @@ describe('DposModuleApi', () => {
 		describe('when input address is valid', () => {
 			it('should return correct voter data corresponding to the input address', async () => {
 				await voterSubStore.set(createStoreGetter(stateStore), address, voterData);
-				apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 				const voterDataReturned = await dposAPI.getVoter(apiContext, address);
 
 				expect(voterDataReturned).toStrictEqual(voterData);
@@ -133,7 +128,6 @@ describe('DposModuleApi', () => {
 		describe('when input address is valid', () => {
 			it('should return correct delegate data corresponding to the input address', async () => {
 				await delegateSubStore.set(createStoreGetter(stateStore), address, delegateData);
-				apiContext = new APIContext({ stateStore, eventQueue: new EventQueue(0) });
 				const delegateDataReturned = await dposAPI.getDelegate(apiContext, address);
 
 				expect(delegateDataReturned).toStrictEqual(delegateData);

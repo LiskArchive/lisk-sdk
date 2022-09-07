@@ -268,6 +268,13 @@ export interface DecodedBlockJSON {
 
 export interface Event {
 	readonly moduleID: string;
+	/**
+	 * several events can be emitted from each module, e.g.
+	 * token module transfer event
+	 * nft module transfer event
+	 *
+	 * name of event
+	 */
 	readonly name: string;
 	readonly topics: Buffer[];
 	readonly index: number;

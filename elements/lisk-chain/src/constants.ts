@@ -35,8 +35,10 @@ export const TAG_TRANSACTION = utils.createMessageTag('TX');
 export const MAX_ASSET_DATA_SIZE_BYTES = 64;
 export const SIGNATURE_LENGTH_BYTES = 64;
 
-export const MIN_NAME_LENGTH = 1;
-export const MAX_NAME_LENGTH = 32;
+export const MIN_EVENT_MODULE_LENGTH = 1;
+export const MAX_EVENT_MODULE_LENGTH = 32;
+export const MIN_EVENT_NAME_LENGTH = 1;
+export const MAX_EVENT_NAME_LENGTH = 32;
 
 export const SMT_PREFIX_SIZE = 6;
 
