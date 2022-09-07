@@ -30,7 +30,7 @@ describe('Account related actions', () => {
 	describe('getAccount', () => {
 		it('should return valid encoded account', async () => {
 			const encodedAccount = await app['_channel'].invoke('app_getAccount', {
-				address: genesis.address.toString('hex'),
+				address: genesis.address,
 			});
 			expect(encodedAccount).toBeString();
 			const account = app['_node']['_chain'].dataAccess.decodeAccount(

@@ -11,41 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { GenesisConfig, testing, ApplicationConfigForPlugin, chain, cryptography } from 'lisk-sdk';
+import { testing, ApplicationConfigForPlugin, chain, cryptography } from 'lisk-sdk';
 import { when } from 'jest-when';
 import { MonitorPlugin } from '../../src';
 import { configSchema } from '../../src/schemas';
 
 const appConfigForPlugin: ApplicationConfigForPlugin = {
-	rootPath: '~/.lisk',
-	label: 'my-app',
-	system: {
-		keepEventsForHeights: -1,
-	},
-	logger: {
-		consoleLogLevel: 'info',
-		fileLogLevel: 'none',
-		logFileName: 'plugin-MisbehaviourPlugin.log',
-	},
-	rpc: {
-		modes: [],
-		port: 8080,
-		host: '127.0.0.1',
-	},
-	genesis: {} as GenesisConfig,
-	network: {
-		seedPeers: [],
-		port: 5000,
-	},
-	transactionPool: {
-		maxTransactions: 4096,
-		maxTransactionsPerAccount: 64,
-		transactionExpiryTime: 3 * 60 * 60 * 1000,
-		minEntranceFeePriority: '0',
-		minReplacementFeeDifference: '10',
-	},
-	version: '',
-	networkVersion: '',
+	...testing.fixtures.defaultConfig,
 };
 
 const logger = testing.mocks.loggerMock;

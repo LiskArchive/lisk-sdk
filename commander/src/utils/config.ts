@@ -1,37 +1,21 @@
 export const defaultConfig = {
-	label: 'beta-sdk-app',
-	version: '0.0.0',
-	networkVersion: '1.0',
-	rootPath: '~/.lisk',
+	system: {
+		dataPath: '~/.lisk/beta-sdk-app',
+		keepEventsForHeights: 300,
+	},
 	logger: {
 		fileLogLevel: 'info',
 		consoleLogLevel: 'info',
-		logFileName: 'lisk.log',
 	},
 	rpc: {
 		modes: ['ipc'],
-	},
-	genesis: {
-		blockTime: 10,
-		communityIdentifier: 'sdk',
-		// eslint-disable-next-line @typescript-eslint/no-magic-numbers
-		maxTransactionsSize: 15 * 1024, // Kilo Bytes
-		minFeePerByte: 1000,
-		modules: {},
-	},
-	generation: {
-		force: false,
-		waitThreshold: 2,
-		delegates: [], // Copy the delegates info from genesis.json file
+		port: 7887,
+		host: '127.0.0.1',
 	},
 	network: {
-		seedPeers: [
-			{
-				ip: '127.0.0.1',
-				port: 5000,
-			},
-		],
-		port: 5000,
+		version: '1.0',
+		seedPeers: [],
+		port: 7667,
 	},
 	transactionPool: {
 		maxTransactions: 4096,
@@ -40,6 +24,21 @@ export const defaultConfig = {
 		minEntranceFeePriority: '0',
 		minReplacementFeeDifference: '10',
 	},
+	genesis: {
+		block: {
+			fromFile: './config/genesis_block.blob',
+		},
+		blockTime: 10,
+		bftBatchSize: 103,
+		communityIdentifier: 'sdk',
+		// eslint-disable-next-line @typescript-eslint/no-magic-numbers
+		maxTransactionsSize: 15 * 1024, // Kilo Bytes
+		minFeePerByte: 1000,
+	},
+	generator: {
+		keys: {},
+	},
+	modules: {},
 	plugins: {},
 };
 

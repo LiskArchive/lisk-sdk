@@ -35,8 +35,6 @@ import {
 	finalizeResponseSchema,
 	initGenesisStateRequestSchema,
 	initGenesisStateResponseSchema,
-	initRequestSchema,
-	initResponseSchema,
 	initStateMachineRequestSchema,
 	initStateMachineResponseSchema,
 	insertAssetsRequestSchema,
@@ -75,11 +73,6 @@ export class ABIServer {
 		this._socketPath = socketPath;
 		this._logger = logger;
 		this._router = new Router();
-		this._abiHandlers[abi.init.name] = {
-			request: initRequestSchema,
-			response: initResponseSchema,
-			func: abi.init.bind(abi),
-		};
 		this._abiHandlers[abi.ready.name] = {
 			request: readyRequestSchema,
 			response: readyResponseSchema,

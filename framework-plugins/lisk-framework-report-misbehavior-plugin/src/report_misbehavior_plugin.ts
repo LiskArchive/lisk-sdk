@@ -30,7 +30,7 @@ import { ReportMisbehaviorPluginConfig, State } from './types';
 import { configSchema } from './schemas';
 import { Endpoint } from './endpoint';
 
-const { address, ed, legacy } = cryptography;
+const { address, ed } = cryptography;
 const { BlockHeader, Transaction, TAG_TRANSACTION } = chain;
 
 export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginConfig> {
@@ -102,7 +102,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 						decodedBlockHeader,
 						this.apiClient,
 					);
-					if (contradictingBlock && this._state.passphrase) {
+					if (contradictingBlock && this._state.privateKey) {
 						const encodedTransaction = await this._createPoMTransaction(
 							decodedBlockHeader,
 							contradictingBlock,
@@ -141,12 +141,12 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 		}
 
 		// Assume passphrase is checked before calling this function
-		const passphrase = this._state.passphrase as string;
-
-		const keys = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+		if (!this._state.publicKey || !this._state.privateKey) {
+			throw new Error('Key is not registered.');
+		}
 
 		const authAccount = await this.apiClient.invoke<{ nonce: string }>('auth_getAuthAccount', {
-			address: address.getAddressFromPublicKey(keys.publicKey).toString('hex'),
+			address: address.getAddressFromPublicKey(this._state.publicKey).toString('hex'),
 		});
 
 		const pomTransactionParams = {
@@ -165,7 +165,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 			command: pomParamsInfo.name,
 			nonce: BigInt(authAccount.nonce),
 			senderPublicKey:
-				this._state.publicKey ?? legacy.getPrivateAndPublicKeyFromPassphrase(passphrase).publicKey,
+				this._state.publicKey ?? ed.getPublicKeyFromPrivateKey(this._state.privateKey),
 			fee: BigInt(this.config.fee), // TODO: The static fee should be replaced by fee estimation calculation
 			params: encodedParams,
 			signatures: [],
@@ -176,7 +176,7 @@ export class ReportMisbehaviorPlugin extends BasePlugin<ReportMisbehaviorPluginC
 				TAG_TRANSACTION,
 				Buffer.from(networkIdentifier, 'hex'),
 				tx.getSigningBytes(),
-				legacy.getPrivateAndPublicKeyFromPassphrase(passphrase).privateKey,
+				this._state.privateKey,
 			),
 		);
 

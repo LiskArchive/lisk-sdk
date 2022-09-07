@@ -34,7 +34,6 @@ import {
 	DEFAULT_MAX_BLOCK_HEADER_CACHE,
 	DEFAULT_MIN_BLOCK_HEADER_CACHE,
 } from '../../src/constants';
-import { BlockAssets } from '../../src';
 
 describe('chain', () => {
 	const constants = {
@@ -302,9 +301,7 @@ describe('chain', () => {
 				transactions: txs,
 			});
 			// Act & assert
-			expect(() =>
-				chainInstance.validateBlock(block, { version: 2, acceptedModules: [] }),
-			).not.toThrow();
+			expect(() => chainInstance.validateBlock(block, { version: 2 })).not.toThrow();
 		});
 
 		it('should throw error if transaction root does not match', async () => {
@@ -314,7 +311,7 @@ describe('chain', () => {
 				header: { transactionRoot: Buffer.from('1234567890') },
 			});
 			// Act & assert
-			expect(() => chainInstance.validateBlock(block, { version: 2, acceptedModules: [] })).toThrow(
+			expect(() => chainInstance.validateBlock(block, { version: 2 })).toThrow(
 				'Invalid transaction root',
 			);
 		});
@@ -325,7 +322,7 @@ describe('chain', () => {
 			const txs = new Array(200).fill(0).map(() => getTransaction());
 			block = await createValidDefaultBlock({ transactions: txs });
 			// Act & assert
-			expect(() => chainInstance.validateBlock(block, { version: 2, acceptedModules: [] })).toThrow(
+			expect(() => chainInstance.validateBlock(block, { version: 2 })).toThrow(
 				'Transactions length is longer than configured length: 100.',
 			);
 		});
@@ -337,20 +334,8 @@ describe('chain', () => {
 			block = await createValidDefaultBlock({ transactions: txs });
 			(block.header as any).version = 3;
 			// Act & assert
-			expect(() => chainInstance.validateBlock(block, { version: 2, acceptedModules: [] })).toThrow(
+			expect(() => chainInstance.validateBlock(block, { version: 2 })).toThrow(
 				'Block version must be 2.',
-			);
-		});
-
-		it('should throw error if assets data from unknown module', async () => {
-			// Arrange
-			(chainInstance as any).constants.maxTransactionsSize = 100;
-			const txs = new Array(200).fill(0).map(() => getTransaction());
-			const assets = new BlockAssets([{ module: 'universe', data: utils.getRandomBytes(32) }]);
-			block = await createValidDefaultBlock({ transactions: txs, assets });
-			// Act & assert
-			expect(() => chainInstance.validateBlock(block, { version: 2, acceptedModules: [] })).toThrow(
-				'Block asset with module: universe is not accepted.',
 			);
 		});
 	});

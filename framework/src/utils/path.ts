@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Lisk Foundation
+ * Copyright © 2022 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -12,15 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export interface ReportMisbehaviorPluginConfig {
-	readonly encryptedPassphrase: string;
-	readonly defaultPassword: string;
-	readonly fee: number;
-	readonly clearBlockHeadersInterval: number;
-}
+import { homedir } from 'os';
+import * as path from 'path';
 
-export interface State {
-	publicKey?: Buffer;
-	privateKey?: Buffer;
-	currentHeight: number;
-}
+export const getPathFromDataPath = (filePath: string, dataPath: string) => {
+	const pathWithoutTilda = filePath.replace('~', homedir());
+	if (path.isAbsolute(pathWithoutTilda)) {
+		return pathWithoutTilda;
+	}
+	return path.resolve(path.join(dataPath, filePath));
+};

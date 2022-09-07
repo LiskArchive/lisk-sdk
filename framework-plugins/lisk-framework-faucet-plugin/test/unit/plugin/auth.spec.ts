@@ -12,40 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ApplicationConfigForPlugin, GenesisConfig, testing } from 'lisk-sdk';
+import { ApplicationConfigForPlugin, testing } from 'lisk-sdk';
 import { FaucetPlugin } from '../../../src/plugin';
 import { configSchema } from '../../../src/plugin/schemas';
 
 const appConfigForPlugin: ApplicationConfigForPlugin = {
-	rootPath: '~/.lisk',
-	label: 'my-app',
-	system: {
-		keepEventsForHeights: -1,
-	},
-	logger: {
-		consoleLogLevel: 'debug',
-		fileLogLevel: 'none',
-		logFileName: 'plugin-FaucetPlugin.log',
-	},
-	rpc: {
-		modes: [],
-		port: 8080,
-		host: '127.0.0.1',
-	},
-	genesis: {} as GenesisConfig,
-	network: {
-		seedPeers: [],
-		port: 5000,
-	},
-	transactionPool: {
-		maxTransactions: 4096,
-		maxTransactionsPerAccount: 64,
-		transactionExpiryTime: 3 * 60 * 60 * 1000,
-		minEntranceFeePriority: '0',
-		minReplacementFeeDifference: '10',
-	},
-	version: '',
-	networkVersion: '',
+	...testing.fixtures.defaultConfig,
 };
 
 const validPluginOptions = {

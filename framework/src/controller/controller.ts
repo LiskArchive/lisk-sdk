@@ -79,7 +79,7 @@ export class Controller {
 
 		this._appConfig = options.appConfig;
 		this._pluginConfigs = options.pluginConfigs ?? {};
-		const dirs = systemDirs(options.appConfig.label, options.appConfig.rootPath);
+		const dirs = systemDirs(options.appConfig.system.dataPath);
 		this._config = {
 			dataPath: dirs.dataPath,
 			dirs,

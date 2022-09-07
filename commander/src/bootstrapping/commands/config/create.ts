@@ -14,6 +14,7 @@
  *
  */
 import { Command, flags as flagParser } from '@oclif/command';
+import { homedir } from 'os';
 import * as fs from 'fs-extra';
 import { join, resolve } from 'path';
 import * as inquirer from 'inquirer';
@@ -62,7 +63,7 @@ export class CreateCommand extends Command {
 		const configPath = resolve(output);
 		const filePath = join(configPath, 'config');
 
-		defaultConfig.label = label;
+		defaultConfig.system.dataPath = join(homedir(), '.lisk', label);
 		defaultConfig.genesis.communityIdentifier = communityIdentifier;
 
 		// check for existing file at given location & ask the user before overwriting

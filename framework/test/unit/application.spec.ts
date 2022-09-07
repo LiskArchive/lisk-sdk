@@ -18,20 +18,17 @@ import * as childProcess from 'child_process';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import { join } from 'path';
-import { Block, BlockAssets } from '@liskhq/lisk-chain';
 import { BasePlugin } from '../../src';
 import { Application } from '../../src/application';
 import { Bus } from '../../src/controller/bus';
-// import { IPCServer } from '../../src/controller/ipc/ipc_server';
 import { WSServer } from '../../src/controller/ws/ws_server';
 import { createLogger } from '../../src/logger';
 import { Engine } from '../../src/engine';
-import { systemDirs } from '../../src/system_dirs';
 import * as basePluginModule from '../../src/plugins/base_plugin';
-import * as networkConfig from '../fixtures/config/devnet/config.json';
-import { createFakeBlockHeader } from '../fixtures';
+import * as defaultConfig from '../fixtures/config/devnet/config.json';
 import { ABIServer } from '../../src/abi_handler/abi_server';
 import { EVENT_ENGINE_READY } from '../../src/abi_handler/abi_handler';
+import { systemDirs } from '../../src/system_dirs';
 
 jest.mock('fs-extra');
 jest.mock('zeromq', () => {
@@ -64,8 +61,8 @@ class TestPlugin extends BasePlugin {
 
 describe('Application', () => {
 	// Arrange
-	const config: any = {
-		...networkConfig,
+	const config = {
+		...defaultConfig,
 	};
 	const loggerMock = {
 		info: jest.fn(),
@@ -100,61 +97,6 @@ describe('Application', () => {
 			const { app } = Application.defaultApplication();
 
 			expect(app.config).toBeDefined();
-		});
-
-		it('should set app label with the genesis block transaction root prefixed with `lisk-` if label not provided', () => {
-			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			const label = `lisk-${config.genesis.communityIdentifier}`;
-			const configWithoutLabel = objects.cloneDeep(config);
-			delete configWithoutLabel.label;
-
-			const { app } = Application.defaultApplication(configWithoutLabel);
-
-			expect(app.config.label).toBe(label);
-		});
-
-		it('should use the same app label if provided', () => {
-			const { app } = Application.defaultApplication(config);
-
-			expect(app.config.label).toBe(config.label);
-		});
-
-		it('should set default rootPath if not provided', () => {
-			// Arrange
-			const rootPath = '~/.lisk';
-			const configWithoutRootPath = objects.cloneDeep(config);
-			delete configWithoutRootPath.rootPath;
-
-			// Act
-			const { app } = Application.defaultApplication(configWithoutRootPath);
-
-			// Assert
-			expect(app.config.rootPath).toBe(rootPath);
-		});
-
-		it('should set rootPath if provided', () => {
-			// Arrange
-			const customRootPath = '/my-lisk-folder';
-			const configWithCustomRootPath = objects.cloneDeep(config);
-			configWithCustomRootPath.rootPath = customRootPath;
-
-			// Act
-			const { app } = Application.defaultApplication(configWithCustomRootPath);
-
-			// Assert
-			expect(app.config.rootPath).toBe(customRootPath);
-		});
-
-		it('should set filename for logger if logger config was not provided', () => {
-			// Arrange
-			const configWithoutLogger = objects.cloneDeep(config);
-			configWithoutLogger.logger = {};
-
-			// Act
-			const { app } = Application.defaultApplication(configWithoutLogger);
-
-			// Assert
-			expect(app.config.logger.logFileName).toBe('lisk.log');
 		});
 
 		it('should merge the constants with genesis and assign it to app constants', () => {
@@ -259,7 +201,7 @@ describe('Application', () => {
 			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
 
 			jest.spyOn(ABIServer.prototype, 'start');
-			await app.run(new Block(createFakeBlockHeader(), [], new BlockAssets()));
+			await app.run();
 		});
 
 		afterEach(async () => {
@@ -274,7 +216,8 @@ describe('Application', () => {
 			expect(childProcess.fork).toHaveBeenCalledTimes(1);
 			expect(childProcess.fork).toHaveBeenCalledWith(expect.stringContaining('engine_igniter'), [
 				expect.stringContaining('.ipc'),
-				'false',
+				'--config',
+				expect.stringContaining('engine_config.json'),
 			]);
 		});
 
@@ -295,9 +238,9 @@ describe('Application', () => {
 			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 			jest.spyOn(WSServer.prototype, 'start').mockResolvedValue(jest.fn() as never);
 
-			await app.run(new Block(createFakeBlockHeader(), [], new BlockAssets()));
+			await app.run();
 
-			dirs = systemDirs(app.config.label, app.config.rootPath);
+			dirs = systemDirs(app.config.system.dataPath);
 		});
 
 		afterEach(async () => {
@@ -339,13 +282,13 @@ describe('Application', () => {
 			jest.spyOn(Bus.prototype, 'publish').mockResolvedValue(jest.fn() as never);
 			jest.spyOn(fs, 'unlink').mockResolvedValue();
 
-			await app.run(new Block(createFakeBlockHeader(), [], new BlockAssets()));
+			await app.run();
 			app['_abiHandler'].event.emit(EVENT_ENGINE_READY);
 			await app.shutdown();
 		});
 
 		it('should delete all files in ~/.lisk/tmp/sockets', () => {
-			const { sockets: socketsPath } = systemDirs(app.config.label, app.config.rootPath);
+			const { sockets: socketsPath } = systemDirs(app.config.system.dataPath);
 
 			// Assert
 			for (const aSocketFile of fakeSocketFiles) {
@@ -367,7 +310,7 @@ describe('Application', () => {
 			({ app } = Application.defaultApplication(config));
 			jest.spyOn(Engine.prototype, 'start').mockResolvedValue();
 
-			await app.run(new Block(createFakeBlockHeader(), [], new BlockAssets()));
+			await app.run();
 			app['_abiHandler'].event.emit(EVENT_ENGINE_READY);
 
 			jest.spyOn(fs, 'readdirSync').mockReturnValue(fakeSocketFiles);
@@ -397,7 +340,9 @@ describe('Application', () => {
 		it('should call clearControllerPidFileSpy method with correct pid file location', async () => {
 			const unlinkSyncSpy = jest.spyOn(fs, 'unlinkSync').mockReturnValue();
 			await app.shutdown();
-			expect(unlinkSyncSpy).toHaveBeenCalledWith('/user/.lisk/devnet/tmp/pids/controller.pid');
+			expect(unlinkSyncSpy).toHaveBeenCalledWith(
+				'/user/.lisk/beta-sdk-app/tmp/pids/controller.pid',
+			);
 		});
 	});
 });

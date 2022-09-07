@@ -76,7 +76,11 @@ describe('genesis block', () => {
 				const validators = await processEnv.invoke<{
 					list: { address: string; nextAllocatedTime: number }[];
 				}>('chain_getGeneratorList', {});
-				expect(validators.list.map(v => v.address)).toMatchSnapshot();
+				expect(
+					validators.list
+						.sort((a, b) => Buffer.from(a.address, 'hex').compare(Buffer.from(b.address, 'hex')))
+						.map(v => v.address),
+				).toMatchSnapshot();
 			});
 		});
 	});
@@ -100,7 +104,7 @@ describe('genesis block', () => {
 			oldBalance = BigInt(recipient.availableBalance);
 			newBalance = oldBalance + BigInt('100000000000');
 			const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-				address: genesis.address.toString('hex'),
+				address: genesis.address,
 			});
 
 			const transaction = createTransferTransaction({
@@ -108,7 +112,7 @@ describe('genesis block', () => {
 				recipientAddress,
 				networkIdentifier,
 				nonce: BigInt(authData.nonce),
-				passphrase: genesis.passphrase,
+				privateKey: Buffer.from(genesis.privateKey, 'hex'),
 			});
 			const newBlock = await processEnv.createBlock([transaction]);
 			await processEnv.process(newBlock);
@@ -142,7 +146,6 @@ describe('genesis block', () => {
 					db: consensus['_db'],
 					genesisBlock: processEnv.getGenesisBlock(),
 					logger: consensus['_logger'],
-					modules: consensus['_modules'],
 				});
 
 				const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {

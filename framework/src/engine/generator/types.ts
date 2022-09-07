@@ -19,6 +19,7 @@ import { IterateOptions } from '@liskhq/lisk-db';
 import { AggregateCommit } from '../consensus/types';
 import { ValidatorInfo } from '../consensus/certificate_generation/types';
 import { Consensus as ABIConsensus } from '../../abi';
+import { JSONObject } from '../../types';
 
 export interface Keypair {
 	publicKey: Buffer;
@@ -96,6 +97,8 @@ export interface PlainGeneratorKeyData {
 	blsPrivateKey: Buffer;
 }
 
+export type PlainGeneratorKeyDataJSON = JSONObject<PlainGeneratorKeyData>;
+
 interface PlainGeneratorKeys {
 	type: 'plain';
 	address: Buffer;
@@ -103,3 +106,11 @@ interface PlainGeneratorKeys {
 }
 
 export type GeneratorKeys = EncryptedGeneratorKeys | PlainGeneratorKeys;
+
+export interface KeysFile {
+	keys: {
+		address: string;
+		plain?: PlainGeneratorKeyDataJSON;
+		encrypted?: encrypt.EncryptedMessageObject;
+	}[];
+}

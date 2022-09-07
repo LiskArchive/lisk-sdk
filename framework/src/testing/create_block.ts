@@ -14,11 +14,11 @@
  */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 import { Block, BlockHeader, Transaction, BlockHeaderAttrs, BlockAssets } from '@liskhq/lisk-chain';
-import { address, utils, legacy } from '@liskhq/lisk-cryptography';
+import { address, utils, legacy, ed } from '@liskhq/lisk-cryptography';
 import { MerkleTree } from '@liskhq/lisk-tree';
 
 interface CreateBlock {
-	passphrase: string;
+	privateKey: Buffer;
 	networkIdentifier: Buffer;
 	timestamp: number;
 	previousBlockID: Buffer;
@@ -58,7 +58,7 @@ export const createFakeBlockHeader = (header?: Partial<BlockHeaderAttrs>): Block
 };
 
 export const createBlock = async ({
-	passphrase,
+	privateKey,
 	networkIdentifier,
 	timestamp,
 	previousBlockID,
@@ -66,7 +66,7 @@ export const createBlock = async ({
 	assets,
 	header,
 }: CreateBlock): Promise<Block> => {
-	const { publicKey, privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+	const publicKey = ed.getPublicKeyFromPrivateKey(privateKey);
 	const txTree = new MerkleTree();
 	await txTree.init(transactions?.map(tx => tx.id) ?? []);
 

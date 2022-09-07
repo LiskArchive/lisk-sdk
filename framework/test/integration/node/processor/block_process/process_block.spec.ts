@@ -14,7 +14,6 @@
 
 import { Block, Chain, DataAccess, Transaction } from '@liskhq/lisk-chain';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
-import { legacy } from '@liskhq/lisk-cryptography';
 import { nodeUtils } from '../../../../utils';
 import * as testing from '../../../../../src/testing';
 import {
@@ -23,7 +22,7 @@ import {
 	createTransferTransaction,
 	DEFAULT_TOKEN_ID,
 } from '../../../../utils/mocks/transaction';
-import { getPassphraseFromDefaultConfig } from '../../../../../src/testing/fixtures';
+import { getGeneratorPrivateKeyFromDefaultConfig } from '../../../../../src/testing/fixtures';
 
 describe('Process block', () => {
 	let processEnv: testing.BlockProcessingEnv;
@@ -58,14 +57,14 @@ describe('Process block', () => {
 
 			beforeAll(async () => {
 				const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-					address: genesis.address.toString('hex'),
+					address: genesis.address,
 				});
 				transaction = createTransferTransaction({
 					nonce: BigInt(authData.nonce),
 					recipientAddress: account.address,
 					amount,
 					networkIdentifier,
-					passphrase: genesis.passphrase,
+					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				newBlock = await processEnv.createBlock([transaction]);
 				await processEnv.process(newBlock);
@@ -73,7 +72,7 @@ describe('Process block', () => {
 
 			it('should save account state changes from the transaction', async () => {
 				const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
-					address: genesis.address.toString('hex'),
+					address: genesis.address,
 					tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 				});
 				const expected = originalBalance - transaction.fee - amount;
@@ -126,14 +125,14 @@ describe('Process block', () => {
 
 			beforeAll(async () => {
 				const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-					address: genesis.address.toString('hex'),
+					address: genesis.address,
 				});
 				transaction = createTransferTransaction({
 					nonce: BigInt(authData.nonce),
 					recipientAddress: account.address,
 					amount: BigInt('1000000000'),
 					networkIdentifier,
-					passphrase: genesis.passphrase,
+					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				newBlock = await processEnv.createBlock([transaction]);
 				await processEnv.process(newBlock);
@@ -145,11 +144,10 @@ describe('Process block', () => {
 				invalidBlock.header.transactionRoot = regularMerkleTree.calculateMerkleRootWithLeaves([
 					transaction.id,
 				]);
-				const passphrase = await getPassphraseFromDefaultConfig(
+				const generatorPrivateKey = getGeneratorPrivateKeyFromDefaultConfig(
 					invalidBlock.header.generatorAddress,
 				);
-				const { privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
-				invalidBlock.header.sign(processEnv.getNetworkId(), privateKey);
+				invalidBlock.header.sign(processEnv.getNetworkId(), generatorPrivateKey);
 				await expect(processEnv.process(invalidBlock)).rejects.toThrow(
 					'Failed to verify transaction',
 				);
@@ -198,9 +196,10 @@ describe('Process block', () => {
 			beforeAll(async () => {
 				newBlock = await processEnv.createBlock();
 				(newBlock.header as any).height = 99;
-				const passphrase = await getPassphraseFromDefaultConfig(newBlock.header.generatorAddress);
-				const { privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
-				newBlock.header.sign(processEnv.getNetworkId(), privateKey);
+				const generatorPrivateKey = getGeneratorPrivateKeyFromDefaultConfig(
+					newBlock.header.generatorAddress,
+				);
+				newBlock.header.sign(processEnv.getNetworkId(), generatorPrivateKey);
 			});
 
 			it('should discard the block', async () => {
@@ -223,7 +222,10 @@ describe('Process block', () => {
 				fee: BigInt('3000000000'),
 				username: 'number1',
 				networkIdentifier,
-				passphrase: account.passphrase,
+				blsKey: account.blsPublicKey,
+				generatorKey: account.publicKey,
+				blsProofOfPossession: account.blsPoP,
+				privateKey: account.privateKey,
 			});
 			newBlock = await processEnv.createBlock([transaction]);
 			await processEnv.process(newBlock);
@@ -243,7 +245,7 @@ describe('Process block', () => {
 				const voteTransaction = createDelegateVoteTransaction({
 					nonce: BigInt(senderAuthData.nonce),
 					networkIdentifier,
-					passphrase: account.passphrase,
+					privateKey: account.privateKey,
 					votes: [
 						{
 							delegateAddress: account.address,
@@ -285,18 +287,20 @@ describe('Process block', () => {
 					fee: BigInt('5000000000'),
 					username: 'number1',
 					networkIdentifier,
-					passphrase: account.passphrase,
+					privateKey: account.privateKey,
+					blsKey: account.blsPublicKey,
+					generatorKey: account.publicKey,
+					blsProofOfPossession: account.blsPoP,
 				});
 				invalidBlock = await processEnv.createBlock();
 				(invalidBlock as any).transactions = [transaction];
 				invalidBlock.header.transactionRoot = regularMerkleTree.calculateMerkleRootWithLeaves([
 					transaction.id,
 				]);
-				const passphrase = await getPassphraseFromDefaultConfig(
-					invalidBlock.header.generatorAddress,
+				const generatorPrivateKey = getGeneratorPrivateKeyFromDefaultConfig(
+					newBlock.header.generatorAddress,
 				);
-				const { privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
-				invalidBlock.header.sign(processEnv.getNetworkId(), privateKey);
+				invalidBlock.header.sign(processEnv.getNetworkId(), generatorPrivateKey);
 				try {
 					await processEnv.process(invalidBlock);
 				} catch (err) {

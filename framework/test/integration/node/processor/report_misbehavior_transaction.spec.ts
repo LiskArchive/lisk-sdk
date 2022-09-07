@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Block, BlockHeader } from '@liskhq/lisk-chain';
-import { address, legacy } from '@liskhq/lisk-cryptography';
 
 import { nodeUtils } from '../../../utils';
 import {
@@ -21,13 +20,14 @@ import {
 	DEFAULT_TOKEN_ID,
 } from '../../../utils/mocks/transaction';
 import * as testing from '../../../../src/testing';
+import { Keys } from '../../../../src/testing/fixtures';
 
 describe('Transaction order', () => {
 	let processEnv: testing.BlockProcessingEnv;
 	let networkIdentifier: Buffer;
-	let blockGenerator: string;
+	let blockGenerator: Keys;
 	let newBlock: Block;
-	let senderAccount: { address: Buffer; passphrase: string };
+	let senderAccount: ReturnType<typeof nodeUtils.createAccount>;
 	const databasePath = '/tmp/lisk/report_misbehavior/test';
 	const genesis = testing.fixtures.defaultFaucetAccount;
 
@@ -38,10 +38,10 @@ describe('Transaction order', () => {
 			},
 		});
 		networkIdentifier = processEnv.getNetworkId();
-		blockGenerator = await processEnv.getNextValidatorPassphrase(processEnv.getLastBlock().header);
+		blockGenerator = await processEnv.getNextValidatorKeys(processEnv.getLastBlock().header);
 		// Fund sender account
 		const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-			address: genesis.address.toString('hex'),
+			address: genesis.address,
 		});
 		senderAccount = nodeUtils.createAccount();
 		const transaction = createTransferTransaction({
@@ -49,7 +49,7 @@ describe('Transaction order', () => {
 			recipientAddress: senderAccount.address,
 			amount: BigInt('10000000000'),
 			networkIdentifier,
-			passphrase: genesis.passphrase,
+			privateKey: Buffer.from(genesis.privateKey, 'hex'),
 			fee: BigInt(165000), // minFee not to give fee for generator
 		});
 		newBlock = await processEnv.createBlock([transaction]);
@@ -70,19 +70,21 @@ describe('Transaction order', () => {
 				...header.toObject(),
 				height: 100,
 			});
-			const { privateKey, publicKey } = legacy.getPrivateAndPublicKeyFromPassphrase(blockGenerator);
-			conflictingHeader.sign(networkIdentifier, privateKey);
+			conflictingHeader.sign(
+				networkIdentifier,
+				Buffer.from(blockGenerator.plain.generatorPrivateKey, 'hex'),
+			);
 			const originalBalance = await processEnv.invoke<{ availableBalance: string }>(
 				'token_getBalance',
 				{
-					address: address.getAddressFromPublicKey(publicKey).toString('hex'),
+					address: blockGenerator.address,
 					tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 				},
 			);
 
 			const tx = createReportMisbehaviorTransaction({
 				nonce: BigInt(0),
-				passphrase: senderAccount.passphrase,
+				privateKey: senderAccount.privateKey,
 				header1: header,
 				header2: conflictingHeader,
 				networkIdentifier,
@@ -94,12 +96,12 @@ describe('Transaction order', () => {
 			const updatedDelegate = await processEnv.invoke<{ pomHeights: number[] }>(
 				'dpos_getDelegate',
 				{
-					address: address.getAddressFromPublicKey(publicKey).toString('hex'),
+					address: blockGenerator.address,
 				},
 			);
 			expect(updatedDelegate.pomHeights).toHaveLength(1);
 			const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
-				address: address.getAddressFromPublicKey(publicKey).toString('hex'),
+				address: blockGenerator.address,
 				tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 			});
 			expect(balance.availableBalance).toEqual(

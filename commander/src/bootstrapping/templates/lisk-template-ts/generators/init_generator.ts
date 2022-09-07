@@ -136,9 +136,19 @@ export default class InitGenerator extends Generator {
 				spaces: '\t',
 			},
 		);
+		const createdConfig = fs.readJSONSync(
+			this.destinationPath('config/default/config.json'),
+		) as Record<string, unknown>;
+		createdConfig.generator = {
+			keys: {
+				fromFile: './config/dev-validators.json',
+			},
+		};
+		fs.writeJSONSync(this.destinationPath('config/default/config.json'), createdConfig, {
+			spaces: '\t',
+		});
 
 		// create genesis block using the asset file
-
 		this.spawnCommandSync(`${this.destinationPath('bin/run')}`, [
 			'genesis-block:create',
 			'--output',

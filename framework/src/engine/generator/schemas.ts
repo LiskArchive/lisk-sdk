@@ -373,6 +373,90 @@ export type SetKeysRequest = JSONObject<GeneratorKeys> & {
 	address: string;
 };
 
+const encryptedObjectSchema = {
+	type: 'object',
+	required: ['version', 'ciphertext', 'kdf', 'kdfparams', 'cipher', 'cipherparams'],
+	properties: {
+		version: {
+			type: 'string',
+		},
+		ciphertext: {
+			type: 'string',
+			format: 'hex',
+		},
+		kdf: {
+			type: 'string',
+			enum: ['argon2id', 'PBKDF2'],
+		},
+		kdfparams: {
+			type: 'object',
+			properties: {
+				parallelism: {
+					type: 'integer',
+				},
+				iterations: {
+					type: 'integer',
+				},
+				memoriSize: {
+					type: 'integer',
+				},
+				salt: {
+					type: 'string',
+					format: 'hex',
+				},
+			},
+		},
+		cipher: {
+			type: 'string',
+			enum: ['aes-256-gcm'],
+		},
+		cipherparams: {
+			type: 'object',
+			properties: {
+				iv: {
+					type: 'string',
+					format: 'hex',
+				},
+				tag: {
+					type: 'string',
+					format: 'hex',
+				},
+			},
+		},
+	},
+};
+
+const plainKeysObjectSchema = {
+	type: 'object',
+	required: ['generatorKey', 'generatorPrivateKey', 'blsKey', 'blsPrivateKey'],
+	properties: {
+		generatorKey: {
+			type: 'string',
+			format: 'hex',
+			minLength: 64,
+			maxLength: 64,
+		},
+		generatorPrivateKey: {
+			type: 'string',
+			format: 'hex',
+			minLength: 128,
+			maxLength: 128,
+		},
+		blsKey: {
+			type: 'string',
+			format: 'hex',
+			minLength: 96,
+			maxLength: 96,
+		},
+		blsPrivateKey: {
+			type: 'string',
+			format: 'hex',
+			minLength: 64,
+			maxLength: 64,
+		},
+	},
+};
+
 export const setKeysRequestSchema = {
 	$id: '/generator/setKeysRequest',
 	type: 'object',
@@ -390,36 +474,7 @@ export const setKeysRequestSchema = {
 				type: {
 					const: 'plain',
 				},
-				data: {
-					type: 'object',
-					required: ['generatorKey', 'generatorPrivateKey', 'blsKey', 'blsPrivateKey'],
-					properties: {
-						generatorKey: {
-							type: 'string',
-							format: 'hex',
-							minLength: 64,
-							maxLength: 64,
-						},
-						generatorPrivateKey: {
-							type: 'string',
-							format: 'hex',
-							minLength: 128,
-							maxLength: 128,
-						},
-						blsKey: {
-							type: 'string',
-							format: 'hex',
-							minLength: 96,
-							maxLength: 96,
-						},
-						blsPrivateKey: {
-							type: 'string',
-							format: 'hex',
-							minLength: 64,
-							maxLength: 64,
-						},
-					},
-				},
+				data: plainKeysObjectSchema,
 			},
 		},
 		{
@@ -428,58 +483,7 @@ export const setKeysRequestSchema = {
 				type: {
 					const: 'encrypted',
 				},
-				data: {
-					type: 'object',
-					required: ['version', 'ciphertext', 'kdf', 'kdfparams', 'cipher', 'cipherparams'],
-					properties: {
-						version: {
-							type: 'string',
-						},
-						ciphertext: {
-							type: 'string',
-							format: 'hex',
-						},
-						kdf: {
-							type: 'string',
-							enum: ['argon2id', 'PBKDF2'],
-						},
-						kdfparams: {
-							type: 'object',
-							properties: {
-								parallelism: {
-									type: 'integer',
-								},
-								iterations: {
-									type: 'integer',
-								},
-								memoriSize: {
-									type: 'integer',
-								},
-								salt: {
-									type: 'string',
-									format: 'hex',
-								},
-							},
-						},
-						cipher: {
-							type: 'string',
-							enum: ['aes-256-gcm'],
-						},
-						cipherparams: {
-							type: 'object',
-							properties: {
-								iv: {
-									type: 'string',
-									format: 'hex',
-								},
-								tag: {
-									type: 'string',
-									format: 'hex',
-								},
-							},
-						},
-					},
-				},
+				data: encryptedObjectSchema,
 			},
 		},
 	],
@@ -497,6 +501,32 @@ export const hasKeysRequestSchema = {
 		address: {
 			type: 'string',
 			format: 'hex',
+		},
+	},
+};
+
+export const keysFileSchema = {
+	$id: '/generator/keysFile',
+	type: 'object',
+	required: ['keys'],
+	properties: {
+		keys: {
+			type: 'array',
+			items: {
+				required: ['address'],
+				properties: {
+					address: {
+						type: 'string',
+						format: 'hex',
+					},
+					plain: plainKeysObjectSchema,
+					encrypted: {
+						...encryptedObjectSchema,
+						// encrypted property can be empty object
+						required: [],
+					},
+				},
+			},
 		},
 	},
 };

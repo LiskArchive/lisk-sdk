@@ -15,47 +15,22 @@
 
 import { DEFAULT_HOST, DEFAULT_PORT_P2P, DEFAULT_PORT_RPC } from '../constants';
 
-const moduleConfigSchema = {
-	type: 'object',
-	propertyNames: {
-		pattern: '^[a-zA-Z][a-zA-Z0-9_]*$',
-	},
-	additionalProperties: { type: 'object' },
-};
-
 export const applicationConfigSchema = {
 	$id: '#/config',
 	type: 'object',
-	required: ['version', 'networkVersion', 'rpc', 'network', 'plugins', 'genesis'],
+	required: ['system', 'logger', 'rpc', 'network', 'modules', 'plugins', 'genesis'],
 	properties: {
-		label: {
-			type: 'string',
-			pattern: '^[a-zA-Z][0-9a-zA-Z_-]*$',
-			minLength: 1,
-			maxLength: 30,
-			description: 'Restricted length due to unix domain socket path length limitations.',
-		},
-		version: {
-			type: 'string',
-			format: 'version',
-		},
-		networkVersion: {
-			type: 'string',
-			format: 'networkVersion',
-		},
-		rootPath: {
-			type: 'string',
-			format: 'path',
-			minLength: 1,
-			maxLength: 50,
-			examples: ['~/.lisk'],
-			description:
-				'The root path for storing temporary pid and socket file and data. Restricted length due to unix domain socket path length limitations.',
-		},
 		system: {
 			type: 'object',
-			required: ['keepEventsForHeights'],
+			required: ['version', 'dataPath', 'keepEventsForHeights'],
 			properties: {
+				version: {
+					type: 'string',
+					format: 'version',
+				},
+				dataPath: {
+					type: 'string',
+				},
 				keepEventsForHeights: {
 					type: 'integer',
 				},
@@ -63,14 +38,11 @@ export const applicationConfigSchema = {
 		},
 		logger: {
 			type: 'object',
-			required: ['fileLogLevel', 'logFileName', 'consoleLogLevel'],
+			required: ['fileLogLevel', 'consoleLogLevel'],
 			properties: {
 				fileLogLevel: {
 					type: 'string',
 					enum: ['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'none'],
-				},
-				logFileName: {
-					type: 'string',
 				},
 				consoleLogLevel: {
 					type: 'string',
@@ -78,15 +50,32 @@ export const applicationConfigSchema = {
 				},
 			},
 		},
+		rpc: {
+			type: 'object',
+			required: ['modes', 'host', 'port'],
+			properties: {
+				modes: {
+					type: 'array',
+					items: { type: 'string', enum: ['ipc', 'ws', 'http'] },
+					uniqueItems: true,
+				},
+				host: { type: 'string' },
+				port: { type: 'number', minimum: 1024, maximum: 65535 },
+			},
+		},
 		network: {
 			type: 'object',
 			properties: {
+				version: {
+					type: 'string',
+					format: 'networkVersion',
+				},
 				port: {
 					type: 'integer',
 					minimum: 1,
 					maximum: 65535,
 				},
-				hostIp: {
+				host: {
 					type: 'string',
 					format: 'ip',
 				},
@@ -152,33 +141,11 @@ export const applicationConfigSchema = {
 						},
 					},
 				},
-				peerBanTime: {
-					type: 'integer',
-				},
-				connectTimeout: {
-					type: 'integer',
-				},
-				ackTimeout: {
-					type: 'integer',
-				},
 				maxOutboundConnections: {
 					type: 'integer',
 				},
 				maxInboundConnections: {
 					type: 'integer',
-				},
-				sendPeerLimit: {
-					type: 'integer',
-					minimum: 1,
-					maximum: 100,
-				},
-				maxPeerDiscoveryResponseLength: {
-					type: 'integer',
-					maximum: 1000,
-				},
-				maxPeerInfoSize: {
-					type: 'integer',
-					maximum: 20480,
 				},
 				wsMaxPayload: {
 					type: 'integer',
@@ -189,9 +156,6 @@ export const applicationConfigSchema = {
 				},
 			},
 			required: ['seedPeers'],
-		},
-		plugins: {
-			type: 'object',
 		},
 		transactionPool: {
 			type: 'object',
@@ -218,30 +182,46 @@ export const applicationConfigSchema = {
 				},
 			},
 		},
-		rpc: {
-			type: 'object',
-			required: ['modes', 'host', 'port'],
-			properties: {
-				modes: {
-					type: 'array',
-					items: { type: 'string', enum: ['ipc', 'ws', 'http'] },
-					uniqueItems: true,
-				},
-				host: { type: 'string' },
-				port: { type: 'number', minimum: 1024, maximum: 65535 },
-			},
-		},
 		genesis: {
 			type: 'object',
 			required: [
+				'block',
 				'blockTime',
 				'bftBatchSize',
 				'communityIdentifier',
 				'maxTransactionsSize',
 				'minFeePerByte',
-				'modules',
 			],
 			properties: {
+				block: {
+					type: 'object',
+					oneOf: [
+						{
+							required: ['fromFile'],
+							properties: {
+								fromFile: {
+									type: 'string',
+								},
+								blob: {
+									type: 'string',
+									format: 'hex',
+								},
+							},
+						},
+						{
+							required: ['blob'],
+							properties: {
+								fromFile: {
+									type: 'string',
+								},
+								blob: {
+									type: 'string',
+									format: 'hex',
+								},
+							},
+						},
+					],
+				},
 				blockTime: {
 					type: 'number',
 					minimum: 2,
@@ -270,26 +250,45 @@ export const applicationConfigSchema = {
 					maximum: 30 * 1024, // Kilo Bytes
 					description: 'Maximum number of transactions allowed per block',
 				},
-				modules: {
-					...moduleConfigSchema,
-				},
 			},
 			additionalProperties: false,
+		},
+		generator: {
+			type: 'object',
+			required: ['keys'],
+			properties: {
+				keys: {
+					type: 'object',
+					properties: {
+						fromFile: {
+							type: 'string',
+							description: 'Path to a file which stores keys',
+						},
+					},
+				},
+			},
+		},
+		modules: {
+			type: 'object',
+			propertyNames: {
+				pattern: '^[a-zA-Z][a-zA-Z0-9_]*$',
+			},
+			additionalProperties: { type: 'object' },
+		},
+		plugins: {
+			type: 'object',
 		},
 	},
 	additionalProperties: false,
 	default: {
-		label: 'beta-sdk-app',
-		version: '0.0.0',
-		networkVersion: '1.1',
-		rootPath: '~/.lisk',
 		system: {
+			dataPath: '~/.lisk/beta-sdk-app',
+			version: '0.1.0',
 			keepEventsForHeights: 300,
 		},
 		logger: {
 			fileLogLevel: 'info',
-			consoleLogLevel: 'none',
-			logFileName: 'lisk.log',
+			consoleLogLevel: 'info',
 		},
 		rpc: {
 			modes: ['ipc'],
@@ -297,6 +296,7 @@ export const applicationConfigSchema = {
 			host: DEFAULT_HOST,
 		},
 		network: {
+			version: '1.0',
 			seedPeers: [],
 			port: DEFAULT_PORT_P2P,
 		},
@@ -307,15 +307,21 @@ export const applicationConfigSchema = {
 			minEntranceFeePriority: '0',
 			minReplacementFeeDifference: '10',
 		},
-		plugins: {},
 		genesis: {
+			block: {
+				fromFile: './config/genesis_block.blob',
+			},
 			blockTime: 10,
 			bftBatchSize: 103,
 			communityIdentifier: 'sdk',
 			// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 			maxTransactionsSize: 15 * 1024, // Kilo Bytes
 			minFeePerByte: 1000,
-			modules: {},
 		},
+		generator: {
+			keys: {},
+		},
+		modules: {},
+		plugins: {},
 	},
 };

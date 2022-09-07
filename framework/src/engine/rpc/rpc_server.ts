@@ -23,7 +23,7 @@ import { RPCConfig } from '../../types';
 import { Request } from '../../controller/request';
 import * as JSONRPC from '../../controller/jsonrpc';
 import { notificationRequest } from '../../controller/jsonrpc';
-import { systemDirsFromDataPath } from '../../system_dirs';
+import { systemDirs } from '../../system_dirs';
 
 export interface RequestContext {
 	params: Record<string, unknown>;
@@ -55,9 +55,9 @@ export class RPCServer {
 	public constructor(dataPath: string, config: RPCConfig) {
 		this._config = config;
 		if (this._config.modes.includes(RPC_MODES.IPC)) {
-			const systemDirs = systemDirsFromDataPath(dataPath);
+			const dirs = systemDirs(dataPath);
 			this._ipcServer = new IPCServer({
-				socketsDir: systemDirs.sockets,
+				socketsDir: dirs.sockets,
 				name: 'engine',
 				externalSocket: true,
 			});
