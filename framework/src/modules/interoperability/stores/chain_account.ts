@@ -29,7 +29,6 @@ export interface LastCertificateJSON {
 
 export interface ChainAccount {
 	name: string;
-	networkID: Buffer;
 	lastCertificate: LastCertificate;
 	status: number;
 }
@@ -41,10 +40,6 @@ const chainAccountJSONSchema = {
 		name: {
 			dataType: 'string',
 			fieldNumber: 1,
-		},
-		networkID: {
-			dataType: 'bytes',
-			fieldNumber: 2,
 		},
 		lastCertificate: {
 			type: 'object',

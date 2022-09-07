@@ -251,9 +251,10 @@ export interface RegistrationParametersValidator {
 
 export interface SidechainRegistrationParams {
 	name: string;
-	genesisBlockID: Buffer;
+	chainID: Buffer;
 	initValidators: RegistrationParametersValidator[];
 	certificateThreshold: bigint;
+	sidechainRegistrationFee: bigint;
 }
 
 export interface MainchainRegistrationParams {

@@ -12,7 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { MAX_LENGTH_NAME, NUMBER_MAINCHAIN_VALIDATORS, MAX_NUM_VALIDATORS } from './constants';
+import { CHAIN_ID_LENGTH } from '../token/constants';
+import {
+	MAX_LENGTH_NAME,
+	NUMBER_MAINCHAIN_VALIDATORS,
+	MAX_NUM_VALIDATORS,
+	MIN_CHAIN_NAME_LENGTH,
+	MAX_CHAIN_NAME_LENGTH,
+} from './constants';
 import { chainAccountSchema } from './stores/chain_account';
 import { chainValidatorsSchema } from './stores/chain_validators';
 import { channelSchema } from './stores/channel_data';
@@ -73,17 +80,19 @@ export const ccmSchema = {
 export const sidechainRegParams = {
 	$id: '/modules/interoperability/mainchain/sidechainRegistration',
 	type: 'object',
-	required: ['name', 'genesisBlockID', 'initValidators', 'certificateThreshold'],
+	required: ['name', 'chainID', 'initValidators', 'certificateThreshold'],
 	properties: {
 		name: {
 			dataType: 'string',
 			fieldNumber: 1,
-			minLength: 1,
-			maxLength: MAX_LENGTH_NAME,
+			minLength: MIN_CHAIN_NAME_LENGTH,
+			maxLength: MAX_CHAIN_NAME_LENGTH,
 		},
-		genesisBlockID: {
+		chainID: {
 			dataType: 'bytes',
 			fieldNumber: 2,
+			minLength: CHAIN_ID_LENGTH,
+			maxLength: CHAIN_ID_LENGTH,
 		},
 		initValidators: {
 			type: 'array',
@@ -110,6 +119,10 @@ export const sidechainRegParams = {
 		certificateThreshold: {
 			dataType: 'uint64',
 			fieldNumber: 4,
+		},
+		sidechainRegistrationFee: {
+			dataType: 'uint64',
+			fieldNumber: 5,
 		},
 	},
 };
@@ -290,9 +303,9 @@ export const messageRecoveryParamsSchema = {
 export const registrationCCMParamsSchema = {
 	$id: '/modules/interoperability/ccCommand/registration',
 	type: 'object',
-	required: ['networkID', 'name', 'messageFeeTokenID'],
+	required: ['chainID', 'name', 'messageFeeTokenID'],
 	properties: {
-		networkID: {
+		chainID: {
 			dataType: 'bytes',
 			fieldNumber: 1,
 		},
@@ -340,11 +353,10 @@ export const sidechainTerminatedCCMParamsSchema = {
 	},
 };
 
-// Note: Changed to lower-case `id` as ajv requires it
 export const chainIDSchema = {
 	$id: '/modules/interoperability/chainId',
 	type: 'object',
-	required: ['id'],
+	required: ['chainID'],
 	properties: {
 		id: {
 			dataType: 'bytes',
