@@ -43,6 +43,7 @@ import { TxpoolEndpoint } from './endpoint/txpool';
 import { ValidatorUpdate } from './consensus/types';
 import { GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT } from './generator/constants';
 import { ConsensusEndpoint } from './endpoint/consensus';
+import { StateEndpoint } from './endpoint/state';
 import { EngineConfig } from '../types';
 import { readGenesisBlock } from '../utils/genesis_block';
 
@@ -204,6 +205,9 @@ export class Engine {
 			bftMethod: this._bftModule.method,
 			blockchainDB: this._blockchainDB,
 		});
+		const stateEndpoint = new StateEndpoint({
+			abi: this._abi,
+		});
 		const systemEndpoint = new SystemEndpoint({
 			abi: this._abi,
 			chain: this._chain,
@@ -225,6 +229,9 @@ export class Engine {
 		}
 		for (const [name, handler] of Object.entries(getEndpointHandlers(consensusEndpoint))) {
 			this._rpcServer.registerEndpoint('consensus', name, handler);
+		}
+		for (const [name, handler] of Object.entries(getEndpointHandlers(stateEndpoint))) {
+			this._rpcServer.registerEndpoint('state', name, handler);
 		}
 		for (const [name, handler] of Object.entries(getEndpointHandlers(systemEndpoint))) {
 			this._rpcServer.registerEndpoint('system', name, handler);
