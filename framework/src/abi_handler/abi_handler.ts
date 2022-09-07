@@ -12,14 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { EventEmitter } from 'events';
-import {
-	Block,
-	BlockAssets,
-	BlockHeader,
-	SMTStore,
-	StateStore,
-	Transaction,
-} from '@liskhq/lisk-chain';
+import { Block, BlockAssets, BlockHeader, StateStore, Transaction } from '@liskhq/lisk-chain';
 import { StateDB, Database } from '@liskhq/lisk-db';
 import {
 	DEFAULT_EXPIRY_TIME,
@@ -30,7 +23,6 @@ import {
 } from '@liskhq/lisk-transaction-pool';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import {
 	ABI,
 	blockHeaderSchema,
@@ -559,12 +551,7 @@ export class ABIHandler implements ABI {
 	}
 
 	public async prove(req: ProveRequest): Promise<ProveResponse> {
-		const smtStore = new SMTStore(this._stateDB);
-		const smt = new SparseMerkleTree({
-			db: smtStore,
-			rootHash: req.stateRoot,
-		});
-		const proof = await smt.generateMultiProof(req.keys);
+		const proof = await this._stateDB.prove(req.stateRoot, req.keys);
 		return {
 			proof,
 		};
