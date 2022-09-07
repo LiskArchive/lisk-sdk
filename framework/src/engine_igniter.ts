@@ -31,10 +31,8 @@ if (!configPath) {
 const config = JSON.parse(fs.readFileSync(configPath, 'utf-8')) as EngineConfig;
 
 const abiLogger = createLogger({
-	consoleLogLevel: config.logger.consoleLogLevel,
-	fileLogLevel: 'none',
-	module: 'ABIClient',
-	logFilePath: '',
+	logLevel: config.system.logLevel,
+	name: 'ABIClient',
 });
 
 let started = false;

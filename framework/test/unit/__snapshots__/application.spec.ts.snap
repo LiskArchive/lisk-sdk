@@ -15,10 +15,6 @@ Object {
     "maxTransactionsSize": 15360,
     "minFeePerByte": 1000,
   },
-  "logger": Object {
-    "consoleLogLevel": "info",
-    "fileLogLevel": "debug",
-  },
   "modules": Object {},
   "network": Object {
     "port": 5000,
@@ -45,6 +41,7 @@ Object {
   "system": Object {
     "dataPath": "~/.lisk/beta-sdk-app",
     "keepEventsForHeights": 300,
+    "logLevel": "info",
     "version": "0.1.0",
   },
   "transactionPool": Object {

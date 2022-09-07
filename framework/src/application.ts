@@ -365,11 +365,9 @@ export class Application {
 	}
 
 	private _initLogger(): Logger {
-		const dirs = systemDirs(this.config.system.dataPath);
 		return createLogger({
-			...this.config.logger,
-			logFilePath: path.join(dirs.logs, 'lisk.log'),
-			module: 'lisk:app',
+			logLevel: this.config?.system.logLevel ?? 'none',
+			name: 'application',
 		});
 	}
 
