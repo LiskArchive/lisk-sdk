@@ -207,6 +207,7 @@ export class Engine {
 		});
 		const stateEndpoint = new StateEndpoint({
 			abi: this._abi,
+			chain: this._chain,
 		});
 		const systemEndpoint = new SystemEndpoint({
 			abi: this._abi,
