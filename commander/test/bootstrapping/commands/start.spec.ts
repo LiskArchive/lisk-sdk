@@ -64,17 +64,15 @@ describe('start', () => {
 		when(fs.readJSON as jest.Mock)
 			.calledWith('~/.lisk/lisk-core/config/default/config.json')
 			.mockResolvedValue({
-				system: {},
-				logger: {
-					consoleLogLevel: 'error',
+				system: {
+					logLevel: 'error',
 				},
 				plugins: {},
 			})
 			.calledWith('~/.lisk/lisk-core/config/config.json')
 			.mockResolvedValue({
-				system: {},
-				logger: {
-					consoleLogLevel: 'error',
+				system: {
+					logLevel: 'error',
 				},
 				plugins: {},
 			})
@@ -179,43 +177,25 @@ describe('start', () => {
 			const [usedConfig] = (StartCommandExtended.prototype
 				.getApplication as jest.Mock).mock.calls[0];
 			expect(fs.readJSON).toHaveBeenCalledWith('./config.json');
-			expect(usedConfig.logger.consoleLogLevel).toBe('error');
+			expect(usedConfig.system.logLevel).toBe('error');
 		});
 	});
 
 	describe('when log is specified', () => {
 		it('should update the config value', async () => {
-			await StartCommandExtended.run(['--console-log=trace'], config);
-			const [usedConfig] = (StartCommandExtended.prototype
-				.getApplication as jest.Mock).mock.calls[0];
-			expect(usedConfig.logger.consoleLogLevel).toBe('trace');
-		});
-
-		it('should update the config value from env', async () => {
-			process.env.LISK_CONSOLE_LOG_LEVEL = 'error';
-			await StartCommandExtended.run([], config);
-			const [usedConfig] = (StartCommandExtended.prototype
-				.getApplication as jest.Mock).mock.calls[0];
-			expect(usedConfig.logger.consoleLogLevel).toBe('error');
-			process.env.LISK_CONSOLE_LOG_LEVEL = '';
-		});
-	});
-
-	describe('when file log is specified', () => {
-		it('should update the config value', async () => {
 			await StartCommandExtended.run(['--log=trace'], config);
 			const [usedConfig] = (StartCommandExtended.prototype
 				.getApplication as jest.Mock).mock.calls[0];
-			expect(usedConfig.logger.fileLogLevel).toBe('trace');
+			expect(usedConfig.system.logLevel).toBe('trace');
 		});
 
-		it('should update the config value for env', async () => {
-			process.env.LISK_FILE_LOG_LEVEL = 'trace';
+		it('should update the config value from env', async () => {
+			process.env.LISK_LOG_LEVEL = 'warn';
 			await StartCommandExtended.run([], config);
 			const [usedConfig] = (StartCommandExtended.prototype
 				.getApplication as jest.Mock).mock.calls[0];
-			expect(usedConfig.logger.fileLogLevel).toBe('trace');
-			process.env.LISK_FILE_LOG_LEVEL = '';
+			expect(usedConfig.system.logLevel).toBe('warn');
+			process.env.LISK_CONSOLE_LOG_LEVEL = '';
 		});
 	});
 

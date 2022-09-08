@@ -438,7 +438,7 @@ export class Generator {
 		const lastBlockSlot = this._consensus.getSlotNumber(this._chain.lastBlock.header.timestamp);
 
 		if (currentSlot === lastBlockSlot) {
-			this._logger.trace({ slot: currentSlot }, 'Block already forged for the current slot');
+			this._logger.trace({ slot: currentSlot }, 'Block already generated for the current slot');
 			return;
 		}
 

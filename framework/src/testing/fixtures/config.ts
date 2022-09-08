@@ -17,12 +17,9 @@ import { ApplicationConfig } from '../../types';
 import * as accountFixture from './keys_fixture.json';
 
 export const defaultConfig: ApplicationConfig = {
-	logger: {
-		fileLogLevel: 'none',
-		consoleLogLevel: 'none',
-	},
 	system: {
 		version: '0.1.0',
+		logLevel: 'none',
 		keepEventsForHeights: -1,
 		dataPath: '~/.lisk/default',
 	},

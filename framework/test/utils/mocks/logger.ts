@@ -16,8 +16,6 @@
 import { createLogger } from '../../../src/logger';
 
 export const fakeLogger = createLogger({
-	fileLogLevel: 'none',
-	consoleLogLevel: 'none',
-	logFilePath: 'test.log',
-	module: 'test',
+	logLevel: 'none',
+	name: 'test',
 });

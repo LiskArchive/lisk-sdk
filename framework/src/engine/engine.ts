@@ -44,7 +44,6 @@ import { ValidatorUpdate } from './consensus/types';
 import { GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT } from './generator/constants';
 import { ConsensusEndpoint } from './endpoint/consensus';
 import { EngineConfig } from '../types';
-import { systemDirs } from '../system_dirs';
 import { readGenesisBlock } from '../utils/genesis_block';
 
 const isEmpty = (value: unknown): boolean => {
@@ -123,12 +122,9 @@ export class Engine {
 	}
 
 	private async _init(): Promise<void> {
-		const dirs = systemDirs(this._config.system.dataPath);
 		this._logger = createLogger({
-			module: 'engine',
-			fileLogLevel: emptyOrDefault(this._config.logger.fileLogLevel, 'info'),
-			consoleLogLevel: emptyOrDefault(this._config.logger.consoleLogLevel, 'info'),
-			logFilePath: path.join(dirs.logs, 'engine.log'),
+			name: 'engine',
+			logLevel: emptyOrDefault(this._config.system.logLevel, 'info'),
 		});
 		this._logger.info('Engine initialization starting');
 		this._network = new Network({

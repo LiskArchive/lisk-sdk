@@ -291,8 +291,9 @@ export class Application {
 				this._controller
 					.start()
 					.then(() => {
-						this.logger.debug(this._controller.getEvents(), 'Application listening to events');
-						this.logger.info(this._controller.getEndpoints(), 'Application ready for endpoints');
+						for (const method of this._controller.getEndpoints()) {
+							this.logger.info({ method }, `Registered endpoint`);
+						}
 						this.channel.publish(APP_EVENT_READY);
 					})
 					.catch(err => {
@@ -365,11 +366,9 @@ export class Application {
 	}
 
 	private _initLogger(): Logger {
-		const dirs = systemDirs(this.config.system.dataPath);
 		return createLogger({
-			...this.config.logger,
-			logFilePath: path.join(dirs.logs, 'lisk.log'),
-			module: 'lisk:app',
+			logLevel: this.config?.system.logLevel ?? 'none',
+			name: 'application',
 		});
 	}
 

@@ -1,9 +1,4 @@
 {
-	"logger": {
-		"fileLogLevel": "info",
-		"consoleLogLevel": "info",
-		"logFileName": "lisk.log"
-	},
 	"system": {
 		"dataPath": "~/.lisk/dpos-mainchain"
 	},

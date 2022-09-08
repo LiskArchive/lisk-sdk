@@ -91,10 +91,8 @@ describe('engine', () => {
 
 		it('should initialize logger', () => {
 			expect(logger.createLogger).toHaveBeenCalledWith({
-				module: 'engine',
-				fileLogLevel: 'none',
-				consoleLogLevel: 'none',
-				logFilePath: expect.stringContaining('engine.log'),
+				name: 'engine',
+				logLevel: 'none',
 			});
 		});
 

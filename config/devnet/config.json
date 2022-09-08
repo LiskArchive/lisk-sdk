@@ -5,10 +5,6 @@
 		"maxTransactionsSize": 15360,
 		"minFeePerByte": 1000
 	},
-	"logger": {
-		"fileLogLevel": "debug",
-		"consoleLogLevel": "info"
-	},
 	"network": {
 		"version": "1.0",
 		"port": 5000,
