@@ -19,7 +19,6 @@ import * as testing from '../../../../../../src/testing';
 import { SidechainRegistrationCommand } from '../../../../../../src/modules/interoperability/mainchain/commands/sidechain_registration';
 import {
 	CCM_STATUS_OK,
-	EMPTY_FEE_ADDRESS,
 	EMPTY_HASH,
 	MAX_UINT64,
 	MAX_LENGTH_NAME,
@@ -27,16 +26,9 @@ import {
 	MAINCHAIN_ID_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
 	COMMAND_NAME_SIDECHAIN_REG,
-	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
 } from '../../../../../../src/modules/interoperability/constants';
-import {
-	sidechainRegParams,
-	registrationCCMParamsSchema,
-} from '../../../../../../src/modules/interoperability/schemas';
-import {
-	SendInternalContext,
-	SidechainRegistrationParams,
-} from '../../../../../../src/modules/interoperability/types';
+import { sidechainRegParams } from '../../../../../../src/modules/interoperability/schemas';
+import { SidechainRegistrationParams } from '../../../../../../src/modules/interoperability/types';
 import {
 	CommandExecuteContext,
 	CommandVerifyContext,
@@ -47,7 +39,6 @@ import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/pre
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
 import { MainchainInteroperabilityModule } from '../../../../../../src';
 import { RegisteredNamesStore } from '../../../../../../src/modules/interoperability/stores/registered_names';
-import { RegisteredNetworkStore } from '../../../../../../src/modules/interoperability/stores/registered_network_ids';
 import { createStoreGetter } from '../../../../../../src/testing/utils';
 import { ChannelDataStore } from '../../../../../../src/modules/interoperability/stores/channel_data';
 import { OutboxRootStore } from '../../../../../../src/modules/interoperability/stores/outbox_root';
@@ -58,7 +49,8 @@ import {
 import { ChainValidatorsStore } from '../../../../../../src/modules/interoperability/stores/chain_validators';
 import { createTransactionContext } from '../../../../../../src/testing';
 
-describe('Sidechain registration command', () => {
+// TODO: Unskip and update for networkIdentifier in issue #7442
+describe.skip('Sidechain registration command', () => {
 	const interopMod = new MainchainInteroperabilityModule();
 	const transactionParams = {
 		name: 'sidechain',
@@ -81,6 +73,7 @@ describe('Sidechain registration command', () => {
 		],
 		certificateThreshold: BigInt(10),
 	};
+	const chainID = MAINCHAIN_ID_BUFFER;
 	const encodedTransactionParams = codec.encode(sidechainRegParams, transactionParams);
 	const publicKey = utils.getRandomBytes(32);
 	const transaction = new Transaction({
@@ -100,7 +93,7 @@ describe('Sidechain registration command', () => {
 	let sidechainRegistrationCommand: SidechainRegistrationCommand;
 	let stateStore: PrefixedStateReadWriter;
 	let nameSubstore: RegisteredNamesStore;
-	let networkIDSubstore: RegisteredNetworkStore;
+	let chainAccountSubstore: ChainAccountStore;
 	let verifyContext: CommandVerifyContext<SidechainRegistrationParams>;
 
 	beforeEach(() => {
@@ -112,7 +105,7 @@ describe('Sidechain registration command', () => {
 		);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		nameSubstore = interopMod.stores.get(RegisteredNamesStore);
-		networkIDSubstore = interopMod.stores.get(RegisteredNetworkStore);
+		chainAccountSubstore = interopMod.stores.get(ChainAccountStore);
 	});
 
 	describe('verify', () => {
@@ -137,7 +130,7 @@ describe('Sidechain registration command', () => {
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
 			expect(result.error?.message).toInclude(
-				`Sidechain name is in an unsupported format: *@#&$_2`,
+				`Invalid name property. It should contain only characters from the set [a-z0-9!@$&_.].`,
 			);
 		});
 
@@ -160,22 +153,25 @@ describe('Sidechain registration command', () => {
 			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				'Name substore must not have an entry for the store key name',
-			);
+			expect(result.error?.message).toInclude('Name already registered.');
 		});
 
-		it('should return error if store key networkID already exists in networkID store', async () => {
-			await networkIDSubstore.set(createStoreGetter(stateStore), networkID, {
-				id: utils.intToBuffer(0, 4),
+		it('should return error if store key chainID already exists in chainID store', async () => {
+			await chainAccountSubstore.set(createStoreGetter(stateStore), chainID, {
+				name: 'chain',
+				lastCertificate: {
+					height: 1,
+					timestamp: 1,
+					stateRoot: Buffer.alloc(0),
+					validatorsHash: Buffer.alloc(0),
+				},
+				status: 1,
 			});
 
 			const result = await sidechainRegistrationCommand.verify(verifyContext);
 
 			expect(result.status).toBe(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(
-				'Network ID substore must not have an entry for the store key networkID',
-			);
+			expect(result.error?.message).toInclude('Chain ID already registered.');
 		});
 
 		it(`should return error if initValidators array count exceeds ${MAX_NUM_VALIDATORS}`, async () => {
@@ -394,7 +390,6 @@ describe('Sidechain registration command', () => {
 		let chainDataSubstore: ChainAccountStore;
 		let chainValidatorsSubstore: ChainValidatorsStore;
 		let registeredNamesSubstore: RegisteredNamesStore;
-		let registeredNetworkIDsSubstore: RegisteredNetworkStore;
 
 		const sendInternal = jest.fn();
 
@@ -407,7 +402,6 @@ describe('Sidechain registration command', () => {
 			outboxRootSubstore = interopMod.stores.get(OutboxRootStore);
 			chainDataSubstore = interopMod.stores.get(ChainAccountStore);
 			registeredNamesSubstore = interopMod.stores.get(RegisteredNamesStore);
-			registeredNetworkIDsSubstore = interopMod.stores.get(RegisteredNetworkStore);
 
 			context = createTransactionContext({
 				transaction,
@@ -418,7 +412,6 @@ describe('Sidechain registration command', () => {
 			jest.spyOn(channelDataSubstore, 'set');
 			jest.spyOn(chainValidatorsSubstore, 'set');
 			jest.spyOn(outboxRootSubstore, 'set');
-			jest.spyOn(registeredNetworkIDsSubstore, 'set');
 			jest.spyOn(registeredNamesSubstore, 'set');
 		});
 
@@ -426,7 +419,6 @@ describe('Sidechain registration command', () => {
 			// Arrange
 			const expectedValue = {
 				name: 'sidechain',
-				networkID,
 				lastCertificate: {
 					height: 0,
 					timestamp: 0,
@@ -478,36 +470,6 @@ describe('Sidechain registration command', () => {
 			);
 		});
 
-		it('should call sendInternal with a registration ccm', async () => {
-			// Arrange
-			const receivingChainID = utils.intToBuffer(2, 4);
-			const encodedParams = codec.encode(registrationCCMParamsSchema, {
-				networkID,
-				name: chainAccount.name,
-				messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: utils.intToBuffer(0, 4) },
-			});
-
-			// Act
-			await sidechainRegistrationCommand.execute(context);
-
-			// Assert
-			expect(sendInternal).toHaveBeenCalledWith({
-				module: MODULE_NAME_INTEROPERABILITY,
-				crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-				receivingChainID,
-				fee: BigInt(0),
-				status: CCM_STATUS_OK,
-				params: encodedParams,
-				timestamp: expect.any(Number),
-				eventQueue: context.eventQueue,
-				feeAddress: EMPTY_FEE_ADDRESS,
-				getMethodContext: context.getMethodContext,
-				getStore: context.getStore,
-				logger: context.logger,
-				chainID: context.chainID,
-			} as SendInternalContext);
-		});
-
 		it('should add an entry to chain validators substore', async () => {
 			// Arrange
 			const expectedValue = {
@@ -550,21 +512,6 @@ describe('Sidechain registration command', () => {
 			expect(registeredNamesSubstore.set).toHaveBeenCalledWith(
 				expect.anything(),
 				Buffer.from(params.name, 'utf-8'),
-				expectedValue,
-			);
-		});
-
-		it('should add an entry to registered network IDs substore', async () => {
-			// Arrange
-			const expectedValue = { id: newChainID };
-
-			// Act
-			await sidechainRegistrationCommand.execute(context);
-
-			// Assert
-			expect(registeredNetworkIDsSubstore.set).toHaveBeenCalledWith(
-				expect.anything(),
-				networkID,
 				expectedValue,
 			);
 		});

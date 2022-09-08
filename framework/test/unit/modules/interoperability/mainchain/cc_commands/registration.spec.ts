@@ -25,7 +25,8 @@ import { registrationCCMParamsSchema } from '../../../../../../src/modules/inter
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
 import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
 
-describe('MainchainCCRegistrationCommand', () => {
+// TODO: Unskip and update for networkIdentifier in issue #7442
+describe.skip('MainchainCCRegistrationCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
 
 	const terminateChainInternalMock = jest.fn();
