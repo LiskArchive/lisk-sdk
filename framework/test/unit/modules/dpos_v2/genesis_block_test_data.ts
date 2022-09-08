@@ -831,7 +831,7 @@ export const invalidAssets = [
 					activeDelegates: validators.slice(0, 101).map(v => v.address),
 					delegateWeightSnapshot: [
 						{
-							delegateAddress: Buffer.alloc(0, 20),
+							delegateAddress: Buffer.alloc(20, 20),
 							delegateWeight: BigInt(100000000000),
 						},
 						...validators.slice(102).map(v => ({

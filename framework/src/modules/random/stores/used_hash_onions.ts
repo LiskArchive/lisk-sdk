@@ -40,6 +40,7 @@ export const usedHashOnionsStoreSchema = {
 				properties: {
 					address: {
 						dataType: 'bytes',
+						format: 'lisk32',
 						fieldNumber: 1,
 					},
 					count: {

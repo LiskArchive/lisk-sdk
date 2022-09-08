@@ -140,7 +140,7 @@ export class CreateCommand extends Command {
 			}
 
 			keys.push({
-				address: address.toString('hex'),
+				address: addressUtil.getLisk32AddressFromAddress(address),
 				keyPath: accountKeyPath,
 				publicKey: accountPublicKey.toString('hex'),
 				privateKey: accountPrivateKey.toString('hex'),

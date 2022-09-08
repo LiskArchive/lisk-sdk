@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Block } from '@liskhq/lisk-chain';
-
+import { address } from '@liskhq/lisk-cryptography';
 import { nodeUtils } from '../../../utils';
 import {
 	createTransferTransaction,
@@ -236,7 +236,7 @@ describe('Transaction order', () => {
 				const spendingTx = createTransferTransaction({
 					nonce: BigInt(0),
 					fee: BigInt('200000'),
-					recipientAddress: Buffer.from(genesis.address, 'hex'),
+					recipientAddress: address.getAddressFromLisk32Address(genesis.address),
 					amount: BigInt('14000000000'),
 					networkIdentifier,
 					privateKey: accountWithoutBalance.privateKey,

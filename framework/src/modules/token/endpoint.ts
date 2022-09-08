@@ -13,6 +13,7 @@
  */
 
 import { validator } from '@liskhq/lisk-validator';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import { NotFoundError } from '../../state_machine';
 import { JSONObject, ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
@@ -41,9 +42,9 @@ export class TokenEndpoint extends BaseEndpoint {
 	public async getBalances(
 		context: ModuleEndpointContext,
 	): Promise<{ balances: JSONObject<UserStoreData & { tokenID: Buffer }>[] }> {
-		validator.validate(getBalancesRequestSchema, context.params);
+		validator.validate<{ address: string }>(getBalancesRequestSchema, context.params);
 
-		const address = Buffer.from(context.params.address as string, 'hex');
+		const address = cryptography.address.getAddressFromLisk32Address(context.params.address);
 		const userStore = this.stores.get(UserStore);
 		const userData = await userStore.iterate(context, {
 			gte: Buffer.concat([address, Buffer.alloc(TOKEN_ID_LENGTH, 0)]),
@@ -63,10 +64,13 @@ export class TokenEndpoint extends BaseEndpoint {
 	}
 
 	public async getBalance(context: ModuleEndpointContext): Promise<JSONObject<UserStoreData>> {
-		validator.validate(getBalanceRequestSchema, context.params);
+		validator.validate<{ address: string; tokenID: string }>(
+			getBalanceRequestSchema,
+			context.params,
+		);
 
-		const address = Buffer.from(context.params.address as string, 'hex');
-		const tokenID = Buffer.from(context.params.tokenID as string, 'hex');
+		const address = cryptography.address.getAddressFromLisk32Address(context.params.address);
+		const tokenID = Buffer.from(context.params.tokenID, 'hex');
 		const canonicalTokenID = await this._tokenAPI.getCanonicalTokenID(
 			context.getImmutableAPIContext(),
 			tokenID,

@@ -22,7 +22,7 @@ import {
 } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 
-import { utils } from '@liskhq/lisk-cryptography';
+import { address, utils } from '@liskhq/lisk-cryptography';
 import { nodeUtils } from '../../../utils';
 import {
 	createDelegateRegisterTransaction,
@@ -140,7 +140,7 @@ describe('Delete block', () => {
 				const recipientBalance = await processEnv.invoke<{ availableBalance: string }>(
 					'token_getBalance',
 					{
-						address: recipientAccount.address.toString('hex'),
+						address: address.getLisk32AddressFromAddress(recipientAccount.address),
 						tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 					},
 				);

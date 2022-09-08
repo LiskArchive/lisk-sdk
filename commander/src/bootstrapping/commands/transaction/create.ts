@@ -174,7 +174,7 @@ const createTransactionOnline = async (
 	const nodeInfo = await client.node.getNodeInfo();
 	const { address, passphrase, publicKey } = await getPassphraseAddressAndPublicKey(flags);
 	const account = await client.invoke<{ nonce: string }>('auth_getAuthAccount', {
-		address: address.toString('hex'),
+		address: cryptography.address.getLisk32AddressFromAddress(address),
 	});
 	const params = await getParamsObject(metadata, flags, args);
 
@@ -229,9 +229,9 @@ export abstract class CreateCommand extends Command {
 	];
 
 	static examples = [
-		'transaction:create token transfer 100000000 --params=\'{"amount":100000000,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}\'',
-		'transaction:create token transfer 100000000 --params=\'{"amount":100000000,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}\' --json',
-		'transaction:create token transfer 100000000 --offline --network mainnet --network-identifier 873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3 --nonce 1 --params=\'{"amount":100000000,"recipientAddress":"ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815","data":"send token"}\'',
+		'transaction:create token transfer 100000000 --params=\'{"amount":100000000,"recipientAddress":"lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz","data":"send token"}\'',
+		'transaction:create token transfer 100000000 --params=\'{"amount":100000000,"recipientAddress":"lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz","data":"send token"}\' --json',
+		'transaction:create token transfer 100000000 --offline --network mainnet --network-identifier 873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3 --nonce 1 --params=\'{"amount":100000000,"recipientAddress":"lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz","data":"send token"}\'',
 		'transaction:create token transfer 100000000 --file=/txn_params.json',
 		'transaction:create token transfer 100000000 --file=/txn_params.json --json',
 	];

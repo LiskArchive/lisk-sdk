@@ -24,7 +24,7 @@ import {
 	EVENT_KEY_LENGTH,
 } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { bls } from '@liskhq/lisk-cryptography';
+import { address as addressUtil, bls } from '@liskhq/lisk-cryptography';
 import { Database, Batch, SparseMerkleTree } from '@liskhq/lisk-db';
 import { TransactionPool, events } from '@liskhq/lisk-transaction-pool';
 import { MerkleTree } from '@liskhq/lisk-tree';
@@ -339,7 +339,7 @@ export class Generator {
 			this._logger.info({ address: key.address }, 'saving generator from file');
 			if (key.encrypted && Object.keys(key.encrypted).length) {
 				await subStore.set(
-					Buffer.from(key.address, 'hex'),
+					addressUtil.getAddressFromLisk32Address(key.address),
 					codec.encode(generatorKeysSchema, {
 						type: 'encrypted',
 						data: codec.encode(encryptedMessageSchema, key.encrypted),
@@ -347,7 +347,7 @@ export class Generator {
 				);
 			} else if (key.plain) {
 				await subStore.set(
-					Buffer.from(key.address, 'hex'),
+					addressUtil.getAddressFromLisk32Address(key.address),
 					codec.encode(generatorKeysSchema, {
 						type: 'plain',
 						data: codec.encode(plainGeneratorKeysSchema, {
@@ -384,7 +384,9 @@ export class Generator {
 					privateKey: keys.generatorPrivateKey,
 					blsSecretKey: keys.blsPrivateKey,
 				});
-				this._logger.info(`Forging enabled on account: ${key.toString('hex')}`);
+				this._logger.info(
+					`Block generation enabled for address: ${addressUtil.getLisk32AddressFromAddress(key)}`,
+				);
 			}
 		}
 	}
@@ -478,7 +480,7 @@ export class Generator {
 			{
 				id: generatedBlock.header.id,
 				height: generatedBlock.header.height,
-				generatorAddress: generator.toString('hex'),
+				generatorAddress: addressUtil.getLisk32AddressFromAddress(generator),
 			},
 			'Generated new block',
 		);
@@ -697,7 +699,7 @@ export class Generator {
 		this._logger.info(
 			{
 				height,
-				generator: generatorAddress.toString('hex'),
+				generator: addressUtil.getLisk32AddressFromAddress(generatorAddress),
 			},
 			'Certified single commit',
 		);
