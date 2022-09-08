@@ -12,22 +12,25 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { Chain } from '@liskhq/lisk-chain';
 import { validator } from '@liskhq/lisk-validator';
-import { ABI, ProveRequest, ProveResponse } from '../../abi';
+import { ABI, ProveResponse } from '../../abi';
 import { RequestContext } from '../rpc/rpc_server';
 
 interface EndpointArgs {
 	abi: ABI;
+	chain: Chain;
+}
+
+interface StateProveRequest {
+	keys: Buffer[];
 }
 
 const stateProveRequestSchema = {
 	$id: '/node/endpoint/stateProveRequestSchema',
 	type: 'object',
-	required: ['stateRoot', 'keys'],
+	required: ['keys'],
 	properties: {
-		stateRoot: {
-			dataType: 'bytes',
-		},
 		keys: {
 			type: 'array',
 			items: {
@@ -40,15 +43,20 @@ const stateProveRequestSchema = {
 export class StateEndpoint {
 	[key: string]: unknown;
 	private readonly _abi: ABI;
+	private readonly _chain: Chain;
 
 	public constructor(args: EndpointArgs) {
 		this._abi = args.abi;
+		this._chain = args.chain;
 	}
 
 	public async stateProve(ctx: RequestContext): Promise<ProveResponse> {
-		validator.validate<ProveRequest>(stateProveRequestSchema, ctx.params);
+		validator.validate<StateProveRequest>(stateProveRequestSchema, ctx.params);
+		if (!this._chain.lastBlock.header.stateRoot) {
+			throw new Error('Last block header state root is empty.');
+		}
 		return this._abi.prove({
-			stateRoot: ctx.params.stateRoot,
+			stateRoot: this._chain.lastBlock.header.stateRoot,
 			keys: ctx.params.keys,
 		});
 	}

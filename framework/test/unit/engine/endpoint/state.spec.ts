@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { Chain } from '@liskhq/lisk-chain';
 import { utils } from '@liskhq/lisk-cryptography';
 import { LiskValidationError } from '@liskhq/lisk-validator';
 import { ABI } from '../../../../src/abi';
@@ -22,19 +23,30 @@ import { fakeLogger } from '../../../utils/mocks';
 describe('state endpoint', () => {
 	const logger: Logger = fakeLogger;
 	const networkIdentifier = Buffer.alloc(0);
-	const stateRoot = utils.getRandomBytes(32);
 	const queryKeys = [utils.getRandomBytes(32), utils.getRandomBytes(32)];
-	const inputParams = { stateRoot, keys: queryKeys };
 
 	let endpoint: StateEndpoint;
 	let abi: ABI;
+	let chain: Chain;
 
 	beforeEach(() => {
+		chain = {
+			lastBlock: {
+				header: {
+					stateRoot: utils.getRandomBytes(32),
+				},
+				transactions: [],
+				assets: {
+					getAll: jest.fn(),
+				},
+			},
+		} as never;
 		abi = {
 			prove: jest.fn(),
 		} as never;
 		endpoint = new StateEndpoint({
 			abi,
+			chain,
 		});
 	});
 
@@ -52,24 +64,11 @@ describe('state endpoint', () => {
 				).rejects.toThrow(LiskValidationError);
 			});
 
-			it('should reject with error when state root bytes is invalid', async () => {
-				await expect(
-					endpoint.stateProve({
-						logger,
-						params: {
-							stateRoot: 'xxxx',
-						},
-						networkIdentifier,
-					}),
-				).rejects.toThrow();
-			});
-
 			it('should reject with error when keys is not an array', async () => {
 				await expect(
 					endpoint.stateProve({
 						logger,
 						params: {
-							stateRoot,
 							keys: queryKeys[0],
 						},
 						networkIdentifier,
@@ -82,7 +81,6 @@ describe('state endpoint', () => {
 					endpoint.stateProve({
 						logger,
 						params: {
-							stateRoot,
 							keys: ['xxxx'],
 						},
 						networkIdentifier,
@@ -92,12 +90,33 @@ describe('state endpoint', () => {
 		});
 
 		describe('when request data is valid', () => {
-			it('should call abi.prove with appropriate parameters', async () => {
+			it('should throw error if last block header state root is empty', async () => {
+				endpoint = new StateEndpoint({
+					abi,
+					chain: {
+						lastBlock: {
+							header: {},
+							transactions: [],
+							assets: {
+								getAll: jest.fn(),
+							},
+						},
+					} as never,
+				});
+				await expect(
+					endpoint.stateProve({ logger, params: { keys: queryKeys }, networkIdentifier }),
+				).rejects.toThrow('Last block header state root is empty.');
+			});
+
+			it('should call abi.prove with appropriate parameters if last block header state root is not empty', async () => {
 				const proveSpy = jest.spyOn(abi, 'prove');
-				await endpoint.stateProve({ logger, params: inputParams, networkIdentifier });
+				await endpoint.stateProve({ logger, params: { keys: queryKeys }, networkIdentifier });
 
 				expect(proveSpy).toHaveBeenCalledTimes(1);
-				expect(proveSpy).toHaveBeenCalledWith(inputParams);
+				expect(proveSpy).toHaveBeenCalledWith({
+					stateRoot: chain.lastBlock.header.stateRoot,
+					keys: queryKeys,
+				});
 			});
 		});
 	});
