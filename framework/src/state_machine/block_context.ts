@@ -14,7 +14,7 @@
 
 import { BlockAssets, Transaction } from '@liskhq/lisk-chain';
 import { Logger } from '../logger';
-import { createAPIContext, createImmutableAPIContext } from './api_context';
+import { createMethodContext, createImmutableMethodContext } from './method_context';
 import { EVENT_INDEX_AFTER_TRANSACTIONS, EVENT_INDEX_BEFORE_TRANSACTIONS } from './constants';
 import { EventQueue } from './event_queue';
 import { PrefixedStateReadWriter } from './prefixed_state_read_writer';
@@ -88,7 +88,7 @@ export class BlockContext {
 		return {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
-			getAPIContext: () => createImmutableAPIContext(this._stateStore),
+			getMethodContext: () => createImmutableMethodContext(this._stateStore),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
@@ -102,8 +102,8 @@ export class BlockContext {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
 			eventQueue: childQueue,
-			getAPIContext: () =>
-				createAPIContext({ stateStore: this._stateStore, eventQueue: childQueue }),
+			getMethodContext: () =>
+				createMethodContext({ stateStore: this._stateStore, eventQueue: childQueue }),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,
@@ -124,8 +124,8 @@ export class BlockContext {
 			logger: this._logger,
 			networkIdentifier: this._networkIdentifier,
 			eventQueue: childQueue,
-			getAPIContext: () =>
-				createAPIContext({ stateStore: this._stateStore, eventQueue: childQueue }),
+			getMethodContext: () =>
+				createMethodContext({ stateStore: this._stateStore, eventQueue: childQueue }),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			header: this._header,

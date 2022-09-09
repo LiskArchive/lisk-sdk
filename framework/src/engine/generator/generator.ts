@@ -206,7 +206,7 @@ export class Generator {
 
 		const stateStore = new StateStore(this._blockchainDB);
 		const maxRemovalHeight = await this._consensus.getMaxRemovalHeight();
-		const { maxHeightPrecommitted } = await this._bft.api.getBFTHeights(stateStore);
+		const { maxHeightPrecommitted } = await this._bft.method.getBFTHeights(stateStore);
 		await Promise.all(this._handleFinalizedHeightChanged(maxRemovalHeight, maxHeightPrecommitted));
 	}
 
@@ -493,7 +493,7 @@ export class Generator {
 		const stateStore = new StateStore(this._blockchainDB);
 		const generatorStore = new GeneratorStore(input.db ?? this._generatorDB);
 
-		const { maxHeightPrevoted } = await this._bft.api.getBFTHeights(stateStore);
+		const { maxHeightPrevoted } = await this._bft.method.getBFTHeights(stateStore);
 		const { height: maxHeightGenerated } = await getOrDefaultLastGeneratedInfo(
 			generatorStore,
 			generatorAddress,
@@ -574,13 +574,13 @@ export class Generator {
 			)
 		) {
 			const activeValidators = afterResult.nextValidators.filter(v => v.bftWeight > BigInt(0));
-			await this._bft.api.setBFTParameters(
+			await this._bft.method.setBFTParameters(
 				stateStore,
 				afterResult.preCommitThreshold,
 				afterResult.certificateThreshold,
 				activeValidators,
 			);
-			await this._bft.api.setGeneratorKeys(stateStore, afterResult.nextValidators);
+			await this._bft.method.setGeneratorKeys(stateStore, afterResult.nextValidators);
 		}
 
 		stateStore.finalize(new Batch());
@@ -613,7 +613,7 @@ export class Generator {
 		blockHeader.stateRoot = stateRoot;
 
 		// Set validatorsHash
-		const { validatorsHash } = await this._bft.api.getBFTParameters(stateStore, height + 1);
+		const { validatorsHash } = await this._bft.method.getBFTParameters(stateStore, height + 1);
 		blockHeader.validatorsHash = validatorsHash;
 		blockHeader.sign(this._chain.networkIdentifier, privateKey);
 
@@ -657,7 +657,7 @@ export class Generator {
 		generatorAddress: Buffer,
 		blsSK: Buffer,
 	): Promise<void> {
-		const paramExist = await this._bft.api.existBFTParameters(stateStore, height + 1);
+		const paramExist = await this._bft.method.existBFTParameters(stateStore, height + 1);
 		if (!paramExist) {
 			return;
 		}
@@ -670,7 +670,7 @@ export class Generator {
 		generatorAddress: Buffer,
 		blsSK: Buffer,
 	): Promise<void> {
-		const paramExist = await this._bft.api.existBFTParameters(stateStore, height + 1);
+		const paramExist = await this._bft.method.existBFTParameters(stateStore, height + 1);
 		if (paramExist) {
 			return;
 		}
@@ -683,7 +683,7 @@ export class Generator {
 		generatorAddress: Buffer,
 		blsSK: Buffer,
 	): Promise<void> {
-		const params = await this._bft.api.getBFTParameters(stateStore, height);
+		const params = await this._bft.method.getBFTParameters(stateStore, height);
 		const isActive = params.validators.find(v => v.address.equals(generatorAddress)) !== undefined;
 		if (!isActive) {
 			return;

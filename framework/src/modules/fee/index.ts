@@ -13,4 +13,4 @@
  */
 
 export { FeeModule } from './module';
-export { FeeAPI } from './api';
+export { FeeMethod } from './method';

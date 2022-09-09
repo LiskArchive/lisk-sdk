@@ -24,7 +24,7 @@ import {
 	NotFoundError,
 } from '../../state_machine';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
-import { RandomAPI } from './api';
+import { RandomMethod } from './method';
 import { defaultConfig, EMPTY_KEY, STORE_PREFIX_USED_HASH_ONION } from './constants';
 import { RandomEndpoint } from './endpoint';
 import {
@@ -41,7 +41,7 @@ import { UsedHashOnionsStore } from './stores/used_hash_onions';
 import { HashOnion, HashOnionStore } from './stores/hash_onion';
 
 export class RandomModule extends BaseModule {
-	public api = new RandomAPI(this.stores, this.events, this.name);
+	public method = new RandomMethod(this.stores, this.events, this.name);
 	public endpoint = new RandomEndpoint(this.stores, this.offchainStores);
 
 	private _maxLengthReveals!: number;

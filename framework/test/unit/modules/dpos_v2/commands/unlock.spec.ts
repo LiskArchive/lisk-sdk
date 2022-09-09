@@ -23,7 +23,7 @@ import {
 	WAIT_TIME_SELF_VOTE,
 	WAIT_TIME_VOTE,
 } from '../../../../../src/modules/dpos_v2/constants';
-import { TokenAPI, UnlockingObject, VoterData } from '../../../../../src/modules/dpos_v2/types';
+import { TokenMethod, UnlockingObject, VoterData } from '../../../../../src/modules/dpos_v2/types';
 import { CommandExecuteContext } from '../../../../../src/state_machine/types';
 import { liskToBeddows } from '../../../../utils/assets';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
@@ -42,7 +42,7 @@ describe('UnlockCommand', () => {
 	let delegateSubstore: DelegateStore;
 	let voterSubstore: VoterStore;
 	let genesisSubstore: GenesisDataStore;
-	let mockTokenAPI: TokenAPI;
+	let mockTokenMethod: TokenMethod;
 	let blockHeight: number;
 	let header: BlockHeader;
 	let unlockableObject: UnlockingObject;
@@ -96,7 +96,7 @@ describe('UnlockCommand', () => {
 
 	beforeEach(() => {
 		unlockCommand = new UnlockCommand(dpos.stores, dpos.events);
-		mockTokenAPI = {
+		mockTokenMethod = {
 			unlock: jest.fn(),
 			lock: jest.fn(),
 			getAvailableBalance: jest.fn(),
@@ -104,7 +104,7 @@ describe('UnlockCommand', () => {
 			getLockedAmount: jest.fn(),
 		};
 		unlockCommand.addDependencies({
-			tokenAPI: mockTokenAPI,
+			tokenMethod: mockTokenMethod,
 		});
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		delegateSubstore = dpos.stores.get(DelegateStore);

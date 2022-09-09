@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ImmutableAPIContext, BlockHeader, BlockAssets } from '../../state_machine';
-import { BaseAPI } from '../base_api';
+import { ImmutableMethodContext, BlockHeader, BlockAssets } from '../../state_machine';
+import { BaseMethod } from '../base_method';
 import { calculateDefaultReward } from './calculate_reward';
 import {
 	REWARD_NO_REDUCTION,
@@ -21,26 +21,26 @@ import {
 	REWARD_REDUCTION_MAX_PREVOTES,
 	REWARD_REDUCTION_SEED_REVEAL,
 } from './constants';
-import { APIInitArgs, RandomAPI } from './types';
+import { MethodInitArgs, RandomMethod } from './types';
 
-export class RewardAPI extends BaseAPI {
-	private _randomAPI!: RandomAPI;
+export class RewardMethod extends BaseMethod {
+	private _randomMethod!: RandomMethod;
 	private _brackets!: ReadonlyArray<bigint>;
 	private _offset!: number;
 	private _distance!: number;
 
-	public init(args: APIInitArgs) {
+	public init(args: MethodInitArgs) {
 		this._brackets = args.config.brackets;
 		this._offset = args.config.offset;
 		this._distance = args.config.distance;
 	}
 
-	public addDependencies(randomAPI: RandomAPI): void {
-		this._randomAPI = randomAPI;
+	public addDependencies(randomMethod: RandomMethod): void {
+		this._randomMethod = randomMethod;
 	}
 
 	public async getBlockReward(
-		context: ImmutableAPIContext,
+		context: ImmutableMethodContext,
 		header: BlockHeader,
 		assets: BlockAssets,
 		impliesMaximalPrevotes: boolean,
@@ -55,7 +55,7 @@ export class RewardAPI extends BaseAPI {
 			return [defaultReward, REWARD_NO_REDUCTION];
 		}
 
-		const isValidSeedReveal = await this._randomAPI.isSeedRevealValid(
+		const isValidSeedReveal = await this._randomMethod.isSeedRevealValid(
 			context,
 			header.generatorAddress,
 			assets,

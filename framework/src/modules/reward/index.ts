@@ -13,4 +13,4 @@
  */
 
 export { RewardModule } from './module';
-export { RewardAPI } from './api';
+export { RewardMethod } from './method';

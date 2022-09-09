@@ -59,7 +59,7 @@ describe('VoteCommand', () => {
 		lockFn = jest.fn();
 		command = new VoteDelegateCommand(dpos.stores, dpos.events);
 		command.addDependencies({
-			tokenAPI: {
+			tokenMethod: {
 				lock: lockFn,
 				unlock: jest.fn(),
 				getAvailableBalance: jest.fn(),

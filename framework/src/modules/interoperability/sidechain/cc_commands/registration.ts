@@ -62,7 +62,7 @@ export class SidechainCCRegistrationCommand extends BaseInteroperabilityCCComman
 			const beforeSendContext = createCCMsgBeforeSendContext({
 				ccm,
 				eventQueue: ctx.eventQueue,
-				getAPIContext: ctx.getAPIContext,
+				getMethodContext: ctx.getMethodContext,
 				getStore: ctx.getStore,
 				logger: ctx.logger,
 				networkIdentifier: ctx.networkIdentifier,
@@ -75,6 +75,6 @@ export class SidechainCCRegistrationCommand extends BaseInteroperabilityCCComman
 	protected getInteroperabilityStore(
 		context: StoreGetter | ImmutableStoreGetter,
 	): SidechainInteroperabilityStore {
-		return new SidechainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
+		return new SidechainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
 	}
 }

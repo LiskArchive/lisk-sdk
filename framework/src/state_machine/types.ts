@@ -37,11 +37,11 @@ export interface SubStore extends ImmutableSubStore {
 	setWithSchema(key: Buffer, value: object, schema: Schema): Promise<void>;
 }
 
-export interface ImmutableAPIContext {
+export interface ImmutableMethodContext {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 }
 
-export interface APIContext {
+export interface MethodContext {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	eventQueue: EventQueue;
 }
@@ -84,7 +84,7 @@ export interface TransactionVerifyContext {
 	networkIdentifier: Buffer;
 	logger: Logger;
 	transaction: Transaction;
-	getAPIContext: () => ImmutableAPIContext;
+	getMethodContext: () => ImmutableMethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 }
 
@@ -93,7 +93,7 @@ export interface CommandVerifyContext<T = undefined> {
 	networkIdentifier: Buffer;
 	transaction: Transaction; // without decoding params
 	params: T;
-	getAPIContext: () => ImmutableAPIContext;
+	getMethodContext: () => ImmutableMethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 }
 
@@ -109,14 +109,14 @@ export interface CommandExecuteContext<T = undefined> {
 	certificateThreshold: bigint;
 	transaction: Transaction; // without decoding params
 	params: T;
-	getAPIContext: () => APIContext;
+	getMethodContext: () => MethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 }
 
 export interface GenesisBlockExecuteContext {
 	logger: Logger;
 	eventQueue: EventQueueAdder;
-	getAPIContext: () => APIContext;
+	getMethodContext: () => MethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	header: BlockHeader;
 	assets: BlockAssets;
@@ -131,7 +131,7 @@ export interface TransactionExecuteContext {
 	logger: Logger;
 	networkIdentifier: Buffer;
 	eventQueue: EventQueueAdder;
-	getAPIContext: () => APIContext;
+	getMethodContext: () => MethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	header: BlockHeader;
 	assets: BlockAssets;
@@ -145,7 +145,7 @@ export interface TransactionExecuteContext {
 export interface BlockVerifyContext {
 	logger: Logger;
 	networkIdentifier: Buffer;
-	getAPIContext: () => ImmutableAPIContext;
+	getMethodContext: () => ImmutableMethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 	header: BlockHeader;
 	assets: BlockAssets;
@@ -155,7 +155,7 @@ export interface BlockExecuteContext {
 	logger: Logger;
 	networkIdentifier: Buffer;
 	eventQueue: EventQueue;
-	getAPIContext: () => APIContext;
+	getMethodContext: () => MethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	header: BlockHeader;
 	assets: BlockAssets;
@@ -184,7 +184,7 @@ export interface BlockAfterExecuteContext extends BlockExecuteContext {
 export interface InsertAssetContext {
 	logger: Logger;
 	networkIdentifier: Buffer;
-	getAPIContext: () => APIContext;
+	getMethodContext: () => MethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 	header: BlockHeader;
 	assets: WritableBlockAssets;

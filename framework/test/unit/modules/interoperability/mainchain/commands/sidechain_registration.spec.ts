@@ -502,7 +502,7 @@ describe('Sidechain registration command', () => {
 				timestamp: expect.any(Number),
 				eventQueue: context.eventQueue,
 				feeAddress: EMPTY_FEE_ADDRESS,
-				getAPIContext: context.getAPIContext,
+				getMethodContext: context.getMethodContext,
 				getStore: context.getStore,
 				logger: context.logger,
 				networkIdentifier: context.networkIdentifier,

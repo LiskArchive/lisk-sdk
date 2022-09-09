@@ -19,7 +19,7 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../state_machine';
-import { TokenAPI } from '../api';
+import { TokenMethod } from '../method';
 import { crossChainTransferParams } from '../schemas';
 
 interface Params {
@@ -33,10 +33,10 @@ interface Params {
 
 export class CCTransferCommand extends BaseCommand {
 	public schema = crossChainTransferParams;
-	private _api!: TokenAPI;
+	private _method!: TokenMethod;
 
-	public init(args: { api: TokenAPI }) {
-		this._api = args.api;
+	public init(args: { method: TokenMethod }) {
+		this._method = args.method;
 	}
 
 	public get name() {
@@ -65,8 +65,8 @@ export class CCTransferCommand extends BaseCommand {
 			params,
 			transaction: { senderAddress },
 		} = context;
-		await this._api.transferCrossChain(
-			context.getAPIContext(),
+		await this._method.transferCrossChain(
+			context.getMethodContext(),
 			senderAddress,
 			params.receivingChainID,
 			params.recipientAddress,

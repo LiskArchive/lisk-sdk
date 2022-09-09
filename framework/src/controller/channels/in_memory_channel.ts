@@ -22,7 +22,7 @@ import { Bus } from '../bus';
 import * as JSONRPC from '../jsonrpc/types';
 import { ChannelType, EndpointHandlers } from '../../types';
 import { Logger } from '../../logger';
-import { createImmutableAPIContext } from '../../state_machine';
+import { createImmutableMethodContext } from '../../state_machine';
 import { PrefixedStateReadWriter } from '../../state_machine/prefixed_state_read_writer';
 
 export class InMemoryChannel extends BaseChannel {
@@ -116,8 +116,8 @@ export class InMemoryChannel extends BaseChannel {
 					const stateStore = new StateStore(this._moduleDB);
 					return stateStore.getStore(moduleID, storePrefix);
 				},
-				getImmutableAPIContext: () =>
-					createImmutableAPIContext(new PrefixedStateReadWriter(this._db.newReadWriter())),
+				getImmutableMethodContext: () =>
+					createImmutableMethodContext(new PrefixedStateReadWriter(this._db.newReadWriter())),
 			}) as Promise<T>;
 		}
 

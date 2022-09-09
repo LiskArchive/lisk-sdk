@@ -138,7 +138,7 @@ describe('RandomModule', () => {
 				logger: testing.mocks.loggerMock,
 				networkIdentifier: defaultNetworkIdentifier,
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
-				getAPIContext: jest.fn() as any,
+				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
 				// getOffchainStore: jest.fn() as any,
 				header: {
@@ -187,7 +187,7 @@ describe('RandomModule', () => {
 				logger: testing.mocks.loggerMock,
 				networkIdentifier: defaultNetworkIdentifier,
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
-				getAPIContext: jest.fn() as any,
+				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
 				header: {
 					height: 15,
@@ -254,7 +254,7 @@ describe('RandomModule', () => {
 				logger: testing.mocks.loggerMock,
 				networkIdentifier: defaultNetworkIdentifier,
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
-				getAPIContext: jest.fn() as any,
+				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
 				header: {
 					height: 15,
@@ -301,7 +301,7 @@ describe('RandomModule', () => {
 				logger: testing.mocks.loggerMock,
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
 				networkIdentifier: defaultNetworkIdentifier,
-				getAPIContext: jest.fn() as any,
+				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
 				header: {
 					height: 15,
@@ -388,7 +388,7 @@ describe('RandomModule', () => {
 				logger: loggerMock as any,
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
 				networkIdentifier: defaultNetworkIdentifier,
-				getAPIContext: jest.fn() as any,
+				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
 				header: {
 					height: 15,
@@ -430,7 +430,7 @@ describe('RandomModule', () => {
 				logger: loggerMock as any,
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
 				networkIdentifier: defaultNetworkIdentifier,
-				getAPIContext: jest.fn() as any,
+				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
 				header: {
 					height: 15,

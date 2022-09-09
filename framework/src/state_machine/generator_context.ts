@@ -14,7 +14,7 @@
 
 import { BlockAssets, BlockHeader, StateStore } from '@liskhq/lisk-chain';
 import { Logger } from '../logger';
-import { createAPIContext } from './api_context';
+import { createMethodContext } from './method_context';
 import { EventQueue } from './event_queue';
 import { PrefixedStateReadWriter } from './prefixed_state_read_writer';
 import { InsertAssetContext } from './types';
@@ -54,8 +54,8 @@ export class GenerationContext {
 	public getInsertAssetContext(): InsertAssetContext {
 		return {
 			logger: this._logger,
-			getAPIContext: () =>
-				createAPIContext({ stateStore: this._stateStore, eventQueue: new EventQueue() }),
+			getMethodContext: () =>
+				createMethodContext({ stateStore: this._stateStore, eventQueue: new EventQueue() }),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			getOffchainStore: (moduleID: Buffer, subStorePrefix: Buffer) =>
