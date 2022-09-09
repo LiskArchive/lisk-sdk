@@ -203,7 +203,7 @@ export class Engine {
 		});
 		chainEndpoint.init(this._blockchainDB);
 		const consensusEndpoint = new ConsensusEndpoint({
-			bftAPI: this._bftModule.api,
+			bftMethod: this._bftModule.method,
 			blockchainDB: this._blockchainDB,
 		});
 		const systemEndpoint = new SystemEndpoint({

@@ -13,50 +13,53 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { BaseInteroperableAPI } from '../interoperability/base_interoperable_api';
+import { BaseInteroperableMethod } from '../interoperability/base_interoperable_method';
 import {
-	BeforeApplyCCMsgAPIContext,
-	BeforeRecoverCCMsgAPIContext,
-	BeforeSendCCMsgAPIContext,
-	RecoverCCMsgAPIContext,
+	BeforeApplyCCMsgMethodContext,
+	BeforeRecoverCCMsgMethodContext,
+	BeforeSendCCMsgMethodContext,
+	RecoverCCMsgMethodContext,
 } from '../interoperability/types';
 import { NamedRegistry } from '../named_registry';
-import { TokenAPI } from './api';
+import { TokenMethod } from './method';
 import { ADDRESS_LENGTH, CHAIN_ID_ALIAS_NATIVE, CHAIN_ID_LENGTH } from './constants';
 
 import { UserStoreData, userStoreSchema } from './schemas';
 import { EscrowStore } from './stores/escrow';
 import { UserStore } from './stores/user';
-import { InteroperabilityAPI } from './types';
+import { InteroperabilityMethod } from './types';
 import { splitTokenID } from './utils';
 
-export class TokenInteroperableAPI extends BaseInteroperableAPI {
-	private readonly _tokenAPI: TokenAPI;
+export class TokenInteroperableMethod extends BaseInteroperableMethod {
+	private readonly _tokenMethod: TokenMethod;
 
-	private _interopAPI!: InteroperabilityAPI;
+	private _interopMethod!: InteroperabilityMethod;
 
-	public constructor(stores: NamedRegistry, events: NamedRegistry, tokenAPI: TokenAPI) {
+	public constructor(stores: NamedRegistry, events: NamedRegistry, tokenMethod: TokenMethod) {
 		super(stores, events);
-		this._tokenAPI = tokenAPI;
+		this._tokenMethod = tokenMethod;
 	}
 
-	public addDependencies(interoperabilityAPI: InteroperabilityAPI) {
-		this._interopAPI = interoperabilityAPI;
+	public addDependencies(interoperabilityMethod: InteroperabilityMethod) {
+		this._interopMethod = interoperabilityMethod;
 	}
 
-	public async beforeApplyCCM(ctx: BeforeApplyCCMsgAPIContext): Promise<void> {
+	public async beforeApplyCCM(ctx: BeforeApplyCCMsgMethodContext): Promise<void> {
 		const { ccm } = ctx;
-		const apiContext = ctx.getAPIContext();
+		const methodContext = ctx.getMethodContext();
 		if (ccm.fee < BigInt(0)) {
 			throw new Error('Fee must be greater or equal to zero.');
 		}
-		const { id: ownChainID } = await this._interopAPI.getOwnChainAccount(apiContext);
-		const { messageFeeTokenID } = await this._interopAPI.getChannel(apiContext, ccm.sendingChainID);
+		const { id: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
+		const { messageFeeTokenID } = await this._interopMethod.getChannel(
+			methodContext,
+			ccm.sendingChainID,
+		);
 		const [feeTokenChainID, feeTokenLocalID] = splitTokenID(messageFeeTokenID);
 		const userStore = this.stores.get(UserStore);
 		if (!feeTokenChainID.equals(ownChainID)) {
 			await userStore.updateAvailableBalanceWithCreate(
-				apiContext,
+				methodContext,
 				ctx.trsSender,
 				messageFeeTokenID,
 				ccm.fee,
@@ -65,38 +68,41 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 		}
 		const escrowStore = this.stores.get(EscrowStore);
 		await escrowStore.deductEscrowAmountWithTerminate(
-			apiContext,
-			this._interopAPI,
+			methodContext,
+			this._interopMethod,
 			ccm.sendingChainID,
 			feeTokenLocalID,
 			ccm.fee,
 		);
 
-		const canonicalTokenID = await this._tokenAPI.getCanonicalTokenID(
-			apiContext,
+		const canonicalTokenID = await this._tokenMethod.getCanonicalTokenID(
+			methodContext,
 			messageFeeTokenID,
 		);
 		await userStore.updateAvailableBalanceWithCreate(
-			apiContext,
+			methodContext,
 			ctx.trsSender,
 			canonicalTokenID,
 			ccm.fee,
 		);
 	}
 
-	public async beforeRecoverCCM(ctx: BeforeRecoverCCMsgAPIContext): Promise<void> {
+	public async beforeRecoverCCM(ctx: BeforeRecoverCCMsgMethodContext): Promise<void> {
 		const { ccm } = ctx;
-		const apiContext = ctx.getAPIContext();
+		const methodContext = ctx.getMethodContext();
 		if (ccm.fee < BigInt(0)) {
 			throw new Error('Fee must be greater or equal to zero.');
 		}
-		const { id: ownChainID } = await this._interopAPI.getOwnChainAccount(apiContext);
-		const { messageFeeTokenID } = await this._interopAPI.getChannel(apiContext, ccm.sendingChainID);
+		const { id: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
+		const { messageFeeTokenID } = await this._interopMethod.getChannel(
+			methodContext,
+			ccm.sendingChainID,
+		);
 		const [feeTokenChainID, feeTokenLocalID] = splitTokenID(messageFeeTokenID);
 		const userStore = this.stores.get(UserStore);
 		if (!feeTokenChainID.equals(ownChainID)) {
 			await userStore.updateAvailableBalanceWithCreate(
-				apiContext,
+				methodContext,
 				ctx.trsSender,
 				messageFeeTokenID,
 				ccm.fee,
@@ -106,39 +112,42 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 
 		const escrowStore = this.stores.get(EscrowStore);
 		await escrowStore.deductEscrowAmountWithTerminate(
-			apiContext,
-			this._interopAPI,
+			methodContext,
+			this._interopMethod,
 			ccm.sendingChainID,
 			feeTokenLocalID,
 			ccm.fee,
 		);
-		const canonicalTokenID = await this._tokenAPI.getCanonicalTokenID(
-			apiContext,
+		const canonicalTokenID = await this._tokenMethod.getCanonicalTokenID(
+			methodContext,
 			messageFeeTokenID,
 		);
 		await userStore.updateAvailableBalanceWithCreate(
-			apiContext,
+			methodContext,
 			ctx.trsSender,
 			canonicalTokenID,
 			ccm.fee,
 		);
 	}
 
-	public async beforeSendCCM(ctx: BeforeSendCCMsgAPIContext): Promise<void> {
+	public async beforeSendCCM(ctx: BeforeSendCCMsgMethodContext): Promise<void> {
 		const { ccm } = ctx;
-		const apiContext = ctx.getAPIContext();
+		const methodContext = ctx.getMethodContext();
 		if (ccm.fee < BigInt(0)) {
 			throw new Error('Fee must be greater or equal to zero.');
 		}
-		const { id: ownChainID } = await this._interopAPI.getOwnChainAccount(apiContext);
-		const { messageFeeTokenID } = await this._interopAPI.getChannel(apiContext, ccm.sendingChainID);
+		const { id: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
+		const { messageFeeTokenID } = await this._interopMethod.getChannel(
+			methodContext,
+			ccm.sendingChainID,
+		);
 		const [feeTokenChainID, feeTokenLocalID] = splitTokenID(messageFeeTokenID);
 		const userStore = this.stores.get(UserStore);
 		let tokenID = messageFeeTokenID;
 		if (feeTokenChainID.equals(ownChainID)) {
-			tokenID = await this._tokenAPI.getCanonicalTokenID(apiContext, messageFeeTokenID);
+			tokenID = await this._tokenMethod.getCanonicalTokenID(methodContext, messageFeeTokenID);
 			const escrowStore = this.stores.get(EscrowStore);
-			await escrowStore.addAmount(apiContext, ccm.receivingChainID, feeTokenLocalID, ccm.fee);
+			await escrowStore.addAmount(methodContext, ccm.receivingChainID, feeTokenLocalID, ccm.fee);
 		}
 		const payer = await userStore.get(ctx, userStore.getKey(ctx.feeAddress, tokenID));
 		if (payer.availableBalance < ccm.fee) {
@@ -152,8 +161,8 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 		await userStore.set(ctx, userStore.getKey(ctx.feeAddress, tokenID), payer);
 	}
 
-	public async recover(ctx: RecoverCCMsgAPIContext): Promise<void> {
-		const apiContext = ctx.getAPIContext();
+	public async recover(ctx: RecoverCCMsgMethodContext): Promise<void> {
+		const methodContext = ctx.getMethodContext();
 		const userStore = this.stores.get(UserStore);
 		if (!ctx.storePrefix.equals(userStore.subStorePrefix)) {
 			throw new Error(`Invalid store prefix ${ctx.storePrefix.toString('hex')} to recover.`);
@@ -169,7 +178,7 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 			account.availableBalance +
 			account.lockedBalances.reduce((prev, curr) => prev + curr.amount, BigInt(0));
 
-		const { id: ownChainID } = await this._interopAPI.getOwnChainAccount(apiContext);
+		const { id: ownChainID } = await this._interopMethod.getOwnChainAccount(methodContext);
 
 		if (!ownChainID.equals(chainID)) {
 			throw new Error(
@@ -191,7 +200,7 @@ export class TokenInteroperableAPI extends BaseInteroperableAPI {
 
 		const localTokenID = Buffer.concat([CHAIN_ID_ALIAS_NATIVE, localID]);
 		await userStore.updateAvailableBalanceWithCreate(
-			apiContext,
+			methodContext,
 			address,
 			localTokenID,
 			totalAmount,

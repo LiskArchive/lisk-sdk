@@ -42,7 +42,7 @@ describe('ValidatorsModuleEndpoint', () => {
 		describe('when request data is valid', () => {
 			it('should resolve with false when key already exists', async () => {
 				const context = {
-					getImmutableAPIContext: jest.fn(),
+					getImmutableMethodContext: jest.fn(),
 					getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
 					getOffchainStore: jest.fn(),
 					logger,
@@ -62,7 +62,7 @@ describe('ValidatorsModuleEndpoint', () => {
 
 			it('should resolve with false when key does not exist but invalid proof of possession', async () => {
 				const context = {
-					getImmutableAPIContext: jest.fn(),
+					getImmutableMethodContext: jest.fn(),
 					getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
 					getOffchainStore: jest.fn(),
 					logger,
@@ -80,7 +80,7 @@ describe('ValidatorsModuleEndpoint', () => {
 			it('should resolve with true when key does not exist and valid proof of possession', async () => {
 				const context = {
 					getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
-					getImmutableAPIContext: jest.fn(),
+					getImmutableMethodContext: jest.fn(),
 					getOffchainStore: jest.fn(),
 					logger,
 					params: {
@@ -102,7 +102,7 @@ describe('ValidatorsModuleEndpoint', () => {
 				await expect(
 					validatorsModule.endpoint.validateBLSKey({
 						getStore: jest.fn(),
-						getImmutableAPIContext: jest.fn(),
+						getImmutableMethodContext: jest.fn(),
 						logger,
 						params: {
 							invalid: 'schema',
@@ -117,7 +117,7 @@ describe('ValidatorsModuleEndpoint', () => {
 				await expect(
 					validatorsModule.endpoint.validateBLSKey({
 						getStore: jest.fn(),
-						getImmutableAPIContext: jest.fn(),
+						getImmutableMethodContext: jest.fn(),
 						logger,
 						params: {
 							proofOfPossession: 'xxxx',
@@ -133,7 +133,7 @@ describe('ValidatorsModuleEndpoint', () => {
 
 	describe('getValidator', () => {
 		const context = {
-			getImmutableAPIContext: jest.fn(),
+			getImmutableMethodContext: jest.fn(),
 			getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
 			getOffchainStore: jest.fn(),
 			logger,

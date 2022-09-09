@@ -168,7 +168,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 		// CCM execution
 		const terminateChainContext: TerminateChainContext = {
 			eventQueue: context.eventQueue,
-			getAPIContext: context.getAPIContext,
+			getMethodContext: context.getMethodContext,
 			getStore: context.getStore,
 			logger: context.logger,
 			networkIdentifier: context.networkIdentifier,
@@ -234,7 +234,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 					ccu: txParams,
 					eventQueue: context.eventQueue,
 					feeAddress: context.transaction.senderAddress,
-					getAPIContext: context.getAPIContext,
+					getMethodContext: context.getMethodContext,
 					getStore: context.getStore,
 					logger: context.logger,
 					networkIdentifier: context.networkIdentifier,
@@ -247,7 +247,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 						ccmSize: getCCMSize(ccm.deserialized),
 						eventQueue: context.eventQueue,
 						feeAddress: context.transaction.senderAddress,
-						getAPIContext: context.getAPIContext,
+						getMethodContext: context.getMethodContext,
 						getStore: context.getStore,
 						logger: context.logger,
 						networkIdentifier: context.networkIdentifier,
@@ -273,6 +273,6 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 	protected getInteroperabilityStore(
 		context: StoreGetter | ImmutableStoreGetter,
 	): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
+		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
 	}
 }

@@ -14,34 +14,34 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { MainchainInteroperabilityModule } from '../../../../../src';
-import { MainchainInteroperabilityAPI } from '../../../../../src/modules/interoperability/mainchain/api';
+import { MainchainInteroperabilityMethod } from '../../../../../src/modules/interoperability/mainchain/method';
 import { MainchainInteroperabilityStore } from '../../../../../src/modules/interoperability/mainchain/store';
-import { APIContext } from '../../../../../src/state_machine';
-import { createTransientAPIContext } from '../../../../../src/testing';
+import { MethodContext } from '../../../../../src/state_machine';
+import { createTransientMethodContext } from '../../../../../src/testing';
 
-describe('Mainchain API', () => {
+describe('Mainchain Method', () => {
 	const interopMod = new MainchainInteroperabilityModule();
 
 	const chainID = utils.intToBuffer(1, 4);
-	const interoperableCCAPIs = new Map();
-	let mainchainInteroperabilityAPI: MainchainInteroperabilityAPI;
+	const interoperableCCMethods = new Map();
+	let mainchainInteroperabilityMethod: MainchainInteroperabilityMethod;
 	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
-	let apiContext: APIContext;
+	let methodContext: MethodContext;
 
 	beforeEach(() => {
-		apiContext = createTransientAPIContext({});
-		mainchainInteroperabilityAPI = new MainchainInteroperabilityAPI(
+		methodContext = createTransientMethodContext({});
+		mainchainInteroperabilityMethod = new MainchainInteroperabilityMethod(
 			interopMod.stores,
 			interopMod.events,
-			interoperableCCAPIs,
+			interoperableCCMethods,
 		);
 		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
 			interopMod.stores,
-			apiContext,
-			interoperableCCAPIs,
+			methodContext,
+			interoperableCCMethods,
 		);
 		jest
-			.spyOn(mainchainInteroperabilityAPI as any, 'getInteroperabilityStore')
+			.spyOn(mainchainInteroperabilityMethod as any, 'getInteroperabilityStore')
 			.mockReturnValue(mainchainInteroperabilityStore);
 		jest.spyOn(mainchainInteroperabilityStore, 'getChainAccount').mockResolvedValue({} as never);
 		jest.spyOn(mainchainInteroperabilityStore, 'getChannel').mockResolvedValue({} as never);
@@ -56,15 +56,15 @@ describe('Mainchain API', () => {
 
 	describe('getChainAccount', () => {
 		it('should call getInteroperabilityStore', async () => {
-			await mainchainInteroperabilityAPI.getChainAccount(apiContext, chainID);
+			await mainchainInteroperabilityMethod.getChainAccount(methodContext, chainID);
 
-			expect(mainchainInteroperabilityAPI['getInteroperabilityStore']).toHaveBeenCalledWith(
-				apiContext,
+			expect(mainchainInteroperabilityMethod['getInteroperabilityStore']).toHaveBeenCalledWith(
+				methodContext,
 			);
 		});
 
 		it('should call getChainAccount', async () => {
-			await mainchainInteroperabilityAPI.getChainAccount(apiContext, chainID);
+			await mainchainInteroperabilityMethod.getChainAccount(methodContext, chainID);
 
 			expect(mainchainInteroperabilityStore.getChainAccount).toHaveBeenCalledWith(chainID);
 		});
@@ -72,15 +72,15 @@ describe('Mainchain API', () => {
 
 	describe('getChannel', () => {
 		it('should call getInteroperabilityStore', async () => {
-			await mainchainInteroperabilityAPI.getChannel(apiContext, chainID);
+			await mainchainInteroperabilityMethod.getChannel(methodContext, chainID);
 
-			expect(mainchainInteroperabilityAPI['getInteroperabilityStore']).toHaveBeenCalledWith(
-				apiContext,
+			expect(mainchainInteroperabilityMethod['getInteroperabilityStore']).toHaveBeenCalledWith(
+				methodContext,
 			);
 		});
 
 		it('should call getChannel', async () => {
-			await mainchainInteroperabilityAPI.getChannel(apiContext, chainID);
+			await mainchainInteroperabilityMethod.getChannel(methodContext, chainID);
 
 			expect(mainchainInteroperabilityStore.getChannel).toHaveBeenCalledWith(chainID);
 		});
@@ -88,15 +88,15 @@ describe('Mainchain API', () => {
 
 	describe('getOwnChainAccount', () => {
 		it('should call getInteroperabilityStore', async () => {
-			await mainchainInteroperabilityAPI.getOwnChainAccount(apiContext);
+			await mainchainInteroperabilityMethod.getOwnChainAccount(methodContext);
 
-			expect(mainchainInteroperabilityAPI['getInteroperabilityStore']).toHaveBeenCalledWith(
-				apiContext,
+			expect(mainchainInteroperabilityMethod['getInteroperabilityStore']).toHaveBeenCalledWith(
+				methodContext,
 			);
 		});
 
 		it('should call getOwnChainAccount', async () => {
-			await mainchainInteroperabilityAPI.getOwnChainAccount(apiContext);
+			await mainchainInteroperabilityMethod.getOwnChainAccount(methodContext);
 
 			expect(mainchainInteroperabilityStore.getOwnChainAccount).toHaveBeenCalled();
 		});
@@ -104,15 +104,15 @@ describe('Mainchain API', () => {
 
 	describe('getTerminatedStateAccount', () => {
 		it('should call getInteroperabilityStore', async () => {
-			await mainchainInteroperabilityAPI.getTerminatedStateAccount(apiContext, chainID);
+			await mainchainInteroperabilityMethod.getTerminatedStateAccount(methodContext, chainID);
 
-			expect(mainchainInteroperabilityAPI['getInteroperabilityStore']).toHaveBeenCalledWith(
-				apiContext,
+			expect(mainchainInteroperabilityMethod['getInteroperabilityStore']).toHaveBeenCalledWith(
+				methodContext,
 			);
 		});
 
 		it('should call getTerminatedStateAccount', async () => {
-			await mainchainInteroperabilityAPI.getTerminatedStateAccount(apiContext, chainID);
+			await mainchainInteroperabilityMethod.getTerminatedStateAccount(methodContext, chainID);
 
 			expect(mainchainInteroperabilityStore.getTerminatedStateAccount).toHaveBeenCalled();
 		});
@@ -120,15 +120,15 @@ describe('Mainchain API', () => {
 
 	describe('getTerminatedOutboxAccount', () => {
 		it('should call getInteroperabilityStore', async () => {
-			await mainchainInteroperabilityAPI.getTerminatedOutboxAccount(apiContext, chainID);
+			await mainchainInteroperabilityMethod.getTerminatedOutboxAccount(methodContext, chainID);
 
-			expect(mainchainInteroperabilityAPI['getInteroperabilityStore']).toHaveBeenCalledWith(
-				apiContext,
+			expect(mainchainInteroperabilityMethod['getInteroperabilityStore']).toHaveBeenCalledWith(
+				methodContext,
 			);
 		});
 
 		it('should call getTerminatedStateAccount', async () => {
-			await mainchainInteroperabilityAPI.getTerminatedOutboxAccount(apiContext, chainID);
+			await mainchainInteroperabilityMethod.getTerminatedOutboxAccount(methodContext, chainID);
 
 			expect(mainchainInteroperabilityStore.getTerminatedOutboxAccount).toHaveBeenCalledWith(
 				chainID,

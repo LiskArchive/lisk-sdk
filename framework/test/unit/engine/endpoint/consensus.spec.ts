@@ -52,16 +52,16 @@ describe('system endpoint', () => {
 
 	let endpoint: ConsensusEndpoint;
 	let blockchainDB: Database;
-	let bftAPI: any;
+	let bftMethod: any;
 
 	beforeEach(() => {
 		blockchainDB = new InMemoryDatabase() as never;
-		bftAPI = {
+		bftMethod = {
 			getBFTHeights: jest.fn().mockResolvedValue(bftHeights),
 			getBFTParameters: jest.fn().mockResolvedValue(bftParameters),
 		};
 		endpoint = new ConsensusEndpoint({
-			bftAPI,
+			bftMethod,
 			blockchainDB,
 		});
 	});
@@ -69,7 +69,7 @@ describe('system endpoint', () => {
 		it('should return bft parameters in JSON format', async () => {
 			const result = await endpoint.getBFTParameters({ params: { height: 0 } } as any);
 
-			expect(bftAPI.getBFTParameters).toHaveBeenCalledTimes(1);
+			expect(bftMethod.getBFTParameters).toHaveBeenCalledTimes(1);
 			expect(result).toEqual(bftParametersJSON);
 		});
 	});
@@ -78,7 +78,7 @@ describe('system endpoint', () => {
 		it('should return bft heights', async () => {
 			const result = await endpoint.getBFTHeights({} as any);
 
-			expect(bftAPI.getBFTHeights).toHaveBeenCalledTimes(1);
+			expect(bftMethod.getBFTHeights).toHaveBeenCalledTimes(1);
 			expect(result).toEqual(bftHeights);
 		});
 	});

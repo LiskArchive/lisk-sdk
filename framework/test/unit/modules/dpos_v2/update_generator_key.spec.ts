@@ -18,7 +18,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../../src/testing';
 import { UpdateGeneratorKeyCommand } from '../../../../src/modules/dpos_v2/commands/update_generator_key';
 import { updateGeneratorKeyCommandParamsSchema } from '../../../../src/modules/dpos_v2/schemas';
-import { UpdateGeneratorKeyParams, ValidatorsAPI } from '../../../../src/modules/dpos_v2/types';
+import { UpdateGeneratorKeyParams, ValidatorsMethod } from '../../../../src/modules/dpos_v2/types';
 import { VerifyStatus } from '../../../../src/state_machine';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
@@ -50,11 +50,11 @@ describe('Update generator key command', () => {
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
 		'hex',
 	);
-	const mockValidatorsAPI = { setValidatorGeneratorKey: jest.fn() };
+	const mockValidatorsMethod = { setValidatorGeneratorKey: jest.fn() };
 
 	beforeEach(async () => {
 		updateGeneratorCommand = new UpdateGeneratorKeyCommand(dpos.stores, dpos.events);
-		updateGeneratorCommand.addDependencies((mockValidatorsAPI as unknown) as ValidatorsAPI);
+		updateGeneratorCommand.addDependencies((mockValidatorsMethod as unknown) as ValidatorsMethod);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		delegateSubstore = dpos.stores.get(DelegateStore);
 		await delegateSubstore.set(createStoreGetter(stateStore), transaction.senderAddress, {
@@ -131,7 +131,7 @@ describe('Update generator key command', () => {
 	});
 
 	describe('execute', () => {
-		it('should call validators API setValidatorGeneratorKey', async () => {
+		it('should call validators Method setValidatorGeneratorKey', async () => {
 			const context = testing
 				.createTransactionContext({
 					transaction,
@@ -142,7 +142,7 @@ describe('Update generator key command', () => {
 				);
 			await updateGeneratorCommand.execute(context);
 
-			expect(mockValidatorsAPI.setValidatorGeneratorKey).toHaveBeenCalledWith(
+			expect(mockValidatorsMethod.setValidatorGeneratorKey).toHaveBeenCalledWith(
 				expect.anything(),
 				transaction.senderAddress,
 				context.params.generatorKey,

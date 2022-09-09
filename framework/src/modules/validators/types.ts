@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-export interface APIInitArgs {
+export interface MethodInitArgs {
 	config: {
 		blockTime: number;
 	};
