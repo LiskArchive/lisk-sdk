@@ -14,17 +14,14 @@
 
 'use strict';
 
-const { signData } = require('@liskhq/lisk-cryptography');
+const { ed, legacy } = require('@liskhq/lisk-cryptography');
 const { Codec } = require('@liskhq/lisk-codec');
 const BaseGenerator = require('../base_generator');
 const { baseTransactionSchema } = require('../../utils/schema');
 
 const codec = new Codec();
 const TAG_TRANSACTION = Buffer.from('LSK_TX_', 'utf8');
-const networkIdentifier = Buffer.from(
-	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
-	'hex',
-);
+const chainID = Buffer.from('10000000', 'hex');
 
 const senderAccount = {
 	passphrase: 'lava toe nuclear candy erode present guilt develop include type pluck current',
@@ -329,12 +326,11 @@ const generateValidUpvoteTransaction = () => {
 		},
 	};
 	const signBytes = getSignBytes(unsignedTransaction);
-	const signature = Buffer.from(
-		signData(
-			Buffer.concat([TAG_TRANSACTION, networkIdentifier, signBytes]),
-			senderAccount.passphrase,
-		),
-		'hex',
+	const signature = ed.signData(
+		TAG_TRANSACTION,
+		chainID,
+		signBytes,
+		legacy.getPrivateAndPublicKeyFromPassphrase(senderAccount.passphrase).privateKey,
 	);
 	const encodedTx = encode({
 		...unsignedTransaction,
@@ -349,7 +345,7 @@ const generateValidUpvoteTransaction = () => {
 				address: senderAccount.address,
 				publicKey: senderAccount.publicKey,
 			},
-			networkIdentifier,
+			chainID,
 			delegates: delegateAccounts.map(d => ({
 				...d,
 				address: d.address,
