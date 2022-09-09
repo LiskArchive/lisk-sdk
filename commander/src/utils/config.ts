@@ -2,10 +2,7 @@ export const defaultConfig = {
 	system: {
 		dataPath: '~/.lisk/beta-sdk-app',
 		keepEventsForHeights: 300,
-	},
-	logger: {
-		fileLogLevel: 'info',
-		consoleLogLevel: 'info',
+		logLevel: 'info',
 	},
 	rpc: {
 		modes: ['ipc'],

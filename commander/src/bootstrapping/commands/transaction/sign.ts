@@ -171,7 +171,7 @@ const signTransactionOnline = async (
 	const transactionObject = decodeTransaction(registeredSchema, metadata, transactionHexStr);
 	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
 	const edKeys = await deriveKeypair(passphrase, flags['key-derivation-path']);
-	const address = cryptography.address.getAddressFromPublicKey(edKeys.publicKey);
+	const address = cryptography.address.getLisk32AddressFromPublicKey(edKeys.publicKey);
 
 	let signedTransaction: Record<string, unknown>;
 
@@ -183,7 +183,7 @@ const signTransactionOnline = async (
 	// Sign multi-sig transaction
 
 	const account = await client.invoke<AuthAccount>('auth_getAuthAccount', {
-		address: address.toString('hex'),
+		address,
 	});
 	let authAccount: AuthAccount;
 	if (account.mandatoryKeys.length === 0 && account.optionalKeys.length === 0) {

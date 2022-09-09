@@ -13,6 +13,8 @@
  *
  */
 
+import { address } from '@liskhq/lisk-cryptography';
+import { genesisStoreSchema } from '../../modules/dpos_v2/schemas';
 import { genesisTokenStoreSchema } from '../../modules/token';
 import * as accounts from './keys_fixture.json';
 
@@ -27,7 +29,11 @@ export const blockAssetsJSON = [
 					availableBalance: '10000000000000',
 					lockedBalances: [],
 				}))
-				.sort((a, b) => Buffer.from(a.address, 'hex').compare(Buffer.from(b.address, 'hex'))),
+				.sort((a, b) =>
+					address
+						.getAddressFromLisk32Address(a.address)
+						.compare(address.getAddressFromLisk32Address(b.address)),
+				),
 			supplySubstore: [
 				{
 					localID: '00000000',
@@ -63,197 +69,6 @@ export const blockAssetsJSON = [
 				initDelegates: accounts.keys.slice(0, 101).map(account => account.address),
 			},
 		},
-		schema: {
-			$id: '/dpos/module/genesis',
-			type: 'object',
-			required: ['validators', 'voters', 'snapshots', 'genesisData'],
-			properties: {
-				validators: {
-					type: 'array',
-					fieldNumber: 1,
-					items: {
-						type: 'object',
-						required: [
-							'address',
-							'name',
-							'blsKey',
-							'proofOfPossession',
-							'generatorKey',
-							'lastGeneratedHeight',
-							'isBanned',
-							'pomHeights',
-							'consecutiveMissedBlocks',
-						],
-						properties: {
-							address: {
-								dataType: 'bytes',
-								fieldNumber: 1,
-								minLength: 20,
-								maxLength: 20,
-							},
-							name: {
-								dataType: 'string',
-								fieldNumber: 2,
-								minLength: 1,
-								maxLength: 20,
-							},
-							blsKey: {
-								dataType: 'bytes',
-								fieldNumber: 3,
-								minLength: 48,
-								maxLength: 48,
-							},
-							proofOfPossession: {
-								dataType: 'bytes',
-								fieldNumber: 4,
-								minLength: 96,
-								maxLength: 96,
-							},
-							generatorKey: {
-								dataType: 'bytes',
-								fieldNumber: 5,
-								minLength: 32,
-								maxLength: 32,
-							},
-							lastGeneratedHeight: {
-								dataType: 'uint32',
-								fieldNumber: 6,
-							},
-							isBanned: {
-								dataType: 'boolean',
-								fieldNumber: 7,
-							},
-							pomHeights: {
-								type: 'array',
-								fieldNumber: 8,
-								items: {
-									dataType: 'uint32',
-								},
-							},
-							consecutiveMissedBlocks: {
-								dataType: 'uint32',
-								fieldNumber: 9,
-							},
-						},
-					},
-				},
-				voters: {
-					type: 'array',
-					fieldNumber: 2,
-					items: {
-						type: 'object',
-						required: ['address', 'sentVotes', 'pendingUnlocks'],
-						properties: {
-							address: {
-								dataType: 'bytes',
-								fieldNumber: 1,
-								minLength: 20,
-								maxLength: 20,
-							},
-							sentVotes: {
-								type: 'array',
-								fieldNumber: 2,
-								items: {
-									type: 'object',
-									required: ['delegateAddress', 'amount'],
-									properties: {
-										delegateAddress: {
-											dataType: 'bytes',
-											fieldNumber: 1,
-										},
-										amount: {
-											dataType: 'uint64',
-											fieldNumber: 2,
-										},
-									},
-								},
-							},
-							pendingUnlocks: {
-								type: 'array',
-								fieldNumber: 3,
-								items: {
-									type: 'object',
-									required: ['delegateAddress', 'amount', 'unvoteHeight'],
-									properties: {
-										delegateAddress: {
-											dataType: 'bytes',
-											fieldNumber: 1,
-											minLength: 20,
-											maxLength: 20,
-										},
-										amount: {
-											dataType: 'uint64',
-											fieldNumber: 2,
-										},
-										unvoteHeight: {
-											dataType: 'uint32',
-											fieldNumber: 3,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-				snapshots: {
-					type: 'array',
-					fieldNumber: 3,
-					maxLength: 3,
-					items: {
-						type: 'object',
-						required: ['roundNumber', 'activeDelegates', 'delegateWeightSnapshot'],
-						properties: {
-							roundNumber: {
-								dataType: 'uint32',
-								fieldNumber: 1,
-							},
-							activeDelegates: {
-								type: 'array',
-								fieldNumber: 2,
-								items: {
-									dataType: 'bytes',
-								},
-							},
-							delegateWeightSnapshot: {
-								type: 'array',
-								fieldNumber: 3,
-								items: {
-									type: 'object',
-									required: ['delegateAddress', 'delegateWeight'],
-									properties: {
-										delegateAddress: {
-											dataType: 'bytes',
-											fieldNumber: 1,
-										},
-										delegateWeight: {
-											dataType: 'uint64',
-											fieldNumber: 2,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-				genesisData: {
-					type: 'object',
-					fieldNumber: 4,
-					required: ['initRounds', 'initDelegates'],
-					properties: {
-						initRounds: {
-							dataType: 'uint32',
-							fieldNumber: 1,
-						},
-						initDelegates: {
-							type: 'array',
-							fieldNumber: 2,
-							items: {
-								dataType: 'bytes',
-							},
-						},
-					},
-				},
-			},
-		},
+		schema: genesisStoreSchema,
 	},
 ];

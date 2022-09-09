@@ -59,7 +59,7 @@ describe('RandomModule', () => {
 			await hashOnionStore.set(
 				// eslint-disable-next-line no-loop-func
 				{ getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2) },
-				Buffer.from(delegate.address, 'hex'),
+				address.getAddressFromLisk32Address(delegate.address),
 				{
 					count: delegate.hashOnion.count,
 					distance: delegate.hashOnion.distance,
@@ -141,7 +141,10 @@ describe('RandomModule', () => {
 				getAPIContext: jest.fn() as any,
 				getStore: jest.fn() as any,
 				// getOffchainStore: jest.fn() as any,
-				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
+				header: {
+					height: 15,
+					generatorAddress: address.getAddressFromLisk32Address(targetDelegate.address),
+				} as any,
 			});
 
 			await randomModule.offchainStores
@@ -186,7 +189,10 @@ describe('RandomModule', () => {
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
 				getAPIContext: jest.fn() as any,
 				getStore: jest.fn() as any,
-				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
+				header: {
+					height: 15,
+					generatorAddress: address.getAddressFromLisk32Address(targetDelegate.address),
+				} as any,
 			});
 
 			await randomModule.offchainStores
@@ -250,7 +256,10 @@ describe('RandomModule', () => {
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
 				getAPIContext: jest.fn() as any,
 				getStore: jest.fn() as any,
-				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
+				header: {
+					height: 15,
+					generatorAddress: address.getAddressFromLisk32Address(targetDelegate.address),
+				} as any,
 			});
 			await randomModule.offchainStores
 				.get(UsedHashOnionsStore)
@@ -294,7 +303,10 @@ describe('RandomModule', () => {
 				networkIdentifier: defaultNetworkIdentifier,
 				getAPIContext: jest.fn() as any,
 				getStore: jest.fn() as any,
-				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
+				header: {
+					height: 15,
+					generatorAddress: address.getAddressFromLisk32Address(targetDelegate.address),
+				} as any,
 				finalizedHeight,
 			});
 
@@ -339,7 +351,7 @@ describe('RandomModule', () => {
 			// Arrange
 			const forgingDelegates = convertDelegateFixture(genesisDelegates.delegates);
 			const maxCount = (forgingDelegates as any).find(
-				(d: { address: Buffer }) => d.address.toString('hex') === targetDelegate.address,
+				(d: { address: string }) => d.address === targetDelegate.address,
 			).hashOnion.count;
 
 			const usedHashOnionInput: UsedHashOnionStoreObject = {
@@ -378,7 +390,10 @@ describe('RandomModule', () => {
 				networkIdentifier: defaultNetworkIdentifier,
 				getAPIContext: jest.fn() as any,
 				getStore: jest.fn() as any,
-				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
+				header: {
+					height: 15,
+					generatorAddress: address.getAddressFromLisk32Address(targetDelegate.address),
+				} as any,
 			});
 			await randomModule.offchainStores
 				.get(UsedHashOnionsStore)
@@ -417,7 +432,10 @@ describe('RandomModule', () => {
 				networkIdentifier: defaultNetworkIdentifier,
 				getAPIContext: jest.fn() as any,
 				getStore: jest.fn() as any,
-				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
+				header: {
+					height: 15,
+					generatorAddress: address.getAddressFromLisk32Address(targetDelegate.address),
+				} as any,
 			});
 
 			// Act

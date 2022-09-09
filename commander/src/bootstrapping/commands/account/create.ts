@@ -20,7 +20,6 @@ import * as passphrase from '@liskhq/lisk-passphrase';
 
 interface AccountInfo {
 	readonly address: string;
-	readonly binaryAddress: string;
 	readonly passphrase: string;
 	readonly privateKey: string;
 	readonly publicKey: string;
@@ -35,7 +34,6 @@ const createAccount = (prefix: string): AccountInfo => {
 		Buffer.from(generatedPassphrase, 'utf-8'),
 	);
 	const blsPublicKey = cryptography.bls.getPublicKeyFromPrivateKey(blsPrivateKey);
-	const binaryAddress = cryptography.address.getAddressFromPublicKey(publicKey);
 	const address = cryptography.address.getLisk32AddressFromPublicKey(publicKey, prefix);
 
 	return {
@@ -44,7 +42,6 @@ const createAccount = (prefix: string): AccountInfo => {
 		publicKey: publicKey.toString('hex'),
 		blsPrivateKey: blsPrivateKey.toString('hex'),
 		blsPublicKey: blsPublicKey.toString('hex'),
-		binaryAddress: binaryAddress.toString('hex'),
 		address,
 	};
 };

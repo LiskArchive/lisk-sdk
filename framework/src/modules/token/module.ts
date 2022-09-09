@@ -14,6 +14,7 @@
 import { isUInt64, validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { objects, dataStructures } from '@liskhq/lisk-utils';
+import { address } from '@liskhq/lisk-cryptography';
 import {
 	ADDRESS_LENGTH,
 	CHAIN_ID_ALIAS_NATIVE,
@@ -164,9 +165,9 @@ export class TokenModule extends BaseInteroperableModule {
 			// Validate uniqueness of address/tokenID pair
 			if (userKeySet.has(key)) {
 				throw new Error(
-					`Address ${userData.address.toString('hex')} and tokenID ${userData.tokenID.toString(
-						'hex',
-					)} pair is duplicated.`,
+					`Address ${address.getLisk32AddressFromAddress(
+						userData.address,
+					)} and tokenID ${userData.tokenID.toString('hex')} pair is duplicated.`,
 				);
 			}
 			userKeySet.add(key);
@@ -186,7 +187,9 @@ export class TokenModule extends BaseInteroperableModule {
 				// Validate locked balances must not be zero
 				if (lockedBalance.amount === BigInt(0)) {
 					throw new Error(
-						`Address ${userData.address.toString('hex')} contains 0 amount locked balance.`,
+						`Address ${address.getLisk32AddressFromAddress(
+							userData.address,
+						)} contains 0 amount locked balance.`,
 					);
 				}
 				// Validate locked balances must be sorted
@@ -198,12 +201,16 @@ export class TokenModule extends BaseInteroperableModule {
 			// Validate locked balance module ID uniqueness
 			if (lockedBalanceModuleIDSet.size !== userData.lockedBalances.length) {
 				throw new Error(
-					`Address ${userData.address.toString('hex')} has duplicate module in locked balances.`,
+					`Address ${address.getLisk32AddressFromAddress(
+						userData.address,
+					)} has duplicate module in locked balances.`,
 				);
 			}
 			// Validate userSubstore not to be empty
 			if (userData.lockedBalances.length === 0 && userData.availableBalance === BigInt(0)) {
-				throw new Error(`Address ${userData.address.toString('hex')} has empty data.`);
+				throw new Error(
+					`Address ${address.getLisk32AddressFromAddress(userData.address)} has empty data.`,
+				);
 			}
 
 			await userStore.set(context, key, userData);

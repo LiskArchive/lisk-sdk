@@ -78,6 +78,7 @@ export interface TransactionPoolConfig {
 export interface SystemConfig {
 	version: string;
 	dataPath: string;
+	logLevel: string;
 	keepEventsForHeights: number;
 }
 
@@ -103,10 +104,6 @@ export interface PluginConfig extends Record<string, unknown> {
 
 export interface ApplicationConfig {
 	system: SystemConfig;
-	logger: {
-		fileLogLevel: string;
-		consoleLogLevel: string;
-	};
 	rpc: RPCConfig;
 	genesis: GenesisConfig;
 	network: NetworkConfig;

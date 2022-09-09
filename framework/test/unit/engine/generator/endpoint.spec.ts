@@ -13,7 +13,7 @@
  */
 
 import { codec } from '@liskhq/lisk-codec';
-import { utils, ed, bls, encrypt } from '@liskhq/lisk-cryptography';
+import { utils, ed, bls, encrypt, address } from '@liskhq/lisk-cryptography';
 import { InMemoryDatabase, Database } from '@liskhq/lisk-db';
 import { dataStructures } from '@liskhq/lisk-utils';
 import { LiskValidationError } from '@liskhq/lisk-validator';
@@ -142,7 +142,7 @@ describe('generator endpoint', () => {
 				endpoint.updateStatus({
 					logger,
 					params: {
-						address: utils.getRandomBytes(20).toString('hex'),
+						address: address.getLisk32AddressFromAddress(utils.getRandomBytes(20)),
 						enable: true,
 						password: defaultPassword,
 						...bftProps,
@@ -157,7 +157,7 @@ describe('generator endpoint', () => {
 				endpoint.updateStatus({
 					logger,
 					params: {
-						address: defaultEncryptedKeys.address.toString('hex'),
+						address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
 						enable: true,
 						password: 'wrong password',
 						...bftProps,
@@ -173,7 +173,7 @@ describe('generator endpoint', () => {
 				endpoint.updateStatus({
 					logger,
 					params: {
-						address: defaultEncryptedKeys.address.toString('hex'),
+						address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
 						enable: true,
 						password: defaultPassword,
 						...bftProps,
@@ -194,7 +194,7 @@ describe('generator endpoint', () => {
 				endpoint.updateStatus({
 					logger,
 					params: {
-						address: defaultEncryptedKeys.address.toString('hex'),
+						address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
 						enable: false,
 						password: defaultPassword,
 						...bftProps,
@@ -202,7 +202,7 @@ describe('generator endpoint', () => {
 					networkIdentifier,
 				}),
 			).resolves.toEqual({
-				address: defaultEncryptedKeys.address.toString('hex'),
+				address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
 				enabled: false,
 			});
 			expect(endpoint['_keypairs'].has(defaultEncryptedKeys.address)).toBeFalse();
@@ -213,7 +213,7 @@ describe('generator endpoint', () => {
 				endpoint.updateStatus({
 					logger,
 					params: {
-						address: defaultEncryptedKeys.address.toString('hex'),
+						address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
 						enable: true,
 						password: defaultPassword,
 						...bftProps,
@@ -221,7 +221,7 @@ describe('generator endpoint', () => {
 					networkIdentifier,
 				}),
 			).resolves.toEqual({
-				address: defaultEncryptedKeys.address.toString('hex'),
+				address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
 				enabled: true,
 			});
 			expect(endpoint['_keypairs'].has(defaultEncryptedKeys.address)).toBeTrue();
@@ -233,7 +233,7 @@ describe('generator endpoint', () => {
 				endpoint.updateStatus({
 					logger,
 					params: {
-						address: defaultEncryptedKeys.address.toString('hex'),
+						address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
 						enable: true,
 						password: defaultPassword,
 						height: 0,
@@ -243,7 +243,7 @@ describe('generator endpoint', () => {
 					networkIdentifier,
 				}),
 			).resolves.toEqual({
-				address: defaultEncryptedKeys.address.toString('hex'),
+				address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
 				enabled: true,
 			});
 		});
@@ -255,7 +255,7 @@ describe('generator endpoint', () => {
 				endpoint.updateStatus({
 					logger,
 					params: {
-						address: defaultEncryptedKeys.address.toString('hex'),
+						address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
 						enable: true,
 						password: defaultPassword,
 						height: 100,
@@ -282,7 +282,7 @@ describe('generator endpoint', () => {
 				endpoint.updateStatus({
 					logger,
 					params: {
-						address: defaultEncryptedKeys.address.toString('hex'),
+						address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
 						enable: true,
 						password: defaultPassword,
 						height: 0,
@@ -308,7 +308,7 @@ describe('generator endpoint', () => {
 				endpoint.updateStatus({
 					logger,
 					params: {
-						address: defaultEncryptedKeys.address.toString('hex'),
+						address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
 						enable: true,
 						password: defaultPassword,
 						height: 100,
@@ -338,7 +338,7 @@ describe('generator endpoint', () => {
 				endpoint.setStatus({
 					logger,
 					params: {
-						address: defaultEncryptedKeys.address.toString('hex'),
+						address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
 						height: -1,
 						maxHeightPrevoted: 40,
 						maxHeightGenerated: 3,
@@ -353,7 +353,7 @@ describe('generator endpoint', () => {
 				endpoint.setStatus({
 					logger,
 					params: {
-						address: defaultEncryptedKeys.address.toString('hex'),
+						address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
 						height: 33,
 						maxHeightPrevoted: 40,
 						maxHeightGenerated: 3,
@@ -497,7 +497,7 @@ describe('generator endpoint', () => {
 				endpoint.setKeys({
 					logger,
 					params: {
-						address: defaultEncryptedKeys.address.toString('hex'),
+						address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
 						type: 'plain',
 						data: {
 							version: '1',
@@ -543,7 +543,7 @@ describe('generator endpoint', () => {
 				endpoint.setKeys({
 					logger,
 					params: {
-						address: defaultEncryptedKeys.address.toString('hex'),
+						address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
 						type: 'encrypted',
 						data: val,
 					},
@@ -561,7 +561,7 @@ describe('generator endpoint', () => {
 			await endpoint.setKeys({
 				logger,
 				params: {
-					address: defaultEncryptedKeys.address.toString('hex'),
+					address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
 					type: 'encrypted',
 					data: {
 						version: '1',
@@ -587,7 +587,7 @@ describe('generator endpoint', () => {
 			await endpoint.setKeys({
 				logger,
 				params: {
-					address: utils.getRandomBytes(20).toString('hex'),
+					address: address.getLisk32AddressFromAddress(utils.getRandomBytes(20)),
 					type: 'plain',
 					data: {
 						generatorKey: defaultKeys.generatorKey.toString('hex'),
@@ -615,7 +615,7 @@ describe('generator endpoint', () => {
 			await endpoint.setKeys({
 				logger,
 				params: {
-					address: defaultEncryptedKeys.address.toString('hex'),
+					address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
 					type: 'encrypted',
 					data: {
 						version: '1',
@@ -655,7 +655,7 @@ describe('generator endpoint', () => {
 				endpoint.hasKeys({
 					logger,
 					params: {
-						address: defaultEncryptedKeys.address.toString('hex'),
+						address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
 					},
 					networkIdentifier,
 				}),
@@ -667,7 +667,7 @@ describe('generator endpoint', () => {
 				endpoint.hasKeys({
 					logger,
 					params: {
-						address: utils.getRandomBytes(20).toString('hex'),
+						address: address.getLisk32AddressFromAddress(utils.getRandomBytes(20)),
 					},
 					networkIdentifier,
 				}),

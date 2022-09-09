@@ -19,9 +19,9 @@ export abstract class DisableCommand extends BaseForgingCommand {
 	static description = 'Disable forging for given delegate address.';
 
 	static examples = [
-		'generator:disable ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
-		'generator:disable ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815 --data-path ./data',
-		'generator:disable ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815 --data-path ./data --password your_password',
+		'generator:disable lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz',
+		'generator:disable lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz --data-path ./data',
+		'generator:disable lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz --data-path ./data --password your_password',
 	];
 
 	static flags = {

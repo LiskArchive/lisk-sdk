@@ -18,10 +18,6 @@ Object {
       "maxTransactionsSize": 15360,
       "minFeePerByte": 1000,
     },
-    "logger": Object {
-      "consoleLogLevel": "info",
-      "fileLogLevel": "info",
-    },
     "modules": Object {},
     "network": Object {
       "port": 7667,
@@ -39,6 +35,7 @@ Object {
     "system": Object {
       "dataPath": "~/.lisk/beta-sdk-app",
       "keepEventsForHeights": 300,
+      "logLevel": "info",
       "version": "0.1.0",
     },
     "transactionPool": Object {
@@ -136,39 +133,6 @@ Object {
         "communityIdentifier",
         "maxTransactionsSize",
         "minFeePerByte",
-      ],
-      "type": "object",
-    },
-    "logger": Object {
-      "properties": Object {
-        "consoleLogLevel": Object {
-          "enum": Array [
-            "trace",
-            "debug",
-            "info",
-            "warn",
-            "error",
-            "fatal",
-            "none",
-          ],
-          "type": "string",
-        },
-        "fileLogLevel": Object {
-          "enum": Array [
-            "trace",
-            "debug",
-            "info",
-            "warn",
-            "error",
-            "fatal",
-            "none",
-          ],
-          "type": "string",
-        },
-      },
-      "required": Array [
-        "fileLogLevel",
-        "consoleLogLevel",
       ],
       "type": "object",
     },
@@ -315,6 +279,18 @@ Object {
         "keepEventsForHeights": Object {
           "type": "integer",
         },
+        "logLevel": Object {
+          "enum": Array [
+            "trace",
+            "debug",
+            "info",
+            "warn",
+            "error",
+            "fatal",
+            "none",
+          ],
+          "type": "string",
+        },
         "version": Object {
           "format": "version",
           "type": "string",
@@ -323,6 +299,7 @@ Object {
       "required": Array [
         "version",
         "dataPath",
+        "logLevel",
         "keepEventsForHeights",
       ],
       "type": "object",
@@ -355,7 +332,6 @@ Object {
   },
   "required": Array [
     "system",
-    "logger",
     "rpc",
     "network",
     "modules",

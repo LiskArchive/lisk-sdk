@@ -88,16 +88,10 @@ export abstract class StartCommand extends Command {
 				'Host to be used for api-client. Environment variable "LISK_API_HOST" can also be used.',
 			env: 'LISK_API_HOST',
 		}),
-		'console-log': flagParser.string({
-			description:
-				'Console log level. Environment variable "LISK_CONSOLE_LOG_LEVEL" can also be used.',
-			env: 'LISK_CONSOLE_LOG_LEVEL',
-			options: LOG_OPTIONS,
-		}),
 		log: flagParser.string({
 			char: 'l',
-			description: 'File log level. Environment variable "LISK_FILE_LOG_LEVEL" can also be used.',
-			env: 'LISK_FILE_LOG_LEVEL',
+			description: 'Log level. Environment variable "LISK_LOG_LEVEL" can also be used.',
+			env: 'LISK_LOG_LEVEL',
 			options: LOG_OPTIONS,
 		}),
 		'seed-peers': flagParser.string({
@@ -189,15 +183,8 @@ export abstract class StartCommand extends Command {
 				port: flags['api-port'],
 			});
 		}
-		if (flags['console-log']) {
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-			config.logger = config.logger ?? {};
-			config.logger.consoleLogLevel = flags['console-log'];
-		}
 		if (flags.log) {
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-			config.logger = config.logger ?? {};
-			config.logger.fileLogLevel = flags.log;
+			config.system.logLevel = flags.log;
 		}
 		if (flags.port) {
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition

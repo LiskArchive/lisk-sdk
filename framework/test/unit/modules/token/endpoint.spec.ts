@@ -11,7 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { utils } from '@liskhq/lisk-cryptography';
+import { address, utils } from '@liskhq/lisk-cryptography';
 import { TokenAPI, TokenModule } from '../../../../src/modules/token';
 import {
 	CHAIN_ID_LENGTH,
@@ -116,14 +116,14 @@ describe('token endpoint', () => {
 				params: { address: '1234' },
 			});
 			await expect(endpoint.getBalances(moduleEndpointContext)).rejects.toThrow(
-				".address' must NOT have fewer than 40 characters",
+				'.address\' must match format "lisk32"',
 			);
 		});
 
 		it('should return empty balances if account does not exist', async () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { address: utils.getRandomBytes(20).toString('hex') },
+				params: { address: address.getLisk32AddressFromAddress(utils.getRandomBytes(20)) },
 			});
 			const resp = await endpoint.getBalances(moduleEndpointContext);
 			expect(resp).toEqual({ balances: [] });
@@ -132,7 +132,7 @@ describe('token endpoint', () => {
 		it('should return all the balances', async () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { address: defaultAddress.toString('hex') },
+				params: { address: address.getLisk32AddressFromAddress(defaultAddress) },
 			});
 			const resp = await endpoint.getBalances(moduleEndpointContext);
 			expect(resp).toEqual({
@@ -167,14 +167,14 @@ describe('token endpoint', () => {
 				params: { address: '1234' },
 			});
 			await expect(endpoint.getBalance(moduleEndpointContext)).rejects.toThrow(
-				".address' must NOT have fewer than 40 characters",
+				'.address\' must match format "lisk32"',
 			);
 		});
 
 		it('should reject when input has invalid tokenID', async () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { address: defaultAddress.toString('hex'), tokenID: '00' },
+				params: { address: address.getLisk32AddressFromAddress(defaultAddress), tokenID: '00' },
 			});
 			await expect(endpoint.getBalance(moduleEndpointContext)).rejects.toThrow(
 				".tokenID' must NOT have fewer than 16 characters",
@@ -185,7 +185,7 @@ describe('token endpoint', () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					address: utils.getRandomBytes(20).toString('hex'),
+					address: address.getLisk32AddressFromAddress(utils.getRandomBytes(20)),
 					tokenID: defaultTokenID.toString('hex'),
 				},
 			});
@@ -200,7 +200,7 @@ describe('token endpoint', () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					address: defaultAddress.toString('hex'),
+					address: address.getLisk32AddressFromAddress(defaultAddress),
 					tokenID: defaultTokenID.toString('hex'),
 				},
 			});
@@ -219,7 +219,7 @@ describe('token endpoint', () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					address: defaultAddress.toString('hex'),
+					address: address.getLisk32AddressFromAddress(defaultAddress),
 					tokenID: defaultTokenIDAlias.toString('hex'),
 				},
 			});

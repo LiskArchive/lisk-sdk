@@ -13,6 +13,7 @@
  */
 
 import { StateStore } from '@liskhq/lisk-chain';
+import { address } from '@liskhq/lisk-cryptography';
 import { Database } from '@liskhq/lisk-db';
 import { BFTAPI } from '../bft';
 import { BFTHeights } from '../bft/types';
@@ -58,7 +59,7 @@ export class ConsensusEndpoint {
 		} = await this._bftAPI.getBFTParameters(stateStore, ctx.params.height as number);
 
 		const validatorsJSON = validators.map(v => ({
-			address: v.address.toString('hex'),
+			address: address.getLisk32AddressFromAddress(v.address),
 			bftWeight: v.bftWeight.toString(),
 			blsKey: v.blsKey.toString('hex'),
 		}));

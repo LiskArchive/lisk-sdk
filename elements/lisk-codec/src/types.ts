@@ -41,6 +41,7 @@ export interface SchemaProps {
 	readonly fieldNumber: number;
 	readonly type?: string;
 	readonly dataType?: string;
+	readonly format?: string;
 	readonly properties?: SchemaPair;
 	readonly items?: SchemaObjectItem | SchemaScalarItem;
 }
@@ -54,6 +55,7 @@ export interface SchemaObjectItem {
 export interface SchemaScalarItem {
 	readonly dataType: string;
 	readonly type?: undefined;
+	readonly format?: string;
 }
 
 export interface CompiledSchema {

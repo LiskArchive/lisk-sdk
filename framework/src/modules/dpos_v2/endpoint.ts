@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
@@ -32,7 +33,11 @@ export class DPoSEndpoint extends BaseEndpoint {
 		if (typeof address !== 'string') {
 			throw new Error('Parameter address must be a string.');
 		}
-		const voterData = await voterSubStore.get(ctx, Buffer.from(address, 'hex'));
+		cryptoAddress.validateLisk32Address(address);
+		const voterData = await voterSubStore.get(
+			ctx,
+			cryptoAddress.getAddressFromLisk32Address(address),
+		);
 
 		return codec.toJSON(voterStoreSchema, voterData);
 	}
@@ -43,7 +48,11 @@ export class DPoSEndpoint extends BaseEndpoint {
 		if (typeof address !== 'string') {
 			throw new Error('Parameter address must be a string.');
 		}
-		const delegate = await delegateSubStore.get(ctx, Buffer.from(address, 'hex'));
+		cryptoAddress.validateLisk32Address(address);
+		const delegate = await delegateSubStore.get(
+			ctx,
+			cryptoAddress.getAddressFromLisk32Address(address),
+		);
 
 		return {
 			...delegate,

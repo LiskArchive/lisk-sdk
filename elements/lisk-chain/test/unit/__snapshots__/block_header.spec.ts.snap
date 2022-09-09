@@ -38,6 +38,7 @@ Object {
     "generatorAddress": Object {
       "dataType": "bytes",
       "fieldNumber": 5,
+      "format": "lisk32",
     },
     "height": Object {
       "dataType": "uint32",
@@ -138,6 +139,7 @@ Object {
     "generatorAddress": Object {
       "dataType": "bytes",
       "fieldNumber": 5,
+      "format": "lisk32",
     },
     "height": Object {
       "dataType": "uint32",
@@ -243,6 +245,7 @@ Object {
     "generatorAddress": Object {
       "dataType": "bytes",
       "fieldNumber": 5,
+      "format": "lisk32",
     },
     "height": Object {
       "dataType": "uint32",

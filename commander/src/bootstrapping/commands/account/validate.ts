@@ -21,7 +21,7 @@ interface Args {
 }
 
 export class ValidateCommand extends Command {
-	static description = 'Validate base32 address.';
+	static description = 'Validate lisk32 address.';
 
 	static examples = ['account:validate lskoaknq582o6fw7sp82bm2hnj7pzp47mpmbmux2g'];
 
@@ -40,15 +40,7 @@ export class ValidateCommand extends Command {
 		try {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			cryptography.address.validateLisk32Address(address, this.config.pjson.lisk.addressPrefix);
-			const binaryAddress = cryptography.address
-				.getAddressFromLisk32Address(address)
-				.toString('hex');
-
-			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			this.log(
-				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				`Address ${address} is a valid base32 address and the corresponding binary address is ${binaryAddress}.`,
-			);
+			this.log(`Address ${address} is a valid lisk32 address`);
 		} catch (error) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			this.error(error.message);

@@ -430,10 +430,12 @@ export class ABIHandler implements ABI {
 		const params = JSON.parse(req.params.toString('utf8')) as Record<string, unknown>;
 		try {
 			const resp = await this._channel.invoke(req.method, params);
+			this._logger.info({ method: req.method }, 'Called ABI query successfully');
 			return {
 				data: Buffer.from(JSON.stringify(resp), 'utf-8'),
 			};
 		} catch (error) {
+			this._logger.info({ method: req.method, err: error as Error }, 'Failed to call ABI query');
 			return {
 				data: Buffer.from(
 					JSON.stringify({

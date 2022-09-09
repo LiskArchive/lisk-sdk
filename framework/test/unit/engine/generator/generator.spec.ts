@@ -166,7 +166,7 @@ describe('generator', () => {
 			beforeEach(async () => {
 				for (const d of testing.fixtures.keysList.keys) {
 					const generatorKeys = {
-						address: Buffer.from(d.address, 'hex'),
+						address: cryptoAddress.getAddressFromLisk32Address(d.address),
 						type: 'plain',
 						data: {
 							generatorKey: Buffer.from(d.plain.generatorKey, 'hex'),
@@ -393,7 +393,7 @@ describe('generator', () => {
 				.mockReturnValueOnce(lastBlockSlot - 1);
 			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000));
 			(consensus.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
-				Buffer.from(testing.fixtures.keysList.keys[0].address, 'hex'),
+				cryptoAddress.getAddressFromLisk32Address(testing.fixtures.keysList.keys[0].address),
 			);
 			jest.spyOn(generator, '_generateBlock' as never);
 
@@ -408,7 +408,7 @@ describe('generator', () => {
 				.mockReturnValueOnce(lastBlockSlot - 1);
 			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000) - 5);
 			(consensus.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
-				Buffer.from(testing.fixtures.keysList.keys[0].address, 'hex'),
+				cryptoAddress.getAddressFromLisk32Address(testing.fixtures.keysList.keys[0].address),
 			);
 
 			jest.spyOn(generator, '_generateBlock' as never).mockResolvedValue(forgedBlock as never);
@@ -424,7 +424,7 @@ describe('generator', () => {
 				.mockReturnValueOnce(lastBlockSlot);
 			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000) + 5);
 			(consensus.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
-				Buffer.from(testing.fixtures.keysList.keys[0].address, 'hex'),
+				cryptoAddress.getAddressFromLisk32Address(testing.fixtures.keysList.keys[0].address),
 			);
 
 			jest.spyOn(generator, '_generateBlock' as never).mockResolvedValue(forgedBlock as never);

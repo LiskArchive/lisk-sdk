@@ -119,7 +119,7 @@ describe('block', () => {
 			stateRoot: Buffer.from('7f9d96a09a3fd17f3478eb7bef3a8bda00e1238b', 'hex'),
 			transactionRoot: EMPTY_HASH,
 			assetRoot: EMPTY_HASH,
-			generatorAddress: EMPTY_BUFFER,
+			generatorAddress: Buffer.alloc(20, 0),
 			maxHeightPrevoted: 1009988,
 			maxHeightGenerated: 0,
 			validatorsHash: utils.hash(Buffer.alloc(0)),

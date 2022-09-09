@@ -93,7 +93,10 @@ export class StateMachine {
 				if (mod.verifyTransaction) {
 					const result = await mod.verifyTransaction(transactionContext);
 					if (result.status !== VerifyStatus.OK) {
-						this._logger.debug('Transaction verification failed');
+						this._logger.debug(
+							{ err: result.error, module: mod.name },
+							'Transaction verification failed',
+						);
 						return result;
 					}
 				}
@@ -103,7 +106,10 @@ export class StateMachine {
 			if (command.verify) {
 				const result = await command.verify(commandContext);
 				if (result.status !== VerifyStatus.OK) {
-					this._logger.debug('Transaction verification failed');
+					this._logger.debug(
+						{ err: result.error, module: ctx.transaction.module, command: command.name },
+						'Command verification failed',
+					);
 					return result;
 				}
 			}
@@ -126,7 +132,10 @@ export class StateMachine {
 				} catch (error) {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
-					this._logger.debug({ err: error as Error }, 'Transaction execution failed');
+					this._logger.debug(
+						{ err: error as Error, module: mod.name },
+						'Transaction beforeCommandExecution failed',
+					);
 					return TransactionExecutionResult.INVALID;
 				}
 			}
@@ -154,7 +163,10 @@ export class StateMachine {
 				[ctx.transaction.id],
 			);
 			status = TransactionExecutionResult.FAIL;
-			this._logger.debug({ err: error as Error }, 'Transaction execution failed');
+			this._logger.debug(
+				{ err: error as Error, module: ctx.transaction.module, command: ctx.transaction.command },
+				'Transaction execution failed',
+			);
 		}
 
 		// Execute after transaction hooks
@@ -165,7 +177,10 @@ export class StateMachine {
 				} catch (error) {
 					ctx.eventQueue.restoreSnapshot(eventQueueSnapshotID);
 					ctx.stateStore.restoreSnapshot(stateStoreSnapshotID);
-					this._logger.debug({ err: error as Error }, 'Transaction execution failed');
+					this._logger.debug(
+						{ err: error as Error, module: mod.name },
+						'Transaction afterCommandExecution failed',
+					);
 					return TransactionExecutionResult.INVALID;
 				}
 			}

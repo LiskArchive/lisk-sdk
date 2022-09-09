@@ -1,6 +1,6 @@
 import { NotFoundError, TAG_TRANSACTION, Transaction } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { ed, address as cryptoAddress, utils, legacy } from '@liskhq/lisk-cryptography';
+import { ed, address as cryptoAddress, utils, legacy, address } from '@liskhq/lisk-cryptography';
 import { when } from 'jest-when';
 import { AuthModule } from '../../../../src/modules/auth';
 import { COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP } from '../../../../src/modules/auth/constants';
@@ -80,7 +80,7 @@ describe('AuthEndpoint', () => {
 			// Arrange
 			const context = createTransientModuleEndpointContext({
 				params: {
-					address: existingAddress.toString('hex'),
+					address: address.getLisk32AddressFromAddress(existingAddress),
 				},
 			});
 
@@ -115,7 +115,7 @@ describe('AuthEndpoint', () => {
 			// Arrange
 			const context = createTransientModuleEndpointContext({
 				params: {
-					address: nonExistingAddress.toString('hex'),
+					address: address.getLisk32AddressFromAddress(nonExistingAddress),
 				},
 			});
 
