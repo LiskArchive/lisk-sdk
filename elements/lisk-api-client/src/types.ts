@@ -267,7 +267,7 @@ export interface DecodedBlockJSON {
 }
 
 export interface Event {
-	readonly moduleID: string;
+	readonly module: string;
 	/**
 	 * several events can be emitted from each module, e.g.
 	 * token module transfer event
