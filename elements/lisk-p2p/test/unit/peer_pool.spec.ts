@@ -114,14 +114,14 @@ describe('peerPool', () => {
 			peerId: constructPeerId('127.0.0.1', 5000),
 			sharedState: {
 				networkVersion: '1.0.1',
-				networkIdentifier: 'abc',
+				chainID: 'abc',
 				nonce: 'nonce',
 				options: {},
 			},
 		};
 		nodeInfo = {
 			networkVersion: '1.0.1',
-			networkIdentifier: 'abc',
+			chainID: 'abc',
 			nonce: 'nonce',
 			advertiseAddress: true,
 			options: {},

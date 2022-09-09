@@ -127,9 +127,9 @@ describe('Connection Create', () => {
 
 		beforeEach(async () => {
 			const customNodeInfo = (index: number) => ({
-				networkIdentifier:
+				chainID:
 					index === 1
-						? 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba'
+						? '10000000'
 						: 'BAD_d6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 				networkVersion: index === 2 ? '1.1' : 'BAD',
 				nonce: `O2wTkjqplHII500${index}`,

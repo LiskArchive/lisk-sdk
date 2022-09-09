@@ -157,7 +157,7 @@ describe('utils/validate', () => {
 			const maximumSize = 10;
 
 			const nodeInfo: P2PNodeInfo = {
-				networkIdentifier: '12.23.54.3',
+				chainID: 'chainID',
 				networkVersion: '1.1',
 				options: {
 					foo: 'bar',

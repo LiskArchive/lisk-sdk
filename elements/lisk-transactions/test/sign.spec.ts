@@ -81,10 +81,7 @@ describe('sign', () => {
 		required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
 	};
 
-	const networkIdentifier = Buffer.from(
-		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
-		'hex',
-	);
+	const chainID = Buffer.from('00000000', 'hex');
 	const passphrase1 = 'trim elegant oven term access apple obtain error grain excite lawn neck';
 	const passphrase2 =
 		'desk deposit crumble farm tip cluster goose exotic dignity flee bring traffic';
@@ -180,7 +177,7 @@ describe('sign', () => {
 			expect(() =>
 				signTransactionWithPrivateKey(
 					validTransaction,
-					networkIdentifier,
+					chainID,
 					Buffer.alloc(0),
 					validParamsSchema,
 				),
@@ -191,7 +188,7 @@ describe('sign', () => {
 			expect(() =>
 				signTransactionWithPrivateKey(
 					validTransaction,
-					networkIdentifier,
+					chainID,
 					Buffer.from('invalid', 'utf8'),
 					validParamsSchema,
 				),
@@ -207,12 +204,7 @@ describe('sign', () => {
 			];
 			return invalidTransactionObjects.forEach(transactionObject =>
 				expect(() =>
-					signTransactionWithPrivateKey(
-						transactionObject,
-						networkIdentifier,
-						privateKey,
-						validParamsSchema,
-					),
+					signTransactionWithPrivateKey(transactionObject, chainID, privateKey, validParamsSchema),
 				).toThrow(),
 			);
 		});
@@ -221,7 +213,7 @@ describe('sign', () => {
 			return expect(() =>
 				signTransactionWithPrivateKey(
 					{ ...validTransaction, params: null },
-					networkIdentifier,
+					chainID,
 					privateKey,
 					validParamsSchema,
 				),
@@ -238,12 +230,7 @@ describe('sign', () => {
 			];
 			return invalidParams.forEach(transactionObject =>
 				expect(() =>
-					signTransactionWithPrivateKey(
-						transactionObject,
-						networkIdentifier,
-						privateKey,
-						validParamsSchema,
-					),
+					signTransactionWithPrivateKey(transactionObject, chainID, privateKey, validParamsSchema),
 				).toThrow(),
 			);
 		});
@@ -251,7 +238,7 @@ describe('sign', () => {
 		it('should return signed transaction for given params schema', () => {
 			const signedTransaction = signTransactionWithPrivateKey(
 				{ ...validTransaction },
-				networkIdentifier,
+				chainID,
 				privateKey,
 				validParamsSchema,
 			);
@@ -278,7 +265,7 @@ describe('sign', () => {
 			expect(() =>
 				signMultiSignatureTransactionWithPrivateKey(
 					{ ...validTransaction },
-					networkIdentifier,
+					chainID,
 					Buffer.alloc(0),
 					keys,
 					validParamsSchema,
@@ -290,7 +277,7 @@ describe('sign', () => {
 			expect(() =>
 				signMultiSignatureTransactionWithPrivateKey(
 					{ ...validTransaction },
-					networkIdentifier,
+					chainID,
 					Buffer.from('invalid', 'utf8'),
 					keys,
 					validParamsSchema,
@@ -302,7 +289,7 @@ describe('sign', () => {
 			expect(() =>
 				signMultiSignatureTransactionWithPrivateKey(
 					{ ...validTransaction },
-					networkIdentifier,
+					chainID,
 					privateKey,
 					keys,
 					validParamsSchema,
@@ -321,7 +308,7 @@ describe('sign', () => {
 				expect(() =>
 					signMultiSignatureTransactionWithPrivateKey(
 						transactionObject,
-						networkIdentifier,
+						chainID,
 						privateKey,
 						keys,
 						validParamsSchema,
@@ -334,7 +321,7 @@ describe('sign', () => {
 			return expect(() =>
 				signMultiSignatureTransactionWithPrivateKey(
 					{ ...validTransaction, signatures: [], params: null },
-					networkIdentifier,
+					chainID,
 					privateKey,
 					keys,
 					validParamsSchema,
@@ -350,11 +337,12 @@ describe('sign', () => {
 					params: { ...validTransaction.params, recipientAddress: 'dummyAddress' },
 				},
 			];
+
 			return invalidParams.forEach(transactionObject =>
 				expect(() =>
 					signMultiSignatureTransactionWithPrivateKey(
 						transactionObject,
-						networkIdentifier,
+						chainID,
 						privateKey,
 						keys,
 						validParamsSchema,
@@ -387,7 +375,7 @@ describe('sign', () => {
 			// Sign with the senderPublic key sender of the transaction
 			const signedTransaction = signMultiSignatureTransactionWithPrivateKey(
 				transactionObject,
-				networkIdentifier,
+				chainID,
 				account1.privateKey,
 				{ mandatoryKeys, optionalKeys },
 				multisigRegParams,
@@ -397,7 +385,7 @@ describe('sign', () => {
 			// Signing with non sender second mandatory key
 			const signedTransactionNonSender = signMultiSignatureTransactionWithPrivateKey(
 				signedTransaction,
-				networkIdentifier,
+				chainID,
 				account2.privateKey,
 				{ mandatoryKeys, optionalKeys },
 				multisigRegParams,
@@ -406,13 +394,13 @@ describe('sign', () => {
 
 			const signature = ed.signDataWithPrivateKey(
 				TAG_TRANSACTION,
-				networkIdentifier,
+				chainID,
 				getSigningBytes(transactionObject, multisigRegParams),
 				account1.privateKey,
 			);
 			const signatureNonSender = ed.signDataWithPrivateKey(
 				TAG_TRANSACTION,
-				networkIdentifier,
+				chainID,
 				getSigningBytes(transactionObject, multisigRegParams),
 				account2.privateKey,
 			);
@@ -444,7 +432,7 @@ describe('sign', () => {
 			// Sign with the senderPublic key of the transaction
 			const signedTransaction = signMultiSignatureTransactionWithPrivateKey(
 				transactionObject,
-				networkIdentifier,
+				chainID,
 				account1.privateKey,
 				{ mandatoryKeys: [account2.publicKey, account1.publicKey], optionalKeys: [] },
 				validParamsSchema,
@@ -452,7 +440,7 @@ describe('sign', () => {
 
 			const signature = ed.signDataWithPrivateKey(
 				TAG_TRANSACTION,
-				networkIdentifier,
+				chainID,
 				getSigningBytes(transactionObject, validParamsSchema),
 				account1.privateKey,
 			);
@@ -460,7 +448,7 @@ describe('sign', () => {
 			// Sign with the mandatory key of the multi-signature account
 			const signedTransactionMandatoryKey = signMultiSignatureTransactionWithPrivateKey(
 				signedTransaction,
-				networkIdentifier,
+				chainID,
 				account2.privateKey,
 				{ mandatoryKeys: [account2.publicKey, account1.publicKey], optionalKeys: [] },
 				validParamsSchema,
@@ -468,7 +456,7 @@ describe('sign', () => {
 
 			const signatureMandatoryAccount = ed.signDataWithPrivateKey(
 				TAG_TRANSACTION,
-				networkIdentifier,
+				chainID,
 				getSigningBytes(signedTransaction, validParamsSchema),
 				account2.privateKey,
 			);
@@ -493,7 +481,7 @@ describe('sign', () => {
 						decodedBaseTransaction.params,
 					);
 					const { signatures, ...transactionObject } = decodedBaseTransaction;
-					const _networkIdentifier = Buffer.from(testCase.input.networkIdentifier, 'hex');
+					const _chainID = Buffer.from(testCase.input.chainID, 'hex');
 					const signedMultiSigTransaction = {
 						...transactionObject,
 						params: { ...decodedParams },
@@ -510,7 +498,7 @@ describe('sign', () => {
 					Object.values({ senderAccount, ...testCase.input.members }).forEach((member: any) =>
 						signMultiSignatureTransactionWithPrivateKey(
 							signedMultiSigTransaction,
-							_networkIdentifier,
+							_chainID,
 							legacy.getPrivateAndPublicKeyFromPassphrase(member.passphrase).privateKey,
 							decodedParams,
 							multisigRegParams,
@@ -549,12 +537,12 @@ describe('sign', () => {
 				publicKey: '0b211fce4b615083701cb8a8c99407e464b2f9aa4f367095322de1b77e5fcfbe',
 				address: 'be046d336cd0c2fbde62bc47e20199395d2eeadc',
 			};
-			const _networkIdentifier = Buffer.from(testCase.input.networkIdentifier, 'hex');
+			const _chainID = Buffer.from(testCase.input.chainID, 'hex');
 
 			Object.values({ senderAccount, ...testCase.input.members }).forEach((member: any) =>
 				signMultiSignatureTransactionWithPrivateKey(
 					signedMultiSigTransaction,
-					_networkIdentifier,
+					_chainID,
 					Buffer.from(member.privateKey, 'hex'),
 					decodedParams,
 					multisigRegParams,

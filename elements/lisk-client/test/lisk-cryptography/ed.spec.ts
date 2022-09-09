@@ -42,7 +42,7 @@ const changeLength = (buffer: Buffer): Buffer => Buffer.concat([Buffer.from('00'
 describe('sign', () => {
 	const MAX_UINT32 = 4294967295;
 	const tag = createMessageTag('TST');
-	const networkIdentifier = Buffer.from('a5df2ed79994178c10ac168d6d977ef45cd525e95b7a8624', 'hex');
+	const chainID = Buffer.from('10000000', 'hex');
 	const defaultPrivateKey =
 		'314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
 	const defaultPublicKey = '7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
@@ -145,12 +145,7 @@ ${defaultSignature}
 		let signature: Buffer;
 
 		beforeEach(async () => {
-			signature = signData(
-				tag,
-				networkIdentifier,
-				defaultData,
-				Buffer.from(defaultPrivateKey, 'hex'),
-			);
+			signature = signData(tag, chainID, defaultData, Buffer.from(defaultPrivateKey, 'hex'));
 			return Promise.resolve();
 		});
 
@@ -165,7 +160,7 @@ ${defaultSignature}
 		beforeEach(async () => {
 			signature = signDataWithPrivateKey(
 				tag,
-				networkIdentifier,
+				chainID,
 				defaultData,
 				Buffer.from(defaultPrivateKey, 'hex'),
 			);
@@ -181,7 +176,7 @@ ${defaultSignature}
 		it('should return false for an invalid signature', () => {
 			const verification = verifyData(
 				tag,
-				networkIdentifier,
+				chainID,
 				defaultData,
 				makeInvalid(Buffer.from(defaultDataSignature, 'hex')),
 				Buffer.from(defaultPublicKey, 'hex'),
@@ -192,7 +187,7 @@ ${defaultSignature}
 		it('should return true for a valid signature', () => {
 			const verification = verifyData(
 				tag,
-				networkIdentifier,
+				chainID,
 				defaultData,
 				Buffer.from(defaultDataSignature, 'hex'),
 				Buffer.from(defaultPublicKey, 'hex'),
