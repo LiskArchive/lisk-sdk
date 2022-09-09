@@ -25,7 +25,7 @@ describe('system endpoint', () => {
 	beforeEach(() => {
 		endpoint = new SystemEndpoint({
 			chain: {
-				networkIdentifier: utils.getRandomBytes(32),
+				chainID: utils.getRandomBytes(32),
 				lastBlock: new Block(createFakeBlockHeader(), [], new BlockAssets()),
 			},
 			consensus: {
@@ -70,7 +70,7 @@ describe('system endpoint', () => {
 		it('should return current engine info', async () => {
 			await expect(endpoint.getNodeInfo({} as never)).resolves.toEqual({
 				networkVersion: expect.any(String),
-				networkIdentifier: expect.any(String),
+				chainID: expect.any(String),
 				lastBlockID: expect.any(String),
 				height: expect.any(Number),
 				finalizedHeight: expect.any(Number),

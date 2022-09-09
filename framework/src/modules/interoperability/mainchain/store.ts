@@ -50,14 +50,7 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 	}
 
 	public async forward(ccmForwardContext: CCMForwardContext): Promise<ForwardCCMsgResult> {
-		const {
-			ccm,
-			eventQueue,
-			logger,
-			networkIdentifier,
-			getMethodContext,
-			getStore,
-		} = ccmForwardContext;
+		const { ccm, eventQueue, logger, chainID, getMethodContext, getStore } = ccmForwardContext;
 		const methodContext = getMethodContext();
 		const tokenCCMethod = this.interoperableModuleMethods.get(MODULE_NAME_TOKEN) as
 			| TokenCCMethod
@@ -67,7 +60,7 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 			eventQueue,
 			getMethodContext,
 			logger,
-			networkIdentifier,
+			chainID,
 			getStore,
 			feeAddress: EMPTY_FEE_ADDRESS,
 		});
@@ -115,7 +108,7 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 			getMethodContext: ccmForwardContext.getMethodContext,
 			getStore: ccmForwardContext.getStore,
 			logger: ccmForwardContext.logger,
-			networkIdentifier: ccmForwardContext.networkIdentifier,
+			chainID: ccmForwardContext.chainID,
 			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_SIDECHAIN_TERMINATED,
 			module: MODULE_NAME_INTEROPERABILITY,
 			fee: BigInt(0),
@@ -201,7 +194,7 @@ export class MainchainInteroperabilityStore extends BaseInteroperabilityStore {
 			getMethodContext: sendContext.getMethodContext,
 			getStore: sendContext.getStore,
 			logger: sendContext.logger,
-			networkIdentifier: sendContext.networkIdentifier,
+			chainID: sendContext.chainID,
 		});
 
 		for (const mod of this.interoperableModuleMethods.values()) {

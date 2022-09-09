@@ -67,7 +67,7 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 describe('CrossChainUpdateCommand', () => {
 	const interopMod = new SidechainInteroperabilityModule();
 
-	const networkIdentifier = cryptography.utils.getRandomBytes(32);
+	const chainID = cryptography.utils.getRandomBytes(32);
 	const defaultCertificateValues: Certificate = {
 		blockID: cryptography.utils.getRandomBytes(20),
 		height: 21,
@@ -248,7 +248,7 @@ describe('CrossChainUpdateCommand', () => {
 				getMethodContext: () => createTransientMethodContext({ stateStore }),
 				getStore: createStoreGetter(stateStore).getStore,
 				logger: testing.mocks.loggerMock,
-				networkIdentifier,
+				chainID,
 				params,
 				transaction: defaultTransaction as any,
 			};
@@ -407,7 +407,7 @@ describe('CrossChainUpdateCommand', () => {
 				getMethodContext: () => createTransientMethodContext({ stateStore }),
 				getStore: createStoreGetter(stateStore).getStore,
 				logger: testing.mocks.loggerMock,
-				networkIdentifier,
+				chainID,
 				params,
 				transaction: defaultTransaction as any,
 				assets: new BlockAssets(),

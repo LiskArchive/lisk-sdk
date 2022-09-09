@@ -47,7 +47,7 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 	ccMethodsMap.set(1, ccMethodMod1);
 	ccMethodsMap.set(2, ccMethodMod2);
 
-	const networkIdentifier = utils.getRandomBytes(32);
+	const chainID = utils.getRandomBytes(32);
 
 	const ccmSidechainTerminatedParams = {
 		chainID: utils.intToBuffer(5, 4),
@@ -75,11 +75,11 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 	};
 	const sampleExecuteContext: CCCommandExecuteContext = createExecuteCCMsgMethodContext({
 		ccm,
-		networkIdentifier,
+		chainID,
 	});
 	const sampleExecuteContextNew: CCCommandExecuteContext = createExecuteCCMsgMethodContext({
 		ccm: ccmNew,
-		networkIdentifier,
+		chainID,
 	});
 
 	let mainchainInteroperabilityStore: SidechainInteroperabilityStore;
@@ -113,7 +113,7 @@ describe('SidechainCCSidechainTerminatedCommand', () => {
 			ccmNew.sendingChainID,
 			expect.objectContaining({
 				ccm: ccmNew,
-				networkIdentifier,
+				chainID,
 			}),
 		);
 	});

@@ -21,7 +21,7 @@ import { RandomModule } from '../../../../src/modules/random';
 import { UsedHashOnionStoreObject } from '../../../../src/modules/random/types';
 import { EMPTY_KEY, STORE_PREFIX_USED_HASH_ONION } from '../../../../src/modules/random/constants';
 import { blockHeaderAssetRandomModule } from '../../../../src/modules/random/schemas';
-import { defaultNetworkIdentifier } from '../../../fixtures';
+import { defaultChainID } from '../../../fixtures';
 import { GenesisConfig, testing } from '../../../../src';
 import {
 	createBlockContext,
@@ -136,7 +136,7 @@ describe('RandomModule', () => {
 			const blockGenerateContext: InsertAssetContext = testing.createBlockGenerateContext({
 				assets: assetStub,
 				logger: testing.mocks.loggerMock,
-				networkIdentifier: defaultNetworkIdentifier,
+				chainID: defaultChainID,
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
 				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
@@ -185,7 +185,7 @@ describe('RandomModule', () => {
 			const blockGenerateContext: InsertAssetContext = testing.createBlockGenerateContext({
 				assets: assetStub,
 				logger: testing.mocks.loggerMock,
-				networkIdentifier: defaultNetworkIdentifier,
+				chainID: defaultChainID,
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
 				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
@@ -252,7 +252,7 @@ describe('RandomModule', () => {
 			const blockGenerateContext: InsertAssetContext = testing.createBlockGenerateContext({
 				assets: assetStub,
 				logger: testing.mocks.loggerMock,
-				networkIdentifier: defaultNetworkIdentifier,
+				chainID: defaultChainID,
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
 				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
@@ -300,7 +300,7 @@ describe('RandomModule', () => {
 				assets: assetStub,
 				logger: testing.mocks.loggerMock,
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
-				networkIdentifier: defaultNetworkIdentifier,
+				chainID: defaultChainID,
 				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
 				header: {
@@ -387,7 +387,7 @@ describe('RandomModule', () => {
 				assets: assetStub,
 				logger: loggerMock as any,
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
-				networkIdentifier: defaultNetworkIdentifier,
+				chainID: defaultChainID,
 				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
 				header: {
@@ -429,7 +429,7 @@ describe('RandomModule', () => {
 				assets: assetStub,
 				logger: loggerMock as any,
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
-				networkIdentifier: defaultNetworkIdentifier,
+				chainID: defaultChainID,
 				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
 				header: {

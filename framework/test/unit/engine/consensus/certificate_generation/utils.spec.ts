@@ -27,7 +27,7 @@ import {
 import { createFakeBlockHeader } from '../../../../../src/testing';
 
 describe('utils', () => {
-	const networkIdentifier = Buffer.alloc(0);
+	const chainID = Buffer.alloc(0);
 
 	describe('computeCertificateFromBlockHeader', () => {
 		let blockHeader: BlockHeader;
@@ -78,18 +78,13 @@ describe('utils', () => {
 				validatorsHash: Buffer.alloc(0),
 			};
 			const encodedCertificate = codec.encode(certificateSchema, certificate);
-			signature = bls.signData(
-				MESSAGE_TAG_CERTIFICATE,
-				networkIdentifier,
-				encodedCertificate,
-				privateKey,
-			);
+			signature = bls.signData(MESSAGE_TAG_CERTIFICATE, chainID, encodedCertificate, privateKey);
 			(certificate as any).aggregationBits = utils.getRandomBytes(4);
 			(certificate as any).signature = utils.getRandomBytes(4);
 		});
 
 		it('should sign certificate', () => {
-			expect(signCertificate(privateKey, networkIdentifier, certificate)).toEqual(signature);
+			expect(signCertificate(privateKey, chainID, certificate)).toEqual(signature);
 		});
 	});
 	describe('verifySingleCertificateSignature', () => {
@@ -111,12 +106,7 @@ describe('utils', () => {
 
 			const encodedCertificate = codec.encode(certificateSchema, certificate);
 
-			signature = bls.signData(
-				MESSAGE_TAG_CERTIFICATE,
-				networkIdentifier,
-				encodedCertificate,
-				privateKey,
-			);
+			signature = bls.signData(MESSAGE_TAG_CERTIFICATE, chainID, encodedCertificate, privateKey);
 
 			(certificate as any).aggregationBits = utils.getRandomBytes(4);
 			(certificate as any).signature = utils.getRandomBytes(4);
@@ -126,7 +116,7 @@ describe('utils', () => {
 			const isVerifiedSignature = verifySingleCertificateSignature(
 				publicKey,
 				signature,
-				networkIdentifier,
+				chainID,
 				certificate,
 			);
 
@@ -139,7 +129,7 @@ describe('utils', () => {
 			const isVerifiedSignature = verifySingleCertificateSignature(
 				publicKey,
 				signature,
-				networkIdentifier,
+				chainID,
 				certificate,
 			);
 
@@ -152,7 +142,7 @@ describe('utils', () => {
 			const isVerifiedSignature = verifySingleCertificateSignature(
 				publicKey,
 				signature,
-				networkIdentifier,
+				chainID,
 				certificate,
 			);
 
@@ -192,7 +182,7 @@ describe('utils', () => {
 			const encodedCertificate = codec.encode(certificateSchema, certificate);
 
 			signatures = privateKeys.map(privateKey =>
-				bls.signData(MESSAGE_TAG_CERTIFICATE, networkIdentifier, encodedCertificate, privateKey),
+				bls.signData(MESSAGE_TAG_CERTIFICATE, chainID, encodedCertificate, privateKey),
 			);
 
 			pubKeySignaturePairs = Array.from({ length: 103 }, (_, i) => ({
@@ -214,7 +204,7 @@ describe('utils', () => {
 				keysList,
 				weights,
 				threshold,
-				networkIdentifier,
+				chainID,
 				certificate,
 			);
 
@@ -228,7 +218,7 @@ describe('utils', () => {
 				keysList,
 				weights,
 				threshold,
-				networkIdentifier,
+				chainID,
 				certificate,
 			);
 
@@ -242,7 +232,7 @@ describe('utils', () => {
 				keysList,
 				weights,
 				threshold,
-				networkIdentifier,
+				chainID,
 				certificate,
 			);
 
@@ -256,7 +246,7 @@ describe('utils', () => {
 				keysList,
 				weights,
 				threshold,
-				networkIdentifier,
+				chainID,
 				certificate,
 			);
 
@@ -270,7 +260,7 @@ describe('utils', () => {
 				keysList,
 				weights,
 				threshold,
-				networkIdentifier,
+				chainID,
 				certificate,
 			);
 
@@ -284,7 +274,7 @@ describe('utils', () => {
 				keysList,
 				weights,
 				threshold,
-				networkIdentifier,
+				chainID,
 				certificate,
 			);
 
@@ -298,7 +288,7 @@ describe('utils', () => {
 				keysList,
 				weights,
 				threshold,
-				networkIdentifier,
+				chainID,
 				certificate,
 			);
 

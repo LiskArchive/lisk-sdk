@@ -161,7 +161,7 @@ describe('CrossChain Transfer command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
@@ -198,7 +198,7 @@ describe('CrossChain Transfer command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
@@ -235,7 +235,7 @@ describe('CrossChain Transfer command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
@@ -272,7 +272,7 @@ describe('CrossChain Transfer command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
@@ -309,7 +309,7 @@ describe('CrossChain Transfer command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
@@ -346,7 +346,7 @@ describe('CrossChain Transfer command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
@@ -383,7 +383,7 @@ describe('CrossChain Transfer command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
@@ -426,7 +426,7 @@ describe('CrossChain Transfer command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect(interopMethod.error).toHaveBeenCalledWith(
@@ -465,7 +465,7 @@ describe('CrossChain Transfer command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			await expect(
@@ -499,7 +499,7 @@ describe('CrossChain Transfer command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			await expect(

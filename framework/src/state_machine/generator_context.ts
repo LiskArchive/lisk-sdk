@@ -24,13 +24,13 @@ interface GenerationContextArgs {
 	stateStore: PrefixedStateReadWriter;
 	header: BlockHeader;
 	generatorStore: StateStore;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	finalizedHeight: number;
 }
 
 export class GenerationContext {
 	private readonly _logger: Logger;
-	private readonly _networkIdentifier: Buffer;
+	private readonly _chainID: Buffer;
 	private readonly _stateStore: PrefixedStateReadWriter;
 	private readonly _header: BlockHeader;
 	private readonly _assets: BlockAssets;
@@ -39,7 +39,7 @@ export class GenerationContext {
 
 	public constructor(args: GenerationContextArgs) {
 		this._logger = args.logger;
-		this._networkIdentifier = args.networkIdentifier;
+		this._chainID = args.chainID;
 		this._header = args.header;
 		this._stateStore = args.stateStore;
 		this._generatorStore = args.generatorStore;
@@ -62,7 +62,7 @@ export class GenerationContext {
 				this._generatorStore.getStore(moduleID, subStorePrefix.readUInt16BE(0)),
 			header: this._header,
 			assets: this._assets,
-			networkIdentifier: this._networkIdentifier,
+			chainID: this._chainID,
 			getFinalizedHeight: () => this._finalizedHeight,
 		};
 	}

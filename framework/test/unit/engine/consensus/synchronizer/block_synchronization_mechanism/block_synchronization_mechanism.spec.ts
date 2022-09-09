@@ -84,7 +84,7 @@ describe('block_synchronization_mechanism', () => {
 		});
 		chainModule.init({
 			db: new InMemoryDatabase(),
-			networkIdentifier: Buffer.from('network-id'),
+			chainID: Buffer.from('network-id'),
 		});
 		const lastBlock = await createValidDefaultBlock({
 			header: { height: finalizedHeight + 1 },

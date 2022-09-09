@@ -35,7 +35,7 @@ describe('Register Multisignature command', () => {
 
 	const authModule = new AuthModule();
 	const defaultTestCase = fixtures.testCases[0];
-	const networkIdentifier = Buffer.from(defaultTestCase.input.networkIdentifier, 'hex');
+	const chainID = Buffer.from(defaultTestCase.input.chainID, 'hex');
 
 	beforeEach(() => {
 		registerMultisignatureCommand = new RegisterMultisignatureGroupCommand(
@@ -55,7 +55,7 @@ describe('Register Multisignature command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction,
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
@@ -74,7 +74,7 @@ describe('Register Multisignature command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction: new Transaction({ ...transaction.toObject(), params }),
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
@@ -93,7 +93,7 @@ describe('Register Multisignature command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction: new Transaction({ ...transaction.toObject(), params }),
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
@@ -112,7 +112,7 @@ describe('Register Multisignature command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction: new Transaction({ ...transaction.toObject(), params }),
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
@@ -131,7 +131,7 @@ describe('Register Multisignature command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction: new Transaction({ ...transaction.toObject(), params }),
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
@@ -150,7 +150,7 @@ describe('Register Multisignature command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction: new Transaction({ ...transaction.toObject(), params }),
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
@@ -168,7 +168,7 @@ describe('Register Multisignature command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction: new Transaction({ ...transaction.toObject(), params }),
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
@@ -186,7 +186,7 @@ describe('Register Multisignature command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction: new Transaction({ ...transaction.toObject(), params }),
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
@@ -204,7 +204,7 @@ describe('Register Multisignature command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction: new Transaction({ ...transaction.toObject(), params }),
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
@@ -221,7 +221,7 @@ describe('Register Multisignature command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction: new Transaction({ ...transaction.toObject(), params }),
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
@@ -239,7 +239,7 @@ describe('Register Multisignature command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction: new Transaction({ ...transaction.toObject(), params }),
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
@@ -257,7 +257,7 @@ describe('Register Multisignature command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction: new Transaction({ ...transaction.toObject(), params }),
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
@@ -276,7 +276,7 @@ describe('Register Multisignature command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction: new Transaction({ ...transaction.toObject(), params }),
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
@@ -301,7 +301,7 @@ describe('Register Multisignature command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction: new Transaction({ ...transaction.toObject(), params }),
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
@@ -325,7 +325,7 @@ describe('Register Multisignature command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction: new Transaction({ ...transaction.toObject(), params }),
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
@@ -347,7 +347,7 @@ describe('Register Multisignature command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction: new Transaction({ ...transaction.toObject(), params }),
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
@@ -366,7 +366,7 @@ describe('Register Multisignature command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction: new Transaction({ ...transaction.toObject(), params }),
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
@@ -385,7 +385,7 @@ describe('Register Multisignature command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction: new Transaction({ ...transaction.toObject(), params }),
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
@@ -420,7 +420,7 @@ describe('Register Multisignature command', () => {
 				.createTransactionContext({
 					stateStore,
 					transaction,
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandExecuteContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
@@ -445,7 +445,7 @@ describe('Register Multisignature command', () => {
 				.createTransactionContext({
 					stateStore,
 					transaction,
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandExecuteContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,

@@ -48,7 +48,7 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 }));
 
 describe('CommitPool', () => {
-	const networkIdentifier = Buffer.alloc(0);
+	const chainID = Buffer.alloc(0);
 	const networkMock = {
 		send: jest.fn(),
 	};
@@ -78,7 +78,7 @@ describe('CommitPool', () => {
 			lastBlock: {
 				header: { height: 1019 },
 			},
-			networkIdentifier,
+			chainID,
 			dataAccess: {
 				getBlockHeaderByHeight,
 			},
@@ -459,7 +459,7 @@ describe('CommitPool', () => {
 
 			privateKey = bls.generatePrivateKey(utils.getRandomBytes(32));
 			publicKey = bls.getPublicKeyFromPrivateKey(privateKey);
-			signature = signCertificate(privateKey, networkIdentifier, certificate);
+			signature = signCertificate(privateKey, chainID, certificate);
 
 			commit = {
 				blockID: blockHeader.id,
@@ -741,16 +741,12 @@ describe('CommitPool', () => {
 				blockID: blockHeader.id,
 				height: blockHeader.height,
 				validatorAddress: validatorInfo.address,
-				certificateSignature: signCertificate(
-					validatorInfo.blsSecretKey,
-					networkIdentifier,
-					certificate,
-				),
+				certificateSignature: signCertificate(validatorInfo.blsSecretKey, chainID, certificate),
 			};
 		});
 
 		it('should create a single commit', () => {
-			expect(commitPool.createSingleCommit(blockHeader, validatorInfo, networkIdentifier)).toEqual(
+			expect(commitPool.createSingleCommit(blockHeader, validatorInfo, chainID)).toEqual(
 				expectedCommit,
 			);
 		});
@@ -809,7 +805,7 @@ describe('CommitPool', () => {
 			const encodedCertificate = codec.encode(certificateSchema, certificate);
 
 			signatures = privateKeys.map(privateKey =>
-				bls.signData(MESSAGE_TAG_CERTIFICATE, networkIdentifier, encodedCertificate, privateKey),
+				bls.signData(MESSAGE_TAG_CERTIFICATE, chainID, encodedCertificate, privateKey),
 			);
 
 			pubKeySignaturePairs = Array.from({ length: 103 }, (_, i) => ({
@@ -1018,31 +1014,19 @@ describe('CommitPool', () => {
 			blockID: blockHeader1.id,
 			height: blockHeader1.height,
 			validatorAddress: validatorInfo1.address,
-			certificateSignature: signCertificate(
-				validatorInfo1.blsSecretKey,
-				networkIdentifier,
-				certificate1,
-			),
+			certificateSignature: signCertificate(validatorInfo1.blsSecretKey, chainID, certificate1),
 		};
 		const singleCommit2 = {
 			blockID: blockHeader2.id,
 			height: blockHeader2.height,
 			validatorAddress: validatorInfo2.address,
-			certificateSignature: signCertificate(
-				validatorInfo2.blsSecretKey,
-				networkIdentifier,
-				certificate2,
-			),
+			certificateSignature: signCertificate(validatorInfo2.blsSecretKey, chainID, certificate2),
 		};
 		const singleCommit3 = {
 			blockID: blockHeader3.id,
 			height: blockHeader3.height,
 			validatorAddress: validatorInfo3.address,
-			certificateSignature: signCertificate(
-				validatorInfo3.blsSecretKey,
-				networkIdentifier,
-				certificate3,
-			),
+			certificateSignature: signCertificate(validatorInfo3.blsSecretKey, chainID, certificate3),
 		};
 		const singleCommits = [singleCommit1, singleCommit2, singleCommit3];
 		const validatorKeys = [
@@ -1180,21 +1164,13 @@ describe('CommitPool', () => {
 			blockID: blockHeader1.id,
 			height: blockHeader1.height,
 			validatorAddress: validatorInfo1.address,
-			certificateSignature: signCertificate(
-				validatorInfo1.blsSecretKey,
-				networkIdentifier,
-				certificate1,
-			),
+			certificateSignature: signCertificate(validatorInfo1.blsSecretKey, chainID, certificate1),
 		};
 		const singleCommit2 = {
 			blockID: blockHeader2.id,
 			height: blockHeader2.height,
 			validatorAddress: validatorInfo2.address,
-			certificateSignature: signCertificate(
-				validatorInfo2.blsSecretKey,
-				networkIdentifier,
-				certificate2,
-			),
+			certificateSignature: signCertificate(validatorInfo2.blsSecretKey, chainID, certificate2),
 		};
 		let stateStore: StateStore;
 

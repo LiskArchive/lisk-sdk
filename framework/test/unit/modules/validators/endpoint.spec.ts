@@ -28,7 +28,7 @@ describe('ValidatorsModuleEndpoint', () => {
 	const pk = utils.getRandomBytes(48);
 	const address = utils.getRandomBytes(48);
 	const proof = utils.getRandomBytes(48);
-	const networkIdentifier = Buffer.alloc(0);
+	const chainID = Buffer.alloc(0);
 	const validatorAddress = utils.getRandomBytes(20);
 	const blsKey = utils.getRandomBytes(48);
 	const generatorKey = utils.getRandomBytes(32);
@@ -50,7 +50,7 @@ describe('ValidatorsModuleEndpoint', () => {
 						proofOfPossession: proof.toString('hex'),
 						blsKey: pk.toString('hex'),
 					},
-					networkIdentifier,
+					chainID,
 				};
 
 				await validatorsModule.stores.get(BLSKeyStore).set(context, pk, { address });
@@ -70,7 +70,7 @@ describe('ValidatorsModuleEndpoint', () => {
 						proofOfPossession: proof.toString('hex'),
 						blsKey: pk.toString('hex'),
 					},
-					networkIdentifier,
+					chainID,
 				};
 				await expect(validatorsModule.endpoint.validateBLSKey(context)).resolves.toStrictEqual({
 					valid: false,
@@ -89,7 +89,7 @@ describe('ValidatorsModuleEndpoint', () => {
 						blsKey:
 							'b301803f8b5ac4a1133581fc676dfedc60d891dd5fa99028805e5ea5b08d3491af75d0707adab3b70c6a6a580217bf81',
 					},
-					networkIdentifier,
+					chainID,
 				};
 				await expect(validatorsModule.endpoint.validateBLSKey(context)).resolves.toStrictEqual({
 					valid: true,
@@ -107,7 +107,7 @@ describe('ValidatorsModuleEndpoint', () => {
 						params: {
 							invalid: 'schema',
 						},
-						networkIdentifier,
+						chainID,
 						getOffchainStore: jest.fn(),
 					}),
 				).rejects.toThrow();
@@ -123,7 +123,7 @@ describe('ValidatorsModuleEndpoint', () => {
 							proofOfPossession: 'xxxx',
 							blsKey: 'xxxx',
 						},
-						networkIdentifier,
+						chainID,
 						getOffchainStore: jest.fn(),
 					}),
 				).rejects.toThrow();
@@ -140,7 +140,7 @@ describe('ValidatorsModuleEndpoint', () => {
 			params: {
 				address: cryptoAddress.getLisk32AddressFromAddress(validatorAddress),
 			},
-			networkIdentifier,
+			chainID,
 		};
 
 		it('should resolve with undefined when validator does not exist', async () => {

@@ -615,7 +615,7 @@ export class Generator {
 		// Set validatorsHash
 		const { validatorsHash } = await this._bft.method.getBFTParameters(stateStore, height + 1);
 		blockHeader.validatorsHash = validatorsHash;
-		blockHeader.sign(this._chain.networkIdentifier, privateKey);
+		blockHeader.sign(this._chain.chainID, privateKey);
 
 		const generatedBlock = new Block(blockHeader, transactions, blockAssets);
 

@@ -135,7 +135,7 @@ export class AuthModule extends BaseModule {
 	}
 
 	public async verifyTransaction(context: TransactionVerifyContext): Promise<VerificationResult> {
-		const { transaction, networkIdentifier } = context;
+		const { transaction, chainID } = context;
 		const store = this.stores.get(AuthAccountStore);
 
 		let senderAccount: AuthAccount;
@@ -158,13 +158,7 @@ export class AuthModule extends BaseModule {
 		// Verify nonce of the transaction, it can be FAILED, PENDING or OK
 		const nonceStatus = verifyNonce(transaction, senderAccount);
 
-		verifySignatures(
-			this.name,
-			transaction,
-			transaction.getSigningBytes(),
-			networkIdentifier,
-			senderAccount,
-		);
+		verifySignatures(this.name, transaction, transaction.getSigningBytes(), chainID, senderAccount);
 
 		return nonceStatus;
 	}

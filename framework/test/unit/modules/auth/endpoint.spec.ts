@@ -11,7 +11,7 @@ import { AuthAccountStore } from '../../../../src/modules/auth/stores/auth_accou
 import { createTransientModuleEndpointContext } from '../../../../src/testing';
 
 describe('AuthEndpoint', () => {
-	const networkIdentifier = Buffer.from(
+	const chainID = Buffer.from(
 		'ce6b20ee7f7797e102f68d15099e7d5b0e8d4c50f98a7865ea168717539ec3aa',
 		'hex',
 	);
@@ -158,7 +158,7 @@ describe('AuthEndpoint', () => {
 
 			const signature = ed.signDataWithPrivateKey(
 				TAG_TRANSACTION,
-				networkIdentifier,
+				chainID,
 				transaction.getBytes(),
 				existingPrivateKey,
 			);
@@ -171,7 +171,7 @@ describe('AuthEndpoint', () => {
 				params: {
 					transaction: transactionAsString,
 				},
-				networkIdentifier,
+				chainID,
 			});
 
 			when(authAccountStore.get as jest.Mock)
@@ -204,7 +204,7 @@ describe('AuthEndpoint', () => {
 			(transaction.signatures as any).push(
 				ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
-					networkIdentifier,
+					chainID,
 					transaction.getSigningBytes(),
 					accounts.mandatoryOne.privateKey as Buffer,
 				),
@@ -213,7 +213,7 @@ describe('AuthEndpoint', () => {
 			(transaction.signatures as any).push(
 				ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
-					networkIdentifier,
+					chainID,
 					transaction.getSigningBytes(),
 					accounts.mandatoryTwo.privateKey as Buffer,
 				),
@@ -222,7 +222,7 @@ describe('AuthEndpoint', () => {
 			(transaction.signatures as any).push(
 				ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
-					networkIdentifier,
+					chainID,
 					transaction.getSigningBytes(),
 					accounts.optionalOne.privateKey as Buffer,
 				),
@@ -236,7 +236,7 @@ describe('AuthEndpoint', () => {
 				params: {
 					transaction: transactionAsString,
 				},
-				networkIdentifier,
+				chainID,
 			});
 
 			when(authAccountStore.get as jest.Mock)
@@ -274,7 +274,7 @@ describe('AuthEndpoint', () => {
 			(transaction.signatures as any).push(
 				ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
-					networkIdentifier,
+					chainID,
 					transaction.getSigningBytes(),
 					existingPrivateKey,
 				),
@@ -283,7 +283,7 @@ describe('AuthEndpoint', () => {
 			(transaction.signatures as any).push(
 				ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
-					networkIdentifier,
+					chainID,
 					transaction.getSigningBytes(),
 					accounts.mandatoryOne.privateKey as Buffer,
 				),
@@ -292,7 +292,7 @@ describe('AuthEndpoint', () => {
 			(transaction.signatures as any).push(
 				ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
-					networkIdentifier,
+					chainID,
 					transaction.getSigningBytes(),
 					accounts.mandatoryTwo.privateKey as Buffer,
 				),
@@ -301,7 +301,7 @@ describe('AuthEndpoint', () => {
 			(transaction.signatures as any).push(
 				ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
-					networkIdentifier,
+					chainID,
 					transaction.getSigningBytes(),
 					accounts.optionalOne.privateKey as Buffer,
 				),
@@ -310,7 +310,7 @@ describe('AuthEndpoint', () => {
 			(transaction.signatures as any).push(
 				ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
-					networkIdentifier,
+					chainID,
 					transaction.getSigningBytes(),
 					accounts.optionalTwo.privateKey as Buffer,
 				),
@@ -331,7 +331,7 @@ describe('AuthEndpoint', () => {
 				params: {
 					transaction: transactionAsString,
 				},
-				networkIdentifier,
+				chainID,
 			});
 
 			// Assert

@@ -81,7 +81,7 @@ export interface VerificationResult {
 }
 // eventQueue is not present here because event cannot be emitted
 export interface TransactionVerifyContext {
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	logger: Logger;
 	transaction: Transaction;
 	getMethodContext: () => ImmutableMethodContext;
@@ -90,7 +90,7 @@ export interface TransactionVerifyContext {
 
 export interface CommandVerifyContext<T = undefined> {
 	logger: Logger;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	transaction: Transaction; // without decoding params
 	params: T;
 	getMethodContext: () => ImmutableMethodContext;
@@ -99,7 +99,7 @@ export interface CommandVerifyContext<T = undefined> {
 
 export interface CommandExecuteContext<T = undefined> {
 	logger: Logger;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	eventQueue: EventQueue;
 	header: BlockHeader;
 	assets: BlockAssets;
@@ -129,7 +129,7 @@ export interface GenesisBlockExecuteContext {
 
 export interface TransactionExecuteContext {
 	logger: Logger;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	eventQueue: EventQueueAdder;
 	getMethodContext: () => MethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
@@ -144,7 +144,7 @@ export interface TransactionExecuteContext {
 
 export interface BlockVerifyContext {
 	logger: Logger;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	getMethodContext: () => ImmutableMethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 	header: BlockHeader;
@@ -153,7 +153,7 @@ export interface BlockVerifyContext {
 
 export interface BlockExecuteContext {
 	logger: Logger;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	eventQueue: EventQueue;
 	getMethodContext: () => MethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
@@ -183,7 +183,7 @@ export interface BlockAfterExecuteContext extends BlockExecuteContext {
 
 export interface InsertAssetContext {
 	logger: Logger;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	getMethodContext: () => MethodContext;
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 	header: BlockHeader;

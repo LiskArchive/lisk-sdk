@@ -68,7 +68,7 @@ describe('peer/base', () => {
 			port: 5001,
 			sharedState: {
 				networkVersion: '1.1',
-				chainID: 'chainID',
+				chainID: Buffer.from('chainID', 'hex'),
 				nonce: 'nonce',
 				options: {},
 			},
@@ -83,7 +83,7 @@ describe('peer/base', () => {
 			maxPeerDiscoveryResponseLength: 1000,
 			peerStatusMessageRate: 4,
 			serverNodeInfo: {
-				chainID: 'chainID',
+				chainID: Buffer.from('chainID', 'hex'),
 				networkVersion: '1.2',
 				nonce: 'nonce',
 				advertiseAddress: true,
@@ -99,7 +99,7 @@ describe('peer/base', () => {
 			port: defaultPeerInfo.port,
 			sharedState: {
 				networkVersion: '1.3',
-				chainID: 'chainID',
+				chainID: Buffer.from('chainID', 'hex'),
 				nonce: 'nonce',
 				options: {},
 			},
@@ -487,7 +487,7 @@ describe('peer/base', () => {
 					ipAddress: '1.1.1.1',
 					port: 1111,
 					sharedState: {
-						chainID: 'chainID',
+						chainID: Buffer.from('chainID', 'hex'),
 						nonce: 'nonce',
 						networkVersion: '',
 						options: {},
@@ -498,7 +498,7 @@ describe('peer/base', () => {
 					ipAddress: '2.2.2.2',
 					port: 2222,
 					sharedState: {
-						chainID: 'chainID',
+						chainID: Buffer.from('chainID', 'hex'),
 						nonce: 'nonce',
 						networkVersion: '',
 						options: {},

@@ -71,7 +71,7 @@ export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand
 	}
 
 	public async execute(context: CommandExecuteContext<MessageRecoveryParams>): Promise<void> {
-		const { transaction, params, getMethodContext, logger, networkIdentifier, getStore } = context;
+		const { transaction, params, getMethodContext, logger, chainID, getStore } = context;
 
 		const chainIdAsBuffer = params.chainID;
 
@@ -90,7 +90,7 @@ export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand
 					eventQueue: context.eventQueue,
 					getMethodContext,
 					logger,
-					networkIdentifier,
+					chainID,
 					getStore,
 					feeAddress: EMPTY_FEE_ADDRESS,
 				});
@@ -162,7 +162,7 @@ export class SidechainMessageRecoveryCommand extends BaseInteroperabilityCommand
 				getMethodContext,
 				getStore,
 				logger,
-				networkIdentifier,
+				chainID,
 			});
 
 			await ccCommand.execute(ccCommandExecuteContext);

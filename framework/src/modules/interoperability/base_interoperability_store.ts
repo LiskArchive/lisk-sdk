@@ -309,7 +309,7 @@ export abstract class BaseInteroperabilityStore {
 			getMethodContext: terminateChainContext.getMethodContext,
 			getStore: terminateChainContext.getStore,
 			logger: terminateChainContext.logger,
-			networkIdentifier: terminateChainContext.networkIdentifier,
+			chainID: terminateChainContext.chainID,
 		});
 
 		if (!messageSent) {
@@ -327,7 +327,7 @@ export abstract class BaseInteroperabilityStore {
 			ccm,
 			eventQueue,
 			logger,
-			networkIdentifier,
+			chainID,
 			getMethodContext,
 			getStore,
 		} = ccmApplyContext;
@@ -343,7 +343,7 @@ export abstract class BaseInteroperabilityStore {
 				eventQueue,
 				getMethodContext,
 				getStore,
-				networkIdentifier,
+				chainID,
 				feeAddress: ccmApplyContext.feeAddress,
 			},
 			ccmApplyContext.ccu,
@@ -373,7 +373,7 @@ export abstract class BaseInteroperabilityStore {
 				eventQueue,
 				getMethodContext,
 				logger,
-				networkIdentifier,
+				chainID,
 				getStore,
 				feeAddress: EMPTY_FEE_ADDRESS,
 			});
@@ -384,7 +384,7 @@ export abstract class BaseInteroperabilityStore {
 				getMethodContext: beforeCCMSendContext.getMethodContext,
 				getStore: beforeCCMSendContext.getStore,
 				logger: beforeCCMSendContext.logger,
-				networkIdentifier: beforeCCMSendContext.networkIdentifier,
+				chainID: beforeCCMSendContext.chainID,
 				crossChainCommand: ccm.crossChainCommand,
 				module: ccm.module,
 				fee: BigInt(0),
@@ -404,7 +404,7 @@ export abstract class BaseInteroperabilityStore {
 				eventQueue,
 				getMethodContext,
 				logger,
-				networkIdentifier,
+				chainID,
 				getStore,
 				feeAddress: EMPTY_FEE_ADDRESS,
 			});
@@ -415,7 +415,7 @@ export abstract class BaseInteroperabilityStore {
 				getMethodContext: beforeCCMSendContext.getMethodContext,
 				getStore: beforeCCMSendContext.getStore,
 				logger: beforeCCMSendContext.logger,
-				networkIdentifier: beforeCCMSendContext.networkIdentifier,
+				chainID: beforeCCMSendContext.chainID,
 				crossChainCommand: ccm.crossChainCommand,
 				module: ccm.module,
 				fee: BigInt(0),
@@ -432,7 +432,7 @@ export abstract class BaseInteroperabilityStore {
 			ccmSize: getCCMSize(ccm),
 			eventQueue,
 			logger,
-			networkIdentifier,
+			chainID,
 			getMethodContext,
 			getStore,
 			feeAddress: ccmApplyContext.feeAddress,

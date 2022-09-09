@@ -27,7 +27,7 @@ describe('genesis block', () => {
 	const genesis = testing.fixtures.defaultFaucetAccount;
 
 	let processEnv: testing.BlockProcessingEnv;
-	let networkIdentifier: Buffer;
+	let chainID: Buffer;
 
 	beforeAll(async () => {
 		processEnv = await testing.getBlockProcessingEnv({
@@ -35,7 +35,7 @@ describe('genesis block', () => {
 				databasePath,
 			},
 		});
-		networkIdentifier = processEnv.getNetworkId();
+		chainID = processEnv.getNetworkId();
 	});
 
 	afterAll(() => {
@@ -115,7 +115,7 @@ describe('genesis block', () => {
 			const transaction = createTransferTransaction({
 				amount: BigInt('100000000000'),
 				recipientAddress,
-				networkIdentifier,
+				chainID,
 				nonce: BigInt(authData.nonce),
 				privateKey: Buffer.from(genesis.privateKey, 'hex'),
 			});
@@ -145,7 +145,7 @@ describe('genesis block', () => {
 				chain.init({
 					db: processEnv.getBlockchainDB(),
 					genesisBlock: processEnv.getGenesisBlock(),
-					networkIdentifier: processEnv.getNetworkId(),
+					chainID: processEnv.getNetworkId(),
 				});
 				await newConsensus.init({
 					db: consensus['_db'],

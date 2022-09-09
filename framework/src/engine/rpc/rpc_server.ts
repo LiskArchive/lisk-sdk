@@ -27,7 +27,7 @@ import { systemDirs } from '../../system_dirs';
 
 export interface RequestContext {
 	params: Record<string, unknown>;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	logger: Logger;
 }
 
@@ -50,7 +50,7 @@ export class RPCServer {
 	private _notFoundHandler?: NotFoundHandler;
 
 	private _logger!: Logger;
-	private _networkIdentifier!: Buffer;
+	private _chainID!: Buffer;
 
 	public constructor(dataPath: string, config: RPCConfig) {
 		this._config = config;
@@ -81,9 +81,9 @@ export class RPCServer {
 		}
 	}
 
-	public init(options: { logger: Logger; networkIdentifier: Buffer }): void {
+	public init(options: { logger: Logger; chainID: Buffer }): void {
 		this._logger = options.logger;
-		this._networkIdentifier = options.networkIdentifier;
+		this._chainID = options.chainID;
 	}
 
 	public async start(): Promise<void> {
@@ -235,7 +235,7 @@ export class RPCServer {
 
 			const context = {
 				logger: this._logger,
-				networkIdentifier: this._networkIdentifier,
+				chainID: this._chainID,
 				params: requestObj.params ?? {},
 			};
 			if (!handler) {

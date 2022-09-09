@@ -178,7 +178,7 @@ export const applicationConfigSchema = {
 				'block',
 				'blockTime',
 				'bftBatchSize',
-				'communityIdentifier',
+				'chainID',
 				'maxTransactionsSize',
 				'minFeePerByte',
 			],
@@ -222,10 +222,9 @@ export const applicationConfigSchema = {
 					minimum: 1,
 					description: 'The length of a round',
 				},
-				communityIdentifier: {
+				chainID: {
 					type: 'string',
-					description:
-						'The unique name of the relevant community as a string encoded in UTF-8 format',
+					description: 'The unique name of the chain as a string encoded in Hex format',
 				},
 				minFeePerByte: {
 					type: 'integer',
@@ -300,7 +299,7 @@ export const applicationConfigSchema = {
 			},
 			blockTime: 10,
 			bftBatchSize: 103,
-			communityIdentifier: 'sdk',
+			chainID: '10000000',
 			// eslint-disable-next-line @typescript-eslint/no-magic-numbers
 			maxTransactionsSize: 15 * 1024, // Kilo Bytes
 			minFeePerByte: 1000,

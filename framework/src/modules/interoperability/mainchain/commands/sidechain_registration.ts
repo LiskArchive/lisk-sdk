@@ -216,7 +216,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			getMethodContext: context.getMethodContext,
 			getStore: context.getStore,
 			logger: context.logger,
-			networkIdentifier: context.networkIdentifier,
+			chainID: context.chainID,
 		});
 
 		// Add an entry in the chain validators substore

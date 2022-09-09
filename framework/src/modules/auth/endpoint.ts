@@ -64,7 +64,7 @@ export class AuthEndpoint extends BaseEndpoint {
 	public async isValidSignature(context: ModuleEndpointContext): Promise<VerifyEndpointResultJSON> {
 		const {
 			params: { transaction: transactionParameter },
-			networkIdentifier,
+			chainID,
 		} = context;
 
 		const transaction = getTransactionFromParameter(transactionParameter);
@@ -75,13 +75,7 @@ export class AuthEndpoint extends BaseEndpoint {
 		const store = this.stores.get(AuthAccountStore);
 		const account = await store.get(context, accountAddress);
 
-		return verifySignatures(
-			this._moduleName,
-			transaction,
-			transactionBytes,
-			networkIdentifier,
-			account,
-		);
+		return verifySignatures(this._moduleName, transaction, transactionBytes, chainID, account);
 	}
 
 	public async isValidNonce(context: ModuleEndpointContext): Promise<VerifyEndpointResultJSON> {

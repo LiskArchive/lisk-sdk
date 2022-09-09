@@ -19,7 +19,7 @@ import { MerkleTree } from '@liskhq/lisk-tree';
 
 interface CreateBlock {
 	privateKey: Buffer;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	timestamp: number;
 	previousBlockID: Buffer;
 	transactions?: Transaction[];
@@ -59,7 +59,7 @@ export const createFakeBlockHeader = (header?: Partial<BlockHeaderAttrs>): Block
 
 export const createBlock = async ({
 	privateKey,
-	networkIdentifier,
+	chainID,
 	timestamp,
 	previousBlockID,
 	transactions,
@@ -80,7 +80,7 @@ export const createBlock = async ({
 		...header,
 	});
 
-	blockHeader.sign(networkIdentifier, privateKey);
+	blockHeader.sign(chainID, privateKey);
 
 	return new Block(blockHeader, transactions ?? [], assets ?? new BlockAssets());
 };

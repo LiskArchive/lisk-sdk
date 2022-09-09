@@ -54,7 +54,7 @@ export class SystemEndpoint {
 		return {
 			version: this._config.system.version,
 			networkVersion: this._config.network.version,
-			networkIdentifier: this._chain.networkIdentifier.toString('hex'),
+			chainID: this._chain.chainID.toString('hex'),
 			lastBlockID: this._chain.lastBlock.header.id.toString('hex'),
 			height: this._chain.lastBlock.header.height,
 			finalizedHeight: this._consensus.finalizedHeight(),
