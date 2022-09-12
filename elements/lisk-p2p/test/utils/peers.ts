@@ -30,7 +30,7 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 		sharedState: {
 			networkVersion: '1.1',
 			nonce: 'nonce',
-			chainID: '10000000',
+			chainID: Buffer.from('10000000', 'hex'),
 			options: {
 				height: 1,
 			},
@@ -49,7 +49,7 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 		port: 5002,
 		sharedState: {
 			nonce: 'nonce',
-			chainID: '10000000',
+			chainID: Buffer.from('10000000', 'hex'),
 			networkVersion: '1.1',
 			options: {
 				height: 1,
@@ -69,7 +69,7 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 		port: 5008,
 		sharedState: {
 			nonce: 'nonce',
-			chainID: '10000000',
+			chainID: Buffer.from('10000000', 'hex'),
 			networkVersion: '1.1',
 			options: {
 				height: 1,
@@ -89,7 +89,7 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 		port: 5006,
 		sharedState: {
 			nonce: 'nonce',
-			chainID: '10000000',
+			chainID: Buffer.from('10000000', 'hex'),
 			networkVersion: '1.1',
 			options: {
 				height: 1,
@@ -108,7 +108,7 @@ export const initPeerInfoList = (): ReadonlyArray<P2PPeerInfo> => {
 		ipAddress: '204.120.0.19',
 		port: 5001,
 		sharedState: {
-			chainID: '10000000',
+			chainID: Buffer.from('10000000', 'hex'),
 			nonce: 'nonce',
 			networkVersion: '1.1',
 			options: {
@@ -138,7 +138,7 @@ export const initPeerInfoListWithSuffix = (
 			port: 5000 + (i % 40000),
 			sharedState: {
 				nonce: 'nonce',
-				chainID: '10000000',
+				chainID: Buffer.from('10000000', 'hex'),
 				networkVersion: '1.1',
 				options: {},
 			},

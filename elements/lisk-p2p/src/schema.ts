@@ -19,7 +19,7 @@ export const nodeInfoSchema = {
 	type: 'object',
 	properties: {
 		chainID: {
-			dataType: 'string',
+			dataType: 'bytes',
 			fieldNumber: 1,
 		},
 		networkVersion: {

@@ -315,7 +315,7 @@ describe.skip('Blacklisted/fixed/whitelisted peers', () => {
 			);
 
 			const nodeInfoConstants = {
-				chainID: '10000000',
+				chainID: Buffer.from('10000000', 'hex'),
 				version: '1.0.1',
 				networkVersion: '1.1',
 				minVersion: '1.0.0',

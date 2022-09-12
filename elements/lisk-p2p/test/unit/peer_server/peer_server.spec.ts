@@ -25,7 +25,7 @@ import {
 
 describe('peerServer', () => {
 	const nodeInfo: P2PNodeInfo = {
-		chainID: '10000000',
+		chainID: Buffer.from('10000000', 'hex'),
 		networkVersion: '1.1',
 		nonce: 'nonce',
 		advertiseAddress: true,

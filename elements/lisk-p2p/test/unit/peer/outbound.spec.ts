@@ -46,7 +46,7 @@ describe('peer/outbound', () => {
 			port: 5001,
 			sharedState: {
 				nonce: 'nonce',
-				chainID: 'chainID',
+				chainID: Buffer.from('chainID', 'hex'),
 				networkVersion: '1.1',
 				options: {},
 			},
@@ -66,7 +66,7 @@ describe('peer/outbound', () => {
 			},
 			serverNodeInfo: {
 				advertiseAddress: true,
-				chainID: '10000000',
+				chainID: Buffer.from('10000000', 'hex'),
 				networkVersion: '1.1',
 				nonce: 'nonce',
 				options: {

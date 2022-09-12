@@ -42,7 +42,7 @@ const validateNetworkCompatibility = (peerInfo: P2PPeerInfo, nodeInfo: P2PNodeIn
 		return false;
 	}
 
-	return peerInfo.sharedState.chainID === nodeInfo.chainID;
+	return peerInfo.sharedState.chainID.equals(nodeInfo.chainID);
 };
 
 const validateNetworkVersionCompatibility = (

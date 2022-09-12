@@ -30,7 +30,7 @@ export const NETWORK_DESTROY_WAIT_TIME = 1000;
 export const FALLBACK_PEER_DISCOVER_INTERVAL = 800;
 
 export const nodeInfoConstants = {
-	chainID: '10000000',
+	chainID: Buffer.from('10000000', 'hex'),
 	version: '1.0.1',
 	networkVersion: '1.1',
 	minVersion: '1.0.0',

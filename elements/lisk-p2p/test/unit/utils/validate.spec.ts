@@ -157,7 +157,7 @@ describe('utils/validate', () => {
 			const maximumSize = 10;
 
 			const nodeInfo: P2PNodeInfo = {
-				chainID: 'chainID',
+				chainID: Buffer.from('chainID', 'hex'),
 				networkVersion: '1.1',
 				options: {
 					foo: 'bar',

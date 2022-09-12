@@ -597,7 +597,7 @@ describe('peer/base', () => {
 					advertiseAddress: true,
 					nonce: '1111',
 					networkVersion: '9.2',
-					chainID: 'chainID',
+					chainID: Buffer.from('chainID', 'hex'),
 				};
 				beforeEach(() => {
 					const encodedResponse = codec.encode(defaultRPCSchemas.nodeInfo, nodeInfo);
@@ -630,7 +630,7 @@ describe('peer/base', () => {
 					advertiseAddress: false,
 					nonce: '',
 					networkVersion: '1.2',
-					chainID: 'chainID',
+					chainID: Buffer.from('chainID', 'hex'),
 				};
 
 				beforeEach(() => {
@@ -652,7 +652,7 @@ describe('peer/base', () => {
 						sharedState: {
 							advertiseAddress: false,
 							networkVersion: '1.2',
-							chainID: 'chainID',
+							chainID: Buffer.from('chainID', 'hex'),
 							nonce: '',
 						},
 					};
@@ -672,7 +672,7 @@ describe('peer/base', () => {
 				it('should return fetched peer info', async () => {
 					const peerInfo = await defaultPeer.fetchAndUpdateStatus();
 					expect(peerInfo.sharedState).toMatchObject({
-						chainID: 'chainID',
+						chainID: Buffer.from('chainID', 'hex'),
 						networkVersion: '1.2',
 					});
 				});

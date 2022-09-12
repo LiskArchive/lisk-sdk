@@ -282,7 +282,7 @@ export class PeerServer extends EventEmitter {
 						...peerInPeerBook.sharedState,
 						nonce: nonce as string,
 						networkVersion: networkVersion as string,
-						chainID: chainID as string,
+						chainID: Buffer.from(chainID as string, 'hex'),
 						options: { ...peerInPeerBook.sharedState?.options },
 					},
 					internalState: {
@@ -295,7 +295,7 @@ export class PeerServer extends EventEmitter {
 			  }
 			: {
 					sharedState: {
-						chainID: chainID as string,
+						chainID: Buffer.from(chainID as string, 'hex'),
 						nonce: nonce as string,
 						networkVersion: networkVersion as string,
 						options: {},
