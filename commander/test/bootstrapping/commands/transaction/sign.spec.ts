@@ -24,7 +24,7 @@ import {
 	tokenTransferParamsSchema,
 	keysRegisterParamsSchema,
 	dposVoteParamsSchema,
-	networkIdentifierStr,
+	chainIDStr,
 } from '../../../helpers/transactions';
 import * as appUtils from '../../../../src/utils/application';
 import * as readerUtils from '../../../../src/utils/reader';
@@ -99,7 +99,7 @@ describe('transaction:sign command', () => {
 			`--mandatory-keys=${mandatoryKeys[1]}`,
 			`--optional-keys=${optionalKeys[0]}`,
 			`--optional-keys=${optionalKeys[1]}`,
-			`--network-identifier=${networkIdentifierStr}`,
+			`--chain-id=${chainIDStr}`,
 			'--offline',
 			'--sender-public-key=f1b9f4ee71b5d5857d3b346d441ca967f27870ebee88569db364fd13e28adba3',
 		];
@@ -200,7 +200,7 @@ describe('transaction:sign command', () => {
 			},
 			node: {
 				getNodeInfo: jest.fn().mockResolvedValue({
-					networkIdentifier: '873da85a2cee70da631d90b0f17fada8c3ac9b83b2613f4ca5fddd374d1034b3',
+					chainID: '10000000',
 				}),
 			},
 			invoke: jest.fn().mockResolvedValue({
@@ -235,7 +235,7 @@ describe('transaction:sign command', () => {
 						[
 							unsignedTransaction,
 							`--passphrase=${senderPassphrase}`,
-							`--network-identifier=${networkIdentifierStr}`,
+							`--chain-id=${chainIDStr}`,
 							'--offline',
 							'--data-path=/tmp',
 						],
@@ -252,7 +252,7 @@ describe('transaction:sign command', () => {
 						[unsignedTransaction, `--passphrase=${senderPassphrase}`, '--offline'],
 						config,
 					),
-				).rejects.toThrow('--network-identifier= must also be provided when using --offline=');
+				).rejects.toThrow('--chain-id= must also be provided when using --offline=');
 			});
 		});
 
@@ -262,7 +262,7 @@ describe('transaction:sign command', () => {
 					[
 						unsignedTransaction,
 						`--passphrase=${senderPassphrase}`,
-						`--network-identifier=${networkIdentifierStr}`,
+						`--chain-id=${chainIDStr}`,
 						'--offline',
 					],
 					config,
@@ -278,7 +278,7 @@ describe('transaction:sign command', () => {
 					[
 						unsignedTransaction,
 						`--passphrase=${senderPassphrase}`,
-						`--network-identifier=${networkIdentifierStr}`,
+						`--chain-id=${chainIDStr}`,
 						'--json',
 						'--offline',
 					],
@@ -327,7 +327,7 @@ describe('transaction:sign command', () => {
 				.encodeJSON(transactionSchema, {
 					...baseTX,
 					signatures: [
-						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
+						'5b693338959349701c11fbcdcaf586a02285da6c1893c5c9706429cef01a02dc2594eb4e39272d2f0998b923baa7cac8cc2b5a12264bbd2788bb30a8cb9a7806',
 						'',
 						'',
 						'',
@@ -339,9 +339,9 @@ describe('transaction:sign command', () => {
 				.encodeJSON(transactionSchema, {
 					...baseTX,
 					signatures: [
-						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
+						'5b693338959349701c11fbcdcaf586a02285da6c1893c5c9706429cef01a02dc2594eb4e39272d2f0998b923baa7cac8cc2b5a12264bbd2788bb30a8cb9a7806',
 						'',
-						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
+						'53beae01c66d64d508d4930a2437a41ec8f3926628532a215e4db284f5fabcbd18cca5207dcd7ea0a3d908e10eb04db5ef6dc4c1739c722d726584754fa6650e',
 						'',
 						'',
 					],
@@ -351,9 +351,9 @@ describe('transaction:sign command', () => {
 				.encodeJSON(transactionSchema, {
 					...baseTX,
 					signatures: [
-						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
-						'62f341f7dbc9aa0458b47e4caed28e233099f4cc11eb85152c0faa809c525f1f2c99fe8eaf27d15d133f897d1ae58cab9e98cf759a13f636ef732af05a3f1c0d',
-						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
+						'5b693338959349701c11fbcdcaf586a02285da6c1893c5c9706429cef01a02dc2594eb4e39272d2f0998b923baa7cac8cc2b5a12264bbd2788bb30a8cb9a7806',
+						'd9a23254b45f53ac01188e71bbfbee2919fb942d67be73a52611ba5ebcdd8695a51c580c0d823e02daaeb3f3f465e3e7aef02c98d14fea9764bed2c1bc062103',
+						'53beae01c66d64d508d4930a2437a41ec8f3926628532a215e4db284f5fabcbd18cca5207dcd7ea0a3d908e10eb04db5ef6dc4c1739c722d726584754fa6650e',
 						'',
 						'',
 					],
@@ -363,10 +363,10 @@ describe('transaction:sign command', () => {
 				.encodeJSON(transactionSchema, {
 					...baseTX,
 					signatures: [
-						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
-						'62f341f7dbc9aa0458b47e4caed28e233099f4cc11eb85152c0faa809c525f1f2c99fe8eaf27d15d133f897d1ae58cab9e98cf759a13f636ef732af05a3f1c0d',
-						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
-						'e498ac930e7c031f8e023b1e197e77ee2b995af7fccd149c929fce124c6ce087d63356f73a92a5bedccf83c0c88c84dc3d4b1f856b5f28ee6c5452e2fdda0f07',
+						'5b693338959349701c11fbcdcaf586a02285da6c1893c5c9706429cef01a02dc2594eb4e39272d2f0998b923baa7cac8cc2b5a12264bbd2788bb30a8cb9a7806',
+						'd9a23254b45f53ac01188e71bbfbee2919fb942d67be73a52611ba5ebcdd8695a51c580c0d823e02daaeb3f3f465e3e7aef02c98d14fea9764bed2c1bc062103',
+						'53beae01c66d64d508d4930a2437a41ec8f3926628532a215e4db284f5fabcbd18cca5207dcd7ea0a3d908e10eb04db5ef6dc4c1739c722d726584754fa6650e',
+						'e5d24eaa4678cd0593abfb4c5e1245fd6e6ad96c3b603f4fd65f1b31d0de0c4bec575157540e242e67776ed01034c703a0081fcf2d822531ca8eb1daed76d906',
 						'',
 					],
 				})
@@ -375,11 +375,11 @@ describe('transaction:sign command', () => {
 				.encodeJSON(transactionSchema, {
 					...baseTX,
 					signatures: [
-						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
-						'62f341f7dbc9aa0458b47e4caed28e233099f4cc11eb85152c0faa809c525f1f2c99fe8eaf27d15d133f897d1ae58cab9e98cf759a13f636ef732af05a3f1c0d',
-						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
-						'e498ac930e7c031f8e023b1e197e77ee2b995af7fccd149c929fce124c6ce087d63356f73a92a5bedccf83c0c88c84dc3d4b1f856b5f28ee6c5452e2fdda0f07',
-						'f67ae20bde21957dd37ca8052104339d7943a2bc2627558ca582b4e1b72ab4ca862879690887fe894f97492d55752c8871fdec22a3fbe4d42eba4cb7e9172405',
+						'5b693338959349701c11fbcdcaf586a02285da6c1893c5c9706429cef01a02dc2594eb4e39272d2f0998b923baa7cac8cc2b5a12264bbd2788bb30a8cb9a7806',
+						'd9a23254b45f53ac01188e71bbfbee2919fb942d67be73a52611ba5ebcdd8695a51c580c0d823e02daaeb3f3f465e3e7aef02c98d14fea9764bed2c1bc062103',
+						'53beae01c66d64d508d4930a2437a41ec8f3926628532a215e4db284f5fabcbd18cca5207dcd7ea0a3d908e10eb04db5ef6dc4c1739c722d726584754fa6650e',
+						'e5d24eaa4678cd0593abfb4c5e1245fd6e6ad96c3b603f4fd65f1b31d0de0c4bec575157540e242e67776ed01034c703a0081fcf2d822531ca8eb1daed76d906',
+						'df7f8fd9e22c103a70d798d6763df12932a56956089f70681b86d8a709ee4b4ad3300b4de0d0d79f43470f4ad2c5ba899dd8e74936cddd4dad27d76fbcef960a',
 					],
 				})
 				.toString('hex');
@@ -469,11 +469,11 @@ describe('transaction:sign command', () => {
 							],
 						},
 						signatures: [
-							'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
-							'62f341f7dbc9aa0458b47e4caed28e233099f4cc11eb85152c0faa809c525f1f2c99fe8eaf27d15d133f897d1ae58cab9e98cf759a13f636ef732af05a3f1c0d',
-							'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
-							'e498ac930e7c031f8e023b1e197e77ee2b995af7fccd149c929fce124c6ce087d63356f73a92a5bedccf83c0c88c84dc3d4b1f856b5f28ee6c5452e2fdda0f07',
-							'f67ae20bde21957dd37ca8052104339d7943a2bc2627558ca582b4e1b72ab4ca862879690887fe894f97492d55752c8871fdec22a3fbe4d42eba4cb7e9172405',
+							'5b693338959349701c11fbcdcaf586a02285da6c1893c5c9706429cef01a02dc2594eb4e39272d2f0998b923baa7cac8cc2b5a12264bbd2788bb30a8cb9a7806',
+							'd9a23254b45f53ac01188e71bbfbee2919fb942d67be73a52611ba5ebcdd8695a51c580c0d823e02daaeb3f3f465e3e7aef02c98d14fea9764bed2c1bc062103',
+							'53beae01c66d64d508d4930a2437a41ec8f3926628532a215e4db284f5fabcbd18cca5207dcd7ea0a3d908e10eb04db5ef6dc4c1739c722d726584754fa6650e',
+							'e5d24eaa4678cd0593abfb4c5e1245fd6e6ad96c3b603f4fd65f1b31d0de0c4bec575157540e242e67776ed01034c703a0081fcf2d822531ca8eb1daed76d906',
+							'df7f8fd9e22c103a70d798d6763df12932a56956089f70681b86d8a709ee4b4ad3300b4de0d0d79f43470f4ad2c5ba899dd8e74936cddd4dad27d76fbcef960a',
 						],
 					},
 				});
@@ -657,7 +657,7 @@ describe('transaction:sign command', () => {
 				.encodeJSON(transactionSchema, {
 					...baseTX,
 					signatures: [
-						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
+						'5b693338959349701c11fbcdcaf586a02285da6c1893c5c9706429cef01a02dc2594eb4e39272d2f0998b923baa7cac8cc2b5a12264bbd2788bb30a8cb9a7806',
 						'',
 						'',
 						'',
@@ -669,9 +669,9 @@ describe('transaction:sign command', () => {
 				.encodeJSON(transactionSchema, {
 					...baseTX,
 					signatures: [
-						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
+						'5b693338959349701c11fbcdcaf586a02285da6c1893c5c9706429cef01a02dc2594eb4e39272d2f0998b923baa7cac8cc2b5a12264bbd2788bb30a8cb9a7806',
 						'',
-						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
+						'53beae01c66d64d508d4930a2437a41ec8f3926628532a215e4db284f5fabcbd18cca5207dcd7ea0a3d908e10eb04db5ef6dc4c1739c722d726584754fa6650e',
 						'',
 						'',
 					],
@@ -681,9 +681,9 @@ describe('transaction:sign command', () => {
 				.encodeJSON(transactionSchema, {
 					...baseTX,
 					signatures: [
-						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
-						'62f341f7dbc9aa0458b47e4caed28e233099f4cc11eb85152c0faa809c525f1f2c99fe8eaf27d15d133f897d1ae58cab9e98cf759a13f636ef732af05a3f1c0d',
-						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
+						'5b693338959349701c11fbcdcaf586a02285da6c1893c5c9706429cef01a02dc2594eb4e39272d2f0998b923baa7cac8cc2b5a12264bbd2788bb30a8cb9a7806',
+						'd9a23254b45f53ac01188e71bbfbee2919fb942d67be73a52611ba5ebcdd8695a51c580c0d823e02daaeb3f3f465e3e7aef02c98d14fea9764bed2c1bc062103',
+						'53beae01c66d64d508d4930a2437a41ec8f3926628532a215e4db284f5fabcbd18cca5207dcd7ea0a3d908e10eb04db5ef6dc4c1739c722d726584754fa6650e',
 						'',
 						'',
 					],
@@ -693,10 +693,10 @@ describe('transaction:sign command', () => {
 				.encodeJSON(transactionSchema, {
 					...baseTX,
 					signatures: [
-						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
-						'62f341f7dbc9aa0458b47e4caed28e233099f4cc11eb85152c0faa809c525f1f2c99fe8eaf27d15d133f897d1ae58cab9e98cf759a13f636ef732af05a3f1c0d',
-						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
-						'e498ac930e7c031f8e023b1e197e77ee2b995af7fccd149c929fce124c6ce087d63356f73a92a5bedccf83c0c88c84dc3d4b1f856b5f28ee6c5452e2fdda0f07',
+						'5b693338959349701c11fbcdcaf586a02285da6c1893c5c9706429cef01a02dc2594eb4e39272d2f0998b923baa7cac8cc2b5a12264bbd2788bb30a8cb9a7806',
+						'd9a23254b45f53ac01188e71bbfbee2919fb942d67be73a52611ba5ebcdd8695a51c580c0d823e02daaeb3f3f465e3e7aef02c98d14fea9764bed2c1bc062103',
+						'53beae01c66d64d508d4930a2437a41ec8f3926628532a215e4db284f5fabcbd18cca5207dcd7ea0a3d908e10eb04db5ef6dc4c1739c722d726584754fa6650e',
+						'e5d24eaa4678cd0593abfb4c5e1245fd6e6ad96c3b603f4fd65f1b31d0de0c4bec575157540e242e67776ed01034c703a0081fcf2d822531ca8eb1daed76d906',
 						'',
 					],
 				})
@@ -705,11 +705,11 @@ describe('transaction:sign command', () => {
 				.encodeJSON(transactionSchema, {
 					...baseTX,
 					signatures: [
-						'2f318ec821c3922c7ff773980a2dd31561b9a4bb5154f36ab4cc383890cf7694830b561e6f01d499a8a59e015ec8be4b399eb42e9b0fd8f5d32bafda497b1708',
-						'62f341f7dbc9aa0458b47e4caed28e233099f4cc11eb85152c0faa809c525f1f2c99fe8eaf27d15d133f897d1ae58cab9e98cf759a13f636ef732af05a3f1c0d',
-						'a26abf182610f96492b8207b21bd7e067de088970ce1acad18310a007b2cd7a874f112ad7742f094a6e7a01d405ed674f00fbcd709961d2221ebbf3d1c423705',
-						'e498ac930e7c031f8e023b1e197e77ee2b995af7fccd149c929fce124c6ce087d63356f73a92a5bedccf83c0c88c84dc3d4b1f856b5f28ee6c5452e2fdda0f07',
-						'f67ae20bde21957dd37ca8052104339d7943a2bc2627558ca582b4e1b72ab4ca862879690887fe894f97492d55752c8871fdec22a3fbe4d42eba4cb7e9172405',
+						'5b693338959349701c11fbcdcaf586a02285da6c1893c5c9706429cef01a02dc2594eb4e39272d2f0998b923baa7cac8cc2b5a12264bbd2788bb30a8cb9a7806',
+						'd9a23254b45f53ac01188e71bbfbee2919fb942d67be73a52611ba5ebcdd8695a51c580c0d823e02daaeb3f3f465e3e7aef02c98d14fea9764bed2c1bc062103',
+						'53beae01c66d64d508d4930a2437a41ec8f3926628532a215e4db284f5fabcbd18cca5207dcd7ea0a3d908e10eb04db5ef6dc4c1739c722d726584754fa6650e',
+						'e5d24eaa4678cd0593abfb4c5e1245fd6e6ad96c3b603f4fd65f1b31d0de0c4bec575157540e242e67776ed01034c703a0081fcf2d822531ca8eb1daed76d906',
+						'df7f8fd9e22c103a70d798d6763df12932a56956089f70681b86d8a709ee4b4ad3300b4de0d0d79f43470f4ad2c5ba899dd8e74936cddd4dad27d76fbcef960a',
 					],
 				})
 				.toString('hex');
