@@ -66,8 +66,7 @@ export const singleCommitSchema = {
 		validatorAddress: {
 			dataType: 'bytes',
 			fieldNumber: 3,
-			minLength: 20,
-			maxLength: 20,
+			format: 'lisk32',
 		},
 		certificateSignature: {
 			dataType: 'bytes',

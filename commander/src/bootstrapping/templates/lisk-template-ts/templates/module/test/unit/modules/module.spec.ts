@@ -2,7 +2,6 @@
 
 describe('<%= moduleClass %>Module', () => {
 	describe('constructor', () => {
-		it.todo('should have valid id');
 		it.todo('should have valid name');
 	});
 

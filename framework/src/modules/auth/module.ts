@@ -23,7 +23,7 @@ import {
 	TransactionVerifyContext,
 	VerificationResult,
 } from '../../state_machine';
-import { AuthAPI } from './api';
+import { AuthMethod } from './method';
 import { RegisterMultisignatureGroupCommand } from './commands/register_multisignature';
 import { MAX_NUMBER_OF_SIGNATURES } from './constants';
 import { AuthEndpoint } from './endpoint';
@@ -33,7 +33,7 @@ import { verifyNonce, verifySignatures } from './utils';
 import { AuthAccount, authAccountSchema, AuthAccountStore } from './stores/auth_account';
 
 export class AuthModule extends BaseModule {
-	public api = new AuthAPI(this.stores, this.events);
+	public method = new AuthMethod(this.stores, this.events);
 	public endpoint = new AuthEndpoint(this.name, this.stores, this.offchainStores);
 	public configSchema = configSchema;
 	public commands = [new RegisterMultisignatureGroupCommand(this.stores, this.events)];

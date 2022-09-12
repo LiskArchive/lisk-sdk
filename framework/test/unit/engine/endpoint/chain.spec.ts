@@ -201,7 +201,7 @@ describe('Chain endpoint', () => {
 
 			expect(list).toHaveLength(2);
 			expect(typeof list[0].address).toBe('string');
-			expect(list[0].address).toHaveLength(40);
+			expect(list[0].address).toHaveLength(41);
 			expect(typeof list[0].nextAllocatedTime).toBe('number');
 		});
 

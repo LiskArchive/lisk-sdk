@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
+import { address, utils } from '@liskhq/lisk-cryptography';
 import { Database, InMemoryDatabase } from '@liskhq/lisk-db';
 import { ConsensusEndpoint } from '../../../../src/engine/endpoint/consensus';
 
@@ -25,7 +25,7 @@ describe('system endpoint', () => {
 		},
 	];
 	const validatorsJSON = validators.map(v => ({
-		address: v.address.toString('hex'),
+		address: address.getLisk32AddressFromAddress(v.address),
 		bftWeight: v.bftWeight.toString(),
 		blsKey: v.blsKey.toString('hex'),
 	}));
@@ -52,16 +52,16 @@ describe('system endpoint', () => {
 
 	let endpoint: ConsensusEndpoint;
 	let blockchainDB: Database;
-	let bftAPI: any;
+	let bftMethod: any;
 
 	beforeEach(() => {
 		blockchainDB = new InMemoryDatabase() as never;
-		bftAPI = {
+		bftMethod = {
 			getBFTHeights: jest.fn().mockResolvedValue(bftHeights),
 			getBFTParameters: jest.fn().mockResolvedValue(bftParameters),
 		};
 		endpoint = new ConsensusEndpoint({
-			bftAPI,
+			bftMethod,
 			blockchainDB,
 		});
 	});
@@ -69,7 +69,7 @@ describe('system endpoint', () => {
 		it('should return bft parameters in JSON format', async () => {
 			const result = await endpoint.getBFTParameters({ params: { height: 0 } } as any);
 
-			expect(bftAPI.getBFTParameters).toHaveBeenCalledTimes(1);
+			expect(bftMethod.getBFTParameters).toHaveBeenCalledTimes(1);
 			expect(result).toEqual(bftParametersJSON);
 		});
 	});
@@ -78,7 +78,7 @@ describe('system endpoint', () => {
 		it('should return bft heights', async () => {
 			const result = await endpoint.getBFTHeights({} as any);
 
-			expect(bftAPI.getBFTHeights).toHaveBeenCalledTimes(1);
+			expect(bftMethod.getBFTHeights).toHaveBeenCalledTimes(1);
 			expect(result).toEqual(bftHeights);
 		});
 	});

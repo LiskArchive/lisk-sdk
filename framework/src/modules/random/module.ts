@@ -24,7 +24,7 @@ import {
 	NotFoundError,
 } from '../../state_machine';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
-import { RandomAPI } from './api';
+import { RandomMethod } from './method';
 import { defaultConfig, EMPTY_KEY, STORE_PREFIX_USED_HASH_ONION } from './constants';
 import { RandomEndpoint } from './endpoint';
 import {
@@ -32,25 +32,24 @@ import {
 	isSeedRevealValidRequestSchema,
 	isSeedRevealValidResponseSchema,
 	randomModuleConfig,
-	randomModuleGeneratorConfig,
 } from './schemas';
-import { BlockHeaderAssetRandomModule, HashOnionConfig, HashOnion, UsedHashOnion } from './types';
+import { BlockHeaderAssetRandomModule, UsedHashOnion } from './types';
 import { Logger } from '../../logger';
 import { isSeedValidInput } from './utils';
-import { JSONObject } from '../../types';
 import { ValidatorRevealsStore } from './stores/validator_reveals';
 import { UsedHashOnionsStore } from './stores/used_hash_onions';
+import { HashOnion, HashOnionStore } from './stores/hash_onion';
 
 export class RandomModule extends BaseModule {
-	public api = new RandomAPI(this.stores, this.events, this.name);
+	public method = new RandomMethod(this.stores, this.events, this.name);
 	public endpoint = new RandomEndpoint(this.stores, this.offchainStores);
 
-	private _generatorConfig: HashOnion[] = [];
 	private _maxLengthReveals!: number;
 
 	public constructor() {
 		super();
 		this.stores.register(ValidatorRevealsStore, new ValidatorRevealsStore(this.name));
+		this.offchainStores.register(HashOnionStore, new HashOnionStore(this.name));
 		this.offchainStores.register(UsedHashOnionsStore, new UsedHashOnionsStore(this.name));
 	}
 
@@ -79,24 +78,11 @@ export class RandomModule extends BaseModule {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async init(args: ModuleInitArgs): Promise<void> {
-		const { moduleConfig, generatorConfig } = args;
+		const { moduleConfig } = args;
 		const config = objects.mergeDeep({}, defaultConfig, moduleConfig);
-		validator.validate(randomModuleConfig, config);
+		validator.validate<{ maxLengthReveals: number }>(randomModuleConfig, config);
 
-		if (generatorConfig && Object.entries(generatorConfig).length > 0) {
-			validator.validate(randomModuleGeneratorConfig, generatorConfig);
-
-			this._generatorConfig = (generatorConfig.hashOnions as JSONObject<HashOnion>[]).map(ho => ({
-				...ho,
-				address: Buffer.from(ho.address, 'hex'),
-				hashOnion: {
-					...ho.hashOnion,
-					hashes: ho.hashOnion.hashes.map(h => Buffer.from(h, 'hex')),
-				},
-			}));
-		}
-
-		this._maxLengthReveals = config.maxLengthReveals as number;
+		this._maxLengthReveals = config.maxLengthReveals;
 	}
 
 	public async insertAssets(context: InsertAssetContext): Promise<void> {
@@ -113,11 +99,12 @@ export class RandomModule extends BaseModule {
 		}
 
 		// Get next hash onion
-		const nextHashOnion = this._getNextHashOnion(
+		const nextHashOnion = await this._getNextHashOnion(
 			usedHashOnions,
 			context.header.generatorAddress,
 			context.header.height,
 			context.logger,
+			context,
 		);
 		const index = usedHashOnions.findIndex(
 			ho => ho.address.equals(context.header.generatorAddress) && ho.count === nextHashOnion.count,
@@ -227,15 +214,16 @@ export class RandomModule extends BaseModule {
 		return filtered.concat(filteredObject.highest.values());
 	}
 
-	private _getNextHashOnion(
+	private async _getNextHashOnion(
 		usedHashOnions: ReadonlyArray<UsedHashOnion>,
 		address: Buffer,
 		height: number,
 		logger: Logger,
-	): {
+		context: InsertAssetContext,
+	): Promise<{
 		readonly count: number;
 		readonly hash: Buffer;
-	} {
+	}> {
 		// Get highest hashonion that is used by this address below height
 		const usedHashOnion = usedHashOnions.reduce<UsedHashOnion | undefined>((prev, current) => {
 			if (!current.address.equals(address)) {
@@ -250,23 +238,25 @@ export class RandomModule extends BaseModule {
 			}
 			return prev;
 		}, undefined);
-		const hashOnionConfig = this._getHashOnionConfig(address);
-		if (!hashOnionConfig) {
+
+		const hashOnion = await this._getHashOnion(context, address);
+		if (!hashOnion) {
 			return {
 				hash: utils.generateHashOnionSeed(),
 				count: 0,
 			};
 		}
+
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!usedHashOnion) {
 			return {
-				hash: hashOnionConfig.hashes[0],
+				hash: hashOnion.hashes[0],
 				count: 0,
 			};
 		}
 		const { count: usedCount } = usedHashOnion;
 		const nextCount = usedCount + 1;
-		if (nextCount > hashOnionConfig.count) {
+		if (nextCount > hashOnion.count) {
 			logger.warn(
 				'All of the hash onion has been used already. Please update to the new hash onion.',
 			);
@@ -277,24 +267,32 @@ export class RandomModule extends BaseModule {
 		}
 		// If checkpoint is reached then increment the nextCheckpointIndex taking integer into account
 		const nextCheckpointIndex =
-			nextCount % hashOnionConfig.distance === 0
-				? Math.ceil(nextCount / hashOnionConfig.distance) + 1
-				: Math.ceil(nextCount / hashOnionConfig.distance);
-		const nextCheckpoint = hashOnionConfig.hashes[nextCheckpointIndex];
-		const hashes = utils.hashOnion(nextCheckpoint, hashOnionConfig.distance, 1);
-		const checkpointIndex = nextCount % hashOnionConfig.distance;
+			nextCount % hashOnion.distance === 0
+				? Math.ceil(nextCount / hashOnion.distance) + 1
+				: Math.ceil(nextCount / hashOnion.distance);
+		const nextCheckpoint = hashOnion.hashes[nextCheckpointIndex];
+		const hashes = utils.hashOnion(nextCheckpoint, hashOnion.distance, 1);
+		const checkpointIndex = nextCount % hashOnion.distance;
 		return {
 			hash: hashes[checkpointIndex],
 			count: nextCount,
 		};
 	}
 
-	private _getHashOnionConfig(address: Buffer): HashOnionConfig | undefined {
-		const hashOnionConfig = this._generatorConfig.find(d => d.address.equals(address));
-		if (!hashOnionConfig?.hashOnion) {
-			return undefined;
+	// return hashonion from DB
+	private async _getHashOnion(
+		context: InsertAssetContext,
+		address: Buffer,
+	): Promise<HashOnion | undefined> {
+		const hashOnionStore = this.offchainStores.get(HashOnionStore);
+		try {
+			// await is required to catch the error below
+			return await hashOnionStore.get(context, address);
+		} catch (error) {
+			if (error instanceof NotFoundError) {
+				return undefined;
+			}
+			throw error;
 		}
-
-		return hashOnionConfig.hashOnion;
 	}
 }

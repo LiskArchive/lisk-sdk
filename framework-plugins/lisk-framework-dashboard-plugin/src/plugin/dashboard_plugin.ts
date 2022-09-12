@@ -20,7 +20,6 @@ import { configSchema } from './schemas';
 import { DashboardPluginConfig } from './types';
 
 export class DashboardPlugin extends BasePlugin<DashboardPluginConfig> {
-	public name = 'dashboard';
 	public configSchema = configSchema;
 
 	private _server!: Server;

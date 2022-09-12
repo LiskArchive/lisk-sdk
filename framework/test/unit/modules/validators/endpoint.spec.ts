@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
+import { utils, address as cryptoAddress } from '@liskhq/lisk-cryptography';
 import { Logger } from '../../../../src/logger';
 import { ValidatorsModule } from '../../../../src/modules/validators';
 import { BLSKeyStore } from '../../../../src/modules/validators/stores/bls_keys';
@@ -42,8 +42,9 @@ describe('ValidatorsModuleEndpoint', () => {
 		describe('when request data is valid', () => {
 			it('should resolve with false when key already exists', async () => {
 				const context = {
-					getImmutableAPIContext: jest.fn(),
+					getImmutableMethodContext: jest.fn(),
 					getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
+					getOffchainStore: jest.fn(),
 					logger,
 					params: {
 						proofOfPossession: proof.toString('hex'),
@@ -61,8 +62,9 @@ describe('ValidatorsModuleEndpoint', () => {
 
 			it('should resolve with false when key does not exist but invalid proof of possession', async () => {
 				const context = {
-					getImmutableAPIContext: jest.fn(),
+					getImmutableMethodContext: jest.fn(),
 					getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
+					getOffchainStore: jest.fn(),
 					logger,
 					params: {
 						proofOfPossession: proof.toString('hex'),
@@ -78,7 +80,8 @@ describe('ValidatorsModuleEndpoint', () => {
 			it('should resolve with true when key does not exist and valid proof of possession', async () => {
 				const context = {
 					getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
-					getImmutableAPIContext: jest.fn(),
+					getImmutableMethodContext: jest.fn(),
+					getOffchainStore: jest.fn(),
 					logger,
 					params: {
 						proofOfPossession:
@@ -99,12 +102,13 @@ describe('ValidatorsModuleEndpoint', () => {
 				await expect(
 					validatorsModule.endpoint.validateBLSKey({
 						getStore: jest.fn(),
-						getImmutableAPIContext: jest.fn(),
+						getImmutableMethodContext: jest.fn(),
 						logger,
 						params: {
 							invalid: 'schema',
 						},
 						networkIdentifier,
+						getOffchainStore: jest.fn(),
 					}),
 				).rejects.toThrow();
 			});
@@ -113,13 +117,14 @@ describe('ValidatorsModuleEndpoint', () => {
 				await expect(
 					validatorsModule.endpoint.validateBLSKey({
 						getStore: jest.fn(),
-						getImmutableAPIContext: jest.fn(),
+						getImmutableMethodContext: jest.fn(),
 						logger,
 						params: {
 							proofOfPossession: 'xxxx',
 							blsKey: 'xxxx',
 						},
 						networkIdentifier,
+						getOffchainStore: jest.fn(),
 					}),
 				).rejects.toThrow();
 			});
@@ -128,11 +133,12 @@ describe('ValidatorsModuleEndpoint', () => {
 
 	describe('getValidator', () => {
 		const context = {
-			getImmutableAPIContext: jest.fn(),
+			getImmutableMethodContext: jest.fn(),
 			getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
+			getOffchainStore: jest.fn(),
 			logger,
 			params: {
-				address: validatorAddress.toString('hex'),
+				address: cryptoAddress.getLisk32AddressFromAddress(validatorAddress),
 			},
 			networkIdentifier,
 		};

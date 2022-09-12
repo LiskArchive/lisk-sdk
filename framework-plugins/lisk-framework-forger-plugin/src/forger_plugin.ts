@@ -79,7 +79,6 @@ const getBinaryAddress = (hexAddressStr: string) =>
 const getAddressBuffer = (hexAddressStr: string) => Buffer.from(hexAddressStr, 'hex');
 
 export class ForgerPlugin extends BasePlugin {
-	public name = 'forger';
 	public endpoint = new Endpoint();
 
 	private _forgerPluginDB!: liskDB.Database;

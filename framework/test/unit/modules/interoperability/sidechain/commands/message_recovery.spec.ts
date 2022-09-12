@@ -20,7 +20,7 @@ import { when } from 'jest-when';
 import { CCMsg, MessageRecoveryParams } from '../../../../../../src/modules/interoperability/types';
 import { SidechainMessageRecoveryCommand } from '../../../../../../src/modules/interoperability/sidechain/commands/message_recovery';
 import { CommandExecuteContext, SidechainInteroperabilityModule } from '../../../../../../src';
-import { BaseInteroperableAPI } from '../../../../../../src/modules/interoperability/base_interoperable_api';
+import { BaseInteroperableMethod } from '../../../../../../src/modules/interoperability/base_interoperable_method';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
 import { TransactionContext } from '../../../../../../src/state_machine';
 import {
@@ -83,7 +83,7 @@ describe('Sidechain MessageRecoveryCommand', () => {
 
 	let messageRecoveryCommand: SidechainMessageRecoveryCommand;
 	let commandExecuteContext: CommandExecuteContext<MessageRecoveryParams>;
-	let interoperableCCAPIs: Map<string, BaseInteroperableAPI>;
+	let interoperableCCMethods: Map<string, BaseInteroperableMethod>;
 	let ccCommands: Map<string, BaseCCCommand[]>;
 	let transaction: Transaction;
 	let transactionParams: MessageRecoveryParams;
@@ -93,13 +93,13 @@ describe('Sidechain MessageRecoveryCommand', () => {
 	let ccms: CCMsg[];
 
 	beforeEach(() => {
-		interoperableCCAPIs = new Map();
+		interoperableCCMethods = new Map();
 		ccCommands = new Map();
 
 		messageRecoveryCommand = new SidechainMessageRecoveryCommand(
 			interopMod.stores,
 			interopMod.events,
-			interoperableCCAPIs,
+			interoperableCCMethods,
 			ccCommands,
 		);
 
@@ -258,16 +258,16 @@ describe('Sidechain MessageRecoveryCommand', () => {
 		}
 	});
 
-	it('should throw when beforeRecoverCCM of ccAPIs of the ccm fails', async () => {
+	it('should throw when beforeRecoverCCM of ccMethods of the ccm fails', async () => {
 		// Assign & Arrange
-		const api = ({
+		const method = ({
 			beforeRecoverCCM: jest.fn(() => {
 				throw new Error('beforeRecoverCCM Error');
 			}),
 			name: MODULE_NAME_INTEROPERABILITY,
-		} as unknown) as BaseInteroperableAPI;
+		} as unknown) as BaseInteroperableMethod;
 
-		interoperableCCAPIs.set(MODULE_NAME_INTEROPERABILITY, api);
+		interoperableCCMethods.set(MODULE_NAME_INTEROPERABILITY, method);
 
 		// Assert
 		await expect(messageRecoveryCommand.execute(commandExecuteContext)).rejects.toThrow(

@@ -60,7 +60,6 @@ interface NodeInfoOptions {
 
 interface NetworkConstructor {
 	readonly options: NetworkConfig;
-	readonly networkVersion: string;
 }
 
 interface P2PRequestPacket extends liskP2P.p2pTypes.P2PRequestPacket {
@@ -101,7 +100,6 @@ interface NetworkInitArgs {
 export class Network {
 	public readonly events: EventEmitter;
 	private readonly _options: NetworkConfig;
-	private readonly _networkVersion: string;
 	private readonly _endpoint: Endpoint;
 
 	private _logger!: Logger;
@@ -113,9 +111,8 @@ export class Network {
 	private _eventHandlers: P2PEventHandlers;
 	private _saveIntervalID?: NodeJS.Timer;
 
-	public constructor({ options, networkVersion }: NetworkConstructor) {
+	public constructor({ options }: NetworkConstructor) {
 		this._options = options;
-		this._networkVersion = networkVersion;
 		this._endpoints = {};
 		this._eventHandlers = {};
 		this._secret = undefined;
@@ -158,7 +155,7 @@ export class Network {
 
 		const initialNodeInfo = {
 			networkIdentifier: this._networkID,
-			networkVersion: this._networkVersion,
+			networkVersion: this._options.version,
 			// Nonce is required in type, but it is overwritten
 			nonce: '',
 			advertiseAddress: this._options.advertiseAddress ?? true,
@@ -193,7 +190,7 @@ export class Network {
 		const p2pConfig: liskP2P.p2pTypes.P2PConfig = {
 			port: this._options.port,
 			nodeInfo: initialNodeInfo,
-			hostIp: this._options.hostIp,
+			hostIp: this._options.host,
 			blacklistedIPs,
 			fixedPeers,
 			whitelistedPeers,
@@ -204,10 +201,6 @@ export class Network {
 			previousPeers,
 			maxOutboundConnections: this._options.maxOutboundConnections,
 			maxInboundConnections: this._options.maxInboundConnections,
-			peerBanTime: this._options.peerBanTime,
-			sendPeerLimit: this._options.sendPeerLimit,
-			maxPeerDiscoveryResponseLength: this._options.maxPeerDiscoveryResponseLength,
-			maxPeerInfoSize: this._options.maxPeerInfoSize,
 			wsMaxPayload: this._options.wsMaxPayload,
 			secret: this._secret,
 			customNodeInfoSchema,
@@ -541,7 +534,7 @@ export class Network {
 	public applyNodeInfo(data: NodeInfoOptions): void {
 		const newNodeInfo = {
 			networkIdentifier: this._networkID,
-			networkVersion: this._networkVersion,
+			networkVersion: this._options.version,
 			advertiseAddress: this._options.advertiseAddress ?? true,
 			options: data,
 		};

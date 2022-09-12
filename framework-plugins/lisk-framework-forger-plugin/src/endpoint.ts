@@ -11,7 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { BasePlugin, BasePluginEndpoint, PluginEndpointContext, db as liskDB } from 'lisk-sdk';
+import {
+	BasePlugin,
+	BasePluginEndpoint,
+	PluginEndpointContext,
+	db as liskDB,
+	cryptography,
+} from 'lisk-sdk';
 import { getForgerInfo } from './db';
 import { Forger } from './types';
 
@@ -78,7 +84,7 @@ export class Endpoint extends BasePluginEndpoint {
 				username: account.name,
 				totalVotesReceived: account.totalVotesReceived,
 				voters: forgerInfo.votesReceived.map(vote => ({
-					address: vote.address.toString('hex'),
+					address: cryptography.address.getLisk32AddressFromAddress(vote.address),
 					amount: vote.amount.toString(),
 				})),
 			});

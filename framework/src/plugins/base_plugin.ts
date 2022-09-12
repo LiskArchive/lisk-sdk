@@ -85,7 +85,10 @@ export abstract class BasePlugin<T = Record<string, unknown>> {
 	private _config!: T;
 	private _appConfig!: ApplicationConfigForPlugin;
 
-	public abstract readonly name: string;
+	public get name(): string {
+		const name = this.constructor.name.replace('Plugin', '');
+		return name.charAt(0).toLowerCase() + name.substr(1);
+	}
 
 	public get config(): T {
 		return this._config;
@@ -96,7 +99,7 @@ export abstract class BasePlugin<T = Record<string, unknown>> {
 	}
 
 	public get dataPath(): string {
-		const dirs = systemDirs(this.appConfig.label, this.appConfig.rootPath);
+		const dirs = systemDirs(this.appConfig.system.dataPath);
 
 		return join(dirs.plugins, this.name, 'data');
 	}
@@ -107,7 +110,7 @@ export abstract class BasePlugin<T = Record<string, unknown>> {
 
 	public get apiClient(): APIClient {
 		if (!this._apiClient) {
-			throw new Error('RPC with IPC protocol must be enabled to use APIClient.');
+			throw new Error('RPC with IPC protocol must be enabled to use MethodClient.');
 		}
 		return this._apiClient;
 	}
@@ -124,7 +127,7 @@ export abstract class BasePlugin<T = Record<string, unknown>> {
 		this._appConfig = context.appConfig;
 
 		if (this._appConfig.rpc.modes.includes('ipc')) {
-			const dirs = systemDirs(this.appConfig.label, this.appConfig.rootPath);
+			const dirs = systemDirs(this.appConfig.system.dataPath);
 			this._apiClient = await createIPCClient(dirs.sockets);
 		}
 	}

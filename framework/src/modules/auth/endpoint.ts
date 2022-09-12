@@ -14,7 +14,6 @@
 
 import { NotFoundError } from '@liskhq/lisk-chain';
 import { address as cryptoAddress } from '@liskhq/lisk-cryptography';
-import { isHexString } from '@liskhq/lisk-validator';
 import { ModuleEndpointContext } from '../../types';
 import { VerifyStatus } from '../../state_machine';
 import { BaseEndpoint } from '../base_endpoint';
@@ -36,11 +35,12 @@ export class AuthEndpoint extends BaseEndpoint {
 			params: { address },
 		} = context;
 
-		if (!isHexString(address) || (address as string).length !== 40) {
+		if (typeof address !== 'string') {
 			throw new Error('Invalid address format.');
 		}
+		cryptoAddress.validateLisk32Address(address);
 
-		const accountAddress = Buffer.from(address as string, 'hex');
+		const accountAddress = cryptoAddress.getAddressFromLisk32Address(address);
 		const store = this.stores.get(AuthAccountStore);
 
 		try {

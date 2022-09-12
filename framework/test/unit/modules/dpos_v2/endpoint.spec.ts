@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { utils } from '@liskhq/lisk-cryptography';
+import { address as cryptoAddress, utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
 import { Logger } from '../../../../src/logger';
 import { defaultConfig } from '../../../../src/modules/dpos_v2/constants';
@@ -63,7 +63,7 @@ describe('DposModuleEndpoint', () => {
 		isBanned: false,
 		pomHeights: [0],
 		consecutiveMissedBlocks: 0,
-		address: address.toString('hex'),
+		address: cryptoAddress.getLisk32AddressFromAddress(address),
 	};
 
 	const config: ModuleConfig = {
@@ -86,12 +86,13 @@ describe('DposModuleEndpoint', () => {
 				await voterSubStore.set(createStoreGetter(stateStore), address, voterData);
 				const voterDataReturned = await dposEndpoint.getVoter({
 					getStore: (p1, p2) => stateStore.getStore(p1, p2),
-					getImmutableAPIContext: jest.fn(),
+					getImmutableMethodContext: jest.fn(),
 					logger,
 					params: {
-						address: address.toString('hex'),
+						address: cryptoAddress.getLisk32AddressFromAddress(address),
 					},
 					networkIdentifier,
+					getOffchainStore: jest.fn(),
 				});
 
 				expect(voterDataReturned).toStrictEqual(codec.toJSON(voterStoreSchema, voterData));
@@ -101,12 +102,13 @@ describe('DposModuleEndpoint', () => {
 				await voterSubStore.set(createStoreGetter(stateStore), address, voterData);
 				const voterDataReturned = await dposEndpoint.getVoter({
 					getStore: (p1, p2) => stateStore.getStore(p1, p2),
-					getImmutableAPIContext: jest.fn(),
+					getImmutableMethodContext: jest.fn(),
 					logger,
 					params: {
-						address: address.toString('hex'),
+						address: cryptoAddress.getLisk32AddressFromAddress(address),
 					},
 					networkIdentifier,
+					getOffchainStore: jest.fn(),
 				});
 
 				expect(voterDataReturned.sentVotes[0].delegateAddress).toBeString();
@@ -123,19 +125,20 @@ describe('DposModuleEndpoint', () => {
 				await delegateSubStore.set(createStoreGetter(stateStore), address, delegateData);
 				const delegateDataReturned = await dposEndpoint.getDelegate({
 					getStore: (p1, p2) => stateStore.getStore(p1, p2),
-					getImmutableAPIContext: jest.fn(),
+					getImmutableMethodContext: jest.fn(),
 					logger,
 					params: {
-						address: address.toString('hex'),
+						address: cryptoAddress.getLisk32AddressFromAddress(address),
 					},
 					networkIdentifier,
+					getOffchainStore: jest.fn(),
 				});
 
 				const delegateDataJSON = {
 					...delegateData,
 					totalVotesReceived: delegateData.totalVotesReceived.toString(),
 					selfVotes: delegateData.selfVotes.toString(),
-					address: address.toString('hex'),
+					address: cryptoAddress.getLisk32AddressFromAddress(address),
 				};
 
 				expect(delegateDataReturned).toStrictEqual(delegateDataJSON);
@@ -145,12 +148,13 @@ describe('DposModuleEndpoint', () => {
 				await delegateSubStore.set(createStoreGetter(stateStore), address, delegateData);
 				const delegateDataReturned = await dposEndpoint.getDelegate({
 					getStore: (p1, p2) => stateStore.getStore(p1, p2),
-					getImmutableAPIContext: jest.fn(),
+					getImmutableMethodContext: jest.fn(),
 					logger,
 					params: {
-						address: address.toString('hex'),
+						address: cryptoAddress.getLisk32AddressFromAddress(address),
 					},
 					networkIdentifier,
+					getOffchainStore: jest.fn(),
 				});
 
 				expect(delegateDataReturned.totalVotesReceived).toBeString();
@@ -176,10 +180,11 @@ describe('DposModuleEndpoint', () => {
 				await delegateSubStore.set(createStoreGetter(stateStore), address2, delegateData2);
 				const { delegates: delegatesDataReturned } = await dposEndpoint.getAllDelegates({
 					getStore: (p1, p2) => stateStore.getStore(p1, p2),
-					getImmutableAPIContext: jest.fn(),
+					getImmutableMethodContext: jest.fn(),
 					logger,
 					params: {},
 					networkIdentifier,
+					getOffchainStore: jest.fn(),
 				});
 
 				expect(addresses).toContain(delegatesDataReturned[0].address);
@@ -191,10 +196,11 @@ describe('DposModuleEndpoint', () => {
 				await delegateSubStore.set(createStoreGetter(stateStore), address1, delegateData2);
 				const { delegates: delegatesDataReturned } = await dposEndpoint.getAllDelegates({
 					getStore: (p1, p2) => stateStore.getStore(p1, p2),
-					getImmutableAPIContext: jest.fn(),
+					getImmutableMethodContext: jest.fn(),
 					logger,
 					params: {},
 					networkIdentifier,
+					getOffchainStore: jest.fn(),
 				});
 
 				expect(delegatesDataReturned[0].totalVotesReceived).toBeString();

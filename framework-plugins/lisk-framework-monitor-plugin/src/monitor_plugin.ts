@@ -32,7 +32,6 @@ interface BlockData {
 }
 
 export class MonitorPlugin extends BasePlugin<MonitorPluginConfig> {
-	public name = 'monitor';
 	public configSchema = configSchema;
 	public endpoint = new Endpoint();
 

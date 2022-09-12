@@ -59,7 +59,7 @@ export const generateGenesisBlock = async (
 		previousBlockID,
 		height,
 		timestamp,
-		generatorAddress: EMPTY_BUFFER,
+		generatorAddress: Buffer.alloc(20, 0),
 		maxHeightGenerated: 0,
 		maxHeightPrevoted: height,
 		signature: EMPTY_BUFFER,

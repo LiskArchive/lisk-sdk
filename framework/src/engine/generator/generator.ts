@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import * as fs from 'fs';
 import { EventEmitter } from 'events';
 import {
 	Chain,
@@ -23,7 +24,7 @@ import {
 	EVENT_KEY_LENGTH,
 } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { encrypt, bls, legacy, address as cryptoAddress } from '@liskhq/lisk-cryptography';
+import { address as addressUtil, bls } from '@liskhq/lisk-cryptography';
 import { Database, Batch, SparseMerkleTree } from '@liskhq/lisk-db';
 import { TransactionPool, events } from '@liskhq/lisk-transaction-pool';
 import { MerkleTree } from '@liskhq/lisk-tree';
@@ -31,7 +32,7 @@ import { dataStructures, jobHandlers } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { EVENT_NETWORK_READY } from '../events';
 import { Logger } from '../../logger';
-import { GenesisConfig } from '../../types';
+import { EngineConfig } from '../../types';
 import { Network } from '../network';
 import { Broadcaster } from './broadcaster';
 import {
@@ -44,13 +45,28 @@ import {
 	GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT,
 	GENERATOR_EVENT_NEW_TRANSACTION,
 	EMPTY_HASH,
+	GENERATOR_STORE_KEY_PREFIX,
 } from './constants';
 import { Endpoint } from './endpoint';
 import { GeneratorStore } from './generator_store';
 import { NetworkEndpoint } from './network_endpoint';
-import { GetTransactionResponse, getTransactionsResponseSchema } from './schemas';
+import {
+	encryptedMessageSchema,
+	generatorKeysSchema,
+	GetTransactionResponse,
+	getTransactionsResponseSchema,
+	keysFileSchema,
+	plainGeneratorKeysSchema,
+} from './schemas';
 import { HighFeeGenerationStrategy } from './strategies';
-import { Consensus, BlockGenerateInput, Keypair, GenerationConfig } from './types';
+import {
+	Consensus,
+	BlockGenerateInput,
+	Keypair,
+	PlainGeneratorKeyData,
+	EncodedGeneratorKeys,
+	KeysFile,
+} from './types';
 import { getOrDefaultLastGeneratedInfo, setLastGeneratedInfo } from './generated_info';
 import { CONSENSUS_EVENT_FINALIZED_HEIGHT_CHANGED } from '../consensus/constants';
 import {
@@ -61,10 +77,10 @@ import {
 } from '../../abi';
 import { BFTModule } from '../bft';
 import { isEmptyConsensusUpdate } from '../consensus';
+import { getPathFromDataPath } from '../../utils/path';
 
 interface GeneratorArgs {
-	genesisConfig: GenesisConfig;
-	generationConfig: GenerationConfig;
+	config: EngineConfig;
 	chain: Chain;
 	consensus: Consensus;
 	bft: BFTModule;
@@ -84,7 +100,7 @@ export class Generator {
 	public readonly events = new EventEmitter();
 
 	private readonly _pool: TransactionPool;
-	private readonly _config: GenerationConfig;
+	private readonly _config: EngineConfig;
 	private readonly _chain: Chain;
 	private readonly _consensus: Consensus;
 	private readonly _bft: BFTModule;
@@ -96,26 +112,23 @@ export class Generator {
 	private readonly _keypairs: dataStructures.BufferMap<Keypair>;
 	private readonly _broadcaster: Broadcaster;
 	private readonly _forgingStrategy: HighFeeGenerationStrategy;
+	private readonly _blockTime: number;
 
 	private _logger!: Logger;
 	private _generatorDB!: Database;
 	private _blockchainDB!: Database;
 
 	public constructor(args: GeneratorArgs) {
-		this._config = args.generationConfig;
 		this._abi = args.abi;
 		this._keypairs = new dataStructures.BufferMap();
 		this._pool = new TransactionPool({
-			maxPayloadLength: args.genesisConfig.maxTransactionsSize,
-			minFeePerByte: args.genesisConfig.minFeePerByte,
+			maxPayloadLength: args.config.genesis.maxTransactionsSize,
+			minFeePerByte: args.config.genesis.minFeePerByte,
 			applyTransactions: async (transactions: Transaction[]) =>
 				this._verifyTransaction(transactions),
 		});
-		if (this._config.waitThreshold >= args.genesisConfig.blockTime) {
-			throw Error(
-				`generation.waitThreshold=${this._config.waitThreshold} is greater or equal to genesisConfig.blockTime=${args.genesisConfig.blockTime}. It impacts the block generation and propagation. Please use a smaller value for generation.waitThreshold`,
-			);
-		}
+		this._config = args.config;
+		this._blockTime = args.config.genesis.blockTime;
 		this._chain = args.chain;
 		this._bft = args.bft;
 		this._consensus = args.consensus;
@@ -129,9 +142,10 @@ export class Generator {
 
 		this._endpoint = new Endpoint({
 			abi: this._abi,
-			generators: this._config.generators,
-			keypair: this._keypairs,
+			keypair: new dataStructures.BufferMap<PlainGeneratorKeyData>(),
 			consensus: this._consensus,
+			blockTime: this._blockTime,
+			chain: this._chain,
 		});
 		this._networkEndpoint = new NetworkEndpoint({
 			abi: this._abi,
@@ -165,6 +179,7 @@ export class Generator {
 		this._networkEndpoint.init({
 			logger: this._logger,
 		});
+		await this._saveKeysFromFile();
 		await this._loadGenerators();
 		this._network.registerHandler(
 			NETWORK_EVENT_POST_TRANSACTIONS_ANNOUNCEMENT,
@@ -191,7 +206,7 @@ export class Generator {
 
 		const stateStore = new StateStore(this._blockchainDB);
 		const maxRemovalHeight = await this._consensus.getMaxRemovalHeight();
-		const { maxHeightPrecommitted } = await this._bft.api.getBFTHeights(stateStore);
+		const { maxHeightPrecommitted } = await this._bft.method.getBFTHeights(stateStore);
 		await Promise.all(this._handleFinalizedHeightChanged(maxRemovalHeight, maxHeightPrecommitted));
 	}
 
@@ -305,57 +320,74 @@ export class Generator {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
-	private async _loadGenerators(): Promise<void> {
-		const encryptedList = this._config.generators;
-
-		if (
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-			!encryptedList?.length ||
-			!this._config.force ||
-			!this._config.password
-		) {
+	private async _saveKeysFromFile(): Promise<void> {
+		if (!this._config.generator.keys.fromFile) {
 			return;
 		}
-		this._logger.info(
-			`Loading ${encryptedList.length} delegates using encrypted passphrases from config`,
+		const filePath = getPathFromDataPath(
+			this._config.generator.keys.fromFile,
+			this._config.system.dataPath,
 		);
+		this._logger.debug({ filePath }, 'Reading validator keys from a file');
+		const keysFile = JSON.parse(fs.readFileSync(filePath, 'utf-8')) as unknown;
+		validator.validate<KeysFile>(keysFileSchema, keysFile);
 
-		for (const encryptedItem of encryptedList) {
-			let passphrase;
-			try {
-				passphrase = await encrypt.decryptMessageWithPassword(
-					encrypt.parseEncryptedMessage(encryptedItem.encryptedPassphrase),
-					this._config.password,
-					'utf-8',
+		const generatorStore = new GeneratorStore(this._generatorDB);
+		const batch = new Batch();
+		const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_KEY_PREFIX);
+		for (const key of keysFile.keys) {
+			this._logger.info({ address: key.address }, 'saving generator from file');
+			if (key.encrypted && Object.keys(key.encrypted).length) {
+				await subStore.set(
+					addressUtil.getAddressFromLisk32Address(key.address),
+					codec.encode(generatorKeysSchema, {
+						type: 'encrypted',
+						data: codec.encode(encryptedMessageSchema, key.encrypted),
+					}),
 				);
-			} catch (error) {
-				const decryptionError = `Invalid encryptedPassphrase for address: ${encryptedItem.address.toString(
-					'hex',
-				)}. ${(error as Error).message}`;
-				this._logger.error(decryptionError);
-				throw new Error(decryptionError);
-			}
-
-			const keypair = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
-			const delegateAddress = cryptoAddress.getAddressFromPublicKey(keypair.publicKey);
-			const blsSK = bls.generatePrivateKey(Buffer.from(passphrase, 'utf-8'));
-
-			if (!delegateAddress.equals(encryptedItem.address)) {
-				throw new Error(
-					`Invalid encryptedPassphrase for address: ${encryptedItem.address.toString(
-						'hex',
-					)}. Address do not match`,
+			} else if (key.plain) {
+				await subStore.set(
+					addressUtil.getAddressFromLisk32Address(key.address),
+					codec.encode(generatorKeysSchema, {
+						type: 'plain',
+						data: codec.encode(plainGeneratorKeysSchema, {
+							blsKey: Buffer.from(key.plain.blsKey, 'hex'),
+							blsPrivateKey: Buffer.from(key.plain.blsPrivateKey, 'hex'),
+							generatorKey: Buffer.from(key.plain.generatorKey, 'hex'),
+							generatorPrivateKey: Buffer.from(key.plain.generatorPrivateKey, 'hex'),
+						}),
+					}),
 				);
 			}
+		}
+		generatorStore.finalize(batch);
+		await this._generatorDB.write(batch);
+	}
 
-			const validatorAddress = cryptoAddress.getAddressFromPublicKey(keypair.publicKey);
-
-			this._keypairs.set(validatorAddress, {
-				...keypair,
-				blsSecretKey: blsSK,
-			});
-			this._logger.info(`Forging enabled on account: ${validatorAddress.toString('hex')}`);
+	// eslint-disable-next-line @typescript-eslint/require-await
+	private async _loadGenerators(): Promise<void> {
+		const generatorStore = new GeneratorStore(this._generatorDB);
+		const subStore = generatorStore.getGeneratorStore(GENERATOR_STORE_KEY_PREFIX);
+		const encodedGeneratorKeysList = await subStore.iterate({
+			gte: Buffer.alloc(20, 0),
+			lte: Buffer.alloc(20, 255),
+		});
+		for (const { key, value } of encodedGeneratorKeysList) {
+			const encodedGeneratorKeys = codec.decode<EncodedGeneratorKeys>(generatorKeysSchema, value);
+			if (encodedGeneratorKeys.type === 'plain') {
+				const keys = codec.decode<PlainGeneratorKeyData>(
+					plainGeneratorKeysSchema,
+					encodedGeneratorKeys.data,
+				);
+				this._keypairs.set(key, {
+					publicKey: keys.generatorKey,
+					privateKey: keys.generatorPrivateKey,
+					blsSecretKey: keys.blsPrivateKey,
+				});
+				this._logger.info(
+					`Block generation enabled for address: ${addressUtil.getLisk32AddressFromAddress(key)}`,
+				);
+			}
 		}
 	}
 
@@ -402,11 +434,11 @@ export class Generator {
 
 		const currentSlotTime = this._consensus.getSlotTime(currentSlot);
 
-		const { waitThreshold } = this._config;
+		const waitThreshold = this._blockTime / 5;
 		const lastBlockSlot = this._consensus.getSlotNumber(this._chain.lastBlock.header.timestamp);
 
 		if (currentSlot === lastBlockSlot) {
-			this._logger.trace({ slot: currentSlot }, 'Block already forged for the current slot');
+			this._logger.trace({ slot: currentSlot }, 'Block already generated for the current slot');
 			return;
 		}
 
@@ -448,7 +480,7 @@ export class Generator {
 			{
 				id: generatedBlock.header.id,
 				height: generatedBlock.header.height,
-				generatorAddress: generator.toString('hex'),
+				generatorAddress: addressUtil.getLisk32AddressFromAddress(generator),
 			},
 			'Generated new block',
 		);
@@ -461,7 +493,7 @@ export class Generator {
 		const stateStore = new StateStore(this._blockchainDB);
 		const generatorStore = new GeneratorStore(input.db ?? this._generatorDB);
 
-		const { maxHeightPrevoted } = await this._bft.api.getBFTHeights(stateStore);
+		const { maxHeightPrevoted } = await this._bft.method.getBFTHeights(stateStore);
 		const { height: maxHeightGenerated } = await getOrDefaultLastGeneratedInfo(
 			generatorStore,
 			generatorAddress,
@@ -542,13 +574,13 @@ export class Generator {
 			)
 		) {
 			const activeValidators = afterResult.nextValidators.filter(v => v.bftWeight > BigInt(0));
-			await this._bft.api.setBFTParameters(
+			await this._bft.method.setBFTParameters(
 				stateStore,
 				afterResult.preCommitThreshold,
 				afterResult.certificateThreshold,
 				activeValidators,
 			);
-			await this._bft.api.setGeneratorKeys(stateStore, afterResult.nextValidators);
+			await this._bft.method.setGeneratorKeys(stateStore, afterResult.nextValidators);
 		}
 
 		stateStore.finalize(new Batch());
@@ -581,7 +613,7 @@ export class Generator {
 		blockHeader.stateRoot = stateRoot;
 
 		// Set validatorsHash
-		const { validatorsHash } = await this._bft.api.getBFTParameters(stateStore, height + 1);
+		const { validatorsHash } = await this._bft.method.getBFTParameters(stateStore, height + 1);
 		blockHeader.validatorsHash = validatorsHash;
 		blockHeader.sign(this._chain.networkIdentifier, privateKey);
 
@@ -625,7 +657,7 @@ export class Generator {
 		generatorAddress: Buffer,
 		blsSK: Buffer,
 	): Promise<void> {
-		const paramExist = await this._bft.api.existBFTParameters(stateStore, height + 1);
+		const paramExist = await this._bft.method.existBFTParameters(stateStore, height + 1);
 		if (!paramExist) {
 			return;
 		}
@@ -638,7 +670,7 @@ export class Generator {
 		generatorAddress: Buffer,
 		blsSK: Buffer,
 	): Promise<void> {
-		const paramExist = await this._bft.api.existBFTParameters(stateStore, height + 1);
+		const paramExist = await this._bft.method.existBFTParameters(stateStore, height + 1);
 		if (paramExist) {
 			return;
 		}
@@ -651,7 +683,7 @@ export class Generator {
 		generatorAddress: Buffer,
 		blsSK: Buffer,
 	): Promise<void> {
-		const params = await this._bft.api.getBFTParameters(stateStore, height);
+		const params = await this._bft.method.getBFTParameters(stateStore, height);
 		const isActive = params.validators.find(v => v.address.equals(generatorAddress)) !== undefined;
 		if (!isActive) {
 			return;
@@ -667,7 +699,7 @@ export class Generator {
 		this._logger.info(
 			{
 				height,
-				generator: generatorAddress.toString('hex'),
+				generator: addressUtil.getLisk32AddressFromAddress(generatorAddress),
 			},
 			'Certified single commit',
 		);

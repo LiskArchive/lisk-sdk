@@ -62,7 +62,7 @@ export class MainchainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 			const beforeSendContext = createCCMsgBeforeSendContext({
 				ccm,
 				eventQueue: context.eventQueue,
-				getAPIContext: context.getAPIContext,
+				getMethodContext: context.getMethodContext,
 				getStore: context.getStore,
 				logger: context.logger,
 				networkIdentifier: context.networkIdentifier,
@@ -73,6 +73,6 @@ export class MainchainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 	}
 
 	protected getInteroperabilityStore(context: StoreGetter): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
+		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
 	}
 }

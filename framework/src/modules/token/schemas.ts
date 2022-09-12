@@ -341,9 +341,8 @@ export const genesisTokenStoreSchema = {
 				properties: {
 					address: {
 						dataType: 'bytes',
+						format: 'lisk32',
 						fieldNumber: 1,
-						minLength: 20,
-						maxLength: 20,
 					},
 					tokenID: {
 						dataType: 'bytes',
@@ -453,9 +452,7 @@ export const getBalanceRequestSchema = {
 	properties: {
 		address: {
 			type: 'string',
-			format: 'hex',
-			minLength: ADDRESS_LENGTH * 2,
-			maxLength: ADDRESS_LENGTH * 2,
+			format: 'lisk32',
 		},
 		tokenID: {
 			type: 'string',
@@ -501,9 +498,7 @@ export const getBalancesRequestSchema = {
 	properties: {
 		address: {
 			type: 'string',
-			format: 'hex',
-			minLength: ADDRESS_LENGTH * 2,
-			maxLength: ADDRESS_LENGTH * 2,
+			format: 'lisk32',
 		},
 	},
 	required: ['address'],

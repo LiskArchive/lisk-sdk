@@ -13,7 +13,7 @@
  */
 /* eslint-disable max-classes-per-file */
 
-import { BaseAPI, BaseCommand, BaseEndpoint, BaseModule } from '../../../src';
+import { BaseMethod, BaseCommand, BaseEndpoint, BaseModule } from '../../../src';
 import { TransactionVerifyResult } from '../../../src/abi';
 import { ModuleMetadata } from '../../../src/modules/base_module';
 import {
@@ -45,9 +45,9 @@ export class CustomCommand0 extends BaseCommand {
 
 export class CustomModule0 extends BaseModule {
 	public commands = [new CustomCommand0(this.stores, this.events)];
-	public api = ({
+	public method = ({
 		testing: jest.fn(),
-	} as unknown) as BaseAPI;
+	} as unknown) as BaseMethod;
 	public endpoint: BaseEndpoint = {} as BaseEndpoint;
 
 	public get name() {
@@ -69,7 +69,7 @@ export class CustomModule0 extends BaseModule {
 export class CustomModule1 extends BaseModule {
 	public commands = [];
 	public endpoint: BaseEndpoint = {} as BaseEndpoint;
-	public api: BaseAPI = {} as BaseAPI;
+	public method: BaseMethod = {} as BaseMethod;
 
 	public verifyAssets = jest.fn();
 	public beforeTransactionsExecute = jest.fn();
@@ -109,7 +109,7 @@ export class CustomCommand2 extends BaseCommand {
 
 export class CustomModule2 extends BaseModule {
 	public endpoint: BaseEndpoint = {} as BaseEndpoint;
-	public api: BaseAPI = {} as BaseAPI;
+	public method: BaseMethod = {} as BaseMethod;
 	public commands = [new CustomCommand2(this.stores, this.events)];
 
 	public get name() {

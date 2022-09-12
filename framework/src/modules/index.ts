@@ -16,7 +16,15 @@ export {
 	BaseModule,
 	RootModuleMetadata as ModuleMetadata,
 	ModuleMetadataJSON,
+	ModuleInitArgs,
 } from './base_module';
 export { BaseCommand } from './base_command';
-export { BaseAPI } from './base_api';
+export { BaseMethod } from './base_method';
 export { BaseEndpoint } from './base_endpoint';
+export { BaseStore, StoreGetter, ImmutableStoreGetter } from './base_store';
+export {
+	BaseOffchainStore,
+	OffchainStoreGetter,
+	ImmutableOffchainStoreGetter,
+} from './base_offchain_store';
+export { BaseEvent, EventQueuer } from './base_event';

@@ -14,7 +14,7 @@
 
 import { Block, Chain, DataAccess, Transaction } from '@liskhq/lisk-chain';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
-import { legacy } from '@liskhq/lisk-cryptography';
+import { address } from '@liskhq/lisk-cryptography';
 import { nodeUtils } from '../../../../utils';
 import * as testing from '../../../../../src/testing';
 import {
@@ -23,7 +23,7 @@ import {
 	createTransferTransaction,
 	DEFAULT_TOKEN_ID,
 } from '../../../../utils/mocks/transaction';
-import { getPassphraseFromDefaultConfig } from '../../../../../src/testing/fixtures';
+import { getGeneratorPrivateKeyFromDefaultConfig } from '../../../../../src/testing/fixtures';
 
 describe('Process block', () => {
 	let processEnv: testing.BlockProcessingEnv;
@@ -58,14 +58,14 @@ describe('Process block', () => {
 
 			beforeAll(async () => {
 				const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-					address: genesis.address.toString('hex'),
+					address: genesis.address,
 				});
 				transaction = createTransferTransaction({
 					nonce: BigInt(authData.nonce),
 					recipientAddress: account.address,
 					amount,
 					networkIdentifier,
-					passphrase: genesis.passphrase,
+					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				newBlock = await processEnv.createBlock([transaction]);
 				await processEnv.process(newBlock);
@@ -73,7 +73,7 @@ describe('Process block', () => {
 
 			it('should save account state changes from the transaction', async () => {
 				const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
-					address: genesis.address.toString('hex'),
+					address: genesis.address,
 					tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 				});
 				const expected = originalBalance - transaction.fee - amount;
@@ -126,14 +126,14 @@ describe('Process block', () => {
 
 			beforeAll(async () => {
 				const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-					address: genesis.address.toString('hex'),
+					address: genesis.address,
 				});
 				transaction = createTransferTransaction({
 					nonce: BigInt(authData.nonce),
 					recipientAddress: account.address,
 					amount: BigInt('1000000000'),
 					networkIdentifier,
-					passphrase: genesis.passphrase,
+					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				newBlock = await processEnv.createBlock([transaction]);
 				await processEnv.process(newBlock);
@@ -145,11 +145,10 @@ describe('Process block', () => {
 				invalidBlock.header.transactionRoot = regularMerkleTree.calculateMerkleRootWithLeaves([
 					transaction.id,
 				]);
-				const passphrase = await getPassphraseFromDefaultConfig(
+				const generatorPrivateKey = getGeneratorPrivateKeyFromDefaultConfig(
 					invalidBlock.header.generatorAddress,
 				);
-				const { privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
-				invalidBlock.header.sign(processEnv.getNetworkId(), privateKey);
+				invalidBlock.header.sign(processEnv.getNetworkId(), generatorPrivateKey);
 				await expect(processEnv.process(invalidBlock)).rejects.toThrow(
 					'Failed to verify transaction',
 				);
@@ -198,9 +197,10 @@ describe('Process block', () => {
 			beforeAll(async () => {
 				newBlock = await processEnv.createBlock();
 				(newBlock.header as any).height = 99;
-				const passphrase = await getPassphraseFromDefaultConfig(newBlock.header.generatorAddress);
-				const { privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
-				newBlock.header.sign(processEnv.getNetworkId(), privateKey);
+				const generatorPrivateKey = getGeneratorPrivateKeyFromDefaultConfig(
+					newBlock.header.generatorAddress,
+				);
+				newBlock.header.sign(processEnv.getNetworkId(), generatorPrivateKey);
 			});
 
 			it('should discard the block', async () => {
@@ -216,14 +216,17 @@ describe('Process block', () => {
 
 		beforeAll(async () => {
 			const targetAuthData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-				address: account.address.toString('hex'),
+				address: address.getLisk32AddressFromAddress(account.address),
 			});
 			transaction = createDelegateRegisterTransaction({
 				nonce: BigInt(targetAuthData.nonce),
 				fee: BigInt('3000000000'),
 				username: 'number1',
 				networkIdentifier,
-				passphrase: account.passphrase,
+				blsKey: account.blsPublicKey,
+				generatorKey: account.publicKey,
+				blsProofOfPossession: account.blsPoP,
+				privateKey: account.privateKey,
 			});
 			newBlock = await processEnv.createBlock([transaction]);
 			await processEnv.process(newBlock);
@@ -233,17 +236,20 @@ describe('Process block', () => {
 			it('should update the sender balance and the vote of the sender', async () => {
 				// Arrange
 				const senderAuthData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-					address: account.address.toString('hex'),
+					address: address.getLisk32AddressFromAddress(account.address),
 				});
 				const senderBalance = await processEnv.invoke<{ availableBalance: string }>(
 					'token_getBalance',
-					{ address: account.address.toString('hex'), tokenID: DEFAULT_TOKEN_ID.toString('hex') },
+					{
+						address: address.getLisk32AddressFromAddress(account.address),
+						tokenID: DEFAULT_TOKEN_ID.toString('hex'),
+					},
 				);
 				const voteAmount = BigInt('1000000000');
 				const voteTransaction = createDelegateVoteTransaction({
 					nonce: BigInt(senderAuthData.nonce),
 					networkIdentifier,
-					passphrase: account.passphrase,
+					privateKey: account.privateKey,
 					votes: [
 						{
 							delegateAddress: account.address,
@@ -258,12 +264,12 @@ describe('Process block', () => {
 
 				// Assess
 				const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
-					address: account.address.toString('hex'),
+					address: address.getLisk32AddressFromAddress(account.address),
 					tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 				});
 				const votes = await processEnv.invoke<{ sentVotes: Record<string, unknown>[] }>(
 					'dpos_getVoter',
-					{ address: account.address.toString('hex') },
+					{ address: address.getLisk32AddressFromAddress(account.address) },
 				);
 				expect(votes.sentVotes).toHaveLength(1);
 				expect(balance.availableBalance).toEqual(
@@ -278,25 +284,27 @@ describe('Process block', () => {
 
 			beforeAll(async () => {
 				const senderAuthData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-					address: account.address.toString('hex'),
+					address: address.getLisk32AddressFromAddress(account.address),
 				});
 				invalidTx = createDelegateRegisterTransaction({
 					nonce: BigInt(senderAuthData.nonce),
 					fee: BigInt('5000000000'),
 					username: 'number1',
 					networkIdentifier,
-					passphrase: account.passphrase,
+					privateKey: account.privateKey,
+					blsKey: account.blsPublicKey,
+					generatorKey: account.publicKey,
+					blsProofOfPossession: account.blsPoP,
 				});
 				invalidBlock = await processEnv.createBlock();
 				(invalidBlock as any).transactions = [transaction];
 				invalidBlock.header.transactionRoot = regularMerkleTree.calculateMerkleRootWithLeaves([
 					transaction.id,
 				]);
-				const passphrase = await getPassphraseFromDefaultConfig(
-					invalidBlock.header.generatorAddress,
+				const generatorPrivateKey = getGeneratorPrivateKeyFromDefaultConfig(
+					newBlock.header.generatorAddress,
 				);
-				const { privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
-				invalidBlock.header.sign(processEnv.getNetworkId(), privateKey);
+				invalidBlock.header.sign(processEnv.getNetworkId(), generatorPrivateKey);
 				try {
 					await processEnv.process(invalidBlock);
 				} catch (err) {
@@ -306,7 +314,7 @@ describe('Process block', () => {
 
 			it('should have the same account state as before', async () => {
 				const delegate = await processEnv.invoke<{ name: string }>('dpos_getDelegate', {
-					address: account.address.toString('hex'),
+					address: address.getLisk32AddressFromAddress(account.address),
 				});
 				expect(delegate.name).toEqual('number1');
 			});

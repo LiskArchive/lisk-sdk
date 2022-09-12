@@ -13,7 +13,8 @@
  */
 
 import { ListenerFn } from 'eventemitter2';
-import { StateDB } from '@liskhq/lisk-db';
+import { Database, StateDB } from '@liskhq/lisk-db';
+import { StateStore } from '@liskhq/lisk-chain';
 import { Event, EventCallback } from '../event';
 import { Request } from '../request';
 import { BaseChannel } from './base_channel';
@@ -21,22 +22,25 @@ import { Bus } from '../bus';
 import * as JSONRPC from '../jsonrpc/types';
 import { ChannelType, EndpointHandlers } from '../../types';
 import { Logger } from '../../logger';
-import { createImmutableAPIContext } from '../../state_machine';
+import { createImmutableMethodContext } from '../../state_machine';
 import { PrefixedStateReadWriter } from '../../state_machine/prefixed_state_read_writer';
 
 export class InMemoryChannel extends BaseChannel {
 	private bus!: Bus;
 	private readonly _db: StateDB;
+	private readonly _moduleDB: Database;
 
 	public constructor(
 		logger: Logger,
 		db: StateDB,
+		moduleDB: Database,
 		namespace: string,
 		events: ReadonlyArray<string>,
 		endpoints: EndpointHandlers,
 	) {
 		super(logger, namespace, events, endpoints);
 		this._db = db;
+		this._moduleDB = moduleDB;
 	}
 
 	public async registerToBus(bus: Bus): Promise<void> {
@@ -108,8 +112,12 @@ export class InMemoryChannel extends BaseChannel {
 					const stateStore = new PrefixedStateReadWriter(this._db.newReadWriter());
 					return stateStore.getStore(moduleID, storePrefix);
 				},
-				getImmutableAPIContext: () =>
-					createImmutableAPIContext(new PrefixedStateReadWriter(this._db.newReadWriter())),
+				getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) => {
+					const stateStore = new StateStore(this._moduleDB);
+					return stateStore.getStore(moduleID, storePrefix);
+				},
+				getImmutableMethodContext: () =>
+					createImmutableMethodContext(new PrefixedStateReadWriter(this._db.newReadWriter())),
 			}) as Promise<T>;
 		}
 

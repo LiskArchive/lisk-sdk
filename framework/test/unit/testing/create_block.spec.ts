@@ -49,7 +49,7 @@ describe('Create Block', () => {
 
 	it('should return a valid default block', async () => {
 		const block = await createBlock({
-			passphrase: genesis.passphrase,
+			privateKey: genesis.privateKey,
 			networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
 			timestamp: genesisBlock.header.timestamp,
 			previousBlockID: genesisBlock.header.id,
@@ -92,7 +92,7 @@ describe('Create Block', () => {
 		};
 
 		const block = await createBlock({
-			passphrase: genesis.passphrase,
+			privateKey: genesis.privateKey,
 			networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
 			timestamp: genesisBlock.header.timestamp,
 			previousBlockID: genesisBlock.header.id,
@@ -110,7 +110,7 @@ describe('Create Block', () => {
 
 	it('should return a valid previous block id and timestamp from genesis block', async () => {
 		const block = await createBlock({
-			passphrase: genesis.passphrase,
+			privateKey: genesis.privateKey,
 			networkIdentifier: Buffer.from(networkIdentifier, 'hex'),
 			timestamp: genesisBlock.header.timestamp + 10,
 			previousBlockID: genesisBlock.header.id,

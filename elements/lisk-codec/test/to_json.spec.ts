@@ -42,6 +42,20 @@ describe('toJSON', () => {
 							dataType: 'uint64',
 							fieldNumber: 1,
 						},
+						addressProp: {
+							dataType: 'bytes',
+							format: 'lisk32',
+							fieldNumber: 2,
+						},
+						hexProp: {
+							dataType: 'bytes',
+							fieldNumber: 3,
+						},
+						base64Prop: {
+							dataType: 'bytes',
+							format: 'base64',
+							fieldNumber: 4,
+						},
 					},
 				},
 				arrayValue: {
@@ -63,7 +77,14 @@ describe('toJSON', () => {
 		const result = codec.toJSON(schema, {
 			rootProp: BigInt('123'),
 			extra3: true,
-			objectValue: { objectProp: BigInt('456'), extra1: 'my-value', extra2: 'my-value' },
+			objectValue: {
+				objectProp: BigInt('456'),
+				extra1: 'my-value',
+				extra2: 'my-value',
+				addressProp: Buffer.from('88c0ee8a4f8fa0e498770c70749584f179938ffa', 'hex'),
+				hexProp: Buffer.from('88c0ee', 'hex'),
+				base64Prop: Buffer.from('88c0ee8a4f8fa0e498770c70749584f179938ffa', 'hex'),
+			},
 			arrayValue: [
 				{ arrayProp: BigInt('999'), extra4: true },
 				{ arrayProp: BigInt('879'), extra5: 987 },
@@ -72,7 +93,12 @@ describe('toJSON', () => {
 
 		expect(result).toEqual({
 			rootProp: '123',
-			objectValue: { objectProp: '456' },
+			objectValue: {
+				objectProp: '456',
+				addressProp: 'lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz',
+				hexProp: '88c0ee',
+				base64Prop: 'iMDuik+PoOSYdwxwdJWE8XmTj/o=',
+			},
 			arrayValue: [{ arrayProp: '999' }, { arrayProp: '879' }],
 		});
 	});

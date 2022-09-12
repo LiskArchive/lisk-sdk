@@ -21,6 +21,6 @@ export interface ReportMisbehaviorPluginConfig {
 
 export interface State {
 	publicKey?: Buffer;
-	passphrase?: string;
+	privateKey?: Buffer;
 	currentHeight: number;
 }

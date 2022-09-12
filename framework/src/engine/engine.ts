@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import * as path from 'path';
-import { Chain, Block, BlockHeader, BlockAssets, TransactionJSON } from '@liskhq/lisk-chain';
-import { utils } from '@liskhq/lisk-cryptography';
+import { Chain, Block, TransactionJSON } from '@liskhq/lisk-chain';
+import { address, utils } from '@liskhq/lisk-cryptography';
 import { Database } from '@liskhq/lisk-db';
 import { createLogger, Logger } from '../logger';
 import { Network } from './network';
@@ -33,7 +33,7 @@ import {
 import { RPCServer, RequestContext } from './rpc/rpc_server';
 import { ChainEndpoint } from './endpoint/chain';
 import { SystemEndpoint } from './endpoint/system';
-import { ABI, InitResponse } from '../abi';
+import { ABI } from '../abi';
 import {
 	CONSENSUS_EVENT_FORK_DETECTED,
 	CONSENSUS_EVENT_NETWORK_BLOCK_NEW,
@@ -43,6 +43,8 @@ import { TxpoolEndpoint } from './endpoint/txpool';
 import { ValidatorUpdate } from './consensus/types';
 import { GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT } from './generator/constants';
 import { ConsensusEndpoint } from './endpoint/consensus';
+import { EngineConfig } from '../types';
+import { readGenesisBlock } from '../utils/genesis_block';
 
 const isEmpty = (value: unknown): boolean => {
 	switch (typeof value) {
@@ -74,7 +76,7 @@ const emptyOrDefault = <T>(value: T, defaultValue: T): T => (isEmpty(value) ? de
 
 export class Engine {
 	private readonly _abi: ABI;
-	private _config!: InitResponse['config'];
+	private readonly _config: EngineConfig;
 	private _consensus!: Consensus;
 	private _generator!: Generator;
 	private _network!: Network;
@@ -87,8 +89,9 @@ export class Engine {
 	private _blockchainDB!: Database;
 	private _networkIdentifier!: Buffer;
 
-	public constructor(abi: ABI) {
+	public constructor(abi: ABI, config: EngineConfig) {
 		this._abi = abi;
+		this._config = config;
 	}
 
 	public async generateBlock(input: BlockGenerateInput): Promise<Block> {
@@ -105,7 +108,7 @@ export class Engine {
 			lastBlockHeight: this._chain.lastBlock.header.height,
 			networkIdentifier: this._chain.networkIdentifier,
 		});
-		this._logger.info('Engine starting');
+		this._logger.info('Engine started');
 	}
 
 	public async stop(): Promise<void> {
@@ -119,17 +122,12 @@ export class Engine {
 	}
 
 	private async _init(): Promise<void> {
-		const { config, genesisBlock, registeredModules } = await this._abi.init({});
-		this._config = config;
 		this._logger = createLogger({
-			module: 'engine',
-			fileLogLevel: emptyOrDefault(config.logger.fileLogLevel, 'info'),
-			consoleLogLevel: emptyOrDefault(config.logger.consoleLogLevel, 'info'),
-			logFilePath: path.join(config.system.dataPath, 'logs', 'engine.log'),
+			name: 'engine',
+			logLevel: emptyOrDefault(this._config.system.logLevel, 'info'),
 		});
 		this._logger.info('Engine initialization starting');
 		this._network = new Network({
-			networkVersion: this._config.system.networkVersion,
 			options: this._config.network,
 		});
 
@@ -143,10 +141,7 @@ export class Engine {
 			abi: this._abi,
 			network: this._network,
 			chain: this._chain,
-			genesisConfig: {
-				...this._config.genesis,
-				modules: {},
-			},
+			genesisConfig: this._config.genesis,
 			bft: this._bftModule,
 		});
 		this._generator = new Generator({
@@ -154,24 +149,12 @@ export class Engine {
 			chain: this._chain,
 			consensus: this._consensus,
 			bft: this._bftModule,
-			generationConfig: {
-				...this._config.generator,
-				waitThreshold: this._config.genesis.blockTime / 5,
-				generators: this._config.generator.keys,
-			},
+			config: this._config,
 			network: this._network,
-			genesisConfig: {
-				...this._config.genesis,
-				modules: {},
-			},
 		});
 		this._rpcServer = new RPCServer(this._config.system.dataPath, this._config.rpc);
 
-		const genesis = new Block(
-			new BlockHeader(genesisBlock.header),
-			[],
-			new BlockAssets(genesisBlock.assets),
-		);
+		const genesis = readGenesisBlock(this._config, this._logger);
 
 		this._blockchainDB = new Database(
 			path.join(this._config.system.dataPath, 'data', 'blockchain.db'),
@@ -200,9 +183,7 @@ export class Engine {
 			db: this._blockchainDB,
 			genesisBlock: genesis,
 			logger: this._logger,
-			modules: registeredModules.map(mod => mod.module),
 		});
-
 		await this._generator.init({
 			blockchainDB: this._blockchainDB,
 			generatorDB: this._generatorDB,
@@ -222,7 +203,7 @@ export class Engine {
 		});
 		chainEndpoint.init(this._blockchainDB);
 		const consensusEndpoint = new ConsensusEndpoint({
-			bftAPI: this._bftModule.api,
+			bftMethod: this._bftModule.method,
 			blockchainDB: this._blockchainDB,
 		});
 		const systemEndpoint = new SystemEndpoint({
@@ -299,7 +280,7 @@ export class Engine {
 			this._rpcServer
 				.publish(EVENT_CHAIN_VALIDATORS_CHANGE, {
 					nextValidators: update.nextValidators.map(v => ({
-						address: v.address.toString('hex'),
+						address: address.getLisk32AddressFromAddress(v.address),
 						blsKey: v.blsKey.toString('hex'),
 						generatorKey: v.generatorKey.toString('hex'),
 						bftWeight: v.bftWeight.toString(),

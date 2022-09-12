@@ -64,7 +64,7 @@ export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCComman
 			const beforeSendContext = createCCMsgBeforeSendContext({
 				ccm,
 				eventQueue: ctx.eventQueue,
-				getAPIContext: ctx.getAPIContext,
+				getMethodContext: ctx.getMethodContext,
 				getStore: ctx.getStore,
 				logger: ctx.logger,
 				networkIdentifier: ctx.networkIdentifier,
@@ -75,6 +75,6 @@ export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCComman
 	}
 
 	protected getInteroperabilityStore(context: StoreGetter): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
+		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
 	}
 }

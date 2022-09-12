@@ -13,8 +13,7 @@
  */
 
 export interface Account {
-	base32Address: string;
-	binaryAddress: string;
+	address: string;
 	publicKey: string;
 	passphrase?: string;
 }

@@ -14,10 +14,12 @@
 
 import { EventEmitter } from 'events';
 import { Block, Transaction, BlockHeader, StateStore } from '@liskhq/lisk-chain';
+import { encrypt } from '@liskhq/lisk-cryptography';
 import { IterateOptions } from '@liskhq/lisk-db';
 import { AggregateCommit } from '../consensus/types';
 import { ValidatorInfo } from '../consensus/certificate_generation/types';
 import { Consensus as ABIConsensus } from '../../abi';
+import { JSONObject } from '../../types';
 
 export interface Keypair {
 	publicKey: Buffer;
@@ -30,13 +32,6 @@ export interface Generator {
 	readonly encryptedPassphrase: string;
 }
 
-export interface GenerationConfig {
-	waitThreshold: number;
-	generators: Generator[];
-	force?: boolean;
-	password?: string;
-}
-
 export interface GeneratorStore {
 	get: (key: Buffer) => Promise<Buffer>;
 	set: (key: Buffer, value: Buffer) => Promise<void>;
@@ -45,6 +40,7 @@ export interface GeneratorStore {
 export interface Consensus {
 	execute: (block: Block) => Promise<void>;
 	isSynced: (height: number, maxHeightPrevoted: number) => boolean;
+	finalizedHeight: () => number;
 	getAggregateCommit: (stateStore: StateStore) => Promise<AggregateCommit>;
 	certifySingleCommit: (blockHeader: BlockHeader, validatorInfo: ValidatorInfo) => void;
 	getMaxRemovalHeight: () => Promise<number>;
@@ -71,6 +67,7 @@ export interface GeneratorDB {
 	close: () => void;
 	get: (key: Buffer) => Promise<Buffer>;
 	has(key: Buffer): Promise<boolean>;
+	iterate(options?: IterateOptions): NodeJS.ReadableStream;
 }
 
 export interface BlockGenerateInput {
@@ -80,4 +77,40 @@ export interface BlockGenerateInput {
 	privateKey: Buffer;
 	transactions?: Transaction[];
 	db?: GeneratorDB;
+}
+
+export interface EncodedGeneratorKeys {
+	type: 'encrypted' | 'plain';
+	data: Buffer;
+}
+
+interface EncryptedGeneratorKeys {
+	type: 'encrypted';
+	address: Buffer;
+	data: encrypt.EncryptedMessageObject;
+}
+
+export interface PlainGeneratorKeyData {
+	generatorKey: Buffer;
+	generatorPrivateKey: Buffer;
+	blsKey: Buffer;
+	blsPrivateKey: Buffer;
+}
+
+export type PlainGeneratorKeyDataJSON = JSONObject<PlainGeneratorKeyData>;
+
+interface PlainGeneratorKeys {
+	type: 'plain';
+	address: Buffer;
+	data: PlainGeneratorKeyData;
+}
+
+export type GeneratorKeys = EncryptedGeneratorKeys | PlainGeneratorKeys;
+
+export interface KeysFile {
+	keys: {
+		address: string;
+		plain?: PlainGeneratorKeyDataJSON;
+		encrypted?: encrypt.EncryptedMessageObject;
+	}[];
 }

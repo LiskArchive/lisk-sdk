@@ -21,7 +21,7 @@ import {
 import { Application } from '../../../../src';
 import { APP_EVENT_BLOCK_NEW } from '../../../../src/constants';
 
-describe('api client ipc mode', () => {
+describe('method client ipc mode', () => {
 	const label = 'client-ipc-in-memory';
 	let app: Application;
 	let client: any;

@@ -36,7 +36,6 @@ describe('account:create', () => {
 				'passphrase',
 				'privateKey',
 				'publicKey',
-				'binaryAddress',
 				'address',
 			]);
 		});

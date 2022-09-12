@@ -19,10 +19,10 @@ import { InMemoryDatabase } from '@liskhq/lisk-db';
 import { ModuleEndpointContext } from '../types';
 import { Logger } from '../logger';
 import {
-	APIContext,
+	MethodContext,
 	BlockContext,
-	createAPIContext,
-	createImmutableAPIContext,
+	createMethodContext,
+	createImmutableMethodContext,
 	EventQueue,
 	GenesisBlockContext,
 	ImmutableSubStore,
@@ -36,13 +36,13 @@ import { SubStore } from '../state_machine/types';
 import { PrefixedStateReadWriter } from '../state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from './in_memory_prefixed_state';
 import {
-	BeforeApplyCCMsgAPIContext,
-	BeforeRecoverCCMsgAPIContext,
-	BeforeSendCCMsgAPIContext,
+	BeforeApplyCCMsgMethodContext,
+	BeforeRecoverCCMsgMethodContext,
+	BeforeSendCCMsgMethodContext,
 	CCCommandExecuteContext,
 	CCMsg,
 	CCUpdateParams,
-	RecoverCCMsgAPIContext,
+	RecoverCCMsgMethodContext,
 } from '../modules/interoperability/types';
 import { getIDAsKeyForStore } from './utils';
 import { getCCMSize } from '../modules/interoperability/utils';
@@ -141,9 +141,9 @@ export const createBlockContext = (params: {
 
 export const createBlockGenerateContext = (params: {
 	assets?: WritableBlockAssets;
-	getGeneratorStore?: (moduleID: Buffer, subStorePrefix?: Buffer) => SubStore;
+	getOffchainStore?: (moduleID: Buffer, subStorePrefix: Buffer) => SubStore;
 	logger?: Logger;
-	getAPIContext?: () => APIContext;
+	getMethodContext?: () => MethodContext;
 	getStore?: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 	header: BlockHeader;
 	finalizedHeight?: number;
@@ -151,8 +151,8 @@ export const createBlockGenerateContext = (params: {
 }): InsertAssetContext => {
 	const db = new InMemoryDatabase();
 	const generatorStore = new StateStore(db);
-	const getGeneratorStore = (moduleID: Buffer, subStorePrefix: Buffer = Buffer.alloc(0)) =>
-		generatorStore.getStore(moduleID, subStorePrefix.readUInt16BE(0));
+	const getOffchainStore = (moduleID: Buffer, subStorePrefix: Buffer) =>
+		generatorStore.getStore(moduleID, subStorePrefix);
 	const header =
 		params.header ??
 		new BlockHeader({
@@ -179,12 +179,12 @@ export const createBlockGenerateContext = (params: {
 
 	const ctx: InsertAssetContext = {
 		assets: params.assets ?? new BlockAssets([]),
-		getGeneratorStore: params.getGeneratorStore ?? getGeneratorStore,
+		getOffchainStore: params.getOffchainStore ?? getOffchainStore,
 		logger: params.logger ?? loggerMock,
 		networkIdentifier: params.networkIdentifier ?? utils.getRandomBytes(32),
-		getAPIContext: params.getAPIContext ?? (() => ({ getStore, eventQueue: new EventQueue() })),
+		getMethodContext:
+			params.getMethodContext ?? (() => ({ getStore, eventQueue: new EventQueue() })),
 		getStore: params.getStore ?? getStore,
-		getOffchainStore: params.getGeneratorStore ?? getGeneratorStore,
 		getFinalizedHeight: () => params.finalizedHeight ?? 0,
 		header,
 	};
@@ -245,31 +245,35 @@ export const createTransactionContext = (params: {
 	return ctx;
 };
 
-export const createTransientAPIContext = (params: {
+export const createTransientMethodContext = (params: {
 	stateStore?: PrefixedStateReadWriter;
 	eventQueue?: EventQueue;
-}): APIContext => {
+}): MethodContext => {
 	const stateStore =
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	const eventQueue = params.eventQueue ?? new EventQueue();
-	const ctx = createAPIContext({ stateStore, eventQueue });
+	const ctx = createMethodContext({ stateStore, eventQueue });
 	return ctx;
 };
 
 export const createTransientModuleEndpointContext = (params: {
 	stateStore?: PrefixedStateReadWriter;
+	moduleStore?: StateStore;
 	params?: Record<string, unknown>;
 	logger?: Logger;
 	networkIdentifier?: Buffer;
 }): ModuleEndpointContext => {
 	const stateStore =
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
+	const moduleStore = params.moduleStore ?? new StateStore(new InMemoryDatabase());
 	const parameters = params.params ?? {};
 	const logger = params.logger ?? loggerMock;
 	const networkIdentifier = params.networkIdentifier ?? Buffer.alloc(0);
 	const ctx = {
 		getStore: (moduleID: Buffer, storePrefix: Buffer) => stateStore.getStore(moduleID, storePrefix),
-		getImmutableAPIContext: () => createImmutableAPIContext(stateStore),
+		getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) =>
+			moduleStore.getStore(moduleID, storePrefix),
+		getImmutableMethodContext: () => createImmutableMethodContext(stateStore),
 		params: parameters,
 		logger,
 		networkIdentifier,
@@ -277,11 +281,11 @@ export const createTransientModuleEndpointContext = (params: {
 	return ctx;
 };
 
-const createCCAPIContext = (params: {
+const createCCMethodContext = (params: {
 	stateStore?: PrefixedStateReadWriter;
 	logger?: Logger;
 	networkIdentifier?: Buffer;
-	getAPIContext?: () => APIContext;
+	getMethodContext?: () => MethodContext;
 	eventQueue?: EventQueue;
 	ccm?: CCMsg;
 	feeAddress?: Buffer;
@@ -307,69 +311,69 @@ const createCCAPIContext = (params: {
 		getStore: (moduleID: Buffer, storePrefix: Buffer) => stateStore.getStore(moduleID, storePrefix),
 		logger,
 		networkIdentifier,
-		getAPIContext: params.getAPIContext ?? (() => ({ getStore, eventQueue })),
+		getMethodContext: params.getMethodContext ?? (() => ({ getStore, eventQueue })),
 		eventQueue,
 		ccm,
 		feeAddress: params.feeAddress ?? utils.getRandomBytes(20),
 	};
 };
 
-export const createExecuteCCMsgAPIContext = (params: {
+export const createExecuteCCMsgMethodContext = (params: {
 	ccm?: CCMsg;
 	feeAddress?: Buffer;
 	logger?: Logger;
 	networkIdentifier?: Buffer;
-	getAPIContext?: () => APIContext;
+	getMethodContext?: () => MethodContext;
 	eventQueue?: EventQueue;
 }): CCCommandExecuteContext => {
-	const context = createCCAPIContext(params);
+	const context = createCCMethodContext(params);
 	return {
 		...context,
 		ccmSize: getCCMSize(context.ccm),
 	};
 };
 
-export const createBeforeSendCCMsgAPIContext = (params: {
+export const createBeforeSendCCMsgMethodContext = (params: {
 	ccm?: CCMsg;
 	feeAddress: Buffer;
 	logger?: Logger;
 	networkIdentifier?: Buffer;
-	getAPIContext?: () => APIContext;
+	getMethodContext?: () => MethodContext;
 	eventQueue?: EventQueue;
-}): BeforeSendCCMsgAPIContext => createCCAPIContext(params);
+}): BeforeSendCCMsgMethodContext => createCCMethodContext(params);
 
-export const createBeforeApplyCCMsgAPIContext = (params: {
+export const createBeforeApplyCCMsgMethodContext = (params: {
 	ccm: CCMsg;
 	ccu: CCUpdateParams;
 	payFromAddress: Buffer;
 	stateStore?: PrefixedStateReadWriter;
 	logger?: Logger;
 	networkIdentifier?: Buffer;
-	getAPIContext?: () => APIContext;
+	getMethodContext?: () => MethodContext;
 	eventQueue?: EventQueue;
 	feeAddress: Buffer;
 	trsSender: Buffer;
-}): BeforeApplyCCMsgAPIContext => ({
-	...createCCAPIContext(params),
+}): BeforeApplyCCMsgMethodContext => ({
+	...createCCMethodContext(params),
 	ccu: params.ccu,
 	trsSender: params.trsSender,
 });
 
-export const createBeforeRecoverCCMsgAPIContext = (params: {
+export const createBeforeRecoverCCMsgMethodContext = (params: {
 	ccm: CCMsg;
 	trsSender: Buffer;
 	stateStore?: PrefixedStateReadWriter;
 	logger?: Logger;
 	networkIdentifier?: Buffer;
-	getAPIContext?: () => APIContext;
+	getMethodContext?: () => MethodContext;
 	feeAddress: Buffer;
 	eventQueue?: EventQueue;
-}): BeforeRecoverCCMsgAPIContext => ({
-	...createCCAPIContext(params),
+}): BeforeRecoverCCMsgMethodContext => ({
+	...createCCMethodContext(params),
 	trsSender: params.trsSender,
 });
 
-export const createRecoverCCMsgAPIContext = (params: {
+export const createRecoverCCMsgMethodContext = (params: {
 	ccm?: CCMsg;
 	terminatedChainID: Buffer;
 	module: string;
@@ -379,11 +383,11 @@ export const createRecoverCCMsgAPIContext = (params: {
 	stateStore?: PrefixedStateReadWriter;
 	logger?: Logger;
 	networkIdentifier?: Buffer;
-	getAPIContext?: () => APIContext;
+	getMethodContext?: () => MethodContext;
 	feeAddress: Buffer;
 	eventQueue?: EventQueue;
-}): RecoverCCMsgAPIContext => ({
-	...createCCAPIContext(params),
+}): RecoverCCMsgMethodContext => ({
+	...createCCMethodContext(params),
 	terminatedChainID: params.terminatedChainID,
 	module: params.module,
 	storePrefix: params.storePrefix,

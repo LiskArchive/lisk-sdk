@@ -12,7 +12,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { Chain } from '@liskhq/lisk-chain';
+import { Block, BlockAssets, Chain } from '@liskhq/lisk-chain';
 import { Engine } from '../../../src/engine/engine';
 import {
 	Consensus,
@@ -21,10 +21,9 @@ import {
 	CONSENSUS_EVENT_FORK_DETECTED,
 } from '../../../src/engine/consensus';
 import { ABI } from '../../../src/abi';
-import { genesisBlock } from '../../fixtures';
 import * as logger from '../../../src/logger';
 import { fakeLogger } from '../../utils/mocks';
-import { BFTAPI } from '../../../src/engine/bft/api';
+import { BFTMethod } from '../../../src/engine/bft/method';
 import { Network } from '../../../src/engine/network';
 import { Generator } from '../../../src/engine/generator';
 import { RPCServer } from '../../../src/engine/rpc/rpc_server';
@@ -32,6 +31,8 @@ import {
 	CONSENSUS_EVENT_NETWORK_BLOCK_NEW,
 	CONSENSUS_EVENT_VALIDATORS_CHANGED,
 } from '../../../src/engine/consensus/constants';
+import { defaultConfig } from '../../../src/testing/fixtures';
+import { createFakeBlockHeader } from '../../fixtures';
 
 jest.mock('fs-extra');
 jest.mock('@liskhq/lisk-db');
@@ -42,41 +43,6 @@ describe('engine', () => {
 
 	beforeEach(() => {
 		abi = {
-			init: jest.fn().mockResolvedValue({
-				config: {
-					system: {
-						dataPath: `/home/lisk/.lisk-test`,
-					},
-					rpc: {
-						modes: [],
-					},
-					logger: {
-						consoleLogLevel: 'debug',
-						fileLogLevel: '',
-					},
-					genesis: {
-						communityIdentifier: 'Lisk',
-					},
-					network: {
-						port: '7887',
-						seedPeers: [],
-						fixedPeers: [],
-						whitelistedPeers: [],
-						blacklistedIPs: [],
-						maxOutboundConnections: 0,
-						maxInboundConnections: 0,
-						advertiseAddress: false,
-					},
-					txpool: {},
-					generator: {},
-				},
-				genesisBlock: {
-					header: genesisBlock().header,
-					assets: [],
-					transactions: [],
-				},
-				registeredModules: [],
-			}),
 			ready: jest.fn(),
 		} as never;
 		jest.spyOn(logger, 'createLogger').mockReturnValue(fakeLogger);
@@ -87,7 +53,7 @@ describe('engine', () => {
 			.mockReturnValue({ header: { height: 300 } } as never);
 		jest.spyOn(Consensus.prototype, 'getMaxRemovalHeight').mockResolvedValue(0);
 		jest
-			.spyOn(BFTAPI.prototype, 'getBFTHeights')
+			.spyOn(BFTMethod.prototype, 'getBFTHeights')
 			.mockResolvedValue({ maxHeightPrecommitted: 0 } as never);
 		jest.spyOn(Network.prototype, 'init');
 		jest.spyOn(Network.prototype, 'start');
@@ -95,7 +61,6 @@ describe('engine', () => {
 		jest.spyOn(Consensus.prototype, 'init');
 		jest.spyOn(Consensus.prototype, 'start');
 		jest.spyOn(Consensus.prototype, 'stop');
-		jest.spyOn(Generator.prototype, 'init');
 		jest.spyOn(Generator.prototype, 'start');
 		jest.spyOn(Generator.prototype, 'stop');
 		jest.spyOn(RPCServer.prototype, 'init');
@@ -103,8 +68,19 @@ describe('engine', () => {
 		jest.spyOn(RPCServer.prototype, 'stop');
 		jest.spyOn(RPCServer.prototype, 'registerEndpoint');
 		jest.spyOn(RPCServer.prototype, 'registerNotFoundEndpoint');
+		jest.spyOn(Generator.prototype, 'init').mockResolvedValue(); // init tested via generator.spec
 
-		engine = new Engine(abi);
+		engine = new Engine(abi, {
+			...defaultConfig,
+			genesis: {
+				...defaultConfig.genesis,
+				block: {
+					blob: new Block(createFakeBlockHeader(), [], new BlockAssets())
+						.getBytes()
+						.toString('hex'),
+				},
+			},
+		});
 	});
 
 	describe('start', () => {
@@ -115,10 +91,8 @@ describe('engine', () => {
 
 		it('should initialize logger', () => {
 			expect(logger.createLogger).toHaveBeenCalledWith({
-				module: 'engine',
-				fileLogLevel: 'info',
-				consoleLogLevel: 'debug',
-				logFilePath: `/home/lisk/.lisk-test/logs/engine.log`,
+				name: 'engine',
+				logLevel: 'none',
 			});
 		});
 

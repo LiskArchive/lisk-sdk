@@ -80,7 +80,7 @@ export const metadata: ModuleMetadata[] = [
 					required: ['amount', 'recipientAddress', 'data'],
 					properties: {
 						amount: { dataType: 'uint64', fieldNumber: 1 },
-						recipientAddress: { dataType: 'bytes', fieldNumber: 2, minLength: 20, maxLength: 20 },
+						recipientAddress: { dataType: 'bytes', fieldNumber: 2, format: 'lisk32' },
 						data: { dataType: 'string', fieldNumber: 3, minLength: 0, maxLength: 64 },
 					},
 				},

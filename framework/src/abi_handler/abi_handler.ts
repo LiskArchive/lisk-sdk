@@ -12,30 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { EventEmitter } from 'events';
-import {
-	Block,
-	BlockAssets,
-	BlockHeader,
-	SMTStore,
-	StateStore,
-	Transaction,
-} from '@liskhq/lisk-chain';
+import { BlockAssets, BlockHeader, SMTStore, StateStore, Transaction } from '@liskhq/lisk-chain';
 import { StateDB, Database } from '@liskhq/lisk-db';
-import {
-	DEFAULT_EXPIRY_TIME,
-	DEFAULT_MAX_TRANSACTIONS,
-	DEFAULT_MAX_TRANSACTIONS_PER_ACCOUNT,
-	DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE,
-	DEFAULT_MIN_ENTRANCE_FEE_PRIORITY,
-} from '@liskhq/lisk-transaction-pool';
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { SparseMerkleTree } from '@liskhq/lisk-tree';
 import {
 	ABI,
 	blockHeaderSchema,
-	InitRequest,
-	InitResponse,
 	InitStateMachineRequest,
 	InitStateMachineResponse,
 	InitGenesisStateRequest,
@@ -79,23 +63,15 @@ import {
 	TransactionContext,
 } from '../state_machine';
 import { ApplicationConfig } from '../types';
-import {
-	DEFAULT_HOST,
-	DEFAULT_MAX_INBOUND_CONNECTIONS,
-	DEFAULT_MAX_OUTBOUND_CONNECTIONS,
-	DEFAULT_PORT_P2P,
-	MAX_BLOCK_CACHE,
-} from '../constants';
 import { GenerationContext } from '../state_machine/generator_context';
 import { BaseChannel } from '../controller/channels';
-import { systemDirs } from '../system_dirs';
 import { PrefixedStateReadWriter } from '../state_machine/prefixed_state_read_writer';
+import { readGenesisBlock } from '../utils/genesis_block';
 
 export interface ABIHandlerConstructor {
 	config: ApplicationConfig;
 	logger: Logger;
 	stateMachine: StateMachine;
-	genesisBlock: Block;
 	stateDB: StateDB;
 	moduleDB: Database;
 	modules: BaseModule[];
@@ -114,22 +90,20 @@ export const EVENT_ENGINE_READY = 'EVENT_ENGINE_READY';
 export class ABIHandler implements ABI {
 	public readonly event = new EventEmitter();
 
-	private readonly _config: ApplicationConfig;
 	private readonly _logger: Logger;
 	private readonly _stateMachine: StateMachine;
 	private readonly _stateDB: StateDB;
 	private readonly _moduleDB: Database;
 	private readonly _modules: BaseModule[];
 	private readonly _channel: BaseChannel;
+	private readonly _config: ApplicationConfig;
 
-	private _genesisBlock?: Block;
 	private _executionContext: ExecutionContext | undefined;
 	private _networkIdentifier?: Buffer;
 
 	public constructor(args: ABIHandlerConstructor) {
 		this._config = args.config;
 		this._logger = args.logger;
-		this._genesisBlock = args.genesisBlock;
 		this._stateMachine = args.stateMachine;
 		this._stateDB = args.stateDB;
 		this._moduleDB = args.moduleDB;
@@ -142,82 +116,6 @@ export class ABIHandler implements ABI {
 			throw new Error('Network identifier is not set.');
 		}
 		return this._networkIdentifier;
-	}
-
-	// eslint-disable-next-line @typescript-eslint/require-await
-	public async init(_req: InitRequest): Promise<InitResponse> {
-		const { dataPath } = systemDirs(this._config.label, this._config.rootPath);
-		if (!this._genesisBlock) {
-			throw new Error('Genesis block must exist at initialization');
-		}
-		return {
-			genesisBlock: {
-				header: {
-					...this._genesisBlock.header.toObject(),
-				},
-				// TODO: Replace after updating the block header
-				// header: this._genesisBlock.header.toObject(),
-				assets: this._genesisBlock.assets.getAll(),
-				transactions: [],
-			},
-			registeredModules: this._modules.map(mod => ({
-				module: mod.name,
-				commands: mod.commands.map(command => command.name),
-			})),
-			config: {
-				logger: this._config.logger,
-				system: {
-					dataPath,
-					keepEventsForHeights: this._config.system.keepEventsForHeights,
-					version: this._config.version,
-					maxBlockCache: MAX_BLOCK_CACHE,
-					networkVersion: this._config.networkVersion,
-				},
-				genesis: {
-					bftBatchSize: this._config.genesis.bftBatchSize,
-					blockTime: this._config.genesis.blockTime,
-					communityIdentifier: this._config.genesis.communityIdentifier,
-					minFeePerByte: this._config.genesis.minFeePerByte,
-					maxTransactionsSize: this._config.genesis.maxTransactionsSize,
-				},
-				generator: {
-					force: this._config.generation.force ?? false,
-					password: this._config.generation.defaultPassword ?? '',
-					keys: this._config.generation.generators.map(gen => ({
-						address: Buffer.from(gen.address, 'hex'),
-						encryptedPassphrase: gen.encryptedPassphrase,
-					})),
-				},
-				txpool: {
-					maxTransactions: this._config.transactionPool.maxTransactions ?? DEFAULT_MAX_TRANSACTIONS,
-					maxTransactionsPerAccount:
-						this._config.transactionPool.maxTransactions ?? DEFAULT_MAX_TRANSACTIONS_PER_ACCOUNT,
-					minEntranceFeePriority: this._config.transactionPool.minEntranceFeePriority
-						? BigInt(this._config.transactionPool.minEntranceFeePriority)
-						: DEFAULT_MIN_ENTRANCE_FEE_PRIORITY,
-					minReplacementFeeDifference: this._config.transactionPool.minReplacementFeeDifference
-						? BigInt(this._config.transactionPool.minReplacementFeeDifference)
-						: DEFAULT_MINIMUM_REPLACEMENT_FEE_DIFFERENCE,
-					transactionExpiryTime:
-						this._config.transactionPool.transactionExpiryTime ?? DEFAULT_EXPIRY_TIME,
-				},
-				network: {
-					...this._config.network,
-					port: this._config.network.port ?? DEFAULT_PORT_P2P,
-					blacklistedIPs: this._config.network.blacklistedIPs ?? [],
-					advertiseAddress: this._config.network.advertiseAddress ?? false,
-					fixedPeers: this._config.network.fixedPeers ?? [],
-					seedPeers: this._config.network.seedPeers,
-					hostIP: this._config.network.hostIp ?? DEFAULT_HOST,
-					maxInboundConnections:
-						this._config.network.maxInboundConnections ?? DEFAULT_MAX_INBOUND_CONNECTIONS,
-					maxOutboundConnections:
-						this._config.network.maxOutboundConnections ?? DEFAULT_MAX_OUTBOUND_CONNECTIONS,
-					whitelistedPeers: this._config.network.whitelistedPeers ?? [],
-				},
-				rpc: this._config.rpc,
-			},
-		};
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -250,9 +148,6 @@ export class ABIHandler implements ABI {
 	}
 
 	public async initGenesisState(req: InitGenesisStateRequest): Promise<InitGenesisStateResponse> {
-		if (!this._genesisBlock) {
-			throw new Error('Genesis block must exist at initialization');
-		}
 		if (!this._executionContext || !this._executionContext.id.equals(req.contextID)) {
 			throw new Error(
 				`Invalid context id ${req.contextID.toString(
@@ -260,17 +155,17 @@ export class ABIHandler implements ABI {
 				)}. Context is not initialized or different.`,
 			);
 		}
+		const genesisBlock = readGenesisBlock(this._config, this._logger);
 		const context = new GenesisBlockContext({
 			eventQueue: new EventQueue(),
-			header: this._executionContext.header,
+			header: genesisBlock.header,
 			logger: this._logger,
 			stateStore: this._executionContext.stateStore,
-			assets: this._genesisBlock.assets,
+			assets: genesisBlock.assets,
 		});
 
 		await this._stateMachine.executeGenesisBlock(context);
 		return {
-			assets: this._genesisBlock.assets.getAll(),
 			events: context.eventQueue.getEvents().map(e => e.toObject()),
 			certificateThreshold: context.nextValidators.certificateThreshold,
 			nextValidators: context.nextValidators.validators,
@@ -302,7 +197,6 @@ export class ABIHandler implements ABI {
 
 	public async verifyAssets(req: VerifyAssetsRequest): Promise<VerifyAssetsResponse> {
 		// Remove genesis block from memory
-		this._genesisBlock = undefined;
 		if (!this._executionContext || !this._executionContext.id.equals(req.contextID)) {
 			throw new Error(
 				`Invalid context id ${req.contextID.toString(
@@ -536,10 +430,12 @@ export class ABIHandler implements ABI {
 		const params = JSON.parse(req.params.toString('utf8')) as Record<string, unknown>;
 		try {
 			const resp = await this._channel.invoke(req.method, params);
+			this._logger.info({ method: req.method }, 'Called ABI query successfully');
 			return {
 				data: Buffer.from(JSON.stringify(resp), 'utf-8'),
 			};
 		} catch (error) {
+			this._logger.info({ method: req.method, err: error as Error }, 'Failed to call ABI query');
 			return {
 				data: Buffer.from(
 					JSON.stringify({

@@ -71,7 +71,7 @@ export const invalidGenesisAssets = [
 				...validData.userSubstore.slice(1),
 			],
 		},
-		".address' minLength not satisfied",
+		".address' address length invalid",
 	],
 	[
 		'Invalid token id length',

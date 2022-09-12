@@ -13,7 +13,7 @@
  */
 
 import { DB_KEY_ACCOUNTS_ADDRESS, concatDBKeys } from '@liskhq/lisk-chain';
-import { createWSClient } from '@liskhq/lisk-api-client';
+import { createWSClient } from '@liskhq/lisk-method-client';
 import {
 	closeApplication,
 	waitNBlocks,
@@ -22,7 +22,7 @@ import {
 import { Application } from '../../../../src';
 import { APP_EVENT_BLOCK_NEW } from '../../../../src/constants';
 
-describe('api client ws mode', () => {
+describe('method client ws mode', () => {
 	const url = 'ws://localhost:8080/ws';
 
 	let app: Application;

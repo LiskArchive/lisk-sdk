@@ -14,7 +14,7 @@
 
 import { Chain } from '@liskhq/lisk-chain';
 import { Database } from '@liskhq/lisk-db';
-import { BFTAPI } from '../../bft';
+import { BFTMethod } from '../../bft';
 import { Network } from '../../network';
 
 // aggregationBits and signatures are optional as these properties are removed when signing certificates
@@ -38,7 +38,7 @@ export interface SingleCommit {
 export interface CommitPoolConfig {
 	readonly network: Network;
 	readonly blockTime: number;
-	readonly bftAPI: BFTAPI;
+	readonly bftMethod: BFTMethod;
 	readonly chain: Chain;
 	readonly db: Database;
 }

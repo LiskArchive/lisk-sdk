@@ -27,8 +27,8 @@ describe('network', () => {
 	beforeEach(async () => {
 		const db = new InMemoryDatabase();
 		network = new Network({
-			networkVersion: '2.0',
 			options: {
+				version: '2.0',
 				port: 3000,
 				seedPeers: [],
 			},
@@ -173,8 +173,8 @@ describe('network', () => {
 
 			beforeEach(() => {
 				network = new Network({
-					networkVersion: '2.0',
 					options: {
+						version: '2.0',
 						port: 3000,
 						seedPeers: [],
 					},

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import { Block } from '@liskhq/lisk-chain';
-
+import { address } from '@liskhq/lisk-cryptography';
 import { nodeUtils } from '../../../utils';
 import {
 	createTransferTransaction,
@@ -38,8 +38,8 @@ describe('Transaction order', () => {
 		networkIdentifier = processEnv.getNetworkId();
 	});
 
-	afterAll(async () => {
-		await processEnv.cleanup({ databasePath });
+	afterAll(() => {
+		processEnv.cleanup({ databasePath });
 	});
 
 	describe('given transactions in specific order', () => {
@@ -48,7 +48,7 @@ describe('Transaction order', () => {
 
 			beforeAll(async () => {
 				const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-					address: genesis.address.toString('hex'),
+					address: genesis.address,
 				});
 				const accountWithoutBalance = nodeUtils.createAccount();
 				const fundingTx = createTransferTransaction({
@@ -56,15 +56,15 @@ describe('Transaction order', () => {
 					recipientAddress: accountWithoutBalance.address,
 					amount: BigInt('10000000000'),
 					networkIdentifier,
-					passphrase: genesis.passphrase,
+					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				const returningTx = createTransferTransaction({
 					nonce: BigInt(0),
 					fee: BigInt('200000'),
-					recipientAddress: genesis.address,
+					recipientAddress: Buffer.from(genesis.address, 'hex'),
 					amount: BigInt('9900000000'),
 					networkIdentifier,
-					passphrase: accountWithoutBalance.passphrase,
+					privateKey: accountWithoutBalance.privateKey,
 				});
 				newBlock = await processEnv.createBlock([fundingTx, returningTx]);
 				await processEnv.process(newBlock);
@@ -81,7 +81,7 @@ describe('Transaction order', () => {
 
 			beforeAll(async () => {
 				const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-					address: genesis.address.toString('hex'),
+					address: genesis.address,
 				});
 				const newAccount = nodeUtils.createAccount();
 				const fundingTx = createTransferTransaction({
@@ -90,14 +90,17 @@ describe('Transaction order', () => {
 					recipientAddress: newAccount.address,
 					amount: BigInt('10000000000'),
 					networkIdentifier,
-					passphrase: genesis.passphrase,
+					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				const registerDelegateTx = createDelegateRegisterTransaction({
 					nonce: BigInt(0),
 					fee: BigInt('1100000000'),
 					username: 'new_delegate',
 					networkIdentifier,
-					passphrase: newAccount.passphrase,
+					blsKey: newAccount.blsPublicKey,
+					blsProofOfPossession: newAccount.blsPoP,
+					generatorKey: newAccount.publicKey,
+					privateKey: newAccount.privateKey,
 				});
 				const selfVoteTx = createDelegateVoteTransaction({
 					nonce: BigInt('1'),
@@ -109,7 +112,7 @@ describe('Transaction order', () => {
 						},
 					],
 					networkIdentifier,
-					passphrase: newAccount.passphrase,
+					privateKey: newAccount.privateKey,
 				});
 				newBlock = await processEnv.createBlock([fundingTx, registerDelegateTx, selfVoteTx]);
 				await processEnv.process(newBlock);
@@ -126,7 +129,7 @@ describe('Transaction order', () => {
 
 			beforeAll(async () => {
 				const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-					address: genesis.address.toString('hex'),
+					address: genesis.address,
 				});
 				const newAccount = nodeUtils.createAccount();
 				const multiSignatureMembers = [nodeUtils.createAccount(), nodeUtils.createAccount()];
@@ -136,7 +139,7 @@ describe('Transaction order', () => {
 					recipientAddress: newAccount.address,
 					amount: BigInt('100000000000'),
 					networkIdentifier,
-					passphrase: genesis.passphrase,
+					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				const optionalKeys = [...multiSignatureMembers.map(acc => acc.publicKey)];
 				optionalKeys.sort((a, b) => a.compare(b));
@@ -147,8 +150,8 @@ describe('Transaction order', () => {
 					optionalKeys,
 					numberOfSignatures: 2,
 					networkIdentifier,
-					senderPassphrase: newAccount.passphrase,
-					passphrases: [newAccount.passphrase, ...multiSignatureMembers.map(acc => acc.passphrase)],
+					senderPublicKey: newAccount.publicKey,
+					privateKeys: [newAccount.privateKey, ...multiSignatureMembers.map(acc => acc.privateKey)],
 				});
 
 				const transferTx = createMultisignatureTransferTransaction({
@@ -160,7 +163,7 @@ describe('Transaction order', () => {
 					mandatoryKeys: [newAccount.publicKey],
 					optionalKeys,
 					networkIdentifier,
-					passphrases: [newAccount.passphrase, multiSignatureMembers[0].passphrase],
+					privateKeys: [newAccount.privateKey, multiSignatureMembers[0].privateKey],
 				});
 				newBlock = await processEnv.createBlock([fundingTx, registerMultisigTx, transferTx]);
 				await processEnv.process(newBlock);
@@ -175,7 +178,7 @@ describe('Transaction order', () => {
 		describe('when account register as multisignature and send transfer with old signature', () => {
 			it('should not accept the block', async () => {
 				const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-					address: genesis.address.toString('hex'),
+					address: genesis.address,
 				});
 				const newAccount = nodeUtils.createAccount();
 				const multiSignatureMembers = [nodeUtils.createAccount(), nodeUtils.createAccount()];
@@ -185,7 +188,7 @@ describe('Transaction order', () => {
 					recipientAddress: newAccount.address,
 					amount: BigInt('10000000000'),
 					networkIdentifier,
-					passphrase: genesis.passphrase,
+					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				const optionalKeys = [...multiSignatureMembers.map(acc => acc.publicKey)];
 				optionalKeys.sort((a, b) => a.compare(b));
@@ -196,8 +199,8 @@ describe('Transaction order', () => {
 					optionalKeys,
 					numberOfSignatures: 2,
 					networkIdentifier,
-					senderPassphrase: newAccount.passphrase,
-					passphrases: [newAccount.passphrase, ...multiSignatureMembers.map(acc => acc.passphrase)],
+					senderPublicKey: newAccount.publicKey,
+					privateKeys: [newAccount.privateKey, ...multiSignatureMembers.map(acc => acc.privateKey)],
 				});
 				const transferTx = createTransferTransaction({
 					nonce: BigInt('1'),
@@ -205,7 +208,7 @@ describe('Transaction order', () => {
 					amount: BigInt('8000000000'),
 					recipientAddress: newAccount.address,
 					networkIdentifier,
-					passphrase: newAccount.passphrase,
+					privateKey: newAccount.privateKey,
 				});
 
 				// Execution of transaction will fail in block generation now with the same logic
@@ -219,7 +222,7 @@ describe('Transaction order', () => {
 		describe('when account does not have sufficient balance in the middle of process', () => {
 			it('should not accept the block', async () => {
 				const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-					address: genesis.address.toString('hex'),
+					address: genesis.address,
 				});
 				const accountWithoutBalance = nodeUtils.createAccount();
 				const fundingTx = createTransferTransaction({
@@ -228,15 +231,15 @@ describe('Transaction order', () => {
 					recipientAddress: accountWithoutBalance.address,
 					amount: BigInt('10000000000'),
 					networkIdentifier,
-					passphrase: genesis.passphrase,
+					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				const spendingTx = createTransferTransaction({
 					nonce: BigInt(0),
 					fee: BigInt('200000'),
-					recipientAddress: genesis.address,
+					recipientAddress: address.getAddressFromLisk32Address(genesis.address),
 					amount: BigInt('14000000000'),
 					networkIdentifier,
-					passphrase: accountWithoutBalance.passphrase,
+					privateKey: accountWithoutBalance.privateKey,
 				});
 				const refundingTx = createTransferTransaction({
 					nonce: BigInt(authData.nonce) + BigInt(1),
@@ -244,7 +247,7 @@ describe('Transaction order', () => {
 					recipientAddress: accountWithoutBalance.address,
 					amount: BigInt('5000000000'),
 					networkIdentifier,
-					passphrase: genesis.passphrase,
+					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 
 				// Execution of transaction will fail in block generation now with the same logic

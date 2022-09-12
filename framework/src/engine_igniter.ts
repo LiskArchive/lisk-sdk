@@ -11,23 +11,33 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import * as fs from 'fs';
 import { Engine } from './engine';
 import { ABIClient } from './abi_handler/abi_client';
 import { createLogger } from './logger';
+import { EngineConfig } from './types';
 
 const socketPath: string = process.argv[2];
-const debug: string = process.argv[3];
+const configIndex = process.argv.findIndex(arg => arg === '--config' || arg === '-c');
+if (configIndex < 0) {
+	throw new Error(`Engine config is required. config must be specified with --config or -c.`);
+}
+const configPath = process.argv[configIndex + 1];
+
+if (!configPath) {
+	throw new Error('Config path is required.');
+}
+
+const config = JSON.parse(fs.readFileSync(configPath, 'utf-8')) as EngineConfig;
 
 const abiLogger = createLogger({
-	consoleLogLevel: debug === 'true' ? 'debug' : 'info',
-	fileLogLevel: 'none',
-	module: 'ABIClient',
-	logFilePath: '',
+	logLevel: config.system.logLevel,
+	name: 'ABIClient',
 });
 
 let started = false;
 const client = new ABIClient(abiLogger, socketPath);
-const engine = new Engine(client);
+const engine = new Engine(client, config);
 client
 	.start()
 	.then(async () => {

@@ -22,8 +22,8 @@ import * as testing from '../../../../../src/testing';
 import { REPORTING_PUNISHMENT_REWARD } from '../../../../../src/modules/dpos_v2/constants';
 import {
 	DelegateAccount,
-	TokenAPI,
-	ValidatorsAPI,
+	TokenMethod,
+	ValidatorsMethod,
 	PomTransactionParams,
 } from '../../../../../src/modules/dpos_v2/types';
 import { VerifyStatus } from '../../../../../src/state_machine/types';
@@ -40,8 +40,8 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 	let pomCommand: ReportDelegateMisbehaviorCommand;
 	let stateStore: PrefixedStateReadWriter;
 	let delegateSubstore: DelegateStore;
-	let mockTokenAPI: TokenAPI;
-	let mockValidatorsAPI: ValidatorsAPI;
+	let mockTokenMethod: TokenMethod;
+	let mockValidatorsMethod: ValidatorsMethod;
 	const blockHeight = 8760000;
 	const reportPunishmentReward = REPORTING_PUNISHMENT_REWARD;
 	let context: any;
@@ -72,22 +72,22 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 
 	beforeEach(async () => {
 		pomCommand = new ReportDelegateMisbehaviorCommand(dpos.stores, dpos.events);
-		mockTokenAPI = {
+		mockTokenMethod = {
 			lock: jest.fn(),
 			unlock: jest.fn(),
 			getAvailableBalance: jest.fn(),
 			transfer: jest.fn(),
 			getLockedAmount: jest.fn(),
 		};
-		mockValidatorsAPI = {
+		mockValidatorsMethod = {
 			setValidatorGeneratorKey: jest.fn(),
 			registerValidatorKeys: jest.fn(),
 			getValidatorAccount: jest.fn().mockResolvedValue({ generatorKey: publicKey }),
 			getGeneratorsBetweenTimestamps: jest.fn(),
 		};
 		pomCommand.addDependencies({
-			tokenAPI: mockTokenAPI,
-			validatorsAPI: mockValidatorsAPI,
+			tokenMethod: mockTokenMethod,
+			validatorsMethod: mockValidatorsMethod,
 		});
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		delegateSubstore = dpos.stores.get(DelegateStore);
@@ -570,13 +570,13 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				})
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
-			when(pomCommand['_tokenAPI'].getAvailableBalance as any)
+			when(pomCommand['_tokenMethod'].getAvailableBalance as any)
 				.calledWith(expect.anything(), delegate1Address, DEFAULT_TOKEN_ID)
 				.mockResolvedValue(remainingBalance as never);
 
 			await pomCommand.execute(context);
 
-			expect(pomCommand['_tokenAPI'].transfer).toHaveBeenCalledWith(
+			expect(pomCommand['_tokenMethod'].transfer).toHaveBeenCalledWith(
 				expect.anything(),
 				delegate1Address,
 				context.transaction.senderAddress,
@@ -602,14 +602,14 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				})
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
-			when(pomCommand['_tokenAPI'].getAvailableBalance as any)
+			when(pomCommand['_tokenMethod'].getAvailableBalance as any)
 				.calledWith(expect.anything(), delegate1Address, DEFAULT_TOKEN_ID)
 				.mockResolvedValue(remainingBalance as never);
 
 			await pomCommand.execute(context);
 
 			// If amount is zero, it should not call the transfer
-			expect(pomCommand['_tokenAPI'].transfer).not.toHaveBeenCalledWith(
+			expect(pomCommand['_tokenMethod'].transfer).not.toHaveBeenCalledWith(
 				expect.anything(),
 				delegate1Address,
 				context.transaction.senderAddress,
@@ -635,13 +635,13 @@ describe('ReportDelegateMisbehaviorCommand', () => {
 				})
 				.createCommandExecuteContext<PomTransactionParams>(pomCommand.schema);
 
-			when(pomCommand['_tokenAPI'].getAvailableBalance as any)
+			when(pomCommand['_tokenMethod'].getAvailableBalance as any)
 				.calledWith(expect.anything(), delegate1Address, DEFAULT_TOKEN_ID)
 				.mockResolvedValue(remainingBalance as never);
 
 			await pomCommand.execute(context);
 
-			expect(pomCommand['_tokenAPI'].transfer).toHaveBeenCalledWith(
+			expect(pomCommand['_tokenMethod'].transfer).toHaveBeenCalledWith(
 				expect.anything(),
 				delegate1Address,
 				context.transaction.senderAddress,

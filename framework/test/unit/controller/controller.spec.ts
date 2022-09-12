@@ -15,14 +15,14 @@
 import * as childProcess from 'child_process';
 import * as os from 'os';
 import * as fs from 'fs-extra';
-import { InMemoryDatabase, StateDB } from '@liskhq/lisk-db';
+import { Database, InMemoryDatabase, StateDB } from '@liskhq/lisk-db';
 import { BasePlugin } from '../../../src/plugins/base_plugin';
 import * as controllerModule from '../../../src/controller/controller';
 import { Controller } from '../../../src/controller/controller';
 import { Bus } from '../../../src/controller/bus';
 import { InMemoryChannel } from '../../../src/controller/channels';
 import * as basePluginModule from '../../../src/plugins/base_plugin';
-import { ApplicationConfigForPlugin, EndpointHandlers } from '../../../src';
+import { ApplicationConfigForPlugin, EndpointHandlers, testing } from '../../../src';
 
 jest.mock('zeromq');
 
@@ -50,7 +50,6 @@ const createMockPlugin = ({
 
 describe('Controller Class', () => {
 	// Arrange
-	const appLabel = '#LABEL';
 	const loggerMock = {
 		debug: jest.fn(),
 		info: jest.fn(),
@@ -62,7 +61,7 @@ describe('Controller Class', () => {
 	};
 
 	const config = {
-		rootPath: '/user/.lisk',
+		dataPath: '/user/.lisk/#LABEL',
 	};
 	const childProcessMock = {
 		send: jest.fn(),
@@ -71,21 +70,25 @@ describe('Controller Class', () => {
 		connected: true,
 	};
 	const systemDirs = {
-		dataPath: `${config.rootPath}/${appLabel}`,
-		data: `${config.rootPath}/${appLabel}/data`,
-		tmp: `${config.rootPath}/${appLabel}/tmp`,
-		logs: `${config.rootPath}/${appLabel}/logs`,
-		sockets: `${config.rootPath}/${appLabel}/tmp/sockets`,
-		pids: `${config.rootPath}/${appLabel}/tmp/pids`,
-		plugins: `${config.rootPath}/${appLabel}/plugins`,
+		dataPath: `${config.dataPath}`,
+		data: `${config.dataPath}/data`,
+		config: `${config.dataPath}/config`,
+		tmp: `${config.dataPath}/tmp`,
+		logs: `${config.dataPath}/logs`,
+		sockets: `${config.dataPath}/tmp/sockets`,
+		pids: `${config.dataPath}/tmp/pids`,
+		plugins: `${config.dataPath}/plugins`,
 	};
 	const configController = {
 		dataPath: '/user/.lisk/#LABEL',
 		dirs: systemDirs,
 	};
 	const appConfig = {
-		rootPath: '/user/.lisk',
-		label: '#LABEL',
+		...testing.fixtures.defaultConfig,
+		system: {
+			...testing.fixtures.defaultConfig.system,
+			dataPath: '/user/.lisk/#LABEL',
+		},
 	} as ApplicationConfigForPlugin;
 	const pluginConfigs = {};
 
@@ -96,6 +99,7 @@ describe('Controller Class', () => {
 
 	const initParams = {
 		stateDB: (new InMemoryDatabase() as unknown) as StateDB,
+		moduleDB: (new InMemoryDatabase() as unknown) as Database,
 		logger: loggerMock,
 		events: ['app_start', 'app_blockNew'],
 		endpoints: {

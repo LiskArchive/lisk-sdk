@@ -23,15 +23,15 @@ import { BaseCommand } from '../../base_command';
 import { delegateRegistrationCommandParamsSchema } from '../schemas';
 import { DelegateStore } from '../stores/delegate';
 import { NameStore } from '../stores/name';
-import { DelegateRegistrationParams, ValidatorsAPI } from '../types';
+import { DelegateRegistrationParams, ValidatorsMethod } from '../types';
 import { isUsername } from '../utils';
 
 export class DelegateRegistrationCommand extends BaseCommand {
 	public schema = delegateRegistrationCommandParamsSchema;
-	private _validatorsAPI!: ValidatorsAPI;
+	private _validatorsMethod!: ValidatorsMethod;
 
-	public addDependencies(validatorsAPI: ValidatorsAPI) {
-		this._validatorsAPI = validatorsAPI;
+	public addDependencies(validatorsMethod: ValidatorsMethod) {
+		this._validatorsMethod = validatorsMethod;
 	}
 
 	public get name() {
@@ -90,10 +90,10 @@ export class DelegateRegistrationCommand extends BaseCommand {
 			params: { name, blsKey, generatorKey, proofOfPossession },
 			header: { height },
 		} = context;
-		const apiContext = context.getAPIContext();
+		const methodContext = context.getMethodContext();
 
-		const isRegistered = await this._validatorsAPI.registerValidatorKeys(
-			apiContext,
+		const isRegistered = await this._validatorsMethod.registerValidatorKeys(
+			methodContext,
 			transaction.senderAddress,
 			blsKey,
 			generatorKey,
