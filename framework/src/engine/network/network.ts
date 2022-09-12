@@ -104,7 +104,7 @@ export class Network {
 
 	private _logger!: Logger;
 	private _nodeDB!: Database;
-	private _chainID!: string;
+	private _chainID!: Buffer;
 	private _secret: number | undefined;
 	private _p2p!: liskP2P.P2P;
 	private _endpoints: P2PRPCEndpoints;
@@ -123,7 +123,7 @@ export class Network {
 	public async init(args: NetworkInitArgs): Promise<void> {
 		this._logger = args.logger;
 		this._nodeDB = args.nodeDB;
-		this._chainID = args.chainID.toString('hex');
+		this._chainID = args.chainID;
 		let previousPeers: ReadonlyArray<liskP2P.p2pTypes.ProtocolPeerInfo> = [];
 		try {
 			// Load peers from the database that were tried or connected the last time node was running
