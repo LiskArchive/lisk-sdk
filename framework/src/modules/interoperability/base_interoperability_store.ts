@@ -323,14 +323,7 @@ export abstract class BaseInteroperabilityStore {
 		ccmApplyContext: CCMApplyContext,
 		interoperableCCCommands: Map<string, BaseCCCommand[]>,
 	): Promise<void> {
-		const {
-			ccm,
-			eventQueue,
-			logger,
-			chainID,
-			getMethodContext,
-			getStore,
-		} = ccmApplyContext;
+		const { ccm, eventQueue, logger, chainID, getMethodContext, getStore } = ccmApplyContext;
 		const isTerminated = await this.hasTerminatedStateAccount(ccm.sendingChainID);
 		if (isTerminated) {
 			return;
