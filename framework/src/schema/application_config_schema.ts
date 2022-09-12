@@ -224,6 +224,7 @@ export const applicationConfigSchema = {
 				},
 				chainID: {
 					type: 'string',
+					format: 'hex',
 					description: 'The unique name of the chain as a string encoded in Hex format',
 				},
 				minFeePerByte: {

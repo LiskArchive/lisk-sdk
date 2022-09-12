@@ -138,10 +138,10 @@ export class Transaction {
 		return transactionBytes;
 	}
 
-	public sign(networkIdentifier: Buffer, privateKey: Buffer): void {
+	public sign(chainID: Buffer, privateKey: Buffer): void {
 		const signature = ed.signDataWithPrivateKey(
 			TAG_TRANSACTION,
-			networkIdentifier,
+			chainID,
 			this.getSigningBytes(),
 			privateKey,
 		);

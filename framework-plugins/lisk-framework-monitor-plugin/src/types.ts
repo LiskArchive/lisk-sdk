@@ -58,7 +58,7 @@ export interface SharedState {
 export interface PeerInfo {
 	readonly ipAddress: string;
 	readonly port: number;
-	readonly networkIdentifier: string;
+	readonly chainID: string;
 	readonly networkVersion: string;
 	readonly nonce: string;
 	readonly options: { [key: string]: unknown };

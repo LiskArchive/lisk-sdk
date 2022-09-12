@@ -119,8 +119,8 @@ export class ABIHandler implements ABI {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async ready(req: ReadyRequest): Promise<ReadyResponse> {
-		this._chainID = req.chainID;
+	public async ready(_req: ReadyRequest): Promise<ReadyResponse> {
+		this._chainID = Buffer.from(this._config.genesis.chainID, 'hex');
 
 		this.event.emit(EVENT_ENGINE_READY);
 		return {};
