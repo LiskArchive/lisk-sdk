@@ -77,8 +77,7 @@ export const voteCommandParamsSchema = {
 					delegateAddress: {
 						dataType: 'bytes',
 						fieldNumber: 1,
-						minLength: 20,
-						maxLength: 20,
+						format: 'lisk32',
 					},
 					amount: {
 						dataType: 'sint64',
@@ -440,7 +439,7 @@ export const getVoterResponseSchema = {
 				properties: {
 					delegateAddress: {
 						type: 'string',
-						format: 'hex',
+						format: 'lisk32',
 					},
 					amount: {
 						type: 'string',
@@ -458,7 +457,7 @@ export const getVoterResponseSchema = {
 				properties: {
 					delegateAddress: {
 						type: 'string',
-						format: 'hex',
+						format: 'lisk32',
 					},
 					amount: {
 						type: 'string',

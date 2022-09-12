@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import * as cryptography from '@liskhq/lisk-cryptography';
 import * as transactions from '@liskhq/lisk-transactions';
 import { codec, Schema } from '@liskhq/lisk-codec';
 
@@ -39,8 +40,7 @@ export const tokenTransferParamsSchema = {
 		recipientAddress: {
 			dataType: 'bytes',
 			fieldNumber: 3,
-			minLength: 20,
-			maxLength: 20,
+			format: 'lisk32',
 		},
 		data: {
 			dataType: 'string',
@@ -103,8 +103,7 @@ export const dposVoteParamsSchema = {
 					delegateAddress: {
 						dataType: 'bytes',
 						fieldNumber: 1,
-						minLength: 20,
-						maxLength: 20,
+						format: 'lisk32',
 					},
 					amount: {
 						dataType: 'sint64',
@@ -147,7 +146,7 @@ export const createTransferTransaction = ({
 			params: {
 				tokenID: Buffer.from([0, 0, 0, 0, 0, 0]),
 				amount: BigInt(transactions.convertLSKToBeddows(amount)),
-				recipientAddress: Buffer.from(recipientAddress, 'hex'),
+				recipientAddress: cryptography.address.getAddressFromLisk32Address(recipientAddress),
 				data: '',
 			},
 		},
@@ -165,7 +164,9 @@ export const createTransferTransaction = ({
 			...transaction.params,
 			tokenID: transaction.params.tokenID.toString('hex'),
 			amount: transaction.params.amount.toString(),
-			recipientAddress: transaction.params.recipientAddress.toString('hex'),
+			recipientAddress: cryptography.address.getLisk32AddressFromAddress(
+				transaction.params.recipientAddress,
+			),
 		},
 		nonce: transaction.nonce.toString(),
 		fee: transaction.fee.toString(),

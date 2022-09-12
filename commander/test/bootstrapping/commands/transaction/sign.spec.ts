@@ -56,7 +56,7 @@ describe('transaction:sign command', () => {
 			tokenID: '0000000000000000',
 			amount: '100',
 			data: 'send token',
-			recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
+			recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
 		},
 		command: 'transfer',
 		fee: '100000000',
@@ -66,6 +66,13 @@ describe('transaction:sign command', () => {
 		signatures: [
 			'3cc8c8c81097fe59d9df356b3c3f1dd10f619bfabb54f5d187866092c67e0102c64dbe24f357df493cc7ebacdd2e55995db8912245b718d88ebf7f4f4ac01f04',
 		],
+	};
+	const mockTransaction = {
+		...codec.fromJSON(transactionSchema, {
+			...mockJSONTransaction,
+			params: '',
+		}),
+		params: codec.fromJSON(tokenTransferParamsSchema, mockJSONTransaction.params),
 	};
 
 	const senderPassphrase =
@@ -192,6 +199,7 @@ describe('transaction:sign command', () => {
 				sign: jest.fn().mockReturnValue(mockJSONTransaction),
 				encode: jest.fn().mockReturnValue(mockEncodedTransaction),
 				toJSON: jest.fn().mockReturnValue(mockJSONTransaction),
+				fromJSON: jest.fn().mockReturnValue(mockTransaction),
 				decode: jest.fn().mockImplementation(val => {
 					const root = codec.decode<Record<string, unknown>>(transactionSchema, val);
 					const params = codec.decode(commands[0].schema, root.asset as Buffer);
@@ -295,7 +303,7 @@ describe('transaction:sign command', () => {
 							tokenID: '0000000000000000',
 							amount: '100',
 							data: 'send token',
-							recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
+							recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
 						},
 						command: 'transfer',
 						fee: '100000000',
@@ -584,7 +592,7 @@ describe('transaction:sign command', () => {
 								tokenID: '0000000000000000',
 								amount: '100',
 								data: 'send token',
-								recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
+								recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
 							},
 							command: 'transfer',
 							fee: '100000000',
@@ -910,7 +918,7 @@ describe('transaction:sign command', () => {
 								tokenID: '0000000000000000',
 								amount: '100',
 								data: 'send token',
-								recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
+								recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
 							},
 							command: 'transfer',
 							fee: '100000000',
