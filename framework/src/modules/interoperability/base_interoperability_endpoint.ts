@@ -36,6 +36,7 @@ export abstract class BaseInteroperabilityEndpoint<
 	T extends BaseInteroperabilityStore
 > extends BaseEndpoint {
 	protected readonly interoperableCCMethods = new Map<string, BaseInteroperableMethod>();
+	protected abstract getInteroperabilityStore: (context: StoreGetter | ImmutableStoreGetter) => T;
 
 	public constructor(
 		protected stores: NamedRegistry,
@@ -153,6 +154,4 @@ export abstract class BaseInteroperabilityEndpoint<
 			size: box.size,
 		};
 	}
-
-	protected abstract getInteroperabilityStore(context: StoreGetter | ImmutableStoreGetter): T;
 }
