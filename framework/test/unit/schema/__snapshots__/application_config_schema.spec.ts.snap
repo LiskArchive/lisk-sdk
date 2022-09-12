@@ -112,6 +112,7 @@ Object {
         },
         "chainID": Object {
           "description": "The unique name of the chain as a string encoded in Hex format",
+          "format": "hex",
           "type": "string",
         },
         "maxTransactionsSize": Object {

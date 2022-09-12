@@ -62,7 +62,7 @@ ${defaultSignature}
 
 	const defaultData = Buffer.from('This is some data');
 	const defaultDataSignature =
-		'554b14094052d3e3874ba0704f216fd7b366450295c44cdbf2bd2a210e27a318a752143121af6fbe5a1ec5961dbef362ba39aa0714c0b9a4e60208e665466002';
+		'2c7b4e67bf6a7030de9a7454e5e16b8d23dcee1f5ea4b8b881c89ec5834d534afe3d791ab2e45df331d64493537ce57448025d09cfdba39ba7edeed505efb602';
 
 	let defaultSignedMessage: any;
 

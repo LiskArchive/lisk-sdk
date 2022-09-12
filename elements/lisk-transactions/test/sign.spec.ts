@@ -170,7 +170,7 @@ describe('sign', () => {
 					privateKey,
 					validParamsSchema,
 				),
-			).toThrow('Network identifier is required to sign a transaction');
+			).toThrow('ChainID is required to sign a transaction');
 		});
 
 		it('should throw error for empty private key', () => {
@@ -258,7 +258,7 @@ describe('sign', () => {
 					keys,
 					validParamsSchema,
 				),
-			).toThrow('Network identifier is required to sign a transaction');
+			).toThrow('ChainID is required to sign a transaction');
 		});
 
 		it('should throw error for empty private key', () => {

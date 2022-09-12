@@ -80,7 +80,7 @@ describe('abi handler', () => {
 				config: applicationConfigSchema.default,
 			});
 
-			const chainID = utils.getRandomBytes(32);
+			const chainID = Buffer.from('10000000', 'hex');
 			await abiHandler.ready({ chainID, lastBlockHeight: 21 });
 
 			expect(abiHandler.chainID).toEqual(chainID);
