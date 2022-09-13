@@ -102,7 +102,7 @@ export const createBlockContext = (params: {
 	const stateStore =
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	const eventQueue = params.eventQueue ?? new EventQueue(params.header ? params.header.height : 0);
-	const header = createTestHeader();
+	const header = params.header ?? createTestHeader();
 	const ctx = new BlockContext({
 		stateStore,
 		logger,
