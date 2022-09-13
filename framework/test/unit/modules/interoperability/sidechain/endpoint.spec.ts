@@ -152,7 +152,7 @@ describe('Sidechain endpoint', () => {
 			getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
 			getImmutableMethodContext: jest.fn(),
 			getOffchainStore: jest.fn(),
-			networkIdentifier: Buffer.alloc(0),
+			chainID: Buffer.alloc(0),
 			params: {},
 			logger: {} as any,
 		};

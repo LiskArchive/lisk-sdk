@@ -344,7 +344,7 @@ export class Consensus {
 		const singleCommit = this._commitPool.createSingleCommit(
 			blockHeader,
 			validatorInfo,
-			this._chain.networkIdentifier,
+			this._chain.chainID,
 		);
 		this._commitPool.addCommit(singleCommit, true);
 	}
@@ -766,7 +766,7 @@ export class Consensus {
 		}
 
 		try {
-			block.header.validateSignature(generator.generatorKey, this._chain.networkIdentifier);
+			block.header.validateSignature(generator.generatorKey, this._chain.chainID);
 		} catch (error) {
 			throw new Error(
 				`Invalid signature ${block.header.signature.toString(

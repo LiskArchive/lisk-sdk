@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import * as cryptography from '@liskhq/lisk-cryptography';
 import * as transactions from '@liskhq/lisk-transactions';
 import { codec, Schema } from '@liskhq/lisk-codec';
 
@@ -123,12 +122,9 @@ export const genesisBlockID = Buffer.from(
 );
 export const communityIdentifier = 'Lisk';
 
-export const networkIdentifier = cryptography.utils.getNetworkIdentifier(
-	genesisBlockID,
-	communityIdentifier,
-);
+export const chainID = Buffer.from('10000000', 'hex');
 
-export const networkIdentifierStr = networkIdentifier.toString('hex');
+export const chainIDStr = chainID.toString('hex');
 
 export const createTransferTransaction = ({
 	amount,
@@ -155,7 +151,7 @@ export const createTransferTransaction = ({
 				data: '',
 			},
 		},
-		networkIdentifier,
+		chainID,
 		Buffer.from(account.privateKey, 'hex'),
 		tokenTransferParamsSchema,
 	) as any;

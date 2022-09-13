@@ -28,13 +28,13 @@ export const isMultisignatureAccount = (keys: Keys): boolean =>
 
 export const verifyMessageSig = (
 	tag: string,
-	networkIdentifier: Buffer,
+	chainID: Buffer,
 	publicKey: Buffer,
 	signature: Buffer,
 	transactionBytes: Buffer,
 	id: Buffer,
 ): void => {
-	const valid = ed.verifyData(tag, networkIdentifier, transactionBytes, signature, publicKey);
+	const valid = ed.verifyData(tag, chainID, transactionBytes, signature, publicKey);
 
 	if (!valid) {
 		throw new Error(
@@ -47,7 +47,7 @@ export const verifyMessageSig = (
 
 export const validateKeysSignatures = (
 	tag: string,
-	networkIdentifier: Buffer,
+	chainID: Buffer,
 	keys: ReadonlyArray<Buffer>,
 	signatures: ReadonlyArray<Buffer>,
 	transactionBytes: Buffer,
@@ -58,7 +58,7 @@ export const validateKeysSignatures = (
 			throw new Error('Invalid signature. Empty buffer is not a valid signature.');
 		}
 
-		verifyMessageSig(tag, networkIdentifier, keys[i], signatures[i], transactionBytes, id);
+		verifyMessageSig(tag, chainID, keys[i], signatures[i], transactionBytes, id);
 	}
 };
 
@@ -68,7 +68,7 @@ export const validateKeysSignatures = (
  */
 export const verifyMultiSignatureTransaction = (
 	tag: string,
-	networkIdentifier: Buffer,
+	chainID: Buffer,
 	id: Buffer,
 	keys: Keys,
 	signatures: ReadonlyArray<Buffer>,
@@ -92,14 +92,14 @@ export const verifyMultiSignatureTransaction = (
 		);
 	}
 
-	validateKeysSignatures(tag, networkIdentifier, mandatoryKeys, signatures, transactionBytes, id);
+	validateKeysSignatures(tag, chainID, mandatoryKeys, signatures, transactionBytes, id);
 
 	// Iterate through non empty optional keys for signature validity
 	for (let k = 0; k < numOptionalKeys; k += 1) {
 		// Get corresponding optional key signature starting from offset(end of mandatory keys)
 		const signature = signatures[numMandatoryKeys + k];
 		if (signature.length !== 0) {
-			verifyMessageSig(tag, networkIdentifier, optionalKeys[k], signature, transactionBytes, id);
+			verifyMessageSig(tag, chainID, optionalKeys[k], signature, transactionBytes, id);
 		}
 	}
 };
@@ -109,7 +109,7 @@ export const verifyRegisterMultiSignatureTransaction = (
 	transactionParamsSchema: Schema,
 	transaction: Transaction,
 	transactionBytes: Buffer,
-	networkIdentifier: Buffer,
+	chainID: Buffer,
 ): void => {
 	const { mandatoryKeys, optionalKeys } = codec.decode<Keys>(
 		transactionParamsSchema,
@@ -132,7 +132,7 @@ export const verifyRegisterMultiSignatureTransaction = (
 	// Verify first signature is from senderPublicKey
 	verifyMessageSig(
 		tag,
-		networkIdentifier,
+		chainID,
 		transaction.senderPublicKey,
 		transaction.signatures[0],
 		transactionBytes,
@@ -142,7 +142,7 @@ export const verifyRegisterMultiSignatureTransaction = (
 	// Verify each mandatory key signed in order
 	validateKeysSignatures(
 		tag,
-		networkIdentifier,
+		chainID,
 		mandatoryKeys,
 		transaction.signatures.slice(1, mandatoryKeys.length + 1),
 		transactionBytes,
@@ -152,7 +152,7 @@ export const verifyRegisterMultiSignatureTransaction = (
 	// Verify each optional key signed in order
 	validateKeysSignatures(
 		tag,
-		networkIdentifier,
+		chainID,
 		optionalKeys,
 		transaction.signatures.slice(mandatoryKeys.length + 1),
 		transactionBytes,
@@ -164,7 +164,7 @@ export const verifySingleSignatureTransaction = (
 	tag: string,
 	transaction: Transaction,
 	transactionBytes: Buffer,
-	networkIdentifier: Buffer,
+	chainID: Buffer,
 ): void => {
 	if (transaction.signatures.length !== 1) {
 		throw new Error(
@@ -174,7 +174,7 @@ export const verifySingleSignatureTransaction = (
 
 	verifyMessageSig(
 		tag,
-		networkIdentifier,
+		chainID,
 		transaction.senderPublicKey,
 		transaction.signatures[0],
 		transactionBytes,
@@ -186,7 +186,7 @@ export const verifySignatures = (
 	authModuleName: string,
 	transaction: Transaction,
 	transactionBytes: Buffer,
-	networkIdentifier: Buffer,
+	chainID: Buffer,
 	account: AuthAccount,
 ) => {
 	if (
@@ -198,7 +198,7 @@ export const verifySignatures = (
 			registerMultisignatureParamsSchema,
 			transaction,
 			transactionBytes,
-			networkIdentifier,
+			chainID,
 		);
 		return { verified: true };
 	}
@@ -207,19 +207,14 @@ export const verifySignatures = (
 	if (isMultisignatureAccount(account)) {
 		verifyMultiSignatureTransaction(
 			TAG_TRANSACTION,
-			networkIdentifier,
+			chainID,
 			transaction.id,
 			account,
 			transaction.signatures,
 			transactionBytes,
 		);
 	} else {
-		verifySingleSignatureTransaction(
-			TAG_TRANSACTION,
-			transaction,
-			transactionBytes,
-			networkIdentifier,
-		);
+		verifySingleSignatureTransaction(TAG_TRANSACTION, transaction, transactionBytes, chainID);
 	}
 	return { verified: true };
 };

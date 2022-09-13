@@ -129,11 +129,11 @@ export class CommitPool {
 
 		// Validation Step 6
 		const certificate = computeCertificateFromBlockHeader(blockHeaderAtCommitHeight);
-		const { networkIdentifier } = this._chain;
+		const { chainID } = this._chain;
 		const isSingleCertificateVerified = verifySingleCertificateSignature(
 			validator.blsKey,
 			commit.certificateSignature,
-			networkIdentifier,
+			chainID,
 			certificate,
 		);
 
@@ -154,7 +154,7 @@ export class CommitPool {
 	public createSingleCommit(
 		blockHeader: BlockHeader,
 		validatorInfo: ValidatorInfo,
-		networkIdentifier: Buffer,
+		chainID: Buffer,
 	): SingleCommit {
 		const commit = {
 			blockID: blockHeader.id,
@@ -162,7 +162,7 @@ export class CommitPool {
 			validatorAddress: validatorInfo.address,
 			certificateSignature: signCertificate(
 				validatorInfo.blsSecretKey,
-				networkIdentifier,
+				chainID,
 				computeCertificateFromBlockHeader(blockHeader),
 			),
 		};
@@ -222,7 +222,7 @@ export class CommitPool {
 			aggregationBits: aggregateCommit.aggregationBits,
 			signature: aggregateCommit.certificateSignature,
 		};
-		const { networkIdentifier } = this._chain;
+		const { chainID } = this._chain;
 		const bftParams = await this._bftMethod.getBFTParameters(stateStore, aggregateCommit.height);
 		const threshold = bftParams.certificateThreshold;
 
@@ -239,7 +239,7 @@ export class CommitPool {
 			validatorKeys,
 			weights,
 			threshold,
-			networkIdentifier,
+			chainID,
 			certificate,
 		);
 	}

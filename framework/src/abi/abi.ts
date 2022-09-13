@@ -98,7 +98,7 @@ export interface Validator {
 }
 
 export interface ReadyRequest {
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	lastBlockHeight: number;
 }
 

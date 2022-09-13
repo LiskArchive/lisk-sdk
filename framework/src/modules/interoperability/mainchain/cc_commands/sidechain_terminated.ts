@@ -65,7 +65,7 @@ export class MainchainCCSidechainTerminatedCommand extends BaseInteroperabilityC
 				getMethodContext: context.getMethodContext,
 				getStore: context.getStore,
 				logger: context.logger,
-				networkIdentifier: context.networkIdentifier,
+				chainID: context.chainID,
 				feeAddress: context.feeAddress,
 			});
 			await interoperabilityStore.terminateChainInternal(ccm.sendingChainID, beforeSendContext);

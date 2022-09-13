@@ -34,7 +34,7 @@ import * as testing from '../../../../src/testing';
 
 describe('Delete block', () => {
 	let processEnv: testing.BlockProcessingEnv;
-	let networkIdentifier: Buffer;
+	let chainID: Buffer;
 	const databasePath = '/tmp/lisk/delete_block/test';
 	const emptyDiffState = codec.encode(stateDiffSchema, {
 		updated: [],
@@ -49,7 +49,7 @@ describe('Delete block', () => {
 				databasePath,
 			},
 		});
-		networkIdentifier = processEnv.getNetworkId();
+		chainID = processEnv.getNetworkId();
 	});
 
 	afterAll(() => {
@@ -93,7 +93,7 @@ describe('Delete block', () => {
 					nonce: BigInt(authData.nonce),
 					recipientAddress: recipientAccount.address,
 					amount: BigInt('1000000000'),
-					networkIdentifier,
+					chainID,
 					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				newBlock = await processEnv.createBlock([transaction]);
@@ -176,7 +176,7 @@ describe('Delete block', () => {
 					nonce: BigInt(genesisAuth.nonce),
 					recipientAddress: recipientAccount.address,
 					amount: BigInt('100000000000'),
-					networkIdentifier,
+					chainID,
 					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				const newBlock = await processEnv.createBlock([transaction1]);
@@ -206,13 +206,13 @@ describe('Delete block', () => {
 					nonce: BigInt(genesisAuth.nonce),
 					recipientAddress: recipientAccount.address,
 					amount: BigInt('1000000000000'),
-					networkIdentifier,
+					chainID,
 					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				const transaction2 = createDelegateRegisterTransaction({
 					nonce: BigInt(0),
 					username: 'rand',
-					networkIdentifier,
+					chainID,
 					blsKey: recipientAccount.blsPublicKey,
 					blsProofOfPossession: recipientAccount.blsPoP,
 					generatorKey: recipientAccount.publicKey,
@@ -220,7 +220,7 @@ describe('Delete block', () => {
 				});
 				const transaction3 = createDelegateVoteTransaction({
 					nonce: BigInt(1),
-					networkIdentifier,
+					chainID,
 					privateKey: recipientAccount.privateKey,
 					votes: [
 						{

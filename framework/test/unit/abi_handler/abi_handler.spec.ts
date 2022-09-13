@@ -60,7 +60,7 @@ describe('abi handler', () => {
 			modules: [mod2, mod],
 			config: applicationConfigSchema.default,
 		});
-		abiHandler['_networkIdentifier'] = utils.getRandomBytes(32);
+		abiHandler['_chainID'] = utils.getRandomBytes(32);
 		await stateMachine.init(loggerMock, {} as any);
 	});
 
@@ -80,10 +80,10 @@ describe('abi handler', () => {
 				config: applicationConfigSchema.default,
 			});
 
-			const networkIdentifier = utils.getRandomBytes(32);
-			await abiHandler.ready({ networkIdentifier, lastBlockHeight: 21 });
+			const chainID = Buffer.from('10000000', 'hex');
+			await abiHandler.ready({ chainID, lastBlockHeight: 21 });
 
-			expect(abiHandler.networkIdentifier).toEqual(networkIdentifier);
+			expect(abiHandler.chainID).toEqual(chainID);
 		});
 	});
 

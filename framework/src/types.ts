@@ -60,7 +60,7 @@ export interface GenesisConfig {
 		fromFile?: string;
 		blob?: string;
 	};
-	communityIdentifier: string;
+	chainID: string;
 	maxTransactionsSize: number;
 	minFeePerByte: number;
 	blockTime: number;
@@ -149,7 +149,7 @@ export interface ModuleEndpointContext extends PluginEndpointContext {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 	getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) => SubStore;
 	getImmutableMethodContext: () => ImmutableMethodContext;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 }
 
 export type EndpointHandler = (

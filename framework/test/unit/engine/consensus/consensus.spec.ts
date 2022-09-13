@@ -32,7 +32,7 @@ import { loggerMock } from '../../../../src/testing/mocks';
 import {
 	createFakeBlockHeader,
 	createValidDefaultBlock,
-	defaultNetworkIdentifier,
+	defaultChainID,
 	genesisBlock,
 } from '../../../fixtures';
 import * as forkchoice from '../../../../src/engine/consensus/fork_choice/fork_choice_rule';
@@ -66,7 +66,7 @@ describe('consensus', () => {
 			finalizedHeight: 0,
 			loadLastBlocks: jest.fn(),
 			lastBlock,
-			networkIdentifier: Buffer.from('network-identifier'),
+			chainID: Buffer.from('network-identifier'),
 			validateBlock: jest.fn(),
 			validateTransaction: jest.fn(),
 			removeBlock: jest.fn(),
@@ -869,9 +869,9 @@ describe('consensus', () => {
 					(blockHeader as any).generatorAddress = cryptoAddress.getAddressFromPublicKey(
 						keyPair.publicKey,
 					);
-					(consensus['_chain'] as any).networkIdentifier = defaultNetworkIdentifier;
+					(consensus['_chain'] as any).chainID = defaultChainID;
 
-					blockHeader.sign(consensus['_chain'].networkIdentifier, keyPair.privateKey);
+					blockHeader.sign(consensus['_chain'].chainID, keyPair.privateKey);
 					const validBlock = new Block(blockHeader, [], new BlockAssets());
 
 					when(consensus['_bft'].method.getGeneratorKeys as never)

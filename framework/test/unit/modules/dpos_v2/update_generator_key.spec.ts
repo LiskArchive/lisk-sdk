@@ -46,7 +46,7 @@ describe('Update generator key command', () => {
 		params: transactionParams,
 		signatures: [publicKey],
 	});
-	const networkIdentifier = Buffer.from(
+	const chainID = Buffer.from(
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
 		'hex',
 	);
@@ -74,7 +74,7 @@ describe('Update generator key command', () => {
 				.createTransactionContext({
 					stateStore,
 					transaction,
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<UpdateGeneratorKeyParams>(
 					updateGeneratorKeyCommandParamsSchema,
@@ -101,7 +101,7 @@ describe('Update generator key command', () => {
 				.createTransactionContext({
 					stateStore,
 					transaction: invalidTransaction,
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<UpdateGeneratorKeyParams>(
 					updateGeneratorKeyCommandParamsSchema,
@@ -116,7 +116,7 @@ describe('Update generator key command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction,
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<UpdateGeneratorKeyParams>(
 					updateGeneratorKeyCommandParamsSchema,
@@ -135,7 +135,7 @@ describe('Update generator key command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction,
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandExecuteContext<UpdateGeneratorKeyParams>(
 					updateGeneratorKeyCommandParamsSchema,

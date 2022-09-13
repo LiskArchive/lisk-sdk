@@ -171,7 +171,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 			getMethodContext: context.getMethodContext,
 			getStore: context.getStore,
 			logger: context.logger,
-			networkIdentifier: context.networkIdentifier,
+			chainID: context.chainID,
 		};
 		const interoperabilityStore = this.getInteroperabilityStore(context);
 		let decodedCCMs;
@@ -237,7 +237,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 					getMethodContext: context.getMethodContext,
 					getStore: context.getStore,
 					logger: context.logger,
-					networkIdentifier: context.networkIdentifier,
+					chainID: context.chainID,
 				});
 			} else {
 				await interoperabilityStore.apply(
@@ -250,7 +250,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 						getMethodContext: context.getMethodContext,
 						getStore: context.getStore,
 						logger: context.logger,
-						networkIdentifier: context.networkIdentifier,
+						chainID: context.chainID,
 						trsSender: context.transaction.senderAddress,
 					},
 					this.ccCommands,

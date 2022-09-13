@@ -38,7 +38,7 @@ import { fakeLogger } from '../../../utils/mocks';
 describe('generator endpoint', () => {
 	const logger: Logger = fakeLogger;
 	const defaultPassword = 'elephant tree paris dragon chair galaxy';
-	const networkIdentifier = Buffer.alloc(0);
+	const chainID = Buffer.alloc(0);
 	const blockTime = 10;
 
 	let defaultKeys: PlainGeneratorKeyData;
@@ -132,7 +132,7 @@ describe('generator endpoint', () => {
 						password: defaultPassword,
 						...bftProps,
 					},
-					networkIdentifier,
+					chainID,
 				}),
 			).rejects.toThrow(LiskValidationError);
 		});
@@ -147,7 +147,7 @@ describe('generator endpoint', () => {
 						password: defaultPassword,
 						...bftProps,
 					},
-					networkIdentifier,
+					chainID,
 				}),
 			).rejects.toThrow('Generator with address:');
 		});
@@ -162,7 +162,7 @@ describe('generator endpoint', () => {
 						password: 'wrong password',
 						...bftProps,
 					},
-					networkIdentifier,
+					chainID,
 				}),
 			).rejects.toThrow('Unsupported state or unable to authenticate data');
 		});
@@ -178,7 +178,7 @@ describe('generator endpoint', () => {
 						password: defaultPassword,
 						...bftProps,
 					},
-					networkIdentifier,
+					chainID,
 				}),
 			).rejects.toThrow('Failed to enable forging as the node is not synced to the network.');
 		});
@@ -199,7 +199,7 @@ describe('generator endpoint', () => {
 						password: defaultPassword,
 						...bftProps,
 					},
-					networkIdentifier,
+					chainID,
 				}),
 			).resolves.toEqual({
 				address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
@@ -218,7 +218,7 @@ describe('generator endpoint', () => {
 						password: defaultPassword,
 						...bftProps,
 					},
-					networkIdentifier,
+					chainID,
 				}),
 			).resolves.toEqual({
 				address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
@@ -240,7 +240,7 @@ describe('generator endpoint', () => {
 						maxHeightPrevoted: 0,
 						maxHeightGenerated: 0,
 					},
-					networkIdentifier,
+					chainID,
 				}),
 			).resolves.toEqual({
 				address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
@@ -262,7 +262,7 @@ describe('generator endpoint', () => {
 						maxHeightPrevoted: 40,
 						maxHeightGenerated: 3,
 					},
-					networkIdentifier,
+					chainID,
 				}),
 			).rejects.toThrow('Last generated information does not exist.');
 		});
@@ -289,7 +289,7 @@ describe('generator endpoint', () => {
 						maxHeightPrevoted: 0,
 						maxHeightGenerated: 0,
 					},
-					networkIdentifier,
+					chainID,
 				}),
 			).rejects.toThrow('Request does not match last generated information.');
 		});
@@ -315,7 +315,7 @@ describe('generator endpoint', () => {
 						maxHeightPrevoted: 40,
 						maxHeightGenerated: 3,
 					},
-					networkIdentifier,
+					chainID,
 				}),
 			).rejects.toThrow('Request does not match last generated information.');
 		});
@@ -343,7 +343,7 @@ describe('generator endpoint', () => {
 						maxHeightPrevoted: 40,
 						maxHeightGenerated: 3,
 					},
-					networkIdentifier,
+					chainID,
 				}),
 			).rejects.toThrow('Lisk validator found 1 error');
 		});
@@ -358,7 +358,7 @@ describe('generator endpoint', () => {
 						maxHeightPrevoted: 40,
 						maxHeightGenerated: 3,
 					},
-					networkIdentifier,
+					chainID,
 				}),
 			).resolves.toBeUndefined();
 			await expect(
@@ -393,7 +393,7 @@ describe('generator endpoint', () => {
 			const resp = await endpoint.getStatus({
 				logger,
 				params: {},
-				networkIdentifier,
+				chainID,
 			});
 			expect(resp.status).toHaveLength(2);
 			expect(resp.status[0].address).not.toBeInstanceOf(Buffer);
@@ -416,7 +416,7 @@ describe('generator endpoint', () => {
 				endpoint.estimateSafeStatus({
 					logger,
 					params: {},
-					networkIdentifier,
+					chainID,
 				}),
 			).rejects.toThrow('Lisk validator found');
 		});
@@ -432,7 +432,7 @@ describe('generator endpoint', () => {
 					params: {
 						timeShutdown: now,
 					},
-					networkIdentifier,
+					chainID,
 				}),
 			).rejects.toThrow(`A block at the time shutdown ${now} must be finalized.`);
 		});
@@ -453,7 +453,7 @@ describe('generator endpoint', () => {
 					params: {
 						timeShutdown: finalizedBlock.timestamp - 100000,
 					},
-					networkIdentifier,
+					chainID,
 				}),
 			).resolves.toEqual({
 				height: finalizedBlock.height,
@@ -481,7 +481,7 @@ describe('generator endpoint', () => {
 					params: {
 						timeShutdown: finalizedBlock.timestamp - 100000,
 					},
-					networkIdentifier,
+					chainID,
 				}),
 			).resolves.toEqual({
 				height: finalizedBlock.height + missedBlocks,
@@ -515,7 +515,7 @@ describe('generator endpoint', () => {
 							cipherparams: {},
 						},
 					},
-					networkIdentifier,
+					chainID,
 				}),
 			).rejects.toThrow('Lisk validator found');
 		});
@@ -547,7 +547,7 @@ describe('generator endpoint', () => {
 						type: 'encrypted',
 						data: val,
 					},
-					networkIdentifier,
+					chainID,
 				}),
 			).resolves.toBeUndefined();
 			await expect(
@@ -582,7 +582,7 @@ describe('generator endpoint', () => {
 						},
 					},
 				},
-				networkIdentifier,
+				chainID,
 			});
 			await endpoint.setKeys({
 				logger,
@@ -596,7 +596,7 @@ describe('generator endpoint', () => {
 						blsKey: defaultKeys.blsKey.toString('hex'),
 					},
 				},
-				networkIdentifier,
+				chainID,
 			});
 		});
 
@@ -604,7 +604,7 @@ describe('generator endpoint', () => {
 			const result = await endpoint.getAllKeys({
 				logger,
 				params: {},
-				networkIdentifier,
+				chainID,
 			});
 			expect(result.keys).toHaveLength(2);
 		});
@@ -636,7 +636,7 @@ describe('generator endpoint', () => {
 						},
 					},
 				},
-				networkIdentifier,
+				chainID,
 			});
 		});
 
@@ -645,7 +645,7 @@ describe('generator endpoint', () => {
 				endpoint.hasKeys({
 					logger,
 					params: {},
-					networkIdentifier,
+					chainID,
 				}),
 			).rejects.toThrow('Lisk validator found 1 error');
 		});
@@ -657,7 +657,7 @@ describe('generator endpoint', () => {
 					params: {
 						address: address.getLisk32AddressFromAddress(defaultEncryptedKeys.address),
 					},
-					networkIdentifier,
+					chainID,
 				}),
 			).resolves.toEqual({ hasKey: true });
 		});
@@ -669,7 +669,7 @@ describe('generator endpoint', () => {
 					params: {
 						address: address.getLisk32AddressFromAddress(utils.getRandomBytes(20)),
 					},
-					networkIdentifier,
+					chainID,
 				}),
 			).resolves.toEqual({ hasKey: false });
 		});

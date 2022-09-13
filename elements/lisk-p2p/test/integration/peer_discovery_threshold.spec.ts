@@ -49,7 +49,7 @@ describe('Peer discovery threshold', () => {
 				port: 1000,
 				sharedState: {
 					networkVersion: '1.1',
-					networkIdentifier: 'networkId',
+					chainID: Buffer.from('chainID', 'hex'),
 					nonce: 'nonce',
 					options: {},
 				},

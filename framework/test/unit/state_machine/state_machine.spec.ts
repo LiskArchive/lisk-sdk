@@ -43,7 +43,7 @@ describe('state_machine', () => {
 	const assets = new BlockAssets();
 	let stateStore: PrefixedStateReadWriter;
 	let eventQueue: EventQueue;
-	const networkIdentifier = Buffer.from('network identifier', 'utf8');
+	const chainID = Buffer.from('network identifier', 'utf8');
 	const transaction = {
 		module: 'customModule0',
 		command: 'customCommand0',
@@ -111,7 +111,7 @@ describe('state_machine', () => {
 				logger,
 				stateStore,
 				header,
-				networkIdentifier,
+				chainID,
 				transaction,
 				currentValidators: [],
 				impliesMaxPrevote: true,
@@ -120,7 +120,7 @@ describe('state_machine', () => {
 			});
 			const result = await stateMachine.verifyTransaction(ctx);
 			expect(mod.verifyTransaction).toHaveBeenCalledWith({
-				networkIdentifier,
+				chainID,
 				logger,
 				transaction,
 				getMethodContext: expect.any(Function),
@@ -136,7 +136,7 @@ describe('state_machine', () => {
 				logger,
 				stateStore,
 				header,
-				networkIdentifier,
+				chainID,
 				transaction,
 				currentValidators: [],
 				impliesMaxPrevote: true,
@@ -157,7 +157,7 @@ describe('state_machine', () => {
 				stateStore,
 				header,
 				assets,
-				networkIdentifier,
+				chainID,
 				transaction,
 				currentValidators: [
 					{
@@ -173,7 +173,7 @@ describe('state_machine', () => {
 			});
 			await stateMachine.executeTransaction(ctx);
 			expect(mod.beforeCommandExecute).toHaveBeenCalledWith({
-				networkIdentifier,
+				chainID,
 				logger,
 				transaction,
 				header,
@@ -197,7 +197,7 @@ describe('state_machine', () => {
 				stateStore,
 				header,
 				assets,
-				networkIdentifier,
+				chainID,
 				transaction,
 				currentValidators: [],
 				impliesMaxPrevote: true,
@@ -253,7 +253,7 @@ describe('state_machine', () => {
 				stateStore,
 				header,
 				assets,
-				networkIdentifier,
+				chainID,
 				transaction,
 				currentValidators: [],
 				impliesMaxPrevote: true,
@@ -273,7 +273,7 @@ describe('state_machine', () => {
 				stateStore,
 				header,
 				assets,
-				networkIdentifier,
+				chainID,
 				transactions: [transaction],
 				currentValidators: [],
 				impliesMaxPrevote: false,
@@ -282,7 +282,7 @@ describe('state_machine', () => {
 			});
 			await stateMachine.verifyAssets(ctx);
 			expect(mod.verifyAssets).toHaveBeenCalledWith({
-				networkIdentifier,
+				chainID,
 				logger,
 				header,
 				assets,
@@ -302,7 +302,7 @@ describe('state_machine', () => {
 				stateStore,
 				header,
 				assets,
-				networkIdentifier,
+				chainID,
 				transactions: [transaction],
 				currentValidators: [],
 				impliesMaxPrevote: false,
@@ -311,7 +311,7 @@ describe('state_machine', () => {
 			});
 			await stateMachine.beforeExecuteBlock(ctx);
 			expect(mod.beforeTransactionsExecute).toHaveBeenCalledWith({
-				networkIdentifier,
+				chainID,
 				logger,
 				header,
 				assets,
@@ -334,7 +334,7 @@ describe('state_machine', () => {
 				stateStore,
 				header,
 				assets,
-				networkIdentifier,
+				chainID,
 				transactions: [transaction],
 				currentValidators: [],
 				impliesMaxPrevote: false,
@@ -357,7 +357,7 @@ describe('state_machine', () => {
 				stateStore,
 				header,
 				assets,
-				networkIdentifier,
+				chainID,
 				transactions: [transaction],
 				currentValidators: [],
 				impliesMaxPrevote: false,
@@ -366,7 +366,7 @@ describe('state_machine', () => {
 			});
 			await stateMachine.afterExecuteBlock(ctx);
 			expect(mod.afterTransactionsExecute).toHaveBeenCalledWith({
-				networkIdentifier,
+				chainID,
 				logger,
 				header,
 				assets,
@@ -391,7 +391,7 @@ describe('state_machine', () => {
 				stateStore,
 				header,
 				assets,
-				networkIdentifier,
+				chainID,
 				transactions: [transaction],
 				currentValidators: [],
 				impliesMaxPrevote: false,
@@ -414,7 +414,7 @@ describe('state_machine', () => {
 				stateStore,
 				header,
 				assets,
-				networkIdentifier,
+				chainID,
 				transactions: [transaction],
 				currentValidators: [],
 				impliesMaxPrevote: false,
@@ -423,7 +423,7 @@ describe('state_machine', () => {
 			});
 			await stateMachine.executeBlock(ctx);
 			expect(mod.beforeTransactionsExecute).toHaveBeenCalledWith({
-				networkIdentifier,
+				chainID,
 				logger,
 				header,
 				assets,
@@ -437,7 +437,7 @@ describe('state_machine', () => {
 			});
 			expect(mod.beforeTransactionsExecute).toHaveBeenCalledTimes(1);
 			expect(mod.afterTransactionsExecute).toHaveBeenCalledWith({
-				networkIdentifier,
+				chainID,
 				logger,
 				header,
 				assets,

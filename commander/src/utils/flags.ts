@@ -33,7 +33,7 @@ const passwordDescription = `Specifies a source for your secret password. Comman
 	Examples:
 	- --password=pass:password123 (should only be used where security is not important)
 `;
-const networkIdentifierDescription =
+const chainIDDescription =
 	'Network identifier defined for the network or main | test for the Lisk Network.';
 
 const communityIdentifierDescription = 'Unique community identifier for network.';
@@ -106,8 +106,8 @@ export const flags: FlagMap = {
 		char: 'w',
 		description: passwordDescription,
 	},
-	networkIdentifier: {
-		description: networkIdentifierDescription,
+	chainID: {
+		description: chainIDDescription,
 	},
 	communityIdentifier: {
 		description: communityIdentifierDescription,
@@ -172,6 +172,6 @@ export const flagsWithParser = {
 	}),
 	json: flagParser.boolean(flags.json),
 	senderPublicKey: flagParser.string(flags.senderPublicKey),
-	networkIdentifier: flagParser.string(flags.networkIdentifier),
+	chainID: flagParser.string(flags.chainID),
 	file: flagParser.string(flags.file),
 };

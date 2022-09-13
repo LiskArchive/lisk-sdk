@@ -65,7 +65,7 @@ export interface CCMethodContext {
 	getMethodContext: () => MethodContext;
 	getStore: StoreCallback;
 	logger: Logger;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	eventQueue: EventQueue;
 	feeAddress: Buffer;
 	ccm: CCMsg;
@@ -103,7 +103,7 @@ export interface SendInternalContext {
 	getMethodContext: () => MethodContext;
 	getStore: StoreCallback;
 	logger: Logger;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	eventQueue: EventQueue;
 	feeAddress: Buffer;
 }
@@ -112,7 +112,7 @@ export interface TerminateChainContext {
 	getMethodContext: () => MethodContext;
 	getStore: StoreCallback;
 	logger: Logger;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	eventQueue: EventQueue;
 }
 
@@ -120,7 +120,7 @@ export interface CCMApplyContext {
 	getMethodContext: () => MethodContext;
 	getStore: StoreCallback;
 	logger: Logger;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	eventQueue: EventQueue;
 	feeAddress: Buffer;
 	ccm: CCMsg;
@@ -133,7 +133,7 @@ export interface CCMForwardContext {
 	getMethodContext: () => MethodContext;
 	getStore: StoreCallback;
 	logger: Logger;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	eventQueue: EventQueue;
 	feeAddress: Buffer;
 	ccm: CCMsg;
@@ -230,7 +230,7 @@ export interface ChannelDataJSON {
 
 export interface CCCommandExecuteContext {
 	logger: Logger;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	eventQueue: EventQueue;
 	ccm: CCMsg;
 	ccmSize: bigint;

@@ -89,7 +89,7 @@ describe('UnlockCommand', () => {
 		params: Buffer.alloc(0),
 		signatures: [publicKey],
 	});
-	const networkIdentifier = Buffer.from(
+	const chainID = Buffer.from(
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
 		'hex',
 	);
@@ -151,7 +151,7 @@ describe('UnlockCommand', () => {
 					stateStore,
 					transaction,
 					header,
-					networkIdentifier,
+					chainID,
 					maxHeightCertified: blockHeight,
 				})
 				.createCommandExecuteContext();
@@ -204,7 +204,7 @@ describe('UnlockCommand', () => {
 					stateStore,
 					transaction,
 					header,
-					networkIdentifier,
+					chainID,
 					maxHeightCertified: blockHeight,
 				})
 				.createCommandExecuteContext();
@@ -301,7 +301,7 @@ describe('UnlockCommand', () => {
 					stateStore,
 					transaction,
 					header,
-					networkIdentifier,
+					chainID,
 					maxHeightCertified: blockHeight,
 				})
 				.createCommandExecuteContext();
@@ -360,7 +360,7 @@ describe('UnlockCommand', () => {
 					stateStore,
 					transaction,
 					header,
-					networkIdentifier,
+					chainID,
 					maxHeightCertified: blockHeight,
 				})
 				.createCommandExecuteContext();
@@ -411,7 +411,7 @@ describe('UnlockCommand', () => {
 					stateStore,
 					transaction,
 					header,
-					networkIdentifier,
+					chainID,
 					maxHeightCertified: blockHeight,
 				})
 				.createCommandExecuteContext();
@@ -459,7 +459,7 @@ describe('UnlockCommand', () => {
 					stateStore,
 					transaction,
 					header,
-					networkIdentifier,
+					chainID,
 					maxHeightCertified: 0,
 				})
 				.createCommandExecuteContext();
@@ -507,7 +507,7 @@ describe('UnlockCommand', () => {
 					stateStore,
 					transaction,
 					header,
-					networkIdentifier,
+					chainID,
 					maxHeightCertified: blockHeight,
 				})
 				.createCommandExecuteContext();

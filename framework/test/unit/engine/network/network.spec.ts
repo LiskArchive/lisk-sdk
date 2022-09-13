@@ -35,7 +35,7 @@ describe('network', () => {
 		});
 		await network.init({
 			logger: fakeLogger,
-			networkIdentifier: utils.getRandomBytes(32),
+			chainID: utils.getRandomBytes(32),
 			nodeDB: db as never,
 		});
 	});
@@ -47,7 +47,7 @@ describe('network', () => {
 					{
 						ipAddress: '1.1.1.1',
 						port: 1000,
-						networkIdentifier: 'networkId',
+						chainID: 'networkId',
 						networkVersion: '1.1',
 						nonce: 'nonce1',
 					},
@@ -69,7 +69,7 @@ describe('network', () => {
 					{
 						ipAddress: '1.1.1.1',
 						port: 1000,
-						networkIdentifier: 'networkId',
+						chainID: 'networkId',
 						networkVersion: '1.1',
 						nonce: 'nonce1',
 						options: {
@@ -106,7 +106,7 @@ describe('network', () => {
 					{
 						ipAddress: '1.1.1.1',
 						port: 1000,
-						networkIdentifier: 'networkId',
+						chainID: 'networkId',
 						networkVersion: '1.1',
 						nonce: 'nonce1',
 					},
@@ -128,7 +128,7 @@ describe('network', () => {
 					{
 						ipAddress: '1.1.1.1',
 						port: 1000,
-						networkIdentifier: 'networkId',
+						chainID: 'networkId',
 						networkVersion: '1.1',
 						nonce: 'nonce1',
 						options: {
@@ -190,7 +190,7 @@ describe('network', () => {
 					const parseSpy = jest.spyOn(JSON, 'parse');
 					await network.init({
 						logger: fakeLogger,
-						networkIdentifier: utils.getRandomBytes(32),
+						chainID: utils.getRandomBytes(32),
 						nodeDB: db as never,
 					});
 					await network.start();

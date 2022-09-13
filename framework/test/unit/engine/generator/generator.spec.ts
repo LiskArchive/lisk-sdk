@@ -68,7 +68,7 @@ describe('generator', () => {
 		blockchainDB = new InMemoryDatabase() as never;
 		generatorDB = new InMemoryDatabase() as never;
 		chain = {
-			networkIdentifier: utils.getRandomBytes(32),
+			chainID: utils.getRandomBytes(32),
 			lastBlock: {
 				header: {
 					id: Buffer.from('6846255774763267134'),
@@ -82,7 +82,7 @@ describe('generator', () => {
 				getBlockHeaderByHeight: jest.fn(),
 			},
 			constants: {
-				networkIdentifier: Buffer.from('networkIdentifier'),
+				chainID: Buffer.from('chainID'),
 			},
 		} as never;
 		consensusEvent = new EventEmitter();

@@ -27,7 +27,7 @@ import { getGeneratorPrivateKeyFromDefaultConfig } from '../../../../../src/test
 
 describe('Process block', () => {
 	let processEnv: testing.BlockProcessingEnv;
-	let networkIdentifier: Buffer;
+	let chainID: Buffer;
 	let dataAccess: DataAccess;
 	let chain: Chain;
 	const databasePath = '/tmp/lisk/protocol_violation/test';
@@ -40,7 +40,7 @@ describe('Process block', () => {
 				databasePath,
 			},
 		});
-		networkIdentifier = processEnv.getNetworkId();
+		chainID = processEnv.getNetworkId();
 		dataAccess = processEnv.getDataAccess();
 		chain = processEnv.getChain();
 	});
@@ -64,7 +64,7 @@ describe('Process block', () => {
 					nonce: BigInt(authData.nonce),
 					recipientAddress: account.address,
 					amount,
-					networkIdentifier,
+					chainID,
 					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				newBlock = await processEnv.createBlock([transaction]);
@@ -132,7 +132,7 @@ describe('Process block', () => {
 					nonce: BigInt(authData.nonce),
 					recipientAddress: account.address,
 					amount: BigInt('1000000000'),
-					networkIdentifier,
+					chainID,
 					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				newBlock = await processEnv.createBlock([transaction]);
@@ -222,7 +222,7 @@ describe('Process block', () => {
 				nonce: BigInt(targetAuthData.nonce),
 				fee: BigInt('3000000000'),
 				username: 'number1',
-				networkIdentifier,
+				chainID,
 				blsKey: account.blsPublicKey,
 				generatorKey: account.publicKey,
 				blsProofOfPossession: account.blsPoP,
@@ -248,7 +248,7 @@ describe('Process block', () => {
 				const voteAmount = BigInt('1000000000');
 				const voteTransaction = createDelegateVoteTransaction({
 					nonce: BigInt(senderAuthData.nonce),
-					networkIdentifier,
+					chainID,
 					privateKey: account.privateKey,
 					votes: [
 						{
@@ -290,7 +290,7 @@ describe('Process block', () => {
 					nonce: BigInt(senderAuthData.nonce),
 					fee: BigInt('5000000000'),
 					username: 'number1',
-					networkIdentifier,
+					chainID,
 					privateKey: account.privateKey,
 					blsKey: account.blsPublicKey,
 					generatorKey: account.publicKey,

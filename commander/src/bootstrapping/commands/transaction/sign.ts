@@ -55,7 +55,7 @@ interface Keys {
 }
 
 interface SignFlags {
-	'network-identifier': string | undefined;
+	'chain-id': string | undefined;
 	passphrase: string | undefined;
 	'include-sender': boolean;
 	offline: boolean;
@@ -71,7 +71,7 @@ const signTransaction = async (
 	registeredSchema: RegisteredSchema,
 	metadata: ModuleMetadataJSON[],
 	transactionHexStr: string,
-	networkIdentifier: string | undefined,
+	chainID: string | undefined,
 	keys: Keys,
 ) => {
 	const transactionObject = decodeTransaction(registeredSchema, metadata, transactionHexStr);
@@ -81,7 +81,7 @@ const signTransaction = async (
 		transactionObject.module,
 		transactionObject.command,
 	);
-	const networkIdentifierBuffer = Buffer.from(networkIdentifier as string, 'hex');
+	const chainIDBuffer = Buffer.from(chainID as string, 'hex');
 	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
 
 	const txObject = codec.fromJSON(registeredSchema.transaction, {
@@ -99,17 +99,12 @@ const signTransaction = async (
 
 	// sign from multi sig account offline using input keys
 	if (!flags['include-sender'] && !flags['sender-public-key']) {
-		return transactions.signTransaction(
-			decodedTx,
-			networkIdentifierBuffer,
-			edKeys.privateKey,
-			paramsSchema,
-		);
+		return transactions.signTransaction(decodedTx, chainIDBuffer, edKeys.privateKey, paramsSchema);
 	}
 
 	return transactions.signMultiSignatureTransaction(
 		decodedTx,
-		networkIdentifierBuffer,
+		chainIDBuffer,
 		edKeys.privateKey,
 		keys,
 		paramsSchema,
@@ -131,7 +126,7 @@ const signTransactionOffline = async (
 			registeredSchema,
 			metadata,
 			transactionHexStr,
-			flags['network-identifier'],
+			flags['chain-id'],
 			{} as Keys,
 		);
 		return signedTransaction;
@@ -154,7 +149,7 @@ const signTransactionOffline = async (
 		registeredSchema,
 		metadata,
 		transactionHexStr,
-		flags['network-identifier'],
+		flags['chain-id'],
 		keys,
 	);
 	return signedTransaction;
@@ -219,7 +214,7 @@ export abstract class SignCommand extends Command {
 		json: flagsWithParser.json,
 		offline: {
 			...flagsWithParser.offline,
-			dependsOn: ['network-identifier'],
+			dependsOn: ['chain-id'],
 			exclusive: ['data-path'],
 		},
 		'include-sender': flagParser.boolean({
@@ -234,7 +229,7 @@ export abstract class SignCommand extends Command {
 			multiple: true,
 			description: 'Optional publicKey string in hex format.',
 		}),
-		'network-identifier': flagsWithParser.networkIdentifier,
+		'chain-id': flagsWithParser.chainID,
 		'sender-public-key': flagsWithParser.senderPublicKey,
 		'data-path': flagsWithParser.dataPath,
 		'key-derivation-path': flagParser.string({

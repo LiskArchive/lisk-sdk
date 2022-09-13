@@ -276,15 +276,9 @@ export class BlockHeader {
 		}
 	}
 
-	public validateSignature(publicKey: Buffer, networkIdentifier: Buffer): void {
+	public validateSignature(publicKey: Buffer, chainID: Buffer): void {
 		const signingBytes = this.getSigningBytes();
-		const valid = ed.verifyData(
-			TAG_BLOCK_HEADER,
-			networkIdentifier,
-			signingBytes,
-			this.signature,
-			publicKey,
-		);
+		const valid = ed.verifyData(TAG_BLOCK_HEADER, chainID, signingBytes, this.signature, publicKey);
 
 		if (!valid) {
 			throw new Error('Invalid block signature.');
@@ -297,10 +291,10 @@ export class BlockHeader {
 		return blockHeaderBytes;
 	}
 
-	public sign(networkIdentifier: Buffer, privateKey: Buffer): void {
+	public sign(chainID: Buffer, privateKey: Buffer): void {
 		this._signature = ed.signDataWithPrivateKey(
 			TAG_BLOCK_HEADER,
-			networkIdentifier,
+			chainID,
 			this.getSigningBytes(),
 			privateKey,
 		);

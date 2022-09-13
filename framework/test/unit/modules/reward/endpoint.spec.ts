@@ -30,7 +30,7 @@ describe('RewardModuleEndpoint', () => {
 		tokenID: '0000000000000000',
 	};
 	const generatorConfig: any = {};
-	const networkIdentifier = Buffer.alloc(0);
+	const chainID = Buffer.alloc(0);
 
 	const logger: Logger = fakeLogger;
 	let rewardModule: RewardModule;
@@ -62,7 +62,7 @@ describe('RewardModuleEndpoint', () => {
 				params: {
 					height: currentHeight,
 				},
-				networkIdentifier,
+				chainID,
 				getOffchainStore: jest.fn(),
 			});
 			expect(rewardFromEndpoint).toEqual({ reward: rewardFromConfig.toString() });
@@ -77,7 +77,7 @@ describe('RewardModuleEndpoint', () => {
 			params: {
 				height: offset - 1,
 			},
-			networkIdentifier,
+			chainID,
 			getOffchainStore: jest.fn(),
 		});
 		expect(rewardFromEndpoint).toEqual({ reward: '0' });
@@ -92,7 +92,7 @@ describe('RewardModuleEndpoint', () => {
 				params: {
 					height: 'Not a number',
 				},
-				networkIdentifier,
+				chainID,
 				getOffchainStore: jest.fn(),
 			}),
 		).toThrow('Parameter height must be a number.');
@@ -107,7 +107,7 @@ describe('RewardModuleEndpoint', () => {
 				params: {
 					height: -1,
 				},
-				networkIdentifier,
+				chainID,
 				getOffchainStore: jest.fn(),
 			}),
 		).toThrow('Parameter height cannot be smaller than 0.');

@@ -105,7 +105,6 @@ describe('Application', () => {
 			customConfig.genesis = {
 				...config.genesis,
 				maxTransactionsSize: 15 * 1024,
-				communityIdentifier: 'Lisk',
 				blockTime: 5,
 			};
 

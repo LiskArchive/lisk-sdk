@@ -410,7 +410,7 @@ describe('Base interoperability store', () => {
 			getMethodContext: beforeSendCCMContext.getMethodContext,
 			getStore: beforeSendCCMContext.getStore,
 			logger: beforeSendCCMContext.logger,
-			networkIdentifier: beforeSendCCMContext.networkIdentifier,
+			chainID: beforeSendCCMContext.chainID,
 			feeAddress: Buffer.alloc(0),
 			trsSender: beforeApplyCCMContext.trsSender,
 		};

@@ -11,106 +11,108 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import axios from 'axios';
-import { createApplication, closeApplication } from '../utils/application';
+// TODO: Fix the test when functional test is fixed https://github.com/LiskHQ/lisk-sdk/issues/7209
 
-import { Application } from '../../../src';
+// import axios from 'axios';
+// import { createApplication, closeApplication } from '../utils/application';
 
-const requestHTTPServer = async (
-	options: { host: string; port: number },
-	reqData: Record<string, unknown>,
-) => {
-	const url = `http://${options.host}:${options.port}`;
-	const { data, status } = await axios.post(
-		url,
-		{ ...reqData },
-		{
-			headers: {
-				'Content-Type': 'application/json',
-			},
-		},
-	);
+// import { Application } from '../../../src';
 
-	expect(status).toEqual(200);
+// const requestHTTPServer = async (
+// 	options: { host: string; port: number },
+// 	reqData: Record<string, unknown>,
+// ) => {
+// 	const url = `http://${options.host}:${options.port}`;
+// 	const { data, status } = await axios.post(
+// 		url,
+// 		{ ...reqData },
+// 		{
+// 			headers: {
+// 				'Content-Type': 'application/json',
+// 			},
+// 		},
+// 	);
 
-	return data;
-};
+// 	expect(status).toEqual(200);
 
-describe('HTTP server', () => {
-	let app: Application;
+// 	return data;
+// };
 
-	beforeAll(async () => {
-		app = await createApplication('http-tests');
-	});
+// describe('HTTP server', () => {
+// 	let app: Application;
 
-	afterAll(async () => {
-		await closeApplication(app);
-	});
+// 	beforeAll(async () => {
+// 		app = await createApplication('http-tests');
+// 	});
 
-	describe('communication', () => {
-		it('should respond with invalid jsonrpc request if "id" is missing', async () => {
-			// Arrange
-			const requestData = { jsonrpc: '2.0', method: 'app_getNodeInfo' };
+// 	afterAll(async () => {
+// 		await closeApplication(app);
+// 	});
 
-			// Act
-			const result = await requestHTTPServer(app.config.rpc, requestData);
+// 	describe('communication', () => {
+// 		it('should respond with invalid jsonrpc request if "id" is missing', async () => {
+// 			// Arrange
+// 			const requestData = { jsonrpc: '2.0', method: 'app_getNodeInfo' };
 
-			// Assert
-			expect(result).toEqual({
-				jsonrpc: '2.0',
-				error: { message: 'Invalid request', code: -32600 },
-			});
-		});
+// 			// Act
+// 			const result = await requestHTTPServer(app.config.rpc, requestData);
 
-		it('should respond with Internal error if "method" is missing', async () => {
-			// Arrange
-			const requestData = { jsonrpc: '2.0', id: 1234 };
+// 			// Assert
+// 			expect(result).toEqual({
+// 				jsonrpc: '2.0',
+// 				error: { message: 'Invalid request', code: -32600 },
+// 			});
+// 		});
 
-			// Act
-			const result = await requestHTTPServer(app.config.rpc, requestData);
+// 		it('should respond with Internal error if "method" is missing', async () => {
+// 			// Arrange
+// 			const requestData = { jsonrpc: '2.0', id: 1234 };
 
-			// Assert
-			expect(result).toEqual({
-				jsonrpc: '2.0',
-				error: {
-					message: 'Invalid request',
-					code: -32600,
-				},
-				id: 1234,
-			});
-		});
+// 			// Act
+// 			const result = await requestHTTPServer(app.config.rpc, requestData);
 
-		it('should respond with Internal error request if "method" invoked is invalid', async () => {
-			// Arrange
-			const requestData = { jsonrpc: '2.0', method: 'app_unknownMethod', id: 67879 };
+// 			// Assert
+// 			expect(result).toEqual({
+// 				jsonrpc: '2.0',
+// 				error: {
+// 					message: 'Invalid request',
+// 					code: -32600,
+// 				},
+// 				id: 1234,
+// 			});
+// 		});
 
-			// Act
-			const result = await requestHTTPServer(app.config.rpc, requestData);
+// 		it('should respond with Internal error request if "method" invoked is invalid', async () => {
+// 			// Arrange
+// 			const requestData = { jsonrpc: '2.0', method: 'app_unknownMethod', id: 67879 };
 
-			// Assert
-			expect(result).toEqual({
-				jsonrpc: '2.0',
-				error: {
-					message: 'Internal error',
-					data: "Action 'app_unknownMethod' is not registered to bus.",
-					code: -32603,
-				},
-				id: 67879,
-			});
-		});
+// 			// Act
+// 			const result = await requestHTTPServer(app.config.rpc, requestData);
 
-		it('should respond to valid jsonrpc request', async () => {
-			// Arrange
-			const requestData = { jsonrpc: '2.0', method: 'app_getNodeInfo', id: 6729833 };
+// 			// Assert
+// 			expect(result).toEqual({
+// 				jsonrpc: '2.0',
+// 				error: {
+// 					message: 'Internal error',
+// 					data: "Action 'app_unknownMethod' is not registered to bus.",
+// 					code: -32603,
+// 				},
+// 				id: 67879,
+// 			});
+// 		});
 
-			// Act
-			const result = await requestHTTPServer(app.config.rpc, requestData);
+// 		it('should respond to valid jsonrpc request', async () => {
+// 			// Arrange
+// 			const requestData = { jsonrpc: '2.0', method: 'app_getNodeInfo', id: 6729833 };
 
-			// Assert
-			expect(result).toContainAllKeys(['jsonrpc', 'id', 'result']);
-			expect(result.jsonrpc).toEqual('2.0');
-			expect(result.id).toEqual(6729833);
-			expect(result.result).not.toBeUndefined();
-		});
-	});
-});
+// 			// Act
+// 			const result = await requestHTTPServer(app.config.rpc, requestData);
+
+// 			// Assert
+// 			expect(result).toContainAllKeys(['jsonrpc', 'id', 'result']);
+// 			expect(result.jsonrpc).toEqual('2.0');
+// 			expect(result.id).toEqual(6729833);
+// 			expect(result.result).not.toBeUndefined();
+// 		});
+// 	});
+// });

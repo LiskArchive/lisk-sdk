@@ -38,7 +38,7 @@ describe('MainchainCCChannelTerminatedCommand', () => {
 	const ccMethodsMap = new Map();
 	ccMethodsMap.set(1, ccMethodMod1);
 	ccMethodsMap.set(2, ccMethodMod2);
-	const networkIdentifier = utils.getRandomBytes(32);
+	const chainID = utils.getRandomBytes(32);
 	const ccm = {
 		nonce: BigInt(0),
 		module: MODULE_NAME_INTEROPERABILITY,
@@ -50,7 +50,7 @@ describe('MainchainCCChannelTerminatedCommand', () => {
 		params: Buffer.alloc(0),
 	};
 	const sampleExecuteContext: CCCommandExecuteContext = createExecuteCCMsgMethodContext({
-		networkIdentifier,
+		chainID,
 	});
 
 	const ccChannelTerminatedCommand = new MainchainCCChannelTerminatedCommand(

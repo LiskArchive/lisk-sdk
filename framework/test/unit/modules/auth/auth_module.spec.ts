@@ -46,7 +46,7 @@ describe('AuthModule', () => {
 	const storeMock = jest.fn().mockReturnValue({ getWithSchema: subStoreMock });
 
 	const defaultTestCase = fixtures.testCases[0];
-	const networkIdentifier = Buffer.from(defaultTestCase.input.networkIdentifier, 'hex');
+	const chainID = Buffer.from(defaultTestCase.input.chainID, 'hex');
 
 	beforeEach(() => {
 		authModule = new AuthModule();
@@ -322,7 +322,7 @@ describe('AuthModule', () => {
 					.createTransactionContext({
 						stateStore,
 						transaction: validTestTransaction,
-						networkIdentifier,
+						chainID,
 					})
 					.createTransactionVerifyContext();
 
@@ -355,7 +355,7 @@ describe('AuthModule', () => {
 
 				const signature = ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
-					networkIdentifier,
+					chainID,
 					transaction.getBytes(),
 					passphraseDerivedKeys.privateKey,
 				);
@@ -366,7 +366,7 @@ describe('AuthModule', () => {
 					.createTransactionContext({
 						stateStore,
 						transaction,
-						networkIdentifier,
+						chainID,
 					})
 					.createTransactionVerifyContext();
 
@@ -384,7 +384,7 @@ describe('AuthModule', () => {
 					.createTransactionContext({
 						stateStore,
 						transaction: validTestTransaction,
-						networkIdentifier,
+						chainID,
 					})
 					.createTransactionVerifyContext();
 
@@ -410,7 +410,7 @@ describe('AuthModule', () => {
 
 				const signature = ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
-					networkIdentifier,
+					chainID,
 					transaction.getBytes(),
 					passphraseDerivedKeys.privateKey,
 				);
@@ -421,7 +421,7 @@ describe('AuthModule', () => {
 					.createTransactionContext({
 						stateStore,
 						transaction,
-						networkIdentifier,
+						chainID,
 					})
 					.createTransactionVerifyContext();
 
@@ -447,7 +447,7 @@ describe('AuthModule', () => {
 					.createTransactionContext({
 						stateStore,
 						transaction,
-						networkIdentifier,
+						chainID,
 					})
 					.createTransactionVerifyContext();
 
@@ -473,7 +473,7 @@ describe('AuthModule', () => {
 
 				const signature = ed.signDataWithPrivateKey(
 					TAG_TRANSACTION,
-					networkIdentifier,
+					chainID,
 					transaction.getBytes(),
 					passphraseDerivedKeys.privateKey,
 				);
@@ -485,7 +485,7 @@ describe('AuthModule', () => {
 					.createTransactionContext({
 						stateStore,
 						transaction,
-						networkIdentifier,
+						chainID,
 					})
 					.createTransactionVerifyContext();
 
@@ -575,7 +575,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).mandatoryA.keys.privateKey,
 					),
@@ -584,7 +584,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).mandatoryB.keys.privateKey,
 					),
@@ -593,7 +593,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).optionalA.keys.privateKey,
 					),
@@ -605,7 +605,7 @@ describe('AuthModule', () => {
 					.createTransactionContext({
 						stateStore,
 						transaction,
-						networkIdentifier,
+						chainID,
 					})
 					.createTransactionVerifyContext();
 
@@ -633,7 +633,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).optionalA.keys.privateKey,
 					),
@@ -645,7 +645,7 @@ describe('AuthModule', () => {
 					.createTransactionContext({
 						stateStore,
 						transaction,
-						networkIdentifier,
+						chainID,
 					})
 					.createTransactionVerifyContext();
 
@@ -660,7 +660,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).mandatoryA.keys.privateKey,
 					),
@@ -669,7 +669,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).mandatoryB.keys.privateKey,
 					),
@@ -678,7 +678,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).optionalA.keys.privateKey,
 					),
@@ -689,7 +689,7 @@ describe('AuthModule', () => {
 					.createTransactionContext({
 						stateStore,
 						transaction,
-						networkIdentifier,
+						chainID,
 					})
 					.createTransactionVerifyContext();
 
@@ -704,7 +704,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).mandatoryA.keys.privateKey,
 					),
@@ -713,7 +713,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).mandatoryB.keys.privateKey,
 					),
@@ -724,7 +724,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).optionalB.keys.privateKey,
 					),
@@ -734,7 +734,7 @@ describe('AuthModule', () => {
 					.createTransactionContext({
 						stateStore,
 						transaction,
-						networkIdentifier,
+						chainID,
 					})
 					.createTransactionVerifyContext();
 
@@ -749,7 +749,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).mandatoryA.keys.privateKey,
 					),
@@ -758,7 +758,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).mandatoryB.keys.privateKey,
 					),
@@ -767,7 +767,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).optionalB.keys.privateKey,
 					),
@@ -776,7 +776,7 @@ describe('AuthModule', () => {
 					.createTransactionContext({
 						stateStore,
 						transaction,
-						networkIdentifier,
+						chainID,
 					})
 					.createTransactionVerifyContext();
 
@@ -795,7 +795,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).mandatoryA.keys.privateKey,
 					),
@@ -804,7 +804,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).mandatoryB.keys.privateKey,
 					),
@@ -813,7 +813,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).optionalA.keys.privateKey,
 					),
@@ -822,7 +822,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).optionalB.keys.privateKey,
 					),
@@ -832,7 +832,7 @@ describe('AuthModule', () => {
 					.createTransactionContext({
 						stateStore,
 						transaction,
-						networkIdentifier,
+						chainID,
 					})
 					.createTransactionVerifyContext();
 
@@ -851,7 +851,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).mandatoryA.keys.privateKey,
 					),
@@ -860,7 +860,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).mandatoryB.keys.privateKey,
 					),
@@ -872,7 +872,7 @@ describe('AuthModule', () => {
 					.createTransactionContext({
 						stateStore,
 						transaction,
-						networkIdentifier,
+						chainID,
 					})
 					.createTransactionVerifyContext();
 
@@ -891,7 +891,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).mandatoryA.keys.privateKey,
 					),
@@ -902,7 +902,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).optionalA.keys.privateKey,
 					),
@@ -911,7 +911,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).optionalB.keys.privateKey,
 					),
@@ -921,7 +921,7 @@ describe('AuthModule', () => {
 					.createTransactionContext({
 						stateStore,
 						transaction,
-						networkIdentifier,
+						chainID,
 					})
 					.createTransactionVerifyContext();
 
@@ -936,7 +936,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).mandatoryA.keys.privateKey,
 					),
@@ -945,7 +945,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).mandatoryB.keys.privateKey,
 					),
@@ -954,7 +954,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).optionalA.keys.privateKey,
 					),
@@ -966,7 +966,7 @@ describe('AuthModule', () => {
 					.createTransactionContext({
 						stateStore,
 						transaction,
-						networkIdentifier,
+						chainID,
 					})
 					.createTransactionVerifyContext();
 
@@ -981,7 +981,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).mandatoryA.keys.privateKey,
 					),
@@ -990,7 +990,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).mandatoryB.keys.privateKey,
 					),
@@ -1001,7 +1001,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).optionalB.keys.privateKey,
 					),
@@ -1014,7 +1014,7 @@ describe('AuthModule', () => {
 					.createTransactionContext({
 						stateStore,
 						transaction,
-						networkIdentifier,
+						chainID,
 					})
 					.createTransactionVerifyContext();
 
@@ -1033,7 +1033,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).mandatoryB.keys.privateKey,
 					),
@@ -1042,7 +1042,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).mandatoryA.keys.privateKey,
 					),
@@ -1051,7 +1051,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).optionalA.keys.privateKey,
 					),
@@ -1063,7 +1063,7 @@ describe('AuthModule', () => {
 					.createTransactionContext({
 						stateStore,
 						transaction,
-						networkIdentifier,
+						chainID,
 					})
 					.createTransactionVerifyContext();
 
@@ -1082,7 +1082,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).mandatoryA.keys.privateKey,
 					),
@@ -1091,7 +1091,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).mandatoryB.keys.privateKey,
 					),
@@ -1102,7 +1102,7 @@ describe('AuthModule', () => {
 				(transaction.signatures as any).push(
 					ed.signDataWithPrivateKey(
 						TAG_TRANSACTION,
-						networkIdentifier,
+						chainID,
 						transaction.getSigningBytes(),
 						(members as any).optionalA.keys.privateKey,
 					),
@@ -1112,7 +1112,7 @@ describe('AuthModule', () => {
 					.createTransactionContext({
 						stateStore,
 						transaction,
-						networkIdentifier,
+						chainID,
 					})
 					.createTransactionVerifyContext();
 
@@ -1135,7 +1135,7 @@ describe('AuthModule', () => {
 				.createTransactionContext({
 					stateStore: stateStore1,
 					transaction: validTestTransaction,
-					networkIdentifier,
+					chainID,
 				})
 				.createTransactionExecuteContext();
 			const authStore1 = authModule.stores.get(AuthAccountStore);

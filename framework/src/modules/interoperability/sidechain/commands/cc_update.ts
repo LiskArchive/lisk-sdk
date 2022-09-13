@@ -178,7 +178,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 				getMethodContext: context.getMethodContext,
 				getStore: context.getStore,
 				logger: context.logger,
-				networkIdentifier: context.networkIdentifier,
+				chainID: context.chainID,
 			});
 
 			throw err;
@@ -199,7 +199,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 					getMethodContext: context.getMethodContext,
 					getStore: context.getStore,
 					logger: context.logger,
-					networkIdentifier: context.networkIdentifier,
+					chainID: context.chainID,
 				});
 
 				return; // Exit CCU processing
@@ -213,7 +213,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 					getMethodContext: context.getMethodContext,
 					getStore: context.getStore,
 					logger: context.logger,
-					networkIdentifier: context.networkIdentifier,
+					chainID: context.chainID,
 				});
 
 				continue;
@@ -226,7 +226,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 					getMethodContext: context.getMethodContext,
 					getStore: context.getStore,
 					logger: context.logger,
-					networkIdentifier: context.networkIdentifier,
+					chainID: context.chainID,
 				});
 
 				continue;
@@ -243,7 +243,7 @@ export class SidechainCCUpdateCommand extends BaseInteroperabilityCommand {
 					getMethodContext: context.getMethodContext,
 					getStore: context.getStore,
 					logger: context.logger,
-					networkIdentifier: context.networkIdentifier,
+					chainID: context.chainID,
 					trsSender: context.transaction.senderAddress,
 				},
 				this.ccCommands,

@@ -120,9 +120,9 @@ export const consensusSchema = {
 export const readyRequestSchema = {
 	$id: '/abi/readyRequest',
 	type: 'object',
-	required: ['networkIdentifier', 'lastBlockHeight'],
+	required: ['chainID', 'lastBlockHeight'],
 	properties: {
-		networkIdentifier: {
+		chainID: {
 			fieldNumber: 1,
 			dataType: 'bytes',
 		},
