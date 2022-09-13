@@ -1485,6 +1485,26 @@
   dependencies:
     "@types/node" "11.11.2"
 
+"@liskhq/lisk-codec@0.3.0-alpha.2":
+  version "0.3.0-alpha.2"
+  resolved "https://npm.lisk.com/@liskhq%2flisk-codec/-/lisk-codec-0.3.0-alpha.2.tgz#637aeb1a0ccb7cbab32c771a861d0957abc47051"
+  integrity sha512-i+AGCOymCtexulGj4PldrLTZOThRqfDlVNBj9YIJl78KwdKhRv9B4iKmL7W/D/fgq6nOMCwOyORXYSB4S4PtvQ==
+  dependencies:
+    "@liskhq/lisk-utils" "^0.3.0-alpha.0"
+    "@liskhq/lisk-validator" "^0.7.0-alpha.2"
+
+"@liskhq/lisk-cryptography@4.0.0-alpha.2":
+  version "4.0.0-alpha.2"
+  resolved "https://npm.lisk.com/@liskhq%2flisk-cryptography/-/lisk-cryptography-4.0.0-alpha.2.tgz#e57f712ad49e20795ed28abe9ec56dd3b83677f7"
+  integrity sha512-uABcQs5qOw19IunqBEXk4JIp0VBl2lVRH+2VuzXA0um0g9G3drZQyX20WSLaJo0ss0zbIZLf8nSNEYs130AaWg==
+  dependencies:
+    "@liskhq/lisk-passphrase" "4.0.0-alpha.0"
+    buffer-reverse "1.0.1"
+    ed2curve "0.3.0"
+    hash-wasm "4.9.0"
+    tweetnacl "1.0.3"
+    varuint-bitcoin "1.1.2"
+
 "@liskhq/lisk-db@0.3.0-debug.20-b876469836935925369a887fe03e50a67c26c38f":
   version "0.3.0-debug.20-b876469836935925369a887fe03e50a67c26c38f"
   resolved "https://npm.lisk.com/@liskhq%2flisk-db/-/lisk-db-0.3.0-debug.20-b876469836935925369a887fe03e50a67c26c38f.tgz#e2fc899d796c22422027361a0666ef7564f4a2ae"
@@ -1492,6 +1512,18 @@
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.9"
     "@types/node" "^16"
+
+"@liskhq/lisk-validator@0.7.0-alpha.2":
+  version "0.7.0-alpha.2"
+  resolved "https://npm.lisk.com/@liskhq%2flisk-validator/-/lisk-validator-0.7.0-alpha.2.tgz#9168773ffc4c16ed9ff8facbfec6ce466b269a05"
+  integrity sha512-UP4ypKXKNqt/9zPds20xakTqRGHtGdw/mk55k64OzIrtUkzvMXCkEiRcoWsPjxsRgt4AE9UJkiI8dvd5ii/etQ==
+  dependencies:
+    "@liskhq/lisk-cryptography" "^4.0.0-alpha.2"
+    ajv "8.1.0"
+    ajv-formats "2.0.2"
+    debug "4.3.1"
+    semver "7.3.5"
+    validator "13.7.0"
 
 "@lmdb/lmdb-darwin-arm64@2.5.2":
   version "2.5.2"
