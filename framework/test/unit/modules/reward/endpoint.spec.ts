@@ -57,7 +57,7 @@ describe('RewardModuleEndpoint', () => {
 		it(`should getDefaultRewardAtHeight work for the ${nthBracket}th bracket`, () => {
 			const rewardFromEndpoint = rewardModule.endpoint.getDefaultRewardAtHeight({
 				getStore: jest.fn(),
-				getImmutableAPIContext: jest.fn(),
+				getImmutableMethodContext: jest.fn(),
 				logger,
 				params: {
 					height: currentHeight,
@@ -72,7 +72,7 @@ describe('RewardModuleEndpoint', () => {
 	it('should getDefaultRewardAtHeight work for the height below offset', () => {
 		const rewardFromEndpoint = rewardModule.endpoint.getDefaultRewardAtHeight({
 			getStore: jest.fn(),
-			getImmutableAPIContext: jest.fn(),
+			getImmutableMethodContext: jest.fn(),
 			logger,
 			params: {
 				height: offset - 1,
@@ -87,7 +87,7 @@ describe('RewardModuleEndpoint', () => {
 		expect(() =>
 			rewardModule.endpoint.getDefaultRewardAtHeight({
 				getStore: jest.fn(),
-				getImmutableAPIContext: jest.fn(),
+				getImmutableMethodContext: jest.fn(),
 				logger,
 				params: {
 					height: 'Not a number',
@@ -102,7 +102,7 @@ describe('RewardModuleEndpoint', () => {
 		expect(() =>
 			rewardModule.endpoint.getDefaultRewardAtHeight({
 				getStore: jest.fn(),
-				getImmutableAPIContext: jest.fn(),
+				getImmutableMethodContext: jest.fn(),
 				logger,
 				params: {
 					height: -1,

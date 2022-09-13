@@ -58,7 +58,7 @@ import { ChannelDataStore } from '../../../../../../src/modules/interoperability
 import { ChainValidatorsStore } from '../../../../../../src/modules/interoperability/stores/chain_validators';
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
 import { createStoreGetter } from '../../../../../../src/testing/utils';
-import { createTransientAPIContext } from '../../../../../../src/testing';
+import { createTransientMethodContext } from '../../../../../../src/testing';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
@@ -245,7 +245,7 @@ describe('CrossChainUpdateCommand', () => {
 	describe('verify', () => {
 		beforeEach(() => {
 			verifyContext = {
-				getAPIContext: () => createTransientAPIContext({ stateStore }),
+				getMethodContext: () => createTransientMethodContext({ stateStore }),
 				getStore: createStoreGetter(stateStore).getStore,
 				logger: testing.mocks.loggerMock,
 				networkIdentifier,
@@ -404,7 +404,7 @@ describe('CrossChainUpdateCommand', () => {
 				certificateThreshold: BigInt(10),
 			};
 			executeContext = {
-				getAPIContext: () => createTransientAPIContext({ stateStore }),
+				getMethodContext: () => createTransientMethodContext({ stateStore }),
 				getStore: createStoreGetter(stateStore).getStore,
 				logger: testing.mocks.loggerMock,
 				networkIdentifier,

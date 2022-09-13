@@ -21,7 +21,7 @@ export {
 } from '@liskhq/lisk-chain';
 export {
 	BaseModule,
-	BaseAPI,
+	BaseMethod,
 	BaseCommand,
 	BaseEndpoint,
 	BaseEvent,
@@ -45,15 +45,15 @@ export type { BaseChannel } from './controller/channels';
 export type { EventsDefinition, EventCallback } from './controller/event';
 export * as testing from './testing';
 export * from './types';
-export { ValidatorsAPI, ValidatorsModule } from './modules/validators';
+export { ValidatorsMethod, ValidatorsModule } from './modules/validators';
 export {
-	TokenAPI,
+	TokenMethod,
 	TokenModule,
 	TransferCommand,
 	genesisTokenStoreSchema as tokenGenesisStoreSchema,
 } from './modules/token';
 export {
-	DPoSAPI,
+	DPoSMethod,
 	DPoSModule,
 	DelegateRegistrationCommand,
 	ReportDelegateMisbehaviorCommand,
@@ -64,23 +64,23 @@ export {
 } from './modules/dpos_v2';
 export {
 	MainchainCCUpdateCommand,
-	MainchainInteroperabilityAPI,
+	MainchainInteroperabilityMethod,
 	MainchainInteroperabilityModule,
 	MainchainMessageRecoveryCommand,
 	MainchainRegistrationCommand,
 	SidechainCCUpdateCommand,
-	SidechainInteroperabilityAPI,
+	SidechainInteroperabilityMethod,
 	SidechainInteroperabilityModule,
 	SidechainMessageRecoveryCommand,
 	SidechainRegistrationCommand,
 } from './modules/interoperability';
-export { RewardAPI, RewardModule } from './modules/reward';
-export { FeeAPI, FeeModule } from './modules/fee';
-export { RandomAPI, RandomModule } from './modules/random';
+export { RewardMethod, RewardModule } from './modules/reward';
+export { FeeMethod, FeeModule } from './modules/fee';
+export { RandomMethod, RandomModule } from './modules/random';
 export {
 	GenesisBlockExecuteContext,
 	InsertAssetContext,
-	APIContext,
+	MethodContext,
 	CommandExecuteContext,
 	CommandVerifyContext,
 	VerificationResult,

@@ -16,12 +16,12 @@ import { BlockAsset, BlockAssets } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { utils } from '@liskhq/lisk-cryptography';
-import { RandomAPI } from '../../../../src/modules/random/api';
+import { RandomMethod } from '../../../../src/modules/random/method';
 import { SEED_LENGTH } from '../../../../src/modules/random/constants';
 import { blockHeaderAssetRandomModule } from '../../../../src/modules/random/schemas';
 import { bitwiseXOR } from '../../../../src/modules/random/utils';
-import { APIContext } from '../../../../src/state_machine';
-import { createTransientAPIContext } from '../../../../src/testing';
+import { MethodContext } from '../../../../src/state_machine';
+import { createTransientMethodContext } from '../../../../src/testing';
 import * as genesisDelegates from '../../../fixtures/genesis_delegates.json';
 import { testCases } from './dpos_random_seed_generation/dpos_random_seed_generation_other_rounds.json';
 import * as randomSeedsMultipleRounds from '../../../fixtures/dpos_random_seed_generation/dpos_random_seed_generation_other_rounds.json';
@@ -34,9 +34,9 @@ import {
 const strippedHashOfIntegerBuffer = (num: number) =>
 	cryptography.utils.hash(utils.intToBuffer(num, 4)).slice(0, SEED_LENGTH);
 
-describe('RandomModuleAPI', () => {
-	let randomAPI: RandomAPI;
-	let context: APIContext;
+describe('RandomModuleMethod', () => {
+	let randomMethod: RandomMethod;
+	let context: MethodContext;
 	let randomStore: ValidatorRevealsStore;
 
 	const randomModule = new RandomModule();
@@ -66,8 +66,8 @@ describe('RandomModuleAPI', () => {
 		}
 
 		beforeEach(async () => {
-			randomAPI = new RandomAPI(randomModule.stores, randomModule.events, randomModule.name);
-			context = createTransientAPIContext({});
+			randomMethod = new RandomMethod(randomModule.stores, randomModule.events, randomModule.name);
+			context = createTransientMethodContext({});
 			randomStore = randomModule.stores.get(ValidatorRevealsStore);
 			await randomStore.set(context, emptyBytes, {
 				validatorReveals: twoRoundsDelegates.slice(0, 103),
@@ -87,7 +87,7 @@ describe('RandomModuleAPI', () => {
 
 			// Act & Assert
 			await expect(
-				randomAPI.isSeedRevealValid(context, delegateAddress, new BlockAssets([blockAsset])),
+				randomMethod.isSeedRevealValid(context, delegateAddress, new BlockAssets([blockAsset])),
 			).rejects.toThrow('Block asset is missing.');
 		});
 
@@ -99,7 +99,7 @@ describe('RandomModuleAPI', () => {
 					data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[1] }),
 				};
 				// Act
-				const isValid = await randomAPI.isSeedRevealValid(
+				const isValid = await randomMethod.isSeedRevealValid(
 					context,
 					Buffer.from(address, 'hex'),
 					new BlockAssets([blockAsset]),
@@ -118,7 +118,7 @@ describe('RandomModuleAPI', () => {
 					data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[1] }),
 				};
 				// Act
-				const isValid = await randomAPI.isSeedRevealValid(
+				const isValid = await randomMethod.isSeedRevealValid(
 					context,
 					Buffer.from(address, 'hex'),
 					new BlockAssets([blockAsset]),
@@ -137,7 +137,7 @@ describe('RandomModuleAPI', () => {
 					data: codec.encode(blockHeaderAssetRandomModule, { seedReveal: hashes[1] }),
 				};
 				// Act
-				const isValid = await randomAPI.isSeedRevealValid(
+				const isValid = await randomMethod.isSeedRevealValid(
 					context,
 					Buffer.from(address, 'hex'),
 					new BlockAssets([blockAsset]),
@@ -189,8 +189,8 @@ describe('RandomModuleAPI', () => {
 		];
 
 		beforeEach(async () => {
-			randomAPI = new RandomAPI(randomModule.stores, randomModule.events, randomModule.name);
-			context = createTransientAPIContext({});
+			randomMethod = new RandomMethod(randomModule.stores, randomModule.events, randomModule.name);
+			context = createTransientMethodContext({});
 			randomStore = randomModule.stores.get(ValidatorRevealsStore);
 			await randomStore.set(context, emptyBytes, { validatorReveals: validatorsData });
 		});
@@ -200,7 +200,7 @@ describe('RandomModuleAPI', () => {
 			const numberOfSeeds = 2;
 			// Create a buffer from height + numberOfSeeds
 
-			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
+			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
 				'Height or number of seeds cannot be negative.',
 			);
 		});
@@ -210,7 +210,7 @@ describe('RandomModuleAPI', () => {
 			const numberOfSeeds = -2;
 			// Create a buffer from height + numberOfSeeds
 
-			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
+			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).rejects.toThrow(
 				'Height or number of seeds cannot be negative.',
 			);
 		});
@@ -231,7 +231,7 @@ describe('RandomModuleAPI', () => {
 				hashesExpected[1],
 			]);
 
-			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				xorExpected,
 			);
 		});
@@ -253,7 +253,7 @@ describe('RandomModuleAPI', () => {
 				hashesExpected[2],
 			]);
 
-			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				xorExpected,
 			);
 		});
@@ -275,7 +275,7 @@ describe('RandomModuleAPI', () => {
 				hashesExpected[2],
 			]);
 
-			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				xorExpected,
 			);
 		});
@@ -292,7 +292,7 @@ describe('RandomModuleAPI', () => {
 			// Do XOR of randomSeed with hashes of seed reveal with height >= randomStoreValidator.height >= height + numberOfSeeds
 			const xorExpected = bitwiseXOR([randomSeed, hashesExpected[0]]);
 
-			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				xorExpected,
 			);
 		});
@@ -303,7 +303,7 @@ describe('RandomModuleAPI', () => {
 			// Create a buffer from height + numberOfSeeds
 			const randomSeed = strippedHashOfIntegerBuffer(height + numberOfSeeds);
 
-			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				randomSeed,
 			);
 		});
@@ -314,7 +314,7 @@ describe('RandomModuleAPI', () => {
 			// Create a buffer from height + numberOfSeeds
 			const randomSeed = strippedHashOfIntegerBuffer(height + numberOfSeeds);
 
-			await expect(randomAPI.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
+			await expect(randomMethod.getRandomBytes(context, height, numberOfSeeds)).resolves.toEqual(
 				randomSeed,
 			);
 		});
@@ -343,8 +343,12 @@ describe('RandomModuleAPI', () => {
 			}
 
 			beforeEach(async () => {
-				randomAPI = new RandomAPI(randomModule.stores, randomModule.events, randomModule.name);
-				context = createTransientAPIContext({});
+				randomMethod = new RandomMethod(
+					randomModule.stores,
+					randomModule.events,
+					randomModule.name,
+				);
+				context = createTransientMethodContext({});
 				randomStore = randomModule.stores.get(ValidatorRevealsStore);
 				await randomStore.set(context, emptyBytes, { validatorReveals: validators });
 			});
@@ -363,7 +367,7 @@ describe('RandomModuleAPI', () => {
 				const endOfLastRound = startOfRound - 1;
 				const startOfLastRound = endOfLastRound - config.blocksPerRound + 1;
 				// Act
-				const randomSeed1 = await randomAPI.getRandomBytes(
+				const randomSeed1 = await randomMethod.getRandomBytes(
 					context,
 					heightForSeed1,
 					round === 2 ? middleThreshold : middleThreshold * 2,
@@ -372,7 +376,7 @@ describe('RandomModuleAPI', () => {
 				const randomSeed2 =
 					round === 2
 						? strippedHashOfIntegerBuffer(endOfLastRound)
-						: await randomAPI.getRandomBytes(context, startOfLastRound, middleThreshold * 2);
+						: await randomMethod.getRandomBytes(context, startOfLastRound, middleThreshold * 2);
 				// Assert
 				expect(randomSeed1.toString('hex')).toEqual(output.randomSeed1);
 				expect(randomSeed2.toString('hex')).toEqual(output.randomSeed2);

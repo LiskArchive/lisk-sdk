@@ -14,14 +14,14 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { AuthModule } from '../../../../src/modules/auth';
-import { AuthAPI } from '../../../../src/modules/auth/api';
+import { AuthMethod } from '../../../../src/modules/auth/method';
 import { AuthAccountStore } from '../../../../src/modules/auth/stores/auth_account';
-import { APIContext } from '../../../../src/state_machine';
-import { createTransientAPIContext } from '../../../../src/testing';
+import { MethodContext } from '../../../../src/state_machine';
+import { createTransientMethodContext } from '../../../../src/testing';
 
-describe('AuthAPI', () => {
-	let authAPI: AuthAPI;
-	let context: APIContext;
+describe('AuthMethod', () => {
+	let authMethod: AuthMethod;
+	let context: MethodContext;
 	let authStore: AuthAccountStore;
 	const address = Buffer.from('fa1c00809ff1b10cd269a711eef40a465ba4a9cb', 'hex');
 	const expectedAuthData = {
@@ -33,15 +33,15 @@ describe('AuthAPI', () => {
 
 	beforeEach(async () => {
 		const module = new AuthModule();
-		authAPI = new AuthAPI(module.stores, module.events);
-		context = createTransientAPIContext({});
+		authMethod = new AuthMethod(module.stores, module.events);
+		context = createTransientMethodContext({});
 		authStore = module.stores.get(AuthAccountStore);
 		await authStore.set(context, address, expectedAuthData);
 	});
 
 	describe('getAuthAccount', () => {
 		it('should return valid auth data given address in db', async () => {
-			const authData = await authAPI.getAuthAccount(context, address);
+			const authData = await authMethod.getAuthAccount(context, address);
 
 			expect(authData).toHaveProperty('nonce', BigInt(expectedAuthData.nonce));
 			expect(authData).toHaveProperty('numberOfSignatures', expectedAuthData.numberOfSignatures);
@@ -50,7 +50,7 @@ describe('AuthAPI', () => {
 		});
 
 		it('should return empty object given address not in db', async () => {
-			const authData = await authAPI.getAuthAccount(context, utils.getRandomBytes(20));
+			const authData = await authMethod.getAuthAccount(context, utils.getRandomBytes(20));
 
 			expect(authData).toHaveProperty('nonce', BigInt(0));
 			expect(authData).toHaveProperty('numberOfSignatures', 0);

@@ -13,18 +13,18 @@
  */
 
 import { NotFoundError } from '@liskhq/lisk-chain';
-import { BaseAPI } from '../base_api';
-import { ImmutableAPIContext } from '../../state_machine';
+import { BaseMethod } from '../base_method';
+import { ImmutableMethodContext } from '../../state_machine';
 import { AuthAccount, AuthAccountStore } from './stores/auth_account';
 
-export class AuthAPI extends BaseAPI {
+export class AuthMethod extends BaseMethod {
 	public async getAuthAccount(
-		apiContext: ImmutableAPIContext,
+		methodContext: ImmutableMethodContext,
 		address: Buffer,
 	): Promise<AuthAccount> {
 		const authDataStore = this.stores.get(AuthAccountStore);
 		try {
-			const authData = await authDataStore.get(apiContext, address);
+			const authData = await authDataStore.get(methodContext, address);
 
 			return authData;
 		} catch (error) {

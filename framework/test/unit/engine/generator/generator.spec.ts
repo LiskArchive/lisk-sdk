@@ -130,7 +130,7 @@ describe('generator', () => {
 		} as never;
 		bft = {
 			beforeTransactionsExecute: jest.fn(),
-			api: {
+			method: {
 				getBFTHeights: jest.fn().mockResolvedValue({
 					maxHeightPrevoted: 0,
 					maxHeightPrecommitted: 0,
@@ -200,7 +200,7 @@ describe('generator', () => {
 				jest.spyOn(generator, '_handleFinalizedHeightChanged' as any).mockReturnValue([] as never);
 				jest.spyOn(generator['_consensus'], 'getMaxRemovalHeight').mockResolvedValue(313);
 				jest
-					.spyOn(generator['_bft'].api, 'getBFTHeights')
+					.spyOn(generator['_bft'].method, 'getBFTHeights')
 					.mockResolvedValue({ maxHeightPrecommitted: 515 } as never);
 
 				await generator.init({
@@ -455,7 +455,7 @@ describe('generator', () => {
 				.spyOn(generator['_forgingStrategy'], 'getTransactionsForBlock')
 				.mockResolvedValue({ transactions: [tx], events: [] });
 			jest
-				.spyOn(generator['_bft'].api, 'getBFTParameters')
+				.spyOn(generator['_bft'].method, 'getBFTParameters')
 				.mockResolvedValue({ validatorsHash, validators: [] } as never);
 			jest
 				.spyOn(generator['_consensus'], 'getAggregateCommit')
@@ -581,7 +581,7 @@ describe('generator', () => {
 
 		beforeEach(async () => {
 			generator['_keypairs'].set(address, keypair);
-			when(generator['_bft'].api.existBFTParameters as jest.Mock)
+			when(generator['_bft'].method.existBFTParameters as jest.Mock)
 				.calledWith(expect.anything(), 1)
 				.mockResolvedValue(true as never)
 				.calledWith(expect.anything(), 12)
@@ -592,7 +592,7 @@ describe('generator', () => {
 				.mockResolvedValue(false as never)
 				.calledWith(expect.anything(), 55)
 				.mockResolvedValue(true as never);
-			when(generator['_bft'].api.getBFTParameters as jest.Mock)
+			when(generator['_bft'].method.getBFTParameters as jest.Mock)
 				.calledWith(expect.anything(), 11)
 				.mockResolvedValue({ validators: [{ address }] })
 				.calledWith(expect.anything(), 20)

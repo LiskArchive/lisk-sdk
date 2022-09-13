@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { ImmutableAPIContext } from '../../state_machine';
-import { BaseAPI } from '../base_api';
+import { ImmutableMethodContext } from '../../state_machine';
+import { BaseMethod } from '../base_method';
 import { MAX_LENGTH_NAME } from './constants';
 import { DelegateStore } from './stores/delegate';
 import { NameStore } from './stores/name';
@@ -21,14 +21,17 @@ import { VoterStore } from './stores/voter';
 import { DelegateAccount, VoterData } from './types';
 import { isUsername } from './utils';
 
-export class DPoSAPI extends BaseAPI {
-	public async isNameAvailable(apiContext: ImmutableAPIContext, name: string): Promise<boolean> {
+export class DPoSMethod extends BaseMethod {
+	public async isNameAvailable(
+		methodContext: ImmutableMethodContext,
+		name: string,
+	): Promise<boolean> {
 		const nameSubStore = this.stores.get(NameStore);
 		if (name.length > MAX_LENGTH_NAME || name.length < 1 || !isUsername(name)) {
 			return false;
 		}
 
-		const isRegistered = await nameSubStore.has(apiContext, Buffer.from(name));
+		const isRegistered = await nameSubStore.has(methodContext, Buffer.from(name));
 		if (isRegistered) {
 			return false;
 		}
@@ -36,19 +39,22 @@ export class DPoSAPI extends BaseAPI {
 		return true;
 	}
 
-	public async getVoter(apiContext: ImmutableAPIContext, address: Buffer): Promise<VoterData> {
+	public async getVoter(
+		methodContext: ImmutableMethodContext,
+		address: Buffer,
+	): Promise<VoterData> {
 		const voterSubStore = this.stores.get(VoterStore);
-		const voterData = await voterSubStore.get(apiContext, address);
+		const voterData = await voterSubStore.get(methodContext, address);
 
 		return voterData;
 	}
 
 	public async getDelegate(
-		apiContext: ImmutableAPIContext,
+		methodContext: ImmutableMethodContext,
 		address: Buffer,
 	): Promise<DelegateAccount> {
 		const delegateSubStore = this.stores.get(DelegateStore);
-		const delegate = await delegateSubStore.get(apiContext, address);
+		const delegate = await delegateSubStore.get(methodContext, address);
 
 		return delegate;
 	}

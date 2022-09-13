@@ -33,9 +33,12 @@ import {
 import { removeDB } from './utils';
 import { ApplicationConfig, EndpointHandler, GenesisConfig } from '../types';
 import { Consensus } from '../engine/consensus';
-import { APIContext, StateMachine } from '../state_machine';
+import { MethodContext, StateMachine } from '../state_machine';
 import { Engine } from '../engine';
-import { createImmutableAPIContext, createNewAPIContext } from '../state_machine/api_context';
+import {
+	createImmutableMethodContext,
+	createNewMethodContext,
+} from '../state_machine/method_context';
 import { blockAssetsJSON } from './fixtures/genesis-asset';
 import { ValidatorsModule } from '../modules/validators';
 import { TokenModule } from '../modules/token';
@@ -69,7 +72,7 @@ export interface BlockProcessingEnv {
 	getGenerator: () => Generator;
 	getGenesisBlock: () => Block;
 	getChain: () => Chain;
-	getAPIContext: () => APIContext;
+	getMethodContext: () => MethodContext;
 	getBlockchainDB: () => Database;
 	process: (block: Block) => Promise<void>;
 	processUntilHeight: (height: number) => Promise<void>;
@@ -164,9 +167,9 @@ export const getBlockProcessingEnv = async (
 	const stateMachine = new StateMachine();
 
 	// resolve dependencies
-	feeModule.addDependencies(tokenModule.api);
-	rewardModule.addDependencies(tokenModule.api, randomModule.api);
-	dposModule.addDependencies(randomModule.api, validatorsModule.api, tokenModule.api);
+	feeModule.addDependencies(tokenModule.method);
+	rewardModule.addDependencies(tokenModule.method, randomModule.method);
+	dposModule.addDependencies(randomModule.method, validatorsModule.method, tokenModule.method);
 
 	// register modules
 	stateMachine.registerModule(authModule);
@@ -216,7 +219,7 @@ export const getBlockProcessingEnv = async (
 		getConsensus: () => engine['_consensus'],
 		getConsensusStore: () => new StateStore(engine['_blockchainDB']),
 		getGenerator: () => engine['_generator'],
-		getAPIContext: () => createNewAPIContext(stateDB.newReadWriter()),
+		getMethodContext: () => createNewMethodContext(stateDB.newReadWriter()),
 		getBlockchainDB: () => engine['_blockchainDB'],
 		process: async (block): Promise<void> => engine['_consensus']['_execute'](block, 'peer-id'),
 		processUntilHeight: async (height): Promise<void> => {
@@ -264,7 +267,7 @@ export const getBlockProcessingEnv = async (
 			const result = await bindedHandler({
 				getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 					stateStore.getStore(moduleID, storePrefix),
-				getImmutableAPIContext: () => createImmutableAPIContext(stateStore),
+				getImmutableMethodContext: () => createImmutableMethodContext(stateStore),
 				logger: engine['_logger'],
 				networkIdentifier: engine['_chain'].networkIdentifier,
 				params: input,

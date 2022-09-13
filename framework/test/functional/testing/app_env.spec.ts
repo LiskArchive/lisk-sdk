@@ -16,7 +16,7 @@ import { rmdirSync, existsSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
 import { ApplicationEnv } from '../../../src/testing';
-import { BaseAPI, BaseCommand, BaseEndpoint, BaseModule, TokenModule } from '../../../src';
+import { BaseMethod, BaseCommand, BaseEndpoint, BaseModule, TokenModule } from '../../../src';
 import { ModuleMetadata } from '../../../src/modules/base_module';
 
 const appLabel = 'beta-sdk-app';
@@ -35,7 +35,7 @@ class SampleCommand extends BaseCommand {
 class SampleModule extends BaseModule {
 	public name = 'SampleModule';
 	public id = 999999;
-	public api = {} as BaseAPI;
+	public method = {} as BaseMethod;
 	public endpoint = {} as BaseEndpoint;
 	public commands = [new SampleCommand(this.id)];
 	public metadata(): ModuleMetadata {

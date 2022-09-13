@@ -23,7 +23,7 @@ import {
 import { ABI } from '../../../src/abi';
 import * as logger from '../../../src/logger';
 import { fakeLogger } from '../../utils/mocks';
-import { BFTAPI } from '../../../src/engine/bft/api';
+import { BFTMethod } from '../../../src/engine/bft/method';
 import { Network } from '../../../src/engine/network';
 import { Generator } from '../../../src/engine/generator';
 import { RPCServer } from '../../../src/engine/rpc/rpc_server';
@@ -53,7 +53,7 @@ describe('engine', () => {
 			.mockReturnValue({ header: { height: 300 } } as never);
 		jest.spyOn(Consensus.prototype, 'getMaxRemovalHeight').mockResolvedValue(0);
 		jest
-			.spyOn(BFTAPI.prototype, 'getBFTHeights')
+			.spyOn(BFTMethod.prototype, 'getBFTHeights')
 			.mockResolvedValue({ maxHeightPrecommitted: 0 } as never);
 		jest.spyOn(Network.prototype, 'init');
 		jest.spyOn(Network.prototype, 'start');

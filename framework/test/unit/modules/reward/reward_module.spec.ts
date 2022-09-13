@@ -100,14 +100,16 @@ describe('RewardModule', () => {
 		});
 
 		it('should emit rewardMinted event for event type REWARD_NO_REDUCTION', async () => {
-			rewardModule.api.getBlockReward = jest.fn().mockReturnValue([BigInt(1), REWARD_NO_REDUCTION]);
+			rewardModule.method.getBlockReward = jest
+				.fn()
+				.mockReturnValue([BigInt(1), REWARD_NO_REDUCTION]);
 			await rewardModule.afterTransactionsExecute(blockAfterExecuteContext);
 			expect(mint).toHaveBeenCalledTimes(1);
 			expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().name).toBe('reward');
 		});
 
 		it('should emit rewardMinted event for event type REWARD_REDUCTION_SEED_REVEAL', async () => {
-			rewardModule.api.getBlockReward = jest
+			rewardModule.method.getBlockReward = jest
 				.fn()
 				.mockReturnValue([BigInt(0), REWARD_REDUCTION_SEED_REVEAL]);
 			await rewardModule.afterTransactionsExecute(blockAfterExecuteContext);
@@ -116,7 +118,7 @@ describe('RewardModule', () => {
 		});
 
 		it('should emit rewardMinted event for event type REWARD_REDUCTION_MAX_PREVOTES', async () => {
-			rewardModule.api.getBlockReward = jest
+			rewardModule.method.getBlockReward = jest
 				.fn()
 				.mockReturnValue([
 					BigInt(1) / BigInt(REWARD_REDUCTION_FACTOR_BFT),

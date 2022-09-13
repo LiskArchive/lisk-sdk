@@ -367,7 +367,7 @@ describe('Mainchain registration command', () => {
 				params: encodedParams,
 				feeAddress: EMPTY_FEE_ADDRESS,
 				eventQueue: context.eventQueue,
-				getAPIContext: context.getAPIContext,
+				getMethodContext: context.getMethodContext,
 				getStore: context.getStore,
 				logger: context.logger,
 				networkIdentifier: context.networkIdentifier,

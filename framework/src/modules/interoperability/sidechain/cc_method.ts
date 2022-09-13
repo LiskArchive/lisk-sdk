@@ -12,6 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { BaseInteroperableAPI } from '../base_interoperable_api';
+import { BaseInteroperableMethod } from '../base_interoperable_method';
 
-export class MainchainCCAPI extends BaseInteroperableAPI {}
+export class SidechainCCMethod extends BaseInteroperableMethod {}

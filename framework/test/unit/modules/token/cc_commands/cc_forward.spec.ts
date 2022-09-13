@@ -16,7 +16,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { TokenModule } from '../../../../../src';
 import { MODULE_NAME_INTEROPERABILITY } from '../../../../../src/modules/interoperability/constants';
-import { TokenAPI } from '../../../../../src/modules/token/api';
+import { TokenMethod } from '../../../../../src/modules/token/method';
 import { CCForwardCommand } from '../../../../../src/modules/token/cc_commands/cc_forward';
 import {
 	CCM_STATUS_OK,
@@ -35,7 +35,10 @@ import { EscrowStore } from '../../../../../src/modules/token/stores/escrow';
 import { SupplyStore } from '../../../../../src/modules/token/stores/supply';
 import { UserStore } from '../../../../../src/modules/token/stores/user';
 import { EventQueue } from '../../../../../src/state_machine';
-import { APIContext, createAPIContext } from '../../../../../src/state_machine/api_context';
+import {
+	MethodContext,
+	createMethodContext,
+} from '../../../../../src/state_machine/method_context';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 import { fakeLogger } from '../../../../utils/mocks';
@@ -60,8 +63,8 @@ describe('CrossChain Forward command', () => {
 	const sendingChainID = Buffer.from([3, 0, 0, 0]);
 
 	let command: CCForwardCommand;
-	let api: TokenAPI;
-	let interopAPI: {
+	let method: TokenMethod;
+	let interopMethod: {
 		getOwnChainAccount: jest.Mock;
 		send: jest.Mock;
 		error: jest.Mock;
@@ -69,12 +72,12 @@ describe('CrossChain Forward command', () => {
 		getChannel: jest.Mock;
 	};
 	let stateStore: PrefixedStateReadWriter;
-	let apiContext: APIContext;
+	let methodContext: MethodContext;
 
 	beforeEach(async () => {
-		api = new TokenAPI(tokenModule.stores, tokenModule.events, tokenModule.name);
-		command = new CCForwardCommand(tokenModule.stores, tokenModule.events, api);
-		interopAPI = {
+		method = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
+		command = new CCForwardCommand(tokenModule.stores, tokenModule.events, method);
+		interopMethod = {
 			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
 			send: jest.fn(),
 			error: jest.fn(),
@@ -85,42 +88,42 @@ describe('CrossChain Forward command', () => {
 			{ tokenID: defaultTokenIDAlias, amount: BigInt(MIN_BALANCE) },
 			{ tokenID: defaultForeignTokenID, amount: BigInt(MIN_BALANCE) },
 		];
-		api.addDependencies(interopAPI as never);
-		command.addDependencies(interopAPI);
-		api.init({
+		method.addDependencies(interopMethod as never);
+		command.addDependencies(interopMethod);
+		method.init({
 			minBalances,
 		});
 
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		apiContext = createAPIContext({
+		methodContext = createMethodContext({
 			stateStore,
 			eventQueue: new EventQueue(0),
 		});
 		const userStore = tokenModule.stores.get(UserStore);
 		await userStore.set(
-			apiContext,
+			methodContext,
 			userStore.getKey(defaultAddress, defaultTokenIDAlias),
 			defaultAccount,
 		);
 		await userStore.set(
-			apiContext,
+			methodContext,
 			userStore.getKey(defaultAddress, defaultForeignTokenID),
 			defaultAccount,
 		);
 
 		const supplyStore = tokenModule.stores.get(SupplyStore);
-		await supplyStore.set(apiContext, defaultTokenIDAlias.slice(CHAIN_ID_LENGTH), {
+		await supplyStore.set(methodContext, defaultTokenIDAlias.slice(CHAIN_ID_LENGTH), {
 			totalSupply: defaultTotalSupply,
 		});
 
 		const nextAvailableLocalIDStore = tokenModule.stores.get(AvailableLocalIDStore);
-		await nextAvailableLocalIDStore.set(apiContext, EMPTY_BYTES, {
+		await nextAvailableLocalIDStore.set(methodContext, EMPTY_BYTES, {
 			nextAvailableLocalID: Buffer.from([0, 0, 0, 5]),
 		});
 
 		const escrowStore = tokenModule.stores.get(EscrowStore);
 		await escrowStore.set(
-			apiContext,
+			methodContext,
 			Buffer.concat([
 				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 				defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
@@ -128,7 +131,7 @@ describe('CrossChain Forward command', () => {
 			{ amount: defaultEscrowAmount },
 		);
 		await escrowStore.set(
-			apiContext,
+			methodContext,
 			Buffer.concat([Buffer.from([3, 0, 0, 0]), defaultTokenIDAlias.slice(CHAIN_ID_LENGTH)]),
 			{ amount: defaultEscrowAmount },
 		);
@@ -158,7 +161,7 @@ describe('CrossChain Forward command', () => {
 						}),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
+					getMethodContext: () => methodContext,
 					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
@@ -169,8 +172,8 @@ describe('CrossChain Forward command', () => {
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
 				"tokenID' maxLength exceeded",
 			);
-			expect(interopAPI.terminateChain).toHaveBeenCalledWith(
-				expect.any(APIContext),
+			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
+				expect.any(MethodContext),
 				Buffer.from([3, 0, 0, 0]),
 			);
 		});
@@ -197,7 +200,7 @@ describe('CrossChain Forward command', () => {
 						}),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
+					getMethodContext: () => methodContext,
 					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
@@ -208,8 +211,8 @@ describe('CrossChain Forward command', () => {
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
 				"senderAddress' maxLength exceeded",
 			);
-			expect(interopAPI.terminateChain).toHaveBeenCalledWith(
-				expect.any(APIContext),
+			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
+				expect.any(MethodContext),
 				Buffer.from([3, 0, 0, 0]),
 			);
 		});
@@ -236,7 +239,7 @@ describe('CrossChain Forward command', () => {
 						}),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
+					getMethodContext: () => methodContext,
 					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
@@ -247,8 +250,8 @@ describe('CrossChain Forward command', () => {
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
 				"recipientAddress' minLength not satisfied",
 			);
-			expect(interopAPI.terminateChain).toHaveBeenCalledWith(
-				expect.any(APIContext),
+			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
+				expect.any(MethodContext),
 				Buffer.from([3, 0, 0, 0]),
 			);
 		});
@@ -275,7 +278,7 @@ describe('CrossChain Forward command', () => {
 						}),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
+					getMethodContext: () => methodContext,
 					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
@@ -286,8 +289,8 @@ describe('CrossChain Forward command', () => {
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
 				"data' must NOT have more than 64 characters",
 			);
-			expect(interopAPI.terminateChain).toHaveBeenCalledWith(
-				expect.any(APIContext),
+			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
+				expect.any(MethodContext),
 				Buffer.from([3, 0, 0, 0]),
 			);
 		});
@@ -314,7 +317,7 @@ describe('CrossChain Forward command', () => {
 						}),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
+					getMethodContext: () => methodContext,
 					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
@@ -322,12 +325,12 @@ describe('CrossChain Forward command', () => {
 					networkIdentifier: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
-			expect(interopAPI.terminateChain).toHaveBeenCalledWith(
-				expect.any(APIContext),
+			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
+				expect.any(MethodContext),
 				sendingChainID,
 			);
-			expect(interopAPI.error).toHaveBeenCalledWith(
-				apiContext,
+			expect(interopMethod.error).toHaveBeenCalledWith(
+				methodContext,
 				expect.anything(),
 				CCM_STATUS_PROTOCOL_VIOLATION,
 			);
@@ -355,7 +358,7 @@ describe('CrossChain Forward command', () => {
 						}),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
+					getMethodContext: () => methodContext,
 					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
@@ -363,8 +366,8 @@ describe('CrossChain Forward command', () => {
 					networkIdentifier: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
-			expect(interopAPI.terminateChain).toHaveBeenCalledWith(
-				expect.any(APIContext),
+			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
+				expect.any(MethodContext),
 				sendingChainID,
 			);
 		});
@@ -391,7 +394,7 @@ describe('CrossChain Forward command', () => {
 						}),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
+					getMethodContext: () => methodContext,
 					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
@@ -400,7 +403,7 @@ describe('CrossChain Forward command', () => {
 				}),
 			).resolves.toBeUndefined();
 			await expect(
-				api.getAvailableBalance(apiContext, defaultAddress, defaultForeignTokenID),
+				method.getAvailableBalance(methodContext, defaultAddress, defaultForeignTokenID),
 			).resolves.toEqual(defaultAccount.availableBalance + BigInt(1000) + BigInt(2000));
 		});
 
@@ -426,7 +429,7 @@ describe('CrossChain Forward command', () => {
 						}),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
+					getMethodContext: () => methodContext,
 					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
@@ -434,13 +437,13 @@ describe('CrossChain Forward command', () => {
 					networkIdentifier: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
-			expect(interopAPI.error).toHaveBeenCalledWith(
-				apiContext,
+			expect(interopMethod.error).toHaveBeenCalledWith(
+				methodContext,
 				expect.anything(),
 				CCM_STATUS_PROTOCOL_VIOLATION,
 			);
-			expect(interopAPI.terminateChain).toHaveBeenCalledWith(
-				expect.any(APIContext),
+			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
+				expect.any(MethodContext),
 				sendingChainID,
 			);
 		});
@@ -467,7 +470,7 @@ describe('CrossChain Forward command', () => {
 						}),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
+					getMethodContext: () => methodContext,
 					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
@@ -475,19 +478,19 @@ describe('CrossChain Forward command', () => {
 					networkIdentifier: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
-			expect(interopAPI.error).toHaveBeenCalledWith(
-				apiContext,
+			expect(interopMethod.error).toHaveBeenCalledWith(
+				methodContext,
 				expect.anything(),
 				CCM_STATUS_PROTOCOL_VIOLATION,
 			);
-			expect(interopAPI.terminateChain).toHaveBeenCalledWith(
-				expect.any(APIContext),
+			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
+				expect.any(MethodContext),
 				sendingChainID,
 			);
 		});
 
 		it('should credit amount and fee to sender', async () => {
-			jest.spyOn(command['_interopAPI'], 'send').mockResolvedValue(false);
+			jest.spyOn(command['_interopMethod'], 'send').mockResolvedValue(false);
 			await expect(
 				command.execute({
 					ccm: {
@@ -509,7 +512,7 @@ describe('CrossChain Forward command', () => {
 						}),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
+					getMethodContext: () => methodContext,
 					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
@@ -518,7 +521,7 @@ describe('CrossChain Forward command', () => {
 				}),
 			).resolves.toBeUndefined();
 			await expect(
-				api.getAvailableBalance(apiContext, defaultAddress, defaultTokenID),
+				method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
 			).resolves.toEqual(defaultAccount.availableBalance + BigInt(1000) + BigInt(2000));
 		});
 
@@ -544,7 +547,7 @@ describe('CrossChain Forward command', () => {
 						}),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
+					getMethodContext: () => methodContext,
 					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
@@ -552,8 +555,8 @@ describe('CrossChain Forward command', () => {
 					networkIdentifier: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
-			expect(command['_interopAPI'].send).toHaveBeenCalledWith(
-				apiContext,
+			expect(command['_interopMethod'].send).toHaveBeenCalledWith(
+				methodContext,
 				defaultAddress,
 				MODULE_NAME_INTEROPERABILITY,
 				CROSS_CHAIN_COMMAND_NAME_TRANSFER,
@@ -565,7 +568,7 @@ describe('CrossChain Forward command', () => {
 		});
 
 		it('should update sender balance if sending message was successful', async () => {
-			jest.spyOn(command['_interopAPI'], 'send').mockResolvedValue(true);
+			jest.spyOn(command['_interopMethod'], 'send').mockResolvedValue(true);
 			await expect(
 				command.execute({
 					ccm: {
@@ -587,7 +590,7 @@ describe('CrossChain Forward command', () => {
 						}),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
+					getMethodContext: () => methodContext,
 					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
@@ -596,12 +599,12 @@ describe('CrossChain Forward command', () => {
 				}),
 			).resolves.toBeUndefined();
 			await expect(
-				api.getAvailableBalance(apiContext, defaultAddress, defaultTokenID),
+				method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
 			).resolves.toEqual(defaultAccount.availableBalance + BigInt(2000));
 		});
 
 		it('should not update sender balance if sending message was not successful', async () => {
-			jest.spyOn(command['_interopAPI'], 'send').mockResolvedValue(false);
+			jest.spyOn(command['_interopMethod'], 'send').mockResolvedValue(false);
 			await expect(
 				command.execute({
 					ccm: {
@@ -623,7 +626,7 @@ describe('CrossChain Forward command', () => {
 						}),
 					},
 					feeAddress: defaultAddress,
-					getAPIContext: () => apiContext,
+					getMethodContext: () => methodContext,
 					eventQueue: new EventQueue(0),
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
@@ -632,7 +635,7 @@ describe('CrossChain Forward command', () => {
 				}),
 			).resolves.toBeUndefined();
 			await expect(
-				api.getAvailableBalance(apiContext, defaultAddress, defaultTokenID),
+				method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
 			).resolves.toEqual(defaultAccount.availableBalance + BigInt(1000) + BigInt(2000));
 		});
 	});

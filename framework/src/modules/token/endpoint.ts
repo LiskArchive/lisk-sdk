@@ -17,7 +17,7 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 import { NotFoundError } from '../../state_machine';
 import { JSONObject, ModuleEndpointContext } from '../../types';
 import { BaseEndpoint } from '../base_endpoint';
-import { TokenAPI } from './api';
+import { TokenMethod } from './method';
 import { CHAIN_ID_ALIAS_NATIVE, LOCAL_ID_LENGTH, TOKEN_ID_LENGTH } from './constants';
 import {
 	getBalanceRequestSchema,
@@ -31,11 +31,11 @@ import { UserStore } from './stores/user';
 import { splitTokenID } from './utils';
 
 export class TokenEndpoint extends BaseEndpoint {
-	private _tokenAPI!: TokenAPI;
+	private _tokenMethod!: TokenMethod;
 	private _supportedTokenIDs: string[] = [];
 
-	public init(tokenAPI: TokenAPI, supportedTokenIDs: string[]) {
-		this._tokenAPI = tokenAPI;
+	public init(tokenMethod: TokenMethod, supportedTokenIDs: string[]) {
+		this._tokenMethod = tokenMethod;
 		this._supportedTokenIDs = supportedTokenIDs;
 	}
 
@@ -71,8 +71,8 @@ export class TokenEndpoint extends BaseEndpoint {
 
 		const address = cryptography.address.getAddressFromLisk32Address(context.params.address);
 		const tokenID = Buffer.from(context.params.tokenID, 'hex');
-		const canonicalTokenID = await this._tokenAPI.getCanonicalTokenID(
-			context.getImmutableAPIContext(),
+		const canonicalTokenID = await this._tokenMethod.getCanonicalTokenID(
+			context.getImmutableMethodContext(),
 			tokenID,
 		);
 		const userStore = this.stores.get(UserStore);

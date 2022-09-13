@@ -32,10 +32,14 @@ import {
 	createBlockContext,
 	createFakeBlockHeader,
 	createGenesisBlockContext,
-	createTransientAPIContext,
+	createTransientMethodContext,
 } from '../../../../src/testing';
 import { genesisStoreSchema } from '../../../../src/modules/dpos_v2/schemas';
-import { DelegateAccount, GenesisData, ValidatorsAPI } from '../../../../src/modules/dpos_v2/types';
+import {
+	DelegateAccount,
+	GenesisData,
+	ValidatorsMethod,
+} from '../../../../src/modules/dpos_v2/types';
 import { GenesisBlockExecuteContext } from '../../../../src/state_machine/types';
 import { invalidAssets, validAsset, validators } from './genesis_block_test_data';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
@@ -104,10 +108,10 @@ describe('DPoS module', () => {
 		beforeEach(async () => {
 			dpos = new DPoSModule();
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-			const randomAPI = {
+			const randomMethod = {
 				getRandomBytes: jest.fn(),
 			};
-			const validatorAPI = {
+			const validatorMethod = {
 				setValidatorGeneratorKey: jest.fn(),
 				registerValidatorKeys: jest.fn().mockResolvedValue(true),
 				getValidatorAccount: jest.fn().mockResolvedValue({
@@ -116,7 +120,7 @@ describe('DPoS module', () => {
 				}),
 				getGeneratorsBetweenTimestamps: jest.fn(),
 			};
-			const tokenAPI = {
+			const tokenMethod = {
 				lock: jest.fn(),
 				unlock: jest.fn(),
 				getAvailableBalance: jest.fn(),
@@ -124,7 +128,7 @@ describe('DPoS module', () => {
 				transfer: jest.fn(),
 				getLockedAmount: jest.fn().mockResolvedValue(BigInt(101000000000)),
 			};
-			dpos.addDependencies(randomAPI, validatorAPI, tokenAPI);
+			dpos.addDependencies(randomMethod, validatorMethod, tokenMethod);
 
 			await dpos.init({
 				generatorConfig: {},
@@ -290,14 +294,14 @@ describe('DPoS module', () => {
 			});
 
 			it('should fail if registerValidatorKeys return false', async () => {
-				(dpos['_validatorsAPI'].registerValidatorKeys as jest.Mock).mockResolvedValue(false);
+				(dpos['_validatorsMethod'].registerValidatorKeys as jest.Mock).mockResolvedValue(false);
 
 				await expect(dpos.initGenesisState(context)).toResolve();
 				await expect(dpos.finalizeGenesisState(context)).rejects.toThrow('Invalid validator key');
 			});
 
 			it('should fail if getLockedAmount return different value', async () => {
-				(dpos['_tokenAPI'].getLockedAmount as jest.Mock).mockResolvedValue(BigInt(0));
+				(dpos['_tokenMethod'].getLockedAmount as jest.Mock).mockResolvedValue(BigInt(0));
 
 				await expect(dpos.initGenesisState(context)).toResolve();
 				await expect(dpos.finalizeGenesisState(context)).rejects.toThrow(
@@ -330,7 +334,7 @@ describe('DPoS module', () => {
 				const delegateStore = dpos.stores.get(DelegateStore);
 				for (const data of fixtures) {
 					await delegateStore.set(
-						createTransientAPIContext({ stateStore }),
+						createTransientMethodContext({ stateStore }),
 						Buffer.from(data.address, 'hex'),
 						{
 							name: data.address,
@@ -688,14 +692,14 @@ describe('DPoS module', () => {
 							activeDelegates,
 							delegateWeightSnapshot: delegates.slice(defaultConfigs.numberActiveDelegates),
 						});
-						const randomAPI = {
+						const randomMethod = {
 							getRandomBytes: jest
 								.fn()
 								.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed1, 'hex'))
 								.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed2, 'hex')),
 						};
 
-						const validatorAPI = {
+						const validatorMethod = {
 							setValidatorGeneratorKey: jest.fn(),
 							registerValidatorKeys: jest.fn(),
 							getValidatorAccount: jest.fn().mockResolvedValue({
@@ -704,7 +708,7 @@ describe('DPoS module', () => {
 							}),
 							getGeneratorsBetweenTimestamps: jest.fn(),
 						};
-						const tokenAPI = {
+						const tokenMethod = {
 							lock: jest.fn(),
 							unlock: jest.fn(),
 							getAvailableBalance: jest.fn(),
@@ -713,7 +717,7 @@ describe('DPoS module', () => {
 							getLockedAmount: jest.fn(),
 						};
 
-						dpos.addDependencies(randomAPI, validatorAPI, tokenAPI);
+						dpos.addDependencies(randomMethod, validatorMethod, tokenMethod);
 
 						await dpos['_updateValidators'](context);
 
@@ -725,7 +729,7 @@ describe('DPoS module', () => {
 
 		describe('when there are enough standby delegates', () => {
 			const defaultRound = 123;
-			let validatorAPI: ValidatorsAPI;
+			let validatorMethod: ValidatorsMethod;
 			let blockContext: BlockContext;
 
 			const scenario = forgerSelectionMoreThan2StandByScenario;
@@ -768,13 +772,13 @@ describe('DPoS module', () => {
 						delegateWeightSnapshot: delegates.slice(defaultConfigs.numberActiveDelegates),
 					},
 				);
-				const randomAPI = {
+				const randomMethod = {
 					getRandomBytes: jest
 						.fn()
 						.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed1, 'hex'))
 						.mockResolvedValueOnce(Buffer.from(scenario.testCases.input.randomSeed2, 'hex')),
 				};
-				validatorAPI = {
+				validatorMethod = {
 					setValidatorGeneratorKey: jest.fn(),
 					registerValidatorKeys: jest.fn(),
 					getValidatorAccount: jest.fn().mockResolvedValue({
@@ -783,7 +787,7 @@ describe('DPoS module', () => {
 					}),
 					getGeneratorsBetweenTimestamps: jest.fn(),
 				};
-				const tokenAPI = {
+				const tokenMethod = {
 					lock: jest.fn(),
 					unlock: jest.fn(),
 					getAvailableBalance: jest.fn(),
@@ -792,7 +796,7 @@ describe('DPoS module', () => {
 					getLockedAmount: jest.fn(),
 				};
 
-				dpos.addDependencies(randomAPI, validatorAPI, tokenAPI);
+				dpos.addDependencies(randomMethod, validatorMethod, tokenMethod);
 
 				await dpos['_updateValidators'](blockContext.getBlockAfterExecuteContext());
 			});
@@ -824,10 +828,10 @@ describe('DPoS module', () => {
 	});
 
 	describe('_updateProductivity', () => {
-		const randomAPI: any = {};
-		const tokenAPI: any = {};
+		const randomMethod: any = {};
+		const tokenMethod: any = {};
 
-		let validatorsAPI: any;
+		let validatorsMethod: any;
 		let stateStore: PrefixedStateReadWriter;
 		let delegateData: DelegateAccount[];
 		let delegateAddresses: Buffer[];
@@ -845,11 +849,11 @@ describe('DPoS module', () => {
 
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
-			validatorsAPI = {
+			validatorsMethod = {
 				getGeneratorsBetweenTimestamps: jest.fn(),
 			};
 
-			dpos.addDependencies(randomAPI, validatorsAPI, tokenAPI);
+			dpos.addDependencies(randomMethod, validatorsMethod, tokenMethod);
 
 			delegateData = Array(103)
 				.fill({})
@@ -902,9 +906,9 @@ describe('DPoS module', () => {
 					missedBlocks[delegateAddresses[i].toString('binary')] = 1;
 				}
 
-				when(validatorsAPI.getGeneratorsBetweenTimestamps)
+				when(validatorsMethod.getGeneratorsBetweenTimestamps)
 					.calledWith(
-						context.getAPIContext(),
+						context.getMethodContext(),
 						previousTimestamp,
 						currentTimestamp,
 						expect.any(Array),
@@ -959,9 +963,9 @@ describe('DPoS module', () => {
 					missedBlocks[missedForgers[2 - i].toString('binary')] = 1;
 				}
 
-				when(validatorsAPI.getGeneratorsBetweenTimestamps)
+				when(validatorsMethod.getGeneratorsBetweenTimestamps)
 					.calledWith(
-						context.getAPIContext(),
+						context.getMethodContext(),
 						previousTimestamp,
 						currentTimestamp,
 						expect.any(Array),
@@ -1016,9 +1020,9 @@ describe('DPoS module', () => {
 					missedBlocks[delegateAddress.toString('binary')] += 1;
 				}
 
-				when(validatorsAPI.getGeneratorsBetweenTimestamps)
+				when(validatorsMethod.getGeneratorsBetweenTimestamps)
 					.calledWith(
-						context.getAPIContext(),
+						context.getMethodContext(),
 						previousTimestamp,
 						currentTimestamp,
 						expect.any(Array),
@@ -1068,9 +1072,9 @@ describe('DPoS module', () => {
 
 				const missedBlocks: Record<string, number> = {};
 
-				when(validatorsAPI.getGeneratorsBetweenTimestamps)
+				when(validatorsMethod.getGeneratorsBetweenTimestamps)
 					.calledWith(
-						context.getAPIContext(),
+						context.getMethodContext(),
 						previousTimestamp,
 						currentTimestamp,
 						expect.any(Array),
@@ -1120,9 +1124,9 @@ describe('DPoS module', () => {
 				const missedBlocks: Record<string, number> = {};
 				missedBlocks[missedDelegate.toString('binary')] = 1;
 
-				when(validatorsAPI.getGeneratorsBetweenTimestamps)
+				when(validatorsMethod.getGeneratorsBetweenTimestamps)
 					.calledWith(
-						context.getAPIContext(),
+						context.getMethodContext(),
 						previousTimestamp,
 						currentTimestamp,
 						expect.any(Array),
@@ -1176,9 +1180,9 @@ describe('DPoS module', () => {
 				const missedBlocks: Record<string, number> = {};
 				missedBlocks[missedDelegate.toString('binary')] = 1;
 
-				when(validatorsAPI.getGeneratorsBetweenTimestamps)
+				when(validatorsMethod.getGeneratorsBetweenTimestamps)
 					.calledWith(
-						context.getAPIContext(),
+						context.getMethodContext(),
 						previousTimestamp,
 						currentTimestamp,
 						expect.any(Array),
@@ -1232,9 +1236,9 @@ describe('DPoS module', () => {
 				const missedBlocks: Record<string, number> = {};
 				missedBlocks[missedDelegate.toString('binary')] = 1;
 
-				when(validatorsAPI.getGeneratorsBetweenTimestamps)
+				when(validatorsMethod.getGeneratorsBetweenTimestamps)
 					.calledWith(
-						context.getAPIContext(),
+						context.getMethodContext(),
 						previousTimestamp,
 						currentTimestamp,
 						expect.any(Array),
@@ -1270,9 +1274,9 @@ describe('DPoS module', () => {
 		};
 		const bootstrapRounds = genesisData.initRounds;
 
-		const randomAPI: any = {};
-		const tokenAPI: any = {};
-		const validatorsAPI: any = {};
+		const randomMethod: any = {};
+		const tokenMethod: any = {};
+		const validatorsMethod: any = {};
 
 		let stateStore: PrefixedStateReadWriter;
 		let height: number;
@@ -1290,14 +1294,18 @@ describe('DPoS module', () => {
 				genesisConfig: {} as GenesisConfig,
 				moduleConfig: defaultConfigs,
 			});
-			dpos.addDependencies(randomAPI, validatorsAPI, tokenAPI);
+			dpos.addDependencies(randomMethod, validatorsMethod, tokenMethod);
 
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
 			previousTimestampStore = dpos.stores.get(PreviousTimestampStore);
 			genesisDataStore = dpos.stores.get(GenesisDataStore);
 
-			await genesisDataStore.set(createTransientAPIContext({ stateStore }), EMPTY_KEY, genesisData);
+			await genesisDataStore.set(
+				createTransientMethodContext({ stateStore }),
+				EMPTY_KEY,
+				genesisData,
+			);
 
 			jest.spyOn(dpos as any, '_createVoteWeightSnapshot').mockImplementation();
 			jest.spyOn(dpos as any, '_updateProductivity').mockImplementation();

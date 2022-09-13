@@ -23,7 +23,7 @@ import { MainchainCCRegistrationCommand } from '../../../../../../src/modules/in
 import { MainchainInteroperabilityStore } from '../../../../../../src/modules/interoperability/mainchain/store';
 import { registrationCCMParamsSchema } from '../../../../../../src/modules/interoperability/schemas';
 import { CCCommandExecuteContext } from '../../../../../../src/modules/interoperability/types';
-import { createExecuteCCMsgAPIContext } from '../../../../../../src/testing';
+import { createExecuteCCMsgMethodContext } from '../../../../../../src/testing';
 
 describe('MainchainCCRegistrationCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
@@ -38,19 +38,19 @@ describe('MainchainCCRegistrationCommand', () => {
 		nonce: BigInt(0),
 	};
 
-	const ccAPIMod1 = {
+	const ccMethodMod1 = {
 		beforeSendCCM: jest.fn(),
 		beforeApplyCCM: jest.fn(),
 	};
 
-	const ccAPIMod2 = {
+	const ccMethodMod2 = {
 		beforeSendCCM: jest.fn(),
 		beforeApplyCCM: jest.fn(),
 	};
 
-	const ccAPIsMap = new Map();
-	ccAPIsMap.set(1, ccAPIMod1);
-	ccAPIsMap.set(2, ccAPIMod2);
+	const ccMethodsMap = new Map();
+	ccMethodsMap.set(1, ccMethodMod1);
+	ccMethodsMap.set(2, ccMethodMod2);
 
 	const networkIdentifier = utils.getRandomBytes(32);
 
@@ -95,7 +95,7 @@ describe('MainchainCCRegistrationCommand', () => {
 		},
 		partnerChainOutboxRoot: Buffer.alloc(0),
 	};
-	const sampleExecuteContext: CCCommandExecuteContext = createExecuteCCMsgAPIContext({
+	const sampleExecuteContext: CCCommandExecuteContext = createExecuteCCMsgMethodContext({
 		ccm,
 		networkIdentifier,
 	});
@@ -107,7 +107,7 @@ describe('MainchainCCRegistrationCommand', () => {
 		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
 			interopMod.stores,
 			sampleExecuteContext,
-			ccAPIsMap,
+			ccMethodsMap,
 		);
 		mainchainInteroperabilityStore.terminateChainInternal = terminateChainInternalMock;
 		mainchainInteroperabilityStore.getChannel = getChannelMock;
@@ -116,7 +116,7 @@ describe('MainchainCCRegistrationCommand', () => {
 		ccRegistrationCommand = new MainchainCCRegistrationCommand(
 			interopMod.stores,
 			interopMod.events,
-			ccAPIsMap,
+			ccMethodsMap,
 		);
 		(ccRegistrationCommand as any)['getInteroperabilityStore'] = jest
 			.fn()

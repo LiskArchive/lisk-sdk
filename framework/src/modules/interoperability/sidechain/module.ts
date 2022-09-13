@@ -15,9 +15,9 @@
 import { genesisAuthStoreSchema } from '../../auth/schemas';
 import { ModuleMetadata } from '../../base_module';
 import { BaseInteroperabilityModule } from '../base_interoperability_module';
-import { BaseInteroperableAPI } from '../base_interoperable_api';
-import { SidechainInteroperabilityAPI } from './api';
-import { SidechainCCAPI } from './cc_api';
+import { BaseInteroperableMethod } from '../base_interoperable_method';
+import { SidechainInteroperabilityMethod } from './method';
+import { SidechainCCMethod } from './cc_method';
 // import { MainchainRegistrationCommand } from './commands/mainchain_registration';
 import { SidechainInteroperabilityEndpoint } from './endpoint';
 import {
@@ -35,12 +35,19 @@ import { terminatedStateSchema } from '../stores/terminated_state';
 import { terminatedOutboxSchema } from '../stores/terminated_outbox';
 
 export class SidechainInteroperabilityModule extends BaseInteroperabilityModule {
-	public crossChainAPI: BaseInteroperableAPI = new SidechainCCAPI(this.stores, this.events);
-	public api = new SidechainInteroperabilityAPI(this.stores, this.events, this.interoperableCCAPIs);
+	public crossChainMethod: BaseInteroperableMethod = new SidechainCCMethod(
+		this.stores,
+		this.events,
+	);
+	public method = new SidechainInteroperabilityMethod(
+		this.stores,
+		this.events,
+		this.interoperableCCMethods,
+	);
 	public endpoint = new SidechainInteroperabilityEndpoint(
 		this.stores,
 		this.offchainStores,
-		this.interoperableCCAPIs,
+		this.interoperableCCMethods,
 	);
 	// private readonly _mainchainRegistrationCommand = new MainchainRegistrationCommand(
 	// 	this.id,

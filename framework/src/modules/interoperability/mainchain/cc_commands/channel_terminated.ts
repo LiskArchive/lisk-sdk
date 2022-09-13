@@ -35,6 +35,6 @@ export class MainchainCCChannelTerminatedCommand extends BaseInteroperabilityCCC
 	}
 
 	protected getInteroperabilityStore(context: StoreGetter): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
+		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
 	}
 }

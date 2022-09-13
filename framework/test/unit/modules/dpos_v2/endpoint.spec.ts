@@ -86,7 +86,7 @@ describe('DposModuleEndpoint', () => {
 				await voterSubStore.set(createStoreGetter(stateStore), address, voterData);
 				const voterDataReturned = await dposEndpoint.getVoter({
 					getStore: (p1, p2) => stateStore.getStore(p1, p2),
-					getImmutableAPIContext: jest.fn(),
+					getImmutableMethodContext: jest.fn(),
 					logger,
 					params: {
 						address: cryptoAddress.getLisk32AddressFromAddress(address),
@@ -102,7 +102,7 @@ describe('DposModuleEndpoint', () => {
 				await voterSubStore.set(createStoreGetter(stateStore), address, voterData);
 				const voterDataReturned = await dposEndpoint.getVoter({
 					getStore: (p1, p2) => stateStore.getStore(p1, p2),
-					getImmutableAPIContext: jest.fn(),
+					getImmutableMethodContext: jest.fn(),
 					logger,
 					params: {
 						address: cryptoAddress.getLisk32AddressFromAddress(address),
@@ -125,7 +125,7 @@ describe('DposModuleEndpoint', () => {
 				await delegateSubStore.set(createStoreGetter(stateStore), address, delegateData);
 				const delegateDataReturned = await dposEndpoint.getDelegate({
 					getStore: (p1, p2) => stateStore.getStore(p1, p2),
-					getImmutableAPIContext: jest.fn(),
+					getImmutableMethodContext: jest.fn(),
 					logger,
 					params: {
 						address: cryptoAddress.getLisk32AddressFromAddress(address),
@@ -148,7 +148,7 @@ describe('DposModuleEndpoint', () => {
 				await delegateSubStore.set(createStoreGetter(stateStore), address, delegateData);
 				const delegateDataReturned = await dposEndpoint.getDelegate({
 					getStore: (p1, p2) => stateStore.getStore(p1, p2),
-					getImmutableAPIContext: jest.fn(),
+					getImmutableMethodContext: jest.fn(),
 					logger,
 					params: {
 						address: cryptoAddress.getLisk32AddressFromAddress(address),
@@ -180,7 +180,7 @@ describe('DposModuleEndpoint', () => {
 				await delegateSubStore.set(createStoreGetter(stateStore), address2, delegateData2);
 				const { delegates: delegatesDataReturned } = await dposEndpoint.getAllDelegates({
 					getStore: (p1, p2) => stateStore.getStore(p1, p2),
-					getImmutableAPIContext: jest.fn(),
+					getImmutableMethodContext: jest.fn(),
 					logger,
 					params: {},
 					networkIdentifier,
@@ -196,7 +196,7 @@ describe('DposModuleEndpoint', () => {
 				await delegateSubStore.set(createStoreGetter(stateStore), address1, delegateData2);
 				const { delegates: delegatesDataReturned } = await dposEndpoint.getAllDelegates({
 					getStore: (p1, p2) => stateStore.getStore(p1, p2),
-					getImmutableAPIContext: jest.fn(),
+					getImmutableMethodContext: jest.fn(),
 					logger,
 					params: {},
 					networkIdentifier,
