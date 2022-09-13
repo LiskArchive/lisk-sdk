@@ -17,11 +17,11 @@ import { Readable } from 'stream';
 import * as crypto from 'crypto';
 import { homedir } from 'os';
 import { join } from 'path';
-import * as Config from '@oclif/config';
 import * as appUtils from '../../../../src/utils/application';
 import * as dbUtils from '../../../../src/utils/db';
 import { HashCommand } from '../../../../src/bootstrapping/commands/blockchain/hash';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
 
 const defaultDataPath = join(homedir(), '.lisk', 'lisk-core');
 
@@ -31,7 +31,7 @@ describe('blockchain:hash', () => {
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 	let hashStub: { update: any; digest: any };
 
 	beforeEach(async () => {

@@ -13,7 +13,7 @@
  *
  */
 
-import { Command, flags as flagParser } from '@oclif/command';
+import { Command, Flags as flagParser } from '@oclif/core';
 import { encryptPassphrase } from '../../../utils/commons';
 import { flagsWithParser } from '../../../utils/flags';
 import { getPassphraseFromPrompt, getPasswordFromPrompt } from '../../../utils/reader';
@@ -49,7 +49,7 @@ export class EncryptCommand extends Command {
 				'output-public-key': outputPublicKey,
 				pretty,
 			},
-		} = this.parse(EncryptCommand);
+		} = await this.parse(EncryptCommand);
 
 		const passphrase = passphraseSource ?? (await getPassphraseFromPrompt('passphrase', true));
 		const password = passwordSource ?? (await getPasswordFromPrompt('password', true));

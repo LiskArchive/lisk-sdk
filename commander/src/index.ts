@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { run } from '@oclif/command';
+export { run } from '@oclif/core';
 export { BaseIPCClientCommand } from './bootstrapping/commands/base_ipc_client';
 export { AccountCreateCommand, AccountValidateCommand } from './bootstrapping/commands/account';
 export { BlsKeyCreateCommand } from './bootstrapping/commands/blskey';

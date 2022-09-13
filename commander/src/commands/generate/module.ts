@@ -31,7 +31,7 @@ export default class ModuleCommand extends BaseBootstrapCommand {
 		const {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			args: { moduleName },
-		} = this.parse(ModuleCommand);
+		} = await this.parse(ModuleCommand);
 
 		// validate folder name to not include camelcase or whitespace
 		const regexWhitespace = /\s/g;

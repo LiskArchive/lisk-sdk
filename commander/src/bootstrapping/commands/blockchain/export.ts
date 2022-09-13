@@ -13,7 +13,7 @@
  *
  */
 
-import { Command } from '@oclif/command';
+import { Command } from '@oclif/core';
 import { join } from 'path';
 import * as tar from 'tar';
 import { flagsWithParser } from '../../../utils/flags';
@@ -33,7 +33,7 @@ export class ExportCommand extends Command {
 	};
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(ExportCommand);
+		const { flags } = await this.parse(ExportCommand);
 		const dataPath = flags['data-path']
 			? flags['data-path']
 			: getDefaultPath(this.config.pjson.name);

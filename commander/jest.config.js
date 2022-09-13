@@ -37,4 +37,5 @@ module.exports = {
 	 * This can be done programmatically using jest.resetModules().
 	 */
 	resetModules: true,
+	testEnvironment: 'node',
 };

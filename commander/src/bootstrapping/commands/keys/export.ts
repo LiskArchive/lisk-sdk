@@ -15,7 +15,6 @@
 
 import { encrypt } from '@liskhq/lisk-cryptography';
 import * as apiClient from '@liskhq/lisk-api-client';
-import { flags as flagParser } from '@oclif/command';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { getDefaultPath } from '../../../utils/path';
@@ -71,22 +70,26 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 		...BaseIPCClientCommand.flags,
 		output: {
 			...flagsWithParser.output,
-			...flagParser.string({
-				required: true,
-			}),
+			// ...flagParser.string({
+			// 	required: true,
+			// }),
 		},
 	};
 
 	protected _client!: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(ExportCommand);
+		const { flags } = await this.parse(ExportCommand);
 		if (!this._client) {
 			this.error('APIClient is not initialized.');
 		}
 
-		const { dir } = path.parse(flags.output);
-		fs.ensureDirSync(dir);
+		// const { dir } = path.parse(flags.output);
+		// fs.ensureDirSync(dir);
+		if (flags.output) {
+			const { dir } = path.parse(flags.output);
+			fs.ensureDirSync(dir);
+		}
 
 		const dataPath = flags['data-path']
 			? flags['data-path']
@@ -107,6 +110,9 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 			};
 		});
 
-		fs.writeJSONSync(flags.output, { keys }, { spaces: ' ' });
+		// fs.writeJSONSync(flags.output, { keys }, { spaces: ' ' });
+		if (flags.output) {
+			fs.writeJSONSync(flags.output, { keys }, { spaces: ' ' });
+		}
 	}
 }

@@ -15,7 +15,7 @@
 
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { Command, flags as flagParser } from '@oclif/command';
+import { Command, Flags as flagParser } from '@oclif/core';
 import { getBlockchainDBPath, getDefaultPath, getFullPath } from '../../../utils/path';
 import { extract } from '../../../utils/download';
 import { flagsWithParser } from '../../../utils/flags';
@@ -47,7 +47,7 @@ export class ImportCommand extends Command {
 	};
 
 	async run(): Promise<void> {
-		const { args, flags } = this.parse(ImportCommand);
+		const { args, flags } = await this.parse(ImportCommand);
 		const { filepath } = args;
 		const dataPath = flags['data-path']
 			? flags['data-path']

@@ -15,7 +15,7 @@
 
 import { codec } from '@liskhq/lisk-codec';
 import { bls, address as addressUtil, ed, encrypt } from '@liskhq/lisk-cryptography';
-import { Command, flags as flagParser } from '@oclif/command';
+import { Command, Flags as flagParser } from '@oclif/core';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { flagsWithParser } from '../../../utils/flags';
@@ -95,7 +95,7 @@ export class CreateCommand extends Command {
 				offset,
 				chainid,
 			},
-		} = this.parse(CreateCommand);
+		} = await this.parse(CreateCommand);
 
 		if (output) {
 			const { dir } = path.parse(output);

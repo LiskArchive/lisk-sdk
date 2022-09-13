@@ -38,7 +38,7 @@ export abstract class GetCommand extends BaseIPCClientCommand {
 	};
 
 	async run(): Promise<void> {
-		const { args } = this.parse(GetCommand);
+		const { args } = await this.parse(GetCommand);
 		const { input } = args as Args;
 
 		let block;

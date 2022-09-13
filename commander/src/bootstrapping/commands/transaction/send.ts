@@ -39,7 +39,7 @@ export abstract class SendCommand extends BaseIPCClientCommand {
 	];
 
 	async run(): Promise<void> {
-		const { args } = this.parse(SendCommand);
+		const { args } = await this.parse(SendCommand);
 		const { transaction } = args as Args;
 		if (!validator.isHexString(transaction)) {
 			throw new Error('The transaction must be provided as a encoded hex string.');

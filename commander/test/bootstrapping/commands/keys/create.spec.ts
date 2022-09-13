@@ -15,11 +15,11 @@
  */
 
 import * as cryptography from '@liskhq/lisk-cryptography';
-import * as Config from '@oclif/config';
 import * as fs from 'fs-extra';
 import * as readerUtils from '../../../../src/utils/reader';
 import { CreateCommand } from '../../../../src/bootstrapping/commands/keys/create';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
@@ -36,7 +36,7 @@ describe('keys:create command', () => {
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 	let defaultAccountPrivateKey: Buffer;
 	let defaultAccountPublicKey: Buffer;
 	let defaultAddress: Buffer;

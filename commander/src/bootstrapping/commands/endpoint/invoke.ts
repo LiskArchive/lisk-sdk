@@ -1,5 +1,5 @@
 import * as fs from 'fs-extra';
-import { flags as flagParser } from '@oclif/command';
+import { Flags as flagParser } from '@oclif/core';
 import { BaseIPCClientCommand } from '../base_ipc_client';
 
 export class InvokeCommand extends BaseIPCClientCommand {
@@ -35,7 +35,7 @@ export class InvokeCommand extends BaseIPCClientCommand {
 	];
 
 	async run(): Promise<void> {
-		const { args, flags } = this.parse(InvokeCommand);
+		const { args, flags } = await this.parse(InvokeCommand);
 
 		if (!this._client) {
 			this.error('APIClient is not initialized.');

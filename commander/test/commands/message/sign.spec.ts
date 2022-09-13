@@ -13,11 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as Config from '@oclif/config';
 import * as inquirer from 'inquirer';
 import { getConfig } from '../../helpers/config';
 import SignCommand from '../../../src/commands/message/sign';
 import * as readerUtils from '../../../src/utils/reader';
+import { Awaited } from '../../types';
 
 describe('message:sign', () => {
 	const messageSource = 'file:/message.txt';
@@ -29,7 +29,7 @@ describe('message:sign', () => {
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	beforeEach(async () => {
 		stdout = [];

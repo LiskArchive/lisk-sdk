@@ -14,17 +14,17 @@
  */
 import * as tar from 'tar';
 import { homedir } from 'os';
-import * as Config from '@oclif/config';
 import { join } from 'path';
 import { ExportCommand } from '../../../../src/bootstrapping/commands/blockchain/export';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
 
 describe('blockchain:export', () => {
 	const defaultDataPath = join(homedir(), '.lisk', 'lisk-core');
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	beforeEach(async () => {
 		stdout = [];

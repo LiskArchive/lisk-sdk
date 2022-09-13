@@ -15,10 +15,10 @@
  */
 import * as inquirer from 'inquirer';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import * as Config from '@oclif/config';
 import { getConfig } from '../../helpers/config';
 import EncryptCommand from '../../../src/commands/message/encrypt';
 import * as readerUtils from '../../../src/utils/reader';
+import { Awaited } from '../../types';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
@@ -39,7 +39,7 @@ describe('message:encrypt', () => {
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	beforeEach(async () => {
 		stdout = [];

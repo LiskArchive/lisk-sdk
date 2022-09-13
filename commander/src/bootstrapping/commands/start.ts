@@ -15,7 +15,7 @@
  */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Command, flags as flagParser } from '@oclif/command';
+import { Command, Flags as flagParser } from '@oclif/core';
 import * as fs from 'fs-extra';
 import { utils as cryptoUtils } from '@liskhq/lisk-cryptography';
 import { ApplicationConfig, Application, PartialApplicationConfig } from 'lisk-framework';
@@ -102,7 +102,7 @@ export abstract class StartCommand extends Command {
 	};
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(this.constructor as typeof StartCommand);
+		const { flags } = await this.parse(this.constructor as typeof StartCommand);
 		const dataPath = flags['data-path']
 			? flags['data-path']
 			: getDefaultPath(this.config.pjson.name);
@@ -209,7 +209,7 @@ export abstract class StartCommand extends Command {
 
 		// Get application and start
 		try {
-			const app = this.getApplication(config);
+			const app = await this.getApplication(config);
 			await app.run();
 		} catch (errors) {
 			this.error(
@@ -220,7 +220,7 @@ export abstract class StartCommand extends Command {
 		}
 	}
 
-	abstract getApplication(config: PartialApplicationConfig): Application;
+	abstract getApplication(config: PartialApplicationConfig): Promise<Application>;
 
 	abstract getApplicationConfigDir(): string;
 }

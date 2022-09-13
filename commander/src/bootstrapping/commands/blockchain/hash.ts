@@ -14,7 +14,7 @@
  */
 
 import * as crypto from 'crypto';
-import { Command } from '@oclif/command';
+import { Command } from '@oclif/core';
 import { getBlockchainDBPath, getDefaultPath, getFullPath } from '../../../utils/path';
 import { getPid, isApplicationRunning } from '../../../utils/application';
 import { getBlockchainDB } from '../../../utils/db';
@@ -30,7 +30,7 @@ export class HashCommand extends Command {
 	};
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(HashCommand);
+		const { flags } = await this.parse(HashCommand);
 		const dataPath = flags['data-path']
 			? flags['data-path']
 			: getDefaultPath(this.config.pjson.name);

@@ -19,7 +19,7 @@ import { codec, Schema } from '@liskhq/lisk-codec';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as transactions from '@liskhq/lisk-transactions';
 import { validator } from '@liskhq/lisk-validator';
-import Command, { flags as flagParser } from '@oclif/command';
+import { Command, Flags as flagParser } from '@oclif/core';
 import {
 	Application,
 	PartialApplicationConfig,
@@ -277,7 +277,7 @@ export abstract class CreateCommand extends Command {
 	protected _dataPath!: string;
 
 	async run(): Promise<void> {
-		const { args, flags } = this.parse(CreateCommand);
+		const { args, flags } = await this.parse(CreateCommand);
 
 		const incompleteTransaction = {
 			module: args.module,

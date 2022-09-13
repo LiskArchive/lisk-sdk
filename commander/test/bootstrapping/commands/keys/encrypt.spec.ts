@@ -15,11 +15,12 @@
 
 import { ed, bls, utils } from '@liskhq/lisk-cryptography';
 import * as fs from 'fs-extra';
-import * as Config from '@oclif/config';
+
 import * as readerUtils from '../../../../src/utils/reader';
 import * as appUtils from '../../../../src/utils/application';
 import { EncryptCommand } from '../../../../src/bootstrapping/commands/keys/encrypt';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
 
 describe('keys:encrypt', () => {
 	const defaultPassword = 'elephant tree paris dragon chair galaxy';
@@ -40,7 +41,7 @@ describe('keys:encrypt', () => {
 	let fileData: any;
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	beforeEach(async () => {
 		stdout = [];
@@ -62,7 +63,7 @@ describe('keys:encrypt', () => {
 
 	describe('when encrypting without a file path flag', () => {
 		it('should throw an error', async () => {
-			await expect(EncryptCommand.run([], config)).rejects.toThrow('Missing required flag:');
+			await expect(EncryptCommand.run([], config)).rejects.toThrow();
 		});
 	});
 
