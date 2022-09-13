@@ -12,8 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { codec } from '@liskhq/lisk-codec';
 import { objects as objectUtils } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import { BaseCommand } from '../..';
 import {
 	CommandExecuteContext,
@@ -21,21 +23,32 @@ import {
 	VerificationResult,
 	VerifyStatus,
 } from '../../../state_machine';
-import { MAX_NUMBER_OF_SIGNATURES } from '../constants';
-import { registerMultisignatureParamsSchema } from '../schemas';
 import { AuthAccountStore } from '../stores/auth_account';
+import {
+	COMMAND_ID_REGISTER_MULTISIGNATURE_GROUP,
+	MAX_NUMBER_OF_SIGNATURES,
+	MESSAGE_TAG_MULTISIG_REG,
+	TYPE_ID_INVALID_SIGNATURE_ERROR,
+	TYPE_ID_MULTISIGNATURE_GROUP_REGISTERED,
+} from '../constants';
+import {
+	invalidSigDataSchema,
+	multisigRegDataSchema,
+	multisigRegMsgSchema,
+	registerMultisignatureParamsSchema,
+} from '../schemas';
 import { RegisterMultisignatureParams } from '../types';
+import { getIDAsKeyForStore } from '../utils';
 
-export class RegisterMultisignatureGroupCommand extends BaseCommand {
+export class RegisterMultisignatureCommand extends BaseCommand {
+	public id = getIDAsKeyForStore(COMMAND_ID_REGISTER_MULTISIGNATURE_GROUP);
 	public schema = registerMultisignatureParamsSchema;
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(
 		context: CommandVerifyContext<RegisterMultisignatureParams>,
 	): Promise<VerificationResult> {
-		const { transaction } = context;
-		const { mandatoryKeys, optionalKeys, numberOfSignatures } = context.params;
-
+		const { mandatoryKeys, optionalKeys, numberOfSignatures, signatures } = context.params;
 		try {
 			validator.validate(registerMultisignatureParamsSchema, context.params);
 		} catch (err) {
@@ -103,12 +116,12 @@ export class RegisterMultisignatureGroupCommand extends BaseCommand {
 			};
 		}
 
-		// Check if the length of mandatory, optional and sender keys matches the length of signatures
-		if (mandatoryKeys.length + optionalKeys.length + 1 !== transaction.signatures.length) {
+		// Check if the length of mandatory and optional keys is equal to the length of signatures
+		if (mandatoryKeys.length + optionalKeys.length !== signatures.length) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error(
-					'The number of mandatory, optional and sender keys should match the number of signatures',
+					'The number of mandatory and optional keys should match the number of signatures',
 				),
 			};
 		}
@@ -142,7 +155,47 @@ export class RegisterMultisignatureGroupCommand extends BaseCommand {
 	public async execute(
 		context: CommandExecuteContext<RegisterMultisignatureParams>,
 	): Promise<void> {
-		const { transaction } = context;
+		const { transaction, params } = context;
+		const message = codec.encode(multisigRegMsgSchema, {
+			address: transaction.senderAddress,
+			nonce: transaction.nonce,
+			numberOfSignatures: params.numberOfSignatures,
+			mandatoryKeys: params.mandatoryKeys,
+			optionalKeys: params.optionalKeys,
+		});
+
+		const allKeys = [...params.mandatoryKeys, ...params.optionalKeys].map((key, index) => ({
+			key,
+			signature: params.signatures[index],
+		}));
+
+		for (const { key, signature } of allKeys) {
+			const isValid = cryptography.ed.verifyData(
+				MESSAGE_TAG_MULTISIG_REG,
+				context.chainID,
+				message,
+				signature,
+				key,
+			);
+			if (!isValid) {
+				const invalidSignatureEventData = codec.encode(invalidSigDataSchema, {
+					numberOfSignatures: params.numberOfSignatures,
+					mandatoryKeys: params.mandatoryKeys,
+					optionalKeys: params.optionalKeys,
+					failingPublicKey: key,
+					failingSignature: signature,
+				});
+
+				context.eventQueue.add(
+					this.name,
+					TYPE_ID_INVALID_SIGNATURE_ERROR,
+					invalidSignatureEventData,
+					[transaction.senderAddress],
+				);
+				throw new Error(`Invalid signature for public key ${key.toString('hex')}.`);
+			}
+		}
+
 		const authSubstore = this.stores.get(AuthAccountStore);
 		const senderAccount = await authSubstore.get(context, transaction.senderAddress);
 
@@ -151,10 +204,23 @@ export class RegisterMultisignatureGroupCommand extends BaseCommand {
 			throw new Error('Register multisignature only allowed once per account.');
 		}
 
-		senderAccount.mandatoryKeys = context.params.mandatoryKeys;
-		senderAccount.optionalKeys = context.params.optionalKeys;
-		senderAccount.numberOfSignatures = context.params.numberOfSignatures;
+		senderAccount.mandatoryKeys = params.mandatoryKeys;
+		senderAccount.optionalKeys = params.optionalKeys;
+		senderAccount.numberOfSignatures = params.numberOfSignatures;
 
 		await authSubstore.set(context, transaction.senderAddress, senderAccount);
+
+		const registerMultiSigEventData = codec.encode(multisigRegDataSchema, {
+			numberOfSignatures: params.numberOfSignatures,
+			mandatoryKeys: params.mandatoryKeys,
+			optionalKeys: params.optionalKeys,
+		});
+
+		context.eventQueue.add(
+			this.name,
+			TYPE_ID_MULTISIGNATURE_GROUP_REGISTERED,
+			registerMultiSigEventData,
+			[transaction.senderAddress],
+		);
 	}
 }

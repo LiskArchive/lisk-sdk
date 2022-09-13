@@ -200,7 +200,12 @@ describe('Transaction order', () => {
 					numberOfSignatures: 2,
 					chainID,
 					senderPublicKey: newAccount.publicKey,
-					privateKeys: [newAccount.privateKey, ...multiSignatureMembers.map(acc => acc.privateKey)],
+					privateKeys: [
+						newAccount.privateKey,
+						...multiSignatureMembers
+							.sort((a, b) => a.publicKey.compare(b.publicKey))
+							.map(acc => acc.privateKey),
+					],
 				});
 				const transferTx = createTransferTransaction({
 					nonce: BigInt('1'),

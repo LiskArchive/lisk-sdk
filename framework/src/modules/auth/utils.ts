@@ -19,12 +19,7 @@ import { isHexString } from '@liskhq/lisk-validator';
 import { VerificationResult, VerifyStatus } from '../../state_machine';
 import { InvalidNonceError } from './errors';
 import { Keys } from './types';
-import { registerMultisignatureParamsSchema } from './schemas';
-import { COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP } from './constants';
 import { AuthAccount } from './stores/auth_account';
-
-export const isMultisignatureAccount = (keys: Keys): boolean =>
-	!!((keys.mandatoryKeys.length > 0 || keys.optionalKeys.length > 0) && keys.numberOfSignatures);
 
 export const verifyMessageSig = (
 	tag: string,
@@ -183,28 +178,14 @@ export const verifySingleSignatureTransaction = (
 };
 
 export const verifySignatures = (
-	authModuleName: string,
 	transaction: Transaction,
 	transactionBytes: Buffer,
 	chainID: Buffer,
 	account: AuthAccount,
+	isMultisignatureAccount: boolean,
 ) => {
-	if (
-		transaction.module === authModuleName &&
-		transaction.command === COMMAND_NAME_REGISTER_MULTISIGNATURE_GROUP
-	) {
-		verifyRegisterMultiSignatureTransaction(
-			TAG_TRANSACTION,
-			registerMultisignatureParamsSchema,
-			transaction,
-			transactionBytes,
-			chainID,
-		);
-		return { verified: true };
-	}
-
 	// Verify multi signature registration transaction
-	if (isMultisignatureAccount(account)) {
+	if (isMultisignatureAccount) {
 		verifyMultiSignatureTransaction(
 			TAG_TRANSACTION,
 			chainID,
