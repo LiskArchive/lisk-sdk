@@ -71,7 +71,7 @@ export interface ModuleMetadata {
 		response: Schema;
 	}[];
 	events: {
-		typeID: string;
+		name: string;
 		data: Schema;
 	}[];
 	commands: {
@@ -268,7 +268,14 @@ export interface DecodedBlockJSON {
 
 export interface Event {
 	readonly module: string;
-	readonly typeID: Buffer;
+	/**
+	 * several events can be emitted from each module, e.g.
+	 * token module transfer event
+	 * nft module transfer event
+	 *
+	 * name of event
+	 */
+	readonly name: string;
 	readonly topics: Buffer[];
 	readonly index: number;
 	readonly data: Buffer;

@@ -157,7 +157,7 @@ export class ABIHandler implements ABI {
 		}
 		const genesisBlock = readGenesisBlock(this._config, this._logger);
 		const context = new GenesisBlockContext({
-			eventQueue: new EventQueue(),
+			eventQueue: new EventQueue(genesisBlock.header.height),
 			header: genesisBlock.header,
 			logger: this._logger,
 			stateStore: this._executionContext.stateStore,
@@ -210,7 +210,7 @@ export class ABIHandler implements ABI {
 			stateStore: this._executionContext.stateStore,
 			chainID: this.chainID,
 			assets: new BlockAssets(req.assets),
-			eventQueue: new EventQueue(),
+			eventQueue: new EventQueue(this._executionContext.header.height),
 			// verifyAssets does not have access to transactions
 			transactions: [],
 			// verifyAssets does not have access to those properties
@@ -240,7 +240,7 @@ export class ABIHandler implements ABI {
 			stateStore: this._executionContext.stateStore,
 			chainID: this.chainID,
 			assets: new BlockAssets(req.assets),
-			eventQueue: new EventQueue(),
+			eventQueue: new EventQueue(this._executionContext.header.height),
 			currentValidators: req.consensus.currentValidators,
 			impliesMaxPrevote: req.consensus.implyMaxPrevote,
 			maxHeightCertified: req.consensus.maxHeightCertified,
@@ -271,7 +271,7 @@ export class ABIHandler implements ABI {
 			stateStore: this._executionContext.stateStore,
 			chainID: this.chainID,
 			assets: new BlockAssets(req.assets),
-			eventQueue: new EventQueue(),
+			eventQueue: new EventQueue(this._executionContext.header.height),
 			currentValidators: req.consensus.currentValidators,
 			impliesMaxPrevote: req.consensus.implyMaxPrevote,
 			maxHeightCertified: req.consensus.maxHeightCertified,
@@ -298,7 +298,7 @@ export class ABIHandler implements ABI {
 			stateStore = this._executionContext.stateStore;
 		}
 		const context = new TransactionContext({
-			eventQueue: new EventQueue(),
+			eventQueue: new EventQueue(0),
 			logger: this._logger,
 			transaction: new Transaction(req.transaction),
 			stateStore,
@@ -336,7 +336,7 @@ export class ABIHandler implements ABI {
 			header = new BlockHeader(req.header);
 		}
 		const context = new TransactionContext({
-			eventQueue: new EventQueue(),
+			eventQueue: new EventQueue(header.height),
 			logger: this._logger,
 			transaction: new Transaction(req.transaction),
 			stateStore,

@@ -43,7 +43,8 @@ describe('generator endpoint', () => {
 			index: 0,
 			module: 'token',
 			topics: [Buffer.from([0])],
-			typeID: Buffer.from([0, 0, 0, 1]),
+			name: 'Token Event Name',
+			height: 12,
 		},
 	];
 	const eventsJson = events.map(e => new Event(e).toJSON());

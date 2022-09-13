@@ -57,7 +57,7 @@ describe('state_machine', () => {
 
 	beforeEach(async () => {
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		eventQueue = new EventQueue();
+		eventQueue = new EventQueue(0);
 		stateMachine = new StateMachine();
 		mod = new CustomModule0();
 		stateMachine.registerModule(mod);
@@ -215,31 +215,32 @@ describe('state_machine', () => {
 			const events = [
 				{
 					module: 'customModule0',
-					typeID: Buffer.from([0, 0, 0, 0]),
+					name: 'customModule0 Event Name',
+					height: 12,
 					data: utils.getRandomBytes(20),
 					topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],
 				},
 				{
 					module: 'auth',
-					typeID: Buffer.from([0, 0, 0, 0]),
+					name: 'Auth Event Name',
+					height: 12,
 					data: utils.getRandomBytes(20),
 					topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],
 				},
 				{
 					module: 'customModule0',
-					typeID: Buffer.from([0, 0, 0, 0]),
+					name: 'customModule0 Event Name',
+					height: 12,
 					data: utils.getRandomBytes(20),
 					topics: [utils.getRandomBytes(32)],
 				},
 			];
 			for (const e of events) {
-				eventQueue.unsafeAdd(e.module, e.typeID, e.data, e.topics);
+				eventQueue.unsafeAdd(e.module, e.name, e.data, e.topics);
 			}
 
 			mod.beforeCommandExecute.mockImplementation(() => {
-				eventQueue.add('auth', Buffer.from([0, 0, 0, 1]), utils.getRandomBytes(100), [
-					utils.getRandomBytes(32),
-				]);
+				eventQueue.add('auth', 'Auth Name', utils.getRandomBytes(100), [utils.getRandomBytes(32)]);
 			});
 
 			mod.afterCommandExecute.mockImplementation(() => {

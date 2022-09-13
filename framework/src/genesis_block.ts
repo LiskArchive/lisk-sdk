@@ -81,7 +81,7 @@ export const generateGenesisBlock = async (
 	const stateStore = new PrefixedStateReadWriter(stateDB.newReadWriter());
 
 	const blockCtx = new GenesisBlockContext({
-		eventQueue: new EventQueue(),
+		eventQueue: new EventQueue(height),
 		header,
 		assets,
 		logger,

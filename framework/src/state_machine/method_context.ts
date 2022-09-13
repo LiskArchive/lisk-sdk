@@ -24,7 +24,7 @@ interface Params {
 export const createMethodContext = (params: Params) => new MethodContext(params);
 
 export const createNewMethodContext = (db: StateDBReadWriter) =>
-	new MethodContext({ stateStore: new PrefixedStateReadWriter(db), eventQueue: new EventQueue() });
+	new MethodContext({ stateStore: new PrefixedStateReadWriter(db), eventQueue: new EventQueue(0) });
 
 interface ImmutableSubStoreGetter {
 	getStore: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;

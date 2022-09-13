@@ -16,7 +16,7 @@ import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import { codec } from '@liskhq/lisk-codec';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
-import { defaultConfig, TYPE_ID_REWARD_MINTED } from './constants';
+import { defaultConfig } from './constants';
 import { ModuleConfig, RandomMethod, TokenMethod, RewardMintedData } from './types';
 import { BlockAfterExecuteContext } from '../../state_machine';
 import { RewardMethod } from './method';
@@ -27,6 +27,7 @@ import {
 	getDefaultRewardAtHeightResponseSchema,
 	rewardMintedDataSchema,
 } from './schemas';
+import { EVENT_REWARD_MINTED_DATA_NAME } from '../../state_machine/constants';
 
 export class RewardModule extends BaseModule {
 	public method = new RewardMethod(this.stores, this.events);
@@ -91,7 +92,6 @@ export class RewardModule extends BaseModule {
 			context.assets,
 			context.impliesMaxPrevote,
 		);
-
 		if (blockReward < BigInt(0)) {
 			throw new Error("Block reward can't be negative.");
 		}
@@ -113,7 +113,7 @@ export class RewardModule extends BaseModule {
 		const data = codec.encode(rewardMintedDataSchema, rewardMintedData);
 		context.eventQueue.add(
 			this.name,
-			TYPE_ID_REWARD_MINTED,
+			EVENT_REWARD_MINTED_DATA_NAME,
 			codec.encode(rewardMintedDataSchema, data),
 			[context.header.generatorAddress],
 		);

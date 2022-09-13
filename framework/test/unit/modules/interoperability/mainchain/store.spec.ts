@@ -415,7 +415,7 @@ describe('Mainchain interoperability store', () => {
 			forwardContext = {
 				ccm,
 				ccu,
-				eventQueue: new EventQueue(),
+				eventQueue: new EventQueue(0),
 				feeAddress: Buffer.alloc(0),
 				getMethodContext: jest.fn(() => methodContext),
 				getStore: jest.fn(),

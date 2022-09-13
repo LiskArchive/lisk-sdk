@@ -89,14 +89,16 @@ describe('dataAccess.blocks', () => {
 				index: 0,
 				module: 'token',
 				topics: [utils.getRandomBytes(32)],
-				typeID: Buffer.from([0, 0, 0, 0]),
+				name: 'Token Event Name',
+				height: 12,
 			}),
 			new Event({
 				data: utils.getRandomBytes(20),
 				index: 1,
 				module: 'auth',
 				topics: [utils.getRandomBytes(32)],
-				typeID: Buffer.from([0, 0, 0, 0]),
+				name: 'Auth Event Name',
+				height: 13,
 			}),
 		];
 
@@ -374,14 +376,16 @@ describe('dataAccess.blocks', () => {
 				index: 0,
 				module: 'token',
 				topics: [utils.getRandomBytes(32)],
-				typeID: Buffer.from([0, 0, 0, 0]),
+				name: 'Token Event Name',
+				height: 12,
 			}),
 			new Event({
 				data: utils.getRandomBytes(20),
 				index: 1,
 				module: 'auth',
 				topics: [utils.getRandomBytes(32)],
-				typeID: Buffer.from([0, 0, 0, 0]),
+				name: 'Token Event Name',
+				height: 13,
 			}),
 		];
 

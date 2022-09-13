@@ -79,11 +79,11 @@ describe('ValidatorsModuleMethod', () => {
 		validatorsSubStore = validatorsModule.stores.get(ValidatorKeysStore);
 		blsKeysSubStore = validatorsModule.stores.get(BLSKeyStore);
 		genesisDataSubStore = validatorsModule.stores.get(GenesisStore);
+		methodContext = new MethodContext({ stateStore, eventQueue: new EventQueue(0) });
 	});
 
 	describe('registerValidatorKeys', () => {
 		beforeEach(() => {
-			methodContext = new MethodContext({ stateStore, eventQueue: new EventQueue() });
 			jest.spyOn(methodContext.eventQueue, 'add');
 		});
 
@@ -110,7 +110,7 @@ describe('ValidatorsModuleMethod', () => {
 			expect(methodContext.eventQueue.add).toHaveBeenNthCalledWith(
 				1,
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(GeneratorKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(GeneratorKeyRegistrationEvent).name,
 				generatorEventData,
 				[address],
 				false,
@@ -118,7 +118,7 @@ describe('ValidatorsModuleMethod', () => {
 			expect(methodContext.eventQueue.add).toHaveBeenNthCalledWith(
 				2,
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(BLSKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(BLSKeyRegistrationEvent).name,
 				blsEventData,
 				[address],
 				false,
@@ -147,7 +147,7 @@ describe('ValidatorsModuleMethod', () => {
 			).rejects.toThrow('This address is already registered as validator.');
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(GeneratorKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(GeneratorKeyRegistrationEvent).name,
 				generatorEventData,
 				[address],
 				true,
@@ -175,7 +175,7 @@ describe('ValidatorsModuleMethod', () => {
 			);
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(BLSKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(BLSKeyRegistrationEvent).name,
 				blsEventData,
 				[address],
 				true,
@@ -201,7 +201,7 @@ describe('ValidatorsModuleMethod', () => {
 			).rejects.toThrow('Invalid proof of possession for the given BLS key.');
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(BLSKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(BLSKeyRegistrationEvent).name,
 				blsEventData,
 				[address],
 				true,
@@ -211,7 +211,6 @@ describe('ValidatorsModuleMethod', () => {
 
 	describe('setValidatorBLSKey', () => {
 		beforeEach(() => {
-			methodContext = new MethodContext({ stateStore, eventQueue: new EventQueue() });
 			jest.spyOn(methodContext.eventQueue, 'add');
 		});
 
@@ -242,7 +241,7 @@ describe('ValidatorsModuleMethod', () => {
 			expect(hasKey).toBe(true);
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(BLSKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(BLSKeyRegistrationEvent).name,
 				blsEventData,
 				[address],
 				false,
@@ -267,7 +266,7 @@ describe('ValidatorsModuleMethod', () => {
 			);
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(BLSKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(BLSKeyRegistrationEvent).name,
 				blsEventData,
 				[address],
 				true,
@@ -299,7 +298,7 @@ describe('ValidatorsModuleMethod', () => {
 			);
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(BLSKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(BLSKeyRegistrationEvent).name,
 				blsEventData,
 				[address],
 				true,
@@ -329,7 +328,7 @@ describe('ValidatorsModuleMethod', () => {
 			).rejects.toThrow('Invalid proof of possession for the given BLS key.');
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(BLSKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(BLSKeyRegistrationEvent).name,
 				blsEventData,
 				[address],
 				true,
@@ -339,7 +338,6 @@ describe('ValidatorsModuleMethod', () => {
 
 	describe('setValidatorGeneratorKey', () => {
 		beforeEach(() => {
-			methodContext = new MethodContext({ stateStore, eventQueue: new EventQueue() });
 			jest.spyOn(methodContext.eventQueue, 'add');
 		});
 
@@ -366,7 +364,7 @@ describe('ValidatorsModuleMethod', () => {
 			expect(setValidatorAccount.generatorKey.equals(generatorKey1)).toBe(true);
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(GeneratorKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(GeneratorKeyRegistrationEvent).name,
 				generatorEventData,
 				[address],
 				false,
@@ -386,7 +384,7 @@ describe('ValidatorsModuleMethod', () => {
 			);
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(GeneratorKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(GeneratorKeyRegistrationEvent).name,
 				generatorEventData,
 				[address],
 				true,
@@ -396,7 +394,6 @@ describe('ValidatorsModuleMethod', () => {
 
 	describe('isKeyRegistered', () => {
 		it('should return true if bls key is already registered', async () => {
-			methodContext = new MethodContext({ stateStore, eventQueue: new EventQueue() });
 			await blsKeysSubStore.set(methodContext, blsKey, { address });
 
 			await expect(validatorsModule.method.isKeyRegistered(methodContext, blsKey)).resolves.toBe(
@@ -405,8 +402,6 @@ describe('ValidatorsModuleMethod', () => {
 		});
 
 		it('should return false if bls key is not registered', async () => {
-			methodContext = new MethodContext({ stateStore, eventQueue: new EventQueue() });
-
 			await expect(validatorsModule.method.isKeyRegistered(methodContext, blsKey)).resolves.toBe(
 				false,
 			);
@@ -415,7 +410,6 @@ describe('ValidatorsModuleMethod', () => {
 
 	describe('getGeneratorsBetweenTimestamps', () => {
 		it('should be able to return if input timestamps are valid', async () => {
-			methodContext = new MethodContext({ stateStore, eventQueue: new EventQueue() });
 			await genesisDataSubStore.set(methodContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			await expect(
@@ -433,7 +427,6 @@ describe('ValidatorsModuleMethod', () => {
 			const validatorsPerRound = 101;
 			const timePerRound = validatorsPerRound * blockTime;
 
-			methodContext = new MethodContext({ stateStore, eventQueue: new EventQueue() });
 			await genesisDataSubStore.set(methodContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			const result = await validatorsModule.method.getGeneratorsBetweenTimestamps(
@@ -457,7 +450,6 @@ describe('ValidatorsModuleMethod', () => {
 			const validatorsPerRound = 101;
 			const timePerRound = validatorsPerRound * blockTime;
 
-			methodContext = new MethodContext({ stateStore, eventQueue: new EventQueue() });
 			await genesisDataSubStore.set(methodContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			const result = await validatorsModule.method.getGeneratorsBetweenTimestamps(
@@ -486,7 +478,6 @@ describe('ValidatorsModuleMethod', () => {
 		});
 
 		it('should be able to return no generator if input timestamps are valid and difference between input timestamps is zero', async () => {
-			methodContext = new MethodContext({ stateStore, eventQueue: new EventQueue() });
 			await genesisDataSubStore.set(methodContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			const result = await validatorsModule.method.getGeneratorsBetweenTimestamps(
@@ -502,7 +493,6 @@ describe('ValidatorsModuleMethod', () => {
 		it('should be able to return no generator if input timestamps are valid and difference between input timestamps is less than block time ', async () => {
 			const blockTime = 10;
 
-			methodContext = new MethodContext({ stateStore, eventQueue: new EventQueue() });
 			await genesisDataSubStore.set(methodContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			const result = await validatorsModule.method.getGeneratorsBetweenTimestamps(
@@ -518,7 +508,6 @@ describe('ValidatorsModuleMethod', () => {
 		it('should be able to return no generator if input timestamps are valid and difference between input timestamps is equal to block time ', async () => {
 			const blockTime = 10;
 
-			methodContext = new MethodContext({ stateStore, eventQueue: new EventQueue() });
 			await genesisDataSubStore.set(methodContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			const result = await validatorsModule.method.getGeneratorsBetweenTimestamps(
@@ -532,8 +521,6 @@ describe('ValidatorsModuleMethod', () => {
 		});
 
 		it('should throw if input timestamps are invalid', async () => {
-			methodContext = new MethodContext({ stateStore, eventQueue: new EventQueue() });
-
 			await expect(
 				validatorsModule.method.getGeneratorsBetweenTimestamps(
 					methodContext,
@@ -545,7 +532,6 @@ describe('ValidatorsModuleMethod', () => {
 		});
 
 		it('should throw if input timestamp is less than genesis timestamp', async () => {
-			methodContext = new MethodContext({ stateStore, eventQueue: new EventQueue() });
 			await genesisDataSubStore.set(methodContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			await expect(
@@ -559,7 +545,6 @@ describe('ValidatorsModuleMethod', () => {
 		});
 
 		it('should return empty result when startSlotNumber is lower than endSlotNumber but in the same block slot', async () => {
-			methodContext = new MethodContext({ stateStore, eventQueue: new EventQueue() });
 			await genesisDataSubStore.set(methodContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			await expect(
@@ -573,7 +558,6 @@ describe('ValidatorsModuleMethod', () => {
 		});
 
 		it('should return empty result when startSlotNumber equals endSlotNumber but in the same block slot', async () => {
-			methodContext = new MethodContext({ stateStore, eventQueue: new EventQueue() });
 			await genesisDataSubStore.set(methodContext, EMPTY_KEY, { timestamp: genesisTimestamp });
 
 			await expect(
@@ -626,9 +610,7 @@ describe('ValidatorsModuleMethod', () => {
 	});
 
 	describe('getAddressFromBLSKey', () => {
-		beforeEach(() => {
-			methodContext = new MethodContext({ stateStore, eventQueue: new EventQueue() });
-		});
+		beforeEach(() => {});
 
 		it('should get address if it exists in store', async () => {
 			await blsKeysSubStore.set(methodContext, blsKey, { address });
@@ -646,7 +628,6 @@ describe('ValidatorsModuleMethod', () => {
 
 	describe('registerValidatorWithoutBLSKey', () => {
 		beforeEach(() => {
-			methodContext = new MethodContext({ stateStore, eventQueue: new EventQueue() });
 			jest.spyOn(methodContext.eventQueue, 'add');
 		});
 
@@ -666,7 +647,7 @@ describe('ValidatorsModuleMethod', () => {
 			expect(setValidatorAccount.generatorKey.equals(generatorKey)).toBe(true);
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(GeneratorKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(GeneratorKeyRegistrationEvent).name,
 				generatorEventData,
 				[address],
 				false,
@@ -692,7 +673,7 @@ describe('ValidatorsModuleMethod', () => {
 			).rejects.toThrow('This address is already registered as validator.');
 			expect(methodContext.eventQueue.add).toHaveBeenCalledWith(
 				MODULE_NAME_VALIDATORS,
-				Buffer.from(validatorsModule.events.get(GeneratorKeyRegistrationEvent).name, 'utf8'),
+				validatorsModule.events.get(GeneratorKeyRegistrationEvent).name,
 				generatorEventData,
 				[address],
 				true,

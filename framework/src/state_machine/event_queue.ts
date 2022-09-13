@@ -12,12 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import {
-	Event,
-	EVENT_MAX_EVENT_SIZE_BYTES,
-	EVENT_MAX_TOPICS_PER_EVENT,
-	EVENT_STANDARD_TYPE_ID,
-} from '@liskhq/lisk-chain';
+import { Event, EVENT_MAX_EVENT_SIZE_BYTES, EVENT_MAX_TOPICS_PER_EVENT } from '@liskhq/lisk-chain';
 
 interface RevertibleEvent {
 	event: Event;
@@ -25,17 +20,19 @@ interface RevertibleEvent {
 }
 
 export class EventQueue {
+	private readonly _height: number;
 	private readonly _events: RevertibleEvent[];
 	private readonly _defaultTopics: Buffer[];
 
-	public constructor(events?: RevertibleEvent[], defaultTopics?: Buffer[]) {
+	public constructor(height: number, events?: RevertibleEvent[], defaultTopics?: Buffer[]) {
+		this._height = height;
 		this._events = events ?? [];
 		this._defaultTopics = defaultTopics ?? [];
 	}
 
 	public add(
 		module: string,
-		typeID: Buffer,
+		name: string,
 		data: Buffer,
 		topics?: Buffer[],
 		noRevert?: boolean,
@@ -54,15 +51,12 @@ export class EventQueue {
 				`Max topics per event is ${EVENT_MAX_TOPICS_PER_EVENT} but received ${allTopics.length}`,
 			);
 		}
-		if (typeID.equals(EVENT_STANDARD_TYPE_ID)) {
-			throw new Error('Event type ID 0 is reserved for standard event.');
-		}
-		this.unsafeAdd(module, typeID, data, topics, noRevert);
+		this.unsafeAdd(module, name, data, topics, noRevert);
 	}
 
 	public unsafeAdd(
 		module: string,
-		typeID: Buffer,
+		name: string,
 		data: Buffer,
 		topics?: Buffer[],
 		noRevert?: boolean,
@@ -71,10 +65,11 @@ export class EventQueue {
 		this._events.push({
 			event: new Event({
 				module,
-				typeID,
+				name,
 				index: this._events.length,
 				data,
 				topics: allTopics,
+				height: this._height,
 			}),
 			noRevert: noRevert ?? false,
 		});
@@ -82,7 +77,7 @@ export class EventQueue {
 
 	public getChildQueue(topicID: Buffer): EventQueue {
 		const allTopics = [...this._defaultTopics, topicID];
-		return new EventQueue(this._events, allTopics);
+		return new EventQueue(this._height, this._events, allTopics);
 	}
 
 	public createSnapshot(): number {

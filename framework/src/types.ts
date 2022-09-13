@@ -171,7 +171,7 @@ export type JSONObject<T> = Replaced<T, bigint | Buffer, string>;
 
 export interface Event {
 	readonly module: string;
-	readonly typeID: Buffer;
+	readonly name: string;
 	readonly topics: Buffer[];
 	readonly index: number;
 	readonly data: Buffer;

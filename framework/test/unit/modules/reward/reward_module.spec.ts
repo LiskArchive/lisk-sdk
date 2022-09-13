@@ -16,10 +16,10 @@ import { createBlockContext, createBlockHeaderWithDefaults } from '../../../../s
 import {
 	REWARD_NO_REDUCTION,
 	REWARD_REDUCTION_SEED_REVEAL,
-	TYPE_ID_REWARD_MINTED,
 	REWARD_REDUCTION_FACTOR_BFT,
 	REWARD_REDUCTION_MAX_PREVOTES,
 } from '../../../../src/modules/reward/constants';
+import { EVENT_REWARD_MINTED_DATA_NAME } from '../../../../src/state_machine/constants';
 
 describe('RewardModule', () => {
 	const genesisConfig: any = {};
@@ -106,9 +106,10 @@ describe('RewardModule', () => {
 				.mockReturnValue([BigInt(1), REWARD_NO_REDUCTION]);
 			await rewardModule.afterTransactionsExecute(blockAfterExecuteContext);
 			expect(mint).toHaveBeenCalledTimes(1);
-			expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().typeID).toBe(
-				TYPE_ID_REWARD_MINTED,
+			expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().name).toBe(
+				EVENT_REWARD_MINTED_DATA_NAME,
 			);
+			expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().module).toBe('reward');
 		});
 
 		it('should emit rewardMinted event for event type REWARD_REDUCTION_SEED_REVEAL', async () => {
@@ -117,9 +118,10 @@ describe('RewardModule', () => {
 				.mockReturnValue([BigInt(0), REWARD_REDUCTION_SEED_REVEAL]);
 			await rewardModule.afterTransactionsExecute(blockAfterExecuteContext);
 			expect(mint).toHaveBeenCalledTimes(0);
-			expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().typeID).toBe(
-				TYPE_ID_REWARD_MINTED,
+			expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().name).toBe(
+				EVENT_REWARD_MINTED_DATA_NAME,
 			);
+			expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().module).toBe('reward');
 		});
 
 		it('should emit rewardMinted event for event type REWARD_REDUCTION_MAX_PREVOTES', async () => {
@@ -131,9 +133,10 @@ describe('RewardModule', () => {
 				]);
 			expect(mint).toHaveBeenCalledTimes(0);
 			await rewardModule.afterTransactionsExecute(blockAfterExecuteContext);
-			expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().typeID).toBe(
-				TYPE_ID_REWARD_MINTED,
+			expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().name).toBe(
+				EVENT_REWARD_MINTED_DATA_NAME,
 			);
+			expect(blockAfterExecuteContext.eventQueue.getEvents()[0].toObject().module).toBe('reward');
 		});
 	});
 });

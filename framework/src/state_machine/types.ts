@@ -19,7 +19,7 @@ import { Logger } from '../logger';
 import { EventQueue } from './event_queue';
 
 export interface EventQueueAdder {
-	add(module: string, typeID: Buffer, data: Buffer, topics?: Buffer[], noRevert?: boolean): void;
+	add(module: string, name: string, data: Buffer, topics?: Buffer[], noRevert?: boolean): void;
 }
 
 export interface ImmutableSubStore {
