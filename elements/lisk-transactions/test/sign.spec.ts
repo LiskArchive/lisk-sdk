@@ -501,18 +501,14 @@ describe('sign', () => {
 						address: 'be046d336cd0c2fbde62bc47e20199395d2eeadc',
 					};
 
-					Object.values({ senderAccount, ...testCase.input.members }).forEach((member: any) =>
-						signMultiSignatureTransactionWithPrivateKey(
-							signedMultiSigTransaction,
-							_chainID,
-							legacy.getPrivateAndPublicKeyFromPassphrase(member.passphrase).privateKey,
-							decodedParams,
-							multisigRegParams,
-							true,
-						),
-					);
+					const signaturesResult = signTransactionWithPrivateKey(
+						signedMultiSigTransaction,
+						_chainID,
+						Buffer.from(senderAccount.privateKey, 'hex'),
+						multisigRegParams,
+					).signatures;
 
-					expect(signedMSRegistrationTx.signatures).toStrictEqual(signatures);
+					expect(signaturesResult).toStrictEqual(signatures);
 					expect(signedMultiSigTransaction).toMatchSnapshot();
 				});
 			});
@@ -545,18 +541,14 @@ describe('sign', () => {
 			};
 			const _chainID = Buffer.from(testCase.input.chainID, 'hex');
 
-			Object.values({ senderAccount, ...testCase.input.members }).forEach((member: any) =>
-				signMultiSignatureTransactionWithPrivateKey(
-					signedMultiSigTransaction,
-					_chainID,
-					Buffer.from(member.privateKey, 'hex'),
-					decodedParams,
-					multisigRegParams,
-					true,
-				),
-			);
+			const signaturesResult = signTransactionWithPrivateKey(
+				signedMultiSigTransaction,
+				_chainID,
+				Buffer.from(senderAccount.privateKey, 'hex'),
+				multisigRegParams,
+			).signatures;
 
-			expect(signedMSRegistrationTx.signatures).toStrictEqual(signatures);
+			expect(signaturesResult).toStrictEqual(signatures);
 		});
 	});
 });
