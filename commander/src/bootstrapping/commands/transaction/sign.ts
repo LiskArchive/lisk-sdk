@@ -190,6 +190,7 @@ const signTransactionOnline = async (
 		signedTransaction = await client.transaction.sign(transactionObject, [
 			edKeys.privateKey.toString('hex'),
 		]);
+
 		return signedTransaction;
 	}
 

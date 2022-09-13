@@ -226,7 +226,7 @@ describe('transaction:sign command', () => {
 			const messageBytes = codec.encode(multisigRegMsgSchema, messageForRegistration);
 
 			const MESSAGE_TAG_MULTISIG_REG = 'LSK_RMSG_';
-			const networkIdentifier = Buffer.from(networkIdentifierStr, 'hex');
+			const networkIdentifier = Buffer.from(chainIDStr, 'hex');
 
 			const decodedParams = {
 				numberOfSignatures: messageForRegistration.numberOfSignatures,
@@ -299,7 +299,7 @@ describe('transaction:sign command', () => {
 					[
 						unsignedMultiSigTransaction.toString('hex'),
 						`--passphrase=${accountsForMultisignature.targetAccount.passphrase}`,
-						`--network-identifier=${networkIdentifier.toString('hex')}`,
+						`--chain-id=${chainIDStr}`,
 						'--offline',
 					],
 					config,
@@ -315,7 +315,7 @@ describe('transaction:sign command', () => {
 					[
 						unsignedMultiSigTransaction.toString('hex'),
 						`--passphrase=${accountsForMultisignature.targetAccount.passphrase}`,
-						`--network-identifier=${networkIdentifier.toString('hex')}`,
+						`--chain-id=${chainIDStr}`,
 						'--offline',
 						'--json',
 					],
@@ -344,14 +344,14 @@ describe('transaction:sign command', () => {
 								accountsForMultisignature.optionalTwo.publicKey.toString('hex'),
 							],
 							signatures: [
-								'612ba38cbbac69cabb7b3d30d5b8be76271237396feb8da2e39bc7cce6b432e7eb47b7f9ab5aef8fa366d91b9366851c965b7e526bad50b63ffcb4537e710f03',
-								'f2477c43ae712cdffa46eaedc4de386849b610a72696db434ff08dc35c0285ee338034961f5a141e48c4473e75269f0983f7ebdc541beb6a371be6b2f7ee4f0d',
-								'61ee0ce77735a56761795871eba360ebaf265d6ba7b37f90a46112af1c5a8441acb89628f6c3b66448f60a1c31227275149d71bdbacdefb014bf22f35fb2be0d',
-								'b1efe277a0b8bff4e2a8c9f3fcd71fa1e3d3a3f2d0b4718d83cacaf0033c0d797cbf25b99232144be7bca6bd3b849c89987feb299ef31ffa3bf4d6f67c58b30f',
+								'b782005d5b55f390bf1e10ed88a076e448124a9be882414977876a3fd134a2047e14c6aeb8b58915c4bb51ba3490b7643710432019dac171467bad214e0ced07',
+								'082501104f42f0c8a47291b51630e6869aebb653fe224dca74a9027fc8494f5a2d6537bb1bc1b94d8b1a1af00d14fb50b9e0cd36e3bfb8ea3265c5e956064c0c',
+								'aa72f005da46a8782ff5edd5b2546baf6a8bb0d67284c4e7631abf6629feba65854203d961fb4c2a31c12c525c0b7c4f9c8a47118789f93cf6ebd158b294c707',
+								'6a3a179fbb076ca8e8c3e42e1e6d2ae447f39ae413df083e14685fd02a562ab3fac085080709387e3ecbf305b58b4f1957ea497e9e7834d55a8a71a946f5050d',
 							],
 						},
 						signatures: [
-							'34de1b31c416a79431f36848dcffe0f39ec1ec0ad84a1146c085faaa00e9810d730cd3bca828671cfc67a2958275ab1277c3e54b5ff1bf5d020b70202297290b',
+							'06f78300e3fae75408e3526fd08de832e953e0d252f441f57003a1f4ad84f350edf0a20a641f43abe7fb81121306750e23effd31f6f04fbd1156a9088585440c',
 						],
 					},
 				});
@@ -538,7 +538,7 @@ describe('transaction:sign command', () => {
 			const messageBytes = codec.encode(multisigRegMsgSchema, messageForRegistration);
 
 			const MESSAGE_TAG_MULTISIG_REG = 'LSK_RMSG_';
-			const networkIdentifier = Buffer.from(networkIdentifierStr, 'hex');
+			const chainID = Buffer.from(chainIDStr, 'hex');
 
 			const decodedParams = {
 				numberOfSignatures: messageForRegistration.numberOfSignatures,
@@ -549,7 +549,7 @@ describe('transaction:sign command', () => {
 
 			const sign1 = ed.signData(
 				MESSAGE_TAG_MULTISIG_REG,
-				networkIdentifier,
+				chainID,
 				messageBytes,
 				accountsForMultisignature.mandatoryTwo.privateKey,
 			);
@@ -557,7 +557,7 @@ describe('transaction:sign command', () => {
 
 			const sign2 = ed.signData(
 				MESSAGE_TAG_MULTISIG_REG,
-				networkIdentifier,
+				chainID,
 				messageBytes,
 				accountsForMultisignature.mandatoryOne.privateKey,
 			);
@@ -565,7 +565,7 @@ describe('transaction:sign command', () => {
 
 			const sign3 = ed.signData(
 				MESSAGE_TAG_MULTISIG_REG,
-				networkIdentifier,
+				chainID,
 				messageBytes,
 				accountsForMultisignature.optionalOne.privateKey,
 			);
@@ -573,7 +573,7 @@ describe('transaction:sign command', () => {
 
 			const sign4 = ed.signData(
 				MESSAGE_TAG_MULTISIG_REG,
-				networkIdentifier,
+				chainID,
 				messageBytes,
 				accountsForMultisignature.optionalTwo.privateKey,
 			);
@@ -612,7 +612,7 @@ describe('transaction:sign command', () => {
 			);
 			const signatureSender = ed.signDataWithPrivateKey(
 				TAG_TRANSACTION,
-				networkIdentifier,
+				chainID,
 				unsignedMultiSigTransaction,
 				accountsForMultisignature.targetAccount.privateKey,
 			);
@@ -684,14 +684,14 @@ describe('transaction:sign command', () => {
 								'fa406b6952d377f0278920e3eb8da919e4cf5c68b02eeba5d8b3334fdc0369b6',
 							],
 							signatures: [
-								'612ba38cbbac69cabb7b3d30d5b8be76271237396feb8da2e39bc7cce6b432e7eb47b7f9ab5aef8fa366d91b9366851c965b7e526bad50b63ffcb4537e710f03',
-								'f2477c43ae712cdffa46eaedc4de386849b610a72696db434ff08dc35c0285ee338034961f5a141e48c4473e75269f0983f7ebdc541beb6a371be6b2f7ee4f0d',
-								'61ee0ce77735a56761795871eba360ebaf265d6ba7b37f90a46112af1c5a8441acb89628f6c3b66448f60a1c31227275149d71bdbacdefb014bf22f35fb2be0d',
-								'b1efe277a0b8bff4e2a8c9f3fcd71fa1e3d3a3f2d0b4718d83cacaf0033c0d797cbf25b99232144be7bca6bd3b849c89987feb299ef31ffa3bf4d6f67c58b30f',
+								'b782005d5b55f390bf1e10ed88a076e448124a9be882414977876a3fd134a2047e14c6aeb8b58915c4bb51ba3490b7643710432019dac171467bad214e0ced07',
+								'082501104f42f0c8a47291b51630e6869aebb653fe224dca74a9027fc8494f5a2d6537bb1bc1b94d8b1a1af00d14fb50b9e0cd36e3bfb8ea3265c5e956064c0c',
+								'aa72f005da46a8782ff5edd5b2546baf6a8bb0d67284c4e7631abf6629feba65854203d961fb4c2a31c12c525c0b7c4f9c8a47118789f93cf6ebd158b294c707',
+								'6a3a179fbb076ca8e8c3e42e1e6d2ae447f39ae413df083e14685fd02a562ab3fac085080709387e3ecbf305b58b4f1957ea497e9e7834d55a8a71a946f5050d',
 							],
 						},
 						signatures: [
-							'34de1b31c416a79431f36848dcffe0f39ec1ec0ad84a1146c085faaa00e9810d730cd3bca828671cfc67a2958275ab1277c3e54b5ff1bf5d020b70202297290b',
+							'06f78300e3fae75408e3526fd08de832e953e0d252f441f57003a1f4ad84f350edf0a20a641f43abe7fb81121306750e23effd31f6f04fbd1156a9088585440c',
 						],
 					},
 				});

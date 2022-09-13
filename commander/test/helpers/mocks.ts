@@ -52,7 +52,7 @@ export const mockJSONTransaction = {
 		tokenID: '0000000000000000',
 		amount: '100',
 		data: 'send token',
-		recipientAddress: 'ab0041a7d3f7b2c290b5b834d46bdc7b7eb85815',
+		recipientAddress: 'lskqozpc4ftffaompmqwzd93dfj89g5uezqwhosg9',
 	},
 	command: 'transfer',
 	fee: '100000000',
@@ -112,6 +112,7 @@ export const createIPCClientMock = (
 		sign: jest.fn().mockReturnValue(mockTransaction),
 		encode: jest.fn().mockReturnValue(mockTransactionEncoded),
 		toJSON: jest.fn().mockReturnValue(mockTransaction),
+		fromJSON: jest.fn().mockReturnValue(mockTransaction),
 		decode: jest.fn().mockImplementation(val => {
 			const root = codec.decode<Record<string, unknown>>(transactionSchema, val);
 			const params = codec.decode(commands[0].schema, root.asset as Buffer);

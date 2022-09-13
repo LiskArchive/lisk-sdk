@@ -172,7 +172,7 @@ export class RegisterMultisignatureCommand extends BaseCommand {
 		for (const { key, signature } of allKeys) {
 			const isValid = cryptography.ed.verifyData(
 				MESSAGE_TAG_MULTISIG_REG,
-				context.networkIdentifier,
+				context.chainID,
 				message,
 				signature,
 				key,

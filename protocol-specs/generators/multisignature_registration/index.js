@@ -193,12 +193,7 @@ const createSignatureObject = (txBuffer, account) => ({
 });
 
 const createSignatureForMultisignature = (messageBytes, account) => ({
-	signature: ed.signData(
-		MESSAGE_TAG_MULTISIG_REG,
-		networkIdentifier,
-		messageBytes,
-		account.privateKey,
-	),
+	signature: ed.signData(MESSAGE_TAG_MULTISIG_REG, chainID, messageBytes, account.privateKey),
 });
 
 const generateValidMultisignatureRegistrationTransaction = () => {

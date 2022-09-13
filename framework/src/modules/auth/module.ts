@@ -24,7 +24,6 @@ import {
 	VerificationResult,
 } from '../../state_machine';
 import { AuthMethod } from './method';
-import { RegisterMultisignatureGroupCommand } from './commands/register_multisignature';
 import { MAX_NUMBER_OF_SIGNATURES } from './constants';
 import { AuthEndpoint } from './endpoint';
 import { configSchema, genesisAuthStoreSchema } from './schemas';

@@ -15,7 +15,7 @@
 
 import { Transaction, BlockHeader, TAG_TRANSACTION } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { bls, ed, legacy, address } from '@liskhq/lisk-cryptography';
+import { ed, address } from '@liskhq/lisk-cryptography';
 import { signMultiSignatureTransaction } from '@liskhq/lisk-transactions';
 import { TokenModule } from '../../../src';
 import { MESSAGE_TAG_MULTISIG_REG } from '../../../src/modules/auth/constants';
@@ -148,12 +148,7 @@ export const createMultiSignRegisterTransaction = (input: {
 		});
 
 		memberSignatures = [...input.privateKeys].map(privateKey => {
-			return ed.signData(
-				MESSAGE_TAG_MULTISIG_REG,
-				input.chainID,
-				encodedMessage,
-				privateKey,
-			);
+			return ed.signData(MESSAGE_TAG_MULTISIG_REG, input.chainID, encodedMessage, privateKey);
 		});
 	}
 
@@ -164,14 +159,12 @@ export const createMultiSignRegisterTransaction = (input: {
 		signatures: memberSignatures,
 	};
 	const encodedAsset = codec.encode(registerMultisignatureParamsSchema, params);
-	const { publicKey, privateKey } = legacy.getPrivateAndPublicKeyFromPassphrase(
-		input.senderPassphrase,
-	);
+
 	const unsignedTx = {
 		module: 'auth',
 		command: 'registerMultisignature',
 		nonce: input.nonce,
-		senderPublicKey: publicKey,
+		senderPublicKey: input.senderPublicKey,
 		fee: input.fee ?? BigInt('1100000000'),
 		signatures: [],
 		params: encodedAsset,

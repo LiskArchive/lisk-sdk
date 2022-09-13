@@ -488,7 +488,7 @@ describe('Register Multisignature command', () => {
 				.createTransactionContext({
 					stateStore,
 					transaction: invalidTransaction,
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandExecuteContext<RegisterMultisignatureParams>(
 					registerMultisignatureParamsSchema,
