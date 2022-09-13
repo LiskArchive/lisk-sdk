@@ -47,6 +47,26 @@ import {
 import { getIDAsKeyForStore } from './utils';
 import { getCCMSize } from '../modules/interoperability/utils';
 
+const createTestHeader = () =>
+	new BlockHeader({
+		height: 0,
+		generatorAddress: utils.getRandomBytes(20),
+		previousBlockID: Buffer.alloc(0),
+		timestamp: Math.floor(Date.now() / 1000),
+		version: 0,
+		transactionRoot: utils.hash(Buffer.alloc(0)),
+		stateRoot: utils.hash(Buffer.alloc(0)),
+		maxHeightGenerated: 0,
+		maxHeightPrevoted: 0,
+		assetRoot: utils.hash(Buffer.alloc(0)),
+		aggregateCommit: {
+			height: 0,
+			aggregationBits: Buffer.alloc(0),
+			certificateSignature: Buffer.alloc(0),
+		},
+		validatorsHash: utils.hash(Buffer.alloc(0)),
+	});
+
 export const createGenesisBlockContext = (params: {
 	header?: BlockHeader;
 	stateStore?: PrefixedStateReadWriter;
@@ -58,26 +78,7 @@ export const createGenesisBlockContext = (params: {
 	const stateStore =
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	const eventQueue = params.eventQueue ?? new EventQueue(params.header ? params.header.height : 0);
-	const header =
-		params.header ??
-		new BlockHeader({
-			height: 0,
-			generatorAddress: utils.getRandomBytes(20),
-			previousBlockID: Buffer.alloc(0),
-			timestamp: Math.floor(Date.now() / 1000),
-			version: 0,
-			transactionRoot: utils.hash(Buffer.alloc(0)),
-			stateRoot: utils.hash(Buffer.alloc(0)),
-			maxHeightGenerated: 0,
-			maxHeightPrevoted: 0,
-			assetRoot: utils.hash(Buffer.alloc(0)),
-			aggregateCommit: {
-				height: 0,
-				aggregationBits: Buffer.alloc(0),
-				certificateSignature: Buffer.alloc(0),
-			},
-			validatorsHash: utils.hash(Buffer.alloc(0)),
-		});
+	const header = params.header ?? createTestHeader();
 	const ctx = new GenesisBlockContext({
 		eventQueue,
 		stateStore,
@@ -101,26 +102,7 @@ export const createBlockContext = (params: {
 	const stateStore =
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	const eventQueue = params.eventQueue ?? new EventQueue(params.header ? params.header.height : 0);
-	const header =
-		params.header ??
-		new BlockHeader({
-			height: 0,
-			generatorAddress: utils.getRandomBytes(20),
-			previousBlockID: Buffer.alloc(0),
-			timestamp: Math.floor(Date.now() / 1000),
-			version: 0,
-			transactionRoot: utils.hash(Buffer.alloc(0)),
-			stateRoot: utils.hash(Buffer.alloc(0)),
-			maxHeightGenerated: 0,
-			maxHeightPrevoted: 0,
-			assetRoot: utils.hash(Buffer.alloc(0)),
-			aggregateCommit: {
-				height: 0,
-				aggregationBits: Buffer.alloc(0),
-				certificateSignature: Buffer.alloc(0),
-			},
-			validatorsHash: utils.hash(Buffer.alloc(0)),
-		});
+	const header = params.header ?? createTestHeader();
 	const ctx = new BlockContext({
 		stateStore,
 		logger,
@@ -153,26 +135,7 @@ export const createBlockGenerateContext = (params: {
 	const generatorStore = new StateStore(db);
 	const getOffchainStore = (moduleID: Buffer, subStorePrefix: Buffer) =>
 		generatorStore.getStore(moduleID, subStorePrefix);
-	const header =
-		params.header ??
-		new BlockHeader({
-			height: 0,
-			generatorAddress: utils.getRandomBytes(20),
-			previousBlockID: Buffer.alloc(0),
-			timestamp: Math.floor(Date.now() / 1000),
-			version: 0,
-			transactionRoot: utils.hash(Buffer.alloc(0)),
-			stateRoot: utils.hash(Buffer.alloc(0)),
-			maxHeightGenerated: 0,
-			maxHeightPrevoted: 0,
-			assetRoot: utils.hash(Buffer.alloc(0)),
-			aggregateCommit: {
-				height: 0,
-				aggregationBits: Buffer.alloc(0),
-				certificateSignature: Buffer.alloc(0),
-			},
-			validatorsHash: utils.hash(Buffer.alloc(0)),
-		});
+	const header = params.header ?? createTestHeader();
 	const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	const getStore = (moduleID: Buffer, storePrefix: Buffer) =>
 		stateStore.getStore(moduleID, storePrefix);
@@ -183,7 +146,8 @@ export const createBlockGenerateContext = (params: {
 		logger: params.logger ?? loggerMock,
 		networkIdentifier: params.networkIdentifier ?? utils.getRandomBytes(32),
 		getMethodContext:
-			params.getMethodContext ?? (() => ({ getStore, eventQueue: new EventQueue(params.header ? params.header.height : 0) })),
+			params.getMethodContext ??
+			(() => ({ getStore, eventQueue: new EventQueue(params.header ? params.header.height : 0) })),
 		getStore: params.getStore ?? getStore,
 		getFinalizedHeight: () => params.finalizedHeight ?? 0,
 		header,
@@ -209,26 +173,7 @@ export const createTransactionContext = (params: {
 	const stateStore =
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	const eventQueue = params.eventQueue ?? new EventQueue(params.header ? params.header.height : 0);
-	const header =
-		params.header ??
-		new BlockHeader({
-			height: 0,
-			generatorAddress: utils.getRandomBytes(20),
-			previousBlockID: Buffer.alloc(0),
-			timestamp: Math.floor(Date.now() / 1000),
-			version: 0,
-			transactionRoot: utils.hash(Buffer.alloc(0)),
-			stateRoot: utils.hash(Buffer.alloc(0)),
-			maxHeightGenerated: 0,
-			maxHeightPrevoted: 0,
-			assetRoot: utils.hash(Buffer.alloc(0)),
-			aggregateCommit: {
-				height: 0,
-				aggregationBits: Buffer.alloc(0),
-				certificateSignature: Buffer.alloc(0),
-			},
-			validatorsHash: utils.hash(Buffer.alloc(0)),
-		});
+	const header = params.header ?? createTestHeader();
 	const ctx = new TransactionContext({
 		stateStore,
 		logger,

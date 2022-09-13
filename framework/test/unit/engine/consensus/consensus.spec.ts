@@ -981,7 +981,7 @@ describe('consensus', () => {
 							index: 0,
 							module: 'token',
 							topics: [Buffer.from([0])],
-							name: 'Token Name',
+							name: 'Token Event Name',
 							height: 12,
 						}),
 					]),

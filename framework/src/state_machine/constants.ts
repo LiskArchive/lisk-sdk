@@ -19,3 +19,4 @@ export const EVENT_INDEX_BEFORE_TRANSACTIONS = Buffer.from([2]);
 export const EVENT_INDEX_AFTER_TRANSACTIONS = Buffer.from([3]);
 
 export const EVENT_TRANSACTION_NAME = 'transaction';
+export const EVENT_REWARD_MINTED_DATA_NAME = 'Reward Minted Data';

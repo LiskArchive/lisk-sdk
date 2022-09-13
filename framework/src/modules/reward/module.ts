@@ -27,6 +27,7 @@ import {
 	getDefaultRewardAtHeightResponseSchema,
 	rewardMintedDataSchema,
 } from './schemas';
+import { EVENT_REWARD_MINTED_DATA_NAME } from '../../state_machine/constants';
 
 export class RewardModule extends BaseModule {
 	public method = new RewardMethod(this.stores, this.events);
@@ -110,8 +111,11 @@ export class RewardModule extends BaseModule {
 		};
 
 		const data = codec.encode(rewardMintedDataSchema, rewardMintedData);
-		context.eventQueue.add(this.name, this.name, codec.encode(rewardMintedDataSchema, data), [
-			context.header.generatorAddress,
-		]);
+		context.eventQueue.add(
+			this.name,
+			EVENT_REWARD_MINTED_DATA_NAME,
+			codec.encode(rewardMintedDataSchema, data),
+			[context.header.generatorAddress],
+		);
 	}
 }

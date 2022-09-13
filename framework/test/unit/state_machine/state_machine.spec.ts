@@ -215,21 +215,21 @@ describe('state_machine', () => {
 			const events = [
 				{
 					module: 'customModule0',
-					name: 'customModule0 Name',
+					name: 'customModule0 Event Name',
 					height: 12,
 					data: utils.getRandomBytes(20),
 					topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],
 				},
 				{
 					module: 'auth',
-					name: 'Auth Name',
+					name: 'Auth Event Name',
 					height: 12,
 					data: utils.getRandomBytes(20),
 					topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],
 				},
 				{
 					module: 'customModule0',
-					name: 'customModule0 Name',
+					name: 'customModule0 Event Name',
 					height: 12,
 					data: utils.getRandomBytes(20),
 					topics: [utils.getRandomBytes(32)],

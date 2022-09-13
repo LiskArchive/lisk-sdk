@@ -55,7 +55,10 @@ export class GenerationContext {
 		return {
 			logger: this._logger,
 			getMethodContext: () =>
-				createMethodContext({ stateStore: this._stateStore, eventQueue: new EventQueue(this._header.height) }),
+				createMethodContext({
+					stateStore: this._stateStore,
+					eventQueue: new EventQueue(this._header.height),
+				}),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
 			getOffchainStore: (moduleID: Buffer, subStorePrefix: Buffer) =>

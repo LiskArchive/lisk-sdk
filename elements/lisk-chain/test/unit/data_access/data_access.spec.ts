@@ -372,7 +372,7 @@ describe('data_access', () => {
 					index: 0,
 					module: 'token',
 					topics: [utils.getRandomBytes(32)],
-					name: 'Token Name',
+					name: 'Token Event Name',
 					height: 10,
 				}),
 				new Event({
@@ -380,7 +380,7 @@ describe('data_access', () => {
 					index: 1,
 					module: 'auth',
 					topics: [utils.getRandomBytes(32)],
-					name: 'Auth Name',
+					name: 'Auth Event Name',
 					height: 12,
 				}),
 			];

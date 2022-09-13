@@ -21,28 +21,28 @@ describe('EventQueue', () => {
 	const events = [
 		{
 			module: 'auth',
-			name: 'Auth Name',
+			name: 'Auth Event Name',
 			height: 12,
 			data: utils.getRandomBytes(20),
 			topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],
 		},
 		{
 			module: 'dpos',
-			name: 'DPOS Name',
+			name: 'DPOS Event Name',
 			height: 12,
 			data: utils.getRandomBytes(20),
 			topics: [utils.getRandomBytes(32), utils.getRandomBytes(20)],
 		},
 		{
 			module: 'token',
-			name: 'Token Name',
+			name: 'Token Event Name',
 			height: 12,
 			data: utils.getRandomBytes(20),
 			topics: [utils.getRandomBytes(32)],
 		},
 		{
 			module: 'random',
-			name: 'Random Name',
+			name: 'Random Event Name',
 			height: 12,
 			data: utils.getRandomBytes(20),
 			topics: [
@@ -61,15 +61,23 @@ describe('EventQueue', () => {
 
 	it('should throw error if data size exceeds maximum allowed', () => {
 		expect(() =>
-			eventQueue.add('token', 'Token Name', utils.getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES + 1), [
-				utils.getRandomBytes(32),
-			]),
+			eventQueue.add(
+				'token',
+				'Token Event Name',
+				utils.getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES + 1),
+				[utils.getRandomBytes(32)],
+			),
 		).toThrow('Max size of event data is');
 	});
 
 	it('should throw error if topics is empty', () => {
 		expect(() =>
-			eventQueue.add('token', 'Token Name', utils.getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES), []),
+			eventQueue.add(
+				'token',
+				'Token Event Name',
+				utils.getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES),
+				[],
+			),
 		).toThrow('Topics must have at least one element');
 	});
 
@@ -77,7 +85,7 @@ describe('EventQueue', () => {
 		expect(() =>
 			eventQueue.add(
 				'token',
-				'Token Name',
+				'Token Event Name',
 				utils.getRandomBytes(EVENT_MAX_EVENT_SIZE_BYTES),
 				new Array(5).fill(0).map(() => utils.getRandomBytes(32)),
 			),
@@ -114,7 +122,9 @@ describe('EventQueue', () => {
 		expect(eventQueue.getEvents()).toHaveLength(events.length);
 
 		const snapshotID = eventQueue.createSnapshot();
-		eventQueue.add('auth', 'Auth Name', utils.getRandomBytes(100), [utils.getRandomBytes(32)]);
+		eventQueue.add('auth', 'Auth Event Name', utils.getRandomBytes(100), [
+			utils.getRandomBytes(32),
+		]);
 		eventQueue.restoreSnapshot(snapshotID);
 
 		expect(eventQueue.getEvents()).toHaveLength(events.length);
@@ -134,21 +144,21 @@ describe('EventQueue', () => {
 		const snapshotID = eventQueue.createSnapshot();
 		eventQueue.add(
 			'auth',
-			'Auth Name',
+			'Auth Event Name',
 			utils.getRandomBytes(100),
 			[utils.getRandomBytes(32)],
 			false,
 		);
 		eventQueue.add(
 			'auth',
-			'Auth Name',
+			'Auth Event Name',
 			utils.getRandomBytes(100),
 			[utils.getRandomBytes(32)],
 			true,
 		);
 		eventQueue.add(
 			'auth',
-			'Auth Name',
+			'Auth Event Name',
 			utils.getRandomBytes(100),
 			[utils.getRandomBytes(32)],
 			false,

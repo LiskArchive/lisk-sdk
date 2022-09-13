@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 import {
-	MAX_EVENT_MODULE_LENGTH,
+	MAX_MODULE_NAME_LENGTH,
 	MAX_EVENT_NAME_LENGTH,
-	MIN_EVENT_MODULE_LENGTH,
+	MIN_MODULE_NAME_LENGTH,
 	MIN_EVENT_NAME_LENGTH,
 } from './constants';
 
@@ -189,8 +189,8 @@ export const eventSchema = {
 	properties: {
 		module: {
 			dataType: 'string',
-			minLength: MIN_EVENT_MODULE_LENGTH,
-			maxLength: MAX_EVENT_MODULE_LENGTH,
+			minLength: MIN_MODULE_NAME_LENGTH,
+			maxLength: MAX_MODULE_NAME_LENGTH,
 			fieldNumber: 1,
 		},
 		name: {

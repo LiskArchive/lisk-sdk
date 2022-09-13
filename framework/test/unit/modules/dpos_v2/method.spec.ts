@@ -75,7 +75,9 @@ describe('DposModuleApi', () => {
 				await nameSubStore.set(createStoreGetter(stateStore), Buffer.from(delegateData.name), {
 					delegateAddress: Buffer.alloc(0),
 				});
-				await expect(dposMethod.isNameAvailable(methodContext, delegateData.name)).resolves.toBeFalse();
+				await expect(
+					dposMethod.isNameAvailable(methodContext, delegateData.name),
+				).resolves.toBeFalse();
 			});
 		});
 

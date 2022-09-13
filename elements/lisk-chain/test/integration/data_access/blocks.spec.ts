@@ -89,7 +89,7 @@ describe('dataAccess.blocks', () => {
 				index: 0,
 				module: 'token',
 				topics: [utils.getRandomBytes(32)],
-				name: 'Token Name',
+				name: 'Token Event Name',
 				height: 12,
 			}),
 			new Event({
@@ -97,7 +97,7 @@ describe('dataAccess.blocks', () => {
 				index: 1,
 				module: 'auth',
 				topics: [utils.getRandomBytes(32)],
-				name: 'Auth Name',
+				name: 'Auth Event Name',
 				height: 13,
 			}),
 		];
@@ -376,7 +376,7 @@ describe('dataAccess.blocks', () => {
 				index: 0,
 				module: 'token',
 				topics: [utils.getRandomBytes(32)],
-				name: 'Token Name',
+				name: 'Token Event Name',
 				height: 12,
 			}),
 			new Event({
@@ -384,7 +384,7 @@ describe('dataAccess.blocks', () => {
 				index: 1,
 				module: 'auth',
 				topics: [utils.getRandomBytes(32)],
-				name: 'Token Name',
+				name: 'Token Event Name',
 				height: 13,
 			}),
 		];
