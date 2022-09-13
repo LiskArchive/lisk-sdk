@@ -27,7 +27,7 @@ export const createContext = (
 	getImmutableMethodContext: () => createImmutableMethodContext(stateStore),
 	getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 	logger: fakeLogger,
-	networkIdentifier: utils.getRandomBytes(32),
+	chainID: utils.getRandomBytes(32),
 	params,
 	getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) =>
 		stateStore.getStore(moduleID, storePrefix),
@@ -35,6 +35,6 @@ export const createContext = (
 
 export const createRequestContext = (params: Record<string, unknown>): RequestContext => ({
 	logger: fakeLogger,
-	networkIdentifier: utils.getRandomBytes(32),
+	chainID: utils.getRandomBytes(32),
 	params,
 });

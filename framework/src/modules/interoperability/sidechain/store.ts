@@ -70,7 +70,7 @@ export class SidechainInteroperabilityStore extends BaseInteroperabilityStore {
 			getMethodContext: sendContext.getMethodContext,
 			getStore: sendContext.getStore,
 			logger: sendContext.logger,
-			networkIdentifier: sendContext.networkIdentifier,
+			chainID: sendContext.chainID,
 		});
 
 		for (const mod of this.interoperableModuleMethods.values()) {

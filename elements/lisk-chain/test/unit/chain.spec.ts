@@ -18,7 +18,7 @@ import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import { Chain } from '../../src/chain';
 import { CurrentState, StateStore } from '../../src/state_store';
-import { createValidDefaultBlock, defaultNetworkIdentifier } from '../utils/block';
+import { createValidDefaultBlock, defaultChainID } from '../utils/block';
 import { getTransaction } from '../utils/transaction';
 import { stateDiffSchema } from '../../src/schema';
 import { concatDBKeys, uint32BE } from '../../src/utils';
@@ -77,7 +77,7 @@ describe('chain', () => {
 		chainInstance.init({
 			db,
 			genesisBlock,
-			networkIdentifier: defaultNetworkIdentifier,
+			chainID: defaultChainID,
 		});
 		chainInstance['_lastBlock'] = genesisBlock;
 	});

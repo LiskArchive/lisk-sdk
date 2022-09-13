@@ -32,8 +32,7 @@ const validPluginOptions = {
 
 describe('Send PoM transaction', () => {
 	let reportMisbehaviorPlugin: ReportMisbehaviorPlugin;
-	const defaultNetworkIdentifier =
-		'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e';
+	const defaultchainID = '93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e';
 	const random32Bytes = Buffer.from(
 		'3d1b5dd1ef4ff7b22359598ebdf58966a51adcc03e02ad356632743e65898990',
 		'hex',
@@ -138,7 +137,7 @@ describe('Send PoM transaction', () => {
 			.calledWith('auth_getAuthAccount', expect.anything())
 			.mockResolvedValue({ nonce: '0' } as never)
 			.calledWith('system_getNodeInfo')
-			.mockResolvedValue({ networkIdentifier: defaultNetworkIdentifier } as never);
+			.mockResolvedValue({ chainID: defaultchainID } as never);
 	});
 
 	it('should throw error when pom transaction params schema is not found', async () => {

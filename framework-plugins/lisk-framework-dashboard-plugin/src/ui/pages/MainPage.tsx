@@ -46,7 +46,7 @@ import styles from './MainPage.module.scss';
 const nodeInfoDefaultValue: NodeInfo = {
 	version: '',
 	networkVersion: '',
-	networkIdentifier: '',
+	chainID: '',
 	syncing: false,
 	unconfirmedTransactions: 0,
 	height: 0,

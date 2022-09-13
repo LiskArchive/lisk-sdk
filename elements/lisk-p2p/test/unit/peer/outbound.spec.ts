@@ -46,7 +46,7 @@ describe('peer/outbound', () => {
 			port: 5001,
 			sharedState: {
 				nonce: 'nonce',
-				networkIdentifier: 'networkId',
+				chainID: Buffer.from('chainID', 'hex'),
 				networkVersion: '1.1',
 				options: {},
 			},
@@ -66,7 +66,7 @@ describe('peer/outbound', () => {
 			},
 			serverNodeInfo: {
 				advertiseAddress: true,
-				networkIdentifier: 'networkId',
+				chainID: Buffer.from('10000000', 'hex'),
 				networkVersion: '1.1',
 				nonce: 'nonce',
 				options: {
@@ -190,8 +190,7 @@ describe('peer/outbound', () => {
 				const clientOptions = {
 					hostname: defaultOutboundPeer.ipAddress,
 					port: defaultOutboundPeer.port,
-					query:
-						'networkVersion=1.1&networkIdentifier=networkId&nonce=nonce&advertiseAddress=true&port=5000',
+					query: 'networkVersion=1.1&chainID=10000000&nonce=nonce&advertiseAddress=true&port=5000',
 					path: DEFAULT_HTTP_PATH,
 					connectTimeout: DEFAULT_CONNECT_TIMEOUT,
 					ackTimeout: DEFAULT_ACK_TIMEOUT,

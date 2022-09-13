@@ -38,7 +38,7 @@ describe('DposModuleEndpoint', () => {
 	const address = utils.getRandomBytes(20);
 	const address1 = utils.getRandomBytes(20);
 	const address2 = utils.getRandomBytes(20);
-	const networkIdentifier = Buffer.alloc(0);
+	const chainID = Buffer.alloc(0);
 	const voterData = {
 		sentVotes: [
 			{
@@ -91,7 +91,7 @@ describe('DposModuleEndpoint', () => {
 					params: {
 						address: cryptoAddress.getLisk32AddressFromAddress(address),
 					},
-					networkIdentifier,
+					chainID,
 					getOffchainStore: jest.fn(),
 				});
 
@@ -107,7 +107,7 @@ describe('DposModuleEndpoint', () => {
 					params: {
 						address: cryptoAddress.getLisk32AddressFromAddress(address),
 					},
-					networkIdentifier,
+					chainID,
 					getOffchainStore: jest.fn(),
 				});
 
@@ -130,7 +130,7 @@ describe('DposModuleEndpoint', () => {
 					params: {
 						address: cryptoAddress.getLisk32AddressFromAddress(address),
 					},
-					networkIdentifier,
+					chainID,
 					getOffchainStore: jest.fn(),
 				});
 
@@ -153,7 +153,7 @@ describe('DposModuleEndpoint', () => {
 					params: {
 						address: cryptoAddress.getLisk32AddressFromAddress(address),
 					},
-					networkIdentifier,
+					chainID,
 					getOffchainStore: jest.fn(),
 				});
 
@@ -183,7 +183,7 @@ describe('DposModuleEndpoint', () => {
 					getImmutableMethodContext: jest.fn(),
 					logger,
 					params: {},
-					networkIdentifier,
+					chainID,
 					getOffchainStore: jest.fn(),
 				});
 
@@ -199,7 +199,7 @@ describe('DposModuleEndpoint', () => {
 					getImmutableMethodContext: jest.fn(),
 					logger,
 					params: {},
-					networkIdentifier,
+					chainID,
 					getOffchainStore: jest.fn(),
 				});
 

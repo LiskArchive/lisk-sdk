@@ -102,7 +102,7 @@ export interface GenesisConfig {
 export interface NodeInfo {
 	readonly version: string;
 	readonly networkVersion: string;
-	readonly networkIdentifier: string;
+	readonly chainID: string;
 	readonly lastBlockID: string;
 	readonly height: number;
 	readonly genesisHeight: number;
@@ -170,7 +170,7 @@ export interface NetworkStats {
 export interface PeerInfo {
 	readonly ipAddress: string;
 	readonly port: number;
-	readonly networkIdentifier?: string;
+	readonly chainID?: Buffer;
 	readonly networkVersion?: string;
 	readonly nonce?: string;
 	readonly options?: { [key: string]: unknown };

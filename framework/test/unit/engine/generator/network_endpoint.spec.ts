@@ -68,7 +68,7 @@ describe('generator network endpoint', () => {
 				getTransactionsByIDs: jest.fn().mockResolvedValue([]),
 			},
 			constants: {
-				networkIdentifier: Buffer.from('networkIdentifier'),
+				chainID: Buffer.from('chainID'),
 			},
 		} as never;
 		pool = {

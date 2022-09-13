@@ -18,7 +18,6 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
 import { Block, Chain, DataAccess, BlockHeader, Transaction, StateStore } from '@liskhq/lisk-chain';
-import { utils } from '@liskhq/lisk-cryptography';
 import { Database, StateDB } from '@liskhq/lisk-db';
 import { objects } from '@liskhq/lisk-utils';
 import { codec } from '@liskhq/lisk-codec';
@@ -202,12 +201,9 @@ export const getBlockProcessingEnv = async (
 	const engine = new Engine(abiHandler, appConfig);
 	await engine['_init']();
 
-	const networkIdentifier = utils.getNetworkIdentifier(
-		genesisBlock.header.id,
-		appConfig.genesis.communityIdentifier,
-	);
+	const chainID = Buffer.from('10000000', 'hex');
 	await abiHandler.ready({
-		networkIdentifier,
+		chainID,
 		lastBlockHeight: engine['_chain'].lastBlock.header.height,
 	});
 
@@ -247,7 +243,7 @@ export const getBlockProcessingEnv = async (
 			if (handler) {
 				const resp = (await handler({
 					logger: loggerMock,
-					networkIdentifier: engine['_chain'].networkIdentifier,
+					chainID: engine['_chain'].chainID,
 					params: input,
 				})) as T;
 				return resp;
@@ -269,13 +265,13 @@ export const getBlockProcessingEnv = async (
 					stateStore.getStore(moduleID, storePrefix),
 				getImmutableMethodContext: () => createImmutableMethodContext(stateStore),
 				logger: engine['_logger'],
-				networkIdentifier: engine['_chain'].networkIdentifier,
+				chainID: engine['_chain'].chainID,
 				params: input,
 			});
 
 			return result as T;
 		},
-		getNetworkId: () => networkIdentifier,
+		getNetworkId: () => chainID,
 		getDataAccess: () => engine['_chain'].dataAccess,
 		cleanup: (_val): void => {
 			engine['_closeDB']();

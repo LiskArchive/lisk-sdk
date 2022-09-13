@@ -166,7 +166,7 @@ describe('CrossChain Forward command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
@@ -205,7 +205,7 @@ describe('CrossChain Forward command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
@@ -244,7 +244,7 @@ describe('CrossChain Forward command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
@@ -283,7 +283,7 @@ describe('CrossChain Forward command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
@@ -322,7 +322,7 @@ describe('CrossChain Forward command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
@@ -363,7 +363,7 @@ describe('CrossChain Forward command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
@@ -399,7 +399,7 @@ describe('CrossChain Forward command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			await expect(
@@ -434,7 +434,7 @@ describe('CrossChain Forward command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect(interopMethod.error).toHaveBeenCalledWith(
@@ -475,7 +475,7 @@ describe('CrossChain Forward command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect(interopMethod.error).toHaveBeenCalledWith(
@@ -517,7 +517,7 @@ describe('CrossChain Forward command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			await expect(
@@ -552,7 +552,7 @@ describe('CrossChain Forward command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			expect(command['_interopMethod'].send).toHaveBeenCalledWith(
@@ -595,7 +595,7 @@ describe('CrossChain Forward command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			await expect(
@@ -631,7 +631,7 @@ describe('CrossChain Forward command', () => {
 					ccmSize: BigInt(30),
 					getStore: (moduleID: Buffer, prefix: Buffer) => stateStore.getStore(moduleID, prefix),
 					logger: fakeLogger,
-					networkIdentifier: utils.getRandomBytes(32),
+					chainID: utils.getRandomBytes(32),
 				}),
 			).resolves.toBeUndefined();
 			await expect(

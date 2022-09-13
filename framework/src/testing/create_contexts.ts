@@ -128,7 +128,7 @@ export const createBlockContext = (params: {
 		transactions: params.transactions ?? [],
 		header,
 		assets: params.assets ?? new BlockAssets(),
-		networkIdentifier: utils.getRandomBytes(32),
+		chainID: utils.getRandomBytes(32),
 		currentValidators: params.validators ?? [],
 		impliesMaxPrevote: true,
 		maxHeightCertified: 0,
@@ -147,7 +147,7 @@ export const createBlockGenerateContext = (params: {
 	getStore?: (moduleID: Buffer, storePrefix: Buffer) => ImmutableSubStore;
 	header: BlockHeader;
 	finalizedHeight?: number;
-	networkIdentifier?: Buffer;
+	chainID?: Buffer;
 }): InsertAssetContext => {
 	const db = new InMemoryDatabase();
 	const generatorStore = new StateStore(db);
@@ -181,7 +181,7 @@ export const createBlockGenerateContext = (params: {
 		assets: params.assets ?? new BlockAssets([]),
 		getOffchainStore: params.getOffchainStore ?? getOffchainStore,
 		logger: params.logger ?? loggerMock,
-		networkIdentifier: params.networkIdentifier ?? utils.getRandomBytes(32),
+		chainID: params.chainID ?? utils.getRandomBytes(32),
 		getMethodContext:
 			params.getMethodContext ?? (() => ({ getStore, eventQueue: new EventQueue() })),
 		getStore: params.getStore ?? getStore,
@@ -198,7 +198,7 @@ export const createTransactionContext = (params: {
 	logger?: Logger;
 	header?: BlockHeader;
 	assets?: BlockAssets;
-	networkIdentifier?: Buffer;
+	chainID?: Buffer;
 	currentValidators?: Validator[];
 	impliesMaxPrevote?: boolean;
 	maxHeightCertified?: number;
@@ -235,7 +235,7 @@ export const createTransactionContext = (params: {
 		eventQueue,
 		header,
 		assets: params.assets ?? new BlockAssets(),
-		networkIdentifier: params.networkIdentifier ?? utils.getRandomBytes(32),
+		chainID: params.chainID ?? utils.getRandomBytes(32),
 		transaction: params.transaction,
 		currentValidators: params.currentValidators ?? [],
 		impliesMaxPrevote: params.impliesMaxPrevote ?? true,
@@ -261,14 +261,14 @@ export const createTransientModuleEndpointContext = (params: {
 	moduleStore?: StateStore;
 	params?: Record<string, unknown>;
 	logger?: Logger;
-	networkIdentifier?: Buffer;
+	chainID?: Buffer;
 }): ModuleEndpointContext => {
 	const stateStore =
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	const moduleStore = params.moduleStore ?? new StateStore(new InMemoryDatabase());
 	const parameters = params.params ?? {};
 	const logger = params.logger ?? loggerMock;
-	const networkIdentifier = params.networkIdentifier ?? Buffer.alloc(0);
+	const chainID = params.chainID ?? Buffer.alloc(0);
 	const ctx = {
 		getStore: (moduleID: Buffer, storePrefix: Buffer) => stateStore.getStore(moduleID, storePrefix),
 		getOffchainStore: (moduleID: Buffer, storePrefix: Buffer) =>
@@ -276,7 +276,7 @@ export const createTransientModuleEndpointContext = (params: {
 		getImmutableMethodContext: () => createImmutableMethodContext(stateStore),
 		params: parameters,
 		logger,
-		networkIdentifier,
+		chainID,
 	};
 	return ctx;
 };
@@ -284,7 +284,7 @@ export const createTransientModuleEndpointContext = (params: {
 const createCCMethodContext = (params: {
 	stateStore?: PrefixedStateReadWriter;
 	logger?: Logger;
-	networkIdentifier?: Buffer;
+	chainID?: Buffer;
 	getMethodContext?: () => MethodContext;
 	eventQueue?: EventQueue;
 	ccm?: CCMsg;
@@ -293,7 +293,7 @@ const createCCMethodContext = (params: {
 	const stateStore =
 		params.stateStore ?? new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 	const logger = params.logger ?? loggerMock;
-	const networkIdentifier = params.networkIdentifier ?? Buffer.alloc(0);
+	const chainID = params.chainID ?? Buffer.alloc(0);
 	const eventQueue = params.eventQueue ?? new EventQueue();
 	const getStore = (moduleID: Buffer, storePrefix: Buffer) =>
 		stateStore.getStore(moduleID, storePrefix);
@@ -310,7 +310,7 @@ const createCCMethodContext = (params: {
 	return {
 		getStore: (moduleID: Buffer, storePrefix: Buffer) => stateStore.getStore(moduleID, storePrefix),
 		logger,
-		networkIdentifier,
+		chainID,
 		getMethodContext: params.getMethodContext ?? (() => ({ getStore, eventQueue })),
 		eventQueue,
 		ccm,
@@ -322,7 +322,7 @@ export const createExecuteCCMsgMethodContext = (params: {
 	ccm?: CCMsg;
 	feeAddress?: Buffer;
 	logger?: Logger;
-	networkIdentifier?: Buffer;
+	chainID?: Buffer;
 	getMethodContext?: () => MethodContext;
 	eventQueue?: EventQueue;
 }): CCCommandExecuteContext => {
@@ -337,7 +337,7 @@ export const createBeforeSendCCMsgMethodContext = (params: {
 	ccm?: CCMsg;
 	feeAddress: Buffer;
 	logger?: Logger;
-	networkIdentifier?: Buffer;
+	chainID?: Buffer;
 	getMethodContext?: () => MethodContext;
 	eventQueue?: EventQueue;
 }): BeforeSendCCMsgMethodContext => createCCMethodContext(params);
@@ -348,7 +348,7 @@ export const createBeforeApplyCCMsgMethodContext = (params: {
 	payFromAddress: Buffer;
 	stateStore?: PrefixedStateReadWriter;
 	logger?: Logger;
-	networkIdentifier?: Buffer;
+	chainID?: Buffer;
 	getMethodContext?: () => MethodContext;
 	eventQueue?: EventQueue;
 	feeAddress: Buffer;
@@ -364,7 +364,7 @@ export const createBeforeRecoverCCMsgMethodContext = (params: {
 	trsSender: Buffer;
 	stateStore?: PrefixedStateReadWriter;
 	logger?: Logger;
-	networkIdentifier?: Buffer;
+	chainID?: Buffer;
 	getMethodContext?: () => MethodContext;
 	feeAddress: Buffer;
 	eventQueue?: EventQueue;
@@ -382,7 +382,7 @@ export const createRecoverCCMsgMethodContext = (params: {
 	storeValue: Buffer;
 	stateStore?: PrefixedStateReadWriter;
 	logger?: Logger;
-	networkIdentifier?: Buffer;
+	chainID?: Buffer;
 	getMethodContext?: () => MethodContext;
 	feeAddress: Buffer;
 	eventQueue?: EventQueue;

@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { ed } = require('@liskhq/lisk-cryptography');
+const { ed, legacy } = require('@liskhq/lisk-cryptography');
 const { Codec } = require('@liskhq/lisk-codec');
 const BaseGenerator = require('../base_generator');
 const { baseTransactionSchema } = require('../../utils/schema');
@@ -22,10 +22,7 @@ const { baseTransactionSchema } = require('../../utils/schema');
 const codec = new Codec();
 
 const TAG_TRANSACTION = Buffer.from('LSK_TX_', 'utf8');
-const networkIdentifier = Buffer.from(
-	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
-	'hex',
-);
+const chainID = Buffer.from('10000000', 'hex');
 
 const accounts = {
 	targetAccount: {
@@ -141,9 +138,11 @@ const sortKeysAscending = publicKeys =>
 	publicKeys.sort((publicKeyA, publicKeyB) => publicKeyA.compare(publicKeyB));
 
 const createSignatureObject = (txBuffer, account) => ({
-	signature: Buffer.from(
-		ed.signData(TAG_TRANSACTION, networkIdentifier, txBuffer, account.passphrase),
-		'hex',
+	signature: ed.signData(
+		TAG_TRANSACTION,
+		chainID,
+		txBuffer,
+		legacy.getPrivateAndPublicKeyFromPassphrase(account.passphrase).privateKey,
 	),
 });
 
@@ -196,7 +195,7 @@ const generateValidMultisignatureRegistrationTransaction = () => {
 		description: 'Both mandatory and optional member group',
 		input: {
 			account: outputHexAccount(accounts.targetAccount),
-			networkIdentifier,
+			chainID,
 			members: {
 				mandatoryOne: outputHexAccount(accounts.mandatoryOne),
 				mandatoryTwo: outputHexAccount(accounts.mandatoryTwo),
@@ -264,7 +263,7 @@ const generateValidMultisignatureRegistrationSenderIsMemberTransaction = () => {
 		description: 'Sender is a member of the group',
 		input: {
 			account: outputHexAccount(accounts.targetAccount),
-			networkIdentifier,
+			chainID,
 			members: {
 				targetAccount: outputHexAccount(accounts.targetAccount),
 				mandatoryOne: outputHexAccount(accounts.mandatoryOne),
@@ -324,7 +323,7 @@ const generateValidMultisignatureRegistrationOnlyOptionalMembersTransaction = ()
 		description: 'Only optional members',
 		input: {
 			account: outputHexAccount(accounts.targetAccount),
-			networkIdentifier,
+			chainID,
 			members: {
 				optionalOne: outputHexAccount(accounts.optionalOne),
 				optionalTwo: outputHexAccount(accounts.optionalTwo),
@@ -381,7 +380,7 @@ const generateValidMultisignatureRegistrationOnlyMandatoryMembersTransaction = (
 		description: 'Only mandatory members',
 		input: {
 			account: outputHexAccount(accounts.targetAccount),
-			networkIdentifier,
+			chainID,
 			members: {
 				mandatoryOne: outputHexAccount(accounts.mandatoryOne),
 				mandatoryTwo: outputHexAccount(accounts.mandatoryTwo),
@@ -452,7 +451,7 @@ const generateFormerSecondSignatureTransactioon = () => {
 		description: 'Second signature case',
 		input: {
 			account: outputHexAccount(accounts.targetAccount),
-			networkIdentifier,
+			chainID,
 			members: {
 				mandatoryOne: outputHexAccount(accounts.targetAccount),
 				mandatoryTwo: outputHexAccount(secondSignature),

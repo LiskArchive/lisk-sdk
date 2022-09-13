@@ -91,7 +91,7 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async execute(context: CommandExecuteContext<PomTransactionParams>): Promise<void> {
-		const { networkIdentifier, getMethodContext, params, transaction, header } = context;
+		const { chainID, getMethodContext, params, transaction, header } = context;
 		const currentHeight = header.height;
 		const header1 = BlockHeader.fromBytes(params.header1);
 		const header2 = BlockHeader.fromBytes(params.header2);
@@ -145,8 +145,8 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 		/*
 			Check block signatures validity
 		*/
-		header1.validateSignature(generatorKey, networkIdentifier);
-		header2.validateSignature(generatorKey, networkIdentifier);
+		header1.validateSignature(generatorKey, chainID);
+		header2.validateSignature(generatorKey, chainID);
 
 		/*
 			Update sender account

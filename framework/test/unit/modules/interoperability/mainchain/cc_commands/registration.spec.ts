@@ -52,10 +52,10 @@ describe('MainchainCCRegistrationCommand', () => {
 	ccMethodsMap.set(1, ccMethodMod1);
 	ccMethodsMap.set(2, ccMethodMod2);
 
-	const networkIdentifier = utils.getRandomBytes(32);
+	const chainID = utils.getRandomBytes(32);
 
 	const ccmRegistrationParams = {
-		networkID: networkIdentifier,
+		networkID: chainID,
 		name: ownChainAccount.name,
 		messageFeeTokenID: {
 			chainID: utils.intToBuffer(1, 4),
@@ -97,7 +97,7 @@ describe('MainchainCCRegistrationCommand', () => {
 	};
 	const sampleExecuteContext: CCCommandExecuteContext = createExecuteCCMsgMethodContext({
 		ccm,
-		networkIdentifier,
+		chainID,
 	});
 
 	let mainchainInteroperabilityStore: MainchainInteroperabilityStore;
@@ -153,7 +153,7 @@ describe('MainchainCCRegistrationCommand', () => {
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
-				networkIdentifier,
+				chainID,
 				ccm,
 			}),
 		);
@@ -180,7 +180,7 @@ describe('MainchainCCRegistrationCommand', () => {
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
-				networkIdentifier,
+				chainID,
 				ccm: invalidCCM,
 			}),
 		);
@@ -198,7 +198,7 @@ describe('MainchainCCRegistrationCommand', () => {
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
-				networkIdentifier,
+				chainID,
 				ccm,
 			}),
 		);
@@ -216,7 +216,7 @@ describe('MainchainCCRegistrationCommand', () => {
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
-				networkIdentifier,
+				chainID,
 				ccm,
 			}),
 		);
@@ -251,7 +251,7 @@ describe('MainchainCCRegistrationCommand', () => {
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
-				networkIdentifier,
+				chainID,
 				ccm,
 			}),
 		);
@@ -286,7 +286,7 @@ describe('MainchainCCRegistrationCommand', () => {
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
-				networkIdentifier,
+				chainID,
 				ccm,
 			}),
 		);
@@ -301,14 +301,14 @@ describe('MainchainCCRegistrationCommand', () => {
 		const differentNetworkID = utils.getRandomBytes(32);
 		await ccRegistrationCommand.execute({
 			...sampleExecuteContext,
-			networkIdentifier: differentNetworkID,
+			chainID: differentNetworkID,
 		});
 
 		expect(terminateChainInternalMock).toHaveBeenCalledTimes(1);
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
-				networkIdentifier: differentNetworkID,
+				chainID: differentNetworkID,
 				ccm,
 			}),
 		);
@@ -336,7 +336,7 @@ describe('MainchainCCRegistrationCommand', () => {
 		expect(terminateChainInternalMock).toHaveBeenCalledWith(
 			ccm.sendingChainID,
 			expect.objectContaining({
-				networkIdentifier,
+				chainID,
 				ccm: invalidCCM,
 			}),
 		);

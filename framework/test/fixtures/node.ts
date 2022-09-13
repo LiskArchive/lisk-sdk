@@ -31,7 +31,7 @@ export const nodeOptions = {
 	},
 	genesis: {
 		blockTime: 10, // 10 seconds
-		communityIdentifier: 'Lisk',
+		chainID: '10000000',
 		maxTransactionsSize: 15 * 1024, // 15kb
 		bftBatchSize: 103,
 		minFeePerByte: 1000, // 10k beddows or 0.00001 LSK

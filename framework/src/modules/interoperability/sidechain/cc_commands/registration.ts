@@ -57,7 +57,7 @@ export class SidechainCCRegistrationCommand extends BaseInteroperabilityCCComman
 				!sendingChainChannelAccount.messageFeeTokenID.localID.equals(
 					decodedParams.messageFeeTokenID.localID,
 				)) ||
-			!decodedParams.networkID.equals(ctx.networkIdentifier)
+			!decodedParams.networkID.equals(ctx.chainID)
 		) {
 			const beforeSendContext = createCCMsgBeforeSendContext({
 				ccm,
@@ -65,7 +65,7 @@ export class SidechainCCRegistrationCommand extends BaseInteroperabilityCCComman
 				getMethodContext: ctx.getMethodContext,
 				getStore: ctx.getStore,
 				logger: ctx.logger,
-				networkIdentifier: ctx.networkIdentifier,
+				chainID: ctx.chainID,
 				feeAddress: ctx.feeAddress,
 			});
 			await interoperabilityStore.terminateChainInternal(ccm.sendingChainID, beforeSendContext);

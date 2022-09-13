@@ -27,7 +27,7 @@ export const defaultConfig: ApplicationConfig = {
 		block: {},
 		bftBatchSize: 103,
 		blockTime: 10,
-		communityIdentifier: 'sdk',
+		chainID: '10000000',
 		maxTransactionsSize: 15 * 1024, // Kilo Bytes
 		minFeePerByte: 1000,
 	},

@@ -35,7 +35,7 @@ export interface GenesisConfig {
 export interface NodeInfo {
 	readonly version: string;
 	readonly networkVersion: string;
-	readonly networkIdentifier: string;
+	readonly chainID: string;
 	readonly lastBlockID: string;
 	readonly height: number;
 	readonly finalizedHeight: number;

@@ -111,7 +111,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 
 	public async execute(context: CommandExecuteContext<MainchainRegistrationParams>): Promise<void> {
 		const {
-			networkIdentifier,
+			chainID,
 			currentValidators: validators,
 			certificateThreshold,
 			params: { ownChainID, ownName, mainchainValidators, aggregationBits, signature },
@@ -134,7 +134,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			aggregationBits,
 			signature,
 			TAG_CHAIN_REG_MESSAGE,
-			networkIdentifier,
+			chainID,
 			message,
 			weights,
 			certificateThreshold,
@@ -181,7 +181,7 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			getMethodContext: context.getMethodContext,
 			getStore: context.getStore,
 			logger: context.logger,
-			networkIdentifier: context.networkIdentifier,
+			chainID: context.chainID,
 		});
 
 		const chainValidatorsSubstore = this.stores.get(ChainValidatorsStore);

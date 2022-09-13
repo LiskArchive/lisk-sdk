@@ -73,7 +73,7 @@ describe('Application Environment', () => {
 			expect(appEnv.ipcClient).toBeDefined();
 			expect(appEnv.dataPath).toBeDefined();
 			expect(appEnv.lastBlock).toBeDefined();
-			expect(appEnv.networkIdentifier).toBeDefined();
+			expect(appEnv.chainID).toBeDefined();
 		});
 
 		it('should return valid environment with custom module', async () => {
@@ -84,7 +84,7 @@ describe('Application Environment', () => {
 			expect(appEnv.ipcClient).toBeDefined();
 			expect(appEnv.dataPath).toBeDefined();
 			expect(appEnv.lastBlock).toBeDefined();
-			expect(appEnv.networkIdentifier).toBeDefined();
+			expect(appEnv.chainID).toBeDefined();
 			expect(appEnv.application.getRegisteredModules().map(m => m.name)).toContainValues(['token']);
 		});
 
@@ -100,7 +100,7 @@ describe('Application Environment', () => {
 			expect(appEnv.ipcClient).toBeDefined();
 			expect(appEnv.dataPath).toBeDefined();
 			expect(appEnv.lastBlock).toBeDefined();
-			expect(appEnv.networkIdentifier).toBeDefined();
+			expect(appEnv.chainID).toBeDefined();
 		});
 
 		it('should start application and forge next block', async () => {

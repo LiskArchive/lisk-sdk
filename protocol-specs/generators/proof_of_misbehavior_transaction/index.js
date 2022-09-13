@@ -14,7 +14,7 @@
 
 'use strict';
 
-const { utils, ed } = require('@liskhq/lisk-cryptography');
+const { utils, ed, legacy } = require('@liskhq/lisk-cryptography');
 const { Codec } = require('@liskhq/lisk-codec');
 const { baseTransactionSchema } = require('../../utils/schema');
 
@@ -23,10 +23,7 @@ const BaseGenerator = require('../base_generator');
 const codec = new Codec();
 const TAG_TRANSACTION = Buffer.from('LSK_TX_', 'utf8');
 const TAG_BLOCK_HEADER = Buffer.from('LSK_BH_', 'utf8');
-const networkIdentifier = Buffer.from(
-	'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
-	'hex',
-);
+const chainID = Buffer.from('10000000', 'hex');
 
 const pomAsset = {
 	$id: '/asset/pom',
@@ -90,13 +87,8 @@ const sign = (header, privateKey) => {
 		...header,
 		asset: assetBytes,
 	});
-	return Buffer.from(
-		ed.signDataWithPrivateKey(
-			Buffer.concat([TAG_BLOCK_HEADER, networkIdentifier, blockBytes]),
-			privateKey,
-		),
-		'hex',
-	);
+	// console.log(privateKey);
+	return ed.signDataWithPrivateKey(TAG_BLOCK_HEADER, chainID, blockBytes, privateKey);
 };
 
 const getAssetBytes = asset => {
@@ -139,9 +131,11 @@ const encode = tx => {
 };
 
 const createSignatureObject = (txBuffer, account) => ({
-	signature: Buffer.from(
-		ed.signData(Buffer.concat([TAG_TRANSACTION, networkIdentifier, txBuffer]), account.passphrase),
-		'hex',
+	signature: ed.signData(
+		TAG_TRANSACTION,
+		chainID,
+		txBuffer,
+		legacy.getPrivateAndPublicKeyFromPassphrase(account.passphrase).privateKey,
 	),
 });
 
@@ -178,7 +172,7 @@ const getHexAccount = account => ({
 	balance: account.balance,
 });
 
-const forgerKeyPair = ed.getPrivateAndPublicKeyBytesFromPassphrase(accounts.forger.passphrase);
+const forgerKeyPair = legacy.getPrivateAndPublicKeyFromPassphrase(accounts.forger.passphrase);
 
 /*
 	Scenario 1:
@@ -207,7 +201,7 @@ const scenario1Header1 = {
 	},
 };
 
-scenario1Header1.signature = sign(scenario1Header1, forgerKeyPair.privateKeyBytes);
+scenario1Header1.signature = sign(scenario1Header1, forgerKeyPair.privateKey);
 
 const scenario1Header2 = {
 	version: 2,
@@ -230,7 +224,7 @@ const scenario1Header2 = {
 	},
 };
 
-scenario1Header2.signature = sign(scenario1Header2, forgerKeyPair.privateKeyBytes);
+scenario1Header2.signature = sign(scenario1Header2, forgerKeyPair.privateKey);
 
 const generateValidProofOfMisbehaviorTransactionForScenario1 = () => {
 	const unsignedTransaction = {
@@ -263,7 +257,7 @@ const generateValidProofOfMisbehaviorTransactionForScenario1 = () => {
 		input: {
 			reportingAccount: getHexAccount(accounts.reporter),
 			targetAccount: getHexAccount(accounts.forger),
-			networkIdentifier,
+			chainID,
 		},
 		output: {
 			transaction: encodedTx,
@@ -298,7 +292,7 @@ const scenario2Header1 = {
 	},
 };
 
-scenario2Header1.signature = sign(scenario2Header1, forgerKeyPair.privateKeyBytes);
+scenario2Header1.signature = sign(scenario2Header1, forgerKeyPair.privateKey);
 
 const scenario2Header2 = {
 	version: 2,
@@ -321,7 +315,7 @@ const scenario2Header2 = {
 	},
 };
 
-scenario2Header2.signature = sign(scenario2Header2, forgerKeyPair.privateKeyBytes);
+scenario2Header2.signature = sign(scenario2Header2, forgerKeyPair.privateKey);
 
 const generateValidProofOfMisbehaviorTransactionForScenario2 = () => {
 	const unsignedTransaction = {
@@ -353,7 +347,7 @@ const generateValidProofOfMisbehaviorTransactionForScenario2 = () => {
 		input: {
 			reportingAccount: getHexAccount(accounts.reporter),
 			targetAccount: getHexAccount(accounts.forger),
-			networkIdentifier,
+			chainID,
 		},
 		output: {
 			transaction: encodedTx,
@@ -388,7 +382,7 @@ const scenario3Header1 = {
 	},
 };
 
-scenario3Header1.signature = sign(scenario3Header1, forgerKeyPair.privateKeyBytes);
+scenario3Header1.signature = sign(scenario3Header1, forgerKeyPair.privateKey);
 
 const scenario3Header2 = {
 	version: 2,
@@ -411,7 +405,7 @@ const scenario3Header2 = {
 	},
 };
 
-scenario3Header2.signature = sign(scenario3Header2, forgerKeyPair.privateKeyBytes);
+scenario3Header2.signature = sign(scenario3Header2, forgerKeyPair.privateKey);
 
 const generateValidProofOfMisbehaviorTransactionForScenario3 = () => {
 	const unsignedTransaction = {
@@ -443,7 +437,7 @@ const generateValidProofOfMisbehaviorTransactionForScenario3 = () => {
 		input: {
 			reportingAccount: getHexAccount(accounts.reporter),
 			targetAccount: getHexAccount(accounts.forger),
-			networkIdentifier,
+			chainID,
 		},
 		output: {
 			transaction: encodedTx,

@@ -81,6 +81,7 @@ describe('engine', () => {
 				},
 			},
 		});
+		engine['_chainID'] = Buffer.from('100000000', 'hex');
 	});
 
 	describe('start', () => {

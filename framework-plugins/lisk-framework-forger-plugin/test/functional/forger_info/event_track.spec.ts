@@ -21,7 +21,7 @@ import { ForgerPlugin } from '../../../src';
 describe('Forger Info', () => {
 	let appEnv: testing.ApplicationEnv;
 	let accountNonce = 0;
-	let networkIdentifier: Buffer;
+	let chainID: Buffer;
 
 	beforeAll(async () => {
 		const rootPath = '~/.lisk/forger-plugin';
@@ -36,7 +36,7 @@ describe('Forger Info', () => {
 		});
 		await appEnv.startApplication();
 		// The test application generates a dynamic genesis block so we need to get the networkID like this
-		networkIdentifier = appEnv.networkIdentifier;
+		chainID = appEnv.chainID;
 	});
 
 	afterAll(async () => {
@@ -70,7 +70,7 @@ describe('Forger Info', () => {
 				recipientAddress: account.address,
 				fee: '0.3',
 				nonce: accountNonce,
-				networkIdentifier,
+				chainID,
 			});
 			accountNonce += 1;
 
@@ -101,7 +101,7 @@ describe('Forger Info', () => {
 					recipientAddress: forgingDelegateAddress.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
-					networkIdentifier,
+					chainID,
 				});
 				accountNonce += 1;
 
@@ -129,7 +129,7 @@ describe('Forger Info', () => {
 					recipientAddress: forgingDelegateAddress.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
-					networkIdentifier,
+					chainID,
 				});
 				accountNonce += 1;
 				const transaction2 = createVoteTransaction({
@@ -137,7 +137,7 @@ describe('Forger Info', () => {
 					recipientAddress: forgingDelegateAddress.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
-					networkIdentifier,
+					chainID,
 				});
 				accountNonce += 1;
 
@@ -168,7 +168,7 @@ describe('Forger Info', () => {
 					recipientAddress: forgingDelegateAddress.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
-					networkIdentifier,
+					chainID,
 				});
 				accountNonce += 1;
 				const transaction2 = createVoteTransaction({
@@ -176,7 +176,7 @@ describe('Forger Info', () => {
 					recipientAddress: forgingDelegateAddress.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
-					networkIdentifier,
+					chainID,
 				});
 				accountNonce += 1;
 
@@ -208,7 +208,7 @@ describe('Forger Info', () => {
 					recipientAddress: forgingDelegateAddress1.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
-					networkIdentifier,
+					chainID,
 				});
 				accountNonce += 1;
 				const transaction2 = createVoteTransaction({
@@ -216,7 +216,7 @@ describe('Forger Info', () => {
 					recipientAddress: forgingDelegateAddress2.toString('hex'),
 					fee: '0.3',
 					nonce: accountNonce,
-					networkIdentifier,
+					chainID,
 				});
 				accountNonce += 1;
 

@@ -25,7 +25,7 @@ export const createCCCommandExecuteContext = (
 	params: CCMethodContext & { ccm: CCMsg; ccmSize: bigint },
 ): CCCommandExecuteContext => ({
 	logger: params.logger,
-	networkIdentifier: params.networkIdentifier,
+	chainID: params.chainID,
 	eventQueue: params.eventQueue,
 	getMethodContext: params.getMethodContext,
 	getStore: params.getStore,
@@ -40,7 +40,7 @@ export const createCCMsgBeforeApplyContext = (
 	trsSender: Buffer,
 ): BeforeApplyCCMsgMethodContext => ({
 	logger: params.logger,
-	networkIdentifier: params.networkIdentifier,
+	chainID: params.chainID,
 	eventQueue: params.eventQueue,
 	getMethodContext: params.getMethodContext,
 	getStore: params.getStore,
@@ -54,7 +54,7 @@ export const createCCMsgBeforeSendContext = (
 	params: CCMethodContext,
 ): BeforeSendCCMsgMethodContext => ({
 	logger: params.logger,
-	networkIdentifier: params.networkIdentifier,
+	chainID: params.chainID,
 	eventQueue: params.eventQueue,
 	getMethodContext: params.getMethodContext,
 	getStore: params.getStore,

@@ -99,7 +99,7 @@ export class ABIHandler implements ABI {
 	private readonly _config: ApplicationConfig;
 
 	private _executionContext: ExecutionContext | undefined;
-	private _networkIdentifier?: Buffer;
+	private _chainID?: Buffer;
 
 	public constructor(args: ABIHandlerConstructor) {
 		this._config = args.config;
@@ -111,16 +111,16 @@ export class ABIHandler implements ABI {
 		this._channel = args.channel;
 	}
 
-	public get networkIdentifier(): Buffer {
-		if (!this._networkIdentifier) {
+	public get chainID(): Buffer {
+		if (!this._chainID) {
 			throw new Error('Network identifier is not set.');
 		}
-		return this._networkIdentifier;
+		return this._chainID;
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async ready(req: ReadyRequest): Promise<ReadyResponse> {
-		this._networkIdentifier = req.networkIdentifier;
+	public async ready(_req: ReadyRequest): Promise<ReadyResponse> {
+		this._chainID = Buffer.from(this._config.genesis.chainID, 'hex');
 
 		this.event.emit(EVENT_ENGINE_READY);
 		return {};
@@ -185,7 +185,7 @@ export class ABIHandler implements ABI {
 			header: this._executionContext.header,
 			logger: this._logger,
 			stateStore: this._executionContext.stateStore,
-			networkIdentifier: this.networkIdentifier,
+			chainID: this.chainID,
 			generatorStore: this._executionContext.moduleStore,
 			finalizedHeight: req.finalizedHeight,
 		});
@@ -208,7 +208,7 @@ export class ABIHandler implements ABI {
 			header: this._executionContext.header,
 			logger: this._logger,
 			stateStore: this._executionContext.stateStore,
-			networkIdentifier: this.networkIdentifier,
+			chainID: this.chainID,
 			assets: new BlockAssets(req.assets),
 			eventQueue: new EventQueue(),
 			// verifyAssets does not have access to transactions
@@ -238,7 +238,7 @@ export class ABIHandler implements ABI {
 			header: this._executionContext.header,
 			logger: this._logger,
 			stateStore: this._executionContext.stateStore,
-			networkIdentifier: this.networkIdentifier,
+			chainID: this.chainID,
 			assets: new BlockAssets(req.assets),
 			eventQueue: new EventQueue(),
 			currentValidators: req.consensus.currentValidators,
@@ -269,7 +269,7 @@ export class ABIHandler implements ABI {
 			header: this._executionContext.header,
 			logger: this._logger,
 			stateStore: this._executionContext.stateStore,
-			networkIdentifier: this.networkIdentifier,
+			chainID: this.chainID,
 			assets: new BlockAssets(req.assets),
 			eventQueue: new EventQueue(),
 			currentValidators: req.consensus.currentValidators,
@@ -302,7 +302,7 @@ export class ABIHandler implements ABI {
 			logger: this._logger,
 			transaction: new Transaction(req.transaction),
 			stateStore,
-			networkIdentifier: this.networkIdentifier,
+			chainID: this.chainID,
 			// These values are not used
 			currentValidators: [],
 			impliesMaxPrevote: true,
@@ -340,7 +340,7 @@ export class ABIHandler implements ABI {
 			logger: this._logger,
 			transaction: new Transaction(req.transaction),
 			stateStore,
-			networkIdentifier: this.networkIdentifier,
+			chainID: this.chainID,
 			assets: new BlockAssets(req.assets),
 			header,
 			currentValidators: req.consensus.currentValidators,

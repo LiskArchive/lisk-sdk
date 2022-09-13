@@ -25,7 +25,7 @@ import {
 describe('Temp block', () => {
 	let processEnv: testing.BlockProcessingEnv;
 	let chain: Chain;
-	let networkIdentifier: Buffer;
+	let chainID: Buffer;
 	const genesis = testing.fixtures.defaultFaucetAccount;
 	const databasePath = '/tmp/lisk/temp_block/test';
 	const numberOfValidators = 103;
@@ -36,12 +36,12 @@ describe('Temp block', () => {
 				databasePath,
 			},
 		});
-		networkIdentifier = processEnv.getNetworkId();
+		chainID = processEnv.getNetworkId();
 		chain = processEnv.getChain();
 	});
 
-	afterAll(async () => {
-		await processEnv.cleanup({ databasePath });
+	afterAll(() => {
+		processEnv.cleanup({ databasePath });
 	});
 
 	describe('given a blockchain with more than 3 rounds', () => {
@@ -57,7 +57,7 @@ describe('Temp block', () => {
 						nonce: BigInt(authData.nonce),
 						recipientAddress: accountWithoutBalance.address,
 						amount: BigInt('1000000000'),
-						networkIdentifier,
+						chainID,
 						privateKey: Buffer.from(genesis.privateKey, 'hex'),
 					});
 					const nextBlock = await processEnv.createBlock([tx]);
@@ -92,7 +92,7 @@ describe('Temp block', () => {
 						nonce: BigInt(authData.nonce),
 						recipientAddress: accountWithoutBalance.address,
 						amount: BigInt('1000000000'),
-						networkIdentifier,
+						chainID,
 						privateKey: Buffer.from(genesis.privateKey, 'hex'),
 					});
 					const nextBlock = await processEnv.createBlock([tx]);
@@ -118,7 +118,7 @@ describe('Temp block', () => {
 						nonce: BigInt(authData.nonce),
 						recipientAddress: accountWithoutBalance.address,
 						amount: BigInt('1000000000'),
-						networkIdentifier,
+						chainID,
 						privateKey: Buffer.from(genesis.privateKey, 'hex'),
 					});
 					// every validators update the maxHeightGenerated to avoid contradicting block

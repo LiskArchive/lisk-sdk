@@ -65,7 +65,7 @@ describe('fast_chain_switching_mechanism', () => {
 		});
 		chainModule.init({
 			db: new InMemoryDatabase(),
-			networkIdentifier: Buffer.from('network-id'),
+			chainID: Buffer.from('network-id'),
 		});
 		chainModule._lastBlock = { header: { height: 310 } };
 

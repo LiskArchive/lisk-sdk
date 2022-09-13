@@ -81,7 +81,7 @@ export interface UnknownKVPair {
 export type PeerInfo = ProtocolPeerInfo & Partial<P2PSharedState>;
 
 export interface P2PSharedState {
-	readonly networkIdentifier: string;
+	readonly chainID: Buffer;
 	readonly networkVersion: string;
 	readonly nonce: string;
 	// These values can be modified when the node is running

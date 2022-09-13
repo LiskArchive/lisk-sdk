@@ -29,7 +29,7 @@ import {
 } from './types';
 
 interface ContextParams {
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	stateStore: PrefixedStateReadWriter;
 	logger: Logger;
 	eventQueue: EventQueue;
@@ -44,7 +44,7 @@ interface ContextParams {
 
 export class TransactionContext {
 	private readonly _stateStore: PrefixedStateReadWriter;
-	private readonly _networkIdentifier: Buffer;
+	private readonly _chainID: Buffer;
 	private readonly _logger: Logger;
 	private readonly _eventQueue: EventQueue;
 	private readonly _transaction: Transaction;
@@ -60,7 +60,7 @@ export class TransactionContext {
 		this._logger = params.logger;
 		this._header = params.header;
 		this._eventQueue = params.eventQueue;
-		this._networkIdentifier = params.networkIdentifier;
+		this._chainID = params.chainID;
 		this._transaction = params.transaction;
 		this._assets = params.assets;
 		this._currentValidators = params.currentValidators;
@@ -72,7 +72,7 @@ export class TransactionContext {
 	public createTransactionVerifyContext(): TransactionVerifyContext {
 		return {
 			logger: this._logger,
-			networkIdentifier: this._networkIdentifier,
+			chainID: this._chainID,
 			getMethodContext: () => createImmutableMethodContext(this._stateStore),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
 				this._stateStore.getStore(moduleID, storePrefix),
@@ -90,7 +90,7 @@ export class TransactionContext {
 		const childQueue = this._eventQueue.getChildQueue(this._transaction.id);
 		return {
 			logger: this._logger,
-			networkIdentifier: this._networkIdentifier,
+			chainID: this._chainID,
 			eventQueue: childQueue,
 			getMethodContext: () =>
 				createMethodContext({ stateStore: this._stateStore, eventQueue: childQueue }),
@@ -109,7 +109,7 @@ export class TransactionContext {
 	public createCommandVerifyContext<T = undefined>(paramsSchema?: Schema): CommandVerifyContext<T> {
 		return {
 			logger: this._logger,
-			networkIdentifier: this._networkIdentifier,
+			chainID: this._chainID,
 			getMethodContext: () =>
 				createMethodContext({ stateStore: this._stateStore, eventQueue: this._eventQueue }),
 			getStore: (moduleID: Buffer, storePrefix: Buffer) =>
@@ -133,7 +133,7 @@ export class TransactionContext {
 		const childQueue = this._eventQueue.getChildQueue(this._transaction.id);
 		return {
 			logger: this._logger,
-			networkIdentifier: this._networkIdentifier,
+			chainID: this._chainID,
 			// TODO: Need to pass wrapper of eventQueue with possibility to create/restore snapshot https://github.com/LiskHQ/lisk-sdk/issues/7211
 			eventQueue: this.eventQueue,
 			getMethodContext: () =>

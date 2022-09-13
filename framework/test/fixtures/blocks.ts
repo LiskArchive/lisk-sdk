@@ -17,10 +17,7 @@ import { Mnemonic } from '@liskhq/lisk-passphrase';
 import { MerkleTree } from '@liskhq/lisk-tree';
 import { Block, BlockAssets, BlockHeader, BlockHeaderAttrs, Transaction } from '@liskhq/lisk-chain';
 
-export const defaultNetworkIdentifier = Buffer.from(
-	'93d00fe5be70d90e7ae247936a2e7d83b50809c79b73fa14285f02c842348b3e',
-	'hex',
-);
+export const defaultChainID = Buffer.from('1000000', 'hex');
 
 export const genesisBlock = (): Block => {
 	const header = new BlockHeader({
@@ -84,7 +81,7 @@ export const createValidDefaultBlock = async (
 		transactions?: Transaction[];
 		assets?: BlockAssets;
 	},
-	networkIdentifier: Buffer = defaultNetworkIdentifier,
+	chainID: Buffer = defaultChainID,
 ): Promise<Block> => {
 	const keypair = getKeyPair();
 	const transactions = block?.transactions ?? [];
@@ -112,7 +109,7 @@ export const createValidDefaultBlock = async (
 		...block?.header,
 	});
 
-	blockHeader.sign(networkIdentifier, keypair.privateKey);
+	blockHeader.sign(chainID, keypair.privateKey);
 
 	// Assigning the id ahead
 	// eslint-disable-next-line @typescript-eslint/no-unused-expressions

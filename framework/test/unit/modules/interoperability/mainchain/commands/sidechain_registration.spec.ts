@@ -92,7 +92,7 @@ describe('Sidechain registration command', () => {
 		params: encodedTransactionParams,
 		signatures: [publicKey],
 	});
-	const networkIdentifier = Buffer.from(
+	const chainID = Buffer.from(
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
 		'hex',
 	);
@@ -121,7 +121,7 @@ describe('Sidechain registration command', () => {
 				.createTransactionContext({
 					stateStore,
 					transaction,
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<SidechainRegistrationParams>(sidechainRegParams);
 		});
@@ -505,7 +505,7 @@ describe('Sidechain registration command', () => {
 				getMethodContext: context.getMethodContext,
 				getStore: context.getStore,
 				logger: context.logger,
-				networkIdentifier: context.networkIdentifier,
+				chainID: context.chainID,
 			} as SendInternalContext);
 		});
 

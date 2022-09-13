@@ -92,7 +92,7 @@ interface P2PEventHandlers {
 }
 
 interface NetworkInitArgs {
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	logger: Logger;
 	nodeDB: Database;
 }
@@ -104,7 +104,7 @@ export class Network {
 
 	private _logger!: Logger;
 	private _nodeDB!: Database;
-	private _networkID!: string;
+	private _chainID!: Buffer;
 	private _secret: number | undefined;
 	private _p2p!: liskP2P.P2P;
 	private _endpoints: P2PRPCEndpoints;
@@ -123,7 +123,7 @@ export class Network {
 	public async init(args: NetworkInitArgs): Promise<void> {
 		this._logger = args.logger;
 		this._nodeDB = args.nodeDB;
-		this._networkID = args.networkIdentifier.toString('hex');
+		this._chainID = args.chainID;
 		let previousPeers: ReadonlyArray<liskP2P.p2pTypes.ProtocolPeerInfo> = [];
 		try {
 			// Load peers from the database that were tried or connected the last time node was running
@@ -154,7 +154,7 @@ export class Network {
 		this._secret = secret?.readUInt32BE(0);
 
 		const initialNodeInfo = {
-			networkIdentifier: this._networkID,
+			chainID: this._chainID,
 			networkVersion: this._options.version,
 			// Nonce is required in type, but it is overwritten
 			nonce: '',
@@ -533,7 +533,7 @@ export class Network {
 
 	public applyNodeInfo(data: NodeInfoOptions): void {
 		const newNodeInfo = {
-			networkIdentifier: this._networkID,
+			chainID: this._chainID,
 			networkVersion: this._options.version,
 			advertiseAddress: this._options.advertiseAddress ?? true,
 			options: data,

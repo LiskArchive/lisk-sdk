@@ -420,7 +420,7 @@ describe('Mainchain interoperability store', () => {
 				getMethodContext: jest.fn(() => methodContext),
 				getStore: jest.fn(),
 				logger: loggerMock,
-				networkIdentifier: Buffer.alloc(0),
+				chainID: Buffer.alloc(0),
 			};
 
 			beforeCCMSendContext = createCCMsgBeforeSendContext({
@@ -428,7 +428,7 @@ describe('Mainchain interoperability store', () => {
 				eventQueue: forwardContext.eventQueue,
 				getMethodContext: forwardContext.getMethodContext,
 				logger: forwardContext.logger,
-				networkIdentifier: forwardContext.networkIdentifier,
+				chainID: forwardContext.chainID,
 				getStore: forwardContext.getStore,
 				feeAddress: EMPTY_FEE_ADDRESS,
 			});
