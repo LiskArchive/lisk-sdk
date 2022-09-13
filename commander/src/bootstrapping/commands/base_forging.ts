@@ -32,7 +32,7 @@ export abstract class BaseForgingCommand extends BaseIPCClientCommand {
 		{
 			name: 'address',
 			required: true,
-			description: 'Address of an account in a base32 format.',
+			description: 'Address of an account in a lisk32 format.',
 		},
 	];
 

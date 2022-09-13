@@ -13,7 +13,7 @@
  */
 import { NamedRegistry } from './named_registry';
 
-export abstract class BaseAPI {
+export abstract class BaseMethod {
 	// eslint-disable-next-line no-useless-constructor
 	public constructor(protected stores: NamedRegistry, protected events: NamedRegistry) {}
 }

@@ -71,7 +71,7 @@ export interface ModuleMetadata {
 		response: Schema;
 	}[];
 	events: {
-		typeID: string;
+		name: string;
 		data: Schema;
 	}[];
 	commands: {
@@ -102,7 +102,7 @@ export interface GenesisConfig {
 export interface NodeInfo {
 	readonly version: string;
 	readonly networkVersion: string;
-	readonly networkIdentifier: string;
+	readonly chainID: string;
 	readonly lastBlockID: string;
 	readonly height: number;
 	readonly genesisHeight: number;
@@ -170,7 +170,7 @@ export interface NetworkStats {
 export interface PeerInfo {
 	readonly ipAddress: string;
 	readonly port: number;
-	readonly networkIdentifier?: string;
+	readonly chainID?: Buffer;
 	readonly networkVersion?: string;
 	readonly nonce?: string;
 	readonly options?: { [key: string]: unknown };
@@ -268,7 +268,14 @@ export interface DecodedBlockJSON {
 
 export interface Event {
 	readonly module: string;
-	readonly typeID: Buffer;
+	/**
+	 * several events can be emitted from each module, e.g.
+	 * token module transfer event
+	 * nft module transfer event
+	 *
+	 * name of event
+	 */
+	readonly name: string;
 	readonly topics: Buffer[];
 	readonly index: number;
 	readonly data: Buffer;

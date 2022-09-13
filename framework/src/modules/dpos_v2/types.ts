@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { APIContext, ImmutableAPIContext } from '../../state_machine/types';
+import { MethodContext, ImmutableMethodContext } from '../../state_machine/types';
 import { JSONObject } from '../../types';
 
 export type TokenIDDPoS = Buffer;
@@ -35,65 +35,68 @@ export interface ModuleConfig {
 
 export type ModuleConfigJSON = JSONObject<ModuleConfig>;
 
-export interface RandomAPI {
+export interface RandomMethod {
 	getRandomBytes(
-		apiContext: ImmutableAPIContext,
+		methodContext: ImmutableMethodContext,
 		height: number,
 		numberOfSeeds: number,
 	): Promise<Buffer>;
 }
 
-export interface ValidatorsAPI {
+export interface ValidatorsMethod {
 	setValidatorGeneratorKey(
-		apiContext: APIContext,
+		methodContext: MethodContext,
 		validatorAddress: Buffer,
 		generatorKey: Buffer,
 	): Promise<boolean>;
 	registerValidatorKeys(
-		apiContext: APIContext,
+		methodContext: MethodContext,
 		validatorAddress: Buffer,
 		blsKey: Buffer,
 		generatorKey: Buffer,
 		proofOfPossession: Buffer,
 	): Promise<boolean>;
-	getValidatorAccount(apiContext: ImmutableAPIContext, address: Buffer): Promise<ValidatorKeys>;
+	getValidatorAccount(
+		methodContext: ImmutableMethodContext,
+		address: Buffer,
+	): Promise<ValidatorKeys>;
 	getGeneratorsBetweenTimestamps(
-		apiContext: ImmutableAPIContext,
+		methodContext: ImmutableMethodContext,
 		startTimestamp: number,
 		endTimestamp: number,
 		validators: { address: Buffer }[],
 	): Promise<Record<string, number>>;
 }
 
-export interface TokenAPI {
+export interface TokenMethod {
 	lock(
-		apiContext: APIContext,
+		methodContext: MethodContext,
 		address: Buffer,
 		module: string,
 		tokenID: TokenIDDPoS,
 		amount: bigint,
 	): Promise<void>;
 	getAvailableBalance(
-		apiContext: ImmutableAPIContext,
+		methodContext: ImmutableMethodContext,
 		address: Buffer,
 		tokenID: TokenIDDPoS,
 	): Promise<bigint>;
 	transfer(
-		apiContext: APIContext,
+		methodContext: MethodContext,
 		senderAddress: Buffer,
 		recipientAddress: Buffer,
 		tokenID: TokenIDDPoS,
 		amount: bigint,
 	): Promise<void>;
 	unlock(
-		apiContext: APIContext,
+		methodContext: MethodContext,
 		address: Buffer,
 		module: string,
 		tokenID: TokenIDDPoS,
 		amount: bigint,
 	): Promise<void>;
 	getLockedAmount(
-		apiContext: ImmutableAPIContext,
+		methodContext: ImmutableMethodContext,
 		address: Buffer,
 		tokenID: TokenIDDPoS,
 		module: string,
@@ -168,7 +171,7 @@ export interface VoteTransactionParams {
 }
 
 export interface VoteCommandDependencies {
-	tokenAPI: TokenAPI;
+	tokenMethod: TokenMethod;
 }
 
 export interface BlockHeaderAssetForDPOS {
@@ -183,8 +186,8 @@ export interface PomTransactionParams {
 }
 
 export interface PomCommandDependencies {
-	tokenAPI: TokenAPI;
-	validatorsAPI: ValidatorsAPI;
+	tokenMethod: TokenMethod;
+	validatorsMethod: ValidatorsMethod;
 }
 
 export interface ValidatorKeys {
@@ -193,7 +196,7 @@ export interface ValidatorKeys {
 }
 
 export interface UnlockCommandDependencies {
-	tokenAPI: TokenAPI;
+	tokenMethod: TokenMethod;
 }
 
 export interface SnapshotStoreData {

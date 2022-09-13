@@ -2,10 +2,7 @@ export const defaultConfig = {
 	system: {
 		dataPath: '~/.lisk/beta-sdk-app',
 		keepEventsForHeights: 300,
-	},
-	logger: {
-		fileLogLevel: 'info',
-		consoleLogLevel: 'info',
+		logLevel: 'info',
 	},
 	rpc: {
 		modes: ['ipc'],
@@ -42,4 +39,4 @@ export const defaultConfig = {
 	plugins: {},
 };
 
-export const DEFAULT_KEY_DERIVATION_PATH = "m/25519'/134'/0'/0'";
+export const DEFAULT_KEY_DERIVATION_PATH = "m/44'/134'/0'";

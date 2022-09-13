@@ -21,7 +21,7 @@ import { RandomModule } from '../../../../src/modules/random';
 import { UsedHashOnionStoreObject } from '../../../../src/modules/random/types';
 import { EMPTY_KEY, STORE_PREFIX_USED_HASH_ONION } from '../../../../src/modules/random/constants';
 import { blockHeaderAssetRandomModule } from '../../../../src/modules/random/schemas';
-import { defaultNetworkIdentifier } from '../../../fixtures';
+import { defaultChainID } from '../../../fixtures';
 import { GenesisConfig, testing } from '../../../../src';
 import {
 	createBlockContext,
@@ -59,7 +59,7 @@ describe('RandomModule', () => {
 			await hashOnionStore.set(
 				// eslint-disable-next-line no-loop-func
 				{ getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2) },
-				Buffer.from(delegate.address, 'hex'),
+				address.getAddressFromLisk32Address(delegate.address),
 				{
 					count: delegate.hashOnion.count,
 					distance: delegate.hashOnion.distance,
@@ -136,12 +136,15 @@ describe('RandomModule', () => {
 			const blockGenerateContext: InsertAssetContext = testing.createBlockGenerateContext({
 				assets: assetStub,
 				logger: testing.mocks.loggerMock,
-				networkIdentifier: defaultNetworkIdentifier,
+				chainID: defaultChainID,
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
-				getAPIContext: jest.fn() as any,
+				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
 				// getOffchainStore: jest.fn() as any,
-				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
+				header: {
+					height: 15,
+					generatorAddress: address.getAddressFromLisk32Address(targetDelegate.address),
+				} as any,
 			});
 
 			await randomModule.offchainStores
@@ -182,11 +185,14 @@ describe('RandomModule', () => {
 			const blockGenerateContext: InsertAssetContext = testing.createBlockGenerateContext({
 				assets: assetStub,
 				logger: testing.mocks.loggerMock,
-				networkIdentifier: defaultNetworkIdentifier,
+				chainID: defaultChainID,
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
-				getAPIContext: jest.fn() as any,
+				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
-				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
+				header: {
+					height: 15,
+					generatorAddress: address.getAddressFromLisk32Address(targetDelegate.address),
+				} as any,
 			});
 
 			await randomModule.offchainStores
@@ -246,11 +252,14 @@ describe('RandomModule', () => {
 			const blockGenerateContext: InsertAssetContext = testing.createBlockGenerateContext({
 				assets: assetStub,
 				logger: testing.mocks.loggerMock,
-				networkIdentifier: defaultNetworkIdentifier,
+				chainID: defaultChainID,
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
-				getAPIContext: jest.fn() as any,
+				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
-				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
+				header: {
+					height: 15,
+					generatorAddress: address.getAddressFromLisk32Address(targetDelegate.address),
+				} as any,
 			});
 			await randomModule.offchainStores
 				.get(UsedHashOnionsStore)
@@ -291,10 +300,13 @@ describe('RandomModule', () => {
 				assets: assetStub,
 				logger: testing.mocks.loggerMock,
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
-				networkIdentifier: defaultNetworkIdentifier,
-				getAPIContext: jest.fn() as any,
+				chainID: defaultChainID,
+				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
-				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
+				header: {
+					height: 15,
+					generatorAddress: address.getAddressFromLisk32Address(targetDelegate.address),
+				} as any,
 				finalizedHeight,
 			});
 
@@ -339,7 +351,7 @@ describe('RandomModule', () => {
 			// Arrange
 			const forgingDelegates = convertDelegateFixture(genesisDelegates.delegates);
 			const maxCount = (forgingDelegates as any).find(
-				(d: { address: Buffer }) => d.address.toString('hex') === targetDelegate.address,
+				(d: { address: string }) => d.address === targetDelegate.address,
 			).hashOnion.count;
 
 			const usedHashOnionInput: UsedHashOnionStoreObject = {
@@ -375,10 +387,13 @@ describe('RandomModule', () => {
 				assets: assetStub,
 				logger: loggerMock as any,
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
-				networkIdentifier: defaultNetworkIdentifier,
-				getAPIContext: jest.fn() as any,
+				chainID: defaultChainID,
+				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
-				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
+				header: {
+					height: 15,
+					generatorAddress: address.getAddressFromLisk32Address(targetDelegate.address),
+				} as any,
 			});
 			await randomModule.offchainStores
 				.get(UsedHashOnionsStore)
@@ -414,10 +429,13 @@ describe('RandomModule', () => {
 				assets: assetStub,
 				logger: loggerMock as any,
 				getOffchainStore: (p1, p2) => offchainStore.getStore(p1, p2),
-				networkIdentifier: defaultNetworkIdentifier,
-				getAPIContext: jest.fn() as any,
+				chainID: defaultChainID,
+				getMethodContext: jest.fn() as any,
 				getStore: jest.fn() as any,
-				header: { height: 15, generatorAddress: Buffer.from(targetDelegate.address, 'hex') } as any,
+				header: {
+					height: 15,
+					generatorAddress: address.getAddressFromLisk32Address(targetDelegate.address),
+				} as any,
 			});
 
 			// Act

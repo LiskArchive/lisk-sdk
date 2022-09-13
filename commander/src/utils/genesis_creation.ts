@@ -14,6 +14,7 @@
  *
  */
 import { Schema } from '@liskhq/lisk-codec';
+import { address } from '@liskhq/lisk-cryptography';
 import {
 	dposGenesisStoreSchema,
 	DPoSModule,
@@ -83,7 +84,9 @@ export const generateGenesisBlockDefaultDPoSAssets = (input: GenesisBlockDefault
 	const nextLocalID = Buffer.from([0, 0, 0, 1]).toString('hex');
 	const tokenID = `${input.chainID}${localID}`;
 	input.keysList.sort((a, b) =>
-		Buffer.from(a.address, 'hex').compare(Buffer.from(b.address, 'hex')),
+		address
+			.getAddressFromLisk32Address(a.address)
+			.compare(address.getAddressFromLisk32Address(b.address)),
 	);
 	const genesisAssets = [
 		{

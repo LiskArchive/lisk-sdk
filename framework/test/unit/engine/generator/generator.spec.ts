@@ -68,7 +68,7 @@ describe('generator', () => {
 		blockchainDB = new InMemoryDatabase() as never;
 		generatorDB = new InMemoryDatabase() as never;
 		chain = {
-			networkIdentifier: utils.getRandomBytes(32),
+			chainID: utils.getRandomBytes(32),
 			lastBlock: {
 				header: {
 					id: Buffer.from('6846255774763267134'),
@@ -82,7 +82,7 @@ describe('generator', () => {
 				getBlockHeaderByHeight: jest.fn(),
 			},
 			constants: {
-				networkIdentifier: Buffer.from('networkIdentifier'),
+				chainID: Buffer.from('chainID'),
 			},
 		} as never;
 		consensusEvent = new EventEmitter();
@@ -130,7 +130,7 @@ describe('generator', () => {
 		} as never;
 		bft = {
 			beforeTransactionsExecute: jest.fn(),
-			api: {
+			method: {
 				getBFTHeights: jest.fn().mockResolvedValue({
 					maxHeightPrevoted: 0,
 					maxHeightPrecommitted: 0,
@@ -166,7 +166,7 @@ describe('generator', () => {
 			beforeEach(async () => {
 				for (const d of testing.fixtures.keysList.keys) {
 					const generatorKeys = {
-						address: Buffer.from(d.address, 'hex'),
+						address: cryptoAddress.getAddressFromLisk32Address(d.address),
 						type: 'plain',
 						data: {
 							generatorKey: Buffer.from(d.plain.generatorKey, 'hex'),
@@ -200,7 +200,7 @@ describe('generator', () => {
 				jest.spyOn(generator, '_handleFinalizedHeightChanged' as any).mockReturnValue([] as never);
 				jest.spyOn(generator['_consensus'], 'getMaxRemovalHeight').mockResolvedValue(313);
 				jest
-					.spyOn(generator['_bft'].api, 'getBFTHeights')
+					.spyOn(generator['_bft'].method, 'getBFTHeights')
 					.mockResolvedValue({ maxHeightPrecommitted: 515 } as never);
 
 				await generator.init({
@@ -393,7 +393,7 @@ describe('generator', () => {
 				.mockReturnValueOnce(lastBlockSlot - 1);
 			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000));
 			(consensus.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
-				Buffer.from(testing.fixtures.keysList.keys[0].address, 'hex'),
+				cryptoAddress.getAddressFromLisk32Address(testing.fixtures.keysList.keys[0].address),
 			);
 			jest.spyOn(generator, '_generateBlock' as never);
 
@@ -408,7 +408,7 @@ describe('generator', () => {
 				.mockReturnValueOnce(lastBlockSlot - 1);
 			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000) - 5);
 			(consensus.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
-				Buffer.from(testing.fixtures.keysList.keys[0].address, 'hex'),
+				cryptoAddress.getAddressFromLisk32Address(testing.fixtures.keysList.keys[0].address),
 			);
 
 			jest.spyOn(generator, '_generateBlock' as never).mockResolvedValue(forgedBlock as never);
@@ -424,7 +424,7 @@ describe('generator', () => {
 				.mockReturnValueOnce(lastBlockSlot);
 			(consensus.getSlotTime as jest.Mock).mockReturnValue(Math.floor(Date.now() / 1000) + 5);
 			(consensus.getGeneratorAtTimestamp as jest.Mock).mockResolvedValue(
-				Buffer.from(testing.fixtures.keysList.keys[0].address, 'hex'),
+				cryptoAddress.getAddressFromLisk32Address(testing.fixtures.keysList.keys[0].address),
 			);
 
 			jest.spyOn(generator, '_generateBlock' as never).mockResolvedValue(forgedBlock as never);
@@ -455,7 +455,7 @@ describe('generator', () => {
 				.spyOn(generator['_forgingStrategy'], 'getTransactionsForBlock')
 				.mockResolvedValue({ transactions: [tx], events: [] });
 			jest
-				.spyOn(generator['_bft'].api, 'getBFTParameters')
+				.spyOn(generator['_bft'].method, 'getBFTParameters')
 				.mockResolvedValue({ validatorsHash, validators: [] } as never);
 			jest
 				.spyOn(generator['_consensus'], 'getAggregateCommit')
@@ -541,7 +541,8 @@ describe('generator', () => {
 						index: 0,
 						module: 'token',
 						topics: [Buffer.from([0])],
-						typeID: Buffer.from([0, 0, 0, 1]),
+						name: 'Transfer Name',
+						height: 12,
 					},
 				],
 			});
@@ -580,7 +581,7 @@ describe('generator', () => {
 
 		beforeEach(async () => {
 			generator['_keypairs'].set(address, keypair);
-			when(generator['_bft'].api.existBFTParameters as jest.Mock)
+			when(generator['_bft'].method.existBFTParameters as jest.Mock)
 				.calledWith(expect.anything(), 1)
 				.mockResolvedValue(true as never)
 				.calledWith(expect.anything(), 12)
@@ -591,7 +592,7 @@ describe('generator', () => {
 				.mockResolvedValue(false as never)
 				.calledWith(expect.anything(), 55)
 				.mockResolvedValue(true as never);
-			when(generator['_bft'].api.getBFTParameters as jest.Mock)
+			when(generator['_bft'].method.getBFTParameters as jest.Mock)
 				.calledWith(expect.anything(), 11)
 				.mockResolvedValue({ validators: [{ address }] })
 				.calledWith(expect.anything(), 20)

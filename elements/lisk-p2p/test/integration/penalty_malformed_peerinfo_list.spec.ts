@@ -46,7 +46,7 @@ describe('penalty sending malformed Peer List', () => {
 					port: 1000,
 					sharedState: {
 						networkVersion: '1.1',
-						networkIdentifier: '',
+						chainID: Buffer.from('', 'hex'),
 						nonce: '',
 						options: {},
 					},
@@ -89,7 +89,7 @@ describe('penalty sending malformed Peer List', () => {
 				port: 1000,
 				sharedState: {
 					networkVersion: '1.'.repeat(13000),
-					networkIdentifier: '',
+					chainID: Buffer.from('', 'hex'),
 					nonce: '',
 					options: { networkVersion: '1.'.repeat(13000) },
 				},

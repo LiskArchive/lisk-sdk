@@ -19,7 +19,7 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { MerkleTree, regularMerkleTree } from '@liskhq/lisk-tree';
 import { CommandExecuteContext, MainchainInteroperabilityModule } from '../../../../../../src';
 import { BaseCCCommand } from '../../../../../../src/modules/interoperability/base_cc_command';
-import { BaseInteroperableAPI } from '../../../../../../src/modules/interoperability/base_interoperable_api';
+import { BaseInteroperableMethod } from '../../../../../../src/modules/interoperability/base_interoperable_method';
 import {
 	CHAIN_ACTIVE,
 	COMMAND_NAME_MESSAGE_RECOVERY,
@@ -54,7 +54,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		let terminatedOutboxSubstore: TerminatedOutboxStore;
 		let messageRecoveryCommand: MainchainMessageRecoveryCommand;
 		let commandVerifyContext: CommandVerifyContext<MessageRecoveryParams>;
-		let interoperableCCAPIs: Map<string, BaseInteroperableAPI>;
+		let interoperableCCMethods: Map<string, BaseInteroperableMethod>;
 		let ccCommands: Map<string, BaseCCCommand[]>;
 		let transaction: Transaction;
 		let transactionParams: MessageRecoveryParams;
@@ -71,7 +71,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		let generatedProof: any;
 
 		beforeEach(async () => {
-			interoperableCCAPIs = new Map();
+			interoperableCCMethods = new Map();
 			ccCommands = new Map();
 			stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 
@@ -84,7 +84,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			messageRecoveryCommand = new MainchainMessageRecoveryCommand(
 				interopMod.stores,
 				interopMod.events,
-				interoperableCCAPIs,
+				interoperableCCMethods,
 				ccCommands,
 			);
 
@@ -340,7 +340,7 @@ describe('Mainchain MessageRecoveryCommand', () => {
 
 		let messageRecoveryCommand: MainchainMessageRecoveryCommand;
 		let commandExecuteContext: CommandExecuteContext<MessageRecoveryParams>;
-		let interoperableCCAPIs: Map<string, BaseInteroperableAPI>;
+		let interoperableCCMethods: Map<string, BaseInteroperableMethod>;
 		let ccCommands: Map<string, BaseCCCommand[]>;
 		let transaction: Transaction;
 		let transactionParams: MessageRecoveryParams;
@@ -350,13 +350,13 @@ describe('Mainchain MessageRecoveryCommand', () => {
 		let ccms: CCMsg[];
 
 		beforeEach(() => {
-			interoperableCCAPIs = new Map();
+			interoperableCCMethods = new Map();
 			ccCommands = new Map();
 
 			messageRecoveryCommand = new MainchainMessageRecoveryCommand(
 				interopMod.stores,
 				interopMod.events,
-				interoperableCCAPIs,
+				interoperableCCMethods,
 				ccCommands,
 			);
 
@@ -469,16 +469,16 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			}
 		});
 
-		it('should throw when beforeRecoverCCM of ccAPIs of the ccm fails', async () => {
+		it('should throw when beforeRecoverCCM of ccMethods of the ccm fails', async () => {
 			// Assign & Arrange
-			const api = ({
+			const method = ({
 				beforeRecoverCCM: jest.fn(() => {
 					throw new Error('beforeRecoverCCM Error');
 				}),
 				MODULE_NAME_INTEROPERABILITY,
-			} as unknown) as BaseInteroperableAPI;
+			} as unknown) as BaseInteroperableMethod;
 
-			interoperableCCAPIs.set(MODULE_NAME_INTEROPERABILITY, api);
+			interoperableCCMethods.set(MODULE_NAME_INTEROPERABILITY, method);
 
 			// Assert
 			await expect(messageRecoveryCommand.execute(commandExecuteContext)).rejects.toThrow(

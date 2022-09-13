@@ -33,7 +33,7 @@ export const createTransferTransaction = (input: {
 	recipientAddress: Buffer;
 	amount?: bigint;
 	nonce: bigint;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	privateKey: Buffer;
 	fee?: bigint;
 }): Transaction => {
@@ -56,14 +56,14 @@ export const createTransferTransaction = (input: {
 		signatures: [],
 	});
 	tx.signatures.push(
-		ed.signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.privateKey),
+		ed.signData(TAG_TRANSACTION, input.chainID, tx.getSigningBytes(), input.privateKey),
 	);
 	return tx;
 };
 
 export const createDelegateRegisterTransaction = (input: {
 	nonce: bigint;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	privateKey: Buffer;
 	generatorKey: Buffer;
 	blsKey: Buffer;
@@ -89,14 +89,14 @@ export const createDelegateRegisterTransaction = (input: {
 		signatures: [],
 	});
 	tx.signatures.push(
-		ed.signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.privateKey),
+		ed.signData(TAG_TRANSACTION, input.chainID, tx.getSigningBytes(), input.privateKey),
 	);
 	return tx;
 };
 
 export const createDelegateVoteTransaction = (input: {
 	nonce: bigint;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	privateKey: Buffer;
 	fee?: bigint;
 	votes: { delegateAddress: Buffer; amount: bigint }[];
@@ -116,14 +116,14 @@ export const createDelegateVoteTransaction = (input: {
 		signatures: [],
 	});
 	tx.signatures.push(
-		ed.signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.privateKey),
+		ed.signData(TAG_TRANSACTION, input.chainID, tx.getSigningBytes(), input.privateKey),
 	);
 	return tx;
 };
 
 export const createMultiSignRegisterTransaction = (input: {
 	nonce: bigint;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	fee?: bigint;
 	mandatoryKeys: Buffer[];
 	optionalKeys: Buffer[];
@@ -145,7 +145,7 @@ export const createMultiSignRegisterTransaction = (input: {
 		(prev, current) => {
 			return signMultiSignatureTransaction(
 				prev,
-				input.networkIdentifier,
+				input.chainID,
 				current,
 				params,
 				registerMultisignatureParamsSchema,
@@ -169,7 +169,7 @@ export const createMultiSignRegisterTransaction = (input: {
 
 export const createMultisignatureTransferTransaction = (input: {
 	nonce: bigint;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	recipientAddress: Buffer;
 	amount: bigint;
 	fee?: bigint;
@@ -191,7 +191,7 @@ export const createMultisignatureTransferTransaction = (input: {
 		(prev, current) => {
 			return signMultiSignatureTransaction(
 				prev,
-				input.networkIdentifier,
+				input.chainID,
 				current,
 				{
 					mandatoryKeys: input.mandatoryKeys,
@@ -217,7 +217,7 @@ export const createMultisignatureTransferTransaction = (input: {
 
 export const createReportMisbehaviorTransaction = (input: {
 	nonce: bigint;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	privateKey: Buffer;
 	header1: BlockHeader;
 	header2: BlockHeader;
@@ -239,7 +239,7 @@ export const createReportMisbehaviorTransaction = (input: {
 		signatures: [],
 	});
 	tx.signatures.push(
-		ed.signData(TAG_TRANSACTION, input.networkIdentifier, tx.getSigningBytes(), input.privateKey),
+		ed.signData(TAG_TRANSACTION, input.chainID, tx.getSigningBytes(), input.privateKey),
 	);
 	return tx;
 };

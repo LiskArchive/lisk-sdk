@@ -14,9 +14,9 @@
 
 // Mainchain
 export { MainchainInteroperabilityModule } from './mainchain/module';
-export { MainchainInteroperabilityAPI } from './mainchain/api';
+export { MainchainInteroperabilityMethod } from './mainchain/method';
 export * from './mainchain/commands';
 // Sidechain
 export { SidechainInteroperabilityModule } from './sidechain/module';
-export { SidechainInteroperabilityAPI } from './sidechain/api';
+export { SidechainInteroperabilityMethod } from './sidechain/method';
 export * from './sidechain/commands';

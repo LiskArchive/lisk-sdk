@@ -14,20 +14,20 @@
 
 import {
 	CCMsg,
-	BeforeApplyCCMsgAPIContext,
-	BeforeSendCCMsgAPIContext,
-	CCAPIContext,
+	BeforeApplyCCMsgMethodContext,
+	BeforeSendCCMsgMethodContext,
+	CCMethodContext,
 	CCCommandExecuteContext,
 	CCUpdateParams,
 } from './types';
 
 export const createCCCommandExecuteContext = (
-	params: CCAPIContext & { ccm: CCMsg; ccmSize: bigint },
+	params: CCMethodContext & { ccm: CCMsg; ccmSize: bigint },
 ): CCCommandExecuteContext => ({
 	logger: params.logger,
-	networkIdentifier: params.networkIdentifier,
+	chainID: params.chainID,
 	eventQueue: params.eventQueue,
-	getAPIContext: params.getAPIContext,
+	getMethodContext: params.getMethodContext,
 	getStore: params.getStore,
 	ccm: params.ccm,
 	feeAddress: params.feeAddress,
@@ -35,14 +35,14 @@ export const createCCCommandExecuteContext = (
 });
 
 export const createCCMsgBeforeApplyContext = (
-	params: CCAPIContext,
+	params: CCMethodContext,
 	ccu: CCUpdateParams,
 	trsSender: Buffer,
-): BeforeApplyCCMsgAPIContext => ({
+): BeforeApplyCCMsgMethodContext => ({
 	logger: params.logger,
-	networkIdentifier: params.networkIdentifier,
+	chainID: params.chainID,
 	eventQueue: params.eventQueue,
-	getAPIContext: params.getAPIContext,
+	getMethodContext: params.getMethodContext,
 	getStore: params.getStore,
 	ccm: params.ccm,
 	ccu,
@@ -50,11 +50,13 @@ export const createCCMsgBeforeApplyContext = (
 	trsSender,
 });
 
-export const createCCMsgBeforeSendContext = (params: CCAPIContext): BeforeSendCCMsgAPIContext => ({
+export const createCCMsgBeforeSendContext = (
+	params: CCMethodContext,
+): BeforeSendCCMsgMethodContext => ({
 	logger: params.logger,
-	networkIdentifier: params.networkIdentifier,
+	chainID: params.chainID,
 	eventQueue: params.eventQueue,
-	getAPIContext: params.getAPIContext,
+	getMethodContext: params.getMethodContext,
 	getStore: params.getStore,
 	feeAddress: params.feeAddress,
 	ccm: params.ccm,

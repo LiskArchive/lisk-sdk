@@ -14,13 +14,9 @@ Object {
         "fromFile": "./config/genesis_block.blob",
       },
       "blockTime": 10,
-      "communityIdentifier": "sdk",
+      "chainID": "10000000",
       "maxTransactionsSize": 15360,
       "minFeePerByte": 1000,
-    },
-    "logger": Object {
-      "consoleLogLevel": "info",
-      "fileLogLevel": "info",
     },
     "modules": Object {},
     "network": Object {
@@ -39,6 +35,7 @@ Object {
     "system": Object {
       "dataPath": "~/.lisk/beta-sdk-app",
       "keepEventsForHeights": 300,
+      "logLevel": "info",
       "version": "0.1.0",
     },
     "transactionPool": Object {
@@ -113,8 +110,9 @@ Object {
           "minimum": 2,
           "type": "number",
         },
-        "communityIdentifier": Object {
-          "description": "The unique name of the relevant community as a string encoded in UTF-8 format",
+        "chainID": Object {
+          "description": "The unique name of the chain as a string encoded in Hex format",
+          "format": "hex",
           "type": "string",
         },
         "maxTransactionsSize": Object {
@@ -133,42 +131,9 @@ Object {
         "block",
         "blockTime",
         "bftBatchSize",
-        "communityIdentifier",
+        "chainID",
         "maxTransactionsSize",
         "minFeePerByte",
-      ],
-      "type": "object",
-    },
-    "logger": Object {
-      "properties": Object {
-        "consoleLogLevel": Object {
-          "enum": Array [
-            "trace",
-            "debug",
-            "info",
-            "warn",
-            "error",
-            "fatal",
-            "none",
-          ],
-          "type": "string",
-        },
-        "fileLogLevel": Object {
-          "enum": Array [
-            "trace",
-            "debug",
-            "info",
-            "warn",
-            "error",
-            "fatal",
-            "none",
-          ],
-          "type": "string",
-        },
-      },
-      "required": Array [
-        "fileLogLevel",
-        "consoleLogLevel",
       ],
       "type": "object",
     },
@@ -315,6 +280,18 @@ Object {
         "keepEventsForHeights": Object {
           "type": "integer",
         },
+        "logLevel": Object {
+          "enum": Array [
+            "trace",
+            "debug",
+            "info",
+            "warn",
+            "error",
+            "fatal",
+            "none",
+          ],
+          "type": "string",
+        },
         "version": Object {
           "format": "version",
           "type": "string",
@@ -323,6 +300,7 @@ Object {
       "required": Array [
         "version",
         "dataPath",
+        "logLevel",
         "keepEventsForHeights",
       ],
       "type": "object",
@@ -355,7 +333,6 @@ Object {
   },
   "required": Array [
     "system",
-    "logger",
     "rpc",
     "network",
     "modules",

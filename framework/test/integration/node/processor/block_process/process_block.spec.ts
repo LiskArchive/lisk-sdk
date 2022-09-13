@@ -14,6 +14,7 @@
 
 import { Block, Chain, DataAccess, Transaction } from '@liskhq/lisk-chain';
 import { regularMerkleTree } from '@liskhq/lisk-tree';
+import { address } from '@liskhq/lisk-cryptography';
 import { nodeUtils } from '../../../../utils';
 import * as testing from '../../../../../src/testing';
 import {
@@ -26,7 +27,7 @@ import { getGeneratorPrivateKeyFromDefaultConfig } from '../../../../../src/test
 
 describe('Process block', () => {
 	let processEnv: testing.BlockProcessingEnv;
-	let networkIdentifier: Buffer;
+	let chainID: Buffer;
 	let dataAccess: DataAccess;
 	let chain: Chain;
 	const databasePath = '/tmp/lisk/protocol_violation/test';
@@ -39,7 +40,7 @@ describe('Process block', () => {
 				databasePath,
 			},
 		});
-		networkIdentifier = processEnv.getNetworkId();
+		chainID = processEnv.getNetworkId();
 		dataAccess = processEnv.getDataAccess();
 		chain = processEnv.getChain();
 	});
@@ -63,7 +64,7 @@ describe('Process block', () => {
 					nonce: BigInt(authData.nonce),
 					recipientAddress: account.address,
 					amount,
-					networkIdentifier,
+					chainID,
 					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				newBlock = await processEnv.createBlock([transaction]);
@@ -131,7 +132,7 @@ describe('Process block', () => {
 					nonce: BigInt(authData.nonce),
 					recipientAddress: account.address,
 					amount: BigInt('1000000000'),
-					networkIdentifier,
+					chainID,
 					privateKey: Buffer.from(genesis.privateKey, 'hex'),
 				});
 				newBlock = await processEnv.createBlock([transaction]);
@@ -215,13 +216,13 @@ describe('Process block', () => {
 
 		beforeAll(async () => {
 			const targetAuthData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-				address: account.address.toString('hex'),
+				address: address.getLisk32AddressFromAddress(account.address),
 			});
 			transaction = createDelegateRegisterTransaction({
 				nonce: BigInt(targetAuthData.nonce),
 				fee: BigInt('3000000000'),
 				username: 'number1',
-				networkIdentifier,
+				chainID,
 				blsKey: account.blsPublicKey,
 				generatorKey: account.publicKey,
 				blsProofOfPossession: account.blsPoP,
@@ -235,16 +236,19 @@ describe('Process block', () => {
 			it('should update the sender balance and the vote of the sender', async () => {
 				// Arrange
 				const senderAuthData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-					address: account.address.toString('hex'),
+					address: address.getLisk32AddressFromAddress(account.address),
 				});
 				const senderBalance = await processEnv.invoke<{ availableBalance: string }>(
 					'token_getBalance',
-					{ address: account.address.toString('hex'), tokenID: DEFAULT_TOKEN_ID.toString('hex') },
+					{
+						address: address.getLisk32AddressFromAddress(account.address),
+						tokenID: DEFAULT_TOKEN_ID.toString('hex'),
+					},
 				);
 				const voteAmount = BigInt('1000000000');
 				const voteTransaction = createDelegateVoteTransaction({
 					nonce: BigInt(senderAuthData.nonce),
-					networkIdentifier,
+					chainID,
 					privateKey: account.privateKey,
 					votes: [
 						{
@@ -260,12 +264,12 @@ describe('Process block', () => {
 
 				// Assess
 				const balance = await processEnv.invoke<{ availableBalance: string }>('token_getBalance', {
-					address: account.address.toString('hex'),
+					address: address.getLisk32AddressFromAddress(account.address),
 					tokenID: DEFAULT_TOKEN_ID.toString('hex'),
 				});
 				const votes = await processEnv.invoke<{ sentVotes: Record<string, unknown>[] }>(
 					'dpos_getVoter',
-					{ address: account.address.toString('hex') },
+					{ address: address.getLisk32AddressFromAddress(account.address) },
 				);
 				expect(votes.sentVotes).toHaveLength(1);
 				expect(balance.availableBalance).toEqual(
@@ -280,13 +284,13 @@ describe('Process block', () => {
 
 			beforeAll(async () => {
 				const senderAuthData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
-					address: account.address.toString('hex'),
+					address: address.getLisk32AddressFromAddress(account.address),
 				});
 				invalidTx = createDelegateRegisterTransaction({
 					nonce: BigInt(senderAuthData.nonce),
 					fee: BigInt('5000000000'),
 					username: 'number1',
-					networkIdentifier,
+					chainID,
 					privateKey: account.privateKey,
 					blsKey: account.blsPublicKey,
 					generatorKey: account.publicKey,
@@ -310,7 +314,7 @@ describe('Process block', () => {
 
 			it('should have the same account state as before', async () => {
 				const delegate = await processEnv.invoke<{ name: string }>('dpos_getDelegate', {
-					address: account.address.toString('hex'),
+					address: address.getLisk32AddressFromAddress(account.address),
 				});
 				expect(delegate.name).toEqual('number1');
 			});

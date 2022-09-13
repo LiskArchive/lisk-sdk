@@ -68,7 +68,7 @@ describe('peer/base', () => {
 			port: 5001,
 			sharedState: {
 				networkVersion: '1.1',
-				networkIdentifier: 'networkId',
+				chainID: Buffer.from('chainID', 'hex'),
 				nonce: 'nonce',
 				options: {},
 			},
@@ -83,7 +83,7 @@ describe('peer/base', () => {
 			maxPeerDiscoveryResponseLength: 1000,
 			peerStatusMessageRate: 4,
 			serverNodeInfo: {
-				networkIdentifier: 'networkId',
+				chainID: Buffer.from('chainID', 'hex'),
 				networkVersion: '1.2',
 				nonce: 'nonce',
 				advertiseAddress: true,
@@ -99,7 +99,7 @@ describe('peer/base', () => {
 			port: defaultPeerInfo.port,
 			sharedState: {
 				networkVersion: '1.3',
-				networkIdentifier: 'networkId',
+				chainID: Buffer.from('chainID', 'hex'),
 				nonce: 'nonce',
 				options: {},
 			},
@@ -487,7 +487,7 @@ describe('peer/base', () => {
 					ipAddress: '1.1.1.1',
 					port: 1111,
 					sharedState: {
-						networkIdentifier: 'networkId',
+						chainID: Buffer.from('chainID', 'hex'),
 						nonce: 'nonce',
 						networkVersion: '',
 						options: {},
@@ -498,7 +498,7 @@ describe('peer/base', () => {
 					ipAddress: '2.2.2.2',
 					port: 2222,
 					sharedState: {
-						networkIdentifier: 'networkId',
+						chainID: Buffer.from('chainID', 'hex'),
 						nonce: 'nonce',
 						networkVersion: '',
 						options: {},
@@ -597,7 +597,7 @@ describe('peer/base', () => {
 					advertiseAddress: true,
 					nonce: '1111',
 					networkVersion: '9.2',
-					networkIdentifier: 'networkId',
+					chainID: Buffer.from('chainID', 'hex'),
 				};
 				beforeEach(() => {
 					const encodedResponse = codec.encode(defaultRPCSchemas.nodeInfo, nodeInfo);
@@ -630,7 +630,7 @@ describe('peer/base', () => {
 					advertiseAddress: false,
 					nonce: '',
 					networkVersion: '1.2',
-					networkIdentifier: 'networkId',
+					chainID: Buffer.from('chainID', 'hex'),
 				};
 
 				beforeEach(() => {
@@ -652,7 +652,7 @@ describe('peer/base', () => {
 						sharedState: {
 							advertiseAddress: false,
 							networkVersion: '1.2',
-							networkIdentifier: 'networkId',
+							chainID: Buffer.from('chainID', 'hex'),
 							nonce: '',
 						},
 					};
@@ -672,7 +672,7 @@ describe('peer/base', () => {
 				it('should return fetched peer info', async () => {
 					const peerInfo = await defaultPeer.fetchAndUpdateStatus();
 					expect(peerInfo.sharedState).toMatchObject({
-						networkIdentifier: 'networkId',
+						chainID: Buffer.from('chainID', 'hex'),
 						networkVersion: '1.2',
 					});
 				});

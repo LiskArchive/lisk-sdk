@@ -32,7 +32,7 @@ export const setHashOnionRequestSchema = {
 	properties: {
 		address: {
 			type: 'string',
-			format: 'hex',
+			format: 'lisk32',
 		},
 		seed: {
 			type: 'string',
@@ -73,7 +73,7 @@ export const hasHashOnionRequestSchema = {
 	properties: {
 		address: {
 			type: 'string',
-			format: 'hex',
+			format: 'lisk32',
 		},
 	},
 };
@@ -93,7 +93,7 @@ export const getHashOnionUsageRequestSchema = {
 	properties: {
 		address: {
 			type: 'string',
-			format: 'hex',
+			format: 'lisk32',
 		},
 	},
 };
@@ -122,7 +122,7 @@ export const randomModuleGeneratorConfig = {
 				properties: {
 					address: {
 						type: 'string',
-						format: 'hex',
+						format: 'lisk32',
 					},
 					hashOnion: {
 						type: 'object',
@@ -212,6 +212,7 @@ export const registeredHashOnionsStoreSchema = {
 				properties: {
 					address: {
 						dataType: 'bytes',
+						format: 'lisk32',
 						fieldNumber: 1,
 					},
 					seedHash: {
@@ -240,6 +241,7 @@ export const usedHashOnionsStoreSchema = {
 					address: {
 						dataType: 'bytes',
 						fieldNumber: 1,
+						format: 'lisk32',
 					},
 					count: {
 						dataType: 'uint32',
@@ -262,7 +264,7 @@ export const isSeedRevealValidRequestSchema = {
 	properties: {
 		generatorAddress: {
 			type: 'string',
-			format: 'hex',
+			format: 'lisk32',
 		},
 		seedReveal: {
 			type: 'string',

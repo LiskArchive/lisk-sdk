@@ -15,7 +15,6 @@
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
 import {
-	EVENT_ID_LENGTH_BYTES,
 	EVENT_TOPIC_HASH_LENGTH_BYTES,
 	EVENT_TOPIC_INDEX_LENGTH_BITS,
 	EVENT_TOTAL_INDEX_LENGTH_BYTES,
@@ -25,9 +24,10 @@ import { JSONObject } from './types';
 
 export interface EventAttr {
 	module: string;
-	typeID: Buffer;
+	name: string;
 	topics: Buffer[];
 	index: number;
+	height: number;
 	data: Buffer;
 }
 
@@ -36,16 +36,18 @@ type EventJSON = JSONObject<EventAttr>;
 export class Event {
 	private readonly _index: number;
 	private readonly _module: string;
+	private readonly _name: string;
 	private readonly _topics: Buffer[];
-	private readonly _typeID: Buffer;
 	private readonly _data: Buffer;
+	private readonly _height: number;
 
-	public constructor({ index, module, topics, typeID, data }: EventAttr) {
+	public constructor({ index, module, name, topics, data, height }: EventAttr) {
 		this._index = index;
 		this._module = module;
+		this._name = name;
 		this._topics = topics;
-		this._typeID = typeID;
 		this._data = data;
+		this._height = height;
 	}
 
 	public static fromBytes(value: Buffer): Event {
@@ -53,16 +55,8 @@ export class Event {
 		return new Event(decoded);
 	}
 
-	public id(height: number): Buffer {
-		const id = Buffer.alloc(EVENT_ID_LENGTH_BYTES);
-		id.writeUInt32BE(height, 0);
-		id.writeUIntBE(
-			// eslint-disable-next-line no-bitwise
-			this._index << EVENT_TOPIC_INDEX_LENGTH_BITS,
-			4,
-			EVENT_TOTAL_INDEX_LENGTH_BYTES,
-		);
-		return id;
+	public id(): Buffer {
+		return utils.hash(codec.encode(eventSchema, this.toObject()));
 	}
 
 	public getBytes(): Buffer {
@@ -102,8 +96,9 @@ export class Event {
 			data: this._data,
 			index: this._index,
 			module: this._module,
+			name: this._name,
 			topics: this._topics,
-			typeID: this._typeID,
+			height: this._height,
 		};
 	}
 }

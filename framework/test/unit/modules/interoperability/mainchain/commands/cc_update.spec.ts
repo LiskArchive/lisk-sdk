@@ -60,7 +60,7 @@ import { ChainValidatorsStore } from '../../../../../../src/modules/interoperabi
 import { PrefixedStateReadWriter } from '../../../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../../../src/testing/in_memory_prefixed_state';
 import { createStoreGetter } from '../../../../../../src/testing/utils';
-import { createTransientAPIContext } from '../../../../../../src/testing';
+import { createTransientMethodContext } from '../../../../../../src/testing';
 
 jest.mock('@liskhq/lisk-cryptography', () => ({
 	...jest.requireActual('@liskhq/lisk-cryptography'),
@@ -69,7 +69,7 @@ jest.mock('@liskhq/lisk-cryptography', () => ({
 describe('CrossChainUpdateCommand', () => {
 	const interopMod = new MainchainInteroperabilityModule();
 
-	const networkIdentifier = cryptography.utils.getRandomBytes(32);
+	const chainID = cryptography.utils.getRandomBytes(32);
 	const defaultCertificateValues: Certificate = {
 		blockID: cryptography.utils.getRandomBytes(20),
 		height: 21,
@@ -248,10 +248,10 @@ describe('CrossChainUpdateCommand', () => {
 	describe('verify', () => {
 		beforeEach(() => {
 			verifyContext = {
-				getAPIContext: () => createTransientAPIContext({ stateStore }),
+				getMethodContext: () => createTransientMethodContext({ stateStore }),
 				getStore: createStoreGetter(stateStore).getStore,
 				logger: testing.mocks.loggerMock,
-				networkIdentifier,
+				chainID,
 				params,
 				transaction: defaultTransaction as any,
 			};
@@ -408,14 +408,14 @@ describe('CrossChainUpdateCommand', () => {
 			};
 
 			executeContext = {
-				getAPIContext: () => createTransientAPIContext({ stateStore }),
+				getMethodContext: () => createTransientMethodContext({ stateStore }),
 				getStore: createStoreGetter(stateStore).getStore,
 				logger: testing.mocks.loggerMock,
-				networkIdentifier,
+				chainID,
 				params,
 				transaction: defaultTransaction as any,
 				assets: new BlockAssets(),
-				eventQueue: new EventQueue(),
+				eventQueue: new EventQueue(0),
 				header: blockHeader as BlockHeader,
 				certificateThreshold: BigInt(0),
 				currentValidators: [],

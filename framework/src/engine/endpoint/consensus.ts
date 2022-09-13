@@ -13,13 +13,14 @@
  */
 
 import { StateStore } from '@liskhq/lisk-chain';
+import { address } from '@liskhq/lisk-cryptography';
 import { Database } from '@liskhq/lisk-db';
-import { BFTAPI } from '../bft';
+import { BFTMethod } from '../bft';
 import { BFTHeights } from '../bft/types';
 import { RequestContext } from '../rpc/rpc_server';
 
 interface EndpointArgs {
-	bftAPI: BFTAPI;
+	bftMethod: BFTMethod;
 	blockchainDB: Database;
 }
 
@@ -39,11 +40,11 @@ interface BFTParametersJSON {
 
 export class ConsensusEndpoint {
 	[key: string]: unknown;
-	private readonly _bftAPI: BFTAPI;
+	private readonly _bftMethod: BFTMethod;
 	private readonly _blockchainDB: Database;
 
 	public constructor(args: EndpointArgs) {
-		this._bftAPI = args.bftAPI;
+		this._bftMethod = args.bftMethod;
 		this._blockchainDB = args.blockchainDB;
 	}
 
@@ -55,10 +56,10 @@ export class ConsensusEndpoint {
 			prevoteThreshold,
 			validators,
 			validatorsHash,
-		} = await this._bftAPI.getBFTParameters(stateStore, ctx.params.height as number);
+		} = await this._bftMethod.getBFTParameters(stateStore, ctx.params.height as number);
 
 		const validatorsJSON = validators.map(v => ({
-			address: v.address.toString('hex'),
+			address: address.getLisk32AddressFromAddress(v.address),
 			bftWeight: v.bftWeight.toString(),
 			blsKey: v.blsKey.toString('hex'),
 		}));
@@ -74,7 +75,7 @@ export class ConsensusEndpoint {
 
 	public async getBFTHeights(_ctx: RequestContext): Promise<BFTHeights> {
 		const stateStore = new StateStore(this._blockchainDB);
-		const result = await this._bftAPI.getBFTHeights(stateStore);
+		const result = await this._bftMethod.getBFTHeights(stateStore);
 
 		return result;
 	}

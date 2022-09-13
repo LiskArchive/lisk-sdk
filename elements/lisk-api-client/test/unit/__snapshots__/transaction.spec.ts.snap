@@ -2,32 +2,32 @@
 
 exports[`transaction Transaction create when called with a valid transaction should return created tx 1`] = `
 Array [
-  "925b36e897e551df887c7ca6953766f56c0054552810753b838dfe05a833f149200e95ee97b82ade6e143fba52fa643ddd38fb4be3186b77b1035971d011d70a",
+  "d27e0d4c1504e47d06e85c510946fda57c12279da70e2bb1f3b2bc3760127368c03bbf443e562543e9827beb433e97614dff59fbfca5c5776b2fc6f237b77009",
 ]
 `;
 
 exports[`transaction Transaction create when called with multi-signature account in input should return created tx 1`] = `
 Array [
-  "925b36e897e551df887c7ca6953766f56c0054552810753b838dfe05a833f149200e95ee97b82ade6e143fba52fa643ddd38fb4be3186b77b1035971d011d70a",
+  "d27e0d4c1504e47d06e85c510946fda57c12279da70e2bb1f3b2bc3760127368c03bbf443e562543e9827beb433e97614dff59fbfca5c5776b2fc6f237b77009",
   "",
 ]
 `;
 
 exports[`transaction Transaction create when called with nonce equal to zero in input should return created tx 1`] = `
 Array [
-  "48a20c01fdc3ce6f9178d3275a101e2fde62eea20c497530abb8f88d0d2862a66c27c319323cad6ded7647d0934d1bc36d940285f8aaaddb5dfd6fe324977f0d",
+  "03430d5cedeab0db30c2b32e60920d74da02e0aafde8f786ac7153deb9cf78ba6ffc955f911ff66ce690c47206a23fa53c2e1ee3e1f4850ff8c37a8fe1a6d50c",
 ]
 `;
 
 exports[`transaction Transaction create when called with optional keys in input should return created tx 1`] = `
 Array [
-  "925b36e897e551df887c7ca6953766f56c0054552810753b838dfe05a833f149200e95ee97b82ade6e143fba52fa643ddd38fb4be3186b77b1035971d011d70a",
+  "d27e0d4c1504e47d06e85c510946fda57c12279da70e2bb1f3b2bc3760127368c03bbf443e562543e9827beb433e97614dff59fbfca5c5776b2fc6f237b77009",
 ]
 `;
 
 exports[`transaction Transaction create when called without sender public key in input should return created tx 1`] = `
 Array [
-  "925b36e897e551df887c7ca6953766f56c0054552810753b838dfe05a833f149200e95ee97b82ade6e143fba52fa643ddd38fb4be3186b77b1035971d011d70a",
+  "d27e0d4c1504e47d06e85c510946fda57c12279da70e2bb1f3b2bc3760127368c03bbf443e562543e9827beb433e97614dff59fbfca5c5776b2fc6f237b77009",
 ]
 `;
 
@@ -399,14 +399,14 @@ Object {
 
 exports[`transaction Transaction sign when called with multi-signature account in input should return created tx 1`] = `
 Array [
-  "925b36e897e551df887c7ca6953766f56c0054552810753b838dfe05a833f149200e95ee97b82ade6e143fba52fa643ddd38fb4be3186b77b1035971d011d70a",
-  "49d372534c1bb5243105953f3146b796a939b7e72b9fc8a9d834f47c393e958395de009063a5b250b94dc1853e5a2f4d039034656baebaa682d26aba48d61308",
+  "d27e0d4c1504e47d06e85c510946fda57c12279da70e2bb1f3b2bc3760127368c03bbf443e562543e9827beb433e97614dff59fbfca5c5776b2fc6f237b77009",
+  "746711c65d963b1fe8c6e40d64100548fb1080a943c2b53ac8466570f96c4687478a9307b45ad0172da134aa1eb9c44e2f11b3f08e790bdfd9247f3f89526508",
 ]
 `;
 
 exports[`transaction Transaction sign when called with optional keys in input should return created tx 1`] = `
 Array [
-  "925b36e897e551df887c7ca6953766f56c0054552810753b838dfe05a833f149200e95ee97b82ade6e143fba52fa643ddd38fb4be3186b77b1035971d011d70a",
-  "49d372534c1bb5243105953f3146b796a939b7e72b9fc8a9d834f47c393e958395de009063a5b250b94dc1853e5a2f4d039034656baebaa682d26aba48d61308",
+  "d27e0d4c1504e47d06e85c510946fda57c12279da70e2bb1f3b2bc3760127368c03bbf443e562543e9827beb433e97614dff59fbfca5c5776b2fc6f237b77009",
+  "746711c65d963b1fe8c6e40d64100548fb1080a943c2b53ac8466570f96c4687478a9307b45ad0172da134aa1eb9c44e2f11b3f08e790bdfd9247f3f89526508",
 ]
 `;

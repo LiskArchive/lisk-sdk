@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+import { address } from '@liskhq/lisk-cryptography';
 import * as testing from '../../../src/testing';
 
 describe('getBlockProcessingEnv', () => {
@@ -50,7 +51,7 @@ describe('getBlockProcessingEnv', () => {
 		// Act & Assert
 		const keys = await processEnv.getNextValidatorKeys(header);
 		expect(keys.address).toBeString();
-		expect(keys.address).toHaveLength(40);
+		expect(keys.address).toHaveLength(41);
 	});
 
 	it('should be able to process a valid block', async () => {
@@ -80,6 +81,8 @@ describe('getBlockProcessingEnv', () => {
 
 		// Act & Assert
 		const block = await processEnv.createBlock();
-		expect(block.header.generatorAddress).toEqual(Buffer.from(keys.address, 'hex'));
+		expect(block.header.generatorAddress).toEqual(
+			address.getAddressFromLisk32Address(keys.address),
+		);
 	});
 });

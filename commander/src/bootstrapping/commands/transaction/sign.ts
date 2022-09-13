@@ -32,9 +32,8 @@ import { flagsWithParser } from '../../../utils/flags';
 import { getPassphraseFromPrompt } from '../../../utils/reader';
 import {
 	decodeTransaction,
-	encodeTransaction,
+	encodeTransactionJSON,
 	getApiClient,
-	transactionToJSON,
 	getParamsSchema,
 } from '../../../utils/transaction';
 import { getDefaultPath } from '../../../utils/path';
@@ -55,7 +54,7 @@ interface Keys {
 }
 
 interface SignFlags {
-	'network-identifier': string | undefined;
+	'chain-id': string | undefined;
 	passphrase: string | undefined;
 	'include-sender': boolean;
 	offline: boolean;
@@ -71,7 +70,7 @@ const signTransaction = async (
 	registeredSchema: RegisteredSchema,
 	metadata: ModuleMetadataJSON[],
 	transactionHexStr: string,
-	networkIdentifier: string | undefined,
+	chainID: string | undefined,
 	keys: Keys,
 ) => {
 	const transactionObject = decodeTransaction(registeredSchema, metadata, transactionHexStr);
@@ -81,7 +80,7 @@ const signTransaction = async (
 		transactionObject.module,
 		transactionObject.command,
 	);
-	const networkIdentifierBuffer = Buffer.from(networkIdentifier as string, 'hex');
+	const chainIDBuffer = Buffer.from(chainID as string, 'hex');
 	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
 
 	const txObject = codec.fromJSON(registeredSchema.transaction, {
@@ -98,23 +97,35 @@ const signTransaction = async (
 	const edKeys = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
 
 	// sign from multi sig account offline using input keys
+	let signedTransaction: Record<string, unknown>;
 	if (!flags['include-sender'] && !flags['sender-public-key']) {
-		return transactions.signTransaction(
+		signedTransaction = transactions.signTransaction(
 			decodedTx,
-			networkIdentifierBuffer,
+			chainIDBuffer,
 			edKeys.privateKey,
 			paramsSchema,
 		);
+	} else {
+		signedTransaction = transactions.signMultiSignatureTransaction(
+			decodedTx,
+			chainIDBuffer,
+			edKeys.privateKey,
+			keys,
+			paramsSchema,
+			flags['include-sender'],
+		);
 	}
-
-	return transactions.signMultiSignatureTransaction(
-		decodedTx,
-		networkIdentifierBuffer,
-		edKeys.privateKey,
-		keys,
-		paramsSchema,
-		flags['include-sender'],
-	);
+	const paramsJSON = paramsSchema
+		? codec.toJSON(paramsSchema, signedTransaction.params as Record<string, unknown>)
+		: {};
+	return {
+		...codec.toJSON<Record<string, unknown>>(registeredSchema.transaction, {
+			...signedTransaction,
+			params: '',
+		}),
+		params: paramsJSON,
+		id: (signedTransaction.id as Buffer).toString('hex'),
+	};
 };
 
 const signTransactionOffline = async (
@@ -131,7 +142,7 @@ const signTransactionOffline = async (
 			registeredSchema,
 			metadata,
 			transactionHexStr,
-			flags['network-identifier'],
+			flags['chain-id'],
 			{} as Keys,
 		);
 		return signedTransaction;
@@ -154,7 +165,7 @@ const signTransactionOffline = async (
 		registeredSchema,
 		metadata,
 		transactionHexStr,
-		flags['network-identifier'],
+		flags['chain-id'],
 		keys,
 	);
 	return signedTransaction;
@@ -171,19 +182,21 @@ const signTransactionOnline = async (
 	const transactionObject = decodeTransaction(registeredSchema, metadata, transactionHexStr);
 	const passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
 	const edKeys = await deriveKeypair(passphrase, flags['key-derivation-path']);
-	const address = cryptography.address.getAddressFromPublicKey(edKeys.publicKey);
+	const address = cryptography.address.getLisk32AddressFromPublicKey(edKeys.publicKey);
 
 	let signedTransaction: Record<string, unknown>;
 
 	if (!flags['include-sender']) {
-		signedTransaction = await client.transaction.sign(transactionObject, [passphrase]);
+		signedTransaction = await client.transaction.sign(transactionObject, [
+			edKeys.privateKey.toString('hex'),
+		]);
 		return signedTransaction;
 	}
 
 	// Sign multi-sig transaction
 
 	const account = await client.invoke<AuthAccount>('auth_getAuthAccount', {
-		address: address.toString('hex'),
+		address,
 	});
 	let authAccount: AuthAccount;
 	if (account.mandatoryKeys.length === 0 && account.optionalKeys.length === 0) {
@@ -196,10 +209,14 @@ const signTransactionOnline = async (
 		optionalKeys: authAccount.optionalKeys,
 	};
 
-	signedTransaction = await client.transaction.sign(transactionObject, [passphrase], {
-		includeSenderSignature: flags['include-sender'],
-		multisignatureKeys: keys,
-	});
+	signedTransaction = await client.transaction.sign(
+		transactionObject,
+		[edKeys.privateKey.toString('hex')],
+		{
+			includeSenderSignature: flags['include-sender'],
+			multisignatureKeys: keys,
+		},
+	);
 	return signedTransaction;
 };
 
@@ -219,7 +236,7 @@ export abstract class SignCommand extends Command {
 		json: flagsWithParser.json,
 		offline: {
 			...flagsWithParser.offline,
-			dependsOn: ['network-identifier'],
+			dependsOn: ['chain-id'],
 			exclusive: ['data-path'],
 		},
 		'include-sender': flagParser.boolean({
@@ -234,7 +251,7 @@ export abstract class SignCommand extends Command {
 			multiple: true,
 			description: 'Optional publicKey string in hex format.',
 		}),
-		'network-identifier': flagsWithParser.networkIdentifier,
+		'chain-id': flagsWithParser.chainID,
 		'sender-public-key': flagsWithParser.senderPublicKey,
 		'data-path': flagsWithParser.dataPath,
 		'key-derivation-path': flagParser.string({
@@ -297,7 +314,7 @@ export abstract class SignCommand extends Command {
 
 		if (flags.json) {
 			this.printJSON(flags.pretty, {
-				transaction: encodeTransaction(
+				transaction: encodeTransactionJSON(
 					this._schema,
 					this._metadata,
 					signedTransaction,
@@ -305,16 +322,11 @@ export abstract class SignCommand extends Command {
 				).toString('hex'),
 			});
 			this.printJSON(flags.pretty, {
-				transaction: transactionToJSON(
-					this._schema,
-					this._metadata,
-					signedTransaction,
-					this._client,
-				),
+				transaction: signedTransaction,
 			});
 		} else {
 			this.printJSON(flags.pretty, {
-				transaction: encodeTransaction(
+				transaction: encodeTransactionJSON(
 					this._schema,
 					this._metadata,
 					signedTransaction,
@@ -334,7 +346,7 @@ export abstract class SignCommand extends Command {
 
 	async finally(error?: Error | string): Promise<void> {
 		if (error) {
-			if (!isApplicationRunning(this._dataPath)) {
+			if (this._dataPath && !isApplicationRunning(this._dataPath)) {
 				throw new Error(`Application at data path ${this._dataPath} is not running.`);
 			}
 			this.error(error instanceof Error ? error.message : error);

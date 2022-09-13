@@ -11,8 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-import { utils } from '@liskhq/lisk-cryptography';
-import { TokenAPI, TokenModule } from '../../../../src/modules/token';
+import { address, utils } from '@liskhq/lisk-cryptography';
+import { TokenMethod, TokenModule } from '../../../../src/modules/token';
 import {
 	CHAIN_ID_LENGTH,
 	EMPTY_BYTES,
@@ -23,10 +23,10 @@ import { AvailableLocalIDStore } from '../../../../src/modules/token/stores/avai
 import { EscrowStore } from '../../../../src/modules/token/stores/escrow';
 import { SupplyStore } from '../../../../src/modules/token/stores/supply';
 import { UserStore } from '../../../../src/modules/token/stores/user';
-import { APIContext } from '../../../../src/state_machine';
+import { MethodContext } from '../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import {
-	createTransientAPIContext,
+	createTransientMethodContext,
 	createTransientModuleEndpointContext,
 } from '../../../../src/testing';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
@@ -53,12 +53,12 @@ describe('token endpoint', () => {
 
 	let endpoint: TokenEndpoint;
 	let stateStore: PrefixedStateReadWriter;
-	let apiContext: APIContext;
+	let methodContext: MethodContext;
 
 	beforeEach(async () => {
-		const api = new TokenAPI(tokenModule.stores, tokenModule.events, tokenModule.name);
+		const method = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
 		endpoint = new TokenEndpoint(tokenModule.stores, tokenModule.offchainStores);
-		api.init({
+		method.init({
 			minBalances: [
 				{
 					tokenID: DEFAULT_TOKEN_ID,
@@ -66,41 +66,41 @@ describe('token endpoint', () => {
 				},
 			],
 		});
-		api.addDependencies({
+		method.addDependencies({
 			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
 			send: jest.fn().mockResolvedValue(true),
 			error: jest.fn(),
 			terminateChain: jest.fn(),
 			getChannel: jest.fn(),
 		} as never);
-		endpoint.init(api, supportedTokenIDs);
+		endpoint.init(method, supportedTokenIDs);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
-		apiContext = createTransientAPIContext({ stateStore });
+		methodContext = createTransientMethodContext({ stateStore });
 		const userStore = tokenModule.stores.get(UserStore);
 		await userStore.set(
-			apiContext,
+			methodContext,
 			userStore.getKey(defaultAddress, defaultTokenIDAlias),
 			defaultAccount,
 		);
 		await userStore.set(
-			apiContext,
+			methodContext,
 			userStore.getKey(defaultAddress, defaultForeignTokenID),
 			defaultAccount,
 		);
 
 		const supplyStore = tokenModule.stores.get(SupplyStore);
-		await supplyStore.set(apiContext, defaultTokenIDAlias.slice(CHAIN_ID_LENGTH), {
+		await supplyStore.set(methodContext, defaultTokenIDAlias.slice(CHAIN_ID_LENGTH), {
 			totalSupply: defaultTotalSupply,
 		});
 
 		const nextAvailableLocalIDStore = tokenModule.stores.get(AvailableLocalIDStore);
-		await nextAvailableLocalIDStore.set(apiContext, EMPTY_BYTES, {
+		await nextAvailableLocalIDStore.set(methodContext, EMPTY_BYTES, {
 			nextAvailableLocalID: Buffer.from([0, 0, 0, 5]),
 		});
 
 		const escrowStore = tokenModule.stores.get(EscrowStore);
 		await escrowStore.set(
-			apiContext,
+			methodContext,
 			Buffer.concat([
 				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 				defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
@@ -116,14 +116,14 @@ describe('token endpoint', () => {
 				params: { address: '1234' },
 			});
 			await expect(endpoint.getBalances(moduleEndpointContext)).rejects.toThrow(
-				".address' must NOT have fewer than 40 characters",
+				'.address\' must match format "lisk32"',
 			);
 		});
 
 		it('should return empty balances if account does not exist', async () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { address: utils.getRandomBytes(20).toString('hex') },
+				params: { address: address.getLisk32AddressFromAddress(utils.getRandomBytes(20)) },
 			});
 			const resp = await endpoint.getBalances(moduleEndpointContext);
 			expect(resp).toEqual({ balances: [] });
@@ -132,7 +132,7 @@ describe('token endpoint', () => {
 		it('should return all the balances', async () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { address: defaultAddress.toString('hex') },
+				params: { address: address.getLisk32AddressFromAddress(defaultAddress) },
 			});
 			const resp = await endpoint.getBalances(moduleEndpointContext);
 			expect(resp).toEqual({
@@ -167,14 +167,14 @@ describe('token endpoint', () => {
 				params: { address: '1234' },
 			});
 			await expect(endpoint.getBalance(moduleEndpointContext)).rejects.toThrow(
-				".address' must NOT have fewer than 40 characters",
+				'.address\' must match format "lisk32"',
 			);
 		});
 
 		it('should reject when input has invalid tokenID', async () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
-				params: { address: defaultAddress.toString('hex'), tokenID: '00' },
+				params: { address: address.getLisk32AddressFromAddress(defaultAddress), tokenID: '00' },
 			});
 			await expect(endpoint.getBalance(moduleEndpointContext)).rejects.toThrow(
 				".tokenID' must NOT have fewer than 16 characters",
@@ -185,7 +185,7 @@ describe('token endpoint', () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					address: utils.getRandomBytes(20).toString('hex'),
+					address: address.getLisk32AddressFromAddress(utils.getRandomBytes(20)),
 					tokenID: defaultTokenID.toString('hex'),
 				},
 			});
@@ -200,7 +200,7 @@ describe('token endpoint', () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					address: defaultAddress.toString('hex'),
+					address: address.getLisk32AddressFromAddress(defaultAddress),
 					tokenID: defaultTokenID.toString('hex'),
 				},
 			});
@@ -219,7 +219,7 @@ describe('token endpoint', () => {
 			const moduleEndpointContext = createTransientModuleEndpointContext({
 				stateStore,
 				params: {
-					address: defaultAddress.toString('hex'),
+					address: address.getLisk32AddressFromAddress(defaultAddress),
 					tokenID: defaultTokenIDAlias.toString('hex'),
 				},
 			});

@@ -13,7 +13,7 @@
  */
 
 import { BaseCCCommand } from './base_cc_command';
-import { BaseInteroperableAPI } from './base_interoperable_api';
+import { BaseInteroperableMethod } from './base_interoperable_method';
 import { BaseInteroperableModule } from './base_interoperable_module';
 import { MODULE_NAME_INTEROPERABILITY } from './constants';
 import { ChainAccountStore } from './stores/chain_account';
@@ -28,7 +28,7 @@ import { TerminatedStateStore } from './stores/terminated_state';
 
 export abstract class BaseInteroperabilityModule extends BaseInteroperableModule {
 	protected interoperableCCCommands = new Map<string, BaseCCCommand[]>();
-	protected interoperableCCAPIs = new Map<string, BaseInteroperableAPI>();
+	protected interoperableCCMethods = new Map<string, BaseInteroperableMethod>();
 
 	public constructor() {
 		super();
@@ -49,7 +49,7 @@ export abstract class BaseInteroperabilityModule extends BaseInteroperableModule
 	}
 
 	public registerInteroperableModule(module: BaseInteroperableModule): void {
-		this.interoperableCCAPIs.set(module.name, module.crossChainAPI);
+		this.interoperableCCMethods.set(module.name, module.crossChainMethod);
 		this.interoperableCCCommands.set(module.name, module.crossChainCommand);
 	}
 }

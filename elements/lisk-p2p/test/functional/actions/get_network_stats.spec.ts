@@ -41,7 +41,7 @@ describe('getNetworkStats', () => {
 			port: 5000,
 			maxOutboundConnections: 0,
 			nodeInfo: {
-				networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+				chainID: Buffer.from('10000000', 'hex'),
 				networkVersion: '1.1',
 				options: {},
 				nonce: 'nonce',
@@ -53,7 +53,7 @@ describe('getNetworkStats', () => {
 			port: 5001,
 			seedPeers: [{ ipAddress: '127.0.0.1', port: 5000 }],
 			nodeInfo: {
-				networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+				chainID: Buffer.from('10000000', 'hex'),
 				networkVersion: '1.1',
 				options: {},
 				nonce: 'nonce',
@@ -68,7 +68,7 @@ describe('getNetworkStats', () => {
 				{ ipAddress: '127.0.0.1', port: 5001 },
 			],
 			nodeInfo: {
-				networkIdentifier: 'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+				chainID: Buffer.from('10000000', 'hex'),
 				networkVersion: '1.1',
 				options: {},
 				nonce: 'nonce',

@@ -48,7 +48,7 @@ export const setStatusRequestSchema = {
 	properties: {
 		address: {
 			type: 'string',
-			format: 'hex',
+			format: 'lisk32',
 		},
 		height: {
 			type: 'integer',
@@ -97,7 +97,7 @@ export const updateStatusRequestSchema = {
 	properties: {
 		address: {
 			type: 'string',
-			format: 'hex',
+			format: 'lisk32',
 		},
 		password: {
 			type: 'string',
@@ -464,7 +464,7 @@ export const setKeysRequestSchema = {
 	properties: {
 		address: {
 			type: 'string',
-			format: 'hex',
+			format: 'lisk32',
 		},
 	},
 	oneOf: [
@@ -500,7 +500,7 @@ export const hasKeysRequestSchema = {
 	properties: {
 		address: {
 			type: 'string',
-			format: 'hex',
+			format: 'lisk32',
 		},
 	},
 };
@@ -517,7 +517,7 @@ export const keysFileSchema = {
 				properties: {
 					address: {
 						type: 'string',
-						format: 'hex',
+						format: 'lisk32',
 					},
 					plain: plainKeysObjectSchema,
 					encrypted: {

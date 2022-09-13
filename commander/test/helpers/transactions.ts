@@ -40,8 +40,7 @@ export const tokenTransferParamsSchema = {
 		recipientAddress: {
 			dataType: 'bytes',
 			fieldNumber: 3,
-			minLength: 20,
-			maxLength: 20,
+			format: 'lisk32',
 		},
 		data: {
 			dataType: 'string',
@@ -104,8 +103,7 @@ export const dposVoteParamsSchema = {
 					delegateAddress: {
 						dataType: 'bytes',
 						fieldNumber: 1,
-						minLength: 20,
-						maxLength: 20,
+						format: 'lisk32',
 					},
 					amount: {
 						dataType: 'sint64',
@@ -123,12 +121,9 @@ export const genesisBlockID = Buffer.from(
 );
 export const communityIdentifier = 'Lisk';
 
-export const networkIdentifier = cryptography.utils.getNetworkIdentifier(
-	genesisBlockID,
-	communityIdentifier,
-);
+export const chainID = Buffer.from('10000000', 'hex');
 
-export const networkIdentifierStr = networkIdentifier.toString('hex');
+export const chainIDStr = chainID.toString('hex');
 
 export const createTransferTransaction = ({
 	amount,
@@ -151,11 +146,11 @@ export const createTransferTransaction = ({
 			params: {
 				tokenID: Buffer.from([0, 0, 0, 0, 0, 0]),
 				amount: BigInt(transactions.convertLSKToBeddows(amount)),
-				recipientAddress: Buffer.from(recipientAddress, 'hex'),
+				recipientAddress: cryptography.address.getAddressFromLisk32Address(recipientAddress),
 				data: '',
 			},
 		},
-		networkIdentifier,
+		chainID,
 		Buffer.from(account.privateKey, 'hex'),
 		tokenTransferParamsSchema,
 	) as any;
@@ -169,7 +164,9 @@ export const createTransferTransaction = ({
 			...transaction.params,
 			tokenID: transaction.params.tokenID.toString('hex'),
 			amount: transaction.params.amount.toString(),
-			recipientAddress: transaction.params.recipientAddress.toString('hex'),
+			recipientAddress: cryptography.address.getLisk32AddressFromAddress(
+				transaction.params.recipientAddress,
+			),
 		},
 		nonce: transaction.nonce.toString(),
 		fee: transaction.fee.toString(),

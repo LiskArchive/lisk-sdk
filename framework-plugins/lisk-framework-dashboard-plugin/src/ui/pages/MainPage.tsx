@@ -46,7 +46,7 @@ import styles from './MainPage.module.scss';
 const nodeInfoDefaultValue: NodeInfo = {
 	version: '',
 	networkVersion: '',
-	networkIdentifier: '',
+	chainID: '',
 	syncing: false,
 	unconfirmedTransactions: 0,
 	height: 0,
@@ -232,8 +232,7 @@ const MainPage: React.FC = () => {
 		const newAccount: Account = {
 			passphrase: accountPassphrase,
 			publicKey: keys.publicKey.toString('hex'),
-			binaryAddress: address.toString('hex'),
-			base32Address: lisk32Address,
+			address: lisk32Address,
 		};
 
 		setMyAccounts([newAccount, ...myAccounts]);
@@ -289,7 +288,7 @@ const MainPage: React.FC = () => {
 				? codec.codec.fromJSON<Record<string, unknown>>(commandMeta.params, data.params)
 				: {};
 			const sender = await getClient().invoke<{ nonce: string }>('auth_getAuthData', {
-				address: address.toString('hex'),
+				address: cryptography.address.getLisk32AddressFromAddress(address),
 			});
 			const fee = getClient().transaction.computeMinFee({
 				module: data.module,

@@ -30,9 +30,9 @@ import { pomCommandParamsSchema } from '../schemas';
 import {
 	PomCommandDependencies,
 	PomTransactionParams,
-	TokenAPI,
+	TokenMethod,
 	TokenIDDPoS,
-	ValidatorsAPI,
+	ValidatorsMethod,
 } from '../types';
 import { getPunishmentPeriod } from '../utils';
 import { ValidationError } from '../../../errors';
@@ -41,13 +41,13 @@ import { DelegateStore } from '../stores/delegate';
 
 export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 	public schema = pomCommandParamsSchema;
-	private _tokenAPI!: TokenAPI;
-	private _validatorsAPI!: ValidatorsAPI;
+	private _tokenMethod!: TokenMethod;
+	private _validatorsMethod!: ValidatorsMethod;
 	private _tokenIDDPoS!: TokenIDDPoS;
 
 	public addDependencies(args: PomCommandDependencies) {
-		this._tokenAPI = args.tokenAPI;
-		this._validatorsAPI = args.validatorsAPI;
+		this._tokenMethod = args.tokenMethod;
+		this._validatorsMethod = args.validatorsMethod;
 	}
 
 	public init(args: { tokenIDDPoS: TokenIDDPoS }) {
@@ -91,7 +91,7 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	public async execute(context: CommandExecuteContext<PomTransactionParams>): Promise<void> {
-		const { networkIdentifier, getAPIContext, params, transaction, header } = context;
+		const { chainID, getMethodContext, params, transaction, header } = context;
 		const currentHeight = header.height;
 		const header1 = BlockHeader.fromBytes(params.header1);
 		const header2 = BlockHeader.fromBytes(params.header2);
@@ -138,21 +138,21 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 			throw new Error('Different generator address never contradict to each other');
 		}
 
-		const { generatorKey } = await this._validatorsAPI.getValidatorAccount(
-			getAPIContext(),
+		const { generatorKey } = await this._validatorsMethod.getValidatorAccount(
+			getMethodContext(),
 			header1.generatorAddress,
 		);
 		/*
 			Check block signatures validity
 		*/
-		header1.validateSignature(generatorKey, networkIdentifier);
-		header2.validateSignature(generatorKey, networkIdentifier);
+		header1.validateSignature(generatorKey, chainID);
+		header2.validateSignature(generatorKey, chainID);
 
 		/*
 			Update sender account
 		*/
-		const delegateAccountBalance = await this._tokenAPI.getAvailableBalance(
-			getAPIContext(),
+		const delegateAccountBalance = await this._tokenMethod.getAvailableBalance(
+			getMethodContext(),
 			delegateAddress,
 			this._tokenIDDPoS,
 		);
@@ -170,8 +170,8 @@ export class ReportDelegateMisbehaviorCommand extends BaseCommand {
 		await delegateSubStore.set(context, delegateAddress, delegateAccount);
 
 		if (reward > BigInt(0)) {
-			await this._tokenAPI.transfer(
-				getAPIContext(),
+			await this._tokenMethod.transfer(
+				getMethodContext(),
 				delegateAddress,
 				transaction.senderAddress,
 				this._tokenIDDPoS,

@@ -58,16 +58,16 @@ export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCComman
 			!sendingChainChannelAccount.messageFeeTokenID.localID.equals(
 				decodedParams.messageFeeTokenID.localID,
 			) ||
-			!decodedParams.networkID.equals(ctx.networkIdentifier) ||
+			!decodedParams.networkID.equals(ctx.chainID) ||
 			ccm.nonce !== BigInt(0) // Only in mainchain
 		) {
 			const beforeSendContext = createCCMsgBeforeSendContext({
 				ccm,
 				eventQueue: ctx.eventQueue,
-				getAPIContext: ctx.getAPIContext,
+				getMethodContext: ctx.getMethodContext,
 				getStore: ctx.getStore,
 				logger: ctx.logger,
-				networkIdentifier: ctx.networkIdentifier,
+				chainID: ctx.chainID,
 				feeAddress: ctx.feeAddress,
 			});
 			await interoperabilityStore.terminateChainInternal(ccm.sendingChainID, beforeSendContext);
@@ -75,6 +75,6 @@ export class MainchainCCRegistrationCommand extends BaseInteroperabilityCCComman
 	}
 
 	protected getInteroperabilityStore(context: StoreGetter): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
+		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
 	}
 }

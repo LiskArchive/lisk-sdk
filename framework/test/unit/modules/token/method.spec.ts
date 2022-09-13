@@ -13,7 +13,7 @@
  */
 import { codec } from '@liskhq/lisk-codec';
 import { utils } from '@liskhq/lisk-cryptography';
-import { TokenAPI, TokenModule } from '../../../../src/modules/token';
+import { TokenMethod, TokenModule } from '../../../../src/modules/token';
 import {
 	CCM_STATUS_OK,
 	CHAIN_ID_LENGTH,
@@ -30,7 +30,7 @@ import { AvailableLocalIDStore } from '../../../../src/modules/token/stores/avai
 import { EscrowStore } from '../../../../src/modules/token/stores/escrow';
 import { SupplyStore } from '../../../../src/modules/token/stores/supply';
 import { UserStore } from '../../../../src/modules/token/stores/user';
-import { APIContext, createAPIContext, EventQueue } from '../../../../src/state_machine';
+import { MethodContext, createMethodContext, EventQueue } from '../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../src/state_machine/prefixed_state_read_writer';
 import { InMemoryPrefixedStateDB } from '../../../../src/testing/in_memory_prefixed_state';
 import { DEFAULT_TOKEN_ID } from '../../../utils/mocks/transaction';
@@ -53,12 +53,12 @@ describe('token module', () => {
 	const defaultTotalSupply = BigInt('100000000000000');
 	const defaultEscrowAmount = BigInt('100000000000');
 
-	let api: TokenAPI;
-	let apiContext: APIContext;
+	let method: TokenMethod;
+	let methodContext: MethodContext;
 
 	beforeEach(async () => {
-		api = new TokenAPI(tokenModule.stores, tokenModule.events, tokenModule.name);
-		api.init({
+		method = new TokenMethod(tokenModule.stores, tokenModule.events, tokenModule.name);
+		method.init({
 			minBalances: [
 				{
 					tokenID: DEFAULT_TOKEN_ID,
@@ -66,7 +66,7 @@ describe('token module', () => {
 				},
 			],
 		});
-		api.addDependencies({
+		method.addDependencies({
 			getOwnChainAccount: jest.fn().mockResolvedValue({ id: Buffer.from([0, 0, 0, 1]) }),
 			send: jest.fn().mockResolvedValue(true),
 			error: jest.fn(),
@@ -74,35 +74,35 @@ describe('token module', () => {
 			getChannel: jest.fn(),
 			getChainAccount: jest.fn(),
 		} as never);
-		apiContext = createAPIContext({
+		methodContext = createMethodContext({
 			stateStore: new PrefixedStateReadWriter(new InMemoryPrefixedStateDB()),
-			eventQueue: new EventQueue(),
+			eventQueue: new EventQueue(0),
 		});
 		const userStore = tokenModule.stores.get(UserStore);
 		await userStore.set(
-			apiContext,
+			methodContext,
 			userStore.getKey(defaultAddress, defaultTokenIDAlias),
 			defaultAccount,
 		);
 		await userStore.set(
-			apiContext,
+			methodContext,
 			userStore.getKey(defaultAddress, defaultForeignTokenID),
 			defaultAccount,
 		);
 
 		const supplyStore = tokenModule.stores.get(SupplyStore);
-		await supplyStore.set(apiContext, defaultTokenIDAlias.slice(CHAIN_ID_LENGTH), {
+		await supplyStore.set(methodContext, defaultTokenIDAlias.slice(CHAIN_ID_LENGTH), {
 			totalSupply: defaultTotalSupply,
 		});
 
 		const nextAvailableLocalIDStore = tokenModule.stores.get(AvailableLocalIDStore);
-		await nextAvailableLocalIDStore.set(apiContext, EMPTY_BYTES, {
+		await nextAvailableLocalIDStore.set(methodContext, EMPTY_BYTES, {
 			nextAvailableLocalID: Buffer.from([0, 0, 0, 5]),
 		});
 
 		const escrowStore = tokenModule.stores.get(EscrowStore);
 		await escrowStore.set(
-			apiContext,
+			methodContext,
 			Buffer.concat([
 				defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 				defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
@@ -114,13 +114,13 @@ describe('token module', () => {
 	describe('getAvailableBalance', () => {
 		it('should return zero if data does not exist', async () => {
 			await expect(
-				api.getAvailableBalance(apiContext, utils.getRandomBytes(20), defaultTokenID),
+				method.getAvailableBalance(methodContext, utils.getRandomBytes(20), defaultTokenID),
 			).resolves.toEqual(BigInt(0));
 		});
 
 		it('should return balance if data exists', async () => {
 			await expect(
-				api.getAvailableBalance(apiContext, defaultAddress, defaultTokenID),
+				method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
 			).resolves.toEqual(defaultAccount.availableBalance);
 		});
 	});
@@ -128,16 +128,16 @@ describe('token module', () => {
 	describe('getLockedAmount', () => {
 		it('should return zero if data does not exist', async () => {
 			await expect(
-				api.getLockedAmount(apiContext, utils.getRandomBytes(20), defaultTokenID, 'auth'),
+				method.getLockedAmount(methodContext, utils.getRandomBytes(20), defaultTokenID, 'auth'),
 			).resolves.toEqual(BigInt(0));
 			await expect(
-				api.getLockedAmount(apiContext, defaultAddress, defaultTokenID, 'auth'),
+				method.getLockedAmount(methodContext, defaultAddress, defaultTokenID, 'auth'),
 			).resolves.toEqual(BigInt(0));
 		});
 
 		it('should return balance if data exists', async () => {
 			await expect(
-				api.getLockedAmount(apiContext, defaultAddress, defaultTokenID, 'dpos'),
+				method.getLockedAmount(methodContext, defaultAddress, defaultTokenID, 'dpos'),
 			).resolves.toEqual(defaultAccount.lockedBalances[0].amount);
 		});
 	});
@@ -145,8 +145,8 @@ describe('token module', () => {
 	describe('getEscrowedAmount', () => {
 		it('should reject if token is native', async () => {
 			await expect(
-				api.getEscrowedAmount(
-					apiContext,
+				method.getEscrowedAmount(
+					methodContext,
 					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 					defaultForeignTokenID,
 				),
@@ -155,8 +155,8 @@ describe('token module', () => {
 
 		it('should return zero if data does not exist', async () => {
 			await expect(
-				api.getEscrowedAmount(
-					apiContext,
+				method.getEscrowedAmount(
+					methodContext,
 					Buffer.from([1, 0, 0, 0]),
 					Buffer.from([0, 0, 0, 1, 0, 0, 0, 1]),
 				),
@@ -165,8 +165,8 @@ describe('token module', () => {
 
 		it('should return balance if data exists', async () => {
 			await expect(
-				api.getEscrowedAmount(
-					apiContext,
+				method.getEscrowedAmount(
+					methodContext,
 					Buffer.from([1, 0, 0, 0]),
 					Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]),
 				),
@@ -176,17 +176,19 @@ describe('token module', () => {
 
 	describe('accountExists', () => {
 		it('should return true if account exist', async () => {
-			await expect(api.accountExists(apiContext, defaultAddress)).resolves.toBeTrue();
+			await expect(method.accountExists(methodContext, defaultAddress)).resolves.toBeTrue();
 		});
 
 		it('should return false if account does not exist', async () => {
-			await expect(api.accountExists(apiContext, utils.getRandomBytes(20))).resolves.toBeFalse();
+			await expect(
+				method.accountExists(methodContext, utils.getRandomBytes(20)),
+			).resolves.toBeFalse();
 		});
 	});
 
 	describe('getNextAvailableLocalID', () => {
 		it('should return next available local ID', async () => {
-			await expect(api.getNextAvailableLocalID(apiContext)).resolves.toEqual(
+			await expect(method.getNextAvailableLocalID(methodContext)).resolves.toEqual(
 				Buffer.from([0, 0, 0, 5]),
 			);
 		});
@@ -195,24 +197,24 @@ describe('token module', () => {
 	describe('initializeToken', () => {
 		it('should reject if supply already exist', async () => {
 			await expect(
-				api.initializeToken(apiContext, defaultTokenID.slice(CHAIN_ID_LENGTH)),
+				method.initializeToken(methodContext, defaultTokenID.slice(CHAIN_ID_LENGTH)),
 			).rejects.toThrow('Token is already initialized');
 		});
 
 		it('should not update next available local ID if local ID is less than existing one', async () => {
 			await expect(
-				api.initializeToken(apiContext, Buffer.from([0, 0, 0, 2])),
+				method.initializeToken(methodContext, Buffer.from([0, 0, 0, 2])),
 			).resolves.toBeUndefined();
-			await expect(api.getNextAvailableLocalID(apiContext)).resolves.toEqual(
+			await expect(method.getNextAvailableLocalID(methodContext)).resolves.toEqual(
 				Buffer.from([0, 0, 0, 5]),
 			);
 		});
 
 		it('should update next available local ID if local ID is greater than existing one', async () => {
 			await expect(
-				api.initializeToken(apiContext, Buffer.from([0, 0, 0, 7])),
+				method.initializeToken(methodContext, Buffer.from([0, 0, 0, 7])),
 			).resolves.toBeUndefined();
-			await expect(api.getNextAvailableLocalID(apiContext)).resolves.toEqual(
+			await expect(method.getNextAvailableLocalID(methodContext)).resolves.toEqual(
 				Buffer.from([0, 0, 0, 8]),
 			);
 		});
@@ -221,25 +223,30 @@ describe('token module', () => {
 	describe('mint', () => {
 		it('should reject if token is not native', async () => {
 			await expect(
-				api.mint(apiContext, defaultAddress, defaultForeignTokenID, BigInt(10000)),
+				method.mint(methodContext, defaultAddress, defaultForeignTokenID, BigInt(10000)),
 			).rejects.toThrow('Only native token can be minted');
 		});
 
 		it('should reject if amount is less than zero', async () => {
 			await expect(
-				api.mint(apiContext, defaultAddress, defaultTokenID, BigInt(-1)),
+				method.mint(methodContext, defaultAddress, defaultTokenID, BigInt(-1)),
 			).rejects.toThrow('Amount must be a positive integer to mint');
 		});
 
 		it('should reject if supply does not exist', async () => {
 			await expect(
-				api.mint(apiContext, defaultAddress, Buffer.from([0, 0, 0, 1, 0, 0, 0, 3]), BigInt(100)),
+				method.mint(
+					methodContext,
+					defaultAddress,
+					Buffer.from([0, 0, 0, 1, 0, 0, 0, 3]),
+					BigInt(100),
+				),
 			).rejects.toThrow('is not initialized to mint');
 		});
 
 		it('should reject if supply exceeds max uint64', async () => {
 			await expect(
-				api.mint(apiContext, defaultAddress, defaultTokenID, BigInt(2) ** BigInt(64)),
+				method.mint(methodContext, defaultAddress, defaultTokenID, BigInt(2) ** BigInt(64)),
 			).rejects.toThrow('Supply cannot exceed MAX_UINT64');
 		});
 
@@ -248,14 +255,14 @@ describe('token module', () => {
 
 		it('should update recipient balance and total supply', async () => {
 			await expect(
-				api.mint(apiContext, defaultAddress, defaultTokenID, BigInt(10000)),
+				method.mint(methodContext, defaultAddress, defaultTokenID, BigInt(10000)),
 			).resolves.toBeUndefined();
 			await expect(
-				api.getAvailableBalance(apiContext, defaultAddress, defaultTokenID),
+				method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
 			).resolves.toEqual(defaultAccount.availableBalance + BigInt(10000));
 			const supplyStore = tokenModule.stores.get(SupplyStore);
 			const { totalSupply } = await supplyStore.get(
-				apiContext,
+				methodContext,
 				defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
 			);
 			expect(totalSupply).toEqual(defaultTotalSupply + BigInt(10000));
@@ -265,20 +272,20 @@ describe('token module', () => {
 	describe('burn', () => {
 		it('should reject if token is not native', async () => {
 			await expect(
-				api.burn(apiContext, defaultAddress, defaultForeignTokenID, BigInt(10000)),
+				method.burn(methodContext, defaultAddress, defaultForeignTokenID, BigInt(10000)),
 			).rejects.toThrow('Only native token can be burnt');
 		});
 
 		it('should reject amount is less than zero', async () => {
 			await expect(
-				api.burn(apiContext, defaultAddress, defaultTokenID, BigInt(-1)),
+				method.burn(methodContext, defaultAddress, defaultTokenID, BigInt(-1)),
 			).rejects.toThrow('Amount must be a positive integer to burn');
 		});
 
 		it('should reject if address does not have enough balance', async () => {
 			await expect(
-				api.burn(
-					apiContext,
+				method.burn(
+					methodContext,
 					defaultAddress,
 					defaultTokenID,
 					defaultAccount.availableBalance + BigInt(1),
@@ -288,15 +295,15 @@ describe('token module', () => {
 
 		it('should update address balance and total supply', async () => {
 			await expect(
-				api.burn(apiContext, defaultAddress, defaultTokenID, defaultAccount.availableBalance),
+				method.burn(methodContext, defaultAddress, defaultTokenID, defaultAccount.availableBalance),
 			).resolves.toBeUndefined();
 			await expect(
-				api.getAvailableBalance(apiContext, defaultAddress, defaultTokenID),
+				method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
 			).resolves.toEqual(BigInt(0));
 
 			const supplyStore = tokenModule.stores.get(SupplyStore);
 			const { totalSupply } = await supplyStore.get(
-				apiContext,
+				methodContext,
 				defaultTokenIDAlias.slice(CHAIN_ID_LENGTH),
 			);
 			expect(totalSupply).toEqual(defaultTotalSupply - defaultAccount.availableBalance);
@@ -306,14 +313,14 @@ describe('token module', () => {
 	describe('lock', () => {
 		it('should reject amount is less than zero', async () => {
 			await expect(
-				api.lock(apiContext, defaultAddress, 'dpos', defaultTokenID, BigInt(-1)),
+				method.lock(methodContext, defaultAddress, 'dpos', defaultTokenID, BigInt(-1)),
 			).rejects.toThrow('Amount must be a positive integer to lock');
 		});
 
 		it('should reject if address does not have enough balance', async () => {
 			await expect(
-				api.lock(
-					apiContext,
+				method.lock(
+					methodContext,
 					defaultAddress,
 					'dpos',
 					defaultTokenID,
@@ -324,8 +331,8 @@ describe('token module', () => {
 
 		it('should update address balance', async () => {
 			await expect(
-				api.lock(
-					apiContext,
+				method.lock(
+					methodContext,
 					defaultAddress,
 					'token',
 					defaultTokenID,
@@ -333,14 +340,14 @@ describe('token module', () => {
 				),
 			).resolves.toBeUndefined();
 			await expect(
-				api.getAvailableBalance(apiContext, defaultAddress, defaultTokenID),
+				method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
 			).resolves.toEqual(BigInt(0));
 		});
 
 		it('should update locked balances to be sorted by module ID', async () => {
 			await expect(
-				api.lock(
-					apiContext,
+				method.lock(
+					methodContext,
 					defaultAddress,
 					'token',
 					defaultTokenID,
@@ -349,7 +356,7 @@ describe('token module', () => {
 			).resolves.toBeUndefined();
 			const userStore = tokenModule.stores.get(UserStore);
 			const { lockedBalances } = await userStore.get(
-				apiContext,
+				methodContext,
 				userStore.getKey(defaultAddress, defaultTokenIDAlias),
 			);
 			expect(lockedBalances[0].module).toEqual('dpos');
@@ -359,20 +366,20 @@ describe('token module', () => {
 	describe('unlock', () => {
 		it('should reject amount is less than zero', async () => {
 			await expect(
-				api.unlock(apiContext, defaultAddress, 'dpos', defaultTokenID, BigInt(-1)),
+				method.unlock(methodContext, defaultAddress, 'dpos', defaultTokenID, BigInt(-1)),
 			).rejects.toThrow('Amount must be a positive integer to unlock');
 		});
 
 		it('should reject if address does not have any corresponding locked balance for the specified module', async () => {
 			await expect(
-				api.unlock(apiContext, defaultAddress, 'sample', defaultTokenID, BigInt(100)),
+				method.unlock(methodContext, defaultAddress, 'sample', defaultTokenID, BigInt(100)),
 			).rejects.toThrow('No balance is locked for module sample');
 		});
 
 		it('should reject if address does not have sufficient corresponding locked balance for the specified module', async () => {
 			await expect(
-				api.unlock(
-					apiContext,
+				method.unlock(
+					methodContext,
 					defaultAddress,
 					'dpos',
 					defaultTokenID,
@@ -383,8 +390,8 @@ describe('token module', () => {
 
 		it('should update address balance', async () => {
 			await expect(
-				api.unlock(
-					apiContext,
+				method.unlock(
+					methodContext,
 					defaultAddress,
 					'dpos',
 					defaultTokenID,
@@ -393,7 +400,7 @@ describe('token module', () => {
 			).resolves.toBeUndefined();
 			const userStore = tokenModule.stores.get(UserStore);
 			const { lockedBalances } = await userStore.get(
-				apiContext,
+				methodContext,
 				userStore.getKey(defaultAddress, defaultTokenIDAlias),
 			);
 			expect(lockedBalances[0].amount).toEqual(BigInt(1));
@@ -401,8 +408,8 @@ describe('token module', () => {
 
 		it('should remove lockedBalances entry if amount becomes zero', async () => {
 			await expect(
-				api.unlock(
-					apiContext,
+				method.unlock(
+					methodContext,
 					defaultAddress,
 					'dpos',
 					defaultTokenID,
@@ -411,7 +418,7 @@ describe('token module', () => {
 			).resolves.toBeUndefined();
 			const userStore = tokenModule.stores.get(UserStore);
 			const { lockedBalances } = await userStore.get(
-				apiContext,
+				methodContext,
 				userStore.getKey(defaultAddress, defaultTokenIDAlias),
 			);
 			expect(lockedBalances).toHaveLength(0);
@@ -421,8 +428,8 @@ describe('token module', () => {
 	describe('transferCrossChain', () => {
 		it('should reject when amount is less than zero', async () => {
 			await expect(
-				api.transferCrossChain(
-					apiContext,
+				method.transferCrossChain(
+					methodContext,
 					defaultAddress,
 					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
@@ -436,8 +443,8 @@ describe('token module', () => {
 
 		it('should reject when sender address length is invalid', async () => {
 			await expect(
-				api.transferCrossChain(
-					apiContext,
+				method.transferCrossChain(
+					methodContext,
 					defaultAddress.slice(1),
 					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
@@ -451,8 +458,8 @@ describe('token module', () => {
 
 		it('should reject when recipient address length is invalid', async () => {
 			await expect(
-				api.transferCrossChain(
-					apiContext,
+				method.transferCrossChain(
+					methodContext,
 					defaultAddress,
 					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(19),
@@ -466,8 +473,8 @@ describe('token module', () => {
 
 		it('should reject when sender balance is less than amount', async () => {
 			await expect(
-				api.transferCrossChain(
-					apiContext,
+				method.transferCrossChain(
+					methodContext,
 					defaultAddress,
 					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
@@ -480,9 +487,9 @@ describe('token module', () => {
 		});
 
 		it('should not update sender balance if send fail and chain id is native chain', async () => {
-			jest.spyOn(api['_interoperabilityAPI'], 'send').mockResolvedValue(false);
-			await api.transferCrossChain(
-				apiContext,
+			jest.spyOn(method['_interoperabilityMethod'], 'send').mockResolvedValue(false);
+			await method.transferCrossChain(
+				methodContext,
 				defaultAddress,
 				defaultTokenID.slice(0, CHAIN_ID_LENGTH),
 				utils.getRandomBytes(20),
@@ -493,25 +500,25 @@ describe('token module', () => {
 			);
 
 			await expect(
-				api.getAvailableBalance(apiContext, defaultAddress, defaultTokenID),
+				method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
 			).resolves.toEqual(defaultAccount.availableBalance);
 		});
 
 		it('should not update sender balance if send fail and chain id is mainchain', async () => {
-			jest.spyOn(api['_interoperabilityAPI'], 'send').mockResolvedValue(false);
+			jest.spyOn(method['_interoperabilityMethod'], 'send').mockResolvedValue(false);
 			jest
-				.spyOn(api['_interoperabilityAPI'], 'getOwnChainAccount')
+				.spyOn(method['_interoperabilityMethod'], 'getOwnChainAccount')
 				.mockResolvedValue({ id: Buffer.from([0, 0, 0, 2]) } as never);
 			const receivingChainID = Buffer.from([0, 0, 0, 3]);
 			const messageFee = BigInt('10000');
 			const userStore = tokenModule.stores.get(UserStore);
 			await userStore.set(
-				apiContext,
+				methodContext,
 				userStore.getKey(defaultAddress, defaultTokenID),
 				defaultAccount,
 			);
-			await api.transferCrossChain(
-				apiContext,
+			await method.transferCrossChain(
+				methodContext,
 				defaultAddress,
 				receivingChainID,
 				utils.getRandomBytes(20),
@@ -521,15 +528,15 @@ describe('token module', () => {
 				'data',
 			);
 			await expect(
-				api.getAvailableBalance(apiContext, defaultAddress, defaultTokenID),
+				method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
 			).resolves.toEqual(defaultAccount.availableBalance);
 		});
 
 		describe('when chainID is native chain', () => {
 			beforeEach(async () => {
 				jest.spyOn(codec, 'encode');
-				await api.transferCrossChain(
-					apiContext,
+				await method.transferCrossChain(
+					methodContext,
 					defaultAddress,
 					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
@@ -548,10 +555,10 @@ describe('token module', () => {
 					recipientAddress: expect.any(Buffer),
 					data: 'data',
 				});
-				expect(api['_interoperabilityAPI'].send).toHaveBeenCalledWith(
-					apiContext,
+				expect(method['_interoperabilityMethod'].send).toHaveBeenCalledWith(
+					methodContext,
 					defaultAddress,
-					api['_moduleName'],
+					method['_moduleName'],
 					CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
 					BigInt('10000'),
@@ -562,14 +569,14 @@ describe('token module', () => {
 
 			it('should deduct amount from sender', async () => {
 				await expect(
-					api.getAvailableBalance(apiContext, defaultAddress, defaultTokenID),
+					method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
 				).resolves.toEqual(BigInt(0));
 			});
 
 			it('should add amount to escrow', async () => {
 				await expect(
-					api.getEscrowedAmount(
-						apiContext,
+					method.getEscrowedAmount(
+						methodContext,
 						defaultTokenID.slice(0, CHAIN_ID_LENGTH),
 						defaultTokenID,
 					),
@@ -581,8 +588,8 @@ describe('token module', () => {
 			beforeEach(async () => {
 				jest.spyOn(codec, 'encode');
 				jest.spyOn(tokenModule.stores, 'get');
-				await api.transferCrossChain(
-					apiContext,
+				await method.transferCrossChain(
+					methodContext,
 					defaultAddress,
 					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 					utils.getRandomBytes(20),
@@ -601,10 +608,10 @@ describe('token module', () => {
 					recipientAddress: expect.any(Buffer),
 					data: 'data',
 				});
-				expect(api['_interoperabilityAPI'].send).toHaveBeenCalledWith(
-					apiContext,
+				expect(method['_interoperabilityMethod'].send).toHaveBeenCalledWith(
+					methodContext,
 					defaultAddress,
-					api['_moduleName'],
+					method['_moduleName'],
 					CROSS_CHAIN_COMMAND_NAME_TRANSFER,
 					defaultForeignTokenID.slice(0, CHAIN_ID_LENGTH),
 					BigInt('10000'),
@@ -615,7 +622,7 @@ describe('token module', () => {
 
 			it('should deduct amount from sender', async () => {
 				await expect(
-					api.getAvailableBalance(apiContext, defaultAddress, defaultForeignTokenID),
+					method.getAvailableBalance(methodContext, defaultAddress, defaultForeignTokenID),
 				).resolves.toEqual(BigInt(0));
 			});
 
@@ -631,16 +638,16 @@ describe('token module', () => {
 			beforeEach(async () => {
 				jest.spyOn(codec, 'encode');
 				jest
-					.spyOn(api['_interoperabilityAPI'], 'getOwnChainAccount')
+					.spyOn(method['_interoperabilityMethod'], 'getOwnChainAccount')
 					.mockResolvedValue({ id: Buffer.from([0, 0, 0, 2]) } as never);
 				const userStore = tokenModule.stores.get(UserStore);
 				await userStore.set(
-					apiContext,
+					methodContext,
 					userStore.getKey(defaultAddress, defaultTokenID),
 					defaultAccount,
 				);
-				await api.transferCrossChain(
-					apiContext,
+				await method.transferCrossChain(
+					methodContext,
 					defaultAddress,
 					receivingChainID,
 					utils.getRandomBytes(20),
@@ -653,8 +660,8 @@ describe('token module', () => {
 
 			it('should fail if sender does not have amount + messageFee', async () => {
 				await expect(
-					api.transferCrossChain(
-						apiContext,
+					method.transferCrossChain(
+						methodContext,
 						defaultAddress,
 						receivingChainID,
 						utils.getRandomBytes(20),
@@ -676,10 +683,10 @@ describe('token module', () => {
 					data: 'data',
 					forwardedMessageFee: messageFee,
 				});
-				expect(api['_interoperabilityAPI'].send).toHaveBeenCalledWith(
-					apiContext,
+				expect(method['_interoperabilityMethod'].send).toHaveBeenCalledWith(
+					methodContext,
 					defaultAddress,
-					api['_moduleName'],
+					method['_moduleName'],
 					CROSS_CHAIN_COMMAND_NAME_FORWARD,
 					defaultTokenID.slice(0, CHAIN_ID_LENGTH),
 					BigInt('0'),
@@ -690,7 +697,7 @@ describe('token module', () => {
 
 			it('should deduct amount and message fee from sender', async () => {
 				await expect(
-					api.getAvailableBalance(apiContext, defaultAddress, defaultTokenID),
+					method.getAvailableBalance(methodContext, defaultAddress, defaultTokenID),
 				).resolves.toEqual(BigInt(0));
 			});
 		});

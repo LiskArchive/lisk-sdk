@@ -18,13 +18,13 @@ export const createTransferTransaction = ({
 	fee,
 	recipientAddress,
 	nonce,
-	networkIdentifier,
+	chainID,
 }: {
 	amount: string;
 	fee: string;
 	recipientAddress: string;
 	nonce: number;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 }): Transaction => {
 	const genesisAccount = testing.fixtures.defaultFaucetAccount;
 	const encodedAsset = codec.encode(new TokenTransferAsset(BigInt(5000000)).schema, {
@@ -44,7 +44,7 @@ export const createTransferTransaction = ({
 	tx.signatures.push(
 		cryptography.signData(
 			transactions.TAG_TRANSACTION,
-			networkIdentifier,
+			chainID,
 			tx.getSigningBytes(),
 			genesisAccount.passphrase,
 		),
@@ -57,13 +57,13 @@ export const createVoteTransaction = ({
 	fee,
 	recipientAddress,
 	nonce,
-	networkIdentifier,
+	chainID,
 }: {
 	amount: string;
 	fee: string;
 	recipientAddress: string;
 	nonce: number;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 }): Transaction => {
 	const genesisAccount = testing.fixtures.defaultFaucetAccount;
 	const encodedAsset = codec.encode(new DPoSVoteAsset().schema, {
@@ -87,7 +87,7 @@ export const createVoteTransaction = ({
 	tx.signatures.push(
 		cryptography.signData(
 			transactions.TAG_TRANSACTION,
-			networkIdentifier,
+			chainID,
 			tx.getSigningBytes(),
 			genesisAccount.passphrase,
 		),

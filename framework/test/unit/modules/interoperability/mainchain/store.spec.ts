@@ -35,7 +35,7 @@ import { ChainAccountStore } from '../../../../../src/modules/interoperability/s
 import { ChannelDataStore } from '../../../../../src/modules/interoperability/stores/channel_data';
 import { TerminatedStateStore } from '../../../../../src/modules/interoperability/stores/terminated_state';
 import {
-	BeforeSendCCMsgAPIContext,
+	BeforeSendCCMsgMethodContext,
 	CCMForwardContext,
 	CCMsg,
 	CCUpdateParams,
@@ -43,7 +43,7 @@ import {
 } from '../../../../../src/modules/interoperability/types';
 import { EventQueue } from '../../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
-import { APIContext } from '../../../../../src/state_machine/types';
+import { MethodContext } from '../../../../../src/state_machine/types';
 import { InMemoryPrefixedStateDB } from '../../../../../src/testing/in_memory_prefixed_state';
 import { loggerMock } from '../../../../../src/testing/mocks';
 import { createStoreGetter } from '../../../../../src/testing/utils';
@@ -166,16 +166,16 @@ describe('Mainchain interoperability store', () => {
 	});
 
 	describe('sendInternal', () => {
-		const ccAPIMod1 = {
+		const ccMethodMod1 = {
 			beforeSendCCM: jest.fn(),
 		};
-		const ccAPIMod2 = {
+		const ccMethodMod2 = {
 			beforeSendCCM: jest.fn(),
 		};
 
 		const modsMap = new Map();
-		modsMap.set('cc1', ccAPIMod1);
-		modsMap.set('cc2', ccAPIMod2);
+		modsMap.set('cc1', ccMethodMod1);
+		modsMap.set('cc2', ccMethodMod2);
 
 		const ccm = {
 			nonce: BigInt(0),
@@ -219,7 +219,7 @@ describe('Mainchain interoperability store', () => {
 			status: 1,
 		};
 
-		const beforeSendCCMContext = testing.createBeforeSendCCMsgAPIContext({
+		const beforeSendCCMContext = testing.createBeforeSendCCMsgMethodContext({
 			ccm,
 			feeAddress: utils.getRandomBytes(32),
 		});
@@ -269,7 +269,7 @@ describe('Mainchain interoperability store', () => {
 				params: Buffer.alloc(MAX_CCM_SIZE), // invalid size
 			};
 
-			const beforeSendCCMContextLocal = testing.createBeforeSendCCMsgAPIContext({
+			const beforeSendCCMContextLocal = testing.createBeforeSendCCMsgMethodContext({
 				ccm: invalidCCM,
 				feeAddress: utils.getRandomBytes(32),
 			});
@@ -302,7 +302,7 @@ describe('Mainchain interoperability store', () => {
 				params: Buffer.alloc(0),
 			};
 
-			const beforeSendCCMContextLocal = testing.createBeforeSendCCMsgAPIContext({
+			const beforeSendCCMContextLocal = testing.createBeforeSendCCMsgMethodContext({
 				ccm: invalidCCM as any,
 				feeAddress: utils.getRandomBytes(32),
 			});
@@ -323,7 +323,7 @@ describe('Mainchain interoperability store', () => {
 			expect(mainchainInteroperabilityStore.isLive).toHaveBeenCalledTimes(1);
 		});
 
-		it('should return true and call each module beforeSendCCM crossChainAPI', async () => {
+		it('should return true and call each module beforeSendCCM crossChainMethod', async () => {
 			const mainchainInteropStoreLocal = new MainchainInteroperabilityStore(
 				interopMod.stores,
 				context,
@@ -341,32 +341,32 @@ describe('Mainchain interoperability store', () => {
 			);
 			expect(mainchainInteropStoreLocal.isLive).toHaveBeenCalledTimes(1);
 			expect(mainchainInteropStoreLocal.appendToOutboxTree).toHaveBeenCalledTimes(1);
-			expect(ccAPIMod1.beforeSendCCM).toHaveBeenCalledTimes(1);
-			expect(ccAPIMod2.beforeSendCCM).toHaveBeenCalledTimes(1);
+			expect(ccMethodMod1.beforeSendCCM).toHaveBeenCalledTimes(1);
+			expect(ccMethodMod2.beforeSendCCM).toHaveBeenCalledTimes(1);
 		});
 	});
 
 	describe('forward', () => {
-		let tokenCCAPI: any;
+		let tokenCCMethod: any;
 		let forwardContext: CCMForwardContext;
 		let receivingChainAccount: any;
 		let ccm: CCMsg;
-		let apiContext: APIContext;
+		let methodContext: MethodContext;
 		let receivingChainIDAsStoreKey: Buffer;
-		let beforeCCMSendContext: BeforeSendCCMsgAPIContext;
+		let beforeCCMSendContext: BeforeSendCCMsgMethodContext;
 
 		beforeEach(() => {
-			tokenCCAPI = {
+			tokenCCMethod = {
 				forwardMessageFee: jest.fn(),
 			};
 
-			const interoperableModuleAPIs = new Map();
-			interoperableModuleAPIs.set('token', tokenCCAPI);
+			const interoperableModuleMethods = new Map();
+			interoperableModuleMethods.set('token', tokenCCMethod);
 
 			mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
 				interopMod.stores,
 				context,
-				interoperableModuleAPIs,
+				interoperableModuleMethods,
 			);
 
 			receivingChainAccount = {
@@ -415,20 +415,20 @@ describe('Mainchain interoperability store', () => {
 			forwardContext = {
 				ccm,
 				ccu,
-				eventQueue: new EventQueue(),
+				eventQueue: new EventQueue(0),
 				feeAddress: Buffer.alloc(0),
-				getAPIContext: jest.fn(() => apiContext),
+				getMethodContext: jest.fn(() => methodContext),
 				getStore: jest.fn(),
 				logger: loggerMock,
-				networkIdentifier: Buffer.alloc(0),
+				chainID: Buffer.alloc(0),
 			};
 
 			beforeCCMSendContext = createCCMsgBeforeSendContext({
 				ccm,
 				eventQueue: forwardContext.eventQueue,
-				getAPIContext: forwardContext.getAPIContext,
+				getMethodContext: forwardContext.getMethodContext,
 				logger: forwardContext.logger,
-				networkIdentifier: forwardContext.networkIdentifier,
+				chainID: forwardContext.chainID,
 				getStore: forwardContext.getStore,
 				feeAddress: EMPTY_FEE_ADDRESS,
 			});
@@ -446,10 +446,10 @@ describe('Mainchain interoperability store', () => {
 		it('should successfully forward CCM', async () => {
 			receivingChainAccount.status = CHAIN_ACTIVE;
 			jest.spyOn(mainchainInteroperabilityStore, 'isLive').mockResolvedValue(true);
-			jest.spyOn(tokenCCAPI, 'forwardMessageFee').mockResolvedValue(true);
+			jest.spyOn(tokenCCMethod, 'forwardMessageFee').mockResolvedValue(true);
 
 			const result = await mainchainInteroperabilityStore.forward(forwardContext);
-			expect(tokenCCAPI.forwardMessageFee).toHaveBeenCalledWith(apiContext, ccm);
+			expect(tokenCCMethod.forwardMessageFee).toHaveBeenCalledWith(methodContext, ccm);
 			expect(mainchainInteroperabilityStore.addToOutbox).toHaveBeenCalledWith(
 				receivingChainIDAsStoreKey,
 				ccm,
@@ -464,10 +464,10 @@ describe('Mainchain interoperability store', () => {
 			expect(result).toBe(ForwardCCMsgResult.INFORM_SIDECHAIN_TERMINATION);
 		});
 
-		it('should throw when tokenCCAPI is not present', async () => {
-			mainchainInteroperabilityStore['interoperableModuleAPIs'].delete('token');
+		it('should throw when tokenCCMethod is not present', async () => {
+			mainchainInteroperabilityStore['interoperableModuleMethods'].delete('token');
 			await expect(mainchainInteroperabilityStore.forward(forwardContext)).rejects.toThrow(
-				'TokenCCAPI does not exist',
+				'TokenCCMethod does not exist',
 			);
 		});
 

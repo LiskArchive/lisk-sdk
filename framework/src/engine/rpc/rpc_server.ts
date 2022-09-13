@@ -27,7 +27,7 @@ import { systemDirs } from '../../system_dirs';
 
 export interface RequestContext {
 	params: Record<string, unknown>;
-	networkIdentifier: Buffer;
+	chainID: Buffer;
 	logger: Logger;
 }
 
@@ -50,7 +50,7 @@ export class RPCServer {
 	private _notFoundHandler?: NotFoundHandler;
 
 	private _logger!: Logger;
-	private _networkIdentifier!: Buffer;
+	private _chainID!: Buffer;
 
 	public constructor(dataPath: string, config: RPCConfig) {
 		this._config = config;
@@ -81,31 +81,32 @@ export class RPCServer {
 		}
 	}
 
-	public init(options: { logger: Logger; networkIdentifier: Buffer }): void {
+	public init(options: { logger: Logger; chainID: Buffer }): void {
 		this._logger = options.logger;
-		this._networkIdentifier = options.networkIdentifier;
+		this._chainID = options.chainID;
 	}
 
 	public async start(): Promise<void> {
 		if (this._ipcServer) {
 			await this._ipcServer.start();
 			this._handleIPCRequest(this._ipcServer.rpcServer).catch(err => {
-				this._logger.debug(err, 'Error occured while listening to RPCs on RPC router.');
-				this._logger.info({ status: 'error', err: err as Error }, 'Handle IPC request');
+				this._logger.info({ status: 'error', err: err as Error }, 'Failed to handle IPC request');
 			});
 			this._logger.info(`RPC IPC Server starting at ${this._ipcServer.socketPaths.rpcServer}`);
-			this._logger.info({ status: 'success' }, 'Handle IPC request');
 		}
 
 		if (this._httpServer) {
-			this._httpServer.start(this._logger, (_req, res, message) => {
+			this._httpServer.start(this._logger, (req, res, message) => {
+				this._logger.debug({ remoteAddress: req.socket.remoteAddress }, 'Received HTTP request');
 				this._handleRequest(message)
 					.then(data => {
-						this._logger.info({ status: 'success' }, 'Handle HTTP request');
 						res.end(JSON.stringify(data));
 					})
 					.catch((error: JSONRPC.JSONRPCError) => {
-						this._logger.info({ status: 'error', err: error as Error }, 'Handle HTTP request');
+						this._logger.info(
+							{ status: 'error', err: error as Error },
+							'Failed to handle HTTP request',
+						);
 						res.end(JSON.stringify(error.response));
 					});
 			});
@@ -115,13 +116,16 @@ export class RPCServer {
 			this._wsServer.start(
 				this._logger,
 				(socket, message) => {
+					this._logger.debug({ id: socket.id, url: socket.url }, 'Received WS request');
 					this._handleRequest(message)
 						.then(data => {
-							this._logger.info({ status: 'success' }, 'Handle WS request');
 							socket.send(JSON.stringify(data));
 						})
 						.catch((error: JSONRPC.JSONRPCError) => {
-							this._logger.info({ status: 'error', err: error as Error }, 'Handle WS request');
+							this._logger.info(
+								{ status: 'error', err: error as Error },
+								'Failed to handle WS request',
+							);
 							socket.send(JSON.stringify(error.response));
 						});
 				},
@@ -157,30 +161,25 @@ export class RPCServer {
 		}
 		const existingMethod = this._rpcHandler[namespace][method];
 		if (existingMethod) {
-			this._logger.info({ status: 'error' }, 'RegisterEndpoint');
 			throw new Error(`Method ${method} in ${namespace} is already registered.`);
 		}
 		this._rpcHandler[namespace][method] = handler;
-		this._logger.info({ status: 'success' }, 'RegisterEndpoint');
-		this._logger.info(`Registered ${namespace} endpoint ${method}`);
+		this._logger.info({ method: `${namespace}_${method}` }, `Registered endpoint`);
 	}
 
 	public registerNotFoundEndpoint(handler: NotFoundHandler): void {
 		if (this._notFoundHandler) {
-			this._logger.info({ status: 'error' }, 'RegisterNotFoundEndpoint');
 			throw new Error('NotFoundHandler is already registered.');
 		}
 		this._notFoundHandler = handler;
-		this._logger.info({ status: 'success' }, 'RegisterNotFoundEndpoint');
 	}
 
 	private async _handleIPCRequest(rpcServer: Router): Promise<void> {
 		for await (const [sender, request] of rpcServer) {
+			this._logger.debug({ sender: sender.toString('hex') }, 'Received IPC request');
 			this._handleRequest(request.toString())
 				.then(result => {
-					this._logger.info({ status: 'success' }, 'HandleIPCRequest');
 					rpcServer.send([sender, JSON.stringify(result)]).catch(error => {
-						this._logger.info({ status: 'error' }, 'RPCServer.send');
 						this._logger.debug(
 							{ err: error as Error },
 							`Failed to send request response: ${result.id as string} to ipc client.`,
@@ -188,10 +187,9 @@ export class RPCServer {
 					});
 				})
 				.catch((err: JSONRPC.JSONRPCError) => {
-					this._logger.info({ status: 'error' }, 'HandleIPCRequest');
+					this._logger.info({ status: 'error', err }, 'Failed to handle IPC request');
 					rpcServer.send([sender, JSON.stringify(err.response)]).catch(error => {
-						this._logger.info({ status: 'error' }, 'RPCServer.send');
-						this._logger.debug({ err: error as Error }, `Failed to send error response.`);
+						this._logger.debug({ err: error as Error }, `Failed to send IPC error response.`);
 					});
 				});
 		}
@@ -237,7 +235,7 @@ export class RPCServer {
 
 			const context = {
 				logger: this._logger,
-				networkIdentifier: this._networkIdentifier,
+				chainID: this._chainID,
 				params: requestObj.params ?? {},
 			};
 			if (!handler) {
@@ -251,6 +249,10 @@ export class RPCServer {
 				);
 			}
 			const result = await handler(context);
+			this._logger.info(
+				{ status: 'success', method: `${request.namespace}_${request.name}`, id: request.id },
+				'Handled RPC request',
+			);
 			return request.buildJSONRPCResponse({
 				result: result ?? {},
 			}) as JSONRPC.ResponseObjectWithResult;
@@ -273,12 +275,12 @@ export class RPCServer {
 		const notification = notificationRequest(eventName, data);
 		try {
 			await this._ipcServer.pubSocket.send([eventName, JSON.stringify(notification)]);
-			this._logger.info({ status: 'success' }, 'IPCServer.pubSocket.send');
+			this._logger.info({ status: 'success', event: eventName }, 'IPCServer published event');
 		} catch (error) {
-			this._logger.info({ status: 'error' }, 'IPCServer.pubSocket.send');
+			this._logger.info({ status: 'error', event: eventName }, 'IPCServer published event');
 			this._logger.debug(
-				{ err: error as Error },
-				`Failed to publish event: ${eventName} to ipc server.`,
+				{ err: error as Error, event: eventName },
+				`Failed to publish event from ipc server.`,
 			);
 		}
 	}
@@ -289,7 +291,7 @@ export class RPCServer {
 		}
 		const notification = notificationRequest(eventName, data);
 		this._wsServer.broadcast(notification);
-		this._logger.info({ status: 'success' }, 'WSServer.broadcast');
+		this._logger.info({ status: 'success', event: eventName }, 'WSServer published event');
 	}
 
 	private _getHandler(namespace: string, method: string): Handler | undefined {

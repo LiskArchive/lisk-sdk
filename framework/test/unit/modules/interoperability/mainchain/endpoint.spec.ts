@@ -41,7 +41,7 @@ describe('Mainchain endpoint', () => {
 	const interopMod = new MainchainInteroperabilityModule();
 
 	const chainID = utils.intToBuffer(1, 4);
-	const interoperableCCAPIs = new Map();
+	const interoperableCCMethods = new Map();
 
 	let moduleContext: ModuleEndpointContext;
 
@@ -151,9 +151,9 @@ describe('Mainchain endpoint', () => {
 		const stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		moduleContext = {
 			getStore: (p1: Buffer, p2: Buffer) => stateStore.getStore(p1, p2),
-			getImmutableAPIContext: jest.fn(),
+			getImmutableMethodContext: jest.fn(),
 			getOffchainStore: jest.fn(),
-			networkIdentifier: Buffer.alloc(0),
+			chainID: Buffer.alloc(0),
 			params: {},
 			logger: {} as any,
 		};
@@ -161,12 +161,12 @@ describe('Mainchain endpoint', () => {
 		mainchainInteroperabilityStore = new MainchainInteroperabilityStore(
 			interopMod.stores,
 			moduleContext,
-			interoperableCCAPIs,
+			interoperableCCMethods,
 		);
 		mainchainInteroperabilityEndpoint = new MainchainInteroperabilityEndpoint(
 			interopMod.stores,
 			interopMod.offchainStores,
-			interoperableCCAPIs,
+			interoperableCCMethods,
 		);
 
 		jest

@@ -11,6 +11,13 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+import {
+	MAX_MODULE_NAME_LENGTH,
+	MAX_EVENT_NAME_LENGTH,
+	MIN_MODULE_NAME_LENGTH,
+	MIN_EVENT_NAME_LENGTH,
+} from './constants';
+
 export const blockSchema = {
 	$id: '/block',
 	type: 'object',
@@ -45,7 +52,7 @@ export const signingBlockHeaderSchema = {
 		timestamp: { dataType: 'uint32', fieldNumber: 2 },
 		height: { dataType: 'uint32', fieldNumber: 3 },
 		previousBlockID: { dataType: 'bytes', fieldNumber: 4 },
-		generatorAddress: { dataType: 'bytes', fieldNumber: 5 },
+		generatorAddress: { dataType: 'bytes', fieldNumber: 5, format: 'lisk32' },
 		transactionRoot: { dataType: 'bytes', fieldNumber: 6 },
 		assetRoot: { dataType: 'bytes', fieldNumber: 7 },
 		eventRoot: { dataType: 'bytes', fieldNumber: 8 },
@@ -178,14 +185,18 @@ export const stateDiffSchema = {
 export const eventSchema = {
 	$id: '/block/event',
 	type: 'object',
-	required: ['module', 'typeID', 'data', 'topics', 'index'],
+	required: ['module', 'name', 'data', 'topics', 'height', 'index'],
 	properties: {
 		module: {
 			dataType: 'string',
+			minLength: MIN_MODULE_NAME_LENGTH,
+			maxLength: MAX_MODULE_NAME_LENGTH,
 			fieldNumber: 1,
 		},
-		typeID: {
-			dataType: 'bytes',
+		name: {
+			dataType: 'string',
+			minLength: MIN_EVENT_NAME_LENGTH,
+			maxLength: MAX_EVENT_NAME_LENGTH,
 			fieldNumber: 2,
 		},
 		data: {
@@ -196,13 +207,16 @@ export const eventSchema = {
 			type: 'array',
 			fieldNumber: 4,
 			items: {
-				maxItems: 4,
 				dataType: 'bytes',
 			},
 		},
-		index: {
+		height: {
 			dataType: 'uint32',
 			fieldNumber: 5,
+		},
+		index: {
+			dataType: 'uint32',
+			fieldNumber: 6,
 		},
 	},
 };

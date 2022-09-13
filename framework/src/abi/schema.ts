@@ -18,20 +18,30 @@ import {
 	blockAssetSchema,
 	transactionSchema,
 } from '@liskhq/lisk-chain';
+import {
+	MIN_MODULE_NAME_LENGTH,
+	MAX_MODULE_NAME_LENGTH,
+	MIN_EVENT_NAME_LENGTH,
+	MAX_EVENT_NAME_LENGTH,
+} from '@liskhq/lisk-chain/dist-node/constants';
 
 export { blockHeaderSchema, blockSchema };
 
 export const eventSchema = {
 	$id: '/block/event',
 	type: 'object',
-	required: ['module', 'typeID', 'data', 'topics', 'index'],
+	required: ['module', 'name', 'data', 'topics', 'height', 'index'],
 	properties: {
 		module: {
 			dataType: 'string',
+			minLength: MIN_MODULE_NAME_LENGTH,
+			maxLength: MAX_MODULE_NAME_LENGTH,
 			fieldNumber: 1,
 		},
-		typeID: {
-			dataType: 'bytes',
+		name: {
+			dataType: 'string',
+			minLength: MIN_EVENT_NAME_LENGTH,
+			maxLength: MAX_EVENT_NAME_LENGTH,
 			fieldNumber: 2,
 		},
 		data: {
@@ -42,13 +52,16 @@ export const eventSchema = {
 			type: 'array',
 			fieldNumber: 4,
 			items: {
-				maxItems: 4,
 				dataType: 'bytes',
 			},
 		},
-		index: {
+		height: {
 			dataType: 'uint32',
 			fieldNumber: 5,
+		},
+		index: {
+			dataType: 'uint32',
+			fieldNumber: 6,
 		},
 	},
 };
@@ -107,9 +120,9 @@ export const consensusSchema = {
 export const readyRequestSchema = {
 	$id: '/abi/readyRequest',
 	type: 'object',
-	required: ['networkIdentifier', 'lastBlockHeight'],
+	required: ['chainID', 'lastBlockHeight'],
 	properties: {
-		networkIdentifier: {
+		chainID: {
 			fieldNumber: 1,
 			dataType: 'bytes',
 		},

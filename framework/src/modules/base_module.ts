@@ -26,7 +26,7 @@ import {
 } from '../state_machine';
 import { BaseCommand } from './base_command';
 import { BaseEndpoint } from './base_endpoint';
-import { BaseAPI } from './base_api';
+import { BaseMethod } from './base_method';
 import { InsertAssetContext } from '../state_machine/types';
 import { NamedRegistry } from './named_registry';
 
@@ -43,7 +43,7 @@ export interface ModuleMetadata {
 		response: Schema;
 	}[];
 	events: {
-		typeID: string;
+		name: string;
 		data: Schema;
 	}[];
 	commands: {
@@ -65,7 +65,7 @@ export interface ModuleMetadataJSON {
 		response: Schema;
 	}[];
 	events: {
-		typeID: string;
+		name: string;
 		data: Schema;
 	}[];
 	commands: {
@@ -90,7 +90,7 @@ export abstract class BaseModule {
 	}
 
 	public abstract endpoint: BaseEndpoint;
-	public abstract api: BaseAPI;
+	public abstract method: BaseMethod;
 
 	public async init?(args: ModuleInitArgs): Promise<void>;
 	public async insertAssets?(context: InsertAssetContext): Promise<void>;

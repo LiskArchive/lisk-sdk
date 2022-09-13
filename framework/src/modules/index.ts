@@ -19,7 +19,7 @@ export {
 	ModuleInitArgs,
 } from './base_module';
 export { BaseCommand } from './base_command';
-export { BaseAPI } from './base_api';
+export { BaseMethod } from './base_method';
 export { BaseEndpoint } from './base_endpoint';
 export { BaseStore, StoreGetter, ImmutableStoreGetter } from './base_store';
 export {

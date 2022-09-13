@@ -98,16 +98,16 @@ describe('Sidechain interoperability store', () => {
 	});
 
 	describe('sendInternal', () => {
-		const ccAPIMod1 = {
+		const ccMethodMod1 = {
 			beforeSendCCM: jest.fn(),
 		};
-		const ccAPIMod2 = {
+		const ccMethodMod2 = {
 			beforeSendCCM: jest.fn(),
 		};
 
 		const modsMap = new Map();
-		modsMap.set('1', ccAPIMod1);
-		modsMap.set('2', ccAPIMod2);
+		modsMap.set('1', ccMethodMod1);
+		modsMap.set('2', ccMethodMod2);
 
 		const ccm = {
 			nonce: BigInt(0),
@@ -151,7 +151,7 @@ describe('Sidechain interoperability store', () => {
 			},
 		};
 
-		const beforeSendCCMContext = testing.createBeforeSendCCMsgAPIContext({
+		const beforeSendCCMContext = testing.createBeforeSendCCMsgMethodContext({
 			ccm,
 			feeAddress: utils.getRandomBytes(32),
 		});
@@ -237,7 +237,7 @@ describe('Sidechain interoperability store', () => {
 				params: Buffer.alloc(MAX_CCM_SIZE), // invalid size
 			};
 
-			const beforeSendCCMContextLocal = testing.createBeforeSendCCMsgAPIContext({
+			const beforeSendCCMContextLocal = testing.createBeforeSendCCMsgMethodContext({
 				ccm: invalidCCM,
 				feeAddress: utils.getRandomBytes(32),
 			});
@@ -269,7 +269,7 @@ describe('Sidechain interoperability store', () => {
 				params: Buffer.alloc(0),
 			};
 
-			const beforeSendCCMContextLocal = testing.createBeforeSendCCMsgAPIContext({
+			const beforeSendCCMContextLocal = testing.createBeforeSendCCMsgMethodContext({
 				ccm: invalidCCM as any,
 				feeAddress: utils.getRandomBytes(32),
 			});
@@ -289,7 +289,7 @@ describe('Sidechain interoperability store', () => {
 			expect(sidechainInteroperabilityStore.isLive).toHaveBeenCalledTimes(1);
 		});
 
-		it('should return true and call each module beforeSendCCM crossChainAPI', async () => {
+		it('should return true and call each module beforeSendCCM crossChainMethod', async () => {
 			const sidechainInteropStoreLocal = new SidechainInteroperabilityStore(
 				sidechainInterops.stores,
 				context,
@@ -307,8 +307,8 @@ describe('Sidechain interoperability store', () => {
 			).resolves.toEqual(true);
 			expect(sidechainInteropStoreLocal.isLive).toHaveBeenCalledTimes(1);
 			expect(sidechainInteropStoreLocal.appendToOutboxTree).toHaveBeenCalledTimes(1);
-			expect(ccAPIMod1.beforeSendCCM).toHaveBeenCalledTimes(1);
-			expect(ccAPIMod2.beforeSendCCM).toHaveBeenCalledTimes(1);
+			expect(ccMethodMod1.beforeSendCCM).toHaveBeenCalledTimes(1);
+			expect(ccMethodMod2.beforeSendCCM).toHaveBeenCalledTimes(1);
 		});
 	});
 });

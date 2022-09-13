@@ -36,7 +36,10 @@ import { UsedHashOnionsStore } from './stores/used_hash_onions';
 
 export class RandomEndpoint extends BaseEndpoint {
 	public async isSeedRevealValid(ctx: ModuleEndpointContext): Promise<{ valid: boolean }> {
-		validator.validate(isSeedRevealValidRequestSchema, ctx.params);
+		validator.validate<{ generatorAddress: string; seedReveal: string }>(
+			isSeedRevealValidRequestSchema,
+			ctx.params,
+		);
 
 		const { generatorAddress, seedReveal } = ctx.params;
 		const randomDataStore = this.stores.get(ValidatorRevealsStore);
@@ -44,8 +47,8 @@ export class RandomEndpoint extends BaseEndpoint {
 
 		return {
 			valid: getSeedRevealValidity(
-				Buffer.from(generatorAddress as string, 'hex'),
-				Buffer.from(seedReveal as string, 'hex'),
+				cryptography.address.getAddressFromLisk32Address(generatorAddress),
+				Buffer.from(seedReveal, 'hex'),
 				validatorReveals,
 			),
 		};
@@ -54,7 +57,7 @@ export class RandomEndpoint extends BaseEndpoint {
 	public async setHashOnion(ctx: ModuleEndpointContext): Promise<void> {
 		validator.validate<SetHashOnionRequest>(setHashOnionRequestSchema, ctx.params);
 
-		const address = Buffer.from(ctx.params.address, 'hex');
+		const address = cryptography.address.getAddressFromLisk32Address(ctx.params.address);
 		const seed = ctx.params.seed
 			? Buffer.from(ctx.params.seed, 'hex')
 			: cryptography.utils.generateHashOnionSeed();
@@ -75,7 +78,7 @@ export class RandomEndpoint extends BaseEndpoint {
 		});
 
 		const seeds = hashOnions.map(({ key, value }) => ({
-			address: key.toString('hex'),
+			address: cryptography.address.getLisk32AddressFromAddress(key),
 			seed: value.hashes[value.hashes.length - 1].toString('hex'),
 			count: value.count,
 			distance: value.distance,
@@ -87,7 +90,7 @@ export class RandomEndpoint extends BaseEndpoint {
 	public async hasHashOnion(ctx: ModuleEndpointContext): Promise<HasHashOnionResponse> {
 		validator.validate<HasHashOnionRequest>(hasHashOnionRequestSchema, ctx.params);
 
-		const address = Buffer.from(ctx.params.address, 'hex');
+		const address = cryptography.address.getAddressFromLisk32Address(ctx.params.address);
 		const hashOnionStore = this.offchainStores.get(HashOnionStore);
 		const hasSeed = await hashOnionStore.has(ctx, address);
 		if (!hasSeed) {
@@ -114,7 +117,7 @@ export class RandomEndpoint extends BaseEndpoint {
 	public async getHashOnionUsage(ctx: ModuleEndpointContext): Promise<GetHashOnionUsageResponse> {
 		validator.validate<GetHashOnionUsageRequest>(getHashOnionUsageRequestSchema, ctx.params);
 
-		const address = Buffer.from(ctx.params.address, 'hex');
+		const address = cryptography.address.getAddressFromLisk32Address(ctx.params.address);
 		const hashOnionStore = this.offchainStores.get(HashOnionStore);
 		const hashOnion = await hashOnionStore.get(ctx, address);
 		const seed = hashOnion.hashes[hashOnion.hashes.length - 1].toString('hex');

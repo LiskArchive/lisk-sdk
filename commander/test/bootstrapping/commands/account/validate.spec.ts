@@ -36,9 +36,7 @@ describe('account:validate', () => {
 	describe('account:validate', () => {
 		it('should show address is valid', async () => {
 			await ValidateCommand.run([validAddress], config);
-			expect(stdout[0]).toContain(
-				'is a valid base32 address and the corresponding binary address is',
-			);
+			expect(stdout[0]).toContain('is a valid lisk32 address');
 		});
 
 		it('should show address is invalid', async () => {

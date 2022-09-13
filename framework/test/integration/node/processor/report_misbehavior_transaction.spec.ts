@@ -24,7 +24,7 @@ import { Keys } from '../../../../src/testing/fixtures';
 
 describe('Transaction order', () => {
 	let processEnv: testing.BlockProcessingEnv;
-	let networkIdentifier: Buffer;
+	let chainID: Buffer;
 	let blockGenerator: Keys;
 	let newBlock: Block;
 	let senderAccount: ReturnType<typeof nodeUtils.createAccount>;
@@ -37,7 +37,7 @@ describe('Transaction order', () => {
 				databasePath,
 			},
 		});
-		networkIdentifier = processEnv.getNetworkId();
+		chainID = processEnv.getNetworkId();
 		blockGenerator = await processEnv.getNextValidatorKeys(processEnv.getLastBlock().header);
 		// Fund sender account
 		const authData = await processEnv.invoke<{ nonce: string }>('auth_getAuthAccount', {
@@ -48,7 +48,7 @@ describe('Transaction order', () => {
 			nonce: BigInt(authData.nonce),
 			recipientAddress: senderAccount.address,
 			amount: BigInt('10000000000'),
-			networkIdentifier,
+			chainID,
 			privateKey: Buffer.from(genesis.privateKey, 'hex'),
 			fee: BigInt(165000), // minFee not to give fee for generator
 		});
@@ -70,10 +70,7 @@ describe('Transaction order', () => {
 				...header.toObject(),
 				height: 100,
 			});
-			conflictingHeader.sign(
-				networkIdentifier,
-				Buffer.from(blockGenerator.plain.generatorPrivateKey, 'hex'),
-			);
+			conflictingHeader.sign(chainID, Buffer.from(blockGenerator.plain.generatorPrivateKey, 'hex'));
 			const originalBalance = await processEnv.invoke<{ availableBalance: string }>(
 				'token_getBalance',
 				{
@@ -87,7 +84,7 @@ describe('Transaction order', () => {
 				privateKey: senderAccount.privateKey,
 				header1: header,
 				header2: conflictingHeader,
-				networkIdentifier,
+				chainID,
 			});
 			// create a block and process them
 			const nextBlock = await processEnv.createBlock([tx]);

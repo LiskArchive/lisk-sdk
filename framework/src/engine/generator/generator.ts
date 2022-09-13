@@ -24,7 +24,7 @@ import {
 	EVENT_KEY_LENGTH,
 } from '@liskhq/lisk-chain';
 import { codec } from '@liskhq/lisk-codec';
-import { bls } from '@liskhq/lisk-cryptography';
+import { address as addressUtil, bls } from '@liskhq/lisk-cryptography';
 import { Database, Batch, SparseMerkleTree } from '@liskhq/lisk-db';
 import { TransactionPool, events } from '@liskhq/lisk-transaction-pool';
 import { MerkleTree } from '@liskhq/lisk-tree';
@@ -206,7 +206,7 @@ export class Generator {
 
 		const stateStore = new StateStore(this._blockchainDB);
 		const maxRemovalHeight = await this._consensus.getMaxRemovalHeight();
-		const { maxHeightPrecommitted } = await this._bft.api.getBFTHeights(stateStore);
+		const { maxHeightPrecommitted } = await this._bft.method.getBFTHeights(stateStore);
 		await Promise.all(this._handleFinalizedHeightChanged(maxRemovalHeight, maxHeightPrecommitted));
 	}
 
@@ -339,7 +339,7 @@ export class Generator {
 			this._logger.info({ address: key.address }, 'saving generator from file');
 			if (key.encrypted && Object.keys(key.encrypted).length) {
 				await subStore.set(
-					Buffer.from(key.address, 'hex'),
+					addressUtil.getAddressFromLisk32Address(key.address),
 					codec.encode(generatorKeysSchema, {
 						type: 'encrypted',
 						data: codec.encode(encryptedMessageSchema, key.encrypted),
@@ -347,7 +347,7 @@ export class Generator {
 				);
 			} else if (key.plain) {
 				await subStore.set(
-					Buffer.from(key.address, 'hex'),
+					addressUtil.getAddressFromLisk32Address(key.address),
 					codec.encode(generatorKeysSchema, {
 						type: 'plain',
 						data: codec.encode(plainGeneratorKeysSchema, {
@@ -384,7 +384,9 @@ export class Generator {
 					privateKey: keys.generatorPrivateKey,
 					blsSecretKey: keys.blsPrivateKey,
 				});
-				this._logger.info(`Forging enabled on account: ${key.toString('hex')}`);
+				this._logger.info(
+					`Block generation enabled for address: ${addressUtil.getLisk32AddressFromAddress(key)}`,
+				);
 			}
 		}
 	}
@@ -436,7 +438,7 @@ export class Generator {
 		const lastBlockSlot = this._consensus.getSlotNumber(this._chain.lastBlock.header.timestamp);
 
 		if (currentSlot === lastBlockSlot) {
-			this._logger.trace({ slot: currentSlot }, 'Block already forged for the current slot');
+			this._logger.trace({ slot: currentSlot }, 'Block already generated for the current slot');
 			return;
 		}
 
@@ -478,7 +480,7 @@ export class Generator {
 			{
 				id: generatedBlock.header.id,
 				height: generatedBlock.header.height,
-				generatorAddress: generator.toString('hex'),
+				generatorAddress: addressUtil.getLisk32AddressFromAddress(generator),
 			},
 			'Generated new block',
 		);
@@ -491,7 +493,7 @@ export class Generator {
 		const stateStore = new StateStore(this._blockchainDB);
 		const generatorStore = new GeneratorStore(input.db ?? this._generatorDB);
 
-		const { maxHeightPrevoted } = await this._bft.api.getBFTHeights(stateStore);
+		const { maxHeightPrevoted } = await this._bft.method.getBFTHeights(stateStore);
 		const { height: maxHeightGenerated } = await getOrDefaultLastGeneratedInfo(
 			generatorStore,
 			generatorAddress,
@@ -572,13 +574,13 @@ export class Generator {
 			)
 		) {
 			const activeValidators = afterResult.nextValidators.filter(v => v.bftWeight > BigInt(0));
-			await this._bft.api.setBFTParameters(
+			await this._bft.method.setBFTParameters(
 				stateStore,
 				afterResult.preCommitThreshold,
 				afterResult.certificateThreshold,
 				activeValidators,
 			);
-			await this._bft.api.setGeneratorKeys(stateStore, afterResult.nextValidators);
+			await this._bft.method.setGeneratorKeys(stateStore, afterResult.nextValidators);
 		}
 
 		stateStore.finalize(new Batch());
@@ -611,9 +613,9 @@ export class Generator {
 		blockHeader.stateRoot = stateRoot;
 
 		// Set validatorsHash
-		const { validatorsHash } = await this._bft.api.getBFTParameters(stateStore, height + 1);
+		const { validatorsHash } = await this._bft.method.getBFTParameters(stateStore, height + 1);
 		blockHeader.validatorsHash = validatorsHash;
-		blockHeader.sign(this._chain.networkIdentifier, privateKey);
+		blockHeader.sign(this._chain.chainID, privateKey);
 
 		const generatedBlock = new Block(blockHeader, transactions, blockAssets);
 
@@ -655,7 +657,7 @@ export class Generator {
 		generatorAddress: Buffer,
 		blsSK: Buffer,
 	): Promise<void> {
-		const paramExist = await this._bft.api.existBFTParameters(stateStore, height + 1);
+		const paramExist = await this._bft.method.existBFTParameters(stateStore, height + 1);
 		if (!paramExist) {
 			return;
 		}
@@ -668,7 +670,7 @@ export class Generator {
 		generatorAddress: Buffer,
 		blsSK: Buffer,
 	): Promise<void> {
-		const paramExist = await this._bft.api.existBFTParameters(stateStore, height + 1);
+		const paramExist = await this._bft.method.existBFTParameters(stateStore, height + 1);
 		if (paramExist) {
 			return;
 		}
@@ -681,7 +683,7 @@ export class Generator {
 		generatorAddress: Buffer,
 		blsSK: Buffer,
 	): Promise<void> {
-		const params = await this._bft.api.getBFTParameters(stateStore, height);
+		const params = await this._bft.method.getBFTParameters(stateStore, height);
 		const isActive = params.validators.find(v => v.address.equals(generatorAddress)) !== undefined;
 		if (!isActive) {
 			return;
@@ -697,7 +699,7 @@ export class Generator {
 		this._logger.info(
 			{
 				height,
-				generator: generatorAddress.toString('hex'),
+				generator: addressUtil.getLisk32AddressFromAddress(generatorAddress),
 			},
 			'Certified single commit',
 		);

@@ -36,14 +36,15 @@ describe('generator endpoint', () => {
 		senderPublicKey: Buffer.alloc(32),
 		signatures: [Buffer.alloc(64)],
 	});
-	const networkIdentifier = Buffer.alloc(0);
+	const chainID = Buffer.alloc(0);
 	const events = [
 		{
 			data: utils.getRandomBytes(32),
 			index: 0,
 			module: 'token',
 			topics: [Buffer.from([0])],
-			typeID: Buffer.from([0, 0, 0, 1]),
+			name: 'Token Event Name',
+			height: 12,
 		},
 	];
 	const eventsJson = events.map(e => new Event(e).toJSON());
@@ -113,7 +114,7 @@ describe('generator endpoint', () => {
 						params: {
 							invalid: 'schema',
 						},
-						networkIdentifier,
+						chainID,
 					}),
 				).rejects.toThrow(LiskValidationError);
 			});
@@ -125,7 +126,7 @@ describe('generator endpoint', () => {
 						params: {
 							transaction: 'xxxx',
 						},
-						networkIdentifier,
+						chainID,
 					}),
 				).rejects.toThrow();
 			});
@@ -142,7 +143,7 @@ describe('generator endpoint', () => {
 						params: {
 							transaction: tx.getBytes().toString('hex'),
 						},
-						networkIdentifier,
+						chainID,
 					}),
 				).rejects.toThrow(InvalidTransactionError);
 			});
@@ -157,7 +158,7 @@ describe('generator endpoint', () => {
 						params: {
 							transaction: tx.getBytes().toString('hex'),
 						},
-						networkIdentifier,
+						chainID,
 					}),
 				).resolves.toEqual({
 					transactionId: tx.id.toString('hex'),
@@ -176,7 +177,7 @@ describe('generator endpoint', () => {
 						params: {
 							transaction: tx.getBytes().toString('hex'),
 						},
-						networkIdentifier,
+						chainID,
 					}),
 				).rejects.toThrow(InvalidTransactionError);
 			});
@@ -190,7 +191,7 @@ describe('generator endpoint', () => {
 						params: {
 							transaction: tx.getBytes().toString('hex'),
 						},
-						networkIdentifier,
+						chainID,
 					}),
 				).resolves.toEqual({
 					transactionId: tx.id.toString('hex'),
@@ -209,7 +210,7 @@ describe('generator endpoint', () => {
 						params: {
 							invalid: 'schema',
 						},
-						networkIdentifier,
+						chainID,
 					}),
 				).rejects.toThrow(LiskValidationError);
 			});
@@ -221,7 +222,7 @@ describe('generator endpoint', () => {
 						params: {
 							transaction: 'xxxx',
 						},
-						networkIdentifier,
+						chainID,
 					}),
 				).rejects.toThrow();
 			});
@@ -238,7 +239,7 @@ describe('generator endpoint', () => {
 						params: {
 							transaction: tx.getBytes().toString('hex'),
 						},
-						networkIdentifier,
+						chainID,
 					}),
 				).resolves.toEqual({
 					success: false,
@@ -259,7 +260,7 @@ describe('generator endpoint', () => {
 						params: {
 							transaction: tx.getBytes().toString('hex'),
 						},
-						networkIdentifier,
+						chainID,
 					}),
 				).resolves.toEqual({
 					success: false,
@@ -280,7 +281,7 @@ describe('generator endpoint', () => {
 						params: {
 							transaction: tx.getBytes().toString('hex'),
 						},
-						networkIdentifier,
+						chainID,
 					}),
 				).resolves.toEqual({
 					success: false,
@@ -301,7 +302,7 @@ describe('generator endpoint', () => {
 						params: {
 							transaction: tx.getBytes().toString('hex'),
 						},
-						networkIdentifier,
+						chainID,
 					}),
 				).resolves.toEqual({
 					success: true,

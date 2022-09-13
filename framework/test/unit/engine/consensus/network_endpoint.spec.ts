@@ -232,7 +232,7 @@ describe('p2p endpoint', () => {
 	});
 
 	describe('handleEventSingleCommit', () => {
-		const networkIdentifier = Buffer.alloc(0);
+		const chainID = Buffer.alloc(0);
 		const blockHeader = createFakeBlockHeader();
 		const certificate = computeCertificateFromBlockHeader(blockHeader);
 		const validatorInfo = {
@@ -249,11 +249,7 @@ describe('p2p endpoint', () => {
 					blockID: blockHeader.id,
 					height: blockHeader.height,
 					validatorAddress: validatorInfo.address,
-					certificateSignature: signCertificate(
-						validatorInfo.blsSecretKey,
-						networkIdentifier,
-						certificate,
-					),
+					certificateSignature: signCertificate(validatorInfo.blsSecretKey, chainID, certificate),
 				},
 			};
 			encodedValidCommit = codec.encode(getSingleCommitEventSchema, validCommit);

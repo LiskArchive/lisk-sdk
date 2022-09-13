@@ -71,7 +71,7 @@ describe('keys:create command', () => {
 		defaultBlsPublicKey = cryptography.bls.getPublicKeyFromPrivateKey(defaultBlsPrivateKey);
 		defaultKeys = [
 			{
-				address: defaultAddress.toString('hex'),
+				address: cryptography.address.getLisk32AddressFromAddress(defaultAddress),
 				keyPath: defaultAccountKeyPath,
 				publicKey: defaultAccountPublicKey.toString('hex'),
 				privateKey: defaultAccountPrivateKey.toString('hex'),

@@ -213,10 +213,10 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			timestamp: header.timestamp,
 			eventQueue: context.eventQueue,
 			feeAddress: EMPTY_FEE_ADDRESS,
-			getAPIContext: context.getAPIContext,
+			getMethodContext: context.getMethodContext,
 			getStore: context.getStore,
 			logger: context.logger,
-			networkIdentifier: context.networkIdentifier,
+			chainID: context.chainID,
 		});
 
 		// Add an entry in the chain validators substore
@@ -252,6 +252,6 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 	protected getInteroperabilityStore(
 		context: StoreGetter | ImmutableStoreGetter,
 	): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
+		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
 	}
 }

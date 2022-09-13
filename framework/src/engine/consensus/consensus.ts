@@ -25,7 +25,7 @@ import {
 import { jobHandlers, objects } from '@liskhq/lisk-utils';
 import { Database, Batch, SparseMerkleTree } from '@liskhq/lisk-db';
 import { codec } from '@liskhq/lisk-codec';
-import { utils } from '@liskhq/lisk-cryptography';
+import { address, utils } from '@liskhq/lisk-cryptography';
 import { Logger } from '../../logger';
 import {
 	BlockSynchronizationMechanism,
@@ -130,7 +130,7 @@ export class Consensus {
 		this._commitPool = new CommitPool({
 			db: this._db,
 			blockTime: this._genesisConfig.blockTime,
-			bftAPI: this._bft.api,
+			bftMethod: this._bft.method,
 			chain: this._chain,
 			network: this._network,
 		});
@@ -195,7 +195,7 @@ export class Consensus {
 		if (!genesisExist) {
 			args.genesisBlock.validateGenesis();
 			const genesisEvents = await this._executeGenesisBlock(stateStore, args.genesisBlock);
-			const bftParams = await this._bft.api.getBFTParameters(
+			const bftParams = await this._bft.method.getBFTParameters(
 				stateStore,
 				args.genesisBlock.header.height + 1,
 			);
@@ -335,8 +335,8 @@ export class Consensus {
 		this._endpoint.stop();
 	}
 
-	public async getAggregateCommit(apiContext: StateStore): Promise<AggregateCommit> {
-		const aggCommit = await this._commitPool.getAggregateCommit(apiContext);
+	public async getAggregateCommit(methodContext: StateStore): Promise<AggregateCommit> {
+		const aggCommit = await this._commitPool.getAggregateCommit(methodContext);
 		return aggCommit;
 	}
 
@@ -344,7 +344,7 @@ export class Consensus {
 		const singleCommit = this._commitPool.createSingleCommit(
 			blockHeader,
 			validatorInfo,
-			this._chain.networkIdentifier,
+			this._chain.chainID,
 		);
 		this._commitPool.addCommit(singleCommit, true);
 	}
@@ -371,7 +371,7 @@ export class Consensus {
 		height: number,
 		timestamp: number,
 	): Promise<Buffer> {
-		const generators = await this._bft.api.getGeneratorKeys(stateStore, height);
+		const generators = await this._bft.method.getGeneratorKeys(stateStore, height);
 		const currentSlot = this._blockSlot.getSlotNumber(timestamp);
 		const generator = generators[currentSlot % generators.length];
 		return generator.address;
@@ -386,8 +386,8 @@ export class Consensus {
 	}
 
 	public async getConsensusParams(stateStore: StateStore, header: BlockHeader) {
-		const bftParams = await this._bft.api.getBFTParameters(stateStore, header.height);
-		const generatorKeys = await this._bft.api.getGeneratorKeys(stateStore, header.height);
+		const bftParams = await this._bft.method.getBFTParameters(stateStore, header.height);
+		const generatorKeys = await this._bft.method.getGeneratorKeys(stateStore, header.height);
 		const validators = generatorKeys.map(generator => {
 			const bftValidator = bftParams.validators.find(v => v.address.equals(generator.address));
 			return {
@@ -396,8 +396,8 @@ export class Consensus {
 				blsKey: bftValidator?.blsKey ?? Buffer.alloc(0),
 			};
 		});
-		const implyMaxPrevote = await this._bft.api.currentHeaderImpliesMaximalPrevotes(stateStore);
-		const { maxHeightCertified } = await this._bft.api.getBFTHeights(stateStore);
+		const implyMaxPrevote = await this._bft.method.currentHeaderImpliesMaximalPrevotes(stateStore);
+		const { maxHeightCertified } = await this._bft.method.getBFTHeights(stateStore);
 		return {
 			currentValidators: validators,
 			implyMaxPrevote,
@@ -433,7 +433,7 @@ export class Consensus {
 					{
 						id: block.header.id,
 						height: block.header.height,
-						generator: block.header.generatorAddress.toString('hex'),
+						generator: address.getLisk32AddressFromAddress(block.header.generatorAddress),
 						maxHeightPrevoted: block.header.maxHeightPrevoted,
 						maxHeightGenerated: block.header.maxHeightGenerated,
 					},
@@ -455,7 +455,7 @@ export class Consensus {
 				this._logger.warn(
 					{
 						id: block.header.id,
-						generatorAddress: block.header.generatorAddress.toString('hex'),
+						generatorAddress: address.getLisk32AddressFromAddress(block.header.generatorAddress),
 					},
 					'Discarding block due to double forging',
 				);
@@ -463,7 +463,7 @@ export class Consensus {
 					{
 						id: block.header.id,
 						height: block.header.height,
-						generator: block.header.generatorAddress.toString('hex'),
+						generator: address.getLisk32AddressFromAddress(block.header.generatorAddress),
 						maxHeightPrevoted: block.header.maxHeightPrevoted,
 						maxHeightGenerated: block.header.maxHeightGenerated,
 					},
@@ -484,7 +484,7 @@ export class Consensus {
 					{
 						id: block.header.id,
 						height: block.header.height,
-						generator: block.header.generatorAddress.toString('hex'),
+						generator: address.getLisk32AddressFromAddress(block.header.generatorAddress),
 						maxHeightPrevoted: block.header.maxHeightPrevoted,
 						maxHeightGenerated: block.header.maxHeightGenerated,
 					},
@@ -507,7 +507,7 @@ export class Consensus {
 					{
 						id: block.header.id,
 						height: block.header.height,
-						generator: block.header.generatorAddress.toString('hex'),
+						generator: address.getLisk32AddressFromAddress(block.header.generatorAddress),
 						maxHeightPrevoted: block.header.maxHeightPrevoted,
 						maxHeightGenerated: block.header.maxHeightGenerated,
 					},
@@ -575,7 +575,7 @@ export class Consensus {
 				{
 					id: block.header.id,
 					height: block.header.height,
-					generator: block.header.generatorAddress.toString('hex'),
+					generator: address.getLisk32AddressFromAddress(block.header.generatorAddress),
 					numberOfTransactions: block.transactions.length,
 					numberOfAssets: block.assets.getAll().length,
 				},
@@ -587,7 +587,7 @@ export class Consensus {
 		}
 		const events = await this._executeBlock(contextID, stateStore, block);
 
-		const bftVotes = await this._bft.api.getBFTHeights(stateStore);
+		const bftVotes = await this._bft.method.getBFTHeights(stateStore);
 
 		let { finalizedHeight } = this._chain;
 		let finalizedHeightChangeRange;
@@ -623,7 +623,7 @@ export class Consensus {
 			{
 				id: block.header.id,
 				height: block.header.height,
-				generator: block.header.generatorAddress.toString('hex'),
+				generator: address.getLisk32AddressFromAddress(block.header.generatorAddress),
 				numberOfTransactions: block.transactions.length,
 				numberOfAssets: block.assets.getAll().length,
 				numberOfEvents: events.length,
@@ -734,7 +734,7 @@ export class Consensus {
 	}
 
 	private async _verifyBFTProperties(stateStore: StateStore, block: Block): Promise<void> {
-		const bftParams = await this._bft.api.getBFTHeights(stateStore);
+		const bftParams = await this._bft.method.getBFTHeights(stateStore);
 
 		if (block.header.maxHeightPrevoted !== bftParams.maxHeightPrevoted) {
 			throw new Error(
@@ -743,7 +743,7 @@ export class Consensus {
 				} of the block with id: ${block.header.id.toString('hex')}`,
 			);
 		}
-		const isContradictingHeaders = await this._bft.api.isHeaderContradictingChain(
+		const isContradictingHeaders = await this._bft.method.isHeaderContradictingChain(
 			stateStore,
 			block.header,
 		);
@@ -755,7 +755,7 @@ export class Consensus {
 	}
 
 	private async _verifyAssetsSignature(stateStore: StateStore, block: Block): Promise<void> {
-		const generatorKeys = await this._bft.api.getGeneratorKeys(stateStore, block.header.height);
+		const generatorKeys = await this._bft.method.getGeneratorKeys(stateStore, block.header.height);
 		const generator = generatorKeys.find(gen => gen.address.equals(block.header.generatorAddress));
 		if (!generator) {
 			throw new Error(
@@ -766,7 +766,7 @@ export class Consensus {
 		}
 
 		try {
-			block.header.validateSignature(generator.generatorKey, this._chain.networkIdentifier);
+			block.header.validateSignature(generator.generatorKey, this._chain.chainID);
 		} catch (error) {
 			throw new Error(
 				`Invalid signature ${block.header.signature.toString(
@@ -793,14 +793,14 @@ export class Consensus {
 		}
 	}
 
-	private async _verifyValidatorsHash(apiContext: StateStore, block: Block): Promise<void> {
+	private async _verifyValidatorsHash(methodContext: StateStore, block: Block): Promise<void> {
 		if (!block.header.validatorsHash) {
 			throw new Error(
 				`Validators hash is "undefined" for the block with id: ${block.header.id.toString('hex')}`,
 			);
 		}
-		const { validatorsHash } = await this._bft.api.getBFTParameters(
-			apiContext,
+		const { validatorsHash } = await this._bft.method.getBFTParameters(
+			methodContext,
 			block.header.height + 1,
 		);
 
@@ -922,7 +922,7 @@ export class Consensus {
 			verify: async (block: Block) => this._verify(block),
 			getCurrentValidators: async () => {
 				const nextHeight = this._chain.lastBlock.header.height + 1;
-				const bftParams = await this._bft.api.getBFTParameters(stateStore, nextHeight);
+				const bftParams = await this._bft.method.getBFTParameters(stateStore, nextHeight);
 				return bftParams.validators;
 			},
 			getSlotNumber: timestamp => this._blockSlot.getSlotNumber(timestamp),
@@ -1002,13 +1002,13 @@ export class Consensus {
 				const activeValidators = afterResult.nextValidators.filter(
 					validator => validator.bftWeight > BigInt(0),
 				);
-				await this._bft.api.setBFTParameters(
+				await this._bft.method.setBFTParameters(
 					stateStore,
 					afterResult.preCommitThreshold,
 					afterResult.certificateThreshold,
 					activeValidators,
 				);
-				await this._bft.api.setGeneratorKeys(stateStore, afterResult.nextValidators);
+				await this._bft.method.setGeneratorKeys(stateStore, afterResult.nextValidators);
 				this.events.emit(CONSENSUS_EVENT_VALIDATORS_CHANGED, {
 					preCommitThreshold: afterResult.preCommitThreshold,
 					certificateThreshold: afterResult.certificateThreshold,
@@ -1055,13 +1055,13 @@ export class Consensus {
 			const activeValidators = result.nextValidators.filter(
 				validator => validator.bftWeight > BigInt(0),
 			);
-			await this._bft.api.setBFTParameters(
+			await this._bft.method.setBFTParameters(
 				stateStore,
 				result.preCommitThreshold,
 				result.certificateThreshold,
 				activeValidators,
 			);
-			await this._bft.api.setGeneratorKeys(stateStore, result.nextValidators);
+			await this._bft.method.setGeneratorKeys(stateStore, result.nextValidators);
 			this.events.emit(CONSENSUS_EVENT_VALIDATORS_CHANGED, {
 				preCommitThreshold: result.preCommitThreshold,
 				certificateThreshold: result.certificateThreshold,

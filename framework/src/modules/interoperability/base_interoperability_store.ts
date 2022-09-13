@@ -45,7 +45,7 @@ import {
 	createCCMsgBeforeApplyContext,
 	createCCMsgBeforeSendContext,
 } from './context';
-import { BaseInteroperableAPI } from './base_interoperable_api';
+import { BaseInteroperableMethod } from './base_interoperable_method';
 import { BaseCCCommand } from './base_cc_command';
 import { ImmutableStoreGetter, StoreGetter } from '../base_store';
 import { NamedRegistry } from '../named_registry';
@@ -59,16 +59,16 @@ import { TerminatedOutboxAccount, TerminatedOutboxStore } from './stores/termina
 export abstract class BaseInteroperabilityStore {
 	public readonly context: StoreGetter | ImmutableStoreGetter;
 	protected readonly stores: NamedRegistry;
-	protected readonly interoperableModuleAPIs = new Map<string, BaseInteroperableAPI>();
+	protected readonly interoperableModuleMethods = new Map<string, BaseInteroperableMethod>();
 
 	public constructor(
 		stores: NamedRegistry,
 		context: StoreGetter | ImmutableStoreGetter,
-		interoperableModuleAPIs: Map<string, BaseInteroperableAPI>,
+		interoperableModuleMethods: Map<string, BaseInteroperableMethod>,
 	) {
 		this.context = context;
 		this.stores = stores;
-		this.interoperableModuleAPIs = interoperableModuleAPIs;
+		this.interoperableModuleMethods = interoperableModuleMethods;
 	}
 
 	public async getOwnChainAccount(): Promise<OwnChainAccount> {
@@ -306,10 +306,10 @@ export abstract class BaseInteroperabilityStore {
 			params: EMPTY_BYTES,
 			eventQueue: terminateChainContext.eventQueue,
 			feeAddress: EMPTY_FEE_ADDRESS,
-			getAPIContext: terminateChainContext.getAPIContext,
+			getMethodContext: terminateChainContext.getMethodContext,
 			getStore: terminateChainContext.getStore,
 			logger: terminateChainContext.logger,
-			networkIdentifier: terminateChainContext.networkIdentifier,
+			chainID: terminateChainContext.chainID,
 		});
 
 		if (!messageSent) {
@@ -323,7 +323,7 @@ export abstract class BaseInteroperabilityStore {
 		ccmApplyContext: CCMApplyContext,
 		interoperableCCCommands: Map<string, BaseCCCommand[]>,
 	): Promise<void> {
-		const { ccm, eventQueue, logger, networkIdentifier, getAPIContext, getStore } = ccmApplyContext;
+		const { ccm, eventQueue, logger, chainID, getMethodContext, getStore } = ccmApplyContext;
 		const isTerminated = await this.hasTerminatedStateAccount(ccm.sendingChainID);
 		if (isTerminated) {
 			return;
@@ -334,16 +334,16 @@ export abstract class BaseInteroperabilityStore {
 				logger,
 				ccm,
 				eventQueue,
-				getAPIContext,
+				getMethodContext,
 				getStore,
-				networkIdentifier,
+				chainID,
 				feeAddress: ccmApplyContext.feeAddress,
 			},
 			ccmApplyContext.ccu,
 			ccmApplyContext.trsSender,
 		);
 
-		for (const mod of this.interoperableModuleAPIs.values()) {
+		for (const mod of this.interoperableModuleMethods.values()) {
 			if (mod?.beforeApplyCCM) {
 				try {
 					await mod.beforeApplyCCM(beforeCCMApplyContext);
@@ -364,9 +364,9 @@ export abstract class BaseInteroperabilityStore {
 			const beforeCCMSendContext = createCCMsgBeforeSendContext({
 				ccm,
 				eventQueue,
-				getAPIContext,
+				getMethodContext,
 				logger,
-				networkIdentifier,
+				chainID,
 				getStore,
 				feeAddress: EMPTY_FEE_ADDRESS,
 			});
@@ -374,10 +374,10 @@ export abstract class BaseInteroperabilityStore {
 			await this.sendInternal({
 				eventQueue: beforeCCMSendContext.eventQueue,
 				feeAddress: beforeCCMSendContext.feeAddress,
-				getAPIContext: beforeCCMSendContext.getAPIContext,
+				getMethodContext: beforeCCMSendContext.getMethodContext,
 				getStore: beforeCCMSendContext.getStore,
 				logger: beforeCCMSendContext.logger,
-				networkIdentifier: beforeCCMSendContext.networkIdentifier,
+				chainID: beforeCCMSendContext.chainID,
 				crossChainCommand: ccm.crossChainCommand,
 				module: ccm.module,
 				fee: BigInt(0),
@@ -395,9 +395,9 @@ export abstract class BaseInteroperabilityStore {
 			const beforeCCMSendContext = createCCMsgBeforeSendContext({
 				ccm,
 				eventQueue,
-				getAPIContext,
+				getMethodContext,
 				logger,
-				networkIdentifier,
+				chainID,
 				getStore,
 				feeAddress: EMPTY_FEE_ADDRESS,
 			});
@@ -405,10 +405,10 @@ export abstract class BaseInteroperabilityStore {
 			await this.sendInternal({
 				eventQueue: beforeCCMSendContext.eventQueue,
 				feeAddress: beforeCCMSendContext.feeAddress,
-				getAPIContext: beforeCCMSendContext.getAPIContext,
+				getMethodContext: beforeCCMSendContext.getMethodContext,
 				getStore: beforeCCMSendContext.getStore,
 				logger: beforeCCMSendContext.logger,
-				networkIdentifier: beforeCCMSendContext.networkIdentifier,
+				chainID: beforeCCMSendContext.chainID,
 				crossChainCommand: ccm.crossChainCommand,
 				module: ccm.module,
 				fee: BigInt(0),
@@ -425,8 +425,8 @@ export abstract class BaseInteroperabilityStore {
 			ccmSize: getCCMSize(ccm),
 			eventQueue,
 			logger,
-			networkIdentifier,
-			getAPIContext,
+			chainID,
+			getMethodContext,
 			getStore,
 			feeAddress: ccmApplyContext.feeAddress,
 		});

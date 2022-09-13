@@ -12,51 +12,51 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-import { APIContext, ImmutableAPIContext } from '../../../state_machine';
-import { BaseAPI } from '../../base_api';
-import { MainchainInteroperabilityStore } from './store';
+import { MethodContext, ImmutableMethodContext } from '../../../state_machine';
+import { BaseMethod } from '../../base_method';
+import { SidechainInteroperabilityStore } from './store';
 import { CCMsg } from '../types';
-import { BaseInteroperableAPI } from '../base_interoperable_api';
+import { BaseInteroperableMethod } from '../base_interoperable_method';
 import { NamedRegistry } from '../../named_registry';
 import { ImmutableStoreGetter, StoreGetter } from '../../base_store';
 
-export class MainchainInteroperabilityAPI extends BaseAPI {
-	protected readonly interoperableCCAPIs = new Map<string, BaseInteroperableAPI>();
+export class SidechainInteroperabilityMethod extends BaseMethod {
+	protected readonly interoperableCCMethods = new Map<string, BaseInteroperableMethod>();
 
 	public constructor(
 		stores: NamedRegistry,
 		events: NamedRegistry,
-		interoperableCCAPIs: Map<string, BaseInteroperableAPI>,
+		interoperableCCMethods: Map<string, BaseInteroperableMethod>,
 	) {
 		super(stores, events);
-		this.interoperableCCAPIs = interoperableCCAPIs;
+		this.interoperableCCMethods = interoperableCCMethods;
 	}
 
-	public async getChainAccount(context: ImmutableAPIContext, chainID: Buffer) {
+	public async getChainAccount(context: ImmutableMethodContext, chainID: Buffer) {
 		const interoperabilityStore = this.getInteroperabilityStore(context);
 
 		return interoperabilityStore.getChainAccount(chainID);
 	}
 
-	public async getChannel(context: ImmutableAPIContext, chainID: Buffer) {
+	public async getChannel(context: ImmutableMethodContext, chainID: Buffer) {
 		const interoperabilityStore = this.getInteroperabilityStore(context);
 
 		return interoperabilityStore.getChannel(chainID);
 	}
 
-	public async getOwnChainAccount(context: ImmutableAPIContext) {
+	public async getOwnChainAccount(context: ImmutableMethodContext) {
 		const interoperabilityStore = this.getInteroperabilityStore(context);
 
 		return interoperabilityStore.getOwnChainAccount();
 	}
 
-	public async getTerminatedStateAccount(context: ImmutableAPIContext, chainID: Buffer) {
+	public async getTerminatedStateAccount(context: ImmutableMethodContext, chainID: Buffer) {
 		const interoperabilityStore = this.getInteroperabilityStore(context);
 
 		return interoperabilityStore.getTerminatedStateAccount(chainID);
 	}
 
-	public async getTerminatedOutboxAccount(context: ImmutableAPIContext, chainID: Buffer) {
+	public async getTerminatedOutboxAccount(context: ImmutableMethodContext, chainID: Buffer) {
 		const interoperabilityStore = this.getInteroperabilityStore(context);
 
 		return interoperabilityStore.getTerminatedOutboxAccount(chainID);
@@ -64,10 +64,10 @@ export class MainchainInteroperabilityAPI extends BaseAPI {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	public async send(
-		_apiContext: APIContext,
+		_methodContext: MethodContext,
 		_feeAddress: Buffer,
 		_module: string,
-		_crossChainCommandID: string,
+		_crossChainCommand: string,
 		_receivingChainID: Buffer,
 		_fee: bigint,
 		_status: number,
@@ -76,17 +76,17 @@ export class MainchainInteroperabilityAPI extends BaseAPI {
 		throw new Error('Need to be implemented');
 	}
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async error(_apiContext: APIContext, _ccm: CCMsg, _code: number): Promise<void> {
+	public async error(_methodContext: MethodContext, _ccm: CCMsg, _code: number): Promise<void> {
 		throw new Error('Need to be implemented');
 	}
 	// eslint-disable-next-line @typescript-eslint/require-await
-	public async terminateChain(_apiContext: APIContext, _chainID: Buffer): Promise<void> {
+	public async terminateChain(_methodContext: MethodContext, _chainID: Buffer): Promise<void> {
 		throw new Error('Need to be implemented');
 	}
 
 	protected getInteroperabilityStore(
 		context: StoreGetter | ImmutableStoreGetter,
-	): MainchainInteroperabilityStore {
-		return new MainchainInteroperabilityStore(this.stores, context, this.interoperableCCAPIs);
+	): SidechainInteroperabilityStore {
+		return new SidechainInteroperabilityStore(this.stores, context, this.interoperableCCMethods);
 	}
 }

@@ -16,7 +16,7 @@ import { validator } from '../src';
 
 describe('validator formats', () => {
 	const baseSchemaId = '/test/schema';
-	let baseSchema: object;
+	let baseSchema: Record<string, unknown>;
 
 	beforeAll(() => {
 		baseSchema = {
@@ -26,7 +26,7 @@ describe('validator formats', () => {
 	});
 
 	describe('hex', () => {
-		let schema: object;
+		let schema: Record<string, unknown>;
 		beforeEach(() => {
 			schema = {
 				allOf: [
@@ -56,6 +56,53 @@ describe('validator formats', () => {
 			expect(() =>
 				validator.validate(schema, {
 					target: 'notValid?!hex-!!@',
+				}),
+			).toThrow(expectedError);
+		});
+	});
+
+	describe('lisk32', () => {
+		let schema: Record<string, unknown>;
+		beforeEach(() => {
+			schema = {
+				allOf: [
+					baseSchema,
+					{
+						properties: {
+							target: {
+								type: 'string',
+								format: 'lisk32',
+							},
+						},
+					},
+				],
+			};
+		});
+
+		it('should validate to true when valid hex string is provided', () => {
+			expect(() =>
+				validator.validate(schema, { target: 'lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxq8xz' }),
+			).not.toThrow();
+		});
+
+		it('should validate to false when address is in hex', () => {
+			const expectedError =
+				'Lisk validator found 1 error[s]:\nProperty \'.target\' must match format "lisk32"';
+
+			expect(() =>
+				validator.validate(schema, {
+					target: '88c0ee8a4f8fa0e498770c70749584f179938ffa',
+				}),
+			).toThrow(expectedError);
+		});
+
+		it('should validate to false when address is invalid', () => {
+			const expectedError =
+				'Lisk validator found 1 error[s]:\nProperty \'.target\' must match format "lisk32"';
+
+			expect(() =>
+				validator.validate(schema, {
+					target: 'lskycz7hvr8yfu74bcwxy2n4mopfmjancgdvxqzzz',
 				}),
 			).toThrow(expectedError);
 		});

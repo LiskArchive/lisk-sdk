@@ -20,7 +20,7 @@ import { DelegateRegistrationCommand } from '../../../../../src/modules/dpos_v2/
 import { delegateRegistrationCommandParamsSchema } from '../../../../../src/modules/dpos_v2/schemas';
 import {
 	DelegateRegistrationParams,
-	ValidatorsAPI,
+	ValidatorsMethod,
 } from '../../../../../src/modules/dpos_v2/types';
 import { VerifyStatus } from '../../../../../src/state_machine';
 import { PrefixedStateReadWriter } from '../../../../../src/state_machine/prefixed_state_read_writer';
@@ -36,7 +36,7 @@ describe('Delegate registration command', () => {
 	let stateStore: PrefixedStateReadWriter;
 	let delegateSubstore: DelegateStore;
 	let nameSubstore: NameStore;
-	let mockValidatorsAPI: ValidatorsAPI;
+	let mockValidatorsMethod: ValidatorsMethod;
 
 	const transactionParams = {
 		name: 'gojosatoru',
@@ -67,20 +67,20 @@ describe('Delegate registration command', () => {
 		params: encodedTransactionParams,
 		signatures: [publicKey],
 	});
-	const networkIdentifier = Buffer.from(
+	const chainID = Buffer.from(
 		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
 		'hex',
 	);
 
 	beforeEach(() => {
 		delegateRegistrationCommand = new DelegateRegistrationCommand(dpos.stores, dpos.events);
-		mockValidatorsAPI = {
+		mockValidatorsMethod = {
 			setValidatorGeneratorKey: jest.fn(),
 			registerValidatorKeys: jest.fn().mockResolvedValue(true),
 			getValidatorAccount: jest.fn(),
 			getGeneratorsBetweenTimestamps: jest.fn(),
 		};
-		delegateRegistrationCommand.addDependencies(mockValidatorsAPI);
+		delegateRegistrationCommand.addDependencies(mockValidatorsMethod);
 		stateStore = new PrefixedStateReadWriter(new InMemoryPrefixedStateDB());
 		delegateSubstore = dpos.stores.get(DelegateStore);
 		nameSubstore = dpos.stores.get(NameStore);
@@ -91,7 +91,7 @@ describe('Delegate registration command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction,
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<DelegateRegistrationParams>(
 					delegateRegistrationCommandParamsSchema,
@@ -118,7 +118,7 @@ describe('Delegate registration command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction: invalidTransaction,
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<DelegateRegistrationParams>(
 					delegateRegistrationCommandParamsSchema,
@@ -146,7 +146,7 @@ describe('Delegate registration command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction: invalidTransaction,
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<DelegateRegistrationParams>(
 					delegateRegistrationCommandParamsSchema,
@@ -174,7 +174,7 @@ describe('Delegate registration command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction: invalidTransaction,
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<DelegateRegistrationParams>(
 					delegateRegistrationCommandParamsSchema,
@@ -202,7 +202,7 @@ describe('Delegate registration command', () => {
 			const context = testing
 				.createTransactionContext({
 					transaction: invalidTransaction,
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<DelegateRegistrationParams>(
 					delegateRegistrationCommandParamsSchema,
@@ -223,7 +223,7 @@ describe('Delegate registration command', () => {
 				.createTransactionContext({
 					stateStore,
 					transaction,
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<DelegateRegistrationParams>(
 					delegateRegistrationCommandParamsSchema,
@@ -246,7 +246,7 @@ describe('Delegate registration command', () => {
 				.createTransactionContext({
 					stateStore,
 					transaction,
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandVerifyContext<DelegateRegistrationParams>(
 					delegateRegistrationCommandParamsSchema,
@@ -261,18 +261,18 @@ describe('Delegate registration command', () => {
 	});
 
 	describe('execute', () => {
-		it('should call validators API registerValidatorKeys', async () => {
+		it('should call validators Method registerValidatorKeys', async () => {
 			const context = testing
 				.createTransactionContext({
 					transaction,
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandExecuteContext<DelegateRegistrationParams>(
 					delegateRegistrationCommandParamsSchema,
 				);
 			await delegateRegistrationCommand.execute(context);
 
-			expect(mockValidatorsAPI.registerValidatorKeys).toHaveBeenCalledWith(
+			expect(mockValidatorsMethod.registerValidatorKeys).toHaveBeenCalledWith(
 				expect.anything(),
 				transaction.senderAddress,
 				context.params.blsKey,
@@ -282,13 +282,13 @@ describe('Delegate registration command', () => {
 		});
 
 		it('should throw error if registerValidatorKeys fails', async () => {
-			mockValidatorsAPI.registerValidatorKeys = jest
+			mockValidatorsMethod.registerValidatorKeys = jest
 				.fn()
 				.mockRejectedValue(new Error('Failed to register validator keys'));
 			const context = testing
 				.createTransactionContext({
 					transaction,
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandExecuteContext<DelegateRegistrationParams>(
 					delegateRegistrationCommandParamsSchema,
@@ -304,7 +304,7 @@ describe('Delegate registration command', () => {
 				.createTransactionContext({
 					stateStore,
 					transaction,
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandExecuteContext<DelegateRegistrationParams>(
 					delegateRegistrationCommandParamsSchema,
@@ -323,7 +323,7 @@ describe('Delegate registration command', () => {
 				.createTransactionContext({
 					stateStore,
 					transaction,
-					networkIdentifier,
+					chainID,
 				})
 				.createCommandExecuteContext<DelegateRegistrationParams>(
 					delegateRegistrationCommandParamsSchema,

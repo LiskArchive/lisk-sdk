@@ -13,7 +13,7 @@
  */
 import * as path from 'path';
 import { Chain, Block, TransactionJSON } from '@liskhq/lisk-chain';
-import { utils } from '@liskhq/lisk-cryptography';
+import { address } from '@liskhq/lisk-cryptography';
 import { Database } from '@liskhq/lisk-db';
 import { createLogger, Logger } from '../logger';
 import { Network } from './network';
@@ -44,7 +44,6 @@ import { ValidatorUpdate } from './consensus/types';
 import { GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT } from './generator/constants';
 import { ConsensusEndpoint } from './endpoint/consensus';
 import { EngineConfig } from '../types';
-import { systemDirs } from '../system_dirs';
 import { readGenesisBlock } from '../utils/genesis_block';
 
 const isEmpty = (value: unknown): boolean => {
@@ -88,7 +87,7 @@ export class Engine {
 	private _nodeDB!: Database;
 	private _generatorDB!: Database;
 	private _blockchainDB!: Database;
-	private _networkIdentifier!: Buffer;
+	private _chainID!: Buffer;
 
 	public constructor(abi: ABI, config: EngineConfig) {
 		this._abi = abi;
@@ -107,7 +106,7 @@ export class Engine {
 		await this._rpcServer.start();
 		await this._abi.ready({
 			lastBlockHeight: this._chain.lastBlock.header.height,
-			networkIdentifier: this._chain.networkIdentifier,
+			chainID: this._chain.chainID,
 		});
 		this._logger.info('Engine started');
 	}
@@ -123,12 +122,9 @@ export class Engine {
 	}
 
 	private async _init(): Promise<void> {
-		const dirs = systemDirs(this._config.system.dataPath);
 		this._logger = createLogger({
-			module: 'engine',
-			fileLogLevel: emptyOrDefault(this._config.logger.fileLogLevel, 'info'),
-			consoleLogLevel: emptyOrDefault(this._config.logger.consoleLogLevel, 'info'),
-			logFilePath: path.join(dirs.logs, 'engine.log'),
+			name: 'engine',
+			logLevel: emptyOrDefault(this._config.system.logLevel, 'info'),
 		});
 		this._logger.info('Engine initialization starting');
 		this._network = new Network({
@@ -168,20 +164,17 @@ export class Engine {
 		);
 		this._nodeDB = new Database(path.join(this._config.system.dataPath, 'data', 'node.db'));
 
-		this._networkIdentifier = utils.getNetworkIdentifier(
-			genesis.header.id,
-			this._config.genesis.communityIdentifier,
-		);
+		this._chainID = Buffer.from(this._config.genesis.chainID, 'hex');
 		this._chain.init({
 			db: this._blockchainDB,
-			networkIdentifier: this._networkIdentifier,
+			chainID: this._chainID,
 			genesisBlock: genesis,
 		});
 
 		await this._network.init({
 			nodeDB: this._nodeDB,
 			logger: this._logger,
-			networkIdentifier: this._networkIdentifier,
+			chainID: this._chainID,
 		});
 		await this._consensus.init({
 			db: this._blockchainDB,
@@ -198,7 +191,7 @@ export class Engine {
 
 		this._rpcServer.init({
 			logger: this._logger,
-			networkIdentifier: this._chain.networkIdentifier,
+			chainID: this._chain.chainID,
 		});
 		const chainEndpoint = new ChainEndpoint({
 			chain: this._chain,
@@ -207,7 +200,7 @@ export class Engine {
 		});
 		chainEndpoint.init(this._blockchainDB);
 		const consensusEndpoint = new ConsensusEndpoint({
-			bftAPI: this._bftModule.api,
+			bftMethod: this._bftModule.method,
 			blockchainDB: this._blockchainDB,
 		});
 		const systemEndpoint = new SystemEndpoint({
@@ -284,7 +277,7 @@ export class Engine {
 			this._rpcServer
 				.publish(EVENT_CHAIN_VALIDATORS_CHANGE, {
 					nextValidators: update.nextValidators.map(v => ({
-						address: v.address.toString('hex'),
+						address: address.getLisk32AddressFromAddress(v.address),
 						blsKey: v.blsKey.toString('hex'),
 						generatorKey: v.generatorKey.toString('hex'),
 						bftWeight: v.bftWeight.toString(),

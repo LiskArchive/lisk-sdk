@@ -13,7 +13,7 @@
  */
 
 import { BaseEndpoint } from '../base_endpoint';
-import { BaseInteroperableAPI } from './base_interoperable_api';
+import { BaseInteroperableMethod } from './base_interoperable_method';
 import {
 	ChainAccountJSON,
 	ChannelDataJSON,
@@ -35,15 +35,16 @@ import { ImmutableStoreGetter, StoreGetter } from '../base_store';
 export abstract class BaseInteroperabilityEndpoint<
 	T extends BaseInteroperabilityStore
 > extends BaseEndpoint {
-	protected readonly interoperableCCAPIs = new Map<string, BaseInteroperableAPI>();
+	protected readonly interoperableCCMethods = new Map<string, BaseInteroperableMethod>();
+	protected abstract getInteroperabilityStore: (context: StoreGetter | ImmutableStoreGetter) => T;
 
 	public constructor(
 		protected stores: NamedRegistry,
 		protected offchainStores: NamedRegistry,
-		interoperableCCAPIs: Map<string, BaseInteroperableAPI>,
+		interoperableCCMethods: Map<string, BaseInteroperableMethod>,
 	) {
 		super(stores, offchainStores);
-		this.interoperableCCAPIs = interoperableCCAPIs;
+		this.interoperableCCMethods = interoperableCCMethods;
 	}
 
 	public async getChainAccount(
@@ -153,6 +154,4 @@ export abstract class BaseInteroperabilityEndpoint<
 			size: box.size,
 		};
 	}
-
-	protected abstract getInteroperabilityStore(context: StoreGetter | ImmutableStoreGetter): T;
 }

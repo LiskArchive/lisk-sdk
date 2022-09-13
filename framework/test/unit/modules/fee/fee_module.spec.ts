@@ -115,7 +115,7 @@ describe('FeeModule', () => {
 
 	describe('beforeCommandExecute', () => {
 		it('should transfer transaction fee minus min fee to generator and burn min fee when native token', async () => {
-			jest.spyOn(feeModule['_tokenAPI'], 'isNative').mockResolvedValue(true);
+			jest.spyOn(feeModule['_tokenMethod'], 'isNative').mockResolvedValue(true);
 
 			const transaction = new Transaction({
 				module: 'token',
@@ -132,13 +132,13 @@ describe('FeeModule', () => {
 			const minFee = BigInt(feeModule['_minFeePerByte'] * transaction.getBytes().length);
 			await feeModule.beforeCommandExecute(transactionExecuteContext);
 
-			expect(feeModule['_tokenAPI'].burn).toHaveBeenCalledWith(
+			expect(feeModule['_tokenMethod'].burn).toHaveBeenCalledWith(
 				expect.anything(),
 				senderAddress,
 				feeModule['_tokenID'],
 				minFee,
 			);
-			expect(feeModule['_tokenAPI'].transfer).toHaveBeenCalledWith(
+			expect(feeModule['_tokenMethod'].transfer).toHaveBeenCalledWith(
 				expect.anything(),
 				senderAddress,
 				transactionExecuteContext.header.generatorAddress,
@@ -148,7 +148,7 @@ describe('FeeModule', () => {
 		});
 
 		it('should transfer transaction fee to generator and not burn min fee when non-native token', async () => {
-			jest.spyOn(feeModule['_tokenAPI'], 'isNative').mockResolvedValue(false);
+			jest.spyOn(feeModule['_tokenMethod'], 'isNative').mockResolvedValue(false);
 			const transaction = new Transaction({
 				module: 'token',
 				command: 'transfer',
@@ -164,8 +164,8 @@ describe('FeeModule', () => {
 
 			await feeModule.beforeCommandExecute(transactionExecuteContext);
 
-			expect(feeModule['_tokenAPI'].burn).not.toHaveBeenCalled();
-			expect(feeModule['_tokenAPI'].transfer).toHaveBeenCalledWith(
+			expect(feeModule['_tokenMethod'].burn).not.toHaveBeenCalled();
+			expect(feeModule['_tokenMethod'].transfer).toHaveBeenCalledWith(
 				expect.anything(),
 				senderAddress,
 				transactionExecuteContext.header.generatorAddress,
