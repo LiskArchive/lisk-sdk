@@ -239,7 +239,7 @@ describe('CrossChain Transfer command', () => {
 				}),
 			).resolves.toBeUndefined();
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
-				"senderAddress' maxLength exceeded",
+				"senderAddress' address length invalid",
 			);
 			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
 				expect.any(MethodContext),
@@ -276,7 +276,7 @@ describe('CrossChain Transfer command', () => {
 				}),
 			).resolves.toBeUndefined();
 			expect((fakeLogger.debug as jest.Mock).mock.calls[0][0].err.message).toInclude(
-				"recipientAddress' minLength not satisfied",
+				"recipientAddress' address length invalid",
 			);
 			expect(interopMethod.terminateChain).toHaveBeenCalledWith(
 				expect.any(MethodContext),

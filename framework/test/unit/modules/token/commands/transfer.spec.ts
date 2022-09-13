@@ -106,7 +106,7 @@ describe('Transfer command', () => {
 			const result = await command.verify(context.createCommandVerifyContext(transferParamsSchema));
 
 			expect(result.status).toEqual(VerifyStatus.FAIL);
-			expect(result.error?.message).toInclude(".recipientAddress' maxLength exceeded");
+			expect(result.error?.message).toInclude(".recipientAddress' address length invalid");
 		});
 
 		it('should fail when data is more than 64 characters', async () => {

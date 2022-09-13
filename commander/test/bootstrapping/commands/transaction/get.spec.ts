@@ -40,7 +40,7 @@ describe('transaction:get command', () => {
 		amount: '1',
 		fee: '0.2',
 		nonce: 1,
-		recipientAddress: '0903f4c5cb599a7928aef27e314e98291d1e3888',
+		recipientAddress: 'lskxpxg4y755b9nr6m7f4gcvtk2mp7yj7p364mzem',
 	});
 	const encodedTransaction = encodeTransactionFromJSON(
 		transferTransaction as any,
