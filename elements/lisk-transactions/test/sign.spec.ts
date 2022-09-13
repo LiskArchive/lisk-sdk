@@ -77,8 +77,13 @@ describe('sign', () => {
 				items: { dataType: 'bytes' },
 				fieldNumber: 3,
 			},
+			signatures: {
+				type: 'array',
+				items: { dataType: 'bytes' },
+				fieldNumber: 4,
+			},
 		},
-		required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
+		required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys', 'signatures'],
 	};
 
 	const chainID = Buffer.from('00000000', 'hex');
@@ -368,6 +373,7 @@ describe('sign', () => {
 					mandatoryKeys,
 					optionalKeys,
 					numberOfSignatures: 2,
+					signatures: [],
 				},
 			};
 			const transactionObject = { ...multisignatureRegistrationTrx, signatures: [] };
@@ -495,18 +501,14 @@ describe('sign', () => {
 						address: 'be046d336cd0c2fbde62bc47e20199395d2eeadc',
 					};
 
-					Object.values({ senderAccount, ...testCase.input.members }).forEach((member: any) =>
-						signMultiSignatureTransactionWithPrivateKey(
-							signedMultiSigTransaction,
-							_chainID,
-							legacy.getPrivateAndPublicKeyFromPassphrase(member.passphrase).privateKey,
-							decodedParams,
-							multisigRegParams,
-							true,
-						),
-					);
+					const signaturesResult = signTransactionWithPrivateKey(
+						signedMultiSigTransaction,
+						_chainID,
+						Buffer.from(senderAccount.privateKey, 'hex'),
+						multisigRegParams,
+					).signatures;
 
-					expect(signedMultiSigTransaction.signatures).toStrictEqual(signatures);
+					expect(signaturesResult).toStrictEqual(signatures);
 					expect(signedMultiSigTransaction).toMatchSnapshot();
 				});
 			});
@@ -528,7 +530,7 @@ describe('sign', () => {
 			const signedMultiSigTransaction = {
 				...transactionObject,
 				params: { ...decodedParams },
-				signatures: signatures.slice(0, 1),
+				signatures: [],
 			};
 			const senderAccount = {
 				passphrase: 'inherit moon normal relief spring bargain hobby join baby flash fog blood',
@@ -539,19 +541,14 @@ describe('sign', () => {
 			};
 			const _chainID = Buffer.from(testCase.input.chainID, 'hex');
 
-			Object.values({ senderAccount, ...testCase.input.members }).forEach((member: any) =>
-				signMultiSignatureTransactionWithPrivateKey(
-					signedMultiSigTransaction,
-					_chainID,
-					Buffer.from(member.privateKey, 'hex'),
-					decodedParams,
-					multisigRegParams,
-					true,
-				),
-			);
+			const signaturesResult = signTransactionWithPrivateKey(
+				signedMultiSigTransaction,
+				_chainID,
+				Buffer.from(senderAccount.privateKey, 'hex'),
+				multisigRegParams,
+			).signatures;
 
-			expect(signedMultiSigTransaction.signatures).toStrictEqual(signatures);
-			expect(signedMultiSigTransaction.signatures.every(s => s.length > 0)).toBeTrue();
+			expect(signaturesResult).toStrictEqual(signatures);
 		});
 	});
 });

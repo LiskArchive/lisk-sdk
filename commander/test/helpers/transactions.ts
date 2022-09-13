@@ -23,6 +23,91 @@ const account = {
 	publicKey: '508a965871253595b36e2f8dc27bff6e67b39bdd466531be9c6f8c401253979c',
 	address: '9cabee3d27426676b852ce6b804cb2fdff7cd0b5',
 };
+export const multisigRegMsgSchema = {
+	$id: '/auth/command/regMultisigMsg',
+	type: 'object',
+	required: ['address', 'nonce', 'numberOfSignatures', 'mandatoryKeys', 'optionalKeys'],
+	properties: {
+		address: {
+			dataType: 'bytes',
+			fieldNumber: 1,
+			minLength: 20,
+			maxLength: 20,
+		},
+		nonce: {
+			dataType: 'uint64',
+			fieldNumber: 2,
+		},
+		numberOfSignatures: {
+			dataType: 'uint32',
+			fieldNumber: 3,
+		},
+		mandatoryKeys: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+				minLength: 32,
+				maxLength: 32,
+			},
+			fieldNumber: 4,
+		},
+		optionalKeys: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+				minLength: 32,
+				maxLength: 32,
+			},
+			fieldNumber: 5,
+		},
+	},
+};
+
+export const registerMultisignatureParamsSchema = {
+	$id: '/auth/command/regMultisig',
+	type: 'object',
+	properties: {
+		numberOfSignatures: {
+			dataType: 'uint32',
+			fieldNumber: 1,
+			minimum: 1,
+			maximum: 64,
+		},
+		mandatoryKeys: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+				minLength: 32,
+				maxLength: 32,
+			},
+			fieldNumber: 2,
+			minItems: 0,
+			maxItems: 64,
+		},
+		optionalKeys: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+				minLength: 32,
+				maxLength: 32,
+			},
+			fieldNumber: 3,
+			minItems: 0,
+			maxItems: 64,
+		},
+		signatures: {
+			type: 'array',
+			items: {
+				dataType: 'bytes',
+				minLength: 64,
+				maxLength: 64,
+			},
+			fieldNumber: 4,
+		},
+	},
+	required: ['numberOfSignatures', 'mandatoryKeys', 'optionalKeys', 'signatures'],
+};
+
 export const tokenTransferParamsSchema = {
 	$id: '/lisk/transferCommand',
 	title: 'Transfer transaction command',
