@@ -86,9 +86,10 @@ const getParamsObject = async (metadata: ModuleMetadataJSON[], flags: CreateFlag
 	return params;
 };
 
-const getPassphraseAddressAndPublicKey = async (flags: CreateFlags) => {
+const getKeysFromFlags = async (flags: CreateFlags) => {
 	let passphrase!: string;
 	let publicKey!: Buffer;
+	let privateKey!: Buffer;
 	let address!: Buffer;
 
 	if (flags['no-signature']) {
@@ -97,12 +98,13 @@ const getPassphraseAddressAndPublicKey = async (flags: CreateFlags) => {
 		passphrase = '';
 	} else {
 		passphrase = flags.passphrase ?? (await getPassphraseFromPrompt('passphrase', true));
-		const keys = cryptography.legacy.getPrivateAndPublicKeyFromPassphrase(passphrase);
+		const keys = await deriveKeypair(passphrase, flags['key-derivation-path']);
 		publicKey = keys.publicKey;
+		privateKey = keys.privateKey;
 		address = cryptography.address.getAddressFromPublicKey(publicKey);
 	}
 
-	return { address, passphrase, publicKey };
+	return { address, passphrase, publicKey, privateKey };
 };
 
 const validateAndSignTransaction = async (
@@ -110,8 +112,7 @@ const validateAndSignTransaction = async (
 	schema: RegisteredSchema,
 	metadata: ModuleMetadataJSON[],
 	chainID: string,
-	passphrase: string,
-	keyDerivationPath: string,
+	privateKey: Buffer,
 	noSignature: boolean,
 ) => {
 	const { params, ...transactionWithoutParams } = transaction;
@@ -128,7 +129,6 @@ const validateAndSignTransaction = async (
 	};
 
 	if (!noSignature) {
-		const { privateKey } = await deriveKeypair(passphrase, keyDerivationPath);
 		return transactions.signTransaction(
 			decodedTx,
 			Buffer.from(chainID, 'hex'),
@@ -147,7 +147,7 @@ const createTransactionOffline = async (
 	transaction: Transaction,
 ) => {
 	const params = await getParamsObject(metadata, flags, args);
-	const { passphrase, publicKey } = await getPassphraseAddressAndPublicKey(flags);
+	const { publicKey, privateKey } = await getKeysFromFlags(flags);
 	transaction.nonce = flags.nonce ?? '0';
 	transaction.params = params;
 	transaction.senderPublicKey = publicKey.toString('hex') || (flags['sender-public-key'] as string);
@@ -157,8 +157,7 @@ const createTransactionOffline = async (
 		registeredSchema,
 		metadata,
 		flags['chain-id'] as string,
-		passphrase,
-		flags['key-derivation-path'],
+		privateKey,
 		flags['no-signature'],
 	);
 };
@@ -172,7 +171,7 @@ const createTransactionOnline = async (
 	transaction: Transaction,
 ) => {
 	const nodeInfo = await client.node.getNodeInfo();
-	const { address, passphrase, publicKey } = await getPassphraseAddressAndPublicKey(flags);
+	const { address, privateKey, publicKey } = await getKeysFromFlags(flags);
 	const account = await client.invoke<{ nonce: string }>('auth_getAuthAccount', {
 		address: cryptography.address.getLisk32AddressFromAddress(address),
 	});
@@ -199,8 +198,7 @@ const createTransactionOnline = async (
 		registeredSchema,
 		metadata,
 		nodeInfo.chainID,
-		passphrase,
-		flags['key-derivation-path'],
+		privateKey,
 		flags['no-signature'],
 	);
 };
