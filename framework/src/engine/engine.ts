@@ -45,6 +45,7 @@ import { GENERATOR_EVENT_NEW_TRANSACTION_ANNOUNCEMENT } from './generator/consta
 import { ConsensusEndpoint } from './endpoint/consensus';
 import { EngineConfig } from '../types';
 import { readGenesisBlock } from '../utils/genesis_block';
+import { LegacyChainHandler } from './legacy/legacy_chain_handler';
 
 const isEmpty = (value: unknown): boolean => {
 	switch (typeof value) {
@@ -82,11 +83,13 @@ export class Engine {
 	private _network!: Network;
 	private _chain!: Chain;
 	private _bftModule!: BFTModule;
+	private _legacyChainHandler!: LegacyChainHandler;
 	private _rpcServer!: RPCServer;
 	private _logger!: Logger;
 	private _nodeDB!: Database;
 	private _generatorDB!: Database;
 	private _blockchainDB!: Database;
+	private _legacyDB!: Database;
 	private _chainID!: Buffer;
 
 	public constructor(abi: ABI, config: EngineConfig) {
@@ -152,6 +155,9 @@ export class Engine {
 			config: this._config,
 			network: this._network,
 		});
+		this._legacyChainHandler = new LegacyChainHandler({
+			config: this._config,
+		});
 		this._rpcServer = new RPCServer(this._config.system.dataPath, this._config.rpc);
 
 		const genesis = readGenesisBlock(this._config, this._logger);
@@ -162,6 +168,7 @@ export class Engine {
 		this._generatorDB = new Database(
 			path.join(this._config.system.dataPath, 'data', 'generator.db'),
 		);
+		this._legacyDB = new Database(path.join(this._config.system.dataPath, 'data', 'legacy.db'));
 		this._nodeDB = new Database(path.join(this._config.system.dataPath, 'data', 'node.db'));
 
 		this._chainID = Buffer.from(this._config.genesis.chainID, 'hex');
@@ -185,6 +192,9 @@ export class Engine {
 			blockchainDB: this._blockchainDB,
 			generatorDB: this._generatorDB,
 			logger: this._logger,
+		});
+		await this._legacyChainHandler.init({
+			db: this._legacyDB,
 		});
 
 		this._registerEventListeners();
@@ -310,6 +320,7 @@ export class Engine {
 	private _closeDB(): void {
 		this._blockchainDB.close();
 		this._generatorDB.close();
+		this._legacyDB.close();
 		this._nodeDB.close();
 	}
 }
