@@ -180,7 +180,7 @@ describe('transaction:create command', () => {
 							],
 							config,
 						),
-					).rejects.toThrow();
+					).rejects.toThrow('--data-path=/tmp cannot also be provided when using --offline');
 				});
 			});
 
@@ -198,7 +198,9 @@ describe('transaction:create command', () => {
 							],
 							config,
 						),
-					).rejects.toThrow();
+					).rejects.toThrow(
+						'All of the following must be provided when using --offline: --chain-id, --nonce',
+					);
 				});
 			});
 
@@ -217,7 +219,9 @@ describe('transaction:create command', () => {
 							],
 							config,
 						),
-					).rejects.toThrow();
+					).rejects.toThrow(
+						'All of the following must be provided when using --offline: --chain-id, --nonce',
+					);
 				});
 			});
 
@@ -237,7 +241,9 @@ describe('transaction:create command', () => {
 							],
 							config,
 						),
-					).rejects.toThrow();
+					).rejects.toThrow(
+						'All of the following must be provided when using --no-signature: --sender-public-key',
+					);
 				});
 			});
 

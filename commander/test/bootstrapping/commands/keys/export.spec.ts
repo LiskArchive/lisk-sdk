@@ -70,7 +70,7 @@ describe('keys:export', () => {
 
 	describe('when exporting without a file path flag', () => {
 		it('should throw an error', async () => {
-			await expect(ExportCommand.run([], config)).rejects.toThrow();
+			await expect(ExportCommand.run([], config)).rejects.toThrow('Missing required flag output');
 		});
 	});
 

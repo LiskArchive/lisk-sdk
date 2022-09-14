@@ -63,7 +63,9 @@ describe('keys:encrypt', () => {
 
 	describe('when encrypting without a file path flag', () => {
 		it('should throw an error', async () => {
-			await expect(EncryptCommand.run([], config)).rejects.toThrow();
+			await expect(EncryptCommand.run([], config)).rejects.toThrow(
+				'Missing required flag file-path',
+			);
 		});
 	});
 

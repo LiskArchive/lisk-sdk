@@ -141,7 +141,7 @@ describe('transaction:sign command', () => {
 						],
 						config,
 					),
-				).rejects.toThrow();
+				).rejects.toThrow('--data-path=/tmp cannot also be provided when using --offline');
 			});
 		});
 
@@ -152,7 +152,7 @@ describe('transaction:sign command', () => {
 						[unsignedTransaction, `--passphrase=${senderPassphrase}`, '--offline'],
 						config,
 					),
-				).rejects.toThrow();
+				).rejects.toThrow('All of the following must be provided when using --offline: --chain-id');
 			});
 		});
 

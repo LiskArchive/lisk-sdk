@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import { encrypt } from '@liskhq/lisk-cryptography';
 import * as apiClient from '@liskhq/lisk-api-client';
 import * as fs from 'fs-extra';
@@ -70,9 +69,7 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 		...BaseIPCClientCommand.flags,
 		output: {
 			...flagsWithParser.output,
-			// ...flagParser.string({
-			// 	required: true,
-			// }),
+			required: true,
 		},
 	};
 
@@ -84,12 +81,8 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 			this.error('APIClient is not initialized.');
 		}
 
-		// const { dir } = path.parse(flags.output);
-		// fs.ensureDirSync(dir);
-		if (flags.output) {
-			const { dir } = path.parse(flags.output);
-			fs.ensureDirSync(dir);
-		}
+		const { dir } = path.parse(flags.output as string);
+		fs.ensureDirSync(dir);
 
 		const dataPath = flags['data-path']
 			? flags['data-path']
@@ -110,9 +103,6 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 			};
 		});
 
-		// fs.writeJSONSync(flags.output, { keys }, { spaces: ' ' });
-		if (flags.output) {
-			fs.writeJSONSync(flags.output, { keys }, { spaces: ' ' });
-		}
+		fs.writeJSONSync(flags.output as string, { keys }, { spaces: ' ' });
 	}
 }

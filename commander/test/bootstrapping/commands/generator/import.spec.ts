@@ -67,7 +67,9 @@ describe('keys:import', () => {
 
 	describe('when importing without a file path flag', () => {
 		it('should throw an error', async () => {
-			await expect(ImportCommand.run([], config)).rejects.toThrow();
+			await expect(ImportCommand.run([], config)).rejects.toThrow(
+				'Missing required flag file-path',
+			);
 		});
 	});
 
