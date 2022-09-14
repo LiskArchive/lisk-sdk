@@ -125,7 +125,6 @@
 		"tslib": "1.14.1"
 	},
 	"devDependencies": {
-		"@oclif/config": "1.17.0",
 		"@types/fs-extra": "9.0.1",
 		"@types/jest": "26.0.21",
 		"@types/jest-when": "2.7.2",
