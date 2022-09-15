@@ -384,12 +384,14 @@ describe('Utils', () => {
 			activeValidators: activeValidatorsUpdate,
 			certificateThreshold: 10,
 		};
+		const partnerChainId = MAINCHAIN_ID_BUFFER;
 
 		it('should return VerifyStatus.OK if certificate is empty', () => {
 			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(true);
 			const { status, error } = verifyCertificateSignature(
 				txParamsWithEmptyCertificate,
 				partnerValidators,
+				partnerChainId,
 			);
 
 			expect(status).toEqual(VerifyStatus.OK);
@@ -399,7 +401,11 @@ describe('Utils', () => {
 
 		it('should return VerifyStatus.FAIL when certificate signature verification fails', () => {
 			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(false);
-			const { status, error } = verifyCertificateSignature(txParams, partnerValidators);
+			const { status, error } = verifyCertificateSignature(
+				txParams,
+				partnerValidators,
+				partnerChainId,
+			);
 
 			expect(status).toEqual(VerifyStatus.FAIL);
 			expect(error?.message).toEqual('Certificate is invalid due to invalid signature.');
@@ -409,7 +415,11 @@ describe('Utils', () => {
 		it('should return VerifyStatus.OK when certificate signature verification passes', () => {
 			jest.spyOn(cryptography.bls, 'verifyWeightedAggSig').mockReturnValue(true);
 
-			const { status, error } = verifyCertificateSignature(txParams, partnerValidators);
+			const { status, error } = verifyCertificateSignature(
+				txParams,
+				partnerValidators,
+				partnerChainId,
+			);
 
 			expect(status).toEqual(VerifyStatus.OK);
 			expect(error).toBeUndefined();

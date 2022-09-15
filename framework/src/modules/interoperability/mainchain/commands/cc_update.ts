@@ -127,6 +127,7 @@ export class MainchainCCUpdateCommand extends BaseInteroperabilityCommand {
 		const verifyCertificateSignatureResult = verifyCertificateSignature(
 			txParams,
 			partnerValidators,
+			txParams.sendingChainID,
 		);
 		if (verifyCertificateSignatureResult.error) {
 			return verifyCertificateSignatureResult;

@@ -438,7 +438,7 @@ export const checkValidCertificateLiveness = (
 export const verifyCertificateSignature = (
 	txParams: CrossChainUpdateTransactionParams,
 	partnerValidators: ChainValidators,
-	partnerChainAccount: ChainAccount,
+	partnerChainId: Buffer,
 ): VerificationResult => {
 	// Only check when ceritificate is non-empty
 	if (txParams.certificate.equals(EMPTY_BYTES)) {
@@ -463,7 +463,7 @@ export const verifyCertificateSignature = (
 		decodedCertificate.aggregationBits as Buffer,
 		decodedCertificate.signature as Buffer,
 		MESSAGE_TAG_CERTIFICATE,
-		partnerChainAccount.chainID,
+		partnerChainId,
 		txParams.certificate,
 		activeValidators.map(v => v.bftWeight),
 		certificateThreshold,
@@ -904,12 +904,11 @@ export const initGenesisStateUtil = async (
 };
 
 export const chainAccountToJSON = (chainAccount: ChainAccount) => {
-	const { lastCertificate, name, chainID, status } = chainAccount;
+	const { lastCertificate, name, status } = chainAccount;
 
 	return {
 		lastCertificate: certificateToJSON(lastCertificate),
 		name,
 		status,
-		chainID: chainID.toString('hex'),
 	};
 };
