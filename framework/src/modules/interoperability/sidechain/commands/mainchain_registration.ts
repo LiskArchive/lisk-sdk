@@ -18,18 +18,19 @@ import { validator } from '@liskhq/lisk-validator';
 import {
 	CCM_STATUS_OK,
 	CHAIN_REGISTERED,
-	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-	EMPTY_FEE_ADDRESS,
 	EMPTY_HASH,
 	MAINCHAIN_ID_BUFFER,
 	MAINCHAIN_NAME,
-	MAINCHAIN_NETWORK_ID,
 	MODULE_NAME_INTEROPERABILITY,
-	NUMBER_MAINCHAIN_VALIDATORS,
 	TAG_CHAIN_REG_MESSAGE,
 	THRESHOLD_MAINCHAIN,
+	TOKEN_ID_LSK_MAINCHAIN,
+	EMPTY_BYTES,
+	CROSS_CHAIN_COMMAND_REGISTRATION,
+	CCM_SENT_STATUS_SUCCESS,
 } from '../../constants';
 import {
+	ccmSchema,
 	mainchainRegParams,
 	registrationCCMParamsSchema,
 	registrationSignatureMessageSchema,
@@ -50,6 +51,8 @@ import { ChainValidatorsStore } from '../../stores/chain_validators';
 import { OutboxRootStore } from '../../stores/outbox_root';
 import { OwnChainAccountStore } from '../../stores/own_chain_account';
 import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
+import { ChainAccountUpdatedEvent } from '../../events/chain_account_updated';
+import { CcmProcessedEvent } from '../../events/ccm_processed';
 
 export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 	public schema = mainchainRegParams;
@@ -76,14 +79,25 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			};
 		}
 
-		if (!isValidName(ownName)) {
+		const interoperabilityStore = this.getInteroperabilityStore(context);
+		const ownChainAccount = await interoperabilityStore.getOwnChainAccount();
+		if (!ownChainID.equals(ownChainAccount.id)) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error(`Sidechain name is in an unsupported format: ${ownName}`),
+				error: new Error(`Invalid ownChainID property.`),
 			};
 		}
 
-		for (let i = 0; i < NUMBER_MAINCHAIN_VALIDATORS; i += 1) {
+		if (!isValidName(ownName)) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error(
+					`Invalid ownName property. It should contain only characters from the set [a-z0-9!@$&_.].`,
+				),
+			};
+		}
+
+		for (let i = 0; i < mainchainValidators.length; i += 1) {
 			const currentValidator = mainchainValidators[i];
 
 			if (
@@ -111,11 +125,13 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 
 	public async execute(context: CommandExecuteContext<MainchainRegistrationParams>): Promise<void> {
 		const {
-			chainID,
+			getMethodContext,
 			currentValidators: validators,
 			certificateThreshold,
 			params: { ownChainID, ownName, mainchainValidators, aggregationBits, signature },
 		} = context;
+		const methodContext = getMethodContext();
+
 		const activeValidators: ActiveValidators[] = validators.filter(v => v.bftWeight > BigInt(0));
 		const keyList: Buffer[] = [];
 		const weights: bigint[] = [];
@@ -129,19 +145,32 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 			ownName,
 			mainchainValidators,
 		});
-		bls.verifyWeightedAggSig(
-			keyList,
-			aggregationBits,
-			signature,
-			TAG_CHAIN_REG_MESSAGE,
-			chainID,
-			message,
-			weights,
-			certificateThreshold,
-		);
+
+		if (
+			!bls.verifyWeightedAggSig(
+				keyList,
+				aggregationBits,
+				signature,
+				TAG_CHAIN_REG_MESSAGE,
+				ownChainID,
+				message,
+				weights,
+				certificateThreshold,
+			)
+		) {
+			// emit persistent event with empty data
+			context.eventQueue.add(
+				this.name,
+				this.name.charAt(0).toLowerCase() + this.name.substr(1),
+				EMPTY_BYTES,
+				[ownChainID],
+				true,
+			);
+			throw new Error('Invalid signature property.');
+		}
 
 		const chainSubstore = this.stores.get(ChainAccountStore);
-		await chainSubstore.set(context, MAINCHAIN_ID_BUFFER, {
+		const mainchainAccount = {
 			name: MAINCHAIN_NAME,
 			lastCertificate: {
 				height: 0,
@@ -150,37 +179,15 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 				validatorsHash: computeValidatorsHash(mainchainValidators, BigInt(THRESHOLD_MAINCHAIN)),
 			},
 			status: CHAIN_REGISTERED,
-		});
+		};
+		await chainSubstore.set(context, MAINCHAIN_ID_BUFFER, mainchainAccount);
 
 		const channelSubstore = this.stores.get(ChannelDataStore);
 		await channelSubstore.set(context, MAINCHAIN_ID_BUFFER, {
 			inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 			outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 			partnerChainOutboxRoot: EMPTY_HASH,
-			messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: utils.intToBuffer(0, 4) },
-		});
-
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-
-		const encodedParams = codec.encode(registrationCCMParamsSchema, {
-			networkID: MAINCHAIN_NETWORK_ID,
-			name: MAINCHAIN_NAME,
-			messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: utils.intToBuffer(0, 4) },
-		});
-
-		await interoperabilityStore.sendInternal({
-			module: MODULE_NAME_INTEROPERABILITY,
-			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-			receivingChainID: MAINCHAIN_ID_BUFFER,
-			fee: BigInt(0),
-			status: CCM_STATUS_OK,
-			params: encodedParams,
-			eventQueue: context.eventQueue,
-			feeAddress: EMPTY_FEE_ADDRESS,
-			getMethodContext: context.getMethodContext,
-			getStore: context.getStore,
-			logger: context.logger,
-			chainID: context.chainID,
+			messageFeeTokenID: TOKEN_ID_LSK_MAINCHAIN,
 		});
 
 		const chainValidatorsSubstore = this.stores.get(ChainValidatorsStore);
@@ -193,10 +200,43 @@ export class MainchainRegistrationCommand extends BaseInteroperabilityCommand {
 		await outboxRootSubstore.set(context, MAINCHAIN_ID_BUFFER, { root: EMPTY_HASH });
 
 		const ownChainAccountSubstore = this.stores.get(OwnChainAccountStore);
-		await ownChainAccountSubstore.set(context, utils.intToBuffer(0, 4), {
+		await ownChainAccountSubstore.set(context, EMPTY_BYTES, {
 			name: ownName,
 			id: ownChainID,
 			nonce: BigInt(0),
+		});
+		this.events
+			.get(ChainAccountUpdatedEvent)
+			.log(methodContext, MAINCHAIN_ID_BUFFER, mainchainAccount);
+
+		const encodedParams = codec.encode(registrationCCMParamsSchema, {
+			chainID: MAINCHAIN_ID_BUFFER,
+			name: MAINCHAIN_NAME,
+			messageFeeTokenID: TOKEN_ID_LSK_MAINCHAIN,
+		});
+
+		const ownChainAccount = await ownChainAccountSubstore.get(context, EMPTY_BYTES);
+
+		const ccm = {
+			nonce: ownChainAccount.nonce,
+			module: MODULE_NAME_INTEROPERABILITY,
+			crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
+			sendingChainID: ownChainAccount.id,
+			receivingChainID: MAINCHAIN_ID_BUFFER,
+			fee: BigInt(0),
+			status: CCM_STATUS_OK,
+			params: encodedParams,
+		};
+		const interoperabilityStore = this.getInteroperabilityStore(context);
+		await interoperabilityStore.addToOutbox(MAINCHAIN_ID_BUFFER, ccm);
+
+		ownChainAccount.nonce += BigInt(1);
+		await ownChainAccountSubstore.set(context, EMPTY_BYTES, ownChainAccount);
+
+		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
+		this.events.get(CcmProcessedEvent).log(methodContext, ownChainAccount.id, MAINCHAIN_ID_BUFFER, {
+			ccmID,
+			status: CCM_SENT_STATUS_SUCCESS,
 		});
 	}
 
