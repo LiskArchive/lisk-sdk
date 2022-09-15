@@ -278,7 +278,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 
 		// Emit CCM processed event.
 		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
-		this.events.get(CcmProcessedEvent).log(methodContext, ownChainAccount.id, chainID, ccmID, {
+		this.events.get(CcmProcessedEvent).log(methodContext, ownChainAccount.id, chainID, {
 			ccmID,
 			status: CCM_SENT_STATUS_SUCCESS,
 		});

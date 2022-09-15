@@ -49,14 +49,15 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		this.interoperableCCMethods,
 	);
 
-	public commands = [
-		new SidechainRegistrationCommand(
-			this.stores,
-			this.events,
-			this.interoperableCCMethods,
-			this.interoperableCCCommands,
-		),
-	];
+	private readonly _sidechainRegistrationCommand = new SidechainRegistrationCommand(
+		this.stores,
+		this.events,
+		this.interoperableCCMethods,
+		this.interoperableCCCommands,
+	);
+
+	// eslint-disable-next-line @typescript-eslint/member-ordering
+	public commands = [this._sidechainRegistrationCommand];
 
 	public addDependencies(tokenMethod: TokenMethod) {
 		const sidechainRegistrationCommand = this.commands.find(

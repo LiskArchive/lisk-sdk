@@ -42,9 +42,8 @@ export class CcmProcessedEvent extends BaseEvent<CcmProcessedEventData> {
 		ctx: EventQueuer,
 		sendingChainID: Buffer,
 		receivingChainID: Buffer,
-		ccmID: Buffer,
 		data: CcmProcessedEventData,
 	): void {
-		this.add(ctx, data, [sendingChainID, receivingChainID, ccmID]);
+		this.add(ctx, data, [sendingChainID, receivingChainID, data.ccmID]);
 	}
 }
