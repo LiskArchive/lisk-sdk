@@ -44,9 +44,6 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 		| 'getOwnChainAccount'
 		| 'getChainAccount'
 	>;
-
-	const networkID = utils.getRandomBytes(32);
-
 	let stateRecoveryInitCommand: StateRecoveryInitializationCommand;
 	let commandExecuteContext: CommandExecuteContext<StateRecoveryInitParams>;
 	let transaction: Transaction;
@@ -72,7 +69,6 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 
 		sidechainChainAccount = {
 			name: 'sidechain1',
-			networkID,
 			lastCertificate: {
 				height: 10,
 				stateRoot: utils.getRandomBytes(32),
@@ -144,7 +140,6 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 		beforeEach(() => {
 			mainchainAccount = {
 				name: 'mainchain',
-				networkID,
 				lastCertificate: {
 					height: 10,
 					stateRoot: utils.getRandomBytes(32),
@@ -201,7 +196,6 @@ describe('Mainchain StateRecoveryInitializationCommand', () => {
 				.mockResolvedValue(mainchainAccount);
 			sidechainChainAccount = {
 				name: 'sidechain1',
-				networkID,
 				lastCertificate: {
 					height: 10,
 					stateRoot: utils.getRandomBytes(32),

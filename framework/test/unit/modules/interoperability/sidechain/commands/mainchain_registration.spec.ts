@@ -228,7 +228,6 @@ describe('Mainchain registration command', () => {
 		};
 		const chainAccount = {
 			name: MAINCHAIN_NAME,
-			networkID: MAINCHAIN_NETWORK_ID,
 			lastCertificate: {
 				height: 0,
 				timestamp: 0,

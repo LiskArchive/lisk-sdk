@@ -52,7 +52,6 @@ describe('Sidechain endpoint', () => {
 			validatorsHash: utils.getRandomBytes(32),
 		},
 		name: 'nft',
-		networkID: utils.getRandomBytes(32),
 		status: 1,
 	};
 
@@ -63,9 +62,8 @@ describe('Sidechain endpoint', () => {
 			timestamp: Date.now(),
 			validatorsHash: utils.getRandomBytes(32),
 		},
-		name: 'chain2',
-		networkID: utils.getRandomBytes(32),
-		status: 1,
+		name: chainAccount.name,
+		status: chainAccount.status,
 	};
 
 	const chainAccountJSON: ChainAccountJSON = chainAccountToJSON(chainAccount);

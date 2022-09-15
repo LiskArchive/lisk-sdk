@@ -379,7 +379,6 @@ describe('Sidechain registration command', () => {
 		};
 		const chainAccount: ChainAccount = {
 			name: 'sidechain',
-			networkID,
 			lastCertificate: {
 				height: 0,
 				timestamp: 0,

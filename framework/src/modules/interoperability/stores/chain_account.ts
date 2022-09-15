@@ -35,7 +35,7 @@ export interface ChainAccount {
 
 const chainAccountJSONSchema = {
 	type: 'object',
-	required: ['name', 'networkID', 'lastCertificate', 'status'],
+	required: ['name', 'lastCertificate', 'status'],
 	properties: {
 		name: {
 			dataType: 'string',

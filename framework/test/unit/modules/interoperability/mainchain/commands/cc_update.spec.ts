@@ -189,7 +189,6 @@ describe('CrossChainUpdateCommand', () => {
 				validatorsHash: cryptography.utils.getRandomBytes(48),
 			},
 			name: 'sidechain1',
-			networkID: cryptography.utils.getRandomBytes(32),
 			status: CHAIN_ACTIVE,
 		};
 		partnerChannelAccount = {

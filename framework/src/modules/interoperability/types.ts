@@ -156,14 +156,13 @@ export interface LastCertificateJSON {
 
 export interface ChainAccount {
 	name: string;
-	networkID: Buffer;
 	lastCertificate: LastCertificate;
 	status: number;
+	chainID: Buffer;
 }
 
 export interface ChainAccountJSON {
 	name: string;
-	networkID: string;
 	lastCertificate: LastCertificateJSON;
 	status: number;
 }

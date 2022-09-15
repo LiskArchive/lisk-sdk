@@ -164,7 +164,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			};
 		}
 
-		// 	sidechainRegistrationFee must valid
+		// sidechainRegistrationFee must be valid
 		if (sidechainRegistrationFee !== REGISTRATION_FEE) {
 			return {
 				status: VerifyStatus.FAIL,
@@ -258,7 +258,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		const ownChainAccount = await ownChainSubstore.get(methodContext, EMPTY_BYTES);
 
 		const ccm = {
-			nonce: BigInt(0),
+			nonce: ownChainAccount.nonce,
 			module: MODULE_NAME_INTEROPERABILITY,
 			crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
 			sendingChainID: ownChainAccount.id,

@@ -336,8 +336,6 @@ describe('Mainchain MessageRecoveryCommand', () => {
 			| 'getOwnChainAccount'
 		>;
 
-		const networkID = utils.getRandomBytes(32);
-
 		let messageRecoveryCommand: MainchainMessageRecoveryCommand;
 		let commandExecuteContext: CommandExecuteContext<MessageRecoveryParams>;
 		let interoperableCCMethods: Map<string, BaseInteroperableMethod>;
@@ -418,7 +416,6 @@ describe('Mainchain MessageRecoveryCommand', () => {
 					.mockResolvedValue({
 						name: `chain${chainID.toString('hex')}`,
 						status: CHAIN_ACTIVE,
-						networkID,
 						lastCertificate: {
 							height: 1,
 							timestamp: 10,
