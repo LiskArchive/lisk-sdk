@@ -49,7 +49,6 @@ import {
 import { ChainValidatorsStore } from '../../../../../../src/modules/interoperability/stores/chain_validators';
 import { createTransactionContext } from '../../../../../../src/testing';
 
-// TODO: Unskip and update for networkIdentifier in issue #7442
 describe.skip('Sidechain registration command', () => {
 	const interopMod = new MainchainInteroperabilityModule();
 	const transactionParams = {
@@ -85,11 +84,6 @@ describe.skip('Sidechain registration command', () => {
 		params: encodedTransactionParams,
 		signatures: [publicKey],
 	});
-	const chainID = Buffer.from(
-		'e48feb88db5b5cf5ad71d93cdcd1d879b6d5ed187a36b0002cc34e0ef9883255',
-		'hex',
-	);
-	const networkID = utils.hash(Buffer.concat([Buffer.alloc(0), transaction.senderAddress]));
 	let sidechainRegistrationCommand: SidechainRegistrationCommand;
 	let stateStore: PrefixedStateReadWriter;
 	let nameSubstore: RegisteredNamesStore;
