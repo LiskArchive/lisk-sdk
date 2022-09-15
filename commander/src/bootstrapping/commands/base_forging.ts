@@ -44,7 +44,7 @@ export abstract class BaseForgingCommand extends BaseIPCClientCommand {
 	protected forging!: boolean;
 
 	async run(): Promise<void> {
-		const { args, flags } = this.parse(this.constructor as typeof BaseForgingCommand);
+		const { args, flags } = await this.parse(this.constructor as typeof BaseForgingCommand);
 		const { address, height, maxHeightPreviouslyForged, maxHeightPrevoted } = args as Args;
 		let password;
 

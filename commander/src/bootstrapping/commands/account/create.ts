@@ -13,8 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { Command, flags as flagParser } from '@oclif/command';
-
+import { Command, Flags as flagParser } from '@oclif/core';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import * as passphrase from '@liskhq/lisk-passphrase';
 
@@ -63,7 +62,7 @@ export class CreateCommand extends Command {
 	async run(): Promise<void> {
 		const {
 			flags: { count },
-		} = this.parse(CreateCommand);
+		} = await this.parse(CreateCommand);
 		const numberOfAccounts = parseInt(count, 10);
 		if (
 			count !== numberOfAccounts.toString() ||

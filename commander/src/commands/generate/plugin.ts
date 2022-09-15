@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { flags as flagParser } from '@oclif/command';
+import { Flags as flagParser } from '@oclif/core';
 import BaseBootstrapCommand from '../../base_bootstrap_command';
 
 export default class PluginCommand extends BaseBootstrapCommand {
@@ -52,7 +52,7 @@ export default class PluginCommand extends BaseBootstrapCommand {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			args: { name },
 			flags: { standalone, output, registry },
-		} = this.parse(PluginCommand);
+		} = await this.parse(PluginCommand);
 
 		// validate folder name to not include camelcase or whitespace
 		const regexWhitespace = /\s/g;

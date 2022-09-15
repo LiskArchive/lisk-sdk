@@ -13,7 +13,6 @@
  *
  */
 import { when } from 'jest-when';
-import * as Config from '@oclif/config';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import * as path from 'path';
@@ -23,13 +22,14 @@ import { utils } from '@liskhq/lisk-cryptography';
 import { StartCommand } from '../../../src/bootstrapping/commands/start';
 import { getConfig } from '../../helpers/config';
 import * as application from '../../helpers/application';
+import { Awaited } from '../../types';
 
 // In order to test the command we need to extended the base crete command and provide application implementation
 class StartCommandExtended extends StartCommand {
 	static flags = {
 		...StartCommand.flags,
 	};
-	public getApplication(): Application {
+	public async getApplication(): Promise<Application> {
 		const app = application.getApplication();
 		jest.spyOn(app, 'run').mockResolvedValue();
 		return app;
@@ -43,7 +43,7 @@ class StartCommandExtended extends StartCommand {
 describe('start', () => {
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	beforeEach(async () => {
 		const genesis = utils.getRandomBytes(100);
@@ -52,7 +52,7 @@ describe('start', () => {
 		config = await getConfig();
 		const app = application.getApplication();
 		jest.spyOn(app, 'run').mockResolvedValue();
-		jest.spyOn(StartCommandExtended.prototype, 'getApplication').mockReturnValue(app);
+		jest.spyOn(StartCommandExtended.prototype, 'getApplication').mockResolvedValue(app);
 		jest.spyOn(process.stdout, 'write').mockImplementation(val => stdout.push(val as string) > -1);
 		jest.spyOn(process.stderr, 'write').mockImplementation(val => stderr.push(val as string) > -1);
 		jest.spyOn(application, 'getApplication').mockReturnValue(({

@@ -43,9 +43,17 @@
 		"bin": "dpos-mainchain",
 		"commands": "./dist/commands",
 		"plugins": [
+			"@oclif/plugin-help",
 			"@oclif/plugin-autocomplete",
-			"@oclif/plugin-help"
+			"@oclif/plugin-version"
 		],
+		"additionalHelpFlags": [
+			"-h"
+		],
+		"additionalVersionFlags": [
+			"-v"
+		],
+		"topicSeparator": " ",
 		"topics": {
 			"account": {
 				"description": "Commands relating to dpos-mainchain accounts."
@@ -101,28 +109,27 @@
 	"dependencies": {
 		"@liskhq/lisk-framework-dashboard-plugin": "^0.2.0-alpha.0",
 		"@liskhq/lisk-framework-faucet-plugin": "^0.2.0-alpha.0",
-		"@liskhq/lisk-framework-monitor-plugin": "^0.3.0-alpha.0",
 		"@liskhq/lisk-framework-forger-plugin": "^0.3.0-alpha.0",
+		"@liskhq/lisk-framework-monitor-plugin": "^0.3.0-alpha.0",
 		"@liskhq/lisk-framework-report-misbehavior-plugin": "^0.3.0-alpha.0",
-		"@oclif/command": "1.8.0",
-		"@oclif/plugin-autocomplete": "0.3.0",
-		"@oclif/plugin-help": "3.2.2",
+		"@oclif/core": "1.16.1",
+		"@oclif/plugin-autocomplete": "1.3.0",
+		"@oclif/plugin-help": "5.1.12",
+		"@oclif/plugin-version": "1.1.2",
+		"axios": "0.21.2",
 		"fs-extra": "9.1.0",
 		"inquirer": "8.0.0",
 		"lisk-commander": "^6.0.0-alpha.0",
 		"lisk-sdk": "^6.0.0-alpha.0",
 		"tar": "6.1.9",
-		"tslib": "1.14.1",
-		"axios": "0.21.2"
+		"tslib": "1.14.1"
 	},
 	"devDependencies": {
-		"@oclif/dev-cli": "1.26.0",
-		"@oclif/config": "1.17.0",
 		"@types/fs-extra": "9.0.1",
-		"@types/node": "12.20.6",
-		"@types/tar": "4.0.3",
 		"@types/jest": "26.0.21",
 		"@types/jest-when": "2.7.2",
+		"@types/node": "12.20.6",
+		"@types/tar": "4.0.3",
 		"@typescript-eslint/eslint-plugin": "4.19.0",
 		"@typescript-eslint/parser": "4.19.0",
 		"eslint": "7.22.0",

@@ -14,7 +14,7 @@
  *
  */
 import { encrypt, legacy } from '@liskhq/lisk-cryptography';
-import { flags as flagParser } from '@oclif/command';
+import { Flags as flagParser } from '@oclif/core';
 
 import BaseCommand from '../../base';
 import { ValidationError } from '../../utils/error';
@@ -73,7 +73,7 @@ export default class EncryptCommand extends BaseCommand {
 		const {
 			args,
 			flags: { passphrase: passphraseSource, message: messageSource },
-		} = this.parse(EncryptCommand);
+		} = await this.parse(EncryptCommand);
 
 		const { recipientPublicKey, message } = args as Args;
 

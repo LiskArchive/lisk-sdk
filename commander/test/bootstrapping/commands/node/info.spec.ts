@@ -14,12 +14,12 @@
  */
 import * as fs from 'fs-extra';
 import * as apiClient from '@liskhq/lisk-api-client';
-import * as Config from '@oclif/config';
 
 import { getConfig } from '../../../helpers/config';
 import { BaseIPCClientCommand } from '../../../../src/bootstrapping/commands/base_ipc_client';
 import * as appUtils from '../../../../src/utils/application';
 import { InfoCommand } from '../../../../src/bootstrapping/commands/node/info';
+import { Awaited } from '../../../types';
 
 describe('node:info command', () => {
 	const queryResult = {
@@ -49,7 +49,7 @@ describe('node:info command', () => {
 
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 	let getMock: jest.Mock;
 
 	beforeEach(async () => {

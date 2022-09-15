@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as Config from '@oclif/config';
+import { Config } from '@oclif/core';
 
 import pJSON = require('../../package.json');
 

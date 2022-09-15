@@ -13,11 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
-import * as Config from '@oclif/config';
+import { Config } from '@oclif/core';
 import * as fs from 'fs';
 import BaseBootstrapCommand from '../src/base_bootstrap_command';
 import { getConfig } from './helpers/config';
+import { Awaited } from './types';
 
 class MyCommand extends BaseBootstrapCommand {
 	run(): PromiseLike<any> {
@@ -28,7 +28,7 @@ class MyCommand extends BaseBootstrapCommand {
 describe('base_bootstrap_command command', () => {
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 
 	beforeEach(async () => {
 		stdout = [];
@@ -41,7 +41,7 @@ describe('base_bootstrap_command command', () => {
 	describe('_isLiskAppDir', () => {
 		it('should to check .liskrc.json file', async () => {
 			jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-			new MyCommand([], config)['_isLiskAppDir']('/my/dir');
+			new MyCommand([], (config as unknown) as Config)['_isLiskAppDir']('/my/dir');
 
 			expect(fs.existsSync).toHaveBeenCalledWith('/my/dir/.liskrc.json');
 		});

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import Command, { flags as flagParser } from '@oclif/command';
+import { Command, Flags as flagParser } from '@oclif/core';
 import * as apiClient from '@liskhq/lisk-api-client';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import {
@@ -60,8 +60,8 @@ interface SignFlags {
 	offline: boolean;
 	'data-path': string | undefined;
 	'sender-public-key': string | undefined;
-	'mandatory-keys': string[];
-	'optional-keys': string[];
+	'mandatory-keys': string[] | undefined;
+	'optional-keys': string[] | undefined;
 	'key-derivation-path': string;
 }
 
@@ -150,7 +150,7 @@ const signTransactionOffline = async (
 
 	const mandatoryKeys = flags['mandatory-keys'];
 	const optionalKeys = flags['optional-keys'];
-	if (!mandatoryKeys.length && !optionalKeys.length) {
+	if (!mandatoryKeys?.length && !optionalKeys?.length) {
 		throw new Error(
 			'--mandatory-keys or --optional-keys flag must be specified to sign transaction from multi signature account.',
 		);
@@ -278,7 +278,7 @@ export abstract class SignCommand extends Command {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			args: { transaction },
 			flags,
-		} = this.parse(SignCommand);
+		} = await this.parse(SignCommand);
 		const { offline, 'data-path': dataPath } = flags;
 		this._dataPath = dataPath ?? getDefaultPath(this.config.pjson.name);
 

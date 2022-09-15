@@ -16,10 +16,11 @@
 import { ed, bls, encrypt, utils } from '@liskhq/lisk-cryptography';
 import * as apiClient from '@liskhq/lisk-api-client';
 import * as fs from 'fs-extra';
-import * as Config from '@oclif/config';
+
 import * as appUtils from '../../../../src/utils/application';
 import { ImportCommand } from '../../../../src/bootstrapping/commands/generator/import';
 import { getConfig } from '../../../helpers/config';
+import { Awaited } from '../../../types';
 
 describe('keys:import', () => {
 	const defaultPassword = 'elephant tree paris dragon chair galaxy';
@@ -46,7 +47,7 @@ describe('keys:import', () => {
 	let fileData: any;
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 	let invokeMock: jest.Mock;
 
 	beforeEach(async () => {
@@ -66,7 +67,9 @@ describe('keys:import', () => {
 
 	describe('when importing without a file path flag', () => {
 		it('should throw an error', async () => {
-			await expect(ImportCommand.run([], config)).rejects.toThrow('Missing required flag:');
+			await expect(ImportCommand.run([], config)).rejects.toThrow(
+				'Missing required flag file-path',
+			);
 		});
 	});
 

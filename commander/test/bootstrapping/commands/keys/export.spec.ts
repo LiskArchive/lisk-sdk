@@ -18,11 +18,12 @@ import { codec } from '@liskhq/lisk-codec';
 import * as apiClient from '@liskhq/lisk-api-client';
 import { when } from 'jest-when';
 import * as fs from 'fs-extra';
-import * as Config from '@oclif/config';
+
 import * as appUtils from '../../../../src/utils/application';
 import { ExportCommand } from '../../../../src/bootstrapping/commands/keys/export';
 import { getConfig } from '../../../helpers/config';
 import { plainGeneratorKeysSchema } from '../../../../src/bootstrapping/commands/keys/create';
+import { Awaited } from '../../../types';
 
 describe('keys:export', () => {
 	const defaultPassword = 'elephant tree paris dragon chair galaxy';
@@ -48,7 +49,7 @@ describe('keys:export', () => {
 	let fileData: any;
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 	let invokeMock: jest.Mock;
 
 	beforeEach(async () => {
@@ -69,7 +70,7 @@ describe('keys:export', () => {
 
 	describe('when exporting without a file path flag', () => {
 		it('should throw an error', async () => {
-			await expect(ExportCommand.run([], config)).rejects.toThrow('Missing required flag:');
+			await expect(ExportCommand.run([], config)).rejects.toThrow('Missing required flag output');
 		});
 	});
 

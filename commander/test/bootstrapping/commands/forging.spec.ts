@@ -16,17 +16,17 @@
 import * as inquirer from 'inquirer';
 import * as apiClient from '@liskhq/lisk-api-client';
 import { when } from 'jest-when';
-import * as Config from '@oclif/config';
 import * as appUtils from '../../../src/utils/application';
 import { EnableCommand } from '../../../src/bootstrapping/commands/generator/enable';
 import { DisableCommand } from '../../../src/bootstrapping/commands/generator/disable';
 import { getConfig } from '../../helpers/config';
+import { Awaited } from '../../types';
 
 describe('forging', () => {
 	const actionResult = 'Status updated.';
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 	let invokeMock: jest.Mock;
 
 	beforeEach(async () => {

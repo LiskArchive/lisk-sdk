@@ -14,15 +14,15 @@
  */
 import * as fs from 'fs-extra';
 import * as apiClient from '@liskhq/lisk-api-client';
-import * as Config from '@oclif/config';
 import * as appUtils from '../../../../src/utils/application';
 import { getConfig } from '../../../helpers/config';
 import { BaseIPCClientCommand, InvokeCommand } from '../../../../src';
+import { Awaited } from '../../../types';
 
 describe('endpoint:invoke command', () => {
 	let stdout: string[];
 	let stderr: string[];
-	let config: Config.IConfig;
+	let config: Awaited<ReturnType<typeof getConfig>>;
 	let invokeMock: jest.Mock;
 	const invokeMockResolvedValue = { result: 'Invoke Response ' };
 

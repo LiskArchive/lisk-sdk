@@ -84,7 +84,7 @@ export abstract class ExportCommand extends BaseIPCClientCommand {
 	protected _client!: PromiseResolvedType<ReturnType<typeof apiClient.createIPCClient>> | undefined;
 
 	async run(): Promise<void> {
-		const { flags } = this.parse(ExportCommand);
+		const { flags } = await this.parse(ExportCommand);
 		if (!this._client) {
 			this.error('APIClient is not initialized.');
 		}
