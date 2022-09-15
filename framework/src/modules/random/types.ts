@@ -16,16 +16,6 @@ export interface ModuleConfig {
 	maxLengthRevealsMainchain?: number;
 }
 
-export interface UsedHashOnion {
-	readonly count: number;
-	readonly address: Buffer;
-	readonly height: number;
-}
-
-export interface UsedHashOnionStoreObject {
-	readonly usedHashOnions: UsedHashOnion[];
-}
-
 export interface BlockHeaderAssetRandomModule {
 	seedReveal: Buffer;
 }

@@ -14,7 +14,7 @@
 
 import { utils } from '@liskhq/lisk-cryptography';
 import { codec } from '@liskhq/lisk-codec';
-import { dataStructures, objects } from '@liskhq/lisk-utils';
+import { objects } from '@liskhq/lisk-utils';
 import { validator } from '@liskhq/lisk-validator';
 import {
 	BlockAfterExecuteContext,
@@ -25,7 +25,7 @@ import {
 } from '../../state_machine';
 import { BaseModule, ModuleInitArgs, ModuleMetadata } from '../base_module';
 import { RandomMethod } from './method';
-import { defaultConfig, EMPTY_KEY, STORE_PREFIX_USED_HASH_ONION } from './constants';
+import { defaultConfig, EMPTY_KEY } from './constants';
 import { RandomEndpoint } from './endpoint';
 import {
 	blockHeaderAssetRandomModule,
@@ -33,11 +33,11 @@ import {
 	isSeedRevealValidResponseSchema,
 	randomModuleConfig,
 } from './schemas';
-import { BlockHeaderAssetRandomModule, UsedHashOnion } from './types';
+import { BlockHeaderAssetRandomModule } from './types';
+import { UsedHashOnion, UsedHashOnionsStore } from './stores/used_hash_onions';
 import { Logger } from '../../logger';
 import { isSeedValidInput } from './utils';
 import { ValidatorRevealsStore } from './stores/validator_reveals';
-import { UsedHashOnionsStore } from './stores/used_hash_onions';
 import { HashOnion, HashOnionStore } from './stores/hash_onion';
 
 export class RandomModule extends BaseModule {
@@ -90,14 +90,16 @@ export class RandomModule extends BaseModule {
 		// Get used hash onions
 		let usedHashOnions: UsedHashOnion[] = [];
 		try {
-			const usedHashOnionsData = await generatorSubStore.get(context, STORE_PREFIX_USED_HASH_ONION);
+			const usedHashOnionsData = await generatorSubStore.get(
+				context,
+				context.header.generatorAddress,
+			);
 			usedHashOnions = usedHashOnionsData.usedHashOnions;
 		} catch (error) {
 			if (!(error instanceof NotFoundError)) {
 				throw error;
 			}
 		}
-
 		// Get next hash onion
 		const nextHashOnion = await this._getNextHashOnion(
 			usedHashOnions,
@@ -106,35 +108,25 @@ export class RandomModule extends BaseModule {
 			context.logger,
 			context,
 		);
-		const index = usedHashOnions.findIndex(
-			ho => ho.address.equals(context.header.generatorAddress) && ho.count === nextHashOnion.count,
-		);
+
 		const nextUsedHashOnion = {
 			count: nextHashOnion.count,
-			address: context.header.generatorAddress,
 			height: context.header.height, // Height of block being forged
 		} as UsedHashOnion;
 
-		if (index > -1) {
-			// Overwrite the hash onion if it exists
-			usedHashOnions[index] = nextUsedHashOnion;
-		} else {
-			usedHashOnions.push(nextUsedHashOnion);
-		}
-
-		const updatedUsedHashOnion = this._filterUsedHashOnions(
-			usedHashOnions,
-			context.getFinalizedHeight(),
-		);
 		// Set value in Block Asset
 		context.assets.setAsset(
 			this.name,
 			codec.encode(blockHeaderAssetRandomModule, { seedReveal: nextHashOnion.hash }),
 		);
-		// Update used seed reveal
-		await generatorSubStore.set(context, STORE_PREFIX_USED_HASH_ONION, {
-			usedHashOnions: updatedUsedHashOnion,
-		});
+
+		await generatorSubStore.setLatest(
+			context,
+			context.getFinalizedHeight(),
+			context.header.generatorAddress,
+			nextUsedHashOnion,
+			usedHashOnions,
+		);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
@@ -185,37 +177,8 @@ export class RandomModule extends BaseModule {
 		await randomDataStore.set(context, EMPTY_KEY, { validatorReveals: nextReveals });
 	}
 
-	private _filterUsedHashOnions(
-		usedHashOnions: UsedHashOnion[],
-		finalizedHeight: number,
-	): UsedHashOnion[] {
-		const filteredObject = usedHashOnions.reduce(
-			({ others, highest }, current) => {
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-				const prevUsed = highest.get(current.address);
-				if (prevUsed === undefined) {
-					highest.set(current.address, current);
-				} else if (prevUsed.height < current.height) {
-					others.push(prevUsed);
-					highest.set(current.address, current);
-				}
-				return {
-					highest,
-					others,
-				};
-			},
-			{
-				others: [] as UsedHashOnion[],
-				highest: new dataStructures.BufferMap<UsedHashOnion>(),
-			},
-		);
-
-		const filtered = filteredObject.others.filter(ho => ho.height > finalizedHeight);
-		return filtered.concat(filteredObject.highest.values());
-	}
-
 	private async _getNextHashOnion(
-		usedHashOnions: ReadonlyArray<UsedHashOnion>,
+		usedHashOnions: UsedHashOnion[],
 		address: Buffer,
 		height: number,
 		logger: Logger,
@@ -226,9 +189,6 @@ export class RandomModule extends BaseModule {
 	}> {
 		// Get highest hashonion that is used by this address below height
 		const usedHashOnion = usedHashOnions.reduce<UsedHashOnion | undefined>((prev, current) => {
-			if (!current.address.equals(address)) {
-				return prev;
-			}
 			if (
 				current.height < height &&
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
