@@ -96,11 +96,11 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			};
 		}
 
-		// 	The chainID has to be unique with respect to the set of already registered sidechains.
-		const chainDataSubstore = this.stores.get(ChainAccountStore);
-		const chainDataExists = await chainDataSubstore.has(context, chainID);
+		// The chainID has to be unique with respect to the set of already registered sidechains.
+		const chainAccountSubstore = this.stores.get(ChainAccountStore);
+		const chainAccountExists = await chainAccountSubstore.has(context, chainID);
 
-		if (chainDataExists) {
+		if (chainAccountExists) {
 			return {
 				status: VerifyStatus.FAIL,
 				error: new Error('Chain ID already registered.'),
@@ -168,7 +168,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		if (sidechainRegistrationFee !== REGISTRATION_FEE) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('Invalid extra command fee.'),
+				error: new Error(`Sidechain registration fee must be equal to ${REGISTRATION_FEE}`),
 			};
 		}
 
@@ -181,7 +181,9 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		if (availableBalance < REGISTRATION_FEE) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('Sender does not have enough balance.'),
+				error: new Error(
+					`Sender does not have enough balance. Required: ${REGISTRATION_FEE}, found: ${availableBalance}`,
+				),
 			};
 		}
 
@@ -254,8 +256,8 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			messageFeeTokenID,
 		});
 
-		const ownChainSubstore = this.stores.get(OwnChainAccountStore);
-		const ownChainAccount = await ownChainSubstore.get(methodContext, EMPTY_BYTES);
+		const ownChainAccountSubstore = this.stores.get(OwnChainAccountStore);
+		const ownChainAccount = await ownChainAccountSubstore.get(methodContext, EMPTY_BYTES);
 
 		const ccm = {
 			nonce: ownChainAccount.nonce,
@@ -272,7 +274,7 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 
 		// Update own chain account nonce
 		ownChainAccount.nonce += BigInt(1);
-		await ownChainSubstore.set(context, EMPTY_BYTES, ownChainAccount);
+		await ownChainAccountSubstore.set(context, EMPTY_BYTES, ownChainAccount);
 
 		// Emit CCM processed event.
 		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));

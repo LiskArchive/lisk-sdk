@@ -33,6 +33,7 @@ import { terminatedStateSchema } from '../stores/terminated_state';
 import { terminatedOutboxSchema } from '../stores/terminated_outbox';
 import { TokenMethod } from '../../token';
 import { SidechainRegistrationCommand } from './commands';
+import { COMMAND_NAME_SIDECHAIN_REG } from '../constants';
 import { BaseInteroperabilityCommand } from '../base_interoperability_command';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
@@ -59,7 +60,7 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 
 	public addDependencies(tokenMethod: TokenMethod) {
 		const sidechainRegistrationCommand = this.commands.find(
-			(command: BaseInteroperabilityCommand) => command.name === 'sidechainRegistration',
+			(command: BaseInteroperabilityCommand) => command.name === COMMAND_NAME_SIDECHAIN_REG,
 		);
 		sidechainRegistrationCommand?.addDependencies(tokenMethod);
 	}

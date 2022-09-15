@@ -438,6 +438,7 @@ export const checkValidCertificateLiveness = (
 export const verifyCertificateSignature = (
 	txParams: CrossChainUpdateTransactionParams,
 	partnerValidators: ChainValidators,
+	partnerChainAccount: ChainAccount,
 ): VerificationResult => {
 	// Only check when ceritificate is non-empty
 	if (txParams.certificate.equals(EMPTY_BYTES)) {
@@ -462,8 +463,7 @@ export const verifyCertificateSignature = (
 		decodedCertificate.aggregationBits as Buffer,
 		decodedCertificate.signature as Buffer,
 		MESSAGE_TAG_CERTIFICATE,
-		// TODO: Update `verifyWeightedAggSig` to no longer use networkID
-		Buffer.alloc(0),
+		partnerChainAccount.chainID,
 		txParams.certificate,
 		activeValidators.map(v => v.bftWeight),
 		certificateThreshold,
