@@ -20,15 +20,17 @@ import { BaseInteroperabilityCommand } from '../../base_interoperability_command
 import {
 	CHAIN_REGISTERED,
 	EMPTY_HASH,
-	MAX_UINT32,
 	MAX_UINT64,
 	CCM_STATUS_OK,
-	EMPTY_FEE_ADDRESS,
 	MAINCHAIN_ID_BUFFER,
 	MODULE_NAME_INTEROPERABILITY,
-	CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
+	REGISTRATION_FEE,
+	TOKEN_ID_LSK,
+	CROSS_CHAIN_COMMAND_REGISTRATION,
+	EMPTY_BYTES,
+	CCM_SENT_STATUS_SUCCESS,
 } from '../../constants';
-import { registrationCCMParamsSchema, sidechainRegParams } from '../../schemas';
+import { ccmSchema, registrationCCMParamsSchema, sidechainRegParams } from '../../schemas';
 import { SidechainRegistrationParams } from '../../types';
 import { computeValidatorsHash, isValidName } from '../../utils';
 import {
@@ -37,23 +39,31 @@ import {
 	VerifyStatus,
 	CommandExecuteContext,
 } from '../../../../state_machine';
-import { RegisteredNetworkStore } from '../../stores/registered_network_ids';
 import { ChainAccountStore } from '../../stores/chain_account';
 import { ChannelDataStore } from '../../stores/channel_data';
 import { ChainValidatorsStore } from '../../stores/chain_validators';
 import { OutboxRootStore } from '../../stores/outbox_root';
 import { RegisteredNamesStore } from '../../stores/registered_names';
 import { ImmutableStoreGetter, StoreGetter } from '../../../base_store';
+import { TokenMethod } from '../../../token';
+import { ChainAccountUpdatedEvent } from '../../events/chain_account_updated';
+import { OwnChainAccountStore } from '../../stores/own_chain_account';
+import { CcmProcessedEvent } from '../../events/ccm_processed';
 
 export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 	public schema = sidechainRegParams;
+	private _tokenMethod!: TokenMethod;
+
+	public addDependencies(tokenMethod: TokenMethod) {
+		this._tokenMethod = tokenMethod;
+	}
 
 	public async verify(
 		context: CommandVerifyContext<SidechainRegistrationParams>,
 	): Promise<VerificationResult> {
 		const {
-			transaction,
-			params: { certificateThreshold, initValidators, genesisBlockID, name },
+			transaction: { senderAddress },
+			params: { certificateThreshold, initValidators, chainID, name, sidechainRegistrationFee },
 		} = context;
 
 		try {
@@ -69,7 +79,9 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		if (!isValidName(name)) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error(`Sidechain name is in an unsupported format: ${name}`),
+				error: new Error(
+					`Invalid name property. It should contain only characters from the set [a-z0-9!@$&_.].`,
+				),
 			};
 		}
 
@@ -80,20 +92,26 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 		if (nameExists) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('Name substore must not have an entry for the store key name'),
+				error: new Error('Name already registered.'),
 			};
 		}
 
-		const networkID = utils.hash(Buffer.concat([genesisBlockID, transaction.senderAddress]));
+		// 	The chainID has to be unique with respect to the set of already registered sidechains.
+		const chainDataSubstore = this.stores.get(ChainAccountStore);
+		const chainDataExists = await chainDataSubstore.has(context, chainID);
 
-		// 	networkId has to be unique with respect to the set of already registered sidechain network IDs in the blockchain state.
-		const networkIDSubstore = this.stores.get(RegisteredNetworkStore);
-		const networkIDExists = await networkIDSubstore.has(context, networkID);
-
-		if (networkIDExists) {
+		if (chainDataExists) {
 			return {
 				status: VerifyStatus.FAIL,
-				error: new Error('Network ID substore must not have an entry for the store key networkID'),
+				error: new Error('Chain ID already registered.'),
+			};
+		}
+
+		// Check that the first byte of the chainID matches.
+		if (chainID[0] !== MAINCHAIN_ID_BUFFER[0]) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Chain ID does not match the mainchain network.'),
 			};
 		}
 
@@ -146,6 +164,27 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 			};
 		}
 
+		// 	sidechainRegistrationFee must valid
+		if (sidechainRegistrationFee !== REGISTRATION_FEE) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Invalid extra command fee.'),
+			};
+		}
+
+		// Sender must have enough balance to pay for extra command fee.
+		const availableBalance = await this._tokenMethod.getAvailableBalance(
+			context.getMethodContext(),
+			senderAddress,
+			TOKEN_ID_LSK,
+		);
+		if (availableBalance < REGISTRATION_FEE) {
+			return {
+				status: VerifyStatus.FAIL,
+				error: new Error('Sender does not have enough balance.'),
+			};
+		}
+
 		return {
 			status: VerifyStatus.OK,
 		};
@@ -153,29 +192,16 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 
 	public async execute(context: CommandExecuteContext<SidechainRegistrationParams>): Promise<void> {
 		const {
-			header,
-			transaction,
-			params: { certificateThreshold, initValidators, genesisBlockID, name },
+			getMethodContext,
+			transaction: { senderAddress },
+			params: { certificateThreshold, initValidators, chainID, name },
 		} = context;
-
-		const networkID = utils.hash(Buffer.concat([genesisBlockID, transaction.senderAddress]));
+		const methodContext = getMethodContext();
 
 		// Add an entry in the chain substore
 		const chainSubstore = this.stores.get(ChainAccountStore);
-
-		// Find the latest chainID from db
-		const gte = utils.intToBuffer(0, 4);
-		const lte = utils.intToBuffer(MAX_UINT32, 4);
-		const chainIDs = await chainSubstore.iterate(context, { gte, lte, limit: 1, reverse: true });
-		if (!chainIDs.length) {
-			throw new Error('No existing entries found in chain store');
-		}
-		const chainID = chainIDs[0].key.readUInt32BE(0) + 1;
-		const chainIDBuffer = utils.intToBuffer(chainID, 4);
-
-		await chainSubstore.set(context, chainIDBuffer, {
+		const sidechainAccount = {
 			name,
-			networkID,
 			lastCertificate: {
 				height: 0,
 				timestamp: 0,
@@ -183,70 +209,77 @@ export class SidechainRegistrationCommand extends BaseInteroperabilityCommand {
 				validatorsHash: computeValidatorsHash(initValidators, certificateThreshold),
 			},
 			status: CHAIN_REGISTERED,
-		});
+		};
+
+		await chainSubstore.set(context, chainID, sidechainAccount);
 
 		// Add an entry in the channel substore
+		const messageFeeTokenID = {
+			chainID: utils.intToBuffer(1, 4),
+			localID: utils.intToBuffer(0, 4),
+		};
 		const channelSubstore = this.stores.get(ChannelDataStore);
-		await channelSubstore.set(context, chainIDBuffer, {
+		await channelSubstore.set(context, chainID, {
 			inbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 			outbox: { root: EMPTY_HASH, appendPath: [], size: 0 },
 			partnerChainOutboxRoot: EMPTY_HASH,
-			messageFeeTokenID: { chainID: utils.intToBuffer(1, 4), localID: utils.intToBuffer(0, 4) },
+			messageFeeTokenID,
 		});
 
-		// sendInternal registration CCM
-		const interoperabilityStore = this.getInteroperabilityStore(context);
-
-		const encodedParams = codec.encode(registrationCCMParamsSchema, {
-			networkID,
-			name,
-			messageFeeTokenID: { chainID: MAINCHAIN_ID_BUFFER, localID: utils.intToBuffer(0, 4) },
-		});
-
-		await interoperabilityStore.sendInternal({
-			module: MODULE_NAME_INTEROPERABILITY,
-			crossChainCommand: CROSS_CHAIN_COMMAND_NAME_REGISTRATION,
-			receivingChainID: chainIDBuffer,
-			fee: BigInt(0),
-			status: CCM_STATUS_OK,
-			params: encodedParams,
-			timestamp: header.timestamp,
-			eventQueue: context.eventQueue,
-			feeAddress: EMPTY_FEE_ADDRESS,
-			getMethodContext: context.getMethodContext,
-			getStore: context.getStore,
-			logger: context.logger,
-			chainID: context.chainID,
-		});
-
-		// Add an entry in the chain validators substore
+		// Add an entry in the validators substore
 		const chainValidatorsSubstore = this.stores.get(ChainValidatorsStore);
-		await chainValidatorsSubstore.set(context, chainIDBuffer, {
+		await chainValidatorsSubstore.set(context, chainID, {
 			activeValidators: initValidators,
 			certificateThreshold,
 		});
 
 		// Add an entry in the outbox root substore
 		const outboxRootSubstore = this.stores.get(OutboxRootStore);
-		await outboxRootSubstore.set(context, chainIDBuffer, { root: EMPTY_HASH });
+		await outboxRootSubstore.set(context, chainID, { root: EMPTY_HASH });
 
 		// Add an entry in the registered names substore
 		const registeredNamesSubstore = this.stores.get(RegisteredNamesStore);
-		await registeredNamesSubstore.set(
-			context,
-			Buffer.from(name, 'utf-8'),
-			{ id: chainIDBuffer },
-			// Note: Uses chainIDSchema
-		);
+		await registeredNamesSubstore.set(context, Buffer.from(name, 'utf-8'), { id: chainID });
 
-		// Add an entry in the registered network IDs substore
-		const registeredNetworkIDsSubstore = this.stores.get(RegisteredNetworkStore);
-		await registeredNetworkIDsSubstore.set(
-			context,
-			networkID,
-			{ id: chainIDBuffer },
-			// Note: Uses chainIDSchema
-		);
+		// Burn the registration fee
+		await this._tokenMethod.burn(methodContext, senderAddress, TOKEN_ID_LSK, REGISTRATION_FEE);
+
+		// Emit chain account updated event.
+		this.events.get(ChainAccountUpdatedEvent).log(methodContext, chainID, sidechainAccount);
+
+		// Send registration CCM to the sidechain.
+		const encodedParams = codec.encode(registrationCCMParamsSchema, {
+			chainID,
+			name,
+			messageFeeTokenID,
+		});
+
+		const ownChainSubstore = this.stores.get(OwnChainAccountStore);
+		const ownChainAccount = await ownChainSubstore.get(methodContext, EMPTY_BYTES);
+
+		const ccm = {
+			nonce: BigInt(0),
+			module: MODULE_NAME_INTEROPERABILITY,
+			crossChainCommand: CROSS_CHAIN_COMMAND_REGISTRATION,
+			sendingChainID: ownChainAccount.id,
+			receivingChainID: chainID,
+			fee: BigInt(0),
+			status: CCM_STATUS_OK,
+			params: encodedParams,
+		};
+		const interoperabilityStore = this.getInteroperabilityStore(context);
+		await interoperabilityStore.addToOutbox(chainID, ccm);
+
+		// Update own chain account nonce
+		ownChainAccount.nonce += BigInt(1);
+		await ownChainSubstore.set(context, EMPTY_BYTES, ownChainAccount);
+
+		// Emit CCM processed event.
+		const ccmID = utils.hash(codec.encode(ccmSchema, ccm));
+		this.events.get(CcmProcessedEvent).log(methodContext, ownChainAccount.id, chainID, ccmID, {
+			ccmID,
+			status: CCM_SENT_STATUS_SUCCESS,
+		});
 	}
 
 	protected getInteroperabilityStore(
