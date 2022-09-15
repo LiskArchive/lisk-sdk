@@ -19,6 +19,7 @@ export const MODULE_NAME_INTEROPERABILITY = 'interoperability';
 // General constants
 export const MAINCHAIN_ID = 1;
 export const MAINCHAIN_ID_BUFFER = utils.intToBuffer(MAINCHAIN_ID, 4);
+// TODO: To be updated after token module update
 export const TOKEN_ID_LSK = Buffer.from([0, 0, 0, 1, 0, 0, 0, 0]);
 export const MAINCHAIN_NAME = 'lisk-mainchain';
 export const MAINCHAIN_NETWORK_ID = Buffer.from(
