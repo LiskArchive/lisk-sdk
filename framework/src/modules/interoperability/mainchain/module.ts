@@ -31,6 +31,9 @@ import { channelSchema } from '../stores/channel_data';
 import { ownChainAccountSchema } from '../stores/own_chain_account';
 import { terminatedStateSchema } from '../stores/terminated_state';
 import { terminatedOutboxSchema } from '../stores/terminated_outbox';
+import { TokenMethod } from '../../token';
+import { SidechainRegistrationCommand } from './commands';
+import { BaseInteroperabilityCommand } from '../base_interoperability_command';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod = new MainchainCCMethod(this.stores, this.events);
@@ -44,6 +47,22 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 		this.offchainStores,
 		this.interoperableCCMethods,
 	);
+
+	public commands = [
+		new SidechainRegistrationCommand(
+			this.stores,
+			this.events,
+			this.interoperableCCMethods,
+			this.interoperableCCCommands,
+		),
+	];
+
+	public addDependencies(tokenMethod: TokenMethod) {
+		const sidechainRegistrationCommand = this.commands.find(
+			(command: BaseInteroperabilityCommand) => command.name === 'sidechainRegistration',
+		);
+		sidechainRegistrationCommand?.addDependencies(tokenMethod);
+	}
 
 	public metadata(): ModuleMetadata {
 		return {
