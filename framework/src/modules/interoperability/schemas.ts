@@ -356,7 +356,7 @@ export const sidechainTerminatedCCMParamsSchema = {
 export const chainIDSchema = {
 	$id: '/modules/interoperability/chainId',
 	type: 'object',
-	required: ['chainID'],
+	required: ['id'],
 	properties: {
 		id: {
 			dataType: 'bytes',
