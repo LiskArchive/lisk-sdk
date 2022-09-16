@@ -16,11 +16,19 @@ import { JSONObject } from '../../types';
 
 export interface LegacyBlockHeader {
 	[key: string]: unknown;
-	height: Buffer;
+	id: Buffer;
+	version: number;
+	height: number;
+	previousBlockID: Buffer;
 	transactionRoot: Buffer;
 }
 
 export type LegacyBlockHeaderJSON = JSONObject<LegacyBlockHeader>;
+
+export interface RawLegacyBlock {
+	header: Buffer;
+	transactions: Buffer[];
+}
 
 export interface LegacyBlock {
 	header: LegacyBlockHeader;
