@@ -111,6 +111,7 @@ export class Network {
 	private _endpoints: P2PRPCEndpoints;
 	private _eventHandlers: P2PEventHandlers;
 	private _saveIntervalID?: NodeJS.Timer;
+	private _nodeInfoOptions!: Record<string, unknown>;
 
 	public constructor({ options }: NetworkConstructor) {
 		this._options = options;
@@ -154,23 +155,25 @@ export class Network {
 
 		this._secret = secret?.readUInt32BE(0);
 
+		this._nodeInfoOptions = {
+			lastBlockID: Buffer.alloc(0),
+			blockVersion: 0,
+			height: 0,
+			maxHeightPrevoted: 0,
+			/* As soon as network will start, the node will sync
+			   with the network or check if all the legacy blocks are already present
+			   and update "legacy" field with corresponding snapshotBlockID
+			*/
+			legacy: [],
+		};
+
 		const initialNodeInfo = {
 			chainID: this._chainID,
 			networkVersion: this._options.version,
 			// Nonce is required in type, but it is overwritten
 			nonce: '',
 			advertiseAddress: this._options.advertiseAddress ?? true,
-			options: {
-				lastBlockID: Buffer.alloc(0),
-				blockVersion: 0,
-				height: 0,
-				maxHeightPrevoted: 0,
-				/* As soon as network will start, the node will sync
-				   with the network or check if all the legacy blocks are already present
-				   and update "legacy" field with corresponding snapshotBlockID
-				*/
-				legacy: [],
-			},
+			options: { ...this._nodeInfoOptions },
 		};
 
 		const seedPeers = await lookupPeersIPs(this._options.seedPeers, true);
@@ -537,12 +540,13 @@ export class Network {
 		});
 	}
 
-	public applyNodeInfo(data: NodeInfoOptions): void {
+	public applyNodeInfo(data: Partial<NodeInfoOptions>): void {
+		this._nodeInfoOptions = { ...this._nodeInfoOptions, ...data };
 		const newNodeInfo = {
 			chainID: this._chainID,
 			networkVersion: this._options.version,
 			advertiseAddress: this._options.advertiseAddress ?? true,
-			options: data,
+			options: this._nodeInfoOptions,
 		};
 
 		try {

@@ -555,7 +555,6 @@ export class Consensus {
 				lastBlockID: block.header.id,
 				maxHeightPrevoted: block.header.maxHeightPrevoted,
 				blockVersion: block.header.version,
-				legacy: [], // TODO: call legacyChainHandler to get the updated value https://github.com/LiskHQ/lisk-sdk/issues/7503
 			});
 		});
 	}
