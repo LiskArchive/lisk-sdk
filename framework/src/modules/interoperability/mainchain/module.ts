@@ -26,15 +26,22 @@ import {
 } from '../schemas';
 import { GenesisBlockExecuteContext } from '../../../state_machine';
 import { initGenesisStateUtil } from '../utils';
-import { chainAccountSchema, allChainAccountsSchema } from '../stores/chain_account';
-import { channelSchema } from '../stores/channel_data';
-import { ownChainAccountSchema } from '../stores/own_chain_account';
+import {
+	chainAccountSchema,
+	allChainAccountsSchema,
+	ChainAccountStore,
+} from '../stores/chain_account';
+import { ChannelDataStore, channelSchema } from '../stores/channel_data';
+import { ownChainAccountSchema, OwnChainAccountStore } from '../stores/own_chain_account';
 import { terminatedStateSchema } from '../stores/terminated_state';
 import { terminatedOutboxSchema } from '../stores/terminated_outbox';
 import { TokenMethod } from '../../token';
 import { SidechainRegistrationCommand } from './commands';
-import { COMMAND_NAME_SIDECHAIN_REG } from '../constants';
-import { BaseInteroperabilityCommand } from '../base_interoperability_command';
+import { CcmProcessedEvent } from '../events/ccm_processed';
+import { ChainAccountUpdatedEvent } from '../events/chain_account_updated';
+import { RegisteredNamesStore } from '../stores/registered_names';
+import { OutboxRootStore } from '../stores/outbox_root';
+import { ChainValidatorsStore } from '../stores/chain_validators';
 
 export class MainchainInteroperabilityModule extends BaseInteroperabilityModule {
 	public crossChainMethod = new MainchainCCMethod(this.stores, this.events);
@@ -59,11 +66,20 @@ export class MainchainInteroperabilityModule extends BaseInteroperabilityModule 
 	// eslint-disable-next-line @typescript-eslint/member-ordering
 	public commands = [this._sidechainRegistrationCommand];
 
+	public constructor() {
+		super();
+		this.stores.register(RegisteredNamesStore, new RegisteredNamesStore(this.name));
+		this.stores.register(ChainAccountStore, new ChainAccountStore(this.name));
+		this.stores.register(OwnChainAccountStore, new OwnChainAccountStore(this.name));
+		this.stores.register(ChannelDataStore, new ChannelDataStore(this.name));
+		this.stores.register(OutboxRootStore, new OutboxRootStore(this.name));
+		this.stores.register(ChainValidatorsStore, new ChainValidatorsStore(this.name));
+		this.events.register(ChainAccountUpdatedEvent, new ChainAccountUpdatedEvent(this.name));
+		this.events.register(CcmProcessedEvent, new CcmProcessedEvent(this.name));
+	}
+
 	public addDependencies(tokenMethod: TokenMethod) {
-		const sidechainRegistrationCommand = this.commands.find(
-			(command: BaseInteroperabilityCommand) => command.name === COMMAND_NAME_SIDECHAIN_REG,
-		);
-		sidechainRegistrationCommand?.addDependencies(tokenMethod);
+		this._sidechainRegistrationCommand.addDependencies(tokenMethod);
 	}
 
 	public metadata(): ModuleMetadata {
