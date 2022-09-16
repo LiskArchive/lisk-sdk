@@ -549,11 +549,13 @@ export class Consensus {
 			});
 			await this._executeValidated(block);
 
+			// Since legacy property is optional we don't need to send it here
 			this._network.applyNodeInfo({
 				height: block.header.height,
 				lastBlockID: block.header.id,
 				maxHeightPrevoted: block.header.maxHeightPrevoted,
 				blockVersion: block.header.version,
+				legacy: [], // TODO: call legacyChainHandler to get the updated value https://github.com/LiskHQ/lisk-sdk/issues/7503
 			});
 		});
 	}

@@ -56,6 +56,7 @@ interface NodeInfoOptions {
 	readonly height: number;
 	readonly maxHeightPrevoted: number;
 	readonly blockVersion: number;
+	readonly legacy?: Buffer[];
 }
 
 interface NetworkConstructor {
@@ -164,6 +165,11 @@ export class Network {
 				blockVersion: 0,
 				height: 0,
 				maxHeightPrevoted: 0,
+				/* As soon as network will start, the node will sync
+				   with the network or check if all the legacy blocks are already present
+				   and update "legacy" field with corresponding snapshotBlockID
+				*/
+				legacy: [],
 			},
 		};
 
